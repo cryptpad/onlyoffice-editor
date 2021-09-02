@@ -54,7 +54,7 @@
             var oPen = originalObject.pen;
             var oBrush = originalObject.brush;
             this.transform = originalObject.transform;
-            this.overlayObject = new AscFormat.OverlayObject(originalObject.getGeom(), this.shapeWidth, this.shapeHeight, oBrush, oPen, this.transform);
+            this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.shapeWidth, this.shapeHeight, oBrush, oPen, this.transform);
             this.xMin = 0;
             this.yMin = 0;
             this.xMax = this.shapeWidth;
