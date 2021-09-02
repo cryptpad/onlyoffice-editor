@@ -1773,8 +1773,8 @@ GeometryEditState.prototype = {
                 track_object.deletePoint(track_object.geometry);
             }
         }
-        this.drawingObjects.updateOverlay();
         track_object.addCommandsInPathInfo(track_object.geometry);
+        this.drawingObjects.updateOverlay();
         RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
     }
 }

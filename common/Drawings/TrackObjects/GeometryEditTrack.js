@@ -77,7 +77,6 @@
     };
 
     EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
-        AscFormat.ExecuteNoHistory(function() {
         var geometry = this.geometry;
 
         if(!geometry.gmEditPoint) {
@@ -240,8 +239,6 @@
                     arrPathCommand[gmEditPoint.pathC2] = command;
                 }
             }
-        }, this, []);
-
     };
 
     EditShapeGeometryTrack.prototype.getBounds = function() {
@@ -319,6 +316,8 @@
     };
 
     EditShapeGeometryTrack.prototype.trackEnd = function() {
+        this.originalObject.spPr.xfrm.setExtX(this.xMax - this.xMin);
+        this.originalObject.spPr.xfrm.setExtY(this.yMax - this.yMin);
         this.originalObject.spPr.setGeometry(this.geometry.createDuplicate());
     };
 
@@ -566,7 +565,6 @@
                 }
             })
         }
-        this.addCommandsInPathInfo(geometry);
     };
 
     EditShapeGeometryTrack.prototype.addCommandsInPathInfo = function(geometry) {
@@ -606,12 +604,6 @@
         this.xMax = xMax;
         this.yMin = yMin;
         this.yMax = yMax;
-
-
-        var shape = this.originalShape;
-        shape.spPr.xfrm.setExtX(xMax - xMin);
-        shape.spPr.xfrm.setExtY(yMax - yMin);
-        shape.setStyle(AscFormat.CreateDefaultShapeStyle());
 
         var w = xMax - xMin, h = yMax - yMin;
         var kw, kh, pathW, pathH;
