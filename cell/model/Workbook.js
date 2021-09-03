@@ -1984,6 +1984,31 @@
 		this.sheets = null;
 		this.pivotCaches = null;
 	}
+	CT_Workbook.prototype.fromXml = function(reader) {
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		if ("workbook" !== reader.GetNameNoNS()) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		if ("workbook" === reader.GetNameNoNS()) {
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+				if ("sheets" === name) {
+					var sheets = new CT_Sheets();
+					sheets.fromXml(reader);
+					this.sheets = sheets.sheets
+				} else if ("pivotCaches" === name) {
+					var pivotCaches = new CT_PivotCaches();
+					pivotCaches.fromXml(reader);
+					this.pivotCaches = pivotCaches.pivotCaches
+				}
+			}
+		}
+	};
 	CT_Workbook.prototype.onStartNode = function(elem, attr, uq) {
 		var newContext = this;
 		if ("workbook" === elem) {
@@ -2013,18 +2038,56 @@
 		}
 		return newContext;
 	};
+	function CT_PivotCaches() {
+		this.pivotCaches = [];
+	}
+	CT_PivotCaches.prototype.fromXml = function(reader) {
+		if ( reader.IsEmptyNode() )
+			return;
+		var depth = reader.GetDepth();
+		while( reader.ReadNextSiblingNode(depth) ) {
+			if ( "pivotCache" === reader.GetNameNoNS() ) {
+				var pivotCache = new CT_PivotCache();
+				pivotCache.fromXml(reader);
+				this.pivotCaches.push(pivotCache);
+			}
+		}
+	};
+	function CT_Sheets() {
+		this.sheets = [];
+	}
+	CT_Sheets.prototype.fromXml = function(reader) {
+		if ( reader.IsEmptyNode() )
+			return;
+		var depth = reader.GetDepth();
+		while( reader.ReadNextSiblingNode(depth) ) {
+			if ( "sheet" === reader.GetNameNoNS() ) {
+				var sheet = new CT_Sheet();
+				sheet.fromXml(reader);
+				this.sheets.push(sheet);
+			}
+		}
+	};
 	function CT_Sheet() {
 		//Attributes
 		this.id = null;
 	}
+	CT_Sheet.prototype.fromXml = function(reader) {
+		this.parseAttributes(reader.ReadAttributes(), EasySAXParser.entityDecode);
+
+		if ( !reader.IsEmptyNode() )
+			reader.ReadTillEnd();
+	};
 	CT_Sheet.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
-			var vals = attr();
-			var val;
-			val = vals["r:id"];
-			if (undefined !== val) {
-				this.id = AscCommon.unleakString(uq(val));
-			}
+			this.parseAttributes(attr());
+		}
+	};
+	CT_Sheet.prototype.parseAttributes = function(vals, uq) {
+		var val;
+		val = vals["r:id"];
+		if (undefined !== val) {
+			this.id = AscCommon.unleakString(uq(val));
 		}
 	};
 	function CT_PivotCache() {
@@ -2032,18 +2095,23 @@
 		this.cacheId = null;
 		this.id = null;
 	}
+	CT_PivotCache.prototype.fromXml = function(reader) {
+		this.parseAttributes(reader.ReadAttributes(), EasySAXParser.entityDecode);
+
+		if ( !reader.IsEmptyNode() )
+			reader.ReadTillEnd();
+	};
 	CT_PivotCache.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
 			var vals = attr();
-			var val;
-			val = vals["cacheId"];
-			if (undefined !== val) {
-				this.cacheId = val - 0;
-			}
-			val = vals["r:id"];
-			if (undefined !== val) {
-				this.id = AscCommon.unleakString(uq(val));
-			}
+			this.parseAttributes(attr(), uq);
+		}
+	};
+	CT_PivotCache.prototype.parseAttributes = function(vals, uq) {
+		var val;
+		val = vals["r:id"];
+		if (undefined !== val) {
+			this.id = AscCommon.unleakString(uq(val));
 		}
 	};
 	/**

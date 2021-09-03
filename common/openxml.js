@@ -107,6 +107,88 @@
 		});
 		parser.parse(xml);
 	};
+
+	function StaxParser(xml) {
+		this.parser = new EasySAXParser({'autoEntity': true});
+		this.parser.staxInit(xml);
+	}
+
+	StaxParser.prototype.ReadAttributes = function() {
+		return this.parser.staxGetAttrs();
+	};
+	StaxParser.prototype.Read = function() {
+		var hasNext = this.parser.staxHasNext();
+		this.parser.staxNext();
+		return hasNext;
+	};
+	StaxParser.prototype.ReadNextNode = function() {
+		var type = EasySAXEvent.Unknown;
+		while (EasySAXEvent.START_ELEMENT !== type && this.parser.staxHasNext()) {
+			type = this.parser.staxNext();
+		}
+		return EasySAXEvent.START_ELEMENT === type;
+	};
+	StaxParser.prototype.ReadNextSiblingNode = function(depth) {
+		var type = EasySAXEvent.Unknown;
+		while (this.parser.staxHasNext()) {
+			type = this.parser.staxNext();
+			var curDepth = this.parser.staxGetDepth();
+			if (curDepth < depth)
+				break;
+			if (EasySAXEvent.START_ELEMENT == type && curDepth == depth + 1)
+				return true;
+			else if (EasySAXEvent.END_ELEMENT == type && curDepth == depth)
+				return false;
+
+		}
+		return false;
+	};
+	StaxParser.prototype.ReadTillEnd = function (opt_depth) {
+		var depth = opt_depth;
+		if (!depth) {
+			depth = this.parser.staxGetDepth();
+		} else if(depth === this.parser.staxGetDepth() && this.isEmptyNode()){
+			return true;
+		}
+		var type = EasySAXEvent.Unknown;
+		while (EasySAXEvent.START_ELEMENT !== type && this.parser.staxHasNext()) {
+			type = this.parser.staxNext();
+			var curDepth = this.GetDepth();
+			if (curDepth < depth) {
+				break;
+			}
+			if (EasySAXEvent.END_ELEMENT == type && curDepth == depth)
+				break;
+		}
+		return true;
+	};
+	StaxParser.prototype.IsEmptyNode = function () {
+		return this.parser.staxIsEmptyNode();
+	};
+	StaxParser.prototype.GetDepth = function() {
+		return this.parser.staxGetDepth();
+	};
+	StaxParser.prototype.GetName = function () {
+		return this.parser.staxGetName();
+	};
+	StaxParser.prototype.GetNameNoNS = function () {
+		return this.RemoveNS(this.GetName());
+	};
+	StaxParser.prototype.GetText = function () {
+		this.parser.staxGetText();
+	};
+	StaxParser.prototype.RemoveNS = function(name) {
+		var index = name.indexOf(':');
+		if (-1 !== index) {
+			return name.substring(index + 1);
+		}
+		return name;
+	};
+	StaxParser.prototype.End = function () {
+		parser.staxEnd();
+	};
+
+	openXml.StaxParser = StaxParser;
 	openXml.SaxParserBase = SaxParserBase;
 	openXml.SaxParserDataTransfer = {};
 

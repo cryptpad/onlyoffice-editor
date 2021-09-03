@@ -272,15 +272,8 @@ function EasySAXParser(config) {
         this.write(xml);
         this.end();
     };
-    this.staxParseStream = function(staxStream) {
-        this.staxInit(staxStream);
-        staxParseWithEvents();
-        returnError = '';
-        this.end();
-    };
     this.staxParseXml = function(xml) {
-        var xmls = [xml];
-        this.staxParseStream({read: function(){return xmls.pop();}});
+        staxParseWithEvents.call(this, xml);
     };
 
     this.stop = function() {
@@ -593,7 +586,7 @@ function EasySAXParser(config) {
             };
 
             if (indexStartXML !== i && !stopEmit) { // все что до тега это текст
-                let text = xml.substring(indexStartXML, i);
+                var text = xml.substring(indexStartXML, i);
                 indexStartXML = i; // до этой позиции разбор завершен
 
                 onTextNode(isAutoEntity ? entityDecode(text) : text);
@@ -608,13 +601,13 @@ function EasySAXParser(config) {
             w = xml.charCodeAt(i + 1);
 
             if (w === 33) { // 33 == "!"
-                let w = xml.charCodeAt(i + 2);
+                var wNext = xml.charCodeAt(i + 2);
 
                 // CDATA
                 // ---------------------------------------------
-                if (w === 91 && xml.substr(i + 3, 6) === 'CDATA[') { // 91 == "["
-                    let indexStartCDATA = i + 9;
-                    let indexEndCDATA = xml.indexOf(']]>', indexStartCDATA);
+                if (wNext === 91 && xml.substr(i + 3, 6) === 'CDATA[') { // 91 == "["
+                    var indexStartCDATA = i + 9;
+                    var indexEndCDATA = xml.indexOf(']]>', indexStartCDATA);
                     if (indexEndCDATA === -1) {
                         returnError = 'cdata, not found ...]]>'; // не закрыт CDATA. повторим попытку на след. write
                         return;
@@ -634,9 +627,9 @@ function EasySAXParser(config) {
 
                 // COMMENT
                 // ---------------------------------------------
-                if (w === 45 && xml.charCodeAt(i + 3) === 45) { // 45 == "-"
-                    let indexStartComment = i + 4;
-                    let indexEndComment = xml.indexOf('-->', indexStartComment);
+                if (wNext === 45 && xml.charCodeAt(i + 3) === 45) { // 45 == "-"
+                    var indexStartComment = i + 4;
+                    var indexEndComment = xml.indexOf('-->', indexStartComment);
                     if (indexEndComment === -1) {
                         returnError = 'expected -->'; // не закрыт комментарий. повторим попытку на след. write
                         return;
@@ -645,7 +638,7 @@ function EasySAXParser(config) {
                     indexStartXML = indexEndComment + 3;
 
                     if (is_onComment && !stopEmit) {
-                        let commentText = xml.substring(indexStartComment, indexEndComment);
+                        var commentText = xml.substring(indexStartComment, indexEndComment);
                         onComment(isAutoEntity ? entityDecode(commentText) : commentText);
                         if (isParseStop) {
                             return;
@@ -657,8 +650,8 @@ function EasySAXParser(config) {
                 // ATTENTION
                 // ---------------------------------------------
                 {
-                    let indexStartAttention = i + 1;
-                    let indexEndAttention = xml.indexOf('>', indexStartAttention);
+                    var indexStartAttention = i + 1;
+                    var indexEndAttention = xml.indexOf('>', indexStartAttention);
                     if (indexEndAttention === -1) {
                         returnError = 'expected attention ...>'; // повторим попытку на след. write
                         return;
@@ -680,7 +673,7 @@ function EasySAXParser(config) {
             // QUESTION
             // ---------------------------------------------
             if (w === 63) { // "?"
-                let indexEndQuestion = xml.indexOf('?>', i);
+                var indexEndQuestion = xml.indexOf('?>', i);
                 if (indexEndQuestion === -1) { // error
                     returnError = 'expected question ...?>'; // повторим попытку на след. write
                     return;
@@ -702,7 +695,7 @@ function EasySAXParser(config) {
             // ---------------------------------------------
 
             if (w === 47) { // </...
-                let indexEndNode = xml.indexOf('>', i + 1);
+                var indexEndNode = xml.indexOf('>', i + 1);
                 if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
                     returnError = 'unclosed tag'; // повторим попытку на след. write
                     return;
@@ -729,8 +722,8 @@ function EasySAXParser(config) {
 
                 // проверим что в закрываюшем теге нет лишнего
                 for(; iQ < indexEndNode; iQ++) {
-                    let w = xml.charCodeAt(iQ);
-                    if (w === 32 || w === 9 || w === 10 || w === 11 || w === 12 || w === 13) { // \f\n\r\t\v
+                    var wNext = xml.charCodeAt(iQ);
+                    if (wNext === 32 || wNext === 9 || wNext === 10 || wNext === 11 || wNext === 12 || wNext === 13) { // \f\n\r\t\v
                         continue;
                     };
 
@@ -742,7 +735,7 @@ function EasySAXParser(config) {
                 indexStartXML = indexEndNode + 1;
 
             } else {
-                let indexEndNode = parseNode(i);
+                var indexEndNode = parseNode(i);
                 if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
                     returnError = returnError || 'unclosed tag'; // повторим попытку на след. write
                     return;
@@ -834,24 +827,26 @@ function EasySAXParser(config) {
         };
     };
 
-    var staxStream, staxState_nsmatrix, staxStateisTagStart, staxStateisTagEnd, staxStatestopEmit, staxStatenodeName, staxStateeventType, staxStatetext;
-    function staxInit(_staxStream) {
+    var staxStream, staxStateisTagStart, staxStateisTagEnd, staxStatenodeName, staxStateeventType, staxStatetext, staxStatedepth;
+    function staxInit(_xml) {
         init = true;
         reset();
         staxCleanState();
 
-        staxStream = _staxStream;
+        var xmls = [_xml];
+        staxStream = {read: function(){return xmls.pop();}};
         xml = staxStream.read();
     }
     function staxCleanState() {
-        staxState_nsmatrix = null;
         staxStateisTagStart = false;
         staxStateisTagEnd = false;
-        staxStatestopEmit = null;
         staxStatenodeName = null;
 
         staxStateeventType = null;
         staxStatetext = null;
+        staxStatedepth = 0;
+
+        returnError = null; // сброс ошибки неудачного разбора
     }
     function staxHasNext() {
         return !isParseStop;
@@ -866,19 +861,21 @@ function EasySAXParser(config) {
         return staxStatetext;
     }
     function staxGetDepth() {
-        return parseStackNodes.length;
+        return staxStatedepth;
     }
-    
-    function staxParseWithEvents(){
-        staxCleanState();
+    function staxIsEmptyNode() {
+        return staxStateisTagStart && staxStateisTagEnd;
+    }
+    function staxGetError() {
+        return returnError;
+    }
 
-        returnError = null; // сброс ошибки неудачного разбора
+    function staxParseWithEvents(xml) {
+        this.staxInit(xml);
+
         while (staxHasNext()) {
-            staxNext();
-            if (staxStatestopEmit) {
-                continue;
-            }
-            switch (staxGetEventType()) {
+            var eventType = staxNext();
+            switch (eventType) {
                 case EasySAXEvent.START_ELEMENT:
                     onStartNode(staxGetName(), getAttrs, staxStateisTagEnd, getStringNode);
                     break;
@@ -908,6 +905,7 @@ function EasySAXParser(config) {
                     break;
             }
         }
+        this.staxEnd();
     }
 
     function staxNext() {
@@ -920,28 +918,20 @@ function EasySAXParser(config) {
         // //var nodeBody;
         // var stopEmit; // используется при разборе "namespace" . если встретился неизвестное пространство то события не генерируются
         // var nodeName;
-        var xmlns;
-        var iD;
+        // var iD;
         var iQ;
         var w;
         var i; // number
 
         if (staxStateisTagEnd) {
-            if (staxStateisTagStart && staxStateeventType === EasySAXEvent.START_ELEMENT) {
+            if (staxStateeventType === EasySAXEvent.START_ELEMENT) {
                 staxStateeventType = EasySAXEvent.END_ELEMENT;
-                return;
-            };
-            if (isNamespace && staxStateeventType === EasySAXEvent.END_ELEMENT) {
-                if (staxStateisTagStart) {
-                    nsmatrix = staxState_nsmatrix;
-                } else {
-                    nsmatrix = parseStackMatrixNS.pop();
-                };
-            };
+                return staxStateeventType;
+            }
+            staxStatedepth--;
         };
 
         staxStateeventType = EasySAXEvent.Unknown;
-        staxStatestopEmit = stopIndexNS > 0;
 
         // поиск начала тега
         if (xml.charCodeAt(indexStartXML) === 60) { // "<"
@@ -961,7 +951,7 @@ function EasySAXParser(config) {
                 xml = xml.substring(indexStartXML);
                 indexStartXML = 0;
             };
-            let chunk = staxStream.read();
+            var chunk = staxStream.read();
             if(chunk) {
                 xml = xml + chunk;
 
@@ -982,17 +972,17 @@ function EasySAXParser(config) {
                     returnError = '';
                 };
                 isParseStop = true;
-                return;
+                return staxStateeventType;
             }
         };
 
         if (indexStartXML !== i) { // все что до тега это текст
-            let text = xml.substring(indexStartXML, i);
+            var text = xml.substring(indexStartXML, i);
             indexStartXML = i; // до этой позиции разбор завершен
 
             staxStateeventType = EasySAXEvent.CHARACTERS;
             staxStatetext = isAutoEntity ? entityDecode(text) : text;
-            return;
+            return staxStateeventType;
         };
 
         // ELEMENT
@@ -1001,77 +991,77 @@ function EasySAXParser(config) {
         w = xml.charCodeAt(i + 1);
 
         if (w === 33) { // 33 == "!"
-            let wNext = xml.charCodeAt(i + 2);
+            var wNext = xml.charCodeAt(i + 2);
 
             // CDATA
             // ---------------------------------------------
             if (wNext === 91 && xml.substr(i + 3, 6) === 'CDATA[') { // 91 == "["
-                let indexStartCDATA = i + 9;
-                let indexEndCDATA = xml.indexOf(']]>', indexStartCDATA);
+                var indexStartCDATA = i + 9;
+                var indexEndCDATA = xml.indexOf(']]>', indexStartCDATA);
                 if (indexEndCDATA === -1) {
                     returnError = 'cdata, not found ...]]>'; // не закрыт CDATA. повторим попытку на след. write
                     isParseStop = true;
-                    return;
+                    return staxStateeventType;
                 };
 
                 indexStartXML = indexEndCDATA + 3;
                 staxStateeventType = EasySAXEvent.CDATA;
                 staxStatetext = xml.substring(indexStartCDATA, indexEndCDATA);
-                return;
+                return staxStateeventType;
             };
 
 
             // COMMENT
             // ---------------------------------------------
             if (wNext === 45 && xml.charCodeAt(i + 3) === 45) { // 45 == "-"
-                let indexStartComment = i + 4;
-                let indexEndComment = xml.indexOf('-->', indexStartComment);
+                var indexStartComment = i + 4;
+                var indexEndComment = xml.indexOf('-->', indexStartComment);
                 if (indexEndComment === -1) {
                     returnError = 'expected -->'; // не закрыт комментарий. повторим попытку на след. write
                     isParseStop = true;
-                    return;
+                    return staxStateeventType;
                 };
 
                 indexStartXML = indexEndComment + 3;
                 staxStateeventType = EasySAXEvent.Comment;
                 staxStatetext = xml.substring(indexStartComment, indexEndComment);
-                return;
+                return staxStateeventType;
             };
 
             // ATTENTION
             // ---------------------------------------------
             {
-                let indexStartAttention = i + 1;
-                let indexEndAttention = xml.indexOf('>', indexStartAttention);
+                var indexStartAttention = i + 1;
+                var indexEndAttention = xml.indexOf('>', indexStartAttention);
                 if (indexEndAttention === -1) {
                     returnError = 'expected attention ...>'; // повторим попытку на след. write
                     isParseStop = true;
-                    return;
+                    return staxStateeventType;
                 };
 
                 indexStartXML = indexEndAttention + 1;
                 staxStateeventType = EasySAXEvent.Attention;
                 staxStatetext = xml.substring(i, indexStartXML);
-                return;
+                return staxStateeventType;
             };
 
-            return;
+            return staxStateeventType;
         };
 
         // QUESTION
         // ---------------------------------------------
         if (w === 63) { // "?"
-            let indexEndQuestion = xml.indexOf('?>', i);
+            var indexEndQuestion = xml.indexOf('?>', i);
             if (indexEndQuestion === -1) { // error
                 returnError = 'expected question ...?>'; // повторим попытку на след. write
                 isParseStop = true;
-                return;
+                return staxStateeventType;
             };
 
             indexStartXML = indexEndQuestion + 2;
             staxStateeventType = EasySAXEvent.Question;
             staxStatetext = xml.substring(i, indexStartXML);
-            return;
+            return staxStateeventType;
         };
 
 
@@ -1079,11 +1069,11 @@ function EasySAXParser(config) {
         // ---------------------------------------------
 
         if (w === 47) { // </...
-            let indexEndNode = xml.indexOf('>', i + 1);
+            var indexEndNode = xml.indexOf('>', i + 1);
             if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
                 returnError = 'unclosed tag'; // повторим попытку на след. write
                 isParseStop = true;
-                return;
+                return staxStateeventType;
             };
 
             staxStateisTagStart = false;
@@ -1093,7 +1083,7 @@ function EasySAXParser(config) {
             if (!parseStackNodes.length) {
                 returnError = 'close tag, requires open tag';
                 isParseStop = true; // дальнейший разбор невозможен
-                return;
+                return staxStateeventType;
             };
 
             staxStatenodeName = parseStackNodes.pop();
@@ -1102,29 +1092,29 @@ function EasySAXParser(config) {
             if (staxStatenodeName !== xml.substring(i + 2, iQ)) {
                 returnError = 'close tag, not equal to the open tag';
                 isParseStop = true; // дальнейший разбор невозможен
-                return;
+                return staxStateeventType;
             };
 
             // проверим что в закрываюшем теге нет лишнего
             for(; iQ < indexEndNode; iQ++) {
-                let wNext = xml.charCodeAt(iQ);
+                var wNext = xml.charCodeAt(iQ);
                 if (wNext === 32 || wNext === 9 || wNext === 10 || wNext === 11 || wNext === 12 || wNext === 13) { // \f\n\r\t\v
                     continue;
                 };
 
                 returnError = 'close tag, unallowable char';
                 isParseStop = true; // дальнейший разбор невозможен
-                return;
+                return staxStateeventType;
             };
 
             indexStartXML = indexEndNode + 1;
 
         } else {
-            let indexEndNode = parseNode(i);
+            var indexEndNode = parseNode(i);
             if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
                 returnError = returnError || 'unclosed tag'; // повторим попытку на след. write
                 isParseStop = true;
-                return;
+                return staxStateeventType;
             };
 
             staxStateisTagStart = true;
@@ -1138,73 +1128,14 @@ function EasySAXParser(config) {
             indexStartXML = indexEndNode + 1;
         };
 
-
-        if (isNamespace) {
-            if (staxStatestopEmit) { // потомки неизвестного пространства имен
-                if (staxStateisTagEnd) {
-                    if (!staxStateisTagStart) {
-                        if (--stopIndexNS === 0) {
-                            nsmatrix = parseStackMatrixNS.pop();
-                        };
-                    };
-
-                } else {
-                    stopIndexNS += 1;
-                };
-                return;
-            };
-
-            // добавляем в parseStackMatrixNS только если !staxStateisTagEnd, иначе сохраняем контекст пространств в переменной
-            staxState_nsmatrix = nsmatrix;
-            if (!staxStateisTagEnd) {
-                parseStackMatrixNS.push(nsmatrix);
-            };
-
-            if (staxStateisTagStart && nodeParseHasNS) {  // есть подозрение на staxStatexmlns //  && (nodeParseAttrResult === null)
-                upNSMATRIX();
-            };
-
-            iD = staxStatenodeName.indexOf(':');
-            if (iD !== -1) {
-                xmlns = nsmatrix[staxStatenodeName.substring(0, iD)];
-                staxStatenodeName = staxStatenodeName.substr(iD + 1);
-
-            } else {
-                xmlns = nsmatrix.xmlns;
-            };
-
-            if (!xmlns) {
-                // элемент неизвестного пространства имен
-                if (staxStateisTagEnd) {
-                    nsmatrix = staxState_nsmatrix; // так как тут всегда staxStateisTagStart
-                } else {
-                    stopIndexNS = 1; // первый элемент для которого не определено пространство имен
-                };
-                return;
-            };
-
-            staxStatenodeName = xmlns + ':' + staxStatenodeName;
-        };
-
-        stringNodePosStart = i; // stringNodePosStart, stringNodePosEnd - для ручного разбора getStringNode()
-        stringNodePosEnd = indexStartXML;
-
-        // if (staxStateisTagStart) {
-        //     staxStateeventType = EasySAXEvent.START_ELEMENT;
-        //     return;
-        // };
-        // if (staxStateisTagEnd) {
-        //     staxStateeventType = EasySAXEvent.END_ELEMENT;
-        //     return;
-        // };
-
         if (staxStateisTagStart) {
+            staxStatedepth++;
             staxStateeventType = EasySAXEvent.START_ELEMENT;
-            return;
+            return staxStateeventType;
         };
         if (staxStateisTagEnd) {
             staxStateeventType = EasySAXEvent.END_ELEMENT;
-            return;
+            return staxStateeventType;
         };
     }
     
@@ -1216,5 +1147,8 @@ function EasySAXParser(config) {
     this.staxGetAttrs = getAttrs;
     this.staxGetText = staxGetText;
     this.staxGetDepth = staxGetDepth;
+    this.staxIsEmptyNode = staxIsEmptyNode;
+    this.staxGetError = staxGetError;
+    this.staxEnd = this.end;
 };
 

@@ -1414,15 +1414,14 @@ var editor;
 				nextPromise = jsZipWrapper.loadAsync(data).then(function (zip) {
 					return doc.openFromZip(zip);
 				}).then(function () {
-					doc.getPartByUri("/xl/media/image1.png").data.async().then(function(data){
-						g_oDocumentUrls.replaceUrls(data);
-					});
 					wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
 					return wbPart.getDocumentContent();
 				}).then(function (contentWorkbook) {
 					AscCommonExcel.executeInR1C1Mode(false, function () {
 						wbXml = new AscCommonExcel.CT_Workbook();
-						new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
+						// new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
+						var reader = new openXml.StaxParser(contentWorkbook);
+						wbXml.fromXml(reader);
 					});
 					if (wbXml.pivotCaches) {
 						return wbXml.pivotCaches.reduce(function (prevVal, wbPivotCacheXml) {

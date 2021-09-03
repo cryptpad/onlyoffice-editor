@@ -11420,7 +11420,7 @@
         oBinaryFileReader.getbase64DecodedData2(stylesZip, 0, stream, 0);
 
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		return jsZipWrapper.loadAsync(pointer.data).then(function(zip) {
+		return jsZipWrapper.loadAsync(new Uint8Array(pointer.data)).then(function(zip) {
 			return zip.files["presetTableStyles.xml"].async("string");
 		}).then(function(content) {
 			jsZipWrapper.close();
