@@ -1559,6 +1559,9 @@
     baseEditorsApi.prototype.asc_spellCheckClearDictionary       = function()
     {
     };
+	baseEditorsApi.prototype.asc_restartCheckSpelling            = function()
+	{
+	};
 	// Print Desktop
 	baseEditorsApi.prototype._waitPrint                          = function (actionType, options)
 	{
