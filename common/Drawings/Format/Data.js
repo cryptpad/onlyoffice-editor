@@ -9300,7 +9300,7 @@
       var ptLst = dataModel.ptLst.list;
       var type;
       ptLst.forEach(function (point) {
-        if (point.type === 2) { // type = doc is 1
+        if (point.type === Point_type_doc) {
           if (point.prSet && point.prSet.loTypeId) {
             var typeSplit = point.prSet.loTypeId.split('/');
             type = typeSplit[typeSplit.length - 1];
@@ -9452,7 +9452,7 @@
           ptLst.forEach(function (point) {
             if (point.modelId === cxn.srcId) {
               connections.forEach(function (c) {
-                if (c.id === cxn.destId && point.type !== 3/*&&  && point.type !== 3*/ /*&& (cxn.srcOrd !== c.srcOrd || cxn.destOrd !== c.destOrd)*/) {
+                if (c.id === cxn.destId && point.type !== Point_type_pres/*&&  && point.type !== 3*/ /*&& (cxn.srcOrd !== c.srcOrd || cxn.destOrd !== c.destOrd)*/) {
                   c.conn.push({
                     point: point,
                     srcOrd: cxn.srcOrd,
@@ -9587,7 +9587,7 @@
       var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
       var ptLst = dataModel.ptLst.list;
       for (var i = 0; i < ptLst.length; i += 1) {
-        if (ptLst[i].type === 3 && ptLst[i].prSet && ptLst[i].prSet.presName === 'Name0') { // TODO: ptLst type = 'pres' is 4
+        if (ptLst[i].type === Point_type_pres && ptLst[i].prSet && ptLst[i].prSet.presName === 'Name0') { // TODO: ptLst type = 'pres' is 4
           return ptLst[i];
         }
       }
@@ -10037,31 +10037,31 @@
 
     SmartArtNode.prototype.getAxis = function (axisType) {
       switch (axisType) {
-        case 'ancst':
+        case AxisType_value_ancst:
           return this.getAncst();
-        case 'ancstOrSelf':
+        case AxisType_value_ancstOrSelf:
           return this.getAncstOrSelf();
-        case 'ch':
+        case AxisType_value_ch:
           return this.getCh();
-        case 'des':
+        case AxisType_value_des:
           return this.getDes();
-        case 'desOrSelf':
+        case AxisType_value_desOrSelf:
           return this.getDesOrSelf();
-        case 'follow':
+        case AxisType_value_follow:
           return this.getFollow();
-        case 'followSib':
+        case AxisType_value_followSib:
           return this.getFollowSib();
-        case 'none':
+        case AxisType_value_none:
           return this.getNone();
-        case 'par':
+        case AxisType_value_par:
           return this.getPar();
-        case 'preced':
+        case AxisType_value_preced:
           return this.getPreced();
-        case 'precedSib':
+        case AxisType_value_precedSib:
           return this.getPrecedSib();
-        case 'root':
+        case AxisType_value_root:
           return this.getRoot();
-        case 'self':
+        case AxisType_value_self:
           return this.getSelf();
         default:
           return;
