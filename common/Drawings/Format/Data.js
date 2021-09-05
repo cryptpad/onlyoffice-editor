@@ -3856,13 +3856,13 @@
       return [this.if, this.else];
     };
     
-    Choose.prototype.startAlgorithm = function (pointTree) {
+    Choose.prototype.startAlgorithm = function (pointTree, node) {
       var check;
       if (this.if) {
-        check = this.if.startAlgorithm(pointTree);
+        check = this.if.startAlgorithm(pointTree, node);
         if (check) {
           if (this.else) {
-            this.else.startAlgorithm(pointTree);
+            this.else.startAlgorithm(pointTree, node);
           }
         }
       }
@@ -9869,6 +9869,7 @@
         child.setData(rootData);
       }
       child.setParent(this);
+      child.depth = 0;
       this.root = child;
     }
     InitClass(SmartArtTree, CBaseFormatObject, AscDFH.historyitem_type_SmartArtTree);
@@ -9959,6 +9960,7 @@
       this.info = null;
       this.data = null;
       this.children = [];
+      this.depth = null;
     }
     InitClass(SmartArtNode, CBaseFormatObject, AscDFH.historyitem_type_SmartArtNode);
 
@@ -9985,6 +9987,7 @@
       var nInsertIdx = Math.min(this.children.length, Math.max(0, nIdx));
       oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeAddToLstChildren, nInsertIdx, [oPr], true));
       this.children.splice(nInsertIdx, 0, oPr);
+      oPr.depth = this.depth + 1;
       this.setParentToChild(oPr);
     }
 
