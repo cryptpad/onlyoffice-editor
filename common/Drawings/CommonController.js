@@ -5739,6 +5739,36 @@ DrawingObjectsController.prototype =
         return _ret;
     },
 
+    canEditGeometry: function()
+    {
+        var selectedObjs = this.selection.groupSelection;
+        for(var i = 0; i < 2; i++)
+        {
+            if (selectedObjs && selectedObjs.selectedObjects && !selectedObjs.selection.textSelection && selectedObjs.selectedObjects.length === 1 &&
+                selectedObjs.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape)
+            {
+                return true;
+            }
+            if(selectedObjs)
+                return false;
+
+            selectedObjs = this;
+        }
+    },
+
+    startEditGeometry: function()
+    {
+        var selectedObject = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects[0] :
+            this.selectedObjects[0];
+
+        if (selectedObject && (selectedObject instanceof AscFormat.CShape))
+        {
+            this.selection.geometrySelection = selectedObject;
+            this.updateSelectionState();
+            this.updateOverlay();
+        }
+    },
+
     getEventListeners: function() {
         return this.eventListeners;
     },
@@ -11094,6 +11124,58 @@ function CalcLiterByLength(aAlphaBet, nLength)
         return tx > rx && ty > ry && tx < rw && ty < rh;
     }
 
+
+
+    function GeometryEditState(drawingObjects, majorObject)
+    {
+        this.drawingObjects = drawingObjects;
+        this.majorObject = majorObject;
+    }
+    GeometryEditState.prototype = {
+        onMouseDown: function(e, x, y, pageIndex)
+        {
+            var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
+            if (e.Type === 0) {
+                var track_object = this.drawingObjects.arrTrackObjects[0];
+                if (ret && ret.hit) {
+                    return {objectId: track_object.geometry.Id, hit: true};
+                } else if ((ret && !ret.hit) || !ret) {
+                    //refactoring : отдельная функция для зануления
+                    if (track_object)
+                        track_object.clearPoints();
+                    this.drawingObjects.selection.geometrySelection = null;
+                    this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+                    this.drawingObjects.clearTrackObjects();
+                }
+                this.drawingObjects.updateOverlay();
+                return ret;
+            }
+            return ret;
+
+        },
+        onMouseMove: function(e, x, y)
+        {
+            this.drawingObjects.trackResizeObjects(e, x, y);
+            this.drawingObjects.updateOverlay();
+        },
+        onMouseUp: function(e, x, y, pageIndex)
+        {
+            var geom = this.drawingObjects.arrTrackObjects[0].geometry;
+            var track_object = this.drawingObjects.arrTrackObjects[0];
+            if(geom.gmEditPoint) {
+                geom.gmEditPoint.isHitInFirstCPoint = false;
+                geom.gmEditPoint.isHitInSecondCPoint = false;
+
+                if(e.CtrlKey) {
+                    track_object.deletePoint(track_object.geometry);
+                }
+            }
+            track_object.addCommandsInPathInfo(track_object.geometry);
+            this.drawingObjects.updateOverlay();
+            AscFormat.RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+        }
+    };
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -11122,6 +11204,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
     window['AscFormat'].CARD_DIRECTION_SW = CARD_DIRECTION_SW;
     window['AscFormat'].CARD_DIRECTION_W = CARD_DIRECTION_W;
     window['AscFormat'].CARD_DIRECTION_NW = CARD_DIRECTION_NW;
+    window['AscFormat'].GeometryEditState = GeometryEditState;
 
 
     window['AscFormat'].CURSOR_TYPES_BY_CARD_DIRECTION = CURSOR_TYPES_BY_CARD_DIRECTION;

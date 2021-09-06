@@ -11518,32 +11518,20 @@ background-repeat: no-repeat;\
 		return [[oPos0.X, oPos0.Y], [oPos1.X, oPos1.Y], [oPos2.X, oPos2.Y], [oPos3.X, oPos3.Y]];
 	};
 
-	asc_docs_api.prototype.canEditGeometry = function () {
+	asc_docs_api.prototype.asc_canEditGeometry = function ()
+	{
 		var document = this.private_GetLogicDocument();
-		var selectedObjs = document.DrawingObjects.selection.groupSelection;
-		if (document) {
-			for(var i = 0; i < 2; i++) {
-				if (selectedObjs && selectedObjs.selectedObjects && !selectedObjs.selection.textSelection && selectedObjs.selectedObjects.length === 1 &&
-					selectedObjs.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape) {
-					return true;
-				}
-				if(selectedObjs)
-					return false;
-
-				selectedObjs = document.DrawingObjects;
-			}
+		if (document)
+		{
+			return document.DrawingObjects.canEditGeometry();
 		}
 		return false;
 	};
 
-	asc_docs_api.prototype.editPointsGeometry = function() {
+	asc_docs_api.prototype.asc_editPointsGeometry = function()
+	{
 		var drawingObjects = this.private_GetLogicDocument().DrawingObjects;
-		var selectedObject = drawingObjects.selection.groupSelection ? drawingObjects.selection.groupSelection.selectedObjects[0] :
-		drawingObjects.selectedObjects[0];
-
-		if (selectedObject && (selectedObject instanceof AscFormat.CShape)) {
-			drawingObjects.selection.geometrySelection = selectedObject;
-		}
+		return drawingObjects.startEditGeometry();
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
@@ -12251,8 +12239,8 @@ background-repeat: no-repeat;\
 	// view modes
     asc_docs_api.prototype["asc_setContentDarkMode"]					= asc_docs_api.prototype.asc_setContentDarkMode;
 
-	asc_docs_api.prototype["canEditGeometry"] 					        = asc_docs_api.prototype.canEditGeometry;
-	asc_docs_api.prototype["editPointsGeometry"] 						= asc_docs_api.prototype.editPointsGeometry;
+	asc_docs_api.prototype["asc_canEditGeometry"] 					    = asc_docs_api.prototype.asc_canEditGeometry;
+	asc_docs_api.prototype["asc_editPointsGeometry"] 					= asc_docs_api.prototype.asc_editPointsGeometry;
 
 	CDocInfoProp.prototype['get_PageCount']             = CDocInfoProp.prototype.get_PageCount;
 	CDocInfoProp.prototype['put_PageCount']             = CDocInfoProp.prototype.put_PageCount;

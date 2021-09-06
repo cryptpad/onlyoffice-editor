@@ -1733,54 +1733,6 @@ TextAddState.prototype =
 
 };
 
-function GeometryEditState(drawingObjects, majorObject)
-{
-    this.drawingObjects = drawingObjects;
-    this.majorObject = majorObject;
-}
-GeometryEditState.prototype = {
-    onMouseDown: function(e, x, y, pageIndex)
-    {
-        var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
-        if (e.Type === 0) {
-            var track_object = this.drawingObjects.arrTrackObjects[0];
-            if (ret && ret.hit) {
-                return {objectId: track_object.geometry.Id, hit: true};
-            } else if ((ret && !ret.hit) || !ret) {
-                //refactoring : отдельная функция для зануления
-                if (track_object)
-                    track_object.clearPoints();
-                this.drawingObjects.selection.geometrySelection = null;
-                this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
-                this.drawingObjects.clearTrackObjects();
-            }
-            this.drawingObjects.updateOverlay();
-            return ret;
-        }
-
-    },
-    onMouseMove: function(e, x, y)
-    {
-        this.drawingObjects.trackResizeObjects(e, x, y);
-        this.drawingObjects.updateOverlay();
-    },
-    onMouseUp: function(e, x, y, pageIndex)
-    {
-        var geom = this.drawingObjects.arrTrackObjects[0].geometry;
-        var track_object = this.drawingObjects.arrTrackObjects[0];
-        if(geom.gmEditPoint) {
-            geom.gmEditPoint.isHitInFirstCPoint = false;
-            geom.gmEditPoint.isHitInSecondCPoint = false;
-
-            if(e.CtrlKey) {
-                track_object.deletePoint(track_object.geometry);
-            }
-        }
-        track_object.addCommandsInPathInfo(track_object.geometry);
-        this.drawingObjects.updateOverlay();
-        RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
-    }
-}
 
 function StartChangeWrapContourState(drawingObjects, majorObject)
 {
@@ -2699,6 +2651,7 @@ window['AscFormat'].NullState = NullState;
 window['AscFormat'].PreChangeAdjState = PreChangeAdjState;
 window['AscFormat'].PreMoveInlineObject = PreMoveInlineObject;
 window['AscFormat'].PreRotateState = PreRotateState;
+window['AscFormat'].RotateState = RotateState;
 window['AscFormat'].PreResizeState = PreResizeState;
 window['AscFormat'].PreMoveState = PreMoveState;
 window['AscFormat'].MoveState = MoveState;
@@ -2708,7 +2661,6 @@ window['AscFormat'].PreRotateInGroupState = PreRotateInGroupState;
 window['AscFormat'].PreResizeInGroupState = PreResizeInGroupState;
 window['AscFormat'].PreChangeAdjInGroupState = PreChangeAdjInGroupState;
 window['AscFormat'].TextAddState = TextAddState;
-window['AscFormat'].GeometryEditState = GeometryEditState;
 window['AscFormat'].SplineBezierState = SplineBezierState;
 window['AscFormat'].PolyLineAddState = PolyLineAddState;
 window['AscFormat'].AddPolyLine2State = AddPolyLine2State;

@@ -3530,6 +3530,20 @@ var editor;
     this.handlers.trigger("asc_onEndAddShape");
   };
 
+    spreadsheet_api.prototype.asc_canEditGeometry = function () {
+        var ws = this.wb.getWorksheet();
+        if(ws && ws.objectRender && ws.objectRender.controller) {
+            return ws.objectRender.controller.canEditGeometry();
+        }
+        return false;
+    };
+
+    spreadsheet_api.prototype.asc_editPointsGeometry = function() {
+        var ws = this.wb.getWorksheet();
+        if(ws && ws.objectRender && ws.objectRender.controller) {
+            ws.objectRender.controller.startEditGeometry();
+        }
+    };
 
     spreadsheet_api.prototype.asc_addShapeOnSheet = function(sPreset) {
         if(this.wb){
@@ -6401,6 +6415,8 @@ var editor;
   prot["asc_startAddShape"] = prot.asc_startAddShape;
   prot["asc_endAddShape"] = prot.asc_endAddShape;
   prot["asc_addShapeOnSheet"] = prot.asc_addShapeOnSheet;
+  prot["asc_canEditGeometry"] = prot.asc_canEditGeometry;
+  prot["asc_editPointsGeometry"] = prot.asc_editPointsGeometry;
   prot["asc_isAddAutoshape"] = prot.asc_isAddAutoshape;
   prot["asc_canAddShapeHyperlink"] = prot.asc_canAddShapeHyperlink;
   prot["asc_canGroupGraphicsObjects"] = prot.asc_canGroupGraphicsObjects;

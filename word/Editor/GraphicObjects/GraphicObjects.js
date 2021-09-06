@@ -124,6 +124,8 @@ CGraphicObjects.prototype =
     getConnectorsForCheck: DrawingObjectsController.prototype.getConnectorsForCheck,
     getConnectorsForCheck2: DrawingObjectsController.prototype.getConnectorsForCheck2,
     checkDrawingHyperlinkAndMacro: DrawingObjectsController.prototype.checkDrawingHyperlinkAndMacro,
+    canEditGeometry: DrawingObjectsController.prototype.canEditGeometry,
+    startEditGeometry: DrawingObjectsController.prototype.startEditGeometry,
 
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects)
     {
@@ -2546,15 +2548,9 @@ CGraphicObjects.prototype =
         this.startTrackPos.pageIndex = pageIndex;
     },
 
-    needUpdateOverlay: function(e)
+    needUpdateOverlay: function()
     {
-        var isDeletingGeomEdit = e && e.key === "Delete";
-
-        if(isDeletingGeomEdit && (this.curState instanceof AscFormat.GeometryEditState)) {
-            this.changeCurrentState(new AscFormat.NullState(this));
-            this.arrTrackObjects.length = 0;
-        }
-        return (this.arrTrackObjects.length > 0 && !isDeletingGeomEdit) || this.curState.InlinePos;
+        return (this.arrTrackObjects.length > 0) || this.curState.InlinePos;
     },
 
     changeCurrentState: function(state)
@@ -2613,6 +2609,8 @@ CGraphicObjects.prototype =
 
     canUnGroup: DrawingObjectsController.prototype.canUnGroup,
     getBoundsForGroup: DrawingObjectsController.prototype.getBoundsForGroup,
+
+
 
 
     getArrayForGrouping: function()
