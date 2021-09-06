@@ -3665,7 +3665,7 @@
 		this.WriteWorkbookProtection = function(workbookProtection)
 		{
 			if (null != workbookProtection.lockStructure) {
-				this.memory.WriteByte(c_oSerWorksheetProtection.LockStructure);
+				this.memory.WriteByte(c_oSerWorkbookProtection.LockStructure);
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(workbookProtection.lockStructure);
 			}
@@ -8615,7 +8615,9 @@
 				res = this.bcr.Read2(length, function(t, l) {
 					return oThis.ReadDataValidation(t, l, dataValidation);
 				});
-				dataValidations.elems.push(dataValidation);
+				if (dataValidation && dataValidation.ranges) {
+					dataValidations.elems.push(dataValidation);
+				}
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -9823,6 +9825,9 @@
 				var color = ReadColorSpreadsheet2(this.bcr, length);
 				if (color) {
 					oDataBar.AxisColor = color;
+				} else {
+					//TODO наличие оси определяется по наличию AxisColor при отрисовке. других маркеров нет. пересмотреть!
+					oDataBar.AxisColor = new AscCommonExcel.RgbColor(0);
 				}
 			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBorderColor === type) {
 				var color = ReadColorSpreadsheet2(this.bcr, length);

@@ -284,6 +284,7 @@
 	var sUploadServiceLocalUrl = "../../../../upload";
 	var sUploadServiceLocalUrlOld = "../../../../uploadold";
 	var sSaveFileLocalUrl = "../../../../savefile";
+	var sDownloadFileLocalUrl = "../../../../downloadfile";
 	var nMaxRequestLength = 5242880;//5mb <requestLimits maxAllowedContentLength="30000000" /> default 30mb
 
 	function getSockJs()
@@ -542,7 +543,7 @@
 			if (AscBrowser.isIE || AscBrowser.isIeEdge)
 			{
 				this.map[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + ".cur), " + default_css_value);
-                this.mapRetina[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.cur), " + default_css_value);
+				this.mapRetina[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.cur), " + default_css_value);
 			}
 			else if (window.opera)
 			{
@@ -552,13 +553,13 @@
 			{
 				if (!AscCommon.AscBrowser.isChrome && !AscCommon.AscBrowser.isSafari)
 				{
-                    this.map[type] = "url('../../../../sdkjs/common/Images/cursors/" + name + ".svg') " + target +
-                        ", url('../../../../sdkjs/common/Images/cursors/" + name + ".png') " + target + ", " + default_css_value;
-                }
-                else
+					this.map[type] = "url('../../../../sdkjs/common/Images/cursors/" + name + ".svg') " + target +
+						", url('../../../../sdkjs/common/Images/cursors/" + name + ".png') " + target + ", " + default_css_value;
+				}
+				else
 				{
-                    this.map[type] = "-webkit-image-set(url(../../../../sdkjs/common/Images/cursors/" + name + ".png) 1x," +
-                        " url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.png) 2x) " + target + ", " + default_css_value;
+					this.map[type] = "-webkit-image-set(url(../../../../sdkjs/common/Images/cursors/" + name + ".png) 1x," +
+						" url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.png) 2x) " + target + ", " + default_css_value;
 				}
 			}
 		};
@@ -684,7 +685,7 @@
 		}
 		return false;
 	}
-	function openFileCommand(binUrl, changesUrl, Signature, callback)
+	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
 		var bError = false, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
 		var onEndOpen = function ()
@@ -729,16 +730,11 @@
 		if (changesUrl)
 		{
 			oZipImages = {};
-			getJSZipUtils().getBinaryContent(changesUrl, function (err, data)
-			{
-				if (err)
-				{
-					bEndLoadChanges = true;
-					bError = true;
-					onEndOpen();
-					return;
-				}
-
+			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
+				bEndLoadChanges = true;
+				bError = true;
+				onEndOpen();
+			}, function(data) {
 				oResult.changes = [];
 				getJSZip().loadAsync(data).then(function (zipChanges)
 				{
@@ -1449,6 +1445,11 @@
 		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf", "wps"]
 	};
 
+	var c_oAscSpreadsheetUploadProp = {
+		MaxFileSize:      104857600, //100 mb
+		SupportedFormats: ["xlsx", "xlsm", "xls", "ods", "csv", "xltx", "xltm", "xlt", "fods", "ots"]
+	};
+
 	var c_oAscTextUploadProp = {
 		MaxFileSize:      25000000, //25 mb
 		SupportedFormats: ["txt", "csv"]
@@ -1798,6 +1799,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowSpreadsheetFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscSpreadsheetUploadProp.SupportedFormats), false, false, ValidateUploadSpreadsheet, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 	function ShowTextFileDialog(callback) {
 		if (false === _ShowFileDialog(getAcceptByArray(c_oAscTextUploadProp.SupportedFormats), false, false, ValidateUploadText, callback)) {
 			callback(Asc.c_oAscError.ID.Unknown);
@@ -1884,6 +1890,21 @@
 		}
 	}
 
+	function DownloadOriginalFile(documentId, url, urlPathInToken, token, fError, fSuccess) {
+		asc_ajax({
+			url: sDownloadFileLocalUrl + '/' + documentId,
+			responseType: "arraybuffer",
+			headers: {
+				'Authorization': 'Bearer ' + token,
+				'x-url': url,
+				'x-url-path-in-token': urlPathInToken
+			},
+			success: function(resp) {
+				fSuccess(resp.response);
+			},
+			error: fError
+		});
+	}
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
 		if (files.length > 0)
@@ -2061,6 +2082,10 @@
 	function ValidateUploadDocument(files)
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscDocumentUploadProp);
+	}
+	function ValidateUploadSpreadsheet(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscSpreadsheetUploadProp);
 	}
 	function ValidateUploadText(files)
 	{
@@ -3296,6 +3321,7 @@
 			error = null, success = null, httpRequest = null,
 			contentType                               = "application/x-www-form-urlencoded",
 			responseType = '',
+			headers = null,
 
 			init                                      = function (obj)
 			{
@@ -3334,6 +3360,10 @@
 				if (typeof (obj.responseType) !== 'undefined')
 				{
 					responseType = obj.responseType;
+				}
+				if (typeof (obj.headers) !== 'undefined')
+				{
+					headers = obj.headers;
 				}
 
 				if (window.XMLHttpRequest)
@@ -3374,6 +3404,13 @@
 				httpRequest.open(type, url, async);
 				if (type === "POST")
 					httpRequest.setRequestHeader("Content-Type", contentType);
+				if (headers) {
+					for (var header in headers) {
+						if (headers.hasOwnProperty(header)) {
+							httpRequest.setRequestHeader(header, headers[header]);
+						}
+					}
+				}
 				if (responseType)
 					httpRequest.responseType = responseType;
 				httpRequest.send(data);
@@ -6918,10 +6955,12 @@
 	window["AscCommon"].InitOnMessage = InitOnMessage;
 	window["AscCommon"].ShowImageFileDialog = ShowImageFileDialog;
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
+	window["AscCommon"].ShowSpreadsheetFileDialog = ShowSpreadsheetFileDialog;
 	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
+	window["AscCommon"].DownloadOriginalFile = DownloadOriginalFile;
 	window["AscCommon"].CanDropFiles = CanDropFiles;
 	window["AscCommon"].getUrlType = getUrlType;
 	window["AscCommon"].prepareUrl = prepareUrl;

@@ -2469,7 +2469,21 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
     AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
     return NewRun;
 };
+ParaRun.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
+{
+	if (this.IsSolid())
+		return;
 
+	var oNewRun = this.Split(oContentPos, nDepth);
+	if (!oNewRun)
+		return;
+
+	var oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument && oNewRun.GetRStyle() === oLogicDocument.GetStyles().GetDefaultHyperlink())
+		oNewRun.SetRStyle(null);
+
+	oNewParagraph.AddToContent(oNewParagraph.Content.length, oNewRun, false);
+};
 
 ParaRun.prototype.Check_NearestPos = function(ParaNearPos, Depth)
 {
@@ -6494,18 +6508,20 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			var nFormBorderW     = oFormBorder.GetWidth();
 			var oFormBorderColor = oFormBorder.GetColor();
 
+			var oFormBounds = oForm.GetRangeBounds(PDSL.Line, PDSL.Range);
+
 			if (Item.RGapCount)
 			{
 				var nGapEnd = X + ItemWidthVisible;
-				aFormBorder.Add(Y, Y, X, nGapEnd - Item.RGapCount * Item.RGapShift, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax});
+				aFormBorder.Add(Y, Y, X, nGapEnd - Item.RGapCount * Item.RGapShift, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax, Y : oFormBounds.Y, H : oFormBounds.H});
 				for (var nGapIndex = 0; nGapIndex < Item.RGapCount; ++nGapIndex)
 				{
-					aFormBorder.Add(Y, Y, nGapEnd - (Item.RGapCount - nGapIndex) * Item.RGapShift, nGapEnd - (Item.RGapCount - nGapIndex - 1) * Item.RGapShift, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax});
+					aFormBorder.Add(Y, Y, nGapEnd - (Item.RGapCount - nGapIndex) * Item.RGapShift, nGapEnd - (Item.RGapCount - nGapIndex - 1) * Item.RGapShift, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax, Y : oFormBounds.Y, H : oFormBounds.H});
 				}
 			}
 			else
 			{
-				aFormBorder.Add(Y, Y, X, X + ItemWidthVisible, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax});
+				aFormBorder.Add(Y, Y, X, X + ItemWidthVisible, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax, Y : oFormBounds.Y, H : oFormBounds.H});
 			}
 		}
 
@@ -11903,10 +11919,13 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags)
 		sText += String.fromCharCode(arrElements[nCount - 1 - nIndex].Value);
 	}
 
+	if (nFlags & AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH && this.private_ProcessSpaceHyphenWithDashAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore))
+		nRes |= AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
+
 	if (nFlags & AUTOCORRECT_FLAGS_HYPERLINK && this.private_ProcessHyperlinkAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText))
 		nRes |= AUTOCORRECT_FLAGS_HYPERLINK;
 
-	if (nFlags & AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE && this.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore))
+	if (nFlags & AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE && this.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText))
 		nRes |= AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE;
 
 	if (!(nFlags & AUTOCORRECT_FLAGS_NUMBERING))
@@ -12107,6 +12126,14 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags)
 	}
 
 	return nRes;
+};
+ParaRun.prototype.ProcessAutoCorrectOnParaEnd = function()
+{
+	var oParaEnd = this.GetParaEnd();
+	if (!oParaEnd)
+		return;
+
+	this.ProcessAutoCorrect(0, oParaEnd.GetAutoCorrectFlags());
 };
 /**
  * Подбираем подходящий маркированный список
@@ -12666,8 +12693,78 @@ ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument,
 	return true;
 };
 /**
- * Производим автозаменку для гиперссылок
+ * Производим автозамену hyphen на dash в случаях <space-hyphen> или <space-hyphen-space>
  * @param oDocument {CDocument}
+ * @param oParagraph {Paragraph}
+ * @param oContentPos {CParagraphContentPos}
+ * @param nPos {number}
+ * @param oRunElementsBefore {CParagraphRunElements}
+ * @returns {boolean}
+ */
+ParaRun.prototype.private_ProcessSpaceHyphenWithDashAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore)
+{
+	if (!oDocument.IsAutoCorrectHyphensWithDash())
+		return false;
+
+	var arrElements    = oRunElementsBefore.GetElements();
+	var nElementsCount = arrElements.length;
+	if (nElementsCount <= 0)
+		return false;
+
+	for (var nIndex = 0; nIndex < nElementsCount; ++nIndex)
+	{
+		var oItem = arrElements[nIndex];
+		if (!oItem.IsLetter() && (nIndex !== nElementsCount - 1 || !oItem.IsHyphen()))
+			return false;
+	}
+
+	var oChangePos = null;
+	if (para_Text === arrElements[nElementsCount - 1].Type && 45 === arrElements[nElementsCount - 1].Value)
+	{
+		if (arrElements.length > 1 && para_Text === arrElements[nElementsCount - 2].Type && 45 !== arrElements[nElementsCount - 2].Value)
+		{
+			var oTempRunElementsBefore = new CParagraphRunElements(oRunElementsBefore.GetContentPositions()[nElementsCount - 1], 1, null, false);
+			oTempRunElementsBefore.SetSaveContentPositions(true);
+			oParagraph.GetPrevRunElements(oTempRunElementsBefore);
+			arrElements = oTempRunElementsBefore.GetElements();
+			if (arrElements.length > 0 && para_Space === arrElements[0].Type)
+				oChangePos = oRunElementsBefore.GetContentPositions()[nElementsCount - 1];
+		}
+	}
+	else
+	{
+		var oTempRunElementsBefore = new CParagraphRunElements(oRunElementsBefore.GetContentPositions()[nElementsCount - 1], 3, null, false);
+		oTempRunElementsBefore.SetSaveContentPositions(true);
+		oParagraph.GetPrevRunElements(oTempRunElementsBefore);
+		arrElements = oTempRunElementsBefore.GetElements();
+		if (3 === arrElements.length
+			&& para_Space === arrElements[0].Type
+			&& para_Text === arrElements[1].Type && 45 === arrElements[1].Value
+			&& para_Space === arrElements[2].Type)
+			oChangePos = oTempRunElementsBefore.GetContentPositions()[1];
+	}
+
+	if (oChangePos)
+	{
+		var nInRunPos = oChangePos.Get(oChangePos.GetDepth());
+		oChangePos.DecreaseDepth(1);
+		var oRun = oParagraph.GetClassByPos(oChangePos);
+
+		if (oRun instanceof ParaRun && oRun.Content.length > nInRunPos)
+		{
+			oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
+			oRun.RemoveFromContent(nInRunPos, 1);
+			oRun.AddToContent(nInRunPos, new ParaText(8211));
+			oDocument.FinalizeAction();
+		}
+	}
+
+
+	return true;
+};
+/**
+ * Производим автозаменку для гиперссылок
+ * @param oDocument {CDocument | CPresentation}
  * @param oParagraph {Paragraph}
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
@@ -12677,7 +12774,10 @@ ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument,
  */
 ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText)
 {
-	var isPresentation = !!(AscCommonSlide.CPresentation && oDocument instanceof AscCommonSlide.CPresentation);
+	if (!oDocument.IsAutoCorrectHyperlinks())
+		return false;
+
+	var isPresentation = oDocument.IsPresentationEditor();
 
 	if (this.IsInHyperlink())
 		return false;
@@ -12753,12 +12853,16 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
  * @param oRunElementsBefore {CParagraphRunElements}
+ * @param sText {string}
  * @return {boolean}
  */
-ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore)
+ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText)
 {
 	if (!oDocument.IsAutoCorrectFirstLetterOfSentences())
 		return false;
+
+	if ("www" === sText || "http" === sText || "https" === sText)
+		return;
 
 	var nMaxElements = 1000;
 
@@ -13302,6 +13406,64 @@ ParaRun.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 
 	return null;
 };
+ParaRun.prototype.CalculateTextToTable = function(oEngine)
+{
+	if (reviewtype_Remove === this.GetReviewType())
+		return;
+
+	// В формулах делим только по ранам, находящимся в самом верху стэка формулы
+	if (this.IsMathRun() && (!this.ParaMath || this.Parent !== this.ParaMath.Root))
+		return;
+
+	if (oEngine.IsCalculateTableSizeMode())
+	{
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			if (oEngine.CheckSeparator(this.Content[nPos]))
+			{
+				oEngine.AddItem();
+			}
+		}
+	}
+	else if (oEngine.IsCheckSeparatorMode())
+	{
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			var oItem     = this.Content[nPos];
+			var nItemType = oItem.Type;
+
+			if (para_Tab === nItemType)
+				oEngine.AddTab();
+			else if ((para_Text === nItemType && 0x3B === oItem.Value) || (para_Math_Text === nItemType && 0x3B === oItem.value))
+				oEngine.AddSemicolon();
+		}
+	}
+	else if (oEngine.IsConvertMode())
+	{
+		var oRunPos = null, oParagraph = null;
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			if (oEngine.CheckSeparator(this.Content[nPos]))
+			{
+				if (!oRunPos)
+				{
+					oParagraph = this.GetParagraph();
+					if (!oParagraph)
+						return;
+
+					oRunPos = oParagraph.GetPosByElement(this);
+					if (!oRunPos)
+						return;
+				}
+
+				var oContentPos = oRunPos.Copy();
+				oContentPos.Add(nPos);
+				oEngine.AddParaPosition(oContentPos);
+			}
+		}
+	}
+};
+
 
 function CParaRunStartState(Run)
 {

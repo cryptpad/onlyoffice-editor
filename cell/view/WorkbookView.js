@@ -117,7 +117,10 @@
 			style: this._generateStyle(),
 			cornerColor: new CColor(193, 193, 193),
 			groupDataBorder: this.getCColor(AscCommon.GlobalSkin.GroupDataBorder),
-			editorBorder: this.getCColor(AscCommon.GlobalSkin.EditorBorder)
+			editorBorder: this.getCColor(AscCommon.GlobalSkin.EditorBorder),
+			printBackground: new CColor(238, 238, 238),
+			printBorder: new CColor(216, 216, 216),
+			printColor: new CColor(0, 0, 0)
 		};
 		this.cells = {
 			defaultState: {
@@ -3307,7 +3310,7 @@
 		var pivotStyleInfo;
 
 		var defaultStyles, styleThumbnailHeight, row, col = 5;
-		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 90 : 61;
+		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 90 : 60;
 		if(bPivotTable)
 		{
 			styleThumbnailHeight = 49;
@@ -3317,7 +3320,7 @@
 		}
 		else
 		{
-			styleThumbnailHeight = window["IS_NATIVE_EDITOR"] ? 48 : 46;
+			styleThumbnailHeight = window["IS_NATIVE_EDITOR"] ? 48 : 44;
 			row = 5;
 			defaultStyles = wb.TableStyles.DefaultStyles;
 			tableStyleInfo = new AscCommonExcel.TableStyleInfo();

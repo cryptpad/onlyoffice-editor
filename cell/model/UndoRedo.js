@@ -2534,7 +2534,7 @@ function (window, undefined) {
 			}  else if (AscCH.historyitem_Cell_SetLocked == Type) {
 				cell.setLocked(Val);
 			}  else if (AscCH.historyitem_Cell_SetHidden == Type) {
-				cell.setHidden(Val);
+				cell.setHiddenFormulas(Val);
 			}
 		});
 	};
@@ -3245,7 +3245,7 @@ function (window, undefined) {
 			if (bUndo) {
 				ws.deleteProtectedRange(Data.id);
 			} else {
-				Data.to.id = Data.id;
+				Data.to.Id = Data.id;
 				ws.addProtectedRange(Data.to);
 			}
 		} else if (AscCH.historyitem_Worksheet_DelProtectedRange === Type) {
@@ -4263,6 +4263,7 @@ function (window, undefined) {
 		this.UndoRedo(Type, Data, nSheetId, false);
 	};
 	UndoRedoCF.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+		var t = this;
 		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
 		var api = window["Asc"]["editor"];
 		if (!api.wb || !oModel) {
@@ -4294,6 +4295,10 @@ function (window, undefined) {
 				}
 				case AscCH.historyitem_CFRule_SetOperator: {
 					cfRule.asc_setOperator(value);
+					break;
+				}
+				case AscCH.historyitem_CFRule_SetPercent: {
+					cfRule.asc_setPercent(value);
 					break;
 				}
 				case AscCH.historyitem_CFRule_SetPriority: {
@@ -4337,10 +4342,10 @@ function (window, undefined) {
 						var ascRanges = [];
 
 						for (var i = 0; i < _ranges.length; i++) {
-							var r1 = collaborativeEditing.getLockOtherRow2(nSheetId, _ranges[i].r1);
-							var c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, _ranges[i].c1);
-							var r2 = collaborativeEditing.getLockOtherRow2(nSheetId, _ranges[i].r2);
-							var c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, _ranges[i].c2);
+							var r1 = t.wb.bCollaborativeChanges ? collaborativeEditing.getLockOtherRow2(nSheetId, _ranges[i].r1) : _ranges[i].r1;
+							var c1 = t.wb.bCollaborativeChanges ? collaborativeEditing.getLockOtherColumn2(nSheetId, _ranges[i].c1) : _ranges[i].c1;
+							var r2 = t.wb.bCollaborativeChanges ? collaborativeEditing.getLockOtherRow2(nSheetId, _ranges[i].r2) : _ranges[i].r2;
+							var c2 = t.wb.bCollaborativeChanges ? collaborativeEditing.getLockOtherColumn2(nSheetId, _ranges[i].c2) : _ranges[i].c2;
 
 							ascRanges.push(new Asc.Range(c1, r1, c2, r2));
 						}
@@ -4482,7 +4487,6 @@ function (window, undefined) {
 					protectedSheet.setSpinCount(value);
 					break;
 				}
-
 				case AscCH.historyitem_Protected_SetSheet: {
 					protectedSheet.setSheet(value);
 					break;
@@ -4499,12 +4503,20 @@ function (window, undefined) {
 					protectedSheet.setFormatCells(value);
 					break;
 				}
+				case AscCH.historyitem_Protected_SetFormatColumns: {
+					protectedSheet.setFormatColumns(value);
+					break;
+				}
 				case AscCH.historyitem_Protected_SetInsertColumns: {
 					protectedSheet.setInsertColumns(value);
 					break;
 				}
 				case AscCH.historyitem_Protected_SetInsertRows: {
 					protectedSheet.setInsertRows(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetFormatRows: {
+					protectedSheet.setFormatRows(value);
 					break;
 				}
 				case AscCH.historyitem_Protected_SetInsertHyperlinks: {
@@ -4536,6 +4548,7 @@ function (window, undefined) {
 					break;
 				}
 			}
+			this.wb.handlers.trigger("asc_onChangeProtectWorksheet", oModel.index);
 		}
 	};
 
@@ -4618,6 +4631,7 @@ function (window, undefined) {
 					break;
 				}
 			}
+			oModel.handlers.trigger("asc_onChangeProtectWorkbook");
 		}
 	};
 

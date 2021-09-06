@@ -2904,7 +2904,8 @@ function CPresentation(DrawingDocument) {
         AutomaticBulletedLists : true,
         AutomaticNumberedLists : true,
         FrenchPunctuation      : true,
-		FirstLetterOfSentences : true
+		FirstLetterOfSentences : true,
+		Hyperlinks             : true
     };
 }
 
@@ -2913,6 +2914,18 @@ CPresentation.prototype.constructor = CPresentation;
 
 CPresentation.prototype.GetApi = function() {
     return this.Api;
+};
+CPresentation.prototype.IsDocumentEditor = function()
+{
+	return false;
+};
+CPresentation.prototype.IsPresentationEditor = function()
+{
+	return true;
+};
+CPresentation.prototype.IsSpreadSheetEditor = function()
+{
+	return false;
 };
 CPresentation.prototype.GetWidthMM = function () {
     return this.GetWidthEMU() / g_dKoef_mm_to_emu;
@@ -11040,6 +11053,22 @@ CPresentation.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrec
 CPresentation.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
 	return this.AutoCorrectSettings.FirstLetterOfSentences;
+};
+/**
+ * Выставляем настройку атозамены для гиперссылок
+ * @param {boolean} isCorrect
+ */
+CPresentation.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
+{
+	this.AutoCorrectSettings.Hyperlinks = isCorrect;
+};
+/**
+ * Запрашиваем настройку атозамены для гиперссылок
+ * @return {boolean}
+ */
+CPresentation.prototype.IsAutoCorrectHyperlinks = function()
+{
+	return this.AutoCorrectSettings.Hyperlinks;
 };
 CPresentation.prototype.StopAnimation = function()
 {

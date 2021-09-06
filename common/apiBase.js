@@ -72,6 +72,7 @@
 		this.documentUserId      = undefined;
 		this.documentUrl         = "null";
 		this.documentUrlChanges  = null;
+		this.documentTokenChanges  = null;
 		this.documentCallbackUrl = undefined;		// Ссылка для отправления информации о документе
 		this.documentFormat      = "null";
 		this.documentTitle       = "null";
@@ -511,7 +512,8 @@
 	};
 	baseEditorsApi.prototype.sync_StartAction                = function(type, id)
 	{
-		this.sendEvent('asc_onStartAction', type, id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onStartAction', type, id);
 		//console.log("asc_onStartAction: type = " + type + " id = " + id);
 
 		if (c_oAscAsyncActionType.BlockInteraction === type)
@@ -521,7 +523,8 @@
 	};
 	baseEditorsApi.prototype.sync_EndAction                  = function(type, id)
 	{
-		this.sendEvent('asc_onEndAction', type, id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onEndAction', type, id);
 		//console.log("asc_onEndAction: type = " + type + " id = " + id);
 
 		if (c_oAscAsyncActionType.BlockInteraction === type)
@@ -717,16 +720,21 @@
 	baseEditorsApi.prototype._openDocumentEndCallback            = function()
 	{
 	};
+	baseEditorsApi.prototype._openVersionHistoryEndCallback            = function()
+	{
+		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
+	};
 	baseEditorsApi.prototype._openOnClient                       = function()
 	{
 	};
 	baseEditorsApi.prototype._onOpenCommand                      = function(data)
 	{
 		var t = this;
-		AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
+		AscCommon.openFileCommand(this.documentId, data, this.documentUrlChanges, this.documentTokenChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
 			if (error || (!result.bSerFormat && !Asc.c_rUneditableTypes.test(t.DocInfo && t.DocInfo.get_Format())))
 			{
+				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
 				t.sendEvent("asc_onError",  err, c_oAscError.Level.Critical);
 				return;
@@ -1503,6 +1511,7 @@
 				this.SpellCheckApi = {};
 				this.SpellCheckApi.log = false;
 				this.SpellCheckApi.worker = new CSpellchecker({
+					api: this,
 					enginePath: "../../../../sdkjs/common/spell/spell",
 					dictionariesPath: "./../../../../dictionaries"
 				});
@@ -1579,6 +1588,9 @@
 	};
 	baseEditorsApi.prototype.downloadAs                         = function (actionType, options)
 	{
+		if (this.isLongAction()) {
+			return;
+		}
 		var isCloudCrypto = !!(window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"]));
 		if (isCloudCrypto)
 		{
@@ -1722,6 +1734,36 @@
 		return this.textArtPreviewManager.getWordArtPreviews();
 	};
 	// Add image
+	baseEditorsApi.prototype.AddImageUrl       = function(urls, imgProp, token, obj)
+	{
+		if (this.isLongAction()) {
+			return;
+		}
+		var t = this;
+		var toSendUrls = [];
+		var toSendIndex = [];
+		for (var i = 0; i < urls.length; ++i) {
+			if (!AscCommon.g_oDocumentUrls.getLocal(urls[i])) {
+				toSendIndex.push(i);
+				toSendUrls.push(urls[i]);
+			}
+		}
+		var callback = function(urls) {
+			t._addImageUrl(urls, obj);
+		};
+		if (toSendUrls.length > 0) {
+			AscCommon.sendImgUrls(this, toSendUrls, function(data) {
+				if (data) {
+					data.forEach(function(currentValue, index) {
+						urls[toSendIndex[index]] = currentValue.url;
+					});
+					callback.call(t, urls);
+				}
+			}, false, undefined, token);
+		} else {
+			callback.call(this, urls);
+		}
+	};
 	baseEditorsApi.prototype._addImageUrl                        = function()
 	{
 	};
@@ -1926,10 +1968,13 @@
 			this.DocInfo.put_Id(this.VersionHistory.docId);
 			this.DocInfo.put_Url(this.VersionHistory.url);
 			this.documentUrlChanges = this.VersionHistory.urlChanges;
+			this.documentTokenChanges = this.VersionHistory.token;
 			this.asc_setDocInfo(this.DocInfo);
 			this.asc_LoadDocument(this.VersionHistory);
 		} else if (this.VersionHistory.currentChangeId < newObj.currentChangeId) {
 			var oApi = Asc.editor || editor;
+			this.isApplyChangesOnVersionHistory = true;
+			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 			// Нужно только добавить некоторые изменения
 			AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 			oApi.VersionHistory.applyChanges(oApi);

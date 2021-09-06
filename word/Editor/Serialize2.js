@@ -8377,6 +8377,14 @@ function BinaryFileReader(doc, openParams)
 		}
 
         this.Document.On_EndLoad();
+
+		if (this.Document.Settings && this.Document.Settings.DocumentProtection) {
+			if (this.Document.Settings.DocumentProtection.isOnlyView()) {
+				var _api = this.Document.DrawingDocument && this.Document.DrawingDocument.m_oWordControl && this.Document.DrawingDocument.m_oWordControl.m_oApi;
+				_api && _api.asc_addRestriction(Asc.c_oAscRestrictionType.View);
+			}
+		}
+		
 		//чтобы удалялся stream с бинарником
 		pptx_content_loader.Clear(true);
     };
