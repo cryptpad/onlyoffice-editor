@@ -1114,18 +1114,18 @@ Geometry.prototype=
         this.gmEditPoint.pathC2 = pathC2;
         this.gmEditPoint.nextPoint = {
             id: nextPoint.id, X: nextPoint.X, Y: nextPoint.Y, g1X: nextPoint.g1X, g1Y: nextPoint.g1Y,
-                g2X: nextPoint.g2X, g2Y: nextPoint.g2Y, pathC1 : nextPoint.pathC1, pathC2 : nextPoint.pathC2,
+                g2X: nextPoint.g2X, g2Y: nextPoint.g2Y, pathC1 : nextPoint.pathC1, pathC2 : nextPoint.pathC2
         };
         this.gmEditPoint.prevPoint = {
             id: prevPoint.id, X: prevPoint.X, Y: prevPoint.Y, g1X: prevPoint.g1X, g1Y: prevPoint.g1Y,
-                g2X: prevPoint.g2X, g2Y: prevPoint.g2Y, pathC1 : prevPoint.pathC1, pathC2 : prevPoint.pathC2,
+                g2X: prevPoint.g2X, g2Y: prevPoint.g2Y, pathC1 : prevPoint.pathC1, pathC2 : prevPoint.pathC2
         },
         this.gmEditPoint.isHitInFirstCPoint = isHitInFirstCPoint;
         this.gmEditPoint.isHitInSecondCPoint = isHitInSecondCPoint;
         this.gmEditPoint.isStartPoint = isStartPoint;
         this.gmEditPoint.pathIndex = pathIndex;
 
-        this.originalEditPoint = {X, Y, g1X, g1Y, g2X, g2Y};
+        this.originalEditPoint = {X: X, Y: Y, g1X: g1X, g1Y: g1Y, g2X: g2X, g2Y: g2Y};
     },
 
     findConnector: function(x, y, distanse){

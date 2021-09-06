@@ -184,7 +184,11 @@
 
                 var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
                 var command = {
-                    id, X0, Y0, X1, Y1,
+                    id: id,
+                    X0: X0,
+                    Y0: Y0,
+                    X1: X1,
+                    Y1: Y1,
                     X2: _relative_x,
                     Y2: _relative_y,
                     X: _relative_x,
@@ -221,7 +225,11 @@
 
                     var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
                     var command = {
-                        id, X0, Y0, X1, Y1,
+                        id: id,
+                        X0: X0,
+                        Y0: Y0,
+                        X1: X1,
+                        Y1: Y1,
                         X2: nextPoint.X,
                         Y2: nextPoint.Y,
                         X: nextPoint.X,
@@ -525,7 +533,10 @@
 
 
                         var curPoint = {
-                            g1X, g1Y, g2X, g2Y,
+                            g1X: g1X,
+                            g1Y: g1Y,
+                            g2X: g2X,
+                            g2Y: g2Y,
                             X: (curCommand.X !== undefined ? curCommand.X : curCommand.X2),
                             Y: (curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2),
                             pathC1: index,
@@ -666,7 +677,7 @@
         var Y0 = prevCommand_1.Y + (Y - prevCommand_2.Y) / 4;
         var X1 = X - (curCommandX - prevCommand_1.X) / 4;
         var Y1 = Y - (curCommandY - prevCommand_1.Y) / 4;
-        var newPathElem = {id: PathType.BEZIER_4, X0, Y0, X1, Y1, X2: X, Y2: Y, X, Y};
+        var newPathElem = {id: PathType.BEZIER_4, X0: X0, Y0: Y0, X1: X1, Y1: Y1, X2: X, Y2: Y, X: X, Y: Y};
         curCommand.X0 = X + (curCommandX - prevCommand_1.X) / 4;
         curCommand.Y0 = Y + (curCommandY - prevCommand_1.Y) / 4;
 
@@ -754,7 +765,7 @@
             originalGeometry.gmEditPoint = null;
             originalGeometry.ellipsePointsList = [];
         }
-    }
+    };
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;
