@@ -12144,7 +12144,7 @@ CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange)
 	// Удаляем весь список
 	this.Api.sync_BeginCatchSelectedElements();
 
-	this.TrackRevisionsManager.BeginCollectChanges(bSaveCurRevisionChange && !this.IsSimpleMarkupInReview());
+	this.TrackRevisionsManager.BeginCollectChanges(bSaveCurRevisionChange);
 
 	// Уберем из интерфейса записи о том где мы находимся (параграф, таблица, картинка или колонтитул)
 	this.Api.ClearPropObjCallback();
@@ -25602,12 +25602,13 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 				if (FramePr)
 					ArrNewContent[i].Set_FramePr2(FramePr);
 			}
-			else
+			else if (!bEnd)
 			{
-				if (bEnd)
-					oSkipEnd++;
-				else
-					oSkipStart++;
+				oSkipStart++;
+			}
+			else if (i == ArrNewContent.length - 1)
+			{
+				oSkipEnd++;
 			}
 		}
 		
@@ -25731,9 +25732,6 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 							var oNestedContent = (oProps.nested) ? this.private_ConvertTableToText(oElement, oProps) : [oElement];
 							if (j == 0 && ArrNewContent[ArrNewContent.length-1].IsEmpty() && bAdd)
 								ArrNewContent.pop();
-							
-							if (k)
-								ArrNewContent[ArrNewContent.length - 1].Concat(oNestedContent.shift(), true);
 
 							ArrNewContent = ArrNewContent.concat(oNestedContent);
 							isNewPar = true;
@@ -26946,7 +26944,6 @@ CTrackRevisionsManager.prototype.EndCollectChanges = function(oDocument)
 	if (oDocument.IsSimpleMarkupInReview())
 	{
 		this.VisibleChanges = [];
-		this.CurChange      = null;
 
 		oEditor.sync_BeginCatchRevisionsChanges();
 		oEditor.sync_EndCatchRevisionsChanges();

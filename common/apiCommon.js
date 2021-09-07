@@ -5487,6 +5487,7 @@
 
 		this.isVisual     = (_object["isVisual"] != null) ? _object["isVisual"] : this.isVisual;
 		this.isModal      = (_object["isModal"] != null) ? _object["isModal"] : this.isModal;
+		this.isSystem     = (_object["isSystem"] != null) ? _object["isSystem"] : this.isSystem;
 		this.isInsideMode = (_object["isInsideMode"] != null) ? _object["isInsideMode"] : this.isInsideMode;
 		this.isCustomWindow = (_object["isCustomWindow"] != null) ? _object["isCustomWindow"] : this.isCustomWindow;
 
@@ -5496,6 +5497,8 @@
 		this.isUpdateOleOnResize = (_object["isUpdateOleOnResize"] != null) ? _object["isUpdateOleOnResize"] : this.isUpdateOleOnResize;
 
 		this.buttons = (_object["buttons"] != null) ? _object["buttons"] : this.buttons;
+
+		if (_object["events"] != null) this["set_Events"](_object["events"]);
 
 		this.size = (_object["size"] != null) ? _object["size"] : this.size;
 		this.initOnSelectionChanged = (_object["initOnSelectionChanged"] != null) ? _object["initOnSelectionChanged"] : this.initOnSelectionChanged;
@@ -5571,6 +5574,7 @@
 		this.name       = (_object["name"] != null) ? _object["name"] : this.name;
 		this.guid       = (_object["guid"] != null) ? _object["guid"] : this.guid;
 		this.baseUrl    = (_object["baseUrl"] != null) ? _object["baseUrl"] : this.baseUrl;
+		this.minVersion = (_object["minVersion"] != null) ? _object["minVersion"] : this.minVersion;
 		this.variations = [];
 		for (var i = 0; i < _object["variations"].length; i++)
 		{

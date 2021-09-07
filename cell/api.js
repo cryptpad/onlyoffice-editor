@@ -1278,7 +1278,7 @@ var editor;
 
   spreadsheet_api.prototype._loadFonts = function(fonts, callback) {
     if (window["NATIVE_EDITOR_ENJINE"]) {
-      return callback();
+      return callback.call(this);
     }
     this.asyncMethodCallback = callback;
     var arrLoadFonts = [];
@@ -2997,7 +2997,7 @@ var editor;
         }
 	};
 
-	spreadsheet_api.prototype.asc_setAutoCorrectHyperlinks = function (value) {
+	spreadsheet_api.prototype.asc_SetAutoCorrectHyperlinks = function (value) {
 		window['AscCommonExcel'].g_AutoCorrectHyperlinks = value;
 	};
 
@@ -4834,14 +4834,24 @@ var editor;
 			this.lastSaveTime = new Date();
 			return;
 		}
-		var saveGap = this.collaborativeEditing.getFast() ? this.autoSaveGapRealTime :
-			(this.collaborativeEditing.getCollaborativeEditing() ? this.autoSaveGapSlow : this.autoSaveGapFast);
-		var gap = new Date() - this.lastSaveTime - saveGap;
-		if (0 <= gap) {
-			this.asc_Save(true);
-		}
-        if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
-            this.wb.sendCursor();
+
+        var _bIsWaitScheme = false;
+        var _curTime =  new Date();
+        if((this.collaborativeEditing.Is_SingleUser() || !this.collaborativeEditing.getFast()) && History.Points[History.Index]) {
+            if ((_curTime - History.Points[History.Index].Time) < this.intervalWaitAutoSave) {
+                _bIsWaitScheme = true;
+            }
+        }
+        if(!_bIsWaitScheme) {
+            var saveGap = this.collaborativeEditing.getFast() ? this.autoSaveGapRealTime :
+                (this.collaborativeEditing.getCollaborativeEditing() ? this.autoSaveGapSlow : this.autoSaveGapFast);
+            var gap = _curTime - this.lastSaveTime - saveGap;
+            if (0 <= gap) {
+                this.asc_Save(true);
+            }
+            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+                this.wb.sendCursor();
+            }
         }
 	};
 
@@ -6269,7 +6279,7 @@ var editor;
   prot["asc_setIncludeNewRowColTable"] = prot.asc_setIncludeNewRowColTable;
 
   prot["asc_setShowZeroCellValues"] = prot.asc_setShowZeroCellValues;
-  prot["asc_setAutoCorrectHyperlinks"] = prot.asc_setAutoCorrectHyperlinks;
+  prot["asc_SetAutoCorrectHyperlinks"] = prot.asc_SetAutoCorrectHyperlinks;
 
 
   // Spreadsheet interface

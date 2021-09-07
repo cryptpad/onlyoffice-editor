@@ -2577,7 +2577,7 @@ background-repeat: no-repeat;\
 		var downloadType = bIsDownloadEvent ? DownloadType.Download : DownloadType.None;
 		var rData        = {
 			"c"     : 'pathurl',
-			"title" : this.documentTitle,
+			"title" : AscCommon.changeFileExtention(this.documentTitle, this.documentFormat, Asc.c_nMaxDownloadTitleLen),
 			"data"  : 'origin.' + this.documentFormat
 		};
 		var t            = this;
@@ -8168,6 +8168,7 @@ background-repeat: no-repeat;\
 			// ToDo select csv params
 			oAdditionalData['codepage']  = AscCommon.c_oAscCodePageUtf8;
 			oAdditionalData['delimiter'] = AscCommon.c_oAscCsvDelimiter.Comma;
+			dataContainer.data = this.mailMergeFileData['data'];
 		}
 		else if (this.insertDocumentUrlsData)
 		{
@@ -8384,8 +8385,28 @@ background-repeat: no-repeat;\
 	//----------------------------------------------------------------------------------------------------------------------
 	asc_docs_api.prototype.asc_StartMailMerge              = function(oData)
 	{
-		this.mailMergeFileData = oData;
-		this.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
+		var t = this;
+		if (oData) {
+			this.mailMergeFileData = oData;
+			this.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
+		} else {
+			AscCommon.ShowSpreadsheetFileDialog(function (error, files) {
+				if (Asc.c_oAscError.ID.No !== error) {
+					t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+					return;
+				}
+				var format = AscCommon.GetFileExtension(files[0].name);
+				var reader = new FileReader();
+				reader.onload = function () {
+					t.mailMergeFileData = {'url': undefined, 'fileType': format, 'data': new Uint8Array(reader.result)};
+					t.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
+				};
+				reader.onerror = function () {
+					t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
+				};
+				reader.readAsArrayBuffer(files[0]);
+			});
+		}
 	};
 	asc_docs_api.prototype.asc_StartMailMergeByList        = function(aList)
 	{
