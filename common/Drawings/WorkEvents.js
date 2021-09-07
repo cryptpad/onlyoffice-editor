@@ -78,6 +78,11 @@
         if (elem[_type])
         	delete elem[_type];
     };
+	AscCommon.getMouseEvent = function(elem, type)
+	{
+		var _type = (isUsePointerEvents ? "onpointer" : "onmouse") + type;
+		return elem[_type];
+	};
 
 	function CMouseEventHandler()
 	{

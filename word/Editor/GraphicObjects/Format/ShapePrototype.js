@@ -726,15 +726,11 @@ CShape.prototype.recalculateShapeStyleForParagraph = function()
         }
         if(this.style.fontRef.idx === AscFormat.fntStyleInd_major)
         {
-            shape_text_pr.RFonts.Ascii = { Name: "+mj-lt", Index : -1 };
-            shape_text_pr.RFonts.EastAsia = { Name: "+mj-ea", Index : -1 };
-            shape_text_pr.RFonts.CS = { Name: "+mj-cs", Index : -1 };
+            shape_text_pr.RFonts.SetFontStyle(AscFormat.fntStyleInd_major);
         }
         else if( this.style.fontRef.idx === AscFormat.fntStyleInd_minor)
         {
-            shape_text_pr.RFonts.Ascii = { Name: "+mn-lt", Index : -1 };
-            shape_text_pr.RFonts.EastAsia = { Name: "+mn-ea", Index : -1 };
-            shape_text_pr.RFonts.CS = { Name: "+mn-cs", Index : -1 };
+            shape_text_pr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
         }
         shape_text_pr.FontRef = this.style.fontRef.createDuplicate();
         this.textStyleForParagraph.TextPr.Merge(shape_text_pr);
@@ -1074,20 +1070,6 @@ CShape.prototype.OnContentReDraw = function()
 };
 
 
-CShape.prototype.Get_TextBackGroundColor = function()
-{
-    if(!this.brush)
-    {
-        return undefined;
-    }
-    var oTheme = this.Get_Theme && this.Get_Theme();
-    var oColorMap = this.Get_ColorMap && this.Get_ColorMap();
-    if(oTheme && oColorMap)
-    {
-        this.brush.check(oTheme, oColorMap);
-    }
-    return this.brush.Get_TextBackGroundColor();
-};
 CShape.prototype.documentStatistics = function(stats)
 {
     var content = this.getDocContent();
@@ -1179,7 +1161,7 @@ CShape.prototype.Is_DrawingShape = function(bRetShape)
     return true;
 };
 
-CShape.prototype.Is_InTable = function(bReturnTopTable)
+CShape.prototype.IsInTable = function(bReturnTopTable)
 {
     if ( true === bReturnTopTable )
         return null;
@@ -1309,12 +1291,9 @@ CShape.prototype.setStartPage = function(pageIndex, bNoResetSelectPage, bCheckCo
         content.Set_StartPage(pageIndex);
         if(true === bCheckContent)
         {
-            if(this.bWordShape && content.CheckRunContent(function(oRun)
+			if (this.bWordShape
+				&& (content.CheckRunContent(function(oRun)
 				{
-				    if(oRun instanceof AscCommon.ParaComment)
-                    {
-                        return true;
-                    }
 					for (var i = 0; i < oRun.Content.length; ++i)
 					{
 						var oItem = oRun.Content[i];
@@ -1337,9 +1316,8 @@ CShape.prototype.setStartPage = function(pageIndex, bNoResetSelectPage, bCheckCo
 					}
 
 					return false;
-				}
-            ))
-            {
+				}) || content.GetAllComments().length > 0))
+			{
                 this.recalcInfo.recalculateTxBoxContent = true;
                 this.recalcInfo.recalculateTransformText = true;
                 this.recalculateText();

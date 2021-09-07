@@ -102,12 +102,6 @@ CGraphicFrame.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
 	if (!arrPos)
 		arrPos = [];
-
-	// TODO: Судя по тому как записывается позиция и как она читается
-	//       класс CGraphicFrame не должен попадать в позицию
-	if (arrPos && arrPos.length > 0 && arrPos[0].Class === this)
-		arrPos.splice(0, 1);
-
 	return arrPos;
 };
 
@@ -241,14 +235,22 @@ CGraphicFrame.prototype.Search = function(Str, Props, SearchEngine, Type)
         }
 };
 
-CGraphicFrame.prototype.Search_GetId = function(bNext, bCurrent)
+CGraphicFrame.prototype.GetSearchElementId = function(bNext, bCurrent)
     {
         if(this.graphicObject)
         {
-            return this.graphicObject.Search_GetId(bNext, bCurrent);
+            return this.graphicObject.GetSearchElementId(bNext, bCurrent);
         }
 
         return null;
+};
+
+CGraphicFrame.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	if (this.graphicObject)
+		return this.graphicObject.FindNextFillingForm(isNext, isCurrent);
+
+	return null;
 };
 
 CGraphicFrame.prototype.copy = function(oPr)
@@ -272,7 +274,14 @@ CGraphicFrame.prototype.copy = function(oPr)
             ret.spPr.setParent(ret);
         }
         ret.setBDeleted(false);
-
+        if(this.macro !== null)
+        {
+            ret.setMacro(this.macro);
+        }
+        if(this.textLink !== null)
+        {
+            ret.setTextLink(this.textLink);
+        }
         if(!this.recalcInfo.recalculateTable && !this.recalcInfo.recalculateSizes && !this.recalcInfo.recalculateTransform)
         {
             ret.cachedImage = this.getBase64Img();
@@ -361,10 +370,10 @@ CGraphicFrame.prototype.Set_Props= function(props)
         {
             var bApplyToAll = this.parent.graphicObjects.State.textObject !== this;
            // if(bApplyToAll)
-           //     this.graphicObject.Set_ApplyToAll(true);
+           //     this.graphicObject.SetApplyToAll(true);
             this.graphicObject.Set_Props(props, bApplyToAll);
             //if(bApplyToAll)
-            //    this.graphicObject.Set_ApplyToAll(false);
+            //    this.graphicObject.SetApplyToAll(false);
             this.OnContentRecalculate();
             editor.WordControl.m_oLogicDocument.recalcMap[this.Id] = this;
         }
@@ -372,6 +381,12 @@ CGraphicFrame.prototype.Set_Props= function(props)
 
 CGraphicFrame.prototype.updateCursorType= function(x, y, e)
     {
+        var oApi = Asc.editor || editor;
+        var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+        if(isDrawHandles === false)
+        {
+            return;
+        }
         var tx = this.invertTransform.TransformPointX(x, y);
         var ty = this.invertTransform.TransformPointY(x, y);
         this.graphicObject.UpdateCursorType(tx, ty, 0)
@@ -623,23 +638,6 @@ CGraphicFrame.prototype.getInvertTransform = function()
         return this.invertTransform;
 };
 
-CGraphicFrame.prototype.hitInBoundingRect = function(x, y)
-    {
-        var invert_transform = this.getInvertTransform();
-        if(!invert_transform){
-            return false;
-        }
-        var x_t = invert_transform.TransformPointX(x, y);
-        var y_t = invert_transform.TransformPointY(x, y);
-
-        var _hit_context = this.getParentObjects().presentation.DrawingDocument.CanvasHitContext;
-
-        return (HitInLine(_hit_context, x_t, y_t, 0, 0, this.extX, 0) ||
-            HitInLine(_hit_context, x_t, y_t, this.extX, 0, this.extX, this.extY)||
-            HitInLine(_hit_context, x_t, y_t, this.extX, this.extY, 0, this.extY)||
-            HitInLine(_hit_context, x_t, y_t, 0, this.extY, 0, 0));
-};
-
 CGraphicFrame.prototype.Document_UpdateRulersState  = function(margins)
     {
         if(this.graphicObject)
@@ -683,7 +681,7 @@ CGraphicFrame.prototype.Check_AutoFit = function()
         return false;
 };
 
-CGraphicFrame.prototype.Is_InTable = function()
+CGraphicFrame.prototype.IsInTable = function()
     {
         return null;
 };
@@ -820,9 +818,6 @@ CGraphicFrame.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
 
 CGraphicFrame.prototype.addToDrawingObjects = CShape.prototype.addToDrawingObjects;
 
-CGraphicFrame.prototype.select = CShape.prototype.select;
-
-CGraphicFrame.prototype.deselect = CShape.prototype.deselect;
 
 CGraphicFrame.prototype.Update_ContentIndexing = function()
 {};
@@ -848,10 +843,12 @@ CGraphicFrame.prototype.draw = function(graphics)
             graphics._e();
             return;
         }
+        if(graphics.animationDrawer) {
+            graphics.animationDrawer.drawObject(this, graphics);
+            return;
+        }
         if(this.graphicObject)
         {
-
-
             graphics.SaveGrState();
             graphics.transform3(this.transform);
             graphics.SetIntegerGrid(true);
@@ -992,9 +989,9 @@ CGraphicFrame.prototype.applyAllAlign = function(val)
     {
         if(isRealObject(this.graphicObject))
         {
-            this.graphicObject.Set_ApplyToAll(true);
+            this.graphicObject.SetApplyToAll(true);
             this.graphicObject.SetParagraphAlign(val);
-            this.graphicObject.Set_ApplyToAll(false);
+            this.graphicObject.SetApplyToAll(false);
         }
 };
 
@@ -1010,9 +1007,9 @@ CGraphicFrame.prototype.applyAllSpacing = function(val)
     {
         if(isRealObject(this.graphicObject))
         {
-            this.graphicObject.Set_ApplyToAll(true);
+            this.graphicObject.SetApplyToAll(true);
             this.graphicObject.SetParagraphSpacing(val);
-            this.graphicObject.Set_ApplyToAll(false);
+            this.graphicObject.SetApplyToAll(false);
         }
 };
 
@@ -1091,9 +1088,9 @@ CGraphicFrame.prototype.Get_PageContentStartPos = function(PageNum)
         var presentation = editor.WordControl.m_oLogicDocument;
         return {
             X : 0,
-            XLimit: presentation.Width,
+            XLimit: presentation.GetWidthMM(),
             Y : 0,
-            YLimit : presentation.Height,
+            YLimit : presentation.GetHeightMM(),
             MaxTopBorder : 0
         };
 
@@ -1287,6 +1284,11 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             }
         }
         return ret;
+    };
+    CGraphicFrame.prototype.documentCreateFontMap = function(oMap) {
+        if(this.graphicObject && this.graphicObject.Document_CreateFontMap) {
+            this.graphicObject.Document_CreateFontMap(oMap);
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

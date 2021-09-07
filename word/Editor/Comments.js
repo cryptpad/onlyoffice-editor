@@ -293,6 +293,10 @@ CCommentData.prototype.GetQuoteText = function()
 {
 	return this.Get_QuoteText();
 };
+CCommentData.prototype.SetQuoteText = function(sText)
+{
+	this.Set_QuoteText(sText);
+};
 CCommentData.prototype.IsSolved = function()
 {
 	return this.m_bSolved;
@@ -345,6 +349,9 @@ CCommentData.prototype.ReadFromSimpleObject = function(oData)
 
 	if (oData["UserName"])
 		this.m_sUserName = oData["UserName"];
+	
+	if (oData["UserId"])
+		this.m_sUserId = oData["UserId"];
 
 	if (oData["Solved"])
 		this.m_bSolved = oData["Solved"];
@@ -361,6 +368,14 @@ CCommentData.prototype.ReadFromSimpleObject = function(oData)
 			this.m_aReplies.push(oCD);
 		}
 	}
+};
+CCommentData.prototype.GetSolved = function()
+{
+	return this.m_bSolved;
+};
+CCommentData.prototype.SetSolved = function(isSolved)
+{
+	this.m_bSolved = isSolved;
 };
 
 function CCommentDrawingRect(X, Y, W, H, CommentId, InvertTransform)
@@ -432,8 +447,7 @@ function CComment(Parent, Data)
 
 	this.Set_Data = function(Data)
 	{
-		History.Add(new CChangesCommentChange(this, this.Data, Data));
-		this.Data = Data;
+		this.SetData(Data);
 	};
 
     this.Remove_Marks = function()
@@ -593,6 +607,18 @@ CComment.prototype.GetData = function()
 {
 	return this.Data;
 };
+CComment.prototype.SetData = function(oData)
+{
+	History.Add(new CChangesCommentChange(this, this.Data, oData));
+	this.Data = oData;
+};
+CComment.prototype.GetUserName = function()
+{
+	if (this.Data)
+		return this.Data.GetUserName();
+
+	return "";
+};
 CComment.prototype.IsSolved = function()
 {
 	if (this.Data)
@@ -611,7 +637,8 @@ CComment.prototype.GetDurableId = function()
 
 	return -1;
 };
-CComment.prototype.CreateNewCommentsGuid = function() {
+CComment.prototype.CreateNewCommentsGuid = function()
+{
 	this.Data && this.Data.CreateNewCommentsGuid();
 };
 /**
@@ -628,6 +655,14 @@ CComment.prototype.IsCurrentUser = function()
 	}
 
 	return true;
+};
+CComment.prototype.MoveCursorToStart = function()
+{
+	var oStartPara = g_oTableId.Get_ById(this.StartId);
+	if (oStartPara && (oStartPara instanceof Paragraph))
+	{
+		oStartPara.MoveCursorToCommentMark(this.Id);
+	}
 };
 
 var comments_NoComment        = 0;
@@ -708,43 +743,6 @@ function CComments()
         this.m_sCurrent = Id;
     };
 
-    this.Get_ByXY = function(PageNum, X, Y)
-	{
-		var Page = this.Pages[PageNum], _X, _Y;
-		if (undefined !== Page)
-		{
-			var Count = Page.length;
-			for (var Pos = 0; Pos < Count; Pos++)
-			{
-				var DrawingRect = Page[Pos];
-				if (!DrawingRect.InvertTransform)
-				{
-					_X = X;
-					_Y = Y;
-				}
-				else
-				{
-					_X = DrawingRect.InvertTransform.TransformPointX(X, Y);
-					_Y = DrawingRect.InvertTransform.TransformPointY(X, Y);
-				}
-				if (_X >= DrawingRect.X && _X <= DrawingRect.X + DrawingRect.W && _Y >= DrawingRect.Y && _Y <= DrawingRect.Y + DrawingRect.H)
-				{
-					var arrComments = [];
-					for (var nCommentIndex = 0, nCommentsCount = DrawingRect.CommentId.length; nCommentIndex < nCommentsCount; ++nCommentIndex)
-					{
-						var oComment = this.Get_ById(DrawingRect.CommentId[nCommentIndex]);
-						if (oComment)
-							arrComments.push(oComment);
-					}
-
-					return arrComments;
-				}
-			}
-		}
-
-		return [];
-	};
-
     this.Get_Current = function()
     {
         if ( null != this.m_sCurrent )
@@ -793,6 +791,100 @@ function CComments()
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
 }
+CComments.prototype.GetByXY = function(PageNum, X, Y)
+{
+	var Page = this.Pages[PageNum], _X, _Y;
+	if (undefined !== Page)
+	{
+		var Count = Page.length;
+		for (var Pos = 0; Pos < Count; Pos++)
+		{
+			var DrawingRect = Page[Pos];
+			if (!DrawingRect.InvertTransform)
+			{
+				_X = X;
+				_Y = Y;
+			}
+			else
+			{
+				_X = DrawingRect.InvertTransform.TransformPointX(X, Y);
+				_Y = DrawingRect.InvertTransform.TransformPointY(X, Y);
+			}
+			if (_X >= DrawingRect.X && _X <= DrawingRect.X + DrawingRect.W && _Y >= DrawingRect.Y && _Y <= DrawingRect.Y + DrawingRect.H)
+			{
+				var arrComments = [];
+				for (var nCommentIndex = 0, nCommentsCount = DrawingRect.CommentId.length; nCommentIndex < nCommentsCount; ++nCommentIndex)
+				{
+					var oComment = this.Get_ById(DrawingRect.CommentId[nCommentIndex]);
+					if (oComment)
+						arrComments.push(oComment);
+				}
+
+				return arrComments;
+			}
+		}
+	}
+
+	return [];
+};
+CComments.prototype.GetByRect = function(nPageIndex, nX, nY, nW, nH)
+{
+	var oPage = this.Pages[nPageIndex];
+	var nX1, nX2, nY1, nY2;
+
+	if (oPage)
+	{
+		for (var nIndex = 0, nCount = oPage.length; nIndex < nCount; ++nIndex)
+		{
+			var oDrawingRect = oPage[nIndex];
+
+			if (!oDrawingRect.InvertTransform)
+			{
+				nX1 = nX;
+				nY1 = nY;
+				nX2 = nX + nW;
+				nY2 = nY + nH;
+			}
+			else
+			{
+				nX1 = oDrawingRect.InvertTransform.TransformPointX(nX, nY);
+				nY1 = oDrawingRect.InvertTransform.TransformPointY(nX, nY);
+				nX2 = oDrawingRect.InvertTransform.TransformPointX(nX + nW, nY + nH);
+				nY2 = oDrawingRect.InvertTransform.TransformPointY(nX + nW, nY + nH);
+			}
+
+			if (nX1 > nX2)
+			{
+				var nTemp = nX2;
+				nX2       = nX1;
+				nX1       = nTemp;
+			}
+
+			if (nY1 > nY2)
+			{
+				var nTemp = nY2;
+				nY2       = nY1;
+				nY1       = nTemp;
+			}
+
+			if (Math.max(nX1, oDrawingRect.X) < Math.min(nX2, oDrawingRect.X + oDrawingRect.W)
+				&& Math.max(nY1, oDrawingRect.Y) < Math.min(nY2, oDrawingRect.Y + oDrawingRect.H))
+			{
+				var arrComments = [];
+				for (var nCommentIndex = 0, nCommentsCount = oDrawingRect.CommentId.length; nCommentIndex < nCommentsCount; ++nCommentIndex)
+				{
+					var oComment = this.Get_ById(oDrawingRect.CommentId[nCommentIndex]);
+					if (oComment)
+						arrComments.push(oComment);
+				}
+
+				return arrComments;
+			}
+		}
+	}
+
+	return [];
+};
 CComments.prototype.GetAllComments = function()
 {
 	return this.m_aComments;
@@ -881,9 +973,14 @@ ParaComment.prototype.GetId = function()
 {
 	return this.Get_Id();
 };
-ParaComment.prototype.Copy = function(Selected)
+ParaComment.prototype.Copy = function(Selected, oPr)
 {
-	return new ParaComment(this.Start, this.CommentId);
+    var sId = this.CommentId;
+    if(oPr && oPr.Comparison)
+    {
+        sId = oPr.Comparison.copyComment(this.CommentId);
+    }
+	return new ParaComment(this.Start, sId);
 };
 ParaComment.prototype.Recalculate_Range_Spaces = function(PRSA, CurLine, CurRange, CurPage)
 {
@@ -954,7 +1051,7 @@ ParaComment.prototype.LoadRecalculateObject = function(RecalcObj, Parent)
 ParaComment.prototype.PrepareRecalculateObject = function()
 {
 };
-ParaComment.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange)
+ParaComment.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange, _CurPage)
 {
 	var DocumentComments = editor.WordControl.m_oLogicDocument.Comments;
 	var Comment          = DocumentComments.Get_ById(this.CommentId);
@@ -1010,10 +1107,6 @@ ParaComment.prototype.GetCommentId = function()
 ParaComment.prototype.IsCommentStart = function()
 {
 	return this.Start;
-};
-ParaComment.prototype.CheckRunContent = function(fCheck)
-{
-    return fCheck(this);
 };
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};

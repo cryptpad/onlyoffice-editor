@@ -49,9 +49,9 @@ CLogicDocumentController.prototype.CanUpdateTarget = function()
 {
 	return this.LogicDocument.controller_CanUpdateTarget();
 };
-CLogicDocumentController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY)
+CLogicDocumentController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)
 {
-	return this.LogicDocument.controller_RecalculateCurPos(bUpdateX, bUpdateY);
+	return this.LogicDocument.controller_RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 };
 CLogicDocumentController.prototype.GetCurPage = function()
 {
@@ -294,6 +294,10 @@ CLogicDocumentController.prototype.GetSelectedText = function(bClearText, oPr)
 CLogicDocumentController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	return this.LogicDocument.controller_GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
+};
+CLogicDocumentController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	return this.LogicDocument.controller_GetCurrentTablesStack(arrTables)
 };
 CLogicDocumentController.prototype.GetSelectedElementsInfo = function(oInfo)
 {

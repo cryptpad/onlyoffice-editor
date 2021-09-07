@@ -61,8 +61,6 @@ CChartSpace.prototype.recalcText = function()
 };
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
 CChartSpace.prototype.hit = CShape.prototype.hit;
@@ -102,7 +100,6 @@ CChartSpace.prototype.setRecalculateInfo = function()
         recalculateUpDownBars: true,
         recalculateLegend: true,
         recalculateReferences: true,
-        recalculateBBox: true,
         recalculateFormulas: true,
         recalculatePenBrush: true,
         recalculateTextPr : true,
@@ -207,7 +204,6 @@ CChartSpace.prototype.handleUpdateLn = function()
     this.addToRecalculate();
 };
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = function()
 {
@@ -258,6 +254,13 @@ CChartSpace.prototype.recalculate = function()
 {
     if(this.bDeleted)
         return;
+
+    var oController = this.getDrawingObjectsController();
+    //Use this check to prevent charts recalculation on not initialized sheets bug 50467
+    if(!oController) {
+        return;
+    }
+    //---------------------------------------------------
     AscFormat.ExecuteNoHistory(function()
     {
         this.updateLinks();
@@ -283,11 +286,6 @@ CChartSpace.prototype.recalculate = function()
         {
             this.recalculateReferences();
             this.recalcInfo.recalculateReferences = false;
-        }
-        if(this.recalcInfo.recalculateBBox)
-        {
-            this.recalculateBBox();
-            this.recalcInfo.recalculateBBox = false;
         }
         if(this.recalcInfo.recalculateMarkers)
         {
@@ -426,8 +424,6 @@ CChartSpace.prototype.recalculate = function()
 };
 
 
-
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
 CChartSpace.prototype.getDrawingDocument = CShape.prototype.getDrawingDocument;
 CChartSpace.prototype.recalculateLocalTransform = CShape.prototype.recalculateLocalTransform;
 

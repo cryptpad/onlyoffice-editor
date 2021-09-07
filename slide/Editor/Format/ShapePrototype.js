@@ -120,6 +120,10 @@ CShape.prototype.addToDrawingObjects =  function(pos)
 {
     if(this.parent && this.parent.cSld && this.parent.cSld.spTree)
     {
+        if(this.signatureLine && this.setSignature)
+        {
+            this.setSignature(null);
+        }
         this.parent.shapeAdd(pos, this);
     }
 };
@@ -144,9 +148,9 @@ CShape.prototype.deleteDrawingBase = function(bCheckPlaceholder)
                 var doc_content = copy.getDocContent && copy.getDocContent();
                 if(doc_content)
                 {
-                    doc_content.Set_ApplyToAll(true);
+                    doc_content.SetApplyToAll(true);
                     doc_content.Remove(-1);
-                    doc_content.Set_ApplyToAll(false);
+                    doc_content.SetApplyToAll(false);
                 }
             }
         }
@@ -416,6 +420,17 @@ CShape.prototype.getParentObjects = function ()
                     notes: this.parent
                 }
             }
+            case AscDFH.historyitem_type_NotesMaster:
+            {
+                return {
+                    presentation: editor.WordControl.m_oLogicDocument,
+                    slide: null,
+                    layout: null,
+                    master: this.parent,
+                    theme: this.themeOverride ? this.themeOverride : this.parent.Theme,
+                    notes: null
+                }
+            }
             case AscDFH.historyitem_type_RelSizeAnchor:
             case AscDFH.historyitem_type_AbsSizeAnchor:
             {
@@ -424,6 +439,24 @@ CShape.prototype.getParentObjects = function ()
                     return this.parent.parent.getParentObjects()
                 }
                 break;
+            }
+        }
+    }
+    else
+    {
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        if(oPresentation)
+        {
+            var oSlide = oPresentation.Slides[oPresentation.CurPage];
+            if(oSlide)
+            {
+                return {
+                    presentation: oPresentation,
+                    slide: oSlide,
+                    layout: oSlide.Layout,
+                    master: oSlide.Layout ? oSlide.Layout.Master : null,
+                    theme: this.themeOverride ? this.themeOverride : (oSlide.Layout && oSlide.Layout.Master ? oSlide.Layout.Master.Theme : null)
+                };
             }
         }
     }

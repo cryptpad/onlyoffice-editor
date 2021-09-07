@@ -55,9 +55,9 @@ CHdrFtrController.prototype.CanUpdateTarget = function()
 {
 	return true;
 };
-CHdrFtrController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY)
+CHdrFtrController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)
 {
-	return this.HdrFtr.RecalculateCurPos(bUpdateX, bUpdateY);
+	return this.HdrFtr.RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 };
 CHdrFtrController.prototype.GetCurPage = function()
 {
@@ -324,6 +324,10 @@ CHdrFtrController.prototype.GetSelectedText = function(bClearText, oPr)
 CHdrFtrController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	return this.HdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
+};
+CHdrFtrController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	return this.HdrFtr.GetCurrentTablesStack(arrTables);
 };
 CHdrFtrController.prototype.GetSelectedElementsInfo = function(oInfo)
 {

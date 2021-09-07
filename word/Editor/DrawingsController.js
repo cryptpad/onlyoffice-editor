@@ -82,9 +82,9 @@ CDrawingsController.prototype.CanUpdateTarget = function()
 {
 	return true;
 };
-CDrawingsController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY)
+CDrawingsController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)
 {
-	return this.DrawingObjects.recalculateCurPos(bUpdateX, bUpdateY);
+	return this.DrawingObjects.recalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 };
 CDrawingsController.prototype.GetCurPage = function()
 {
@@ -369,7 +369,10 @@ CDrawingsController.prototype.IsSelectionEmpty = function(bCheckHidden)
 };
 CDrawingsController.prototype.DrawSelectionOnPage = function(PageAbs)
 {
-	this.DrawingDocument.SetTextSelectionOutline(true);
+	var oParaDrawing = this.DrawingObjects.getMajorParaDrawing();
+	if (!oParaDrawing || !oParaDrawing.IsForm())
+		this.DrawingDocument.SetTextSelectionOutline(true);
+
 	this.DrawingObjects.drawSelectionPage(PageAbs);
 };
 CDrawingsController.prototype.GetSelectionBounds = function()
@@ -423,11 +426,15 @@ CDrawingsController.prototype.GetCurPosXY = function()
 };
 CDrawingsController.prototype.GetSelectedText = function(bClearText, oPr)
 {
-	return this.DrawingObjects.getSelectedText(bClearText, oPr);
+	return this.DrawingObjects.GetSelectedText(bClearText, oPr);
 };
 CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
+};
+CDrawingsController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	return this.DrawingObjects.getCurrentTablesStack(arrTables);
 };
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
@@ -445,6 +452,15 @@ CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 	}
 
 	this.DrawingObjects.getSelectedElementsInfo(oInfo);
+
+	var oParaDrawing = this.DrawingObjects.getMajorParaDrawing();
+	if (oParaDrawing && oParaDrawing.IsForm())
+	{
+		var oInnerForm = oParaDrawing.GetInnerForm();
+		if (oInnerForm)
+			oInfo.SetInlineLevelSdt(oInnerForm);
+	}
+
 };
 CDrawingsController.prototype.AddTableRow = function(bBefore, nCount)
 {

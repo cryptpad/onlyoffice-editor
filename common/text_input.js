@@ -203,9 +203,15 @@
 			}
 			this.HtmlArea.id                   	= "area_id";
 
+			if (this.Api.isViewMode && this.Api.isMobileVersion)
+				this.setReadOnlyWrapper(true);
+
 			var _style = ("left:-" + (this.HtmlAreaWidth >> 1) + "px;top:" + (-this.HtmlAreaOffset) + "px;");
 			_style += ("background:transparent;border:none;position:absolute;text-shadow:0 0 0 #000;outline:none;color:transparent;width:" + this.HtmlAreaWidth + "px;height:50px;");
-			_style += "overflow:hidden;padding:0px;margin:0px;font-family:arial;font-size:10pt;resize:none;font-weight:normal;box-sizing:content-box;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;";
+			_style += "overflow:hidden;padding:0px;margin:0px;font-family:arial;resize:none;font-weight:normal;box-sizing:content-box;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;";
+			_style += "touch-action: none;-webkit-touch-callout: none;color:transparent;caret-color:transparent;";
+			_style += AscCommon.AscBrowser.isAppleDevices ? "font-size:0px;" : "font-size:8px;"
+
 			this.HtmlArea.setAttribute("style", _style);
 			this.HtmlArea.setAttribute("spellcheck", false);
 
@@ -309,12 +315,12 @@
 					if (!_this.virtualKeyboardClickPrevent)
 						return;
 
-					_this.HtmlArea.readOnly = true;
+					_this.setReadOnlyWrapper(true);
 					_this.virtualKeyboardClickPrevent = false;
 					AscCommon.stopEvent(e);
 					_this.virtualKeyboardClickTimeout = setTimeout(function ()
 					{
-						_this.HtmlArea.readOnly = false;
+						_this.setReadOnlyWrapper(false);
 						_this.virtualKeyboardClickTimeout = -1;
 					}, 1);
 					return false;
@@ -375,7 +381,6 @@
                 _elem2.style.bottom = "0px";
                 _elem2.style.width = "100%";
                 _elem2.style.height = "100%";
-                _elem2.style.fontSize = "8px";
 
                 if (AscCommon.AscBrowser.isIE)
 				{
@@ -493,7 +498,12 @@
 			// может вызываться и в обратном порядке (setReadOnly(false), setReadOnly(true))
 			// поэтому сравнение с нулем неверно. отрицательные значение могут быть.
 
-			this.HtmlArea.readOnly = (0 >= this.ReadOnlyCounter) ? false : true;
+			this.setReadOnlyWrapper((0 >= this.ReadOnlyCounter) ? false : true);
+		},
+
+		setReadOnlyWrapper : function(val)
+		{
+			this.HtmlArea.readOnly = this.Api.isViewMode ? true : val;
 		},
 
 		show : function()
@@ -1396,6 +1406,12 @@
 
             this.Api.Replace_CompositeText(_value);
 
+			if (window.g_asc_plugins)
+			{
+				this.keyPressInput = String.fromCodePoint.apply(this, _value);
+				window.g_asc_plugins.onPluginEvent("onInputHelperInput", {"text": this.keyPressInput});
+			}
+
 			this.LastReplaceText = _value.slice();
 			this.IsLastReplaceFlag = true;
 		},
@@ -1485,12 +1501,12 @@
 
 			if (AscCommon.AscBrowser.isAndroid)
 			{
-                this.HtmlArea.readOnly = true;
+				this.setReadOnlyWrapper(true);
 				this.virtualKeyboardClickPrevent = true;
 
                 this.virtualKeyboardClickTimeout = setTimeout(function ()
                 {
-                    window['AscCommon'].g_inputContext.HtmlArea.readOnly = false;
+                    window['AscCommon'].g_inputContext.setReadOnlyWrapper(false);
                     window['AscCommon'].g_inputContext.virtualKeyboardClickTimeout = -1;
                 }, 1);
 			}
@@ -1509,19 +1525,19 @@
 					this.virtualKeyboardClickTimeout = -1;
 				}
 
-                this.HtmlArea.readOnly = false;
+				this.setReadOnlyWrapper(false);
 				this.virtualKeyboardClickPrevent = false;
 			}
 		},
 
         preventVirtualKeyboard_Hard : function()
 		{
-            this.HtmlArea.readOnly = true;
+            this.setReadOnlyWrapper(true);
 		},
 
         enableVirtualKeyboard_Hard : function()
 		{
-            this.HtmlArea.readOnly = false;
+			this.setReadOnlyWrapper(false);
 		}
 	};
 
@@ -1686,7 +1702,7 @@
 
 			var _elem = t.nativeFocusElement;
 			t.nativeFocusElementNoRemoveOnElementFocus = true; // ie focus async
-			t.HtmlArea.focus();
+			AscCommon.AscBrowser.isMozilla ? setTimeout(function(){ t.HtmlArea.focus(); }, 0) : t.HtmlArea.focus();
 			t.nativeFocusElement = _elem;
 			t.Api.asc_enableKeyEvents(true, true);
 		}, true);

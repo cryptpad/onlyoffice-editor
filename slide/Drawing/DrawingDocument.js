@@ -673,235 +673,87 @@ function CDrawingPage()
 	this.cachedImage = null;
 }
 
-function CDrawingCollaborativeTarget()
+function CDrawingCollaborativeTarget(DrawingDocument)
 {
-	this.Id      = "";
-	this.ShortId = "";
-
-	this.X    = 0;
-	this.Y    = 0;
-	this.Size = 0;
+	AscCommon.CDrawingCollaborativeTargetBase.call(this);
 	this.Page = -1;
-
-	this.Color     = null;
-	this.Transform = null;
-
-	this.HtmlElement  = null;
-	this.HtmlElementX = 0;
-	this.HtmlElementY = 0;
-
-	this.Style = "";
-	this.HtmlParentId = -1; // 0 - main, 1 - notes
-	this.HtmlParent = null;
+	this.DrawingDocument = DrawingDocument;
 }
-CDrawingCollaborativeTarget.prototype =
+CDrawingCollaborativeTarget.prototype = Object.create(AscCommon.CDrawingCollaborativeTargetBase.prototype);
+
+CDrawingCollaborativeTarget.prototype.IsFocusOnNotes = function() {
+	return this.DrawingDocument.m_oWordControl.m_oLogicDocument.IsFocusOnNotes();
+};
+CDrawingCollaborativeTarget.prototype.GetZoom = function()
 {
-	CheckPosition : function(_drawing_doc, _x, _y, _size, _page, _transform)
+	if(this.IsFocusOnNotes())
 	{
-		// 1) создаем новый элемент, если еще его не было
-		var bIsHtmlElementCreate = false;
-		if (this.HtmlElement == null)
-		{
-			bIsHtmlElementCreate           = true;
-			this.HtmlElement               = document.createElement('canvas');
-			this.HtmlElement.style.cssText = "pointer-events: none;position:absolute;padding:0;margin:0;-webkit-user-select:none;width:1px;height:1px;display:none;z-index:9;";
-			this.HtmlElement.width         = 1;
-			this.HtmlElement.height        = 1;
-
-			this.Color = AscCommon.getUserColorById(this.ShortId, null, true);
-			this.Style = "rgb(" + this.Color.r + "," + this.Color.g + "," + this.Color.b + ")";
-		}
-
-		// 2) определяем размер
-		this.Transform = _transform;
-		this.Size      = _size;
-
-		var _old_x    = this.X;
-		var _old_y    = this.Y;
-		var _old_page = this.Page;
-
-		this.X    = _x;
-		this.Y    = _y;
-		this.Page = _page;
-
-		if (this.Page != _drawing_doc.SlideCurrent)
-		{
-			this.HtmlElement.style.display = "none";
-			return;
-		}
-
-		var _oldW = this.HtmlElement.width;
-		var _oldH = this.HtmlElement.height;
-
-		var isNotes = _drawing_doc.m_oWordControl.m_oLogicDocument.IsFocusOnNotes();
-
-		var _newW = 2;
-		var _newH = (this.Size * _drawing_doc.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
-		if (isNotes)
-			_newH = (this.Size * g_dKoef_mm_to_pix) >> 0;
-
-		if (null != this.Transform && !global_MatrixTransformer.IsIdentity2(this.Transform))
-		{
-			var _x1 = this.Transform.TransformPointX(_x, _y);
-			var _y1 = this.Transform.TransformPointY(_x, _y);
-
-			var _x2 = this.Transform.TransformPointX(_x, _y + this.Size);
-			var _y2 = this.Transform.TransformPointY(_x, _y + this.Size);
-
-			var pos1 = _drawing_doc.ConvertCoordsToCursor(_x1, _y1);
-			var pos2 = _drawing_doc.ConvertCoordsToCursor(_x2, _y2);
-
-			_newW = (Math.abs(pos1.X - pos2.X) >> 0) + 1;
-			_newH = (Math.abs(pos1.Y - pos2.Y) >> 0) + 1;
-
-			if (2 > _newW)
-				_newW = 2;
-			if (2 > _newH)
-				_newH = 2;
-
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				if (_newW != 2 && _newH != 2)
-				{
-					// просто очищаем
-					this.HtmlElement.width = _newW;
-				}
-			}
-			else
-			{
-				this.HtmlElement.style.width  = _newW + "px";
-				this.HtmlElement.style.height = _newH + "px";
-
-				this.HtmlElement.width  = _newW;
-				this.HtmlElement.height = _newH;
-			}
-			var ctx = this.HtmlElement.getContext('2d');
-
-			if (_newW == 2 || _newH == 2)
-			{
-				ctx.fillStyle = this.Style;
-				ctx.fillRect(0, 0, _newW, _newH);
-			}
-			else
-			{
-				ctx.beginPath();
-				ctx.strokeStyle = this.Style;
-				ctx.lineWidth   = 2;
-
-				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
-				{
-					ctx.moveTo(0, 0);
-					ctx.lineTo(_newW, _newH);
-				}
-				else
-				{
-					ctx.moveTo(0, _newH);
-					ctx.lineTo(_newW, 0);
-				}
-
-				ctx.stroke();
-			}
-
-			this.HtmlElementX           = Math.min(pos1.X, pos2.X) >> 0;
-			this.HtmlElementY           = Math.min(pos1.Y, pos2.Y) >> 0;
-			this.HtmlElement.style.left = this.HtmlElementX + "px";
-			this.HtmlElement.style.top  = this.HtmlElementY + "px";
-		}
-		else
-		{
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				// просто очищаем
-				this.HtmlElement.width = _newW;
-			}
-			else
-			{
-				this.HtmlElement.style.width  = _newW + "px";
-				this.HtmlElement.style.height = _newH + "px";
-
-				this.HtmlElement.width  = _newW;
-				this.HtmlElement.height = _newH;
-			}
-
-			var ctx = this.HtmlElement.getContext('2d');
-
-			ctx.fillStyle = this.Style;
-			ctx.fillRect(0, 0, _newW, _newH);
-
-			if (null != this.Transform)
-			{
-				_x += this.Transform.tx;
-				_y += this.Transform.ty;
-			}
-
-			var pos = null;
-			if (!isNotes)
-			{
-				pos = _drawing_doc.ConvertCoordsToCursor(_x, _y);
-			}
-			else
-			{
-				var _offsetX = _drawing_doc.m_oWordControl.m_oNotesApi.OffsetX;
-				pos = { X : (AscCommon.AscBrowser.convertToRetinaValue(_offsetX) + _x * g_dKoef_mm_to_pix), Y : (_y * g_dKoef_mm_to_pix - _drawing_doc.m_oWordControl.m_oNotesApi.Scroll) };
-			}
-
-			this.HtmlElementX           = pos.X >> 0;
-			this.HtmlElementY           = pos.Y >> 0;
-			this.HtmlElement.style.left = this.HtmlElementX + "px";
-			this.HtmlElement.style.top  = this.HtmlElementY + "px";
-		}
-
-
-		if (AscCommon.CollaborativeEditing)
-			AscCommon.CollaborativeEditing.Update_ForeignCursorLabelPosition(this.Id, this.HtmlElementX, this.HtmlElementY, this.Color);
-
-		// 3) добавить, если нужно
-		var HtmlParentIdNew = isNotes ? 1 : 0;
-		if (this.HtmlParent && (HtmlParentIdNew != this.HtmlParentId))
-		{
-			this.HtmlParent.removeChild(this.HtmlElement);
-			this.HtmlParent = null;
-			this.HtmlParentId = -1;
-		}
-
-		if (bIsHtmlElementCreate || (-1 == this.HtmlParentId))
-		{
-			this.HtmlParent = (0 == HtmlParentIdNew) ? _drawing_doc.m_oWordControl.m_oMainView.HtmlElement : _drawing_doc.m_oWordControl.m_oNotesContainer.HtmlElement;
-			this.HtmlParentId = HtmlParentIdNew;
-			this.HtmlParent.appendChild(this.HtmlElement);
-		}
-
-		if (_drawing_doc.m_oWordControl.m_oApi.isReporterMode)
-		{
-			this.HtmlElement.style.display = "none";
-			return;
-		}
-
-		if (this.HtmlElement.style.display != "block")
-		{
-			this.HtmlElement.style.display = "block";
-		}
-	},
-
-	Remove : function(_drawing_doc)
-	{
-		if (this.HtmlParent)
-		{
-			//_drawing_doc.m_oWordControl.m_oMainView.HtmlElement.removeChild(this.HtmlElement);
-			this.HtmlParent.removeChild(this.HtmlElement);
-			this.HtmlParent = null;
-			this.HtmlParentId = -1;
-		}
-	},
-
-	Update : function(_drawing_doc)
-	{
-		this.CheckPosition(_drawing_doc, this.X, this.Y, this.Size, this.Page, this.Transform);
+		return 1.0;
 	}
+	return this.DrawingDocument.m_oWordControl.m_nZoomValue / 100;
+};
+CDrawingCollaborativeTarget.prototype.ConvertCoords = function(x, y)
+{
+	if (this.IsFocusOnNotes())
+	{
+		var oNotesApi = this.DrawingDocument.m_oWordControl.m_oNotesApi;
+		var _offsetX = oNotesApi.OffsetX;
+		return { X : (AscCommon.AscBrowser.convertToRetinaValue(_offsetX) + x * g_dKoef_mm_to_pix), Y : (y * g_dKoef_mm_to_pix - oNotesApi.Scroll) };
+	}
+	return this.DrawingDocument.ConvertCoordsToCursor(x, y);
+};
+CDrawingCollaborativeTarget.prototype.GetMobileTouchManager = function()
+{
+	return this.DrawingDocument.m_oWordControl.MobileTouchManager;
+};
+CDrawingCollaborativeTarget.prototype.GetParentElement = function()
+{
+	if(this.IsFocusOnNotes())
+	{
+		return this.DrawingDocument.m_oWordControl.m_oNotesContainer.HtmlElement;
+	}
+	return this.DrawingDocument.m_oWordControl.m_oMainView.HtmlElement;
+};
+CDrawingCollaborativeTarget.prototype.CheckPosition = function(_x, _y, _size, _page, _transform)
+{
+	this.Transform = _transform;
+	this.Size = _size;
+	this.X = _x;
+	this.Y = _y;
+	this.Page = _page;
+	this.Update();
+};
+CDrawingCollaborativeTarget.prototype.CheckStyleDisplay = function()
+{
+	if (this.DrawingDocument.m_oWordControl.m_oApi.isReporterMode)
+	{
+		this.HtmlElement.style.display = "none";
+		return;
+	}
+	if (this.HtmlElement.style.display != "block")
+	{
+		this.HtmlElement.style.display = "block";
+	}
+	if (this.HtmlElement.style.zIndex != 7)
+	{
+		this.HtmlElement.style.zIndex = 7;
+	}
+};
+CDrawingCollaborativeTarget.prototype.CheckNeedDraw = function()
+{
+	if (this.Page != this.DrawingDocument.SlideCurrent)
+	{
+		this.HtmlElement.style.display = "none";
+		return false;
+	}
+	return true;
 };
 
 function CDrawingDocument()
 {
+
+
+	AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", "14 8", "pointer");
 	this.IsLockObjectsEnable = false;
 
 	this.m_oWordControl   = null;
@@ -912,6 +764,8 @@ function CDrawingDocument()
 
 	this.SlideCurrent     = -1;
 	this.SlideCurrectRect = new CDrawingPage();
+
+	this.MathTrack = new AscCommon.CMathTrack();
 
 	this.m_oCacheManager = new CCacheManager();
 
@@ -1002,24 +856,30 @@ function CDrawingDocument()
 	{
 		if (AscCommon.g_inputContext)
 			AscCommon.g_inputContext.move(this.TargetHtmlElementLeft, this.TargetHtmlElementTop);
-	}
-	this.GetTargetStyle           = function()
+	};
+	this.GetTargetStyle           = function(isFocusOnSlide)
 	{
-		return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
-	}
+		if (false !== isFocusOnSlide)
+			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
+
+		// check dark theme
+		if (AscCommon.GlobalSkin.Type !== "dark" || (this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10))
+			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
+		return "rgb(" + (255 - this.TargetCursorColor.R) + "," + (255 - this.TargetCursorColor.G) + "," + (255 - this.TargetCursorColor.B) + ")";
+	};
 
 	this.Start_CollaborationEditing = function()
 	{
 		this.IsLockObjectsEnable = true;
 		this.m_oWordControl.OnRePaintAttack();
-	}
+	};
 
 	this.IsMobileVersion = function()
 	{
 		if (this.m_oWordControl.MobileTouchManager)
 			return true;
 		return false;
-	}
+	};
 
 	this.ConvertCoordsToAnotherPage = function(x, y)
 	{
@@ -1036,6 +896,8 @@ function CDrawingDocument()
 		{
 			if (this.m_oWordControl.m_oApi.isPaintFormat && (("default" == sType) || ("text" == sType)))
 				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
+			else if (this.m_oWordControl.m_oApi.isMarkerFormat)
+				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-markerformat");
 			else
                 elem.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
 		}
@@ -1046,33 +908,33 @@ function CDrawingDocument()
 			Data = new AscCommon.CMouseMoveData();
 
 		editor.sync_MouseMoveCallback(Data);
-	}
+	};
 	this.LockCursorType    = function(sType)
 	{
 		this.m_sLockedCursorType                                    = sType;
 		this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
-	}
+	};
 	this.LockCursorTypeCur = function()
 	{
 		this.m_sLockedCursorType = this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor;
-	}
+	};
 	this.UnlockCursorType  = function()
 	{
 		this.m_sLockedCursorType = "";
-	}
+	};
 
 	this.OnStartRecalculate = function(pageCount)
 	{
 		if (this.m_oWordControl)
 			this.m_oWordControl.m_oApi.checkLastWork();
-	}
+	};
 
 	this.SetTargetColor = function(r, g, b)
 	{
 		this.TargetCursorColor.R = r;
 		this.TargetCursorColor.G = g;
 		this.TargetCursorColor.B = b;
-	}
+	};
 
 	this.StartTrackTable = function (obj, transform)
 	{
@@ -1140,7 +1002,7 @@ function CDrawingDocument()
 			this.m_oWordControl.OnScroll();
 			this.m_oWordControl.Thumbnails.LockMainObjType = false;
 		}
-	}
+	};
 
 	this.OnEndRecalculate = function()
 	{
@@ -1152,7 +1014,7 @@ function CDrawingDocument()
 		this.m_oWordControl.CalculateDocumentSize();
 		this.m_oWordControl.m_oApi.sync_countPagesCallback(this.SlidesCount);
 		this.m_oWordControl.Thumbnails.LockMainObjType = false;
-	}
+	};
 
 	this.ChangePageAttack = function(pageIndex)
 	{
@@ -1161,17 +1023,17 @@ function CDrawingDocument()
 
 		this.StopRenderingPage(pageIndex);
 		this.m_oWordControl.OnScroll();
-	}
+	};
 
 	this.RenderDocument = function(Renderer)
 	{
 		for (var i = 0; i < this.SlidesCount; i++)
 		{
-			Renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+			Renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
 			this.m_oLogicDocument.DrawPage(i, Renderer);
 			Renderer.EndPage();
 		}
-	}
+	};
 
 	this.ToRenderer = function()
 	{
@@ -1189,7 +1051,7 @@ function CDrawingDocument()
 		//console.log(ret);
 
 		return ret;
-	}
+	};
 
 	this.ToRenderer2    = function()
 	{
@@ -1202,7 +1064,7 @@ function CDrawingDocument()
 		var ret = "";
 		for (var i = 0; i < this.SlidesCount; i++)
 		{
-			Renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+			Renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
 			this.m_oLogicDocument.DrawPage(i, Renderer);
 			Renderer.EndPage();
 
@@ -1212,7 +1074,7 @@ function CDrawingDocument()
 
 		this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
 		return ret;
-	}
+	};
 	this.ToRendererPart = function(noBase64, isSelection)
 	{
 		var watermark = this.m_oWordControl.m_oApi.watermarkDraw;
@@ -1247,17 +1109,17 @@ function CDrawingDocument()
 				if (!this.m_oWordControl.Thumbnails.isSelectedPage(i))
 					continue;
 			}
-			renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+			renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
 			this.m_oLogicDocument.DrawPage(i, renderer);
 			renderer.EndPage();
 
 			if (watermark)
-				watermark.DrawOnRenderer(renderer, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+				watermark.DrawOnRenderer(renderer, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
 		}
 
 		if (end == -1)
 		{
-			renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+			renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
 			renderer.EndPage()
 		}
 
@@ -1278,7 +1140,7 @@ function CDrawingDocument()
 		} else {
 			return renderer.Memory.GetBase64Memory();
 		}
-	}
+	};
 
 	this.SendChangeDocumentToApi = function(bIsAttack)
 	{
@@ -1289,7 +1151,7 @@ function CDrawingDocument()
 
 			this.m_oWordControl.m_oApi.sendEvent("asc_onDocumentChanged");
 		}
-	}
+	};
 
 	this.InitGuiCanvasTextProps = function(div_id)
 	{
@@ -1303,41 +1165,46 @@ function CDrawingDocument()
 			}
 			else
 			{
-				var _width  = parseInt(_div_elem.offsetWidth);
+				var _width = parseInt(_div_elem.offsetWidth);
 				var _height = parseInt(_div_elem.offsetHeight);
 				if (0 == _width)
 					_width = 300;
 				if (0 == _height)
 					_height = 80;
 
-				if (this.GuiCanvasTextProps.width != _width || this.GuiCanvasTextProps.height != _height)
-				{
-					this.GuiCanvasTextProps.width  = _width;
-					this.GuiCanvasTextProps.height = _height;
-				}
+				this.GuiCanvasTextProps.style.width = _width + "px";
+				this.GuiCanvasTextProps.style.height = _height + "px";
 			}
+
+			var old_width = this.GuiCanvasTextProps.width;
+			var old_height = this.GuiCanvasTextProps.height;
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
+
+			if (old_width !== this.GuiCanvasTextProps.width || old_height !== this.GuiCanvasTextProps.height)
+				this.GuiLastTextProps = null;
 		}
 		else
 		{
-			this.GuiCanvasTextProps                = document.createElement('canvas');
+			this.GuiCanvasTextProps = document.createElement('canvas');
 			this.GuiCanvasTextProps.style.position = "absolute";
-			this.GuiCanvasTextProps.style.left     = "0px";
-			this.GuiCanvasTextProps.style.top      = "0px";
-			this.GuiCanvasTextProps.id             = this.GuiCanvasTextPropsId;
+			this.GuiCanvasTextProps.style.left = "0px";
+			this.GuiCanvasTextProps.style.top = "0px";
 
-			var _width  = parseInt(_div_elem.offsetWidth);
+			var _width = parseInt(_div_elem.offsetWidth);
 			var _height = parseInt(_div_elem.offsetHeight);
 			if (0 == _width)
 				_width = 300;
 			if (0 == _height)
 				_height = 80;
 
-			this.GuiCanvasTextProps.width  = _width;
-			this.GuiCanvasTextProps.height = _height;
+			this.GuiCanvasTextProps.style.width = _width + "px";
+			this.GuiCanvasTextProps.style.height = _height + "px";
+
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
 
 			_div_elem.appendChild(this.GuiCanvasTextProps);
 		}
-	}
+	};
 
 	this.DrawGuiCanvasTextProps = function(props)
 	{
@@ -1424,6 +1291,8 @@ function CDrawingDocument()
 			par.Set_Pr(new CParaPr());
 			var _textPr        = new CTextPr();
 			_textPr.FontFamily = {Name : "Arial", Index : -1};
+			_textPr.FontSize = (AscCommon.AscBrowser.convertToRetinaValue(11 << 1, true) >> 0) * 0.5;
+			_textPr.RFonts.SetAll("Arial");
 
 			_textPr.Strikeout = this.GuiLastTextProps.Strikeout;
 
@@ -1508,7 +1377,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
 			editor.isViewMode = _oldTurn;
 		}, this, []);
-	}
+	};
 
 	this.DrawSearch = function(overlay)
 	{
@@ -1517,8 +1386,8 @@ function CDrawingDocument()
 		var wDst = this.SlideCurrectRect.right - this.SlideCurrectRect.left;
 		var hDst = this.SlideCurrectRect.bottom - this.SlideCurrectRect.top;
 
-		var dKoefX = wDst / this.m_oLogicDocument.Width;
-		var dKoefY = hDst / this.m_oLogicDocument.Height;
+		var dKoefX = wDst / this.m_oLogicDocument.GetWidthMM();
+		var dKoefY = hDst / this.m_oLogicDocument.GetHeightMM();
 
 		var ctx            = overlay.m_oContext;
 		var searchingArray = this.m_oLogicDocument.Slides[this.SlideCurrent].searchingArray;
@@ -1578,7 +1447,7 @@ function CDrawingDocument()
 				ctx.lineTo(_x1, _y1);
 			}
 		}
-	}
+	};
 
 	this.DrawSearchCur = function(overlay, place)
 	{
@@ -1587,8 +1456,8 @@ function CDrawingDocument()
 		var wDst = this.SlideCurrectRect.right - this.SlideCurrectRect.left;
 		var hDst = this.SlideCurrectRect.bottom - this.SlideCurrectRect.top;
 
-		var dKoefX = wDst / this.m_oLogicDocument.Width;
-		var dKoefY = hDst / this.m_oLogicDocument.Height;
+		var dKoefX = wDst / this.m_oLogicDocument.GetWidthMM();
+		var dKoefY = hDst / this.m_oLogicDocument.GetHeightMM();
 
 		var ctx = overlay.m_oContext;
 
@@ -1643,18 +1512,29 @@ function CDrawingDocument()
 			ctx.lineTo(_x4, _y4);
 			ctx.lineTo(_x1, _y1);
 		}
-	}
+	};
 
 	this.StopRenderingPage = function(pageIndex)
 	{
 		return;
-	}
+	};
 
 	this.ClearCachePages = function()
 	{
 		if (this.m_oWordControl.m_oApi.bInit_word_control && 0 <= this.SlideCurrent)
 			this.m_oWordControl.SlideDrawer.CheckSlide(this.SlideCurrent);
-	}
+	};
+
+
+	this.CloseFile = function ()
+	{
+		this.SlidesCount         = 0;
+		this.IsEmptyPresentation = true;
+		this.SlideCurrent     = -1;
+		this.ClearCachePages();
+		this.FirePaint();
+	};
+
 
 	this.FirePaint = function()
 	{
@@ -1668,16 +1548,16 @@ function CDrawingDocument()
 		// --------------------------------------------------------------------------------
 		this.m_oWordControl.OnScroll();
 		this.m_oWordControl.Thumbnails.LockMainObjType = false;
-	}
+	};
 
 	this.StartTrackAutoshape = function()
 	{
 		this.m_oWordControl.ShowOverlay();
-	}
+	};
 	this.EndTrackAutoShape   = function()
 	{
 		this.m_oWordControl.OnUpdateOverlay();
-	}
+	};
 
 	this.ConvertCoordsFromCursor2 = function(x, y)
 	{
@@ -1701,7 +1581,7 @@ function CDrawingDocument()
 		}
 
 		return Pos;
-	}
+	};
 
 	this.IsCursorInTableCur = function(x, y, page)
 	{
@@ -1712,7 +1592,7 @@ function CDrawingDocument()
 		if (page != _table.PageNum)
 			return false;
 
-		var _dist = this.TableOutlineDr.image.width * g_dKoef_pix_to_mm;
+		var _dist = this.TableOutlineDr.mover_size * g_dKoef_pix_to_mm;
 		_dist *= (100 / this.m_oWordControl.m_nZoomValue);
 
 		var _x = _table.X;
@@ -1726,7 +1606,7 @@ function CDrawingDocument()
 				return true;
 		}
 		return false;
-	}
+	};
 
 	this.ConvertCoordsToCursorWR = function(x, y, pageIndex, transform, isMainAttack)
 	{
@@ -1764,7 +1644,7 @@ function CDrawingDocument()
 
 			return {X: x_pix, Y: y_pix, Error: false};
 		}
-	}
+	};
 
 	this.ConvertCoordsToCursor3 = function (x, y, isGlobal)
 	{
@@ -1785,7 +1665,7 @@ function CDrawingDocument()
 		var y_pix = (this.SlideCurrectRect.top + y * dKoef + _y) >> 0;
 
 		return {X: x_pix, Y: y_pix, Error: false};
-	}
+	};
 
 	this.ConvertCoordsToCursorWR_2 = function(x, y)
 	{
@@ -1799,7 +1679,7 @@ function CDrawingDocument()
 		y_pix += _word_control.Y;
 
 		return {X : x_pix, Y : y_pix, Error : false};
-	}
+	};
 
 	this.ConvertCoordsToCursorWR_Comment = function(x, y)
 	{
@@ -1824,14 +1704,14 @@ function CDrawingDocument()
 		var y_pix = (this.SlideCurrectRect.top + y * dKoef) >> 0;
 
 		return {X : x_pix, Y : y_pix, Error : false};
-	}
+	};
 
 	this.TargetStart          = function()
 	{
 		if (this.m_lTimerTargetId != -1)
 			clearInterval(this.m_lTimerTargetId);
 		this.m_lTimerTargetId = setInterval(oThis.DrawTarget, 500);
-	}
+	};
 	this.TargetEnd            = function()
 	{
 		if (!this.TargetShowFlag)
@@ -1842,14 +1722,14 @@ function CDrawingDocument()
 		clearInterval(this.m_lTimerTargetId);
 		this.m_lTimerTargetId                = -1;
 		this.TargetHtmlElement.style.display = "none";
-	}
+	};
 	this.UpdateTargetNoAttack = function()
 	{
 		if (null == this.m_oWordControl)
 			return;
 
 		this.CheckTargetDraw(this.m_dTargetX, this.m_dTargetY, !this.m_oLogicDocument.IsFocusOnNotes());
-	}
+	};
 
 	this.CheckTargetDraw = function(x, y, isFocusOnSlide)
 	{
@@ -1927,13 +1807,13 @@ function CDrawingDocument()
 
 			if (_newW == 2 || _newH == 2)
 			{
-				ctx.fillStyle = this.GetTargetStyle();
+				ctx.fillStyle = this.GetTargetStyle(isFocusOnSlide);
 				ctx.fillRect(0, 0, _newW, _newH);
 			}
 			else
 			{
 				ctx.beginPath();
-				ctx.strokeStyle = this.GetTargetStyle();
+				ctx.strokeStyle = this.GetTargetStyle(isFocusOnSlide);
 				ctx.lineWidth   = 2;
 
 				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
@@ -1973,7 +1853,7 @@ function CDrawingDocument()
 
 			var ctx = this.TargetHtmlElement.getContext('2d');
 
-			ctx.fillStyle = this.GetTargetStyle();
+			ctx.fillStyle = this.GetTargetStyle(isFocusOnSlide);
 			ctx.fillRect(0, 0, _newW, _newH);
 
 			if (null != this.TextMatrix)
@@ -1997,7 +1877,7 @@ function CDrawingDocument()
 		}
 
 		this.MoveTargetInInputContext();
-	}
+	};
 
 	this.UpdateTarget = function(x, y, pageIndex)
 	{
@@ -2041,11 +1921,9 @@ function CDrawingDocument()
 
 			var _ww = this.m_oWordControl.m_oEditor.HtmlElement.width;
 			var _hh = this.m_oWordControl.m_oEditor.HtmlElement.height;
-			if (this.m_oWordControl.bIsRetinaSupport)
-			{
-				_ww /= AscCommon.AscBrowser.retinaPixelRatio;
-				_hh /= AscCommon.AscBrowser.retinaPixelRatio;
-			}
+
+			_ww /= AscCommon.AscBrowser.retinaPixelRatio;
+			_hh /= AscCommon.AscBrowser.retinaPixelRatio;
 
 			var boxX = 0;
 			var boxY = 0;
@@ -2112,8 +1990,7 @@ function CDrawingDocument()
 		{
 			var yPos = _y * g_dKoef_mm_to_pix - this.m_oWordControl.m_oNotesApi.Scroll;
 			var _hh = this.m_oWordControl.m_oNotes.HtmlElement.height;
-			if (this.m_oWordControl.bIsRetinaSupport)
-				_hh /= AscCommon.AscBrowser.retinaPixelRatio;
+			_hh /= AscCommon.AscBrowser.retinaPixelRatio;
 
 			var boxY = 0;
 			var targetSizeAscent = (this.m_dTargetAscent * g_dKoef_mm_to_pix) >> 0;
@@ -2145,24 +2022,24 @@ function CDrawingDocument()
 		}
 
 		this.CheckTargetDraw(x, y, !isTargetOnNotes);
-	}
+	};
 
 	this.SetTargetSize   = function(size, ascent)
 	{
 		this.m_dTargetSize = size;
 		this.m_dTargetAscent = (undefined === ascent) ? 0 : ascent;
-	}
+	};
 	this.DrawTarget      = function()
 	{
 		if (0 != oThis.SlidesCount && "block" != oThis.TargetHtmlElement.style.display && oThis.NeedTarget && !oThis.TransitionSlide.IsPlaying())
 			oThis.TargetHtmlElement.style.display = "block";
 		else
 			oThis.TargetHtmlElement.style.display = "none";
-	}
+	};
 	this.TargetShow      = function()
 	{
 		this.TargetShowNeedFlag = true;
-	}
+	};
 	this.CheckTargetShow = function()
 	{
 		if (this.TargetShowFlag && this.TargetShowNeedFlag)
@@ -2184,7 +2061,7 @@ function CDrawingDocument()
 			this.TargetHtmlElement.style.display = "block";
 
 		this.TargetShowFlag = true;
-	}
+	};
 
 	this.SetCurrentPage = function(PageIndex)
 	{
@@ -2195,7 +2072,7 @@ function CDrawingDocument()
 
 		this.SlideCurrent = PageIndex;
 		this.m_oWordControl.SetCurrentPage();
-	}
+	};
 
 	this.SelectEnabled = function(bIsEnabled)
 	{
@@ -2206,11 +2083,11 @@ function CDrawingDocument()
 			this.m_oWordControl.OnUpdateOverlay();
 			this.m_oWordControl.m_oOverlayApi.m_oContext.globalAlpha = 1.0;
 		}
-	}
+	};
 	this.SelectClear   = function()
 	{
 		this.m_oWordControl.OnUpdateOverlay();
-	}
+	};
 	this.SearchClear   = function()
 	{
 		for (var i = 0; i < this.SlidesCount; i++)
@@ -2220,7 +2097,7 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oOverlayApi.Clear();
 		this.m_bIsSearching    = false;
 		this.CurrentSearchNavi = null;
-	}
+	};
 	this.AddPageSearch = function(findText, rects)
 	{
 		var _len = rects.length;
@@ -2253,8 +2130,41 @@ function CDrawingDocument()
 		if (is_update)
 			this.m_oWordControl.OnUpdateOverlay();
 
-	}
+	};
 
+	this.DrawMathTrack = function (overlay)
+	{
+		if (!this.MathTrack.IsActive())
+			return;
+		if(!this.TextMatrix)
+			return;
+
+		overlay.Show();
+		var nIndex, nCount;
+		var oPath;
+		var dKoefX, dKoefY;
+		var PathLng = this.MathTrack.GetPolygonsCount();
+
+		var xDst = this.SlideCurrectRect.left;
+		var yDst = this.SlideCurrectRect.top;
+		var wDst = this.SlideCurrectRect.right - this.SlideCurrectRect.left;
+		var hDst = this.SlideCurrectRect.bottom - this.SlideCurrectRect.top;
+
+		dKoefX = wDst / this.m_oLogicDocument.GetWidthMM();
+		dKoefY = hDst / this.m_oLogicDocument.GetHeightMM();
+		var oTextMatrix = this.TextMatrix;
+		for (nIndex = 0; nIndex < PathLng; nIndex++)
+		{
+			oPath = this.MathTrack.GetPolygon(nIndex);
+			this.MathTrack.Draw(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, xDst, yDst, oTextMatrix);
+			this.MathTrack.Draw(overlay, oPath, 1, 1, "#FFFFFF", dKoefX, dKoefY, xDst, yDst, oTextMatrix);
+		}
+		for (nIndex = 0, nCount = this.MathTrack.GetSelectPathsCount(); nIndex < nCount; nIndex++)
+		{
+			oPath =  this.MathTrack.GetSelectPath(nIndex);
+			this.MathTrack.DrawSelectPolygon(overlay, oPath, dKoefX, dKoefY, xDst, yDst, oTextMatrix);
+		}
+	};
 	this.StartSearch      = function()
 	{
 		this.SearchClear();
@@ -2262,7 +2172,7 @@ function CDrawingDocument()
 			this.m_oWordControl.OnUpdateOverlay();
 		this.m_bIsSearching    = true;
 		this.CurrentSearchNavi = null;
-	}
+	};
 	this.EndSearch        = function(bIsChange)
 	{
 		if (bIsChange)
@@ -2277,7 +2187,7 @@ function CDrawingDocument()
 			this.m_oWordControl.OnUpdateOverlay();
 		}
 		this.m_oWordControl.m_oApi.sync_SearchEndCallback();
-	}
+	};
 	this.AddPageSelection = function(pageIndex, x, y, width, height)
 	{
 		if (null == this.SelectionMatrix)
@@ -2286,31 +2196,33 @@ function CDrawingDocument()
 		if (pageIndex < 0 || pageIndex != this.SlideCurrent || Math.abs(width) < 0.001 || Math.abs(height) < 0.001)
 			return;
 
-		var xDst = this.SlideCurrectRect.left;
-		var yDst = this.SlideCurrectRect.top;
-		var wDst = this.SlideCurrectRect.right - this.SlideCurrectRect.left;
-		var hDst = this.SlideCurrectRect.bottom - this.SlideCurrectRect.top;
+		var dPR = AscCommon.AscBrowser.retinaPixelRatio;
+		var xDst = this.SlideCurrectRect.left * dPR;
+		var yDst = this.SlideCurrectRect.top * dPR;
+		var wDst = (this.SlideCurrectRect.right - this.SlideCurrectRect.left) * dPR;
+		var hDst = (this.SlideCurrectRect.bottom - this.SlideCurrectRect.top) * dPR;
+		var indent = 0.5 * Math.round(dPR);
 
-		var dKoefX = wDst / this.m_oLogicDocument.Width;
-		var dKoefY = hDst / this.m_oLogicDocument.Height;
+		var dKoefX = wDst / this.m_oLogicDocument.GetWidthMM();
+		var dKoefY = hDst / this.m_oLogicDocument.GetHeightMM();
 
 		var overlay = this.m_oWordControl.m_oOverlayApi;
 		if (this.m_oWordControl.IsSupportNotes && this.m_oWordControl.m_oNotesApi && this.m_oLogicDocument.IsFocusOnNotes())
 		{
 			overlay = this.m_oWordControl.m_oNotesApi.m_oOverlayApi;
-			xDst = AscCommon.AscBrowser.convertToRetinaValue(this.m_oWordControl.m_oNotesApi.OffsetX);
-			yDst = -this.m_oWordControl.m_oNotesApi.Scroll;
-			dKoefX = g_dKoef_mm_to_pix;
-			dKoefY = g_dKoef_mm_to_pix;
+			xDst = this.m_oWordControl.m_oNotesApi.OffsetX;
+			yDst = -dPR * this.m_oWordControl.m_oNotesApi.Scroll;
+			dKoefX = g_dKoef_mm_to_pix * dPR;
+			dKoefY = g_dKoef_mm_to_pix * dPR;
 		}
 
 		if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity(this.TextMatrix))
 		{
-			var _x = ((xDst + dKoefX * x + 0.5) >> 0) - 0.5;
-			var _y = ((yDst + dKoefY * y + 0.5) >> 0) - 0.5;
+			var _x = ((xDst + dKoefX * x + indent) >> 0) - indent;
+			var _y = ((yDst + dKoefY * y + indent) >> 0) - indent;
 
-			var _r = ((xDst + dKoefX * (x + width) + 0.5) >> 0) - 0.5;
-			var _b = ((yDst + dKoefY * (y + height) + 0.5) >> 0) - 0.5;
+			var _r = ((xDst + dKoefX * (x + width) + indent) >> 0) - indent;
+			var _b = ((yDst + dKoefY * (y + height) + indent) >> 0) - indent;
 
 			if (_x < overlay.min_x)
 				overlay.min_x = _x;
@@ -2352,17 +2264,17 @@ function CDrawingDocument()
 
 			if (global_MatrixTransformer.IsIdentity2(this.TextMatrix))
 			{
-				x1 = (x1 >> 0) + 0.5;
-				y1 = (y1 >> 0) + 0.5;
+				x1 = (x1 >> 0) + indent;
+				y1 = (y1 >> 0) + indent;
 
-				x2 = (x2 >> 0) + 0.5;
-				y2 = (y2 >> 0) + 0.5;
+				x2 = (x2 >> 0) + indent;
+				y2 = (y2 >> 0) + indent;
 
-				x3 = (x3 >> 0) + 0.5;
-				y3 = (y3 >> 0) + 0.5;
+				x3 = (x3 >> 0) + indent;
+				y3 = (y3 >> 0) + indent;
 
-				x4 = (x4 >> 0) + 0.5;
-				y4 = (y4 >> 0) + 0.5;
+				x4 = (x4 >> 0) + indent;
+				y4 = (y4 >> 0) + indent;
 			}
 
 			overlay.CheckPoint(x1, y1);
@@ -2377,11 +2289,11 @@ function CDrawingDocument()
 			ctx.lineTo(x4, y4);
 			ctx.closePath();
 		}
-	}
+	};
 	this.SelectShow       = function()
 	{
 		this.m_oWordControl.OnUpdateOverlay();
-	}
+	};
 
 	this.TabButtonEnable = function(isEnabled)
 	{
@@ -2393,7 +2305,7 @@ function CDrawingDocument()
 		{
 			this.m_oWordControl.m_oLeftRuler_buttonsTabs.HtmlElement.style.display = this.isTabButtonShow ? "block" : "none";
 		}
-	}
+	};
 
 	this.Set_RulerState_Table = function(markup, transform)
 	{
@@ -2447,7 +2359,7 @@ function CDrawingDocument()
 			markup.Table.StartTrackTable();
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
 		}
-	}
+	};
 
 	this.Set_RulerState_Paragraph = function(obj, margins)
 	{
@@ -2483,7 +2395,7 @@ function CDrawingDocument()
 			this.m_oWordControl.UpdateHorRuler();
 			this.m_oWordControl.UpdateVerRuler();
 		}
-	}
+	};
 
 	this.Set_RulerState_HdrFtr = function(bHeader, Y0, Y1)
 	{
@@ -2511,7 +2423,7 @@ function CDrawingDocument()
 
 		this.m_oWordControl.UpdateHorRuler();
 		this.m_oWordControl.UpdateVerRuler();
-	}
+	};
 
 	this.Set_RulerState_Columns = function (markup)
 	{
@@ -2540,6 +2452,12 @@ function CDrawingDocument()
 
 		this.m_oWordControl.UpdateHorRuler();
 		this.m_oWordControl.UpdateVerRuler();
+	};
+
+	this.Update_MathTrack = function (IsActive, IsContentActive, oMath)
+	{
+		var PixelError = this.GetMMPerDot(1) * 3;
+		this.MathTrack.Update(IsActive, IsContentActive, oMath, PixelError);
 	};
 
 	this.Update_ParaTab = function(Default_Tab, ParaTabs)
@@ -2574,7 +2492,7 @@ function CDrawingDocument()
 
 		hor_ruler.CorrectTabs();
 		this.m_oWordControl.UpdateHorRuler();
-	}
+	};
 
 	this.UpdateTableRuler = function(isCols, index, position)
 	{
@@ -2646,27 +2564,26 @@ function CDrawingDocument()
 			this.m_oWordControl.UpdateHorRulerBack();
 			this.m_oWordControl.m_oOverlayApi.VertLine(this.SlideCurrectRect.left + position * dKoef_mm_to_pix);
 		}
-	}
+	};
 	this.GetDotsPerMM     = function(value)
 	{
 		if (!this.isDrawingNotes)
 			return value * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100;
 		return value * g_dKoef_mm_to_pix;
-	}
+	};
 
 	this.GetMMPerDot        = function(value)
 	{
 		return value / this.GetDotsPerMM(1);
-	}
+	};
 	this.GetVisibleMMHeight = function()
 	{
 		var pixHeigth = this.m_oWordControl.m_oEditor.HtmlElement.height;
-		if (this.m_oWordControl.bIsRetinaSupport)
-			pixHeigth /= AscCommon.AscBrowser.retinaPixelRatio;
+		pixHeigth /= AscCommon.AscBrowser.retinaPixelRatio;
 		var pixBetweenPages = 20 * (this.m_lDrawingEnd - this.m_lDrawingFirst);
 
 		return (pixHeigth - pixBetweenPages) * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
-	}
+	};
 
 	// вот оооочень важная функция. она выкидывает из кэша неиспользуемые шрифты
 	this.CheckFontCache = function()
@@ -2680,7 +2597,7 @@ function CDrawingDocument()
 		var api      = this.m_oWordControl.m_oApi;
 		for (var i in map_used)
 		{
-			var key       = AscFonts.GenerateMapId(api, map_used[i].Name, map_used[i].Style, map_used[i].Size);
+			var key       = AscFonts.GenerateMapId(api, g_fontApplication.GetFontInfoName(map_used[i].Name), map_used[i].Style, map_used[i].Size);
 			map_keys[key] = true;
 		}
 
@@ -2703,7 +2620,7 @@ function CDrawingDocument()
 				delete _drawing_map[i];
 			}
 		}
-	}
+	};
 
 	this.CheckFontNeeds = function()
 	{
@@ -2716,7 +2633,7 @@ function CDrawingDocument()
         AscFonts.FontPickerByCharacter.extendFonts(dstfonts);
 		this.m_oWordControl.m_oLogicDocument.Fonts = dstfonts;
 		return;
-	}
+	};
 
 	this.CorrectRulerPosition = function(pos)
 	{
@@ -2724,13 +2641,13 @@ function CDrawingDocument()
 			return pos;
 
 		return ((pos / 2.5 + 0.5) >> 0) * 2.5;
-	}
+	};
 
 	// вот здесь весь трекинг
-	this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
+	this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles)
 	{
-		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
-	}
+		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles);
+	};
 
 	this.LockSlide = function(slideNum)
 	{
@@ -2740,7 +2657,7 @@ function CDrawingDocument()
 			_th_manager.m_arrPages[slideNum].IsLocked = true;
 
 		_th_manager.OnUpdateOverlay();
-	}
+	};
 
 	this.UnLockSlide = function(slideNum)
 	{
@@ -2750,23 +2667,23 @@ function CDrawingDocument()
 			_th_manager.m_arrPages[slideNum].IsLocked = false;
 
 		_th_manager.OnUpdateOverlay();
-	}
+	};
 
 	this.DrawTrackSelectShapes = function(x, y, w, h)
 	{
 		this.AutoShapesTrack.DrawTrackSelectShapes(x, y, w, h);
-	}
+	};
 
 	this.DrawAdjustment = function(matrix, x, y, bTextWarp)
 	{
 		this.AutoShapesTrack.DrawAdjustment(matrix, x, y, bTextWarp);
-	}
+	};
 
 	// cursor
 	this.UpdateTargetTransform = function(matrix)
 	{
 		this.TextMatrix = matrix;
-	}
+	};
 
 	this.MultiplyTargetTransform = function (matrix)
 	{
@@ -2776,12 +2693,12 @@ function CDrawingDocument()
 		{
 			this.TextMatrix.Multiply(matrix, AscCommon.MATRIX_ORDER_PREPEND);
 		}
-	}
+	};
 
 	this.UpdateThumbnailsAttack = function()
 	{
 		this.m_oWordControl.Thumbnails.RecalculateAll();
-	}
+	};
 
 	this.CheckGuiControlColors = function(bIsAttack)
 	{
@@ -2868,7 +2785,7 @@ function CDrawingDocument()
 
 			this.SendControlColors(bIsAttack);
 		}
-	}
+	};
 
 	this.SendControlColors = function(bIsAttack)
 	{
@@ -2915,7 +2832,7 @@ function CDrawingDocument()
 		}
 
 		this.m_oWordControl.m_oApi.sync_SendThemeColors(_ret_array, standart_colors);
-	}
+	};
 
 	this.DrawImageTextureFillShape = function(url)
 	{
@@ -2985,7 +2902,7 @@ function CDrawingDocument()
 			this.GuiCanvasFillTextureCtx.stroke();
 			this.GuiCanvasFillTextureCtx.beginPath();
 		}
-	}
+	};
 
 	this.DrawImageTextureFillSlide = function(url)
 	{
@@ -3055,7 +2972,7 @@ function CDrawingDocument()
 			this.GuiCanvasFillTextureCtxSlide.stroke();
 			this.GuiCanvasFillTextureCtxSlide.beginPath();
 		}
-	}
+	};
 
 
 	this.DrawImageTextureFillTextArt = function(url)
@@ -3126,7 +3043,7 @@ function CDrawingDocument()
 			this.GuiCanvasFillTextureCtxTextArt.stroke();
 			this.GuiCanvasFillTextureCtxTextArt.beginPath();
 		}
-	}
+	};
 
 	this.InitGuiCanvasShape = function(div_id)
 	{
@@ -3153,7 +3070,7 @@ function CDrawingDocument()
 		this.GuiCanvasFillTextureCtx = this.GuiCanvasFillTexture.getContext('2d');
 
 		_div_elem.appendChild(this.GuiCanvasFillTexture);
-	}
+	};
 
 	this.InitGuiCanvasSlide = function(div_id)
 	{
@@ -3180,7 +3097,7 @@ function CDrawingDocument()
 		this.GuiCanvasFillTextureCtxSlide = this.GuiCanvasFillTextureSlide.getContext('2d');
 
 		_div_elem.appendChild(this.GuiCanvasFillTextureSlide);
-	}
+	};
 
 	this.InitGuiCanvasTextArt = function(div_id)
 	{
@@ -3207,7 +3124,7 @@ function CDrawingDocument()
 		this.GuiCanvasFillTextureCtxTextArt = this.GuiCanvasFillTextureTextArt.getContext('2d');
 
 		_div_elem.appendChild(this.GuiCanvasFillTextureTextArt);
-	}
+	};
 
 	this.CheckTableStyles = function()
 	{
@@ -3221,8 +3138,8 @@ function CDrawingDocument()
 		var _pageW      = 297;
 		var _pageH      = 210;
 		var _canvas     = document.createElement('canvas');
-		_canvas.width   = TABLE_STYLE_WIDTH_PIX;
-		_canvas.height  = TABLE_STYLE_HEIGHT_PIX;
+		_canvas.width   = (TABLE_STYLE_WIDTH_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
+		_canvas.height  = (TABLE_STYLE_HEIGHT_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
 		var ctx         = _canvas.getContext('2d');
 		var oTable;
 		for (var i = 0; i < logicDoc.TablesForInterface.length; i++)
@@ -3256,11 +3173,11 @@ function CDrawingDocument()
 			_dst_styles.push(_styleD);
 		}
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles);
-	}
+	};
 
 	this.OnSelectEnd = function()
 	{
-	}
+	};
 
 	this.GetCommentWidth = function(type)
 	{
@@ -3271,7 +3188,7 @@ function CDrawingDocument()
 			_index += 1;
 
 		return AscCommon.g_comment_image_offsets[_index][2] * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
-	}
+	};
 
 	this.GetCommentHeight = function(type)
 	{
@@ -3282,7 +3199,7 @@ function CDrawingDocument()
 			_index += 1;
 
 		return AscCommon.g_comment_image_offsets[_index][3] * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
-	}
+	};
 
 	this.DrawVerAnchor = function(pageNum, xPos, bIsFromDrawings)
 	{
@@ -3302,7 +3219,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oOverlayApi.VertLine2(_pos.X);
 			this.m_oWordControl.m_oOverlayApi.DashLineColor = "#000000";
 		}
-	}
+	};
 
 	this.DrawHorAnchor = function(pageNum, yPos, bIsFromDrawings)
 	{
@@ -3322,7 +3239,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oOverlayApi.HorLine2(_pos.Y);
 			this.m_oWordControl.m_oOverlayApi.DashLineColor = "#000000";
 		}
-	}
+	};
 
 	this.DrawHorVerAnchor = function()
 	{
@@ -3335,7 +3252,7 @@ function CDrawingDocument()
 				this.DrawHorAnchor(0, _anchor.Pos, true);
 		}
 		this.HorVerAnchors.splice(0, this.HorVerAnchors.length);
-	}
+	};
 
 	// collaborative targets
 	this.Collaborative_UpdateTarget      = function(_id, _shortId, _x, _y, _size, _page, _transform, is_from_paint)
@@ -3350,14 +3267,14 @@ function CDrawingDocument()
 		{
 			if (_id == this.CollaborativeTargets[i].Id)
 			{
-				this.CollaborativeTargets[i].CheckPosition(this, _x, _y, _size, _page, _transform);
+				this.CollaborativeTargets[i].CheckPosition(_x, _y, _size, _page, _transform);
 				return;
 			}
 		}
-		var _target     = new CDrawingCollaborativeTarget();
+		var _target     = new CDrawingCollaborativeTarget(this);
 		_target.Id      = _id;
 		_target.ShortId = _shortId;
-		_target.CheckPosition(this, _x, _y, _size, _page, _transform);
+		_target.CheckPosition(_x, _y, _size, _page, _transform);
 		this.CollaborativeTargets[this.CollaborativeTargets.length] = _target;
 	};
 	this.Collaborative_RemoveTarget      = function(_id)
@@ -3442,7 +3359,7 @@ function CDrawingDocument()
         var oWordControl = this.m_oWordControl;
 		var bIsReturn = false;
 
-        if (this.placeholders.onPointerDown(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+        if (this.placeholders.onPointerDown(pos, this.SlideCurrectRect, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM()))
             bIsReturn = true;
 
         if (bIsReturn)
@@ -3472,7 +3389,7 @@ function CDrawingDocument()
 
             bIsReturn = true;
 		}
-		else if (this.placeholders.onPointerMove(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+		else if (this.placeholders.onPointerMove(pos, this.SlideCurrectRect, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM()))
 		{
             oWordControl.OnUpdateOverlay();
             oWordControl.EndUpdateOverlay();
@@ -3501,7 +3418,7 @@ function CDrawingDocument()
 
             bIsReturn = true;
 		}
-        else if (this.placeholders.onPointerUp(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+        else if (this.placeholders.onPointerUp(pos, this.SlideCurrectRect, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM()))
             bIsReturn = true;
 
         if (bIsReturn)
@@ -3554,6 +3471,459 @@ function CDrawingDocument()
 		this.InlineTextTrackPage = -1;
 		this.InlineTextInNotes = false;
 	};
+
+	this.privateGetParagraphByString = function(level, levelNum, counterCurrent, x, y, lineHeight, ctx, w, h)
+    {
+        var text = "";
+        for (var i = 0; i < level.Text.length; i++)
+        {
+            switch (level.Text[i].Type)
+            {
+                case Asc.c_oAscNumberingLvlTextType.Text:
+                    text += level.Text[i].Value;
+                    break;
+                case Asc.c_oAscNumberingLvlTextType.Num:
+                    var correctNum = 1;
+                    if (levelNum === level.Text[i].Value)
+                        correctNum = counterCurrent;
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        var api = this.m_oWordControl.m_oApi;
+
+        History.TurnOff();
+        var oldViewMode = api.isViewMode;
+        var oldMarks = api.ShowParaMarks;
+
+        api.isViewMode = true;
+        api.ShowParaMarks = false;
+
+		var oNewShape = new AscFormat.CShape();
+		oNewShape.createTextBody();
+
+        var par = oNewShape.txBody.content.GetAllParagraphs()[0];
+        par.MoveCursorToStartPos();
+
+        //par.Pr = level.ParaPr.Copy();
+		par.Pr = new CParaPr();
+        var textPr = level.TextPr.Copy();
+        textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
+
+        var parRun = new ParaRun(par);
+        parRun.Set_Pr(textPr);
+        parRun.AddText(text);
+        par.AddToContent(0, parRun);
+
+        par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+        par.Recalculate_Page(0);
+
+        var baseLineOffset = par.Lines[0].Y;
+        var bounds = par.Get_PageBounds(0);
+
+        var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+        var parH = (bounds.Bottom - bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
+
+        var yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+        var xOffset = x;
+        switch (level.Align)
+        {
+            case AscCommon.align_Right:
+                xOffset -= parW;
+                break;
+            case AscCommon.align_Center:
+                xOffset -= (parW >> 1);
+                break;
+            default:
+                break;
+        }
+
+        // debug: text rect:
+        //ctx.beginPath();
+        //ctx.fillStyle = "#FFFF00";
+        //ctx.fillRect(xOffset, y, parW, parH);
+        //ctx.beginPath();
+
+		var backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
+		switch (level.Suff)
+		{
+			case Asc.c_oAscNumberingSuff.Space:
+			case Asc.c_oAscNumberingSuff.None:
+				backTextWidth += 4;
+				break;
+			case Asc.c_oAscNumberingSuff.Tab:
+				break;
+			default:
+				break;
+		}
+
+        ctx.fillStyle = "#FFFFFF";
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+        ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
+        ctx.beginPath();
+
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        var graphics = new AscCommon.CGraphics();
+        graphics.init(ctx,
+			AscCommon.AscBrowser.convertToRetinaValue(w, true),
+			AscCommon.AscBrowser.convertToRetinaValue(h, true),
+			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+        graphics.m_oFontManager = AscCommon.g_fontManager;
+
+        graphics.m_oCoordTransform.tx = AscCommon.AscBrowser.convertToRetinaValue(xOffset, true);
+        graphics.m_oCoordTransform.ty = AscCommon.AscBrowser.convertToRetinaValue(yOffset, true);
+
+        graphics.transform(1, 0, 0, 1, 0, 0);
+
+        par.Draw(0, graphics);
+
+        ctx.restore();
+        ctx.restore();
+
+        History.TurnOn();
+        api.isViewMode = oldViewMode;
+        api.ShowParaMarks = oldMarks;
+    };
+
+	this.SetDrawImagePreviewBulletForMenu = function(id, type, props, isNoCheckFonts)
+	{
+		var text = AscCommon.translateManager.getValue("None");
+		if (!props)
+		{
+			props = [];
+			var olvl = new Asc.CAscNumberingLvl(0);
+			var level = new CNumberingLvl();
+			var arr = [];
+			for (var i = 0; i < text.length; i++)
+			{
+				var otext = new CNumberingLvlTextString(text[i]);
+				arr.push(otext);
+			}
+			level.SetLvlText(arr);
+			level.FillToAscNumberingLvl(olvl);
+			props.push(olvl);
+			if (type === 0)
+			{
+				for (var i = 1; i < 9; i++)
+				{
+					var lvl 		= new CNumberingLvl(),
+						oLvl		= new Asc.CAscNumberingLvl(i),
+						oLvlTextPr	= new CTextPr(),
+						sLvlText	= "";
+					switch (i)
+					{
+						case 1:
+						{
+							sLvlText = String.fromCharCode(0x00B7);
+							oLvlTextPr.RFonts.SetAll("Symbol");
+							break;
+						}
+						case 2:
+						{
+							sLvlText = "o";
+							oLvlTextPr.RFonts.SetAll("Courier New");
+							break;
+						}
+						case 3:
+						{
+							sLvlText = String.fromCharCode(0x00A7);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 4:
+						{
+							sLvlText = String.fromCharCode(0x0076);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 5:
+						{
+							sLvlText = String.fromCharCode(0x00D8);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 6:
+						{
+							sLvlText = String.fromCharCode(0x00FC);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 7:
+						{
+							sLvlText = String.fromCharCode(0x00A8);
+							oLvlTextPr.RFonts.SetAll("Symbol");
+							break;
+						}
+						case 8:
+						{
+							sLvlText = String.fromCharCode(0x2013);
+							oLvlTextPr.RFonts.SetAll("Arial");
+							break;
+						}
+					}
+					lvl.SetByType(c_oAscNumberingLevel.Bullet, 0, sLvlText, oLvlTextPr);
+					lvl.FillToAscNumberingLvl(oLvl);
+					props.push(oLvl);
+				}
+			}
+			else
+			{
+				var arrTypes = 
+				[
+					c_oAscNumberingLevel.UpperLetterDot_Left,
+					c_oAscNumberingLevel.LowerLetterBracket_Left,
+					c_oAscNumberingLevel.LowerLetterDot_Left,
+					c_oAscNumberingLevel.DecimalDot_Right,
+					c_oAscNumberingLevel.DecimalBracket_Right,
+					c_oAscNumberingLevel.UpperRomanDot_Right,
+					c_oAscNumberingLevel.LowerRomanDot_Right
+				];
+				for (var i = 0; i < arrTypes.length; i++)
+				{
+					var lvl = new CNumberingLvl();
+					var oLvl = new Asc.CAscNumberingLvl(0)
+					lvl.SetByType(arrTypes[i], 0);
+					lvl.FillToAscNumberingLvl(oLvl);
+					oLvl.Align = 1;
+					props.push(oLvl);
+				}
+			}
+		}
+		
+		if (!isNoCheckFonts)
+		{
+			// check need load fonts
+			var fontsDict = {};
+			for (var i = 0, count = props.length; i < count; i++)
+			{
+				var curLvl = props[i];				
+				var text = "";
+				for (var j = 0; j < curLvl.Text.length; j++)
+				{
+					switch (curLvl.Text[j].Type)
+					{
+						case Asc.c_oAscNumberingLvlTextType.Text:
+							text += curLvl.Text[j].Value;
+							break;
+						case Asc.c_oAscNumberingLvlTextType.Num:
+							text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+							break;
+						default:
+							break;
+					}
+				}
+				AscFonts.FontPickerByCharacter.checkTextLight(text);
+
+				if (curLvl.TextPr && curLvl.TextPr.RFonts)
+				{
+					if (curLvl.TextPr.RFonts.Ascii) fontsDict[curLvl.TextPr.RFonts.Ascii.Name] = true;
+					if (curLvl.TextPr.RFonts.EastAsia) fontsDict[curLvl.TextPr.RFonts.EastAsia.Name] = true;
+					if (curLvl.TextPr.RFonts.HAnsi) fontsDict[curLvl.TextPr.RFonts.HAnsi.Name] = true;
+					if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
+				}
+			}
+
+			var fonts = [];
+			for (var familyName in fontsDict)
+			{
+				fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
+			}
+			AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+			if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+			{
+				return this.SetDrawImagePreviewBulletForMenu(id, type, props, true);
+			}
+
+			var loader = new AscCommon.CGlobalFontLoader();
+			loader.put_Api(this.m_oWordControl.m_oApi);
+			loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information, function(){
+				this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, props, true);
+			});
+			return;
+		}
+		var elNone = document.getElementById(id[0]);
+		History.TurnOff();
+		if (elNone)
+		{
+			var width_px = elNone.clientWidth;
+			var height_px = elNone.clientHeight;
+
+			var canvas = elNone.firstChild;
+			if (!canvas)
+			{
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+				canvas.style.width = width_px + "px";
+				canvas.style.height = height_px + "px";
+				if (width_px > 0 && height_px > 0)
+					elNone.appendChild(canvas);
+			}
+
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+			var ctx = canvas.getContext("2d");
+			ctx.fillStyle = "#FFFFFF";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.beginPath();
+			var line_distance = (height_px == 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
+
+			var oNewShape = new AscFormat.CShape();
+			oNewShape.createTextBody();
+			var par = oNewShape.txBody.content.GetAllParagraphs()[0];
+			par.MoveCursorToStartPos();
+
+			par.Pr = new CParaPr();
+			var lvl = props[0];
+			var textPr = lvl.TextPr.Copy();
+			textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
+
+			var parRun = new ParaRun(par);
+			parRun.Set_Pr(textPr);
+			parRun.AddText(text);
+			par.AddToContent(0, parRun);
+
+			par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+			par.Recalculate_Page(0);
+
+			var bounds = par.Get_PageBounds(0);
+
+			var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+			var parH = (bounds.Bottom - bounds.Top);
+			var x = (width_px - (parW >> 0)) >> 1;
+			var y = (height_px >> 1) + (parH >> 0);
+
+			this.privateGetParagraphByString(lvl, 0, 0, x, y, line_distance, ctx, width_px, height_px);
+		}
+
+		for (var i = 1; i < id.length; i++)
+		{
+			var parent =  document.getElementById(id[i]);
+
+			if (!parent)
+				continue;
+
+			var width_px = parent.clientWidth;
+			var height_px = parent.clientHeight;
+
+			var canvas = parent.firstChild;
+			if (!canvas)
+			{
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+				canvas.style.width = width_px + "px";
+				canvas.style.height = height_px + "px";
+				if (width_px > 0 && height_px > 0)
+					parent.appendChild(canvas);
+			}
+
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+			var ctx = canvas.getContext("2d");
+			ctx.fillStyle = "#FFFFFF";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.beginPath();
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+			
+			if (!type)
+			{
+				var line_distance = 32, x = 0, y = 0;
+
+				var text = "";
+				for (var k = 0; k < props[i].Text.length; k++)
+				{
+					switch (props[i].Text[k].Type)
+					{
+						case Asc.c_oAscNumberingLvlTextType.Text:
+							text += props[i].Text[k].Value;
+							break;
+						case Asc.c_oAscNumberingLvlTextType.Num:
+							var correctNum = 1;
+							if (levelNum === props[i].Text[k].Value)
+								correctNum = counterCurrent;
+							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format);
+							break;
+						default:
+							break;
+					}
+				}
+
+				var textPr = props[i].TextPr.Copy();
+				textPr.FontSize = textPr.FontSizeCS = ((2 * line_distance * 72 / 96) >> 0) / 2;
+
+				if (1 === text.length)
+				{
+					g_oTextMeasurer.SetTextPr(textPr);
+					g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+					var oInfo = g_oTextMeasurer.Measure2Code(text.charCodeAt(0));
+
+					x = (width_px >> 1) - Math.round((oInfo.WidthG / 2 + oInfo.rasterOffsetX) * AscCommon.g_dKoef_mm_to_pix);
+					y = (width_px >> 1) + Math.round((oInfo.Height / 2 + (oInfo.Ascent - oInfo.Height + oInfo.rasterOffsetY)) * AscCommon.g_dKoef_mm_to_pix);
+				}
+				else
+				{
+					var oNewShape = new AscFormat.CShape();
+					oNewShape.createTextBody();
+					var par = oNewShape.txBody.content.GetAllParagraphs()[0];
+					par.MoveCursorToStartPos();
+					par.MoveCursorToStartPos();
+
+					par.Pr = new CParaPr();
+					var textPr = props[i].TextPr.Copy();
+					textPr.FontSize = textPr.FontSizeCS = ((2 * line_distance * 72 / 96) >> 0) / 2;
+
+					var parRun = new ParaRun(par);
+					parRun.Set_Pr(textPr);
+					parRun.AddText(text);
+					par.AddToContent(0, parRun);
+
+					par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+					par.Recalculate_Page(0);
+
+					var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+					var x = (width_px >> 1) - Math.round(parW / 2);
+					// в office 19 на такой же высоте
+					var y = par.Lines[0].Y * AscCommon.g_dKoef_mm_to_pix;
+				}
+
+				// для размеров окна 38 на 38
+				this.privateGetParagraphByString(props[i], 0, 0, x, y, line_distance, ctx, width_px, height_px);
+			}
+			else
+			{
+				var offsetBase = 4;
+				var line_w = 2;
+				// считаем расстояние между линиями
+				var line_distance = (((height_px - (offsetBase << 2)) - line_w * 3) / 3) >> 0;
+				// убираем погрешность в offset
+				var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
+
+				ctx.lineWidth = 2 * Math.round(rPR);
+				ctx.strokeStyle = "#CBCBCB";
+				var y = offset + 11;
+				var text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+
+				for (var j = 0; j < 3; j++)
+				{
+					ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
+					ctx.stroke();
+					ctx.beginPath();
+					var textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+						textYy = y + (line_w * 2.5);
+					this.privateGetParagraphByString(props[i], 0, 1 + ((type == 1) ? j : 0), textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+					y += (line_w + line_distance);
+				}
+			}
+		}
+		History.TurnOn();
+	};
 }
 
 function CThPage()
@@ -3592,6 +3962,8 @@ function CThPage()
 
 function CThumbnailsManager()
 {
+	this.isInit = false;
+	this.lastPixelRatio = 0;
 	this.m_oFontManager = new AscFonts.CFontManager();
 
 	this.m_bIsScrollVisible = true;
@@ -3696,10 +4068,10 @@ function CThumbnailsManager()
 
 		var drawRect = this.m_arrPages[pageIndex];
 		var _ret     = {
-			X : this.m_oWordControl.X + drawRect.left,
-			Y : this.m_oWordControl.X + drawRect.top,
-			W : drawRect.right - drawRect.left + 1,
-			H : drawRect.bottom - drawRect.top + 1
+			X : AscCommon.AscBrowser.convertToRetinaValue(drawRect.left),
+			Y : AscCommon.AscBrowser.convertToRetinaValue(drawRect.top),
+			W : AscCommon.AscBrowser.convertToRetinaValue(drawRect.right - drawRect.left),
+			H : AscCommon.AscBrowser.convertToRetinaValue(drawRect.bottom - drawRect.top)
 		};
 		return _ret;
 	};
@@ -3709,6 +4081,9 @@ function CThumbnailsManager()
 		var Pos = {X : x, Y : y};
 		Pos.X -= this.m_oWordControl.X;
 		Pos.Y -= this.m_oWordControl.Y;
+
+		Pos.X = AscCommon.AscBrowser.convertToRetinaValue(Pos.X, true);
+		Pos.Y = AscCommon.AscBrowser.convertToRetinaValue(Pos.Y, true);
 
 		if (isFixed && isPage)
 		{
@@ -3759,9 +4134,12 @@ function CThumbnailsManager()
 		Pos.X -= this.m_oWordControl.X;
 		Pos.Y -= this.m_oWordControl.Y;
 
+		Pos.X = AscCommon.AscBrowser.convertToRetinaValue(Pos.X, true);
+		Pos.Y = AscCommon.AscBrowser.convertToRetinaValue(Pos.Y, true);
+
 		var _abs_pos  = this.m_oWordControl.m_oThumbnails.AbsolutePosition;
-		var _controlW = (_abs_pos.R - _abs_pos.L) * g_dKoef_mm_to_pix;
-		var _controlH = (_abs_pos.B - _abs_pos.T) * g_dKoef_mm_to_pix;
+		var _controlW = (_abs_pos.R - _abs_pos.L) * g_dKoef_mm_to_pix * AscCommon.AscBrowser.retinaPixelRatio;
+		var _controlH = (_abs_pos.B - _abs_pos.T) * g_dKoef_mm_to_pix * AscCommon.AscBrowser.retinaPixelRatio;
 
 		if (Pos.X < 0 || Pos.X > _controlW || Pos.Y < 0 || Pos.Y > _controlH)
 			return -1;
@@ -3806,7 +4184,10 @@ function CThumbnailsManager()
 	this.onMouseDown = function(e)
 	{
 		if (oThis.m_oWordControl)
+		{
+			oThis.m_oWordControl.m_oApi.checkInterfaceElementBlur();
 			oThis.m_oWordControl.m_oApi.checkLastWork();
+		}
 
 		AscCommon.stopEvent(e);
 
@@ -3983,6 +4364,9 @@ function CThumbnailsManager()
 		var y1 = this.m_arrPages[pageNum].top - this.const_border_w;
 		var y2 = this.m_arrPages[pageNum].bottom + this.const_border_w;
 
+		if (!this.m_oWordControl.m_oScrollThumbApi)
+			return;
+
 		if (y1 < 0)
 		{
 			var _sizeH = y2 - y1;
@@ -4055,8 +4439,8 @@ function CThumbnailsManager()
 	};
 	this.RecalculateAll   = function()
 	{
-		this.SlideWidth  = this.m_oWordControl.m_oLogicDocument.Width;
-		this.SlideHeight = this.m_oWordControl.m_oLogicDocument.Height;
+		this.SlideWidth  = this.m_oWordControl.m_oLogicDocument.GetWidthMM();
+		this.SlideHeight = this.m_oWordControl.m_oLogicDocument.GetHeightMM();
 		this.SlidesCount = this.m_oWordControl.m_oDrawingDocument.SlidesCount;
 		this.CheckSizes();
 
@@ -4367,17 +4751,24 @@ function CThumbnailsManager()
 		g_fontApplication.LoadFont(font.FontFamily.Name, AscCommon.g_font_loader, this.m_oFontManager, font.FontSize, oFontStyle, 96, 96);
 	};
 
-	this.Init = function()
+	this.InitCheckOnResize = function()
 	{
-		this.m_oFontManager.Initialize(true);
-		this.m_oFontManager.SetHintsProps(true, true);
+		if (!this.isInit)
+			return;
 
-		var font = {FontFamily : {Name : "Arial", Index : -1}, Italic : false, Bold : false, FontSize : 10};
-		this.SetFont(font);
+		if (Math.abs(this.lastPixelRatio - AscCommon.AscBrowser.retinaPixelRatio) < 0.01)
+			return;
+
+		this.lastPixelRatio = AscCommon.AscBrowser.retinaPixelRatio;
+		this.SetFont({
+			FontFamily: {Name: "Arial", Index: -1},
+			Italic: false,
+			Bold: false,
+			FontSize: Math.round(10 * AscCommon.AscBrowser.retinaPixelRatio)
+		});
 
 		// измеряем все цифры
-		for (var i = 0; i < 10; i++)
-		{
+		for (var i = 0; i < 10; i++) {
 			var _meas = this.m_oFontManager.MeasureChar(("" + i).charCodeAt(0));
 			if (_meas)
 				this.DigitWidths[i] = _meas.fAdvanceX * 25.4 / 96;
@@ -4385,13 +4776,19 @@ function CThumbnailsManager()
 				this.DigitWidths[i] = 10;
 		}
 
-		if (GlobalSkin.Name == "flat")
-		{
-			this.const_offset_y = 17;
-			this.const_offset_b = this.const_offset_y;
-			this.const_offset_r = 8;
-			this.const_border_w = 7;
-		}
+		this.const_offset_y = Math.round(this.lastPixelRatio * 17);
+		this.const_offset_b = this.const_offset_y;
+		this.const_offset_r = Math.round(this.lastPixelRatio * 10);
+		this.const_border_w = Math.round(this.lastPixelRatio * 7);
+	};
+
+	this.Init = function()
+	{
+		this.isInit = true;
+		this.m_oFontManager.Initialize(true);
+		this.m_oFontManager.SetHintsProps(true, true);
+
+		this.InitCheckOnResize();
 
 		this.MouseTrackCommonImage = document.createElement("canvas");
 
@@ -4433,11 +4830,14 @@ function CThumbnailsManager()
 
 	this.CheckSizes = function()
 	{
+		this.InitCheckOnResize();
 		var word_control = this.m_oWordControl;
+
+		var dKoefToPix = AscCommon.AscBrowser.retinaPixelRatio * g_dKoef_mm_to_pix;
 
 		var __w         = word_control.m_oThumbnailsContainer.AbsolutePosition.R - word_control.m_oThumbnailsContainer.AbsolutePosition.L;
 		var __h         = word_control.m_oThumbnailsContainer.AbsolutePosition.B - word_control.m_oThumbnailsContainer.AbsolutePosition.T;
-		var nWidthSlide = (__w * g_dKoef_mm_to_pix) >> 0;
+		var nWidthSlide = (__w * dKoefToPix) >> 0;
 
 		if (__w < 1 || __h < 0)
 		{
@@ -4452,9 +4852,12 @@ function CThumbnailsManager()
 		if (this.DigitWidths.length > 5)
 			_tmpDig = this.DigitWidths[5];
 
-		this.const_offset_x = (_tmpDig * g_dKoef_mm_to_pix * (("") + (this.SlidesCount + 1)).length) >> 0;
+		this.const_offset_x = (_tmpDig * dKoefToPix * (("") + (this.SlidesCount + 1)).length) >> 0;
 		if (this.const_offset_x < 25)
 			this.const_offset_x = 25;
+
+		// focus/select rects
+		this.const_offset_x += Math.round(5 * AscCommon.AscBrowser.retinaPixelRatio);
 
 		nWidthSlide -= this.const_offset_x;
 
@@ -4469,7 +4872,7 @@ function CThumbnailsManager()
 			dPosition = this.m_dScrollY / this.m_dScrollY_max;
 		}
 
-		var heightThumbs = (__h * g_dKoef_mm_to_pix) >> 0;
+		var heightThumbs = (__h * dKoefToPix) >> 0;
 		if (nHeightPix < heightThumbs)
 		{
 			// все убралось. скролл не нужен
@@ -4479,7 +4882,7 @@ function CThumbnailsManager()
 				word_control.m_oThumbnailsBack.Bounds.R       = 0;
 				word_control.m_oThumbnails_scroll.Bounds.AbsW = 0;
 
-				word_control.m_oThumbnailsContainer.Resize(__w, __h);
+				word_control.m_oThumbnailsContainer.Resize(__w, __h, word_control);
 			}
 			else
 			{
@@ -4495,24 +4898,25 @@ function CThumbnailsManager()
 			{
 				if (GlobalSkin.ThumbnailScrollWidthNullIfNoScrolling)
 				{
-					word_control.m_oThumbnailsBack.Bounds.R = word_control.ScrollWidthPx * g_dKoef_pix_to_mm;
-					word_control.m_oThumbnails.Bounds.R     = word_control.ScrollWidthPx * g_dKoef_pix_to_mm;
+					word_control.m_oThumbnailsBack.Bounds.R = word_control.ScrollWidthPx * dKoefToPix;
+					word_control.m_oThumbnails.Bounds.R     = word_control.ScrollWidthPx * dKoefToPix;
 
-					var _width_mm_scroll                          = (GlobalSkin.Name == "flat") ? 10 : word_control.ScrollWidthPx;
-					word_control.m_oThumbnails_scroll.Bounds.AbsW = _width_mm_scroll * g_dKoef_pix_to_mm;
+					var _width_mm_scroll                          = (true) ? 10 : word_control.ScrollWidthPx;
+					word_control.m_oThumbnails_scroll.Bounds.AbsW = _width_mm_scroll * dKoefToPix;
 				}
 				else
 				{
-					word_control.m_oThumbnails_scroll.HtmlElement.style.display = "block";
+					if (!word_control.m_oApi.isMobileVersion)
+						word_control.m_oThumbnails_scroll.HtmlElement.style.display = "block";
 				}
 
-				word_control.m_oThumbnailsContainer.Resize(__w, __h);
+				word_control.m_oThumbnailsContainer.Resize(__w, __h, word_control);
 			}
 			this.m_bIsScrollVisible = true;
 
 			__w         = word_control.m_oThumbnails.AbsolutePosition.R - word_control.m_oThumbnails.AbsolutePosition.L;
 			__h         = word_control.m_oThumbnails.AbsolutePosition.B - word_control.m_oThumbnails.AbsolutePosition.T;
-			nWidthSlide = (__w * g_dKoef_mm_to_pix) >> 0;
+			nWidthSlide = (__w * dKoefToPix) >> 0;
 
 			nWidthSlide -= (this.const_offset_x + this.const_offset_r);
 
@@ -4528,11 +4932,28 @@ function CThumbnailsManager()
 			settings.screenH = word_control.m_oThumbnails.HtmlElement.height;
 			settings.cornerRadius = 1;
 			settings.slimScroll = true;
+			
 			settings.scrollBackgroundColor = GlobalSkin.BackgroundColorThumbnails;
 			settings.scrollBackgroundColorHover = GlobalSkin.BackgroundColorThumbnails;
 			settings.scrollBackgroundColorActive = GlobalSkin.BackgroundColorThumbnails;
 
-			document.getElementById('panel_right_scroll_thmbnl').style.height = parseInt(nHeightPix) + "px";
+			settings.scrollerColor = GlobalSkin.ScrollerColor;
+			settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+			settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+			settings.arrowColor = GlobalSkin.ScrollArrowColor;
+			settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+			settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+			settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+			settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+			settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+			settings.targetColor = GlobalSkin.ScrollerTargetColor;
+			settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+			settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
+            settings.contentH = nHeightPix;
 
 			if (word_control.m_oScrollThumb_)
 			{
@@ -4589,6 +5010,8 @@ function CThumbnailsManager()
 
 		var word_control = this.m_oWordControl;
 
+		var dKoefToPix = AscCommon.AscBrowser.retinaPixelRatio * g_dKoef_mm_to_pix;
+
 		if (word_control && word_control.MobileTouchManagerThumbnails)
 			word_control.MobileTouchManagerThumbnails.ClearContextMenu();
 
@@ -4606,7 +5029,7 @@ function CThumbnailsManager()
 
 		var __w         = word_control.m_oThumbnails.AbsolutePosition.R - word_control.m_oThumbnails.AbsolutePosition.L;
 		var __h         = word_control.m_oThumbnails.AbsolutePosition.B - word_control.m_oThumbnails.AbsolutePosition.T;
-		var nWidthSlide = (__w * g_dKoef_mm_to_pix) >> 0;
+		var nWidthSlide = (__w * dKoefToPix) >> 0;
 
 		nWidthSlide -= (this.const_offset_x + this.const_offset_r);
 		var nHeightSlide = (nWidthSlide * this.SlideHeight / this.SlideWidth) >> 0;
@@ -4696,7 +5119,7 @@ function CThumbnailsManager()
 			g.m_oFontManager = this.m_oFontManager;
 			g.transform(1, 0, 0, 1, 0, 0);
 
-			var font = {FontFamily : {Name : "Arial", Index : -1}, Italic : false, Bold : false, FontSize : 10};
+			var font = {FontFamily : {Name : "Arial", Index : -1}, Italic : false, Bold : false, FontSize : Math.round(10 * AscCommon.AscBrowser.retinaPixelRatio)};
 			g.SetFont(font);
 
 			// меряем надпись номера слайда
@@ -4711,27 +5134,14 @@ function CThumbnailsManager()
 
 			page.Draw(context, page.left, page.top, page.right - page.left, page.bottom - page.top);
 
-			/*
-			 if (!page.IsSelected)
-			 g.b_color1(0, 0, 0, 255);
-			 else
-			 g.b_color1(210, 72, 72, 255);
-			 */
+			var text_color = null;
 			if (!page.IsLocked)
-			{
-				/*
-				if (i == this.m_oWordControl.m_oDrawingDocument.SlideCurrent || !page.IsSelected)
-					g.b_color1(0, 0, 0, 255);
-				else
-					g.b_color1(191, 191, 191, 255);
-				*/
-				// теперь рисуем не выделяя текущий
-				g.b_color1(0, 0, 0, 255);
-			}
+				text_color = AscCommon.RgbaHexToRGBA(AscCommon.GlobalSkin.ThumbnailsPageNumberText);
 			else
-				g.b_color1(211, 79, 79, 255);
+				text_color = AscCommon.RgbaHexToRGBA(AscCommon.GlobalSkin.ThumbnailsLockColor);
+			g.b_color1(text_color.R, text_color.G, text_color.B, 255);
 
-			var _bounds = g.t("" + (i + 1), (_digit_distance - num_slide_text_width) / 2, (page.top * g_dKoef_pix_to_mm + 3), true);
+			var _bounds = g.t("" + (i + 1), (_digit_distance - num_slide_text_width) / 2, (page.top * g_dKoef_pix_to_mm + 3 * AscCommon.AscBrowser.retinaPixelRatio), true);
 			if (_logicDocument.Slides[i] && !_logicDocument.Slides[i].isVisible())
 			{
 				context.lineWidth = 1;
@@ -4766,14 +5176,9 @@ function CThumbnailsManager()
 		context.fillStyle = GlobalSkin.BackgroundColorThumbnails;
 		context.fillRect(0, 0, _width, _height);
 
-		//var _style_select     = "#FFE063";
-		//var _style_focus      = "#E8EAEC";
-		//var _style_select_focus = "#FFEF9D";
-
-		//var _style_select       = "#E98859";
-		var _style_select       = "#848484";
-		var _style_focus        = "#CFCFCF";
-		var _style_select_focus = "#848484";
+		var _style_select       = GlobalSkin.ThumbnailsPageOutlineActive;
+		var _style_focus        = GlobalSkin.ThumbnailsPageOutlineHover;
+		var _style_select_focus = GlobalSkin.ThumbnailsPageOutlineActive;
 
 		// selected pages
 		context.fillStyle = _style_select;
@@ -4784,26 +5189,8 @@ function CThumbnailsManager()
 
 			if (page.IsLocked)
 			{
-				var _lock_focus = "#D34F4F";
-				var _lock_color = "#D34F4F";
-				/*
-				 if (page.IsSelected && page.IsFocused)
-				 {
-				 this.FocusRectFlat("#CA2B1F", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 else if (page.IsSelected)
-				 {
-				 this.FocusRectFlat("#9F1F15", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 else if (page.IsFocused)
-				 {
-				 this.FocusRectFlat("#FF5E52", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 else
-				 {
-				 this.FocusRectFlat("#EE3525", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 */
+				var _lock_focus = AscCommon.GlobalSkin.ThumbnailsLockColor;
+				var _lock_color = AscCommon.GlobalSkin.ThumbnailsLockColor;
 
 				if (page.IsFocused)
 				{
@@ -4827,7 +5214,7 @@ function CThumbnailsManager()
 			}
 			else if (page.IsFocused)
 			{
-				this.FocusRectFlat(_style_focus, context, page.left, page.top, page.right, page.bottom);
+				this.FocusRectFlat(_style_focus, context, page.left, page.top, page.right, page.bottom, true);
 			}
 		}
 
@@ -4875,25 +5262,19 @@ function CThumbnailsManager()
 	{
 		ctx.rect(x - this.const_border_w, y, r - x + this.const_border_w, b - y);
 	};
-	this.FocusRectFlat = function(_color, ctx, x, y, r, b)
+	this.FocusRectFlat = function(_color, ctx, x, y, r, b, isFocus)
 	{
 		ctx.beginPath();
 		ctx.strokeStyle = _color;
-		ctx.lineWidth   = 2;
+		var lineW = Math.round((isFocus ? 2 : 3) * AscCommon.AscBrowser.retinaPixelRatio);
+		var dist = Math.round(2 * AscCommon.AscBrowser.retinaPixelRatio);
+		ctx.lineWidth = lineW;
+		var extend = dist + (lineW / 2);
 
-		ctx.rect(x - 2, y - 2, r - x + 4, b - y + 4);
+		ctx.rect(x - extend, y - extend, r - x + (2 * extend), b - y + (2 * extend));
 		ctx.stroke();
 
 		ctx.beginPath();
-
-		if (true)
-		{
-			ctx.lineWidth   = 1;
-			ctx.strokeStyle = "#FFFFFF";
-			ctx.rect(x - 0.5, y - 0.5, r - x + 1, b - y + 1);
-			ctx.stroke();
-			ctx.beginPath();
-		}
 	};
 
 	this.onCheckUpdate = function()
@@ -5120,6 +5501,27 @@ function CThumbnailsManager()
 		this.ShowPage(_page);
 	};
 
+	this.UpdateInterface = function()
+	{
+		this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+	};
+
+	this.GetSlidesCount = function()
+	{
+		return this.m_arrPages.length;
+	};
+
+	this.SelectAll = function()
+	{
+		var nSlidesCount = this.GetSlidesCount();
+		for (var i = 0; i < nSlidesCount; i++)
+		{
+			this.m_arrPages[i].IsSelected = true;
+		}
+		this.UpdateInterface();
+		this.OnUpdateOverlay();
+	};
+
 	this.onKeyDown = function(e)
 	{
 		var control = oThis.m_oWordControl.m_oThumbnails.HtmlElement;
@@ -5128,405 +5530,359 @@ function CThumbnailsManager()
 			e.preventDefault();
 			return false;
 		}
-
 		AscCommon.check_KeyboardEvent(e);
-		switch (global_keyboardEvent.KeyCode)
+		var oApi = this.m_oWordControl.m_oApi;
+		var oPresentation = this.m_oWordControl.m_oLogicDocument;
+		var oDrawingDocument = this.m_oWordControl.m_oDrawingDocument;
+		var oEvent = global_keyboardEvent;
+		var nShortCutAction = oApi.getShortcut(oEvent);
+		var bReturnValue = false, bPreventDefault = true;
+		var sSelectedIdx;
+		switch (nShortCutAction)
 		{
-			case 13:    // enter
+			case Asc.c_oAscPresentationShortcutType.EditSelectAll:
 			{
-				if (this.m_oWordControl.m_oLogicDocument.CanEdit())
-				{
-					var _selected_thumbnails = this.GetSelectedArray();
-					if (_selected_thumbnails.length > 0)
-					{
-						var _last_selected_slide_num = _selected_thumbnails[_selected_thumbnails.length - 1];
-						this.m_oWordControl.GoToPage(_last_selected_slide_num);
-						this.m_oWordControl.m_oLogicDocument.addNextSlide();
-						return false;
-					}
-				}
+				this.SelectAll();
+				bReturnValue = false;
+				bPreventDefault = true;
 				break;
 			}
-			case 46:    // delete
-			case 8:     // backspace
+			case Asc.c_oAscPresentationShortcutType.EditUndo:
+			case Asc.c_oAscPresentationShortcutType.EditRedo:
 			{
-				if (this.m_oWordControl.m_oLogicDocument.CanEdit())
-				{
-					var _delete_array = this.GetSelectedArray();
-
-					if (!this.m_oWordControl.m_oApi.IsSupportEmptyPresentation)
-					{
-						if (_delete_array.length == this.m_oWordControl.m_oDrawingDocument.SlidesCount)
-							_delete_array.splice(0, 1);
-					}
-
-					if (_delete_array.length != 0)
-					{
-						this.m_oWordControl.m_oLogicDocument.deleteSlides(_delete_array);
-					}
-
-					if (0 == this.m_oWordControl.m_oLogicDocument.Slides.length)
-						this.m_bIsUpdate = true;
-				}
+				bReturnValue = true;
+				bPreventDefault = false;
 				break;
 			}
-			case 34: //PgDown
-			case 40: // bottom arrow
+			case Asc.c_oAscPresentationShortcutType.Cut:
+			case Asc.c_oAscPresentationShortcutType.Copy:
+			case Asc.c_oAscPresentationShortcutType.Paste:
 			{
-				if (global_keyboardEvent.CtrlKey && global_keyboardEvent.ShiftKey)
+				bReturnValue = undefined;
+				bPreventDefault = false;
+				break;
+			}
+			case Asc.c_oAscPresentationShortcutType.Duplicate:
+			{
+				if (oPresentation.CanEdit())
 				{
-					if (this.m_oWordControl.m_oLogicDocument.CanEdit())
-					{
-						var _presentation = this.m_oWordControl.m_oLogicDocument;
-						History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesToEnd);
-						var _selection_array = this.GetSelectedArray();
-						_presentation.moveSlides(_selection_array, _presentation.Slides.length - _selection_array.length);
-						_presentation.Recalculate();
-						_presentation.Document_UpdateInterfaceState();
-					}
-					//return false;
+					oApi.DublicateSlide();
 				}
-				else if (global_keyboardEvent.CtrlKey)
+				bReturnValue = false;
+				bPreventDefault = true;
+				break;
+			}
+			case Asc.c_oAscPresentationShortcutType.Print:
+			{
+				oApi.onPrint();
+				bReturnValue = false;
+				bPreventDefault = true;
+				break;
+			}
+			case Asc.c_oAscPresentationShortcutType.Save:
+			{
+				if(!oPresentation.IsViewMode())
 				{
-					if (this.m_oWordControl.m_oLogicDocument.CanEdit())
+					oApi.asc_Save();
+				}
+				bReturnValue = false;
+				bPreventDefault = true;
+				break;
+			}
+			case Asc.c_oAscPresentationShortcutType.ShowContextMenu:
+			{
+				sSelectedIdx = this.GetSelectedArray();
+				var oMenuPos = this.GetThumbnailPagePosition(Math.min.apply(Math, sSelectedIdx));
+				if (oMenuPos)
+				{
+					var oData =
 					{
-						_presentation       = this.m_oWordControl.m_oLogicDocument;
-						var _selected_array = this.GetSelectedArray();
-						var can_move        = false, first_index;
-						for (var i = _selected_array.length - 1; i > -1; i--)
+						Type: Asc.c_oAscContextMenuTypes.Thumbnails,
+						X_abs : oMenuPos.X,
+						Y_abs : oMenuPos.Y,
+						IsSlideSelect : true,
+						IsSlideHidden: this.IsSlideHidden(sSelectedIdx)
+					};
+					editor.sync_ContextMenuCallback(new AscCommonSlide.CContextMenuData(oData));
+				}
+				bReturnValue = false;
+				bPreventDefault = false;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+		if(!nShortCutAction)
+		{
+			switch (oEvent.KeyCode)
+			{
+				case 13: // enter
+				{
+					if (oPresentation.CanEdit())
+					{
+						sSelectedIdx = this.GetSelectedArray();
+						bReturnValue = false;
+						bPreventDefault = true;
+						if (sSelectedIdx.length > 0)
 						{
-							if (i === _selected_array.length - 1)
+							this.m_oWordControl.GoToPage(sSelectedIdx[sSelectedIdx.length - 1]);
+							oPresentation.addNextSlide();
+							bPreventDefault = false;
+						}
+					}
+					break;
+				}
+				case 46: // delete
+				case 8: // backspace
+				{
+					if (oPresentation.CanEdit())
+					{
+						sSelectedIdx = this.GetSelectedArray();
+						if (!oApi.IsSupportEmptyPresentation)
+						{
+							if (sSelectedIdx.length === oDrawingDocument.SlidesCount)
 							{
-								if (_selected_array[i] < _presentation.Slides.length - 1)
+								sSelectedIdx.splice(0, 1);
+							}
+						}
+						if (sSelectedIdx.length !== 0)
+						{
+							oPresentation.deleteSlides(sSelectedIdx);
+						}
+						if (0 === oPresentation.Slides.length)
+						{
+							this.m_bIsUpdate = true;
+						}
+						bReturnValue = false;
+						bPreventDefault = true;
+					}
+					break;
+				}
+				case 34: // PgDown
+				case 40: // bottom arrow
+				{
+					if (oEvent.CtrlKey && oEvent.ShiftKey)
+					{
+						if (oPresentation.CanEdit())
+						{
+							History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesToEnd);
+							sSelectedIdx = this.GetSelectedArray();
+							oPresentation.moveSlides(sSelectedIdx, oPresentation.Slides.length - sSelectedIdx.length);
+							oPresentation.Recalculate();
+							oPresentation.Document_UpdateInterfaceState();
+						}
+					}
+					else if (oEvent.CtrlKey)
+					{
+						if (oPresentation.CanEdit())
+						{
+							sSelectedIdx = this.GetSelectedArray();
+							var can_move = false, first_index;
+							for (var i = sSelectedIdx.length - 1; i > -1; i--)
+							{
+								if (i === sSelectedIdx.length - 1)
 								{
-									can_move    = true;
-									first_index = i;
-									break;
+									if (sSelectedIdx[i] < oPresentation.Slides.length - 1)
+									{
+										can_move    = true;
+										first_index = i;
+										break;
+									}
+								}
+								else
+								{
+									if (Math.abs(sSelectedIdx[i] - sSelectedIdx[i + 1]) > 1)
+									{
+										can_move    = true;
+										first_index = i;
+										break;
+									}
 								}
 							}
-							else
+							if (can_move)
 							{
-								if (Math.abs(_selected_array[i] - _selected_array[i + 1]) > 1)
+								History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesNextPos);
+								for (var i = first_index; i > -1; --i)
 								{
-									can_move    = true;
-									first_index = i;
-									break;
+									oPresentation.moveSlides([sSelectedIdx[i]], sSelectedIdx[i] + 1);
 								}
+								oPresentation.Recalculate();
+								oPresentation.Document_UpdateInterfaceState();
 							}
 						}
-						if (can_move)
+					}
+					var slidesCount = oDrawingDocument.SlidesCount;
+					if (!oEvent.ShiftKey)
+					{
+						if (oDrawingDocument.SlideCurrent < (slidesCount - 1))
 						{
-							History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesNextPos);
-							for (var i = first_index; i > -1; --i)
-							{
-								_presentation.moveSlides([_selected_array[i]], _selected_array[i] + 1);
-							}
-							_presentation.Recalculate();
-							_presentation.Document_UpdateInterfaceState();
+							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent + 1);
 						}
-						//return false;
 					}
-				}
-				var drDoc       = this.m_oWordControl.m_oDrawingDocument;
-				var slidesCount = drDoc.SlidesCount;
-
-				if (!global_keyboardEvent.ShiftKey)
-				{
-					if (drDoc.SlideCurrent < (slidesCount - 1))
+					else if (oEvent.CtrlKey)
 					{
-						this.m_oWordControl.GoToPage(drDoc.SlideCurrent + 1);
-					}
-				}
-				else if (global_keyboardEvent.CtrlKey)
-				{
-					if (drDoc.SlidesCount > 0)
-					{
-						this.m_oWordControl.GoToPage(drDoc.SlidesCount - 1);
-					}
-				}
-				else
-				{
-					this.CorrectShiftSelect(false, false);
-				}
-				break;
-			}
-			case 36:    // home
-			{
-				var drDoc = this.m_oWordControl.m_oDrawingDocument;
-				if (!global_keyboardEvent.ShiftKey)
-				{
-					if (drDoc.SlideCurrent > 0)
-					{
-						this.m_oWordControl.GoToPage(0);
-					}
-				}
-				else
-				{
-					if (drDoc.SlideCurrent > 0)
-					{
-						this.CorrectShiftSelect(true, true);
-					}
-				}
-				break;
-			}
-			case 35:    // end
-			{
-				var drDoc       = this.m_oWordControl.m_oDrawingDocument;
-				var slidesCount = drDoc.SlidesCount;
-
-				if (!global_keyboardEvent.ShiftKey)
-				{
-					if (drDoc.SlideCurrent != (slidesCount - 1))
-					{
-						this.m_oWordControl.GoToPage(slidesCount - 1);
-					}
-				}
-				else
-				{
-					if (drDoc.SlideCurrent > 0)
-					{
-						this.CorrectShiftSelect(false, true);
-					}
-				}
-				break;
-			}
-			case 65:    // A
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					var drDoc       = this.m_oWordControl.m_oDrawingDocument;
-					var slidesCount = drDoc.SlidesCount;
-
-					for (var i = 0; i < slidesCount; i++)
-					{
-						this.m_arrPages[i].IsSelected = true;
-					}
-					this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
-					this.OnUpdateOverlay();
-				}
-				break;
-			}
-			case 89:    // Y
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					return true;
-				}
-				break;
-			}
-			case 90:    // Z
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					return true;
-				}
-				break;
-			}
-
-			case 88:// X
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					return undefined;
-				}
-				break;
-			}
-			case 86 :
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					return undefined;
-				}
-				break;
-			}
-
-			case 67 :
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					return undefined;
-				}
-				break;
-			}
-			case 77 :// M
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					if (this.m_oWordControl.m_oLogicDocument.CanEdit())
-					{
-						var _selected_thumbnails = this.GetSelectedArray();
-						if (_selected_thumbnails.length > 0)
+						if (oDrawingDocument.SlidesCount > 0)
 						{
-							var _last_selected_slide_num = _selected_thumbnails[_selected_thumbnails.length - 1];
-							this.m_oWordControl.GoToPage(_last_selected_slide_num);
-							this.m_oWordControl.m_oLogicDocument.addNextSlide();
-							return false;
+							this.m_oWordControl.GoToPage(oDrawingDocument.SlidesCount - 1);
 						}
-						else if(this.m_oWordControl.m_oLogicDocument.Slides.length === 0) {
-							this.m_oWordControl.m_oLogicDocument.addNextSlide();
+					}
+					else
+					{
+						this.CorrectShiftSelect(false, false);
+					}
+					break;
+				}
+				case 36: // home
+				{
+					if (!oEvent.ShiftKey)
+					{
+						if (oDrawingDocument.SlideCurrent > 0)
+						{
 							this.m_oWordControl.GoToPage(0);
 						}
 					}
-				}
-				break;
-			}
-
-			case 68://D
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					if (this.m_oWordControl.m_oLogicDocument.CanEdit())
+					else
 					{
-						editor.DublicateSlide();
-					}
-					e.preventDefault();
-					return false;
-				}
-				break;
-			}
-
-			case 33:    // PgUp
-			case 38 : //UpArrow
-			{
-				if (global_keyboardEvent.CtrlKey && global_keyboardEvent.ShiftKey)
-				{
-
-					if (this.m_oWordControl.m_oLogicDocument.CanEdit())
-					{
-						var _presentation = this.m_oWordControl.m_oLogicDocument;
-						History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesToStart);
-						var _selection_array = this.GetSelectedArray();
-						_presentation.moveSlides(_selection_array, 0);
-						_presentation.Recalculate();
-						_presentation.Document_UpdateInterfaceState();
-					}
-					//return false;
-				}
-				else if (global_keyboardEvent.CtrlKey)
-				{
-					if (this.m_oWordControl.m_oLogicDocument.CanEdit())
-					{
-						_presentation       = this.m_oWordControl.m_oLogicDocument;
-						var _selected_array = this.GetSelectedArray();
-						var can_move        = false, first_index;
-						for (var i = 0; i < _selected_array.length; ++i)
+						if (oDrawingDocument.SlideCurrent > 0)
 						{
-							if (i === 0)
+							this.CorrectShiftSelect(true, true);
+						}
+					}
+					break;
+				}
+				case 35: // end
+				{
+					var slidesCount = oDrawingDocument.SlidesCount;
+					if (!oEvent.ShiftKey)
+					{
+						if (oDrawingDocument.SlideCurrent !== (slidesCount - 1))
+						{
+							this.m_oWordControl.GoToPage(slidesCount - 1);
+						}
+					}
+					else
+					{
+						if (oDrawingDocument.SlideCurrent > 0)
+						{
+							this.CorrectShiftSelect(false, true);
+						}
+					}
+					break;
+				}
+				case 33: // PgUp
+				case 38: // UpArrow
+				{
+					if (oEvent.CtrlKey && oEvent.ShiftKey)
+					{
+
+						if (oPresentation.CanEdit())
+						{
+							History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesToStart);
+							var _selection_array = this.GetSelectedArray();
+							oPresentation.moveSlides(_selection_array, 0);
+							oPresentation.Recalculate();
+							oPresentation.Document_UpdateInterfaceState();
+						}
+					}
+					else if (oEvent.CtrlKey)
+					{
+						if (this.m_oWordControl.m_oLogicDocument.CanEdit())
+						{
+							var _selected_array = this.GetSelectedArray();
+							var can_move        = false, first_index;
+							for (var i = 0; i < _selected_array.length; ++i)
 							{
-								if (_selected_array[i] > 0)
+								if (i === 0)
 								{
-									can_move    = true;
-									first_index = i;
-									break;
+									if (_selected_array[i] > 0)
+									{
+										can_move    = true;
+										first_index = i;
+										break;
+									}
+								}
+								else
+								{
+									if (Math.abs(_selected_array[i] - _selected_array[i - 1]) > 1)
+									{
+										can_move    = true;
+										first_index = i;
+										break;
+									}
 								}
 							}
-							else
+							if (can_move)
 							{
-								if (Math.abs(_selected_array[i] - _selected_array[i - 1]) > 1)
+								History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesPrevPos);
+								for (var i = first_index; i > -1; --i)
 								{
-									can_move    = true;
-									first_index = i;
-									break;
+									oPresentation.moveSlides([_selected_array[i]], _selected_array[i] - 1);
 								}
+								oPresentation.Recalculate();
+								oPresentation.Document_UpdateInterfaceState();
 							}
 						}
-						if (can_move)
+					}
+					if (!oEvent.ShiftKey)
+					{
+						if (oDrawingDocument.SlideCurrent > 0)
 						{
-							History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesPrevPos);
-							for (var i = first_index; i > -1; --i)
-							{
-								_presentation.moveSlides([_selected_array[i]], _selected_array[i] - 1);
-							}
-							_presentation.Recalculate();
-							_presentation.Document_UpdateInterfaceState();
+							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent - 1);
 						}
-						//return false;
 					}
-				}
-				var drDoc       = this.m_oWordControl.m_oDrawingDocument;
-				var slidesCount = drDoc.SlidesCount;
-
-				if (!global_keyboardEvent.ShiftKey)
-				{
-					if (drDoc.SlideCurrent > 0)
+					else if (oEvent.CtrlKey)
 					{
-						this.m_oWordControl.GoToPage(drDoc.SlideCurrent - 1);
+						if (oDrawingDocument.SlidesCount > 0)
+						{
+							this.m_oWordControl.GoToPage(0);
+						}
 					}
-				}
-				else if (global_keyboardEvent.CtrlKey)
-				{
-					if (drDoc.SlidesCount > 0)
+					else
 					{
-						this.m_oWordControl.GoToPage(0);
+						this.CorrectShiftSelect(true, false);
 					}
+					break;
 				}
-				else
+				case 77:
 				{
-					this.CorrectShiftSelect(true, false);
-				}
-				break;
-			}
-			case 80: // P
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					this.m_oWordControl.m_oApi.onPrint();
-				}
-				break;
-			}
-			case 83: // S
-			{
-				if (global_keyboardEvent.CtrlKey)
-				{
-					this.m_oWordControl.m_oApi.asc_Save();
-				}
-				break;
-			}
-			case   93:
-			case 57351:
-			{
-				var aSelected    = this.GetSelectedArray();
-				var nSlideIndex  = Math.min.apply(Math, aSelected);
-				var ConvertedPos = this.GetThumbnailPagePosition(nSlideIndex);
-				if (ConvertedPos)
-				{
-					var bIsSlideHidden = this.IsSlideHidden(aSelected);
-					editor.sync_ContextMenuCallback(new AscCommonSlide.CContextMenuData({Type : Asc.c_oAscContextMenuTypes.Thumbnails, X_abs : ConvertedPos.X, Y_abs : ConvertedPos.Y, IsSlideSelect : true,
-                        IsSlideHidden: bIsSlideHidden}));
-				}
-				return false;
-			}
-
-			case 121:
-			{
-				if (global_keyboardEvent.ShiftKey)
-				{
-					var aSelected    = this.GetSelectedArray();
-					var nSlideIndex  = Math.min.apply(Math, aSelected);
-					var ConvertedPos = this.GetThumbnailPagePosition(nSlideIndex);
-					if (ConvertedPos)
+					if(oEvent.CtrlKey)
 					{
-                        var bIsSlideHidden = this.IsSlideHidden(aSelected);
-						editor.sync_ContextMenuCallback(new AscCommonSlide.CContextMenuData({Type : Asc.c_oAscContextMenuTypes.Thumbnails, X_abs : ConvertedPos.X, Y_abs : ConvertedPos.Y, IsSlideSelect : true,
-                            IsSlideHidden: bIsSlideHidden}));
+						if(oPresentation.CanEdit())
+						{
+							sSelectedIdx = this.GetSelectedArray();
+							if (sSelectedIdx.length > 0)
+							{
+								this.m_oWordControl.GoToPage(sSelectedIdx[sSelectedIdx.length - 1]);
+								oPresentation.addNextSlide();
+								bReturnValue = false;
+							}
+							else if(this.GetSlidesCount() === 0)
+							{
+								oPresentation.addNextSlide();
+								this.m_oWordControl.GoToPage(0);
+							}
+						}
 					}
-					return false;
+					bReturnValue = false;
+					bPreventDefault = true;
+					break;
 				}
-				break;
+				case 122:
+				case 123:
+				{
+					return;
+				}
+				default:
+					break;
 			}
-			case 122:
-			case 123:
-			{
-				return;
-			}
-
-
-			default:
-				break;
 		}
-
-		e.preventDefault();
-		return false;
+		if(bPreventDefault)
+		{
+			e.preventDefault();
+		}
+		return bReturnValue;
 	};
 }
 
@@ -5576,7 +5932,7 @@ function DrawBackground(graphics, unifill, w, h)
 		checker._l(0, this.extY);
 		checker._z();
 		checker._e();
-	}
+	};
 
 	var shape_drawer = new AscCommon.CShapeDrawer();
 	shape_drawer.fromShape2(_shape, graphics, null);
@@ -5622,11 +5978,10 @@ function CSlideDrawer()
 			this.bIsEmptyPresentation = true;
 
 		var dKoef = zoom * g_dKoef_mm_to_pix / 100;
-		if (this.m_oWordControl.bIsRetinaSupport)
-			dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
+		dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
 
-		var w_mm = this.m_oWordControl.m_oLogicDocument.Width;
-		var h_mm = this.m_oWordControl.m_oLogicDocument.Height;
+		var w_mm = this.m_oWordControl.m_oLogicDocument.GetWidthMM();
+		var h_mm = this.m_oWordControl.m_oLogicDocument.GetHeightMM();
 		var w_px = (w_mm * dKoef) >> 0;
 		var h_px = (h_mm * dKoef) >> 0;
 
@@ -5665,11 +6020,10 @@ function CSlideDrawer()
 			this.bIsEmptyPresentation = true;
 
 		var dKoef = this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100;
-		if (this.m_oWordControl.bIsRetinaSupport)
-			dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
+		dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
 
-		var w_mm = this.m_oWordControl.m_oLogicDocument.Width;
-		var h_mm = this.m_oWordControl.m_oLogicDocument.Height;
+		var w_mm = this.m_oWordControl.m_oLogicDocument.GetWidthMM();
+		var h_mm = this.m_oWordControl.m_oLogicDocument.GetHeightMM();
 		var w_px = (w_mm * dKoef) >> 0;
 		var h_px = (h_mm * dKoef) >> 0;
 
@@ -5696,11 +6050,10 @@ function CSlideDrawer()
 		{
 			// поидее если был ресайз только
 			dKoef = this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100;
-			if (this.m_oWordControl.bIsRetinaSupport)
-				dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
+			dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
 
-			w_mm = this.m_oWordControl.m_oLogicDocument.Width;
-			h_mm = this.m_oWordControl.m_oLogicDocument.Height;
+			w_mm = this.m_oWordControl.m_oLogicDocument.GetWidthMM();
+			h_mm = this.m_oWordControl.m_oLogicDocument.GetHeightMM();
 			w_px = (w_mm * dKoef) >> 0;
 			h_px = (h_mm * dKoef) >> 0;
 		}
@@ -5755,7 +6108,7 @@ function CSlideDrawer()
 			g.init(this.CachedCanvasCtx, w_px, h_px, w_mm, h_mm);
 			g.m_oFontManager = AscCommon.g_fontManager;
 
-			if (this.m_oWordControl.bIsRetinaSupport)
+			if (AscCommon.AscBrowser.isCustomScalingAbove2())
 				g.IsRetina = true;
 
 			g.m_oCoordTransform.tx = -this.BoundsChecker.Bounds.min_x + this.SlideEps;
@@ -5788,11 +6141,8 @@ function CSlideDrawer()
 		var _x = _rect.left + _bounds.min_x;
 		var _y = _rect.top + _bounds.min_y;
 
-		if (this.m_oWordControl.bIsRetinaSupport)
-		{
-			_x = ((_rect.left * AscCommon.AscBrowser.retinaPixelRatio) >> 0) + _bounds.min_x;
-			_y = ((_rect.top * AscCommon.AscBrowser.retinaPixelRatio) >> 0) + _bounds.min_y;
-		}
+		_x = ((_rect.left * AscCommon.AscBrowser.retinaPixelRatio) >> 0) + _bounds.min_x;
+		_y = ((_rect.top * AscCommon.AscBrowser.retinaPixelRatio) >> 0) + _bounds.min_y;
 
 		if (this.bIsEmptyPresentation)
 		{
@@ -5853,11 +6203,10 @@ function CSlideDrawer()
 		else
 		{
 			var dKoef = this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100;
-			if (this.m_oWordControl.bIsRetinaSupport)
-				dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
+			dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
 
-			var w_mm = this.m_oWordControl.m_oLogicDocument.Width;
-			var h_mm = this.m_oWordControl.m_oLogicDocument.Height;
+			var w_mm = this.m_oWordControl.m_oLogicDocument.GetWidthMM();
+			var h_mm = this.m_oWordControl.m_oLogicDocument.GetHeightMM();
 			var w_px = (w_mm * dKoef) >> 0;
 			var h_px = (h_mm * dKoef) >> 0;
 
@@ -5865,7 +6214,7 @@ function CSlideDrawer()
 			g.init(outputCtx, w_px, h_px, w_mm, h_mm);
 			g.m_oFontManager = AscCommon.g_fontManager;
 
-			if (this.m_oWordControl.bIsRetinaSupport)
+			if (AscCommon.AscBrowser.isCustomScalingAbove2())
 				g.IsRetina = true;
 
 			g.m_oCoordTransform.tx = _x - _bounds.min_x;
@@ -5960,8 +6309,7 @@ function CNotesDrawer(page)
 		}
 
 		var dKoef = g_dKoef_mm_to_pix;
-		if (this.HtmlPage.bIsRetinaSupport)
-			dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
+		dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
 
 		var w_mm = this.Width;
 		var h_mm = this.Height;
@@ -5972,8 +6320,10 @@ function CNotesDrawer(page)
 		g.init(ctx, w_px, h_px, w_mm, h_mm);
 		g.m_oFontManager = this.fontManager;
 
-		if (this.HtmlPage.bIsRetinaSupport)
-			g.IsRetina = true;
+		if (AscCommon.GlobalSkin.Type === "dark")
+		{
+			g.darkModeOverride();
+		}
 
 		g.SaveGrState();
 
@@ -5995,6 +6345,44 @@ function CNotesDrawer(page)
 		g.RestoreGrState();
 	};
 
+	this.CreateScrollSettings = function(height)
+	{
+		var element = this.HtmlPage.m_oNotes.HtmlElement;
+		var settings = new AscCommon.ScrollSettings();
+		settings.screenW = element.width;
+		settings.screenH = element.height;
+		settings.vscrollStep = 45;
+		settings.hscrollStep = 45;
+		settings.contentW = 1;
+		settings.contentH = 2 * this.OffsetY + ((height * g_dKoef_mm_to_pix) >> 0);
+		settings.scrollerMinHeight = 5;
+
+		settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
+		settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
+
+		settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
+
+		settings.scrollerColor = GlobalSkin.ScrollerColor;
+		settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+		settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+		settings.arrowColor = GlobalSkin.ScrollArrowColor;
+		settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+		settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+		settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+		settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+		settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+		settings.targetColor = GlobalSkin.ScrollerTargetColor;
+		settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+		settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
+		return settings;
+	};
+
 	this.OnRecalculateNote = function (slideNum, width, height)
 	{
 		var isChangedSlide = (this.Slide != slideNum) ? true : false;
@@ -6013,25 +6401,7 @@ function CNotesDrawer(page)
 			this.IsEmptyDraw = true;
 		}
 
-		var element = this.HtmlPage.m_oNotes.HtmlElement;
-		var settings = new AscCommon.ScrollSettings();
-		settings.screenW = element.width;
-		settings.screenH = element.height;
-		settings.vsscrollStep = 45;
-		settings.hsscrollStep = 45;
-		settings.contentW = 1;
-		settings.contentH = 2 * this.OffsetY + ((height * g_dKoef_mm_to_pix) >> 0);
-		settings.scrollerMinHeight = 5;
-
-		settings.scrollBackgroundColor = GlobalSkin.BackgroundScroll;
-		settings.scrollBackgroundColorHover = GlobalSkin.BackgroundScroll;
-		settings.scrollBackgroundColorActive = GlobalSkin.BackgroundScroll;
-
-		if (this.HtmlPage.bIsRetinaSupport)
-		{
-			settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
-			settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
-		}
+		var settings = this.CreateScrollSettings(height);
 
 		this.ScrollMax = Math.max(0, settings.contentH - settings.screenH);
 		if (this.Scroll > this.ScrollMax)
@@ -6304,6 +6674,7 @@ function CNotesDrawer(page)
 		if (_pix_width < 10)
 			_pix_width = 10;
 		_pix_width = AscCommon.AscBrowser.convertToRetinaValue(_pix_width);
+		if (window["NATIVE_EDITOR_ENJINE"] && _pix_width < 100) _pix_width = 100;
 		return _pix_width / g_dKoef_mm_to_pix;
 	};
 }

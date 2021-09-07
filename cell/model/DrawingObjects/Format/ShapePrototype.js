@@ -114,10 +114,7 @@ CShape.prototype.hitInTextRect = function (x, y)
         var content = this.getDocContent && this.getDocContent();
         if ( content && this.invertTransformText)
         {
-            var t_x, t_y;
-            t_x = this.invertTransformText.TransformPointX(x, y);
-            t_y = this.invertTransformText.TransformPointY(x, y);
-            return t_x > 0 && t_x < this.contentWidth && t_y > 0 && t_y < this.contentHeight;
+            return AscFormat.HitToRect(x, y, this.invertTransformText, 0, 0, this.contentWidth, this.contentHeight);
         }
     }
     else
@@ -165,13 +162,6 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
         ret = aObjects.length;
         aObjects.push(drawingObject);
     }
-
-    /*if ( lockByDefault ) {
-     _this.objectLocker.reset();
-     _this.objectLocker.addObjectId(drawingObject.graphicObject.Id);
-     _this.objectLocker.checkObjects( function(result) {} );
-     }
-     worksheet.setSelectionShape(true);  */
     if(oldDrawingBase)
     {
         graphic.setDrawingBaseType(oldDrawingBase.Type);
@@ -484,6 +474,16 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
         nv_sp_pr.cNvPr.setId(++AscFormat.Ax_Counter.GLOBAL_AX_ID_COUNTER);
         this.setNvSpPr(nv_sp_pr);
     }
+    if(this.signatureLine)
+    {
+        this.setSignature(this.signatureLine);
+    }
+    this.checkClientData();
+    var oApi = Asc.editor;
+    if(oApi && this.signatureLine)
+    {
+        oApi.sendEvent("asc_onAddSignature", this.signatureLine.id);
+    }
 };
 
 
@@ -506,12 +506,25 @@ CShape.prototype.deleteDrawingBase = function()
             this.setDrawingBaseCoords(oFrom.col, oFrom.colOff, oFrom.row, oFrom.rowOff, oTo.col, oTo.colOff, oTo.row, oTo.rowOff, oPos.X, oPos.Y, oExt.cx, oExt.cy)
         }
     }
+    if(this.signatureLine && this.setSignature)
+    {
+        this.setSignature(this.signatureLine);
+    }
     var position = AscFormat.deleteDrawingBase(this.worksheet.Drawings, this.Get_Id());
     if(AscFormat.isRealNumber(position))
     {
         //var data = {Type: AscDFH.historyitem_AutoShapes_RemoveFromDrawingObjects, Pos: position};
         History.Add(new CChangesDrawingObjectsRemoveFromDrawingObjects(this, position));
         //this.worksheet.addContentChanges(new AscCommon.CContentChangesElement(AscCommon.contentchanges_Remove, data.Pos, 1, data));
+    }
+    if(this.signatureLine && this.setSignature)
+    {
+        var oApi = Asc.editor;
+        if(oApi)
+        {
+            oApi.sendEvent("asc_onAddSignature", this.signatureLine.id);
+        }
+        this.setSignature(this.signatureLine);
     }
     return position;
 };
@@ -872,7 +885,12 @@ AscFormat.CTextBody.prototype.Get_Worksheet = function()
 };
 AscFormat.CTextBody.prototype.getDrawingDocument = function()
 {
-    return this.parent && this.parent.getDrawingDocument && this.parent.getDrawingDocument();
+    var oCellApi = window["Asc"] && window["Asc"]["editor"];
+    if (oCellApi && oCellApi.wbModel)
+    {
+        return oCellApi.wbModel.DrawingDocument;
+    }
+    return null;
 };
 
     //------------------------------------------------------------export----------------------------------------------------

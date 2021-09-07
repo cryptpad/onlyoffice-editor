@@ -63,14 +63,13 @@
 	{
 		var HtmlPage = this.HtmlPage;
 		var w = HtmlPage.m_oEditor.HtmlElement.width;
-		if (HtmlPage.bIsRetinaSupport)
-			w /= AscCommon.AscBrowser.retinaPixelRatio;
+		w /= AscCommon.AscBrowser.retinaPixelRatio;
 
 		var h = (((HtmlPage.m_oBody.AbsolutePosition.B - HtmlPage.m_oBody.AbsolutePosition.T) -
 			(HtmlPage.m_oTopRuler.AbsolutePosition.B - HtmlPage.m_oTopRuler.AbsolutePosition.T)) * g_dKoef_mm_to_pix) >> 0;
 
-		var _pageWidth  = this.LogicDocument.Width * g_dKoef_mm_to_pix;
-		var _pageHeight = this.LogicDocument.Height * g_dKoef_mm_to_pix;
+		var _pageWidth  = this.LogicDocument.GetWidthMM() * g_dKoef_mm_to_pix;
+		var _pageHeight = this.LogicDocument.GetHeightMM() * g_dKoef_mm_to_pix;
 
 		var _hor_Zoom = 100;
 		if (0 != _pageWidth)
@@ -374,7 +373,8 @@
 			scroller_id : this.iScrollElement,
 			bounce : false,
 			eventsElement : this.eventsElement,
-			click : false
+			click : false,
+			useLongTap : true
 		});
 
 		this.delegate.Init();
@@ -1075,12 +1075,12 @@
 	};
 	CMobileDelegateThumbnails.prototype.GetScrollerSize = function()
 	{
-		return { W : 1, H : this.Thumbnails.ScrollerHeight };
+		return { W : 1, H : AscCommon.AscBrowser.convertToRetinaValue(this.Thumbnails.ScrollerHeight) };
 	};
 	CMobileDelegateThumbnails.prototype.ScrollTo = function(_scroll)
 	{
 		if (this.HtmlPage.m_oScrollThumbApi)
-			this.HtmlPage.m_oScrollThumbApi.scrollToY(-_scroll.y);
+			this.HtmlPage.m_oScrollThumbApi.scrollToY(-_scroll.y * AscCommon.AscBrowser.retinaPixelRatio);
 	};
 	CMobileDelegateThumbnails.prototype.ScrollEnd = function(_scroll)
 	{
@@ -1120,7 +1120,7 @@
 		var _ret = { X : 0, Y : 0, Mode : AscCommon.MobileTouchContextMenuType.Slide };
 		if (ConvertedPos)
 		{
-			_ret.X = ConvertedPos.X;
+			_ret.X = ConvertedPos.X + (ConvertedPos.W >> 1);
 			_ret.Y = ConvertedPos.Y;
 		}
 
@@ -1144,6 +1144,11 @@
 	CMobileTouchManagerThumbnails.prototype.Init = function(_api)
 	{
 		this.Api = _api;
+
+		this.Api.HtmlElement.style.touchAction = "none";
+		this.Api.HtmlElement.style.userSelect = "none";
+		this.Api.HtmlElement.style.webkitUserSelect = "none";
+
 		this.iScrollElement = "scroller_id_thumbnails";
 
 		// создаем делегата. инициализация его - ПОСЛЕ создания iScroll

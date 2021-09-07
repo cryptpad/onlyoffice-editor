@@ -122,8 +122,8 @@ var c_oAscAlignShapeType = {
 	ALIGN_MIDDLE : 5
 };
 
-var TABLE_STYLE_WIDTH_PIX  = 70;
-var TABLE_STYLE_HEIGHT_PIX = 50;
+var TABLE_STYLE_WIDTH_PIX  = 72;
+var TABLE_STYLE_HEIGHT_PIX = 52;
 
 
 
@@ -142,10 +142,15 @@ var c_oSerFormat = {
 };
 
 var c_oAscFootnotePos = {
-	BeneathText : 0x00, //section_footnote_PosBeneathText
-	DocEnd      : 0x01, //section_footnote_PosDocEnd
-	PageBottom  : 0x02, //section_footnote_PosPageBottom,
-	SectEnd     : 0x03  //section_footnote_PosSectEnd
+	BeneathText : 0x00,
+	DocEnd      : 0x01,
+	PageBottom  : 0x02,
+	SectEnd     : 0x03
+};
+
+var c_oAscEndnotePos = {
+	DocEnd      : 0x00,
+	SectEnd     : 0x01
 };
 
 var c_oAscFootnoteRestart = {
@@ -171,6 +176,16 @@ var c_oAscTOCStylesType = {
 	Web      : 5
 };
 
+var c_oAscTOFStylesType = {
+	Current     : 0,
+	Classic     : 1,
+	Distinctive : 2,
+	Centered    : 3,
+	Formal      : 4,
+	Simple      : 5,
+	Web         : 6
+};
+
 var c_oAscStyleType = {
 	Paragraph : 1,
 	Numbering : 2,
@@ -194,52 +209,77 @@ var c_oAscSdtCheckBoxDefaults = {
 window["flat_desine"] = false;
 
 var c_oAscDocumentShortcutType = {
-	AddPageBreak                    : 1,
-	AddLineBreak                    : 2,
-	AddColumnBreak                  : 3,
-	ClearFormatting                 : 4,
-	NonBreakingSpace                : 5,
-	StyleHeading1                   : 6,
-	StyleHeading2                   : 7,
-	StyleHeading3                   : 8,
-	Strikeout                       : 9,
-	ToggleNonPrintingCharacters     : 10,
-	SelectAll                       : 11,
-	Bold                            : 12,
-	CopyFormatting                  : 13,
-	CopyrightSign                   : 14,
-	AddEndnote                      : 15,
-	ToggleParagraphAlignCenterLeft  : 16,
-	EuroSign                        : 17,
-	AddFootnote                     : 18,
-	Italic                          : 19,
-	ToggleParagraphAlignJustifyLeft : 20,
-	AddHyperlink                    : 21,
-	AddBulletedList                 : 22,
-	ToggleParagraphAlignLeftJustify : 23,
-	IncreaseIndent                  : 24,
-	DecreaseIndent                  : 25,
-	Print                           : 26,
-	AddPageNumber                   : 27,
-	RegisteredSign                  : 28,
-	ToggleParagraphAlignRightLeft   : 29,
-	Save                            : 30,
-	TrademarkSign                   : 31,
-	Underline                       : 32,
-	PasteFormatting                 : 33,
-	Undo                            : 34,
-	Redo                            : 35,
-	EmDash                          : 36,
-	EnDash                          : 37,
-	UpdateFields                    : 38,
-	AddEquation                     : 39,
-	Superscript                     : 40,
-	NonBreakingHyphen               : 41,
-	SoftHyphen                      : 42,
-	HorizontalEllipsis              : 43,
-	Subscript                       : 44,
-	IncreaseFontSize                : 45,
-	DecreaseFontSize                : 46
+	InsertPageBreak      : 1,
+	InsertLineBreak      : 2,
+	InsertColumnBreak    : 3,
+	ResetChar            : 4,
+	NonBreakingSpace     : 5,
+	ApplyHeading1        : 6,
+	ApplyHeading2        : 7,
+	ApplyHeading3        : 8,
+	Strikeout            : 9,
+	ShowAll              : 10, // Показать/скрыть непечатаемые символы
+	EditSelectAll        : 11,
+	Bold                 : 12,
+	CopyFormat           : 13,
+	CopyrightSign        : 14,
+	InsertEndnoteNow     : 15,
+	CenterPara           : 16,
+	EuroSign             : 17,
+	InsertFootnoteNow    : 18,
+	Italic               : 19,
+	JustifyPara          : 20,
+	InsertHyperlink      : 21,
+	ApplyListBullet      : 22,
+	LeftPara             : 23,
+	Indent               : 24,
+	UnIndent             : 25,
+	PrintPreviewAndPrint : 26,
+	InsertPageNumber     : 27,
+	RegisteredSign       : 28,
+	RightPara            : 29,
+	Save                 : 30,
+	TrademarkSign        : 31,
+	Underline            : 32,
+	PasteFormat          : 33,
+	EditUndo             : 34,
+	EditRedo             : 35,
+	EmDash               : 36,
+	EnDash               : 37,
+	UpdateFields         : 38,
+	InsertEquation       : 39,
+	Superscript          : 40,
+	NonBreakingHyphen    : 41,
+	SoftHyphen           : 42,
+	HorizontalEllipsis   : 43,
+	Subscript            : 44,
+	IncreaseFontSize     : 45,
+	DecreaseFontSize     : 46
+};
+
+var c_oAscDocumentRefenceToType = {
+	Text               : 0,
+	PageNum            : 1,
+	ParaNum            : 2,
+	ParaNumNoContext   : 3,
+	ParaNumFullContex  : 4,
+	AboveBelow         : 5,
+	OnlyLabelAndNumber : 6,
+	OnlyCaptionText    : 7,
+	NoteNumber         : 8,
+	NoteNumberFormatted : 9
+};
+
+var c_oAscTextToTableSeparator = {
+	Paragraph : 1,
+	Tab       : 2,
+	Symbol    : 3
+};
+
+var c_oAscTextToTableAutoFitType = {
+	Fixed   : 1,
+	Content : 2,
+	Window  : 3
 };
 
 //------------------------------------------------------------export---------------------------------------------------
@@ -291,14 +331,17 @@ prot['ALIGN_MIDDLE'] = c_oAscAlignShapeType.ALIGN_MIDDLE;
 
 
 
-
-prot = window['Asc']['c_oAscFootnotePos'] = c_oAscFootnotePos;
+prot = window['Asc']['c_oAscFootnotePos'] = window['Asc'].c_oAscFootnotePos = c_oAscFootnotePos;
 prot['BeneathText'] = c_oAscFootnotePos.BeneathText;
 prot['DocEnd']      = c_oAscFootnotePos.DocEnd;
 prot['PageBottom']  = c_oAscFootnotePos.PageBottom;
 prot['SectEnd']     = c_oAscFootnotePos.SectEnd;
 
-prot = window['Asc']['c_oAscFootnoteRestart'] = c_oAscFootnoteRestart;
+prot = window['Asc']['c_oAscEndnotePos'] = window['Asc'].c_oAscEndnotePos = c_oAscEndnotePos;
+prot['DocEnd']      = c_oAscEndnotePos.DocEnd;
+prot['SectEnd']     = c_oAscEndnotePos.SectEnd;
+
+prot = window['Asc']['c_oAscFootnoteRestart'] = window['Asc'].c_oAscFootnoteRestart = c_oAscFootnoteRestart;
 prot['Continuous'] = c_oAscFootnoteRestart.Continuous;
 prot['EachSect']   = c_oAscFootnoteRestart.EachSect;
 prot['EachPage']   = c_oAscFootnoteRestart.EachPage;
@@ -318,6 +361,14 @@ prot['Modern']   = c_oAscTOCStylesType.Modern;
 prot['Classic']  = c_oAscTOCStylesType.Classic;
 prot['Web']      = c_oAscTOCStylesType.Web;
 
+prot = window['Asc']['c_oAscTOFStylesType'] = window['Asc'].c_oAscTOFStylesType = c_oAscTOFStylesType;
+prot['Current']     = prot.Current;
+prot['Classic']     = prot.Classic;
+prot['Distinctive'] = prot.Distinctive;
+prot['Centered']    = prot.Centered;
+prot['Formal']      = prot.Formal;
+prot['Simple']      = prot.Simple;
+prot['Web']         = prot.Web;
 
 prot = window['Asc']['c_oAscStyleType'] = window['Asc'].c_oAscStyleType = c_oAscStyleType;
 prot['Paragraph'] = c_oAscStyleType.Paragraph;
@@ -342,49 +393,71 @@ prot['UncheckedFont']   = prot.UncheckedFont;
 window['Asc']['NoYLimit'] = window['Asc'].NoYLimit = 0x7FFFFFFF;
 
 prot = window['Asc']['c_oAscDocumentShortcutType'] = window['Asc'].c_oAscDocumentShortcutType = c_oAscDocumentShortcutType;
-prot['AddPageBreak']                    = prot.AddPageBreak;
-prot['AddLineBreak']                    = prot.AddLineBreak;
-prot['AddColumnBreak']                  = prot.AddColumnBreak;
-prot['ClearFormatting']                 = prot.ClearFormatting;
-prot['NonBreakingSpace']                = prot.NonBreakingSpace;
-prot['StyleHeading1']                   = prot.StyleHeading1;
-prot['StyleHeading2']                   = prot.StyleHeading2;
-prot['StyleHeading3']                   = prot.StyleHeading3;
-prot['Strikeout']                       = prot.Strikeout;
-prot['ToggleNonPrintingCharacters']     = prot.ToggleNonPrintingCharacters;
-prot['SelectAll']                       = prot.SelectAll;
-prot['Bold']                            = prot.Bold;
-prot['CopyFormatting']                  = prot.CopyFormatting;
-prot['CopyrightSign']                   = prot.CopyrightSign;
-prot['AddEndnote']                      = prot.AddEndnote;
-prot['ToggleParagraphAlignCenterLeft']  = prot.ToggleParagraphAlignCenterLeft;
-prot['EuroSign']                        = prot.EuroSign;
-prot['AddFootnote']                     = prot.AddFootnote;
-prot['Italic']                          = prot.Italic;
-prot['ToggleParagraphAlignJustifyLeft'] = prot.ToggleParagraphAlignJustifyLeft;
-prot['AddHyperlink']                    = prot.AddHyperlink;
-prot['AddBulletedList']                 = prot.AddBulletedList;
-prot['ToggleParagraphAlignLeftJustify'] = prot.ToggleParagraphAlignLeftJustify;
-prot['IncreaseIndent']                  = prot.IncreaseIndent;
-prot['DecreaseIndent']                  = prot.DecreaseIndent;
-prot['Print']                           = prot.Print;
-prot['AddPageNumber']                   = prot.AddPageNumber;
-prot['RegisteredSign']                  = prot.RegisteredSign;
-prot['ToggleParagraphAlignRightLeft']   = prot.ToggleParagraphAlignRightLeft;
-prot['Save']                            = prot.Save;
-prot['TrademarkSign']                   = prot.TrademarkSign;
-prot['Underline']                       = prot.Underline;
-prot['PasteFormatting']                 = prot.PasteFormatting;
-prot['Undo']                            = prot.Undo;
-prot['Redo']                            = prot.Redo;
-prot['EmDash']                          = prot.EmDash;
-prot['EnDash']                          = prot.EnDash;
-prot['UpdateFields']                    = prot.UpdateFields;
-prot['AddEquation']                     = prot.AddEquation;
-prot['Superscript']                     = prot.Superscript;
-prot['NonBreakingHyphen']               = prot.NonBreakingHyphen;
-prot['SoftHyphen']                      = prot.SoftHyphen;
-prot['HorizontalEllipsis']              = prot.HorizontalEllipsis;
-prot['Subscript']                       = prot.Subscript;
-prot['IncreaseFontSize']                = prot.IncreaseFontSize;
-prot['DecreaseFontSize']                = prot.DecreaseFontSize;
+prot['InsertPageBreak']      = prot.InsertPageBreak;
+prot['InsertLineBreak']      = prot.InsertLineBreak;
+prot['InsertColumnBreak']    = prot.InsertColumnBreak;
+prot['ResetChar']            = prot.ResetChar;
+prot['NonBreakingSpace']     = prot.NonBreakingSpace;
+prot['ApplyHeading1']        = prot.ApplyHeading1;
+prot['ApplyHeading2']        = prot.ApplyHeading2;
+prot['ApplyHeading3']        = prot.ApplyHeading3;
+prot['Strikeout']            = prot.Strikeout;
+prot['ShowAll']              = prot.ShowAll;
+prot['EditSelectAll']        = prot.EditSelectAll;
+prot['Bold']                 = prot.Bold;
+prot['CopyFormat']           = prot.CopyFormat;
+prot['CopyrightSign']        = prot.CopyrightSign;
+prot['InsertEndnoteNow']     = prot.InsertEndnoteNow;
+prot['CenterPara']           = prot.CenterPara;
+prot['EuroSign']             = prot.EuroSign;
+prot['InsertFootnoteNow']    = prot.InsertFootnoteNow;
+prot['Italic']               = prot.Italic;
+prot['JustifyPara']          = prot.JustifyPara;
+prot['InsertHyperlink']      = prot.InsertHyperlink;
+prot['ApplyListBullet']      = prot.ApplyListBullet;
+prot['LeftPara']             = prot.LeftPara;
+prot['Indent']               = prot.Indent;
+prot['UnIndent']             = prot.UnIndent;
+prot['PrintPreviewAndPrint'] = prot.PrintPreviewAndPrint;
+prot['InsertPageNumber']     = prot.InsertPageNumber;
+prot['RegisteredSign']       = prot.RegisteredSign;
+prot['RightPara']            = prot.RightPara;
+prot['Save']                 = prot.Save;
+prot['TrademarkSign']        = prot.TrademarkSign;
+prot['Underline']            = prot.Underline;
+prot['PasteFormat']          = prot.PasteFormat;
+prot['EditUndo']             = prot.EditUndo;
+prot['EditRedo']             = prot.EditRedo;
+prot['EmDash']               = prot.EmDash;
+prot['EnDash']               = prot.EnDash;
+prot['UpdateFields']         = prot.UpdateFields;
+prot['InsertEquation']       = prot.InsertEquation;
+prot['Superscript']          = prot.Superscript;
+prot['NonBreakingHyphen']    = prot.NonBreakingHyphen;
+prot['SoftHyphen']           = prot.SoftHyphen;
+prot['HorizontalEllipsis']   = prot.HorizontalEllipsis;
+prot['Subscript']            = prot.Subscript;
+prot['IncreaseFontSize']     = prot.IncreaseFontSize;
+prot['DecreaseFontSize']     = prot.DecreaseFontSize;
+
+prot = window['Asc']['c_oAscDocumentRefenceToType'] = window['Asc'].c_oAscDocumentRefenceToType = c_oAscDocumentRefenceToType;
+prot['Text']               = prot.Text;
+prot['PageNum']            = prot.PageNum;
+prot['ParaNum']            = prot.ParaNum;
+prot['ParaNumNoContext']   = prot.ParaNumNoContext;
+prot['ParaNumFullContex']  = prot.ParaNumFullContex;
+prot['AboveBelow']         = prot.AboveBelow;
+prot['OnlyLabelAndNumber'] = prot.OnlyLabelAndNumber;
+prot['OnlyCaptionText']    = prot.OnlyCaptionText;
+prot['NoteNumber']         = prot.NoteNumber;
+prot['NoteNumberFormatted'] = prot.NoteNumberFormatted;
+
+prot = window['Asc']['c_oAscTextToTableSeparator'] = window['Asc'].c_oAscTextToTableSeparator = c_oAscTextToTableSeparator;
+prot['Paragraph'] = prot.Paragraph;
+prot['Tab']       = prot.Tab;
+prot['Symbol']    = prot.Symbol;
+
+prot = window['Asc']['c_oAscTextToTableAutoFitType'] = window['Asc'].c_oAscTextToTableAutoFitType = c_oAscTextToTableAutoFitType;
+prot['Fixed']   = prot.Fixed;
+prot['Content'] = prot.Content;
+prot['Window']  = prot.Window;

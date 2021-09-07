@@ -471,6 +471,14 @@
 		}
 		return false;
 	}
+	function _includeInHolidaysTime(time, holidays) {
+		for (var i = 0; i < holidays.length; i++) {
+			if (time == holidays[i].getTime()) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	function weekNumber(dt, iso, type) {
 		if (undefined === iso) {
@@ -1276,7 +1284,10 @@
 			if (val < 0) {
 				return new cError(cErrorType.not_numeric);
 			} else {
-				val = parseInt(( ( val * 24 - Math.floor(val * 24) ) * 60 ).toFixed(cExcelDateTimeDigits)) % 60;
+				//TODO исплользую функцию parseDate. по идее необходима только первая часть этой функции
+				d = AscCommon.NumFormat.prototype.parseDate(val);
+				val = d.min;
+
 				return t.setCalcValue(new cNumber(val), 0);
 			}
 		};
@@ -1519,12 +1530,21 @@
 			var difAbs = ( end - start );
 			difAbs = ( difAbs + (c_msPerDay) ) / c_msPerDay;
 
+			var date = new cDate(start);
+			var startTime = date.getTime();
+			var startDay = date.getUTCDay();
 			for (var i = 0; i < difAbs; i++) {
-				var date = new cDate(start);
-				date.setUTCDate(start.getUTCDate() + i);
-				if (!_includeInHolidays(date, holidays) && !weekends[date.getUTCDay()]) {
+				if (!weekends[startDay] && !_includeInHolidaysTime(startTime, holidays)) {
 					count++;
 				}
+				startDay = (startDay + 1) % 7;
+				startTime +=  AscCommonExcel.c_msPerDay;
+
+				// date.setTime(startTime + i * AscCommonExcel.c_msPerDay);
+				//
+				// if (!_includeInHolidays(date, holidays) && !weekends[date.getUTCDay()]) {
+				// 	count++;
+				// }
 			}
 
 			return new cNumber((dif < 0 ? -1 : 1) * count);

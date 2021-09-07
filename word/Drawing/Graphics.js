@@ -46,6 +46,32 @@ var AscBrowser = AscCommon.AscBrowser;
 var CMatrixL = AscCommon.CMatrixL;
 var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
 
+AscCommon.darkModeEdge = 10;
+AscCommon.darkModeCheckColor = function(r, g, b)
+{
+    return (r < AscCommon.darkModeEdge && g < AscCommon.darkModeEdge && b < AscCommon.darkModeEdge) ? true : false;
+};
+AscCommon.darkModeCheckColor2 = function(r, g, b)
+{
+    if (r < AscCommon.darkModeEdge && g < AscCommon.darkModeEdge && b < AscCommon.darkModeEdge) return true;
+    var max = 255 - AscCommon.darkModeEdge;
+	if (r > max && g > max && b > max) return true;
+	return false;
+};
+AscCommon.darkModeCorrectColor = function(r, g, b)
+{
+    return AscCommon.darkModeCheckColor(r, g, b) ? { R : 255 - r, G: 255 - g, B : 255 - b } : { R : r, G : g, B : b };
+};
+AscCommon.darkModeCorrectColor2 = function(r, g, b)
+{
+	var oHSL = {}, oRGB = {};
+	AscFormat.CColorModifiers.prototype.RGB2HSL(r, g, b, oHSL);
+	var dKoefL = (255 - 58) / 255;
+	oHSL.L = 255 - ((dKoefL * oHSL.L) >> 0);
+	AscFormat.CColorModifiers.prototype.HSL2RGB(oHSL, oRGB);
+	return oRGB;
+};
+
 function CGraphics()
 {
     this.m_oContext     = null;
@@ -111,9 +137,14 @@ function CGraphics()
     this.m_oLastFont2       = null;
 
     this.ClearMode          = false;
-    this.IsRetina           = false;
 
     this.dash_no_smart = null;
+
+    this.textAlpha = undefined;
+
+    this.endGlobalAlphaColor = null;
+    this.isDarkMode = false;
+    this.isShapeDraw = false;
 }
 
 CGraphics.prototype =
@@ -157,6 +188,19 @@ CGraphics.prototype =
     {
     },
 
+    setTextGlobalAlpha : function(alpha)
+    {
+        this.textAlpha = alpha;
+    },
+	getTextGlobalAlpha : function()
+	{
+		return this.textAlpha;
+	},
+    resetTextGlobalAlpha : function()
+    {
+        this.textAlpha = undefined;
+    },
+
     put_GlobalAlpha : function(enable, alpha)
     {
         if (false === enable)
@@ -180,7 +224,13 @@ CGraphics.prototype =
             this.m_oContext.setTransform(1,0,0,1,0,0);
         }
 
-        this.b_color1(255, 255, 255, 140);
+        var oldDarkMode = this.isDarkMode;
+        this.isDarkMode = false;
+        if (!this.endGlobalAlphaColor)
+            this.b_color1(255, 255, 255, 140);
+        else
+            this.b_color1(this.endGlobalAlphaColor[0], this.endGlobalAlphaColor[1], this.endGlobalAlphaColor[2], 140);
+		this.isDarkMode = oldDarkMode;
 
         this.m_oContext.fillRect(0, 0, this.m_lWidthPix, this.m_lHeightPix);
         this.m_oContext.beginPath();
@@ -191,6 +241,60 @@ CGraphics.prototype =
                 this.m_oFullTransform.sy,this.m_oFullTransform.tx,this.m_oFullTransform.ty);
         }
     },
+
+    darkModeOverride : function()
+    {
+        this.isDarkMode = true;
+        function _darkColor(_this, _func) {
+            return function(r, g, b, a) {
+                if (_this.isDarkMode && !this.isShapeDraw && AscCommon.darkModeCheckColor(r, g, b))
+                    _func.call(_this, 255 - r, 255 - g, 255 - b, a);
+                else
+                    _func.call(_this, r, g, b, a);
+            };
+        }
+
+        this.p_color_old = this.p_color; this.p_color = _darkColor(this, this.p_color_old);
+		this.b_color1_old = this.b_color1; this.b_color1 = _darkColor(this, this.b_color1_old);
+		this.b_color2_old = this.b_color2; this.b_color2 = _darkColor(this, this.b_color2_old);
+    },
+	darkModeOverride2 : function()
+	{
+		this.isDarkMode = true;
+		function _darkColor(_this, _func) {
+			return function(r, g, b, a) {
+				if (_this.isDarkMode && !this.isShapeDraw && AscCommon.darkModeCheckColor2(r, g, b))
+					_func.call(_this, 255 - r, 255 - g, 255 - b, a);
+				else
+					_func.call(_this, r, g, b, a);
+			};
+		}
+
+		this.p_color_old = this.p_color; this.p_color = _darkColor(this, this.p_color_old);
+		this.b_color1_old = this.b_color1; this.b_color1 = _darkColor(this, this.b_color1_old);
+		this.b_color2_old = this.b_color2; this.b_color2 = _darkColor(this, this.b_color2_old);
+	},
+	darkModeOverride3 : function()
+	{
+		this.isDarkMode = true;
+		function _darkColor(_this, _func) {
+			return function(r, g, b, a) {
+				if (_this.isDarkMode && !this.isShapeDraw)
+				{
+					var c = AscCommon.darkModeCorrectColor2(r, g, b);
+					_func.call(_this, c.R, c.G, c.B, a);
+				}
+				else
+                {
+					_func.call(_this, r, g, b, a);
+                }
+			};
+		}
+
+		this.p_color_old = this.p_color; this.p_color = _darkColor(this, this.p_color_old);
+		this.b_color1_old = this.b_color1; this.b_color1 = _darkColor(this, this.b_color1_old);
+		this.b_color2_old = this.b_color2; this.b_color2 = _darkColor(this, this.b_color2_old);
+	},
     // pen methods
     p_color : function(r,g,b,a)
     {
@@ -855,7 +959,10 @@ CGraphics.prototype =
 
     SetTextPr : function(textPr, theme)
     {
-        this.m_oTextPr = textPr;
+		if (theme && textPr && textPr.ReplaceThemeFonts)
+			textPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
+
+		this.m_oTextPr = textPr;
         if (theme)
             this.m_oGrFonts.checkFromTheme(theme.themeElements.fontScheme, this.m_oTextPr.RFonts);
         else
@@ -997,7 +1104,17 @@ CGraphics.prototype =
 
         if (null != pGlyph.oBitmap)
         {
+            var oldAlpha = undefined;
+            if (this.textAlpha)
+            {
+                oldAlpha = this.m_oContext.globalAlpha;
+                this.m_oContext.globalAlpha = oldAlpha * this.textAlpha;
+            }
+
             this.private_FillGlyph(pGlyph);
+
+            if (undefined !== oldAlpha)
+                this.m_oContext.globalAlpha = oldAlpha;
         }
         if (false === this.m_bIntegerGrid)
         {
@@ -1152,7 +1269,17 @@ CGraphics.prototype =
 
         if (null != pGlyph.oBitmap)
         {
+            var oldAlpha = undefined;
+            if (this.textAlpha)
+            {
+                oldAlpha = this.m_oContext.globalAlpha;
+                this.m_oContext.globalAlpha = oldAlpha * this.textAlpha;
+            }
+
             this.private_FillGlyph(pGlyph);
+
+            if (undefined !== oldAlpha)
+                this.m_oContext.globalAlpha = oldAlpha;
         }
         if (false === this.m_bIntegerGrid)
         {
@@ -1370,11 +1497,8 @@ CGraphics.prototype =
 
         var _xPxOffset = 10;
         var _yPxOffset = 5;
-        if (AscBrowser.isRetina)
-        {
-            _xPxOffset = (_xPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-            _yPxOffset = (_yPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-        }
+        _xPxOffset = (_xPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
+        _yPxOffset = (_yPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
 
         var __x = this.m_oFullTransform.TransformPointX(x, y) >> 0;
         var __y = this.m_oFullTransform.TransformPointY(x, y) >> 0;
@@ -1384,7 +1508,7 @@ CGraphics.prototype =
         if (!bIsHeader)
             __y -= __h;
 
-        if (!AscBrowser.isRetina)
+        if (!AscBrowser.isCustomScalingAbove2())
             _ctx.rect(__x + 0.5, __y + 0.5, __w, __h);
         else
             _ctx.rect(__x, __y, __w, __h);
@@ -1430,11 +1554,8 @@ CGraphics.prototype =
 
         var _xPxOffset = 10;
         var _yPxOffset = 5;
-        if (AscBrowser.isRetina)
-        {
-			_xPxOffset = (_xPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-			_yPxOffset = (_yPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-        }
+        _xPxOffset = (_xPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
+		_yPxOffset = (_yPxOffset * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
 
         var __x = this.m_oFullTransform.TransformPointX(this.m_dWidthMM - x, y) >> 0;
         var __y = this.m_oFullTransform.TransformPointY(this.m_dWidthMM - x, y) >> 0;
@@ -1445,7 +1566,7 @@ CGraphics.prototype =
         if (!bIsHeader)
             __y -= __h;
 
-        if (!AscBrowser.isRetina)
+        if (!AscBrowser.isCustomScalingAbove2())
             _ctx.rect(__x + 0.5, __y + 0.5, __w, __h);
         else
             _ctx.rect(__x, __y, __w, __h);
@@ -1477,11 +1598,8 @@ CGraphics.prototype =
         var _w2 = 3;
 
         var _lineWidth = 1;
-        var _isRetina = AscBrowser.isRetina;
-        if (_isRetina && !editor.WordControl.bIsRetinaSupport)
-            _isRetina = false;
 
-        if (_isRetina)
+        if (AscBrowser.isCustomScalingAbove2())
         {
             _y >>= 0;
             _lineWidth = 2;
@@ -1520,11 +1638,8 @@ CGraphics.prototype =
             }
         }
 
-        if (_isRetina)
-        {
-			_w1 = (_w1 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-			_w2 = (_w2 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-        }
+        _w1 = (_w1 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
+		_w2 = (_w2 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
 
         var bIsNoIntGrid = this.m_bIntegerGrid;
 
@@ -1560,7 +1675,7 @@ CGraphics.prototype =
             }
         }
 
-        var _fontSize = _isRetina ? ((9 * AscCommon.AscBrowser.retinaPixelRatio) >> 0) : 9;
+        var _fontSize = ((9 * AscCommon.AscBrowser.retinaPixelRatio) >> 0);
         this.DrawStringASCII("Courier New", _fontSize, false, false, _header_text, 2, yPos, true);
 
         if (bIsRepeat)
@@ -1579,11 +1694,7 @@ CGraphics.prototype =
         var _w2 = 3;
 
         var _lineWidth = 1;
-        var _isRetina = AscBrowser.isRetina;
-        if (_isRetina && !editor.WordControl.bIsRetinaSupport)
-            _isRetina = false;
-
-        if (_isRetina)
+        if (AscBrowser.isCustomScalingAbove2())
         {
             _y >>= 0;
             _lineWidth = 2;
@@ -1621,11 +1732,8 @@ CGraphics.prototype =
             }
         }
 
-        if (_isRetina)
-        {
-			_w1 = (_w1 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-			_w2 = (_w2 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-        }
+        _w1 = (_w1 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
+		_w2 = (_w2 * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
 
         var _wmax = this.m_lWidthPix;
 
@@ -1663,7 +1771,7 @@ CGraphics.prototype =
             }
         }
 
-        var _fontSize = _isRetina ? ((9 * AscCommon.AscBrowser.retinaPixelRatio) >> 0) : 9;
+        var _fontSize = ((9 * AscCommon.AscBrowser.retinaPixelRatio) >> 0);
         this.DrawStringASCII("Courier New", _fontSize, false, false, _header_text, 2, yPos, false);
 
         if (bIsRepeat)
@@ -2360,7 +2468,8 @@ CGraphics.prototype =
 
         if (this.m_bIntegerGrid)
         {
-            if (AscCommon.global_MatrixTransformer.IsIdentity2(this.m_oFullTransform))
+            var tr = this.m_oFullTransform;
+            if (0.0 === tr.shx && 0.0 === tr.shy)
             {
                 var _x = (this.m_oFullTransform.TransformPointX(x, y) + 0.5) >> 0;
                 var _y = (this.m_oFullTransform.TransformPointY(x, y) + 0.5) >> 0;
@@ -2734,6 +2843,7 @@ CGraphics.prototype =
 
     CheckUseFonts2 : function(_transform)
     {
+        this.isShapeDraw = true;
         if (!global_MatrixTransformer.IsIdentity2(_transform))
         {
             if (!AscCommon.g_fontManager2)
@@ -2753,6 +2863,7 @@ CGraphics.prototype =
 
     UncheckUseFonts2 : function()
     {
+		this.isShapeDraw = false;
         this.IsUseFonts2 = false;
     },
 
@@ -2784,7 +2895,7 @@ CGraphics.prototype =
                 if ((type & 0x01) == 0x01)
                     _index += 1;
 
-                if (this.IsRetina)
+                if (AscBrowser.isCustomScalingAbove2())
                     _index += 4;
 
                 var _offset = AscCommon.g_comment_image_offsets[_index];

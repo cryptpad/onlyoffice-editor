@@ -63,13 +63,16 @@ var c_oAscError = Asc.c_oAscError;
 		}
 		this.handlers.trigger("asc_onAdvancedOptions", type, options);
 	};
-	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, token)
+	spreadsheet_api.prototype.asc_addImageDrawingObject = function(urls, imgProp, token)
 	{
 		var ws = this.wb.getWorksheet();
 		if (ws) 
 		{
-			var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
-			ws.objectRender.addImageDrawingObject([AscCommon.g_oDocumentUrls.getImageUrl(_url)], null);
+			var _urls = urls.map(function(currentValue) {
+				var localUrl =  window["AscDesktopEditor"]["LocalFileGetImageUrl"](currentValue);
+				return AscCommon.g_oDocumentUrls.getImageUrl(localUrl);
+			});
+			ws.objectRender.addImageDrawingObject(_urls, null);
 		}
 	};
 	spreadsheet_api.prototype.asc_showImageFileDialog = spreadsheet_api.prototype.asc_addImage = function(obj)
@@ -79,13 +82,16 @@ var c_oAscError = Asc.c_oAscError;
 			var file = _file;
 			if (Array.isArray(file))
 				file = file[0];
-
-			if (file == "")
+			if (!file)
 				return;
 
 			var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);
 			t._addImageUrl([AscCommon.g_oDocumentUrls.getImageUrl(_url)], obj);
 		});
+	};
+	spreadsheet_api.prototype.AddImageUrlAction = function(url)
+	{
+		this._addImageUrl([url]);
 	};
 	spreadsheet_api.prototype.asc_setAdvancedOptions = function(idOption, option)
 	{
@@ -139,7 +145,7 @@ var c_oAscError = Asc.c_oAscError;
 			this.LastUserSavedIndex = AscCommon.History.UserSavedIndex;
 		}
 
-		if (true === this.canSave && !this.isLongAction())
+		if (true === this.canSave && this._saveCheck())
 		{
 			var _isNaturalSave = this.IsUserSave;
 			this.canSave = false;
@@ -229,8 +235,6 @@ var c_oAscError = Asc.c_oAscError;
 		var _param = "";
 		if (isSaveAs === true)
 			_param += "saveas=true;";
-		if (AscCommon.AscBrowser.isRetina)
-			_param += "retina=true;";
 
 		window["AscDesktopEditor"]["LocalFileSave"](_param, (password === undefined) ? asc["editor"].currentPassword : password, docinfo);
 	};

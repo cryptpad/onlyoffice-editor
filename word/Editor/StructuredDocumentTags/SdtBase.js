@@ -65,6 +65,9 @@ CSdtBase.prototype.GetPlaceholderText = function()
  */
 CSdtBase.prototype.SetPlaceholderText = function(sText)
 {
+	if (!sText)
+		return this.SetPlaceholder(undefined);
+
 	var oLogicDocument = this.GetLogicDocument();
 	var oGlossary      = oLogicDocument.GetGlossaryDocument();
 
@@ -88,17 +91,32 @@ CSdtBase.prototype.SetPlaceholderText = function(sText)
 	var oParaPr = oDocPart.GetDirectParaPr();
 
 	oDocPart.ClearContent(true);
+	if (this.IsForm())
+		oDocPart.MakeSingleParagraphContent();
+
 	oDocPart.SelectAll();
 
 	var oParagraph = oDocPart.GetFirstParagraph();
 	oParagraph.CorrectContent();
+
+	var oRun = null;
+	if (this.IsForm())
+		oRun = oParagraph.MakeSingleRunParagraph();
+
 	oParagraph.SetDirectParaPr(oParaPr);
 	oParagraph.SetDirectTextPr(oTextPr);
 
-	oDocPart.AddText(sText);
+	if (oRun)
+		oRun.AddText(sText);
+	else
+		oDocPart.AddText(sText);
+
 	oDocPart.RemoveSelection();
 
-	if (this.IsPlaceHolder())
+	var isPlaceHolder = this.IsPlaceHolder();
+	if (isPlaceHolder && this.IsPicture())
+		this.private_UpdatePictureContent();
+	else if (isPlaceHolder)
 		this.private_FillPlaceholderContent();
 
 	return oDocPart;
@@ -120,6 +138,9 @@ CSdtBase.prototype.SetContentControlText = function(isText)
  */
 CSdtBase.prototype.IsContentControlText = function()
 {
+	// Временно отключаем запись этого флага, т.к. мы пока его не обрабатываем в редакторе вообще
+	// и можем создать некорректный файл для других редакторов. См. баг #51589
+	return false;
 	return this.Pr.Text;
 };
 /**
@@ -186,7 +207,7 @@ CSdtBase.prototype.IsContentControlTemporary = function()
  */
 CSdtBase.prototype.SetFormPr = function(oFormPr)
 {
-	if ((!this.Pr.FormPr && oFormPr) || this.Pr.FormPr.IsEqual(oFormPr))
+	if ((!this.Pr.FormPr && oFormPr) || !this.Pr.FormPr.IsEqual(oFormPr))
 	{
 		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr));
 		this.Pr.FormPr = oFormPr;
@@ -194,8 +215,27 @@ CSdtBase.prototype.SetFormPr = function(oFormPr)
 		var oLogicDocument = this.GetLogicDocument();
 		if (oLogicDocument)
 			oLogicDocument.RegisterForm(this);
+
+		this.private_OnAddFormPr();
 	}
 }
+/**
+ * Удаляем настройки специальных форм
+ */
+CSdtBase.prototype.RemoveFormPr = function()
+{
+	if (this.Pr.FormPr)
+	{
+		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, undefined));
+		this.Pr.FormPr = undefined;
+
+		var oLogicDocument = this.GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.UnregisterForm(this);
+
+		this.private_OnAddFormPr();
+	}
+};
 /**
  * @returns {?CSdtFormPr}
  */
@@ -209,6 +249,34 @@ CSdtBase.prototype.GetFormPr = function()
 CSdtBase.prototype.IsForm = function()
 {
 	return (undefined !== this.Pr.FormPr);
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsFixedForm = function()
+{
+	return false;
+};
+/**
+ * returns {boolean}
+ */
+CSdtBase.prototype.IsFormRequired = function()
+{
+	return (this.Pr.FormPr ? this.Pr.FormPr.GetRequired() : false);
+};
+/**
+ * Устанавливаем флаг Required
+ * @param {boolean} isRequired
+ */
+CSdtBase.prototype.SetFormRequired = function(isRequired)
+{
+	var oFormPr = this.GetFormPr();
+	if (oFormPr && isRequired !== oFormPr.GetRequired())
+	{
+		var oNewPr = oFormPr.Copy();
+		oNewPr.SetRequired(isRequired);
+		this.SetFormPr(oNewPr);
+	}
 };
 /**
  * Получаем ключ для специальной формы, если он задан
@@ -236,4 +304,159 @@ CSdtBase.prototype.IsRadioButton = function()
 CSdtBase.prototype.IsTextForm = function()
 {
 	return false;
+};
+/**
+ * Получаем ключ для группы радио-кнопок
+ * @returns {?string}
+ */
+CSdtBase.prototype.GetRadioButtonGroupKey = function()
+{
+	if (!this.IsRadioButton())
+		return undefined;
+
+	return (this.Pr.CheckBox.GroupKey);
+};
+/**
+ * Для чекбоксов и радио-кнопок получаем состояние
+ * @returns {bool}
+ */
+CSdtBase.prototype.IsCheckBoxChecked = function()
+{
+	if (this.IsCheckBox())
+		return this.Pr.CheckBox.Checked;
+
+	return false;
+};
+/**
+ * Копируем placeholder
+ * @return {string}
+ */
+CSdtBase.prototype.private_CopyPlaceholder = function()
+{
+	var oLogicDocument = this.GetLogicDocument();
+	if (!oLogicDocument || !this.Pr.Placeholder)
+		return;
+
+	var oGlossary = oLogicDocument.GetGlossaryDocument();
+	var oDocPart  = oGlossary.GetDocPartByName(this.Pr.Placeholder);
+	if (!oDocPart)
+		return;
+
+	if (oGlossary.IsDefaultDocPart(oDocPart))
+	{
+		return this.Pr.Placeholder;
+	}
+	else
+	{
+		var oCopyName = oGlossary.GetNewName();
+		oGlossary.AddDocPart(oDocPart.Copy(oCopyName));
+		return oCopyName;
+	}
+};
+/**
+ * Проверяем является ли данный контрол текущим
+ * @return {boolean}
+ */
+CSdtBase.prototype.IsCurrent = function()
+{
+	return this.Current;
+};
+/**
+ * Выставляем, является ли данный контрол текущим
+ * @param {boolean} isCurrent
+ */
+CSdtBase.prototype.SetCurrent = function(isCurrent)
+{
+	this.Current = isCurrent;
+};
+/**
+ * Специальная функция, которая обновляет текстовые настройки у плейсхолдера для форм
+ */
+CSdtBase.prototype.UpdatePlaceHolderTextPrForForm = function()
+{
+};
+/**
+ * Проверяем попадание в контейнер
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {boolean}
+ */
+CSdtBase.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
+{
+	return false;
+};
+/**
+ * Ищем ближаюшую позицию, которая попадала бы в контейнер
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {?{X:number,Y:number}}
+ */
+CSdtBase.prototype.CorrectXYToHitIn = function(X, Y, nPageAbs)
+{
+	return null;
+};
+/**
+ * Расширенное очищение контрола, с учетом типа контрола
+ */
+CSdtBase.prototype.ClearContentControlExt = function()
+{
+	if (this.IsCheckBox())
+	{
+		this.SetCheckBoxChecked(false);
+	}
+	else if (this.IsPicture())
+	{
+		this.ReplaceContentWithPlaceHolder();
+		this.ApplyPicturePr(true);
+	}
+	else
+	{
+		this.ReplaceContentWithPlaceHolder();
+	}
+};
+/**
+ * Проверяем правильно ли заполнена форма
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsFormFilled = function()
+{
+	return true;
+}
+/**
+ * Оборачиваем форму в графический контейнер
+ * @returns {?ParaDrawing}
+ */
+CSdtBase.prototype.ConvertFormToFixed = function()
+{
+	return null;
+};
+/**
+ * Уладаляем графичейский контейнер у формы
+ * @returns {?CSdtBase}
+ */
+CSdtBase.prototype.ConvertFormToInline = function()
+{
+	return this;
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsMultiLineForm = function()
+{
+	return true;
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsPictureForm = function()
+{
+	return false;
+};
+/**
+ * Функция обновления картиночной формы
+ */
+CSdtBase.prototype.UpdatePictureFormLayout = function()
+{
 };

@@ -544,6 +544,14 @@
                 var Element = this.Items[nIndex];
                 Pos = Math.min(Pos, aContent.length);
                 aContent.splice(Pos, 0, Element);
+
+                if(this.Class.collaborativeMarks) {
+                    if (Color) {
+                        this.Class.collaborativeMarks.Update_OnAdd(Pos);
+                        this.Class.collaborativeMarks.Add(Pos, Pos + 1, Color);
+                        AscCommon.CollaborativeEditing.Add_ChangedClass(this.Class);
+                    }
+                }
             }
         }
         else{
@@ -555,11 +563,17 @@
                 }
                 if(aContent[Pos] === this.Items[nIndex]){
                     aContent.splice(Pos, 1);
+                    if(this.Class.collaborativeMarks) {
+                        this.Class.collaborativeMarks.Update_OnRemove(Pos, 1);
+                    }
                     break;
                 }
                 for(var j = aContent.length - 1; j > -1 ; --j){
                     if(aContent[j] === this.Items[nIndex]){
                         aContent.splice(j, 1);
+                        if(this.Class.collaborativeMarks) {
+                            this.Class.collaborativeMarks.Update_OnRemove(j, 1);
+                        }
                         break;
                     }
                 }
@@ -720,7 +734,7 @@
     window['AscDFH'].CChangesDrawingChangeTheme = CChangesDrawingChangeTheme;
 
 
-    function CChangesDrawingTimingLocks(Class, deleteLock, backgroundLock, timingLock, transitionLock, layoutLock, showLock){
+    function CChangesDrawingSlideLocks(Class, deleteLock, backgroundLock, timingLock, transitionLock, layoutLock, showLock){
         this.Type = AscDFH.historyitem_SlideSetLocks;
         this.deleteLock = deleteLock;
         this.backgroundLock = backgroundLock;
@@ -731,10 +745,10 @@
 		AscDFH.CChangesBase.call(this, Class);
     }
 
-	CChangesDrawingTimingLocks.prototype = Object.create(AscDFH.CChangesBase.prototype);
-	CChangesDrawingTimingLocks.prototype.constructor = CChangesDrawingTimingLocks;
+	CChangesDrawingSlideLocks.prototype = Object.create(AscDFH.CChangesBase.prototype);
+	CChangesDrawingSlideLocks.prototype.constructor = CChangesDrawingSlideLocks;
 
-    CChangesDrawingTimingLocks.prototype.WriteToBinary = function(Writer){
+    CChangesDrawingSlideLocks.prototype.WriteToBinary = function(Writer){
         AscFormat.writeObject(Writer, this.deleteLock);
         AscFormat.writeObject(Writer, this.backgroundLock);
         AscFormat.writeObject(Writer, this.timingLock);
@@ -743,7 +757,7 @@
         AscFormat.writeObject(Writer, this.showLock);
     };
 
-    CChangesDrawingTimingLocks.prototype.ReadFromBinary = function(Reader){
+    CChangesDrawingSlideLocks.prototype.ReadFromBinary = function(Reader){
         this.deleteLock = AscFormat.readObject(Reader);
         this.backgroundLock = AscFormat.readObject(Reader);
         this.timingLock = AscFormat.readObject(Reader);
@@ -752,7 +766,7 @@
         this.showLock = AscFormat.readObject(Reader);
     };
 
-    CChangesDrawingTimingLocks.prototype.Undo = function(){
+    CChangesDrawingSlideLocks.prototype.Undo = function(){
         var oSlide = this.Class;
         oSlide.deleteLock = null;
         oSlide.backgroundLock = null;
@@ -762,7 +776,7 @@
         oSlide.showLock = null;
     };
 
-    CChangesDrawingTimingLocks.prototype.Redo = function(){
+    CChangesDrawingSlideLocks.prototype.Redo = function(){
         var oSlide = this.Class;
          oSlide.deleteLock = this.deleteLock;
          oSlide.backgroundLock = this.backgroundLock;
@@ -771,16 +785,16 @@
          oSlide.layoutLock = this.layoutLock;
          oSlide.showLock = this.showLock;
     };
-    CChangesDrawingTimingLocks.prototype.Load = function(){
+    CChangesDrawingSlideLocks.prototype.Load = function(){
         this.Redo();
         this.RefreshRecalcData();
     };
-    CChangesDrawingTimingLocks.prototype.CreateReverseChange = function()
+    CChangesDrawingSlideLocks.prototype.CreateReverseChange = function()
     {
         return new this.constructor(this.Class, null, null, null, null, null);
     };
 
-    window['AscDFH'].CChangesDrawingTimingLocks = CChangesDrawingTimingLocks;
+    window['AscDFH'].CChangesDrawingSlideLocks = CChangesDrawingSlideLocks;
 
 
     function CChangesSparklinesChangeData(Class, OldPr, NewPr){
@@ -826,6 +840,7 @@
 
     CChangesSparklinesChangeData.prototype.WriteToBinary = function(Writer){
         this.WritePr(Writer, this.OldPr);
+		this.applyCollaborative(this.NewPr);
         this.WritePr(Writer, this.NewPr);
     };
 
@@ -852,9 +867,64 @@
         this.Fill(this.OldPr);
     };
 
-    CChangesSparklinesChangeData.prototype.Redo = function(){
-        this.Fill(this.NewPr);
-    };
+	CChangesSparklinesChangeData.prototype.Redo = function () {
+		var wb = window["Asc"]["editor"].wb.model;
+		var t = this;
+
+		if (wb.bCollaborativeChanges) {
+			var collaborativeEditing = wb.oApi.collaborativeEditing;
+			var nSheetId = this.Class && this.Class.worksheet && this.Class.worksheet.Id;
+			if (collaborativeEditing && nSheetId) {
+				if (this.NewPr && this.NewPr.length) {
+					for (var i = 0; i < this.NewPr.length; i++) {
+						this.NewPr[i].sqRef.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i].sqRef.r1);
+						this.NewPr[i].sqRef.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i].sqRef.c1);
+						this.NewPr[i].sqRef.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i].sqRef.r2);
+						this.NewPr[i].sqRef.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i].sqRef.c2);
+
+						if (this.NewPr[i]._f) {
+							this.NewPr[i]._f.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r1);
+							this.NewPr[i]._f.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c1);
+							this.NewPr[i]._f.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r2);
+							this.NewPr[i]._f.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c2);
+
+							AscCommonExcel.executeInR1C1Mode(false, function () {
+								t.NewPr[i].f = t.NewPr[i]._f.getName();
+							});
+						}
+					}
+				}
+			}
+		}
+		this.Fill(this.NewPr);
+	};
+	CChangesSparklinesChangeData.prototype.applyCollaborative = function () {
+		var wb = window["Asc"]["editor"].wb.model;
+		var t = this;
+
+        var collaborativeEditing = wb.oApi.collaborativeEditing;
+        var nSheetId = this.Class && this.Class.worksheet && this.Class.worksheet.Id;
+
+        if (this.NewPr && this.NewPr.length) {
+            for (var i = 0; i < this.NewPr.length; i++) {
+                this.NewPr[i].sqRef.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i].sqRef.r1);
+                this.NewPr[i].sqRef.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i].sqRef.c1);
+                this.NewPr[i].sqRef.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i].sqRef.r2);
+                this.NewPr[i].sqRef.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i].sqRef.c2);
+
+                if (this.NewPr[i]._f) {
+                    this.NewPr[i]._f.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r1);
+                    this.NewPr[i]._f.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c1);
+                    this.NewPr[i]._f.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r2);
+                    this.NewPr[i]._f.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c2);
+
+                    AscCommonExcel.executeInR1C1Mode(false, function () {
+                        t.NewPr[i].f = t.NewPr[i]._f.getName();
+                    });
+                }
+            }
+        }
+	};
     CChangesSparklinesChangeData.prototype.Load = function(){
         this.Redo();
         this.RefreshRecalcData();
@@ -888,7 +958,7 @@
         Writer.WriteBool(this.bReverse === true);
     };
     CChangesSparklinesRemoveData.prototype.ReadFromBinary = function(Reader){
-        var bIsObject = Reader.GetLong();
+        var bIsObject = Reader.GetBool();
         if(bIsObject){
             this.sparkline = new AscCommonExcel.sparkline();
             var col = Reader.GetLong();

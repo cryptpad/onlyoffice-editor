@@ -65,11 +65,9 @@
 			this.element  = undefined;
 			this.handlers = undefined;
 			this.vsb	= undefined;
-			this.vsbHSt	= undefined;
 			this.vsbApi	= undefined;
 			this.vsbMax	= undefined;
 			this.hsb	= undefined;
-			this.hsbHSt	= undefined;
 			this.hsbApi = undefined;
 			this.hsbMax	= undefined;
 
@@ -132,6 +130,8 @@
 
                 this.smoothWheelCorrector.setNormalDeltaActive(3);
             }
+
+            this.lastTab = null;
 
             return this;
 		}
@@ -243,18 +243,18 @@
 			return this.view.selectionDialogMode;
 		};
 
-		asc_CEventsController.prototype.reinitScrollX = function (pos, max, max2) {
+		asc_CEventsController.prototype.reinitScrollX = function (settings, pos, max, max2) {
 			var step = this.settings.hscrollStep;
 			this.hsbMax = Math.max(max * step, 1);
-			this.hsbHSt.width = (this.hsb.offsetWidth + this.hsbMax) + "px";
-			this.hsbApi.Reinit(this.settings, pos * step);
+			settings.contentW = this.hsbMax - 1;
+			this.hsbApi.Repos(settings, false, false, pos * step);
 			this.hsbApi.maxScrollX2 = Math.max(max2 * step, 1);
 		};
-		asc_CEventsController.prototype.reinitScrollY = function (pos, max, max2) {
+		asc_CEventsController.prototype.reinitScrollY = function (settings, pos, max, max2) {
 			var step = this.settings.vscrollStep;
 			this.vsbMax = Math.max(max * step, 1);
-			this.vsbHSt.height = (this.vsb.offsetHeight + this.vsbMax) + "px";
-			this.vsbApi.Reinit(this.settings, pos * step);
+			settings.contentH = this.vsbMax - 1;
+			this.vsbApi.Repos(settings, false, false, pos * step);
 			this.vsbApi.maxScrollY2 = Math.max(max2 * step, 1);
 		};
 
@@ -345,21 +345,75 @@
 			}
 		};
 
+		asc_CEventsController.prototype.createScrollSettings = function () {
+			var settings = new AscCommon.ScrollSettings();
+
+			settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+			settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+			settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
+
+			settings.scrollerColor = GlobalSkin.ScrollerColor;
+			settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+			settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+			settings.arrowColor = GlobalSkin.ScrollArrowColor;
+			settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+			settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+			settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+			settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+			settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+			settings.targetColor = GlobalSkin.ScrollerTargetColor;
+			settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+			settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
+			return settings;
+		};
+
+		asc_CEventsController.prototype.updateScrollSettings = function () {
+			var opt = this.settings, settings;
+			var ws = window["Asc"]["editor"].wb.getWorksheet();
+			if (this.vsbApi) {
+				settings = this.createScrollSettings();
+
+				settings.vscrollStep = opt.vscrollStep;
+				settings.hscrollStep = opt.hscrollStep;
+				settings.wheelScrollLines = opt.wheelScrollLinesV;
+				settings.isVerticalScroll = true;
+				settings.isHorizontalScroll = false;
+				this.vsbApi.canvasH = null;
+				this.reinitScrollY(settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
+				this.vsbApi.settings = settings;
+			}
+			if (this.hsbApi) {
+				settings = this.createScrollSettings();
+				settings.vscrollStep = opt.vscrollStep;
+				settings.hscrollStep = opt.hscrollStep;
+				settings.isVerticalScroll = false;
+				settings.isHorizontalScroll = true;
+				this.hsbApi.canvasW = null;
+				this.reinitScrollX(settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
+				this.hsbApi.settings = settings;
+			}
+		};
+
 		asc_CEventsController.prototype._createScrollBars = function () {
 			var self = this, settings, opt = this.settings;
 
 			// vertical scroll bar
 			this.vsb = document.createElement('div');
 			this.vsb.id = "ws-v-scrollbar";
-			this.vsb.innerHTML = '<div id="ws-v-scroll-helper"></div>';
+			this.vsb.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			this.widget.appendChild(this.vsb);
-			this.vsbHSt = document.getElementById("ws-v-scroll-helper").style;
 
 			if (!this.vsbApi) {
-				settings = new AscCommon.ScrollSettings();
+				settings = this.createScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
+				settings.isVerticalScroll = true;
+				settings.isHorizontalScroll = false;
 
 				this.vsbApi = new AscCommon.ScrollObject(this.vsb.id, settings);
 				this.vsbApi.bind("scrollvertical", function(evt) {
@@ -381,14 +435,15 @@
 			// horizontal scroll bar
 			this.hsb = document.createElement('div');
 			this.hsb.id = "ws-h-scrollbar";
-			this.hsb.innerHTML = '<div id="ws-h-scroll-helper"></div>';
+			this.hsb.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			this.widget.appendChild(this.hsb);
-			this.hsbHSt = document.getElementById("ws-h-scroll-helper").style;
 
 			if (!this.hsbApi) {
-				settings = new AscCommon.ScrollSettings();
+				settings = this.createScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
+				settings.isVerticalScroll = false;
+				settings.isHorizontalScroll = true;
 
 				this.hsbApi = new AscCommon.ScrollObject(this.hsb.id, settings);
 				this.hsbApi.bind("scrollhorizontal",function(evt) {
@@ -411,6 +466,7 @@
                 // right bottom corner
                 var corner = document.createElement('div');
                 corner.id = "ws-scrollbar-corner";
+				corner.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor
                 this.widget.appendChild(corner);
             }
             else{
@@ -666,6 +722,7 @@
 		asc_CEventsController.prototype._onWindowKeyDown = function (event) {
 			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false, enterOptions;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
+			var macCmdKey = AscCommon.AscBrowser.isMacOs && event.metaKey;
 			var shiftKey = event.shiftKey;
 			var selectionDialogMode = this.getSelectionDialogMode();
 			var isFormulaEditMode = this.getFormulaEditMode();
@@ -709,6 +766,9 @@
 
 			t.skipKeyPress = true;
 
+			var isNeedCheckActiveCellChanged = null;
+			var _activeCell;
+
 			switch (event.which) {
 				case 82:
 					if (ctrlKey && shiftKey) {
@@ -723,9 +783,9 @@
 
 				case 120: // F9
 					var type;
-					if (ctrlKey && altKey && shiftKey) {
+					if (ctrlKey && event.altKey && shiftKey) {
 						type = Asc.c_oAscCalculateType.All;
-					} else if (ctrlKey && altKey) {
+					} else if (ctrlKey && event.altKey) {
 						type = Asc.c_oAscCalculateType.Workbook;
 					} else if (shiftKey) {
 						type = Asc.c_oAscCalculateType.ActiveSheet;
@@ -797,6 +857,14 @@
 						dc = -1;			// (shift + tab) - движение по ячейкам влево на 1 столбец
 						shiftKey = false;	// Сбросим shift, потому что мы не выделяем
 					} else {
+						_activeCell = t.handlers.trigger("getActiveCell");
+						if (t.lastTab === null) {
+							if (_activeCell) {
+								t.lastTab = _activeCell.c2;
+							}
+						} else if (!_activeCell) {
+							t.lastTab = null;
+						}
 						dc = +1;			// (tab) - движение по ячейкам вправо на 1 столбец
 					}
 					break;
@@ -810,7 +878,16 @@
 					if (shiftKey) {
 						dr = -1;			// (shift + enter) - движение по ячейкам наверх на 1 строку
 						shiftKey = false;	// Сбросим shift, потому что мы не выделяем
+						t.lastTab = null;
 					} else {
+						if (t.lastTab !== null) {
+							_activeCell = t.handlers.trigger("getActiveCell");
+							if (_activeCell) {
+								dc = t.lastTab - _activeCell.c2;
+							} else {
+								t.lastTab = null;
+							}
+						}
 						dr = +1;			// (enter) - движение по ячейкам вниз на 1 строку
 					}
 					break;
@@ -862,6 +939,7 @@
 						/*event.altKey ? dc = -0.5 : */
 						dr = -0.5;
 					}
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 34: // PageDown
@@ -877,31 +955,42 @@
 						/*event.altKey ? dc = +0.5 : */
 						dr = +0.5;
 					}
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 37: // left
 					stop();                          // Отключим стандартную обработку браузера нажатия left
 					dc = ctrlKey ? -1.5 : -1;  // Движение стрелками (влево-вправо, вверх-вниз)
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 38: // up
 					stop();                          // Отключим стандартную обработку браузера нажатия up
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey && t.handlers.trigger("onDataValidation")) {
+						return result;
+					}
 					dr = ctrlKey ? -1.5 : -1;  // Движение стрелками (влево-вправо, вверх-вниз)
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 39: // right
 					stop();                          // Отключим стандартную обработку браузера нажатия right
 					dc = ctrlKey ? +1.5 : +1;  // Движение стрелками (влево-вправо, вверх-вниз)
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 40: // down
 					stop();                          // Отключим стандартную обработку браузера нажатия down
 					// Обработка Alt + down
 					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey) {
+						if (t.handlers.trigger("onDataValidation")) {
+							return result;
+						}
 						t.handlers.trigger("showAutoComplete");
 						return result;
 					}
 					dr = ctrlKey ? +1.5 : +1;  // Движение стрелками (влево-вправо, вверх-вниз)
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 36: // home
@@ -913,6 +1002,7 @@
 					if (ctrlKey) {
 						dr = -2.5;
 					}
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 35: // end
@@ -924,6 +1014,7 @@
 					if (ctrlKey) {
 						dr = 2.5;
 					}
+					isNeedCheckActiveCellChanged = true;
 					break;
 
 				case 49:  // set number format		Ctrl + Shift + !
@@ -946,6 +1037,7 @@
 					if (!(canEdit || t.handlers.trigger('isRestrictionComments'))|| selectionDialogMode) {
 						return true;
 					}
+					isNeedCheckActiveCellChanged = true;
 
 				case 65: // select all      Ctrl + a
 				case 80: // print           Ctrl + p
@@ -1062,9 +1154,11 @@
 					return result;
 
 				case 93:
-					stop();
-					this.handlers.trigger('onContextMenu', event);
-					return result;
+					if (!macCmdKey) {
+						stop();
+						this.handlers.trigger('onContextMenu', event);
+						return result;
+					}
 
 				default:
 					this.skipKeyPress = false;
@@ -1072,12 +1166,27 @@
 
 			} // end of switch
 
+
+			var activeCellBefore;
+			if (isNeedCheckActiveCellChanged) {
+				activeCellBefore = t.handlers.trigger("getActiveCell");
+			}
+			var _checkLastTab = function () {
+				if (isNeedCheckActiveCellChanged) {
+					var activeCellAfter = t.handlers.trigger("getActiveCell");
+					if (!activeCellBefore || !activeCellAfter || !activeCellAfter.isEqual(activeCellBefore)) {
+						t.lastTab = null;
+					}
+				}
+			};
+
 			if ((dc !== 0 || dr !== 0) && false === t.handlers.trigger("isGlobalLockEditCell")) {
 
 				// Проверка на движение в выделенной области
 				if (selectionActivePointChanged) {
 					t.handlers.trigger("selectionActivePointChanged", dc, dr, function (d) {
 						t.scroll(d);
+						_checkLastTab();
 					});
 				} else {
 					t.handlers.trigger("changeSelection", /*isStartPoint*/!shiftKey, dc, dr, /*isCoord*/false, false,
@@ -1087,6 +1196,7 @@
 								wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
 							}
 							t.scroll(d);
+							_checkLastTab();
 						});
 				}
 			}
@@ -1149,7 +1259,7 @@
 			if (16 === event.which) {
 				this.handlers.trigger("updateSelectionName");
 			}
-			this.handlers.trigger("graphicObjectWindowKeyUp", event)
+			this.handlers.trigger("graphicObjectWindowKeyUp", event);
 			
 			return true;
 		};
@@ -1292,6 +1402,7 @@
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseDown = function (event) {
 			var t = this;
+			asc["editor"].checkInterfaceElementBlur();
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var coord = t._getCoordinates(event);
 			event.isLocked = t.isMousePressed = true;
@@ -1375,7 +1486,7 @@
 			// Запоминаем координаты нажатия
 			this.mouseDownLastCord = coord;
 
-			if (!t.getCellEditMode()) {
+			if (!t.getCellEditMode() && !t.getSelectionDialogMode()) {
 				this.gotFocus(true);
 				if (event.shiftKey) {
 					t.isSelectMode = true;
@@ -1404,6 +1515,8 @@
 								this.handlers.trigger('onDataValidation');
 							} else if (t.targetInfo.idPivot && Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 								this.handlers.trigger("pivotFiltersClick", t.targetInfo.idPivot);
+							} else if (t.targetInfo.idPivotCollapse) {
+								this.handlers.trigger("pivotCollapseClick", t.targetInfo.idPivotCollapse);
 							} else if (t.targetInfo.idTableTotal) {
 								this.handlers.trigger("tableTotalClick", t.targetInfo.idTableTotal);
 							} else {
@@ -1673,7 +1786,14 @@
 				deltaY = event.detail;
 			} else if (undefined !== event.deltaY && 0 !== event.deltaY) {
 				// FF
-				deltaY = event.deltaY;
+				//ограничиваем шаг из-за некорректного значения deltaY после обновления FF
+				//TODO необходимо пересмотреть. нужны корректные значения и учетом системного шага.
+				var _maxDelta = 3;
+				if (AscCommon.AscBrowser.isMozilla && Math.abs(event.deltaY) > _maxDelta) {
+					deltaY = Math.sign(event.deltaY) * _maxDelta;
+				} else {
+					deltaY = event.deltaY;
+				}
 			}
             if (undefined !== event.deltaX && 0 !== event.deltaX) {
                 deltaX = event.deltaX;
@@ -1754,10 +1874,8 @@
 			var x = ((event.pageX * AscBrowser.zoom) >> 0) - offs.left;
 			var y = ((event.pageY * AscBrowser.zoom) >> 0) - offs.top;
 
-			if (AscBrowser.isRetina) {
-				x *= AscCommon.AscBrowser.retinaPixelRatio;
-				y *= AscCommon.AscBrowser.retinaPixelRatio;
-			}
+			x *= AscCommon.AscBrowser.retinaPixelRatio;
+			y *= AscCommon.AscBrowser.retinaPixelRatio;
 
 			return {x: x, y: y};
 		};

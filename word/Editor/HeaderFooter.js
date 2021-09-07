@@ -67,14 +67,15 @@ function CHeaderFooter(Parent, LogicDocument, DrawingDocument, Type)
 
     this.Type = Type;
 
-    this.RecalcInfo =
-    {
-        CurPage       : -1, // Текущий выставленный номер страницы
-        RecalcObj     : {}, // Постраничные объекты пересчета данного колонтитула
-        NeedRecalc    : {}, // Объект с ключом - номером страницы, нужно ли пересчитывать данную страницу
-        PageNumInfo   : {}, // Объект с ключом - номером страницы, значением - информация о нумерации
-        SectPr        : {}  // Объект с ключом - номером страницы и полем - ссылкой на секцию
-    };
+	this.RecalcInfo = {
+		CurPage       : -1, // Текущий выставленный номер страницы
+		RecalcObj     : {}, // Постраничные объекты пересчета данного колонтитула
+		NeedRecalc    : {}, // Объект с ключом - номером страницы, нужно ли пересчитывать данную страницу
+		PageNumInfo   : {}, // Объект с ключом - номером страницы, значением - информация о нумерации
+		SectPr        : {}, // Объект с ключом - номером страницы и полем - ссылкой на секцию
+		LastPage      : -1, // Номер страницы, которая была пересчитана последней
+		RequestedPage : -1  // Страница, которую хотели сделать текущей, но не смогли, т.к. она была не пересчитана
+	};
 
 	this.PageCountElements = [];
 
@@ -112,6 +113,12 @@ CHeaderFooter.prototype =
 
     Set_Page : function(Page_abs)
     {
+    	if (Page_abs > this.RecalcInfo.LastPage)
+		{
+			this.RecalcInfo.RequestedPage = Page_abs;
+			return;
+		}
+
         if (Page_abs !== this.RecalcInfo.CurPage && undefined !== this.LogicDocument.Pages[Page_abs])
         {
             // Возможна ситуация, когда у нас колонтитул был рассчитан для заданной страницы, но на ней сейчас данный
@@ -180,6 +187,7 @@ CHeaderFooter.prototype =
         this.RecalcInfo.PageNumInfo[Page_abs] = this.LogicDocument.Get_SectionPageNumInfo(Page_abs);
         this.RecalcInfo.SectPr[Page_abs]      = SectPr;
 		this.RecalcInfo.NeedRecalc[Page_abs]  = false;
+		this.RecalcInfo.LastPage              = Page_abs;
         
         // Если у нас до этого был какой-то пересчет, тогда сравним его с текущим.
         // 1. Сравним границы: у верхнего колонтитула смотрим на изменение нижней границы, а нижнего - верхней
@@ -243,18 +251,26 @@ CHeaderFooter.prototype =
         
         // Ежели текущая страница не задана, тогда выставляем ту, которая оказалась пересчитанной первой. В противном
         // случае, выставляем рассчет страницы, которая была до этого.
-        if ( -1 === this.RecalcInfo.CurPage || false === this.LogicDocument.Get_SectionPageNumInfo(this.RecalcInfo.CurPage).Compare( this.RecalcInfo.PageNumInfo[this.RecalcInfo.CurPage] ) )
-        {
-            this.RecalcInfo.CurPage = Page_abs;
-            
-            if ( docpostype_HdrFtr === this.LogicDocument.GetDocPosType() )
-            {
-                // Обновляем интерфейс, чтобы обновить настройки колонтитула, т.к. мы могли попасть в новую секцию
-                this.LogicDocument.Document_UpdateSelectionState();
-                this.LogicDocument.Document_UpdateInterfaceState();
-            }
-        }
-        else            
+		if (-1 === this.RecalcInfo.CurPage
+			|| false === this.LogicDocument.Get_SectionPageNumInfo(this.RecalcInfo.CurPage).Compare(this.RecalcInfo.PageNumInfo[this.RecalcInfo.CurPage])
+			|| (-1 !== this.RecalcInfo.RequestedPage && this.RecalcInfo.RequestedPage === Page_abs))
+		{
+			this.RecalcInfo.CurPage = Page_abs;
+
+			if (docpostype_HdrFtr === this.LogicDocument.GetDocPosType())
+			{
+				// Обновляем интерфейс, чтобы обновить настройки колонтитула, т.к. мы могли попасть в новую секцию
+				this.LogicDocument.UpdateSelection();
+				this.LogicDocument.UpdateInterface();
+
+				if (-1 !== this.RecalcInfo.RequestedPage && this.RecalcInfo.RequestedPage === Page_abs)
+				{
+					this.LogicDocument.NeedUpdateTarget = true;
+					this.RecalcInfo.RequestedPage       = -1;
+				}
+			}
+		}
+        else
         {
             var RecalcObj = this.RecalcInfo.RecalcObj[this.RecalcInfo.CurPage];
             this.Content.LoadRecalculateObject( RecalcObj );
@@ -496,7 +512,7 @@ CHeaderFooter.prototype =
         return true;
     },
 
-    Is_InTable : function(bReturnTopTable)
+    IsInTable : function(bReturnTopTable)
     {
         if ( true === bReturnTopTable )
             return null;
@@ -659,6 +675,13 @@ CHeaderFooter.prototype =
 
                         this.DrawingDocument.TargetStart();
                         this.DrawingDocument.TargetShow();
+
+						if (this.LogicDocument && this.LogicDocument.IsFillingFormMode())
+						{
+							var oContentControl = this.LogicDocument.GetContentControl();
+							if (oContentControl && oContentControl.IsCheckBox())
+								this.DrawingDocument.TargetEnd();
+						}
                     }
                 }
             }
@@ -669,6 +692,13 @@ CHeaderFooter.prototype =
 
                 this.DrawingDocument.TargetStart();
                 this.DrawingDocument.TargetShow();
+
+				if (this.LogicDocument && this.LogicDocument.IsFillingFormMode())
+				{
+					var oContentControl = this.LogicDocument.GetContentControl();
+					if (oContentControl && oContentControl.IsCheckBox())
+						this.DrawingDocument.TargetEnd();
+				}
             }
         }
     },
@@ -943,7 +973,12 @@ CHeaderFooter.prototype =
 	GetAllDrawingObjects : function(arrDrawings)
 	{
 		return this.Content.GetAllDrawingObjects(arrDrawings);
-	},
+    },
+
+    UpdateBookmarks : function(oBookmarkManager)
+    {
+        this.Content.UpdateBookmarks(oBookmarkManager);
+    },
 
 	GetPrevElementEndInfo : function(CurElement)
     {
@@ -1012,6 +1047,11 @@ CHeaderFooter.prototype =
 	GetCurrentParagraph : function(bIgnoreSelection, arrSelectedParagraphs)
 	{
 		return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+	},
+
+	GetCurrentTablesStack : function(arrTables)
+	{
+		return this.Content.GetCurrentTablesStack(arrTables);
 	},
 
 	StartSelectionFromCurPos : function()
@@ -1123,10 +1163,12 @@ CHeaderFooter.prototype =
     Refresh_RecalcData2 : function()
     {
         // Сохраняем пересчитаные страницы в старый пересчет, а текущий обнуляем
-        this.RecalcInfo.PageNumInfo = {};
-        this.RecalcInfo.SectPr      = {};
-        this.RecalcInfo.CurPage     = -1;
-		this.RecalcInfo.NeedRecalc  = {};
+        this.RecalcInfo.PageNumInfo   = {};
+        this.RecalcInfo.SectPr        = {};
+        this.RecalcInfo.CurPage       = -1;
+		this.RecalcInfo.NeedRecalc    = {};
+		this.RecalcInfo.LastPage      = -1;
+		this.RecalcInfo.RequestedPage = -1;
         
         History.RecalcData_Add( { Type : AscDFH.historyitem_recalctype_HdrFtr, Data : this } );
     },
@@ -1529,10 +1571,10 @@ CHeaderFooterController.prototype =
 //-----------------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------------   
-    RecalculateCurPos : function(bUpdateX, bUpdateY)
+    RecalculateCurPos : function(bUpdateX, bUpdateY, isUpdateTarget)
 	{
 		if (this.CurHdrFtr)
-			return this.CurHdrFtr.RecalculateCurPos(bUpdateX, bUpdateY);
+			return this.CurHdrFtr.RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 
 		return null;
 	},
@@ -1761,7 +1803,7 @@ CHeaderFooterController.prototype =
             var Coords = this.DrawingDocument.ConvertCoordsToCursorWR( PageLimits.X, PageLimits.Y, PageNum_Abs );
             MMData_header.X_abs            = Coords.X;
             MMData_header.Y_abs            = Coords.Y + 2;
-            MMData_header.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+            MMData_header.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
             MMData_header.UserId           = this.Lock.Get_UserId();
             MMData_header.HaveChanges      = this.Lock.Have_Changes();
             MMData_header.LockedObjectType = c_oAscMouseMoveLockedObjectType.Header;
@@ -1771,7 +1813,7 @@ CHeaderFooterController.prototype =
             Coords = this.DrawingDocument.ConvertCoordsToCursorWR( PageLimits.X, PageLimits.YLimit, PageNum_Abs );
             MMData_footer.X_abs            = Coords.X;
             MMData_footer.Y_abs            = Coords.Y - 2;
-            MMData_footer.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+            MMData_footer.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
             MMData_footer.UserId           = this.Lock.Get_UserId();
             MMData_footer.HaveChanges      = this.Lock.Have_Changes();
             MMData_footer.LockedObjectType = c_oAscMouseMoveLockedObjectType.Footer;
@@ -2403,6 +2445,11 @@ CHeaderFooterController.prototype =
 		return this.CurHdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 	},
 
+	GetCurrentTablesStack : function(arrTables)
+	{
+		return this.CurHdrFtr ? this.CurHdrFtr.GetCurrentTablesStack(arrTables) : arrTables;
+	},
+
 	StartSelectionFromCurPos : function()
 	{
 		if (null !== this.CurHdrFtr)
@@ -2644,6 +2691,10 @@ CHeaderFooterController.prototype.GetSelectionBounds = function()
 CHeaderFooterController.prototype.Get_CurHdrFtr = function()
 {
     return this.CurHdrFtr;
+};
+CHeaderFooterController.prototype.GetCurHdrFtr = function()
+{
+	return this.CurHdrFtr;
 };
 CHeaderFooterController.prototype.Set_CurHdrFtr = function(HdrFtr)
 {

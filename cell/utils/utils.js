@@ -170,17 +170,13 @@
 
 		function convertPtToPx(value) {
 			value = value / sizePxinPt;
-			if (AscBrowser.isRetina) {
-				value = value * AscBrowser.retinaPixelRatio;
-			}
-			value = value | value;
+			value = (value * AscBrowser.retinaPixelRatio) >> 0;			
 			return value;
 		}
 		function convertPxToPt(value) {
 			value = value * sizePxinPt;
-			if (AscBrowser.isRetina) {
-				value = Asc.ceil(value / AscBrowser.retinaPixelRatio * 10) / 10;
-			}
+			//пункты округляем до сотых
+			value = Asc.ceil(value / AscBrowser.retinaPixelRatio * 100) / 100;
 			return value;
 		}
 
@@ -219,8 +215,10 @@
 				return border2;
 			}
 
-			var r1 = border1.c.getR(), g1 = border1.c.getG(), b1 = border1.c.getB();
-			var r2 = border2.c.getR(), g2 = border2.c.getG(), b2 = border2.c.getB();
+			var bc1 = border1.getColorOrDefault();
+			var bc2 = border2.getColorOrDefault();
+			var r1 = bc1.getR(), g1 = bc1.getG(), b1 = bc1.getB();
+			var r2 = bc2.getR(), g2 = bc2.getG(), b2 = bc2.getB();
 			var Brightness_1_1 = r1 + b1 + 2 * g1;
 			var Brightness_1_2 = r2 + b2 + 2 * g2;
 			if (Brightness_1_1 < Brightness_1_2) {
@@ -349,6 +347,38 @@
 			}
 			return oUniFill;
 		}
+
+		function getFullHyperlinkLength(str) {
+			var res = 0;
+			if (!str) {
+				return res;
+			}
+
+			var validStr = "ABCDEFabcdef0123456789";
+			//new RegExp('/^[xX]?[0-9a-fA-F]{6}$/', 'g')
+			var checkHex = function (_val) {
+				if (_val !== undefined && validStr.indexOf(_val) !== -1) {
+					return true;
+				}
+				return false;
+			};
+
+
+			for (var i = 0; i < str.length; i++) {
+				if (str[i] === "%") {
+					if (checkHex(str[i + 1]) && checkHex(str[i + 2])) {
+						res++;
+					} else {
+						res += 3;
+					}
+				} else {
+					res++;
+				}
+			}
+
+			return res;
+		}
+
 		var referenceType = {
 			A: 0,			// Absolute
 			ARRC: 1,	// Absolute row; relative column
@@ -435,9 +465,31 @@
 			return range && this.c1 === range.c1 && this.r1 === range.r1 && this.c2 === range.c2 && this.r2 === range.r2;
 		};
 
+		Range.prototype.isEqualCols = function (range) {
+			return range && this.c1 === range.c1 && this.c2 === range.c2;
+		};
+
+		Range.prototype.isEqualRows = function (range) {
+			return range && this.r1 === range.r1 && this.r2 === range.r2;
+		};
+		Range.prototype.isNeighbor = function (range) {
+			if(this.isEqualCols(range)) {
+				if(this.r2 === range.r1 - 1 || range.r2 === this.r1 - 1) {
+					return true;
+				}
+			}
+			else if(this.isEqualRows(range)) {
+				if(this.c2 === range.c1 - 1 || range.c2 === this.c1 - 1) {
+					return true;
+				}
+			}
+			return false;
+		};
+
 		Range.prototype.isEqualAll = function (range) {
 			return this.isEqual(range) && this.refType1 === range.refType1 && this.refType2 === range.refType2;
 		};
+
 		Range.prototype.isEqualWithOffsetRow = function (range, offsetRow) {
 			return this.c1 === range.c1 && this.c2 === range.c2 &&
 				this.isAbsC1() === range.isAbsC1() && this.isAbsC2() === range.isAbsC2() &&
@@ -567,7 +619,8 @@
 			var isNoDelete = true;
 			var isHor = 0 != offset.col;
 			var toDelete = offset.col < 0 || offset.row < 0;
-
+			var isLastRow = this.r2 === gc_nMaxRow0;
+			var isLastCol = this.c2 === gc_nMaxCol0;
 			if (isHor) {
 				if (toDelete) {
 					if (this.c1 < bbox.c1) {
@@ -600,7 +653,11 @@
 					if (this.c1 < bbox.c1) {
 						this.setOffsetLast(offset);
 					} else {
-						this.setOffset(offset);
+						if (this.c1 + offset.col <= gc_nMaxCol0) {
+							this.setOffset(offset);
+						} else {
+							isNoDelete = false;
+						}
 					}
 				}
 			} else {
@@ -635,9 +692,20 @@
 					if (this.r1 < bbox.r1) {
 						this.setOffsetLast(offset);
 					} else {
-						this.setOffset(offset);
+						if (this.r1 + offset.row <= gc_nMaxRow0) {
+							this.setOffset(offset);
+						} else {
+							isNoDelete = false;
+						}
 					}
 				}
+			}
+			//range sticks to the gc_nMaxRow0/gc_nMaxCol0(but not to 0) and cannot be shifted
+			if(isLastRow) {
+				this.r2 = gc_nMaxRow0;
+			}
+			if(isLastCol) {
+				this.c2 = gc_nMaxCol0;
 			}
 			return isNoDelete;
 		};
@@ -976,6 +1044,18 @@
 		Range.prototype.getHeight = function() {
 			return this.r2 - this.r1 + 1;
 		};
+		Range.prototype.transpose = function(startCol, startRow) {
+			if (startCol === undefined) {
+				startCol = this.c1;
+			}
+			if (startRow === undefined) {
+				startRow = this.r1;
+			}
+			var row0 = this.c1 - startCol + startRow;
+			var col0 = this.r1 - startRow + startCol;
+
+			return new Range(col0, row0,  col0 + (this.r2 - this.r1), row0 + (this.c2 - this.c1));
+		};
 
 		/**
 		 *
@@ -1057,7 +1137,6 @@
 			});
 		};
 		SelectionRange.prototype.inContains = function (ranges) {
-			var t = this;
 			return this.ranges.every(function (item1) {
 				return ranges.some(function (item2) {
 					return item2.containsRange(item1);
@@ -1333,6 +1412,22 @@
 		SelectionRange.prototype.Select = function () {
 			this.worksheet.selectionRange = this.clone();
 			this.worksheet.workbook.handlers.trigger('updateSelection');
+		};
+		SelectionRange.prototype.isContainsOnlyFullRowOrCol = function (byCol) {
+			var res = true;
+			for (var i = 0; i < this.ranges.length; ++i) {
+				var range = this.ranges[i];
+				var type = range.getType();
+				if (byCol && c_oAscSelectionType.RangeCol !== type) {
+					res = false;
+					break;
+				}
+				if (!byCol && c_oAscSelectionType.RangeRow !== type) {
+					res = false;
+					break;
+				}
+			}
+			return res;
 		};
 
     /**
@@ -1861,29 +1956,32 @@
 			return ret;
 		}
 
-		function getEndValueRange(dx, start, v1, v2) {
-			var x1, x2;
+		function getEndValueRange(dx, v1, v2, coord1, coord2) {
+			var leftDir = {x1: v2, x2: v1},
+				rightDir = {x1: v1, x2: v2},
+			    res;
 			if (0 !== dx) {
-				if (start === v1) {
-					x1 = v1;
-					x2 = v2;
-				} else if (start === v2) {
-					x1 = v2;
-					x2 = v1;
-				} else {
+				if (coord1 > v1 && coord2 < v2) {
 					if (0 > dx) {
-						x1 = v2;
-						x2 = v1;
+						res = coord1 === coord2 ? leftDir : rightDir;
 					} else {
-						x1 = v1;
-						x2 = v2;
+						res = coord1 === coord2 ? rightDir : leftDir;
 					}
+				} else if (coord1 === v1 && coord2 === v2) {
+					if (0 > dx) {
+						res = leftDir;
+					} else {
+						res = rightDir;
+					}
+				} else if (coord1 > v1 && coord2 === v2) {
+					res = leftDir;
+				} else if (coord1 === v1 && coord2 < v2) {
+					res = rightDir;
 				}
 			} else {
-				x1 = v1;
-				x2 = v2;
+				res = rightDir;
 			}
-			return {x1: x1, x2: x2};
+			return res;
 		}
 
 		function checkStylesNames(cellStyles) {
@@ -1916,12 +2014,10 @@
 		function generateCellStyles(w, h, wb) {
 			var result = [];
 
-			if (AscCommon.AscBrowser.isRetina) {
-				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
-				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
-			}
+			var widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+			var heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(h, true);
 
-			var ctx = getContext(w, h, wb);
+			var ctx = getContext(widthWithRetina, heightWithRetina, wb);
 			var oCanvas = ctx.getCanvas();
 			var graphics = getGraphics(ctx);
 
@@ -1944,7 +2040,7 @@
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["BeginDrawStyle"](type, name);
 					}
-					drawStyle(ctx, graphics, wb.stringRender, oStyle, displayName, w, h);
+					drawStyle(ctx, graphics, wb.stringRender, oStyle, displayName, widthWithRetina, heightWithRetina);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {
@@ -1960,7 +2056,7 @@
 			return result;
 		}
 
-		function drawStyle(ctx, graphics, sr, oStyle, sStyleName, width, height) {
+		function drawStyle(ctx, graphics, sr, oStyle, sStyleName, width, height, opt_cf_preview) {
 			var bc = null, bs = AscCommon.c_oAscBorderStyles.None, isNotFirst = false; // cached border color
 			ctx.clear();
 			// Fill cell
@@ -1974,7 +2070,7 @@
 			function drawBorder(type, b, x1, y1, x2, y2) {
 				if (b && b.w > 0) {
 					var isStroke = false;
-					var isNewColor = !AscCommonExcel.g_oColorManager.isEqual(bc, b.c);
+					var isNewColor = !AscCommonExcel.g_oColorManager.isEqual(bc, b.getColorOrDefault());
 					var isNewStyle = bs !== b.s;
 					if (isNotFirst && (isNewColor || isNewStyle)) {
 						ctx.stroke();
@@ -1982,7 +2078,7 @@
 					}
 
 					if (isNewColor) {
-						bc = b.c;
+						bc = b.getColorOrDefault();
 						ctx.setStrokeStyle(bc);
 					}
 					if (isNewStyle) {
@@ -2037,14 +2133,35 @@
 
 			format.setSize(nSize);
 
-			var width_padding = 4;
+			var tm;
+			if (!opt_cf_preview) {
+				tm = sr.measureString(sStyleName);
+			} else {
+				var cellFlags = new AscCommonExcel.CellFlags();
+				cellFlags.textAlign = oStyle.xfs.align && oStyle.xfs.align.hor;
 
-			var tm = sr.measureString(sStyleName);
+				var fragments = [];
+				var tempFragment = new AscCommonExcel.Fragment();
+				tempFragment.text = sStyleName;
+				tempFragment.format = format;
+				fragments.push(tempFragment);
+				tm = sr.measureString(fragments, cellFlags, width);
+			}
+
+			var width_padding = 4;
+			if (oStyle.xfs && oStyle.xfs.align && oStyle.xfs.align.hor === AscCommon.align_Center) {
+				width_padding = Asc.round(0.5 * (width - tm.width));
+			}
+
 			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
 			var textY = Asc.round(0.5 * (height - tm.height));
-			ctx.setFont(format);
-			ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
-			ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
+			if (!opt_cf_preview) {
+				ctx.setFont(format);
+				ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
+				ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
+			} else {
+				sr.render(ctx, width_padding, textY, tm.width, oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
+			}
 		}
 		
 		function drawFillCell(ctx, graphics, fill, rect) {
@@ -2057,28 +2174,22 @@
 				ctx.setFillStyle(solid).fillRect(rect._x, rect._y, rect._width, rect._height);
 				return;
 			}
-			var dScale = Asc.getCvtRatio(0, 3, ctx.getPPIX());
-			rect._x *= dScale;
-			rect._y *= dScale;
-			rect._width *= dScale;
-			rect._height *= dScale;
+			
+			var vector_koef = AscCommonExcel.vector_koef / ctx.getZoom();
+			if (AscCommon.AscBrowser.isCustomScaling()) {
+				vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
+			}
+			rect._x *= vector_koef;
+			rect._y *= vector_koef;
+			rect._width *= vector_koef;
+			rect._height *= vector_koef;
 			AscFormat.ExecuteNoHistory(
 				function () {
 					var geometry = new AscFormat.CreateGeometry("rect");
 					geometry.Recalculate(rect._width, rect._height, true);
 					var oUniFill = AscCommonExcel.convertFillToUnifill(fill);
-					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-						graphics.SaveGrState();
-						var _baseTransform;
-						if (!ctx.Transform) {
-							_baseTransform = new AscCommon.CMatrix();
-						} else {
-							_baseTransform = ctx.Transform;
-						}
-						graphics.SetBaseTransform(_baseTransform);
-					}
 
-					graphics.save();
+					graphics.SaveGrState();
 					var oMatrix = new AscCommon.CMatrix();
 					oMatrix.tx = rect._x;
 					oMatrix.ty = rect._y;
@@ -2088,12 +2199,8 @@
 
 					shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 					shapeDrawer.draw(geometry);
-					graphics.restore();
+					graphics.RestoreGrState();
 
-					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-						graphics.SetBaseTransform(null);
-						graphics.RestoreGrState();
-					}
 				}, this, []
 			);
 		}
@@ -2173,26 +2280,26 @@
 			var oBorder = dxf && dxf.getBorder();
 			if (oBorder) {
 				var oS = oBorder.l;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineVer(x0, y0, y1);
 					ctx.stroke();
 				}
 				oS = oBorder.t;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineHor(x0 + 1, y0, x1 - 1);
 					ctx.stroke();
 				}
 				oS = oBorder.r;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineVer(x1 - 1, y0, y1);
 					ctx.stroke();
 				}
 				oS = oBorder.b;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineHor(x0 + 1, y1 - 1, x1 - 1);
 					ctx.stroke();
 				}
@@ -2226,11 +2333,156 @@
 			var oCanvas = ctx.getCanvas();
 			var graphics = getGraphics(ctx);
 
-			var style = new AscCommonExcel.CCellStyle();
-			style.xfs = xfs;
+			var oStyle = new AscCommonExcel.CCellStyle();
+			oStyle.xfs = xfs;
 
 			drawStyle(ctx, graphics, wb.stringRender, oStyle, text, w, h);
 			return new AscCommon.CStyleImage(text, null, oCanvas.toDataURL("image/png"));
+		}
+
+		function createAndPutCanvas(id) {
+			var parent =  document.getElementById(id);
+			if (!parent)
+				return;
+
+			var w = parent.clientWidth;
+			var h = parent.clientHeight;
+			if (!w || !h) {
+				return;
+			}
+
+			var canvas = parent.firstChild;
+			if (!canvas)
+			{
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "pointer-events: none;padding:0;margin:0;user-select:none;";
+				canvas.style.width = w + "px";
+				canvas.style.height = h + "px";
+				parent.appendChild(canvas);
+			}
+
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(h, true);
+
+			return canvas;
+		}
+
+		//TODO рассмотреть объединение с generateXfsStyle
+		function generateXfsStyle2(id, wb, xfs, text) {
+			var canvas = createAndPutCanvas(id);
+			if (!canvas) {
+				return;
+			}
+			var w = canvas.width;
+			var h = canvas.height;
+
+			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+			var graphics = getGraphics(ctx);
+
+			var oStyle = new AscCommonExcel.CCellStyle();
+			oStyle.xfs = xfs;
+
+			drawStyle(ctx, graphics, wb.stringRender, oStyle, text, w, h, true);
+		}
+
+		function drawGradientPreview(id, wb, colors, _colorBorderOut, _colorBorderIn, _realPercentWidth, _indent) {
+			if (!colors || !colors.length) {
+				return null;
+			}
+
+			var canvas = createAndPutCanvas(id);
+			if (!canvas) {
+				return;
+			}
+			var w = canvas.width;
+			var h = canvas.height;
+
+			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+			var graphics = getGraphics(ctx);
+
+			var fill = new AscCommonExcel.Fill();
+			if (colors.length === 1) {
+				fill.patternFill = new AscCommonExcel.PatternFill();
+				fill.patternFill.fromColor(colors[0]);
+			} else {
+				fill.gradientFill = new AscCommonExcel.GradientFill();
+				var arrColors = [];
+				for (var i = 0; i < colors.length; i++) {
+					var _stop = new AscCommonExcel.GradientStop();
+					_stop.position = (i + 1)/colors.length;
+					_stop.color = colors[i];
+					arrColors.push(_stop);
+				}
+				fill.gradientFill.asc_putGradientStops(arrColors);
+			}
+
+			if (!_indent) {
+				_indent = 0;
+			}
+			var rectX = _indent;
+			var rectY = _indent;
+			var rectW = w - _indent * 2;
+			var rectH = h - _indent * 2;
+			if (_realPercentWidth) {
+				if (_realPercentWidth > 0) {
+					rectW = rectW * _realPercentWidth;
+				} else {
+					rectX = rectW - rectW * Math.abs(_realPercentWidth) + 1;
+					rectW = rectW * Math.abs(_realPercentWidth) + 1;
+				}
+			}
+			AscCommonExcel.drawFillCell(ctx, graphics, fill,  new AscCommon.asc_CRect(rectX, rectY, rectW, rectH));
+
+			if (_colorBorderIn) {
+				ctx.setLineWidth(1).setStrokeStyle(_colorBorderIn).strokeRect(rectX, rectY, rectW - 1, rectH - 1);
+			}
+			if (_colorBorderOut) {
+				ctx.setLineWidth(1).setStrokeStyle(_colorBorderOut).strokeRect(0, 0, w - 1, h - 1);
+			}
+		}
+
+		function drawIconSetPreview(id, wb, iconImgs) {
+			if (!iconImgs || !iconImgs.length) {
+				return null;
+			}
+
+			var canvas = createAndPutCanvas(id);
+			if (!canvas) {
+				return;
+			}
+
+			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+			var graphics = getGraphics(ctx);
+
+			var shapeDrawer = new AscCommon.CShapeDrawer();
+			shapeDrawer.Graphics = graphics;
+
+
+			AscFormat.ExecuteNoHistory(
+				function () {
+					for (var i = 0; i < iconImgs.length; i++) {
+						var img = iconImgs[i];
+
+						if (!img) {
+							continue;
+						}
+
+						var geometry = new AscFormat.CreateGeometry("rect");
+						geometry.Recalculate(5, 5, true);
+
+						var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
+						graphics.save();
+						var oMatrix = new AscCommon.CMatrix();
+						oMatrix.tx = i*5;
+						oMatrix.ty = 0;
+						graphics.transform3(oMatrix);
+
+						shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+						shapeDrawer.draw(geometry);
+						graphics.restore();
+					}
+				}, this, []
+			);
 		}
 
 		//-----------------------------------------------------------------
@@ -2261,6 +2513,8 @@
 				
 				//Tooltip
 				this.tooltip = obj.tooltip;
+
+				this.color = obj.color;
 			}
 
 			return this;
@@ -2278,7 +2532,8 @@
 			asc_getSizeCCOrPt: function () { return this.sizeCCOrPt; },
 			asc_getSizePx: function () { return this.sizePx; },
 			asc_getFilter: function () { return this.filter; },
-			asc_getTooltip: function () { return this.tooltip; }
+			asc_getTooltip: function () { return this.tooltip; },
+			asc_getColor: function () { return this.color; }
 		};
 
 		// Гиперссылка
@@ -2431,6 +2686,10 @@
 			//current view zoom
 			this.zoomScale = 100;
 
+			this.showZeros = null;
+
+			this.topLeftCell = null;
+
 			return this;
 		}
 
@@ -2441,11 +2700,15 @@
 				result.showGridLines = this.showGridLines;
 				result.showRowColHeaders = this.showRowColHeaders;
 				result.zoom = this.zoom;
-				if (this.pane)
+				if (this.pane) {
 					result.pane = this.pane.clone();
+				}
+				result.showZeros = this.showZeros;
+				result.topLeftCell = this.topLeftCell;
 				return result;
 			},
 			isEqual: function (settings) {
+				//TODO showzeros?
 				return this.asc_getShowGridLines() === settings.asc_getShowGridLines() &&
 					this.asc_getShowRowColHeaders() === settings.asc_getShowRowColHeaders();
 			},
@@ -2453,9 +2716,11 @@
 			asc_getShowRowColHeaders: function () { return false !== this.showRowColHeaders; },
 			asc_getZoomScale: function () { return this.zoomScale; },
 			asc_getIsFreezePane: function () { return null !== this.pane && this.pane.isInit(); },
+			asc_getShowZeros: function () { return false !== this.showZeros; },
 			asc_setShowGridLines: function (val) { this.showGridLines = val; },
 			asc_setShowRowColHeaders: function (val) { this.showRowColHeaders = val; },
-			asc_setZoomScale: function (val) { this.zoomScale = val; }
+			asc_setZoomScale: function (val) { this.zoomScale = val; },
+			asc_setShowZeros: function (val) { this.showZeros = val; }
 		};
 
 		/** @constructor */
@@ -2494,7 +2759,6 @@
 
 		function RedoObjectParam () {
 			this.bIsOn = false;
-			this.bIsReInit = false;
 			this.oChangeWorksheetUpdate = {};
 			this.bUpdateWorksheetByModel = false;
 			this.bOnSheetsChanged = false;
@@ -2762,12 +3026,6 @@
 			this.isIgnoreNumbers = false;
 		}
 
-		CSpellcheckState.prototype.init = function (startCell) {
-			if (!this.startCell) {
-				this.startCell = startCell.clone();
-				this.currentCell = startCell.clone();
-			}
-		};
 		CSpellcheckState.prototype.clean = function () {
 			this.isStart = false;
 			this.lastSpellInfo = null;
@@ -2903,6 +3161,14 @@
 		// durations of months for the leap year
 		cDate.prototype.getDaysInMonth.L = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
+		cDate.prototype.getDayOfYear = function () {
+			//https://stackoverflow.com/a/8619946
+			var start = new Date(this.getFullYear(), 0, 0);
+			var diff = (this - start) + ((start.getTimezoneOffset() - this.getTimezoneOffset()) * 60 * 1000);
+			var oneDay = 1000 * 60 * 60 * 24;
+			return Math.floor(diff / oneDay);
+		};
+
 		cDate.prototype.truncate = function () {
 			this.setUTCHours( 0, 0, 0, 0 );
 			return this;
@@ -2929,6 +3195,14 @@
 			return res;
 		};
 
+		cDate.prototype.getExcelDateWithTime2 = function () {
+			var year = Date.prototype.getUTCFullYear.call(this);
+			var month = Date.prototype.getUTCMonth.call(this);
+			var date = Date.prototype.getUTCDate.call(this);
+
+			return (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() ) / c_msPerDay;
+		};
+
 		cDate.prototype.getDateFromExcel = function ( val ) {
 
 			val = Math.floor( val );
@@ -2949,6 +3223,10 @@
 				}
 			}
 		};
+		
+		cDate.prototype.getDateFromExcelWithTime2 = function ( val ) {
+			return new cDate( val * c_msPerDay + this.getExcelNullDate() );
+		};
 
 		cDate.prototype.addYears = function ( counts ) {
 			this.setUTCFullYear( this.getUTCFullYear() + Math.floor( counts ) );
@@ -2966,6 +3244,9 @@
 
 		cDate.prototype.addDays = function ( counts ) {
 			this.setUTCDate( this.getUTCDate() + Math.floor( counts ) );
+		};
+		cDate.prototype.addDays2 = function ( counts ) {
+			Date.prototype.setUTCDate.call(this, Date.prototype.getUTCDate.call(this) + Math.floor( counts ) );
 		};
 
 		cDate.prototype.lastDayOfMonth = function () {
@@ -3013,9 +3294,16 @@
 		cDate.prototype.getTimeString = function (api) {
 			return api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), this.getExcelDateWithTime(true) - this.getTimezoneOffset()/(60*24));
 		};
+		cDate.prototype.fromISO8601 = function (dateStr) {
+			if (dateStr.endsWith("Z")) {
+				return new cDate(dateStr);
+			} else {
+				return new cDate(dateStr + "Z");
+			}
+		};
 
 		function getIconsForLoad() {
-			return AscCommonExcel.getCFIconsForLoad().concat(AscCommonExcel.getSlicerIconsForLoad());
+			return AscCommonExcel.getCFIconsForLoad().concat(AscCommonExcel.getSlicerIconsForLoad()).concat(AscCommonExcel.getPivotButtonsForLoad());
 		}
 
 
@@ -3034,6 +3322,8 @@
 		window['AscCommonExcel'].c_sPerDay = c_sPerDay;
 		window['AscCommonExcel'].c_msPerDay = c_msPerDay;
 		window["AscCommonExcel"].applyFunction = applyFunction;
+		window['AscCommonExcel'].g_IncludeNewRowColInTable = true;
+		window['AscCommonExcel'].g_AutoCorrectHyperlinks = true;
 
 		window["Asc"]["cDate"] = window["Asc"].cDate = window['AscCommonExcel'].cDate = cDate;
 		prot = cDate.prototype;
@@ -3057,6 +3347,7 @@
 		window["AscCommonExcel"].getFindRegExp = getFindRegExp;
 		window["AscCommonExcel"].convertFillToUnifill = convertFillToUnifill;
 		window["AscCommonExcel"].replaceSpellCheckWords = replaceSpellCheckWords;
+		window["AscCommonExcel"].getFullHyperlinkLength = getFullHyperlinkLength;
 		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].isNumberInfinity = isNumberInfinity;
 		window["Asc"].trim = trim;
@@ -3072,9 +3363,17 @@
 		window["AscCommonExcel"].generateCellStyles = generateCellStyles;
 		window["AscCommonExcel"].generateSlicerStyles = generateSlicerStyles;
 		window["AscCommonExcel"].generateXfsStyle = generateXfsStyle;
+		window["AscCommonExcel"].generateXfsStyle2 = generateXfsStyle2;
 		window["AscCommonExcel"].getIconsForLoad = getIconsForLoad;
+		window["AscCommonExcel"].drawGradientPreview = drawGradientPreview;
+		window["AscCommonExcel"].drawIconSetPreview = drawIconSetPreview;
 
-		window["AscCommonExcel"].referenceType = referenceType;
+		window["Asc"]["referenceType"] = window["AscCommonExcel"].referenceType = referenceType;
+		prot = referenceType;
+		prot['A'] = prot.A;
+		prot['ARRC'] = prot.ARRC;
+		prot['RRAC'] = prot.RRAC;
+		prot['R'] = prot.R;
 		window["Asc"].Range = Range;
 		window["AscCommonExcel"].Range3D = Range3D;
 		window["AscCommonExcel"].SelectionRange = SelectionRange;
@@ -3102,6 +3401,7 @@
 		prot["asc_getSizePx"] = prot.asc_getSizePx;
 		prot["asc_getFilter"] = prot.asc_getFilter;
 		prot["asc_getTooltip"] = prot.asc_getTooltip;
+		prot["asc_getColor"] = prot.asc_getColor;
 
 		window["Asc"]["asc_CHyperlink"] = window["Asc"].asc_CHyperlink = asc_CHyperlink;
 		prot = asc_CHyperlink.prototype;
@@ -3141,8 +3441,10 @@
 		prot["asc_getShowGridLines"] = prot.asc_getShowGridLines;
 		prot["asc_getShowRowColHeaders"] = prot.asc_getShowRowColHeaders;
 		prot["asc_getIsFreezePane"] = prot.asc_getIsFreezePane;
+		prot["asc_getShowZeros"] = prot.asc_getShowZeros;
 		prot["asc_setShowGridLines"] = prot.asc_setShowGridLines;
 		prot["asc_setShowRowColHeaders"] = prot.asc_setShowRowColHeaders;
+		prot["asc_setShowZeros"] = prot.asc_setShowZeros;
 
 		window["AscCommonExcel"].asc_CPane = asc_CPane;
 		window["AscCommonExcel"].asc_CSheetPr = asc_CSheetPr;

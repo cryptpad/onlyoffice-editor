@@ -148,8 +148,8 @@ CFootnotesController.prototype.CreateFootnote = function()
 CFootnotesController.prototype.AddFootnote = function(oFootnote)
 {
 	this.Footnote[oFootnote.GetId()] = oFootnote;
-	var oHistory                     = this.LogicDocument.GetHistory();
-	oHistory.Add(new CChangesFootnotesAddFootnote(this, oFootnote.GetId()));
+	oFootnote.SetParent(this);
+	this.LogicDocument.GetHistory().Add(new CChangesFootnotesAddFootnote(this, oFootnote.GetId()));
 };
 CFootnotesController.prototype.RemoveFootnote = function(oFootnote)
 {
@@ -183,6 +183,10 @@ CFootnotesController.prototype.SetContinuationNotice = function(oFootnote)
 	var oHistory = this.LogicDocument.Get_History();
 	oHistory.Add(new CChangesFootnotesSetContinuationNotice(this, oOldValue, oNewValue));
 	this.ContinuationNotice = oNewValue;
+};
+CFootnotesController.prototype.IsSpecialFootnote = function(oFootnote)
+{
+	return (oFootnote === this.Separator || oFootnote === this.ContinuationSeparator || oFootnote === this.ContinuationNotice);
 };
 CFootnotesController.prototype.SetFootnotePrNumFormat = function(nFormatType)
 {
@@ -911,6 +915,20 @@ CFootnotesController.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+CFootnotesController.prototype.GetFirstParagraphs = function()
+{
+	var aParagraphs = [];
+	for (var sId in this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		var oParagraph = oFootnote.GetFirstParagraph();
+		if(oParagraph && oParagraph.Is_UseInDocument())
+		{
+			aParagraphs.push(oParagraph);
+		}
+	}
+	return aParagraphs;
+};
 CFootnotesController.prototype.StartSelection = function(X, Y, PageAbs, MouseEvent)
 {
 	if (true === this.Selection.Use)
@@ -965,7 +983,10 @@ CFootnotesController.prototype.EndSelection = function(X, Y, PageAbs, MouseEvent
 			this.Selection.Footnotes[sFootnoteId].RemoveSelection();
 	}
 
-	// Новый селект
+	// ВАЖНО: На Selection_SetEnd и Selection_SetStart не должно происходить никаких действий
+	//        вызывающих пересчет, как например, ExtendToPos, потому что может быть рассинхрон
+	//        предыдущего вызова oResult = this.private_GetFootnoteByXY(X, Y, PageAbs)
+	//        и нового положения сносок на странице
 	if (this.Selection.Start.Footnote !== this.Selection.End.Footnote)
 	{
 		if (this.Selection.Start.Page > this.Selection.End.Page
@@ -1095,14 +1116,26 @@ CFootnotesController.prototype.GotoPrevFootnote = function()
 		this.private_SetCurrentFootnoteNoSelection(oPrevFootnote);
 	}
 };
-CFootnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oFootnote)
+CFootnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oFootnote, isUseReview)
 {
-	var arrFootnotes     = this.LogicDocument.GetFootnotesList(null, oFootnote);
 	var oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.Get_Numbering());
-	for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
+
+	if (this.IsSpecialFootnote(oFootnote))
 	{
-		arrFootnotes[nIndex].GetNumberingInfo(oNumberingEngine, oPara, oNumPr);
+		oFootnote.GetNumberingInfo(oNumberingEngine, oPara, oNumPr);
 	}
+	else
+	{
+		var arrFootnotes = this.LogicDocument.GetFootnotesList(null, oFootnote);
+		for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
+		{
+			arrFootnotes[nIndex].GetNumberingInfo(oNumberingEngine, oPara, oNumPr);
+		}
+	}
+
+	if (true === isUseReview)
+		return [oNumberingEngine.GetNumInfo(), oNumberingEngine.GetNumInfo(false)];
+
 	return oNumberingEngine.GetNumInfo();
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1128,6 +1161,7 @@ CFootnotesController.prototype.private_GetFootnoteOnPageByXY = function(X, Y, nP
 	var oPage   = this.Pages[nPageAbs];
 	var oColumn = null;
 	var nColumnIndex = 0;
+
 	for (var nColumnsCount = oPage.Columns.length; nColumnIndex < nColumnsCount; ++nColumnIndex)
 	{
 		if (nColumnIndex < nColumnsCount - 1)
@@ -1189,6 +1223,7 @@ CFootnotesController.prototype.private_GetFootnoteOnPageByXY = function(X, Y, nP
 		var oBounds           = oFootnote.Get_PageBounds(nElementPageIndex);
 
 		if (oBounds.Top <= Y || 0 === nIndex)
+		{
 			return {
 				Footnote          : oFootnote,
 				Index             : nIndex,
@@ -1196,6 +1231,7 @@ CFootnotesController.prototype.private_GetFootnoteOnPageByXY = function(X, Y, nP
 				Column            : nColumnIndex,
 				FootnotePageIndex : nElementPageIndex
 			};
+		}
 	}
 
 	return null;
@@ -2705,10 +2741,17 @@ CFootnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, 
 {
 	return this.CurFootnote.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
+CFootnotesController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.CurFootnote.GetCurrentTablesStack(arrTables);
+};
 CFootnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOnFootnoteSelected() || null === this.CurFootnote)
-		oInfo.Set_MixedSelection();
+		oInfo.SetMixedSelection();
 	else
 		this.CurFootnote.GetSelectedElementsInfo(oInfo);
 };
@@ -3326,6 +3369,14 @@ CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 
 	return arrDrawings;
 };
+CFootnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.UpdateBookmarks(oBookmarkManager);
+	}
+};
 CFootnotesController.prototype.IsTableCellSelection = function()
 {
 	if (this.CurFootnote)
@@ -3371,6 +3422,61 @@ CFootnotesController.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables
 	}
 
 	return arrTables;
+};
+CFootnotesController.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	var oCurFootnote = this.CurFootnote;
+
+	var arrFootnotes = this.LogicDocument.GetFootnotesList(null, null);
+	var nCurPos      = -1;
+	var nCount       = arrFootnotes.length;
+
+	if (nCount <= 0)
+		return null;
+
+	if (isCurrent)
+	{
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			if (arrFootnotes[nIndex] === oCurFootnote)
+			{
+				nCurPos = nIndex;
+				break;
+			}
+		}
+	}
+
+	if (-1 === nCurPos)
+	{
+		nCurPos      = isNext ? 0 : nCount - 1;
+		oCurFootnote = arrFootnotes[nCurPos];
+		isCurrent    = false;
+	}
+
+	var oRes = oCurFootnote.FindNextFillingForm(isNext, isCurrent, isCurrent);
+	if (oRes)
+		return oRes;
+
+	if (true === isNext)
+	{
+		for (var nIndex = nCurPos + 1; nIndex < nCount; ++nIndex)
+		{
+			oRes = arrFootnotes[nIndex].FindNextFillingForm(isNext, false);
+			if (oRes)
+				return oRes;
+		}
+	}
+	else
+	{
+		for (var nIndex = nCurPos - 1; nIndex >= 0; --nIndex)
+		{
+			oRes = arrFootnotes[nIndex].FindNextFillingForm(isNext, false);
+			if (oRes)
+				return oRes;
+		}
+	}
+
+	return null;
 };
 
 

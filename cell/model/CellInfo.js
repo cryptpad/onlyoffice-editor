@@ -88,6 +88,7 @@
 		this.isAutoFilter = false;  // Кнопка автофильтр (также влияет на formatTable и Sort). Возможные состояния:
 		// - null - мы в пересечении с таблицой (но не полностью в ней)
 		// - true/false - когда мы полностью в таблице или вне ее (true/false в зависимости от того применен фильтр или нет)
+		this.isSlicerAdded = false;//добавлен флаг для особой ситуации - блокировать кнопку удалить фильтр с ф/т со срезом
 	}
 
 	asc_CAutoFilterInfo.prototype = {
@@ -99,6 +100,8 @@
 			return this.isAutoFilter;
 		}, asc_getIsApplyAutoFilter: function () {
 			return this.isApplyAutoFilter;
+		}, asc_getIsSlicerAdded: function () {
+			return this.isSlicerAdded;
 		}
 	};
 
@@ -237,6 +240,9 @@
 		return this.hyperlink;
 	};
 	asc_CCellInfo.prototype.asc_getComments = function () {
+		if (this.comment === undefined) {
+			return null;
+		}
 		return this.comment ? [this.comment] : [];
 	};
 	asc_CCellInfo.prototype.asc_getLocked = function () {
@@ -355,6 +361,7 @@
 	prot["asc_getTableName"] = prot.asc_getTableName;
 	prot["asc_getIsAutoFilter"] = prot.asc_getIsAutoFilter;
 	prot["asc_getIsApplyAutoFilter"] = prot.asc_getIsApplyAutoFilter;
+	prot["asc_getIsSlicerAdded"] = prot.asc_getIsSlicerAdded;
 
 	window["AscCommonExcel"].asc_CFormatTableInfo = asc_CFormatTableInfo;
 	prot = asc_CFormatTableInfo.prototype;
