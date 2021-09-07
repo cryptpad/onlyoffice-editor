@@ -2218,11 +2218,11 @@ DrawingObjectsController.prototype =
         }
         else if (this.selection.geometrySelection) {
             var selectedObj = this.selectedObjects[0];
-           if(this.curState instanceof AscFormat.NullState) {
-               this.changeCurrentState(new AscFormat.GeometryEditState(this, selectedObj));
-               this.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.document, this.curState.drawingObjects));
-           }
-               this.selection.geometrySelection.drawGeometryEdit(drawingDocument, this.arrTrackObjects);
+            var geometrySelection = this.selection.geometrySelection;
+            geometrySelection.geometryEditTrack = this.arrTrackObjects.length === 0 ? (new AscFormat.EditShapeGeometryTrack(selectedObj, this.document, this.curState.drawingObjects)) :
+                this.arrTrackObjects[0];
+
+            geometrySelection.drawGeometryEdit(drawingDocument, geometrySelection.geometryEditTrack);
 
         }
         else if(this.selection.groupSelection)
@@ -11134,24 +11134,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
     GeometryEditState.prototype = {
         onMouseDown: function(e, x, y, pageIndex)
         {
-            var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
-            if (e.Type === 0) {
-                var track_object = this.drawingObjects.arrTrackObjects[0];
-                if (ret && ret.hit) {
-                    return {objectId: track_object.geometry.Id, hit: true};
-                } else if ((ret && !ret.hit) || !ret) {
-                    //refactoring : отдельная функция для зануления
-                    if (track_object)
-                        track_object.clearPoints();
-                    this.drawingObjects.selection.geometrySelection = null;
-                    this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
-                    this.drawingObjects.clearTrackObjects();
-                }
-                this.drawingObjects.updateOverlay();
-                return ret;
-            }
-            return ret;
-
+            return AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
         },
         onMouseMove: function(e, x, y)
         {

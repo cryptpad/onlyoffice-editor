@@ -1334,15 +1334,14 @@ Geometry.prototype=
             drawingDocument.DrawAdjustment(transform, _adjustments[_adj_index].posX, _adjustments[_adj_index].posY, bTextWarp);
     },
 
-    drawGeometryEdit : function(drawingDocument, shape, arrTrackObject)
+    drawGeometryEdit : function(drawingDocument, shape, geometryEditTrack)
     {
-        var track_object = arrTrackObject[0];
-        var geometry = track_object.geometry;
-        if (track_object.isCanContinue()) {
+        var geometry = geometryEditTrack.geometry;
+        if (geometryEditTrack.isCanContinue()) {
             if(!this.isGeomConverted) {
-                track_object.convertToBezier(geometry);
+                geometryEditTrack.convertToBezier(geometry);
             }
-            track_object.createGeometryEditList(geometry);
+            geometryEditTrack.createGeometryEditList(geometry);
         }
         
         var gmEditPoint = geometry.gmEditPoint;
@@ -1417,10 +1416,10 @@ Geometry.prototype=
         return {hit: false, adjPolarFlag: null, adjNum: null};
     },
 
-    hitToGeomEdit: function(arrTrackObject, oCanvas, e, x, y, distance) {
+    hitToGeomEdit: function(track_object, oCanvas, e, x, y, distance) {
         var dx, dy, dxC1, dyC1, dxC2, dyC2;
-        var geometry = arrTrackObject.geometry;
-        var isHitInPath = geometry.hitInPath(oCanvas, x, y, arrTrackObject);
+        var geometry = track_object.geometry;
+        var isHitInPath = geometry.hitInPath(oCanvas, x, y, track_object);
         
         if (e.Type === 0) {
             for (var i = geometry.gmEditList.length - 1; i >= 0; i--) {
@@ -1452,12 +1451,13 @@ Geometry.prototype=
             }
 
             if(isHitInPath) {
-                arrTrackObject.addPoint(arrTrackObject.originalShape.getInvertTransform(), geometry, x, y);
-                arrTrackObject.createGeometryEditList(geometry);
+                track_object.addPoint(track_object.originalShape.getInvertTransform(), geometry, x, y);
+                track_object.createGeometryEditList(geometry);
                 return {hit: true, objectId: geometry.Id, addingNewPoint: true};
             }
+            return  {hit: false};
         }
-           return  {hit: false};
+        return;
     },
 
     getArrayPolygonsByPaths: function(epsilon)
