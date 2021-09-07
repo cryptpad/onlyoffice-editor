@@ -677,7 +677,7 @@
         var Y0 = prevCommand_1.Y + (Y - prevCommand_2.Y) / 4;
         var X1 = X - (curCommandX - prevCommand_1.X) / 4;
         var Y1 = Y - (curCommandY - prevCommand_1.Y) / 4;
-        var newPathElem = {id: PathType.BEZIER_4, X0: X0, Y0: Y0, X1: X1, Y1: Y1, X2: X, Y2: Y, X: X, Y: Y};
+        var newPathElem = {id: PathType.BEZIER_4, X0: X0, Y0: Y0, X1: X1, Y1: Y1, X2: X, Y2: Y};
         curCommand.X0 = X + (curCommandX - prevCommand_1.X) / 4;
         curCommand.Y0 = Y + (curCommandY - prevCommand_1.Y) / 4;
 
