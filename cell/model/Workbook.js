@@ -7301,6 +7301,10 @@
 						}
 					}
 					if (isChange) {
+						if (wsTo !== wsFrom && !copyRange) {
+							wsFrom.removeSparklines(oBBoxFrom);
+						}
+
 						//если, допустим, перенесли все спарклайны на другой лист, то необходимо удалить группы здесь и добавить новую группы
 						if (aSparklines.length !== 0) {
 							val.setSparklines(aSparklines, true, true);
