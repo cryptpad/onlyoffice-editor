@@ -418,10 +418,8 @@ function CEditorPage(api)
 		if (this.m_oApi.isMobileVersion)
 		{
 			var _t = this;
-			document.addEventListener && document.addEventListener("transitionend", function() {
-				if (_t.Y === 0)
-					_t.OnResize();
-			}, false);
+			document.addEventListener && document.addEventListener("transitionend", function() { _t.OnResize();  }, false);
+			document.addEventListener && document.addEventListener("transitioncancel", function() { _t.OnResize(); }, false);
 		}
 
 		this.checkMouseHandMode();
