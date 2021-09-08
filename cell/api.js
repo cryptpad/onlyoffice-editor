@@ -2152,7 +2152,8 @@ var editor;
 				ws = ranges.worksheet;
             }
         } else {
-			ws = this.wbModel.getWorksheetByName(sheet);
+        	//при переходе к диапазону внутри документа, игнорируется регистр у имени листа -> Sheet1===SHEEt1
+			ws = this.wbModel.getWorksheetByName(sheet, true);
         }
 		if (!ws) {
 			this.handlers.trigger("asc_onHyperlinkClick", null);
