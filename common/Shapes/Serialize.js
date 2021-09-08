@@ -6737,6 +6737,13 @@ function BinaryPPTYLoader()
                     shape.setSignature(this.ReadSignatureLine());
                     break;
                 }
+                case 9:
+                {
+                    s.GetULong();//length
+                    s.GetUChar();//attr type - 0
+                    shape.setFLocksText(s.GetBool());
+                    break;
+                }
                 case 0xA1:
                 {
                     shape.readMacro(s);

@@ -3662,6 +3662,9 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(3, shape.txBody, oThis.WriteTxBody);
         oThis.WriteRecord2(6, shape.txXfrm, oThis.WriteXfrm);
         oThis.WriteRecord2(7, shape.signatureLine, oThis.WriteSignatureLine);
+        oThis.WriteRecord2(9, shape.fLocksText, function() {
+            oThis._WriteBool1(0, shape.fLocksText);
+        });
         shape.writeMacro(oThis);
 
         if (isUseTmpFill)

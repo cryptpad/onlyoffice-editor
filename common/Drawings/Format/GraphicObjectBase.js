@@ -2709,6 +2709,7 @@
     window['AscFormat'].CAbsSizeAnchor        = CAbsSizeAnchor;
     window['AscFormat'].CalculateSrcRect      = CalculateSrcRect;
     window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
+    window['AscFormat'].CClientData = CClientData;
     window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
     window['AscFormat'].MACRO_PREFIX = "jsaProject_"
 })(window);
