@@ -3873,7 +3873,7 @@
     };
     Else.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
-        if (0 === nType) this.setName(oStream.GetString2());
+      if (0 === nType) this.setName(oStream.GetString2());
     };
 
     Else.prototype.readChild = function(nType, pReader) {
