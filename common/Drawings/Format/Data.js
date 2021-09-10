@@ -3792,13 +3792,12 @@
       var check;
       if (this.if) {
         check = this.if.startAlgorithm(pointTree, node);
-        if (check) {
+        if (!check) {
           if (this.else) {
             this.else.startAlgorithm(pointTree, node);
           }
         }
       }
-      console.log(check)
     }
 
 
