@@ -10776,6 +10776,37 @@
       }
     }
 
+    SmartArtNodeData.prototype.getPresByNameAndStyleLbl = function (name, styleLbl) {
+      var presValue;
+      this.presPoint.forEach(function (pres) {
+        if (pres.prSet) {
+          if (name && styleLbl) {
+            if (pres.prSet.presName === name && pres.prSet.styleLbl === styleLbl) {
+              presValue = pres;
+            }
+          } else if (name) {
+            if (pres.prSet.presName === name) {
+              presValue = pres;
+            }
+          } else if (styleLbl) {
+            if (pres.prSet.styleLbl === styleLbl) {
+              presValue = pres;
+            }
+          }
+        }
+      });
+      return presValue;
+    }
+
+    SmartArtNodeData.prototype.getPresWithVarLst = function () {
+      for (var i = 0; i < this.presPoint.length; i += 1) {
+        var pres = this.presPoint[i];
+        if (pres && pres.prSet && pres.prSet.presLayoutVars) {
+          return pres;
+        }
+      }
+    }
+
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].kForInsFitFontSize     = kForInsFitFontSize;
