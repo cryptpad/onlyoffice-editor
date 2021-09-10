@@ -59,6 +59,15 @@
             }
         }
     };
+
+    CDrawingDocContent.prototype.getFontSizeForConstr = function () {
+        this.Content.forEach(function (paragraph) {
+            paragraph.Content.reduce(function (acc, paraRun) {
+                return paraRun.CompiledPr.FontSize > acc ? paraRun.CompiledPr.FontSize : acc;
+            }, 0);
+        });
+    }
+
     CDrawingDocContent.prototype.GetFieldByType = function (sType) {
         var sType_ = sType.toLowerCase();
         var oField;
