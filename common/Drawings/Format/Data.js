@@ -4480,39 +4480,34 @@
       }
       return check;
     }
-    
-    If.prototype.getAxis = function (pointTree) {
 
-      switch (this.axis) {
 
+    If.prototype.checkCondition = function (pointTree, nodeData) {
+      if (nodeData.node) {
+        var nodes = [];
+        var smartArtNode = nodeData.node.parent;
+        this.axis.forEach(function (type) {
+          nodes = nodes.concat(smartArtNode.getAxis(type.getVal()));
+        });
       }
-      
-    }
-    
-    If.prototype.checkCondition = function (pointTree) {
-      if (pointTree) {
-        var dataOfDoc = pointTree.root;
-        if (dataOfDoc) {
 
-        }
-      }
       switch (this.func) {
         case If_func_cnt:
-          return this.funcCnt();
+          return this.funcCnt(nodes);
         case If_func_depth:
-          return this.funcDepth();
+          return this.funcDepth(nodes);
         case If_func_maxDepth:
-          return this.funcMaxDepth();
+          return this.funcMaxDepth(nodes);
         case If_func_pos:
-          return this.funcPos();
+          return this.funcPos(nodes);
         case If_func_posEven:
-          return this.funcPosEven();
+          return this.funcPosEven(nodes);
         case If_func_posOdd:
-          return this.funcPosOdd();
+          return this.funcPosOdd(nodes);
         case If_func_revPos:
-          return this.funcRevPos();
+          return this.funcRevPos(nodes);
         case If_func_var:
-          return this.funcVar();
+          return this.funcVar(nodeData);
         default:
           return false;
       }
