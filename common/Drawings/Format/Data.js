@@ -5685,6 +5685,87 @@
         }
       }
     };
+
+    VarLst.prototype.readChildren = function(nEnd, pReader) {
+      var oStream = pReader.stream;
+      while (oStream.cur < nEnd) {
+        var nType = oStream.GetUChar();
+        this.readChild(nType, pReader);
+      }
+
+      if (!this.animLvl) {
+        this.setAnimLvl(new AnimLvl());
+      }
+
+      if (!this.animLvl.val) {
+        this.animLvl.setVal('none');
+      }
+
+      if (!this.resizeHandles) {
+        this.setResizeHandles(new ResizeHandles());
+      }
+
+      if (!this.resizeHandles.val) {
+        this.resizeHandles.setVal('rel');
+      }
+
+      if (!this.hierBranch) {
+        this.setHierBranch(new HierBranch());
+      }
+
+      if (!this.hierBranch.val) {
+        this.hierBranch.setVal('std');
+      }
+
+      if (!this.orgChart) {
+        this.setOrgChart(new OrgChart());
+      }
+
+      if (!this.orgChart.val) {
+        this.orgChart.setVal('false');
+      }
+
+      if (!this.dir) {
+        this.setDir(new DiagramDirection());
+      }
+
+      if (!this.dir.val) {
+        this.dir.setVal('norm');
+      }
+
+      if (!this.chPref) {
+        this.setChPref(new ChPref());
+      }
+
+      if (!this.chPref.val) {
+        this.chPref.setVal('-1');
+      }
+
+      if (!this.chMax) {
+        this.setChMax(new ChMax());
+      }
+
+      if (!this.chMax.val) {
+        this.chMax.setVal('-1');
+      }
+
+      if (!this.bulletEnabled) {
+        this.setBulletEnabled(new BulletEnabled());
+      }
+
+      if (!this.bulletEnabled.val) {
+        this.bulletEnabled.setVal('false');
+      }
+
+      if (!this.animOne) {
+        this.setAnimOne(new AnimOne());
+      }
+
+      if (!this.animOne.val) {
+        this.animOne.setVal('one');
+      }
+    };
+
     VarLst.prototype.getChildren = function() {
       return [this.animLvl, this.animOne, this.bulletEnabled, this.chMax, this.chPref, this.dir, this.hierBranch, this.orgChart, this.resizeHandles];
     };
