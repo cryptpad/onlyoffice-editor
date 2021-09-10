@@ -88,11 +88,11 @@
     var Alg_type_cycle = 2;
     var Alg_type_hierChild = 3;
     var Alg_type_hierRoot = 4;
-    var Alg_type_lin = 5;
-    var Alg_type_pyra = 6;
-    var Alg_type_snake = 7;
-    var Alg_type_sp = 8;
-    var Alg_type_tx = 9;
+    var Alg_type_lin = 6;
+    var Alg_type_pyra = 5;
+    var Alg_type_snake = 9;
+    var Alg_type_sp = 7;
+    var Alg_type_tx = 8;
 
     var Param_type_alignTx = 0;
     var Param_type_ar = 1;
@@ -202,18 +202,14 @@
     var If_arg_orgChart = 8;
     var If_arg_resizeHandles = 9;
 
-    var Constr_for_ch = 0;
-    var Constr_for_des = 1;
-    var Constr_for_self = 2;
+    var Constr_for_ch = 1;
+    var Constr_for_des = 2;
+    var Constr_for_self = 0;
 
     var Constr_op_equ = 1;
     var Constr_op_gte = 2;
     var Constr_op_lte = 3;
     var Constr_op_none = 0;
-
-    var Constr_refFor_ch = 0;
-    var Constr_refFor_des = 1;
-    var Constr_refFor_self = 2;
 
     var Constr_type_alignOff = 1;
     var Constr_type_b = 5;
@@ -280,73 +276,7 @@
     var Constr_type_wArH = 61;
     var Constr_type_wOff = 62;
 
-    var Rule_for_ch = 0;
-    var Rule_for_des = 1;
-    var Rule_for_self = 2;
-    var Rule_type_alignOff = 0;
-    var Rule_type_b = 1;
-    var Rule_type_begMarg = 2;
-    var Rule_type_begPad = 3;
-    var Rule_type_bendDist = 4;
-    var Rule_type_bMarg = 5;
-    var Rule_type_bOff = 6;
-    var Rule_type_connDist = 7;
-    var Rule_type_ctrX = 8;
-    var Rule_type_ctrXOff = 9;
-    var Rule_type_ctrY = 10;
-    var Rule_type_ctrYOff = 11;
-    var Rule_type_diam = 12;
-    var Rule_type_endMarg = 13;
-    var Rule_type_endPad = 14;
-    var Rule_type_h = 15;
-    var Rule_type_hArH = 16;
-    var Rule_type_hOff = 17;
-    var Rule_type_l = 18;
-    var Rule_type_lMarg = 19;
-    var Rule_type_lOff = 20;
-    var Rule_type_none = 21;
-    var Rule_type_primFontSz = 22;
-    var Rule_type_pyraAcctRatio = 23;
-    var Rule_type_r = 24;
-    var Rule_type_rMarg = 25;
-    var Rule_type_rOff = 26;
-    var Rule_type_secFontSz = 27;
-    var Rule_type_secSibSp = 28;
-    var Rule_type_sibSp = 29;
-    var Rule_type_sp = 30;
-    var Rule_type_stemThick = 31;
-    var Rule_type_t = 32;
-    var Rule_type_tMarg = 33;
-    var Rule_type_tOff = 34;
-    var Rule_type_userA = 35;
-    var Rule_type_userB = 36;
-    var Rule_type_userC = 37;
-    var Rule_type_userD = 38;
-    var Rule_type_userE = 39;
-    var Rule_type_userF = 40;
-    var Rule_type_userG = 41;
-    var Rule_type_userH = 42;
-    var Rule_type_userI = 43;
-    var Rule_type_userJ = 44;
-    var Rule_type_userK = 45;
-    var Rule_type_userL = 46;
-    var Rule_type_userM = 47;
-    var Rule_type_userN = 48;
-    var Rule_type_userO = 49;
-    var Rule_type_userP = 50;
-    var Rule_type_userQ = 51;
-    var Rule_type_userR = 52;
-    var Rule_type_userS = 53;
-    var Rule_type_userT = 54;
-    var Rule_type_userU = 55;
-    var Rule_type_userV = 56;
-    var Rule_type_userW = 57;
-    var Rule_type_userX = 58;
-    var Rule_type_userY = 59;
-    var Rule_type_userZ = 60;
-    var Rule_type_w = 61;
-    var Rule_type_wArH = 62;
-    var Rule_type_wOff = 63;
+    var kForInsFitFontSize = 71.12 / 360;
 
     var LayoutShapeType_outputShapeType_conn = 0;
     var LayoutShapeType_outputShapeType_none = 1;
@@ -539,12 +469,12 @@
     var LayoutShapeType_shapeType_wedgeRoundRectCallout = 188;
 
 
-    var AnimLvl_val_ctr = 0;
-    var AnimLvl_val_lvl = 1;
-    var AnimLvl_val_none = 2;
+    var AnimLvl_val_ctr = 1;
+    var AnimLvl_val_lvl = 2;
+    var AnimLvl_val_none = 0;
 
-    var AnimOne_val_branch = 0;
-    var AnimOne_val_none = 1;
+    var AnimOne_val_branch = 1;
+    var AnimOne_val_none = 0;
     var AnimOne_val_one = 2;
 
     var DiagramDirection_val_norm = 0;
@@ -831,6 +761,8 @@
     var Coordinate_universalMeasure_pt = 3;
     var Coordinate_universalMeasure_pc = 4;
     var Coordinate_universalMeasure_pi = 5;
+
+    var Constr_font_scale = 360;
 
     changesFactory[AscDFH.historyitem_DiagramDataDataModel] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_DiagramDataDataModel] = function (oClass, value) {
@@ -10297,6 +10229,7 @@
 
 
     window['AscFormat'] = window['AscFormat'] || {};
+    window['AscFormat'].kForInsFitFontSize     = kForInsFitFontSize;
     window['AscFormat'].PrSet                  = PrSet;
     window['AscFormat'].CCommonDataList        = CCommonDataList;
     window['AscFormat'].Point                  = Point;
