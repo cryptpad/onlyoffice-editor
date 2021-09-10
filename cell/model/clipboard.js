@@ -329,7 +329,6 @@
 					_clipboard.pushData(AscCommon.c_oAscClipboardDataFormat.Text, _data);
 				}
 			} else {
-				//если мультиселект, то запрещаем копирование
 				if (!this.copyProcessor.canCopy(ws)) {
 					var selectedDrawings = ws.objectRender.getSelectedGraphicObjects();
 					if (0 === selectedDrawings.length) {
@@ -552,8 +551,7 @@
 							}
 						}
 					}
-
-					// ToDo multiselect ?
+					
 					var selectionRange;
 					if (activeRange) {
 						selectionRange = activeRange;
@@ -1731,12 +1729,15 @@
 						if (diff !== 0) {
 							AscCommonExcel.executeInR1C1Mode(false, function () {
 								var pasteRange = AscCommonExcel.g_oRangeCache.getAscRange(oBinaryFileReader.copyPasteObj.activeRange);
-								if (byCol) {
-									pasteRange.r2 -= diff;
-								} else {
-									pasteRange.c2 -= diff;
+								if (pasteRange) {
+									pasteRange = pasteRange.clone();
+									if (byCol) {
+										pasteRange.r2 -= diff;
+									} else {
+										pasteRange.c2 -= diff;
+									}
+									oBinaryFileReader.copyPasteObj.activeRange = pasteRange.getName();
 								}
-								oBinaryFileReader.copyPasteObj.activeRange = pasteRange.getName();
 							});
 						}
 					}
