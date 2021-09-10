@@ -4905,6 +4905,368 @@
     Constr.prototype.readChild = function(nType, pReader) {
     };
 
+    Constr.prototype.getConstrVal = function (shape) {
+      var result;
+      if (this.val) {
+        result = this.val;
+      } else {
+        if (shape) {
+          var constrType = this.refType;
+
+          switch (constrType) {
+            case Constr_type_alignOff:
+              break;
+            case Constr_type_b:
+              break;
+            case Constr_type_begMarg:
+              break;
+            case Constr_type_begPad:
+              break;
+            case Constr_type_bendDist:
+              break;
+            case Constr_type_bMarg:
+              break;
+            case Constr_type_bOff:
+              break;
+            case Constr_type_connDist:
+              break;
+            case Constr_type_ctrX:
+              break;
+            case Constr_type_ctrXOff:
+              break;
+            case Constr_type_ctrY:
+              break;
+            case Constr_type_ctrYOff:
+              break;
+            case Constr_type_diam:
+              break;
+            case Constr_type_endMarg:
+              break;
+            case Constr_type_endPad:
+              break;
+            case Constr_type_h:
+              result = shape.extX;
+              break;
+            case Constr_type_hArH:
+              break;
+            case Constr_type_hOff: // TODO: add to constr type in x2t
+              break;
+            case Constr_type_l:
+              break;
+            case Constr_type_lMarg:
+              break;
+            case Constr_type_lOff:
+              break;
+            case Constr_type_none:
+              break;
+            case Constr_type_primFontSz:
+            case Constr_type_secFontSz:
+              if (shape.txBody && shape.txBody.content) {
+                result = shape.txBody.content.getFontSizeForConstr() * Constr_font_scale;
+              }
+              break;
+            case Constr_type_pyraAcctRatio:
+              break;
+            case Constr_type_r:
+              break;
+            case Constr_type_rMarg:
+              break;
+            case Constr_type_rOff:
+              break;
+            case Constr_type_secSibSp:
+              break;
+            case Constr_type_sibSp:
+              break;
+            case Constr_type_sp:
+              break;
+            case Constr_type_stemThick:
+              break;
+            case Constr_type_t:
+              break;
+            case Constr_type_tMarg:
+              break;
+            case Constr_type_tOff:
+              break;
+            case Constr_type_userA:
+              break;
+            case Constr_type_userB:
+              break;
+            case Constr_type_userC:
+              break;
+            case Constr_type_userD:
+              break;
+            case Constr_type_userE:
+              break;
+            case Constr_type_userF:
+              break;
+            case Constr_type_userG:
+              break;
+            case Constr_type_userH:
+              break;
+            case Constr_type_userI:
+              break;
+            case Constr_type_userJ:
+              break;
+            case Constr_type_userK:
+              break;
+            case Constr_type_userL:
+              break;
+            case Constr_type_userM:
+              break;
+            case Constr_type_userN:
+              break;
+            case Constr_type_userO:
+              break;
+            case Constr_type_userP:
+              break;
+            case Constr_type_userQ:
+              break;
+            case Constr_type_userR:
+              break;
+            case Constr_type_userS:
+              break;
+            case Constr_type_userT:
+              break;
+            case Constr_type_userU:
+              break;
+            case Constr_type_userV:
+              break;
+            case Constr_type_userW:
+              break;
+            case Constr_type_userX:
+              break;
+            case Constr_type_userY:
+              break;
+            case Constr_type_userZ:
+              break;
+            case Constr_type_w:
+              result = shape.extY;
+              break;
+            case Constr_type_wArH:
+              break;
+            case Constr_type_wOff:
+              break;
+            default:
+              return;
+          }
+        }
+      }
+      if (result) {
+        var fact = this.fact ? this.fact : 1;
+        result *= fact;
+        return result;
+      }
+    }
+
+    Constr.prototype.getShapesFromAxis = function (node, isRef) {
+      var axisNodes;
+      var shapes;
+      var fGetAxis = this.getAxisFromParent.bind(this, node);
+      var that = this;
+      axisNodes = isRef ? fGetAxis(this.refFor) : fGetAxis(this.for);
+      if (axisNodes) {
+        if (isRef) {
+          shapes = axisNodes.map(function (axisNode) {
+            if (that.refForName && that.refPtType) {
+              axisNode.getShape(that.refForName, that.refPtType);
+            }
+            else if (that.refForName) {
+              axisNode.getShape(that.refForName);
+            }
+            else if (that.refPtType) {
+              axisNode.getShape(undefined, that.refPtType);
+            } else {
+              axisNode.getShape();
+            }
+          });
+        } else {
+          shapes = axisNodes.map(function (axisNode) {
+            if (that.forName && that.ptType) {
+              axisNode.getShape(that.forName, that.ptType);
+            }
+            else if (that.forName) {
+              axisNode.getShape(that.forName);
+            }
+            else if (that.ptType) {
+              axisNode.getShape(undefined, that.ptType);
+            } else {
+              axisNode.getShape();
+            }
+          });
+        }
+      }
+      if (shapes) {
+        return shapes;
+      }
+    }
+
+    Constr.prototype.getAxisFromParent = function (node, constrAxisType) {
+      switch (constrAxisType) {
+        case Constr_for_ch:
+          return node.getAxis(AxisType_value_ch);
+        case Constr_for_des:
+          return node.getAxis(AxisType_value_des);
+        case Constr_for_self:
+          return node.getAxis(AxisType_value_self);
+        default:
+          return;
+      }
+    }
+
+    Constr.prototype.setConstr = function (shapes, refShape) {
+      var pointTree;
+      var node;
+
+      var that = this;
+      var value = this.getConstrVal(refShape);
+
+      if (value) {
+        shapes.forEach(function (shape) {
+          var setter = that.getConstrSetter(shape);
+          if (setter) {
+            setter.call(shape, value);
+          }
+        });
+      }
+    };
+
+    Constr.prototype.getConstrSetter = function (shape) {
+      if (shape) {
+        var constrType = this.type;
+        switch (constrType) {
+          case Constr_type_alignOff:
+            break;
+          case Constr_type_b:
+            break;
+          case Constr_type_begMarg:
+            break;
+          case Constr_type_begPad:
+            break;
+          case Constr_type_bendDist:
+            break;
+          case Constr_type_bMarg:
+            break;
+          case Constr_type_bOff:
+            break;
+          case Constr_type_connDist:
+            break;
+          case Constr_type_ctrX:
+            break;
+          case Constr_type_ctrXOff:
+            break;
+          case Constr_type_ctrY:
+            break;
+          case Constr_type_ctrYOff:
+            break;
+          case Constr_type_diam:
+            break;
+          case Constr_type_endMarg:
+            break;
+          case Constr_type_endPad:
+            break;
+          case Constr_type_h:
+            return shape.setResizeHeightConstr;
+          case Constr_type_hArH:
+            break;
+          case Constr_type_hOff: // TODO: add to constr type in x2t
+            break;
+          case Constr_type_l:
+            break;
+          case Constr_type_lMarg:
+            break;
+          case Constr_type_lOff:
+            break;
+          case Constr_type_none:
+            break;
+          case Constr_type_primFontSz:
+          case Constr_type_secFontSz:
+            return shape.setFontSizeInSmartArt;
+          case Constr_type_pyraAcctRatio:
+            break;
+          case Constr_type_r:
+            break;
+          case Constr_type_rMarg:
+            break;
+          case Constr_type_rOff:
+            break;
+          case Constr_type_secSibSp:
+            break;
+          case Constr_type_sibSp:
+            break;
+          case Constr_type_sp:
+            break;
+          case Constr_type_stemThick:
+            break;
+          case Constr_type_t:
+            break;
+          case Constr_type_tMarg:
+            break;
+          case Constr_type_tOff:
+            break;
+          case Constr_type_userA:
+            break;
+          case Constr_type_userB:
+            break;
+          case Constr_type_userC:
+            break;
+          case Constr_type_userD:
+            break;
+          case Constr_type_userE:
+            break;
+          case Constr_type_userF:
+            break;
+          case Constr_type_userG:
+            break;
+          case Constr_type_userH:
+            break;
+          case Constr_type_userI:
+            break;
+          case Constr_type_userJ:
+            break;
+          case Constr_type_userK:
+            break;
+          case Constr_type_userL:
+            break;
+          case Constr_type_userM:
+            break;
+          case Constr_type_userN:
+            break;
+          case Constr_type_userO:
+            break;
+          case Constr_type_userP:
+            break;
+          case Constr_type_userQ:
+            break;
+          case Constr_type_userR:
+            break;
+          case Constr_type_userS:
+            break;
+          case Constr_type_userT:
+            break;
+          case Constr_type_userU:
+            break;
+          case Constr_type_userV:
+            break;
+          case Constr_type_userW:
+            break;
+          case Constr_type_userX:
+            break;
+          case Constr_type_userY:
+            break;
+          case Constr_type_userZ:
+            break;
+          case Constr_type_w:
+            return shape.setResizeWidthConstr;
+          case Constr_type_wArH:
+            break;
+          case Constr_type_wOff:
+            break;
+          default:
+            return;
+        }
+      }
+    }
+
     changesFactory[AscDFH.historyitem_PresOfExtLst] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_PresOfExtLst] = function (oClass, value) {
       oClass.extLst = value;
