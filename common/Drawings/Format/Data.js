@@ -4545,16 +4545,18 @@
 
     }
 
-    If.prototype.funcCnt = function () {
-
+    If.prototype.funcDepth = function (axis) {
+      return this.compare(axis[0].data.depth);
     }
 
-    If.prototype.funcDepth = function () {
-
-    }
-
-    If.prototype.funcMaxDepth = function () {
-
+    If.prototype.funcMaxDepth = function (axis) {
+      var maxDepth = axis.reduce(function (acc, b) {
+        if (b.data.depth > acc) {
+          return b.data.depth;
+        }
+        return acc;
+      }, 0);
+      return this.compare(maxDepth);
     }
 
     If.prototype.funcPos = function () {
