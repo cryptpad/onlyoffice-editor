@@ -2956,12 +2956,27 @@
     }
 
     LayoutNode.prototype.startAlgorithm = function (pointTree) {
-      if (this.list) {
-        this.list.forEach(function (element) {
-          if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
-            element.startAlgorithm(pointTree);
-          }
-        });
+      if (pointTree) {
+        var nodes = pointTree.findNodeByNameAndStyleLbl.call(pointTree, this.name, this.styleLbl);
+        if (nodes) {
+          var that = this;
+          nodes.forEach(function (node) {
+            var transfer = {node: node, name: that.name, styleLbl: that.styleLbl};
+            var constrLst = that.list.reduce(function (acc, current) {
+              return current instanceof ConstrLst ? current : acc;
+            }, null);
+            if (constrLst) {
+              constrLst.startSetConstr(pointTree, transfer);
+            }
+            if (that.list) {
+              that.list.forEach(function (element) {
+                if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
+                  element.startAlgorithm(pointTree, transfer);
+                }
+              });
+            }
+          });
+        }
       }
     }
 
@@ -3883,10 +3898,16 @@
       return [].concat(this.list);
     };
 
-    Else.prototype.startAlgorithm = function (pointTree) {
+    Else.prototype.startAlgorithm = function (pointTree, node) {
+      var constrLst = this.list.reduce(function (acc, current) {
+        return current instanceof ConstrLst ? current : acc;
+      }, null);
+      if (constrLst) {
+        constrLst.startSetConstr(pointTree, node);
+      }
       this.list.forEach(function (element) {
         if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
-          element.startAlgorithm(pointTree);
+          element.startAlgorithm(pointTree, node);
         }
       });
     }
@@ -4468,13 +4489,20 @@
     If.prototype.getChildren = function() {
       return [].concat(this.list);
     };
-    
-    If.prototype.startAlgorithm = function (pointTree) {
-      var check = this.checkCondition(pointTree);
+
+    If.prototype.startAlgorithm = function (pointTree, node) {
+      var check = this.checkCondition(pointTree, node);
       if (check) {
+        var constrLst = this.list.reduce(function (acc, current) {
+          return current instanceof ConstrLst ? current : acc;
+        }, null);
+        if (constrLst) {
+          console.log(node);
+          constrLst.startSetConstr(pointTree, node);
+        }
         this.list.forEach(function (element) {
           if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
-            element.startAlgorithm(pointTree);
+            element.startAlgorithm(pointTree, node);
           }
         });
       }
@@ -4667,6 +4695,12 @@
         }
       }
     };
+
+    ConstrLst.prototype.startSetConstr = function (pointTree, node) {
+      this.list.forEach(function (constr) {
+        constr.setConstr(pointTree, node);
+      });
+    }
 
 
 
