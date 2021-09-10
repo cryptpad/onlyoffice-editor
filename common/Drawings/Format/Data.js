@@ -4543,6 +4543,15 @@
       return false;
     }
 
+    If.prototype.funcCnt = function (axis) {
+      var count = 0;
+      this.ptType.forEach(function (Type) {
+        var typeOfPoint = Type.getVal();
+        if (typeOfPoint === ElementType_value_node) { // ElementType_value_node = 3
+          count += axis.length;
+        }
+      });
+      return this.compare(count);
     }
 
     If.prototype.funcDepth = function (axis) {
