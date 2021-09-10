@@ -6678,8 +6678,12 @@
       return [].concat(this.list);
     };
 
-    ForEach.prototype.startAlgorithm = function () {
-
+    ForEach.prototype.startAlgorithm = function (pointTree, node) {
+      this.list.forEach(function (element) {
+        if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
+          element.startAlgorithm(pointTree, node);
+        }
+      });
     }
 
 
