@@ -4512,12 +4512,36 @@
           return false;
       }
     }
-    
-    If.prototype.compare = function () {
-      
-    }
 
-    If.prototype.funcVar = function () {
+    If.prototype.funcVar = function (nodeData) {
+      if (nodeData && nodeData.node) {
+        var nodeElement = nodeData.node.parent;
+        var rootOfTree = nodeElement.getRoot()[0];
+        var rootPres = rootOfTree.data.getPresWithVarLst();
+        var currentPres = nodeData.node.getPresByNameAndStyleLbl(nodeData.name, nodeData.styleLbl);
+        switch (this.arg) {
+          case 'animLvl':
+          case 'hierBranch':
+          case 'bulletEnabled':
+            if (currentPres && currentPres.prSet && currentPres.prSet.presLayoutVars) {
+              return this.compare(currentPres.prSet.presLayoutVars[this.arg].getVal());
+            }
+            break;
+
+          case 'animOne':
+          case 'dir':
+          case 'chPref':
+          case 'chMax':
+          case 'orgChart':
+          case 'resizeHandles':
+            if (rootPres && rootPres.prSet && rootPres.prSet.presLayoutVars && rootPres.prSet.presLayoutVars[this.arg]) {
+              return this.compare(rootPres.prSet.presLayoutVars[this.arg].getVal());
+            }
+            break;
+        }
+      }
+      return false;
+    }
 
     }
 
