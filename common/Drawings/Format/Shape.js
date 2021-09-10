@@ -6597,6 +6597,26 @@ CShape.prototype.createResizeTrack = function (cardDirection, oController) {
     return new AscFormat.ResizeTrackShapeImage(this, cardDirection, oController);
 };
 
+CShape.prototype.setResizeHeightConstr = function (height) {
+    AscFormat.CheckSpPrXfrm(this);
+    if(AscFormat.isRealNumber(height))
+    {
+        this.spPr.xfrm.setExtY(height);
+    }
+    this.ResetParametersWithResize(true);
+    this.checkDrawingBaseCoords();
+}
+
+    CShape.prototype.setResizeWidthConstr = function (width) {
+        AscFormat.CheckSpPrXfrm(this);
+        if(AscFormat.isRealNumber(width))
+        {
+            this.spPr.xfrm.setExtX(width);
+        }
+        this.ResetParametersWithResize(true);
+        this.checkDrawingBaseCoords();
+    }
+
 CShape.prototype.createMoveTrack = function () {
     return new AscFormat.MoveShapeImageTrack(this);
 };
