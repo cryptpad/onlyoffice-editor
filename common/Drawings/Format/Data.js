@@ -4572,12 +4572,12 @@
 
     }
 
-    If.prototype.funcPosEven = function () {
-
+    If.prototype.funcPosEven = function (axis) {
+      return this.funcPos(axis) % 2 === 0;
     }
 
-    If.prototype.funcPosOdd = function () {
-
+    If.prototype.funcPosOdd = function (axis) {
+      return this.funcPos(axis) % 2 === 1;
     }
 
     If.prototype.funcRevPos = function () {
