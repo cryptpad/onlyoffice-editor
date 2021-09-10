@@ -10432,13 +10432,6 @@
     SmartArtTree.prototype.add = function (childInfo, parentInfo, childData, isTraverseDF) {
       var traverse = isTraverseDF ? this.traverseDF : this.traverseBF;
       var parent;
-      var child = new SmartArtNode();
-      if (childInfo) {
-        child.setInfo(childInfo);
-      }
-      if (childData) {
-        child.setData(childData);
-      }
 
       var callback = function (node) {
         if (node.info === parentInfo) {
@@ -10452,6 +10445,13 @@
           return ch.info === childInfo;
         });
         if (!parentHaveChild) {
+          var child = new SmartArtNode();
+          if (childInfo) {
+            child.setInfo(childInfo);
+          }
+          if (childData) {
+            child.setData(childData);
+          }
           parent.addToLstChildren(parent.children.length, child);
         }
       }
