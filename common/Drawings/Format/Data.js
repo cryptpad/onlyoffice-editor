@@ -4555,22 +4555,65 @@
     }
 
     If.prototype.compare = function (comparingArg) {
+      var val = this.valAdapter(this.val);
+      var adaptComparingArg = this.valAdapter(comparingArg);
       switch (this.op) {
-        case 'equ':
-          return comparingArg === this.val;
-        case 'gt':
-          return comparingArg > this.val;
-        case 'gte':
-          return comparingArg >= this.val;
-        case 'lt':
-          return comparingArg < this.val;
-        case 'lte':
-          return comparingArg <= this.val;
-        case 'neq':
-          return comparingArg !== this.val;
+        case If_op_equ:
+          return adaptComparingArg === val;
+        case If_op_gt:
+          return adaptComparingArg > val;
+        case If_op_gte:
+          return adaptComparingArg >= val;
+        case If_op_lt:
+          return adaptComparingArg < val;
+        case If_op_lte:
+          return adaptComparingArg <= val;
+        case If_op_neq:
+          return adaptComparingArg !== val;
         default:
           return false;
       }
+    }
+
+    If.prototype.valAdapter = function (value) {
+      var adaptVal;
+      if (!(typeof value === 'boolean' || parseFloat(value) !== parseFloat(value))) {
+        adaptVal = parseFloat(value);
+      } else {
+        switch (value) {
+          case 'norm':
+          case 'none':
+          case 'hang':
+          case 'exact':
+          case false:
+          case 'false':
+            adaptVal = 0;
+            break;
+          case 'rev':
+          case 'ctr':
+          case 'branch':
+          case 'init':
+          case 'rel':
+          case true:
+          case 'true':
+            adaptVal = 1;
+            break;
+          case 'lvl':
+          case 'one':
+          case 'l':
+            adaptVal = 2;
+            break;
+          case 'r':
+            adaptVal = 3;
+            break;
+          case 'std':
+            adaptVal = 4;
+            break;
+          default:
+            return;
+        }
+      }
+      return adaptVal;
     }
 
     function ConstrLst() {
