@@ -1419,8 +1419,7 @@ var editor;
 				}).then(function (contentWorkbook) {
 					AscCommonExcel.executeInR1C1Mode(false, function () {
 						wbXml = new AscCommonExcel.CT_Workbook();
-						// new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
-						var reader = new openXml.StaxParser(contentWorkbook);
+						var reader = new StaxParser(contentWorkbook);
 						wbXml.fromXml(reader);
 					});
 					if (wbXml.pivotCaches) {
@@ -1475,9 +1474,14 @@ var editor;
 								wsView.pane = new AscCommonExcel.asc_CPane();
 								ws.sheetViews.push(wsView);
 								if (content) {
+									console.profile('StaxParser')
+									console.time('StaxParser')
 									AscCommonExcel.executeInR1C1Mode(false, function () {
-										new openXml.SaxParserBase().parse(content, ws);
+										var reader = new StaxParser(content);
+										ws.fromXml(reader);
 									});
+									console.timeEnd('StaxParser')
+									console.profileEnd('StaxParser')
 								}
 								wb.aWorksheets.push(ws);
 								var drawingPart = wsPart.getPartById(ws.drawingRid);

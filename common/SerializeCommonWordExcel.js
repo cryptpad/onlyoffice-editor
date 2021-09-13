@@ -984,6 +984,29 @@ var g_oCellAddressUtils = new CellAddressUtils();
 	CellBase.prototype.getName = function() {
 		return g_oCellAddressUtils.colnumToColstr(this.col + 1) + (this.row + 1);
 	};
+	CellBase.prototype.fromRefA1 = function(val) {
+		this.clean();
+		var index = 0;
+		var char = val.charCodeAt(index);
+		while (65 <= char && char <= 90) {//'A'<'Z'
+			this.col = 26 * this.col + char - 64;
+			char = val.charCodeAt(++index);
+		}
+		while (97 <= char && char <= 122) {//'a'<'z'
+			this.col = 26 * this.col + char - 96;
+			char = val.charCodeAt(++index);
+		}
+		while (48 <= char && char <= 57) {//'0'<'9'
+			this.row = 10 * this.row + char - 48;
+			char = val.charCodeAt(++index);
+		}
+		this.row -= 1;
+		this.col -= 1;
+		this.row = Math.min(this.row, gc_nMaxRow0);
+		this.row = Math.max(this.row, 0);
+		this.col = Math.min(this.col, gc_nMaxCol0);
+		this.col = Math.max(this.col, 0);
+	};
 /**
  * @constructor
  */

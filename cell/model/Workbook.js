@@ -2042,8 +2042,6 @@
 		this.pivotCaches = [];
 	}
 	CT_PivotCaches.prototype.fromXml = function(reader) {
-		if ( reader.IsEmptyNode() )
-			return;
 		var depth = reader.GetDepth();
 		while( reader.ReadNextSiblingNode(depth) ) {
 			if ( "pivotCache" === reader.GetNameNoNS() ) {
@@ -2053,12 +2051,25 @@
 			}
 		}
 	};
+	function CT_SheetData(ws) {
+		this.ws = ws;
+		this._openRow = new AscCommonExcel.Row(ws);
+	}
+
+	CT_SheetData.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("row" === reader.GetName()) {
+				this._openRow.clear();
+				this._openRow.fromXml(reader);
+				this._openRow.saveContent();
+			}
+		}
+	};
 	function CT_Sheets() {
 		this.sheets = [];
 	}
 	CT_Sheets.prototype.fromXml = function(reader) {
-		if ( reader.IsEmptyNode() )
-			return;
 		var depth = reader.GetDepth();
 		while( reader.ReadNextSiblingNode(depth) ) {
 			if ( "sheet" === reader.GetNameNoNS() ) {
@@ -2073,17 +2084,46 @@
 		this.id = null;
 	}
 	CT_Sheet.prototype.fromXml = function(reader) {
-		this.parseAttributes(reader.ReadAttributes(), EasySAXParser.entityDecode);
-
-		if ( !reader.IsEmptyNode() )
-			reader.ReadTillEnd();
+		this.readAttr(reader);
+		reader.ReadTillEnd();
 	};
 	CT_Sheet.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
 			this.parseAttributes(attr());
 		}
 	};
+	CT_Sheet.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			if ("id" === reader.GetNameNoNS()) {
+				this.id = reader.GetValueDecodeXml();
+			}
+		}
+	};
 	CT_Sheet.prototype.parseAttributes = function(vals, uq) {
+		var val;
+		val = vals["r:id"];
+		if (undefined !== val) {
+			this.id = AscCommon.unleakString(uq(val));
+		}
+	};
+	function CT_Value() {
+		//Attributes
+		this.space = null;
+		this.val = null;
+	}
+	CT_Value.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		this.val = reader.GetText();
+	};
+	CT_Value.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			this.parseAttributes(attr());
+		}
+	};
+	CT_Value.prototype.readAttr = function(reader) {
+		//todo space
+	};
+	CT_Value.prototype.parseAttributes = function(vals, uq) {
 		var val;
 		val = vals["r:id"];
 		if (undefined !== val) {
@@ -2096,15 +2136,20 @@
 		this.id = null;
 	}
 	CT_PivotCache.prototype.fromXml = function(reader) {
-		this.parseAttributes(reader.ReadAttributes(), EasySAXParser.entityDecode);
-
-		if ( !reader.IsEmptyNode() )
-			reader.ReadTillEnd();
+		this.readAttr(reader);
+		reader.ReadTillEnd();
 	};
 	CT_PivotCache.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
 			var vals = attr();
 			this.parseAttributes(attr(), uq);
+		}
+	};
+	CT_PivotCache.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			if ("id" === reader.GetNameNoNS()) {
+				this.id = reader.GetValueDecodeXml();
+			}
 		}
 	};
 	CT_PivotCache.prototype.parseAttributes = function(vals, uq) {
@@ -8856,6 +8901,28 @@
 			}
 		}
 	};
+	Worksheet.prototype.fromXml = function(reader) {
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		if ("worksheet" !== reader.GetNameNoNS()) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		if ("worksheet" === reader.GetNameNoNS()) {
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+				if ("sheetData" === name) {
+					var sheetData = new CT_SheetData(this);
+					sheetData.fromXml(reader);
+				} else if ("drawing" === name) {
+
+				}
+			}
+		}
+	};
 	Worksheet.prototype.onStartNode = function(elem, attr, uq, tagend, getStrNode) {
 		var attrVals;
 		if ('worksheet' === elem) {
@@ -12956,21 +13023,42 @@
 	};
 	Cell.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
-			var vals = attr();
-			var val;
-			val = vals["r"];
-			if (undefined !== val) {
-				var oCellAddress = AscCommon.g_oCellAddressUtils.getCellAddress(val);
-				this.setRowCol(oCellAddress.getRow0(), oCellAddress.getCol0());
+			this.parseAttributes(attr(), uq);
+		}
+	};
+	var cellBase = new AscCommon.CellBase(0,0);
+	Cell.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("r" === reader.GetName()) {
+				val = reader.GetValue();
+				cellBase.fromRefA1(val);
+				this.setRowCol(cellBase.row, cellBase.col);
 				this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.nRow);
 				this.ws.nColsCount = Math.max(this.ws.nColsCount, this.nCol);
 				this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.nCol);
-			}
-			val = vals["t"];
-			if (undefined !== val) {
+			} else if ("t" === reader.GetName()) {
+				val = reader.GetValue();
 				if("s" === val) {
 					this.type = CellValueType.String;
 				}
+			}
+		}
+	};
+	Cell.prototype.parseAttributes = function(vals, uq) {
+		var val;
+		val = vals["r"];
+		if (undefined !== val) {
+			var oCellAddress = AscCommon.g_oCellAddressUtils.getCellAddress(val);
+			this.setRowCol(oCellAddress.getRow0(), oCellAddress.getCol0());
+			this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.nRow);
+			this.ws.nColsCount = Math.max(this.ws.nColsCount, this.nCol);
+			this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.nCol);
+		}
+		val = vals["t"];
+		if (undefined !== val) {
+			if("s" === val) {
+				this.type = CellValueType.String;
 			}
 		}
 	};
@@ -12995,6 +13083,21 @@
 			res = false;
 		}
 		return res;
+	};
+	var value = new CT_Value();
+	Cell.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("v" === reader.GetName()) {
+				value.fromXml(reader);
+				if(CellValueType.String === this.type) {
+					this.text = value.val;//AscCommon.unleakString(uq(value.val));
+				} else if(CellValueType.Number === this.type) {
+					this.number = +value.val;
+				}
+			}
+		}
 	};
 	Cell.prototype.getXLSBSizeFormula = function(formulaToWrite) {
 		var len = 2 + 4 + 4;

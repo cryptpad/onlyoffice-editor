@@ -1152,3 +1152,313 @@ function EasySAXParser(config) {
     this.staxEnd = this.end;
 };
 
+function StaxParser(xml) {
+    this.xml = xml;
+    this.index = 0;
+    this.length = xml.length;
+
+    this.isTagStart = null;
+    this.isInAttr = false;
+    this.isTagEnd = null;
+    this.eventType = null;
+    this.name = null;
+    this.text = null;
+    this.value = null;
+    this.stop = false;
+    this.depth = 0;
+}
+StaxParser.prototype.hasNext = function() {
+    return !this.stop;
+};
+StaxParser.prototype.next = function() {
+    if (this.isInAttr) {
+        this.SkipAttributes();
+    }
+    if (this.isTagEnd) {
+        if (this.eventType === EasySAXEvent.START_ELEMENT) {
+            this.eventType = EasySAXEvent.END_ELEMENT;
+            return this.eventType;
+        }
+        this.depth--;
+    }
+
+    this.eventType = EasySAXEvent.Unknown;
+
+    var i = this.index;
+    if (this.xml.charCodeAt(i) !== 60) {//'<'
+        i = this.xml.indexOf('<', i);
+    }
+
+    if (i === -1) {
+        this.stop = true;
+        return;
+    }
+
+    // Text
+    if (this.index !== i) {
+        this.eventType = EasySAXEvent.CHARACTERS;
+        this.text = this.xml.substring(this.index, i);
+        this.index = i;
+        return this.eventType;
+    }
+
+    // ELEMENT
+    // ---------------------------------------------
+    var w = this.xml.charCodeAt(i + 1);
+    if (w === 33) { // 33 == "!"
+        this.index = this.xml.indexOf('>', i);
+        return this.eventType;
+    }
+    // QUESTION
+    // ---------------------------------------------
+    if (w === 63) { // "?"
+        this.index = this.xml.indexOf('>', i);
+        return this.eventType;
+    }
+    // NODE ELEMENT
+    // ---------------------------------------------
+    var indexEndNode;
+    if (w !== 47) { // </...
+        indexEndNode = this.parseNode(i);
+        if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
+            this.stop = true;
+            return this.eventType;
+        }
+        this.isTagStart = true;
+        this.isInAttr = true;
+        this.isTagEnd = false;
+        // this.isTagEnd = this.xml.charCodeAt(indexEndNode - 1) === 47;
+        this.eventType = EasySAXEvent.START_ELEMENT;
+        this.depth++;
+        this.index = indexEndNode;
+    } else {
+        //todo close tag name not used. don't parse for performance reason
+        indexEndNode = this.xml.indexOf('>', i + 1);
+        if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
+            this.stop = true;
+            return this.eventType;
+        }
+        this.isTagStart = false;
+        this.isTagEnd = true;
+        this.eventType = EasySAXEvent.END_ELEMENT;
+        this.index = indexEndNode + 1;
+    }
+    return this.eventType;
+};
+StaxParser.prototype.parseNode = function(indexStart) {
+    var ixNameStart = +indexStart + 1; // позиция первого сивола имени
+
+    var i = ixNameStart;
+    var w = this.xml.charCodeAt(i);
+    while (i < this.length) {
+        if (w > 96 && w < 123 || w > 64 && w < 91 || w > 47 && w < 59 || w === 45 || w === 46 || w === 95) {
+            w = this.xml.charCodeAt(++i);
+            continue;
+        }
+        if (w === 32 || w === 9 || w === 10 || w === 11 || w === 12 || w === 13) { // \f\n\r\t\v space
+            this.name = this.xml.substring(ixNameStart, i);
+            return i;
+        }
+        if (w === 62 /* ">" */ || w === 47 /* "/" */) {
+            this.name = this.xml.substring(ixNameStart, i);
+            return i;
+        }
+        return -1;
+    }
+    return -1;
+};
+StaxParser.prototype.MoveToNextAttribute = function() {
+    var startAttrName = this.index;
+    var i = this.index;
+    var w = this.xml.charCodeAt(i);
+    while (i < this.length) {
+        if (w === 61 /* "=" */ && i + 1 < this.length) {
+            this.name = this.xml.substring(startAttrName, i);
+            var textStart = i + 2;
+            if (this.xml.charCodeAt(textStart - 1) === 34/* "\"" */) {
+                i = this.xml.indexOf("\"", textStart);
+            } else {
+                i = this.xml.indexOf('\'', textStart);
+            }
+            if (-1 !== i) {
+                this.text = this.xml.substring(textStart, i);
+                this.index = i + 1;
+                return true;
+            } else {
+                break;
+            }
+        }
+        if (w === 32 || w === 9 || w === 10 || w === 11 || w === 12 || w === 13) { // \f\n\r\t\v space
+            //todo spaces between name and =
+            w = this.xml.charCodeAt(++i);
+            startAttrName = i;
+            continue;
+        }
+        if (w === 62 /* ">" */) {
+            this.index = i + 1;
+            this.isInAttr = false;
+            return false;
+        }
+        if (w === 47 /* "/" */ && i + 1 < this.length && this.xml.charCodeAt(i + 1) === 62) {
+            this.index = i + 2;
+            this.isInAttr = false;
+            this.isTagEnd = true;
+            return false;
+        }
+        w = this.xml.charCodeAt(++i);
+    }
+    this.stop = true;
+    this.index = i;
+    this.isInAttr = false;
+    return false;
+};
+StaxParser.prototype.SkipAttributes = function() {
+    var i = this.xml.indexOf('>', this.index);
+    if (i === -1) { // error  ...> // не нашел знак закрытия тега
+        this.stop = true;
+    }
+    this.isTagEnd = this.xml.charCodeAt(i - 1) === 47;
+    this.isInAttr = false;
+    this.index = i + 1;
+};
+StaxParser.prototype.Read = function() {
+    var hasNext = this.hasNext();
+    this.next();
+    return hasNext;
+};
+StaxParser.prototype.ReadNextNode = function() {
+    var type = EasySAXEvent.Unknown;
+    while (EasySAXEvent.START_ELEMENT !== type && this.hasNext()) {
+        type = this.next();
+    }
+    return EasySAXEvent.START_ELEMENT === type;
+};
+StaxParser.prototype.ReadNextSiblingNode = function(depth) {
+    var type = EasySAXEvent.Unknown;
+    while (this.hasNext()) {
+        type = this.next();
+        var curDepth = this.depth;
+        if (curDepth < depth)
+            break;
+        if (EasySAXEvent.START_ELEMENT == type && curDepth == depth + 1)
+            return true;
+        else if (EasySAXEvent.END_ELEMENT == type && curDepth == depth)
+            return false;
+
+    }
+    return false;
+};
+StaxParser.prototype.ReadTillEnd = function (opt_depth) {
+    var depth = opt_depth;
+    if (!depth) {
+        depth = this.depth;
+    }
+    var type = EasySAXEvent.Unknown;
+    while (this.hasNext()) {
+        type = this.next();
+        var curDepth = this.GetDepth();
+        if (curDepth < depth) {
+            break;
+        }
+        if (EasySAXEvent.END_ELEMENT === type && curDepth === depth)
+            break;
+    }
+    return true;
+};
+StaxParser.prototype.IsEmptyNode = function () {
+    return this.isTagStart && this.isTagEnd;
+};
+StaxParser.prototype.GetDepth = function() {
+    return this.depth;
+};
+StaxParser.prototype.GetName = function () {
+    return this.name;
+    // return this.ConvertToString(this.xml, this.nameStart, this.nameEnd);
+};
+StaxParser.prototype.GetNameNoNS = function () {
+    return this.RemoveNS(this.GetName());
+};
+StaxParser.prototype.GetValue = function () {
+    return this.text;
+    // return this.ConvertToString(this.xml, this.textStart, this.textEnd);
+};
+StaxParser.prototype.GetValueDecodeXml = function () {
+    if (-1 !== this.text.indexOf('&')) {
+        var res = "";
+        for (var i = 0; i < this.text.length; ++i) {
+            if(this.text[i] === '&') {
+                if(i + 3 < this.text.length) {
+                    if(this.text[i + 1] == 'l' && this.text[i + 2] == 't' && this.text[i + 3] == ';') {
+                        res += '<';
+                        i+=3;
+                        continue;
+                    } else if(this.text[i + 1] == 'g' && this.text[i + 2] == 't' && this.text[i + 3] == ';') {
+                        res += '>';
+                        i+=3;
+                        continue;
+                    }
+                }
+                if(i + 4 < this.text.length && this.text[i + 1] == 'a' && this.text[i + 2] == 'm' && this.text[i + 3] == 'p' && this.text[i + 4] == ';') {
+                    res += '&';
+                    i+=4;
+                    continue;
+                }
+                if(i + 5 < this.text.length) {
+                    if(this.text[i + 1] == 'q' && this.text[i + 2] == 'u' && this.text[i + 3] == 'o' && this.text[i + 4] == 't' && this.text[i + 5] == ';') {
+                        res += '\"';
+                        i+=5;
+                        continue;
+                    } else if(this.text[i + 1] == 'a' && this.text[i + 2] == 'p' && this.text[i + 3] == 'o' && this.text[i + 4] == 's' && this.text[i + 5] == ';') {
+                        res += '\'';
+                        i+=5;
+                        continue;
+                    }
+                }
+            }
+            res += this.text[i]
+        }
+        return res;
+    } else {
+        return (' ' + this.text).substr(1);
+    }
+};
+StaxParser.prototype.GetValueDecodeXmlExt = function () {
+    return this.GetValueDecodeXml();
+};
+StaxParser.prototype.GetText = function () {
+    var text = "";
+    var depth = this.depth;
+    var type = EasySAXEvent.Unknown;
+    while (this.hasNext()) {
+        type = this.next();
+        var curDepth = this.GetDepth();
+        if (curDepth < depth) {
+            break;
+        }
+        if (EasySAXEvent.END_ELEMENT === type && curDepth === depth)
+            break;
+        if (EasySAXEvent.CHARACTERS === type) {
+            text += this.text;
+        }
+    }
+    return text;
+};
+StaxParser.prototype.ConvertToString = function(xml, start, end) {
+    return xml.substring(start, end);
+    // return "";
+    // return name ? String.prototype.fromUtf8(buffer, start, end - start + 1) : "";
+    // return String.prototype.fromUtf8(buffer, start, end - start + 1);
+    // return name ? decoder.decode(name) : "";
+    // return name ? new TextDecoder("utf-8").decode(name) : "";
+    // return String.fromCharCode.apply(null, name);
+};
+StaxParser.prototype.RemoveNS = function(name) {
+    var index = name.indexOf(':');
+    if (-1 !== index) {
+        return name.substring(index + 1);
+    }
+    return name;
+};
+StaxParser.prototype.GetEventType = function() {
+    return this.eventType;
+};

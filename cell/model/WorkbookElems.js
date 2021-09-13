@@ -5429,6 +5429,16 @@ StyleManager.prototype =
 		}
 		return res;
 	};
+	Row.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("c" === reader.GetName()) {
+				this._tempCell.clear();
+				this._tempCell.fromXml(reader);
+				this._tempCell.saveContent();
+			}
+		}
+	};
 
 	function getStringFromMultiText(multiText) {
 		var sRes = "";
