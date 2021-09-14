@@ -805,13 +805,6 @@ function Geometry()
 
     this.ahPolarLstInfo = [];
     this.ahPolarLst     = [];
-
-    this.gmEditList = [];
-    this.gmEditPoint = null;
-    this.ellipsePointsList = [];
-    this.isGeomConverted = false;
-    this.arrPathCommandsType = [];
-
     this.pathLst        = [];
     this.preset = null;
     this.rectS = null;
@@ -903,22 +896,6 @@ Geometry.prototype=
         {
             g.AddRect(this.rectS.l, this.rectS.t, this.rectS.r, this.rectS.b);
         }
-        if(this.gmEditPoint)
-        {
-            var point = this.gmEditPoint;
-            g.AddGeomPoint(point.id, point.X, point.Y, point.g1X, point.g1Y, point.g2X, point.g2Y, point.pathC1, point.pathC2, point.nextPoint, point.prevPoint,
-                point.isHitInFirstCPoint, point.isHitInSecondCPoint, point.isStartPoint, point.pathIndex);
-        }
-        for(i = 0; i < this.arrPathCommandsType.length; i++)
-        {
-            var arrCommandsType = this.arrPathCommandsType[i];
-            var curArrCommandsType = [];
-            for (var j = 0; j < arrCommandsType.length; j++) {
-                curArrCommandsType.push(arrCommandsType[i]);
-            }
-            g.arrPathCommandsType.push(arrCommandsType);
-        }
-        g.isGeomConverted = this.isGeomConverted;
         return g;
     },
 
@@ -1100,34 +1077,6 @@ Geometry.prototype=
         this.rectS.b = b;
     },
 
-    AddGeomPoint: function(id, X, Y, g1X, g1Y, g2X, g2Y, pathC1, pathC2, prevPoint, nextPoint, isHitInFirstCPoint, isHitInSecondCPoint, isStartPoint, pathIndex)
-    {
-        this.gmEditPoint = {};
-        this.gmEditPoint.id = id;
-        this.gmEditPoint.X = X;
-        this.gmEditPoint.Y = Y;
-        this.gmEditPoint.g1X = g1X;
-        this.gmEditPoint.g1Y = g1Y;
-        this.gmEditPoint.g2X = g2X;
-        this.gmEditPoint.g2Y = g2Y;
-        this.gmEditPoint.pathC1 = pathC1;
-        this.gmEditPoint.pathC2 = pathC2;
-        this.gmEditPoint.nextPoint = {
-            id: nextPoint.id, X: nextPoint.X, Y: nextPoint.Y, g1X: nextPoint.g1X, g1Y: nextPoint.g1Y,
-                g2X: nextPoint.g2X, g2Y: nextPoint.g2Y, pathC1 : nextPoint.pathC1, pathC2 : nextPoint.pathC2
-        };
-        this.gmEditPoint.prevPoint = {
-            id: prevPoint.id, X: prevPoint.X, Y: prevPoint.Y, g1X: prevPoint.g1X, g1Y: prevPoint.g1Y,
-                g2X: prevPoint.g2X, g2Y: prevPoint.g2Y, pathC1 : prevPoint.pathC1, pathC2 : prevPoint.pathC2
-        },
-        this.gmEditPoint.isHitInFirstCPoint = isHitInFirstCPoint;
-        this.gmEditPoint.isHitInSecondCPoint = isHitInSecondCPoint;
-        this.gmEditPoint.isStartPoint = isStartPoint;
-        this.gmEditPoint.pathIndex = pathIndex;
-
-        this.originalEditPoint = {X: X, Y: Y, g1X: g1X, g1Y: g1Y, g2X: g2X, g2Y: g2Y};
-    },
-
     findConnector: function(x, y, distanse){
         var dx, dy;
         for(var i = 0; i < this.cnxLst.length; i++)
@@ -1207,7 +1156,6 @@ Geometry.prototype=
         this.gdLst["ssd8"]=this.gdLst["ss"]/8;
         this.gdLst["ssd16"]=this.gdLst["ss"]/16;
         this.gdLst["ssd32"]=this.gdLst["ss"]/32;
-        this.ellipsePointsList = [];
         CalculateGuideLst(this.gdLstInfo, this.gdLst);
         CalculateCnxLst(this.cnxLstInfo, this.cnxLst, this.gdLst);
         CalculateAhXYList(this.ahXYLstInfo, this.ahXYLst, this.gdLst);
@@ -1334,23 +1282,6 @@ Geometry.prototype=
             drawingDocument.DrawAdjustment(transform, _adjustments[_adj_index].posX, _adjustments[_adj_index].posY, bTextWarp);
     },
 
-    drawGeometryEdit : function(drawingDocument, shape, geometryEditTrack)
-    {
-        var geometry = geometryEditTrack.geometry;
-        if (geometryEditTrack.isCanContinue()) {
-            if(!this.isGeomConverted) {
-                geometryEditTrack.convertToBezier(geometry);
-            }
-            geometryEditTrack.createGeometryEditList(geometry);
-        }
-        
-        var gmEditPoint = geometry.gmEditPoint;
-        var gmEditList = geometry.gmEditList;
-        var pathLst = geometry.pathLst;
-        var matrix =  shape.getTransformMatrix();
-        drawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, pathLst, gmEditList, gmEditPoint);
-    },
-
     canFill: function()
     {
         if(this.preset === "line")
@@ -1376,14 +1307,14 @@ Geometry.prototype=
         return false;
     },
 
-    hitInPath: function(canvasContext, x, y, arrTrackObject)
+    hitInPath: function(canvasContext, x, y, oAddingPoint)
     {
         var _path_list = this.pathLst;
         var _path_count = _path_list.length;
         var _path_index;
         for(_path_index = 0; _path_index < _path_count; ++_path_index)
         {
-            if(_path_list[_path_index].hitInPath(canvasContext, x, y, arrTrackObject, _path_index) === true)
+            if(_path_list[_path_index].hitInPath(canvasContext, x, y, oAddingPoint, _path_index) === true)
                 return true;
         }
         return false;
@@ -1414,50 +1345,6 @@ Geometry.prototype=
             }
         }
         return {hit: false, adjPolarFlag: null, adjNum: null};
-    },
-
-    hitToGeomEdit: function(track_object, oCanvas, e, x, y, distance) {
-        var dx, dy, dxC1, dyC1, dxC2, dyC2;
-        var geometry = track_object.geometry;
-        var isHitInPath = geometry.hitInPath(oCanvas, x, y, track_object);
-        
-        if (e.Type === 0) {
-            for (var i = geometry.gmEditList.length - 1; i >= 0; i--) {
-                dx = x - geometry.gmEditList[i].X;
-                dy = y - geometry.gmEditList[i].Y;
-
-                var gmArr = geometry.gmEditList[i];
-                var originalEditPoint = {id: gmArr.id, X: gmArr.X, Y: gmArr.Y, g1X: gmArr.g1X, g1Y: gmArr.g1Y, g2X: gmArr.g2X, g2Y: gmArr.g2Y}
-
-                if (Math.sqrt(dx * dx + dy * dy) < distance) {
-                    geometry.gmEditPoint = geometry.gmEditList[i];
-                    geometry.originalEditPoint = originalEditPoint;
-                    return {hit: true, objectId: geometry.Id};
-                }
-            }
-
-            if(geometry.gmEditPoint) {
-                dxC1 = x - geometry.gmEditPoint.g1X;
-                dyC1 = y - geometry.gmEditPoint.g1Y;
-                dxC2 = x - geometry.gmEditPoint.g2X;
-                dyC2 = y - geometry.gmEditPoint.g2Y;
-                if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
-                    geometry.gmEditPoint.isHitInFirstCPoint = true;
-                    return {hit: true, objectId: geometry.Id};
-                } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
-                    geometry.gmEditPoint.isHitInSecondCPoint = true;
-                    return {hit: true, objectId: geometry.Id};
-                }
-            }
-
-            if(isHitInPath) {
-                track_object.addPoint(track_object.originalShape.getInvertTransform(), geometry, x, y);
-                track_object.createGeometryEditList(geometry);
-                return {hit: true, objectId: geometry.Id, addingNewPoint: true};
-            }
-            return  {hit: false};
-        }
-        return;
     },
 
     getArrayPolygonsByPaths: function(epsilon)

@@ -1416,6 +1416,10 @@ DrawingObjectsController.prototype =
         {
             this.endImageCrop && this.endImageCrop(bDoNotRedraw);
         }
+        if(this.selection.geometrySelection)
+        {
+            this.selection.geometrySelection = null;
+        }
     },
 
     resetChartElementsSelection: function() {
@@ -2216,14 +2220,9 @@ DrawingObjectsController.prototype =
                 }
             }
         }
-        else if (this.selection.geometrySelection) {
-            var selectedObj = this.selectedObjects[0];
-            var geometrySelection = this.selection.geometrySelection;
-            geometrySelection.geometryEditTrack = this.arrTrackObjects.length === 0 ? (new AscFormat.EditShapeGeometryTrack(selectedObj, this.document, this.curState.drawingObjects)) :
-                this.arrTrackObjects[0];
-
-            geometrySelection.drawGeometryEdit(drawingDocument, geometrySelection.geometryEditTrack);
-
+        else if (this.selection.geometrySelection)
+        {
+            this.selection.geometrySelection.drawSelect(pageIndex, drawingDocument);
         }
         else if(this.selection.groupSelection)
         {
@@ -2280,31 +2279,34 @@ DrawingObjectsController.prototype =
         }
         if(this.document)
         {
-            if(this.selectedObjects.length === 1 && this.selectedObjects[0].parent && !this.selectedObjects[0].parent.Is_Inline() && !this.selection.geometrySelection)
+            if(!this.selection.geometrySelection)
             {
-                var anchor_pos;
-                if(this.arrTrackObjects.length === 1 && !(this.arrTrackObjects[0] instanceof TrackPointWrapPointWrapPolygon || this.arrTrackObjects[0] instanceof  TrackNewPointWrapPolygon))
+                if(this.selectedObjects.length === 1 && this.selectedObjects[0].parent && !this.selectedObjects[0].parent.Is_Inline())
                 {
-                    var page_index = AscFormat.isRealNumber(this.arrTrackObjects[0].pageIndex) ? this.arrTrackObjects[0].pageIndex : (AscFormat.isRealNumber(this.arrTrackObjects[0].selectStartPage) ? this.arrTrackObjects[0].selectStartPage : 0);
-                    if(page_index === pageIndex)
+                    var anchor_pos;
+                    if(this.arrTrackObjects.length === 1 && !(this.arrTrackObjects[0] instanceof TrackPointWrapPointWrapPolygon || this.arrTrackObjects[0] instanceof  TrackNewPointWrapPolygon))
                     {
-                        var bounds = this.arrTrackObjects[0].getBounds();
-                        var nearest_pos = this.document.Get_NearestPos(page_index, bounds.min_x, bounds.min_y, true, this.selectedObjects[0].parent);
-                        nearest_pos.Page = page_index;
-                        drawingDocument.AutoShapesTrack.drawFlowAnchor(nearest_pos.X, nearest_pos.Y);
+                        var page_index = AscFormat.isRealNumber(this.arrTrackObjects[0].pageIndex) ? this.arrTrackObjects[0].pageIndex : (AscFormat.isRealNumber(this.arrTrackObjects[0].selectStartPage) ? this.arrTrackObjects[0].selectStartPage : 0);
+                        if(page_index === pageIndex)
+                        {
+                            var bounds = this.arrTrackObjects[0].getBounds();
+                            var nearest_pos = this.document.Get_NearestPos(page_index, bounds.min_x, bounds.min_y, true, this.selectedObjects[0].parent);
+                            nearest_pos.Page = page_index;
+                            drawingDocument.AutoShapesTrack.drawFlowAnchor(nearest_pos.X, nearest_pos.Y);
+                        }
                     }
-                }
-                else
-                {
-                    var page_index = this.selectedObjects[0].selectStartPage;
-                    if(page_index === pageIndex)
+                    else
                     {
-                        var paragraph = this.selectedObjects[0].parent.Get_ParentParagraph();
-                        anchor_pos = paragraph.Get_AnchorPos(this.selectedObjects[0].parent);
-						if(anchor_pos)
-						{
-							drawingDocument.AutoShapesTrack.drawFlowAnchor(anchor_pos.X, anchor_pos.Y);
-						}
+                        var page_index = this.selectedObjects[0].selectStartPage;
+                        if(page_index === pageIndex)
+                        {
+                            var paragraph = this.selectedObjects[0].parent.Get_ParentParagraph();
+                            anchor_pos = paragraph.Get_AnchorPos(this.selectedObjects[0].parent);
+                            if(anchor_pos)
+                            {
+                                drawingDocument.AutoShapesTrack.drawFlowAnchor(anchor_pos.X, anchor_pos.Y);
+                            }
+                        }
                     }
                 }
             }
@@ -3704,6 +3706,10 @@ DrawingObjectsController.prototype =
         }
         if(typeof(props.type) === "string")
         {
+            if(this.selection.geometrySelection)
+            {
+                this.selection.geometrySelection = null;
+            }
             var aShapes = [];
             for(i = 0; i < objects_by_type.shapes.length; ++i)
             {
@@ -5763,7 +5769,7 @@ DrawingObjectsController.prototype =
 
         if (selectedObject && (selectedObject instanceof AscFormat.CShape))
         {
-            this.selection.geometrySelection = selectedObject;
+            this.selection.geometrySelection = new CGeometryEditSelection(this, selectedObject, null, null);
             this.updateSelectionState();
             this.updateOverlay();
         }
@@ -7127,13 +7133,8 @@ DrawingObjectsController.prototype =
         }
         else if(selection_state.geometryObject && !selection_state.geometryObject.bDeleted)
         {
-            this.selectObject(selection_state.geometryObject, selection_state.selectStartPage);
+            this.selectObject(selection_state.geometryObject.drawing, selection_state.selectStartPage);
             this.selection.geometrySelection = selection_state.geometryObject;
-            var paraDrawing = selection_state.geometryObject.GetParaDrawing();
-            var extX = paraDrawing.Extent.W;
-            var extY = paraDrawing.Extent.H;
-            this.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(this.selection.geometrySelection, this.document, this.curState.drawingObjects, extX, extY));
-            this.changeCurrentState(new AscFormat.GeometryEditState(this, this.selection.geometrySelection.spPr.parent));
         }
         else
         {
@@ -7198,6 +7199,7 @@ DrawingObjectsController.prototype =
         {
             selection_state.focus = true;
             selection_state.geometryObject = this.selection.geometrySelection;
+            selection_state.selectStartPage = this.selection.geometrySelection.drawing.selectStartPage;
         }
         else
         {
@@ -11125,38 +11127,137 @@ function CalcLiterByLength(aAlphaBet, nLength)
     }
 
 
-
-    function GeometryEditState(drawingObjects, majorObject)
-    {
+    function PreGeometryEditState(drawingObjects, majorObject, startX, startY, oHitData) {
         this.drawingObjects = drawingObjects;
         this.majorObject = majorObject;
+        this.startX = startX;
+        this.startY = startY;
+        this.hitData = oHitData;
     }
-    GeometryEditState.prototype = {
-        onMouseDown: function(e, x, y, pageIndex)
-        {
-            return AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
-        },
-        onMouseMove: function(e, x, y)
-        {
-            this.drawingObjects.trackResizeObjects(e, x, y);
-            this.drawingObjects.updateOverlay();
-        },
-        onMouseUp: function(e, x, y, pageIndex)
-        {
-            var geom = this.drawingObjects.arrTrackObjects[0].geometry;
-            var track_object = this.drawingObjects.arrTrackObjects[0];
-            if(geom.gmEditPoint) {
-                geom.gmEditPoint.isHitInFirstCPoint = false;
-                geom.gmEditPoint.isHitInSecondCPoint = false;
+    PreGeometryEditState.prototype.onMouseDown = function (e, x, y, pageIndex) {
+        if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR) {
+            return {objectId: this.majorObject.Get_Id(), bMarker: true, cursorType: "crosshair"};
+        }
+    };
+    PreGeometryEditState.prototype.onMouseMove = function (e, x, y, pageIndex) {
+        if(!e.IsLocked) {
+            this.onMouseUp(e, x, y, pageIndex);
+            return;
+        }
+        if(Math.abs(this.startX - x) > AscFormat.MOVE_DELTA ||
+            Math.abs(this.startY - y) > AscFormat.MOVE_DELTA ||
+            pageIndex !== this.startPageIndex) {
 
-                if(e.CtrlKey) {
-                    track_object.deletePoint(track_object.geometry);
+            var oTrack = this.drawingObjects.arrPreTrackObjects[0];
+            var oGeomSelection = this.drawingObjects.selection.geometrySelection;
+            if(this.hitData.gmEditPointIdx !== null) {
+                oGeomSelection.gmEditPointIdx = this.hitData.gmEditPointIdx;
+                var oGmEditPt = oTrack.getGmEditPt();
+                if(oGmEditPt) {
+                    oGmEditPt.isHitInFirstCPoint = this.hitData.isHitInFirstCPoint;
+                    oGmEditPt.isHitInSecondCPoint = this.hitData.isHitInSecondCPoint;
                 }
             }
-            track_object.addCommandsInPathInfo(track_object.geometry);
-            this.drawingObjects.updateOverlay();
-            AscFormat.RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+            if(this.hitData.addingNewPoint) {
+                oTrack.addPoint(this.hitData.addingNewPoint, x, y);
+            }
+
+            this.drawingObjects.swapTrackObjects();
+            this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects, this.majorObject, this.startX, this.startY));
+            this.drawingObjects.OnMouseMove(e, x, y, pageIndex);
         }
+    };
+    PreGeometryEditState.prototype.onMouseUp = function (e, x, y, pageIndex) {
+        var oGeomSelection = this.drawingObjects.selection.geometrySelection;
+        if(this.hitData.gmEditPointIdx !== null) {
+            oGeomSelection.gmEditPointIdx = this.hitData.gmEditPointIdx;
+        }
+        if(e.CtrlKey) {
+            //remove or add point
+            var oTrack = this.drawingObjects.arrPreTrackObjects[0];
+            if(this.hitData.addingNewPoint) {
+                oTrack.addPoint(this.hitData.addingNewPoint, x, y);
+            }
+            else {
+                oTrack.deletePoint()
+            }
+            this.drawingObjects.swapTrackObjects();
+            AscFormat.RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+            return;
+        }
+        this.drawingObjects.clearPreTrackObjects();
+        this.drawingObjects.changeCurrentState(new AscFormat.NullState(this.drawingObjects));
+        this.drawingObjects.updateOverlay();
+    };
+
+    function GeometryEditState(drawingObjects, majorObject, startX, startY) {
+        this.drawingObjects = drawingObjects;
+        this.majorObject = majorObject;
+        this.startX = startX;
+        this.startY = startY;
+    }
+    GeometryEditState.prototype.onMouseDown = function(e, x, y, pageIndex) {
+        if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR) {
+            return {objectId: this.majorObject && this.majorObject.Get_Id(), bMarker: true, cursorType: "crosshair"};
+        }
+    };
+    GeometryEditState.prototype.onMouseMove = function(e, x, y) {
+        this.drawingObjects.trackResizeObjects(e, x, y);
+        this.drawingObjects.updateOverlay();
+    };
+    GeometryEditState.prototype.onMouseUp = function(e, x, y, pageIndex) {
+        AscFormat.RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+    };
+
+    function CGeometryEditSelection(oDrawingObjects, oDrawing) {
+        this.drawing = oDrawing;
+        this.drawingObjects = oDrawingObjects;
+        this.gmEditPointIdx = null;
+        this.geometryEditTrack = null;
+    }
+    CGeometryEditSelection.prototype.drawSelect = function (pageIndex, drawingDocument) {
+        if(this.drawing.selectStartPage !== pageIndex) {
+            return;
+        }
+        this.getTrack().drawSelect(drawingDocument, this.getGmEditPtIdx());
+    };
+    CGeometryEditSelection.prototype.hitToGeometryEdit = function (x, y) {
+        return this.getTrack().hitToGeomEdit(this.drawing.getCanvasContext(), x, y);
+    };
+    CGeometryEditSelection.prototype.getTrack = function (x, y) {
+        if(!this.geometryEditTrack || !this.geometryEditTrack.isCorrect()) {
+            this.geometryEditTrack = new AscFormat.EditShapeGeometryTrack(this.drawing, this.drawingObjects);
+        }
+        return this.geometryEditTrack;
+    };
+    CGeometryEditSelection.prototype.getGmEditPtIdx = function (x, y) {
+        if(!this.geometryEditTrack || !this.geometryEditTrack.isCorrect()) {
+            return null;
+        }
+        return this.gmEditPointIdx;
+    };
+    CGeometryEditSelection.prototype.handle = function (oDrawingObjects, e, x, y) {
+        var oHit = this.hitToGeometryEdit(x, y);
+        if(oHit) {
+            if(this.drawingObjects.handleEventMode === AscFormat.HANDLE_EVENT_MODE_CURSOR) {
+                return {objectId: this.drawing.Get_Id(), cursorType: "crosshair", bMarker: true};
+            }
+            else {
+                this.drawingObjects.addPreTrackObject(new AscFormat.EditShapeGeometryTrack(this.drawing, this.drawingObjects));
+                this.drawingObjects.changeCurrentState(new PreGeometryEditState(this.drawingObjects, this.drawing, x, y, oHit));
+                return true;
+            }
+        }
+        //if (ret && ret.hit) {
+        //    if(drawingObjectsController.handleEventMode === AscFormat.HANDLE_EVENT_MODE_CURSOR) {
+        //        return {objectId: drawing.Get_Id(), cursorType: "crosshair", bMarker: true};
+        //    }
+        //    else {
+        //        drawingObjectsController.changeCurrentState(new AscFormat.GeometryEditState(drawingObjectsController, drawing, x, y, true === ret.addingNewPoint));
+        //        drawingObjectsController.arrTrackObjects.push(oGeometryEditSelection.geometryEditTrack);
+        //    }
+        //}
+        return null;
     };
 
     //--------------------------------------------------------export----------------------------------------------------

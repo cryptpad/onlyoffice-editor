@@ -42,66 +42,161 @@
         END: 5
     };
 
-    function EditShapeGeometryTrack(originalObject, document, drawingObjects, extX, extY) {
+    function EditShapeGeometryTrack(originalObject, drawingObjects, extX, extY) {
         AscFormat.ExecuteNoHistory(function() {
+            this.originalObject = originalObject;
             this.drawingObjects = drawingObjects;
-            this.geometry = originalObject.spPr.geometry.createDuplicate();
+            this.originalGeometry = this.getOriginalObjectGeometry();
+            this.geometry = this.originalGeometry.createDuplicate();
             this.geometry.parent = originalObject.spPr.geometry.parent;
             this.originalShape = originalObject;
-            this.originalObject = originalObject;
             this.shapeWidth = extX ? extX : originalObject.extX;
             this.shapeHeight = extY ? extY : originalObject.extY;
             var oPen = originalObject.pen;
             var oBrush = originalObject.brush;
             this.transform = originalObject.transform;
+            this.invertTransform = originalObject.invertTransform;
             this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.shapeWidth, this.shapeHeight, oBrush, oPen, this.transform);
             this.xMin = 0;
             this.yMin = 0;
             this.xMax = this.shapeWidth;
             this.yMax = this.shapeHeight;
-            this.addingPoint = {pathIndex: null, commandIndex: null};
-            this.document = document;
             this.geometry.Recalculate(this.shapeWidth, this.shapeHeight);
-        }, this, []);
-    };
+            this.arrPathCommandsType = [];
+            this.convertToBezier();
+            this.createGeometryEditList();
 
+            var oPen1 = new AscFormat.CLn();
+            oPen1.w = 15000;
+            oPen1.Fill = AscFormat.CreateSolidFillRGBA(255, 255, 255, 255);
+            var oPen2 = new AscFormat.CLn();
+            oPen2.w = 15000;
+            oPen2.Fill = AscFormat.CreateSolidFillRGBA(0x61, 0x9e, 0xde, 255);
+            oPen2.prstDash = 0;
+
+            this.pen1 = oPen1;
+            this.pen2 = oPen2;
+
+            this.overlayGeometry = this.geometry.createDuplicate();
+            this.overlayObjectTrack = new AscFormat.OverlayObject(this.overlayGeometry, this.shapeWidth, this.shapeHeight, null, oPen1, this.transform);
+
+            this.addedPointIdx = null;
+
+        }, this, []);
+    }
+    EditShapeGeometryTrack.prototype.getOriginalObjectGeometry = function() {
+        return this.originalObject.spPr.geometry;
+    };
     EditShapeGeometryTrack.prototype.draw = function(overlay)
     {
-        if(AscFormat.isRealNumber(this.originalShape.selectStartPage) && overlay.SetCurrentPage)
+        var gmEditPoint = this.getGmEditPt();
+        if(gmEditPoint)
         {
-            overlay.SetCurrentPage(this.originalShape.selectStartPage);
+            var dOldAlpha = null;
+            var oGraphics = overlay.Graphics ? overlay.Graphics : overlay;
+
+
+            if(AscFormat.isRealNumber(this.originalShape.selectStartPage) && overlay.SetCurrentPage)
+            {
+                overlay.SetCurrentPage(this.originalShape.selectStartPage);
+            }
+
+            if(AscFormat.isRealNumber(oGraphics.globalAlpha) && oGraphics.put_GlobalAlpha)
+            {
+                dOldAlpha = oGraphics.globalAlpha;
+                oGraphics.put_GlobalAlpha(false, 1);
+            }
+            if(AscFormat.isRealNumber(this.originalShape.selectStartPage) && overlay.SetCurrentPage)
+            {
+                overlay.SetCurrentPage(this.originalShape.selectStartPage);
+            }
+            if(overlay.DrawGeomEditPoint)
+            {
+                overlay.DrawGeomEditPoint(this.transform, gmEditPoint);
+            }
+            this.overlayObjectTrack.pen = this.pen1;
+            this.overlayObjectTrack.draw(overlay, this.transform);
+            this.overlayObjectTrack.pen = this.pen2;
+            this.overlayObjectTrack.draw(overlay, this.transform);
+            if(AscFormat.isRealNumber(dOldAlpha) && oGraphics.put_GlobalAlpha)
+            {
+                oGraphics.put_GlobalAlpha(true, dOldAlpha);
+            }
         }
         //Check correct
-        this.overlayObject.TransformMatrix = this.originalShape.transform;
-        this.overlayObject.draw(overlay);
+
+        //this.overlayObject.TransformMatrix = this.originalShape.transform;
+        //this.overlayObject.draw(overlay);
+    };
+
+
+    EditShapeGeometryTrack.prototype.drawSelect = function(oDrawingDocument, nGmEditPointIdx) {
+        if(!this.isCorrect()) {
+            return;
+        }
+        var geometry = this.geometry;
+        var gmEditList = this.gmEditList;
+        var gmEditPoint = this.getGmEditPt();
+        var pathLst = geometry.pathLst;
+        var matrix = this.transform;
+        oDrawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, pathLst, gmEditList, gmEditPoint);
+    };
+
+    EditShapeGeometryTrack.prototype.getGmEditPtIdx = function() {
+        var oGeomSelection = this.drawingObjects.selection.geometrySelection;
+        if(!oGeomSelection) {
+            return null;
+        }
+        return oGeomSelection.getGmEditPtIdx();
+    };
+
+    EditShapeGeometryTrack.prototype.getGmEditPt = function() {
+        if(!this.isCorrect()) {
+            return null;
+        }
+        if(this.addedPointIdx !== null) {
+            return this.gmEditList[this.addedPointIdx];
+        }
+        var oPt = this.gmEditList[this.getGmEditPtIdx()];
+        return oPt || null;
+    };
+
+    EditShapeGeometryTrack.prototype.getOriginalPt = function() {
+        if(!this.isCorrect()) {
+            return null;
+        }
+        var oGeomSelection = this.drawingObjects.selection.geometrySelection;
+        if(!oGeomSelection) {
+            return null;
+        }
+        return oGeomSelection.getTrack().getGmEditPt();
     };
 
     EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
-        var geometry = this.geometry;
+        AscFormat.ExecuteNoHistory(function(){
+            var geometry = this.geometry;
+            var gmEditPoint = this.getGmEditPt();
+            if(!gmEditPoint) {
+                return;
+            }
+            geometry.gdLstInfo = [];
+            geometry.cnxLstInfo = [];
 
-        if(!geometry.gmEditPoint) {
-            return;
-        }
-        geometry.gdLstInfo = [];
-        geometry.cnxLstInfo = [];
+            for(var i = 0; i < geometry.pathLst.length; i++) {
+                geometry.pathLst[i].ArrPathCommandInfo = [];
+            }
+            var invert_transform = this.originalShape.invertTransform;
+            var _relative_x = invert_transform.TransformPointX(posX, posY);
+            var _relative_y = invert_transform.TransformPointY(posX, posY);
+            var originalPoint = this.getOriginalPt();
+            var nextPoint = gmEditPoint.nextPoint;
+            var prevPoint = gmEditPoint.prevPoint;
+            var currentPath = geometry.pathLst[gmEditPoint.pathIndex];
+            var arrPathCommand = currentPath.ArrPathCommand;
 
-        for(var i = 0; i < geometry.pathLst.length; i++) {
-            geometry.pathLst[i].ArrPathCommandInfo = [];
-        }
-
-        var invert_transform = this.originalShape.invertTransform;
-        var _relative_x = invert_transform.TransformPointX(posX, posY);
-        var _relative_y = invert_transform.TransformPointY(posX, posY);
-        var originalPoint = geometry.originalEditPoint;
-        var gmEditPoint = geometry.gmEditPoint;
-        var nextPoint = gmEditPoint.nextPoint;
-        var prevPoint = gmEditPoint.prevPoint;
-        var currentPath = geometry.pathLst[gmEditPoint.pathIndex];
-        var arrPathCommand = currentPath.ArrPathCommand;
-
-        var cur_command_type_array = geometry.arrPathCommandsType[gmEditPoint.pathIndex];
-        var cur_command_type_1 = cur_command_type_array[gmEditPoint.pathC1];
-        var cur_command_type_2 = cur_command_type_array[gmEditPoint.pathC2];
+            var cur_command_type_array = this.arrPathCommandsType[gmEditPoint.pathIndex];
+            var cur_command_type_1 = cur_command_type_array[gmEditPoint.pathC1];
+            var cur_command_type_2 = cur_command_type_array[gmEditPoint.pathC2];
 
             if(gmEditPoint.isHitInFirstCPoint) {
                 arrPathCommand[gmEditPoint.pathC1].X1 = _relative_x;
@@ -118,9 +213,7 @@
                 gmEditPoint.g1Y = _relative_y;
 
                 if(cur_command_type_1 === PathType.ARC && cur_command_type_2 === PathType.ARC) {
-
                     var isEllipseArc = Math.abs((gmEditPoint.X - g1X) * (gmEditPoint.g2Y - g1Y) - (gmEditPoint.g2X - g1X) * (gmEditPoint.Y - g1Y));
-
                     if(Math.floor(isEllipseArc) === 0) {
                         var g2X = gmEditPoint.g1X - gmEditPoint.X;
                         var g2Y = gmEditPoint.g1Y - gmEditPoint.Y;
@@ -130,7 +223,7 @@
                         gmEditPoint.g2X = gmEditPoint.X - g2X;
                         gmEditPoint.g2Y = gmEditPoint.Y - g2Y;
                     } else {
-                        var pathElemType =  geometry.arrPathCommandsType[gmEditPoint.pathIndex];
+                        var pathElemType =  this.arrPathCommandsType[gmEditPoint.pathIndex];
                         pathElemType[gmEditPoint.pathC1] = PathType.BEZIER_4;
                         pathElemType[gmEditPoint.pathC2] = PathType.BEZIER_4;
                     }
@@ -163,9 +256,9 @@
                         gmEditPoint.g1X = gmEditPoint.X - g1X;
                         gmEditPoint.g1Y = gmEditPoint.Y - g1Y;
                     } else {
-                       var pathElemType =  geometry.arrPathCommandsType[gmEditPoint.pathIndex];
-                       pathElemType[gmEditPoint.pathC1] = PathType.BEZIER_4;
-                       pathElemType[gmEditPoint.pathC2] = PathType.BEZIER_4;
+                        var pathElemType =  this.arrPathCommandsType[gmEditPoint.pathIndex];
+                        pathElemType[gmEditPoint.pathC1] = PathType.BEZIER_4;
+                        pathElemType[gmEditPoint.pathC2] = PathType.BEZIER_4;
                     }
                 }
             } else {
@@ -193,7 +286,7 @@
                     Y2: _relative_y,
                     X: _relative_x,
                     Y: _relative_y
-                }
+                };
 
                 if(gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined) {
                     gmEditPoint.g1X = command.X1;
@@ -234,7 +327,7 @@
                         Y2: nextPoint.Y,
                         X: nextPoint.X,
                         Y: nextPoint.Y
-                    }
+                    };
 
                     if (isPathCommand) {
                         gmEditPoint.g2X = command.X0;
@@ -247,12 +340,32 @@
                     arrPathCommand[gmEditPoint.pathC2] = command;
                 }
             }
+            this.overlayGeometry.pathLst.length = 1;
+            var oDrawPath = this.overlayGeometry.pathLst[0];
+            oDrawPath.ArrPathCommand.length = 0;
+            if(prevPoint) {
+                oDrawPath.ArrPathCommand.push({id:AscFormat.moveTo, X: prevPoint.X, Y: prevPoint.Y});
+                if(arrPathCommand[gmEditPoint.pathC1]) {
+                    oDrawPath.ArrPathCommand.push(arrPathCommand[gmEditPoint.pathC1]);
+                }
+                if(arrPathCommand[gmEditPoint.pathC2]) {
+                    oDrawPath.ArrPathCommand.push(arrPathCommand[gmEditPoint.pathC2]);
+                }
+            }
+            else {
+                oDrawPath.ArrPathCommand.push({id:AscFormat.moveTo, X: gmEditPoint.X, Y: gmEditPoint.Y});
+                if(arrPathCommand[gmEditPoint.pathC2]) {
+                    oDrawPath.ArrPathCommand.push(arrPathCommand[gmEditPoint.pathC2]);
+                }
+            }
+        }, this, []);
     };
 
     EditShapeGeometryTrack.prototype.getBounds = function() {
         var bounds_checker = new  AscFormat.CSlideBoundsChecker();
         bounds_checker.init(Page_Width, Page_Height, Page_Width, Page_Height);
-        this.draw(bounds_checker);
+        this.overlayObject.TransformMatrix = this.originalShape.transform;
+        this.overlayObject.draw(bounds_checker);
         var tr = this.originalShape.transform;
         var arr_p_x = [];
         var arr_p_y = [];
@@ -264,11 +377,13 @@
         arr_p_y.push(tr.TransformPointY(this.originalShape.extX,this.originalShape.extY));
         arr_p_x.push(tr.TransformPointX(0,this.originalShape.extY));
         arr_p_y.push(tr.TransformPointY(0,this.originalShape.extY));
-        
-        arr_p_x.push(this.xMin);
-        arr_p_x.push(this.xMax);
-        arr_p_y.push(this.yMin);
-        arr_p_y.push(this.yMax);
+
+        this.calculateMinMax();
+        var oRectBounds = this.getRectBounds();
+        arr_p_x.push(oRectBounds.XLT);
+        arr_p_x.push(oRectBounds.XRB);
+        arr_p_y.push(oRectBounds.YLT);
+        arr_p_y.push(oRectBounds.YRB);
 
 
         bounds_checker.Bounds.min_x = Math.min.apply(Math, arr_p_x);
@@ -276,311 +391,381 @@
         bounds_checker.Bounds.min_y = Math.min.apply(Math, arr_p_y);
         bounds_checker.Bounds.max_y = Math.max.apply(Math, arr_p_y);
 
-        bounds_checker.Bounds.posX = this.originalShape.x + this.xMin;
-        bounds_checker.Bounds.posY = this.originalShape.y + this.yMin;
-        bounds_checker.Bounds.extX = this.originalShape.extX;
-        bounds_checker.Bounds.extY = this.originalShape.extY;
+        var oOffset = this.getXfrmOffset();
+        bounds_checker.Bounds.posX = oOffset.OffX;
+        bounds_checker.Bounds.posY = oOffset.OffY;
+        bounds_checker.Bounds.extX = this.xMax - this.xMin;
+        bounds_checker.Bounds.extY = this.yMax - this.yMin;
 
         return bounds_checker.Bounds;
     };
 
     EditShapeGeometryTrack.prototype.addPathCommandInfo = function (command, arrPathElem, x1, y1, x2, y2, x3, y3) {
-        switch (command) {
-            case 0: {
-                var path = new AscFormat.Path();
-                path.setExtrusionOk(x1 || false);
-                path.setFill(y1 || "norm");
-                path.setStroke(x2 != undefined ? x2 : true);
-                path.setPathW(y2);
-                path.setPathH(x3);
-                this.AddPath(path);
-                break;
+        AscFormat.ExecuteNoHistory(function () {
+            switch (command) {
+                case 0: {
+                    var path = new AscFormat.Path();
+                    path.setExtrusionOk(x1 || false);
+                    path.setFill(y1 || "norm");
+                    path.setStroke(x2 != undefined ? x2 : true);
+                    path.setPathW(y2);
+                    path.setPathH(x3);
+                    this.AddPath(path);
+                    break;
+                }
+                case 1: {
+                    this.geometry.pathLst[arrPathElem].moveTo(x1, y1);
+                    break;
+                }
+                case 2: {
+                    this.geometry.pathLst[arrPathElem].lnTo(x1, y1);
+                    break;
+                }
+                case 3: {
+                    this.geometry.pathLst[arrPathElem].arcTo(x1/*wR*/, y1/*hR*/, x2/*stAng*/, y2/*swAng*/);
+                    break;
+                }
+                case 4: {
+                    this.geometry.pathLst[arrPathElem].quadBezTo(x1, y1, x2, y2);
+                    break;
+                }
+                case 5: {
+                    this.geometry.pathLst[arrPathElem].cubicBezTo(x1, y1, x2, y2, x3, y3);
+                    break;
+                }
+                case 6: {
+                    this.geometry.pathLst[arrPathElem].close();
+                    break;
+                }
             }
-            case 1: {
-                this.geometry.pathLst[arrPathElem].moveTo(x1, y1);
-                break;
-            }
-            case 2: {
-                this.geometry.pathLst[arrPathElem].lnTo(x1, y1);
-                break;
-            }
-            case 3: {
-                this.geometry.pathLst[arrPathElem].arcTo(x1/*wR*/, y1/*hR*/, x2/*stAng*/, y2/*swAng*/);
-                break;
-            }
-            case 4: {
-                this.geometry.pathLst[arrPathElem].quadBezTo(x1, y1, x2, y2);
-                break;
-            }
-            case 5: {
-                this.geometry.pathLst[arrPathElem].cubicBezTo(x1, y1, x2, y2, x3, y3);
-                break;
-            }
-            case 6: {
-                this.geometry.pathLst[arrPathElem].close();
-                break;
-            }
+        }, this, []);
+    };
+
+    EditShapeGeometryTrack.prototype.getRectBounds = function() {
+        var oTr = this.transform;
+        var aTX = [];
+        var aTY = [];
+        aTX.push(oTr.TransformPointX(this.xMin, this.yMin));
+        aTX.push(oTr.TransformPointX(this.xMax, this.yMin));
+        aTX.push(oTr.TransformPointX(this.xMax, this.yMax));
+        aTX.push(oTr.TransformPointX(this.xMin, this.yMax));
+        aTY.push(oTr.TransformPointY(this.xMin, this.yMin));
+        aTY.push(oTr.TransformPointY(this.xMax, this.yMin));
+        aTY.push(oTr.TransformPointY(this.xMax, this.yMax));
+        aTY.push(oTr.TransformPointY(this.xMin, this.yMax));
+        var dXLT = Math.min.apply(Math, aTX);
+        var dXRB = Math.max.apply(Math, aTX);
+        var dYLT = Math.min.apply(Math, aTY);
+        var dYRB = Math.max.apply(Math, aTY);
+        return {XLT: dXLT, XRB: dXRB, YLT: dYLT, YRB: dYRB }
+    };
+
+    EditShapeGeometryTrack.prototype.getXfrmOffset = function() {
+        var oRectBounds = this.getRectBounds();
+        var dExtX = this.xMax - this.xMin;
+        var dExtY = this.yMax - this.yMin;
+        var dXLT = oRectBounds.XLT;
+        var dXRB = oRectBounds.XRB;
+        var dYLT = oRectBounds.YLT;
+        var dYRB = oRectBounds.YRB;
+        var dXC = (dXLT + dXRB) / 2.0;
+        var dYC = (dYLT + dYRB) / 2.0;
+        var dOffX = dXC - dExtX / 2.0;
+        var dOffY = dYC - dExtY / 2.0;
+        return {OffX: dOffX, OffY: dOffY};
+
+    };
+
+    EditShapeGeometryTrack.prototype.trackEnd = function(bWord) {
+        this.addCommandsInPathInfo();
+        //set new extents
+        var dExtX = this.xMax - this.xMin;
+        var dExtY = this.yMax - this.yMin;
+        var oSpPr = this.originalObject.spPr;
+        var oXfrm = oSpPr.xfrm;
+        oXfrm.setExtX(dExtX);
+        oXfrm.setExtY(dExtY);
+        //set new position
+        if(bWord) {
+            oXfrm.setOffX(0);
+            oXfrm.setOffY(0);
         }
+        else {
+            var oOffset = this.getXfrmOffset();
+            oXfrm.setOffX(oOffset.OffX);
+            oXfrm.setOffY(oOffset.OffY);
+        }
+        oSpPr.setGeometry(this.geometry.createDuplicate());
+        this.originalObject.checkDrawingBaseCoords();
     };
 
-    EditShapeGeometryTrack.prototype.trackEnd = function() {
-        this.originalObject.spPr.xfrm.setExtX(this.xMax - this.xMin);
-        this.originalObject.spPr.xfrm.setExtY(this.yMax - this.yMin);
-        this.originalObject.spPr.setGeometry(this.geometry.createDuplicate());
-    };
-
-    EditShapeGeometryTrack.prototype.convertToBezier = function(geometry) {
-
-        var originalGeometry = this.originalObject.calcGeometry, countArc = 0;
-
-        for(var j = 0; j < geometry.pathLst.length; j++) {
-            geometry.pathLst[j].ArrPathCommandInfo = [];
-            var pathPoints = geometry.pathLst[j].ArrPathCommand;
-            var arrCommandsType = [];
-            for (var i = 0; i < pathPoints.length; i++) {
-                var elem = pathPoints[i];
-                var elemX = null, elemY = null;
-                switch (elem.id) {
-                    case PathType.POINT:
-                        elemX = elem.X;
-                        elemY = elem.Y;
-                        arrCommandsType.push(PathType.POINT);
-                        break;
-                    case PathType.LINE:
-                        elemX = elem.X;
-                        elemY = elem.Y;
-                        arrCommandsType.push(PathType.LINE);
-                        break;
-                    case PathType.ARC:
-                        if (originalGeometry.ellipsePointsList[countArc]) {
-                            pathPoints.splice(i, 1);
-                            originalGeometry.ellipsePointsList[countArc].forEach(function (elem) {
-                                if(elem.X && elem.Y && pathPoints[i - 1] && pathPoints[i - 1].id === PathType.POINT) {
-                                   pathPoints[i - 1].X = elem.X;
-                                   pathPoints[i - 1].Y = elem.Y;
-                                } else {
-                                    var elemArc = {
-                                        id: PathType.ARC,
-                                        X0: elem.X0,
-                                        Y0: elem.Y0,
-                                        X1: elem.X1,
-                                        Y1: elem.Y1,
-                                        X2: elem.X2,
-                                        Y2: elem.Y2
+    EditShapeGeometryTrack.prototype.convertToBezier = function() {
+        var geometry = this.geometry;
+        AscFormat.ExecuteNoHistory(
+            function () {
+                var countArc = 0;
+                for(var j = 0; j < geometry.pathLst.length; j++) {
+                    geometry.pathLst[j].ArrPathCommandInfo = [];
+                    var pathPoints = geometry.pathLst[j].ArrPathCommand;
+                    var arrCommandsType = [];
+                    for (var i = 0; i < pathPoints.length; i++) {
+                        var elem = pathPoints[i];
+                        var elemX = null, elemY = null;
+                        switch (elem.id) {
+                            case PathType.POINT:
+                                elemX = elem.X;
+                                elemY = elem.Y;
+                                arrCommandsType.push(PathType.POINT);
+                                break;
+                            case PathType.LINE:
+                                elemX = elem.X;
+                                elemY = elem.Y;
+                                arrCommandsType.push(PathType.LINE);
+                                break;
+                            case PathType.ARC:
+                                var oDrawer = new AscFormat.PathAccumulator();
+                                AscFormat.ArcToCurvers(oDrawer, elem.stX, elem.stY, elem.wR, elem.hR, elem.stAng, elem.swAng);
+                                var aPathCommands = oDrawer.pathCommand;
+                                pathPoints.splice(i, 1);
+                                for(var nIdx = 0; nIdx < aPathCommands.length; ++nIdx) {
+                                    var oCommand = aPathCommands[nIdx];
+                                    switch (oCommand.id) {
+                                        case AscFormat.moveTo: {
+                                            if(nIdx === 0 && pathPoints[i - 1] && pathPoints[i - 1].id === PathType.POINT) {
+                                                pathPoints[i - 1].X = oCommand.X;
+                                                pathPoints[i - 1].Y = oCommand.Y;
+                                            }
+                                            break;
+                                        }
+                                        case AscFormat.bezier4: {
+                                            if((oCommand.X0 !== oCommand.X1 || oCommand.X1 !== oCommand.X2) && (oCommand.Y0 !== oCommand.Y1 || oCommand.Y1 !== oCommand.Y2)) {
+                                                var elemArc = {
+                                                    id: PathType.ARC,
+                                                    X0: oCommand.X0,
+                                                    Y0: oCommand.Y0,
+                                                    X1: oCommand.X1,
+                                                    Y1: oCommand.Y1,
+                                                    X2: oCommand.X2,
+                                                    Y2: oCommand.Y2
+                                                };
+                                                arrCommandsType.push(PathType.ARC);
+                                                pathPoints.splice(i, 0, elemArc);
+                                                i++;
+                                            }
+                                            break;
+                                        }
                                     }
-                                    arrCommandsType.push(PathType.ARC);
-                                    pathPoints.splice(i, 0, elemArc);
-                                    i++;
                                 }
-                            })
-                            i = i - 1;
-                            countArc++;
+                                i = i - 1;
+                                countArc++;
+                                break;
+                            case PathType.BEZIER_3:
+                                elemX = elem.X1;
+                                elemY = elem.Y1;
+                                arrCommandsType.push(PathType.BEZIER_3);
+                                break;
+                            case PathType.BEZIER_4:
+                                elemX = elem.X2;
+                                elemY = elem.Y2;
+                                arrCommandsType.push(PathType.BEZIER_4);
+                                break;
+                            case PathType.END:
+                                arrCommandsType.push(PathType.END);
+                                break;
                         }
-                        break;
-                    case PathType.BEZIER_3:
-                        elemX = elem.X1;
-                        elemY = elem.Y1;
-                        arrCommandsType.push(PathType.BEZIER_3);
-                        break;
-                    case PathType.BEZIER_4:
-                        elemX = elem.X2;
-                        elemY = elem.Y2;
-                        arrCommandsType.push(PathType.BEZIER_4);
-                        break;
-                    case PathType.END:
-                        arrCommandsType.push(PathType.END);
-                        break;
-                }
 
-                if (elemX !== undefined && elemY !== undefined && elem.id !== PathType.ARC && elem.id !== PathType.END) {
-                    pathPoints[i] = elem;
-                }
-            };
-            var start_index = 0;
-            // insert pathCommand when end point is not equal to the start point, then draw a line between them
-            for (var cur_index = 1; cur_index < pathPoints.length; cur_index++) {
+                        if (elemX !== undefined && elemY !== undefined && elem.id !== PathType.ARC && elem.id !== PathType.END) {
+                            pathPoints[i] = elem;
+                        }
+                    }
+                    var start_index = 0;
+                    // insert pathCommand when end point is not equal to the start point, then draw a line between them
+                    for (var cur_index = 1; cur_index < pathPoints.length; cur_index++) {
 
-                if(pathPoints[cur_index].id === PathType.POINT) {
-                    start_index = cur_index;
-                }
+                        if(pathPoints[cur_index].id === PathType.POINT) {
+                            start_index = cur_index;
+                        }
 
-                if (pathPoints[cur_index].id === PathType.END && (!pathPoints[cur_index + 1] || pathPoints[cur_index + 1].id === PathType.POINT)) {
-                    var prevCommand = pathPoints[cur_index - 1];
-                    var pointCommand = pathPoints[start_index];
-                    var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
-                    var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
+                        if (pathPoints[cur_index].id === PathType.END && (!pathPoints[cur_index + 1] || pathPoints[cur_index + 1].id === PathType.POINT)) {
+                            var prevCommand = pathPoints[cur_index - 1];
+                            var pointCommand = pathPoints[start_index];
+                            var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
+                            var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
 
-                    var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(2));
-                    var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(2));
-                    var lastPointX = parseFloat(prevCommandX.toFixed(2));
-                    var lastPointY = parseFloat(prevCommandY.toFixed(2));
-                    if (firstPointX !== lastPointX || firstPointY !== lastPointY) {
+                            var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(2));
+                            var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(2));
+                            var lastPointX = parseFloat(prevCommandX.toFixed(2));
+                            var lastPointY = parseFloat(prevCommandY.toFixed(2));
+                            if (firstPointX !== lastPointX || firstPointY !== lastPointY) {
 
-                        pathPoints.splice(cur_index, 0,
-                            {
-                                id: PathType.LINE,
-                                X: pointCommand.X,
-                                Y: pointCommand.Y
-                            });
-                      arrCommandsType.splice(cur_index, 0, PathType.LINE);
-                        ++cur_index;
+                                pathPoints.splice(cur_index, 0,
+                                    {
+                                        id: PathType.LINE,
+                                        X: pointCommand.X,
+                                        Y: pointCommand.Y
+                                    });
+                                arrCommandsType.splice(cur_index, 0, PathType.LINE);
+                                ++cur_index;
+                            }
+                        }
+                    }
+
+                    pathPoints.forEach(function (elem, cur_index) {
+
+                        var prevCommand = pathPoints[cur_index - 1];
+                        if(prevCommand) {
+                            var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
+                            var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
+                        }
+
+                        switch (elem.id) {
+                            case 1:
+                                pathPoints[cur_index] = {
+                                    id: PathType.LINE,
+                                    X0: (prevCommandX + elem.X / 2) / (3 / 2),
+                                    Y0: (prevCommandY + elem.Y / 2) / (3 / 2),
+                                    X1: (prevCommandX + elem.X * 2) / 3,
+                                    Y1: (prevCommandY + elem.Y * 2) / 3,
+                                    X2: elem.X,
+                                    Y2: elem.Y
+                                };
+                                break;
+                            case 3:
+                                pathPoints[cur_index] = {
+                                    id: PathType.BEZIER_3,
+                                    X0: (elem.X0 + prevCommandX) / 2,
+                                    Y0: (elem.Y0 + prevCommandY) / 2,
+                                    X1: (elem.X1 + elem.X0) / 2,
+                                    Y1: (elem.Y1 + elem.Y0) / 2,
+                                    X2: elem.X1,
+                                    Y2: elem.Y1
+                                };
+                                break;
+                        }
+                    });
+                    if(this.arrPathCommandsType.length < geometry.pathLst.length) {
+                        this.arrPathCommandsType.push(arrCommandsType);
                     }
                 }
-            }
-
-            pathPoints.forEach(function (elem, cur_index) {
-
-                var prevCommand = pathPoints[cur_index - 1];
-                if(prevCommand) {
-                    var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
-                    var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
-                }
-
-                switch (elem.id) {
-                    case 1:
-                        pathPoints[cur_index] = {
-                            id: PathType.LINE,
-                            X0: (prevCommandX + elem.X / 2) / (3 / 2),
-                            Y0: (prevCommandY + elem.Y / 2) / (3 / 2),
-                            X1: (prevCommandX + elem.X * 2) / 3,
-                            Y1: (prevCommandY + elem.Y * 2) / 3,
-                            X2: elem.X,
-                            Y2: elem.Y
-                        }
-                        break;
-                    case 3:
-                        pathPoints[cur_index] = {
-                            id: PathType.BEZIER_3,
-                            X0: (elem.X0 + prevCommandX) / 2,
-                            Y0: (elem.Y0 + prevCommandY) / 2,
-                            X1: (elem.X1 + elem.X0) / 2,
-                            Y1: (elem.Y1 + elem.Y0) / 2,
-                            X2: elem.X1,
-                            Y2: elem.Y1
-                        }
-                        break;
-                }
-            });
-            if(geometry.arrPathCommandsType.length < geometry.pathLst.length) {
-                geometry.arrPathCommandsType.push(arrCommandsType);
-            }
-        }
-
-        geometry.isGeomConverted = true;
-        geometry.setPreset(null);
-        geometry.rectS = null;
+                geometry.setPreset(null);
+                geometry.rectS = null;
+            }, this, []);
     };
 
-    EditShapeGeometryTrack.prototype.createGeometryEditList = function(geometry) {
-        geometry.gmEditList = [];
+    EditShapeGeometryTrack.prototype.createGeometryEditList = function() {
+        AscFormat.ExecuteNoHistory(function(){
+            var geometry = this.geometry;
+            this.gmEditList = [];
+            for(var j = 0; j < geometry.pathLst.length; j++) {
 
-        for(var j = 0; j < geometry.pathLst.length; j++) {
+                var start_index = 0, isFirstAndLastPointsEqual = false;
+                var pathPoints = geometry.pathLst[j].ArrPathCommand;
 
-            var start_index = 0, isFirstAndLastPointsEqual = false;
-            var pathPoints = geometry.pathLst[j].ArrPathCommand;
+                for (var index = 0; index < pathPoints.length; index++) {
+                    var curCommand = pathPoints[index];
+                    var nextPath = pathPoints[index + 1];
 
-            for (var index = 0; index < pathPoints.length; index++) {
-                var curCommand = pathPoints[index];
-                var nextPath = pathPoints[index + 1];
+                    if (curCommand.id !== PathType.END) {
+                        var nextIndex = 0;
+                        var isAddingStartPoint = false;
 
-                if (curCommand.id !== PathType.END) {
-                    var nextIndex = 0;
-                    var isAddingStartPoint = false;
+                        if (!nextPath || nextPath.id === PathType.POINT || nextPath.id === PathType.END) {
 
-                    if (!nextPath || nextPath.id === PathType.POINT || nextPath.id === PathType.END) {
+                            nextIndex = isFirstAndLastPointsEqual ? (index === start_index ? null : start_index + 1) : null;
 
-                        nextIndex = isFirstAndLastPointsEqual ? (index === start_index ? null : start_index + 1) : null;
-
-                        if (nextPath) {
-                            start_index = nextPath.id === PathType.POINT ? index + 1 : index + 2;
-                            isFirstAndLastPointsEqual = false;
+                            if (nextPath) {
+                                start_index = nextPath.id === PathType.POINT ? index + 1 : index + 2;
+                                isFirstAndLastPointsEqual = false;
+                            }
+                        } else {
+                            nextIndex = index + 1;
                         }
-                    } else {
-                        nextIndex = index + 1;
-                    }
 
-                    if (curCommand.id === PathType.POINT) {
-                        //finding last point in figure element
-                        var i = 1;
-                        while((index + i <= pathPoints.length - 1) && pathPoints[index + i].id !== PathType.POINT) {
-                            ++i;
+                        if (curCommand.id === PathType.POINT) {
+                            //finding last point in figure element
+                            var i = 1;
+                            while((index + i <= pathPoints.length - 1) && pathPoints[index + i].id !== PathType.POINT) {
+                                ++i;
+                            }
+                            if(pathPoints[index + i - 1].id === PathType.END) {
+                                --i;
+                            }
+                            var firstPoint = pathPoints[start_index];
+                            var firstPointX = firstPoint.X !== undefined ? firstPoint.X : firstPoint.X2;
+                            firstPointX = parseFloat(firstPointX.toFixed(2));
+                            var firstPointY = firstPoint.Y !== undefined ? firstPoint.Y : firstPoint.Y2;
+                            firstPointY = parseFloat(firstPointY.toFixed(2));
+
+                            var lastPoint = pathPoints[index + i - 1];
+                            var lastPointX = lastPoint.X !== undefined ? lastPoint.X : lastPoint.X2;
+                            lastPointX = parseFloat(lastPointX.toFixed(2));
+                            var lastPointY = lastPoint.Y !== undefined ? lastPoint.Y : lastPoint.Y2;
+                            lastPointY = parseFloat(lastPointY.toFixed(2));
+
+                            (firstPointX !== lastPointX || firstPointY !== lastPointY) ? isAddingStartPoint = true : isFirstAndLastPointsEqual = true;
                         }
-                        if(pathPoints[index + i - 1].id === PathType.END) {
-                            --i;
+
+                        if(pathPoints[index].id !== PathType.POINT || isAddingStartPoint) {
+                            var nextCommand = pathPoints[nextIndex];
+
+                            var g1X = curCommand.X1;
+                            var g1Y = curCommand.Y1;
+                            var g2X = nextCommand ? nextCommand.X0 : undefined;
+                            var g2Y = nextCommand ? nextCommand.Y0 : undefined;
+
+
+                            var curPoint = {
+                                g1X: g1X,
+                                g1Y: g1Y,
+                                g2X: g2X,
+                                g2Y: g2Y,
+                                X: (curCommand.X !== undefined ? curCommand.X : curCommand.X2),
+                                Y: (curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2),
+                                pathC1: index,
+                                pathC2: nextIndex,
+                                pathIndex: j
+                            };
+                            this.gmEditList.push(curPoint);
                         }
-                        var firstPoint = pathPoints[start_index];
-                        var firstPointX = firstPoint.X !== undefined ? firstPoint.X : firstPoint.X2;
-                        firstPointX = parseFloat(firstPointX.toFixed(2));
-                        var firstPointY = firstPoint.Y !== undefined ? firstPoint.Y : firstPoint.Y2;
-                        firstPointY = parseFloat(firstPointY.toFixed(2));
-
-                        var lastPoint = pathPoints[index + i - 1];
-                        var lastPointX = lastPoint.X !== undefined ? lastPoint.X : lastPoint.X2;
-                        lastPointX = parseFloat(lastPointX.toFixed(2));
-                        var lastPointY = lastPoint.Y !== undefined ? lastPoint.Y : lastPoint.Y2;
-                        lastPointY = parseFloat(lastPointY.toFixed(2));
-
-                        (firstPointX !== lastPointX || firstPointY !== lastPointY) ? isAddingStartPoint = true : isFirstAndLastPointsEqual = true;
                     }
-
-                    if(pathPoints[index].id !== PathType.POINT || isAddingStartPoint) {
-                        var nextCommand = pathPoints[nextIndex];
-
-                        var g1X = curCommand.X1;
-                        var g1Y = curCommand.Y1;
-                        var g2X = nextCommand ? nextCommand.X0 : undefined;
-                        var g2Y = nextCommand ? nextCommand.Y0 : undefined;
-
-
-                        var curPoint = {
-                            g1X: g1X,
-                            g1Y: g1Y,
-                            g2X: g2X,
-                            g2Y: g2Y,
-                            X: (curCommand.X !== undefined ? curCommand.X : curCommand.X2),
-                            Y: (curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2),
-                            pathC1: index,
-                            pathC2: nextIndex,
-                            pathIndex: j
-                        };
-                        geometry.gmEditList.push(curPoint);
-                    }
+                    curCommand.id = (curCommand.id !== PathType.POINT && curCommand.id !== PathType.END) ? PathType.BEZIER_4 : curCommand.id;
                 }
-                curCommand.id = (curCommand.id !== PathType.POINT && curCommand.id !== PathType.END) ? PathType.BEZIER_4 : curCommand.id;
             }
-        }
-
-        var startIndex = 0;
-        for (var cur_index = 0; cur_index < geometry.gmEditList.length; cur_index++) {
-            if(geometry.gmEditList[cur_index].pathC2 > geometry.gmEditList[cur_index].pathC1) {
-                geometry.gmEditList[cur_index].nextPoint = geometry.gmEditList[cur_index + 1];
-                geometry.gmEditList[cur_index + 1].prevPoint = geometry.gmEditList[cur_index];
-            } else {
-                geometry.gmEditList[cur_index].nextPoint =  geometry.gmEditList[startIndex];
-                geometry.gmEditList[startIndex].prevPoint = geometry.gmEditList[cur_index];
-                startIndex = cur_index + 1;
-            }
-        }
-
-        //update gmEditPoint coords
-        if(geometry.gmEditPoint) {
-            var pointC1 = geometry.gmEditPoint.pathC1;
-            var pointC2 = geometry.gmEditPoint.pathC2;
-            var isHitInFirstCPoint = geometry.gmEditPoint.isHitInFirstCPoint;
-            var isHitInSecondCPoint = geometry.gmEditPoint.isHitInSecondCPoint;
-            geometry.gmEditList.forEach(function(elem) {
-                if(elem.pathIndex === geometry.gmEditPoint.pathIndex && elem.pathC1 === pointC1 && elem.pathC2 === pointC2) {
-                    geometry.gmEditPoint = elem;
-                    geometry.gmEditPoint.isHitInFirstCPoint = isHitInFirstCPoint;
-                    geometry.gmEditPoint.isHitInSecondCPoint = isHitInSecondCPoint;
+            var startIndex = 0;
+            for (var cur_index = 0; cur_index < this.gmEditList.length; cur_index++) {
+                if(this.gmEditList[cur_index].pathC2 > this.gmEditList[cur_index].pathC1) {
+                    this.gmEditList[cur_index].nextPoint = this.gmEditList[cur_index + 1];
+                    this.gmEditList[cur_index + 1].prevPoint = this.gmEditList[cur_index];
+                } else {
+                    this.gmEditList[cur_index].nextPoint =  this.gmEditList[startIndex];
+                    this.gmEditList[startIndex].prevPoint = this.gmEditList[cur_index];
+                    startIndex = cur_index + 1;
                 }
-            })
-        }
+            }
+
+            //update gmEditPoint coords
+            var gmEditPoint = this.getGmEditPt();
+            if(gmEditPoint) {
+                var pointC1 = gmEditPoint.pathC1;
+                var pointC2 = gmEditPoint.pathC2;
+                var isHitInFirstCPoint = gmEditPoint.isHitInFirstCPoint;
+                var isHitInSecondCPoint = gmEditPoint.isHitInSecondCPoint;
+                var oThis = this;
+                this.gmEditList.forEach(function(elem) {
+                    if(elem.pathIndex === gmEditPoint.pathIndex && elem.pathC1 === pointC1 && elem.pathC2 === pointC2) {
+                        gmEditPoint = elem;
+                        gmEditPoint.isHitInFirstCPoint = isHitInFirstCPoint;
+                        gmEditPoint.isHitInSecondCPoint = isHitInSecondCPoint;
+                    }
+                })
+            }
+        }, this, []);
     };
 
-    EditShapeGeometryTrack.prototype.addCommandsInPathInfo = function(geometry) {
-        var last_x = geometry.gmEditList[0].X,
-            last_y = geometry.gmEditList[0].Y,
+    EditShapeGeometryTrack.prototype.calculateMinMax = function() {
+        var geometry = this.geometry;
+        var last_x = this.gmEditList[0].X,
+            last_y = this.gmEditList[0].Y,
             xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
         for (var i = 0; i < geometry.pathLst.length; i++) {
             var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
@@ -609,163 +794,255 @@
                 }
             }
         }
-
-
         this.xMin = xMin;
         this.xMax = xMax;
         this.yMin = yMin;
         this.yMax = yMax;
 
-        var w = xMax - xMin, h = yMax - yMin;
-        var kw, kh, pathW, pathH;
-        if (w > 0) {
-            pathW = 43200;
-            kw = 43200 / w;
-        }
-        else {
-            pathW = 0;
-            kw = 0;
-        }
-        if (h > 0) {
-            pathH = 43200;
-            kh = 43200 / h;
-        }
-        else {
-            pathH = 0;
-            kh = 0;
-        }
+    };
 
-        for (var i = 0; i < geometry.pathLst.length; i++) {
-            var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
-            for (var j = 0; j < arrPathCommand.length; ++j) {
-
-                switch (arrPathCommand[j].id) {
-                    case PathType.POINT: {
-                        this.addPathCommandInfo(1, i, (((arrPathCommand[j].X - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y - yMin) * kh) >> 0) + "");
-                        break;
-                    }
-                    case PathType.BEZIER_4: {
-                        this.addPathCommandInfo(5, i, (((arrPathCommand[j].X0 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - yMin) * kh) >> 0) + "");
-                        break;
-                    }
-                    case PathType.END: {
-                        this.addPathCommandInfo(6, i);
-                    }
+    EditShapeGeometryTrack.prototype.addCommandsInPathInfo = function() {
+        AscFormat.ExecuteNoHistory(
+            function(){
+                var geometry = this.geometry;
+                this.calculateMinMax();
+                var w = this.xMax - this.xMin, h = this.yMax - this.yMin;
+                var kw, kh, pathW, pathH;
+                if (w > 0) {
+                    pathW = 43200;
+                    kw = 43200 / w;
                 }
+                else {
+                    pathW = 0;
+                    kw = 0;
+                }
+                if (h > 0) {
+                    pathH = 43200;
+                    kh = 43200 / h;
+                }
+                else {
+                    pathH = 0;
+                    kh = 0;
+                }
+
+                for (var i = 0; i < geometry.pathLst.length; i++) {
+                    var oPath = geometry.pathLst[i];
+                    oPath.ArrPathCommandInfo.length = 0;
+                    var arrPathCommand = oPath.ArrPathCommand;
+                    for (var j = 0; j < arrPathCommand.length; ++j) {
+
+                        switch (arrPathCommand[j].id) {
+                            case PathType.POINT: {
+                                this.addPathCommandInfo(1, i, (((arrPathCommand[j].X - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y - this.yMin) * kh) >> 0) + "");
+                                break;
+                            }
+                            case PathType.BEZIER_4: {
+                                this.addPathCommandInfo(5, i, (((arrPathCommand[j].X0 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - this.yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - this.yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - this.yMin) * kh) >> 0) + "");
+                                break;
+                            }
+                            case PathType.END: {
+                                this.addPathCommandInfo(6, i);
+                            }
+                        }
+                    }
+                    geometry.pathLst[i].pathW = pathW;
+                    geometry.pathLst[i].pathH = pathH;
+                }
+            }, this, []
+        );
+    };
+
+    EditShapeGeometryTrack.prototype.addPoint = function(oAddingPoint, X, Y) {
+        return AscFormat.ExecuteNoHistory(function() {
+            var geometry = this.geometry;
+            var commandIndex = oAddingPoint.commandIndex;
+            var pathIndex = oAddingPoint.pathIndex;
+            var tx = this.invertTransform.TransformPointX(X, Y);
+            var ty = this.invertTransform.TransformPointY(X, Y);
+
+            var pathElem = geometry.pathLst[pathIndex].ArrPathCommand;
+            var curCommand = pathElem[commandIndex];
+
+            var gmEditListElem = this.gmEditList.filter(function(elem) {
+                return elem.pathC1 === commandIndex;
+            })[0];
+            var prevCommand_1 = gmEditListElem.prevPoint;
+            var prevCommand_2 = prevCommand_1.prevPoint;
+
+            var curCommandX = curCommand.X !== undefined ? curCommand.X : curCommand.X2;
+            var curCommandY = curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2;
+
+            var X0 = prevCommand_1.X + (tx - prevCommand_2.X) / 4;
+            var Y0 = prevCommand_1.Y + (ty - prevCommand_2.Y) / 4;
+            var X1 = tx - (curCommandX - prevCommand_1.X) / 4;
+            var Y1 = ty - (curCommandY - prevCommand_1.Y) / 4;
+            var newPathElem = {id: PathType.BEZIER_4, X0: X0, Y0: Y0, X1: X1, Y1: Y1, X2: tx, Y2: ty};
+            curCommand.X0 = tx + (curCommandX - prevCommand_1.X) / 4;
+            curCommand.Y0 = ty + (curCommandY - prevCommand_1.Y) / 4;
+
+            pathElem.splice(commandIndex, 0, newPathElem);
+            this.arrPathCommandsType[pathIndex].splice(commandIndex, 0, PathType.BEZIER_4);
+
+
+            geometry.pathLst[pathIndex].ArrPathCommandInfo = [];
+            this.addCommandsInPathInfo();
+            this.createGeometryEditList();
+            var oHitData = this.hitToGmEditLst(X, Y);
+            if(oHitData) {
+                this.addedPointIdx = oHitData.gmEditPointIdx
             }
-            geometry.pathLst[i].pathW = pathW, geometry.pathLst[i].pathH = pathH;
-        }
-    };
-
-    EditShapeGeometryTrack.prototype.addPoint = function(invert_transform, geometry, X, Y) {
-        var commandIndex = this.addingPoint.commandIndex;
-        var pathIndex = this.addingPoint.pathIndex;
-
-        var pathElem = geometry.pathLst[pathIndex].ArrPathCommand;
-        var curCommand = pathElem[commandIndex];
-
-        var gmEditListElem = geometry.gmEditList.filter(function(elem) {
-            return elem.pathC1 === commandIndex;
-        })[0];
-        var prevCommand_1 = gmEditListElem.prevPoint;
-        var prevCommand_2 = prevCommand_1.prevPoint;
-
-        var curCommandX = curCommand.X !== undefined ? curCommand.X : curCommand.X2;
-        var curCommandY = curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2;
-
-        var X0 = prevCommand_1.X + (X - prevCommand_2.X) / 4;
-        var Y0 = prevCommand_1.Y + (Y - prevCommand_2.Y) / 4;
-        var X1 = X - (curCommandX - prevCommand_1.X) / 4;
-        var Y1 = Y - (curCommandY - prevCommand_1.Y) / 4;
-        var newPathElem = {id: PathType.BEZIER_4, X0: X0, Y0: Y0, X1: X1, Y1: Y1, X2: X, Y2: Y};
-        curCommand.X0 = X + (curCommandX - prevCommand_1.X) / 4;
-        curCommand.Y0 = Y + (curCommandY - prevCommand_1.Y) / 4;
-
-        pathElem.splice(commandIndex, 0, newPathElem);
-        geometry.arrPathCommandsType[pathIndex].splice(commandIndex, 0, PathType.BEZIER_4);
-
-
-        geometry.pathLst[pathIndex].ArrPathCommandInfo = [];
+        }, this, []);
 
     };
 
-    EditShapeGeometryTrack.prototype.deletePoint = function(geometry) {
-        var gmEditPoint = geometry.gmEditPoint,
-            pathIndex = gmEditPoint.pathIndex,
-            pathElem = geometry.pathLst[pathIndex],
-            arrayCommands = geometry.pathLst[pathIndex].ArrPathCommand;
-
-        if(pathElem && pathElem.stroke === true && pathElem.fill === "none") {
-            return;
-        }
-
-        var gmEditPoint = geometry.gmEditPoint,
-            pathC1 = gmEditPoint.pathC1,
-            pathC2 = gmEditPoint.pathC2,
-            pointCount = 0;
-
-        var increment_index = pathC1;
-        var decrement_index = pathC1;
-
-        while(arrayCommands[decrement_index] && arrayCommands[decrement_index].id !== PathType.POINT) {
-            --decrement_index;
-            ++pointCount;
-        }
-        while(arrayCommands[increment_index + 1] && arrayCommands[increment_index + 1].id !== PathType.END) {
-            ++increment_index;
-            ++pointCount;
-        }
-
-        if(pointCount > 2) {
-
-            if (pathC1 > pathC2) {
-                arrayCommands[decrement_index] = {id: PathType.POINT, X: arrayCommands[pathC1 - 1].X2, Y: arrayCommands[pathC1 - 1].Y2};
+    EditShapeGeometryTrack.prototype.deletePoint = function() {
+        AscFormat.ExecuteNoHistory(function() {
+            var geometry = this.geometry;
+            var gmEditPoint = this.getGmEditPt();
+            if(!gmEditPoint) {
+                return;
             }
-            var curArrCommandsType = geometry.arrPathCommandsType[pathIndex];
+                var pathIndex = gmEditPoint.pathIndex,
+                pathElem = geometry.pathLst[pathIndex],
+                arrayCommands = geometry.pathLst[pathIndex].ArrPathCommand;
 
-            //if next command is line, then recalculate to make it
-            var nextPath = gmEditPoint.nextPoint.pathC1;
-            if (curArrCommandsType[nextPath] && (curArrCommandsType[nextPath] === PathType.LINE)) {
-                var prevX = gmEditPoint.prevPoint.X, prevY = gmEditPoint.prevPoint.Y,
-                    nextX = gmEditPoint.nextPoint.X, nextY = gmEditPoint.nextPoint.Y;
-                arrayCommands[nextPath].X0 = (nextX + prevX * 2) / 3;
-                arrayCommands[nextPath].Y0 = (nextY + prevY * 2) / 3;
-                arrayCommands[nextPath].X1 = (nextX + prevX / 2) / (3 / 2);
-                arrayCommands[nextPath].Y1 = (nextY + prevY / 2) / (3 / 2);
+            if(pathElem && pathElem.stroke === true && pathElem.fill === "none") {
+                return;
             }
-            arrayCommands.splice(pathC1, 1);
-            curArrCommandsType.splice(pathC1, 1);
+
+            var pathC1 = gmEditPoint.pathC1,
+                pathC2 = gmEditPoint.pathC2,
+                pointCount = 0;
+
+            var increment_index = pathC1;
+            var decrement_index = pathC1;
+
+            while(arrayCommands[decrement_index] && arrayCommands[decrement_index].id !== PathType.POINT) {
+                --decrement_index;
+                ++pointCount;
+            }
+            while(arrayCommands[increment_index + 1] && arrayCommands[increment_index + 1].id !== PathType.END) {
+                ++increment_index;
+                ++pointCount;
+            }
+
+            if(pointCount > 2) {
+
+                if (pathC1 > pathC2) {
+                    arrayCommands[decrement_index] = {id: PathType.POINT, X: arrayCommands[pathC1 - 1].X2, Y: arrayCommands[pathC1 - 1].Y2};
+                }
+                var curArrCommandsType = this.arrPathCommandsType[pathIndex];
+
+                //if next command is line, then recalculate to make it
+                var nextPath = gmEditPoint.nextPoint.pathC1;
+                if (curArrCommandsType[nextPath] && (curArrCommandsType[nextPath] === PathType.LINE)) {
+                    var prevX = gmEditPoint.prevPoint.X, prevY = gmEditPoint.prevPoint.Y,
+                        nextX = gmEditPoint.nextPoint.X, nextY = gmEditPoint.nextPoint.Y;
+                    arrayCommands[nextPath].X0 = (nextX + prevX * 2) / 3;
+                    arrayCommands[nextPath].Y0 = (nextY + prevY * 2) / 3;
+                    arrayCommands[nextPath].X1 = (nextX + prevX / 2) / (3 / 2);
+                    arrayCommands[nextPath].Y1 = (nextY + prevY / 2) / (3 / 2);
+                }
+                arrayCommands.splice(pathC1, 1);
+                curArrCommandsType.splice(pathC1, 1);
 
 
-            this.createGeometryEditList(geometry);
-            geometry.gmEditPoint = null;
-            geometry.isGeomConverted = false;
-            this.addCommandsInPathInfo(geometry, pathIndex);
-        }
+                this.createGeometryEditList();
+                this.addCommandsInPathInfo();
+            }
+        }, this, []);
     };
 
-    EditShapeGeometryTrack.prototype.isCanContinue = function() {
-      var originalGeometry = this.originalObject.calcGeometry,
-          geometry  = this.geometry;
+    //EditShapeGeometryTrack.prototype.AddGeomPoint = function(id, X, Y, g1X, g1Y, g2X, g2Y, pathC1, pathC2, prevPoint, nextPoint, isHitInFirstCPoint, isHitInSecondCPoint, isStartPoint, pathIndex)
+    //{
+    //    this.gmEditPoint = {};
+    //    this.gmEditPoint.id = id;
+    //    this.gmEditPoint.X = X;
+    //    this.gmEditPoint.Y = Y;
+    //    this.gmEditPoint.g1X = g1X;
+    //    this.gmEditPoint.g1Y = g1Y;
+    //    this.gmEditPoint.g2X = g2X;
+    //    this.gmEditPoint.g2Y = g2Y;
+    //    this.gmEditPoint.pathC1 = pathC1;
+    //    this.gmEditPoint.pathC2 = pathC2;
+    //    this.gmEditPoint.nextPoint = {
+    //        id: nextPoint.id, X: nextPoint.X, Y: nextPoint.Y, g1X: nextPoint.g1X, g1Y: nextPoint.g1Y,
+    //        g2X: nextPoint.g2X, g2Y: nextPoint.g2Y, pathC1 : nextPoint.pathC1, pathC2 : nextPoint.pathC2
+    //    };
+    //    this.gmEditPoint.prevPoint = {
+    //        id: prevPoint.id, X: prevPoint.X, Y: prevPoint.Y, g1X: prevPoint.g1X, g1Y: prevPoint.g1Y,
+    //        g2X: prevPoint.g2X, g2Y: prevPoint.g2Y, pathC1 : prevPoint.pathC1, pathC2 : prevPoint.pathC2
+    //    };
+    //        this.gmEditPoint.isHitInFirstCPoint = isHitInFirstCPoint;
+    //    this.gmEditPoint.isHitInSecondCPoint = isHitInSecondCPoint;
+    //    this.gmEditPoint.isStartPoint = isStartPoint;
+    //    this.gmEditPoint.pathIndex = pathIndex;
+    //
+    //    this.originalEditPoint = {X: X, Y: Y, g1X: g1X, g1Y: g1Y, g2X: g2X, g2Y: g2Y};
+    //};
 
-        for (var j = 0; j < this.geometry.pathLst.length; j++) {
-            var pathPoints = geometry.pathLst[j].ArrPathCommand;
-            for (var i = 0; i < pathPoints.length; i++) {
-                if (pathPoints[i].id === PathType.ARC && originalGeometry.ellipsePointsList.length === 0)
-                    return false;
+    EditShapeGeometryTrack.prototype.hitToGmEditLst = function(x, y) {
+        var dx, dy;
+        var distance =  this.originalObject.convertPixToMM(AscCommon.global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS);
+        var tx = this.invertTransform.TransformPointX(x, y);
+        var ty = this.invertTransform.TransformPointY(x, y);
+        for (var i = this.gmEditList.length - 1; i >= 0; i--) {
+            var gmArr = this.gmEditList[i];
+            dx = tx - gmArr.X;
+            dy = ty - gmArr.Y;
+            if (Math.sqrt(dx * dx + dy * dy) < distance) {
+                return new CGeomHitData(i, null, null, false);
             }
         }
-        return true;
+        return null;
     };
 
-    EditShapeGeometryTrack.prototype.clearPoints = function() {
-        var originalGeometry = this.originalObject.calcGeometry;
-        if(originalGeometry) {
-            originalGeometry.gmEditList = [];
-            originalGeometry.gmEditPoint = null;
-            originalGeometry.ellipsePointsList = [];
+    EditShapeGeometryTrack.prototype.hitToGeomEdit = function(oCanvas, x, y) {
+        if(!this.isCorrect()) {
+            return null;
         }
+        var dxC1, dyC1, dxC2, dyC2;
+        var distance =  this.originalObject.convertPixToMM(AscCommon.global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS);
+        var geometry = this.geometry;
+        var oGeomData = this.hitToGmEditLst(x, y);
+        if(oGeomData) {
+            return oGeomData;
+        }
+
+        var gmEditPoint = this.getGmEditPt();
+        if(gmEditPoint) {
+            var tx = this.invertTransform.TransformPointX(x, y);
+            var ty = this.invertTransform.TransformPointY(x, y);
+            dxC1 = tx - gmEditPoint.g1X;
+            dyC1 = ty - gmEditPoint.g1Y;
+            dxC2 = tx - gmEditPoint.g2X;
+            dyC2 = ty - gmEditPoint.g2Y;
+            if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
+                return new CGeomHitData(this.getGmEditPtIdx(), true, false, false);
+            } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
+                return new CGeomHitData(this.getGmEditPtIdx(), false, true, false);
+            }
+        }
+
+        var oAddingPoint = {pathIndex: null, commandIndex: null};
+        var isHitInPath = geometry.hitInPath(oCanvas, tx, ty, oAddingPoint);
+        if(isHitInPath) {
+            return new CGeomHitData(null, null, null, oAddingPoint);
+        }
+        return null;
     };
+
+    EditShapeGeometryTrack.prototype.isCorrect = function() {
+        return this.originalGeometry === this.getOriginalObjectGeometry();
+    };
+
+
+    function CGeomHitData(gmEditPointIdx, isHitInFirstCPoint, isHitInSecondCPoint, addingNewPoint) {
+        this.gmEditPointIdx = gmEditPointIdx;
+        this.isHitInFirstCPoint = isHitInFirstCPoint;
+        this.isHitInSecondCPoint = isHitInSecondCPoint;
+        this.addingNewPoint = addingNewPoint;
+    }
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;

@@ -226,18 +226,11 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     }
 
     if(!ret) {
-        if(oGeometryEditSelection && oGeometryEditSelection.length !== 0) {
-            drawing = selected_objects[0];
-            var oCanvas = drawing.getCanvasContext();
-            var arrTrackObj = drawingObjectsController.arrTrackObjects;
-            ret = oGeometryEditSelection.hitToGeometryEdit(oGeometryEditSelection.geometryEditTrack, oCanvas, e, x, y);
-            if (ret && ret.hit && arrTrackObj.length === 0) {
-                drawingObjectsController.changeCurrentState(new AscFormat.GeometryEditState(drawingObjectsController, drawing));
-                drawingObjectsController.arrTrackObjects.push(oGeometryEditSelection.geometryEditTrack);
-            } else if(ret && !ret.hit) {
-                oGeometryEditSelection.geometryEditTrack.clearPoints();
-                drawingObjectsController.selection.geometrySelection = null;
-           }
+        if(oGeometryEditSelection) {
+            ret = oGeometryEditSelection.handle(drawingObjectsController, e, x, y);
+            if(ret) {
+                return ret;
+            }
         }
     }
 
