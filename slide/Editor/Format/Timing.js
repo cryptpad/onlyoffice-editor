@@ -1755,13 +1755,13 @@
     };
     CCond.prototype.fillObject = function(oCopy, oIdMap) {
         if(this.rtn !== null) {
-            oCopy.setRtn(this.rtn.createDuplicate(oIdMap));
+            oCopy.setRtn(this.rtn);
         }
         if(this.tgtEl !== null) {
             oCopy.setTgtEl(this.tgtEl.createDuplicate(oIdMap));
         }
         if(this.tn !== null) {
-            oCopy.setTn(this.tn.createDuplicate(oIdMap));
+            oCopy.setTn(this.tn);
         }
         if(this.delay !== null) {
             oCopy.setDelay(this.delay);
