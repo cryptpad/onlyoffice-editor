@@ -603,8 +603,8 @@
                         if (pathPoints[cur_index].id === PathType.END && (!pathPoints[cur_index + 1] || pathPoints[cur_index + 1].id === PathType.POINT)) {
                             var prevCommand = pathPoints[cur_index - 1];
                             var pointCommand = pathPoints[start_index];
-                            var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
-                            var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
+                            var prevCommandX = this.getCommandLastPointX(prevCommand);
+                            var prevCommandY = this.getCommandLastPointY(prevCommand);
 
                             var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(2));
                             var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(2));
@@ -624,12 +624,13 @@
                         }
                     }
 
+                    var oThis = this;
                     pathPoints.forEach(function (elem, cur_index) {
 
                         var prevCommand = pathPoints[cur_index - 1];
                         if(prevCommand) {
-                            var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
-                            var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
+                            var prevCommandX = oThis.getCommandLastPointX(prevCommand);
+                            var prevCommandY = oThis.getCommandLastPointY(prevCommand);
                         }
 
                         switch (elem.id) {
@@ -663,6 +664,12 @@
                 }
                 geometry.setPreset(null);
                 geometry.rectS = null;
+                geometry.ahXYLst.length = 0;
+                geometry.ahXYLstInfo.length = 0;
+                geometry.ahPolarLst.length = 0;
+                geometry.ahPolarLstInfo.length = 0;
+                geometry.cnxLstInfo.length = 0;
+                geometry.cnxLst.length = 0;
             }, this, []);
     };
 
@@ -705,15 +712,15 @@
                                 --i;
                             }
                             var firstPoint = pathPoints[start_index];
-                            var firstPointX = firstPoint.X !== undefined ? firstPoint.X : firstPoint.X2;
+                            var firstPointX = this.getCommandLastPointX(firstPoint);
                             firstPointX = parseFloat(firstPointX.toFixed(2));
-                            var firstPointY = firstPoint.Y !== undefined ? firstPoint.Y : firstPoint.Y2;
+                            var firstPointY = this.getCommandLastPointY(firstPoint);
                             firstPointY = parseFloat(firstPointY.toFixed(2));
 
                             var lastPoint = pathPoints[index + i - 1];
-                            var lastPointX = lastPoint.X !== undefined ? lastPoint.X : lastPoint.X2;
+                            var lastPointX = this.getCommandLastPointX(lastPoint);
                             lastPointX = parseFloat(lastPointX.toFixed(2));
-                            var lastPointY = lastPoint.Y !== undefined ? lastPoint.Y : lastPoint.Y2;
+                            var lastPointY =  this.getCommandLastPointY(lastPoint);
                             lastPointY = parseFloat(lastPointY.toFixed(2));
 
                             (firstPointX !== lastPointX || firstPointY !== lastPointY) ? isAddingStartPoint = true : isFirstAndLastPointsEqual = true;
@@ -733,8 +740,8 @@
                                 g1Y: g1Y,
                                 g2X: g2X,
                                 g2Y: g2Y,
-                                X: (curCommand.X !== undefined ? curCommand.X : curCommand.X2),
-                                Y: (curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2),
+                                X: (this.getCommandLastPointX(curCommand)),
+                                Y: (this.getCommandLastPointY(curCommand)),
                                 pathC1: index,
                                 pathC2: nextIndex,
                                 pathIndex: j
@@ -927,6 +934,24 @@
         }, this, []);
 
     };
+    EditShapeGeometryTrack.prototype.getCommandLastPointX = function(oCommand) {
+        return this.getCommandLastPointCoord(oCommand.X, oCommand.X1, oCommand.X2);
+    };
+    EditShapeGeometryTrack.prototype.getCommandLastPointY = function(oCommand) {
+        return this.getCommandLastPointCoord(oCommand.Y, oCommand.Y1, oCommand.Y2);
+    };
+    EditShapeGeometryTrack.prototype.getCommandLastPointCoord = function(C, C1, C2) {
+        if(C !== undefined) {
+            return C;
+        }
+        if(C2 !== undefined) {
+            return C2;
+        }
+        if(C1 !== undefined) {
+            return C1;
+        }
+        return null;
+    };
 
     EditShapeGeometryTrack.prototype.deletePoint = function() {
         AscFormat.ExecuteNoHistory(function() {
@@ -1041,10 +1066,7 @@
         var dxC1, dyC1, dxC2, dyC2;
         var distance =  this.originalObject.convertPixToMM(AscCommon.global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS);
         var geometry = this.geometry;
-        var oGeomData = this.hitToGmEditLst(x, y);
-        if(oGeomData) {
-            return oGeomData;
-        }
+
 
         var gmEditPoint = this.getGmEditPt();
         var tx = this.invertTransform.TransformPointX(x, y);
@@ -1059,6 +1081,10 @@
             } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
                 return new CGeomHitData(this.getGmEditPtIdx(), false, true, false);
             }
+        }
+        var oGeomData = this.hitToGmEditLst(x, y);
+        if(oGeomData) {
+            return oGeomData;
         }
 
         var oAddingPoint = {pathIndex: null, commandIndex: null};

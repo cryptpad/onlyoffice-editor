@@ -53,7 +53,7 @@
         return this.distance(oPoint.x, oPoint.y);
     };
     CPoint.prototype.isNear = function(x, y) {
-        return this.distance(x, y) < AscCommon.g_dKoef_pix_to_mm;
+        return this.distance(x, y) < 1;
     };
 function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
 {
@@ -222,9 +222,42 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         geometry.AddPathCommand(0, undefined, bClosed ? "norm": "none", undefined, pathW, pathH);
         geometry.AddRect("l", "t", "r", "b");
         geometry.AddPathCommand(1, (((this.arrPoint[0].x - xMin) * kw) >> 0) + "", (((this.arrPoint[0].y - yMin) * kh) >> 0) + "");
-        for(i = 1;  i< _n; ++i)
+        i = 1;
+        var nPtsCount = this.arrPoint.length;
+        var oPt1, oPt2, oPt3;
+        while(i< _n)
         {
-            geometry.AddPathCommand(2, (((this.arrPoint[i].x - xMin) * kw) >> 0) + "", (((this.arrPoint[i].y - yMin) * kh) >> 0) + "");
+
+            if(i + 2 < nPtsCount)
+            {
+                //cubic bezier curve
+                oPt1 = this.arrPoint[i++];
+                oPt2 = this.arrPoint[i++];
+                oPt3 = this.arrPoint[i++];
+                geometry.AddPathCommand(5,
+                    (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + "",
+                    (((oPt2.x - xMin) * kw) >> 0) + "", (((oPt2.y - yMin) * kh) >> 0) + "",
+                    (((oPt3.x - xMin) * kw) >> 0) + "", (((oPt3.y - yMin) * kh) >> 0) + ""
+                );
+            }
+            else if(i + 1 < nPtsCount)
+            {
+                //quad bezier curve
+                oPt1 = this.arrPoint[i++];
+                oPt2 = this.arrPoint[i++];
+                geometry.AddPathCommand(4,
+                    (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + "",
+                    (((oPt2.x - xMin) * kw) >> 0) + "", (((oPt2.y - yMin) * kh) >> 0) + ""
+                );
+            }
+            else
+            {
+                //lineTo
+                oPt1 = this.arrPoint[i++];
+                geometry.AddPathCommand(2,
+                    (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + ""
+                );
+            }
         }
         if(bClosed)
         {
@@ -246,7 +279,7 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
             return;
         }
         if(oLastPoint.isNear(x, y)) {
-            oLastPoint.reset(x, y);
+            //oLastPoint.reset(x, y);
             return;
         }
         this.addPoint(x, y);
