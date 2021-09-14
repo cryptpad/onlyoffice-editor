@@ -9553,7 +9553,7 @@
         ptLst.forEach(function (point) {
           if (point.type === 3) {
             ptLstWithTypePres.push(point);
-          } else if (!point.type) {
+          } else if (!point.type || point.type === Point_type_node) {
             ptLstWithNoType.push(point);
           } else if (point.type === 2) {
             docPoint = point;
@@ -9565,17 +9565,19 @@
 
           if (i === ptLstWithNoType.length) {
             var mPoint = docPoint;
+            elem.addToLstDocPoint(0, mPoint);
+
           } else {
             mPoint = ptLstWithNoType[i];
+            elem.addToLstNodePoint(0, mPoint);
           }
 
-          elem.setMainPoint(mPoint);
           cxnWithNoPres.forEach(function (cxn) {
             if (cxn.destId === mPoint.modelId) {
               elem.setCxn(cxn);
               if (ptMap) {
-                elem.setSibPoint(ptMap[cxn.sibTransId]);
-                elem.setParPoint(ptMap[cxn.parTransId]);
+                elem.addToLstSibPoint(0, ptMap[cxn.sibTransId]);
+                elem.addToLstParPoint(0, ptMap[cxn.parTransId]);
               }
             }
           });
@@ -10641,17 +10643,101 @@
     function SmartArtNodeData() {
       CBaseFormatObject.call(this);
       this.cxn = null;
-      this.sibPoint = null;
-      this.parPoint = null;
-      this.mainPoint = null;
-      this.shapes = [];
+      this.sibPoint = [];
+      this.parPoint = [];
+      this.docPoint = [];
+      this.nodePoint = [];
+      this.normPoint = [];
+      this.asstPoint = [];
       this.presPoint = [];
+      this.shapes = [];
     }
     InitClass(SmartArtNodeData, CBaseFormatObject, AscDFH.historyitem_type_SmartArtNodeData);
 
     SmartArtNodeData.prototype.setSibPoint = function (oPr) {
       this.sibPoint = oPr;
     }
+
+    SmartArtNodeData.prototype.addToLstSibPoint = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.sibPoint.length, Math.max(0, nIdx));
+      this.sibPoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.addToLstNormPoint = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.normPoint.length, Math.max(0, nIdx));
+      this.normPoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.addToLstParPoint = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.parPoint.length, Math.max(0, nIdx));
+      this.parPoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.addToLstDocPoint = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.docPoint.length, Math.max(0, nIdx));
+      this.docPoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.addToLstAsstPoint = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.asstPoint.length, Math.max(0, nIdx));
+      this.asstPoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.addToLstNodePoint = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.nodePoint.length, Math.max(0, nIdx));
+      this.nodePoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.getPresPoint = function () {
+      return this.presPoint;
+    }
+
+    SmartArtNodeData.prototype.getAllPoints = function () {
+      var typeOfPoints = ['sibPoint', 'parPoint', 'docPoint', 'normPoint', 'nodePoint', 'asstPoint'];
+      var result = [];
+      var that = this;
+      typeOfPoints.forEach(function (pointType) {
+        result = result.concat(that[pointType]);
+      });
+      return result;
+    }
+
+    SmartArtNodeData.prototype.getDocPoint = function () {
+      return this.docPoint;
+    }
+
+    SmartArtNodeData.prototype.getNodePoint = function () {
+      return this.nodePoint;
+    }
+
+    SmartArtNodeData.prototype.getAsstPoint = function () {
+      return this.asstPoint;
+    }
+
+    SmartArtNodeData.prototype.getNormPoint = function () {
+      return this.normPoint;
+    }
+
+    SmartArtNodeData.prototype.getParPoint = function () {
+      return this.parPoint;
+    }
+
+    SmartArtNodeData.prototype.getNonAsstPoint = function () {
+      return this.getAllPoints().filter(function (point) {
+        return point.type !== Point_type_asst;
+      });
+    }
+
+    SmartArtNodeData.prototype.getNonNormPoint = function () {
+      var typeOfPoints = ['sibPoint', 'parPoint', 'docPoint', 'nodePoint', 'asstPoint'];
+      var result = [];
+      var that = this;
+      typeOfPoints.forEach(function (pointType) {
+        result = result.concat(that[pointType]);
+      });
+      return result;
+    }
+
     SmartArtNodeData.prototype.getSibPoint = function () {
       return this.sibPoint;
     }
