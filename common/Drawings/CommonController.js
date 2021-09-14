@@ -7198,8 +7198,9 @@ DrawingObjectsController.prototype =
         else if(this.selection.geometrySelection)
         {
             selection_state.focus = true;
-            selection_state.geometryObject = this.selection.geometrySelection;
-            selection_state.selectStartPage = this.selection.geometrySelection.drawing.selectStartPage;
+            var oGeomSelection = this.selection.geometrySelection;
+            selection_state.geometryObject = oGeomSelection.copy();
+            selection_state.selectStartPage = oGeomSelection.drawing.selectStartPage;
         }
         else
         {
@@ -11150,8 +11151,8 @@ function CalcLiterByLength(aAlphaBet, nLength)
 
             var oTrack = this.drawingObjects.arrPreTrackObjects[0];
             var oGeomSelection = this.drawingObjects.selection.geometrySelection;
-            if(this.hitData.gmEditPointIdx !== null) {
-                oGeomSelection.gmEditPointIdx = this.hitData.gmEditPointIdx;
+            if(this.hitData.getPtIdx() !== null) {
+                oGeomSelection.setGmEditPointIdx(this.hitData.gmEditPointIdx);
                 var oGmEditPt = oTrack.getGmEditPt();
                 if(oGmEditPt) {
                     oGmEditPt.isHitInFirstCPoint = this.hitData.isHitInFirstCPoint;
@@ -11169,8 +11170,8 @@ function CalcLiterByLength(aAlphaBet, nLength)
     };
     PreGeometryEditState.prototype.onMouseUp = function (e, x, y, pageIndex) {
         var oGeomSelection = this.drawingObjects.selection.geometrySelection;
-        if(this.hitData.gmEditPointIdx !== null) {
-            oGeomSelection.gmEditPointIdx = this.hitData.gmEditPointIdx;
+        if(this.hitData.getPtIdx() !== null) {
+            oGeomSelection.setGmEditPointIdx(this.hitData.gmEditPointIdx);
         }
         if(e.CtrlKey) {
             //remove or add point
@@ -11248,18 +11249,19 @@ function CalcLiterByLength(aAlphaBet, nLength)
                 return true;
             }
         }
-        //if (ret && ret.hit) {
-        //    if(drawingObjectsController.handleEventMode === AscFormat.HANDLE_EVENT_MODE_CURSOR) {
-        //        return {objectId: drawing.Get_Id(), cursorType: "crosshair", bMarker: true};
-        //    }
-        //    else {
-        //        drawingObjectsController.changeCurrentState(new AscFormat.GeometryEditState(drawingObjectsController, drawing, x, y, true === ret.addingNewPoint));
-        //        drawingObjectsController.arrTrackObjects.push(oGeometryEditSelection.geometryEditTrack);
-        //    }
-        //}
         return null;
     };
-
+    CGeometryEditSelection.prototype.resetGmEditPointIdx = function () {
+        this.setGmEditPointIdx(null);
+    };
+    CGeometryEditSelection.prototype.setGmEditPointIdx = function (nIdx) {
+        this.gmEditPointIdx = nIdx;
+    };
+    CGeometryEditSelection.prototype.copy = function () {
+        var oCopy = new CGeometryEditSelection(this.drawingObjects, this.drawing);
+        oCopy.gmEditPointIdx = this.gmEditPointIdx;
+        return oCopy;
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;

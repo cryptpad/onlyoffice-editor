@@ -142,8 +142,13 @@
         oDrawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, pathLst, gmEditList, gmEditPoint);
     };
 
+
+    EditShapeGeometryTrack.prototype.getGmSelection = function() {
+        return this.drawingObjects.selection.geometrySelection;
+    };
+
     EditShapeGeometryTrack.prototype.getGmEditPtIdx = function() {
-        var oGeomSelection = this.drawingObjects.selection.geometrySelection;
+        var oGeomSelection = this.getGmSelection();
         if(!oGeomSelection) {
             return null;
         }
@@ -164,6 +169,9 @@
     EditShapeGeometryTrack.prototype.getOriginalPt = function() {
         if(!this.isCorrect()) {
             return null;
+        }
+        if(this.originalAddedPoint) {
+            return this.originalAddedPoint;
         }
         var oGeomSelection = this.drawingObjects.selection.geometrySelection;
         if(!oGeomSelection) {
@@ -497,6 +505,12 @@
         }
         oSpPr.setGeometry(this.geometry.createDuplicate());
         this.originalObject.checkDrawingBaseCoords();
+        if(this.addedPointIdx !== null) {
+            var oGmSelection = this.getGmSelection();
+            if(oGmSelection) {
+                oGmSelection.setGmEditPointIdx(this.addedPointIdx);
+            }
+        }
     };
 
     EditShapeGeometryTrack.prototype.convertToBezier = function() {
@@ -889,7 +903,26 @@
             this.createGeometryEditList();
             var oHitData = this.hitToGmEditLst(X, Y);
             if(oHitData) {
-                this.addedPointIdx = oHitData.gmEditPointIdx
+                this.addedPointIdx = oHitData.gmEditPointIdx;
+                var oPt = this.gmEditList[this.addedPointIdx];
+                if(oPt) {
+                    var oOriginalAddedPoint = {
+                        g1X: oPt.g1X,
+                        g1Y: oPt.g1Y,
+                        g2X: oPt.g2X,
+                        g2Y: oPt.g2Y,
+                        X: oPt.X,
+                        Y: oPt.Y,
+                        pathC1: oPt.pathC1,
+                        pathC2: oPt.pathC2,
+                        pathIndex: oPt.pathC2
+                    };
+                    this.originalAddedPoint = oOriginalAddedPoint;
+                }
+                var oGeomSelection = this.getGmSelection();
+                if(oGeomSelection) {
+                    oGeomSelection.resetGmEditPointIdx();
+                }
             }
         }, this, []);
 
@@ -949,6 +982,10 @@
 
                 this.createGeometryEditList();
                 this.addCommandsInPathInfo();
+            }
+            var oGeomSelection = this.getGmSelection();
+            if(oGeomSelection) {
+                oGeomSelection.resetGmEditPointIdx();
             }
         }, this, []);
     };
@@ -1010,9 +1047,9 @@
         }
 
         var gmEditPoint = this.getGmEditPt();
+        var tx = this.invertTransform.TransformPointX(x, y);
+        var ty = this.invertTransform.TransformPointY(x, y);
         if(gmEditPoint) {
-            var tx = this.invertTransform.TransformPointX(x, y);
-            var ty = this.invertTransform.TransformPointY(x, y);
             dxC1 = tx - gmEditPoint.g1X;
             dyC1 = ty - gmEditPoint.g1Y;
             dxC2 = tx - gmEditPoint.g2X;
@@ -1043,6 +1080,9 @@
         this.isHitInSecondCPoint = isHitInSecondCPoint;
         this.addingNewPoint = addingNewPoint;
     }
+    CGeomHitData.prototype.getPtIdx = function() {
+        return this.gmEditPointIdx;
+    };
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;
