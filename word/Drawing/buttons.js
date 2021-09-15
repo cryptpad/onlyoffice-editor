@@ -255,6 +255,31 @@
 })(window);
 
 /*
+	OVERLAY ICONS
+ */
+(function(window, undefined){
+
+	/**
+	 * @constructor
+	 * @extends {AscCommon.BaseImageCtrl}
+	 */
+	function OverlayRasterIcon()
+	{
+		AscCommon.BaseImageCtrl.call(this);
+		this.baseUrl = "../../../../sdkjs/common/Images/icons";
+	}
+	OverlayRasterIcon.prototype = Object.create(AscCommon.BaseImageCtrl.prototype);
+	OverlayRasterIcon.prototype.constructor = OverlayRasterIcon;
+
+	AscCommon.OverlayRasterIcon = OverlayRasterIcon;
+
+	AscCommon.OverlayRasterIcons = {};
+	AscCommon.OverlayRasterIcons.Anchor = new OverlayRasterIcon();
+	AscCommon.OverlayRasterIcons.Anchor.load(0, "anchor");
+
+})(window);
+
+/*
     PLACEHOLDERS
  */
 (function(window, undefined){

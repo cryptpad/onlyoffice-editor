@@ -4203,6 +4203,9 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 								if (fieldtype_NUMPAGES === oInstruction.GetType())
 								{
 									oHdrFtr.Add_PageCountElement(Item);
+
+									if (!Item.IsNumValue() && Para.LogicDocument && Para.LogicDocument.IsDocumentEditor())
+										Item.SetNumValue(Para.LogicDocument.Pages.length);
 								}
 								else if (fieldtype_PAGE === oInstruction.GetType())
 								{
@@ -5201,7 +5204,7 @@ ParaRun.prototype.private_RecalculateLastTab = function(LastTab, X, XEnd, Word, 
 
         LastTab.Reset();
 
-        return X + TabCalcW;
+		return X + TabCalcW;
     }
 
     return X;
@@ -5285,13 +5288,13 @@ ParaRun.prototype.SaveRecalculateObject = function(Copy)
 {
     var RecalcObj = new CRunRecalculateObject(this.StartLine, this.StartRange);
     RecalcObj.Save_Lines( this, Copy );
-    RecalcObj.Save_RunContent( this, Copy );
+	RecalcObj.SaveRunContent(this, Copy);
     return RecalcObj;
 };
 ParaRun.prototype.LoadRecalculateObject = function(RecalcObj)
 {
     RecalcObj.Load_Lines(this);
-    RecalcObj.Load_RunContent(this);
+    RecalcObj.LoadRunContent(this);
 };
 ParaRun.prototype.PrepareRecalculateObject = function()
 {
@@ -12914,6 +12917,10 @@ ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = f
 
 	var arrElements = oRunElementsBefore.GetElements();
 	if (arrElements.length <= 0)
+		return false;
+
+	var oHistory = oDocument.GetHistory();
+	if (oHistory.CheckAsYouTypeAutoCorrect && !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0]))
 		return false;
 
 	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)

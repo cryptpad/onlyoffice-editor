@@ -16234,6 +16234,9 @@
             return [];
         }
         var oRefs = new CDataRefs(aRefs);
+        if(oRefs.isEmpty()) {
+            return [];
+        }
         var aGrid = oRefs.getGrid();
         var aGridRow, oRef, nRef, oBBox;
         var nRow, nCol;

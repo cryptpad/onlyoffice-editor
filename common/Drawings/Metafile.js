@@ -1257,7 +1257,7 @@
 
 		this.FillTextCode = function(glyph)
 		{
-			if (this.LastPickFont.GetGIDByUnicode(glyph))
+			if (this.LastPickFont && this.LastPickFont.GetGIDByUnicode(glyph))
 			{
 				if (this.LastPickFontName != this.LastPickFontNameOrigin)
 				{

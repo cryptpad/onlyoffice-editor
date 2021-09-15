@@ -6331,6 +6331,13 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.asc_restartCheckSpelling = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.Restart_CheckSpelling();
+	};
+
 	//-----------------------------------------------------------------
 	// Функции для работы с комментариями
 	//-----------------------------------------------------------------
@@ -8604,7 +8611,12 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		return oLogicDocument.SetGlobalTrackRevisions(bTrack, true);
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Document_Settings))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTrackRevisions);
+			oLogicDocument.SetGlobalTrackRevisions(bTrack, true);
+			oLogicDocument.FinalizeAction();
+		}
 	};
 	asc_docs_api.prototype.asc_GetGlobalTrackRevisions         = function()
 	{
