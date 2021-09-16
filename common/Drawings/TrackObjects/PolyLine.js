@@ -82,6 +82,7 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         this.pen = pen;
 
         this.polylineForDrawer = new PolylineForDrawer(this);
+        this.continuousRanges = [];
 
     }, this, []);
 }
@@ -223,40 +224,48 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         geometry.AddRect("l", "t", "r", "b");
         geometry.AddPathCommand(1, (((this.arrPoint[0].x - xMin) * kw) >> 0) + "", (((this.arrPoint[0].y - yMin) * kh) >> 0) + "");
         i = 1;
+        var aRanges = this.continuousRanges;
+        var aRange, nRange;
+        var nEnd;
         var nPtsCount = this.arrPoint.length;
-        var oPt1, oPt2, oPt3;
-        while(i< _n)
+        var oPt1, oPt2, oPt3, nPt;
+        for(nRange = 0; nRange < aRanges.length; ++nRange)
         {
-
-            if(i + 2 < nPtsCount)
+            aRange = aRanges[nRange];
+            nEnd = aRange[1];
+            nPt = aRange[0] + 1;
+            while(nPt <= nEnd)
             {
-                //cubic bezier curve
-                oPt1 = this.arrPoint[i++];
-                oPt2 = this.arrPoint[i++];
-                oPt3 = this.arrPoint[i++];
-                geometry.AddPathCommand(5,
-                    (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + "",
-                    (((oPt2.x - xMin) * kw) >> 0) + "", (((oPt2.y - yMin) * kh) >> 0) + "",
-                    (((oPt3.x - xMin) * kw) >> 0) + "", (((oPt3.y - yMin) * kh) >> 0) + ""
-                );
-            }
-            else if(i + 1 < nPtsCount)
-            {
-                //quad bezier curve
-                oPt1 = this.arrPoint[i++];
-                oPt2 = this.arrPoint[i++];
-                geometry.AddPathCommand(4,
-                    (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + "",
-                    (((oPt2.x - xMin) * kw) >> 0) + "", (((oPt2.y - yMin) * kh) >> 0) + ""
-                );
-            }
-            else
-            {
-                //lineTo
-                oPt1 = this.arrPoint[i++];
-                geometry.AddPathCommand(2,
-                    (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + ""
-                );
+                if(nPt + 2 <= nEnd)
+                {
+                    //cubic bezier curve
+                    oPt1 = this.arrPoint[nPt++];
+                    oPt2 = this.arrPoint[nPt++];
+                    oPt3 = this.arrPoint[nPt++];
+                    geometry.AddPathCommand(5,
+                        (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + "",
+                        (((oPt2.x - xMin) * kw) >> 0) + "", (((oPt2.y - yMin) * kh) >> 0) + "",
+                        (((oPt3.x - xMin) * kw) >> 0) + "", (((oPt3.y - yMin) * kh) >> 0) + ""
+                    );
+                }
+                else if(nPt + 1 <= nEnd)
+                {
+                    //quad bezier curve
+                    oPt1 = this.arrPoint[nPt++];
+                    oPt2 = this.arrPoint[nPt++];
+                    geometry.AddPathCommand(4,
+                        (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + "",
+                        (((oPt2.x - xMin) * kw) >> 0) + "", (((oPt2.y - yMin) * kh) >> 0) + ""
+                    );
+                }
+                else
+                {
+                    //lineTo
+                    oPt1 = this.arrPoint[nPt++];
+                    geometry.AddPathCommand(2,
+                        (((oPt1.x - xMin) * kw) >> 0) + "", (((oPt1.y - yMin) * kh) >> 0) + ""
+                    );
+                }
             }
         }
         if(bClosed)
@@ -284,9 +293,24 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         }
         this.addPoint(x, y);
     };
+
+    PolyLine.prototype.createContinuousRange = function()
+    {
+        var nIdx = this.arrPoint.length - 1;
+        this.continuousRanges.push([nIdx, nIdx]);
+    };
+    PolyLine.prototype.getLastContinuousRange = function()
+    {
+        if(this.continuousRanges.length === 0) {
+            this.createContinuousRange();
+        }
+        return this.continuousRanges[this.continuousRanges.length - 1];
+    };
     PolyLine.prototype.addPoint = function(x, y, bTemporary)
     {
         this.arrPoint.push(new CPoint(x, y, bTemporary));
+        var oLastRange = this.getLastContinuousRange();
+        oLastRange[1] = this.arrPoint.length - 1;
     };
     PolyLine.prototype.replaceLastPoint = function(x, y, bTemporary)
     {
@@ -296,6 +320,10 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
             return;
         }
         oLastPoint.reset(x, y, bTemporary);
+        var oLastRange = this.getLastContinuousRange();
+        if(oLastRange[0] !== this.arrPoint.length - 1) {
+            this.createContinuousRange();
+        }
     };
     PolyLine.prototype.canCreateShape = function()
     {
