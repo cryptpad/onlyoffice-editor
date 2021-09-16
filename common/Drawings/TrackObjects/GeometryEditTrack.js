@@ -873,6 +873,67 @@
         );
     };
 
+
+    //EditShapeGeometryTrack.prototype.findBezier4Param = function(XT, YT, X0, Y0, X1, Y1, X2, Y2, X3, Y3) {
+    //    var nSteps = 100;
+    //    var dStride = 1/nSteps;
+    //    var dT = 0;
+    //    var dTResult = dT;
+    //    var CX = this.bezier4Pos(dT, X0, X1, X2, X3);
+    //    var CY = this.bezier4Pos(dT, Y0, Y1, Y2, Y3);
+    //    var dDist = Math.abs(XT - CX) + Math.abs(YT - CY);
+    //    var dMinDist = dDist;
+    //    for(var nStep = 0; nStep < nSteps; ++nStep) {
+    //        dT+= dStride;
+    //        CX = this.bezier4Pos(dT, X0, X1, X2, X3);
+    //        CY = this.bezier4Pos(dT, Y0, Y1, Y2, Y3);
+    //        dDist = Math.abs(XT - CX) + Math.abs(YT - CY);
+    //        if(dDist < dMinDist) {
+    //            dTResult = dT;
+    //            dMinDist = dDist;
+    //        }
+    //    }
+    //    return dTResult;
+    //};
+    //EditShapeGeometryTrack.prototype.findBezier3Param = function(XT, YT, X0, Y0, X1, Y1, X2, Y2) {
+    //    var nSteps = 100;
+    //    var dStride = 1/nSteps;
+    //    var dT = 0;
+    //    var dTResult = dT;
+    //    var CX = this.bezier3Pos(dT, X0, X1, X2);
+    //    var CY = this.bezier3Pos(dT, Y0, Y1, Y2);
+    //    var dDist = Math.abs(XT - CX) + Math.abs(YT - CY);
+    //    var dMinDist = dDist;
+    //    for(var nStep = 0; nStep < nSteps; ++nStep) {
+    //        dT+= dStride;
+    //        CX = this.bezier3Pos(dT, X0, X1, X2);
+    //        CY = this.bezier3Pos(dT, Y0, Y1, Y2);
+    //        dDist = Math.abs(XT - CX) + Math.abs(YT - CY);
+    //        if(dDist < dMinDist) {
+    //            dTResult = dT;
+    //            dMinDist = dDist;
+    //        }
+    //    }
+    //    return dTResult;
+    //};
+    //
+    //EditShapeGeometryTrack.prototype.bezier4Pos = function(t, C0, C1, C2, C3) {
+    //    var dDT = 1 - t;
+    //    var dDT2 = dDT*dDT;
+    //    var dDT3 = dDT2*dDT;
+    //    var dT = t;
+    //    var dT2 = dT*dT;
+    //    var dT3 = dT2*dT;
+    //    return C0*dDT3 + 3*C1*dT*dDT2 + 3*C2*dT2*dDT + C3*dT3;
+    //};
+    //EditShapeGeometryTrack.prototype.bezier3Pos = function(t, C0, C1, C2) {
+    //    var dDT = 1 - t;
+    //    var dDT2 = dDT*dDT;
+    //    var dT = t;
+    //    var dT2 = dT*dT;
+    //    return C0*dDT2 + 2*C1*dT*dDT + C2*dT2;
+    //};
+
     EditShapeGeometryTrack.prototype.addPoint = function(oAddingPoint, X, Y) {
         return AscFormat.ExecuteNoHistory(function() {
             var geometry = this.geometry;
@@ -890,8 +951,8 @@
             var prevCommand_1 = gmEditListElem.prevPoint;
             var prevCommand_2 = prevCommand_1.prevPoint;
 
-            var curCommandX = curCommand.X !== undefined ? curCommand.X : curCommand.X2;
-            var curCommandY = curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2;
+            var curCommandX = this.getCommandLastPointX(curCommand);
+            var curCommandY = this.getCommandLastPointY(curCommand);
 
             var X0 = prevCommand_1.X + (tx - prevCommand_2.X) / 4;
             var Y0 = prevCommand_1.Y + (ty - prevCommand_2.Y) / 4;
@@ -903,8 +964,79 @@
 
             pathElem.splice(commandIndex, 0, newPathElem);
             this.arrPathCommandsType[pathIndex].splice(commandIndex, 0, PathType.BEZIER_4);
+            /*var oPrevCommand = pathElem[commandIndex - 1];
+            if(!oPrevCommand) {
+                return;
+            }
+            var dSplitT;
+            var dPrevX = this.getCommandLastPointX(oPrevCommand);
+            var dPrevY = this.getCommandLastPointY(oPrevCommand);
+            var aCommands;
+            var oFirstCommand, oSecondCommand;
+            var nIdx;
+            if(curCommand.id === AscFormat.bezier4) {
+                dSplitT = this.findBezier4Param(tx, ty, dPrevX, dPrevY, curCommand.X0, curCommand.Y0,
+                    curCommand.X1, curCommand.Y1,
+                    curCommand.X2, curCommand.Y2);
+                aCommands = splitCurveAt(dSplitT, dPrevX, dPrevY, curCommand.X0, curCommand.Y0,
+                    curCommand.X1, curCommand.Y1,
+                    curCommand.X2, curCommand.Y2);
+                nIdx = 2;
+                oFirstCommand = {
+                    id:AscFormat.bezier4,
+                    X0: aCommands[nIdx++],
+                    Y0: aCommands[nIdx++],
+                    X1: aCommands[nIdx++],
+                    Y1: aCommands[nIdx++],
+                    X2: aCommands[nIdx++],
+                    Y2: aCommands[nIdx++]
+                };
+                oSecondCommand = {
+                    id:AscFormat.bezier4,
+                    X0: aCommands[nIdx++],
+                    Y0: aCommands[nIdx++],
+                    X1: aCommands[nIdx++],
+                    Y1: aCommands[nIdx++],
+                    X2: aCommands[nIdx++],
+                    Y2: aCommands[nIdx++]
+                };
 
+                pathElem.splice(commandIndex, 1);
+                this.arrPathCommandsType[pathIndex].splice(commandIndex, 1);
 
+                pathElem.splice(commandIndex, 0, oFirstCommand);
+                this.arrPathCommandsType[pathIndex].splice(commandIndex, 0, PathType.BEZIER_4);
+                pathElem.splice(commandIndex + 1, 0, oSecondCommand);
+                this.arrPathCommandsType[pathIndex].splice(commandIndex + 1, 0, PathType.BEZIER_4);
+            }
+            else if(curCommand.id === AscFormat.bezier3) {
+                dSplitT = this.findBezier3Param(tx, ty, dPrevX, dPrevY, curCommand.X0, curCommand.Y0,
+                    curCommand.X1, curCommand.Y1);
+                aCommands = splitCurveAt(dSplitT, dPrevX, dPrevY, curCommand.X0, curCommand.Y0,
+                    curCommand.X1, curCommand.Y1);
+                nIdx = 2;
+                oFirstCommand = {
+                    id:AscFormat.bezier3,
+                    X0: aCommands[nIdx++],
+                    Y0: aCommands[nIdx++],
+                    X1: aCommands[nIdx++],
+                    Y1: aCommands[nIdx++]
+                };
+                oSecondCommand = {
+                    id:AscFormat.bezier3,
+                    X0: aCommands[nIdx++],
+                    Y0: aCommands[nIdx++],
+                    X1: aCommands[nIdx++],
+                    Y1: aCommands[nIdx++]
+                };
+                pathElem.splice(commandIndex, 1);
+                this.arrPathCommandsType[pathIndex].splice(commandIndex, 1);
+
+                pathElem.splice(commandIndex, 0, oFirstCommand);
+                this.arrPathCommandsType[pathIndex].splice(commandIndex, 0, PathType.BEZIER_3);
+                pathElem.splice(commandIndex + 1, 0, oSecondCommand);
+                this.arrPathCommandsType[pathIndex].splice(commandIndex + 1, 0, PathType.BEZIER_3);
+            }*/
             geometry.pathLst[pathIndex].ArrPathCommandInfo = [];
             this.addCommandsInPathInfo();
             this.createGeometryEditList();
@@ -1112,5 +1244,69 @@
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;
+
+
+
+    //function splitCurveAt(position, x1, y1, x2, y2, x3, y3, x4, y4){
+    //    var v1, v2, v3, v4, quad, retPoints, i, c;
+    //
+    //    retPoints = [];
+    //    i = 0;
+    //    quad = false;
+    //    v1 = {};
+    //    v2 = {};
+    //    v4 = {};
+    //    v1.x = x1;
+    //    v1.y = y1;
+    //    v2.x = x2;
+    //    v2.y = y2;
+    //    if(x4 === undefined || x4 === null){
+    //        quad = true;
+    //        v4.x = x3;
+    //        v4.y = y3;
+    //    }else{
+    //        v3 = {};
+    //        v3.x = x3;
+    //        v3.y = y3;
+    //        v4.x = x4;
+    //        v4.y = y4;
+    //    }
+    //    c = position;
+    //    retPoints[i++] = v1.x;
+    //    retPoints[i++] = v1.y;
+    //
+    //    if(quad){
+    //        retPoints[i++] = (v1.x += (v2.x - v1.x) * c);
+    //        retPoints[i++] = (v1.y += (v2.y - v1.y) * c);
+    //        v2.x += (v4.x - v2.x) * c;
+    //        v2.y += (v4.y - v2.y) * c;
+    //        retPoints[i++] = v1.x + (v2.x - v1.x) * c;
+    //        retPoints[i++] = v1.y + (v2.y - v1.y) * c;
+    //        retPoints[i++] = v2.x;
+    //        retPoints[i++] = v2.y;
+    //        retPoints[i++] = v4.x;
+    //        retPoints[i++] = v4.y;
+    //        return retPoints;
+    //    }
+    //    retPoints[i++] = (v1.x += (v2.x - v1.x) * c);
+    //    retPoints[i++] = (v1.y += (v2.y - v1.y) * c);
+    //    v2.x += (v3.x - v2.x) * c;
+    //    v2.y += (v3.y - v2.y) * c;
+    //    v3.x += (v4.x - v3.x) * c;
+    //    v3.y += (v4.y - v3.y) * c;
+    //    retPoints[i++] = (v1.x += (v2.x - v1.x) * c);
+    //    retPoints[i++] = (v1.y += (v2.y - v1.y) * c);
+    //    v2.x += (v3.x - v2.x) * c;
+    //    v2.y += (v3.y - v2.y) * c;
+    //    retPoints[i++] = v1.x + (v2.x - v1.x) * c;
+    //    retPoints[i++] = v1.y + (v2.y - v1.y) * c;
+    //    retPoints[i++] = v2.x;
+    //    retPoints[i++] = v2.y;
+    //    retPoints[i++] = v3.x;
+    //    retPoints[i++] = v3.y;
+    //    retPoints[i++] = v4.x;
+    //    retPoints[i++] = v4.y;
+    //    return retPoints;
+    //}
 })(window);
 
