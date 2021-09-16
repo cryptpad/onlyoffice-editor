@@ -8913,22 +8913,22 @@ DrawingObjectsController.prototype =
     {
         switch (layerType)
         {
-            case 0:
+            case Asc.c_oAscDrawingLayerType.BringToFront:
             {
                 this.bringToFront();
                 break;
             }
-            case 1:
+            case Asc.c_oAscDrawingLayerType.SendToBack:
             {
                 this.sendToBack();
                 break;
             }
-            case 2:
+            case Asc.c_oAscDrawingLayerType.BringForward:
             {
                 this.bringForward();
                 break;
             }
-            case 3:
+            case Asc.c_oAscDrawingLayerType.SendBackward:
             {
                 this.bringBackward();
             }
