@@ -106,10 +106,6 @@
                 dOldAlpha = oGraphics.globalAlpha;
                 oGraphics.put_GlobalAlpha(false, 1);
             }
-            if(AscFormat.isRealNumber(this.originalShape.selectStartPage) && overlay.SetCurrentPage)
-            {
-                overlay.SetCurrentPage(this.originalShape.selectStartPage);
-            }
             if(overlay.DrawGeomEditPoint)
             {
                 overlay.DrawGeomEditPoint(this.transform, gmEditPoint);
@@ -351,6 +347,7 @@
             this.overlayGeometry.pathLst.length = 1;
             var oDrawPath = this.overlayGeometry.pathLst[0];
             oDrawPath.ArrPathCommand.length = 0;
+            oDrawPath.stroke = true;
             if(prevPoint) {
                 oDrawPath.ArrPathCommand.push({id:AscFormat.moveTo, X: prevPoint.X, Y: prevPoint.Y});
                 if(arrPathCommand[gmEditPoint.pathC1]) {
