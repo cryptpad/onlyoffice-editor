@@ -3793,10 +3793,10 @@
 			else if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["GetImageOriginalSize"])
 			{
 				var _size = window["AscDesktopEditor"]["GetImageOriginalSize"](this.ImageUrl);
-				if (_size.W != 0 && _size.H != 0)
+				if (_size["W"] != 0 && _size["H"] != 0)
 				{
-					origW = _size.W;
-					origH = _size.H;
+					origW = _size["W"];
+					origH = _size["H"];
 				}
 			}
 
