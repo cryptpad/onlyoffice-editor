@@ -5293,20 +5293,32 @@
       }
     }
 
-    Constr.prototype.setConstr = function (shapes, refShape) {
-      var pointTree;
-      var node;
+    Constr.prototype.setConstr = function (pointTree, transfer) {
+      var node = transfer;
+      if (node) {
+        var shapes = this.getShapesFromAxis(node, false);
+        var refShape = this.getShapesFromAxis(node, true);
 
-      var that = this;
-      var value = this.getConstrVal(refShape);
-
-      if (value) {
-        shapes.forEach(function (shape) {
-          var setter = that.getConstrSetter(shape);
-          if (setter) {
-            setter.call(shape, value);
+        var that = this;
+        var value = refShape.reduce(function (acc, shape) {
+          var compute = that.getConstrVal(shape);
+          if (!acc && typeof compute === 'number') {
+            return compute;
+          } else if (typeof compute === 'number' && compute > acc) {
+            return compute;
           }
-        });
+          return acc;
+        }, undefined);
+
+        if (typeof value === 'number' && !(value !== value)) {
+          value /= this.getFieldScale(this.type);
+          shapes.forEach(function (shape) {
+            var setter = that.getConstrSetter(shape);
+            if (setter) {
+              setter.call(shape, value);
+            }
+          });
+        }
       }
     };
 
