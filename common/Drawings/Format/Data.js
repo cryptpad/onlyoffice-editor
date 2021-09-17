@@ -10801,6 +10801,67 @@
       return [this];
     }
 
+    SmartArtNode.prototype.getPoints = function (ptType, name) {
+      var points = [];
+      if (this.data) {
+        switch (ptType) {
+          case ElementType_value_all:
+            points = this.data.getAllPoints();
+            break;
+          case ElementType_value_asst:
+            points = this.data.getAsstPoint();
+            break;
+          case ElementType_value_node:
+            points = this.data.getNodePoint();
+            break;
+          case ElementType_value_doc:
+            points = this.data.getDocPoint();
+            break;
+          case ElementType_value_norm:
+            points = this.data.getNormPoint();
+            break;
+          case ElementType_value_nonAsst:
+            points = this.data.getNonAsstPoint();
+            break;
+          case ElementType_value_nonNorm:
+            points = this.data.getNonNormPoint();
+            break;
+          case ElementType_value_parTrans:
+            points = this.data.getParPoint();
+            break;
+          case ElementType_value_pres:
+            points = this.data.getPresPoint();
+            break;
+          case ElementType_value_sibTrans:
+            points = this.data.getSibPoint();
+            break;
+          default:
+            points = this.data.getAllPoints();
+        }
+        if (name) {
+          return points.filter(function (point) {
+            return point && point.prSet && point.prSet.presName && point.prSet.presName === name;
+          });
+        }
+      }
+      return points;
+    }
+
+    SmartArtNode.prototype.getShape = function (name, ptType) {
+      var points;
+      if (ptType) {
+        points = this.getPoints(ptType, name);
+      } else {
+        points = this.getPoints(ElementType_value_all, name);
+      }
+      points = points.map(function (point) {
+        return point.getShape(name);
+      }).filter(function (shape) {
+        return !!shape;
+      });
+      return points;
+    }
+
     function SmartArtNodeData() {
       CBaseFormatObject.call(this);
       this.cxn = null;
@@ -10852,11 +10913,11 @@
     }
 
     SmartArtNodeData.prototype.getAllPoints = function () {
-      var typeOfPoints = ['sibPoint', 'parPoint', 'docPoint', 'normPoint', 'nodePoint', 'asstPoint'];
+      var typeOfPoints = ['sibPoint', 'parPoint', 'docPoint', 'normPoint', 'nodePoint', 'asstPoint', 'presPoint'];
       var result = [];
       var that = this;
       typeOfPoints.forEach(function (pointType) {
-        result = result.concat(that[pointType]);
+        result = result.concat(!!that[pointType] ? that[pointType] : []);
       });
       return result;
     }
