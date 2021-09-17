@@ -6604,8 +6604,6 @@ CShape.prototype.setResizeHeightConstr = function (height) {
     {
         this.spPr.xfrm.setExtY(height);
     }
-    this.ResetParametersWithResize(true);
-    this.checkDrawingBaseCoords();
 }
 
     CShape.prototype.setResizeWidthConstr = function (width) {
@@ -6614,8 +6612,6 @@ CShape.prototype.setResizeHeightConstr = function (height) {
         {
             this.spPr.xfrm.setExtX(width);
         }
-        this.ResetParametersWithResize(true);
-        this.checkDrawingBaseCoords();
     }
 
 CShape.prototype.createMoveTrack = function () {
