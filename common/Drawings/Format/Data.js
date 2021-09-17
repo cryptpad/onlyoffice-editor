@@ -9711,11 +9711,11 @@
 
           if (i === ptLstWithNoType.length) {
             var mPoint = docPoint;
-            elem.addToLstDocPoint(0, mPoint);
+            elem.setDocPoint(mPoint);
 
           } else {
             mPoint = ptLstWithNoType[i];
-            elem.addToLstNodePoint(0, mPoint);
+            elem.setNodePoint(mPoint);
           }
 
           cxnWithNoPres.forEach(function (cxn) {
@@ -9752,14 +9752,14 @@
         var elements = this.createDataForHierarchy();
 
         var root = elements.reduce(function (acc, next) {
-          if (next.mainPoint.type === 2) {
+          if (next.docPoint) {
             return next;
           }
           return acc;
         }, undefined);
 
         if (root) {
-          var rootInfo = root.mainPoint && root.mainPoint.modelId;
+          var rootInfo = root.docPoint.modelId;
           var tree = new SmartArtTree(rootInfo, root);
 
           cxnWithNoPres = cxnWithNoPres.sort(function (a, b) {
@@ -9769,7 +9769,7 @@
             for (var j = 0; j < cxnWithNoPres.length; j += 1) {
               var _cxn = cxnWithNoPres[j];
               var childData = elements.reduce(function (acc, next) {
-                if (next.mainPoint.modelId === _cxn.destId) {
+                if (next.nodePoint && next.nodePoint.modelId === _cxn.destId) {
                   return next;
                 }
                 return acc;
@@ -10791,8 +10791,8 @@
       this.cxn = null;
       this.sibPoint = [];
       this.parPoint = [];
-      this.docPoint = [];
-      this.nodePoint = [];
+      this.docPoint = null;
+      this.nodePoint = null;
       this.normPoint = [];
       this.asstPoint = [];
       this.presPoint = [];
@@ -10819,9 +10819,8 @@
       this.parPoint.splice(nInsertIdx, 0, oPr);
     }
 
-    SmartArtNodeData.prototype.addToLstDocPoint = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.docPoint.length, Math.max(0, nIdx));
-      this.docPoint.splice(nInsertIdx, 0, oPr);
+    SmartArtNodeData.prototype.setDocPoint = function (oPr) {
+      this.docPoint = oPr;
     }
 
     SmartArtNodeData.prototype.addToLstAsstPoint = function (nIdx, oPr) {
@@ -10829,9 +10828,8 @@
       this.asstPoint.splice(nInsertIdx, 0, oPr);
     }
 
-    SmartArtNodeData.prototype.addToLstNodePoint = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.nodePoint.length, Math.max(0, nIdx));
-      this.nodePoint.splice(nInsertIdx, 0, oPr);
+    SmartArtNodeData.prototype.setNodePoint = function (oPr) {
+      this.nodePoint = oPr;
     }
 
     SmartArtNodeData.prototype.getPresPoint = function () {
@@ -10849,11 +10847,11 @@
     }
 
     SmartArtNodeData.prototype.getDocPoint = function () {
-      return this.docPoint;
+      return this.docPoint ? [this.docPoint] : [];
     }
 
     SmartArtNodeData.prototype.getNodePoint = function () {
-      return this.nodePoint;
+      return this.nodePoint ? [this.nodePoint] : [];
     }
 
     SmartArtNodeData.prototype.getAsstPoint = function () {
@@ -10903,13 +10901,6 @@
       return this.parPoint;
     }
 
-    SmartArtNodeData.prototype.setMainPoint = function (oPr) {
-      this.mainPoint = oPr;
-    }
-
-    SmartArtNodeData.prototype.getMainPoint = function () {
-      return this.mainPoint;
-    }
 
     SmartArtNodeData.prototype.addToLstShapes = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.shapes.length, Math.max(0, nIdx));
