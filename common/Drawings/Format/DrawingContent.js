@@ -61,11 +61,12 @@
     };
 
     CDrawingDocContent.prototype.getFontSizeForConstr = function () {
-        this.Content.forEach(function (paragraph) {
-            paragraph.Content.reduce(function (acc, paraRun) {
-                return paraRun.CompiledPr.FontSize > acc ? paraRun.CompiledPr.FontSize : acc;
+        return this.Content.reduce(function (pAcc, paragraph) {
+            var maxFontSizeInParagraph = paragraph.Content.reduce(function (acc, paraRun) {
+                return paraRun.Pr && paraRun.Pr.FontSize && paraRun.Pr.FontSize > acc ? paraRun.Pr.FontSize : acc;
             }, 0);
-        });
+            return maxFontSizeInParagraph > pAcc ? maxFontSizeInParagraph : pAcc;
+        }, 0);
     }
 
     CDrawingDocContent.prototype.GetFieldByType = function (sType) {
