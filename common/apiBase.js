@@ -2229,7 +2229,10 @@
 			asc_color_scheme = AscCommon.getAscColorScheme(_scheme, theme);
 			nIndex = AscCommon.getIndexColorSchemeInArray(result, asc_color_scheme);
 			if(nIndex === -1) {
-				aCustomSchemes.push(asc_color_scheme);
+				var nIdxInCustom = AscCommon.getIndexColorSchemeInArray(aCustomSchemes, asc_color_scheme);
+				if(nIdxInCustom === -1) {
+					aCustomSchemes.push(asc_color_scheme);
+				}
 			}
 			aCustomSchemes.sort(function (a, b) {
 				if(a.name === "" || a.name === null) return -1;
@@ -2248,12 +2251,7 @@
 			result = result.concat(aCustomSchemes);
 
 			if(nIndex === -1) {
-				for (i = 0; i < result.length; ++i) {
-					if (result[i] === asc_color_scheme) {
-						nIndex = i;
-						break;
-					}
-				}
+				nIndex = AscCommon.getIndexColorSchemeInArray(result, asc_color_scheme);
 			}
 		}
 		return {schemes: result, index: nIndex};
