@@ -5238,44 +5238,48 @@
       }
     }
 
-    Constr.prototype.getShapesFromAxis = function (node, isRef) {
-      var axisNodes;
-      var shapes;
-      var fGetAxis = this.getAxisFromParent.bind(this, node);
-      var that = this;
-      axisNodes = isRef ? fGetAxis(this.refFor) : fGetAxis(this.for);
-      if (axisNodes) {
-        if (isRef) {
-          shapes = axisNodes.map(function (axisNode) {
-            if (that.refForName && that.refPtType) {
-              axisNode.getShape(that.refForName, that.refPtType);
-            }
-            else if (that.refForName) {
-              axisNode.getShape(that.refForName);
-            }
-            else if (that.refPtType) {
-              axisNode.getShape(undefined, that.refPtType);
-            } else {
-              axisNode.getShape();
-            }
-          });
-        } else {
-          shapes = axisNodes.map(function (axisNode) {
-            if (that.forName && that.ptType) {
-              axisNode.getShape(that.forName, that.ptType);
-            }
-            else if (that.forName) {
-              axisNode.getShape(that.forName);
-            }
-            else if (that.ptType) {
-              axisNode.getShape(undefined, that.ptType);
-            } else {
-              axisNode.getShape();
-            }
-          });
+    Constr.prototype.getShapesFromAxis = function (transfer, isRef) {
+      var node = transfer && transfer.node && transfer.node.parent;
+      if (node) {
+        var axisNodes;
+        var shapes = [];
+        var fGetAxis = this.getAxisFromParent.bind(this, node);
+        var that = this;
+        axisNodes = isRef ? fGetAxis(this.refFor) : fGetAxis(this.for);
+        if (axisNodes && axisNodes.length !== 0) {
+          var ptType;
+          if (isRef) {
+            ptType = this.refPtType && this.refPtType.getVal();
+            shapes = axisNodes.reduce(function (acc, axisNode) {
+              if (that.refForName && ptType) {
+                return acc.concat(axisNode.getShape(that.refForName, ptType));
+              }
+              else if (that.refForName) {
+                return acc.concat(axisNode.getShape(that.refForName));
+              }
+              else if (ptType) {
+                return acc.concat(axisNode.getShape(transfer.name, ptType));
+              } else {
+                return acc.concat(axisNode.getShape(transfer.name));
+              }
+            }, []);
+          } else {
+            ptType = this.ptType && this.ptType.getVal();
+            shapes = axisNodes.reduce(function (acc, axisNode) {
+              if (that.forName && ptType) {
+                return acc.concat(axisNode.getShape(that.forName, ptType));
+              }
+              else if (that.forName) {
+                return acc.concat(axisNode.getShape(that.forName));
+              }
+              else if (ptType) {
+                return acc.concat(axisNode.getShape(undefined, ptType));
+              } else {
+                return acc.concat(axisNode.getShape());
+              }
+            }, []);
+          }
         }
-      }
-      if (shapes) {
         return shapes;
       }
     }
