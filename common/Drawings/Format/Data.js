@@ -4641,7 +4641,7 @@
 
     If.prototype.valAdapter = function (value) {
       var adaptVal;
-      if (!(typeof value === 'boolean' || parseFloat(value) !== parseFloat(value))) {
+      if (!(parseFloat(value) !== parseFloat(value))) {
         adaptVal = parseFloat(value);
       } else {
         switch (value) {
