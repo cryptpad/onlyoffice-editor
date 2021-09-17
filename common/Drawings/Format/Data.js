@@ -10181,7 +10181,6 @@
         case 3: {
           this.setLayoutDef(new LayoutDef());
           this.layoutDef.fromPPTY(pReader);
-          this.recalculateSmartArt();
           break;
         }
         case 4: {
