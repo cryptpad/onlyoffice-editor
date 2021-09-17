@@ -4581,9 +4581,9 @@
       var count = 0;
       this.ptType.forEach(function (Type) {
         var typeOfPoint = Type.getVal();
-        if (typeOfPoint === ElementType_value_node) { // ElementType_value_node = 3
-          count += axis.length;
-        }
+        axis.forEach(function (node) {
+          count += node.getPoints(typeOfPoint).length;
+        });
       });
       return this.compare(count);
     }
