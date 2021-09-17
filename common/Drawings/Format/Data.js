@@ -5085,6 +5085,7 @@
       var result;
       if (this.val) {
         result = this.val;
+        return;
       } else {
         if (shape) {
           var constrType = this.refType;
