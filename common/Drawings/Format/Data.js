@@ -5376,7 +5376,8 @@
             break;
           case Constr_type_primFontSz:
           case Constr_type_secFontSz:
-            return shape.setFontSizeInSmartArt;
+            //return shape.setFontSizeInSmartArt;
+            break;
           case Constr_type_pyraAcctRatio:
             break;
           case Constr_type_r:
