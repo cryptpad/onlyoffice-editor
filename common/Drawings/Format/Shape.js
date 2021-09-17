@@ -5078,7 +5078,8 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     this.txBody.content2 = null;
                 }
             }
-            this.setTruthFontSizeInSmartArt();
+                this.setTruthFontSizeInSmartArt();
+                this.group.group.recalculateSmartArt();
         }
     }
     return false;
