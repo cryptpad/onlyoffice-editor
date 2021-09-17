@@ -1743,7 +1743,6 @@ TextAddState.prototype =
 };
 
 
-
 function StartChangeWrapContourState(drawingObjects, majorObject)
 {
     this.drawingObjects = drawingObjects;
@@ -2661,6 +2660,7 @@ window['AscFormat'].NullState = NullState;
 window['AscFormat'].PreChangeAdjState = PreChangeAdjState;
 window['AscFormat'].PreMoveInlineObject = PreMoveInlineObject;
 window['AscFormat'].PreRotateState = PreRotateState;
+window['AscFormat'].RotateState = RotateState;
 window['AscFormat'].PreResizeState = PreResizeState;
 window['AscFormat'].PreMoveState = PreMoveState;
 window['AscFormat'].MoveState = MoveState;

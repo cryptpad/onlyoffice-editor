@@ -11544,6 +11544,22 @@ background-repeat: no-repeat;\
 		return [[oPos0.X, oPos0.Y], [oPos1.X, oPos1.Y], [oPos2.X, oPos2.Y], [oPos3.X, oPos3.Y]];
 	};
 
+	asc_docs_api.prototype.asc_canEditGeometry = function ()
+	{
+		var document = this.private_GetLogicDocument();
+		if (document)
+		{
+			return document.DrawingObjects.canEditGeometry();
+		}
+		return false;
+	};
+
+	asc_docs_api.prototype.asc_editPointsGeometry = function()
+	{
+		var drawingObjects = this.private_GetLogicDocument().DrawingObjects;
+		return drawingObjects.startEditGeometry();
+	};
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
 	CAscSection.prototype['get_PageWidth']                              = CAscSection.prototype.get_PageWidth;
@@ -12252,6 +12268,9 @@ background-repeat: no-repeat;\
 
 	// view modes
     asc_docs_api.prototype["asc_setContentDarkMode"]					= asc_docs_api.prototype.asc_setContentDarkMode;
+
+	asc_docs_api.prototype["asc_canEditGeometry"] 					    = asc_docs_api.prototype.asc_canEditGeometry;
+	asc_docs_api.prototype["asc_editPointsGeometry"] 					= asc_docs_api.prototype.asc_editPointsGeometry;
 
 	CDocInfoProp.prototype['get_PageCount']             = CDocInfoProp.prototype.get_PageCount;
 	CDocInfoProp.prototype['put_PageCount']             = CDocInfoProp.prototype.put_PageCount;
