@@ -1652,6 +1652,12 @@
 
     }
 
+    Point.prototype.getShape = function () {
+      if (this.parent && this.parent.parent instanceof CShape) {
+        return this.parent.parent;
+      }
+    }
+
     Point.prototype.setType = function (pr) {
       oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PointType, this.getType(), pr));
       this.type = pr;
