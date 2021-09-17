@@ -5293,7 +5293,7 @@
         case Constr_for_self:
           return node.getAxis(AxisType_value_self);
         default:
-          return;
+          return node.getAxis(AxisType_value_self);
       }
     }
 
