@@ -5122,7 +5122,7 @@
             case Constr_type_endPad:
               break;
             case Constr_type_h:
-              result = shape.extX;
+              //result = shape.extX;
               break;
             case Constr_type_hArH:
               break;
@@ -5139,7 +5139,7 @@
             case Constr_type_primFontSz:
             case Constr_type_secFontSz:
               if (shape.txBody && shape.txBody.content) {
-                result = shape.txBody.content.getFontSizeForConstr() * Constr_font_scale;
+                result = shape.txBody.content.getFontSizeForConstr();
               }
               break;
             case Constr_type_pyraAcctRatio:
@@ -5217,7 +5217,7 @@
             case Constr_type_userZ:
               break;
             case Constr_type_w:
-              result = shape.extY;
+              //result = shape.extY;
               break;
             case Constr_type_wArH:
               break;
@@ -5226,10 +5226,13 @@
             default:
               return;
           }
+          if (typeof result === 'number' && !(result !== result)) {
+            result *= this.getFieldScale(constrType);
+          }
         }
       }
-      if (result) {
-        var fact = this.fact ? this.fact : 1;
+      if (typeof result === 'number'&& !(result !== result)) {
+        var fact = Math.abs(this.fact ? this.fact : 1);
         result *= fact;
         return result;
       }
