@@ -4945,6 +4945,142 @@
     Constr.prototype.readChild = function(nType, pReader) {
     };
 
+    Constr.prototype.getFieldScale = function (type) {
+      if (type) {
+        switch (type) {
+          case Constr_type_alignOff:
+            return 1;
+          case Constr_type_b:
+            return 1;
+          case Constr_type_begMarg:
+            return 1;
+          case Constr_type_begPad:
+            return 1;
+          case Constr_type_bendDist:
+            return 1;
+          case Constr_type_bMarg:
+            return 1;
+          case Constr_type_bOff:
+            return 1;
+          case Constr_type_connDist:
+            return 1;
+          case Constr_type_ctrX:
+            return 1;
+          case Constr_type_ctrXOff:
+            return 1;
+          case Constr_type_ctrY:
+            return 1;
+          case Constr_type_ctrYOff:
+            return 1;
+          case Constr_type_diam:
+            return 1;
+          case Constr_type_endMarg:
+            return 1;
+          case Constr_type_endPad:
+            return 1;
+          case Constr_type_h:
+          case Constr_type_w:
+            return 36000;
+          case Constr_type_hArH:
+            return 1;
+          case Constr_type_hOff: // TODO: add to constr type in x2t
+            return 1;
+          case Constr_type_l:
+            return 1;
+          case Constr_type_lMarg:
+            return 1;
+          case Constr_type_lOff:
+            return 1;
+          case Constr_type_none:
+            return 1;
+          case Constr_type_primFontSz:
+          case Constr_type_secFontSz:
+            return 100 * Constr_font_scale;
+          case Constr_type_pyraAcctRatio:
+            return 1;
+          case Constr_type_r:
+            return 1;
+          case Constr_type_rMarg:
+            return 1;
+          case Constr_type_rOff:
+            return 1;
+          case Constr_type_secSibSp:
+            return 1;
+          case Constr_type_sibSp:
+            return 1;
+          case Constr_type_sp:
+            return 1;
+          case Constr_type_stemThick:
+            return 1;
+          case Constr_type_t:
+            return 1;
+          case Constr_type_tMarg:
+            return 1;
+          case Constr_type_tOff:
+            return 1;
+          case Constr_type_userA:
+            return 1;
+          case Constr_type_userB:
+            return 1;
+          case Constr_type_userC:
+            return 1;
+          case Constr_type_userD:
+            return 1;
+          case Constr_type_userE:
+            return 1;
+          case Constr_type_userF:
+            return 1;
+          case Constr_type_userG:
+            return 1;
+          case Constr_type_userH:
+            return 1;
+          case Constr_type_userI:
+            return 1;
+          case Constr_type_userJ:
+            return 1;
+          case Constr_type_userK:
+            return 1;
+          case Constr_type_userL:
+            return 1;
+          case Constr_type_userM:
+            return 1;
+          case Constr_type_userN:
+            return 1;
+          case Constr_type_userO:
+            return 1;
+          case Constr_type_userP:
+            return 1;
+          case Constr_type_userQ:
+            return 1;
+          case Constr_type_userR:
+            return 1;
+          case Constr_type_userS:
+            return 1;
+          case Constr_type_userT:
+            return 1;
+          case Constr_type_userU:
+            return 1;
+          case Constr_type_userV:
+            return 1;
+          case Constr_type_userW:
+            return 1;
+          case Constr_type_userX:
+            return 1;
+          case Constr_type_userY:
+            return 1;
+          case Constr_type_userZ:
+            return 1;
+          case Constr_type_wArH:
+            return 1;
+          case Constr_type_wOff:
+            return 1;
+          default:
+            return 1;
+        }
+      }
+    return 1;
+    }
+
     Constr.prototype.getConstrVal = function (shape) {
       var result;
       if (this.val) {
