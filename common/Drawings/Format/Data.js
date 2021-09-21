@@ -3716,22 +3716,26 @@
 
     changesFactory[AscDFH.historyitem_ChooseName] = CChangeString;
     changesFactory[AscDFH.historyitem_ChooseElse] = CChangeObject;
-    changesFactory[AscDFH.historyitem_ChooseIf] = CChangeObject;
+    changesFactory[AscDFH.historyitem_ChooseAddToLstIf] = CChangeContent;
+    changesFactory[AscDFH.historyitem_ChooseRemoveFromLstIf] = CChangeContent;
     drawingsChangesMap[AscDFH.historyitem_ChooseName] = function (oClass, value) {
       oClass.name = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChooseElse] = function (oClass, value) {
       oClass.else = value;
     };
-    drawingsChangesMap[AscDFH.historyitem_ChooseIf] = function (oClass, value) {
-      oClass.if = value;
+    drawingContentChanges[AscDFH.historyitem_ChooseAddToLstIf] = function (oClass) {
+      return oClass.if;
+    };
+    drawingContentChanges[AscDFH.historyitem_ChooseRemoveFromLstIf] = function (oClass) {
+      return oClass.if;
     };
 
     function Choose() {
       CBaseFormatObject.call(this);
       this.name = null;
       this.else = null;
-      this.if = null;
+      this.if = [];
     }
 
     InitClass(Choose, CBaseFormatObject, AscDFH.historyitem_type_Choose);
@@ -3747,11 +3751,20 @@
       this.setParentToChild(oPr);
     }
 
-    Choose.prototype.setIf = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ChooseIf, this.getIf(), oPr));
-      this.if = oPr;
+    Choose.prototype.addToLstIf = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.if.length, Math.max(0, nIdx));
+      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ChooseAddToLstIf, nInsertIdx, [oPr], true));
+      this.if.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
-    };
+    }
+
+    Choose.prototype.removeFromLstIf = function (nIdx) {
+      if (nIdx > -1 && nIdx < this.if.length) {
+        this.if[nIdx].setParent(null);
+        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ChooseRemoveFromLstIf, nIdx, [this.if[nIdx]], false));
+        this.if.splice(nIdx, 1);
+      }
+    }
 
     Choose.prototype.getName = function () {
       return this.name;
@@ -3770,8 +3783,8 @@
       if (this.getElse()) {
         oCopy.setElse(this.getElse().createDuplicate(oIdMap));
       }
-      if (this.getIf()) {
-        oCopy.setIf(this.getIf().createDuplicate(oIdMap));
+      for (var i = 0; i < this.if.length; i += 1) {
+        oCopy.addToLstIf(i, this.if[i].createDuplicate(oIdMap));
       }
     }
 
@@ -3779,7 +3792,9 @@
       pWriter._WriteString2(0, this.name);
     };
     Choose.prototype.writeChildren = function(pWriter) {
-      this.writeRecord2(pWriter, 0, this.if);
+      for (var i = 0; i < this.if.length; i += 1) {
+        this.writeRecord2(pWriter, 0, this.if[i]);
+      }
       this.writeRecord2(pWriter, 1, this.else);
     };
     Choose.prototype.readAttribute = function(nType, pReader) {
@@ -3790,8 +3805,8 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.setIf(new If());
-          this.if.fromPPTY(pReader);
+          this.addToLstIf(0, new If());
+          this.if[0].fromPPTY(pReader);
           break;
         }
         case 1: {
@@ -3811,12 +3826,16 @@
 
     Choose.prototype.startAlgorithm = function (pointTree, node) {
       var check;
-      if (this.if) {
-        check = this.if.startAlgorithm(pointTree, node);
+      for (var i = 0; i < this.if.length; i += 1) {
         if (!check) {
-          if (this.else) {
-            this.else.startAlgorithm(pointTree, node);
-          }
+          check = this.if[i].startAlgorithm(pointTree, node);
+        } else {
+          this.if[i].startAlgorithm(pointTree, node);
+        }
+      }
+      if (!check) {
+        if (this.else) {
+          this.else.startAlgorithm(pointTree, node);
         }
       }
     }
