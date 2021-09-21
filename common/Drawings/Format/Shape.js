@@ -2690,35 +2690,48 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             }
             else {
                 if ((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nOTOwerflow) || _content_height < _text_rect_height) {
+                    var verticalTxXfrm = 0;
+                    var horizontalTxXfrm = 0;
+                    if (this.txXfrm) {
+                        verticalTxXfrm = this.y - this.txXfrm.offY;
+                    }
                     switch (oBodyPr.anchor) {
                         case 0: //b
                         { // (Text Anchor Enum ( Bottom ))
-                            _vertical_shift = _text_rect_height - _content_height;
+                            _vertical_shift = _text_rect_height - _content_height + verticalTxXfrm;
                             if (nSquare % 2 === 0) {
-                                _vertical_shift = 0;
+                                _vertical_shift = 0 - verticalTxXfrm;
+                            }
+                            if (this.txXfrm) {
+                                horizontalTxXfrm = this.txXfrm.offX - this.x;
                             }
                             break;
                         }
                         case 1:    //ctr
-                        {// (Text Anchor Enum ( Center ))
-                            _vertical_shift = (_text_rect_height - _content_height) * 0.5;
-                            break;
-                        }
-                        case 2: //dist
-                        {// (Text Anchor Enum ( Distributed )) TODO: пока выравнивание  по центру. Переделать!
-                            _vertical_shift = (_text_rect_height - _content_height) * 0.5;
-                            break;
-                        }
-                        case 3: //just
-                        {// (Text Anchor Enum ( Justified )) TODO: пока выравнивание  по центру. Переделать!
-                            _vertical_shift = (_text_rect_height - _content_height) * 0.5;
-                            break;
-                        }
+                        case 2:    //dist TODO: пока выравнивание  по центру. Переделать!
+                        case 3:    //just TODO: пока выравнивание  по центру. Переделать!
+                    // (Text Anchor Enum ( Center ))
+                        _vertical_shift = (_text_rect_height - _content_height) * 0.5;
+                        break;
+
+                      // case 2: //dist
+                      // {// (Text Anchor Enum ( Distributed )) TODO: пока выравнивание  по центру. Переделать!
+                      //     _vertical_shift = (_text_rect_height - _content_height) * 0.5;
+                      //     break;
+                      // }
+                      // case 3: //just
+                      // {// (Text Anchor Enum ( Justified )) TODO: пока выравнивание  по центру. Переделать!
+                      //     _vertical_shift = (_text_rect_height - _content_height) * 0.5;
+                      //     break;
+                      // }
                         case 4: //t
                         {//Top
-                            _vertical_shift = 0;
+                            _vertical_shift = 0 - verticalTxXfrm;
                             if (nSquare % 2 === 0) {
-                                _vertical_shift = _text_rect_height - _content_height;
+                                _vertical_shift = _text_rect_height - _content_height + verticalTxXfrm;
+                            }
+                            if (this.txXfrm) {
+                                horizontalTxXfrm = this.txXfrm.offX - this.x;
                             }
                             break;
                         }
@@ -2785,6 +2798,9 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 alpha = Math.atan2(_dy_t, _dx_t);
                 global_MatrixTransformer.RotateRadAppend(oMatrix, Math.PI - alpha);
                 global_MatrixTransformer.TranslateAppend(oMatrix, _t_x_rt, _t_y_rt);
+            }
+            if (this.txXfrm) {
+                global_MatrixTransformer.TranslateAppend(oMatrix, horizontalTxXfrm, 0);
             }
         }
         else {

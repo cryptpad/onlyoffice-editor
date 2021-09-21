@@ -384,16 +384,16 @@ function MoveShapeImageTrack(originalObject)
         {
             AscFormat.ExecuteNoHistory(
                 function () {
-                    this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
-                    this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+                    _xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
+                    _xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
                 },
                 this, []
             );
         }
         else
         {
-            this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
-            this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+            _xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
+            _xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
             if (this.originalObject.txXfrm) {
                 var previousTxXfrmX = this.originalObject.txXfrm.offX;
                 var previousTxXfrmY = this.originalObject.txXfrm.offY;
