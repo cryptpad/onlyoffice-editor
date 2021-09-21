@@ -10857,6 +10857,7 @@
             break;
           default:
             points = this.data.getAllPoints();
+            break;
         }
         if (name) {
           return points.filter(function (point) {
