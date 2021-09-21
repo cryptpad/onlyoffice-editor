@@ -6677,15 +6677,6 @@ function BinaryPPTYLoader()
                     shape.attrUseBgFill = s.GetBool();
                     break;
                 }
-                case 2:
-                {
-                    var sModelId = s.GetString2();
-                    if(typeof AscFormat.SmartArt !== undefined)
-                    {
-                        shape.setModelId(sModelId);
-                    }
-                    break;
-                }
                 default:
                     break;
             }
@@ -6734,6 +6725,20 @@ function BinaryPPTYLoader()
                 case 7:
                 {
                     shape.setSignature(this.ReadSignatureLine());
+                    break;
+                }
+                case 8:
+                {
+                    if(typeof AscFormat.SmartArt !== undefined)
+                    {
+                        s.GetULong();//length
+                        s.GetUChar();//attr type - 0
+                        shape.setModelId(s.GetString2());
+                    }
+                    else
+                    {
+                        s.SkipRecord();
+                    }
                     break;
                 }
                 case 9:
@@ -11990,15 +11995,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         shape.attrUseBgFill = s.GetBool();
                         break;
                     }
-                    case 2:
-                    {
-                        var sModelId = s.GetString2();
-                        if(typeof AscFormat.SmartArt !== undefined)
-                        {
-                            shape.setModelId(sModelId);
-                        }
-                        break;
-                    }
                     default:
                         break;
                 }
@@ -12091,6 +12087,20 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     case 7:
                     {
                         shape.setSignature(this.Reader.ReadSignatureLine());
+                        break;
+                    }
+                    case 8:
+                    {
+                        if(typeof AscFormat.SmartArt !== undefined)
+                        {
+                            s.GetULong();//length
+                            s.GetUChar();//attr type - 0
+                            shape.setModelId(s.GetString2());
+                        }
+                        else
+                        {
+                            s.SkipRecord();
+                        }
                         break;
                     }
                     case 0xA1:
