@@ -9772,7 +9772,6 @@
     }
 
     SmartArt.prototype.getPtMap = function () {
-      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
       var ptLst = this.getPtLst();
       var ptMap = {};
       if (ptLst) {
@@ -9869,7 +9868,7 @@
 
         if (root) {
           var rootInfo = root.docPoint.modelId;
-          var tree = new SmartArtTree(rootInfo, root);
+          var tree = new SmartArtTree(rootInfo, root, this);
 
           cxnWithNoPres = cxnWithNoPres.sort(function (a, b) {
             return parseInt(a.srcOrd) - parseInt(b.srcOrd);
@@ -10619,7 +10618,7 @@
       return oCopy;
     };
 
-    function SmartArtTree(rootInfo, rootData) {
+    function SmartArtTree(rootInfo, rootData, parent) {
       CBaseFormatObject.call(this);
       var child = new SmartArtNode();
       if (rootInfo) {
@@ -10629,6 +10628,7 @@
         child.setData(rootData);
       }
       child.setParent(this);
+      this.parent = parent;
       child.depth = 0;
       this.root = child;
     }
