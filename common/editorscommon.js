@@ -1296,7 +1296,7 @@
 
 	function build_rx_table(local)
 	{
-		cStrucTableLocalColumns = ( local ? local : {
+		window["AscCommon"].cStrucTableLocalColumns = cStrucTableLocalColumns = ( local ? local : {
 			"h":  "Headers",
 			"d":  "Data",
 			"a":  "All",
