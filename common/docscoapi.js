@@ -1679,6 +1679,20 @@
         ], function (Channel, Util) {
             var msgEv = Util.mkEvent();
             var p = window.parent;
+
+            // Presenter mode in slides
+            if (editor.isReporterMode) {
+                // If we are in the presenter popup, we want a channel with the main OO.
+                // Since a lot of the code is using window.parent.APP, we need to override
+                // window.parent because in the case of a popup, window.parent === window
+                p = window.opener;
+                window.parent = p;
+            } else {
+                // If we're not in presenter mode, we're the parent if the presenter popup
+                // and this popup will need access to APP in order to load images
+                window.APP = p && p.APP;
+            }
+
             window.addEventListener('message', function (msg) {
                 if (msg.source !== p) { return; }
                 msgEv.fire(msg);

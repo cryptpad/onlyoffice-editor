@@ -61,6 +61,18 @@ CCollaborativeChanges.prototype.Apply_Data = function()
 {
 	var CollaborativeEditing = AscCommon.CollaborativeEditing;
 
+    // XXX CryptPad
+    if (this.m_pData && this.m_pData.type === "cp_theme") {
+        clearTimeout(window.CP_theme_to);
+        var data = this.m_pData;
+        window.CP_theme_to = setTimeout(function () {
+            window.parent.APP.remoteTheme();
+            window.editor.ChangeTheme(data.id, null, true);
+        });
+        return true;
+    }
+
+
 	var Reader  = this.private_LoadData(this.m_pData);
 	var ClassId = Reader.GetString2();
 	var Class   = AscCommon.g_oTableId.Get_ById(ClassId);
