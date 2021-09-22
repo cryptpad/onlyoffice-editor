@@ -3103,8 +3103,6 @@
           break;
       }
     };
-    Alg.prototype.getChildren = function() {
-    };
 
 
     changesFactory[AscDFH.historyitem_ParameterValArrowheadStyle] = CChangeLong;
@@ -6020,8 +6018,6 @@
     };
     Adj.prototype.readChild = function(nType, pReader) {
     };
-    Adj.prototype.getChildren = function() {
-    };
 
 
     changesFactory[AscDFH.historyitem_VarLstAnimLvl] = CChangeObject;
@@ -8318,6 +8314,37 @@
       }
     }
 
+    Scene3d.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.camera);
+      this.writeRecord2(pWriter, 1, this.lightRig);
+      this.writeRecord2(pWriter, 2, this.backdrop);
+    };
+
+    Scene3d.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+         case 0:
+           this.setCamera(new Camera());
+           this.camera.fromPPTY(pReader);
+           break;
+        case 1:
+          this.setLightRig(new LightRig());
+          this.lightRig.fromPPTY(pReader);
+          break;
+        case 2:
+          this.setBackdrop(new Backdrop());
+          this.backdrop.fromPPTY(pReader);
+          break;
+        default: {
+          break;
+        }
+      }
+    };
+
+    Scene3d.prototype.getChildren = function () {
+      return [this.camera, this.lightRig, this.backdrop];
+    }
+
 
     changesFactory[AscDFH.historyitem_StyleDefStyleLblName] = CChangeString;
     changesFactory[AscDFH.historyitem_StyleDefStyleLblExtLst] = CChangeObject;
@@ -8497,10 +8524,10 @@
 
     function Backdrop() {
       CBaseFormatObject.call(this);
-      this.anchor = null;
+      this.anchor = new BackdropAnchor();
       this.extLst = null;
-      this.norm = null;
-      this.up = null;
+      this.norm = new BackdropNorm();
+      this.up = new BackdropUp();
     }
 
     InitClass(Backdrop, CBaseFormatObject, AscDFH.historyitem_type_Backdrop);
@@ -8559,6 +8586,32 @@
         oCopy.setUp(this.getUp().createDuplicate(oIdMap));
       }
     }
+
+    Backdrop.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteInt1(0, this.anchor.x);
+      pWriter._WriteInt1(1, this.anchor.y);
+      pWriter._WriteInt1(2, this.anchor.z);
+
+      pWriter._WriteInt1(3, this.norm.x);
+      pWriter._WriteInt1(4, this.norm.y);
+      pWriter._WriteInt1(5, this.norm.z);
+
+      pWriter._WriteInt1(6, this.up.x);
+      pWriter._WriteInt1(7, this.up.y);
+      pWriter._WriteInt1(8, this.up.z);
+    };
+    Backdrop.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.anchor.setX(oStream.GetLong());
+      else if (1 === nType) this.anchor.setY(oStream.GetLong());
+      else if (2 === nType) this.anchor.setZ(oStream.GetLong());
+      else if (3 === nType) this.norm.setX(oStream.GetLong());
+      else if (4 === nType) this.norm.setY(oStream.GetLong());
+      else if (5 === nType) this.norm.setZ(oStream.GetLong());
+      else if (6 === nType) this.up.setX(oStream.GetLong());
+      else if (7 === nType) this.up.setY(oStream.GetLong());
+      else if (8 === nType) this.up.setZ(oStream.GetLong());
+    };
 
     changesFactory[AscDFH.historyitem_CoordinateCoordinateUnqualified] = CChangeLong;
     changesFactory[AscDFH.historyitem_CoordinateUniversalMeasure] = CChangeLong;
@@ -8946,9 +8999,41 @@
       }
     }
 
-    changesFactory[AscDFH.historyitem_RotLat] = CChangeDouble2;
-    changesFactory[AscDFH.historyitem_RotLon] = CChangeDouble2;
-    changesFactory[AscDFH.historyitem_RotRev] = CChangeDouble2;
+    Camera.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteUChar1(0, this.prst);
+      pWriter._WriteInt2(1, this.fov);
+      pWriter._WriteInt2(2, this.zoom);
+    };
+    Camera.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.rot);
+    };
+    Camera.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setPrst(oStream.GetUChar());
+      else if (1 === nType) this.setFov(oStream.GetLong());
+      else if (2 === nType) this.setZoom(oStream.GetLong());
+    };
+    Camera.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setRot(new Rot());
+          this.rot.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    };
+
+    Camera.prototype.getChildren = function () {
+      return [this.rot];
+    }
+
+    changesFactory[AscDFH.historyitem_RotLat] = CChangeLong;
+    changesFactory[AscDFH.historyitem_RotLon] = CChangeLong;
+    changesFactory[AscDFH.historyitem_RotRev] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_RotLat] = function (oClass, value) {
       oClass.lat = value;
     };
@@ -8969,17 +9054,17 @@
     InitClass(Rot, CBaseFormatObject, AscDFH.historyitem_type_Rot);
 
     Rot.prototype.setLat = function (pr) {
-      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_RotLat, this.getLat(), pr))
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_RotLat, this.getLat(), pr))
       this.lat = pr;
     }
 
     Rot.prototype.setLon = function (pr) {
-      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_RotLon, this.getLon(), pr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_RotLon, this.getLon(), pr));
       this.lon = pr;
     }
 
     Rot.prototype.setRev = function (pr) {
-      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_RotRev, this.getRev(), pr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_RotRev, this.getRev(), pr));
       this.rev = pr;
     }
 
@@ -9000,6 +9085,20 @@
       oCopy.setLon(this.getLon());
       oCopy.setRev(this.getRev());
     }
+
+    Rot.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteInt2(0, this.lat);
+      pWriter._WriteInt2(1, this.lon);
+      pWriter._WriteInt2(2, this.rev);
+    };
+
+    Rot.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setLat(oStream.GetLong());
+      else if (1 === nType) this.setLon(oStream.GetLong());
+      else if (2 === nType) this.setRev(oStream.GetLong());
+    };
+
 
     changesFactory[AscDFH.historyitem_LightRigDir] = CChangeLong;
     changesFactory[AscDFH.historyitem_LightRigRig] = CChangeLong;
@@ -9058,6 +9157,35 @@
         oCopy.setRot(this.getRot().createDuplicate(oIdMap));
       }
     }
+
+    LightRig.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteUChar1(0, this.dir);
+      pWriter._WriteUChar1(1, this.rig);
+    };
+    LightRig.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.rot);
+      };
+    LightRig.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setDir(oStream.GetUChar());
+      else if (1 === nType) this.setRig(oStream.GetUChar());
+    };
+    LightRig.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setRot(new Rot());
+          this.rot.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    };
+    LightRig.prototype.getChildren = function() {
+      return [this.rot];
+    };
 
 
     changesFactory[AscDFH.historyitem_Sp3dContourW] = CChangeLong;
