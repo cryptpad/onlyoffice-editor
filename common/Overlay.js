@@ -3079,7 +3079,14 @@ CAutoshapeTrack.prototype =
 
         overlay.SetBaseTransform();
 
-        ctx.drawImage(_flow_anchor, __x, __y, Math.round(13 * rPR), Math.round(15 * rPR));
+        var _w = Math.round(13 * rPR);
+        var _h = Math.round(15 * rPR);
+        if (Math.abs(_w - _flow_anchor.width) < 2)
+            _w = _flow_anchor.width;
+        if (Math.abs(_h - _flow_anchor.height) < 2)
+            _h = _flow_anchor.height;
+
+        ctx.drawImage(_flow_anchor, __x, __y, _w, _h);
         ctx.globalAlpha = _oldAlpha;
     },
 

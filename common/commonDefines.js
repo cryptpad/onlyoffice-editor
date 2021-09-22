@@ -2473,7 +2473,7 @@
 	prot['Fraction']                         = prot.Fraction;
 	prot['Text']                             = prot.Text;
 	prot['Custom']                           = prot.Custom;
-	window['Asc']['c_oAscDrawingLayerType']  = c_oAscDrawingLayerType;
+	window['Asc']['c_oAscDrawingLayerType']  = window['Asc'].c_oAscDrawingLayerType  = c_oAscDrawingLayerType;
 	prot                                     = c_oAscDrawingLayerType;
 	prot['BringToFront']                     = prot.BringToFront;
 	prot['SendToBack']                       = prot.SendToBack;
