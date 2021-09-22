@@ -5095,7 +5095,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 }
             }
             if (this.isObjectInSmartArt()) {
-                this.setTruthFontSizeInSmartArt();
+                this.copyTextInfoFromShapeToPoint();
                 this.group.group.recalculateSmartArt();
             }
         }
@@ -5103,42 +5103,6 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
     return false;
 };
 
-CShape.prototype.setTruthFontSizeInSmartArt = function () {
-    if (this.isObjectInSmartArt()) {
-        var maxFontSize = 65;
-        var arrOfFonts = [];
-        this.group.arrGraphicObjects.forEach(function (shape) {
-                var point = shape.getPoint();
-                var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-                var isNotPlaceholder = isFitText && !point.prSet.phldr;
-                if (isNotPlaceholder) {
-                    arrOfFonts.push(shape.findFitFontSizeForSmartArt());
-                }
-            }
-        )
-        var minFont = arrOfFonts.reduce(function (prev, next) {
-            if (prev > next) {
-                return next;
-            }
-            return prev;
-        }, arrOfFonts[0]);
-        minFont = minFont || maxFontSize;
-        this.group.arrGraphicObjects.forEach(function (shape) {
-            var point = shape.getPoint();
-            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-            var isPlaceholder = isFitText && point.prSet.phldr;
-            if (isPlaceholder) {
-                var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
-                if (minFontSizeForPlaceholder > minFont) {
-                    shape.setFontSizeInSmartArt(minFont);
-                }
-            } else if (isFitText) {
-                shape.setFontSizeInSmartArt(minFont);
-            }
-        });
-        this.copyTextInfoFromShapeToPoint();
-    }
-}
 
 CShape.prototype.getTransformMatrix = function ()
 {

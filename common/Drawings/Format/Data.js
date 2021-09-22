@@ -5318,9 +5318,16 @@
 
     Constr.prototype.setConstr = function (pointTree, transfer) {
       var node = transfer;
+      var smartArt = pointTree && pointTree.parent;
       if (node) {
         var shapes = this.getShapesFromAxis(node, false);
         var refShape = this.getShapesFromAxis(node, true);
+        if (this.type === Constr_type_primFontSz || this.type === Constr_type_secFontSz) {
+          if (smartArt) {
+            smartArt.setTruthFontSizeInSmartArt(shapes);
+          }
+          return;
+        }
 
         var that = this;
         var value = refShape.reduce(function (acc, shape) {
@@ -10227,6 +10234,40 @@
         })
         return connections;
       }
+    }
+
+    SmartArt.prototype.setTruthFontSizeInSmartArt = function (shapes) {
+      var maxFontSize = 65;
+      var arrOfFonts = [];
+      shapes.forEach(function (shape) {
+          var point = shape.getPoint();
+          var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+          var isNotPlaceholder = isFitText && !point.prSet.phldr;
+          if (isNotPlaceholder) {
+            arrOfFonts.push(shape.findFitFontSizeForSmartArt());
+          }
+        }
+      )
+      var minFont = arrOfFonts.reduce(function (prev, next) {
+        if (prev > next) {
+          return next;
+        }
+        return prev;
+      }, arrOfFonts[0]);
+      minFont = minFont || maxFontSize;
+      shapes.forEach(function (shape) {
+        var point = shape.getPoint();
+        var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+        var isPlaceholder = isFitText && point.prSet.phldr;
+        if (isPlaceholder) {
+          var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
+          if (minFontSizeForPlaceholder > minFont) {
+            shape.setFontSizeInSmartArt(minFont);
+          }
+        } else if (isFitText) {
+          shape.setFontSizeInSmartArt(minFont);
+        }
+      });
     }
 
     SmartArt.prototype.privateWriteAttributes = null;
