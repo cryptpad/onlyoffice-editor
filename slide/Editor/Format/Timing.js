@@ -8831,13 +8831,122 @@
     var EFFECT_TYPE_MOTION_VERTICAL_FIGURE_8 = EFFECT_TYPE_MOTION | 64;
 
     //-------------------------------------------------------------------------------
+
+    var START_ON_CLICK = 0;
+    var START_WITH_PREVIOUS = 1;
+    var START_AFTER_PREVIOUS = 1;
+
+    var REPEAT_NONE = 0;
+    var REPEAT_UNTIL_NEXT_CLICK = -1;
+    var REPEAT_UNTIL_END_OF_SLIDE = -2;
+
+
+    var SOUND_NO_SOUND = 0;
+    var SOUND_NO_STOP_PREVIOUS = 1;
+
+    var ANIMATE_TEXT_ALL_AT_ONCE = 0;
+    var ANIMATE_TEXT_BY_WORD = 1;
+    var ANIMATE_TEXT_BY_LETTER = 2;
+
     function CEffectBase() {
+        this.start = START_ON_CLICK;
+        this.delay = 0;
+        this.duration = 0;
+        this.repeat = REPEAT_NONE;
+        this.rewind = false;
+
+        this.clickSeq = true;
+        this.clickOf = null;
+        this.playOf = null;
+
+
+        this.sound = SOUND_NO_SOUND;
+        this.afterColor = null;
+        this.afterDoNotDim = true;
+        this.afterHide = null;
+        this.afterHideOnClick = null;
+
+        this.animateText = ANIMATE_TEXT_ALL_AT_ONCE;
+        this.delayBetweenWords = null;
+
     }
     CEffectBase.prototype.classType = EFFECT_TYPE_UNKNOWN;
     CEffectBase.prototype.getType = function() {
         return this.classType;
     };
+    CEffectBase.prototype.getStart = function() {
+        return this.start;
+    };
+    CEffectBase.prototype.getDelay = function() {
+        return this.delay;
+    };
+    CEffectBase.prototype.getDuration = function() {
+        return this.duration;
+    };
+    CEffectBase.prototype.getRepeat = function() {
+        return this.repeat;
+    };
+    CEffectBase.prototype.getRewind = function() {
+        return this.rewind;
+    };
+    CEffectBase.prototype.getClickSeq = function() {
+        return this.clickSeq;
+    };
+    CEffectBase.prototype.getClickOf = function() {
+        return this.clickOf;
+    };
+    CEffectBase.prototype.getPlayOf = function() {
+        return this.playOf;
+    };
+    CEffectBase.prototype.setStart = function(v) {
+        this.start = v;
+    };
+    CEffectBase.prototype.setDelay = function(v) {
+        this.delay = v;
+    };
+    CEffectBase.prototype.setDuration = function(v) {
+        this.duration = v;
+    };
+    CEffectBase.prototype.setRepeat = function(v) {
+        this.repeat = v;
+    };
+    CEffectBase.prototype.setRewind = function(v) {
+        this.rewind = v;
+    };
+    CEffectBase.prototype.setClickSeq = function() {
+        this.clickSeq = true;
+        this.clickOf = null;
+        this.playOf = null;
+    };
+    CEffectBase.prototype.setClickOf = function(v) {
+        if(typeof v === "string") {
+            this.clickOf = v;
+            this.clickSeq = null;
+            this.playOf = null;
+        }
+    };
+    CEffectBase.prototype.setPlayOf = function(v) {
+        this.playOf = v;
+        this.clickSeq = null;
+        this.clickOf = null;
+    };
     CEffectBase.prototype["getType"] = CEffectBase.prototype.getType;
+    CEffectBase.prototype["getStart"] = CEffectBase.prototype.getStart;
+    CEffectBase.prototype["getDelay"] = CEffectBase.prototype.getDelay;
+    CEffectBase.prototype["getDuration"] = CEffectBase.prototype.getDuration;
+    CEffectBase.prototype["getRepeat"] = CEffectBase.prototype.getRepeat;
+    CEffectBase.prototype["getRewind"] = CEffectBase.prototype.getRewind;
+    CEffectBase.prototype["getClickSeq"] = CEffectBase.prototype.getClickSeq;
+    CEffectBase.prototype["getClickOf"] = CEffectBase.prototype.getClickOf;
+    CEffectBase.prototype["getPlayOf"] = CEffectBase.prototype.getPlayOf;
+    CEffectBase.prototype["setStart"] = CEffectBase.prototype.setStart;
+    CEffectBase.prototype["setDelay"] = CEffectBase.prototype.setDelay;
+    CEffectBase.prototype["setDuration"] = CEffectBase.prototype.setDuration;
+    CEffectBase.prototype["setRepeat"] = CEffectBase.prototype.setRepeat;
+    CEffectBase.prototype["setRewind"] = CEffectBase.prototype.setRewind;
+    CEffectBase.prototype["setClickSeq"] = CEffectBase.prototype.setClickSeq;
+    CEffectBase.prototype["setClickOf"] = CEffectBase.prototype.setClickOf;
+    CEffectBase.prototype["setPlayOf"] = CEffectBase.prototype.setPlayOf;
 
     function CNone() {
         CEffectBase.call(this);
