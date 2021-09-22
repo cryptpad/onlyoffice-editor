@@ -4575,7 +4575,7 @@
           case 'hierBranch':
           case 'bulletEnabled':
             if (currentPres && currentPres.prSet && currentPres.prSet.presLayoutVars) {
-              return this.compare(currentPres.prSet.presLayoutVars[this.arg].getVal());
+              return this.compare(currentPres.prSet.presLayoutVars.getVal(this.arg));
             }
             break;
 
@@ -4586,9 +4586,11 @@
           case 'orgChart':
           case 'resizeHandles':
             if (rootPres && rootPres.prSet && rootPres.prSet.presLayoutVars && rootPres.prSet.presLayoutVars[this.arg]) {
-              return this.compare(rootPres.prSet.presLayoutVars[this.arg].getVal());
+              return this.compare(rootPres.prSet.presLayoutVars.getVal(this.arg));
             }
             break;
+          default:
+            return false;
         }
       }
       return false;
@@ -6260,85 +6262,21 @@
       }
     };
 
-    VarLst.prototype.readChildren = function(nEnd, pReader) {
-      var oStream = pReader.stream;
-      while (oStream.cur < nEnd) {
-        var nType = oStream.GetUChar();
-        this.readChild(nType, pReader);
-      }
-
-      if (!this.animLvl) {
-        this.setAnimLvl(new AnimLvl());
-      }
-
-      if (!this.animLvl.val) {
-        this.animLvl.setVal('none');
-      }
-
-      if (!this.resizeHandles) {
-        this.setResizeHandles(new ResizeHandles());
-      }
-
-      if (!this.resizeHandles.val) {
-        this.resizeHandles.setVal('rel');
-      }
-
-      if (!this.hierBranch) {
-        this.setHierBranch(new HierBranch());
-      }
-
-      if (!this.hierBranch.val) {
-        this.hierBranch.setVal('std');
-      }
-
-      if (!this.orgChart) {
-        this.setOrgChart(new OrgChart());
-      }
-
-      if (!this.orgChart.val) {
-        this.orgChart.setVal('false');
-      }
-
-      if (!this.dir) {
-        this.setDir(new DiagramDirection());
-      }
-
-      if (!this.dir.val) {
-        this.dir.setVal('norm');
-      }
-
-      if (!this.chPref) {
-        this.setChPref(new ChPref());
-      }
-
-      if (!this.chPref.val) {
-        this.chPref.setVal('-1');
-      }
-
-      if (!this.chMax) {
-        this.setChMax(new ChMax());
-      }
-
-      if (!this.chMax.val) {
-        this.chMax.setVal('-1');
-      }
-
-      if (!this.bulletEnabled) {
-        this.setBulletEnabled(new BulletEnabled());
-      }
-
-      if (!this.bulletEnabled.val) {
-        this.bulletEnabled.setVal('false');
-      }
-
-      if (!this.animOne) {
-        this.setAnimOne(new AnimOne());
-      }
-
-      if (!this.animOne.val) {
-        this.animOne.setVal('one');
-      }
-    };
+    VarLst.prototype.getVal = function (fieldType) {
+      var defaultValues = {
+        'animLvl': 'none',
+        'animOne': 'one',
+        'bulletEnabled': 'false',
+        'chMax': '-1',
+        'chPref': '-1',
+        'dir': 'norm',
+        'hierBranch': 'std',
+        'orgChart': 'false',
+        'resizeHandles': 'rel',
+      };
+      var nonDefaultValue = this[fieldType] && this[fieldType].getVal();
+      return nonDefaultValue ? nonDefaultValue : defaultValues[fieldType];
+    }
 
     VarLst.prototype.getChildren = function() {
       return [this.animLvl, this.animOne, this.bulletEnabled, this.chMax, this.chPref, this.dir, this.hierBranch, this.orgChart, this.resizeHandles];
