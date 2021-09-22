@@ -2298,6 +2298,9 @@
 				} else if (_sFullTable[j] === "]") {
 					_bracketCount--;
 					res = null;
+					if (_bracketCount <= 0) {
+						break;
+					}
 				} else {
 					if (_bracketCount > 0) {
 						if (!res) {
