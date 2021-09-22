@@ -1028,12 +1028,17 @@
 			}
 
 			t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = false;
+            }
 			t.changeWorksheet("update", {reinitRanges: true});
 			t._updateGroups(true, undefined, undefined, true);
 			t._updateVisibleColsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
-
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = true;
+            }
 			if (bIsHiddenArr) {
 				if (bIsHiddenArr.length) {
 					Asc.editor.wb.handleChartsOnWorkbookChange(bIsHiddenArr);
@@ -1044,10 +1049,12 @@
 			}
 
 			if (t.objectRender) {
-				t.objectRender.updateSizeDrawingObjects({
-					target: AscCommonExcel.c_oTargetType.ColumnResize,
-					col: startUpdateCol
-				});
+                var oTarget = {
+                    target: AscCommonExcel.c_oTargetType.ColumnResize,
+                    col: startUpdateCol
+                };
+				t.objectRender.updateSizeDrawingObjects(oTarget);
+                t.objectRender.updateDrawingsTransform(oTarget);
 			}
 			if (viewMode) {
 				History.TurnOn();
@@ -1157,12 +1164,17 @@
 			var updateRange = new asc_Range(0, startUpdateRow, t.cols.length - 1, endUpdateRow);
 			t.model.autoFilters.reDrawFilter(updateRange);
 			t._cleanCache(updateRange);
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = false;
+            }
 			t.changeWorksheet("update", {reinitRanges: true});
 			t._updateGroups(false, undefined, undefined, true);
 			t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
-
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = true;
+            }
 
 			if (bIsHiddenArr) {
 				if (bIsHiddenArr.length) {
@@ -1174,10 +1186,12 @@
 			}
 
 			if (t.objectRender) {
-				t.objectRender.updateSizeDrawingObjects({
-					target: AscCommonExcel.c_oTargetType.RowResize,
-					row: startUpdateRow
-				});
+                var oTarget = {
+                    target: AscCommonExcel.c_oTargetType.RowResize,
+                    row: startUpdateRow
+                };
+				t.objectRender.updateSizeDrawingObjects(oTarget);
+                t.objectRender.updateDrawingsTransform(oTarget);
 			}
 			if (viewMode) {
 				History.TurnOn();

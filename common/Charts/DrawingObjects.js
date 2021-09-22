@@ -3104,7 +3104,8 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
                 var bCanMove = false;
                 var bCanResize = false;
-                var nDrawingBaseType = obj.graphicObject.getDrawingBaseType();
+                var oGraphicObject = obj.graphicObject;
+                var nDrawingBaseType = oGraphicObject.getDrawingBaseType();
                 switch (nDrawingBaseType)
                 {
                     case AscCommon.c_oAscCellAnchorType.cellanchorTwoCell:
@@ -3362,59 +3363,53 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 // Normalize position
                 if (metrics)
                 {
-                    if (metrics.from.col < 0)
+                    var oFrom = metrics.from;
+                    var oTo = metrics.to;
+                    if (oFrom.col < 0)
                     {
-                        metrics.from.col = 0;
-                        metrics.from.colOff = 0;
+                        oFrom.col = 0;
+                        oFrom.colOff = 0;
                     }
 
-                    if (metrics.to.col <= 0) {
-                        metrics.to.col = 1;
-                        metrics.to.colOff = 0;
+                    if (oTo.col <= 0) {
+                        oTo.col = 1;
+                        oTo.colOff = 0;
                     }
 
-                    if (metrics.from.row < 0) {
-                        metrics.from.row = 0;
-                        metrics.from.rowOff = 0;
+                    if (oFrom.row < 0) {
+                        oFrom.row = 0;
+                        oFrom.rowOff = 0;
                     }
 
-                    if (metrics.to.row <= 0) {
-                        metrics.to.row = 1;
-                        metrics.to.rowOff = 0;
+                    if (oTo.row <= 0) {
+                        oTo.row = 1;
+                        oTo.rowOff = 0;
                     }
 
-                    if (metrics.from.col == metrics.to.col) {
-                        metrics.to.col++;
-                        metrics.to.colOff = 0;
+                    if (oFrom.col === oTo.col) {
+                        if(oFrom.colOff > oTo.colOff) {
+                            oTo.colOff = oFrom.colOff;
+                        }
                     }
-                    if (metrics.from.row == metrics.to.row) {
-                        metrics.to.row++;
-                        metrics.to.rowOff = 0;
+                    if (oFrom.row === oTo.row) {
+                        if(oFrom.rowOff > oTo.rowOff) {
+                            oTo.rowOff = oFrom.rowOff;
+                        }
                     }
 
-                    /*obj.from.col = metrics.from.col;
-                    obj.from.colOff = metrics.from.colOff;
-                    obj.from.row = metrics.from.row;
-                    obj.from.rowOff = metrics.from.rowOff;
+                    oGraphicObject.setDrawingBaseCoords(oFrom.col, oFrom.colOff, oFrom.row, oFrom.rowOff,
+                        oTo.col, oTo.colOff, oTo.row, oTo.rowOff, obj.Pos.X, obj.Pos.Y, obj.ext.cx, obj.ext.cy);
+                    oGraphicObject.recalculate();
 
-                    obj.to.col = metrics.to.col;
-                    obj.to.colOff = metrics.to.colOff;
-                    obj.to.row = metrics.to.row;
-                    obj.to.rowOff = metrics.to.rowOff;
-                    */
-
-
-                    obj.graphicObject.setDrawingBaseCoords(metrics.from.col, metrics.from.colOff, metrics.from.row, metrics.from.rowOff,
-                        metrics.to.col, metrics.to.colOff, metrics.to.row, metrics.to.rowOff, obj.Pos.X, obj.Pos.Y, obj.ext.cx, obj.ext.cy);
-                    obj.graphicObject.recalculate();
-
-                    if(obj.graphicObject.spPr && obj.graphicObject.spPr.xfrm){
-                        obj.graphicObject.spPr.xfrm.setOffX(obj.graphicObject.x);
-                        obj.graphicObject.spPr.xfrm.setOffY(obj.graphicObject.y);
-                        obj.graphicObject.spPr.xfrm.setExtX(obj.graphicObject.extX);
-                        obj.graphicObject.spPr.xfrm.setExtY(obj.graphicObject.extY);
+                    if(oGraphicObject.spPr && oGraphicObject.spPr.xfrm)
+                    {
+                        var oXfrm = oGraphicObject.spPr.xfrm;
+                        oXfrm.setOffX(oGraphicObject.x);
+                        oXfrm.setOffY(oGraphicObject.y);
+                        oXfrm.setExtX(oGraphicObject.extX);
+                        oXfrm.setExtY(oGraphicObject.extY);
                     }
-                    obj.graphicObject.recalculate();
+                    oGraphicObject.recalculate();
                     bNeedRedraw = true;
                 }
             }
