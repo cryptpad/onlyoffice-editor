@@ -578,10 +578,8 @@ COverlay.prototype =
     {
         this.m_oContext.strokeStyle = "#AAAAAA";
         var nW = 2;
-        if(AscCommon.AscBrowser.isRetina)
-        {
-            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
-        }
+
+        nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
         this.CheckPoint1(left, y - nW);
         this.CheckPoint2(right, y + nW);
         this.m_oContext.lineWidth = nW;
@@ -594,10 +592,8 @@ COverlay.prototype =
     {
         this.m_oContext.strokeStyle = "#AAAAAA";
         var nW = 2;
-        if(AscCommon.AscBrowser.isRetina)
-        {
-            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
-        }
+
+        nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
         this.CheckPoint1(x - nW, top);
         this.CheckPoint2(x + nW, bottom);
         this.m_oContext.lineWidth = nW;
@@ -3130,24 +3126,7 @@ CAutoshapeTrack.prototype =
         this.m_oContext.drawImage(AscCommon.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], __x, __y, rPR * _offset[2], rPR * _offset[3]);
 
         ctx.globalAlpha = _oldAlpha;
-    },
-
-    DrawFrozenPaneBorderHor: function(y, left, right)
-    {
-        this.m_oOverlay.SetBaseTransform();
-        autoShapeTrack.p_color(0xAA, 0xAA, 0xAA);
-        var nW = BORDER_WIDTH;
-        if(AscCommon.AscBrowser.isRetina) {
-            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
-        }
-        autoShapeTrack.Graphics.SetIntegerGrid(true);
-        autoShapeTrack.p_width(nW);
-        autoShapeTrack._s();
-        autoShapeTrack._m(left, y);
-        autoShapeTrack._l(right, y);
-        autoShapeTrack.ds();
-        autoShapeTrack.Graphics.SetIntegerGrid(false);
-    } 
+    }
 };
 
 	function DrawTextByCenter() // this!

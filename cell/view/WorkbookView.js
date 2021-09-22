@@ -1888,7 +1888,7 @@
   	return AscCommonExcel.generateCellStyles(width, height, this);
   };
   WorkbookView.prototype.getSlicerStyles = function() {
-      return AscCommonExcel.generateSlicerStyles(36, 49, this);
+      return AscCommonExcel.generateSlicerStyles(36, 48, this);
   };
 
   WorkbookView.prototype.getWorksheetById = function(id, onlyExist) {
