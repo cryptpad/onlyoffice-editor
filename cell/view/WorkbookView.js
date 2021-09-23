@@ -2383,7 +2383,7 @@
 											}
 										}
 									}
-									fPos += defNameStr.length + 1;
+									fPos += defNameStr.length + (fName.length - defNameStr.length - sTableInner.length);
 									_lastFNameLength = sTableInner.length;
 								}
 							}
