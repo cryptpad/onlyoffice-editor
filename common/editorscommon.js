@@ -3847,6 +3847,7 @@
 	function IntToNumberFormat(nValue, nFormat)
 	{
 		var sResult = "";
+        nFormat = Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand; //delete
 
 		switch (nFormat)
 		{
@@ -3870,6 +3871,7 @@
 				break;
 			}
 
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
 			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
 			{
 				if (nValue <= 20)
@@ -3963,6 +3965,338 @@
 					if (nIndex >= Rims.length)
 						break;
 				}
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.Aiueo: {
+
+				var count = 1, numberOfLetters = 46;
+				while (nValue > numberOfLetters) {
+					++count;
+					nValue -= numberOfLetters;
+				}
+				var letter = nValue % 45 === 0 ? 0xFF66 : (nValue % 46 === 0 ? 0xFF9D : 0xFF71 + nValue - 1);
+
+				for (var i = 0; i < count; i++)
+					sResult += String.fromCharCode(letter);
+
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.AiueoFullWidth: {
+
+				var count = 1, numberOfLetters = 46, letter;
+				while (nValue > numberOfLetters) {
+					++count;
+					nValue -= numberOfLetters;
+				}
+				if (nValue >= 1 && nValue <= 5) {
+					letter = 0x30A2 + (nValue - 1) * 2;
+				} else if (nValue >= 6 && nValue <= 17) {
+					letter = 0x30AB + (nValue - 6) * 2;
+				} else if (nValue >= 18 && nValue <= 21) {
+					letter = 0x30C4 + (nValue - 18) * 2;
+				} else if (nValue >= 22 && nValue <= 26) {
+					letter = 0x30CB + nValue - 22;
+				} else if (nValue >= 27 && nValue <= 31) {
+					letter = 0x30D2 + (nValue - 27) * 3;
+				} else if (nValue >= 32 && nValue <= 35) {
+					letter = 0x30DF + nValue - 32;
+				} else if (nValue >= 36 && nValue <= 38) {
+					letter = 0x30E4 + nValue - 36;
+				} else if (nValue >= 39 && nValue <= 43) {
+					letter = 0x30E9 + nValue - 39;
+				} else if (nValue === 44) {
+					letter = 0x30EF + nValue - 44;
+				} else if (nValue >= 45 && nValue <= 46) {
+					letter = 0x30F2 + nValue - 45;
+				}
+
+				for (var i = 0; i < count; i++)
+					sResult += String.fromCharCode(letter);
+
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.ArabicAbjad:
+			case Asc.c_oAscNumberingFormat.ArabicAlpha:
+			case Asc.c_oAscNumberingFormat.Chicago:
+			case Asc.c_oAscNumberingFormat.Chosung:
+			case Asc.c_oAscNumberingFormat.Ganada: {
+				var count = 1, charArr;
+
+					if (nFormat === Asc.c_oAscNumberingFormat.ArabicAbjad) {
+						charArr = [
+							0x0623, 0x0628, 0x062C, 0x062F,
+							0x0647, 0x0648, 0x0632, 0x062D,
+							0x0637, 0x064A, 0x0643, 0x0644,
+							0x0645, 0x0646, 0x0633, 0x0639,
+							0x0641, 0x0635, 0x0642, 0x0631,
+							0x0634, 0x062A, 0x062B, 0x062E,
+							0x0630, 0x0636, 0x063A, 0x0638
+						];
+					} else if (nFormat === Asc.c_oAscNumberingFormat.ArabicAbjad) {
+						charArr = [
+							0x0623, 0x0628, 0x062A, 0x062B,
+							0x062C, 0x062D, 0x062E, 0x062F,
+							0x0630, 0x0631, 0x0632, 0x0633,
+							0x0634, 0x0635, 0x0636, 0x0637,
+							0x0638, 0x0639, 0x063A, 0x0641,
+							0x0642, 0x0643, 0x0644, 0x0645,
+							0x0646, 0x0647, 0x0648, 0x064A
+						];
+					} else if (nFormat === Asc.c_oAscNumberingFormat.Chicago) {
+						charArr = [0x002A, 0x2020, 0x2021, 0x00A7]
+					} else if(nFormat === Asc.c_oAscNumberingFormat.Chosung) {
+						charArr = [
+							0x3131, 0x3134, 0x3137, 0x3139,
+							0x3141, 0x3142, 0x3145, 0x3147,
+							0x3148, 0x314A, 0x314B, 0x314C,
+							0x314D, 0x314E
+						]
+					} else if (nFormat === Asc.c_oAscNumberingFormat.Ganada) {
+						charArr = [
+							0xAC00, 0xB098, 0xB2E4, 0xB77C,
+							0xB9C8, 0xBC14, 0xC0AC, 0xC544,
+							0xC790, 0xCC28, 0xCE74, 0xD0C0,
+							0xD30C, 0xD558
+						]
+					}
+
+
+
+					while (nValue > charArr.length) {
+						++count;
+						nValue -= charArr.length;
+					}
+
+				for (var i = 0; i < count; i++)
+					sResult += String.fromCharCode(charArr[nValue - 1]);
+
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedFullstop:
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedParen: {
+				var startNumber = nFormat === Asc.c_oAscNumberingFormat.DecimalEnclosedFullstop ? 0x2488 : 0x2474;
+				sResult = (nValue >= 1 && nValue <= 20) ? String.fromCharCode(startNumber + nValue - 1) : "" + nValue;
+
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.DecimalFullWidth:
+			case Asc.c_oAscNumberingFormat.DecimalHalfWidth: {
+
+				var zeroInHex = nFormat === Asc.c_oAscNumberingFormat.DecimalFullWidth ? 0xFF10 : 0x0030;
+				var strValue = String(nValue);
+				for(var i = 0; i < strValue.length; i++) {
+					sResult += String.fromCharCode(zeroInHex + parseInt(strValue[i]));
+				}
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.Hebrew2: {
+				var numberOfLetters = 22, count = 0,
+					charArr = [
+						0x05D0, 0x05D1, 0x05D2, 0x05D3,
+						0x05D4, 0x05D5, 0x05D6, 0x05D7,
+						0x05D8, 0x05D9, 0x05DB, 0x05DC,
+						0x05DE, 0x05E0, 0x05E1, 0x05E2,
+						0x05E4, 0x05E6, 0x05E7, 0x05E8,
+						0x05E9, 0x05EA
+					];
+
+				while (nValue > numberOfLetters) {
+					++count;
+					nValue -= numberOfLetters;
+				}
+
+				sResult = String.fromCharCode(charArr[nValue - 1]);
+
+				while(count !== 0) {
+					sResult += String.fromCharCode(charArr[21]);
+					--count;
+				}
+			break;
+			}
+
+			case Asc.c_oAscNumberingFormat.Hex: {
+
+				sResult = (nValue+0x10000).toString(16).substr(-4).toUpperCase();
+				sResult = sResult.replace(/^0+/, '');
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.HindiConsonants: {
+				var count = 1, numberOfLetters = 18;
+
+				var charArr = [
+					0x0905, 0x0906, 0x0907, 0x0908,
+					0x0909, 0x090A, 0x090B, 0x090C,
+					0x090D, 0x090E, 0x090F, 0x0910,
+					0x0911, 0x0912, 0x0913, 0x0914,
+					0x0905, 0x0905
+				];
+
+				while (nValue > numberOfLetters) {
+					++count;
+					nValue -= numberOfLetters;
+				}
+				for (var i = 0; i < count; i++) {
+					sResult += String.fromCharCode(charArr[nValue - 1]);
+
+					if(nValue === 17) {
+						sResult += String.fromCharCode(0x0902)
+					} else if(nValue === 18) {
+						sResult += String.fromCharCode(0x0903)
+					}
+				}
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.HindiNumbers:
+			case Asc.c_oAscNumberingFormat.IdeographDigital:
+			case Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand: {
+				var digits;
+				if (nFormat === Asc.c_oAscNumberingFormat.HindiNumbers)
+					digits = [
+						0x0966, 0x0967, 0x0968, 0x0969, 0x096A,
+						0x096B, 0x096C, 0x096D, 0x096E, 0x096F
+					];
+				else if (nFormat === Asc.c_oAscNumberingFormat.IdeographDigital)
+					digits = [
+						0x3007, 0x4E00, 0x4E8C, 0x4E09,
+						0x56DB, 0x4E94, 0x516D, 0x4E03,
+						0x516B, 0x4E5D
+					];
+				else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand)
+					digits = [
+						0x3007, 0x4E00, 0x4E8C, 0x4E09,
+						0x56DB, 0x4E94, 0x516D, 0x4E03,
+						0x516B, 0x4E5D
+					];
+
+				var strValue = nValue.toString();
+				for(var i = 0; i < strValue.length; i++) {
+					sResult += String.fromCharCode(digits[strValue[i]]);
+				}
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.HindiVowels: {
+				var count = 1, numberOfLetters = 37;
+
+				while (nValue > numberOfLetters) {
+					++count;
+					nValue -= numberOfLetters;
+				}
+
+				for (var i = 0; i < count; i++) {
+					sResult += String.fromCharCode(0x0915 + nValue - 1);
+				}
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.IdeographEnclosedCircle: {
+				sResult += nValue <= 10 ? String.fromCharCode(0x3220 + nValue - 1) : nValue;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.IdeographTraditional:
+			case Asc.c_oAscNumberingFormat.IdeographZodiac: {
+				var digits = [];
+
+				if (nFormat === Asc.c_oAscNumberingFormat.IdeographTraditional)
+					digits = [
+						0x7532, 0x4E59, 0x4E19, 0x4E01,
+						0x620A, 0x5DF1, 0x5E9A, 0x8F9B,
+						0x58EC, 0x7678
+					];
+				else if (nFormat === Asc.c_oAscNumberingFormat.IdeographZodiac)
+					digits = [
+						0x5B50, 0x4E11, 0x5BC5, 0x536F,
+						0x8FB0, 0x5DF3, 0x5348, 0x672A,
+						0x7533, 0x9149, 0x620C, 0x4EA5
+					];
+
+				sResult += nValue <= digits.length ? String.fromCharCode(digits[nValue - 1]) : nValue;
+
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.IdeographZodiacTraditional: {
+				var digits = [
+					0x7532, 0x5B50, 0x4E59, 0x4E11, 0x4E19, 0x5BC5,
+					0x4E01, 0x536F, 0x620A, 0x8FB0, 0x5DF1, 0x5DF3,
+					0x5E9A, 0x5348, 0x8F9B, 0x672A, 0x58EC, 0x7533,
+					0x7678, 0x9149, 0x7532, 0x620D, 0x4E59, 0x4EA5,
+					0x4E19, 0x5B50, 0x4E01, 0x4E11, 0x620A, 0x5BC5,
+					0x5DF1, 0x536F, 0x5E9A, 0x8FB0, 0x8F9B, 0x5DF3,
+					0x58EC, 0x5348, 0x7678, 0x672A, 0x7532, 0x7533,
+					0x4E59, 0x9149, 0x4E19, 0x620D, 0x4E01, 0x4EA5,
+					0x620A, 0x5B50, 0x5DF1, 0x4E11, 0x5E9A, 0x5BC5,
+					0x8F9B, 0x536F, 0x58EC, 0x8FB0, 0x7678, 0x5DF3,
+					0x7532, 0x5348, 0x4E59, 0x672A, 0x4E19, 0x7533,
+					0x4E01, 0x9149, 0x620A, 0x620D, 0x5DF1, 0x4EA5,
+					0x5E9A, 0x5B50, 0x8F9B, 0x4E11, 0x58EC, 0x5BC5,
+					0x7678, 0x536F, 0x7532, 0x8FB0, 0x4E59, 0x5DF3,
+					0x4E19, 0x5348, 0x4E01, 0x672A, 0x620A, 0x7533,
+					0x5DF1, 0x9149, 0x5E9A, 0x620D, 0x8F9B, 0x4EA5,
+					0x58EC, 0x5B50, 0x7678, 0x4E11, 0x7532, 0x5BC5,
+					0x4E59, 0x536F, 0x4E19, 0x8FB0, 0x4E01, 0x5DF3,
+					0x620A, 0x5348, 0x5DF1, 0x672A, 0x5E9A, 0x7533,
+					0x8F9B, 0x9149, 0x58EC, 0x620D, 0x7678, 0x4EA5
+				];
+
+				while (nValue > digits.length / 2) {
+					nValue -= digits.length / 2;
+				}
+
+				sResult += String.fromCharCode(digits[nValue * 2 - 2]) + String.fromCharCode(digits[nValue * 2 - 1]);
+
+				break;
+			}
+
+
+			case Asc.c_oAscNumberingFormat.Iroha:
+			case Asc.c_oAscNumberingFormat.IrohaFullWidth: {
+				var digits = [];
+				if (nFormat === Asc.c_oAscNumberingFormat.Iroha)
+					digits = [
+						0xFF72, 0xFF9B, 0xFF8A, 0xFF86,
+						0xFF8E, 0xFF8D, 0xFF84, 0xFF81,
+						0xFF98, 0xFF87, 0xFF99, 0xFF66,
+						0xFF9C, 0xFF76, 0xFF96, 0xFF80,
+						0xFF9A, 0xFF7F, 0xFF82, 0xFF88,
+						0xFF85, 0xFF97, 0xFF91, 0xFF73,
+						0x30F0, 0xFF89, 0xFF75, 0xFF78,
+						0xFF94, 0xFF8F, 0xFF79, 0xFF8C,
+						0xFF7A, 0xFF74, 0xFF83, 0xFF71,
+						0xFF7B, 0xFF77, 0xFF95, 0xFF92,
+						0xFF90, 0xFF7C, 0x30F1, 0xFF8B,
+						0xFF93, 0xFF7E, 0xFF7D, 0xFF9D
+					];
+				else
+					if (nFormat === Asc.c_oAscNumberingFormat.IrohaFullWidth)
+					digits = [
+						0x30A4, 0x30ED, 0x30CF, 0x30CB,
+						0x30DB, 0x30D8, 0x30C8, 0x30C1,
+						0x30EA, 0x30CC, 0x30EB, 0x30F2,
+						0x30EF, 0x30AB, 0x30E8, 0x30BF,
+						0x30EC, 0x30BD, 0x30C4, 0x30CD,
+						0x30CA, 0x30E9, 0x30E0, 0x30A6,
+						0x30F0, 0x30CE, 0x30AA, 0x30AF,
+						0x30E4, 0x30DE, 0x30B1, 0x30D5,
+						0x30B3, 0x30A8, 0x30C6, 0x30A2,
+						0x30B5, 0x30AD, 0x30E6, 0x30E1,
+						0x30DF, 0x30B7, 0x30F1, 0x30D2,
+						0x30E2, 0x30BB, 0x30B9, 0x30F3
+					]
+
+				while (nValue > digits.length) {
+					nValue -= digits.length;
+				}
+
+				sResult += String.fromCharCode(digits[nValue - 1]);
 				break;
 			}
 
