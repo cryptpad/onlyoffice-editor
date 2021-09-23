@@ -12198,6 +12198,7 @@
 		if(null == sText && null == aText)
 			sText = "";
 		var oNewItem, cellfont;
+		var cellSelfFont = this.xfs && this.xfs.font;
 		var xfs = this.getCompiledStyle();
 		if(null != xfs && null != xfs.font)
 			cellfont = xfs.font;
@@ -12220,8 +12221,19 @@
 					oNewItem.text = oCurtext.text;
 					var oCurFormat = new AscCommonExcel.Font();
 					if (isMultyText) {
-						if (null != oCurtext.format) {
-							oCurFormat.assign(oCurtext.format);
+						if (null != oCurtext.format && !(cellSelfFont && cellSelfFont.isEqual(oCurtext.format))) {
+							//MultyText format equals to cell font
+							if (this.xfs && !this.xfs.isNormalFont()) {
+								//cell font is not default
+								oCurFormat.assign(oCurtext.format);
+								if (cellSelfFont && cellSelfFont.c && oCurtext.format.c && oCurtext.format.c.isEqual(cellSelfFont.c)) {
+									oCurFormat.c = xfs.font.c;
+								}
+							} else {
+								//like in CellXfs.prototype.merge
+								var isTableColor = oCurtext.format.isNormalXfColor();
+								oCurFormat = xfs._mergeProperty(g_StyleCache.addFont, oCurtext.format, xfs.font, true, isTableColor);
+							}
 						} else {
 							oCurFormat.assign(cellfont);
 							oCurFormat.setSkip(false);
