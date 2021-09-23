@@ -2372,7 +2372,7 @@
 												_str = "#" + _str;
 												_type = c_oAscPopUpSelectorType.TableAll;
 											} else if (j === "tr") {
-												_str = "@";
+												_str = "@" + " - " + _str;
 												_type = c_oAscPopUpSelectorType.TableThisRow;
 											} else if (j === "t") {
 												_str = "#" + _str;
