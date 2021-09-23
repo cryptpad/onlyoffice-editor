@@ -8652,207 +8652,216 @@
     };
     //--------------------------------------------------------------------------
 
-    var EFFECT_TYPE_UNKNOWN = -1;
-    var EFFECT_TYPE_NONE = 0;
-    var EFFECT_TYPE_MULTIPLE = 1;
-    var EFFECT_TYPE_ENTRANCE = 2 << 16;
-    var EFFECT_TYPE_ENTRANCE_APPEAR = EFFECT_TYPE_ENTRANCE | 1;
-    var EFFECT_TYPE_ENTRANCE_BLINDS = EFFECT_TYPE_ENTRANCE | 2;
-    var EFFECT_TYPE_ENTRANCE_BOX    = EFFECT_TYPE_ENTRANCE | 3;
-    var EFFECT_TYPE_ENTRANCE_CHECKERBOARD = EFFECT_TYPE_ENTRANCE | 4;
-    var EFFECT_TYPE_ENTRANCE_CIRCLE = EFFECT_TYPE_ENTRANCE | 5;
-    var EFFECT_TYPE_ENTRANCE_DIAMOND = EFFECT_TYPE_ENTRANCE | 6;
-    var EFFECT_TYPE_ENTRANCE_DISSOLVE_IN = EFFECT_TYPE_ENTRANCE | 7;
-    var EFFECT_TYPE_ENTRANCE_FLY_IN = EFFECT_TYPE_ENTRANCE | 8;
-    var EFFECT_TYPE_ENTRANCE_PEEK_IN = EFFECT_TYPE_ENTRANCE | 9;
-    var EFFECT_TYPE_ENTRANCE_PLUS = EFFECT_TYPE_ENTRANCE | 10;
-    var EFFECT_TYPE_ENTRANCE_RANDOM_BARS = EFFECT_TYPE_ENTRANCE | 11;
-    var EFFECT_TYPE_ENTRANCE_SPLIT = EFFECT_TYPE_ENTRANCE | 12;
-    var EFFECT_TYPE_ENTRANCE_STRIPS = EFFECT_TYPE_ENTRANCE | 13;
-    var EFFECT_TYPE_ENTRANCE_WEDGE = EFFECT_TYPE_ENTRANCE | 14;
-    var EFFECT_TYPE_ENTRANCE_WHEEL = EFFECT_TYPE_ENTRANCE | 15;
-    var EFFECT_TYPE_ENTRANCE_WIPE = EFFECT_TYPE_ENTRANCE | 16;
-    var EFFECT_TYPE_ENTRANCE_EXPAND = EFFECT_TYPE_ENTRANCE | 17;
-    var EFFECT_TYPE_ENTRANCE_FADE = EFFECT_TYPE_ENTRANCE | 18;
-    var EFFECT_TYPE_ENTRANCE_SWIVEL = EFFECT_TYPE_ENTRANCE | 19;
-    var EFFECT_TYPE_ENTRANCE_ZOOM = EFFECT_TYPE_ENTRANCE | 20;
-    var EFFECT_TYPE_ENTRANCE_BASIC_ZOOM = EFFECT_TYPE_ENTRANCE | 21;
-    var EFFECT_TYPE_ENTRANCE_CENTER_REVOLVE = EFFECT_TYPE_ENTRANCE | 22;
-    var EFFECT_TYPE_ENTRANCE_COMPRESS = EFFECT_TYPE_ENTRANCE | 23;
-    var EFFECT_TYPE_ENTRANCE_FLOAT_DOWN = EFFECT_TYPE_ENTRANCE | 24;
-    var EFFECT_TYPE_ENTRANCE_FLOAT_UP = EFFECT_TYPE_ENTRANCE | 25;
-    var EFFECT_TYPE_ENTRANCE_GROW_AND_TURN = EFFECT_TYPE_ENTRANCE | 26;
-    var EFFECT_TYPE_ENTRANCE_RISE_UP = EFFECT_TYPE_ENTRANCE | 27;
-    var EFFECT_TYPE_ENTRANCE_SPINNER = EFFECT_TYPE_ENTRANCE | 28;
-    var EFFECT_TYPE_ENTRANCE_STRETCH = EFFECT_TYPE_ENTRANCE | 29;
-    var EFFECT_TYPE_ENTRANCE_BASIC_SWIVEL = EFFECT_TYPE_ENTRANCE | 30;
-    var EFFECT_TYPE_ENTRANCE_BOOMERANG = EFFECT_TYPE_ENTRANCE | 31;
-    var EFFECT_TYPE_ENTRANCE_BOUNCE = EFFECT_TYPE_ENTRANCE | 32;
-    var EFFECT_TYPE_ENTRANCE_CREDITS = EFFECT_TYPE_ENTRANCE | 33;
-    var EFFECT_TYPE_ENTRANCE_CURVE_UP = EFFECT_TYPE_ENTRANCE | 34;
-    var EFFECT_TYPE_ENTRANCE_DROP = EFFECT_TYPE_ENTRANCE | 35;
-    var EFFECT_TYPE_ENTRANCE_FLIP = EFFECT_TYPE_ENTRANCE | 36;
-    var EFFECT_TYPE_ENTRANCE_FLOAT = EFFECT_TYPE_ENTRANCE | 37;
-    var EFFECT_TYPE_ENTRANCE_PINWHEEL = EFFECT_TYPE_ENTRANCE | 38;
-    var EFFECT_TYPE_ENTRANCE_SPIRAL_IN = EFFECT_TYPE_ENTRANCE | 39;
-    var EFFECT_TYPE_ENTRANCE_WHIP = EFFECT_TYPE_ENTRANCE | 40;
+    var oEffects = {};
+    oEffects.ET_UNKNOWN = -1;
+    oEffects.ET_NONE = 0;
+    oEffects.ET_MULTIPLE = 1;
+    oEffects.ET_ENTRANCE = 2 << 16;
+    oEffects['ET_ENTRANCE_APPEAR'] = oEffects.ET_ENTRANCE_APPEAR = oEffects.ET_ENTRANCE | 1;
+    oEffects['ET_ENTRANCE_BLINDS'] = oEffects.ET_ENTRANCE_BLINDS = oEffects.ET_ENTRANCE | 2;
+    oEffects['ET_ENTRANCE_BOX'] = oEffects.ET_ENTRANCE_BOX = oEffects.ET_ENTRANCE | 3;
+    oEffects['ET_ENTRANCE_CHECKERBOARD'] = oEffects.ET_ENTRANCE_CHECKERBOARD = oEffects.ET_ENTRANCE | 4;
+    oEffects['ET_ENTRANCE_CIRCLE'] = oEffects.ET_ENTRANCE_CIRCLE = oEffects.ET_ENTRANCE | 5;
+    oEffects['ET_ENTRANCE_DIAMOND'] = oEffects.ET_ENTRANCE_DIAMOND = oEffects.ET_ENTRANCE | 6;
+    oEffects['ET_ENTRANCE_DISSOLVE_IN'] = oEffects.ET_ENTRANCE_DISSOLVE_IN = oEffects.ET_ENTRANCE | 7;
+    oEffects['ET_ENTRANCE_FLY_IN'] = oEffects.ET_ENTRANCE_FLY_IN = oEffects.ET_ENTRANCE | 8;
+    oEffects['ET_ENTRANCE_PEEK_IN'] = oEffects.ET_ENTRANCE_PEEK_IN = oEffects.ET_ENTRANCE | 9;
+    oEffects['ET_ENTRANCE_PLUS'] = oEffects.ET_ENTRANCE_PLUS = oEffects.ET_ENTRANCE | 10;
+    oEffects['ET_ENTRANCE_RANDOM_BARS'] = oEffects.ET_ENTRANCE_RANDOM_BARS = oEffects.ET_ENTRANCE | 11;
+    oEffects['ET_ENTRANCE_SPLIT'] = oEffects.ET_ENTRANCE_SPLIT = oEffects.ET_ENTRANCE | 12;
+    oEffects['ET_ENTRANCE_STRIPS'] = oEffects.ET_ENTRANCE_STRIPS = oEffects.ET_ENTRANCE | 13;
+    oEffects['ET_ENTRANCE_WEDGE'] = oEffects.ET_ENTRANCE_WEDGE = oEffects.ET_ENTRANCE | 14;
+    oEffects['ET_ENTRANCE_WHEEL'] = oEffects.ET_ENTRANCE_WHEEL = oEffects.ET_ENTRANCE | 15;
+    oEffects['ET_ENTRANCE_WIPE'] = oEffects.ET_ENTRANCE_WIPE = oEffects.ET_ENTRANCE | 16;
+    oEffects['ET_ENTRANCE_EXPAND'] = oEffects.ET_ENTRANCE_EXPAND = oEffects.ET_ENTRANCE | 17;
+    oEffects['ET_ENTRANCE_FADE'] = oEffects.ET_ENTRANCE_FADE = oEffects.ET_ENTRANCE | 18;
+    oEffects['ET_ENTRANCE_SWIVEL'] = oEffects.ET_ENTRANCE_SWIVEL = oEffects.ET_ENTRANCE | 19;
+    oEffects['ET_ENTRANCE_ZOOM'] = oEffects.ET_ENTRANCE_ZOOM = oEffects.ET_ENTRANCE | 20;
+    oEffects['ET_ENTRANCE_BASIC_ZOOM'] = oEffects.ET_ENTRANCE_BASIC_ZOOM = oEffects.ET_ENTRANCE | 21;
+    oEffects['ET_ENTRANCE_CENTER_REVOLVE'] = oEffects.ET_ENTRANCE_CENTER_REVOLVE = oEffects.ET_ENTRANCE | 22;
+    oEffects['ET_ENTRANCE_COMPRESS'] = oEffects.ET_ENTRANCE_COMPRESS = oEffects.ET_ENTRANCE | 23;
+    oEffects['ET_ENTRANCE_FLOAT_DOWN'] = oEffects.ET_ENTRANCE_FLOAT_DOWN = oEffects.ET_ENTRANCE | 24;
+    oEffects['ET_ENTRANCE_FLOAT_UP'] = oEffects.ET_ENTRANCE_FLOAT_UP = oEffects.ET_ENTRANCE | 25;
+    oEffects['ET_ENTRANCE_GROW_AND_TURN'] = oEffects.ET_ENTRANCE_GROW_AND_TURN = oEffects.ET_ENTRANCE | 26;
+    oEffects['ET_ENTRANCE_RISE_UP'] = oEffects.ET_ENTRANCE_RISE_UP = oEffects.ET_ENTRANCE | 27;
+    oEffects['ET_ENTRANCE_SPINNER'] = oEffects.ET_ENTRANCE_SPINNER = oEffects.ET_ENTRANCE | 28;
+    oEffects['ET_ENTRANCE_STRETCH'] = oEffects.ET_ENTRANCE_STRETCH = oEffects.ET_ENTRANCE | 29;
+    oEffects['ET_ENTRANCE_BASIC_SWIVEL'] = oEffects.ET_ENTRANCE_BASIC_SWIVEL = oEffects.ET_ENTRANCE | 30;
+    oEffects['ET_ENTRANCE_BOOMERANG'] = oEffects.ET_ENTRANCE_BOOMERANG = oEffects.ET_ENTRANCE | 31;
+    oEffects['ET_ENTRANCE_BOUNCE'] = oEffects.ET_ENTRANCE_BOUNCE = oEffects.ET_ENTRANCE | 32;
+    oEffects['ET_ENTRANCE_CREDITS'] = oEffects.ET_ENTRANCE_CREDITS = oEffects.ET_ENTRANCE | 33;
+    oEffects['ET_ENTRANCE_CURVE_UP'] = oEffects.ET_ENTRANCE_CURVE_UP = oEffects.ET_ENTRANCE | 34;
+    oEffects['ET_ENTRANCE_DROP'] = oEffects.ET_ENTRANCE_DROP = oEffects.ET_ENTRANCE | 35;
+    oEffects['ET_ENTRANCE_FLIP'] = oEffects.ET_ENTRANCE_FLIP = oEffects.ET_ENTRANCE | 36;
+    oEffects['ET_ENTRANCE_FLOAT'] = oEffects.ET_ENTRANCE_FLOAT = oEffects.ET_ENTRANCE | 37;
+    oEffects['ET_ENTRANCE_PINWHEEL'] = oEffects.ET_ENTRANCE_PINWHEEL = oEffects.ET_ENTRANCE | 38;
+    oEffects['ET_ENTRANCE_SPIRAL_IN'] = oEffects.ET_ENTRANCE_SPIRAL_IN = oEffects.ET_ENTRANCE | 39;
+    oEffects['ET_ENTRANCE_WHIP'] = oEffects.ET_ENTRANCE_WHIP = oEffects.ET_ENTRANCE | 40;
 
-    var EFFECT_TYPE_EMPHASISE = 3 << 16;
-    var EFFECT_TYPE_EMPHASISE_FILL_COLOR = EFFECT_TYPE_EMPHASISE | 1;
-    var EFFECT_TYPE_EMPHASISE_FONT_COLOR = EFFECT_TYPE_EMPHASISE | 2;
-    var EFFECT_TYPE_EMPHASISE_GROW_SHRINK    = EFFECT_TYPE_EMPHASISE | 3;
-    var EFFECT_TYPE_EMPHASISE_LINE_COLOR = EFFECT_TYPE_EMPHASISE | 4;
-    var EFFECT_TYPE_EMPHASISE_SPIN = EFFECT_TYPE_EMPHASISE | 5;
-    var EFFECT_TYPE_EMPHASISE_TRANSPARENCY = EFFECT_TYPE_EMPHASISE | 6;
-    var EFFECT_TYPE_EMPHASISE_BOLD_FLASH     = EFFECT_TYPE_EMPHASISE | 7;
-    var EFFECT_TYPE_EMPHASISE_BRUSH_COLOR = EFFECT_TYPE_EMPHASISE | 8;
-    var EFFECT_TYPE_EMPHASISE_COMPLIMENTARY_COLOR = EFFECT_TYPE_EMPHASISE | 9;
-    var EFFECT_TYPE_EMPHASISE_COMPLIMENTARY_COLOR2 = EFFECT_TYPE_EMPHASISE | 10;
-    var EFFECT_TYPE_EMPHASISE_CONTRASTING_COLOR = EFFECT_TYPE_EMPHASISE | 11;
-    var EFFECT_TYPE_EMPHASISE_DARKEN = EFFECT_TYPE_EMPHASISE | 12;
-    var EFFECT_TYPE_EMPHASISE_DESATURATE = EFFECT_TYPE_EMPHASISE | 13;
-    var EFFECT_TYPE_EMPHASISE_LIGHTEN = EFFECT_TYPE_EMPHASISE | 14;
-    var EFFECT_TYPE_EMPHASISE_OBJECT_COLOR = EFFECT_TYPE_EMPHASISE | 15;
-    var EFFECT_TYPE_EMPHASISE_PULSE = EFFECT_TYPE_EMPHASISE | 16;
-    var EFFECT_TYPE_EMPHASISE_UNDERLINE = EFFECT_TYPE_EMPHASISE | 17;
-    var EFFECT_TYPE_EMPHASISE_COLOR_PULSE = EFFECT_TYPE_EMPHASISE | 18;
-    var EFFECT_TYPE_EMPHASISE_GROW_WITH_COLOR = EFFECT_TYPE_EMPHASISE | 19;
-    var EFFECT_TYPE_EMPHASISE_SHIMMER = EFFECT_TYPE_EMPHASISE | 20;
-    var EFFECT_TYPE_EMPHASISE_TEETER = EFFECT_TYPE_EMPHASISE | 21;
-    var EFFECT_TYPE_EMPHASISE_BLINK = EFFECT_TYPE_EMPHASISE | 22;
-    var EFFECT_TYPE_EMPHASISE_BOLD_REVEAL = EFFECT_TYPE_EMPHASISE | 23;
-    var EFFECT_TYPE_EMPHASISE_WAVE = EFFECT_TYPE_EMPHASISE | 24;
+    oEffects.ET_EMPHASISE = 3 << 16;
+    oEffects['ET_EMPHASISE_FILL_COLOR'] = oEffects.ET_EMPHASISE_FILL_COLOR = oEffects.ET_EMPHASISE | 1;
+    oEffects['ET_EMPHASISE_FONT_COLOR'] = oEffects.ET_EMPHASISE_FONT_COLOR = oEffects.ET_EMPHASISE | 2;
+    oEffects['ET_EMPHASISE_GROW_SHRINK'] = oEffects.ET_EMPHASISE_GROW_SHRINK = oEffects.ET_EMPHASISE | 3;
+    oEffects['ET_EMPHASISE_LINE_COLOR'] = oEffects.ET_EMPHASISE_LINE_COLOR = oEffects.ET_EMPHASISE | 4;
+    oEffects['ET_EMPHASISE_SPIN'] = oEffects.ET_EMPHASISE_SPIN = oEffects.ET_EMPHASISE | 5;
+    oEffects['ET_EMPHASISE_TRANSPARENCY'] = oEffects.ET_EMPHASISE_TRANSPARENCY = oEffects.ET_EMPHASISE | 6;
+    oEffects['ET_EMPHASISE_BOLD_FLASH'] = oEffects.ET_EMPHASISE_BOLD_FLASH = oEffects.ET_EMPHASISE | 7;
+    oEffects['ET_EMPHASISE_BRUSH_COLOR'] = oEffects.ET_EMPHASISE_BRUSH_COLOR = oEffects.ET_EMPHASISE | 8;
+    oEffects['ET_EMPHASISE_COMPLIMENTARY_COLOR'] = oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR = oEffects.ET_EMPHASISE | 9;
+    oEffects['ET_EMPHASISE_COMPLIMENTARY_COLOR2'] = oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR2 = oEffects.ET_EMPHASISE | 10;
+    oEffects['ET_EMPHASISE_CONTRASTING_COLOR'] = oEffects.ET_EMPHASISE_CONTRASTING_COLOR = oEffects.ET_EMPHASISE | 11;
+    oEffects['ET_EMPHASISE_DARKEN'] = oEffects.ET_EMPHASISE_DARKEN = oEffects.ET_EMPHASISE | 12;
+    oEffects['ET_EMPHASISE_DESATURATE'] = oEffects.ET_EMPHASISE_DESATURATE = oEffects.ET_EMPHASISE | 13;
+    oEffects['ET_EMPHASISE_LIGHTEN'] = oEffects.ET_EMPHASISE_LIGHTEN = oEffects.ET_EMPHASISE | 14;
+    oEffects['ET_EMPHASISE_OBJECT_COLOR'] = oEffects.ET_EMPHASISE_OBJECT_COLOR = oEffects.ET_EMPHASISE | 15;
+    oEffects['ET_EMPHASISE_PULSE'] = oEffects.ET_EMPHASISE_PULSE = oEffects.ET_EMPHASISE | 16;
+    oEffects['ET_EMPHASISE_UNDERLINE'] = oEffects.ET_EMPHASISE_UNDERLINE = oEffects.ET_EMPHASISE | 17;
+    oEffects['ET_EMPHASISE_COLOR_PULSE'] = oEffects.ET_EMPHASISE_COLOR_PULSE = oEffects.ET_EMPHASISE | 18;
+    oEffects['ET_EMPHASISE_GROW_WITH_COLOR'] = oEffects.ET_EMPHASISE_GROW_WITH_COLOR = oEffects.ET_EMPHASISE | 19;
+    oEffects['ET_EMPHASISE_SHIMMER'] = oEffects.ET_EMPHASISE_SHIMMER = oEffects.ET_EMPHASISE | 20;
+    oEffects['ET_EMPHASISE_TEETER'] = oEffects.ET_EMPHASISE_TEETER = oEffects.ET_EMPHASISE | 21;
+    oEffects['ET_EMPHASISE_BLINK'] = oEffects.ET_EMPHASISE_BLINK = oEffects.ET_EMPHASISE | 22;
+    oEffects['ET_EMPHASISE_BOLD_REVEAL'] = oEffects.ET_EMPHASISE_BOLD_REVEAL = oEffects.ET_EMPHASISE | 23;
+    oEffects['ET_EMPHASISE_WAVE'] = oEffects.ET_EMPHASISE_WAVE = oEffects.ET_EMPHASISE | 24;
 
-    var EFFECT_TYPE_EXIT = 4 << 16;
-    var EFFECT_TYPE_EXIT_BLINDS = EFFECT_TYPE_EXIT | 1;
-    var EFFECT_TYPE_EXIT_BOX = EFFECT_TYPE_EXIT | 2;
-    var EFFECT_TYPE_EXIT_CHECKERBOARD    = EFFECT_TYPE_EXIT | 3;
-    var EFFECT_TYPE_EXIT_CIRCLE = EFFECT_TYPE_EXIT | 4;
-    var EFFECT_TYPE_EXIT_DIAMOND = EFFECT_TYPE_EXIT | 5;
-    var EFFECT_TYPE_EXIT_DISAPPEAR = EFFECT_TYPE_EXIT | 6;
-    var EFFECT_TYPE_EXIT_DISSOLVE_OUT = EFFECT_TYPE_EXIT | 7;
-    var EFFECT_TYPE_EXIT_FLY_OUT = EFFECT_TYPE_EXIT | 8;
-    var EFFECT_TYPE_EXIT_PEEK_OUT = EFFECT_TYPE_EXIT | 9;
-    var EFFECT_TYPE_EXIT_PLUS = EFFECT_TYPE_EXIT | 10;
-    var EFFECT_TYPE_EXIT_RANDOM_BARS = EFFECT_TYPE_EXIT | 11;
-    var EFFECT_TYPE_EXIT_SPLIT = EFFECT_TYPE_EXIT | 12;
-    var EFFECT_TYPE_EXIT_STRIPS = EFFECT_TYPE_EXIT | 13;
-    var EFFECT_TYPE_EXIT_WEDGE = EFFECT_TYPE_EXIT | 14;
-    var EFFECT_TYPE_EXIT_WHEEL = EFFECT_TYPE_EXIT | 15;
-    var EFFECT_TYPE_EXIT_WIPE = EFFECT_TYPE_EXIT | 16;
-    var EFFECT_TYPE_EXIT_CONTRACT = EFFECT_TYPE_EXIT | 17;
-    var EFFECT_TYPE_EXIT_FADE = EFFECT_TYPE_EXIT | 18;
-    var EFFECT_TYPE_EXIT_SWIVEL = EFFECT_TYPE_EXIT | 19;
-    var EFFECT_TYPE_EXIT_ZOOM = EFFECT_TYPE_EXIT | 20;
-    var EFFECT_TYPE_EXIT_BASIC_ZOOM = EFFECT_TYPE_EXIT | 21;
-    var EFFECT_TYPE_EXIT_CENTER_REVOLVE = EFFECT_TYPE_EXIT | 22;
-    var EFFECT_TYPE_EXIT_COLLAPSE = EFFECT_TYPE_EXIT | 23;
-    var EFFECT_TYPE_EXIT_FLOAT_DOWN = EFFECT_TYPE_EXIT | 24;
-    var EFFECT_TYPE_EXIT_FLOAT_UP = EFFECT_TYPE_EXIT | 25;
-    var EFFECT_TYPE_EXIT_SHRINK_AND_TURN = EFFECT_TYPE_EXIT | 26;
-    var EFFECT_TYPE_EXIT_SHRINK_DOWN = EFFECT_TYPE_EXIT | 27;
-    var EFFECT_TYPE_EXIT_SPINNER = EFFECT_TYPE_EXIT | 28;
-    var EFFECT_TYPE_EXIT_STRETCHY = EFFECT_TYPE_EXIT | 29;
-    var EFFECT_TYPE_EXIT_BASIC_SWIVEL = EFFECT_TYPE_EXIT | 30;
-    var EFFECT_TYPE_EXIT_BOOMERANG = EFFECT_TYPE_EXIT | 31;
-    var EFFECT_TYPE_EXIT_BOUNCE = EFFECT_TYPE_EXIT | 32;
-    var EFFECT_TYPE_EXIT_CREDITS = EFFECT_TYPE_EXIT | 33;
-    var EFFECT_TYPE_EXIT_CURVE_DOWN = EFFECT_TYPE_EXIT | 34;
-    var EFFECT_TYPE_EXIT_DROP = EFFECT_TYPE_EXIT | 35;
-    var EFFECT_TYPE_EXIT_FLIP = EFFECT_TYPE_EXIT | 36;
-    var EFFECT_TYPE_EXIT_FLOAT = EFFECT_TYPE_EXIT | 37;
-    var EFFECT_TYPE_EXIT_PINWHEEL = EFFECT_TYPE_EXIT | 38;
-    var EFFECT_TYPE_EXIT_SPIRAL_OUT = EFFECT_TYPE_EXIT | 39;
-    var EFFECT_TYPE_EXIT_WHIP = EFFECT_TYPE_EXIT | 40;
+    oEffects.ET_EXIT = 4 << 16;
+    oEffects['ET_EXIT_BLINDS'] = oEffects.ET_EXIT_BLINDS = oEffects.ET_EXIT | 1;
+    oEffects['ET_EXIT_BOX'] = oEffects.ET_EXIT_BOX = oEffects.ET_EXIT | 2;
+    oEffects['ET_EXIT_CHECKERBOARD'] = oEffects.ET_EXIT_CHECKERBOARD = oEffects.ET_EXIT | 3;
+    oEffects['ET_EXIT_CIRCLE'] = oEffects.ET_EXIT_CIRCLE = oEffects.ET_EXIT | 4;
+    oEffects['ET_EXIT_DIAMOND'] = oEffects.ET_EXIT_DIAMOND = oEffects.ET_EXIT | 5;
+    oEffects['ET_EXIT_DISAPPEAR'] = oEffects.ET_EXIT_DISAPPEAR = oEffects.ET_EXIT | 6;
+    oEffects['ET_EXIT_DISSOLVE_OUT'] = oEffects.ET_EXIT_DISSOLVE_OUT = oEffects.ET_EXIT | 7;
+    oEffects['ET_EXIT_FLY_OUT'] = oEffects.ET_EXIT_FLY_OUT = oEffects.ET_EXIT | 8;
+    oEffects['ET_EXIT_PEEK_OUT'] = oEffects.ET_EXIT_PEEK_OUT = oEffects.ET_EXIT | 9;
+    oEffects['ET_EXIT_PLUS'] = oEffects.ET_EXIT_PLUS = oEffects.ET_EXIT | 10;
+    oEffects['ET_EXIT_RANDOM_BARS'] = oEffects.ET_EXIT_RANDOM_BARS = oEffects.ET_EXIT | 11;
+    oEffects['ET_EXIT_SPLIT'] = oEffects.ET_EXIT_SPLIT = oEffects.ET_EXIT | 12;
+    oEffects['ET_EXIT_STRIPS'] = oEffects.ET_EXIT_STRIPS = oEffects.ET_EXIT | 13;
+    oEffects['ET_EXIT_WEDGE'] = oEffects.ET_EXIT_WEDGE = oEffects.ET_EXIT | 14;
+    oEffects['ET_EXIT_WHEEL'] = oEffects.ET_EXIT_WHEEL = oEffects.ET_EXIT | 15;
+    oEffects['ET_EXIT_WIPE'] = oEffects.ET_EXIT_WIPE = oEffects.ET_EXIT | 16;
+    oEffects['ET_EXIT_CONTRACT'] = oEffects.ET_EXIT_CONTRACT = oEffects.ET_EXIT | 17;
+    oEffects['ET_EXIT_FADE'] = oEffects.ET_EXIT_FADE = oEffects.ET_EXIT | 18;
+    oEffects['ET_EXIT_SWIVEL'] = oEffects.ET_EXIT_SWIVEL = oEffects.ET_EXIT | 19;
+    oEffects['ET_EXIT_ZOOM'] = oEffects.ET_EXIT_ZOOM = oEffects.ET_EXIT | 20;
+    oEffects['ET_EXIT_BASIC_ZOOM'] = oEffects.ET_EXIT_BASIC_ZOOM = oEffects.ET_EXIT | 21;
+    oEffects['ET_EXIT_CENTER_REVOLVE'] = oEffects.ET_EXIT_CENTER_REVOLVE = oEffects.ET_EXIT | 22;
+    oEffects['ET_EXIT_COLLAPSE'] = oEffects.ET_EXIT_COLLAPSE = oEffects.ET_EXIT | 23;
+    oEffects['ET_EXIT_FLOAT_DOWN'] = oEffects.ET_EXIT_FLOAT_DOWN = oEffects.ET_EXIT | 24;
+    oEffects['ET_EXIT_FLOAT_UP'] = oEffects.ET_EXIT_FLOAT_UP = oEffects.ET_EXIT | 25;
+    oEffects['ET_EXIT_SHRINK_AND_TURN'] = oEffects.ET_EXIT_SHRINK_AND_TURN = oEffects.ET_EXIT | 26;
+    oEffects['ET_EXIT_SHRINK_DOWN'] = oEffects.ET_EXIT_SHRINK_DOWN = oEffects.ET_EXIT | 27;
+    oEffects['ET_EXIT_SPINNER'] = oEffects.ET_EXIT_SPINNER = oEffects.ET_EXIT | 28;
+    oEffects['ET_EXIT_STRETCHY'] = oEffects.ET_EXIT_STRETCHY = oEffects.ET_EXIT | 29;
+    oEffects['ET_EXIT_BASIC_SWIVEL'] = oEffects.ET_EXIT_BASIC_SWIVEL = oEffects.ET_EXIT | 30;
+    oEffects['ET_EXIT_BOOMERANG'] = oEffects.ET_EXIT_BOOMERANG = oEffects.ET_EXIT | 31;
+    oEffects['ET_EXIT_BOUNCE'] = oEffects.ET_EXIT_BOUNCE = oEffects.ET_EXIT | 32;
+    oEffects['ET_EXIT_CREDITS'] = oEffects.ET_EXIT_CREDITS = oEffects.ET_EXIT | 33;
+    oEffects['ET_EXIT_CURVE_DOWN'] = oEffects.ET_EXIT_CURVE_DOWN = oEffects.ET_EXIT | 34;
+    oEffects['ET_EXIT_DROP'] = oEffects.ET_EXIT_DROP = oEffects.ET_EXIT | 35;
+    oEffects['ET_EXIT_FLIP'] = oEffects.ET_EXIT_FLIP = oEffects.ET_EXIT | 36;
+    oEffects['ET_EXIT_FLOAT'] = oEffects.ET_EXIT_FLOAT = oEffects.ET_EXIT | 37;
+    oEffects['ET_EXIT_PINWHEEL'] = oEffects.ET_EXIT_PINWHEEL = oEffects.ET_EXIT | 38;
+    oEffects['ET_EXIT_SPIRAL_OUT'] = oEffects.ET_EXIT_SPIRAL_OUT = oEffects.ET_EXIT | 39;
+    oEffects['ET_EXIT_WHIP'] = oEffects.ET_EXIT_WHIP = oEffects.ET_EXIT | 40;
 
-    var EFFECT_TYPE_MOTION = 5 << 16;
-    var EFFECT_TYPE_MOTION_4_POINT_STAR = EFFECT_TYPE_MOTION | 1;
-    var EFFECT_TYPE_MOTION_5_POINT_STAR = EFFECT_TYPE_MOTION | 2;
-    var EFFECT_TYPE_MOTION_6_POINT_STAR = EFFECT_TYPE_MOTION | 3;
-    var EFFECT_TYPE_MOTION_8_POINT_STAR = EFFECT_TYPE_MOTION | 4;
-    var EFFECT_TYPE_MOTION_CIRCLE = EFFECT_TYPE_MOTION | 5;
-    var EFFECT_TYPE_MOTION_CRESCENT_MOON = EFFECT_TYPE_MOTION | 6;
-    var EFFECT_TYPE_MOTION_DIAMOND = EFFECT_TYPE_MOTION | 7;
-    var EFFECT_TYPE_MOTION_EQUAL_TRIANGLE = EFFECT_TYPE_MOTION | 8;
-    var EFFECT_TYPE_MOTION_FOOTBALL = EFFECT_TYPE_MOTION | 9;
-    var EFFECT_TYPE_MOTION_HEART = EFFECT_TYPE_MOTION | 10;
-    var EFFECT_TYPE_MOTION_HEXAGON = EFFECT_TYPE_MOTION | 11;
-    var EFFECT_TYPE_MOTION_OCTAGON = EFFECT_TYPE_MOTION | 12;
-    var EFFECT_TYPE_MOTION_PARALLELOGRAM = EFFECT_TYPE_MOTION | 13;
-    var EFFECT_TYPE_MOTION_PENTAGON = EFFECT_TYPE_MOTION | 14;
-    var EFFECT_TYPE_MOTION_RIGHT_TRIANGLE = EFFECT_TYPE_MOTION | 15;
-    var EFFECT_TYPE_MOTION_SQUARE = EFFECT_TYPE_MOTION | 16;
-    var EFFECT_TYPE_MOTION_TEARDROP = EFFECT_TYPE_MOTION | 17;
-    var EFFECT_TYPE_MOTION_TRAPEZOID = EFFECT_TYPE_MOTION | 18;
-    var EFFECT_TYPE_MOTION_ARC_DOWN = EFFECT_TYPE_MOTION | 19;
-    var EFFECT_TYPE_MOTION_ARC_LEFT = EFFECT_TYPE_MOTION | 20;
-    var EFFECT_TYPE_MOTION_ARC_RIGHT = EFFECT_TYPE_MOTION | 21;
-    var EFFECT_TYPE_MOTION_ARC_UP = EFFECT_TYPE_MOTION | 22;
-    var EFFECT_TYPE_MOTION_BOUNCE_LEFT = EFFECT_TYPE_MOTION | 23;
-    var EFFECT_TYPE_MOTION_BOUNCE_RIGHT = EFFECT_TYPE_MOTION | 24;
-    var EFFECT_TYPE_MOTION_CURVY_LEFT = EFFECT_TYPE_MOTION | 25;
-    var EFFECT_TYPE_MOTION_CURVY_RIGHT = EFFECT_TYPE_MOTION | 26;
-    var EFFECT_TYPE_MOTION_DECAYING_WAVE = EFFECT_TYPE_MOTION | 27;
-    var EFFECT_TYPE_MOTION_DIAGONAL_DOWN_RIGHT = EFFECT_TYPE_MOTION | 28;
-    var EFFECT_TYPE_MOTION_DIAGONAL_UP_RIGHT = EFFECT_TYPE_MOTION | 29;
-    var EFFECT_TYPE_MOTION_DOWN = EFFECT_TYPE_MOTION | 30;
-    var EFFECT_TYPE_MOTION_FUNNEL = EFFECT_TYPE_MOTION | 31;
-    var EFFECT_TYPE_MOTION_HEARTBEAT = EFFECT_TYPE_MOTION | 32;
-    var EFFECT_TYPE_MOTION_LEFT = EFFECT_TYPE_MOTION | 33;
-    var EFFECT_TYPE_MOTION_RIGHT = EFFECT_TYPE_MOTION | 34;
-    var EFFECT_TYPE_MOTION_S_CURVE_1 = EFFECT_TYPE_MOTION | 35;
-    var EFFECT_TYPE_MOTION_S_CURVE_2 = EFFECT_TYPE_MOTION | 36;
-    var EFFECT_TYPE_MOTION_SINE_WAVE = EFFECT_TYPE_MOTION | 37;
-    var EFFECT_TYPE_MOTION_SPIRAL_LEFT = EFFECT_TYPE_MOTION | 38;
-    var EFFECT_TYPE_MOTION_SPIRAL_RIGHT = EFFECT_TYPE_MOTION | 39;
-    var EFFECT_TYPE_MOTION_SPRING = EFFECT_TYPE_MOTION | 40;
-    var EFFECT_TYPE_MOTION_STAIRS_DOWN = EFFECT_TYPE_MOTION | 41;
-    var EFFECT_TYPE_MOTION_TURN_DOWN = EFFECT_TYPE_MOTION | 42;
-    var EFFECT_TYPE_MOTION_TURN_DOWN_RIGHT = EFFECT_TYPE_MOTION | 43;
-    var EFFECT_TYPE_MOTION_TURN_UP = EFFECT_TYPE_MOTION | 44;
-    var EFFECT_TYPE_MOTION_TURN_UP_RIGHT = EFFECT_TYPE_MOTION | 45;
-    var EFFECT_TYPE_MOTION_UP = EFFECT_TYPE_MOTION | 46;
-    var EFFECT_TYPE_MOTION_WAVE = EFFECT_TYPE_MOTION | 47;
-    var EFFECT_TYPE_MOTION_ZIGZAG = EFFECT_TYPE_MOTION | 48;
-    var EFFECT_TYPE_MOTION_BEAN = EFFECT_TYPE_MOTION | 49;
-    var EFFECT_TYPE_MOTION_CURVED_SQUARE = EFFECT_TYPE_MOTION | 50;
-    var EFFECT_TYPE_MOTION_CURVED_X = EFFECT_TYPE_MOTION | 51;
-    var EFFECT_TYPE_MOTION_CURVY_STAR = EFFECT_TYPE_MOTION | 52;
-    var EFFECT_TYPE_MOTION_FIGURE_8_FOUR = EFFECT_TYPE_MOTION | 53;
-    var EFFECT_TYPE_MOTION_HORIZONTAL_FIGURE_8 = EFFECT_TYPE_MOTION | 54;
-    var EFFECT_TYPE_MOTION_INVERTED_SQUARE = EFFECT_TYPE_MOTION | 55;
-    var EFFECT_TYPE_MOTION_INVERTED_TRIANGLE = EFFECT_TYPE_MOTION | 56;
-    var EFFECT_TYPE_MOTION_LOOP_DE_LOOP = EFFECT_TYPE_MOTION | 57;
-    var EFFECT_TYPE_MOTION_NEUTRON = EFFECT_TYPE_MOTION | 58;
-    var EFFECT_TYPE_MOTION_PEANUT = EFFECT_TYPE_MOTION | 59;
-    var EFFECT_TYPE_MOTION_PLUS = EFFECT_TYPE_MOTION | 61;
-    var EFFECT_TYPE_MOTION_POINTY_STAR = EFFECT_TYPE_MOTION | 62;
-    var EFFECT_TYPE_MOTION_SWOOSH = EFFECT_TYPE_MOTION | 63;
-    var EFFECT_TYPE_MOTION_VERTICAL_FIGURE_8 = EFFECT_TYPE_MOTION | 64;
+    oEffects.ET_MOTION = 5 << 16;
+    oEffects['ET_MOTION_4_POINT_STAR'] = oEffects.ET_MOTION_4_POINT_STAR = oEffects.ET_MOTION | 1;
+    oEffects['ET_MOTION_5_POINT_STAR'] = oEffects.ET_MOTION_5_POINT_STAR = oEffects.ET_MOTION | 2;
+    oEffects['ET_MOTION_6_POINT_STAR'] = oEffects.ET_MOTION_6_POINT_STAR = oEffects.ET_MOTION | 3;
+    oEffects['ET_MOTION_8_POINT_STAR'] = oEffects.ET_MOTION_8_POINT_STAR = oEffects.ET_MOTION | 4;
+    oEffects['ET_MOTION_CIRCLE'] = oEffects.ET_MOTION_CIRCLE = oEffects.ET_MOTION | 5;
+    oEffects['ET_MOTION_CRESCENT_MOON'] = oEffects.ET_MOTION_CRESCENT_MOON = oEffects.ET_MOTION | 6;
+    oEffects['ET_MOTION_DIAMOND'] = oEffects.ET_MOTION_DIAMOND = oEffects.ET_MOTION | 7;
+    oEffects['ET_MOTION_EQUAL_TRIANGLE'] = oEffects.ET_MOTION_EQUAL_TRIANGLE = oEffects.ET_MOTION | 8;
+    oEffects['ET_MOTION_FOOTBALL'] = oEffects.ET_MOTION_FOOTBALL = oEffects.ET_MOTION | 9;
+    oEffects['ET_MOTION_HEART'] = oEffects.ET_MOTION_HEART = oEffects.ET_MOTION | 10;
+    oEffects['ET_MOTION_HEXAGON'] = oEffects.ET_MOTION_HEXAGON = oEffects.ET_MOTION | 11;
+    oEffects['ET_MOTION_OCTAGON'] = oEffects.ET_MOTION_OCTAGON = oEffects.ET_MOTION | 12;
+    oEffects['ET_MOTION_PARALLELOGRAM'] = oEffects.ET_MOTION_PARALLELOGRAM = oEffects.ET_MOTION | 13;
+    oEffects['ET_MOTION_PENTAGON'] = oEffects.ET_MOTION_PENTAGON = oEffects.ET_MOTION | 14;
+    oEffects['ET_MOTION_RIGHT_TRIANGLE'] = oEffects.ET_MOTION_RIGHT_TRIANGLE = oEffects.ET_MOTION | 15;
+    oEffects['ET_MOTION_SQUARE'] = oEffects.ET_MOTION_SQUARE = oEffects.ET_MOTION | 16;
+    oEffects['ET_MOTION_TEARDROP'] = oEffects.ET_MOTION_TEARDROP = oEffects.ET_MOTION | 17;
+    oEffects['ET_MOTION_TRAPEZOID'] = oEffects.ET_MOTION_TRAPEZOID = oEffects.ET_MOTION | 18;
+    oEffects['ET_MOTION_ARC_DOWN'] = oEffects.ET_MOTION_ARC_DOWN = oEffects.ET_MOTION | 19;
+    oEffects['ET_MOTION_ARC_LEFT'] = oEffects.ET_MOTION_ARC_LEFT = oEffects.ET_MOTION | 20;
+    oEffects['ET_MOTION_ARC_RIGHT'] = oEffects.ET_MOTION_ARC_RIGHT = oEffects.ET_MOTION | 21;
+    oEffects['ET_MOTION_ARC_UP'] = oEffects.ET_MOTION_ARC_UP = oEffects.ET_MOTION | 22;
+    oEffects['ET_MOTION_BOUNCE_LEFT'] = oEffects.ET_MOTION_BOUNCE_LEFT = oEffects.ET_MOTION | 23;
+    oEffects['ET_MOTION_BOUNCE_RIGHT'] = oEffects.ET_MOTION_BOUNCE_RIGHT = oEffects.ET_MOTION | 24;
+    oEffects['ET_MOTION_CURVY_LEFT'] = oEffects.ET_MOTION_CURVY_LEFT = oEffects.ET_MOTION | 25;
+    oEffects['ET_MOTION_CURVY_RIGHT'] = oEffects.ET_MOTION_CURVY_RIGHT = oEffects.ET_MOTION | 26;
+    oEffects['ET_MOTION_DECAYING_WAVE'] = oEffects.ET_MOTION_DECAYING_WAVE = oEffects.ET_MOTION | 27;
+    oEffects['ET_MOTION_DIAGONAL_DOWN_RIGHT'] = oEffects.ET_MOTION_DIAGONAL_DOWN_RIGHT = oEffects.ET_MOTION | 28;
+    oEffects['ET_MOTION_DIAGONAL_UP_RIGHT'] = oEffects.ET_MOTION_DIAGONAL_UP_RIGHT = oEffects.ET_MOTION | 29;
+    oEffects['ET_MOTION_DOWN'] = oEffects.ET_MOTION_DOWN = oEffects.ET_MOTION | 30;
+    oEffects['ET_MOTION_FUNNEL'] = oEffects.ET_MOTION_FUNNEL = oEffects.ET_MOTION | 31;
+    oEffects['ET_MOTION_HEARTBEAT'] = oEffects.ET_MOTION_HEARTBEAT = oEffects.ET_MOTION | 32;
+    oEffects['ET_MOTION_LEFT'] = oEffects.ET_MOTION_LEFT = oEffects.ET_MOTION | 33;
+    oEffects['ET_MOTION_RIGHT'] = oEffects.ET_MOTION_RIGHT = oEffects.ET_MOTION | 34;
+    oEffects['ET_MOTION_S_CURVE_1'] = oEffects.ET_MOTION_S_CURVE_1 = oEffects.ET_MOTION | 35;
+    oEffects['ET_MOTION_S_CURVE_2'] = oEffects.ET_MOTION_S_CURVE_2 = oEffects.ET_MOTION | 36;
+    oEffects['ET_MOTION_SINE_WAVE'] = oEffects.ET_MOTION_SINE_WAVE = oEffects.ET_MOTION | 37;
+    oEffects['ET_MOTION_SPIRAL_LEFT'] = oEffects.ET_MOTION_SPIRAL_LEFT = oEffects.ET_MOTION | 38;
+    oEffects['ET_MOTION_SPIRAL_RIGHT'] = oEffects.ET_MOTION_SPIRAL_RIGHT = oEffects.ET_MOTION | 39;
+    oEffects['ET_MOTION_SPRING'] = oEffects.ET_MOTION_SPRING = oEffects.ET_MOTION | 40;
+    oEffects['ET_MOTION_STAIRS_DOWN'] = oEffects.ET_MOTION_STAIRS_DOWN = oEffects.ET_MOTION | 41;
+    oEffects['ET_MOTION_TURN_DOWN'] = oEffects.ET_MOTION_TURN_DOWN = oEffects.ET_MOTION | 42;
+    oEffects['ET_MOTION_TURN_DOWN_RIGHT'] = oEffects.ET_MOTION_TURN_DOWN_RIGHT = oEffects.ET_MOTION | 43;
+    oEffects['ET_MOTION_TURN_UP'] = oEffects.ET_MOTION_TURN_UP = oEffects.ET_MOTION | 44;
+    oEffects['ET_MOTION_TURN_UP_RIGHT'] = oEffects.ET_MOTION_TURN_UP_RIGHT = oEffects.ET_MOTION | 45;
+    oEffects['ET_MOTION_UP'] = oEffects.ET_MOTION_UP = oEffects.ET_MOTION | 46;
+    oEffects['ET_MOTION_WAVE'] = oEffects.ET_MOTION_WAVE = oEffects.ET_MOTION | 47;
+    oEffects['ET_MOTION_ZIGZAG'] = oEffects.ET_MOTION_ZIGZAG = oEffects.ET_MOTION | 48;
+    oEffects['ET_MOTION_BEAN'] = oEffects.ET_MOTION_BEAN = oEffects.ET_MOTION | 49;
+    oEffects['ET_MOTION_CURVED_SQUARE'] = oEffects.ET_MOTION_CURVED_SQUARE = oEffects.ET_MOTION | 50;
+    oEffects['ET_MOTION_CURVED_X'] = oEffects.ET_MOTION_CURVED_X = oEffects.ET_MOTION | 51;
+    oEffects['ET_MOTION_CURVY_STAR'] = oEffects.ET_MOTION_CURVY_STAR = oEffects.ET_MOTION | 52;
+    oEffects['ET_MOTION_FIGURE_8_FOUR'] = oEffects.ET_MOTION_FIGURE_8_FOUR = oEffects.ET_MOTION | 53;
+    oEffects['ET_MOTION_HORIZONTAL_FIGURE_8'] = oEffects.ET_MOTION_HORIZONTAL_FIGURE_8 = oEffects.ET_MOTION | 54;
+    oEffects['ET_MOTION_INVERTED_SQUARE'] = oEffects.ET_MOTION_INVERTED_SQUARE = oEffects.ET_MOTION | 55;
+    oEffects['ET_MOTION_INVERTED_TRIANGLE'] = oEffects.ET_MOTION_INVERTED_TRIANGLE = oEffects.ET_MOTION | 56;
+    oEffects['ET_MOTION_LOOP_DE_LOOP'] = oEffects.ET_MOTION_LOOP_DE_LOOP = oEffects.ET_MOTION | 57;
+    oEffects['ET_MOTION_NEUTRON'] = oEffects.ET_MOTION_NEUTRON = oEffects.ET_MOTION | 58;
+    oEffects['ET_MOTION_PEANUT'] = oEffects.ET_MOTION_PEANUT = oEffects.ET_MOTION | 59;
+    oEffects['ET_MOTION_PLUS'] = oEffects.ET_MOTION_PLUS = oEffects.ET_MOTION | 61;
+    oEffects['ET_MOTION_POINTY_STAR'] = oEffects.ET_MOTION_POINTY_STAR = oEffects.ET_MOTION | 62;
+    oEffects['ET_MOTION_SWOOSH'] = oEffects.ET_MOTION_SWOOSH = oEffects.ET_MOTION | 63;
+    oEffects['ET_MOTION_VERTICAL_FIGURE_8'] = oEffects.ET_MOTION_VERTICAL_FIGURE_8 = oEffects.ET_MOTION | 64;
 
     //-------------------------------------------------------------------------------
 
-    var START_ON_CLICK = 0;
-    var START_WITH_PREVIOUS = 1;
-    var START_AFTER_PREVIOUS = 1;
+    oEffects['START_ON_CLICK'] = oEffects.START_ON_CLICK = 0;
+    oEffects['START_WITH_PREVIOUS'] = oEffects.START_WITH_PREVIOUS = 1;
+    oEffects['START_AFTER_PREVIOUS'] = oEffects.START_AFTER_PREVIOUS = 2;
 
-    var REPEAT_NONE = 0;
-    var REPEAT_UNTIL_NEXT_CLICK = -1;
-    var REPEAT_UNTIL_END_OF_SLIDE = -2;
+    oEffects['REPEAT_NONE'] = oEffects.REPEAT_NONE = 0;
+    oEffects['REPEAT_UNTIL_NEXT_CLICK'] = oEffects.REPEAT_UNTIL_NEXT_CLICK = -1;
+    oEffects['REPEAT_UNTIL_END_OF_SLIDE'] = oEffects.REPEAT_UNTIL_END_OF_SLIDE = -2;
 
 
-    var SOUND_NO_SOUND = 0;
-    var SOUND_NO_STOP_PREVIOUS = 1;
+    oEffects['SOUND_NO_SOUND'] = oEffects.SOUND_NO_SOUND = 0;
+    oEffects['SOUND_NO_STOP_PREVIOUS'] = oEffects.SOUND_NO_STOP_PREVIOUS = 1;
 
-    var ANIMATE_TEXT_ALL_AT_ONCE = 0;
-    var ANIMATE_TEXT_BY_WORD = 1;
-    var ANIMATE_TEXT_BY_LETTER = 2;
+    oEffects['ANIMATE_TEXT_ALL_AT_ONCE'] = oEffects.ANIMATE_TEXT_ALL_AT_ONCE = 0;
+    oEffects['ANIMATE_TEXT_BY_WORD'] = oEffects.ANIMATE_TEXT_BY_WORD = 1;
+    oEffects['ANIMATE_TEXT_BY_LETTER'] = oEffects.ANIMATE_TEXT_BY_LETTER = 2;
+
+    oEffects['GROUP_TEXT_AS_ONE_OBJECT'] = oEffects.GROUP_TEXT_AS_ONE_OBJECT = 0;
+    oEffects['GROUP_ALL_PARAGRAPHS'] = oEffects.GROUP_ALL_PARAGRAPHS = 1;
+    oEffects['GROUP_1ST_LEVEL'] = oEffects.GROUP_1ST_LEVEL = 2;
+    oEffects['GROUP_2ND_LEVEL'] = oEffects.GROUP_2ND_LEVEL = 3;
+    oEffects['GROUP_3RD_LEVEL'] = oEffects.GROUP_3RD_LEVEL = 4;
+    oEffects['GROUP_4TH_LEVEL'] = oEffects.GROUP_4TH_LEVEL = 5;
+    oEffects['GROUP_5TH_LEVEL'] = oEffects.GROUP_5TH_LEVEL = 6;
 
     function CEffectBase() {
-        this.start = START_ON_CLICK;
+        this.start = oEffects.START_ON_CLICK;
         this.delay = 0;
         this.duration = 0;
-        this.repeat = REPEAT_NONE;
+        this.repeat = oEffects.REPEAT_NONE;
         this.rewind = false;
 
         this.clickSeq = true;
@@ -8860,17 +8869,22 @@
         this.playOf = null;
 
 
-        this.sound = SOUND_NO_SOUND;
+        this.sound = oEffects.SOUND_NO_SOUND;
         this.afterColor = null;
         this.afterDoNotDim = true;
         this.afterHide = null;
         this.afterHideOnClick = null;
 
-        this.animateText = ANIMATE_TEXT_ALL_AT_ONCE;
+        this.animateText = oEffects.ANIMATE_TEXT_ALL_AT_ONCE;
         this.delayBetweenWords = null;
 
+        this.groupText = oEffects.GROUP_TEXT_AS_ONE_OBJECT;
+        this.automaticallyAfter = null;
+        this.animateAttachedShape = null;
+        this.inReverseOrder = null;
+
     }
-    CEffectBase.prototype.classType = EFFECT_TYPE_UNKNOWN;
+    CEffectBase.prototype.classType = oEffects.ET_UNKNOWN;
     CEffectBase.prototype.getType = function() {
         return this.classType;
     };
@@ -8897,6 +8911,18 @@
     };
     CEffectBase.prototype.getPlayOf = function() {
         return this.playOf;
+    };
+    CEffectBase.prototype.getGroupText = function() {
+        return this.groupText;
+    };
+    CEffectBase.prototype.getAutomaticallyAfter = function() {
+        return this.automaticallyAfter;
+    };
+    CEffectBase.prototype.getAnimateAttachedShape = function() {
+        return this.animateAttachedShape;
+    };
+    CEffectBase.prototype.getInReverseOrder = function() {
+        return this.inReverseOrder;
     };
     CEffectBase.prototype.setStart = function(v) {
         this.start = v;
@@ -8930,6 +8956,18 @@
         this.clickSeq = null;
         this.clickOf = null;
     };
+    CEffectBase.prototype.setGroupText = function(v) {
+        this.groupText = v;
+    };
+    CEffectBase.prototype.setAutomaticallyAfter = function(v) {
+        this.automaticallyAfter = v;
+    };
+    CEffectBase.prototype.setAnimateAttachedShape = function(v) {
+        this.animateAttachedShape = v;
+    };
+    CEffectBase.prototype.setInReverseOrder = function(v) {
+        this.inReverseOrder = v;
+    };
     CEffectBase.prototype["getType"] = CEffectBase.prototype.getType;
     CEffectBase.prototype["getStart"] = CEffectBase.prototype.getStart;
     CEffectBase.prototype["getDelay"] = CEffectBase.prototype.getDelay;
@@ -8939,6 +8977,10 @@
     CEffectBase.prototype["getClickSeq"] = CEffectBase.prototype.getClickSeq;
     CEffectBase.prototype["getClickOf"] = CEffectBase.prototype.getClickOf;
     CEffectBase.prototype["getPlayOf"] = CEffectBase.prototype.getPlayOf;
+    CEffectBase.prototype["getGroupText"] = CEffectBase.prototype.getGroupText;
+    CEffectBase.prototype["getAutomaticallyAfter"] = CEffectBase.prototype.getAutomaticallyAfter;
+    CEffectBase.prototype["getAnimateAttachedShape"] = CEffectBase.prototype.getAnimateAttachedShape;
+    CEffectBase.prototype["getInReverseOrder"] = CEffectBase.prototype.getInReverseOrder;
     CEffectBase.prototype["setStart"] = CEffectBase.prototype.setStart;
     CEffectBase.prototype["setDelay"] = CEffectBase.prototype.setDelay;
     CEffectBase.prototype["setDuration"] = CEffectBase.prototype.setDuration;
@@ -8947,851 +8989,1058 @@
     CEffectBase.prototype["setClickSeq"] = CEffectBase.prototype.setClickSeq;
     CEffectBase.prototype["setClickOf"] = CEffectBase.prototype.setClickOf;
     CEffectBase.prototype["setPlayOf"] = CEffectBase.prototype.setPlayOf;
+    CEffectBase.prototype["setGroupText"] = CEffectBase.prototype.setGroupText;
+    CEffectBase.prototype["setAutomaticallyAfter"] = CEffectBase.prototype.setAutomaticallyAfter;
+    CEffectBase.prototype["setAnimateAttachedShape"] = CEffectBase.prototype.setAnimateAttachedShape;
+    CEffectBase.prototype["setInReverseOrder"] = CEffectBase.prototype.setInReverseOrder;
+
+    oEffects.DIR_HORIZONTAL = oEffects.DIR_HORIZONTAL = 0;
+    oEffects.DIR_VERTICAL = oEffects.DIR_VERTICAL = 1;
+    oEffects.DIR_IN = oEffects.DIR_IN = 2;
+    oEffects.DIR_OUT = oEffects.DIR_OUT = 3;
+    oEffects.DIR_ACROSS = oEffects.DIR_ACROSS = 4;
+    oEffects.DIR_DOWN = oEffects.DIR_DOWN = 5;
+    oEffects.DIR_BOTTOM = oEffects.DIR_BOTTOM = 6;
+    oEffects.DIR_BOTTOM_LEFT = oEffects.DIR_BOTTOM_LEFT = 7;
+    oEffects.DIR_LEFT = oEffects.DIR_LEFT = 8;
+    oEffects.DIR_TOP_LEFT = oEffects.DIR_TOP_LEFT = 9;
+    oEffects.DIR_TOP = oEffects.DIR_TOP = 10;
+    oEffects.DIR_TOP_RIGHT = oEffects.DIR_TOP_RIGHT = 11;
+    oEffects.DIR_RIGHT = oEffects.DIR_RIGHT = 12;
+    oEffects.DIR_BOTTOM_RIGHT = oEffects.DIR_BOTTOM_RIGHT = 13;
+    oEffects.DIR_HORIZONTAL_IN = oEffects.DIR_HORIZONTAL_IN = 14;
+    oEffects.DIR_HORIZONTAL_OUT = oEffects.DIR_HORIZONTAL_OUT = 15;
+    oEffects.DIR_VERTICAL_IN = Effects.DIR_VERTICAL_IN = 16;
+    oEffects.DIR_VERTICAL_OUT = oEffects.DIR_VERTICAL_OUT = 17;
+    oEffects.DIR_LEFT_DOWN = oEffects.DIR_LEFT_DOWN = 18;
+    oEffects.DIR_LEFT_UP = oEffects.DIR_LEFT_UP = 19;
+    oEffects.DIR_RIGHT_DOWN = oEffects.DIR_RIGHT_DOWN = 20;
+    oEffects.DIR_RIGHT_UP = Effects.DIR_RIGHT_UP = 21;
+    oEffects.DIR_BOTH = oEffects.DIR_BOTH = 22;
+    oEffects.DIR_CLOCKWISE = Effects.DIR_CLOCKWISE = 23;
+    oEffects.DIR_COUNTER_CLOCKWISE = oEffects.DIR_COUNTER_CLOCKWISE = 24;
+
+    oEffects.VANISHING_PT_OBJECT = 0;
+    oEffects.VANISHING_PT_SLIDE = 1;
+
+    oEffects.ZOOM_IN = 0;
+    oEffects.ZOOM_IN_FROM_SCREEN_CENTER = 1;
+    oEffects.ZOOM_IN_SLIGHTLY = 2;
+    oEffects.ZOOM_OUT = 3;
+    oEffects.ZOOM_OUT_FROM_SCREEN_BOTTOM = 4;
+    oEffects.ZOOM_OUT_SLIGHTLY = 5;
+
+    oEffects.AMOUNT_TINY = 0;
+    oEffects.AMOUNT_SMALLER = 1;
+    oEffects.AMOUNT_LARGER = 2;
+    oEffects.AMOUNT_HUGE = 3;
+    oEffects.AMOUNT_QUARTER_SPIN = 4;
+    oEffects.AMOUNT_HALF_SPIN = 5;
+    oEffects.AMOUNT_FULL_SPIN = 6;
+    oEffects.AMOUNT_TWO_SPIN = 7;
+    oEffects.AMOUNT_25_PCT = 8;
+    oEffects.AMOUNT_50_PCT = 9;
+    oEffects.AMOUNT_75_PCT = 10;
+    oEffects.AMOUNT_100_PCT = 11;
 
     function CNone() {
         CEffectBase.call(this);
     }
-    InitClass(CNone, CEffectBase, EFFECT_TYPE_NONE);
+    InitClass(CNone, CEffectBase, oEffects.ET_NONE);
 
     function CMultiple() {
         CEffectBase.call(this);
     }
-    InitClass(CMultiple, CEffectBase, EFFECT_TYPE_MULTIPLE);
+    InitClass(CMultiple, CEffectBase, oEffects.ET_MULTIPLE);
 
     function CEntranceAppear() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceAppear, CEffectBase, EFFECT_TYPE_ENTRANCE_APPEAR);
+    InitClass(CEntranceAppear, CEffectBase, oEffects.ET_ENTRANCE_APPEAR);
+
+    function CEffectWithDir() {
+        CEffectBase.call(this);
+        this.dir = oEffects.DIR_HORIZONTAL;
+    }
+    InitClass(CEffectWithDir, CEffectBase, oEffects.ET_UNKNOWN);
+    CEffectWithDir.prototype.getDir = function() {
+        return this.dir;
+    };
+    CEffectWithDir.prototype.setDir = function(v) {
+        this.dir = v;
+    };
+    CEffectWithDir.prototype["getDir"] = CEffectWithDir.prototype.getDir;
+    CEffectWithDir.prototype["setDir"] = CEffectWithDir.prototype.setDir;
+
+    function CEffectWithSpokes() {
+        CEffectBase.call(this);
+        this.spokes = 1;
+    }
+    InitClass(CEffectWithSpokes, CEffectBase, oEffects.ET_UNKNOWN);
+    CEffectWithSpokes.prototype.getSpokes = function() {
+        return this.spokes;
+    };
+    CEffectWithSpokes.prototype.setSpokes = function(v) {
+        this.spokes = v;
+    };
+    CEffectWithSpokes.prototype["getSpokes"] = CEffectWithDir.prototype.getSpokes;
+    CEffectWithSpokes.prototype["setSpokes"] = CEffectWithDir.prototype.setSpokes;
+
+    function CEffectWithVanishingPoint() {
+        CEffectBase.call(this);
+        this.vashingPoint = oEffects.VANISHING_PT_OBJECT;
+    }
+    InitClass(CEffectWithVanishingPoint, CEffectBase, oEffects.ET_UNKNOWN);
+    CEffectWithVanishingPoint.prototype.getVanishingPoint = function () {
+        return this.vashingPoint;
+    };
+    CEffectWithVanishingPoint.prototype.setVanishingPoint = function (v) {
+        this.vashingPoint = v;
+    };
+    CEffectWithVanishingPoint.prototype["getVanishingPoint"] = CEffectWithVanishingPoint.prototype.getVanishingPoint;
+    CEffectWithVanishingPoint.prototype["setVanishingPoint"] = CEffectWithVanishingPoint.prototype.setVanishingPoint;
+
+    function CEffectWithZoom() {
+        CEffectBase.call(this);
+        this.zoom = oEffects.ZOOM_IN;
+    }
+    InitClass(CEffectWithZoom, CEffectBase, oEffects.ET_UNKNOWN);
+    CEffectWithZoom.prototype.getZoom = function () {
+        return this.zoom;
+    };
+    CEffectWithZoom.prototype.setZoom = function (v) {
+        this.zoom = v;
+    };
+    CEffectWithZoom.prototype["getZoom"] = CEffectWithZoom.prototype.getZoom;
+    CEffectWithZoom.prototype["setZoom"] = CEffectWithZoom.prototype.setZoom;
+
+    function CEffectWithColor() {
+        CEffectBase.call(this);
+        this.color = AscFormat.CreateUniColorRGB(0, 0, 0);
+    }
+    InitClass(CEffectWithColor, CEffectBase, oEffects.ET_UNKNOWN);
+    CEffectWithColor.prototype.getColor = function () {
+        return this.color;
+    };
+    CEffectWithColor.prototype.setColor = function (v) {
+        this.color = v;
+    };
+    CEffectWithColor.prototype["getColor"] = CEffectWithColor.prototype.getColor;
+    CEffectWithColor.prototype["setColor"] = CEffectWithColor.prototype.setColor;
+
+
 
     function CEntranceBlinds() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_HORIZONTAL;
     }
-    InitClass(CEntranceBlinds, CEffectBase, EFFECT_TYPE_ENTRANCE_BLINDS);
+    InitClass(CEntranceBlinds, CEffectWithDir, oEffects.ET_ENTRANCE_BLINDS);
 
     function CEntranceBox() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_IN;
     }
-    InitClass(CEntranceBox, CEffectBase, EFFECT_TYPE_ENTRANCE_BOX);
+    InitClass(CEntranceBox, CEffectWithDir, oEffects.ET_ENTRANCE_BOX);
 
     function CEntranceCheckerboard() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_ACROSS;
     }
-    InitClass(CEntranceCheckerboard, CEffectBase, EFFECT_TYPE_ENTRANCE_CHECKERBOARD);
+    InitClass(CEntranceCheckerboard, CEffectWithDir, oEffects.ET_ENTRANCE_CHECKERBOARD);
 
     function CEntranceCircle() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_IN;
     }
-    InitClass(CEntranceCircle, CEffectBase, EFFECT_TYPE_ENTRANCE_CIRCLE);
+    InitClass(CEntranceCircle, CEffectWithDir, oEffects.ET_ENTRANCE_CIRCLE);
 
     function CEntranceDiamond() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_IN;
     }
-    InitClass(CEntranceDiamond, CEffectBase, EFFECT_TYPE_ENTRANCE_DIAMOND);
+    InitClass(CEntranceDiamond, CEffectWithDir, oEffects.ET_ENTRANCE_DIAMOND);
 
     function CEntranceDissolveIn() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceDissolveIn, CEffectBase, EFFECT_TYPE_ENTRANCE_DISSOLVE_IN);
+    InitClass(CEntranceDissolveIn, CEffectBase, oEffects.ET_ENTRANCE_DISSOLVE_IN);
 
     function CEntranceFlyIn() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_BOTTOM;
     }
-    InitClass(CEntranceFlyIn, CEffectBase, EFFECT_TYPE_ENTRANCE_FLY_IN);
+    InitClass(CEntranceFlyIn, CEffectWithDir, oEffects.ET_ENTRANCE_FLY_IN);
 
     function CEntrancePeekIn() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_BOTTOM;
     }
-    InitClass(CEntrancePeekIn, CEffectBase, EFFECT_TYPE_ENTRANCE_PEEK_IN);
+    InitClass(CEntrancePeekIn, CEffectWithDir, oEffects.ET_ENTRANCE_PEEK_IN);
 
     function CEntrancePlus() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_IN;
     }
-    InitClass(CEntrancePlus, CEffectBase, EFFECT_TYPE_ENTRANCE_PLUS);
+    InitClass(CEntrancePlus, CEffectWithDir, oEffects.ET_ENTRANCE_PLUS);
 
     function CEntranceRandomBars() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_HORIZONTAL;
     }
-    InitClass(CEntranceRandomBars, CEffectBase, EFFECT_TYPE_ENTRANCE_RANDOM_BARS);
+    InitClass(CEntranceRandomBars, CEffectWithDir, oEffects.ET_ENTRANCE_RANDOM_BARS);
 
     function CEntranceSplit() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_VERTICAL_IN;
     }
-    InitClass(CEntranceSplit, CEffectBase, EFFECT_TYPE_ENTRANCE_SPLIT);
+    InitClass(CEntranceSplit, CEffectWithDir, oEffects.ET_ENTRANCE_SPLIT);
 
     function CEntranceStrips() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_LEFT_DOWN;
     }
-    InitClass(CEntranceStrips, CEffectBase, EFFECT_TYPE_ENTRANCE_STRIPS);
+    InitClass(CEntranceStrips, CEffectWithDir, oEffects.ET_ENTRANCE_STRIPS);
 
     function CEntranceWedge() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceWedge, CEffectBase, EFFECT_TYPE_ENTRANCE_WEDGE);
+    InitClass(CEntranceWedge, CEffectBase, oEffects.ET_ENTRANCE_WEDGE);
 
     function CEntranceWheel() {
-        CEffectBase.call(this);
+        CEffectWithSpokes.call(this);
     }
-    InitClass(CEntranceWheel, CEffectBase, EFFECT_TYPE_ENTRANCE_WHEEL);
+    InitClass(CEntranceWheel, CEffectWithSpokes, oEffects.ET_ENTRANCE_WHEEL);
 
     function CEntranceWipe() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_BOTTOM;
     }
-    InitClass(CEntranceWipe, CEffectBase, EFFECT_TYPE_ENTRANCE_WIPE);
+    InitClass(CEntranceWipe, CEffectWithDir, oEffects.ET_ENTRANCE_WIPE);
 
     function CEntranceExpand() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceExpand, CEffectBase, EFFECT_TYPE_ENTRANCE_EXPAND);
+    InitClass(CEntranceExpand, CEffectBase, oEffects.ET_ENTRANCE_EXPAND);
 
     function CEntranceFade() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceFade, CEffectBase, EFFECT_TYPE_ENTRANCE_FADE);
+    InitClass(CEntranceFade, CEffectBase, oEffects.ET_ENTRANCE_FADE);
 
     function CEntranceSwivel() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceSwivel, CEffectBase, EFFECT_TYPE_ENTRANCE_SWIVEL);
+    InitClass(CEntranceSwivel, CEffectBase, oEffects.ET_ENTRANCE_SWIVEL);
 
     function CEntranceZoom() {
-        CEffectBase.call(this);
+        CEffectWithVanishingPoint.call(this);
     }
-    InitClass(CEntranceZoom, CEffectBase, EFFECT_TYPE_ENTRANCE_ZOOM);
+    InitClass(CEntranceZoom, CEffectWithVanishingPoint, oEffects.ET_ENTRANCE_ZOOM);
 
     function CEntranceBasicZoom() {
-        CEffectBase.call(this);
+        CEffectWithZoom.call(this);
     }
-    InitClass(CEntranceBasicZoom, CEffectBase, EFFECT_TYPE_ENTRANCE_BASIC_ZOOM);
+    InitClass(CEntranceBasicZoom, CEffectWithZoom, oEffects.ET_ENTRANCE_BASIC_ZOOM);
 
     function CEntranceCenterRevolve() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceCenterRevolve, CEffectBase, EFFECT_TYPE_ENTRANCE_CENTER_REVOLVE);
+    InitClass(CEntranceCenterRevolve, CEffectBase, oEffects.ET_ENTRANCE_CENTER_REVOLVE);
 
     function CEntranceCompress() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceCompress, CEffectBase, EFFECT_TYPE_ENTRANCE_COMPRESS);
+    InitClass(CEntranceCompress, CEffectBase, oEffects.ET_ENTRANCE_COMPRESS);
 
     function CEntranceFloatDown() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceFloatDown, CEffectBase, EFFECT_TYPE_ENTRANCE_FLOAT_DOWN);
+    InitClass(CEntranceFloatDown, CEffectBase, oEffects.ET_ENTRANCE_FLOAT_DOWN);
 
     function CEntranceFloatUp() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceFloatUp, CEffectBase, EFFECT_TYPE_ENTRANCE_FLOAT_UP);
+    InitClass(CEntranceFloatUp, CEffectBase, oEffects.ET_ENTRANCE_FLOAT_UP);
 
     function CEntranceGrowAndTurn() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceGrowAndTurn, CEffectBase, EFFECT_TYPE_ENTRANCE_GROW_AND_TURN);
+    InitClass(CEntranceGrowAndTurn, CEffectBase, oEffects.ET_ENTRANCE_GROW_AND_TURN);
 
     function CEntranceRiseUp() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceRiseUp, CEffectBase, EFFECT_TYPE_ENTRANCE_RISE_UP);
+    InitClass(CEntranceRiseUp, CEffectBase, oEffects.ET_ENTRANCE_RISE_UP);
 
     function CEntranceSpinner() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceSpinner, CEffectBase, EFFECT_TYPE_ENTRANCE_SPINNER);
+    InitClass(CEntranceSpinner, CEffectBase, oEffects.ET_ENTRANCE_SPINNER);
 
     function CEntranceStretch() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_ACROSS;
     }
-    InitClass(CEntranceStretch, CEffectBase, EFFECT_TYPE_ENTRANCE_STRETCH);
+    InitClass(CEntranceStretch, CEffectWithDir, oEffects.ET_ENTRANCE_STRETCH);
 
     function CEntranceBasicSwivel() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_HORIZONTAL;
     }
-    InitClass(CEntranceBasicSwivel, CEffectBase, EFFECT_TYPE_ENTRANCE_BASIC_SWIVEL);
+    InitClass(CEntranceBasicSwivel, CEffectWithDir, oEffects.ET_ENTRANCE_BASIC_SWIVEL);
 
     function CEntranceBoomerang() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceBoomerang, CEffectBase, EFFECT_TYPE_ENTRANCE_BOOMERANG);
+    InitClass(CEntranceBoomerang, CEffectBase, oEffects.ET_ENTRANCE_BOOMERANG);
 
     function CEntranceBounce() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceBounce, CEffectBase, EFFECT_TYPE_ENTRANCE_BOUNCE);
+    InitClass(CEntranceBounce, CEffectBase, oEffects.ET_ENTRANCE_BOUNCE);
 
     function CEntranceCredits() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceCredits, CEffectBase, EFFECT_TYPE_ENTRANCE_CREDITS);
+    InitClass(CEntranceCredits, CEffectBase, oEffects.ET_ENTRANCE_CREDITS);
 
     function CEntranceCurveUp() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceCurveUp, CEffectBase, EFFECT_TYPE_ENTRANCE_CURVE_UP);
+    InitClass(CEntranceCurveUp, CEffectBase, oEffects.ET_ENTRANCE_CURVE_UP);
 
     function CEntranceDrop() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceDrop, CEffectBase, EFFECT_TYPE_ENTRANCE_DROP);
+    InitClass(CEntranceDrop, CEffectBase, oEffects.ET_ENTRANCE_DROP);
 
     function CEntranceFlip() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceFlip, CEffectBase, EFFECT_TYPE_ENTRANCE_FLIP);
+    InitClass(CEntranceFlip, CEffectBase, oEffects.ET_ENTRANCE_FLIP);
 
     function CEntranceFloat() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceFloat, CEffectBase, EFFECT_TYPE_ENTRANCE_FLOAT);
+    InitClass(CEntranceFloat, CEffectBase, oEffects.ET_ENTRANCE_FLOAT);
 
     function CEntrancePinwheel() {
         CEffectBase.call(this);
     }
-    InitClass(CEntrancePinwheel, CEffectBase, EFFECT_TYPE_ENTRANCE_PINWHEEL);
+    InitClass(CEntrancePinwheel, CEffectBase, oEffects.ET_ENTRANCE_PINWHEEL);
 
     function CEntranceSpiralIn() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceSpiralIn, CEffectBase, EFFECT_TYPE_ENTRANCE_SPIRAL_IN);
+    InitClass(CEntranceSpiralIn, CEffectBase, oEffects.ET_ENTRANCE_SPIRAL_IN);
 
     function CEntranceWhip() {
         CEffectBase.call(this);
     }
-    InitClass(CEntranceWhip, CEffectBase, EFFECT_TYPE_ENTRANCE_WHIP);
+    InitClass(CEntranceWhip, CEffectBase, oEffects.ET_ENTRANCE_WHIP);
 
     function CEmphasiseFillColor() {
-        CEffectBase.call(this);
+        CEffectWithColor.call(this);
     }
-    InitClass(CEmphasiseFillColor, CEffectBase, EFFECT_TYPE_EMPHASISE_FILL_COLOR);
+    InitClass(CEmphasiseFillColor, CEffectWithColor, oEffects.ET_EMPHASISE_FILL_COLOR);
 
     function CEmphasiseFontColor() {
-        CEffectBase.call(this);
+        CEffectWithColor.call(this);
     }
-    InitClass(CEmphasiseFontColor, CEffectBase, EFFECT_TYPE_EMPHASISE_FONT_COLOR);
+    InitClass(CEmphasiseFontColor, CEffectWithColor, oEffects.ET_EMPHASISE_FONT_COLOR);
 
     function CEmphasiseGrowShrink() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_BOTH;
+        this.amount = oEffects.AMOUNT_LARGER;
     }
-    InitClass(CEmphasiseGrowShrink, CEffectBase, EFFECT_TYPE_EMPHASISE_GROW_SHRINK);
+    InitClass(CEmphasiseGrowShrink, CEffectWithDir, oEffects.ET_EMPHASISE_GROW_SHRINK);
+    CEmphasiseGrowShrink.prototype.getAmount = function() {
+        return this.amount;
+    };
+    CEmphasiseGrowShrink.prototype.setAmount = function(v) {
+        this.amount = v;
+    };
+    CEmphasiseGrowShrink.prototype["getAmount"] = CEmphasiseGrowShrink.prototype.getAmount;
+    CEmphasiseGrowShrink.prototype["setAmount"] = CEmphasiseGrowShrink.prototype.setAmount;
 
     function CEmphasiseLineColor() {
-        CEffectBase.call(this);
+        CEffectWithColor.call(this);
     }
-    InitClass(CEmphasiseLineColor, CEffectBase, EFFECT_TYPE_EMPHASISE_LINE_COLOR);
+    InitClass(CEmphasiseLineColor, CEffectWithColor, oEffects.ET_EMPHASISE_LINE_COLOR);
 
     function CEmphasiseSpin() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_CLOCKWISE;
+        this.amount = oEffects.AMOUNT_FULL_SPIN;
     }
-    InitClass(CEmphasiseSpin, CEffectBase, EFFECT_TYPE_EMPHASISE_SPIN);
+    InitClass(CEmphasiseSpin, CEffectWithDir, oEffects.ET_EMPHASISE_SPIN);
+    CEmphasiseSpin.prototype.getAmount = function() {
+        return this.amount;
+    };
+    CEmphasiseSpin.prototype.setAmount = function(v) {
+        this.amount = v;
+    };
+    CEmphasiseSpin.prototype["getAmount"] = CEmphasiseSpin.prototype.getAmount;
+    CEmphasiseSpin.prototype["setAmount"] = CEmphasiseSpin.prototype.setAmount;
 
     function CEmphasiseTransparency() {
         CEffectBase.call(this);
+        this.amount = oEffects.AMOUNT_50_PCT;
     }
-    InitClass(CEmphasiseTransparency, CEffectBase, EFFECT_TYPE_EMPHASISE_TRANSPARENCY);
+    InitClass(CEmphasiseTransparency, CEffectBase, oEffects.ET_EMPHASISE_TRANSPARENCY);
+
+    CEmphasiseTransparency.prototype.getAmount = function() {
+        return this.amount;
+    };
+    CEmphasiseTransparency.prototype.setAmount = function(v) {
+        this.amount = v;
+    };
+    CEmphasiseTransparency.prototype["getAmount"] = CEmphasiseTransparency.prototype.getAmount;
+    CEmphasiseTransparency.prototype["setAmount"] = CEmphasiseTransparency.prototype.setAmount;
 
     function CEmphasiseBoldFlash() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseBoldFlash, CEffectBase, EFFECT_TYPE_EMPHASISE_BOLD_FLASH);
+    InitClass(CEmphasiseBoldFlash, CEffectBase, oEffects.ET_EMPHASISE_BOLD_FLASH);
 
     function CEmphasiseBrushColor() {
-        CEffectBase.call(this);
+        CEffectWithColor.call(this);
     }
-    InitClass(CEmphasiseBrushColor, CEffectBase, EFFECT_TYPE_EMPHASISE_BRUSH_COLOR);
+    InitClass(CEmphasiseBrushColor, CEffectWithColor, oEffects.ET_EMPHASISE_BRUSH_COLOR);
 
     function CEmphasiseComplimentaryColor() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseComplimentaryColor, CEffectBase, EFFECT_TYPE_EMPHASISE_COMPLIMENTARY_COLOR);
+    InitClass(CEmphasiseComplimentaryColor, CEffectBase, oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR);
 
     function CEmphasiseComplimentaryColor2() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseComplimentaryColor2, CEffectBase, EFFECT_TYPE_EMPHASISE_COMPLIMENTARY_COLOR2);
+    InitClass(CEmphasiseComplimentaryColor2, CEffectBase, oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR2);
 
     function CEmphasiseContrastingColor() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseContrastingColor, CEffectBase, EFFECT_TYPE_EMPHASISE_CONTRASTING_COLOR);
+    InitClass(CEmphasiseContrastingColor, CEffectBase, oEffects.ET_EMPHASISE_CONTRASTING_COLOR);
 
     function CEmphasiseDarken() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseDarken, CEffectBase, EFFECT_TYPE_EMPHASISE_DARKEN);
+    InitClass(CEmphasiseDarken, CEffectBase, oEffects.ET_EMPHASISE_DARKEN);
 
     function CEmphasiseDesaturate() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseDesaturate, CEffectBase, EFFECT_TYPE_EMPHASISE_DESATURATE);
+    InitClass(CEmphasiseDesaturate, CEffectBase, oEffects.ET_EMPHASISE_DESATURATE);
 
     function CEmphasiseLighten() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseLighten, CEffectBase, EFFECT_TYPE_EMPHASISE_LIGHTEN);
+    InitClass(CEmphasiseLighten, CEffectBase, oEffects.ET_EMPHASISE_LIGHTEN);
 
     function CEmphasiseObjectColor() {
-        CEffectBase.call(this);
+        CEffectWithColor.call(this);
     }
-    InitClass(CEmphasiseObjectColor, CEffectBase, EFFECT_TYPE_EMPHASISE_OBJECT_COLOR);
+    InitClass(CEmphasiseObjectColor, CEffectWithColor, oEffects.ET_EMPHASISE_OBJECT_COLOR);
 
     function CEmphasisePulse() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasisePulse, CEffectBase, EFFECT_TYPE_EMPHASISE_PULSE);
+    InitClass(CEmphasisePulse, CEffectBase, oEffects.ET_EMPHASISE_PULSE);
 
     function CEmphasiseUnderline() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseUnderline, CEffectBase, EFFECT_TYPE_EMPHASISE_UNDERLINE);
+    InitClass(CEmphasiseUnderline, CEffectBase, oEffects.ET_EMPHASISE_UNDERLINE);
 
     function CEmphasiseColorPulse() {
-        CEffectBase.call(this);
+        CEffectWithColor.call(this);
     }
-    InitClass(CEmphasiseColorPulse, CEffectBase, EFFECT_TYPE_EMPHASISE_COLOR_PULSE);
+    InitClass(CEmphasiseColorPulse, CEffectWithColor, oEffects.ET_EMPHASISE_COLOR_PULSE);
 
     function CEmphasiseGrowWithColor() {
-        CEffectBase.call(this);
+        CEffectWithColor.call(this);
     }
-    InitClass(CEmphasiseGrowWithColor, CEffectBase, EFFECT_TYPE_EMPHASISE_GROW_WITH_COLOR);
+    InitClass(CEmphasiseGrowWithColor, CEffectWithColor, oEffects.ET_EMPHASISE_GROW_WITH_COLOR);
 
     function CEmphasiseShimmer() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseShimmer, CEffectBase, EFFECT_TYPE_EMPHASISE_SHIMMER);
+    InitClass(CEmphasiseShimmer, CEffectBase, oEffects.ET_EMPHASISE_SHIMMER);
 
     function CEmphasiseTeeter() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseTeeter, CEffectBase, EFFECT_TYPE_EMPHASISE_TEETER);
+    InitClass(CEmphasiseTeeter, CEffectBase, oEffects.ET_EMPHASISE_TEETER);
 
     function CEmphasiseBlink() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseBlink, CEffectBase, EFFECT_TYPE_EMPHASISE_BLINK);
+    InitClass(CEmphasiseBlink, CEffectBase, oEffects.ET_EMPHASISE_BLINK);
 
     function CEmphasiseBoldReveal() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseBoldReveal, CEffectBase, EFFECT_TYPE_EMPHASISE_BOLD_REVEAL);
+    InitClass(CEmphasiseBoldReveal, CEffectBase, oEffects.ET_EMPHASISE_BOLD_REVEAL);
 
     function CEmphasiseWave() {
         CEffectBase.call(this);
     }
-    InitClass(CEmphasiseWave, CEffectBase, EFFECT_TYPE_EMPHASISE_WAVE);
+    InitClass(CEmphasiseWave, CEffectBase, oEffects.ET_EMPHASISE_WAVE);
 
     function CExitBlinds() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_HORIZONTAL;
     }
-    InitClass(CExitBlinds, CEffectBase, EFFECT_TYPE_EXIT_BLINDS);
+    InitClass(CExitBlinds, CEffectWithDir, oEffects.ET_EXIT_BLINDS);
 
     function CExitBox() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_IN;
     }
-    InitClass(CExitBox, CEffectBase, EFFECT_TYPE_EXIT_BOX);
+    InitClass(CExitBox, CEffectWithDir, oEffects.ET_EXIT_BOX);
 
     function CExitCheckerboard() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_ACROSS;
     }
-    InitClass(CExitCheckerboard, CEffectBase, EFFECT_TYPE_EXIT_CHECKERBOARD);
+    InitClass(CExitCheckerboard, CEffectWithDir, oEffects.ET_EXIT_CHECKERBOARD);
 
     function CExitCircle() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_IN;
     }
-    InitClass(CExitCircle, CEffectBase, EFFECT_TYPE_EXIT_CIRCLE);
+    InitClass(CExitCircle, CEffectWithDir, oEffects.ET_EXIT_CIRCLE);
 
     function CExitDiamond() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_IN;
     }
-    InitClass(CExitDiamond, CEffectBase, EFFECT_TYPE_EXIT_DIAMOND);
+    InitClass(CExitDiamond, CEffectWithDir, oEffects.ET_EXIT_DIAMOND);
 
     function CExitDisappear() {
         CEffectBase.call(this);
     }
-    InitClass(CExitDisappear, CEffectBase, EFFECT_TYPE_EXIT_DISAPPEAR);
+    InitClass(CExitDisappear, CEffectBase, oEffects.ET_EXIT_DISAPPEAR);
 
     function CExitDissolveOut() {
         CEffectBase.call(this);
     }
-    InitClass(CExitDissolveOut, CEffectBase, EFFECT_TYPE_EXIT_DISSOLVE_OUT);
+    InitClass(CExitDissolveOut, CEffectBase, oEffects.ET_EXIT_DISSOLVE_OUT);
 
     function CExitFlyOut() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_BOTTOM;
     }
-    InitClass(CExitFlyOut, CEffectBase, EFFECT_TYPE_EXIT_FLY_OUT);
+    InitClass(CExitFlyOut, CEffectWithDir, oEffects.ET_EXIT_FLY_OUT);
 
     function CExitPeekOut() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_BOTTOM;
     }
-    InitClass(CExitPeekOut, CEffectBase, EFFECT_TYPE_EXIT_PEEK_OUT);
+    InitClass(CExitPeekOut, CEffectWithDir, oEffects.ET_EXIT_PEEK_OUT);
 
     function CExitPlus() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_OUT;
     }
-    InitClass(CExitPlus, CEffectBase, EFFECT_TYPE_EXIT_PLUS);
+    InitClass(CExitPlus, CEffectWithDir, oEffects.ET_EXIT_PLUS);
 
     function CExitRandomBars() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_HORIZONTAL;
     }
-    InitClass(CExitRandomBars, CEffectBase, EFFECT_TYPE_EXIT_RANDOM_BARS);
+    InitClass(CExitRandomBars, CEffectWithDir, oEffects.ET_EXIT_RANDOM_BARS);
 
     function CExitSplit() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_VERTICAL_IN;
     }
-    InitClass(CExitSplit, CEffectBase, EFFECT_TYPE_EXIT_SPLIT);
+    InitClass(CExitSplit, CEffectWithDir, oEffects.ET_EXIT_SPLIT);
 
     function CExitStrips() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_LEFT_DOWN;
     }
-    InitClass(CExitStrips, CEffectBase, EFFECT_TYPE_EXIT_STRIPS);
+    InitClass(CExitStrips, CEffectWithDir, oEffects.ET_EXIT_STRIPS);
 
     function CExitWedge() {
         CEffectBase.call(this);
     }
-    InitClass(CExitWedge, CEffectBase, EFFECT_TYPE_EXIT_WEDGE);
+    InitClass(CExitWedge, CEffectBase, oEffects.ET_EXIT_WEDGE);
 
     function CExitWheel() {
-        CEffectBase.call(this);
+        CEffectWithSpokes.call(this);
     }
-    InitClass(CExitWheel, CEffectBase, EFFECT_TYPE_EXIT_WHEEL);
+    InitClass(CExitWheel, CEffectWithSpokes, oEffects.ET_EXIT_WHEEL);
 
     function CExitWhipe() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_BOTTOM;
     }
-    InitClass(CExitWhipe, CEffectBase, EFFECT_TYPE_EXIT_WIPE);
+    InitClass(CExitWhipe, CEffectWithDir, oEffects.ET_EXIT_WIPE);
 
     function CExitExitContract() {
         CEffectBase.call(this);
     }
-    InitClass(CExitExitContract, CEffectBase, EFFECT_TYPE_EXIT_CONTRACT);
+    InitClass(CExitExitContract, CEffectBase, oEffects.ET_EXIT_CONTRACT);
 
     function CExitFade() {
         CEffectBase.call(this);
     }
-    InitClass(CExitFade, CEffectBase, EFFECT_TYPE_EXIT_FADE);
+    InitClass(CExitFade, CEffectBase, oEffects.ET_EXIT_FADE);
 
     function CExitSwivel() {
         CEffectBase.call(this);
     }
-    InitClass(CExitSwivel, CEffectBase, EFFECT_TYPE_EXIT_SWIVEL);
+    InitClass(CExitSwivel, CEffectBase, oEffects.ET_EXIT_SWIVEL);
 
     function CExitZoom() {
-        CEffectBase.call(this);
+        CEffectWithVanishingPoint.call(this);
     }
-    InitClass(CExitZoom, CEffectBase, EFFECT_TYPE_EXIT_ZOOM);
+    InitClass(CExitZoom, CEffectWithVanishingPoint, oEffects.ET_EXIT_ZOOM);
 
     function CExitBasicZoom() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_OUT;
     }
-    InitClass(CExitBasicZoom, CEffectBase, EFFECT_TYPE_EXIT_BASIC_ZOOM);
+    InitClass(CExitBasicZoom, CEffectWithDir, oEffects.ET_EXIT_BASIC_ZOOM);
 
     function CExitCenterRevolve() {
         CEffectBase.call(this);
     }
-    InitClass(CExitCenterRevolve, CEffectBase, EFFECT_TYPE_EXIT_CENTER_REVOLVE);
+    InitClass(CExitCenterRevolve, CEffectBase, oEffects.ET_EXIT_CENTER_REVOLVE);
 
     function CExitCollapse() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_ACROSS;
     }
-    InitClass(CExitCollapse, CEffectBase, EFFECT_TYPE_EXIT_COLLAPSE);
+    InitClass(CExitCollapse, CEffectWithDir, oEffects.ET_EXIT_COLLAPSE);
 
     function CExitFloatDown() {
         CEffectBase.call(this);
     }
-    InitClass(CExitFloatDown, CEffectBase, EFFECT_TYPE_EXIT_FLOAT_DOWN);
+    InitClass(CExitFloatDown, CEffectBase, oEffects.ET_EXIT_FLOAT_DOWN);
 
     function CExitFloatUp() {
         CEffectBase.call(this);
     }
-    InitClass(CExitFloatUp, CEffectBase, EFFECT_TYPE_EXIT_FLOAT_UP);
+    InitClass(CExitFloatUp, CEffectBase, oEffects.ET_EXIT_FLOAT_UP);
 
     function CExitShrinkAndTurn() {
         CEffectBase.call(this);
     }
-    InitClass(CExitShrinkAndTurn, CEffectBase, EFFECT_TYPE_EXIT_SHRINK_AND_TURN);
+    InitClass(CExitShrinkAndTurn, CEffectBase, oEffects.ET_EXIT_SHRINK_AND_TURN);
 
     function CExitShrinkDown() {
         CEffectBase.call(this);
     }
-    InitClass(CExitShrinkDown, CEffectBase, EFFECT_TYPE_EXIT_SHRINK_DOWN);
+    InitClass(CExitShrinkDown, CEffectBase, oEffects.ET_EXIT_SHRINK_DOWN);
 
     function CExitSpinner() {
         CEffectBase.call(this);
     }
-    InitClass(CExitSpinner, CEffectBase, EFFECT_TYPE_EXIT_SPINNER);
+    InitClass(CExitSpinner, CEffectBase, oEffects.ET_EXIT_SPINNER);
 
     function CExitStretchy() {
         CEffectBase.call(this);
     }
-    InitClass(CExitStretchy, CEffectBase, EFFECT_TYPE_EXIT_STRETCHY);
+    InitClass(CExitStretchy, CEffectBase, oEffects.ET_EXIT_STRETCHY);
 
     function CExitBasicSwivel() {
-        CEffectBase.call(this);
+        CEffectWithDir.call(this);
+        this.dir = oEffects.DIR_HORIZONTAL;
     }
-    InitClass(CExitBasicSwivel, CEffectBase, EFFECT_TYPE_EXIT_BASIC_SWIVEL);
+    InitClass(CExitBasicSwivel, CEffectWithDir, oEffects.ET_EXIT_BASIC_SWIVEL);
 
     function CExitBoomerang() {
         CEffectBase.call(this);
     }
-    InitClass(CExitBoomerang, CEffectBase, EFFECT_TYPE_EXIT_BOOMERANG);
+    InitClass(CExitBoomerang, CEffectBase, oEffects.ET_EXIT_BOOMERANG);
 
     function CExitBounce() {
         CEffectBase.call(this);
     }
-    InitClass(CExitBounce, CEffectBase, EFFECT_TYPE_EXIT_BOUNCE);
+    InitClass(CExitBounce, CEffectBase, oEffects.ET_EXIT_BOUNCE);
 
     function CExitCredits() {
         CEffectBase.call(this);
     }
-    InitClass(CExitCredits, CEffectBase, EFFECT_TYPE_EXIT_CREDITS);
+    InitClass(CExitCredits, CEffectBase, oEffects.ET_EXIT_CREDITS);
 
     function CExitCurveDown() {
         CEffectBase.call(this);
     }
-    InitClass(CExitCurveDown, CEffectBase, EFFECT_TYPE_EXIT_CURVE_DOWN);
+    InitClass(CExitCurveDown, CEffectBase, oEffects.ET_EXIT_CURVE_DOWN);
 
     function CExitDrop() {
         CEffectBase.call(this);
     }
-    InitClass(CExitDrop, CEffectBase, EFFECT_TYPE_EXIT_DROP);
+    InitClass(CExitDrop, CEffectBase, oEffects.ET_EXIT_DROP);
 
     function CExitFlip() {
         CEffectBase.call(this);
     }
-    InitClass(CExitFlip, CEffectBase, EFFECT_TYPE_EXIT_FLIP);
+    InitClass(CExitFlip, CEffectBase, oEffects.ET_EXIT_FLIP);
 
     function CExitFloat() {
         CEffectBase.call(this);
     }
-    InitClass(CExitFloat, CEffectBase, EFFECT_TYPE_EXIT_FLOAT);
+    InitClass(CExitFloat, CEffectBase, oEffects.ET_EXIT_FLOAT);
 
     function CExitPinwheel() {
         CEffectBase.call(this);
     }
-    InitClass(CExitPinwheel, CEffectBase, EFFECT_TYPE_EXIT_PINWHEEL);
+    InitClass(CExitPinwheel, CEffectBase, oEffects.ET_EXIT_PINWHEEL);
 
     function CExitSpiralOut() {
         CEffectBase.call(this);
     }
-    InitClass(CExitSpiralOut, CEffectBase, EFFECT_TYPE_EXIT_SPIRAL_OUT);
+    InitClass(CExitSpiralOut, CEffectBase, oEffects.ET_EXIT_SPIRAL_OUT);
 
     function CExitWhip() {
         CEffectBase.call(this);
     }
-    InitClass(CExitWhip, CEffectBase, EFFECT_TYPE_EXIT_WHIP);
+    InitClass(CExitWhip, CEffectBase, oEffects.ET_EXIT_WHIP);
+
+    oEffects.ORIGIN_LOCKED = 0;
+    oEffects.ORIGIN_UNLOCKED = 1;
+    function CEffectMotionBase() {
+        CEffectBase.call(this);
+        this.origin = oEffects.ORIGIN_LOCKED;
+    }
+    InitClass(CEffectMotionBase, CEffectBase, oEffects.ET_UNKNOWN);
+    CEffectMotionBase.prototype.getOrigin = function() {
+        return this.origin;
+    }
+    CEffectMotionBase.prototype.setOrigin = function(v) {
+        this.origin = v;
+    };
+    CEffectMotionBase.prototype.editPoints = function() {
+    };
+    CEffectMotionBase.prototype.reversePathDirection = function() {
+    };
+    CEffectMotionBase.prototype["getOrigin"] = CEffectMotionBase.prototype.getOrigin;
+    CEffectMotionBase.prototype["setOrigin"] = CEffectMotionBase.prototype.setOrigin;
+    CEffectMotionBase.prototype["editPoints"] = CEffectMotionBase.prototype.editPoints;
+    CEffectMotionBase.prototype["reversePathDirection"] = CEffectMotionBase.prototype.reversePathDirection;
+
 
     function CMotion4PointStar() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotion4PointStar, CEffectBase, EFFECT_TYPE_MOTION_4_POINT_STAR);
+    InitClass(CMotion4PointStar, CEffectMotionBase, oEffects.ET_MOTION_4_POINT_STAR);
 
     function CMotion5PointStar() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotion5PointStar, CEffectBase, EFFECT_TYPE_MOTION_5_POINT_STAR);
+    InitClass(CMotion5PointStar, CEffectMotionBase, oEffects.ET_MOTION_5_POINT_STAR);
 
     function CMotion6PointStar() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotion6PointStar, CEffectBase, EFFECT_TYPE_MOTION_6_POINT_STAR);
+    InitClass(CMotion6PointStar, CEffectMotionBase, oEffects.ET_MOTION_6_POINT_STAR);
 
     function CMotion8PointStar() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotion8PointStar, CEffectBase, EFFECT_TYPE_MOTION_8_POINT_STAR);
+    InitClass(CMotion8PointStar, CEffectMotionBase, oEffects.ET_MOTION_8_POINT_STAR);
 
     function CMotionCircle() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionCircle, CEffectBase, EFFECT_TYPE_MOTION_CIRCLE);
+    InitClass(CMotionCircle, CEffectMotionBase, oEffects.ET_MOTION_CIRCLE);
 
     function CMotionCrescentMoon() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionCrescentMoon, CEffectBase, EFFECT_TYPE_MOTION_CRESCENT_MOON);
+    InitClass(CMotionCrescentMoon, CEffectMotionBase, oEffects.ET_MOTION_CRESCENT_MOON);
 
     function CMotionDiamond() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionDiamond, CEffectBase, EFFECT_TYPE_MOTION_DIAMOND);
+    InitClass(CMotionDiamond, CEffectMotionBase, oEffects.ET_MOTION_DIAMOND);
 
     function CMotionEqualTriangle() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionEqualTriangle, CEffectBase, EFFECT_TYPE_MOTION_EQUAL_TRIANGLE);
+    InitClass(CMotionEqualTriangle, CEffectMotionBase, oEffects.ET_MOTION_EQUAL_TRIANGLE);
 
     function CMotionFootball() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionFootball, CEffectBase, EFFECT_TYPE_MOTION_FOOTBALL);
+    InitClass(CMotionFootball, CEffectMotionBase, oEffects.ET_MOTION_FOOTBALL);
 
     function CMotionHeart() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionHeart, CEffectBase, EFFECT_TYPE_MOTION_HEART);
+    InitClass(CMotionHeart, CEffectMotionBase, oEffects.ET_MOTION_HEART);
 
     function CMotionHexagon() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionHexagon, CEffectBase, EFFECT_TYPE_MOTION_HEXAGON);
+    InitClass(CMotionHexagon, CEffectMotionBase, oEffects.ET_MOTION_HEXAGON);
 
     function CMotionOctagon() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionOctagon, CEffectBase, EFFECT_TYPE_MOTION_OCTAGON);
+    InitClass(CMotionOctagon, CEffectMotionBase, oEffects.ET_MOTION_OCTAGON);
 
     function CMotionParallelogram() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionParallelogram, CEffectBase, EFFECT_TYPE_MOTION_PARALLELOGRAM);
+    InitClass(CMotionParallelogram, CEffectMotionBase, oEffects.ET_MOTION_PARALLELOGRAM);
 
     function CMotionPentagon() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionPentagon, CEffectBase, EFFECT_TYPE_MOTION_PENTAGON);
+    InitClass(CMotionPentagon, CEffectMotionBase, oEffects.ET_MOTION_PENTAGON);
 
     function CMotionRightTriangle() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionRightTriangle, CEffectBase, EFFECT_TYPE_MOTION_RIGHT_TRIANGLE);
+    InitClass(CMotionRightTriangle, CEffectMotionBase, oEffects.ET_MOTION_RIGHT_TRIANGLE);
 
     function CMotionSquare() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSquare, CEffectBase, EFFECT_TYPE_MOTION_SQUARE);
+    InitClass(CMotionSquare, CEffectMotionBase, oEffects.ET_MOTION_SQUARE);
 
     function CMotionTeardrop() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionTeardrop, CEffectBase, EFFECT_TYPE_MOTION_TEARDROP);
+    InitClass(CMotionTeardrop, CEffectMotionBase, oEffects.ET_MOTION_TEARDROP);
 
     function CMotionTrapezoid() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionTrapezoid, CEffectBase, EFFECT_TYPE_MOTION_TRAPEZOID);
+    InitClass(CMotionTrapezoid, CEffectMotionBase, oEffects.ET_MOTION_TRAPEZOID);
 
     function CMotionArcDown() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionArcDown, CEffectBase, EFFECT_TYPE_MOTION_ARC_DOWN);
+    InitClass(CMotionArcDown, CEffectMotionBase, oEffects.ET_MOTION_ARC_DOWN);
 
     function CMotionArcLeft() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionArcLeft, CEffectBase, EFFECT_TYPE_MOTION_ARC_LEFT);
+    InitClass(CMotionArcLeft, CEffectMotionBase, oEffects.ET_MOTION_ARC_LEFT);
 
     function CMotionArcRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionArcRight, CEffectBase, EFFECT_TYPE_MOTION_ARC_RIGHT);
+    InitClass(CMotionArcRight, CEffectMotionBase, oEffects.ET_MOTION_ARC_RIGHT);
 
     function CMotionArcUp() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionArcUp, CEffectBase, EFFECT_TYPE_MOTION_ARC_UP);
+    InitClass(CMotionArcUp, CEffectMotionBase, oEffects.ET_MOTION_ARC_UP);
 
     function CMotionBounceLeft() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionBounceLeft, CEffectBase, EFFECT_TYPE_MOTION_BOUNCE_LEFT);
+    InitClass(CMotionBounceLeft, CEffectMotionBase, oEffects.ET_MOTION_BOUNCE_LEFT);
 
     function CMotionBounceRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionBounceRight, CEffectBase, EFFECT_TYPE_MOTION_BOUNCE_RIGHT);
+    InitClass(CMotionBounceRight, CEffectMotionBase, oEffects.ET_MOTION_BOUNCE_RIGHT);
 
     function CMotionCurvyLeft() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionCurvyLeft, CEffectBase, EFFECT_TYPE_MOTION_CURVY_LEFT);
+    InitClass(CMotionCurvyLeft, CEffectMotionBase, oEffects.ET_MOTION_CURVY_LEFT);
 
     function CMotionCurvyRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionCurvyRight, CEffectBase, EFFECT_TYPE_MOTION_CURVY_RIGHT);
+    InitClass(CMotionCurvyRight, CEffectMotionBase, oEffects.ET_MOTION_CURVY_RIGHT);
 
     function CMotionDecayingWave() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionDecayingWave, CEffectBase, EFFECT_TYPE_MOTION_DECAYING_WAVE);
+    InitClass(CMotionDecayingWave, CEffectMotionBase, oEffects.ET_MOTION_DECAYING_WAVE);
 
     function CMotionDiagonalDownRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionDiagonalDownRight, CEffectBase, EFFECT_TYPE_MOTION_DIAGONAL_DOWN_RIGHT);
+    InitClass(CMotionDiagonalDownRight, CEffectMotionBase, oEffects.ET_MOTION_DIAGONAL_DOWN_RIGHT);
 
     function CMotionDiagonalUpRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionDiagonalUpRight, CEffectBase, EFFECT_TYPE_MOTION_DIAGONAL_UP_RIGHT);
+    InitClass(CMotionDiagonalUpRight, CEffectMotionBase, oEffects.ET_MOTION_DIAGONAL_UP_RIGHT);
 
     function CMotionDown() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionDown, CEffectBase, EFFECT_TYPE_MOTION_DOWN);
+    InitClass(CMotionDown, CEffectMotionBase, oEffects.ET_MOTION_DOWN);
 
     function CMotionFunnel() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionFunnel, CEffectBase, EFFECT_TYPE_MOTION_FUNNEL);
+    InitClass(CMotionFunnel, CEffectMotionBase, oEffects.ET_MOTION_FUNNEL);
 
     function CMotionMotionHeartbeat() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionMotionHeartbeat, CEffectBase, EFFECT_TYPE_MOTION_HEARTBEAT);
+    InitClass(CMotionMotionHeartbeat, CEffectMotionBase, oEffects.ET_MOTION_HEARTBEAT);
 
     function CMotionLeft() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionLeft, CEffectBase, EFFECT_TYPE_MOTION_LEFT);
+    InitClass(CMotionLeft, CEffectMotionBase, oEffects.ET_MOTION_LEFT);
 
     function CMotionRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionRight, CEffectBase, EFFECT_TYPE_MOTION_RIGHT);
+    InitClass(CMotionRight, CEffectMotionBase, oEffects.ET_MOTION_RIGHT);
 
     function CMotionSCurve1() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSCurve1, CEffectBase, EFFECT_TYPE_MOTION_S_CURVE_1);
+    InitClass(CMotionSCurve1, CEffectMotionBase, oEffects.ET_MOTION_S_CURVE_1);
 
     function CMotionSCurve2() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSCurve2, CEffectBase, EFFECT_TYPE_MOTION_S_CURVE_2);
+    InitClass(CMotionSCurve2, CEffectMotionBase, oEffects.ET_MOTION_S_CURVE_2);
 
     function CMotionSineWave() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSineWave, CEffectBase, EFFECT_TYPE_MOTION_SINE_WAVE);
+    InitClass(CMotionSineWave, CEffectMotionBase, oEffects.ET_MOTION_SINE_WAVE);
 
     function CMotionSpiralLeft() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSpiralLeft, CEffectBase, EFFECT_TYPE_MOTION_SPIRAL_LEFT);
+    InitClass(CMotionSpiralLeft, CEffectMotionBase, oEffects.ET_MOTION_SPIRAL_LEFT);
 
     function CMotionSpiralRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSpiralRight, CEffectBase, EFFECT_TYPE_MOTION_SPIRAL_RIGHT);
+    InitClass(CMotionSpiralRight, CEffectMotionBase, oEffects.ET_MOTION_SPIRAL_RIGHT);
 
     function CMotionSpring() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSpring, CEffectBase, EFFECT_TYPE_MOTION_SPRING);
+    InitClass(CMotionSpring, CEffectMotionBase, oEffects.ET_MOTION_SPRING);
 
     function CMotionStairsDown() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionStairsDown, CEffectBase, EFFECT_TYPE_MOTION_STAIRS_DOWN);
+    InitClass(CMotionStairsDown, CEffectMotionBase, oEffects.ET_MOTION_STAIRS_DOWN);
 
     function CMotionTurnDown() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionTurnDown, CEffectBase, EFFECT_TYPE_MOTION_TURN_DOWN);
+    InitClass(CMotionTurnDown, CEffectMotionBase, oEffects.ET_MOTION_TURN_DOWN);
 
     function CMotionTurnDownRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionTurnDownRight, CEffectBase, EFFECT_TYPE_MOTION_TURN_DOWN_RIGHT);
+    InitClass(CMotionTurnDownRight, CEffectMotionBase, oEffects.ET_MOTION_TURN_DOWN_RIGHT);
 
     function CMotionTurnUp() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionTurnUp, CEffectBase, EFFECT_TYPE_MOTION_TURN_UP);
+    InitClass(CMotionTurnUp, CEffectMotionBase, oEffects.ET_MOTION_TURN_UP);
 
     function CMotionTurnUpRight() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionTurnUpRight, CEffectBase, EFFECT_TYPE_MOTION_TURN_UP_RIGHT);
+    InitClass(CMotionTurnUpRight, CEffectMotionBase, oEffects.ET_MOTION_TURN_UP_RIGHT);
 
     function CMotionMotionUp() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionMotionUp, CEffectBase, EFFECT_TYPE_MOTION_UP);
+    InitClass(CMotionMotionUp, CEffectMotionBase, oEffects.ET_MOTION_UP);
 
     function CMotionWave() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionWave, CEffectBase, EFFECT_TYPE_MOTION_WAVE);
+    InitClass(CMotionWave, CEffectMotionBase, oEffects.ET_MOTION_WAVE);
 
     function CMotionZigzag() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionZigzag, CEffectBase, EFFECT_TYPE_MOTION_ZIGZAG);
+    InitClass(CMotionZigzag, CEffectMotionBase, oEffects.ET_MOTION_ZIGZAG);
 
     function CMotionBean() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionBean, CEffectBase, EFFECT_TYPE_MOTION_BEAN);
+    InitClass(CMotionBean, CEffectMotionBase, oEffects.ET_MOTION_BEAN);
 
     function CMotionCurvedSquare() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionCurvedSquare, CEffectBase, EFFECT_TYPE_MOTION_CURVED_SQUARE);
+    InitClass(CMotionCurvedSquare, CEffectMotionBase, oEffects.ET_MOTION_CURVED_SQUARE);
 
     function CMotionCurvedX() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionCurvedX, CEffectBase, EFFECT_TYPE_MOTION_CURVED_X);
+    InitClass(CMotionCurvedX, CEffectMotionBase, oEffects.ET_MOTION_CURVED_X);
 
     function CMotionCurvyStar() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionCurvyStar, CEffectBase, EFFECT_TYPE_MOTION_CURVY_STAR);
+    InitClass(CMotionCurvyStar, CEffectMotionBase, oEffects.ET_MOTION_CURVY_STAR);
 
     function CMotionFigure8Four() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionFigure8Four, CEffectBase, EFFECT_TYPE_MOTION_FIGURE_8_FOUR);
+    InitClass(CMotionFigure8Four, CEffectMotionBase, oEffects.ET_MOTION_FIGURE_8_FOUR);
 
     function CMotionHorizontalFigure8() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionHorizontalFigure8, CEffectBase, EFFECT_TYPE_MOTION_HORIZONTAL_FIGURE_8);
+    InitClass(CMotionHorizontalFigure8, CEffectMotionBase, oEffects.ET_MOTION_HORIZONTAL_FIGURE_8);
 
     function CMotionInvertedSquare() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionInvertedSquare, CEffectBase, EFFECT_TYPE_MOTION_INVERTED_SQUARE);
+    InitClass(CMotionInvertedSquare, CEffectMotionBase, oEffects.ET_MOTION_INVERTED_SQUARE);
 
     function CMotionInvertedTriangle() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionInvertedTriangle, CEffectBase, EFFECT_TYPE_MOTION_INVERTED_TRIANGLE);
+    InitClass(CMotionInvertedTriangle, CEffectMotionBase, oEffects.ET_MOTION_INVERTED_TRIANGLE);
 
     function CMotionLoopDeLoop() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionLoopDeLoop, CEffectBase, EFFECT_TYPE_MOTION_LOOP_DE_LOOP);
+    InitClass(CMotionLoopDeLoop, CEffectMotionBase, oEffects.ET_MOTION_LOOP_DE_LOOP);
 
     function CMotionNeutron() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionNeutron, CEffectBase, EFFECT_TYPE_MOTION_NEUTRON);
+    InitClass(CMotionNeutron, CEffectMotionBase, oEffects.ET_MOTION_NEUTRON);
 
     function CMotionPeanut() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionPeanut, CEffectBase, EFFECT_TYPE_MOTION_PEANUT);
+    InitClass(CMotionPeanut, CEffectMotionBase, oEffects.ET_MOTION_PEANUT);
 
     function CMotionPlus() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionPlus, CEffectBase, EFFECT_TYPE_MOTION_PLUS);
+    InitClass(CMotionPlus, CEffectMotionBase, oEffects.ET_MOTION_PLUS);
 
     function CMotionPointyStar() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionPointyStar, CEffectBase, EFFECT_TYPE_MOTION_POINTY_STAR);
+    InitClass(CMotionPointyStar, CEffectMotionBase, oEffects.ET_MOTION_POINTY_STAR);
 
     function CMotionSwoosh() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionSwoosh, CEffectBase, EFFECT_TYPE_MOTION_SWOOSH);
+    InitClass(CMotionSwoosh, CEffectMotionBase, oEffects.ET_MOTION_SWOOSH);
 
     function CMotionVerticalFigure8() {
-        CEffectBase.call(this);
+        CEffectMotionBase.call(this);
     }
-    InitClass(CMotionVerticalFigure8, CEffectBase, EFFECT_TYPE_MOTION_VERTICAL_FIGURE_8);
+    InitClass(CMotionVerticalFigure8, CEffectMotionBase, oEffects.ET_MOTION_VERTICAL_FIGURE_8);
     //------------------------------------------------------------------------------------------
 
     function CTimelineGroup() {
@@ -9879,4 +10128,5 @@
     window['AscFormat'].CBaseAnimObject = CBaseAnimObject;
     window['AscFormat'].CAnimFormulaParser = CFormulaParser;
     window['AscFormat'].CBaseAnimTexture = CBaseAnimTexture;
+    window['AscFormat']['Effects'] = window['AscFormat'].Effects = oEffects;
 })(window);
