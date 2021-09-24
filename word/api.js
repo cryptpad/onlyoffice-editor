@@ -3411,11 +3411,19 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onInitEditorStyles", styles_painter);
 		}
 	};
-	asc_docs_api.prototype.sync_InitEditorTableStyles    = function(styles, is_retina_enabled)
+	asc_docs_api.prototype.sync_InitEditorTableStyles    = function()
 	{
 		if (!this.isViewMode) {
-			this.sendEvent("asc_onInitTableTemplates", styles, is_retina_enabled);
+			this.sendEvent("asc_onInitTableTemplates");
 		}
+	};
+	asc_docs_api.prototype.asc_getTableStylesPreviews    = function()
+	{
+		if(this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			return this.WordControl.m_oDrawingDocument.GetTableStylesPreviews();
+		}
+		return [];
 	};
 
 
@@ -12271,6 +12279,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype["asc_canEditGeometry"] 					    = asc_docs_api.prototype.asc_canEditGeometry;
 	asc_docs_api.prototype["asc_editPointsGeometry"] 					= asc_docs_api.prototype.asc_editPointsGeometry;
+	asc_docs_api.prototype["asc_getTableStylesPreviews"] 				= asc_docs_api.prototype.asc_getTableStylesPreviews;
 
 	CDocInfoProp.prototype['get_PageCount']             = CDocInfoProp.prototype.get_PageCount;
 	CDocInfoProp.prototype['put_PageCount']             = CDocInfoProp.prototype.put_PageCount;

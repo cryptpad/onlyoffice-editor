@@ -2617,6 +2617,14 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onInitTableTemplates", styles);
 		}
 	};
+	asc_docs_api.prototype.asc_getTableStylesPreviews    = function()
+	{
+		if(this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			return this.WordControl.m_oDrawingDocument.GetTableStylesPreviews();
+		}
+		return [];
+	};
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with paragraph*/
@@ -8296,6 +8304,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype["sync_OnConvertEquationToMath"] 		    = asc_docs_api.prototype.sync_OnConvertEquationToMath;
 	asc_docs_api.prototype["asc_ConvertEquationToMath"] 		    = asc_docs_api.prototype.asc_ConvertEquationToMath;
+	asc_docs_api.prototype["asc_getTableStylesPreviews"] 		    = asc_docs_api.prototype.asc_getTableStylesPreviews;
 
 
 	window['Asc']['asc_CCommentData'] = window['Asc'].asc_CCommentData = asc_CCommentData;

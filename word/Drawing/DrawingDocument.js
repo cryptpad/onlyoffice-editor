@@ -7560,7 +7560,12 @@ function CDrawingDocument()
 
 		if (!bIsChanged)
 			return;
+		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
+	};
 
+	this.GetTableStylesPreviews = function()
+	{
+		var logicDoc = this.m_oWordControl.m_oLogicDocument;
 		var _dst_styles = [];
 
 		var _styles = logicDoc.Styles.Get_AllTableStyles();
@@ -7568,6 +7573,11 @@ function CDrawingDocument()
 
 		if (_styles_len == 0)
 			return _dst_styles;
+
+		var tableLook = this.TableStylesLastLook;
+		if(!tableLook) {
+			return _dst_styles;
+		}
 
 		var _x_mar = 10;
 		var _y_mar = 10;
@@ -7679,9 +7689,8 @@ function CDrawingDocument()
 
 		if (false !== isTrackRevision)
 			logicDoc.SetLocalTrackRevisions(isTrackRevision);
-
-		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles, AscCommon.AscBrowser.isCustomScalingAbove2());
-	}
+		return _dst_styles;
+	};
 
 	this.IsMobileVersion = function ()
 	{

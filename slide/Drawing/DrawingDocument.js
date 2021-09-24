@@ -3133,6 +3133,11 @@ function CDrawingDocument()
 
 		if (!this.m_oWordControl.m_oApi.asc_checkNeedCallback("asc_onInitTableTemplates"))
 			return;
+		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
+	};
+
+	this.GetTableStylesPreviews = function()
+	{
 		var logicDoc    = this.m_oWordControl.m_oLogicDocument;
 		var _dst_styles = [];
 		var _pageW      = 297;
@@ -3172,7 +3177,7 @@ function CDrawingDocument()
 			}
 			_dst_styles.push(_styleD);
 		}
-		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles);
+		return _dst_styles;
 	};
 
 	this.OnSelectEnd = function()
