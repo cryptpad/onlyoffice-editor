@@ -4722,9 +4722,32 @@
     };
 
     ConstrLst.prototype.startSetConstr = function (pointTree, node) {
+      var constrWithPrimFont = [];
+      var constrWithSecFont = [];
       this.list.forEach(function (constr) {
-        constr.setConstr(pointTree, node);
+        if (constr.type === Constr_type_primFontSz) {
+          constrWithPrimFont.push({
+            constr: constr,
+            node: node,
+          });
+        } else if (constr.type === Constr_type_secFontSz) {
+          console.log('isSec');
+          constrWithSecFont.push({
+            constr: constr,
+            node: node,
+          });
+        } else {
+          constr.setConstr(pointTree, [{node: node, constr: constr}]);
+        }
       });
+      if (constrWithPrimFont.length !== 0) {
+        console.log(constrWithPrimFont)
+        //console.log('isPrim')
+        constrWithPrimFont[0].constr.setConstr(pointTree, constrWithPrimFont);
+      }
+      if (constrWithSecFont.length !== 0) {
+        constrWithSecFont[0].constr.setConstr(pointTree, constrWithSecFont);
+      }
     }
 
 
@@ -5316,12 +5339,18 @@
       }
     }
 
-    Constr.prototype.setConstr = function (pointTree, transfer) {
-      var node = transfer;
+    Constr.prototype.setConstr = function (pointTree, transfers) {
+      var that = this;
       var smartArt = pointTree && pointTree.parent;
-      if (node) {
-        var shapes = this.getShapesFromAxis(node, false);
-        var refShape = this.getShapesFromAxis(node, true);
+      if (transfers.length !== 0) {
+        var shapes = transfers.reduce(function (acc, transfer) {
+          return acc.concat(transfer.constr.getShapesFromAxis(transfer.node, false));
+        }, []);
+
+        var refShape = transfers.reduce(function (acc, transfer) {
+          return acc.concat(transfer.constr.getShapesFromAxis(transfer.node, true));
+        }, []);
+
         if (this.type === Constr_type_primFontSz || this.type === Constr_type_secFontSz) {
           if (smartArt) {
             smartArt.setTruthFontSizeInSmartArt(shapes);
@@ -5329,7 +5358,6 @@
           return;
         }
 
-        var that = this;
         var value = refShape.reduce(function (acc, shape) {
           var compute = that.getConstrVal(shape);
           if (!acc && typeof compute === 'number') {
@@ -5387,7 +5415,8 @@
           case Constr_type_endPad:
             break;
           case Constr_type_h:
-            return shape.setResizeHeightConstr;
+            //return shape.setResizeHeightConstr;
+            break;
           case Constr_type_hArH:
             break;
           case Constr_type_hOff: // TODO: add to constr type in x2t
@@ -5479,7 +5508,8 @@
           case Constr_type_userZ:
             break;
           case Constr_type_w:
-            return shape.setResizeWidthConstr;
+            //return shape.setResizeWidthConstr;
+            break;
           case Constr_type_wArH:
             break;
           case Constr_type_wOff:
