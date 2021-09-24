@@ -8831,8 +8831,6 @@
     oEffects['ET_MOTION_SWOOSH'] = oEffects.ET_MOTION_SWOOSH = oEffects.ET_MOTION | 63;
     oEffects['ET_MOTION_VERTICAL_FIGURE_8'] = oEffects.ET_MOTION_VERTICAL_FIGURE_8 = oEffects.ET_MOTION | 64;
 
-    //-------------------------------------------------------------------------------
-
     oEffects['START_ON_CLICK'] = oEffects.START_ON_CLICK = 0;
     oEffects['START_WITH_PREVIOUS'] = oEffects.START_WITH_PREVIOUS = 1;
     oEffects['START_AFTER_PREVIOUS'] = oEffects.START_AFTER_PREVIOUS = 2;
@@ -8856,6 +8854,58 @@
     oEffects['GROUP_3RD_LEVEL'] = oEffects.GROUP_3RD_LEVEL = 4;
     oEffects['GROUP_4TH_LEVEL'] = oEffects.GROUP_4TH_LEVEL = 5;
     oEffects['GROUP_5TH_LEVEL'] = oEffects.GROUP_5TH_LEVEL = 6;
+
+    oEffects['DIR_HORIZONTAL'] = oEffects.DIR_HORIZONTAL = 0;
+    oEffects['DIR_VERTICAL'] = oEffects.DIR_VERTICAL = 1;
+    oEffects['DIR_IN'] = oEffects.DIR_IN = 2;
+    oEffects['DIR_OUT'] = oEffects.DIR_OUT = 3;
+    oEffects['DIR_ACROSS'] = oEffects.DIR_ACROSS = 4;
+    oEffects['DIR_DOWN'] = oEffects.DIR_DOWN = 5;
+    oEffects['DIR_BOTTOM'] = oEffects.DIR_BOTTOM = 6;
+    oEffects['DIR_BOTTOM_LEFT'] = oEffects.DIR_BOTTOM_LEFT = 7;
+    oEffects['DIR_LEFT'] = oEffects.DIR_LEFT = 8;
+    oEffects['DIR_TOP_LEFT'] = oEffects.DIR_TOP_LEFT = 9;
+    oEffects['DIR_TOP'] = oEffects.DIR_TOP = 10;
+    oEffects['DIR_TOP_RIGHT'] = oEffects.DIR_TOP_RIGHT = 11;
+    oEffects['DIR_RIGHT'] = oEffects.DIR_RIGHT = 12;
+    oEffects['DIR_BOTTOM_RIGHT'] = oEffects.DIR_BOTTOM_RIGHT = 13;
+    oEffects['DIR_HORIZONTAL_IN'] = oEffects.DIR_HORIZONTAL_IN = 14;
+    oEffects['DIR_HORIZONTAL_OUT'] = oEffects.DIR_HORIZONTAL_OUT = 15;
+    oEffects['DIR_VERTICAL_IN'] = oEffects.DIR_VERTICAL_IN = 16;
+    oEffects['DIR_VERTICAL_OUT'] = oEffects.DIR_VERTICAL_OUT = 17;
+    oEffects['DIR_LEFT_DOWN'] = oEffects.DIR_LEFT_DOWN = 18;
+    oEffects['DIR_LEFT_UP'] = oEffects.DIR_LEFT_UP = 19;
+    oEffects['DIR_RIGHT_DOWN'] = oEffects.DIR_RIGHT_DOWN = 20;
+    oEffects['DIR_RIGHT_UP = oEffects.DIR_RIGHT_UP = 21;
+    oEffects['DIR_BOTH'] = oEffects.DIR_BOTH = 22;
+    oEffects['DIR_CLOCKWISE'] = oEffects.DIR_CLOCKWISE = 23;
+    oEffects['DIR_COUNTER_CLOCKWISE'] = oEffects.DIR_COUNTER_CLOCKWISE = 24;
+
+    oEffects['VANISHING_PT_OBJECT'] = oEffects.VANISHING_PT_OBJECT = 0;
+    oEffects['VANISHING_PT_SLIDE'] = oEffects.VANISHING_PT_SLIDE = 1;
+
+    oEffects['ZOOM_IN'] = oEffects.ZOOM_IN = 0;
+    oEffects['ZOOM_IN_FROM_SCREEN_CENTER'] = oEffects.ZOOM_IN_FROM_SCREEN_CENTER = 1;
+    oEffects['ZOOM_IN_SLIGHTLY'] = oEffects.ZOOM_IN_SLIGHTLY = 2;
+    oEffects['ZOOM_OUT'] = oEffects.ZOOM_OUT = 3;
+    oEffects['ZOOM_OUT_FROM_SCREEN_BOTTOM'] = oEffects.ZOOM_OUT_FROM_SCREEN_BOTTOM = 4;
+    oEffects['ZOOM_OUT_SLIGHTLY'] = oEffects.ZOOM_OUT_SLIGHTLY = 5;
+
+    oEffects['AMOUNT_TINY'] = oEffects.AMOUNT_TINY = 0;
+    oEffects['AMOUNT_SMALLER'] = oEffects.AMOUNT_SMALLER = 1;
+    oEffects['AMOUNT_LARGER'] = oEffects.AMOUNT_LARGER = 2;
+    oEffects['AMOUNT_HUGE'] = oEffects.AMOUNT_HUGE = 3;
+    oEffects['AMOUNT_QUARTER_SPIN'] = oEffects.AMOUNT_QUARTER_SPIN = 4;
+    oEffects['AMOUNT_HALF_SPIN'] = oEffects.AMOUNT_HALF_SPIN = 5;
+    oEffects['AMOUNT_FULL_SPIN'] = oEffects.AMOUNT_FULL_SPIN = 6;
+    oEffects['AMOUNT_TWO_SPIN'] = oEffects.AMOUNT_TWO_SPIN = 7;
+    oEffects['AMOUNT_25_PCT'] = oEffects.AMOUNT_25_PCT = 8;
+    oEffects['AMOUNT_50_PCT'] = oEffects.AMOUNT_50_PCT = 9;
+    oEffects['AMOUNT_75_PCT'] = oEffects.AMOUNT_75_PCT = 10;
+    oEffects['AMOUNT_100_PCT'] = oEffects.AMOUNT_100_PCT = 11;
+
+    oEffects['ORIGIN_LOCKED'] = oEffects.ORIGIN_LOCKED = 0;
+    oEffects['ORIGIN_UNLOCKED'] = oEffects.ORIGIN_UNLOCKED = 1;
 
     function CEffectBase() {
         this.start = oEffects.START_ON_CLICK;
@@ -8993,55 +9043,6 @@
     CEffectBase.prototype["setAutomaticallyAfter"] = CEffectBase.prototype.setAutomaticallyAfter;
     CEffectBase.prototype["setAnimateAttachedShape"] = CEffectBase.prototype.setAnimateAttachedShape;
     CEffectBase.prototype["setInReverseOrder"] = CEffectBase.prototype.setInReverseOrder;
-
-    oEffects.DIR_HORIZONTAL = oEffects.DIR_HORIZONTAL = 0;
-    oEffects.DIR_VERTICAL = oEffects.DIR_VERTICAL = 1;
-    oEffects.DIR_IN = oEffects.DIR_IN = 2;
-    oEffects.DIR_OUT = oEffects.DIR_OUT = 3;
-    oEffects.DIR_ACROSS = oEffects.DIR_ACROSS = 4;
-    oEffects.DIR_DOWN = oEffects.DIR_DOWN = 5;
-    oEffects.DIR_BOTTOM = oEffects.DIR_BOTTOM = 6;
-    oEffects.DIR_BOTTOM_LEFT = oEffects.DIR_BOTTOM_LEFT = 7;
-    oEffects.DIR_LEFT = oEffects.DIR_LEFT = 8;
-    oEffects.DIR_TOP_LEFT = oEffects.DIR_TOP_LEFT = 9;
-    oEffects.DIR_TOP = oEffects.DIR_TOP = 10;
-    oEffects.DIR_TOP_RIGHT = oEffects.DIR_TOP_RIGHT = 11;
-    oEffects.DIR_RIGHT = oEffects.DIR_RIGHT = 12;
-    oEffects.DIR_BOTTOM_RIGHT = oEffects.DIR_BOTTOM_RIGHT = 13;
-    oEffects.DIR_HORIZONTAL_IN = oEffects.DIR_HORIZONTAL_IN = 14;
-    oEffects.DIR_HORIZONTAL_OUT = oEffects.DIR_HORIZONTAL_OUT = 15;
-    oEffects.DIR_VERTICAL_IN = Effects.DIR_VERTICAL_IN = 16;
-    oEffects.DIR_VERTICAL_OUT = oEffects.DIR_VERTICAL_OUT = 17;
-    oEffects.DIR_LEFT_DOWN = oEffects.DIR_LEFT_DOWN = 18;
-    oEffects.DIR_LEFT_UP = oEffects.DIR_LEFT_UP = 19;
-    oEffects.DIR_RIGHT_DOWN = oEffects.DIR_RIGHT_DOWN = 20;
-    oEffects.DIR_RIGHT_UP = Effects.DIR_RIGHT_UP = 21;
-    oEffects.DIR_BOTH = oEffects.DIR_BOTH = 22;
-    oEffects.DIR_CLOCKWISE = Effects.DIR_CLOCKWISE = 23;
-    oEffects.DIR_COUNTER_CLOCKWISE = oEffects.DIR_COUNTER_CLOCKWISE = 24;
-
-    oEffects.VANISHING_PT_OBJECT = 0;
-    oEffects.VANISHING_PT_SLIDE = 1;
-
-    oEffects.ZOOM_IN = 0;
-    oEffects.ZOOM_IN_FROM_SCREEN_CENTER = 1;
-    oEffects.ZOOM_IN_SLIGHTLY = 2;
-    oEffects.ZOOM_OUT = 3;
-    oEffects.ZOOM_OUT_FROM_SCREEN_BOTTOM = 4;
-    oEffects.ZOOM_OUT_SLIGHTLY = 5;
-
-    oEffects.AMOUNT_TINY = 0;
-    oEffects.AMOUNT_SMALLER = 1;
-    oEffects.AMOUNT_LARGER = 2;
-    oEffects.AMOUNT_HUGE = 3;
-    oEffects.AMOUNT_QUARTER_SPIN = 4;
-    oEffects.AMOUNT_HALF_SPIN = 5;
-    oEffects.AMOUNT_FULL_SPIN = 6;
-    oEffects.AMOUNT_TWO_SPIN = 7;
-    oEffects.AMOUNT_25_PCT = 8;
-    oEffects.AMOUNT_50_PCT = 9;
-    oEffects.AMOUNT_75_PCT = 10;
-    oEffects.AMOUNT_100_PCT = 11;
 
     function CNone() {
         CEffectBase.call(this);
@@ -9704,8 +9705,6 @@
     }
     InitClass(CExitWhip, CEffectBase, oEffects.ET_EXIT_WHIP);
 
-    oEffects.ORIGIN_LOCKED = 0;
-    oEffects.ORIGIN_UNLOCKED = 1;
     function CEffectMotionBase() {
         CEffectBase.call(this);
         this.origin = oEffects.ORIGIN_LOCKED;
