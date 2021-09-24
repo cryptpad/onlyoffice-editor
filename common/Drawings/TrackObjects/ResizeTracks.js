@@ -1157,6 +1157,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
 
             if (this.originalObject.isObjectInSmartArt()) {
+                return;
                 if (this.resizedPosX < 0) {
                     this.resizedExtX = this.originalExtX + this.originalObject.x;
                     this.resizedPosX = 0;
@@ -1584,6 +1585,12 @@ function ResizeTrackGroup(originalObject, cardDirection, parentTrack)
 
         this.resize = function(kd1, kd2, ShiftKey)
         {
+            if (this.originalObject instanceof AscFormat.SmartArt) {
+                if (this.bAspect === false) {
+                    return;
+                }
+                ShiftKey = true;
+            }
             var _cos = this.cos;
             var _sin = this.sin;
 
@@ -2265,8 +2272,8 @@ function ShapeForResizeInGroup(originalObject, parentTrack)
                 var currentXfrmExtY = this.extY;
                 this.originalObject.txXfrm.setOffX( currentXfrmX + (previousTxXfrmX - xfrm.offX));
                 this.originalObject.txXfrm.setOffY( currentXfrmY + (previousTxXfrmY - xfrm.offY));
-                this.originalObject.txXfrm.setExtX( previousTxXfrmExtX - (xfrm.extX - currentXfrmExtX));
-                this.originalObject.txXfrm.setExtY( previousTxXfrmExtY - (xfrm.extY - currentXfrmExtY));
+                this.originalObject.txXfrm.setExtX( previousTxXfrmExtX * (xfrm.extX / currentXfrmExtX));
+                this.originalObject.txXfrm.setExtY( previousTxXfrmExtY * (xfrm.extY / currentXfrmExtY));
             }
 
 
