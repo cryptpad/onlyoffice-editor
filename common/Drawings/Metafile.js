@@ -2055,6 +2055,12 @@
 					nFlag |= (1 << 22);
 					this.Memory.WriteString(sValue);
 				}
+
+				if (oTextFormPr.MultiLine)
+					nFlag |= (1 << 23);
+
+				if (oTextFormPr.AutoFit)
+					nFlag |= (1 << 24);
 			}
 			else if (oForm.IsComboBox() || oForm.IsDropDownList())
 			{
