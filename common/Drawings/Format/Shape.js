@@ -6282,7 +6282,7 @@ CShape.prototype.changePresetGeom = function (sPreset) {
             break;
         }
     }
-    var point = this.getSmartArtSpPrPoint();
+    var point = this.getSmartArtSpPrPoint() || this.getPoint();
     if (point) {
         if (!point.spPr) {
             point.setSpPr(new AscFormat.CSpPr());
