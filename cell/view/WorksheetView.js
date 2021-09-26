@@ -12548,14 +12548,16 @@
 		for (var autoR = 0; autoR < maxARow; ++autoR) {
 			for (var autoC = 0; autoC < maxACol; ++autoC) {
 				for (var r = 0; r < rMax; ++r) {
-					for (var c = 0; c < pasteContent.content[r].length; ++c) {
-						if (undefined !== pasteContent.content[r][c]) {
-							var pasteIntoRow = r + autoR * plRow + arn.r1;
-							var pasteIntoCol = c + autoC * plCol + arn.c1;
+					if (pasteContent.content[r]) {
+						for (var c = 0; c < pasteContent.content[r].length; ++c) {
+							if (undefined !== pasteContent.content[r][c]) {
+								var pasteIntoRow = r + autoR * plRow + arn.r1;
+								var pasteIntoCol = c + autoC * plCol + arn.c1;
 
-							var currentObj = pasteContent.content[r][c];
+								var currentObj = pasteContent.content[r][c];
 
-							putInsertedCellIntoRange(pasteIntoRow, pasteIntoCol, currentObj);
+								putInsertedCellIntoRange(pasteIntoRow, pasteIntoCol, currentObj);
+							}
 						}
 					}
 				}
@@ -15495,286 +15497,292 @@
 	};
 
 	WorksheetView.prototype.openCellEditor = function (editor, enterOptions, selectionRange) {
-			var t = this, col, row, c, fl, mc, bg, isMerged;
+		var t = this, col, row, c, fl, mc, bg, isMerged;
 
-			if (selectionRange) {
-				this.model.selectionRange = selectionRange;
-			}
-			if (this.oOtherRanges) {
-				this.cleanSelection();
-				this.endEditChart();
-				this._drawSelection();
-			}
+		if (selectionRange) {
+			this.model.selectionRange = selectionRange;
+		}
+		if (this.oOtherRanges) {
+			this.cleanSelection();
+			this.endEditChart();
+			this._drawSelection();
+		}
 
-			var cell = this.model.selectionRange.activeCell;
+		var cell = this.model.selectionRange.activeCell;
 
-			function getVisibleRangeObject() {
-				var vr = t.visibleRange.clone(), offsetX = 0, offsetY = 0;
-				if (t.topLeftFrozenCell) {
-					var cFrozen = t.topLeftFrozenCell.getCol0();
-					var rFrozen = t.topLeftFrozenCell.getRow0();
-					if (0 < cFrozen) {
-						if (col >= cFrozen) {
-							offsetX = t._getColLeft(cFrozen) - t._getColLeft(0);
-						} else {
-							vr.c1 = 0;
-							vr.c2 = cFrozen - 1;
-						}
-					}
-					if (0 < rFrozen) {
-						if (row >= rFrozen) {
-							offsetY = t._getRowTop(rFrozen) - t._getRowTop(0);
-						} else {
-							vr.r1 = 0;
-							vr.r2 = rFrozen - 1;
-						}
+		function getVisibleRangeObject() {
+			var vr = t.visibleRange.clone(), offsetX = 0, offsetY = 0;
+			if (t.topLeftFrozenCell) {
+				var cFrozen = t.topLeftFrozenCell.getCol0();
+				var rFrozen = t.topLeftFrozenCell.getRow0();
+				if (0 < cFrozen) {
+					if (col >= cFrozen) {
+						offsetX = t._getColLeft(cFrozen) - t._getColLeft(0);
+					} else {
+						vr.c1 = 0;
+						vr.c2 = cFrozen - 1;
 					}
 				}
-				return {vr: vr, offsetX: offsetX, offsetY: offsetY};
+				if (0 < rFrozen) {
+					if (row >= rFrozen) {
+						offsetY = t._getRowTop(rFrozen) - t._getRowTop(0);
+					} else {
+						vr.r1 = 0;
+						vr.r2 = rFrozen - 1;
+					}
+				}
 			}
+			return {vr: vr, offsetX: offsetX, offsetY: offsetY};
+		}
 
-			col = cell.col;
-			row = cell.row;
+		col = cell.col;
+		row = cell.row;
 
-			// Возможно стоит заменить на ячейку из кеша
-			c = this._getVisibleCell(col, row);
+		// Возможно стоит заменить на ячейку из кеша
+		c = this._getVisibleCell(col, row);
+		fl = this._getCellFlags(c);
+		isMerged = fl.isMerged();
+		if (isMerged) {
+			mc = fl.merged;
+			c = this._getVisibleCell(mc.c1, mc.r1);
 			fl = this._getCellFlags(c);
-			isMerged = fl.isMerged();
-			if (isMerged) {
-				mc = fl.merged;
-				c = this._getVisibleCell(mc.c1, mc.r1);
-				fl = this._getCellFlags(c);
-			}
-			var align = c.getAlign();
-			var indent = align && align.indent;
-			if (AscCommon.align_Distributed === fl.textAlign) {
-				fl.textAlign = AscCommon.align_Center;
-			}
+		}
+		var align = c.getAlign();
+		var indent = align && align.indent;
+		if (AscCommon.align_Distributed === fl.textAlign) {
+			fl.textAlign = AscCommon.align_Center;
+		}
 
-			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
+		this.handlers.trigger("onScroll", this._calcActiveCellOffset());
 
-			bg = c.getFillColor();
+		bg = c.getFillColor();
 
-			var font = c.getFont();
-			// Скрываем окно редактирования комментария
-			this.model.workbook.handlers.trigger("asc_onHideComment");
+		var font = c.getFont();
+		// Скрываем окно редактирования комментария
+		this.model.workbook.handlers.trigger("asc_onHideComment");
 
-			var _fragmentsTmp = c.getValueForEdit2();
-			var fragments = [];
-			for (var i = 0; i < _fragmentsTmp.length; ++i) {
-				fragments.push(_fragmentsTmp[i].clone());
-			}
+		var _fragmentsTmp = c.getValueForEdit2();
+		var fragments = [];
+		for (var i = 0; i < _fragmentsTmp.length; ++i) {
+			fragments.push(_fragmentsTmp[i].clone());
+		}
 
-			var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
-			var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);
+		var arrAutoComplete = this.getCellAutoCompleteValues(cell, kMaxAutoCompleteCellEdit);
+		var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);
 
-			this.model.workbook.handlers.trigger("cleanCutData", true, true);
+		this.model.workbook.handlers.trigger("cleanCutData", true, true);
 
-			editor.open({
-                enterOptions: enterOptions,
-				fragments: fragments,
-				flags: fl,
-				font: font,
-				background: bg || this.settings.cells.defaultState.background,
-				zoom: this.getZoom(),
-				isAddPersentFormat: enterOptions.quickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
-				autoComplete: arrAutoComplete,
-				autoCompleteLC: arrAutoCompleteLC,
-				bbox: c.bbox,
-				cellNumFormat: c.getNumFormatType(),
-				saveValueCallback: function (val, flags, callback) {
-					var saveCellValueCallback = function(success) {
-						if(!success) {
-							if(callback) {
-								return callback(false);
-							} else {
-								return false;
-							}
-						}
-
-						var bRes = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
-						if(callback) {
-							return callback(bRes);
+		editor.open({
+			enterOptions: enterOptions,
+			fragments: fragments,
+			flags: fl,
+			font: font,
+			background: bg || this.settings.cells.defaultState.background,
+			zoom: this.getZoom(),
+			isAddPersentFormat: enterOptions.quickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
+			autoComplete: arrAutoComplete,
+			autoCompleteLC: arrAutoCompleteLC,
+			bbox: c.bbox,
+			cellNumFormat: c.getNumFormatType(),
+			saveValueCallback: function (val, flags, callback) {
+				var saveCellValueCallback = function (success) {
+					if (!success) {
+						if (callback) {
+							return callback(false);
 						} else {
-							return bRes;
+							return false;
+						}
+					}
+
+					var bRes = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
+					if (callback) {
+						return callback(bRes);
+					} else {
+						return bRes;
+					}
+				};
+
+				var text = AscCommonExcel.getFragmentsText(val);
+				var dataValidation = t.model.getDataValidation(col, row);
+				if (dataValidation && dataValidation.allowBlank && 0 === text.length) {
+					dataValidation = null;
+				}
+				if (dataValidation) {
+					var checkCell, setValueError;
+					checkCell =
+						t.model.getCellForValidation(row, col, val, t._isFormula(val) ? text : null, function (_res) {
+							setValueError = !_res;
+						});
+					if (setValueError) {
+						// Error sent from another function
+						return false;
+					}
+
+					//если в качестве условия введена формула, необходимо чтобы данные временно были в ячейке
+					//поскольку формула может ссылаться на данную ячейку
+					var oldValueData;
+					//дополнительно ещё проверим на наличие данной ячейки в стеке формулы
+					//если её там нет - временно подменять значение не нужно
+					var isNeedChange = Asc.EDataValidationType.Custom ===
+						dataValidation.type /*&& dataValidation.checkFormulaStackOnCell(row, col)*/;
+					var temporarySetValue = function (_val) {
+						if (isNeedChange) {
+							c._foreach(function (cell) {
+								if (cell.nCol === col && cell.nRow === row) {
+									if (_val) {
+										//temporary set
+										oldValueData = cell.getValueData();
+										cell._setValueData(_val.value);
+									} else {
+										//revert
+										cell._setValueData(oldValueData.value);
+									}
+								}
+							});
 						}
 					};
 
-					var text = AscCommonExcel.getFragmentsText(val);
-					var dataValidation = t.model.getDataValidation(col, row);
-					if (dataValidation && dataValidation.allowBlank && 0 === text.length) {
-						dataValidation = null;
-					}
-					if (dataValidation) {
-						var checkCell, setValueError;
-						checkCell = t.model.getCellForValidation(row, col, val, t._isFormula(val) ? text : null,
-							function (_res) {
-								setValueError = !_res;
-							});
-						if (setValueError) {
-							// Error sent from another function
-							return false;
-						}
-
-						//если в качестве условия введена формула, необходимо чтобы данные временно были в ячейке
-						//поскольку формула может ссылаться на данную ячейку
-						var oldValueData;
-						//дополнительно ещё проверим на наличие данной ячейки в стеке формулы
-						//если её там нет - временно подменять значение не нужно
-						var isNeedChange = Asc.EDataValidationType.Custom === dataValidation.type /*&& dataValidation.checkFormulaStackOnCell(row, col)*/;
-						var temporarySetValue = function (_val) {
-							if (isNeedChange) {
-								c._foreach(function(cell){
-									if (cell.nCol === col && cell.nRow === row) {
-										if (_val) {
-											//temporary set
-											oldValueData = cell.getValueData();
-											cell._setValueData(_val.value);
-										} else {
-											//revert
-											cell._setValueData(oldValueData.value);
-										}
-									}
-								});
-							}
-						};
-
-						temporarySetValue(checkCell.getValueData());
-						if (!dataValidation.checkValue(checkCell, t.model)) {
-							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
-							editor.setFocus(true);
-							temporarySetValue();
-							return false;
-						} else {
-							temporarySetValue();
-						}
-					}
-
-					//***array-formula***
-					var ref = null;
-					if(flags.ctrlKey && flags.shiftKey) {
-						//необходимо проверить на выделение массива частично
-						var activeRange = t.getSelectedRange();
-						var doNotApply = false;
-						var formulaRef;
-						if(!activeRange.bbox.isOneCell()) {
-							if(t.model.autoFilters.isIntersectionTable(activeRange.bbox)) {
-								t.handlers.trigger("onErrorEvent", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
-								return false;
-							} else if(t.model.inPivotTable(activeRange.bbox)) {
-								t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-								return false;
-							} else {
-								activeRange._foreachNoEmpty(function(cell) {
-									ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
-
-									if(ref && !activeRange.bbox.containsRange(ref)) {
-										doNotApply = true;
-										return false;
-									}
-								});
-							}
-						} else {
-							activeRange._foreachNoEmpty(function(cell) {
-								formulaRef = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
-							});
-						}
-						if(doNotApply) {
-							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
-							return false;
-						} else {
-							var lockedRange = formulaRef ? formulaRef : activeRange.bbox;
-							t._isLockedCells(lockedRange, /*subType*/null, saveCellValueCallback);
-						}
+					temporarySetValue(checkCell.getValueData());
+					if (!dataValidation.checkValue(checkCell, t.model)) {
+						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate,
+							c_oAscError.Level.NoCritical, dataValidation);
+						editor.setFocus(true);
+						temporarySetValue();
+						return false;
 					} else {
-						//проверяем activeCell на наличие форулы массива
-						c._foreachNoEmpty(function(cell) {
-							ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
-						});
-						if(ref && !ref.isOneCell()) {
-							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
-							return false;
-						} else {
-							return saveCellValueCallback(true);
-						}
+						temporarySetValue();
 					}
-				},
-				getSides: function () {
-					var _c1, _r1, _c2, _r2, ri = 0, bi = 0;
-					if (isMerged) {
-						_c1 = mc.c1;
-						_c2 = mc.c2;
-						_r1 = mc.r1;
-						_r2 = mc.r2;
-					} else {
-						_c1 = _c2 = col;
-						_r1 = _r2 = row;
-					}
-					var vro = getVisibleRangeObject();
-					var i, w, h, arrLeftS = [], arrRightS = [], arrBottomS = [];
-					var offsX = t._getColLeft(vro.vr.c1) - t._getColLeft(0) - vro.offsetX;
-					var offsY = t._getRowTop(vro.vr.r1) - t._getRowTop(0) - vro.offsetY;
-					var cellX = t._getColLeft(_c1) - offsX, cellY = t._getRowTop(_r1) - offsY;
-					var _left = cellX;
-					for (i = _c1; i >= vro.vr.c1; --i) {
-						w = t._getColumnWidth(i);
-						if (0 < w) {
-							arrLeftS.push(_left);
-						}
-						_left -= w;
-					}
-
-					if (_c2 > vro.vr.c2) {
-						_c2 = vro.vr.c2;
-					}
-					_left = cellX;
-					for (i = _c1; i <= vro.vr.c2; ++i) {
-						w = t._getColumnWidth(i);
-						_left += w;
-						if (0 < w) {
-							arrRightS.push(_left);
-						}
-						if (_c2 === i) {
-							ri = arrRightS.length - 1;
-						}
-					}
-					w = t.drawingCtx.getWidth();
-					if (arrRightS[arrRightS.length - 1] > w) {
-						arrRightS[arrRightS.length - 1] = w;
-					}
-
-					if (_r2 > vro.vr.r2) {
-						_r2 = vro.vr.r2;
-					}
-					var _top = cellY;
-					for (i = _r1; i <= vro.vr.r2; ++i) {
-						h = t._getRowHeight(i);
-						_top += h;
-						if (0 < h) {
-							arrBottomS.push(_top);
-						}
-						if (_r2 === i) {
-							bi = arrBottomS.length - 1;
-						}
-					}
-					h = t.drawingCtx.getHeight();
-					if (arrBottomS[arrBottomS.length - 1] > h) {
-						arrBottomS[arrBottomS.length - 1] = h;
-					}
-					if (indent) {
-						if (AscCommon.align_Right === align.hor) {
-							arrRightS[ri] -= indent * 3 * t.defaultSpaceWidth + 1;
-						} else if (AscCommon.align_Left === align.hor) {
-							cellX += indent * 3 * t.defaultSpaceWidth;
-						}
-					}
-					return {l: arrLeftS, r: arrRightS, b: arrBottomS, cellX: cellX, cellY: cellY, ri: ri, bi: bi};
-				},
-				checkVisible: function () {
-					return null !== t.getCellVisibleRange(c.bbox.c1, c.bbox.r1);
 				}
-			});
-		};
+
+				//***array-formula***
+				var ref = null;
+				if (flags.ctrlKey && flags.shiftKey) {
+					//необходимо проверить на выделение массива частично
+					var activeRange = t.getSelectedRange();
+					var doNotApply = false;
+					var formulaRef;
+					if (!activeRange.bbox.isOneCell()) {
+						if (t.model.autoFilters.isIntersectionTable(activeRange.bbox)) {
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.MultiCellsInTablesFormulaArray,
+								c_oAscError.Level.NoCritical);
+							return false;
+						} else if (t.model.inPivotTable(activeRange.bbox)) {
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockedCellPivot,
+								c_oAscError.Level.NoCritical);
+							return false;
+						} else {
+							activeRange._foreachNoEmpty(function (cell) {
+								ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+
+								if (ref && !activeRange.bbox.containsRange(ref)) {
+									doNotApply = true;
+									return false;
+								}
+							});
+						}
+					} else {
+						activeRange._foreachNoEmpty(function (cell) {
+							formulaRef = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+						});
+					}
+					if (doNotApply) {
+						t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray,
+							c_oAscError.Level.NoCritical);
+						return false;
+					} else {
+						var lockedRange = formulaRef ? formulaRef : activeRange.bbox;
+						t._isLockedCells(lockedRange, /*subType*/null, saveCellValueCallback);
+					}
+				} else {
+					//проверяем activeCell на наличие форулы массива
+					c._foreachNoEmpty(function (cell) {
+						ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+					});
+					if (ref && !ref.isOneCell()) {
+						t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray,
+							c_oAscError.Level.NoCritical);
+						return false;
+					} else {
+						return saveCellValueCallback(true);
+					}
+				}
+			},
+			getSides: function () {
+				var _c1, _r1, _c2, _r2, ri = 0, bi = 0;
+				if (isMerged) {
+					_c1 = mc.c1;
+					_c2 = mc.c2;
+					_r1 = mc.r1;
+					_r2 = mc.r2;
+				} else {
+					_c1 = _c2 = col;
+					_r1 = _r2 = row;
+				}
+				var vro = getVisibleRangeObject();
+				var i, w, h, arrLeftS = [], arrRightS = [], arrBottomS = [];
+				var offsX = t._getColLeft(vro.vr.c1) - t._getColLeft(0) - vro.offsetX;
+				var offsY = t._getRowTop(vro.vr.r1) - t._getRowTop(0) - vro.offsetY;
+				var cellX = t._getColLeft(_c1) - offsX, cellY = t._getRowTop(_r1) - offsY;
+				var _left = cellX;
+				for (i = _c1; i >= vro.vr.c1; --i) {
+					w = t._getColumnWidth(i);
+					if (0 < w) {
+						arrLeftS.push(_left);
+					}
+					_left -= w;
+				}
+
+				if (_c2 > vro.vr.c2) {
+					_c2 = vro.vr.c2;
+				}
+				_left = cellX;
+				for (i = _c1; i <= vro.vr.c2; ++i) {
+					w = t._getColumnWidth(i);
+					_left += w;
+					if (0 < w) {
+						arrRightS.push(_left);
+					}
+					if (_c2 === i) {
+						ri = arrRightS.length - 1;
+					}
+				}
+				w = t.drawingCtx.getWidth();
+				if (arrRightS[arrRightS.length - 1] > w) {
+					arrRightS[arrRightS.length - 1] = w;
+				}
+
+				if (_r2 > vro.vr.r2) {
+					_r2 = vro.vr.r2;
+				}
+				var _top = cellY;
+				for (i = _r1; i <= vro.vr.r2; ++i) {
+					h = t._getRowHeight(i);
+					_top += h;
+					if (0 < h) {
+						arrBottomS.push(_top);
+					}
+					if (_r2 === i) {
+						bi = arrBottomS.length - 1;
+					}
+				}
+				h = t.drawingCtx.getHeight();
+				if (arrBottomS[arrBottomS.length - 1] > h) {
+					arrBottomS[arrBottomS.length - 1] = h;
+				}
+				if (indent) {
+					if (AscCommon.align_Right === align.hor) {
+						arrRightS[ri] -= indent * 3 * t.defaultSpaceWidth + 1;
+					} else if (AscCommon.align_Left === align.hor) {
+						cellX += indent * 3 * t.defaultSpaceWidth;
+					}
+				}
+				return {l: arrLeftS, r: arrRightS, b: arrBottomS, cellX: cellX, cellY: cellY, ri: ri, bi: bi};
+			},
+			checkVisible: function () {
+				return null !== t.getCellVisibleRange(c.bbox.c1, c.bbox.r1);
+			}
+		});
+	};
 
     WorksheetView.prototype.updateRanges = function (ranges, skipHeight) {
         if (0 < ranges.length) {

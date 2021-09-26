@@ -2285,8 +2285,38 @@
 		if (this.skipHelpSelector) {
 			return;
 		}
+
+		var _getInnerTable = function (_sFullTable, tableName) {
+			var _bracketCount = 0;
+			var res = null;
+			for (var j = tableName.length; j < _sFullTable.length; j++) {
+				if (_sFullTable[j] === "[") {
+					_bracketCount++;
+					if (!res) {
+						res = "";
+					}
+				} else if (_sFullTable[j] === "]") {
+					_bracketCount--;
+					res = null;
+					if (_bracketCount <= 0) {
+						break;
+					}
+				} else {
+					if (_bracketCount > 0) {
+						if (!res) {
+							res = "";
+						}
+						res += _sFullTable[j];
+					} else {
+						res = null;
+					}
+				}
+			}
+			return res;
+		};
+
 		// ToDo для ускорения можно завести объект, куда класть результаты поиска по формулам и второй раз не искать.
-		var i, arrResult = [], defNamesList, defName, defNameStr;
+		var i, arrResult = [], defNamesList, defName, defNameStr, _lastFNameLength, _type;
 		if (fName) {
 			fName = fName.toUpperCase();
 			for (i = 0; i < this.formulasList.length; ++i) {
@@ -2304,13 +2334,61 @@
 				}
 
 				if (0 === defNameStr.toLowerCase().indexOf(fName)) {
-					var _type = c_oAscPopUpSelectorType.Range;
+					_type = c_oAscPopUpSelectorType.Range;
 					if (defName.type === Asc.c_oAscDefNameType.slicer) {
 						_type = c_oAscPopUpSelectorType.Slicer;
 					} else if (defName.type === Asc.c_oAscDefNameType.table) {
 						_type = c_oAscPopUpSelectorType.Table;
 					}
 					arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, _type));
+				} else if (defName.type === Asc.c_oAscDefNameType.table && 0 === fName.indexOf(defNameStr.toLowerCase())) {
+					if (-1 !== fName.indexOf("[")) {
+						var tableNameParse = fName.split("[");
+						if (tableNameParse[0] && 0 === defNameStr.toLowerCase().indexOf(tableNameParse[0])) {
+							//ищем совпадения по названию столбцов
+							var table = this.model.getTableByName(defNameStr);
+							if (table) {
+								var sTableInner = _getInnerTable(fName, defNameStr.toLowerCase());
+								if (null !== sTableInner) {
+									var _str, j;
+									for (j = 0; j < table.TableColumns.length; j++) {
+										_str = table.TableColumns[j].Name;
+										_type = c_oAscPopUpSelectorType.TableColumnName;
+										if (sTableInner === "" || 0 === _str.toLowerCase().indexOf(sTableInner)) {
+											arrResult.push(new AscCommonExcel.asc_CCompleteMenu(_str, _type));
+										}
+									}
+
+									if (AscCommon.cStrucTableLocalColumns) {
+										for (j in AscCommon.cStrucTableLocalColumns) {
+											_str = AscCommon.cStrucTableLocalColumns[j];
+											if (j === "h") {
+												_str = "#" + _str;
+												_type = c_oAscPopUpSelectorType.TableHeaders;
+											} else if (j === "d") {
+												_str = "#" + _str;
+												_type = c_oAscPopUpSelectorType.TableData;
+											} else if (j === "a") {
+												_str = "#" + _str;
+												_type = c_oAscPopUpSelectorType.TableAll;
+											} else if (j === "tr") {
+												_str = "@" + " - " + _str;
+												_type = c_oAscPopUpSelectorType.TableThisRow;
+											} else if (j === "t") {
+												_str = "#" + _str;
+												_type = c_oAscPopUpSelectorType.TableTotals;
+											}
+											if (sTableInner === "" || (0 === _str.toLocaleLowerCase().indexOf(sTableInner) && _type !== c_oAscPopUpSelectorType.TableThisRow)) {
+												arrResult.push(new AscCommonExcel.asc_CCompleteMenu(_str, _type));
+											}
+										}
+									}
+									fPos += defNameStr.length + (fName.length - defNameStr.length - sTableInner.length);
+									_lastFNameLength = sTableInner.length;
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -2318,7 +2396,7 @@
 			this.handlers.trigger('asc_onFormulaCompleteMenu', arrResult, this.cellEditor.calculateOffset(fPos));
 
 			this.lastFPos = fPos;
-			this.lastFNameLength = fName.length;
+			this.lastFNameLength = _lastFNameLength !== undefined ? _lastFNameLength : fName.length;
 		} else {
 			this.handlers.trigger('asc_onFormulaCompleteMenu', null);
 
