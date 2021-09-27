@@ -40,7 +40,7 @@
 {
 	var g_cCharDelimiter      = String.fromCharCode(5);
 	var g_cGeneralFormat      = 'General';
-	var FONT_THUMBNAIL_HEIGHT = (7 * 96.0 / 25.4) >> 0;
+	var FONT_THUMBNAIL_HEIGHT = 28;
 	var c_oAscMaxColumnWidth  = 255;
 	var c_oAscMaxRowHeight    = 409.5;
 	var c_nMaxConversionTime  = 900000;//depends on config
@@ -153,6 +153,7 @@
 			AccessDeny            : -23,
 			LoadingScriptError    : -24,
 			EditingError          :	-25,
+			LoadingFontError      : -26,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,
@@ -294,7 +295,12 @@
 			ErrorTop10Between: 1010,
 
 			SingleColumnOrRowError: 1020,
-			LocationOrDataRangeError: 1021
+			LocationOrDataRangeError: 1021,
+
+			ChangeOnProtectedSheet: 1030,
+			PasswordIsNotCorrect: 1031,
+			DeleteColumnContainsLockedCell: 1032,
+			DeleteRowContainsLockedCell: 1033
 		}
 	};
 
@@ -354,7 +360,8 @@
 
 	var c_oAscAsyncActionType = {
 		Information      : 0,
-		BlockInteraction : 1
+		BlockInteraction : 1,
+		Empty            : 2
 	};
 
 	var DownloadType = {
@@ -921,7 +928,8 @@
 		Hyperlink    : 1,
 		LockedObject : 2,
 		Footnote     : 3,
-		Form         : 4
+		Form         : 4,
+		Review       : 5
 	};
 
 	// selection type
@@ -2196,6 +2204,13 @@
 		Never   : 3,
 	};
 
+	var c_oAscDisplayModeInReview = {
+		Edit     : 0,
+		Final    : 1,
+		Original : 2,
+		Simple   : 3
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2253,6 +2268,21 @@
 	prot['POTM']                 = prot.POTM;
 	prot['FODP']                 = prot.FODP;
 	prot['OTP']                  = prot.OTP;
+
+	prot['JPG']                  = prot.JPG;
+	prot['TIFF']                 = prot.TIFF;
+	prot['TGA']                  = prot.TGA;
+	prot['GIF']                  = prot.GIF;
+	prot['PNG']                  = prot.PNG;
+	prot['EMF']                  = prot.EMF;
+	prot['WMF']                  = prot.WMF;
+	prot['BMP']                  = prot.BMP;
+	prot['CR2']                  = prot.CR2;
+	prot['PCX']                  = prot.PCX;
+	prot['RAS']                  = prot.RAS;
+	prot['PSD']                  = prot.PSD;
+	prot['ICO']                  = prot.ICO;
+
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;
 	prot['Level']                            = prot.Level;
@@ -2288,6 +2318,7 @@
 	prot['AccessDeny']                       = prot.AccessDeny;
 	prot['LoadingScriptError']               = prot.LoadingScriptError;
 	prot['EditingError']                     = prot.EditingError;
+	prot['LoadingFontError']                 = prot.LoadingFontError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
 	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;
@@ -2388,6 +2419,10 @@
 	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
 	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
 	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
+	prot['ChangeOnProtectedSheet']           = prot.ChangeOnProtectedSheet;
+	prot['PasswordIsNotCorrect']             = prot.PasswordIsNotCorrect;
+	prot['DeleteColumnContainsLockedCell']   = prot.DeleteColumnContainsLockedCell;
+	prot['DeleteRowContainsLockedCell']      = prot.DeleteRowContainsLockedCell;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
@@ -2805,6 +2840,7 @@
 	prot['LockedObject'] = prot.LockedObject;
 	prot['Footnote']     = prot.Footnote;
 	prot['Form']         = prot.Form;
+	prot['Review']       = prot.Review;
 
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
@@ -3312,5 +3348,11 @@
 	prot['Bigger']  = prot.Bigger;
 	prot['Smaller'] = prot.Smaller;
 	prot['Never']   = prot.Never;
+
+	prot = window['Asc']['c_oAscDisplayModeInReview'] = window['Asc'].c_oAscDisplayModeInReview = c_oAscDisplayModeInReview;
+	prot['Edit']     = prot.Edit;
+	prot['Final']    = prot.Final;
+	prot['Original'] = prot.Original;
+	prot['Simple']   = prot.Simple;
 
 })(window);

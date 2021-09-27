@@ -2647,11 +2647,12 @@ AscDFH.changesFactory[AscDFH.historyitem_Presentation_AddSlide] = AscDFH.CChange
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = AscDFH.CChangesDrawingsObjectNoId;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetFirstSlideNum] = AscDFH.CChangesDrawingsLong;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetShowSpecialPlsOnTitleSld] = AscDFH.CChangesDrawingsBool;
+AscDFH.changesFactory[AscDFH.historyitem_Presentation_RemoveSlideMaster]           = AscDFH.CChangesDrawingsContent;
 
 
-AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetName] = AscDFH.CChangesDrawingsString;
+AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetName]       = AscDFH.CChangesDrawingsString;
 AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetStartIndex] = AscDFH.CChangesDrawingsLong;
-AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetGuid] = AscDFH.CChangesDrawingsString;
+AscDFH.changesFactory[AscDFH.historyitem_PresentationSectionSetGuid]       = AscDFH.CChangesDrawingsString;
 
 AscDFH.changesFactory[AscDFH.historyitem_SldSzCX] = AscDFH.CChangesDrawingsLong;
 AscDFH.changesFactory[AscDFH.historyitem_SldSzCY] = AscDFH.CChangesDrawingsLong;
@@ -2702,6 +2703,9 @@ AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_RemoveSlide] = func
     return oClass.Slides;
 };
 AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_AddSlideMaster] = function (oClass) {
+    return oClass.slideMasters;
+};
+AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_RemoveSlideMaster] = function (oClass) {
     return oClass.slideMasters;
 };
 
@@ -2904,7 +2908,9 @@ function CPresentation(DrawingDocument) {
         AutomaticBulletedLists : true,
         AutomaticNumberedLists : true,
         FrenchPunctuation      : true,
-		FirstLetterOfSentences : true
+		FirstLetterOfSentences : true,
+        FirstLetterOfCells     : true,
+        Hyperlinks             : true
     };
 }
 
@@ -2913,6 +2919,22 @@ CPresentation.prototype.constructor = CPresentation;
 
 CPresentation.prototype.GetApi = function() {
     return this.Api;
+};
+CPresentation.prototype.GetHistory = function()
+{
+    return this.History;
+};
+CPresentation.prototype.IsDocumentEditor = function()
+{
+	return false;
+};
+CPresentation.prototype.IsPresentationEditor = function()
+{
+	return true;
+};
+CPresentation.prototype.IsSpreadSheetEditor = function()
+{
+	return false;
 };
 CPresentation.prototype.GetWidthMM = function () {
     return this.GetWidthEMU() / g_dKoef_mm_to_emu;
@@ -4078,6 +4100,11 @@ CPresentation.prototype.Get_CollaborativeEditing = function () {
 CPresentation.prototype.addSlideMaster = function (pos, master) {
     History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSlideMaster, pos, [master], true));
     this.slideMasters.splice(pos, 0, master);
+};
+
+CPresentation.prototype.removeSlideMaster = function (pos, count) {
+    History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_RemoveSlideMaster, pos, this.slideMasters.slice(pos, pos + count), false));
+    this.slideMasters.splice(pos, count);
 };
 
 CPresentation.prototype.Get_Id = function () {
@@ -10606,6 +10633,23 @@ CPresentation.prototype.AddShapeOnCurrentPage = function (sPreset) {
     this.Document_UpdateSelectionState();
 };
 
+
+CPresentation.prototype.CanEditGeometry = function () {
+    if(this.FocusOnNotes) {
+        return false;
+    }
+    var oController = this.GetCurrentController();
+    return oController.canEditGeometry();
+};
+
+CPresentation.prototype.StartEditGeometry = function() {
+    if(this.FocusOnNotes) {
+        return;
+    }
+    var oController = this.GetCurrentController();
+    return oController.startEditGeometry();
+};
+
 CPresentation.prototype.Can_CopyCut = function () {
     var oController = this.GetCurrentController();
     if (!oController) {
@@ -11040,6 +11084,38 @@ CPresentation.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrec
 CPresentation.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
 	return this.AutoCorrectSettings.FirstLetterOfSentences;
+};
+/**
+ * Выставляем настройку атозамены для гиперссылок
+ * @param {boolean} isCorrect
+ */
+CPresentation.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
+{
+	this.AutoCorrectSettings.Hyperlinks = isCorrect;
+};
+/**
+ * Запрашиваем настройку атозамены для гиперссылок
+ * @return {boolean}
+ */
+CPresentation.prototype.IsAutoCorrectHyperlinks = function()
+{
+	return this.AutoCorrectSettings.Hyperlinks;
+};
+/**
+ * Выставляем настройку атозамены для первого символа в ячейке таблицы
+ * @param {boolean} isCorrect
+ */
+CPresentation.prototype.SetAutoCorrectFirstLetterOfCells = function(isCorrect)
+{
+    this.AutoCorrectSettings.FirstLetterOfCells = isCorrect;
+}
+/**
+ * Запрашиваем настройку атозамены для первого символа ячейки таблицы
+ * @return {boolean}
+ */
+CPresentation.prototype.IsAutoCorrectFirstLetterOfCells = function()
+{
+    return this.AutoCorrectSettings.FirstLetterOfCells;
 };
 CPresentation.prototype.StopAnimation = function()
 {

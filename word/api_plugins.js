@@ -320,14 +320,38 @@
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias GetSelectedText
+     * @param {object} prop
+     * @return {string} selected text
+     * @example
+     * window.Asc.plugin.executeMethod("GetSelectedText", [{NewLine:true, NewLineParagraph:true, Numbering:true}])
      */
-    window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function()
+    window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function(prop)
     {
         var oLogicDocument = this.private_GetLogicDocument();
         if (!oLogicDocument)
             return;
 
-        return oLogicDocument.GetSelectedText(false, {NewLine : true, NewLineParagraph : true});
+        var properties;
+        if (typeof prop === "object")
+        {
+            properties =
+            {
+                NewLine : (prop.hasOwnProperty("NewLine")) ? prop.NewLine : true,
+                NewLineParagraph : (prop.hasOwnProperty("NewLineParagraph")) ? prop.NewLineParagraph : true,
+                Numbering : (prop.hasOwnProperty("Numbering")) ? prop.Numbering : true
+            }
+        }
+        else
+        {
+            properties = 
+            {
+                NewLine : true,
+                NewLineParagraph : true,
+                Numbering : true
+            }
+        }
+
+        return oLogicDocument.GetSelectedText(false, properties);
     };
     /**
      * Remove selection in document
@@ -517,13 +541,14 @@
 	window["asc_docs_api"].prototype["pluginMethod_MoveToComment"] = function(sId)
 	{
 		this.asc_selectComment(sId);
+		this.asc_showComment(sId);
 	};
 	/**
 	 * Set the display mode for track changes
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @alias SetDisplayModeInReview
-	 * @param {"final" | "original" | "edit"} [sMode="edit"]
+	 * @param {"final" | "original" | "edit" | "simple"} [sMode="edit"]
 	 */
 	window["asc_docs_api"].prototype["pluginMethod_SetDisplayModeInReview"] = function(sMode)
 	{
@@ -531,21 +556,14 @@
 		if (!oLogicDocument)
 			return;
 
-		var isViewModeInReview = oLogicDocument.IsViewModeInReview();
-		if (!sMode || "edit" === sMode)
-		{
-			if (isViewModeInReview)
-			{
-				oLogicDocument.EndViewModeInReview();
-				this.sendEvent("asc_onEndViewModeInReview");
-			}
-		}
-		else if ("final" === sMode || "original" === sMode)
-		{
-			var isFinal = "final" === sMode;
-			oLogicDocument.BeginViewModeInReview(isFinal);
-			this.sendEvent("asc_onBeginViewModeInReview", isFinal);
-		}
+		if ("final" === sMode)
+			oLogicDocument.SetDisplayModeInReview(Asc.c_oAscDisplayModeInReview.Final, true);
+		else if ("original" === sMode)
+			oLogicDocument.SetDisplayModeInReview(Asc.c_oAscDisplayModeInReview.Original, true);
+		else if ("simple" === sMode)
+			oLogicDocument.SetDisplayModeInReview(Asc.c_oAscDisplayModeInReview.Simple, true);
+		else
+			oLogicDocument.SetDisplayModeInReview(Asc.c_oAscDisplayModeInReview.Edit, true);
 	};
 
 })(window);

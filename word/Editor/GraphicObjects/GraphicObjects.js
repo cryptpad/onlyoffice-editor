@@ -124,6 +124,8 @@ CGraphicObjects.prototype =
     getConnectorsForCheck: DrawingObjectsController.prototype.getConnectorsForCheck,
     getConnectorsForCheck2: DrawingObjectsController.prototype.getConnectorsForCheck2,
     checkDrawingHyperlinkAndMacro: DrawingObjectsController.prototype.checkDrawingHyperlinkAndMacro,
+    canEditGeometry: DrawingObjectsController.prototype.canEditGeometry,
+    startEditGeometry: DrawingObjectsController.prototype.startEditGeometry,
 
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects)
     {
@@ -243,9 +245,30 @@ CGraphicObjects.prototype =
                 var oApi = Asc.editor || editor;
                 var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
 
-                var oShape = null;
-                if (isDrawHandles && (oShape = AscCommon.g_oTableId.Get_ById(ret.objectId)) && oShape.isForm() && oShape.getInnerForm() && oShape.getInnerForm().IsFormLocked())
-                	isDrawHandles = false;
+                var oShape     = null;
+                var oInnerForm = null;
+                if ((oShape = AscCommon.g_oTableId.Get_ById(ret.objectId)) && oShape.isForm() && (oInnerForm = oShape.getInnerForm()))
+				{
+					if (isDrawHandles && oInnerForm.IsFormLocked())
+						isDrawHandles = false;
+
+					// Данная ситуация обрабатывается отдельно, т.к. картиночная форма находится внутри другой
+					// автофигуры и мы специально не даем заходить во внутреннюю, поэтому дополнительно здесь
+					// обрабатываем попадание в ContentControl
+					var oPara;
+					if (oInnerForm.IsPictureForm() && oInnerForm.IsFixedForm() && (oPara = oInnerForm.GetParagraph()))
+					{
+						var X = x, Y = y;
+						var oTransform = oPara.Get_ParentTextInvertTransform();
+						if (oTransform)
+						{
+							X = oTransform.TransformPointX(x, y);
+							Y = oTransform.TransformPointY(x, y);
+						}
+
+						oInnerForm.DrawContentControlsTrack(true, X, Y, 0);
+					}
+				}
 
                 if(isDrawHandles === false)
                 {
@@ -2527,7 +2550,7 @@ CGraphicObjects.prototype =
 
     needUpdateOverlay: function()
     {
-        return this.arrTrackObjects.length > 0 || this.curState.InlinePos;
+        return (this.arrTrackObjects.length > 0) || this.curState.InlinePos;
     },
 
     changeCurrentState: function(state)
@@ -2536,7 +2559,7 @@ CGraphicObjects.prototype =
     },
 
     handleDblClickEmptyShape: function(oShape){
-        if(!oShape.getDocContent() && !AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+        if(!oShape.getDocContent() && oShape.canEditText()){
 
             if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
             {
@@ -2586,6 +2609,8 @@ CGraphicObjects.prototype =
 
     canUnGroup: DrawingObjectsController.prototype.canUnGroup,
     getBoundsForGroup: DrawingObjectsController.prototype.getBoundsForGroup,
+
+
 
 
     getArrayForGrouping: function()
@@ -2777,7 +2802,6 @@ CGraphicObjects.prototype =
         {
             this.resetSelection();
             var i, j, nearest_pos, cur_group, sp_tree, sp, parent_paragraph, page_num;
-            var a_objects = [];
             var arrCenterPos = [], aPos;
             for(i = 0; i < ungroup_arr.length; ++i)
             {
@@ -2807,10 +2831,12 @@ CGraphicObjects.prototype =
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
                 aPos = arrCenterPos[i];
+                var aDrawings = [];
+                var drawing;
                 for(j = 0; j < sp_tree.length; ++j)
                 {
                     sp = sp_tree[j];
-                    var drawing = new ParaDrawing(0, 0, sp_tree[j], this.drawingDocument, null, null);
+                    drawing = new ParaDrawing(0, 0, sp_tree[j], this.drawingDocument, null, null);
 
                     var xc, yc, hc = sp.extX/2, vc = sp.extY/2;
                     if(aPos && aPos[j]){
@@ -2862,9 +2888,13 @@ CGraphicObjects.prototype =
                         }
                     }));
                     drawing.Set_XYForAdd(fPosX, fPosY, nearest_pos, page_num);
-                    a_objects.push({drawing: drawing, par: parent_paragraph, posX: fPosX, posY: fPosY});
+                    aDrawings.push(drawing);
+                }
+                for(j = 0; j < aDrawings.length; ++j)
+                {
+                    drawing = aDrawings[j];
                     drawing.Add_ToDocument2(parent_paragraph);
-                    this.selectObject(sp, page_num);
+                    this.selectObject(drawing.GraphicObj, page_num);
                 }
             }
             this.document.Recalculate();

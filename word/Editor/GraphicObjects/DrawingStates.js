@@ -570,8 +570,11 @@ MoveInlineObject.prototype =
 					oDrawing.setParent(arrParaDrawings[0]);
 					arrParaDrawings[0].Set_GraphicObject(oDrawing);
 
+					if (oDstPictureCC.IsPictureForm())
+						oDstPictureCC.UpdatePictureFormLayout();
+
 					var sKey = oDstPictureCC.GetFormKey();
-					if (arrParaDrawings[0].IsPicture() && sKey &&  oDstPictureCC.GetLogicDocument())
+					if (arrParaDrawings[0].IsPicture() && sKey && oDstPictureCC.GetLogicDocument())
 					{
 						oDstPictureCC.GetLogicDocument().OnChangeForm(sKey, oDstPictureCC, arrParaDrawings[0].GraphicObj.getImageUrl());
 					}
@@ -1731,7 +1734,6 @@ TextAddState.prototype =
 };
 
 
-
 function StartChangeWrapContourState(drawingObjects, majorObject)
 {
     this.drawingObjects = drawingObjects;
@@ -2649,6 +2651,7 @@ window['AscFormat'].NullState = NullState;
 window['AscFormat'].PreChangeAdjState = PreChangeAdjState;
 window['AscFormat'].PreMoveInlineObject = PreMoveInlineObject;
 window['AscFormat'].PreRotateState = PreRotateState;
+window['AscFormat'].RotateState = RotateState;
 window['AscFormat'].PreResizeState = PreResizeState;
 window['AscFormat'].PreMoveState = PreMoveState;
 window['AscFormat'].MoveState = MoveState;

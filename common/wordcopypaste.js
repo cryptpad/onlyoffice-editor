@@ -2445,7 +2445,7 @@ PasteProcessor.prototype =
 
 			var nPrevRow      = -1;
 			var nElementIndex = -1;
-			for (var nIndex = 0, k = 0, nCount = arrSelectedCells.length; nIndex < nCount; ++nIndex)
+			for (var nIndex = 0, nCount = arrSelectedCells.length; nIndex < nCount; ++nIndex)
 			{
 				var oPos  = arrSelectedCells[nIndex];
 				var oRow  = oTable.GetRow(oPos.Row);
@@ -2458,7 +2458,9 @@ PasteProcessor.prototype =
 					continue;
 
 				var oCellContent = oCell.GetContent();
-				var oPara        = oCellContent.GetElement(0);
+				oCellContent.ClearContent(true);
+
+				var oPara = oCellContent.GetElement(0);
 				if (!oPara || !oPara.IsParagraph())
 					continue;
 
@@ -3200,7 +3202,7 @@ PasteProcessor.prototype =
 
 	_checkNumberingText: function(paragraph, oNumInfo, oNumPr)
 	{
-		if (oNumPr)
+		if (oNumPr && oNumInfo)
 		{
 			var oNum = this.oLogicDocument.GetNumbering().GetNum(oNumPr.NumId);
 			if (oNum)
@@ -8184,6 +8186,9 @@ PasteProcessor.prototype =
 				var computedStyle = oThis._getComputedStyle(node.parentNode);
 				var tempWhiteSpacing = oThis._getStyle(node.parentNode, computedStyle, "white-space");
 				whiteSpacing = "pre" === tempWhiteSpacing || "pre-wrap" === tempWhiteSpacing;
+				if (!whiteSpacing && value === " " && node.parentNode.nodeName && "span" === node.parentNode.nodeName.toLowerCase()) {
+					whiteSpacing = true;
+				}
 			}
 
 			//Вначале и конце вырезаем \r|\t|\n, в середине текста заменяем их на пробелы

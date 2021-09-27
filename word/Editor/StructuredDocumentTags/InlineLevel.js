@@ -2036,11 +2036,24 @@ CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 	{
 		var bSelectedOnlyThis = false;
 
+		if ((AscCommon.changestype_Remove === CheckType
+			|| AscCommon.changestype_Delete === CheckType)
+			&& oLogicDocument
+			&& oLogicDocument.IsCheckContentControlsLock()
+			&& ((this.IsPlaceHolder() && oLogicDocument.IsFillingFormMode())
+				|| (!this.CanBeEdited() && (oLogicDocument.IsFillingFormMode() || this.IsFixedForm()))))
+		{
+			return AscCommon.CollaborativeEditing.Add_CheckLock(true);
+		}
+
+		// Если действие происходит на удалении (del/backspace), тогда мы должны проверить, что это не PlaceHolder
+		// и что элемент может быть отредактирован и что выделен только данный элемент. (для тех случаев, когда
+		// элемент можно привести к PlaceHolder через удаление)
 		// Если это происходит на добавлении текста, тогда проверяем, что выделен только данный элемент
-		if (AscCommon.changestype_Remove !== CheckType && AscCommon.changestype_Delete !== CheckType)
+		if ((!this.IsPlaceHolder() && this.CanBeEdited()) || (AscCommon.changestype_Remove !== CheckType && AscCommon.changestype_Delete !== CheckType))
 		{
 			var oInfo = this.Paragraph.LogicDocument.GetSelectedElementsInfo();
-			bSelectedOnlyThis = oInfo.GetInlineLevelSdt() === this ? true : false;
+			bSelectedOnlyThis = (oInfo.GetInlineLevelSdt() === this);
 		}
 
 		if (c_oAscSdtLockType.SdtContentLocked === nContentControlLock
@@ -2941,6 +2954,16 @@ CInlineLevelSdt.prototype.UpdateFixedFormCombWidthByFormSize = function(oTextFor
 		return;
 
 	oTextFormPr.SetWidth(AscCommon.MMToTwips(nW / oTextFormPr.GetMaxCharacters()));
+};
+CInlineLevelSdt.prototype.IsFormExceedsBounds = function()
+{
+	var oParagraph  = this.GetParagraph();
+	var oFormBounds = this.GetFixedFormBounds();
+	if (oFormBounds.W <= 0.001 || oFormBounds.H <= 0.001 || !oParagraph || !oParagraph.IsRecalculated())
+		return false;
+
+	var oParaBounds = oParagraph.GetContentBounds(0);
+	return (oParaBounds.Right - oParaBounds.Left > oFormBounds.W || oParaBounds.Bottom - oParaBounds.Top > oFormBounds.H);
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

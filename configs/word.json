@@ -80,6 +80,7 @@
 			"common/Drawings/TrackObjects/PolyLine.js",
 			"common/Drawings/TrackObjects/ResizeTracks.js",
 			"common/Drawings/TrackObjects/RotateTracks.js",
+			"common/Drawings/TrackObjects/GeometryEditTrack.js",
 			"common/Drawings/TrackObjects/Spline.js",
 			"common/Drawings/TrackObjects/ConnectorTrack.js",
 			"common/Drawings/DrawingObjectsHandlers.js",
@@ -190,6 +191,7 @@
 			"word/Editor/EndnotesChanges.js",
 		    "word/Editor/GlossaryDocument.js",
 		    "word/Editor/GlossaryDocumentChanges.js",
+			"word/Editor/DocumentProtection.js",
 
 			"word/Drawing/Graphics.js",
 			"word/Drawing/ShapeDrawer.js",

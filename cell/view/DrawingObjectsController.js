@@ -616,6 +616,14 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
         Code = 0;//special char
 
     var bRetValue = false;
+    var aSelectedObjects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+    if(aSelectedObjects.length === 1 && aSelectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape)
+    {
+        if(!aSelectedObjects[0].canEditText())
+        {
+            return false;
+        }
+    }
     if ( Code > 0x20 )
     {
         var oApi = window["Asc"] && window["Asc"]["editor"];

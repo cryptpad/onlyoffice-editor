@@ -3550,9 +3550,34 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 		}
 	}
 
-	var Cell_Pos = this.private_GetCellByXY(X, Y, CurPage);
-	var Cell     = this.Content[Cell_Pos.Row].Get_Cell(Cell_Pos.Cell);
-	Cell.Content_UpdateCursorType(X, Y, CurPage - Cell.Content.Get_StartPage_Relative());
+	var oCellPos = this.private_GetCellByXY(X, Y, CurPage);
+	var oCell    = this.GetRow(oCellPos.Row).GetCell(oCellPos.Cell);
+	oCell.Content_UpdateCursorType(X, Y, CurPage - oCell.Content.Get_StartPage_Relative());
+
+	var oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument && oLogicDocument.GetApi && oLogicDocument.IsDocumentEditor() && !oLogicDocument.IsSimpleMarkupInReview() && this.IsCellSelection())
+	{
+		var oTrackManager = oLogicDocument.GetTrackRevisionsManager();
+		var oCurChange    = oTrackManager.GetCurrentChange();
+		if (oCurChange && this === oTrackManager.GetCurrentChangeElement())
+		{
+			var arrSelection = this.GetSelectionArray();
+			for (var nIndex = 0, nCount = arrSelection.length; nIndex < nCount; ++nIndex)
+			{
+				if (arrSelection[nIndex].Cell === oCellPos.Cell && arrSelection[nIndex].Row === oCellPos.Row)
+				{
+					var oMMData          = new AscCommon.CMouseMoveData();
+					var oCoords          = this.DrawingDocument.ConvertCoordsToCursorWR(X, Y, this.GetAbsolutePage(CurPage), this.Get_ParentTextTransform());
+					oMMData.X_abs        = oCoords.X;
+					oMMData.Y_abs        = oCoords.Y;
+					oMMData.Type         = Asc.c_oAscMouseMoveDataTypes.Review;
+					oMMData.ReviewChange = oCurChange;
+					oLogicDocument.GetApi().sync_MouseMoveCallback(oMMData);
+					break;
+				}
+			}
+		}
+	}
 };
 CTable.prototype.StartTrackTable = function()
 {
@@ -7059,6 +7084,10 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 	}
 	else
 	{
+		var oLogicDocument = this.GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
 		if (true === this.IsInnerTable())
 			return this.CurCell.Content.MoveCursorToCell(bNext);
 
@@ -7069,18 +7098,26 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 			Cell : Pos_c,
 			Row  : Pos_r
 		};
+		
+		var oCheckAutoCorrectPara = null;
+		if (!this.IsSelectionUse())
+		{
+			oCheckAutoCorrectPara = this.CurCell.GetContent().GetCurrentParagraph();
+			if (oCheckAutoCorrectPara && !oCheckAutoCorrectPara.IsCursorAtEnd())
+				oCheckAutoCorrectPara = null;
+		}
 
 		if (true === bNext)
 		{
 			var TempCell = this.Internal_Get_NextCell(Pos);
-			while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+			while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 				TempCell = this.Internal_Get_NextCell(Pos);
 
 			if (null != TempCell)
 				CurCell = TempCell;
 			else
 			{
-				if (false == editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_Element_and_Type,
 						Element   : this,
 						CheckType : AscCommon.changestype_Table_Properties
@@ -7088,14 +7125,26 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 				{
 					this.LogicDocument.StartAction(AscDFH.historydescription_Document_TableAddNewRowByTab);
 					this.AddTableRow(false);
+
+					if (oCheckAutoCorrectPara)
+					{
+						var oParaEndRun = oCheckAutoCorrectPara.GetParaEndRun();
+						if (oParaEndRun)
+							oParaEndRun.ProcessAutoCorrectOnParaEnd(1);
+
+						oCheckAutoCorrectPara = null;
+					}
+
 					this.LogicDocument.Recalculate();
 					this.LogicDocument.FinalizeAction();
 				}
 				else
+				{
 					return;
+				}
 
 				var TempCell = this.Internal_Get_NextCell(Pos);
-				while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+				while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 					TempCell = this.Internal_Get_NextCell(Pos);
 
 				if (null != TempCell)
@@ -7105,15 +7154,25 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 		else
 		{
 			var TempCell = this.Internal_Get_PrevCell(Pos);
-			while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+			while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 				TempCell = this.Internal_Get_PrevCell(Pos);
 
 			if (null != TempCell)
 				CurCell = TempCell;
 		}
 
-		// Предварительно очистим текущий селект
-		editor.WordControl.m_oLogicDocument.RemoveSelection();
+		if (oCheckAutoCorrectPara)
+		{
+			var oParaEndRun = oCheckAutoCorrectPara.GetParaEndRun();
+			if (oParaEndRun)
+				oParaEndRun.ProcessAutoCorrectOnParaEnd(0);
+
+			oCheckAutoCorrectPara = null;
+		}
+
+
+		// Т.к. мы собираемся выставить селект заново, то предварительно очистим текущий селект
+		oLogicDocument.RemoveSelection();
 
 		this.CurCell = CurCell;
 		this.CurCell.Content.SelectAll();
@@ -18990,6 +19049,10 @@ CTable.prototype.GetDocumentPositionFromObject = function(arrPos)
 		arrPos.splice(0, 1);
 	}
 	return arrPos;
+};
+CTable.prototype.CalculateTextToTable = function(oEngine)
+{
+	oEngine.OnTable(this);
 };
 
 //----------------------------------------------------------------------------------------------------------------------
