@@ -764,6 +764,20 @@
 
     var Constr_font_scale = 360;
 
+    if (!String.prototype.includes) {
+      String.prototype.includes = function(search, start) {
+        if (typeof start !== 'number') {
+          start = 0;
+        }
+
+        if (start + search.length > this.length) {
+          return false;
+        } else {
+          return this.indexOf(search, start) !== -1;
+        }
+      };
+    }
+
     changesFactory[AscDFH.historyitem_DiagramDataDataModel] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_DiagramDataDataModel] = function (oClass, value) {
       oClass.dataModel = value;
@@ -5317,39 +5331,39 @@
     }
 
     Constr.prototype.setConstr = function (pointTree, transfer) {
-      var node = transfer;
-      var smartArt = pointTree && pointTree.parent;
-      if (node) {
-        var shapes = this.getShapesFromAxis(node, false);
-        var refShape = this.getShapesFromAxis(node, true);
-        if (this.type === Constr_type_primFontSz || this.type === Constr_type_secFontSz) {
-          if (smartArt) {
-            smartArt.setTruthFontSizeInSmartArt(shapes);
-          }
-          return;
-        }
-
-        var that = this;
-        var value = refShape.reduce(function (acc, shape) {
-          var compute = that.getConstrVal(shape);
-          if (!acc && typeof compute === 'number') {
-            return compute;
-          } else if (typeof compute === 'number' && compute > acc) {
-            return compute;
-          }
-          return acc;
-        }, undefined);
-
-        if (typeof value === 'number' && !(value !== value)) {
-          value /= this.getFieldScale(this.type);
-          shapes.forEach(function (shape) {
-            var setter = that.getConstrSetter(shape);
-            if (setter) {
-              setter.call(shape, value);
-            }
-          });
-        }
-      }
+      // var node = transfer;
+      // var smartArt = pointTree && pointTree.parent;
+      // if (node) {
+      //   var shapes = this.getShapesFromAxis(node, false);
+      //   var refShape = this.getShapesFromAxis(node, true);
+      //   if (this.type === Constr_type_primFontSz || this.type === Constr_type_secFontSz) {
+      //     if (smartArt) {
+      //       smartArt.setTruthFontSizeInSmartArt(shapes);
+      //     }
+      //     return;
+      //   }
+      //
+      //   var that = this;
+      //   var value = refShape.reduce(function (acc, shape) {
+      //     var compute = that.getConstrVal(shape);
+      //     if (!acc && typeof compute === 'number') {
+      //       return compute;
+      //     } else if (typeof compute === 'number' && compute > acc) {
+      //       return compute;
+      //     }
+      //     return acc;
+      //   }, undefined);
+      //
+      //   if (typeof value === 'number' && !(value !== value)) {
+      //     value /= this.getFieldScale(this.type);
+      //     shapes.forEach(function (shape) {
+      //       var setter = that.getConstrSetter(shape);
+      //       if (setter) {
+      //         setter.call(shape, value);
+      //       }
+      //     });
+      //   }
+      // }
     };
 
     Constr.prototype.getConstrSetter = function (shape) {
@@ -10042,6 +10056,215 @@
       return type;
     };
 
+    SmartArt.prototype.getShapesForFitText = function (callShape) {
+
+      var smartArtType = this.getTypeOfSmartArt();
+      var shapeGeometry = callShape.getPresetGeom();
+      var shapes = this.arrGraphicObjects.slice();
+      var association = callShape.getPointAssociation();
+      var prSet = association && association.prSet;
+      var getShapesFromPresStyleLbl = function(arrOfStyleLbl, returnThis) {
+        if (prSet) {
+          for (var i = 0; i < arrOfStyleLbl.length; i += 1) {
+            if (prSet.presStyleLbl === arrOfStyleLbl[i]) {
+              return shapes.filter(function (shape) {
+                var shapePrSet = shape.getPointAssociation() && shape.getPointAssociation().prSet;
+                return shapePrSet.presStyleLbl === arrOfStyleLbl[i];
+              });
+            }
+          }
+        }
+        return returnThis ? [callShape] : shapes;
+      }
+      var getShapesFromPresName = function(arrOfPresName) {
+        if (prSet) {
+          for (var i = 0; i < arrOfPresName.length; i += 1) {
+            if (typeof prSet.presName === 'string' && prSet.presName.includes(arrOfPresName[i])) {
+              return shapes.filter(function (shape) {
+                var shapePrSet = shape.getPointAssociation() && shape.getPointAssociation().prSet;
+                return typeof shapePrSet.presName === 'string' && shapePrSet.presName.includes(arrOfPresName[i]);
+              });
+            }
+          }
+        }
+        return shapes;
+      }
+      var getShapesFromPresetGeom = function() {
+        var result = shapes.filter(function (shape) {
+          return shape.getPresetGeom() === shapeGeometry;
+        });
+        return result.length === 0 ? shapes : result;
+      }
+
+      switch (smartArtType) {
+        case "PictureAccentBlocks":
+        case "cycle5":
+        case "venn2":
+        case "bProcess4":
+        case "vList2":
+        case "VerticalCurvedList":
+        case "process2":
+        case "list1":
+        case "vList4":
+        case "VerticalCircleList":
+        case "arrow2":
+        case "StepUpProcess":
+        case "hierarchy2":
+        case "hierarchy5":
+        case "HorizontalMultiLevelHierarchy":
+        case "HorizontalOrganizationChart":
+        case "hList1":
+        case "pList2":
+        case "hChevron3":
+        case "hierarchy1":
+        case "CirclePictureHierarchy":
+        case "hierarchy6":
+        case "HexagonCluster":
+        case "CircleRelationship":
+        case "CircleAccentTimeline":
+        case "bProcess2":
+        case "arrow6":
+        case "venn3":
+        case "PictureLineup":
+        case "BendingPictureCaptionList":
+        case "matrix1":
+        case "BendingPictureBlocks":
+        case "BendingPictureCaption":
+        case "BendingPictureSemiTransparentText":
+        case "cycle6":
+        case "hProcess9":
+        case "hList7":
+        case "cycle3":
+        case "StepDownProcess":
+        case "ReverseList":
+        case "orgChart1":
+        case "pyramid2":
+        case "PlusandMinus":
+        case "bProcess3":
+        case "CaptionedPictures":// TODO: think about it
+        case "PictureStrips":
+        case "HalfCircleOrganizationChart":
+        case "venn1":
+        case "hProcess11":
+        case "chart3":
+        case "matrix3":
+        case "target1":
+        case "default":
+        case "process5":
+        case "process1":
+        case "chevron1":
+        case "cycle2":
+        case "arrow4":
+        case "RandomtoResultProcess": // TODO: recalculate in next
+        case "process3":
+        case "hProcess10":
+        case "radial6": // TODO: think about it
+        case "cycle7":
+        case "arrow1":
+        case "FramedTextPicture":
+        case "pyramid4":
+        case "cycle8":
+        case "PictureGrid":
+        case "matrix2":
+        case "SpiralPicture":
+        case "pList1":
+        case "BubblePictureList":
+        case "SnapshotPictureList": // TODO: think about it
+        case "hProcess3":
+        case "CircleArrowProcess": // TODO: think about it
+        case "vProcess5":
+        case "radial4":
+        case "arrow5":
+        case "hierarchy4": // TODO: think about it
+        case "cycle1":
+        case "hList6":
+        case "DescendingProcess":
+        case "equation1":
+        case "arrow3":
+        case "AlternatingPictureBlocks":
+        case "AlternatingPictureCircles":
+        case "gear1":
+          return shapes;
+          break;
+        case "AlternatingHexagons":
+          return getShapesFromPresetGeom(['rect']);
+        case "LinedList":
+          return shapes; //TODO: think about it
+        case "SquareAccentList":
+        case "IncreasingCircleProcess":
+        case "PieProcess":
+          return getShapesFromPresName(['Child']);
+        case "hList2":
+          return getShapesFromPresStyleLbl(['node1', 'revTx']);
+        case "lProcess2": // TODO: check transform
+          return getShapesFromPresStyleLbl(['bgShp', 'node1']);
+        case "PictureAccentList":
+          return getShapesFromPresStyleLbl(['lnNode1']); // TODO: think about it
+        case "vList5":
+        case "chevron2":
+        case "bList2":
+        case "hList9":
+        case "hProcess7":
+        case "vList6":
+        case "hProcess6":
+        case "SubStepProcess":
+        case "funnel1":
+        case "PhasedProcess":
+        case "cycle4":
+        case "pyramid1":
+        case "pyramid3":
+        case "vList3":
+        case "radial2":
+        case "TitledPictureBlocks":
+        case "OpposingIdeas":
+          return getShapesFromPresetGeom();
+        case "VerticalAccentList":
+          return getShapesFromPresStyleLbl(['revTx', 'solidFgAcc1']);
+        case "BlockDescendingList":
+          return getShapesFromPresName(['childText']);
+        case "hList3":
+          return getShapesFromPresStyleLbl(['node1', 'dkBgShp']);
+        case "process4":
+          return getShapesFromPresStyleLbl(['node1', 'fgAccFollowNode1']);
+        case "target3":
+          return getShapesFromPresName(['СhTx', 'rect']); // TODO: think about it
+        case "hierarchy3":
+          return getShapesFromPresStyleLbl(['node1', 'bgAcc1']);
+        case "hProcess4":
+          return getShapesFromPresStyleLbl(['node1', 'bgAcc1']);
+        case "IncreasingArrowsProcess":
+          return getShapesFromPresStyleLbl(['solidAlignAcc1']); //TODO: think
+        case "lProcess3":
+          return getShapesFromPresStyleLbl(['node1', 'alignAccFollowNode1']);
+        case "lProcess1":
+          return getShapesFromPresStyleLbl(['alignAccFollowNode1', 'node1']);
+        case "AscendingPictureAccentProcess":
+          return getShapesFromPresStyleLbl(['node1', 'revTx']);
+        case "equation2":
+          return getShapesFromPresName(['lastNode', 'node']);
+        case "radial1":
+        case "radial5": // TODO: think
+          return getShapesFromPresStyleLbl(['node1', 'node0']);
+        case "radial3":
+          return getShapesFromPresName(['centerShape', 'node']);
+        case "RadialCluster":
+          return [callShape];
+        case "NameandTitleOrganizationalChart":
+          return getShapesFromPresStyleLbl(['node0'], true);
+        case "balance1":
+          return getShapesFromPresStyleLbl(['alignAccFollowNode1', 'node1']);
+        case "target2":
+          return getShapesFromPresStyleLbl(['node1', 'fgAcc1']);
+        case "AccentedPicture":
+        case "CircularPictureCallout":
+          return getShapesFromPresStyleLbl(['revTx', 'node1']);
+        case "TitlePictureLineup":
+          return getShapesFromPresStyleLbl(['revTx', 'alignNode1']);
+        default:
+          return [];
+      }
+    }
+
     SmartArt.prototype.setPointsForShapes = function () {
       var oDrawing = this.getDrawing();
       if(!oDrawing) {
@@ -10235,39 +10458,6 @@
       }
     }
 
-    SmartArt.prototype.setTruthFontSizeInSmartArt = function (shapes) {
-      var maxFontSize = 65;
-      var arrOfFonts = [];
-      shapes.forEach(function (shape) {
-          var point = shape.getPoint();
-          var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-          var isNotPlaceholder = isFitText && !point.prSet.phldr;
-          if (isNotPlaceholder) {
-            arrOfFonts.push(shape.findFitFontSizeForSmartArt());
-          }
-        }
-      )
-      var minFont = arrOfFonts.reduce(function (prev, next) {
-        if (prev > next) {
-          return next;
-        }
-        return prev;
-      }, arrOfFonts[0]);
-      minFont = minFont || maxFontSize;
-      shapes.forEach(function (shape) {
-        var point = shape.getPoint();
-        var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-        var isPlaceholder = isFitText && point.prSet.phldr;
-        if (isPlaceholder) {
-          var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
-          if (minFontSizeForPlaceholder > minFont) {
-            shape.setFontSizeInSmartArt(minFont);
-          }
-        } else if (isFitText) {
-          shape.setFontSizeInSmartArt(minFont);
-        }
-      });
-    }
 
     SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
