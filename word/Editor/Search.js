@@ -677,7 +677,7 @@ CSearchTextSpecialParagraphCharater.prototype = Object.create(CSearchTextItemBas
 CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
 	//var StartTime = new Date().getTime() ;
-
+	oProps.Word = false;
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
 	var ArrElement = new CSearchTextItemBase();
