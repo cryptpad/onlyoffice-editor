@@ -3808,6 +3808,15 @@ var editor;
 
           this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
           this.spellcheckState.clean();
+        } else {
+          var ws = this.wb.getWorksheet();
+          if (ws) {
+            var maxC = ws.model.getColsCount() - 1;
+            var maxR = ws.model.getRowsCount() - 1;
+            if (-1 !== maxC || -1 !== maxR) {
+              this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
+            }
+          }
         }
       }
     };
