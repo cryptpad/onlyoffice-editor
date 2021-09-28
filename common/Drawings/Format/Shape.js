@@ -4872,6 +4872,45 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         return maxFontSize;
     }
 
+    CShape.prototype.getShapesForFitText = function () {
+        return this.isObjectInSmartArt() ? this.group.group.getShapesForFitText(this) : [];
+    }
+
+    CShape.prototype.setTruthFontSizeInSmartArt = function () {
+        var shapes = this.getShapesForFitText();
+        var maxFontSize = 65;
+        var arrOfFonts = [];
+        shapes.forEach(function (shape) {
+                var point = shape.getPoint();
+                var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+                var isNotPlaceholder = isFitText && !point.prSet.phldr;
+                if (isNotPlaceholder) {
+                    arrOfFonts.push(shape.findFitFontSizeForSmartArt());
+                }
+            }
+        )
+        var minFont = arrOfFonts.reduce(function (prev, next) {
+            if (prev > next) {
+                return next;
+            }
+            return prev;
+        }, arrOfFonts[0]);
+        minFont = minFont || maxFontSize;
+        shapes.forEach(function (shape) {
+            var point = shape.getPoint();
+            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+            var isPlaceholder = isFitText && point.prSet.phldr;
+            if (isPlaceholder) {
+                var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
+                if (minFontSizeForPlaceholder > minFont) {
+                    shape.setFontSizeInSmartArt(minFont);
+                }
+            } else if (isFitText) {
+                shape.setFontSizeInSmartArt(minFont);
+            }
+        });
+    }
+
 CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
 {
     if((!this.bWordShape || this.group || bForce) && this.checkAutofit(true))
@@ -5096,7 +5135,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
             }
             if (this.isObjectInSmartArt()) {
                 this.copyTextInfoFromShapeToPoint();
-                this.group.group.recalculateSmartArt();
+                this.setTruthFontSizeInSmartArt();
             }
         }
     }
