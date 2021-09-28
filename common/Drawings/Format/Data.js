@@ -9835,11 +9835,11 @@
         var cxnWithNoPres = cxnLst.filter(function (cxn) {return !cxn.type;});
 
         ptLst.forEach(function (point) {
-          if (point.type === 3) {
+          if (point.type === Point_type_pres) {
             ptLstWithTypePres.push(point);
           } else if (!point.type || point.type === Point_type_node) {
             ptLstWithNoType.push(point);
-          } else if (point.type === 2) {
+          } else if (point.type === Point_type_doc) {
             docPoint = point;
           }
         });
