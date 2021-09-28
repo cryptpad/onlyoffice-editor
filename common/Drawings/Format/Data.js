@@ -278,6 +278,8 @@
 
     var kForInsFitFontSize = 71.12 / 360;
 
+    var ptToMm = 2.834645669291;
+
     var LayoutShapeType_outputShapeType_conn = 0;
     var LayoutShapeType_outputShapeType_none = 1;
     var LayoutShapeType_shapeType_accentBorderCallout1 = 2;
@@ -10135,7 +10137,6 @@
         case "arrow2":
         case "StepUpProcess":
         case "hierarchy2":
-        case "hierarchy5":
         case "HorizontalMultiLevelHierarchy":
         case "HorizontalOrganizationChart":
         case "hList1":
@@ -10143,7 +10144,6 @@
         case "hChevron3":
         case "hierarchy1":
         case "CirclePictureHierarchy":
-        case "hierarchy6":
         case "HexagonCluster":
         case "CircleRelationship":
         case "CircleAccentTimeline":
@@ -10200,7 +10200,7 @@
         case "vProcess5":
         case "radial4":
         case "arrow5":
-        case "hierarchy4": // TODO: think about it
+        case "hierarchy4":
         case "cycle1":
         case "hList6":
         case "DescendingProcess":
@@ -10214,11 +10214,11 @@
         case "AlternatingHexagons":
           return getShapesFromPresetGeom(['rect']);
         case "LinedList":
-          return shapes; //TODO: think about it
+          return getShapesFromPresName(['tx1', 'tx2', 'tx3', 'tx4']);
         case "SquareAccentList":
         case "IncreasingCircleProcess":
         case "PieProcess":
-          return getShapesFromPresName(['Child']);
+          return getShapesFromPresName(['Child', 'Parent']);
         case "hList2":
           return getShapesFromPresStyleLbl(['node1', 'revTx']);
         case "lProcess2": // TODO: check transform
@@ -10242,6 +10242,8 @@
         case "radial2":
         case "TitledPictureBlocks":
         case "OpposingIdeas":
+        case "hierarchy6":
+        case "hierarchy5":
           return getShapesFromPresetGeom();
         case "VerticalAccentList":
           return getShapesFromPresStyleLbl(['revTx', 'solidFgAcc1']);
@@ -11474,4 +11476,6 @@
     window['AscFormat'].SmartArtTree           = SmartArtTree;
     window['AscFormat'].SmartArtNode           = SmartArtNode;
     window['AscFormat'].SmartArtNodeData       = SmartArtNodeData;
+    window['AscFormat'].ptToMm                 = ptToMm;
+
   })(window)

@@ -4817,7 +4817,8 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
     }
 
     CShape.prototype.findFitFontSizeForSmartArt = function () {
-        var maxFontSize = 65;
+        var hInPt = this.extY * AscFormat.ptToMm;
+        var maxFontSize = hInPt > 65 ? 65 : Math.floor(hInPt);
         if (this.txBody) {
             var pointContent = this.isObjectInSmartArt() && this.getSmartArtPointContent();
             var isPlaceholderInSmartArt = false;
@@ -4838,7 +4839,7 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                         return prev.Lines.length < next.Lines.length ? next : prev;
                     }, cont.Content[0]);
                 };
-                var scalesForSmartArt = Array(61).fill(0).map(function (e, ind) {
+                var scalesForSmartArt = Array((maxFontSize - 4) > 0 ? maxFontSize - 4 : 1).fill(0).map(function (e, ind) {
                     return ind + 5;
                 });
                 var a = 0;
