@@ -4177,10 +4177,17 @@
         this.WriteDrawing = function(oDrawing, curDrawing)
         {
             var oThis = this;
-            if(null != oDrawing.Type)
-                this.bs.WriteItem(c_oSer_DrawingType.Type, function(){oThis.memory.WriteByte(ECellAnchorType.cellanchorOneCell);});
+            var oDrawingToWrite = curDrawing || oDrawing.graphicObject;
 
-            switch(oDrawing.Type)
+            var nTypeToWrite = oDrawing.Type;
+            if(oDrawingToWrite.getObjectType() === AscDFH.historyitem_type_OleObject)
+            {
+                nTypeToWrite = c_oAscCellAnchorType.cellanchorTwoCell;
+            }
+
+            if(null != nTypeToWrite)
+                this.bs.WriteItem(c_oSer_DrawingType.Type, function(){oThis.memory.WriteByte(nTypeToWrite);});
+            switch(nTypeToWrite)
             {
                 case c_oAscCellAnchorType.cellanchorTwoCell:
                 {
@@ -4202,10 +4209,7 @@
                     break;
                 }
             }
-            if(curDrawing)
-                this.bs.WriteItem(c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, curDrawing, null, null, null);});
-            else
-                this.bs.WriteItem(c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, oDrawing.graphicObject, null, null, null);});
+            this.bs.WriteItem(c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, oDrawingToWrite, null, null, null);});
         };
         this.WriteFromTo = function(oFromTo)
         {

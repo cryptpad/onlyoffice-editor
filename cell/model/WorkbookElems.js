@@ -2956,7 +2956,9 @@ var g_oBorderProperties = {
 	};
 
     CellXfs.prototype.asc_getFontName = function () {
-		return this.getFont2().getName();
+    	var name = this.getFont2().getName();
+		var _name = AscFonts.g_fontApplication ? AscFonts.g_fontApplication.NameToInterface[name] : null;
+		return _name ? _name : name;
 	};
     CellXfs.prototype.asc_getFontSize = function () {
         return this.getFont2().getSize();
@@ -5925,8 +5927,10 @@ function RangeDataManagerElem(bbox, data)
 				cloneElem.sqRef.setOffset(offset);
 				if (to.containsRange(cloneElem.sqRef)) {
 					newArr.push(this.arrSparklines[i]);
-					cloneElem._f.setOffset(offset);
-					cloneElem.f = cloneElem._f.getName();
+					if (cloneElem._f) {
+						cloneElem._f.setOffset(offset);
+						cloneElem.f = cloneElem._f.getName();
+					}
 					needAdd = true;
 				}
 

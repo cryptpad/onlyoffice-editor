@@ -112,6 +112,10 @@
 			}
 		}
 
+        // отключаем wasm для мобильных
+        if (useWasm && (AscCommon.AscBrowser.isAppleDevices || AscCommon.AscBrowser.isAndroid))
+            useWasm = false;
+
 		useWasm ? (url += "/wasm") : (url += "/js");
 		if (!useWasm)
             window['AscFonts'].onLoadModule();

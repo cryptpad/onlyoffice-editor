@@ -517,8 +517,9 @@
     };
 
 
-    function CChangesDrawingsContentPresentation(Class, Type, Pos, Items, isAdd){
+    function CChangesDrawingsContentPresentation(Class, Type, Pos, Items, isAdd, Color){
 		CChangesDrawingsContent.call(this, Class, Type, Pos, Items, isAdd);
+        this.Color = Color === true ? true : false;
     }
 
 	CChangesDrawingsContentPresentation.prototype = Object.create(CChangesDrawingsContent.prototype);
@@ -546,7 +547,7 @@
                 aContent.splice(Pos, 0, Element);
 
                 if(this.Class.collaborativeMarks) {
-                    if (Color) {
+                    if (true === this.Color && null !== Color) {
                         this.Class.collaborativeMarks.Update_OnAdd(Pos);
                         this.Class.collaborativeMarks.Add(Pos, Pos + 1, Color);
                         AscCommon.CollaborativeEditing.Add_ChangedClass(this.Class);
@@ -882,14 +883,16 @@
 						this.NewPr[i].sqRef.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i].sqRef.r2);
 						this.NewPr[i].sqRef.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i].sqRef.c2);
 
-						this.NewPr[i]._f.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r1);
-						this.NewPr[i]._f.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c1);
-						this.NewPr[i]._f.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r2);
-						this.NewPr[i]._f.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c2);
+						if (this.NewPr[i]._f) {
+							this.NewPr[i]._f.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r1);
+							this.NewPr[i]._f.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c1);
+							this.NewPr[i]._f.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r2);
+							this.NewPr[i]._f.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c2);
 
-						AscCommonExcel.executeInR1C1Mode(false, function () {
-							t.NewPr[i].f = t.NewPr[i]._f.getName();
-						});
+							AscCommonExcel.executeInR1C1Mode(false, function () {
+								t.NewPr[i].f = t.NewPr[i]._f.getName();
+							});
+						}
 					}
 				}
 			}
@@ -910,14 +913,16 @@
                 this.NewPr[i].sqRef.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i].sqRef.r2);
                 this.NewPr[i].sqRef.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i].sqRef.c2);
 
-                this.NewPr[i]._f.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r1);
-                this.NewPr[i]._f.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c1);
-                this.NewPr[i]._f.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r2);
-                this.NewPr[i]._f.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c2);
+                if (this.NewPr[i]._f) {
+                    this.NewPr[i]._f.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r1);
+                    this.NewPr[i]._f.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c1);
+                    this.NewPr[i]._f.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r2);
+                    this.NewPr[i]._f.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c2);
 
-                AscCommonExcel.executeInR1C1Mode(false, function () {
-                    t.NewPr[i].f = t.NewPr[i]._f.getName();
-                });
+                    AscCommonExcel.executeInR1C1Mode(false, function () {
+                        t.NewPr[i].f = t.NewPr[i]._f.getName();
+                    });
+                }
             }
         }
 	};

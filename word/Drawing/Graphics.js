@@ -2513,7 +2513,8 @@ CGraphics.prototype =
 
     drawFlowAnchor : function(x, y)
     {
-        if (!AscCommon.g_flow_anchor || !AscCommon.g_flow_anchor.asc_complete || (!editor || !editor.ShowParaMarks))
+        var _flow_anchor = (AscCommon.OverlayRasterIcons && AscCommon.OverlayRasterIcons.Anchor) ? AscCommon.OverlayRasterIcons.Anchor.get() : undefined;
+        if (!_flow_anchor || (!editor || !editor.ShowParaMarks))
             return;
 
         if (false === this.m_bIntegerGrid)
@@ -2524,7 +2525,7 @@ CGraphics.prototype =
         var _x = this.m_oFullTransform.TransformPointX(x,y) >> 0;
         var _y = this.m_oFullTransform.TransformPointY(x,y) >> 0;
 
-        this.m_oContext.drawImage(AscCommon.g_flow_anchor, _x, _y);
+        this.m_oContext.drawImage(_flow_anchor, _x, _y);
 
         if (false === this.m_bIntegerGrid)
         {

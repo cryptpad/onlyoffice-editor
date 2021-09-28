@@ -7568,8 +7568,11 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 {
 	var PagesCount = this.Pages.length;
 
+	var isFixedForm = this.IsInFixedForm();
+
 	// В сносках нельзя делать ExtendToPos, смотри замечание в CFootnotesController.prototype.EndSelection
-	if (this.bFromDocument && this.LogicDocument
+	if (!isFixedForm
+		&& this.bFromDocument && this.LogicDocument
 		&& true === this.LogicDocument.CanEdit()
 		&& null === this.Parent.IsHdrFtr(true)
 		&& !this.Parent.IsFootnote()
@@ -7595,7 +7598,7 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 	if (true === SearchPosXY.End || true === this.Is_Empty())
 	{
 		var LastRange = this.Lines[this.Lines.length - 1].Ranges[this.Lines[this.Lines.length - 1].Ranges.length - 1];
-		if (!this.Parent.IsFootnote() && CurPage >= PagesCount - 1 && X > LastRange.W && MouseEvent.ClickCount >= 2 && Y <= this.Pages[PagesCount - 1].Bounds.Bottom)
+		if (!isFixedForm && !this.Parent.IsFootnote() && CurPage >= PagesCount - 1 && X > LastRange.W && MouseEvent.ClickCount >= 2 && Y <= this.Pages[PagesCount - 1].Bounds.Bottom)
 		{
 			if (this.bFromDocument && false === this.LogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 					Type      : AscCommon.changestype_2_Element_and_Type,
@@ -16730,7 +16733,7 @@ Paragraph.prototype.UpdateLineNumbersInfo = function()
 };
 Paragraph.prototype.GetLineNumbersInfo = function(isNewPage)
 {
-	if (!this.LineNumbersInfo && this.Pages.length <= 0 || this.Lines.length <= 0)
+	if (!this.LineNumbersInfo || this.Pages.length <= 0 || this.Lines.length <= 0)
 		return -1;
 
 	if (isNewPage && this.Pages.length > 1)
@@ -18359,29 +18362,25 @@ CRunRecalculateObject.prototype =
         Obj.Load_MathInfo(this.MathInfo);
     },
 
-    Save_RunContent : function(Run, Copy)
-    {
-        var ContentLen = Run.Content.length;
-        for ( var Index = 0, Index2 = 0; Index < ContentLen; Index++ )
-        {
-            var Item = Run.Content[Index];
+	SaveRunContent : function(oRun, isCopy)
+	{
+		for (var nIndex = 0, nIndex2 = 0, nCount = oRun.Content.length; nIndex < nCount; ++nIndex)
+		{
+			var oItem = oRun.Content[nIndex];
+			if (oItem.IsNeedSaveRecalculateObject())
+				this.Content[nIndex2++] = oItem.SaveRecalculateObject(isCopy);
+		}
+	},
 
-			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type || para_Separator === Item.Type || para_ContinuationSeparator === Item.Type)
-				this.Content[Index2++] = Item.SaveRecalculateObject(Copy);
-        }
-    },
-
-    Load_RunContent : function(Run)
-    {
-        var Count = Run.Content.length;
-        for ( var Index = 0, Index2 = 0; Index < Count; Index++ )
-        {
-            var Item = Run.Content[Index];
-
-			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type || para_Separator === Item.Type || para_ContinuationSeparator === Item.Type)
-				Item.LoadRecalculateObject(this.Content[Index2++]);
-        }
-    },
+	LoadRunContent : function(oRun)
+	{
+		for (var nIndex = 0, nIndex2 = 0, nCount = oRun.Content.length; nIndex < nCount; ++nIndex)
+		{
+			var oItem = oRun.Content[nIndex];
+			if (oItem.IsNeedSaveRecalculateObject())
+				oItem.LoadRecalculateObject(this.Content[nIndex2++]);
+		}
+	},
 
     Get_DrawingFlowPos : function(FlowPos)
     {

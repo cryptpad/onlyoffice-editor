@@ -3048,8 +3048,8 @@ CAutoshapeTrack.prototype =
 
     drawFlowAnchor : function(x, y)
     {
-        var _flow_anchor = AscCommon.AscBrowser.isCustomScalingAbove2() ? AscCommon.g_flow_anchor2 : AscCommon.g_flow_anchor;
-        if (!_flow_anchor || !_flow_anchor.asc_complete || (!editor || !editor.ShowParaMarks))
+        var _flow_anchor = (AscCommon.OverlayRasterIcons && AscCommon.OverlayRasterIcons.Anchor) ? AscCommon.OverlayRasterIcons.Anchor.get() : undefined;
+        if (!_flow_anchor || (!editor || !editor.ShowParaMarks))
             return;
 
         var overlay = this.m_oOverlay;
@@ -3079,7 +3079,14 @@ CAutoshapeTrack.prototype =
 
         overlay.SetBaseTransform();
 
-        ctx.drawImage(_flow_anchor, __x, __y, Math.round(13 * rPR), Math.round(15 * rPR));
+        var _w = Math.round(13 * rPR);
+        var _h = Math.round(15 * rPR);
+        if (Math.abs(_w - _flow_anchor.width) < 2)
+            _w = _flow_anchor.width;
+        if (Math.abs(_h - _flow_anchor.height) < 2)
+            _h = _flow_anchor.height;
+
+        ctx.drawImage(_flow_anchor, __x, __y, _w, _h);
         ctx.globalAlpha = _oldAlpha;
     },
 

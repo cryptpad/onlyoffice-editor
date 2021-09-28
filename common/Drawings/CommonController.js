@@ -3830,13 +3830,19 @@ DrawingObjectsController.prototype =
         {
             for(i = 0; i < this.selectedObjects.length; ++i)
             {
-                CheckSpPrXfrm3(this.selectedObjects[i]);
-                this.selectedObjects[i].setDrawingBaseType(props.anchor);
-                if(props.anchor === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
+                var oSelectedObject = this.selectedObjects[i];
+                CheckSpPrXfrm3(oSelectedObject);
+                var nAnchorType = props.anchor;
+                if(oSelectedObject.getObjectType() === AscDFH.historyitem_type_OleObject)
                 {
-                    this.selectedObjects[i].setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+                    nAnchorType = AscCommon.c_oAscCellAnchorType.cellanchorTwoCell;
                 }
-                this.selectedObjects[i].checkDrawingBaseCoords();
+                oSelectedObject.setDrawingBaseType(nAnchorType);
+                if(nAnchorType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
+                {
+                    oSelectedObject.setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+                }
+                oSelectedObject.checkDrawingBaseCoords();
             }
         }
 
@@ -8907,22 +8913,22 @@ DrawingObjectsController.prototype =
     {
         switch (layerType)
         {
-            case 0:
+            case Asc.c_oAscDrawingLayerType.BringToFront:
             {
                 this.bringToFront();
                 break;
             }
-            case 1:
+            case Asc.c_oAscDrawingLayerType.SendToBack:
             {
                 this.sendToBack();
                 break;
             }
-            case 2:
+            case Asc.c_oAscDrawingLayerType.BringForward:
             {
                 this.bringForward();
                 break;
             }
-            case 3:
+            case Asc.c_oAscDrawingLayerType.SendBackward:
             {
                 this.bringBackward();
             }

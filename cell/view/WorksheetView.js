@@ -3171,10 +3171,16 @@
                 }
             }
         }
-
-        var activeNamedSheetView = this.model.getActiveNamedSheetViewId() !== null;
+	
+		//TODO во время печати едиственный флаг usePrintScale выставляется в true, использую здесь именно его
+		//в дальнейшем необходимо его изменить/переименовать
+		var isPrint = this.usePrintScale;
+		var activeNamedSheetView = !isPrint && this.model.getActiveNamedSheetViewId() !== null;
         var ctx = drawingCtx || this.drawingCtx;
         var st = this.settings.header.style[style];
+		var backgroundColor = isPrint ? this.settings.header.printBackground : (activeNamedSheetView ? st.backgroundDark : st.background);
+		var borderColor = isPrint ? this.settings.header.printBorder : st.border;
+		var color = isPrint ? this.settings.header.printColor : (activeNamedSheetView ? st.colorDark : st.color);
         var x2 = x + w;
         var y2 = y + h;
         var x2WithoutBorder = x2 - gridlineSize;
@@ -3182,11 +3188,11 @@
         // background только для видимых
         if (!isZeroHeader) {
             // draw background
-            ctx.setFillStyle(activeNamedSheetView ? st.backgroundDark : st.background)
+            ctx.setFillStyle(backgroundColor)
               .fillRect(x, y, w, h);
         }
         // draw border
-        ctx.setStrokeStyle(st.border)
+        ctx.setStrokeStyle(borderColor)
           .setLineWidth(1)
           .beginPath();
         if (style !== kHeaderDefault && !isColHeader && !window["IS_NATIVE_EDITOR"]) {
@@ -3223,7 +3229,7 @@
         var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);
 
 		ctx.AddClipRect(x, y, w, h);
-		ctx.setFillStyle(activeNamedSheetView ? st.colorDark : st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
+		ctx.setFillStyle(color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
 		ctx.RemoveClipRect();
     };
 
@@ -3868,12 +3874,7 @@
 
 				var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
 
-				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-					graphics.SaveGrState();
-					graphics.SetBaseTransform(ctx.Transform || new AscCommon.CMatrix());
-				}
-
-				graphics.save();
+				graphics.SaveGrState();
 				var oMatrix = new AscCommon.CMatrix();
 				oMatrix.tx = rect._x;
 				oMatrix.ty = rect._y;
@@ -3883,12 +3884,8 @@
 
 				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 				shapeDrawer.draw(geometry);
-				graphics.restore();
+				graphics.RestoreGrState();
 
-				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-					graphics.SetBaseTransform(null);
-					graphics.RestoreGrState();
-				}
 			}, this, [img, rect, iconSize * dScale * this.getZoom()]
 		);
 	};
@@ -5965,7 +5962,8 @@
      */
     WorksheetView.prototype._calcCellsTextMetrics = function (r1, r2) {
         var t = this;
-		this.model.getRange3(r1, 0, r2, this.cols.length - 1)._foreachNoEmpty(function(cell, row, col) {
+		var c2 = this.cols.length === 0 ? this.model.getColsCount() - 1 : this.cols.length - 1;
+		this.model.getRange3(r1, 0, r2, c2)._foreachNoEmpty(function(cell, row, col) {
 			t._addCellTextToCache(col, row);
 		}, null, true);
         this.isChanged = false;
@@ -11943,11 +11941,11 @@
 		var isOneMerge = false;
 
 		//если вставляем в мерженную ячейку, диапазон которой больше или равен
-		var fPasteCell = pasteContent.content[0][0];
-		var colSpanCompare = cMax - arn.c1 === fPasteCell.colSpan;
-		var rowSpanCompare = rMax - arn.r1 === fPasteCell.rowSpan;
+		var fPasteCell = pasteContent.content[0] && pasteContent.content[0][0];
+		var colSpanCompare = fPasteCell && cMax - arn.c1 === fPasteCell.colSpan;
+		var rowSpanCompare = fPasteCell && rMax - arn.r1 === fPasteCell.rowSpan;
 		if (arn.c2 >= cMax - 1 && arn.r2 >= rMax - 1 && isMergedFirstCell && isMergedFirstCell.isEqual(arn) && colSpanCompare && rowSpanCompare) {
-			if (!isCheckSelection) {
+			if (!isCheckSelection && pasteContent.content[0] && pasteContent.content[0][0]) {
 				pasteContent.content[0][0].colSpan = isMergedFirstCell.c2 - isMergedFirstCell.c1 + 1;
 				pasteContent.content[0][0].rowSpan = isMergedFirstCell.r2 - isMergedFirstCell.r1 + 1;
 			}
@@ -12094,6 +12092,9 @@
 		for (var autoR = 0; autoR < maxARow; ++autoR) {
 			for (var autoC = 0; autoC < maxACol; ++autoC) {
 				for (var r = 0; r < rMax; ++r) {
+					if (!pasteContent.content[r]) {
+						continue;
+					}
 					for (var c = 0; c < pasteContent.content[r].length; ++c) {
 						if (undefined !== pasteContent.content[r][c]) {
 							var pasteIntoRow = r + autoR * plRow + arn.r1;
@@ -16505,12 +16506,7 @@
 
 					var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
 
-					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-						graphics.SaveGrState();
-						graphics.SetBaseTransform(ctx.Transform || new AscCommon.CMatrix());
-					}
-
-					graphics.save();
+					graphics.SaveGrState();
 					var oMatrix = new AscCommon.CMatrix();
 					oMatrix.tx = rect._x;
 					oMatrix.ty = rect._y;
@@ -16520,12 +16516,8 @@
 
 					shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 					shapeDrawer.draw(geometry);
-					graphics.restore();
+					graphics.RestoreGrState();
 
-					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-						graphics.SetBaseTransform(null);
-						graphics.RestoreGrState();
-					}
 				}, this, [img, rect, iconSize * dScale * this.getZoom()]
 			);
 		}

@@ -5925,6 +5925,14 @@ background-repeat: no-repeat;\
         }
     };
 
+	asc_docs_api.prototype.asc_restartCheckSpelling = function()
+	{
+		if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+			return null;
+
+		this.WordControl.m_oLogicDocument.Restart_CheckSpelling();
+	};
+
 	asc_docs_api.prototype.sync_shapePropCallback = function(pr)
 	{
 		var obj = AscFormat.CreateAscShapePropFromProp(pr);

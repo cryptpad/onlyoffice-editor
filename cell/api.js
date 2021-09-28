@@ -565,7 +565,7 @@ var editor;
 
 		if (window["AscDesktopEditor"]) {
 			// TODO: add translations
-			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*txt *csv);;Txt File (*txt);;Csv File(*csv);;All files (*.*)", false, function (_file) {
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*.txt *.csv);;Txt File (*.txt);;Csv File(*.csv);;All files (*.*)", false, function (_file) {
 				var file = _file;
 				if (Array.isArray(file))
 					file = file[0];
@@ -1272,7 +1272,7 @@ var editor;
 
   spreadsheet_api.prototype._loadFonts = function(fonts, callback) {
     if (window["NATIVE_EDITOR_ENJINE"]) {
-      return callback();
+      return callback.call(this);
     }
     this.asyncMethodCallback = callback;
     var arrLoadFonts = [];
@@ -5611,6 +5611,13 @@ var editor;
 		this.asc_closeCellEditor();
 	}
   	this.wb.undo({All : true});
+  };
+	
+  spreadsheet_api.prototype.asc_restartCheckSpelling = function()
+  {
+  	if (this.wb /*&& !this.spellcheckState.lockSpell*/) {
+		this._spellCheckRestart();
+  	}
   };
 
   /*
