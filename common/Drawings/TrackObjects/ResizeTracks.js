@@ -2260,20 +2260,27 @@ function ShapeForResizeInGroup(originalObject, parentTrack)
                 this.originalObject.spPr.xfrm.setParent(this.originalObject.spPr);
             }
             var xfrm = this.originalObject.spPr.xfrm;
+            var txXfrm = this.originalObject.txXfrm;
+            if (txXfrm) {
+                var previousTxXfrmX = txXfrm.offX;
+                var previousTxXfrmY = txXfrm.offY;
+                var previousTxXfrmExtX = txXfrm.extX;
+                var previousTxXfrmExtY = txXfrm.extY;
 
-            if (this.originalObject.txXfrm) {
-                var previousTxXfrmX = this.originalObject.txXfrm.offX;
-                var previousTxXfrmY = this.originalObject.txXfrm.offY;
-                var previousTxXfrmExtX = this.originalObject.txXfrm.extX;
-                var previousTxXfrmExtY = this.originalObject.txXfrm.extY;
                 var currentXfrmX = this.x;
                 var currentXfrmY = this.y;
                 var currentXfrmExtX = this.extX;
                 var currentXfrmExtY = this.extY;
-                this.originalObject.txXfrm.setOffX( currentXfrmX + (previousTxXfrmX - xfrm.offX));
-                this.originalObject.txXfrm.setOffY( currentXfrmY + (previousTxXfrmY - xfrm.offY));
-                this.originalObject.txXfrm.setExtX( previousTxXfrmExtX * (xfrm.extX / currentXfrmExtX));
-                this.originalObject.txXfrm.setExtY( previousTxXfrmExtY * (xfrm.extY / currentXfrmExtY));
+                var previousXfrmOffX = this.originalObject.x || 0.0001;
+                var previousXfrmOffY = this.originalObject.y || 0.0001;
+                var previousXfrmExtX = this.originalObject.extX || 0.0001;
+                var previousXfrmExtY = this.originalObject.extY || 0.0001;
+
+                txXfrm.setOffX( previousTxXfrmX * (currentXfrmX / previousXfrmOffX));
+                txXfrm.setOffY(previousTxXfrmY * (currentXfrmY / previousXfrmOffY));
+                txXfrm.setExtX( previousTxXfrmExtX * (currentXfrmExtX / previousXfrmExtX));
+                txXfrm.setExtY( previousTxXfrmExtY * (currentXfrmExtY / previousXfrmExtY));
+                console.log(txXfrm);
             }
 
 
