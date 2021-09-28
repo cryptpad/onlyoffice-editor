@@ -25739,8 +25739,8 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 		if (!oTable.IsInline())
 		{
 			FramePr = new CFramePr();
-			FramePr.HAnchor = Asc.c_oAscHAnchor.Page;
-			FramePr.VAnchor = Asc.c_oAscVAnchor.Page;
+			FramePr.HAnchor = oTable.PositionH.RelativeFrom;
+			FramePr.VAnchor = oTable.PositionV.RelativeFrom;
 			FramePr.X = oTable.PositionH.Value;
 			FramePr.Y = oTable.PositionV.Value;
 		}
