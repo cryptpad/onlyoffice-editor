@@ -54,6 +54,339 @@
     var InitClass = AscFormat.InitClass;
     var CBaseFormatObject = AscFormat.CBaseFormatObject;
 
+
+
+    AscFormat.PRESET_CLASS_EMPH = AscFormat["PRESET_CLASS_EMPH"] = 0;
+    AscFormat.PRESET_CLASS_ENTR = AscFormat["PRESET_CLASS_ENTR"] = 1;
+    AscFormat.PRESET_CLASS_EXIT = AscFormat["PRESET_CLASS_EXIT"] = 2;
+    AscFormat.PRESET_CLASS_PATH = AscFormat["PRESET_CLASS_PATH"] = 4;
+
+    AscFormat.MOTION_CUSTOM_PATH = AscFormat["MOTION_CUSTOM_PATH"] = 0;
+    AscFormat.MOTION_CIRCLE = AscFormat["MOTION_CIRCLE"] = 1;
+    AscFormat.MOTION_RIGHT_TRIANGLE = AscFormat["MOTION_RIGHT_TRIANGLE"] = 2;
+    AscFormat.MOTION_DIAMOND = AscFormat["MOTION_DIAMOND"] = 3;
+    AscFormat.MOTION_HEXAGON = AscFormat["MOTION_HEXAGON"] = 4;
+    AscFormat.MOTION_PATH_5_POINT_STAR = AscFormat["MOTION_PATH_5_POINT_STAR"] = 5;
+    AscFormat.MOTION_CRESCENT_MOON = AscFormat["MOTION_CRESCENT_MOON"] = 6;
+    AscFormat.MOTION_SQUARE = AscFormat["MOTION_SQUARE"] = 7;
+    AscFormat.MOTION_TRAPEZOID = AscFormat["MOTION_TRAPEZOID"] = 8;
+    AscFormat.MOTION_HEART = AscFormat["MOTION_HEART"] = 9;
+    AscFormat.MOTION_OCTAGON = AscFormat["MOTION_OCTAGON"] = 10;
+    AscFormat.MOTION_PATH_6_POINT_STAR = AscFormat["MOTION_PATH_6_POINT_STAR"] = 11;
+    AscFormat.MOTION_FOOTBALL = AscFormat["MOTION_FOOTBALL"] = 12;
+    AscFormat.MOTION_EQUAL_TRIANGLE = AscFormat["MOTION_EQUAL_TRIANGLE"] = 13;
+    AscFormat.MOTION_PARALLELOGRAM = AscFormat["MOTION_PARALLELOGRAM"] = 14;
+    AscFormat.MOTION_PENTAGON = AscFormat["MOTION_PENTAGON"] = 15;
+    AscFormat.MOTION_PATH_4_POINT_STAR = AscFormat["MOTION_PATH_4_POINT_STAR"] = 16;
+    AscFormat.MOTION_PATH_8_POINT_STAR = AscFormat["MOTION_PATH_8_POINT_STAR"] = 17;
+    AscFormat.MOTION_TEARDROP = AscFormat["MOTION_TEARDROP"] = 18;
+    AscFormat.MOTION_POINTY_STAR = AscFormat["MOTION_POINTY_STAR"] = 19;
+    AscFormat.MOTION_CURVED_SQUARE = AscFormat["MOTION_CURVED_SQUARE"] = 20;
+    AscFormat.MOTION_CURVED_X = AscFormat["MOTION_CURVED_X"] = 21;
+    AscFormat.MOTION_VERTICAL_FIGURE_8 = AscFormat["MOTION_VERTICAL_FIGURE_8"] = 22;
+    AscFormat.MOTION_CURVY_STAR = AscFormat["MOTION_CURVY_STAR"] = 23;
+    AscFormat.MOTION_LOOP_DE_LOOP = AscFormat["MOTION_LOOP_DE_LOOP"] = 24;
+    AscFormat.MOTION_HORIZONTAL_FIGURE_8_FOUR = AscFormat["MOTION_HORIZONTAL_FIGURE_8_FOUR"] = 26;
+    AscFormat.MOTION_PEANUT = AscFormat["MOTION_PEANUT"] = 27;
+    AscFormat.MOTION_FIGURE_8_FOUR = AscFormat["MOTION_FIGURE_8_FOUR"] = 28;
+    AscFormat.MOTION_NEUTRON = AscFormat["MOTION_NEUTRON"] = 29;
+    AscFormat.MOTION_SWOOSH = AscFormat["MOTION_SWOOSH"] = 30;
+    AscFormat.MOTION_BEAN = AscFormat["MOTION_BEAN"] = 31;
+    AscFormat.MOTION_PLUS = AscFormat["MOTION_PLUS"] = 32;
+    AscFormat.MOTION_INVERTED_TRIANGLE = AscFormat["MOTION_INVERTED_TRIANGLE"] = 33;
+    AscFormat.MOTION_INVERTED_SQUARE = AscFormat["MOTION_INVERTED_SQUARE"] = 34;
+    AscFormat.MOTION_LEFT = AscFormat["MOTION_LEFT"] = 35;
+    AscFormat.MOTION_TURN_DOWN_RIGHT = AscFormat["MOTION_TURN_DOWN_RIGHT"] = 36;
+    AscFormat.MOTION_ARC_DOWN = AscFormat["MOTION_ARC_DOWN"] = 37;
+    AscFormat.MOTION_ZIGZAG = AscFormat["MOTION_ZIGZAG"] = 38;
+    AscFormat.MOTION_S_CURVE_2 = AscFormat["MOTION_S_CURVE_2"] = 39;
+    AscFormat.MOTION_SINE_WAVE = AscFormat["MOTION_SINE_WAVE"] = 40;
+    AscFormat.MOTION_BOUNCE_LEFT = AscFormat["MOTION_BOUNCE_LEFT"] = 41;
+    AscFormat.MOTION_DOWN = AscFormat["MOTION_DOWN"] = 42;
+    AscFormat.MOTION_TURN_UP = AscFormat["MOTION_TURN_UP"] = 43;
+    AscFormat.MOTION_ARC_UP = AscFormat["MOTION_ARC_UP"] = 44;
+    AscFormat.MOTION_HEARTBEAT = AscFormat["MOTION_HEARTBEAT"] = 45;
+    AscFormat.MOTION_SINE_SPIRAL_RIGHT = AscFormat["MOTION_SINE_SPIRAL_RIGHT"] = 46;
+    AscFormat.MOTION_WAVE = AscFormat["MOTION_WAVE"] = 47;
+    AscFormat.MOTION_CURVY_LEFT = AscFormat["MOTION_CURVY_LEFT"] = 48;
+    AscFormat.MOTION_DIAGONAL_DOWN_RIGHT = AscFormat["MOTION_DIAGONAL_DOWN_RIGHT"] = 49;
+    AscFormat.MOTION_TURN_DOWN = AscFormat["MOTION_TURN_DOWN"] = 50;
+    AscFormat.MOTION_ARC_LEFT = AscFormat["MOTION_ARC_LEFT"] = 51;
+    AscFormat.MOTION_FUNNEL = AscFormat["MOTION_FUNNEL"] = 52;
+    AscFormat.MOTION_SPRING = AscFormat["MOTION_SPRING"] = 53;
+    AscFormat.MOTION_BOUNCE_RIGHT = AscFormat["MOTION_BOUNCE_RIGHT"] = 54;
+    AscFormat.MOTION_SINE_SPIRAL_LEFT = AscFormat["MOTION_SINE_SPIRAL_LEFT"] = 55;
+    AscFormat.MOTION_DIAGONAL_UP_RIGHT = AscFormat["MOTION_DIAGONAL_UP_RIGHT"] = 56;
+    AscFormat.MOTION_TURN_UP_RIGHT = AscFormat["MOTION_TURN_UP_RIGHT"] = 57;
+    AscFormat.MOTION_ARC_RIGHT = AscFormat["MOTION_ARC_RIGHT"] = 58;
+    AscFormat.MOTION_S_CURVE_1 = AscFormat["MOTION_S_CURVE_1"] = 59;
+    AscFormat.MOTION_DECAYING_WAVE = AscFormat["MOTION_DECAYING_WAVE"] = 60;
+    AscFormat.MOTION_CURVY_RIGHT = AscFormat["MOTION_CURVY_RIGHT"] = 61;
+    AscFormat.MOTION_STAIRS_DOWN = AscFormat["MOTION_STAIRS_DOWN"] = 62;
+    AscFormat.MOTION_RIGHT = AscFormat["MOTION_RIGHT"] = 63;
+    AscFormat.MOTION_UP = AscFormat["MOTION_UP"] = 64;
+
+    AscFormat.EXIT_DISAPPEAR = AscFormat["EXIT_DISAPPEAR"] = 1;
+    AscFormat.EXIT_FLY_OUT_TO = AscFormat["EXIT_FLY_OUT_TO"] = 2;
+    AscFormat.EXIT_BLINDS = AscFormat["EXIT_BLINDS"] = 3;
+    AscFormat.EXIT_BOX = AscFormat["EXIT_BOX"] = 4;
+    AscFormat.EXIT_CHECKERBOARD = AscFormat["EXIT_CHECKERBOARD"] = 5;
+    AscFormat.EXIT_CIRCLE = AscFormat["EXIT_CIRCLE"] = 6;
+    AscFormat.EXIT_DIAMOND = AscFormat["EXIT_DIAMOND"] = 8;
+    AscFormat.EXIT_DISSOLVE_OUT = AscFormat["EXIT_DISSOLVE_OUT"] = 9;
+    AscFormat.EXIT_FADE = AscFormat["EXIT_FADE"] = 10;
+    AscFormat.EXIT_PEEK_OUT_TO = AscFormat["EXIT_PEEK_OUT_TO"] = 12;
+    AscFormat.EXIT_PLUS = AscFormat["EXIT_PLUS"] = 13;
+    AscFormat.EXIT_RANDOM_BARS = AscFormat["EXIT_RANDOM_BARS"] = 14;
+    AscFormat.EXIT_SPIRAL_OUT = AscFormat["EXIT_SPIRAL_OUT"] = 15;
+    AscFormat.EXIT_SPLIT = AscFormat["EXIT_SPLIT"] = 16;
+    AscFormat.EXIT_COLLAPSE = AscFormat["EXIT_COLLAPSE"] = 17;
+    AscFormat.EXIT_STRIPS = AscFormat["EXIT_STRIPS"] = 18;
+    AscFormat.EXIT_BASIC_SWIVEL = AscFormat["EXIT_BASIC_SWIVEL"] = 19;
+    AscFormat.EXIT_WEDGE = AscFormat["EXIT_WEDGE"] = 20;
+    AscFormat.EXIT_WHEEL = AscFormat["EXIT_WHEEL"] = 21;
+    AscFormat.EXIT_WHIPE_FROM = AscFormat["EXIT_WHIPE_FROM"] = 22;
+    AscFormat.EXIT_BASIC_ZOOM = AscFormat["EXIT_BASIC_ZOOM"] = 23;
+    AscFormat.EXIT_BOOMERANG = AscFormat["EXIT_BOOMERANG"] = 25;
+    AscFormat.EXIT_BOUNCE = AscFormat["EXIT_BOUNCE"] = 26;
+    AscFormat.EXIT_CREDITS = AscFormat["EXIT_CREDITS"] = 28;
+    AscFormat.EXIT_FLOAT = AscFormat["EXIT_FLOAT"] = 30;
+    AscFormat.EXIT_SHRINK_AND_TURN = AscFormat["EXIT_SHRINK_AND_TURN"] = 31;
+    AscFormat.EXIT_PINWHEEL = AscFormat["EXIT_PINWHEEL"] = 35;
+    AscFormat.EXIT_SHRINK_DOWN = AscFormat["EXIT_SHRINK_DOWN"] = 37;
+    AscFormat.EXIT_DROP = AscFormat["EXIT_DROP"] = 38;
+    AscFormat.EXIT_WHIP = AscFormat["EXIT_WHIP"] = 41;
+    AscFormat.EXIT_FLOAT_DOWN = AscFormat["EXIT_FLOAT_DOWN"] = 42;
+    AscFormat.EXIT_CENTER_REVOLVE = AscFormat["EXIT_CENTER_REVOLVE"] = 43;
+    AscFormat.EXIT_SWIVEL = AscFormat["EXIT_SWIVEL"] = 45;
+    AscFormat.EXIT_FLOAT_UP = AscFormat["EXIT_FLOAT_UP"] = 47;
+    AscFormat.EXIT_SPINNER = AscFormat["EXIT_SPINNER"] = 49;
+    AscFormat.EXIT_STRETCHY = AscFormat["EXIT_STRETCHY"] = 50;
+    AscFormat.EXIT_CURVE_DOWN = AscFormat["EXIT_CURVE_DOWN"] = 52;
+    AscFormat.EXIT_ZOOM = AscFormat["EXIT_ZOOM"] = 53;
+    AscFormat.EXIT_CONTRACT = AscFormat["EXIT_CONTRACT"] = 55;
+    AscFormat.EXIT_FLIP = AscFormat["EXIT_FLIP"] = 56;
+
+    AscFormat.ENTRANCE_APPEAR = AscFormat["ENTRANCE_APPEAR"] = 1;
+    AscFormat.ENTRANCE_FLY_IN_FROM = AscFormat["ENTRANCE_FLY_IN_FROM"] = 2;
+    AscFormat.ENTRANCE_BLINDS = AscFormat["ENTRANCE_BLINDS"] = 3;
+    AscFormat.ENTRANCE_BOX = AscFormat["ENTRANCE_BOX"] = 4;
+    AscFormat.ENTRANCE_CHECKERBOARD = AscFormat["ENTRANCE_CHECKERBOARD"] = 5;
+    AscFormat.ENTRANCE_CIRCLE = AscFormat["ENTRANCE_CIRCLE"] = 6;
+    AscFormat.ENTRANCE_DIAMOND = AscFormat["ENTRANCE_DIAMOND"] = 8;
+    AscFormat.ENTRANCE_DISSOLVE_IN = AscFormat["ENTRANCE_DISSOLVE_IN"] = 9;
+    AscFormat.ENTRANCE_FADE = AscFormat["ENTRANCE_FADE"] = 10;
+    AscFormat.ENTRANCE_PEEK_IN_FROM = AscFormat["ENTRANCE_PEEK_IN_FROM"] = 12;
+    AscFormat.ENTRANCE_PLUS = AscFormat["ENTRANCE_PLUS"] = 13;
+    AscFormat.ENTRANCE_RANDOM_BARS = AscFormat["ENTRANCE_RANDOM_BARS"] = 14;
+    AscFormat.ENTRANCE_SPIRAL_IN = AscFormat["ENTRANCE_SPIRAL_IN"] = 15;
+    AscFormat.ENTRANCE_SPLIT = AscFormat["ENTRANCE_SPLIT"] = 16;
+    AscFormat.ENTRANCE_STRETCH = AscFormat["ENTRANCE_STRETCH"] = 17;
+    AscFormat.ENTRANCE_STRIPS = AscFormat["ENTRANCE_STRIPS"] = 18;
+    AscFormat.ENTRANCE_BASIC_SWIVEL = AscFormat["ENTRANCE_BASIC_SWIVEL"] = 19;
+    AscFormat.ENTRANCE_WEDGE = AscFormat["ENTRANCE_WEDGE"] = 20;
+    AscFormat.ENTRANCE_WHEEL = AscFormat["ENTRANCE_WHEEL"] = 21;
+    AscFormat.ENTRANCE_WHIPE_FROM = AscFormat["ENTRANCE_WHIPE_FROM"] = 22;
+    AscFormat.ENTRANCE_BASIC_ZOOM = AscFormat["ENTRANCE_BASIC_ZOOM"] = 23;
+    AscFormat.ENTRANCE_BOOMERANG = AscFormat["ENTRANCE_BOOMERANG"] = 25;
+    AscFormat.ENTRANCE_BOUNCE = AscFormat["ENTRANCE_BOUNCE"] = 26;
+    AscFormat.ENTRANCE_CREDITS = AscFormat["ENTRANCE_CREDITS"] = 28;
+    AscFormat.ENTRANCE_FLOAT = AscFormat["ENTRANCE_FLOAT"] = 30;
+    AscFormat.ENTRANCE_GROW_AND_TURN = AscFormat["ENTRANCE_GROW_AND_TURN"] = 31;
+    AscFormat.ENTRANCE_PINWHEEL = AscFormat["ENTRANCE_PINWHEEL"] = 35;
+    AscFormat.ENTRANCE_RISE_UP = AscFormat["ENTRANCE_RISE_UP"] = 37;
+    AscFormat.ENTRANCE_DROP = AscFormat["ENTRANCE_DROP"] = 38;
+    AscFormat.ENTRANCE_WHIP = AscFormat["ENTRANCE_WHIP"] = 41;
+    AscFormat.ENTRANCE_FLOAT_UP = AscFormat["ENTRANCE_FLOAT_UP"] = 42;
+    AscFormat.ENTRANCE_CENTER_REVOLVE = AscFormat["ENTRANCE_CENTER_REVOLVE"] = 43;
+    AscFormat.ENTRANCE_SWIVEL = AscFormat["ENTRANCE_SWIVEL"] = 45;
+    AscFormat.ENTRANCE_FLOAT_DOWN = AscFormat["ENTRANCE_FLOAT_DOWN"] = 47;
+    AscFormat.ENTRANCE_SPINNER = AscFormat["ENTRANCE_SPINNER"] = 49;
+    AscFormat.ENTRANCE_CENTER_COMPRESS = AscFormat["ENTRANCE_CENTER_COMPRESS"] = 50;
+    AscFormat.ENTRANCE_CURVE_UP = AscFormat["ENTRANCE_CURVE_UP"] = 52;
+    AscFormat.ENTRANCE_ZOOM = AscFormat["ENTRANCE_ZOOM"] = 53;
+    AscFormat.ENTRANCE_EXPAND = AscFormat["ENTRANCE_EXPAND"] = 55;
+    AscFormat.ENTRANCE_FLIP = AscFormat["ENTRANCE_FLIP"] = 56;
+
+    AscFormat.EMPHASIS_FILL_COLOR = AscFormat["EMPHASIS_FILL_COLOR"] = 1;
+    AscFormat.EMPHASIS_FONT_COLOR = AscFormat["EMPHASIS_FONT_COLOR"] = 3;
+    AscFormat.EMPHASIS_GROW_SHRINK = AscFormat["EMPHASIS_GROW_SHRINK"] = 6;
+    AscFormat.EMPHASIS_LINE_COLOR = AscFormat["EMPHASIS_LINE_COLOR"] = 7;
+    AscFormat.EMPHASIS_SPIN = AscFormat["EMPHASIS_SPIN"] = 8;
+    AscFormat.EMPHASIS_TRANSPARENCY = AscFormat["EMPHASIS_TRANSPARENCY"] = 9;
+    AscFormat.EMPHASIS_BOLD_FLASH = AscFormat["EMPHASIS_BOLD_FLASH"] = 10;
+    AscFormat.EMPHASIS_BOLD_REVEAL = AscFormat["EMPHASIS_BOLD_REVEAL"] = 15;
+    AscFormat.EMPHASIS_BRUSH_COLOR = AscFormat["EMPHASIS_BRUSH_COLOR"] = 16;
+    AscFormat.EMPHASIS_UNDERLINE = AscFormat["EMPHASIS_UNDERLINE"] = 18;
+    AscFormat.EMPHASIS_OBJECT_COLOR = AscFormat["EMPHASIS_OBJECT_COLOR"] = 19;
+    AscFormat.EMPHASIS_COMPLEMENTARY_COLOR = AscFormat["EMPHASIS_COMPLEMENTARY_COLOR"] = 21;
+    AscFormat.EMPHASIS_COMPLEMENTARY_COLOR_2 = AscFormat["EMPHASIS_COMPLEMENTARY_COLOR_2"] = 22;
+    AscFormat.EMPHASIS_CONTRASTING_COLOR = AscFormat["EMPHASIS_CONTRASTING_COLOR"] = 23;
+    AscFormat.EMPHASIS_CONTRASTING_DARKEN = AscFormat["EMPHASIS_CONTRASTING_DARKEN"] = 24;
+    AscFormat.EMPHASIS_DESATURATE = AscFormat["EMPHASIS_DESATURATE"] = 25;
+    AscFormat.EMPHASIS_PULSE = AscFormat["EMPHASIS_PULSE"] = 26;
+    AscFormat.EMPHASIS_COLOR_PULSE = AscFormat["EMPHASIS_COLOR_PULSE"] = 27;
+    AscFormat.EMPHASIS_GROW_WITH_COLOR = AscFormat["EMPHASIS_GROW_WITH_COLOR"] = 28;
+    AscFormat.EMPHASIS_LIGHTEN = AscFormat["EMPHASIS_LIGHTEN"] = 30;
+    AscFormat.EMPHASIS_TEETER = AscFormat["EMPHASIS_TEETER"] = 32;
+    AscFormat.EMPHASIS_WAVE = AscFormat["EMPHASIS_WAVE"] = 34;
+    AscFormat.EMPHASIS_BLINK = AscFormat["EMPHASIS_BLINK"] = 35;
+    AscFormat.EMPHASIS_SHIMMER = AscFormat["EMPHASIS_SHIMMER"] = 36;
+
+    AscFormat.EXIT_ZOOM_OBJECT_CENTER = AscFormat["EXIT_ZOOM_OBJECT_CENTER"] = 32;
+    AscFormat.EXIT_ZOOM_SLIDE_CENTER = AscFormat["EXIT_ZOOM_SLIDE_CENTER"] = 544;
+
+    AscFormat.EXIT_WHIPE_FROM_TOP = AscFormat["EXIT_WHIPE_FROM_TOP"] = 1;
+    AscFormat.EXIT_WHIPE_FROM_RIGHT = AscFormat["EXIT_WHIPE_FROM_RIGHT"] = 2;
+    AscFormat.EXIT_WHIPE_FROM_BOTTOM = AscFormat["EXIT_WHIPE_FROM_BOTTOM"] = 4;
+    AscFormat.EXIT_WHIPE_FROM_LEFT = AscFormat["EXIT_WHIPE_FROM_LEFT"] = 8;
+
+    AscFormat.EXIT_WHEEL_1_SPOKE = AscFormat["EXIT_WHEEL_1_SPOKE"] = 1;
+    AscFormat.EXIT_WHEEL_2_SPOKES = AscFormat["EXIT_WHEEL_2_SPOKES"] = 2;
+    AscFormat.EXIT_WHEEL_3_SPOKES = AscFormat["EXIT_WHEEL_3_SPOKES"] = 3;
+    AscFormat.EXIT_WHEEL_4_SPOKES = AscFormat["EXIT_WHEEL_4_SPOKES"] = 4;
+    AscFormat.EXIT_WHEEL_8_SPOKES = AscFormat["EXIT_WHEEL_8_SPOKES"] = 8;
+
+    AscFormat.EXIT_STRIPS_RIGHT_UP = AscFormat["EXIT_STRIPS_RIGHT_UP"] = 3;
+    AscFormat.EXIT_STRIPS_RIGHT_DOWN = AscFormat["EXIT_STRIPS_RIGHT_DOWN"] = 6;
+    AscFormat.EXIT_STRIPS_LEFT_UP = AscFormat["EXIT_STRIPS_LEFT_UP"] = 9;
+    AscFormat.EXIT_STRIPS_LEFT_DOWN = AscFormat["EXIT_STRIPS_LEFT_DOWN"] = 12;
+
+    AscFormat.EXIT_SPLIT_VERTICAL_IN = AscFormat["EXIT_SPLIT_VERTICAL_IN"] = 21;
+    AscFormat.EXIT_SPLIT_HORIZONTAL_IN = AscFormat["EXIT_SPLIT_HORIZONTAL_IN"] = 26;
+    AscFormat.EXIT_SPLIT_VERTICAL_OUT = AscFormat["EXIT_SPLIT_VERTICAL_OUT"] = 37;
+    AscFormat.EXIT_SPLIT_HORIZONTAL_OUT = AscFormat["EXIT_SPLIT_HORIZONTAL_OUT"] = 42;
+
+    AscFormat.EXIT_RANDOM_BARS_VERTICAL = AscFormat["EXIT_RANDOM_BARS_VERTICAL"] = 5;
+    AscFormat.EXIT_RANDOM_BARS_HORIZONTAL = AscFormat["EXIT_RANDOM_BARS_HORIZONTAL"] = 10;
+
+    AscFormat.EXIT_PLUS_IN = AscFormat["EXIT_PLUS_IN"] = 16;
+    AscFormat.EXIT_PLUS_OUT = AscFormat["EXIT_PLUS_OUT"] = 32;
+
+    AscFormat.EXIT_PEEK_OUT_TO_TOP = AscFormat["EXIT_PEEK_OUT_TO_TOP"] = 1;
+    AscFormat.EXIT_PEEK_OUT_TO_RIGHT = AscFormat["EXIT_PEEK_OUT_TO_RIGHT"] = 2;
+    AscFormat.EXIT_PEEK_OUT_TO_BOTTOM = AscFormat["EXIT_PEEK_OUT_TO_BOTTOM"] = 4;
+    AscFormat.EXIT_PEEK_OUT_TO_LEFT = AscFormat["EXIT_PEEK_OUT_TO_LEFT"] = 8;
+
+    AscFormat.EXIT_FLY_OUT_TO_TOP = AscFormat["EXIT_FLY_OUT_TO_TOP"] = 1;
+    AscFormat.EXIT_FLY_OUT_TO_RIGHT = AscFormat["EXIT_FLY_OUT_TO_RIGHT"] = 2;
+    AscFormat.EXIT_FLY_OUT_TO_TOP_RIGHT = AscFormat["EXIT_FLY_OUT_TO_TOP_RIGHT"] = 3;
+    AscFormat.EXIT_FLY_OUT_TO_BOTTOM = AscFormat["EXIT_FLY_OUT_TO_BOTTOM"] = 4;
+    AscFormat.EXIT_FLY_OUT_TO_BOTTOM_RIGHT = AscFormat["EXIT_FLY_OUT_TO_BOTTOM_RIGHT"] = 6;
+    AscFormat.EXIT_FLY_OUT_TO_LEFT = AscFormat["EXIT_FLY_OUT_TO_LEFT"] = 8;
+    AscFormat.EXIT_FLY_OUT_TO_TOP_LEFT = AscFormat["EXIT_FLY_OUT_TO_TOP_LEFT"] = 9;
+    AscFormat.EXIT_FLY_OUT_TO_BOTTOM_LEFT = AscFormat["EXIT_FLY_OUT_TO_BOTTOM_LEFT"] = 12;
+
+    AscFormat.EXIT_DIAMOND_IN = AscFormat["EXIT_DIAMOND_IN"] = 16;
+    AscFormat.EXIT_DIAMOND_OUT = AscFormat["EXIT_DIAMOND_OUT"] = 32;
+
+    AscFormat.EXIT_COLLAPSE_TO_TOP = AscFormat["EXIT_COLLAPSE_TO_TOP"] = 1;
+    AscFormat.EXIT_COLLAPSE_TO_RIGHT = AscFormat["EXIT_COLLAPSE_TO_RIGHT"] = 2;
+    AscFormat.EXIT_COLLAPSE_TO_BOTTOM = AscFormat["EXIT_COLLAPSE_TO_BOTTOM"] = 4;
+    AscFormat.EXIT_COLLAPSE_TO_LEFT = AscFormat["EXIT_COLLAPSE_TO_LEFT"] = 8;
+    AscFormat.EXIT_COLLAPSE_ACROSS = AscFormat["EXIT_COLLAPSE_ACROSS"] = 10;
+
+    AscFormat.EXIT_CIRCLE_IN = AscFormat["EXIT_CIRCLE_IN"] = 16;
+    AscFormat.EXIT_CIRCLE_OUT = AscFormat["EXIT_CIRCLE_OUT"] = 32;
+
+    AscFormat.EXIT_CHECKERBOARD_UP = AscFormat["EXIT_CHECKERBOARD_UP"] = 5;
+    AscFormat.EXIT_CHECKERBOARD_ACROSS = AscFormat["EXIT_CHECKERBOARD_ACROSS"] = 10;
+
+    AscFormat.EXIT_BOX_IN = AscFormat["EXIT_BOX_IN"] = 16;
+    AscFormat.EXIT_BOX_OUT = AscFormat["EXIT_BOX_OUT"] = 32;
+
+    AscFormat.EXIT_BLINDS_VERTICAL = AscFormat["EXIT_BLINDS_VERTICAL"] = 5;
+    AscFormat.EXIT_BLINDS_HORIZONTAL = AscFormat["EXIT_BLINDS_HORIZONTAL"] = 10;
+
+    AscFormat.EXIT_BASIC_ZOOM_IN = AscFormat["EXIT_BASIC_ZOOM_IN"] = 16;
+    AscFormat.EXIT_BASIC_ZOOM_IN_TO_SCREEN_BOTTOM = AscFormat["EXIT_BASIC_ZOOM_IN_TO_SCREEN_BOTTOM"] = 20;
+    AscFormat.EXIT_BASIC_ZOOM_OUT = AscFormat["EXIT_BASIC_ZOOM_OUT"] = 32;
+    AscFormat.EXIT_BASIC_ZOOM_IN_SLIGHTLY = AscFormat["EXIT_BASIC_ZOOM_IN_SLIGHTLY"] = 272;
+    AscFormat.EXIT_BASIC_ZOOM_OUT_SLIGHTLY = AscFormat["EXIT_BASIC_ZOOM_OUT_SLIGHTLY"] = 288;
+    AscFormat.EXIT_BASIC_ZOOM_OUT_TO_SCREEN_CENTER = AscFormat["EXIT_BASIC_ZOOM_OUT_TO_SCREEN_CENTER"] = 544;
+
+    AscFormat.EXIT_BASIC_SWIVEL_VERTICAL = AscFormat["EXIT_BASIC_SWIVEL_VERTICAL"] = 5;
+    AscFormat.EXIT_BASIC_SWIVEL_HORIZONTAL = AscFormat["EXIT_BASIC_SWIVEL_HORIZONTAL"] = 10;
+
+    AscFormat.ENTRANCE_ZOOM_OBJECT_CENTER = AscFormat["ENTRANCE_ZOOM_OBJECT_CENTER"] = 16;
+    AscFormat.ENTRANCE_ZOOM_SLIDE_CENTER = AscFormat["ENTRANCE_ZOOM_SLIDE_CENTER"] = 528;
+
+    AscFormat.ENTRANCE_WHIPE_FROM_TOP = AscFormat["ENTRANCE_WHIPE_FROM_TOP"] = 1;
+    AscFormat.ENTRANCE_WHIPE_FROM_RIGHT = AscFormat["ENTRANCE_WHIPE_FROM_RIGHT"] = 2;
+    AscFormat.ENTRANCE_WHIPE_FROM_BOTTOM = AscFormat["ENTRANCE_WHIPE_FROM_BOTTOM"] = 4;
+    AscFormat.ENTRANCE_WHIPE_FROM_LEFT = AscFormat["ENTRANCE_WHIPE_FROM_LEFT"] = 8;
+
+    AscFormat.ENTRANCE_WHEEL_1_SPOKE = AscFormat["ENTRANCE_WHEEL_1_SPOKE"] = 1;
+    AscFormat.ENTRANCE_WHEEL_2_SPOKES = AscFormat["ENTRANCE_WHEEL_2_SPOKES"] = 2;
+    AscFormat.ENTRANCE_WHEEL_3_SPOKES = AscFormat["ENTRANCE_WHEEL_3_SPOKES"] = 3;
+    AscFormat.ENTRANCE_WHEEL_4_SPOKES = AscFormat["ENTRANCE_WHEEL_4_SPOKES"] = 4;
+    AscFormat.ENTRANCE_WHEEL_8_SPOKES = AscFormat["ENTRANCE_WHEEL_8_SPOKES"] = 8;
+
+    AscFormat.ENTRANCE_STRIPS_RIGHT_UP = AscFormat["ENTRANCE_STRIPS_RIGHT_UP"] = 3;
+    AscFormat.ENTRANCE_STRIPS_RIGHT_DOWN = AscFormat["ENTRANCE_STRIPS_RIGHT_DOWN"] = 6;
+    AscFormat.ENTRANCE_STRIPS_LEFT_UP = AscFormat["ENTRANCE_STRIPS_LEFT_UP"] = 9;
+    AscFormat.ENTRANCE_STRIPS_LEFT_DOWN = AscFormat["ENTRANCE_STRIPS_LEFT_DOWN"] = 12;
+
+    AscFormat.ENTRANCE_STRETCH_FROM_TOP = AscFormat["ENTRANCE_STRETCH_FROM_TOP"] = 1;
+    AscFormat.ENTRANCE_STRETCH_FROM_RIGHT = AscFormat["ENTRANCE_STRETCH_FROM_RIGHT"] = 2;
+    AscFormat.ENTRANCE_STRETCH_FROM_BOTTOM = AscFormat["ENTRANCE_STRETCH_FROM_BOTTOM"] = 4;
+    AscFormat.ENTRANCE_STRETCH_FROM_LEFT = AscFormat["ENTRANCE_STRETCH_FROM_LEFT"] = 8;
+    AscFormat.ENTRANCE_STRETCH_ACROSS = AscFormat["ENTRANCE_STRETCH_ACROSS"] = 10;
+
+    AscFormat.ENTRANCE_SPLIT_VERTICAL_IN = AscFormat["ENTRANCE_SPLIT_VERTICAL_IN"] = 21;
+    AscFormat.ENTRANCE_SPLIT_HORIZONTAL_IN = AscFormat["ENTRANCE_SPLIT_HORIZONTAL_IN"] = 26;
+    AscFormat.ENTRANCE_SPLIT_VERTICAL_OUT = AscFormat["ENTRANCE_SPLIT_VERTICAL_OUT"] = 37;
+    AscFormat.ENTRANCE_SPLIT_HORIZONTAL_OUT = AscFormat["ENTRANCE_SPLIT_HORIZONTAL_OUT"] = 42;
+
+    AscFormat.ENTRANCE_RANDOM_BARS_VERTICAL = AscFormat["ENTRANCE_RANDOM_BARS_VERTICAL"] = 5;
+    AscFormat.ENTRANCE_RANDOM_BARS_HORIZONTAL = AscFormat["ENTRANCE_RANDOM_BARS_HORIZONTAL"] = 10;
+
+    AscFormat.ENTRANCE_PLUS_IN = AscFormat["ENTRANCE_PLUS_IN"] = 16;
+    AscFormat.ENTRANCE_PLUS_OUT = AscFormat["ENTRANCE_PLUS_OUT"] = 32;
+
+    AscFormat.ENTRANCE_PEEK_IN_FROM_TOP = AscFormat["ENTRANCE_PEEK_IN_FROM_TOP"] = 1;
+    AscFormat.ENTRANCE_PEEK_IN_FROM_RIGHT = AscFormat["ENTRANCE_PEEK_IN_FROM_RIGHT"] = 2;
+    AscFormat.ENTRANCE_PEEK_IN_FROM_BOTTOM = AscFormat["ENTRANCE_PEEK_IN_FROM_BOTTOM"] = 4;
+    AscFormat.ENTRANCE_PEEK_IN_FROM_LEFT = AscFormat["ENTRANCE_PEEK_IN_FROM_LEFT"] = 8;
+
+    AscFormat.ENTRANCE_FLY_IN_FROM_TOP = AscFormat["ENTRANCE_FLY_IN_FROM_TOP"] = 1;
+    AscFormat.ENTRANCE_FLY_IN_FROM_RIGHT = AscFormat["ENTRANCE_FLY_IN_FROM_RIGHT"] = 2;
+    AscFormat.ENTRANCE_FLY_IN_FROM_TOP_RIGHT = AscFormat["ENTRANCE_FLY_IN_FROM_TOP_RIGHT"] = 3;
+    AscFormat.ENTRANCE_FLY_IN_FROM_BOTTOM = AscFormat["ENTRANCE_FLY_IN_FROM_BOTTOM"] = 4;
+    AscFormat.ENTRANCE_FLY_IN_FROM_BOTTOM_RIGHT = AscFormat["ENTRANCE_FLY_IN_FROM_BOTTOM_RIGHT"] = 6;
+    AscFormat.ENTRANCE_FLY_IN_FROM_LEFT = AscFormat["ENTRANCE_FLY_IN_FROM_LEFT"] = 8;
+    AscFormat.ENTRANCE_FLY_IN_FROM_TOP_LEFT = AscFormat["ENTRANCE_FLY_IN_FROM_TOP_LEFT"] = 9;
+    AscFormat.ENTRANCE_FLY_IN_FROM_BOTTOM_LEFT = AscFormat["ENTRANCE_FLY_IN_FROM_BOTTOM_LEFT"] = 12;
+
+    AscFormat.ENTRANCE_DIAMOND_IN = AscFormat["ENTRANCE_DIAMOND_IN"] = 16;
+    AscFormat.ENTRANCE_DIAMOND_OUT = AscFormat["ENTRANCE_DIAMOND_OUT"] = 32;
+
+    AscFormat.ENTRANCE_CIRCLE_IN = AscFormat["ENTRANCE_CIRCLE_IN"] = 16;
+    AscFormat.ENTRANCE_CIRCLE_OUT = AscFormat["ENTRANCE_CIRCLE_OUT"] = 32;
+
+    AscFormat.ENTRANCE_CHECKERBOARD_DOWN = AscFormat["ENTRANCE_CHECKERBOARD_DOWN"] = 5;
+    AscFormat.ENTRANCE_CHECKERBOARD_ACROSS = AscFormat["ENTRANCE_CHECKERBOARD_ACROSS"] = 10;
+
+    AscFormat.ENTRANCE_BOX_IN = AscFormat["ENTRANCE_BOX_IN"] = 16;
+    AscFormat.ENTRANCE_BOX_OUT = AscFormat["ENTRANCE_BOX_OUT"] = 32;
+
+    AscFormat.ENTRANCE_BLINDS_VERTICAL = AscFormat["ENTRANCE_BLINDS_VERTICAL"] = 5;
+    AscFormat.ENTRANCE_BLINDS_HORIZONTAL = AscFormat["ENTRANCE_BLINDS_HORIZONTAL"] = 10;
+
+    AscFormat.ENTRANCE_BASIC_ZOOM_IN = AscFormat["ENTRANCE_BASIC_ZOOM_IN"] = 16;
+    AscFormat.ENTRANCE_BASIC_ZOOM_OUT = AscFormat["ENTRANCE_BASIC_ZOOM_OUT"] = 32;
+    AscFormat.ENTRANCE_BASIC_ZOOM_OUT_FROM_SCREEN_BOTTOM = AscFormat["ENTRANCE_BASIC_ZOOM_OUT_FROM_SCREEN_BOTTOM"] = 36;
+    AscFormat.ENTRANCE_BASIC_ZOOM_IN_SLIGHTLY = AscFormat["ENTRANCE_BASIC_ZOOM_IN_SLIGHTLY"] = 272;
+    AscFormat.ENTRANCE_BASIC_ZOOM_OUT_SLIGHTLY = AscFormat["ENTRANCE_BASIC_ZOOM_OUT_SLIGHTLY"] = 288;
+    AscFormat.ENTRANCE_BASIC_ZOOM_IN_FROM_SCREEN_CENTER = AscFormat["ENTRANCE_BASIC_ZOOM_IN_FROM_SCREEN_CENTER"] = 528;
+
+    AscFormat.ENTRANCE_BASIC_SWIVEL_VERTICAL = AscFormat["ENTRANCE_BASIC_SWIVEL_VERTICAL"] = 5;
+    AscFormat.ENTRANCE_BASIC_SWIVEL_HORIZONTAL = AscFormat["ENTRANCE_BASIC_SWIVEL_HORIZONTAL"] = 10;
+
+
+
+    //var oEffects = {};
+
     function CBaseAnimObject() {
         CBaseFormatObject.call(this);
     }
@@ -111,6 +444,17 @@
         }
         return 0;
     };
+    CBaseAnimObject.prototype.getEffectById = function(sId, oMltEffect) {
+        if(!oMltEffect) {
+            var oNewMltEffect = new CMultiple();
+            return this.getEffectById(sId, oMltEffect);
+        }
+        this.traverse(function(oChild) {
+            oChild.getEffectById(sId, oMltEffect);
+            return false;
+        });
+        return oMltEffect;
+    };
 
     var TIME_NODE_STATE_IDLE = 0;
     var TIME_NODE_STATE_ACTIVE = 1;
@@ -152,6 +496,13 @@
     var NODE_FILL_HOLD = 1;
     var NODE_FILL_REMOVE = 2;
     var NODE_FILL_TRANSITION = 3;
+
+    //oEffects["PRESET_CLASS_EMPH"] = oEffects.PRESET_CLASS_EMPH = 0;
+    //oEffects["PRESET_CLASS_ENTR"] = oEffects.PRESET_CLASS_ENTR = 1;
+    //oEffects["PRESET_CLASS_EXIT"] = oEffects.PRESET_CLASS_EXIT = 2;
+    //oEffects["PRESET_CLASS_MEDIACALL"] = oEffects.PRESET_CLASS_MEDIACALL = 3;
+    //oEffects["PRESET_CLASS_PATH"] = oEffects.PRESET_CLASS_PATH = 4;
+    //oEffects["PRESET_CLASS_VERB"] = oEffects.PRESET_CLASS_VERB = 5;
 
     function CTimeNodeBase() {
         CBaseAnimObject.call(this);
@@ -1254,13 +1605,36 @@
     };
     CTiming.prototype.getTimingRootNode = function() {
         if(this.tnLst) {
-            if(this.tnLst) {
-                if(this.tnLst.list.length > 0) {
-                    return this.tnLst.list[0];
-                }
+            if(this.tnLst.list.length > 0) {
+                return this.tnLst.list[0];
             }
         }
         return null;
+    };
+    CTiming.prototype.updateNodesIDs = function() {
+        var oReplaceMap = {};
+        var nIdCounter = 0;
+        this.traverse(function(oChild) {
+            if(oChild.getObjectType() === AscDFH.historyitem_type_CTn) {
+                var nOldId = oChild.id;
+                oChild.setId(++nIdCounter);
+                if(AscFormat.isRealNumber(nOldId)) {
+                    oReplaceMap[nOldId] = oChild.id;
+                }
+            }
+        });
+        this.traverse(function(oChild) {
+            if(oChild.getObjectType() === AscDFH.historyitem_type_Cond) {
+                if(AscFormat.isRealNumber(oChild.tn) && AscFormat.isRealNumber(oReplaceMap[oChild.tn])) {
+                    oChild.setTn(oReplaceMap[oChild.tn]);
+                }
+            }
+        });
+    };
+    CTiming.prototype.createEffect = function(sObjectId, nEffectClass, nEffectId, nEffectSubtype) {
+        var oPar = new CPar();
+        oPar.createEffect(sObjectId, nEffectClass, nEffectId, nEffectSubtype);
+        return oPar;
     };
 
 
@@ -8652,1397 +9026,1402 @@
     };
     //--------------------------------------------------------------------------
 
-    var oEffects = {};
-    oEffects.ET_UNKNOWN = -1;
-    oEffects.ET_NONE = 0;
-    oEffects.ET_MULTIPLE = 1;
-    oEffects.ET_ENTRANCE = 2 << 16;
-    oEffects['ET_ENTRANCE_APPEAR'] = oEffects.ET_ENTRANCE_APPEAR = oEffects.ET_ENTRANCE | 1;
-    oEffects['ET_ENTRANCE_BLINDS'] = oEffects.ET_ENTRANCE_BLINDS = oEffects.ET_ENTRANCE | 2;
-    oEffects['ET_ENTRANCE_BOX'] = oEffects.ET_ENTRANCE_BOX = oEffects.ET_ENTRANCE | 3;
-    oEffects['ET_ENTRANCE_CHECKERBOARD'] = oEffects.ET_ENTRANCE_CHECKERBOARD = oEffects.ET_ENTRANCE | 4;
-    oEffects['ET_ENTRANCE_CIRCLE'] = oEffects.ET_ENTRANCE_CIRCLE = oEffects.ET_ENTRANCE | 5;
-    oEffects['ET_ENTRANCE_DIAMOND'] = oEffects.ET_ENTRANCE_DIAMOND = oEffects.ET_ENTRANCE | 6;
-    oEffects['ET_ENTRANCE_DISSOLVE_IN'] = oEffects.ET_ENTRANCE_DISSOLVE_IN = oEffects.ET_ENTRANCE | 7;
-    oEffects['ET_ENTRANCE_FLY_IN'] = oEffects.ET_ENTRANCE_FLY_IN = oEffects.ET_ENTRANCE | 8;
-    oEffects['ET_ENTRANCE_PEEK_IN'] = oEffects.ET_ENTRANCE_PEEK_IN = oEffects.ET_ENTRANCE | 9;
-    oEffects['ET_ENTRANCE_PLUS'] = oEffects.ET_ENTRANCE_PLUS = oEffects.ET_ENTRANCE | 10;
-    oEffects['ET_ENTRANCE_RANDOM_BARS'] = oEffects.ET_ENTRANCE_RANDOM_BARS = oEffects.ET_ENTRANCE | 11;
-    oEffects['ET_ENTRANCE_SPLIT'] = oEffects.ET_ENTRANCE_SPLIT = oEffects.ET_ENTRANCE | 12;
-    oEffects['ET_ENTRANCE_STRIPS'] = oEffects.ET_ENTRANCE_STRIPS = oEffects.ET_ENTRANCE | 13;
-    oEffects['ET_ENTRANCE_WEDGE'] = oEffects.ET_ENTRANCE_WEDGE = oEffects.ET_ENTRANCE | 14;
-    oEffects['ET_ENTRANCE_WHEEL'] = oEffects.ET_ENTRANCE_WHEEL = oEffects.ET_ENTRANCE | 15;
-    oEffects['ET_ENTRANCE_WIPE'] = oEffects.ET_ENTRANCE_WIPE = oEffects.ET_ENTRANCE | 16;
-    oEffects['ET_ENTRANCE_EXPAND'] = oEffects.ET_ENTRANCE_EXPAND = oEffects.ET_ENTRANCE | 17;
-    oEffects['ET_ENTRANCE_FADE'] = oEffects.ET_ENTRANCE_FADE = oEffects.ET_ENTRANCE | 18;
-    oEffects['ET_ENTRANCE_SWIVEL'] = oEffects.ET_ENTRANCE_SWIVEL = oEffects.ET_ENTRANCE | 19;
-    oEffects['ET_ENTRANCE_ZOOM'] = oEffects.ET_ENTRANCE_ZOOM = oEffects.ET_ENTRANCE | 20;
-    oEffects['ET_ENTRANCE_BASIC_ZOOM'] = oEffects.ET_ENTRANCE_BASIC_ZOOM = oEffects.ET_ENTRANCE | 21;
-    oEffects['ET_ENTRANCE_CENTER_REVOLVE'] = oEffects.ET_ENTRANCE_CENTER_REVOLVE = oEffects.ET_ENTRANCE | 22;
-    oEffects['ET_ENTRANCE_COMPRESS'] = oEffects.ET_ENTRANCE_COMPRESS = oEffects.ET_ENTRANCE | 23;
-    oEffects['ET_ENTRANCE_FLOAT_DOWN'] = oEffects.ET_ENTRANCE_FLOAT_DOWN = oEffects.ET_ENTRANCE | 24;
-    oEffects['ET_ENTRANCE_FLOAT_UP'] = oEffects.ET_ENTRANCE_FLOAT_UP = oEffects.ET_ENTRANCE | 25;
-    oEffects['ET_ENTRANCE_GROW_AND_TURN'] = oEffects.ET_ENTRANCE_GROW_AND_TURN = oEffects.ET_ENTRANCE | 26;
-    oEffects['ET_ENTRANCE_RISE_UP'] = oEffects.ET_ENTRANCE_RISE_UP = oEffects.ET_ENTRANCE | 27;
-    oEffects['ET_ENTRANCE_SPINNER'] = oEffects.ET_ENTRANCE_SPINNER = oEffects.ET_ENTRANCE | 28;
-    oEffects['ET_ENTRANCE_STRETCH'] = oEffects.ET_ENTRANCE_STRETCH = oEffects.ET_ENTRANCE | 29;
-    oEffects['ET_ENTRANCE_BASIC_SWIVEL'] = oEffects.ET_ENTRANCE_BASIC_SWIVEL = oEffects.ET_ENTRANCE | 30;
-    oEffects['ET_ENTRANCE_BOOMERANG'] = oEffects.ET_ENTRANCE_BOOMERANG = oEffects.ET_ENTRANCE | 31;
-    oEffects['ET_ENTRANCE_BOUNCE'] = oEffects.ET_ENTRANCE_BOUNCE = oEffects.ET_ENTRANCE | 32;
-    oEffects['ET_ENTRANCE_CREDITS'] = oEffects.ET_ENTRANCE_CREDITS = oEffects.ET_ENTRANCE | 33;
-    oEffects['ET_ENTRANCE_CURVE_UP'] = oEffects.ET_ENTRANCE_CURVE_UP = oEffects.ET_ENTRANCE | 34;
-    oEffects['ET_ENTRANCE_DROP'] = oEffects.ET_ENTRANCE_DROP = oEffects.ET_ENTRANCE | 35;
-    oEffects['ET_ENTRANCE_FLIP'] = oEffects.ET_ENTRANCE_FLIP = oEffects.ET_ENTRANCE | 36;
-    oEffects['ET_ENTRANCE_FLOAT'] = oEffects.ET_ENTRANCE_FLOAT = oEffects.ET_ENTRANCE | 37;
-    oEffects['ET_ENTRANCE_PINWHEEL'] = oEffects.ET_ENTRANCE_PINWHEEL = oEffects.ET_ENTRANCE | 38;
-    oEffects['ET_ENTRANCE_SPIRAL_IN'] = oEffects.ET_ENTRANCE_SPIRAL_IN = oEffects.ET_ENTRANCE | 39;
-    oEffects['ET_ENTRANCE_WHIP'] = oEffects.ET_ENTRANCE_WHIP = oEffects.ET_ENTRANCE | 40;
-
-    oEffects.ET_EMPHASISE = 3 << 16;
-    oEffects['ET_EMPHASISE_FILL_COLOR'] = oEffects.ET_EMPHASISE_FILL_COLOR = oEffects.ET_EMPHASISE | 1;
-    oEffects['ET_EMPHASISE_FONT_COLOR'] = oEffects.ET_EMPHASISE_FONT_COLOR = oEffects.ET_EMPHASISE | 2;
-    oEffects['ET_EMPHASISE_GROW_SHRINK'] = oEffects.ET_EMPHASISE_GROW_SHRINK = oEffects.ET_EMPHASISE | 3;
-    oEffects['ET_EMPHASISE_LINE_COLOR'] = oEffects.ET_EMPHASISE_LINE_COLOR = oEffects.ET_EMPHASISE | 4;
-    oEffects['ET_EMPHASISE_SPIN'] = oEffects.ET_EMPHASISE_SPIN = oEffects.ET_EMPHASISE | 5;
-    oEffects['ET_EMPHASISE_TRANSPARENCY'] = oEffects.ET_EMPHASISE_TRANSPARENCY = oEffects.ET_EMPHASISE | 6;
-    oEffects['ET_EMPHASISE_BOLD_FLASH'] = oEffects.ET_EMPHASISE_BOLD_FLASH = oEffects.ET_EMPHASISE | 7;
-    oEffects['ET_EMPHASISE_BRUSH_COLOR'] = oEffects.ET_EMPHASISE_BRUSH_COLOR = oEffects.ET_EMPHASISE | 8;
-    oEffects['ET_EMPHASISE_COMPLIMENTARY_COLOR'] = oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR = oEffects.ET_EMPHASISE | 9;
-    oEffects['ET_EMPHASISE_COMPLIMENTARY_COLOR2'] = oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR2 = oEffects.ET_EMPHASISE | 10;
-    oEffects['ET_EMPHASISE_CONTRASTING_COLOR'] = oEffects.ET_EMPHASISE_CONTRASTING_COLOR = oEffects.ET_EMPHASISE | 11;
-    oEffects['ET_EMPHASISE_DARKEN'] = oEffects.ET_EMPHASISE_DARKEN = oEffects.ET_EMPHASISE | 12;
-    oEffects['ET_EMPHASISE_DESATURATE'] = oEffects.ET_EMPHASISE_DESATURATE = oEffects.ET_EMPHASISE | 13;
-    oEffects['ET_EMPHASISE_LIGHTEN'] = oEffects.ET_EMPHASISE_LIGHTEN = oEffects.ET_EMPHASISE | 14;
-    oEffects['ET_EMPHASISE_OBJECT_COLOR'] = oEffects.ET_EMPHASISE_OBJECT_COLOR = oEffects.ET_EMPHASISE | 15;
-    oEffects['ET_EMPHASISE_PULSE'] = oEffects.ET_EMPHASISE_PULSE = oEffects.ET_EMPHASISE | 16;
-    oEffects['ET_EMPHASISE_UNDERLINE'] = oEffects.ET_EMPHASISE_UNDERLINE = oEffects.ET_EMPHASISE | 17;
-    oEffects['ET_EMPHASISE_COLOR_PULSE'] = oEffects.ET_EMPHASISE_COLOR_PULSE = oEffects.ET_EMPHASISE | 18;
-    oEffects['ET_EMPHASISE_GROW_WITH_COLOR'] = oEffects.ET_EMPHASISE_GROW_WITH_COLOR = oEffects.ET_EMPHASISE | 19;
-    oEffects['ET_EMPHASISE_SHIMMER'] = oEffects.ET_EMPHASISE_SHIMMER = oEffects.ET_EMPHASISE | 20;
-    oEffects['ET_EMPHASISE_TEETER'] = oEffects.ET_EMPHASISE_TEETER = oEffects.ET_EMPHASISE | 21;
-    oEffects['ET_EMPHASISE_BLINK'] = oEffects.ET_EMPHASISE_BLINK = oEffects.ET_EMPHASISE | 22;
-    oEffects['ET_EMPHASISE_BOLD_REVEAL'] = oEffects.ET_EMPHASISE_BOLD_REVEAL = oEffects.ET_EMPHASISE | 23;
-    oEffects['ET_EMPHASISE_WAVE'] = oEffects.ET_EMPHASISE_WAVE = oEffects.ET_EMPHASISE | 24;
-
-    oEffects.ET_EXIT = 4 << 16;
-    oEffects['ET_EXIT_BLINDS'] = oEffects.ET_EXIT_BLINDS = oEffects.ET_EXIT | 1;
-    oEffects['ET_EXIT_BOX'] = oEffects.ET_EXIT_BOX = oEffects.ET_EXIT | 2;
-    oEffects['ET_EXIT_CHECKERBOARD'] = oEffects.ET_EXIT_CHECKERBOARD = oEffects.ET_EXIT | 3;
-    oEffects['ET_EXIT_CIRCLE'] = oEffects.ET_EXIT_CIRCLE = oEffects.ET_EXIT | 4;
-    oEffects['ET_EXIT_DIAMOND'] = oEffects.ET_EXIT_DIAMOND = oEffects.ET_EXIT | 5;
-    oEffects['ET_EXIT_DISAPPEAR'] = oEffects.ET_EXIT_DISAPPEAR = oEffects.ET_EXIT | 6;
-    oEffects['ET_EXIT_DISSOLVE_OUT'] = oEffects.ET_EXIT_DISSOLVE_OUT = oEffects.ET_EXIT | 7;
-    oEffects['ET_EXIT_FLY_OUT'] = oEffects.ET_EXIT_FLY_OUT = oEffects.ET_EXIT | 8;
-    oEffects['ET_EXIT_PEEK_OUT'] = oEffects.ET_EXIT_PEEK_OUT = oEffects.ET_EXIT | 9;
-    oEffects['ET_EXIT_PLUS'] = oEffects.ET_EXIT_PLUS = oEffects.ET_EXIT | 10;
-    oEffects['ET_EXIT_RANDOM_BARS'] = oEffects.ET_EXIT_RANDOM_BARS = oEffects.ET_EXIT | 11;
-    oEffects['ET_EXIT_SPLIT'] = oEffects.ET_EXIT_SPLIT = oEffects.ET_EXIT | 12;
-    oEffects['ET_EXIT_STRIPS'] = oEffects.ET_EXIT_STRIPS = oEffects.ET_EXIT | 13;
-    oEffects['ET_EXIT_WEDGE'] = oEffects.ET_EXIT_WEDGE = oEffects.ET_EXIT | 14;
-    oEffects['ET_EXIT_WHEEL'] = oEffects.ET_EXIT_WHEEL = oEffects.ET_EXIT | 15;
-    oEffects['ET_EXIT_WIPE'] = oEffects.ET_EXIT_WIPE = oEffects.ET_EXIT | 16;
-    oEffects['ET_EXIT_CONTRACT'] = oEffects.ET_EXIT_CONTRACT = oEffects.ET_EXIT | 17;
-    oEffects['ET_EXIT_FADE'] = oEffects.ET_EXIT_FADE = oEffects.ET_EXIT | 18;
-    oEffects['ET_EXIT_SWIVEL'] = oEffects.ET_EXIT_SWIVEL = oEffects.ET_EXIT | 19;
-    oEffects['ET_EXIT_ZOOM'] = oEffects.ET_EXIT_ZOOM = oEffects.ET_EXIT | 20;
-    oEffects['ET_EXIT_BASIC_ZOOM'] = oEffects.ET_EXIT_BASIC_ZOOM = oEffects.ET_EXIT | 21;
-    oEffects['ET_EXIT_CENTER_REVOLVE'] = oEffects.ET_EXIT_CENTER_REVOLVE = oEffects.ET_EXIT | 22;
-    oEffects['ET_EXIT_COLLAPSE'] = oEffects.ET_EXIT_COLLAPSE = oEffects.ET_EXIT | 23;
-    oEffects['ET_EXIT_FLOAT_DOWN'] = oEffects.ET_EXIT_FLOAT_DOWN = oEffects.ET_EXIT | 24;
-    oEffects['ET_EXIT_FLOAT_UP'] = oEffects.ET_EXIT_FLOAT_UP = oEffects.ET_EXIT | 25;
-    oEffects['ET_EXIT_SHRINK_AND_TURN'] = oEffects.ET_EXIT_SHRINK_AND_TURN = oEffects.ET_EXIT | 26;
-    oEffects['ET_EXIT_SHRINK_DOWN'] = oEffects.ET_EXIT_SHRINK_DOWN = oEffects.ET_EXIT | 27;
-    oEffects['ET_EXIT_SPINNER'] = oEffects.ET_EXIT_SPINNER = oEffects.ET_EXIT | 28;
-    oEffects['ET_EXIT_STRETCHY'] = oEffects.ET_EXIT_STRETCHY = oEffects.ET_EXIT | 29;
-    oEffects['ET_EXIT_BASIC_SWIVEL'] = oEffects.ET_EXIT_BASIC_SWIVEL = oEffects.ET_EXIT | 30;
-    oEffects['ET_EXIT_BOOMERANG'] = oEffects.ET_EXIT_BOOMERANG = oEffects.ET_EXIT | 31;
-    oEffects['ET_EXIT_BOUNCE'] = oEffects.ET_EXIT_BOUNCE = oEffects.ET_EXIT | 32;
-    oEffects['ET_EXIT_CREDITS'] = oEffects.ET_EXIT_CREDITS = oEffects.ET_EXIT | 33;
-    oEffects['ET_EXIT_CURVE_DOWN'] = oEffects.ET_EXIT_CURVE_DOWN = oEffects.ET_EXIT | 34;
-    oEffects['ET_EXIT_DROP'] = oEffects.ET_EXIT_DROP = oEffects.ET_EXIT | 35;
-    oEffects['ET_EXIT_FLIP'] = oEffects.ET_EXIT_FLIP = oEffects.ET_EXIT | 36;
-    oEffects['ET_EXIT_FLOAT'] = oEffects.ET_EXIT_FLOAT = oEffects.ET_EXIT | 37;
-    oEffects['ET_EXIT_PINWHEEL'] = oEffects.ET_EXIT_PINWHEEL = oEffects.ET_EXIT | 38;
-    oEffects['ET_EXIT_SPIRAL_OUT'] = oEffects.ET_EXIT_SPIRAL_OUT = oEffects.ET_EXIT | 39;
-    oEffects['ET_EXIT_WHIP'] = oEffects.ET_EXIT_WHIP = oEffects.ET_EXIT | 40;
-
-    oEffects.ET_MOTION = 5 << 16;
-    oEffects['ET_MOTION_4_POINT_STAR'] = oEffects.ET_MOTION_4_POINT_STAR = oEffects.ET_MOTION | 1;
-    oEffects['ET_MOTION_5_POINT_STAR'] = oEffects.ET_MOTION_5_POINT_STAR = oEffects.ET_MOTION | 2;
-    oEffects['ET_MOTION_6_POINT_STAR'] = oEffects.ET_MOTION_6_POINT_STAR = oEffects.ET_MOTION | 3;
-    oEffects['ET_MOTION_8_POINT_STAR'] = oEffects.ET_MOTION_8_POINT_STAR = oEffects.ET_MOTION | 4;
-    oEffects['ET_MOTION_CIRCLE'] = oEffects.ET_MOTION_CIRCLE = oEffects.ET_MOTION | 5;
-    oEffects['ET_MOTION_CRESCENT_MOON'] = oEffects.ET_MOTION_CRESCENT_MOON = oEffects.ET_MOTION | 6;
-    oEffects['ET_MOTION_DIAMOND'] = oEffects.ET_MOTION_DIAMOND = oEffects.ET_MOTION | 7;
-    oEffects['ET_MOTION_EQUAL_TRIANGLE'] = oEffects.ET_MOTION_EQUAL_TRIANGLE = oEffects.ET_MOTION | 8;
-    oEffects['ET_MOTION_FOOTBALL'] = oEffects.ET_MOTION_FOOTBALL = oEffects.ET_MOTION | 9;
-    oEffects['ET_MOTION_HEART'] = oEffects.ET_MOTION_HEART = oEffects.ET_MOTION | 10;
-    oEffects['ET_MOTION_HEXAGON'] = oEffects.ET_MOTION_HEXAGON = oEffects.ET_MOTION | 11;
-    oEffects['ET_MOTION_OCTAGON'] = oEffects.ET_MOTION_OCTAGON = oEffects.ET_MOTION | 12;
-    oEffects['ET_MOTION_PARALLELOGRAM'] = oEffects.ET_MOTION_PARALLELOGRAM = oEffects.ET_MOTION | 13;
-    oEffects['ET_MOTION_PENTAGON'] = oEffects.ET_MOTION_PENTAGON = oEffects.ET_MOTION | 14;
-    oEffects['ET_MOTION_RIGHT_TRIANGLE'] = oEffects.ET_MOTION_RIGHT_TRIANGLE = oEffects.ET_MOTION | 15;
-    oEffects['ET_MOTION_SQUARE'] = oEffects.ET_MOTION_SQUARE = oEffects.ET_MOTION | 16;
-    oEffects['ET_MOTION_TEARDROP'] = oEffects.ET_MOTION_TEARDROP = oEffects.ET_MOTION | 17;
-    oEffects['ET_MOTION_TRAPEZOID'] = oEffects.ET_MOTION_TRAPEZOID = oEffects.ET_MOTION | 18;
-    oEffects['ET_MOTION_ARC_DOWN'] = oEffects.ET_MOTION_ARC_DOWN = oEffects.ET_MOTION | 19;
-    oEffects['ET_MOTION_ARC_LEFT'] = oEffects.ET_MOTION_ARC_LEFT = oEffects.ET_MOTION | 20;
-    oEffects['ET_MOTION_ARC_RIGHT'] = oEffects.ET_MOTION_ARC_RIGHT = oEffects.ET_MOTION | 21;
-    oEffects['ET_MOTION_ARC_UP'] = oEffects.ET_MOTION_ARC_UP = oEffects.ET_MOTION | 22;
-    oEffects['ET_MOTION_BOUNCE_LEFT'] = oEffects.ET_MOTION_BOUNCE_LEFT = oEffects.ET_MOTION | 23;
-    oEffects['ET_MOTION_BOUNCE_RIGHT'] = oEffects.ET_MOTION_BOUNCE_RIGHT = oEffects.ET_MOTION | 24;
-    oEffects['ET_MOTION_CURVY_LEFT'] = oEffects.ET_MOTION_CURVY_LEFT = oEffects.ET_MOTION | 25;
-    oEffects['ET_MOTION_CURVY_RIGHT'] = oEffects.ET_MOTION_CURVY_RIGHT = oEffects.ET_MOTION | 26;
-    oEffects['ET_MOTION_DECAYING_WAVE'] = oEffects.ET_MOTION_DECAYING_WAVE = oEffects.ET_MOTION | 27;
-    oEffects['ET_MOTION_DIAGONAL_DOWN_RIGHT'] = oEffects.ET_MOTION_DIAGONAL_DOWN_RIGHT = oEffects.ET_MOTION | 28;
-    oEffects['ET_MOTION_DIAGONAL_UP_RIGHT'] = oEffects.ET_MOTION_DIAGONAL_UP_RIGHT = oEffects.ET_MOTION | 29;
-    oEffects['ET_MOTION_DOWN'] = oEffects.ET_MOTION_DOWN = oEffects.ET_MOTION | 30;
-    oEffects['ET_MOTION_FUNNEL'] = oEffects.ET_MOTION_FUNNEL = oEffects.ET_MOTION | 31;
-    oEffects['ET_MOTION_HEARTBEAT'] = oEffects.ET_MOTION_HEARTBEAT = oEffects.ET_MOTION | 32;
-    oEffects['ET_MOTION_LEFT'] = oEffects.ET_MOTION_LEFT = oEffects.ET_MOTION | 33;
-    oEffects['ET_MOTION_RIGHT'] = oEffects.ET_MOTION_RIGHT = oEffects.ET_MOTION | 34;
-    oEffects['ET_MOTION_S_CURVE_1'] = oEffects.ET_MOTION_S_CURVE_1 = oEffects.ET_MOTION | 35;
-    oEffects['ET_MOTION_S_CURVE_2'] = oEffects.ET_MOTION_S_CURVE_2 = oEffects.ET_MOTION | 36;
-    oEffects['ET_MOTION_SINE_WAVE'] = oEffects.ET_MOTION_SINE_WAVE = oEffects.ET_MOTION | 37;
-    oEffects['ET_MOTION_SPIRAL_LEFT'] = oEffects.ET_MOTION_SPIRAL_LEFT = oEffects.ET_MOTION | 38;
-    oEffects['ET_MOTION_SPIRAL_RIGHT'] = oEffects.ET_MOTION_SPIRAL_RIGHT = oEffects.ET_MOTION | 39;
-    oEffects['ET_MOTION_SPRING'] = oEffects.ET_MOTION_SPRING = oEffects.ET_MOTION | 40;
-    oEffects['ET_MOTION_STAIRS_DOWN'] = oEffects.ET_MOTION_STAIRS_DOWN = oEffects.ET_MOTION | 41;
-    oEffects['ET_MOTION_TURN_DOWN'] = oEffects.ET_MOTION_TURN_DOWN = oEffects.ET_MOTION | 42;
-    oEffects['ET_MOTION_TURN_DOWN_RIGHT'] = oEffects.ET_MOTION_TURN_DOWN_RIGHT = oEffects.ET_MOTION | 43;
-    oEffects['ET_MOTION_TURN_UP'] = oEffects.ET_MOTION_TURN_UP = oEffects.ET_MOTION | 44;
-    oEffects['ET_MOTION_TURN_UP_RIGHT'] = oEffects.ET_MOTION_TURN_UP_RIGHT = oEffects.ET_MOTION | 45;
-    oEffects['ET_MOTION_UP'] = oEffects.ET_MOTION_UP = oEffects.ET_MOTION | 46;
-    oEffects['ET_MOTION_WAVE'] = oEffects.ET_MOTION_WAVE = oEffects.ET_MOTION | 47;
-    oEffects['ET_MOTION_ZIGZAG'] = oEffects.ET_MOTION_ZIGZAG = oEffects.ET_MOTION | 48;
-    oEffects['ET_MOTION_BEAN'] = oEffects.ET_MOTION_BEAN = oEffects.ET_MOTION | 49;
-    oEffects['ET_MOTION_CURVED_SQUARE'] = oEffects.ET_MOTION_CURVED_SQUARE = oEffects.ET_MOTION | 50;
-    oEffects['ET_MOTION_CURVED_X'] = oEffects.ET_MOTION_CURVED_X = oEffects.ET_MOTION | 51;
-    oEffects['ET_MOTION_CURVY_STAR'] = oEffects.ET_MOTION_CURVY_STAR = oEffects.ET_MOTION | 52;
-    oEffects['ET_MOTION_FIGURE_8_FOUR'] = oEffects.ET_MOTION_FIGURE_8_FOUR = oEffects.ET_MOTION | 53;
-    oEffects['ET_MOTION_HORIZONTAL_FIGURE_8'] = oEffects.ET_MOTION_HORIZONTAL_FIGURE_8 = oEffects.ET_MOTION | 54;
-    oEffects['ET_MOTION_INVERTED_SQUARE'] = oEffects.ET_MOTION_INVERTED_SQUARE = oEffects.ET_MOTION | 55;
-    oEffects['ET_MOTION_INVERTED_TRIANGLE'] = oEffects.ET_MOTION_INVERTED_TRIANGLE = oEffects.ET_MOTION | 56;
-    oEffects['ET_MOTION_LOOP_DE_LOOP'] = oEffects.ET_MOTION_LOOP_DE_LOOP = oEffects.ET_MOTION | 57;
-    oEffects['ET_MOTION_NEUTRON'] = oEffects.ET_MOTION_NEUTRON = oEffects.ET_MOTION | 58;
-    oEffects['ET_MOTION_PEANUT'] = oEffects.ET_MOTION_PEANUT = oEffects.ET_MOTION | 59;
-    oEffects['ET_MOTION_PLUS'] = oEffects.ET_MOTION_PLUS = oEffects.ET_MOTION | 61;
-    oEffects['ET_MOTION_POINTY_STAR'] = oEffects.ET_MOTION_POINTY_STAR = oEffects.ET_MOTION | 62;
-    oEffects['ET_MOTION_SWOOSH'] = oEffects.ET_MOTION_SWOOSH = oEffects.ET_MOTION | 63;
-    oEffects['ET_MOTION_VERTICAL_FIGURE_8'] = oEffects.ET_MOTION_VERTICAL_FIGURE_8 = oEffects.ET_MOTION | 64;
-
-    oEffects['START_ON_CLICK'] = oEffects.START_ON_CLICK = 0;
-    oEffects['START_WITH_PREVIOUS'] = oEffects.START_WITH_PREVIOUS = 1;
-    oEffects['START_AFTER_PREVIOUS'] = oEffects.START_AFTER_PREVIOUS = 2;
-
-    oEffects['REPEAT_NONE'] = oEffects.REPEAT_NONE = 0;
-    oEffects['REPEAT_UNTIL_NEXT_CLICK'] = oEffects.REPEAT_UNTIL_NEXT_CLICK = -1;
-    oEffects['REPEAT_UNTIL_END_OF_SLIDE'] = oEffects.REPEAT_UNTIL_END_OF_SLIDE = -2;
-
-
-    oEffects['SOUND_NO_SOUND'] = oEffects.SOUND_NO_SOUND = 0;
-    oEffects['SOUND_NO_STOP_PREVIOUS'] = oEffects.SOUND_NO_STOP_PREVIOUS = 1;
-
-    oEffects['ANIMATE_TEXT_ALL_AT_ONCE'] = oEffects.ANIMATE_TEXT_ALL_AT_ONCE = 0;
-    oEffects['ANIMATE_TEXT_BY_WORD'] = oEffects.ANIMATE_TEXT_BY_WORD = 1;
-    oEffects['ANIMATE_TEXT_BY_LETTER'] = oEffects.ANIMATE_TEXT_BY_LETTER = 2;
-
-    oEffects['GROUP_TEXT_AS_ONE_OBJECT'] = oEffects.GROUP_TEXT_AS_ONE_OBJECT = 0;
-    oEffects['GROUP_ALL_PARAGRAPHS'] = oEffects.GROUP_ALL_PARAGRAPHS = 1;
-    oEffects['GROUP_1ST_LEVEL'] = oEffects.GROUP_1ST_LEVEL = 2;
-    oEffects['GROUP_2ND_LEVEL'] = oEffects.GROUP_2ND_LEVEL = 3;
-    oEffects['GROUP_3RD_LEVEL'] = oEffects.GROUP_3RD_LEVEL = 4;
-    oEffects['GROUP_4TH_LEVEL'] = oEffects.GROUP_4TH_LEVEL = 5;
-    oEffects['GROUP_5TH_LEVEL'] = oEffects.GROUP_5TH_LEVEL = 6;
-
-    oEffects['DIR_HORIZONTAL'] = oEffects.DIR_HORIZONTAL = 0;
-    oEffects['DIR_VERTICAL'] = oEffects.DIR_VERTICAL = 1;
-    oEffects['DIR_IN'] = oEffects.DIR_IN = 2;
-    oEffects['DIR_OUT'] = oEffects.DIR_OUT = 3;
-    oEffects['DIR_ACROSS'] = oEffects.DIR_ACROSS = 4;
-    oEffects['DIR_DOWN'] = oEffects.DIR_DOWN = 5;
-    oEffects['DIR_BOTTOM'] = oEffects.DIR_BOTTOM = 6;
-    oEffects['DIR_BOTTOM_LEFT'] = oEffects.DIR_BOTTOM_LEFT = 7;
-    oEffects['DIR_LEFT'] = oEffects.DIR_LEFT = 8;
-    oEffects['DIR_TOP_LEFT'] = oEffects.DIR_TOP_LEFT = 9;
-    oEffects['DIR_TOP'] = oEffects.DIR_TOP = 10;
-    oEffects['DIR_TOP_RIGHT'] = oEffects.DIR_TOP_RIGHT = 11;
-    oEffects['DIR_RIGHT'] = oEffects.DIR_RIGHT = 12;
-    oEffects['DIR_BOTTOM_RIGHT'] = oEffects.DIR_BOTTOM_RIGHT = 13;
-    oEffects['DIR_HORIZONTAL_IN'] = oEffects.DIR_HORIZONTAL_IN = 14;
-    oEffects['DIR_HORIZONTAL_OUT'] = oEffects.DIR_HORIZONTAL_OUT = 15;
-    oEffects['DIR_VERTICAL_IN'] = oEffects.DIR_VERTICAL_IN = 16;
-    oEffects['DIR_VERTICAL_OUT'] = oEffects.DIR_VERTICAL_OUT = 17;
-    oEffects['DIR_LEFT_DOWN'] = oEffects.DIR_LEFT_DOWN = 18;
-    oEffects['DIR_LEFT_UP'] = oEffects.DIR_LEFT_UP = 19;
-    oEffects['DIR_RIGHT_DOWN'] = oEffects.DIR_RIGHT_DOWN = 20;
-    oEffects['DIR_RIGHT_UP = oEffects.DIR_RIGHT_UP = 21;
-    oEffects['DIR_BOTH'] = oEffects.DIR_BOTH = 22;
-    oEffects['DIR_CLOCKWISE'] = oEffects.DIR_CLOCKWISE = 23;
-    oEffects['DIR_COUNTER_CLOCKWISE'] = oEffects.DIR_COUNTER_CLOCKWISE = 24;
-
-    oEffects['VANISHING_PT_OBJECT'] = oEffects.VANISHING_PT_OBJECT = 0;
-    oEffects['VANISHING_PT_SLIDE'] = oEffects.VANISHING_PT_SLIDE = 1;
-
-    oEffects['ZOOM_IN'] = oEffects.ZOOM_IN = 0;
-    oEffects['ZOOM_IN_FROM_SCREEN_CENTER'] = oEffects.ZOOM_IN_FROM_SCREEN_CENTER = 1;
-    oEffects['ZOOM_IN_SLIGHTLY'] = oEffects.ZOOM_IN_SLIGHTLY = 2;
-    oEffects['ZOOM_OUT'] = oEffects.ZOOM_OUT = 3;
-    oEffects['ZOOM_OUT_FROM_SCREEN_BOTTOM'] = oEffects.ZOOM_OUT_FROM_SCREEN_BOTTOM = 4;
-    oEffects['ZOOM_OUT_SLIGHTLY'] = oEffects.ZOOM_OUT_SLIGHTLY = 5;
-
-    oEffects['AMOUNT_TINY'] = oEffects.AMOUNT_TINY = 0;
-    oEffects['AMOUNT_SMALLER'] = oEffects.AMOUNT_SMALLER = 1;
-    oEffects['AMOUNT_LARGER'] = oEffects.AMOUNT_LARGER = 2;
-    oEffects['AMOUNT_HUGE'] = oEffects.AMOUNT_HUGE = 3;
-    oEffects['AMOUNT_QUARTER_SPIN'] = oEffects.AMOUNT_QUARTER_SPIN = 4;
-    oEffects['AMOUNT_HALF_SPIN'] = oEffects.AMOUNT_HALF_SPIN = 5;
-    oEffects['AMOUNT_FULL_SPIN'] = oEffects.AMOUNT_FULL_SPIN = 6;
-    oEffects['AMOUNT_TWO_SPIN'] = oEffects.AMOUNT_TWO_SPIN = 7;
-    oEffects['AMOUNT_25_PCT'] = oEffects.AMOUNT_25_PCT = 8;
-    oEffects['AMOUNT_50_PCT'] = oEffects.AMOUNT_50_PCT = 9;
-    oEffects['AMOUNT_75_PCT'] = oEffects.AMOUNT_75_PCT = 10;
-    oEffects['AMOUNT_100_PCT'] = oEffects.AMOUNT_100_PCT = 11;
-
-    oEffects['ORIGIN_LOCKED'] = oEffects.ORIGIN_LOCKED = 0;
-    oEffects['ORIGIN_UNLOCKED'] = oEffects.ORIGIN_UNLOCKED = 1;
-
-    function CEffectBase() {
-        this.start = oEffects.START_ON_CLICK;
-        this.delay = 0;
-        this.duration = 0;
-        this.repeat = oEffects.REPEAT_NONE;
-        this.rewind = false;
-
-        this.clickSeq = true;
-        this.clickOf = null;
-        this.playOf = null;
-
-
-        this.sound = oEffects.SOUND_NO_SOUND;
-        this.afterColor = null;
-        this.afterDoNotDim = true;
-        this.afterHide = null;
-        this.afterHideOnClick = null;
-
-        this.animateText = oEffects.ANIMATE_TEXT_ALL_AT_ONCE;
-        this.delayBetweenWords = null;
-
-        this.groupText = oEffects.GROUP_TEXT_AS_ONE_OBJECT;
-        this.automaticallyAfter = null;
-        this.animateAttachedShape = null;
-        this.inReverseOrder = null;
-
-    }
-    CEffectBase.prototype.classType = oEffects.ET_UNKNOWN;
-    CEffectBase.prototype.getType = function() {
-        return this.classType;
-    };
-    CEffectBase.prototype.getStart = function() {
-        return this.start;
-    };
-    CEffectBase.prototype.getDelay = function() {
-        return this.delay;
-    };
-    CEffectBase.prototype.getDuration = function() {
-        return this.duration;
-    };
-    CEffectBase.prototype.getRepeat = function() {
-        return this.repeat;
-    };
-    CEffectBase.prototype.getRewind = function() {
-        return this.rewind;
-    };
-    CEffectBase.prototype.getClickSeq = function() {
-        return this.clickSeq;
-    };
-    CEffectBase.prototype.getClickOf = function() {
-        return this.clickOf;
-    };
-    CEffectBase.prototype.getPlayOf = function() {
-        return this.playOf;
-    };
-    CEffectBase.prototype.getGroupText = function() {
-        return this.groupText;
-    };
-    CEffectBase.prototype.getAutomaticallyAfter = function() {
-        return this.automaticallyAfter;
-    };
-    CEffectBase.prototype.getAnimateAttachedShape = function() {
-        return this.animateAttachedShape;
-    };
-    CEffectBase.prototype.getInReverseOrder = function() {
-        return this.inReverseOrder;
-    };
-    CEffectBase.prototype.setStart = function(v) {
-        this.start = v;
-    };
-    CEffectBase.prototype.setDelay = function(v) {
-        this.delay = v;
-    };
-    CEffectBase.prototype.setDuration = function(v) {
-        this.duration = v;
-    };
-    CEffectBase.prototype.setRepeat = function(v) {
-        this.repeat = v;
-    };
-    CEffectBase.prototype.setRewind = function(v) {
-        this.rewind = v;
-    };
-    CEffectBase.prototype.setClickSeq = function() {
-        this.clickSeq = true;
-        this.clickOf = null;
-        this.playOf = null;
-    };
-    CEffectBase.prototype.setClickOf = function(v) {
-        if(typeof v === "string") {
-            this.clickOf = v;
-            this.clickSeq = null;
-            this.playOf = null;
-        }
-    };
-    CEffectBase.prototype.setPlayOf = function(v) {
-        this.playOf = v;
-        this.clickSeq = null;
-        this.clickOf = null;
-    };
-    CEffectBase.prototype.setGroupText = function(v) {
-        this.groupText = v;
-    };
-    CEffectBase.prototype.setAutomaticallyAfter = function(v) {
-        this.automaticallyAfter = v;
-    };
-    CEffectBase.prototype.setAnimateAttachedShape = function(v) {
-        this.animateAttachedShape = v;
-    };
-    CEffectBase.prototype.setInReverseOrder = function(v) {
-        this.inReverseOrder = v;
-    };
-    CEffectBase.prototype["getType"] = CEffectBase.prototype.getType;
-    CEffectBase.prototype["getStart"] = CEffectBase.prototype.getStart;
-    CEffectBase.prototype["getDelay"] = CEffectBase.prototype.getDelay;
-    CEffectBase.prototype["getDuration"] = CEffectBase.prototype.getDuration;
-    CEffectBase.prototype["getRepeat"] = CEffectBase.prototype.getRepeat;
-    CEffectBase.prototype["getRewind"] = CEffectBase.prototype.getRewind;
-    CEffectBase.prototype["getClickSeq"] = CEffectBase.prototype.getClickSeq;
-    CEffectBase.prototype["getClickOf"] = CEffectBase.prototype.getClickOf;
-    CEffectBase.prototype["getPlayOf"] = CEffectBase.prototype.getPlayOf;
-    CEffectBase.prototype["getGroupText"] = CEffectBase.prototype.getGroupText;
-    CEffectBase.prototype["getAutomaticallyAfter"] = CEffectBase.prototype.getAutomaticallyAfter;
-    CEffectBase.prototype["getAnimateAttachedShape"] = CEffectBase.prototype.getAnimateAttachedShape;
-    CEffectBase.prototype["getInReverseOrder"] = CEffectBase.prototype.getInReverseOrder;
-    CEffectBase.prototype["setStart"] = CEffectBase.prototype.setStart;
-    CEffectBase.prototype["setDelay"] = CEffectBase.prototype.setDelay;
-    CEffectBase.prototype["setDuration"] = CEffectBase.prototype.setDuration;
-    CEffectBase.prototype["setRepeat"] = CEffectBase.prototype.setRepeat;
-    CEffectBase.prototype["setRewind"] = CEffectBase.prototype.setRewind;
-    CEffectBase.prototype["setClickSeq"] = CEffectBase.prototype.setClickSeq;
-    CEffectBase.prototype["setClickOf"] = CEffectBase.prototype.setClickOf;
-    CEffectBase.prototype["setPlayOf"] = CEffectBase.prototype.setPlayOf;
-    CEffectBase.prototype["setGroupText"] = CEffectBase.prototype.setGroupText;
-    CEffectBase.prototype["setAutomaticallyAfter"] = CEffectBase.prototype.setAutomaticallyAfter;
-    CEffectBase.prototype["setAnimateAttachedShape"] = CEffectBase.prototype.setAnimateAttachedShape;
-    CEffectBase.prototype["setInReverseOrder"] = CEffectBase.prototype.setInReverseOrder;
-
-    function CNone() {
-        CEffectBase.call(this);
-    }
-    InitClass(CNone, CEffectBase, oEffects.ET_NONE);
-
-    function CMultiple() {
-        CEffectBase.call(this);
-    }
-    InitClass(CMultiple, CEffectBase, oEffects.ET_MULTIPLE);
-
-    function CEntranceAppear() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceAppear, CEffectBase, oEffects.ET_ENTRANCE_APPEAR);
-
-    function CEffectWithDir() {
-        CEffectBase.call(this);
-        this.dir = oEffects.DIR_HORIZONTAL;
-    }
-    InitClass(CEffectWithDir, CEffectBase, oEffects.ET_UNKNOWN);
-    CEffectWithDir.prototype.getDir = function() {
-        return this.dir;
-    };
-    CEffectWithDir.prototype.setDir = function(v) {
-        this.dir = v;
-    };
-    CEffectWithDir.prototype["getDir"] = CEffectWithDir.prototype.getDir;
-    CEffectWithDir.prototype["setDir"] = CEffectWithDir.prototype.setDir;
-
-    function CEffectWithSpokes() {
-        CEffectBase.call(this);
-        this.spokes = 1;
-    }
-    InitClass(CEffectWithSpokes, CEffectBase, oEffects.ET_UNKNOWN);
-    CEffectWithSpokes.prototype.getSpokes = function() {
-        return this.spokes;
-    };
-    CEffectWithSpokes.prototype.setSpokes = function(v) {
-        this.spokes = v;
-    };
-    CEffectWithSpokes.prototype["getSpokes"] = CEffectWithDir.prototype.getSpokes;
-    CEffectWithSpokes.prototype["setSpokes"] = CEffectWithDir.prototype.setSpokes;
-
-    function CEffectWithVanishingPoint() {
-        CEffectBase.call(this);
-        this.vashingPoint = oEffects.VANISHING_PT_OBJECT;
-    }
-    InitClass(CEffectWithVanishingPoint, CEffectBase, oEffects.ET_UNKNOWN);
-    CEffectWithVanishingPoint.prototype.getVanishingPoint = function () {
-        return this.vashingPoint;
-    };
-    CEffectWithVanishingPoint.prototype.setVanishingPoint = function (v) {
-        this.vashingPoint = v;
-    };
-    CEffectWithVanishingPoint.prototype["getVanishingPoint"] = CEffectWithVanishingPoint.prototype.getVanishingPoint;
-    CEffectWithVanishingPoint.prototype["setVanishingPoint"] = CEffectWithVanishingPoint.prototype.setVanishingPoint;
-
-    function CEffectWithZoom() {
-        CEffectBase.call(this);
-        this.zoom = oEffects.ZOOM_IN;
-    }
-    InitClass(CEffectWithZoom, CEffectBase, oEffects.ET_UNKNOWN);
-    CEffectWithZoom.prototype.getZoom = function () {
-        return this.zoom;
-    };
-    CEffectWithZoom.prototype.setZoom = function (v) {
-        this.zoom = v;
-    };
-    CEffectWithZoom.prototype["getZoom"] = CEffectWithZoom.prototype.getZoom;
-    CEffectWithZoom.prototype["setZoom"] = CEffectWithZoom.prototype.setZoom;
-
-    function CEffectWithColor() {
-        CEffectBase.call(this);
-        this.color = AscFormat.CreateUniColorRGB(0, 0, 0);
-    }
-    InitClass(CEffectWithColor, CEffectBase, oEffects.ET_UNKNOWN);
-    CEffectWithColor.prototype.getColor = function () {
-        return this.color;
-    };
-    CEffectWithColor.prototype.setColor = function (v) {
-        this.color = v;
-    };
-    CEffectWithColor.prototype["getColor"] = CEffectWithColor.prototype.getColor;
-    CEffectWithColor.prototype["setColor"] = CEffectWithColor.prototype.setColor;
-
-
-
-    function CEntranceBlinds() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_HORIZONTAL;
-    }
-    InitClass(CEntranceBlinds, CEffectWithDir, oEffects.ET_ENTRANCE_BLINDS);
-
-    function CEntranceBox() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_IN;
-    }
-    InitClass(CEntranceBox, CEffectWithDir, oEffects.ET_ENTRANCE_BOX);
-
-    function CEntranceCheckerboard() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_ACROSS;
-    }
-    InitClass(CEntranceCheckerboard, CEffectWithDir, oEffects.ET_ENTRANCE_CHECKERBOARD);
-
-    function CEntranceCircle() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_IN;
-    }
-    InitClass(CEntranceCircle, CEffectWithDir, oEffects.ET_ENTRANCE_CIRCLE);
-
-    function CEntranceDiamond() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_IN;
-    }
-    InitClass(CEntranceDiamond, CEffectWithDir, oEffects.ET_ENTRANCE_DIAMOND);
-
-    function CEntranceDissolveIn() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceDissolveIn, CEffectBase, oEffects.ET_ENTRANCE_DISSOLVE_IN);
-
-    function CEntranceFlyIn() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_BOTTOM;
-    }
-    InitClass(CEntranceFlyIn, CEffectWithDir, oEffects.ET_ENTRANCE_FLY_IN);
-
-    function CEntrancePeekIn() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_BOTTOM;
-    }
-    InitClass(CEntrancePeekIn, CEffectWithDir, oEffects.ET_ENTRANCE_PEEK_IN);
-
-    function CEntrancePlus() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_IN;
-    }
-    InitClass(CEntrancePlus, CEffectWithDir, oEffects.ET_ENTRANCE_PLUS);
-
-    function CEntranceRandomBars() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_HORIZONTAL;
-    }
-    InitClass(CEntranceRandomBars, CEffectWithDir, oEffects.ET_ENTRANCE_RANDOM_BARS);
-
-    function CEntranceSplit() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_VERTICAL_IN;
-    }
-    InitClass(CEntranceSplit, CEffectWithDir, oEffects.ET_ENTRANCE_SPLIT);
-
-    function CEntranceStrips() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_LEFT_DOWN;
-    }
-    InitClass(CEntranceStrips, CEffectWithDir, oEffects.ET_ENTRANCE_STRIPS);
-
-    function CEntranceWedge() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceWedge, CEffectBase, oEffects.ET_ENTRANCE_WEDGE);
-
-    function CEntranceWheel() {
-        CEffectWithSpokes.call(this);
-    }
-    InitClass(CEntranceWheel, CEffectWithSpokes, oEffects.ET_ENTRANCE_WHEEL);
-
-    function CEntranceWipe() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_BOTTOM;
-    }
-    InitClass(CEntranceWipe, CEffectWithDir, oEffects.ET_ENTRANCE_WIPE);
-
-    function CEntranceExpand() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceExpand, CEffectBase, oEffects.ET_ENTRANCE_EXPAND);
-
-    function CEntranceFade() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceFade, CEffectBase, oEffects.ET_ENTRANCE_FADE);
-
-    function CEntranceSwivel() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceSwivel, CEffectBase, oEffects.ET_ENTRANCE_SWIVEL);
-
-    function CEntranceZoom() {
-        CEffectWithVanishingPoint.call(this);
-    }
-    InitClass(CEntranceZoom, CEffectWithVanishingPoint, oEffects.ET_ENTRANCE_ZOOM);
-
-    function CEntranceBasicZoom() {
-        CEffectWithZoom.call(this);
-    }
-    InitClass(CEntranceBasicZoom, CEffectWithZoom, oEffects.ET_ENTRANCE_BASIC_ZOOM);
-
-    function CEntranceCenterRevolve() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceCenterRevolve, CEffectBase, oEffects.ET_ENTRANCE_CENTER_REVOLVE);
-
-    function CEntranceCompress() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceCompress, CEffectBase, oEffects.ET_ENTRANCE_COMPRESS);
-
-    function CEntranceFloatDown() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceFloatDown, CEffectBase, oEffects.ET_ENTRANCE_FLOAT_DOWN);
-
-    function CEntranceFloatUp() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceFloatUp, CEffectBase, oEffects.ET_ENTRANCE_FLOAT_UP);
-
-    function CEntranceGrowAndTurn() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceGrowAndTurn, CEffectBase, oEffects.ET_ENTRANCE_GROW_AND_TURN);
-
-    function CEntranceRiseUp() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceRiseUp, CEffectBase, oEffects.ET_ENTRANCE_RISE_UP);
-
-    function CEntranceSpinner() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceSpinner, CEffectBase, oEffects.ET_ENTRANCE_SPINNER);
-
-    function CEntranceStretch() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_ACROSS;
-    }
-    InitClass(CEntranceStretch, CEffectWithDir, oEffects.ET_ENTRANCE_STRETCH);
-
-    function CEntranceBasicSwivel() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_HORIZONTAL;
-    }
-    InitClass(CEntranceBasicSwivel, CEffectWithDir, oEffects.ET_ENTRANCE_BASIC_SWIVEL);
-
-    function CEntranceBoomerang() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceBoomerang, CEffectBase, oEffects.ET_ENTRANCE_BOOMERANG);
-
-    function CEntranceBounce() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceBounce, CEffectBase, oEffects.ET_ENTRANCE_BOUNCE);
-
-    function CEntranceCredits() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceCredits, CEffectBase, oEffects.ET_ENTRANCE_CREDITS);
-
-    function CEntranceCurveUp() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceCurveUp, CEffectBase, oEffects.ET_ENTRANCE_CURVE_UP);
-
-    function CEntranceDrop() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceDrop, CEffectBase, oEffects.ET_ENTRANCE_DROP);
-
-    function CEntranceFlip() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceFlip, CEffectBase, oEffects.ET_ENTRANCE_FLIP);
-
-    function CEntranceFloat() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceFloat, CEffectBase, oEffects.ET_ENTRANCE_FLOAT);
-
-    function CEntrancePinwheel() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntrancePinwheel, CEffectBase, oEffects.ET_ENTRANCE_PINWHEEL);
-
-    function CEntranceSpiralIn() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceSpiralIn, CEffectBase, oEffects.ET_ENTRANCE_SPIRAL_IN);
-
-    function CEntranceWhip() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEntranceWhip, CEffectBase, oEffects.ET_ENTRANCE_WHIP);
-
-    function CEmphasiseFillColor() {
-        CEffectWithColor.call(this);
-    }
-    InitClass(CEmphasiseFillColor, CEffectWithColor, oEffects.ET_EMPHASISE_FILL_COLOR);
-
-    function CEmphasiseFontColor() {
-        CEffectWithColor.call(this);
-    }
-    InitClass(CEmphasiseFontColor, CEffectWithColor, oEffects.ET_EMPHASISE_FONT_COLOR);
-
-    function CEmphasiseGrowShrink() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_BOTH;
-        this.amount = oEffects.AMOUNT_LARGER;
-    }
-    InitClass(CEmphasiseGrowShrink, CEffectWithDir, oEffects.ET_EMPHASISE_GROW_SHRINK);
-    CEmphasiseGrowShrink.prototype.getAmount = function() {
-        return this.amount;
-    };
-    CEmphasiseGrowShrink.prototype.setAmount = function(v) {
-        this.amount = v;
-    };
-    CEmphasiseGrowShrink.prototype["getAmount"] = CEmphasiseGrowShrink.prototype.getAmount;
-    CEmphasiseGrowShrink.prototype["setAmount"] = CEmphasiseGrowShrink.prototype.setAmount;
-
-    function CEmphasiseLineColor() {
-        CEffectWithColor.call(this);
-    }
-    InitClass(CEmphasiseLineColor, CEffectWithColor, oEffects.ET_EMPHASISE_LINE_COLOR);
-
-    function CEmphasiseSpin() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_CLOCKWISE;
-        this.amount = oEffects.AMOUNT_FULL_SPIN;
-    }
-    InitClass(CEmphasiseSpin, CEffectWithDir, oEffects.ET_EMPHASISE_SPIN);
-    CEmphasiseSpin.prototype.getAmount = function() {
-        return this.amount;
-    };
-    CEmphasiseSpin.prototype.setAmount = function(v) {
-        this.amount = v;
-    };
-    CEmphasiseSpin.prototype["getAmount"] = CEmphasiseSpin.prototype.getAmount;
-    CEmphasiseSpin.prototype["setAmount"] = CEmphasiseSpin.prototype.setAmount;
-
-    function CEmphasiseTransparency() {
-        CEffectBase.call(this);
-        this.amount = oEffects.AMOUNT_50_PCT;
-    }
-    InitClass(CEmphasiseTransparency, CEffectBase, oEffects.ET_EMPHASISE_TRANSPARENCY);
-
-    CEmphasiseTransparency.prototype.getAmount = function() {
-        return this.amount;
-    };
-    CEmphasiseTransparency.prototype.setAmount = function(v) {
-        this.amount = v;
-    };
-    CEmphasiseTransparency.prototype["getAmount"] = CEmphasiseTransparency.prototype.getAmount;
-    CEmphasiseTransparency.prototype["setAmount"] = CEmphasiseTransparency.prototype.setAmount;
-
-    function CEmphasiseBoldFlash() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseBoldFlash, CEffectBase, oEffects.ET_EMPHASISE_BOLD_FLASH);
-
-    function CEmphasiseBrushColor() {
-        CEffectWithColor.call(this);
-    }
-    InitClass(CEmphasiseBrushColor, CEffectWithColor, oEffects.ET_EMPHASISE_BRUSH_COLOR);
-
-    function CEmphasiseComplimentaryColor() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseComplimentaryColor, CEffectBase, oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR);
-
-    function CEmphasiseComplimentaryColor2() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseComplimentaryColor2, CEffectBase, oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR2);
-
-    function CEmphasiseContrastingColor() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseContrastingColor, CEffectBase, oEffects.ET_EMPHASISE_CONTRASTING_COLOR);
-
-    function CEmphasiseDarken() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseDarken, CEffectBase, oEffects.ET_EMPHASISE_DARKEN);
-
-    function CEmphasiseDesaturate() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseDesaturate, CEffectBase, oEffects.ET_EMPHASISE_DESATURATE);
-
-    function CEmphasiseLighten() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseLighten, CEffectBase, oEffects.ET_EMPHASISE_LIGHTEN);
-
-    function CEmphasiseObjectColor() {
-        CEffectWithColor.call(this);
-    }
-    InitClass(CEmphasiseObjectColor, CEffectWithColor, oEffects.ET_EMPHASISE_OBJECT_COLOR);
-
-    function CEmphasisePulse() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasisePulse, CEffectBase, oEffects.ET_EMPHASISE_PULSE);
-
-    function CEmphasiseUnderline() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseUnderline, CEffectBase, oEffects.ET_EMPHASISE_UNDERLINE);
-
-    function CEmphasiseColorPulse() {
-        CEffectWithColor.call(this);
-    }
-    InitClass(CEmphasiseColorPulse, CEffectWithColor, oEffects.ET_EMPHASISE_COLOR_PULSE);
-
-    function CEmphasiseGrowWithColor() {
-        CEffectWithColor.call(this);
-    }
-    InitClass(CEmphasiseGrowWithColor, CEffectWithColor, oEffects.ET_EMPHASISE_GROW_WITH_COLOR);
-
-    function CEmphasiseShimmer() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseShimmer, CEffectBase, oEffects.ET_EMPHASISE_SHIMMER);
-
-    function CEmphasiseTeeter() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseTeeter, CEffectBase, oEffects.ET_EMPHASISE_TEETER);
-
-    function CEmphasiseBlink() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseBlink, CEffectBase, oEffects.ET_EMPHASISE_BLINK);
-
-    function CEmphasiseBoldReveal() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseBoldReveal, CEffectBase, oEffects.ET_EMPHASISE_BOLD_REVEAL);
-
-    function CEmphasiseWave() {
-        CEffectBase.call(this);
-    }
-    InitClass(CEmphasiseWave, CEffectBase, oEffects.ET_EMPHASISE_WAVE);
-
-    function CExitBlinds() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_HORIZONTAL;
-    }
-    InitClass(CExitBlinds, CEffectWithDir, oEffects.ET_EXIT_BLINDS);
-
-    function CExitBox() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_IN;
-    }
-    InitClass(CExitBox, CEffectWithDir, oEffects.ET_EXIT_BOX);
-
-    function CExitCheckerboard() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_ACROSS;
-    }
-    InitClass(CExitCheckerboard, CEffectWithDir, oEffects.ET_EXIT_CHECKERBOARD);
-
-    function CExitCircle() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_IN;
-    }
-    InitClass(CExitCircle, CEffectWithDir, oEffects.ET_EXIT_CIRCLE);
-
-    function CExitDiamond() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_IN;
-    }
-    InitClass(CExitDiamond, CEffectWithDir, oEffects.ET_EXIT_DIAMOND);
-
-    function CExitDisappear() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitDisappear, CEffectBase, oEffects.ET_EXIT_DISAPPEAR);
-
-    function CExitDissolveOut() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitDissolveOut, CEffectBase, oEffects.ET_EXIT_DISSOLVE_OUT);
-
-    function CExitFlyOut() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_BOTTOM;
-    }
-    InitClass(CExitFlyOut, CEffectWithDir, oEffects.ET_EXIT_FLY_OUT);
-
-    function CExitPeekOut() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_BOTTOM;
-    }
-    InitClass(CExitPeekOut, CEffectWithDir, oEffects.ET_EXIT_PEEK_OUT);
-
-    function CExitPlus() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_OUT;
-    }
-    InitClass(CExitPlus, CEffectWithDir, oEffects.ET_EXIT_PLUS);
-
-    function CExitRandomBars() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_HORIZONTAL;
-    }
-    InitClass(CExitRandomBars, CEffectWithDir, oEffects.ET_EXIT_RANDOM_BARS);
-
-    function CExitSplit() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_VERTICAL_IN;
-    }
-    InitClass(CExitSplit, CEffectWithDir, oEffects.ET_EXIT_SPLIT);
-
-    function CExitStrips() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_LEFT_DOWN;
-    }
-    InitClass(CExitStrips, CEffectWithDir, oEffects.ET_EXIT_STRIPS);
-
-    function CExitWedge() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitWedge, CEffectBase, oEffects.ET_EXIT_WEDGE);
-
-    function CExitWheel() {
-        CEffectWithSpokes.call(this);
-    }
-    InitClass(CExitWheel, CEffectWithSpokes, oEffects.ET_EXIT_WHEEL);
-
-    function CExitWhipe() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_BOTTOM;
-    }
-    InitClass(CExitWhipe, CEffectWithDir, oEffects.ET_EXIT_WIPE);
-
-    function CExitExitContract() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitExitContract, CEffectBase, oEffects.ET_EXIT_CONTRACT);
-
-    function CExitFade() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitFade, CEffectBase, oEffects.ET_EXIT_FADE);
-
-    function CExitSwivel() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitSwivel, CEffectBase, oEffects.ET_EXIT_SWIVEL);
-
-    function CExitZoom() {
-        CEffectWithVanishingPoint.call(this);
-    }
-    InitClass(CExitZoom, CEffectWithVanishingPoint, oEffects.ET_EXIT_ZOOM);
-
-    function CExitBasicZoom() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_OUT;
-    }
-    InitClass(CExitBasicZoom, CEffectWithDir, oEffects.ET_EXIT_BASIC_ZOOM);
-
-    function CExitCenterRevolve() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitCenterRevolve, CEffectBase, oEffects.ET_EXIT_CENTER_REVOLVE);
-
-    function CExitCollapse() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_ACROSS;
-    }
-    InitClass(CExitCollapse, CEffectWithDir, oEffects.ET_EXIT_COLLAPSE);
-
-    function CExitFloatDown() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitFloatDown, CEffectBase, oEffects.ET_EXIT_FLOAT_DOWN);
-
-    function CExitFloatUp() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitFloatUp, CEffectBase, oEffects.ET_EXIT_FLOAT_UP);
-
-    function CExitShrinkAndTurn() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitShrinkAndTurn, CEffectBase, oEffects.ET_EXIT_SHRINK_AND_TURN);
-
-    function CExitShrinkDown() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitShrinkDown, CEffectBase, oEffects.ET_EXIT_SHRINK_DOWN);
-
-    function CExitSpinner() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitSpinner, CEffectBase, oEffects.ET_EXIT_SPINNER);
-
-    function CExitStretchy() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitStretchy, CEffectBase, oEffects.ET_EXIT_STRETCHY);
-
-    function CExitBasicSwivel() {
-        CEffectWithDir.call(this);
-        this.dir = oEffects.DIR_HORIZONTAL;
-    }
-    InitClass(CExitBasicSwivel, CEffectWithDir, oEffects.ET_EXIT_BASIC_SWIVEL);
-
-    function CExitBoomerang() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitBoomerang, CEffectBase, oEffects.ET_EXIT_BOOMERANG);
-
-    function CExitBounce() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitBounce, CEffectBase, oEffects.ET_EXIT_BOUNCE);
-
-    function CExitCredits() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitCredits, CEffectBase, oEffects.ET_EXIT_CREDITS);
-
-    function CExitCurveDown() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitCurveDown, CEffectBase, oEffects.ET_EXIT_CURVE_DOWN);
-
-    function CExitDrop() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitDrop, CEffectBase, oEffects.ET_EXIT_DROP);
-
-    function CExitFlip() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitFlip, CEffectBase, oEffects.ET_EXIT_FLIP);
-
-    function CExitFloat() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitFloat, CEffectBase, oEffects.ET_EXIT_FLOAT);
-
-    function CExitPinwheel() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitPinwheel, CEffectBase, oEffects.ET_EXIT_PINWHEEL);
-
-    function CExitSpiralOut() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitSpiralOut, CEffectBase, oEffects.ET_EXIT_SPIRAL_OUT);
-
-    function CExitWhip() {
-        CEffectBase.call(this);
-    }
-    InitClass(CExitWhip, CEffectBase, oEffects.ET_EXIT_WHIP);
-
-    function CEffectMotionBase() {
-        CEffectBase.call(this);
-        this.origin = oEffects.ORIGIN_LOCKED;
-    }
-    InitClass(CEffectMotionBase, CEffectBase, oEffects.ET_UNKNOWN);
-    CEffectMotionBase.prototype.getOrigin = function() {
-        return this.origin;
-    }
-    CEffectMotionBase.prototype.setOrigin = function(v) {
-        this.origin = v;
-    };
-    CEffectMotionBase.prototype.editPoints = function() {
-    };
-    CEffectMotionBase.prototype.reversePathDirection = function() {
-    };
-    CEffectMotionBase.prototype["getOrigin"] = CEffectMotionBase.prototype.getOrigin;
-    CEffectMotionBase.prototype["setOrigin"] = CEffectMotionBase.prototype.setOrigin;
-    CEffectMotionBase.prototype["editPoints"] = CEffectMotionBase.prototype.editPoints;
-    CEffectMotionBase.prototype["reversePathDirection"] = CEffectMotionBase.prototype.reversePathDirection;
-
-
-    function CMotion4PointStar() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotion4PointStar, CEffectMotionBase, oEffects.ET_MOTION_4_POINT_STAR);
-
-    function CMotion5PointStar() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotion5PointStar, CEffectMotionBase, oEffects.ET_MOTION_5_POINT_STAR);
-
-    function CMotion6PointStar() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotion6PointStar, CEffectMotionBase, oEffects.ET_MOTION_6_POINT_STAR);
-
-    function CMotion8PointStar() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotion8PointStar, CEffectMotionBase, oEffects.ET_MOTION_8_POINT_STAR);
-
-    function CMotionCircle() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionCircle, CEffectMotionBase, oEffects.ET_MOTION_CIRCLE);
-
-    function CMotionCrescentMoon() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionCrescentMoon, CEffectMotionBase, oEffects.ET_MOTION_CRESCENT_MOON);
-
-    function CMotionDiamond() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionDiamond, CEffectMotionBase, oEffects.ET_MOTION_DIAMOND);
-
-    function CMotionEqualTriangle() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionEqualTriangle, CEffectMotionBase, oEffects.ET_MOTION_EQUAL_TRIANGLE);
-
-    function CMotionFootball() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionFootball, CEffectMotionBase, oEffects.ET_MOTION_FOOTBALL);
-
-    function CMotionHeart() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionHeart, CEffectMotionBase, oEffects.ET_MOTION_HEART);
-
-    function CMotionHexagon() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionHexagon, CEffectMotionBase, oEffects.ET_MOTION_HEXAGON);
-
-    function CMotionOctagon() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionOctagon, CEffectMotionBase, oEffects.ET_MOTION_OCTAGON);
-
-    function CMotionParallelogram() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionParallelogram, CEffectMotionBase, oEffects.ET_MOTION_PARALLELOGRAM);
-
-    function CMotionPentagon() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionPentagon, CEffectMotionBase, oEffects.ET_MOTION_PENTAGON);
-
-    function CMotionRightTriangle() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionRightTriangle, CEffectMotionBase, oEffects.ET_MOTION_RIGHT_TRIANGLE);
-
-    function CMotionSquare() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSquare, CEffectMotionBase, oEffects.ET_MOTION_SQUARE);
-
-    function CMotionTeardrop() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionTeardrop, CEffectMotionBase, oEffects.ET_MOTION_TEARDROP);
-
-    function CMotionTrapezoid() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionTrapezoid, CEffectMotionBase, oEffects.ET_MOTION_TRAPEZOID);
-
-    function CMotionArcDown() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionArcDown, CEffectMotionBase, oEffects.ET_MOTION_ARC_DOWN);
-
-    function CMotionArcLeft() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionArcLeft, CEffectMotionBase, oEffects.ET_MOTION_ARC_LEFT);
-
-    function CMotionArcRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionArcRight, CEffectMotionBase, oEffects.ET_MOTION_ARC_RIGHT);
-
-    function CMotionArcUp() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionArcUp, CEffectMotionBase, oEffects.ET_MOTION_ARC_UP);
-
-    function CMotionBounceLeft() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionBounceLeft, CEffectMotionBase, oEffects.ET_MOTION_BOUNCE_LEFT);
-
-    function CMotionBounceRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionBounceRight, CEffectMotionBase, oEffects.ET_MOTION_BOUNCE_RIGHT);
-
-    function CMotionCurvyLeft() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionCurvyLeft, CEffectMotionBase, oEffects.ET_MOTION_CURVY_LEFT);
-
-    function CMotionCurvyRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionCurvyRight, CEffectMotionBase, oEffects.ET_MOTION_CURVY_RIGHT);
-
-    function CMotionDecayingWave() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionDecayingWave, CEffectMotionBase, oEffects.ET_MOTION_DECAYING_WAVE);
-
-    function CMotionDiagonalDownRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionDiagonalDownRight, CEffectMotionBase, oEffects.ET_MOTION_DIAGONAL_DOWN_RIGHT);
-
-    function CMotionDiagonalUpRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionDiagonalUpRight, CEffectMotionBase, oEffects.ET_MOTION_DIAGONAL_UP_RIGHT);
-
-    function CMotionDown() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionDown, CEffectMotionBase, oEffects.ET_MOTION_DOWN);
-
-    function CMotionFunnel() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionFunnel, CEffectMotionBase, oEffects.ET_MOTION_FUNNEL);
-
-    function CMotionMotionHeartbeat() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionMotionHeartbeat, CEffectMotionBase, oEffects.ET_MOTION_HEARTBEAT);
-
-    function CMotionLeft() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionLeft, CEffectMotionBase, oEffects.ET_MOTION_LEFT);
-
-    function CMotionRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionRight, CEffectMotionBase, oEffects.ET_MOTION_RIGHT);
-
-    function CMotionSCurve1() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSCurve1, CEffectMotionBase, oEffects.ET_MOTION_S_CURVE_1);
-
-    function CMotionSCurve2() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSCurve2, CEffectMotionBase, oEffects.ET_MOTION_S_CURVE_2);
-
-    function CMotionSineWave() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSineWave, CEffectMotionBase, oEffects.ET_MOTION_SINE_WAVE);
-
-    function CMotionSpiralLeft() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSpiralLeft, CEffectMotionBase, oEffects.ET_MOTION_SPIRAL_LEFT);
-
-    function CMotionSpiralRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSpiralRight, CEffectMotionBase, oEffects.ET_MOTION_SPIRAL_RIGHT);
-
-    function CMotionSpring() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSpring, CEffectMotionBase, oEffects.ET_MOTION_SPRING);
-
-    function CMotionStairsDown() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionStairsDown, CEffectMotionBase, oEffects.ET_MOTION_STAIRS_DOWN);
-
-    function CMotionTurnDown() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionTurnDown, CEffectMotionBase, oEffects.ET_MOTION_TURN_DOWN);
-
-    function CMotionTurnDownRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionTurnDownRight, CEffectMotionBase, oEffects.ET_MOTION_TURN_DOWN_RIGHT);
-
-    function CMotionTurnUp() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionTurnUp, CEffectMotionBase, oEffects.ET_MOTION_TURN_UP);
-
-    function CMotionTurnUpRight() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionTurnUpRight, CEffectMotionBase, oEffects.ET_MOTION_TURN_UP_RIGHT);
-
-    function CMotionMotionUp() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionMotionUp, CEffectMotionBase, oEffects.ET_MOTION_UP);
-
-    function CMotionWave() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionWave, CEffectMotionBase, oEffects.ET_MOTION_WAVE);
-
-    function CMotionZigzag() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionZigzag, CEffectMotionBase, oEffects.ET_MOTION_ZIGZAG);
-
-    function CMotionBean() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionBean, CEffectMotionBase, oEffects.ET_MOTION_BEAN);
-
-    function CMotionCurvedSquare() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionCurvedSquare, CEffectMotionBase, oEffects.ET_MOTION_CURVED_SQUARE);
-
-    function CMotionCurvedX() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionCurvedX, CEffectMotionBase, oEffects.ET_MOTION_CURVED_X);
-
-    function CMotionCurvyStar() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionCurvyStar, CEffectMotionBase, oEffects.ET_MOTION_CURVY_STAR);
-
-    function CMotionFigure8Four() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionFigure8Four, CEffectMotionBase, oEffects.ET_MOTION_FIGURE_8_FOUR);
-
-    function CMotionHorizontalFigure8() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionHorizontalFigure8, CEffectMotionBase, oEffects.ET_MOTION_HORIZONTAL_FIGURE_8);
-
-    function CMotionInvertedSquare() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionInvertedSquare, CEffectMotionBase, oEffects.ET_MOTION_INVERTED_SQUARE);
-
-    function CMotionInvertedTriangle() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionInvertedTriangle, CEffectMotionBase, oEffects.ET_MOTION_INVERTED_TRIANGLE);
-
-    function CMotionLoopDeLoop() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionLoopDeLoop, CEffectMotionBase, oEffects.ET_MOTION_LOOP_DE_LOOP);
-
-    function CMotionNeutron() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionNeutron, CEffectMotionBase, oEffects.ET_MOTION_NEUTRON);
-
-    function CMotionPeanut() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionPeanut, CEffectMotionBase, oEffects.ET_MOTION_PEANUT);
-
-    function CMotionPlus() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionPlus, CEffectMotionBase, oEffects.ET_MOTION_PLUS);
-
-    function CMotionPointyStar() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionPointyStar, CEffectMotionBase, oEffects.ET_MOTION_POINTY_STAR);
-
-    function CMotionSwoosh() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionSwoosh, CEffectMotionBase, oEffects.ET_MOTION_SWOOSH);
-
-    function CMotionVerticalFigure8() {
-        CEffectMotionBase.call(this);
-    }
-    InitClass(CMotionVerticalFigure8, CEffectMotionBase, oEffects.ET_MOTION_VERTICAL_FIGURE_8);
+    //oEffects.ET_UNKNOWN = -1;
+    //oEffects.ET_NONE = 0;
+    //oEffects.ET_MULTIPLE = 1;
+    //oEffects.ET_ENTRANCE = 2 << 16;
+    //oEffects['ET_ENTRANCE_APPEAR'] = oEffects.ET_ENTRANCE_APPEAR = oEffects.ET_ENTRANCE | 1;
+    //oEffects['ET_ENTRANCE_BLINDS'] = oEffects.ET_ENTRANCE_BLINDS = oEffects.ET_ENTRANCE | 2;
+    //oEffects['ET_ENTRANCE_BOX'] = oEffects.ET_ENTRANCE_BOX = oEffects.ET_ENTRANCE | 3;
+    //oEffects['ET_ENTRANCE_CHECKERBOARD'] = oEffects.ET_ENTRANCE_CHECKERBOARD = oEffects.ET_ENTRANCE | 4;
+    //oEffects['ET_ENTRANCE_CIRCLE'] = oEffects.ET_ENTRANCE_CIRCLE = oEffects.ET_ENTRANCE | 5;
+    //oEffects['ET_ENTRANCE_DIAMOND'] = oEffects.ET_ENTRANCE_DIAMOND = oEffects.ET_ENTRANCE | 6;
+    //oEffects['ET_ENTRANCE_DISSOLVE_IN'] = oEffects.ET_ENTRANCE_DISSOLVE_IN = oEffects.ET_ENTRANCE | 7;
+    //oEffects['ET_ENTRANCE_FLY_IN'] = oEffects.ET_ENTRANCE_FLY_IN = oEffects.ET_ENTRANCE | 8;
+    //oEffects['ET_ENTRANCE_PEEK_IN'] = oEffects.ET_ENTRANCE_PEEK_IN = oEffects.ET_ENTRANCE | 9;
+    //oEffects['ET_ENTRANCE_PLUS'] = oEffects.ET_ENTRANCE_PLUS = oEffects.ET_ENTRANCE | 10;
+    //oEffects['ET_ENTRANCE_RANDOM_BARS'] = oEffects.ET_ENTRANCE_RANDOM_BARS = oEffects.ET_ENTRANCE | 11;
+    //oEffects['ET_ENTRANCE_SPLIT'] = oEffects.ET_ENTRANCE_SPLIT = oEffects.ET_ENTRANCE | 12;
+    //oEffects['ET_ENTRANCE_STRIPS'] = oEffects.ET_ENTRANCE_STRIPS = oEffects.ET_ENTRANCE | 13;
+    //oEffects['ET_ENTRANCE_WEDGE'] = oEffects.ET_ENTRANCE_WEDGE = oEffects.ET_ENTRANCE | 14;
+    //oEffects['ET_ENTRANCE_WHEEL'] = oEffects.ET_ENTRANCE_WHEEL = oEffects.ET_ENTRANCE | 15;
+    //oEffects['ET_ENTRANCE_WIPE'] = oEffects.ET_ENTRANCE_WIPE = oEffects.ET_ENTRANCE | 16;
+    //oEffects['ET_ENTRANCE_EXPAND'] = oEffects.ET_ENTRANCE_EXPAND = oEffects.ET_ENTRANCE | 17;
+    //oEffects['ET_ENTRANCE_FADE'] = oEffects.ET_ENTRANCE_FADE = oEffects.ET_ENTRANCE | 18;
+    //oEffects['ET_ENTRANCE_SWIVEL'] = oEffects.ET_ENTRANCE_SWIVEL = oEffects.ET_ENTRANCE | 19;
+    //oEffects['ET_ENTRANCE_ZOOM'] = oEffects.ET_ENTRANCE_ZOOM = oEffects.ET_ENTRANCE | 20;
+    //oEffects['ET_ENTRANCE_BASIC_ZOOM'] = oEffects.ET_ENTRANCE_BASIC_ZOOM = oEffects.ET_ENTRANCE | 21;
+    //oEffects['ET_ENTRANCE_CENTER_REVOLVE'] = oEffects.ET_ENTRANCE_CENTER_REVOLVE = oEffects.ET_ENTRANCE | 22;
+    //oEffects['ET_ENTRANCE_COMPRESS'] = oEffects.ET_ENTRANCE_COMPRESS = oEffects.ET_ENTRANCE | 23;
+    //oEffects['ET_ENTRANCE_FLOAT_DOWN'] = oEffects.ET_ENTRANCE_FLOAT_DOWN = oEffects.ET_ENTRANCE | 24;
+    //oEffects['ET_ENTRANCE_FLOAT_UP'] = oEffects.ET_ENTRANCE_FLOAT_UP = oEffects.ET_ENTRANCE | 25;
+    //oEffects['ET_ENTRANCE_GROW_AND_TURN'] = oEffects.ET_ENTRANCE_GROW_AND_TURN = oEffects.ET_ENTRANCE | 26;
+    //oEffects['ET_ENTRANCE_RISE_UP'] = oEffects.ET_ENTRANCE_RISE_UP = oEffects.ET_ENTRANCE | 27;
+    //oEffects['ET_ENTRANCE_SPINNER'] = oEffects.ET_ENTRANCE_SPINNER = oEffects.ET_ENTRANCE | 28;
+    //oEffects['ET_ENTRANCE_STRETCH'] = oEffects.ET_ENTRANCE_STRETCH = oEffects.ET_ENTRANCE | 29;
+    //oEffects['ET_ENTRANCE_BASIC_SWIVEL'] = oEffects.ET_ENTRANCE_BASIC_SWIVEL = oEffects.ET_ENTRANCE | 30;
+    //oEffects['ET_ENTRANCE_BOOMERANG'] = oEffects.ET_ENTRANCE_BOOMERANG = oEffects.ET_ENTRANCE | 31;
+    //oEffects['ET_ENTRANCE_BOUNCE'] = oEffects.ET_ENTRANCE_BOUNCE = oEffects.ET_ENTRANCE | 32;
+    //oEffects['ET_ENTRANCE_CREDITS'] = oEffects.ET_ENTRANCE_CREDITS = oEffects.ET_ENTRANCE | 33;
+    //oEffects['ET_ENTRANCE_CURVE_UP'] = oEffects.ET_ENTRANCE_CURVE_UP = oEffects.ET_ENTRANCE | 34;
+    //oEffects['ET_ENTRANCE_DROP'] = oEffects.ET_ENTRANCE_DROP = oEffects.ET_ENTRANCE | 35;
+    //oEffects['ET_ENTRANCE_FLIP'] = oEffects.ET_ENTRANCE_FLIP = oEffects.ET_ENTRANCE | 36;
+    //oEffects['ET_ENTRANCE_FLOAT'] = oEffects.ET_ENTRANCE_FLOAT = oEffects.ET_ENTRANCE | 37;
+    //oEffects['ET_ENTRANCE_PINWHEEL'] = oEffects.ET_ENTRANCE_PINWHEEL = oEffects.ET_ENTRANCE | 38;
+    //oEffects['ET_ENTRANCE_SPIRAL_IN'] = oEffects.ET_ENTRANCE_SPIRAL_IN = oEffects.ET_ENTRANCE | 39;
+    //oEffects['ET_ENTRANCE_WHIP'] = oEffects.ET_ENTRANCE_WHIP = oEffects.ET_ENTRANCE | 40;
+    //
+    //oEffects.ET_EMPHASISE = 3 << 16;
+    //oEffects['ET_EMPHASISE_FILL_COLOR'] = oEffects.ET_EMPHASISE_FILL_COLOR = oEffects.ET_EMPHASISE | 1;
+    //oEffects['ET_EMPHASISE_FONT_COLOR'] = oEffects.ET_EMPHASISE_FONT_COLOR = oEffects.ET_EMPHASISE | 2;
+    //oEffects['ET_EMPHASISE_GROW_SHRINK'] = oEffects.ET_EMPHASISE_GROW_SHRINK = oEffects.ET_EMPHASISE | 3;
+    //oEffects['ET_EMPHASISE_LINE_COLOR'] = oEffects.ET_EMPHASISE_LINE_COLOR = oEffects.ET_EMPHASISE | 4;
+    //oEffects['ET_EMPHASISE_SPIN'] = oEffects.ET_EMPHASISE_SPIN = oEffects.ET_EMPHASISE | 5;
+    //oEffects['ET_EMPHASISE_TRANSPARENCY'] = oEffects.ET_EMPHASISE_TRANSPARENCY = oEffects.ET_EMPHASISE | 6;
+    //oEffects['ET_EMPHASISE_BOLD_FLASH'] = oEffects.ET_EMPHASISE_BOLD_FLASH = oEffects.ET_EMPHASISE | 7;
+    //oEffects['ET_EMPHASISE_BRUSH_COLOR'] = oEffects.ET_EMPHASISE_BRUSH_COLOR = oEffects.ET_EMPHASISE | 8;
+    //oEffects['ET_EMPHASISE_COMPLIMENTARY_COLOR'] = oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR = oEffects.ET_EMPHASISE | 9;
+    //oEffects['ET_EMPHASISE_COMPLIMENTARY_COLOR2'] = oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR2 = oEffects.ET_EMPHASISE | 10;
+    //oEffects['ET_EMPHASISE_CONTRASTING_COLOR'] = oEffects.ET_EMPHASISE_CONTRASTING_COLOR = oEffects.ET_EMPHASISE | 11;
+    //oEffects['ET_EMPHASISE_DARKEN'] = oEffects.ET_EMPHASISE_DARKEN = oEffects.ET_EMPHASISE | 12;
+    //oEffects['ET_EMPHASISE_DESATURATE'] = oEffects.ET_EMPHASISE_DESATURATE = oEffects.ET_EMPHASISE | 13;
+    //oEffects['ET_EMPHASISE_LIGHTEN'] = oEffects.ET_EMPHASISE_LIGHTEN = oEffects.ET_EMPHASISE | 14;
+    //oEffects['ET_EMPHASISE_OBJECT_COLOR'] = oEffects.ET_EMPHASISE_OBJECT_COLOR = oEffects.ET_EMPHASISE | 15;
+    //oEffects['ET_EMPHASISE_PULSE'] = oEffects.ET_EMPHASISE_PULSE = oEffects.ET_EMPHASISE | 16;
+    //oEffects['ET_EMPHASISE_UNDERLINE'] = oEffects.ET_EMPHASISE_UNDERLINE = oEffects.ET_EMPHASISE | 17;
+    //oEffects['ET_EMPHASISE_COLOR_PULSE'] = oEffects.ET_EMPHASISE_COLOR_PULSE = oEffects.ET_EMPHASISE | 18;
+    //oEffects['ET_EMPHASISE_GROW_WITH_COLOR'] = oEffects.ET_EMPHASISE_GROW_WITH_COLOR = oEffects.ET_EMPHASISE | 19;
+    //oEffects['ET_EMPHASISE_SHIMMER'] = oEffects.ET_EMPHASISE_SHIMMER = oEffects.ET_EMPHASISE | 20;
+    //oEffects['ET_EMPHASISE_TEETER'] = oEffects.ET_EMPHASISE_TEETER = oEffects.ET_EMPHASISE | 21;
+    //oEffects['ET_EMPHASISE_BLINK'] = oEffects.ET_EMPHASISE_BLINK = oEffects.ET_EMPHASISE | 22;
+    //oEffects['ET_EMPHASISE_BOLD_REVEAL'] = oEffects.ET_EMPHASISE_BOLD_REVEAL = oEffects.ET_EMPHASISE | 23;
+    //oEffects['ET_EMPHASISE_WAVE'] = oEffects.ET_EMPHASISE_WAVE = oEffects.ET_EMPHASISE | 24;
+    //
+    //oEffects.ET_EXIT = 4 << 16;
+    //oEffects['ET_EXIT_BLINDS'] = oEffects.ET_EXIT_BLINDS = oEffects.ET_EXIT | 1;
+    //oEffects['ET_EXIT_BOX'] = oEffects.ET_EXIT_BOX = oEffects.ET_EXIT | 2;
+    //oEffects['ET_EXIT_CHECKERBOARD'] = oEffects.ET_EXIT_CHECKERBOARD = oEffects.ET_EXIT | 3;
+    //oEffects['ET_EXIT_CIRCLE'] = oEffects.ET_EXIT_CIRCLE = oEffects.ET_EXIT | 4;
+    //oEffects['ET_EXIT_DIAMOND'] = oEffects.ET_EXIT_DIAMOND = oEffects.ET_EXIT | 5;
+    //oEffects['ET_EXIT_DISAPPEAR'] = oEffects.ET_EXIT_DISAPPEAR = oEffects.ET_EXIT | 6;
+    //oEffects['ET_EXIT_DISSOLVE_OUT'] = oEffects.ET_EXIT_DISSOLVE_OUT = oEffects.ET_EXIT | 7;
+    //oEffects['ET_EXIT_FLY_OUT'] = oEffects.ET_EXIT_FLY_OUT = oEffects.ET_EXIT | 8;
+    //oEffects['ET_EXIT_PEEK_OUT'] = oEffects.ET_EXIT_PEEK_OUT = oEffects.ET_EXIT | 9;
+    //oEffects['ET_EXIT_PLUS'] = oEffects.ET_EXIT_PLUS = oEffects.ET_EXIT | 10;
+    //oEffects['ET_EXIT_RANDOM_BARS'] = oEffects.ET_EXIT_RANDOM_BARS = oEffects.ET_EXIT | 11;
+    //oEffects['ET_EXIT_SPLIT'] = oEffects.ET_EXIT_SPLIT = oEffects.ET_EXIT | 12;
+    //oEffects['ET_EXIT_STRIPS'] = oEffects.ET_EXIT_STRIPS = oEffects.ET_EXIT | 13;
+    //oEffects['ET_EXIT_WEDGE'] = oEffects.ET_EXIT_WEDGE = oEffects.ET_EXIT | 14;
+    //oEffects['ET_EXIT_WHEEL'] = oEffects.ET_EXIT_WHEEL = oEffects.ET_EXIT | 15;
+    //oEffects['ET_EXIT_WIPE'] = oEffects.ET_EXIT_WIPE = oEffects.ET_EXIT | 16;
+    //oEffects['ET_EXIT_CONTRACT'] = oEffects.ET_EXIT_CONTRACT = oEffects.ET_EXIT | 17;
+    //oEffects['ET_EXIT_FADE'] = oEffects.ET_EXIT_FADE = oEffects.ET_EXIT | 18;
+    //oEffects['ET_EXIT_SWIVEL'] = oEffects.ET_EXIT_SWIVEL = oEffects.ET_EXIT | 19;
+    //oEffects['ET_EXIT_ZOOM'] = oEffects.ET_EXIT_ZOOM = oEffects.ET_EXIT | 20;
+    //oEffects['ET_EXIT_BASIC_ZOOM'] = oEffects.ET_EXIT_BASIC_ZOOM = oEffects.ET_EXIT | 21;
+    //oEffects['ET_EXIT_CENTER_REVOLVE'] = oEffects.ET_EXIT_CENTER_REVOLVE = oEffects.ET_EXIT | 22;
+    //oEffects['ET_EXIT_COLLAPSE'] = oEffects.ET_EXIT_COLLAPSE = oEffects.ET_EXIT | 23;
+    //oEffects['ET_EXIT_FLOAT_DOWN'] = oEffects.ET_EXIT_FLOAT_DOWN = oEffects.ET_EXIT | 24;
+    //oEffects['ET_EXIT_FLOAT_UP'] = oEffects.ET_EXIT_FLOAT_UP = oEffects.ET_EXIT | 25;
+    //oEffects['ET_EXIT_SHRINK_AND_TURN'] = oEffects.ET_EXIT_SHRINK_AND_TURN = oEffects.ET_EXIT | 26;
+    //oEffects['ET_EXIT_SHRINK_DOWN'] = oEffects.ET_EXIT_SHRINK_DOWN = oEffects.ET_EXIT | 27;
+    //oEffects['ET_EXIT_SPINNER'] = oEffects.ET_EXIT_SPINNER = oEffects.ET_EXIT | 28;
+    //oEffects['ET_EXIT_STRETCHY'] = oEffects.ET_EXIT_STRETCHY = oEffects.ET_EXIT | 29;
+    //oEffects['ET_EXIT_BASIC_SWIVEL'] = oEffects.ET_EXIT_BASIC_SWIVEL = oEffects.ET_EXIT | 30;
+    //oEffects['ET_EXIT_BOOMERANG'] = oEffects.ET_EXIT_BOOMERANG = oEffects.ET_EXIT | 31;
+    //oEffects['ET_EXIT_BOUNCE'] = oEffects.ET_EXIT_BOUNCE = oEffects.ET_EXIT | 32;
+    //oEffects['ET_EXIT_CREDITS'] = oEffects.ET_EXIT_CREDITS = oEffects.ET_EXIT | 33;
+    //oEffects['ET_EXIT_CURVE_DOWN'] = oEffects.ET_EXIT_CURVE_DOWN = oEffects.ET_EXIT | 34;
+    //oEffects['ET_EXIT_DROP'] = oEffects.ET_EXIT_DROP = oEffects.ET_EXIT | 35;
+    //oEffects['ET_EXIT_FLIP'] = oEffects.ET_EXIT_FLIP = oEffects.ET_EXIT | 36;
+    //oEffects['ET_EXIT_FLOAT'] = oEffects.ET_EXIT_FLOAT = oEffects.ET_EXIT | 37;
+    //oEffects['ET_EXIT_PINWHEEL'] = oEffects.ET_EXIT_PINWHEEL = oEffects.ET_EXIT | 38;
+    //oEffects['ET_EXIT_SPIRAL_OUT'] = oEffects.ET_EXIT_SPIRAL_OUT = oEffects.ET_EXIT | 39;
+    //oEffects['ET_EXIT_WHIP'] = oEffects.ET_EXIT_WHIP = oEffects.ET_EXIT | 40;
+    //
+    //oEffects.ET_MOTION = 5 << 16;
+    //oEffects['ET_MOTION_4_POINT_STAR'] = oEffects.ET_MOTION_4_POINT_STAR = oEffects.ET_MOTION | 1;
+    //oEffects['ET_MOTION_5_POINT_STAR'] = oEffects.ET_MOTION_5_POINT_STAR = oEffects.ET_MOTION | 2;
+    //oEffects['ET_MOTION_6_POINT_STAR'] = oEffects.ET_MOTION_6_POINT_STAR = oEffects.ET_MOTION | 3;
+    //oEffects['ET_MOTION_8_POINT_STAR'] = oEffects.ET_MOTION_8_POINT_STAR = oEffects.ET_MOTION | 4;
+    //oEffects['ET_MOTION_CIRCLE'] = oEffects.ET_MOTION_CIRCLE = oEffects.ET_MOTION | 5;
+    //oEffects['ET_MOTION_CRESCENT_MOON'] = oEffects.ET_MOTION_CRESCENT_MOON = oEffects.ET_MOTION | 6;
+    //oEffects['ET_MOTION_DIAMOND'] = oEffects.ET_MOTION_DIAMOND = oEffects.ET_MOTION | 7;
+    //oEffects['ET_MOTION_EQUAL_TRIANGLE'] = oEffects.ET_MOTION_EQUAL_TRIANGLE = oEffects.ET_MOTION | 8;
+    //oEffects['ET_MOTION_FOOTBALL'] = oEffects.ET_MOTION_FOOTBALL = oEffects.ET_MOTION | 9;
+    //oEffects['ET_MOTION_HEART'] = oEffects.ET_MOTION_HEART = oEffects.ET_MOTION | 10;
+    //oEffects['ET_MOTION_HEXAGON'] = oEffects.ET_MOTION_HEXAGON = oEffects.ET_MOTION | 11;
+    //oEffects['ET_MOTION_OCTAGON'] = oEffects.ET_MOTION_OCTAGON = oEffects.ET_MOTION | 12;
+    //oEffects['ET_MOTION_PARALLELOGRAM'] = oEffects.ET_MOTION_PARALLELOGRAM = oEffects.ET_MOTION | 13;
+    //oEffects['ET_MOTION_PENTAGON'] = oEffects.ET_MOTION_PENTAGON = oEffects.ET_MOTION | 14;
+    //oEffects['ET_MOTION_RIGHT_TRIANGLE'] = oEffects.ET_MOTION_RIGHT_TRIANGLE = oEffects.ET_MOTION | 15;
+    //oEffects['ET_MOTION_SQUARE'] = oEffects.ET_MOTION_SQUARE = oEffects.ET_MOTION | 16;
+    //oEffects['ET_MOTION_TEARDROP'] = oEffects.ET_MOTION_TEARDROP = oEffects.ET_MOTION | 17;
+    //oEffects['ET_MOTION_TRAPEZOID'] = oEffects.ET_MOTION_TRAPEZOID = oEffects.ET_MOTION | 18;
+    //oEffects['ET_MOTION_ARC_DOWN'] = oEffects.ET_MOTION_ARC_DOWN = oEffects.ET_MOTION | 19;
+    //oEffects['ET_MOTION_ARC_LEFT'] = oEffects.ET_MOTION_ARC_LEFT = oEffects.ET_MOTION | 20;
+    //oEffects['ET_MOTION_ARC_RIGHT'] = oEffects.ET_MOTION_ARC_RIGHT = oEffects.ET_MOTION | 21;
+    //oEffects['ET_MOTION_ARC_UP'] = oEffects.ET_MOTION_ARC_UP = oEffects.ET_MOTION | 22;
+    //oEffects['ET_MOTION_BOUNCE_LEFT'] = oEffects.ET_MOTION_BOUNCE_LEFT = oEffects.ET_MOTION | 23;
+    //oEffects['ET_MOTION_BOUNCE_RIGHT'] = oEffects.ET_MOTION_BOUNCE_RIGHT = oEffects.ET_MOTION | 24;
+    //oEffects['ET_MOTION_CURVY_LEFT'] = oEffects.ET_MOTION_CURVY_LEFT = oEffects.ET_MOTION | 25;
+    //oEffects['ET_MOTION_CURVY_RIGHT'] = oEffects.ET_MOTION_CURVY_RIGHT = oEffects.ET_MOTION | 26;
+    //oEffects['ET_MOTION_DECAYING_WAVE'] = oEffects.ET_MOTION_DECAYING_WAVE = oEffects.ET_MOTION | 27;
+    //oEffects['ET_MOTION_DIAGONAL_DOWN_RIGHT'] = oEffects.ET_MOTION_DIAGONAL_DOWN_RIGHT = oEffects.ET_MOTION | 28;
+    //oEffects['ET_MOTION_DIAGONAL_UP_RIGHT'] = oEffects.ET_MOTION_DIAGONAL_UP_RIGHT = oEffects.ET_MOTION | 29;
+    //oEffects['ET_MOTION_DOWN'] = oEffects.ET_MOTION_DOWN = oEffects.ET_MOTION | 30;
+    //oEffects['ET_MOTION_FUNNEL'] = oEffects.ET_MOTION_FUNNEL = oEffects.ET_MOTION | 31;
+    //oEffects['ET_MOTION_HEARTBEAT'] = oEffects.ET_MOTION_HEARTBEAT = oEffects.ET_MOTION | 32;
+    //oEffects['ET_MOTION_LEFT'] = oEffects.ET_MOTION_LEFT = oEffects.ET_MOTION | 33;
+    //oEffects['ET_MOTION_RIGHT'] = oEffects.ET_MOTION_RIGHT = oEffects.ET_MOTION | 34;
+    //oEffects['ET_MOTION_S_CURVE_1'] = oEffects.ET_MOTION_S_CURVE_1 = oEffects.ET_MOTION | 35;
+    //oEffects['ET_MOTION_S_CURVE_2'] = oEffects.ET_MOTION_S_CURVE_2 = oEffects.ET_MOTION | 36;
+    //oEffects['ET_MOTION_SINE_WAVE'] = oEffects.ET_MOTION_SINE_WAVE = oEffects.ET_MOTION | 37;
+    //oEffects['ET_MOTION_SPIRAL_LEFT'] = oEffects.ET_MOTION_SPIRAL_LEFT = oEffects.ET_MOTION | 38;
+    //oEffects['ET_MOTION_SPIRAL_RIGHT'] = oEffects.ET_MOTION_SPIRAL_RIGHT = oEffects.ET_MOTION | 39;
+    //oEffects['ET_MOTION_SPRING'] = oEffects.ET_MOTION_SPRING = oEffects.ET_MOTION | 40;
+    //oEffects['ET_MOTION_STAIRS_DOWN'] = oEffects.ET_MOTION_STAIRS_DOWN = oEffects.ET_MOTION | 41;
+    //oEffects['ET_MOTION_TURN_DOWN'] = oEffects.ET_MOTION_TURN_DOWN = oEffects.ET_MOTION | 42;
+    //oEffects['ET_MOTION_TURN_DOWN_RIGHT'] = oEffects.ET_MOTION_TURN_DOWN_RIGHT = oEffects.ET_MOTION | 43;
+    //oEffects['ET_MOTION_TURN_UP'] = oEffects.ET_MOTION_TURN_UP = oEffects.ET_MOTION | 44;
+    //oEffects['ET_MOTION_TURN_UP_RIGHT'] = oEffects.ET_MOTION_TURN_UP_RIGHT = oEffects.ET_MOTION | 45;
+    //oEffects['ET_MOTION_UP'] = oEffects.ET_MOTION_UP = oEffects.ET_MOTION | 46;
+    //oEffects['ET_MOTION_WAVE'] = oEffects.ET_MOTION_WAVE = oEffects.ET_MOTION | 47;
+    //oEffects['ET_MOTION_ZIGZAG'] = oEffects.ET_MOTION_ZIGZAG = oEffects.ET_MOTION | 48;
+    //oEffects['ET_MOTION_BEAN'] = oEffects.ET_MOTION_BEAN = oEffects.ET_MOTION | 49;
+    //oEffects['ET_MOTION_CURVED_SQUARE'] = oEffects.ET_MOTION_CURVED_SQUARE = oEffects.ET_MOTION | 50;
+    //oEffects['ET_MOTION_CURVED_X'] = oEffects.ET_MOTION_CURVED_X = oEffects.ET_MOTION | 51;
+    //oEffects['ET_MOTION_CURVY_STAR'] = oEffects.ET_MOTION_CURVY_STAR = oEffects.ET_MOTION | 52;
+    //oEffects['ET_MOTION_FIGURE_8_FOUR'] = oEffects.ET_MOTION_FIGURE_8_FOUR = oEffects.ET_MOTION | 53;
+    //oEffects['ET_MOTION_HORIZONTAL_FIGURE_8'] = oEffects.ET_MOTION_HORIZONTAL_FIGURE_8 = oEffects.ET_MOTION | 54;
+    //oEffects['ET_MOTION_INVERTED_SQUARE'] = oEffects.ET_MOTION_INVERTED_SQUARE = oEffects.ET_MOTION | 55;
+    //oEffects['ET_MOTION_INVERTED_TRIANGLE'] = oEffects.ET_MOTION_INVERTED_TRIANGLE = oEffects.ET_MOTION | 56;
+    //oEffects['ET_MOTION_LOOP_DE_LOOP'] = oEffects.ET_MOTION_LOOP_DE_LOOP = oEffects.ET_MOTION | 57;
+    //oEffects['ET_MOTION_NEUTRON'] = oEffects.ET_MOTION_NEUTRON = oEffects.ET_MOTION | 58;
+    //oEffects['ET_MOTION_PEANUT'] = oEffects.ET_MOTION_PEANUT = oEffects.ET_MOTION | 59;
+    //oEffects['ET_MOTION_PLUS'] = oEffects.ET_MOTION_PLUS = oEffects.ET_MOTION | 61;
+    //oEffects['ET_MOTION_POINTY_STAR'] = oEffects.ET_MOTION_POINTY_STAR = oEffects.ET_MOTION | 62;
+    //oEffects['ET_MOTION_SWOOSH'] = oEffects.ET_MOTION_SWOOSH = oEffects.ET_MOTION | 63;
+    //oEffects['ET_MOTION_VERTICAL_FIGURE_8'] = oEffects.ET_MOTION_VERTICAL_FIGURE_8 = oEffects.ET_MOTION | 64;
+    //
+    //oEffects['START_ON_CLICK'] = oEffects.START_ON_CLICK = 0;
+    //oEffects['START_WITH_PREVIOUS'] = oEffects.START_WITH_PREVIOUS = 1;
+    //oEffects['START_AFTER_PREVIOUS'] = oEffects.START_AFTER_PREVIOUS = 2;
+    //
+    //oEffects['REPEAT_NONE'] = oEffects.REPEAT_NONE = 0;
+    //oEffects['REPEAT_UNTIL_NEXT_CLICK'] = oEffects.REPEAT_UNTIL_NEXT_CLICK = -1;
+    //oEffects['REPEAT_UNTIL_END_OF_SLIDE'] = oEffects.REPEAT_UNTIL_END_OF_SLIDE = -2;
+    //
+    //
+    //oEffects['SOUND_NO_SOUND'] = oEffects.SOUND_NO_SOUND = 0;
+    //oEffects['SOUND_NO_STOP_PREVIOUS'] = oEffects.SOUND_NO_STOP_PREVIOUS = 1;
+    //
+    //oEffects['ANIMATE_TEXT_ALL_AT_ONCE'] = oEffects.ANIMATE_TEXT_ALL_AT_ONCE = 0;
+    //oEffects['ANIMATE_TEXT_BY_WORD'] = oEffects.ANIMATE_TEXT_BY_WORD = 1;
+    //oEffects['ANIMATE_TEXT_BY_LETTER'] = oEffects.ANIMATE_TEXT_BY_LETTER = 2;
+    //
+    //oEffects['GROUP_TEXT_AS_ONE_OBJECT'] = oEffects.GROUP_TEXT_AS_ONE_OBJECT = 0;
+    //oEffects['GROUP_ALL_PARAGRAPHS'] = oEffects.GROUP_ALL_PARAGRAPHS = 1;
+    //oEffects['GROUP_1ST_LEVEL'] = oEffects.GROUP_1ST_LEVEL = 2;
+    //oEffects['GROUP_2ND_LEVEL'] = oEffects.GROUP_2ND_LEVEL = 3;
+    //oEffects['GROUP_3RD_LEVEL'] = oEffects.GROUP_3RD_LEVEL = 4;
+    //oEffects['GROUP_4TH_LEVEL'] = oEffects.GROUP_4TH_LEVEL = 5;
+    //oEffects['GROUP_5TH_LEVEL'] = oEffects.GROUP_5TH_LEVEL = 6;
+    //
+    //oEffects['DIR_HORIZONTAL'] = oEffects.DIR_HORIZONTAL = 0;
+    //oEffects['DIR_VERTICAL'] = oEffects.DIR_VERTICAL = 1;
+    //oEffects['DIR_IN'] = oEffects.DIR_IN = 2;
+    //oEffects['DIR_OUT'] = oEffects.DIR_OUT = 3;
+    //oEffects['DIR_ACROSS'] = oEffects.DIR_ACROSS = 4;
+    //oEffects['DIR_DOWN'] = oEffects.DIR_DOWN = 5;
+    //oEffects['DIR_BOTTOM'] = oEffects.DIR_BOTTOM = 6;
+    //oEffects['DIR_BOTTOM_LEFT'] = oEffects.DIR_BOTTOM_LEFT = 7;
+    //oEffects['DIR_LEFT'] = oEffects.DIR_LEFT = 8;
+    //oEffects['DIR_TOP_LEFT'] = oEffects.DIR_TOP_LEFT = 9;
+    //oEffects['DIR_TOP'] = oEffects.DIR_TOP = 10;
+    //oEffects['DIR_TOP_RIGHT'] = oEffects.DIR_TOP_RIGHT = 11;
+    //oEffects['DIR_RIGHT'] = oEffects.DIR_RIGHT = 12;
+    //oEffects['DIR_BOTTOM_RIGHT'] = oEffects.DIR_BOTTOM_RIGHT = 13;
+    //oEffects['DIR_HORIZONTAL_IN'] = oEffects.DIR_HORIZONTAL_IN = 14;
+    //oEffects['DIR_HORIZONTAL_OUT'] = oEffects.DIR_HORIZONTAL_OUT = 15;
+    //oEffects['DIR_VERTICAL_IN'] = oEffects.DIR_VERTICAL_IN = 16;
+    //oEffects['DIR_VERTICAL_OUT'] = oEffects.DIR_VERTICAL_OUT = 17;
+    //oEffects['DIR_LEFT_DOWN'] = oEffects.DIR_LEFT_DOWN = 18;
+    //oEffects['DIR_LEFT_UP'] = oEffects.DIR_LEFT_UP = 19;
+    //oEffects['DIR_RIGHT_DOWN'] = oEffects.DIR_RIGHT_DOWN = 20;
+    //oEffects['DIR_RIGHT_UP'] = oEffects.DIR_RIGHT_UP = 21;
+    //oEffects['DIR_BOTH'] = oEffects.DIR_BOTH = 22;
+    //oEffects['DIR_CLOCKWISE'] = oEffects.DIR_CLOCKWISE = 23;
+    //oEffects['DIR_COUNTER_CLOCKWISE'] = oEffects.DIR_COUNTER_CLOCKWISE = 24;
+    //
+    //oEffects['VANISHING_PT_OBJECT'] = oEffects.VANISHING_PT_OBJECT = 0;
+    //oEffects['VANISHING_PT_SLIDE'] = oEffects.VANISHING_PT_SLIDE = 1;
+    //
+    //oEffects['ZOOM_IN'] = oEffects.ZOOM_IN = 0;
+    //oEffects['ZOOM_IN_FROM_SCREEN_CENTER'] = oEffects.ZOOM_IN_FROM_SCREEN_CENTER = 1;
+    //oEffects['ZOOM_IN_SLIGHTLY'] = oEffects.ZOOM_IN_SLIGHTLY = 2;
+    //oEffects['ZOOM_OUT'] = oEffects.ZOOM_OUT = 3;
+    //oEffects['ZOOM_OUT_FROM_SCREEN_BOTTOM'] = oEffects.ZOOM_OUT_FROM_SCREEN_BOTTOM = 4;
+    //oEffects['ZOOM_OUT_SLIGHTLY'] = oEffects.ZOOM_OUT_SLIGHTLY = 5;
+    //
+    //oEffects['AMOUNT_TINY'] = oEffects.AMOUNT_TINY = 0;
+    //oEffects['AMOUNT_SMALLER'] = oEffects.AMOUNT_SMALLER = 1;
+    //oEffects['AMOUNT_LARGER'] = oEffects.AMOUNT_LARGER = 2;
+    //oEffects['AMOUNT_HUGE'] = oEffects.AMOUNT_HUGE = 3;
+    //oEffects['AMOUNT_QUARTER_SPIN'] = oEffects.AMOUNT_QUARTER_SPIN = 4;
+    //oEffects['AMOUNT_HALF_SPIN'] = oEffects.AMOUNT_HALF_SPIN = 5;
+    //oEffects['AMOUNT_FULL_SPIN'] = oEffects.AMOUNT_FULL_SPIN = 6;
+    //oEffects['AMOUNT_TWO_SPIN'] = oEffects.AMOUNT_TWO_SPIN = 7;
+    //oEffects['AMOUNT_25_PCT'] = oEffects.AMOUNT_25_PCT = 8;
+    //oEffects['AMOUNT_50_PCT'] = oEffects.AMOUNT_50_PCT = 9;
+    //oEffects['AMOUNT_75_PCT'] = oEffects.AMOUNT_75_PCT = 10;
+    //oEffects['AMOUNT_100_PCT'] = oEffects.AMOUNT_100_PCT = 11;
+    //
+    //oEffects['ORIGIN_LOCKED'] = oEffects.ORIGIN_LOCKED = 0;
+    //oEffects['ORIGIN_UNLOCKED'] = oEffects.ORIGIN_UNLOCKED = 1;
+    //
+    //function CEffectBase() {
+    //    this.start = oEffects.START_ON_CLICK;
+    //    this.delay = 0;
+    //    this.duration = 0;
+    //    this.repeat = oEffects.REPEAT_NONE;
+    //    this.rewind = false;
+    //
+    //    this.clickSeq = true;
+    //    this.clickOf = null;
+    //    this.playOf = null;
+    //
+    //
+    //    this.sound = oEffects.SOUND_NO_SOUND;
+    //    this.afterColor = null;
+    //    this.afterDoNotDim = true;
+    //    this.afterHide = null;
+    //    this.afterHideOnClick = null;
+    //
+    //    this.animateText = oEffects.ANIMATE_TEXT_ALL_AT_ONCE;
+    //    this.delayBetweenWords = null;
+    //
+    //    this.groupText = oEffects.GROUP_TEXT_AS_ONE_OBJECT;
+    //    this.automaticallyAfter = null;
+    //    this.animateAttachedShape = null;
+    //    this.inReverseOrder = null;
+    //
+    //    this.textEffect = null;
+    //
+    //}
+    //CEffectBase.prototype.classType = oEffects.ET_UNKNOWN;
+    //CEffectBase.prototype.getType = function() {
+    //    return this.classType;
+    //};
+    //CEffectBase.prototype.getStart = function() {
+    //    return this.start;
+    //};
+    //CEffectBase.prototype.getDelay = function() {
+    //    return this.delay;
+    //};
+    //CEffectBase.prototype.getDuration = function() {
+    //    return this.duration;
+    //};
+    //CEffectBase.prototype.getRepeat = function() {
+    //    return this.repeat;
+    //};
+    //CEffectBase.prototype.getRewind = function() {
+    //    return this.rewind;
+    //};
+    //CEffectBase.prototype.getClickSeq = function() {
+    //    return this.clickSeq;
+    //};
+    //CEffectBase.prototype.getClickOf = function() {
+    //    return this.clickOf;
+    //};
+    //CEffectBase.prototype.getPlayOf = function() {
+    //    return this.playOf;
+    //};
+    //CEffectBase.prototype.getGroupText = function() {
+    //    return this.groupText;
+    //};
+    //CEffectBase.prototype.getAutomaticallyAfter = function() {
+    //    return this.automaticallyAfter;
+    //};
+    //CEffectBase.prototype.getAnimateAttachedShape = function() {
+    //    return this.animateAttachedShape;
+    //};
+    //CEffectBase.prototype.getInReverseOrder = function() {
+    //    return this.inReverseOrder;
+    //};
+    //CEffectBase.prototype.setStart = function(v) {
+    //    this.start = v;
+    //};
+    //CEffectBase.prototype.setDelay = function(v) {
+    //    this.delay = v;
+    //};
+    //CEffectBase.prototype.setDuration = function(v) {
+    //    this.duration = v;
+    //};
+    //CEffectBase.prototype.setRepeat = function(v) {
+    //    this.repeat = v;
+    //};
+    //CEffectBase.prototype.setRewind = function(v) {
+    //    this.rewind = v;
+    //};
+    //CEffectBase.prototype.setClickSeq = function() {
+    //    this.clickSeq = true;
+    //    this.clickOf = null;
+    //    this.playOf = null;
+    //};
+    //CEffectBase.prototype.setClickOf = function(v) {
+    //    if(typeof v === "string") {
+    //        this.clickOf = v;
+    //        this.clickSeq = null;
+    //        this.playOf = null;
+    //    }
+    //};
+    //CEffectBase.prototype.setPlayOf = function(v) {
+    //    this.playOf = v;
+    //    this.clickSeq = null;
+    //    this.clickOf = null;
+    //};
+    //CEffectBase.prototype.setGroupText = function(v) {
+    //    this.groupText = v;
+    //};
+    //CEffectBase.prototype.setAutomaticallyAfter = function(v) {
+    //    this.automaticallyAfter = v;
+    //};
+    //CEffectBase.prototype.setAnimateAttachedShape = function(v) {
+    //    this.animateAttachedShape = v;
+    //};
+    //CEffectBase.prototype.setInReverseOrder = function(v) {
+    //    this.inReverseOrder = v;
+    //};
+    //CEffectBase.prototype["getType"] = CEffectBase.prototype.getType;
+    //CEffectBase.prototype["getStart"] = CEffectBase.prototype.getStart;
+    //CEffectBase.prototype["getDelay"] = CEffectBase.prototype.getDelay;
+    //CEffectBase.prototype["getDuration"] = CEffectBase.prototype.getDuration;
+    //CEffectBase.prototype["getRepeat"] = CEffectBase.prototype.getRepeat;
+    //CEffectBase.prototype["getRewind"] = CEffectBase.prototype.getRewind;
+    //CEffectBase.prototype["getClickSeq"] = CEffectBase.prototype.getClickSeq;
+    //CEffectBase.prototype["getClickOf"] = CEffectBase.prototype.getClickOf;
+    //CEffectBase.prototype["getPlayOf"] = CEffectBase.prototype.getPlayOf;
+    //CEffectBase.prototype["getGroupText"] = CEffectBase.prototype.getGroupText;
+    //CEffectBase.prototype["getAutomaticallyAfter"] = CEffectBase.prototype.getAutomaticallyAfter;
+    //CEffectBase.prototype["getAnimateAttachedShape"] = CEffectBase.prototype.getAnimateAttachedShape;
+    //CEffectBase.prototype["getInReverseOrder"] = CEffectBase.prototype.getInReverseOrder;
+    //CEffectBase.prototype["setStart"] = CEffectBase.prototype.setStart;
+    //CEffectBase.prototype["setDelay"] = CEffectBase.prototype.setDelay;
+    //CEffectBase.prototype["setDuration"] = CEffectBase.prototype.setDuration;
+    //CEffectBase.prototype["setRepeat"] = CEffectBase.prototype.setRepeat;
+    //CEffectBase.prototype["setRewind"] = CEffectBase.prototype.setRewind;
+    //CEffectBase.prototype["setClickSeq"] = CEffectBase.prototype.setClickSeq;
+    //CEffectBase.prototype["setClickOf"] = CEffectBase.prototype.setClickOf;
+    //CEffectBase.prototype["setPlayOf"] = CEffectBase.prototype.setPlayOf;
+    //CEffectBase.prototype["setGroupText"] = CEffectBase.prototype.setGroupText;
+    //CEffectBase.prototype["setAutomaticallyAfter"] = CEffectBase.prototype.setAutomaticallyAfter;
+    //CEffectBase.prototype["setAnimateAttachedShape"] = CEffectBase.prototype.setAnimateAttachedShape;
+    //CEffectBase.prototype["setInReverseOrder"] = CEffectBase.prototype.setInReverseOrder;
+    //
+    //function CNone() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CNone, CEffectBase, oEffects.ET_NONE);
+    //
+    //function CMultiple() {
+    //    CEffectBase.call(this);
+    //    this.effects = [];
+    //}
+    //InitClass(CMultiple, CEffectBase, oEffects.ET_MULTIPLE);
+    //CMultiple.prototype.addEffect = function(oEffect) {
+    //    this.effects.push(oEffect);
+    //};
+    //
+    //function CEntranceAppear() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceAppear, CEffectBase, oEffects.ET_ENTRANCE_APPEAR);
+    //
+    //function CEffectWithDir() {
+    //    CEffectBase.call(this);
+    //    this.dir = oEffects.DIR_HORIZONTAL;
+    //}
+    //InitClass(CEffectWithDir, CEffectBase, oEffects.ET_UNKNOWN);
+    //CEffectWithDir.prototype.getDir = function() {
+    //    return this.dir;
+    //};
+    //CEffectWithDir.prototype.setDir = function(v) {
+    //    this.dir = v;
+    //};
+    //CEffectWithDir.prototype["getDir"] = CEffectWithDir.prototype.getDir;
+    //CEffectWithDir.prototype["setDir"] = CEffectWithDir.prototype.setDir;
+    //
+    //function CEffectWithSpokes() {
+    //    CEffectBase.call(this);
+    //    this.spokes = 1;
+    //}
+    //InitClass(CEffectWithSpokes, CEffectBase, oEffects.ET_UNKNOWN);
+    //CEffectWithSpokes.prototype.getSpokes = function() {
+    //    return this.spokes;
+    //};
+    //CEffectWithSpokes.prototype.setSpokes = function(v) {
+    //    this.spokes = v;
+    //};
+    //CEffectWithSpokes.prototype["getSpokes"] = CEffectWithDir.prototype.getSpokes;
+    //CEffectWithSpokes.prototype["setSpokes"] = CEffectWithDir.prototype.setSpokes;
+    //
+    //function CEffectWithVanishingPoint() {
+    //    CEffectBase.call(this);
+    //    this.vashingPoint = oEffects.VANISHING_PT_OBJECT;
+    //}
+    //InitClass(CEffectWithVanishingPoint, CEffectBase, oEffects.ET_UNKNOWN);
+    //CEffectWithVanishingPoint.prototype.getVanishingPoint = function () {
+    //    return this.vashingPoint;
+    //};
+    //CEffectWithVanishingPoint.prototype.setVanishingPoint = function (v) {
+    //    this.vashingPoint = v;
+    //};
+    //CEffectWithVanishingPoint.prototype["getVanishingPoint"] = CEffectWithVanishingPoint.prototype.getVanishingPoint;
+    //CEffectWithVanishingPoint.prototype["setVanishingPoint"] = CEffectWithVanishingPoint.prototype.setVanishingPoint;
+    //
+    //function CEffectWithZoom() {
+    //    CEffectBase.call(this);
+    //    this.zoom = oEffects.ZOOM_IN;
+    //}
+    //InitClass(CEffectWithZoom, CEffectBase, oEffects.ET_UNKNOWN);
+    //CEffectWithZoom.prototype.getZoom = function () {
+    //    return this.zoom;
+    //};
+    //CEffectWithZoom.prototype.setZoom = function (v) {
+    //    this.zoom = v;
+    //};
+    //CEffectWithZoom.prototype["getZoom"] = CEffectWithZoom.prototype.getZoom;
+    //CEffectWithZoom.prototype["setZoom"] = CEffectWithZoom.prototype.setZoom;
+    //
+    //function CEffectWithColor() {
+    //    CEffectBase.call(this);
+    //    this.color = AscFormat.CreateUniColorRGB(0, 0, 0);
+    //}
+    //InitClass(CEffectWithColor, CEffectBase, oEffects.ET_UNKNOWN);
+    //CEffectWithColor.prototype.getColor = function () {
+    //    return this.color;
+    //};
+    //CEffectWithColor.prototype.setColor = function (v) {
+    //    this.color = v;
+    //};
+    //CEffectWithColor.prototype["getColor"] = CEffectWithColor.prototype.getColor;
+    //CEffectWithColor.prototype["setColor"] = CEffectWithColor.prototype.setColor;
+    //
+    //
+    //
+    //function CEntranceBlinds() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_HORIZONTAL;
+    //}
+    //InitClass(CEntranceBlinds, CEffectWithDir, oEffects.ET_ENTRANCE_BLINDS);
+    //
+    //function CEntranceBox() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_IN;
+    //}
+    //InitClass(CEntranceBox, CEffectWithDir, oEffects.ET_ENTRANCE_BOX);
+    //
+    //function CEntranceCheckerboard() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_ACROSS;
+    //}
+    //InitClass(CEntranceCheckerboard, CEffectWithDir, oEffects.ET_ENTRANCE_CHECKERBOARD);
+    //
+    //function CEntranceCircle() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_IN;
+    //}
+    //InitClass(CEntranceCircle, CEffectWithDir, oEffects.ET_ENTRANCE_CIRCLE);
+    //
+    //function CEntranceDiamond() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_IN;
+    //}
+    //InitClass(CEntranceDiamond, CEffectWithDir, oEffects.ET_ENTRANCE_DIAMOND);
+    //
+    //function CEntranceDissolveIn() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceDissolveIn, CEffectBase, oEffects.ET_ENTRANCE_DISSOLVE_IN);
+    //
+    //function CEntranceFlyIn() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_BOTTOM;
+    //}
+    //InitClass(CEntranceFlyIn, CEffectWithDir, oEffects.ET_ENTRANCE_FLY_IN);
+    //
+    //function CEntrancePeekIn() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_BOTTOM;
+    //}
+    //InitClass(CEntrancePeekIn, CEffectWithDir, oEffects.ET_ENTRANCE_PEEK_IN);
+    //
+    //function CEntrancePlus() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_IN;
+    //}
+    //InitClass(CEntrancePlus, CEffectWithDir, oEffects.ET_ENTRANCE_PLUS);
+    //
+    //function CEntranceRandomBars() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_HORIZONTAL;
+    //}
+    //InitClass(CEntranceRandomBars, CEffectWithDir, oEffects.ET_ENTRANCE_RANDOM_BARS);
+    //
+    //function CEntranceSplit() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_VERTICAL_IN;
+    //}
+    //InitClass(CEntranceSplit, CEffectWithDir, oEffects.ET_ENTRANCE_SPLIT);
+    //
+    //function CEntranceStrips() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_LEFT_DOWN;
+    //}
+    //InitClass(CEntranceStrips, CEffectWithDir, oEffects.ET_ENTRANCE_STRIPS);
+    //
+    //function CEntranceWedge() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceWedge, CEffectBase, oEffects.ET_ENTRANCE_WEDGE);
+    //
+    //function CEntranceWheel() {
+    //    CEffectWithSpokes.call(this);
+    //}
+    //InitClass(CEntranceWheel, CEffectWithSpokes, oEffects.ET_ENTRANCE_WHEEL);
+    //
+    //function CEntranceWipe() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_BOTTOM;
+    //}
+    //InitClass(CEntranceWipe, CEffectWithDir, oEffects.ET_ENTRANCE_WIPE);
+    //
+    //function CEntranceExpand() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceExpand, CEffectBase, oEffects.ET_ENTRANCE_EXPAND);
+    //
+    //function CEntranceFade() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceFade, CEffectBase, oEffects.ET_ENTRANCE_FADE);
+    //
+    //function CEntranceSwivel() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceSwivel, CEffectBase, oEffects.ET_ENTRANCE_SWIVEL);
+    //
+    //function CEntranceZoom() {
+    //    CEffectWithVanishingPoint.call(this);
+    //}
+    //InitClass(CEntranceZoom, CEffectWithVanishingPoint, oEffects.ET_ENTRANCE_ZOOM);
+    //
+    //function CEntranceBasicZoom() {
+    //    CEffectWithZoom.call(this);
+    //}
+    //InitClass(CEntranceBasicZoom, CEffectWithZoom, oEffects.ET_ENTRANCE_BASIC_ZOOM);
+    //
+    //function CEntranceCenterRevolve() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceCenterRevolve, CEffectBase, oEffects.ET_ENTRANCE_CENTER_REVOLVE);
+    //
+    //function CEntranceCompress() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceCompress, CEffectBase, oEffects.ET_ENTRANCE_COMPRESS);
+    //
+    //function CEntranceFloatDown() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceFloatDown, CEffectBase, oEffects.ET_ENTRANCE_FLOAT_DOWN);
+    //
+    //function CEntranceFloatUp() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceFloatUp, CEffectBase, oEffects.ET_ENTRANCE_FLOAT_UP);
+    //
+    //function CEntranceGrowAndTurn() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceGrowAndTurn, CEffectBase, oEffects.ET_ENTRANCE_GROW_AND_TURN);
+    //
+    //function CEntranceRiseUp() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceRiseUp, CEffectBase, oEffects.ET_ENTRANCE_RISE_UP);
+    //
+    //function CEntranceSpinner() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceSpinner, CEffectBase, oEffects.ET_ENTRANCE_SPINNER);
+    //
+    //function CEntranceStretch() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_ACROSS;
+    //}
+    //InitClass(CEntranceStretch, CEffectWithDir, oEffects.ET_ENTRANCE_STRETCH);
+    //
+    //function CEntranceBasicSwivel() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_HORIZONTAL;
+    //}
+    //InitClass(CEntranceBasicSwivel, CEffectWithDir, oEffects.ET_ENTRANCE_BASIC_SWIVEL);
+    //
+    //function CEntranceBoomerang() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceBoomerang, CEffectBase, oEffects.ET_ENTRANCE_BOOMERANG);
+    //
+    //function CEntranceBounce() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceBounce, CEffectBase, oEffects.ET_ENTRANCE_BOUNCE);
+    //
+    //function CEntranceCredits() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceCredits, CEffectBase, oEffects.ET_ENTRANCE_CREDITS);
+    //
+    //function CEntranceCurveUp() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceCurveUp, CEffectBase, oEffects.ET_ENTRANCE_CURVE_UP);
+    //
+    //function CEntranceDrop() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceDrop, CEffectBase, oEffects.ET_ENTRANCE_DROP);
+    //
+    //function CEntranceFlip() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceFlip, CEffectBase, oEffects.ET_ENTRANCE_FLIP);
+    //
+    //function CEntranceFloat() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceFloat, CEffectBase, oEffects.ET_ENTRANCE_FLOAT);
+    //
+    //function CEntrancePinwheel() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntrancePinwheel, CEffectBase, oEffects.ET_ENTRANCE_PINWHEEL);
+    //
+    //function CEntranceSpiralIn() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceSpiralIn, CEffectBase, oEffects.ET_ENTRANCE_SPIRAL_IN);
+    //
+    //function CEntranceWhip() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEntranceWhip, CEffectBase, oEffects.ET_ENTRANCE_WHIP);
+    //
+    //function CEmphasiseFillColor() {
+    //    CEffectWithColor.call(this);
+    //}
+    //InitClass(CEmphasiseFillColor, CEffectWithColor, oEffects.ET_EMPHASISE_FILL_COLOR);
+    //
+    //function CEmphasiseFontColor() {
+    //    CEffectWithColor.call(this);
+    //}
+    //InitClass(CEmphasiseFontColor, CEffectWithColor, oEffects.ET_EMPHASISE_FONT_COLOR);
+    //
+    //function CEmphasiseGrowShrink() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_BOTH;
+    //    this.amount = oEffects.AMOUNT_LARGER;
+    //}
+    //InitClass(CEmphasiseGrowShrink, CEffectWithDir, oEffects.ET_EMPHASISE_GROW_SHRINK);
+    //CEmphasiseGrowShrink.prototype.getAmount = function() {
+    //    return this.amount;
+    //};
+    //CEmphasiseGrowShrink.prototype.setAmount = function(v) {
+    //    this.amount = v;
+    //};
+    //CEmphasiseGrowShrink.prototype["getAmount"] = CEmphasiseGrowShrink.prototype.getAmount;
+    //CEmphasiseGrowShrink.prototype["setAmount"] = CEmphasiseGrowShrink.prototype.setAmount;
+    //
+    //function CEmphasiseLineColor() {
+    //    CEffectWithColor.call(this);
+    //}
+    //InitClass(CEmphasiseLineColor, CEffectWithColor, oEffects.ET_EMPHASISE_LINE_COLOR);
+    //
+    //function CEmphasiseSpin() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_CLOCKWISE;
+    //    this.amount = oEffects.AMOUNT_FULL_SPIN;
+    //}
+    //InitClass(CEmphasiseSpin, CEffectWithDir, oEffects.ET_EMPHASISE_SPIN);
+    //CEmphasiseSpin.prototype.getAmount = function() {
+    //    return this.amount;
+    //};
+    //CEmphasiseSpin.prototype.setAmount = function(v) {
+    //    this.amount = v;
+    //};
+    //CEmphasiseSpin.prototype["getAmount"] = CEmphasiseSpin.prototype.getAmount;
+    //CEmphasiseSpin.prototype["setAmount"] = CEmphasiseSpin.prototype.setAmount;
+    //
+    //function CEmphasiseTransparency() {
+    //    CEffectBase.call(this);
+    //    this.amount = oEffects.AMOUNT_50_PCT;
+    //}
+    //InitClass(CEmphasiseTransparency, CEffectBase, oEffects.ET_EMPHASISE_TRANSPARENCY);
+    //
+    //CEmphasiseTransparency.prototype.getAmount = function() {
+    //    return this.amount;
+    //};
+    //CEmphasiseTransparency.prototype.setAmount = function(v) {
+    //    this.amount = v;
+    //};
+    //CEmphasiseTransparency.prototype["getAmount"] = CEmphasiseTransparency.prototype.getAmount;
+    //CEmphasiseTransparency.prototype["setAmount"] = CEmphasiseTransparency.prototype.setAmount;
+    //
+    //function CEmphasiseBoldFlash() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseBoldFlash, CEffectBase, oEffects.ET_EMPHASISE_BOLD_FLASH);
+    //
+    //function CEmphasiseBrushColor() {
+    //    CEffectWithColor.call(this);
+    //}
+    //InitClass(CEmphasiseBrushColor, CEffectWithColor, oEffects.ET_EMPHASISE_BRUSH_COLOR);
+    //
+    //function CEmphasiseComplimentaryColor() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseComplimentaryColor, CEffectBase, oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR);
+    //
+    //function CEmphasiseComplimentaryColor2() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseComplimentaryColor2, CEffectBase, oEffects.ET_EMPHASISE_COMPLIMENTARY_COLOR2);
+    //
+    //function CEmphasiseContrastingColor() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseContrastingColor, CEffectBase, oEffects.ET_EMPHASISE_CONTRASTING_COLOR);
+    //
+    //function CEmphasiseDarken() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseDarken, CEffectBase, oEffects.ET_EMPHASISE_DARKEN);
+    //
+    //function CEmphasiseDesaturate() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseDesaturate, CEffectBase, oEffects.ET_EMPHASISE_DESATURATE);
+    //
+    //function CEmphasiseLighten() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseLighten, CEffectBase, oEffects.ET_EMPHASISE_LIGHTEN);
+    //
+    //function CEmphasiseObjectColor() {
+    //    CEffectWithColor.call(this);
+    //}
+    //InitClass(CEmphasiseObjectColor, CEffectWithColor, oEffects.ET_EMPHASISE_OBJECT_COLOR);
+    //
+    //function CEmphasisePulse() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasisePulse, CEffectBase, oEffects.ET_EMPHASISE_PULSE);
+    //
+    //function CEmphasiseUnderline() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseUnderline, CEffectBase, oEffects.ET_EMPHASISE_UNDERLINE);
+    //
+    //function CEmphasiseColorPulse() {
+    //    CEffectWithColor.call(this);
+    //}
+    //InitClass(CEmphasiseColorPulse, CEffectWithColor, oEffects.ET_EMPHASISE_COLOR_PULSE);
+    //
+    //function CEmphasiseGrowWithColor() {
+    //    CEffectWithColor.call(this);
+    //}
+    //InitClass(CEmphasiseGrowWithColor, CEffectWithColor, oEffects.ET_EMPHASISE_GROW_WITH_COLOR);
+    //
+    //function CEmphasiseShimmer() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseShimmer, CEffectBase, oEffects.ET_EMPHASISE_SHIMMER);
+    //
+    //function CEmphasiseTeeter() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseTeeter, CEffectBase, oEffects.ET_EMPHASISE_TEETER);
+    //
+    //function CEmphasiseBlink() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseBlink, CEffectBase, oEffects.ET_EMPHASISE_BLINK);
+    //
+    //function CEmphasiseBoldReveal() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseBoldReveal, CEffectBase, oEffects.ET_EMPHASISE_BOLD_REVEAL);
+    //
+    //function CEmphasiseWave() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CEmphasiseWave, CEffectBase, oEffects.ET_EMPHASISE_WAVE);
+    //
+    //function CExitBlinds() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_HORIZONTAL;
+    //}
+    //InitClass(CExitBlinds, CEffectWithDir, oEffects.ET_EXIT_BLINDS);
+    //
+    //function CExitBox() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_IN;
+    //}
+    //InitClass(CExitBox, CEffectWithDir, oEffects.ET_EXIT_BOX);
+    //
+    //function CExitCheckerboard() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_ACROSS;
+    //}
+    //InitClass(CExitCheckerboard, CEffectWithDir, oEffects.ET_EXIT_CHECKERBOARD);
+    //
+    //function CExitCircle() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_IN;
+    //}
+    //InitClass(CExitCircle, CEffectWithDir, oEffects.ET_EXIT_CIRCLE);
+    //
+    //function CExitDiamond() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_IN;
+    //}
+    //InitClass(CExitDiamond, CEffectWithDir, oEffects.ET_EXIT_DIAMOND);
+    //
+    //function CExitDisappear() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitDisappear, CEffectBase, oEffects.ET_EXIT_DISAPPEAR);
+    //
+    //function CExitDissolveOut() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitDissolveOut, CEffectBase, oEffects.ET_EXIT_DISSOLVE_OUT);
+    //
+    //function CExitFlyOut() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_BOTTOM;
+    //}
+    //InitClass(CExitFlyOut, CEffectWithDir, oEffects.ET_EXIT_FLY_OUT);
+    //
+    //function CExitPeekOut() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_BOTTOM;
+    //}
+    //InitClass(CExitPeekOut, CEffectWithDir, oEffects.ET_EXIT_PEEK_OUT);
+    //
+    //function CExitPlus() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_OUT;
+    //}
+    //InitClass(CExitPlus, CEffectWithDir, oEffects.ET_EXIT_PLUS);
+    //
+    //function CExitRandomBars() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_HORIZONTAL;
+    //}
+    //InitClass(CExitRandomBars, CEffectWithDir, oEffects.ET_EXIT_RANDOM_BARS);
+    //
+    //function CExitSplit() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_VERTICAL_IN;
+    //}
+    //InitClass(CExitSplit, CEffectWithDir, oEffects.ET_EXIT_SPLIT);
+    //
+    //function CExitStrips() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_LEFT_DOWN;
+    //}
+    //InitClass(CExitStrips, CEffectWithDir, oEffects.ET_EXIT_STRIPS);
+    //
+    //function CExitWedge() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitWedge, CEffectBase, oEffects.ET_EXIT_WEDGE);
+    //
+    //function CExitWheel() {
+    //    CEffectWithSpokes.call(this);
+    //}
+    //InitClass(CExitWheel, CEffectWithSpokes, oEffects.ET_EXIT_WHEEL);
+    //
+    //function CExitWhipe() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_BOTTOM;
+    //}
+    //InitClass(CExitWhipe, CEffectWithDir, oEffects.ET_EXIT_WIPE);
+    //
+    //function CExitExitContract() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitExitContract, CEffectBase, oEffects.ET_EXIT_CONTRACT);
+    //
+    //function CExitFade() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitFade, CEffectBase, oEffects.ET_EXIT_FADE);
+    //
+    //function CExitSwivel() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitSwivel, CEffectBase, oEffects.ET_EXIT_SWIVEL);
+    //
+    //function CExitZoom() {
+    //    CEffectWithVanishingPoint.call(this);
+    //}
+    //InitClass(CExitZoom, CEffectWithVanishingPoint, oEffects.ET_EXIT_ZOOM);
+    //
+    //function CExitBasicZoom() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_OUT;
+    //}
+    //InitClass(CExitBasicZoom, CEffectWithDir, oEffects.ET_EXIT_BASIC_ZOOM);
+    //
+    //function CExitCenterRevolve() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitCenterRevolve, CEffectBase, oEffects.ET_EXIT_CENTER_REVOLVE);
+    //
+    //function CExitCollapse() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_ACROSS;
+    //}
+    //InitClass(CExitCollapse, CEffectWithDir, oEffects.ET_EXIT_COLLAPSE);
+    //
+    //function CExitFloatDown() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitFloatDown, CEffectBase, oEffects.ET_EXIT_FLOAT_DOWN);
+    //
+    //function CExitFloatUp() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitFloatUp, CEffectBase, oEffects.ET_EXIT_FLOAT_UP);
+    //
+    //function CExitShrinkAndTurn() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitShrinkAndTurn, CEffectBase, oEffects.ET_EXIT_SHRINK_AND_TURN);
+    //
+    //function CExitShrinkDown() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitShrinkDown, CEffectBase, oEffects.ET_EXIT_SHRINK_DOWN);
+    //
+    //function CExitSpinner() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitSpinner, CEffectBase, oEffects.ET_EXIT_SPINNER);
+    //
+    //function CExitStretchy() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitStretchy, CEffectBase, oEffects.ET_EXIT_STRETCHY);
+    //
+    //function CExitBasicSwivel() {
+    //    CEffectWithDir.call(this);
+    //    this.dir = oEffects.DIR_HORIZONTAL;
+    //}
+    //InitClass(CExitBasicSwivel, CEffectWithDir, oEffects.ET_EXIT_BASIC_SWIVEL);
+    //
+    //function CExitBoomerang() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitBoomerang, CEffectBase, oEffects.ET_EXIT_BOOMERANG);
+    //
+    //function CExitBounce() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitBounce, CEffectBase, oEffects.ET_EXIT_BOUNCE);
+    //
+    //function CExitCredits() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitCredits, CEffectBase, oEffects.ET_EXIT_CREDITS);
+    //
+    //function CExitCurveDown() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitCurveDown, CEffectBase, oEffects.ET_EXIT_CURVE_DOWN);
+    //
+    //function CExitDrop() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitDrop, CEffectBase, oEffects.ET_EXIT_DROP);
+    //
+    //function CExitFlip() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitFlip, CEffectBase, oEffects.ET_EXIT_FLIP);
+    //
+    //function CExitFloat() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitFloat, CEffectBase, oEffects.ET_EXIT_FLOAT);
+    //
+    //function CExitPinwheel() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitPinwheel, CEffectBase, oEffects.ET_EXIT_PINWHEEL);
+    //
+    //function CExitSpiralOut() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitSpiralOut, CEffectBase, oEffects.ET_EXIT_SPIRAL_OUT);
+    //
+    //function CExitWhip() {
+    //    CEffectBase.call(this);
+    //}
+    //InitClass(CExitWhip, CEffectBase, oEffects.ET_EXIT_WHIP);
+    //
+    //function CEffectMotionBase() {
+    //    CEffectBase.call(this);
+    //    this.origin = oEffects.ORIGIN_LOCKED;
+    //}
+    //InitClass(CEffectMotionBase, CEffectBase, oEffects.ET_UNKNOWN);
+    //CEffectMotionBase.prototype.getOrigin = function() {
+    //    return this.origin;
+    //};
+    //CEffectMotionBase.prototype.setOrigin = function(v) {
+    //    this.origin = v;
+    //};
+    //CEffectMotionBase.prototype.editPoints = function() {
+    //};
+    //CEffectMotionBase.prototype.reversePathDirection = function() {
+    //};
+    //CEffectMotionBase.prototype["getOrigin"] = CEffectMotionBase.prototype.getOrigin;
+    //CEffectMotionBase.prototype["setOrigin"] = CEffectMotionBase.prototype.setOrigin;
+    //CEffectMotionBase.prototype["editPoints"] = CEffectMotionBase.prototype.editPoints;
+    //CEffectMotionBase.prototype["reversePathDirection"] = CEffectMotionBase.prototype.reversePathDirection;
+    //
+    //
+    //function CMotion4PointStar() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotion4PointStar, CEffectMotionBase, oEffects.ET_MOTION_4_POINT_STAR);
+    //
+    //function CMotion5PointStar() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotion5PointStar, CEffectMotionBase, oEffects.ET_MOTION_5_POINT_STAR);
+    //
+    //function CMotion6PointStar() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotion6PointStar, CEffectMotionBase, oEffects.ET_MOTION_6_POINT_STAR);
+    //
+    //function CMotion8PointStar() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotion8PointStar, CEffectMotionBase, oEffects.ET_MOTION_8_POINT_STAR);
+    //
+    //function CMotionCircle() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionCircle, CEffectMotionBase, oEffects.ET_MOTION_CIRCLE);
+    //
+    //function CMotionCrescentMoon() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionCrescentMoon, CEffectMotionBase, oEffects.ET_MOTION_CRESCENT_MOON);
+    //
+    //function CMotionDiamond() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionDiamond, CEffectMotionBase, oEffects.ET_MOTION_DIAMOND);
+    //
+    //function CMotionEqualTriangle() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionEqualTriangle, CEffectMotionBase, oEffects.ET_MOTION_EQUAL_TRIANGLE);
+    //
+    //function CMotionFootball() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionFootball, CEffectMotionBase, oEffects.ET_MOTION_FOOTBALL);
+    //
+    //function CMotionHeart() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionHeart, CEffectMotionBase, oEffects.ET_MOTION_HEART);
+    //
+    //function CMotionHexagon() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionHexagon, CEffectMotionBase, oEffects.ET_MOTION_HEXAGON);
+    //
+    //function CMotionOctagon() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionOctagon, CEffectMotionBase, oEffects.ET_MOTION_OCTAGON);
+    //
+    //function CMotionParallelogram() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionParallelogram, CEffectMotionBase, oEffects.ET_MOTION_PARALLELOGRAM);
+    //
+    //function CMotionPentagon() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionPentagon, CEffectMotionBase, oEffects.ET_MOTION_PENTAGON);
+    //
+    //function CMotionRightTriangle() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionRightTriangle, CEffectMotionBase, oEffects.ET_MOTION_RIGHT_TRIANGLE);
+    //
+    //function CMotionSquare() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSquare, CEffectMotionBase, oEffects.ET_MOTION_SQUARE);
+    //
+    //function CMotionTeardrop() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionTeardrop, CEffectMotionBase, oEffects.ET_MOTION_TEARDROP);
+    //
+    //function CMotionTrapezoid() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionTrapezoid, CEffectMotionBase, oEffects.ET_MOTION_TRAPEZOID);
+    //
+    //function CMotionArcDown() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionArcDown, CEffectMotionBase, oEffects.ET_MOTION_ARC_DOWN);
+    //
+    //function CMotionArcLeft() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionArcLeft, CEffectMotionBase, oEffects.ET_MOTION_ARC_LEFT);
+    //
+    //function CMotionArcRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionArcRight, CEffectMotionBase, oEffects.ET_MOTION_ARC_RIGHT);
+    //
+    //function CMotionArcUp() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionArcUp, CEffectMotionBase, oEffects.ET_MOTION_ARC_UP);
+    //
+    //function CMotionBounceLeft() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionBounceLeft, CEffectMotionBase, oEffects.ET_MOTION_BOUNCE_LEFT);
+    //
+    //function CMotionBounceRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionBounceRight, CEffectMotionBase, oEffects.ET_MOTION_BOUNCE_RIGHT);
+    //
+    //function CMotionCurvyLeft() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionCurvyLeft, CEffectMotionBase, oEffects.ET_MOTION_CURVY_LEFT);
+    //
+    //function CMotionCurvyRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionCurvyRight, CEffectMotionBase, oEffects.ET_MOTION_CURVY_RIGHT);
+    //
+    //function CMotionDecayingWave() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionDecayingWave, CEffectMotionBase, oEffects.ET_MOTION_DECAYING_WAVE);
+    //
+    //function CMotionDiagonalDownRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionDiagonalDownRight, CEffectMotionBase, oEffects.ET_MOTION_DIAGONAL_DOWN_RIGHT);
+    //
+    //function CMotionDiagonalUpRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionDiagonalUpRight, CEffectMotionBase, oEffects.ET_MOTION_DIAGONAL_UP_RIGHT);
+    //
+    //function CMotionDown() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionDown, CEffectMotionBase, oEffects.ET_MOTION_DOWN);
+    //
+    //function CMotionFunnel() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionFunnel, CEffectMotionBase, oEffects.ET_MOTION_FUNNEL);
+    //
+    //function CMotionMotionHeartbeat() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionMotionHeartbeat, CEffectMotionBase, oEffects.ET_MOTION_HEARTBEAT);
+    //
+    //function CMotionLeft() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionLeft, CEffectMotionBase, oEffects.ET_MOTION_LEFT);
+    //
+    //function CMotionRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionRight, CEffectMotionBase, oEffects.ET_MOTION_RIGHT);
+    //
+    //function CMotionSCurve1() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSCurve1, CEffectMotionBase, oEffects.ET_MOTION_S_CURVE_1);
+    //
+    //function CMotionSCurve2() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSCurve2, CEffectMotionBase, oEffects.ET_MOTION_S_CURVE_2);
+    //
+    //function CMotionSineWave() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSineWave, CEffectMotionBase, oEffects.ET_MOTION_SINE_WAVE);
+    //
+    //function CMotionSpiralLeft() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSpiralLeft, CEffectMotionBase, oEffects.ET_MOTION_SPIRAL_LEFT);
+    //
+    //function CMotionSpiralRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSpiralRight, CEffectMotionBase, oEffects.ET_MOTION_SPIRAL_RIGHT);
+    //
+    //function CMotionSpring() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSpring, CEffectMotionBase, oEffects.ET_MOTION_SPRING);
+    //
+    //function CMotionStairsDown() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionStairsDown, CEffectMotionBase, oEffects.ET_MOTION_STAIRS_DOWN);
+    //
+    //function CMotionTurnDown() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionTurnDown, CEffectMotionBase, oEffects.ET_MOTION_TURN_DOWN);
+    //
+    //function CMotionTurnDownRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionTurnDownRight, CEffectMotionBase, oEffects.ET_MOTION_TURN_DOWN_RIGHT);
+    //
+    //function CMotionTurnUp() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionTurnUp, CEffectMotionBase, oEffects.ET_MOTION_TURN_UP);
+    //
+    //function CMotionTurnUpRight() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionTurnUpRight, CEffectMotionBase, oEffects.ET_MOTION_TURN_UP_RIGHT);
+    //
+    //function CMotionMotionUp() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionMotionUp, CEffectMotionBase, oEffects.ET_MOTION_UP);
+    //
+    //function CMotionWave() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionWave, CEffectMotionBase, oEffects.ET_MOTION_WAVE);
+    //
+    //function CMotionZigzag() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionZigzag, CEffectMotionBase, oEffects.ET_MOTION_ZIGZAG);
+    //
+    //function CMotionBean() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionBean, CEffectMotionBase, oEffects.ET_MOTION_BEAN);
+    //
+    //function CMotionCurvedSquare() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionCurvedSquare, CEffectMotionBase, oEffects.ET_MOTION_CURVED_SQUARE);
+    //
+    //function CMotionCurvedX() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionCurvedX, CEffectMotionBase, oEffects.ET_MOTION_CURVED_X);
+    //
+    //function CMotionCurvyStar() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionCurvyStar, CEffectMotionBase, oEffects.ET_MOTION_CURVY_STAR);
+    //
+    //function CMotionFigure8Four() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionFigure8Four, CEffectMotionBase, oEffects.ET_MOTION_FIGURE_8_FOUR);
+    //
+    //function CMotionHorizontalFigure8() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionHorizontalFigure8, CEffectMotionBase, oEffects.ET_MOTION_HORIZONTAL_FIGURE_8);
+    //
+    //function CMotionInvertedSquare() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionInvertedSquare, CEffectMotionBase, oEffects.ET_MOTION_INVERTED_SQUARE);
+    //
+    //function CMotionInvertedTriangle() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionInvertedTriangle, CEffectMotionBase, oEffects.ET_MOTION_INVERTED_TRIANGLE);
+    //
+    //function CMotionLoopDeLoop() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionLoopDeLoop, CEffectMotionBase, oEffects.ET_MOTION_LOOP_DE_LOOP);
+    //
+    //function CMotionNeutron() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionNeutron, CEffectMotionBase, oEffects.ET_MOTION_NEUTRON);
+    //
+    //function CMotionPeanut() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionPeanut, CEffectMotionBase, oEffects.ET_MOTION_PEANUT);
+    //
+    //function CMotionPlus() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionPlus, CEffectMotionBase, oEffects.ET_MOTION_PLUS);
+    //
+    //function CMotionPointyStar() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionPointyStar, CEffectMotionBase, oEffects.ET_MOTION_POINTY_STAR);
+    //
+    //function CMotionSwoosh() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionSwoosh, CEffectMotionBase, oEffects.ET_MOTION_SWOOSH);
+    //
+    //function CMotionVerticalFigure8() {
+    //    CEffectMotionBase.call(this);
+    //}
+    //InitClass(CMotionVerticalFigure8, CEffectMotionBase, oEffects.ET_MOTION_VERTICAL_FIGURE_8);
     //------------------------------------------------------------------------------------------
 
-    function CTimelineGroup() {
+    function CEffectGroup() {
         this.triggerName = null;
         this.effects = [];
     }
@@ -10127,5 +10506,147 @@
     window['AscFormat'].CBaseAnimObject = CBaseAnimObject;
     window['AscFormat'].CAnimFormulaParser = CFormulaParser;
     window['AscFormat'].CBaseAnimTexture = CBaseAnimTexture;
-    window['AscFormat']['Effects'] = window['AscFormat'].Effects = oEffects;
+
+
+    function generate_preset_data() {
+        var aPresets = "emph,emphasis_blink,35,0;emph,emphasis_bold_flash,10,0;emph,emphasis_bold_reveal,15,0;emph,emphasis_brush_color,16,0;emph,emphasis_color_pulse,27,0;emph,emphasis_complementary_color,21,0;emph,emphasis_complementary_color_2,22,0;emph,emphasis_contrasting_color,23,0;emph,emphasis_contrasting_darken,24,0;emph,emphasis_desaturate,25,0;emph,emphasis_fill_color,1,2;emph,emphasis_font_color,3,2;emph,emphasis_grow_shrink,6,0;emph,emphasis_grow_with_color,28,0;emph,emphasis_lighten,30,0;emph,emphasis_line_color,7,2;emph,emphasis_object_color,19,0;emph,emphasis_pulse,26,0;emph,emphasis_shimmer,36,0;emph,emphasis_spin,8,0;emph,emphasis_teeter,32,0;emph,emphasis_transparency,9,0;emph,emphasis_underline,18,0;emph,emphasis_wave,34,0;entr,entrance_appear,1,0;entr,entrance_basic_swivel_horizontal,19,10;entr,entrance_basic_swivel_vertical,19,5;entr,entrance_basic_zoom_in,23,16;entr,entrance_basic_zoom_in_from_screen_center,23,528;entr,entrance_basic_zoom_in_slightly,23,272;entr,entrance_basic_zoom_out,23,32;entr,entrance_basic_zoom_out_from_screen_bottom,23,36;entr,entrance_basic_zoom_out_slightly,23,288;entr,entrance_blinds_horizontal,3,10;entr,entrance_blinds_vertical,3,5;entr,entrance_boomerang,25,0;entr,entrance_bounce,26,0;entr,entrance_box_in,4,16;entr,entrance_box_out,4,32;entr,entrance_center_compress,50,0;entr,entrance_center_revolve,43,0;entr,entrance_checkerboard_across,5,10;entr,entrance_checkerboard_down,5,5;entr,entrance_circle_in,6,16;entr,entrance_circle_out,6,32;entr,entrance_credits,28,0;entr,entrance_curve_up,52,0;entr,entrance_diamond_in,8,16;entr,entrance_diamond_out,8,32;entr,entrance_dissolve_in,9,0;entr,entrance_drop,38,0;entr,entrance_expand,55,0;entr,entrance_fade,10,0;entr,entrance_flip,56,0;entr,entrance_float,30,0;entr,entrance_float_down,47,0;entr,entrance_float_up,42,0;entr,entrance_fly_in_from_bottom,2,4;entr,entrance_fly_in_from_bottom_left,2,12;entr,entrance_fly_in_from_bottom_right,2,6;entr,entrance_fly_in_from_left,2,8;entr,entrance_fly_in_from_right,2,2;entr,entrance_fly_in_from_top,2,1;entr,entrance_fly_in_from_top_left,2,9;entr,entrance_fly_in_from_top_right,2,3;entr,entrance_grow_and_turn,31,0;entr,entrance_peek_in_from_bottom,12,4;entr,entrance_peek_in_from_left,12,8;entr,entrance_peek_in_from_right,12,2;entr,entrance_peek_in_from_top,12,1;entr,entrance_pinwheel,35,0;entr,entrance_plus_in,13,16;entr,entrance_plus_out,13,32;entr,entrance_random_bars_horizontal,14,10;entr,entrance_random_bars_vertical,14,5;entr,entrance_rise_up,37,0;entr,entrance_spinner,49,0;entr,entrance_spiral_in,15,0;entr,entrance_split_horizontal_in,16,26;entr,entrance_split_horizontal_out,16,42;entr,entrance_split_vertical_in,16,21;entr,entrance_split_vertical_out,16,37;entr,entrance_stretch_across,17,10;entr,entrance_stretch_from_bottom,17,4;entr,entrance_stretch_from_left,17,8;entr,entrance_stretch_from_right,17,2;entr,entrance_stretch_from_top,17,1;entr,entrance_strips_left_down,18,12;entr,entrance_strips_left_up,18,9;entr,entrance_strips_right_down,18,6;entr,entrance_strips_right_up,18,3;entr,entrance_swivel,45,0;entr,entrance_wedge,20,0;entr,entrance_wheel_1_spoke,21,1;entr,entrance_wheel_2_spokes,21,2;entr,entrance_wheel_3_spokes,21,3;entr,entrance_wheel_4_spokes,21,4;entr,entrance_wheel_8_spokes,21,8;entr,entrance_whip,41,0;entr,entrance_whipe_from_bottom,22,4;entr,entrance_whipe_from_left,22,8;entr,entrance_whipe_from_right,22,2;entr,entrance_whipe_from_top,22,1;entr,entrance_zoom_object_center,53,16;entr,entrance_zoom_slide_center,53,528;exit,exit_basic_swivel_horizontal,19,10;exit,exit_basic_swivel_vertical,19,5;exit,exit_basic_zoom_in,23,16;exit,exit_basic_zoom_in_slightly,23,272;exit,exit_basic_zoom_in_to_screen_bottom,23,20;exit,exit_basic_zoom_out,23,32;exit,exit_basic_zoom_out_slightly,23,288;exit,exit_basic_zoom_out_to_screen_center,23,544;exit,exit_blinds_horizontal,3,10;exit,exit_blinds_vertical,3,5;exit,exit_boomerang,25,0;exit,exit_bounce,26,0;exit,exit_box_in,4,16;exit,exit_box_out,4,32;exit,exit_center_revolve,43,0;exit,exit_checkerboard_across,5,10;exit,exit_checkerboard_up,5,5;exit,exit_circle_in,6,16;exit,exit_circle_out,6,32;exit,exit_collapse_across,17,10;exit,exit_collapse_to_bottom,17,4;exit,exit_collapse_to_left,17,8;exit,exit_collapse_to_right,17,2;exit,exit_collapse_to_top,17,1;exit,exit_contract,55,0;exit,exit_credits,28,0;exit,exit_curve_down,52,0;exit,exit_diamond_in,8,16;exit,exit_diamond_out,8,32;exit,exit_disappear,1,0;exit,exit_dissolve_out,9,0;exit,exit_drop,38,0;exit,exit_fade,10,0;exit,exit_flip,56,0;exit,exit_float,30,0;exit,exit_float_down,42,0;exit,exit_float_up,47,0;exit,exit_fly_out_to_bottom,2,4;exit,exit_fly_out_to_bottom_left,2,12;exit,exit_fly_out_to_bottom_right,2,6;exit,exit_fly_out_to_left,2,8;exit,exit_fly_out_to_right,2,2;exit,exit_fly_out_to_top,2,1;exit,exit_fly_out_to_top_left,2,9;exit,exit_fly_out_to_top_right,2,3;exit,exit_peek_out_to_bottom,12,4;exit,exit_peek_out_to_left,12,8;exit,exit_peek_out_to_right,12,2;exit,exit_peek_out_to_top,12,1;exit,exit_pinwheel,35,0;exit,exit_plus_in,13,16;exit,exit_plus_out,13,32;exit,exit_random_bars_horizontal,14,10;exit,exit_random_bars_vertical,14,5;exit,exit_shrink_and_turn,31,0;exit,exit_shrink_down,37,0;exit,exit_spinner,49,0;exit,exit_spiral_out,15,0;exit,exit_split_horizontal_in,16,26;exit,exit_split_horizontal_out,16,42;exit,exit_split_vertical_in,16,21;exit,exit_split_vertical_out,16,37;exit,exit_stretchy,50,0;exit,exit_strips_left_down,18,12;exit,exit_strips_left_up,18,9;exit,exit_strips_right_down,18,6;exit,exit_strips_right_up,18,3;exit,exit_swivel,45,0;exit,exit_wedge,20,0;exit,exit_wheel_1_spoke,21,1;exit,exit_wheel_2_spokes,21,2;exit,exit_wheel_3_spokes,21,3;exit,exit_wheel_4_spokes,21,4;exit,exit_wheel_8_spokes,21,8;exit,exit_whip,41,0;exit,exit_whipe_from_bottom,22,4;exit,exit_whipe_from_left,22,8;exit,exit_whipe_from_right,22,2;exit,exit_whipe_from_top,22,1;exit,exit_zoom_object_center,53,32;exit,exit_zoom_slide_center,53,544;path,motion_arc_down,37,0;path,motion_arc_left,51,0;path,motion_arc_right,58,0;path,motion_arc_up,44,0;path,motion_bean,31,0;path,motion_bounce_left,41,0;path,motion_bounce_right,54,0;path,motion_circle,1,0;path,motion_crescent_moon,6,0;path,motion_curved_square,20,0;path,motion_curved_x,21,0;path,motion_curvy_left,48,0;path,motion_curvy_right,61,0;path,motion_curvy_star,23,0;path,motion_custom_path,0,0;path,motion_decaying_wave,60,0;path,motion_diagonal_down_right,49,0;path,motion_diagonal_up_right,56,0;path,motion_diamond,3,0;path,motion_down,42,0;path,motion_equal_triangle,13,0;path,motion_figure_8_four,28,0;path,motion_football,12,0;path,motion_funnel,52,0;path,motion_heart,9,0;path,motion_heartbeat,45,0;path,motion_hexagon,4,0;path,motion_horizontal_figure_8_four,26,0;path,motion_inverted_square,34,0;path,motion_inverted_triangle,33,0;path,motion_left,35,0;path,motion_loop_de_loop,24,0;path,motion_neutron,29,0;path,motion_octagon,10,0;path,motion_parallelogram,14,0;path,motion_path_4_point_star,16,0;path,motion_path_5_point_star,5,0;path,motion_path_6_point_star,11,0;path,motion_path_8_point_star,17,0;path,motion_peanut,27,0;path,motion_pentagon,15,0;path,motion_plus,32,0;path,motion_pointy_star,19,0;path,motion_right,63,0;path,motion_right_triangle,2,0;path,motion_sine_spiral_left,55,0;path,motion_sine_spiral_right,46,0;path,motion_sine_wave,40,0;path,motion_spring,53,0;path,motion_square,7,0;path,motion_stairs_down,62,0;path,motion_swoosh,30,0;path,motion_s_curve_1,59,0;path,motion_s_curve_2,39,0;path,motion_teardrop,18,0;path,motion_trapezoid,8,0;path,motion_turn_down,50,0;path,motion_turn_down_right,36,0;path,motion_turn_up,43,0;path,motion_turn_up_right,57,0;path,motion_up,64,0;path,motion_vertical_figure_8,22,0;path,motion_wave,47,0;path,motion_zigzag,38,0".split(";");
+
+        function getPresetData(sPreset) {
+            var aPreset = sPreset.split(",");
+            return {
+                presetClass: aPreset[0],
+                presetID: aPreset[2],
+                presetSubtype: aPreset[3],
+                effectName: aPreset[1]
+            };
+        }
+        var oClassesNameMap = {"emph": 0, "entr": 1, "exit": 2, "path": 4};
+        var oPresetClassMap = {};
+        var oPresetIDMap = {};
+
+        var sKey;
+        var sConstName;
+        var sClassesConstScript = "";
+        for(sKey in oClassesNameMap) {
+            sConstName = "PRESET_CLASS_" + sKey.toUpperCase();
+            sClassesConstScript += ("AscFormat." + sConstName + " = AscFormat[\"" + sConstName + "\"] = " + oClassesNameMap[sKey]);
+
+        }
+
+        var sResultScript = "";
+        var sClasses;
+        var oEffectsByClass = {};
+        while(aPresets.length > 0) {
+            var sClassPreset = aPresets.pop();
+            var oClassPreset = getPresetData(sClassPreset);
+            var oCurPreset;
+            //find all presets with this presetClass and presetID
+            var aSameClassAndTypeEffects = [];
+            aSameClassAndTypeEffects.push(oClassPreset);
+            var nPreset = aPresets.length - 1;
+            var nMinEffectNameLenght = oClassPreset.effectName.length;
+            while(nPreset > -1) {
+                oCurPreset = getPresetData(aPresets[nPreset]);
+                if(oCurPreset.presetClass === oClassPreset.presetClass && oCurPreset.presetID === oClassPreset.presetID) {
+                    aPresets.splice(nPreset, 1);
+                    aSameClassAndTypeEffects.push(oCurPreset);
+                    nMinEffectNameLenght = Math.min(nMinEffectNameLenght, oClassPreset.effectName.length);
+                }
+                --nPreset;
+            }
+            //find preset name
+            var nPresetNameLength = nMinEffectNameLenght;
+            while(nPresetNameLength > 0) {
+                var sCheckName = aSameClassAndTypeEffects[0].effectName.slice(0, nPresetNameLength);
+                for(nPreset = 1; nPreset < aSameClassAndTypeEffects.length; ++nPreset) {
+                    if(aSameClassAndTypeEffects[nPreset].effectName.indexOf(sCheckName) !== 0) {
+                        break;
+                    }
+                }
+                if(nPreset === aSameClassAndTypeEffects.length) {
+                    break;
+                }
+                nPresetNameLength--;
+            }
+            var nPresetNameForSliceLength = nPresetNameLength;
+            if(oClassPreset.effectName.charAt(nPresetNameLength - 1) === "_") {
+                nPresetNameForSliceLength = nPresetNameLength - 1;
+            }
+            var sEffectName = oClassPreset.effectName.slice(0, nPresetNameForSliceLength).toUpperCase();
+            if(!oEffectsByClass[oClassPreset.presetClass]) {
+                oEffectsByClass[oClassPreset.presetClass] = {"type": oClassesNameMap[oClassPreset.presetClass], "subtypes": {}};
+            }
+            var oEffectClass = oEffectsByClass[oClassPreset.presetClass]["subtypes"];
+            oEffectClass[sEffectName] = {
+                "type": parseInt(oClassPreset.presetID),
+                "subtypes": {
+
+                }
+            };
+            if(aSameClassAndTypeEffects.length > 1) {
+                for(nPreset = 0; nPreset < aSameClassAndTypeEffects.length; ++nPreset) {
+                    oCurPreset = aSameClassAndTypeEffects[nPreset];
+                    var sPresetSubtypeName = oCurPreset.effectName.slice(nPresetNameLength);
+                    oEffectClass[sEffectName]["subtypes"][sPresetSubtypeName] = oCurPreset.presetSubtype;
+                }
+            }
+        }
+        var aEffectClassesStrings = [];
+        var aArraysOfEffects = [];
+        var aArrayOfEffectsSubtypes = [];
+        var sConstString, oConstStringStruct;
+
+        function getStr(sObj, sKey, sVal) {
+            return sConstString = sObj + "." + sKey + " = " + sObj + "[\"" + sKey + "\"] = " + sVal + ";";
+        }
+        for(sKey in oEffectsByClass) {
+            var oClassOfEffects = oEffectsByClass[sKey];
+            var sEffectClassName = "PRESET_CLASS_" + sKey.toUpperCase();
+            sConstString = getStr("AscFormat", sEffectClassName, oClassOfEffects["type"]);
+            oConstStringStruct = {idx: parseInt(oClassOfEffects["type"]), str: sConstString};
+            aEffectClassesStrings.push(oConstStringStruct);
+            var oTypesOfEffects = oClassOfEffects["subtypes"];
+            var aCurEffects = [];
+            aArraysOfEffects.push(aCurEffects);
+            for(var sKey2 in oTypesOfEffects) {
+                var oEffect = oTypesOfEffects[sKey2];
+                sConstString = getStr("AscFormat", sKey2, oEffect["type"]);
+                oConstStringStruct = {idx: parseInt(oEffect["type"]), str: sConstString};
+                aCurEffects.push(oConstStringStruct);
+                if(Object.keys(oEffect["subtypes"]).length !== 0) {
+                    var oCurEffectSubtypes = [];
+                    aArrayOfEffectsSubtypes.push(oCurEffectSubtypes);
+                    var oEffectSubtypes = oEffect["subtypes"];
+                    for(var sKey3 in oEffectSubtypes) {
+                        var sSubtypeConstName = sKey2 + "_" + sKey3.toUpperCase();
+                        sConstString = getStr("AscFormat", sSubtypeConstName, oEffectSubtypes[sKey3]);
+                        oCurEffectSubtypes.push({idx: parseInt(oEffectSubtypes[sKey3]), str: sConstString});
+                    }
+                }
+            }
+        }
+        var sResultScript = "";
+        function writeConstString(aStrObjects) {
+            var sResult = "";
+            if(Array.isArray(aStrObjects[0])) {
+                for(var nIdx = 0; nIdx < aStrObjects.length; ++nIdx) {
+                    sResult += writeConstString(aStrObjects[nIdx]);
+                }
+                return sResult;
+            }
+            sResult = "\n";
+            aStrObjects.sort(function(a, b){return a.idx - b.idx});
+            for(var nIdx = 0; nIdx < aStrObjects.length; ++nIdx) {
+                sResult += (aStrObjects[nIdx].str + "\n");
+            }
+            return sResult;
+        }
+        sResultScript += writeConstString(aEffectClassesStrings);
+        sResultScript += writeConstString(aArraysOfEffects);
+        sResultScript += writeConstString(aArrayOfEffectsSubtypes);
+        console.log(sResultScript);
+    }
+    AscFormat.generate_preset_data = generate_preset_data;
+
+
 })(window);
