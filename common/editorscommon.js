@@ -6458,11 +6458,19 @@
 				var _text = "";
 				var startQualifier = false;
 				for (var j = 0; j < row.length; j++) {
-					if (!startQualifier && row[j] === textQualifier && row[j - 1] && row[j - 1] === delimiterChar) {
+					if (!startQualifier && row[j] === textQualifier && (!row[j - 1] || (row[j - 1] && row[j - 1] === delimiterChar))) {
 						startQualifier = !startQualifier;
 						continue;
 					} else if (startQualifier && row[j] === textQualifier) {
 						startQualifier = !startQualifier;
+
+						if (j === row.length - 1) {
+							if (!matrix[i]) {
+								matrix[i] = [];
+							}
+							matrix[i].push(_text);
+						}
+
 						continue;
 					}
 					
