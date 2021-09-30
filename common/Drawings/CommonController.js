@@ -7453,12 +7453,23 @@ DrawingObjectsController.prototype =
     getDrawingPropsFromArray: function(drawings)
     {
         var image_props, shape_props, chart_props, table_props = undefined, new_image_props, new_shape_props, new_chart_props, new_table_props, shape_chart_props, locked;
+        var anim_props;
+        var cur_anim_props;
         var drawing;
         var slicer_props, new_slicer_props;
         var bGroupSelection = AscCommon.isRealObject(this.selection.groupSelection);
         for(var i = 0; i < drawings.length; ++i)
         {
             drawing = drawings[i];
+            cur_anim_props = drawing.getAnimEffect();
+            if(!anim_props)
+            {
+                anim_props.merge(cur_anim_props);
+            }
+            else
+            {
+                anim_props = cur_anim_props;
+            }
             locked = undefined;
             if(!drawing.group)
             {
@@ -8093,7 +8104,7 @@ DrawingObjectsController.prototype =
                 }
             }
         }
-        return {imageProps: image_props, shapeProps: shape_props, chartProps: chart_props, tableProps: table_props, shapeChartProps: shape_chart_props, slicerProps: slicer_props};
+        return {imageProps: image_props, shapeProps: shape_props, chartProps: chart_props, tableProps: table_props, shapeChartProps: shape_chart_props, slicerProps: slicer_props, animProps: anim_props};
     },
 
     getDrawingProps: function()
