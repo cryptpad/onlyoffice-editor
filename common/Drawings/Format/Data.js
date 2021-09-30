@@ -10244,6 +10244,7 @@
         case "OpposingIdeas":
         case "hierarchy6":
         case "hierarchy5":
+        case "IncreasingArrowsProcess":
           return getShapesFromPresetGeom();
         case "VerticalAccentList":
           return getShapesFromPresStyleLbl(['revTx', 'solidFgAcc1']);
@@ -10259,8 +10260,6 @@
           return getShapesFromPresStyleLbl(['node1', 'bgAcc1']);
         case "hProcess4":
           return getShapesFromPresStyleLbl(['node1', 'bgAcc1']);
-        case "IncreasingArrowsProcess":
-          return getShapesFromPresStyleLbl(['solidAlignAcc1']); //TODO: think
         case "lProcess3":
           return getShapesFromPresStyleLbl(['node1', 'alignAccFollowNode1']);
         case "lProcess1":

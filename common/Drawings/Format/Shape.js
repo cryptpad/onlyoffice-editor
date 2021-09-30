@@ -2576,14 +2576,46 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var _content_height = oContent.GetSummaryHeight();
     var _l, _t, _r, _b;
     var _t_x_lt, _t_y_lt, _t_x_rt, _t_y_rt, _t_x_lb, _t_y_lb, _t_x_rb, _t_y_rb;
-    var oRect = this.getTextRect();
-    if (this.txXfrm) {
-        oRect.r = oRect.l + this.txXfrm.extX;
-    }
     var l_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.lIns) ? oBodyPr.lIns : 2.54);
     var t_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.tIns) ? oBodyPr.tIns : 1.27);
     var r_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54);
     var b_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27);
+    var oRect;
+    if (this.txXfrm) {
+        if (typeof this.txXfrm.rot === "number") {
+            var normRot = this.txXfrm.rot;
+            while (normRot < 0) {
+                normRot += 2 * Math.PI;
+            }
+            var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
+            while (nSquare < 0){
+                nSquare += 4;
+            }
+        }
+        var newL = this.txXfrm.offX - this.x;
+        var newT = this.txXfrm.offY - this.y;
+        var newR = newL + this.txXfrm.extX;
+        var newB = newT + this.txXfrm.extY;
+        oRect = {
+            l: newL,
+            t: newT,
+            r: newR,
+            b: newB
+        }
+        switch (nSquare) {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            default:
+                break;
+
+        }
+    } else {
+        oRect = this.getTextRect();
+    }
 
     if(this.bWordShape)
     {
@@ -2642,24 +2674,16 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     }
 
     if (this.txXfrm && this.txXfrm.rot) {
-        var normRot = this.txXfrm.rot;
-        while (normRot < 0) {
-            normRot += 2 * Math.PI;
-        }
-        var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
-        while (nSquare < 0){
-            nSquare += 4;
-        }
-                _rot_angle = this.txXfrm.rot;
-                if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
-                {
-                    if (nSquare % 2 === 0) {
-                        global_MatrixTransformer.TranslateAppend(oMatrix, -XC, -YC);
-                        global_MatrixTransformer.RotateRadAppend(oMatrix, -_rot_angle);
-                        global_MatrixTransformer.TranslateAppend(oMatrix, XC, YC);
-                    }
+        _rot_angle = normRot;
+        if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
+        {
+            if (nSquare % 2 === 0) {
+                global_MatrixTransformer.TranslateAppend(oMatrix, -XC, -YC);
+                global_MatrixTransformer.RotateRadAppend(oMatrix, -_rot_angle);
+                global_MatrixTransformer.TranslateAppend(oMatrix, XC, YC);
+            }
 
-                }
+        }
     }
     _t_x_lt = _shape_transform.TransformPointX(_l, _t);
     _t_y_lt = _shape_transform.TransformPointY(_l, _t);
@@ -2693,21 +2717,14 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             }
             else {
                 if ((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nOTOwerflow) || _content_height < _text_rect_height) {
-                    var verticalTxXfrm = 0;
-                    var horizontalTxXfrm = 0;
-                    if (this.txXfrm) {
-                        verticalTxXfrm = this.y - this.txXfrm.offY;
-                    }
                     switch (oBodyPr.anchor) {
                         case 0: //b
                         { // (Text Anchor Enum ( Bottom ))
-                            _vertical_shift = _text_rect_height - _content_height + verticalTxXfrm;
+                            _vertical_shift = _text_rect_height - _content_height;
                             if (nSquare % 2 === 0) {
-                                _vertical_shift = 0 - verticalTxXfrm;
+                                _vertical_shift = 0;
                             }
-                            if (this.txXfrm) {
-                                horizontalTxXfrm = this.txXfrm.offX - this.x;
-                            }
+
                             break;
                         }
                         case 1:    //ctr
@@ -2729,12 +2746,9 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                       // }
                         case 4: //t
                         {//Top
-                            _vertical_shift = 0 - verticalTxXfrm;
+                            _vertical_shift = 0;
                             if (nSquare % 2 === 0) {
-                                _vertical_shift = _text_rect_height - _content_height + verticalTxXfrm;
-                            }
-                            if (this.txXfrm) {
-                                horizontalTxXfrm = this.txXfrm.offX - this.x;
+                                _vertical_shift = _text_rect_height - _content_height;
                             }
                             break;
                         }
@@ -2801,9 +2815,6 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 alpha = Math.atan2(_dy_t, _dx_t);
                 global_MatrixTransformer.RotateRadAppend(oMatrix, Math.PI - alpha);
                 global_MatrixTransformer.TranslateAppend(oMatrix, _t_x_rt, _t_y_rt);
-            }
-            if (this.txXfrm) {
-                global_MatrixTransformer.TranslateAppend(oMatrix, horizontalTxXfrm, 0);
             }
         }
         else {
