@@ -856,6 +856,7 @@ CDrawingDocument.prototype =
         this.TargetPos.X = x;
         this.TargetPos.Y = y;
         this.TargetPos.Page = pageIndex;
+        this.m_lCurrentPage = pageIndex;
 
         this.LogicDocument.Set_TargetPos(x, y, pageIndex);
         this.UpdateTargetCheck = true;
@@ -1996,9 +1997,6 @@ CDrawingDocument.prototype =
     {
         check_KeyboardEvent(e);
 
-        if (this.IsFreezePage(this.m_lCurrentPage))
-            return;
-
         this.StartUpdateOverlay();
 
         this.IsKeyDownButNoPress = true;
@@ -2019,9 +2017,6 @@ CDrawingDocument.prototype =
         if (false === this.bIsUseKeyPress)
             return;
 
-        if (this.IsFreezePage(this.m_lCurrentPage))
-            return;
-
         check_KeyboardEvent(e);
 
         this.StartUpdateOverlay();
@@ -2032,9 +2027,6 @@ CDrawingDocument.prototype =
 
     OnKeyboardEvent : function(_params)
     {
-        if (this.IsFreezePage(this.m_lCurrentPage))
-            return;
-
         var _len = _params.length / 4;
 
         //this.LogicDocument.TurnOff_Recalculate();

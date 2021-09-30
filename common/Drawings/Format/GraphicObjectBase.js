@@ -915,15 +915,36 @@
                     shape.spPr.setGeometry(geometry.createDuplicate());
                     shape.spPr.geometry.setParent(shape.spPr);
                 }
+                var oShadowFill;
                 if(outerShdw.color)
                 {
-                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColorCopy(outerShdw.color);
+                    oShadowFill = AscFormat.CreateUniFillByUniColorCopy(outerShdw.color);
                 }
                 else
                 {
-                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColor(CreateUniColorRGB(0, 0, 0));
+                    oShadowFill = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(0, 0, 0));
                 }
-                shape.spPr.ln = null;
+
+                if(this.getObjectType() === AscDFH.historyitem_type_Shape
+                && (!this.brush || !this.brush.isVisible()))
+                {
+                    if(this.pen && this.pen.isVisible())
+                    {
+                        shape.spPr.Fill = AscFormat.CreateNoFillUniFill();
+                        shape.spPr.ln = this.pen.createDuplicate();
+                        shape.spPr.ln.Fill = oShadowFill;
+                    }
+                    else
+                    {
+                        shape.spPr.Fill = AscFormat.CreateNoFillUniFill();
+                        shape.spPr.ln = AscFormat.CreateNoFillLine();
+                    }
+                }
+                else
+                {
+                    shape.spPr.Fill = oShadowFill;
+                    shape.spPr.ln = AscFormat.CreateNoFillLine();
+                }
                 var W = this.extX;
                 var H = this.extY;
                 var penW = 0;
@@ -982,7 +1003,6 @@
 			this.shdwSp.bounds.x = this.bounds.x + this.shdwSp.bounds.l;
 			this.shdwSp.bounds.y = this.bounds.y + this.shdwSp.bounds.t;
             this.shdwSp.transform = oTransform;
-            this.shdwSp.pen = null;
             this.shdwSp.draw(graphics);
         }
     };

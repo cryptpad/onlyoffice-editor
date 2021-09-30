@@ -568,7 +568,7 @@ var editor;
 
 		if (window["AscDesktopEditor"]) {
 			// TODO: add translations
-			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*txt *csv);;Txt File (*txt);;Csv File(*csv);;All files (*.*)", false, function (_file) {
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*.txt *.csv);;Txt File (*.txt);;Csv File(*.csv);;All files (*.*)", false, function (_file) {
 				var file = _file;
 				if (Array.isArray(file))
 					file = file[0];
@@ -3823,6 +3823,15 @@ var editor;
 
           this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
           this.spellcheckState.clean();
+        } else {
+          var ws = this.wb.getWorksheet();
+          if (ws) {
+            var maxC = ws.model.getColsCount() - 1;
+            var maxR = ws.model.getRowsCount() - 1;
+            if (-1 !== maxC || -1 !== maxR) {
+              this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
+            }
+          }
         }
       }
     };
@@ -6124,6 +6133,13 @@ var editor;
 		this.asc_closeCellEditor();
 	}
   	this.wb.undo({All : true});
+  };
+	
+  spreadsheet_api.prototype.asc_restartCheckSpelling = function()
+  {
+  	if (this.wb /*&& !this.spellcheckState.lockSpell*/) {
+		this._spellCheckRestart();
+  	}
   };
   spreadsheet_api.prototype.asc_ConvertEquationToMath = function(oEquation, isAll)
   {
