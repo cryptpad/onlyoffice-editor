@@ -7524,7 +7524,8 @@ DrawingObjectsController.prototype =
                         anchor: drawing.getDrawingBaseType(),
                         protectionLockText: (bGroupSelection || !drawing.group) ? drawing.getProtectionLockText() : null,
                         protectionLocked: drawing.getProtectionLocked(),
-                        protectionPrint: drawing.getProtectionPrint()
+                        protectionPrint: drawing.getProtectionPrint(),
+                        animEffect: drawing.getAnimEffect()
                     };
                     if(!shape_props)
                         shape_props = new_shape_props;
@@ -7624,7 +7625,8 @@ DrawingObjectsController.prototype =
                         anchor: drawing.getDrawingBaseType(),
                         protectionLockText: (bGroupSelection || !drawing.group) ? drawing.getProtectionLockText() : null,
                         protectionLocked: drawing.getProtectionLocked(),
-                        protectionPrint: drawing.getProtectionPrint()
+                        protectionPrint: drawing.getProtectionPrint(),
+                        animEffect: drawing.getAnimEffect()
                     };
                     if(!shape_props)
                         shape_props = new_shape_props;
@@ -7786,7 +7788,8 @@ DrawingObjectsController.prototype =
                         anchor: drawing.getDrawingBaseType(),
                         protectionLockText: (bGroupSelection || !drawing.group) ? drawing.getProtectionLockText() : null,
                         protectionLocked: drawing.getProtectionLocked(),
-                        protectionPrint: drawing.getProtectionPrint()
+                        protectionPrint: drawing.getProtectionPrint(),
+                        animEffect: drawing.getAnimEffect()
                     };
                     if(!shape_props)
                         shape_props = new_shape_props;

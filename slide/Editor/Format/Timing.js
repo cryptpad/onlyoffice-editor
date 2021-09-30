@@ -1295,6 +1295,12 @@
     CTimeNodeBase.prototype.isDescendant = function(oNode) {
         return oNode.isAncestor(this);
     };
+    CTimeNodeBase.prototype.isAnimEffect = function() {
+        return false;
+    };
+    CTimeNodeBase.prototype.isObjectEffect = function(sObjectId) {
+        return false;
+    };
 
     function CAnimationTime(val) {
         this.val = 0;
@@ -1631,10 +1637,22 @@
             }
         });
     };
-    CTiming.prototype.createEffect = function(sObjectId, nEffectClass, nEffectId, nEffectSubtype) {
+    CTiming.prototype.createEffect = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype) {
         var oPar = new CPar();
-        oPar.createEffect(sObjectId, nEffectClass, nEffectId, nEffectSubtype);
+        oPar.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
         return oPar;
+    };
+    CTiming.prototype.getAnimEffect = function(sObjectId) {
+        var oResultEffect = null;
+        this.traverseTimeNodes(function(oNode) {
+            if(oNode.isObjectEffect(sObjectId)) {
+                if(!oResultEffect) {
+                    oResultEffect = oNode.createDuplicate();
+                }
+                oResultEffect.merge(oNode);
+            }
+        });
+        return oResultEffect;
     };
 
 
@@ -3482,6 +3500,260 @@
     CCTn.prototype.getChildren = function() {
         return [this.stCondLst, this.endCondLst, this.endSync, this.iterate, this.childTnLst, this.subTnLst];
     };
+    CCTn.prototype.merge = function(oOther) {
+        CBaseAnimObject.call(this);
+        this.childTnLst = undefined;
+        this.endCondLst = this.checkEqualChild(this.endCondLst, oOther.endCondLst);
+        this.endSync = this.checkEqualChild(this.endSync, oOther.endSync);
+        this.iterate = this.checkEqualChild(this.iterate, oOther.iterate);
+        this.stCondLst = this.checkEqualChild(this.stCondLst, oOther.stCondLst);
+        this.subTnLst = this.checkEqualChild(this.subTnLst, oOther.subTnLst);
+        this.accel = this.checkEqualChild(this.accel, oOther.accel);
+        this.afterEffect = this.checkEqualChild(this.afterEffect, oOther.afterEffect);
+        this.autoRev = this.checkEqualChild(this.autoRev, oOther.autoRev);
+        this.bldLvl = this.checkEqualChild(this.bldLvl, oOther.bldLvl);
+        this.decel = this.checkEqualChild(this.decel, oOther.decel);
+        this.display = this.checkEqualChild(this.display, oOther.display);
+        this.dur = this.checkEqualChild(this.dur, oOther.dur);
+        this.evtFilter = this.checkEqualChild(this.evtFilter, oOther.evtFilter);
+        this.fill = this.checkEqualChild(this.fill, oOther.fill);
+        this.grpId = this.checkEqualChild(this.grpId, oOther.grpId);
+        this.id = this.checkEqualChild(this.id, oOther.id);
+        this.masterRel = this.checkEqualChild(this.masterRel, oOther.masterRel);
+        this.nodePh = this.checkEqualChild(this.nodePh, oOther.nodePh);
+        this.nodeType = this.checkEqualChild(this.nodeType, oOther.nodeType);
+        this.presetClass = this.checkEqualChild(this.presetClass, oOther.presetClass);
+        this.presetID = this.checkEqualChild(this.presetID, oOther.presetID);
+        this.presetSubtype = this.checkEqualChild(this.presetSubtype, oOther.presetSubtype);
+        this.repeatCount = this.checkEqualChild(this.repeatCount, oOther.repeatCount);
+        this.repeatDur = this.checkEqualChild(this.repeatDur, oOther.repeatDur);
+        this.restart = this.checkEqualChild(this.restart, oOther.restart);
+        this.spd = this.checkEqualChild(this.spd, oOther.spd);
+        this.syncBehavior = this.checkEqualChild(this.syncBehavior, oOther.syncBehavior);
+        this.tmFilter = this.checkEqualChild(this.tmFilter, oOther.tmFilter);
+    };
+    CCTn.prototype.createEffect = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype) {
+        this.setPresetClass(nPresetClass);
+        this.setPresetID(nPresetId);
+        if(AscFormat.isRealNumber(nPresetSubtype)) {
+            this.setPresetSubtype(nPresetSubtype);
+        }
+        else {
+            this.setPresetSubtype(0);
+        }
+
+        this.createStCondLstWithDelay(0);
+        this.setChildTnLst(new CChildTnLst());
+        switch(nPresetClass) {
+            case AscFormat.PRESET_CLASS_EMPH: {
+                this.createEmphEffect(sObjectId, nPresetId, nPresetSubtype);
+                break;
+            }
+            case AscFormat.PRESET_CLASS_ENTR: {
+                this.createEntrEffect(sObjectId, nPresetId, nPresetSubtype);
+                break;
+            }
+            case AscFormat.PRESET_CLASS_EXIT: {
+                this.createExitEffect(sObjectId, nPresetId, nPresetSubtype);
+                break;
+            }
+            case AscFormat.PRESET_CLASS_PATH: {
+                this.createPathEffect(sObjectId, nPresetId, nPresetSubtype);
+                break;
+            }
+        }
+    };
+    CCTn.prototype.createEmphEffect = function(sObjectId, nPresetId, nPresetSubtype) {
+    };
+    CCTn.prototype.createEntrEffect = function(sObjectId, nPresetId, nPresetSubtype) {
+        switch (nPresetId) {
+            case AscFormat.ENTRANCE_APPEAR: {
+                this.createEntrAppear(sObjectId, nPresetSubtype);
+                break;
+            }
+            case AscFormat.ENTRANCE_FLY_IN_FROM: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_BLINDS: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_BOX: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_CHECKERBOARD: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_CIRCLE: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_DIAMOND: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_DISSOLVE_IN: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_FADE: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_PEEK_IN_FROM: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_PLUS: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_RANDOM_BARS: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_SPIRAL_IN: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_SPLIT: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_STRETCH: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_STRIPS: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_BASIC_SWIVEL: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_WEDGE: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_WHEEL: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_WHIPE_FROM: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_BASIC_ZOOM: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_BOOMERANG: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_BOUNCE: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_CREDITS: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_FLOAT: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_GROW_AND_TURN: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_PINWHEEL: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_RISE_UP: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_DROP: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_WHIP: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_FLOAT_UP: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_CENTER_REVOLVE: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_SWIVEL: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_FLOAT_DOWN: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_SPINNER: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_CENTER_COMPRESS: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_CURVE_UP: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_ZOOM: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_EXPAND: {
+
+                break;
+            }
+            case AscFormat.ENTRANCE_FLIP: {
+
+                break;
+            }
+        }
+    };
+    CCTn.prototype.createExitEffect = function(sObjectId, nPresetId, nPresetSubtype) {
+    };
+    CCTn.prototype.createPathEffect = function(sObjectId, nPresetId, nPresetSubtype) {
+    };
+    CCTn.prototype.createStCondLst = function() {
+        this.setStCondLst(new CCondLst());
+    };
+    CCTn.prototype.createStCondLstWithDelay = function(nDelay) {
+        this.createStCondLst();
+        var oCond = new CCond();
+        oCond.setDelay(nDelay);
+        this.stCondLst.addToLst(0, oCond);
+    };
+    CCTn.prototype.createEntrAppear = function(sObjectId, nPresetSubtype) {
+        var oSet = new CSet();
+        oSet.createSetVisibility(sObjectId, true);
+        this.childTnLst.addToLst(0, oSet);
+    };
+    CCTn.prototype.isAnimEffect = function() {
+        if(this.presetID !== null && this.presetClass !== null) {
+            return true;
+        }
+        return false;
+    };
+
 
     changesFactory[AscDFH.historyitem_CondRtn] = CChangeObject;
     changesFactory[AscDFH.historyitem_CondTgtEl] = CChangeObject;
@@ -5805,6 +6077,8 @@
     function CTimeNodeContainer() {//par, excl
         CTimeNodeBase.call(this);
         this.cTn = null;
+
+        this.mergedEffects = null;//
     }
     InitClass(CTimeNodeContainer, CTimeNodeBase, AscDFH.historyitem_type_TimeNodeContainer);
     CTimeNodeContainer.prototype.setCTn = function(pr) {
@@ -5844,8 +6118,41 @@
         }
         return [];
     };
+    CTimeNodeContainer.prototype.isAnimEffect = function() {
+        return this.cTn.isAnimEffect();
+    };
+    CTimeNodeContainer.prototype.isObjectEffect = function(sObjectId) {
+        if(this.isAnimEffect()) {
+            return this.traverse(function(oChild) {
+                if(oChild.isTimeNode() && oChild.getTargetObjectId() === sObjectId) {
+                    return true;
+                }
+                return false
+            });
+        }
+        return false;
+    };
+    CTimeNodeContainer.prototype.merge = function(oTNContainer) {
+        if(oTNContainer === this) {
+            return;
+        }
+        this.cTn.merge(oTNContainer);
+        if(!Array.isArray(this.merged)) {
+            this.merged = [];
+            this.merged.push(this);
+        }
+        this.merged.push(oTNContainer);
+    };
+    CTimeNodeContainer.prototype.isMultiple = function(oTNContainer) {
+        if(this.merged && this.merged.length > 1) {
+            if(this.presetClass === undefined || this.presetID === undefined || this.presetSubtype === undefined) {
+                return true;
+            }
+        }
+        return false;
+    };
 
-    function CPar() {//par, seq, excl
+    function CPar() {
         CTimeNodeContainer.call(this);
         this.cTn = null;
     }
@@ -5857,6 +6164,10 @@
         for(nChild = 0; nChild < aChildren.length; ++nChild) {
             aChildren[nChild].scheduleStart(oPlayer);
         }
+    };
+    CPar.prototype.createEffect = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype) {
+        this.setCTn(new CCTn());
+        this.cTn.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype)
     };
 
     function CExcl() {//par, excl
@@ -6139,6 +6450,29 @@
             }
         }
         return false;
+    };
+    CSet.prototype.createSetVisibility = function(sObjectId, bVisible) {
+        var oBhvr = new CCBhvr();
+        this.setCBhvr(oBhvr);
+        var oCTn = new CCTn();
+        oBhvr.setCTn(oCTn);
+        oCTn.setDur(1);
+        oCTn.setFill(NODE_FILL_HOLD);
+        oCTn.createStCondLstWithDelay(0);
+        var oTgtEl = new CTgtEl();
+        oBhvr.setTgtEl(oTgtEl);
+        var oSpTgt = new CSpTgt();
+        oTgtEl.setSpTgt(oSpTgt);
+        oSpTgt.setSpid(sObjectId);
+        var oAttrLst = new CAttrNameLst();
+        oBhvr.setAttrNameLst(oAttrLst);
+        var oAttr = new CAttrName();
+        oAttrLst.addToLst(0, oAttr);
+        oAttr.setText("style.visibility");
+        var oTo = new CAnimVariant();
+        this.setTo(oTo);
+        oTo.setStrVal(bVisible ? "visible" : "hidden");
+        return this;
     };
 
 
@@ -10443,7 +10777,6 @@
     CTimeline.prototype.onMouseUp = function(e, x, y) {
 
     };
-
 
 
     window['AscFormat'] = window['AscFormat'] || {};

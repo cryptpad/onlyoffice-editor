@@ -2320,6 +2320,16 @@
         }
         return true;
     };
+    CGraphicObjectBase.prototype.getAnimEffect = function() {
+        if(this.group) {
+            return this.group.getAnimEffect();
+        }
+        var oTiming = (this.parent && this.parent.timing);
+        if(oTiming) {
+            return oTiming.getAnimEffect(this.Get_Id());
+        }
+        return null;
+    };
 
     function CRelSizeAnchor() {
         CBaseObject.call(this);

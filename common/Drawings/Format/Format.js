@@ -221,7 +221,42 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     CBaseFormatObject.prototype.notAllowedWithoutId = function() {
         return true;
     };
-    //Method for debug
+    CBaseFormatObject.prototype.isEqual = function(oOther) {
+        if(!oOther) {
+            return false;
+        }
+        if(this.getObjectType() !== oOther.getObjectType()) {
+            return false;
+        }
+        var aThisChildren = this.getChildren();
+        var aOtherChildren = oOther.getChildren();
+        if(aThisChildren.length !== aOtherChildren.length) {
+            return false;
+        }
+        for(var nChild = 0; nChild < aThisChildren.length; ++nChild) {
+            var oThisChild = aThisChildren[nChild];
+            var oOtherChild = aOtherChildren[nChild];
+            if(oThisChild !== this.checkEqualChild(oThisChild, oOtherChild)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    CBaseFormatObject.prototype.checkEqualChild = function(oThisChild, oOtherChild) {
+        if(AscFormat.isRealObject(oThisChild) && oThisChild.isEqual) {
+            if(!oThisChild.isEqual(oOtherChild)) {
+                return undefined;
+            }
+        }
+        else {
+            if(oThisChild !== oOtherChild) {
+                return undefined;
+            }
+        }
+        return oThisChild;
+    };
+     //Method for debug
     //CBaseObject.prototype.compareTypes = function(oOther) {
     //    if(!oOther || !oOther.compareTypes) {
     //        debugger;
