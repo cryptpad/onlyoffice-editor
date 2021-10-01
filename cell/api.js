@@ -1119,24 +1119,16 @@ var editor;
 			return;
 		}
 		this.openingEnd.xlsxStart = true;
-		var url = AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx');
-		if (url) {
-			AscCommon.getJSZipUtils().getBinaryContent(url, function(err, data) {
-				if (err) {
-					if (window.console && window.console.log) {
-						window.console.log(err);
-					}
-					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-				} else {
-					t.openingEnd.xlsx = true;
-					t.openingEnd.data = data;
-					t._onEndOpen();
-				}
-			});
-		} else {
+		AscCommon.DownloadOriginalFile(this.documentId, this.documentUrl, 'document.url', this.DocInfo.get_Token(), function () {
+			if (window.console && window.console.log) {
+				window.console.log(err);
+			}
+			t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+		}, function(data) {
 			t.openingEnd.xlsx = true;
+			t.openingEnd.data = data;
 			t._onEndOpen();
-		}
+		});
 	};
 
   spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer) {
@@ -1405,6 +1397,7 @@ var editor;
 				return;
 			}
 			var pivotCaches = {};
+			var xmlParserContext = new XmlParserContext();
 			var nextPromise;
 			if (data) {
 				var doc = new openXml.OpenXmlPackage();
@@ -1419,7 +1412,7 @@ var editor;
 				}).then(function (contentWorkbook) {
 					AscCommonExcel.executeInR1C1Mode(false, function () {
 						wbXml = new AscCommonExcel.CT_Workbook();
-						var reader = new StaxParser(contentWorkbook);
+						var reader = new StaxParser(contentWorkbook, xmlParserContext);
 						wbXml.fromXml(reader);
 					});
 					if (wbXml.pivotCaches) {
@@ -1457,7 +1450,18 @@ var editor;
 							});
 						}, Promise.resolve());
 					}
+
 				}).then(function () {
+					var sharedStringPart = wbPart.getPartByRelationshipType(openXml.relationshipTypes.sharedStringTable);
+					if(sharedStringPart) {
+						return sharedStringPart.getDocumentContent();
+					}
+				}).then(function (contentWorkbookSharedString) {
+					if (contentWorkbookSharedString) {
+						var sharedStrings = new AscCommonExcel.CT_SharedStrings();
+						var reader = new StaxParser(contentWorkbookSharedString, xmlParserContext);
+						sharedStrings.fromXml(reader);
+					}
 					if (wbXml.sheets) {
 						var wsIndex = 0;
 						return wbXml.sheets.reduce(function (prevVal, wbSheetXml) {
@@ -1477,7 +1481,7 @@ var editor;
 									console.profile('StaxParser')
 									console.time('StaxParser')
 									AscCommonExcel.executeInR1C1Mode(false, function () {
-										var reader = new StaxParser(content);
+										var reader = new StaxParser(content, xmlParserContext);
 										ws.fromXml(reader);
 									});
 									console.timeEnd('StaxParser')

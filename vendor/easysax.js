@@ -1152,10 +1152,11 @@ function EasySAXParser(config) {
     this.staxEnd = this.end;
 };
 
-function StaxParser(xml) {
+function StaxParser(xml, context) {
     this.xml = xml;
     this.index = 0;
     this.length = xml.length;
+    this.context = context;
 
     this.isTagStart = null;
     this.isInAttr = false;
@@ -1382,45 +1383,48 @@ StaxParser.prototype.GetValue = function () {
     return this.text;
     // return this.ConvertToString(this.xml, this.textStart, this.textEnd);
 };
-StaxParser.prototype.GetValueDecodeXml = function () {
-    if (-1 !== this.text.indexOf('&')) {
+StaxParser.prototype.DecodeXml = function (text) {
+    if (-1 !== text.indexOf('&')) {
         var res = "";
-        for (var i = 0; i < this.text.length; ++i) {
-            if(this.text[i] === '&') {
-                if(i + 3 < this.text.length) {
-                    if(this.text[i + 1] == 'l' && this.text[i + 2] == 't' && this.text[i + 3] == ';') {
+        for (var i = 0; i < text.length; ++i) {
+            if(text[i] === '&') {
+                if(i + 3 < text.length) {
+                    if(text[i + 1] == 'l' && text[i + 2] == 't' && text[i + 3] == ';') {
                         res += '<';
                         i+=3;
                         continue;
-                    } else if(this.text[i + 1] == 'g' && this.text[i + 2] == 't' && this.text[i + 3] == ';') {
+                    } else if(text[i + 1] == 'g' && text[i + 2] == 't' && text[i + 3] == ';') {
                         res += '>';
                         i+=3;
                         continue;
                     }
                 }
-                if(i + 4 < this.text.length && this.text[i + 1] == 'a' && this.text[i + 2] == 'm' && this.text[i + 3] == 'p' && this.text[i + 4] == ';') {
+                if(i + 4 < text.length && text[i + 1] == 'a' && text[i + 2] == 'm' && text[i + 3] == 'p' && text[i + 4] == ';') {
                     res += '&';
                     i+=4;
                     continue;
                 }
-                if(i + 5 < this.text.length) {
-                    if(this.text[i + 1] == 'q' && this.text[i + 2] == 'u' && this.text[i + 3] == 'o' && this.text[i + 4] == 't' && this.text[i + 5] == ';') {
+                if(i + 5 < text.length) {
+                    if(text[i + 1] == 'q' && text[i + 2] == 'u' && text[i + 3] == 'o' && text[i + 4] == 't' && text[i + 5] == ';') {
                         res += '\"';
                         i+=5;
                         continue;
-                    } else if(this.text[i + 1] == 'a' && this.text[i + 2] == 'p' && this.text[i + 3] == 'o' && this.text[i + 4] == 's' && this.text[i + 5] == ';') {
+                    } else if(text[i + 1] == 'a' && text[i + 2] == 'p' && text[i + 3] == 'o' && text[i + 4] == 's' && text[i + 5] == ';') {
                         res += '\'';
                         i+=5;
                         continue;
                     }
                 }
             }
-            res += this.text[i]
+            res += text[i]
         }
         return res;
     } else {
-        return (' ' + this.text).substr(1);
+        return (' ' + text).substr(1);
     }
+};
+StaxParser.prototype.GetValueDecodeXml = function () {
+    return this.DecodeXml(this.text);
 };
 StaxParser.prototype.GetValueDecodeXmlExt = function () {
     return this.GetValueDecodeXml();
@@ -1438,10 +1442,13 @@ StaxParser.prototype.GetText = function () {
         if (EasySAXEvent.END_ELEMENT === type && curDepth === depth)
             break;
         if (EasySAXEvent.CHARACTERS === type) {
-            text += this.text;
+            text += this.GetValueDecodeXml();
         }
     }
     return text;
+};
+StaxParser.prototype.GetTextDecodeXml = function () {
+    return this.DecodeXml(this.GetText());
 };
 StaxParser.prototype.ConvertToString = function(xml, start, end) {
     return xml.substring(start, end);
@@ -1462,3 +1469,13 @@ StaxParser.prototype.RemoveNS = function(name) {
 StaxParser.prototype.GetEventType = function() {
     return this.eventType;
 };
+StaxParser.prototype.GetContext = function() {
+    return this.context;
+};
+
+function XmlParserContext(){
+
+    //xlsx
+    this.sharedStrings = [];
+
+}

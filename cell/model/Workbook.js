@@ -1979,6 +1979,57 @@
 		return o;
 	}
 //-------------------------------------------------------------------------------------------------
+
+	function CT_SharedStrings() {
+		this.sharedStrings = [];
+	}
+	CT_SharedStrings.prototype.fromXml = function(reader) {
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		if ("sst" !== reader.GetNameNoNS()) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		var si = new CT_Si();
+		if ("sst" === reader.GetNameNoNS()) {
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+				if ("si" === name) {
+					si.clean();
+					si.fromXml(reader);
+					if (null !== si.text) {
+						this.sharedStrings.push(si.text);
+					} else if (null !== si.multiText) {
+						this.sharedStrings.push(si.multiText);
+					} else {
+						this.sharedStrings.push("");
+					}
+				}
+			}
+		}
+		reader.GetContext().sharedStrings = this.sharedStrings;
+	};
+	function CT_Si() {
+		this.text = null;
+		this.multiText = null;
+	}
+	CT_Si.prototype.clean = function() {
+		this.text = null;
+		this.multiText = null;
+	};
+	CT_Si.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("t" === reader.GetName()) {
+				this.text = reader.GetTextDecodeXml();
+			} else if ("r" === reader.GetName()) {
+				this.text = reader.GetTextDecodeXml();
+			}
+		}
+	};
 	function CT_Workbook() {
 		//Members
 		this.sheets = null;
@@ -13037,10 +13088,33 @@
 				this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.nRow);
 				this.ws.nColsCount = Math.max(this.ws.nColsCount, this.nCol);
 				this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.nCol);
+			} else if ("s" === reader.GetName()) {
+				val = reader.GetValue();
+				this.xfs = null;//parseInt(val);
 			} else if ("t" === reader.GetName()) {
 				val = reader.GetValue();
-				if("s" === val) {
-					this.type = CellValueType.String;
+				switch(val) {
+					case "s":
+						this.type = CellValueType.String;
+						break;
+					case "str":
+						this.type = CellValueType.String;
+						break;
+					case "n":
+						this.type = CellValueType.Number;
+						break;
+					case "e":
+						this.type = CellValueType.Error;
+						break;
+					case "b":
+						this.type = CellValueType.Bool;
+						break;
+					case "inlineStr":
+						this.type = CellValueType.String;
+						break;
+					case "d":
+						this.type = CellValueType.String;
+						break;
 				}
 			}
 		}
@@ -13091,10 +13165,19 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("v" === reader.GetName()) {
 				value.fromXml(reader);
-				if(CellValueType.String === this.type) {
-					this.text = value.val;//AscCommon.unleakString(uq(value.val));
-				} else if(CellValueType.Number === this.type) {
-					this.number = +value.val;
+				if (CellValueType.String === this.type) {
+					var ss = reader.GetContext().sharedStrings[parseInt(value.val)];
+					if (undefined !== ss) {
+						if (typeof ss === 'string') {
+							this.setValueTextInternal(ss);
+						} else {
+							this.setValueMultiTextInternal(ss);
+						}
+					}
+				} else if (CellValueType.Error === this.type) {
+					this.setValueTextInternal(value.val);
+				} else {
+					this.setValueNumberInternal(parseFloat(value.val));
 				}
 			}
 		}
@@ -17726,6 +17809,7 @@
 	window['AscCommonExcel'].angleFormatToInterface2 = angleFormatToInterface2;
 	window['AscCommonExcel'].angleInterfaceToFormat = angleInterfaceToFormat;
 	window['AscCommonExcel'].Workbook = Workbook;
+	window['AscCommonExcel'].CT_SharedStrings = CT_SharedStrings;
 	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
 	window['AscCommonExcel'].Worksheet = Worksheet;
 	window['AscCommonExcel'].Cell = Cell;
