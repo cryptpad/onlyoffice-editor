@@ -2580,7 +2580,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var t_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.tIns) ? oBodyPr.tIns : 1.27);
     var r_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54);
     var b_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27);
-    var oRect;
+    var oRect = this.getTextRect();
     if (this.txXfrm) {
         if (typeof this.txXfrm.rot === "number") {
             var normRot = this.txXfrm.rot;
@@ -2596,12 +2596,10 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         var newT = this.txXfrm.offY - this.y;
         var newR = newL + this.txXfrm.extX;
         var newB = newT + this.txXfrm.extY;
-        oRect = {
-            l: newL,
-            t: newT,
-            r: newR,
-            b: newB
-        }
+        oRect.l = newL;
+        oRect.t = newT;
+        oRect.r = newR;
+        oRect.b = newB;
         switch (nSquare) {
             case 1:
                 break;
@@ -2613,8 +2611,6 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 break;
 
         }
-    } else {
-        oRect = this.getTextRect();
     }
 
     if(this.bWordShape)
