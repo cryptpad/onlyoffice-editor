@@ -2617,11 +2617,11 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onInitTableTemplates", styles);
 		}
 	};
-	asc_docs_api.prototype.asc_getTableStylesPreviews    = function()
+	asc_docs_api.prototype.asc_getTableStylesPreviews    = function(bUseDefault)
 	{
 		if(this.WordControl && this.WordControl.m_oDrawingDocument)
 		{
-			return this.WordControl.m_oDrawingDocument.GetTableStylesPreviews();
+			return this.WordControl.m_oDrawingDocument.GetTableStylesPreviews(bUseDefault);
 		}
 		return [];
 	};

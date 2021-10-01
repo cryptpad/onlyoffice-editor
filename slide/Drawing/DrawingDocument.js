@@ -3136,9 +3136,26 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
 	};
 
-	this.GetTableStylesPreviews = function()
+	this.GetTableStylesPreviews = function(bUseDefault)
 	{
 		var logicDoc    = this.m_oWordControl.m_oLogicDocument;
+		if(!logicDoc)
+		{
+			return [];
+		}
+		var oCurrentSlide = logicDoc.GetCurrentSlide();
+		if(!oCurrentSlide)
+		{
+			return [];
+		}
+		var oLastTableLook = logicDoc.LastTableLook;
+		if(bUseDefault)
+		{
+			var oFormatTableLook = new AscCommonWord.CTableLook();
+			oFormatTableLook.SetDefault();
+			logicDoc.CheckTableStyles(oCurrentSlide, oFormatTableLook)
+		}
+
 		var _dst_styles = [];
 		var _pageW      = 297;
 		var _pageH      = 210;
@@ -3176,6 +3193,13 @@ function CDrawingDocument()
 
 			}
 			_dst_styles.push(_styleD);
+		}
+		if(bUseDefault)
+		{
+			if(oLastTableLook)
+			{
+				logicDoc.CheckTableStyles(oCurrentSlide, oLastTableLook);
+			}
 		}
 		return _dst_styles;
 	};

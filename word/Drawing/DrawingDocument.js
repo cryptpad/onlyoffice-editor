@@ -7563,7 +7563,7 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
 	};
 
-	this.GetTableStylesPreviews = function()
+	this.GetTableStylesPreviews = function(bUseDefault)
 	{
 		var logicDoc = this.m_oWordControl.m_oLogicDocument;
 		var _dst_styles = [];
@@ -7574,8 +7574,20 @@ function CDrawingDocument()
 		if (_styles_len == 0)
 			return _dst_styles;
 
-		var tableLook = this.TableStylesLastLook;
-		if(!tableLook) {
+		var tableLook;
+		if(bUseDefault)
+		{
+			var oFormatTableLook = new AscCommonWord.CTableLook();
+			oFormatTableLook.SetDefault();
+			tableLook = new Asc.CTablePropLook(oFormatTableLook);
+		}
+		else
+		{
+			tableLook = this.TableStylesLastLook;
+		}
+
+		if(!tableLook)
+		{
 			return _dst_styles;
 		}
 
