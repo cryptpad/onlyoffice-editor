@@ -2381,7 +2381,8 @@
 
 	asc_CTextFontFamily.prototype = {
 		asc_getName: function () {
-			return this.Name;
+			var _name = AscFonts.g_fontApplication ? AscFonts.g_fontApplication.NameToInterface[this.Name] : null;
+			return _name ? _name : this.Name;
 		}, asc_getIndex: function () {
 			return this.Index;
 		},
@@ -3837,10 +3838,10 @@
 			else if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["GetImageOriginalSize"])
 			{
 				var _size = window["AscDesktopEditor"]["GetImageOriginalSize"](this.ImageUrl);
-				if (_size.W != 0 && _size.H != 0)
+				if (_size["W"] != 0 && _size["H"] != 0)
 				{
-					origW = _size.W;
-					origH = _size.H;
+					origW = _size["W"];
+					origH = _size["H"];
 				}
 			}
 

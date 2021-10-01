@@ -3662,9 +3662,11 @@
     CSeriesBase.prototype.checkSpPrRasterImages = function(images) {
         checkSpPrRasterImages(this.spPr);
         checkSpPrRasterImages(this.dLbls);
-        for(var i = 0; i < this.dPt.length; ++i) {
-            checkSpPrRasterImages(this.dPt[i].spPr);
-            this.dPt[i].marker && checkSpPrRasterImages(this.dPt[i].marker.spPr);
+        if(Array.isArray(this.dPt)) {
+            for(var i = 0; i < this.dPt.length; ++i) {
+                checkSpPrRasterImages(this.dPt[i].spPr);
+                this.dPt[i].marker && checkSpPrRasterImages(this.dPt[i].marker.spPr);
+            }
         }
     };
     CSeriesBase.prototype.getValRefFormula = function() {
@@ -4113,9 +4115,11 @@
         return oChartStyle.getDataEntry(this);
     };
     CSeriesBase.prototype.getDptByIdx = function(idx) {
-        for(var i = 0; i < this.dPt.length; ++i) {
-            if(this.dPt[i].idx === idx) {
-                return this.dPt[i];
+        if(Array.isArray(this.dPt)) {
+            for(var i = 0; i < this.dPt.length; ++i) {
+                if(this.dPt[i].idx === idx) {
+                    return this.dPt[i];
+                }
             }
         }
         return null;
@@ -4196,10 +4200,12 @@
                         oDPt.applyStyleEntry(oDataStyleEntry, aColors, nDPt, bReset);
                     }
                 }
-                for(nDPt = this.dPt.length - 1; nDPt > -1 ; --nDPt) {
-                    oDPt = this.dPt[nDPt];
-                    if(oDPt.idx >= nDPtCount) {
-                        this.removeDPt(nDPt)
+                if(Array.isArray(this.dPt)) {
+                    for(nDPt = this.dPt.length - 1; nDPt > -1 ; --nDPt) {
+                        oDPt = this.dPt[nDPt];
+                        if(oDPt.idx >= nDPtCount) {
+                            this.removeDPt(nDPt)
+                        }
                     }
                 }
             }
@@ -16234,6 +16240,9 @@
             return [];
         }
         var oRefs = new CDataRefs(aRefs);
+        if(oRefs.isEmpty()) {
+            return [];
+        }
         var aGrid = oRefs.getGrid();
         var aGridRow, oRef, nRef, oBBox;
         var nRow, nCol;

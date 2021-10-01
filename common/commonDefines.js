@@ -40,7 +40,7 @@
 {
 	var g_cCharDelimiter      = String.fromCharCode(5);
 	var g_cGeneralFormat      = 'General';
-	var FONT_THUMBNAIL_HEIGHT = 28;
+	var FONT_THUMBNAIL_HEIGHT = (window["AscDesktopEditor"] && window["AscDesktopEditor"]["GetFontThumbnailHeight"]) ? window["AscDesktopEditor"]["GetFontThumbnailHeight"]() : 28;
 	var c_oAscMaxColumnWidth  = 255;
 	var c_oAscMaxRowHeight    = 409.5;
 	var c_nMaxConversionTime  = 900000;//depends on config
@@ -48,7 +48,6 @@
 	var c_nMaxDownloadTitleLen= 255;
 	var c_nVersionNoBase64 = 10;
 	var c_dMaxParaRunContentLength = 256;
-	var c_rUneditableTypes = /^(?:(pdf|djvu|xps))$/;
 	var c_nMaxHyperlinkLength = 2083;
 
 	//files type for Saving & DownloadAs
@@ -2222,7 +2221,6 @@
 	window['Asc']['c_nMaxDownloadTitleLen'] = window['Asc'].c_nMaxDownloadTitleLen = c_nMaxDownloadTitleLen;
 	window['Asc']['c_nVersionNoBase64'] = window['Asc'].c_nVersionNoBase64 = c_nVersionNoBase64;
 	window['Asc']['c_dMaxParaRunContentLength'] = window['Asc'].c_dMaxParaRunContentLength = c_dMaxParaRunContentLength;
-	window['Asc']['c_rUneditableTypes'] = window['Asc'].c_rUneditableTypes = c_rUneditableTypes;
 	window['Asc']['c_nMaxHyperlinkLength'] = window['Asc'].c_nMaxHyperlinkLength = c_nMaxHyperlinkLength;
 	window['Asc']['c_oAscFileType'] = window['Asc'].c_oAscFileType = c_oAscFileType;
 	window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
@@ -2475,7 +2473,7 @@
 	prot['Fraction']                         = prot.Fraction;
 	prot['Text']                             = prot.Text;
 	prot['Custom']                           = prot.Custom;
-	window['Asc']['c_oAscDrawingLayerType']  = c_oAscDrawingLayerType;
+	window['Asc']['c_oAscDrawingLayerType']  = window['Asc'].c_oAscDrawingLayerType  = c_oAscDrawingLayerType;
 	prot                                     = c_oAscDrawingLayerType;
 	prot['BringToFront']                     = prot.BringToFront;
 	prot['SendToBack']                       = prot.SendToBack;

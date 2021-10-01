@@ -11856,14 +11856,14 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         }
                         case 5:
                         {
-                            GrObject = oThis.Reader.ReadGrFrame();
-                            if(GrObject)
-                            {
+
+                            var oGrFrDrawing = oThis.Reader.ReadGrFrame();
+                            if(oGrFrDrawing && oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape) {
+                                GrObject = oGrFrDrawing.convertToWord(oThis.LogicDocument);
                                 if(paraDrawing){
                                     GrObject.setParent(paraDrawing);
                                 }
                             }
-                            //s.SkipRecord();
                             break;
                         }
                         case 9:

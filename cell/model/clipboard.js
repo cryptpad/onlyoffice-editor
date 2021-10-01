@@ -3543,6 +3543,10 @@
 						}
 
 						if (13 === Code) {
+							if (i === length - 1) {
+								addTextIntoCell(rowCounter, colCounter, sCurChar);
+								sCurChar = "";
+							}
 							continue;
 						}
 
