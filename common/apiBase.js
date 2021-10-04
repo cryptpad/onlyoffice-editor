@@ -313,6 +313,26 @@
 		}
 		return res;
 	};
+	baseEditorsApi.prototype._editorPathById                = function()
+	{
+		if (!window['OPEN_IN_BROWSER']) {
+			return 'Editor.bin';
+		}
+		var res = 'Editor.';
+		switch (this.editorId)
+		{
+			case c_oEditorId.Word:
+				res += 'docx';
+				break;
+			case c_oEditorId.Spreadsheet:
+				res += 'xlsx';
+				break;
+			case c_oEditorId.Presentation:
+				res += 'pptx';
+				break;
+		}
+		return res;
+	};
 	baseEditorsApi.prototype.getEditorId                     = function()
 	{
 		return this.editorId;
@@ -687,7 +707,8 @@
 				"url"           : this.documentUrl,
 				"title"         : this.documentTitle,
 				"lcid"          : locale,
-				"nobase64"      : true
+				"nobase64"      : true,
+				"convertToOrigin" : window['OPEN_IN_BROWSER']
 			};
 
 			if (this.isUseNativeViewer)
@@ -1319,7 +1340,8 @@
 							case "ok":
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
-								var documentUrl = urls['Editor.bin'];
+								var editorPath = t._editorPathById();
+								var documentUrl = urls[editorPath];
 								if (t.isUseNativeViewer && !documentUrl)
 									documentUrl = urls['origin.pdf'] || urls['origin.xps'] || urls['origin.djvu'];
 								if (null != documentUrl) {

@@ -344,17 +344,21 @@ var editor;
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
+	  AscFonts.IsCheckSymbols = true;
+	  if(window['OPEN_IN_BROWSER']) {
+		  this.wbModel.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
+		  if(null == this.wbModel.theme)
+			  this.wbModel.theme = AscFormat.GenerateDefaultTheme(this.wbModel, 'Calibri');
+		  Asc.getBinaryOtherTableGVar(this.wbModel);
 
-	  this.wbModel.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
-	  if(null == this.wbModel.theme)
-		  this.wbModel.theme = AscFormat.GenerateDefaultTheme(this.wbModel, 'Calibri');
-	  Asc.getBinaryOtherTableGVar(this.wbModel);
-
-    // AscFonts.IsCheckSymbols = true;
-    // var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
-    // oBinaryFileReader.Read(data, this.wbModel);
-    // AscFonts.IsCheckSymbols = false;
-
+		  this.openingEnd.xlsx = true;
+		  this.openingEnd.xlsxStart = true;
+		  this.openingEnd.data = data;
+	  } else {
+		  var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
+		  oBinaryFileReader.Read(data, this.wbModel);
+	  }
+	  AscFonts.IsCheckSymbols = false;
     this.openingEnd.bin = true;
     this._onEndOpen();
   };
@@ -1114,21 +1118,32 @@ var editor;
 		}
 	};
 	spreadsheet_api.prototype._openOnClient = function() {
+		if(window['OPEN_IN_BROWSER']) {
+			return;
+		}
 		var t = this;
 		if (this.openingEnd.xlsxStart) {
 			return;
 		}
 		this.openingEnd.xlsxStart = true;
-		AscCommon.DownloadOriginalFile(this.documentId, this.documentUrl, 'document.url', this.DocInfo.get_Token(), function () {
-			if (window.console && window.console.log) {
-				window.console.log(err);
-			}
-			t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-		}, function(data) {
+		var url = AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx');
+		if (url) {
+			AscCommon.getJSZipUtils().getBinaryContent(url, function(err, data) {
+				if (err) {
+					if (window.console && window.console.log) {
+						window.console.log(err);
+					}
+					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+				} else {
+					t.openingEnd.xlsx = true;
+					t.openingEnd.data = data;
+					t._onEndOpen();
+				}
+			});
+		} else {
 			t.openingEnd.xlsx = true;
-			t.openingEnd.data = data;
 			t._onEndOpen();
-		});
+		}
 	};
 
   spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer) {
@@ -1536,7 +1551,9 @@ var editor;
 						window.console.log(err);
 					}
 				}).then(function () {
-					wb.init([], [], {});
+					if(window['OPEN_IN_BROWSER']) {
+						wb.init([], [], {});
+					}
 					wb.initPostOpenZip(pivotCaches);
 				}).then(function () {
 					jsZipWrapper.close();

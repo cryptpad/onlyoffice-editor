@@ -38,6 +38,7 @@
  */
 	function (window, undefined)
 {
+	window['OPEN_IN_BROWSER'] = true;
 // Import
 	var AscBrowser = AscCommon.AscBrowser;
 	var locktype_None = AscCommon.locktype_None;
@@ -761,12 +762,17 @@
 					url = (-1 !== nIndex) ? sFileUrl.substring(0, nIndex + 1) : sFileUrl;
 					if (httpRequest)
 					{
-						var stream = initStreamFromResponse(httpRequest);
-						if (stream) {
-							oResult.bSerFormat = checkStreamSignature(stream, Signature);
-							oResult.data = stream;
+						if(window['OPEN_IN_BROWSER']) {
+							oResult.bSerFormat = true;
+							oResult.data = new Uint8Array(httpRequest.response);;
 						} else {
-							bError = true;
+							var stream = initStreamFromResponse(httpRequest);
+							if (stream) {
+								oResult.bSerFormat = checkStreamSignature(stream, Signature);
+								oResult.data = stream;
+							} else {
+								bError = true;
+							}
 						}
 					}
 					else
