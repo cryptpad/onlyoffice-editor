@@ -296,15 +296,30 @@
 	{
 		return window['JSZipUtils'] || require('jsziputils');
 	}
-	function getJSZip()
-	{
-		return window['JSZip'] || require('jszip');
-	}
 
 	function JSZipWrapper() {
 		this.files = {};
 	}
 
+	JSZipWrapper.prototype.loadSync = function(data) {
+		var res = false;
+		var files;
+		if (window.nativeZlibEngine && window.nativeZlibEngine.open(data)) {
+			files = window.nativeZlibEngine.files;
+		}
+		if (window["native"]) {
+			files = window["native"]["ZipOpen"](data);
+		}
+		if (files) {
+			for (var path in files) {
+				if (files.hasOwnProperty(path)) {
+					this.files[path] = new JSZipObjectWrapper(path);
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 	JSZipWrapper.prototype.loadAsync = function(data, options) {
 		var t = this;
 
@@ -351,15 +366,12 @@
 
 			});
 		}
-
-		return AscCommon.getJSZip().loadAsync(data, options).then(function(zip){
-			for (var id in zip.files) {
-				t.files[id] = new JSZipObjectWrapper(zip.files[id]);
-			}
-			return t;
-		});
+		return Promise.reject();
 	};
 	JSZipWrapper.prototype.close = function() {
+		if (window.nativeZlibEngine) {
+			window.nativeZlibEngine.close();
+		}
 		if (window["native"])
 			window["native"]["ZipClose"]();
 	};
@@ -367,6 +379,26 @@
 	function JSZipObjectWrapper(data) {
 		this.data = data;
 	}
+	JSZipObjectWrapper.prototype.sync = function(type) {
+		if (window.nativeZlibEngine) {
+			var data = window.nativeZlibEngine.getFile(this.data);
+			if ("string" === type) {
+				return UTF8ArrayToString(data, 0, data.length);
+			} else {
+				return data;
+			}
+		}
+
+		if (window["native"]) {
+			if ("string" === type) {
+				return window["native"]["ZipFileAsString"](this.data);
+			} else {
+				return window["native"]["ZipFileAsBinary"](this.data);
+			}
+		}
+
+		return null;
+	};
 	JSZipObjectWrapper.prototype.async = function(type) {
 
 		if (window.nativeZlibEngine) {
@@ -374,8 +406,7 @@
 			return new Promise(function(resolve, reject) {
 				var data = window.nativeZlibEngine.getFile(t.data);
 				if("string" === type) {
-					var text = new TextDecoder("utf-8").decode(data);
-					resolve(text);
+					resolve(UTF8ArrayToString(data, 0, data.length));
 				} else {
 					resolve(data);
 				}
@@ -793,33 +824,23 @@
 				onEndOpen();
 			}, function(data) {
 				oResult.changes = [];
-				getJSZip().loadAsync(data).then(function (zipChanges)
-				{
-					var relativePaths = [];
-					var promises = [];
-					zipChanges.forEach(function (relativePath, file)
-					{
-						relativePaths.push(relativePath);
-						promises.push(file.async(relativePath.endsWith('.json') ? 'string' : 'uint8array'));
-					});
-					Promise.all(promises).then(function (values)
-					{
-						var relativePath;
-						for (var i = 0; i < values.length; ++i)
-						{
-							if ((relativePath = relativePaths[i]).endsWith('.json'))
-							{
-								oResult.changes[parseInt(relativePath.slice('changes'.length))] = JSON.parse(values[i]);
-							}
-							else
-							{
-								oZipImages[relativePath] = values[i];
+				var jsZipWrapper = new AscCommon.JSZipWrapper();
+				if (jsZipWrapper.loadSync(data)) {
+					for (var relativePath in jsZipWrapper.files) {
+						if (jsZipWrapper.files.hasOwnProperty(relativePath)) {
+							var file = jsZipWrapper.files[relativePath];
+							if ((relativePath).endsWith('.json')) {
+								oResult.changes[parseInt(relativePath.slice('changes'.length))] = JSON.parse(file.sync('string'));
+							} else {
+								oZipImages[relativePath] = file.sync('uint8array')
 							}
 						}
-						bEndLoadChanges = true;
-						onEndOpen();
-					});
-				});
+					}
+				} else {
+					bError = true;
+				}
+				bEndLoadChanges = true;
+				onEndOpen();
 			});
 		}
 		else
@@ -1216,6 +1237,45 @@
     {
         return new CUnicodeIterator(this);
     };
+
+	var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf8") : undefined;
+	function UTF8ArrayToString(u8Array, idx, maxBytesToRead) {
+		var endIdx = idx + maxBytesToRead;
+		var endPtr = idx;
+		while (u8Array[endPtr] && !(endPtr >= endIdx)) {
+			++endPtr;
+		}
+		if (endPtr - idx > 16 && u8Array.subarray && UTF8Decoder) {
+			return UTF8Decoder.decode(u8Array.subarray(idx, endPtr));
+		} else {
+			var str = "";
+			while (idx < endPtr) {
+				var u0 = u8Array[idx++];
+				if (!(u0 & 128)) {
+					str += String.fromCharCode(u0);
+					continue;
+				}
+				var u1 = u8Array[idx++] & 63;
+				if ((u0 & 224) == 192) {
+					str += String.fromCharCode((u0 & 31) << 6 | u1);
+					continue;
+				}
+				var u2 = u8Array[idx++] & 63;
+				if ((u0 & 240) == 224) {
+					u0 = (u0 & 15) << 12 | u1 << 6 | u2;
+				} else {
+					u0 = (u0 & 7) << 18 | u1 << 12 | u2 << 6 | u8Array[idx++] & 63;
+				}
+				if (u0 < 65536) {
+					str += String.fromCharCode(u0);
+				} else {
+					var ch = u0 - 65536;
+					str += String.fromCharCode(55296 | ch >> 10, 56320 | ch & 1023);
+				}
+			}
+		}
+		return str;
+	}
 
 	function test_ws_name2()
 	{
@@ -7255,7 +7315,6 @@
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
 	window["AscCommon"].getJSZipUtils = getJSZipUtils;
-	window["AscCommon"].getJSZip = getJSZip;
 	window["AscCommon"].getBaseUrl = getBaseUrl;
 	window["AscCommon"].getEncodingParams = getEncodingParams;
 	window["AscCommon"].getEncodingByBOM = getEncodingByBOM;
@@ -7275,6 +7334,7 @@
 	window["AscCommon"].encodeSurrogateChar = encodeSurrogateChar;
 	window["AscCommon"].convertUnicodeToUTF16 = convertUnicodeToUTF16;
 	window["AscCommon"].convertUTF16toUnicode = convertUTF16toUnicode;
+	window["AscCommon"].UTF8ArrayToString = UTF8ArrayToString;
 	window["AscCommon"].build_local_rx = build_local_rx;
 	window["AscCommon"].GetFileName = GetFileName;
 	window["AscCommon"].GetFileExtension = GetFileExtension;

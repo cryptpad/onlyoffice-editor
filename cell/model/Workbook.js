@@ -2198,13 +2198,20 @@
 	};
 	CT_PivotCache.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
-			if ("id" === reader.GetNameNoNS()) {
+			var name = reader.GetNameNoNS();
+			if ("id" === name) {
 				this.id = reader.GetValueDecodeXml();
+			} else if ("cacheId" === name) {
+				this.cacheId = parseInt(reader.GetValue());
 			}
 		}
 	};
 	CT_PivotCache.prototype.parseAttributes = function(vals, uq) {
 		var val;
+		val = vals["cacheId"];
+		if (undefined !== val) {
+			this.cacheId = val - 0;
+		}
 		val = vals["r:id"];
 		if (undefined !== val) {
 			this.id = AscCommon.unleakString(uq(val));

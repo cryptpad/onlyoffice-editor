@@ -11420,14 +11420,13 @@
         oBinaryFileReader.getbase64DecodedData2(stylesZip, 0, stream, 0);
 
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		return jsZipWrapper.loadAsync(new Uint8Array(pointer.data)).then(function(zip) {
-			return zip.files["presetTableStyles.xml"].async("string");
-		}).then(function(content) {
-			jsZipWrapper.close();
-			var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
-			new openXml.SaxParserBase().parse(content, stylesXml);
-			wb.TableStyles.concatStyles();
-		});
+        if(jsZipWrapper.loadSync(new Uint8Array(pointer.data))) {
+            var content = jsZipWrapper.files["presetTableStyles.xml"].sync("string");
+            jsZipWrapper.close();
+            var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
+            new openXml.SaxParserBase().parse(content, stylesXml);
+            wb.TableStyles.concatStyles();
+        }
     }
     function ReadDefCellStyles(wb, oOutput)
     {

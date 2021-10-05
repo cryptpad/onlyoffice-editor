@@ -258,39 +258,37 @@
 		if (ctf === null) {
 			throw "Invalid Open XML document: no [Content_Types].xml";
 		}
-		var promises = [];
-		promises.push(ctf.data.async("string"));
+		var rels = [];
+		rels.push(ctf.data.sync("string"));
 		for (var i = 0; i < relsData.length; ++i) {
-			promises.push(relsData[i][1].data.async("string"));
+			rels.push(relsData[i][1].data.sync("string"));
 		}
-		return Promise.all(promises).then(function(res) {
-			new SaxParserBase().parse(res[0], pkg.cntTypes);
-			for (var part in pkg.parts) {
-				if (part === "[Content_Types].xml") {
-					continue;
-				}
-				var ct = pkg.getContentType(part);
-				var thisPart = pkg.parts[part];
-				thisPart.contentType = ct;
-				if (ct !== undefined && ct.endsWith("xml")) {
-					thisPart.partType = "xml";
-				} else {
-					thisPart.partType = "binary";
-				}
+		new SaxParserBase().parse(rels[0], pkg.cntTypes);
+		for (var part in pkg.parts) {
+			if (part === "[Content_Types].xml") {
+				continue;
 			}
-			for (var i = 0; i < relsData.length; ++i) {
-				var uri = relsData[i][0];
-				var part = pkg.parts[uri];
-				var relsReader;
-				if (part) {
-					relsReader = new RelsReader(null, part);
-				} else if ('/' === uri) {
-					relsReader = new RelsReader(pkg, null);
-				}
-				new SaxParserBase().parse(res[i + 1], relsReader);
-				relsData[i][1].rels = relsReader.rels;
+			var ct = pkg.getContentType(part);
+			var thisPart = pkg.parts[part];
+			thisPart.contentType = ct;
+			if (ct !== undefined && ct.endsWith("xml")) {
+				thisPart.partType = "xml";
+			} else {
+				thisPart.partType = "binary";
 			}
-		});
+		}
+		for (var i = 0; i < relsData.length; ++i) {
+			var uri = relsData[i][0];
+			var part = pkg.parts[uri];
+			var relsReader;
+			if (part) {
+				relsReader = new RelsReader(null, part);
+			} else if ('/' === uri) {
+				relsReader = new RelsReader(pkg, null);
+			}
+			new SaxParserBase().parse(rels[i + 1], relsReader);
+			relsData[i][1].rels = relsReader.rels;
+		}
 	}
 
 	openXml.OpenXmlPackage = function() {
@@ -428,7 +426,7 @@
 
 	openXml.OpenXmlPart.prototype.getDocumentContent = function() {
 		if (this.partType === 'xml') {
-			return this.data.async("string");
+			return this.data.sync("string");
 		}
 		return "";
 	};
