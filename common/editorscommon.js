@@ -48,7 +48,6 @@
 	var contentchanges_Add = AscCommon.contentchanges_Add;
 	var CColor = AscCommon.CColor;
 	var g_oCellAddressUtils = AscCommon.g_oCellAddressUtils;
-
 	var c_oAscFileType = Asc.c_oAscFileType;
 
 	if (typeof String.prototype.startsWith !== 'function')
@@ -286,6 +285,25 @@
 	var sSaveFileLocalUrl = "../../../../savefile";
 	var sDownloadFileLocalUrl = "../../../../downloadfile";
 	var nMaxRequestLength = 5242880;//5mb <requestLimits maxAllowedContentLength="30000000" /> default 30mb
+
+	function decimalNumberConversion(number, base) {
+		if (typeof number !== 'number') {
+			return;
+		}
+		var result = [];
+		while (number > 0) {
+			var remainder = number % base;
+			if (remainder === 0) {
+				result.unshift(0);
+
+			} else {
+				result.unshift(remainder);
+				number = number - remainder;
+			}
+			number /= base;
+		}
+		return result;
+	}
 
 	function getSockJs()
 	{
@@ -3847,7 +3865,7 @@
 	function IntToNumberFormat(nValue, nFormat)
 	{
 		var sResult = "";
-        nFormat = Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand; //delete
+		nFormat = Asc.c_oAscNumberingFormat.ThaiNumbers; //delete
 
 		switch (nFormat)
 		{
@@ -3871,7 +3889,7 @@
 				break;
 			}
 
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese: // TODO: change
 			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
 			{
 				if (nValue <= 20)
@@ -4588,6 +4606,137 @@
 
 				break;
 			}
+			case Asc.c_oAscNumberingFormat.BahtText:
+				break;
+			case Asc.c_oAscNumberingFormat.CardinalText:
+				break;
+			// case Asc.c_oAscNumberingFormat.Custom:
+			// 	break;
+			case Asc.c_oAscNumberingFormat.DecimalFullWidth2:
+				break;
+			case Asc.c_oAscNumberingFormat.DollarText:
+				break;
+			case Asc.c_oAscNumberingFormat.Hebrew1:
+				break;
+			case Asc.c_oAscNumberingFormat.HindiCounting:
+				break;
+			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
+				break;
+			case Asc.c_oAscNumberingFormat.JapaneseCounting:
+				break;
+			case Asc.c_oAscNumberingFormat.JapaneseLegal:
+				break;
+			case Asc.c_oAscNumberingFormat.KoreanCounting:
+				break;
+			case Asc.c_oAscNumberingFormat.KoreanDigital:
+			case Asc.c_oAscNumberingFormat.ThaiNumbers:
+			case Asc.c_oAscNumberingFormat.KoreanDigital2:
+				if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital) {
+					digits = [
+						String.fromCharCode(0xC601),
+						String.fromCharCode(0xC77C),
+						String.fromCharCode(0xC774),
+						String.fromCharCode(0xC0BC),
+						String.fromCharCode(0xC0AC),
+						String.fromCharCode(0xC624),
+						String.fromCharCode(0xC721),
+						String.fromCharCode(0xCE60),
+						String.fromCharCode(0xD314),
+						String.fromCharCode(0xAD6C),
+					];
+				} else if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital2) {
+					digits = [
+						String.fromCharCode(0x96F6),
+						String.fromCharCode(0x4E00),
+						String.fromCharCode(0x4E8C),
+						String.fromCharCode(0x4E09),
+						String.fromCharCode(0x56DB),
+						String.fromCharCode(0x4E94),
+						String.fromCharCode(0x516D),
+						String.fromCharCode(0x4E03),
+						String.fromCharCode(0x516B),
+						String.fromCharCode(0x4E5D)
+					];
+				} else if (nFormat === Asc.c_oAscNumberingFormat.ThaiNumbers) {
+					digits = [
+						String.fromCharCode(0x0E50),
+						String.fromCharCode(0x0E51),
+						String.fromCharCode(0x0E52),
+						String.fromCharCode(0x0E53),
+						String.fromCharCode(0x0E54),
+						String.fromCharCode(0x0E55),
+						String.fromCharCode(0x0E56),
+						String.fromCharCode(0x0E57),
+						String.fromCharCode(0x0E58),
+						String.fromCharCode(0x0E59)
+					];
+				}
+				var conv = decimalNumberConversion(nValue, digits.length);
+				sResult = conv.map(function (num) {
+					return digits[num];
+				}).join('');
+				break;
+			case Asc.c_oAscNumberingFormat.KoreanLegal:
+				break;
+			case Asc.c_oAscNumberingFormat.None:
+				break;
+			case Asc.c_oAscNumberingFormat.NumberInDash:
+				var dash = String.fromCharCode(0x002D);
+				sResult = dash + ' ' + nValue + ' ' + dash;
+				break;
+			case Asc.c_oAscNumberingFormat.Ordinal:
+				break;
+			case Asc.c_oAscNumberingFormat.OrdinalText:
+				break;
+			case Asc.c_oAscNumberingFormat.TaiwaneseCounting:
+				digits = [
+					String.fromCharCode(0x5341),
+					String.fromCharCode(0x4E00),
+					String.fromCharCode(0x4E8C),
+					String.fromCharCode(0x4E09),
+					String.fromCharCode(0x56DB),
+					String.fromCharCode(0x4E94),
+					String.fromCharCode(0x516D),
+					String.fromCharCode(0x4E03),
+					String.fromCharCode(0x516B),
+					String.fromCharCode(0x4E5D),
+				];
+				var conv = decimalNumberConversion(nValue, digits.length);
+				if(nValue >= digits.length * 10) {
+					digits[0] = String.fromCharCode(0x25CB);
+					sResult = conv.map(function (num) {
+						return digits[num];
+					}).join('');
+				} else {
+					var previousIsPlus = false;
+					sResult = conv.map(function (num, idx) {
+						if (conv.length === 2) {
+							if (idx === 0) {
+								if (num === 1) {
+									previousIsPlus = true;
+									return digits[0];
+								} else {
+									previousIsPlus = true;
+									return digits[num] + digits[0];
+								}
+							} else if (previousIsPlus && num === 0) {
+								return '';
+							}
+						}
+						return digits[num];
+					}).join('');
+				}
+				break;
+			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand:
+				break;
+			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:
+				break;
+			case Asc.c_oAscNumberingFormat.ThaiCounting:
+				break;
+			case Asc.c_oAscNumberingFormat.ThaiLetters:
+				break;
+			case Asc.c_oAscNumberingFormat.VietnameseCounting:
+				break;
 		}
 
 		return sResult;
