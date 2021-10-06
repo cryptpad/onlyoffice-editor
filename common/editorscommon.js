@@ -3865,7 +3865,7 @@
 	function IntToNumberFormat(nValue, nFormat)
 	{
 		var sResult = "";
-		nFormat = Asc.c_oAscNumberingFormat.ThaiNumbers; //delete
+		nFormat = Asc.c_oAscNumberingFormat.KoreanCounting; //delete
 
 		switch (nFormat)
 		{
@@ -4612,25 +4612,136 @@
 				break;
 			// case Asc.c_oAscNumberingFormat.Custom:
 			// 	break;
-			case Asc.c_oAscNumberingFormat.DecimalFullWidth2:
-				break;
 			case Asc.c_oAscNumberingFormat.DollarText:
 				break;
 			case Asc.c_oAscNumberingFormat.Hebrew1:
 				break;
 			case Asc.c_oAscNumberingFormat.HindiCounting:
 				break;
-			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
-				break;
 			case Asc.c_oAscNumberingFormat.JapaneseCounting:
 				break;
 			case Asc.c_oAscNumberingFormat.JapaneseLegal:
-				break;
+			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
 			case Asc.c_oAscNumberingFormat.KoreanCounting:
+				var addFirstDegreeSymbol = true;
+				if (nFormat === Asc.c_oAscNumberingFormat.KoreanCounting) {
+					addFirstDegreeSymbol = false;
+					digits = [
+						String.fromCharCode(0xC77C),
+						String.fromCharCode(0xC774),
+						String.fromCharCode(0xC0BC),
+						String.fromCharCode(0xC0AC),
+						String.fromCharCode(0xC624),
+						String.fromCharCode(0xC721),
+						String.fromCharCode(0xCE60),
+						String.fromCharCode(0xD314),
+						String.fromCharCode(0xAD6C),
+						String.fromCharCode(0xC2ED),
+						String.fromCharCode(0xB9CC),
+						String.fromCharCode(0xCC9C),
+						String.fromCharCode(0xBC31)
+					];
+					var degrees = [
+						'만',
+						'천',
+						'백',
+						'십'
+					];
+				} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal) {
+					digits = [
+						String.fromCharCode(0x58F1),
+						String.fromCharCode(0x5F10),
+						String.fromCharCode(0x53C2),
+						String.fromCharCode(0x56DB),
+						String.fromCharCode(0x4F0D),
+						String.fromCharCode(0x516D),
+						String.fromCharCode(0x4E03),
+						String.fromCharCode(0x516B),
+						String.fromCharCode(0x4E5D),
+						String.fromCharCode(0x62FE),
+						String.fromCharCode(0x767E),
+						String.fromCharCode(0x842C)
+					];
+					var degrees = [
+						'萬',
+						'阡',
+						'百',
+						'拾'
+					];
+				} else if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional) {
+					digits = [
+						String.fromCharCode(0x58F9),
+						String.fromCharCode(0x8CB3),
+						String.fromCharCode(0x53C3),
+						String.fromCharCode(0x8086),
+						String.fromCharCode(0x4F0D),
+						String.fromCharCode(0x9678),
+						String.fromCharCode(0x67D2),
+						String.fromCharCode(0x634C),
+						String.fromCharCode(0x7396),
+						String.fromCharCode(0x62FE),
+						String.fromCharCode(0x4F70),
+						String.fromCharCode(0x4EDF),
+						String.fromCharCode(0x842C)
+					];
+					var degrees = [
+						'萬',
+						'仟',
+						'佰',
+						'拾'
+					];
+				}
+				var koreanLegalSplitting = function (numberLessThan100000) {
+					var answer = [];
+					var count;
+					if (numberLessThan100000 / 10000 >= 1) {
+						count = Math.floor(numberLessThan100000 / 10000);
+						if (count !== 1 || addFirstDegreeSymbol) {
+							answer.push(digits[count - 1]);
+						}
+						answer.push(degrees[0]);
+						numberLessThan100000 = numberLessThan100000 % 10000;
+					}
+					if (numberLessThan100000 / 1000 >= 1) {
+						count = Math.floor(numberLessThan100000 / 1000);
+						if (count !== 1 || addFirstDegreeSymbol) {
+							answer.push(digits[count - 1]);
+						}
+						answer.push(degrees[1]);
+						numberLessThan100000 = numberLessThan100000 % 1000;
+					}
+					if (numberLessThan100000 / 100 >= 1) {
+						count = Math.floor(numberLessThan100000 / 100);
+						if (count !== 1 || addFirstDegreeSymbol) {
+							answer.push(digits[count - 1]);
+						}
+						answer.push(degrees[2]);
+						numberLessThan100000 = numberLessThan100000 % 100;
+					}
+					if (numberLessThan100000 / 10 >= 1) {
+						count = Math.floor(numberLessThan100000 / 10);
+						if (count !== 1 || addFirstDegreeSymbol) {
+							answer.push(digits[count - 1]);
+						}
+						answer.push(degrees[3]);
+						numberLessThan100000 = numberLessThan100000 % 10;
+					}
+					if (numberLessThan100000 > 0) {
+						answer.push(digits[numberLessThan100000 - 1]);
+					}
+					return answer;
+				}
+				if (nValue < 100000) {
+					sResult = koreanLegalSplitting(nValue).join('');
+				} else { // Поддержка чисел до 100 000 000
+					var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % 10000));
+					sResult = koreanLegalSplitting(Math.floor(nValue / 10000)).concat(resultWith10000Reminder).join('');
+				}
 				break;
 			case Asc.c_oAscNumberingFormat.KoreanDigital:
 			case Asc.c_oAscNumberingFormat.ThaiNumbers:
 			case Asc.c_oAscNumberingFormat.KoreanDigital2:
+			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:
 				if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital) {
 					digits = [
 						String.fromCharCode(0xC601),
@@ -4644,7 +4755,7 @@
 						String.fromCharCode(0xD314),
 						String.fromCharCode(0xAD6C),
 					];
-				} else if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital2) {
+				} else if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital2 || nFormat === Asc.c_oAscNumberingFormat.TaiwaneseDigital) {
 					digits = [
 						String.fromCharCode(0x96F6),
 						String.fromCharCode(0x4E00),
@@ -4657,6 +4768,8 @@
 						String.fromCharCode(0x516B),
 						String.fromCharCode(0x4E5D)
 					];
+					if (nFormat === Asc.c_oAscNumberingFormat.TaiwaneseDigital) digits[0] = String.fromCharCode(0x25CB);
+
 				} else if (nFormat === Asc.c_oAscNumberingFormat.ThaiNumbers) {
 					digits = [
 						String.fromCharCode(0x0E50),
@@ -4678,8 +4791,8 @@
 				break;
 			case Asc.c_oAscNumberingFormat.KoreanLegal:
 				break;
-			case Asc.c_oAscNumberingFormat.None:
-				break;
+			//case Asc.c_oAscNumberingFormat.None:
+				//break;
 			case Asc.c_oAscNumberingFormat.NumberInDash:
 				var dash = String.fromCharCode(0x002D);
 				sResult = dash + ' ' + nValue + ' ' + dash;
@@ -4729,13 +4842,26 @@
 				break;
 			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand:
 				break;
-			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:
-				break;
 			case Asc.c_oAscNumberingFormat.ThaiCounting:
 				break;
 			case Asc.c_oAscNumberingFormat.ThaiLetters:
+				var spaces = [1, 3, 4, 5];
+				var repeatAmount = Math.floor((nValue - 1) / 41) + 1;
+				var repeatIndex = (nValue - 1) % 41;
+				var currentSpace;
+				if (repeatIndex <= 1) currentSpace = 0;
+				else if (repeatIndex <= 2) currentSpace = spaces[0];
+				else if (repeatIndex <= 31) currentSpace = spaces[1];
+				else if (repeatIndex <= 32) currentSpace = spaces[2];
+				else if (repeatIndex <= 40) currentSpace = spaces[3];
+				sResult = String.fromCharCode(0x0E01 + repeatIndex + currentSpace).repeat(repeatAmount);
 				break;
 			case Asc.c_oAscNumberingFormat.VietnameseCounting:
+				digits = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
+				var conv = decimalNumberConversion(nValue, digits.length);
+				sResult = conv.map(function (num) {
+					return digits[num - 1];
+				}).join(' ');
 				break;
 		}
 

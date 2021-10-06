@@ -1179,6 +1179,266 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 				AscFonts.FontPickerByCharacter.getFontBySymbol(0x842C);
 				break;
 			}
+			case Asc.c_oAscNumberingFormat.ThaiNumbers:
+			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E50);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E51);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E52);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E53);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E54);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E55);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E56);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E57);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E58);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E59);
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Aiueo:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.AiueoFullWidth:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.ArabicAbjad:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.ArabicAlpha:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.BahtText:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.CardinalText:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Chicago:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Chosung:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Custom:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedFullstop:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedParen:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DecimalFullWidth:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DecimalFullWidth2:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DecimalHalfWidth:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DollarText:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Ganada:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Hebrew1:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Hebrew2:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Hex:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.HindiConsonants:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.HindiCounting:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.HindiNumbers:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.HindiVowels:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.IdeographDigital:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.IdeographEnclosedCircle:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
+			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x58F9);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8CB3);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x53C3);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8086);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F0D);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x9678);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x67D2);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x634C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7396);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x62FE);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F70);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4EDF);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x842C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol('萬'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('仟'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('佰'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('拾'.charCodeAt(0));
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.IdeographTraditional:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.IdeographZodiac:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.IdeographZodiacTraditional:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Iroha:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.IrohaFullWidth:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.JapaneseCounting:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.JapaneseLegal:
+			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x58F1);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5F10);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x53C2);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F0D);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x62FE);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x767E);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x842C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol('萬'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('阡'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('百'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('拾'.charCodeAt(0));
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.KoreanCounting:
+			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC77C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC774);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC0BC);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC0AC);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC624);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC721);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xCE60);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD314);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xAD6C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC2ED);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB9CC);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xCC9C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xBC31);
+				AscFonts.FontPickerByCharacter.getFontBySymbol('만'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('천'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('백'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('십'.charCodeAt(0));
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.KoreanDigital:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.KoreanDigital2:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.KoreanLegal:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.None:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.NumberInDash:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.Ordinal:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.OrdinalText:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.TaiwaneseCounting:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.ThaiCounting:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.ThaiLetters:
+			{
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.VietnameseCounting:
+			{
+				break;
+			}
 		}
 	}
 }
