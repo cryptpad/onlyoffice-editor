@@ -244,7 +244,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     };
 
     CBaseFormatObject.prototype.checkEqualChild = function(oThisChild, oOtherChild) {
-        if(AscFormat.isRealObject(oThisChild) && oThisChild.isEqual) {
+        if(AscCommon.isRealObject(oThisChild) && oThisChild.isEqual) {
             if(!oThisChild.isEqual(oOtherChild)) {
                 return undefined;
             }

@@ -7462,7 +7462,7 @@ DrawingObjectsController.prototype =
         {
             drawing = drawings[i];
             cur_anim_props = drawing.getAnimEffect();
-            if(!anim_props)
+            if(anim_props)
             {
                 anim_props.merge(cur_anim_props);
             }
