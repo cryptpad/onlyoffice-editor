@@ -1977,7 +1977,7 @@
     };
     CGraphicEl.prototype.assignConnection = function(oObjectsMap) {
         if(AscCommon.isRealObject(oObjectsMap[this.spid])){
-            this.setSpid(oObjectsMap[this.dgmId].Id);
+            this.setSpid(oObjectsMap[this.spid].Id);
         }
         else {
             if(this.parent) {
