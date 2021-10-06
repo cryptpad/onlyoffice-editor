@@ -2102,6 +2102,21 @@
 			}
 		}
 	};
+	function CT_Drawing() {
+		this.id = null;
+	}
+	CT_Drawing.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Drawing.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			if ("id" === reader.GetNameNoNS()) {
+				this.id = reader.GetValueDecodeXml();
+			}
+		}
+	};
+
 	function CT_SheetData(ws) {
 		this.ws = ws;
 		this._openRow = new AscCommonExcel.Row(ws);
@@ -2109,11 +2124,12 @@
 
 	CT_SheetData.prototype.fromXml = function(reader) {
 		var depth = reader.GetDepth();
+		var row = reader.GetContext().row;
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("row" === reader.GetName()) {
-				this._openRow.clear();
-				this._openRow.fromXml(reader);
-				this._openRow.saveContent();
+				row.clear();
+				row.fromXml(reader);
+				row.saveContent();
 			}
 		}
 	};
@@ -4276,10 +4292,7 @@
 		//по умолчанию null, создаю объект для отладки
 		this.sheetProtection = null;
 		this.aProtectedRanges = [];
-
-		this._openRow = new AscCommonExcel.Row(this);
-		this.drawingRid = null;
-	}
+	};
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
 		return getCompiledStyle(this.sheetMergedStyles, this.hiddenManager, row, col, opt_cell, this, opt_styleComponents);
@@ -8969,6 +8982,8 @@
 			}
 		}
 		if ("worksheet" === reader.GetNameNoNS()) {
+			var context = reader.GetContext();
+			context.initFromWS(this);
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				var name = reader.GetNameNoNS();
@@ -8976,34 +8991,12 @@
 					var sheetData = new CT_SheetData(this);
 					sheetData.fromXml(reader);
 				} else if ("drawing" === name) {
-
+					var drawing = new CT_Drawing(this);
+					drawing.fromXml(reader);
+					context.drawingId = drawing.id;
 				}
 			}
 		}
-	};
-	Worksheet.prototype.onStartNode = function(elem, attr, uq, tagend, getStrNode) {
-		var attrVals;
-		if ('worksheet' === elem) {
-		} else if ('sheetData' === elem) {
-		} else if ('row' === elem) {
-			this._openRow.clear();
-			return this._openRow;
-		} else if ('drawing' === elem) {
-			if (attr()) {
-				attrVals = attr();
-				this.drawingRid = attrVals["r:id"];
-			}
-		}
-		return this;
-	};
-	Worksheet.prototype.onEndNode = function(prevContext, elem) {
-		var res = true;
-		if ('row' === elem) {
-			this._openRow.saveContent();
-		} else {
-			res = false;
-		}
-		return res;
 	};
 
 	//need recalculate formulas after change rows
@@ -13084,9 +13077,9 @@
 			this.parseAttributes(attr(), uq);
 		}
 	};
-	var cellBase = new AscCommon.CellBase(0,0);
 	Cell.prototype.readAttr = function(reader) {
 		var val;
+		var cellBase = reader.GetContext().cellBase;
 		while (reader.MoveToNextAttribute()) {
 			if ("r" === reader.GetName()) {
 				val = reader.GetValue();
@@ -13165,9 +13158,9 @@
 		}
 		return res;
 	};
-	var value = new CT_Value();
 	Cell.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
+		var value = reader.GetContext().cellValue;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("v" === reader.GetName()) {
@@ -17818,6 +17811,7 @@
 	window['AscCommonExcel'].Workbook = Workbook;
 	window['AscCommonExcel'].CT_SharedStrings = CT_SharedStrings;
 	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
+	window['AscCommonExcel'].CT_Value = CT_Value;
 	window['AscCommonExcel'].Worksheet = Worksheet;
 	window['AscCommonExcel'].Cell = Cell;
 	window['AscCommonExcel'].Range = Range;

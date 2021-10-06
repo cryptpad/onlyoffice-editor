@@ -1464,7 +1464,6 @@ var editor;
 			}
 		}
 		if (wbXml.sheets) {
-			var wsIndex = 0;
 			wbXml.sheets.forEach(function(wbSheetXml) {
 				if (null !== wbSheetXml.id) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
@@ -1482,12 +1481,12 @@ var editor;
 					}
 					wb.aWorksheets.push(ws);
 					wb.aWorksheetsById[ws.getId()] = ws;
-					var drawingPart = wsPart.getPartById(ws.drawingRid);
+					var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
 					if (drawingPart) {
 						var contentDrawing = drawingPart.getDocumentContent();
-						AscCommonExcel.executeInR1C1Mode(false, function() {
-							new openXml.SaxParserBase().parse(contentDrawing, ws);
-						});
+						// AscCommonExcel.executeInR1C1Mode(false, function() {
+						// 	new openXml.SaxParserBase().parse(contentDrawing, ws);
+						// });
 					}
 					if (wsPart) {
 						var actions = [];

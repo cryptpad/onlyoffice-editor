@@ -1477,5 +1477,14 @@ function XmlParserContext(){
 
     //xlsx
     this.sharedStrings = [];
-
+    this.row = null;
+    this.cellValue = null;
+    this.cellBase = null;
+    this.drawingId = null;
 }
+XmlParserContext.prototype.initFromWS = function(ws) {
+    this.row = new AscCommonExcel.Row(ws);
+    this.cellValue = new AscCommonExcel.CT_Value();
+    this.cellBase = new AscCommon.CellBase(0,0);
+    this.drawingId = null;
+};
