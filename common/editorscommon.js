@@ -3865,7 +3865,7 @@
 	function IntToNumberFormat(nValue, nFormat)
 	{
 		var sResult = "";
-		nFormat = Asc.c_oAscNumberingFormat.KoreanCounting; //delete
+		nFormat = Asc.c_oAscNumberingFormat.JapaneseCounting; //delete
 
 		switch (nFormat)
 		{
@@ -4606,23 +4606,10 @@
 
 				break;
 			}
-			case Asc.c_oAscNumberingFormat.BahtText:
-				break;
-			case Asc.c_oAscNumberingFormat.CardinalText:
-				break;
-			// case Asc.c_oAscNumberingFormat.Custom:
-			// 	break;
-			case Asc.c_oAscNumberingFormat.DollarText:
-				break;
-			case Asc.c_oAscNumberingFormat.Hebrew1:
-				break;
-			case Asc.c_oAscNumberingFormat.HindiCounting:
-				break;
-			case Asc.c_oAscNumberingFormat.JapaneseCounting:
-				break;
 			case Asc.c_oAscNumberingFormat.JapaneseLegal:
 			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
 			case Asc.c_oAscNumberingFormat.KoreanCounting:
+			case Asc.c_oAscNumberingFormat.JapaneseCounting:
 				var addFirstDegreeSymbol = true;
 				if (nFormat === Asc.c_oAscNumberingFormat.KoreanCounting) {
 					addFirstDegreeSymbol = false;
@@ -4662,7 +4649,7 @@
 						String.fromCharCode(0x767E),
 						String.fromCharCode(0x842C)
 					];
-					var degrees = [
+					degrees = [
 						'萬',
 						'阡',
 						'百',
@@ -4684,58 +4671,62 @@
 						String.fromCharCode(0x4EDF),
 						String.fromCharCode(0x842C)
 					];
-					var degrees = [
+					degrees = [
 						'萬',
 						'仟',
 						'佰',
 						'拾'
 					];
+				} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseCounting) {
+					addFirstDegreeSymbol = false;
+					digits = [
+						String.fromCharCode(0x3007),
+						String.fromCharCode(0x4E00),
+						String.fromCharCode(0x4E8C),
+						String.fromCharCode(0x4E09),
+						String.fromCharCode(0x56DB),
+						String.fromCharCode(0x4E94),
+						String.fromCharCode(0x516D),
+						String.fromCharCode(0x4E03),
+						String.fromCharCode(0x516B),
+						String.fromCharCode(0x4E5D),
+						String.fromCharCode(0x5341),
+						String.fromCharCode(0x5343),
+						String.fromCharCode(0x767E),
+					];
+					degrees = [
+						'千',
+						'百',
+						'十'
+					];
 				}
-				var koreanLegalSplitting = function (numberLessThan100000) {
+
+				var degreeCount = Math.pow(10, degrees.length);
+				var koreanLegalSplitting = function (numberLessThanX) {
 					var answer = [];
 					var count;
-					if (numberLessThan100000 / 10000 >= 1) {
-						count = Math.floor(numberLessThan100000 / 10000);
-						if (count !== 1 || addFirstDegreeSymbol) {
-							answer.push(digits[count - 1]);
+					var degreeCountCopy = degreeCount;
+					for (var i = 0; i < degrees.length; i += 1) {
+						if (numberLessThanX / degreeCountCopy >= 1) {
+							count = Math.floor(numberLessThanX / degreeCountCopy);
+							if (count !== 1 || addFirstDegreeSymbol) {
+								answer.push(digits[count - 1]);
+							}
+							answer.push(degrees[i]);
+							numberLessThanX = numberLessThanX % degreeCountCopy;
 						}
-						answer.push(degrees[0]);
-						numberLessThan100000 = numberLessThan100000 % 10000;
+						degreeCountCopy /= 10;
 					}
-					if (numberLessThan100000 / 1000 >= 1) {
-						count = Math.floor(numberLessThan100000 / 1000);
-						if (count !== 1 || addFirstDegreeSymbol) {
-							answer.push(digits[count - 1]);
-						}
-						answer.push(degrees[1]);
-						numberLessThan100000 = numberLessThan100000 % 1000;
-					}
-					if (numberLessThan100000 / 100 >= 1) {
-						count = Math.floor(numberLessThan100000 / 100);
-						if (count !== 1 || addFirstDegreeSymbol) {
-							answer.push(digits[count - 1]);
-						}
-						answer.push(degrees[2]);
-						numberLessThan100000 = numberLessThan100000 % 100;
-					}
-					if (numberLessThan100000 / 10 >= 1) {
-						count = Math.floor(numberLessThan100000 / 10);
-						if (count !== 1 || addFirstDegreeSymbol) {
-							answer.push(digits[count - 1]);
-						}
-						answer.push(degrees[3]);
-						numberLessThan100000 = numberLessThan100000 % 10;
-					}
-					if (numberLessThan100000 > 0) {
-						answer.push(digits[numberLessThan100000 - 1]);
+					if (numberLessThanX > 0) {
+						answer.push(digits[numberLessThanX - 1]);
 					}
 					return answer;
 				}
 				if (nValue < 100000) {
-					sResult = koreanLegalSplitting(nValue).join('');
+					sResult = koreanLegalSplitting(nValue, degreeCount).join('');
 				} else { // Поддержка чисел до 100 000 000
-					var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % 10000));
-					sResult = koreanLegalSplitting(Math.floor(nValue / 10000)).concat(resultWith10000Reminder).join('');
+					var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount));
+					sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount)).concat(resultWith10000Reminder).join('');
 				}
 				break;
 			case Asc.c_oAscNumberingFormat.KoreanDigital:
@@ -4789,17 +4780,12 @@
 					return digits[num];
 				}).join('');
 				break;
-			case Asc.c_oAscNumberingFormat.KoreanLegal:
+			case Asc.c_oAscNumberingFormat.None:
+				sResult = '';
 				break;
-			//case Asc.c_oAscNumberingFormat.None:
-				//break;
 			case Asc.c_oAscNumberingFormat.NumberInDash:
 				var dash = String.fromCharCode(0x002D);
 				sResult = dash + ' ' + nValue + ' ' + dash;
-				break;
-			case Asc.c_oAscNumberingFormat.Ordinal:
-				break;
-			case Asc.c_oAscNumberingFormat.OrdinalText:
 				break;
 			case Asc.c_oAscNumberingFormat.TaiwaneseCounting:
 				digits = [
@@ -4840,10 +4826,6 @@
 					}).join('');
 				}
 				break;
-			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand:
-				break;
-			case Asc.c_oAscNumberingFormat.ThaiCounting:
-				break;
 			case Asc.c_oAscNumberingFormat.ThaiLetters:
 				var spaces = [1, 3, 4, 5];
 				var repeatAmount = Math.floor((nValue - 1) / 41) + 1;
@@ -4857,11 +4839,69 @@
 				sResult = String.fromCharCode(0x0E01 + repeatIndex + currentSpace).repeat(repeatAmount);
 				break;
 			case Asc.c_oAscNumberingFormat.VietnameseCounting:
-				digits = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
+				digits = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười']; // TODO: repare
 				var conv = decimalNumberConversion(nValue, digits.length);
 				sResult = conv.map(function (num) {
 					return digits[num - 1];
 				}).join(' ');
+				break;
+			case Asc.c_oAscNumberingFormat.BahtText:
+				break;
+			case Asc.c_oAscNumberingFormat.CardinalText:
+				break;
+			// case Asc.c_oAscNumberingFormat.Custom:
+			// 	break;
+			case Asc.c_oAscNumberingFormat.DollarText:
+				break;
+			case Asc.c_oAscNumberingFormat.Hebrew1: // todo: simly
+				break;
+			case Asc.c_oAscNumberingFormat.HindiCounting:
+				break;
+			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand: // todo: simply
+				break;
+			case Asc.c_oAscNumberingFormat.ThaiCounting: // todo: think about it
+				break;
+			case Asc.c_oAscNumberingFormat.Ordinal:
+				break;
+			case Asc.c_oAscNumberingFormat.OrdinalText:
+				break;
+			case Asc.c_oAscNumberingFormat.KoreanLegal: // TODO: simly
+				if (nValue < 100) {
+					var answer = [];
+					digits = {
+						1: [
+							String.fromCharCode(0xD558, 0xB098),
+							String.fromCharCode(0xB458),
+							String.fromCharCode(0xC14B),
+							String.fromCharCode(0xB137),
+							String.fromCharCode(0xB2E4, 0xC12F),
+							String.fromCharCode(0xC5EC, 0xC12F),
+							String.fromCharCode(0xC77C, 0xACF1),
+							String.fromCharCode(0xC5EC, 0xB35F),
+							String.fromCharCode(0xC544 , 0xD649)
+						],
+						10: [
+							String.fromCharCode(0xC5F4),
+							String.fromCharCode(0xC2A4, 0xBB3C),
+							String.fromCharCode(0xC11C, 0xB978),
+							String.fromCharCode(0xB9C8, 0xD754),
+							String.fromCharCode(0xC270),
+							String.fromCharCode(0xC608, 0xC21C),
+							String.fromCharCode(0xC77C, 0xD754),
+							String.fromCharCode(0xC5EC, 0xB4E0),
+							String.fromCharCode(0xC544, 0xD754)
+						]
+					};
+					if (nValue / 10 >= 1) {
+						answer.push(digits[10][Math.floor(nValue / 10)]);
+					}
+					if (nValue % 10 >= 1) {
+						answer.push(digits[1][nValue % 10]);
+					}
+					sResult = answer.join('');
+				} else {
+					// TODO: end this
+				}
 				break;
 		}
 

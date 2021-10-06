@@ -1340,6 +1340,22 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			}
 			case Asc.c_oAscNumberingFormat.JapaneseCounting:
 			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3007);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5341);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5343);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x767E);
+				AscFonts.FontPickerByCharacter.getFontBySymbol('千'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('百'.charCodeAt(0));
+				AscFonts.FontPickerByCharacter.getFontBySymbol('十'.charCodeAt(0));
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand:
@@ -1413,6 +1429,15 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			}
 			case Asc.c_oAscNumberingFormat.OrdinalText:
 			{
+				// var localization = {
+				// 	1: {
+				// 	'RU-ru': []
+				// 	},
+				// 	10: {},
+				// 	100: {},
+				// 	1000: {},
+				// 	1000000: {}
+				// }
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.TaiwaneseCounting:
