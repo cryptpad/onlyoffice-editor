@@ -392,7 +392,7 @@ void main() {\n\
     };
 
     window["AscViewer"] = window["AscViewer"] || {};
-
+    window["AscViewer"]["baseUrl"] = "./../src/engine/";
 
     window["AscViewer"].createFile = function(data)
     {

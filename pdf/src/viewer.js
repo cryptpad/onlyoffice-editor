@@ -375,7 +375,7 @@
 				_t.onLoadModule();
 			};
 			
-			var basePath = "./../src/engine/";
+			var basePath = window["AscViewer"]["baseUrl"];
 			
 			var useWasm = false;
 			var webAsmObj = window["WebAssembly"];
