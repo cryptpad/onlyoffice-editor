@@ -300,7 +300,7 @@
     CFile.prototype["getGlyphs"] = function(pageIndex, width, height)
     {
         var glyphs = Module["_GetGlyphs"](this.nativeFile, pageIndex, width, height);
-        if (glyphs == null)
+        if (glyphs == 0)
             return;
 
         var lenArray = new Int32Array(Module["HEAP8"].buffer, glyphs, 4);
@@ -314,34 +314,58 @@
         var reader = new CBinaryReader(buffer, 0, len);
 
         var Line = -1;
+        var prevY = -1;
         while (reader.isValid())
         {
-            var rec = {};
-            rec["word"] = reader.readString();
-            if (this.type == 2)
-            {
-                rec["x"] = 1.015 * reader.readDouble();
-                rec["y"] = 1.015 * reader.readDouble();
-            }
-            else
-            {
-                rec["x"] = reader.readDouble();
-                rec["y"] = reader.readDouble();
-            }
-            rec["w"] = reader.readDouble();
-            rec["h"] = reader.readDouble();
-
-            Line++;
-            this.pages[pageIndex].Lines.push({ Glyphs : [] });
-            for (let i = 0; i < _Word.length; i++)
-            {
-                this.pages[pageIndex].Lines[Line].Glyphs.push({
-                    X : _X + _W / (_Word.length - 1) * i,
-                    UChar : _Word[i]
-                });
-            }
-            this.pages[pageIndex].Lines[Line].Glyphs[0].Y = _Y + _H;
-            this.pages[pageIndex].Lines[Line].Glyphs[0].fontSize = _H;
+			// xps
+			if (this.type == 2)
+			{
+				let _fontName = reader.readString();
+				let _fontSize = reader.readDouble();
+				let amount = reader.readInt();
+				for (var i = 0; i < amount; i++)
+				{
+					let _X = reader.readDouble();
+					let _Y = reader.readDouble();
+					if (_Y != prevY)
+                    {
+                        if (Line >= 0)
+                            this.pages[pageIndex].Lines[Line].Glyphs.sort(function(prev, next) { return prev.X - next.X; });
+                        Line++;
+                        this.pages[pageIndex].Lines.push({ Glyphs : [] });
+                        prevY = _Y;
+                    }
+					let _Char = reader.readInt();
+					this.pages[pageIndex].Lines[Line].Glyphs.push({
+                        fontName : _fontName,
+                        fontSize : _fontSize,
+                        X : _X * 1.015,
+                        Y : _Y * 1.015,
+                        UChar : String.fromCharCode(_Char)
+                    });
+				}
+			}
+			// djvu
+			else
+			{
+                let _Word = reader.readString();
+                let _X = reader.readDouble();
+                let _Y = reader.readDouble();
+                let _W = reader.readDouble();
+                let _H = reader.readDouble();
+			    
+                Line++;
+                this.pages[pageIndex].Lines.push({ Glyphs : [] });
+                for (let i = 0; i < _Word.length; i++)
+                {
+                    this.pages[pageIndex].Lines[Line].Glyphs.push({
+                        X : _X + _W / (_Word.length - 1) * i,
+                        UChar : _Word[i]
+                    });
+                }
+                this.pages[pageIndex].Lines[Line].Glyphs[0].Y = _Y + _H;
+                this.pages[pageIndex].Lines[Line].Glyphs[0].fontSize = _H;
+			}
         }
 
         Module["_free"](glyphs);
@@ -350,6 +374,9 @@
     {
         var res = [];
         var ext = Module["_GetLinks"](this.nativeFile, pageIndex, width, height);
+		if (ext == 0)
+			return res;
+		
         var lenArray = new Int32Array(Module["HEAP8"].buffer, ext, 4);
         if (lenArray == null)
             return res;
@@ -366,16 +393,8 @@
         {
             var rec = {};
             rec["link"] = reader.readString();
-            if (this.type == 2)
-            {
-                rec["x"] = 1.015 * reader.readDouble();
-                rec["y"] = 1.015 * reader.readDouble();
-            }
-            else
-            {
-                rec["x"] = reader.readDouble();
-                rec["y"] = reader.readDouble();
-            }
+            rec["x"] = (this.type == 2 ? 1.015 : 1) * reader.readDouble();
+            rec["y"] = (this.type == 2 ? 1.015 : 1) * reader.readDouble();
             rec["w"] = reader.readDouble();
             rec["h"] = reader.readDouble();
             res.push(rec);
@@ -388,6 +407,8 @@
     {
         var res = [];
         var str = Module["_GetStructure"](this.nativeFile);
+		if (str == 0)
+			return res;
         var lenArray = new Int32Array(Module["HEAP8"].buffer, str, 4);
         if (lenArray == null)
             return res;
@@ -402,16 +423,9 @@
         while (reader.isValid())
         {
             var rec = {};
-            rec["page"] = reader.readInt();
+            rec["page"]  = reader.readInt();
             rec["level"] = reader.readInt();
-            if (this.type == 2)
-            {
-                rec["y"] = reader.readDouble();
-            }
-            else
-            {
-                rec["y"] = reader.readInt();
-            }
+            rec["y"]  = reader.readDouble();
             rec["description"] = reader.readString();
             res.push(rec);
         }
