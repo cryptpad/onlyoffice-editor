@@ -1681,7 +1681,7 @@
             var p = window.parent;
 
             // Presenter mode in slides
-            if (editor.isReporterMode) {
+            if (editor && editor.isReporterMode) {
                 // If we are in the presenter popup, we want a channel with the main OO.
                 // Since a lot of the code is using window.parent.APP, we need to override
                 // window.parent because in the case of a popup, window.parent === window
