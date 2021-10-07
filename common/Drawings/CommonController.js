@@ -11276,6 +11276,32 @@ function CalcLiterByLength(aAlphaBet, nLength)
         oCopy.gmEditPointIdx = this.gmEditPointIdx;
         return oCopy;
     };
+
+
+
+    function CDrawTask(rect) {
+        this.rect = null;
+        if(rect) {
+            this.rect = rect.copy();
+        }
+    }
+
+
+    CDrawTask.prototype.getRect = function() {
+        return this.rect;
+    };
+
+    CDrawTask.prototype.union = function(oGraphicOption) {
+        if(!this.rect) {
+            return this;
+        }
+        if(!oGraphicOption.rect) {
+            return oGraphicOption;
+        }
+        this.rect.checkByOther(oGraphicOption.rect);
+        return this;
+    };
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -11352,4 +11378,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
 	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
 	window['AscFormat'].HitToRect = HitToRect;
 	window['AscFormat'].drawingsUpdateForeignCursor = drawingsUpdateForeignCursor;
+
+    window['AscCommon'] = window['AscCommon'] || {};
+    window["AscCommon"].CDrawTask = CDrawTask;
 })(window);

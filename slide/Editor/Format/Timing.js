@@ -549,7 +549,9 @@
         }
         return oCCTn;
     };
-
+    CBaseAnimObject.prototype.getPresentation = function() {
+        return editor.WordControl.m_oLogicDocument;
+    };
     var TIME_NODE_STATE_IDLE = 0;
     var TIME_NODE_STATE_ACTIVE = 1;
     var TIME_NODE_STATE_FROZEN = 2;
@@ -1233,9 +1235,6 @@
         }
         return fRelTime;
     };
-    CTimeNodeBase.prototype.getPresentation = function() {
-        return editor.WordControl.m_oLogicDocument;
-    };
     CTimeNodeBase.prototype.getSlideWidth = function() {
         return this.getPresentation().GetWidthMM();
     };
@@ -1704,6 +1703,14 @@
             this.setBldLst(null);
         }
     };
+    CTiming.prototype.onAnimPaneChanged = function(oRect) {
+        var oSlide = this.parent;
+        if(!oSlide) {
+            return;
+        }
+        var oPresentation = this.getPresentation();
+        oPresentation.OnAnimPaneChanged(oSlide.num, oRect)
+    };
     CTiming.prototype.getTimingRootNode = function() {
         if(this.tnLst) {
             return this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
@@ -1762,6 +1769,9 @@
         return null;
     };
     CTiming.prototype.getAnimEffect = function(sObjectId) {
+        if(!this.tnLst) {
+            return null;
+        }
         var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
         if(!oTmRoot) {
             return null;
@@ -1840,6 +1850,12 @@
         var oCTn = this.createCCTn(null, nFill, sDelay, null, null, true);
         oPar.setCTn(oCTn);
         return oPar;
+    };
+    CTiming.prototype.drawAnimPane = function(oGraphics) {
+        if(!this.animPane) {
+            this.animPane = new CAnimPane(this);
+        }
+        this.animPane.draw(oGraphics);
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -9448,22 +9464,26 @@
     };
     //--------------------------------------------------------------------------
 
-    function CTimeline(oTiming, oCanvas) {
+    function CAnimPane(oTiming) {
         this.timing = oTiming;
-        this.canvas = oCanvas;
         this.groups = [];
     }
-    CTimeline.prototype.recalculate = function() {
+    CAnimPane.prototype.onChanged = function(oRect) {
+        this.timing.onAnimPaneChanged(oRect);
+    };
+    CAnimPane.prototype.onMouseDown = function(e, x, y) {
 
     };
-    CTimeline.prototype.onMouseDown = function(e, x, y) {
+    CAnimPane.prototype.onMouseMove = function(e, x, y) {
 
     };
-    CTimeline.prototype.onMouseMove = function(e, x, y) {
+    CAnimPane.prototype.onMouseUp = function(e, x, y) {
 
     };
-    CTimeline.prototype.onMouseUp = function(e, x, y) {
-
+    CAnimPane.prototype.draw = function(oGraphics) {
+        oGraphics.b_color1(255, 0, 0, 255);
+        oGraphics.rect(0, 0, 100, 100);
+        oGraphics.df();
     };
 
 

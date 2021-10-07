@@ -571,6 +571,18 @@ function CEditorPage(api)
 			this.m_oNotesContainer.HtmlElement.style.display = "none";
 		}
 
+		//animation pane
+
+		this.m_oAnimationPaneContainer = CreateControlContainer("id_panel_animation");
+		this.m_oAnimationPaneContainer.Bounds.SetParams(0, 0, 1000, 300, false, false, false, false, -1, -1);
+		this.m_oAnimationPaneContainer.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
+		this.m_oMainParent.AddControl(this.m_oAnimationPaneContainer);
+
+		this.m_oAnimationPane = CreateControlContainer("id_animation_controls");
+		this.m_oAnimationPane.Bounds.SetParams(0, 0, 1000, 1000, false, false, false, false, -1, -1);
+		this.m_oAnimationPane.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
+		this.m_oAnimationPaneContainer.AddControl(this.m_oAnimationPane);
+
 		// ----------
 
 		this.m_oMainView = CreateControlContainer("id_main_view");
@@ -935,6 +947,9 @@ function CEditorPage(api)
 		this.m_oNotesApi = new CNotesDrawer(this);
 		this.m_oNotesApi.Init();
 
+		this.m_oAnimPaneApi = new CAnimationPaneDrawer(this);
+		this.m_oAnimPaneApi.Init();
+
 		if (this.m_oApi.isReporterMode)
 			this.m_oApi.StartDemonstration(this.Name, 0);
 
@@ -993,6 +1008,7 @@ function CEditorPage(api)
             case "id_viewer_overlay":
             case "id_notes":
             case "id_notes_overlay":
+            case "id_animation_controls":
                 return true;
             default:
                 break;
@@ -1359,6 +1375,9 @@ function CEditorPage(api)
 
 		if (this.IsSupportNotes && this.m_oNotesApi)
 			this.m_oNotesApi.OnResize();
+
+		if (this.m_oAnimPaneApi)
+			this.m_oAnimPaneApi.OnResize();
 	};
 
 	this.zoom_Out = function()
@@ -3173,6 +3192,9 @@ function CEditorPage(api)
 		if (this.IsSupportNotes && this.m_oNotesApi)
 			this.m_oNotesApi.OnResize();
 
+		if (this.m_oAnimPaneApi)
+			this.m_oAnimPaneApi.OnResize();
+
 		this.FullRulersUpdate();
 
 		if (AscCommon.g_imageControlsStorage)
@@ -3364,6 +3386,9 @@ function CEditorPage(api)
 
 		if (this.IsSupportNotes && this.m_oNotesApi)
 			this.m_oNotesApi.OnResize();
+
+		if (this.m_oAnimPaneApi)
+			this.m_oAnimPaneApi.OnResize();
 
 		this.FullRulersUpdate();
 	};
@@ -4013,6 +4038,9 @@ function CEditorPage(api)
 		if (oWordControl.IsSupportNotes && oWordControl.m_oNotesApi)
 			oWordControl.m_oNotesApi.CheckPaint();
 
+		if (oWordControl.m_oAnimPaneApi)
+			oWordControl.m_oAnimPaneApi.CheckPaint();
+
 		if (null != oWordControl.m_oLogicDocument)
 		{
 			oWordControl.m_oDrawingDocument.UpdateTargetFromPaint = true;
@@ -4292,6 +4320,9 @@ function CEditorPage(api)
 
 			if (this.IsSupportNotes && this.m_oNotesApi)
 				this.m_oNotesApi.OnRecalculateNote(-1, 0, 0);
+
+			if (this.m_oAnimPaneApi)
+				this.m_oAnimPaneApi.OnAnimPaneChanged(-1, null);
 		}
 
 		if (this.m_oDrawingDocument.TransitionSlide.IsPlaying())
@@ -4313,7 +4344,11 @@ function CEditorPage(api)
 		{
 			var _curPage = this.m_oLogicDocument.CurPage;
 			if (_curPage >= 0)
-				this.m_oNotesApi.OnRecalculateNote(_curPage, this.m_oLogicDocument.Slides[_curPage].NotesWidth, this.m_oLogicDocument.Slides[_curPage].getNotesHeight());
+			{
+				var oSlide = this.m_oLogicDocument.Slides[_curPage];
+				this.m_oNotesApi.OnRecalculateNote(_curPage, oSlide.NotesWidth, oSlide.getNotesHeight());
+				this.m_oAnimPaneApi.OnAnimPaneChanged(_curPage, null);
+			}
 		}
 
 		// теперь пошлем все шаблоны первой темы

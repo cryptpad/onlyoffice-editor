@@ -7308,6 +7308,37 @@ CPresentation.prototype.Notes_OnMouseMove = function (e, X, Y) {
     }
 };
 
+CPresentation.prototype.AnimPane_OnMouseDown = function(e, X, Y) {
+
+};
+
+CPresentation.prototype.AnimPane_OnMouseMove = function(e, X, Y) {
+
+};
+
+CPresentation.prototype.AnimPane_OnMouseUp = function(e, X, Y) {
+
+};
+
+CPresentation.prototype.OnAnimPaneChanged = function(nSlideNum, oRect) {
+    this.DrawingDocument.OnAnimPaneChanged(nSlideNum, null);
+};
+
+CPresentation.prototype.OnAnimPaneResize = function() {
+    var oSlide = this.GetCurrentSlide();
+    if(!oSlide) {
+        this.OnAnimPaneChanged(-1, null);
+    }
+    else {
+        this.OnAnimPaneChanged(oSlide.num, null);
+    }
+};
+CPresentation.prototype.DrawAnimPane = function(oGraphics) {
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        oSlide.drawAnimPane(oGraphics);
+    }
+};
 
 CPresentation.prototype.Get_TableStyleForPara = function () {
     return null;

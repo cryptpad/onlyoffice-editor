@@ -1348,6 +1348,12 @@ Slide.prototype =
         }
     },
 
+    drawAnimPane: function(oGraphics) {
+        if(this.timing) {
+            this.timing.drawAnimPane(oGraphics);
+        }
+    },
+
     getTheme: function(){
         return this.Layout.Master.Theme;
     },

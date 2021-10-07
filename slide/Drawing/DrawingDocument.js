@@ -1693,7 +1693,7 @@ function CDrawingDocument()
 		y_pix += ((COMMENT_HEIGHT / 3) >> 0);
 
 		return {X : x_pix, Y : y_pix, Error : false};
-	}
+	};
 
 	this.ConvertCoordsToCursor = function(x, y)
 	{
@@ -3923,6 +3923,15 @@ function CDrawingDocument()
 			}
 		}
 		History.TurnOn();
+	};
+
+	this.OnAnimPaneChanged = function(nSlideNum, oRect)
+	{
+		if(nSlideNum !== this.SlideCurrent)
+		{
+			return;
+		}
+		this.m_oWordControl.m_oAnimPaneApi.OnAnimPaneChanged(nSlideNum, oRect);
 	};
 }
 
@@ -6676,6 +6685,262 @@ function CNotesDrawer(page)
 		_pix_width = AscCommon.AscBrowser.convertToRetinaValue(_pix_width);
 		if (window["NATIVE_EDITOR_ENJINE"] && _pix_width < 100) _pix_width = 100;
 		return _pix_width / g_dKoef_mm_to_pix;
+	};
+}
+
+
+function CAnimPaneDrawTask()
+{
+	this.slide = null;
+	this.rect = null;
+}
+CAnimPaneDrawTask.prototype.check = function(nSlide, oRect)
+{
+	if(this.slide === null)
+	{
+		this.slide = nSlide;
+		this.rect = oRect;
+		return;
+	}
+	if(this.slide !== nSlide)
+	{
+		this.slide = nSlide;
+		this.rect = null;
+		return;
+	}
+	if(this.rect)
+	{
+		if(!oRect)
+		{
+			this.rect = null;
+		}
+		else
+		{
+			this.rect.checkByOther(oRect);
+		}
+	}
+};
+CAnimPaneDrawTask.prototype.needRedraw = function()
+{
+	return this.slide !== null;
+};
+CAnimPaneDrawTask.prototype.clear = function()
+{
+	this.slide = null;
+	this.rect = null;
+};
+
+function CAnimationPaneDrawer(page)
+{
+	this.fontManager = new AscFonts.CFontManager();
+	this.fontManager.Initialize(true);
+	this.fontManager.SetHintsProps(true, true);
+
+
+	this.HtmlPage = page;
+	this.DrawTask = new CAnimPaneDrawTask();
+
+	var oThis = this;
+
+
+	oThis.GetHtmlElement = function()
+	{
+		return oThis.HtmlPage.m_oAnimationPane.HtmlElement;
+	};
+	oThis.Init = function ()
+	{
+		var oHtmlElem = oThis.GetHtmlElement();
+		oHtmlElem.onmousedown = oThis.onMouseDown;
+		oHtmlElem.onmousemove = oThis.onMouseMove;
+		oHtmlElem.onmouseup =  oThis.onMouseUp;
+		oHtmlElem = oThis.HtmlPage.m_oAnimationPaneContainer.HtmlElement;
+		oHtmlElem.onmousewheel = oThis.onMouseWhell;
+		if (oHtmlElem.addEventListener)
+		{
+			oHtmlElem.addEventListener("DOMMouseScroll", oThis.onMouseWhell, false);
+		}
+	};
+
+	oThis.GetCurrentSlideNumber = function ()
+	{
+		return oThis.HtmlPage.m_oDrawingDocument.SlideCurrent;
+	};
+
+	oThis.GetPresentation = function ()
+	{
+		return oThis.HtmlPage.m_oLogicDocument;
+	};
+	oThis.GetDrawingDocument = function ()
+	{
+		return oThis.HtmlPage.m_oDrawingDocument;
+	};
+
+	oThis.OnPaint = function ()
+	{
+		var oPresentation = oThis.GetPresentation();
+		var element = oThis.GetHtmlElement();
+		var ctx = element.getContext('2d');
+		ctx.clearRect(0, 0, element.width, element.height);
+
+		var dKoef = g_dKoef_mm_to_pix;
+		dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
+
+		var w_mm = this.GetWidth();
+		var h_mm = this.GetHeight();
+		var w_px = (w_mm * dKoef) >> 0;
+		var h_px = (h_mm * dKoef) >> 0;
+
+		var g = new AscCommon.CGraphics();
+		g.init(ctx, w_px, h_px, w_mm, h_mm);
+		g.m_oFontManager = oThis.fontManager;
+
+		if (AscCommon.GlobalSkin.Type === "dark")
+		{
+			g.darkModeOverride();
+		}
+
+		if(oPresentation)
+		{
+			g.SaveGrState();
+			g.m_oCoordTransform.tx = 0;
+			g.m_oCoordTransform.ty = 0;
+			g.transform(1, 0, 0, 1, 0, 0);
+			oPresentation.DrawAnimPane(g);
+			g.RestoreGrState();
+		}
+
+
+	};
+
+	oThis.CheckPaint = function ()
+	{
+		if(oThis.DrawTask.needRedraw())
+		{
+			oThis.OnPaint();
+			oThis.DrawTask.clear();
+		}
+	};
+
+	oThis.IsPresentationEmpty = function ()
+	{
+		return -1 === oThis.GetCurrentSlideNumber();
+	};
+
+
+	oThis.GetPosition = function (e)
+	{
+		var _x = global_mouseEvent.X - oThis.HtmlPage.X - ((oThis.HtmlPage.m_oMainParent.AbsolutePosition.L * g_dKoef_mm_to_pix + 0.5) >> 0);
+		var _y = global_mouseEvent.Y - oThis.HtmlPage.Y - ((oThis.HtmlPage.m_oAnimationPaneContainer.AbsolutePosition.T * g_dKoef_mm_to_pix + 0.5) >> 0);
+		_x *= g_dKoef_pix_to_mm;
+		_y *= g_dKoef_pix_to_mm;
+		return { Page : oThis.GetCurrentSlideNumber(), X : _x, Y : _y, isNotes : false };
+	};
+
+	oThis.onMouseDown = function (e)
+	{
+		if(oThis.IsPresentationEmpty())
+			return;
+
+		AscCommon.check_MouseDownEvent(e, true);
+		global_mouseEvent.LockMouse();
+		oThis.HtmlPage.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
+		var pos = oThis.GetPosition(e);
+		var _x = pos.X;
+		var _y = pos.Y;
+		var ret = oThis.GetDrawingDocument().checkMouseDown_Drawing(pos);
+		if (ret === true)
+		{
+			AscCommon.stopEvent(e);
+			return;
+		}
+		oThis.GetPresentation().AnimPane_OnMouseDown(global_mouseEvent, _x, _y);
+	};
+	oThis.onMouseMove = function (e)
+	{
+		if(oThis.IsPresentationEmpty())
+			return;
+
+		if (e)
+			AscCommon.check_MouseMoveEvent(e);
+
+		var pos = oThis.GetPosition(e);
+		var _x = pos.X;
+		var _y = pos.Y;
+
+		if (oThis.GetDrawingDocument().InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
+
+		var is_drawing = oThis.GetDrawingDocument().checkMouseMove_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
+		oThis.GetPresentation().AnimPane_OnMouseDown(global_mouseEvent, _x, _y);
+	};
+	oThis.onMouseUp = function (e)
+	{
+		if(oThis.IsPresentationEmpty())
+			return;
+
+		AscCommon.check_MouseUpEvent(e);
+
+
+		var pos = oThis.GetPosition(e);
+		var _x = pos.X;
+		var _y = pos.Y;
+
+
+		if (oThis.GetDrawingDocument().InlineTextTrackEnabled)
+		{
+			if (_y < 0)
+				return;
+		}
+
+		var is_drawing = oThis.GetDrawingDocument().checkMouseUp_Drawing(pos);
+		if (is_drawing === true)
+			return;
+
+		oThis.GetPresentation().AnimPane_OnMouseUp(global_mouseEvent, _x, _y);
+
+		oThis.HtmlPage.m_bIsMouseLock = false;
+	};
+	oThis.onMouseWhell = function(e)
+	{
+		return false;
+	};
+	oThis.onSelectWheel = function()
+	{
+	};
+	oThis.OnResize = function ()
+	{
+		var oPresentation = oThis.GetPresentation();
+		if(oPresentation)
+		{
+			oPresentation.OnAnimPaneResize();
+		}
+	};
+	oThis.OnAnimPaneChanged = function (nSlideNum, oRect)
+	{
+		oThis.DrawTask.check(nSlideNum, oRect);
+	};
+
+	oThis.GetWidth = function()
+	{
+		var _pix_width = oThis.GetHtmlElement().width;
+		if (_pix_width < 10)
+			_pix_width = 10;
+		_pix_width = AscCommon.AscBrowser.convertToRetinaValue(_pix_width);
+		return _pix_width / g_dKoef_mm_to_pix;
+	};
+	oThis.GetHeight = function()
+	{
+		var _pix_height = oThis.GetHtmlElement().height;
+		if (_pix_height < 10)
+			_pix_height = 10;
+		_pix_height = AscCommon.AscBrowser.convertToRetinaValue(_pix_height);
+		return _pix_height / g_dKoef_mm_to_pix;
 	};
 }
 

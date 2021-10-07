@@ -1388,7 +1388,10 @@ background-repeat: no-repeat;\
                                     <div id=\"panel_right_scroll_notes\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:1px;\"></div>\
                                 </div>\
                             </div>\
-                            </div>";
+                            <div id=\"id_panel_animation\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";\">\
+      							<canvas id=\"id_animation_controls\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
+                            </div>\
+						</div>";
 		}
 
 		if (this.HtmlElement)
