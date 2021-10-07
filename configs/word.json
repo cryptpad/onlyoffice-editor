@@ -218,6 +218,7 @@
 
 			"word/apiBuilder.js",
 
+			"common/fromToJSON.js",
 			"common/versionHistory.js",
 			"common/clipboard_base.js",
 			"common/text_input.js",
