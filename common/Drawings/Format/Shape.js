@@ -2010,6 +2010,7 @@ CShape.prototype.setVerticalAlign = function (align) {
                 this.txBody.setBodyPr(new_body_pr);
             }
         }
+        this.checkExtentsByDocContent && this.checkExtentsByDocContent();
     }
 };
 CShape.prototype.setVert = function (vert) {
@@ -2118,6 +2119,7 @@ CShape.prototype.setPaddings = function (paddings) {
                     this.txBody.setBodyPr(new_body_pr);
                 }
             }
+            this.checkExtentsByDocContent && this.checkExtentsByDocContent();
         }
     }
 };
