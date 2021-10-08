@@ -1591,19 +1591,22 @@ CShape.prototype.documentUpdateRulersState = function () {
     else
         b_ins = 1.27;
 
-    if (this.spPr && isRealObject(this.spPr.geometry) && isRealObject(this.spPr.geometry.rect)) {
-        l = this.spPr.geometry.rect.l + l_ins;
-        t = this.spPr.geometry.rect.t + t_ins;
-        r = this.spPr.geometry.rect.r - r_ins;
-        b = this.spPr.geometry.rect.b - b_ins;
-
+    var oRect;
+    if(this.getTextRect) {
+        oRect = this.getTextRect();
     }
     else {
-        l = l_ins;
-        t = t_ins;
-        r = this.extX - r_ins;
-        b = this.extY - b_ins;
+        oRect = {
+            l: 0,
+            t: 0,
+            r: this.extX,
+            b: this.extY
+        };
     }
+    l = oRect.l + l_ins;
+    t = oRect.t + t_ins;
+    r = oRect.r - r_ins;
+    b = oRect.b - b_ins;
 
     var x_lt, y_lt, x_rt, y_rt, x_rb, y_rb, x_lb, y_lb;
     var tr = this.transform;
@@ -2193,335 +2196,22 @@ CShape.prototype.getFullFlip = function () {
     };
 };
 
-CShape.prototype.recalculateTransformText2 = function () {
-    if (this.txBody === null)
-        return;
-    if (!this.txBody.content2)
-        return;
-    this.transformText2 = new CMatrix();
-    var _text_transform = this.transformText2;
-    var _shape_transform = this.transform;
-    var _body_pr = this.txBody.getBodyPr();
-    var _content_height = this.txBody.getSummaryHeight2();
-    var _l, _t, _r, _b;
-
-    var _t_x_lt, _t_y_lt, _t_x_rt, _t_y_rt, _t_x_lb, _t_y_lb, _t_x_rb, _t_y_rb;
-    if (this.spPr && isRealObject(this.spPr.geometry) && isRealObject(this.spPr.geometry.rect)) {
-        var _rect = this.spPr.geometry.rect;
-        _l = _rect.l + _body_pr.lIns;
-        _t = _rect.t + _body_pr.tIns;
-        _r = _rect.r - _body_pr.rIns;
-        _b = _rect.b - _body_pr.bIns;
-    }
-    else {
-        _l = _body_pr.lIns;
-        _t = _body_pr.tIns;
-        _r = this.extX - _body_pr.rIns;
-        _b = this.extY - _body_pr.bIns;
-    }
-
-    if (_l >= _r) {
-        var _c = (_l + _r) * 0.5;
-        _l = _c - 0.01;
-        _r = _c + 0.01;
-    }
-
-    if (_t >= _b) {
-        _c = (_t + _b) * 0.5;
-        _t = _c - 0.01;
-        _b = _c + 0.01;
-    }
-
-    _t_x_lt = _shape_transform.TransformPointX(_l, _t);
-    _t_y_lt = _shape_transform.TransformPointY(_l, _t);
-
-    _t_x_rt = _shape_transform.TransformPointX(_r, _t);
-    _t_y_rt = _shape_transform.TransformPointY(_r, _t);
-
-    _t_x_lb = _shape_transform.TransformPointX(_l, _b);
-    _t_y_lb = _shape_transform.TransformPointY(_l, _b);
-
-    _t_x_rb = _shape_transform.TransformPointX(_r, _b);
-    _t_y_rb = _shape_transform.TransformPointY(_r, _b);
-
-    var _dx_t, _dy_t;
-    _dx_t = _t_x_rt - _t_x_lt;
-    _dy_t = _t_y_rt - _t_y_lt;
-
-    var _dx_lt_rb, _dy_lt_rb;
-    _dx_lt_rb = _t_x_rb - _t_x_lt;
-    _dy_lt_rb = _t_y_rb - _t_y_lt;
-
-    var _vertical_shift;
-    var _text_rect_height = _b - _t;
-    var _text_rect_width = _r - _l;
-    if (this.txXfrm && this.txXfrm.rot) {
-        var normRot = this.txXfrm.rot;
-        while (normRot < 0) {
-            normRot += 2 * Math.PI;
-        }
-
-        var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
-        while (nSquare < 0){
-            nSquare += 4;
-        }
-    }
-    if (!_body_pr.upright) {
-        if (!(_body_pr.vert === AscFormat.nVertTTvert || _body_pr.vert === AscFormat.nVertTTvert270  || _body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
-            if (/*_content_height < _text_rect_height*/true) {
-                switch (_body_pr.anchor) {
-                    case 0: //b
-                    { // (Text Anchor Enum ( Bottom ))
-                        _vertical_shift = _text_rect_height - _content_height;
-                        break;
-                    }
-                    case 1:    //ctr
-                    {// (Text Anchor Enum ( Center ))
-                        _vertical_shift = (_text_rect_height - _content_height) * 0.5;
-                        break;
-                    }
-                    case 2: //dist
-                    {// (Text Anchor Enum ( Distributed )) TODO: пока выравнивание  по центру. Переделать!
-                        _vertical_shift = (_text_rect_height - _content_height) * 0.5;
-                        break;
-                    }
-                    case 3: //just
-                    {// (Text Anchor Enum ( Justified )) TODO: пока выравнивание  по центру. Переделать!
-                        _vertical_shift = (_text_rect_height - _content_height) * 0.5;
-                        break;
-                    }
-                    case 4: //t
-                    {//Top
-                        _vertical_shift = 0;
-                        break;
-                    }
-                }
-
-            }
-            else {
-                _vertical_shift = 0;
-
-                //_vertical_shift =  _text_rect_height - _content_height;
-                /*if(_body_pr.anchor === 0)
-                 {
-                 _vertical_shift =  _text_rect_height - _content_height;
-                 }
-                 else
-                 {
-                 _vertical_shift = 0;
-                 } */
-            }
-            global_MatrixTransformer.TranslateAppend(_text_transform, 0, _vertical_shift);
-            if (_dx_lt_rb * _dy_t - _dy_lt_rb * _dx_t <= 0) {
-                var alpha = Math.atan2(_dy_t, _dx_t);
-                global_MatrixTransformer.RotateRadAppend(_text_transform, -alpha);
-                global_MatrixTransformer.TranslateAppend(_text_transform, _t_x_lt, _t_y_lt);
-            }
-            else {
-                alpha = Math.atan2(_dy_t, _dx_t);
-                global_MatrixTransformer.RotateRadAppend(_text_transform, Math.PI - alpha);
-                global_MatrixTransformer.TranslateAppend(_text_transform, _t_x_rt, _t_y_rt);
-            }
-        }
-        else {
-            if (/*_content_height < _text_rect_width*/true) {
-                switch (_body_pr.anchor) {
-                    case 0: //b
-                    { // (Text Anchor Enum ( Bottom ))
-                        _vertical_shift = _text_rect_width - _content_height;
-                        break;
-                    }
-                    case 1:    //ctr
-                    {// (Text Anchor Enum ( Center ))
-                        _vertical_shift = (_text_rect_width - _content_height) * 0.5;
-                        break;
-                    }
-                    case 2: //dist
-                    {// (Text Anchor Enum ( Distributed ))
-                        _vertical_shift = (_text_rect_width - _content_height) * 0.5;
-                        break;
-                    }
-                    case 3: //just
-                    {// (Text Anchor Enum ( Justified ))
-                        _vertical_shift = (_text_rect_width - _content_height) * 0.5;
-                        break;
-                    }
-                    case 4: //t
-                    {//Top
-                        _vertical_shift = 0;
-                        break;
-                    }
-                }
-            }
-            else {
-                _vertical_shift = 0;
-                /*if(_body_pr.anchor === 0)
-                 {
-                 _vertical_shift =  _text_rect_width - _content_height;
-                 }
-                 else
-                 {
-                 _vertical_shift = 0;
-                 }  */
-            }
-            global_MatrixTransformer.TranslateAppend(_text_transform, 0, _vertical_shift);
-            var _alpha;
-            _alpha = Math.atan2(_dy_t, _dx_t);
-            if (_body_pr.vert === AscFormat.nVertTTvert  || _body_pr.vert === AscFormat.nVertTTeaVert || nSquare === 1) {
-                if (_dx_lt_rb * _dy_t - _dy_lt_rb * _dx_t <= 0) {
-                    global_MatrixTransformer.RotateRadAppend(_text_transform, -_alpha - Math.PI * 0.5);
-                    global_MatrixTransformer.TranslateAppend(_text_transform, _t_x_rt, _t_y_rt);
-                }
-                else {
-                    global_MatrixTransformer.RotateRadAppend(_text_transform, Math.PI * 0.5 - _alpha);
-                    global_MatrixTransformer.TranslateAppend(_text_transform, _t_x_lt, _t_y_lt);
-                }
-            }
-            else {
-                if (_dx_lt_rb * _dy_t - _dy_lt_rb * _dx_t <= 0) {
-                    global_MatrixTransformer.RotateRadAppend(_text_transform, -_alpha - Math.PI * 1.5);
-                    global_MatrixTransformer.TranslateAppend(_text_transform, _t_x_lb, _t_y_lb);
-                }
-                else {
-                    global_MatrixTransformer.RotateRadAppend(_text_transform, -Math.PI * 0.5 - _alpha);
-                    global_MatrixTransformer.TranslateAppend(_text_transform, _t_x_rb, _t_y_rb);
-                }
-            }
-        }
-        if (this.spPr && isRealObject(this.spPr.geometry) && isRealObject(this.spPr.geometry.rect)) {
-            var rect = this.spPr.geometry.rect;
-            this.clipRect = {x: -1, y: rect.t, w: this.extX + 2, h: rect.b - rect.t};
-        }
-        else {
-            this.clipRect = {x: -1, y: 0, w: this.extX + 2, h: this.extY};
-        }
-    }
-    else {
-        var _full_rotate = this.getFullRotate();
-        var _full_flip = this.getFullFlip();
-
-        var _hc = this.extX * 0.5;
-        var _vc = this.extY * 0.5;
-        var _transformed_shape_xc = this.transform.TransformPointX(_hc, _vc);
-        var _transformed_shape_yc = this.transform.TransformPointY(_hc, _vc);
-
-
-        var _content_width, content_height2;
-        if (checkNormalRotate(_full_rotate)) {
-            if (!(_body_pr.vert === AscFormat.nVertTTvert || _body_pr.vert === AscFormat.nVertTTvert270 || _body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
-                _content_width = _r - _l;
-                content_height2 = _b - _t;
-            }
-            else {
-                _content_width = _b - _t;
-                content_height2 = _r - _l;
-            }
-        }
-        else {
-            if (!(_body_pr.vert === AscFormat.nVertTTvert || _body_pr.vert === AscFormat.nVertTTvert270 || _body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
-                _content_width = _b - _t;
-                content_height2 = _r - _l;
-
-            }
-            else {
-                _content_width = _r - _l;
-                content_height2 = _b - _t;
-            }
-        }
-
-        if (/*_content_height < content_height2*/true) {
-            switch (_body_pr.anchor) {
-                case 0: //b
-                { // (Text Anchor Enum ( Bottom ))
-                    _vertical_shift = content_height2 - _content_height;
-                    break;
-                }
-                case 1:    //ctr
-                {// (Text Anchor Enum ( Center ))
-                    _vertical_shift = (content_height2 - _content_height) * 0.5;
-                    break;
-                }
-                case 2: //dist
-                {// (Text Anchor Enum ( Distributed ))
-                    _vertical_shift = (content_height2 - _content_height) * 0.5;
-                    break;
-                }
-                case 3: //just
-                {// (Text Anchor Enum ( Justified ))
-                    _vertical_shift = (content_height2 - _content_height) * 0.5;
-                    break;
-                }
-                case 4: //t
-                {//Top
-                    _vertical_shift = 0;
-                    break;
-                }
-            }
-        }
-        else {
-            _vertical_shift = 0;
-            /*if(_body_pr.anchor === 0)
-             {
-             _vertical_shift =  content_height2 - _content_height;
-             }
-             else
-             {
-             _vertical_shift = 0;
-             } */
-        }
-
-        var _text_rect_xc = _l + (_r - _l) * 0.5;
-        var _text_rect_yc = _t + (_b - _t) * 0.5;
-
-        var _vx = _text_rect_xc - _hc;
-        var _vy = _text_rect_yc - _vc;
-
-        var _transformed_text_xc, _transformed_text_yc;
-        if (!_full_flip.flipH) {
-            _transformed_text_xc = _transformed_shape_xc + _vx;
-        }
-        else {
-            _transformed_text_xc = _transformed_shape_xc - _vx;
-        }
-
-        if (!_full_flip.flipV) {
-            _transformed_text_yc = _transformed_shape_yc + _vy;
-        }
-        else {
-            _transformed_text_yc = _transformed_shape_yc - _vy;
-        }
-
-        global_MatrixTransformer.TranslateAppend(_text_transform, 0, _vertical_shift);
-        if (_body_pr.vert === AscFormat.nVertTTvert || _body_pr.vert === AscFormat.nVertTTeaVert || nSquare === 1) {
-            global_MatrixTransformer.TranslateAppend(_text_transform, -_content_width * 0.5, -content_height2 * 0.5);
-            global_MatrixTransformer.RotateRadAppend(_text_transform, -Math.PI * 0.5);
-            global_MatrixTransformer.TranslateAppend(_text_transform, _content_width * 0.5, content_height2 * 0.5);
-
-        }
-        if (_body_pr.vert === AscFormat.nVertTTvert270) {
-            global_MatrixTransformer.TranslateAppend(_text_transform, -_content_width * 0.5, -content_height2 * 0.5);
-            global_MatrixTransformer.RotateRadAppend(_text_transform, -Math.PI * 1.5);
-            global_MatrixTransformer.TranslateAppend(_text_transform, _content_width * 0.5, content_height2 * 0.5);
-        }
-        global_MatrixTransformer.TranslateAppend(_text_transform, _transformed_text_xc - _content_width * 0.5, _transformed_text_yc - content_height2 * 0.5);
-
-        var body_pr = this.bodyPr;
-        var l_ins = typeof body_pr.lIns === "number" ? body_pr.lIns : 2.54;
-        var t_ins = typeof body_pr.tIns === "number" ? body_pr.tIns : 1.27;
-        var r_ins = typeof body_pr.rIns === "number" ? body_pr.rIns : 2.54;
-        var b_ins = typeof body_pr.bIns === "number" ? body_pr.bIns : 1.27;
-        this.clipRect = {
-            x: -1,
-            y: -_vertical_shift - t_ins,
-            w: Math.max(this.extX, this.extY) + 2,
-            h: this.contentHeight + (b_ins + t_ins)
-        };
-    }
-    this.invertTransformText2 = global_MatrixTransformer.Invert(this.transformText2);
-    this.localTransformText2 = this.transformText2.CreateDublicate();
-};
-
 CShape.prototype.getTextRect = function () {
+    if(this.txXfrm && this.spPr && this.spPr.xfrm) {
+        var newL = this.txXfrm.offX - this.spPr.xfrm.offX;
+        var newT = this.txXfrm.offY - this.spPr.xfrm.offX;
+        var newR = newL + this.txXfrm.extX;
+        var newB = newT + this.txXfrm.extY;
+        var oRect = {};
+        oRect.l = newL;
+        oRect.t = newT;
+        oRect.r = newR;
+        oRect.b = newB;
+        //if(this.spPr && this.spPr.geometry && this.spPr.geometry.rect) {
+        //   this.spPr.geometry.rect = oRect;
+        //}
+        return oRect;
+    }
     return this.spPr && this.spPr.geometry && this.spPr.geometry.rect ? this.spPr.geometry.rect : {
         l: 0,
         t: 0,
@@ -2580,8 +2270,29 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var t_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.tIns) ? oBodyPr.tIns : 1.27);
     var r_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54);
     var b_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27);
+
+
+
     var oRect = this.getTextRect();
     if (this.txXfrm) {
+
+        var oRectShape = new AscFormat.CShape();
+        oRectShape.setBDeleted(false);
+        oRectShape.setSpPr(new AscFormat.CSpPr());
+        oRectShape.spPr.setParent(oRectShape);
+        oRectShape.spPr.setXfrm(new AscFormat.CXfrm());
+        oRectShape.spPr.xfrm.setParent(oRectShape.spPr);
+        oRectShape.spPr.xfrm.setOffX(this.txXfrm.offX);
+        oRectShape.spPr.xfrm.setOffY(this.txXfrm.offY);
+        oRectShape.spPr.xfrm.setExtX(this.txXfrm.extX);
+        oRectShape.spPr.xfrm.setExtY(this.txXfrm.extY);
+        oRectShape.spPr.xfrm.setRot(AscFormat.normalizeRotate(this.txXfrm.rot + this.spPr.xfrm.rot));
+        //oRectShape.spPr.geometry.setParent(oRectShape.spPr);
+        oRectShape.setGroup(this.group);
+        oRectShape.parent = this.parent;
+        oRectShape.recalculateLocalTransform(oRectShape.localTransform);
+        return oRectShape.checkTransformTextMatrix(oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets);
+
         if (typeof this.txXfrm.rot === "number") {
             var normRot = this.txXfrm.rot;
             while (normRot < 0) {
@@ -2592,14 +2303,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 nSquare += 4;
             }
         }
-        var newL = this.txXfrm.offX - this.x;
-        var newT = this.txXfrm.offY - this.y;
-        var newR = newL + this.txXfrm.extX;
-        var newB = newT + this.txXfrm.extY;
-        oRect.l = newL;
-        oRect.t = newT;
-        oRect.r = newR;
-        oRect.b = newB;
+
         switch (nSquare) {
             case 1:
                 break;
@@ -2886,8 +2590,9 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 }
             }
         }
-        if (this.spPr && isRealObject(this.spPr.geometry) && isRealObject(this.spPr.geometry.rect)) {
-            var rect = this.spPr.geometry.rect;
+
+        var rect = this.getTextRect && this.getTextRect();
+        if (rect) {
             var clipW = rect.r - rect.l + Diff;
             if(clipW <= 0)
             {
@@ -4680,12 +4385,12 @@ CShape.prototype.getSmartArtShapePoint = function () {
                         t_ins = 1.27;
                         b_ins = 1.27;
                     }
-                    if(this.spPr.geometry && this.spPr.geometry.rect
-                        && AscFormat.isRealNumber(this.spPr.geometry.rect.l) && AscFormat.isRealNumber(this.spPr.geometry.rect.t)
-                        && AscFormat.isRealNumber(this.spPr.geometry.rect.r) && AscFormat.isRealNumber(this.spPr.geometry.rect.r))
+                    var rect = this.getTextRect && this.getTextRect();
+                    if(AscFormat.isRealNumber(rect.l) && AscFormat.isRealNumber(rect.t)
+                        && AscFormat.isRealNumber(rect.r) && AscFormat.isRealNumber(rect.r))
                     {
-                        w = this.spPr.geometry.rect.r - this.spPr.geometry.rect.l - (l_ins + r_ins);
-                        h = this.spPr.geometry.rect.b - this.spPr.geometry.rect.t - (t_ins + b_ins);
+                        w = rect.r - rect.l - (l_ins + r_ins);
+                        h = rect.b - rect.t - (t_ins + b_ins);
                     }
                     else
                     {
@@ -5235,21 +4940,21 @@ CShape.prototype.hitInTextRectWord = function(x, y)
     if (content && this.invertTransform)
     {
         var w, h, x_, y_;
-        if(this.spPr && this.spPr.geometry && this.spPr.geometry.rect
-            && AscFormat.isRealNumber(this.spPr.geometry.rect.l) && AscFormat.isRealNumber(this.spPr.geometry.rect.t)
-            && AscFormat.isRealNumber(this.spPr.geometry.rect.r) && AscFormat.isRealNumber(this.spPr.geometry.rect.r))
+        var rect = this.getTextRect && this.getTextRect();
+        if(rect && AscFormat.isRealNumber(rect.l) && AscFormat.isRealNumber(rect.t)
+            && AscFormat.isRealNumber(rect.r) && AscFormat.isRealNumber(rect.r))
         {
-            x_ = this.spPr.geometry.rect.l;
-            y_ = this.spPr.geometry.rect.t;
-            w = this.spPr.geometry.rect.r - this.spPr.geometry.rect.l;
-            h = this.spPr.geometry.rect.b - this.spPr.geometry.rect.t;
+            x_ = rect.l;
+            y_ = rect.t;
+            w = rect.r - rect.l;
+            h = rect.b - rect.t;
         }
         else
         {
             x_ = 0;
             y_ = 0;
-            w = this.extX ;
-            h = this.extY ;
+            w = this.extX;
+            h = this.extY;
         }
         return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
     }
@@ -5892,6 +5597,20 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
     if(oClipRect){
         graphics.RestoreGrState();
     }
+    //if(this.txXfrm && this.group) {
+    //    graphics.SetIntegerGrid(false);
+    //    _transform = new AscCommon.CMatrix();
+    //    _transform.tx = this.txXfrm.offX + this.txXfrm.extX / 2 + this.group.transform.tx;
+    //    _transform.ty = this.txXfrm.offY + this.txXfrm.extY / 2 + this.group.transform.ty;
+    //    graphics.transform3(_transform, false);
+    //    graphics.b_color1(255, 0, 0, 255);
+    //    graphics.rect(-2, -2, 4, 4);
+    //    graphics.df();
+    //
+    //    graphics.p_color(255, 0, 0, 255);
+    //    graphics.rect(-this.txXfrm.extX / 2, -this.txXfrm.extY / 2, this.txXfrm.extX, this.txXfrm.extY);
+    //    graphics.ds();
+    //}
     graphics.SetIntegerGrid(true);
     graphics.reset();
 };
@@ -6801,9 +6520,9 @@ CShape.prototype.Get_PageContentStartPos = function(pageNum)
 {
     if(this.textBoxContent)
     {
-        if(this.spPr && this.spPr.geometry && this.spPr.geometry.rect)
+        if(this.getTextRect)
         {
-            var rect = this.spPr.geometry.rect;
+            var rect = this.getTextRect();
             return {X: 0, Y: 0, XLimit: rect.r - rect.l, YLimit: 20000};
         }
         else

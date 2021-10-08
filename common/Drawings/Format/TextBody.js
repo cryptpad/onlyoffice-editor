@@ -370,8 +370,8 @@
         var _t;
         var _body_pr = this.getBodyPr();
         var sp = this.parent;
-        if(isRealObject(sp.spPr) && isRealObject(sp.spPr.geometry) && isRealObject(sp.spPr.geometry.rect)) {
-            var _rect = sp.spPr.geometry.rect;
+        var _rect = sp.getTextRect && sp.getTextRect();
+        if(_rect) {
             _l = _rect.l + _body_pr.lIns;
             _t = _rect.t + _body_pr.tIns;
             _r = _rect.r - _body_pr.rIns;
