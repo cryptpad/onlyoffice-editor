@@ -1445,39 +1445,54 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     }
 };
 
-CShape.prototype.copyTextInfoFromShapeToPoint = function () {
+CShape.prototype.copyTextInfoFromShapeToPoint = function (paddings) {
     var txBody = this.txBody;
     var pointContent = this.getSmartArtPointContent();
     var options = {};
     if (txBody && pointContent && pointContent.length !== 0) {
         options.pointContentLength = pointContent.length;
         var pointsCopy;
-        var arrPrSet = pointContent.map(function (point) {
-            return point.prSet;
-        });
-        var custTPrSet = arrPrSet.some(function (prSet) {
-            return prSet.custT;
-        });
-            if (custTPrSet) {
+
+        for (var i = 0; i < pointContent.length; i += 1) {
+            var point = pointContent[i];
+
+            if (point.prSet && point.prSet.custT) {
                 options.custT = true;
             }
-
-        // if (prSet.lIns !== undefined || prSet.lIns !== null) {
-        //     options.lIns = true;
-        // }
-        // if (prSet.rIns !== undefined || prSet.rIns !== null) {
-        //     options.rIns = true;
-        // }
-        // if (prSet.bIns !== undefined || prSet.bIns !== null) {
-        //     options.bIns = true;
-        // }
-        // if (prSet.tIns !== undefined || prSet.tIns !== null) {
-        //     options.tIns = true; TODO: add it's with change ins
-        // }
+            var bodyPr = point.t && point.t.bodyPr;
+            if (bodyPr) {
+                if (typeof bodyPr.lIns === 'number') {
+                    options.lIns = true;
+                }
+                if (typeof bodyPr.rIns === 'number') {
+                    options.rIns = true;
+                }
+                if (typeof bodyPr.bIns === 'number') {
+                    options.bIns = true;
+                }
+                if (typeof bodyPr.tIns === 'number') {
+                    options.tIns = true;
+                }
+            }
+        }
+        if (paddings) {
+            if (typeof paddings.Left === 'number') {
+                options.lIns = true;
+            }
+            if (typeof paddings.Right === 'number') {
+                options.rIns = true;
+            }
+            if (typeof paddings.Bottom === 'number') {
+                options.bIns = true;
+            }
+            if (typeof paddings.Top === 'number') {
+                options.tIns = true;
+            }
+        }
         pointsCopy = txBody.createDuplicateForSmartArt(options);
-            pointContent.forEach(function (point, idx) {
-                point.setT(pointsCopy[idx])
-            });
+        pointContent.forEach(function (point, idx) {
+            point.setT(pointsCopy[idx])
+        });
     }
 }
 
@@ -2010,7 +2025,9 @@ CShape.prototype.setVerticalAlign = function (align) {
                 this.txBody.setBodyPr(new_body_pr);
             }
         }
-        this.checkExtentsByDocContent && this.checkExtentsByDocContent();
+        if (this.isObjectInSmartArt()) {
+            this.copyTextInfoFromShapeToPoint();
+        }
     }
 };
 CShape.prototype.setVert = function (vert) {
@@ -2092,7 +2109,6 @@ CShape.prototype.setVertOverflowType = function(type)
 
 CShape.prototype.setPaddings = function (paddings) {
     if (paddings) {
-
         var new_body_pr = this.getBodyPr();
         if (new_body_pr) {
             new_body_pr = new_body_pr.createDuplicate();
@@ -2119,7 +2135,9 @@ CShape.prototype.setPaddings = function (paddings) {
                     this.txBody.setBodyPr(new_body_pr);
                 }
             }
-            this.checkExtentsByDocContent && this.checkExtentsByDocContent();
+            if (this.isObjectInSmartArt()) {
+                this.copyTextInfoFromShapeToPoint(paddings);
+            }
         }
     }
 };
@@ -6109,7 +6127,6 @@ CShape.prototype.changeFill = function (unifill) {
             if (!point.spPr) {
                 point.setSpPr(new AscFormat.CSpPr());
             }
-            console.log(point)
             point.spPr.setFill(unifill2);
         })
     }

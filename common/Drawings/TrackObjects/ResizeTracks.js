@@ -2280,7 +2280,6 @@ function ShapeForResizeInGroup(originalObject, parentTrack)
                 txXfrm.setOffY(previousTxXfrmY * (currentXfrmY / previousXfrmOffY));
                 txXfrm.setExtX( previousTxXfrmExtX * (currentXfrmExtX / previousXfrmExtX));
                 txXfrm.setExtY( previousTxXfrmExtY * (currentXfrmExtY / previousXfrmExtY));
-                console.log(txXfrm);
             }
 
 

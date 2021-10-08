@@ -4536,7 +4536,6 @@
           return current instanceof ConstrLst ? current : acc;
         }, null);
         if (constrLst) {
-          console.log(node);
           constrLst.startSetConstr(pointTree, node);
         }
         this.list.forEach(function (element) {
@@ -4747,7 +4746,6 @@
             node: node,
           });
         } else if (constr.type === Constr_type_secFontSz) {
-          console.log('isSec');
           constrWithSecFont.push({
             constr: constr,
             node: node,
@@ -4757,8 +4755,6 @@
         }
       });
       if (constrWithPrimFont.length !== 0) {
-        console.log(constrWithPrimFont)
-        //console.log('isPrim')
         constrWithPrimFont[0].constr.setConstr(pointTree, constrWithPrimFont);
       }
       if (constrWithSecFont.length !== 0) {
@@ -9808,7 +9804,6 @@
 
     SmartArt.prototype.recalculateSmartArt = function () {
       var tree = this.createHierarchy();
-      console.log(tree);
       this.startAlgorithm(tree);
     }
 
