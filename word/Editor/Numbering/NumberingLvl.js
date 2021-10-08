@@ -1413,6 +1413,37 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			}
 			case Asc.c_oAscNumberingFormat.KoreanLegal:
 			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD558);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB098);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB458);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC14B);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB137);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB2E4);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC12F);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5EC);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC12F);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC77C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xACF1);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5EC);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB35F);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC544);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD649);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5F4);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC2A4);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xBB3C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC11C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB978);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB9C8);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD754);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC270);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC608);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC21C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC77C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD754);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5EC);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB4E0);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC544);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD754);
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.None:

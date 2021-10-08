@@ -4610,124 +4610,114 @@
 			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
 			case Asc.c_oAscNumberingFormat.KoreanCounting:
 			case Asc.c_oAscNumberingFormat.JapaneseCounting:
-				var addFirstDegreeSymbol = true;
-				if (nFormat === Asc.c_oAscNumberingFormat.KoreanCounting) {
-					addFirstDegreeSymbol = false;
-					digits = [
-						String.fromCharCode(0xC77C),
-						String.fromCharCode(0xC774),
-						String.fromCharCode(0xC0BC),
-						String.fromCharCode(0xC0AC),
-						String.fromCharCode(0xC624),
-						String.fromCharCode(0xC721),
-						String.fromCharCode(0xCE60),
-						String.fromCharCode(0xD314),
-						String.fromCharCode(0xAD6C),
-						String.fromCharCode(0xC2ED),
-						String.fromCharCode(0xB9CC),
-						String.fromCharCode(0xCC9C),
-						String.fromCharCode(0xBC31)
-					];
-					var degrees = [
-						'만',
-						'천',
-						'백',
-						'십'
-					];
-				} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal) {
-					digits = [
-						String.fromCharCode(0x58F1),
-						String.fromCharCode(0x5F10),
-						String.fromCharCode(0x53C2),
-						String.fromCharCode(0x56DB),
-						String.fromCharCode(0x4F0D),
-						String.fromCharCode(0x516D),
-						String.fromCharCode(0x4E03),
-						String.fromCharCode(0x516B),
-						String.fromCharCode(0x4E5D),
-						String.fromCharCode(0x62FE),
-						String.fromCharCode(0x767E),
-						String.fromCharCode(0x842C)
-					];
-					degrees = [
-						'萬',
-						'阡',
-						'百',
-						'拾'
-					];
-				} else if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional) {
-					digits = [
-						String.fromCharCode(0x58F9),
-						String.fromCharCode(0x8CB3),
-						String.fromCharCode(0x53C3),
-						String.fromCharCode(0x8086),
-						String.fromCharCode(0x4F0D),
-						String.fromCharCode(0x9678),
-						String.fromCharCode(0x67D2),
-						String.fromCharCode(0x634C),
-						String.fromCharCode(0x7396),
-						String.fromCharCode(0x62FE),
-						String.fromCharCode(0x4F70),
-						String.fromCharCode(0x4EDF),
-						String.fromCharCode(0x842C)
-					];
-					degrees = [
-						'萬',
-						'仟',
-						'佰',
-						'拾'
-					];
-				} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseCounting) {
-					addFirstDegreeSymbol = false;
-					digits = [
-						String.fromCharCode(0x3007),
-						String.fromCharCode(0x4E00),
-						String.fromCharCode(0x4E8C),
-						String.fromCharCode(0x4E09),
-						String.fromCharCode(0x56DB),
-						String.fromCharCode(0x4E94),
-						String.fromCharCode(0x516D),
-						String.fromCharCode(0x4E03),
-						String.fromCharCode(0x516B),
-						String.fromCharCode(0x4E5D),
-						String.fromCharCode(0x5341),
-						String.fromCharCode(0x5343),
-						String.fromCharCode(0x767E),
-					];
-					degrees = [
-						'千',
-						'百',
-						'十'
-					];
-				}
+				function ideographCount(differentFormat) {
+					if (differentFormat) {
+						nFormat = differentFormat;
+					}
+					var addFirstDegreeSymbol = true;
+					if (nFormat === Asc.c_oAscNumberingFormat.KoreanCounting) {
+						addFirstDegreeSymbol = false;
+						digits = [
+							String.fromCharCode(0xC77C),
+							String.fromCharCode(0xC774),
+							String.fromCharCode(0xC0BC),
+							String.fromCharCode(0xC0AC),
+							String.fromCharCode(0xC624),
+							String.fromCharCode(0xC721),
+							String.fromCharCode(0xCE60),
+							String.fromCharCode(0xD314),
+							String.fromCharCode(0xAD6C)
+						];
+						var degrees = [
+							'만',
+							'천',
+							'백',
+							'십'
+						];
+					} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal) {
+						digits = [
+							String.fromCharCode(0x58F1),
+							String.fromCharCode(0x5F10),
+							String.fromCharCode(0x53C2),
+							String.fromCharCode(0x56DB),
+							String.fromCharCode(0x4F0D),
+							String.fromCharCode(0x516D),
+							String.fromCharCode(0x4E03),
+							String.fromCharCode(0x516B)
+						];
+						degrees = [
+							'萬',
+							'阡',
+							'百',
+							'拾'
+						];
+					} else if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional) {
+						digits = [
+							String.fromCharCode(0x58F9),
+							String.fromCharCode(0x8CB3),
+							String.fromCharCode(0x53C3),
+							String.fromCharCode(0x8086),
+							String.fromCharCode(0x4F0D),
+							String.fromCharCode(0x9678),
+							String.fromCharCode(0x67D2),
+							String.fromCharCode(0x634C),
+							String.fromCharCode(0x7396)
+						];
+						degrees = [
+							'萬',
+							'仟',
+							'佰',
+							'拾'
+						];
+					} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseCounting) {
+						addFirstDegreeSymbol = false;
+						digits = [
+							String.fromCharCode(0x4E00),
+							String.fromCharCode(0x4E8C),
+							String.fromCharCode(0x4E09),
+							String.fromCharCode(0x56DB),
+							String.fromCharCode(0x4E94),
+							String.fromCharCode(0x516D),
+							String.fromCharCode(0x4E03),
+							String.fromCharCode(0x516B),
+							String.fromCharCode(0x4E5D)
+						];
+						degrees = [
+							'千',
+							'百',
+							'十'
+						];
+					}
 
-				var degreeCount = Math.pow(10, degrees.length);
-				var koreanLegalSplitting = function (numberLessThanX) {
-					var answer = [];
-					var count;
-					var degreeCountCopy = degreeCount;
-					for (var i = 0; i < degrees.length; i += 1) {
-						if (numberLessThanX / degreeCountCopy >= 1) {
-							count = Math.floor(numberLessThanX / degreeCountCopy);
-							if (count !== 1 || addFirstDegreeSymbol) {
-								answer.push(digits[count - 1]);
+					var degreeCount = Math.pow(10, degrees.length);
+					var koreanLegalSplitting = function (numberLessThanX) {
+						var answer = [];
+						var count;
+						var degreeCountCopy = degreeCount;
+						for (var i = 0; i < degrees.length; i += 1) {
+							if (numberLessThanX / degreeCountCopy >= 1) {
+								count = Math.floor(numberLessThanX / degreeCountCopy);
+								if (count !== 1 || addFirstDegreeSymbol) {
+									answer.push(digits[count - 1]);
+								}
+								answer.push(degrees[i]);
+								numberLessThanX = numberLessThanX % degreeCountCopy;
 							}
-							answer.push(degrees[i]);
-							numberLessThanX = numberLessThanX % degreeCountCopy;
+							degreeCountCopy /= 10;
 						}
-						degreeCountCopy /= 10;
+						if (numberLessThanX > 0) {
+							answer.push(digits[numberLessThanX - 1]);
+						}
+						return answer;
 					}
-					if (numberLessThanX > 0) {
-						answer.push(digits[numberLessThanX - 1]);
+					if (nValue < degreeCount) {
+						sResult = koreanLegalSplitting(nValue, degreeCount).join('');
+					} else { // Поддержка чисел до 100 000 000
+						var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount));
+						sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount)).concat(resultWith10000Reminder).join('');
 					}
-					return answer;
 				}
-				if (nValue < 100000) {
-					sResult = koreanLegalSplitting(nValue, degreeCount).join('');
-				} else { // Поддержка чисел до 100 000 000
-					var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount));
-					sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount)).concat(resultWith10000Reminder).join('');
-				}
+				ideographCount();
 				break;
 			case Asc.c_oAscNumberingFormat.KoreanDigital:
 			case Asc.c_oAscNumberingFormat.ThaiNumbers:
@@ -4857,15 +4847,26 @@
 				break;
 			case Asc.c_oAscNumberingFormat.HindiCounting:
 				break;
-			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand: // todo: simply
-				break;
 			case Asc.c_oAscNumberingFormat.ThaiCounting: // todo: think about it
 				break;
 			case Asc.c_oAscNumberingFormat.Ordinal:
 				break;
 			case Asc.c_oAscNumberingFormat.OrdinalText:
 				break;
-			case Asc.c_oAscNumberingFormat.KoreanLegal: // TODO: simly
+			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand: // todo: simply
+				digits = [
+					String.fromCharCode(0x4E00),
+					String.fromCharCode(0x4E8C),
+					String.fromCharCode(0x4E09),
+					String.fromCharCode(0x56DB),
+					String.fromCharCode(0x4E94),
+					String.fromCharCode(0x516D),
+					String.fromCharCode(0x4E03),
+					String.fromCharCode(0x516B),
+					String.fromCharCode(0x4E5D),
+				];
+				break;
+			case Asc.c_oAscNumberingFormat.KoreanLegal:
 				if (nValue < 100) {
 					var answer = [];
 					digits = {
@@ -4893,14 +4894,14 @@
 						]
 					};
 					if (nValue / 10 >= 1) {
-						answer.push(digits[10][Math.floor(nValue / 10)]);
+						answer.push(digits[10][Math.floor(nValue / 10) - 1]);
 					}
 					if (nValue % 10 >= 1) {
-						answer.push(digits[1][nValue % 10]);
+						answer.push(digits[1][(nValue % 10) - 1]);
 					}
 					sResult = answer.join('');
 				} else {
-					// TODO: end this
+					ideographCount(Asc.c_oAscNumberingFormat.KoreanCounting);
 				}
 				break;
 		}
