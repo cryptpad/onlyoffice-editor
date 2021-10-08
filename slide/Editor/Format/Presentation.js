@@ -7694,6 +7694,20 @@ CPresentation.prototype.Get_GraphicObjectsProps = function () {
     return null;
 };
 
+CPresentation.prototype.TurnOff_InterfaceEvents = function() {
+    this.TurnOffInterfaceEvents = true;
+};
+
+CPresentation.prototype.TurnOn_InterfaceEvents = function(bUpdate) {
+    this.TurnOffInterfaceEvents = false;
+
+    if (true === bUpdate) {
+        this.Document_UpdateInterfaceState();
+        this.Document_UpdateSelectionState();
+        this.Document_UpdateRulersState();
+    }
+};
+
 // Обновляем текущее состояние (определяем где мы находимся, картинка/параграф/таблица/колонтитул)
 CPresentation.prototype.Document_UpdateInterfaceState = function () {
     if (this.TurnOffInterfaceEvents) {
@@ -10076,6 +10090,89 @@ CPresentation.prototype.moveSlides = function (slidesIndexes, pos) {
         this.insertSlide(insert_pos + i, removed_slides[i]);
     }
     this.Recalculate();
+};
+
+CPresentation.prototype.moveSelectedSlidesToEnd = function() {
+    if(!this.CanEdit()) {
+        return;
+    }
+    History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesToEnd);
+    var aSelectedIdx = this.GetSelectedSlides();
+    this.moveSlides(aSelectedIdx, this.Slides.length - aSelectedIdx.length);
+    this.Recalculate();
+    this.Document_UpdateInterfaceState();
+};
+CPresentation.prototype.moveSelectedSlidesToStart = function() {
+    if(!this.CanEdit()) {
+        return;
+    }
+    History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesToStart);
+    var _selection_array = this.GetSelectedSlides();
+    this.moveSlides(_selection_array, 0);
+    this.Recalculate();
+    this.Document_UpdateInterfaceState();
+};
+CPresentation.prototype.moveSlidesNextPos = function() {
+    if(!this.CanEdit()) {
+        return;
+    }
+    var aSelectedIdx = this.GetSelectedSlides();
+    var can_move = false, first_index, i;
+    for (i = aSelectedIdx.length - 1; i > -1; i--) {
+        if (i === aSelectedIdx.length - 1) {
+            if (aSelectedIdx[i] < this.Slides.length - 1) {
+                can_move    = true;
+                first_index = i;
+                break;
+            }
+        }
+        else {
+            if (Math.abs(aSelectedIdx[i] - aSelectedIdx[i + 1]) > 1) {
+                can_move    = true;
+                first_index = i;
+                break;
+            }
+        }
+    }
+    if (can_move) {
+        History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesNextPos);
+        for (i = first_index; i > -1; --i) {
+            this.moveSlides([aSelectedIdx[i]], aSelectedIdx[i] + 1);
+        }
+        this.Recalculate();
+        this.Document_UpdateInterfaceState();
+    }
+};
+CPresentation.prototype.moveSlidesPrevPos = function() {
+    if(!this.CanEdit()) {
+        return;
+    }
+    var _selected_array = this.GetSelectedSlides();
+    var can_move        = false, first_index, i;
+    for (i = 0; i < _selected_array.length; ++i) {
+        if (i === 0) {
+            if (_selected_array[i] > 0) {
+                can_move    = true;
+                first_index = i;
+                break;
+            }
+        }
+        else {
+            if (Math.abs(_selected_array[i] - _selected_array[i - 1]) > 1) {
+                can_move    = true;
+                first_index = i;
+                break;
+            }
+        }
+    }
+    if (can_move) {
+        History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesPrevPos);
+        for (i = first_index; i > -1; --i) {
+            this.moveSlides([_selected_array[i]], _selected_array[i] - 1);
+        }
+        this.Recalculate();
+        this.Document_UpdateInterfaceState();
+    }
 };
 //-----------------------------------------------------------------------------------
 // Функции для работы с совместным редактирования
