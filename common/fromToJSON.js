@@ -858,7 +858,8 @@
 			cnxLst:  arrCxnResult,
 			gdLst:   arrGdResult,
 			pathLst: arrPathResult,
-			rect:    oGeometry.rectS
+			rect:    oGeometry.rectS,
+			preset:  oGeometry.preset
 		}
 	};
 	WriterToJSON.prototype.SerGeomPath = function(oPath)
@@ -1066,7 +1067,8 @@
 
 			prstDash: this.GetPenDashStrType(oLn.prstDash),
 
-			tailEnd:  this.SerEndArrow(oLn.tailEnd)
+			tailEnd:  this.SerEndArrow(oLn.tailEnd),
+			type:     "stroke"
 		}
 	};
 	WriterToJSON.prototype.SerLineJoin = function(oLine)
@@ -1560,10 +1562,37 @@
 			}
 		}
 		
+		var sFillType = undefined;
+		switch (oFill.type)
+		{
+			case Asc.c_oAscFill.FILL_TYPE_NONE:
+				sFillType = "none";
+				break;
+			case Asc.c_oAscFill.FILL_TYPE_BLIP:
+				sFillType = "blip";
+				break;
+			case Asc.c_oAscFill.FILL_TYPE_NOFILL:
+				sFillType = "noFill";
+				break;
+			case Asc.c_oAscFill.FILL_TYPE_SOLID:
+				sFillType = "solid";
+				break;
+			case Asc.c_oAscFill.FILL_TYPE_GRAD:
+				sFillType = "grad";
+				break;
+			case Asc.c_oAscFill.FILL_TYPE_PATT:
+				sFillType = "patt";
+				break;
+			case Asc.c_oAscFill.FILL_TYPE_GRP:
+				sFillType = "grp";
+				break;
+		}
+		
 		return {
 			fill:        oFillObj,
 			transparent: oFill.transparent,
-			type:        "fill"
+			type:        "fill",
+			fillType:    sFillType
 		}
 	};
 	WriterToJSON.prototype.SerShd = function(oShd)
@@ -1692,7 +1721,7 @@
 			rgba:  oRGBA,
 			color: oColorObj,
 			mods:  this.SerColorModifiers(oColor.Mods),
-			type:  "color"
+			type:  "uniColor"
 		}
 	};
 	WriterToJSON.prototype.SerColorModifiers = function(oColorModifiers)
@@ -1718,12 +1747,7 @@
 		
 		var arrGsLst = [];
 		for (var nGs = 0; nGs < oGradFill.colors.length; nGs++)
-		{
-			arrGsLst.push({
-				color: this.SerColor(oGradFill.colors[nGs].color),
-				pos:   oGradFill.colors[nGs].pos
-			});
-		}
+			arrGsLst.push(this.SerGradStop(oGradFill.colors[nGs]));
 
 		var sPathShadeType = undefined;
 		if (oGradFill.path)
@@ -1762,6 +1786,17 @@
 
 			rotWithShape: oGradFill.rotateWithShape,
 			type: "gradFill"
+		}
+	};
+	WriterToJSON.prototype.SerGradStop = function(oGradStop)
+	{
+		if (!oGradStop)
+			return oGradStop;
+
+		return {
+			color: this.SerColor(oGradStop.color),
+			pos:   oGradStop.pos,
+			type:  "gradStop"
 		}
 	};
 	WriterToJSON.prototype.SerPattFill = function(oPattFill)
@@ -2130,19 +2165,19 @@
 
 		// Style Conditional Table Formatting Properties
 		var oTblStylesPr = oStyleWithFullPr.TableBand1Horz ? {
-			band1Horz:  this.SerTableStylePr(oStyleWithFullPr.TableBand1Horz),
-			band1Vert:  this.SerTableStylePr(oStyleWithFullPr.TableBand1Vert),
-			band2Horz:  this.SerTableStylePr(oStyleWithFullPr.TableBand2Horz),
-			band2Vert:  this.SerTableStylePr(oStyleWithFullPr.TableBand2Vert),
-			firstCol:   this.SerTableStylePr(oStyleWithFullPr.TableFirstCol),
-			firstRow:   this.SerTableStylePr(oStyleWithFullPr.TableFirstRow),
-			lastCol:    this.SerTableStylePr(oStyleWithFullPr.TableLastCol),
-			lastRow:    this.SerTableStylePr(oStyleWithFullPr.TableLastRow),
-			neCell:     this.SerTableStylePr(oStyleWithFullPr.TableTRCell),
-			nwCell:     this.SerTableStylePr(oStyleWithFullPr.TableTLCell),
-			seCell:     this.SerTableStylePr(oStyleWithFullPr.TableBRCell),
-			swCell:     this.SerTableStylePr(oStyleWithFullPr.TableBLCell),
-			wholeTable: this.SerTableStylePr(oStyleWithFullPr.TableWholeTable)
+			band1Horz:  this.SerTableStylePr(oStyleWithFullPr.TableBand1Horz, "bandedRow"),
+			band1Vert:  this.SerTableStylePr(oStyleWithFullPr.TableBand1Vert, "bandedColumn"),
+			band2Horz:  this.SerTableStylePr(oStyleWithFullPr.TableBand2Horz, "bandedRowEven"),
+			band2Vert:  this.SerTableStylePr(oStyleWithFullPr.TableBand2Vert, "bandedColumnEven"),
+			firstCol:   this.SerTableStylePr(oStyleWithFullPr.TableFirstCol, "firstColumn"),
+			firstRow:   this.SerTableStylePr(oStyleWithFullPr.TableFirstRow, "firstRow"),
+			lastCol:    this.SerTableStylePr(oStyleWithFullPr.TableLastCol, "lastColumn"),
+			lastRow:    this.SerTableStylePr(oStyleWithFullPr.TableLastRow, "lastRow"),
+			neCell:     this.SerTableStylePr(oStyleWithFullPr.TableTRCell, "topRightCell"),
+			nwCell:     this.SerTableStylePr(oStyleWithFullPr.TableTLCell, "topLeftCell"),
+			seCell:     this.SerTableStylePr(oStyleWithFullPr.TableBRCell, "bottomRightCell"),
+			swCell:     this.SerTableStylePr(oStyleWithFullPr.TableBLCell, "bottomLeftCell"),
+			wholeTable: this.SerTableStylePr(oStyleWithFullPr.TableWholeTable, "wholeTable")
 		} : oStyleWithFullPr.TableBand1Horz;
 
 		return {
@@ -2163,20 +2198,23 @@
 			unhideWhenUsed: oStyleWithFullPr.unhideWhenUsed,
 			customStyle:    oStyleWithFullPr.Custom,
 			styleId:        oStyleWithFullPr.Id,
-			type:           sStyleType
+			styleType:      sStyleType,
+			type:           "style"
 		}
 	};
-	WriterToJSON.prototype.SerTableStylePr = function(oPr)
+	WriterToJSON.prototype.SerTableStylePr = function(oPr, sStyleType)
 	{
 		if (!oPr)
 			return oPr;
 
 		return {
-			pPr:   this.SerParaPr(oPr.ParaPr),
-			rPr:   this.SerTextPr(oPr.TextPr),
-			tblPr: this.SerTablePr(oPr.TablePr, null),
-			tcPr:  this.SerTableCellPr(oPr.TableCellPr),
-			trPr:  this.SerTableRowPr(oPr.TableRowPr),
+			pPr:       this.SerParaPr(oPr.ParaPr),
+			rPr:       this.SerTextPr(oPr.TextPr),
+			tblPr:     this.SerTablePr(oPr.TablePr, null),
+			tcPr:      this.SerTableCellPr(oPr.TableCellPr),
+			trPr:      this.SerTableRowPr(oPr.TableRowPr),
+			styleType: sStyleType,
+			type:      "tableStyle"
 		}
 	};
 	WriterToJSON.prototype.SerTableMeasurement = function(oMeasurement)
@@ -2382,7 +2420,8 @@
 			tblW:                this.SerTableMeasurement(oPr.TableW),
 			inline:              isInline,
 
-			reviewInfo: this.SerReviewInfo(oPr.ReviewInfo)
+			reviewInfo: this.SerReviewInfo(oPr.ReviewInfo),
+			type:       "tablePr"
 		}
 	};
 	WriterToJSON.prototype.SerTable = function(oTable, aComplexFieldsToSave, oMapCommentsInfo)
@@ -2492,7 +2531,8 @@
 			tcW:           this.SerTableMeasurement(oPr.TableCellW),
 			textDirection: sTextDir,
 			vAlign:        sVAlign,
-			vMerge:        sVMerge
+			vMerge:        sVMerge,
+			type:          "tableCellPr"
 		}
 	};
 	WriterToJSON.prototype.SerTableCell = function(oCell, aComplexFieldsToSave, oMapCommentsInfo)
@@ -2601,7 +2641,8 @@
 			trHeight:       oRowHeight,
 			trPrChange:     this.SerTableRowPr(oPr.PrChange),
 			wAfter:         this.SerTableMeasurement(oPr.WAfter),
-			wBefore:        this.SerTableMeasurement(oPr.WBefore)
+			wBefore:        this.SerTableMeasurement(oPr.WBefore),
+			type:           "tableRowPr"
 		}
 	};
 	WriterToJSON.prototype.SerBorder = function(oBorder)
@@ -2746,7 +2787,8 @@
 			spacing:      this.SerParaSpacing(oParaPr.Spacing),
 			tabs:         this.SerTabs(oParaPr.Tabs),
 			widowControl: oParaPr.WidowControl,
-			bullet:       this.SerBullet(oParaPr.Bullet)
+			bullet:       this.SerBullet(oParaPr.Bullet),
+			type:         "paraPr"
 		}
 	};
 	WriterToJSON.prototype.SerFramePr = function(oFramePr)
@@ -3020,8 +3062,8 @@
 
 		// numbering
 		var oNumPr           = null;
-		if (!oPara.GetParent() instanceof AscFormat.CDrawingDocContent)
-			oNumPr = oPara.GetNumPr()
+		if (!(oPara.GetParent() instanceof AscFormat.CDrawingDocContent))
+			oNumPr = oPara.GetNumPr();
 
 		var oLogicDocument   = private_GetLogicDocument();
 		var oGlobalNumbering = oLogicDocument.GetNumbering();
@@ -3298,9 +3340,9 @@
 
 		var oSectionPrObj = {
 			cols:            this.SerSectionColumns(oSectionPr.Columns),
-			endnotePr:       SerEndNotePr(oSectionPr.EndnotePr),
+			endnotePr:       this.SerEndNotePr(oSectionPr.EndnotePr),
 			footerReference: oFooterReference,
-			footnotePr:      SerFootnotePr(oSectionPr.FootnotePr),
+			footnotePr:      this.SerFootnotePr(oSectionPr.FootnotePr),
 			headerReference: oHeaderReference,
 			lnNumType:       this.SerLnNumType(oSectionPr.LnNumType),
 			pgBorders:       this.SerPageBorders(oSectionPr.Borders),
@@ -4091,7 +4133,8 @@
 				abstractNumId: oNum.AbstractNumId,
 				lvlOverride:   arrLvlOverride,
 				numId:         oNum.Id
-			}
+			},
+			type: "numbering"
 		}
 	};
 	WriterToJSON.prototype.SerNumLvl = function(oLvl, nLvl)
@@ -5941,7 +5984,7 @@
 			i:         oTextPr.Italic,
 			iCs:       oTextPr.ItalicCS,
 			lang:      oTextPr.Lang ? {
-				bidi:     oTextPr.Lang.LangBidi,
+				bidi:     oTextPr.Lang.Bidi,
 				eastAsia: oTextPr.Lang.EastAsia,
 				val:      oTextPr.Lang.Val
 			} : oTextPr.Lang,
@@ -5970,7 +6013,7 @@
 			u:         oTextPr.Underline,
 			vanish:    oTextPr.Vanish,
 			vertAlign: sVAlign,
-			FontRef:   null, /// FontRef, ///???,
+			fontRef:   this.SerFontRef(oTextPr.FontRef),
 			uniFill:   this.SerFill(oTextPr.Unifill),
 			textFill:  this.SerFill(oTextPr.TextFill),
 			reviewInfo: this.SerReviewInfo(oTextPr.ReviewInfo),
@@ -6441,8 +6484,8 @@
 				case VJUST_TOP:
 					sVertJc = "top";
 					break;
-				case LOCATION_TOP:
-					VJUST_BOT = "bot";
+				case VJUST_BOT:
+					sVertJc = "bot";
 					break;
 			}
 
@@ -6788,12 +6831,17 @@
 						else
 						{
 							var oText = new CMathText(false);
-							if (aContent[nElm][nChar] === StartTextElement)
+							if (aContent[nElm][nChar] === String.fromCharCode(StartTextElement))
+							{
 								oText.SetPlaceholder();
-								
-							oText.addTxt(aContent[nElm][nChar]);
+								oRun.Add_ToContent(0, oText, false);
+							}
+							else
+							{
+								oText.addTxt(aContent[nElm][nChar]);
+								oRun.Add(oText, true);
+							}
 						}
-						oRun.Add(oText, true);
 					}
 				}
 				continue;
@@ -6952,12 +7000,15 @@
 				oDocument.Styles.Add(oStyle);
 			else
 			{
+				var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
-				if (!oStyle.IsEqual(oDocument.Styles.Get(nExistingStyle)))
+				if (!oStyle.IsEqual(oExistingStyle))
 				{
 					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 					oDocument.Styles.Add(oStyle);
 				}
+				else
+					oStyle = oExistingStyle;
 			}
 		}
 
@@ -7000,6 +7051,7 @@
 		oTextPr.Underline             = oPr["u"];
 		oTextPr.Vanish                = oPr["vanish"];
 		oTextPr.VertAlign             = nVAlign;
+		oTextPr.FontRef               = oPr["fontRef"] ? this.FontRefFromJSON(oPr["fontRef"]) : oTextPr.FontRef;
 		oTextPr.Unifill               = oPr.uniFill ? this.FillFromJSON(oPr.uniFill) : oPr.uniFill;
 		oTextPr.TextFill              = oPr.textFill ? this.FillFromJSON(oPr.textFill) : oPr.TextFill;
 
@@ -7180,12 +7232,15 @@
 				oDocument.Styles.Add(oStyle);
 			else
 			{
+				var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
-				if (!oStyle.IsEqual(oDocument.Styles.Get(nExistingStyle)))
+				if (!oStyle.IsEqual(oExistingStyle))
 				{
 					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 					oDocument.Styles.Add(oStyle);
 				}
+				else
+					oStyle = oExistingStyle;
 			}
 		}
 
@@ -7627,7 +7682,7 @@
 		function GroupCharacterFromJSON(oParsedGrpChr)
 		{
 			var nPos     = oParsedGrpChr.groupChrPr.pos === "bot" ? LOCATION_BOT : LOCATION_TOP;
-			var nVertJc  = oParsedGrpChr.groupChrPr.vertJc === "top" ? LOCATION_TOP : VJUST_TOP;
+			var nVertJc  = oParsedGrpChr.groupChrPr.vertJc === "top" ? VJUST_TOP : VJUST_BOT;
 			var oCtrlPr  = this.TextPrFromJSON(oParsedGrpChr.groupChrPr.ctrlPr);
 
 			var oPr = {
@@ -8409,7 +8464,7 @@
 
 		oDocument.Numbering.Num[nNumId] = oNum;
 
-		return nNumId;
+		return oNum;
 	};
 	ReaderFromJSON.prototype.AbstractNumFromJSON = function(oParsedAbstrNum)
 	{
@@ -8472,12 +8527,15 @@
 				oDocument.Styles.Add(oStyle);
 			else
 			{
+				var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
-				if (!oStyle.IsEqual(oDocument.Styles.Get(nExistingStyle)))
+				if (!oStyle.IsEqual(oExistingStyle))
 				{
 					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 					oDocument.Styles.Add(oStyle);
 				}
+				else
+					oStyle = oExistingStyle;
 			}
 		}
 
@@ -9037,12 +9095,15 @@
 						oDocument.Styles.Add(oStyle);
 					else
 					{
+						var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
 						// если стили идентичны, стиль не добавляем
-						if (!oStyle.IsEqual(oDocument.Styles.Get(nExistingStyle)))
+						if (!oStyle.IsEqual(oExistingStyle))
 						{
 							oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 							oDocument.Styles.Add(oStyle);
 						}
+						else
+							oStyle = oExistingStyle;
 					}
 				}
 
@@ -9294,7 +9355,36 @@
 			}
 		}
 
+		var nFillType = -1;
+		switch (oParsedFill.fillType)
+		{
+			case "none":
+				nFillType = Asc.c_oAscFill.FILL_TYPE_NONE;
+				break;
+			case "blip":
+				nFillType = Asc.c_oAscFill.FILL_TYPE_BLIP;
+				break;
+			case "noFill":
+				nFillType = Asc.c_oAscFill.FILL_TYPE_NOFILL;
+				break;
+			case "solid":
+				nFillType = Asc.c_oAscFill.FILL_TYPE_SOLID;
+				break;
+			case "grad":
+				nFillType = Asc.c_oAscFill.FILL_TYPE_GRAD;
+				break;
+			case "patt":
+				nFillType = Asc.c_oAscFill.FILL_TYPE_PATT;
+				break;
+			case "grp":
+				nFillType = Asc.c_oAscFill.FILL_TYPE_GRP;
+				break;
+		}
+
 		oFillObj.transparent = oParsedFill.transparent;
+		if (nFillType !== -1)
+			oFillObj.type = nFillType;
+
 		return oFillObj;
 	};
 	ReaderFromJSON.prototype.GradFillFromJSON = function(oParsedGradFill)
@@ -9302,13 +9392,7 @@
 		var oGradFill = new AscFormat.CGradFill();
 
 		for (var nGs = 0; nGs < oParsedGradFill.gsLst.length; nGs++)
-		{
-			var oGs   = new AscFormat.CGs();
-			oGs.color = this.ColorFromJSON(oParsedGradFill.gsLst[nGs].color);
-			oGs.pos   = oParsedGradFill.gsLst[nGs].pos;
-
-			oGradFill.colors.push(oGs);
-		}
+			oGradFill.colors.push(this.GradStopFromJSON(oParsedGradFill.gsLst[nGs]));
 
 		if (oParsedGradFill.lin)
 		{
@@ -9351,6 +9435,14 @@
 		oGradFill.rotWithShape = oParsedGradFill.rotWithShape;
 		
 		return oGradFill;
+	};
+	ReaderFromJSON.prototype.GradStopFromJSON = function(oParsedGradStop)
+	{
+		var oGs   = new AscFormat.CGs();
+		oGs.color = this.ColorFromJSON(oParsedGradStop.color);
+		oGs.pos   = oParsedGradStop.pos;
+
+		return oGs;
 	};
 	ReaderFromJSON.prototype.PattFillFromJSON = function(oParsedPattFill)
 	{
@@ -9687,7 +9779,7 @@
 		var nStyleType       = styletype_Paragraph;
 		var bNoCreateTablePr = oParsedStyle.tblStylePr ? false : true;
 
-		switch (oParsedStyle.type)
+		switch (oParsedStyle.styleType)
 		{
 			case "paragraphStyle":
 				nStyleType = styletype_Paragraph;
@@ -9869,7 +9961,7 @@
 
 		for (var nItem = 0; nItem < oParsedChartColors.items.length; nItem++)
 		{
-			if (oParsedChartColors.items[nItem].type && oParsedChartColors.items[nItem].type === "color")
+			if (oParsedChartColors.items[nItem].type && oParsedChartColors.items[nItem].type === "uniColor")
 				oChartColors.addItem(this.ColorFromJSON(oParsedChartColors.items[nItem]));
 			else
 				oChartColors.addItem(this.ColorModifiersFromJSON(oParsedChartColors.items[nItem]));
@@ -10045,13 +10137,13 @@
 		var oLogicDocument   = private_GetLogicDocument();
 		var oDrawingDocuemnt = private_GetDrawingDocument();
 
-		var sType   = sType || "rect";
+		var sPreset = oParsedShape.spPr.custGeom.preset;
         var nWidth  = private_EMU2MM(oParsedShape.extX) || 914400;
 	    var nHeight = private_EMU2MM(oParsedShape.extY) || 914400;
 		var nW = private_EMU2MM(nWidth);
 		var nH = private_EMU2MM(nHeight);
 
-		var oShapeTrack = new AscFormat.NewShapeTrack(sType, 0, 0, oLogicDocument.theme, null, null, null, 0);
+		var oShapeTrack = new AscFormat.NewShapeTrack(sPreset, 0, 0, oLogicDocument.theme, null, null, null, 0);
 		oShapeTrack.track({}, nW, nH);
 		var oShape = oShapeTrack.getShape(true, oDrawingDocuemnt, null);
 
@@ -10065,7 +10157,7 @@
 
 		oParsedShape.spPr && oShape.setSpPr(this.SpPrFromJSON(oParsedShape.spPr, oShape));
 
-		oParsedShape.style && oShape.setStyle(this.SpStyleFromJSON(oParsedShape.style));
+		oShape.setStyle(this.SpStyleFromJSON(oParsedShape.style));
 		oParsedShape.bodyPr && oShape.setBodyPr(this.BodyPrFromJSON(oParsedShape.bodyPr));
 
 		if (!oParsedShape.lstStyle)
@@ -11485,6 +11577,9 @@
 	};
 	ReaderFromJSON.prototype.SpStyleFromJSON = function(oParsedSpStyle)
 	{
+		if (!oParsedSpStyle)
+			return oParsedSpStyle;
+
 		var oStyle = new AscFormat.CShapeStyle();
 
 		oParsedSpStyle.lnRef && oStyle.setLnRef(this.StyleRefFromJSON(oParsedSpStyle.lnRef));
@@ -12255,7 +12350,9 @@
 		for (var nPath = 0; nPath < oParsedGeom.pathLst.length; nPath++)
 			oGeom.pathLst.push(this.GeomPathFromJSON(oParsedGeom.pathLst[nPath]));
 
-		oGeom.rectS = oParsedGeom.rect;
+		oGeom.rectS  = oParsedGeom.rect;
+		if (oParsedGeom.preset)
+			oGeom.preset = oParsedGeom.preset
 
 		return oGeom;
 	};
@@ -12487,28 +12584,28 @@
 		switch (oParsedPosV.relativeFrom)
 		{
 			case "bottomMargin":
-				nRelFromV = Asc.c_oAscRelativeFromH.BottomMargin;
+				nRelFromV = Asc.c_oAscRelativeFromV.BottomMargin;
 				break;
 			case "insideMargin":
-				nRelFromV = Asc.c_oAscRelativeFromH.InsideMargin;
+				nRelFromV = Asc.c_oAscRelativeFromV.InsideMargin;
 				break;
 			case "line":
-				nRelFromV = Asc.c_oAscRelativeFromH.Line;
+				nRelFromV = Asc.c_oAscRelativeFromV.Line;
 				break;
 			case "margin":
-				nRelFromV = Asc.c_oAscRelativeFromH.Margin;
+				nRelFromV = Asc.c_oAscRelativeFromV.Margin;
 				break;
 			case "outsideMargin":
-				nRelFromV = Asc.c_oAscRelativeFromH.OutsideMargin;
+				nRelFromV = Asc.c_oAscRelativeFromV.OutsideMargin;
 				break;
 			case "page":
-				nRelFromV = Asc.c_oAscRelativeFromH.Page;
+				nRelFromV = Asc.c_oAscRelativeFromV.Page;
 				break;
 			case "paragraph":
-				nRelFromV = Asc.c_oAscRelativeFromH.Paragraph;
+				nRelFromV = Asc.c_oAscRelativeFromV.Paragraph;
 				break;
 			case "topMargin":
-				nRelFromV = Asc.c_oAscRelativeFromH.TopMargin;
+				nRelFromV = Asc.c_oAscRelativeFromV.TopMargin;
 				break;
 		}
 

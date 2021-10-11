@@ -2510,6 +2510,45 @@
 		
 		return true;
 	};
+	/**
+	 * Convert to JSON object. 
+	 * @memberof ApiRange
+	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
+	 */
+	ApiRange.prototype.ToJSON = function()
+	{
+		var oDocument = private_GetLogicDocument();
+
+		private_RefreshRangesPosition();
+		private_RemoveEmptyRanges();
+
+		var oldSelectionInfo	= oDocument.SaveDocumentState();
+		this.Select(false);
+
+		var oSelectedContent = oDocument.GetSelectedContent();
+
+		if (this.isEmpty || this.isEmpty === undefined)
+		{
+			oDocument.LoadDocumentState(oldSelectionInfo);
+			return "";
+		}
+		private_TrackRangesPositions();
+
+		oDocument.LoadDocumentState(oldSelectionInfo);
+		oDocument.UpdateSelection();
+
+		var oDocContent = new AscCommonWord.CDocumentContent(private_GetLogicDocument(), private_GetDrawingDocument(), 0, 0, 0, 0, true, false, false);
+		for (var nElm = 0; nElm < oSelectedContent.Elements.length; nElm++)
+			oDocContent.AddToContent(oDocContent.Content.length, oSelectedContent.Elements[nElm].Element)
+
+		if (oDocContent.Content.length > 1)
+		// удаляем параграф, который добавляется при создании CDocumentContent
+			oDocContent.RemoveFromContent(0, 1);
+
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerDocContent(oDocContent));
+	};
 
 	/**
 	 * Class representing a document.
@@ -3916,21 +3955,25 @@
 
 		switch (oParsedObj.type)
 		{
+			case "docContent":
+				return new ApiDocument(oReader.DocContentFromJSON(oParsedObj));
+			case "drawingDocContent":
+				return new ApiDocument(oReader.DrawingDocContentFromJSON(oParsedObj));
+			case "paragraph":
+				return new ApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
 			case "run":
 			case "mathRun":
 			case "endRun":
 				return new ApiRun(oReader.ParaRunFromJSON(oParsedObj));
-			case "paragraph":
-				return new ApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
 			case "hyperlink":
 				return new ApiHyperlink(oReader.HyperlinkFromJSON(oParsedObj));
 			case "inlineLvlSdt":
 				return new ApiInlineLvlSdt(oReader.InlineLvlSdtFromJSON(oParsedObj));
 			case "blockLvlSdt":
 				return new ApiBlockLvlSdt(oReader.BlockLvlSdtFromJSON(oParsedObj));
-			case "tableCell":
+			case "tblCell":
 				return new ApiTableCell(oReader.TableCellFromJSON(oParsedObj));
-			case "tableRow":
+			case "tblRow":
 				return new ApiTableRow(oReader.TableRowFromJSON(oParsedObj));
 			case "table":
 				return new ApiTable(oReader.TableFromJSON(oParsedObj));
@@ -3942,7 +3985,52 @@
 			case "continuous":
 			case "nextColumn":
 				return new ApiSection(oReader.SectPrFromJSON(oParsedObj));
-			
+			case "numbering":
+				return new ApiNumbering(oReader.NumberingFromJSON(oParsedObj));
+			case "textPr":
+				return new ApiTextPr(null, oReader.TextPrFromJSON(oParsedObj));
+			case "paraPr":
+				return new ApiParaPr(null, oReader.ParaPrFromJSON(oParsedObj));
+			case "tablePr":
+				return new ApiTablePr(null, oReader.TablePrFromJSON(null, oParsedObj));
+			case "tableRowPr":
+				return new ApiTableRowPr(null, oReader.TableRowPrFromJSON(oParsedObj));
+			case "tableCellPr":
+				return new ApiTableCellPr(null, oReader.TableCellPrFromJSON(oParsedObj));
+			case "fill":
+				return new ApiFill(oReader.FillFromJSON(oParsedObj));
+			case "stroke":
+				return new ApiStroke(oReader.LnFromJSON(oParsedObj));
+			case "gradStop":
+				var oGs = oReader.GradStopFromJSON(oParsedObj);
+				return new ApiGradientStop(new ApiUniColor(oGs.color), oGs.pos);
+			case "uniColor":
+				return new ApiUniColor(oReader.ColorFromJSON(oParsedObj));
+			case "style":
+				var oStyle = oReader.StyleFromJSON(oParsedObj);
+				var oDocument = private_GetLogicDocument();
+				if (oStyle)
+				{
+					var nExistingStyle = oDocument.Styles.GetStyleIdByName(oStyle.Name);
+					// если такого стиля нет - добавляем новый
+					if (nExistingStyle === null)
+						oDocument.Styles.Add(oStyle);
+					else
+					{
+						var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
+						// если стили идентичны, стиль не добавляем
+						if (!oStyle.IsEqual(oExistingStyle))
+						{
+							oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
+							oDocument.Styles.Add(oStyle);
+						}
+						else
+							oStyle = oExistingStyle;
+					}
+				}
+				return new ApiStyle(oStyle);
+			case "tableStyle":
+				return new ApiTableStylePr(oParsedObj.styleType, null, oReader.TableStylePrFromJSON(oParsedObj));
 		}
 	};
 
@@ -4161,6 +4249,30 @@
 	{
 		var oWriter = new AscCommon.WriterToJSON();
 		return JSON.stringify(oWriter.SerDocContent(this.Document));
+	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiDocumentContent
+	 * @typeofeditors ["CDE"]
+	 * @returns {Array}
+	 */
+	ApiDocumentContent.prototype.GetContent = function()
+	{
+		var aContent = [];
+		var oTempElm = null;
+
+		for (var nElm = 0; nElm < this.Document.Content.length; nElm++)
+		{
+			oTempElm = this.Document.Content[nElm];
+			if (oTempElm instanceof AscCommonWord.CTable)
+				aContent.push(new ApiTable(oTempElm));
+			else if (oTempElm instanceof AscCommonWord.Paragraph)
+				aContent.push(new ApiParagraph(oTempElm));
+			else if (oTempElm instanceof AscCommonWord.CBlockLevelSdt)
+				aContent.push(new ApiBlockLvlSdt(oTempElm));
+		}
+
+		return aContent;
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -8406,16 +8518,6 @@
 
 		return arrApiRanges;
 	};
-	/**
-	 * Convert to JSON object.
-	 * @memberof ApiTableRow
-	 * @typeofeditors ["CDE"]
-	 */
-	ApiTableRow.prototype.ToJSON = function()
-	{
-		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerTableRow(this.Row));
-	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -8713,16 +8815,6 @@
 		}
 
 		return false;
-	};
-	/**
-	 * Convert to JSON object.
-	 * @memberof ApiTableCell
-	 * @typeofeditors ["CDE"]
-	 */
-	ApiTableCell.prototype.ToJSON = function()
-	{
-		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerTableCell(this.Cell));
 	};
 	
 	//------------------------------------------------------------------------------------------------------------------
@@ -10723,7 +10815,7 @@
 	ApiTableStylePr.prototype.ToJSON = function()
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerTableStylePr(this.TableStylePr));
+		return JSON.stringify(oWriter.SerTableStylePr(this.TableStylePr, this.Type));
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -11881,6 +11973,16 @@
 	{
 		return "fill";
 	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiFill
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiFill.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerFill(this.UniFill));
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -11897,6 +11999,16 @@
 	ApiStroke.prototype.GetClassType = function()
 	{
 		return "stroke";
+	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiStroke
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiStroke.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerLn(this.Ln));
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -11915,6 +12027,16 @@
 	{
 		return "gradientStop"
 	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiGradientStop
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiGradientStop.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerGradStop(this.Gs));
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -11931,6 +12053,16 @@
 	ApiUniColor.prototype.GetClassType = function ()
 	{
 		return "uniColor"
+	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiUniColor
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiUniColor.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerColor(this.Unicolor));
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -11949,6 +12081,16 @@
 	{
 		return "rgbColor"
 	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiRGBColor
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiRGBColor.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerColor(this.Unicolor));
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -11966,6 +12108,16 @@
 	{
 		return "schemeColor"
 	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiSchemeColor
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiSchemeColor.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerColor(this.Unicolor));
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -11982,6 +12134,16 @@
 	ApiPresetColor.prototype.GetClassType = function ()
 	{
 		return "presetColor"
+	};
+	/**
+	 * Convert to JSON object.
+	 * @memberof ApiPresetColor
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiPresetColor.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerColor(this.Unicolor));
 	};
 
 	/**
@@ -13280,6 +13442,8 @@
 	ApiDocumentContent.prototype["RemoveAllElements"]= ApiDocumentContent.prototype.RemoveAllElements;
 	ApiDocumentContent.prototype["RemoveElement"]    = ApiDocumentContent.prototype.RemoveElement;
 	ApiDocumentContent.prototype["GetRange"]         = ApiDocumentContent.prototype.GetRange;
+	ApiDocumentContent.prototype["ToJSON"]           = ApiDocumentContent.prototype.ToJSON;
+	ApiDocumentContent.prototype["GetContent"]       = ApiDocumentContent.prototype.GetContent;
 
 	ApiRange.prototype["GetClassType"]               = ApiRange.prototype.GetClassType
 	ApiRange.prototype["GetParagraph"]               = ApiRange.prototype.GetParagraph;
@@ -13346,6 +13510,7 @@
 	ApiDocument.prototype["Search"]                  = ApiDocument.prototype.Search;
 	ApiDocument.prototype["ToMarkdown"]              = ApiDocument.prototype.ToMarkdown;
 	ApiDocument.prototype["ToHtml"]                  = ApiDocument.prototype.ToHtml;
+	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;
 
 	ApiParagraph.prototype["GetClassType"]           = ApiParagraph.prototype.GetClassType;
 	ApiParagraph.prototype["AddText"]                = ApiParagraph.prototype.AddText;
@@ -13407,6 +13572,7 @@
 	ApiParagraph.prototype["Select"]                 = ApiParagraph.prototype.Select;
 	ApiParagraph.prototype["Search"]                 = ApiParagraph.prototype.Search;
 	ApiParagraph.prototype["WrapInMailMergeField"]   = ApiParagraph.prototype.WrapInMailMergeField;
+	ApiParagraph.prototype["ToJSON"]                 = ApiParagraph.prototype.ToJSON;
 
 
 	ApiRun.prototype["GetClassType"]                 = ApiRun.prototype.GetClassType;
@@ -13446,6 +13612,8 @@
 	ApiRun.prototype["SetUnderline"]                 = ApiRun.prototype.SetUnderline;
 	ApiRun.prototype["SetVertAlign"]                 = ApiRun.prototype.SetVertAlign;
 	ApiRun.prototype["WrapInMailMergeField"]         = ApiRun.prototype.WrapInMailMergeField;
+	ApiRun.prototype["ToJSON"]                       = ApiRun.prototype.ToJSON;
+	
 
 	ApiHyperlink.prototype["GetClassType"]           = ApiHyperlink.prototype.GetClassType;
 	ApiHyperlink.prototype["SetLink"]                = ApiHyperlink.prototype.SetLink;
@@ -13458,6 +13626,7 @@
 	ApiHyperlink.prototype["GetElementsCount"]       = ApiHyperlink.prototype.GetElementsCount;
 	ApiHyperlink.prototype["SetDefaultStyle"]        = ApiHyperlink.prototype.SetDefaultStyle;
 	ApiHyperlink.prototype["GetRange"]               = ApiHyperlink.prototype.GetRange;
+	ApiHyperlink.prototype["ToJSON"]                 = ApiHyperlink.prototype.ToJSON;
 
 	ApiSection.prototype["GetClassType"]             = ApiSection.prototype.GetClassType;
 	ApiSection.prototype["SetType"]                  = ApiSection.prototype.SetType;
@@ -13474,6 +13643,7 @@
 	ApiSection.prototype["SetTitlePage"]             = ApiSection.prototype.SetTitlePage;
 	ApiSection.prototype["GetNext"]                  = ApiSection.prototype.GetNext;
 	ApiSection.prototype["GetPrevious"]              = ApiSection.prototype.GetPrevious;
+	ApiSection.prototype["ToJSON"]                   = ApiSection.prototype.ToJSON;
 
 	ApiTable.prototype["GetClassType"]               = ApiTable.prototype.GetClassType;
 	ApiTable.prototype["SetJc"]                      = ApiTable.prototype.SetJc;
@@ -13511,6 +13681,7 @@
 	ApiTable.prototype["Clear"]    					 = ApiTable.prototype.Clear;
 	ApiTable.prototype["Search"]    				 = ApiTable.prototype.Search;
 	ApiTable.prototype["SetTextPr"]    				 = ApiTable.prototype.SetTextPr;
+	ApiTable.prototype["ToJSON"]    				 = ApiTable.prototype.ToJSON;
 
 	ApiTableRow.prototype["GetClassType"]            = ApiTableRow.prototype.GetClassType;
 	ApiTableRow.prototype["GetCellsCount"]           = ApiTableRow.prototype.GetCellsCount;
@@ -13556,9 +13727,11 @@
 	ApiStyle.prototype["GetTableCellPr"]             = ApiStyle.prototype.GetTableCellPr;
 	ApiStyle.prototype["SetBasedOn"]                 = ApiStyle.prototype.SetBasedOn;
 	ApiStyle.prototype["GetConditionalTableStyle"]   = ApiStyle.prototype.GetConditionalTableStyle;
+	ApiStyle.prototype["ToJSON"]                     = ApiStyle.prototype.ToJSON;
 
 	ApiNumbering.prototype["GetClassType"]           = ApiNumbering.prototype.GetClassType;
 	ApiNumbering.prototype["GetLevel"]               = ApiNumbering.prototype.GetLevel;
+	ApiNumbering.prototype["ToJSON"]                 = ApiNumbering.prototype.ToJSON;
 
 	ApiNumberingLevel.prototype["GetClassType"]      = ApiNumberingLevel.prototype.GetClassType;
 	ApiNumberingLevel.prototype["GetNumbering"]      = ApiNumberingLevel.prototype.GetNumbering;
@@ -13590,6 +13763,7 @@
 	ApiTextPr.prototype["SetLanguage"]               = ApiTextPr.prototype.SetLanguage;
 	ApiTextPr.prototype["SetShd"]                    = ApiTextPr.prototype.SetShd;
 	ApiTextPr.prototype["SetFill"]                   = ApiTextPr.prototype.SetFill;
+	ApiTextPr.prototype["ToJSON"]                    = ApiTextPr.prototype.ToJSON;
 
 	ApiParaPr.prototype["GetClassType"]              = ApiParaPr.prototype.GetClassType;
 	ApiParaPr.prototype["SetStyle"]                  = ApiParaPr.prototype.SetStyle;
@@ -13624,6 +13798,7 @@
 	ApiParaPr.prototype["GetIndRight"]               = ApiParaPr.prototype.GetIndRight;
 	ApiParaPr.prototype["GetIndLeft"]                = ApiParaPr.prototype.GetIndLeft;
 	ApiParaPr.prototype["GetIndFirstLine"]           = ApiParaPr.prototype.GetIndFirstLine;
+	ApiParaPr.prototype["ToJSON"]                    = ApiParaPr.prototype.ToJSON;
 
 	ApiTablePr.prototype["GetClassType"]             = ApiTablePr.prototype.GetClassType;
 	ApiTablePr.prototype["SetStyleColBandSize"]      = ApiTablePr.prototype.SetStyleColBandSize;
@@ -13644,10 +13819,12 @@
 	ApiTablePr.prototype["SetTableInd"]              = ApiTablePr.prototype.SetTableInd;
 	ApiTablePr.prototype["SetWidth"]                 = ApiTablePr.prototype.SetWidth;
 	ApiTablePr.prototype["SetTableLayout"]           = ApiTablePr.prototype.SetTableLayout;
+	ApiTablePr.prototype["ToJSON"]                   = ApiTablePr.prototype.ToJSON;
 
 	ApiTableRowPr.prototype["GetClassType"]          = ApiTableRowPr.prototype.GetClassType;
 	ApiTableRowPr.prototype["SetHeight"]             = ApiTableRowPr.prototype.SetHeight;
 	ApiTableRowPr.prototype["SetTableHeader"]        = ApiTableRowPr.prototype.SetTableHeader;
+	ApiTableRowPr.prototype["ToJSON"]                = ApiTableRowPr.prototype.ToJSON;
 
 	ApiTableCellPr.prototype["GetClassType"]         = ApiTableCellPr.prototype.GetClassType;
 	ApiTableCellPr.prototype["SetShd"]               = ApiTableCellPr.prototype.SetShd;
@@ -13663,6 +13840,7 @@
 	ApiTableCellPr.prototype["SetVerticalAlign"]     = ApiTableCellPr.prototype.SetVerticalAlign;
 	ApiTableCellPr.prototype["SetTextDirection"]     = ApiTableCellPr.prototype.SetTextDirection;
 	ApiTableCellPr.prototype["SetNoWrap"]            = ApiTableCellPr.prototype.SetNoWrap;
+	ApiTableCellPr.prototype["ToJSON"]               = ApiTableCellPr.prototype.ToJSON;
 
 	ApiTableStylePr.prototype["GetClassType"]        = ApiTableStylePr.prototype.GetClassType;
 	ApiTableStylePr.prototype["GetType"]             = ApiTableStylePr.prototype.GetType;
@@ -13671,6 +13849,7 @@
 	ApiTableStylePr.prototype["GetTablePr"]          = ApiTableStylePr.prototype.GetTablePr;
 	ApiTableStylePr.prototype["GetTableRowPr"]       = ApiTableStylePr.prototype.GetTableRowPr;
 	ApiTableStylePr.prototype["GetTableCellPr"]      = ApiTableStylePr.prototype.GetTableCellPr;
+	ApiTableStylePr.prototype["ToJSON"]              = ApiTableStylePr.prototype.ToJSON;
 
 	ApiDrawing.prototype["GetClassType"]             = ApiDrawing.prototype.GetClassType;
 	ApiDrawing.prototype["SetSize"]                  = ApiDrawing.prototype.SetSize;
@@ -13739,20 +13918,28 @@
     ApiChart.prototype["GetPrevChart"]                 = ApiChart.prototype.GetPrevChart;
 
 	ApiFill.prototype["GetClassType"]                = ApiFill.prototype.GetClassType;
+	ApiFill.prototype["ToJSON"]                      = ApiFill.prototype.ToJSON;
 
 	ApiStroke.prototype["GetClassType"]              = ApiStroke.prototype.GetClassType;
+	ApiStroke.prototype["ToJSON"]                    = ApiStroke.prototype.ToJSON;
 
 	ApiGradientStop.prototype["GetClassType"]        = ApiGradientStop.prototype.GetClassType;
+	ApiGradientStop.prototype["ToJSON"]              = ApiGradientStop.prototype.ToJSON;
 
 	ApiUniColor.prototype["GetClassType"]            = ApiUniColor.prototype.GetClassType;
+	ApiUniColor.prototype["ToJSON"]                  = ApiUniColor.prototype.ToJSON;
 
 	ApiRGBColor.prototype["GetClassType"]            = ApiRGBColor.prototype.GetClassType;
+	ApiRGBColor.prototype["ToJSON"]                  = ApiRGBColor.prototype.ToJSON;
 
 	ApiSchemeColor.prototype["GetClassType"]         = ApiSchemeColor.prototype.GetClassType;
+	ApiSchemeColor.prototype["ToJSON"]               = ApiSchemeColor.prototype.ToJSON;
 
 	ApiPresetColor.prototype["GetClassType"]         = ApiPresetColor.prototype.GetClassType;
+	ApiPresetColor.prototype["ToJSON"]               = ApiPresetColor.prototype.ToJSON;
 
 	ApiBullet.prototype["GetClassType"]              = ApiBullet.prototype.GetClassType;
+	ApiBullet.prototype["ToJSON"]                    = ApiBullet.prototype.ToJSON;
 
 	ApiInlineLvlSdt.prototype["GetClassType"]           = ApiInlineLvlSdt.prototype.GetClassType;
 	ApiInlineLvlSdt.prototype["SetLock"]                = ApiInlineLvlSdt.prototype.SetLock;
@@ -13777,6 +13964,7 @@
 	ApiInlineLvlSdt.prototype["GetParentTableCell"]     = ApiInlineLvlSdt.prototype.GetParentTableCell;
 	ApiInlineLvlSdt.prototype["GetRange"]               = ApiInlineLvlSdt.prototype.GetRange;
 	ApiInlineLvlSdt.prototype["Copy"]                   = ApiInlineLvlSdt.prototype.Copy;
+	ApiInlineLvlSdt.prototype["ToJSON"]                 = ApiInlineLvlSdt.prototype.ToJSON;
 
 	ApiBlockLvlSdt.prototype["GetClassType"]            = ApiBlockLvlSdt.prototype.GetClassType;
 	ApiBlockLvlSdt.prototype["SetLock"]                 = ApiBlockLvlSdt.prototype.SetLock;
@@ -13804,6 +13992,7 @@
 	ApiBlockLvlSdt.prototype["GetRange"]                = ApiBlockLvlSdt.prototype.GetRange;
 	ApiBlockLvlSdt.prototype["Search"]                  = ApiBlockLvlSdt.prototype.Search;
 	ApiBlockLvlSdt.prototype["Select"]                  = ApiBlockLvlSdt.prototype.Select;
+	ApiBlockLvlSdt.prototype["ToJSON"]                  = ApiBlockLvlSdt.prototype.ToJSON;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
