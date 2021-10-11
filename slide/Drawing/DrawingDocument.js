@@ -6924,11 +6924,11 @@ function CAnimationPaneDrawer(page)
 
 	oThis.GetWidth = function()
 	{
-		return oThis.GetHtmlElement().width / g_dKoef_mm_to_pix;
+		return AscCommon.AscBrowser.convertToRetinaValue(oThis.GetHtmlElement().width) / g_dKoef_mm_to_pix;
 	};
 	oThis.GetHeight = function()
 	{
-		return oThis.GetHtmlElement().height / g_dKoef_mm_to_pix;
+		return AscCommon.AscBrowser.convertToRetinaValue(oThis.GetHtmlElement().height) / g_dKoef_mm_to_pix;
 	};
 }
 

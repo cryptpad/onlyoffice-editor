@@ -9473,7 +9473,7 @@
 
 
     var STATE_FLAG_SELECTED = 1;
-    var STATE_FLAG_HOBERED = 2;
+    var STATE_FLAG_HOVERED = 2;
 
     var CONTROL_TYPE_UNKNOWN = 0;
     var CONTROL_TYPE_HEADER = 1;
@@ -9605,6 +9605,7 @@
         }
         AscFormat.CShape.prototype.draw.call(this, graphics);
         graphics.transform3(this.transform);
+        graphics.p_width(0);
         graphics.p_color(0, 0, 0, 255);
         graphics.rect(0, 0, this.extX, this.extY);
         graphics.ds();
@@ -9741,6 +9742,7 @@
         if(!this.checkUpdateRect(graphics.updateRect)) {
             return;
         }
+        CControl.prototype.draw.call(this, graphics);
         for(var nChild = 0; nChild < this.children.length; ++nChild) {
             this.children[nChild].draw(graphics);
         }
@@ -9838,7 +9840,6 @@
     InitClass(CButton, CControlContainer, CONTROL_TYPE_BUTTON);
 
 
-    var HEADER_BUTTON_SIZE = 10;
     function CHeader(oParentControl) {
         CControlContainer.call(this, oParentControl);
         this.label = this.addControl(new CLabel(this, "Animation Pane"));
@@ -9847,23 +9848,49 @@
     }
     InitClass(CHeader, CControlContainer, CONTROL_TYPE_HEADER);
     CHeader.prototype.recalculateChildrenLayout = function() {
-        this.closeButton.setLayout(this.extX - HEADER_BUTTON_SIZE,
-            (this.extY - HEADER_BUTTON_SIZE) / 2,
-            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE);
-        this.taskButton.setLayout(this.extX - 2*HEADER_BUTTON_SIZE,
-            (this.extY - HEADER_BUTTON_SIZE) / 2,
-            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE);
-        this.label.setLayout(0, 0, this.extX - 2*HEADER_BUTTON_SIZE, this.extY);
+        this.closeButton.setLayout(
+            this.getWidth() - BUTTON_SIZE,
+            (this.getHeight() - BUTTON_SIZE) / 2,
+            BUTTON_SIZE,
+            BUTTON_SIZE
+        );
+        this.taskButton.setLayout(
+            this.getWidth() - this.closeButton.getWidth() - HORIZONTAL_SPACE - BUTTON_SIZE,
+            (this.getHeight() - BUTTON_SIZE) / 2,
+            BUTTON_SIZE,
+            BUTTON_SIZE
+        );
+        this.label.setLayout(
+            0,
+            0,
+            this.getWidth() - this.taskButton.getWidth() - this.closeButton.getWidth() - HORIZONTAL_SPACE,
+            this.getHeight()
+        );
 
     };
 
     function CToolbar(oParentControl) {
         CControlContainer.call(this, oParentControl);
-        this.addControl(new CButton(this));
-        this.addControl(new CButton(this));
-        this.addControl(new CButton(this));
+        this.playButton = this.addControl(new CButton(this));
+        this.upButton = this.addControl(new CButton(this));
+        this.downButton = this.addControl(new CButton(this));
     }
     InitClass(CToolbar, CControlContainer, CONTROL_TYPE_TOOLBAR);
+    CToolbar.prototype.recalculateChildrenLayout = function() {
+        this.playButton.setLayout(0, 0, this.getWidth(), BUTTON_SIZE);
+        this.downButton.setLayout(
+            this.getWidth() - BUTTON_SIZE,
+            this.getHeight() - BUTTON_SIZE,
+            BUTTON_SIZE,
+            BUTTON_SIZE
+        );
+        this.upButton.setLayout(
+            this.getWidth() - this.downButton.getWidth() - HORIZONTAL_SPACE - BUTTON_SIZE,
+            this.getHeight() - BUTTON_SIZE,
+            BUTTON_SIZE,
+            BUTTON_SIZE
+        );
+    };
 
     function CTimelineContainer(oParentControl) {
         CControlContainer.call(this, oParentControl);
@@ -9877,14 +9904,18 @@
     }
     InitClass(CTimeline, CScrollHor, CONTROL_TYPE_TIMELINE);
 
-    var HEADER_HEIGHT = 15;
+    var HEADER_HEIGHT = 10;
+    var BUTTON_SIZE = HEADER_HEIGHT;
     var TOOLBAR_HEIGHT = HEADER_HEIGHT;
-    var TIMELINE_HEIGHT = HEADER_HEIGHT;
-    var PADDING_LEFT = 5;
+    var TIMELINE_HEIGHT = 5;
+    var PADDING_LEFT = 3;
     var PADDING_TOP = PADDING_LEFT;
     var PADDING_RIGHT = PADDING_LEFT;
     var PADDING_BOTTOM = PADDING_LEFT;
-    var VERTICAL_SPACE = 3;
+    var VERTICAL_SPACE = PADDING_LEFT;
+    var HORIZONTAL_SPACE = PADDING_LEFT;
+    var TOOLBAR_WIDTH = 25;
+
 
     function CAnimPane(oTiming) {
         CControlContainer.call(this, null);
@@ -9896,31 +9927,36 @@
     }
     InitClass(CAnimPane, CControlContainer, CONTROL_TYPE_UNKNOWN);
     CAnimPane.prototype.recalculateChildrenLayout = function() {
-        var dControlWidth = Math.max(0, this.extX - PADDING_LEFT - PADDING_RIGHT);
+        var dControlWidth = Math.max(0, this.getWidth() - PADDING_LEFT - PADDING_RIGHT);
         this.header.setLayout(
             PADDING_LEFT,
             PADDING_TOP,
-            dControlWidth,
+            this.getWidth() - PADDING_LEFT - PADDING_RIGHT,
             HEADER_HEIGHT
         );
+        var dBottomPartY = this.header.getBottom() + VERTICAL_SPACE;
         this.toolbar.setLayout(
             PADDING_LEFT,
-            this.header.getBottom() + VERTICAL_SPACE,
-            dControlWidth,
-            TOOLBAR_HEIGHT
+            dBottomPartY,
+            TOOLBAR_WIDTH,
+            this.getHeight() - dBottomPartY - PADDING_BOTTOM
         );
+
+        var dRightPartX = PADDING_LEFT + this.toolbar.getWidth() + VERTICAL_SPACE;
+        var dRightPartWidth = Math.max(0, this.getWidth() - dRightPartX - PADDING_RIGHT);
         this.timelineContainer.setLayout(
-            PADDING_LEFT,
-            this.getHeight() - TIMELINE_HEIGHT,
-            dControlWidth,
+            dRightPartX,
+            this.getHeight() - PADDING_BOTTOM - TIMELINE_HEIGHT,
+            dRightPartWidth,
             TIMELINE_HEIGHT
         );
-        var dListTop = this.toolbar.getBottom() + VERTICAL_SPACE;
+        var dListTop = dBottomPartY;
         var dListBottom = this.timelineContainer.getTop();
+        var dListLeft = dRightPartX;
         this.seqListContainer.setLayout(
-            PADDING_LEFT,
+            dListLeft,
             dListTop,
-            dControlWidth,
+            dRightPartWidth,
             Math.max(0, dListBottom - dListTop)
         );
     };
