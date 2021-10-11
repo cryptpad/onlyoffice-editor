@@ -732,6 +732,10 @@ Slide.prototype =
     {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideSetTiming, this.timing, oTiming));
         this.timing = oTiming;
+        if(this.timing)
+        {
+            this.timing.setParent(this);
+        }
     },
 
     setSlideSize: function(w, h)
@@ -1351,6 +1355,12 @@ Slide.prototype =
     drawAnimPane: function(oGraphics) {
         if(this.timing) {
             this.timing.drawAnimPane(oGraphics);
+        }
+    },
+
+    onAnimPaneResize: function(oGraphics) {
+        if(this.timing) {
+            this.timing.onAnimPaneResize(oGraphics);
         }
     },
 

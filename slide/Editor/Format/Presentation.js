@@ -7330,7 +7330,7 @@ CPresentation.prototype.OnAnimPaneResize = function() {
         this.OnAnimPaneChanged(-1, null);
     }
     else {
-        this.OnAnimPaneChanged(oSlide.num, null);
+        oSlide.onAnimPaneResize();
     }
 };
 CPresentation.prototype.DrawAnimPane = function(oGraphics) {

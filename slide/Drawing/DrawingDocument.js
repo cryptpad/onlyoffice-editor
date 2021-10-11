@@ -6798,18 +6798,10 @@ function CAnimationPaneDrawer(page)
 		{
 			g.darkModeOverride();
 		}
-
 		if(oPresentation)
 		{
-			g.SaveGrState();
-			g.m_oCoordTransform.tx = 0;
-			g.m_oCoordTransform.ty = 0;
-			g.transform(1, 0, 0, 1, 0, 0);
 			oPresentation.DrawAnimPane(g);
-			g.RestoreGrState();
 		}
-
-
 	};
 
 	oThis.CheckPaint = function ()
@@ -6923,24 +6915,20 @@ function CAnimationPaneDrawer(page)
 	};
 	oThis.OnAnimPaneChanged = function (nSlideNum, oRect)
 	{
+		if(this.GetCurrentSlideNumber() !== nSlideNum)
+		{
+			return;
+		}
 		oThis.DrawTask.Check(nSlideNum, oRect);
 	};
 
 	oThis.GetWidth = function()
 	{
-		var _pix_width = oThis.GetHtmlElement().width;
-		if (_pix_width < 10)
-			_pix_width = 10;
-		_pix_width = AscCommon.AscBrowser.convertToRetinaValue(_pix_width);
-		return _pix_width / g_dKoef_mm_to_pix;
+		return oThis.GetHtmlElement().width / g_dKoef_mm_to_pix;
 	};
 	oThis.GetHeight = function()
 	{
-		var _pix_height = oThis.GetHtmlElement().height;
-		if (_pix_height < 10)
-			_pix_height = 10;
-		_pix_height = AscCommon.AscBrowser.convertToRetinaValue(_pix_height);
-		return _pix_height / g_dKoef_mm_to_pix;
+		return oThis.GetHtmlElement().height / g_dKoef_mm_to_pix;
 	};
 }
 

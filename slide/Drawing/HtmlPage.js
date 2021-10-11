@@ -578,7 +578,7 @@ function CEditorPage(api)
 		this.m_oAnimationPaneContainer.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
 		this.m_oMainParent.AddControl(this.m_oAnimationPaneContainer);
 
-		this.m_oAnimationPane = CreateControlContainer("id_animation_controls");
+		this.m_oAnimationPane = CreateControl("id_animation_controls");
 		this.m_oAnimationPane.Bounds.SetParams(0, 0, 1000, 1000, false, false, false, false, -1, -1);
 		this.m_oAnimationPane.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
 		this.m_oAnimationPaneContainer.AddControl(this.m_oAnimationPane);
@@ -994,6 +994,7 @@ function CEditorPage(api)
             case "id_notes_overlay":
 			case "id_thumbnails_background":
 			case "id_thumbnails":
+			case "id_animation_controls":
             	return true;
 			default:
 				break;

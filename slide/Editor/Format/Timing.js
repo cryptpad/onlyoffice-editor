@@ -1858,6 +1858,12 @@
         this.animPane.recalculate();
         this.animPane.draw(oGraphics);
     };
+    CTiming.prototype.onAnimPaneResize = function() {
+        if(!this.animPane) {
+            this.animPane = new CAnimPane(this);
+        }
+        this.animPane.onResize();
+    };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
     changesFactory[AscDFH.historyitem_CommonTimingListRemove] = CChangeContent;
@@ -9489,7 +9495,7 @@
         AscFormat.ExecuteNoHistory(function() {
             AscFormat.CShape.call(this);
             this.setBDeleted(false);
-            this.setTransformParams(0, 0, 0, 0, 0, false, false);
+            this.setLayout(0, 0, 0, 0);
         }, this, []);
 
         this.parent = editor.WordControl.m_oLogicDocument.Slides[0];
@@ -9598,6 +9604,10 @@
             }
         }
         AscFormat.CShape.prototype.draw.call(this, graphics);
+        graphics.transform3(this.transform);
+        graphics.p_color(0, 0, 0, 255);
+        graphics.rect(0, 0, this.extX, this.extY);
+        graphics.ds();
 
     };
     CControl.prototype.hit = function(x, y) {
@@ -9635,7 +9645,9 @@
         return false;
     };
     CControl.prototype.onUpdate = function(oBounds) {
-        this.parent.onUpdate(oBounds);
+        if(this.parentControl) {
+            this.parentControl.onUpdate(oBounds);
+        }
     };
     CControl.prototype.getCursorInfo = function(e, x, y) {
         if(!this.hit(x, y)) {
@@ -9658,6 +9670,30 @@
     };
     CControl.prototype.recalculate = function() {
         AscFormat.CShape.prototype.recalculate.call(this);
+    };
+    CControl.prototype.setLayout = function(dX, dY, dExtX, dExtY) {
+        this.setTransformParams(dX, dY, dExtX, dExtY, 0, false, false);
+    };
+    CControl.prototype.getLeft = function() {
+        return this.spPr.xfrm.offX;
+    };
+    CControl.prototype.getTop = function() {
+        return this.spPr.xfrm.offY;
+    };
+    CControl.prototype.getRight = function() {
+        return this.spPr.xfrm.offX + this.spPr.xfrm.extX;
+    };
+    CControl.prototype.getBottom = function() {
+        return this.spPr.xfrm.offY + this.spPr.xfrm.extY;
+    };
+    CControl.prototype.getWidth = function() {
+        return this.spPr.xfrm.extX;
+    };
+    CControl.prototype.getHeight = function() {
+        return this.spPr.xfrm.extY;
+    };
+    CControl.prototype.getBounds = function() {
+        return this.bounds;
     };
 
     function CControlContainer(oParentControl) {
@@ -9715,11 +9751,15 @@
         CControl.prototype.recalculate.call(this);
         if(this.recalcInfo.recalculateChildrenLayout) {
             this.recalculateChildrenLayout();
-            this.recalcInfo.recalculateChildrenLayout = true;
+            this.recalcInfo.recalculateChildrenLayout = false;
         }
         for(var nChild = 0; nChild < this.children.length; ++nChild) {
             this.children[nChild].recalculate();
         }
+    };
+    CControlContainer.prototype.setLayout = function(dX, dY, dExtX, dExtY) {
+        CControl.prototype.setLayout.call(this, dX, dY, dExtX, dExtY);
+        this.recalcInfo.recalculateChildrenLayout = true;
     };
 
     function CSeqListContainer(oParentControl) {
@@ -9801,19 +9841,19 @@
     var HEADER_BUTTON_SIZE = 10;
     function CHeader(oParentControl) {
         CControlContainer.call(this, oParentControl);
-        this.label = this.addControl(new CLabel(this, "Animarion Pane"));
+        this.label = this.addControl(new CLabel(this, "Animation Pane"));
         this.taskButton = this.addControl(new CButton(this));
         this.closeButton = this.addControl(new CButton(this));
     }
     InitClass(CHeader, CControlContainer, CONTROL_TYPE_HEADER);
     CHeader.prototype.recalculateChildrenLayout = function() {
-        this.closeButton.setTransformParams(this.extX - HEADER_BUTTON_SIZE,
+        this.closeButton.setLayout(this.extX - HEADER_BUTTON_SIZE,
             (this.extY - HEADER_BUTTON_SIZE) / 2,
-            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE, 0, false, false);
-        this.taskButton.setTransformParams(this.extX - 2*HEADER_BUTTON_SIZE,
+            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE);
+        this.taskButton.setLayout(this.extX - 2*HEADER_BUTTON_SIZE,
             (this.extY - HEADER_BUTTON_SIZE) / 2,
-            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE, 0, false, false);
-        this.label.setTransformParams(0, 0, this.extX - 2*HEADER_BUTTON_SIZE, this.extY, 0, false, false);
+            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE);
+        this.label.setLayout(0, 0, this.extX - 2*HEADER_BUTTON_SIZE, this.extY);
 
     };
 
@@ -9838,6 +9878,14 @@
     InitClass(CTimeline, CScrollHor, CONTROL_TYPE_TIMELINE);
 
     var HEADER_HEIGHT = 15;
+    var TOOLBAR_HEIGHT = HEADER_HEIGHT;
+    var TIMELINE_HEIGHT = HEADER_HEIGHT;
+    var PADDING_LEFT = 5;
+    var PADDING_TOP = PADDING_LEFT;
+    var PADDING_RIGHT = PADDING_LEFT;
+    var PADDING_BOTTOM = PADDING_LEFT;
+    var VERTICAL_SPACE = 3;
+
     function CAnimPane(oTiming) {
         CControlContainer.call(this, null);
         this.timing = oTiming;
@@ -9848,9 +9896,33 @@
     }
     InitClass(CAnimPane, CControlContainer, CONTROL_TYPE_UNKNOWN);
     CAnimPane.prototype.recalculateChildrenLayout = function() {
-        this.setTransformParams(0, 0, 100, 200, 0, false, false);
-        this.recalculateTransform();
-        this.header.setTransformParams(0, 0, this.extX, HEADER_HEIGHT, 0, false, false);
+        var dControlWidth = Math.max(0, this.extX - PADDING_LEFT - PADDING_RIGHT);
+        this.header.setLayout(
+            PADDING_LEFT,
+            PADDING_TOP,
+            dControlWidth,
+            HEADER_HEIGHT
+        );
+        this.toolbar.setLayout(
+            PADDING_LEFT,
+            this.header.getBottom() + VERTICAL_SPACE,
+            dControlWidth,
+            TOOLBAR_HEIGHT
+        );
+        this.timelineContainer.setLayout(
+            PADDING_LEFT,
+            this.getHeight() - TIMELINE_HEIGHT,
+            dControlWidth,
+            TIMELINE_HEIGHT
+        );
+        var dListTop = this.toolbar.getBottom() + VERTICAL_SPACE;
+        var dListBottom = this.timelineContainer.getTop();
+        this.seqListContainer.setLayout(
+            PADDING_LEFT,
+            dListTop,
+            dControlWidth,
+            Math.max(0, dListBottom - dListTop)
+        );
     };
     CAnimPane.prototype.getHeader = function() {
         return this.getChildByType(CONTROL_TYPE_HEADER);
@@ -9875,6 +9947,31 @@
     };
     CAnimPane.prototype.onMouseUp = function(e, x, y) {
 
+    };
+    CAnimPane.prototype.onResize = function() {
+        this.setLayout(
+            0,
+            0,
+            this.getExternalControlWidth(),
+            this.getExternalControlHeight()
+        );
+        this.recalculate();
+        this.onUpdate(this.getBounds());
+    };
+    CAnimPane.prototype.getExternalControl = function() {
+        return editor.WordControl.m_oAnimPaneApi;
+    };
+    CAnimPane.prototype.getExternalControlWidth = function() {
+        return this.getExternalControl().GetWidth();
+    };
+    CAnimPane.prototype.getExternalControlHeight = function() {
+        return this.getExternalControl().GetHeight();
+    };
+    CAnimPane.prototype.onUpdate = function(oBounds) {
+        this.getExternalControl().OnAnimPaneChanged(this.getSlideNum(), oBounds);
+    };
+    CAnimPane.prototype.getSlideNum = function(oBounds) {
+        return this.timing.parent.num;
     };
     //CAnimPane.prototype.draw = function(oGraphics) {
     //    oGraphics.b_color1(255, 0, 0, 255);
