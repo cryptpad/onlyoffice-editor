@@ -7050,6 +7050,9 @@
 		var aContent     = oParsedFootEndnote.content;
 		var oFootEndnote = oParsedFootEndnote === "footnote" ? oDocument.Footnotes.CreateFootnote() : oDocument.Endnotes.CreateEndnote();
 		
+		// мапим сносну, для привязки к ссылке внутри рана
+		this.FootEndNoteMap[oParsedFootEndnote.id] = oFootEndnote;
+
 		var notCompletedFields = [];
 		var oMapCommentsInfo   = [];
 		var oMapBookmarksInfo  = [];
@@ -7081,9 +7084,6 @@
 		//oFootEndnote.number           = oParsedFootEndnote.number;
 		oFootEndnote.ColumnsCount     = oParsedFootEndnote.columnsCount;
 		oFootEndnote.SectPr           = oParsedFootEndnote.sectPr ? this.SectPrFromJSON(oParsedFootEndnote.sectPr) : oFootEndnote.SectPr;
-
-		// мапим сносну, для привязки к ссылке внутри рана
-		this.FootEndNoteMap[oParsedFootEndnote.id] = oFootEndnote;
 
 		return oFootEndnote;
 	};
