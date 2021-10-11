@@ -11857,10 +11857,18 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         {
 
                             var oGrFrDrawing = oThis.Reader.ReadGrFrame();
-                            if(oGrFrDrawing && oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape) {
-                                GrObject = oGrFrDrawing.convertToWord(oThis.LogicDocument);
-                                if(paraDrawing){
-                                    GrObject.setParent(paraDrawing);
+                            if(oGrFrDrawing) {
+                                if(oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape) {
+                                    GrObject = oGrFrDrawing.convertToWord(oThis.LogicDocument);
+                                    if(paraDrawing){
+                                        GrObject.setParent(paraDrawing);
+                                    }
+                                }
+                                else if(oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_SmartArt) {
+                                    GrObject = oGrFrDrawing;
+                                    if(paraDrawing){
+                                        GrObject.setParent(paraDrawing);
+                                    }
                                 }
                             }
                             break;
