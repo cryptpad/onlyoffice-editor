@@ -1364,6 +1364,22 @@ Slide.prototype =
         }
     },
 
+    onAnimPaneMouseDown: function(e, x, y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseDown(e, x, y);
+        }
+    },
+    onAnimPaneMouseMove: function(e, x, y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseMove(e, x, y);
+        }
+    },
+    onAnimPaneMouseUp: function(e, x, y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseUp(e, x, y);
+        }
+    },
+
     getTheme: function(){
         return this.Layout.Master.Theme;
     },

@@ -6869,7 +6869,7 @@ function CAnimationPaneDrawer(page)
 		if (is_drawing === true)
 			return;
 
-		oThis.GetPresentation().AnimPane_OnMouseDown(global_mouseEvent, _x, _y);
+		oThis.GetPresentation().AnimPane_OnMouseMove(global_mouseEvent, _x, _y);
 	};
 	oThis.onMouseUp = function (e)
 	{

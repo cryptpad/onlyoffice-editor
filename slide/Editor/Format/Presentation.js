@@ -7309,15 +7309,24 @@ CPresentation.prototype.Notes_OnMouseMove = function (e, X, Y) {
 };
 
 CPresentation.prototype.AnimPane_OnMouseDown = function(e, X, Y) {
-
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        oSlide.onAnimPaneMouseDown(e, X, Y);
+    }
 };
 
 CPresentation.prototype.AnimPane_OnMouseMove = function(e, X, Y) {
-
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        oSlide.onAnimPaneMouseMove(e, X, Y);
+    }
 };
 
 CPresentation.prototype.AnimPane_OnMouseUp = function(e, X, Y) {
-
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        oSlide.onAnimPaneMouseUp(e, X, Y);
+    }
 };
 
 CPresentation.prototype.OnAnimPaneChanged = function(nSlideNum, oRect) {

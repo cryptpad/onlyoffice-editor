@@ -1858,11 +1858,23 @@
         this.animPane.recalculate();
         this.animPane.draw(oGraphics);
     };
-    CTiming.prototype.onAnimPaneResize = function() {
+    CTiming.prototype.getAnimPane = function() {
         if(!this.animPane) {
             this.animPane = new CAnimPane(this);
         }
-        this.animPane.onResize();
+        return this.animPane;
+    };
+    CTiming.prototype.onAnimPaneResize = function() {
+        this.getAnimPane().onResize();
+    };
+    CTiming.prototype.onAnimPaneMouseDown = function(e, x, y) {
+        this.getAnimPane().onMouseDown(e, x, y);
+    };
+    CTiming.prototype.onAnimPaneMouseMove = function(e, x, y) {
+        this.getAnimPane().onMouseMove(e, x, y);
+    };
+    CTiming.prototype.onAnimPaneMouseUp = function(e, x, y) {
+        this.getAnimPane().onMouseUp(e, x, y);
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -9490,6 +9502,7 @@
     var CONTROL_TYPE_IMAGE = 12;
     var CONTROL_TYPE_TIMELINE_CONTAINER = 13;
     var CONTROL_TYPE_TIMELINE = 14;
+    var CONTROL_TYPE_EFFECT_BAR = 15;
 
     function CControl(oParentControl) {
         AscFormat.ExecuteNoHistory(function() {
@@ -9793,6 +9806,8 @@
 
     function CAnimSequence(oParentControl) {//main seq, interactive seq
         CControlContainer.call(this, oParentControl);
+        this.label = this.addControl(new CLabel(this, "seq"));
+        this.effectGroups = [];
     }
     InitClass(CAnimSequence, CControlContainer, CONTROL_TYPE_ANIM_SEQ);
 
@@ -9801,8 +9816,23 @@
     }
     InitClass(CAnimGroup, CControlContainer, CONTROL_TYPE_ANIM_GROUP);
 
+    function CImageControl(oParentControl) {
+        CControl.call(this, oParentControl)
+    }
+    InitClass(CImageControl, CControl, CONTROL_TYPE_IMAGE);
+
+    function CEffectBar(oParentControl) {
+        CControl.call(this, oParentControl)
+    }
+    InitClass(CEffectBar, CControl, CONTROL_TYPE_EFFECT_BAR);
+
     function CAnimItem(oParentControl) {
         CControlContainer.call(this, oParentControl);
+        this.indexLabel = this.addControl(new CLabel(this, "1"));
+        this.eventTypeImage = this.addControl(new CImageControl(this));
+        this.effectTypeImage = this.addControl(new CImageControl(this));
+        this.effectLabel = this.addControl(new CLabel(this, "Effect Label"));
+        this.effectBar = this.addControl(new CEffectBar(this));
     }
     InitClass(CAnimItem, CControlContainer, CONTROL_TYPE_ANIM_ITEM);
 
@@ -9855,7 +9885,7 @@
             BUTTON_SIZE
         );
         this.taskButton.setLayout(
-            this.getWidth() - this.closeButton.getWidth() - HORIZONTAL_SPACE - BUTTON_SIZE,
+            this.closeButton.getLeft() - BUTTON_SPACE - BUTTON_SIZE,
             (this.getHeight() - BUTTON_SIZE) / 2,
             BUTTON_SIZE,
             BUTTON_SIZE
@@ -9863,7 +9893,7 @@
         this.label.setLayout(
             0,
             0,
-            this.getWidth() - this.taskButton.getWidth() - this.closeButton.getWidth() - HORIZONTAL_SPACE,
+            this.taskButton.getLeft(),
             this.getHeight()
         );
 
@@ -9885,7 +9915,7 @@
             BUTTON_SIZE
         );
         this.upButton.setLayout(
-            this.getWidth() - this.downButton.getWidth() - HORIZONTAL_SPACE - BUTTON_SIZE,
+            this.downButton.getLeft() - BUTTON_SPACE - BUTTON_SIZE,
             this.getHeight() - BUTTON_SIZE,
             BUTTON_SIZE,
             BUTTON_SIZE
@@ -9894,27 +9924,35 @@
 
     function CTimelineContainer(oParentControl) {
         CControlContainer.call(this, oParentControl);
-        this.addControl(new CButton(this));
-        this.addControl(new CTimeline(this));
+        this.secondsButton = this.addControl(new CButton(this));
+        this.timeline = this.addControl(new CTimeline(this));
     }
     InitClass(CTimelineContainer, CControlContainer, CONTROL_TYPE_TIMELINE_CONTAINER);
+    CTimelineContainer.prototype.recalculateChildrenLayout = function() {
+        var dPosY = (this.getHeight() - SCROLL_THICKNESS) / 2;
+        this.secondsButton.setLayout(0, dPosY, ANIM_LABEL_WIDTH - 3*SCROLL_THICKNESS / 2, SCROLL_THICKNESS);
+        this.timeline.setLayout(this.secondsButton.getRight(), dPosY, this.getWidth() - this.secondsButton.getWidth(), SCROLL_THICKNESS);
+    };
 
     function CTimeline(oParentControl) {
         CScrollHor.call(this, oParentControl);
     }
     InitClass(CTimeline, CScrollHor, CONTROL_TYPE_TIMELINE);
 
-    var HEADER_HEIGHT = 10;
+    var HEADER_HEIGHT = 7.5;
     var BUTTON_SIZE = HEADER_HEIGHT;
     var TOOLBAR_HEIGHT = HEADER_HEIGHT;
-    var TIMELINE_HEIGHT = 5;
     var PADDING_LEFT = 3;
     var PADDING_TOP = PADDING_LEFT;
     var PADDING_RIGHT = PADDING_LEFT;
     var PADDING_BOTTOM = PADDING_LEFT;
     var VERTICAL_SPACE = PADDING_LEFT;
     var HORIZONTAL_SPACE = PADDING_LEFT;
+    var SCROLL_THICKNESS = 3*PADDING_LEFT / 2;
+    var TIMELINE_HEIGHT = SCROLL_THICKNESS + 1;
+    var BUTTON_SPACE = HORIZONTAL_SPACE / 2;
     var TOOLBAR_WIDTH = 25;
+    var ANIM_LABEL_WIDTH = 30;
 
 
     function CAnimPane(oTiming) {
