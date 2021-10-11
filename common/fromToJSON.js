@@ -2086,8 +2086,14 @@
 		
 		function GetFullStylePr(styleObj)
 		{
-			var nBadedOnId           = styleObj.GetBasedOn();
-			var oStyleBasedOn        = nBadedOnId ? oDocument.Styles.Get(nBadedOnId).Copy() : null;
+			var nBasedOnId    = styleObj.GetBasedOn();
+			var oStyleBasedOn = null;
+			if (nBasedOnId)
+			{
+				oStyleBasedOn = oDocument.Styles.Get(nBasedOnId);
+				oStyleBasedOn = oStyleBasedOn ? oStyleBasedOn.Copy() : null;
+			}
+
 			var nBasedOnBasedOnId    = oStyleBasedOn ? oStyleBasedOn.GetBasedOn() : null;
 			var oStyleBasedOnBasedOn = nBasedOnBasedOnId ? oDocument.Styles.Get(nBasedOnBasedOnId) : null;
 			
@@ -3122,6 +3128,38 @@
 
 		return oParaObject;
 	};
+	WriterToJSON.prototype.SerFootEndnote = function(oFootEndnote)
+	{
+		var aComplexFieldsToSave = this.GetComplexFieldsToSave(oFootEndnote.Content);
+		var oMapCommentsInfo     = this.GetMapCommentsInfo(oFootEndnote.Content, []);
+		var oMapBookmarksInfo    = this.GetMapBookmarksInfo(oFootEndnote.Content, []);
+
+		var oFootEndnoteObj = {
+			content:          [],
+			customMarkFollow: oFootEndnote.customMarkFollow,
+			hint:             oFootEndnote.Hint,
+			id:               oFootEndnote.Id,
+			number:           oFootEndnote.Number,
+			columnsCount:     oFootEndnote.ColumnsCount,
+			sectPr:           this.SerSectionPr(oFootEndnote.SectPr),
+			type:             oFootEndnote.parent instanceof CFootnotesController ? "footnote" : "endnote"
+		};
+
+		var TempElm = null;
+		for (var nElm = 0; nElm < oFootEndnote.Content.length; nElm++)
+		{
+			TempElm = oFootEndnote.Content[nElm];
+
+			if (TempElm instanceof AscCommonWord.Paragraph)
+				oFootEndnoteObj["content"].push(this.SerParagraph(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
+			else if (TempElm instanceof AscCommonWord.CTable)
+				oFootEndnoteObj["content"].push(this.SerTable(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
+			else if (TempElm instanceof AscCommonWord.CBlockLevelSdt)
+				oFootEndnoteObj["content"].push(this.SerBlockLvlSdt(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
+		}
+
+		return oFootEndnoteObj;
+	};
 	WriterToJSON.prototype.SerRevisionMove = function(oMove)
 	{
 		if (!oMove)
@@ -3596,6 +3634,8 @@
 		var oRunObject = {
 			rPr:        this.SerTextPr(oRun.Pr),
 			content:    [],
+			footnotes:  [],
+			endnotes:   [],
 			reviewInfo: this.SerReviewInfo(oRun.ReviewInfo),
 			reviewType: sReviewType,
 			type:       "run"
@@ -3809,6 +3849,20 @@
 				case para_RevisionMove:
 					oRunObject["content"].push(this.SerRevisionMove(Item));
 					break;
+				case para_FootnoteReference:
+					oRunObject["content"].push(this.SerParaFootEndNoteRef(Item));
+					oRunObject["footnotes"].push(this.SerFootEndnote(Item.Footnote));
+					break;
+				case para_FootnoteRef:
+					oRunObject["content"].push(this.SerParaFootEndNoteRef(Item));
+					break;
+				case para_EndnoteReference:
+					oRunObject["content"].push(this.SerParaFootEndNoteRef(Item));
+					oRunObject["endnotes"].push(this.SerFootEndnote(Item.Footnote));
+					break;
+				case para_EndnoteRef:
+					oRunObject["content"].push(this.SerParaFootEndNoteRef(Item));
+					break;
 			}
 
 			if (allowAddCompField)
@@ -3818,6 +3872,35 @@
 			oRunObject["content"].push(sTempRunText);
 
 		return oRunObject;
+	};
+	WriterToJSON.prototype.SerParaFootEndNoteRef = function(oFootnoteRef)
+	{
+		var sType = undefined;
+		switch (oFootnoteRef.Type)
+		{
+			// Ссылка на сноску
+			case para_FootnoteReference:
+				sType = "footnoteRef";
+				break;
+			// Номер сноски (должен быть только внутри сноски)
+			case para_FootnoteRef:
+				sType = "footnoteNum"
+			// Ссылка на сноску
+			case para_EndnoteReference:
+				sType = "endnoteRef";
+				break;
+			// Номер сноски (должен быть только внутри сноски)
+			case para_EndnoteRef:
+				sType = "endnoteNum"
+		}
+
+		return {
+			customMark: oFootnoteRef.CustomMark,
+			footnote:   oFootnoteRef.Footnote.Id,
+			numFormat:  oFootnoteRef.NumFormat,
+			number:     oFootnoteRef.Number,
+			type:       sType
+		}
 	};
 	WriterToJSON.prototype.SerReviewInfo = function(oReviewInfo)
 	{
@@ -6774,7 +6857,8 @@
 
 	function ReaderFromJSON()
 	{
-		this.moveMap = {};
+		this.MoveMap = {};
+		this.FootEndNoteMap = {};
 	};
 
 	ReaderFromJSON.prototype.ParaRunFromJSON = function(oParsedRun, oParentPara, notCompletedFields)
@@ -6788,6 +6872,13 @@
 			notCompletedFields = [];
 
 		var oRun = oParsedRun.type === "mathRun" ? new ParaRun(oParentPara, true) : new ParaRun(oParentPara, false);
+
+		// Footnotes
+		for (var nElm = 0; nElm < oParsedRun.footnotes.length; nElm++)
+			this.ParaFootEndNoteFromJSON(oParsedRun.footnotes[nElm]);
+		// Endnotes
+		for (var nElm = 0; nElm < oParsedRun.endnotes.length; nElm++)
+			this.ParaFootEndNoteFromJSON(oParsedRun.endnotes[nElm]);
 
 		// review info
 		var nReviewType = undefined;
@@ -6908,21 +6999,93 @@
 					// создаём новый moveId(moveName), мапим к нему значения moveId(moveName) из JSON
 					// таким образом задаем соответствия
 					var sMoveName = undefined;
-					if (!this.moveMap[aContent[nElm].name])
+					if (!this.MoveMap[aContent[nElm].name])
 					{
 						sMoveName = oDocument.TrackRevisionsManager.GetNewMoveId();
-						this.moveMap[aContent[nElm].name] = sMoveName;
+						this.MoveMap[aContent[nElm].name] = sMoveName;
 					}
 
-					var oRevisionMove = new CRunRevisionMove(aContent[nElm].start, aContent[nElm].from, this.moveMap[aContent[nElm].name], aContent[nElm].reviewInfo);
+					var oRevisionMove = new CRunRevisionMove(aContent[nElm].start, aContent[nElm].from, this.MoveMap[aContent[nElm].name], aContent[nElm].reviewInfo);
 					oRun.Add_ToContent(-1, oRevisionMove);
+					break;
+				case "footnoteRef":
+				case "footnoteNum":
+				case "endnoteRef":
+				case "endnoteNum":
+					oRun.Add_ToContent(-1, this.ParaFootEndNoteRefFromJSON(aContent[nElm]));
 					break;
 			}
 		}
 
-		//oRun.Internal_Compile_Pr();
-
 		return oRun;
+	};
+	ReaderFromJSON.prototype.ParaFootEndNoteRefFromJSON = function(oParsedFootEndnoteRef, oParentFootEndNote)
+	{
+		var oFootEndnoteRef = null;
+		switch (oParsedFootEndnoteRef.type)
+		{
+			case "footnoteRef":
+				oFootEndnoteRef = new ParaFootnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				break;
+			case "footnoteNum":
+				oFootEndnoteRef = new ParaFootnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				break;
+			case "endnoteRef":
+				oFootEndnoteRef = new ParaEndnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				break;
+			case "endnoteNum":
+				oFootEndnoteRef = new ParaEndnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				break;
+		}
+		
+		oFootEndnoteRef.CustomMark = oParsedFootEndnoteRef.customMark;
+		oFootEndnoteRef.NumFormat  = oParsedFootEndnoteRef.numFormat;
+		//oFootEndnoteRef.Number   = oParsedFootEndnoteRef.number;
+
+		return oFootEndnoteRef;
+	};
+	ReaderFromJSON.prototype.ParaFootEndNoteFromJSON = function(oParsedFootEndnote)
+	{
+		var oDocument    = private_GetLogicDocument();
+		var aContent     = oParsedFootEndnote.content;
+		var oFootEndnote = oParsedFootEndnote === "footnote" ? oDocument.Footnotes.CreateFootnote() : oDocument.Endnotes.CreateEndnote();
+		
+		var notCompletedFields = [];
+		var oMapCommentsInfo   = [];
+		var oMapBookmarksInfo  = [];
+
+		var oPrevNumIdInfo = {};
+
+		for (var nElm = 0; nElm < aContent.length; nElm++)
+		{
+			switch (aContent[nElm].type)
+			{
+				case "paragraph":
+					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.ParagraphFromJSON(aContent[nElm], oFootEndnote, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo), false);
+					break;
+				case "table":
+					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.TableFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					break;
+				case "blockLvlSdt":
+					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.BlockLvlSdtFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					break;
+			}
+		}
+
+		if (oFootEndnote.Content.length > 1)
+			// удаляем параграф, который добавляется при создании CDocumentContent
+			oFootEndnote.RemoveFromContent(0, 1);
+
+		oFootEndnote.CustomMarkFollow = oParsedFootEndnote.customMarkFollow;
+		oFootEndnote.Hint             = oParsedFootEndnote.hint;
+		//oFootEndnote.number           = oParsedFootEndnote.number;
+		oFootEndnote.ColumnsCount     = oParsedFootEndnote.columnsCount;
+		oFootEndnote.SectPr           = oParsedFootEndnote.sectPr ? this.SectPrFromJSON(oParsedFootEndnote.sectPr) : oFootEndnote.SectPr;
+
+		// мапим сносну, для привязки к ссылке внутри рана
+		this.FootEndNoteMap[oParsedFootEndnote.id] = oFootEndnote;
+
+		return oFootEndnote;
 	};
 	ReaderFromJSON.prototype.ReviewInfoFromJSON = function(oParsedReviewInfo)
 	{
@@ -7170,14 +7333,14 @@
 					// создаём новый moveId(moveName), мапим к нему значения moveId(moveName) из JSON
 					// таким образом задаем соответствия
 					var sMoveName = undefined;
-					if (!this.moveMap[aContent[nElm].name])
+					if (!this.MoveMap[aContent[nElm].name])
 					{
 						sMoveName = oDocument.TrackRevisionsManager.GetNewMoveId();
-						this.moveMap[aContent[nElm].name] = sMoveName;
+						this.MoveMap[aContent[nElm].name] = sMoveName;
 					}
 
 					var oReviewInfo   = aContent[nElm].reviewInfo ? this.ReviewInfoFromJSON(aContent[nElm].reviewInfo) : aContent[nElm].reviewInfo;
-					var oRevisionMove = new CParaRevisionMove(aContent[nElm].start, aContent[nElm].from, this.moveMap[aContent[nElm].name], oReviewInfo);
+					var oRevisionMove = new CParaRevisionMove(aContent[nElm].start, aContent[nElm].from, this.MoveMap[aContent[nElm].name], oReviewInfo);
 					arrTrackMoves.push(oRevisionMove);
 					oPara.Add_ToContent(oPara.Content.length - 1, oRevisionMove);
 					break;

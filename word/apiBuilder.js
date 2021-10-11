@@ -3956,9 +3956,9 @@
 		switch (oParsedObj.type)
 		{
 			case "docContent":
-				return new ApiDocument(oReader.DocContentFromJSON(oParsedObj));
+				return new ApiDocumentContent(oReader.DocContentFromJSON(oParsedObj));
 			case "drawingDocContent":
-				return new ApiDocument(oReader.DrawingDocContentFromJSON(oParsedObj));
+				return new ApiDocumentContent(oReader.DrawingDocContentFromJSON(oParsedObj));
 			case "paragraph":
 				return new ApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
 			case "run":
@@ -5113,7 +5113,16 @@
 	ApiDocument.prototype.ToJSON = function()
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerDocument(this.Document));
+		var oDocContent = new AscCommonWord.CDocumentContent(private_GetLogicDocument(), private_GetDrawingDocument(), 0, 0, 0, 0, true, false, false);
+		
+		for (var nElm = 0; nElm < this.Document.Content.length; nElm++)
+			oDocContent.AddToContent(oDocContent.Content.length, this.Document.Content[nElm].Copy());
+
+		if (oDocContent.Content.length > 1)
+		// удаляем параграф, который добавляется при создании CDocumentContent
+			oDocContent.RemoveFromContent(0, 1);
+
+		return JSON.stringify(oWriter.SerDocContent(oDocContent));
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
