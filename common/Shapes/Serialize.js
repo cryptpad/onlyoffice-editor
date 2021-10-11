@@ -6656,8 +6656,6 @@ function BinaryPPTYLoader()
         var s = this.stream;
 
         var shape = new AscFormat.CShape(this.TempMainObject);
-        if (null != this.TempGroupObject)
-            shape.Container = this.TempGroupObject;
 
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;

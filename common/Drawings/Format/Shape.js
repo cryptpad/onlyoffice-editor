@@ -2219,7 +2219,7 @@ CShape.prototype.getFullFlip = function () {
 CShape.prototype.getTextRect = function () {
     if(this.txXfrm && this.spPr && this.spPr.xfrm) {
         var newL = this.txXfrm.offX - this.spPr.xfrm.offX;
-        var newT = this.txXfrm.offY - this.spPr.xfrm.offX;
+        var newT = this.txXfrm.offY - this.spPr.xfrm.offY;
         var newR = newL + this.txXfrm.extX;
         var newB = newT + this.txXfrm.extY;
         var oRect = {};
