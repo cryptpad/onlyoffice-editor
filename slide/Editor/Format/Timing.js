@@ -1855,6 +1855,7 @@
         if(!this.animPane) {
             this.animPane = new CAnimPane(this);
         }
+        this.animPane.recalculate();
         this.animPane.draw(oGraphics);
     };
 
@@ -9464,10 +9465,405 @@
     };
     //--------------------------------------------------------------------------
 
-    function CAnimPane(oTiming) {
-        this.timing = oTiming;
-        this.groups = [];
+
+    var STATE_FLAG_SELECTED = 1;
+    var STATE_FLAG_HOBERED = 2;
+
+    var CONTROL_TYPE_UNKNOWN = 0;
+    var CONTROL_TYPE_HEADER = 1;
+    var CONTROL_TYPE_TOOLBAR = 2;
+    var CONTROL_TYPE_SEQ_LIST_CONTAINER = 3;
+    var CONTROL_TYPE_SCROLL_VERT = 4;
+    var CONTROL_TYPE_SCROLL_HOR = 5;
+    var CONTROL_TYPE_SEQ_LIST = 6;
+    var CONTROL_TYPE_ANIM_SEQ = 7;
+    var CONTROL_TYPE_ANIM_GROUP = 8;
+    var CONTROL_TYPE_ANIM_ITEM = 9;
+    var CONTROL_TYPE_LABEL = 10;
+    var CONTROL_TYPE_BUTTON = 11;
+    var CONTROL_TYPE_IMAGE = 12;
+    var CONTROL_TYPE_TIMELINE_CONTAINER = 13;
+    var CONTROL_TYPE_TIMELINE = 14;
+
+    function CControl(oParentControl) {
+        AscFormat.ExecuteNoHistory(function() {
+            AscFormat.CShape.call(this);
+            this.setBDeleted(false);
+            this.setTransformParams(0, 0, 0, 0, 0, false, false);
+        }, this, []);
+
+        this.parent = editor.WordControl.m_oLogicDocument.Slides[0];
+        this.parentControl = oParentControl;
+        this.state = 0;
     }
+    InitClass(CControl, AscFormat.CShape, CONTROL_TYPE_UNKNOWN);
+    CControl.prototype.DEFALT_WRAP_OBJECT = {oTxWarpStruct: null, oTxWarpStructParamarks: null, oTxWarpStructNoTransform: null, oTxWarpStructParamarksNoTransform: null};
+
+    //define shape methods
+    CControl.prototype.getBodyPr = function () {
+        return this.bodyPr;
+    };
+    CControl.prototype.getScrollOffsetX = function () {
+        return 0;
+    };
+    CControl.prototype.getScrollOffsetY = function () {
+        return 0;
+    };
+    CControl.prototype.getParentScrollOffsetX = function () {
+        if(this.parentControl) {
+            return this.parentControl.getScrollOffsetX();
+        }
+        return 0;
+    };
+    CControl.prototype.getParentScrollOffsetY = function () {
+        if(this.parentControl) {
+            return this.parentControl.getScrollOffsetY();
+        }
+        return 0;
+    };
+    CControl.prototype.getFullTransformMatrix = function () {
+        return this.transform;
+    };
+    CControl.prototype.getInvFullTransformMatrix = function () {
+        return this.invertTransform;
+    };
+    CControl.prototype.multiplyParentTransforms = function(oLocalTransform) {
+        var oMT = AscCommon.global_MatrixTransformer;
+        var oTransform = oMT.CreateDublicateM(oLocalTransform);
+        var oScrollMatrix = new AscCommon.CMatrix();
+        oScrollMatrix.tx = this.getParentScrollOffsetX();
+        oScrollMatrix.ty = this.getParentScrollOffsetY();
+        oMT.MultiplyAppend(oTransform, oScrollMatrix);
+        var oParentTransform = this.parentControl && this.parentControl.getFullTransformMatrix();
+        oParentTransform && oMT.MultiplyAppend(oTransform, oParentTransform);
+        return oTransform;
+    };
+    CControl.prototype.getFullTransform = function() {
+        return this.multiplyParentTransforms(this.localTransform);
+    };
+    CControl.prototype.getFullTextTransform = function() {
+        return this.multiplyParentTransforms(this.localTransformText);
+    };
+    CControl.prototype.getInvFullTransformMatrix = function() {
+        var oMT = AscCommon.global_MatrixTransformer;
+        return oMT.Invert(this.getFullTransform());
+    };
+    CControl.prototype.recalculate = function() {
+        AscFormat.CShape.prototype.recalculate.call(this);
+    };
+    CControl.prototype.recalculateBrush = function () {
+        this.brush = null;
+    };
+    CControl.prototype.recalculatePen = function () {
+        this.pen = null;
+    };
+    CControl.prototype.recalculateContent = function () {
+    };
+    CControl.prototype.recalculateGeometry = function() {
+        this.calcGeometry = AscFormat.CreateGeometry("rect");
+        this.calcGeometry.Recalculate(this.extX, this.extY);
+    };
+    CControl.prototype.recalculateTransform = function() {
+        AscFormat.CShape.prototype.recalculateTransform.call(this);
+        var oMT = AscCommon.global_MatrixTransformer;
+        this.transform = this.getFullTransform();
+        this.invertTransform = oMT.Invert(this.transform);
+    };
+    CControl.prototype.recalculateTransformText = function() {
+        AscFormat.CShape.prototype.recalculateTransformText.call(this);
+        var oMT = AscCommon.global_MatrixTransformer;
+        this.transformText = this.getFullTextTransform();
+        this.invertTransformText = oMT.Invert(this.transformText);
+    };
+    CControl.prototype.recalculateBounds = function() {
+        var dX = this.transform.tx;
+        var dY = this.transform.ty;
+        this.bounds.reset(dX, dY, dX + this.extX, dY + this.extY)
+    };
+    CControl.prototype.recalculateSnapArrays = function() {
+    };
+    CControl.prototype.checkAutofit = function (bIgnoreWordShape) {
+        return false;
+    };
+    CControl.prototype.checkTextWarp = function(oContent, oBodyPr, dWidth, dHeight, bNeedNoTransform, bNeedWarp) {
+        return this.DEFALT_WRAP_OBJECT;
+    };
+    CControl.prototype.addToRecalculate = function() {
+    };
+    CControl.prototype.draw = function (graphics) {
+        var oUR = graphics.updatedRect;
+        if(oUR && this.bounds) {
+            if(!oUR.isIntersectOther(this.bounds)) {
+                return;
+            }
+        }
+        AscFormat.CShape.prototype.draw.call(this, graphics);
+
+    };
+    CControl.prototype.hit = function(x, y) {
+        if(!this.parent.hit(x, y)) {
+            return false;
+        }
+        var oInv = this.invertTransform;
+        var tx = oInv.TransformPointX(x, y);
+        var ty = oInv.TransformPointY(x, y);
+        return tx >= 0 && tx <= this.extX && ty >= 0 && ty <= this.extY;
+    };
+    CControl.prototype.onMouseMove = function (e, x, y) {
+        if(e.IsLocked) {
+            return false;
+        }
+        var bHover = this.hit(x, y);
+        var bRet = bHover !== this.isHovered;
+        if(bHover) {
+            this.setHoverState();
+        }
+        else {
+            this.setNotHoverState();
+        }
+        return bRet;
+    };
+    CControl.prototype.onMouseDown = function (e, x, y) {
+        if(this.hit(x, y)) {
+            this.parent.setEventListener(this);
+            return true;
+        }
+        return false;
+    };
+    CControl.prototype.onMouseUp = function (e, x, y) {
+        this.parent.setEventListener(null);
+        return false;
+    };
+    CControl.prototype.onUpdate = function(oBounds) {
+        this.parent.onUpdate(oBounds);
+    };
+    CControl.prototype.getCursorInfo = function(e, x, y) {
+        if(!this.hit(x, y)) {
+            return null;
+        }
+        else {
+            return {
+                cursorType: "default",
+                tooltip: this.getTooltipText()
+            }
+        }
+    };
+    CControl.prototype.checkUpdateRect = function(oUpdateRect) {
+        if(oUpdateRect && this.bounds) {
+            if(!oUpdateRect.isIntersectOther(this.bounds)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    CControl.prototype.recalculate = function() {
+        AscFormat.CShape.prototype.recalculate.call(this);
+    };
+
+    function CControlContainer(oParentControl) {
+        CControl.call(this, oParentControl);
+        this.children = [];
+        this.recalcInfo.recalculateChildrenLayout = true;
+    }
+    InitClass(CControlContainer, CControl, CONTROL_TYPE_UNKNOWN);
+    CControlContainer.prototype.clean = function() {
+        this.children.length = 0;
+    };
+    CControlContainer.prototype.addControl = function(oChild) {
+        this.children.push(oChild);
+        return oChild;
+    };
+    CControlContainer.prototype.removeControl = function(oChild) {
+        var nIdx = this.getChildIdx(oChild);
+        if(nIdx > -1 && nIdx < this.children.length) {
+            this.children.splice(nIdx, 1);
+        }
+    };
+    CControlContainer.prototype.getChildIdx = function(oChild) {
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            if(this.children[nChild] === oChild) {
+                return nChild;
+            }
+        }
+        return -1;
+    };
+    CControlContainer.prototype.getChildByType = function(nType) {
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            var oChild = this.children[nChild];
+            if(oChild.getObjectType() === nType) {
+                return oChild;
+            }
+        }
+        return null;
+    };
+    CControlContainer.prototype.getChild = function(nIdx) {
+        if(nIdx > -1 && nIdx < this.children.length) {
+            return this.children[nIdx];
+        }
+    };
+    CControlContainer.prototype.draw = function(graphics) {
+        if(!this.checkUpdateRect(graphics.updateRect)) {
+            return;
+        }
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            this.children[nChild].draw(graphics);
+        }
+    };
+    CControlContainer.prototype.recalculateChildrenLayout = function() {
+    };
+    CControlContainer.prototype.recalculate = function() {
+        CControl.prototype.recalculate.call(this);
+        if(this.recalcInfo.recalculateChildrenLayout) {
+            this.recalculateChildrenLayout();
+            this.recalcInfo.recalculateChildrenLayout = true;
+        }
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            this.children[nChild].recalculate();
+        }
+    };
+
+    function CSeqListContainer(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+        this.addControl(new CSeqList(this));
+        this.addControl(new CScrollVert(this));
+    }
+    InitClass(CSeqListContainer, CControlContainer, CONTROL_TYPE_SEQ_LIST_CONTAINER);
+
+    function CScrollBase(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+    }
+    InitClass(CScrollBase, CControlContainer, CONTROL_TYPE_UNKNOWN);
+
+    function CScrollVert(oParentControl) {
+        CScrollBase.call(this, oParentControl);
+    }
+    InitClass(CScrollVert, CScrollBase, CONTROL_TYPE_SCROLL_VERT);
+
+    function CScrollHor(oParentControl) {
+        CScrollBase.call(this, oParentControl);
+    }
+    InitClass(CScrollHor, CScrollBase, CONTROL_TYPE_SCROLL_HOR);
+
+    function CSeqList(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+    }
+    InitClass(CSeqList, CControlContainer, CONTROL_TYPE_SEQ_LIST);
+
+    function CAnimSequence(oParentControl) {//main seq, interactive seq
+        CControlContainer.call(this, oParentControl);
+    }
+    InitClass(CAnimSequence, CControlContainer, CONTROL_TYPE_ANIM_SEQ);
+
+    function CAnimGroup(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+    }
+    InitClass(CAnimGroup, CControlContainer, CONTROL_TYPE_ANIM_GROUP);
+
+    function CAnimItem(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+    }
+    InitClass(CAnimItem, CControlContainer, CONTROL_TYPE_ANIM_ITEM);
+
+    function CLabel(oParentControl, sString) {
+        CControl.call(this, oParentControl);
+        AscFormat.ExecuteNoHistory(function(){
+            this.string = sString;
+            this.createTextBody();
+            this.bodyPr = new AscFormat.CBodyPr();
+            this.bodyPr.setDefault();
+            this.bodyPr.anchor = 1;//vertical align ctr
+            this.bodyPr.lIns = 0;
+            this.bodyPr.rIns = 0;
+            this.bodyPr.tIns = 0;
+            this.bodyPr.bIns = 0;
+            this.bodyPr.horzOverflow = AscFormat.nOTClip;
+            this.bodyPr.vertOverflow = AscFormat.nOTClip;
+        }, this, []);
+    }
+    InitClass(CLabel, CControl, CONTROL_TYPE_LABEL);
+
+    CLabel.prototype.getString = function() {
+        return AscCommon.translateManager.getValue(this.string);
+    };
+    CLabel.prototype.recalculateContent = function () {
+        this.recalculateGeometry();
+        this.recalculateTransform();
+        this.txBody.content.Recalc_AllParagraphs_CompiledPr();
+        this.txBody.recalculateOneString(this.getString());
+    };
+
+    function CButton(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+    }
+    InitClass(CButton, CControlContainer, CONTROL_TYPE_BUTTON);
+
+
+    var HEADER_BUTTON_SIZE = 10;
+    function CHeader(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+        this.label = this.addControl(new CLabel(this, "Animarion Pane"));
+        this.taskButton = this.addControl(new CButton(this));
+        this.closeButton = this.addControl(new CButton(this));
+    }
+    InitClass(CHeader, CControlContainer, CONTROL_TYPE_HEADER);
+    CHeader.prototype.recalculateChildrenLayout = function() {
+        this.closeButton.setTransformParams(this.extX - HEADER_BUTTON_SIZE,
+            (this.extY - HEADER_BUTTON_SIZE) / 2,
+            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE, 0, false, false);
+        this.taskButton.setTransformParams(this.extX - 2*HEADER_BUTTON_SIZE,
+            (this.extY - HEADER_BUTTON_SIZE) / 2,
+            HEADER_BUTTON_SIZE, HEADER_BUTTON_SIZE, 0, false, false);
+        this.label.setTransformParams(0, 0, this.extX - 2*HEADER_BUTTON_SIZE, this.extY, 0, false, false);
+
+    };
+
+    function CToolbar(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+        this.addControl(new CButton(this));
+        this.addControl(new CButton(this));
+        this.addControl(new CButton(this));
+    }
+    InitClass(CToolbar, CControlContainer, CONTROL_TYPE_TOOLBAR);
+
+    function CTimelineContainer(oParentControl) {
+        CControlContainer.call(this, oParentControl);
+        this.addControl(new CButton(this));
+        this.addControl(new CTimeline(this));
+    }
+    InitClass(CTimelineContainer, CControlContainer, CONTROL_TYPE_TIMELINE_CONTAINER);
+
+    function CTimeline(oParentControl) {
+        CScrollHor.call(this, oParentControl);
+    }
+    InitClass(CTimeline, CScrollHor, CONTROL_TYPE_TIMELINE);
+
+    var HEADER_HEIGHT = 15;
+    function CAnimPane(oTiming) {
+        CControlContainer.call(this, null);
+        this.timing = oTiming;
+        this.header = this.addControl(new CHeader(this));
+        this.toolbar = this.addControl(new CToolbar(this));
+        this.seqListContainer = this.addControl(new CSeqListContainer(this));
+        this.timelineContainer = this.addControl(new CTimelineContainer(this));
+    }
+    InitClass(CAnimPane, CControlContainer, CONTROL_TYPE_UNKNOWN);
+    CAnimPane.prototype.recalculateChildrenLayout = function() {
+        this.setTransformParams(0, 0, 100, 200, 0, false, false);
+        this.recalculateTransform();
+        this.header.setTransformParams(0, 0, this.extX, HEADER_HEIGHT, 0, false, false);
+    };
+    CAnimPane.prototype.getHeader = function() {
+        return this.getChildByType(CONTROL_TYPE_HEADER);
+    };
+    CAnimPane.prototype.getToolbar = function() {
+        return this.getChildByType(CONTROL_TYPE_TOOLBAR);
+    };
+    CAnimPane.prototype.getSeqListContainer = function() {
+        return this.getChildByType(CONTROL_TYPE_SEQ_LIST_CONTAINER);
+    };
+    CAnimPane.prototype.getTimelineContainer = function() {
+        return this.getChildByType(CONTROL_TYPE_TIMELINE_CONTAINER);
+    };
     CAnimPane.prototype.onChanged = function(oRect) {
         this.timing.onAnimPaneChanged(oRect);
     };
@@ -9480,11 +9876,11 @@
     CAnimPane.prototype.onMouseUp = function(e, x, y) {
 
     };
-    CAnimPane.prototype.draw = function(oGraphics) {
-        oGraphics.b_color1(255, 0, 0, 255);
-        oGraphics.rect(0, 0, 100, 100);
-        oGraphics.df();
-    };
+    //CAnimPane.prototype.draw = function(oGraphics) {
+    //    oGraphics.b_color1(255, 0, 0, 255);
+    //    oGraphics.rect(0, 0, 100, 100);
+    //    oGraphics.df();
+    //};
 
 
     window['AscFormat'] = window['AscFormat'] || {};

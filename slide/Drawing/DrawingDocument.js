@@ -6691,43 +6691,43 @@ function CNotesDrawer(page)
 
 function CAnimPaneDrawTask()
 {
-	this.slide = null;
-	this.rect = null;
+	this.Slide = null;
+	this.Rect = null;
 }
-CAnimPaneDrawTask.prototype.check = function(nSlide, oRect)
+CAnimPaneDrawTask.prototype.Check = function(nSlide, oRect)
 {
-	if(this.slide === null)
+	if(this.Slide === null)
 	{
-		this.slide = nSlide;
-		this.rect = oRect;
+		this.Slide = nSlide;
+		this.Rect = oRect;
 		return;
 	}
-	if(this.slide !== nSlide)
+	if(this.Slide !== nSlide)
 	{
-		this.slide = nSlide;
-		this.rect = null;
+		this.Slide = nSlide;
+		this.Rect = null;
 		return;
 	}
-	if(this.rect)
+	if(this.Rect)
 	{
 		if(!oRect)
 		{
-			this.rect = null;
+			this.Rect = null;
 		}
 		else
 		{
-			this.rect.checkByOther(oRect);
+			this.Rect.checkByOther(oRect);
 		}
 	}
 };
-CAnimPaneDrawTask.prototype.needRedraw = function()
+CAnimPaneDrawTask.prototype.NeedRedraw = function()
 {
-	return this.slide !== null;
+	return this.Slide !== null;
 };
-CAnimPaneDrawTask.prototype.clear = function()
+CAnimPaneDrawTask.prototype.Clear = function()
 {
-	this.slide = null;
-	this.rect = null;
+	this.Slide = null;
+	this.Rect = null;
 };
 
 function CAnimationPaneDrawer(page)
@@ -6763,7 +6763,7 @@ function CAnimationPaneDrawer(page)
 
 	oThis.GetCurrentSlideNumber = function ()
 	{
-		return oThis.HtmlPage.m_oDrawingDocument.SlideCurrent;
+		return oThis.GetDrawingDocument().SlideCurrent;
 	};
 
 	oThis.GetPresentation = function ()
@@ -6814,10 +6814,10 @@ function CAnimationPaneDrawer(page)
 
 	oThis.CheckPaint = function ()
 	{
-		if(oThis.DrawTask.needRedraw())
+		if(oThis.DrawTask.NeedRedraw())
 		{
 			oThis.OnPaint();
-			oThis.DrawTask.clear();
+			oThis.DrawTask.Clear();
 		}
 	};
 
@@ -6923,7 +6923,7 @@ function CAnimationPaneDrawer(page)
 	};
 	oThis.OnAnimPaneChanged = function (nSlideNum, oRect)
 	{
-		oThis.DrawTask.check(nSlideNum, oRect);
+		oThis.DrawTask.Check(nSlideNum, oRect);
 	};
 
 	oThis.GetWidth = function()
