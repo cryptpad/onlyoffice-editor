@@ -6463,7 +6463,7 @@
                     break;
                 }
                 case FILTER_TYPE_BLINDS_VERTICAL: {
-                    return this.createBlindsVertical(x);
+                    return this.createBlindsVertical(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BOX_IN: {
