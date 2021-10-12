@@ -2924,6 +2924,13 @@ CShape.prototype.isProtectInputInSmartArt = function() {
     return this.isObjectInSmartArt() && !this.isPlaceholderInSmartArt();
     };
 
+CShape.prototype.canEditTextInSmartArt = function () {
+    if (this.isObjectInSmartArt()) {
+        var pointContent = this.getSmartArtPointContent();
+        return  pointContent && pointContent.length !== 0;
+    }
+}
+
 CShape.prototype.isPlaceholderInSmartArt = function () {
     if (this.isObjectInSmartArt()) {
         var pointContent = this.getSmartArtPointContent();
