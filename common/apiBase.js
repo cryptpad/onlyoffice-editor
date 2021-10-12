@@ -1522,7 +1522,14 @@
 
 // CryptPad print
 if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downloadType)) {
-    window.parent.APP.printPdf(dataContainer, options.callback || this.fCurCallback);
+    var _cb = options.callback || this.fCurCallback;
+    window.parent.APP.printPdf(dataContainer, function (obj) {
+        if (!obj) {
+            t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+            return;
+        }
+        _cb(obj);
+    });
     return;
 }
 
