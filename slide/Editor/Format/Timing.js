@@ -1652,7 +1652,7 @@
             oCopy.setBldAsOne(this.bldAsOne.createDuplicate(oIdMap));
         }
         if(this.bldSub) {
-            oCopy.setBldAsOne(this.bldSub.createDuplicate(oIdMap));
+            oCopy.setBldSub(this.bldSub.createDuplicate(oIdMap));
         }
     };
     CBldGraphic.prototype.privateWriteAttributes = function(pWriter) {
