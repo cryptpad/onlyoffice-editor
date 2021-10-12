@@ -8082,6 +8082,11 @@
                     return false;
                 }
             }
+            else if(val instanceof AscFormat.CUniColor) {
+                if(!val.IsIdentical(otherVal)) {
+                    return false;
+                }
+            }
         }
         for(sKey in oOtherAttributes) {
             val = oAttributes[sKey];
