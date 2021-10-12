@@ -12925,6 +12925,7 @@ CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
 	TextPr.Underline = this.Underline;
 	TextPr.Lang       = this.Lang.Copy();
 	TextPr.Spacing    = this.Spacing;
+	TextPr.RFonts     = this.RFonts.Copy();
 
 	if (oPr.custT) {
 		TextPr.FontSize = this.FontSize;
