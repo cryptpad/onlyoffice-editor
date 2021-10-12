@@ -1477,6 +1477,16 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			}
 			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand:
 			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
+
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:

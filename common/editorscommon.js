@@ -3865,7 +3865,7 @@
 	function IntToNumberFormat(nValue, nFormat)
 	{
 		var sResult = "";
-		nFormat = Asc.c_oAscNumberingFormat.JapaneseCounting; //delete
+		nFormat = Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand; //delete
 
 		switch (nFormat)
 		{
@@ -4865,6 +4865,64 @@
 					String.fromCharCode(0x516B),
 					String.fromCharCode(0x4E5D),
 				];
+				var degrees = [
+					'萬',
+					'千',
+					'百',
+					'十'
+				];
+
+				function taiwaneseCountingSplitting(numberLessThan100000) {
+					var resArr = [];
+					var copyNumber = numberLessThan100000;
+					var isGroup = {};
+					var maxDegree = Math.pow(10, degrees.length);
+
+					for (var i = 0; i < degrees.length + 1; i += 1) {
+						if (copyNumber / maxDegree >= 1) {
+							isGroup[maxDegree] = Math.floor(copyNumber / maxDegree);
+						}
+						copyNumber %= maxDegree;
+						maxDegree /= 10;
+					}
+
+					if (isGroup[10000]) {
+						resArr.push(digits[isGroup[10000] - 1]);
+						resArr.push(degrees[0]);
+					}
+
+					if (isGroup[1000]) {
+						resArr.push(digits[isGroup[1000] - 1]);
+						resArr.push('千');
+					} else {
+						if (numberLessThan100000 > 10000 && numberLessThan100000 % 10 !== 0) {
+							resArr.push('零'); //todo: think about it
+						}
+					}
+
+					if (isGroup[100]) {
+						resArr.push(digits[isGroup[100] - 1]);
+						resArr.push('百');
+					}
+
+					if (isGroup[10]) {
+						if (isGroup[10] !== 1 || numberLessThan100000 > 100) {
+							resArr.push(digits[isGroup[10] - 1]);
+						}
+						resArr.push('十');
+					} else {
+						if (numberLessThan100000 > 100 && numberLessThan100000 < 1000 && numberLessThan100000 % 10 !== 0) {
+							resArr.push('零');
+						}
+					}
+
+					if (isGroup[1]) {
+						resArr.push(digits[isGroup[1] - 1]);
+					}
+
+					return resArr;
+				}
+				sResult = taiwaneseCountingSplitting(nValue).join('');
 				break;
 			case Asc.c_oAscNumberingFormat.KoreanLegal:
 				if (nValue < 100) {
