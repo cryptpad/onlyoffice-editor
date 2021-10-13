@@ -1042,6 +1042,23 @@
     };
     CGraphicObjectBase.prototype.handleUpdatePosition = function(){
     };
+    CGraphicObjectBase.prototype.setDrawingObjects = function(drawingObjects){
+        this.drawingObjects = drawingObjects;
+        if(Array.isArray(this.spTree)) {
+            for(var i = 0; i < this.spTree.length; ++i){
+                this.spTree[i].setDrawingObjects(drawingObjects);
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.setDrawingBase = function(drawingBase){
+        this.drawingBase = drawingBase;
+        //if(Array.isArray(this.spTree)) {
+        //    for(var i = 0; i < this.spTree.length; ++i)
+        //    {
+        //        this.spTree[i].setDrawingBase(drawingBase);
+        //    }
+        //}
+    };
     CGraphicObjectBase.prototype.setDrawingBaseType = function(nType){
         if(this.drawingBase){
             History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetDrawingBaseType, this.drawingBase.Type, nType));
