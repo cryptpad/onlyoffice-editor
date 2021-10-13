@@ -2488,6 +2488,11 @@
             oVarMap = this.getVarMapForFmla();
             oVarMap["$"] = fRelTime;
             fVal1 = this.getFormulaResult(sStrVal1, oVarMap);
+            if(!AscFormat.isRealNumber(fVal1)) {
+                oVarMap = this.getVarMapForFromTo();
+                oVarMap["$"] = fRelTime;
+                fVal1 = this.getFormulaResult(sStrVal1, oVarMap);
+            }
         }
         if(!AscFormat.isRealNumber(fVal1)) {
             return null;
@@ -2504,6 +2509,11 @@
             oVarMap["$"] = fRelTime;
             var sStrVal2 = oVal2.getVal();
             fVal2 = this.getFormulaResult(sStrVal2, oVarMap);
+            if(!AscFormat.isRealNumber(fVal2)) {
+                oVarMap = this.getVarMapForFromTo();
+                oVarMap["$"] = fRelTime;
+                fVal2 = this.getFormulaResult(sStrVal2, oVarMap);
+            }
         }
         if(!AscFormat.isRealNumber(fVal2)) {
             return null;
