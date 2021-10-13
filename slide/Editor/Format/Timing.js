@@ -385,6 +385,9 @@
         oTime.setUnresolved();
         var oDurTime = this.getDur();
         if(oDurTime.isDefinite()) {
+            if(oAttr.spd !== null) {
+                oDurTime.scale(Math.abs(oAttr.spd));
+            }
             return oDurTime;
         }
         else if(oDurTime.isIndefinite()) {
@@ -736,7 +739,12 @@
     };
     CTimeNodeBase.prototype.getRelativeTime = function(nElapsedTime) {
         var oAttr = this.getAttributesObject();
-        var bAutoRev = oAttr.autoRev;
+        var oParentTimeNode = this.getParentTimeNode();
+        var oParentAttr = null;
+        if(oParentTimeNode) {
+            oParentAttr = oParentTimeNode.getAttributesObject();
+        }
+        var bAutoRev = oAttr.autoRev || (oParentAttr && oParentAttr.autoRev);
         var sTmFilter = oAttr.tmFilter;
         var fRelTime = 0.0;
         if(this.isFrozen() || this.isFinished()) {
@@ -791,6 +799,9 @@
                     aNumPairs.push([fNum1, fNum2]);
                 }
             }
+        }
+        if(oAttr.spd !== null && oAttr.spd < 0) {
+            fRelTime = 1 - fRelTime;
         }
         return fRelTime;
     };
@@ -1088,6 +1099,10 @@
     };
     CAnimationTime.prototype.divideAssign = function (nCount) {
         this.val /= nCount;
+        return this;
+    };
+    CAnimationTime.prototype.scale = function (nPrecentage) {
+        this.val = this.val * nPrecentage / 100000;
         return this;
     };
     CAnimationTime.prototype.unaryMinus = function () {
@@ -7399,14 +7414,14 @@
         var sDrawingId = oDrawing.Get_Id();
         var oSandwich = this.getSandwich(sDrawingId);
         var fScale = oGraphics.m_oCoordTransform.sx;
-        if(!oSandwich) {
-            if(!this.isDrawingHidden(sDrawingId)) {
+        if(!this.isDrawingHidden(sDrawingId)) {
+            if(!oSandwich) {
                 var oTexture = this.texturesCache.checkTexture(sDrawingId, fScale);
                 oTexture.draw(oGraphics);
             }
-        }
-        else {
-            oSandwich.drawObject(oGraphics, oDrawing, this.texturesCache);
+            else {
+                oSandwich.drawObject(oGraphics, oDrawing, this.texturesCache);
+            }
         }
     };
     CAnimationDrawer.prototype.createGraphics = function(oCanvas, oRect) {
