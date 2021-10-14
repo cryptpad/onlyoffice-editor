@@ -514,11 +514,6 @@
         });
         return oMltEffect;
     };
-    CBaseAnimObject.prototype.createCCTn_ = function(oParams) {
-        var oCCTn = new CCTn();
-        oCCTn.fillObject(oParams);
-        return oCCTn;
-    };
     CBaseAnimObject.prototype.createCCTn = function(sDur, nFill, sDelay, nNodeType, nRestart, bCreateChldLst, nAccel) {
         var oCCTn = new CCTn();
         if(sDur) {
@@ -552,6 +547,7 @@
     CBaseAnimObject.prototype.getPresentation = function() {
         return editor.WordControl.m_oLogicDocument;
     };
+    CBaseAnimObject.prototype.isAnimObject = true;
     var TIME_NODE_STATE_IDLE = 0;
     var TIME_NODE_STATE_ACTIVE = 1;
     var TIME_NODE_STATE_FROZEN = 2;
@@ -622,6 +618,9 @@
     CTimeNodeBase.prototype.getParentTimeNode = function() {
         var oCurParent = this.parent;
         while (oCurParent && !oCurParent.isTimeNode()) {
+            if(oCurParent.getObjectType() === AscDFH.historyitem_type_Timing) {
+                return null;
+            }
             oCurParent = oCurParent.parent;
         }
         return oCurParent;
@@ -1875,6 +1874,22 @@
     };
     CTiming.prototype.onAnimPaneMouseUp = function(e, x, y) {
         this.getAnimPane().onMouseUp(e, x, y);
+    };
+    CTiming.prototype.getRootSequences = function(e, x, y) {
+        var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
+        if(!oTmRoot) {
+            return [];
+        }
+        var aSeqs = [];
+        var aChildren = oTmRoot.getChildrenTimeNodes();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            var oChild = aChildren[nChild];
+            if(oChild.getObjectType() === AscDFH.historyitem_type_Seq) {
+                aSeqs.push(oChild);
+            }
+        }
+
+        return aSeqs;
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -6198,8 +6213,6 @@
     function CTimeNodeContainer() {//par, excl
         CTimeNodeBase.call(this);
         this.cTn = null;
-
-        this.mergedEffects = null;//
     }
     InitClass(CTimeNodeContainer, CTimeNodeBase, AscDFH.historyitem_type_TimeNodeContainer);
     CTimeNodeContainer.prototype.setCTn = function(pr) {
@@ -6280,6 +6293,19 @@
     };
     CTimeNodeContainer.prototype.getChildTimeNodeByType = function(nType) {
         return this.cTn.getTimeNodeByType(nType);
+    };
+
+    CTimeNodeContainer.prototype.getAllEffects = function() {
+        var aAllEffects = [];
+        this.traverse(function(oChild){
+            if(oChild.isTimeNode() && oChild.isAnimEffect()) {
+                aAllEffects.push(oChild);
+            }
+        });
+        return aAllEffects;
+    };
+    CTimeNodeContainer.prototype.getLabel = function() {
+        return "This is a sequence";
     };
 
 
@@ -9533,6 +9559,9 @@
     CControl.prototype.hide = function() {
         this.setHidden(true);
     };
+    CControl.prototype.isHidden = function() {
+        return this.hidden;
+    };
     //define shape methods
     CControl.prototype.getBodyPr = function () {
         return this.bodyPr;
@@ -9625,22 +9654,26 @@
     CControl.prototype.addToRecalculate = function() {
     };
     CControl.prototype.draw = function (graphics) {
+        if(this.isHidden()){
+            return false;
+        }
         var oUR = graphics.updatedRect;
         if(oUR && this.bounds) {
             if(!oUR.isIntersectOther(this.bounds)) {
-                return;
+                return false;
             }
         }
         AscFormat.CShape.prototype.draw.call(this, graphics);
         graphics.transform3(this.transform);
         graphics.p_width(0);
-        graphics.p_color(0, 0, 0, 255);
+        graphics.p_color(this.isHovered() ? 255 : 0, 0, 0, 255);
         graphics.rect(0, 0, this.extX, this.extY);
         graphics.ds();
+        return true;
 
     };
     CControl.prototype.hit = function(x, y) {
-        if(!this.parent.hit(x, y)) {
+        if(this.parentControl && !this.parentControl.hit(x, y)) {
             return false;
         }
         var oInv = this.invertTransform;
@@ -9648,12 +9681,34 @@
         var ty = oInv.TransformPointY(x, y);
         return tx >= 0 && tx <= this.extX && ty >= 0 && ty <= this.extY;
     };
+    CControl.prototype.isHovered = function() {
+        return this.getStateFlag(STATE_FLAG_HOVERED);
+    };
+    CControl.prototype.setStateFlag = function(nFlag, bValue) {
+        if(bValue) {
+            this.state |= nFlag;
+        }
+        else {
+            this.state &= (~nFlag);
+        }
+    };
+    CControl.prototype.setHoverState = function() {
+        this.setStateFlag(STATE_FLAG_HOVERED, true);
+        this.onUpdate(this.getBounds());
+    };
+    CControl.prototype.setNotHoverState = function() {
+        this.setStateFlag(STATE_FLAG_HOVERED, false);
+        this.onUpdate(this.getBounds());
+    };
+    CControl.prototype.getStateFlag = function(nFlag) {
+        return (this.state & nFlag) !== 0;
+    };
     CControl.prototype.onMouseMove = function (e, x, y) {
         if(e.IsLocked) {
             return false;
         }
         var bHover = this.hit(x, y);
-        var bRet = bHover !== this.isHovered;
+        var bRet = bHover !== this.isHovered();
         if(bHover) {
             this.setHoverState();
         }
@@ -9664,13 +9719,17 @@
     };
     CControl.prototype.onMouseDown = function (e, x, y) {
         if(this.hit(x, y)) {
-            this.parent.setEventListener(this);
+            if(this.parentControl) {
+                this.parentControl.setEventListener(this);
+            }
             return true;
         }
         return false;
     };
     CControl.prototype.onMouseUp = function (e, x, y) {
-        this.parent.setEventListener(null);
+        if(this.parentControl) {
+            this.parentControl.setEventListener(null);
+        }
         return false;
     };
     CControl.prototype.onUpdate = function(oBounds) {
@@ -9726,7 +9785,7 @@
     };
     CControl.prototype.convertRelToAbs = function(oPos) {
         var oAbsPos = {x: oPos.x, y: oPos.y};
-        var oParent = this.parentControl;
+        var oParent = this;
         while(oParent) {
             oAbsPos.x += oParent.getLeft();
             oAbsPos.y += oParent.getTop();
@@ -9736,7 +9795,7 @@
     };
     CControl.prototype.convertAbsToRel = function(oPos) {
         var oRelPos = {x: oPos.x, y: oPos.y};
-        var oParent = this.parentControl;
+        var oParent = this;
         while(oParent) {
             oRelPos.x -= oParent.getLeft();
             oRelPos.y -= oParent.getTop();
@@ -9759,15 +9818,27 @@
     CControl.prototype.setParentControl = function(v) {
         this.parentControl = v;
     };
+    CControl.prototype.getTiming = function() {
+        var oCurControl = this;
+        while(!oCurControl.timing) {
+            oCurControl = oCurControl.parentControl;
+        }
+        return oCurControl.timing;
+    };
 
     function CControlContainer(oParentControl) {
         CControl.call(this, oParentControl);
         this.children = [];
         this.recalcInfo.recalculateChildrenLayout = true;
+        this.recalcInfo.recalculateChildren = true;
+
+        this.eventListener = null;
     }
     InitClass(CControlContainer, CControl, CONTROL_TYPE_UNKNOWN);
-    CControlContainer.prototype.clean = function() {
-        this.children.length = 0;
+    CControlContainer.prototype.clear = function() {
+        for(var nIdx = this.children.length - 1; nIdx > -1; --nIdx) {
+            this.removeControl(this.children[nIdx]);
+        }
     };
     CControlContainer.prototype.addControl = function(oChild) {
         var oLast = this.children[this.children.length - 1];
@@ -9833,8 +9904,14 @@
     };
     CControlContainer.prototype.recalculateChildrenLayout = function() {
     };
+    CControlContainer.prototype.recalculateChildren = function() {
+    };
     CControlContainer.prototype.recalculate = function() {
         CControl.prototype.recalculate.call(this);
+        if(this.recalcInfo.recalculateChildren) {
+            this.recalculateChildren();
+            this.recalcInfo.recalculateChildren = false;
+        }
         if(this.recalcInfo.recalculateChildrenLayout) {
             this.recalculateChildrenLayout();
             this.recalcInfo.recalculateChildrenLayout = false;
@@ -9847,34 +9924,69 @@
         CControl.prototype.setLayout.call(this, dX, dY, dExtX, dExtY);
         this.recalcInfo.recalculateChildrenLayout = true;
     };
+    CControlContainer.prototype.handleUpdateExtents = function() {
+        this.recalcInfo.recalculateChildrenLayout = true;
+        CControl.prototype.handleUpdateExtents.call(this);
+    };
+    CControlContainer.prototype.setEventListener = function(oChild) {
+        if(oChild) {
+            this.eventListener = oChild;
+            if(this.parentControl) {
+                this.parentControl.setEventListener(this);
+            }
+        }
+        else {
+            this.eventListener = null;
+            if(this.parentControl) {
+                this.parentControl.setEventListener(null);
+            }
+        }
+    };
+    CControlContainer.prototype.onMouseDown = function(e, x, y) {
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            if(this.children[nChild].onMouseDown(e, x, y)) {
+                return true;
+            }
+        }
+        return CControl.prototype.onMouseDown.call(this, e, x, y);
+    };
+    CControlContainer.prototype.onMouseMove = function(e, x, y) {
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            if(this.children[nChild].onMouseMove(e, x, y)) {
+                return true;
+            }
+        }
+        return CControl.prototype.onMouseMove.call(this, e, x, y);
+    };
+    CControlContainer.prototype.onMouseUp = function(e, x, y) {
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            if(this.children[nChild].onMouseUp(e, x, y)) {
+                return true;
+            }
+        }
+        return CControl.prototype.onMouseUp.call(this, e, x, y);
+    };
 
     function CSeqListContainer(oParentControl) {
         CControlContainer.call(this, oParentControl);
         this.seqList = this.addControl(new CSeqList(this));
         this.scrollVert = this.addControl(new CScrollVert(this));
-        this.recalcInfo.recalculateSeqList = true;
-        this.recalcInfo.recalculateScrollVer = true;
     }
     InitClass(CSeqListContainer, CControlContainer, CONTROL_TYPE_SEQ_LIST_CONTAINER);
     CSeqListContainer.prototype.getAnimCaptionRightPos = function() {
         return this.parentControl.getAnimCaptionRightPos();
     };
-
-    CSeqListContainer.prototype.recalculateSeqList = function() {
+    CSeqListContainer.prototype.recalculateChildrenLayout = function() {
+        this.seqList.setLayout(0, 0, this.getWidth(), 0);
         this.seqList.recalculate();
-    };
-    CSeqListContainer.prototype.recalculateScrollVer = function() {
-        this.scrollVert.recalculate();
-    };
-    CSeqListContainer.prototype.recalculate = function() {
-        CControlContainer.prototype.recalculate.call(this);
-        if(this.recalcInfo.recalculateSeqList) {
-            this.recalculateSeqList();
-            this.recalcInfo.recalculateSeqList = false;
+        if(this.seqList.getHeight() > this.getHeight()) {
+            this.scrollVert.show();
+            this.scrollVert.setLayout(this.getWidth() - SCROLL_THICKNESS, 0, SCROLL_THICKNESS, this.getHeight());
+            this.seqList.setLayout(0, 0, this.getWidth() - this.scrollVert.getWidth(), 0);
+            this.seqList.recalculate();
         }
-        if(this.recalcInfo.recalculateScrollVer) {
-            this.recalculateScrollVer();
-            this.recalcInfo.recalculateScrollVer = false;
+        else {
+            this.scrollVert.hide();
         }
     };
 
@@ -9895,19 +10007,42 @@
 
     function CSeqList(oParentControl) {
         CControlContainer.call(this, oParentControl);
+        this.sequences = this.children;
     }
     InitClass(CSeqList, CControlContainer, CONTROL_TYPE_SEQ_LIST);
     CSeqList.prototype.getIndexLabelRight = function() {
         return 10;//TODO
     };
     CSeqList.prototype.getAnimCaptionRightPos = function() {
-        return this.parentControl.getAnimCaptionRightPos() - this.getLeft();
+        return {x: this.parentControl.getAnimCaptionRightPos().x - this.getLeft(), y: 0};
+    };
+    CSeqList.prototype.recalculateChildren = function() {
+        this.clear();
+        var oTiming = this.getTiming();
+        var aAllSeqs = oTiming.getRootSequences();
+        var oLastSeqView = null;
+        for(var nSeq = 0; nSeq < aAllSeqs.length; ++nSeq) {
+            var oSeqView = new CAnimSequence(this, aAllSeqs[nSeq]);
+            this.addControl(oSeqView);
+            oLastSeqView = oSeqView;
+        }
+    };
+    CSeqList.prototype.recalculateChildrenLayout = function() {
+        var dLastBottom = 0;
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            var oSeq = this.children[nChild];
+            oSeq.setLayout(0, dLastBottom, this.getWidth(), 0);
+            oSeq.recalculate();
+            dLastBottom = oSeq.getBottom();
+        }
+        this.setLayout(this.getLeft(), this.getTop(), this.getWidth(), dLastBottom);
     };
 
-    function CAnimSequence(oParentControl) {//main seq, interactive seq
+    function CAnimSequence(oParentControl, oSeq) {//main seq, interactive seq
         CControlContainer.call(this, oParentControl);
-        this.label = this.addControl(new CLabel(this, "seq"));
-        this.groupList = this.addControl(new CAnimGroupList(this));
+        this.seq = oSeq;
+        this.label = null; //this.addControl(new CLabel(this, "seq"));
+        this.groupList = null;//this.addControl(new CAnimGroupList(this));
     }
     InitClass(CAnimSequence, CControlContainer, CONTROL_TYPE_ANIM_SEQ);
     CAnimSequence.prototype.getIndexLabelRight = function() {
@@ -9915,6 +10050,34 @@
     };
     CAnimSequence.prototype.getAnimCaptionRightPos = function() {
         return this.parentControl.getAnimCaptionRightPos();
+    };
+    CAnimSequence.prototype.recalculateChildren = function() {
+        this.clear();
+        var sLabel = this.seq.getLabel();
+        if(typeof sLabel === "string" && sLabel.length > 0) {
+            this.label = this.addControl(new CLabel(this, sLabel, 12));
+        }
+        else {
+            this.label = null;
+        }
+        this.groupList = this.addControl(new CAnimGroupList(this));
+    };
+    CAnimSequence.prototype.getSeq = function() {
+        return this.seq;
+    };
+    CAnimSequence.prototype.recalculateChildrenLayout = function() {
+        var dCurY = 0;
+        if(this.label) {
+            this.label.setLayout(0, dCurY, this.getWidth(), SEQ_LABEL_HEIGHT);
+            this.label.recalculate();
+            dCurY += this.label.getHeight();
+        }
+        if(this.groupList) {
+            this.groupList.setLayout(0, dCurY, this.getWidth(), 0);
+            this.groupList.recalculate();
+            dCurY += this.groupList.getHeight();
+        }
+        this.setLayout(this.getLeft(), this.getTop(), this.getWidth(), dCurY);
     };
     function CAnimGroupList(oParentControl) {//main seq, interactive seq
         CControlContainer.call(this, oParentControl);
@@ -9926,8 +10089,34 @@
     CAnimGroupList.prototype.getAnimCaptionRightPos = function() {
         return this.parentControl.getAnimCaptionRightPos();
     };
+    CAnimGroupList.prototype.getSeq = function() {
+        return this.parentControl.getSeq();
+    };
+    CAnimGroupList.prototype.recalculateChildren = function() {
+        this.clear();
+        var oSeq = this.getSeq();
+        var aAllEffects = oSeq.getAllEffects();
 
-    function CAnimGroup(oParentControl) {
+        for(var nCurEffect = 0; nCurEffect < aAllEffects.length; ++nCurEffect) {
+            var oItem = new CAnimItem(this, aAllEffects[nCurEffect]);
+            this.addControl(oItem);
+        }
+    };
+
+    //CAnimGroupList.prototype.draw = function() {
+    //};
+    CAnimGroupList.prototype.recalculateChildrenLayout = function() {
+        var dLastBottom = 0;
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            var oChild = this.children[nChild];
+            oChild.setLayout(0, dLastBottom, this.getWidth(), ANIM_ITEM_HEIGHT);
+            oChild.recalculate();
+            dLastBottom = oChild.getBottom();
+        }
+        this.setLayout(this.getLeft(), this.getTop(), this.getWidth(), dLastBottom);
+    };
+
+    function CAnimGroup(oParentControl, aEffects) {
         CControlContainer.call(this, oParentControl);
     }
     InitClass(CAnimGroup, CControlContainer, CONTROL_TYPE_ANIM_GROUP);
@@ -9939,20 +10128,24 @@
         CControl.call(this, oParentControl)
     }
     InitClass(CImageControl, CControl, CONTROL_TYPE_IMAGE);
+    //CImageControl.prototype.draw = function() {
+    //};
 
     function CEffectBar(oParentControl) {
         CControl.call(this, oParentControl)
     }
     InitClass(CEffectBar, CControl, CONTROL_TYPE_EFFECT_BAR);
 
-    function CAnimItem(oParentControl) {
+    function CAnimItem(oParentControl, oEffect) {
         CControlContainer.call(this, oParentControl);
-        this.indexLabel = this.addControl(new CLabel(this, "1"));
+        this.indexLabel = this.addControl(new CLabel(this, "1", 12));
         this.eventTypeImage = this.addControl(new CImageControl(this));
         this.effectTypeImage = this.addControl(new CImageControl(this));
-        this.effectLabel = this.addControl(new CLabel(this, "Effect Label"));
+        this.effectLabel = this.addControl(new CLabel(this, "Effect Label", 12));
         this.effectBar = this.addControl(new CEffectBar(this));
         this.contextMenuButton = this.addControl(new CButton(this));
+
+        this.effect = oEffect;
     }
     InitClass(CAnimItem, CControlContainer, CONTROL_TYPE_ANIM_ITEM);
     CAnimItem.prototype.getIndexLabelRight = function() {
@@ -9967,20 +10160,30 @@
         var dIndexLabelRight = this.getIndexLabelRight();
         var dYInside = (this.getHeight() - EFFECT_BAR_HEIGHT) / 2;
         this.indexLabel.setLayout(0, dYInside, dIndexLabelRight, EFFECT_BAR_HEIGHT);
-        this.eventTypeImage.setLayout(this.indexLabel.getLeft(), dYInside, EFFECT_BAR_HEIGHT, EFFECT_BAR_HEIGHT);
-        this.effectTypeImage.setLayout(this.eventTypeImage.getLeft(), dYInside, EFFECT_BAR_HEIGHT, EFFECT_BAR_HEIGHT);
+        this.eventTypeImage.setLayout(this.indexLabel.getRight(), dYInside, EFFECT_BAR_HEIGHT, EFFECT_BAR_HEIGHT);
+        this.effectTypeImage.setLayout(this.eventTypeImage.getRight(), dYInside, EFFECT_BAR_HEIGHT, EFFECT_BAR_HEIGHT);
         var dLabelRight = this.getEffectLabelRight();
         var dEffectLabelLeft = this.effectTypeImage.getRight();
-        this.effectLabel.setLayout(dEffectLabelLeft, dYInside, EFFECT_BAR_HEIGHT, dLabelRight - dEffectLabelLeft);
+        this.effectLabel.setLayout(dEffectLabelLeft, dYInside, dLabelRight - dEffectLabelLeft, EFFECT_BAR_HEIGHT);
         this.effectBar.setLayout(0, 0, 0, 0);//todo
-        this.contextMenuButton.setLayout(this.getRight() - HORIZONTAL_SPACE, dYInside, EFFECT_BAR_HEIGHT, EFFECT_BAR_HEIGHT);
+        var dRightSpace = dYInside;
+        this.contextMenuButton.setLayout(this.getRight() - dRightSpace - EFFECT_BAR_HEIGHT, dYInside, EFFECT_BAR_HEIGHT, EFFECT_BAR_HEIGHT);
     };
 
-    function CLabel(oParentControl, sString) {
+    //CAnimItem.prototype.draw = function() {
+    //};
+
+    function CLabel(oParentControl, sString, nFontSize) {
         CControl.call(this, oParentControl);
         AscFormat.ExecuteNoHistory(function(){
             this.string = sString;
+            this.fontSize = nFontSize;
             this.createTextBody();
+            var oTxLstStyle = new AscFormat.TextListStyle();
+            oTxLstStyle.levels[0] =  new CParaPr();
+            oTxLstStyle.levels[0].DefaultRunPr = new AscCommonWord.CTextPr();
+            oTxLstStyle.levels[0].DefaultRunPr.FontSize = nFontSize;
+            this.txBody.setLstStyle(oTxLstStyle);
             this.bodyPr = new AscFormat.CBodyPr();
             this.bodyPr.setDefault();
             this.bodyPr.anchor = 1;//vertical align ctr
@@ -10012,7 +10215,7 @@
 
     function CHeader(oParentControl) {
         CControlContainer.call(this, oParentControl);
-        this.label = this.addControl(new CLabel(this, "Animation Pane"));
+        this.label = this.addControl(new CLabel(this, "Animation Pane", 14));
         this.taskButton = this.addControl(new CButton(this));
         this.closeButton = this.addControl(new CButton(this));
     }
@@ -10085,6 +10288,7 @@
         return SCROLL_BUTTON_SIZE;
     };
     CTimeline.prototype.getAnimCaptionRightPos = function() {
+       // return this.convertRelToAbs({x: this.getPaneLeft(), y: 0});
         return this.convertRelToAbs({x: this.getPaneLeft(), y: 0});
     };
 
@@ -10102,9 +10306,10 @@
     var TIMELINE_HEIGHT = SCROLL_THICKNESS + 1;
     var BUTTON_SPACE = HORIZONTAL_SPACE / 2;
     var TOOLBAR_WIDTH = 25;
-    var ANIM_LABEL_WIDTH = 30;
+    var ANIM_LABEL_WIDTH = 40;
     var ANIM_ITEM_HEIGHT = TIMELINE_HEIGHT;
     var EFFECT_BAR_HEIGHT = 2*ANIM_ITEM_HEIGHT/3;
+    var SEQ_LABEL_HEIGHT = EFFECT_BAR_HEIGHT;
 
 
     function CAnimPane(oTiming) {
@@ -10138,15 +10343,6 @@
     };
     CAnimPane.prototype.onChanged = function(oRect) {
         this.timing.onAnimPaneChanged(oRect);
-    };
-    CAnimPane.prototype.onMouseDown = function(e, x, y) {
-
-    };
-    CAnimPane.prototype.onMouseMove = function(e, x, y) {
-
-    };
-    CAnimPane.prototype.onMouseUp = function(e, x, y) {
-
     };
     CAnimPane.prototype.onResize = function() {
         this.setLayout(
