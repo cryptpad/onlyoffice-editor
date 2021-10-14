@@ -1847,7 +1847,7 @@
                 aButtons.push(AscCommon.PlaceholderButtonType.Table);
                 aButtons.push(AscCommon.PlaceholderButtonType.Chart);
                 aButtons.push(AscCommon.PlaceholderButtonType.Image);
-                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                //aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
                 if(isLocalDesktop)
                 {
                     aButtons.push(AscCommon.PlaceholderButtonType.Video);
@@ -1867,7 +1867,7 @@
             case AscFormat.phType_clipArt:
             {
                 aButtons.push(AscCommon.PlaceholderButtonType.Image);
-                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                //aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
                 break;
             }
             case AscFormat.phType_ctrTitle:
@@ -1904,7 +1904,7 @@
                 aButtons.push(AscCommon.PlaceholderButtonType.Table);
                 aButtons.push(AscCommon.PlaceholderButtonType.Chart);
                 aButtons.push(AscCommon.PlaceholderButtonType.Image);
-                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                //aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
                 if(isLocalDesktop)
                 {
                     aButtons.push(AscCommon.PlaceholderButtonType.Video);
@@ -1916,13 +1916,13 @@
             {
 
                 aButtons.push(AscCommon.PlaceholderButtonType.Image);
-                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                //aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
                 break;
             }
             case AscFormat.phType_sldImg:
             {
                 aButtons.push(AscCommon.PlaceholderButtonType.Image);
-                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                //aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
                 break;
             }
             case AscFormat.phType_sldNum:

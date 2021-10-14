@@ -1592,7 +1592,7 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
                         console.log("AddImageCallback");
 			t.asc_addImageCallback(res);
 			// This method activats the image
-			t._addImageUrl([res.url]);
+			t._addImageUrl([res.url], obj);
 			// t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 		}, function() {
 			// t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
