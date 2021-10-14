@@ -2313,6 +2313,7 @@
         var oFirstTav;
         var oSecondTav;
         var oTav;
+        var fTimeInsideInterval;
         if(this.tavLst) {
             var aTav = this.tavLst.list;
             if(aTav.length > 0) {
@@ -2326,10 +2327,20 @@
                 }
                 if(nTav > -1) {
                     oTav = aTav[nTav];
-                    val = this.calculateBetweenTwoVals(oTav.val, oTav.val, 0);
                     if(aTav[nTav - 1]) {
                         sFmla = aTav[nTav - 1].fmla;
                     }
+                    oFirstTav = oTav;
+                    oSecondTav = oTav;
+                    fTimeInsideInterval = 0;
+                    if(nTav === 0) {
+                        if(aTav[nTav + 1] && AscFormat.fApproxEqual(aTav[nTav + 1].getTime(), oTav.getTime())) {
+                            oSecondTav = aTav[nTav + 1];
+                            sFmla = oTav.fmla;
+                            fTimeInsideInterval = (fRelTime) / (oSecondTav.getTime());
+                        }
+                    }
+                    val = this.calculateBetweenTwoVals(oFirstTav.val, oSecondTav.val, fTimeInsideInterval);
                 }
                 else {
                     for(nTav = 1; nTav < aTav.length; ++nTav) {
@@ -2363,7 +2374,7 @@
                                 oFirstTav = aTav[nTav - 1];
                                 oSecondTav = aTav[nTav];
                                 sFmla = oFirstTav.fmla;
-                                var fTimeInsideInterval = (fRelTime - aTav[nTav - 1].getTime()) / (aTav[nTav].getTime() - aTav[nTav - 1].getTime());
+                                fTimeInsideInterval = (fRelTime - aTav[nTav - 1].getTime()) / (aTav[nTav].getTime() - aTav[nTav - 1].getTime());
                                 val = this.calculateBetweenTwoVals(oFirstTav.val, oSecondTav.val, fTimeInsideInterval);
                             }
                         }
