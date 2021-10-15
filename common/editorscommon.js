@@ -4838,12 +4838,187 @@
 			case Asc.c_oAscNumberingFormat.BahtText:
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
+				var arrAnswer = [];
+				var lang = 'en';
+
+				switch (lang) {
+					case 'ru-Ru':
+						var alphaBet = {
+							1: {
+								1: 'один',
+								2: 'два',
+								3: 'три',
+								4: 'четыре',
+								5: 'пять',
+								6: 'шесть',
+								7: 'семь',
+								8: 'восемь',
+								9: 'девять',
+								10: 'десять',
+								11: 'одиннадцать',
+								12: 'двенадца',
+								13: '',
+								14: '',
+								15: '',
+								16: '',
+								17: '',
+								18: '',
+								19: '',
+							}
+						}
+						break;
+					case 'en': {
+						var other = [
+							'twent',
+							'thirt',
+							'fourt',
+							'fift',
+							'sixt',
+							'sevent',
+							'eight',
+							'ninet',
+						];
+						var degrees = {
+							100: 'hundred',
+							1000: 'thousand'
+						}
+						alphaBet =
+								[
+								 'one',
+								 'two',
+								 'three',
+								 'four',
+								 'five',
+								 'six',
+								 'seven',
+								 'eight',
+								 'nine',
+								 'ten',
+								 'eleven',
+								 'twelve'
+												]
+						function letterNumberLessThen100(num) {
+							if (num > 0 && num < 100) {
+								if (num <= 12) {
+									return alphaBet[num - 1];
+								} else if (num < 20) {
+									return other[(num % 10) - 2] + 'een';
+								} else {
+									var resString = '';
+									resString += other[Math.floor(num / 10) - 2] + 'y';
+									if (num % 10 !== 0) {
+										resString += '-' + alphaBet[(num % 10) - 1];
+									}
+									return resString;
+								}
+							}
+							return '';
+						}
+
+						function letterNumberLessThen1000(num) {
+							var res = [];
+							var hundred = Math.floor(num / 100);
+							if (hundred) {
+								res.push(letterNumberLessThen100(hundred));
+								res.push(degrees[100]);
+							}
+							num %= 100;
+							res.push(letterNumberLessThen100(num));
+							return res.join(' ');
+						}
+
+						function cardinalSplitting(numberLessThan1_000_000) {
+							var res = [];
+							var thousand = Math.floor(numberLessThan1_000_000 / 1000);
+							numberLessThan1_000_000 %= 1000;
+							if (thousand) {
+								res.push(letterNumberLessThen1000(thousand));
+								res.push(degrees[1000]);
+							}
+							res.push(letterNumberLessThen1000(numberLessThan1_000_000));
+							return res.join(' ');
+						}
+						if (nValue < 1000000) {
+							sResult = cardinalSplitting(nValue);
+						}
+						break;
+					}
+				}
 				break;
 			// case Asc.c_oAscNumberingFormat.Custom:
 			// 	break;
 			case Asc.c_oAscNumberingFormat.DollarText:
 				break;
-			case Asc.c_oAscNumberingFormat.Hebrew1: // todo: simly
+			case Asc.c_oAscNumberingFormat.Hebrew1: // todo: Считается неправильно, но в ворде так же (исправить, когда поправят в ворде)
+				var resArr = [];
+				var digits = {
+					1000: [
+						String.fromCharCode(0x05D0),
+						String.fromCharCode(0x05D1),
+						String.fromCharCode(0x05D2),
+						String.fromCharCode(0x05D3),
+						String.fromCharCode(0x05D4),
+						String.fromCharCode(0x05D5),
+						String.fromCharCode(0x05D6),
+						String.fromCharCode(0x05D7),
+						String.fromCharCode(0x05D8)
+
+					],
+					100: [
+						String.fromCharCode(0x05E7),
+						String.fromCharCode(0x05E8),
+						String.fromCharCode(0x05E9),
+						String.fromCharCode(0x05EA),
+						String.fromCharCode(0x05DA),
+						String.fromCharCode(0x05DD),
+						String.fromCharCode(0x05DF),
+						String.fromCharCode(0x05E3),
+						String.fromCharCode(0x05E5)
+
+					],
+					10: [
+						String.fromCharCode(0x05d9),
+						String.fromCharCode(0x05DB),
+						String.fromCharCode(0x05DC),
+						String.fromCharCode(0x05DE),
+						String.fromCharCode(0x05E0),
+						String.fromCharCode(0x05E1),
+						String.fromCharCode(0x05E2),
+						String.fromCharCode(0x05E4),
+						String.fromCharCode(0x05E6)
+
+					],
+					1: [
+						String.fromCharCode(0x05d0),
+						String.fromCharCode(0x05d1),
+						String.fromCharCode(0x05d2),
+						String.fromCharCode(0x05d3),
+						String.fromCharCode(0x05d4),
+						String.fromCharCode(0x05D5),
+						String.fromCharCode(0x05D6),
+						String.fromCharCode(0x05d7),
+						String.fromCharCode(0x05D8)
+					],
+				}
+				nValue = ((nValue - 1) % 392) + 1;
+
+				if (nValue % 100 === 15) {
+					nValue -= 15;
+					resArr.push('וט');
+				} else if (nValue % 100 === 16) {
+					nValue -= 16;
+					resArr.push('זט');
+				}
+				var nValueString = '' + nValue;
+
+				for (var i = nValueString.length - 1; i >= 0; i -= 1) {
+					var degree = Math.pow(10, nValueString.length - i - 1);
+					if (nValueString[i] !== '0') {
+						resArr.push(digits[degree][+nValueString[i] - 1]);
+					}
+				}
+
+				sResult = resArr.join('');
 				break;
 			case Asc.c_oAscNumberingFormat.HindiCounting:
 				break;
