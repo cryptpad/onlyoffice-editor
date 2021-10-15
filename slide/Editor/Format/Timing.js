@@ -9895,12 +9895,19 @@
     };
     CControlContainer.prototype.draw = function(graphics) {
         if(!this.checkUpdateRect(graphics.updateRect)) {
-            return;
+            return false;
         }
         CControl.prototype.draw.call(this, graphics);
+        this.clipStart(graphics);
         for(var nChild = 0; nChild < this.children.length; ++nChild) {
             this.children[nChild].draw(graphics);
         }
+        this.clipEnd(graphics);
+        return true;
+    };
+    CControlContainer.prototype.clipStart = function(graphics) {
+    };
+    CControlContainer.prototype.clipEnd = function(graphics) {
     };
     CControlContainer.prototype.recalculateChildrenLayout = function() {
     };
@@ -9970,11 +9977,14 @@
     function CSeqListContainer(oParentControl) {
         CControlContainer.call(this, oParentControl);
         this.seqList = this.addControl(new CSeqList(this));
-        this.scrollVert = this.addControl(new CScrollVert(this));
+        this.scrollVert = this.addControl(new CScrollVert(this, this, this.seqList));
     }
     InitClass(CSeqListContainer, CControlContainer, CONTROL_TYPE_SEQ_LIST_CONTAINER);
     CSeqListContainer.prototype.getAnimCaptionRightPos = function() {
         return this.parentControl.getAnimCaptionRightPos();
+    };
+    CSeqListContainer.prototype.getScrollOffsetY = function() {
+        return this.scrollVert.getScrollOffset();
     };
     CSeqListContainer.prototype.recalculateChildrenLayout = function() {
         this.seqList.setLayout(0, 0, this.getWidth(), 0);
@@ -9989,21 +9999,94 @@
             this.scrollVert.hide();
         }
     };
+    CSeqListContainer.prototype.clipStart = function(graphics) {
+        if(!this.scrollVert.isHidden()) {
+            graphics.SaveGrState();
+            graphics.transform3(this.transform);
+            graphics.SaveGrState();
+            graphics.AddClipRect(0, 0, this.getWidth(), this.getHeight());
+        }
+    };
+    CSeqListContainer.prototype.clipEnd = function(graphics) {
+        if(!this.scrollVert.isHidden()) {
+            graphics.RestoreGrState();
+        }
+    };
 
-    function CScrollBase(oParentControl) {
+    function CScrollBase(oParentControl, oContainer, oChild) {
         CControlContainer.call(this, oParentControl);
+        this.addControl(new CButton(this));//left or top button
+        this.addControl(new CButton(this));//right or bottom button
+        this.container = oContainer;
+        this.scrolledChild = oChild;
+        this.scrollOffset = 0;
     }
     InitClass(CScrollBase, CControlContainer, CONTROL_TYPE_UNKNOWN);
+    CScrollBase.prototype.getScrollOffset = function() {
+        this.checkOffset();
+        return this.scrollOffset;
+    };
+    CScrollBase.prototype.checkOffset = function() {
+    };
 
-    function CScrollVert(oParentControl) {
-        CScrollBase.call(this, oParentControl);
+    function CScrollVert(oParentControl, oContainer, oChild) {
+        CScrollBase.call(this, oParentControl, oContainer, oChild);
+        this.topButton = this.children[0];
+        this.bottomButton = this.children[1];
     }
     InitClass(CScrollVert, CScrollBase, CONTROL_TYPE_SCROLL_VERT);
+    CScrollVert.prototype.checkOffset = function() {
+        var dContainerHeight = this.container.getHeight();
+        var dChildHeight = this.scrolledChild.getHeight();
+        this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, dContainerHeight - dChildHeight));
+    };
+    CScrollVert.prototype.recalculateChildrenLayout = function() {
+        this.topButton.setLayout(0, 0, SCROLL_BUTTON_SIZE, SCROLL_BUTTON_SIZE);
+        this.bottomButton.setLayout(0, this.getHeight() - SCROLL_BUTTON_SIZE, SCROLL_BUTTON_SIZE, SCROLL_BUTTON_SIZE);
+    };
+    CScrollVert.prototype.getRailHeight = function() {
+        return this.getHeight() - this.topButton.getHeight() - this.bottomButton.getHeight();
+    };
+    CScrollVert.prototype.draw = function(graphics) {
+        if(!CScrollBase.prototype.draw.call(this, graphics)) {
+            return false;
+        }
 
-    function CScrollHor(oParentControl) {
-        CScrollBase.call(this, oParentControl);
+        var dScrollerHeight;
+
+        var dRailH = this.getRailHeight();
+        var dMinRailH = dRailH / 4;
+        dScrollerHeight = Math.max(dMinRailH, dRailH * (dRailH / this.scrolledChild.getHeight()));
+        var x = 0;
+        var y = this.topButton.getBottom() + 0;
+        var extX = this.getWidth();
+        var extY = dScrollerHeight;
+        graphics.SaveGrState();
+        graphics.transform3(this.transform);
+        graphics.p_color(0xCE, 0xCE, 0xCE, 0xFF);
+        var nColor = 0xCCCCC;
+        graphics.b_color1((nColor >> 16) & 0xFF, (nColor >> 8) & 0xFF, nColor & 0xFF, 0xFF);
+        graphics.rect(x, y, extX, extY);
+        graphics.df();
+
+        graphics.p_width(0);
+        graphics.drawHorLine(0, y, x, x + extX, 0);
+        graphics.drawHorLine(0, y + extY, x, x + extX, 0);
+        graphics.drawVerLine(2, x, y, y + extY, 0);
+        graphics.drawVerLine(2, x + extX, y, y + extY, 0);
+        graphics.RestoreGrState();
+        return true;
+    };
+
+    function CScrollHor(oParentControl, oContainer, oChild) {
+        CScrollBase.call(this, oParentControl, oContainer, oChild);
     }
     InitClass(CScrollHor, CScrollBase, CONTROL_TYPE_SCROLL_HOR);
+    CScrollHor.prototype.checkOffset = function() {
+        var dContainerWidth = this.container.getWidth();
+        var dChildWidth = this.scrolledChild.getWidth();
+        this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, dContainerWidth - dChildWidth));
+    };
 
     function CSeqList(oParentControl) {
         CControlContainer.call(this, oParentControl);

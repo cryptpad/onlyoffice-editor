@@ -6794,6 +6794,7 @@ function CAnimationPaneDrawer(page)
 		g.init(ctx, w_px, h_px, w_mm, h_mm);
 		g.m_oFontManager = oThis.fontManager;
 
+		g.SaveGrState();
 		if (AscCommon.GlobalSkin.Type === "dark")
 		{
 			g.darkModeOverride();
@@ -6802,6 +6803,7 @@ function CAnimationPaneDrawer(page)
 		{
 			oPresentation.DrawAnimPane(g);
 		}
+		g.RestoreGrState();
 	};
 
 	oThis.CheckPaint = function ()
