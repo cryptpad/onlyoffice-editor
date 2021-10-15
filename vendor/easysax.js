@@ -1483,6 +1483,7 @@ function XmlParserContext(){
     this.drawingId = null;
 }
 XmlParserContext.prototype.initFromWS = function(ws) {
+    this.ws = ws;
     this.row = new AscCommonExcel.Row(ws);
     this.cellValue = new AscCommonExcel.CT_Value();
     this.cellBase = new AscCommon.CellBase(0,0);

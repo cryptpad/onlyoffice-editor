@@ -261,6 +261,7 @@
 			"common/Drawings/Format/OleObject.js",
 			"common/Drawings/Format/DrawingContent.js",
 			"common/plugins.js",
+			"common/xmlStructs.js",
 			
 			"common/Native/native_graphics.js"
 		],

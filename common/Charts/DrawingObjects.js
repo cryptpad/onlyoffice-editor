@@ -419,6 +419,24 @@ function CCellObjectInfo () {
 	this.colOffPx = 0;
 	this.rowOffPx = 0;
 }
+CCellObjectInfo.prototype.fromXml = function(reader) {
+	var depth = reader.GetDepth();
+	while (reader.ReadNextSiblingNode(depth)) {
+		if ("col" === reader.GetNameNoNS()) {
+			this.col = parseInt(reader.GetValue());
+		} else if ("colOff" === reader.GetNameNoNS()) {
+			this.colOff = parseFloat(reader.GetValue());
+		} else if ("row" === reader.GetNameNoNS()) {
+			this.row = parseInt(reader.GetValue());
+		} else if ("rowOff" === reader.GetNameNoNS()) {
+			this.rowOff = parseFloat(reader.GetValue());
+		}
+	}
+}
+CCellObjectInfo.prototype.initAfterSerialize = function() {
+	this.row = Math.max(0, this.row);
+	this.row = Math.max(0, this.row);
+}
 
 /** @constructor */
 function asc_CChartBinary(chart) {
@@ -1795,6 +1813,88 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
         this.graphicObject.handleObject(fCallback);
     };
+	DrawingBase.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("from" === reader.GetNameNoNS()) {
+				this.from.fromXml(reader);
+			} else if ("to" === reader.GetNameNoNS()) {
+				this.to.fromXml(reader);
+			} else if ("pic" === reader.GetNameNoNS()) {
+
+			}
+			//todo
+		}
+
+		var ws = reader.getContext().ws;
+		this.initAfterSerialize(ws);
+	};
+	DrawingBase.prototype.readAttr = function(reader) {
+		var name = reader.GetNameNoNS();
+		switch (name) {
+			case "twoCellAnchor":
+				this.Type = c_oAscCellAnchorType.cellanchorTwoCell;
+				break;
+			case "oneCellAnchor":
+				this.Type = c_oAscCellAnchorType.cellanchorOneCell;
+				break;
+			case "absoluteAnchor":
+				this.Type = c_oAscCellAnchorType.cellanchorAbsolute;
+				break;
+		}
+		while (reader.MoveToNextAttribute()) {
+			if ("editAs" === reader.GetNameNoNS()) {
+				var editAs = reader.GetValue();
+				switch (editAs) {
+					case "twoCell":
+						this.editAs = c_oAscCellAnchorType.cellanchorTwoCell;
+						break;
+					case "oneCell":
+						this.editAs = c_oAscCellAnchorType.cellanchorOneCell;
+						break;
+					case "absolute":
+						this.editAs = c_oAscCellAnchorType.cellanchorAbsolute;
+						break;
+				}
+			}
+		}
+	};
+	DrawingBase.prototype.initAfterSerialize = function(ws) {
+		if (this.graphicObject
+			&& !((this.graphicObject.getObjectType() === AscDFH.historyitem_type_Shape || this.graphicObject.getObjectType() === AscDFH.historyitem_type_ImageShape) && !this.graphicObject.spPr)
+			&& !AscCommon.IsHiddenObj(this.graphicObject))
+		{
+			this.from.initAfterSerialize();
+			this.to.initAfterSerialize();
+			//TODO при copy/paste в word из excel пропадает метод setDrawingBase
+			if(typeof this.graphicObject.setDrawingBase != "undefined")
+				this.graphicObject.setDrawingBase(this);
+			//TODO при copy/paste в word из excel пропадает метод setWorksheet
+			if(typeof this.graphicObject.setWorksheet != "undefined")
+				this.graphicObject.setWorksheet(ws);
+			if(!this.graphicObject.spPr)
+			{
+				this.graphicObject.setSpPr(new AscFormat.CSpPr());
+				this.graphicObject.spPr.setParent(this.graphicObject);
+			}
+			if(!this.graphicObject.spPr.xfrm)
+			{
+				this.graphicObject.spPr.setXfrm(new AscFormat.CXfrm());
+				this.graphicObject.spPr.xfrm.setParent(this.graphicObject.spPr);
+				this.graphicObject.spPr.xfrm.setOffX(0);
+				this.graphicObject.spPr.xfrm.setOffY(0);
+				this.graphicObject.spPr.xfrm.setExtX(0);
+				this.graphicObject.spPr.xfrm.setExtY(0);
+			}
+			if(this.clientData)
+			{
+				this.graphicObject.setClientData(this.clientData);
+			}
+			ws.Drawings.push(this);
+		}
+	};
     //}
 
     //-----------------------------------------------------------------------------------
