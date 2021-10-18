@@ -2381,7 +2381,8 @@
 
 	asc_CTextFontFamily.prototype = {
 		asc_getName: function () {
-			return this.Name;
+			var _name = AscFonts.g_fontApplication ? AscFonts.g_fontApplication.NameToInterface[this.Name] : null;
+			return _name ? _name : this.Name;
 		}, asc_getIndex: function () {
 			return this.Index;
 		},
@@ -3139,6 +3140,8 @@
 		this.bFromChart = false;
 		this.bFromGroup = false;
 		this.bFromImage = false;
+		this.bFromSmartArt = false;
+		this.bFromSmartArtInternal = false;
 		this.Locked = false;
 		this.w = null;
 		this.h = null;
@@ -3201,6 +3204,18 @@
 		},
 		asc_setFromChart: function (v) {
 			this.bFromChart = v;
+		},
+		asc_getFromSmartArt: function () {
+			return this.bFromSmartArt;
+		},
+		asc_setFromSmartArt: function (v) {
+			this.bFromSmartArt = v;
+		},
+		asc_getFromSmartArtInternal: function () {
+			return this.bFromSmartArtInternal;
+		},
+		asc_setFromSmartArtInternal: function (v) {
+			this.bFromSmartArtInternal = v;
 		},
 		asc_getFromGroup: function () {
 			return this.bFromGroup;
@@ -3823,10 +3838,10 @@
 			else if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["GetImageOriginalSize"])
 			{
 				var _size = window["AscDesktopEditor"]["GetImageOriginalSize"](this.ImageUrl);
-				if (_size.W != 0 && _size.H != 0)
+				if (_size["W"] != 0 && _size["H"] != 0)
 				{
-					origW = _size.W;
-					origH = _size.H;
+					origW = _size["W"];
+					origH = _size["H"];
 				}
 			}
 
@@ -6103,6 +6118,10 @@
 	prot["set_CanChangeArrows"] = prot["asc_setCanChangeArrows"] = prot.asc_setCanChangeArrows;
 	prot["get_FromChart"] = prot["asc_getFromChart"] = prot.asc_getFromChart;
 	prot["set_FromChart"] = prot["asc_setFromChart"] = prot.asc_setFromChart;
+	prot["set_FromSmartArt"] = prot["asc_setFromSmartArt"] = prot.asc_setFromSmartArt;
+	prot["get_FromSmartArt"] = prot["asc_getFromSmartArt"] = prot.asc_getFromSmartArt;
+	prot["set_FromSmartArtInternal"] = prot["asc_setFromSmartArtInternal"] = prot.asc_setFromSmartArtInternal;
+	prot["get_FromSmartArtInternal"] = prot["asc_getFromSmartArtInternal"] = prot.asc_getFromSmartArtInternal;
 	prot["get_FromGroup"] = prot["asc_getFromGroup"] = prot.asc_getFromGroup;
 	prot["set_FromGroup"] = prot["asc_setFromGroup"] = prot.asc_setFromGroup;
 	prot["get_Locked"] = prot["asc_getLocked"] = prot.asc_getLocked;

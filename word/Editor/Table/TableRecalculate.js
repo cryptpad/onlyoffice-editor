@@ -456,7 +456,7 @@ CTable.prototype.private_RecalculateGrid = function()
 
 		if (!this.Parent)
 		{
-			oPageFields = {X : 0, Y : 0, XLimit : 0, YLimit : 0};
+			oPageFields  = {X : 0, Y : 0, XLimit : 0, YLimit : 0};
 		}
 		else
 		{
@@ -481,6 +481,27 @@ CTable.prototype.private_RecalculateGrid = function()
 		{
 			oPageFields.X      = 0;
 			oPageFields.XLimit = oFramePr.GetW();
+		}
+		else if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
+		{
+			var _X      = oPageFields.X;
+			var _XLimit = oPageFields.XLimit;
+
+			var arrRanges = this.Parent.CheckRange(_X, this.Y, _XLimit, this.Y + 0.001, this.Y, this.Y + 0.001, _X, _XLimit, this.private_GetRelativePageIndex(0));
+			if (arrRanges.length > 0)
+			{
+				for (var nRangeIndex = 0, nRangesCount = arrRanges.length; nRangeIndex < nRangesCount; ++nRangeIndex)
+				{
+					if (arrRanges[nRangeIndex].X0 < oPageFields.X + 3.2 && arrRanges[nRangeIndex].X1 > _X)
+						_X = arrRanges[nRangeIndex].X1 + 0.001;
+
+					if (arrRanges[nRangeIndex].X1 > oPageFields.XLimit - 3.2 && arrRanges[nRangeIndex].X0 < _XLimit)
+						_XLimit = arrRanges[nRangeIndex].X0 - 0.001;
+				}
+			}
+
+			oPageFields.X      = _X;
+			oPageFields.XLimit = _XLimit;
 		}
 
 		var nMaxTableW = oPageFields.XLimit - oPageFields.X - TablePr.TableInd - this.GetTableOffsetCorrection() + this.GetRightTableOffsetCorrection();
@@ -1883,9 +1904,33 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
     var Y = StartPos.Y;
     var TableHeight = 0;
 
-    if (this.LogicDocument && this.LogicDocument.IsDocumentEditor())
+    if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
 	{
-		var arrRanges = this.Parent.CheckRange(Page.X, Page.Y, Page.XLimit, Page.Y + 0.001, Page.Y, Page.Y + 0.001, Page.X, Page.XLimit, CurPage);
+		var nTableX_min = -1;
+		var nTableX_max = -1;
+
+		for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+		{
+			var oRow = this.GetRow(nCurRow);
+			var nCellsCount = oRow.GetCellsCount();
+
+			if (!nCellsCount)
+				continue;
+
+			var nRowX_min = oRow.GetCell(0).Metrics.X_content_start;
+			var nRowX_max = oRow.GetCell(nCellsCount - 1).Metrics.X_content_end;
+
+			if (-1 === nTableX_min || nRowX_min < nTableX_min)
+				nTableX_min = nRowX_min;
+
+			if (-1 === nTableX_max || nRowX_max > nTableX_max)
+				nTableX_max = nRowX_max;
+		}
+
+		nTableX_min += Page.X;
+		nTableX_max += Page.X;
+
+		var arrRanges = this.Parent.CheckRange(nTableX_min, Page.Y, nTableX_max, Page.Y + 0.001, Page.Y, Page.Y + 0.001, nTableX_min, nTableX_max, this.private_GetRelativePageIndex(CurPage));
 		if (arrRanges.length > 0)
 		{
 			for (var nRangeIndex = 0, nRangesCount = arrRanges.length; nRangeIndex < nRangesCount; ++nRangeIndex)

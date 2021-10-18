@@ -1193,6 +1193,10 @@ ParaDrawing.prototype.Measure = function()
 		}
 	}
 };
+ParaDrawing.prototype.IsNeedSaveRecalculateObject = function()
+{
+	return true;
+};
 ParaDrawing.prototype.SaveRecalculateObject = function(Copy)
 {
 	var DrawingObj = {};
@@ -3078,7 +3082,7 @@ ParaDrawing.prototype.IsShape = function()
  */
 ParaDrawing.prototype.IsGroup = function()
 {
-	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_GroupShape);
+	return (this.GraphicObj.isGroupObject());
 };
 ParaDrawing.prototype.IsComparable = function(oDrawing)
 {

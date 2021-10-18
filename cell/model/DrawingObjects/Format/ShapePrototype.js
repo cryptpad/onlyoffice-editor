@@ -540,6 +540,7 @@ CShape.prototype.setRecalculateInfo = function()
     this.recalcInfo =
     {
         recalculateContent:        true,
+        recalculateContent2:        true,
         recalculateBrush:          true,
         recalculatePen:            true,
         recalculateTransform:      true,
@@ -565,6 +566,7 @@ CShape.prototype.setRecalculateInfo = function()
 CShape.prototype.recalcContent = function()
 {
     this.recalcInfo.recalculateContent = true;
+    this.recalcInfo.recalculateContent2 = true;
 };
 
 CShape.prototype.getDrawingDocument = function()
@@ -712,6 +714,7 @@ CShape.prototype.getParentObjects = function ()
 CShape.prototype.recalcText = function()
 {
     this.recalcInfo.recalculateContent = true;
+    this.recalcInfo.recalculateContent2 = true;
     this.recalcInfo.recalculateTransformText = true;
 };
 
@@ -748,6 +751,10 @@ CShape.prototype.recalculate = function ()
         if (this.recalcInfo.recalculateContent) {
             this.recalcInfo.oContentMetrics = this.recalculateContent();
             this.recalcInfo.recalculateContent = false;
+        }
+        if (this.recalcInfo.recalculateContent2) {
+            this.recalculateContent2();
+            this.recalcInfo.recalculateContent2 = false;
         }
 
         if (this.recalcInfo.recalculateTransformText) {
@@ -892,6 +899,24 @@ AscFormat.CTextBody.prototype.getDrawingDocument = function()
     }
     return null;
 };
+    AscFormat.CTextBody.prototype.checkCurrentPlaceholder = function()
+    {
+        var oCurController;
+        var oApi = Asc.editor;
+        if(oApi)
+        {
+            var ws = oApi.wb.getWorksheet();
+            var oParaPr;
+            if (ws && ws.objectRender && ws.objectRender.controller) {
+                oCurController = ws.objectRender.controller;
+            }
+        }
+        if(oCurController)
+        {
+            return oCurController.getTargetDocContent() === this.content;
+        }
+        return false;
+    };
 
     //------------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
