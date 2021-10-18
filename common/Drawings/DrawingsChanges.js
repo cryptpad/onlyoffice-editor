@@ -363,21 +363,6 @@
         return true;
     };
 
-    function CChangesDrawingsContentLong(Class, Type, Pos, Items, isAdd) {
-        this.Type = Type;
-        AscDFH.CChangesBaseContentChange.call(this, Class, Pos, Items, isAdd);
-    }
-    CChangesDrawingsContentLong.prototype = Object.create(AscDFH.CChangesBaseContentChange.prototype);
-    CChangesDrawingsContentLong.prototype.constructor = CChangesDrawingsContentLong;
-    window['AscDFH'].CChangesDrawingsContentLong = CChangesDrawingsContentLong;
-
-    CChangesDrawingsContentLong.prototype.private_WriteItem = function (Writer, Item) {
-        Writer.WriteULong(Item);
-    };
-    // CChangesDrawingsContentLong.prototype.private_ReadItem = function (Reader) {
-    //     return Reader.GetULong();
-    // };
-
     function CChangesDrawingsContentBool(Class, Type, Pos, Items, isAdd) {
         this.Type = Type;
         AscDFH.CChangesBaseContentChange.call(this, Class, Pos, Items, isAdd);
