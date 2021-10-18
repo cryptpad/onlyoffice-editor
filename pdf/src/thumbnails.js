@@ -891,7 +891,8 @@
     };
 
     // export
-    AscCommon["ThumbnailsControl"] = CDocument;
+    AscCommon.ThumbnailsControl = CDocument;
+    AscCommon["ThumbnailsControl"] = AscCommon.ThumbnailsControl;
     var prot = AscCommon["ThumbnailsControl"].prototype;
     prot["repaint"] = prot.repaint;
     prot["setZoom"] = prot.setZoom;
