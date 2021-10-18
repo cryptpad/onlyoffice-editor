@@ -7279,13 +7279,13 @@
             bNoTransform = true;
         }
         else {
-            if(oTransform.IsIdentity2()) {
-                var fDelta = 2;
-                if(AscFormat.fApproxEqual(oTransform.tx*this.scale, this.x, fDelta) &&
-                    AscFormat.fApproxEqual(oTransform.ty*this.scale, this.y, fDelta)) {
-                    bNoTransform = true;
-                }
-            }
+            // if(oTransform.IsIdentity2()) {
+            //     var fDelta = 2;
+            //     if(AscFormat.fApproxEqual(oTransform.tx*this.scale, this.x, fDelta) &&
+            //         AscFormat.fApproxEqual(oTransform.ty*this.scale, this.y, fDelta)) {
+            //         bNoTransform = true;
+            //     }
+            // }
         }
         if(bNoTransform) {
             oGraphics.SaveGrState();
@@ -9550,7 +9550,7 @@
     CControl.prototype.setHidden = function(bVal) {
         if(this.hidden !== bVal) {
             this.hidden = bVal;
-            this.onUpdate(this.getBounds());
+            this.onUpdate();
         }
     };
     CControl.prototype.show = function() {
@@ -9566,21 +9566,21 @@
     CControl.prototype.getBodyPr = function () {
         return this.bodyPr;
     };
-    CControl.prototype.getScrollOffsetX = function () {
+    CControl.prototype.getScrollOffsetX = function (oChild) {
         return 0;
     };
-    CControl.prototype.getScrollOffsetY = function () {
+    CControl.prototype.getScrollOffsetY = function (oChild) {
         return 0;
     };
-    CControl.prototype.getParentScrollOffsetX = function () {
+    CControl.prototype.getParentScrollOffsetX = function (oChild) {
         if(this.parentControl) {
-            return this.parentControl.getScrollOffsetX();
+            return this.parentControl.getScrollOffsetX(oChild);
         }
         return 0;
     };
-    CControl.prototype.getParentScrollOffsetY = function () {
+    CControl.prototype.getParentScrollOffsetY = function (oChild) {
         if(this.parentControl) {
-            return this.parentControl.getScrollOffsetY();
+            return this.parentControl.getScrollOffsetY(oChild);
         }
         return 0;
     };
@@ -9594,8 +9594,8 @@
         var oMT = AscCommon.global_MatrixTransformer;
         var oTransform = oMT.CreateDublicateM(oLocalTransform);
         var oScrollMatrix = new AscCommon.CMatrix();
-        oScrollMatrix.tx = this.getParentScrollOffsetX();
-        oScrollMatrix.ty = this.getParentScrollOffsetY();
+        oScrollMatrix.tx = this.getParentScrollOffsetX(this);
+        oScrollMatrix.ty = this.getParentScrollOffsetY(this);
         oMT.MultiplyAppend(oTransform, oScrollMatrix);
         var oParentTransform = this.parentControl && this.parentControl.getFullTransformMatrix();
         oParentTransform && oMT.MultiplyAppend(oTransform, oParentTransform);
@@ -9639,9 +9639,10 @@
         this.invertTransformText = oMT.Invert(this.transformText);
     };
     CControl.prototype.recalculateBounds = function() {
-        var dX = this.transform.tx;
-        var dY = this.transform.ty;
-        this.bounds.reset(dX, dY, dX + this.extX, dY + this.extY)
+        var oTransform = this.getFullTransform();
+        var dX = oTransform.tx;
+        var dY = oTransform.ty;
+        this.bounds.reset(dX, dY, dX + this.getWidth(), dY + this.getHeight())
     };
     CControl.prototype.recalculateSnapArrays = function() {
     };
@@ -9653,22 +9654,53 @@
     };
     CControl.prototype.addToRecalculate = function() {
     };
+    CControl.prototype.canHandleEvents = function() {
+        return true;
+    };
     CControl.prototype.draw = function (graphics) {
         if(this.isHidden()){
             return false;
         }
-        var oUR = graphics.updatedRect;
-        if(oUR && this.bounds) {
-            if(!oUR.isIntersectOther(this.bounds)) {
-                return false;
+        if(!this.checkUpdateRect(graphics.updatedRect)) {
+            return false;
+        }
+
+        this.recalculateTransform();
+        this.recalculateTransformText();
+
+        var sFillColor = this.getFillColor();
+        var sOutlineColor = this.getOutlineColor();
+        var oColor;
+        if(sOutlineColor || sFillColor) {
+            graphics.SaveGrState();
+            graphics.transform3(this.transform);
+            var x = 0;
+            var y = 0;
+            var extX = this.getWidth();
+            var extY = this.getHeight();
+            if(sFillColor) {
+                oColor = AscCommon.RgbaHexToRGBA(sFillColor);
+                graphics.b_color1(oColor.R, oColor.G, oColor.B, 0xFF);
+                graphics.rect(x, y, extX, extY);
+                graphics.df();
             }
+            if(sOutlineColor) {
+                oColor = AscCommon.RgbaHexToRGBA(sOutlineColor);
+                graphics.SetIntegerGrid(true);
+
+                var fScale = graphics.m_oCoordTransform.sx;
+                var nPenW = AscCommon.AscBrowser.convertToRetinaValue(1, true)/fScale;
+                //graphics.p_width(100);//AscCommon.AscBrowser.convertToRetinaValue(1, true);
+                graphics.p_color(oColor.R, oColor.G, oColor.B, 0xFF);
+                graphics.drawHorLine(0, y, x, x + extX, nPenW);
+                graphics.drawHorLine(0, y + extY, x, x + extX, nPenW);
+                graphics.drawVerLine(2, x, y, y + extY, nPenW);
+                graphics.drawVerLine(2, x + extX, y, y + extY, nPenW);
+                graphics.ds();
+            }
+            graphics.RestoreGrState();
         }
         AscFormat.CShape.prototype.draw.call(this, graphics);
-        graphics.transform3(this.transform);
-        graphics.p_width(0);
-        graphics.p_color(this.isHovered() ? 255 : 0, 0, 0, 255);
-        graphics.rect(0, 0, this.extX, this.extY);
-        graphics.ds();
         return true;
 
     };
@@ -9684,27 +9716,40 @@
     CControl.prototype.isHovered = function() {
         return this.getStateFlag(STATE_FLAG_HOVERED);
     };
+    CControl.prototype.isActive = function() {
+        if(this.parentControl) {
+            if(!this.eventListener && this.parentControl.isEventListener(this)) {
+                return true;
+            }
+        }
+        return false;
+    };
     CControl.prototype.setStateFlag = function(nFlag, bValue) {
+        var nOldState = this.state;
         if(bValue) {
             this.state |= nFlag;
         }
         else {
             this.state &= (~nFlag);
         }
+        if(nOldState !== this.state) {
+            this.onUpdate();
+        }
     };
     CControl.prototype.setHoverState = function() {
         this.setStateFlag(STATE_FLAG_HOVERED, true);
-        this.onUpdate(this.getBounds());
     };
     CControl.prototype.setNotHoverState = function() {
         this.setStateFlag(STATE_FLAG_HOVERED, false);
-        this.onUpdate(this.getBounds());
     };
     CControl.prototype.getStateFlag = function(nFlag) {
         return (this.state & nFlag) !== 0;
     };
     CControl.prototype.onMouseMove = function (e, x, y) {
         if(e.IsLocked) {
+            return false;
+        }
+        if(!this.canHandleEvents()) {
             return false;
         }
         var bHover = this.hit(x, y);
@@ -9718,6 +9763,9 @@
         return bRet;
     };
     CControl.prototype.onMouseDown = function (e, x, y) {
+        if(!this.canHandleEvents()) {
+            return false;
+        }
         if(this.hit(x, y)) {
             if(this.parentControl) {
                 this.parentControl.setEventListener(this);
@@ -9732,9 +9780,15 @@
         }
         return false;
     };
-    CControl.prototype.onUpdate = function(oBounds) {
+    CControl.prototype.onUpdate = function() {
         if(this.parentControl) {
-            this.parentControl.onUpdate(oBounds);
+            var oBounds = this.getBounds();
+            this.parentControl.onChildUpdate(oBounds);
+        }
+    };
+    CControl.prototype.onChildUpdate = function(oBounds) {
+        if(this.parentControl) {
+            this.parentControl.onChildUpdate(oBounds);
         }
     };
     CControl.prototype.getCursorInfo = function(e, x, y) {
@@ -9749,8 +9803,9 @@
         }
     };
     CControl.prototype.checkUpdateRect = function(oUpdateRect) {
-        if(oUpdateRect && this.bounds) {
-            if(!oUpdateRect.isIntersectOther(this.bounds)) {
+        var oBounds = this.getBounds();
+        if(oUpdateRect && oBounds) {
+            if(!oUpdateRect.isIntersectOther(oBounds)) {
                 return false;
             }
         }
@@ -9781,6 +9836,9 @@
         return this.spPr.xfrm.extY;
     };
     CControl.prototype.getBounds = function() {
+        this.recalculateBounds();
+        this.recalculateTransform();
+        this.recalculateTransformText();
         return this.bounds;
     };
     CControl.prototype.convertRelToAbs = function(oPos) {
@@ -9825,6 +9883,34 @@
         }
         return oCurControl.timing;
     };
+    CControl.prototype.getFillColor = function() {
+        var sFillColor;
+        var oSkin = AscCommon.GlobalSkin;
+        if(this.isActive()) {
+            sFillColor = oSkin.ThumbnailsPageOutlineActive;
+        }
+        else if(this.isHovered()) {
+            sFillColor = oSkin.ScrollerHoverColor;
+        }
+        else {
+            sFillColor = oSkin.BackgroundColorThumbnails;
+        }
+        return sFillColor;
+    };
+    CControl.prototype.getOutlineColor = function() {
+        var sOutlineColor;
+        var oSkin = AscCommon.GlobalSkin;
+        if(this.isActive()) {
+            sOutlineColor = oSkin.ScrollOutlineActiveColor;
+        }
+        else if(this.isHovered()) {
+            sOutlineColor = oSkin.ThumbnailsPageOutlineHover;
+        }
+        else {
+            sOutlineColor = oSkin.ScrollOutlineColor;
+        }
+        return sOutlineColor;
+    };
 
     function CControlContainer(oParentControl) {
         CControl.call(this, oParentControl);
@@ -9835,6 +9921,15 @@
         this.eventListener = null;
     }
     InitClass(CControlContainer, CControl, CONTROL_TYPE_UNKNOWN);
+    CControlContainer.prototype.isEventListener = function(oChild) {
+        return this.eventListener === oChild;
+    };
+    CControlContainer.prototype.onScroll = function() {
+    };
+    CControlContainer.prototype.onStartScroll = function() {
+    };
+    CControlContainer.prototype.onEndScroll = function() {
+    };
     CControlContainer.prototype.clear = function() {
         for(var nIdx = this.children.length - 1; nIdx > -1; --nIdx) {
             this.removeControl(this.children[nIdx]);
@@ -9894,10 +9989,9 @@
         }
     };
     CControlContainer.prototype.draw = function(graphics) {
-        if(!this.checkUpdateRect(graphics.updateRect)) {
+        if(!CControl.prototype.draw.call(this, graphics)) {
             return false;
         }
-        CControl.prototype.draw.call(this, graphics);
         this.clipStart(graphics);
         for(var nChild = 0; nChild < this.children.length; ++nChild) {
             this.children[nChild].draw(graphics);
@@ -9973,6 +10067,18 @@
         }
         return CControl.prototype.onMouseUp.call(this, e, x, y);
     };
+    CControlContainer.prototype.isScrolling = function() {
+        for(var nChild = 0; nChild < this.children.length; ++nChild) {
+            var oChild = this.children[nChild];
+            if(oChild.isOnScroll && oChild.isOnScroll()) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CControlContainer.prototype.canHandleEvents = function() {
+        return false;
+    };
 
     function CSeqListContainer(oParentControl) {
         CControlContainer.call(this, oParentControl);
@@ -9983,16 +10089,19 @@
     CSeqListContainer.prototype.getAnimCaptionRightPos = function() {
         return this.parentControl.getAnimCaptionRightPos();
     };
-    CSeqListContainer.prototype.getScrollOffsetY = function() {
-        return this.scrollVert.getScrollOffset();
+    CSeqListContainer.prototype.getScrollOffsetY = function(oChild) {
+        if(oChild !== this.scrollVert) {
+            return -this.scrollVert.getScrollOffset();
+        }
+        return 0;
     };
     CSeqListContainer.prototype.recalculateChildrenLayout = function() {
-        this.seqList.setLayout(0, 0, this.getWidth(), 0);
+        this.seqList.setLayout(0, 0, this.getWidth(), this.seqList.getHeight());
         this.seqList.recalculate();
         if(this.seqList.getHeight() > this.getHeight()) {
             this.scrollVert.show();
             this.scrollVert.setLayout(this.getWidth() - SCROLL_THICKNESS, 0, SCROLL_THICKNESS, this.getHeight());
-            this.seqList.setLayout(0, 0, this.getWidth() - this.scrollVert.getWidth(), 0);
+            this.seqList.setLayout(0, 0, this.getWidth() - this.scrollVert.getWidth(), this.seqList.getHeight());
             this.seqList.recalculate();
         }
         else {
@@ -10012,21 +10121,128 @@
             graphics.RestoreGrState();
         }
     };
+    CSeqListContainer.prototype.onScroll = function() {
+        this.onUpdate();
+    };
+    CSeqListContainer.prototype.getFillColor = function() {
+        return null;
+    };
+    CSeqListContainer.prototype.getOutlineColor = function() {
+        return null;
+    };
 
+    var SCROLL_TIMER_INTERVAL = 200;
     function CScrollBase(oParentControl, oContainer, oChild) {
         CControlContainer.call(this, oParentControl);
-        this.addControl(new CButton(this));//left or top button
-        this.addControl(new CButton(this));//right or bottom button
+        this.addControl(new CButton(this, function(e, x, y) {
+            if(this.hit(x, y)) {
+                this.parentControl.setEventListener(this);
+                this.parentControl.startScroll(-ANIM_ITEM_HEIGHT);
+            }
+        }, null, function(e, x, y) {
+            this.parentControl.setEventListener(null);
+            this.parentControl.endScroll();
+        }));//left or top button
+        this.addControl(new CButton(this, function(e, x, y) {
+            if(this.hit(x, y)) {
+                this.parentControl.setEventListener(this);
+                this.parentControl.startScroll(ANIM_ITEM_HEIGHT);
+            }
+        }, null, function(e, x, y) {
+            this.parentControl.setEventListener(null);
+            this.parentControl.endScroll();
+        }));//right or bottom button
         this.container = oContainer;
         this.scrolledChild = oChild;
         this.scrollOffset = 0;
+        this.tmpScrollOffset = null;
+        this.startScrollerPos = null;
+        this.startScrollTop = null;
+        this.timerId = null;
     }
     InitClass(CScrollBase, CControlContainer, CONTROL_TYPE_UNKNOWN);
     CScrollBase.prototype.getScrollOffset = function() {
+        if(this.tmpScrollOffset !== null) {
+            return this.tmpScrollOffset;
+        }
         this.checkOffset();
         return this.scrollOffset;
     };
     CScrollBase.prototype.checkOffset = function() {
+        this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.getMaxScrollOffset()));
+    };
+    CScrollBase.prototype.setTmpScroll = function (val) {
+        this.tmpScrollOffset = Math.max(0, Math.min(this.getMaxScrollOffset(), val));
+        this.parentControl.onScroll();
+        this.onUpdate();
+    };
+    CScrollBase.prototype.clearTmpScroll = function () {
+        if(this.tmpScrollOffset !== null) {
+            this.scrollOffset = this.tmpScrollOffset;
+            this.tmpScrollOffset = null;
+            this.parentControl.onScroll();
+            this.onUpdate();
+        }
+    };
+    CScrollBase.prototype.getMaxScrollOffset = function (val) {
+        return 0;
+    };
+    CScrollBase.prototype.getScrollerX = function(dScrollOffset) {
+        return 0;
+    };
+    CScrollBase.prototype.getScrollerY = function(dScrollOffset) {
+        return 0;
+    };
+    CScrollBase.prototype.getScrollerWidth = function(dScrollOffset) {
+        return 0;
+    };
+    CScrollBase.prototype.getScrollerHeight = function(dScrollOffset) {
+        return 0;
+    };
+    CScrollBase.prototype.hitInScroller = function(x, y) {
+        if(this.isHidden()) {
+            return false;
+        }
+        var oInv = this.getInvFullTransformMatrix();
+        var tx = oInv.TransformPointX(x, y);
+        var ty = oInv.TransformPointY(x, y);
+        var l = this.getScrollerX();
+        var t = this.getScrollerY();
+        var r = l + this.getScrollerWidth();
+        var b = t + this.getScrollerHeight();
+        return tx >= l && tx <= r && ty >= t && ty <= b;
+    };
+    CScrollBase.prototype.startScroll = function (step) {
+        this.endScroll();
+        var oScroll = this;
+        this.tmpScrollOffset = this.getScrollOffset();
+        oScroll.addScroll(step);
+        this.timerId = setInterval(function () {
+            oScroll.addScroll(step);
+        }, SCROLL_TIMER_INTERVAL);
+    };
+    CScrollBase.prototype.addScroll = function (step) {
+        this.setTmpScroll(this.tmpScrollOffset + step);
+        this.parentControl.onScroll();
+    };
+    CScrollBase.prototype.endScroll = function () {
+        if(this.timerId !== null) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+        }
+        this.clearTmpScroll();
+        this.setStateFlag(STATE_FLAG_SELECTED, false);
+        this.startScrollerPos = null;
+        this.startScrollTop = null;
+    };
+    CScrollBase.prototype.isOnScroll = function (step) {
+        return this.timerId !== null || this.parentControl.isEventListener(this);
+    };
+    CScrollBase.prototype.getFillColor = function() {
+        return null;
+    };
+    CScrollBase.prototype.getOutlineColor = function() {
+        return null;
     };
 
     function CScrollVert(oParentControl, oContainer, oChild) {
@@ -10035,58 +10251,191 @@
         this.bottomButton = this.children[1];
     }
     InitClass(CScrollVert, CScrollBase, CONTROL_TYPE_SCROLL_VERT);
-    CScrollVert.prototype.checkOffset = function() {
-        var dContainerHeight = this.container.getHeight();
-        var dChildHeight = this.scrolledChild.getHeight();
-        this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, dContainerHeight - dChildHeight));
-    };
     CScrollVert.prototype.recalculateChildrenLayout = function() {
         this.topButton.setLayout(0, 0, SCROLL_BUTTON_SIZE, SCROLL_BUTTON_SIZE);
         this.bottomButton.setLayout(0, this.getHeight() - SCROLL_BUTTON_SIZE, SCROLL_BUTTON_SIZE, SCROLL_BUTTON_SIZE);
     };
     CScrollVert.prototype.getRailHeight = function() {
-        return this.getHeight() - this.topButton.getHeight() - this.bottomButton.getHeight();
+        return this.getHeight() - this.children[0].getHeight() - this.children[1].getHeight();
     };
-    CScrollVert.prototype.draw = function(graphics) {
-        if(!CScrollBase.prototype.draw.call(this, graphics)) {
-            return false;
-        }
-
-        var dScrollerHeight;
-
+    CScrollVert.prototype.getRelScrollerPos = function(dScrollOffset) {
+        return this.topButton.getBottom() + dScrollOffset * ((this.getRailHeight() - this.getScrollerHeight()) / (this.getMaxScrollOffset()));
+    };
+    CScrollVert.prototype.getScrollerX = function(dScrollOffset) {
+        return 0;
+    };
+    CScrollVert.prototype.getScrollerY = function() {
+        return this.getRelScrollerPos(this.getScrollOffset());
+    };
+    CScrollVert.prototype.getScrollerWidth = function(dScrollOffset) {
+        return this.getWidth();
+    };
+    CScrollVert.prototype.getScrollerHeight = function() {
         var dRailH = this.getRailHeight();
         var dMinRailH = dRailH / 4;
-        dScrollerHeight = Math.max(dMinRailH, dRailH * (dRailH / this.scrolledChild.getHeight()));
-        var x = 0;
-        var y = this.topButton.getBottom() + 0;
-        var extX = this.getWidth();
-        var extY = dScrollerHeight;
+        return Math.max(dMinRailH, dRailH * (dRailH / this.scrolledChild.getHeight()))
+    };
+    CScrollVert.prototype.getMaxScrollOffset = function() {
+        return Math.max(0, this.scrolledChild.getHeight() - this.container.getHeight());
+    };
+    CScrollVert.prototype.getMaxRelScrollOffset = function() {
+        return Math.max(0, this.getRailHeight() - this.getScrollerHeight());
+    };
+    CScrollVert.prototype.draw = function(graphics) {
+        if(this.isHidden()){
+            return false;
+        }
+        if(!this.checkUpdateRect(graphics.updatedRect)) {
+            return false;
+        }
+        this.children[0].draw(graphics);
+        this.children[1].draw(graphics);
+
+
         graphics.SaveGrState();
+        var oSkin = AscCommon.GlobalSkin;
+            //ScrollBackgroundColor     : "#EEEEEE",
+            //ScrollOutlineColor        : "#CBCBCB",
+            //ScrollOutlineHoverColor   : "#CBCBCB",
+            //ScrollOutlineActiveColor  : "#ADADAD",
+            //ScrollerColor             : "#F7F7F7",
+            //ScrollerHoverColor        : "#C0C0C0",
+            //ScrollerActiveColor       : "#ADADAD",
+            //ScrollArrowColor          : "#ADADAD",
+            //ScrollArrowHoverColor     : "#F7F7F7",
+            //ScrollArrowActiveColor    : "#F7F7F7",
+            //ScrollerTargetColor       : "#CFCFCF",
+            //ScrollerTargetHoverColor  : "#F1F1F1",
+            //ScrollerTargetActiveColor : "#F1F1F1",
+        var x = this.getScrollerX();
+        var y = this.getRelScrollerPos(this.getScrollOffset());
+        var extX = this.getScrollerWidth();
+        var extY = this.getScrollerHeight();
         graphics.transform3(this.transform);
-        graphics.p_color(0xCE, 0xCE, 0xCE, 0xFF);
-        var nColor = 0xCCCCC;
-        graphics.b_color1((nColor >> 16) & 0xFF, (nColor >> 8) & 0xFF, nColor & 0xFF, 0xFF);
+
+        var sFillColor;
+        var sOutlineColor;
+        var oColor;
+        if(this.isActive()) {
+            sFillColor = oSkin.ScrollerActiveColor;
+            sOutlineColor = oSkin.ScrollOutlineActiveColor;
+        }
+        else if(this.isHovered()) {
+            sFillColor = oSkin.ScrollerHoverColor;
+            sOutlineColor = oSkin.ScrollOutlineHoverColor;
+        }
+        else {
+            sFillColor = oSkin.ScrollerColor;
+            sOutlineColor = oSkin.ScrollOutlineColor;
+        }
+        oColor = AscCommon.RgbaHexToRGBA(sFillColor);
+        graphics.b_color1(oColor.R, oColor.G, oColor.B, 0xFF);
         graphics.rect(x, y, extX, extY);
         graphics.df();
+        oColor = AscCommon.RgbaHexToRGBA(sOutlineColor);
 
-        graphics.p_width(0);
-        graphics.drawHorLine(0, y, x, x + extX, 0);
-        graphics.drawHorLine(0, y + extY, x, x + extX, 0);
-        graphics.drawVerLine(2, x, y, y + extY, 0);
-        graphics.drawVerLine(2, x + extX, y, y + extY, 0);
+        graphics.SetIntegerGrid(true);
+        var fScale = graphics.m_oCoordTransform.sx;
+        var nPenW = AscCommon.AscBrowser.convertToRetinaValue(1, true)/fScale;
+        graphics.p_color(oColor.R, oColor.G, oColor.B, 0xFF);
+        graphics.drawHorLine(0, y, x, x + extX, nPenW);
+        graphics.drawHorLine(0, y + extY, x, x + extX, nPenW);
+        graphics.drawVerLine(2, x, y, y + extY, nPenW);
+        graphics.drawVerLine(2, x + extX, y, y + extY, nPenW);
+        graphics.ds();
         graphics.RestoreGrState();
         return true;
+    };
+    CScrollVert.prototype.onMouseMove = function (e, x, y) {
+        if(this.isHidden()) {
+            return false;
+        }
+        var bRet = false;
+        if(this.eventListener) {
+            this.eventListener.onMouseMove(e, x, y);
+            return true;
+        }
+
+        if(this.parentControl.isEventListener(this)){
+            if(this.startScrollerPos === null) {
+                this.startScrollerPos = y;
+            }
+            if(this.startScrollTop === null) {
+                this.startScrollTop = this.getScrollOffset();
+            }
+            var dCoeff = this.getMaxScrollOffset()/this.getMaxRelScrollOffset();
+            var dy = dCoeff*(y - this.startScrollerPos);
+            this.setTmpScroll(dy  + this.startScrollTop);
+            return true;
+        }
+        bRet |= this.children[0].onMouseMove(e, x, y);
+        bRet |= this.children[1].onMouseMove(e, x, y);
+
+        var bHit = this.hitInScroller(x, y);
+        var nState = this.isHovered();
+        if(this.isHovered()) {
+            if(!bHit) {
+                this.setStateFlag(STATE_FLAG_HOVERED, false);
+                bRet = true;
+            }
+        }
+        else {
+            if(bHit) {
+                this.setStateFlag(STATE_FLAG_HOVERED, true);
+                bRet = true;
+            }
+        }
+        //-----------------------------
+        return bRet;
+    };
+    CScrollVert.prototype.onMouseDown = function (e, x, y) {
+        var bRet = false;
+        if(this.hit(x, y)) {
+            bRet |= this.children[0].onMouseDown(e, x, y);
+            bRet |= this.children[1].onMouseDown(e, x, y);
+            if(!bRet) {
+                if(this.hitInScroller(x, y)) {
+                    this.startScrollerPos = y;
+                    this.startScrollTop = this.getScrollOffset();
+                    this.setStateFlag(STATE_FLAG_SELECTED, true);
+                    this.parentControl.setEventListener(this);
+                    this.parentControl.onScroll();
+                    //-----------------------------
+                }
+                else {
+                    this.parentControl.setEventListener(this);
+                    var oInv = this.getInvFullTransformMatrix();
+                    var ty = oInv.TransformPointY(x, y);
+                    if(ty < this.getScrollerY()) {
+                        this.startScroll(-ANIM_ITEM_HEIGHT);
+                    }
+                    else {
+                        this.startScroll(ANIM_ITEM_HEIGHT);
+                    }
+                }
+                return true;
+            }
+        }
+        return bRet;
+    };
+    CScrollVert.prototype.onMouseUp = function (e, x, y) {
+        this.endScroll();
+        var bRet = false;
+        if(this.eventListener) {
+            bRet = this.eventListener.onMouseUp(e, x, y);
+            this.eventListener = null;
+            return bRet;
+        }
+        bRet |= this.children[0].onMouseUp(e, x, y);
+        bRet |= this.children[1].onMouseUp(e, x, y);
+        this.setEventListener(null);
+        return bRet;
     };
 
     function CScrollHor(oParentControl, oContainer, oChild) {
         CScrollBase.call(this, oParentControl, oContainer, oChild);
     }
     InitClass(CScrollHor, CScrollBase, CONTROL_TYPE_SCROLL_HOR);
-    CScrollHor.prototype.checkOffset = function() {
-        var dContainerWidth = this.container.getWidth();
-        var dChildWidth = this.scrolledChild.getWidth();
-        this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, dContainerWidth - dChildWidth));
-    };
 
     function CSeqList(oParentControl) {
         CControlContainer.call(this, oParentControl);
@@ -10119,6 +10468,45 @@
             dLastBottom = oSeq.getBottom();
         }
         this.setLayout(this.getLeft(), this.getTop(), this.getWidth(), dLastBottom);
+    };
+    CSeqList.prototype.getFillColor = function() {
+        return null;
+    };
+    CSeqList.prototype.getOutlineColor = function() {
+        return null;
+    };
+    // CSeqList.prototype.draw = function(graphics) {
+    //     if(!this.checkUpdateRect(graphics.updateRect)) {
+    //         return false;
+    //     }
+    //     if(this.parentControl.isScrolling() && !this.bDrawTexture) {
+    //         this.recalculateTransform();
+    //         this.checkCachedTexture(graphics).draw(graphics, new AscCommon.CMatrix());
+    //         return;
+    //     }
+    //     this.clearCachedTexture();
+    //     return CControlContainer.prototype.draw.call(this, graphics);
+    // };
+
+
+    CSeqList.prototype.checkCachedTexture = function(graphics) {
+        var dGraphicsScale = graphics.m_oCoordTransform.sx;
+        if(this.cachedCanvas) {
+            var dScale = this.cachedCanvas.scale;
+            if(AscFormat.fApproxEqual(dScale, dGraphicsScale)) {
+                return this.cachedCanvas;
+            }
+        }
+        this.bDrawTexture = true;
+        var oBaseTexture = this.getAnimTexture(dGraphicsScale);
+        this.cachedCanvas = new CAnimTexture(this, oBaseTexture.canvas, oBaseTexture.scale, oBaseTexture.x, oBaseTexture.y);
+        this.bDrawTexture = false;
+        return this.cachedCanvas;
+    };
+    CSeqList.prototype.clearCachedTexture = function() {
+        if(this.cachedCanvas) {
+            this.cachedCanvas = null;
+        }
     };
 
     function CAnimSequence(oParentControl, oSeq) {//main seq, interactive seq
@@ -10162,6 +10550,13 @@
         }
         this.setLayout(this.getLeft(), this.getTop(), this.getWidth(), dCurY);
     };
+    CAnimSequence.prototype.getFillColor = function() {
+        return null;
+    };
+    CAnimSequence.prototype.getOutlineColor = function() {
+        return null;
+    };
+
     function CAnimGroupList(oParentControl) {//main seq, interactive seq
         CControlContainer.call(this, oParentControl);
     }
@@ -10184,6 +10579,12 @@
             var oItem = new CAnimItem(this, aAllEffects[nCurEffect]);
             this.addControl(oItem);
         }
+    };
+    CAnimGroupList.prototype.getFillColor = function() {
+        return null;
+    };
+    CAnimGroupList.prototype.getOutlineColor = function() {
+        return null;
     };
 
     //CAnimGroupList.prototype.draw = function() {
@@ -10211,6 +10612,9 @@
         CControl.call(this, oParentControl)
     }
     InitClass(CImageControl, CControl, CONTROL_TYPE_IMAGE);
+    CImageControl.prototype.canHandleEvents = function () {
+        return false;
+    };
     //CImageControl.prototype.draw = function() {
     //};
 
@@ -10252,6 +10656,15 @@
         var dRightSpace = dYInside;
         this.contextMenuButton.setLayout(this.getRight() - dRightSpace - EFFECT_BAR_HEIGHT, dYInside, EFFECT_BAR_HEIGHT, EFFECT_BAR_HEIGHT);
     };
+    CAnimItem.prototype.canHandleEvents = function () {
+        return true;
+    };
+    // CAnimItem.prototype.getFillColor = function() {
+    //     return null;
+    // };
+    CAnimItem.prototype.getOutlineColor = function() {
+        return null;
+    };
 
     //CAnimItem.prototype.draw = function() {
     //};
@@ -10279,7 +10692,6 @@
         }, this, []);
     }
     InitClass(CLabel, CControl, CONTROL_TYPE_LABEL);
-
     CLabel.prototype.getString = function() {
         return AscCommon.translateManager.getValue(this.string);
     };
@@ -10289,12 +10701,115 @@
         this.txBody.content.Recalc_AllParagraphs_CompiledPr();
         this.txBody.recalculateOneString(this.getString());
     };
+    CLabel.prototype.canHandleEvents = function () {
+        return false;
+    };
+    CLabel.prototype.getFillColor = function() {
+        return null;
+    };
+    CLabel.prototype.getOutlineColor = function() {
+        return null;
+    };
 
-    function CButton(oParentControl) {
+    function CButton(oParentControl, fOnMouseDown, fOnMouseMove, fOnMouseUp) {
         CControlContainer.call(this, oParentControl);
+        this.onMouseDownCallback = fOnMouseDown;
+        this.onMouseMoveCallback = fOnMouseMove;
+        this.onMouseUpCallback = fOnMouseUp;
     }
     InitClass(CButton, CControlContainer, CONTROL_TYPE_BUTTON);
+    CButton.prototype.onMouseDown = function(e, x, y) {
+        if(this.onMouseDownCallback && this.onMouseDownCallback.call(this, e, x, y)) {
+            return true;
+        }
+        return CControlContainer.prototype.onMouseDown.call(this, e, x, y);
+    };
+    CButton.prototype.onMouseMove = function(e, x, y) {
+        if(this.onMouseMoveCallback && this.onMouseMoveCallback.call(this, e, x, y)) {
+            return true;
+        }
+        return CControlContainer.prototype.onMouseMove.call(this, e, x, y);
+    };
+    CButton.prototype.onMouseUp = function(e, x, y) {
+        if(this.onMouseUpCallback && this.onMouseUpCallback.call(this, e, x, y)) {
+            return true;
+        }
+        return CControlContainer.prototype.onMouseUp.call(this, e, x, y);
+    };
+    CButton.prototype.canHandleEvents = function () {
+        return true;
+    };
+    CButton.prototype.canHandleEvents = function () {
+        return true;
+    };
+    // CButton.prototype.draw = function(graphics) {
+    //     if(this.isHidden()){
+    //         return false;
+    //     }
+    //     if(!this.checkUpdateRect(graphics.updatedRect)) {
+    //         return false;
+    //     }
+    //
+    //     graphics.SaveGrState();
+    //     var oSkin = AscCommon.GlobalSkin;
+    //     //ScrollBackgroundColor     : "#EEEEEE",
+    //     //ScrollOutlineColor        : "#CBCBCB",
+    //     //ScrollOutlineHoverColor   : "#CBCBCB",
+    //     //ScrollOutlineActiveColor  : "#ADADAD",
+    //     //ScrollerColor             : "#F7F7F7",
+    //     //ScrollerHoverColor        : "#C0C0C0",
+    //     //ScrollerActiveColor       : "#ADADAD",
+    //     //ScrollArrowColor          : "#ADADAD",
+    //     //ScrollArrowHoverColor     : "#F7F7F7",
+    //     //ScrollArrowActiveColor    : "#F7F7F7",
+    //     //ScrollerTargetColor       : "#CFCFCF",
+    //     //ScrollerTargetHoverColor  : "#F1F1F1",
+    //     //ScrollerTargetActiveColor : "#F1F1F1",
+    //     var x = 0;
+    //     var y = 0;
+    //     var extX = this.getWidth();
+    //     var extY = this.getHeight();
+    //     graphics.transform3(this.transform);
+    //
+    //     var sFillColor;
+    //     var sOutlineColor;
+    //     var oColor;
+    //     if(this.isActive()) {
+    //         sFillColor = oSkin.ScrollerActiveColor;
+    //         sOutlineColor = oSkin.ScrollOutlineActiveColor;
+    //     }
+    //     else if(this.isHovered()) {
+    //         sFillColor = oSkin.ScrollerHoverColor;
+    //         sOutlineColor = oSkin.ScrollOutlineHoverColor;
+    //     }
+    //     else {
+    //         sFillColor = oSkin.ScrollerColor;
+    //         sOutlineColor = oSkin.ScrollOutlineColor;
+    //     }
+    //     oColor = AscCommon.RgbaHexToRGBA(sFillColor);
+    //     graphics.b_color1(oColor.R, oColor.G, oColor.B, 0xFF);
+    //     graphics.rect(x, y, extX, extY);
+    //     graphics.df();
+    //     oColor = AscCommon.RgbaHexToRGBA(sOutlineColor);
+    //
+    //     graphics.SetIntegerGrid(true);
+    //     graphics.p_width(0);
+    //     graphics.p_color(oColor.R, oColor.G, oColor.B, 0xFF);
+    //     graphics.drawHorLine(0, y, x, x + extX, 0);
+    //     graphics.drawHorLine(0, y + extY, x, x + extX, 0);
+    //     graphics.drawVerLine(2, x, y, y + extY, 0);
+    //     graphics.drawVerLine(2, x + extX, y, y + extY, 0);
+    //     graphics.ds();
+    //     graphics.RestoreGrState();
+    //     return true;
+    // };
 
+    CAnimGroupList.prototype.getFillColor = function() {
+        return null;
+    };
+    CAnimGroupList.prototype.getOutlineColor = function() {
+        return null;
+    };
 
     function CHeader(oParentControl) {
         CControlContainer.call(this, oParentControl);
@@ -10324,6 +10839,12 @@
         );
 
     };
+    CHeader.prototype.getFillColor = function() {
+        return null;
+    };
+    CHeader.prototype.getOutlineColor = function() {
+        return null;
+    };
 
     function CToolbar(oParentControl) {
         CControlContainer.call(this, oParentControl);
@@ -10347,6 +10868,12 @@
             BUTTON_SIZE
         );
     };
+    CToolbar.prototype.getFillColor = function() {
+        return null;
+    };
+    CToolbar.prototype.getOutlineColor = function() {
+        return null;
+    };
 
     function CTimelineContainer(oParentControl) {
         CControlContainer.call(this, oParentControl);
@@ -10362,6 +10889,12 @@
     CTimelineContainer.prototype.getAnimCaptionRightPos = function() {
         return this.timeline.getAnimCaptionRightPos();
     };
+    CTimelineContainer.prototype.getFillColor = function() {
+        return null;
+    };
+    CTimelineContainer.prototype.getOutlineColor = function() {
+        return null;
+    };
 
     function CTimeline(oParentControl) {
         CScrollHor.call(this, oParentControl);
@@ -10373,6 +10906,12 @@
     CTimeline.prototype.getAnimCaptionRightPos = function() {
        // return this.convertRelToAbs({x: this.getPaneLeft(), y: 0});
         return this.convertRelToAbs({x: this.getPaneLeft(), y: 0});
+    };
+    CTimeline.prototype.getFillColor = function() {
+        return null;
+    };
+    CTimeline.prototype.getOutlineColor = function() {
+        return null;
     };
 
     var HEADER_HEIGHT = 7.5;
@@ -10435,7 +10974,7 @@
             this.getExternalControlHeight()
         );
         this.recalculate();
-        this.onUpdate(this.getBounds());
+        this.onUpdate();
     };
     CAnimPane.prototype.getExternalControl = function() {
         return editor.WordControl.m_oAnimPaneApi;
@@ -10446,8 +10985,11 @@
     CAnimPane.prototype.getExternalControlHeight = function() {
         return this.getExternalControl().GetHeight();
     };
-    CAnimPane.prototype.onUpdate = function(oBounds) {
+    CAnimPane.prototype.onChildUpdate = function(oBounds) {
         this.getExternalControl().OnAnimPaneChanged(this.getSlideNum(), oBounds);
+    };
+    CAnimPane.prototype.onUpdate = function() {
+        this.getExternalControl().OnAnimPaneChanged(this.getSlideNum(), this.getBounds());
     };
     CAnimPane.prototype.getSlideNum = function(oBounds) {
         return this.timing.parent.num;

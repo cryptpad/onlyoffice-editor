@@ -6729,6 +6729,10 @@ CAnimPaneDrawTask.prototype.Clear = function()
 	this.Slide = null;
 	this.Rect = null;
 };
+CAnimPaneDrawTask.prototype.GetRect = function()
+{
+	return this.Rect;
+};
 
 function CAnimationPaneDrawer(page)
 {
@@ -6780,7 +6784,6 @@ function CAnimationPaneDrawer(page)
 		var oPresentation = oThis.GetPresentation();
 		var element = oThis.GetHtmlElement();
 		var ctx = element.getContext('2d');
-		ctx.clearRect(0, 0, element.width, element.height);
 
 		var dKoef = g_dKoef_mm_to_pix;
 		dKoef *= AscCommon.AscBrowser.retinaPixelRatio;
@@ -6794,7 +6797,33 @@ function CAnimationPaneDrawer(page)
 		g.init(ctx, w_px, h_px, w_mm, h_mm);
 		g.m_oFontManager = oThis.fontManager;
 
+		var oUpdateRect = this.DrawTask.GetRect();
+		var oClipRect = null;
+		if(oUpdateRect)
+		{
+			var oT = g.m_oCoordTransform;
+			var l = (oT.TransformPointX(oUpdateRect.l, oUpdateRect.t) >> 0) - 1;
+			var t = (oT.TransformPointY(oUpdateRect.l, oUpdateRect.t) >> 0) - 1;
+			var r = (oT.TransformPointX(oUpdateRect.r, oUpdateRect.b) >> 0) + 1;
+			var b = (oT.TransformPointY(oUpdateRect.r, oUpdateRect.b) >> 0) + 1;
+			oClipRect = new AscFormat.CGraphicBounds(l, t, r, b);
+			ctx.clearRect(oClipRect.l, oClipRect.t, oClipRect.w, oClipRect.h);
+			g.updateRect = oUpdateRect;
+		}
+		else
+		{
+			ctx.clearRect(0, 0, element.width, element.height);
+		}
+		if(oClipRect)
+		{
+			ctx.save();
+			ctx.beginPath();
+			ctx.rect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+			ctx.clip();
+			ctx.save();
+		}
 		g.SaveGrState();
+
 		if (AscCommon.GlobalSkin.Type === "dark")
 		{
 			g.darkModeOverride();
@@ -6804,6 +6833,10 @@ function CAnimationPaneDrawer(page)
 			oPresentation.DrawAnimPane(g);
 		}
 		g.RestoreGrState();
+		if(oClipRect) {
+			ctx.restore();
+			ctx.restore();
+		}
 	};
 
 	oThis.CheckPaint = function ()
