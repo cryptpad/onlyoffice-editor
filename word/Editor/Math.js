@@ -3497,6 +3497,14 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 {
 	this.Root.CalculateTextToTable(oEngine);
 };
+ParaMath.prototype.ConvertFromLaTeX = function(sLaTeX)
+{
+    if (!sLaTeX)
+        return;
+
+    this.Root.Load_FromMenu(c_oAscMathMainType.Empty_Content << 24, this.GetParagraph(), null, sLaTeX);
+    this.Root.Correct_Content(true);
+};
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {

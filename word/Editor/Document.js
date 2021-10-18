@@ -26740,6 +26740,45 @@ CDocument.prototype.GetCurrentReviewChanges = function()
 	return arrReviewChanges;
 };
 
+/**
+ * Создаем формулу на основе языка LaTeX
+ * @param {string} sText
+ */
+CDocument.prototype.ConvertLaTeXToMath = function(sText)
+{
+	var oCurrentParagraph = this.GetCurrentParagraph();
+	if (!oCurrentParagraph || !oCurrentParagraph.GetParent())
+		return;
+
+	if (!sText)
+		sText = this.GetSelectedText();
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+	{
+		this.StartAction();
+
+		if (this.IsTextSelectionUse())
+			this.Remove();
+
+		var oMath = new ParaMath();
+		oMath.ConvertFromLaTeX(sText);
+
+		oCurrentParagraph.Add(oMath);
+
+		// var oPara = new Paragraph(this.GetDrawingDocument(), null, false);
+		// oPara.Add(oMath);
+		//
+		// var oSelectedContent = new CSelectedContent();
+		// oSelectedContent.Add(new CSelectedElement(oPara, true));
+		// oSelectedContent.On_EndCollectElements(this, false);
+		// oCurrentParagraph.GetParent().InsertContent(oSelectedContent, oCurrentParagraph.GetCurrentAnchorPosition());
+
+		this.Recalculate();
+		this.UpdateInterface();
+		this.FinalizeAction();
+	}
+};
+
 function CDocumentSelectionState()
 {
     this.Id        = null;
