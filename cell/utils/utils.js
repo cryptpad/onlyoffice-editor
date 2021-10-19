@@ -288,26 +288,30 @@
 			return cellValue;
 		}
 
-		function getFindRegExp(value, options) {
+		function getFindRegExp(value, options, checkEmptyVal) {
 			var findFlags = "g"; // Заменяем все вхождения
 			// Не чувствителен к регистру
 			if (true !== options.isMatchCase) {
 				findFlags += "i";
 			}
-			value = value
-				.replace(/(\\)/g, "\\\\").replace(/(\^)/g, "\\^")
-				.replace(/(\()/g, "\\(").replace(/(\))/g, "\\)")
-				.replace(/(\+)/g, "\\+").replace(/(\[)/g, "\\[")
-				.replace(/(\])/g, "\\]").replace(/(\{)/g, "\\{")
-				.replace(/(\})/g, "\\}").replace(/(\$)/g, "\\$")
-				.replace(/(\.)/g, "\\.")
-				.replace(/(~)?\*/g, function ($0, $1) {
-					return $1 ? $0 : '(.*)';
-				})
-				.replace(/(~)?\?/g, function ($0, $1) {
-					return $1 ? $0 : '.';
-				})
-				.replace(/(~\*)/g, "\\*").replace(/(~\?)/g, "\\?");
+			if (value === "" && checkEmptyVal) {
+				value = /^$/;
+			} else {
+				value = value
+					.replace(/(\\)/g, "\\\\").replace(/(\^)/g, "\\^")
+					.replace(/(\()/g, "\\(").replace(/(\))/g, "\\)")
+					.replace(/(\+)/g, "\\+").replace(/(\[)/g, "\\[")
+					.replace(/(\])/g, "\\]").replace(/(\{)/g, "\\{")
+					.replace(/(\})/g, "\\}").replace(/(\$)/g, "\\$")
+					.replace(/(\.)/g, "\\.")
+					.replace(/(~)?\*/g, function ($0, $1) {
+						return $1 ? $0 : '(.*)';
+					})
+					.replace(/(~)?\?/g, function ($0, $1) {
+						return $1 ? $0 : '.';
+					})
+					.replace(/(~\*)/g, "\\*").replace(/(~\?)/g, "\\?");
+			}
 
 			if (options.isWholeWord)
 				value = '\\b' + value + '\\b';
