@@ -6397,9 +6397,10 @@ background-repeat: no-repeat;\
 		var top = ((height / 2) - (h / 2)) + dualScreenTop;
 
 		var _windowPos = "width=" + w + ",height=" + h + ",left=" + left + ",top=" + top;
-		var _url = "index.reporter.html";
+        var urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
+		var _url = "index.reporter.html?" + urlArgs;
 		if (this.locale)
-			_url += ("?lang=" + this.locale);
+			_url += ("&lang=" + this.locale);
 		this.reporterWindow = window.open(_url, "_blank", "resizable=yes,status=0,toolbar=0,location=0,menubar=0,directories=0,scrollbars=0," + _windowPos);
 
 		if (!this.reporterWindow)
