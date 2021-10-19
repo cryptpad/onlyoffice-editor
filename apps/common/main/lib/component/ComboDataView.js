@@ -235,9 +235,10 @@ define([
         onResize: function() {
             if (this.openButton) {
                 var button = $('button', this.openButton.cmpEl);
-                button && button.css({
-                    width : $('.button', this.cmpEl).width(),
-                    height: $('.button', this.cmpEl).height()
+                var cntButton = $('.button', this.cmpEl);
+                button && cntButton.width() > 0 && button.css({
+                    width : cntButton.width(),
+                    height: cntButton.height()
                 });
 
                 this.openButton.menu.hide();
@@ -468,12 +469,12 @@ define([
 
         setItemWidth: function(width) {
             if (this.itemWidth != width)
-                this.itemWidth = window.devicePixelRatio > 1 ? width / 2 : width;
+                this.itemWidth = Common.Utils.applicationPixelRatio() > 1 ? width / 2 : width;
         },
 
         setItemHeight: function(height) {
             if (this.itemHeight != height)
-                this.itemHeight = window.devicePixelRatio > 1 ? height / 2 : height;
+                this.itemHeight = Common.Utils.applicationPixelRatio() > 1 ? height / 2 : height;
         },
 
         removeTips: function() {

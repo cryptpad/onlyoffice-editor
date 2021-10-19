@@ -56,6 +56,12 @@ function onDropDownKeyDown(e) {
                 e.stopPropagation();
             }
         }
+    } else if ($this.hasClass('move-focus')) {
+        if (!(/^(27|13|9|32)/.test(e.keyCode) && !e.ctrlKey && !e.altKey)) {
+            patchDropDownKeyDown.call(this, e);
+            e.preventDefault();
+            e.stopPropagation();
+        }
     } else {
         patchDropDownKeyDown.call(this, e);
         e.preventDefault();
@@ -63,6 +69,17 @@ function onDropDownKeyDown(e) {
     }
 
     $parent.trigger(afterEvent);
+}
+
+function checkFocusedItem(cmp, item) {
+    var innerHeight = cmp.innerHeight(),
+        padding = (innerHeight - cmp.height())/2,
+        pos = item.position().top,
+        itemHeight = item.outerHeight();
+    if (pos<0)
+        cmp.scrollTop(cmp.scrollTop() + pos - padding);
+    else if (pos+itemHeight>innerHeight)
+        cmp.scrollTop(cmp.scrollTop() + pos + itemHeight - innerHeight + padding);
 }
 
 function patchDropDownKeyDown(e) {
@@ -128,6 +145,8 @@ function patchDropDownKeyDown(e) {
         if ($parent.hasClass('dropdown-submenu') && $parent.hasClass('over'))
             $parent.addClass('focused-submenu'); // for Safari. When focus go from parent menuItem to it's submenu don't hide this submenu
 
+
+        checkFocusedItem($this, $items.eq(index));
         $items.eq(index).focus();
     }
 }

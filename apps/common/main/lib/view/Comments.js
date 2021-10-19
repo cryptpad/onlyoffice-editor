@@ -102,7 +102,7 @@ define([
                 var view = this,
                     textBox = $(this.el).find('textarea'),
                     domTextBox = null,
-                    minHeight = 50,
+                    minHeight = 55,
                     lineHeight = 0,
                     scrollPos = 0,
                     oldHeight = 0,
@@ -273,15 +273,7 @@ define([
                     me.fireEvent('comment:resolve', [commentId]);
 
                     readdresolves();
-                } else if (btn.hasClass('btn-resolve-check', false)) {
-                    var tip = btn.data('bs.tooltip');
-                    if (tip) tip.dontShow = true;
-
-                    me.fireEvent('comment:resolve', [commentId]);
-
-                    readdresolves();
                 } else if (!btn.hasClass('msg-reply') &&
-                    !btn.hasClass('btn-resolve-check') &&
                     !btn.hasClass('btn-resolve')) {
                     var isTextSelected = false;
                     if (btn.hasClass('user-message')) {
@@ -377,12 +369,12 @@ define([
                     }
 
                     var arr = [],
-                        btns = $(view.el).find('.btn-resolve');
+                        btns = $(view.el).find('.btn-resolve:not(.comment-resolved)');
                     btns.tooltip({title: me.textResolve, placement: 'cursor'});
                     btns.each(function(idx, item){
                         arr.push($(item).data('bs.tooltip').tip());
                     });
-                    btns = $(view.el).find('.btn-resolve-check');
+                    btns = $(view.el).find('.comment-resolved');
                     btns.tooltip({title: me.textOpenAgain, placement: 'cursor'});
                     btns.each(function(idx, item){
                         arr.push($(item).data('bs.tooltip').tip());
@@ -664,7 +656,7 @@ define([
             return Common.Utils.String.ellipsis(Common.Utils.String.htmlEncode(quote), 120, true);
         },
         getUserName: function (username) {
-            return Common.Utils.String.htmlEncode(Common.Utils.UserInfoParser.getParsedName(username));
+            return Common.Utils.String.htmlEncode(AscCommon.UserInfoParser.getParsedName(username));
         },
 
         pickLink: function (message) {

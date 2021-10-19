@@ -134,7 +134,10 @@ define([
                 validateOnBlur: false,
                 style       : 'width: 100%;',
                 validation  : function(value) {
-                    var urltype = me.api.asc_getUrlType($.trim(value));
+                    var trimmed = $.trim(value);
+                    if (trimmed.length>2083) return me.txtSizeLimit;
+
+                    var urltype = me.api.asc_getUrlType(trimmed);
                     me.isEmail = (urltype==2);
                     return (urltype>0) ? true : me.txtNotUrl;
                 }
@@ -188,7 +191,7 @@ define([
         },
 
         getFocusedComponents: function() {
-            return [this.inputUrl, {cmp: this.internalList, selector: '.treeview'}, this.inputDisplay, this.inputTip];
+            return [this.inputUrl, this.internalList, this.inputDisplay, this.inputTip];
         },
 
         setSettings: function (props) {
@@ -413,6 +416,7 @@ define([
         },
 
         onSelectItem: function(picker, item, record, e){
+            if (!record) return;
             this.btnOk.setDisabled(record.get('index')==4);
             if (this.isAutoUpdate) {
                 this.inputDisplay.setValue((record.get('level') || record.get('index')<4) ? record.get('name') : '');
@@ -437,6 +441,7 @@ define([
         txtFirst:           'First Slide',
         txtLast:            'Last Slide',
         textDefault:        'Selected text',
-        textSlides: 'Slides'
+        textSlides: 'Slides',
+        txtSizeLimit: 'This field is limited to 2083 characters'
     }, PE.Views.HyperlinkSettingsDialog || {}))
 });

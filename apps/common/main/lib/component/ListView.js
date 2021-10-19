@@ -54,11 +54,12 @@ define([
                 showLast: true,
                 simpleAddMode: false,
                 keyMoveDirection: 'vertical',
-                itemTemplate: _.template('<div id="<%= id %>" class="list-item" style=""><%= value %></div>')
+                itemTemplate: _.template('<div id="<%= id %>" class="list-item" style=""><%= value %></div>'),
+                cls: ''
             },
 
             template: _.template([
-                '<div class="listview inner"></div>'
+                '<div class="listview inner <%= cls %>"></div>'
             ].join('')),
 
             onResetItems : function() {
@@ -119,6 +120,37 @@ define([
 
             focus: function() {
                 this.cmpEl && this.cmpEl.find('.listview').focus();
+            },
+
+            scrollToRecord: function (record, force) {
+                if (!this._fromKeyDown) {
+                    Common.UI.DataView.prototype.scrollToRecord.call(this, record, force);
+                    return;
+                }
+
+                if (!record) return;
+                var innerEl = $(this.el).find('.inner'),
+                    innerHeight = innerEl.innerHeight(),
+                    idx = _.indexOf(this.store.models, record),
+                    div = (idx>=0 && this.dataViewItems.length>idx) ? $(this.dataViewItems[idx].el) : innerEl.find('#' + record.get('id'));
+                if (div.length<=0) return;
+
+                var div_top = div.position().top,
+                    div_height = div.outerHeight(),
+                    newpos;
+
+                if (force || div_top<0)
+                    newpos = innerEl.scrollTop() + div_top;
+                else if (div_top+div_height>innerHeight)
+                    newpos = innerEl.scrollTop() + div_top + div_height - innerHeight;
+
+                if (newpos!==undefined) {
+                    if (this.scroller && this.allowScrollbar) {
+                        this.scroller.scrollTop(newpos, 0);
+                    } else {
+                        innerEl.scrollTop(newpos);
+                    }
+                }
             }
         }
     })());

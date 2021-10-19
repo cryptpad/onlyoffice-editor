@@ -4,768 +4,840 @@
             .toolbar__icon {
                 @btn-active-icon-offset: -20px;
                 background-position-x: @btn-active-icon-offset;
-                --bgX: @btn-active-icon-offset;
+
+                background-position-x: var(--button-small-active-icon-offset-x, 0);
             }
         }
     }
 }
 .menu__icon {
     .no-checkmark.checked & {
-        @btn-active-icon-offset: -20px;
-        background-position-x: @btn-active-icon-offset;
-        --bgX: @btn-active-icon-offset;
+        background-position-x: -20px;
+        background-position-x: @menu-icon-item-checked-offset-x;
     }
 }
 .toolbar__icon, .menu__icon {
     background-image: url(resources/../../img/iconssmall.png);
 }
 .advanced-btn-ratio {
-    background-position: 0px -260px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -220px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -260px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -220px;
 }
 .arrange-back {
-    background-position: 0px -280px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -240px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -280px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -240px;
 }
 .arrange-backward {
-    background-position: 0px -300px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -260px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -300px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -260px;
 }
 .arrange-forward {
-    background-position: 0px -320px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -280px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -320px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -280px;
 }
 .arrange-front {
-    background-position: 0px -340px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -300px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -340px;
-}
-.btn-addcell {
-    background-position: 0px -360px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -360px;
-}
-.btn-align-bottom {
-    background-position: 0px -380px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -380px;
-}
-.btn-align-center {
-    background-position: 0px -400px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -400px;
-}
-.btn-align-just {
-    background-position: 0px -420px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -420px;
-}
-.btn-align-left {
-    background-position: 0px -440px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -440px;
-}
-.btn-align-middle {
-    background-position: 0px -460px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -460px;
-}
-.btn-align-right {
-    background-position: 0px -480px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -480px;
-}
-.btn-align-top {
-    background-position: 0px -500px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -500px;
-}
-.btn-arrow-down {
-    background-position: 0px -520px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -520px;
-}
-.btn-arrow-up {
-    background-position: 0px -540px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -540px;
-}
-[applang=ru] .btn-bold {
-    background-position: 0px -580px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -580px;
-}
-.btn-bold {
-    background-position: 0px -560px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -560px;
-}
-.btn-border-all {
-    background-position: 0px -600px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -600px;
-}
-.btn-border-bottom {
-    background-position: 0px -620px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -620px;
-}
-.btn-border-diagdown {
-    background-position: 0px -640px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -640px;
-}
-.btn-border-diagup {
-    background-position: 0px -660px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -660px;
-}
-.btn-border-inside {
-    background-position: 0px -680px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -680px;
-}
-.btn-border-insidehor {
-    background-position: 0px -700px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -700px;
-}
-.btn-border-insidevert {
-    background-position: 0px -720px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -720px;
-}
-.btn-border-left {
-    background-position: 0px -740px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -740px;
-}
-.btn-border-no {
-    background-position: 0px -760px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -760px;
-}
-.btn-border-out {
-    background-position: 0px -780px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -780px;
-}
-.btn-border-right {
-    background-position: 0px -800px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -800px;
-}
-.btn-border-top {
-    background-position: 0px -820px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -820px;
-}
-.btn-clearstyle {
-    background-position: 0px -840px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -840px;
-}
-.btn-close {
-    background-position: 0px -860px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -860px;
-}
-.btn-colorschemas {
-    background-position: 0px -880px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -880px;
-}
-.btn-copy {
-    background-position: 0px -900px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -900px;
-}
-.btn-copystyle {
-    background-position: 0px -920px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -920px;
-}
-.btn-cut {
-    background-position: 0px -940px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -940px;
-}
-.btn-decfont {
-    background-position: 0px -960px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -960px;
-}
-.btn-decoffset {
-    background-position: 0px -980px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -980px;
-}
-.btn-delcell {
-    background-position: 0px -1000px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1000px;
-}
-.btn-download {
-    background-position: 0px -1020px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1020px;
-}
-.btn-edit {
-    background-position: 0px -1040px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1040px;
-}
-.btn-firstitem {
-    background-position: 0px -1060px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1060px;
-}
-.btn-flip-hor {
-    background-position: 0px -1080px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1080px;
-}
-.btn-flip-vert {
-    background-position: 0px -1100px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1100px;
-}
-.btn-fontcolor {
-    background-position: 0px -1120px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1120px;
-}
-.btn-goback {
-    background-position: 0px -1140px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1140px;
-}
-.btn-ic-doclang {
-    background-position: 0px -1160px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1160px;
-}
-[applang=ru] .btn-ic-docspell {
-    background-position: 0px -1200px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1200px;
-}
-.btn-ic-docspell {
-    background-position: 0px -1180px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1180px;
-}
-.btn-ic-options {
-    background-position: 0px -1220px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1220px;
-}
-.btn-ic-review {
-    background-position: 0px -1240px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1240px;
-}
-.btn-ic-zoomtopage {
-    background-position: 0px -1260px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1260px;
-}
-.btn-ic-zoomtowidth {
-    background-position: 0px -1280px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1280px;
-}
-.btn-incfont {
-    background-position: 0px -1300px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1300px;
-}
-.btn-incoffset {
-    background-position: 0px -1320px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1320px;
-}
-.btn-inserthyperlink {
-    background-position: 0px -1340px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1340px;
-}
-[applang=ru] .btn-italic {
-    background-position: 0px -1380px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1380px;
-}
-.btn-italic {
-    background-position: 0px -1360px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1360px;
-}
-.btn-lastitem {
-    background-position: 0px -1400px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1400px;
-}
-.btn-linespace {
-    background-position: 0px -1420px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1420px;
-}
-.btn-menu-about {
-    background-position: 0px -1440px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1440px;
-}
-.btn-menu-chart {
-    background-position: 0px -1460px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1460px;
-}
-.btn-menu-chat {
-    background-position: 0px -1480px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1480px;
-}
-.btn-menu-comments {
-    background-position: 0px -1500px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1500px;
-}
-.btn-menu-image {
-    background-position: 0px -1520px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1520px;
-}
-.btn-menu-navigation {
-    background-position: 0px -1540px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1540px;
-}
-.btn-menu-search {
-    background-position: 0px -1560px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1560px;
-}
-.btn-menu-shape {
-    background-position: 0px -1580px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1580px;
-}
-.btn-menu-signature {
-    background-position: 0px -1600px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1600px;
-}
-.btn-menu-support {
-    background-position: 0px -1620px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1620px;
-}
-.btn-menu-table {
-    background-position: 0px -1640px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1640px;
-}
-.btn-menu-textart {
-    background-position: 0px -1660px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1660px;
-}
-.btn-merge {
-    background-position: 0px -1680px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1680px;
-}
-.btn-nextitem {
-    background-position: 0px -1700px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1700px;
-}
-.btn-numbering {
-    background-position: 0px -1720px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1720px;
-}
-.btn-paracolor {
-    background-position: 0px -1740px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1740px;
-}
-.btn-paragraph {
-    background-position: 0px -1760px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1760px;
-}
-.btn-paste {
-    background-position: 0px -1780px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1780px;
-}
-.btn-previtem {
-    background-position: 0px -1800px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1800px;
-}
-.btn-print {
-    background-position: 0px -1820px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1820px;
-}
-.btn-redo {
-    background-position: 0px -1840px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1840px;
-}
-.btn-rotate-270 {
-    background-position: 0px -1860px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1860px;
-}
-.btn-rotate-90 {
-    background-position: 0px -1880px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1880px;
-}
-.btn-save-coauth {
-    background-position: 0px -1900px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1900px;
-}
-.btn-save {
-    background-position: 0px -1920px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1920px;
-}
-.btn-select-range {
-    background-position: 0px -1940px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1940px;
-}
-.btn-setmarkers {
-    background-position: 0px -1960px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1960px;
-}
-.btn-settings {
-    background-position: 0px -1980px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -1980px;
-}
-[applang=ru] .btn-strikeout {
-    background-position: 0px -2020px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2020px;
-}
-.btn-strikeout {
-    background-position: 0px -2000px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2000px;
-}
-.btn-subscript {
-    background-position: 0px -2040px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2040px;
-}
-.btn-superscript {
-    background-position: 0px -2060px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2060px;
-}
-[applang=ru] .btn-underline {
-    background-position: 0px -2100px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2100px;
-}
-.btn-underline {
-    background-position: 0px -2080px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2080px;
-}
-.btn-undo {
-    background-position: 0px -2120px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2120px;
-}
-.btn-users {
-    background-position: 0px -2140px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2140px;
-}
-.btn-zoomdown {
-    background-position: 0px -2160px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2160px;
-}
-.btn-zoomup {
-    background-position: 0px -2180px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2180px;
-}
-.page-landscape {
-    background-position: 0px -2200px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2200px;
-}
-.page-portrait {
-    background-position: 0px -2220px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2220px;
-}
-.shape-align-bottom {
-    background-position: 0px -2240px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2240px;
-}
-.shape-align-center {
-    background-position: 0px -2260px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2260px;
-}
-.shape-align-left {
-    background-position: 0px -2280px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2280px;
-}
-.shape-align-middle {
-    background-position: 0px -2300px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2300px;
-}
-.shape-align-right {
-    background-position: 0px -2320px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2320px;
-}
-.shape-align-top {
-    background-position: 0px -2340px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2340px;
-}
-.shape-distribute-hor {
-    background-position: 0px -2360px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2360px;
-}
-.shape-distribute-vert {
-    background-position: 0px -2380px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2380px;
-}
-.shape-group {
-    background-position: 0px -2400px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2400px;
-}
-.shape-ungroup {
-    background-position: 0px -2420px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2420px;
-}
-.text-orient-hor {
-    background-position: 0px -2440px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2440px;
-}
-.text-orient-rdown {
-    background-position: 0px -2460px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2460px;
-}
-.text-orient-rup {
-    background-position: 0px -2480px;
-
-    --bgX: 0px;
-    background-position: var(--bgX) -2480px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -300px;
 }
 .btn-add-breakpoint {
-    background-position: 0px 0px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -320px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) 0px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -320px;
 }
-.btn-changeslide {
-    background-position: 0px -20px;
+.btn-addcell {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -340px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -20px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -340px;
 }
-.btn-ic-zoomtoslide {
-    background-position: 0px -40px;
+.btn-align-bottom {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -360px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -40px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -360px;
 }
-.btn-menu-slide {
-    background-position: 0px -60px;
+.btn-align-center {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -380px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -60px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -380px;
 }
-.btn-menu-thumbs {
-    background-position: 0px -80px;
+.btn-align-just {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -400px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -80px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -400px;
 }
-.btn-presenter-view {
-    background-position: 0px -100px;
+.btn-align-left {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -420px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -100px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -420px;
 }
-.btn-preview-exit-fullscreen {
-    background-position: 0px -120px;
+.btn-align-middle {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -440px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -120px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -440px;
 }
-.btn-preview-fullscreen {
-    background-position: 0px -140px;
+.btn-align-right {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -460px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -140px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -460px;
 }
-.btn-preview-pause {
-    background-position: 0px -160px;
+.btn-align-top {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -480px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -160px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -480px;
 }
-.btn-preview-play {
-    background-position: 0px -180px;
+.btn-arrow-down {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -500px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -180px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -500px;
 }
-.btn-preview {
-    background-position: 0px -200px;
+.btn-arrow-up {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -520px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -200px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -520px;
+}
+.btn-autocorrect {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -540px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -540px;
+}
+[applang=ru] .btn-bold {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -580px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -580px;
+}
+.btn-bold {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -560px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -560px;
+}
+.btn-border-all {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -600px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -600px;
+}
+.btn-border-bottom {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -620px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -620px;
+}
+.btn-border-diagdown {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -640px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -640px;
+}
+.btn-border-diagup {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -660px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -660px;
+}
+.btn-border-inside {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -680px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -680px;
+}
+.btn-border-insidehor {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -700px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -700px;
+}
+.btn-border-insidevert {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -720px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -720px;
+}
+.btn-border-left {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -740px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -740px;
+}
+.btn-border-no {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -760px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -760px;
+}
+.btn-border-out {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -780px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -780px;
+}
+.btn-border-right {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -800px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -800px;
+}
+.btn-border-top {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -820px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -820px;
+}
+.btn-change-case {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -840px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -840px;
+}
+.btn-clearstyle {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -860px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -860px;
+}
+.btn-close {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -880px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -880px;
+}
+.btn-colorschemas {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -900px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -900px;
+}
+.btn-copy {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -920px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -920px;
+}
+.btn-copystyle {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -940px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -940px;
+}
+.btn-cut {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -960px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -960px;
+}
+.btn-decfont {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -980px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -980px;
+}
+.btn-decoffset {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1000px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1000px;
+}
+.btn-delcell {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1020px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1020px;
+}
+.btn-download {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1040px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1040px;
+}
+.btn-edit {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1060px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1060px;
+}
+.btn-embed {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1080px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1080px;
+}
+.btn-favorite {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1100px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1100px;
+}
+.btn-firstitem {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1120px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1120px;
+}
+.btn-flip-hor {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1140px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1140px;
+}
+.btn-flip-vert {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1160px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1160px;
+}
+.btn-fontcolor {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1180px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1180px;
+}
+.btn-goback {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1200px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1200px;
+}
+.btn-highlight {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1220px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1220px;
+}
+.btn-ic-doclang {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1240px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1240px;
+}
+[applang=ru] .btn-ic-docspell {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1280px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1280px;
+}
+.btn-ic-docspell {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1260px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1260px;
+}
+.btn-ic-options {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1300px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1300px;
+}
+.btn-ic-review {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1320px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1320px;
+}
+.btn-ic-zoomtopage {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1340px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1340px;
+}
+.btn-ic-zoomtowidth {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1360px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1360px;
+}
+.btn-in-favorite {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1380px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1380px;
+}
+.btn-incfont {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1400px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1400px;
+}
+.btn-incoffset {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1420px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1420px;
+}
+.btn-inserthyperlink {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1440px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1440px;
+}
+[applang=ru] .btn-italic {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1480px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1480px;
+}
+.btn-italic {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1460px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1460px;
+}
+.btn-lastitem {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1500px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1500px;
+}
+.btn-linespace {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1520px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1520px;
+}
+.btn-menu-about {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1540px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1540px;
+}
+.btn-menu-chart {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1560px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1560px;
+}
+.btn-menu-chat {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1580px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1580px;
+}
+.btn-menu-comments {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1600px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1600px;
+}
+.btn-menu-image {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1620px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1620px;
+}
+.btn-menu-navigation {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1640px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1640px;
+}
+.btn-menu-search {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1660px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1660px;
+}
+.btn-menu-shape {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1680px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1680px;
+}
+.btn-menu-signature {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1700px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1700px;
+}
+.btn-menu-support {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1720px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1720px;
+}
+.btn-menu-table {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1740px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1740px;
+}
+.btn-menu-textart {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1760px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1760px;
+}
+.btn-merge-cells {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1780px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1780px;
+}
+.btn-nextitem {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1800px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1800px;
+}
+.btn-numbering {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1820px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1820px;
+}
+.btn-paracolor {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1840px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1840px;
+}
+.btn-paragraph {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1860px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1860px;
+}
+.btn-paste {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1880px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1880px;
+}
+.btn-previtem {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1900px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1900px;
+}
+.btn-print {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1920px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1920px;
+}
+.btn-redo {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1940px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1940px;
 }
 .btn-remove-breakpoint {
-    background-position: 0px -220px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1960px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -220px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1960px;
+}
+.btn-rotate-270 {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -1980px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -1980px;
+}
+.btn-rotate-90 {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2000px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2000px;
+}
+.btn-save-coauth {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2020px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2020px;
+}
+.btn-save {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2040px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2040px;
+}
+.btn-select-range {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2060px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2060px;
+}
+.btn-setmarkers {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2080px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2080px;
+}
+.btn-settings {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2100px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2100px;
+}
+.btn-share {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2120px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2120px;
+}
+.btn-sorting {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2140px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2140px;
+}
+[applang=ru] .btn-strikeout {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2180px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2180px;
+}
+.btn-strikeout {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2160px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2160px;
+}
+.btn-subscript {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2200px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2200px;
+}
+.btn-superscript {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2220px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2220px;
+}
+[applang=ru] .btn-underline {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2260px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2260px;
+}
+.btn-underline {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2240px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2240px;
+}
+.btn-undo {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2280px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2280px;
+}
+.btn-user {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2300px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2300px;
+}
+.btn-users {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2320px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2320px;
+}
+.btn-zoomdown {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2340px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2340px;
+}
+.btn-zoomup {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2360px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2360px;
+}
+.columns-one {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2380px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2380px;
+}
+.columns-three {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2400px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2400px;
+}
+.columns-two {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2420px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2420px;
+}
+.page-landscape {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2440px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2440px;
+}
+.page-portrait {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2460px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2460px;
+}
+.shape-align-bottom {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2480px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2480px;
+}
+.shape-align-center {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2500px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2500px;
+}
+.shape-align-left {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2520px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2520px;
+}
+.shape-align-middle {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2540px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2540px;
+}
+.shape-align-right {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2560px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2560px;
+}
+.shape-align-top {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2580px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2580px;
+}
+.shape-distribute-hor {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2600px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2600px;
+}
+.shape-distribute-vert {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2620px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2620px;
+}
+.shape-group {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2640px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2640px;
+}
+.shape-ungroup {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2660px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2660px;
+}
+.text-orient-hor {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2680px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2680px;
+}
+.text-orient-rdown {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2700px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2700px;
+}
+.text-orient-rup {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -2720px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -2720px;
+}
+.btn-changeslide {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset 0px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) 0px;
+}
+.btn-ic-zoomtoslide {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -20px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -20px;
+}
+.btn-menu-slide {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -40px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -40px;
+}
+.btn-menu-thumbs {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -60px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -60px;
+}
+.btn-presenter-view {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -80px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -80px;
+}
+.btn-preview-exit-fullscreen {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -100px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -100px;
+}
+.btn-preview-fullscreen {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -120px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -120px;
+}
+.btn-preview-pause {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -140px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -140px;
+}
+.btn-preview-play {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -160px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -160px;
+}
+.btn-preview {
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -180px;
+
+    background-position: var(--button-small-normal-icon-offset-x, 0) -180px;
 }
 .btn-slidesize {
-    background-position: 0px -240px;
+    @btn-icon-offset: 0;
+    background-position: @btn-icon-offset -200px;
 
-    --bgX: 0px;
-    background-position: var(--bgX) -240px;
+    background-position: var(--button-small-normal-icon-offset-x, 0) -200px;
 }

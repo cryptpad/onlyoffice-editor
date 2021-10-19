@@ -691,6 +691,10 @@ define([
                         '<label id="fms-lbl-coauth-mode" style="vertical-align: middle;"><%= scope.strCoAuthModeDescFast %></label></div></td>',
                 '</tr>','<tr class="divider coauth changes"></tr>',
                 /** coauthoring end **/
+                '<tr class="themes">',
+                    '<td class="left"><label><%= scope.strTheme %></label></td>',
+                    '<td class="right"><span id="fms-cmb-theme"></span></td>',
+                '</tr>','<tr class="divider"></tr>',
                 '<tr>',
                     '<td class="left"><label><%= scope.strZoom %></label></td>',
                     '<td class="right"><div id="fms-cmb-zoom" class="input-group-nr"></div></td>',
@@ -699,10 +703,10 @@ define([
                     '<td class="left"><label><%= scope.strFontRender %></label></td>',
                     '<td class="right"><span id="fms-cmb-font-render"></span></td>',
                 '</tr>','<tr class="divider"></tr>',
-                '<tr class="edit">',
+                '<tr>',
                     '<td class="left"><label><%= scope.strUnit %></label></td>',
                     '<td class="right"><span id="fms-cmb-unit"></span></td>',
-                '</tr>','<tr class="divider edit"></tr>',
+                '</tr>','<tr class="divider"></tr>',
                 '<tr class="edit">',
                     '<td class="left"><label><%= scope.strFuncLocale %></label></td>',
                     '<td class="right">',
@@ -870,25 +874,57 @@ define([
                 ]
             });
 
+            var formula_arr = [
+                { value: 'en', displayValue: this.txtEn, exampleValue: this.txtExampleEn },
+                { value: 'be', displayValue: this.txtBe, exampleValue: this.txtExampleBe },
+                { value: 'bg', displayValue: this.txtBg, exampleValue: this.txtExampleEn },
+                { value: 'ca', displayValue: this.txtCa, exampleValue: this.txtExampleCa },
+                { value: 'zh', displayValue: this.txtZh, exampleValue: this.txtExampleEn },
+                { value: 'cs', displayValue: this.txtCs, exampleValue: this.txtExampleCs },
+                { value: 'da', displayValue: this.txtDa, exampleValue: this.txtExampleDa },
+                { value: 'nl', displayValue: this.txtNl, exampleValue: this.txtExampleNl },
+                { value: 'fi', displayValue: this.txtFi, exampleValue: this.txtExampleFi },
+                { value: 'fr', displayValue: this.txtFr, exampleValue: this.txtExampleFr },
+                { value: 'de', displayValue: this.txtDe, exampleValue: this.txtExampleDe },
+                { value: 'el', displayValue: this.txtEl, exampleValue: this.txtExampleEn },
+                { value: 'hu', displayValue: this.txtHu, exampleValue: this.txtExampleHu },
+                { value: 'id', displayValue: this.txtId, exampleValue: this.txtExampleEn },
+                { value: 'it', displayValue: this.txtIt, exampleValue: this.txtExampleIt },
+                { value: 'ja', displayValue: this.txtJa, exampleValue: this.txtExampleEn },
+                { value: 'ko', displayValue: this.txtKo, exampleValue: this.txtExampleEn },
+                { value: 'lv', displayValue: this.txtLv, exampleValue: this.txtExampleEn },
+                { value: 'lo', displayValue: this.txtLo, exampleValue: this.txtExampleEn },
+                { value: 'nb', displayValue: this.txtNb, exampleValue: this.txtExampleNb },
+                { value: 'pl', displayValue: this.txtPl, exampleValue: this.txtExamplePl },
+                { value: 'pt', displayValue: this.txtPtlang, exampleValue: this.txtExamplePt },
+                { value: 'ro', displayValue: this.txtRo, exampleValue: this.txtExampleEn },
+                { value: 'ru', displayValue: this.txtRu, exampleValue: this.txtExampleRu },
+                { value: 'sk', displayValue: this.txtSk, exampleValue: this.txtExampleEn },
+                { value: 'sl', displayValue: this.txtSl, exampleValue: this.txtExampleEn },
+                { value: 'sv', displayValue: this.txtSv, exampleValue: this.txtExampleSv },
+                { value: 'es', displayValue: this.txtEs, exampleValue: this.txtExampleEs },
+                { value: 'tr', displayValue: this.txtTr, exampleValue: this.txtExampleTr },
+                { value: 'uk', displayValue: this.txtUk, exampleValue: this.txtExampleEn },
+                { value: 'vi', displayValue: this.txtVi, exampleValue: this.txtExampleEn }
+            ];
+            formula_arr.sort(function(a, b){
+                if (a.displayValue < b.displayValue) return -1;
+                if (a.displayValue > b.displayValue) return 1;
+                return 0;
+            });
+
             this.cmbFuncLocale = new Common.UI.ComboBox({
                 el          : $markup.findById('#fms-cmb-func-locale'),
                 style       : 'width: 160px;',
+                menuStyle: 'max-height: 185px;',
                 editable    : false,
                 cls         : 'input-group-nr',
-                data        : [
-                    { value: 'en', displayValue: this.txtEn, exampleValue: this.txtExampleEn },
-                    { value: 'de', displayValue: this.txtDe, exampleValue: this.txtExampleDe },
-                    { value: 'es', displayValue: this.txtEs, exampleValue: this.txtExampleEs },
-                    { value: 'fr', displayValue: this.txtFr, exampleValue: this.txtExampleFr },
-                    { value: 'it', displayValue: this.txtIt, exampleValue: this.txtExampleIt },
-                    { value: 'ru', displayValue: this.txtRu, exampleValue: this.txtExampleRu },
-                    { value: 'pl', displayValue: this.txtPl, exampleValue: this.txtExamplePl }
-                ]
+                data        : formula_arr
             }).on('selected', function(combo, record) {
                 me.updateFuncExample(record.exampleValue);
             });
 
-            var regdata = [{ value: 0x042C }, { value: 0x0402 }, { value: 0x0405 }, { value: 0x0407 },  {value: 0x0807}, { value: 0x0408 }, { value: 0x0C09 }, { value: 0x0809 }, { value: 0x0409 }, { value: 0x0C0A }, { value: 0x080A },
+            var regdata = [{ value: 0x042C }, { value: 0x0402 }, { value: 0x0405 }, { value: 0x0C07 }, { value: 0x0407 },  {value: 0x0807}, { value: 0x0408 }, { value: 0x0C09 }, { value: 0x0809 }, { value: 0x0409 }, { value: 0x0C0A }, { value: 0x080A },
                             { value: 0x040B }, { value: 0x040C }, { value: 0x0410 }, { value: 0x0411 }, { value: 0x0412 }, { value: 0x0426 }, { value: 0x040E }, { value: 0x0413 }, { value: 0x0415 }, { value: 0x0416 },
                             { value: 0x0816 }, { value: 0x0419 }, { value: 0x041B }, { value: 0x0424 }, { value: 0x081D }, { value: 0x041D }, { value: 0x041F }, { value: 0x0422 }, { value: 0x042A }, { value: 0x0804 }];
             regdata.forEach(function(item) {
@@ -908,7 +944,9 @@ define([
                     '<span class="input-group combobox <%= cls %> combo-langs" id="<%= id %>" style="<%= style %>">',
                     '<input type="text" class="form-control" style="padding-left: 25px !important;">',
                     '<span class="icon input-icon lang-flag"></span>',
-                    '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret img-commonctrl"></span></button>',
+                        '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">',
+                            '<span class="caret" />',
+                        '</button>',
                         '<ul class="dropdown-menu <%= menuCls %>" style="<%= menuStyle %>" role="menu">',
                             '<% _.each(items, function(item) { %>',
                                 '<li id="<%= item.id %>" data-value="<%= item.value %>">',
@@ -998,11 +1036,19 @@ define([
                 labelText: this.strPasteButton
             });
 
+            this.cmbTheme = new Common.UI.ComboBox({
+                el          : $markup.findById('#fms-cmb-theme'),
+                style       : 'width: 160px;',
+                editable    : false,
+                cls         : 'input-group-nr',
+            });
+
             $markup.find('.btn.primary').each(function(index, el){
                 (new Common.UI.Button({
                     el: $(el)
                 })).on('click', _.bind(me.applySettings, me));
             });
+
             this.pnlSettings = $markup.find('.flex-settings').addBack().filter('.flex-settings');
             this.pnlApply = $markup.find('.fms-flex-apply').addBack().filter('.fms-flex-apply');
             this.pnlTable = this.pnlSettings.find('table');
@@ -1052,16 +1098,23 @@ define([
 
         setMode: function(mode) {
             this.mode = mode;
+
+            var fast_coauth = Common.Utils.InternalSettings.get("sse-settings-coauthmode");
+
             $('tr.edit', this.el)[mode.isEdit ? 'show' : 'hide']();
-            $('tr.autosave', this.el)[mode.isEdit ? 'show' : 'hide']();
+            $('tr.autosave', this.el)[mode.isEdit && (mode.canChangeCoAuthoring || !fast_coauth) ? 'show' : 'hide']();
             if (this.mode.isDesktopApp && this.mode.isOffline) {
                 this.chAutosave.setCaption(this.strAutoRecover);
                 this.lblAutosave.text(this.textAutoRecover);
             }
             $('tr.forcesave', this.el)[mode.canForcesave ? 'show' : 'hide']();
             $('tr.comments', this.el)[mode.canCoAuthoring ? 'show' : 'hide']();
-            $('tr.coauth.changes', this.el)[mode.isEdit && !mode.isOffline && mode.canCoAuthoring? 'show' : 'hide']();
+            $('tr.coauth.changes', this.el)[mode.isEdit && !mode.isOffline && mode.canCoAuthoring && mode.canChangeCoAuthoring ? 'show' : 'hide']();
             $('tr.macros', this.el)[(mode.customization && mode.customization.macros===false) ? 'hide' : 'show']();
+
+            if ( !Common.UI.Themes.available() ) {
+                $('tr.themes, tr.themes + tr.divider', this.el).hide();
+            }
         },
 
         setApi: function(api) {
@@ -1152,15 +1205,27 @@ define([
             this.lblMacrosDesc.text(item ? item.get('descValue') : this.txtWarnMacrosDesc);
 
             this.chPaste.setValue(Common.Utils.InternalSettings.get("sse-settings-paste-button"));
+
+            var data = [];
+            for (var t in Common.UI.Themes.map()) {
+                data.push({value: t, displayValue: Common.UI.Themes.get(t).text});
+            }
+
+            if ( data.length ) {
+                this.cmbTheme.setData(data);
+                item = this.cmbTheme.store.findWhere({value: Common.UI.Themes.currentThemeId()});
+                this.cmbTheme.setValue(item ? item.get('value') : Common.UI.Themes.defaultThemeId());
+            }
         },
 
         applySettings: function() {
+            Common.UI.Themes.setTheme(this.cmbTheme.getValue());
             Common.localStorage.setItem("sse-settings-zoom", this.cmbZoom.getValue());
             Common.Utils.InternalSettings.set("sse-settings-zoom", Common.localStorage.getItem("sse-settings-zoom"));
             /** coauthoring begin **/
             Common.localStorage.setItem("sse-settings-livecomment", this.chLiveComment.isChecked() ? 1 : 0);
             Common.localStorage.setItem("sse-settings-resolvedcomment", this.chResolvedComment.isChecked() ? 1 : 0);
-            if (this.mode.isEdit && !this.mode.isOffline && this.mode.canCoAuthoring)
+            if (this.mode.isEdit && !this.mode.isOffline && this.mode.canCoAuthoring && this.mode.canChangeCoAuthoring)
                 Common.localStorage.setItem("sse-settings-coauthmode", this.cmbCoAuthMode.getValue());
             /** coauthoring end **/
             Common.localStorage.setItem("sse-settings-r1c1", this.chR1C1Style.isChecked() ? 1 : 0);
@@ -1168,7 +1233,8 @@ define([
             var item = this.cmbFontRender.store.findWhere({value: 'custom'});
             Common.localStorage.setItem("sse-settings-cachemode", item && !item.get('checked') ? 0 : 1);
             Common.localStorage.setItem("sse-settings-unit", this.cmbUnit.getValue());
-            Common.localStorage.setItem("sse-settings-autosave", this.chAutosave.isChecked() ? 1 : 0);
+            if (this.mode.canChangeCoAuthoring || !Common.Utils.InternalSettings.get("sse-settings-coauthmode"))
+                Common.localStorage.setItem("sse-settings-autosave", this.chAutosave.isChecked() ? 1 : 0);
             if (this.mode.canForcesave)
                 Common.localStorage.setItem("sse-settings-forcesave", this.chForcesave.isChecked() ? 1 : 0);
             Common.localStorage.setItem("sse-settings-func-locale", this.cmbFuncLocale.getValue());
@@ -1228,7 +1294,7 @@ define([
         },
         
         updateFuncExample: function(text) {
-            $('#fms-lbl-func-locale').text(_.isEmpty(text) ? '' : this.strRegSettingsEx + text);
+            $('#fms-lbl-func-locale').text(_.isEmpty(text) ? '' : this.strRegSettingsEx + ' ' + text);
         },
 
         onFontRenderSelected: function(combo, record) {
@@ -1263,13 +1329,13 @@ define([
         txtEs: 'Spanish',
         txtFr: 'French',
         txtIt: 'Italian',
-        txtExampleEn: ' SUM; MIN; MAX; COUNT',
-        txtExampleDe: ' SUMME; MIN; MAX; ANZAHL',
-        txtExampleRu: ' СУММ; МИН; МАКС; СЧЁТ',
-        txtExamplePl: ' SUMA; MIN; MAX; ILE.LICZB',
-        txtExampleEs: ' SUMA; MIN; MAX; CALCULAR',
-        txtExampleFr: ' SOMME; MIN; MAX; NB',
-        txtExampleIt: ' SOMMA; MIN; MAX; CONTA.NUMERI',
+        txtExampleEn: 'SUM; MIN; MAX; COUNT',
+        txtExampleDe: 'SUMME; MIN; MAX; ANZAHL',
+        txtExampleRu: 'СУММ; МИН; МАКС; СЧЁТ',
+        txtExamplePl: 'SUMA; MIN; MAX; ILE.LICZB',
+        txtExampleEs: 'SUMA; MIN; MAX; CALCULAR',
+        txtExampleFr: 'SOMME; MIN; MAX; NB',
+        txtExampleIt: 'SOMMA; MIN; MAX; CONTA.NUMERI',
         strFuncLocale: 'Formula Language',
         strFuncLocaleEx: 'Example: SUM; MIN; MAX; COUNT',
         strRegSettings: 'Regional Settings',
@@ -1300,8 +1366,47 @@ define([
         txtRunMacrosDesc: 'Enable all macros without notification',
         txtStopMacrosDesc: 'Disable all macros without notification',
         strPaste: 'Cut, copy and paste',
-        strPasteButton: 'Show Paste Options button when content is pasted'
-    }, SSE.Views.FileMenuPanels.MainSettingsGeneral || {}));
+        strTheme: 'Theme',
+        txtThemeLight: 'Light',
+        txtThemeDark: 'Dark',
+        strPasteButton: 'Show Paste Options button when content is pasted',
+        txtBe: 'Belarusian',
+        txtBg: 'Bulgarian',
+        txtCa: 'Catalan',
+        txtZh: 'Chinese',
+        txtCs: 'Czech',
+        txtDa: 'Danish',
+        txtNl: 'Dutch',
+        txtFi: 'Finnish',
+        txtEl: 'Greek',
+        txtHu: 'Hungarian',
+        txtId: 'Indonesian',
+        txtJa: 'Japanese',
+        txtKo: 'Korean',
+        txtLv: 'Latvian',
+        txtLo: 'Lao',
+        txtNb: 'Norwegian',
+        txtPtlang: 'Portuguese',
+        txtRo: 'Romanian',
+        txtSk: 'Slovak',
+        txtSl: 'Slovenian',
+        txtSv: 'Swedish',
+        txtTr: 'Turkish',
+        txtUk: 'Ukrainian',
+        txtVi: 'Vietnamese',
+        txtExampleBe: 'СУММ; МИН; МАКС; СЧЁТ',
+        txtExampleCa: 'SUMA; MIN; MAX; COMPT',
+        txtExampleCs: 'SUMA; MIN; MAX; POČET',
+        txtExampleDa: 'SUM; MIN; MAKS; TÆL',
+        txtExampleNl: 'SOM; MIN; MAX; AANTAL',
+        txtExampleFi: 'SUMMA; MIN; MAKS; LASKE',
+        txtExampleHu: 'SZUM; MIN; MAX; DARAB',
+        txtExampleNb: 'SUMMER; MIN; STØRST; ANTALL',
+        txtExamplePt: 'SOMA; MÍNIMO; MÁXIMO; CONTAR',
+        txtExampleSv: 'SUMMA; MIN; MAX; ANTAL',
+        txtExampleTr: 'TOPLA; MİN; MAK; BAĞ_DEĞ_SAY'
+
+}, SSE.Views.FileMenuPanels.MainSettingsGeneral || {}));
 
     SSE.Views.FileMenuPanels.MainSpellCheckSettings = Common.UI.BaseView.extend(_.extend({
         el: '#panel-settings-spellcheck',
@@ -1838,11 +1943,6 @@ define([
         },
 
         updateInfo: function(doc) {
-            if (!this.doc && doc && doc.info) {
-                doc.info.author && console.log("Obsolete: The 'author' parameter of the document 'info' section is deprecated. Please use 'owner' instead.");
-                doc.info.created && console.log("Obsolete: The 'created' parameter of the document 'info' section is deprecated. Please use 'uploaded' instead.");
-            }
-
             this.doc = doc;
             if (!this.rendered)
                 return;
@@ -1854,11 +1954,11 @@ define([
                 if (doc.info.folder )
                     this.lblPlacement.text( doc.info.folder );
                 visible = this._ShowHideInfoItem(this.lblPlacement, doc.info.folder!==undefined && doc.info.folder!==null) || visible;
-                var value = doc.info.owner || doc.info.author;
+                var value = doc.info.owner;
                 if (value)
                     this.lblOwner.text(value);
                 visible = this._ShowHideInfoItem(this.lblOwner, !!value) || visible;
-                value = doc.info.uploaded || doc.info.created;
+                value = doc.info.uploaded;
                 if (value)
                     this.lblUploaded.text(value);
                 visible = this._ShowHideInfoItem(this.lblUploaded, !!value) || visible;
@@ -1907,7 +2007,7 @@ define([
                 visible = this._ShowHideInfoItem(this.lblModifyDate, !!value) || visible;
                 value = props.asc_getLastModifiedBy();
                 if (value)
-                    this.lblModifyBy.text(Common.Utils.UserInfoParser.getParsedName(value));
+                    this.lblModifyBy.text(AscCommon.UserInfoParser.getParsedName(value));
                 visible = this._ShowHideInfoItem(this.lblModifyBy, !!value) || visible;
                 $('tr.divider.modify', this.el)[visible?'show':'hide']();
 
@@ -2147,7 +2247,7 @@ define([
             Common.UI.BaseView.prototype.initialize.call(this,arguments);
 
             this.menu = options.menu;
-            this.urlPref = 'resources/help/en/';
+            this.urlPref = 'resources/help/{{DEFAULT_LANG}}/';
 
             this.en_data = [
                 {"src": "ProgramInterface/ProgramInterface.htm", "name": "Introducing Spreadsheet Editor user interface", "headername": "Program Interface"},
@@ -2249,12 +2349,12 @@ define([
                 var config = {
                     dataType: 'json',
                     error: function () {
-                        if ( me.urlPref.indexOf('resources/help/en/')<0 ) {
-                            me.urlPref = 'resources/help/en/';
-                            store.url = 'resources/help/en/Contents.json';
+                        if ( me.urlPref.indexOf('resources/help/{{DEFAULT_LANG}}/')<0 ) {
+                            me.urlPref = 'resources/help/{{DEFAULT_LANG}}/';
+                            store.url = 'resources/help/{{DEFAULT_LANG}}/Contents.json';
                             store.fetch(config);
                         } else {
-                            me.urlPref = 'resources/help/en/';
+                            me.urlPref = 'resources/help/{{DEFAULT_LANG}}/';
                             store.reset(me.en_data);
                         }
                     },

@@ -166,7 +166,7 @@ define([
                                 '<div class="header">' +
                                     '<div class="tools">' +
                                     '<% if (closable!==false) %>' +
-                                        '<div class="tool close img-commonctrl"></div>' +
+                                        '<div class="tool close"></div>' +
                                     '<% %>' +
                                     '<% if (help===true) %>' +
                                         '<div class="tool help">?</div>' +
@@ -455,7 +455,7 @@ define([
             if (!options.width) options.width = 'auto';
             
             var template =  '<div class="info-box">' +
-                                '<% if (typeof iconCls !== "undefined") { %><div class="icon img-commonctrl <%= iconCls %>"></div><% } %>' +
+                                '<% if (typeof iconCls !== "undefined") { %><div class="icon img-commonctrl img-colored <%= iconCls %>"></div><% } %>' +
                                 '<div class="text" <% if (typeof iconCls == "undefined") { %> style="padding-left:10px;" <% } %>><span><%= msg %></span>' +
                                     '<% if (dontshow) { %><div class="dont-show-checkbox"></div><% } %>' +
                                 '</div>' +
@@ -473,7 +473,7 @@ define([
 
             function autoSize(window) {
                 var text_cnt    = window.getChild('.info-box');
-                var text        = window.getChild('.info-box span');
+                var text        = window.getChild('.info-box .text > span');
                 var footer      = window.getChild('.footer');
                 var header      = window.getChild('.header');
                 var body        = window.getChild('.body');
@@ -488,14 +488,14 @@ define([
                         options.width = options.maxwidth;
                 }
                 if (options.width=='auto') {
-                    text_cnt.height(Math.max(text.height() + ((check.length>0) ? (check.height() + parseInt(check.css('margin-top'))) : 0), icon_height));
+                    text_cnt.height(Math.max(text.height(), icon_height) + ((check.length>0) ? (check.height() + parseInt(check.css('margin-top'))) : 0));
                     body.height(parseInt(text_cnt.css('height')) + parseInt(footer.css('height')));
                     window.setSize(text.position().left + text.width() + parseInt(text_cnt.css('padding-right')),
                         parseInt(body.css('height')) + parseInt(header.css('height')));
                 } else {
                     text.css('white-space', 'normal');
                     window.setWidth(options.width);
-                    text_cnt.height(Math.max(text.height() + ((check.length>0) ? (check.height() + parseInt(check.css('margin-top'))) : 0), icon_height));
+                    text_cnt.height(Math.max(text.height(), icon_height) + ((check.length>0) ? (check.height() + parseInt(check.css('margin-top'))) : 0));
                     body.height(parseInt(text_cnt.css('height')) + parseInt(footer.css('height')));
                     window.setHeight(parseInt(body.css('height')) + parseInt(header.css('height')));
                 }
@@ -632,7 +632,7 @@ define([
 
                 this.$window = $('#' + this.initConfig.id);
 
-                if (Common.Locale.getCurrentLanguage() !== 'en')
+                if (Common.Locale.getCurrentLanguage() && Common.Locale.getCurrentLanguage() !== 'en')
                     this.$window.attr('applang', Common.Locale.getCurrentLanguage());
 
                 this.binding.keydown = _.bind(_keydown,this);
@@ -709,12 +709,14 @@ define([
                         mask.attr('counter', parseInt(mask.attr('counter'))+1);
                         mask.show();
                     } else {
+                        var maskOpacity = $(':root').css('--modal-window-mask-opacity');
+
                         mask.css('opacity', 0);
                         mask.attr('counter', parseInt(mask.attr('counter'))+1);
                         mask.show();
 
                         setTimeout(function () {
-                            mask.css(_getTransformation('0.2'));
+                            mask.css(_getTransformation(maskOpacity));
                         }, 1);
                     }
 
@@ -767,6 +769,9 @@ define([
                             '-o-transform': 'scale(1)',
                             'opacity': '1'
                         });
+                        setTimeout(function () {
+                            me.fireEvent('animate:after', me);
+                        }, 210);
                     }, 1);
 
                     setTimeout(function () {
@@ -777,6 +782,9 @@ define([
                     this.$window.css({opacity: 1});
                     this.$window.addClass('notransform');
                     this.fireEvent('show', this);
+                    setTimeout(function () {
+                        me.fireEvent('animate:after', me);
+                    }, 10);
                 }
 
                 Common.NotificationCenter.trigger('window:show', this);
@@ -801,11 +809,12 @@ define([
 
                     if ( hide_mask ) {
                         if (this.options.animate !== false) {
+                            var maskOpacity = $(':root').css('--modal-window-mask-opacity');
                             mask.css(_getTransformation(0));
 
                             setTimeout(function () {
                                 if (parseInt(mask.attr('counter'))<1) {
-                                    mask.css('opacity', '0.2');
+                                    mask.css('opacity', maskOpacity);
                                     mask.hide();
                                     mask.attr('counter', 0);
                                 }
@@ -841,11 +850,12 @@ define([
 
                         if ( hide_mask ) {
                             if (this.options.animate !== false) {
+                                var maskOpacity = $(':root').css('--modal-window-mask-opacity');
                                 mask.css(_getTransformation(0));
 
                                 setTimeout(function () {
                                     if (parseInt(mask.attr('counter'))<1) {
-                                        mask.css('opacity', '0.2');
+                                        mask.css('opacity', maskOpacity);
                                         mask.hide();
                                         mask.attr('counter', 0);
                                     }

@@ -214,6 +214,10 @@ define([
                         '<label id="fms-lbl-coauth-mode" style="vertical-align: middle;"><%= scope.strCoAuthModeDescFast %></label></div></td>',
                 '</tr>','<tr class="divider coauth changes"></tr>',
                 /** coauthoring end **/
+                '<tr class="themes">',
+                    '<td class="left"><label><%= scope.strTheme %></label></td>',
+                    '<td class="right"><span id="fms-cmb-theme"></span></td>',
+                '</tr>','<tr class="divider"></tr>',
                 '<tr>',
                     '<td class="left"><label><%= scope.strZoom %></label></td>',
                     '<td class="right"><div id="fms-cmb-zoom" class="input-group-nr"></div></td>',
@@ -394,6 +398,13 @@ define([
             });
             this.btnAutoCorrect.on('click', _.bind(this.autoCorrect, this));
 
+            this.cmbTheme = new Common.UI.ComboBox({
+                el          : $markup.findById('#fms-cmb-theme'),
+                style       : 'width: 160px;',
+                editable    : false,
+                cls         : 'input-group-nr',
+            });
+
             $markup.find('.btn.primary').each(function(index, el){
                 (new Common.UI.Button({
                     el: $(el)
@@ -445,17 +456,24 @@ define([
 
         setMode: function(mode) {
             this.mode = mode;
+
+            var fast_coauth = Common.Utils.InternalSettings.get("pe-settings-coauthmode");
+
             $('tr.edit', this.el)[mode.isEdit?'show':'hide']();
-            $('tr.autosave', this.el)[mode.isEdit ? 'show' : 'hide']();
+            $('tr.autosave', this.el)[mode.isEdit && (mode.canChangeCoAuthoring || !fast_coauth) ? 'show' : 'hide']();
             if (this.mode.isDesktopApp && this.mode.isOffline) {
                 this.chAutosave.setCaption(this.strAutoRecover);
                 this.lblAutosave.text(this.textAutoRecover);
             }
             $('tr.forcesave', this.el)[mode.canForcesave ? 'show' : 'hide']();
             /** coauthoring begin **/
-            $('tr.coauth.changes', this.el)[mode.isEdit && !mode.isOffline && mode.canCoAuthoring ? 'show' : 'hide']();
+            $('tr.coauth.changes', this.el)[mode.isEdit && !mode.isOffline && mode.canCoAuthoring && mode.canChangeCoAuthoring ? 'show' : 'hide']();
             /** coauthoring end **/
             $('tr.macros', this.el)[(mode.customization && mode.customization.macros===false) ? 'hide' : 'show']();
+
+            if ( !Common.UI.Themes.available() ) {
+                $('tr.themes, tr.themes + tr.divider', this.el).hide();
+            }
         },
 
         setApi: function(o) {
@@ -509,15 +527,27 @@ define([
             this.lblMacrosDesc.text(item ? item.get('descValue') : this.txtWarnMacrosDesc);
 
             this.chPaste.setValue(Common.Utils.InternalSettings.get("pe-settings-paste-button"));
+
+            var data = [];
+            for (var t in Common.UI.Themes.map()) {
+                data.push({value: t, displayValue: Common.UI.Themes.get(t).text});
+            }
+
+            if ( data.length ) {
+                this.cmbTheme.setData(data);
+                item = this.cmbTheme.store.findWhere({value: Common.UI.Themes.currentThemeId()});
+                this.cmbTheme.setValue(item ? item.get('value') : Common.UI.Themes.defaultThemeId());
+            }
         },
 
         applySettings: function() {
+            Common.UI.Themes.setTheme(this.cmbTheme.getValue());
             Common.localStorage.setItem("pe-settings-spellcheck", this.chSpell.isChecked() ? 1 : 0);
             Common.localStorage.setItem("pe-settings-inputmode", this.chInputMode.isChecked() ? 1 : 0);
             Common.localStorage.setItem("pe-settings-zoom", this.cmbZoom.getValue());
             Common.Utils.InternalSettings.set("pe-settings-zoom", Common.localStorage.getItem("pe-settings-zoom"));
             /** coauthoring begin **/
-            if (this.mode.isEdit && !this.mode.isOffline && this.mode.canCoAuthoring) {
+            if (this.mode.isEdit && !this.mode.isOffline && this.mode.canCoAuthoring && this.mode.canChangeCoAuthoring) {
                 Common.localStorage.setItem("pe-settings-coauthmode", this.cmbCoAuthMode.getValue());
             }
             /** coauthoring end **/
@@ -525,7 +555,8 @@ define([
             var item = this.cmbFontRender.store.findWhere({value: 'custom'});
             Common.localStorage.setItem("pe-settings-cachemode", item && !item.get('checked') ? 0 : 1);
             Common.localStorage.setItem("pe-settings-unit", this.cmbUnit.getValue());
-            Common.localStorage.setItem("pe-settings-autosave", this.chAutosave.isChecked() ? 1 : 0);
+            if (this.mode.canChangeCoAuthoring || !Common.Utils.InternalSettings.get("pe-settings-coauthmode"))
+                Common.localStorage.setItem("pe-settings-autosave", this.chAutosave.isChecked() ? 1 : 0);
             if (this.mode.canForcesave)
                 Common.localStorage.setItem("pe-settings-forcesave", this.chForcesave.isChecked() ? 1 : 0);
             Common.Utils.InternalSettings.set("pe-settings-showsnaplines", this.chAlignGuides.isChecked());
@@ -608,6 +639,9 @@ define([
         strPaste: 'Cut, copy and paste',
         strPasteButton: 'Show Paste Options button when content is pasted',
         txtProofing: 'Proofing',
+        strTheme: 'Theme',
+        txtThemeLight: 'Light',
+        txtThemeDark: 'Dark',
         txtAutoCorrect: 'AutoCorrect options...'
     }, PE.Views.FileMenuPanels.Settings || {}));
 
@@ -983,11 +1017,6 @@ define([
         },
 
         updateInfo: function(doc) {
-            if (!this.doc && doc && doc.info) {
-                doc.info.author && console.log("Obsolete: The 'author' parameter of the document 'info' section is deprecated. Please use 'owner' instead.");
-                doc.info.created && console.log("Obsolete: The 'created' parameter of the document 'info' section is deprecated. Please use 'uploaded' instead.");
-            }
-
             this.doc = doc;
             if (!this.rendered)
                 return;
@@ -999,11 +1028,11 @@ define([
                 if (doc.info.folder )
                     this.lblPlacement.text( doc.info.folder );
                 visible = this._ShowHideInfoItem(this.lblPlacement, doc.info.folder!==undefined && doc.info.folder!==null) || visible;
-                var value = doc.info.owner || doc.info.author;
+                var value = doc.info.owner;
                 if (value)
                     this.lblOwner.text(value);
                 visible = this._ShowHideInfoItem(this.lblOwner, !!value) || visible;
-                value = doc.info.uploaded || doc.info.created;
+                value = doc.info.uploaded;
                 if (value)
                     this.lblUploaded.text(value);
                 visible = this._ShowHideInfoItem(this.lblUploaded, !!value) || visible;
@@ -1052,7 +1081,7 @@ define([
                 visible = this._ShowHideInfoItem(this.lblModifyDate, !!value) || visible;
                 value = props.asc_getLastModifiedBy();
                 if (value)
-                    this.lblModifyBy.text(Common.Utils.UserInfoParser.getParsedName(value));
+                    this.lblModifyBy.text(AscCommon.UserInfoParser.getParsedName(value));
                 visible = this._ShowHideInfoItem(this.lblModifyBy, !!value) || visible;
                 $('tr.divider.modify', this.el)[visible?'show':'hide']();
 
@@ -1295,7 +1324,7 @@ define([
             Common.UI.BaseView.prototype.initialize.call(this,arguments);
 
             this.menu = options.menu;
-            this.urlPref = 'resources/help/en/';
+            this.urlPref = 'resources/help/{{DEFAULT_LANG}}/';
 
             this.en_data = [
                 {"src": "ProgramInterface/ProgramInterface.htm", "name": "Introducing Presentation Editor user interface", "headername": "Program Interface"},
@@ -1395,12 +1424,12 @@ define([
                 var config = {
                     dataType: 'json',
                     error: function () {
-                        if ( me.urlPref.indexOf('resources/help/en/')<0 ) {
-                            me.urlPref = 'resources/help/en/';
-                            store.url = 'resources/help/en/Contents.json';
+                        if ( me.urlPref.indexOf('resources/help/{{DEFAULT_LANG}}/')<0 ) {
+                            me.urlPref = 'resources/help/{{DEFAULT_LANG}}/';
+                            store.url = 'resources/help/{{DEFAULT_LANG}}/Contents.json';
                             store.fetch(config);
                         } else {
-                            me.urlPref = 'resources/help/en/';
+                            me.urlPref = 'resources/help/{{DEFAULT_LANG}}/';
                             store.reset(me.en_data);
                         }
                     },

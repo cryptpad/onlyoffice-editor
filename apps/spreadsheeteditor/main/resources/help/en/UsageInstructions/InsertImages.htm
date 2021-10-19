@@ -14,7 +14,7 @@
                 <input id="search" class="searchBar" placeholder="Search" type="text" onkeypress="doSearch(event)">
             </div>
             <h1>Insert images</h1>
-            <p>The Spreadsheet Editor allows you to insert images in the most popular formats into your worksheet. The following image formats are supported: <b>BMP</b>, <b>GIF</b>, <b>JPEG</b>, <b>JPG</b>, <b>PNG</b>.</p>
+            <p>The <a href="https://www.onlyoffice.com/spreadsheet-editor.aspx" target="_blank" onclick="onhyperlinkclick(this)"><b>Spreadsheet Editor</b></a> allows you to insert images in the most popular formats into your worksheet. The following image formats are supported: <b>BMP</b>, <b>GIF</b>, <b>JPEG</b>, <b>JPG</b>, <b>PNG</b>.</p>
             <h3>Insert an image</h3>
             <p>To insert an image into the spreadsheet,</p>
             <ol>
@@ -24,7 +24,9 @@
                 <li>
                     select one of the following options to load the image:
                     <ul>
-                        <li>the <b>Image from File</b> option will open the standard dialog window to select a file. Browse the hard disk drive of your computer to find the required file and click the <b>Open</b> button</li>
+                        <li>the <b>Image from File</b> option will open the standard dialog window to select a file. Browse the hard disk drive of your computer to find the required file and click the <b>Open</b> button
+                            <p class="note">In the <em>online editor</em>, you can select several images at once.</p>
+                        </li>
                         <li>the <b>Image from URL</b> option will open the window where you can enter the web address of the required image and click the <b>OK</b> button</li>
                         <li class="onlineDocumentFeatures"> the <b>Image from Storage</b> option will open the <b>Select data source</b> window. Select an image stored on your portal and click the <b>OK</b> button</li>
                     </ul>
@@ -68,7 +70,7 @@
                         <li><img alt="Flip horizontally icon" src="../images/fliplefttoright.png" /> to flip the image horizontally (left to right)</li>
                         <li><img alt="Flip vertically icon" src="../images/flipupsidedown.png" /> to flip the image vertically (upside down)</li>
                     </ul>
-                    <p class="note"><b>Note</b>: alternatively, you can right-click the image and use the <b>Rotate</b> option from the contextual menu.</p>
+                    <p class="note">Alternatively, you can right-click the image and use the <b>Rotate</b> option from the contextual menu.</p>
                 </li>
             </ol>
             <p>To replace the inserted image,</p>
@@ -78,11 +80,11 @@
                 <li>click the <b>Replace Image</b> button,</li>
                 <li>
                     choose the necessary option: <b>From File</b>, <b>From Storage</b>, or <b>From URL</b> and select the desired image.
-                    <p class="note"><b>Note</b>: alternatively, you can right-click the image and use the <b>Replace image</b> option from the contextual menu.</p>
+                    <p class="note">Alternatively, you can right-click the image and use the <b>Replace image</b> option from the contextual menu.</p>
                 </li>
             </ol>
             <p>The selected image will be replaced.</p>
-            <p>When the image is selected, the <b>Shape settings</b> <img alt="Shape settings icon" src="../images/shape_settings_icon.png" /> icon is also available on the right. You can click this icon to open the <b>Shape settings</b> tab on the right sidebar and adjust the shape <a href="../UsageInstructions/InsertAutoshapes.htm#shape_stroke" onclick="onhyperlinkclick(this)"><b>Stroke</b></a> type, its size and color as well as change the shape type by selecting another shape from the <b>Change Autoshape</b> menu. The shape of the image will change correspondingly.</p>
+            <p>When the image is selected, the <b>Shape settings</b> <img alt="Shape settings icon" src="../images/shape_settings_icon.png" /> icon is also available on the right. You can click this icon to open the <b>Shape settings</b> tab on the right sidebar and adjust the shape <a href="../UsageInstructions/InsertAutoshapes.htm#shape_stroke" onclick="onhyperlinkclick(this)"><b>Line</b></a> type, its size and color as well as change the shape type by selecting another shape from the <b>Change Autoshape</b> menu. The shape of the image will change correspondingly.</p>
             <p>On the <b>Shape Settings</b> tab, you can also use the <b>Show shadow</b> option to add a shadow to the image.</p>
             <p><img alt="Shape Settings tab" src="../images/right_image_shape.png" /></p>
             <h3>Adjust the image advanced settings</h3>
@@ -103,6 +105,20 @@
             <p><img alt="Image - Advanced Settings: Alternative Text" src="../images/imageadvancedsettings.png" /></p>
             <p>The <b>Alternative Text</b> tab allows you to specify the <b>Title</b> and the <b>Description</b> which will be read to people with vision or cognitive impairments to help them better understand what information the image contains.</p>
             <p>To delete the inserted image, click it and press the <b>Delete</b> key.</p>
+            <h3>Assign a Macro to an Image</h3>
+            <p>You can provide a quick and easy access to a macro within a spreadsheet by assigning a macro to any image. Once you assign a macro, the image appears as a button control and you can run the macro whenever you click it.</p>
+            <p>To assign a macro:</p>
+            <ul type="circle">
+                <li>
+                    Right-click the image to assign a macro to and choose the <b>Assign Macro</b> option from the drop-down menu.
+                    <p><img alt="Assign Macro on Menu" src="../images/assignmacro_rightclickimage.png" /></p>
+                </li>
+                <li>The <b>Assign Macro</b> dialogue will open</li>
+                <li>
+                    Choose a macro from the list, or type in the macro name, and click <b>OK</b> to confirm.
+                    <p><img alt="Assign Macro" src="../images/assignmacro.png" /></p>
+                </li>
+            </ul>
         </div>
 	</body>
 </html>

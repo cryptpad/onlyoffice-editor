@@ -110,6 +110,16 @@
         </td>
     </tr>
     <tr>
+        <td colspan=2 class="">
+            <label class="header"><%= scope.textIndent %></label>
+        </td>
+    </tr>
+    <tr>
+        <td class="padding-large" colspan=2>
+            <div id="cell-spin-indent" style="display: inline-block;"></div>
+        </td>
+    </tr>
+    <tr>
         <td colspan=2 class="padding-small">
             <label class="header"><%= scope.textOrientation %></label>
         </td>
@@ -133,6 +143,16 @@
     <tr>
         <td class="padding-small" colspan=2>
             <div id="cell-checkbox-shrink"></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="padding-small" colspan=2>
+            <div class="separator horizontal"></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="padding-small" colspan=2>
+            <div id="cell-btn-cond-format" style="width:100%;"></div>
         </td>
     </tr>
     <tr class="finish-cell"></tr>

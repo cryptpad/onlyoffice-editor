@@ -1,14 +1,8 @@
 .statusbar {
     display: table;
     padding: 2px;
-    height: 25px;
-    background-color: @gray-light;
-    .box-inner-shadow(0 1px 0 @gray-dark);
 
     .status-label {
-        font-weight: bold;
-        color: @gray-deep;
-        white-space: nowrap;
         position: relative;
         top: 1px;
     }
@@ -76,16 +70,7 @@
     .cnt-lang {
         display: inline-block;
         cursor: pointer;
-        color: #000;
         margin-left: 6px;
-
-        .caret.up {
-            background-position: @arrow-up-small-offset-x @arrow-up-small-offset-y;
-
-            border: none;
-            width: 7px;
-            height: 7px;
-        }
 
         label {
             cursor: pointer;
@@ -95,7 +80,6 @@
             cursor: default;
             label {
                 cursor: default;
-                opacity: 0.4;
             }
         }
     }
@@ -173,7 +157,8 @@
                 height: 12px;
                 display: inline-block;
                 vertical-align: middle;
-                border: 1px solid @gray-dark;
+                border: @scaled-one-px-value-ie solid @border-toolbar-ie;
+                border: @scaled-one-px-value solid @border-toolbar;
             }
 
             .name {

@@ -126,7 +126,7 @@ define([
 
             me.template = me.options.template || me.template;
 
-            me.listenTo(me.model, 'change',             me.render);
+            me.listenTo(me.model, 'change', this.model.get('skipRenderOnChange') ? me.onChange : me.render);
             me.listenTo(me.model, 'change:selected',    me.onSelectChange);
             me.listenTo(me.model, 'remove',             me.remove);
         },
@@ -185,6 +185,18 @@ define([
 
         onSelectChange: function(model, selected) {
             this.trigger('select', this, model, selected);
+        },
+
+        onChange: function () {
+            if (_.isUndefined(this.model.id))
+                return this;
+            var el = this.$el || $(this.el);
+            el.toggleClass('selected', this.model.get('selected') && this.model.get('allowSelected'));
+            el.toggleClass('disabled', !!this.model.get('disabled'));
+
+            this.trigger('change', this, this.model);
+
+            return this;
         }
     });
 
@@ -200,11 +212,12 @@ define([
             allowScrollbar: true,
             scrollAlwaysVisible: false,
             showLast: true,
-            useBSKeydown: false
+            useBSKeydown: false,
+            cls: ''
         },
 
         template: _.template([
-            '<div class="dataview inner" style="<%= style %>">',
+            '<div class="dataview inner <%= cls %>" style="<%= style %>">',
                 '<% _.each(groups, function(group) { %>',
                     '<% if (group.headername !== undefined) { %>',
                         '<div class="header-name"><%= group.headername %></div>',
@@ -238,6 +251,7 @@ define([
             me.useBSKeydown   = me.options.useBSKeydown; // only with enableKeyEvents && parentMenu
             me.showLast       = me.options.showLast;
             me.style          = me.options.style        || '';
+            me.cls            = me.options.cls          || '';
             me.emptyText      = me.options.emptyText    || '';
             me.listenStoreEvents= (me.options.listenStoreEvents!==undefined) ? me.options.listenStoreEvents : true;
             me.allowScrollbar = (me.options.allowScrollbar!==undefined) ? me.options.allowScrollbar : true;
@@ -267,7 +281,8 @@ define([
                 this.setElement(parentEl, false);
                 this.cmpEl = $(this.template({
                     groups: me.groups ? me.groups.toJSON() : null,
-                    style: me.style
+                    style: me.style,
+                    cls: me.cls
                 }));
 
                 parentEl.html(this.cmpEl);
@@ -275,7 +290,8 @@ define([
                 this.cmpEl = me.$el || $(this.el);
                 this.cmpEl.html(this.template({
                     groups: me.groups ? me.groups.toJSON() : null,
-                    style: me.style
+                    style: me.style,
+                    cls: me.cls
                 }));
             }
 
@@ -302,7 +318,8 @@ define([
                 if (this.enableKeyEvents && this.parentMenu && this.handleSelect) {
                     if (!me.showLast)
                         this.parentMenu.on('show:before', function(menu) { me.deselectAll(); });
-                    this.parentMenu.on('show:after', function(menu) {
+                    this.parentMenu.on('show:after', function(menu, e) {
+                        if (e && (menu.el !== e.target)) return;
                         if (me.showLast) me.showLastSelected(); 
                         Common.NotificationCenter.trigger('dataview:focus');
                         _.delay(function() {
@@ -454,7 +471,8 @@ define([
 
             $(this.el).html(this.template({
                 groups: this.groups ? this.groups.toJSON() : null,
-                style: this.style
+                style: this.style,
+                cls: this.cls
             }));
 
             if (!_.isUndefined(this.scroller)) {
@@ -471,7 +489,10 @@ define([
             }, this);
             this.dataViewItems = [];
 
-            this.store.each(this.onAddItem, this);
+            var me = this;
+            this.store.each(function(item){
+                me.onAddItem(item, me.store);
+            }, this);
 
             if (this.allowScrollbar) {
                 this.scroller = new Common.UI.Scroller({
@@ -666,8 +687,8 @@ define([
                     if (rec) {
                         this._fromKeyDown = true;
                         this.selectRecord(rec);
-                        this._fromKeyDown = false;
                         this.scrollToRecord(rec);
+                        this._fromKeyDown = false;
                     }
                 }
             } else {
@@ -1114,8 +1135,8 @@ define([
                     if (rec) {
                         this._fromKeyDown = true;
                         this.selectRecord(rec);
-                        this._fromKeyDown = false;
                         this.scrollToRecord(rec);
+                        this._fromKeyDown = false;
                     }
                 }
             } else {

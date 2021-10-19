@@ -174,6 +174,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#image-advanced-button-original-size')
             });
             this.btnOriginalSize.on('click', _.bind(function(btn, e) {
+                this.spnAngle.setValue(0);
                 this.spnWidth.setValue(this.sizeOriginal.width, true);
                 this.spnHeight.setValue(this.sizeOriginal.height, true);
                 this._nRatio = this.sizeOriginal.width/this.sizeOriginal.height;
@@ -181,6 +182,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                     this._changedProps.put_Height(Common.Utils.Metric.fnRecalcToMM(this.spnHeight.getNumberValue()));
                     this._changedProps.put_Width(Common.Utils.Metric.fnRecalcToMM(this.spnWidth.getNumberValue()));
                     this._changedProps.put_ResetCrop(true);
+                    this._changedProps.put_Rot(0);
                 }
             }, this));
 
@@ -403,7 +405,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.btnWrapInline = new Common.UI.Button({
                 parentEl: $('#image-advanced-button-wrap-inline'),
                 cls: 'btn-options huge-1',
-                iconCls: 'icon-advanced-wrap btn-wrap-inline',
+                iconCls: 'icon-advanced-wrap options__icon options__icon-huge btn-wrap-inline',
                 posId: Asc.c_oAscWrapStyle2.Inline,
                 hint: this.textWrapInlineTooltip,
                 enableToggle: true,
@@ -415,7 +417,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.btnWrapSquare = new Common.UI.Button({
                 parentEl: $('#image-advanced-button-wrap-square'),
                 cls: 'btn-options huge-1',
-                iconCls: 'icon-advanced-wrap btn-wrap-square',
+                iconCls: 'icon-advanced-wrap options__icon options__icon-huge btn-wrap-square',
                 posId: Asc.c_oAscWrapStyle2.Square,
                 hint: this.textWrapSquareTooltip,
                 enableToggle: true,
@@ -427,7 +429,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.btnWrapTight = new Common.UI.Button({
                 parentEl: $('#image-advanced-button-wrap-tight'),
                 cls: 'btn-options huge-1',
-                iconCls: 'icon-advanced-wrap btn-wrap-tight',
+                iconCls: 'icon-advanced-wrap options__icon options__icon-huge btn-wrap-tight',
                 posId: Asc.c_oAscWrapStyle2.Tight,
                 hint: this.textWrapTightTooltip,
                 enableToggle: true,
@@ -439,7 +441,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.btnWrapThrough = new Common.UI.Button({
                 parentEl: $('#image-advanced-button-wrap-through'),
                 cls: 'btn-options huge-1',
-                iconCls: 'icon-advanced-wrap btn-wrap-through',
+                iconCls: 'icon-advanced-wrap options__icon options__icon-huge btn-wrap-through',
                 posId: Asc.c_oAscWrapStyle2.Through,
                 hint: this.textWrapThroughTooltip,
                 enableToggle: true,
@@ -451,7 +453,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.btnWrapTopBottom = new Common.UI.Button({
                 parentEl: $('#image-advanced-button-wrap-topbottom'),
                 cls: 'btn-options huge-1',
-                iconCls: 'icon-advanced-wrap btn-wrap-topbottom',
+                iconCls: 'icon-advanced-wrap options__icon options__icon-huge btn-wrap-topbottom',
                 posId: Asc.c_oAscWrapStyle2.TopAndBottom,
                 hint: this.textWrapTopbottomTooltip,
                 enableToggle: true,
@@ -463,7 +465,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.btnWrapBehind = new Common.UI.Button({
                 parentEl: $('#image-advanced-button-wrap-behind'),
                 cls: 'btn-options huge-1',
-                iconCls: 'icon-advanced-wrap btn-wrap-behind',
+                iconCls: 'icon-advanced-wrap options__icon options__icon-huge btn-wrap-behind',
                 posId: Asc.c_oAscWrapStyle2.Behind,
                 hint: this.textWrapBehindTooltip,
                 enableToggle: true,
@@ -475,7 +477,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.btnWrapInFront = new Common.UI.Button({
                 parentEl: $('#image-advanced-button-wrap-infront'),
                 cls: 'btn-options huge-1',
-                iconCls: 'icon-advanced-wrap btn-wrap-infront',
+                iconCls: 'icon-advanced-wrap options__icon options__icon-huge btn-wrap-infront',
                 posId: Asc.c_oAscWrapStyle2.InFront,
                 hint: this.textWrapInFrontTooltip,
                 enableToggle: true,
@@ -1012,9 +1014,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-begin-style'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                    '<div class="img-arrows form-control image" style="width: 100px;"></div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret img-commonctrl"></span></button>',
+                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div style="display: table-cell;"></div>',
+                        '<button type="button" class="btn btn-default">',
+                            '<span class="caret"></span>',
+                        '</button>',
                     '</div>'
                 ].join(''))
             });
@@ -1039,9 +1043,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-begin-size'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                    '<div class="img-arrows form-control image" style="width: 100px;"></div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret img-commonctrl"></span></button>',
+                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div style="display: table-cell;"></div>',
+                        '<button type="button" class="btn btn-default">',
+                            '<span class="caret"></span>',
+                        '</button>',
                     '</div>'
                 ].join(''))
             });
@@ -1072,9 +1078,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-end-style'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                    '<div class="img-arrows form-control image" style="width: 100px;"></div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret img-commonctrl"></span></button>',
+                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div style="display: table-cell;"></div>',
+                        '<button type="button" class="btn btn-default">',
+                            '<span class="caret"></span>',
+                        '</button>',
                     '</div>'
                 ].join(''))
             });
@@ -1099,9 +1107,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-end-size'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                    '<div class="img-arrows form-control image" style="width: 100px;"></div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret img-commonctrl"></span></button>',
+                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div style="display: table-cell;"></div>',
+                        '<button type="button" class="btn btn-default">',
+                            '<span class="caret"></span>',
+                        '</button>',
                     '</div>'
                 ].join(''))
             });
@@ -1146,14 +1156,15 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
 
         getFocusedComponents: function() {
             return [
-                this.spnWidth, this.spnHeight, // 0 tab
-                this.spnShapeWidth , this.spnShapeWidthPc, this.cmbWidthPc, this.spnShapeHeight, this.spnShapeHeightPc, this.cmbHeightPc, // 1 tab
-                this.spnAngle,  // 2 tab
+                this.spnWidth, this.spnHeight, this.btnOriginalSize, // 0 tab
+                this.radioHSize, this.spnShapeWidth , this.spnShapeWidthPc, this.radioHSizePc, this.cmbWidthPc,
+                this.radioVSize, this.spnShapeHeight, this.spnShapeHeightPc, this.radioVSizePc, this.cmbHeightPc, this.chRatio, // 1 tab
+                this.spnAngle, this.chFlipHor, this.chFlipVert, // 2 tab
                 this.spnTop, this.spnLeft, this.spnBottom, this.spnRight, // 3 tab
-                this.cmbHAlign , this.cmbHRelative, this.spnX, this.cmbHPosition, this.spnXPc, this.cmbHPositionPc,
-                this.cmbVAlign , this.cmbVRelative, this.spnY, this.cmbVPosition, this.spnYPc, this.cmbVPositionPc, // 4 tab
+                this.radioHAlign, this.radioHPosition, this.radioHPositionPc, this.cmbHAlign , this.cmbHRelative, this.spnX, this.cmbHPosition, this.spnXPc, this.cmbHPositionPc,
+                this.radioVAlign, this.radioVPosition, this.radioVPositionPc, this.cmbVAlign , this.cmbVRelative, this.spnY, this.cmbVPosition, this.spnYPc, this.cmbVPositionPc, this.chMove, this.chOverlap, // 4 tab
                 this.cmbCapType, this.cmbJoinType, // 5 tab
-                this.spnMarginTop, this.spnMarginLeft, this.spnMarginBottom, this.spnMarginRight, // 6 tab
+                this.chAutofit, this.spnMarginTop, this.spnMarginLeft, this.spnMarginBottom, this.spnMarginRight, // 6 tab
                 this.inputAltTitle, this.textareaAltDescription  // 7 tab
             ];
         },
@@ -1168,7 +1179,10 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                         me.spnWidth.focus();
                         break;
                     case 1:
-                        me.spnShapeWidth.focus();
+                        if (!me.spnShapeWidth.isDisabled())
+                            me.spnShapeWidth.focus();
+                        else
+                            me.spnShapeWidthPc.focus();
                         break;
                     case 2:
                         me.spnAngle.focus();
@@ -1188,7 +1202,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                         me.cmbCapType.focus();
                         break;
                     case 6:
-                        me.spnMarginTop.focus();
+                        me.chAutofit.focus();
                         break;
                     case 7:
                         me.inputAltTitle.focus();

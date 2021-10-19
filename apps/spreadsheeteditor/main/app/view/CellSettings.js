@@ -71,8 +71,9 @@ define([
 
             this._state = {
                 DisabledControls: true,
-                DisabledFillPanels: false,
+                DisabledFillPanels: true,
                 CellAngle: undefined,
+                CellIndent: undefined,
                 GradFillType: Asc.c_oAscFillGradType.GRAD_LINEAR,
                 CellColor: 'transparent',
                 FillType: Asc.c_oAscFill.FILL_TYPE_NOFILL,
@@ -111,8 +112,13 @@ define([
             if (this.api) {
                 var new_borders = [],
                     bordersWidth = this.BorderType,
+                    bordersColor;
+                if (this.btnBorderColor.isAutoColor()) {
+                    bordersColor = new Asc.asc_CColor();
+                    bordersColor.put_auto(true);
+                } else {
                     bordersColor = Common.Utils.ThemeColor.getRgbColor(this.btnBorderColor.color);
-
+                }
                 if (btn.options.borderId == 'inner') {
                     new_borders[Asc.c_oAscBorderOptions.InnerV] = new Asc.asc_CBorder(bordersWidth, bordersColor);
                     new_borders[Asc.c_oAscBorderOptions.InnerH] = new Asc.asc_CBorder(bordersWidth, bordersColor);
@@ -142,7 +148,11 @@ define([
         },
 
         onAngleChange: function(field, newValue, oldValue, eOpts) {
-            this.api && this.api.asc_setCellAngle(field.getNumberValue());
+            this.api && (newValue!==oldValue) && this.api.asc_setCellAngle(field.getNumberValue());
+        },
+
+        onIndentChange: function(field, newValue, oldValue, eOpts) {
+            this.api && (newValue!==oldValue) && this.api.asc_setCellIndent(field.getNumberValue());
         },
 
         render: function () {
@@ -175,7 +185,8 @@ define([
                 style: 'width: 100%;',
                 menuStyle: 'min-width: 100%;',
                 editable: false,
-                data: this._arrFillSrc
+                data: this._arrFillSrc,
+                disabled: this._locked
             });
             this.cmbFillSrc.setValue(Asc.c_oAscFill.FILL_TYPE_NOFILL);
             this.fillControls.push(this.cmbFillSrc);
@@ -410,7 +421,8 @@ define([
                 parentEl: $('#cell-border-color-btn'),
                 disabled: this._locked,
                 menu        : true,
-                color: '000000'
+                color: 'auto',
+                auto: true
             });
             this.lockedControls.push(this.btnBorderColor);
 
@@ -422,6 +434,21 @@ define([
                 color: 'transparent'
             });
             this.lockedControls.push(this.btnBackColor);
+
+            this.spnIndent = new Common.UI.MetricSpinner({
+                el: $('#cell-spin-indent'),
+                step: 1,
+                width: 60,
+                defaultUnit : "",
+                value: '0',
+                allowDecimal: false,
+                maxValue: 250,
+                minValue: 0,
+                disabled: this._locked
+            });
+            this.lockedControls.push(this.spnIndent);
+            this.spnIndent.on('change', _.bind(this.onIndentChange, this));
+            this.spnIndent.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
 
             this.spnAngle = new Common.UI.MetricSpinner({
                 el: $('#cell-spin-angle'),
@@ -458,7 +485,7 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-add-breakpoint',
                 disabled: this._locked,
-                hint: this.tipAddGradientPoint,
+                hint: this.tipAddGradientPoint
             });
             this.btnAddGradientStep.on('click', _.bind(this.onAddGradientStep, this));
             this.lockedControls.push(this.btnAddGradientStep);
@@ -488,10 +515,181 @@ define([
             });
             this.lockedControls.push(this.chShrink);
             this.chShrink.on('change', this.onShrinkChange.bind(this));
+
+            this.btnCondFormat = new Common.UI.Button({
+                parentEl: $('#cell-btn-cond-format'),
+                cls         : 'btn-toolbar',
+                iconCls     : 'toolbar__icon btn-cond-format',
+                caption     : this.textCondFormat,
+                style       : 'width: 100%;text-align: left;',
+                menu: true,
+                disabled: this._locked
+            });
+            this.lockedControls.push(this.btnCondFormat);
         },
 
         createDelayedElements: function() {
             this.UpdateThemeColors();
+            this.btnCondFormat.setMenu( new Common.UI.Menu({
+                items: [
+                    {
+                        caption     : Common.define.conditionalData.textValue,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                {   caption     : Common.define.conditionalData.textGreater,    type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.greaterThan },
+                                {   caption     : Common.define.conditionalData.textGreaterEq,  type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.greaterThanOrEqual },
+                                {   caption     : Common.define.conditionalData.textLess,       type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.lessThan },
+                                {   caption     : Common.define.conditionalData.textLessEq,     type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.lessThanOrEqual },
+                                {   caption     : Common.define.conditionalData.textEqual,      type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.equal },
+                                {   caption     : Common.define.conditionalData.textNotEqual,   type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.notEqual },
+                                {   caption     : Common.define.conditionalData.textBetween,    type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.between },
+                                {   caption     : Common.define.conditionalData.textNotBetween, type        : Asc.c_oAscCFType.cellIs, value       : Asc.c_oAscCFOperator.notBetween }
+                            ]
+                        })
+                    },
+                    {
+                        caption     : Common.define.conditionalData.textTop + '/' + Common.define.conditionalData.textBottom,
+                        type        : Asc.c_oAscCFType.top10,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                { caption: Common.define.conditionalData.textTop + ' 10 ' + this.textItems,      type: Asc.c_oAscCFType.top10, value: 0, percent: false },
+                                { caption: Common.define.conditionalData.textTop + ' 10%',      type: Asc.c_oAscCFType.top10, value: 0, percent: true },
+                                { caption: Common.define.conditionalData.textBottom + ' 10 ' + this.textItems,   type: Asc.c_oAscCFType.top10, value: 1, percent: false },
+                                { caption: Common.define.conditionalData.textBottom + ' 10%',   type: Asc.c_oAscCFType.top10, value: 1, percent: true }
+                            ]
+                        })
+                    },
+                    {
+                        caption: Common.define.conditionalData.textAverage,
+                        menu: new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                { caption: Common.define.conditionalData.textAbove, type: Asc.c_oAscCFType.aboveAverage, value: 0},
+                                { caption: Common.define.conditionalData.textBelow, type: Asc.c_oAscCFType.aboveAverage, value: 1},
+                                { caption: Common.define.conditionalData.textEqAbove, type: Asc.c_oAscCFType.aboveAverage, value: 2},
+                                { caption: Common.define.conditionalData.textEqBelow, type: Asc.c_oAscCFType.aboveAverage,value: 3},
+                                { caption: Common.define.conditionalData.text1Above, type: Asc.c_oAscCFType.aboveAverage, value: 4},
+                                { caption: Common.define.conditionalData.text1Below, type: Asc.c_oAscCFType.aboveAverage, value: 5},
+                                { caption: Common.define.conditionalData.text2Above, type: Asc.c_oAscCFType.aboveAverage, value: 6},
+                                { caption: Common.define.conditionalData.text2Below, type: Asc.c_oAscCFType.aboveAverage, value: 7},
+                                { caption: Common.define.conditionalData.text3Above, type: Asc.c_oAscCFType.aboveAverage, value: 8},
+                                { caption: Common.define.conditionalData.text3Below, type: Asc.c_oAscCFType.aboveAverage, value: 9}
+                            ]
+                        })
+                    },
+                    {
+                        caption     : Common.define.conditionalData.textText,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                { caption: Common.define.conditionalData.textContains,   type: Asc.c_oAscCFType.containsText },
+                                { caption: Common.define.conditionalData.textNotContains,   type: Asc.c_oAscCFType.notContainsText },
+                                { caption: Common.define.conditionalData.textBegins,   type: Asc.c_oAscCFType.beginsWith },
+                                { caption: Common.define.conditionalData.textEnds,   type: Asc.c_oAscCFType.endsWith }
+                            ]
+                        })
+                    },
+                    {
+                        caption     : Common.define.conditionalData.textDate,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                { caption: Common.define.conditionalData.textYesterday,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.yesterday },
+                                { caption: Common.define.conditionalData.textToday,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.today},
+                                { caption: Common.define.conditionalData.textTomorrow,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.tomorrow},
+                                { caption: Common.define.conditionalData.textLast7days,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.last7Days},
+                                { caption: Common.define.conditionalData.textLastWeek,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.lastWeek},
+                                { caption: Common.define.conditionalData.textThisWeek,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.thisWeek},
+                                { caption: Common.define.conditionalData.textNextWeek,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.nextWeek},
+                                { caption: Common.define.conditionalData.textLastMonth,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.lastMonth},
+                                { caption: Common.define.conditionalData.textThisMonth,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.thisMonth},
+                                { caption: Common.define.conditionalData.textNextMonth,  type: Asc.c_oAscCFType.timePeriod,  value: Asc.c_oAscTimePeriod.nextMonth}
+                            ]
+                        })
+                    },
+                    {
+                        caption: Common.define.conditionalData.textBlank + '/' + Common.define.conditionalData.textError,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                { caption: Common.define.conditionalData.textBlanks,   type: Asc.c_oAscCFType.containsBlanks },
+                                { caption: Common.define.conditionalData.textNotBlanks,type: Asc.c_oAscCFType.notContainsBlanks },
+                                { caption: Common.define.conditionalData.textErrors,   type: Asc.c_oAscCFType.containsErrors },
+                                { caption: Common.define.conditionalData.textNotErrors,type: Asc.c_oAscCFType.notContainsErrors }
+                            ]
+                        })
+                    },
+                    {
+                        caption: Common.define.conditionalData.textDuplicate + '/' + Common.define.conditionalData.textUnique,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                { caption: Common.define.conditionalData.textDuplicate,    type: Asc.c_oAscCFType.duplicateValues },
+                                { caption: Common.define.conditionalData.textUnique,       type: Asc.c_oAscCFType.uniqueValues }
+                            ]
+                        })
+                    },
+                    {caption: '--'},
+                    this.mnuDataBars = new Common.UI.MenuItem({
+                        caption     : this.textDataBars,
+                        type        : Asc.c_oAscCFType.dataBar,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            style: 'min-width: auto;',
+                            items: []
+                        })
+                    }),
+                    this.mnuColorScales = new Common.UI.MenuItem({
+                        caption     : this.textColorScales,
+                        type        : Asc.c_oAscCFType.colorScale,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            style: 'min-width: auto;',
+                            items: []
+                        })
+                    }),
+                    this.mnuIconSets = new Common.UI.MenuItem({
+                        caption     : Common.define.conditionalData.textIconSets,
+                        type        : Asc.c_oAscCFType.iconSet,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            style: 'min-width: auto;',
+                            items: []
+                        })
+                    }),
+                    {caption: '--'},
+                    {
+                        caption     : Common.define.conditionalData.textFormula,
+                        type        : Asc.c_oAscCFType.expression
+                    },
+                    {caption: '--'},
+                    {
+                        caption     : this.textNewRule,
+                        value       : 'new'
+                    },
+                    {
+                        caption     : this.textClearRule,
+                        menu        : new Common.UI.Menu({
+                            menuAlign   : 'tl-tr',
+                            items: [
+                                { value: 'clear', type: Asc.c_oAscSelectionForCFType.selection, caption: this.textSelection },
+                                { value: 'clear', type: Asc.c_oAscSelectionForCFType.worksheet, caption: this.textThisSheet },
+                                { value: 'clear', type: Asc.c_oAscSelectionForCFType.table, caption: this.textThisTable },
+                                { value: 'clear', type: Asc.c_oAscSelectionForCFType.pivot, caption: this.textThisPivot }
+                            ]
+                        })
+                    },
+                    {
+                        caption     : this.textManageRule,
+                        value       : 'manage'
+                    }
+                ]
+            }));
+            this.btnCondFormat.menu.on('show:before', _.bind(function() {
+                this.fireEvent('cf:init', [this, 'cell']);
+            }, this));
             this._initSettings = false;
         },
 
@@ -510,6 +708,12 @@ define([
                 if (Math.abs(this._state.CellAngle - value) > 0.1 || (this._state.CellAngle === undefined) && (this._state.CellAngle !== value)) {
                     this.spnAngle.setValue((value !== null) ? (value==255 ? 0 : value) : '', true);
                     this._state.CellAngle = value;
+                }
+
+                value = xfs.asc_getIndent();
+                if (Math.abs(this._state.CellIndent - value) > 0.1 || (this._state.CellIndent === undefined) && (this._state.CellIndent !== value)) {
+                    this.spnIndent.setValue((value !== null) ? value : '', true);
+                    this._state.CellIndent = value;
                 }
 
                 value = xfs.asc_getWrapText();
@@ -856,7 +1060,7 @@ define([
              }
              this.colorsBack.updateColors(Common.Utils.ThemeColor.getEffectColors(), Common.Utils.ThemeColor.getStandartColors());
              this.borderColor.updateColors(Common.Utils.ThemeColor.getEffectColors(), Common.Utils.ThemeColor.getStandartColors());
-             this.btnBorderColor.setColor(this.borderColor.getColor());
+            !this.btnBorderColor.isAutoColor() && this.btnBorderColor.setColor(this.borderColor.getColor());
              this.colorsGrad.updateColors(Common.Utils.ThemeColor.getEffectColors(), Common.Utils.ThemeColor.getStandartColors());
              this.colorsFG.updateColors(Common.Utils.ThemeColor.getEffectColors(), Common.Utils.ThemeColor.getStandartColors());
              this.colorsBG.updateColors(Common.Utils.ThemeColor.getEffectColors(), Common.Utils.ThemeColor.getStandartColors());
@@ -1313,7 +1517,19 @@ define([
         textGradientColor: 'Color',
         textPosition: 'Position',
         tipAddGradientPoint: 'Add gradient point',
-        tipRemoveGradientPoint: 'Remove gradient point'
+        tipRemoveGradientPoint: 'Remove gradient point',
+        textIndent: 'Indent',
+        textCondFormat: 'Conditional formatting',
+        textDataBars: 'Data Bars',
+        textColorScales: 'Color Scales',
+        textNewRule: 'New Rule',
+        textClearRule: 'Clear Rules',
+        textSelection: 'From current selection',
+        textThisSheet: 'From this worksheet',
+        textThisTable: 'From this table',
+        textThisPivot: 'From this pivot',
+        textManageRule: 'Manage Rules',
+        textItems: 'Items'
 
     }, SSE.Views.CellSettings || {}));
 });

@@ -18,9 +18,17 @@
             width: 14px;
             height: 14px;
 
-            background: #fff;
-            border: 1px solid @gray;
+            background: @background-normal-ie;
+            background: @background-normal;
+            border: @scaled-one-px-value-ie solid @border-regular-control-ie;
+            border: @scaled-one-px-value solid @border-regular-control;
             border-radius: 50%;
+
+            + span {
+                outline: @scaled-one-px-value-ie dotted transparent;
+                outline: @scaled-one-px-value dotted transparent;
+                display: inline-block;
+            }
         }
 
         &:checked {
@@ -28,7 +36,8 @@
                 &::before {
                     content: '';
                     position: absolute;
-                    background: @gray-deep;
+                    background: @text-normal-ie;
+                    background: @text-normal;
                     border-radius: 50%;
                     width: 8px;
                     height: 8px;
@@ -39,11 +48,23 @@
         }
 
         &.disabled, &:disabled {
-            opacity: .4;
 
             + label {
                 &::before {
-                    opacity: .4;
+                }
+            }
+        }
+    }
+
+    &:focus:not(.disabled) {
+        input[type=radio] {
+            + label {
+                border-color: @border-control-focus-ie;
+                border-color: @border-control-focus;
+
+                + span {
+                    outline-color: @border-control-focus-ie;
+                    outline-color: @border-control-focus;
                 }
             }
         }

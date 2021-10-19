@@ -100,7 +100,7 @@ define([
                 enableKeyEvents: false,
                 itemTemplate: _.template([
                     '<div id="<%= id %>" class="signature-item">',
-                        '<div class="caret img-commonctrl <% if (name == "" || date == "") { %>' + 'nomargin' + '<% } %>"></div>',
+                        '<div class="caret img-commonctrl img-colored <% if (name == "" || date == "") { %>' + 'nomargin' + '<% } %>"></div>',
                         '<div class="name"><%= Common.Utils.String.htmlEncode(name) %></div>',
                         '<div class="date"><%= Common.Utils.String.htmlEncode(date) %></div>',
                     '</div>'
@@ -310,7 +310,18 @@ define([
                     Common.NotificationCenter.trigger('protect:signature', 'visible', !!parseInt(item.cmpEl.attr('data-value')), guid);// can edit settings for requested signature
                     break;
                 case 3:
-                    this.api.asc_RemoveSignature(guid);
+                    var me = this;
+                    Common.UI.warning({
+                        title: this.notcriticalErrorTitle,
+                        msg: this.txtRemoveWarning,
+                        buttons: ['ok', 'cancel'],
+                        primary: 'ok',
+                        callback: function(btn) {
+                            if (btn == 'ok') {
+                                me.api.asc_RemoveSignature(guid);
+                            }
+                        }
+                    });
                     break;
             }
         },
@@ -350,7 +361,7 @@ define([
                     text    : tipText,
                     showLink: showLink,
                     textLink: this.txtContinueEditing,
-                    placement: 'left'
+                    placement: 'left-bottom'
                 });
                 tip.on({
                     'dontshowclick': function() {
@@ -415,7 +426,8 @@ define([
         notcriticalErrorTitle: 'Warning',
         txtEditWarning: 'Editing will remove the signatures from the document.<br>Are you sure you want to continue?',
         strDelete: 'Remove Signature',
-        strSigner: 'Signer'
+        strSigner: 'Signer',
+        txtRemoveWarning: 'Are you sure you want to remove this signature?<br>This action cannot be undone.'
 
     }, DE.Views.SignatureSettings || {}));
 });

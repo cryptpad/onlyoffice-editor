@@ -85,8 +85,8 @@ define([
                                         '<button type="button" class="btn btn-text-default auto" id="chart-dlg-btn-edit" style="min-width: 70px;margin-right:5px;">', me.textEdit, '</button>',
                                         '<button type="button" class="btn btn-text-default auto" id="chart-dlg-btn-delete" style="min-width: 70px;margin-right:5px;">', me.textDelete, '</button>',
                                         '<div style="display: inline-block; float: right;">',
-                                        '<div id="chart-dlg-btn-up" style="display: inline-block;border: 1px solid #cfcfcf;border-radius: 1px;margin-right: 2px;"></div>',
-                                        '<div id="chart-dlg-btn-down" style="display: inline-block;border: 1px solid #cfcfcf;border-radius: 1px;"></div>',
+                                        '<div id="chart-dlg-btn-up" style="display: inline-block;margin-right: 2px;"></div>',
+                                        '<div id="chart-dlg-btn-down" style="display: inline-block;"></div>',
                                         '</div>',
                                     '</td>',
                                 '</tr>',
@@ -150,7 +150,8 @@ define([
                 store: new Common.UI.DataViewStore(),
                 emptyText: '',
                 scrollAlwaysVisible: true,
-                itemTemplate: _.template('<div id="<%= id %>" class="list-item" style="min-height: 15px;"><%= value %></div>')
+                itemTemplate: _.template('<div id="<%= id %>" class="list-item" style="min-height: 15px;"><%= value %></div>'),
+                tabindex:1
             });
             this.seriesList.onKeyDown = _.bind(this.onListKeyDown, this, 'series');
             this.seriesList.on('item:select', _.bind(this.onSelectSeries, this));
@@ -175,7 +176,7 @@ define([
 
             this.btnUp = new Common.UI.Button({
                 parentEl: $('#chart-dlg-btn-up'),
-                cls: 'btn-toolbar',
+                cls: 'btn-toolbar bg-white',
                 iconCls: 'caret-up',
                 hint: this.textUp
             });
@@ -183,7 +184,7 @@ define([
 
             this.btnDown = new Common.UI.Button({
                 parentEl: $('#chart-dlg-btn-down'),
-                cls: 'btn-toolbar',
+                cls: 'btn-toolbar bg-white',
                 iconCls: 'caret-down',
                 hint: this.textDown
             });
@@ -199,7 +200,8 @@ define([
                 store: new Common.UI.DataViewStore(),
                 emptyText: '',
                 scrollAlwaysVisible: true,
-                itemTemplate: _.template('<div id="<%= id %>" class="list-item" style="min-height: 15px;"><%= value %></div>')
+                itemTemplate: _.template('<div id="<%= id %>" class="list-item" style="min-height: 15px;"><%= value %></div>'),
+                tabindex:1
             });
 
             this.btnEditCategory = new Common.UI.Button({
@@ -210,17 +212,16 @@ define([
             this.afterRender();
         },
 
-        afterRender: function() {
-            this._setDefaults(this.chartSettings);
+        getFocusedComponents: function() {
+            return [this.txtDataRange, this.seriesList, this.btnAdd, this.btnEdit, this.btnDelete, this.btnUp, this.btnDown, this.btnSwitch, this.categoryList, this.btnEditCategory];
         },
 
-        show: function() {
-            Common.Views.AdvancedSettingsWindow.prototype.show.apply(this, arguments);
+        getDefaultFocusableComponent: function () {
+            return this.txtDataRange;
+        },
 
-            var me = this;
-            _.delay(function(){
-                me.txtDataRange.cmpEl.find('input').focus();
-            },50);
+        afterRender: function() {
+            this._setDefaults(this.chartSettings);
         },
 
         close: function () {

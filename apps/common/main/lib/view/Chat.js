@@ -77,7 +77,7 @@ define([
                         '<div class="user-name" data-can-copy="true">',
                             '<div class="color" style="display: inline-block; background-color: <% if (msg.get("usercolor")!==null) { %><%=msg.get("usercolor")%><% } else { %> #cfcfcf <% } %>; " ></div><%= scope.getUserName(msg.get("username")) %>',
                         '</div>',
-                        '<label class="message user-select" data-can-copy="true"><%= msg.get("message") %></label>',
+                        '<label class="message user-select" data-can-copy="true" tabindex="-1" oo_editor_input="true"><%= msg.get("message") %></label>',
                     '<% } %>',
             '</li>'].join(''),
 
@@ -267,7 +267,7 @@ define([
         },
 
         getUserName: function (username) {
-            return Common.Utils.String.htmlEncode(Common.Utils.UserInfoParser.getParsedName(username));
+            return Common.Utils.String.htmlEncode(AscCommon.UserInfoParser.getParsedName(username));
         },
 
         hide: function () {

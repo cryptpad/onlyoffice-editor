@@ -359,7 +359,7 @@ define([
                 if (usersStore){
                     var rec = usersStore.findUser(id);
                     if (rec)
-                        return Common.Utils.UserInfoParser.getParsedName(rec.get('username'));
+                        return AscCommon.UserInfoParser.getParsedName(rec.get('username'));
                     else if (typeof(id) === "string") {
                         var idOrig = id.slice(0,-1);
                         var found;
@@ -502,7 +502,8 @@ define([
                     var showPoint, ToolTip,
                         type = moveData.get_Type();
 
-                    if (type==Asc.c_oAscMouseMoveDataTypes.Hyperlink || type==Asc.c_oAscMouseMoveDataTypes.Footnote || type==Asc.c_oAscMouseMoveDataTypes.Form) { // 1 - hyperlink, 3 - footnote
+                    if (type==Asc.c_oAscMouseMoveDataTypes.Hyperlink || type==Asc.c_oAscMouseMoveDataTypes.Footnote || type==Asc.c_oAscMouseMoveDataTypes.Form ||
+                        type==Asc.c_oAscMouseMoveDataTypes.Review && me.mode.reviewHoverMode) {
                         if (isTooltipHiding) {
                             mouseMoveData = moveData;
                             return;
@@ -512,6 +513,8 @@ define([
                             var hyperProps = moveData.get_Hyperlink();
                             if (!hyperProps) return;
                             ToolTip = (_.isEmpty(hyperProps.get_ToolTip())) ? hyperProps.get_Value() : hyperProps.get_ToolTip();
+                            if (ToolTip.length>256)
+                                ToolTip = ToolTip.substr(0, 256) + '...';
                         } else if (type == Asc.c_oAscMouseMoveDataTypes.Footnote) {
                             ToolTip = moveData.get_FootnoteText();
                             if (ToolTip.length>1000)
@@ -520,12 +523,22 @@ define([
                             ToolTip = moveData.get_FormHelpText();
                             if (ToolTip.length>1000)
                                 ToolTip = ToolTip.substr(0, 1000) + '...';
+                        } else if (type==Asc.c_oAscMouseMoveDataTypes.Review && moveData.get_ReviewChange()) {
+                            var changes = DE.getController("Common.Controllers.ReviewChanges").readSDKChange([moveData.get_ReviewChange()]);
+                            if (changes && changes.length>0)
+                                changes = changes[0];
+                            if (changes) {
+                                ToolTip = '<b>'+ Common.Utils.String.htmlEncode(AscCommon.UserInfoParser.getParsedName(changes.get('username'))) +'  </b>';
+                                ToolTip += '<span style="font-size:10px; opacity: 0.7;">'+ changes.get('date') +'</span><br>';
+                                ToolTip += changes.get('changetext');
+                            }
                         }
 
                         var recalc = false;
                         screenTip.isHidden = false;
 
-                        ToolTip = Common.Utils.String.htmlEncode(ToolTip);
+                        if (type!==Asc.c_oAscMouseMoveDataTypes.Review)
+                            ToolTip = Common.Utils.String.htmlEncode(ToolTip);
 
                         if (screenTip.tipType !== type || screenTip.tipLength !== ToolTip.length || screenTip.strTip.indexOf(ToolTip)<0 ) {
                             screenTip.toolTip.setTitle((type==Asc.c_oAscMouseMoveDataTypes.Hyperlink) ? (ToolTip + '<br><b>' + me.txtPressLink + '</b>') : ToolTip);
@@ -1728,7 +1741,7 @@ define([
             } else if (type == 'indents' || type == 'tabs') {
                 win = this.advancedParagraphClick({isChart: false});
                 if (win)
-                    win.setActiveCategory(type == 'indents' ? 0 : 3);
+                    win.setActiveCategory(type == 'indents' ? 0 : 4);
             } else if (type == 'margins') {
                 if (me._state.lock_doc) return;
                 win = new DE.Views.PageMarginsDialog({
@@ -1866,7 +1879,7 @@ define([
             if (this.api){
                 var printopt = new Asc.asc_CAdjustPrint();
                 printopt.asc_setPrintType(Asc.c_oAscPrintType.Selection);
-                var opts = new Asc.asc_CDownloadOptions(null, Common.Utils.isChrome || Common.Utils.isSafari || Common.Utils.isOpera); // if isChrome or isSafari or isOpera == true use asc_onPrintUrl event
+                var opts = new Asc.asc_CDownloadOptions(null, Common.Utils.isChrome || Common.Utils.isSafari || Common.Utils.isOpera || Common.Utils.isGecko && Common.Utils.firefoxVersion>86); // if isChrome or isSafari or isOpera == true use asc_onPrintUrl event
                 opts.asc_setAdvancedOptions(printopt);
                 this.api.asc_Print(opts);
                 this.fireEvent('editcomplete', this);
@@ -1898,16 +1911,7 @@ define([
         },
 
         onInsertCaption: function() {
-            var me = this;
-            (new DE.Views.CaptionDialog({
-                isObject: true,
-                handler: function (result, settings) {
-                    if (result == 'ok') {
-                        me.api.asc_AddObjectCaption(settings);
-                    }
-                    me.fireEvent('editcomplete', me);
-                }
-            })).show();
+            this.fireEvent('links:caption');
         },
 
         onContinueNumbering: function(item, e) {
@@ -2396,6 +2400,7 @@ define([
                     properties.put_Width(originalImageSize.get_ImageWidth());
                     properties.put_Height(originalImageSize.get_ImageHeight());
                     properties.put_ResetCrop(true);
+                    properties.put_Rot(0);
                     me.api.ImgApply(properties);
 
                     me.fireEvent('editcomplete', this);
@@ -2527,6 +2532,21 @@ define([
                 })
             });
 
+            var menuImgRemoveControl = new Common.UI.MenuItem({
+                iconCls: 'menu__icon cc-remove',
+                caption: me.textRemoveControl,
+                value: 'remove'
+            }).on('click', _.bind(me.onControlsSelect, me));
+
+            var menuImgControlSettings = new Common.UI.MenuItem({
+                caption: me.textEditControls,
+                value: 'settings'
+            }).on('click', _.bind(me.onControlsSelect, me));
+
+            var menuImgControlSeparator = new Common.UI.MenuItem({
+                caption     : '--'
+            });
+
             this.pictureMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
                 initMenu: function(value){
@@ -2601,9 +2621,19 @@ define([
 
                     me.menuOriginalSize.setVisible(value.imgProps.isOnlyImg || !value.imgProps.isChart && !value.imgProps.isShape);
 
-                    var control_props = me.api.asc_IsContentControl() ? me.api.asc_GetContentControlProperties() : null,
+                    var in_control = me.api.asc_IsContentControl(),
+                        control_props = in_control ? me.api.asc_GetContentControlProperties() : null,
                         lock_type = (control_props) ? control_props.get_Lock() : Asc.c_oAscSdtLockType.Unlocked,
-                        content_locked = lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.ContentLocked;
+                        content_locked = lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.ContentLocked,
+                        is_form = control_props && control_props.get_FormPr();
+
+                    menuImgRemoveControl.setVisible(in_control);
+                    menuImgControlSettings.setVisible(in_control && me.mode.canEditContentControl && !is_form);
+                    menuImgControlSeparator.setVisible(in_control);
+                    if (in_control) {
+                        menuImgRemoveControl.setDisabled(lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.SdtLocked);
+                        menuImgRemoveControl.setCaption(is_form ? me.getControlLabel(control_props) : me.textRemoveControl);
+                    }
 
                     var islocked = value.imgProps.locked || (value.headerProps!==undefined && value.headerProps.locked) || content_locked;
                     var pluginGuid = value.imgProps.value.asc_getPluginGuid();
@@ -2623,7 +2653,7 @@ define([
                     if (menuChartEdit.isVisible())
                         menuChartEdit.setDisabled(islocked || value.imgProps.value.get_SeveralCharts());
 
-                    me.pictureMenu.items[19].setVisible(menuChartEdit.isVisible());
+                    me.pictureMenu.items[22].setVisible(menuChartEdit.isVisible());
 
                     me.menuOriginalSize.setDisabled(islocked || value.imgProps.value.get_ImageUrl()===null || value.imgProps.value.get_ImageUrl()===undefined);
                     menuImageAdvanced.setDisabled(islocked);
@@ -2634,7 +2664,7 @@ define([
                         menuImageAlign.menu.items[7].setDisabled(objcount==2 && (!alignto || alignto==3));
                         menuImageAlign.menu.items[8].setDisabled(objcount==2 && (!alignto || alignto==3));
                     }
-                    menuImageArrange.setDisabled( wrapping == Asc.c_oAscWrapStyle2.Inline || content_locked);
+                    menuImageArrange.setDisabled( (wrapping == Asc.c_oAscWrapStyle2.Inline) && !value.imgProps.value.get_FromGroup() || content_locked);
 
                     if (me.api) {
                         mnuUnGroup.setDisabled(islocked || !me.api.CanUnGroup());
@@ -2672,6 +2702,9 @@ define([
                     menuSignatureEditSign,
                     menuSignatureEditSetup,
                     menuEditSignSeparator,
+                    menuImgRemoveControl,
+                    menuImgControlSettings,
+                    menuImgControlSeparator,
                     menuImageArrange,
                     menuImageAlign,
                     me.menuImageWrap,
@@ -2698,7 +2731,7 @@ define([
             }).on('click', _.bind(me.onInsertCaption, me));
 
             var mnuTableMerge = new Common.UI.MenuItem({
-                iconCls: 'menu__icon btn-merge',
+                iconCls: 'menu__icon btn-merge-cells',
                 caption     : me.mergeCellsText
             }).on('click', function(item) {
                 if (me.api)
@@ -4136,7 +4169,18 @@ define([
                     Common.NotificationCenter.trigger('protect:signature', 'visible', this._isDisabled, datavalue);//guid, can edit settings for requested signature
                     break;
                 case 3:
-                    this.api.asc_RemoveSignature(datavalue); //guid
+                    var me = this;
+                    Common.UI.warning({
+                        title: this.notcriticalErrorTitle,
+                        msg: this.txtRemoveWarning,
+                        buttons: ['ok', 'cancel'],
+                        primary: 'ok',
+                        callback: function(btn) {
+                            if (btn == 'ok') {
+                                me.api.asc_RemoveSignature(datavalue);
+                            }
+                        }
+                    });
                     break;
             }
         },
@@ -4310,7 +4354,12 @@ define([
                 for (var i=0; i<count; i++) {
                     (specProps.get_ItemValue(i)!=='' || !isForm) && menu.addItem(new Common.UI.MenuItem({
                         caption     : specProps.get_ItemDisplayText(i),
-                        value       : specProps.get_ItemValue(i)
+                        value       : specProps.get_ItemValue(i),
+                        template    : _.template([
+                            '<a id="<%= id %>" style="<%= style %>" tabindex="-1" type="menuitem">',
+                            '<%= Common.Utils.String.htmlEncode(caption) %>',
+                            '</a>'
+                        ].join(''))
                     }));
                 }
                 if (!isForm && menu.items.length<1) {
@@ -4618,6 +4667,9 @@ define([
         textRemComboBox: 'Remove Combo Box',
         textRemDropdown: 'Remove Dropdown',
         textRemPicture: 'Remove Image',
-        textRemField: 'Remove Text Field'
+        textRemField: 'Remove Text Field',
+        txtRemoveWarning: 'Do you want to remove this signature?<br>It can\'t be undone.',
+        notcriticalErrorTitle: 'Warning'
+
 }, DE.Views.DocumentHolder || {}));
 });

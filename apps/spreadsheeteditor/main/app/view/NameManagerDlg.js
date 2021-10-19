@@ -119,11 +119,10 @@ define([  'text!spreadsheeteditor/main/app/template/NameManagerDlg.template',
                 store: new Common.UI.DataViewStore(),
                 simpleAddMode: true,
                 emptyText: this.textEmpty,
-                template: _.template(['<div class="listview inner" style=""></div>'].join('')),
                 itemTemplate: _.template([
                         '<div id="<%= id %>" class="list-item" style="width: 100%;display:inline-block;<% if (!lock) { %>pointer-events:none;<% } %>">',
                             '<div class="listitem-icon toolbar__icon <% print(isTable?"btn-menu-table":(isSlicer ? "btn-slicer" : "btn-named-range")) %>"></div>',
-                            '<div style="width:141px;padding-right: 5px;"><%= name %></div>',
+                            '<div style="width:141px;padding-right: 5px;"><%= Common.Utils.String.htmlEncode(name) %></div>',
                             '<div style="width:117px;padding-right: 5px;"><%= scopeName %></div>',
                             '<div style="width:204px;"><%= range %></div>',
                             '<% if (lock) { %>',
@@ -172,7 +171,7 @@ define([  'text!spreadsheeteditor/main/app/template/NameManagerDlg.template',
         },
 
         getFocusedComponents: function() {
-            return [ this.cmbFilter, {cmp: this.rangeList, selector: '.listview'} ];
+            return [ this.cmbFilter, this.rangeList, this.btnNewRange, this.btnEditRange, this.btnDeleteRange ];
         },
 
         getDefaultFocusableComponent: function () {
@@ -290,6 +289,8 @@ define([  'text!spreadsheeteditor/main/app/template/NameManagerDlg.template',
         },
 
         onEditRange: function (isEdit) {
+            if (this._isWarningVisible) return;
+            
             if (this.locked) {
                 Common.NotificationCenter.trigger('namedrange:locked');
                 return;
@@ -319,6 +320,7 @@ define([  'text!spreadsheeteditor/main/app/template/NameManagerDlg.template',
                 }
             }).on('close', function() {
                 me.show();
+                setTimeout(function(){ me.getDefaultFocusableComponent().focus(); }, 100);
             });
             
             me.hide();
@@ -328,8 +330,20 @@ define([  'text!spreadsheeteditor/main/app/template/NameManagerDlg.template',
         onDeleteRange: function () {
             var rec = this.rangeList.getSelectedRec();
             if (rec) {
-                this.currentNamedRange = _.indexOf(this.rangeList.store.models, rec);
-                this.api.asc_delDefinedNames(new Asc.asc_CDefName(rec.get('name'), rec.get('range'), rec.get('scope'), rec.get('type'), undefined, undefined, undefined, true));
+                var me = this;
+                me._isWarningVisible = true;
+                Common.UI.warning({
+                    msg: Common.Utils.String.format(me.warnDelete, rec.get('name')),
+                    buttons: ['ok', 'cancel'],
+                    callback: function(btn) {
+                        if (btn == 'ok') {
+                            me.currentNamedRange = _.indexOf(me.rangeList.store.models, rec);
+                            me.api.asc_delDefinedNames(new Asc.asc_CDefName(rec.get('name'), rec.get('range'), rec.get('scope'), rec.get('type'), undefined, undefined, undefined, true));
+                        }
+                        setTimeout(function(){ me.getDefaultFocusableComponent().focus(); }, 100);
+                        me._isWarningVisible = false;
+                    }
+                });
             }
         },
 
@@ -367,7 +381,7 @@ define([  'text!spreadsheeteditor/main/app/template/NameManagerDlg.template',
             if (usersStore){
                 var rec = usersStore.findUser(id);
                 if (rec)
-                    return Common.Utils.UserInfoParser.getParsedName(rec.get('username'));
+                    return AscCommon.UserInfoParser.getParsedName(rec.get('username'));
             }
             return this.guestText;
         },
@@ -436,7 +450,8 @@ define([  'text!spreadsheeteditor/main/app/template/NameManagerDlg.template',
         textFilterWorkbook: 'Names Scoped to Workbook',
         textWorkbook: 'Workbook',
         guestText: 'Guest',
-        tipIsLocked: 'This element is being edited by another user.'
+        tipIsLocked: 'This element is being edited by another user.',
+        warnDelete: 'Are you sure you want to delete the name {0}?'
 
     }, SSE.Views.NameManagerDlg || {}));
 });

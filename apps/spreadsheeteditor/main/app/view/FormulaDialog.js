@@ -125,7 +125,7 @@ define([
         },
 
         getFocusedComponents: function() {
-            return [this.inputSearch, this.cmbFuncGroup, {cmp: this.cmbListFunctions, selector: '.listview'}];
+            return [this.inputSearch, this.cmbFuncGroup, this.cmbListFunctions];
         },
 
         getDefaultFocusableComponent: function () {
@@ -271,14 +271,13 @@ define([
                         el: $('#formula-dlg-combo-functions'),
                         store: this.functions,
                         tabindex: 1,
-                        itemTemplate: _.template('<div id="<%= id %>" class="list-item" style="pointer-events:none;"><%= value %></div>')
+                        cls: 'dbl-clickable'
                     });
 
                     this.cmbListFunctions.on('item:select', _.bind(this.onSelectFunction, this));
                     this.cmbListFunctions.on('item:dblclick', _.bind(this.onDblClickFunction, this));
                     this.cmbListFunctions.on('entervalue', _.bind(this.onPrimary, this));
-                    this.cmbListFunctions.onKeyDown = _.bind(this.onKeyDown, this.cmbListFunctions);
-                    this.cmbListFunctions.scrollToRecord =  _.bind(this.onScrollToRecordCustom, this.cmbListFunctions);
+                    this.cmbListFunctions.onKeyDown = _.bind(this.onKeyDown, this);
                     this.onUpdateFocus();
                 }
 
@@ -353,7 +352,8 @@ define([
 
         onKeyDown: function (e, event) {
             var i = 0, record = null,
-                me = this,
+                parent = this,
+                me = this.cmbListFunctions,
                 charVal = '',
                 value = '',
                 firstRecord = null,
@@ -363,12 +363,12 @@ define([
                 selectRecord = null,
                 needNextRecord = false;
 
-            if (this.disabled) return;
+            if (me.disabled) return;
             if (_.isUndefined(undefined)) event = e;
 
             function selectItem (item) {
                 me.selectRecord(item);
-                me.scrollToRecord(item);
+                parent.onScrollToRecordCustom.call(me, item);
 
                 innerEl = $(me.el).find('.inner');
                 me.scroller.scrollTop(innerEl.scrollTop(), 0);
@@ -380,14 +380,14 @@ define([
             charVal = e.key;
             if (e.keyCode > 64 && e.keyCode < 91 && charVal && charVal.length) {
                 charVal = charVal.toLocaleLowerCase();
-                selectRecord = this.store.findWhere({selected: true});
+                selectRecord = me.store.findWhere({selected: true});
                 if (selectRecord) {
                     value = selectRecord.get('value');
                     isEqualSelectRecord = (value && value.length && value[0].toLocaleLowerCase() === charVal)
                 }
 
-                for (i = 0; i < this.store.length; ++i) {
-                    record = this.store.at(i);
+                for (i = 0; i < me.store.length; ++i) {
+                    record = me.store.at(i);
                     value = record.get('value');
 
                     if (value[0].toLocaleLowerCase() === charVal) {
@@ -416,7 +416,7 @@ define([
                 }
             }
 
-            Common.UI.DataView.prototype.onKeyDown.call(this, e, event);
+            Common.UI.DataView.prototype.onKeyDown.call(me, e, event);
         },
 
         onScrollToRecordCustom: function (record) {

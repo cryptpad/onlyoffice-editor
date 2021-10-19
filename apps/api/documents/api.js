@@ -24,10 +24,8 @@
                 key: 'key',
                 vkey: 'vkey',
                 info: {
-                    author: 'author name', // must be deprecated, use owner instead
                     owner: 'owner name',
                     folder: 'path to document',
-                    created: '<creation date>', // must be deprecated, use uploaded instead
                     uploaded: '<uploaded date>',
                     sharingSettings: [
                         {
@@ -36,7 +34,8 @@
                             isLink: false
                         },
                         ...
-                    ]
+                    ],
+                    favorite: '<file is favorite>' // true/false/undefined (undefined - don't show fav. button)
                 },
                 permissions: {
                     edit: <can edit>, // default = true
@@ -48,7 +47,15 @@
                     modifyFilter: <can add, remove and save filter in the spreadsheet> // default = true
                     modifyContentControl: <can modify content controls in documenteditor> // default = true
                     fillForms:  <can edit forms in view mode> // default = edit || review,
-                    copy: <can copy data> // default = true
+                    copy: <can copy data> // default = true,
+                    editCommentAuthorOnly: <can edit your own comments only> // default = false
+                    deleteCommentAuthorOnly: <can delete your own comments only> // default = false,
+                    reviewGroups: ["Group1", ""] // current user can accept/reject review changes made by users from Group1 and users without a group. [] - use groups, but can't change any group's changes
+                    commentGroups: { // {} - use groups, but can't view/edit/delete any group's comments
+                         view: ["Group1", ""] // current user can view comments made by users from Group1 and users without a group.
+                         edit: ["Group1", ""] // current user can edit comments made by users from Group1 and users without a group.
+                         remove: ["Group1", ""] // current user can remove comments made by users from Group1 and users without a group.
+                    }
                 }
             },
             editorConfig: {
@@ -124,6 +131,14 @@
                         "Group2": ["Group1", "Group2"] // users from Group2 can accept/reject review changes made by users from Group1 and Group2
                         "Group3": [""] // users from Group3 can accept/reject review changes made by users without a group
                     },
+                    anonymous: { // set name for anonymous user
+                        request: bool (default: true), // enable set name
+                        label: string (default: "Guest") // postfix for user name
+                    },
+                    review: {
+                        hideReviewDisplay: false, // hide button Review mode
+                        hoverMode: false // true - show review balloons on mouse move, not on click on text
+                    },
                     chat: true,
                     comments: true,
                     zoom: 100,
@@ -135,13 +150,13 @@
                     statusBar: true,
                     autosave: true,
                     forcesave: false,
-                    commentAuthorOnly: false,
+                    commentAuthorOnly: false, // must be deprecated. use permissions.editCommentAuthorOnly and permissions.deleteCommentAuthorOnly instead
                     showReviewChanges: false,
                     help: true,
                     compactHeader: false,
                     toolbarNoTabs: false,
                     toolbarHideFileName: false,
-                    reviewDisplay: 'original',
+                    reviewDisplay: 'original', // original for viewer, markup for editor
                     spellcheck: true,
                     compatibleFeatures: false,
                     unit: 'cm' // cm, pt, inch,
@@ -149,8 +164,15 @@
                     macros: true // can run macros in document
                     plugins: true // can run plugins in document
                     macrosMode: 'warn' // warn about automatic macros, 'enable', 'disable', 'warn',
-                    trackChanges: undefined // true/false - open editor with track changes mode on/off
+                    trackChanges: undefined // true/false - open editor with track changes mode on/off,
+                    hideRulers: false // hide or show rulers on first loading (presentation or document editor)
+                    hideNotes: false // hide or show notes panel on first loading (presentation editor)
+                    uiTheme: 'theme-dark' // set interface theme: id or default-dark/default-light
                 },
+                 coEditing: {
+                     mode: 'fast', // <coauthoring mode>, 'fast' or 'strict'. if 'fast' and 'customization.autosave'=false -> set 'customization.autosave'=true
+                     change: true, // can change co-authoring mode
+                 },
                 plugins: {
                     autostart: ['asc.{FFE1F462-1EA2-4391-990D-4CC84940B754}'],
                     pluginsData: [
@@ -159,6 +181,9 @@
                         "speech/config.json",
                         "clipart/config.json",
                     ]
+                },
+                wopi: { // only for wopi
+                    FileNameMaxLength: 250 // max filename length for rename, 250 by default
                 }
             },
             events: {
@@ -390,7 +415,7 @@
 
                 if (typeof _config.document.fileType === 'string' && _config.document.fileType != '') {
                     _config.document.fileType = _config.document.fileType.toLowerCase();
-                    var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp)|(doc|docx|doct|odt|gdoc|txt|rtf|pdf|mht|htm|html|epub|djvu|xps|docm|dot|dotm|dotx|fodt|ott|fb2))$/
+                    var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp)|(doc|docx|doct|odt|gdoc|txt|rtf|pdf|mht|htm|html|epub|djvu|xps|oxps|docm|dot|dotm|dotx|fodt|ott|fb2|xml))$/
                                     .exec(_config.document.fileType);
                     if (!type) {
                         window.alert("The \"document.fileType\" parameter for the config object is invalid. Please correct it.");
@@ -402,7 +427,7 @@
                     }
                 }
 
-                var type = /^(?:(pdf|djvu|xps))$/.exec(_config.document.fileType);
+                var type = /^(?:(pdf|djvu|xps|oxps))$/.exec(_config.document.fileType);
                 if (type && typeof type[1] === 'string') {
                     _config.editorConfig.canUseHistory = false;
                 }
@@ -415,6 +440,11 @@
                 } else if (typeof _config.document.key !== 'string') {
                     window.alert("The \"document.key\" parameter for the config object must be string. Please correct it.");
                     return false;
+                }
+
+                if (_config.editorConfig.user && _config.editorConfig.user.id && (typeof _config.editorConfig.user.id == 'number')) {
+                    _config.editorConfig.user.id = _config.editorConfig.user.id.toString();
+                    console.warn("The \"id\" parameter for the editorConfig.user object must be a string.");
                 }
 
                 _config.document.token = _config.token;
@@ -638,6 +668,20 @@
             });
         };
 
+        var _setFavorite = function(data) {
+            _sendCommand({
+                command: 'setFavorite',
+                data: data
+            });
+        };
+
+        var _requestClose = function(data) {
+            _sendCommand({
+                command: 'requestClose',
+                data: data
+            });
+        };
+
         var _processMouse = function(evt) {
             var r = iframe.getBoundingClientRect();
             var data = {
@@ -649,6 +693,22 @@
 
             _sendCommand({
                 command: 'processMouse',
+                data: data
+            });
+        };
+
+        var _grabFocus = function(data) {
+            setTimeout(function(){
+                _sendCommand({
+                    command: 'grabFocus',
+                    data: data
+                });
+            }, 10);
+        };
+
+        var _blurFocus = function(data) {
+            _sendCommand({
+                command: 'blurFocus',
                 data: data
             });
         };
@@ -683,7 +743,11 @@
             setSharingSettings  : _setSharingSettings,
             insertImage         : _insertImage,
             setMailMergeRecipients: _setMailMergeRecipients,
-            setRevisedFile      : _setRevisedFile
+            setRevisedFile      : _setRevisedFile,
+            setFavorite         : _setFavorite,
+            requestClose        : _requestClose,
+            grabFocus           : _grabFocus,
+            blurFocus           : _blurFocus
         }
     };
 
@@ -807,7 +871,7 @@
         /*
         path += (config.type === "mobile" || isSafari_mobile)
             ? "mobile"
-            : config.type === "embedded"
+            : (config.type === "embedded")
                 ? "embed"
                 : "main";
         */
@@ -835,16 +899,16 @@
 
         if (config.editorConfig && config.editorConfig.targetApp!=='desktop') {
             if ( (typeof(config.editorConfig.customization) == 'object') && config.editorConfig.customization.loaderName) {
-                if (config.editorConfig.customization.loaderName !== 'none') params += "&customer=" + config.editorConfig.customization.loaderName;
+                if (config.editorConfig.customization.loaderName !== 'none') params += "&customer=" + encodeURIComponent(config.editorConfig.customization.loaderName);
             } else
                 params += "&customer={{APP_CUSTOMER_NAME}}";
             if ( (typeof(config.editorConfig.customization) == 'object') && config.editorConfig.customization.loaderLogo) {
-                if (config.editorConfig.customization.loaderLogo !== '') params += "&logo=" + config.editorConfig.customization.loaderLogo;
+                if (config.editorConfig.customization.loaderLogo !== '') params += "&logo=" + encodeURIComponent(config.editorConfig.customization.loaderLogo);
             } else if ( (typeof(config.editorConfig.customization) == 'object') && config.editorConfig.customization.logo) {
                 if (config.type=='embedded' && config.editorConfig.customization.logo.imageEmbedded)
-                    params += "&headerlogo=" + config.editorConfig.customization.logo.imageEmbedded;
+                    params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.imageEmbedded);
                 else if (config.type!='embedded' && config.editorConfig.customization.logo.image)
-                    params += "&headerlogo=" + config.editorConfig.customization.logo.image;
+                    params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image);
             }
         }
 
@@ -866,9 +930,14 @@
 
         if (config.editorConfig && config.editorConfig.customization && (config.editorConfig.customization.toolbar===false))
             params += "&toolbar=false";
+        else if (config.document && config.document.permissions && (config.document.permissions.edit === false && config.document.permissions.fillForms ))
+            params += "&toolbar=true";
 
         if (config.parentOrigin)
             params += "&parentOrigin=" + config.parentOrigin;
+
+        if (config.editorConfig && config.editorConfig.customization && config.editorConfig.customization.uiTheme )
+            params += "&uitheme=" + config.editorConfig.customization.uiTheme;
 
         return params;
     }

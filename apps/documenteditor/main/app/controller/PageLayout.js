@@ -139,6 +139,7 @@ define([
                         _.each(me.toolbar.btnImgWrapping.menu.items, function(item) {
                             item.setDisabled(notflow);
                         });
+                        me.toolbar.btnImgWrapping.menu.items[8].setDisabled(!me.api.CanChangeWrapPolygon());
 
                         var control_props = me.api.asc_IsContentControl() ? this.api.asc_GetContentControlProperties() : null,
                             lock_type = (control_props) ? control_props.get_Lock() : Asc.c_oAscSdtLockType.Unlocked,
@@ -146,7 +147,7 @@ define([
 
                         disable.align       = islocked || wrapping == Asc.c_oAscWrapStyle2.Inline || content_locked;
                         disable.group       = islocked || wrapping == Asc.c_oAscWrapStyle2.Inline || content_locked;
-                        disable.arrange     = wrapping == Asc.c_oAscWrapStyle2.Inline || content_locked;
+                        disable.arrange     = (wrapping == Asc.c_oAscWrapStyle2.Inline) && !props.get_FromGroup() || content_locked;
                         disable.wrapping    = islocked || props.get_FromGroup() || (notflow && !me.api.CanChangeWrapPolygon()) || content_locked || (!!control_props && control_props.get_SpecificType()==Asc.c_oAscContentControlSpecificType.Picture);
 
                         if ( !disable.group ) {
@@ -210,6 +211,12 @@ define([
             },
 
             onClickMenuWrapping: function (menu, item, e) {
+                if (item.options.wrapType=='edit') {
+                    this.api.StartChangeWrapPolygon();
+                    this.toolbar.fireEvent('editcomplete', this.toolbar);
+                    return;
+                }
+
                 var props = new Asc.asc_CImgProperty();
                 props.put_WrappingStyle(item.options.wrapType);
 

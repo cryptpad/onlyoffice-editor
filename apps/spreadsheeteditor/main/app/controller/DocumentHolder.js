@@ -72,7 +72,9 @@ define([
     'spreadsheeteditor/main/app/view/SetValueDialog',
     'spreadsheeteditor/main/app/view/AutoFilterDialog',
     'spreadsheeteditor/main/app/view/SpecialPasteDialog',
-    'spreadsheeteditor/main/app/view/SlicerSettingsAdvanced'
+    'spreadsheeteditor/main/app/view/SlicerSettingsAdvanced',
+    'spreadsheeteditor/main/app/view/PivotGroupDialog',
+    'spreadsheeteditor/main/app/view/MacroDialog'
 ], function () {
     'use strict';
 
@@ -175,7 +177,7 @@ define([
 
         onCreateDelayedElements: function(view) {
             var me = this;
-            if (me.permissions.isEdit) {
+            if (me.permissions.isEdit && !me._isDisabled) {
                 view.pmiCut.on('click',                             _.bind(me.onCopyPaste, me));
                 view.pmiCopy.on('click',                            _.bind(me.onCopyPaste, me));
                 view.pmiPaste.on('click',                           _.bind(me.onCopyPaste, me));
@@ -196,6 +198,9 @@ define([
                 view.pmiSortCells.menu.on('item:click',             _.bind(me.onSortCells, me));
                 view.pmiFilterCells.menu.on('item:click',           _.bind(me.onFilterCells, me));
                 view.pmiReapply.on('click',                         _.bind(me.onReapply, me));
+                view.pmiCondFormat.on('click',                      _.bind(me.onCondFormat, me));
+                view.mnuGroupPivot.on('click',                      _.bind(me.onGroupPivot, me));
+                view.mnuUnGroupPivot.on('click',                    _.bind(me.onGroupPivot, me));
                 view.pmiClear.menu.on('item:click',                 _.bind(me.onClear, me));
                 view.pmiSelectTable.menu.on('item:click',           _.bind(me.onSelectTable, me));
                 view.pmiInsertTable.menu.on('item:click',           _.bind(me.onInsertTable, me));
@@ -221,6 +226,8 @@ define([
                 view.menuParagraphVAlign.menu.on('item:click',      _.bind(me.onParagraphVAlign, me));
                 view.menuParagraphDirection.menu.on('item:click',   _.bind(me.onParagraphDirection, me));
                 view.menuParagraphBullets.menu.on('item:click',     _.bind(me.onSelectBulletMenu, me));
+                view.menuParagraphBullets.menu.on('render:after',   _.bind(me.onBulletMenuShowAfter, me));
+                view.menuParagraphBullets.menu.on('show:after',     _.bind(me.onBulletMenuShowAfter, me));
                 view.menuAddHyperlinkShape.on('click',              _.bind(me.onInsHyperlink, me));
                 view.menuEditHyperlinkShape.on('click',             _.bind(me.onInsHyperlink, me));
                 view.menuRemoveHyperlinkShape.on('click',           _.bind(me.onRemoveHyperlinkShape, me));
@@ -238,7 +245,7 @@ define([
                 view.pmiNumFormat.menu.on('show:after',             _.bind(me.onNumberFormatOpenAfter, me));
                 view.pmiAdvancedNumFormat.on('click',               _.bind(me.onCustomNumberFormat, me));
                 view.tableTotalMenu.on('item:click',                _.bind(me.onTotalMenuClick, me));
-
+                view.menuImgMacro.on('click',                       _.bind(me.onImgMacro, me));
             } else {
                 view.menuViewCopy.on('click',                       _.bind(me.onCopyPaste, me));
                 view.menuViewUndo.on('click',                       _.bind(me.onUndo, me));
@@ -323,6 +330,7 @@ define([
                 this.api.asc_registerCallback('asc_ChangeCropState', _.bind(this.onChangeCropState, this));
                 this.api.asc_registerCallback('asc_onInputMessage', _.bind(this.onInputMessage, this));
                 this.api.asc_registerCallback('asc_onTableTotalMenu', _.bind(this.onTableTotalMenu, this));
+                this.api.asc_registerCallback('asc_onShowPivotGroupDialog', _.bind(this.onShowPivotGroupDialog, this));
             }
             return this;
         },
@@ -474,9 +482,51 @@ define([
             this.api.asc_reapplyAutoFilter(this.documentHolder.ssMenu.formatTableName);
         },
 
+        onCondFormat: function() {
+            var me = this,
+                value = me.api.asc_getLocale();
+            (!value) && (value = ((me.permissions.lang) ? parseInt(Common.util.LanguageInfo.getLocalLanguageCode(me.permissions.lang)) : 0x0409));
+
+            (new SSE.Views.FormatRulesEditDlg({
+                api: me.api,
+                props   : null,
+                isEdit  : false,
+                langId  : value,
+                handler : function(result, settings) {
+                    if (result == 'ok' && settings) {
+                        me.api.asc_setCF([settings], []);
+                    }
+                }
+            })).show();
+        },
+
+        onGroupPivot: function(item) {
+            item.value=='grouping' ? this.api.asc_groupPivot() : this.api.asc_ungroupPivot();
+        },
+
+        onShowPivotGroupDialog: function(rangePr, dateTypes, defRangePr) {
+            var win, props,
+                me = this;
+            win = new SSE.Views.PivotGroupDialog({
+                date: !!dateTypes,
+                handler: function(dlg, result) {
+                    if (result == 'ok') {
+                        props = dlg.getSettings();
+                        me.api.asc_groupPivot(props[0], props[1]);
+                        Common.NotificationCenter.trigger('edit:complete', me.documentHolder);
+                    }
+                }
+            });
+            win.show();
+            win.setSettings(rangePr, dateTypes, defRangePr);
+        },
+
         onClear: function(menu, item) {
             if (this.api) {
-                this.api.asc_emptyCells(item.value);
+                if (item.value == Asc.c_oAscCleanOptions.Comments) {
+                    this.api.asc_RemoveAllComments(!this.permissions.canDeleteComments, true);// 1 param = true if remove only my comments, 2 param - remove current comments
+                } else
+                    this.api.asc_emptyCells(item.value, item.value == Asc.c_oAscCleanOptions.All && !this.permissions.canDeleteComments);
 
                 Common.NotificationCenter.trigger('edit:complete', this.documentHolder);
                 Common.component.Analytics.trackEvent('DocumentHolder', 'Clear');
@@ -630,10 +680,12 @@ define([
                     cellinfo = this.api.asc_getCellInfo();
                 if (controller) {
                     var comments = cellinfo.asc_getComments();
-                    if (comments.length) {
-                        controller.onEditComments(comments);
-                    } else if (this.permissions.canCoAuthoring || this.commentsCollection.getCommentsReplysCount()<3) {
-                        controller.addDummyComment();
+                    if (comments) {
+                        if (comments.length) {
+                            controller.onEditComments(comments);
+                        } else if (this.permissions.canCoAuthoring) {
+                            controller.addDummyComment();
+                        }
                     }
                 }
             }
@@ -938,6 +990,22 @@ define([
             }
         },
 
+        onImgMacro: function(item) {
+            var me = this;
+
+            (new SSE.Views.MacroDialog({
+                props: {macroList: me.api.asc_getAllMacrosNames(), current: me.api.asc_getCurrentDrawingMacrosName()},
+                handler: function(result, value) {
+                    if (result == 'ok') {
+                        if (me.api) {
+                            me.api.asc_assignMacrosToCurrentDrawing(value);
+                        }
+                    }
+                    Common.NotificationCenter.trigger('edit:complete', me);
+                }
+            })).show();
+        },
+
         onApiCoAuthoringDisconnect: function() {
             this.permissions.isEdit = false;
         },
@@ -1069,7 +1137,7 @@ define([
                     if (usersStore){
                         var rec = usersStore.findUser(id);
                         if (rec)
-                            return Common.Utils.UserInfoParser.getParsedName(rec.get('username'));
+                            return AscCommon.UserInfoParser.getParsedName(rec.get('username'));
                         else if (typeof(id) === "string") {
                             var idOrig = id.slice(0,-1);
                             var found;
@@ -1097,11 +1165,10 @@ define([
 
                     if (props.asc_getType() == Asc.c_oAscHyperlinkType.WebLink) {
                         var linkstr = props.asc_getTooltip();
-                        if (linkstr) {
-                            linkstr = Common.Utils.String.htmlEncode(linkstr) + '<br><b>' + me.textCtrlClick + '</b>';
-                        } else {
-                            linkstr = Common.Utils.String.htmlEncode(props.asc_getHyperlinkUrl()) + '<br><b>' + me.textCtrlClick + '</b>';
-                        }
+                        linkstr = (linkstr) ? linkstr : props.asc_getHyperlinkUrl();
+                        if (linkstr.length>256)
+                            linkstr = linkstr.substr(0, 256) + '...';
+                        linkstr = Common.Utils.String.htmlEncode(linkstr) + '<br><b>' + me.textCtrlClick + '</b>';
                     } else {
                         linkstr = Common.Utils.String.htmlEncode(props.asc_getTooltip() || (props.asc_getLocation()));
                         linkstr += '<br><b>' + me.textCtrlClick + '</b>';
@@ -1649,7 +1716,7 @@ define([
         },
 
         onDocumentMouseMove: function(e) {
-            if (e.target.localName !== 'canvas') {
+            if (e && e.target.localName !== 'canvas') {
                 this.hideHyperlinkTip();
             }
         },
@@ -1673,6 +1740,7 @@ define([
                 seltype             = cellinfo.asc_getSelectionType(),
                 isCellLocked        = cellinfo.asc_getLocked(),
                 isTableLocked       = cellinfo.asc_getLockedTable()===true,
+                isPivotLocked       = cellinfo.asc_getLockedPivotTable()===true,
                 isObjLocked         = false,
                 commentsController  = this.getApplication().getController('Common.Controllers.Comments'),
                 internaleditor      = this.permissions.isEditMailMerge || this.permissions.isEditDiagram,
@@ -1773,6 +1841,8 @@ define([
                 documentHolder.menuSignatureEditSign.setVisible(isInSign);
                 documentHolder.menuSignatureEditSetup.setVisible(isInSign);
                 documentHolder.menuEditSignSeparator.setVisible(isInSign);
+
+                documentHolder.menuImgMacro.setDisabled(isObjLocked);
 
                 if (showMenu) this.showPopupMenu(documentHolder.imgMenu, {}, event);
                 documentHolder.mnuShapeSeparator.setVisible(documentHolder.mnuShapeAdvanced.isVisible() || documentHolder.mnuChartEdit.isVisible() || documentHolder.mnuImgAdvanced.isVisible());
@@ -1877,7 +1947,8 @@ define([
                     formatTableInfo = cellinfo.asc_getFormatTableInfo(),
                     isinsparkline = (cellinfo.asc_getSparklineInfo()!==null),
                     isintable = (formatTableInfo !== null),
-                    ismultiselect = cellinfo.asc_getMultiselect();
+                    ismultiselect = cellinfo.asc_getMultiselect(),
+                    inPivot = !!cellinfo.asc_getPivotTableInfo();
                 documentHolder.ssMenu.formatTableName = (isintable) ? formatTableInfo.asc_getTableName() : null;
                 documentHolder.ssMenu.cellColor = xfs.asc_getFillColor();
                 documentHolder.ssMenu.fontColor = xfs.asc_getFontColor();
@@ -1885,20 +1956,23 @@ define([
                 documentHolder.pmiInsertEntire.setVisible(isrowmenu||iscolmenu);
                 documentHolder.pmiInsertEntire.setCaption((isrowmenu) ? this.textInsertTop : this.textInsertLeft);
                 documentHolder.pmiDeleteEntire.setVisible(isrowmenu||iscolmenu);
-                documentHolder.pmiInsertCells.setVisible(iscellmenu && !iscelledit && !isintable);
-                documentHolder.pmiDeleteCells.setVisible(iscellmenu && !iscelledit && !isintable);
+                documentHolder.pmiInsertCells.setVisible(iscellmenu && !iscelledit && !isintable && !inPivot);
+                documentHolder.pmiDeleteCells.setVisible(iscellmenu && !iscelledit && !isintable && !inPivot);
                 documentHolder.pmiSelectTable.setVisible(iscellmenu && !iscelledit && isintable);
                 documentHolder.pmiInsertTable.setVisible(iscellmenu && !iscelledit && isintable);
                 documentHolder.pmiDeleteTable.setVisible(iscellmenu && !iscelledit && isintable);
                 documentHolder.pmiSparklines.setVisible(isinsparkline);
-                documentHolder.pmiSortCells.setVisible((iscellmenu||isallmenu) && !iscelledit);
+                documentHolder.pmiSortCells.setVisible((iscellmenu||isallmenu) && !iscelledit && !inPivot);
                 documentHolder.pmiSortCells.menu.items[2].setVisible(!internaleditor);
                 documentHolder.pmiSortCells.menu.items[3].setVisible(!internaleditor);
                 documentHolder.pmiSortCells.menu.items[4].setVisible(!internaleditor);
-                documentHolder.pmiFilterCells.setVisible(iscellmenu && !iscelledit && !internaleditor);
-                documentHolder.pmiReapply.setVisible((iscellmenu||isallmenu) && !iscelledit && !internaleditor);
+                documentHolder.pmiFilterCells.setVisible(iscellmenu && !iscelledit && !internaleditor && !inPivot);
+                documentHolder.pmiReapply.setVisible((iscellmenu||isallmenu) && !iscelledit && !internaleditor && !inPivot);
+                documentHolder.pmiCondFormat.setVisible(!iscelledit && !internaleditor);
+                documentHolder.mnuGroupPivot.setVisible(iscellmenu && !iscelledit && !internaleditor && inPivot);
+                documentHolder.mnuUnGroupPivot.setVisible(iscellmenu && !iscelledit && !internaleditor && inPivot);
                 documentHolder.ssMenu.items[12].setVisible((iscellmenu||isallmenu||isinsparkline) && !iscelledit);
-                documentHolder.pmiInsFunction.setVisible(iscellmenu && !iscelledit);
+                documentHolder.pmiInsFunction.setVisible(iscellmenu && !iscelledit && !inPivot);
                 documentHolder.pmiAddNamedRange.setVisible(iscellmenu && !iscelledit && !internaleditor);
 
                 if (isintable) {
@@ -1914,8 +1988,8 @@ define([
                 }
 
                 var hyperinfo = cellinfo.asc_getHyperlink();
-                documentHolder.menuHyperlink.setVisible(iscellmenu && hyperinfo && !iscelledit && !ismultiselect && !internaleditor);
-                documentHolder.menuAddHyperlink.setVisible(iscellmenu && !hyperinfo && !iscelledit && !ismultiselect && !internaleditor);
+                documentHolder.menuHyperlink.setVisible(iscellmenu && hyperinfo && !iscelledit && !ismultiselect && !internaleditor && !inPivot);
+                documentHolder.menuAddHyperlink.setVisible(iscellmenu && !hyperinfo && !iscelledit && !ismultiselect && !internaleditor && !inPivot);
 
                 documentHolder.pmiRowHeight.setVisible(isrowmenu||isallmenu);
                 documentHolder.pmiColumnWidth.setVisible(iscolmenu||isallmenu);
@@ -1925,9 +1999,9 @@ define([
                 documentHolder.pmiFreezePanes.setCaption(this.api.asc_getSheetViewSettings().asc_getIsFreezePane() ? documentHolder.textUnFreezePanes : documentHolder.textFreezePanes);
 
                 /** coauthoring begin **/
-                var count = cellinfo.asc_getComments().length;
-                documentHolder.ssMenu.items[17].setVisible(iscellmenu && !iscelledit && this.permissions.canCoAuthoring && this.permissions.canComments && count < 1);
-                documentHolder.pmiAddComment.setVisible(iscellmenu && !iscelledit && this.permissions.canCoAuthoring && this.permissions.canComments && count < 1);
+                var celcomments = cellinfo.asc_getComments(); // celcomments===null - has comment, but no permissions to view it
+                documentHolder.ssMenu.items[19].setVisible(iscellmenu && !iscelledit && this.permissions.canCoAuthoring && this.permissions.canComments && celcomments && (celcomments.length < 1));
+                documentHolder.pmiAddComment.setVisible(iscellmenu && !iscelledit && this.permissions.canCoAuthoring && this.permissions.canComments && celcomments && (celcomments.length < 1));
                 /** coauthoring end **/
                 documentHolder.pmiCellMenuSeparator.setVisible(iscellmenu && !iscelledit || isrowmenu || iscolmenu || isallmenu);
                 documentHolder.pmiEntireHide.isrowmenu = isrowmenu;
@@ -1952,8 +2026,6 @@ define([
                 documentHolder.pmiInsertCells.menu.items[1].setDisabled(isApplyAutoFilter);
                 documentHolder.pmiDeleteCells.menu.items[1].setDisabled(isApplyAutoFilter);
 
-                var inPivot = !!cellinfo.asc_getPivotTableInfo();
-
                 documentHolder.pmiEntriesList.setVisible(!iscelledit && !inPivot);
 
                 documentHolder.pmiNumFormat.setVisible(!iscelledit);
@@ -1976,10 +2048,17 @@ define([
                 documentHolder.pmiFilterCells.setDisabled(isCellLocked || isTableLocked|| (filterInfo==null) || inPivot || !filterInfo && !this.permissions.canModifyFilter);
                 documentHolder.pmiSortCells.setDisabled(isCellLocked || isTableLocked|| (filterInfo==null) || inPivot || !this.permissions.canModifyFilter);
                 documentHolder.pmiReapply.setDisabled(isCellLocked || isTableLocked|| (isApplyAutoFilter!==true));
+                documentHolder.pmiCondFormat.setDisabled(isCellLocked || isTableLocked);
                 documentHolder.menuHyperlink.setDisabled(isCellLocked || inPivot);
                 documentHolder.menuAddHyperlink.setDisabled(isCellLocked || inPivot);
                 documentHolder.pmiInsFunction.setDisabled(isCellLocked || inPivot);
                 documentHolder.pmiFreezePanes.setDisabled(this.api.asc_isWorksheetLockedOrDeleted(this.api.asc_getActiveWorksheetIndex()));
+
+                if (inPivot) {
+                    var canGroup = this.api.asc_canGroupPivot();
+                    documentHolder.mnuGroupPivot.setDisabled(isPivotLocked || !canGroup);
+                    documentHolder.mnuUnGroupPivot.setDisabled(isPivotLocked || !canGroup);
+                }
 
                 if (showMenu) this.showPopupMenu(documentHolder.ssMenu, {}, event);
             } else if (this.permissions.isEditDiagram && seltype == Asc.c_oAscSelectionType.RangeChartText) {
@@ -2008,11 +2087,8 @@ define([
                 commentsController  = this.getApplication().getController('Common.Controllers.Comments'),
                 iscellmenu = (seltype==Asc.c_oAscSelectionType.RangeCells) && !this.permissions.isEditMailMerge && !this.permissions.isEditDiagram,
                 iscelledit = this.api.isCellEdited,
-                isimagemenu = (seltype==Asc.c_oAscSelectionType.RangeImage) && !this.permissions.isEditMailMerge && !this.permissions.isEditDiagram,
+                isimagemenu = (seltype==Asc.c_oAscSelectionType.RangeShape || seltype==Asc.c_oAscSelectionType.RangeImage) && !this.permissions.isEditMailMerge && !this.permissions.isEditDiagram,
                 signGuid;
-
-            if (!documentHolder.viewModeMenu)
-                documentHolder.createDelayedElementsViewer();
 
             if (!documentHolder.viewModeMenu)
                 documentHolder.createDelayedElementsViewer();
@@ -2030,7 +2106,7 @@ define([
 
             var signProps = (signGuid) ? this.api.asc_getSignatureSetup(signGuid) : null,
                 isInSign = !!signProps && this._canProtect,
-                canComment = iscellmenu && !iscelledit && this.permissions.canCoAuthoring && this.permissions.canComments && !this._isDisabled && cellinfo.asc_getComments().length < 1;
+                canComment = iscellmenu && !iscelledit && this.permissions.canCoAuthoring && this.permissions.canComments && !this._isDisabled && cellinfo.asc_getComments() && cellinfo.asc_getComments().length < 1;
 
             documentHolder.menuViewUndo.setVisible(this.permissions.canCoAuthoring && this.permissions.canComments && !this._isDisabled);
             documentHolder.menuViewUndo.setDisabled(!this.api.asc_getCanUndo() && !this._isDisabled);
@@ -2226,7 +2302,7 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this.documentHolder);
         },
 
-        onFormulaCompleteMenu: function(funcarr) {
+        onFormulaCompleteMenu: function(funcarr, offset) {
             if (!this.documentHolder.funcMenu || Common.Utils.ModalWindow.isVisible() || this.rangeSelectionMode) return;
 
             if (funcarr) {
@@ -2295,16 +2371,18 @@ define([
                                 li = menuContainer.find('a.focus').closest('li');
                             else if (e.keyCode == Common.UI.Keys.UP || e.keyCode == Common.UI.Keys.DOWN) {
                                 var innerEl = menu.cmpEl,
-                                    inner_top = innerEl.offset().top,
-                                    li_focused = menuContainer.find('a.focus').closest('li');
-
-                                var li_top = li_focused.offset().top;
-                                if (li_top < inner_top || li_top+li_focused.outerHeight() > inner_top + innerEl.height()) {
-                                    if (menu.scroller) {
-                                        menu.scroller.scrollTop(innerEl.scrollTop() + li_top - inner_top, 0);
-                                    } else {
-                                        innerEl.scrollTop(innerEl.scrollTop() + li_top - inner_top);
-                                    }
+                                    li_focused = menuContainer.find('a.focus').closest('li'),
+                                    innerHeight = innerEl.innerHeight(),
+                                    padding = (innerHeight - innerEl.height())/2,
+                                    pos = li_focused.position().top,
+                                    itemHeight = li_focused.outerHeight(),
+                                    newpos;
+                                if (pos<0)
+                                    newpos = innerEl.scrollTop() + pos - padding;
+                                else if (pos+itemHeight>innerHeight)
+                                    newpos = innerEl.scrollTop() + pos + itemHeight - innerHeight + padding;
+                                if (newpos!==undefined) {
+                                    menu.scroller ? menu.scroller.scrollTop(newpos, 0) : innerEl.scrollTop(newpos);
                                 }
                             }
                         }
@@ -2329,8 +2407,7 @@ define([
                 }
 
                 var coord  = me.api.asc_getActiveCellCoord(),
-                    offset = {left:0,top:0},
-                    showPoint = [coord.asc_getX() + offset.left, (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
+                    showPoint = [coord.asc_getX() + (offset ? offset[0] : 0), (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + (offset ? offset[1] : 0)];
                 menuContainer.css({left: showPoint[0], top : showPoint[1]});
                 menu.alignPosition();
 
@@ -2550,16 +2627,12 @@ define([
                                 type: Common.Utils.importTextType.Paste,
                                 preview: true,
                                 api: me.api,
-                                handler: function (result, encoding, delimiter, delimiterChar, decimal, thousands) {
+                                handler: function (result, settings) {
                                     if (result == 'ok') {
                                         if (me && me.api) {
                                             var props = new Asc.SpecialPasteProps();
                                             props.asc_setProps(Asc.c_oSpecialPasteProps.useTextImport);
-
-                                            var options = new Asc.asc_CTextOptions(encoding, delimiter, delimiterChar);
-                                            decimal && options.asc_setNumberDecimalSeparator(decimal);
-                                            thousands && options.asc_setNumberGroupSeparator(thousands);
-                                            props.asc_setAdvancedOptions(options);
+                                            props.asc_setAdvancedOptions(settings.textOptions);
                                             me.api.asc_SpecialPaste(props);
                                         }
                                         me._state.lastSpecPasteChecked = item;
@@ -3399,11 +3472,31 @@ define([
             view.paraBulletsPicker = new Common.UI.DataView({
                 el          : $('#id-docholder-menu-bullets'),
                 parentMenu  : view.menuParagraphBullets.menu,
+                groups      : view.paraBulletsPicker.groups,
                 store       : view.paraBulletsPicker.store,
-                itemTemplate: _.template('<div id="<%= id %>" class="item-markerlist" style="background-position: 0 -<%= offsety %>px;"></div>')
+                itemTemplate: _.template('<% if (type==0) { %>' +
+                                            '<div id="<%= id %>" class="item-markerlist"></div>' +
+                                        '<% } else if (type==1) { %>' +
+                                            '<div id="<%= id %>" class="item-multilevellist"></div>' +
+                                        '<% } %>')
             });
             view.paraBulletsPicker.on('item:click', _.bind(this.onSelectBullets, this));
             _conf && view.paraBulletsPicker.selectRecord(_conf.rec, true);
+        },
+
+        onBulletMenuShowAfter: function() {
+            var store = this.documentHolder.paraBulletsPicker.store;
+            var arrNum = [], arrMarker = [];
+            store.each(function(item){
+                if (item.get('group')=='menu-list-bullet-group')
+                    arrMarker.push(item.get('id'));
+                else
+                    arrNum.push(item.get('id'));
+            });
+            if (this.api && this.api.SetDrawImagePreviewBulletForMenu) {
+                this.api.SetDrawImagePreviewBulletForMenu(arrMarker, 0);
+                this.api.SetDrawImagePreviewBulletForMenu(arrNum, 1);
+            }
         },
 
         onSignatureClick: function(item) {
@@ -3419,7 +3512,18 @@ define([
                     Common.NotificationCenter.trigger('protect:signature', 'visible', this._isDisabled, datavalue);//guid, can edit settings for requested signature
                     break;
                 case 3:
-                    this.api.asc_RemoveSignature(datavalue); //guid
+                    var me = this;
+                    Common.UI.warning({
+                        title: this.notcriticalErrorTitle,
+                        msg: this.txtRemoveWarning,
+                        buttons: ['ok', 'cancel'],
+                        primary: 'ok',
+                        callback: function(btn) {
+                            if (btn == 'ok') {
+                                me.api.asc_RemoveSignature(datavalue);
+                            }
+                        }
+                    });
                     break;
             }
         },
@@ -3434,6 +3538,7 @@ define([
                 properties.asc_putWidth(w);
                 properties.asc_putHeight(h);
                 properties.put_ResetCrop(true);
+                properties.put_Rot(0);
                 this.api.asc_setGraphicObjectProps(properties);
 
                 Common.NotificationCenter.trigger('edit:complete', this.documentHolder);
@@ -3693,7 +3798,8 @@ define([
         txtImportWizard: 'Text Import Wizard',
         textPasteSpecial: 'Paste special',
         textStopExpand: 'Stop automatically expanding tables',
-        textAutoCorrectSettings: 'AutoCorrect options'
+        textAutoCorrectSettings: 'AutoCorrect options',
+        txtRemoveWarning: 'Do you want to remove this signature?<br>It can\'t be undone.'
 
     }, SSE.Controllers.DocumentHolder || {}));
 });

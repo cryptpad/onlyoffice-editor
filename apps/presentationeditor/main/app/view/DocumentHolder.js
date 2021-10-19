@@ -363,7 +363,7 @@ define([
                 if (usersStore){
                     var rec = usersStore.findUser(id);
                     if (rec)
-                        return Common.Utils.UserInfoParser.getParsedName(rec.get('username'));
+                        return AscCommon.UserInfoParser.getParsedName(rec.get('username'));
                     else if (typeof(id) === "string") {
                         var idOrig = id.slice(0,-1);
                         var found;
@@ -502,6 +502,8 @@ define([
 
                             ToolTip = (_.isEmpty(hyperProps.get_ToolTip())) ? hyperProps.get_Value() : hyperProps.get_ToolTip();
                             ToolTip = Common.Utils.String.htmlEncode(ToolTip);
+                            if (ToolTip.length>256)
+                                ToolTip = ToolTip.substr(0, 256) + '...';
 
                             if (screenTip.tipLength !== ToolTip.length || screenTip.strTip.indexOf(ToolTip)<0 ) {
                                 screenTip.toolTip.setTitle(ToolTip + '<br><b>' + me.txtPressLink + '</b>');
@@ -1491,7 +1493,9 @@ define([
 
             var onApiCurrentPages = function(number) {
                 if (me.currentMenu && me.currentMenu.isVisible() && me._isFromSlideMenu !== true && me._isFromSlideMenu !== number)
-                    me.currentMenu.hide();
+                    setTimeout(function() {
+                        me.currentMenu && me.currentMenu.hide();
+                    }, 1);
 
                 me._isFromSlideMenu = number;
             };
@@ -1863,7 +1867,7 @@ define([
                 if (me.api){
                     var printopt = new Asc.asc_CAdjustPrint();
                     printopt.asc_setPrintType(Asc.c_oAscPrintType.Selection);
-                    var opts = new Asc.asc_CDownloadOptions(null, Common.Utils.isChrome || Common.Utils.isSafari || Common.Utils.isOpera); // if isChrome or isSafari or isOpera == true use asc_onPrintUrl event
+                    var opts = new Asc.asc_CDownloadOptions(null, Common.Utils.isChrome || Common.Utils.isSafari || Common.Utils.isOpera || Common.Utils.isGecko && Common.Utils.firefoxVersion>86); // if isChrome or isSafari or isOpera == true use asc_onPrintUrl event
                     opts.asc_setAdvancedOptions(printopt);
                     me.api.asc_Print(opts);
                     me.fireEvent('editcomplete', me);
@@ -1938,7 +1942,7 @@ define([
                 menu        : new Common.UI.Menu({
                     menuAlign: 'tl-tr',
                     items: [
-                        { template: _.template('<div id="id-docholder-menu-changetheme" style="width: 280px; margin: 0 4px;"></div>') }
+                        { template: _.template('<div id="id-docholder-menu-changetheme" style="width: 289px; margin: 0 4px;"></div>') }
                     ]
                 })
             });
@@ -1969,7 +1973,7 @@ define([
                 if (me.api){
                     var printopt = new Asc.asc_CAdjustPrint();
                     printopt.asc_setPrintType(Asc.c_oAscPrintType.Selection);
-                    var opts = new Asc.asc_CDownloadOptions(null, Common.Utils.isChrome || Common.Utils.isSafari || Common.Utils.isOpera); // if isChrome or isSafari or isOpera == true use asc_onPrintUrl event
+                    var opts = new Asc.asc_CDownloadOptions(null, Common.Utils.isChrome || Common.Utils.isSafari || Common.Utils.isOpera || Common.Utils.isGecko && Common.Utils.firefoxVersion>86); // if isChrome or isSafari or isOpera == true use asc_onPrintUrl event
                     opts.asc_setAdvancedOptions(printopt);
                     me.api.asc_Print(opts);
                     me.fireEvent('editcomplete', me);
@@ -2108,7 +2112,7 @@ define([
                     store       : PE.getCollection('SlideLayouts'),
                     itemTemplate: _.template([
                         '<div class="layout" id="<%= id %>" style="width: <%= itemWidth %>px;">',
-                            '<div style="background-image: url(<%= imageUrl %>); width: <%= itemWidth %>px; height: <%= itemHeight %>px;"></div>',
+                            '<div style="background-image: url(<%= imageUrl %>); width: <%= itemWidth %>px; height: <%= itemHeight %>px;background-size: contain;"></div>',
                             '<div class="title"><%= title %></div> ',
                         '</div>'
                     ].join(''))
@@ -2172,7 +2176,7 @@ define([
             });
 
             var mnuTableMerge = new Common.UI.MenuItem({
-                iconCls: 'menu__icon btn-merge',
+                iconCls: 'menu__icon btn-merge-cells',
                 caption     : me.mergeCellsText
             }).on('click', function(item) {
                 if (me.api)
@@ -2894,6 +2898,7 @@ define([
                         properties.put_Width(originalImageSize.get_ImageWidth());
                         properties.put_Height(originalImageSize.get_ImageHeight());
                         properties.put_ResetCrop(true);
+                        properties.put_Rot(0);
                         me.api.ImgApply(properties);
                     }
 
@@ -3665,7 +3670,7 @@ define([
                 this.placeholderMenuChart = menu = new Common.UI.Menu({
                     style: 'width: 364px;padding-top: 12px;',
                     items: [
-                        {template: _.template('<div id="id-placeholder-menu-chart" class="menu-insertchart" style="margin: 5px 5px 5px 10px;"></div>')}
+                        {template: _.template('<div id="id-placeholder-menu-chart" class="menu-insertchart"></div>')}
                     ]
                 });
                 // Prepare menu container
