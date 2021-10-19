@@ -7328,6 +7328,12 @@ CPresentation.prototype.AnimPane_OnMouseUp = function(e, X, Y) {
         oSlide.onAnimPaneMouseUp(e, X, Y);
     }
 };
+CPresentation.prototype.AnimPane_OnMouseWheel = function(e, deltaY, X, Y) {
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        oSlide.onAnimPaneMouseWheel(e, deltaY, X, Y);
+    }
+};
 
 CPresentation.prototype.OnAnimPaneChanged = function(nSlideNum, oRect) {
     this.DrawingDocument.OnAnimPaneChanged(nSlideNum, null);

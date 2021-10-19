@@ -4711,18 +4711,7 @@ function CThumbnailsManager()
 				return;
 		}
 
-		var delta = 0;
-		if (undefined != e.wheelDelta && e.wheelDelta != 0)
-		{
-			//delta = (e.wheelDelta > 0) ? -45 : 45;
-			delta = -45 * e.wheelDelta / 120;
-		}
-		else if (undefined != e.detail && e.detail != 0)
-		{
-			//delta = (e.detail > 0) ? 45 : -45;
-			delta = 45 * e.detail / 3;
-		}
-		delta >>= 0;
+		var delta = GetWheelDeltaY(e);
 
 		oThis.m_oWordControl.m_oScrollThumbApi.scrollBy(0, delta, false);
 
@@ -6584,44 +6573,13 @@ function CNotesDrawer(page)
 			return false;
 		}
 
-		var delta  = 0;
-		var deltaX = 0;
-		var deltaY = 0;
-
-		if (undefined != e.wheelDelta && e.wheelDelta != 0)
-		{
-			//delta = (e.wheelDelta > 0) ? -45 : 45;
-			delta = -45 * e.wheelDelta / 120;
-		}
-		else if (undefined != e.detail && e.detail != 0)
-		{
-			//delta = (e.detail > 0) ? 45 : -45;
-			delta = 45 * e.detail / 3;
-		}
-
-		// New school multidimensional scroll (touchpads) deltas
-		deltaY = delta;
-		deltaY >>= 0;
+		var deltaY = GetWheelDeltaY(e);
 
 		if (0 != deltaY)
 			oThis.HtmlPage.m_oScrollNotes_.scrollBy(0, deltaY, false);
 
 		// здесь - имитируем моус мув ---------------------------
-		var _e   = {};
-		_e.pageX = global_mouseEvent.X;
-		_e.pageY = global_mouseEvent.Y;
-
-		_e.clientX = global_mouseEvent.X;
-		_e.clientY = global_mouseEvent.Y;
-
-		_e.altKey   = global_mouseEvent.AltKey;
-		_e.shiftKey = global_mouseEvent.ShiftKey;
-		_e.ctrlKey  = global_mouseEvent.CtrlKey;
-		_e.metaKey  = global_mouseEvent.CtrlKey;
-
-		_e.srcElement = global_mouseEvent.Sender;
-
-		oThis.onMouseMove(_e, true);
+		oThis.onMouseMove(CreateBrowserEventObject(), true);
 		// ------------------------------------------------------
 
 		AscCommon.stopEvent(e);
@@ -6733,6 +6691,47 @@ CAnimPaneDrawTask.prototype.GetRect = function()
 {
 	return this.Rect;
 };
+
+function GetWheelDeltaY(e)
+{
+	var delta  = 0;
+	var deltaX = 0;
+	var deltaY = 0;
+
+	if (undefined != e.wheelDelta && e.wheelDelta != 0)
+	{
+		//delta = (e.wheelDelta > 0) ? -45 : 45;
+		delta = -45 * e.wheelDelta / 120;
+	}
+	else if (undefined != e.detail && e.detail != 0)
+	{
+		//delta = (e.detail > 0) ? 45 : -45;
+		delta = 45 * e.detail / 3;
+	}
+
+	// New school multidimensional scroll (touchpads) deltas
+	deltaY = delta;
+	deltaY >>= 0;
+	return deltaY;
+}
+
+function CreateBrowserEventObject()
+{
+	var _e   = {};
+	_e.pageX = global_mouseEvent.X;
+	_e.pageY = global_mouseEvent.Y;
+
+	_e.clientX = global_mouseEvent.X;
+	_e.clientY = global_mouseEvent.Y;
+
+	_e.altKey   = global_mouseEvent.AltKey;
+	_e.shiftKey = global_mouseEvent.ShiftKey;
+	_e.ctrlKey  = global_mouseEvent.CtrlKey;
+	_e.metaKey  = global_mouseEvent.CtrlKey;
+
+	_e.srcElement = global_mouseEvent.Sender;
+	return _e;
+}
 
 function CAnimationPaneDrawer(page)
 {
@@ -6935,6 +6934,27 @@ function CAnimationPaneDrawer(page)
 	};
 	oThis.onMouseWhell = function(e)
 	{
+		if (false === oThis.HtmlPage.m_oApi.bInit_word_control)
+			return;
+
+		var deltaY = GetWheelDeltaY(e);
+
+		if (0 != deltaY)
+		{
+			var pos = oThis.GetPosition(e);
+			var _x = pos.X;
+			var _y = pos.Y;
+			oThis.GetPresentation().AnimPane_OnMouseWheel(global_mouseEvent, deltaY, _x, _y);
+		}
+
+
+		// здесь - имитируем моус мув ---------------------------
+		var _e   = CreateBrowserEventObject();
+
+		oThis.onMouseMove(_e, true);
+		// ------------------------------------------------------
+
+		AscCommon.stopEvent(e);
 		return false;
 	};
 	oThis.onSelectWheel = function()

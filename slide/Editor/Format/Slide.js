@@ -1379,6 +1379,11 @@ Slide.prototype =
             this.timing.onAnimPaneMouseUp(e, x, y);
         }
     },
+    onAnimPaneMouseWheel: function(e, deltaY, X, Y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseWheel(e, deltaY, X, Y);
+        }
+    },
 
     getTheme: function(){
         return this.Layout.Master.Theme;
