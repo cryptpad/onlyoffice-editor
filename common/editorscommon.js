@@ -51,7 +51,8 @@
 	var c_oAscFileType = Asc.c_oAscFileType;
 
 	String.prototype.sentenceCase = function () {
-		return this[0].toUpperCase() + this.slice(1);
+		var trimStr = this.trim();
+		return trimStr[0].toUpperCase() + trimStr.slice(1);
 	}
 	String.prototype['sentenceCase'] = String.prototype.sentenceCase;
 
@@ -70,6 +71,15 @@
 			return this.indexOf(suffix, this.length - suffix.length) !== -1;
 		};
 		String.prototype['endsWith'] = String.prototype.endsWith;
+	}
+	if (!String.prototype.trim) {
+		(function() {
+			// Вырезаем BOM и неразрывный пробел
+			String.prototype.trim = function() {
+				var reg = new RegExp('^[\\s\uFEFF\xA0]+|[\\s\uFEFF\xA0]+$', 'g');
+				return this.replace(reg, '');
+			};
+		})();
 	}
 	if (typeof String.prototype.repeat !== 'function')
 	{
@@ -4844,31 +4854,207 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
 				var arrAnswer = [];
-				var lang = 'fr-FR';
+				var lang = 'uk-UA';
 
 				switch (lang) {
 					case 'ru-Ru':
+					case 'uk-UA':
+
 						var alphaBet = {
-							1: {
-								1: 'один',
-								2: 'два',
-								3: 'три',
-								4: 'четыре',
-								5: 'пять',
-								6: 'шесть',
-								7: 'семь',
-								8: 'восемь',
-								9: 'девять',
-								10: 'десять',
-								11: 'одиннадцать',
-								12: 'двенадца',
-								13: '',
-								14: '',
-								15: '',
-								16: '',
-								17: '',
-								18: '',
-								19: '',
+							'ru-Ru': {
+								1: [
+									'один',
+									'два',
+									'три',
+									'четыре',
+									'пять',
+									'шесть',
+									'семь',
+									'восемь',
+									'девять',
+									'десять',
+									'одиннадцать',
+									'двенадцать',
+									'тринадцать',
+									'четырнадцать',
+									'пятнадцать',
+									'шестнадцать',
+									'семнадцать',
+									'восемнадцать',
+									'девятнадцать'
+								],
+								10: [
+									'двадцать',
+									'тридцать',
+									'сорок',
+									'пятьдесят',
+									'шестьдесят',
+									'семьдесят',
+									'восемьдесят',
+									'девяносто'
+								],
+								100: [
+									'сто',
+									'двести',
+									'триста',
+									'четыреста',
+									'пятьсот',
+									'шестьсот',
+									'семьсот',
+									'восемьсот',
+									'девятьсот'
+								],
+								'thousand': [
+									'тысяча',
+									'тысячи',
+									'тысяч'
+								],
+								'thousandType': [
+									'одна',
+									'две',
+								]
+							},
+							'uk-UA': {
+								1: [
+									"один",
+									"два",
+									"три",
+									"чотири",
+									"п'ять",
+									"шість",
+									"сім",
+									"вісім",
+									"дев'ять",
+									"десять",
+									"одинадцять",
+									"дванадцять",
+									"тринадцять",
+									"чотирнадцять",
+									"п'ятнадцять",
+									"шістнадцять",
+									"сімнадцять",
+									"вісімнадцять",
+									"дев'ятнадцять"
+								],
+								10: [
+									"двадцять",
+									"тридцять",
+									"сорок",
+									"п'ятдесят",
+									"шестдесят",
+									"сімдесят",
+									"вісімдесят",
+									"дев'яносто"
+								],
+								100: [
+									"сто",
+									"двісті",
+									"триста",
+									"чотириста",
+									"п'ятсот",
+									"шістсот",
+									"сімсот",
+									"вісімсот",
+									"дев'ятьсот"
+								],
+								'thousand': [
+									'тисяча',
+									'тисячі',
+									'тисяч'
+								],
+								'thousandType': [
+									'одна',
+									'дві',
+								]
+							}
+						}
+
+					function letterNumberLessThen100CyrillicMim(num) {
+							var resArr = [];
+							var reminder = num % 10;
+							var degree10 = Math.floor(num / 10);
+							if (num < 100 && num > 0) {
+								if (num < 20) {
+									resArr.push(alphaBet[lang][1][num - 1]);
+								} else {
+									if (reminder === 0) {
+										resArr.push(alphaBet[lang][10][degree10 - 2]);
+									} else {
+										resArr.push(alphaBet[lang][10][degree10 - 2], alphaBet[lang][1][reminder - 1]);
+									}
+								}
+							}
+							return resArr;
+					}
+
+						function cardinalSplittingCyrillicMim(num, skipThousand) {
+							var resArr = [];
+							var groups = {};
+
+							groups[1000] = Math.floor(num / 1000);
+							num %= 1000;
+							groups[100] = Math.floor(num / 100);
+							num %= 100;
+							groups[1] = num;
+
+							if (groups[1000]) {
+								var thousandType = groups[1000] % 10;
+								console.log(thousandType)
+								var groupArr = [];
+								if (groups[1000] >= 100) {
+									groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000]));
+								} else {
+										groupArr = groupArr.concat(letterNumberLessThen100CyrillicMim(groups[1000]));
+								}
+								var thousand;
+								switch (thousandType) {
+									case 1:
+										thousand = alphaBet[lang]['thousand'][0];
+										if (skipThousand) {
+											groupArr[groupArr.length - 1] = undefined;
+										} else {
+											groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][0];
+										}
+										break;
+									case 2:
+									case 3:
+									case 4:
+										thousand = alphaBet[lang]['thousand'][1];
+										if (thousandType === 2) {
+											groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][1];
+										}
+										break;
+									case 5:
+									case 6:
+									case 7:
+									case 8:
+									case 9:
+										thousand = alphaBet[lang]['thousand'][2];
+										break;
+									default:
+										break;
+								}
+									groupArr.push(thousand);
+
+
+								resArr = resArr.concat(groupArr);
+							}
+							if (groups[100]) {
+								resArr.push(alphaBet[lang][100][groups[100] - 1]);
+							}
+
+							if (groups[1]) {
+								resArr = resArr.concat(letterNumberLessThen100CyrillicMim(groups[1]));
+							}
+							return resArr;
+						}
+						if (nValue < 1000000) {
+							if (lang === 'uk-UA') {
+								sResult = cardinalSplittingCyrillicMim(nValue, true).join(' ').sentenceCase();
+
+							} else if ('ru-Ru') {
+								sResult = cardinalSplittingCyrillicMim(nValue).join(' ').sentenceCase();
+
 							}
 						}
 						break;
