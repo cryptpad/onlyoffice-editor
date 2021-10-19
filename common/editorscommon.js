@@ -5028,7 +5028,7 @@
 				break;
 			case Asc.c_oAscNumberingFormat.OrdinalText:
 				break;
-			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand: // todo: simply
+			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand: //TODO: check again
 				digits = [
 					String.fromCharCode(0x4E00),
 					String.fromCharCode(0x4E8C),
@@ -5047,9 +5047,9 @@
 					'十'
 				];
 
-				function taiwaneseCountingSplitting(numberLessThan100000) {
+				function taiwaneseCountingSplitting(initialNumber, isBigNumber, isSplit) {
 					var resArr = [];
-					var copyNumber = numberLessThan100000;
+					var copyNumber = initialNumber;
 					var isGroup = {};
 					var maxDegree = Math.pow(10, degrees.length);
 
@@ -5062,31 +5062,38 @@
 					}
 
 					if (isGroup[10000]) {
-						resArr.push(digits[isGroup[10000] - 1]);
+						console.log(isGroup[10000])
+						if (isGroup[10000] > 9) {
+							resArr.push(taiwaneseCountingSplitting(isGroup[10000], undefined, true).join(''));
+						} else {
+							resArr.push(digits[isGroup[10000] - 1]);
+						}
 						resArr.push(degrees[0]);
+					} else if (initialNumber > 100000 && initialNumber % 10000 !== 0 && isGroup[1000]) {
+						resArr.push('零');
 					}
 
 					if (isGroup[1000]) {
 						resArr.push(digits[isGroup[1000] - 1]);
 						resArr.push('千');
-					} else {
-						if (numberLessThan100000 > 10000 && numberLessThan100000 % 10 !== 0) {
-							resArr.push('零'); //todo: think about it
-						}
+					} else if (initialNumber > 10000 && initialNumber % 1000 !== 0 && isGroup[100]) {
+						resArr.push('零');
 					}
 
 					if (isGroup[100]) {
 						resArr.push(digits[isGroup[100] - 1]);
 						resArr.push('百');
+					} else if (initialNumber > 1000 && initialNumber % 100 !== 0 && isGroup[10]) {
+						resArr.push('零');
 					}
 
 					if (isGroup[10]) {
-						if (isGroup[10] !== 1 || numberLessThan100000 > 100) {
+						if (isGroup[10] !== 1 || initialNumber > 100 || isSplit) {
 							resArr.push(digits[isGroup[10] - 1]);
 						}
 						resArr.push('十');
 					} else {
-						if (numberLessThan100000 > 100 && numberLessThan100000 < 1000 && numberLessThan100000 % 10 !== 0) {
+						if (initialNumber > 100 && initialNumber % 10 !== 0) {
 							resArr.push('零');
 						}
 					}
@@ -5097,7 +5104,11 @@
 
 					return resArr;
 				}
-				sResult = taiwaneseCountingSplitting(nValue).join('');
+				if (nValue < 100000) {
+					sResult = taiwaneseCountingSplitting(nValue).join('');
+				} else if (nValue >= 100000 && nValue < 1000000) {
+					sResult = taiwaneseCountingSplitting(nValue, true).join('');
+				}
 				break;
 			case Asc.c_oAscNumberingFormat.KoreanLegal:
 				if (nValue < 100) {
