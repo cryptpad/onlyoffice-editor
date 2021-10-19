@@ -1463,8 +1463,16 @@
             //var measure_time_start = performance.now();
 
 			var load_mode = this.GetCharLoadMode(nUnicodeForHintTest);
-			if (this.m_bStringGID || !isRaster || this.m_bNeedDoBold || !AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
+
+			if (this.m_bStringGID || !isRaster || this.m_bNeedDoBold)
 				load_mode |= AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP;
+			else if (!AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
+				load_mode |= AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP;
+			else
+			{
+				if (Math.abs(this.m_arrdTextMatrix[1]) > 0.001 || Math.abs(this.m_arrdTextMatrix[2]) > 0.001)
+					load_mode |= AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP;
+			}
 
             if (this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, load_mode))
                 return oSizes;
@@ -1510,7 +1518,22 @@
             dstM.fVertAdvance 	= (measureInfo.vertAdvance >> 6);
 
             if (isFromPicker && (0 == dstM.fHoriAdvance && 0 == measureInfo.width))
-            	return null;
+			{
+				if (this.m_bStringGID)
+					return null;
+
+				switch (glyph_index_or_unicode)
+				{
+					// список допустимых символов нулевой ширины
+					case 0xFEFF:
+					{
+						return oSizes;
+					}
+					default:
+						break;
+				}
+				return null;
+			}
 
             if (!isRaster)
             {
