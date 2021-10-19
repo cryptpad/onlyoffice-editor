@@ -408,7 +408,7 @@ CTable.prototype.private_RecalculateGrid = function()
 		this.RecalcInfo.TableGrid = false;
 	}
 
-	var TopTable = this.Parent.IsInTable(true);
+	var TopTable = this.Parent ? this.Parent.IsInTable(true) : null;
 	if ((null === TopTable && tbllayout_AutoFit === TablePr.TableLayout) || (null != TopTable && tbllayout_AutoFit === TopTable.Get_CompiledPr(false).TablePr.TableLayout))
 	{
 		//---------------------------------------------------------------------------
@@ -454,26 +454,54 @@ CTable.prototype.private_RecalculateGrid = function()
 
 		var oPageFields;
 
-		// Случай, когда таблица лежит внутри CBlockLevelSdt
-		if (this.Parent instanceof CDocumentContent && this.LogicDocument && this.Parent.IsBlockLevelSdtContent() && this.Parent.GetTopDocumentContent() === this.LogicDocument && !this.Parent.IsTableCellContent())
+		if (!this.Parent)
 		{
-			var nTopIndex = -1;
-			var arrPos    = this.GetDocumentPositionFromObject();
-			if (arrPos.length > 0)
-				nTopIndex = arrPos[0].Position;
-
-			if (-1 !== nTopIndex)
-				oPageFields = this.LogicDocument.Get_ColumnFields(nTopIndex, this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum));
+			oPageFields  = {X : 0, Y : 0, XLimit : 0, YLimit : 0};
 		}
+		else
+		{
+			// Случай, когда таблица лежит внутри CBlockLevelSdt
+			if (this.Parent instanceof CDocumentContent && this.LogicDocument && this.Parent.IsBlockLevelSdtContent() && this.Parent.GetTopDocumentContent() === this.LogicDocument && !this.Parent.IsTableCellContent())
+			{
+				var nTopIndex = -1;
+				var arrPos    = this.GetDocumentPositionFromObject();
+				if (arrPos.length > 0)
+					nTopIndex = arrPos[0].Position;
 
-		if (!oPageFields)
-			oPageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+				if (-1 !== nTopIndex)
+					oPageFields = this.LogicDocument.Get_ColumnFields(nTopIndex, this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum));
+			}
+
+			if (!oPageFields)
+				oPageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+		}
 
 		var oFramePr = this.GetFramePr();
 		if (oFramePr && undefined !== oFramePr.GetW())
 		{
 			oPageFields.X      = 0;
 			oPageFields.XLimit = oFramePr.GetW();
+		}
+		else if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
+		{
+			var _X      = oPageFields.X;
+			var _XLimit = oPageFields.XLimit;
+
+			var arrRanges = this.Parent.CheckRange(_X, this.Y, _XLimit, this.Y + 0.001, this.Y, this.Y + 0.001, _X, _XLimit, this.private_GetRelativePageIndex(0));
+			if (arrRanges.length > 0)
+			{
+				for (var nRangeIndex = 0, nRangesCount = arrRanges.length; nRangeIndex < nRangesCount; ++nRangeIndex)
+				{
+					if (arrRanges[nRangeIndex].X0 < oPageFields.X + 3.2 && arrRanges[nRangeIndex].X1 > _X)
+						_X = arrRanges[nRangeIndex].X1 + 0.001;
+
+					if (arrRanges[nRangeIndex].X1 > oPageFields.XLimit - 3.2 && arrRanges[nRangeIndex].X0 < _XLimit)
+						_XLimit = arrRanges[nRangeIndex].X0 - 0.001;
+				}
+			}
+
+			oPageFields.X      = _X;
+			oPageFields.XLimit = _XLimit;
 		}
 
 		var nMaxTableW = oPageFields.XLimit - oPageFields.X - TablePr.TableInd - this.GetTableOffsetCorrection() + this.GetRightTableOffsetCorrection();
@@ -1636,7 +1664,7 @@ CTable.prototype.private_RecalculateHeader = function()
 {
     // Если у нас таблица внутри таблицы, тогда в ней заголовочных строк не должно быть,
     // потому что так делает Word.
-    if ( true === this.Parent.IsTableCellContent() )
+    if (!this.Parent || true === this.Parent.IsTableCellContent())
     {
         this.HeaderInfo.Count = 0;
         return;
@@ -1875,6 +1903,50 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
     var Y = StartPos.Y;
     var TableHeight = 0;
+
+    if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
+	{
+		var nTableX_min = -1;
+		var nTableX_max = -1;
+
+		for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+		{
+			var oRow = this.GetRow(nCurRow);
+			var nCellsCount = oRow.GetCellsCount();
+
+			if (!nCellsCount)
+				continue;
+
+			var nRowX_min = oRow.GetCell(0).Metrics.X_content_start;
+			var nRowX_max = oRow.GetCell(nCellsCount - 1).Metrics.X_content_end;
+
+			if (-1 === nTableX_min || nRowX_min < nTableX_min)
+				nTableX_min = nRowX_min;
+
+			if (-1 === nTableX_max || nRowX_max > nTableX_max)
+				nTableX_max = nRowX_max;
+		}
+
+		nTableX_min += Page.X;
+		nTableX_max += Page.X;
+
+		var arrRanges = this.Parent.CheckRange(nTableX_min, Page.Y, nTableX_max, Page.Y + 0.001, Page.Y, Page.Y + 0.001, nTableX_min, nTableX_max, this.private_GetRelativePageIndex(CurPage));
+		if (arrRanges.length > 0)
+		{
+			for (var nRangeIndex = 0, nRangesCount = arrRanges.length; nRangeIndex < nRangesCount; ++nRangeIndex)
+			{
+				if (Y < arrRanges[nRangeIndex].Y1)
+				{
+					var nShiftY = arrRanges[nRangeIndex].Y1 - Y;
+
+					Y      = arrRanges[nRangeIndex].Y1 + 0.001;
+					Page.Y = Y;
+
+					Page.Bounds.Top += nShiftY;
+				}
+			}
+		}
+	}
 
     var TableBorders = this.Get_Borders();
 

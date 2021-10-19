@@ -200,42 +200,25 @@ function BinaryPPTYLoader()
     this.aSlideLayouts = [];
     this.aThemes = [];
 
-	this.arr_connectors = [];
+	this.oConnectedObjects = {};
 	this.map_shapes_by_id = {};
 	this.fields = [];
 
 
-
-	this.ClearConnectorsMaps = function(){
-        this.arr_connectors.length = 0;
+	this.ClearConnectedObjects = function(){
+        this.oConnectedObjects = {};
         this.map_shapes_by_id = {};
     };
-
-	this.AssignConnectorsId = function () {
-	    var oPr = null;
-        for(var i = 0; i < this.arr_connectors.length; ++i){
-            oPr = this.arr_connectors[i].nvSpPr.nvUniSpPr;
-            if(AscFormat.isRealNumber(oPr.stCnxId)){
-                if(AscCommon.isRealObject(this.map_shapes_by_id[oPr.stCnxId])){
-                    oPr.stCnxId = this.map_shapes_by_id[oPr.stCnxId].Id;
-                }
-                else{
-                    oPr.stCnxId = null;
-                    oPr.stCnxIdx = null;
-                }
+	this.AddConnectedObject = function(oObject){
+        this.oConnectedObjects[oObject.Id] = oObject;
+    };
+	this.AssignConnectedObjects = function () {
+        for(var sId in this.oConnectedObjects) {
+            if(this.oConnectedObjects.hasOwnProperty(sId)) {
+                this.oConnectedObjects[sId].assignConnection(this.map_shapes_by_id);
             }
-            if(AscFormat.isRealNumber(oPr.endCnxId)){
-                if(AscCommon.isRealObject(this.map_shapes_by_id[oPr.endCnxId])){
-                    oPr.endCnxId = this.map_shapes_by_id[oPr.endCnxId].Id;
-                }
-                else{
-                    oPr.endCnxId = null;
-                    oPr.endCnxIdx = null;
-                }
-            }
-            this.arr_connectors[i].nvSpPr.setUniSpPr(oPr.copy());
         }
-        this.ClearConnectorsMaps();
+        this.ClearConnectedObjects();
     };
 
     this.Start_UseFullUrl = function(insertDocumentUrlsData)
@@ -508,19 +491,6 @@ function BinaryPPTYLoader()
             }
 
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
-            if(pres.SldSz)
-            {
-                this.presentation.Width = pres.SldSz.cx / c_dScalePPTXSizes;
-                this.presentation.Height = pres.SldSz.cy / c_dScalePPTXSizes;
-            }
-            else
-            {
-                this.presentation.Width = 254;
-                this.presentation.Height = 190.5;
-                pres.SldSz = {};
-                pres.SldSz.cx = this.presentation.Width * c_dScalePPTXSizes;
-                pres.SldSz.cy = this.presentation.Height * c_dScalePPTXSizes;
-            }
         }
 
         if (!this.IsThemeLoader)
@@ -573,7 +543,7 @@ function BinaryPPTYLoader()
             for (var i = 0; i < _sm_count; i++)
             {
                 this.presentation.slideMasters[i] = this.ReadSlideMaster();
-                this.presentation.slideMasters[i].setSlideSize(this.presentation.Width, this.presentation.Height);
+                this.presentation.slideMasters[i].setSlideSize(this.presentation.GetWidthMM(), this.presentation.GetHeightMM());
             }
         }
 
@@ -587,7 +557,7 @@ function BinaryPPTYLoader()
             for (var i = 0; i < _sl_count; i++)
             {
                 this.aSlideLayouts[i] = this.ReadSlideLayout();
-                this.aSlideLayouts[i].setSlideSize(this.presentation.Width, this.presentation.Height);
+                this.aSlideLayouts[i].setSlideSize(this.presentation.GetWidthMM(), this.presentation.GetHeightMM());
             }
         }
 
@@ -608,7 +578,6 @@ function BinaryPPTYLoader()
                 for (var i = 0; i < _s_count; i++)
                 {
                     this.presentation.insertSlide(i, this.ReadSlide(i)) ;
-                    this.presentation.Slides[i].setSlideSize(this.presentation.Width, this.presentation.Height);
                 }
                 if(this.Api)
                 {
@@ -1856,6 +1825,35 @@ function BinaryPPTYLoader()
 
                     break;
                 }
+                case c_oAscColor.COLOR_TYPE_STYLE:
+                {
+                    var oColor = new AscFormat.CStyleColor();
+                    s.Skip2(1);
+                    while(true)
+                    {
+                        var _at2 = s.GetUChar();
+                        if (_at2 == g_nodeAttributeEnd)
+                            break;
+                        switch (_at2) {
+                            case 0:
+                            {
+                                oColor.val = s.GetULong();
+                                break;
+                            }
+                            case 1:
+                            {
+                                oColor.bAuto = s.GetBool();
+                                break;
+                            }
+                            default:
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    uni_color.setColor(oColor);
+                    break;
+                }
             }
         }
 
@@ -1879,6 +1877,39 @@ function BinaryPPTYLoader()
         return ret;
     };
 
+    this.ReadColorMod = function()
+    {
+        var s = this.stream;
+        var _s1 = s.cur;
+        var _e1 = _s1 + s.GetULong() + 4;
+        var _mod = null;
+        if (_s1 < _e1)
+        {
+            s.Skip2(1);
+            _mod = new AscFormat.CColorMod();
+            while (true)
+            {
+                var _type = s.GetUChar();
+
+                if (0 == _type)
+                {
+                    _mod.setName(s.GetString2());
+                    var _find = _mod.name.indexOf(":");
+                    if (_find >= 0 && _find < (_mod.name.length - 1))
+                        _mod.setName(_mod.name.substring(_find + 1));
+                }
+                else if (1 == _type)
+                    _mod.setVal(s.GetLong());
+                else if (g_nodeAttributeEnd == _type)
+                    break;
+                else
+                    break;
+            }
+        }
+        s.Seek2(_e1);
+        return _mod;
+    };
+
     this.ReadColorModifiers = function()
     {
         var s = this.stream;
@@ -1895,45 +1926,18 @@ function BinaryPPTYLoader()
 
             s.Skip2(1);
 
-            var _s1 = s.cur;
-            var _e1 = _s1 + s.GetULong() + 4;
-
-            if (_s1 < _e1)
+            var _mod = this.ReadColorMod();
+            if(_mod)
             {
-                s.Skip2(1);
-
                 if (null == _ret)
                     _ret = [];
-
-                var _mod = new AscFormat.CColorMod();
                 _ret[_ret.length] = _mod;
-
-                while (true)
-                {
-                    var _type = s.GetUChar();
-
-                    if (0 == _type)
-                    {
-                        _mod.setName(s.GetString2());
-                        var _find = _mod.name.indexOf(":");
-                        if (_find >= 0 && _find < (_mod.name.length - 1))
-                            _mod.setName(_mod.name.substring(_find + 1));
-                    }
-                    else if (1 == _type)
-                        _mod.setVal(s.GetLong());
-                    else if (g_nodeAttributeEnd == _type)
-                        break;
-                    else
-                        break;
-                }
             }
-
-            s.Seek2(_e1);
         }
 
         s.Seek2(_end);
         return _ret;
-    }
+    };
 
     // ------------------------------------------
 
@@ -3996,6 +4000,7 @@ function BinaryPPTYLoader()
     this.ReadSlideMaster = function()
     {
         var master = new MasterSlide(this.presentation, null);
+        this.ClearConnectedObjects();
         this.TempMainObject = master;
 
         var s = this.stream;
@@ -4051,7 +4056,18 @@ function BinaryPPTYLoader()
                     break;
                 }
                 case 2:
+                {
+                    var _transition = this.ReadTransition();
+                    master.applyTransition(_transition);
+                    break;
+                }
                 case 3:
+                {
+                    var oTiming = new AscFormat.CTiming();
+                    oTiming.fromPPTY(this);
+                    master.setTiming(oTiming);
+                    break;
+                }
                 case 4:
                 {
                     var _len = s.GetULong();
@@ -4078,6 +4094,7 @@ function BinaryPPTYLoader()
 
         s.Seek2(end);
         this.TempMainObject = null;
+        this.AssignConnectedObjects();
         return master;
     }
 
@@ -4128,6 +4145,7 @@ function BinaryPPTYLoader()
     this.ReadSlideLayout = function()
     {
         var layout = new SlideLayout(null);
+        this.ClearConnectedObjects();
         this.TempMainObject = layout;
 
         var s = this.stream;
@@ -4205,6 +4223,20 @@ function BinaryPPTYLoader()
                     layout.setClMapOverride(this.ReadClrOverride());
                     break;
                 }
+
+                case 2:
+                {
+                    var _transition = this.ReadTransition();
+                    layout.applyTransition(_transition);
+                    break;
+                }
+                case 3:
+                {
+                    var oTiming = new AscFormat.CTiming();
+                    oTiming.fromPPTY(this);
+                    layout.setTiming(oTiming);
+                    break;
+                }
                 case 4:
                 {
                     layout.setHF(this.ReadHF());
@@ -4221,6 +4253,7 @@ function BinaryPPTYLoader()
 
         s.Seek2(end);
         this.TempMainObject = null;
+        this.AssignConnectedObjects();
         return layout;
     }
 
@@ -4231,9 +4264,9 @@ function BinaryPPTYLoader()
     this.ReadSlide = function(sldIndex)
     {
         var slide = new Slide(this.presentation, null, sldIndex);
+        this.ClearConnectedObjects();
         this.TempMainObject = slide;
 
-        slide.maxId = -1;
         var s = this.stream;
         s.Skip2(1); // type
         var end = s.cur + s.GetULong() + 4;
@@ -4281,8 +4314,15 @@ function BinaryPPTYLoader()
                 }
                 case 2:
                 {
-                    var _timing = this.ReadTransition();
-                    slide.applyTiming(_timing);
+                    var _transition = this.ReadTransition();
+                    slide.applyTransition(_transition);
+                    break;
+                }
+                case 3:
+                {
+                    var oTiming = new AscFormat.CTiming();
+                    oTiming.fromPPTY(this);
+                    slide.setTiming(oTiming);
                     break;
                 }
                 case 4:
@@ -4303,6 +4343,7 @@ function BinaryPPTYLoader()
 
         s.Seek2(end);
         this.TempMainObject = null;
+        this.AssignConnectedObjects();
         return slide;
     }
 
@@ -4423,14 +4464,14 @@ function BinaryPPTYLoader()
 
     this.ReadTransition = function()
     {
-        var _timing = new CAscSlideTiming();
-        _timing.setDefaultParams();
+        var _transition = new Asc.CAscSlideTransition();
+        _transition.setDefaultParams();
 
         var s = this.stream;
         var end = s.cur + s.GetULong() + 4;
 
         if (s.cur == end)
-            return _timing;
+            return _transition;
 
         s.Skip2(1); // attribute start
         var _presentDuration = false;
@@ -4442,16 +4483,16 @@ function BinaryPPTYLoader()
 
             if (0 == _at)
             {
-                _timing.SlideAdvanceOnMouseClick = s.GetBool();
+                _transition.SlideAdvanceOnMouseClick = s.GetBool();
             }
             else if (1 == _at)
             {
-                _timing.SlideAdvanceAfter = true;
-                _timing.SlideAdvanceDuration = s.GetULong();
+                _transition.SlideAdvanceAfter = true;
+                _transition.SlideAdvanceDuration = s.GetULong();
             }
             else if (2 == _at)
             {
-                _timing.TransitionDuration = s.GetULong();
+                _transition.TransitionDuration = s.GetULong();
                 _presentDuration = true;
             }
             else if (3 == _at)
@@ -4459,11 +4500,11 @@ function BinaryPPTYLoader()
                 var _spd = s.GetUChar();
                 if (!_presentDuration)
                 {
-                    _timing.TransitionDuration = 250;
+                    _transition.TransitionDuration = 250;
                     if (_spd == 1)
-                        _timing.TransitionDuration = 500;
+                        _transition.TransitionDuration = 500;
                     else if (_spd == 2)
-                        _timing.TransitionDuration = 750;
+                        _transition.TransitionDuration = 750;
                 }
             }
         }
@@ -4517,108 +4558,108 @@ function BinaryPPTYLoader()
                         // тут все поддерживаемые переходы
                         if ("p:fade" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Fade;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Fade_Smoothly;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Fade;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Fade_Smoothly;
 
                             if (1 == _len && _paramNames[0] == "thruBlk" && _paramValues[0] == "1")
                             {
-                                _timing.TransitionOption = c_oAscSlideTransitionParams.Fade_Through_Black;
+                                _transition.TransitionOption = c_oAscSlideTransitionParams.Fade_Through_Black;
                             }
                         }
                         else if ("p:push" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Push;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Push;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
 
                             if (1 == _len && _paramNames[0] == "dir")
                             {
                                 if ("l" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
                                 if ("r" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
                                 if ("d" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
                             }
                         }
                         else if ("p:wipe" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Wipe;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Wipe;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
 
                             if (1 == _len && _paramNames[0] == "dir")
                             {
                                 if ("u" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
                                 if ("r" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
                                 if ("d" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
                             }
                         }
                         else if ("p:strips" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Wipe;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Param_TopRight;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Wipe;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Param_TopRight;
 
                             if (1 == _len && _paramNames[0] == "dir")
                             {
                                 if ("rd" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_TopLeft;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_TopLeft;
                                 if ("ru" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_BottomLeft;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_BottomLeft;
                                 if ("lu" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_BottomRight;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_BottomRight;
                             }
                         }
                         else if ("p:cover" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Cover;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Cover;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
 
                             if (1 == _len && _paramNames[0] == "dir")
                             {
                                 if ("u" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
                                 if ("r" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
                                 if ("d" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
                                 if ("rd" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_TopLeft;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_TopLeft;
                                 if ("ru" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_BottomLeft;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_BottomLeft;
                                 if ("lu" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_BottomRight;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_BottomRight;
                                 if ("ld" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_TopRight;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_TopRight;
                             }
                         }
                         else if ("p:pull" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.UnCover;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.UnCover;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Right;
 
                             if (1 == _len && _paramNames[0] == "dir")
                             {
                                 if ("u" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Bottom;
                                 if ("r" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Left;
                                 if ("d" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_Top;
                                 if ("rd" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_TopLeft;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_TopLeft;
                                 if ("ru" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_BottomLeft;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_BottomLeft;
                                 if ("lu" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_BottomRight;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_BottomRight;
                                 if ("ld" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Param_TopRight;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Param_TopRight;
                             }
                         }
                         else if ("p:split" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Split;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Split;
 
                             var _is_vert = true;
                             var _is_out = true;
@@ -4638,53 +4679,53 @@ function BinaryPPTYLoader()
                             if (_is_vert)
                             {
                                 if (_is_out)
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Split_VerticalOut;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Split_VerticalOut;
                                 else
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Split_VerticalIn;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Split_VerticalIn;
                             }
                             else
                             {
                                 if (_is_out)
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Split_HorizontalOut;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Split_HorizontalOut;
                                 else
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Split_HorizontalIn;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Split_HorizontalIn;
                             }
                         }
                         else if ("p:wheel" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Clock;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Clock_Clockwise;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Clock;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Clock_Clockwise;
                         }
                         else if ("p14:wheelReverse" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Clock;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Clock_Counterclockwise;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Clock;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Clock_Counterclockwise;
                         }
                         else if ("p:wedge" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Clock;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Clock_Wedge;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Clock;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Clock_Wedge;
                         }
                         else if ("p14:warp" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Zoom;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Zoom_Out;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Zoom;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Zoom_Out;
 
                             if (1 == _len && _paramNames[0] == "dir")
                             {
                                 if ("in" == _paramValues[0])
-                                    _timing.TransitionOption = c_oAscSlideTransitionParams.Zoom_In;
+                                    _transition.TransitionOption = c_oAscSlideTransitionParams.Zoom_In;
                             }
                         }
                         else if ("p:newsflash" == _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Zoom;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Zoom_AndRotate;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Zoom;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Zoom_AndRotate;
                         }
                         else if ("p:none" != _type)
                         {
-                            _timing.TransitionType = c_oAscSlideTransitionTypes.Fade;
-                            _timing.TransitionOption = c_oAscSlideTransitionParams.Fade_Smoothly;
+                            _transition.TransitionType = c_oAscSlideTransitionTypes.Fade;
+                            _transition.TransitionOption = c_oAscSlideTransitionParams.Fade_Smoothly;
                         }
                     }
 
@@ -4700,7 +4741,7 @@ function BinaryPPTYLoader()
         }
 
         s.Seek2(end);
-        return _timing;
+        return _transition;
     }
 
     this.ReadHF = function()
@@ -4735,8 +4776,8 @@ function BinaryPPTYLoader()
 
     this.ReadNoteMaster = function()
     {
-
         var oNotesMaster = new AscCommonSlide.CNotesMaster();
+        this.ClearConnectedObjects();
         this.TempMainObject = oNotesMaster;
         this.stream.Skip2(1); // type
         var end = this.stream.cur + this.stream.GetLong() + 4;
@@ -4784,12 +4825,14 @@ function BinaryPPTYLoader()
 
         this.stream.Seek2(end);
         this.TempMainObject = null;
+        this.AssignConnectedObjects()
         return oNotesMaster;
     }
 
     this.ReadNote = function()
     {
         var oNotes = new AscCommonSlide.CNotes();
+        this.ClearConnectedObjects()
         this.TempMainObject = oNotes;
         var _s = this.stream;
         _s.Skip2(1); // type
@@ -4842,6 +4885,7 @@ function BinaryPPTYLoader()
         }
         this.TempMainObject = null;
         _s.Seek2(_end);
+        this.AssignConnectedObjects();
         return oNotes;
     }
 
@@ -4877,10 +4921,7 @@ function BinaryPPTYLoader()
                 }
                 case 1:
                 {
-                    // SHAPES
-                    this.ClearConnectorsMaps();
                     csld.spTree = this.ReadGroupShapeMain();
-                    this.AssignConnectorsId();
                     break;
                 }
                 default:
@@ -6659,6 +6700,11 @@ function BinaryPPTYLoader()
                     shape.setSignature(this.ReadSignatureLine());
                     break;
                 }
+                case 0xA1:
+                {
+                    shape.readMacro(s);
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();
@@ -6930,8 +6976,11 @@ function BinaryPPTYLoader()
                                 var _object = this.ReadPic(_type);
                                 if (!IsHiddenObj(_object))
                                 {
-                                    shapes[shapes.length] = _object;
-                                    _object.setParent2(this.TempMainObject);
+                                    if(_type !== 6 || _object.checkCorrect())
+                                    {
+                                        shapes[shapes.length] = _object;
+                                        _object.setParent2(this.TempMainObject);
+                                    }
                                 }
                                 break;
                             }
@@ -7037,14 +7086,6 @@ function BinaryPPTYLoader()
                 {
                     if(isOle) {
                         this.ReadOleInfo(pic);
-                        // if(pic.m_sObjectFile === "maskFile.docx"
-                        //     ||  pic.m_sObjectFile === "maskFile.xlsx"){
-                        //     var oParent = pic.parent;
-                        //     pic = AscFormat.CImageShape.prototype.copy.call(pic);
-                        //     if(oParent){
-                        //         pic.setParent(oParent);
-                        //     }
-                        // }
                     } else {
                         s.SkipRecord();
                     }
@@ -7083,6 +7124,11 @@ function BinaryPPTYLoader()
                     else{
                         s.SkipRecord();
                     }
+                    break;
+                }
+                case 0xA1:
+                {
+                    pic.readMacro(s);
                     break;
                 }
                 default:
@@ -7143,6 +7189,11 @@ function BinaryPPTYLoader()
                     shape.setStyle(this.ReadShapeStyle());
                     break;
                 }
+                case 0xA1:
+                {
+                    shape.readMacro(s);
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();
@@ -7150,7 +7201,7 @@ function BinaryPPTYLoader()
                 }
             }
         }
-        this.arr_connectors.push(shape);
+        this.AddConnectedObject(shape);
         s.Seek2(_end_rec);
         return shape;
     }
@@ -7356,6 +7407,11 @@ function BinaryPPTYLoader()
                     }
                     break;
                 }
+                case 0xA1:
+                {
+                    _graphic_frame.readMacro(s);
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();
@@ -7497,6 +7553,11 @@ function BinaryPPTYLoader()
                                     var value;
                                     switch(_at2)
                                     {
+                                        case 0:{
+                                            value = s.GetBool();
+                                            locks |= (AscFormat.LOCKS_MASKS.txBox | (value ? AscFormat.LOCKS_MASKS.txBox << 1 : 0));
+                                            break;
+                                        }
                                         case 1 :{
                                             value = s.GetBool();
                                             locks |= (AscFormat.LOCKS_MASKS.noAdjustHandles | (value ? AscFormat.LOCKS_MASKS.noAdjustHandles << 1 : 0));
@@ -7866,10 +7927,6 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     cNvPr.setId(s.GetLong());
-                    if(this.TempMainObject && cNvPr.id > this.TempMainObject.maxId)
-                    {
-                        this.TempMainObject.maxId = cNvPr.id;
-                    }
                     break;
                 }
                 case 1:
@@ -7890,6 +7947,11 @@ function BinaryPPTYLoader()
                 case 4:
                 {
                     cNvPr.setDescr(s.GetString2());
+                    break;
+                }
+                case 5:
+                {
+                    cNvPr.form =  s.GetBool();
                     break;
                 }
                 default:{
@@ -8115,8 +8177,6 @@ function BinaryPPTYLoader()
 
     this.ReadCell = function(cell)
     {
-        // cell.Content.Content.splice(0, cell.Content.Content.length);
-        cell.Content.Internal_Content_RemoveAll();
         var s = this.stream;
 
         var _rec_start = s.cur;
@@ -9862,6 +9922,10 @@ function BinaryPPTYLoader()
                 {
                     s.Skip2(4);
                     var _c = s.GetULong();
+                    if(_c > 0)
+                    {
+                        content.Internal_Content_RemoveAll();
+                    }
                     for (var i = 0; i < _c; i++)
                     {
                         s.Skip2(1); // type
@@ -11285,7 +11349,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
     function CPres()
 {
     this.defaultTextStyle = null;
-    this.SldSz = null;
     this.NotesSz = null;
 
     this.attrAutoCompressPictures = null;
@@ -11311,6 +11374,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         // attributes
         var _sa = s.GetUChar();
 
+        var oPresentattion = reader.presentation;
         while (true)
         {
             var _at = s.GetUChar();
@@ -11356,7 +11420,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                 case 4: { s.SkipRecord(); break; }
                 case 5:
                 {
-                    this.SldSz = {};
+                    var oSldSize = new AscCommonSlide.CSlideSize();
                     s.Skip2(5); // len + start attributes
 
                     while (true)
@@ -11368,14 +11432,17 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
                         switch (_at)
                         {
-                            case 0: { this.SldSz.cx = s.GetLong(); break; }
-                            case 1: { this.SldSz.cy = s.GetLong(); break; }
-                            case 2: { this.SldSz.type = s.GetUChar(); break; }
+                            case 0: { oSldSize.setCX(s.GetLong()); break; }
+                            case 1: { oSldSize.setCY(s.GetLong()); break; }
+                            case 2: { oSldSize.setType(s.GetUChar()); break; }
                             default:
                                 return;
                         }
                     }
-
+                    if(oPresentattion.setSldSz)
+                    {
+                        oPresentattion.setSldSz(oSldSize);
+                    }
                     break;
                 }
                 case 6:
@@ -11431,7 +11498,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
                                     s.Seek2(_end_rec3);
 
-                                    reader.presentation.CommentAuthors[_author.Name] = _author;
+                                    oPresentattion.CommentAuthors[_author.Name] = _author;
                                 }
 
                                 break;
@@ -11452,13 +11519,13 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 					var _length = s.GetULong();
 					var _end_rec2 = s.cur + _length;
 
-					reader.presentation.Api.macros.SetData(AscCommon.GetStringUtf8(s, _length));
+                    oPresentattion.Api.macros.SetData(AscCommon.GetStringUtf8(s, _length));
 					s.Seek2(_end_rec2);
 					break;
 				}
                 case 10:
                 {
-                    reader.ReadComments(reader.presentation.writecomments);
+                    reader.ReadComments(oPresentattion.writecomments);
                     break;
                 }
                 default:
@@ -11468,9 +11535,9 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                 }
             }
         }
-        if(reader.presentation.Load_Comments)
+        if(oPresentattion.Load_Comments)
         {
-            reader.presentation.Load_Comments(reader.presentation.CommentAuthors);
+            oPresentattion.Load_Comments(oPresentattion.CommentAuthors);
         }
         s.Seek2(_end_pos);
     }
@@ -11492,319 +11559,257 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         this.Start_UseFullUrl = function(insertDocumentUrlsData)
         {
             this.Reader.Start_UseFullUrl(insertDocumentUrlsData);
-        }
+        };
         this.End_UseFullUrl = function()
         {
             return this.Reader.End_UseFullUrl();
-        }
-
-        this.ReadDrawing = function(reader, stream, logicDocument, paraDrawing)
-        {
-            if(reader){
+        };
+        this.CheckStreamStart = function(oOtherStream) {
+            if (!this.Reader) {
+                this.Reader = new AscCommon.BinaryPPTYLoader();
+            }
+            this.Reader.ImageMapChecker = this.ImageMapChecker;
+            if (!this.stream ||
+                this.stream.data !== oOtherStream.data ||
+                this.stream.size !== oOtherStream.size) {
+                this.stream = new AscCommon.FileStream();
+                this.stream.obj    = oOtherStream.obj;
+                this.stream.data   = oOtherStream.data;
+                this.stream.size   = oOtherStream.size;
+            }
+            this.stream.pos    = oOtherStream.pos;
+            this.stream.cur    = oOtherStream.cur;
+            this.Reader.stream = this.stream;
+        };
+        this.CheckStreamEnd = function(oOtherStream) {
+            oOtherStream.pos = this.stream.pos;
+            oOtherStream.cur = this.stream.cur;
+        };
+        this.ReadPPTXElement = function(reader, stream, fReadFunction) {
+            var oOldReader = this.BaseReader;
+            var oOldLogicDocument = this.LogicDocument;
+            var oOldStream = this.stream;
+            if(reader) {
                 this.BaseReader = reader;
             }
-            if (this.Reader == null)
-                this.Reader = new AscCommon.BinaryPPTYLoader();
+            this.CheckStreamStart(stream);
+            var oStream = this.stream;
+            var oResult = fReadFunction();
+            this.CheckStreamEnd(stream);
 
-            if (null != paraDrawing)
-            {
-                this.ParaDrawing = paraDrawing;
-                this.TempMainObject = null;
-            }
-            this.LogicDocument = logicDocument;
 
-            this.Reader.ImageMapChecker = this.ImageMapChecker;
-
-            if (null == this.stream)
-            {
-                this.stream = new AscCommon.FileStream();
-                this.stream.obj    = stream.obj;
-                this.stream.data   = stream.data;
-                this.stream.size   = stream.size;
-            }
-
-            this.stream.pos    = stream.pos;
-            this.stream.cur    = stream.cur;
-
-            this.Reader.stream = this.stream;
-            this.Reader.presentation = logicDocument;
-            if(logicDocument)
-            {
-                this.Reader.DrawingDocument = logicDocument.DrawingDocument;
-            }
-            else
-            {
-                this.Reader.DrawingDocument = null;
-            }
-
-            var GrObject = null;
-
-            var s = this.stream;
-            var _main_type = s.GetUChar(); // 0!!!
-
-            var _rec_start = s.cur;
-            var _end_rec = _rec_start + s.GetULong() + 4;
-            if (s.cur < _end_rec){
-                s.Skip2(5); // 1 + 4 byte - len
-
-                var _type = s.GetUChar();
-                switch (_type)
-                {
-                    case 1:
-                    {
-                        GrObject = this.ReadShape();
-                        break;
-                    }
-                    case 6:
-                    case 2:
-                    case 7:
-                    case 8:
-                    {
-                        GrObject = this.ReadPic(_type);
-                        break;
-                    }
-                    case 3:
-                    {
-                        GrObject = this.ReadCxn();
-                        break;
-                    }
-                    case 4:
-                    {
-                        GrObject = this.ReadGroupShape();
-                        break;
-                    }
-                    case 5:
-                    {
-                        s.SkipRecord();
-                        break;
-                    }
-                    case 9:
-                    {
-                        GrObject = this.Reader.ReadGroupShape(9);
-                        if(paraDrawing){
-                            GrObject.setParent(paraDrawing);
-                        }
-                        break;
-                    }
-                    default:
-                    {
-                        s.SkipRecord();
-                        break;
-                    }
-                }
-            }
-
-            s.Seek2(_end_rec);
-            stream.pos = s.pos;
-            stream.cur = s.cur;
-
-            return GrObject;
-        }
-
-        this.ReadGraphicObject = function(stream, presentation, drawingDocument)
-        {
-            if (this.Reader == null)
-                this.Reader = new AscCommon.BinaryPPTYLoader();
-
-            if(presentation)
-            {
-                this.Reader.presentation = presentation;
-            }
-            if(drawingDocument)
-            {
-                this.Reader.DrawingDocument = drawingDocument;
-            }
-            var oLogicDocument = this.LogicDocument;
-            this.LogicDocument = null;
-
-            this.Reader.ImageMapChecker = this.ImageMapChecker;
-
-            if (null == this.stream)
-            {
-                this.stream = new AscCommon.FileStream();
-                this.stream.obj    = stream.obj;
-                this.stream.data   = stream.data;
-                this.stream.size   = stream.size;
-            }
-
-            this.stream.pos    = stream.pos;
-            this.stream.cur    = stream.cur;
-
-            this.Reader.stream = this.stream;
-
-            var s = this.stream;
-            var _main_type = s.GetUChar(); // 0!!!
-
-            var _rec_start = s.cur;
-            var _end_rec = _rec_start + s.GetULong() + 4;
-
-            s.Skip2(5); // 1 + 4 byte - len
-
-            var GrObject = this.Reader.ReadGraphicObject();
-
-            s.Seek2(_end_rec);
-            stream.pos = s.pos;
-            stream.cur = s.cur;
-            this.LogicDocument = oLogicDocument;
-            return GrObject;
-        }
-
-        this.ReadTextBody = function(reader, stream, shape, presentation, drawingDocument)
-        {
-            if(reader){
-                this.BaseReader = reader;
-            }
-            if (this.Reader == null)
-                this.Reader = new AscCommon.BinaryPPTYLoader();
-            if(presentation)
-                this.Reader.presentation = presentation;
-            if(drawingDocument)
-                this.Reader.DrawingDocument = drawingDocument;
-
-            var oLogicDocument = this.LogicDocument;
-            this.LogicDocument = null;
-
-            this.Reader.ImageMapChecker = this.ImageMapChecker;
-
-            if (null == this.stream)
-            {
-                this.stream = new AscCommon.FileStream();
-                this.stream.obj    = stream.obj;
-                this.stream.data   = stream.data;
-                this.stream.size   = stream.size;
-            }
-
-            this.stream.pos    = stream.pos;
-            this.stream.cur    = stream.cur;
-
-            this.Reader.stream = this.stream;
-
-            var s = this.stream;
-            var _main_type = s.GetUChar(); // 0!!!
-
-            var txBody = this.Reader.ReadTextBody(shape);
-
-            stream.pos = s.pos;
-            stream.cur = s.cur;
-            this.LogicDocument = oLogicDocument;
-            return txBody;
-        }
-
-        this.ReadTextBodyTxPr = function(reader, stream, shape)
-        {
-            if(reader){
-                this.BaseReader = reader;
-            }
-            if (this.Reader == null)
-                this.Reader = new AscCommon.BinaryPPTYLoader();
-
-            var oLogicDocument = this.LogicDocument;
-            this.LogicDocument = null;
-
-            this.Reader.ImageMapChecker = this.ImageMapChecker;
-
-            if (null == this.stream)
-            {
-                this.stream = new AscCommon.FileStream();
-                this.stream.obj    = stream.obj;
-                this.stream.data   = stream.data;
-                this.stream.size   = stream.size;
-            }
-
-            this.stream.pos    = stream.pos;
-            this.stream.cur    = stream.cur;
-
-            this.Reader.stream = this.stream;
-
-            var s = this.stream;
-            var _main_type = s.GetUChar(); // 0!!!
-
-            var txBody = this.Reader.ReadTextBodyTxPr(shape);
-
-            stream.pos = s.pos;
-            stream.cur = s.cur;
-            this.LogicDocument = oLogicDocument;
-            return txBody;
-        }
-
-        this.ReadShapeProperty = function(stream, type)
-        {
-            if (this.Reader == null)
-                this.Reader = new AscCommon.BinaryPPTYLoader();
-
-            var oLogicDocument = this.LogicDocument;
-            this.LogicDocument = null;
-
-            this.Reader.ImageMapChecker = this.ImageMapChecker;
-
-            if (null == this.stream)
-            {
-                this.stream = new AscCommon.FileStream();
-                this.stream.obj    = stream.obj;
-                this.stream.data   = stream.data;
-                this.stream.size   = stream.size;
-            }
-
-            this.stream.pos    = stream.pos;
-            this.stream.cur    = stream.cur;
-
-            this.Reader.stream = this.stream;
-
-            var s = this.stream;
-            var _main_type = s.GetUChar(); // 0!!!
-
-            var oNewSpPr;
-            if(0 == type){
-                oNewSpPr = this.Reader.ReadLn()
-            }
-            else if(1 == type){
-                oNewSpPr = this.Reader.ReadUniFill();
-            }
-            else{
-                oNewSpPr = new AscFormat.CSpPr();
-                this.Reader.ReadSpPr(oNewSpPr);
-            }
-
-            stream.pos = s.pos;
-            stream.cur = s.cur;
-
-            this.LogicDocument = oLogicDocument;
-            return oNewSpPr;
+            this.BaseReader = oOldReader;
+            this.LogicDocument = oOldLogicDocument;
+            this.stream = oOldStream;
+            return oResult;
+        };
+        this.ReadBodyPr = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadBodyPr();
+            });
+        };
+        this.ReadFontRef = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadFontRef();
+            });
+        };
+        this.ReadStyleRef = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadStyleRef();
+            });
+        };
+        this.ReadUniColor = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadUniColor();
+            });
+        };
+        this.ReadColorMod = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadColorMod();
+            });
         };
 
-		this.ReadRunProperties = function(stream, type)
-		{
-			if (this.Reader == null)
-				this.Reader = new AscCommon.BinaryPPTYLoader();
 
-			var oLogicDocument = this.LogicDocument;
-			this.LogicDocument = null;
+        this.ReadTheme = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                return oThis.Reader.ReadTheme();
+            });
+        };
 
-			this.Reader.ImageMapChecker = this.ImageMapChecker;
+        this.ReadDrawing = function(reader, stream, logicDocument, paraDrawing) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function () {
+                if (null != paraDrawing)
+                {
+                    oThis.ParaDrawing = paraDrawing;
+                    oThis.TempMainObject = null;
+                }
+                oThis.LogicDocument = logicDocument;
+                oThis.Reader.presentation = logicDocument;
+                if(logicDocument)
+                {
+                    oThis.Reader.DrawingDocument = logicDocument.DrawingDocument;
+                }
+                else
+                {
+                    oThis.Reader.DrawingDocument = null;
+                }
 
-			if (null == this.stream)
-			{
-				this.stream = new AscCommon.FileStream();
-				this.stream.obj	= stream.obj;
-				this.stream.data   = stream.data;
-				this.stream.size   = stream.size;
-			}
+                var GrObject = null;
 
-			this.stream.pos	= stream.pos;
-			this.stream.cur	= stream.cur;
+                var s = oThis.stream;
+                var _main_type = s.GetUChar(); // 0!!!
 
-			this.Reader.stream = this.stream;
+                var _rec_start = s.cur;
+                var _end_rec = _rec_start + s.GetULong() + 4;
+                if (s.cur < _end_rec){
+                    s.Skip2(5); // 1 + 4 byte - len
 
-			var s = this.stream;
-			var _main_type = s.GetUChar(); // 0!!!
+                    var _type = s.GetUChar();
+                    switch (_type)
+                    {
+                        case 1:
+                        {
+                            GrObject = oThis.ReadShape();
+                            break;
+                        }
+                        case 6:
+                        case 2:
+                        case 7:
+                        case 8:
+                        {
+                            GrObject = oThis.ReadPic(_type);
+                            break;
+                        }
+                        case 3:
+                        {
+                            GrObject = oThis.ReadCxn();
+                            break;
+                        }
+                        case 4:
+                        {
+                            GrObject = oThis.ReadGroupShape();
+                            break;
+                        }
+                        case 5:
+                        {
+                            s.SkipRecord();
+                            break;
+                        }
+                        case 9:
+                        {
+                            GrObject = oThis.Reader.ReadGroupShape(9);
+                            if(paraDrawing){
+                                GrObject.setParent(paraDrawing);
+                            }
+                            break;
+                        }
+                        default:
+                        {
+                            s.SkipRecord();
+                            break;
+                        }
+                    }
+                }
 
-			var oNewrPr = this.Reader.ReadRunProperties();
+                s.Seek2(_end_rec);
+                return GrObject;
+            });
+        };
 
-			stream.pos = s.pos;
-			stream.cur = s.cur;
+        this.ReadGraphicObject = function(stream, presentation, drawingDocument) {
+            var oThis = this;
+            return this.ReadPPTXElement(undefined, stream, function() {
+                if(presentation)
+                {
+                    oThis.Reader.presentation = presentation;
+                }
+                if(drawingDocument)
+                {
+                    oThis.Reader.DrawingDocument = drawingDocument;
+                }
+                oThis.LogicDocument = null;
+                var s = oThis.stream;
+                var _main_type = s.GetUChar(); // 0!!!
 
-			this.LogicDocument = oLogicDocument;
-			return oNewrPr;
+                var _rec_start = s.cur;
+                var _end_rec = _rec_start + s.GetULong() + 4;
+
+                s.Skip2(5); // 1 + 4 byte - len
+
+                var GrObject = oThis.Reader.ReadGraphicObject();
+
+                s.Seek2(_end_rec);
+                return GrObject;
+            });
+        };
+
+        this.ReadTextBody = function(reader, stream, shape, presentation, drawingDocument) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                if(presentation)
+                    oThis.Reader.presentation = presentation;
+                if(drawingDocument)
+                    oThis.Reader.DrawingDocument = drawingDocument;
+                oThis.LogicDocument = null;
+                var s = oThis.stream;
+                var _main_type = s.GetUChar(); // 0!!!
+                return oThis.Reader.ReadTextBody(shape);
+            });
+        };
+
+        this.ReadTextBodyTxPr = function(reader, stream, shape) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.LogicDocument = null;
+                var s = oThis.stream;
+                var _main_type = s.GetUChar(); // 0!!!
+                return oThis.Reader.ReadTextBodyTxPr(shape);
+            });
+
+        };
+
+        this.ReadShapeProperty = function(stream, type) {
+            var oThis = this;
+            return this.ReadPPTXElement(undefined, stream, function() {
+                oThis.LogicDocument = null;
+                var s = oThis.stream;
+                var _main_type = s.GetUChar(); // 0!!!
+
+                var oNewSpPr;
+                if(0 == type){
+                    oNewSpPr = oThis.Reader.ReadLn()
+                }
+                else if(1 == type){
+                    oNewSpPr = oThis.Reader.ReadUniFill();
+                }
+                else{
+                    oNewSpPr = new AscFormat.CSpPr();
+                    oThis.Reader.ReadSpPr(oNewSpPr);
+                }
+                return oNewSpPr;
+            });
+        };
+
+		this.ReadRunProperties = function(stream, type) {
+            var oThis = this;
+            return this.ReadPPTXElement(undefined, stream, function() {
+                oThis.LogicDocument = null;
+                var s = oThis.stream;
+                var _main_type = s.GetUChar(); // 0!!!
+                return oThis.Reader.ReadRunProperties();
+            });
 		};
 
         this.ReadShape = function()
@@ -11890,9 +11895,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         var oBinary_DocumentTableReader = new Binary_DocumentTableReader(shape.textBoxContent, oThis.oReadResult, oThis.openParams, oThis.stream, false, oThis.oComments);
                         var nDocLength = oThis.stream.GetULongLE();
                         var content_arr = [];
+                        var oCurParaDrawing = this.ParaDrawing;
                         oThis.bcr.Read1(nDocLength, function(t,l){
                             return oBinary_DocumentTableReader.ReadDocumentContent(t,l, content_arr);
                         });
+                        this.ParaDrawing = oCurParaDrawing;
                         for(var i = 0, length = content_arr.length; i < length; ++i){
                             if(i == length - 1)
                                 shape.textBoxContent.Internal_Content_Add(i, content_arr[i], true);
@@ -11923,6 +11930,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     case 7:
                     {
                         shape.setSignature(this.Reader.ReadSignatureLine());
+                        break;
+                    }
+                    case 0xA1:
+                    {
+                        shape.readMacro(s);
                         break;
                     }
                     default:
@@ -11998,7 +12010,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             s.Seek2(_end_rec);
             return shape;
 
-        }
+        };
         this.ReadCxn = function()
         {
             var s = this.stream;
@@ -12031,6 +12043,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         shape.setStyle(this.Reader.ReadShapeStyle());
                         break;
                     }
+                    case 0xA1:
+                    {
+                        shape.readMacro(s);
+                        break;
+                    }
                     default:
                     {
                         s.SkipRecord();
@@ -12041,7 +12058,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
             s.Seek2(_end_rec);
             return shape;
-        }
+        };
         this.ReadPic = function(type)
         {
             var s = this.stream;
@@ -12098,14 +12115,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     {
                         if(isOle) {
                             this.ReadOleInfo(pic);
-                            // if(pic.m_sObjectFile === "maskFile.docx"
-                            //     ||  pic.m_sObjectFile === "maskFile.xlsx"){
-                            //     var oParent = pic.parent;
-                            //     pic = AscFormat.CImageShape.prototype.copy.call(pic);
-                            //     if(oParent){
-                            //         pic.setParent(oParent);
-                            //     }
-                            // }
                         } else {
                             s.SkipRecord();
                         }
@@ -12134,6 +12143,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         }
                         break;
                     }
+                    case 0xA1:
+                    {
+                        pic.readMacro(s);
+                        break;
+                    }
                     default:
                     {
                         s.SkipRecord();
@@ -12154,7 +12168,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
             s.Seek2(_end_rec);
             return pic;
-        }
+        };
         this.ReadOleInfo = function(ole)
         {
             var s = this.stream;
@@ -12318,7 +12332,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 				ole.setPixSizes(ratio * dxaOrig, ratio * dyaOrig);
 			}
             s.Seek2(_end_rec);
-        }
+        };
         this.ReadGroupShape = function()
         {
             var s = this.stream;
@@ -12448,7 +12462,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             //     return null;
             // }
             return shape;
-        }
+        };
 
         this.ReadSpPr = function(spPr)
         {
@@ -12526,7 +12540,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             }
 
             s.Seek2(_end_rec);
-        }
+        };
 
         this.CorrectXfrm = function(_xfrm)
         {
@@ -12561,32 +12575,8 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             }
 
             _xfrm.rot = _rot;
-        }
+        };
 
-        this.ReadTheme = function(reader, stream)
-        {
-            if(reader)
-            {
-                this.BaseReader = reader;
-            }
-            if (this.Reader == null)
-                this.Reader = new AscCommon.BinaryPPTYLoader();
-
-            if (null == this.stream)
-            {
-                this.stream = new AscCommon.FileStream();
-                this.stream.obj    = stream.obj;
-                this.stream.data   = stream.data;
-                this.stream.size   = stream.size;
-            }
-
-            this.stream.pos    = stream.pos;
-            this.stream.cur    = stream.cur;
-
-            this.Reader.stream = this.stream;
-            this.Reader.ImageMapChecker = this.ImageMapChecker;
-            return this.Reader.ReadTheme();
-        }
 
         this.CheckImagesNeeds = function(logicDoc)
         {
@@ -12596,7 +12586,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             {
                 logicDoc.ImageMap[index++] = i;
             }
-        }
+        };
 
         this.Clear = function(bClearStreamOnly)
         {
@@ -12606,7 +12596,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             this.BaseReader = null;
             if(!bClearStreamOnly)
                 this.ImageMapChecker = {};
-        }
+        };
     }
 
     //----------------------------------------------------------export----------------------------------------------------

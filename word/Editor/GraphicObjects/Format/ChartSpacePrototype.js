@@ -60,8 +60,6 @@ CChartSpace.prototype.recalculateBounds =  function()
     this.bounds.w = this.bounds.r - this.bounds.l;
     this.bounds.h = this.bounds.b - this.bounds.t;
 };
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
 CChartSpace.prototype.hit = CShape.prototype.hit;
@@ -210,7 +208,6 @@ CChartSpace.prototype.handleUpdateStyle = function()
     this.addToRecalculate();
 };
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
@@ -265,10 +262,13 @@ CChartSpace.prototype.recalculate = function()
         return;
     AscFormat.ExecuteNoHistory(function()
     {
-        var bOldTrackRevision =  editor.WordControl.m_oLogicDocument.TrackRevisions;
-        if(bOldTrackRevision){
-            editor.WordControl.m_oLogicDocument.TrackRevisions = false;
-        }
+		var bLocalTrackRevision = false;
+		if (editor.WordControl.m_oLogicDocument.IsTrackRevisions())
+		{
+			bLocalTrackRevision = editor.WordControl.m_oLogicDocument.GetLocalTrackRevisions();
+			editor.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
+		}
+
         this.updateLinks();
 
 
@@ -419,15 +419,14 @@ CChartSpace.prototype.recalculate = function()
         {
             this.updatePosition(this.posX, this.posY);
         }
-        if(bOldTrackRevision){
-            editor.WordControl.m_oLogicDocument.TrackRevisions = true;
-        }
+
+		if (false !== bLocalTrackRevision)
+		{
+			editor.WordControl.m_oLogicDocument.SetLocalTrackRevisions(bLocalTrackRevision);
+		}
     }, this, []);
 };
 
-
-
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
 
 CChartSpace.prototype.getDrawingDocument = CShape.prototype.getDrawingDocument;
 
@@ -460,7 +459,7 @@ CChartSpace.prototype.checkShapeChildTransform = function(transform_text)
                         for(var i = 0; i < series.length; ++i)
                         {
                             var ser = series[i];
-                            var pts = AscFormat.getPtsFromSeries(ser);
+                            var pts = ser.getNumPts();
                             for(var j = 0; j < pts.length; ++j)
                             {
                                 if(pts[j].compiledDlb)
@@ -531,8 +530,8 @@ CChartSpace.prototype.updateTransformMatrix  = function()
     this.checkShapeChildTransform(oParentTransform);
 };
 CChartSpace.prototype.getArrayWrapIntervals = CShape.prototype.getArrayWrapIntervals;
-CChartSpace.prototype.select = CShape.prototype.select;
 CChartSpace.prototype.Is_UseInDocument = CShape.prototype.Is_UseInDocument;
+CChartSpace.prototype.getDrawingObjectsController = CShape.prototype.getDrawingObjectsController;
 //CChartSpace.prototype.Refresh_RecalcData = function(data)
 //{
 //    this.addToRecalculate();

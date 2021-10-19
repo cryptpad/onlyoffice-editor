@@ -469,8 +469,8 @@ CTableCell.prototype =
         // Сначала проверим заливку данной ячейки, если ее нет, тогда спрашиваем у таблицы
         var Shd = this.Get_Shd();
 
-        if ( Asc.c_oAscShdNil !== Shd.Value )
-            return Shd.Get_Color2(this.Get_Theme(), this.Get_ColorMap());
+        if (Shd && !Shd.IsNil())
+            return Shd.GetSimpleColor(this.Get_Theme(), this.Get_ColorMap());
 
         var oTable = this.GetTable();
         return oTable ? oTable.Get_TextBackGroundColor() : null;
@@ -779,7 +779,7 @@ CTableCell.prototype =
             _Y = Transform.TransformPointY(X, Y);
         }
 
-        this.Content.UpdateCursorType(_X, _Y, CurPage);
+        return this.Content.UpdateCursorType(_X, _Y, CurPage);
     },
 
 	Content_DrawSelectionOnPage : function(CurPage)
@@ -1144,9 +1144,11 @@ CTableCell.prototype =
 		}
 		else
 		{
+			// TODO: переделать здесь на нармальное выставление настроек
 			this.Set_Shd({
 				Value   : OtherPr.Shd.Value,
 				Color   : OtherPr.Shd.Color ? {r : OtherPr.Shd.Color.r, g : OtherPr.Shd.Color.g, b : OtherPr.Shd.Color.b} : undefined,
+				Fill    : OtherPr.Shd.Fill ? {r : OtherPr.Shd.Fill.r, g : OtherPr.Shd.Fill.g, b : OtherPr.Shd.Fill.b} : undefined,
 				Unifill : OtherPr.Shd.Unifill ? OtherPr.Shd.Unifill.createDuplicate() : undefined
 			});
 		}
@@ -1897,7 +1899,7 @@ CTableCell.prototype =
         var TablePr = oTable.Get_CompiledPr(false).TablePr;
         if (tbllayout_AutoFit === TablePr.TableLayout)
         {
-            if (oTable.Parent.Pages.length > 0)
+            if (oTable.Parent && oTable.Parent.Pages.length > 0)
             {
                 // Если изменение внутри ячейки влечет за собой изменение сетки таблицы, тогда
                 // пересчитывать таблицу надо с самого начала.
@@ -2245,7 +2247,7 @@ CTableCell.prototype.CheckNonEmptyBorder = function(nType)
 		var nCurGridStart = oRow.GetCellInfo(this.Index).StartGridCol;
 
 		if (this.Get_Border(nType).Value === 0)
-			this.Set_Border(border, nType);
+			this.Set_Border(oBorder, nType);
 
 		if (nVMergeCount > 1)
 		{

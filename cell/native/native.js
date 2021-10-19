@@ -926,656 +926,15 @@ function asc_menu_WriteImagePosition(_type, _position, _stream){
     
     _stream["WriteByte"](255);
 }
-function asc_menu_ReadAscValAxisSettings(_params, _cursor){
-    var _settings = new AscCommon.asc_ValAxisSettings();
-    
-    var _continue = true;
-    while (_continue)
-    {
-        var _attr = _params[_cursor.pos++];
-        switch (_attr)
-        {
-            case 0:
-            {
-                _settings.minValRule = _params[_cursor.pos++];
-                break;
-            }
-            case 1:
-            {
-                _settings.minVal = _params[_cursor.pos++];
-                break;
-            }
-            case 2:
-            {
-                _settings.maxValRule = _params[_cursor.pos++];
-                break;
-            }
-            case 3:
-            {
-                _settings.maxVal = _params[_cursor.pos++];
-                break;
-            }
-            case 4:
-            {
-                _settings.invertValOrder = _params[_cursor.pos++];
-                break;
-            }
-            case 5:
-            {
-                _settings.logScale = _params[_cursor.pos++];
-                break;
-            }
-            case 6:
-            {
-                _settings.logBase = _params[_cursor.pos++];
-                break;
-            }
-            case 7:
-            {
-                _settings.dispUnitsRule = _params[_cursor.pos++];
-                break;
-            }
-            case 8:
-            {
-                _settings.units = _params[_cursor.pos++];
-                break;
-            }
-            case 9:
-            {
-                _settings.showUnitsOnChart = _params[_cursor.pos++];
-                break;
-            }
-            case 10:
-            {
-                _settings.majorTickMark = _params[_cursor.pos++];
-                break;
-            }
-            case 11:
-            {
-                _settings.minorTickMark = _params[_cursor.pos++];
-                break;
-            }
-            case 12:
-            {
-                _settings.tickLabelsPos = _params[_cursor.pos++];
-                break;
-            }
-            case 13:
-            {
-                _settings.crossesRule = _params[_cursor.pos++];
-                break;
-            }
-            case 14:
-            {
-                _settings.crosses = _params[_cursor.pos++];
-                break;
-            }
-            case 15:
-            {
-                _settings.axisType = _params[_cursor.pos++];
-                break;
-            }
-            case 255:
-            default:
-            {
-                _continue = false;
-                break;
-            }
-        }
-    }
-    
-    return _settings;
-}
-function asc_menu_WriteAscValAxisSettings(_type, _settings, _stream){
-    if (!_settings)
-        return;
-    
-    _stream["WriteByte"](_type);
-    
-    if (_settings.minValRule !== undefined && _settings.minValRule !== null)
-    {
-        _stream["WriteByte"](0);
-        _stream["WriteLong"](_settings.minValRule);
-    }
-    if (_settings.minVal !== undefined && _settings.minVal !== null)
-    {
-        _stream["WriteByte"](1);
-        _stream["WriteLong"](_settings.minVal);
-    }
-    if (_settings.maxValRule !== undefined && _settings.maxValRule !== null)
-    {
-        _stream["WriteByte"](2);
-        _stream["WriteLong"](_settings.maxValRule);
-    }
-    if (_settings.maxVal !== undefined && _settings.maxVal !== null)
-    {
-        _stream["WriteByte"](3);
-        _stream["WriteLong"](_settings.maxVal);
-    }
-    if (_settings.invertValOrder !== undefined && _settings.invertValOrder !== null)
-    {
-        _stream["WriteByte"](4);
-        _stream["WriteBool"](_settings.invertValOrder);
-    }
-    if (_settings.logScale !== undefined && _settings.logScale !== null)
-    {
-        _stream["WriteByte"](5);
-        _stream["WriteBool"](_settings.logScale);
-    }
-    if (_settings.logBase !== undefined && _settings.logBase !== null)
-    {
-        _stream["WriteByte"](6);
-        _stream["WriteLong"](_settings.logBase);
-    }
-    if (_settings.dispUnitsRule !== undefined && _settings.dispUnitsRule !== null)
-    {
-        _stream["WriteByte"](7);
-        _stream["WriteLong"](_settings.dispUnitsRule);
-    }
-    if (_settings.units !== undefined && _settings.units !== null)
-    {
-        _stream["WriteByte"](8);
-        _stream["WriteLong"](_settings.units);
-    }
-    if (_settings.showUnitsOnChart !== undefined && _settings.showUnitsOnChart !== null)
-    {
-        _stream["WriteByte"](9);
-        _stream["WriteBool"](_settings.showUnitsOnChart);
-    }
-    if (_settings.majorTickMark !== undefined && _settings.majorTickMark !== null)
-    {
-        _stream["WriteByte"](10);
-        _stream["WriteLong"](_settings.majorTickMark);
-    }
-    if (_settings.minorTickMark !== undefined && _settings.minorTickMark !== null)
-    {
-        _stream["WriteByte"](11);
-        _stream["WriteLong"](_settings.minorTickMark);
-    }
-    if (_settings.tickLabelsPos !== undefined && _settings.tickLabelsPos !== null)
-    {
-        _stream["WriteByte"](12);
-        _stream["WriteLong"](_settings.tickLabelsPos);
-    }
-    if (_settings.crossesRule !== undefined && _settings.crossesRule !== null)
-    {
-        _stream["WriteByte"](13);
-        _stream["WriteLong"](_settings.crossesRule);
-    }
-    if (_settings.crosses !== undefined && _settings.crosses !== null)
-    {
-        _stream["WriteByte"](14);
-        _stream["WriteLong"](_settings.crosses);
-    }
-    if (_settings.axisType !== undefined && _settings.axisType !== null)
-    {
-        _stream["WriteByte"](15);
-        _stream["WriteLong"](_settings.axisType);
-    }
-    
-    _stream["WriteByte"](255);
-}
-function asc_menu_ReadAscCatAxisSettings(_params, _cursor){
-    var _settings = new AscCommon.asc_CatAxisSettings();
-    
-    var _continue = true;
-    while (_continue)
-    {
-        var _attr = _params[_cursor.pos++];
-        switch (_attr)
-        {
-            case 0:
-            {
-                _settings.putInternalBetweenTick(_params[_cursor.pos++]);
-                break;
-            }
-            case 1:
-            {
-                _settings.putIntervalBetweenLabelsRule(_params[_cursor.pos++]);
-                break;
-            }
-            case 2:
-            {
-                _settings.putInternalBetweenLabels(_params[_cursor.pos++]);
-                break;
-            }
-            case 3:
-            {
-                _settings.putInvertCatOrder(_params[_cursor.pos++]);
-                break;
-            }
-            case 4:
-            {
-                _settings.putLabelsAxisDistance(_params[_cursor.pos++]);
-                break;
-            }
-            case 5:
-            {
-                _settings.putLabelsPosition(_params[_cursor.pos++]);
-                break;
-            }
-            case 6:
-            {
-                _settings.putMajorTickMark(_params[_cursor.pos++]);
-                break;
-            }
-            case 7:
-            {
-                _settings.putMinorTickMark(_params[_cursor.pos++]);
-                break;
-            }
-            case 8:
-            {
-                _settings.putTickLabelsPos(_params[_cursor.pos++]);
-                break;
-            }
-            case 9:
-            {
-                _settings.putCrossesRule(_params[_cursor.pos++]);
-                break;
-            }
-            case 10:
-            {
-                _settings.putCrosses(_params[_cursor.pos++]);
-                break;
-            }
-            case 11:
-            {
-                _settings.putAxisType(_params[_cursor.pos++]);
-                break;
-            }
-            case 12:
-            {
-                _settings.putCrossMinVal(_params[_cursor.pos++]);
-                break;
-            }
-            case 13:
-            {
-                _settings.putCrossMaxVal(_params[_cursor.pos++]);
-                break;
-            }
-            case 255:
-            default:
-            {
-                _continue = false;
-                break;
-            }
-        }
-    }
-    
-    return _settings;
-}
-function asc_menu_WriteAscCatAxisSettings(_type, _settings, _stream){
-    if (!_settings)
-        return;
-    
-    _stream["WriteByte"](_type);
-    
-    if (_settings.getIntervalBetweenTick() !== undefined && _settings.getIntervalBetweenTick() !== null)
-    {
-        _stream["WriteByte"](0);
-        _stream["WriteDouble2"](_settings.getIntervalBetweenTick());
-    }
-    if (_settings.getIntervalBetweenLabelsRule() !== undefined && _settings.getIntervalBetweenLabelsRule() !== null)
-    {
-        _stream["WriteByte"](1);
-        _stream["WriteLong"](_settings.getIntervalBetweenLabelsRule());
-    }
-    if (_settings.getIntervalBetweenLabels() !== undefined && _settings.getIntervalBetweenLabels() !== null)
-    {
-        _stream["WriteByte"](2);
-        _stream["WriteDouble2"](_settings.getIntervalBetweenLabels());
-    }
-    if (_settings.getInvertCatOrder() !== undefined && _settings.getInvertCatOrder() !== null)
-    {
-        _stream["WriteByte"](3);
-        _stream["WriteBool"](_settings.getInvertCatOrder());
-    }
-    if (_settings.getLabelsAxisDistance() !== undefined && _settings.getLabelsAxisDistance() !== null)
-    {
-        _stream["WriteByte"](4);
-        _stream["WriteDouble2"](_settings.getLabelsAxisDistance());
-    }
-    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
-    {
-        _stream["WriteByte"](5);
-        _stream["WriteLong"](_settings.getTickLabelsPos());
-    }
-    if (_settings.getMajorTickMark() !== undefined && _settings.getMajorTickMark() !== null)
-    {
-        _stream["WriteByte"](6);
-        _stream["WriteLong"](_settings.getMajorTickMark());
-    }
-    if (_settings.getMinorTickMark() !== undefined && _settings.getMinorTickMark() !== null)
-    {
-        _stream["WriteByte"](7);
-        _stream["WriteLong"](_settings.getMinorTickMark());
-    }
-    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
-    {
-        _stream["WriteByte"](8);
-        _stream["WriteLong"](_settings.getTickLabelsPos());
-    }
-    if (_settings.getCrossesRule() !== undefined && _settings.getCrossesRule() !== null)
-    {
-        _stream["WriteByte"](9);
-        _stream["WriteLong"](_settings.getCrossesRule());
-    }
-    if (_settings.getCrosses() !== undefined && _settings.getCrosses() !== null)
-    {
-        _stream["WriteByte"](10);
-        _stream["WriteLong"](_settings.getCrosses());
-    }
-    if (_settings.getAxisType() !== undefined && _settings.getAxisType() !== null)
-    {
-        _stream["WriteByte"](11);
-        _stream["WriteLong"](_settings.getAxisType());
-    }
-    if (_settings.getCrossMinVal() !== undefined && _settings.getCrossMinVal() !== null)
-    {
-        _stream["WriteByte"](12);
-        _stream["WriteLong"](_settings.getCrossMinVal());
-    }
-    if (_settings.getCrossMaxVal() !== undefined && _settings.getCrossMaxVal() !== null)
-    {
-        _stream["WriteByte"](13);
-        _stream["WriteLong"](_settings.getCrossMaxVal());
-    }
-    
-    _stream["WriteByte"](255);
-}
 function asc_menu_ReadChartPr(_params, _cursor){
     var _settings = new Asc.asc_ChartSettings();
-    
-    var _continue = true;
-    while (_continue)
-    {
-        var _attr = _params[_cursor.pos++];
-        switch (_attr)
-        {
-            case 0:
-            {
-                _settings.style = _params[_cursor.pos++];
-                break;
-            }
-            case 1:
-            {
-                _settings.title = _params[_cursor.pos++];
-                break;
-            }
-            case 2:
-            {
-                _settings.rowCols = _params[_cursor.pos++];
-                break;
-            }
-            case 3:
-            {
-                _settings.horAxisLabel = _params[_cursor.pos++];
-                break;
-            }
-            case 4:
-            {
-                _settings.vertAxisLabel = _params[_cursor.pos++];
-                break;
-            }
-            case 5:
-            {
-                _settings.legendPos = _params[_cursor.pos++];
-                break;
-            }
-            case 6:
-            {
-                _settings.dataLabelsPos = _params[_cursor.pos++];
-                break;
-            }
-            case 7:
-            {
-                _settings.horAx = _params[_cursor.pos++];
-                break;
-            }
-            case 8:
-            {
-                _settings.vertAx = _params[_cursor.pos++];
-                break;
-            }
-            case 9:
-            {
-                _settings.horGridLines = _params[_cursor.pos++];
-                break;
-            }
-            case 10:
-            {
-                _settings.vertGridLines = _params[_cursor.pos++];
-                break;
-            }
-            case 11:
-            {
-                _settings.type = _params[_cursor.pos++];
-                break;
-            }
-            case 12:
-            {
-                _settings.showSerName = _params[_cursor.pos++];
-                break;
-            }
-            case 13:
-            {
-                _settings.showCatName = _params[_cursor.pos++];
-                break;
-            }
-            case 14:
-            {
-                _settings.showVal = _params[_cursor.pos++];
-                break;
-            }
-            case 15:
-            {
-                _settings.separator = _params[_cursor.pos++];
-                break;
-            }
-            case 16:
-            {
-                _settings.horAxisProps = asc_menu_ReadAscValAxisSettings(_params, _cursor);
-                break;
-            }
-            case 17:
-            {
-                _settings.vertAxisProps = asc_menu_ReadAscValAxisSettings(_params, _cursor);
-                break;
-            }
-            case 18:
-            {
-                _settings.putRange(_params[_cursor.pos++]);
-                break;
-            }
-            case 19:
-            {
-                _settings.inColumns = _params[_cursor.pos++];
-                break;
-            }
-            case 20:
-            {
-                _settings.showMarker = _params[_cursor.pos++];
-                break;
-            }
-            case 21:
-            {
-                _settings.bLine = _params[_cursor.pos++];
-                break;
-            }
-            case 22:
-            {
-                _settings.smooth = _params[_cursor.pos++];
-                break;
-            }
-            case 23:
-            {
-                _settings.horAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
-                break;
-            }
-            case 24:
-            {
-                _settings.vertAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
-                break;
-            }
-                
-            case 255:
-            default:
-            {
-                _continue = false;
-                break;
-            }
-        }
-    }
-    
+    _settings.read(_params, _cursor);
     return _settings;
 }
 function asc_menu_WriteChartPr(_type, _chartPr, _stream){
     if (!_chartPr)
         return;
-    
-    _stream["WriteByte"](_type);
-    
-    if (_chartPr.style !== undefined && _chartPr.style !== null)
-    {
-        _stream["WriteByte"](0);
-        _stream["WriteLong"](_chartPr.style);
-    }
-    if (_chartPr.title !== undefined && _chartPr.title !== null)
-    {
-        _stream["WriteByte"](1);
-        _stream["WriteLong"](_chartPr.title);
-    }
-    if (_chartPr.rowCols !== undefined && _chartPr.rowCols !== null)
-    {
-        _stream["WriteByte"](2);
-        _stream["WriteLong"](_chartPr.rowCols);
-    }
-    if (_chartPr.horAxisLabel !== undefined && _chartPr.horAxisLabel !== null)
-    {
-        _stream["WriteByte"](3);
-        _stream["WriteLong"](_chartPr.horAxisLabel);
-    }
-    if (_chartPr.vertAxisLabel !== undefined && _chartPr.vertAxisLabel !== null)
-    {
-        _stream["WriteByte"](4);
-        _stream["WriteLong"](_chartPr.vertAxisLabel);
-    }
-    if (_chartPr.legendPos !== undefined && _chartPr.legendPos !== null)
-    {
-        _stream["WriteByte"](5);
-        _stream["WriteLong"](_chartPr.legendPos);
-    }
-    if (_chartPr.dataLabelsPos !== undefined && _chartPr.dataLabelsPos !== null)
-    {
-        _stream["WriteByte"](6);
-        _stream["WriteLong"](_chartPr.dataLabelsPos);
-    }
-    if (_chartPr.horAx !== undefined && _chartPr.horAx !== null)
-    {
-        _stream["WriteByte"](7);
-        _stream["WriteLong"](_chartPr.horAx);
-    }
-    if (_chartPr.vertAx !== undefined && _chartPr.vertAx !== null)
-    {
-        _stream["WriteByte"](8);
-        _stream["WriteLong"](_chartPr.vertAx);
-    }
-    if (_chartPr.horGridLines !== undefined && _chartPr.horGridLines !== null)
-    {
-        _stream["WriteByte"](9);
-        _stream["WriteLong"](_chartPr.horGridLines);
-    }
-    if (_chartPr.vertGridLines !== undefined && _chartPr.vertGridLines !== null)
-    {
-        _stream["WriteByte"](10);
-        _stream["WriteLong"](_chartPr.vertGridLines);
-    }
-    if (_chartPr.type !== undefined && _chartPr.type !== null)
-    {
-        _stream["WriteByte"](11);
-        _stream["WriteLong"](_chartPr.type);
-    }
-    
-    if (_chartPr.showSerName !== undefined && _chartPr.showSerName !== null)
-    {
-        _stream["WriteByte"](12);
-        _stream["WriteBool"](_chartPr.showSerName);
-    }
-    if (_chartPr.showCatName !== undefined && _chartPr.showCatName !== null)
-    {
-        _stream["WriteByte"](13);
-        _stream["WriteBool"](_chartPr.showCatName);
-    }
-    if (_chartPr.showVal !== undefined && _chartPr.showVal !== null)
-    {
-        _stream["WriteByte"](14);
-        _stream["WriteBool"](_chartPr.showVal);
-    }
-    
-    if (_chartPr.separator !== undefined && _chartPr.separator !== null)
-    {
-        _stream["WriteByte"](15);
-        _stream["WriteString2"](_chartPr.separator);
-    }
-    
-    if (undefined != _chartPr.horAxisProps
-        && null != _chartPr.horAxisProps
-        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
-        asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
-    }
-    
-    if (undefined != _chartPr.vertAxisProps
-        && null != _chartPr.vertAxisProps
-        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
-        asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
-    }
-    var sRange = null;
-    sRange = _chartPr.getRange();
-    if(!sRange)
-    {
-        sRange = _chartPr.aRanges[0];
-    }
-    if (sRange !== undefined && sRange !== null)
-    {
-        _stream["WriteByte"](18);
-        _stream["WriteString2"](sRange);
-    }
-    
-    if (_chartPr.inColumns !== undefined && _chartPr.inColumns !== null)
-    {
-        _stream["WriteByte"](19);
-        _stream["WriteBool"](_chartPr.inColumns);
-    }
-    if (_chartPr.showMarker !== undefined && _chartPr.showMarker !== null)
-    {
-        _stream["WriteByte"](20);
-        _stream["WriteBool"](_chartPr.showMarker);
-    }
-    if (_chartPr.bLine !== undefined && _chartPr.bLine !== null)
-    {
-        _stream["WriteByte"](21);
-        _stream["WriteBool"](_chartPr.bLine);
-    }
-    if (_chartPr.smooth !== undefined && _chartPr.smooth !== null)
-    {
-        _stream["WriteByte"](22);
-        _stream["WriteBool"](_chartPr.showVal);
-    }
-    
-    if (undefined != _chartPr.horAxisProps
-        && null != _chartPr.horAxisProps
-        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
-        asc_menu_WriteAscCatAxisSettings(23, _chartPr.horAxisProps, _stream);
-    }
-    
-    if (undefined != _chartPr.vertAxisProps
-        && null != _chartPr.vertAxisProps
-        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
-        asc_menu_WriteAscCatAxisSettings(24, _chartPr.vertAxisProps, _stream);
-    }
-    
-    _stream["WriteByte"](255);
+    _chartPr.write(_type, _stream);
 }
 function asc_menu_ReadShapePr(_params, _cursor){
     var _settings = new Asc.asc_CShapeProperty();
@@ -1619,6 +978,12 @@ function asc_menu_ReadShapePr(_params, _cursor){
             case 6:
             {
                 _settings.InsertPageNum = _params[_cursor.pos++];
+                break;
+            }
+            case 7:
+            {
+                _settings.bFromGroup = _params[_cursor.pos++];
+                break;
             }
             case 255:
             default:
@@ -1656,6 +1021,12 @@ function asc_menu_WriteShapePr(_type, _shapePr, _stream){
     {
         _stream["WriteByte"](5);
         _stream["WriteBool"](_shapePr.bFromChart);
+    }
+    //6-InsertPageNum
+    if (_shapePr.bFromGroup !== undefined && _shapePr.bFromGroup !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteBool"](_shapePr.bFromGroup);
     }
     
     _stream["WriteByte"](255);
@@ -2919,7 +2290,11 @@ function asc_WriteCCellInfo(c, s) {
     s['WriteBool'](c.asc_getLockText());
     
     asc_WriteCFont(6, xfs, s);
-    asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
+
+    if (null != xfs.asc_getFillColor() && xfs.asc_getFillColor().asc_getAuto() !== true) { 
+        asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
+    }
+
     asc_WriteCBorders(9, c.asc_getBorders(), s);
 
     v = c.asc_getInnerText();
@@ -3929,6 +3304,7 @@ function OfflineEditor () {
             	t.asc_WriteAllWorksheets(true);
             	t.asc_WriteCurrentCell();
             
+                _api.asc_CheckGuiControlColors();
             	_api.sendColorThemes(_api.wbModel.theme);
             	_api.asc_ApplyColorScheme(false);
             	_api._applyFirstLoadChanges();
@@ -4143,6 +3519,8 @@ function OfflineEditor () {
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
                                   });
+                                  
+        _api.asc_registerCallback("asc_onSendThemeColors", onApiSendThemeColors);
 
         // Comments
 
@@ -4740,10 +4118,20 @@ function OfflineEditor () {
         
         settings.putStyle(2);
         settings.putTitle(Asc.c_oAscChartTitleShowSettings.noOverlay);
-        settings.putShowHorAxis(true);
-        settings.putShowVerAxis(true);
-        var series = AscFormat.getChartSeries(ws.model, settings);
-        if(series && series.series.length > 1)
+        var vert_axis_settings = new AscCommon.asc_ValAxisSettings();
+        vert_axis_settings.setDefault();
+        vert_axis_settings.putLabel(Asc.c_oAscChartVertAxisLabelShowSettings.none);
+        vert_axis_settings.putGridlines(Asc.c_oAscGridLinesSettings.major);
+        settings.addVertAxesProps(vert_axis_settings);
+
+        var hor_axis_settings = new AscCommon.asc_CatAxisSettings();
+        hor_axis_settings.setDefault();
+        hor_axis_settings.putLabel(Asc.c_oAscChartHorAxisLabelShowSettings.none);
+        hor_axis_settings.putGridlines(Asc.c_oAscGridLinesSettings.none);
+        settings.addHorAxesProps(hor_axis_settings);
+
+        var series = AscFormat.getChartSeries(settings);
+        if(series.length > 1)
         {
             settings.putLegendPos(Asc.c_oAscChartLegendShowSettings.right);
         }
@@ -4751,23 +4139,11 @@ function OfflineEditor () {
         {
             settings.putLegendPos(Asc.c_oAscChartLegendShowSettings.none);
         }
-        settings.putHorAxisLabel(Asc.c_oAscChartHorAxisLabelShowSettings.none);
-        settings.putVertAxisLabel(Asc.c_oAscChartVertAxisLabelShowSettings.none);
         settings.putDataLabelsPos(Asc.c_oAscChartDataLabelsPos.none);
-        settings.putHorGridLines(Asc.c_oAscGridLinesSettings.major);
-        settings.putVertGridLines(Asc.c_oAscGridLinesSettings.none);
-        //settings.putInColumns(false);
         settings.putSeparator(",");
         settings.putLine(true);
         settings.putShowMarker(false);
-        
-        var vert_axis_settings = new AscCommon.asc_ValAxisSettings();
-        settings.putVertAxisProps(vert_axis_settings);
-        vert_axis_settings.setDefault();
-        
-        var hor_axis_settings = new AscCommon.asc_CatAxisSettings();
-        settings.putHorAxisProps(hor_axis_settings);
-        hor_axis_settings.setDefault();
+
         
         settings.left = left;
         settings.top = top;
@@ -4796,7 +4172,7 @@ function OfflineEditor () {
                                               this.chartsByTypes[type] = this.getChartByType(type);
                                               
                                               var chart_space = this.chartsByTypes[type];
-                                              AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+                                                chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[type][styleIndex]);
                                               chart_space.recalcInfo.recalculateReferences = false;
                                               chart_space.recalculate();
 
@@ -4821,8 +4197,8 @@ function OfflineEditor () {
                     
                     var _graphics = new CDrawingStream();
                     
-                    if(AscCommon.g_oChartPresets[chartType]){
-                        var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
+                    if(AscCommon.g_oChartStyles[chartType]){
+                        var nStylesCount = AscCommon.g_oChartStyles[chartType].length;
                         for(var i = 0; i < nStylesCount; ++i)
                             this.createChartPreview(_graphics, chartType, i);
                     }
@@ -5095,7 +4471,7 @@ window["native"]["offline_get_selection"] = function(x, y, width, height, autoco
 window["native"]["offline_get_charts_ranges"] = function() {
     var ws = _api.wb.getWorksheet();
     
-    var ranges = _api.wb.getWorksheet().__chartsRanges();
+    var ranges = ws.__chartsRanges();
     var cattbbox = null;
     var serbbox = null;
     
@@ -5104,11 +4480,34 @@ window["native"]["offline_get_charts_ranges"] = function() {
     var selected_objects = controller.selection.groupSelection ? controller.selection.groupSelection.selectedObjects : controller.selectedObjects;
     if (selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace) {
         chart = selected_objects[0];
-        ranges = ranges ? ranges : _api.wb.getWorksheet().__chartsRanges([chart.bbox.seriesBBox]);
-        cattbbox = chart.bbox.catBBox ? _api.wb.getWorksheet().__chartsRanges([chart.bbox.catBBox]) : null;
-        serbbox = chart.bbox.serBBox ? _api.wb.getWorksheet().__chartsRanges([chart.bbox.serBBox]) : null;
+        var oDataRange = null, oCatRange = null, oSerRange = null;
+        if (ws.isChartAreaEditMode && ws.oOtherRanges) {
+            var aChartRanges = ws.oOtherRanges.ranges;
+            for(var nRange = 0; nRange < aChartRanges.length; ++nRange) {
+                var oChartRange = aChartRanges[nRange];
+                if(oChartRange.chartRangeIndex === 0) {
+                    oDataRange = oChartRange;
+                }
+                else if(oChartRange.chartRangeIndex === 1) {
+                    oSerRange = oChartRange;
+                }
+                else if(oChartRange.chartRangeIndex === 2) {
+                    oCatRange = oChartRange;
+                }
+            }
+            if(oDataRange) {
+                var ranges = ranges ? ranges : ws.__chartsRanges([oDataRange]);
+                var catbbox = null;//oCatRange ? ws.__chartsRanges([oCatRange]) : null;
+                var serbbox = null;//oSerRange ? ws.__chartsRanges([oSerRange]) : null;
+                return {
+                    'ranges': ranges,
+                    'cattbbox': catbbox,
+                    'serbbox': serbbox
+                };
+            }
+        }
+        return {'ranges': null, 'cattbbox': null, 'serbbox': null};
     }
-    
     return {'ranges':ranges, 'cattbbox':cattbbox, 'serbbox':serbbox};
 }
 window["native"]["offline_get_worksheet_bounds"] = function() {return _s.getMaxBounds();}
@@ -7053,6 +6452,16 @@ window["native"]["offline_apply_event"] = function(type,params) {
 
 // Common
 
+function getHexColor(r, g, b) {
+    r = r.toString(16);
+    g = g.toString(16);
+    b = b.toString(16);
+    if (r.length == 1) r = '0' + r;
+    if (g.length == 1) g = '0' + g;
+    if (b.length == 1) b = '0' + b;
+    return r + g + b;
+}
+
 function postDataAsJSONString(data, eventId) {
     var stream = global_memory_stream_menu;
     stream["ClearNoAttack"]();
@@ -7252,6 +6661,19 @@ function onDocumentPlaceChanged() {
     postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
 }
 
+function onApiSendThemeColors(theme_colors, standart_colors) {
+    var colors = {
+        "themeColors": theme_colors.map(function(color) {
+            return getHexColor(color.get_r(), color.get_g(), color.get_b());
+        })
+    }
+    if (standart_colors != null) {
+        colors["standartColors"] = standart_colors.map(function(color) {
+            return getHexColor(color.get_r(), color.get_g(), color.get_b());
+        });
+    }
+    postDataAsJSONString(colors, 2417); // ASC_MENU_EVENT_TYPE_THEMECOLORS
+}
 window["Asc"]["spreadsheet_api"].prototype.asc_setDocumentPassword = function(password)
 {
     var v = {
@@ -7336,7 +6758,7 @@ window["AscCommonExcel"].WorksheetView.prototype._drawCollaborativeElementsMeOth
             var lockInfo = this.collaborativeEditing.getLockInfo(AscCommonExcel.c_oAscLockTypeElem.Range,
                                                                  null,
                                                                  sheetId,
-                                                                 new AscCommonExcel.asc_CCollaborativeRange(arrayCells[i].c1, arrayCells[i].c2, arrayCells[i].c2, arrayCells[i].r2));
+                                                                 new AscCommonExcel.asc_CCollaborativeRange(arrayCells[i].c1, arrayCells[i].r1, arrayCells[i].c2, arrayCells[i].r2));
             var isLocked = this.collaborativeEditing.getLockIntersection(lockInfo, AscCommon.c_oAscLockTypes, AscCommon.c_oAscLockTypes.kLockTypeOther, false);
             if (false !== isLocked) {
                 userId = isLocked.UserId;

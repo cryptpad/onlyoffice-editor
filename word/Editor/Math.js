@@ -1058,7 +1058,7 @@ function ParaMath()
     this.DefaultTextPr      = new CTextPr();
 
     this.DefaultTextPr.FontFamily = {Name  : "Cambria Math", Index : -1 };
-    this.DefaultTextPr.RFonts.Set_All("Cambria Math", -1);
+    this.DefaultTextPr.RFonts.SetAll("Cambria Math", -1);
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add( this, this.Id );
@@ -1187,13 +1187,17 @@ ParaMath.prototype.Add = function(Item)
         {
             var CtrRunPr = oContent.Get_ParentCtrRunPr(false); // ctrPrp (не копия)
 
-            if (true === TrackRevisions)
-                LogicDocument.SetTrackRevisions(false);
+			var isLocalTrack = false;
+            if (TrackRevisions)
+			{
+				isLocalTrack = LogicDocument.GetLocalTrackRevisions();
+				LogicDocument.SetLocalTrackRevisions(false);
+			}
 
             Run.Apply_TextPr(CtrRunPr, undefined, true);
 
-            if (true === TrackRevisions)
-                LogicDocument.SetTrackRevisions(true);
+            if (false !== isLocalTrack)
+                LogicDocument.SetLocalTrackRevisions(isLocalTrack);
         }
 
         if(Item.Value == 38)
@@ -1240,18 +1244,22 @@ ParaMath.prototype.Add = function(Item)
 
         var lng2 = oContent.Content.length;
 
-        TextPr.RFonts.Set_All("Cambria Math", -1);
+        TextPr.RFonts.SetAll("Cambria Math", -1);
 
-        if (true === TrackRevisions)
-            LogicDocument.SetTrackRevisions(false);
+		var isLocalTrack = false;
+		if (TrackRevisions)
+		{
+			isLocalTrack = LogicDocument.GetLocalTrackRevisions();
+			LogicDocument.SetLocalTrackRevisions(false);
+		}
 
         if(bPlh)
             oContent.Apply_TextPr(TextPr, undefined, true);
         else
             oContent.Apply_TextPr(TextPr, undefined, false, StartPos + 1, StartPos + lng2 - lng);
 
-        if (true === TrackRevisions)
-            LogicDocument.SetTrackRevisions(true);
+		if (false !== isLocalTrack)
+			LogicDocument.SetLocalTrackRevisions(isLocalTrack);
     }
 
     if ((para_Text === Type || para_Space === Type) && null !== NewElement)
@@ -1646,6 +1654,21 @@ ParaMath.prototype.Get_Layout = function(DrawingLayout, UseContentPos, ContentPo
         DrawingLayout.Layout = true;
     else
         DrawingLayout.X += this.Width;
+};
+
+ParaMath.prototype.GetNextRunElements = function(oRunElements, isUseContentPos, nDepth)
+{
+	if (oRunElements.IsSkipMath())
+		return;
+
+	this.Root.GetNextRunElements(oRunElements, isUseContentPos, nDepth);
+};
+ParaMath.prototype.GetPrevRunElements = function(oRunElements, isUseContentPos, nDepth)
+{
+	if (oRunElements.IsSkipMath())
+		return;
+
+	this.Root.GetPrevRunElements(oRunElements, isUseContentPos, nDepth);
 };
 
 ParaMath.prototype.CollectDocumentStatistics = function(ParaStats)
@@ -2483,9 +2506,9 @@ ParaMath.prototype.Is_BrkBinBefore = function()
 
     return this.Is_Inline() ? false : MathSettings.Get_BrkBin() == BREAK_BEFORE;
 };
-ParaMath.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange)
+ParaMath.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange, _CurPage)
 {
-    this.Root.Shift_Range(Dx, Dy, _CurLine, _CurRange);
+    this.Root.Shift_Range(Dx, Dy, _CurLine, _CurRange, _CurPage);
 };
 //-----------------------------------------------------------------------------------
 // Функция для работы с формулой
@@ -2561,10 +2584,6 @@ ParaMath.prototype.SetRecalcCtrPrp = function(Class)
 };
 ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx, _heightPx, raster_koef)
 {
-    if(window['IS_NATIVE_EDITOR'])
-    {
-        return null;
-    }
     var bTurnOnId = false;
     if (false === g_oTableId.m_bTurnOff)
     {
@@ -2652,46 +2671,72 @@ ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx
         h_px *= raster_koef;
 
         if (undefined !== _widthPx)
-            _widthPx *= raster_koef;
+            _widthPx = (_widthPx * raster_koef) >> 0;
         if (undefined !== _heightPx)
-            _heightPx *= raster_koef;
+            _heightPx = (_heightPx * raster_koef) >> 0;
     }
 
-    var _canvas = (_canvasInput === undefined) ? document.createElement('canvas') : _canvasInput;
-
-    _canvas.width   = (undefined == _widthPx) ? w_px : _widthPx;
-    _canvas.height  = (undefined == _heightPx) ? h_px : _heightPx;
-
-    var _ctx = _canvas.getContext('2d');
-
-    var g = new AscCommon.CGraphics();
-    g.init(_ctx, w_px, h_px, w_mm, h_mm);
-    g.m_oFontManager = AscCommon.g_fontManager;
-
-    g.m_oCoordTransform.tx = 0;
-    g.m_oCoordTransform.ty = 0;
-
-    if (_widthPx !== undefined && _heightPx !== undefined)
+    var _canvas = null;
+    if (window["NATIVE_EDITOR_ENJINE"] === true && window["IS_NATIVE_EDITOR"] !== true)
     {
-        g.m_oCoordTransform.tx = (_widthPx - w_px) / 2;
-        g.m_oCoordTransform.ty = (_heightPx - h_px) / 2;
+        var _width  = undefined == _widthPx  ? w_px : _widthPx;
+        var _height = undefined == _heightPx ? h_px : _heightPx;
+        _canvas = new CNativeGraphics();
+        _canvas.width  = _width;
+        _canvas.height = _height;
+        _canvas.create(window["native"], _width, _height, _width / dKoef, _height / dKoef);
+        _canvas.CoordTransformOffset(_widthPx  !== undefined ? (_widthPx  - w_px) / 2 : 0,
+                                     _heightPx !== undefined ? (_heightPx - h_px) / 2 : 0);
+        _canvas.transform(1, 0, 0, 1, 0, 0);
+        var bNeedSetParaMarks = false;
+        if (AscCommon.isRealObject(editor) && editor.ShowParaMarks) 
+        {
+          bNeedSetParaMarks = true;
+          editor.ShowParaMarks = false;
+        }
+        par.Draw(0, _canvas);
+        if (bNeedSetParaMarks) 
+        {
+          editor.ShowParaMarks = true;
+        }
     }
-
-    g.transform(1,0,0,1,0,0);
-
-
-    var bNeedSetParaMarks = false;
-    if(AscCommon.isRealObject(editor) && editor.ShowParaMarks)
+    else
     {
-        bNeedSetParaMarks = true;
-        editor.ShowParaMarks = false;
-    }
+        var _canvas = (_canvasInput === undefined) ? document.createElement('canvas') : _canvasInput;
 
-    par.Draw(0, g);
+        _canvas.width   = (undefined == _widthPx) ? w_px : _widthPx;
+        _canvas.height  = (undefined == _heightPx) ? h_px : _heightPx;
 
-    if(bNeedSetParaMarks)
-    {
-        editor.ShowParaMarks = true;
+        var _ctx = _canvas.getContext('2d');
+
+        var g = new AscCommon.CGraphics();
+        g.init(_ctx, w_px, h_px, w_mm, h_mm);
+        g.m_oFontManager = AscCommon.g_fontManager;
+
+        g.m_oCoordTransform.tx = 0;
+        g.m_oCoordTransform.ty = 0;
+
+        if (_widthPx !== undefined && _heightPx !== undefined)
+        {
+            g.m_oCoordTransform.tx = (_widthPx - w_px) / 2;
+            g.m_oCoordTransform.ty = (_heightPx - h_px) / 2;
+        }
+
+        g.transform(1,0,0,1,0,0);
+
+        var bNeedSetParaMarks = false;
+        if(AscCommon.isRealObject(editor) && editor.ShowParaMarks)
+        {
+            bNeedSetParaMarks = true;
+            editor.ShowParaMarks = false;
+        }
+
+        par.Draw(0, g);
+
+        if(bNeedSetParaMarks)
+        {
+            editor.ShowParaMarks = true;
+        }
     }
 
     AscCommon.IsShapeToImageConverter = false;
@@ -3253,6 +3298,14 @@ ParaMath.prototype.Split = function (ContentPos, Depth)
 
     return NewParaMath;
 };
+ParaMath.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
+{
+	var oNewElement = this.Split(oContentPos, nDepth);
+	if (!oNewElement)
+		return;
+
+	oNewParagraph.AddToContent(oNewParagraph.Content.length, oNewElement, false);
+};
 
 /**
  * Пытаемся выполнить автозамену в формуле.
@@ -3436,6 +3489,10 @@ ParaMath.prototype.IsParentEquationPlaceholder = function()
 	}
 
 	return false;
+};
+ParaMath.prototype.CalculateTextToTable = function(oEngine)
+{
+	this.Root.CalculateTextToTable(oEngine);
 };
 
 function MatGetKoeffArgSize(FontSize, ArgSize)

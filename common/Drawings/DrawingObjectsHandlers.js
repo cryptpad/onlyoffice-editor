@@ -416,8 +416,8 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     var hit_in_text_rect = drawing.hitInTextRect && drawing.hitInTextRect(x, y);
     if(hit_in_inner_area || hit_in_path)
     {
-        if(drawingObjectsController.checkDrawingHyperlink){
-            var ret =  drawingObjectsController.checkDrawingHyperlink(drawing, e, hit_in_text_rect, x, y, pageIndex);
+        if(drawingObjectsController.checkDrawingHyperlinkAndMacro){
+            var ret =  drawingObjectsController.checkDrawingHyperlinkAndMacro(drawing, e, hit_in_text_rect, x, y, pageIndex);
             if(ret){
                 return ret;
             }
@@ -456,6 +456,11 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     {
         if(bWord/* && (!drawing.txWarpStruct || drawingObjectsController.curState.startTargetTextObject === drawing || drawing.haveSelectedDrawingInContent && drawing.haveSelectedDrawingInContent())*/)
         {
+            if(drawing.getObjectType() === AscDFH.historyitem_type_Shape &&
+                drawing.isForm() && drawing.getInnerForm() && drawing.getInnerForm().IsPicture())
+            {
+                return drawingObjectsController.handleMoveHit(drawing, e, x, y, group, false, pageIndex, bWord);
+            }
             var all_drawings = drawing.getDocContent().GetAllDrawingObjects();
             var drawings2 = [];
             for(var i = 0; i < all_drawings.length; ++i)
@@ -495,8 +500,8 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
     var ret;
     if(hit_in_inner_area || hit_in_path)
     {
-        if(drawingObjectsController.checkDrawingHyperlink){
-            var ret =  drawingObjectsController.checkDrawingHyperlink(shape, e, hit_in_text_rect, x, y, pageIndex);
+        if(drawingObjectsController.checkDrawingHyperlinkAndMacro){
+            var ret =  drawingObjectsController.checkDrawingHyperlinkAndMacro(shape, e, hit_in_text_rect, x, y, pageIndex);
             if(ret){
                 return ret;
             }
@@ -1425,11 +1430,11 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
 
             var aCharts = drawing.chart.plotArea.charts;
             var series = drawing.getAllSeries();
-            var _len = aCharts.length === 1 && aCharts[0].getObjectType() === AscDFH.historyitem_type_PieChart ? 1 : series.length;
+            var _len = aCharts.length === 1 && aCharts[0].getObjectType() === AscDFH.historyitem_type_PieChart ? Math.min(1, series.length) : series.length;
             for(var i = _len - 1; i > -1; --i)
             {
                 var ser = series[i];
-                var pts = AscFormat.getPtsFromSeries(ser);
+                var pts = ser.getNumPts();
                 var oDLbl;
                 for(var j = 0; j < pts.length; ++j)
                 {
@@ -1588,7 +1593,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                 }
 
             }
-            else if(hit_in_text_rect)
+            else if(hit_in_text_rect && drawing.selection.title === title)
             {
                 if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
@@ -1841,6 +1846,11 @@ function handleInlineShapeImage(drawing, drawingObjectsController, e, x, y, page
     {
         if(drawing.bWordShape /*&& (!drawing.txWarpStruct || drawingObjectsController.curState.startTargetTextObject === drawing || drawing.haveSelectedDrawingInContent && drawing.haveSelectedDrawingInContent())*/)
         {
+            if(drawing.getObjectType() === AscDFH.historyitem_type_Shape &&
+                drawing.isForm() && drawing.getInnerForm() && drawing.getInnerForm().IsPicture())
+            {
+                return handleInlineHitNoText(drawing, drawingObjectsController, e, x, y, pageIndex, false);
+            }
             var all_drawings = drawing.getDocContent().GetAllDrawingObjects();
             var drawings2 = [];
             for(var i = 0; i < all_drawings.length; ++i)
@@ -1889,7 +1899,7 @@ function handleInlineHitNoText(drawing, drawingObjects, e, x, y, pageIndex, bInS
                 else if (drawing.signatureLine && drawingObjects.handleSignatureDblClick){
                     drawingObjects.handleSignatureDblClick(drawing.signatureLine.id, drawing.extX, drawing.extY);
                 }
-                else if (2 === e.ClickCount && drawing.parent instanceof ParaDrawing && drawing.parent.IsMathEquation())
+                else if (2 === e.ClickCount && drawing.parent instanceof AscCommonWord.ParaDrawing && drawing.parent.IsMathEquation())
                 {
                     drawingObjects.handleMathDrawingDoubleClick(drawing.parent, e, x, y, pageIndex);
                 }

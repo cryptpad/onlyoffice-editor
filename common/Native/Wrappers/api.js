@@ -754,6 +754,31 @@ function asc_menu_ReadParaShd(_params, _cursor)
             }
         }
     }
+    if(_shd.Value === Asc.c_oAscShd.Clear) {
+        if(_shd.Color) {
+            if(_shd.Color.Auto) {
+                _shd.Color.r = 0;
+                _shd.Color.g = 0;
+                _shd.Color.b = 0;
+                _shd.Fill = {};
+                _shd.Fill.Auto = true;
+                _shd.Fill.r = 255;
+                _shd.Fill.g = 255;
+                _shd.Fill.b = 255;
+            }
+            else {
+                _shd.Color.Auto = false;
+                _shd.Fill.Auto = false;
+                _shd.Fill.r = _shd.Color.r;
+                _shd.Fill.g = _shd.Color.g;
+                _shd.Fill.b = _shd.Color.b;
+                var Unifill        = new AscFormat.CUniFill();
+                Unifill.fill       = new AscFormat.CSolidFill();
+                Unifill.fill.color = AscFormat.CorrectUniColor(_shd.Color, Unifill.fill.color, 1);
+                _shd.Unifill = Unifill;
+            }
+        }
+    }
     return _shd;
 }
 function asc_menu_WriteParaShd(_type, _shd, _stream)
@@ -1529,7 +1554,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 56: // ASC_MENU_EVENT_TYPE_INSERT_PAGENUMBER
         {
-            this.put_PageNum((_params[0] >> 16) & 0xFFFF, _params[0] & 0xFFFF);
+            if (_params[0] < 0) {
+                this.put_PageNum(-1);
+            } else {
+                this.put_PageNum((_params[0] >> 16) & 0xFFFF, _params[0] & 0xFFFF);
+            }
             break;
         }
         case 57: // ASC_MENU_EVENT_TYPE_INSERT_SECTIONBREAK
@@ -2733,6 +2762,22 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 26003: // ASC_MENU_EVENT_TYPE_DO_SET_CONTENTCONTROL_PICTURE
+        {
+            var _src = _params[_current.pos++];
+            var _w = _params[_current.pos++];
+            var _h = _params[_current.pos++];
+            var _pageNum = _params[_current.pos++];
+            var _additionalParams = _params[_current.pos++];
+
+            var json = JSON.parse(_additionalParams);
+            if (json) {
+                var internalId = json["internalId"] || "";
+                _api.SetContentControlPictureUrlNative(_src, internalId)
+            }
+            break;
+        }
+
         default:
             break;
     }
@@ -3535,661 +3580,17 @@ function asc_menu_WriteTablePr(_tablePr, _stream)
 ///////////////////////////////////////////////////////////////////////////
 // IMAGE
 ///////////////////////////////////////////////////////////////////////////
-function asc_menu_ReadAscValAxisSettings(_params, _cursor)
-{
-    var _settings = new AscCommon.asc_ValAxisSettings();
 
-    var _continue = true;
-    while (_continue)
-    {
-        var _attr = _params[_cursor.pos++];
-        switch (_attr)
-        {
-            case 0:
-            {
-                _settings.minValRule = _params[_cursor.pos++];
-                break;
-            }
-            case 1:
-            {
-                _settings.minVal = _params[_cursor.pos++];
-                break;
-            }
-            case 2:
-            {
-                _settings.maxValRule = _params[_cursor.pos++];
-                break;
-            }
-            case 3:
-            {
-                _settings.maxVal = _params[_cursor.pos++];
-                break;
-            }
-            case 4:
-            {
-                _settings.invertValOrder = _params[_cursor.pos++];
-                break;
-            }
-            case 5:
-            {
-                _settings.logScale = _params[_cursor.pos++];
-                break;
-            }
-            case 6:
-            {
-                _settings.logBase = _params[_cursor.pos++];
-                break;
-            }
-            case 7:
-            {
-                _settings.dispUnitsRule = _params[_cursor.pos++];
-                break;
-            }
-            case 8:
-            {
-                _settings.units = _params[_cursor.pos++];
-                break;
-            }
-            case 9:
-            {
-                _settings.showUnitsOnChart = _params[_cursor.pos++];
-                break;
-            }
-            case 10:
-            {
-                _settings.majorTickMark = _params[_cursor.pos++];
-                break;
-            }
-            case 11:
-            {
-                _settings.minorTickMark = _params[_cursor.pos++];
-                break;
-            }
-            case 12:
-            {
-                _settings.tickLabelsPos = _params[_cursor.pos++];
-                break;
-            }
-            case 13:
-            {
-                _settings.crossesRule = _params[_cursor.pos++];
-                break;
-            }
-            case 14:
-            {
-                _settings.crosses = _params[_cursor.pos++];
-                break;
-            }
-            case 15:
-            {
-                _settings.axisType = _params[_cursor.pos++];
-                break;
-            }
-            case 255:
-            default:
-            {
-                _continue = false;
-                break;
-            }
-        }
-    }
-
-    return _settings;
-};
-function asc_menu_WriteAscValAxisSettings(_type, _settings, _stream)
-{
-    if (!_settings)
-        return;
-
-    _stream["WriteByte"](_type);
-
-    if (_settings.minValRule !== undefined && _settings.minValRule !== null)
-    {
-        _stream["WriteByte"](0);
-        _stream["WriteLong"](_settings.minValRule);
-    }
-    if (_settings.minVal !== undefined && _settings.minVal !== null)
-    {
-        _stream["WriteByte"](1);
-        _stream["WriteLong"](_settings.minVal);
-    }
-    if (_settings.maxValRule !== undefined && _settings.maxValRule !== null)
-    {
-        _stream["WriteByte"](2);
-        _stream["WriteLong"](_settings.maxValRule);
-    }
-    if (_settings.maxVal !== undefined && _settings.maxVal !== null)
-    {
-        _stream["WriteByte"](3);
-        _stream["WriteLong"](_settings.maxVal);
-    }
-    if (_settings.invertValOrder !== undefined && _settings.invertValOrder !== null)
-    {
-        _stream["WriteByte"](4);
-        _stream["WriteBool"](_settings.invertValOrder);
-    }
-    if (_settings.logScale !== undefined && _settings.logScale !== null)
-    {
-        _stream["WriteByte"](5);
-        _stream["WriteBool"](_settings.logScale);
-    }
-    if (_settings.logBase !== undefined && _settings.logBase !== null)
-    {
-        _stream["WriteByte"](6);
-        _stream["WriteLong"](_settings.logBase);
-    }
-    if (_settings.dispUnitsRule !== undefined && _settings.dispUnitsRule !== null)
-    {
-        _stream["WriteByte"](7);
-        _stream["WriteLong"](_settings.dispUnitsRule);
-    }
-    if (_settings.units !== undefined && _settings.units !== null)
-    {
-        _stream["WriteByte"](8);
-        _stream["WriteLong"](_settings.units);
-    }
-    if (_settings.showUnitsOnChart !== undefined && _settings.showUnitsOnChart !== null)
-    {
-        _stream["WriteByte"](9);
-        _stream["WriteBool"](_settings.showUnitsOnChart);
-    }
-    if (_settings.majorTickMark !== undefined && _settings.majorTickMark !== null)
-    {
-        _stream["WriteByte"](10);
-        _stream["WriteLong"](_settings.majorTickMark);
-    }
-    if (_settings.minorTickMark !== undefined && _settings.minorTickMark !== null)
-    {
-        _stream["WriteByte"](11);
-        _stream["WriteLong"](_settings.minorTickMark);
-    }
-    if (_settings.tickLabelsPos !== undefined && _settings.tickLabelsPos !== null)
-    {
-        _stream["WriteByte"](12);
-        _stream["WriteLong"](_settings.tickLabelsPos);
-    }
-    if (_settings.crossesRule !== undefined && _settings.crossesRule !== null)
-    {
-        _stream["WriteByte"](13);
-        _stream["WriteLong"](_settings.crossesRule);
-    }
-    if (_settings.crosses !== undefined && _settings.crosses !== null)
-    {
-        _stream["WriteByte"](14);
-        _stream["WriteLong"](_settings.crosses);
-    }
-    if (_settings.axisType !== undefined && _settings.axisType !== null)
-    {
-        _stream["WriteByte"](15);
-        _stream["WriteLong"](_settings.axisType);
-    }
-
-    _stream["WriteByte"](255);
-};
-function asc_menu_ReadAscCatAxisSettings(_params, _cursor){
-    var _settings = new AscCommon.asc_CatAxisSettings();
-
-    var _continue = true;
-    while (_continue)
-    {
-        var _attr = _params[_cursor.pos++];
-        switch (_attr)
-        {
-            case 0:
-            {
-                _settings.putInternalBetweenTick(_params[_cursor.pos++]);
-                break;
-            }
-            case 1:
-            {
-                _settings.putIntervalBetweenLabelsRule(_params[_cursor.pos++]);
-                break;
-            }
-            case 2:
-            {
-                _settings.putInternalBetweenLabels(_params[_cursor.pos++]);
-                break;
-            }
-            case 3:
-            {
-                _settings.putInvertCatOrder(_params[_cursor.pos++]);
-                break;
-            }
-            case 4:
-            {
-                _settings.putLabelsAxisDistance(_params[_cursor.pos++]);
-                break;
-            }
-            case 5:
-            {
-                _settings.putLabelsPosition(_params[_cursor.pos++]);
-                break;
-            }
-            case 6:
-            {
-                _settings.putMajorTickMark(_params[_cursor.pos++]);
-                break;
-            }
-            case 7:
-            {
-                _settings.putMinorTickMark(_params[_cursor.pos++]);
-                break;
-            }
-            case 8:
-            {
-                _settings.putTickLabelsPos(_params[_cursor.pos++]);
-                break;
-            }
-            case 9:
-            {
-                _settings.putCrossesRule(_params[_cursor.pos++]);
-                break;
-            }
-            case 10:
-            {
-                _settings.putCrosses(_params[_cursor.pos++]);
-                break;
-            }
-            case 11:
-            {
-                _settings.putAxisType(_params[_cursor.pos++]);
-                break;
-            }
-            case 12:
-            {
-                _settings.putCrossMinVal(_params[_cursor.pos++]);
-                break;
-            }
-            case 13:
-            {
-                _settings.putCrossMaxVal(_params[_cursor.pos++]);
-                break;
-            }
-            case 255:
-            default:
-            {
-                _continue = false;
-                break;
-            }
-        }
-    }
-
-    return _settings;
-}
-function asc_menu_WriteAscCatAxisSettings(_type, _settings, _stream){
-    if (!_settings)
-        return;
-
-    _stream["WriteByte"](_type);
-
-    if (_settings.getIntervalBetweenTick() !== undefined && _settings.getIntervalBetweenTick() !== null)
-    {
-        _stream["WriteByte"](0);
-        _stream["WriteDouble2"](_settings.getIntervalBetweenTick());
-    }
-    if (_settings.getIntervalBetweenLabelsRule() !== undefined && _settings.getIntervalBetweenLabelsRule() !== null)
-    {
-        _stream["WriteByte"](1);
-        _stream["WriteLong"](_settings.getIntervalBetweenLabelsRule());
-    }
-    if (_settings.getIntervalBetweenLabels() !== undefined && _settings.getIntervalBetweenLabels() !== null)
-    {
-        _stream["WriteByte"](2);
-        _stream["WriteDouble2"](_settings.getIntervalBetweenLabels());
-    }
-    if (_settings.getInvertCatOrder() !== undefined && _settings.getInvertCatOrder() !== null)
-    {
-        _stream["WriteByte"](3);
-        _stream["WriteBool"](_settings.getInvertCatOrder());
-    }
-    if (_settings.getLabelsAxisDistance() !== undefined && _settings.getLabelsAxisDistance() !== null)
-    {
-        _stream["WriteByte"](4);
-        _stream["WriteDouble2"](_settings.getLabelsAxisDistance());
-    }
-    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
-    {
-        _stream["WriteByte"](5);
-        _stream["WriteLong"](_settings.getTickLabelsPos());
-    }
-    if (_settings.getMajorTickMark() !== undefined && _settings.getMajorTickMark() !== null)
-    {
-        _stream["WriteByte"](6);
-        _stream["WriteLong"](_settings.getMajorTickMark());
-    }
-    if (_settings.getMinorTickMark() !== undefined && _settings.getMinorTickMark() !== null)
-    {
-        _stream["WriteByte"](7);
-        _stream["WriteLong"](_settings.getMinorTickMark());
-    }
-    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
-    {
-        _stream["WriteByte"](8);
-        _stream["WriteLong"](_settings.getTickLabelsPos());
-    }
-    if (_settings.getCrossesRule() !== undefined && _settings.getCrossesRule() !== null)
-    {
-        _stream["WriteByte"](9);
-        _stream["WriteLong"](_settings.getCrossesRule());
-    }
-    if (_settings.getCrosses() !== undefined && _settings.getCrosses() !== null)
-    {
-        _stream["WriteByte"](10);
-        _stream["WriteLong"](_settings.getCrosses());
-    }
-    if (_settings.getAxisType() !== undefined && _settings.getAxisType() !== null)
-    {
-        _stream["WriteByte"](11);
-        _stream["WriteLong"](_settings.getAxisType());
-    }
-    if (_settings.getCrossMinVal() !== undefined && _settings.getCrossMinVal() !== null)
-    {
-        _stream["WriteByte"](12);
-        _stream["WriteLong"](_settings.getCrossMinVal());
-    }
-    if (_settings.getCrossMaxVal() !== undefined && _settings.getCrossMaxVal() !== null)
-    {
-        _stream["WriteByte"](13);
-        _stream["WriteLong"](_settings.getCrossMaxVal());
-    }
-
-    _stream["WriteByte"](255);
-}
-function asc_menu_ReadChartPr(_params, _cursor)
-{
+function asc_menu_ReadChartPr(_params, _cursor){
     var _settings = new Asc.asc_ChartSettings();
-
-    var _continue = true;
-    while (_continue)
-    {
-        var _attr = _params[_cursor.pos++];
-        switch (_attr)
-        {
-            case 0:
-            {
-                _settings.style = _params[_cursor.pos++];
-                break;
-            }
-            case 1:
-            {
-                _settings.title = _params[_cursor.pos++];
-                break;
-            }
-            case 2:
-            {
-                _settings.rowCols = _params[_cursor.pos++];
-                break;
-            }
-            case 3:
-            {
-                _settings.horAxisLabel = _params[_cursor.pos++];
-                break;
-            }
-            case 4:
-            {
-                _settings.vertAxisLabel = _params[_cursor.pos++];
-                break;
-            }
-            case 5:
-            {
-                _settings.legendPos = _params[_cursor.pos++];
-                break;
-            }
-            case 6:
-            {
-                _settings.dataLabelsPos = _params[_cursor.pos++];
-                break;
-            }
-            case 7:
-            {
-                _settings.horAx = _params[_cursor.pos++];
-                break;
-            }
-            case 8:
-            {
-                _settings.vertAx = _params[_cursor.pos++];
-                break;
-            }
-            case 9:
-            {
-                _settings.horGridLines = _params[_cursor.pos++];
-                break;
-            }
-            case 10:
-            {
-                _settings.vertGridLines = _params[_cursor.pos++];
-                break;
-            }
-            case 11:
-            {
-                _settings.type = _params[_cursor.pos++];
-                break;
-            }
-            case 12:
-            {
-                _settings.showSerName = _params[_cursor.pos++];
-                break;
-            }
-            case 13:
-            {
-                _settings.showCatName = _params[_cursor.pos++];
-                break;
-            }
-            case 14:
-            {
-                _settings.showVal = _params[_cursor.pos++];
-                break;
-            }
-            case 15:
-            {
-                _settings.separator = _params[_cursor.pos++];
-                break;
-            }
-            case 16:
-            {
-                _settings.horAxisProps = asc_menu_ReadAscValAxisSettings(_params, _cursor);
-                break;
-            }
-            case 17:
-            {
-                _settings.vertAxisProps = asc_menu_ReadAscValAxisSettings(_params, _cursor);
-                break;
-            }
-            case 18:
-            {
-                _settings.putRange(_params[_cursor.pos++]);
-                break;
-            }
-            case 19:
-            {
-                _settings.inColumns = _params[_cursor.pos++];
-                break;
-            }
-            case 20:
-            {
-                _settings.showMarker = _params[_cursor.pos++];
-                break;
-            }
-            case 21:
-            {
-                _settings.bLine = _params[_cursor.pos++];
-                break;
-            }
-            case 22:
-            {
-                _settings.smooth = _params[_cursor.pos++];
-                break;
-            }
-            case 23:
-            {
-                _settings.horAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
-                break;
-            }
-            case 24:
-            {
-                _settings.vertAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
-                break;
-            }
-            case 255:
-            default:
-            {
-                _continue = false;
-                break;
-            }
-        }
-    }
-
+    _settings.read(_params, _cursor);
     return _settings;
-};
-function asc_menu_WriteChartPr(_type, _chartPr, _stream)
-{
+}
+function asc_menu_WriteChartPr(_type, _chartPr, _stream){
     if (!_chartPr)
         return;
-
-    _stream["WriteByte"](_type);
-
-    if (_chartPr.style !== undefined && _chartPr.style !== null)
-    {
-        _stream["WriteByte"](0);
-        _stream["WriteLong"](_chartPr.style);
-    }
-    if (_chartPr.title !== undefined && _chartPr.title !== null)
-    {
-        _stream["WriteByte"](1);
-        _stream["WriteLong"](_chartPr.title);
-    }
-    if (_chartPr.rowCols !== undefined && _chartPr.rowCols !== null)
-    {
-        _stream["WriteByte"](2);
-        _stream["WriteLong"](_chartPr.rowCols);
-    }
-    if (_chartPr.horAxisLabel !== undefined && _chartPr.horAxisLabel !== null)
-    {
-        _stream["WriteByte"](3);
-        _stream["WriteLong"](_chartPr.horAxisLabel);
-    }
-    if (_chartPr.vertAxisLabel !== undefined && _chartPr.vertAxisLabel !== null)
-    {
-        _stream["WriteByte"](4);
-        _stream["WriteLong"](_chartPr.vertAxisLabel);
-    }
-    if (_chartPr.legendPos !== undefined && _chartPr.legendPos !== null)
-    {
-        _stream["WriteByte"](5);
-        _stream["WriteLong"](_chartPr.legendPos);
-    }
-    if (_chartPr.dataLabelsPos !== undefined && _chartPr.dataLabelsPos !== null)
-    {
-        _stream["WriteByte"](6);
-        _stream["WriteLong"](_chartPr.dataLabelsPos);
-    }
-    if (_chartPr.horAx !== undefined && _chartPr.horAx !== null)
-    {
-        _stream["WriteByte"](7);
-        _stream["WriteLong"](_chartPr.horAx);
-    }
-    if (_chartPr.vertAx !== undefined && _chartPr.vertAx !== null)
-    {
-        _stream["WriteByte"](8);
-        _stream["WriteLong"](_chartPr.vertAx);
-    }
-    if (_chartPr.horGridLines !== undefined && _chartPr.horGridLines !== null)
-    {
-        _stream["WriteByte"](9);
-        _stream["WriteLong"](_chartPr.horGridLines);
-    }
-    if (_chartPr.vertGridLines !== undefined && _chartPr.vertGridLines !== null)
-    {
-        _stream["WriteByte"](10);
-        _stream["WriteLong"](_chartPr.vertGridLines);
-    }
-    if (_chartPr.type !== undefined && _chartPr.type !== null)
-    {
-        _stream["WriteByte"](11);
-        _stream["WriteLong"](_chartPr.type);
-    }
-
-    if (_chartPr.showSerName !== undefined && _chartPr.showSerName !== null)
-    {
-        _stream["WriteByte"](12);
-        _stream["WriteBool"](_chartPr.showSerName);
-    }
-    if (_chartPr.showCatName !== undefined && _chartPr.showCatName !== null)
-    {
-        _stream["WriteByte"](13);
-        _stream["WriteBool"](_chartPr.showCatName);
-    }
-    if (_chartPr.showVal !== undefined && _chartPr.showVal !== null)
-    {
-        _stream["WriteByte"](14);
-        _stream["WriteBool"](_chartPr.showVal);
-    }
-
-    if (_chartPr.separator !== undefined && _chartPr.separator !== null)
-    {
-        _stream["WriteByte"](15);
-        _stream["WriteString2"](_chartPr.separator);
-    }
-
-    if (undefined != _chartPr.horAxisProps
-        && null != _chartPr.horAxisProps
-        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
-        asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
-    }
-
-    if (undefined != _chartPr.vertAxisProps
-        && null != _chartPr.vertAxisProps
-        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
-        asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
-    }
-
-    var sRange = null;
-    sRange = _chartPr.getRange();
-    if(!sRange)
-    {
-        sRange = _chartPr.aRanges[0];
-    }
-    if (sRange !== undefined && sRange !== null)
-    {
-        _stream["WriteByte"](18);
-        _stream["WriteString2"](sRange);
-    }
-
-    if (_chartPr.inColumns !== undefined && _chartPr.inColumns !== null)
-    {
-        _stream["WriteByte"](19);
-        _stream["WriteBool"](_chartPr.inColumns);
-    }
-    if (_chartPr.showMarker !== undefined && _chartPr.showMarker !== null)
-    {
-        _stream["WriteByte"](20);
-        _stream["WriteBool"](_chartPr.showMarker);
-    }
-    if (_chartPr.bLine !== undefined && _chartPr.bLine !== null)
-    {
-        _stream["WriteByte"](21);
-        _stream["WriteBool"](_chartPr.bLine);
-    }
-    if (_chartPr.smooth !== undefined && _chartPr.smooth !== null)
-    {
-        _stream["WriteByte"](22);
-        _stream["WriteBool"](_chartPr.showVal);
-    }
-
-    if (undefined != _chartPr.horAxisProps
-        && null != _chartPr.horAxisProps
-        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
-        asc_menu_WriteAscCatAxisSettings(23, _chartPr.horAxisProps, _stream);
-    }
-
-    if (undefined != _chartPr.vertAxisProps
-        && null != _chartPr.vertAxisProps
-        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
-        asc_menu_WriteAscCatAxisSettings(24, _chartPr.vertAxisProps, _stream);
-    }
-
-    _stream["WriteByte"](255);
-};
+    _chartPr.write(_type, _stream);
+}
 
 function asc_menu_ReadAscFill_solid(_params, _cursor)
 {
@@ -4772,6 +4173,12 @@ function asc_menu_ReadShapePr(_params, _cursor)
             case 6:
             {
                 _settings.InsertPageNum = _params[_cursor.pos++];
+                break;
+            }
+            case 7:
+            {
+                _settings.bFromGroup = _params[_cursor.pos++];
+                break;
             }
             case 255:
             default:
@@ -4810,6 +4217,12 @@ function asc_menu_WriteShapePr(_type, _shapePr, _stream)
     {
         _stream["WriteByte"](5);
         _stream["WriteBool"](_shapePr.bFromChart);
+    }
+    //6 - InsertPageNum
+    if (_shapePr.bFromGroup !== undefined && _shapePr.bFromGroup !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteBool"](_shapePr.bFromGroup);
     }
 
     _stream["WriteByte"](255);
@@ -5462,6 +4875,39 @@ Asc['asc_docs_api'].prototype.AddImageUrlNative = function(url, _w, _h, _pageNum
 	this.WordControl.m_oLogicDocument.Recalculate();
 	this.WordControl.m_oLogicDocument.FinalizeAction();
 };
+Asc['asc_docs_api'].prototype.SetContentControlPictureUrlNative = function(sUrl, sId)
+{
+	if (this.WordControl && this.WordControl.m_oDrawingDocument)
+	{
+		this.WordControl.m_oDrawingDocument.UnlockCursorType();
+	}
+
+	var oLogicDocument = this.private_GetLogicDocument();
+	if (!oLogicDocument || AscCommon.isNullOrEmptyString(sUrl))
+		return;
+
+	var oCC = oLogicDocument.GetContentControl(sId);
+	oCC.SkipSpecialContentControlLock(true);
+	if (!oCC || !oCC.IsPicture() || !oCC.SelectPicture() || !oCC.CanBeEdited())
+	{
+		oCC.SkipSpecialContentControlLock(false);
+		return;
+	}
+
+	if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Image_Properties, undefined, false, oLogicDocument.IsFormFieldEditing()))
+	{
+		oCC.SkipSpecialContentControlLock(false);
+		oLogicDocument.StartAction(AscDFH.historydescription_Document_ApplyImagePrWithUrl);
+		oLogicDocument.SetImageProps({ImageUrl : sUrl});
+		oCC.SetShowingPlcHdr(false);
+		oLogicDocument.UpdateTracks();
+		oLogicDocument.FinalizeAction();
+	}
+	else
+	{
+		oCC.SkipSpecialContentControlLock(false);
+	}
+}
 Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _pageNum)
 {
   var section_select = this.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
@@ -5594,6 +5040,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
     }
 
     this.Send_Menu_Event(6);
+    this.sendEvent("asc_onFocusObject", this.SelectedObjectsStack);
 };
 
 function Deserialize_Table_Markup(_params, _cols, _margins, _rows)
@@ -5836,8 +5283,8 @@ function CFontManager()
 
 function CStylesPainter()
 {
-    this.STYLE_THUMBNAIL_WIDTH  = AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_WIDTH;
-    this.STYLE_THUMBNAIL_HEIGHT = AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_HEIGHT;
+    this.STYLE_THUMBNAIL_WIDTH  = AscCommon.GlobalSkin.STYLE_THUMBNAIL_WIDTH;
+    this.STYLE_THUMBNAIL_HEIGHT = AscCommon.GlobalSkin.STYLE_THUMBNAIL_HEIGHT;
 
     this.CurrentTranslate = null;
     this.IsRetinaEnabled = false;
@@ -6151,12 +5598,12 @@ Asc['asc_docs_api'].prototype["Native_Editor_Initialize_Settings"] = function(_p
         {
             case 0:
             {
-                AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_WIDTH = _params[_current.pos++];
+                AscCommon.GlobalSkin.STYLE_THUMBNAIL_WIDTH = _params[_current.pos++];
                 break;
             }
             case 1:
             {
-                AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = _params[_current.pos++];
+                AscCommon.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = _params[_current.pos++];
                 break;
             }
             case 2:
@@ -6358,7 +5805,7 @@ AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics,
           this.chartsByTypes[type] = this.getChartByType(type);
 
       var chart_space = this.chartsByTypes[type];
-      AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[type][styleIndex]);
       chart_space.recalcInfo.recalculateReferences = false;
       chart_space.recalculate();
 
@@ -6389,8 +5836,8 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
 
             var _graphics = new CDrawingStream();
 
-            if(AscCommon.g_oChartPresets[chartType]){
-                var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
+            if(AscCommon.g_oChartStyles[chartType]){
+                var nStylesCount = AscCommon.g_oChartStyles[chartType].length;
                 for(var i = 0; i < nStylesCount; ++i)
                     this.createChartPreview(_graphics, chartType, i);
             }
@@ -6554,7 +6001,13 @@ function NativeOpenFile3(_params, documentInfo)
                                   asc_WriteColorSchemes(schemes, stream);
                                   window["native"]["OnCallMenuEvent"](2404, stream); // ASC_SPREADSHEETS_EVENT_TYPE_COLOR_SCHEMES
                                   });
+        _api.asc_registerCallback("asc_onSendThemeColors", onApiSendThemeColors);
 
+        _api.asc_registerCallback("asc_onFocusObject", onFocusObject);
+        _api.asc_registerCallback('asc_onStartAction', onApiLongActionBegin);
+        _api.asc_registerCallback('asc_onEndAction', onApiLongActionEnd);
+        _api.asc_registerCallback('asc_onError', onApiError);
+        
         // Comments
 
         _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
@@ -6573,6 +6026,11 @@ function NativeOpenFile3(_params, documentInfo)
 
         _api.asc_registerCallback("asc_onDocumentPlaceChanged", onDocumentPlaceChanged);
         _api.asc_registerCallback("asc_onShowRevisionsChange", onApiShowRevisionsChange);
+
+        // Fill forms
+        
+        _api.asc_registerCallback('asc_onShowContentControlsActions', onShowContentControlsActions);
+        _api.asc_registerCallback('asc_onHideContentControlsActions', onHideContentControlsActions);
 
         // Co-authoring
 
@@ -6626,6 +6084,7 @@ function NativeOpenFile3(_params, documentInfo)
 
             if (null != _api.WordControl.m_oLogicDocument)
             {
+                _api.WordControl.m_oDrawingDocument.CheckGuiControlColors();
                 _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
             }
 
@@ -6635,6 +6094,7 @@ function NativeOpenFile3(_params, documentInfo)
             initTrackRevisions();
         }
     }
+    _api.isDocumentLoadComplete = true;
 }
 
 // Common
@@ -7032,6 +6492,8 @@ function onApiShowRevisionsChange(data) {
 
             var revisionChange = {
                 userName: userName,
+                userId: item.get_UserId(),
+                lock: (item.get_LockUserId()!==null),
                 date: (item.get_DateTime() == '' ? new Date().getMilliseconds() : item.get_DateTime()),
                 goto: (item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveTo || item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveFrom),
                 commonChanges: commonChanges,
@@ -7049,6 +6511,315 @@ function onApiShowRevisionsChange(data) {
     }
     postDataAsJSONString(revisionChanges, 24001); // ASC_MENU_EVENT_TYPE_SHOW_REVISIONS_CHANGE
 };
+
+// Fill forms
+
+function readSDKContentControl(props, selectedObjects) {
+    var type = props.get_SpecificType(),
+        internalId = props.get_InternalId(),
+        specProps;
+
+    var result = {
+        get_InternalId: internalId,
+        get_PlaceholderText: props.get_PlaceholderText(),
+        get_Lock: props.get_Lock(),
+        get_SpecificType: type
+    };
+
+    // for list controls
+    if (type == Asc.c_oAscContentControlSpecificType.ComboBox || type == Asc.c_oAscContentControlSpecificType.DropDownList) {
+        specProps = (type == Asc.c_oAscContentControlSpecificType.ComboBox) ? props.get_ComboBoxPr() : props.get_DropDownListPr();
+        if (specProps) {
+            var count = specProps.get_ItemsCount();
+            var arr = [];
+            for (var i = 0; i < count; i++) {
+                (specProps.get_ItemValue(i) !== '') && arr.push({
+                    value: specProps.get_ItemValue(i),
+                    name: specProps.get_ItemDisplayText(i)
+                });
+            }
+            result["values"] = arr;
+        }
+    } else if (type == Asc.c_oAscContentControlSpecificType.CheckBox) {
+        specProps = props.get_CheckBoxPr();
+    } else if (type == Asc.c_oAscContentControlSpecificType.Picture) {
+        for (i = 0; i < selectedObjects.length; i++) {
+            var eltype = selectedObjects[i].get_ObjectType();
+
+            if (eltype === Asc.c_oAscTypeSelectElement.Image) {
+                var value = selectedObjects[i].get_ObjectValue();
+                if (value.get_ChartProperties() == null && value.get_ShapeProperties() == null) {
+                    result["get_ImageUrl"] = value.get_ImageUrl();
+                    break;
+                }
+            }
+        }
+    }
+
+    // form settings
+    var formPr = props.get_FormPr();
+    if (formPr) {
+        var data = [];
+        if (type == Asc.c_oAscContentControlSpecificType.CheckBox) {
+            data = _api.asc_GetCheckBoxFormKeys();
+            result["asc_GetCheckBoxFormKeys"] = data;
+        } else if (type == Asc.c_oAscContentControlSpecificType.Picture) {
+            data = _api.asc_GetPictureFormKeys();
+            result["asc_GetPictureFormKeys"] = data;
+        } else {
+            data = _api.asc_GetTextFormKeys();
+            result["asc_GetTextFormKeys"] = data;
+        }
+
+        var arr = [];
+        data.forEach(function (item) {
+            arr.push({ displayValue: item, value: item });
+        });
+
+        result["FormKeys"] = arr;
+
+        var val = formPr.get_Key();
+        result["get_Key"] = val;
+
+        if (val) {
+            val = _api.asc_GetFormsCountByKey(val);
+            result["asc_GetFormsCountByKey"] = val;
+        }
+        
+        val = formPr.get_HelpText();
+        result["get_HelpText"] = val;
+
+        if (type == Asc.c_oAscContentControlSpecificType.CheckBox && specProps) {
+            val = specProps.get_GroupKey();
+            result["get_GroupKey"] = val;
+            
+            var ischeckbox = (typeof val !== 'string');
+            result["isCheckBox"] = ischeckbox;
+
+            val = specProps.get_Checked();
+            result["get_Checked"] = val;
+
+            val = _api.asc_IsContentControlCheckBoxChecked(internalId);
+            result["asc_IsContentControlCheckBoxChecked"] = val;
+
+            
+            if (!ischeckbox) {
+                data = _api.asc_GetRadioButtonGroupKeys();
+                result["asc_GetRadioButtonGroupKeys"] = data;
+
+                var arr = [];
+                data.forEach(function(item) {
+                    arr.push({ displayValue: item,  value: item });
+                });
+
+                result["GroupKeys"] = arr;
+            }
+        }
+
+        var formTextPr = props.get_TextFormPr();
+        if (formTextPr) {
+            val = formTextPr.get_Comb();
+            result["get_Comb"] = val;
+
+            val = formTextPr.get_Width();
+            result["get_Width"] = val;
+            
+            val = _api.asc_GetTextFormAutoWidth();
+            result["asc_GetTextFormAutoWidth"] = val;
+            
+            val = formTextPr.get_MaxCharacters();
+            result["get_MaxCharacters"] = val;
+        }
+    }
+
+    return result;
+}
+
+function onShowContentControlsActions(obj, x, y) {
+    var type = obj.type;
+    var data = {
+        "x": x,
+        "y": y,
+        "type": type
+    };
+    var contentControllJSON = {};
+
+    switch (type) {
+        case Asc.c_oAscContentControlSpecificType.DateTime:
+            contentControllJSON = contentControllDateTimeToJSON(obj);
+            break;
+        case Asc.c_oAscContentControlSpecificType.Picture:
+            if (obj.pr && obj.pr.get_Lock) {
+                var lock = obj.pr.get_Lock();
+                if (lock == Asc.c_oAscSdtLockType.SdtContentLocked || lock == Asc.c_oAscSdtLockType.ContentLocked)
+                    return;
+            }
+            break;
+        case Asc.c_oAscContentControlSpecificType.DropDownList:
+        case Asc.c_oAscContentControlSpecificType.ComboBox:
+            contentControllJSON = contentControllListAToJSON(obj);
+            break;
+    }
+
+    // merge
+    for(var key in contentControllJSON) {
+        data[key] = contentControllJSON[key];
+    }
+
+    postDataAsJSONString(data, 26001); // ASC_MENU_EVENT_TYPE_SHOW_CONTENT_CONTROLS_ACTIONS
+}
+
+function onHideContentControlsActions() {
+    postDataAsJSONString(null, 26002); // ASC_MENU_EVENT_TYPE_HIDE_CONTENT_CONTROLS_ACTIONS
+}
+
+function contentControllDateTimeToJSON(obj) {
+    var props = obj.pr,
+        specProps = props.get_DateTimePr();
+
+    return {
+        date: specProps ? specProps.get_FullDate() : null
+    }
+}
+
+function contentControllListAToJSON(obj) {
+    var type = obj.type,
+        props = obj.pr,
+        specProps = (type == Asc.c_oAscContentControlSpecificType.ComboBox) ? props.get_ComboBoxPr() : props.get_DropDownListPr(),
+        isForm = !!props.get_FormPr(),
+        internalId = props.get_InternalId()
+        items = [];
+
+    if (specProps) {
+        if (isForm) { // for dropdown and combobox form control always add placeholder item
+            var text = props.get_PlaceholderText();
+            items.push({
+                caption: text,
+                value: ''
+            });
+        }
+        var count = specProps.get_ItemsCount();
+        for (var i = 0; i < count; i++) {
+            (specProps.get_ItemValue(i) !== '' || !isForm) && items.push({
+                caption: specProps.get_ItemDisplayText(i),
+                value: specProps.get_ItemValue(i)
+            });
+        }
+        if (!isForm && menu.items.length < 1) {
+            items.push({
+                caption: '',
+                value: '-1'
+            });
+        }
+    }
+
+    return {
+        internalId: internalId,
+        isForm: isForm,
+        items: items
+    }
+}
+
+// Common
+
+function getHexColor(r, g, b) {
+    r = r.toString(16);
+    g = g.toString(16);
+    b = b.toString(16);
+    if (r.length == 1) r = '0' + r;
+    if (g.length == 1) g = '0' + g;
+    if (b.length == 1) b = '0' + b;
+    return r + g + b;
+}
+
+function onFocusObject(SelectedObjects) {
+    var settings = [];
+    var isChart = false;
+    var control_props = _api.asc_IsContentControl() ? _api.asc_GetContentControlProperties() : null,
+        control_lock = false;
+
+    for (i = 0; i < SelectedObjects.length; i++) {
+        var content_locked = false;
+        var eltype = SelectedObjects[i].get_ObjectType();
+        var value = SelectedObjects[i].get_ObjectValue();
+        
+        switch (eltype)
+        {
+            case Asc.c_oAscTypeSelectElement.Paragraph:
+            case Asc.c_oAscTypeSelectElement.Header:
+            case Asc.c_oAscTypeSelectElement.Table:
+            case Asc.c_oAscTypeSelectElement.Image:
+            case Asc.c_oAscTypeSelectElement.Hyperlink:
+            case Asc.c_oAscTypeSelectElement.Math:
+            {
+                settings.push({
+                    type: eltype,
+                    rawValue: JSON.prune(value, 5)
+                });
+                break;
+            }
+            case Asc.c_oAscTypeSelectElement.SpellCheck:
+            default:
+            {
+                break;
+            }
+        }
+    }
+
+    // Form object
+    if (control_props && control_props.get_FormPr()) {
+        var spectype = control_props.get_SpecificType();
+        settings.push({
+            type: Asc.c_oAscTypeSelectElement.ContentControl,
+            spectype: spectype,
+            rawValue: JSON.prune(control_props, 4),
+            value: readSDKContentControl(control_props, SelectedObjects)
+        });
+    }
+
+    postDataAsJSONString(settings, 26101); // ASC_MENU_EVENT_TYPE_FOCUS_OBJECT
+}
+
+function onApiLongActionBegin(type, id) {
+    var info = {
+        "type" : type,
+        "id" : id
+    };
+    postDataAsJSONString(info, 26102); // ASC_MENU_EVENT_TYPE_LONGACTION_BEGIN
+}
+
+function onApiLongActionEnd(type, id) {
+    var info = {
+        "type" : type,
+        "id" : id
+    };
+    postDataAsJSONString(info, 26103); // ASC_MENU_EVENT_TYPE_LONGACTION_END
+}
+
+function onApiError(id, level, errData) {
+    var info = {
+        "level" : level,
+        "id" : id,
+        "errData" : JSON.prune(errData, 4),
+    };
+    postDataAsJSONString(info, 26104); // ASC_MENU_EVENT_TYPE_API_ERROR
+}
+
+function onApiSendThemeColors(theme_colors, standart_colors) {
+    var colors = {
+        "themeColors": theme_colors.map(function(color) {
+            return getHexColor(color.get_r(), color.get_g(), color.get_b());
+        })
+    }
+    if (standart_colors != null) {
+        colors["standartColors"] = standart_colors.map(function(color) {
+            return getHexColor(color.get_r(), color.get_g(), color.get_b());
+        });
+    }
+    postDataAsJSONString(colors, 2417); // ASC_MENU_EVENT_TYPE_THEMECOLORS
+}
+
+// Others
 
 var DocumentPageSize = new function()
 {
@@ -7184,6 +6955,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         
         if (null != _api.WordControl.m_oLogicDocument)
         {
+            _api.WordControl.m_oDrawingDocument.CheckGuiControlColors();
             _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
         }
   
@@ -7212,7 +6984,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
 
     if (null != _api.WordControl.m_oLogicDocument)
     {
-         _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
+        _api.WordControl.m_oDrawingDocument.CheckGuiControlColors();
+        _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
     }
 
     window["native"]["onEndLoadingFile"]();
@@ -7294,3 +7067,171 @@ window["AscCommon"].sendImgUrls = function(api, images, callback)
 };
 
 window["native"]["offline_of"] = function(_params, documentInfo) {NativeOpenFile3(_params, documentInfo);};
+
+
+
+
+// JSON.prune : a function to stringify any object without overflow
+// two additional optional parameters :
+//   - the maximal depth (default : 6)
+//   - the maximal length of arrays (default : 50)
+// You can also pass an "options" object.
+// examples :
+//   var json = JSON.prune(window)
+//   var arr = Array.apply(0,Array(1000)); var json = JSON.prune(arr, 4, 20)
+//   var json = JSON.prune(window.location, {inheritedProperties:true})
+// Web site : http://dystroy.org/JSON.prune/
+// JSON.prune on github : https://github.com/Canop/JSON.prune
+// This was discussed here : http://stackoverflow.com/q/13861254/263525
+// The code is based on Douglas Crockford's code : https://github.com/douglascrockford/JSON-js/blob/master/json2.js
+// No effort was done to support old browsers. JSON.prune will fail on IE8.
+(function () {
+	'use strict';
+
+	var DEFAULT_MAX_DEPTH = 6;
+	var DEFAULT_ARRAY_MAX_LENGTH = 50;
+	var DEFAULT_PRUNED_VALUE = '"-pruned-"';
+	var seen; // Same variable used for all stringifications
+	var iterator; // either forEachEnumerableOwnProperty, forEachEnumerableProperty or forEachProperty
+
+	// iterates on enumerable own properties (default behavior)
+	var forEachEnumerableOwnProperty = function(obj, callback) {
+		for (var k in obj) {
+			if (Object.prototype.hasOwnProperty.call(obj, k)) callback(k);
+		}
+	};
+	// iterates on enumerable properties
+	var forEachEnumerableProperty = function(obj, callback) {
+		for (var k in obj) callback(k);
+	};
+	// iterates on properties, even non enumerable and inherited ones
+	// This is dangerous
+	var forEachProperty = function(obj, callback, excluded) {
+		if (obj==null) return;
+		excluded = excluded || {};
+		Object.getOwnPropertyNames(obj).forEach(function(k){
+			if (!excluded[k]) {
+				callback(k);
+				excluded[k] = true;
+			}
+		});
+		forEachProperty(Object.getPrototypeOf(obj), callback, excluded);
+	};
+
+	Object.defineProperty(Date.prototype, "toPrunedJSON", {value:Date.prototype.toJSON});
+
+	var	cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+		escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+		meta = {	// table of character substitutions
+			'\b': '\\b',
+			'\t': '\\t',
+			'\n': '\\n',
+			'\f': '\\f',
+			'\r': '\\r',
+			'"' : '\\"',
+			'\\': '\\\\'
+		};
+
+	function quote(string) {
+		escapable.lastIndex = 0;
+		return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
+			var c = meta[a];
+			return typeof c === 'string'
+				? c
+				: '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+		}) + '"' : '"' + string + '"';
+	}
+
+
+	var prune = function (value, depthDecr, arrayMaxLength) {
+		var prunedString = DEFAULT_PRUNED_VALUE;
+		var replacer;
+		if (typeof depthDecr == "object") {
+			var options = depthDecr;
+			depthDecr = options.depthDecr;
+			arrayMaxLength = options.arrayMaxLength;
+			iterator = options.iterator || forEachEnumerableOwnProperty;
+			if (options.allProperties) iterator = forEachProperty;
+			else if (options.inheritedProperties) iterator = forEachEnumerableProperty
+			if ("prunedString" in options) {
+				prunedString = options.prunedString;
+			}
+			if (options.replacer) {
+				replacer = options.replacer;
+			}
+		} else {
+			iterator = forEachEnumerableOwnProperty;
+		}
+		seen = [];
+		depthDecr = depthDecr || DEFAULT_MAX_DEPTH;
+		arrayMaxLength = arrayMaxLength || DEFAULT_ARRAY_MAX_LENGTH;
+		function str(key, holder, depthDecr) {
+			var i, k, v, length, partial, value = holder[key];
+
+			if (value && typeof value === 'object' && typeof value.toPrunedJSON === 'function') {
+				value = value.toPrunedJSON(key);
+			}
+			if (value && typeof value.toJSON === 'function') {
+				value = value.toJSON();
+			}
+
+			switch (typeof value) {
+			case 'string':
+				return quote(value);
+			case 'number':
+				return isFinite(value) ? String(value) : 'null';
+			case 'boolean':
+			case 'null':
+				return String(value);
+			case 'object':
+				if (!value) {
+					return 'null';
+				}
+				if (depthDecr<=0 || seen.indexOf(value)!==-1) {
+					if (replacer) {
+						var replacement = replacer(value, prunedString, true);
+						return replacement===undefined ? undefined : ''+replacement;
+					}
+					return prunedString;
+				}
+				seen.push(value);
+				partial = [];
+				if (Object.prototype.toString.apply(value) === '[object Array]') {
+					length = Math.min(value.length, arrayMaxLength);
+					for (i = 0; i < length; i += 1) {
+						partial[i] = str(i, value, depthDecr-1) || 'null';
+					}
+					v = '[' + partial.join(',') + ']';
+					if (replacer && value.length>arrayMaxLength) return replacer(value, v, false);
+					return v;
+				}
+				if (value instanceof RegExp) {
+					return quote(value.toString());
+				}
+				iterator(value, function(k) {
+					try {
+						v = str(k, value, depthDecr-1);
+						if (v) partial.push(quote(k) + ':' + v);
+					} catch (e) {
+						// this try/catch due to forbidden accessors on some objects
+					}
+				});
+				return '{' + partial.join(',') + '}';
+			case 'function':
+			case 'undefined':
+				return replacer ? replacer(value, undefined, false) : undefined;
+			}
+		}
+		return str('', {'': value}, depthDecr);
+	};
+
+	prune.log = function() {
+		console.log.apply(console, Array.prototype.map.call(arguments, function(v) {
+			return JSON.parse(JSON.prune(v));
+		}));
+	};
+	prune.forEachProperty = forEachProperty; // you might want to also assign it to Object.forEachProperty
+
+	if (typeof module !== "undefined") module.exports = prune;
+	else JSON.prune = prune;
+}());

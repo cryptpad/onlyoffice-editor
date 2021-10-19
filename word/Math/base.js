@@ -503,7 +503,7 @@ CMathBase.prototype.ShiftPage = function(Dx)
         }
     }
 };
-CMathBase.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange)
+CMathBase.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange, _CurPage)
 {
     var CurLine  = _CurLine - this.StartLine;
     var CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
@@ -518,7 +518,7 @@ CMathBase.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange)
             {
                 var Item = this.elements[i][j];
                 if(false == Item.IsJustDraw())
-                    Item.Shift_Range(Dx, Dy, _CurLine, _CurRange);
+                    Item.Shift_Range(Dx, Dy, _CurLine, _CurRange, _CurPage);
             }
         }
     }
@@ -526,7 +526,7 @@ CMathBase.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange)
     {
         this.Bounds.ShiftPos(CurLine, CurRange, Dx, Dy);
 
-		CParagraphContentWithParagraphLikeContent.prototype.Shift_Range.call(this, Dx, Dy, _CurLine, _CurRange);
+		CParagraphContentWithParagraphLikeContent.prototype.Shift_Range.call(this, Dx, Dy, _CurLine, _CurRange, _CurPage);
     }
 };
 CMathBase.prototype.IsStartRange = function(_CurLine, _CurRange)
@@ -1055,6 +1055,8 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 
 		if (undefined !== TextPr.HighLight)
 			this.Set_HighLight(null === TextPr.HighLight ? undefined : TextPr.HighLight);
+		if (undefined !== TextPr.HighlightColor)
+			this.SetHighlightColor(null === TextPr.HighlightColor ? undefined : TextPr.HighlightColor);
 
 		if (undefined !== TextPr.Underline)
 			this.Set_Underline(null === TextPr.Underline ? undefined : TextPr.Underline);
@@ -1068,7 +1070,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 		if (undefined !== TextPr.RFonts)
 		{
 			var RFonts = new CRFonts();
-			RFonts.Set_All("Cambria Math", -1);
+			RFonts.SetAll("Cambria Math", -1);
 
 			this.raw_SetRFonts(RFonts);
 		}
@@ -1152,6 +1154,18 @@ CMathBase.prototype.Set_HighLight = function(Value)
 	{
 		History.Add(new CChangesMathBaseHighLight(this, this.CtrPrp.HighLight, Value));
 		this.raw_SetHighLight(Value);
+	}
+};
+CMathBase.prototype.SetHighlightColor = function(Value)
+{
+	if (null === Value)
+		Value = undefined;
+
+	var OldValue = this.CtrPrp.HighlightColor;
+	if (OldValue && !OldValue.IsIdentical(Value) || Value && !Value.IsIdentical(OldValue))
+	{
+		History.Add(new CChangesMathBaseHighlightColor(this, OldValue, Value));
+		this.raw_SetHighlightColor(Value);
 	}
 };
 CMathBase.prototype.Set_Shd = function(Shd)
@@ -1342,6 +1356,11 @@ CMathBase.prototype.raw_SetTextOutline = function(Value)
 CMathBase.prototype.raw_SetHighLight = function(Value)
 {
     this.CtrPrp.HighLight = Value;
+    this.NeedUpdate_CtrPrp();
+};
+CMathBase.prototype.raw_SetHighlightColor = function(Value)
+{
+    this.CtrPrp.HighlightColor = Value;
     this.NeedUpdate_CtrPrp();
 };
 CMathBase.prototype.raw_SetRFonts = function(RFonts)
@@ -1949,8 +1968,9 @@ CMathBase.prototype.Draw_Lines = function(PDSL)
     var Para       = PDSL.Paragraph;
 
     var BgColor = PDSL.BgColor;
-    if ( undefined !== CtrPrp.Shd && Asc.c_oAscShdNil !== CtrPrp.Shd.Value )
-        BgColor = CtrPrp.Shd.Get_Color( Para );
+    if (CtrPrp.Shd && !CtrPrp.Shd.IsNil())
+        BgColor = CtrPrp.Shd.GetSimpleColor(Para.GetTheme(), Para.GetColorMap());
+
     var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
     var CurColor, RGBA, Theme = this.Paragraph.Get_Theme(), ColorMap = this.Paragraph.Get_ColorMap();
 
@@ -3185,12 +3205,12 @@ CEmptyRunRecalculateObject.prototype =
 
     },
 
-    Save_RunContent : function(Run, Copy)
+    SaveRunContent : function(Run, Copy)
     {
 
     },
 
-    Load_RunContent : function(Run)
+    LoadRunContent : function(Run)
     {
 
     },

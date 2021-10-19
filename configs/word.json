@@ -1,7 +1,10 @@
 {
 	"sdk": {
 		"min": [
+			"common/device_scale.js",
+			"common/userinfo_parser.js",
 			"common/browser.js",
+			"common/skin.js",
 			"common/commonDefines.js",
 			"common/docscoapicommon.js",
 			"common/docscoapi.js",
@@ -22,9 +25,10 @@
 			"common/apiBase_plugins.js",
 			"word/apiCommon.js",
 			"word/api.js",
-			"word/api_plugins.js"
+			"word/api_plugins.js",
+			"common/spell/spell.js"
 		],
-		"common": [
+		"common": [			
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
@@ -89,6 +93,7 @@
 
 			"common/scroll.js",
 			"vendor/iscroll.js",
+			"vendor/delta.js",
 			"common/Scrolls/mobileTouchManagerBase.js",
 			"word/Drawing/mobileTouchManager.js",
 
@@ -217,7 +222,9 @@
 			"common/text_input.js",
 			"common/Drawings/Format/OleObject.js",
 			"common/Drawings/Format/DrawingContent.js",
-			"common/plugins.js"
+			"common/plugins.js",
+			
+			"common/Native/native_graphics.js"
 		],
 		"desktop": {
 			"min": [
@@ -235,6 +242,7 @@
 			"common": []
 		},
 		"mobile": [
+			"common/Charts/ChartStyles.js",
 			"common/Native/Wrappers/HtmlPage.js",
 			"common/Native/Wrappers/TextMeasurerWrapper.js",
 			"common/Native/Wrappers/DrawingStream.js",

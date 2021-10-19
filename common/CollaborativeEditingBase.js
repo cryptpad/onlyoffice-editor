@@ -92,7 +92,13 @@ CCollaborativeChanges.prototype.Apply_Data = function()
 		oChange.ReadFromBinary(Reader);
 
 		if (true === CollaborativeEditing.private_AddOverallChange(oChange))
+		{
 			oChange.Load(this.m_oColor);
+
+			if (oChange.GetClass() && oChange.GetClass().SetIsRecalculated && oChange.IsNeedRecalculate())
+				oChange.GetClass().SetIsRecalculated(false);
+
+		}
 
 		return true;
 	}
@@ -264,6 +270,9 @@ function CCollaborativeEditingBase()
 
     this.m_nAllChangesSavedIndex = 0;
 
+	this.m_nRecalcIndexStart  = 0;
+	this.m_nRecalcIndexEnd    = 0;
+
     this.m_aAllChanges        = []; // Список всех изменений
     this.m_aOwnChangesIndexes = []; // Список номеров своих изменений в общем списке, которые мы можем откатить
 
@@ -364,7 +373,7 @@ CCollaborativeEditingBase.prototype.Apply_Changes = function()
     if (true === OtherChanges)
     {
         AscFonts.IsCheckSymbols = true;
-        editor.WordControl.m_oLogicDocument.StopRecalculate();
+        editor.WordControl.m_oLogicDocument.PauseRecalculate();
         editor.WordControl.m_oLogicDocument.EndPreview_MailMergeResult();
 
         editor.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.ApplyChanges);
@@ -389,6 +398,8 @@ CCollaborativeEditingBase.prototype.Apply_OtherChanges = function()
     if (this.m_aChanges.length > 0)
     	this.private_CollectOwnChanges();
 
+    this.private_SaveRecalcChangeIndex(true);
+
     // Применяем изменения, пока они есть
     var _count = this.m_aChanges.length;
     for (var i = 0; i < _count; i++)
@@ -405,6 +416,7 @@ CCollaborativeEditingBase.prototype.Apply_OtherChanges = function()
         // this.m_nErrorLog_PointChangesCount++;
     }
 
+	this.private_SaveRecalcChangeIndex(false);
     this.private_ClearChanges();
 
     // У новых элементов выставляем указатели на другие классы
@@ -934,25 +946,6 @@ CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(Do
 //----------------------------------------------------------------------------------------------------------------------
 // Private area
 //----------------------------------------------------------------------------------------------------------------------
-	CCollaborativeEditingBase.prototype.private_ClearChanges = function()
-	{
-		this.m_aChanges = [];
-	};
-	CCollaborativeEditingBase.prototype.private_CollectOwnChanges = function()
-	{
-	};
-	CCollaborativeEditingBase.prototype.private_AddOverallChange = function(oChange)
-	{
-	    return true;
-	};
-
-
-	//-------------------------------------
-    ///
-    /////----------------------------------------
-    //----------------------------------------------------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------------------------------------------------
     CCollaborativeEditingBase.prototype.private_ClearChanges = function()
     {
         this.m_aChanges    = [];
@@ -1091,7 +1084,11 @@ CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(Do
                 mapDrawings[oClass.parent.Get_Id()] = oClass.parent;
             }
             arrReverseChanges[nIndex].Load();
-            this.m_aAllChanges.push(arrReverseChanges[nIndex]);
+
+			if (oClass && oClass.SetIsRecalculated && (!arrReverseChanges[nIndex] || arrReverseChanges[nIndex].IsNeedRecalculate()))
+				oClass.SetIsRecalculated(false);
+
+			this.m_aAllChanges.push(arrReverseChanges[nIndex]);
         }
 
         // Может так случиться, что в каких-то классах DocumentContent удалились все элементы, либо
@@ -1311,20 +1308,20 @@ CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(Do
         oHistory.Remove_LastPoint();
         this.Clear_DCChanges();
 
-        editor.CoAuthoringApi.saveChanges(aSendingChanges, null, null, false, this.getCollaborativeEditing());
+		editor.CoAuthoringApi.saveChanges(aSendingChanges, null, null, false, this.getCollaborativeEditing());
 
-        this.private_RestoreDocumentState(DocState);
+		this.private_RestoreDocumentState(DocState);
+		this.private_RecalculateDocument(arrReverseChanges);
 
-        oLogicDocument.TurnOnCheckChartSelection();
-        this.private_RecalculateDocument(AscCommon.History.Get_RecalcData(null, arrReverseChanges));
+		oLogicDocument.TurnOnCheckChartSelection();
 
-        oLogicDocument.Document_UpdateSelectionState();
-        oLogicDocument.Document_UpdateInterfaceState();
-        oLogicDocument.Document_UpdateRulersState();
+		oLogicDocument.UpdateSelection();
+		oLogicDocument.UpdateInterface();
+		oLogicDocument.UpdateRulers();
     };
     CCollaborativeEditingBase.prototype.CanUndo = function()
     {
-        return this.m_aOwnChangesIndexes.length <= 0 ? false : true;
+        return this.m_aOwnChangesIndexes.length > 0;
     };
     CCollaborativeEditingBase.prototype.private_CommutateContentChanges = function(oChange, nStartPosition)
 	{
@@ -1447,11 +1444,16 @@ CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(Do
         }
         return true;
     };
-
-
-    CCollaborativeEditingBase.prototype.private_RecalculateDocument = function(oRecalcData){
-
+    CCollaborativeEditingBase.prototype.private_RecalculateDocument = function(oRecalcData)
+	{
     };
+	CCollaborativeEditingBase.prototype.private_SaveRecalcChangeIndex = function(isStart)
+	{
+		if (isStart)
+			this.m_nRecalcIndexStart = this.m_aAllChanges.length;
+		else
+			this.m_nRecalcIndexEnd   = this.m_aAllChanges.length - 1;
+	};
 
 
 //----------------------------------------------------------------------------------------------------------------------

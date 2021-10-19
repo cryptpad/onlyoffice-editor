@@ -249,7 +249,7 @@ CDrawingDocument.prototype.OnStartRecalculate = function(pageCount)
     {
         return;
     }
-    this.Native["DD_OnStartRecalculate"](pageCount, this.LogicDocument.Width, this.LogicDocument.Height);
+    this.Native["DD_OnStartRecalculate"](pageCount, this.LogicDocument.GetWidthMM(), this.LogicDocument.GetHeightMM());
 };
 
 CDrawingDocument.prototype.SetTargetColor = function(r, g, b)
@@ -293,9 +293,9 @@ CDrawingDocument.prototype.OnRecalculatePage = function(index, pageObject)
     }
     else
     {
-        r = this.m_oLogicDocument.Width;
+        r = this.m_oLogicDocument.GetWidthMM();
         l = 0.0;
-        b = this.m_oLogicDocument.Height;
+        b = this.m_oLogicDocument.GetHeightMM();
         t = 0.0;
     }
     this.Native["DD_OnRecalculatePage"](index, l, t, r, b, bIsHidden, pageObject.Get_Id());
@@ -321,7 +321,7 @@ CDrawingDocument.prototype.RenderDocument = function(Renderer)
 {
     for (var i = 0; i < this.SlidesCount; i++)
     {
-        Renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+        Renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
         this.m_oLogicDocument.DrawPage(i, Renderer);
         Renderer.EndPage();
     }
@@ -354,7 +354,7 @@ CDrawingDocument.prototype.ToRenderer2    = function()
     var ret = "";
     for (var i = 0; i < this.SlidesCount; i++)
     {
-        Renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+        Renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
         this.m_oLogicDocument.DrawPage(i, Renderer);
         Renderer.EndPage();
 
@@ -394,17 +394,17 @@ CDrawingDocument.prototype.ToRendererPart = function(noBase64)
 
     for (var i = start; i <= end; i++)
     {
-        renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+        renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
         this.m_oLogicDocument.DrawPage(i, renderer);
         renderer.EndPage();
 
         if (watermark)
-            watermark.DrawOnRenderer(renderer, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+            watermark.DrawOnRenderer(renderer, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
     }
 
     if (end == -1)
     {
-        renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+        renderer.BeginPage(this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
         renderer.EndPage()
     }
 
@@ -671,9 +671,9 @@ CDrawingDocument.prototype.CorrectRulerPosition = function(pos)
 };
 
 // вот здесь весь трекинг
-CDrawingDocument.prototype.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
+CDrawingDocument.prototype.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles)
 {
-    this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
+    this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles);
 };
 
 CDrawingDocument.prototype.LockSlide = function(slideNum)
@@ -742,10 +742,136 @@ CDrawingDocument.prototype.UpdateThumbnailsAttack = function()
 
 CDrawingDocument.prototype.CheckGuiControlColors = function(bIsAttack)
 {
+    var _slide  = null;
+    var _layout = null;
+    var _master = null;
+
+    // потом реализовать проверку на то, что нужно ли посылать
+    if (-1 != this.SlideCurrent)
+    {
+        _slide  = this.m_oWordControl.m_oLogicDocument.Slides[this.SlideCurrent];
+        if(!_slide){
+            return;
+        }
+        if( this.m_oWordControl.m_oLogicDocument.FocusOnNotes){
+            if(!_slide.notes){
+                return;
+            }
+            _master = _slide.notes.Master;
+        }
+        else{
+            _layout = _slide.Layout;
+            _master = _layout.Master;
+        }
+    }
+    else if ((0 < this.m_oWordControl.m_oLogicDocument.slideMasters.length) &&
+        (0 < this.m_oWordControl.m_oLogicDocument.slideMasters[0].sldLayoutLst.length))
+    {
+        _layout = this.m_oWordControl.m_oLogicDocument.slideMasters[0].sldLayoutLst[0];
+        _master = this.m_oWordControl.m_oLogicDocument.slideMasters[0];
+    }
+    else
+    {
+        return;
+    }
+
+    var arr_colors = new Array(10);
+
+    var _theme             = _master.Theme;
+    var rgba               = {R : 0, G : 0, B : 0, A : 255};
+    // bg1,tx1,bg2,tx2,accent1 - accent6
+    var array_colors_types = [6, 15, 7, 16, 0, 1, 2, 3, 4, 5];
+    var _count             = array_colors_types.length;
+
+    var color   = new AscFormat.CUniColor();
+    color.color = new AscFormat.CSchemeColor();
+    for (var i = 0; i < _count; ++i)
+    {
+        color.color.id = array_colors_types[i];
+        color.Calculate(_theme, _slide, _layout, _master, rgba);
+
+        var _rgba     = color.RGBA;
+        arr_colors[i] = new AscCommon.CColor(_rgba.R, _rgba.G, _rgba.B);
+    }
+
+    // теперь проверим
+    var bIsSend = false;
+    if (this.GuiControlColorsMap != null)
+    {
+        for (var i = 0; i < _count; ++i)
+        {
+            var _color1 = this.GuiControlColorsMap[i];
+            var _color2 = arr_colors[i];
+
+            if ((_color1.r != _color2.r) || (_color1.g != _color2.g) || (_color1.b != _color2.b))
+            {
+                bIsSend = true;
+                break;
+            }
+        }
+    }
+    else
+    {
+        this.GuiControlColorsMap = new Array(_count);
+        bIsSend                  = true;
+    }
+
+    if (bIsSend || (bIsAttack === true))
+    {
+        for (var i = 0; i < _count; ++i)
+        {
+            this.GuiControlColorsMap[i] = arr_colors[i];
+        }
+
+        this.SendControlColors(bIsAttack);
+    }
 };
 
 CDrawingDocument.prototype.SendControlColors = function(bIsAttack)
 {
+    var standart_colors = null;
+    if (!this.IsSendStandartColors || (bIsAttack === true))
+    {
+        var standartColors = AscCommon.g_oStandartColors;
+        var _c_s           = standartColors.length;
+        standart_colors    = new Array(_c_s);
+
+        for (var i = 0; i < _c_s; ++i)
+        {
+            standart_colors[i] = new AscCommon.CColor(standartColors[i].R, standartColors[i].G, standartColors[i].B);
+        }
+
+        this.IsSendStandartColors = true;
+    }
+
+    var _count = this.GuiControlColorsMap.length;
+
+    var _ret_array = new Array(_count * 6);
+    var _cur_index = 0;
+
+    for (var i = 0; i < _count; ++i)
+    {
+        var _color_src = this.GuiControlColorsMap[i];
+
+        _ret_array[_cur_index] = new AscCommon.CColor(_color_src.r, _color_src.g, _color_src.b);
+        _cur_index++;
+
+        // теперь с модификаторами
+        var _count_mods = 5;
+        for (var j = 0; j < _count_mods; ++j)
+        {
+            var dst_mods  = new AscFormat.CColorModifiers();
+            dst_mods.Mods = AscCommon.GetDefaultMods(_color_src.r, _color_src.g, _color_src.b, j + 1, 0);
+
+            var _rgba = {R : _color_src.r, G : _color_src.g, B : _color_src.b, A : 255};
+            dst_mods.Apply(_rgba);
+
+            _ret_array[_cur_index] = new AscCommon.CColor(_rgba.R, _rgba.G, _rgba.B);
+            _cur_index++;
+        }
+    }
+
+    this.m_oWordControl.m_oApi.sync_SendThemeColors(_ret_array, standart_colors);
 };
 
 CDrawingDocument.prototype.DrawImageTextureFillShape = function(url)
@@ -938,8 +1064,8 @@ CDrawingDocument.prototype.CheckLayouts = function(oMaster){
 
     // NOTE: need check
 
-    var page_w_mm = logicDoc.Width;//THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
-    var page_h_mm = logicDoc.Height;//THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
+    var page_w_mm = logicDoc.GetWidthMM();//THEME_TH_WIDTH * 2.54 / (72.0 / 96.0);
+    var page_h_mm = logicDoc.GetHeightMM();//THEME_TH_HEIGHT * 2.54 / (72.0 / 96.0);
     var page_w_px = THEME_TH_WIDTH * 2;
     var page_h_px = THEME_TH_HEIGHT * 2;
 

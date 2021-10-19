@@ -138,6 +138,9 @@ CSdtBase.prototype.SetContentControlText = function(isText)
  */
 CSdtBase.prototype.IsContentControlText = function()
 {
+	// Временно отключаем запись этого флага, т.к. мы пока его не обрабатываем в редакторе вообще
+	// и можем создать некорректный файл для других редакторов. См. баг #51589
+	return false;
 	return this.Pr.Text;
 };
 /**
@@ -248,6 +251,34 @@ CSdtBase.prototype.IsForm = function()
 	return (undefined !== this.Pr.FormPr);
 };
 /**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsFixedForm = function()
+{
+	return false;
+};
+/**
+ * returns {boolean}
+ */
+CSdtBase.prototype.IsFormRequired = function()
+{
+	return (this.Pr.FormPr ? this.Pr.FormPr.GetRequired() : false);
+};
+/**
+ * Устанавливаем флаг Required
+ * @param {boolean} isRequired
+ */
+CSdtBase.prototype.SetFormRequired = function(isRequired)
+{
+	var oFormPr = this.GetFormPr();
+	if (oFormPr && isRequired !== oFormPr.GetRequired())
+	{
+		var oNewPr = oFormPr.Copy();
+		oNewPr.SetRequired(isRequired);
+		this.SetFormPr(oNewPr);
+	}
+};
+/**
  * Получаем ключ для специальной формы, если он задан
  * @returns {?string}
  */
@@ -300,7 +331,7 @@ CSdtBase.prototype.IsCheckBoxChecked = function()
  * Копируем placeholder
  * @return {string}
  */
-CSdtBase.prototype.private_CopyPlaceholder = function()
+CSdtBase.prototype.private_CopyPlaceholder = function(oPr)
 {
 	var oLogicDocument = this.GetLogicDocument();
 	if (!oLogicDocument || !this.Pr.Placeholder)
@@ -317,9 +348,22 @@ CSdtBase.prototype.private_CopyPlaceholder = function()
 	}
 	else
 	{
-		var oCopyName = oGlossary.GetNewName();
-		oGlossary.AddDocPart(oDocPart.Copy(oCopyName));
-		return oCopyName;
+		var sCopyName;
+		if(oPr && oPr.Comparison && oPr.Comparison.originalDocument) 
+		{
+			var oPrGlossary = oPr.Comparison.originalDocument.GetGlossaryDocument();
+			sCopyName = oPrGlossary.GetNewName();
+			oDocPart.Glossary = oPrGlossary;
+			oGlossary.AddDocPart(oDocPart.Copy(sCopyName));
+			oDocPart.Glossary = oGlossary;
+			return sCopyName;
+		}
+		else 
+		{
+			sCopyName = oGlossary.GetNewName();
+			oGlossary.AddDocPart(oDocPart.Copy(sCopyName));
+			return sCopyName;
+		}
 	}
 };
 /**
@@ -342,5 +386,90 @@ CSdtBase.prototype.SetCurrent = function(isCurrent)
  * Специальная функция, которая обновляет текстовые настройки у плейсхолдера для форм
  */
 CSdtBase.prototype.UpdatePlaceHolderTextPrForForm = function()
+{
+};
+/**
+ * Проверяем попадание в контейнер
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {boolean}
+ */
+CSdtBase.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
+{
+	return false;
+};
+/**
+ * Ищем ближаюшую позицию, которая попадала бы в контейнер
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {?{X:number,Y:number}}
+ */
+CSdtBase.prototype.CorrectXYToHitIn = function(X, Y, nPageAbs)
+{
+	return null;
+};
+/**
+ * Расширенное очищение контрола, с учетом типа контрола
+ */
+CSdtBase.prototype.ClearContentControlExt = function()
+{
+	if (this.IsCheckBox())
+	{
+		this.SetCheckBoxChecked(false);
+	}
+	else if (this.IsPicture())
+	{
+		this.ReplaceContentWithPlaceHolder();
+		this.ApplyPicturePr(true);
+	}
+	else
+	{
+		this.ReplaceContentWithPlaceHolder();
+	}
+};
+/**
+ * Проверяем правильно ли заполнена форма
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsFormFilled = function()
+{
+	return true;
+}
+/**
+ * Оборачиваем форму в графический контейнер
+ * @returns {?ParaDrawing}
+ */
+CSdtBase.prototype.ConvertFormToFixed = function()
+{
+	return null;
+};
+/**
+ * Уладаляем графичейский контейнер у формы
+ * @returns {?CSdtBase}
+ */
+CSdtBase.prototype.ConvertFormToInline = function()
+{
+	return this;
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsMultiLineForm = function()
+{
+	return true;
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsPictureForm = function()
+{
+	return false;
+};
+/**
+ * Функция обновления картиночной формы
+ */
+CSdtBase.prototype.UpdatePictureFormLayout = function()
 {
 };

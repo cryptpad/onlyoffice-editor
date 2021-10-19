@@ -969,6 +969,9 @@ CDrawingStream.prototype =
 
     SetTextPr : function(textPr, theme)
     {
+		if (theme && textPr && textPr.ReplaceThemeFonts)
+			textPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
+
         this.m_oTextPr = textPr;
         if (theme)
             this.m_oGrFonts.checkFromTheme(theme.themeElements.fontScheme, this.m_oTextPr.RFonts);
@@ -1209,6 +1212,13 @@ CDrawingStream.prototype =
     drawFlowAnchor : function(x, y)
     {
         this.Native["PD_drawFlowAnchor"](x, y);
+    },
+
+    drawMailMergeField : function(x, y, w, h)
+    {
+        this.b_color1(206, 212, 223, 204);
+        this.rect( x, y, w, h );
+        this.df();
     },
 
     SavePen : function()

@@ -46,11 +46,12 @@ var History = AscCommon.History;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetClrMapOverride] = AscDFH.CChangesDrawingsObject          ;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetHF]             = AscDFH.CChangesDrawingsObject          ;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterAddLayout]         = AscDFH.CChangesDrawingsContent         ;
+ AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetTransition]     = AscDFH.CChangesDrawingsObjectNoId         ;
+ AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetTiming]         = AscDFH.CChangesDrawingsObject         ;
 
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetThemeIndex]     = function(oClass, value){oClass.ThemeIndex = value;};
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetSize]           = function(oClass, value){oClass.Width = value.a; oClass.Height = value.b;};
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetTheme]          = function(oClass, value){oClass.Theme = value;};
-
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetBg]             = function(oClass, value, FromLoad){
      oClass.cSld.Bg = value;
      if(FromLoad){
@@ -72,11 +73,14 @@ var History = AscCommon.History;
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetCSldName]       = function(oClass, value){oClass.cSld.name = value;};
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetClrMapOverride] = function(oClass, value){oClass.clrMap = value;};
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetHF]             = function(oClass, value){oClass.hf = value;};
+ AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetTransition]     = function(oClass, value){oClass.transition = value;};
+ AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetTiming]         = function(oClass, value){oClass.timing = value;};
 
 
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideMasterSetSize]      = AscFormat.CDrawingBaseCoordsWritable;
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideMasterSetBg]        = AscFormat.CBg;
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideMasterSetTxStyles]  = AscFormat.CTextStyles;
+AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideMasterSetTransition]  = Asc.CAscSlideTransition;
 
 
 AscDFH.drawingContentChanges[AscDFH.historyitem_SlideMasterAddToSpTree]       = function(oClass){return oClass.cSld.spTree;};
@@ -95,6 +99,9 @@ function MasterSlide(presentation, theme)
     this.txStyles = null;
     this.preserve = false;
 
+    this.timing = null;
+    this.transition = null;
+
     this.ImageBase64 = "";
     this.Width64 = 0;
     this.Height64 = 0;
@@ -110,7 +117,6 @@ function MasterSlide(presentation, theme)
     this.Height = 190.5;
     this.recalcInfo = {};
     this.DrawingDocument = editor.WordControl.m_oDrawingDocument;
-    this.maxId = 1000;
     this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
 
     this.bounds = new AscFormat.CGraphicBounds(0, 0, this.Width, this.Height);
@@ -442,6 +448,40 @@ MasterSlide.prototype =
             this.Height = h;
         },
 
+
+        applyTransition: function(transition) {
+            var oldTransition;
+            if(this.transition) {
+                oldTransition = this.transition.createDuplicate();
+            }
+            else {
+                oldTransition = null;
+            }
+
+            var oNewTransition;
+            if(transition) {
+                if(this.transition) {
+                    oNewTransition = this.transition.createDuplicate();
+                }
+                else {
+                    oNewTransition = new Asc.CAscSlideTransition();
+                    oNewTransition.setDefaultParams();
+                }
+                oNewTransition.applyProps(transition);
+            }
+            else {
+                oNewTransition = null;
+            }
+            this.transition = oNewTransition;
+            History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_SlideMasterSetTransition, oldTransition, oNewTransition));
+        },
+
+        setTiming: function(oTiming)
+        {
+            History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideMasterSetTiming, this.timing, oTiming));
+            this.timing = oTiming;
+        },
+
         changeSize: Slide.prototype.changeSize,
 
         setTheme: function (theme) {
@@ -574,6 +614,9 @@ MasterSlide.prototype =
             if (this.txStyles) {
                 copy.setTxStyles(this.txStyles.createDuplicate());
             }
+            if(this.timing) {
+                copy.setTiming(this.timing.createDuplicate(oIdMap));
+            }
             return copy;
         },
       
@@ -632,8 +675,6 @@ function CMasterThumbnailDrawer()
                 _params[i - 2] = params[i];
             }
         }
-
-        var koefScale = Math.max(w_px / 85, h_px / 38);
 
         var dKoefPixToMM = this.HeightMM / h_px;
         var _back_fill = null;
@@ -789,6 +830,30 @@ function CMasterThumbnailDrawer()
     };
 
     this.Draw = function(g, _master, use_background, use_master_shapes) {
+
+        /*
+        var _params = [
+            0, 0, // w/h - not used
+            6,  // color_w
+            3,  // color_h,
+            4,  // color_x
+            31, // color_y
+            1,  // color_delta,
+            8,  // text_x
+            11, // text_y (from bottom)
+            18 // font_size
+        ];
+        _params[9] *= ((this.HeightMM / this.HeightPx) * (96 / 25.4));
+
+
+        for (var i = 0; i < _params.length; i++)
+        {
+            _params[i] = AscCommon.AscBrowser.convertToRetinaValue(_params[i], true);
+        }
+
+        return this.Draw2(g, _master, use_background, use_master_shapes, _params);
+        */
+
         var w_px = this.WidthPx;
         var h_px = this.HeightPx;
         var dKoefPixToMM = this.HeightMM / h_px;
@@ -874,13 +939,19 @@ function CMasterThumbnailDrawer()
         var _color_y = 31;
         var _color_delta = 1;
         if (!window["NATIVE_EDITOR_ENJINE"]) {
+          _color_w = AscCommon.AscBrowser.convertToRetinaValue(_color_w, true);
+          _color_h = AscCommon.AscBrowser.convertToRetinaValue(_color_h, true);
+          _color_x = AscCommon.AscBrowser.convertToRetinaValue(_color_x, true);
+          _color_y = AscCommon.AscBrowser.convertToRetinaValue(_color_y, true);
+          _color_delta = AscCommon.AscBrowser.convertToRetinaValue(_color_delta, true);
+
           g.p_color(255, 255, 255, 255);
           g.init(g.m_oContext, w_px, h_px, w_px, h_px);
           g.CalculateFullTransform();
           g.m_bIntegerGrid = true;
           g.b_color1(255, 255, 255, 255);
           g._s();
-          g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5);
+          g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, _color_h + 2 * _color_delta);
           g.df();
           g._s();
           var _color = new AscFormat.CSchemeColor;
@@ -957,10 +1028,11 @@ function CMasterThumbnailDrawer()
             par.Reset(0, 0, 1000, 1000, 0, 0, 1);
             par.Recalculate_Page(0);
             if (!window["NATIVE_EDITOR_ENJINE"]) {
-                g.init(g.m_oContext, w_px, h_px, w_px * AscCommon.g_dKoef_pix_to_mm, h_px * AscCommon.g_dKoef_pix_to_mm);
+                var koefFont = AscCommon.g_dKoef_pix_to_mm / AscCommon.AscBrowser.retinaPixelRatio;
+                g.init(g.m_oContext, w_px, h_px, w_px * koefFont, h_px * koefFont);
                 g.CalculateFullTransform();
-                _text_x = 8 * AscCommon.g_dKoef_pix_to_mm;
-                _text_y = (h_px - 11) * AscCommon.g_dKoef_pix_to_mm;
+                _text_x = AscCommon.AscBrowser.retinaPixelRatio * 8 * koefFont;
+                _text_y = (h_px - 11 * AscCommon.AscBrowser.retinaPixelRatio) * koefFont;
                 par.Lines[0].Ranges[0].XVisible = _text_x;
                 par.Lines[0].Y = _text_y;
                 var old_marks = _api.ShowParaMarks;
@@ -987,17 +1059,9 @@ function CMasterThumbnailDrawer()
         {
             return "";
         }
-        var h_px = 38;
-        var w_px = 85;//(this.WidthMM * h_px / this.HeightMM) >> 0;
 
-        // пока не будем генерить для ретины
-        /*
-        if (this.IsRetina)
-        {
-            w_px <<= 1;
-            h_px <<= 1;
-        }
-        */
+        var w_px = AscCommon.AscBrowser.convertToRetinaValue(AscCommon.GlobalSkin.THEMES_THUMBNAIL_WIDTH, true);
+        var h_px = AscCommon.AscBrowser.convertToRetinaValue(AscCommon.GlobalSkin.THEMES_THUMBNAIL_HEIGHT, true);
 
         this.WidthPx  = w_px;
         this.HeightPx = h_px;

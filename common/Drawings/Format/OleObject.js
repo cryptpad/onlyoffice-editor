@@ -60,6 +60,9 @@ function (window, undefined) {
 		AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetOleType] = AscDFH.CChangesDrawingsLong;
 
 
+        AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryDefRPr] = AscCommonWord.CTextPr;
+
+
 		function CChangesOleObjectBinary(Class, Old, New, Color){
             AscDFH.CChangesBaseProperty.call(this, Class, Old, New, Color);
         }
@@ -189,6 +192,12 @@ function (window, undefined) {
         {
             copy.setBinaryData(this.m_aBinaryData.slice(0, this.m_aBinaryData.length));
         }
+        if(this.macro !== null) {
+            copy.setMacro(this.macro);
+        }
+        if(this.textLink !== null) {
+            copy.setTextLink(this.textLink);
+        }
         copy.cachedImage = this.getBase64Img();
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;
@@ -206,13 +215,17 @@ function (window, undefined) {
         AscFormat.CImageShape.prototype.handleUpdateExtents.call(this, []);
     };
     COleObject.prototype.checkTypeCorrect = function(){
-        if(!this.m_sData){
+        var bCorrectData = false;
+        if(this.m_sData) {
+            bCorrectData = true;
+        }
+        else if(this.m_sObjectFile) {
+            bCorrectData = true;
+        }
+        if(!bCorrectData){
             return false;
         }
-        if(!this.m_sApplicationId){
-            return false;
-        }
-        if(this.m_nPixHeight === null || this.m_nPixHeight === null){
+        if(this.m_sApplicationId === null){
             return false;
         }
         return true;

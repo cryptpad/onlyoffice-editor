@@ -255,12 +255,12 @@
 			asc_getColumnName : function() { return this.columnName; },
 			asc_getSheetColumnName : function() { return this.sheetColumnName; },
 
-			setVisibleFromValues: function(values) {
+			setVisibleFromValues: function(visible) {
 				if (!this.values) {
 					return;
 				}
-				for (var i = 0; i < this.values.length && i < values.length; ++i) {
-					this.values[i].visible = values[i].visible;
+				for (var i = 0; i < this.values.length; ++i) {
+					this.values[i].visible = !!visible[this.values[i].val];
 				}
 			}
 		};
@@ -462,6 +462,11 @@
 			this.applyCollaborativeChangedRowsArr = [];
 
 			this.m_oColor = new AscCommon.CColor(120, 120, 120);
+
+			//при добавлении строки итогов не нужно чтобы на ней распространялось, допустим, УФ
+			//добавляю флаг, чтобы не протаскивать через несколько функций
+			this.isAddTotalRow = null;
+
 			return this;
 		}
 
@@ -989,7 +994,7 @@
 				}
 			},
 
-			reapplyAllFilters: function (turnOffHistory, openPreviousHiddenRows, ignoreUndoRedo) {
+			reapplyAllFilters: function (turnOffHistory, openPreviousHiddenRows, ignoreUndoRedo, doExpandAutoFilter) {
 				if (turnOffHistory) {
 					History.TurnOff();
 				}
@@ -997,6 +1002,15 @@
 				if (worksheet.AutoFilter) {
 					if (openPreviousHiddenRows && worksheet.AutoFilter.isApplyAutoFilter()) {
 						worksheet.setRowHidden(false, worksheet.AutoFilter.Ref.r1, worksheet.AutoFilter.Ref.r2);
+					}
+					if (doExpandAutoFilter) {
+						if (turnOffHistory) {
+							History.TurnOn();
+						}
+						this.expandAutoFilter();
+						if (turnOffHistory) {
+							History.TurnOff();
+						}
 					}
 					this.reapplyAutoFilter(null, ignoreUndoRedo);
 				}
@@ -1036,6 +1050,7 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
+
 				//open/close rows
 				if ((!bUndoChanges && !bRedoChanges) || ignoreUndoRedo) {
 					var activeNamedSheetView = worksheet.getActiveNamedSheetViewId();
@@ -1052,6 +1067,27 @@
 				worksheet.workbook.dependencyFormulas.unlockRecal();
 				this.updateSlicer(displayName);
 				return {minChangeRow: minChangeRow, updateRange: filter.Ref, filter: filter};
+			},
+
+			expandAutoFilter: function () {
+				var ws = this.worksheet;
+
+				History.Create_NewPoint();
+				History.StartTransaction();
+
+				if (ws.AutoFilter) {
+					var _range = this.expandRange(ws.AutoFilter.Ref, true);
+					if (_range && _range.r2 > ws.AutoFilter.Ref.r2) {
+						var oldFilter = ws.AutoFilter.clone(null);
+						ws.AutoFilter.Ref.r2 = _range.r2;
+						var changeElement = {
+							oldFilter: oldFilter, newFilterRef: ws.AutoFilter.Ref.clone()
+						};
+						this._addHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change, null, true, oldFilter.Ref, null, oldFilter.Ref);
+					}
+				}
+
+				History.EndTransaction();
 			},
 
 			checkRemoveTableParts: function (delRange, tableRange) {
@@ -2742,6 +2778,10 @@
 				var worksheet = this.worksheet;
 				var isSetValue = false;
 				var isSetType = false;
+				var t = this;
+
+				var bUndoChanges = worksheet.workbook.bUndoChanges;
+				var bRedoChanges = worksheet.workbook.bRedoChanges;
 
 				var tablePart = this._getFilterByDisplayName(tableName);
 
@@ -2752,7 +2792,7 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
-				var bAddHistoryPoint = true, clearRange;
+				var bAddHistoryPoint = true, clearRange, _range;
 				var undoData = val !== undefined ? !val : undefined;
 
 				switch (optionType) {
@@ -2775,9 +2815,15 @@
 					case c_oAscChangeTableStyleInfo.rowTotal: {
 						if (val === false)//снимаем галку - удаляем строку итогов
 						{
-							if (!this._isPartTablePartsUnderRange(tablePart.Ref)) {
+							if (!this._isPartTablePartsUnderRange(tablePart.Ref) && !worksheet.checkShiftPivotTable(tablePart.Ref, new AscCommon.CellBase(1, 0))) {
 								AscFormat.ExecuteNoHistory(function () {
-									worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).deleteCellsShiftUp();
+									t.isAddTotalRow = true;
+									_range = worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
+									_range.deleteCellsShiftUp();
+									if ((bUndoChanges || bRedoChanges)) {
+										worksheet.updateConditionalFormattingOffset(_range.bbox, new AscCommon.CellBase(-1, 0));
+									}
+									t.isAddTotalRow = null;
 								}, this, []);
 							} else {
 								clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
@@ -2791,7 +2837,7 @@
 							var rangeUnderTable = new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
 
 							//внизу часть форматированной таблицы - следовательно сдвигать нельзя, проверяем пустую строчку по ф/т
-							if (this._isPartTablePartsUnderRange(tablePart.Ref)) {
+							if (this._isPartTablePartsUnderRange(tablePart.Ref) || worksheet.checkShiftPivotTable(tablePart.Ref, new AscCommon.CellBase(1, 0))) {
 								if(this._isEmptyRange(rangeUnderTable, 0)) {
 									isSetValue = true;
 									isSetType = true;
@@ -2801,7 +2847,13 @@
 								}
 							} else {
 								AscFormat.ExecuteNoHistory(function () {
-									worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2).addCellsShiftBottom();
+									t.isAddTotalRow = true;
+									_range = worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2);
+									_range.addCellsShiftBottom();
+									if ((bUndoChanges || bRedoChanges)) {
+										worksheet.updateConditionalFormattingOffset(_range.bbox, new AscCommon.CellBase(1, 0));
+									}
+									t.isAddTotalRow = null;
 								}, this, []);
 
 								isSetValue = true;
@@ -5699,13 +5751,16 @@
 				return result;
 			},
 
-			_getTableIntersectionWithActiveCell: function (activeCell, checkApplyFiltering) {
+			_getTableIntersectionWithActiveCell: function (activeCell, checkApplyFiltering, excludeHeader) {
 				var result = false;
 
 				var worksheet = this.worksheet;
 				if (worksheet.TableParts && worksheet.TableParts.length > 0) {
 					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						var ref = worksheet.TableParts[i].Ref;
+						if (excludeHeader && worksheet.TableParts[i].isHeaderRow()) {
+							ref = new Asc.Range(ref.c1, ref.r1 + 1, ref.c2, ref.r2);
+						}
 						if (ref.contains(activeCell.col, activeCell.row)) {
 							if (checkApplyFiltering && worksheet.TableParts[i].isApplyAutoFilter()) {
 								result = worksheet.TableParts[i];
@@ -5762,11 +5817,19 @@
 				var nextIndex;
 
 				//ищем среди tableColumns, возможно такое имя уже имеется
+				var tableColumnsNameMap = null;
 				var checkNextName = function () {
 					var nextName = columnName + nextIndex;
-					for (var i = 0; i < tableColumns.length; i++) {
-						if (tableColumns[i].Name === nextName)
-							return false;
+					if (!tableColumnsNameMap) {
+						tableColumnsNameMap = {};
+						for (var i = 0; i < tableColumns.length; i++) {
+							if (tableColumns[i]) {
+								tableColumnsNameMap[tableColumns[i].Name] = 1;
+							}
+						}
+					}
+					if (tableColumnsNameMap[nextName]) {
+						return false;
 					}
 					return true;
 				};

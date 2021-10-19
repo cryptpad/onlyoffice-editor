@@ -154,14 +154,6 @@ function CGroupShape()
         }
     };
 
-    CGroupShape.prototype.checkRemoveCache = function()
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            this.spTree[i].checkRemoveCache && this.spTree[i].checkRemoveCache();
-        }
-    };
-
     CGroupShape.prototype.documentUpdateSelectionState = function()
     {
         if(this.selection.textSelection)
@@ -314,6 +306,12 @@ function CGroupShape()
             copy.spTree[copy.spTree.length-1].setGroup(copy);
         }
         copy.setBDeleted(this.bDeleted);
+        if(this.macro !== null) {
+            copy.setMacro(this.macro);
+        }
+        if(this.textLink !== null) {
+            copy.setTextLink(this.textLink);
+        }
         copy.cachedImage = this.getBase64Img();
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;
@@ -1082,24 +1080,6 @@ function CGroupShape()
             this.selectedObjects[0].documentUpdateRulersState();
     };
 
-    CGroupShape.prototype.updateChartReferences = function(oldWorksheet, newWorksheet, bNoRebuildCache)
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            if(this.spTree[i].updateChartReferences)
-                this.spTree[i].updateChartReferences(oldWorksheet, newWorksheet, bNoRebuildCache);
-        }
-    };
-
-    CGroupShape.prototype.rebuildSeries = function(data)
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            if(this.spTree[i].rebuildSeries)
-                this.spTree[i].rebuildSeries(data);
-        }
-    };
-
     CGroupShape.prototype.CheckNeedRecalcAutoFit = function(oSectPr)
     {
         var bRet = false;
@@ -1136,7 +1116,7 @@ function CGroupShape()
             {
                 this.updateCoordinatesAfterInternalResize();
             }
-            if(this.parent instanceof ParaDrawing)
+            if(this.parent instanceof AscCommonWord.ParaDrawing)
             {
                 this.parent.CheckWH();
             }
@@ -1256,6 +1236,59 @@ function CGroupShape()
 
         return null;
     };
+
+	CGroupShape.prototype.FindNextFillingForm = function(isNext, isCurrent)
+	{
+		if (this.graphicObject)
+			return this.graphicObject.FindNextFillingForm(isNext, isCurrent);
+
+		var Current = -1;
+		var Len     = this.arrGraphicObjects.length;
+
+		var Id = null;
+		if (true === isCurrent)
+		{
+			for (var i = 0; i < Len; ++i)
+			{
+				if (this.arrGraphicObjects[i] === this.selection.textSelection)
+				{
+					Current = i;
+					break;
+				}
+			}
+		}
+
+		if (true === isNext)
+		{
+			var Start = (-1 !== Current ? Current : 0);
+
+			for (var i = Start; i < Len; i++)
+			{
+				if (this.arrGraphicObjects[i].FindNextFillingForm)
+				{
+					Id = this.arrGraphicObjects[i].FindNextFillingForm(true, i === Current, i === Current);
+					if (Id)
+						return Id;
+				}
+			}
+		}
+		else
+		{
+			var Start = (-1 !== Current ? Current : Len - 1);
+
+			for (var i = Start; i >= 0; i--)
+			{
+				if (this.arrGraphicObjects[i].FindNextFillingForm)
+				{
+					Id = this.arrGraphicObjects[i].FindNextFillingForm(false, i === Current, i === Current);
+					if (Id)
+						return Id;
+				}
+			}
+		}
+
+		return null;
+	};
 
     CGroupShape.prototype.getCompiledFill = function()
     {
@@ -1581,26 +1614,6 @@ function CGroupShape()
         return {posX: pos_x, posY: pos_y};
     };
 
-    CGroupShape.prototype.select = CShape.prototype.select;
-
-    CGroupShape.prototype.deselect = function(drawingObjectsController)
-    {
-        this.selected = false;
-        var selected_objects;
-        if(!isRealObject(this.group))
-            selected_objects = drawingObjectsController.selectedObjects;
-        else
-            selected_objects = this.group.getMainGroup().selectedObjects;
-        for(var i = 0; i < selected_objects.length; ++i)
-        {
-            if(selected_objects[i] === this)
-            {
-                selected_objects.splice(i, 1);
-                break;
-            }
-        }
-        return this;
-    };
 
     CGroupShape.prototype.getParentObjects = function()
     {
@@ -1910,6 +1923,13 @@ function CGroupShape()
             }
         }
         return res;
+    };
+
+    CGroupShape.prototype.handleObject = function (fCallback) {
+        fCallback(this);
+        for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
+            this.spTree[nSp].handleObject(fCallback);
+        }
     };
 
     //--------------------------------------------------------export----------------------------------------------------

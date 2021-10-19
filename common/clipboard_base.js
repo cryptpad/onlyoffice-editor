@@ -863,6 +863,9 @@
 
 			if (this.ClosureParams.isDivCopy === true)
 			{
+				if (!this.isCopyOutEnabled())
+					return;
+
 				if (_format == AscCommon.c_oAscClipboardDataFormat.Html)
 				{
 					this.CommonDiv.innerHTML = _data;
@@ -1089,6 +1092,9 @@
 		//добавил флаг для возможности применения друг за другом нескольких математических операций(paste special)
 		//если данный флаг выставлен в true и делается новая математическая операция
 		this.isAppliedOperation = false;
+
+		//избегаем повторных ошибок при вставке от формул
+		this._formulaError = null;
 	}
 
 	CSpecialPasteHelper.prototype = {
@@ -1135,6 +1141,7 @@
 				this.Special_Paste_Hide_Button();
 			}
 			this.pasteStart = true;
+			this._formulaError = null;
 
 			AscFonts.IsCheckSymbols = true;
 		},

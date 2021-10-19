@@ -101,7 +101,7 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		oNew.private_ReplaceContentWithPlaceHolder();
 
 	oNew.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
-	oNew.SetPlaceholder(this.private_CopyPlaceholder());
+	oNew.SetPlaceholder(this.private_CopyPlaceholder(oPr));
 	oNew.SetContentControlEquation(this.Pr.Equation);
 	oNew.SetContentControlTemporary(this.Pr.Temporary);
 
@@ -567,9 +567,11 @@ CBlockLevelSdt.prototype.Is_Empty = function()
 };
 CBlockLevelSdt.prototype.Add = function(oParaItem)
 {
+	var isRemoveWrapper = false;
 	if (oParaItem && oParaItem.Type !== para_TextPr)
 	{
-		this.private_ReplacePlaceHolderWithContent();
+		isRemoveWrapper = this.IsPlaceHolder() && this.IsContentControlTemporary();
+		this.private_ReplacePlaceHolderWithContent(true);
 	}
 	else if (oParaItem && oParaItem.Type !== para_TextPr && this.IsPlaceHolder())
 	{
@@ -586,8 +588,11 @@ CBlockLevelSdt.prototype.Add = function(oParaItem)
 	}
 	else
 	{
-		return this.Content.AddToParagraph(oParaItem);
+		this.Content.AddToParagraph(oParaItem);
 	}
+
+	if (isRemoveWrapper)
+		this.RemoveContentControlWrapper();
 };
 CBlockLevelSdt.prototype.PreDelete = function()
 {
@@ -715,6 +720,13 @@ CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSel
 		this.private_ReplacePlaceHolderWithContent();
 
 	return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+};
+CBlockLevelSdt.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.Content.GetCurrentTablesStack(arrTables);
 };
 CBlockLevelSdt.prototype.AddTableRow = function(bBefore, nCount)
 {
@@ -861,6 +873,42 @@ CBlockLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
 	// TODO: Когда специальные формы будут реализованы и с помощью блочного контрола, тогда
 	//       надо будет рассчитать тут
 	return 0;
+};
+/**
+ * Специальная функция для мобильных версий, возвращает правую среднюю точку границы
+ * @return {{X:number, Y:number, Page:number, Transform:object}}
+ */
+CBlockLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
+{
+	var nR  = 0;
+	var nT = -1;
+	var nB = -1;
+
+	var nCurPage = -1;
+	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
+	{
+		if (this.IsEmptyPage(nPageIndex))
+			continue;
+
+		if (-1 === nCurPage)
+			nCurPage = nPageIndex;
+		else if (nCurPage !== nPageIndex)
+			break;
+
+		var oBounds = this.Content.GetContentBounds(nPageIndex);
+
+		if (nR < oBounds.Right)
+			nR = oBounds.Right;
+
+		if (-1 === nT || nT > oBounds.Top)
+			nT = oBounds.Top;
+
+		if (-1 === nB || nB < oBounds.Bottom)
+			nB = oBounds.Bottom;
+	}
+	var nPageAbs = this.GetAbsolutePage(nCurPage);
+
+	return {X : nR, Y : (nT + nB) / 2, Page : nPageAbs, Transform : this.Get_ParentTextTransform()};
 };
 CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
@@ -1071,9 +1119,9 @@ CBlockLevelSdt.prototype.IsCell = function(isReturnCell)
 {
 	return this.Parent.IsTableCellContent(isReturnCell);
 };
-CBlockLevelSdt.prototype.Is_DrawingShape = function()
+CBlockLevelSdt.prototype.Is_DrawingShape = function(bRetShape)
 {
-	return this.Parent.Is_DrawingShape();
+	return this.Parent.Is_DrawingShape(bRetShape);
 };
 CBlockLevelSdt.prototype.Get_Numbering = function()
 {
@@ -1149,6 +1197,9 @@ CBlockLevelSdt.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, o
 {
 	if (oDocContent === this.Content)
 	{
+		if (this.IsPlaceHolder())
+			this.SelectAll(1);
+
 		var nIndex = this.GetIndex();
 		if (-1 !== nIndex)
 			this.Parent.Set_CurrentElement(nIndex, bUpdateStates);
@@ -1546,6 +1597,14 @@ CBlockLevelSdt.prototype.GetLastElement = function()
 
 	return this.Content.GetElement(nCount - 1);
 };
+CBlockLevelSdt.prototype.GetElement = function(nIndex)
+{
+	return this.Content.GetElement(nIndex);
+};
+CBlockLevelSdt.prototype.GetElementsCount = function()
+{
+	return this.Content.GetElementsCount();
+};
 CBlockLevelSdt.prototype.GetLastParagraph = function()
 {
 	return this.Content.GetLastParagraph();
@@ -1585,7 +1644,7 @@ CBlockLevelSdt.prototype.IsPlaceHolder = function()
 {
 	return this.Pr.ShowingPlcHdr;
 };
-CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
+CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(isSkipTemporaryCheck)
 {
 	if (!this.IsPlaceHolder())
 		return;
@@ -1615,7 +1674,7 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 		oParaMath.MoveCursorToStartPos();
 	}
 
-	if (this.IsContentControlTemporary())
+	if (true !== isSkipTemporaryCheck && this.IsContentControlTemporary())
 		this.RemoveContentControlWrapper();
 };
 CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect)
@@ -1794,17 +1853,21 @@ CBlockLevelSdt.prototype.GetCheckBoxPr = function()
 };
 /**
  * Выставляем состояние чекбокса
+ * @param {boolean|undefined} [isChecked=undefined]
  */
-CBlockLevelSdt.prototype.ToggleCheckBox = function()
+CBlockLevelSdt.prototype.ToggleCheckBox = function(isChecked)
 {
 	if (!this.IsCheckBox())
+		return;
+
+	if (undefined !== isChecked && this.Pr.CheckBox.Checked === isChecked)
 		return;
 
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument || this.IsRadioButton() || this.GetFormKey())
 		oLogicDocument.OnChangeForm(this.IsRadioButton() ? this.Pr.CheckBox.GroupKey : this.GetFormKey(), this);
 
-	if (this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
+	if (undefined === isChecked && this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
 		return;
 
 	this.SetCheckBoxChecked(!this.Pr.CheckBox.Checked);
@@ -1909,7 +1972,7 @@ CBlockLevelSdt.prototype.SetPicturePr = function(isPicture)
 		this.Pr.Picture = isPicture;
 	}
 };
-CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
+CBlockLevelSdt.prototype.private_UpdatePictureContent = function(_nW, _nH)
 {
 	if (!this.IsPicture())
 		return;
@@ -1941,8 +2004,8 @@ CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
 		if (!oDrawingObjects)
 			return;
 
-		var nW = 50;
-		var nH = 50;
+		var nW = _nW ? _nW : 50;
+		var nH = _nH ? _nH : 50;
 
 		oDrawing   = new ParaDrawing(nW, nH, null, oDrawingObjects, this.LogicDocument, null);
 		var oImage = oDrawingObjects.createImage(AscCommon.g_sWordPlaceholderImage, 0, 0, nW, nH);
@@ -1955,12 +2018,14 @@ CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
 /**
  * Применяме к данному контейнеру настройку того, что это специальный контейнер для картинок
  * @param isPicture {boolean}
+ * @param [nW=-1] {number} если не задано (или значение не положительное), тогда используется стандартное значение
+ * @param [nH=-1] {number} если не задано (или значение не положительное), тогда используется стандартное значение
  */
-CBlockLevelSdt.prototype.ApplyPicturePr = function(isPicture)
+CBlockLevelSdt.prototype.ApplyPicturePr = function(isPicture, nW, nH)
 {
 	this.SetPicturePr(isPicture);
 	this.SetPlaceholder(undefined);
-	this.private_UpdatePictureContent();
+	this.private_UpdatePictureContent(nW, nH);
 };
 /**
  * Выделяем изображение, если это специальный контейнер для изображения
@@ -2481,6 +2546,39 @@ CBlockLevelSdt.prototype.UpdateLineNumbersInfo = function()
 CBlockLevelSdt.prototype.private_OnAddFormPr = function()
 {
 	this.Content.Recalc_AllParagraphs_CompiledPr();
+};
+CBlockLevelSdt.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
+{
+	var oTransform = this.Get_ParentTextTransform();
+
+	var _X = X;
+	var _Y = Y;
+	if (oTransform)
+	{
+		oTransform = oTransform.Invert();
+		_X = oTransform.TransformPointX(X, Y);
+		_Y = oTransform.TransformPointY(X, Y);
+	}
+
+	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
+	{
+		if (this.IsEmptyPage(nPageIndex))
+			continue;
+
+		if (this.GetAbsolutePage(nPageIndex) === nPageAbs)
+		{
+			var oBounds = this.Content.GetContentBounds(nPageIndex);
+
+			if (oBounds.Left <= _X && _X <= oBounds.Right && oBounds.Top <= _Y && _Y <= oBounds.Bottom)
+				return true;
+		}
+	}
+
+	return false;
+};
+CBlockLevelSdt.prototype.CalculateTextToTable = function(oEngine)
+{
+	this.Content.CalculateTextToTable(oEngine);
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

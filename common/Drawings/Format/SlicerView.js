@@ -1139,6 +1139,12 @@
         if(this.name !== null) {
             copy.setName(this.name);
         }
+        if(this.macro !== null) {
+            copy.setMacro(this.macro);
+        }
+        if(this.textLink !== null) {
+            copy.setTextLink(this.textLink);
+        }
         return copy;
     };
     CSlicer.prototype.invertMultiSelect = function () {
@@ -1560,6 +1566,9 @@
     CHeader.prototype.checkTextWarp = function(oContent, oBodyPr, dWidth, dHeight, bNeedNoTransform, bNeedWarp) {
         return oDefaultWrapObject;
     };
+    CHeader.prototype.isForm = function() {
+        return false;
+    };
 
     function CButtonBase(parent) {
         AscFormat.CShape.call(this);
@@ -1890,6 +1899,9 @@
             return null;
         }
         return this.getString();
+    };
+    CButton.prototype.isForm = function() {
+        return false;
     };
 
     function CInterfaceButton(parent) {

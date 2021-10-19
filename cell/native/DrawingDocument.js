@@ -1618,10 +1618,7 @@ function CDrawingDocument()
     this.GuiCanvasFillTextureCtxTextArt = null;
     this.LastDrawingUrlTextArt = "";
 
-
-
     this.GuiCanvasTextProps = null;
-    this.GuiCanvasTextPropsId = "gui_textprops_canvas_id";
     this.GuiLastTextProps = null;
 
     this.TableStylesLastLook = null;
@@ -2153,7 +2150,7 @@ function CDrawingDocument()
         if (page != _table.PageNum)
             return false;
 
-        var _dist = this.TableOutlineDr.image.width * g_dKoef_pix_to_mm;
+        var _dist = this.TableOutlineDr.mover_size * g_dKoef_pix_to_mm;
         _dist *= (100 / this.m_oWordControl.m_nZoomValue);
 
         var _x = _table.X;
@@ -3434,9 +3431,9 @@ function CDrawingDocument()
     };
 
     // вот здесь весь трекинг
-    this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
+    this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles)
     {
-        this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
+        this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles);
     };
 
     this.DrawTrackSelectShapes = function(x, y, w, h)

@@ -447,18 +447,7 @@ function CFontFileLoader(id)
         {
             if (this.status != 200)
             {
-                oThis.LoadingCounter++;
-                if (oThis.LoadingCounter < oThis.GetMaxLoadingCount())
-                {
-                    //console.log("font loaded: one more attemption");
-                    oThis.Status = -1;
-                    return;
-                }
-
-                oThis.Status = 2; // aka loading...
-                var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-                _editor.sendEvent("asc_onError", Asc.c_oAscError.ID.CoAuthoringDisconnect, Asc.c_oAscError.Level.Critical);
-                return;
+                return this.onerror();
             }
 
             oThis.Status = 0;
@@ -508,6 +497,21 @@ function CFontFileLoader(id)
             for (var i = 0; i < _count_decode; ++i)
                 _data[i] ^= guidOdttf[i % 16];
             */
+        };
+        xhr.onerror = function()
+        {
+            oThis.LoadingCounter++;
+            if (oThis.LoadingCounter < oThis.GetMaxLoadingCount())
+            {
+                //console.log("font loaded: one more attemption");
+                oThis.Status = -1;
+                return;
+            }
+
+            oThis.Status = 2; // aka loading...
+            var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+            _editor.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingFontError, Asc.c_oAscError.Level.Critical);
+            return;
         };
 
         xhr.send(null);
@@ -1382,7 +1386,11 @@ function CFont(name, id, type, thumbnail, style)
         this.NeedStyles = fontstyle_mask_regular | fontstyle_mask_italic | fontstyle_mask_bold | fontstyle_mask_bolditalic;
 }
 CFont.prototype.asc_getFontId = function() { return this.id; };
-CFont.prototype.asc_getFontName = function() { return this.name; };
+CFont.prototype.asc_getFontName = function()
+{
+    var _name = AscFonts.g_fontApplication ? AscFonts.g_fontApplication.NameToInterface[this.name] : null;
+    return _name ? _name : this.name;
+};
 CFont.prototype.asc_getFontThumbnail = function() { return this.thumbnail; };
 CFont.prototype.asc_getFontType = function() { return this.type; };
 

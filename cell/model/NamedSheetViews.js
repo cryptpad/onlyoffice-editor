@@ -621,7 +621,7 @@
 	};
 	CT_ColumnFilter.prototype.hasColorFilter = function(){
 		return null !== this.filter && this.filter.isColorFilter();
-	}
+	};
 
 	function CT_SortRules() {
 		this.sortMethod = null;//none

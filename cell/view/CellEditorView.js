@@ -160,7 +160,7 @@
 
 		/** @type RegExp */
 		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", "<", ">", "^", "!", "&", ":", " ", "."];
-		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
+		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.\"\]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
 		this.defaults = {
@@ -605,6 +605,7 @@
 			this._expand();
 			this._adjustCanvas();
 			this._showCanvas();
+			this._calculateCanvasSize();
 			this._renderText();
 			this.topLineIndex = 0;
 			this._updateCursorPosition();
@@ -1077,6 +1078,7 @@
 		this._cleanSelection();
 		this._adjustCanvas();
 		this._showCanvas();
+		this._calculateCanvasSize();
 		this._renderText();
 		if (!this.getMenuEditorMode()) {
 			this.input.value = AscCommonExcel.getFragmentsText((this.options.fragments));
@@ -1090,6 +1092,7 @@
 
 		if (this._expand()) {
 			this._adjustCanvas();
+			this._calculateCanvasSize();
 		}
 
 		this._renderText();  // вызов нужен для пересчета поля line.startX, которое используется в _updateCursorPosition
@@ -1299,27 +1302,19 @@
 	};
 
 	CellEditor.prototype._adjustCanvas = function () {
-		var isRetina = AscBrowser.isRetina;
 		var z = this.defaults.canvasZIndex;
-		var borderSize = 1;
+		var borderSize = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var left = this.left * this.kx;
 		var top = this.top * this.ky;
 		var width, height, widthStyle, heightStyle;
 
-		if (isRetina) {
-			borderSize = AscCommon.AscBrowser.convertToRetinaValue(borderSize, true);
-		}
-
 		width = widthStyle = (this.right - this.left) * this.kx - borderSize;
 		height = heightStyle = (this.bottom - this.top) * this.ky - borderSize;
 
-		if (isRetina) {
-			left = AscCommon.AscBrowser.convertToRetinaValue(left);
-			top = AscCommon.AscBrowser.convertToRetinaValue(top);
-
-			widthStyle = AscCommon.AscBrowser.convertToRetinaValue(widthStyle);
-			heightStyle = AscCommon.AscBrowser.convertToRetinaValue(heightStyle);
-		}
+        left = AscCommon.AscBrowser.convertToRetinaValue(left);
+        top = AscCommon.AscBrowser.convertToRetinaValue(top);
+        widthStyle = AscCommon.AscBrowser.convertToRetinaValue(widthStyle);
+        heightStyle = AscCommon.AscBrowser.convertToRetinaValue(heightStyle);
 
 		this.canvasOuterStyle.left = left + 'px';
 		this.canvasOuterStyle.top = top + 'px';
@@ -1329,10 +1324,19 @@
 			this.canvasOuterStyle.zIndex = this.top < 0 ? -1 : z;
 		}
 
-		this.canvas.width = this.canvasOverlay.width = width;
-		this.canvas.height = this.canvasOverlay.height = height;
 		this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
 		this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
+	};
+
+	CellEditor.prototype._calculateCanvasSize = function () {
+		//этот код вызывается после showCanvas, потому что внутри calculateCanvasSize использууется getBoundingClientRect
+		//если у канвы будет display = 'none', то размеры будут возвращаться нулевые
+		if (this.canvas) {
+			AscCommon.calculateCanvasSize(this.canvas);
+		}
+		if (this.canvasOverlay) {
+			AscCommon.calculateCanvasSize(this.canvasOverlay);
+		}
 	};
 
 	CellEditor.prototype._renderText = function (dy) {
@@ -1400,6 +1404,21 @@
 			this.handlers.trigger("onSelectionEnd");
 		}
 		return selection;
+	};
+
+	CellEditor.prototype.calculateOffset = function (pos) {
+		var left = 0;
+		var top = 0;
+		if (pos != null && this.textRender) {
+			var _top = this.textRender.calcLineOffset(this.topLineIndex);
+			var _begInfo = this.textRender.calcCharOffset(pos);
+			var _topLine = _begInfo ? this.textRender.calcLineOffset(_begInfo.lineIndex) : null;
+
+			left = _begInfo && _begInfo.left ? _begInfo.left : 0;
+			top = _topLine != null && _top != null ? _topLine - _top : 0;
+		}
+
+		return [left, top];
 	};
 
 	// Cursor
@@ -1471,7 +1490,7 @@
 			}
 			if (curTop < 0) {
 				--this.topLineIndex;
-				if (this.textRender.lines && this.textRender.lines.length && this.topLineIndex > this.textRender.lines.length) {
+				if (this.textRender.lines && this.textRender.lines.length && this.topLineIndex >= this.textRender.lines.length) {
 					this.topLineIndex = this.textRender.lines.length - 1;
 				}
 				dy = asc_round(this.textRender.getLineInfo(this.topLineIndex).th * zoom);
@@ -1486,11 +1505,9 @@
 			this._renderText(y);
 		}
 
-		if (AscBrowser.isRetina) {
-			curLeft = AscCommon.AscBrowser.convertToRetinaValue(curLeft);
-			curTop = AscCommon.AscBrowser.convertToRetinaValue(curTop);
-			curHeight = AscCommon.AscBrowser.convertToRetinaValue(curHeight);
-		}
+		curLeft = AscCommon.AscBrowser.convertToRetinaValue(curLeft);
+		curTop = AscCommon.AscBrowser.convertToRetinaValue(curTop);
+		curHeight = AscCommon.AscBrowser.convertToRetinaValue(curHeight);
 
 		this.curLeft = curLeft;
 		this.curTop = curTop;
@@ -1961,7 +1978,7 @@
 		var last = t._findFragment( endPos );
 
 		if ( !first || !last ) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 
 		if ( first.index === last.index ) {
@@ -1990,13 +2007,13 @@
 
 		fr = this._findFragment(startPos, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos, fragments);
 
 		fr = this._findFragment(startPos + length, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos + length, fragments);
 	};
@@ -2742,10 +2759,8 @@
 		var x = (((event.pageX * AscBrowser.zoom) >> 0) - offs.left) / this.kx;
 		var y = (((event.pageY * AscBrowser.zoom) >> 0) - offs.top) / this.ky;
 
-		if (AscBrowser.isRetina) {
-			x *= AscCommon.AscBrowser.retinaPixelRatio;
-			y *= AscCommon.AscBrowser.retinaPixelRatio;
-		}
+		x *= AscCommon.AscBrowser.retinaPixelRatio;
+		y *= AscCommon.AscBrowser.retinaPixelRatio;
 
 		return {x: x, y: y};
 	};
