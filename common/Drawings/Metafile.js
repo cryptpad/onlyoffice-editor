@@ -2233,6 +2233,8 @@
 		this.UseOriginImageUrl = false;
 
         this.FontPicker = null;
+
+        this.isPrintMode = false;
 	}
 
 	CDocumentRenderer.prototype =
