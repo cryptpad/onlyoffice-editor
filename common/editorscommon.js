@@ -52,6 +52,11 @@
 
 	String.prototype.sentenceCase = function () {
 		var trimStr = this.trim();
+		if (trimStr.length === 0) {
+			return "";
+		} else if (trimStr.length === 1) {
+			return trimStr[0].toUpperCase();
+		}
 		return trimStr[0].toUpperCase() + trimStr.slice(1);
 	}
 	String.prototype['sentenceCase'] = String.prototype.sentenceCase;
@@ -4854,12 +4859,11 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
 				var arrAnswer = [];
-				var lang = 'it-IT';
+				var lang = 'de-DE';
 
 				switch (lang) {
 					case 'ru-Ru':
-					case 'uk-UA':
-
+					case 'uk-UA': {
 						var alphaBet = {
 							'ru-Ru': {
 								1: [
@@ -4969,7 +4973,7 @@
 							}
 						}
 
-					function letterNumberLessThen100CyrillicMim(num) {
+						function letterNumberLessThen100CyrillicMim(num) {
 							var resArr = [];
 							var reminder = num % 10;
 							var degree10 = Math.floor(num / 10);
@@ -4985,7 +4989,7 @@
 								}
 							}
 							return resArr;
-					}
+						}
 
 						function cardinalSplittingCyrillicMim(num, skipThousand) {
 							var resArr = [];
@@ -5004,7 +5008,7 @@
 								if (groups[1000] >= 100) {
 									groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000]));
 								} else {
-										groupArr = groupArr.concat(letterNumberLessThen100CyrillicMim(groups[1000]));
+									groupArr = groupArr.concat(letterNumberLessThen100CyrillicMim(groups[1000]));
 								}
 								var thousand;
 								switch (thousandType) {
@@ -5034,7 +5038,7 @@
 									default:
 										break;
 								}
-									groupArr.push(thousand);
+								groupArr.push(thousand);
 
 
 								resArr = resArr.concat(groupArr);
@@ -5048,16 +5052,17 @@
 							}
 							return resArr;
 						}
+
 						if (nValue < 1000000) {
 							if (lang === 'uk-UA') {
 								sResult = cardinalSplittingCyrillicMim(nValue, true).join(' ').sentenceCase();
 
 							} else if ('ru-Ru') {
 								sResult = cardinalSplittingCyrillicMim(nValue).join(' ').sentenceCase();
-
 							}
 						}
 						break;
+					}
 					case 'en-US':
 					case 'az-Latn-AZ':
 					case 'en-GB': {
@@ -5342,6 +5347,97 @@
 							sResult = cardinalSplittingIT(nValue).join('').sentenceCase();
 						}
 							break;
+					}
+					case 'de-DE': {
+						alphaBet = {
+							1: [
+								'eins',
+								'zwei',
+								'drei',
+								'vier',
+								'fünf',
+								'sechs',
+								'sieben',
+								'acht',
+								'neun',
+								'zehn',
+								'elf',
+								'zwölf',
+								'dreizehn',
+								'vierzehn',
+								'fünfzehn',
+								'sechzehn',
+								'siebzehn',
+								'achtzehn',
+								'neunzehn',
+							],
+							10: [
+								'zwanzig',
+								'dreißig',
+								'vierzig',
+								'fünfzig',
+								'sechzig',
+								'siebzig',
+								'achtzig',
+								'neunzig',
+							],
+						}
+
+						function letterNumberLessThen100DE(num) {
+							var resArr = [];
+
+							if (num < 100 && num > 0) {
+								var reminder = num % 10;
+								var degree10 = Math.floor(num / 10);
+								if (num < 20) {
+									resArr.push(alphaBet[1][num - 1]);
+								} else {
+									if (reminder !== 0) {
+										if (reminder === 1) {
+											resArr.push(alphaBet[1][reminder - 1].slice(0, alphaBet[1][reminder - 1].length - 1), 'und');
+										} else {
+											resArr.push(alphaBet[1][reminder - 1], 'und');
+										}
+									}
+									resArr.push(alphaBet[10][degree10 - 2]);
+								}
+							}
+							return resArr;
+						}
+
+						function cardinalSplittingDE(number1_000_000) {
+							var resArr = [];
+							var groups = {};
+
+							groups[1000] = Math.floor(number1_000_000 / 1000);
+							number1_000_000 %= 1000;
+							groups[100] = Math.floor(number1_000_000 / 100);
+							number1_000_000 %= 100;
+							groups[1] = Math.floor(number1_000_000 / 1);
+							if (groups[1000]) {
+								if (groups[1000] >= 100) {
+									resArr = resArr.concat(cardinalSplittingDE(groups[1000]));
+								} else {
+									resArr = resArr.concat(letterNumberLessThen100DE(groups[1000]));
+								}
+								resArr.push('tausend');
+							}
+							if (groups[100]) {
+								if (groups[100] !== 1) {
+									resArr = resArr.concat(letterNumberLessThen100DE(groups[100]));
+								}
+								resArr.push('hundert');
+							}
+							if (groups[1]) {
+								resArr = resArr.concat(letterNumberLessThen100DE(groups[1]));
+							}
+
+							return resArr;
+						}
+						if (nValue < 1000000) {
+							sResult = cardinalSplittingDE(nValue).join('').sentenceCase();
+						}
+						break;
 					}
 					case 'fr-FR': {
 						alphaBet = {
