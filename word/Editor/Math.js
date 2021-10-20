@@ -3497,14 +3497,53 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 {
 	this.Root.CalculateTextToTable(oEngine);
 };
-ParaMath.prototype.ConvertFromLaTeX = function(sLaTeX)
-{
-    if (!sLaTeX)
-        return;
 
-    this.Root.Load_FromMenu(c_oAscMathMainType.Empty_Content << 24, this.GetParagraph(), null, sLaTeX);
+ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
+{
+    if (!strLaTeX) return; 
+    else {
+        var Pr = { ctrPrp :  new CTextPr() };
+        strLaTeX =  strLaTeX.replaceAll('{', ' { ')
+                            .replaceAll('}', ' } ')
+                            .replaceAll(')', ' ) ')
+                            .replaceAll('(', ' ( ')
+                            .replaceAll('\\', ' \\')
+                            .trim()
+                            .split(' ')
+                            .filter(Boolean);
+        var arrStrLaTex = [];
+        for (var i = 0; i < strLaTeX.length; i++) {
+            const isCircumflecs = strLaTeX[i].includes('^');
+            const isBottomLine  = strLaTeX[i].includes('_');
+            if (isCircumflecs || isBottomLine) {
+                var strSymbolForSplit = isCircumflecs ? '^' : isBottomLine ? '_' : '';
+                var arrFormulaAtoms = strLaTeX[i].split(strSymbolForSplit);
+                arrFormulaAtoms.forEach((atom, index) => {
+                    if (index < arrFormulaAtoms.length - 1) {
+                        arrStrLaTex.push(atom);
+                        arrStrLaTex.push(strSymbolForSplit);
+                    } else arrStrLaTex.push(atom);
+                })
+            }
+            else { 
+                arrStrLaTex.push(strLaTeX[i].trim());
+            } 
+        }
+        //console.log(arrStrLatex);
+        for (var i = 0; i < arrStrLaTex.length; i++) {
+            switch (arrStrLaTex[i]) {
+                // case ('\\cos' || '\\sin'):      break;
+                // case ('{'):                     break;
+                // case (')'):                     break;
+                // case ('}'):                     break; 
+                // case ('^'):                     break;
+                // case ('_'):                     break;
+                default:                           this.Root.Add_Text(arrStrLaTex[i], this.Paragraph);
+            }
+        }
     this.Root.Correct_Content(true);
-};
+    }     
+}
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {
