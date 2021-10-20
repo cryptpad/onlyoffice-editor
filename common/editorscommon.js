@@ -4854,7 +4854,7 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
 				var arrAnswer = [];
-				var lang = 'es-ES';
+				var lang = 'it-IT';
 
 				switch (lang) {
 					case 'ru-Ru':
@@ -5244,6 +5244,102 @@
 						}
 						if (nValue < 1000000) {
 							sResult = cardinalSplittingES(nValue).join(' ').sentenceCase();
+						}
+							break;
+					}
+					case 'it-IT': {
+						alphaBet = {
+							1: [
+								'uno',
+								'due',
+								'tré',
+								'quattro',
+								'cinque',
+								'sei',
+								'sette',
+								'otto',
+								'nove',
+								'dieci',
+								'undici',
+								'dodici',
+								'tredici',
+								'quattordici',
+								'quindici',
+								'sedici',
+								'diciassette',
+								'diciotto',
+								'diciannove',
+							],
+							10: [
+								'venti',
+								'trenta',
+								'quaranta',
+								'cinquanta',
+								'sessanta',
+								'settanta',
+								'ottanta',
+								'novanta',
+							]
+						}
+
+						function letterNumberLessThen100IT(num) {
+							var resArr = [];
+							if (num < 100 && num > 0) {
+								var degree10 = Math.floor(num / 10);
+								var reminder = num % 10;
+								if (num < 20) {
+									resArr.push(alphaBet[1][num - 1]);
+								} else {
+									var deg = alphaBet[10][degree10 - 2];
+									if (reminder === 1) {
+										resArr.push(deg.slice(0, deg.length - 1));
+									} else {
+										resArr.push(deg);
+									}
+									if (reminder) {
+										resArr.push(alphaBet[1][reminder - 1]);
+									}
+								}
+							}
+							return resArr;
+						}
+						function cardinalSplittingIT(number1_000_000) {
+							var resArr = [];
+							var groups = {};
+							groups[1000] = Math.floor(number1_000_000 / 1000);
+							number1_000_000 %= 1000;
+							groups[100] = Math.floor(number1_000_000 / 100);
+							number1_000_000 %= 100;
+							groups[1] = number1_000_000;
+
+							if (groups[1000]) {
+								if (groups[1000] >= 100) {
+									resArr = resArr.concat(cardinalSplittingIT(groups[1000]));
+								} else {
+									if (groups[1000] !== 1) {
+										resArr = resArr.concat(letterNumberLessThen100IT(groups[1000]));
+									}
+								}
+								if (groups[1000] === 1) {
+									resArr.push('mille');
+								} else {
+									resArr.push('mila');
+								}
+							}
+							if (groups[100]) {
+								if (groups[100] !== 1) {
+									resArr = resArr.concat(letterNumberLessThen100IT(groups[100]));
+								}
+								resArr.push('cento');
+							}
+							if (groups[1]) {
+								resArr = resArr.concat(letterNumberLessThen100IT(groups[1]));
+							}
+
+							return resArr;
+						}
+						if (nValue < 1000000) {
+							sResult = cardinalSplittingIT(nValue).join('').sentenceCase();
 						}
 							break;
 					}
