@@ -74,11 +74,14 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
 
     function CBaseObject() {
         this.Id = null;
-        if(AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges()) {
+        if(AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges() || this.notAllowedWithoutId()) {
             this.Id = AscCommon.g_oIdCounter.Get_NewId();
             AscCommon.g_oTableId.Add( this, this.Id );
         }
     }
+    CBaseObject.prototype.notAllowedWithoutId = function() {
+        return false;
+    };
     CBaseObject.prototype.getObjectType = function() {
         return AscDFH.historyitem_type_Unknown;
     };
@@ -105,12 +108,6 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     function CBaseFormatObject() {
         CBaseObject.call(this);
         this.parent = null;
-        if(this.Id === null) {
-            if(this.notAllowedWithoutId()) {
-                this.Id = AscCommon.g_oIdCounter.Get_NewId();
-                AscCommon.g_oTableId.Add(this, this.Id);
-            }
-        }
     }
     CBaseFormatObject.prototype = Object.create(CBaseObject.prototype);
     CBaseFormatObject.prototype.constructor = CBaseFormatObject;

@@ -456,13 +456,13 @@
         this.cropObject = null;
         this.Lock = new AscCommon.CLock();
         this.setRecalculateInfo();
-        if(this.Id === null) {
-            this.Id = AscCommon.g_oIdCounter.Get_NewId();
-            AscCommon.g_oTableId.Add(this, this.Id);
-        }
     }
     CGraphicObjectBase.prototype = Object.create(CBaseObject.prototype);
     CGraphicObjectBase.prototype.constructor = CGraphicObjectBase;
+
+    CGraphicObjectBase.prototype.notAllowedWithoutId = function() {
+        return true;
+    };
     /**
      * Create a scheme color
      * @memberof CGraphicObjectBase

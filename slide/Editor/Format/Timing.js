@@ -9565,6 +9565,9 @@
     CControl.prototype.isHidden = function() {
         return this.hidden;
     };
+    CControl.prototype.notAllowedWithoutId = function() {
+        return false;
+    };
     //define shape methods
     CControl.prototype.getBodyPr = function () {
         return this.bodyPr;
@@ -10980,17 +10983,87 @@
         MIDDLE_1_TIME_INTERVAL,//20
         MIDDLE_2_TIME_INTERVAL,//60
         MIDDLE_2_TIME_INTERVAL,//120
-        LONG_TIME_INTERVAL,//300
-        LONG_TIME_INTERVAL,//600
+        MIDDLE_2_TIME_INTERVAL,//300
+        MIDDLE_2_TIME_INTERVAL,//600
         SMALL_TIME_INTERVAL//600
     ];
+    var LABEL_WIDTH = 100;
     function CTimeline(oParentControl) {
         CScrollHor.call(this, oParentControl);
-        this.startPos = 0;
-        this.curPos = 0;
-        this.tmScaleIdx = 0;
+        this.startTimePos = 0;
+        this.curTimePos = 0;
+        this.tmScaleIdx = 5;
+
+        //labels cache
+        this.labels = {};
+        this.usedLabels = {};
     }
     InitClass(CTimeline, CScrollHor, CONTROL_TYPE_TIMELINE);
+    CTimeline.prototype.startDrawLabels = function() {
+        this.usedLabels = {};
+    };
+    CTimeline.prototype.endDrawLabels = function() {
+        for(var nTime in this.labels) {
+            if(!this.usedLabels[nTime]) {
+                var oLabel = this.labels[nTime];
+                oLabel.parentControl = null;
+                oLabel.bDeleted = true;
+                delete this.labels[nTime];
+            }
+        }
+    };
+    CTimeline.prototype.getLabel = function(nTime) {
+      this.usedLabels[nTime] = true;
+      if(this.labels[nTime]) {
+          return this.labels[nTime];
+      }
+      return this.cacheLabel(nTime);
+    };
+    CTimeline.prototype.cacheLabel = function(nTime) {
+      var oLabel = new CLabel(this, this.getTimeString(nTime), 10);
+      var oContent = oLabel.txBody.content;
+      oLabel.setLayout(0, 0, 100, 100);
+      oLabel.recalculateContent();
+      oContent.SetApplyToAll(true);
+      oContent.SetParagraphAlign(AscCommon.align_Center);
+      oContent.SetApplyToAll(false);
+      oContent.Start_Recalculate(LABEL_WIDTH, 2000);
+      this.labels[nTime] = oLabel;
+      return oLabel;
+    };
+    CTimeline.prototype.getTimeString = function(nTime) {
+      if(nTime < 60) {
+          return "" + nTime;
+      }
+      var nMin, nSec;
+      var sMin, sSec;
+      nSec = (nTime % 60);
+      if(nSec === 0) {
+          sSec = "00";
+      }
+      else {
+          sSec = "" + nSec;
+      }
+      if(nTime < 3600) {
+          return (((nTime / 60) >> 0)  + ":") + sSec;
+      }
+
+        nMin = ((nTime / 60) >> 0);
+        if(nMin === 0) {
+            sMin = "00";
+        }
+        else {
+            sMin = "" + nMin;
+        }
+      return (((nTime / 3600) >> 0)  + ":") + (sMin  + ":") + sSec;
+    };
+    CTimeline.prototype.drawLabel = function(graphics, dPos, nTime) {
+        var oLabel = this.getLabel(nTime);
+        var oContent = oLabel.txBody.content;
+        oContent.ShiftView(dPos - LABEL_WIDTH / 2, this.getHeight() / 2 - oContent.GetSummaryHeight() / 2);
+        oContent.Draw(0, graphics);
+        oContent.ResetShiftView();
+    };
     CTimeline.prototype.getPaneLeft = function() {
         return SCROLL_BUTTON_SIZE;
     };
@@ -11011,6 +11084,16 @@
     CTimeline.prototype.canHandleEvents = function() {
         return true;
     };
+    CTimeline.prototype.drawMark = function(graphics, dPos) {
+        var dHeight = this.getHeight() / 3;
+        var nPenW = this.getPenWidth(graphics);
+        graphics.drawVerLine(1, dPos, dHeight, dHeight + dHeight, nPenW);
+    };
+    CTimeline.prototype.start = function(graphics, dPos) {
+        var dHeight = this.getHeight() / 3;
+        var nPenW = this.getPenWidth(graphics);
+        graphics.drawVerLine(1, dPos, dHeight, dHeight + dHeight, nPenW);
+    };
     CTimeline.prototype.draw = function(graphics) {
         if(!CScrollHor.prototype.draw.call(this, graphics)) {
             return false;
@@ -11029,8 +11112,8 @@
         // graphics.RestoreGrState();
         var sColor = this.children[0].getOutlineColor();
         var oColor = AscCommon.RgbaHexToRGBA(sColor);
-        var dPaneLeft = this.children[0].getRight();
-        var dPaneWidth = this.getWidth() - (this.children[0].getWidth() + this.children[1].getWidth());
+        var dPaneLeft = this.getRulerStart();
+        var dPaneWidth = this.getRulerEnd() - dPaneLeft;
         var x = dPaneLeft;
         var y = 0;
         var extX = dPaneWidth;
@@ -11044,7 +11127,65 @@
         graphics.drawVerLine(2, x, y, y + extY, nPenW);
         graphics.drawVerLine(2, x + extX, y, y + extY, nPenW);
         graphics.ds();
+
+        //draw marks
+        //find first visible
+        var fStartTime = this.posToTime(this.getRulerStart());
+        var fTimeInterval = TIME_SCALES[this.tmScaleIdx];
+        var nMarksCount = TIME_INTERVALS[this.tmScaleIdx] === LONG_TIME_INTERVAL ? 10 : 2;
+        var nFirstInterval = this.startTimePos * nMarksCount * fTimeInterval + 0.5 >> 0;
+        var fEndTime = this.posToTime(this.getRulerEnd());
+        var nLastInterval = fEndTime * nMarksCount * fTimeInterval >> 0;
+        var dSmallInterval = fTimeInterval/nMarksCount;
+        var nInterval;
+        for(nInterval = nFirstInterval; nInterval <= nLastInterval; ++nInterval) {
+            var dTime = nInterval*dSmallInterval;
+            var dPos = this.timeToPos(dTime);
+            if(nInterval % nMarksCount !== 0) {
+                this.drawMark(graphics, dPos);
+            }
+        }
+        graphics.ds();
+        this.startDrawLabels();
+        for(nInterval = nFirstInterval; nInterval <= nLastInterval; ++nInterval) {
+            var dTime = nInterval*dSmallInterval;
+            var dPos = this.timeToPos(dTime);
+            if(nInterval % nMarksCount === 0) {
+                this.drawLabel(graphics, dPos, dTime);
+            }
+        }
+        this.endDrawLabels();
+        //
+
         graphics.RestoreGrState();
+    };
+    CTimeline.prototype.getRulerStart = function() {
+        return this.children[0].getRight();
+    };
+    CTimeline.prototype.getRulerEnd = function() {
+        return this.getWidth() - this.children[1].getWidth();
+    };
+    CTimeline.prototype.getCursorSize = function() {
+        return BUTTON_SIZE;
+    };
+    CTimeline.prototype.getZeroShift = function() {
+        return this.getRulerStart() + this.getCursorSize() / 2;
+    };
+    CTimeline.prototype.timeToPos = function(fTime) {
+        //linear relationship x = a*t + b
+        var oCoefs = this.getLinearCoeffs();
+        return oCoefs.a*fTime + oCoefs.b;
+    };
+    CTimeline.prototype.getLinearCoeffs = function() {
+        //linear relationship x = a*t + b
+        var a = TIME_INTERVALS[this.tmScaleIdx]/TIME_SCALES[this.tmScaleIdx];
+        var b = this.getZeroShift() - a*this.startTimePos;
+        return {a: a, b: b};
+    };
+    CTimeline.prototype.posToTime = function(fPos) {
+        //linear relationship x = a*t + b
+        var oCoefs = this.getLinearCoeffs();
+        return (fPos - oCoefs.b) / oCoefs.a;
     };
 
     var HEADER_HEIGHT = 7.5;
