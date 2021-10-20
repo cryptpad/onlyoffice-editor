@@ -9608,15 +9608,12 @@
         return oTransform;
     };
     CControl.prototype.getFullTransform = function() {
-        return this.multiplyParentTransforms(this.localTransform);
+        return this.transform;
     };
     CControl.prototype.getFullTextTransform = function() {
-        return this.multiplyParentTransforms(this.localTransformText);
+        return this.transformText;
     };
-    CControl.prototype.getInvFullTransformMatrix = function() {
-        var oMT = AscCommon.global_MatrixTransformer;
-        return oMT.Invert(this.getFullTransform());
-    };
+
     CControl.prototype.recalculate = function() {
         AscFormat.CShape.prototype.recalculate.call(this);
     };
@@ -9629,25 +9626,55 @@
     CControl.prototype.recalculateContent = function () {
     };
     CControl.prototype.recalculateGeometry = function() {
-        this.calcGeometry = AscFormat.CreateGeometry("rect");
-        this.calcGeometry.Recalculate(this.extX, this.extY);
+        //this.calcGeometry = AscFormat.CreateGeometry("rect");
+        //this.calcGeometry.Recalculate(this.extX, this.extY);
     };
     CControl.prototype.recalculateTransform = function() {
-        AscFormat.CShape.prototype.recalculateTransform.call(this);
-        var oMT = AscCommon.global_MatrixTransformer;
-        this.transform = this.getFullTransform();
-        this.invertTransform = oMT.Invert(this.transform);
+        if(!this.transform) {
+            this.transform = new AscCommon.CMatrix();
+        }
+        var tx = this.getLeft();
+        var ty = this.getTop();
+        this.x = tx;
+        this.y = ty;
+        this.rot = 0;
+        this.extX = this.getWidth();
+        this.extY = this.getHeight();
+        this.flipH = false;
+        this.flipV = false;
+        ty += this.getParentScrollOffsetY(this);
+        var oCurParent = this.parentControl;
+
+        if(oCurParent) {
+            tx += oCurParent.transform.tx;
+            ty += oCurParent.transform.ty
+        }
+        this.transform.tx = tx;
+        this.transform.ty = ty;
+        if(!this.invertTransform) {
+            this.invertTransform = new AscCommon.CMatrix();
+        }
+        this.invertTransform.tx = -tx;
+        this.invertTransform.ty = -ty;
+        this.localTransform = this.transform;
     };
     CControl.prototype.recalculateTransformText = function() {
-        AscFormat.CShape.prototype.recalculateTransformText.call(this);
-        var oMT = AscCommon.global_MatrixTransformer;
-        this.transformText = this.getFullTextTransform();
-        this.invertTransformText = oMT.Invert(this.transformText);
+        if(!this.transformText) {
+            this.transformText = new AscCommon.CMatrix();
+        }
+        this.transformText.tx = this.transform.tx;
+        this.transformText.ty = this.transform.ty;
+
+        if(!this.invertTransformText) {
+            this.invertTransformText = new AscCommon.CMatrix();
+        }
+        this.invertTransformText.tx = -this.transform.tx;
+        this.invertTransformText.ty = -this.transform.ty;
+        this.localTransformText = this.transformText;
     };
     CControl.prototype.recalculateBounds = function() {
-        var oTransform = this.getFullTransform();
-        var dX = oTransform.tx;
-        var dY = oTransform.ty;
+        var dX = this.transform.tx;
+        var dY = this.transform.ty;
         this.bounds.reset(dX, dY, dX + this.getWidth(), dY + this.getHeight())
     };
     CControl.prototype.recalculateSnapArrays = function() {
@@ -9828,7 +9855,18 @@
         AscFormat.CShape.prototype.recalculate.call(this);
     };
     CControl.prototype.setLayout = function(dX, dY, dExtX, dExtY) {
-        this.setTransformParams(dX, dY, dExtX, dExtY, 0, false, false);
+        if(!this.spPr) {
+            this.spPr = new AscFormat.CSpPr();
+        }
+        if(!this.spPr.xfrm) {
+            this.spPr.xfrm = new AscFormat.CXfrm();
+        }
+
+        this.spPr.xfrm.offX = dX;
+        this.spPr.xfrm.offY = dY;
+        this.spPr.xfrm.extX = dExtX;
+        this.spPr.xfrm.extY = dExtY;
+        this.handleUpdateExtents();
     };
     CControl.prototype.getLeft = function() {
         return this.spPr.xfrm.offX;
@@ -9923,6 +9961,9 @@
             sOutlineColor = oSkin.ScrollOutlineColor;
         }
         return sOutlineColor;
+    };
+    CControl.prototype.drawShdw = function() {
+
     };
 
     function CControlContainer(oParentControl) {
@@ -10731,10 +10772,12 @@
         return AscCommon.translateManager.getValue(this.string);
     };
     CLabel.prototype.recalculateContent = function () {
-        this.recalculateGeometry();
+        //this.recalculateGeometry();
         this.recalculateTransform();
-        this.txBody.content.Recalc_AllParagraphs_CompiledPr();
-        this.txBody.recalculateOneString(this.getString());
+//        this.txBody.content.Recalc_AllParagraphs_CompiledPr();
+        if(!this.txBody.bFit || !AscFormat.isRealNumber(this.txBody.fitWidth) || this.txBody.fitWidth > this.getWidth()) {
+            this.txBody.recalculateOneString(this.getString());
+        }
     };
     CLabel.prototype.canHandleEvents = function () {
         return false;
@@ -10743,6 +10786,24 @@
         return null;
     };
     CLabel.prototype.getOutlineColor = function() {
+        return null;
+    };
+    CLabel.prototype.recalculateTransformText = function() {
+        var Y = this.getHeight() / 2 - this.txBody.content.GetSummaryHeight() / 2;
+        if(!this.transformText) {
+            this.transformText = new AscCommon.CMatrix();
+        }
+        this.transformText.tx = this.transform.tx;
+        this.transformText.ty = this.transform.ty + Y;
+
+        if(!this.invertTransformText) {
+            this.invertTransformText = new AscCommon.CMatrix();
+        }
+        this.invertTransformText.tx = -this.transformText.tx;
+        this.invertTransformText.ty = -this.transformText.ty;
+        this.localTransformText = this.transformText;
+    };
+    CLabel.prototype.recalculateTransformText2 = function() {
         return null;
     };
 
@@ -10997,6 +11058,8 @@
         //labels cache
         this.labels = {};
         this.usedLabels = {};
+
+        this.cachedParaPr = null;
     }
     InitClass(CTimeline, CScrollHor, CONTROL_TYPE_TIMELINE);
     CTimeline.prototype.startDrawLabels = function() {
@@ -11012,24 +11075,32 @@
             }
         }
     };
-    CTimeline.prototype.getLabel = function(nTime) {
+    CTimeline.prototype.getLabel = function(nTime, scale) {
       this.usedLabels[nTime] = true;
-      if(this.labels[nTime]) {
+      if(this.labels[nTime] && AscFormat.fApproxEqual(this.labels[nTime].scale, scale, 0.01)) {
           return this.labels[nTime];
       }
-      return this.cacheLabel(nTime);
+      return this.cacheLabel(nTime, scale);
     };
-    CTimeline.prototype.cacheLabel = function(nTime) {
+    CTimeline.prototype.cacheLabel = function(nTime, scale) {
       var oLabel = new CLabel(this, this.getTimeString(nTime), 10);
       var oContent = oLabel.txBody.content;
-      oLabel.setLayout(0, 0, 100, 100);
-      oLabel.recalculateContent();
-      oContent.SetApplyToAll(true);
-      oContent.SetParagraphAlign(AscCommon.align_Center);
-      oContent.SetApplyToAll(false);
-      oContent.Start_Recalculate(LABEL_WIDTH, 2000);
-      this.labels[nTime] = oLabel;
-      return oLabel;
+      oLabel.setLayout(0, 0, LABEL_WIDTH, this.getHeight());
+      if(this.cachedParaPr) {
+          oContent.Content[0].CompiledPr = this.cachedParaPr;
+      }
+      else {
+          oContent.SetApplyToAll(true);
+          oContent.SetParagraphAlign(AscCommon.align_Center);
+          oContent.SetApplyToAll(false);
+      }
+      oLabel.recalculate();
+      if(!this.cachedParaPr) {
+          this.cachedParaPr = oContent.Content[0].CompiledPr;
+      }
+      var oBaseTexture = oLabel.getAnimTexture(scale);
+      this.labels[nTime] = new CAnimTexture(this, oBaseTexture.canvas, oBaseTexture.scale, oBaseTexture.x, oBaseTexture.y);
+      return this.labels[nTime];
     };
     CTimeline.prototype.getTimeString = function(nTime) {
       if(nTime < 60) {
@@ -11058,11 +11129,18 @@
       return (((nTime / 3600) >> 0)  + ":") + (sMin  + ":") + sSec;
     };
     CTimeline.prototype.drawLabel = function(graphics, dPos, nTime) {
-        var oLabel = this.getLabel(nTime);
-        var oContent = oLabel.txBody.content;
-        oContent.ShiftView(dPos - LABEL_WIDTH / 2, this.getHeight() / 2 - oContent.GetSummaryHeight() / 2);
-        oContent.Draw(0, graphics);
-        oContent.ResetShiftView();
+        var oLabelTexture = this.getLabel(nTime, graphics.m_oCoordTransform.sx);
+        var oMatrix = new AscCommon.CMatrix();
+        var dWidth = oLabelTexture.canvas.width / oLabelTexture.scale;
+        var dHeight = oLabelTexture.canvas.height / oLabelTexture.scale ;
+        graphics.drawImage2(oLabelTexture.canvas,
+            dPos - dWidth / 2, this.getHeight() / 2 - dHeight / 2,
+            dWidth,
+            dHeight);
+        // var oContent = oLabel.txBody.content;
+        // oContent.ShiftView(dPos - LABEL_WIDTH / 2, this.getHeight() / 2 - oContent.GetSummaryHeight() / 2);
+        // oContent.Draw(0, graphics);
+        // oContent.ResetShiftView();
     };
     CTimeline.prototype.getPaneLeft = function() {
         return SCROLL_BUTTON_SIZE;
@@ -11133,27 +11211,31 @@
         var fStartTime = this.posToTime(this.getRulerStart());
         var fTimeInterval = TIME_SCALES[this.tmScaleIdx];
         var nMarksCount = TIME_INTERVALS[this.tmScaleIdx] === LONG_TIME_INTERVAL ? 10 : 2;
-        var nFirstInterval = this.startTimePos * nMarksCount * fTimeInterval + 0.5 >> 0;
-        var fEndTime = this.posToTime(this.getRulerEnd());
-        var nLastInterval = fEndTime * nMarksCount * fTimeInterval >> 0;
-        var dSmallInterval = fTimeInterval/nMarksCount;
+
+        var dTimeOfSmallInterval = fTimeInterval / nMarksCount;
+        var nStartIntervalIdx = this.startTimePos/dTimeOfSmallInterval >> 0;
+        var nEndIntervalIdx = this.posToTime(this.getRulerEnd()) / dTimeOfSmallInterval + 0.5 >> 0;
+        this.startDrawLabels();
         var nInterval;
-        for(nInterval = nFirstInterval; nInterval <= nLastInterval; ++nInterval) {
-            var dTime = nInterval*dSmallInterval;
+        graphics.AddClipRect(x, y, extX, extY);
+        for(nInterval = nStartIntervalIdx; nInterval <= nEndIntervalIdx; ++nInterval) {
+            var dTime = nInterval*dTimeOfSmallInterval;
             var dPos = this.timeToPos(dTime);
             if(nInterval % nMarksCount !== 0) {
                 this.drawMark(graphics, dPos);
             }
-        }
-        graphics.ds();
-        this.startDrawLabels();
-        for(nInterval = nFirstInterval; nInterval <= nLastInterval; ++nInterval) {
-            var dTime = nInterval*dSmallInterval;
-            var dPos = this.timeToPos(dTime);
-            if(nInterval % nMarksCount === 0) {
+            else {
                 this.drawLabel(graphics, dPos, dTime);
             }
         }
+        graphics.ds();
+        // for(nInterval = nFirstInterval; nInterval <= nLastInterval; ++nInterval) {
+        //     var dTime = nInterval*dSmallInterval;
+        //     var dPos = this.timeToPos(dTime);
+        //     if(nInterval % nMarksCount === 0) {
+        //         this.drawLabel(graphics, dPos, dTime);
+        //     }
+        // }
         this.endDrawLabels();
         //
 
