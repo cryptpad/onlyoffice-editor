@@ -4854,7 +4854,7 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
 				var arrAnswer = [];
-				var lang = 'uk-UA';
+				var lang = 'es-ES';
 
 				switch (lang) {
 					case 'ru-Ru':
@@ -5058,7 +5058,9 @@
 							}
 						}
 						break;
-					case 'en': {
+					case 'en-US':
+					case 'az-Latn-AZ':
+					case 'en-GB': {
 						var other = [
 							'twent',
 							'thirt',
@@ -5133,6 +5135,117 @@
 							sResult = cardinalSplittingEN(nValue).sentenceCase();
 						}
 						break;
+					}
+					case 'es-ES': {
+						alphaBet = {
+							1: [
+								'uno',
+								'dos',
+								'tres',
+								'cuatro',
+								'cinco',
+								'seis',
+								'siete',
+								'ocho',
+								'nueve',
+								'diez',
+								'once',
+								'doce',
+								'trece',
+								'catorce',
+								'quince',
+								'dieciséis',
+								'diecisiete',
+								'dieciocho',
+								'diecinueve'
+							],
+							10: [
+								'veint',
+								'treinta',
+								'cuarenta',
+								'cincuenta',
+								'sesenta',
+								'setenta',
+								'ochenta',
+								'noventa'
+							],
+							100: [
+								'ciento',
+								'doscientos',
+								'trescientos',
+								'cuatrocientos',
+								'quinientos',
+								'seiscientos',
+								'setecientos',
+								'ochocientos',
+								'novecientos'
+							],
+							20: {
+								2: 'dós',
+								3: 'trés',
+								6: 'séis',
+							}
+						}
+
+						function letterNumberLessThen100ES(num) {
+							var resArr = [];
+							if (num < 100 && num > 0) {
+								var degree10 = Math.floor(num / 10);
+								var reminder = num % 10;
+								if (num < 20) {
+									resArr.push(alphaBet[1][num - 1]);
+								} else if (degree10 === 2) {
+									if (reminder === 0) {
+										resArr.push(alphaBet[10][degree10 - 2] + 'e');
+									} else {
+										if (reminder === 2 || reminder === 3 || reminder === 6) {
+											resArr.push(alphaBet[10][degree10 - 2] + 'i', alphaBet[20][reminder]);
+										} else {
+											resArr.push(alphaBet[10][degree10 - 2] + 'i', alphaBet[1][reminder - 1]);
+										}
+									}
+								} else {
+									resArr.push(alphaBet[10][degree10 - 2]);
+									if (reminder !== 0) {
+										resArr.push(' y ', alphaBet[1][reminder - 1]);
+									}
+								}
+							}
+							return resArr;
+						}
+
+						function cardinalSplittingES(number1_000_000) {
+							var resArr = [];
+							var groups = {};
+							groups[1000] = Math.floor(number1_000_000 / 1000);
+							number1_000_000 %= 1000;
+							groups[100] = Math.floor(number1_000_000 / 100);
+							number1_000_000 %= 100;
+							groups[1] = number1_000_000;
+
+							if (groups[1000]) {
+								if (groups[1000] >= 100) {
+									resArr = resArr.concat(cardinalSplittingES(groups[1000]));
+								} else {
+									if (groups[1000] !== 1) {
+										resArr.push(letterNumberLessThen100ES(groups[1000]).join(''));
+									}
+								}
+								resArr.push('mil');
+							}
+
+							if (groups[100]) {
+								resArr.push(alphaBet[100][groups[100] - 1]);
+							}
+							if (groups[1]) {
+								resArr.push(letterNumberLessThen100ES(groups[1]).join(''));
+							}
+							return resArr;
+						}
+						if (nValue < 1000000) {
+							sResult = cardinalSplittingES(nValue).join(' ').sentenceCase();
+						}
+							break;
 					}
 					case 'fr-FR': {
 						alphaBet = {
