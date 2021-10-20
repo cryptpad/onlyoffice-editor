@@ -5056,8 +5056,7 @@
 						if (nValue < 1000000) {
 							if (lang === 'uk-UA') {
 								sResult = cardinalSplittingCyrillicMim(nValue, true).join(' ').sentenceCase();
-
-							} else if ('ru-Ru') {
+							} else if (lang === 'ru-Ru') {
 								sResult = cardinalSplittingCyrillicMim(nValue).join(' ').sentenceCase();
 							}
 						}
@@ -5065,7 +5064,12 @@
 					}
 					case 'en-US':
 					case 'az-Latn-AZ':
-					case 'en-GB': {
+					case 'en-GB':
+					case 'ja-JP':
+					case 'zh-CN':
+					case 'vi-VN':
+
+					case 'ko-KR': {
 						var other = [
 							'twent',
 							'thirt',
