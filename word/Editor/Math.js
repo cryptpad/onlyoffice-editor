@@ -3501,49 +3501,69 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
 {
     if (!strLaTeX) return; 
-    else {
-        var Pr = { ctrPrp :  new CTextPr() };
-        strLaTeX =  strLaTeX.replaceAll('{', ' { ')
-                            .replaceAll('}', ' } ')
-                            .replaceAll(')', ' ) ')
-                            .replaceAll('(', ' ( ')
-                            .replaceAll('\\', ' \\')
-                            .trim()
-                            .split(' ')
-                            .filter(Boolean);
-        var arrStrLaTex = [];
-        for (var i = 0; i < strLaTeX.length; i++) {
-            const isCircumflecs = strLaTeX[i].includes('^');
-            const isBottomLine  = strLaTeX[i].includes('_');
-            if (isCircumflecs || isBottomLine) {
-                var strSymbolForSplit = isCircumflecs ? '^' : isBottomLine ? '_' : '';
-                var arrFormulaAtoms = strLaTeX[i].split(strSymbolForSplit);
-                arrFormulaAtoms.forEach((atom, index) => {
-                    if (index < arrFormulaAtoms.length - 1) {
-                        arrStrLaTex.push(atom);
-                        arrStrLaTex.push(strSymbolForSplit);
-                    } else arrStrLaTex.push(atom);
-                })
-            }
-            else { 
-                arrStrLaTex.push(strLaTeX[i].trim());
-            } 
-        }
-        //console.log(arrStrLatex);
-        for (var i = 0; i < arrStrLaTex.length; i++) {
-            switch (arrStrLaTex[i]) {
-                // case ('\\cos' || '\\sin'):      break;
-                // case ('{'):                     break;
-                // case (')'):                     break;
-                // case ('}'):                     break; 
-                // case ('^'):                     break;
-                // case ('_'):                     break;
-                default:                           this.Root.Add_Text(arrStrLaTex[i], this.Paragraph);
-            }
-        }
+    var oLaTexParser = new LaTeXStringParser();
+    oLaTexParser.parse(strLaTeX);
+    LaTeXStringLexer(oLaTexParser, this.Root, this.Root, false);
     this.Root.Correct_Content(true);
-    }     
-}
+};
+
+function LaTeXStringParser() {
+    this.indexOfAtom = 0;
+    this.arrAtomsOfFormula = [];
+};
+
+LaTeXStringParser.prototype.parse = function (str) {
+  var strTempWord = "";
+  for (var i = 0; i < str.length; i++) {
+    strTempWord += str[i];
+    if (
+      str[i + 1] == "\\" ||
+      str[i + 1] == "^"  ||
+      str[i + 1] == "_"  ||
+      str[i + 1] == "("  ||
+      str[i + 1] == ")"  ||
+      strTempWord == "(" ||
+      strTempWord == ")" ||
+      strTempWord == "^" ||
+      strTempWord == "_" 
+    ) {
+      this.arrAtomsOfFormula.push(strTempWord);
+      strTempWord = "";
+    }
+  }
+  this.arrAtomsOfFormula = this.arrAtomsOfFormula.filter(Boolean);
+};
+
+LaTeXStringParser.prototype.next = function () {
+    this.indexOfAtom++;
+    return (this.indexOfAtom - 1 <= this.length) 
+        ? null 
+        : this.arrAtomsOfFormula[this.indexOfAtom - 1];
+};
+
+function LaTeXStringLexer(oLaTexParser, root, context, isExitIfColon) {
+  do {
+    var strInputFormulaAtom = oLaTexParser.next();
+
+    var addText = (context == root)
+        ? function (text) {context.Add_Text(text, root.Paragraph)}
+        : function (text) {context.getArgument().Add_Text(text, root.Paragraph)}
+
+    var addFunc = (context == root)
+        ? function (name, cont) {return context.Add_Function({ ctrPrp: new CTextPr() }, name, cont)}
+        : function (name, cont) {return context.getArgument().Add_Function({ ctrPrp: new CTextPr() }, name, cont)}
+
+    if (strInputFormulaAtom == ")" && isExitIfColon) {
+      addText(strInputFormulaAtom);
+      return;
+    } else if (strInputFormulaAtom == "\\cos") {
+      var func = addFunc(strInputFormulaAtom.slice(1), null);
+      LaTeXStringLexer(oLaTexParser, root, func, true);
+    } else {
+      addText(strInputFormulaAtom);
+    }
+  } while (strInputFormulaAtom != null);
+};
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {
