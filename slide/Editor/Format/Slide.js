@@ -781,6 +781,35 @@ Slide.prototype =
         }
     },
 
+    addAnimation: function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+        var sObjectId;
+        var aSelectedObjects = this.graphicObjects.selectedObjects;
+        if(aSelectedObjects.length > 0) {
+            if(!this.timing) {
+                this.setTiming(new AscFormat.CTiming());
+            }
+            for(var nObject = 0; nObject < aSelectedObjects.length; ++nObject) {
+                sObjectId = aSelectedObjects[nObject].Get_Id();
+                this.timing.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace);
+            }
+        }
+    },
+    setAnimationProperties: function(oPr) {
+        if(!this.timing) {
+            return;
+        }
+        var sObjectId;
+        var aSelectedObjects = this.graphicObjects.selectedObjects;
+        if(aSelectedObjects.length > 0) {
+            var aObjectId = [];
+            for(var nObject = 0; nObject < aSelectedObjects.length; ++nObject) {
+                sObjectId = aSelectedObjects[nObject].Get_Id();
+                aObjectId.push(sObjectId);
+            }
+            this.timing.setAnimationProperties(aObjectId, oPr, this.graphicObjects.getDrawingProps().animProps);
+        }
+    },
+
     isVisible: function(){
         return this.show !== false;
     },

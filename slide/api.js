@@ -3891,6 +3891,22 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument.AddToLayout();
 	};
+	asc_docs_api.prototype.asc_AddAnimation      = function(nPresetClass, nPresetId, nPresetSubtype, bReplace)
+	{
+		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
+	};
+	asc_docs_api.prototype.asc_StartAnimationPreview = function()
+	{
+		this.asc_StopAnimationPreview();
+	};
+	asc_docs_api.prototype.asc_StopAnimationPreview = function()
+	{
+		this.sendEvent("asc_onAnimPreviewFinished");
+	};
+	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
+	{
+		this.WordControl.m_oLogicDocument.SetAnimationProperties(oPr)
+	};
 	asc_docs_api.prototype.StartAddShape = function(prst, is_apply)
 	{
 		this.WordControl.m_oLogicDocument.StartAddShape(prst, is_apply);
@@ -5965,6 +5981,21 @@ background-repeat: no-repeat;\
 		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.Shape, obj);
 	};
 
+	asc_docs_api.prototype.sync_animPropCallback = function(pr)
+	{
+		var _len = this.SelectedObjectsStack.length;
+		if (_len > 0)
+		{
+			if (this.SelectedObjectsStack[_len - 1].Type == c_oAscTypeSelectElement.Animation)
+			{
+				this.SelectedObjectsStack[_len - 1].Value = obj;
+				return;
+			}
+		}
+
+		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.Animation, pr);
+	};
+
 	asc_docs_api.prototype.sync_slidePropCallback = function(slide)
 	{
 		if(!this.WordControl)
@@ -8032,6 +8063,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['AddImage']                            = asc_docs_api.prototype.AddImage;
 	asc_docs_api.prototype['asc_addImage']                        = asc_docs_api.prototype.asc_addImage;
 	asc_docs_api.prototype['asc_AddToLayout']                     = asc_docs_api.prototype.asc_AddToLayout;
+	asc_docs_api.prototype['asc_AddAnimation']                    = asc_docs_api.prototype.asc_AddAnimation;
+	asc_docs_api.prototype['asc_StartAnimationPreview']           = asc_docs_api.prototype.asc_StartAnimationPreview;
+	asc_docs_api.prototype['asc_StopAnimationPreview']            = asc_docs_api.prototype.asc_StopAnimationPreview;
+	asc_docs_api.prototype['asc_SetAnimationProperties']          = asc_docs_api.prototype.asc_SetAnimationProperties;
+
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['asc_canEditGeometry']                 = asc_docs_api.prototype.asc_canEditGeometry;
 	asc_docs_api.prototype['asc_editPointsGeometry']              = asc_docs_api.prototype.asc_editPointsGeometry;

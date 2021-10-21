@@ -7770,6 +7770,9 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
                 editor.sync_VerticalTextAlign(drawing_props.shapeProps.verticalTextAlign);
                 editor.sync_Vert(drawing_props.shapeProps.vert);
             }
+            if (drawing_props.animProps && !this.FocusOnNotes) {
+                editor.sync_animPropCallback(drawing_props.animProps);
+            }
 
             if (drawing_props.chartProps && drawing_props.chartProps.chartProps && !this.FocusOnNotes) {
                 if (this.bNeedUpdateChartPreview) {
@@ -10743,6 +10746,23 @@ CPresentation.prototype.AddToLayout = function () {
         }
         oPresentation.Set_SelectionState2(oSelectionState);
     }, [], false, AscDFH.historydescription_Presentation_AddToLayout);
+};
+
+CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        this.StartAction(0);
+        oSlide.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
+        this.FinalizeAction();
+    }
+};
+CPresentation.prototype.SetAnimationProperties = function(oPr) {
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        this.StartAction(0);
+        oSlide.setAnimationProperties(oPr);
+        this.FinalizeAction();
+    }
 };
 
 CPresentation.prototype.StartAddShape = function (preset, _is_apply) {
