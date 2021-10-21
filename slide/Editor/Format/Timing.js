@@ -299,6 +299,26 @@
         }
         return false;
     };
+    CTimeNodeBase.prototype.createEffectTrigger = function(fExternalTrigger, oPlayer) {
+        var oAttributes = this.getAttributesObject();
+        var fTrigger = (function() {
+            var oAddtionalTrigger;
+            return function() {
+                if(!oAddtionalTrigger) {
+                    if(fExternalTrigger()) {
+                        oAddtionalTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
+                    }
+                }
+                if(oAddtionalTrigger) {
+                    return oAddtionalTrigger.isFired(oPlayer);
+                }
+                return false;
+            };
+        })();
+        var oTrigger = this.getDefaultTrigger(oPlayer);
+        oTrigger.addTrigger(fTrigger);
+        return oTrigger;
+    };
     CTimeNodeBase.prototype.getStartTrigger = function(oPlayer) {
         var oAttributes = this.getAttributesObject();
         if(!oAttributes || !oAttributes.stCondLst) {
@@ -313,31 +333,33 @@
                 break;
             }
             case NODE_TYPE_CLICKEFFECT: {
-                oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_CLICK, null));
+                oTrigger = this.createEffectTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_CLICK, null), oPlayer);
                 break;
             }
             case NODE_TYPE_WITHEFFECT: {
-                oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
-
                 oPreviousTimeNode = this;
                 while ((oPreviousTimeNode = oPreviousTimeNode.getPreviousNode()) &&
                 (oPreviousTimeNode.getNodeType() === NODE_TYPE_WITHEFFECT)) {
                 }
                 if(oPreviousTimeNode) {
-                    oTrigger.addTrigger(function() {
+                    oTrigger = this.createEffectTrigger(function() {
                         return oPreviousTimeNode.isActive() || oPreviousTimeNode.isAtEnd();
-                    });
+                    }, oPlayer);
+                }
+                else {
+                    oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 }
                 break;
             }
             case NODE_TYPE_AFTEREFFECT: {
-                oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 oPreviousTimeNode = this.getPreviousNode();
                 if(oPreviousTimeNode) {
-                    oTrigger.addTrigger(function() {
+                    oTrigger = this.createEffectTrigger(function() {
                         return oPreviousTimeNode.isAtEnd();
-                    });
+                    }, oPlayer);
+                }
+                else {
+                    oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 }
                 break;
             }
@@ -572,7 +594,7 @@
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
 
-        //this.logState("SET STATE:");
+        this.logState("SET STATE:");
     };
     CTimeNodeBase.prototype.logState = function (sPrefix) {
         var oAttr = this.getAttributesObject();
@@ -7434,14 +7456,15 @@
     CAnimationDrawer.prototype.drawObject = function(oDrawing, oGraphics) {
         var sDrawingId = oDrawing.Get_Id();
         var oSandwich = this.getSandwich(sDrawingId);
+        var oAttributes = oSandwich && oSandwich.getAttributesMap()
         var fScale = oGraphics.m_oCoordTransform.sx;
-        if(!this.isDrawingHidden(sDrawingId)) {
+        if(!this.isDrawingHidden(sDrawingId) || (oAttributes && oAttributes["style.visibility"] === "visible")) {
             if(!oSandwich) {
                 var oTexture = this.texturesCache.checkTexture(sDrawingId, fScale);
                 oTexture.draw(oGraphics);
             }
             else {
-                oSandwich.drawObject(oGraphics, oDrawing, this.texturesCache);
+                oSandwich.drawObject(oGraphics, oDrawing, this.texturesCache, oAttributes);
             }
         }
     };
@@ -7491,12 +7514,13 @@
         }
         return oSandwich;
     };
-    CAnimationDrawer.prototype.isDrawingHidden = function(sId) {
+    CAnimationDrawer.prototype.isDrawingHidden = function(sId, oSandwich) {
         var oAnim = this.hiddenObjects[sId];
         if(!oAnim) {
             return false;
         }
         if(!oAnim.isDrawable()) {
+
             return true;
         }
         return false;
@@ -7976,9 +8000,8 @@
         var oAttributes = this.getAttributesMap();
         //console.log(oAttributes);
     };
-    CAnimSandwich.prototype.drawObject = function(oGraphics, oDrawing, oTextureCache) {
+    CAnimSandwich.prototype.drawObject = function(oGraphics, oDrawing, oTextureCache, oAttributesMap) {
         //this.print();
-        var oAttributesMap = this.getAttributesMap();
         var sVisibility = oAttributesMap["style.visibility"];
         if(sVisibility === "hidden") {
             return;
