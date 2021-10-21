@@ -8037,6 +8037,15 @@
                 if(oStrokeColor) {
                     if(oDrawing.pen) {
                         var oPen = oDrawing.pen.createDuplicate();
+                        var oMods;
+                        if(oPen.Fill &&
+                            oPen.Fill.fill &&
+                            oPen.Fill.fill.color &&
+                            oPen.Fill.fill.color.Mods &&
+                            oPen.Fill.fill.color.Mods.Mods.length !== 0) {
+                            oMods = oPen.Fill.fill.color.Mods;
+                            oMods.Apply(oStrokeColor.RGBA);
+                        }
                         oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
                         oDrawing.pen = oPen;
                     }
