@@ -6430,7 +6430,7 @@
         }
         this.cTn.merge(oTNContainer);
         if(!Array.isArray(this.merged)) {
-            this.merged.push(this);
+            this.merged = [];
         }
         this.merged.push(oTNContainer);
     };
