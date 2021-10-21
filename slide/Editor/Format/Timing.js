@@ -1799,7 +1799,7 @@
         oTmRoot.traverseTimeNodes(function(oNode) {
             if(oNode.isAnimEffect()) {
                 for(var nObjectID = 0; nObjectID < aObjectId.length; ++nObjectID) {
-                    if(oNode.isObjectEffect(nObjectID)) {
+                    if(oNode.isObjectEffect(aObjectId[nObjectID])) {
                         aResult.push(oNode);
                     }
                 }
@@ -1903,7 +1903,7 @@
     CTiming.prototype.onAnimPaneMouseWheel = function(e, deltaY, X, Y) {
         this.getAnimPane().onMouseWheel(e, deltaY, X, Y);
     };
-    CTiming.prototype.getRootSequences = function(e, x, y) {
+    CTiming.prototype.getRootSequences = function() {
         var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
         if(!oTmRoot) {
             return [];
@@ -3943,7 +3943,7 @@
             aConds = this.stCondLst.list;
             for(var nCond = 0; nCond < aConds.length; ++nCond) {
                 if(aConds[nCond].delay !== null) {
-                    return aConds[nCond].getDelayTime();
+                    return aConds[nCond].getDelayTime().getVal();
                 }
             }
         }
@@ -3962,7 +3962,7 @@
             }
         }
         var oCond = new CCond();
-        this.stCondLst.addToLst(oCond);
+        this.stCondLst.push(oCond);
         oCond.setDelay(nDelay + "");
         return delay;
     };
@@ -4011,10 +4011,6 @@
         else {
             oAttrObject.setRepeatCount("indefinite");
         }
-        var oRepeatCount = this.parent.getRepeatCount();
-        if(oRepeatCount.isDefinite()) {
-            return oRepeatCount.val;
-        }
         if(v === AscFormat.untilNextClick) {
             if(oAttrObject && oAttrObject.endCondLst) {
                 oAttrObject.setEndCondLst(null);
@@ -4031,7 +4027,7 @@
             oCond.setDelay("0");
             var oTgt = new CTgtEl();
             oCond.setTgtEl(oTgt);
-            oAttrObject.endCondLst.addToLst(oCond);
+            oAttrObject.endCondLst.push(oCond);
         }
     };
     CCTn.prototype.changeRewind = function(v) {
@@ -6428,11 +6424,11 @@
         if(oTNContainer === this) {
             return;
         }
-        this.cTn.merge(oTNContainer);
+        this.cTn.merge(oTNContainer.cTn);
         if(!Array.isArray(this.merged)) {
             this.merged = [];
         }
-        this.merged.push(oTNContainer);
+        this.merged.push(oTNContainer.createDuplicate());
     };
     CTimeNodeContainer.prototype.isMultiple = function(oTNContainer) {
         if(this.merged && this.merged.length > 1) {
@@ -6494,8 +6490,19 @@
     };
     CTimeNodeContainer.prototype["asc_putDelay"] = CTimeNodeContainer.prototype.asc_putDelay;
     CTimeNodeContainer.prototype.asc_getDuration = function() {
-        if(this.cTn) {
-            return this.cTn.getEffectDuration();
+        if(Array.isArray(this.merged) && this.merged.length > 0) {
+            var nDur = this.merged[0].asc_getDuration();
+            for(var nIdx = 1; nIdx < this.merged.length; ++nIdx) {
+                if(nDur !== this.merged[nIdx].asc_getDuration()) {
+                    return undefined;
+                }
+            }
+            return nDur;
+        }
+        else {
+            if(this.cTn) {
+                return this.cTn.getEffectDuration();
+            }
         }
         return 0;
     };
@@ -6503,7 +6510,12 @@
     CTimeNodeContainer.prototype.asc_putDuration = function(v) {
         AscFormat.ExecuteNoHistory(function() {
             if(this.cTn) {
-                return this.cTn.changeEffectDuration(v);
+                this.cTn.changeEffectDuration(v);
+            }
+            if(Array.isArray(this.merged) && this.merged.length > 0) {
+                for(var nIdx = 0; nIdx < this.merged.length; ++nIdx) {
+                    this.merged[nIdx].asc_putDuration(v);
+                }
             }
         }, this, []);
     };
