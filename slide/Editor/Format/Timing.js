@@ -2930,11 +2930,11 @@
         this.presetSubtype = pr;
     };
     CCTn.prototype.setRepeatCount = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CTnRepeatCount, this.repeatCount, pr));
+        oHistory.Add(new CChangeString(this, AscDFH.historyitem_CTnRepeatCount, this.repeatCount, pr));
         this.repeatCount = pr;
     };
     CCTn.prototype.setRepeatDur = function(pr) {
-        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CTnRepeatDur, this.repeatDur, pr));
+        oHistory.Add(new CChangeString(this, AscDFH.historyitem_CTnRepeatDur, this.repeatDur, pr));
         this.repeatDur = pr;
     };
     CCTn.prototype.setRestart = function(pr) {
