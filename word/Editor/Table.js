@@ -129,7 +129,8 @@ function CTable(DrawingDocument, Parent, Inline, Rows, Cols, TableGrid, bPresent
 
     // TODO: TableLook и TableStyle нужно перемесить в TablePr
     this.TableStyle = (undefined !== this.DrawingDocument && null !== this.DrawingDocument && this.DrawingDocument.m_oLogicDocument && this.DrawingDocument.m_oLogicDocument.Styles ? this.DrawingDocument.m_oLogicDocument.Styles.Get_Default_TableGrid() : null);
-    this.TableLook  = new CTableLook(true, true, false, false, true, false);
+    this.TableLook  = new CTableLook(false, false, false, false, false, false);
+	this.TableLook.SetDefault();
 
     this.TableSumGrid  = []; // данный массив будет заполнен после private_RecalculateGrid
     this.TableGrid     = TableGrid ? TableGrid : [];
@@ -3027,6 +3028,27 @@ CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, Colu
 	// текущей секции
 	if (!this.IsInline() && ColumnNum > 0 && undefined !== SectionY)
 		this.Y = SectionY;
+
+	var _X      = this.X;
+	var _XLimit = this.XLimit;
+	if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
+	{
+		var arrRanges = this.Parent.CheckRange(_X, this.Y, _XLimit, this.Y + 0.001, this.Y, this.Y + 0.001, _X, _XLimit, this.private_GetRelativePageIndex(0));
+		if (arrRanges.length > 0)
+		{
+			for (var nRangeIndex = 0, nRangesCount = arrRanges.length; nRangeIndex < nRangesCount; ++nRangeIndex)
+			{
+				if (arrRanges[nRangeIndex].X0 < this.X + 3.2 && arrRanges[nRangeIndex].X1 > _X)
+					_X = arrRanges[nRangeIndex].X1 + 0.001;
+
+				if (arrRanges[nRangeIndex].X1 > this.XLimit - 3.2 && arrRanges[nRangeIndex].X0 < _XLimit)
+					_XLimit = arrRanges[nRangeIndex].X0 - 0.001;
+			}
+		}
+	}
+
+	this.X      = _X;
+	this.XLimit = _XLimit;
 };
 CTable.prototype.Recalculate = function()
 {
@@ -19147,7 +19169,12 @@ CTableLook.prototype =
         this.m_bLast_Row  = Reader.GetBool();
         this.m_bBand_Hor  = Reader.GetBool();
         this.m_bBand_Ver  = Reader.GetBool();
-    }
+    },
+
+	SetDefault : function()
+	{
+		this.Set(true, true, false, false, true, false);
+	}
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableAnchorPosition
@@ -19513,4 +19540,5 @@ CTableRowsInfo.prototype.Init = function()
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CTable = CTable;
+window['AscCommonWord'].CTableLook = CTableLook;
 window['AscCommonWord'].type_Table = type_Table;

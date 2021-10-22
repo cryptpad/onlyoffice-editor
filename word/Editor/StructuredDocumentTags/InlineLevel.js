@@ -142,14 +142,14 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 
 	// ВАЖНО: настройки копируем после копирования содержимого, потому что есть специальные случаи, когда
 	//        содержимое дальше меняется в зависимости от настроек (например, для радио кнопок)
-	this.private_CopyPrTo(oContentControl);
+	this.private_CopyPrTo(oContentControl, oPr);
 
 	if (oContentControl.IsEmpty())
 		oContentControl.ReplaceContentWithPlaceHolder();
 
 	return oContentControl;
 };
-CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
+CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl, oPr)
 {
 	oContentControl.SetDefaultTextPr(this.GetDefaultTextPr());
 	oContentControl.SetLabel(this.GetLabel());
@@ -196,7 +196,7 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 		oContentControl.SetDatePickerPr(this.Pr.Date);
 
 	oContentControl.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
-	oContentControl.SetPlaceholder(this.private_CopyPlaceholder());
+	oContentControl.SetPlaceholder(this.private_CopyPlaceholder(oPr));
 	oContentControl.SetContentControlEquation(this.Pr.Equation);
 	oContentControl.SetContentControlTemporary(this.Pr.Temporary);
 
@@ -381,8 +381,9 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 	PDSH.AddInlineSdt(this);
 
 	// Для экспорта в PDF записываем поля. Поля, находящиеся в автофигурах, пока не пишем
-	var oGraphics = PDSH.Graphics;
-	if (this.IsForm() && oGraphics && oGraphics.AddFormField && !this.Get_ParentTextTransform())
+	var oGraphics  = PDSH.Graphics;
+	var oTransform = this.Get_ParentTextTransform();
+	if (this.private_IsAddFormFieldToGraphics(oGraphics, oTransform))
 	{
 		this.SkipDraw(PDSH);
 
@@ -395,7 +396,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 				if (this.Bounds[Key].PageInternal === PDSH.Page)
 					oBounds = this.Bounds[Key];
 
-				var CurLine  = PDSH.Line - this.StartLine;
+				var CurLine = PDSH.Line - this.StartLine;
 				var CurRange = (0 === CurLine ? PDSH.Range - this.StartRange : PDSH.Range);
 
 				if ((Key | 0) !== ((CurLine << 16) & 0xFFFF0000) | (CurRange & 0x0000FFFF))
@@ -405,9 +406,27 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			}
 		}
 
+		if (this.IsFixedForm())
+		{
+			var oShape       = this.GetParagraph().Parent.Is_DrawingShape(true);
+			var oShapeBounds = oShape.getFormRelRect();
+
+			if (oShapeBounds.Page === PDSH.Paragraph.GetAbsolutePage(PDSH.Page))
+				oBounds = oShapeBounds;
+		}
+
 		var oRun = this.Content[0];
 		if (oBounds && oRun)
 		{
+			var X = oBounds.X;
+			var Y = oBounds.Y;
+
+			if (oTransform)
+			{
+				X = oTransform.TransformPointX(oBounds.X, oBounds.Y);
+				Y = oTransform.TransformPointY(oBounds.X, oBounds.Y);
+			}
+
 			var oTextPr = oRun.Get_CompiledPr(false);
 
 			g_oTextMeasurer.SetTextPr(oTextPr, PDSH.Paragraph.GetTheme());
@@ -422,7 +441,43 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			oGraphics.b_color1(oColor.r, oColor.g, oColor.b, this.IsPlaceHolder() ? 127 : 255);
 			oGraphics.SetFontSlot(fontslot_ASCII); // Именно на этой функции записываются настройки шрифта в метафайл
 
-			oGraphics.AddFormField(oBounds.X, oBounds.Y, oBounds.W, oBounds.H, nTextAscent, this);
+			// TODO: Заглушка для AdobeReader
+			//       Середина по вертикали у поля совпадает со средней точкой bbox, поэтому меняем сдвиги по вертикали
+			//       с учетом этого момента
+
+			var nW         = oBounds.W;
+			var nH         = oBounds.H;
+			var nBaseLine  = nTextAscent;
+
+			if ((this.IsTextForm() || this.IsDropDownList() || this.IsComboBox())
+				&& (!this.IsFixedForm() || !this.IsMultiLineForm())
+				&& g_oTextMeasurer.m_oManager.m_pFont
+				&& g_oTextMeasurer.m_oManager.m_pFont.m_pFaceInfo
+				&& g_oTextMeasurer.m_oLastFont)
+			{
+				if (oTransform)
+				{
+					var oParagraph = this.GetParagraph();
+					nBaseLine += (oTransform.TransformPointY(oParagraph.X, oParagraph.Y) - Y);
+				}
+
+				var oFaceInfo = g_oTextMeasurer.m_oManager.m_pFont.m_pFaceInfo;
+
+				var nKoef = g_oTextMeasurer.m_oLastFont.SetUpSize / g_oTextMeasurer.m_oManager.m_lUnits_Per_Em * g_dKoef_pt_to_mm;
+				var yMin  = oFaceInfo.header_yMin * nKoef;
+				var yMax  = oFaceInfo.header_yMax * nKoef;
+
+				var nMidPoint = ((nBaseLine - yMin) + (nBaseLine - yMax)) / 2;
+
+				var nDiff = nH / 2 - nMidPoint;
+				if (Math.abs(nDiff) > 0.001)
+				{
+					Y  -= nDiff;
+					nBaseLine += nDiff;
+				}
+			}
+
+			oGraphics.AddFormField(X, Y, nW, nH, nBaseLine, this);
 		}
 	}
 	else
@@ -432,16 +487,14 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 };
 CInlineLevelSdt.prototype.Draw_Elements = function(PDSE)
 {
-	var oGraphics = PDSE.Graphics;
-	if (this.IsForm() && oGraphics && oGraphics.AddFormField && !this.Get_ParentTextTransform())
+	if (this.private_IsAddFormFieldToGraphics(PDSE.Graphics))
 		this.SkipDraw(PDSE);
 	else
 		CParagraphContentWithParagraphLikeContent.prototype.Draw_Elements.apply(this, arguments);
 };
 CInlineLevelSdt.prototype.Draw_Lines = function(PDSL)
 {
-	var oGraphics = PDSL.Graphics;
-	if (this.IsForm() && oGraphics && oGraphics.AddFormField && !this.Get_ParentTextTransform())
+	if (this.private_IsAddFormFieldToGraphics(PDSL.Graphics))
 		this.SkipDraw(PDSL);
 	else
 		CParagraphContentWithParagraphLikeContent.prototype.Draw_Lines.apply(this, arguments);
@@ -452,6 +505,14 @@ CInlineLevelSdt.prototype.GetRangeBounds = function(_CurLine, _CurRange)
 	var CurRange = (0 === CurLine ? _CurRange - this.StartRange : _CurRange);
 
 	return this.Bounds[((CurLine << 16) & 0xFFFF0000) | (CurRange & 0x0000FFFF)];
+};
+CInlineLevelSdt.prototype.private_IsAddFormFieldToGraphics = function(oGraphics, oTransform)
+{
+	var _oTransform = oTransform;
+	if (undefined === oTransform)
+		_oTransform = this.Get_ParentTextTransform();
+
+	return (this.IsForm() && oGraphics && oGraphics.AddFormField && (!_oTransform || _oTransform.IsIdentity2()));
 };
 CInlineLevelSdt.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, UseContentPos)
 {

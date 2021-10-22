@@ -1,3 +1,35 @@
+/*
+ * (c) Copyright Ascensio System SIA 2010-2019
+ *
+ * This program is a free software product. You can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License (AGPL)
+ * version 3 as published by the Free Software Foundation. In accordance with
+ * Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
+ * that Ascensio System SIA expressly excludes the warranty of non-infringement
+ * of any third-party rights.
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
+ * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
+ *
+ * The  interactive user interfaces in modified source and object code versions
+ * of the Program must display Appropriate Legal Notices, as required under
+ * Section 5 of the GNU AGPL version 3.
+ *
+ * Pursuant to Section 7(b) of the License you must retain the original Product
+ * logo when distributing the program. Pursuant to Section 7(e) we decline to
+ * grant you any rights under trademark law for use of our trademarks.
+ *
+ * All the Product's GUI elements, including illustrations and icon sets, as
+ * well as technical writing content are licensed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International. See the License
+ * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
+ *
+ */
+
 (function(){
 
 	function CCacheManager()
@@ -49,6 +81,18 @@
 		};
 	};
 
+	var ModuleState = {
+		None : 0,
+		Loading : 1,
+		Loaded : 2
+	};
+
+	var ZoomMode = {
+		Custom : 0,
+		Width : 1,
+		Page : 2
+	};
+
 	function CHtmlPage(id)
 	{
 		this.parent = document.getElementById(id);
@@ -64,7 +108,8 @@
 		this.scrollMaxY = 0;
 		this.scrollX = 0;
 		this.scrollMaxX = 0;
-		
+
+		this.zoomMode = ZoomMode.Custom;
 		this.zoom 	= 1;
 		
 		this.drawingPages = [];
@@ -86,6 +131,8 @@
 
 		this.backgroundColor = "#E6E6E6";
 		this.betweenPages = 20;
+
+		this.moduleState = ModuleState.None;
 
 		this.structure = null;
 		this.currentPage = -1;
@@ -225,8 +272,6 @@
 			settings.screenH = this.height;
 			settings.vscrollStep = 45;
 			settings.hscrollStep = 45;
-			settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
-			settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
 			return settings;
 		};
 
@@ -247,6 +292,15 @@
 		{
 			this.width = this.parent.offsetWidth - this.scrollWidth;
 			this.height = this.parent.offsetHeight;
+
+			if (this.zoomMode === ZoomMode.Width)
+				this.zoom = this.calculateZoomToWidth();
+			else if (this.zoomMode === ZoomMode.Page)
+				this.zoom = this.calculateZoomToHeight();
+
+			var lastPosition = this.getFirstPagePosition();
+
+			this.sendEvent("onZoom", this.zoom, this.zoomMode);
 
 			this.recalculatePlaces();
 
@@ -328,16 +382,106 @@
 				this.scrollX = this.scrollMaxX;
 			if (this.scrollY >= this.scrollMaxY)
 				this.scrollY = this.scrollMaxY;
+
+			if (lastPosition)
+			{
+				var drawingPage = this.drawingPages[lastPosition.page];
+				var newScrollY = drawingPage.Y + lastPosition.scrollY - lastPosition.y;
+
+				if (newScrollY < this.scrollMaxY)
+					this.m_oScrollVerApi.scrollToY(newScrollY);
+			}
+		};
+
+		this.onLoadModule = function()
+		{
+			this.moduleState = ModuleState.Loaded;
+			window["AscViewer"]["InitializeFonts"]();
+
+			if (this._fileData != null)
+			{
+				this.open(this._fileData);
+				delete this._fileData;
+			}
+		};
+
+		this.checkModule = function()
+		{
+			if (this.moduleState == ModuleState.Loaded)
+			{
+				// все загружено - ок
+				return true;
+			}
+			
+			if (this.moduleState == ModuleState.Loading)
+			{
+				// загружается
+				return false;
+			}
+
+			this.moduleState = ModuleState.Loading;
+
+			var scriptElem = document.createElement('script');
+			scriptElem.onerror = function()
+			{
+				// TODO: пробуем грузить несколько раз
+			};
+
+			var _t = this;
+			window["AscViewer"]["onLoadModule"] = function() {
+				_t.onLoadModule();
+			};
+			
+			var basePath = window["AscViewer"]["baseEngineUrl"];
+			
+			var useWasm = false;
+			var webAsmObj = window["WebAssembly"];
+			if (typeof webAsmObj === "object")
+			{
+				if (typeof webAsmObj["Memory"] === "function")
+				{
+					if ((typeof webAsmObj["instantiateStreaming"] === "function") || (typeof webAsmObj["instantiate"] === "function"))
+						useWasm = true;
+				}
+			}
+
+			var src = basePath;
+			if (useWasm)
+				src += "drawingfile.js";
+			else
+				src += "drawingfile_ie.js";
+
+			scriptElem.setAttribute('src', src);
+			scriptElem.setAttribute('type','text/javascript');
+			document.getElementsByTagName('head')[0].appendChild(scriptElem);
+
+			return false;
+		};
+
+		this.onUpdatePages = function(pages) 
+		{
+			// TODO: проверить, есть ли страницы на экране
+			this.paint();
 		};
 
 		this.open = function(data)
 		{
+			if (!this.checkModule())
+			{
+				this._fileData = data;
+				return;
+			}
+			
 			if (this.file)
 				this.file.close();
 
 			this.file = window["AscViewer"].createFile(data);
+			this.file.onRepaintPages = this.onUpdatePages.bind(this);
 			this.currentPage = -1;
-			this.structure = this.file.structure ? this.file.structure() : [];
+			this.structure = this.file.getStructure();
+
+			this.sendEvent("onPagesCount", this.file.pages.length);
+			this.sendEvent("onCurrentPageChanged", 0);
 
 			setTimeout(function(){
 				oThis.sendEvent("onStructure", oThis.structure);
@@ -352,6 +496,9 @@
 				AscCommon.addMouseEvent(this.canvas, "up", this.onMouseUp);
 		
 				this.parent.onmousewheel = this.onMouseWhell;
+				if (this.parent.addEventListener)
+					this.parent.addEventListener("DOMMouseScroll", this.onMouseWhell, false);
+				
 				this.startTimer();				
 			}
 
@@ -363,8 +510,79 @@
 
 		this.setZoom = function(value)
 		{
+			var oldZoom = this.zoom;
 			this.zoom = value;
+			this.zoomMode = ZoomMode.Custom;
+			this.sendEvent("onZoom", this.zoom);
+			this.resize(oldZoom);
+		};
+		this.setZoomMode = function(value)
+		{
+			this.zoomMode = value;
 			this.resize();
+		};
+		this.calculateZoomToWidth = function()
+		{
+			if (0 === this.file.pages.length)
+				return;
+
+			var maxWidth = 0;
+			for (let i = 0, len = this.file.pages.length; i < len; i++)
+			{
+				var pageW = (this.file.pages[i].W * 96 / this.file.pages[i].Dpi);
+				if (pageW > maxWidth)
+					maxWidth = pageW;
+			}
+
+			if (maxWidth < 1)
+				return;
+
+			return (this.width - 2 * this.betweenPages) / maxWidth;
+		};
+		this.calculateZoomToHeight = function()
+		{
+			if (0 === this.file.pages.length)
+				return;
+
+			var maxHeight = 0;
+			var maxWidth = 0;
+			for (let i = 0, len = this.file.pages.length; i < len; i++)
+			{
+				var pageW = (this.file.pages[i].W * 96 / this.file.pages[i].Dpi);
+				var pageH = (this.file.pages[i].H * 96 / this.file.pages[i].Dpi);
+				if (pageW > maxWidth)
+					maxWidth = pageW;
+				if (pageH > maxHeight)
+					maxHeight = pageH;
+			}
+
+			if (maxWidth < 1 || maxHeight < 1)
+				return;
+
+			var zoom1 = (this.width - 2 * this.betweenPages) / maxWidth;
+			var zoom2 = (this.height - 2 * this.betweenPages) / maxHeight;
+
+			return Math.min(zoom1, zoom2);
+		};
+
+		this.getFirstPagePosition = function()
+		{
+			let lPagesCount = this.drawingPages.length;
+			for (let i = 0; i < lPagesCount; i++)
+			{
+				let page = this.drawingPages[i];
+				if ((page.Y + page.H) > this.scrollY)
+				{
+					return {
+						page : i,
+						x : page.X,
+						y : page.Y,
+						scrollX : this.scrollX,
+						scrollY : this.scrollY
+					};
+				}
+			}
+			return null;
 		};
 
 		this.setMouseLockMode = function(isEnabled)
@@ -378,13 +596,13 @@
 			if (!item)
 				return;
 
-			var drawingPage = this.drawingPages[item.page];
+			var drawingPage = this.drawingPages[item["page"]];
 			if (!drawingPage)
 				return;
 
 			var posY = drawingPage.Y;
 			posY -= this.betweenPages;
-			//posY += item.Y;
+			//posY += item["Y"];
 			this.m_oScrollVerApi.scrollToY(posY);
 		};
 
@@ -655,12 +873,12 @@
 			let lineW = AscCommon.AscBrowser.retinaPixelRatio >> 0;
 			ctx.lineWidth = lineW;
 
-			let yPos = (this.scrollY * this.zoom) >> 0;
+			let yPos = this.scrollY >> 0;
 			let yMax = yPos + this.height;
 			let xCenter = this.width >> 1;
 			if (this.documentWidth > this.width)
 			{
-				xCenter = (this.documentWidth >> 1) - (this.scrollX * this.zoom) >> 0;
+				xCenter = (this.documentWidth >> 1) - (this.scrollX) >> 0;
 			}
 
 			let lStartPage = -1;
@@ -725,7 +943,15 @@
 				let x = ((xCenter * AscCommon.AscBrowser.retinaPixelRatio) >> 0) - (w >> 1);
 				let y = ((page.Y - yPos) * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
 
-				ctx.drawImage(page.Image, 0, 0, w, h, x, y, w, h);
+				if (page.Image)
+				{
+					ctx.drawImage(page.Image, 0, 0, w, h, x, y, w, h);
+				}
+				else
+				{
+					ctx.fillStyle = "#FFFFFF";
+					ctx.fillRect(x, y, w, h);
+				}
 				ctx.strokeRect(x + lineW / 2, y + lineW / 2, w - lineW, h - lineW);
 
 				oPageDetector.addPage(i, x, y, w, h);
@@ -745,7 +971,7 @@
 	}
 	CCurrentPageDetector.prototype.addPage = function(num, x, y, w, h)
 	{
-		this.pages.push({ num, x : x, y : y, w : w, h : h });
+		this.pages.push({ num : num, x : x, y : y, w : w, h : h });
 	};
 	CCurrentPageDetector.prototype.getCurrentPage = function()
 	{
@@ -799,6 +1025,7 @@
 	};
 	
 	AscCommon.CViewer = CHtmlPage;
+	AscCommon.ViewerZoomMode = ZoomMode;
 	AscCommon.CCacheManager = CCacheManager;
 
 })();

@@ -422,6 +422,7 @@ module.exports = function(grunt) {
 								'Images/content_controls/*',
 								'Images/cursors/*',
 								'Images/reporter/*',
+								'Images/icons/*',
 								'Native/*.js',
 								'libfont/js/fonts.*',
 								'libfont/wasm/fonts.*',
@@ -440,6 +441,12 @@ module.exports = function(grunt) {
 							cwd: '../slide/themes',
 							src: '**/**',
 							dest: path.join(slide, 'themes')
+						},
+						{
+							expand: true,
+							cwd: '../pdf/',
+							src: 'src/engine/*',
+							dest: path.join(deploy, 'pdf')
 						}
 					]
 				}

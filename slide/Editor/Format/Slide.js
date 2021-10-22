@@ -766,7 +766,7 @@ Slide.prototype =
     {
         this.checkDrawingUniNvPr(item);
         var _pos = (AscFormat.isRealNumber(pos) && pos > -1 && pos <= this.cSld.spTree.length) ? pos : this.cSld.spTree.length;
-       History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_SlideAddToSpTree, _pos, [item], true));
+       History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_SlideAddToSpTree, _pos, [item], true, true));
         this.cSld.spTree.splice(_pos, 0, item);
         item.setParent2(this);
         if(this.collaborativeMarks) {
@@ -822,7 +822,7 @@ Slide.prototype =
             switch (drawing.getObjectType())
             {
                 case AscDFH.historyitem_type_ChartSpace:
-                { 
+                {
                     if(!drawing.nvGraphicFramePr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
@@ -1338,9 +1338,22 @@ Slide.prototype =
                 {
                     var oBounds = oSp.bounds;
                     graphics.transform3(oIdentityMtx);
-                    graphics.b_color1(oCollColor.r, oCollColor.g, oCollColor.b, 127);
-                    graphics.rect(oBounds.l - fDist, oBounds.t - fDist, oBounds.r - oBounds.l + 2*fDist, oBounds.b - oBounds.t + 2*fDist);
-                    graphics.df();
+                    if(graphics.put_GlobalAlpha)
+                    {
+                        graphics.put_GlobalAlpha(true, 0.5);
+                    }
+                    var dX = oBounds.l - fDist;
+                    var dY = oBounds.t - fDist;
+                    var dW = oBounds.r - oBounds.l + 2*fDist;
+                    var dH = oBounds.b - oBounds.t + 2*fDist;
+                    graphics.drawCollaborativeChanges(dX, dY, dW, dH, oCollColor);
+                    if(graphics.put_GlobalAlpha)
+                    {
+                        graphics.put_GlobalAlpha(false, 1);
+                    }
+                    //graphics.b_color1(oCollColor.r, oCollColor.g, oCollColor.b, 127);
+                    //graphics.rect(oBounds.l - fDist, oBounds.t - fDist, oBounds.r - oBounds.l + 2*fDist, oBounds.b - oBounds.t + 2*fDist);
+                    //graphics.df();
                 }
             }
             oSp.draw(graphics);
@@ -1572,14 +1585,7 @@ Slide.prototype =
         for(var i = 0; i < aSpTree.length; ++i)
         {
             var oSp = aSpTree[i];
-            if(oSp.isEmptyPlaceholder())
-            {
-                var oPlaceholder = oSp.createPlaceholderControl();
-                if(oPlaceholder.buttons.length > 0)
-                {
-                    ret.push(oPlaceholder);
-                }
-            }
+            oSp.createPlaceholderControl(ret);
         }
         return ret;
     },
@@ -1685,7 +1691,7 @@ Slide.prototype =
                 }
             }
             else{
-                if(sp.getObjectType() === AscDFH.historyitem_type_GroupShape){
+                if(sp.isGroupObject()){
                     sp.handleUpdateTheme();
                     sp.checkExtentsByDocContent();
                 }

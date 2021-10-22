@@ -52,6 +52,7 @@
 			this.callback = null;
 			
 			this.isGetTextFromUrl = null;
+			this.isPdfPrint = false;
 		}
 
 		asc_CDownloadOptions.prototype.asc_setFileType = function (fileType) {this.fileType = fileType;};
@@ -82,6 +83,8 @@
 			this.codePage = codepage;
 			this.delimiter = delimiter;
 			this.delimiterChar = delimiterChar;
+
+			this.textQualifier = null;
 
 			this.numberDecimalSeparator = null;
 			this.numberGroupSeparator = null;
@@ -116,6 +119,12 @@
 
 			return arr;
 		};
+		asc_CTextOptions.prototype.asc_setTextQualifier = function(v){this.textQualifier = v;};
+		asc_CTextOptions.prototype.asc_getTextQualifier = function(){return this.textQualifier;};
+		asc_CTextOptions.prototype.asc_getTextQualifierArr = function () {
+			return ["\"", "'", null];
+		};
+
 
 		/** @constructor */
 		function asc_CDRMAdvancedOptions(password){
@@ -201,6 +210,8 @@
 		prot["asc_setCodePage"] = prot.asc_setCodePage;
 		prot["asc_setNumberDecimalSeparator"] = prot.asc_setNumberDecimalSeparator;
 		prot["asc_setNumberGroupSeparator"] = prot.asc_setNumberGroupSeparator;
+		prot["asc_setTextQualifier"] = prot.asc_setTextQualifier;
+		prot["asc_getTextQualifier"] = prot.asc_getTextQualifier;
 		
 		window["Asc"].asc_CDRMAdvancedOptions = window["Asc"]["asc_CDRMAdvancedOptions"] = asc_CDRMAdvancedOptions;
 		prot = asc_CDRMAdvancedOptions.prototype;
