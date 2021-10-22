@@ -4859,12 +4859,66 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
 				var arrAnswer = [];
-				var lang = 'de-DE';
+				var lang = 'cs-CZ';
 
 				switch (lang) {
 					case 'ru-Ru':
-					case 'uk-UA': {
+					case 'uk-UA':
+					case 'cs-CZ': {
 						var alphaBet = {
+							'cs-CZ': {
+								1: [
+									'jedna',
+									'dva',
+									'tři',
+									'čtyři',
+									'pět',
+									'šest',
+									'sedm',
+									'osm',
+									'devět',
+									'deset',
+									'jedenáct',
+									'dvanáct',
+									'třináct',
+									'čtrnáct',
+									'patnáct',
+									'šestnáct',
+									'sedmnáct',
+									'osmnáct',
+									'devatenáct'
+								],
+								10: [
+									'dvacet',
+									'třicet',
+									'čtyřicet',
+									'padesát',
+									'šedesát',
+									'sedmdesát',
+									'osmdesát',
+									'devadesát'
+								],
+								100: [
+									'sto',
+									'dvě stě',
+									'tři sta',
+									'čtyři sta',
+									'pět set',
+									'šest set',
+									'sedm set',
+									'osm set',
+									'devět set'
+								],
+								'thousand': [
+									'tisíc',
+									'tisíce',
+									'tisíc'
+								],
+								'thousandType': [
+									'jedna',
+									'dva',
+								]
+							},
 							'ru-Ru': {
 								1: [
 									'один',
@@ -5006,7 +5060,15 @@
 								console.log(thousandType)
 								var groupArr = [];
 								if (groups[1000] >= 100) {
-									groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000]));
+									var gap;
+									if (lang === 'cs-CZ') {
+										gap = letterNumberLessThen100CyrillicMim(Math.floor(groups[1000] / 100)).join('') + alphaBet[lang][100][0];
+										if (groups[1000] % 100 !== 0) {
+											groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000] % 100));
+										}
+									} else {
+										groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000]));
+									}
 								} else {
 									groupArr = groupArr.concat(letterNumberLessThen100CyrillicMim(groups[1000]));
 								}
@@ -5014,8 +5076,8 @@
 								switch (thousandType) {
 									case 1:
 										thousand = alphaBet[lang]['thousand'][0];
-										if (skipThousand) {
-											groupArr[groupArr.length - 1] = undefined;
+										if (skipThousand && groups[1000] === 1) {
+											groupArr.pop();
 										} else {
 											groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][0];
 										}
@@ -5033,13 +5095,16 @@
 									case 7:
 									case 8:
 									case 9:
+									case 0:
 										thousand = alphaBet[lang]['thousand'][2];
 										break;
 									default:
 										break;
 								}
 								groupArr.push(thousand);
-
+								if (lang === 'cs-CZ' && gap) {
+									groupArr[0] = gap + groupArr[0];
+								}
 
 								resArr = resArr.concat(groupArr);
 							}
@@ -5058,6 +5123,8 @@
 								sResult = cardinalSplittingCyrillicMim(nValue, true).join(' ').sentenceCase();
 							} else if (lang === 'ru-Ru') {
 								sResult = cardinalSplittingCyrillicMim(nValue).join(' ').sentenceCase();
+							} else if (lang === 'cs-CZ') {
+								sResult = cardinalSplittingCyrillicMim(nValue, true).join(' ').sentenceCase();
 							}
 						}
 						break;
