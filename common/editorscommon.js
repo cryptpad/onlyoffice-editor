@@ -4859,13 +4859,67 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
 				var arrAnswer = [];
-				var lang = 'cs-CZ';
+				var lang = 'pl-PL';
 
 				switch (lang) {
 					case 'ru-Ru':
 					case 'uk-UA':
-					case 'cs-CZ': {
+					case 'cs-CZ':
+					case 'pl-PL': {
 						var alphaBet = {
+							'pl-PL': {
+								1: [
+									'jeden',
+									'dwa',
+									'trzy',
+									'cztery',
+									'pięć',
+									'sześć',
+									'siedem',
+									'osiem',
+									'dziewięć',
+									'dziesięć',
+									'jedenaście',
+									'dwanaście',
+									'trzynaście',
+									'czternaście',
+									'piętnaście',
+									'szesnaście',
+									'siedemnaście',
+									'osiemnaście',
+									'dziewiętnaście'
+								],
+								10: [
+									'dwadzieścia',
+									'trzydzieści',
+									'czterdzieści',
+									'pięćdziesiąt',
+									'sześćdziesiąt',
+									'siedemdziesiąt',
+									'osiemdziesiąt',
+									'dziewięćdziesiąt'
+								],
+								100: [
+									'sto',
+									'dwieście',
+									'trzysta',
+									'czterysta',
+									'pięćset',
+									'sześćset',
+									'siedemset',
+									'osiemset',
+									'dziewięćset'
+								],
+								'thousand': [
+									'tysięcy',
+									'tysiące',
+									'tysięcy'
+								],
+								'thousandType': [
+									'jeden',
+									'dwa'
+								]
+							},
 							'cs-CZ': {
 								1: [
 									'jedna',
@@ -4916,7 +4970,7 @@
 								],
 								'thousandType': [
 									'jedna',
-									'dva',
+									'dva'
 								]
 							},
 							'ru-Ru': {
@@ -4969,7 +5023,7 @@
 								],
 								'thousandType': [
 									'одна',
-									'две',
+									'две'
 								]
 							},
 							'uk-UA': {
@@ -5022,7 +5076,7 @@
 								],
 								'thousandType': [
 									'одна',
-									'дві',
+									'дві'
 								]
 							}
 						}
@@ -5057,7 +5111,6 @@
 
 							if (groups[1000]) {
 								var thousandType = groups[1000] % 10;
-								console.log(thousandType)
 								var groupArr = [];
 								if (groups[1000] >= 100) {
 									var gap;
@@ -5124,6 +5177,8 @@
 							} else if (lang === 'ru-Ru') {
 								sResult = cardinalSplittingCyrillicMim(nValue).join(' ').sentenceCase();
 							} else if (lang === 'cs-CZ') {
+								sResult = cardinalSplittingCyrillicMim(nValue, true).join(' ').sentenceCase();
+							} else if (lang === 'pl-PL') {
 								sResult = cardinalSplittingCyrillicMim(nValue, true).join(' ').sentenceCase();
 							}
 						}
