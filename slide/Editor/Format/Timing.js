@@ -4297,7 +4297,8 @@
                 var oHSL = {};
                 var oColorModifiers = new AscFormat.CColorModifiers();
                 oColorModifiers.RGB2HSL(oStartRGBColor.R, oStartRGBColor.G, oStartRGBColor.B, oHSL);
-                oHSL.H = oHSL.H * (1 + this.byHSL.c1 / 100000);
+                var nCoeff = 360*60000;
+                oHSL.H = (((oHSL.H / 255)*nCoeff + this.byHSL.c1)/nCoeff)*255;
                 oHSL.H = Math.min(255, Math.max(0, oHSL.H));
                 oHSL.S = oHSL.S * (1 + this.byHSL.c2 / 100000);
                 oHSL.S = Math.min(255, Math.max(0, oHSL.S));
