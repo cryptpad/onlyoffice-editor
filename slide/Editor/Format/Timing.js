@@ -5717,35 +5717,32 @@
             oPlayer.scheduleEvent(oEvent);
         }
     };
+    CSeq.prototype.findLastNoIdleNode = function() {
+        var aChildren = this.getChildrenTimeNodes();
+        for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
+            var oChild = aChildren[nChild];
+            if(!oChild.isIdle()) {
+                return oChild;
+            }
+        }
+        return null;
+    };
     CSeq.prototype.schedulePrev = function(oPlayer) {
         if(this.prevCondLst) {
             var oThis = this;
             var oComplexTrigger = this.prevCondLst.createComplexTrigger(oPlayer);
-            var aChildren = oThis.getChildrenTimeNodes();
             oComplexTrigger.addTrigger(function() {
-                for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-                    var oChild = aChildren[nChild];
-                    if(oChild.isActive()) {
-                        if(oThis.concurrent !== true) {
-                            return true;
-                        }
-                        return (nChild - 1) > -1;
-                    }
+                var oChild = oThis.findLastNoIdleNode();
+                if(oChild) {
+                    return true;
                 }
                 return false;
             });
             var oEvent = new CAnimEvent(function() {
-                for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-                    var oChild = aChildren[nChild];
-                    if(oChild.isActive()) {
-                        if(oThis.concurrent !== true) {
-                            oChild.getEndCallback(oPlayer)();
-                        }
-                        if(nChild - 1 > -1) {
-                            aChildren[nChild - 1].activateCallback(oPlayer);
-                        }
-                        break;
-                    }
+                var oChild = oThis.findLastNoIdleNode();
+                if(oChild) {
+                    oChild.getEndCallback(oPlayer)();
+                    oChild.resetState();
                 }
                 oThis.schedulePrev(oPlayer);
             }, oComplexTrigger, this);
