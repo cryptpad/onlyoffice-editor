@@ -5184,6 +5184,152 @@
 						}
 						break;
 					}
+					case 'sk-SK': {
+						alphaBet = {
+							1: [
+								'jeden',
+								'dva',
+								'tri',
+								'štyri',
+								'päť',
+								'šesť',
+								'sedem',
+								'osem',
+								'deväť',
+								'desať',
+								'jedenásť',
+								'dvanásť',
+								'trinásť',
+								'štrnásť',
+								'pätnásť',
+								'šestnásť',
+								'sedemnásť',
+								'osemnásť',
+								'devätnásť'
+							],
+							10: [
+								'dvadsať',
+								'tridsať',
+								'štyridsať',
+								'päťdesiat',
+								'šesťdesiat',
+								'sedemdesiat',
+								'osemdesiat',
+								'deväťdesiat'
+							],
+
+						}
+
+						function letterNumberLessThen100SK(num, options) {
+							var resArr = [];
+							if (num < 100 && num > 0) {
+								var degree10 = Math.floor(num / 10);
+								var reminder = num % 10;
+								if (num < 20) {
+									if (num === 2 && options && options.isHundred) {
+										resArr.push('dve');
+									} else {
+										resArr.push(alphaBet[1][num - 1]);
+									}
+								} else {
+									resArr.push(alphaBet[10][degree10 - 2]);
+									if (reminder) {
+										resArr.push(alphaBet[1][reminder - 1]);
+									}
+								}
+							}
+							return resArr;
+						}
+						function cardinalSplittingSK(number1_000_000) {
+							var resArr = [];
+							var groups = {};
+
+							groups[1000] = Math.floor(number1_000_000 / 1000);
+							number1_000_000 %= 1000;
+							groups[100] = Math.floor(number1_000_000 / 100);
+							number1_000_000 %= 100;
+							groups[1] = number1_000_000;
+
+							if (groups[1000]) {
+								if (groups[1000] >= 100) {
+									resArr = resArr.concat(cardinalSplittingSK(groups[1000]));
+								} else {
+									resArr = resArr.concat(letterNumberLessThen100SK(groups[1000]));
+								}
+								resArr.push('tisíc');
+							}
+							if (groups[100]) {
+								if (groups[100] !== 1) {
+									resArr = resArr.concat(letterNumberLessThen100SK(groups[100], {isHundred: true}));
+								}
+								resArr.push('sto');
+							}
+							if (groups[1]) {
+								resArr = resArr.concat(letterNumberLessThen100SK(groups[1]));
+							}
+
+							return resArr;
+						}
+						if (nValue < 1000000) {
+							sResult = cardinalSplittingSK(nValue).join('').sentenceCase();
+						}
+					}
+					case 'bg-BG': {
+						alphaBet = {
+							1: [
+								'един',
+								'два',
+								'три',
+								'четири',
+								'пет',
+								'шест',
+								'седем',
+								'осем',
+								'девет',
+								'десет',
+								'единадесет',
+								'дванадесет',
+								'тринадесет',
+								'четиридесет',
+								'петнадесет',
+								'шестнадесет',
+								'седемнадесет',
+								'осемнадесет',
+								'деветнадесет'
+							],
+							10: [
+								'двадесет',
+								'тридесет',
+								'четиридесет',
+								'петдесет',
+								'шестдесет',
+								'седемдесет',
+								'осемдесет',
+								'деветдесет'
+							],
+							100: [
+								'сто',
+								'двеста',
+								'тристаи',
+								'четиристотин',
+								'петстотин',
+								'шестстотин',
+								'седемстотин',
+								'осемстотин',
+								'деветстотин'
+							],
+							'thousand': [
+								'хиляда',
+								'хиляди',
+								'хиляди'
+							],
+							'thousandType': [
+								'jeden',
+								'две'
+							]
+						}
+						break;
+					}
 					case 'en-US':
 					case 'az-Latn-AZ':
 					case 'en-GB':
