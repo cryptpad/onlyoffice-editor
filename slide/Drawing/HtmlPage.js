@@ -65,6 +65,7 @@ function CEditorPage(api)
 	// ------------------------------------------------------------------
 	this.Name           = "";
 	this.IsSupportNotes = true;
+	this.IsSupportAnimPane = false;
 
 	this.EditorType = "presentations";
 
@@ -572,16 +573,18 @@ function CEditorPage(api)
 		}
 
 		//animation pane
+		if(this.IsSupportAnimPane)
+		{
+			this.m_oAnimationPaneContainer = CreateControlContainer("id_panel_animation");
+			this.m_oAnimationPaneContainer.Bounds.SetParams(0, 0, 1000, 300, false, false, false, false, -1, -1);
+			this.m_oAnimationPaneContainer.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
+			this.m_oMainParent.AddControl(this.m_oAnimationPaneContainer);
 
-		this.m_oAnimationPaneContainer = CreateControlContainer("id_panel_animation");
-		this.m_oAnimationPaneContainer.Bounds.SetParams(0, 0, 1000, 300, false, false, false, false, -1, -1);
-		this.m_oAnimationPaneContainer.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
-		this.m_oMainParent.AddControl(this.m_oAnimationPaneContainer);
-
-		this.m_oAnimationPane = CreateControl("id_animation_controls");
-		this.m_oAnimationPane.Bounds.SetParams(0, 0, 1000, 1000, false, false, false, false, -1, -1);
-		this.m_oAnimationPane.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
-		this.m_oAnimationPaneContainer.AddControl(this.m_oAnimationPane);
+			this.m_oAnimationPane = CreateControl("id_animation_controls");
+			this.m_oAnimationPane.Bounds.SetParams(0, 0, 1000, 1000, false, false, false, false, -1, -1);
+			this.m_oAnimationPane.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
+			this.m_oAnimationPaneContainer.AddControl(this.m_oAnimationPane);
+		}
 
 		// ----------
 
@@ -947,8 +950,11 @@ function CEditorPage(api)
 		this.m_oNotesApi = new CNotesDrawer(this);
 		this.m_oNotesApi.Init();
 
-		this.m_oAnimPaneApi = new CAnimationPaneDrawer(this);
-		this.m_oAnimPaneApi.Init();
+		if(this.IsSupportAnimPane)
+		{
+			this.m_oAnimPaneApi = new CAnimationPaneDrawer(this);
+			this.m_oAnimPaneApi.Init();
+		}
 
 		if (this.m_oApi.isReporterMode)
 			this.m_oApi.StartDemonstration(this.Name, 0);
@@ -4346,7 +4352,10 @@ function CEditorPage(api)
 			{
 				var oSlide = this.m_oLogicDocument.Slides[_curPage];
 				this.m_oNotesApi.OnRecalculateNote(_curPage, oSlide.NotesWidth, oSlide.getNotesHeight());
-				this.m_oAnimPaneApi.OnAnimPaneChanged(_curPage, null);
+				if(this.m_oAnimPaneApi)
+				{
+					this.m_oAnimPaneApi.OnAnimPaneChanged(_curPage, null);
+				}
 			}
 		}
 
