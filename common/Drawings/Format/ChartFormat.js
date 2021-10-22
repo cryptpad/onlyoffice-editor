@@ -6658,6 +6658,8 @@
             oCopy.setBarDir(this.barDir);
         if(AscFormat.isRealNumber(this.gapWidth) && oCopy.setGapWidth)
             oCopy.setGapWidth(this.gapWidth);
+        if(AscFormat.isRealNumber(this.gapDepth) && oCopy.setGapDepth)
+            oCopy.setGapDepth(this.gapDepth);
         if(AscFormat.isRealNumber(this.grouping) && oCopy.setGrouping)
             oCopy.setGrouping(this.grouping);
         if(AscFormat.isRealNumber(this.overlap) && oCopy.setOverlap)

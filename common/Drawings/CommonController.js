@@ -11228,7 +11228,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
     function HitToRect(x, y, invertTransform, rx, ry, rw, rh) {
         var tx = invertTransform.TransformPointX(x, y);
         var ty = invertTransform.TransformPointY(x, y);
-        return tx > rx && ty > ry && tx < rw && ty < rh;
+        return tx > rx && ty > ry && tx < (rx + rw) && ty < (ry + rh);
     }
 
 

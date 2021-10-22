@@ -41,9 +41,6 @@ var G_O_DEFAULT_COLOR_MAP = AscFormat.GenerateDefaultColorMap();
 
 
 
-CShape.prototype.setDrawingObjects = function(drawingObjects)
-{
-};
 CShape.prototype.Is_UseInDocument = function(drawingObjects)
 {
     if(this.group)
@@ -67,17 +64,6 @@ CShape.prototype.Is_UseInDocument = function(drawingObjects)
         }
     }
     return false;
-};
-CShape.prototype.setDrawingBase = function(drawingBase)
-{
-    this.drawingBase = drawingBase;
-    if(Array.isArray(this.spTree))
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            this.spTree[i].setDrawingBase(drawingBase);
-        }
-    }
 };
 
 CShape.prototype.getDrawingObjectsController = function()
