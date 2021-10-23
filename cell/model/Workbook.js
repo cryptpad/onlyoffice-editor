@@ -2102,14 +2102,14 @@
 			}
 		}
 	};
-	function CT_Drawing() {
+	function CT_DrawingWSRef() {
 		this.id = null;
 	}
-	CT_Drawing.prototype.fromXml = function(reader) {
+	CT_DrawingWSRef.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	CT_Drawing.prototype.readAttr = function(reader) {
+	CT_DrawingWSRef.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
 			if ("id" === reader.GetNameNoNS()) {
 				this.id = reader.GetValueDecodeXml();
@@ -8991,7 +8991,7 @@
 					var sheetData = new CT_SheetData(this);
 					sheetData.fromXml(reader);
 				} else if ("drawing" === name) {
-					var drawing = new CT_Drawing(this);
+					var drawing = new CT_DrawingWSRef(this);
 					drawing.fromXml(reader);
 					context.drawingId = drawing.id;
 				}

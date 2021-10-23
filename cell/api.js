@@ -1403,20 +1403,21 @@ var editor;
 
 		var openXml = AscCommon.openXml;
 		var pivotCaches = {};
-		var xmlParserContext = new XmlParserContext();
 		var doc = new openXml.OpenXmlPackage();
+		var xmlParserContext = new XmlParserContext();
 		var wbPart = null;
 		var wbXml = null;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
 		if (!jsZipWrapper.loadSync(data)) {
 			return false;
 		}
+		xmlParserContext.zip = jsZipWrapper;
 		doc.openFromZip(jsZipWrapper);
 		wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
 		var contentWorkbook = wbPart.getDocumentContent();
 		AscCommonExcel.executeInR1C1Mode(false, function() {
 			wbXml = new AscCommonExcel.CT_Workbook();
-			var reader = new StaxParser(contentWorkbook, xmlParserContext);
+			var reader = new StaxParser(contentWorkbook, wbPart, xmlParserContext);
 			wbXml.fromXml(reader);
 		});
 		if (wbXml.pivotCaches) {
@@ -1458,7 +1459,7 @@ var editor;
 				var contentSharedStrings = sharedStringPart.getDocumentContent();
 				if (contentSharedStrings) {
 					var sharedStrings = new AscCommonExcel.CT_SharedStrings();
-					var reader = new StaxParser(contentSharedStrings, xmlParserContext);
+					var reader = new StaxParser(contentSharedStrings, sharedStringPart, xmlParserContext);
 					sharedStrings.fromXml(reader);
 				}
 			}
@@ -1475,7 +1476,7 @@ var editor;
 					ws.sheetViews.push(wsView);
 					if (contentSheetXml) {
 						AscCommonExcel.executeInR1C1Mode(false, function() {
-							var reader = new StaxParser(contentSheetXml, xmlParserContext);
+							var reader = new StaxParser(contentSheetXml, wsPart, xmlParserContext);
 							ws.fromXml(reader);
 						});
 					}
@@ -1483,10 +1484,10 @@ var editor;
 					wb.aWorksheetsById[ws.getId()] = ws;
 					var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
 					if (drawingPart) {
+						var drawingWS = new AscCommon.CT_DrawingWS();
 						var contentDrawing = drawingPart.getDocumentContent();
-						// AscCommonExcel.executeInR1C1Mode(false, function() {
-						// 	new openXml.SaxParserBase().parse(contentDrawing, ws);
-						// });
+						var reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
+						drawingWS.fromXml(reader);
 					}
 					if (wsPart) {
 						var actions = [];

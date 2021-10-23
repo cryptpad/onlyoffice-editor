@@ -9413,41 +9413,14 @@
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadDrawing(t, l, oNewDrawing, oFlags);
                 });
-                if(null != oNewDrawing.graphicObject)
-                {
-                    if(false != oFlags.from && false != oFlags.to) {
-                        oNewDrawing.Type = c_oAscCellAnchorType.cellanchorTwoCell;
-                        oNewDrawing.editAs = oFlags.editAs;
-                    } else if(false != oFlags.from && false != oFlags.ext)
-                        oNewDrawing.Type = c_oAscCellAnchorType.cellanchorOneCell;
-                    else if(false != oFlags.pos && false != oFlags.ext)
-                        oNewDrawing.Type = c_oAscCellAnchorType.cellanchorAbsolute;
-                    if(oNewDrawing.graphicObject)
-                    {
-						//TODO при copy/paste в word из excel пропадает метод setWorksheet
-						if(typeof oNewDrawing.graphicObject.setWorksheet != "undefined")
-							oNewDrawing.graphicObject.setWorksheet(ws);
-                    }
-                    if(!oNewDrawing.graphicObject.spPr)
-                    {
-                        oNewDrawing.graphicObject.setSpPr(new AscFormat.CSpPr());
-                        oNewDrawing.graphicObject.spPr.setParent(oNewDrawing.graphicObject);
-                    }
-                    if(!oNewDrawing.graphicObject.spPr.xfrm)
-                    {
-                        oNewDrawing.graphicObject.spPr.setXfrm(new AscFormat.CXfrm());
-                        oNewDrawing.graphicObject.spPr.xfrm.setParent(oNewDrawing.graphicObject.spPr);
-                        oNewDrawing.graphicObject.spPr.xfrm.setOffX(0);
-                        oNewDrawing.graphicObject.spPr.xfrm.setOffY(0);
-                        oNewDrawing.graphicObject.spPr.xfrm.setExtX(0);
-                        oNewDrawing.graphicObject.spPr.xfrm.setExtY(0);
-                    }
-                    if(oNewDrawing.clientData)
-                    {
-                        oNewDrawing.graphicObject.setClientData(oNewDrawing.clientData);
-                    }
-                    aDrawings.push(oNewDrawing);
-                }
+                if(false != oFlags.from && false != oFlags.to) {
+                    oNewDrawing.Type = c_oAscCellAnchorType.cellanchorTwoCell;
+                    oNewDrawing.editAs = oFlags.editAs;
+                } else if(false != oFlags.from && false != oFlags.ext)
+                    oNewDrawing.Type = c_oAscCellAnchorType.cellanchorOneCell;
+                else if(false != oFlags.pos && false != oFlags.ext)
+                    oNewDrawing.Type = c_oAscCellAnchorType.cellanchorAbsolute;
+                oNewDrawing.initAfterSerialize(ws);
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -9510,14 +9483,7 @@
             /** proprietary end **/
             else if ( c_oSer_DrawingType.pptxDrawing == type )
             {
-               // res = c_oSerConstants.ReadUnknown;
-                var graphicObject = this.ReadPptxDrawing();
-                if (graphicObject) {
-                    oDrawing.graphicObject = graphicObject;
-                    //TODO при copy/paste в word из excel пропадает метод setDrawingBase
-                    if(typeof graphicObject.setDrawingBase != "undefined")
-                        graphicObject.setDrawingBase(oDrawing);
-                }
+                oDrawing.graphicObject = this.ReadPptxDrawing();
             }
             else if( c_oSer_DrawingType.ClientData == type ) {
                 var oClientData = new AscFormat.CClientData();
@@ -9532,15 +9498,7 @@
         };
 
         this.ReadPptxDrawing = function () {
-            var graphicObject;
-            var oGraphicObject = pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet, this.curWorksheet.getDrawingDocument());
-            if(null != oGraphicObject
-                && !((oGraphicObject.getObjectType() === AscDFH.historyitem_type_Shape || oGraphicObject.getObjectType() === AscDFH.historyitem_type_ImageShape) && !oGraphicObject.spPr)
-                && !AscCommon.IsHiddenObj(oGraphicObject))
-            {
-                graphicObject = oGraphicObject;
-            }
-            return graphicObject;
+            return pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet, this.curWorksheet.getDrawingDocument());
         };
         this.ReadGraphicFrame = function (type, length, oDrawing) {
             var res = c_oSerConstants.ReadOk;
@@ -9565,10 +9523,6 @@
             if (c_oSer_DrawingFromToType.Col === type)
             {
                 oFromTo.col = this.stream.GetULongLE();
-                if(oFromTo.col < 0)
-                {
-                    oFromTo.col = 0;
-                }
             }
             else if (c_oSer_DrawingFromToType.ColOff === type)
             {
@@ -9577,10 +9531,6 @@
             else if (c_oSer_DrawingFromToType.Row === type)
             {
                 oFromTo.row = this.stream.GetULongLE();
-                if(oFromTo.row < 0)
-                {
-                    oFromTo.row = 0;
-                }
             }
             else if (c_oSer_DrawingFromToType.RowOff === type)
             {

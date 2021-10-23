@@ -423,20 +423,20 @@ CCellObjectInfo.prototype.fromXml = function(reader) {
 	var depth = reader.GetDepth();
 	while (reader.ReadNextSiblingNode(depth)) {
 		if ("col" === reader.GetNameNoNS()) {
-			this.col = parseInt(reader.GetValue());
+			this.col = reader.GetTextInt();
 		} else if ("colOff" === reader.GetNameNoNS()) {
-			this.colOff = parseFloat(reader.GetValue());
+			this.colOff = reader.GetTextInt() * g_dKoef_emu_to_mm;
 		} else if ("row" === reader.GetNameNoNS()) {
-			this.row = parseInt(reader.GetValue());
+			this.row = reader.GetTextInt();
 		} else if ("rowOff" === reader.GetNameNoNS()) {
-			this.rowOff = parseFloat(reader.GetValue());
+			this.rowOff = reader.GetTextInt() * g_dKoef_emu_to_mm;
 		}
 	}
-}
+};
 CCellObjectInfo.prototype.initAfterSerialize = function() {
 	this.row = Math.max(0, this.row);
 	this.row = Math.max(0, this.row);
-}
+};
 
 /** @constructor */
 function asc_CChartBinary(chart) {
@@ -1823,12 +1823,14 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 			} else if ("to" === reader.GetNameNoNS()) {
 				this.to.fromXml(reader);
 			} else if ("pic" === reader.GetNameNoNS()) {
-
+                var image = new AscFormat.CImageShape();
+                image.fromXml(reader);
+                this.graphicObject = image;
 			}
 			//todo
 		}
 
-		var ws = reader.getContext().ws;
+		var ws = reader.GetContext().ws;
 		this.initAfterSerialize(ws);
 	};
 	DrawingBase.prototype.readAttr = function(reader) {

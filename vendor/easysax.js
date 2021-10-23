@@ -1152,10 +1152,11 @@ function EasySAXParser(config) {
     this.staxEnd = this.end;
 };
 
-function StaxParser(xml, context) {
+function StaxParser(xml, rels, context) {
     this.xml = xml;
     this.index = 0;
     this.length = xml.length;
+    this.rels = rels;
     this.context = context;
 
     this.isTagStart = null;
@@ -1383,6 +1384,22 @@ StaxParser.prototype.GetValue = function () {
     return this.text;
     // return this.ConvertToString(this.xml, this.textStart, this.textEnd);
 };
+StaxParser.prototype.GetValueBool = function () {
+    var val = this.GetValue();
+    return "1" === val || "true" === val || "t" === val || "on" === val;
+};
+StaxParser.prototype.GetValueInt = function () {
+    return parseInt(this.GetValue());// || 0;
+};
+StaxParser.prototype.GetValueDouble = function () {
+    return parseFloat(this.GetValue());// || 0;
+};
+StaxParser.prototype.GetValueDecodeXml = function () {
+    return this.DecodeXml(this.text);
+};
+StaxParser.prototype.GetValueDecodeXmlExt = function () {
+    return this.GetValueDecodeXml();
+};
 StaxParser.prototype.DecodeXml = function (text) {
     if (-1 !== text.indexOf('&')) {
         var res = "";
@@ -1423,12 +1440,6 @@ StaxParser.prototype.DecodeXml = function (text) {
         return (' ' + text).substr(1);
     }
 };
-StaxParser.prototype.GetValueDecodeXml = function () {
-    return this.DecodeXml(this.text);
-};
-StaxParser.prototype.GetValueDecodeXmlExt = function () {
-    return this.GetValueDecodeXml();
-};
 StaxParser.prototype.GetText = function () {
     var text = "";
     var depth = this.depth;
@@ -1449,6 +1460,12 @@ StaxParser.prototype.GetText = function () {
 };
 StaxParser.prototype.GetTextDecodeXml = function () {
     return this.DecodeXml(this.GetText());
+};
+StaxParser.prototype.GetTextInt = function () {
+    return parseInt(this.GetText());
+};
+StaxParser.prototype.GetTextDouble = function () {
+    return parseFloat(this.GetText());
 };
 StaxParser.prototype.ConvertToString = function(xml, start, end) {
     return xml.substring(start, end);
@@ -1474,13 +1491,16 @@ StaxParser.prototype.GetContext = function() {
 };
 
 function XmlParserContext(){
-
+    //common
+    this.zip = null;
+    //docx
     //xlsx
     this.sharedStrings = [];
     this.row = null;
     this.cellValue = null;
     this.cellBase = null;
     this.drawingId = null;
+    //pptx
 }
 XmlParserContext.prototype.initFromWS = function(ws) {
     this.ws = ws;

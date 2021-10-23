@@ -61,40 +61,12 @@
 				if ("twoCellAnchor" === name) {
 					var drawing = objectRender.createDrawingObject();
 					drawing.fromXml(reader);
-					var twoCellAnchor = new CT_TwoCellAnchor(this);
-					twoCellAnchor.fromXml(reader);
 				} else if ("oneCellAnchor" === name) {
 				} else if ("absoluteAnchor" === name) {
 				}
 			}
 		}
 	};
-
-	function CT_TwoCellAnchor(ws) {
-		this.ws = ws;
-		this._openRow = new AscCommonExcel.Row(ws);
-	}
-	CT_TwoCellAnchor.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			if ("id" === reader.GetNameNoNS()) {
-				this.id = reader.GetValueDecodeXml();
-			}
-		}
-	};
-	CT_TwoCellAnchor.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		var depth = reader.GetDepth();
-		var row = reader.GetContext().row;
-		while (reader.ReadNextSiblingNode(depth)) {
-			if ("row" === reader.GetName()) {
-				row.clear();
-				row.fromXml(reader);
-				row.saveContent();
-			}
-		}
-	};
-
-
 
 	//pptx
 

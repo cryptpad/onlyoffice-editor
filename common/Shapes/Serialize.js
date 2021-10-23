@@ -3205,50 +3205,7 @@ function BinaryPPTYLoader()
                                             s.Skip2(6); // len + start attributes + type
 
                                             var sReadPath = s.GetString2();
-											if (this.IsUseFullUrl && this.insertDocumentUrlsData && this.insertDocumentUrlsData.imageMap) {
-												var sReadPathNew = this.insertDocumentUrlsData.imageMap[AscCommon.g_oDocumentUrls.mediaPrefix + sReadPath];
-												if(sReadPathNew){
-													sReadPath = sReadPathNew;
-												}
-                                            }
-                                            if(this.IsUseFullUrl) {
-                                                if(window["native"] && window["native"]["CopyTmpToMedia"]){
-                                                    if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
-                                                        var sMedia = window["native"]["CopyTmpToMedia"](sReadPath);
-                                                        if(typeof sMedia === "string" && sMedia.length > 0){
-                                                            sReadPath = sMedia;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            uni_fill.fill.setRasterImageId(sReadPath);
-
-                                            // TEST version ---------------
-                                            var _s = sReadPath;
-                                            var indS = _s.lastIndexOf("emf");
-                                            if (indS == -1)
-                                                indS = _s.lastIndexOf("wmf");
-
-                                            if (indS != -1 && (indS == (_s.length - 3)))
-                                            {
-                                                _s = _s.substring(0, indS);
-                                                _s += "svg";
-                                                sReadPath = _s;
-                                                uni_fill.fill.setRasterImageId(_s);
-                                            }
-                                            // ----------------------------
-
-                                            if (this.IsThemeLoader)
-                                            {
-                                                sReadPath = "theme" + (this.Api.ThemeLoader.CurrentLoadThemeIndex + 1) + "/media/" + sReadPath;
-                                                uni_fill.fill.setRasterImageId(sReadPath);
-                                            }
-
-                                            if (this.ImageMapChecker != null)
-                                                this.ImageMapChecker[sReadPath] = true;
-
-                                            if (this.IsUseFullUrl)
-                                                this.RebuildImages.push(new CBuilderImages(uni_fill.fill, sReadPath, oImageShape, oSpPr, oLn));
+                                            this.initAfterBlipFill(sReadPath, uni_fill.fill);
 
                                             s.Skip2(1); // end attribute
                                             break;
@@ -3613,6 +3570,53 @@ function BinaryPPTYLoader()
         return uni_fill;
     };
 
+    this.initAfterBlipFill = function(sReadPath, blipFill)
+    {
+        if (this.IsUseFullUrl && this.insertDocumentUrlsData && this.insertDocumentUrlsData.imageMap) {
+            var sReadPathNew = this.insertDocumentUrlsData.imageMap[AscCommon.g_oDocumentUrls.mediaPrefix + sReadPath];
+            if(sReadPathNew){
+                sReadPath = sReadPathNew;
+            }
+        }
+        if(this.IsUseFullUrl) {
+            if(window["native"] && window["native"]["CopyTmpToMedia"]){
+                if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
+                    var sMedia = window["native"]["CopyTmpToMedia"](sReadPath);
+                    if(typeof sMedia === "string" && sMedia.length > 0){
+                        sReadPath = sMedia;
+                    }
+                }
+            }
+        }
+        blipFill.setRasterImageId(sReadPath);
+
+        // TEST version ---------------
+        var _s = sReadPath;
+        var indS = _s.lastIndexOf("emf");
+        if (indS == -1)
+            indS = _s.lastIndexOf("wmf");
+
+        if (indS != -1 && (indS == (_s.length - 3)))
+        {
+            _s = _s.substring(0, indS);
+            _s += "svg";
+            sReadPath = _s;
+            blipFill.setRasterImageId(_s);
+        }
+        // ----------------------------
+
+        if (this.IsThemeLoader)
+        {
+            sReadPath = "theme" + (this.Api.ThemeLoader.CurrentLoadThemeIndex + 1) + "/media/" + sReadPath;
+            blipFill.setRasterImageId(sReadPath);
+        }
+
+        if (this.ImageMapChecker != null)
+            this.ImageMapChecker[sReadPath] = true;
+
+        if (this.IsUseFullUrl)
+            this.RebuildImages.push(new CBuilderImages(blipFill, sReadPath, oImageShape, oSpPr, oLn));
+    }
     // ------------------------------------------
 
     // COLOR SCHEME -----------------------------
