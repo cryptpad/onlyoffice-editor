@@ -12067,6 +12067,22 @@
 	};
 
 	/**
+	 * Gets the paragraph that contains the current content control.
+	 * @memberof ApiInlineLvlSdt
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiBlockLvlSdt | null} - returns null if parent paragraph doesn't exist.
+	 */
+	ApiInlineLvlSdt.prototype.GetParentParagraph = function()
+	{
+		var oPara = this.Sdt.GetParagraph();
+
+		if (oPara)
+			return new ApiParagraph(oPara);
+
+		return null; 
+	};
+
+	/**
 	 * Get the content control that contains the current content control.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
@@ -13509,6 +13525,7 @@
 	ApiInlineLvlSdt.prototype["AddText"]                = ApiInlineLvlSdt.prototype.AddText;
 	ApiInlineLvlSdt.prototype["Delete"]                 = ApiInlineLvlSdt.prototype.Delete;
 	ApiInlineLvlSdt.prototype["SetTextPr"]              = ApiInlineLvlSdt.prototype.SetTextPr;
+	ApiInlineLvlSdt.prototype["GetParentParagraph"]     = ApiInlineLvlSdt.prototype.GetParentParagraph;
 	ApiInlineLvlSdt.prototype["GetParentContentControl"]= ApiInlineLvlSdt.prototype.GetParentContentControl;
 	ApiInlineLvlSdt.prototype["GetParentTable"]         = ApiInlineLvlSdt.prototype.GetParentTable;
 	ApiInlineLvlSdt.prototype["GetParentTableCell"]     = ApiInlineLvlSdt.prototype.GetParentTableCell;
