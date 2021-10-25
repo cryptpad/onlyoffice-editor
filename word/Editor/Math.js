@@ -3503,9 +3503,8 @@ ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
     if (!strLaTeX) return; 
     var oLaTeXParser = new LaTeXStringParser();
     oLaTeXParser.parse(strLaTeX);
-    LaTeXStringLexer(oLaTeXParser, this.Root, this.Root, false, {ctrPrp: new CTextPr()});
+    LaTeXStringLexer(oLaTeXParser, this.Root, null);
     this.Root.Correct_Content(true);
-
 };
 
 var arrLaTeXSymbols = new Map([
@@ -4018,6 +4017,8 @@ var arrLaTeXSymbols = new Map([
 function LaTeXStringParser() {
     this.indexOfAtom = 0;
     this.arrAtomsOfFormula = [];
+    this.Pr = {ctrPrp: new CTextPr()}
+    this.Paragraph = CMathContent.Paragraph;
 };
 
 LaTeXStringParser.prototype.parse = function (str) {
@@ -4025,26 +4026,30 @@ LaTeXStringParser.prototype.parse = function (str) {
   for (var i = 0; i < str.length; i++) {
     strTempWord += str[i];
     if (
-      str[i + 1] == "\\" ||
-      str[i + 1] == "^"  ||
-      str[i + 1] == "_"  ||
-      str[i + 1] == "("  ||
-      str[i + 1] == ")"  ||
-      str[i + 1] == "{"  ||
-      str[i + 1] == "}"  ||
-      strTempWord == "(" ||
-      strTempWord == ")" ||
-      strTempWord == "{" ||
-      strTempWord == "}" ||
-      strTempWord == "^" ||
-      strTempWord == "_" 
+        str[i + 1] == "\\" ||
+        str[i + 1] == "^"  ||
+        str[i + 1] == "_"  ||
+        str[i + 1] == "-"  ||
+        str[i + 1] == "+"  ||
+        str[i + 1] == "/"  ||
+        str[i + 1] == "*"  ||
+        str[i + 1] == "("  ||
+        str[i + 1] == ")"  ||
+        str[i + 1] == "{"  ||
+        str[i + 1] == "}"  ||
+        str[i + 1] == " "  ||
+        strTempWord == "(" ||
+        strTempWord == ")" ||
+        strTempWord == "{" ||
+        strTempWord == "}" ||
+        strTempWord == "^" ||
+        strTempWord == "_" 
     ) {
-      this.arrAtomsOfFormula.push(strTempWord);
+      this.arrAtomsOfFormula.push(strTempWord.trim());
       strTempWord = "";
     }
   }
   this.arrAtomsOfFormula = this.arrAtomsOfFormula.filter(Boolean);
-  console.log(this.arrAtomsOfFormula)
 };
 
 LaTeXStringParser.prototype.next = function () {
@@ -4053,6 +4058,10 @@ LaTeXStringParser.prototype.next = function () {
         ? null 
         : this.arrAtomsOfFormula[this.indexOfAtom - 1];
 };
+
+LaTeXStringParser.prototype.futureAtom = function() {
+    return this.arrAtomsOfFormula[this.indexOfAtom]
+}
 
 function CheckIsAccent(element) {
     switch (element) {
@@ -4066,39 +4075,129 @@ function CheckIsAccent(element) {
         case '\\vec':       return 8407;
         case '\\breve':     return 774;
         case '\\tilde':     return 771;
-        default: return 0;
+        default: return null;
     }
 }
 
-function LaTeXStringLexer(oLaTeXParser, root, context, isExitIfSee, Pr) {
+function CheckIsFunction(element) {
+    switch (element) {
+        case '\\frac': ;
+        case '\\cos': ;
+        case '\\sin': ;
+        case '\\tan': ;
+        case '\\cot': ;
+        case '\\arcsin': ;
+        case '\\arccos': ;
+        case '\\arctan': ;
+        case '\\arccot': ;
+        case '\\sinh': ;
+        case '\\cosh': ;
+        case '\\tanh': ;
+        case '\\coth': ;
+        case '\\sec': ;
+        case '\\csc': return true;
+        default: return null;
+    }
+}
+
+function createFunc(element, Parser, Farg) {
+    var nameOfFunc = element;
+
+    if (element == '\\frac') {
+        var frac = Farg.Add_Fraction(Parser.Pr, null, null);
+        var NumMathContent = frac.getNumeratorMathContent();
+        LaTeXStringLexer(Parser, NumMathContent, '}')
+        var DenMathContent = frac.getDenominatorMathContent();
+        LaTeXStringLexer(Parser, DenMathContent, '}')
+    } 
     
-    var addText = function (text) {context.Add_Text(text, root.Paragraph)}
-    var addFunc =  function (name, funcContext) {return context.Add_Function(Pr, name, funcContext)}
-    var addAccent = function (name, funcContext) {return context.Add_Accent(Pr.ctrPrp, name, funcContext)}
+    else {
+        var MathFunc = new CMathFunc(Parser.Pr);
+        Farg.Add_Element(MathFunc);
+        MathFunc.SetParagraph(Parser.Paragraph);
+
+        if (Parser.futureAtom() == '^') {
+            element = Parser.next();
+            var MathContent = MathFunc.getFName();
+            var Script = MathContent.Add_Script(false, {ctrPrp : Parser.Pr.ctrPrp, type : DEGREE_SUPERSCRIPT}, null, null, null);
+            Script.getBase().Add_Text(nameOfFunc.slice(1), Parser.Paragraph, STY_PLAIN);
+
+            if (Parser.futureAtom() != '(') {
+                element = Parser.next();
+                if (element == '{') LaTeXStringLexer(Parser, Script.getUpperIterator(), '}');
+                else Script.getUpperIterator().Add_Text(element, Parser.Paragraph, STY_PLAIN);
+            }
+
+        } else MathFunc.getFName().Add_Text(nameOfFunc.slice(1), Parser.Paragraph, STY_PLAIN);
+        
+        if (Parser.futureAtom() == '(') LaTeXStringLexer(Parser, MathFunc.getArgument(), ')');
+        else LaTeXStringLexer(Parser, MathFunc.getArgument(), 1);
+    }
+};
+
+function addText(text, Parser, Farg) {
+    if (Parser.futureAtom() == '^') {
+        Farg.Add_Script(false, {ctrPrp : Parser.Pr.ctrPrp, type : DEGREE_SUPERSCRIPT}, text, (Parser.next(), Parser.next()), null);
+        return true
+    } else {
+        if (arrLaTeXSymbols.get(text)) {
+            Farg.Add_Text(String.fromCharCode(arrLaTeXSymbols.get(text)), Parser.Paragraph);
+            return true;
+        }
+        else {
+            if (
+                text != "{" &&
+                text != "}" &&
+                text != "^" &&
+                text != "_") 
+                {
+                  Farg.Add_Text(text, Parser.Paragraph); 
+                  return true;
+                }
+        }
+    }   
+}
+
+function LaTeXStringLexer(Parser, Farg, exitIfSee) { 
+    var addAccent = function (name, text) {return Farg.Add_Accent(Pr.ctrPrp, name, text)}
+    var index = 0;
 
     do {
-        var strFAtom = oLaTeXParser.next(); 
-        
-        if (strFAtom == "\\cos") {                                   
-            // todo: (\\cos\\theta) <=> cosθ
-            var func = addFunc(strFAtom.slice(1), null).getArgument();
-            LaTeXStringLexer(oLaTeXParser, root, func, ')', Pr); 
-        } 
-        
-        else if (CheckIsAccent(strFAtom) > 0) {
-            console.log(String.fromCharCode(CheckIsAccent(strFAtom)))
-            var func = addAccent(String.fromCharCode(CheckIsAccent(strFAtom)), null).getBase();
-            LaTeXStringLexer(oLaTeXParser, root, func, '}', Pr);
-        } 
-        
-        else if (arrLaTeXSymbols.get(strFAtom)) {
-            addText(String.fromCharCode(arrLaTeXSymbols.get(strFAtom)), root.Paragraph)
-        } 
-        
-        else {
-            if (strFAtom != '{' && strFAtom != '}') addText(strFAtom, root.Paragraph); 
+        var strFAtom = Parser.next(); 
+
+        if (CheckIsFunction(strFAtom) != null) {
+            createFunc(strFAtom, Parser, Farg);
+        }    
+
+        else if (strFAtom == '\\lim') {
+            var nextAtom = Parser.next()
+
+            if (nextAtom == '\\limits') {
+
+            } 
+            else if (nextAtom == '_') {
+                nextAtom = Parser.next();
+                if (nextAtom == '{') {} 
+                else {
+                    var func = Farg.Add_FunctionWithLimit(Parser.Pr, "lim", nextAtom, null);
+                    LaTeXStringLexer(Parser, func.getArgument(), 1);
+                }
+            }
         }
-        if (isExitIfSee == strFAtom) return;
+
+        else if (CheckIsAccent(strFAtom) > 0) {
+            var func = addAccent(CheckIsAccent(strFAtom), Parser.futureAtom(2)); //check right syntaxis!
+            Parser.next(); Parser.next(); Parser.next();
+        }
+    
+        else {
+            var isIndex = addText(strFAtom, Parser, Farg);
+            if (isIndex) index++;      
+        }
+         
+        if (typeof exitIfSee === 'string' && exitIfSee === strFAtom) return;
+        if (typeof exitIfSee === 'number' && index >= exitIfSee) return;
+         
     } while (strFAtom != null);
 };
 
