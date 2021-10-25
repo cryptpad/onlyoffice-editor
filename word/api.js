@@ -1378,6 +1378,9 @@ background-repeat: no-repeat;\
 		var _t = this;
 
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer = new AscCommon.CViewer(this.HtmlElementName);
+		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onNeedPassword", function(){
+			_t.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.DRM);
+		});
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onStructure", function(structure){
 			_t.sendEvent("asc_onViewerBookmarksUpdate", structure);
 		});
@@ -1392,8 +1395,7 @@ background-repeat: no-repeat;\
 		});
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.open(gObject);
 
-		// через таймер - чтобы не моргнула пустая отрисовка
-		setTimeout(function() {
+		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onFileOpened", function() {
 			_t.disableRemoveFonts = true;
 			_t.onDocumentContentReady();
 			_t.bInit_word_control = true;
@@ -1410,7 +1412,7 @@ background-repeat: no-repeat;\
 				});
 			}
 
-		}, 500);
+		});
 	};
 	asc_docs_api.prototype["asc_setViewerThumbnailsZoom"] = function(value) {
 		if (this.WordControl.m_oDrawingDocument.m_oDocumentRenderer &&
@@ -2725,6 +2727,12 @@ background-repeat: no-repeat;\
 		}
         if (AscCommon.EncryptionWorker.asc_setAdvancedOptions(this, idOption, option))
             return;
+
+		if (this.isUseNativeViewer && this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
+		{
+			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.open(null, option.asc_getPassword());
+			return;
+		}
 
 		switch (idOption)
 		{
