@@ -4043,6 +4043,7 @@ LaTeXStringParser.prototype.parse = function (str) {
         strTempWord == "{" ||
         strTempWord == "}" ||
         strTempWord == "^" ||
+        strTempWord == "-" ||
         strTempWord == "_" 
     ) {
       this.arrAtomsOfFormula.push(strTempWord.trim());
@@ -4063,8 +4064,8 @@ LaTeXStringParser.prototype.futureAtom = function() {
     return this.arrAtomsOfFormula[this.indexOfAtom]
 }
 
-function CheckIsAccent(element) {
-    switch (element) {
+LaTeXStringParser.prototype.CheckIsAccent = function (strFuncAtom) {
+    switch (strFuncAtom) {
         case '\\dot':       return 775;
         case '\\ddot':      return 776;
         case '\\hat':       return 770;
@@ -4079,9 +4080,10 @@ function CheckIsAccent(element) {
     }
 }
 
-function CheckIsFunction(element) {
-    switch (element) {
+LaTeXStringParser.prototype.CheckIsFunction = function(strFuncAtom) {
+    switch (strFuncAtom) {
         case '\\frac': ;
+        case '\\lim': ;
         case '\\cos': ;
         case '\\sin': ;
         case '\\tan': ;
@@ -4100,48 +4102,59 @@ function CheckIsFunction(element) {
     }
 }
 
-function createFunc(element, Parser, Farg) {
-    var nameOfFunc = element;
+LaTeXStringParser.prototype.addLimit = function(Parser, MathFunc) {
+    var strNextAtom = Parser.next()
+            if (strNextAtom == '_') {
+                strNextAtom = Parser.next();
+                if (strNextAtom == '{') {
+                    var Limit = MathFunc.getFName().Add_Limit({ctrPrp : Parser.Pr.ctrPrp, type : LIMIT_LOW}, null, null);
+                    
+                    Limit.getFName().Add_Text('lim', Parser.Paragraph);
+                    LaTeXStringLexer(Parser, Limit.getIterator(), '}');
+                    strNextAtom = Parser.next(); 
+                    MathFunc.getArgument().Add_Text(strNextAtom, Parser.Paragraph);
+                } 
+                else {
+                    var Limit = MathFunc.getFName().Add_Limit({ctrPrp : Parser.Pr.ctrPrp, type : LIMIT_LOW}, null, null);
+                    
+                    Limit.getFName().Add_Text('lim', Parser.Paragraph);
+                    Limit.getIterator().Add_Text(strNextAtom);
+                   
+                    LaTeXStringLexer(Parser, MathFunc.getArgument(), 1);
+                }
+            }
+}
 
-    if (element == '\\frac') {
-        var frac = Farg.Add_Fraction(Parser.Pr, null, null);
-        var NumMathContent = frac.getNumeratorMathContent();
-        LaTeXStringLexer(Parser, NumMathContent, '}')
-        var DenMathContent = frac.getDenominatorMathContent();
-        LaTeXStringLexer(Parser, DenMathContent, '}')
-    } 
-    
-    else {
-        var MathFunc = new CMathFunc(Parser.Pr);
-        Farg.Add_Element(MathFunc);
-        MathFunc.SetParagraph(Parser.Paragraph);
+LaTeXStringParser.prototype.addFuncWithDegree = function(Parser, strFuncAtom, MathFunc, strNameOfFunc) {
+    var typeOfDegree = Parser.futureAtom() == '^' ? DEGREE_SUPERSCRIPT : DEGREE_SUBSCRIPT;
 
-        if (Parser.futureAtom() == '^') {
-            element = Parser.next();
-            var MathContent = MathFunc.getFName();
-            var Script = MathContent.Add_Script(false, {ctrPrp : Parser.Pr.ctrPrp, type : DEGREE_SUPERSCRIPT}, null, null, null);
-            Script.getBase().Add_Text(nameOfFunc.slice(1), Parser.Paragraph, STY_PLAIN);
+            strFuncAtom = Parser.next();
+            var Script = MathFunc.getFName().Add_Script(false, {ctrPrp : Parser.Pr.ctrPrp, type : typeOfDegree}, null, null, null);
+            Script.getBase().Add_Text(strNameOfFunc.slice(1), Parser.Paragraph, STY_PLAIN);
 
             if (Parser.futureAtom() != '(') {
-                element = Parser.next();
-                if (element == '{') LaTeXStringLexer(Parser, Script.getUpperIterator(), '}');
-                else Script.getUpperIterator().Add_Text(element, Parser.Paragraph, STY_PLAIN);
+                strFuncAtom = Parser.next();
+                if (strFuncAtom == '{') LaTeXStringLexer(Parser, Script.getUpperIterator(), '}');
+                else Script.getUpperIterator().Add_Text(strFuncAtom, Parser.Paragraph, STY_PLAIN);
             }
+}
 
-        } else MathFunc.getFName().Add_Text(nameOfFunc.slice(1), Parser.Paragraph, STY_PLAIN);
-        
-        if (Parser.futureAtom() == '(') LaTeXStringLexer(Parser, MathFunc.getArgument(), ')');
-        else LaTeXStringLexer(Parser, MathFunc.getArgument(), 1);
-    }
-};
+LaTeXStringParser.prototype.addFrac = function(Parser, FormArgument) {
+    var frac = FormArgument.Add_Fraction(Parser.Pr, null, null);
+    
+    LaTeXStringLexer(Parser, frac.getNumeratorMathContent(), '}')
+    LaTeXStringLexer(Parser, frac.getDenominatorMathContent(), '}')
+}
 
-function addText(text, Parser, Farg) {
-    if (Parser.futureAtom() == '^') {
-        Farg.Add_Script(false, {ctrPrp : Parser.Pr.ctrPrp, type : DEGREE_SUPERSCRIPT}, text, (Parser.next(), Parser.next()), null);
+LaTeXStringParser.prototype.addText = function(text, Parser, FormArgument) {
+    if (Parser.futureAtom() == '^' || Parser.futureAtom() == '_') {
+        var typeOfDegree = Parser.futureAtom() == '^' ? DEGREE_SUPERSCRIPT : DEGREE_SUBSCRIPT;
+        FormArgument.Add_Script(false, {ctrPrp : Parser.Pr.ctrPrp, type : typeOfDegree}, text, (Parser.next(), Parser.next()), null);
         return true
-    } else {
+    } 
+    else {
         if (arrLaTeXSymbols.get(text)) {
-            Farg.Add_Text(String.fromCharCode(arrLaTeXSymbols.get(text)), Parser.Paragraph);
+            FormArgument.Add_Text(String.fromCharCode(arrLaTeXSymbols.get(text)), Parser.Paragraph);
             return true;
         }
         else {
@@ -4151,53 +4164,54 @@ function addText(text, Parser, Farg) {
                 text != "^" &&
                 text != "_") 
                 {
-                  Farg.Add_Text(text, Parser.Paragraph); 
+                  FormArgument.Add_Text(text, Parser.Paragraph); 
                   return true;
                 }
         }
     }   
 }
 
-function LaTeXStringLexer(Parser, Farg, exitIfSee) { 
-    var addAccent = function (name, text) {return Farg.Add_Accent(Pr.ctrPrp, name, text)}
-    var index = 0;
+function LaTeXStringLexer(Parser, FormArgument, exitIfSee) { 
+    var addAccent = function (name, text) {return FormArgument.Add_Accent(Pr.ctrPrp, name, text)}
+    var intCountFormulaAtoms = 0;
 
     do {
         var strFAtom = Parser.next(); 
 
-        if (CheckIsFunction(strFAtom) != null) {
-            createFunc(strFAtom, Parser, Farg);
+        if (Parser.CheckIsFunction(strFAtom) != null) {
+            var strNameOfFunc = strFAtom;
+
+            if (strFAtom == '\\frac') Parser.addFrac(Parser, FormArgument);
+            
+            else {
+                var MathFunc = new CMathFunc(Parser.Pr);
+                FormArgument.Add_Element(MathFunc);
+                MathFunc.SetParagraph(Parser.Paragraph);
+
+                if (strFAtom == '\\lim') Parser.addLimit(Parser, MathFunc);
+
+                else if (Parser.futureAtom() == '^' || Parser.futureAtom() == '_') { 
+                    Parser.addFuncWithDegree(Parser, strFAtom, MathFunc, strNameOfFunc)
+                }
+                else MathFunc.getFName().Add_Text(strNameOfFunc.slice(1), Parser.Paragraph, STY_PLAIN);
+                
+                if (Parser.futureAtom() == '(') LaTeXStringLexer(Parser, MathFunc.getArgument(), ')');
+                else LaTeXStringLexer(Parser, MathFunc.getArgument(), 1);
+            }
         }    
 
-        else if (strFAtom == '\\lim') {
-            var nextAtom = Parser.next()
-
-            if (nextAtom == '\\limits') {
-
-            } 
-            else if (nextAtom == '_') {
-                nextAtom = Parser.next();
-                if (nextAtom == '{') {} 
-                else {
-                    var func = Farg.Add_FunctionWithLimit(Parser.Pr, "lim", nextAtom, null);
-                    LaTeXStringLexer(Parser, func.getArgument(), 1);
-                }
-            }
-        }
-
-        else if (CheckIsAccent(strFAtom) > 0) {
-            var func = addAccent(CheckIsAccent(strFAtom), Parser.futureAtom(2)); //check right syntaxis!
-            Parser.next(); Parser.next(); Parser.next();
-        }
+        // else if (Parser.CheckIsAccent(strFAtom) > 0) {
+        //     addAccent(Parser.CheckIsAccent(strFAtom), Parser.futureAtom(2));
+        //     Parser.next(); Parser.next(); Parser.next(); 
+        // }
     
         else {
-            var isIndex = addText(strFAtom, Parser, Farg);
-            if (isIndex) index++;      
+            var isIndex = Parser.addText(strFAtom, Parser, FormArgument);
+            if (isIndex) intCountFormulaAtoms++;      
         }
          
         if (typeof exitIfSee === 'string' && exitIfSee === strFAtom) return;
-        if (typeof exitIfSee === 'number' && index >= exitIfSee) return;
-         
+        if (typeof exitIfSee === 'number' && intCountFormulaAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
 };
 
