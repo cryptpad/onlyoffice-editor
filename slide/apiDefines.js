@@ -146,6 +146,143 @@ var c_oAscLockTypeElemPresentation = {
 	Presentation : 3
 };
 
+/** @enum {number} */
+var c_oAscSlideDgmBuildType = {
+	AllAtOnce:           0,
+	BreadthByLvl:        1,
+	BreadthByNode:       2,
+	CCW:                 3,
+	CCWIn:               4,
+	CCWOut:              5,
+	Cust:                6,
+	CW:                  7,
+	CWIn:                8,
+	CWOut:               9,
+	DepthByBranch:       10,
+	DepthByNode:         11,
+	Down:                12,
+	InByRing:            13,
+	OutByRing:           14,
+	Up:                  15,
+	Whole:               16
+};
+
+/** @enum {number} */
+var c_oAscSlideLayoutType = {
+	Blank:                   0,
+	Chart:                   1,
+	ChartAndTx:              2,
+	ClipArtAndTx:            3,
+	ClipArtAndVertTx:        4,
+	Cust:                    5,
+	Dgm:                     6,
+	FourObj:                 7,
+	MediaAndTx:              8,
+	Obj:                     9,
+	ObjAndTwoObj:            10,
+	ObjAndTx:                11,
+	ObjOnly:                 12,
+	ObjOverTx:               13,
+	ObjTx:                   14,
+	PicTx:                   15,
+	SecHead:                 16,
+	Tbl:                     17,
+	Title:                   18,
+	TitleOnly:               19,
+	TwoColTx:                20,
+	TwoObj:                  21,
+	TwoObjAndObj:            22,
+	TwoObjAndTx:             23,
+	TwoObjOverTx:            24,
+	TwoTxTwoObj:             25,
+	Tx:                      26,
+	TxAndChart:              27,
+	TxAndClipArt:            28,
+	TxAndMedia:              29,
+	TxAndObj:                30,
+	TxAndTwoObj:             31,
+	TxOverObj:               32,
+	VertTitleAndTx:          33,
+	VertTitleAndTxOverChart: 34,
+	VertTx:                  35
+};
+
+/** @enum {number} */
+var c_oAscColorSchemeIndex = {
+	Accent1:  0,
+	Accent2:  1,
+	Accent3:  2,
+	Accent4:  3,
+	Accent5:  4,
+	Accent6:  5,
+	Bg1:      6,
+	Bg2:      7,
+	Dk1:      8,
+	Dk2:      9,
+	FolHlink: 10,
+	Hlink:    11,
+	Lt1:      12,
+	Lt2:      13,
+	PhClr:    14,
+	Tx1:      15,
+	Tx2:      16
+};
+
+/** @enum {number} */
+var c_oAscConformanceType = {
+	Strict:       0,
+	Transitional: 1
+};
+
+/** @enum {number} */
+var c_oAscSlideBgBwModeType = {
+	Auto:       0,
+	Black:      1,
+	BlackGray:  2,
+	BlackWhite: 3,
+	Clr:        4,
+	Gray:       5,
+	GrayWhite:  6,
+	Hidden:     7,
+	InvGray:    8,
+	LtGray:     9,
+	White:      10
+};
+
+/** @enum {number} */
+var c_oAscSlideAnimDgmBuildType = {
+	AllAtOnce:  0,
+	lvlAtOnce:  1,
+	lvlOne:     2,
+	one:        3
+};
+
+/** @enum {number} */
+var c_oAscSlideAnimChartBuildType = {
+	AllAtOnce:  0,
+	Category:   1,
+	CategoryEl: 2,
+	Series:     3,
+	SeriesEl:   4
+};
+
+/** @enum {number} */
+var c_oAscSlideOleChartBuildType = {
+	AllAtOnce:  0,
+	Category:   1,
+	CategoryEl: 2,
+	Series:     3,
+	SeriesEl:   4
+};
+
+/** @enum {number} */
+var c_oAscSlideParaBuildType = {
+	AllAtOnce: 0,
+	Cust:      1,
+	P:         2,
+	Whole:     3
+};
+
 var c_oSerFormat = {
 	Version   : 1,
 	Signature : "PPTY"

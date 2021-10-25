@@ -247,6 +247,7 @@
 			"word/apiBuilder.js",
 			"slide/apiBuilder.js",
 			"cell/apiBuilder.js",
+			"cell/fromToJSON.js",
 
 			"common/versionHistory.js",
 			"common/clipboard_base.js",

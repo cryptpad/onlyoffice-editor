@@ -2656,6 +2656,16 @@
            
         return apiCharts;
     };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiRange
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiSlide.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerSlide(this.Slide));
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -3953,6 +3963,8 @@
     ApiSlide.prototype["GetAllShapes"]                    = ApiSlide.prototype.GetAllShapes;
     ApiSlide.prototype["GetAllImages"]                    = ApiSlide.prototype.GetAllImages;
     ApiSlide.prototype["GetAllCharts"]                    = ApiSlide.prototype.GetAllCharts;
+    ApiSlide.prototype["ToJSON"]                          = ApiSlide.prototype.ToJSON;
+
 
     ApiDrawing.prototype["GetClassType"]                  = ApiDrawing.prototype.GetClassType;
     ApiDrawing.prototype["SetSize"]                       = ApiDrawing.prototype.SetSize;

@@ -44,6 +44,8 @@
     var CChangeContent = AscDFH.CChangesDrawingsContent;
     var CChangeDouble2 = AscDFH.CChangesDrawingsDouble2;
 
+    
+
     var drawingsChangesMap = AscDFH.drawingsChangesMap;
     var drawingContentChanges = AscDFH.drawingContentChanges;
     var changesFactory = AscDFH.changesFactory;
