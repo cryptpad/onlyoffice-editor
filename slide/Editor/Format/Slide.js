@@ -1698,6 +1698,28 @@ Slide.prototype =
             this.animationPlayer = new AscFormat.CAnimationPlayer(this, oDemoManager);
         }
         return this.animationPlayer;
+    },
+
+    isAdvanceAfterTransition: function() {
+        var oTransition = this.transition;
+        if(!oTransition) {
+            return false;
+        }
+        if(this.presentation) {
+            var oShowPr = this.presentation.showPr;
+            if(oShowPr && oShowPr.useTimings === false) {
+                return false;
+            }
+        }
+        return oTransition.SlideAdvanceAfter === true;
+    },
+
+    getAdvanceDuration: function() {
+        var oTransition = this.transition;
+        if(!oTransition) {
+            return 0;
+        }
+        return oTransition.SlideAdvanceDuration;
     }
 };
 

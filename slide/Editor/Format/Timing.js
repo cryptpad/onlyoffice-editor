@@ -252,10 +252,43 @@
     };
     CTimeNodeBase.prototype.createExternalEventTrigger = function(oPlayer, oTrigger, nType, sSpId) {
         var oThis = this;
-        return function () {
+        //check slide transition advance after
+        var bAdvanceAfter = false;
+        var aChildren = this.getChildrenTimeNodes();
+        if(nType === COND_EVNT_ON_NEXT && this.isMainSequence()) {
+            var oSlide = oPlayer.slide;
+            if(oSlide) {
+                if(oSlide.isAdvanceAfterTransition()) {
+                    bAdvanceAfter = true;
+                }
+            }
+        }
+        var fTrigger = function () {
             var oEvent = oPlayer.getExternalEvent();
             if(!oEvent) {
-                return false;
+                if(bAdvanceAfter) {
+                    var bCanAdvance = false;
+                    for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                        var oChild = aChildren[nChild];
+                        if(!oChild.isIdle()) {
+                            if(!oChild.isAtEnd()) {
+                                break;
+                            }
+                        }
+                        else {
+                            bCanAdvance = true;
+                            break;
+                        }
+                    }
+                    if(bCanAdvance) {
+                        oPlayer.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+                        return fTrigger();
+                    }
+                    return false;
+                }
+                else {
+                    return false;
+                }
             }
             var aHandledNodes = oEvent.handledNodes;
             var nNode, oNode;
@@ -292,6 +325,7 @@
             }
             return false;
         };
+        return fTrigger;
     };
     CTimeNodeBase.prototype.isSibling = function(oNode) {
         if(this !== oNode && oNode.getParentTimeNode() === this.getParentTimeNode()) {
@@ -662,12 +696,27 @@
             var nChildIdx = this.getChildNodeIdx(oChild);
             if(nChildIdx < aChildren.length - 1) {
                 aChildren[nChildIdx + 1].scheduleStart(oPlayer);
+                // //handle advance after
+                // if(this.getNodeType() === NODE_TYPE_MAINSEQ) {
+                //     var oSlide = oPlayer.slide;
+                //     if(oSlide) {
+                //         var oTransition = oSlide.transition;
+                //         if(oTransition) {
+                //             if(oTransition.SlideAdvanceAfter) {
+                //                 oPlayer.onNextSlide();
+                //             }
+                //         }
+                //     }
+                // }
             }
             else {
                 if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
                     this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
                 }
             }
+        }
+        if(oChild.isMainSequence()) {
+            oPlayer.onMainSeqFinished();
         }
     };
     CTimeNodeBase.prototype.isIdle = function() {
@@ -699,6 +748,13 @@
             return this.cMediaNode.getAttributesObject();
         }
         return null;
+    };
+    CTimeNodeBase.prototype.isMainSequence = function() {
+        var oAttributes = this.getAttributesObject();
+        if(oAttributes && oAttributes.nodeType === NODE_TYPE_MAINSEQ) {
+            return true;
+        }
+        return false;
     };
     CTimeNodeBase.prototype.traverseTimeNodes = function(fCallback) {
         fCallback(this);
@@ -1298,6 +1354,24 @@
             }
         }
         return null;
+    };
+    CTiming.prototype.isMainSequenceAtEnd = function() {
+        var oRoot = this.getTimingRootNode();
+        if(!oRoot) {
+            return true;
+        }
+        var aRootChildren = oRoot.getChildrenTimeNodes();
+        var oMainSeq;
+        for(var nChild = 0; nChild < aRootChildren.length; ++nChild) {
+            if(aRootChildren[nChild].isMainSequence()) {
+                oMainSeq = aRootChildren[nChild];
+                break;
+            }
+        }
+        if(!oMainSeq) {
+            return true;
+        }
+        return oMainSeq.isAtEnd();
     };
 
 
@@ -5675,7 +5749,9 @@
             var oThis = this;
             var oComplexTrigger = this.nextCondLst.createComplexTrigger(oPlayer);
             var aChildren = oThis.getChildrenTimeNodes();
-            //oComplexTrigger.addTrigger(function () {
+
+
+            // oComplexTrigger.addTrigger(function () {
             //    for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
             //        var oChild = aChildren[nChild];
             //        if(oChild.isActive() || (nChild < aChildren.length - 1 && oChild.isAtEnd())) {
@@ -5683,7 +5759,7 @@
             //        }
             //    }
             //    return false;
-            //});
+            // });
             var oEvent = new CAnimEvent(function() {
                 for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
                     var oChild = aChildren[nChild];
@@ -5722,27 +5798,30 @@
         for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
             var oChild = aChildren[nChild];
             if(!oChild.isIdle()) {
-                return oChild;
+                return nChild;
             }
         }
-        return null;
+        return -1;
     };
     CSeq.prototype.schedulePrev = function(oPlayer) {
         if(this.prevCondLst) {
             var oThis = this;
             var oComplexTrigger = this.prevCondLst.createComplexTrigger(oPlayer);
             oComplexTrigger.addTrigger(function() {
-                var oChild = oThis.findLastNoIdleNode();
-                if(oChild) {
+                var nChild = oThis.findLastNoIdleNode();
+                if(nChild > -1) {
                     return true;
                 }
                 return false;
             });
             var oEvent = new CAnimEvent(function() {
-                var oChild = oThis.findLastNoIdleNode();
-                if(oChild) {
-                    oChild.getEndCallback(oPlayer)();
-                    oChild.resetState();
+                var nChild = oThis.findLastNoIdleNode();
+                if(nChild > -1) {
+                    var oChild = oThis.getChildNode(nChild);
+                    if(oChild) {
+                        oChild.getEndCallback(oPlayer)();
+                        oChild.resetState();
+                    }
                 }
                 oThis.schedulePrev(oPlayer);
             }, oComplexTrigger, this);
@@ -6441,6 +6520,9 @@
     };
     CAnimationScheduler.prototype.getElapsedTicks = function() {
         return this.player.getElapsedTicks();
+    };
+    CAnimationScheduler.prototype.hasScheduledEvents = function() {
+        return this.events.length > 0;
     };
 
     function shuffleArray(array) {
@@ -7579,6 +7661,9 @@
     };
     CAnimationPlayer.prototype.start = function() {
         if(this.isStarted()) {
+            if(this.isMainSequenceFinished()) {
+                this.onMainSeqFinished();
+            }
             return;
         }
         var bIsPaused = this.isPaused();
@@ -7586,6 +7671,9 @@
         if(!bIsPaused) {
             this.resetNodesState();
             this.scheduleNodesStart();
+        }
+        if(this.isMainSequenceFinished()) {
+            this.onMainSeqFinished();
         }
     };
     CAnimationPlayer.prototype.resetNodesState = function() {
@@ -7609,6 +7697,25 @@
         this.animationScheduler.stop();
         this.animationDrawer.stop();
         this.resetNodesState();
+    };
+    CAnimationPlayer.prototype.onMainSeqFinished = function () {
+        if(this.drawer) {
+            var nSlideNum = -1;
+            if(this.slide) {
+                nSlideNum = this.slide.num;
+            }
+            var oThis = this;
+            setTimeout(function() {
+                oThis.drawer.OnAnimMainSeqFinished(nSlideNum);
+            }, 1);
+        }
+    };
+    CAnimationPlayer.prototype.isMainSequenceFinished = function () {
+        var oTiming = this.slide && this.slide.timing;
+        if(oTiming) {
+            return oTiming.isMainSequenceAtEnd();
+        }
+        return true;
     };
     CAnimationPlayer.prototype.pause = function() {
         this.timer.pause();
