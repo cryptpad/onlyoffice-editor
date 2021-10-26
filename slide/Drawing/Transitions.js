@@ -3038,7 +3038,7 @@ function CDemonstrationManager(htmlpage)
             oThis.Transition.End(true);
 
         if (-1 != this.CheckSlideDuration)
-            clearInterval(this.CheckSlideDuration);
+            clearTimeout(this.CheckSlideDuration);
 
         this.CheckSlideDuration = -1;
         this.WaitAnimationEnd = false;
