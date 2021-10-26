@@ -6609,8 +6609,7 @@ DrawingObjectsController.prototype =
             bRet = true;
             if(this.document)
             {
-                this.document.DrawingDocument.OnRecalculatePage( nPageNum1, this.document.Pages[nPageNum1] );
-                this.document.DrawingDocument.OnEndRecalculate( false, true );
+                this.document.DrawingDocument.OnRepaintPage( nPageNum1);
             }
             else if(this.drawingObjects.cSld)
             {
@@ -6631,8 +6630,7 @@ DrawingObjectsController.prototype =
             bRet = true;
             if(this.document)
             {
-                this.document.DrawingDocument.OnRecalculatePage( nPageNum2, this.document.Pages[nPageNum2] );
-                this.document.DrawingDocument.OnEndRecalculate( false, true );
+                this.document.DrawingDocument.OnRepaintPage(nPageNum2);
             }
             else if(this.drawingObjects.cSld)
             {
