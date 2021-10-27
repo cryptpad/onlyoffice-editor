@@ -3805,7 +3805,7 @@ CChartsDrawer.prototype =
 		var bY = - (k.x * m.y - m.x * k.y);
 		var cZ = k.x * n.y - n.x * k.y;
 		var visible = aX + bY + cZ;
-		
+
 		var result;
 		if(this.calcProp.type === c_oChartTypes.Bar)
 		{
@@ -4653,6 +4653,8 @@ drawBarChart.prototype = {
 
 		var cSortFaces;
 		if (this.cChartDrawer.nDimensionCount === 3) {
+			var angelX = this.cChartDrawer.processor3D.view3D.rotX;
+			var angelY= this.cChartDrawer.processor3D.view3D.rotY;
 			if (this.subType === "stacked" || this.subType === "stackedPer") {
 				//если будут найдены проблемы при отрисовке stacked rAngAx - раскомментировать ветку
 				/*if(this.cChartDrawer.processor3D.view3D.rAngAx)
@@ -4690,9 +4692,14 @@ drawBarChart.prototype = {
 			} else if ("normal" === this.subType) {
 				cSortFaces = new window['AscFormat'].CSortFaces(this.cChartDrawer);
 				this.sortParallelepipeds = cSortFaces.sortParallelepipeds(this.temp2);
-			} else {
-				var getMinZ = function (arr) {
-					var zIndex = 0;
+			} else {				
+				var checkRotation = this.cChartDrawer.processor3D.view3D.rAngAx;
+				var length = this.chart.series.length - 1;
+				var verges = {
+					front: 0, down: 1, left: 2, right: 3, up: 4, unfront: 5
+				  };	  
+				var getMinZ = function (arr, verge, seria) {
+					var zIndex = 0;	
 					for (var i = 0; i < arr.length; i++) {
 						if (i === 0) {
 							zIndex = arr[i].z;
@@ -4700,12 +4707,21 @@ drawBarChart.prototype = {
 							zIndex = arr[i].z;
 						}
 					}
-					return zIndex;
+					//проверяем возможность вращения на 360
+					//в зависимости от угла увеличиваем zIndex фронтальной грани не первой к точке наблюдения колонки
+					if(checkRotation === false){
+						if(verge === verges.front && seria > 0 && angelX > 0){ 
+							zIndex += angelX * 2;
+						}	
+						if(verge === verges.unfront && seria < length && angelX > 0 && angelY > 90 && angelY < 270){ 
+							zIndex += angelX * 2;
+						}
+					}			
+					return zIndex;		
 				};
-				this.sortZIndexPaths.sort(function sortArr(a, b) {
-					var minZA = getMinZ(a.facePoint);
-					var minZB = getMinZ(b.facePoint);
-
+				this.sortZIndexPaths.sort(function sortArr(a, b) {	
+					var minZA = getMinZ(a.facePoint, a.verge, a.seria);
+					var minZB = getMinZ(b.facePoint, b.verge, b.seria);
 					if (minZB == minZA) {
 						return b.y - a.y;
 					} else {
