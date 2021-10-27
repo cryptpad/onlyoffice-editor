@@ -3557,6 +3557,7 @@ var arrLaTeXSymbols = new Map([
     ['\\Phi',0x03A6],
     ['\\phi',0x03C6],
     ['\\varphi',0x03D5],
+    ['\\varPhi',0x03D5],
     ['\\Chi',0x03A7],
     ['\\chi',0x03C7],
     ['\\Psi',0x03A8],
@@ -4038,6 +4039,7 @@ LaTeXStringParser.prototype.parse = function (str) {
         str[i + 1] == "{"  ||
         str[i + 1] == "}"  ||
         str[i + 1] == " "  ||
+        str[i + 1] == ","  ||
         strTempWord == "(" ||
         strTempWord == ")" ||
         strTempWord == "{" ||
@@ -4124,6 +4126,16 @@ LaTeXStringParser.prototype.addFrac = function(FormArgument) {
     LaTeXStringLexer(this, frac.getDenominatorMathContent(), '}');
 }
 
+LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
+    var oBox = new CBox(this.Pr);
+    FormArgument.Add_Element(oBox);
+    var BoxMathContent = oBox.getBase();
+    BoxMathContent.SetArgSize(-1);
+    var frac = BoxMathContent.Add_Fraction(this.Pr, null, null);
+    LaTeXStringLexer(this, frac.getNumeratorMathContent(), '}');
+    LaTeXStringLexer(this, frac.getDenominatorMathContent(), '}');
+}
+
 LaTeXStringParser.prototype.addFunc = function(FormArgument, name) {
     var MathFunc = new CMathFunc(this.Pr);
     FormArgument.Add_Element(MathFunc);
@@ -4180,7 +4192,10 @@ LaTeXStringParser.prototype.addText = function(strFAtom, FormArgument) {
 LaTeXStringParser.prototype.addSymbol = function(strFAtom, FormArgument) {
     var strCode = arrLaTeXSymbols.get(strFAtom);
     if (strCode) FormArgument.Add_Text(String.fromCharCode(strCode), this.Paragraph);
-    else FormArgument.Add_Text(strFAtom, this.Paragraph); 
+    else {
+        if (strFAtom == ',') FormArgument.Add_Text(', ', this.Paragraph);
+        else FormArgument.Add_Text(strFAtom, this.Paragraph);
+    } 
 } 
 
 LaTeXStringParser.prototype.addDegreeForText = function(strFAtom, FormArgument) {
@@ -4255,11 +4270,13 @@ LaTeXStringParser.prototype.addAccent = function(FormArgument, name) {
 
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     var intFAtoms = 0;
+    var strFAtom = 0;
     do {
-        var strFAtom = Parser.next(); 
+        strFAtom = Parser.next(); 
         
         if (Parser.CheckIsFunction(strFAtom) != null) Parser.addFunc(FormArgument, strFAtom.slice(1)), intFAtoms++;
-        else if (strFAtom == '\\frac') Parser.addFrac(FormArgument), intFAtoms++;
+        else if (strFAtom == '\\frac' || strFAtom == '\\dfrac') Parser.addFrac(FormArgument), intFAtoms++;
+        else if (strFAtom == '\\tfrac') Parser.addTinyFrac(FormArgument), intFAtoms++;
         else if (strFAtom == '\\exp') Parser.addFunc(FormArgument,  strFAtom.slice(1)), intFAtoms++; 
         else if (strFAtom == '\\binom') Parser.addBinom(FormArgument);
         else if (strFAtom == '\\bmod') Parser.addText( ' mod ', FormArgument), intFAtoms++;
