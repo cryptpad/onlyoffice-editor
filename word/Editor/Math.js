@@ -4053,6 +4053,8 @@ LaTeXStringParser.prototype.parse = function (str) {
     }
   }
   this.arrAtomsOfFormula = this.arrAtomsOfFormula.filter(Boolean);
+  console.log("🚀 ~ file: Math.js ~ line 4053 ~ this.arrAtomsOfFormula", this.arrAtomsOfFormula)
+  
 };
 
 LaTeXStringParser.prototype.next = function () {
@@ -4212,9 +4214,9 @@ LaTeXStringParser.prototype.addDegreeForText = function(strFAtom, FormArgument) 
         ? Script.getUpperIterator() 
         : Script.getLowerIterator();
     
-    strTempAtom = this.next()
-    if (strTempAtom == '{') LaTeXStringLexer(this, MathContent, '}');
-    else this.addSymbol(strTempAtom,MathContent)
+    if (this.futureAtom() == '{') LaTeXStringLexer(this, MathContent, '}');
+    else if (this.futureAtom() == '\\frac') LaTeXStringLexer(this, MathContent, 1);
+    else this.addSymbol(this.next(),MathContent)
 
     if (this.futureAtom() == '_' || this.futureAtom() == '^') {
         this.addDegreeAndIndex(strFAtom, MathContent.GetTextContent().str, false, FormArgument);
@@ -4268,6 +4270,21 @@ LaTeXStringParser.prototype.addAccent = function(FormArgument, name) {
     LaTeXStringLexer(this, Accent.getBase(), '}');
 }
 
+LaTeXStringParser.prototype.inlineFraction = function(FormArgument) {
+    var intFirstNumber = this.next();
+    var one = this.next(); 
+    var two = this.next();
+    var intSecondNumber = this.next();
+
+    if (one == '/' && two == '_') {
+        var oBox = new CBox(this.Pr);
+        FormArgument.Add_Element(oBox);
+        var BoxMathContent = oBox.getBase();
+        BoxMathContent.SetArgSize(-1);
+        BoxMathContent.Add_Fraction({ctrPrp : this.Pr.ctrPrp, type : SKEWED_FRACTION}, intFirstNumber, intSecondNumber);
+    }
+}
+
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     var intFAtoms = 0;
     var strFAtom = 0;
@@ -4281,22 +4298,15 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\binom') Parser.addBinom(FormArgument);
         else if (strFAtom == '\\bmod') Parser.addText( ' mod ', FormArgument), intFAtoms++;
         else if (strFAtom == '\\pmod') Parser.addPMod(FormArgument), intFAtoms++;
+        else if (strFAtom == '^') Parser.inlineFraction(FormArgument);
         else if (Parser.CheckIsAccent(strFAtom) > 0) Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
 
-        else {
-          if (
-            strFAtom != "{" &&
-            strFAtom != "}" &&
-            strFAtom != "^" &&
-            strFAtom != "_"
-          ) {
-              Parser.addText(strFAtom, FormArgument);
-              intFAtoms++;
-          }
+        else if (strFAtom != "{" && strFAtom != "}" && strFAtom != "^" && strFAtom != "_") {
+            Parser.addText(strFAtom, FormArgument); intFAtoms++;
         }
 
         if (typeof exitIfSee === 'string' && exitIfSee === strFAtom) return;
-        if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
+        if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee - 1) return; 
     } while (strFAtom != null);
 };
 
