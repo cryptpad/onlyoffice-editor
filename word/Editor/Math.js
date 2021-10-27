@@ -4040,8 +4040,12 @@ LaTeXStringParser.prototype.parse = function (str) {
         str[i + 1] == "}"  ||
         str[i + 1] == " "  ||
         str[i + 1] == ","  ||
+        str[i + 1] == "["  ||
+        str[i + 1] == "]"  ||
         strTempWord == "(" ||
         strTempWord == ")" ||
+        strTempWord == "[" ||
+        strTempWord == "]" ||
         strTempWord == "{" ||
         strTempWord == "}" ||
         strTempWord == "^" ||
@@ -4285,6 +4289,35 @@ LaTeXStringParser.prototype.inlineFraction = function(FormArgument) {
     }
 }
 
+LaTeXStringParser.prototype.addSqrt = function(FormArgument) {
+    var strTempAtom = this.next();
+    var Pr = this.Pr;
+
+    if (strTempAtom == '[') Pr.type = DEGREE_RADICAL;
+    else {Pr.type = SQUARE_RADICAL; Pr.degHide = true}
+
+    var Radical = new CRadical(Pr);
+    FormArgument.Add_Element(Radical);
+
+    if (strTempAtom == '[') { 
+        LaTeXStringLexer(this, Radical.getDegree(), ']');
+        strTempAtom = this.next();
+    }
+    LaTeXStringLexer(this, Radical.getBase(), '}');
+}
+
+LaTeXStringParser.prototype.isDontPutInText = function(str) {
+    switch (str) {
+        case '{': ;
+        case '}': ;
+        case '[': ;
+        case ']': ;
+        case '^': ;
+        case '_': return false;
+        default:  return true;
+    }
+}
+
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     var intFAtoms = 0;
     var strFAtom = 0;
@@ -4295,18 +4328,19 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\frac' || strFAtom == '\\dfrac') Parser.addFrac(FormArgument), intFAtoms++;
         else if (strFAtom == '\\tfrac') Parser.addTinyFrac(FormArgument), intFAtoms++;
         else if (strFAtom == '\\exp') Parser.addFunc(FormArgument,  strFAtom.slice(1)), intFAtoms++; 
-        else if (strFAtom == '\\binom') Parser.addBinom(FormArgument);
+        else if (strFAtom == '\\binom') Parser.addBinom(FormArgument), intFAtoms++;
         else if (strFAtom == '\\bmod') Parser.addText( ' mod ', FormArgument), intFAtoms++;
         else if (strFAtom == '\\pmod') Parser.addPMod(FormArgument), intFAtoms++;
-        else if (strFAtom == '^') Parser.inlineFraction(FormArgument);
+        else if (strFAtom == '\\sqrt') Parser.addSqrt(FormArgument), intFAtoms++;
+        else if (strFAtom == '^') Parser.inlineFraction(FormArgument), intFAtoms++;
         else if (Parser.CheckIsAccent(strFAtom) > 0) Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
 
-        else if (strFAtom != "{" && strFAtom != "}" && strFAtom != "^" && strFAtom != "_") {
+        else if (Parser.isDontPutInText(strFAtom)) {
             Parser.addText(strFAtom, FormArgument); intFAtoms++;
         }
 
         if (typeof exitIfSee === 'string' && exitIfSee === strFAtom) return;
-        if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee - 1) return; 
+        if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
 };
 
