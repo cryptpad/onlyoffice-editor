@@ -3867,10 +3867,10 @@
     };
     CIterateData.prototype.fillObject = function(oCopy, oIdMap) {
         if(this.tmAbs !== null) {
-            oCopy.setTmAbs(this.tmAbs.createDuplicate(oIdMap));
+            oCopy.setTmAbs(this.tmAbs);
         }
         if(this.tmPct !== null) {
-            oCopy.setTmPct(this.tmPct.createDuplicate(oIdMap));
+            oCopy.setTmPct(this.tmPct);
         }
         if(this.backwards !== null) {
             oCopy.setBackwards(this.backwards);
