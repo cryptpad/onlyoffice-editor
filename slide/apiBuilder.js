@@ -1017,6 +1017,16 @@
 
        return false;
     };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiPresentation.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerPresentation(this.Presentation));
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1353,6 +1363,16 @@
            
         return apiCharts;
     };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiMaster
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiMaster.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerMasterSlide(this.Master));
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1650,6 +1670,16 @@
             return new ApiMaster(this.Layout.Master);
            
         return null;
+    };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiLayout
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiLayout.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerSlideLayout(this.Layout));
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -2658,7 +2688,7 @@
     };
     /**
 	 * Convert to JSON object. 
-	 * @memberof ApiRange
+	 * @memberof ApiSlide
 	 * @typeofeditors ["CPE"]
 	 * @returns {JSON}
 	 */
@@ -3873,6 +3903,7 @@
     ApiPresentation.prototype["GetMaster"]                = ApiPresentation.prototype.GetMaster;
     ApiPresentation.prototype["AddMaster"]                = ApiPresentation.prototype.AddMaster;
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
+    ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
 
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
@@ -3892,6 +3923,7 @@
     ApiMaster.prototype["GetAllShapes"]                   = ApiMaster.prototype.GetAllShapes;
     ApiMaster.prototype["GetAllImages"]                   = ApiMaster.prototype.GetAllImages;
     ApiMaster.prototype["GetAllCharts"]                   = ApiMaster.prototype.GetAllCharts;
+    ApiMaster.prototype["ToJSON"]                         = ApiMaster.prototype.ToJSON;
     
     
     ApiLayout.prototype["GetClassType"]                   = ApiLayout.prototype.GetClassType;
@@ -3910,6 +3942,7 @@
     ApiLayout.prototype["GetAllImages"]                   = ApiLayout.prototype.GetAllImages;
     ApiLayout.prototype["GetAllCharts"]                   = ApiLayout.prototype.GetAllCharts;
     ApiLayout.prototype["GetMaster"]                      = ApiLayout.prototype.GetMaster;
+    ApiLayout.prototype["ToJSON"]                         = ApiLayout.prototype.ToJSON;
 
     ApiPlaceholder.prototype["GetClassType"]              = ApiPlaceholder.prototype.GetClassType;
     ApiPlaceholder.prototype["SetType"]                   = ApiPlaceholder.prototype.SetType;
