@@ -3503,7 +3503,7 @@ ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
     if (!strLaTeX) return; 
     var oLaTeXParser = new LaTeXStringParser();
     oLaTeXParser.parse(strLaTeX);
-    LaTeXStringLexer(oLaTeXParser, this.Root, null);
+    LaTeXStringLexer(oLaTeXParser, this.Root);
     this.Root.Correct_Content(true);
 };
 
@@ -4073,6 +4073,19 @@ LaTeXStringParser.prototype.futureAtom = function(n) {
     else return this.arrAtomsOfFormula[this.indexOfAtom];
 }
 
+LaTeXStringParser.prototype.startLexer = function(isSymbol, content, isNow) {
+    if (Array.isArray(isSymbol)) {
+        var strTempAtom = isNow ? this.arrAtomsOfFormula[this.indexOfAtom - 1] : this.futureAtom()
+        if (isSymbol.includes(strTempAtom)) LaTeXStringLexer(this, content);
+        else LaTeXStringLexer(this, content, 1);
+    } else {
+        var strTempAtom = isNow ? this.arrAtomsOfFormula[this.indexOfAtom - 1] : this.futureAtom()
+        if (strTempAtom == isSymbol) LaTeXStringLexer(this, content);
+            else LaTeXStringLexer(this, content, 1);
+    }
+}
+
+// Check
 LaTeXStringParser.prototype.CheckIsAccent = function (strFuncAtom) {
     switch (strFuncAtom) {
         case '\\dot':       return 775;
@@ -4112,6 +4125,43 @@ LaTeXStringParser.prototype.CheckIsFunction = function(strFuncAtom) {
     }
 }
 
+LaTeXStringParser.prototype.isDontPutInText = function(str) {
+    switch (str) {
+        case '{': ;
+        case '}': ;
+        case '[': ;
+        case ']': ;
+        case '^': ;
+        case '_': return false;
+        default:  return true;
+    }
+}
+
+LaTeXStringParser.prototype.isIntegral = function(strFAtom) {
+    switch (strFAtom) {
+        case '\\int': return 1;
+        case '\\oint': return 1;
+        case '\\iint': return 2;
+        case '\\oiint': return 2;
+        case '\\iiint': return 3;
+        case '\\oiiint': return 3;
+        default: return false;
+    }
+}
+
+LaTeXStringParser.prototype.getTypeIntegral = function(strFAtom) {
+    switch (strFAtom) {
+        case '\\int': return false;
+        case '\\oint': return true;
+        case '\\iint': return false;
+        case '\\oiint': return true;
+        case '\\iiint': return false;
+        case '\\oiiint': return true;
+        default: return false;
+    }
+}
+
+//Functions for Lexer
 LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
     var Limit = MathFunc.Add_Limit({ctrPrp : this.Pr.ctrPrp, type : LIMIT_LOW}, null, null);
     Limit.getFName().Add_Text(name, this.Paragraph, STY_PLAIN);
@@ -4121,15 +4171,14 @@ LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
 
     if (strTempAtom == '_') {
         strTempAtom = this.next();
-        if (strTempAtom == '{') LaTeXStringLexer(this, Limit.getIterator(), '}');
-        else this.addSymbol(strTempAtom, Limit.getIterator());
+        this.startLexer('{', Limit.getIterator(), true)
     }
 }
 
 LaTeXStringParser.prototype.addFrac = function(FormArgument) {
     var frac = FormArgument.Add_Fraction(this.Pr, null, null);
-    LaTeXStringLexer(this, frac.getNumeratorMathContent(), '}');
-    LaTeXStringLexer(this, frac.getDenominatorMathContent(), '}');
+    LaTeXStringLexer(this, frac.getNumeratorMathContent());
+    LaTeXStringLexer(this, frac.getDenominatorMathContent());
 }
 
 LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
@@ -4138,8 +4187,8 @@ LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
     var BoxMathContent = oBox.getBase();
     BoxMathContent.SetArgSize(-1);
     var frac = BoxMathContent.Add_Fraction(this.Pr, null, null);
-    LaTeXStringLexer(this, frac.getNumeratorMathContent(), '}');
-    LaTeXStringLexer(this, frac.getDenominatorMathContent(), '}');
+    LaTeXStringLexer(this, frac.getNumeratorMathContent());
+    LaTeXStringLexer(this, frac.getDenominatorMathContent());
 }
 
 LaTeXStringParser.prototype.addFunc = function(FormArgument, name) {
@@ -4151,10 +4200,7 @@ LaTeXStringParser.prototype.addFunc = function(FormArgument, name) {
     else this.addFuncName(MathContent, name);
     
     MathContent = MathFunc.getArgument();
-
-    if (this.futureAtom() == '{') LaTeXStringLexer(this, MathContent, '}');
-    else if (this.futureAtom() == '(') LaTeXStringLexer(this, MathContent, ')');
-    else LaTeXStringLexer(this, MathContent, 1);
+    this.startLexer(['{', '('], MathContent);
 }
 
 LaTeXStringParser.prototype.addFuncName = function(MathContent, name) {
@@ -4179,8 +4225,7 @@ LaTeXStringParser.prototype.addFuncName = function(MathContent, name) {
             ? Script.getUpperIterator() 
             : Script.getLowerIterator();
 
-        if (this.futureAtom() == '{') LaTeXStringLexer(this, ScriptContent, '}');
-        else this.addSymbol(this.next(), ScriptContent);
+        this.startLexer('{', ScriptContent)
         
         if (this.futureAtom() == '_' || this.futureAtom() == '^') {
             this.addDegreeAndIndex(name, ScriptContent.GetTextContent().str, true, MathContent);
@@ -4212,15 +4257,14 @@ LaTeXStringParser.prototype.addDegreeForText = function(strFAtom, FormArgument) 
         : {ctrPrp : this.Pr.ctrPrp, type : DEGREE_SUBSCRIPT}
 
     var Script = new CDegree(Pr)
+
     Script.getBase().Add_Text(strFAtom, this.Paragraph)
     
     var MathContent = (strTempAtom == '^')   
         ? Script.getUpperIterator() 
         : Script.getLowerIterator();
     
-    if (this.futureAtom() == '{') LaTeXStringLexer(this, MathContent, '}');
-    else if (this.futureAtom() == '\\frac') LaTeXStringLexer(this, MathContent, 1);
-    else this.addSymbol(this.next(),MathContent)
+    this.startLexer('{', MathContent);
 
     if (this.futureAtom() == '_' || this.futureAtom() == '^') {
         this.addDegreeAndIndex(strFAtom, MathContent.GetTextContent().str, false, FormArgument);
@@ -4237,17 +4281,13 @@ LaTeXStringParser.prototype.addDegreeAndIndex = function(strFAtom, prevBlockCont
     if (strTempAtom == '^') {
         var MathContent = Script.getUpperIterator();
 
-        if (this.futureAtom() == '{') LaTeXStringLexer(this, MathContent, '}');
-        else this.addSymbol(this.next(), MathContent);
-
+        this.startLexer('{', MathContent);
         Script.getLowerIterator().Add_Text(prevBlockContent, this.Paragraph);
     } 
     else if (strTempAtom == '_') {
         var MathContent = Script.getLowerIterator();
 
-        if (this.futureAtom() == '{') LaTeXStringLexer(this, MathContent, '}');
-        else this.addSymbol(this.next(), MathContent);
-
+        this.startLexer('{', MathContent);
         Script.getUpperIterator().Add_Text(prevBlockContent, this.Paragraph);
     }
     FormArgument.Add_Element(Script);
@@ -4271,10 +4311,10 @@ LaTeXStringParser.prototype.addAccent = function(FormArgument, name) {
     };
     var Accent = new CAccent(Pr);
     FormArgument.Add_Element(Accent);
-    LaTeXStringLexer(this, Accent.getBase(), '}');
+    LaTeXStringLexer(this, Accent.getBase());
 }
 
-LaTeXStringParser.prototype.inlineFraction = function(FormArgument) {
+LaTeXStringParser.prototype.addInlineFraction = function(FormArgument) {
     var intFirstNumber = this.next();
     var one = this.next(); 
     var two = this.next();
@@ -4300,29 +4340,34 @@ LaTeXStringParser.prototype.addSqrt = function(FormArgument) {
     FormArgument.Add_Element(Radical);
 
     if (strTempAtom == '[') { 
-        LaTeXStringLexer(this, Radical.getDegree(), ']');
-        strTempAtom = this.next();
+        LaTeXStringLexer(this, Radical.getDegree());
     }
-    LaTeXStringLexer(this, Radical.getBase(), '}');
+    LaTeXStringLexer(this, Radical.getBase());
 }
 
-LaTeXStringParser.prototype.isDontPutInText = function(str) {
-    switch (str) {
-        case '{': ;
-        case '}': ;
-        case '[': ;
-        case ']': ;
-        case '^': ;
-        case '_': return false;
-        default:  return true;
+LaTeXStringParser.prototype.addIntegral = function(FormArgument) {
+    var strNameOfIntegral =  this.arrAtomsOfFormula[this.indexOfAtom - 1];
+
+    var intCountOfIntegral = this.isIntegsal(strNameOfIntegral);
+    var isOTypeIntegral = this.getTypeIntegsal(strNameOfIntegral);
+
+    var strTempAtom = this.next();
+    if (strTempAtom == '_' || strTempAtom == '^') {
+        
     }
 }
 
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     var intFAtoms = 0;
     var strFAtom = 0;
+
     do {
         strFAtom = Parser.next(); 
+
+        if (typeof exitIfSee != 'number') {
+            if (strFAtom == '}' || strFAtom == ']') return;
+            else  if (strFAtom == ')') {Parser.addText(strFAtom, FormArgument); return}
+        }
         
         if (Parser.CheckIsFunction(strFAtom) != null) Parser.addFunc(FormArgument, strFAtom.slice(1)), intFAtoms++;
         else if (strFAtom == '\\frac' || strFAtom == '\\dfrac') Parser.addFrac(FormArgument), intFAtoms++;
@@ -4332,14 +4377,14 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\bmod') Parser.addText( ' mod ', FormArgument), intFAtoms++;
         else if (strFAtom == '\\pmod') Parser.addPMod(FormArgument), intFAtoms++;
         else if (strFAtom == '\\sqrt') Parser.addSqrt(FormArgument), intFAtoms++;
-        else if (strFAtom == '^') Parser.inlineFraction(FormArgument), intFAtoms++;
+        else if (strFAtom == '^') Parser.addInlineFraction(FormArgument), intFAtoms++;
+        else if (Parser.isIntegral(strFAtom)) Parser.addIntegral(FormArgument), intFAtoms++;
         else if (Parser.CheckIsAccent(strFAtom) > 0) Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
 
         else if (Parser.isDontPutInText(strFAtom)) {
             Parser.addText(strFAtom, FormArgument); intFAtoms++;
         }
 
-        if (typeof exitIfSee === 'string' && exitIfSee === strFAtom) return;
         if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
 };
