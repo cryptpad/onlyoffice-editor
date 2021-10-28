@@ -4225,7 +4225,7 @@ LaTeXStringParser.prototype.addFuncName = function(MathContent, name) {
             ? Script.getUpperIterator() 
             : Script.getLowerIterator();
 
-        this.startLexer('{', ScriptContent)
+        this.startLexer('{', ScriptContent);
         
         if (this.futureAtom() == '_' || this.futureAtom() == '^') {
             this.addDegreeAndIndex(name, ScriptContent.GetTextContent().str, true, MathContent);
@@ -4345,16 +4345,34 @@ LaTeXStringParser.prototype.addSqrt = function(FormArgument) {
     LaTeXStringLexer(this, Radical.getBase());
 }
 
-LaTeXStringParser.prototype.addIntegral = function(FormArgument) {
+LaTeXStringParser.prototype.addInt = function(FormArgument) {
     var strNameOfIntegral =  this.arrAtomsOfFormula[this.indexOfAtom - 1];
 
-    var intCountOfIntegral = this.isIntegsal(strNameOfIntegral);
-    var isOTypeIntegral = this.getTypeIntegsal(strNameOfIntegral);
-
+    var intCountOfIntegral = this.isIntegral(strNameOfIntegral);
+    var isOTypeIntegral = this.getTypeIntegral(strNameOfIntegral);
+    
     var strTempAtom = this.next();
-    if (strTempAtom == '_' || strTempAtom == '^') {
-        
+    var TypeOFLoc = (strTempAtom == '\\limits') ? (strTempAtom = this.next(), 0) : 1;
+    var showBoxes = true;
+    
+    if (strTempAtom == '^') showBoxes = false;
+    
+    var Integral = FormArgument.Add_Integral(intCountOfIntegral, isOTypeIntegral, TypeOFLoc, showBoxes, showBoxes, this.Pr.ctrPrp, null, null, null);
+
+    if (strTempAtom == '^') {
+        strTempAtom = this.next();
+        if (strTempAtom == '{') LaTeXStringLexer(this, Integral.getSupMathContent());
+        else Integral.getSupMathContent().Add_Text(strTempAtom, this.Paragraph);
+        strTempAtom = this.next();
     }
+    
+    if (strTempAtom == '_') {
+        strTempAtom = this.next();
+        if (strTempAtom == '{') LaTeXStringLexer(this, Integral.getSubMathContent());
+        else Integral.getSubMathContent().Add_Text(strTempAtom, this.Paragraph);
+    }
+
+    this.startLexer(['{', '('], Integral.getBase());
 }
 
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
@@ -4378,7 +4396,7 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\pmod') Parser.addPMod(FormArgument), intFAtoms++;
         else if (strFAtom == '\\sqrt') Parser.addSqrt(FormArgument), intFAtoms++;
         else if (strFAtom == '^') Parser.addInlineFraction(FormArgument), intFAtoms++;
-        else if (Parser.isIntegral(strFAtom)) Parser.addIntegral(FormArgument), intFAtoms++;
+        else if (Parser.isIntegral(strFAtom)) Parser.addInt(FormArgument), intFAtoms++;
         else if (Parser.CheckIsAccent(strFAtom) > 0) Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
 
         else if (Parser.isDontPutInText(strFAtom)) {
