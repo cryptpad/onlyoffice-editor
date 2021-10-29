@@ -3886,7 +3886,7 @@
 	function IntToNumberFormat(nValue, nFormat, nLang)
 	{
 		var sResult = "";
-		nFormat = Asc.c_oAscNumberingFormat.CardinalText; //delete
+		nFormat = Asc.c_oAscNumberingFormat.Ordinal; //delete
 
 		switch (nFormat)
 		{
@@ -4860,7 +4860,6 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText: {
 				function getCardinalTextFromValue(lang) {
-					console.log(lang === 'ru-RU');
 					var arrAnswer = [];
 					var getConcatStringByRule = function (array) {
 						return array.join(' ');
@@ -6445,13 +6444,88 @@
 
 				sResult = resArr.join('');
 				break;
-			case Asc.c_oAscNumberingFormat.HindiCounting:
-				break;
-			case Asc.c_oAscNumberingFormat.ThaiCounting: // todo: think about it
-				break;
 			case Asc.c_oAscNumberingFormat.Ordinal:
-				break;
-			case Asc.c_oAscNumberingFormat.OrdinalText:
+				var textLang = languages[nLang];
+				sResult	+= nValue;
+				switch (textLang) {
+						case 'de-DE':
+						case 'pl-PL':
+						case 'cs-CZ': {
+							sResult += '.';
+						break;
+					}
+						case 'el-GR': {
+							sResult += 'ο';
+						break;
+					}
+						case 'fr-FR': {
+							if (nValue === 1) {
+								sResult += 'er';
+							} else {
+								sResult += 'e';
+							}
+						break;
+					}
+						case 'it-IT': {
+							sResult += '°';
+						break;
+					}
+						case 'nl-NL': {
+							sResult += 'e';
+						break;
+					}
+						case 'pt-PT':
+						case 'pt-BR': {
+							sResult += 'º';
+						break;
+					}
+						case 'ru-RU': {
+							sResult += '-й';
+						break;
+					}
+						case 'sv-SE': {
+							if (nValue !== 11 && nValue !== 12) {
+								if (nValue % 10 === 1) {
+									sResult += ':a';
+								} else if (nValue % 10 === 2) {
+									sResult += ':a';
+								} else {
+									sResult += ':e';
+								}
+							} else {
+								sResult += ':e';
+							}
+						break;
+					}
+					case 'bg-BG':
+					case 'en-GB':
+					case 'en-US':
+					case 'zh-CN':
+					case 'uk-UA':
+					case 'ja-JP':
+					case 'vi-VN':
+					case 'lv-LV':
+					case 'en-ES':
+					case 'ko-KR':
+					case 'sk-SK':
+					case 'az-Latn-AZ':
+					default: {
+						if (nValue !== 11 && nValue !== 12 && nValue !== 13) {
+							if (nValue % 10 === 1) {
+								sResult += 'st';
+							} else if (nValue % 10 === 2) {
+								sResult += 'nd';
+							} else if (nValue % 10 === 3) {
+								sResult += 'rd';
+							} else {
+								sResult += 'th';
+							}
+						} else {
+							sResult += 'th';
+						}
+						break;
+					}
+				}
 				break;
 			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand: //TODO: check again
 				digits = [
@@ -6463,7 +6537,7 @@
 					String.fromCharCode(0x516D),
 					String.fromCharCode(0x4E03),
 					String.fromCharCode(0x516B),
-					String.fromCharCode(0x4E5D),
+					String.fromCharCode(0x4E5D)
 				];
 				var degrees = [
 					'萬',
@@ -6487,7 +6561,6 @@
 					}
 
 					if (isGroup[10000]) {
-						console.log(isGroup[10000])
 						if (isGroup[10000] > 9) {
 							resArr.push(taiwaneseCountingSplitting(isGroup[10000], undefined, true).join(''));
 						} else {
@@ -6572,6 +6645,12 @@
 				} else {
 					ideographCount(Asc.c_oAscNumberingFormat.KoreanCounting);
 				}
+				break;
+			case Asc.c_oAscNumberingFormat.HindiCounting:
+				break;
+			case Asc.c_oAscNumberingFormat.ThaiCounting: // todo: think about it
+				break;
+			case Asc.c_oAscNumberingFormat.OrdinalText:
 				break;
 		}
 
