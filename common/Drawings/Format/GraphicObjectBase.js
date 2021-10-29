@@ -2292,6 +2292,13 @@
 	CGraphicObjectBase.prototype.getInnerForm = function() {
 		return null;
 	};
+	CGraphicObjectBase.prototype.isContainedInTopDocument = function() {
+		var oParentContent = this.parent && this.parent.DocumentContent;
+        if(!oParentContent) {
+            return true;
+        }
+        return (oParentContent === oParentContent.GetLogicDocument());
+	};
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
         var oCopy = this.bounds.copy();
         oCopy.l -= 3;
