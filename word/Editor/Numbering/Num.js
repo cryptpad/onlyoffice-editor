@@ -446,8 +446,9 @@ CNum.prototype.GetLvlByStyle = function(sStyleId)
  * @param nLvl {number} 0..8
  * @param nNumShift {number}
  * @param [isForceArabic=false] {boolean}
+ * @param langForTextNumbering {number}
  */
-CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceArabic)
+CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceArabic, langForTextNumbering)
 {
 	var nFormat = this.GetLvl(nLvl).GetFormat();
 	if (true === isForceArabic
@@ -455,7 +456,7 @@ CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceAra
 		&& nFormat !== Asc.c_oAscNumberingFormat.DecimalZero)
 		nFormat = Asc.c_oAscNumberingFormat.Decimal;
 
-	return AscCommon.IntToNumberFormat(nNumShift, nFormat);
+	return AscCommon.IntToNumberFormat(nNumShift, nFormat, langForTextNumbering);
 };
 /**
  * Функция отрисовки заданного уровня нумерации в заданной позиции
@@ -504,12 +505,13 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 			{
 				oContext.SetFontSlot(fontslot_ASCII, dKoef);
 				g_oTextMeasurer.SetFontSlot(fontslot_ASCII, dKoef);
+				var langForTextNumbering = oNumTextPr.GetLang();
 
 				var nCurLvl = arrText[nTextIndex].Value;
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)
-					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl);
+					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl, langForTextNumbering);
 
 				for (var Index2 = 0; Index2 < T.length; Index2++)
 				{
@@ -566,11 +568,11 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 			{
 				oContext.SetFontSlot(fontslot_ASCII, dKoef);
 				var nCurLvl = arrText[nTextIndex].Value;
-
+				var langForTextNumbering = oNumTextPr.GetLang();
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)
-					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl);
+					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl, langForTextNumbering);
 
 				for (var Index2 = 0; Index2 < T.length; Index2++)
 				{
