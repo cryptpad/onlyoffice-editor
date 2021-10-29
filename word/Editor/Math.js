@@ -4034,14 +4034,14 @@ LaTeXStringParser.prototype.parse = function (str) {
         str[i + 1] == "+"  ||
         str[i + 1] == "/"  ||
         str[i + 1] == "*"  ||
-        str[i + 1] == "("  ||
-        str[i + 1] == ")"  ||
-        str[i + 1] == "{"  ||
-        str[i + 1] == "}"  ||
+        str[i + 1] == "("  && strTempWord != '\\'||
+        str[i + 1] == ")"  && strTempWord != '\\'||
+        str[i + 1] == "{"  && strTempWord != '\\'||
+        str[i + 1] == "}"  && strTempWord != '\\'||
         str[i + 1] == " "  ||
         str[i + 1] == ","  ||
-        str[i + 1] == "["  ||
-        str[i + 1] == "]"  ||
+        str[i + 1] == "[" && strTempWord != '\\'||
+        str[i + 1] == "]" && strTempWord != '\\'||
         strTempWord == "(" ||
         strTempWord == ")" ||
         strTempWord == "[" ||
@@ -4073,15 +4073,21 @@ LaTeXStringParser.prototype.futureAtom = function(n) {
     else return this.arrAtomsOfFormula[this.indexOfAtom];
 }
 
-LaTeXStringParser.prototype.startLexer = function(isSymbol, content, isNow) {
+LaTeXStringParser.prototype.startLexer = function(isSymbol, content, isGet) {
+    if (isGet == undefined) isGet = true;
+
     if (Array.isArray(isSymbol)) {
-        var strTempAtom = isNow ? this.arrAtomsOfFormula[this.indexOfAtom - 1] : this.futureAtom()
+        var strTempAtom = (isGet) ? this.next() : this.futureAtom()
+        if (strTempAtom == '(' || strTempAtom == ')') content.Add_Text(strTempAtom, this.Paragraph);
+
         if (isSymbol.includes(strTempAtom)) LaTeXStringLexer(this, content);
-        else LaTeXStringLexer(this, content, 1);
+        else this.addText(strTempAtom, content);  
     } else {
-        var strTempAtom = isNow ? this.arrAtomsOfFormula[this.indexOfAtom - 1] : this.futureAtom()
+        var strTempAtom = (isGet) ? this.next() : this.futureAtom()
+        if (strTempAtom == '(' || strTempAtom == ')') {content.Add_Text(strTempAtom, this.Paragraph)}
+        
         if (strTempAtom == isSymbol) LaTeXStringLexer(this, content);
-            else LaTeXStringLexer(this, content, 1);
+        else this.addText(strTempAtom, content); 
     }
 }
 
@@ -4161,18 +4167,20 @@ LaTeXStringParser.prototype.getTypeIntegral = function(strFAtom) {
     }
 }
 
+LaTeXStringParser.prototype.getBlockContent = function(next, str, FormArgument) {
+    if (next != null) var strTempAtom = this.next();
+    if (next != strTempAtom && next != null) {console.log('ERROR'); return}
+
+    this.startLexer(str, FormArgument);
+}
+
 //Functions for Lexer
 LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
     var Limit = MathFunc.Add_Limit({ctrPrp : this.Pr.ctrPrp, type : LIMIT_LOW}, null, null);
     Limit.getFName().Add_Text(name, this.Paragraph, STY_PLAIN);
 
-    var strTempAtom = this.next();
-    if (strTempAtom == '\\limits') strTempAtom = this.next();
-
-    if (strTempAtom == '_') {
-        strTempAtom = this.next();
-        this.startLexer('{', Limit.getIterator(), true)
-    }
+    if (this.futureAtom() == '\\limits') this.next(); // add variant with limits
+    this.getBlockContent('_', '{', Limit.getIterator());
 }
 
 LaTeXStringParser.prototype.addFrac = function(FormArgument) {
@@ -4224,9 +4232,9 @@ LaTeXStringParser.prototype.addFuncName = function(MathContent, name) {
         var ScriptContent = (this.futureAtom() == '^')
             ? Script.getUpperIterator() 
             : Script.getLowerIterator();
-
-        this.startLexer('{', ScriptContent);
         
+        this.startLexer('{', ScriptContent);
+
         if (this.futureAtom() == '_' || this.futureAtom() == '^') {
             this.addDegreeAndIndex(name, ScriptContent.GetTextContent().str, true, MathContent);
         }
@@ -4258,13 +4266,14 @@ LaTeXStringParser.prototype.addDegreeForText = function(strFAtom, FormArgument) 
 
     var Script = new CDegree(Pr)
 
-    Script.getBase().Add_Text(strFAtom, this.Paragraph)
+    this.addSymbol(strFAtom, Script.getBase())
     
     var MathContent = (strTempAtom == '^')   
         ? Script.getUpperIterator() 
         : Script.getLowerIterator();
     
     this.startLexer('{', MathContent);
+
 
     if (this.futureAtom() == '_' || this.futureAtom() == '^') {
         this.addDegreeAndIndex(strFAtom, MathContent.GetTextContent().str, false, FormArgument);
@@ -4277,17 +4286,13 @@ LaTeXStringParser.prototype.addDegreeAndIndex = function(strFAtom, prevBlockCont
     
     if (isCleanFunc) FormArgument.Remove_FromContent(0,1);
 
-    var strTempAtom = this.next(); 
+    var strTempAtom = this.next();  
     if (strTempAtom == '^') {
-        var MathContent = Script.getUpperIterator();
-
-        this.startLexer('{', MathContent);
+        this.startLexer('{', Script.getUpperIterator());
         Script.getLowerIterator().Add_Text(prevBlockContent, this.Paragraph);
     } 
     else if (strTempAtom == '_') {
-        var MathContent = Script.getLowerIterator();
-
-        this.startLexer('{', MathContent);
+        this.startLexer('{', Script.getLowerIterator());
         Script.getUpperIterator().Add_Text(prevBlockContent, this.Paragraph);
     }
     FormArgument.Add_Element(Script);
@@ -4355,23 +4360,29 @@ LaTeXStringParser.prototype.addInt = function(FormArgument) {
     var TypeOFLoc = (strTempAtom == '\\limits') ? (strTempAtom = this.next(), 0) : 1;
     var showBoxes = true;
     
-    if (strTempAtom == '^') showBoxes = false;
+    if (strTempAtom == '^' || strTempAtom == '_') showBoxes = false;
     
     var Integral = FormArgument.Add_Integral(intCountOfIntegral, isOTypeIntegral, TypeOFLoc, showBoxes, showBoxes, this.Pr.ctrPrp, null, null, null);
 
-    if (strTempAtom == '^') {
-        strTempAtom = this.next();
-        if (strTempAtom == '{') LaTeXStringLexer(this, Integral.getSupMathContent());
-        else Integral.getSupMathContent().Add_Text(strTempAtom, this.Paragraph);
-        strTempAtom = this.next();
+    if (strTempAtom == '^' || strTempAtom == '_') {
+        var createSupMathContent = function (context) {
+            strTempAtom = context.next();
+            if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSupMathContent());
+            else Integral.getSupMathContent().Add_Text(strTempAtom, context.Paragraph);
+        }
+        
+        var createSubMathContent = function (context) {
+            strTempAtom = context.next();
+            if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSubMathContent());
+            else Integral.getSubMathContent().Add_Text(strTempAtom, context.Paragraph);
+        }
+    
+        strTempAtom == '^' 
+            ? (createSupMathContent(this), strTempAtom = this.next(), createSubMathContent(this)) 
+            : (createSubMathContent(this), strTempAtom = this.next(), createSupMathContent(this));
+    
     }
     
-    if (strTempAtom == '_') {
-        strTempAtom = this.next();
-        if (strTempAtom == '{') LaTeXStringLexer(this, Integral.getSubMathContent());
-        else Integral.getSubMathContent().Add_Text(strTempAtom, this.Paragraph);
-    }
-
     this.startLexer(['{', '('], Integral.getBase());
 }
 
