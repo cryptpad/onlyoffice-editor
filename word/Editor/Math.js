@@ -4073,21 +4073,13 @@ LaTeXStringParser.prototype.futureAtom = function(n) {
     else return this.arrAtomsOfFormula[this.indexOfAtom];
 }
 
-LaTeXStringParser.prototype.startLexer = function(isSymbol, content, isGet) {
-    if (isGet == undefined) isGet = true;
-
+LaTeXStringParser.prototype.startLexer = function(isSymbol, content) {
     if (Array.isArray(isSymbol)) {
-        var strTempAtom = (isGet) ? this.next() : this.futureAtom()
-        if (strTempAtom == '(' || strTempAtom == ')') content.Add_Text(strTempAtom, this.Paragraph);
-
-        if (isSymbol.includes(strTempAtom)) LaTeXStringLexer(this, content);
-        else this.addText(strTempAtom, content);  
+        if (isSymbol.includes(this.futureAtom())) LaTeXStringLexer(this, content);
+        else LaTeXStringLexer(this, content, 1);  
     } else {
-        var strTempAtom = (isGet) ? this.next() : this.futureAtom()
-        if (strTempAtom == '(' || strTempAtom == ')') {content.Add_Text(strTempAtom, this.Paragraph)}
-        
-        if (strTempAtom == isSymbol) LaTeXStringLexer(this, content);
-        else this.addText(strTempAtom, content); 
+        if (this.futureAtom() == isSymbol) LaTeXStringLexer(this, content);
+        else LaTeXStringLexer(this, content, 1); 
     }
 }
 
@@ -4170,7 +4162,6 @@ LaTeXStringParser.prototype.getTypeIntegral = function(strFAtom) {
 LaTeXStringParser.prototype.getBlockContent = function(next, str, FormArgument) {
     if (next != null) var strTempAtom = this.next();
     if (next != strTempAtom && next != null) {console.log('ERROR'); return}
-
     this.startLexer(str, FormArgument);
 }
 
@@ -4192,9 +4183,11 @@ LaTeXStringParser.prototype.addFrac = function(FormArgument) {
 LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
     var oBox = new CBox(this.Pr);
     FormArgument.Add_Element(oBox);
+
     var BoxMathContent = oBox.getBase();
     BoxMathContent.SetArgSize(-1);
     var frac = BoxMathContent.Add_Fraction(this.Pr, null, null);
+
     LaTeXStringLexer(this, frac.getNumeratorMathContent());
     LaTeXStringLexer(this, frac.getDenominatorMathContent());
 }
@@ -4202,6 +4195,7 @@ LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
 LaTeXStringParser.prototype.addFunc = function(FormArgument, name) {
     var MathFunc = new CMathFunc(this.Pr);
     FormArgument.Add_Element(MathFunc);
+    
     var MathContent = MathFunc.getFName();
 
     if (name == 'lim') this.addLimit(MathContent, name);
@@ -4242,10 +4236,16 @@ LaTeXStringParser.prototype.addFuncName = function(MathContent, name) {
 }
 
 LaTeXStringParser.prototype.addText = function(strFAtom, FormArgument) {
-    if (this.futureAtom() == '^' || this.futureAtom() == '_') {
-       this.addDegreeForText(strFAtom, FormArgument);
-    } 
-    else this.addSymbol(strFAtom, FormArgument);
+    if (
+      this.futureAtom() == "^" ||
+      this.futureAtom() == "_" &&
+      this.futureAtom(-1) != "^" &&
+      this.futureAtom(-1) != "_" &&
+      this.futureAtom(-2) != "^" &&
+      this.futureAtom(-2) != "_"    
+    ) {
+      this.addDegreeForText(strFAtom, FormArgument);
+    } else this.addSymbol(strFAtom, FormArgument);
 }
 
 LaTeXStringParser.prototype.addSymbol = function(strFAtom, FormArgument) {
@@ -4273,8 +4273,7 @@ LaTeXStringParser.prototype.addDegreeForText = function(strFAtom, FormArgument) 
         : Script.getLowerIterator();
     
     this.startLexer('{', MathContent);
-
-
+    
     if (this.futureAtom() == '_' || this.futureAtom() == '^') {
         this.addDegreeAndIndex(strFAtom, MathContent.GetTextContent().str, false, FormArgument);
     } else FormArgument.Add_Element(Script); 
