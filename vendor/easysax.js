@@ -1185,6 +1185,13 @@ StaxParser.prototype.next = function() {
     }
 
     this.eventType = EasySAXEvent.Unknown;
+    this.isTagStart = null;
+    this.isInAttr = false;
+    this.isTagEnd = null;
+    this.eventType = null;
+    this.name = null;
+    this.text = null;
+    this.value = null;
 
     var i = this.index;
     if (this.xml.charCodeAt(i) !== 60) {//'<'
@@ -1389,10 +1396,10 @@ StaxParser.prototype.GetValueBool = function () {
     return "1" === val || "true" === val || "t" === val || "on" === val;
 };
 StaxParser.prototype.GetValueInt = function () {
-    return parseInt(this.GetValue());// || 0;
+    return parseInt(this.GetValue())|| 0;
 };
 StaxParser.prototype.GetValueDouble = function () {
-    return parseFloat(this.GetValue());// || 0;
+    return parseFloat(this.GetValue()) || 0;
 };
 StaxParser.prototype.GetValueDecodeXml = function () {
     return this.DecodeXml(this.text);
@@ -1461,11 +1468,15 @@ StaxParser.prototype.GetText = function () {
 StaxParser.prototype.GetTextDecodeXml = function () {
     return this.DecodeXml(this.GetText());
 };
+StaxParser.prototype.GetTextBool = function () {
+    var val = this.GetText();
+    return "1" === val || "true" === val || "t" === val || "on" === val;
+};
 StaxParser.prototype.GetTextInt = function () {
-    return parseInt(this.GetText());
+    return parseInt(this.GetText()) || 0;
 };
 StaxParser.prototype.GetTextDouble = function () {
-    return parseFloat(this.GetText());
+    return parseFloat(this.GetText()) || 0;
 };
 StaxParser.prototype.ConvertToString = function(xml, start, end) {
     return xml.substring(start, end);

@@ -2731,7 +2731,6 @@ CBlipFill.prototype =
     },
     fromXml: function(reader)
     {
-        //todo
         var depth = reader.GetDepth();
         while (reader.ReadNextSiblingNode(depth)) {
             if ("blip" === reader.GetNameNoNS()) {
@@ -2740,10 +2739,12 @@ CBlipFill.prototype =
                         var rId = reader.GetValue();
                         var rel = reader.rels.getRelationship(rId);
                         if ("Internal" === rel.targetMode) {
-                            var data = reader.GetContext().zip.files[rel.targetFullName.substring(1)].sync('uint8array');
+                            var path = rel.targetFullName.substring(1);
+                            var data = reader.GetContext().zip.files[path].sync('uint8array');
                             var blob = new Blob([data], {type: "image/png"});
                             var url = window.URL.createObjectURL(blob);
-                            AscCommon.pptx_content_loader.Reader.initAfterBlipFill(url, this);
+                            AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+                            AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, this);
                         }
                     }
                 }

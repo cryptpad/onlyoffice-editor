@@ -1868,6 +1868,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 			&& !((this.graphicObject.getObjectType() === AscDFH.historyitem_type_Shape || this.graphicObject.getObjectType() === AscDFH.historyitem_type_ImageShape) && !this.graphicObject.spPr)
 			&& !AscCommon.IsHiddenObj(this.graphicObject))
 		{
+			this.graphicObject.setBDeleted(false);
 			this.from.initAfterSerialize();
 			this.to.initAfterSerialize();
 			//TODO при copy/paste в word из excel пропадает метод setDrawingBase
