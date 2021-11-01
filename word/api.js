@@ -11501,7 +11501,7 @@ background-repeat: no-repeat;\
     asc_docs_api.prototype.getPageBackgroundColor = function()
     {
 		if (this.isDarkMode)
-			return [0x26, 0x26, 0x26];
+			return [0x55, 0x55, 0x55];
 		return [0xFF, 0xFF, 0xFF];
     };
 	asc_docs_api.prototype.getPageStrokeColor = function()
