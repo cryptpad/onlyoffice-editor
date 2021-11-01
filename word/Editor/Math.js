@@ -4199,9 +4199,44 @@ LaTeXStringParser.prototype.isBrackets = function() {
        this.futureAtom(-1) == '\\lceil' ||
        this.futureAtom(-1) == '\\ulcorner' ||
        this.futureAtom(-1) == '/'
-
-    ) return this.checkExistanceOfCloseBracet(this.futureAtom(-1));
+    )  return true;
     else return false; 
+}
+
+LaTeXStringParser.prototype.getBracetCode = function(strSymbol) {
+    switch (strSymbol) {
+        case '(': return null;
+        case ')': return null;
+
+        case '{': return 123;
+        case '}': return 125;
+        case '\\{': return 123;
+        case '\\}': return 125;
+
+        case '[': return 91;
+        case ']': return 93;
+        case '\\[': return 91;
+        case '\\]': return 93;
+
+        case '|': return 124;
+        case '\\|': return 124;
+
+        case '\\langle': return 10216;
+        case '\\rangle': return 10217;
+        case '\\lfloor': return 0x230A;
+        case '\\rfloor': return 0x230B;
+        
+        case '\\lceil ': return 0x2308;
+        case '\\rceil ': return 0x2309;
+
+        case '\\ulcorner': return 0xCBB9;
+        case '\\ulcorner': return 0xCBBA;
+
+        case '/': return 0x2F;
+        case '\\backslash': return 0x5C;
+
+        default: return undefined;
+    }
 }
 
 LaTeXStringParser.prototype.getCloseBracet = function(strSymbol) {
@@ -4243,9 +4278,6 @@ LaTeXStringParser.prototype.isDegreeAndIndexForLexer = function() {
         this.syntaxChecker(['_', 1, '^', 1])
     )
 } 
-
-
-
 //Functions for Lexer
 LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
     var Limit = MathFunc.Add_Limit({ctrPrp : this.Pr.ctrPrp, type : LIMIT_LOW}, null, null);
@@ -4503,6 +4535,25 @@ LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
     this.startLexer(Narny.getBase(), ['{', '(']);
 }
 
+LaTeXStringParser.prototype.addBracetBlock = function(FormArgument, bracet) {
+    var intIndexOfCloseBracet = this.checkExistanceOfCloseBracet(this.futureAtom(-1));
+    var strOpenBracet = this.futureAtom(-1);
+    var strExit;
+    
+    var strCloseBracet = strExit = this.getCloseBracet(strOpenBracet);
+
+    strOpenBracet = this.getBracetCode(strOpenBracet);
+    strCloseBracet = this.getBracetCode(strCloseBracet);
+    
+    //console.log(intIndexOfCloseBracet, strOpenBracet, strCloseBracet);
+    if (intIndexOfCloseBracet) {
+        var one = FormArgument.Add_DelimiterEx(this.Pr.ctrPrp, 1,[null], strOpenBracet, strCloseBracet);
+        LaTeXStringLexer(this, one.getBase(), strExit);
+        return true;
+    } 
+    return false;
+}
+
 LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThatSymbol, now) {
     var intPatternIndex = 0;
 
@@ -4554,10 +4605,9 @@ LaTeXStringParser.prototype.checkExistanceOfCloseBracet = function(strSymbol) {
         if (arrOfData[intIndexData] == strSymbol) intPatternIndex++;
         else if (arrOfData[intIndexData] == closeBracet) intPatternIndex--;
         
-        if (arrOfData[intIndexData] == closeBracet && intPatternIndex == 0) {isCloseBracet = true; return isCloseBracet}
+        if (arrOfData[intIndexData] == closeBracet && intPatternIndex == 0) {isCloseBracet = true; return intIndexData}
         intIndexData++;
     } 
-    return isCloseBracet;
 }
 
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
@@ -4566,9 +4616,9 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     do {
         strFAtom = Parser.next(); 
 
-        if (typeof exitIfSee != 'number') {
+        if (exitIfSee && typeof exitIfSee != 'number' && strFAtom == exitIfSee) return;
+        else if (!exitIfSee) {
             if (strFAtom == '}' || strFAtom == ']') return;
-            else  if (strFAtom == ')') {Parser.addText(strFAtom, FormArgument); return}
         }
         
         if (Parser.CheckIsFunction(strFAtom) != null)               Parser.addFunc(FormArgument, strFAtom.slice(1)), intFAtoms++;
@@ -4578,13 +4628,14 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\bmod')                              Parser.addText( ' mod ', FormArgument), intFAtoms++;
         else if (strFAtom == '\\pmod')                              Parser.addPMod(FormArgument), intFAtoms++;
         else if (strFAtom == '\\sqrt')                              Parser.addSqrt(FormArgument), intFAtoms++;
-        else if (Parser.isBrackets())                               console.log('parenthesis closed');
+        else if (Parser.isBrackets())                               { if (Parser.addBracetBlock(FormArgument, strFAtom)) return}
         else if (Parser.isLargeOperator(strFAtom))                  Parser.addLargeOperator(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.isIntegral(strFAtom))                       Parser.addInt(FormArgument), intFAtoms++;
         else if (Parser.CheckIsAccent(strFAtom) > 0)                Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.syntaxChecker(['^', 1, '/', '_', 1]))       Parser.addInlineFraction(FormArgument), intFAtoms++;
         else if (Parser.isDegreeAndIndexForLexer())                 Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.isDontPutInText(strFAtom))                  Parser.addText(strFAtom, FormArgument), intFAtoms++;
+        
         if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
 };
