@@ -4058,7 +4058,6 @@ LaTeXStringParser.prototype.parse = function (str) {
   }
   this.arrAtomsOfFormula = this.arrAtomsOfFormula.filter(Boolean);
   console.log("🚀 ~ file: Math.js ~ line 4053 ~ this.arrAtomsOfFormula", this.arrAtomsOfFormula)
-  
 };
 
 LaTeXStringParser.prototype.next = function () {
@@ -4073,13 +4072,14 @@ LaTeXStringParser.prototype.futureAtom = function(n) {
     else return this.arrAtomsOfFormula[this.indexOfAtom];
 }
 
-LaTeXStringParser.prototype.startLexer = function(isSymbol, content) {
-    if (Array.isArray(isSymbol)) {
-        if (isSymbol.includes(this.futureAtom())) LaTeXStringLexer(this, content);
-        else LaTeXStringLexer(this, content, 1);  
-    } else {
-        if (this.futureAtom() == isSymbol) LaTeXStringLexer(this, content);
-        else LaTeXStringLexer(this, content, 1); 
+LaTeXStringParser.prototype.startLexer = function(context, arrSymbol) {
+    if (!arrSymbol) {
+        if (this.futureAtom() == '{') LaTeXStringLexer(this, context);
+        else LaTeXStringLexer(this, context, 1);    
+    }   
+    else if (Array.isArray(arrSymbol)) {
+        if (arrSymbol.includes(this.futureAtom())) LaTeXStringLexer(this, context);
+        else LaTeXStringLexer(this, context, 1)
     }
 }
 
@@ -4116,6 +4116,7 @@ LaTeXStringParser.prototype.CheckIsFunction = function(strFuncAtom) {
         case '\\tanh': ;
         case '\\coth': ;
         case '\\sec': ;
+        case '\\exp': ;
         case '\\csc': return true;
         default: return null;
     }
@@ -4158,6 +4159,33 @@ LaTeXStringParser.prototype.isLargeOperator = function(strFAtom) {
     }
 } 
 
+LaTeXStringParser.prototype.isDegreeAndIndex = function() {
+    if (
+        this.syntaxChecker(['^', 1, '_', 1]) ||
+        this.syntaxChecker(['^', '{', '_', '{']) ||
+        this.syntaxChecker(['_', 1, '^', 1]) ||
+        this.syntaxChecker(['_', '{', '^', '{'])
+
+        && (   this.syntaxChecker(['_', 1], '^') ||
+               this.syntaxChecker(['^', 1], '_'))
+
+    ) return true;
+    else return false; 
+}
+
+LaTeXStringParser.prototype.isDegreeOrIndex = function() {
+    if (
+        !(this.syntaxChecker(['^', 1, '_', 1]) ||
+        this.syntaxChecker(['^', '{', '_', '{']) ||
+        this.syntaxChecker(['_', 1, '^', 1]) ||
+        this.syntaxChecker(['_', '{', '^', '{']))
+
+        && (   this.syntaxChecker(['_', 1], '^') ||
+                this.syntaxChecker(['^', 1], '_'))
+
+    ) return true;
+    else return false; 
+}
 
 LaTeXStringParser.prototype.getTypeIntegral = function(strFAtom) {
     switch (strFAtom) {
@@ -4171,19 +4199,14 @@ LaTeXStringParser.prototype.getTypeIntegral = function(strFAtom) {
     }
 }
 
-LaTeXStringParser.prototype.getBlockContent = function(next, str, FormArgument) {
-    if (next != null) var strTempAtom = this.next();
-    if (next != strTempAtom && next != null) {console.log('ERROR'); return}
-    this.startLexer(str, FormArgument);
-}
-
 //Functions for Lexer
 LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
     var Limit = MathFunc.Add_Limit({ctrPrp : this.Pr.ctrPrp, type : LIMIT_LOW}, null, null);
     Limit.getFName().Add_Text(name, this.Paragraph, STY_PLAIN);
 
     if (this.futureAtom() == '\\limits') this.next(); // add variant with limits
-    this.getBlockContent('_', '{', Limit.getIterator());
+    if (this.next() == '_') this.startLexer( Limit.getIterator());
+    
 }
 
 LaTeXStringParser.prototype.addFrac = function(FormArgument) {
@@ -4216,54 +4239,44 @@ LaTeXStringParser.prototype.addFunc = function(FormArgument, name) {
     else this.addFuncName(MathContent, name);
     
     MathContent = MathFunc.getArgument();
-    this.startLexer(['{', '('], MathContent);
+    this.startLexer(MathContent, ['(', '{']);
 }
 
 LaTeXStringParser.prototype.addFuncName = function(MathContent, name) {
-    if (name) MathContent.Add_Text(name, this.Paragraph, STY_PLAIN);
-    else MathContent.Add_Text(this.arrAtomsOfFormula[this.indexOfAtom + 1], this.Paragraph, STY_PLAIN);
-
-    if (this.futureAtom() == '^' || this.futureAtom() == '_') {
+    if (this.isDegreeOrIndex()) {
         var tempStr = this.next();
 
         var Pr = (tempStr == '^') 
             ? {ctrPrp : this.Pr.ctrPrp, type : DEGREE_SUPERSCRIPT}
             : {ctrPrp : this.Pr.ctrPrp, type : DEGREE_SUBSCRIPT};
 
-        var textFName = MathContent.GetTextContent().str;
-        MathContent.Remove_FromContent(0,1);
-
-        var Script = new CDegree(Pr);
-        Script.getBase().Add_Text(textFName, this.Paragraph);
-        MathContent.Add_Element(Script);
-
+        var Script = MathContent.Add_Script(false, Pr, name, null, null);
+    
         var ScriptContent = (tempStr == '^')
             ? Script.getUpperIterator() 
             : Script.getLowerIterator();
         
-        this.startLexer('{', ScriptContent);
+        this.startLexer(ScriptContent);
 
-        if (this.futureAtom() == '_' || this.futureAtom() == '^') {
-            this.addDegreeAndIndex(name, ScriptContent.GetTextContent().str, true, MathContent);
+    } else if (this.isDegreeAndIndex()) {
+        var tempStr = this.next();
+
+        var Script = MathContent.Add_Script(true, this.Pr, name, null, null);
+    
+        if (tempStr == '^') {
+            this.startLexer(Script.getUpperIterator());
+            tempStr = this.next();
+            this.startLexer(Script.getLowerIterator());
+        } else if (tempStr == '_') {
+            this.startLexer(Script.getLowerIterator());
+            tempStr = this.next();
+            this.startLexer(Script.getUpperIterator());
         }
-    } 
+    } else MathContent.Add_Text(name, this.Paragraph, STY_PLAIN);
 }
 
 LaTeXStringParser.prototype.addText = function(strFAtom, FormArgument) {
-    if (
-        this.futureAtom() == "^" ||
-        this.futureAtom() == "_" && (  
-        this.futureAtom(-1) != '^' && 
-        this.futureAtom(-1) != '_' && 
-        this.futureAtom(-2) != '^' && 
-        this.futureAtom(-2) != '_' && 
-        this.futureAtom(-3) != '^' && 
-        this.futureAtom(-3) != '_' )
-    )
-        {
-            this.addDegreeForText(strFAtom, FormArgument);
-        } 
-        else this.addSymbol(strFAtom, FormArgument);
+    this.addSymbol(strFAtom, FormArgument);
 }
 
 LaTeXStringParser.prototype.addSymbol = function(strFAtom, FormArgument) {
@@ -4275,44 +4288,38 @@ LaTeXStringParser.prototype.addSymbol = function(strFAtom, FormArgument) {
     } 
 } 
 
-LaTeXStringParser.prototype.addDegreeForText = function(strFAtom, FormArgument) {
-    var strTempAtom = this.next()
+LaTeXStringParser.prototype.addDegreeForText = function(FormArgument, strFAtom) {
+    if (this.isDegreeOrIndex()) {
+        var strTempAtom = this.next()
 
-    var Pr = (strTempAtom == '^') 
-        ? {ctrPrp : this.Pr.ctrPrp, type : DEGREE_SUPERSCRIPT}
-        : {ctrPrp : this.Pr.ctrPrp, type : DEGREE_SUBSCRIPT}
-
-    var Script = new CDegree(Pr)
-
-    this.addSymbol(strFAtom, Script.getBase())
+        var Pr = (strTempAtom == '^') 
+            ? {ctrPrp : this.Pr.ctrPrp, type : DEGREE_SUPERSCRIPT}
+            : {ctrPrp : this.Pr.ctrPrp, type : DEGREE_SUBSCRIPT}
     
-    var MathContent = (strTempAtom == '^')   
-        ? Script.getUpperIterator() 
-        : Script.getLowerIterator();
-    
-    this.startLexer('{', MathContent);
-    
-    if (this.futureAtom() == '_' || this.futureAtom() == '^') {
-        this.addDegreeAndIndex(strFAtom, MathContent.GetTextContent().str, true, FormArgument);
-    } else FormArgument.Add_Element(Script); 
-}
 
-LaTeXStringParser.prototype.addDegreeAndIndex = function(strFAtom, prevBlockContent, isCleanFunc, FormArgument) {
-    var Script = new CDegreeSubSup(this.Pr);
-    Script.getBase().Add_Text(strFAtom, this.Paragraph);
-    
-    if (isCleanFunc) FormArgument.Remove_FromContent(0,1);
+        var Script = FormArgument.Add_Script(false, Pr, null, null, null)
+        this.addSymbol(strFAtom, Script.getBase());
 
-    var strTempAtom = this.next();  
-    if (strTempAtom == '^') {
-        this.startLexer('{', Script.getUpperIterator());
-        Script.getLowerIterator().Add_Text(prevBlockContent, this.Paragraph);
+        var MathContent = (strTempAtom == '^')   
+            ? Script.getUpperIterator() 
+            : Script.getLowerIterator();
+        this.startLexer(MathContent);
+
+    } else if (this.isDegreeAndIndex()) {
+        var tempStr = this.next();
+
+        var Script = FormArgument.Add_Script(true, this.Pr, strFAtom, null, null);
+    
+        if (tempStr == '^') {
+            this.startLexer(Script.getUpperIterator());
+            tempStr = this.next();
+            this.startLexer(Script.getLowerIterator());
+        } else if (tempStr == '_') {
+            this.startLexer(Script.getLowerIterator());
+            tempStr = this.next();
+            this.startLexer(Script.getUpperIterator());
+        }
     } 
-    else if (strTempAtom == '_') {
-        this.startLexer('{', Script.getLowerIterator());
-        Script.getUpperIterator().Add_Text(prevBlockContent, this.Paragraph);
-    }
-    FormArgument.Add_Element(Script);
 }
 
 LaTeXStringParser.prototype.addBinom = function(FormArgument) {
@@ -4400,7 +4407,7 @@ LaTeXStringParser.prototype.addInt = function(FormArgument) {
     
     }
     
-    this.startLexer(['{', '('], Integral.getBase());
+    this.startLexer(Integral.getBase(), ['{', '(']);
 }
 
 LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
@@ -4423,40 +4430,53 @@ LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
     // if (this.syntaxisChecker(['_', '{', '^', '{'])) console.log('^ + _');
    
     if (strTempAtom == '^') {
-        this.startLexer('{', Narny.getSupMathContent());
+        this.startLexer(Narny.getSupMathContent());
         strTempAtom = this.next()
     }
 
     if (strTempAtom == '_') {
-        this.startLexer('{', Narny.getSubMathContent());
+        this.startLexer(Narny.getSubMathContent());
     }
-    this.startLexer(['{', '('], Narny.getBase());
+    this.startLexer(Narny.getBase(), ['{', '(']);
 }
 
-LaTeXStringParser.prototype.syntaxisChecker = function(strPattern) {
+LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThatSymbol) {
     var intPatternIndex = 0;
 
     var arrOfData = this.arrAtomsOfFormula;
-    var intIndexData = this.indexOfAtom - 1;
+    var intIndexData = this.indexOfAtom;
   
   	var isCorrect = true;
     
     do {
-        if (strPattern[intPatternIndex] == arrOfData[intIndexData] && strPattern[intPatternIndex] != '{' ) {
+        // если элемент паатерна цифра и эл. данных цифра
+        if (typeof strPattern[intPatternIndex] === 'number' && typeof Number(arrOfData[intIndexData]) === 'number' ) {
+            intPatternIndex++;
+            var index = 0; 
+            do {
+                intIndexData++;
+                index++;
+            } while (index < strPattern[intPatternIndex]);
+        } 
+        // если элементу паттерна соотвествует элемент данных и эл. паттерна != { 
+        else if (strPattern[intPatternIndex] == arrOfData[intIndexData] && strPattern[intPatternIndex] != '{' ) {
             intIndexData++;
             intPatternIndex++;
+
+        // если элементу паттерна соотвествует элемент данных и эл. паттерна == { 
         } else if (strPattern[intPatternIndex] == arrOfData[intIndexData] && arrOfData[intIndexData] == '{') {
             intIndexData++;
-            
             do {
                 intIndexData++;
             } while (arrOfData[intIndexData -1] != '}');
-          
-          intPatternIndex++;
+            
+            intPatternIndex++;
         }
-        else return isCorrect = false; 
+        else return false; 
         
     } while (intPatternIndex != strPattern.length);
+   
+    if (afterAllNotThatSymbol && arrOfData[intIndexData] === afterAllNotThatSymbol) return false;
   return isCorrect;
 } 
 
@@ -4472,22 +4492,29 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
             else  if (strFAtom == ')') {Parser.addText(strFAtom, FormArgument); return}
         }
         
-        if (Parser.CheckIsFunction(strFAtom) != null) Parser.addFunc(FormArgument, strFAtom.slice(1)), intFAtoms++;
-        else if (strFAtom == '\\frac' || strFAtom == '\\dfrac') Parser.addFrac(FormArgument), intFAtoms++;
-        else if (strFAtom == '\\tfrac') Parser.addTinyFrac(FormArgument), intFAtoms++;
-        else if (strFAtom == '\\exp') Parser.addFunc(FormArgument,  strFAtom.slice(1)), intFAtoms++; 
-        else if (strFAtom == '\\binom') Parser.addBinom(FormArgument), intFAtoms++;
-        else if (strFAtom == '\\bmod') Parser.addText( ' mod ', FormArgument), intFAtoms++;
-        else if (strFAtom == '\\pmod') Parser.addPMod(FormArgument), intFAtoms++;
-        else if (strFAtom == '\\sqrt') Parser.addSqrt(FormArgument), intFAtoms++;
-        else if (Parser.isLargeOperator(strFAtom)) Parser.addLargeOperator(FormArgument, strFAtom), intFAtoms++;
-        else if (strFAtom == '^') Parser.addInlineFraction(FormArgument), intFAtoms++;
-        else if (Parser.isIntegral(strFAtom)) Parser.addInt(FormArgument), intFAtoms++;
-        else if (Parser.CheckIsAccent(strFAtom) > 0) Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
+        if (Parser.CheckIsFunction(strFAtom) != null)               Parser.addFunc(FormArgument, strFAtom.slice(1)), intFAtoms++;
+        else if (strFAtom == '\\frac' || strFAtom == '\\dfrac')     Parser.addFrac(FormArgument), intFAtoms++;
+        else if (strFAtom == '\\tfrac')                             Parser.addTinyFrac(FormArgument), intFAtoms++;
+        else if (strFAtom == '\\binom')                             Parser.addBinom(FormArgument), intFAtoms++;
+        else if (strFAtom == '\\bmod')                              Parser.addText( ' mod ', FormArgument), intFAtoms++;
+        else if (strFAtom == '\\pmod')                              Parser.addPMod(FormArgument), intFAtoms++;
+        else if (strFAtom == '\\sqrt')                              Parser.addSqrt(FormArgument), intFAtoms++;
+        else if (Parser.isLargeOperator(strFAtom))                  Parser.addLargeOperator(FormArgument, strFAtom), intFAtoms++;
+        else if (Parser.isIntegral(strFAtom))                       Parser.addInt(FormArgument), intFAtoms++;
+        else if (Parser.CheckIsAccent(strFAtom) > 0)                Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
+        
+        else if (Parser.syntaxChecker(['^', 1, '/', '_', 1]))       Parser.addInlineFraction(FormArgument), intFAtoms++;
 
-        else if (Parser.isDontPutInText(strFAtom)) {
-            Parser.addText(strFAtom, FormArgument); intFAtoms++;
-        }
+        else if (Parser.syntaxChecker(['^', 1]) 
+                    && Parser.futureAtom(-2) != '_' ||     
+                 Parser.syntaxChecker(['_', 1]) 
+                    && Parser.futureAtom(-2) != '^'||
+                 Parser.syntaxChecker(['_', '{', '^', '{']) ||
+                 Parser.syntaxChecker(['^', '{', '_', '{']) || 
+                 Parser.syntaxChecker(['^', 1, '_', 1])     ||
+                 Parser.syntaxChecker(['_', 1, '^', 1]))            Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
+
+        else if (Parser.isDontPutInText(strFAtom))                  Parser.addText(strFAtom, FormArgument), intFAtoms++;
 
         if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
