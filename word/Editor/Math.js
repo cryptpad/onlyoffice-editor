@@ -4187,6 +4187,40 @@ LaTeXStringParser.prototype.isDegreeOrIndex = function() {
     else return false; 
 }
 
+LaTeXStringParser.prototype.isBrackets = function() {
+    if (
+       this.futureAtom(-1) == '|' ||
+       this.futureAtom(-1) == '(' ||
+       this.futureAtom(-1) == '[' ||
+       this.futureAtom(-1) == '\\{' ||
+       this.futureAtom(-1) == '\\|' ||
+       this.futureAtom(-1) == '\\langle'  ||
+       this.futureAtom(-1) == '\\lfloor' ||
+       this.futureAtom(-1) == '\\lceil' ||
+       this.futureAtom(-1) == '\\ulcorner' ||
+       this.futureAtom(-1) == '/'
+
+    ) return this.checkExistanceOfCloseBracet(this.futureAtom(-1));
+    else return false; 
+}
+
+LaTeXStringParser.prototype.getCloseBracet = function(strSymbol) {
+    switch (strSymbol) {
+        case '|': return '|';
+        case '(': return ')';
+        case '{': return '}';
+        case '[': return ']';
+        case '\\{': return '\\}';
+        case '\\|': return '\\|';
+        case '\\langle': return '\\rangle';
+        case '\\lfloor': return '\\rfloor';
+        case '\\lceil ': return '\\rceil';
+        case '\\ulcorner': return '\\urcorner';
+        case '/': return '\\backslash';
+        default: break;
+    }
+}
+
 LaTeXStringParser.prototype.getTypeIntegral = function(strFAtom) {
     switch (strFAtom) {
         case '\\int': return false;
@@ -4198,6 +4232,19 @@ LaTeXStringParser.prototype.getTypeIntegral = function(strFAtom) {
         default: return false;
     }
 }
+
+LaTeXStringParser.prototype.isDegreeAndIndexForLexer = function() {
+    return (
+        (this.syntaxChecker(['^', 1]) && this.futureAtom(-2) != '_') ||     
+        (this.syntaxChecker(['_', 1]) && this.futureAtom(-2) != '^')||
+        this.syntaxChecker(['_', '{', '^', '{']) ||
+        this.syntaxChecker(['^', '{', '_', '{']) || 
+        this.syntaxChecker(['^', 1, '_', 1])     ||
+        this.syntaxChecker(['_', 1, '^', 1])
+    )
+} 
+
+
 
 //Functions for Lexer
 LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
@@ -4380,13 +4427,29 @@ LaTeXStringParser.prototype.addInt = function(FormArgument) {
     var intCountOfIntegral = this.isIntegral(strNameOfIntegral);
     var isOTypeIntegral = this.getTypeIntegral(strNameOfIntegral);
     
+    var hideBoxes = {
+        supHide: false, 
+        subHide: false
+    }
+
+    var TypeOFLoc = (this.futureAtom() == '\\limits') ? (strTempAtom = this.next(), 0) : 1;
+
+    if (this.isDegreeOrIndex()) {
+        this.syntaxChecker(['^', 1], '_') 
+            ?  (hideBoxes.subHide = true, hideBoxes.supHide = false)
+            :  (hideBoxes.subHide = false, hideBoxes.supHide = true)
+    }
+
+    if (!this.isDegreeOrIndex() && !this.isDegreeAndIndex()) {
+        hideBoxes.supHide = true, 
+        hideBoxes.subHide = true
+    }
+
     var strTempAtom = this.next();
-    var TypeOFLoc = (strTempAtom == '\\limits') ? (strTempAtom = this.next(), 0) : 1;
-    var showBoxes = true;
     
-    if (strTempAtom == '^' || strTempAtom == '_') showBoxes = false;
+    // if (strTempAtom == '^' || strTempAtom == '_') hideBoxes = false;
     
-    var Integral = FormArgument.Add_Integral(intCountOfIntegral, isOTypeIntegral, TypeOFLoc, showBoxes, showBoxes, this.Pr.ctrPrp, null, null, null);
+    var Integral = FormArgument.Add_Integral(intCountOfIntegral, isOTypeIntegral, TypeOFLoc, hideBoxes.supHide, hideBoxes.subHide, this.Pr.ctrPrp, null, null, null);
 
     if (strTempAtom == '^' || strTempAtom == '_') {
         var createSupMathContent = function (context) {
@@ -4440,16 +4503,16 @@ LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
     this.startLexer(Narny.getBase(), ['{', '(']);
 }
 
-LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThatSymbol) {
+LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThatSymbol, now) {
     var intPatternIndex = 0;
 
     var arrOfData = this.arrAtomsOfFormula;
-    var intIndexData = this.indexOfAtom;
-  
+
+    var intIndexData = now ? this.indexOfAtom - 1 : this.indexOfAtom;
+    
   	var isCorrect = true;
     
     do {
-        // если элемент паатерна цифра и эл. данных цифра
         if (typeof strPattern[intPatternIndex] === 'number' && typeof Number(arrOfData[intIndexData]) === 'number' ) {
             intPatternIndex++;
             var index = 0; 
@@ -4458,12 +4521,10 @@ LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThat
                 index++;
             } while (index < strPattern[intPatternIndex]);
         } 
-        // если элементу паттерна соотвествует элемент данных и эл. паттерна != { 
         else if (strPattern[intPatternIndex] == arrOfData[intIndexData] && strPattern[intPatternIndex] != '{' ) {
             intIndexData++;
             intPatternIndex++;
 
-        // если элементу паттерна соотвествует элемент данных и эл. паттерна == { 
         } else if (strPattern[intPatternIndex] == arrOfData[intIndexData] && arrOfData[intIndexData] == '{') {
             intIndexData++;
             do {
@@ -4480,10 +4541,28 @@ LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThat
   return isCorrect;
 } 
 
+LaTeXStringParser.prototype.checkExistanceOfCloseBracet = function(strSymbol) {
+    var closeBracet = this.getCloseBracet(strSymbol);
+    var intPatternIndex = 1;
+
+    var arrOfData = this.arrAtomsOfFormula;
+    var intIndexData = this.indexOfAtom;
+
+    var isCloseBracet = false;
+
+    while(intIndexData < arrOfData.length) {
+        if (arrOfData[intIndexData] == strSymbol) intPatternIndex++;
+        else if (arrOfData[intIndexData] == closeBracet) intPatternIndex--;
+        
+        if (arrOfData[intIndexData] == closeBracet && intPatternIndex == 0) {isCloseBracet = true; return isCloseBracet}
+        intIndexData++;
+    } 
+    return isCloseBracet;
+}
+
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     var intFAtoms = 0;
     var strFAtom = 0;
-
     do {
         strFAtom = Parser.next(); 
 
@@ -4499,23 +4578,13 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\bmod')                              Parser.addText( ' mod ', FormArgument), intFAtoms++;
         else if (strFAtom == '\\pmod')                              Parser.addPMod(FormArgument), intFAtoms++;
         else if (strFAtom == '\\sqrt')                              Parser.addSqrt(FormArgument), intFAtoms++;
+        else if (Parser.isBrackets())                               console.log('parenthesis closed');
         else if (Parser.isLargeOperator(strFAtom))                  Parser.addLargeOperator(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.isIntegral(strFAtom))                       Parser.addInt(FormArgument), intFAtoms++;
         else if (Parser.CheckIsAccent(strFAtom) > 0)                Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
-        
         else if (Parser.syntaxChecker(['^', 1, '/', '_', 1]))       Parser.addInlineFraction(FormArgument), intFAtoms++;
-
-        else if (Parser.syntaxChecker(['^', 1]) 
-                    && Parser.futureAtom(-2) != '_' ||     
-                 Parser.syntaxChecker(['_', 1]) 
-                    && Parser.futureAtom(-2) != '^'||
-                 Parser.syntaxChecker(['_', '{', '^', '{']) ||
-                 Parser.syntaxChecker(['^', '{', '_', '{']) || 
-                 Parser.syntaxChecker(['^', 1, '_', 1])     ||
-                 Parser.syntaxChecker(['_', 1, '^', 1]))            Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
-
+        else if (Parser.isDegreeAndIndexForLexer())                 Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.isDontPutInText(strFAtom))                  Parser.addText(strFAtom, FormArgument), intFAtoms++;
-
         if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
 };
