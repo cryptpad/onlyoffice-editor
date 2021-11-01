@@ -41,6 +41,7 @@
 			"common/libfont/classification.js",
 
 			"common/stringserialize.js",
+			"common/random.js",
 
 			"common/Drawings/Metafile.js",
 			"common/libfont/textmeasurer.js",
