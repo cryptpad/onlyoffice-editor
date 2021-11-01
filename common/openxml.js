@@ -108,87 +108,6 @@
 		parser.parse(xml);
 	};
 
-	function StaxParser(xml) {
-		this.parser = new EasySAXParser({'autoEntity': true});
-		this.parser.staxInit(xml);
-	}
-
-	StaxParser.prototype.ReadAttributes = function() {
-		return this.parser.staxGetAttrs();
-	};
-	StaxParser.prototype.Read = function() {
-		var hasNext = this.parser.staxHasNext();
-		this.parser.staxNext();
-		return hasNext;
-	};
-	StaxParser.prototype.ReadNextNode = function() {
-		var type = EasySAXEvent.Unknown;
-		while (EasySAXEvent.START_ELEMENT !== type && this.parser.staxHasNext()) {
-			type = this.parser.staxNext();
-		}
-		return EasySAXEvent.START_ELEMENT === type;
-	};
-	StaxParser.prototype.ReadNextSiblingNode = function(depth) {
-		var type = EasySAXEvent.Unknown;
-		while (this.parser.staxHasNext()) {
-			type = this.parser.staxNext();
-			var curDepth = this.parser.staxGetDepth();
-			if (curDepth < depth)
-				break;
-			if (EasySAXEvent.START_ELEMENT == type && curDepth == depth + 1)
-				return true;
-			else if (EasySAXEvent.END_ELEMENT == type && curDepth == depth)
-				return false;
-
-		}
-		return false;
-	};
-	StaxParser.prototype.ReadTillEnd = function (opt_depth) {
-		var depth = opt_depth;
-		if (!depth) {
-			depth = this.parser.staxGetDepth();
-		} else if(depth === this.parser.staxGetDepth() && this.isEmptyNode()){
-			return true;
-		}
-		var type = EasySAXEvent.Unknown;
-		while (EasySAXEvent.START_ELEMENT !== type && this.parser.staxHasNext()) {
-			type = this.parser.staxNext();
-			var curDepth = this.GetDepth();
-			if (curDepth < depth) {
-				break;
-			}
-			if (EasySAXEvent.END_ELEMENT == type && curDepth == depth)
-				break;
-		}
-		return true;
-	};
-	StaxParser.prototype.IsEmptyNode = function () {
-		return this.parser.staxIsEmptyNode();
-	};
-	StaxParser.prototype.GetDepth = function() {
-		return this.parser.staxGetDepth();
-	};
-	StaxParser.prototype.GetName = function () {
-		return this.parser.staxGetName();
-	};
-	StaxParser.prototype.GetNameNoNS = function () {
-		return this.RemoveNS(this.GetName());
-	};
-	StaxParser.prototype.GetText = function () {
-		this.parser.staxGetText();
-	};
-	StaxParser.prototype.RemoveNS = function(name) {
-		var index = name.indexOf(':');
-		if (-1 !== index) {
-			return name.substring(index + 1);
-		}
-		return name;
-	};
-	StaxParser.prototype.End = function () {
-		parser.staxEnd();
-	};
-
-	openXml.StaxParser = StaxParser;
 	openXml.SaxParserBase = SaxParserBase;
 	openXml.SaxParserDataTransfer = {};
 
@@ -209,6 +128,15 @@
 				this.Overrides[attrVals['PartName']] = attrVals['ContentType'];
 			}
 		}
+		return this;
+	};
+	ContentTypes.prototype.add = function(partName, contentType) {
+		if (contentType) {
+			this.Overrides[partName] = contentType;
+		}
+		var exti = partName.lastIndexOf(".");
+		var ext = partName.substring(exti + 1);
+		this.Defaults[ext] = "application/xml";//todo mime type
 		return this;
 	};
 	function Rels(pkg, part){
@@ -236,58 +164,89 @@
 		}
 		return this;
 	};
+	Rels.prototype.toXml = function(writer) {
+		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+		writer.WriteXmlNodeStart("Relationships");
+		writer.WriteXmlString(
+			" xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"");
+		writer.WriteXmlNodeEnd("Relationships", true);
+		this.rels.forEach(function(elem){
+			elem.toXml(writer, "Relationship");
+		});
+		writer.WriteXmlNodeEnd("Relationships");
+
+	};
+	Rels.prototype.getNextRId = function() {
+		return "rId" + (this.nextRId++);
+	};
+
 
 	/******************************** OpenXmlPackage ********************************/
 	function openFromZip(zip, pkg) {
-		for (var f in zip.files) {
-			var zipFile = zip.files[f];
-			if (!f.endsWith("/")) {
-				var f2 = f;
-				if (f !== "[Content_Types].xml") {
-					f2 = "/" + f;
-				}
-				var newPart = new openXml.OpenXmlPart(pkg, f2, null, null, zipFile);
-				pkg.parts[f2] = newPart;
-			}
-		}
-		var ctf = pkg.parts["[Content_Types].xml"];
-		if (ctf === null) {
+		var ctf = zip.files["[Content_Types].xml"];
+		if (!ctf) {
 			throw "Invalid Open XML document: no [Content_Types].xml";
 		}
-		new SaxParserBase().parse(ctf.data.sync("string"), pkg.cntTypes);
-		for (var part in pkg.parts) {
-			if (part === "[Content_Types].xml") {
-				continue;
-			}
-			var ct = pkg.getContentType(part);
-			var thisPart = pkg.parts[part];
-			thisPart.contentType = ct;
-			if (ct !== undefined && ct.endsWith("xml")) {
-				thisPart.partType = "xml";
-			} else {
-				thisPart.partType = "binary";
+		new SaxParserBase().parse(ctf.sync("string"), pkg.cntTypes);
+		for (var f in zip.files) {
+			if (zip.files.hasOwnProperty(f)) {
+				if (!f.endsWith("/")) {
+					var f2 = f;
+					var contentType = null;
+					if (f !== "[Content_Types].xml") {
+						f2 = "/" + f;
+						contentType = pkg.getContentType(f);
+					}
+					pkg.parts[f2] = new openXml.OpenXmlPart(pkg, f2, contentType);
+				}
 			}
 		}
 	}
 
-	openXml.OpenXmlPackage = function() {
+	openXml.OpenXmlPackage = function(zip, xmlWriter) {
+		this.zip = zip;
+		this.xmlWriter = xmlWriter;
 		this.parts = {};
 		this.cntTypes = new ContentTypes();
+
+		this.openFromZip(this.zip);
 	}
 
 	openXml.OpenXmlPackage.prototype.openFromZip = function(documentToOpen) {
 		return openFromZip(documentToOpen, this);
 	}
 
-	openXml.OpenXmlPackage.prototype.getRelationships = function() {
-		var res;
-		var relsPart = this.getPartByUri("/_rels/.rels");
-		if(relsPart) {
-			var relsPackage = new Rels(this, null);
-			new SaxParserBase().parse(relsPart.data.sync("string"), relsPackage);
-			res = relsPackage.rels;
+	openXml.OpenXmlPackage.prototype.addPart = function (uri, target, contentType, relationshipType, data) {
+		//add part
+		var newPart = new openXml.OpenXmlPart(this, uri, contentType, data);
+		this.zip.addFile(newPart.getUriRelative(), data);
+		this.parts[uri] = newPart;
+		//update rels
+		if (relationshipType && target) {
+			this.addRelationship(relationshipType, target);
 		}
-		return res || [];
+		// update [Content_Types].xml
+		this.cntTypes.add(uri, contentType);
+		return newPart;
+	}
+	openXml.OpenXmlPackage.prototype.addRelationship = function (relationshipType, target, targetMode) {
+		var rels = this.getRels();
+		var rId = rels.getNextRId();
+		var newRel = new openXml.OpenXmlRelationship(this.pkg, this.part, rId, relationshipType, target, targetMode);
+		rels.rels.push(newRel);
+		this.addPart("/_rels/.rels", null, null, null, rels.toXml(this.xmlWriter));
+	}
+
+	openXml.OpenXmlPackage.prototype.getRels = function() {
+		var relsPackage = new Rels(this, null);
+		var relsPart = this.getPartByUri("/_rels/.rels");
+		if (relsPart) {
+			new SaxParserBase().parse(relsPart.getDocumentContent(), relsPackage);
+		}
+		return relsPackage;
+	}
+	openXml.OpenXmlPackage.prototype.getRelationships = function() {
+		return this.getRels().rels;
 	}
 
 	openXml.OpenXmlPackage.prototype.getRelationship = function(rId) {
@@ -379,20 +338,20 @@
 
 	/*********** OpenXmlPart ***********/
 
-	openXml.OpenXmlPart = function(pkg, uri, contentType, partType, data) {
+	openXml.OpenXmlPart = function(pkg, uri, contentType) {
 		this.pkg = pkg;      // reference to the parent package
 		this.uri = uri;      // the part is also indexed by uri in the package
 		this.contentType = contentType;
-		this.partType = partType;
-		if (uri === "[Content_Types].xml") {
-			partType = "xml";
-		}
-		this.data = data;
 	};
 
-	openXml.OpenXmlPart.prototype.getDocumentContent = function() {
-		if (this.partType === 'xml') {
-			return this.data.sync("string");
+	openXml.OpenXmlPart.prototype.getUriRelative = function() {
+		return this.uri.substring(1);
+	};
+	openXml.OpenXmlPart.prototype.getDocumentContent = function(type) {
+		type = type || "string";
+		var file = this.pkg.zip.files[this.getUriRelative()];
+		if (file) {
+			return file.sync(type);
 		}
 		return "";
 	};
@@ -419,16 +378,16 @@
 		return relsPart;
 	}
 
-	// returns all relationships
-	openXml.OpenXmlPart.prototype.getRelationships = function() {
-		var res;
+	openXml.OpenXmlPart.prototype.getRels = function() {
+		var relsPackage = new Rels(null, this);
 		var relsPart = getRelsPartOfPart(this);
 		if(relsPart) {
-			var relsPackage = new Rels(null, this);
-			new SaxParserBase().parse(relsPart.data.sync("string"), relsPackage);
-			res = relsPackage.rels;
+			new SaxParserBase().parse(relsPart.getDocumentContent(), relsPackage);
 		}
-		return res || [];
+		return relsPackage;
+	}
+	openXml.OpenXmlPart.prototype.getRelationships = function() {
+		return this.getRels().rels;
 	}
 
 	openXml.OpenXmlPart.prototype.getRelationship = function(rId) {
@@ -566,6 +525,22 @@
 
 		this.targetFullName = workingCurrentPath + workingTarget;
 	}
+	openXml.OpenXmlRelationship.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (this.relationshipId) {
+			writer.WriteXmlAttributeStringEncode("Id", this.relationshipId);
+		}
+		if (this.relationshipType) {
+			writer.WriteXmlAttributeString("Type", this.relationshipType);
+		}
+		if (this.target) {
+			writer.WriteXmlAttributeStringEncode("Target", this.target);
+		}
+		if (this.targetMode) {
+			writer.WriteXmlAttributeString("TargetMode", this.targetMode);
+		}
+		writer.WriteXmlNodeEnd(name, true, true);
+	};
 
 	/******************************** OpenXmlRelationship ********************************/
 
