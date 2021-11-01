@@ -2934,6 +2934,12 @@ function CApplicationFonts()
     this.CheckNamesForInterface = function(language)
     {
         var lang = language.toLowerCase();
+        var indexSubLang = lang.indexOf("-");
+        if (-1 == indexSubLang)
+            indexSubLang = lang.indexOf("_");
+        if (-1 != indexSubLang)
+            lang = lang.substr(0, indexSubLang);
+
         var isEA = false;
         switch (lang)
         {
