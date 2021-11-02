@@ -4269,12 +4269,14 @@ LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
 };
 
 LaTeXStringParser.prototype.addFrac = function(FormArgument) {
+    //pr.Type
     var frac = FormArgument.Add_Fraction(this.Pr, null, null);
     LaTeXStringLexer(this, frac.getNumeratorMathContent());
     LaTeXStringLexer(this, frac.getDenominatorMathContent());
 };
 
 LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
+    //pr.Type
     var oBox = new CBox(this.Pr);
     FormArgument.Add_Element(oBox);
 
@@ -4507,7 +4509,12 @@ LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
 };
 
 LaTeXStringParser.prototype.addBracetBlock = function(FormArgument, bracet) {
-    //todo: does not work if the closing and opening parentheses same \\| = \\|
+    /**
+        todo: does not work if the closing and opening parentheses same \\| = \\|
+        todo: implement manual sizing
+        todo: implement \\left \\right \\middle  -  \\left( 1 \\middle| 5 \\right) = (1|5)
+                                                -  \\left. 1 \\right|             =   1|
+    */
     var intIndexOfCloseBracet = this.checkExistanceOfCloseBracet(this.futureAtom(-1));
     var strOpenBracet = this.futureAtom(-1);
     var strExit;
@@ -4516,7 +4523,7 @@ LaTeXStringParser.prototype.addBracetBlock = function(FormArgument, bracet) {
     strOpenBracet = this.bracetCode.get(strOpenBracet);
     strCloseBracet = this.bracetCode.get(strCloseBracet);
     
-    console.log(intIndexOfCloseBracet, strOpenBracet, strCloseBracet);
+    //console.log(intIndexOfCloseBracet, strOpenBracet, strCloseBracet);
     if (intIndexOfCloseBracet) {
         var one = FormArgument.Add_DelimiterEx(this.Pr.ctrPrp, 1,[null], strOpenBracet, strCloseBracet);
         LaTeXStringLexer(this, one.getElementMathContent(0), strExit);
@@ -4524,6 +4531,45 @@ LaTeXStringParser.prototype.addBracetBlock = function(FormArgument, bracet) {
     } 
     return false;
 };
+
+LaTeXStringParser.prototype.addMatrix = function(FormArgument) {
+    var intColsCount = 1;
+    var intRowsCount = 1; 
+
+    var strTempArr;
+    var index = 0;
+
+    do {
+        strTempArr = this.futureAtom(index);
+        if(strTempArr == '&' && intRowsCount == 1) intColsCount++; 
+        if(strTempArr == '\\') intRowsCount++; 
+        index++;
+    } while (strTempArr!='\\end');
+
+    console.log(intColsCount, intRowsCount)
+
+    var Pr =
+    {
+        ctrPrp  : this.Pr.ctrPr,
+        row     : intRowsCount,
+        mcs     : [{count : intColsCount, mcJc : 0}], //todo mcJc  0 = center;
+        plcHide : false
+    };
+
+    var Matrix = new CMathMatrix(Pr);
+    FormArgument.Add_Element(Matrix);
+
+    for (var RowIndex = 0; RowIndex < intRowsCount; RowIndex++)
+    {
+        for (var ColIndex = 0; ColIndex < intColsCount; ColIndex++)
+        {
+            var MathContent = Matrix.getContentElement(RowIndex, ColIndex);
+            LaTeXStringLexer(this, MathContent, ['&', '\\', '\\end']);
+        }
+    }
+
+    this.countP(3);
+}
 
 LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThatSymbol, now) {
     var intPatternIndex = 0;
@@ -4560,6 +4606,22 @@ LaTeXStringParser.prototype.syntaxChecker = function(strPattern, afterAllNotThat
   return isCorrect;
 };
 
+LaTeXStringParser.prototype.countP = function(intCount) {
+    for (var index = 1; index<=intCount; index++) {
+        this.next();
+    }
+}
+
+LaTeXStringParser.prototype.elementChecker = function(strPattern, now, countOfPostParse) {
+    var arrOfData = this.arrAtomsOfFormula;
+    var intIndexData = now ? this.indexOfAtom - 1 : this.indexOfAtom;
+    for(var index = 0; index < strPattern.length; index++, intIndexData++) {
+        if (strPattern[index] != arrOfData[intIndexData])  return false;
+    }
+    if (countOfPostParse) this.countP(countOfPostParse);
+    return true;
+}
+
 LaTeXStringParser.prototype.checkExistanceOfCloseBracet = function(strSymbol) {
     var closeBracet = this.closeBracet.get(strSymbol);
     var intPatternIndex = 1;
@@ -4578,12 +4640,14 @@ LaTeXStringParser.prototype.checkExistanceOfCloseBracet = function(strSymbol) {
 
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     //todo: update parser (y_0y_1y_2y_3y_4)
+    //todo: implement |_0^1
     var intFAtoms = 0;
     var strFAtom = 0;
     do {
         strFAtom = Parser.next(); 
 
         if (exitIfSee && typeof exitIfSee != 'number' && strFAtom == exitIfSee) return;
+        else if (exitIfSee && Array.isArray(exitIfSee) && exitIfSee.includes(strFAtom)) return;
         else if (!exitIfSee) {
             if (strFAtom == '}' || strFAtom == ']') return;
         }
@@ -4600,8 +4664,9 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (Parser.isIntegral.get(strFAtom))                                   Parser.addInt(FormArgument), intFAtoms++;
         else if (Parser.checkIsAccent(strFAtom))                                    Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.syntaxChecker(['^', 1, '/', '_', 1], null, true))           Parser.addInlineFraction(FormArgument), intFAtoms++;
+        else if (Parser.elementChecker(['\\begin', '{', 'matrix', '}'], true, 3))   Parser.addMatrix(FormArgument), intFAtoms++;    
         else if (Parser.isDegreeAndIndexForLexer())                                 Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
-        else if (strFAtom != '{')                                                   Parser.addText(strFAtom, FormArgument), intFAtoms++;
+        else if (strFAtom != '{' && strFAtom != 'matrix')                                                   Parser.addText(strFAtom, FormArgument), intFAtoms++;
         
         if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
