@@ -248,7 +248,14 @@ var c_oAscSlideBgBwModeType = {
 	LtGray:     9,
 	White:      10
 };
-
+/** @enum {number} */
+var c_oAscSlideChartSubElementType = {
+	Category:     0,
+	GridLegend:   1,
+	PtInCategory: 2,
+	PtInSeries:   3,
+	Series:       4
+};
 /** @enum {number} */
 var c_oAscSlideAnimDgmBuildType = {
 	AllAtOnce:  0,
@@ -257,6 +264,142 @@ var c_oAscSlideAnimDgmBuildType = {
 	one:        3
 };
 
+/** @enum {number} */
+var c_oAscSlideRuntimeTriggerType = {
+	All:   0,
+	First: 1,
+	Last:  2
+};
+/** @enum {number} */
+var c_oAscSlideTriggerEventType = {
+	Begin:       0,
+	End:         1,
+	OnBegin:     2,
+	OnClick:     3,
+	OnDblClick:  4,
+	OnEnd:       5,
+	OnMouseOut:  6,
+	OnMouseOver: 7,
+	OnNext:      8,
+	OnPrev:      9,
+	OnStopAudio: 10
+};
+/** @enum {number} */
+var c_oAscSlideNodeFillType = {
+	Freeze:     0,
+	Hold:       1,
+	Remove:     2,
+	Transition: 3
+};
+/** @enum {number} */
+var c_oAscSlideMasterRelationType = {
+	LastClick: 0,
+	NextClick: 1,
+	SameClick: 2
+};
+/** @enum {number} */
+var c_oAscSlideNodeType = {
+	AfterEffect:     0,
+	AfterGroup:      1,
+	ClickEffect:     2,
+	ClickPar:        3,
+	InteractiveSeq:  4,
+	MainSeq:         5,
+	TmRoot:          6,
+	WithEffect:      7,
+	WithGroup:       8
+};
+/** @enum {number} */
+var c_oAscSlidePresetClassType = {
+	Emph:      0,
+	Entr:      1,
+	Exit:      2,
+	Mediacall: 3,
+	Path:      4,
+	Verb:      5
+};
+/** @enum {number} */
+var c_oAscSlideRestartType = {
+	Always:        0,
+	Never:         1,
+	WhenNotActive: 2
+};
+/** @enum {number} */
+var c_oAscSlideSyncBehaviorType = {
+	CanSlip: 0,
+	Locked:  1
+};
+/** @enum {number} */
+var c_oAscSlidePrevAcType = {
+	None:      0,
+	SkipTimed: 1
+};
+/** @enum {number} */
+var c_oAscSlideNextAcType = {
+	None: 0,
+	Seek: 1
+};
+/** @enum {number} */
+var c_oAscSlideCalcModeType = {
+	Discrete: 0,
+	Lin:      1,
+	Fmla:     2
+};
+/** @enum {number} */
+var c_oAscSlideTLValueType = {
+	Num: 0,
+	Clr: 1,
+	Str: 2
+};
+/** @enum {number} */
+var c_oAscSlideTLAccumulateType = {
+	Always: 0,
+	None:   1
+};
+/** @enum {number} */
+var c_oAscSlideTLAdditiveType = {
+	Base: 0,
+	Mult: 1,
+	None: 2,
+	Repl: 3,
+	Sum:  4
+};
+/** @enum {number} */
+var c_oAscSlideTLOverrideType = {
+	ChildStyle: 0,
+	Normal:     1
+};
+/** @enum {number} */
+var c_oAscSlideTLTransformType = {
+	Img: 0,
+	Pt:  1
+};
+/** @enum {number} */
+var c_oAscSlideTLColorSpaceType = {
+	Rgb: 0,
+	Hsl: 1
+};
+/** @enum {number} */
+var c_oAscSlideTLColorDirection = {
+	Ccw: 0,
+	Cw:  1
+};
+/** @enum {number} */
+var c_oAscSlideTLOriginType = {
+	Parent: 0,
+	Layout: 1
+};
+/** @enum {number} */
+var c_oAscSlideTLPathEditMode = {
+	Fixed:    0,
+	Relative: 1
+};
+/** @enum {number} */
+var c_oAscSlideTLCommandType = {
+	Call: 0,
+	Evt:  1,
+	Verb: 2
+};
 /** @enum {number} */
 var c_oAscSlideAnimChartBuildType = {
 	AllAtOnce:  0,
