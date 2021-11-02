@@ -1213,7 +1213,7 @@ background-repeat: no-repeat;\
                                     <div id=\"id_main_view\" class=\"block_elem\" style=\"touch-action:none;overflow:hidden\">\
                                         <canvas id=\"id_viewer\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:1\"></canvas>\
 									    <canvas id=\"id_viewer_overlay\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; z-index:2\"></canvas>\
-									    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;z-index:4;\"></canvas>\
+									    <div id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;z-index:4;\"></div>\
                                     </div>\
 								</div>\
 									<div id=\"id_panel_right\" class=\"block_elem\" style=\"touch-action:none;margin-right:1px;background-color:" + AscCommon.GlobalSkin.ScrollBackgroundColor + ";\">\
@@ -11500,14 +11500,16 @@ background-repeat: no-repeat;\
 	};
     asc_docs_api.prototype.getPageBackgroundColor = function()
     {
+    	// TODO: get color from theme
 		if (this.isDarkMode)
-			return [0x55, 0x55, 0x55];
+			return [0x3A, 0x3A, 0x3A];
 		return [0xFF, 0xFF, 0xFF];
     };
 	asc_docs_api.prototype.getPageStrokeColor = function()
 	{
+		// TODO: get color from theme
 		if (this.isDarkMode)
-			return "#8C8C8C";
+			return "#2A2A2A";
 		return GlobalSkin.PageOutline;
 	};
 

@@ -842,15 +842,16 @@ function CDrawingDocument()
 		if (AscCommon.g_inputContext)
 			AscCommon.g_inputContext.move(this.TargetHtmlElementLeft, this.TargetHtmlElementTop);
 	};
-	this.GetTargetStyle           = function(isFocusOnSlide)
+	this.GetTargetColor = function(isFocusOnSlide)
 	{
 		if (false !== isFocusOnSlide)
-			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
+			return this.TargetCursorColor;
 
 		// check dark theme
 		if (AscCommon.GlobalSkin.Type !== "dark" || (this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10))
-			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
-		return "rgb(" + (255 - this.TargetCursorColor.R) + "," + (255 - this.TargetCursorColor.G) + "," + (255 - this.TargetCursorColor.B) + ")";
+			return this.TargetCursorColor.R;
+
+		return { R : 255 - this.TargetCursorColor.R, G : 255 - this.TargetCursorColor.G, B : 255 - this.TargetCursorColor.B };
 	};
 
 	this.Start_CollaborationEditing = function()
@@ -1745,102 +1746,38 @@ function CDrawingDocument()
 			AscCommon.g_inputContext.TargetOffsetY = (this.m_oWordControl.m_oNotesContainer.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix) >> 0;
 		}
 
-		var _oldW = this.TargetHtmlElement.width;
-		var _oldH = this.TargetHtmlElement.height;
-
 		var targetZoom = isFocusOnSlide ? this.m_oWordControl.m_nZoomValue : 100;
 
-		var _newW = 2;
-		var _newH = (this.m_dTargetSize * targetZoom * g_dKoef_mm_to_pix / 100) >> 0;
+		var oldW = this.TargetHtmlElement.width;
+		var oldH = this.TargetHtmlElement.height;
 
-		if (null != this.TextMatrix && !global_MatrixTransformer.IsIdentity2(this.TextMatrix))
+		var newW = 2;
+		var newH = (this.m_dTargetSize * targetZoom * g_dKoef_mm_to_pix / 100) >> 0;
+
+		this.TargetHtmlElement.style.transformOrigin = "top left";
+
+		if (oldW !== newW || oldH !== newH)
 		{
-			var _x1 = this.TextMatrix.TransformPointX(x, y);
-			var _y1 = this.TextMatrix.TransformPointY(x, y);
+			var pixNewW = ((newW * AscCommon.AscBrowser.retinaPixelRatio) >> 0) / AscCommon.AscBrowser.retinaPixelRatio;
 
-			var _x2 = this.TextMatrix.TransformPointX(x, y + this.m_dTargetSize);
-			var _y2 = this.TextMatrix.TransformPointY(x, y + this.m_dTargetSize);
-
-			var pos1 = this.ConvertCoordsToCursor(_x1, _y1);
-			var pos2 = this.ConvertCoordsToCursor(_x2, _y2);
-
-			_newW = (Math.abs(pos1.X - pos2.X) >> 0) + 1;
-			_newH = (Math.abs(pos1.Y - pos2.Y) >> 0) + 1;
-
-			if (2 > _newW)
-				_newW = 2;
-			if (2 > _newH)
-				_newH = 2;
-
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				if (_newW != 2 && _newH != 2)
-				{
-					// просто очищаем
-					this.TargetHtmlElement.width = _newW;
-				}
-			}
-			else
-			{
-				this.TargetHtmlElement.style.width  = _newW + "px";
-				this.TargetHtmlElement.style.height = _newH + "px";
-
-				this.TargetHtmlElement.width  = _newW;
-				this.TargetHtmlElement.height = _newH;
-			}
-			var ctx = this.TargetHtmlElement.getContext('2d');
-
-			if (_newW == 2 || _newH == 2)
-			{
-				ctx.fillStyle = this.GetTargetStyle(isFocusOnSlide);
-				ctx.fillRect(0, 0, _newW, _newH);
-			}
-			else
-			{
-				ctx.beginPath();
-				ctx.strokeStyle = this.GetTargetStyle(isFocusOnSlide);
-				ctx.lineWidth   = 2;
-
-				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
-				{
-					ctx.moveTo(0, 0);
-					ctx.lineTo(_newW, _newH);
-				}
-				else
-				{
-					ctx.moveTo(0, _newH);
-					ctx.lineTo(_newW, 0);
-				}
-
-				ctx.stroke();
-			}
-
-			this.TargetHtmlElementLeft        = Math.min(pos1.X, pos2.X) >> 0;
-			this.TargetHtmlElementTop         = Math.min(pos1.Y, pos2.Y) >> 0;
-			this.TargetHtmlElement.style.left = this.TargetHtmlElementLeft + "px";
-			this.TargetHtmlElement.style.top  = this.TargetHtmlElementTop + "px";
+			this.TargetHtmlElement.style.width = pixNewW + "px";
+			this.TargetHtmlElement.style.height = newH + "px";
+			this.TargetHtmlElement.oldColor = null;
 		}
-		else
+
+		var oldColor = this.TargetHtmlElement.oldColor;
+		var newColor = this.GetTargetColor(isFocusOnSlide);
+		if (!oldColor ||
+			oldColor.R !== newColor.R ||
+			oldColor.G !== newColor.G ||
+			oldColor.B !== newColor.B)
 		{
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				// просто очищаем
-				this.TargetHtmlElement.width = _newW;
-			}
-			else
-			{
-				this.TargetHtmlElement.style.width  = _newW + "px";
-				this.TargetHtmlElement.style.height = _newH + "px";
+			this.TargetHtmlElement.style.backgroundColor = "rgb(" + newColor.R + "," + newColor.G + "," + newColor.B + ")";
+			this.TargetHtmlElement.oldColor = { R : newColor.R, G : newColor.G, B : newColor.B };
+		}
 
-				this.TargetHtmlElement.width  = _newW;
-				this.TargetHtmlElement.height = _newH;
-			}
-
-			var ctx = this.TargetHtmlElement.getContext('2d');
-
-			ctx.fillStyle = this.GetTargetStyle(isFocusOnSlide);
-			ctx.fillRect(0, 0, _newW, _newH);
-
+		if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity2(this.TextMatrix))
+		{
 			if (null != this.TextMatrix)
 			{
 				x += this.TextMatrix.tx;
@@ -1855,10 +1792,47 @@ function CDrawingDocument()
 				pos.Y = y * g_dKoef_mm_to_pix - this.m_oWordControl.m_oNotesApi.Scroll;
 			}
 
-			this.TargetHtmlElementLeft        = pos.X >> 0;
-			this.TargetHtmlElementTop         = pos.Y >> 0;
-			this.TargetHtmlElement.style.left = this.TargetHtmlElementLeft + "px";
-			this.TargetHtmlElement.style.top  = this.TargetHtmlElementTop + "px";
+			this.TargetHtmlElementLeft = pos.X >> 0;
+			this.TargetHtmlElementTop = pos.Y >> 0;
+
+			this.TargetHtmlElement.style["transform"] = "";
+			this.TargetHtmlElement.style["msTransform"] = "";
+			this.TargetHtmlElement.style["mozTransform"] = "";
+			this.TargetHtmlElement.style["webkitTransform"] = "";
+
+			if ((!this.m_oWordControl.MobileTouchManager && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit)
+			{
+				this.TargetHtmlElement.style.left = this.TargetHtmlElementLeft + "px";
+				this.TargetHtmlElement.style.top = this.TargetHtmlElementTop + "px";
+			}
+			else
+			{
+				this.TargetHtmlElement.style.left = "0px";
+				this.TargetHtmlElement.style.top = "0px";
+				this.TargetHtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + oThis.TargetHtmlElementLeft + "," + oThis.TargetHtmlElementTop + ")";
+			}
+		}
+		else
+		{
+			var x1 = this.TextMatrix.TransformPointX(x, y);
+			var y1 = this.TextMatrix.TransformPointY(x, y);
+
+			var pos1 = this.ConvertCoordsToCursor(x1, y1);
+			pos1.X -= (newW / 2);
+
+			this.TargetHtmlElementLeft = pos1.X >> 0;
+			this.TargetHtmlElementTop = pos1.Y >> 0;
+
+			var transform = "matrix(" + this.TextMatrix.sx + ", " + this.TextMatrix.shy + ", " + this.TextMatrix.shx + ", " +
+				this.TextMatrix.sy + ", " + pos1.X + ", " + pos1.Y + ")";
+
+			this.TargetHtmlElement.style.left = "0px";
+			this.TargetHtmlElement.style.top = "0px";
+
+			this.TargetHtmlElement.style["transform"] = transform;
+			this.TargetHtmlElement.style["msTransform"] = transform;
+			this.TargetHtmlElement.style["mozTransform"] = transform;
+			this.TargetHtmlElement.style["webkitTransform"] = transform;
 		}
 
 		this.MoveTargetInInputContext();
