@@ -368,6 +368,21 @@
 		}
 		return Promise.reject();
 	};
+	JSZipWrapper.prototype.create = function() {
+		return window.nativeZlibEngine.create();
+	};
+	JSZipWrapper.prototype.save = function() {
+		return window.nativeZlibEngine.save();
+	};
+	JSZipWrapper.prototype.getFile = function() {
+		return window.nativeZlibEngine.getFile.apply(window.nativeZlibEngine, arguments);
+	};
+	JSZipWrapper.prototype.addFile = function() {
+		return window.nativeZlibEngine.addFile.apply(window.nativeZlibEngine, arguments);
+	};
+	JSZipWrapper.prototype.removeFile = function() {
+		return window.nativeZlibEngine.removeFile.apply(window.nativeZlibEngine, arguments);
+	};
 	JSZipWrapper.prototype.close = function() {
 		if (window.nativeZlibEngine) {
 			window.nativeZlibEngine.close();

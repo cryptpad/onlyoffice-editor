@@ -520,6 +520,10 @@
 				res[i] = this.data[i];
 			return res;
 		}
+		this.GetDataUint8   = function()
+		{
+			return this.data.subarray(0, this.GetCurPosition());
+		}
 		this.GetCurPosition     = function()
 		{
 			return this.pos;

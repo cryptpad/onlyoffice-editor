@@ -1159,6 +1159,23 @@ var editor;
       oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
       dataContainer.data = last.data;
     } else {
+		var memory = new AscCommon.CMemory();
+		var jsZipWrapper = new AscCommon.JSZipWrapper();
+		if (jsZipWrapper.create()) {
+			var doc = new AscCommon.openXml.OpenXmlPackage(jsZipWrapper, memory);
+			doc.addPart('qwe.xml', AscCommon.openXml.contentTypes.relationships, new Uint8Array([255,255,255,255,40,92,143,2]), 'qwe.xml', AscCommon.openXml.relationshipTypes.relationships );
+			var data = jsZipWrapper.save();
+
+			var blob = new Blob([data], {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+			var link = document.createElement("a");
+			link.href = window.URL.createObjectURL(blob);
+			link.download = this.documentTitle;
+			link.click();
+
+		}
+		jsZipWrapper.close();
+		return;
+
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
       if (c_oAscFileType.CSV === fileType) {
         if (options.advancedOptions instanceof asc.asc_CTextOptions) {
@@ -1411,7 +1428,7 @@ var editor;
 			return false;
 		}
 		xmlParserContext.zip = jsZipWrapper;
-		var doc = new openXml.OpenXmlPackage(jsZipWrapper);
+		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
 		wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
 		var contentWorkbook = wbPart.getDocumentContent();
 		AscCommonExcel.executeInR1C1Mode(false, function() {

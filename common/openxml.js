@@ -130,14 +130,40 @@
 		}
 		return this;
 	};
+	ContentTypes.prototype.toXml = function(writer) {
+		writer.Seek(0);
+		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+		writer.WriteXmlNodeStart("Types");
+		writer.WriteXmlString(" xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"");
+		writer.WriteXmlNodeEnd("Types", true);
+		for (var ext in this.Defaults) {
+			if (this.Defaults.hasOwnProperty(ext)) {
+				writer.WriteXmlNodeStart("Default");
+				writer.WriteXmlAttributeStringEncode("Extension", ext);
+				writer.WriteXmlAttributeStringEncode("ContentType", this.Defaults[ext]);
+				writer.WriteXmlNodeEnd("Default", true, true);
+			}
+		}
+		for (var partName in this.Overrides) {
+			if (this.Overrides.hasOwnProperty(partName)) {
+				writer.WriteXmlNodeStart("Override");
+				writer.WriteXmlAttributeStringEncode("PartName", partName);
+				writer.WriteXmlAttributeStringEncode("ContentType", this.Overrides[partName]);
+				writer.WriteXmlNodeEnd("Override", true, true);
+			}
+		}
+		writer.WriteXmlNodeEnd("Types");
+		return writer.GetDataUint8();
+	};
 	ContentTypes.prototype.add = function(partName, contentType) {
+		var exti = partName.lastIndexOf(".");
+		var ext = partName.substring(exti + 1);
+		var res = !(this.Overrides[partName] || this.Defaults[ext]);
 		if (contentType) {
 			this.Overrides[partName] = contentType;
 		}
-		var exti = partName.lastIndexOf(".");
-		var ext = partName.substring(exti + 1);
 		this.Defaults[ext] = "application/xml";//todo mime type
-		return this;
+		return res;
 	};
 	function Rels(pkg, part){
 		this.pkg = pkg;
@@ -165,16 +191,16 @@
 		return this;
 	};
 	Rels.prototype.toXml = function(writer) {
+		writer.Seek(0);
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("Relationships");
-		writer.WriteXmlString(
-			" xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"");
+		writer.WriteXmlString(" xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"");
 		writer.WriteXmlNodeEnd("Relationships", true);
 		this.rels.forEach(function(elem){
 			elem.toXml(writer, "Relationship");
 		});
 		writer.WriteXmlNodeEnd("Relationships");
-
+		return writer.GetDataUint8();
 	};
 	Rels.prototype.getNextRId = function() {
 		return "rId" + (this.nextRId++);
@@ -184,10 +210,9 @@
 	/******************************** OpenXmlPackage ********************************/
 	function openFromZip(zip, pkg) {
 		var ctf = zip.files["[Content_Types].xml"];
-		if (!ctf) {
-			throw "Invalid Open XML document: no [Content_Types].xml";
+		if (ctf) {
+			new SaxParserBase().parse(ctf.sync("string"), pkg.cntTypes);
 		}
-		new SaxParserBase().parse(ctf.sync("string"), pkg.cntTypes);
 		for (var f in zip.files) {
 			if (zip.files.hasOwnProperty(f)) {
 				if (!f.endsWith("/")) {
@@ -209,55 +234,39 @@
 		this.parts = {};
 		this.cntTypes = new ContentTypes();
 
-		this.openFromZip(this.zip);
+		openFromZip(this.zip, this);
 	}
 
-	openXml.OpenXmlPackage.prototype.openFromZip = function(documentToOpen) {
-		return openFromZip(documentToOpen, this);
-	}
-
-	openXml.OpenXmlPackage.prototype.addPart = function (uri, target, contentType, relationshipType, data) {
-		//add part
-		var newPart = new openXml.OpenXmlPart(this, uri, contentType, data);
-		this.zip.addFile(newPart.getUriRelative(), data);
-		this.parts[uri] = newPart;
-		//update rels
-		if (relationshipType && target) {
-			this.addRelationship(relationshipType, target);
+	openXml.OpenXmlPackage.prototype.removePart = function (uri) {
+		var removePart = this.parts[uri];
+		if(removePart) {
+			delete this.parts[uri];
+			this.zip.removeFile(removePart.getUriRelative());
 		}
+		return removePart;
+	}
+	openXml.OpenXmlPackage.prototype.addPartWithoutRels = function (uri, contentType, data) {
+		//add part
+		var newPart = new openXml.OpenXmlPart(this, uri, contentType);
+		this.parts[uri] = newPart;
+		//zip
+		this.zip.addFile(newPart.getUriRelative(), data);
 		// update [Content_Types].xml
-		this.cntTypes.add(uri, contentType);
+		var changed = this.cntTypes.add(uri, contentType);
+		if(changed) {
+			this.zip.removeFile("[Content_Types].xml");
+			this.zip.addFile("[Content_Types].xml", this.cntTypes.toXml(this.xmlWriter));
+		}
+		return newPart;
+	}
+	openXml.OpenXmlPackage.prototype.addPart = function (uri, contentType, data, target, relationshipType) {
+		var newPart = this.addPartWithoutRels(uri, contentType, data);
+		//update rels
+		this.addRelationship(relationshipType, target);
 		return newPart;
 	}
 	openXml.OpenXmlPackage.prototype.addRelationship = function (relationshipType, target, targetMode) {
-		var rels = this.getRels();
-		var rId = rels.getNextRId();
-		var newRel = new openXml.OpenXmlRelationship(this.pkg, this.part, rId, relationshipType, target, targetMode);
-		rels.rels.push(newRel);
-		this.addPart("/_rels/.rels", null, null, null, rels.toXml(this.xmlWriter));
-	}
-
-	openXml.OpenXmlPackage.prototype.getRels = function() {
-		var relsPackage = new Rels(this, null);
-		var relsPart = this.getPartByUri("/_rels/.rels");
-		if (relsPart) {
-			new SaxParserBase().parse(relsPart.getDocumentContent(), relsPackage);
-		}
-		return relsPackage;
-	}
-	openXml.OpenXmlPackage.prototype.getRelationships = function() {
-		return this.getRels().rels;
-	}
-
-	openXml.OpenXmlPackage.prototype.getRelationship = function(rId) {
-		var rels = this.getRelationships();
-		for (var i = 0; i < rels.length; ++i) {
-			var rel = rels[i];
-			if (rel.relationshipId === rId) {
-				return rel;
-			}
-		}
-		return rel;
+		return this.getRootPart().addRelationship(relationshipType, target, targetMode);
 	}
 
 	openXml.OpenXmlPackage.prototype.getParts = function() {
@@ -270,55 +279,46 @@
 		return parts;
 	}
 
+	openXml.OpenXmlPackage.prototype.getRootPart = function() {
+		return new openXml.OpenXmlPart(this, "/", openXml.contentTypes.relationships);
+	}
+	openXml.OpenXmlPackage.prototype.getRels = function() {
+		return this.getRootPart().getRels();
+	}
+	openXml.OpenXmlPackage.prototype.getRelationships = function() {
+		return this.getRootPart().getRelationships();
+	}
+
+	openXml.OpenXmlPackage.prototype.getRelationship = function(rId) {
+		return this.getRootPart().getRelationship(rId);
+	}
+
 	openXml.OpenXmlPackage.prototype.getRelationshipsByRelationshipType = function(relationshipType) {
-		var rels = this.getRelationships();
-		return rels.filter(function (rel) {
-			return rel.relationshipType === relationshipType;
-		});
+		return this.getRootPart().getRelationshipsByRelationshipType(relationshipType);
 	}
 
 	openXml.OpenXmlPackage.prototype.getPartsByRelationshipType = function(relationshipType) {
-		var rels = this.getRelationshipsByRelationshipType(relationshipType);
-		var parts = [];
-		for (var i = 0; i < rels.length; ++i) {
-			var part = this.getPartByUri(rels[i].targetFullName);
-			parts.push(part);
-		}
-		return parts;
+		return this.getRootPart().getPartsByRelationshipType(relationshipType);
 	}
 
 	openXml.OpenXmlPackage.prototype.getPartByRelationshipType = function(relationshipType) {
-		var parts = this.getPartsByRelationshipType(relationshipType);
-		if (parts.length < 1) {
-			return null;
-		}
-		return parts[0];
+		return this.getRootPart().getPartByRelationshipType(relationshipType);
 	}
 
 	openXml.OpenXmlPackage.prototype.getRelationshipsByContentType = function(contentType) {
-		var rels = this.getRelationships();
-		return rels.filter(function (rel) {
-			return this.getContentType(rel.targetFullName) === contentType;
-		});
+		return this.getRootPart().getRelationshipsByContentType(contentType);
 	}
 
 	openXml.OpenXmlPackage.prototype.getPartsByContentType = function(contentType) {
-		var rels = this.getRelationshipsByContentType(contentType);
-		var parts = [];
-		for (var i = 0; i < rels.length; ++i) {
-			var part = this.getPartByUri(rels[i].targetFullName);
-			parts.push(part);
-		}
-		return parts;
+		return this.getRootPart().getPartsByContentType(contentType);
 	};
 
 	openXml.OpenXmlPackage.prototype.getRelationshipById = function(rId) {
-		return this.getRelationship(rId);
+		return this.getRootPart().getRelationshipById(contentType);
 	}
 
 	openXml.OpenXmlPackage.prototype.getPartById = function(rId) {
-		var rel = this.getRelationship(rId);
-		return rel ? this.getPartByUri(rel.targetFullName) : null;
+		return this.getRootPart().getPartById(rId);
 	}
 
 	openXml.OpenXmlPackage.prototype.getPartByUri = function(uri) {
@@ -355,6 +355,22 @@
 		}
 		return "";
 	};
+	openXml.OpenXmlPart.prototype.addPart = function (uri, contentType, data, relationshipType, target) {
+		var newPart = this.pkg.addPartWithoutRels(uri, contentType, data);
+		//update rels
+		this.pkg.addRelationship(relationshipType, target);
+		return newPart;
+	}
+	openXml.OpenXmlPart.prototype.addRelationship = function (relationshipType, target, targetMode) {
+		var relsFilename = getRelsPartUriOfPart(this);
+		var rels = this.getRels();
+		var rId = rels.getNextRId();
+		var newRel = new openXml.OpenXmlRelationship(rels.pkg, rels.part, rId, relationshipType, target, targetMode);
+		rels.rels.push(newRel);
+		this.pkg.removePart(relsFilename);
+		this.pkg.addPartWithoutRels(relsFilename, null, rels.toXml(this.pkg.xmlWriter));
+		return rId;
+	}
 
 	function getRelsPartUriOfPart(part) {
 		var uri = part.uri;
@@ -406,23 +422,17 @@
 		var parts = [];
 		var rels = this.getRelationships();
 		for (var i = 0; i < rels.length; ++i) {
-			if (rels[i].targetMode === "Internal") {
-				var part = this.pkg.getPartByUri(rels[i].targetFullName);
-				parts.push(part);
-			}
+			var part = this.pkg.getPartByUri(rels[i].targetFullName);
+			parts.push(part);
 		}
 		return parts;
 	}
 
 	openXml.OpenXmlPart.prototype.getRelationshipsByRelationshipType = function(relationshipType) {
-		var rels = [];
-		var allRels = this.getRelationships();
-		for (var i = 0; i < allRels.length; ++i) {
-			if (allRels[i].relationshipType === relationshipType) {
-				rels.push(allRels[i]);
-			}
-		}
-		return rels;
+		var rels = this.getRelationships();
+		return rels.filter(function (rel) {
+			return rel.relationshipType === relationshipType;
+		});
 	}
 
 	// returns all related parts of the source part with the given relationship type
@@ -445,17 +455,10 @@
 	}
 
 	openXml.OpenXmlPart.prototype.getRelationshipsByContentType = function(contentType) {
-		var rels = [];
-		var allRels = this.getRelationships();
-		for (var i = 0; i < allRels.length; ++i) {
-			if (allRels[i].targetMode === "Internal") {
-				var ct = this.pkg.getContentType(allRels[i].targetFullName);
-				if (ct === contentType) {
-					rels.push(allRels[i]);
-				}
-			}
-		}
-		return rels;
+		var rels = this.getRelationships();
+		return rels.filter(function (rel) {
+			return this.getContentType(rel.targetFullName) === contentType;
+		});
 	}
 
 	openXml.OpenXmlPart.prototype.getPartsByContentType = function(contentType) {
