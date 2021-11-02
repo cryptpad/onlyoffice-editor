@@ -4209,6 +4209,17 @@ LaTeXStringParser.prototype.isBrackets = function() {
     else return false; 
 };
 
+LaTeXStringParser.prototype.isMatrix = function() {
+    return (
+        this.elementChecker(['\\begin', '{', 'matrix',  '}'], true, 3) ||
+        this.elementChecker(['\\begin', '{', 'pmatrix', '}'], true, 3) ||
+        this.elementChecker(['\\begin', '{', 'bmatrix', '}'], true, 3) ||
+        this.elementChecker(['\\begin', '{', 'Bmatrix', '}'], true, 3) ||
+        this.elementChecker(['\\begin', '{', 'vmatrix', '}'], true, 3) ||
+        this.elementChecker(['\\begin', '{', 'Vmatrix', '}'], true, 3) 
+    )
+}
+
 LaTeXStringParser.prototype.bracetCode = new Map([
     ['(',             null],
     [')',             null],
@@ -4513,7 +4524,9 @@ LaTeXStringParser.prototype.addBracetBlock = function(FormArgument, bracet) {
         todo: does not work if the closing and opening parentheses same \\| = \\|
         todo: implement manual sizing
         todo: implement \\left \\right \\middle  -  \\left( 1 \\middle| 5 \\right) = (1|5)
-                                                -  \\left. 1 \\right|             =   1|
+                                                 -  \\left. 1 \\right|             =   1|
+        
+        https://ru.overleaf.com/learn/latex/Brackets_and_Parentheses
     */
     var intIndexOfCloseBracet = this.checkExistanceOfCloseBracet(this.futureAtom(-1));
     var strOpenBracet = this.futureAtom(-1);
@@ -4533,6 +4546,29 @@ LaTeXStringParser.prototype.addBracetBlock = function(FormArgument, bracet) {
 };
 
 LaTeXStringParser.prototype.addMatrix = function(FormArgument) {
+    //todo: align text inside matrix
+    var typeOfMatrix = this.futureAtom(-2);
+    if (typeOfMatrix == 'pmatrix') {
+        var Delimiter = FormArgument.Add_DelimiterEx(this.Pr.ctrPr, 1, [null], this.bracetCode.get('('), this.bracetCode.get(')'));
+        FormArgument = Delimiter.getElementMathContent(0);
+    }
+    else if (typeOfMatrix == 'bmatrix') {
+        var Delimiter = FormArgument.Add_DelimiterEx(this.Pr.ctrPr, 1, [null], this.bracetCode.get('['), this.bracetCode.get(']'));
+        FormArgument = Delimiter.getElementMathContent(0);
+    }
+    else if (typeOfMatrix == 'Bmatrix') {
+        var Delimiter = FormArgument.Add_DelimiterEx(this.Pr.ctrPr, 1, [null], this.bracetCode.get('{'), this.bracetCode.get('}'));
+        FormArgument = Delimiter.getElementMathContent(0);
+    }
+    else if (typeOfMatrix == 'vmatrix') {
+        var Delimiter = FormArgument.Add_DelimiterEx(this.Pr.ctrPr, 1, [null], this.bracetCode.get('|'), this.bracetCode.get('|'));
+        FormArgument = Delimiter.getElementMathContent(0);
+    }
+    else if (typeOfMatrix == 'Vmatrix') {
+        var Delimiter = FormArgument.Add_DelimiterEx(this.Pr.ctrPr, 1, [null], this.bracetCode.get('\\|'), this.bracetCode.get('\\|'));
+        FormArgument = Delimiter.getElementMathContent(0);
+    }
+
     var intColsCount = 1;
     var intRowsCount = 1; 
 
@@ -4567,7 +4603,6 @@ LaTeXStringParser.prototype.addMatrix = function(FormArgument) {
             LaTeXStringLexer(this, MathContent, ['&', '\\', '\\end']);
         }
     }
-
     this.countP(3);
 }
 
@@ -4638,9 +4673,15 @@ LaTeXStringParser.prototype.checkExistanceOfCloseBracet = function(strSymbol) {
     return false
 };
 
+/**
+ * @param Parser 
+ * @param FormArgument Функция в которую будет записываться контент. 
+ * @param exitIfSee Число элементов которые может обработать Lexer, или символ/массив символов при нахождении которых Lexer завершит работу. 
+ */
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     //todo: update parser (y_0y_1y_2y_3y_4)
     //todo: implement |_0^1
+    //todo: space in math - https://ru.overleaf.com/learn/latex/Spacing_in_math_mode
     var intFAtoms = 0;
     var strFAtom = 0;
     do {
@@ -4664,7 +4705,7 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (Parser.isIntegral.get(strFAtom))                                   Parser.addInt(FormArgument), intFAtoms++;
         else if (Parser.checkIsAccent(strFAtom))                                    Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.syntaxChecker(['^', 1, '/', '_', 1], null, true))           Parser.addInlineFraction(FormArgument), intFAtoms++;
-        else if (Parser.elementChecker(['\\begin', '{', 'matrix', '}'], true, 3))   Parser.addMatrix(FormArgument), intFAtoms++;    
+        else if (Parser.isMatrix())                                                 Parser.addMatrix(FormArgument), intFAtoms++;    
         else if (Parser.isDegreeAndIndexForLexer())                                 Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
         else if (strFAtom != '{' && strFAtom != 'matrix')                                                   Parser.addText(strFAtom, FormArgument), intFAtoms++;
         
