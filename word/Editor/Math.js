@@ -4074,11 +4074,16 @@ LaTeXStringParser.prototype.futureAtom = function(n) {
 
 LaTeXStringParser.prototype.startLexer = function(context, arrSymbol) {
     if (!arrSymbol) {
-        if (this.futureAtom() == '{') LaTeXStringLexer(this, context);
+        var strOpentBracet = this.futureAtom();
+        if (this.bracetCode.get(strOpentBracet)) LaTeXStringLexer(this, context, this.closeBracet.get(strOpentBracet));
         else LaTeXStringLexer(this, context, 1);    
     }   
     else if (Array.isArray(arrSymbol)) {
         if (arrSymbol.includes(this.futureAtom())) LaTeXStringLexer(this, context);
+        else LaTeXStringLexer(this, context, 1)
+    }
+    else if (arrSymbol) {
+        if (this.bracetCode.get(this.futureAtom()) !== undefined) LaTeXStringLexer(this, context);
         else LaTeXStringLexer(this, context, 1)
     }
 };
@@ -4138,12 +4143,12 @@ LaTeXStringParser.prototype.isFunc = new Map([
 ]);
 
 LaTeXStringParser.prototype.isIntegral = new Map([
-    ['\\int',    true],
-    ['\\oint',   true],
-    ['\\iint',   true],
-    ['\\oiint',  true],
-    ['\\iiint',  true],
-    ['\\oiiint', true]
+    ['\\int',    1],
+    ['\\oint',   1],
+    ['\\iint',   2],
+    ['\\oiint',  2],
+    ['\\iiint',  3],
+    ['\\oiiint', 3]
 ]);
     
 LaTeXStringParser.prototype.isTypeIntegral = new Map([
@@ -4275,15 +4280,14 @@ LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
     Limit.getFName().Add_Text(name, this.Paragraph, STY_PLAIN);
 
     if (this.futureAtom() == '\\limits') this.next(); // add variant with limits
-    if (this.next() == '_') this.startLexer( Limit.getIterator());
-    
+    if (this.futureAtom() == '_'){this.next(); this.startLexer(Limit.getIterator(), '}');}
 };
 
 LaTeXStringParser.prototype.addFrac = function(FormArgument) {
     //pr.Type
     var frac = FormArgument.Add_Fraction(this.Pr, null, null);
-    LaTeXStringLexer(this, frac.getNumeratorMathContent());
-    LaTeXStringLexer(this, frac.getDenominatorMathContent());
+    this.startLexer(frac.getNumeratorMathContent(), '}')
+    this.startLexer(frac.getDenominatorMathContent(), '}')
 };
 
 LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
@@ -4311,7 +4315,7 @@ LaTeXStringParser.prototype.addFunc = function(FormArgument, name) {
     else this.addFuncName(MathContent, name);
     
     MathContent = MathFunc.getArgument();
-    this.startLexer(MathContent, ['(', '{']);
+    this.startLexer(MathContent);
 };
 
 LaTeXStringParser.prototype.addFuncName = function(MathContent, name) {
@@ -4480,12 +4484,12 @@ LaTeXStringParser.prototype.addInt = function(FormArgument) {
         var createSupMathContent = function (context) {
             strTempAtom = context.next();
             if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSupMathContent());
-            else Integral.getSupMathContent().Add_Text(strTempAtom, context.Paragraph);
+            else context.addSymbol(strTempAtom, Integral.getSupMathContent());
         }
         var createSubMathContent = function (context) {
             strTempAtom = context.next();
             if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSubMathContent());
-            else Integral.getSubMathContent().Add_Text(strTempAtom, context.Paragraph);
+            else context.addSymbol(strTempAtom, Integral.getSubMathContent());
         }
         strTempAtom == '^' 
             ? (createSupMathContent(this), strTempAtom = this.next(), createSubMathContent(this)) 
@@ -4513,9 +4517,12 @@ LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
     if (strTempAtom == '^') {
         this.startLexer(Narny.getSupMathContent());
         strTempAtom = this.next()
+        if (strTempAtom == '_') this.startLexer(Narny.getSubMathContent());
+    } else if (strTempAtom == '_') {
+        this.startLexer(Narny.getSubMathContent());
+        strTempAtom = this.next()
+        if (strTempAtom == '^') this.startLexer(Narny.getSupMathContent());
     }
-
-    if (strTempAtom == '_') this.startLexer(Narny.getSubMathContent());
     this.startLexer(Narny.getBase(), ['{', '(']);
 };
 
@@ -4582,7 +4589,7 @@ LaTeXStringParser.prototype.addMatrix = function(FormArgument) {
         index++;
     } while (strTempArr!='\\end');
 
-    console.log(intColsCount, intRowsCount)
+    //console.log(intColsCount, intRowsCount)
 
     var Pr =
     {
@@ -4682,6 +4689,7 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     //todo: update parser (y_0y_1y_2y_3y_4)
     //todo: implement |_0^1
     //todo: space in math - https://ru.overleaf.com/learn/latex/Spacing_in_math_mode
+    //todo: bmod to func 
     var intFAtoms = 0;
     var strFAtom = 0;
     do {
@@ -4700,14 +4708,14 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\bmod')                                              Parser.addText( ' mod ', FormArgument), intFAtoms++;
         else if (strFAtom == '\\pmod')                                              Parser.addPMod(FormArgument), intFAtoms++;
         else if (strFAtom == '\\sqrt')                                              Parser.addSqrt(FormArgument), intFAtoms++;
-        else if (Parser.isBrackets())                                               { if (Parser.addBracetBlock(FormArgument, strFAtom)) {return} else intFAtoms++;}
         else if (Parser.isLOperator.get(strFAtom))                                  Parser.addLargeOperator(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.isIntegral.get(strFAtom))                                   Parser.addInt(FormArgument), intFAtoms++;
         else if (Parser.checkIsAccent(strFAtom))                                    Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.syntaxChecker(['^', 1, '/', '_', 1], null, true))           Parser.addInlineFraction(FormArgument), intFAtoms++;
-        else if (Parser.isMatrix())                                                 Parser.addMatrix(FormArgument), intFAtoms++;    
+        else if (Parser.isMatrix())                                                 Parser.addMatrix(FormArgument), intFAtoms++;   
+        else if (Parser.isBrackets())                                               Parser.addBracetBlock(FormArgument, strFAtom), intFAtoms++; 
         else if (Parser.isDegreeAndIndexForLexer())                                 Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
-        else if (strFAtom != '{' && strFAtom != 'matrix')                                                   Parser.addText(strFAtom, FormArgument), intFAtoms++;
+        else if (strFAtom != '{' && strFAtom != '}' && strFAtom != 'matrix')        Parser.addText(strFAtom, FormArgument), intFAtoms++;
         
         if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
