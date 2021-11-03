@@ -568,7 +568,7 @@ var editor;
 
 		if (window["AscDesktopEditor"]) {
 			// TODO: add translations
-			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*.txt *.csv);;Txt File (*.txt);;Csv File(*.csv);;All files (*.*)", false, function (_file) {
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("csv/txt", false, function (_file) {
 				var file = _file;
 				if (Array.isArray(file))
 					file = file[0];
