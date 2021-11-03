@@ -4849,15 +4849,6 @@
 				else if (repeatIndex <= 40) currentSpace = spaces[3];
 				sResult = String.fromCharCode(0x0E01 + repeatIndex + currentSpace).repeat(repeatAmount);
 				break;
-			case Asc.c_oAscNumberingFormat.VietnameseCounting:
-				digits = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười']; // TODO: repare
-				var conv = decimalNumberConversion(nValue, digits.length);
-				sResult = conv.map(function (num) {
-					return digits[num - 1];
-				}).join(' ');
-				break;
-			case Asc.c_oAscNumberingFormat.BahtText:
-				break;
 			case Asc.c_oAscNumberingFormat.CardinalText: {
 				function getCardinalTextFromValue(lang) {
 					var arrAnswer = [];
@@ -6371,8 +6362,6 @@
 			case Asc.c_oAscNumberingFormat.Custom:
 				sResult = '' + nValue;
 				break;
-			case Asc.c_oAscNumberingFormat.DollarText:
-				break;
 			case Asc.c_oAscNumberingFormat.Hebrew1: // todo: Считается неправильно, но в ворде так же (исправить, когда поправят в ворде)
 				var resArr = [];
 				var digits = {
@@ -6649,8 +6638,161 @@
 			case Asc.c_oAscNumberingFormat.HindiCounting:
 				break;
 			case Asc.c_oAscNumberingFormat.ThaiCounting: // todo: think about it
+				var digits = [
+						'หนึ่ง',
+						'สอง',
+						'สาม',
+						'สี่',
+						'ห้า',
+						'หก',
+						'เจ็ด',
+						'แปด',
+						'เก้า',
+						'สิบ'
+				]
+
+				function thaiCountingLess100(num, isInitialValueGreat100) {
+					var resArr = [];
+					if (num > 0 && num < 100) {
+						if (num <= 10) {
+							if (isInitialValueGreat100) {
+								if (num !== 1) {
+									resArr.push(digits[num - 1]);
+								} else {
+									resArr.push('เอ็ด');
+								}
+							} else {
+								resArr.push(digits[num - 1]);
+							}
+						} else {
+							var degree10 = Math.floor(num / 10);
+							var reminder10 = num % 10;
+
+							if (degree10 !== 1) {
+								if (degree10 === 2) {
+									resArr.push('ยี่');
+								} else {
+									resArr.push(digits[degree10 - 1]);
+								}
+							}
+							resArr.push(digits[9]);
+
+							if (reminder10) {
+								if (reminder10 !== 1) {
+									resArr.push(digits[reminder10 - 1]);
+								} else {
+									resArr.push('เอ็ด');
+								}
+							}
+						}
+					}
+					return resArr;
+				}
+
+				function thaiCounting(num) {
+					if (num >= 1_000_000_000) {
+						return ['ศูนย์'];
+					}
+					var resArr = [];
+					var groups = {};
+					groups[1_000_000] = Math.floor(num / 1_000_000);
+					num %= 1_000_000;
+					groups[100_000] = Math.floor(num / 100_000);
+					num %= 100_000;
+					groups[10_000] = Math.floor(num / 10_000);
+					num %= 10_000;
+					groups[1000] = Math.floor(num / 1000);
+					num %= 1000;
+					groups[100] = Math.floor(num / 100);
+					num %= 100;
+					groups[1] = num;
+
+					if (groups[1_000_000]) {
+						if (groups[1_000_000] >= 100) {
+							resArr = resArr.concat(thaiCounting(groups[1_000_000]));
+						} else {
+							resArr = resArr.concat(thaiCountingLess100(groups[1_000_000]));
+						}
+						resArr.push('ล้าน');
+					}
+					if (groups[100_000]) {
+						resArr = resArr.concat(thaiCountingLess100(groups[100_000]));
+						resArr.push('แสน');
+					}
+					if (groups[10_000]) {
+						resArr = resArr.concat(thaiCountingLess100(groups[10_000]));
+						resArr.push('หมื่น');
+					}
+					if (groups[1000]) {
+						resArr = resArr.concat(thaiCountingLess100(groups[1000]));
+						resArr.push('พัน');
+					}
+					if (groups[100]) {
+						resArr = resArr.concat(thaiCountingLess100(groups[100]));
+						resArr.push('ร้อย');
+					}
+					if (groups[1]) {
+						resArr = resArr.concat(thaiCountingLess100(groups[1], groups[100] || groups[1000] || groups[10000] || groups[100000] || groups[1000000]));
+					}
+					return resArr;
+				}
+				sResult = thaiCounting(nValue).join('');
 				break;
-			case Asc.c_oAscNumberingFormat.OrdinalText:
+			case Asc.c_oAscNumberingFormat.DollarText:
+				sResult += nValue;
+				break;
+			case Asc.c_oAscNumberingFormat.BahtText:
+				sResult += nValue;
+				break;
+			case Asc.c_oAscNumberingFormat.VietnameseCounting:
+				digits = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
+
+				var letterNumberLessThen100VI = function (num) {
+					var resArr = [];
+					 if (num > 0 && num < 100) {
+					 	if (num <= 10) {
+					 		resArr.push(digits[num - 1]);
+						} else {
+					 		var degree10 = Math.floor(num / 10);
+					 		var reminder = num % 10;
+					 		if (degree10 !== 1) {
+								resArr.push(digits[degree10 - 1]);
+							}
+							resArr.push('mười');
+					 		if (reminder) {
+					 			resArr.push(digits[reminder - 1]);
+							}
+						}
+					 }
+					return resArr;
+				}
+
+				var vietnameseCounting = function (num) { //fixme: Сделано, как в Word, правильный счет только до тысячи - дальше отсчет идет с 1
+					var adaptVal = (num - 1) % 1000 + 1;
+					var resArr = [];
+					var groups = {};
+					groups[1000] = Math.floor(adaptVal / 1000);
+					adaptVal %= 1000;
+					groups[100] = Math.floor(adaptVal / 100);
+					adaptVal %= 100;
+					groups[1] = adaptVal;
+
+					if (groups[1000]) {
+						resArr.push(digits[groups[1000] - 1], 'ngàn');
+					}
+					if (groups[100]) {
+						resArr.push(digits[groups[100] - 1], 'trăm');
+						if (groups[1] / 10 < 1 && groups[1] !== 0) {
+							resArr.push('lẻ');
+						}
+					}
+					if (groups[1]) {
+						resArr = resArr.concat(letterNumberLessThen100VI(groups[1]));
+					}
+					return resArr;
+				}
+
+				sResult = vietnameseCounting(nValue).join(' ');
 				break;
 		}
 
