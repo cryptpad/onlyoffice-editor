@@ -1495,6 +1495,33 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			}
 			case Asc.c_oAscNumberingFormat.ThaiCounting:
 			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3627);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3609);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3638);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3656);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3591);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3626);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3629);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3634);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3617);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3637);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3657);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3585);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3648);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3592);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3655);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3604);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3649);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3611);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3636);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3610);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3618);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3621);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3639);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3619);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3614);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(3633);
+
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.ThaiLetters:
