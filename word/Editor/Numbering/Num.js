@@ -513,11 +513,11 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 				if (nCurLvl < oNumInfo.length)
 					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl, langForTextNumbering);
 
-				for (var Index2 = 0; Index2 < T.length; Index2++)
+				for (var iter = T.getUnicodeIterator(); iter.check(); iter.next())
 				{
-					var Char = T.charAt(Index2);
-					oContext.FillText(nX, nY, Char);
-					nX += g_oTextMeasurer.Measure(Char).Width;
+					var CharCode = iter.value();
+					oContext.FillTextCode(nX, nY, CharCode);
+					nX += g_oTextMeasurer.MeasureCode(CharCode).Width;
 				}
 
 				break;
@@ -574,10 +574,10 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 				if (nCurLvl < oNumInfo.length)
 					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl, langForTextNumbering);
 
-				for (var Index2 = 0; Index2 < T.length; Index2++)
+				for (var iter = T.getUnicodeIterator(); iter.check(); iter.next())
 				{
-					var Char = T.charAt(Index2);
-					nX += oContext.Measure(Char).Width;
+					var CharCode = iter.value();
+					nX += oContext.MeasureCode(CharCode).Width;
 				}
 
 				break;
