@@ -3886,7 +3886,7 @@
 	function IntToNumberFormat(nValue, nFormat, nLang)
 	{
 		var sResult = "";
-		nFormat = Asc.c_oAscNumberingFormat.Ordinal; //delete
+		nFormat = Asc.c_oAscNumberingFormat.HindiCounting; //delete
 
 		switch (nFormat)
 		{
@@ -6635,7 +6635,13 @@
 					ideographCount(Asc.c_oAscNumberingFormat.KoreanCounting);
 				}
 				break;
+			case Asc.c_oAscNumberingFormat.OrdinalText:
+				break;
 			case Asc.c_oAscNumberingFormat.HindiCounting:
+				var alphabet = [
+
+				];
+				sResult = 'शून्य';
 				break;
 			case Asc.c_oAscNumberingFormat.ThaiCounting: // todo: think about it
 				var digits = [
