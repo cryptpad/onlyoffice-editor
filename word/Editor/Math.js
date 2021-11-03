@@ -3501,17 +3501,23 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
 {
     if (!strLaTeX) return; 
-    var oLaTeXParser = new LaTeXStringParser();
+    var oLaTeXParser = new LaTeXStringParser(this);
     oLaTeXParser.parse(strLaTeX);
+    
+    var t0 = performance.now();
     LaTeXStringLexer(oLaTeXParser, this.Root);
+    var t1 = performance.now();
+    console.log("Lexer work " + (t1 - t0) + " milliseconds.")
+
     this.Root.Correct_Content(true);
 };
 
-function LaTeXStringParser() {
+function LaTeXStringParser(root) {
     this.indexOfAtom = 0;
     this.arrAtomsOfFormula = [];
     this.Pr = {ctrPrp: new CTextPr()}
     this.Paragraph = CMathContent.Paragraph;
+    this.ParaMath = root;
 };
 
 LaTeXStringParser.prototype.arrLaTeXSymbols = new Map([
@@ -4050,7 +4056,9 @@ LaTeXStringParser.prototype.parse = function (str) {
         strTempWord == "}" ||
         strTempWord == "^" ||
         strTempWord == "-" ||
-        strTempWord == "_" 
+        strTempWord == "_"  || 
+        strTempWord == "\\left" ||
+        strTempWord == "\\right" 
     ) {
       this.arrAtomsOfFormula.push(strTempWord.trim());
       strTempWord = "";
@@ -4175,9 +4183,13 @@ LaTeXStringParser.prototype.isDegreeAndIndex = function() {
         this.syntaxChecker(['^', 1, '_', 1]) ||
         this.syntaxChecker(['^', '{', '_', '{']) ||
         this.syntaxChecker(['_', 1, '^', 1]) ||
-        this.syntaxChecker(['_', '{', '^', '{'])
+        this.syntaxChecker(['_', '{', '^', '{']) ||
+        this.syntaxChecker(['^', '{', '_', 1]) ||
+        this.syntaxChecker(['^', 1, '_', '{']) ||
+        this.syntaxChecker(['_', 1, '^', '{']) ||
+        this.syntaxChecker(['_', '{', '^', 1])
 
-        && (   this.syntaxChecker(['_', 1], '^') ||
+        || (   this.syntaxChecker(['_', 1], '^') ||
                this.syntaxChecker(['^', 1], '_'))
 
     ) return true;
@@ -4191,8 +4203,8 @@ LaTeXStringParser.prototype.isDegreeOrIndex = function() {
         this.syntaxChecker(['_', 1, '^', 1]) ||
         this.syntaxChecker(['_', '{', '^', '{']))
 
-        && (   this.syntaxChecker(['_', 1], '^') ||
-                this.syntaxChecker(['^', 1], '_'))
+        && (this.syntaxChecker(['_', 1], '^') ||
+            this.syntaxChecker(['^', 1], '_'))
 
     ) return true;
     else return false; 
@@ -4225,6 +4237,13 @@ LaTeXStringParser.prototype.isMatrix = function() {
     )
 }
 
+LaTeXStringParser.prototype.isText = function(strFAtom) {
+    return !(strFAtom == 'matrix' && 
+            strFAtom =='\\left' && 
+            strFAtom == '\\right')
+            
+}
+
 LaTeXStringParser.prototype.bracetCode = new Map([
     ['(',             null],
     [')',             null],
@@ -4248,6 +4267,7 @@ LaTeXStringParser.prototype.bracetCode = new Map([
     ['\\urcorner',    0xCBBA],
     ['/',             0x2F],
     ['\\backslash',   0x5C],
+    ['.',             'empty']
 ]);
 
 LaTeXStringParser.prototype.closeBracet = new Map([
@@ -4261,7 +4281,8 @@ LaTeXStringParser.prototype.closeBracet = new Map([
     ['\\lfloor',    '\\rfloor'],
     ['\\lceil',     '\\rceil'],
     ['\\ulcorner',  '\\urcorner'],
-    ['/',           '\\backslash']
+    ['/',           '\\backslash'],
+    ['\\left',      '\\right']
 ]);
 
 LaTeXStringParser.prototype.isDegreeAndIndexForLexer = function() {
@@ -4284,14 +4305,12 @@ LaTeXStringParser.prototype.addLimit = function(MathFunc, name) {
 };
 
 LaTeXStringParser.prototype.addFrac = function(FormArgument) {
-    //pr.Type
     var frac = FormArgument.Add_Fraction(this.Pr, null, null);
     this.startLexer(frac.getNumeratorMathContent(), '}')
     this.startLexer(frac.getDenominatorMathContent(), '}')
 };
 
 LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
-    //pr.Type
     var oBox = new CBox(this.Pr);
     FormArgument.Add_Element(oBox);
 
@@ -4299,10 +4318,19 @@ LaTeXStringParser.prototype.addTinyFrac = function(FormArgument) {
     BoxMathContent.SetArgSize(-1);
     var frac = BoxMathContent.Add_Fraction(this.Pr, null, null);
 
-    //to-do add abstraction for box?
-
     LaTeXStringLexer(this, frac.getNumeratorMathContent());
     LaTeXStringLexer(this, frac.getDenominatorMathContent());
+};
+
+LaTeXStringParser.prototype.addInlineFraction = function(FormArgument) {
+    var strFirstAtom = this.next(); 
+    this.next();
+    this.next();
+    var strSecondAtom = this.next();
+
+    var Pr = this.Pr;
+    Pr.type = SKEWED_FRACTION;
+    FormArgument.Add_Fraction(Pr, strFirstAtom, strSecondAtom);
 };
 
 LaTeXStringParser.prototype.addFunc = function(FormArgument, name) {
@@ -4426,17 +4454,6 @@ LaTeXStringParser.prototype.addAccent = function(FormArgument, name) {
     LaTeXStringLexer(this, Formula.getBase());
 };
 
-LaTeXStringParser.prototype.addInlineFraction = function(FormArgument) {
-    var strFirstAtom = this.next(); 
-    this.next();
-    this.next();
-    var strSecondAtom = this.next();
-
-    var Pr = this.Pr;
-    Pr.type = SKEWED_FRACTION;
-    FormArgument.Add_Fraction(Pr, strFirstAtom, strSecondAtom);
-};
-
 LaTeXStringParser.prototype.addSqrt = function(FormArgument) {
     var strTempAtom = this.next();
     var Pr = this.Pr;
@@ -4454,7 +4471,6 @@ LaTeXStringParser.prototype.addSqrt = function(FormArgument) {
 };
 
 LaTeXStringParser.prototype.addInt = function(FormArgument) {
-    //todo: add \\idotsint
     var strNameOfIntegral =  this.arrAtomsOfFormula[this.indexOfAtom - 1];
     var intCountOfIntegral = this.isIntegral.get(strNameOfIntegral);
     var isOTypeIntegral = this.isTypeIntegral.get(strNameOfIntegral);
@@ -4477,34 +4493,30 @@ LaTeXStringParser.prototype.addInt = function(FormArgument) {
     }
 
     var strTempAtom = this.next();
-    // if (strTempAtom == '^' || strTempAtom == '_') hideBoxes = false;
     var Integral = FormArgument.Add_Integral(intCountOfIntegral, isOTypeIntegral, TypeOFLoc, hideBoxes.supHide, hideBoxes.subHide, this.Pr.ctrPrp, null, null, null);
 
-    if (strTempAtom == '^' || strTempAtom == '_') {
-        var createSupMathContent = function (context) {
-            strTempAtom = context.next();
-            if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSupMathContent());
-            else context.addSymbol(strTempAtom, Integral.getSupMathContent());
-        }
-        var createSubMathContent = function (context) {
-            strTempAtom = context.next();
-            if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSubMathContent());
-            else context.addSymbol(strTempAtom, Integral.getSubMathContent());
-        }
-        strTempAtom == '^' 
-            ? (createSupMathContent(this), strTempAtom = this.next(), createSubMathContent(this)) 
-            : (createSubMathContent(this), strTempAtom = this.next(), createSupMathContent(this));
-    
+    var createSupMathContent = function (context) {
+        strTempAtom = context.next();
+        if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSupMathContent());
+        else context.addSymbol(strTempAtom, Integral.getSupMathContent());
     }
+    var createSubMathContent = function (context) {
+        strTempAtom = context.next();
+        if (strTempAtom == '{') LaTeXStringLexer(context, Integral.getSubMathContent());
+        else context.addSymbol(strTempAtom, Integral.getSubMathContent());
+    }
+    strTempAtom == '^' 
+        ? (createSupMathContent(this), strTempAtom = this.next(), createSubMathContent(this)) 
+        : (createSubMathContent(this), strTempAtom = this.next(), createSupMathContent(this));
+
     this.startLexer(Integral.getBase(), ['{', '(']);
 };
 
 LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
-    //todo: hide index and/or degree if they are not present
     var strNameOfLargeOperator =  this.isLOperator.get(str);
-    var strTempAtom = this.next();
-    var TypeOFLoc = (strTempAtom == '\\limits') ? (strTempAtom = this.next(),NARY_UndOvr) : NARY_SubSup;
-    
+    var strTempAtom;
+    var TypeOFLoc = (this.futureAtom() == '\\limits') ? (strTempAtom = this.next(), 0) : 1;
+
     var Pr = {
         ctrPrp: new CTextPr(),
         limLoc: TypeOFLoc,
@@ -4512,16 +4524,28 @@ LaTeXStringParser.prototype.addLargeOperator = function(FormArgument, str) {
         supHide: false,
         chr: strNameOfLargeOperator
     }
+    
+    if (this.isDegreeAndIndex()) {
+        Pr.supHide = false; 
+        Pr.subHide = false;
+    } else if (this.isDegreeOrIndex()) {
+        this.syntaxChecker(['^', 1]) 
+            ?  (Pr.subHide = true, Pr.supHide = false)
+            :  (Pr.subHide = false, Pr.supHide = true);
+    } else {
+        Pr.supHide = true; 
+        Pr.subHide = true;
+    } 
 
+    strTempAtom = this.next();
     var Narny = FormArgument.Add_NAry(Pr, null, null, null);
+    
     if (strTempAtom == '^') {
         this.startLexer(Narny.getSupMathContent());
-        strTempAtom = this.next()
-        if (strTempAtom == '_') this.startLexer(Narny.getSubMathContent());
+        if (this.futureAtom() == '_') {this.next(); this.startLexer(Narny.getSubMathContent());}
     } else if (strTempAtom == '_') {
         this.startLexer(Narny.getSubMathContent());
-        strTempAtom = this.next()
-        if (strTempAtom == '^') this.startLexer(Narny.getSupMathContent());
+        if (this.futureAtom() == '^') {this.next(); this.startLexer(Narny.getSupMathContent())}
     }
     this.startLexer(Narny.getBase(), ['{', '(']);
 };
@@ -4580,13 +4604,13 @@ LaTeXStringParser.prototype.addMatrix = function(FormArgument) {
     var intRowsCount = 1; 
 
     var strTempArr;
-    var index = 0;
+    var intIndex = 0;
 
     do {
-        strTempArr = this.futureAtom(index);
+        strTempArr = this.futureAtom(intIndex);
         if(strTempArr == '&' && intRowsCount == 1) intColsCount++; 
         if(strTempArr == '\\') intRowsCount++; 
-        index++;
+        intIndex++;
     } while (strTempArr!='\\end');
 
     //console.log(intColsCount, intRowsCount)
@@ -4674,11 +4698,26 @@ LaTeXStringParser.prototype.checkExistanceOfCloseBracet = function(strSymbol) {
         if (arrOfData[intIndexData] == strSymbol) intPatternIndex++;
         else if (arrOfData[intIndexData] == closeBracet) intPatternIndex--;
         
-        if (arrOfData[intIndexData] == closeBracet && intPatternIndex == 0) return true;
+        if (arrOfData[intIndexData] == closeBracet && intPatternIndex == 0) return intIndexData;
         intIndexData++;
     } 
     return false
 };
+
+LaTeXStringParser.prototype.addLeftRightBLock = function(FormArgument) {
+    var strFBracet = this.next();
+    var strSBracet;
+    var index = this.checkExistanceOfCloseBracet('\\left');
+    if (index != false) strSBracet = this.arrAtomsOfFormula[index + 1];
+
+    var strOpenBracet = this.bracetCode.get(strFBracet);
+    var strCloseBracet = this.bracetCode.get(strSBracet);
+    if (strCloseBracet == 'empty') strCloseBracet = -1;
+    if (strOpenBracet == 'empty') strOpenBracet = -1;
+    var one = FormArgument.Add_DelimiterEx(this.Pr.ctrPrp, 1,[null], strOpenBracet, strCloseBracet);
+    LaTeXStringLexer(this, one.getElementMathContent(0), '\\right');
+    this.next(); 
+}
 
 /**
  * @param Parser 
@@ -4687,7 +4726,6 @@ LaTeXStringParser.prototype.checkExistanceOfCloseBracet = function(strSymbol) {
  */
 function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
     //todo: update parser (y_0y_1y_2y_3y_4)
-    //todo: implement |_0^1
     //todo: space in math - https://ru.overleaf.com/learn/latex/Spacing_in_math_mode
     //todo: bmod to func 
     var intFAtoms = 0;
@@ -4697,9 +4735,7 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
 
         if (exitIfSee && typeof exitIfSee != 'number' && strFAtom == exitIfSee) return;
         else if (exitIfSee && Array.isArray(exitIfSee) && exitIfSee.includes(strFAtom)) return;
-        else if (!exitIfSee) {
-            if (strFAtom == '}' || strFAtom == ']') return;
-        }
+        else if (!exitIfSee) if (strFAtom == '}' || strFAtom == ']') return;
         
         if (Parser.isFunc.get(strFAtom) != null)                                    Parser.addFunc(FormArgument, strFAtom.slice(1)), intFAtoms++;
         else if (strFAtom == '\\frac'||strFAtom=='\\dfrac'||strFAtom=='\\cfrac')    Parser.addFrac(FormArgument), intFAtoms++;
@@ -4708,6 +4744,7 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (strFAtom == '\\bmod')                                              Parser.addText( ' mod ', FormArgument), intFAtoms++;
         else if (strFAtom == '\\pmod')                                              Parser.addPMod(FormArgument), intFAtoms++;
         else if (strFAtom == '\\sqrt')                                              Parser.addSqrt(FormArgument), intFAtoms++;
+        else if (strFAtom == '\\left')                                              Parser.addLeftRightBLock(FormArgument), intFAtoms++;
         else if (Parser.isLOperator.get(strFAtom))                                  Parser.addLargeOperator(FormArgument, strFAtom), intFAtoms++;
         else if (Parser.isIntegral.get(strFAtom))                                   Parser.addInt(FormArgument), intFAtoms++;
         else if (Parser.checkIsAccent(strFAtom))                                    Parser.addAccent(FormArgument, strFAtom), intFAtoms++;
@@ -4715,7 +4752,7 @@ function LaTeXStringLexer(Parser, FormArgument, exitIfSee) {
         else if (Parser.isMatrix())                                                 Parser.addMatrix(FormArgument), intFAtoms++;   
         else if (Parser.isBrackets())                                               Parser.addBracetBlock(FormArgument, strFAtom), intFAtoms++; 
         else if (Parser.isDegreeAndIndexForLexer())                                 Parser.addDegreeForText(FormArgument, strFAtom), intFAtoms++;
-        else if (strFAtom != '{' && strFAtom != '}' && strFAtom != 'matrix')        Parser.addText(strFAtom, FormArgument), intFAtoms++;
+        else if (Parser.isText(strFAtom) && !Parser.bracetCode.get(strFAtom))       Parser.addText(strFAtom, FormArgument), intFAtoms++;
         
         if (typeof exitIfSee === 'number' && intFAtoms >= exitIfSee) return; 
     } while (strFAtom != null);
