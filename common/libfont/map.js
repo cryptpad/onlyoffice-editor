@@ -1691,7 +1691,7 @@ CFontSelectList.prototype =
 		_fs.m_wsFontName = "ASCW3";
 		this.List.push(_fs);
 
-        delete window["g_fonts_selection_bin"];
+        //delete window["g_fonts_selection_bin"];
     },
 
     isEnglishChar : function(_code)
@@ -2950,6 +2950,8 @@ function CApplicationFonts()
     this.g_fontSelections = new CFontSelectList();
     this.DefaultIndex = 0;
 
+    this.NameToInterface = {};
+
     this.Init = function()
     {
         this.g_fontDictionary.Init();
@@ -3123,6 +3125,70 @@ function CApplicationFonts()
         }
         return sFontname;
     };
+
+    this.CheckNamesForInterface = function(language)
+    {
+        var lang = language.toLowerCase();
+        var isEA = false;
+        switch (lang)
+        {
+            case "zh":
+            case "ja":
+            case "ko":
+                isEA = true;
+                break;
+            default:
+                break;
+        }
+
+        var fonts = this.g_fontSelections.List;
+        var font, isFontEA1, isFontEA2, j;
+        for (var i = 0, len = fonts.length; i < len; i++)
+        {
+            font = fonts[i];
+            if (!font.m_names || !font.m_names[0])
+                continue;
+
+            isFontEA1 = false;
+            isFontEA2 = false;
+
+            for (j = font.m_wsFontName.getUnicodeIterator(); j.check(); j.next())
+            {
+                if (AscCommon.isEastAsianScript(j.value()))
+                {
+                    isFontEA1 = true;
+                    break;
+                }
+            }
+
+            for (j = font.m_names[0].getUnicodeIterator(); j.check(); j.next())
+            {
+                if (AscCommon.isEastAsianScript(j.value()))
+                {
+                    isFontEA2 = true;
+                    break;
+                }
+            }
+
+            if (isFontEA1 === isFontEA2)
+                continue;
+
+            if (isEA)
+            {
+                if (isFontEA1)
+                    this.NameToInterface[font.m_names[0]] = font.m_wsFontName;
+                else
+                    this.NameToInterface[font.m_wsFontName] = font.m_names[0];
+            }
+            else
+            {
+                if (isFontEA1)
+                    this.NameToInterface[font.m_wsFontName] = font.m_names[0];
+                else
+                    this.NameToInterface[font.m_names[0]] = font.m_wsFontName;
+            }
+        }
+    };
 }
 
 var g_fontApplication = new CApplicationFonts();
@@ -3138,4 +3204,21 @@ var g_fontApplication = new CApplicationFonts();
     window['AscFonts'].LanguagesFontSelectTypes = LanguagesFontSelectTypes;
 
     window['AscFonts'].g_fontApplication = g_fontApplication;
+
+    window['AscFonts']['pickFont'] = function(name, style) {
+        var info = AscFonts.g_fontApplication.GetFontInfo(name, style);
+        var fontId = info.GetFontID(AscCommon.g_font_loader, style);
+        return fontId.file;
+    };
+    window['AscFonts']['getFontStreams'] = function() {
+        return AscFonts.g_fonts_streams;
+    };
+    window['AscFonts']['getFontStream'] = function(index) {
+        var s = AscFonts.g_fonts_streams[index];
+        return {
+            "data" : s.data,
+            "size" : s.size
+        };
+    };
+
 })(window);

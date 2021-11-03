@@ -468,10 +468,7 @@
 
 	function DocumentUrls()
 	{
-		this.urls = {};
-		this.urlsReverse = {};
-		this.documentUrl = "";
-		this.imageCount = 0;
+		this.Clear();
 	}
 
 	DocumentUrls.prototype = {
@@ -480,6 +477,13 @@
 						 {
 							 this.addUrls(urls);
 						 },
+		Clear:			function ()
+						{
+							this.urls = {};
+							this.urlsReverse = {};
+							this.documentUrl = "";
+							this.imageCount = 0;
+						},
 		getUrls:         function ()
 						 {
 							 return this.urls;
@@ -1587,6 +1591,24 @@
 			case c_oAscFileType.OTT:
 				return 'ott';
 				break;
+			case c_oAscFileType.DOC_FLAT:
+				return 'doc';
+				break;
+			case c_oAscFileType.DOCX_FLAT:
+				return 'docx';
+				break;
+			case c_oAscFileType.HTML_IN_CONTAINER:
+				return 'zip';
+				break;
+			case c_oAscFileType.DOCX_PACKAGE:
+				return 'xml';
+				break;
+			case c_oAscFileType.OFORM:
+				return 'oform';
+				break;
+			case c_oAscFileType.DOCXF:
+				return 'docxf';
+				break;
 			case c_oAscFileType.DOCY:
 				return 'doct';
 				break;
@@ -1935,8 +1957,7 @@
 			responseType: "arraybuffer",
 			headers: {
 				'Authorization': 'Bearer ' + token,
-				'x-url': url,
-				'x-url-path-in-token': urlPathInToken
+				'x-url': url
 			},
 			success: function(resp) {
 				fSuccess(resp.response);
@@ -8985,6 +9006,8 @@
 					break;
 			}
 		}
+
+		var textQualifier = options.asc_getTextQualifier();
 		var matrix = [];
 		//var rows = text.match(/[^\r\n]+/g);
 		var rows = text.split(/\r?\n/);
@@ -8998,7 +9021,45 @@
 				row = addSpace ? delimiterChar + row.trim() : row.trim();
 			}
 			//todo quotes
-			matrix.push(row.split(delimiterChar));
+			if (textQualifier) {
+				var _text = "";
+				var startQualifier = false;
+				for (var j = 0; j < row.length; j++) {
+					if (!startQualifier && row[j] === textQualifier && (!row[j - 1] || (row[j - 1] && row[j - 1] === delimiterChar))) {
+						startQualifier = !startQualifier;
+						continue;
+					} else if (startQualifier && row[j] === textQualifier) {
+						startQualifier = !startQualifier;
+
+						if (j === row.length - 1) {
+							if (!matrix[i]) {
+								matrix[i] = [];
+							}
+							matrix[i].push(_text);
+						}
+
+						continue;
+					}
+					
+					if (!startQualifier && row[j] === delimiterChar) {
+						if (!matrix[i]) {
+							matrix[i] = [];
+						}
+						matrix[i].push(_text);
+						_text = "";
+					} else {
+						_text += row[j];
+						if (j === row.length - 1) {
+							if (!matrix[i]) {
+								matrix[i] = [];
+							}
+							matrix[i].push(_text);
+						}
+					}
+				}
+			} else {
+				matrix.push(row.split(delimiterChar));	
+			}
 		}
 		return matrix;
 	}

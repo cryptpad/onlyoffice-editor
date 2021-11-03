@@ -158,19 +158,19 @@ function CSpellchecker(settings)
 		{
 			this.worker = new Worker(worker_src);
 
-			/*
-			// TODO:
 			var _t = this;
+
+			// для "обычного воркера" - обрабатываем ошибку, чтобы он не влиял на работу редактора
+			// и если ошибка из wasm модуля - то просто попробуем js версию - и рестартанем
 			this.worker.onerror = function(e) {
 				AscCommon.stopEvent(e);
 				if (_t.useWasm)
 				{
 					_t.useWasm = false;
 					_t.restart();
-					_t.api.restartSpellChecker();
+					_t.api.asc_restartCheckSpelling();
 				}
 			};
-			*/
 
 			this._start(this.worker);
 		}

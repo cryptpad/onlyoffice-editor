@@ -694,6 +694,9 @@ g_oColorManager = new ColorManager();
 	function Fragment(val) {
 		this.text = null;
 		this.format = null;
+		//для отрисовки ввожу дополнительный массив
+		this.charCodes = null;//[]
+
 		if (null != val) {
 			this.set(val);
 		}
@@ -704,10 +707,13 @@ g_oColorManager = new ColorManager();
 	};
 	Fragment.prototype.set = function (oVal) {
 		if (null != oVal.text) {
-			this.text = oVal.text;
+			this.setFragmentText(oVal.text);
 		}
 		if (null != oVal.format) {
 			this.format = oVal.format;
+		}
+		if (null != oVal.charCodes) {
+			this.setCharCodes(oVal.charCodes && oVal.charCodes.slice());
 		}
 	};
 	Fragment.prototype.checkVisitedHyperlink = function (row, col, hyperlinkManager) {
@@ -720,6 +726,95 @@ g_oColorManager = new ColorManager();
 			}
 		}
 	};
+	Fragment.prototype.getCharCode = function (index) {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes && this.charCodes[index];
+	};
+	Fragment.prototype.getCharCodesLength = function () {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes ? this.charCodes.length : 0;
+	};
+	Fragment.prototype.initCharCodes = function () {
+		var test2 = this.getFragmentText();
+		if (test2) {
+			this.setCharCodes(AscCommon.convertUTF16toUnicode(test2), true);
+		} else {
+			this.setCharCodes([], true);
+		}
+	};
+	Fragment.prototype.initText = function () {
+		this.setFragmentText(this.charCodes ? AscCommon.convertUnicodeToUTF16(this.charCodes) : "", true);
+	};
+	Fragment.prototype.getCharCode = function (index) {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes && this.charCodes[index];
+	};
+	Fragment.prototype.isInitCharCodes = function () {
+		return this.charCodes !== null;
+	};
+	Fragment.prototype.getCharCodes = function () {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes;
+	};
+	Fragment.prototype.setCharCodes = function (val, isInit) {
+		//если выставляем charCodes, контент меняется, нужно занулять текстовое поле
+		if (!isInit) {
+			this.text = null;
+		}
+		this.charCodes = val;
+	};
+	Fragment.prototype.getFragmentText = function () {
+		if (null === this.text) {
+			this.initText();
+		}
+		return this.text;
+	};
+	Fragment.prototype.setFragmentText = function (val, isInit) {
+		//если выставляем текстовое поле, контент меняется, нужно занулять charCodes
+		if (!isInit) {
+			this.charCodes = null;
+		}
+		this.text = val;
+	};
+	Fragment.prototype.getTextFromCodes = function () {
+		//если выставляем текстовое поле, контент меняется, нужно занулять charCodes
+		if (!isInit) {
+			this.charCodes = null;
+		}
+		this.text = val;
+	};
+	Fragment.prototype.convertPositionToText = function (codePos) {
+		var diff = 0;
+		for (var i = 0; i < codePos; i++) {
+			if (this.charCodes[i] >= 0x10000) {
+				diff++;
+			}
+		}
+		return codePos + diff;
+	};
+	Fragment.prototype.convertPositionFromText = function (textPos) {
+		var count = 0;
+		for (var i = 0; i < textPos; i++) {
+			if (this.charCodes[i] >= 0x10000) {
+				count++;
+			} else {
+				count += 2;
+			}
+			if (count >= textPos) {
+				return i;
+			}
+		}
+		return textPos;
+	};
+
 
 var g_oFontProperties = {
 		fn: 0,
@@ -859,12 +954,12 @@ var g_oFontProperties = {
 		if (isTable) {
 			oRes.i = null !== font.i ? font.i : this.i;
 			oRes.s = null !== font.s ? font.s : this.s;
-			oRes.u = font.u || this.u;
+			oRes.u = null !== font.u ? font.u : this.u;
 			oRes.va = font.va || this.va;
 		} else {
 			oRes.i = null !== this.i ? this.i : font.i;
 			oRes.s = null !== this.s ? this.s : font.s;
-			oRes.u = this.u || font.u;
+			oRes.u = null !== this.u ? this.u : font.u;
 			oRes.va = this.va || font.va;
 		}
 		if (isTable) {
@@ -900,6 +995,9 @@ var g_oFontProperties = {
 	};
 	Font.prototype.isEqual2 = function (font) {
 		return font && this.getName() === font.getName() && this.getSize() === font.getSize() && this.getBold() === font.getBold() && this.getItalic() === font.getItalic();
+	};
+	Font.prototype.isNormalXfColor = function () {
+		return this.c && this.c.isEqual(g_StyleCache.normalXf.font.c);
 	};
 	Font.prototype.clone = function () {
 		var font = new Font();
@@ -2777,6 +2875,9 @@ var g_oBorderProperties = {
         }
         return res;
     };
+	CellXfs.prototype.isNormalFont = function () {
+		return g_StyleCache.firstXf === this || g_StyleCache.normalXf.font === this.font;
+	};
     CellXfs.prototype.merge = function (xfs, isTable) {
         var xfIndexNumber = xfs.getIndexNumber();
         if (undefined === xfIndexNumber) {
@@ -2796,17 +2897,17 @@ var g_oBorderProperties = {
             } else {
                 cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
             }
-            var isTableColor = true;
-            if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.font === xfs.font)) {
-                if (g_StyleCache.normalXf.font === xfs.font) {
-                    cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
-                } else {
-                    cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-                }
-            } else {
-                isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.normalXf.font.c);
-                cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-            }
+			var isTableColor = true;
+			if (isTable && xfs.isNormalFont()) {
+				if (g_StyleCache.normalXf.font === xfs.font) {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
+				} else {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+				}
+			} else {
+				isTableColor = isTable && xfs.font && xfs.font.isNormalXfColor();
+				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+			}
             cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
             cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
             cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
@@ -3042,7 +3143,9 @@ var g_oBorderProperties = {
 	};
 
     CellXfs.prototype.asc_getFontName = function () {
-		return this.getFont2().getName();
+    	var name = this.getFont2().getName();
+		var _name = AscFonts.g_fontApplication ? AscFonts.g_fontApplication.NameToInterface[name] : null;
+		return _name ? _name : name;
 	};
     CellXfs.prototype.asc_getFontSize = function () {
         return this.getFont2().getSize();
@@ -3961,6 +4064,9 @@ StyleManager.prototype =
 };
 
 	function StyleCache() {
+		this.Clear();
+	}
+	StyleCache.prototype.Clear = function() {
 		this.fonts = {count: 0, vals: {}};
 		this.fills = {count: 0, vals: {}};
 		this.borders = {count: 0, vals: {}};
@@ -3973,8 +4079,7 @@ StyleManager.prototype =
 		this.secondFill = null;
 		this.firstBorder = null;
 		this.normalXf =  new CellXfs();
-	}
-
+	};
 	StyleCache.prototype.addFont = function(newFont) {
 		return this._add(this.fonts, newFont);
 	};
@@ -5308,8 +5413,9 @@ StyleManager.prototype =
 		if (multiText) {
 			for (var i = 0, length = multiText.length; i < length; ++i) {
 				var elem = multiText[i];
-				if (null != elem.text && !(elem.format && elem.format.getSkip())) {
-					sRes += elem.text;
+				var text = elem.getFragmentText ? elem.getFragmentText() : elem.text;
+				if (null != text && !(elem.format && elem.format.getSkip())) {
+					sRes += text;
 				}
 			}
 		}
@@ -5320,11 +5426,12 @@ StyleManager.prototype =
 		if (multiText) {
 			for (var i = 0, length = multiText.length; i < length; ++i) {
 				var elem = multiText[i];
-				if (null != elem.text) {
+				var text = elem.getFragmentText ? elem.getFragmentText() : elem.text;
+				if (null != text) {
 					if(elem.format && elem.format.getSkip()) {
 						sRes += " ";
 					} else if(!(elem.format && elem.format.getRepeat())) {
-						sRes += elem.text;
+						sRes += text;
 					} else {
 						var j = 0;
 					}

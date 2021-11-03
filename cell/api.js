@@ -568,7 +568,7 @@ var editor;
 
 		if (window["AscDesktopEditor"]) {
 			// TODO: add translations
-			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*txt *csv);;Txt File (*txt);;Csv File(*csv);;All files (*.*)", false, function (_file) {
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*.txt *.csv);;Txt File (*.txt);;Csv File(*.csv);;All files (*.*)", false, function (_file) {
 				var file = _file;
 				if (Array.isArray(file))
 					file = file[0];
@@ -1303,7 +1303,10 @@ var editor;
 		History.Clear();
 		g_oIdCounter.Clear();
 		g_oTableId.Clear();
+		AscCommonExcel.g_StyleCache.Clear();
 		AscCommon.CollaborativeEditing.Clear();
+		AscCommon.g_oDocumentUrls.Clear();
+		this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
 		this.isApplyChangesOnOpenEnabled = true;
 		this.isDocumentLoadComplete = false;
 
@@ -2078,6 +2081,22 @@ var editor;
 			return;
         }
 
+		//история версий - возможно стоит грамотно чистить wbview, но не пересоздавать
+		var previousVersionZoom;
+		if (this.VersionHistory && this.controller) {
+			var elem = document.getElementById("ws-v-scrollbar");
+			if (elem) {
+				elem.parentNode.removeChild(elem);
+			}
+			elem = document.getElementById("ws-h-scrollbar");
+			if (elem) {
+				elem.parentNode.removeChild(elem);
+			}
+			this.controller.vsbApi = null;
+			this.controller.hsbApi = null;
+			previousVersionZoom = this.wb && this.wb.getZoom();
+		}
+
 		this.wb = new AscCommonExcel.WorkbookView(this.wbModel, this.controller, this.handlers, this.HtmlElement,
 			this.topLineEditorElement, this, this.collaborativeEditing, this.fontRenderingMode);
 
@@ -2136,6 +2155,9 @@ var editor;
 				this.VersionHistory.applyChanges(this);
 			}
 			this.sheetsChanged();
+			if (previousVersionZoom) {
+				this.asc_setZoom(previousVersionZoom);
+			}
 			this.asc_Resize();
 		}
 		//this.asc_Resize(); // Убрал, т.к. сверху приходит resize (http://bugzilla.onlyoffice.com/show_bug.cgi?id=14680)
@@ -3823,6 +3845,15 @@ var editor;
 
           this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
           this.spellcheckState.clean();
+        } else {
+          var ws = this.wb.getWorksheet();
+          if (ws) {
+            var maxC = ws.model.getColsCount() - 1;
+            var maxR = ws.model.getRowsCount() - 1;
+            if (-1 !== maxC || -1 !== maxR) {
+              this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
+            }
+          }
         }
       }
     };
@@ -6124,6 +6155,13 @@ var editor;
 		this.asc_closeCellEditor();
 	}
   	this.wb.undo({All : true});
+  };
+	
+  spreadsheet_api.prototype.asc_restartCheckSpelling = function()
+  {
+  	if (this.wb /*&& !this.spellcheckState.lockSpell*/) {
+		this._spellCheckRestart();
+  	}
   };
   spreadsheet_api.prototype.asc_ConvertEquationToMath = function(oEquation, isAll)
   {

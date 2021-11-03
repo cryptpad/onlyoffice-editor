@@ -345,6 +345,21 @@ ParaRun.prototype.Copy2 = function(oPr)
     return NewRun;
 };
 
+ParaRun.prototype.createDuplicateForSmartArt = function(oPr)
+{
+	var NewRun = new ParaRun(this.Paragraph);
+	NewRun.Set_Pr(this.Pr.createDuplicateForSmartArt(oPr) );
+	var StartPos = 0;
+	var EndPos   = this.Content.length;
+	var CurPos;
+		for (CurPos = StartPos; CurPos < EndPos; CurPos++ )
+		{
+			var Item = this.Content[CurPos];
+			NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(oPr), false );
+		}
+	return NewRun;
+};
+
 ParaRun.prototype.CopyContent = function(Selected)
 {
     return [this.Copy(Selected, {CopyReviewPr : true})];
@@ -4203,6 +4218,9 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 								if (fieldtype_NUMPAGES === oInstruction.GetType())
 								{
 									oHdrFtr.Add_PageCountElement(Item);
+
+									if (!Item.IsNumValue() && Para.LogicDocument && Para.LogicDocument.IsDocumentEditor())
+										Item.SetNumValue(Para.LogicDocument.Pages.length);
 								}
 								else if (fieldtype_PAGE === oInstruction.GetType())
 								{
@@ -5201,7 +5219,7 @@ ParaRun.prototype.private_RecalculateLastTab = function(LastTab, X, XEnd, Word, 
 
         LastTab.Reset();
 
-        return X + TabCalcW;
+		return X + TabCalcW;
     }
 
     return X;
@@ -5285,13 +5303,13 @@ ParaRun.prototype.SaveRecalculateObject = function(Copy)
 {
     var RecalcObj = new CRunRecalculateObject(this.StartLine, this.StartRange);
     RecalcObj.Save_Lines( this, Copy );
-    RecalcObj.Save_RunContent( this, Copy );
+	RecalcObj.SaveRunContent(this, Copy);
     return RecalcObj;
 };
 ParaRun.prototype.LoadRecalculateObject = function(RecalcObj)
 {
     RecalcObj.Load_Lines(this);
-    RecalcObj.Load_RunContent(this);
+    RecalcObj.LoadRunContent(this);
 };
 ParaRun.prototype.PrepareRecalculateObject = function()
 {
@@ -12179,6 +12197,13 @@ ParaRun.prototype.private_GetSuitableBulletedLvlForAutoCorrect = function(sText)
 		var oTextPr = new CTextPr();
 		oTextPr.RFonts.SetAll("Arial");
 		oNumberingLvl.SetByType(c_oAscNumberingLevel.Bullet, 0, String.fromCharCode(0x2013), oTextPr);
+		return oNumberingLvl;
+	}
+	else if ('>' === sText)
+	{
+		var oTextPr = new CTextPr();
+		oTextPr.RFonts.SetAll("Wingdings");
+		oNumberingLvl.SetByType(c_oAscNumberingLevel.Bullet, 0, String.fromCharCode(0x00D8), oTextPr);
 		return oNumberingLvl;
 	}
 
