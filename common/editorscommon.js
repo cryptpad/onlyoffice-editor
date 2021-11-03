@@ -6004,15 +6004,15 @@
 								return resArr;
 							}
 
-							function cardinalSplittingIT(number1_000_000) {
+							function cardinalSplittingIT(num) {
 								var resArr = [];
 								var groups = {};
-								groups[1000] = Math.floor(number1_000_000 / 1000);
-								number1_000_000 %= 1000;
-								groups[100] = Math.floor(number1_000_000 / 100);
-								number1_000_000 %= 100;
-								groups[1] = number1_000_000;
-								if (number1_000_000 > 0 && number1_000_000 < 1000000) {
+								groups[1000] = Math.floor(num / 1000);
+								num %= 1000;
+								groups[100] = Math.floor(num / 100);
+								num %= 100;
+								groups[1] = num;
+								if (num > 0 && num < 1000000) {
 									if (groups[1000]) {
 										if (groups[1000] >= 100) {
 											resArr = resArr.concat(cardinalSplittingIT(groups[1000]));
@@ -6103,16 +6103,16 @@
 								return resArr;
 							}
 
-							function cardinalSplittingDE(number1_000_000) {
+							function cardinalSplittingDE(num) {
 								var resArr = [];
 								var groups = {};
 
-								groups[1000] = Math.floor(number1_000_000 / 1000);
-								number1_000_000 %= 1000;
-								groups[100] = Math.floor(number1_000_000 / 100);
-								number1_000_000 %= 100;
-								groups[1] = Math.floor(number1_000_000 / 1);
-								if (number1_000_000 > 0 && number1_000_000 < 1000000) {
+								groups[1000] = Math.floor(num / 1000);
+								num %= 1000;
+								groups[100] = Math.floor(num / 100);
+								num %= 100;
+								groups[1] = Math.floor(num / 1);
+								if (num > 0 && num < 1000000) {
 									if (groups[1000]) {
 										if (groups[1000] >= 100) {
 											resArr = resArr.concat(cardinalSplittingDE(groups[1000]));
@@ -6664,7 +6664,7 @@
 				];
 				sResult = 'शून्य';
 				break;
-			case Asc.c_oAscNumberingFormat.ThaiCounting: // todo: think about it
+			case Asc.c_oAscNumberingFormat.ThaiCounting:
 				var digits = [
 						'หนึ่ง',
 						'สอง',
@@ -6717,37 +6717,37 @@
 				}
 
 				function thaiCounting(num) {
-					if (num >= 1_000_000_000) {
+					if (num >= 1000000000) {
 						return ['ศูนย์'];
 					}
 					var resArr = [];
 					var groups = {};
-					groups[1_000_000] = Math.floor(num / 1_000_000);
-					num %= 1_000_000;
-					groups[100_000] = Math.floor(num / 100_000);
-					num %= 100_000;
-					groups[10_000] = Math.floor(num / 10_000);
-					num %= 10_000;
+					groups[1000000] = Math.floor(num / 1000000);
+					num %= 1000000;
+					groups[100000] = Math.floor(num / 100000);
+					num %= 100000;
+					groups[10000] = Math.floor(num / 10000);
+					num %= 10000;
 					groups[1000] = Math.floor(num / 1000);
 					num %= 1000;
 					groups[100] = Math.floor(num / 100);
 					num %= 100;
 					groups[1] = num;
 
-					if (groups[1_000_000]) {
-						if (groups[1_000_000] >= 100) {
-							resArr = resArr.concat(thaiCounting(groups[1_000_000]));
+					if (groups[1000000]) {
+						if (groups[1000000] >= 100) {
+							resArr = resArr.concat(thaiCounting(groups[1000000]));
 						} else {
-							resArr = resArr.concat(thaiCountingLess100(groups[1_000_000]));
+							resArr = resArr.concat(thaiCountingLess100(groups[1000000]));
 						}
 						resArr.push('ล้าน');
 					}
-					if (groups[100_000]) {
-						resArr = resArr.concat(thaiCountingLess100(groups[100_000]));
+					if (groups[100000]) {
+						resArr = resArr.concat(thaiCountingLess100(groups[100000]));
 						resArr.push('แสน');
 					}
-					if (groups[10_000]) {
-						resArr = resArr.concat(thaiCountingLess100(groups[10_000]));
+					if (groups[10000]) {
+						resArr = resArr.concat(thaiCountingLess100(groups[10000]));
 						resArr.push('หมื่น');
 					}
 					if (groups[1000]) {
