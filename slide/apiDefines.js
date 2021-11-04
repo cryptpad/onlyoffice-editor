@@ -425,6 +425,12 @@ var c_oAscSlideParaBuildType = {
 	P:         2,
 	Whole:     3
 };
+/** @enum {number} */
+var c_oAscSlideIterateType = {
+	El: 0,
+	Lt: 1,
+	Wd: 2
+};
 
 var c_oSerFormat = {
 	Version   : 1,

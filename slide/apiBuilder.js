@@ -1371,7 +1371,7 @@
 	 */
     ApiMaster.prototype.ToJSON = function(){
         var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerMasterSlide(this.Master));
+		return JSON.stringify(oWriter.SerMasterSlide(this.Master, true));
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -1674,12 +1674,13 @@
     /**
 	 * Convert to JSON object. 
 	 * @memberof ApiLayout
+     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved.
 	 * @typeofeditors ["CPE"]
 	 * @returns {JSON}
 	 */
-    ApiLayout.prototype.ToJSON = function(){
+    ApiLayout.prototype.ToJSON = function(bWriteMaster){
         var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerSlideLayout(this.Layout));
+		return JSON.stringify(oWriter.SerSlideLayout(this.Layout, bWriteMaster));
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -2689,12 +2690,15 @@
     /**
 	 * Convert to JSON object. 
 	 * @memberof ApiSlide
+     * @param {bool} [bWriteLayout=false] - determines whether SlideLayout will be saved.
+     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved.
+     * @param {bool} [bWriteAllMasLayouts=false] - determines whether all child SlideLaytouts from the MasterSlide will be saved.
 	 * @typeofeditors ["CPE"]
 	 * @returns {JSON}
 	 */
-    ApiSlide.prototype.ToJSON = function(){
+    ApiSlide.prototype.ToJSON = function(bWriteLayout, bWriteMaster, bWriteAllMasLayouts){
         var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerSlide(this.Slide));
+		return JSON.stringify(oWriter.SerSlide(this.Slide, bWriteLayout, bWriteMaster, bWriteAllMasLayouts));
     };
 
     //------------------------------------------------------------------------------------------------------------------

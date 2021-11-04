@@ -45,10 +45,6 @@
 	{
 		return 25.4 / 72.0 / 20 * twips;
 	}
-	function private_GetDrawingDocument()
-	{
-		return editor.WordControl.m_oLogicDocument.DrawingDocument;
-	}
 	function private_EMU2MM(EMU)
 	{
 		return EMU / 36000.0;
@@ -57,10 +53,9 @@
 	{
 		return MM * 36000.0;
 	}
-	function private_GetLogicDocument()
-	{
-		return editor.WordControl.m_oLogicDocument;
-	}
+	function private_GetPresentation(){
+        return editor.WordControl.m_oLogicDocument;
+    }
 	function private_MM2Twips(mm)
 	{
 		return mm / (25.4 / 72.0 / 20);
@@ -95,6 +90,10 @@
 		return mm / (25.4 / 72.0);
 	};
 
+	var layoutsMap     = {};
+	var mastersMap     = {};
+	var notesMasterMap = {};
+	var themesMap      = {};
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// End of private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,11 +109,11 @@
 
 		var aSlides = [];
 		for (var nSlide = 0; nSlide < oPres.Slides.length; nSlide++)
-			aSlides.push(this.SerSlide(oPres.Slides[nSlide], false));
+			aSlides.push(this.SerSlide(oPres.Slides[nSlide], false, false, false));
 
 		var aSldMasters = [];
 		for (var nMaster = 0; nMaster < oPres.slideMasters.length; nMaster++)
-			aSldMasters.push(this.SerMasterSlide(oPres.slideMasters[nMaster]));
+			aSldMasters.push(this.SerMasterSlide(oPres.slideMasters[nMaster], true));
 
 		var sConformanceType = oPres.pres.attrConformance === c_oAscConformanceType.Strict ? "strict" : "transitional";
 		var oPres = {
@@ -148,7 +147,7 @@
 		for (var nElm = 0; nElm < oTheme.extraClrSchemeLst.length; nElm++)
 			aExtraClrSchemeLst.push(this.SerExtraClrScheme(oTheme.extraClrSchemeLst[nElm]));
 
-		return {
+		var oThemeObj = {
 			custClrLst: this.SerColorMapOvr(oTheme.clrMap), // ??? maybe not supported
 			name:       oTheme.name,
 			objectDefaults: {
@@ -163,8 +162,14 @@
 			},
 
 			extraClrSchemeLst: aExtraClrSchemeLst, // AscFormat.ExtraClrScheme:
-			isThemeOverride:   oTheme.isThemeOverride
+			isThemeOverride:   oTheme.isThemeOverride,
+			id:                oTheme.id
 		}
+
+		// памим, чтобы не записывать несколько раз
+		themesMap[oTheme.Id] = oThemeObj;
+
+		return oThemeObj;
 	};
 	WriterToJSON.prototype.SerClrScheme = function(oClrScheme)
 	{
@@ -340,15 +345,21 @@
 	};
 	WriterToJSON.prototype.SerNoteMaster = function(oNoteMaster)
 	{
-		return {
+		var oNotesMasterObj = {
 			id:         oNoteMaster.Id,
 			clrMap:     this.SerColorMapOvr(oNoteMaster.clrMap),
 			cSld:       this.SerCSld(oNoteMaster.cSld),
 			hf:         this.SerHF(oNoteMaster.hf),
-			notesStyle: this.SerLstStyle(oNoteMaster.txStyles)
+			notesStyle: this.SerLstStyle(oNoteMaster.txStyles),
+			theme:      themesMap[oNoteMaster.Theme.Id] ? this.SerTheme(oNoteMaster.Theme) : oNoteMaster.Theme.Id 
 		}
+
+		// мапим, чтобы не записывать несколько раз
+		notesMasterMap[oNoteMaster.Id] = oNotesMasterObj;
+
+		return oNotesMasterObj;
 	};
-	WriterToJSON.prototype.SerNote = function(oNote)
+	WriterToJSON.prototype.SerNotes = function(oNote)
 	{
 		return {
 			lock:             null, /// ??? вроде не нужно
@@ -357,30 +368,61 @@
 			cSld:             this.SerCSld(oNote.cSld),
 			showMasterPhAnim: oNote.showMasterPhAnim,
 			showMasterSp:     oNote.showMasterSp,
-			master:           oNote.Master.Id
+			master:           notesMasterMap[oNote.Master.Id] ? this.SerNoteMaster(oNote.Master) : oNote.Master.Id
 		}
 	};
-	WriterToJSON.prototype.SerSlide = function(oSlide, bWriteMaster)
+	WriterToJSON.prototype.SerSlide = function(oSlide, bWriteLayout, bWriteMaster, bWriteAllMasLayouts)
 	{
-		var aNotes = [];
-		for (var nNote = 0; nNote < oSlide.notes.length; nNote++)
-			aNotes.push(this.SerNote(oSlide.notes[nNote]));
+		var oMaster = oSlide.Master.Id;
+		var oLayout = oSlide.Layout.Id;
+
+		if (bWriteLayout)
+		{
+			if (bWriteMaster)
+				oMaster = this.SerMasterSlide(oSlide.Master, bWriteAllMasLayouts);
+			else
+				oLayout = this.SerSlideLayout(oSlide.Layout, false);
+		}
 
 		return {
-			notes:            aNotes,
-			master:           bWriteMaster ? this.SerMasterSlide(oSlide.Master) : oSlide.Master.Id,
+			notes:            this.SerNotes(oSlide.notes),
+			master:           oMaster,
 			clrMapOvr:        this.SerColorMapOvr(oSlide.clrMap),
-			layout:           oSlide.Layout.Id,
+			layout:           oLayout,
 			cSld:             this.SerCSld(oSlide.cSld),
 			transition:       this.SerTransition(oSlide.transition),
 			timing:           this.SerTiming(oSlide.timing),
+			comments:         this.SerSldComments(oSlide.slideComments),
 			show:             oSlide.show,
 			showMasterPhAnim: oSlide.showMasterPhAnim,
 			showMasterSp:     oSlide.showMasterSp,
 			type:             "slide"
 		}
 	};
-	WriterToJSON.prototype.SerSlideLayout = function(oLayout, bWriteMasterSlide)
+	WriterToJSON.prototype.SerSldComments = function(oSldComments)
+	{
+		var aComments = [];
+
+		for (var nComment = 0; nComment < oSldComments.comments.length; nComment++)
+			aComments.push(this.SerComment(oSldComments.comments[nComment]));
+
+		return aComments;
+	};
+	WriterToJSON.prototype.SerComment = function(oComment)
+	{
+		return {
+			pos: {
+				x: oComment.x,
+				y: oComment.y
+			},
+			text:      oComment.Data.m_sText,
+			autorName: oComment.Data.m_sUserName,
+			authorId:  oComment.Data.m_sUserId,
+			dt:        oComment.Data.m_sOOTime,
+			idx:       oComment.slideComments.comments.indexOf(oComment)
+		}
+	};
+	WriterToJSON.prototype.SerSlideLayout = function(oLayout, bWriteMaster)
 	{
 		var sLayoutType = undefined;
 		switch (oLayout.type)
@@ -496,7 +538,7 @@
 		}
 
 		return {
-			master:           bWriteMasterSlide ? this.SerMasterSlide(oLayout.Master) : oLayout.Master.Id,
+			master:           bWriteMaster ? this.SerMasterSlide(oLayout.Master, false) : oLayout.Master.Id,
 			clrMapOvr:        this.SerColorMapOvr(oLayout.clrMap),
 			cSld:             this.SerCSld(oLayout.cSld),
 			hf:               this.SerHF(oLayout.hf),
@@ -505,17 +547,21 @@
 			matchingName:     oLayout.matchingName,
 			preserve:         oLayout.preserve,
 			showMasterPhAnim: oLayout.showMasterPhAnim,
+			showMasterSp:     oLayout.showMasterSp,
 			userDrawn:        oLayout.userDrawn,
 			ltType:           sLayoutType,
 			imgBase64:        oLayout.ImageBase64,
 			type:             "sldLayout"
 		}
 	};
-	WriterToJSON.prototype.SerMasterSlide = function(oMaster)
+	WriterToJSON.prototype.SerMasterSlide = function(oMaster, bWriteAllMasLayouts)
 	{
 		var aLayoutLst = [];
-		for (var nLayout = 0; nLayout < oMaster.sldLayoutLst.length; nLayout++)
-			aLayoutLst.push(this.SerSlideLayout(oMaster.sldLayoutLst[nLayout]));
+		if (bWriteAllMasLayouts)
+		{
+			for (var nLayout = 0; nLayout < oMaster.sldLayoutLst.length; nLayout++)
+				aLayoutLst.push(this.SerSlideLayout(oMaster.sldLayoutLst[nLayout], false));
+		}
 
 		return {
 			theme:            this.SerTheme(oMaster.Theme),
@@ -1087,7 +1133,7 @@
 		return {
 			childTnLst: this.SerTnLst(oCTn.childTnLst),
 			endCondLst: this.SerCondLst(oCTn.endCondLst),
-			endSync:    this.SerEndSync(oCTn.endSync),
+			endSync:    this.SerCond(oCTn.endSync),
 			iterate:    this.SerIterate(oCTn.iterate),
 			stCondLst:  this.SerCondLst(oCTn.stCondLst),
 			subTnLst:   this.SerTnLst(oCTn.subTnLst),
@@ -1150,6 +1196,28 @@
 			prevAc:      sPrevAcType,
 			objType:     "seq"
 		}	
+	};
+	WriterToJSON.prototype.SerIterate = function(oIterate)
+	{
+		var sIterateType = undefined;
+		switch (oIterate.type)
+		{
+			case c_oAscSlideIterateType.El:
+				sIterateType = "el";
+				break;
+			case c_oAscSlideIterateType.Lt:
+				sIterateType = "lt";
+				break;
+			case c_oAscSlideIterateType.Wd:
+				sIterateType = "wd";
+				break;
+		}
+		return {
+			tmAbs:     oIterate.tmAbs,
+			tmPct:     oIterate.tmPct,
+			backwards: oIterate.backwards,
+			type:      sIterateType
+		}
 	};
 	WriterToJSON.prototype.SerAudio = function(oAudio)
 	{
@@ -1701,7 +1769,8 @@
 			}
 		}
 	};
-	ReaderFromJSON.prototype.MasterSlideFromJSON = function(oParsedMaster)
+
+	ReaderFromJSON.prototype.MasterSlideFromJSON = function(oParsedMaster, oPres)
 	{
 		var oMasterSlide = new AscCommonSlide.MasterSlide(undefined, null);
 
@@ -1722,11 +1791,17 @@
 
 		// layouts
 		for (var nLayout = 0; nLayout < oParsedMaster.sldLayoutLst.length; nLayout++)
-			oMasterSlide.addToSldLayoutLstToPos(oMasterSlide.sldLayoutLst.length, this.LayoutFromJSON(oParsedMaster.sldLayoutLst[nLayout]));
+			oMasterSlide.addToSldLayoutLstToPos(oMasterSlide.sldLayoutLst.length, this.SlideLayoutFromJSON(oParsedMaster.sldLayoutLst[nLayout]));
+
+		if (!oPres)
+		{
+			oPres = private_GetPresentation();
+			oPres.addSlideMaster(oPres.slideMasters.length, oMasterSlide);
+		}
 
 		return oMasterSlide;
 	};
-	ReaderFromJSON.prototype.LayoutFromJSON = function(oParsedLayout)
+	ReaderFromJSON.prototype.SlideLayoutFromJSON = function(oParsedLayout)
 	{
 		var oLayout = new AscCommonSlide.SlideLayout();
 
@@ -1861,11 +1936,92 @@
 		oLayout.setMatchingName(oParsedLayout.matchingName);
 		oLayout.preserve = oParsedLayout.preserve;	
 		oParsedLayout.showMasterPhAnim && oLayout.setShowPhAnim(oParsedLayout.showMasterPhAnim);
-		oLayout.userDrawn = oParsedLayout.matchingName.userDrawn;
+		oParsedLayout.showMasterSp && oLayout.setShowMasterSp(oParsedLayout.showMasterSp);
+		oLayout.userDrawn = oParsedLayout.userDrawn;
 		oLayout.setType(nLayoutType);
 		oLayout.ImageBase64 = oParsedLayout.imgBase64;
 
 		return oLayout;
+	};
+	ReaderFromJSON.prototype.SlideFromJSON = function(oParsedSlide, oPres)
+	{
+		var oPresentation = oPres || private_GetPresentation();
+
+		var oLayout = null;
+		var oMaster = null;
+
+		if (typeof oParsedSlide.layout === "object")
+			oLayout = this.SlideLayoutFromJSON(oParsedSlide.layout);
+		else if (typeof oParsedSlide.master === "object")
+			oMaster = this.MasterSlideFromJSON(oParsedSlide.master, oPresentation);
+
+		if (oMaster)
+			oLayout = layoutsMap[oParsedSlide.layout];
+
+		var oSlide = new AscCommonSlide.Slide(oPresentation, oLayout, 0);
+
+		oParsedSlide.notes && oSlide.setNotes(this.NotesFromJSON(oParsedSlide.notes, oPresentation));
+		oParsedSlide.clrMapOvr && oLayout.setClMapOverride(this.ColorMapOvrFromJSON(oParsedSlide.clrMapOvr));
+
+		// cSld
+		var oCSld = this.CSldFromJSON(oParsedSlide.cSld);
+		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
+			oSlide.shapeAdd(undefined, oCSld.spTree[nShape]);
+		oCSld.bg && oParsedSlide.changeBackground(oCSld.bg);
+		oParsedSlide.setCSldName(oCSld.name);
+
+		oParsedSlide.transition && oSlide.applyTransition(this.TransitionFromJSON(oParsedSlide.transition));
+		oParsedSlide.timing && oSlide.setTiming(this.TimingFromJSON(oParsedSlide.timing));
+		/// oParsedSlide.comments && oSlide.setTiming(this.TimingFromJSON(oParsedSlide.comments)); // ?? comments
+		oParsedSlide.show != undefined && oSlide.setShow(oParsedSlide.show);
+		oParsedSlide.showMasterPhAnim != undefined && oSlide.setShowPhAnim(oParsedSlide.showMasterPhAnim);
+		oParsedSlide.showMasterSp != undefined && oSlide.setShowMasterSp(oParsedSlide.showMasterSp);
+
+		return oSlide;
+	};
+	ReaderFromJSON.prototype.NotesFromJSON = function(oParsedNotes, oPres)
+	{
+		var oNotes = new AscCommonSlide.CNotes();
+
+		oParsedNotes.clrMapOvr && oNotes.setClMapOverride(this.ColorMapOvrFromJSON(oParsedNotes.clrMapOvr));
+		// cSld
+		var oCSld = this.CSldFromJSON(oParsedNotes.cSld);
+		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
+			oNotes.shapeAdd(undefined, oCSld.spTree[nShape]);
+		oCSld.bg && oParsedNotes.changeBackground(oCSld.bg);
+		oParsedNotes.setCSldName(oCSld.name);
+
+		oParsedNotes.show != undefined && oNotes.setShow(oParsedNotes.show);
+		oParsedNotes.showMasterPhAnim != undefined && oNotes.setShowPhAnim(oParsedNotes.showMasterPhAnim);
+		oParsedNotes.showMasterSp != undefined && oNotes.setShowMasterSp(oParsedNotes.showMasterSp);
+
+		var oNotesMaster = typeof oParsedNotes.master === "object" ? this.NotesMasterFromJSON(oParsedNotes.master, oPres) : oParsedNotes.master;
+		typeof oNotesMaster === "object" ? oNotes.setNotesMaster(oNotesMaster) : oNotes.setNotesMaster(notesMasterMap[oNotesMaster]);
+
+		return oNotes;
+	};
+	ReaderFromJSON.prototype.NotesMasterFromJSON = function(oParsedNotesMaster, oPres)
+	{
+		var oNotesMaster = new AscCommonSlide.CNotesMaster();
+
+		oParsedNotesMaster.clrMapOvr && oNotesMaster.setClMapOverride(this.ColorMapOvrFromJSON(oParsedNotesMaster.clrMapOvr));
+		// cSld
+		var oCSld = this.CSldFromJSON(oParsedNotesMaster.cSld);
+		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
+			oParsedNotesMaster.shapeAdd(undefined, oCSld.spTree[nShape]);
+		oCSld.bg && oParsedNotesMaster.changeBackground(oCSld.bg);
+		oParsedNotesMaster.setCSldName(oCSld.name);
+		oParsedNotesMaster.hf && oNotesMaster.setHF(this.HFFromJSON(oParsedNotesMaster.hf));
+		oParsedNotesMaster.notesStyle && oNotesMaster.setNotesStyle(this.LstStyleFromJSON(oParsedNotesMaster.notesStyle));
+
+		// oTheme здесь будет либо объект темы, либо Id по которому тема уже создана и замаплена
+		var oTheme = typeof oParsedNotesMaster.theme === "object" ? this.ThemeFromJSON(oParsedNotesMaster.theme) : oParsedNotesMaster.theme;
+		typeof oParsedNotesMaster.theme === "object" ? oNotesMaster.setTheme(oTheme) : oNotesMaster.setTheme(themesMap[oTheme]);
+
+		oPres.notesMasters[oPres.notesMasters.length] = oNotesMaster;
+		notesMasterMap[oParsedNotesMaster.id] = oNotesMaster;
+
+		return oNotesMaster;
 	};
 	ReaderFromJSON.prototype.TimingFromJSON = function(oParsedTimig)
 	{
@@ -2057,7 +2213,7 @@
 
 		oParsedCTn.childTnLst && oCTn.setChildTnLst(this.TnLstFromJSON(oParsedCTn.childTnLst));
 		oParsedCTn.endCondLst && oCTn.setEndCondLst(this.CondLstFromJSON(oParsedCTn.endCondLst));
-		oParsedCTn.endSync    && oCTn.setEndSync(this.EndSyncFromJSON(oParsedCTn.endSync));
+		oParsedCTn.endSync    && oCTn.setEndSync(this.CondFromJSON(oParsedCTn.endSync));
 		oParsedCTn.iterate    && oCTn.setIterate(this.IterateFromJSON(oParsedCTn.iterate));
 		oParsedCTn.stCondLst  && oCTn.setStCondLst(this.CondLstFromJSON(oParsedCTn.stCondLst));
 		oParsedCTn.subTnLst   && oCTn.setSubTnLst(this.TnLstFromJSON(oParsedCTn.subTnLst));
@@ -2387,6 +2543,31 @@
 
 		return oGraphicEl;
 	};
+	ReaderFromJSON.prototype.IterateFromJSON = function(oParsedIterate)
+	{
+		var oIterate = new AscFormat.CIterateData();
+
+		var nIterateType = undefined;
+		switch (oParsedIterate.type)
+		{
+			case "el":
+				nIterateType = c_oAscSlideIterateType.El;
+				break;
+			case "lt":
+				nIterateType = c_oAscSlideIterateType.Lt;
+				break;
+			case "wd":
+				nIterateType = c_oAscSlideIterateType.Wd;
+				break;
+		}
+
+		oParsedIterate.tmAbs != undefined && oIterate.setTmAbs(oParsedIterate.tmAbs);
+		oParsedIterate.tmPct != undefined && oIterate.setTmPct(oParsedIterate.tmPct);
+		oParsedIterate.backwards != undefined && oIterate.setBackwards(oParsedIterate.backwards);
+		nIterateType != undefined && oIterate.setType(oPnIterateType);
+
+		return oIterate;
+	};
 	ReaderFromJSON.prototype.SeqFromJSON = function(oParsedSeq)
 	{
 		var oSeq = new AscFormat.CSeq();
@@ -2670,9 +2851,9 @@
 	{
 		var oByHSL = new AscFormat.CColorPercentage();
 
-		oByRGB.c1 = oParsedByRGB.h;
-		oByRGB.c1 = oParsedByRGB.s;
-		oByRGB.c1 = oParsedByRGB.l;
+		oByRGB.c1 = oParsedByHSL.h;
+		oByRGB.c1 = oParsedByHSL.s;
+		oByRGB.c1 = oParsedByHSL.l;
 
 		return oByHSL;
 	};
@@ -2924,31 +3105,14 @@
 
 		return oSet;
 	};
-	ReaderFromJSON.prototype.ParFromJSON = function(oParsedPar)
-	{
-		
-	};
-	ReaderFromJSON.prototype.ParFromJSON = function(oParsedPar)
-	{
-		
-	};
-	ReaderFromJSON.prototype.ParFromJSON = function(oParsedPar)
-	{
-		
-	};
-	ReaderFromJSON.prototype.ParFromJSON = function(oParsedPar)
-	{
-		
-	};
-
-	ReaderFromJSON.prototype.HFFromJSON = function(oHF)
+	ReaderFromJSON.prototype.HFFromJSON = function(oParsedHF)
 	{
 		var oHF = new AscFormat.HF();
 
-		oHF.setDt(oHF.dt);
-		oHF.setFtr(oHF.ftr);
-		oHF.setHdr(oHF.hdr);
-		oHF.setSldNum(oHF.sldNum);
+		oParsedHF.dt != undefined && oHF.setDt(oParsedHF.dt);
+		oParsedHF.ftr != undefined && oHF.setFtr(oParsedHF.ftr);
+		oParsedHF.hdr != undefined && oHF.setHdr(oParsedHF.hdr);
+		oParsedHF.sldNum != undefined && oHF.setSldNum(oParsedHF.sldNum);
 
 		return oHF;
 	};
@@ -2975,8 +3139,8 @@
 			}
 		}
 			
-		oCSld.bg     = this.BgFromJSON(oParsedCSld.bg);
-		oCSld.name   = oParsedCSld.name;
+		oCSld.bg   = oParsedCSld.bg ? this.BgFromJSON(oParsedCSld.bg) : oCSld.bg;
+		oCSld.name = oParsedCSld.name;
 
 		return oCSld;
 	};
@@ -3062,13 +3226,15 @@
 		oParsedTheme.themeElements.fontScheme && oTheme.setFontScheme(this.FontSchemeFromJSON(oParsedTheme.themeElements.fontScheme));
 		oTheme.setIsThemeOverride(oParsedTheme.isThemeOverride);
 
+		themesMap[oParsedTheme.Id] = oTheme;
+
 		return oTheme;
 	};
 	ReaderFromJSON.prototype.ExtraClrSchemeFromJSON = function(oParsedExtrClrScheme)
 	{
 		var oExtraClrScheme = new AscFormat.ExtraClrScheme();
-		this.ColorMapOvrFromJSON.oParsedExtrClrScheme.clrMap && oExtraClrScheme.setClrMap(this.ColorMapOvrFromJSON(this.ColorMapOvrFromJSON.oParsedExtrClrScheme.clrMap));
-		this.ColorMapOvrFromJSON.oParsedExtrClrScheme.clrScheme && oExtraClrScheme.setClrScheme(this.ClrSchemeFromJSON(this.ColorMapOvrFromJSON.oParsedExtrClrScheme.clrScheme));
+		oParsedExtrClrScheme.clrMap && oExtraClrScheme.setClrMap(this.ColorMapOvrFromJSON(oParsedExtrClrScheme.clrMap));
+		oParsedExtrClrScheme.clrScheme && oExtraClrScheme.setClrScheme(this.ClrSchemeFromJSON(oParsedExtrClrScheme.clrScheme));
 
 		return oExtraClrScheme;
 	};
@@ -3133,10 +3299,7 @@
 
 		return oDefSpDefinition;
 	};
-	ReaderFromJSON.prototype.SlideFromJSON = function(oParsedSlide)
-	{
-
-	};
+	
 	ReaderFromJSON.prototype.SlideFromJSON = function(oParsedSlide)
 	{
 
