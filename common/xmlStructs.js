@@ -38,6 +38,29 @@
  */
 (function(window, undefined) {
 	//docx
+	function CT_Document() {
+		this.anchors = [];
+	}
+
+	CT_Document.prototype.fromXml = function(reader) {
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		if ("document" !== reader.GetNameNoNS()) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		if ("document" === reader.GetNameNoNS()) {
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+				if ("body" === name) {
+
+				}
+			}
+		}
+	};
 
 	//xlsx
 	function CT_DrawingWS() {
@@ -71,5 +94,7 @@
 	//pptx
 
 	window['AscCommon'] = window['AscCommon'] || {};
+	window['AscCommon'].CT_Document = CT_Document;
+
 	window['AscCommon'].CT_DrawingWS = CT_DrawingWS;
 })(window);

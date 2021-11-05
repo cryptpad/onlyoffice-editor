@@ -27,8 +27,7 @@
 			"common/apiBase_plugins.js",
 			"word/apiCommon.js",
 			"cell/api.js",
-			"common/spell/spell.js",
-			"common/zlib/zlib.js"
+			"common/spell/spell.js"
 		],
 		"common": [			
 			"common/downloaderfiles.js",
@@ -106,9 +105,6 @@
 			"common/Scrolls/mobileTouchManagerBase.js",
 
 			"common/wordcopypaste.js",
-
-			"vendor/easysax.js",
-			"common/openxml.js",
 
 			"common/intervalTree.js",
 
@@ -261,9 +257,13 @@
 			"common/Drawings/Format/OleObject.js",
 			"common/Drawings/Format/DrawingContent.js",
 			"common/plugins.js",
-			"common/xmlStructs.js",
 			
-			"common/Native/native_graphics.js"
+			"common/Native/native_graphics.js",
+			
+			"common/zlib/zlib.js",
+			"vendor/easysax.js",
+			"common/openxml.js",
+			"common/xmlStructs.js"
 		],
 		"desktop": {
 			"min": [

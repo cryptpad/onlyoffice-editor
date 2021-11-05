@@ -1163,7 +1163,7 @@ var editor;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
 		if (jsZipWrapper.create()) {
 			var doc = new AscCommon.openXml.OpenXmlPackage(jsZipWrapper, memory);
-			doc.addPart('qwe.xml', AscCommon.openXml.contentTypes.relationships, new Uint8Array([255,255,255,255,40,92,143,2]), 'qwe.xml', AscCommon.openXml.relationshipTypes.relationships );
+			doc.addPart(AscCommon.openXml.Types.worksheet, new Uint8Array([255,255,255,255,40,92,143,2]));
 			var data = jsZipWrapper.save();
 
 			var blob = new Blob([data], {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
@@ -1429,7 +1429,7 @@ var editor;
 		}
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
-		wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
+		wbPart = doc.getPartByRelationshipType(openXml.Types.workbook.relationType);
 		var contentWorkbook = wbPart.getDocumentContent();
 		AscCommonExcel.executeInR1C1Mode(false, function() {
 			wbXml = new AscCommonExcel.CT_Workbook();
@@ -1470,7 +1470,7 @@ var editor;
 		}
 		if (window['OPEN_IN_BROWSER']) {
 			var sharedStringPart = wbPart.getPartByRelationshipType(
-				openXml.relationshipTypes.sharedStringTable);
+				openXml.Types.sharedStringTable.relationType);
 			if (sharedStringPart) {
 				var contentSharedStrings = sharedStringPart.getDocumentContent();
 				if (contentSharedStrings) {
@@ -1506,9 +1506,8 @@ var editor;
 						drawingWS.fromXml(reader);
 					}
 					if (wsPart) {
-						var actions = [];
 						var pivotParts = wsPart.getPartsByRelationshipType(
-							openXml.relationshipTypes.pivotTable);
+							openXml.Types.pivotTable.relationType);
 						for (var i = 0; i < pivotParts.length; ++i) {
 							var contentPivotTable = pivotParts[i].getDocumentContent();
 							var pivotTable = new Asc.CT_pivotTableDefinition(true);

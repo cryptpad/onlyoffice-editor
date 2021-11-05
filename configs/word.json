@@ -235,7 +235,12 @@
 			"common/Drawings/Format/DrawingContent.js",
 			"common/plugins.js",
 			
-			"common/Native/native_graphics.js"
+			"common/Native/native_graphics.js",
+			
+			"common/zlib/zlib.js",
+			"vendor/easysax.js",
+			"common/openxml.js",
+			"common/xmlStructs.js"
 		],
 		"desktop": {
 			"min": [

@@ -810,7 +810,7 @@
 					{
 						if(window['OPEN_IN_BROWSER']) {
 							oResult.bSerFormat = true;
-							oResult.data = new Uint8Array(httpRequest.response);;
+							oResult.data = new Uint8Array(httpRequest.response);
 						} else {
 							var stream = initStreamFromResponse(httpRequest);
 							if (stream) {

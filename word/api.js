@@ -1484,6 +1484,26 @@ background-repeat: no-repeat;\
 			PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
 		}
 	};
+	asc_docs_api.prototype.OpenDocumentFromZip = function(data)
+	{
+		if (!data) {
+			return false;
+		}
+		var xmlParserContext = new XmlParserContext();
+		var jsZipWrapper = new AscCommon.JSZipWrapper();
+		if (!jsZipWrapper.loadSync(data)) {
+			return false;
+		}
+		xmlParserContext.zip = jsZipWrapper;
+		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
+		var contentDocument = documentPart.getDocumentContent();
+		var reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
+
+		var doc = new AscCommon.CT_Document();
+		doc.fromXml(reader);
+		return true;
+	};
 	// Callbacks
 	/* все имена callback'оф начинаются с On. Пока сделаны:
 	 OnBold,
@@ -7603,7 +7623,13 @@ background-repeat: no-repeat;\
 		}
 
 		if (file.bSerFormat)
-			this.OpenDocument2(file.url, file.data);
+		{
+			if(window['OPEN_IN_BROWSER']) {
+				this.OpenDocumentFromZip(file.data);
+			} else {
+				this.OpenDocument2(file.url, file.data);
+			}
+		}
 		else
 		{
 			if (this.isUseNativeViewer)
