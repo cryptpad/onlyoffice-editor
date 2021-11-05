@@ -5983,40 +5983,180 @@
 		var x, y;
 		var eps = 0.0001;
 
+		// 0 left, 1 down, 2 right, 3 up
+		var directions = [];
+		var isUseShift = (shiftX > 0.1 || shiftY > 0.1) ? true : false;
+
+		if (isUseShift)
+		{
+			for (var nIndex = 0; nIndex < nCount; nIndex++)
+			{
+				if (Math.abs(PrevX - Points[nIndex].X) < eps && Math.abs(PrevY - Points[nIndex].Y) < eps)
+					continue;
+
+				if (PrevX > (Points[nIndex].X + eps))
+				{
+					directions.push(0)
+				}
+				else if (PrevX < (Points[nIndex].X - eps))
+				{
+					directions.push(2);
+				}
+
+				if (PrevY > (Points[nIndex].Y + eps))
+				{
+					directions.push(3);
+				}
+				else if (PrevY < (Points[nIndex].Y - eps))
+				{
+					directions.push(1);
+				}
+				PrevX = Points[nIndex].X;
+				PrevY = Points[nIndex].Y;
+			}
+		}
+
+		PrevX = Points[nCount - 2].X;
+		PrevY = Points[nCount - 2].Y;
+		var directionIndex = 0;
 		for (var nIndex = 0; nIndex < nCount; nIndex++)
 		{
+			if (Math.abs(PrevX - Points[nIndex].X) < eps && Math.abs(PrevY - Points[nIndex].Y) < eps)
+				continue;
+
 			x = transform ? transform.TransformPointX(Points[nIndex].X, Points[nIndex].Y) : Points[nIndex].X;
 			y = transform ? transform.TransformPointY(Points[nIndex].X, Points[nIndex].Y) : Points[nIndex].Y;
 
 			x = (left + dKoefX * x) * rPR;
 			y = (top + dKoefY * y) * rPR;
 
-			if (shiftX > 0.1 || shiftY > 0.1)
+			if (isUseShift)
 			{
-				// заточка на то, что это ректы
-				if (PrevX > (Points[nIndex].X + eps))
+				var nextDirection = (directionIndex === (directions.length - 1)) ? directions[0] : directions[directionIndex + 1];
+				switch (directions[directionIndex])
 				{
-					x -= shiftX;
-					y -= shiftY;
-				}
-				else if (PrevX < (Points[nIndex].X - eps))
-				{
-					x += shiftX;
-					y += shiftY;
-				}
-
-				if (PrevY > (Points[nIndex].Y + eps))
-				{
-					x += shiftX;
-					y -= shiftY;
-				}
-				else if (PrevY < (Points[nIndex].Y - eps))
-				{
-					x -= shiftX;
-					y += shiftY;
+					case 0:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								y -= shiftY;
+								break
+							}
+							case 1:
+							{
+								x -= shiftX;
+								y -= shiftY;
+								break;
+							}
+							case 2:
+							{
+								break;
+							}
+							case 3:
+							{
+								x += shiftX;
+								y -= shiftY;
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					case 1:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								x -= shiftX;
+								y -= shiftY;
+								break;
+							}
+							case 1:
+							{
+								x -= shiftX;
+								break;
+							}
+							case 2:
+							{
+								x -= shiftX;
+								y += shiftY;
+								break
+							}
+							case 3:
+							default:
+								break;
+						}
+						break;
+					}
+					case 2:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								break;
+							}
+							case 1:
+							{
+								x -= shiftX;
+								y += shiftY;
+								break;
+							}
+							case 2:
+							{
+								y += shiftY;
+								break;
+							}
+							case 3:
+							{
+								x += shiftX;
+								y += shiftY;
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					case 3:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								x += shiftX;
+								y -= shiftY;
+								break;
+							}
+							case 1:
+							{
+								break;
+							}
+							case 2:
+							{
+								x += shiftX;
+								y += shiftY;
+								break;
+							}
+							case 3:
+							{
+								x += shiftX;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					default:
+						break;
 				}
 			}
 
+			directionIndex++;
 			PrevX = Points[nIndex].X;
 			PrevY = Points[nIndex].Y;
 
