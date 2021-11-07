@@ -7794,7 +7794,7 @@ function BinaryFileReader(doc, openParams)
 			}
 		}
 	};
-    this.PostLoadPrepare = function(setting)
+    this.PostLoadPrepare = function()
     {
 		if (null !== this.oReadResult.compatibilityMode) {
 			this.Document.Settings.CompatibilityMode = this.oReadResult.compatibilityMode;
@@ -8283,12 +8283,12 @@ function BinaryFileReader(doc, openParams)
 				}
 			}
 		}
-		this.Document.Content = this.oReadResult.DocumentContent;
-		if(this.Document.Content.length == 0)
-        {
-            var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
-            this.Document.Content.push(oNewParagraph);
-        }
+		// this.Document.Content = this.oReadResult.DocumentContent;
+		// if(this.Document.Content.length == 0)
+        // {
+        //     var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
+        //     this.Document.Content.push(oNewParagraph);
+        // }
 		// for(var i = 0, length = this.oReadResult.aPostOpenStyleNumCallbacks.length; i < length; ++i)
 			// this.oReadResult.aPostOpenStyleNumCallbacks[i].call();
 		if (null != this.oReadResult.trackRevisions) {

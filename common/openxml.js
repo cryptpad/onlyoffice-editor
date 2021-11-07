@@ -32,7 +32,7 @@
 
 "use strict";
 
-(function(window) {
+(function(window, undefined) {
 	var openXml = {};
 
 	function SaxParserBase() {
@@ -158,7 +158,7 @@
 	ContentTypes.prototype.add = function(partName, contentType) {
 		var exti = partName.lastIndexOf(".");
 		var ext = partName.substring(exti + 1);
-		var res = !(this.Overrides[partName] || this.Defaults[ext]);
+		var res = !(this.Overrides[partName] && this.Defaults[ext]);
 		if (contentType) {
 			this.Overrides[partName] = contentType;
 		}
@@ -275,7 +275,7 @@
 			}
 		}
 		var outputParts = [];
-		for (var i = samePartsLength; i < fromParts.length; i++) {
+		for (var i = samePartsLength; i < fromParts.length - 1; i++) {
 			outputParts.push('..');
 		}
 		outputParts = outputParts.concat(toParts.slice(samePartsLength));
@@ -382,18 +382,22 @@
 	};
 	openXml.OpenXmlPart.prototype.getDocumentContent = function(type) {
 		type = type || "string";
-		var file = this.pkg.zip.files[this.getUriRelative()];
-		if (file) {
-			return file.sync(type);
+		var data = this.pkg.zip.getFile(this.getUriRelative());
+		if (!data) {
+			data = new Uint8Array(0);
 		}
-		return "";
+		if ("string" === type) {
+			return AscCommon.UTF8ArrayToString(data, 0, data.length);
+		} else {
+			return data;
+		}
 	};
 	openXml.OpenXmlPart.prototype.addPart = function (type, data) {
 		var uri = this.pkg.generateUriByType(type);
 		var newPart = this.pkg.addPartWithoutRels(uri, type.contentType, data);
 		//update rels
 		var target = this.pkg.getRelativeUri(this.uri, uri);
-		this.pkg.addRelationship(type.relationType, target);
+		this.addRelationship(type.relationType, target);
 		return newPart;
 	}
 	openXml.OpenXmlPart.prototype.addRelationship = function (relationshipType, target, targetMode) {
@@ -603,14 +607,14 @@
 		diagramStyle: {dir: "", filename: "diagramStyle.xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.diagramStyle+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramQuickStyle"},
 		dialogsheet: {dir: "", filename: "dialogsheet.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/dialogsheet"},
 		digitalSignatureOrigin: {dir: "", filename: "digitalSignatureOrigin.xml", contentType: "application/vnd.openxmlformats-package.digital-signature-origin", relationType: "http://schemas.openxmlformats.org/package/2006/relationships/digital-signature/origin"},
-		documentSettings: {dir: "", filename: "documentSettings.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings"},
+		documentSettings: {dir: "word", filename: "settings.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings"},
 		drawings: {dir: "xl/drawings", filename: "drawing[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawing+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing"},
 		endnotes: {dir: "", filename: "endnotes.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes"},
 		excelAttachedToolbars: {dir: "", filename: "excelAttachedToolbars.xml", contentType: "application/vnd.ms-excel.attachedToolbars", relationType: "http://schemas.microsoft.com/office/2006/relationships/attachedToolbars"},
 		extendedFileProperties: {dir: "docProps", filename: "app.xml", contentType: "application/vnd.openxmlformats-officedocument.extended-properties+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties"},
 		externalWorkbook: {dir: "xl/externalLinks", filename: "externalLink[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.externalLink+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/externalLink"},
 		fontData: {dir: "", filename: "fontData.xml", contentType: "application/x-fontdata"},
-		fontTable: {dir: "", filename: "fontTable.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable"},
+		fontTable: {dir: "word", filename: "fontTable.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable"},
 		footer: {dir: "", filename: "footer.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"},
 		footnotes: {dir: "", filename: "footnotes.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes"},
 		gif: {dir: "", filename: "gif.xml", contentType: "image/gif"},
@@ -618,7 +622,7 @@
 		handoutMaster: {dir: "", filename: "handoutMaster.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.handoutMaster+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster"},
 		header: {dir: "", filename: "header.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"},
 		jpeg: {dir: "", filename: "jpeg.xml", contentType: "image/jpeg"},
-		mainDocument: {dir: "", filename: "document.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"},
+		mainDocument: {dir: "word", filename: "document.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"},
 		notesMaster: {dir: "", filename: "notesMaster.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml"},
 		notesSlide: {dir: "", filename: "notesSlide.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"},
 		numberingDefinitions: {dir: "", filename: "numberingDefinitions.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering"},
@@ -643,10 +647,10 @@
 		slideMaster: {dir: "", filename: "slideMaster.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster"},
 		slideShow: {dir: "", filename: "slideShow.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml"},
 		slideSyncData: {dir: "", filename: "slideSyncData.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.slideUpdateInfo+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideUpdateInfo"},
-		styles: {dir: "", filename: "styles.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"},
+		styles: {dir: "word", filename: "styles.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"},
 		tableDefinition: {dir: "xl/tables", filename: "table[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/table"},
 		tableStyles: {dir: "", filename: "tableStyles.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles"},
-		theme: {dir: "", filename: "theme.xml", contentType: "application/vnd.openxmlformats-officedocument.theme+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"},
+		theme: {dir: "word/theme", filename: "theme[N].xml", contentType: "application/vnd.openxmlformats-officedocument.theme+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"},
 		themeOverride: {dir: "", filename: "themeOverride.xml", contentType: "application/vnd.openxmlformats-officedocument.themeOverride+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/themeOverride"},
 		tiff: {dir: "", filename: "tiff.xml", contentType: "image/tiff"},
 		trueTypeFont: {dir: "", filename: "trueTypeFont.xml", contentType: "application/x-font-ttf"},
@@ -654,7 +658,7 @@
 		viewProperties: {dir: "", filename: "viewProperties.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps"},
 		vmlDrawing: {dir: "", filename: "vmlDrawing.xml", contentType: "application/vnd.openxmlformats-officedocument.vmlDrawing", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing"},
 		volatileDependencies: {dir: "", filename: "volatileDependencies.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.volatileDependencies+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/volatileDependencies"},
-		webSettings: {dir: "", filename: "webSettings.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings"},
+		webSettings: {dir: "word", filename: "webSettings.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings"},
 		wordAttachedToolbars: {dir: "", filename: "wordAttachedToolbars.xml", contentType: "application/vnd.ms-word.attachedToolbars", relationType: "http://schemas.microsoft.com/office/2006/relationships/attachedToolbars"},
 		wordprocessingComments: {dir: "", filename: "wordprocessingComments.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"},
 		wordprocessingTemplate: {dir: "", filename: "wordprocessingTemplate.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"},

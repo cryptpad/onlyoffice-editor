@@ -108,7 +108,7 @@
         this.asc_CloseFile();
 
         this.FontLoader.IsLoadDocumentFonts2 = true;
-        this.OpenDocument2(this.DocumentUrl, binaryFile);
+        this.OpenDocumentFromBin(this.DocumentUrl, binaryFile);
 
         if (fields)
             this.asc_SetBlockChainData(fields);

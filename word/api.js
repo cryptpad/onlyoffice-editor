@@ -1434,7 +1434,7 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.navigate(value);
 	};
 
-	asc_docs_api.prototype.OpenDocument2 = function(url, gObject)
+	function BeforeOpenDocument()
 	{
 		this.InitEditor();
 		this.DocumentType   = 2;
@@ -1442,28 +1442,23 @@ background-repeat: no-repeat;\
 
 		g_oIdCounter.Set_Load(true);
 		AscFonts.IsCheckSymbols = true;
+	};
+	function AfterOpenDocument(data, size)
+	{
+		if (History && History.Update_FileDescription)
+			History.Update_FileDescription(data, size);
 
-		var openParams        = {checkFileSize : /*this.isMobileVersion*/false, charCount : 0, parCount : 0};
-		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
-		if (oBinaryFileReader.Read(gObject))
-		{
-			if (History && History.Update_FileDescription)
-				History.Update_FileDescription(oBinaryFileReader.stream);
+		g_oIdCounter.Set_Load(false);
+		this.LoadedObject = 1;
 
-			g_oIdCounter.Set_Load(false);
-			this.LoadedObject = 1;
+		// проверяем какие шрифты нужны
+		var StylesPainter = new AscCommonWord.CStylesPainter();
+		StylesPainter.CheckStylesNames(this, this.LoadedObjectDS);
 
-			// проверяем какие шрифты нужны
-            var StylesPainter = new AscCommonWord.CStylesPainter();
-            StylesPainter.CheckStylesNames(this, this.LoadedObjectDS);
+		this.WordControl.m_oDrawingDocument.CheckFontNeeds();
+		AscCommon.pptx_content_loader.CheckImagesNeeds(this.WordControl.m_oLogicDocument);
 
-			this.WordControl.m_oDrawingDocument.CheckFontNeeds();
-			AscCommon.pptx_content_loader.CheckImagesNeeds(this.WordControl.m_oLogicDocument);
-
-			this.FontLoader.LoadDocumentFonts(this.WordControl.m_oLogicDocument.Fonts, false);
-		}
-		else
-			editor.sendEvent("asc_onError", c_oAscError.ID.MobileUnexpectedCharCount, c_oAscError.Level.Critical);
+		this.FontLoader.LoadDocumentFonts(this.WordControl.m_oLogicDocument.Fonts, false);
 
 		AscFonts.IsCheckSymbols = false;
 
@@ -1484,6 +1479,18 @@ background-repeat: no-repeat;\
 			PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
 		}
 	};
+	asc_docs_api.prototype.OpenDocumentFromBin = function(url, gObject)
+	{
+		BeforeOpenDocument.call(this);
+
+		var openParams        = {checkFileSize : /*this.isMobileVersion*/false, charCount : 0, parCount : 0};
+		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
+		if (!oBinaryFileReader.Read(gObject))
+			editor.sendEvent("asc_onError", c_oAscError.ID.MobileUnexpectedCharCount, c_oAscError.Level.Critical);
+
+		AfterOpenDocument.call(this, oBinaryFileReader.stream.data, oBinaryFileReader.stream.size);
+		return true;
+	};
 	asc_docs_api.prototype.OpenDocumentFromZip = function(data)
 	{
 		if (!data) {
@@ -1494,14 +1501,22 @@ background-repeat: no-repeat;\
 		if (!jsZipWrapper.loadSync(data)) {
 			return false;
 		}
+		BeforeOpenDocument.call(this);
+
+		var openParams        = {checkFileSize : /*this.isMobileVersion*/false, charCount : 0, parCount : 0};
+		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
+		oBinaryFileReader.PreLoadPrepare();
+
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
 		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
 		var contentDocument = documentPart.getDocumentContent();
 		var reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
 
-		var doc = new AscCommon.CT_Document();
-		doc.fromXml(reader);
+		this.WordControl.m_oLogicDocument.fromXml(reader);
+
+		oBinaryFileReader.PostLoadPrepare();
+		AfterOpenDocument.call(this, data, data.length);
 		return true;
 	};
 	// Callbacks
@@ -7627,7 +7642,7 @@ background-repeat: no-repeat;\
 			if(window['OPEN_IN_BROWSER']) {
 				this.OpenDocumentFromZip(file.data);
 			} else {
-				this.OpenDocument2(file.url, file.data);
+				this.OpenDocumentFromBin(file.url, file.data);
 			}
 		}
 		else
@@ -8349,6 +8364,14 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
+			var data = this.WordControl.m_oLogicDocument.toZip();
+			var blob = new Blob([data], {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+			var link = document.createElement("a");
+			link.href = window.URL.createObjectURL(blob);
+			link.download = this.documentTitle;
+			link.click();
+			return;
+
 			if (options.advancedOptions instanceof Asc.asc_CTextOptions)
 			{
 				oAdditionalData["codepage"] = options.advancedOptions.asc_getCodePage();
@@ -12185,7 +12208,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['InitEditor']                                = asc_docs_api.prototype.InitEditor;
 	asc_docs_api.prototype['InitViewer']                                = asc_docs_api.prototype.InitViewer;
 	asc_docs_api.prototype['OpenDocument']                              = asc_docs_api.prototype.OpenDocument;
-	asc_docs_api.prototype['OpenDocument2']                             = asc_docs_api.prototype.OpenDocument2;
+	asc_docs_api.prototype['OpenDocumentFromBin']                       = asc_docs_api.prototype.OpenDocumentFromBin;
+	asc_docs_api.prototype['OpenDocumentFromZip']                       = asc_docs_api.prototype.OpenDocumentFromZip;
 	asc_docs_api.prototype['asc_getDocumentName']                       = asc_docs_api.prototype.asc_getDocumentName;
 	asc_docs_api.prototype['asc_getAppProps']                           = asc_docs_api.prototype.asc_getAppProps;
 	asc_docs_api.prototype['asc_getCoreProps']                          = asc_docs_api.prototype.asc_getCoreProps;

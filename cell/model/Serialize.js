@@ -34,8 +34,6 @@
 (function(window, undefined) {
 
       // Import
-	var openXml = AscCommon.openXml;
-
       var CellValueType = AscCommon.CellValueType;
       var c_oAscCellAnchorType = AscCommon.c_oAscCellAnchorType;
       var c_oAscBorderStyles = AscCommon.c_oAscBorderStyles;

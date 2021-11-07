@@ -263,7 +263,7 @@
 			"common/zlib/zlib.js",
 			"vendor/easysax.js",
 			"common/openxml.js",
-			"common/xmlStructs.js"
+			"cell/model/SerializeXml.js"
 		],
 		"desktop": {
 			"min": [
