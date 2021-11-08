@@ -1950,6 +1950,13 @@ function CGroupShape()
         }
     };
 
+    //for bug 52775. remove in the next version
+    CGroupShape.prototype.applySmartArtTextStyle = function() {
+        for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
+            this.spTree[nSp].applySmartArtTextStyle();
+        }
+    };
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;

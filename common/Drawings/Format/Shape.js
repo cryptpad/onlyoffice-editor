@@ -6493,7 +6493,26 @@ CShape.prototype.getColumnNumber = function(){
     };
     CShape.prototype.getInnerForm = function() {
 		return this.textBoxContent ? this.textBoxContent.GetInnerForm() : null;
-	}
+	};
+
+    //for bug 52775. remove in the next version
+    CShape.prototype.applySmartArtTextStyle = function() {
+        if(this.textBoxContent) {
+            if(this.style && this.style.fontRef) {
+                if(this.style.fontRef.Color) {
+                    var oUnifill = AscFormat.CreateUniFillByUniColorCopy(this.style.fontRef.Color);
+                    this.textBoxContent.CheckRunContent(function(oRun) {
+                        if(oRun instanceof AscCommonWord.ParaRun) {
+                            if(!oRun.Pr.Unifill && !oRun.Pr.TextFill) {
+                                oRun.Set_Unifill(oUnifill);
+                            }
+                        }
+                        return false;
+                    });
+                }
+            }
+        }
+    };
 
 function CreateBinaryReader(szSrc, offset, srcLen)
 {

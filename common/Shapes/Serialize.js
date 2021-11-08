@@ -11790,6 +11790,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                             var oGrFrDrawing = oThis.Reader.ReadGrFrame();
                             if(oGrFrDrawing && oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape) {
                                 GrObject = oGrFrDrawing.convertToWord(oThis.LogicDocument);
+                                GrObject.applySmartArtTextStyle();
                                 if(paraDrawing){
                                     GrObject.setParent(paraDrawing);
                                 }

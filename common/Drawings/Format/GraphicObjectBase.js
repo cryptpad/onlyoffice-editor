@@ -2370,6 +2370,10 @@
         }
         return true;
     };
+    //for bug 52775. remove in the next version
+    CGraphicObjectBase.prototype.applySmartArtTextStyle = function() {
+
+    };
 
     function CRelSizeAnchor() {
         CBaseObject.call(this);
