@@ -2162,10 +2162,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
         case 202: // ASC_MENU_EVENT_TYPE_DOCUMENT_PDFBASE64
+        case 203: // ASC_MENU_EVENT_TYPE_DOCUMENT_PDFBASE64_PRINT
         {
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
-            _stream["WriteStringA"](this.WordControl.m_oDrawingDocument.ToRenderer());
+            _stream["WriteStringA"](this.WordControl.m_oDrawingDocument.ToRenderer(203 === type));
             _return = _stream;
             break;
         }

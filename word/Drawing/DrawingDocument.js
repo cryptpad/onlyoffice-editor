@@ -2536,16 +2536,17 @@ function CDrawingDocument()
 		}
 	};
 
-	this.ToRenderer = function ()
+	this.ToRenderer = function (isPrint)
 	{
 		var Renderer = new AscCommon.CDocumentRenderer();
+		Renderer.isPrintMode = isPrint ? true : false;
 		Renderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
 		Renderer.VectorMemoryForPrint = new AscCommon.CMemory();
 		var old_marks = this.m_oWordControl.m_oApi.ShowParaMarks;
 		this.m_oWordControl.m_oApi.ShowParaMarks = false;
 		this.RenderDocument(Renderer);
 		this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
-        this.printedDocument = null;
+		this.printedDocument = null;
 		var ret = Renderer.Memory.GetBase64Memory();
 		//console.log(ret);
 		return ret;
