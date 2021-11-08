@@ -2299,6 +2299,13 @@
         }
         return (oParentContent === oParentContent.GetLogicDocument());
 	};
+	CGraphicObjectBase.prototype.isContainedInMainDoc = function() {
+		var oParentContent = this.parent && this.parent.DocumentContent;
+        if(!oParentContent) {
+            return true;
+        }
+        return (oParentContent.GetTopDocumentContent() === oParentContent.GetLogicDocument());
+	};
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
         var oCopy = this.bounds.copy();
         oCopy.l -= 3;

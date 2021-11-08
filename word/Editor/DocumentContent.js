@@ -1488,13 +1488,14 @@ CDocumentContent.prototype.Draw                           = function(nPageIndex,
 	}
 
 
-	if (this.LogicDocument)
-		this.LogicDocument.DrawingObjects.drawBeforeObjectsByContent(this.Get_AbsolutePage(CurPage), pGraphics, this);
 
     if (ClipInfo)
     {
         pGraphics.RestoreGrState();
     }
+
+	if (this.LogicDocument)
+		this.LogicDocument.DrawingObjects.drawBeforeObjectsByContent(this.Get_AbsolutePage(CurPage), pGraphics, this);
 
     if (pGraphics.End_Command)
     {

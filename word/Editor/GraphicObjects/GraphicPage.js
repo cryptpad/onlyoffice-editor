@@ -367,7 +367,7 @@ CGraphicPage.prototype =
         for(var _object_index = 0; _object_index < this.behindDocObjects.length; ++_object_index)
         {
             oGraphicObject = this.behindDocObjects[_object_index];
-            if(oGraphicObject.isContainedInTopDocument())
+            if(oGraphicObject.isContainedInMainDoc())
             {
                 oGraphicObject.draw(graphics);
             }
