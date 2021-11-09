@@ -6694,6 +6694,37 @@
 					case 'el-GR':
 					case 'fr-FR':
 					case 'it-IT':
+					case 'fr-FR': {
+						var arrOfDigits = ordinalText.arrAnswer;
+						var switchingValue = arrOfDigits;
+						if (Array.isArray(arrOfDigits[arrOfDigits.length - 1])) {
+							var arr = arrOfDigits[arrOfDigits.length - 1];
+							switchingValue = arr;
+						}
+						switch (switchingValue[switchingValue.length - 1]) {
+							case 'neuf':
+								switchingValue[switchingValue.length - 1] = 'neuv';
+								break;
+							case 'cinq':
+								switchingValue[switchingValue.length - 1] = 'cinqu';
+								break;
+							case 'un':
+								if(switchingValue.length === 1 && arrOfDigits.length === 1) {
+									switchingValue[switchingValue.length - 1] = 'premier';
+								}
+								break;
+							default:
+								break;
+						}
+						var lastWord = switchingValue[switchingValue.length - 1];
+						if (lastWord[lastWord.length - 1] === 'e' || lastWord[lastWord.length - 1] === 'e') {
+							switchingValue[switchingValue.length - 1] = lastWord.slice(0, lastWord.length - 1);
+						}
+						if (switchingValue[switchingValue.length - 1] !== 'premier') {
+							switchingValue[switchingValue.length - 1] += 'ième';
+						}
+						break;
+					}
 					case 'nl-NL':
 					case 'pt-PT':
 					case 'pt-BR':
