@@ -2030,65 +2030,7 @@
 			}
 		}
 	};
-	function CT_Workbook() {
-		//Members
-		this.sheets = null;
-		this.pivotCaches = null;
-	}
-	CT_Workbook.prototype.fromXml = function(reader) {
-		if (!reader.ReadNextNode()) {
-			return;
-		}
-		if ("workbook" !== reader.GetNameNoNS()) {
-			if (!reader.ReadNextNode()) {
-				return;
-			}
-		}
-		if ("workbook" === reader.GetNameNoNS()) {
-			var depth = reader.GetDepth();
-			while (reader.ReadNextSiblingNode(depth)) {
-				var name = reader.GetNameNoNS();
-				if ("sheets" === name) {
-					var sheets = new CT_Sheets();
-					sheets.fromXml(reader);
-					this.sheets = sheets.sheets
-				} else if ("pivotCaches" === name) {
-					var pivotCaches = new CT_PivotCaches();
-					pivotCaches.fromXml(reader);
-					this.pivotCaches = pivotCaches.pivotCaches
-				}
-			}
-		}
-	};
-	CT_Workbook.prototype.onStartNode = function(elem, attr, uq) {
-		var newContext = this;
-		if ("workbook" === elem) {
-			if (newContext.readAttributes) {
-				newContext.readAttributes(attr, uq);
-			}
-		} else if ("sheets" === elem) {
-			//todo check name duplication
-			this.sheets = [];
-		} else if ("sheet" === elem) {
-			newContext = new CT_Sheet();
-			if (newContext.readAttributes) {
-				newContext.readAttributes(attr, uq);
-			}
-			this.sheets.push(newContext);
-		} else if ("pivotCaches" === elem) {
-			//todo check name duplication
-			this.pivotCaches = [];
-		} else if ("pivotCache" === elem) {
-			newContext = new CT_PivotCache();
-			if (newContext.readAttributes) {
-				newContext.readAttributes(attr, uq);
-			}
-			this.pivotCaches.push(newContext);
-		} else {
-			newContext = null;
-		}
-		return newContext;
-	};
+
 	function CT_PivotCaches() {
 		this.pivotCaches = [];
 	}
@@ -17810,7 +17752,6 @@
 	window['AscCommonExcel'].angleInterfaceToFormat = angleInterfaceToFormat;
 	window['AscCommonExcel'].Workbook = Workbook;
 	window['AscCommonExcel'].CT_SharedStrings = CT_SharedStrings;
-	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
 	window['AscCommonExcel'].CT_Value = CT_Value;
 	window['AscCommonExcel'].Worksheet = Worksheet;
 	window['AscCommonExcel'].Cell = Cell;

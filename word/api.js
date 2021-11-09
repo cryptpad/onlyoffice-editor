@@ -8365,7 +8365,7 @@ background-repeat: no-repeat;\
 		else
 		{
 			var data = this.WordControl.m_oLogicDocument.toZip();
-			var blob = new Blob([data], {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+			var blob = new Blob([data], {type: openXml.MimeTypes["docx"]});
 			var link = document.createElement("a");
 			link.href = window.URL.createObjectURL(blob);
 			link.download = this.documentTitle;

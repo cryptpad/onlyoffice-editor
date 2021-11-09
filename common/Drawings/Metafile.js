@@ -522,7 +522,7 @@
 		}
 		this.GetDataUint8   = function()
 		{
-			return this.data.subarray(0, this.GetCurPosition());
+			return this.data.slice(0, this.GetCurPosition());
 		}
 		this.GetCurPosition     = function()
 		{

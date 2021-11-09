@@ -162,7 +162,10 @@
 		if (contentType) {
 			this.Overrides[partName] = contentType;
 		}
-		this.Defaults[ext] = "application/xml";//todo mime type
+		if (!this.Defaults[ext]) {
+			var mime = openXml.MimeTypes[ext];
+			this.Defaults[ext] = mime;
+		}
 		return res;
 	};
 	function Rels(pkg, part){
@@ -184,7 +187,7 @@
 					attrVals["Target"], targetMode);
 				this.rels.push(theRel);
 				if (rId.startsWith("rId")) {
-					this.nextRId = Math.max(this.nextRId, parseInt(rId.substring("rId").length) || 1);
+					this.nextRId = Math.max(this.nextRId, parseInt(rId.substring("rId".length)) + 1 || 1);
 				}
 			}
 		}
@@ -291,7 +294,7 @@
 		var changed = this.cntTypes.add(uri, contentType);
 		if(changed) {
 			this.zip.removeFile("[Content_Types].xml");
-			this.zip.addFile("[Content_Types].xml", this.cntTypes.toXml(this.xmlWriter));
+			this.zip.addFile("[Content_Types].xml", this.getXmlBytes(this.cntTypes, this.xmlWriter));
 		}
 		return newPart;
 	}
@@ -368,6 +371,11 @@
 		}
 		return ct;
 	};
+	openXml.OpenXmlPackage.prototype.getXmlBytes = function(data, writer) {
+		writer.Seek(0);
+		data.toXml(writer);
+		return writer.GetDataUint8();
+	};
 
 	/*********** OpenXmlPart ***********/
 
@@ -407,7 +415,7 @@
 		var newRel = new openXml.OpenXmlRelationship(rels.pkg, rels.part, rId, relationshipType, target, targetMode);
 		rels.rels.push(newRel);
 		this.pkg.removePart(relsFilename);
-		this.pkg.addPartWithoutRels(relsFilename, null, rels.toXml(this.pkg.xmlWriter));
+		this.pkg.addPartWithoutRels(relsFilename, null, this.pkg.getXmlBytes(rels, this.pkg.xmlWriter));
 		return rId;
 	}
 
@@ -584,6 +592,53 @@
 		writer.WriteXmlNodeEnd(name, true, true);
 	};
 
+	openXml.MimeTypes = {
+		"bmp": "image/bmp",
+		"gif": "image/gif",
+		"png": "image/png",
+		"tif": "image/tiff",
+		"tiff": "image/tiff",
+		"jpeg": "image/jpeg",
+		"jpg": "image/jpeg",
+		"jpe": "image/jpeg",
+		"jfif": "image/jpeg",
+		"rels": "application/vnd.openxmlformats-package.relationships+xml",
+		"bin": "application/vnd.openxmlformats-officedocument.oleObject",
+		"xml": "application/xml",
+		"emf": "image/x-emf",
+		"emz": "image/x-emz",
+		"wmf": "image/x-wmf",
+		"svg": "image/svg+xml",
+		"svm": "image/svm",
+		"wdp": "image/vnd.ms-photo",
+		"wav": "audio/wav",
+		"wma": "audio/x-wma",
+		"m4a": "audio/unknown",
+		"mp3": "audio/mpeg",
+		"mp4": "video/unknown",
+		"mov": "video/unknown",
+		"m4v": "video/unknown",
+		"mkv": "video/unknown",
+		"avi": "video/avi",
+		"flv": "video/x-flv",
+		"wmv": "video/x-wmv",
+		"webm": "video/webm",
+		"xls": "application/vnd.ms-excel",
+		"xlsm": "application/vnd.ms-excel.sheet.macroEnabled.12",
+		"xlsb": "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+		"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		"ppt": "application/vnd.ms-powerpoint",
+		"pptm": "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
+		"pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		"sldm": "application/vnd.ms-powerpoint.slide.macroEnabled.12",
+		"sldx": "application/vnd.openxmlformats-officedocument.presentationml.slide",
+		"doc": "application/msword",
+		"docm": "application/vnd.ms-word.document.macroEnabled.12",
+		"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		"vml": "application/vnd.openxmlformats-officedocument.vmlDrawing",
+		"vsd": "application/vnd.visio",
+		"vsdx": "application/vnd.ms-visio.drawing"
+	};
 	/******************************** OpenXmlRelationship ********************************/
 	openXml.Types = {
 		calculationChain: {dir: "xl", filename: "calcChain.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.calcChain+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/calcChain"},

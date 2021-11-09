@@ -1159,21 +1159,12 @@ var editor;
       oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
       dataContainer.data = last.data;
     } else {
-		var memory = new AscCommon.CMemory();
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		if (jsZipWrapper.create()) {
-			var doc = new AscCommon.openXml.OpenXmlPackage(jsZipWrapper, memory);
-			doc.addPart(AscCommon.openXml.Types.worksheet, new Uint8Array([255,255,255,255,40,92,143,2]));
-			var data = jsZipWrapper.save();
-
-			var blob = new Blob([data], {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
-			var link = document.createElement("a");
-			link.href = window.URL.createObjectURL(blob);
-			link.download = this.documentTitle;
-			link.click();
-
-		}
-		jsZipWrapper.close();
+		var data = this.wbModel.toZip();
+		var blob = new Blob([data], {type: openXml.MimeTypes["xlsx"]});
+		var link = document.createElement("a");
+		link.href = window.URL.createObjectURL(blob);
+		link.download = this.documentTitle;
+		link.click();
 		return;
 
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
@@ -1432,7 +1423,7 @@ var editor;
 		wbPart = doc.getPartByRelationshipType(openXml.Types.workbook.relationType);
 		var contentWorkbook = wbPart.getDocumentContent();
 		AscCommonExcel.executeInR1C1Mode(false, function() {
-			wbXml = new AscCommonExcel.CT_Workbook();
+			wbXml = new AscCommon.CT_Workbook(wb);
 			var reader = new StaxParser(contentWorkbook, wbPart, xmlParserContext);
 			wbXml.fromXml(reader);
 		});
