@@ -450,10 +450,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			var nBaseLine  = nTextAscent;
 
 			if ((this.IsTextForm() || this.IsDropDownList() || this.IsComboBox())
-				&& (!this.IsFixedForm() || !this.IsMultiLineForm())
-				&& g_oTextMeasurer.m_oManager.m_pFont
-				&& g_oTextMeasurer.m_oManager.m_pFont.m_pFaceInfo
-				&& g_oTextMeasurer.m_oLastFont)
+				&& (!this.IsFixedForm() || !this.IsMultiLineForm()))
 			{
 				if (oTransform)
 				{
@@ -461,13 +458,9 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 					nBaseLine += (oTransform.TransformPointY(oParagraph.X, oParagraph.Y) - Y);
 				}
 
-				var oFaceInfo = g_oTextMeasurer.m_oManager.m_pFont.m_pFaceInfo;
+				var oLimits = g_oTextMeasurer.GetLimitsY();
 
-				var nKoef = g_oTextMeasurer.m_oLastFont.SetUpSize / g_oTextMeasurer.m_oManager.m_lUnits_Per_Em * g_dKoef_pt_to_mm;
-				var yMin  = oFaceInfo.header_yMin * nKoef;
-				var yMax  = oFaceInfo.header_yMax * nKoef;
-
-				var nMidPoint = ((nBaseLine - yMin) + (nBaseLine - yMax)) / 2;
+				var nMidPoint = ((nBaseLine - oLimits.min) + (nBaseLine - oLimits.max)) / 2;
 
 				var nDiff = nH / 2 - nMidPoint;
 				if (Math.abs(nDiff) > 0.001)
