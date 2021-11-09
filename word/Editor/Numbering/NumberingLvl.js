@@ -1279,6 +1279,41 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			}
 			case Asc.c_oAscNumberingFormat.HindiCounting:
 			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2306);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2309);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2310);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2311);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2312);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2313);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2319);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2325);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2327);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2330);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2331);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2332);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2335);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2336);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2337);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2340);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2342);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2344);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2346);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2348);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2351);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2352);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2354);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2357);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2360);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2361);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2364);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2366);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2367);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2368);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2375);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2376);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2379);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2380);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(2381);
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.HindiNumbers:

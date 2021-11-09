@@ -4870,7 +4870,7 @@
 				else if (repeatIndex <= 40) currentSpace = spaces[3];
 				sResult = String.fromCharCode(0x0E01 + repeatIndex + currentSpace).repeat(repeatAmount);
 				break;
-			case Asc.c_oAscNumberingFormat.CardinalText: {
+			case Asc.c_oAscNumberingFormat.CardinalText:
 				function getCardinalTextFromValue(lang) {
 					var arrAnswer = [];
 					var getConcatStringByRule = function (array) {
@@ -6379,7 +6379,7 @@
 				var cardinalText = getCardinalTextFromValue(languages[nLang]);
 				sResult = cardinalText.getConcatStringByRule(cardinalText.arrAnswer).sentenceCase();
 				break;
-			}
+
 			case Asc.c_oAscNumberingFormat.Custom:
 				sResult = '' + nValue;
 				break;
@@ -6660,9 +6660,46 @@
 				break;
 			case Asc.c_oAscNumberingFormat.HindiCounting:
 				var alphabet = [
-
+					"एक","दो","तीन","चार","पांच","छह","सात","आठ","नौ","दस","ग्यारह",
+					"बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस",
+					"इकीस","बाईस","तेइस","चौबीस","पच्चीस","छब्बीस","सताइस","अट्ठाइस",
+					"उनतीस","तीस","इकतीस","बतीस","तैंतीस","चौंतीस","पैंतीस","छतीस",
+					"सैंतीस","अड़तीस","उनतालीस","चालीस","इकतालीस","बयालीस","तैतालीस",
+					"चवालीस","पैंतालीस","छयालिस","सैंतालीस","अड़तालीस","उनचास",
+					"पचास","इक्यावन","बावन","तिरपन","चौवन","पचपन","छप्पन","सतावन",
+					"अठावन","उनसठ","साठ","इकसठ","बासठ","तिरसठ","चौंसठ","पैंसठ",
+					"छियासठ","सड़सठ","अड़सठ","उनहतर","सत्तर","इकहतर","बहतर",
+					"तिहतर","चौहतर","पचहतर","छिहतर","सतहतर","अठहतर","उन्नासी","अस्सी",
+					"इक्यासी","बयासी","तिरासी","चौरासी","पचासी","छियासी","सतासी",
+					"अट्ठासी","नवासी","नब्बे","इक्यानवे","बानवे","तिरानवे","चौरानवे",
+					"पचानवे","छियानवे","सतानवे","अट्ठानवे","निन्यानवे"
 				];
-				sResult = 'शून्य';
+				var degrees = {
+					100: "सौ",
+					1000: "हज़ार",
+				}
+				function hindiCounting(num) {
+					var resArr = [];
+					var groups = {};
+					groups[1000] = Math.floor(num / 1000);
+					num %= 1000;
+					groups[100] = Math.floor(num / 100);
+					num %= 100;
+					groups[1] = num;
+					if (groups[1000]) {
+						resArr.push(alphabet[(groups[1000] - 1) % 99], degrees[1000]);
+					}
+					if (groups[100]) {
+						resArr.push(alphabet[(groups[100] - 1) % 99], degrees[100]);
+					}
+					if (groups[1]) {
+						resArr.push(alphabet[(groups[1] - 1) % 99]);
+					}
+					return resArr;
+				}
+				var adaptVal = ((nValue - 1) % 9999) + 1;
+
+				sResult = hindiCounting(adaptVal).join(' ');
 				break;
 			case Asc.c_oAscNumberingFormat.ThaiCounting:
 				var digits = [
