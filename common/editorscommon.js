@@ -6842,7 +6842,37 @@
 					case 'sv-SE':
 					case 'bg-BG':
 					case 'en-GB':
-					case 'en-US':
+					case 'en-US': {
+						var alphaBet = {
+							'one': 'first',
+							'two': 'second',
+							'three': 'third',
+							'four': 'fourth',
+							'five': 'fifth',
+							'six': 'sixth',
+							'seven': 'seventh',
+							'eight': 'eighth',
+							'nine': 'ninth',
+							'ten': 'tenth',
+							'eleven': 'eleventh',
+							'twelve': 'twelfth',
+						};
+						var arrWithDigit = ordinalText.arrAnswer;
+						var changeArray = arrWithDigit;
+						if (Array.isArray(changeArray[changeArray.length - 1])) {
+							arrWithDigit = changeArray[changeArray.length - 1];
+						}
+						if (alphaBet[arrWithDigit[arrWithDigit.length - 1]]) {
+							arrWithDigit[arrWithDigit.length - 1] = alphaBet[arrWithDigit[arrWithDigit.length - 1]];
+						} else {
+							if (nValue % 10 === 0 && nValue % 100 !== 0) {
+								arrWithDigit[arrWithDigit.length - 1] = arrWithDigit[arrWithDigit.length - 1].slice(0, arrWithDigit[arrWithDigit.length - 1].length - 1) + 'ie';
+							}
+							arrWithDigit[arrWithDigit.length - 1] += 'th';
+
+						}
+						break;
+					}
 					case 'zh-CN':
 					case 'uk-UA':
 					case 'ja-JP':
