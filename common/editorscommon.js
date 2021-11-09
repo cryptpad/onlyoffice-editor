@@ -6657,6 +6657,145 @@
 				}
 				break;
 			case Asc.c_oAscNumberingFormat.OrdinalText:
+				var textLang = languages[nLang];
+				var ordinalText = getCardinalTextFromValue(textLang);
+				switch (textLang) {
+					case 'de-DE':
+					case 'pl-PL':
+					case 'cs-CZ':
+					case 'el-GR':
+					case 'fr-FR':
+					case 'it-IT':
+					case 'nl-NL':
+					case 'pt-PT':
+					case 'pt-BR':
+					case 'ru-RU':
+						var alphaBet = {
+								'один': 'первый',
+								'два': 'второй',
+								'три': 'третий',
+								'четыре': 'четвертый',
+								'пять': 'пятый',
+								'шесть': 'шестой',
+								'семь': 'седьмой',
+								'восемь': 'восьмой',
+								'девять': 'девятый',
+								'десять': 'десятый',
+								'одиннадцать': 'одиннадцатый',
+								'двенадцать': 'двенадцатый',
+								'тринадцать': 'тринадцатый',
+								'четырнадцать': 'четырнадцатый',
+								'пятнадцать': 'пятнадцатый',
+								'шестнадцать': 'шестнадцатый',
+								'семнадцать': 'семнадцатый',
+								'восемнадцать': 'восемнадцатый',
+								'девятнадцать': 'девятнадцатый',
+								'двадцать': 'двадцатый',
+								'тридцать': 'тридцатый',
+								'сорок': 'сороковой',
+								'пятьдесят': 'пятидесятый',
+								'шестьдесят': 'шестидесятый',
+								'семьдесят': 'семидесятый',
+								'восемьдесят': 'восьмидесятый',
+								'девяносто': 'девяностый',
+							  'сто': 'сотый',
+								'двести': 'двухсотый',
+								'триста': 'трехсотый',
+								'четыреста': 'четырехсотый',
+								'пятьсот': 'пятисотый',
+								'шестьсот': 'шестисотый',
+								'семьсот': 'семисотый',
+								'восемьсот': 'восьмисотый',
+								'девятьсот': 'девятисотый'
+						}
+						var arrWithDigit = ordinalText.arrAnswer;
+						var lastWord = arrWithDigit[arrWithDigit.length - 1];
+						if (lastWord.indexOf('тысяч') !== -1) {
+							var answer = [];
+							var thousand = {
+								1: {
+									'одна': '',
+									'две': 'двух',
+									'три': 'трех',
+									'четыре': 'четырех',
+									'пять': 'пяти',
+									'шесть': 'шести',
+									'семь': 'семи',
+									'восемь': 'восьми',
+									'девять': 'девяти',
+									'десять': 'десяти',
+									'одиннадцать': 'одиннадцати',
+									'двенадцать': 'двенадцати',
+									'тринадцать': 'тринадцати',
+									'четырнадцать': 'четырнадцати',
+									'пятнадцать': 'пятнадцати',
+									'шестнадцать': 'шестнадцати',
+									'семнадцать': 'семнадцати',
+									'восемнадцать': 'восемнадцати',
+									'девятнадцать': 'девятнадцати',
+									'двадцать': 'двадцати',
+									'тридцать': 'тридцати',
+									'сорок': 'сорока',
+									'пятьдесят': 'пятидесяти',
+									'шестьдесят': 'шестидесяти',
+									'семьдесят': 'семидесяти',
+									'восемьдесят': 'восьмидесяти',
+									'девяносто': 'девяносто'
+								},
+								100: {
+									'сто': 'сто',
+									'двести': 'двухсот',
+									'триста': 'трехсот',
+									'четыреста': 'четырехсот',
+									'пятьсот': 'пятьсот',
+									'шестьсот': 'шестьсот',
+									'семьсот': 'семьсот',
+									'восемьсот': 'восемьсот',
+									'девятьсот': 'девятьсот'
+								}
+							}
+							answer.unshift('тысячный');
+							arrWithDigit.pop();
+							var lastWord = arrWithDigit[arrWithDigit.length - 1];
+							if (typeof thousand[1][lastWord] === 'string') {
+								answer.unshift(thousand[1][lastWord]);
+								arrWithDigit.pop();
+								lastWord = arrWithDigit[arrWithDigit.length - 1];
+								if (thousand[1][lastWord]) {
+									answer.unshift(thousand[1][lastWord]);
+									arrWithDigit.pop();
+								}
+							}
+							lastWord = arrWithDigit[arrWithDigit.length - 1];
+							if (thousand[100][lastWord]) {
+								arrWithDigit.pop();
+								answer.unshift(thousand[100][lastWord]);
+							}
+							arrWithDigit.push(answer.join(''));
+						} else {
+							arrWithDigit[arrWithDigit.length - 1] = alphaBet[arrWithDigit[arrWithDigit.length - 1]];
+						}
+						ordinalText.getConcatStringByRule = function (arr) {
+							return arr.join(' ');
+						}
+						break;
+					case 'sv-SE':
+					case 'bg-BG':
+					case 'en-GB':
+					case 'en-US':
+					case 'zh-CN':
+					case 'uk-UA':
+					case 'ja-JP':
+					case 'vi-VN':
+					case 'lv-LV':
+					case 'en-ES':
+					case 'ko-KR':
+					case 'sk-SK':
+					case 'az-Latn-AZ':
+					default:
+						break;
+				}
+				sResult = ordinalText.getConcatStringByRule(ordinalText.arrAnswer).sentenceCase();
 				break;
 			case Asc.c_oAscNumberingFormat.HindiCounting:
 				var alphabet = [
