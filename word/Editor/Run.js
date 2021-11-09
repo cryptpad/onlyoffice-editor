@@ -1667,80 +1667,162 @@ ParaRun.prototype.ConcatToContent = function(arrNewItems)
  * @param {string} sString
  * @param {number} [nPos=-1] если позиция не задана (или значение -1), то добавляем в конец
  */
-ParaRun.prototype.AddText = function(sString, nPos)
+ParaRun.prototype.AddText = function(sString, nPos, InsertTextItems)
 {
 	var nCharPos = undefined !== nPos && null !== nPos && -1 !== nPos ? nPos : this.Content.length;
 
 	var oTextForm = this.GetTextForm();
 	var nMax = oTextForm ? oTextForm.MaxCharacters : 0;
+    var AllInsertsParaEnds = [];
 
-	if (this.IsMathRun())
-	{
-		for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
-		{
-			var nCharCode = oIterator.value();
+    if (this.IsMathRun())
+    {
+        if (InsertTextItems != null)
+        {
+            for (var nIndex = 0, nCount = InsertTextItems.length; nIndex < nCount; ++nIndex)
+            {
+                var nCharCode = InsertTextItems[nIndex].GetValue();
+                if (nCharCode)
+                {
+                    var oMathText = new CMathText();
+                    oMathText.add(nCharCode);
+                    this.AddToContent(nCharPos++, oMathText); 
+                }
+            }
+        }
+        else
+        {
+            for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+            {
+                var nCharCode = oIterator.value();
 
-			var oMathText = new CMathText();
-			oMathText.add(nCharCode);
-			this.AddToContent(nCharPos++, oMathText);
-		}
-	}
-	else if (nMax > 0)
-	{
-		var nMaxLetters = nMax - nPos;
+                var oMathText = new CMathText();
+                oMathText.add(nCharCode);
+                this.AddToContent(nCharPos++, oMathText);
+            }
+        }
+    }
+    else if (nMax > 0)
+    {
+        var nMaxLetters = nMax - nPos;
 
-		var arrLetters = [], nLettersCount = 0;
-		for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
-		{
-			if (nLettersCount >= nMaxLetters)
-				break;
+        var arrLetters = [], nLettersCount = 0;
 
-			var nCharCode = oIterator.value();
+        if (InsertTextItems != null)
+        {
+            for (var nIndex = 0, nCount = InsertTextItems.length; nIndex < nCount; ++nIndex)
+            {
+                var ItemType = InsertTextItems[nIndex].GetType();
+                var nCharCode = InsertTextItems[nIndex].GetValue();
+                if (nCharCode)
+                {
+                    if (AscCommon.IsSpace(nCharCode))
+                        this.AddToContent(nCharPos++, new ParaSpace(nCharCode), true);
+                    else
+                        this.AddToContent(nCharPos++, new ParaText(nCharCode), true);
+                }
+                else
+                {
+                    switch (ItemType)
+                    {
+                        case c_oSearchItemType.NewLine: this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true); break;
+                        case c_oSearchItemType.Tab: this.AddToContent(nCharPos++, new ParaTab(), true); break;
+                        case c_oSearchItemType.BrackPage: this.AddToContent(nCharPos++, new ParaNewLine(break_Page), true); break;
+                        case c_oSearchItemType.ColumnBreak: this.AddToContent(nCharPos++, new ParaNewLine(break_Column), true); break;
+                        // Как то нужно добавлять новый параграф и переходить в него или добавлять новые параграфы после всех других вставок
+                        case c_oSearchItemType.ParaEnd:
+                        AllInsertsParaEnds.push(nCharPos);
+                        break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+            {
+                if (nLettersCount >= nMaxLetters)
+                    break;
 
-			if (9 === nCharCode) // \t
-				continue;
-			else if (10 === nCharCode) // \n
-				continue;
-			else if (13 === nCharCode) // \r
-				continue;
-			else if (AscCommon.IsSpace(nCharCode)) // space
-			{
-				nLettersCount++;
-				arrLetters.push(new ParaSpace(nCharCode));
-			}
-			else
-			{
-				nLettersCount++;
-				arrLetters.push(new ParaText(nCharCode));
-			}
-		}
+                var nCharCode = oIterator.value();
 
-		for (var nIndex = 0; nIndex < arrLetters.length; ++nIndex)
-		{
-			this.AddToContent(nCharPos++, arrLetters[nIndex], true);
-		}
+                if (9 === nCharCode) // \t
+                    continue;
+                else if (10 === nCharCode) // \n
+                    continue;
+                else if (13 === nCharCode) // \r
+                    continue;
+                else if (AscCommon.IsSpace(nCharCode)) // space
+                {
+                    nLettersCount++;
+                    arrLetters.push(new ParaSpace(nCharCode));
+                }
+                else
+                {
+                    nLettersCount++;
+                    arrLetters.push(new ParaText(nCharCode));
+                }
+            }
 
-		if (this.Content.length > nMax)
-			this.RemoveFromContent(nMax, this.Content.length - nMax, true);
-	}
-	else
-	{
-		for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
-		{
-			var nCharCode = oIterator.value();
+            for (var nIndex = 0; nIndex < arrLetters.length; ++nIndex)
+            {
+                this.AddToContent(nCharPos++, arrLetters[nIndex], true);
+            }
+        }
+        if (this.Content.length > nMax)
+            this.RemoveFromContent(nMax, this.Content.length - nMax, true);
+    }
+    else
+    {
+        if (InsertTextItems != null)
+        {
+            for (var nIndex = 0, nCount = InsertTextItems.length; nIndex < nCount; ++nIndex)
+            {
+                var ItemType = InsertTextItems[nIndex].GetType();
+                var nCharCode = InsertTextItems[nIndex].GetValue();
+                if (nCharCode)
+                {
+                    if (AscCommon.IsSpace(nCharCode))
+                        this.AddToContent(nCharPos++, new ParaSpace(nCharCode), true);
+                    else
+                        this.AddToContent(nCharPos++, new ParaText(nCharCode), true);
+                }
+                else
+                {
+                    switch (ItemType)
+                    {
+                        case c_oSearchItemType.NewLine: this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true); break;
+                        case c_oSearchItemType.Tab: this.AddToContent(nCharPos++, new ParaTab(), true); break;
+                        case c_oSearchItemType.BrackPage: this.AddToContent(nCharPos++, new ParaNewLine(break_Page), true); break;
+                        case c_oSearchItemType.ColumnBreak: this.AddToContent(nCharPos++, new ParaNewLine(break_Column), true); break;
+                        // Как то нужно добавлять новый параграф и переходить в него или добавлять новые параграфы после всех других вставок
+                        case c_oSearchItemType.ParaEnd:
+                        AllInsertsParaEnds.push(nCharPos);
+                        break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+            {
+                var nCharCode = oIterator.value();
 
-			if (9 === nCharCode) // \t
-				this.AddToContent(nCharPos++, new ParaTab(), true);
-			else if (10 === nCharCode) // \n
-				this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true);
-			else if (13 === nCharCode) // \r
-				continue;
-			else if (AscCommon.IsSpace(nCharCode)) // space
-				this.AddToContent(nCharPos++, new ParaSpace(nCharCode), true);
-			else
-				this.AddToContent(nCharPos++, new ParaText(nCharCode), true);
-		}
-	}
+                if (9 === nCharCode) // \t
+                    this.AddToContent(nCharPos++, new ParaTab(), true);
+                else if (10 === nCharCode) // \n
+                    this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true);
+                else if (13 === nCharCode) // \r
+                    continue;
+                else if (AscCommon.IsSpace(nCharCode)) // space
+                    this.AddToContent(nCharPos++, new ParaSpace(nCharCode), true);
+                else
+                    this.AddToContent(nCharPos++, new ParaText(nCharCode), true);
+            }
+        }
+    }
+    
 };
 /**
  * Добавляем в конец рана заданную инструкцию для сложного поля

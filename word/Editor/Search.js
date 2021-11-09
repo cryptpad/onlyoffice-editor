@@ -137,6 +137,8 @@ CDocumentSearch.prototype.Reset_Current = function()
 };
 CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 {
+	this.InsertTextItems = new CSearchTextItemBase();
+	this.InsertTextItems.SetElements(sReplaceString);
 	var oPara = this.Elements[Id];
 	if (oPara)
 	{
@@ -170,7 +172,7 @@ CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 
 				if (reviewtype_Add === oEndRun.GetReviewType() && oEndRun.GetReviewInfo().IsCurrentUser())
 				{
-					oEndRun.AddText(sReplaceString, nRunPos);
+					oEndRun.AddText(sReplaceString, nRunPos, this.InsertTextItems.arrElements);
 				}
 				else
 				{
@@ -181,7 +183,7 @@ CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 					if (!oReplaceRun.IsEmpty())
 						oReplaceRun.Split2(0, oRunParent, nRunPosInParent + 1);
 
-					oReplaceRun.AddText(sReplaceString, 0);
+					oReplaceRun.AddText(sReplaceString, 0, this.InsertTextItems.arrElements);
 					oReplaceRun.SetReviewType(reviewtype_Add);
 
 					// Выделяем старый объект поиска и удаляем его
@@ -197,7 +199,7 @@ CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 				var StartRun        = SearchElement.ClassesS[SearchElement.ClassesS.length - 1];
 
 				var RunPos = StartContentPos.Get(SearchElement.ClassesS.length - 1);
-				StartRun.AddText(sReplaceString, RunPos);
+				StartRun.AddText(sReplaceString, RunPos, this.InsertTextItems.arrElements);
 			}
 
 			// Выделяем старый объект поиска и удаляем его
@@ -383,7 +385,8 @@ var c_oSearchItemType = {
 	EmDash: 17,
 	EnDash: 18,
 	SectionCharacter: 19,
-	ParagraphCharacter: 20
+	ParagraphCharacter: 20,
+	AnyDash: 21
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -419,12 +422,13 @@ CSearchTextItemBase.prototype.SetElements = function(sStr)
 		"+" : new CSearchTextSpecialEmDash(), 				// ^+ - em dash
 		"=" : new CSearchTextSpecialEnDash(), 				// ^= - en dash
 		"%" : new CSearchTextSpecialSectionCharacter(),	 	// ^% - § Section Character
-		"v" : new CSearchTextSpecialParagraphCharater()  	// ^v - ¶ Paragraph Character
+		"v" : new CSearchTextSpecialParagraphCharater(),  	// ^v - ¶ Paragraph Character
+		"y" : new CSearchTextSpecialAnyDash()				// ^y - any dash
 	};
 
 	this.arrElements = [];
 	this.fFlag = 0;
-	this.sSpecial = "ltp?#$nedfgm~s^w+=%v";
+	this.sSpecial = "ltp?#$nedfgm~s^w+=%vy";
 	for (var i = 0; i < this.str.length; i++)
 	{
 		if (this.str[i] === "^" && i !== this.str.length - 1 && this.sSpecial.indexOf(this.str[i + 1]) !== -1)
@@ -455,6 +459,10 @@ CSearchTextItemBase.prototype.GetType = function()
 {
 	return this.Type;
 };
+CSearchTextItemBase.prototype.GetValue = function()
+{
+	return (this.Value != null) ? this.Value : false;
+};
 function CSearchTextItemChar(Letter)
 {
 	this.Value = Letter.charCodeAt(0);
@@ -468,7 +476,6 @@ CSearchTextItemChar.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
 
 function CSearchTextSpecialNewLine()
 {
-	this.TypeName = "c_oSearchItemType.NewLine";
 	this.Type = c_oSearchItemType.NewLine;
 }
 CSearchTextSpecialNewLine.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -480,7 +487,6 @@ CSearchTextSpecialNewLine.prototype.CheckSpecialSymbol = function(Item, ParaSear
 
 function CSearchTextSpecialTab()
 {
-	this.TypeName = "c_oSearchItemType.Tab";
 	this.Type = c_oSearchItemType.Tab;
 }
 CSearchTextSpecialTab.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -492,7 +498,6 @@ CSearchTextSpecialTab.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
 
 function CSearchTextSpecialParaEnd()
 {
-	this.TypeName = "c_oSearchItemType.ParaEnd";
 	this.Type = c_oSearchItemType.ParaEnd;
 }
 CSearchTextSpecialParaEnd.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -504,7 +509,6 @@ CSearchTextSpecialParaEnd.prototype.CheckSpecialSymbol = function(Item, ParaSear
 
 function CSearchTextSpecialAnySymbol()
 {
-	this.TypeName = "c_oSearchItemType.AnySymbol";
 	this.Type = c_oSearchItemType.AnySymbol;
 }
 CSearchTextSpecialAnySymbol.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -516,7 +520,6 @@ CSearchTextSpecialAnySymbol.prototype.CheckSpecialSymbol = function(Item, ParaSe
 
 function CSearchTextSpecialAnyDigit()
 {
-	this.TypeName = "c_oSearchItemType.AnyDigit";
 	this.Type = c_oSearchItemType.AnyDigit;
 }
 CSearchTextSpecialAnyDigit.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -528,7 +531,6 @@ CSearchTextSpecialAnyDigit.prototype.CheckSpecialSymbol = function(Item, ParaSea
 
 function CSearchTextSpecialAnyLetter()
 {
-	this.TypeName = "c_oSearchItemType.AnyLetter";
 	this.Type = c_oSearchItemType.AnyLetter;
 }
 CSearchTextSpecialAnyLetter.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -544,7 +546,6 @@ CSearchTextSpecialAnyLetter.prototype.CheckSpecialSymbol = function(Item, ParaSe
 
 function CSearchTextSpecialColumnBreak()
 {
-	this.TypeName = "c_oSearchItemType.ColumnBreak";
 	this.Type = c_oSearchItemType.ColumnBreak;
 	this.BreakType = 3;
 }
@@ -557,7 +558,6 @@ CSearchTextSpecialColumnBreak.prototype.CheckSpecialSymbol = function(Item, Para
 
 function CSearchTextSpecialEndonteMark()
 {
-	this.TypeName = "c_oSearchItemType.EndNoteMark";
 	this.Type = c_oSearchItemType.EndNoteMark;
 }
 CSearchTextSpecialEndonteMark.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -569,7 +569,6 @@ CSearchTextSpecialEndonteMark.prototype.CheckSpecialSymbol = function(Item, Para
 
 function CSearchTextSpecialField()
 {
-	this.TypeName = "c_oSearchItemType.Field";
 	this.Type = c_oSearchItemType.Field;
 }
 CSearchTextSpecialField.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -581,7 +580,6 @@ CSearchTextSpecialField.prototype.CheckSpecialSymbol = function(Item, ParaSearch
 
 function CSearchTextSpecialFootnoteMark()
 {
-	this.TypeName = "c_oSearchItemType.FootNoteMark";
 	this.Type = c_oSearchItemType.FootNoteMark;
 }
 CSearchTextSpecialFootnoteMark.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -593,7 +591,6 @@ CSearchTextSpecialFootnoteMark.prototype.CheckSpecialSymbol = function(Item, Par
 
 function CSearchTextSpecialGraphicOjbect()
 {
-	this.TypeName = "c_oSearchItemType.GraphicObj";
 	this.Type = c_oSearchItemType.GraphicObj;
 	this.DrawingType = 1;
 }
@@ -606,7 +603,6 @@ CSearchTextSpecialGraphicOjbect.prototype.CheckSpecialSymbol = function(Item, Pa
 
 function CSearchTextSpecialBreakPage()
 {
-	this.TypeName = "c_oSearchItemType.BrackPage";
 	this.Type = c_oSearchItemType.BrackPage;
 	this.BreakType = 2;
 }
@@ -619,20 +615,20 @@ CSearchTextSpecialBreakPage.prototype.CheckSpecialSymbol = function(Item, ParaSe
 
 function CSearchTextSpecialNonbreakingHyphen()
 {
-	this.TypeName = "c_oSearchItemType.NonBreakingHyphen";
 	this.Type = c_oSearchItemType.NonBreakingHyphen;
+	this.Value = 8209;
 }
 CSearchTextSpecialNonbreakingHyphen.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialNonbreakingHyphen.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
 {
-	if (Item.Value === 45) return true;
+	if (Item.Value === 8209) return true;
 	else return this.CheckParaSearch(ParaSearch);
 };
 
 function CSearchTextSpecialNonbreakingSpace()
 {
-	this.TypeName = "c_oSearchItemType.NonBreakingSpace";
 	this.Type = c_oSearchItemType.NonBreakingSpace;
+	this.Value = 160;
 }
 CSearchTextSpecialNonbreakingSpace.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialNonbreakingSpace.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
@@ -643,8 +639,8 @@ CSearchTextSpecialNonbreakingSpace.prototype.CheckSpecialSymbol = function(Item,
 
 function CSearchTextSpecialCaretCharacter()
 {
-	this.TypeName = "c_oSearchItemType.CaretCharacter";
 	this.Type = c_oSearchItemType.CaretCharacter;
+	this.Value = 94;
 }
 CSearchTextSpecialCaretCharacter.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialCaretCharacter.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
@@ -655,7 +651,6 @@ CSearchTextSpecialCaretCharacter.prototype.CheckSpecialSymbol = function(Item, P
 
 function CSearchTextSpecialAnySpace()
 {
-	this.TypeName = "c_oSearchItemType.AnySpace";
 	this.Type = c_oSearchItemType.AnySpace;
 }
 CSearchTextSpecialAnySpace.prototype = Object.create(CSearchTextItemBase.prototype);
@@ -667,32 +662,32 @@ CSearchTextSpecialAnySpace.prototype.CheckSpecialSymbol = function(Item, ParaSea
 
 function CSearchTextSpecialEmDash()
 {
-	this.TypeName = "c_oSearchItemType.EmDash";
 	this.Type = c_oSearchItemType.EmDash;
+	this.Value = 8212;
 }
 CSearchTextSpecialEmDash.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialEmDash.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
 {
-	if (Item.Value >=8208 && Item.Value <= 8213) return true;
+	if (Item.Value === 8212) return true;
 	else return this.CheckParaSearch(ParaSearch);
 };
 
 function CSearchTextSpecialEnDash()
 {
-	this.TypeName = "c_oSearchItemType.EnDash";
 	this.Type = c_oSearchItemType.EnDash;
+	this.Value = 8211;
 }
 CSearchTextSpecialEnDash.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialEnDash.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
 {
-	if (Item.Value === 45) return true;
+	if (Item.Value === 8211) return true;
 	else return this.CheckParaSearch(ParaSearch);
 };
 
 function CSearchTextSpecialSectionCharacter()
 {
-	this.TypeName = "c_oSearchItemType.SectionCharacter";
 	this.Type = c_oSearchItemType.SectionCharacter;
+	this.Value = 167;
 }
 CSearchTextSpecialSectionCharacter.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialSectionCharacter.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
@@ -703,13 +698,23 @@ CSearchTextSpecialSectionCharacter.prototype.CheckSpecialSymbol = function(Item,
 
 function CSearchTextSpecialParagraphCharater()
 {
-	this.TypeName = "c_oSearchItemType.ParagraphCharacter";
 	this.Type = c_oSearchItemType.ParagraphCharacter;
+	this.Value = 182;
 }
 CSearchTextSpecialParagraphCharater.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialParagraphCharater.prototype.CheckSpecialSymbol = function(Item,ParaSearch)
 {
 	if (Item.Value === 182) return true;
+	else return this.CheckParaSearch(ParaSearch);
+};
+function CSearchTextSpecialAnyDash()
+{
+	this.Type = c_oSearchItemType.AnyDash;
+}
+CSearchTextSpecialAnyDash.prototype = Object.create(CSearchTextItemBase.prototype);
+CSearchTextSpecialAnyDash.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+{
+	if (Item.Value >=8208 && Item.Value <= 8213 || Item.Value === 45) return true;
 	else return this.CheckParaSearch(ParaSearch);
 };
 
@@ -722,10 +727,8 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 	oProps.Word = false;
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
-	var ArrElement = new CSearchTextItemBase();
-	ArrElement.SetElements(sStr);
-
-	this.SearchEngine.TextItemBase = ArrElement;
+	this.SearchEngine.TextItemBase = new CSearchTextItemBase();
+	this.SearchEngine.TextItemBase.SetElements(sStr);
 
 	this.SearchEngine.Clear();
 	this.SearchEngine.Set(sStr, oProps);
