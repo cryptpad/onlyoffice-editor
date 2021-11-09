@@ -6106,13 +6106,12 @@
 							function cardinalSplittingDE(num) {
 								var resArr = [];
 								var groups = {};
-
+								if (num > 0 && num < 1000000) {
 								groups[1000] = Math.floor(num / 1000);
 								num %= 1000;
 								groups[100] = Math.floor(num / 100);
 								num %= 100;
-								groups[1] = Math.floor(num / 1);
-								if (num > 0 && num < 1000000) {
+								groups[1] = num;
 									if (groups[1000]) {
 										if (groups[1000] >= 100) {
 											resArr = resArr.concat(cardinalSplittingDE(groups[1000]));
@@ -6660,7 +6659,36 @@
 				var textLang = languages[nLang];
 				var ordinalText = getCardinalTextFromValue(textLang);
 				switch (textLang) {
-					case 'de-DE':
+					case 'de-DE': {
+						var alphaBet = {
+							'eins': 'erste',
+							'zwei': 'zweite',
+							'drei': 'dritte',
+							'vier': 'vierte',
+							'fünf': 'fünfte',
+							'sechs': 'sechste',
+							'sieben': 'siebente',
+							'acht': 'achte',
+							'neun': 'neunte',
+							'zehn': 'zehnte',
+							'elf': 'elfte',
+							'zwölf': 'zwölfte',
+							'dreizehn': 'dreizehnte',
+							'vierzehn': 'vierzehnte',
+							'fünfzehn': 'fünfzehnte',
+							'sechzehn': 'sechzehnte',
+							'siebzehn': 'siebzehnte',
+							'achtzehn': 'achtzehnte',
+							'neunzehn': 'neunzehnte',
+						};
+						var arrOfDigits = ordinalText.arrAnswer;
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
+						} else {
+							arrOfDigits[arrOfDigits.length - 1] += 'ste';
+						}
+						break;
+					}
 					case 'pl-PL':
 					case 'cs-CZ':
 					case 'el-GR':
