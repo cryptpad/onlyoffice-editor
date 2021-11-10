@@ -911,13 +911,6 @@ CLaTeXParser.prototype.AddLimit = function (MathFunc, name) {
 	}
 };
 
-CLaTeXParser.prototype.AddFrac = function (FormArgument) {
-	//todo: \frac 1 2
-	var frac = FormArgument.Add_Fraction(this.Pr, null, null);
-	this.StartLexer(frac.getNumeratorMathContent(), "}");
-	this.StartLexer(frac.getDenominatorMathContent(), "}");
-};
-
 CLaTeXParser.prototype.AddTinyFrac = function (FormArgument) {
 	var oBox = new CBox(this.Pr);
 	FormArgument.Add_Element(oBox);
@@ -1524,13 +1517,86 @@ CLaTeXParser.prototype.ExitFromLexer = function (strFAtom, exitIfSee) {
 	}
 };
 
-CLaTeXParser.prototype.CheckSqrtSyntax = function () {
-	var isSqrtWithSqrt = false;
+CLaTeXParser.prototype.CreateLitleBox = function (FormArgument) {
+	var oBox = new CBox(this.Pr);
+	FormArgument.Add_Element(oBox);
+	var BoxMathContent = oBox.getBase();
+	BoxMathContent.SetArgSize(-1);
+	return BoxMathContent;
+};
 
-	if (this.GetFutureAtom() == "[") {
-		isSqrtWithSqrt = true;
+//Fraction
+CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom) {
+	var typeOfFraction = this.GetTypeOfFrac.get(strFAtom); //duplication in Lexer!
+	var typeOfArgument = this.CheckSyntax(
+		[['{', '{'], 'ARGUMENT_WITH_BRACETS'],
+		[[1,1], 'ARGUMENT_WITHOUT_BRACETS']);
+
+	if (typeOfFraction) {
+		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
+		this.FillFracContent(Fraction, typeOfArgument);
 	}
 };
+
+CLaTeXParser.prototype.CheckSyntax = function () {
+	for (var i = 0; i <= arguments.length; i++) {
+		if (this.CheckSyntaxSequence(arguments[i][0])) {
+			return arguments[i][1];
+		}
+	}
+
+	console.log('Проблема')
+	return false;
+};
+
+CLaTeXParser.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
+	if (typeOfFraction == 'BAR_FRACTION') {
+		this.Pr.type = 0;
+	}
+
+	if (typeOfFraction == 'SKEWED_FRACTION') {
+		this.Pr.type = 1;
+	}
+
+	if (typeOfFraction == 'LINEAR_FRACTION') {
+		this.Pr.type = 2;
+	}
+
+	if (typeOfFraction == 'NO_BAR_FRACTION') {
+		this.Pr.type = 3;
+	}
+
+	if (typeOfFraction == 'LITLE_DEFAULT_FRACTION') {
+		var Box = this.CreateLitleBox(FormArgument);
+		var Fraction = Box.Add_Fraction(this.Pr, null, null);
+		return Fraction;
+
+	} else {
+		var Fraction = FormArgument.Add_Fraction(this.Pr, null, null);
+		return Fraction;
+	}
+}
+
+CLaTeXParser.prototype.FillFracContent = function (FormArgument, typeOfArgument) {
+	if (typeOfArgument == 'ARGUMENT_WITH_BRACETS') {
+		this.StartLexer(FormArgument.getNumeratorMathContent(), "}");
+		this.StartLexer(FormArgument.getDenominatorMathContent(), "}")
+	}
+	else if (typeOfArgument == 'ARGUMENT_WITHOUT_BRACETS') {
+		this.StartLexer(FormArgument.getNumeratorMathContent(), 1);
+		this.StartLexer(FormArgument.getDenominatorMathContent(), 1)
+	}
+}
+
+CLaTeXParser.prototype.GetTypeOfFrac = new Map([
+	['\\frac', 'DEFAULT_FRACTION'],
+	['\\tfrac', 'LITLE_DEFAULT_FRACTION'],
+	['\\sfrac', 'SKEWED_FRACTION'],
+	['\\nicefrac', 'LINEAR_FRACTION'],
+	['\\dfrac', 'DEFAULT_FRACTION'], // todo dfrac
+]);
+
+//Todo same for limit for get abstraction.
 
 /**
  * @param Parser
@@ -1555,17 +1621,11 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		if (Parser.GetIsFunc.get(strFAtom) != null) {
 			Parser.AddFunc(FormArgument, strFAtom.slice(1));
 			intFAtoms++;
-		} else if (
-			strFAtom == "\\frac" ||
-			strFAtom == "\\dfrac" ||
-			strFAtom == "\\cfrac"
-		) {
-			Parser.AddFrac(FormArgument);
+		} else if (Parser.GetTypeOfFrac.get(strFAtom) != null) {
+			Parser.AddFraction(FormArgument, strFAtom)
+			//Parser.AddFrac(FormArgument);
 			intFAtoms++;
-		} else if (strFAtom == "\\tfrac") {
-			Parser.AddTinyFrac(FormArgument);
-			intFAtoms++;
-		} else if (strFAtom == "\\binom") {
+		}  else if (strFAtom == "\\binom") {
 			Parser.AddBinom(FormArgument);
 			intFAtoms++;
 		} else if (strFAtom == "\\bmod") {
