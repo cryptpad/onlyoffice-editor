@@ -212,6 +212,7 @@
 			"pdf/src/viewer.js",
 			"pdf/src/file.js",
 			"word/document/empty.js",
+			"word/Math/LaTeX.js",
 			"word/Math/mathTypes.js",
 			"word/Math/mathText.js",
 			"word/Math/mathContent.js",

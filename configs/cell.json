@@ -236,6 +236,7 @@
 			"word/Editor/GlossaryDocumentChanges.js",
 			"word/Editor/GraphicObjects/WrapManager.js",
 			"word/Editor/Common.js",
+			"word/Math/LaTeX.js",
 			"word/Math/mathTypes.js",
 			"word/Math/mathText.js",
 			"word/Math/mathContent.js",
