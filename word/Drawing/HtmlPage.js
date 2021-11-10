@@ -2401,7 +2401,7 @@ function CEditorPage(api)
 		}
 
 		AscCommon.check_KeyboardEvent(e);
-		if (oWordControl.IsFocus === false)
+		if (oWordControl.IsFocus === false && e.emulated !== true)
 		{
 			// некоторые команды нужно продолжать обрабатывать
 			if (!oWordControl.onKeyDownNoActiveControl(global_keyboardEvent))

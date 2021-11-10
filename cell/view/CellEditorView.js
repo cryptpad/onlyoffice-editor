@@ -2225,7 +2225,7 @@
 		var t = this, kind = undefined, hieroglyph = false;
 		var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
-		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents)) {
+		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents && event.emulated !== true)) {
 			return true;
 		}
 
