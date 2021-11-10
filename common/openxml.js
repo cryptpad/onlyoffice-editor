@@ -135,13 +135,13 @@
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("Types");
 		writer.WriteXmlString(" xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"");
-		writer.WriteXmlNodeEnd("Types", true);
+		writer.WriteXmlAttributesEnd();
 		for (var ext in this.Defaults) {
 			if (this.Defaults.hasOwnProperty(ext)) {
 				writer.WriteXmlNodeStart("Default");
 				writer.WriteXmlAttributeStringEncode("Extension", ext);
 				writer.WriteXmlAttributeStringEncode("ContentType", this.Defaults[ext]);
-				writer.WriteXmlNodeEnd("Default", true, true);
+				writer.WriteXmlAttributesEnd(true);
 			}
 		}
 		for (var partName in this.Overrides) {
@@ -149,7 +149,7 @@
 				writer.WriteXmlNodeStart("Override");
 				writer.WriteXmlAttributeStringEncode("PartName", partName);
 				writer.WriteXmlAttributeStringEncode("ContentType", this.Overrides[partName]);
-				writer.WriteXmlNodeEnd("Override", true, true);
+				writer.WriteXmlAttributesEnd(true);
 			}
 		}
 		writer.WriteXmlNodeEnd("Types");
@@ -198,7 +198,7 @@
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("Relationships");
 		writer.WriteXmlString(" xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"");
-		writer.WriteXmlNodeEnd("Relationships", true);
+		writer.WriteXmlAttributesEnd();
 		this.rels.forEach(function(elem){
 			elem.toXml(writer, "Relationship");
 		});
@@ -589,7 +589,7 @@
 		if (this.targetMode) {
 			writer.WriteXmlAttributeString("TargetMode", this.targetMode);
 		}
-		writer.WriteXmlNodeEnd(name, true, true);
+		writer.WriteXmlAttributesEnd(true);
 	};
 
 	openXml.MimeTypes = {

@@ -464,6 +464,8 @@
 		this.len    = 0;
 		this.pos    = 0;
 
+		this.context = null;
+
 		if (true !== bIsNoInit)
 			this.Init();
 
@@ -905,33 +907,22 @@
 		{
 			this.WriteXmlString(val.toString());
 		};
-		this.WriteXmlNodeStart = function(name, isClose)
+		this.WriteXmlNodeStart = function(name)
 		{
 			this.WriteUtf8Char(0x3c);
 			this.WriteXmlString(name);
-			if(isClose)
-			{
-				this.WriteUtf8Char(0x3e);
-			}
 		};
-		this.WriteXmlNodeEnd = function(name, isEmpty, isEnd)
+		this.WriteXmlNodeEnd = function(name)
 		{
-			if (isEmpty)
-			{
-				if (isEnd)
-					this.WriteUtf8Char(0x2f);
-				this.WriteUtf8Char(0x3e);
-			}
-			else
-			{
-				this.WriteUtf8Char(0x3c);
+			this.WriteUtf8Char(0x3c);
+			this.WriteUtf8Char(0x2f);
+			this.WriteXmlString(name);
+			this.WriteUtf8Char(0x3e);
+		};
+		this.WriteXmlAttributesEnd = function(isEnd)
+		{
+			if (isEnd)
 				this.WriteUtf8Char(0x2f);
-				this.WriteXmlString(name);
-				this.WriteUtf8Char(0x3e);
-			}
-		};
-		this.WriteXmlAttributesEnd = function(name)
-		{
 			this.WriteUtf8Char(0x3e);
 		};
 		this.WriteXmlAttributeString = function(name, val)

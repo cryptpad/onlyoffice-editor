@@ -1979,203 +1979,7 @@
 		return o;
 	}
 //-------------------------------------------------------------------------------------------------
-
-	function CT_SharedStrings() {
-		this.sharedStrings = [];
-	}
-	CT_SharedStrings.prototype.fromXml = function(reader) {
-		if (!reader.ReadNextNode()) {
-			return;
-		}
-		if ("sst" !== reader.GetNameNoNS()) {
-			if (!reader.ReadNextNode()) {
-				return;
-			}
-		}
-		var si = new CT_Si();
-		if ("sst" === reader.GetNameNoNS()) {
-			var depth = reader.GetDepth();
-			while (reader.ReadNextSiblingNode(depth)) {
-				var name = reader.GetNameNoNS();
-				if ("si" === name) {
-					si.clean();
-					si.fromXml(reader);
-					if (null !== si.text) {
-						this.sharedStrings.push(si.text);
-					} else if (null !== si.multiText) {
-						this.sharedStrings.push(si.multiText);
-					} else {
-						this.sharedStrings.push("");
-					}
-				}
-			}
-		}
-		reader.GetContext().sharedStrings = this.sharedStrings;
-	};
-	function CT_Si() {
-		this.text = null;
-		this.multiText = null;
-	}
-	CT_Si.prototype.clean = function() {
-		this.text = null;
-		this.multiText = null;
-	};
-	CT_Si.prototype.fromXml = function(reader) {
-		var depth = reader.GetDepth();
-		while (reader.ReadNextSiblingNode(depth)) {
-			if ("t" === reader.GetName()) {
-				this.text = reader.GetTextDecodeXml();
-			} else if ("r" === reader.GetName()) {
-				this.text = reader.GetTextDecodeXml();
-			}
-		}
-	};
-
-	function CT_PivotCaches() {
-		this.pivotCaches = [];
-	}
-	CT_PivotCaches.prototype.fromXml = function(reader) {
-		var depth = reader.GetDepth();
-		while( reader.ReadNextSiblingNode(depth) ) {
-			if ( "pivotCache" === reader.GetNameNoNS() ) {
-				var pivotCache = new CT_PivotCache();
-				pivotCache.fromXml(reader);
-				this.pivotCaches.push(pivotCache);
-			}
-		}
-	};
-	function CT_DrawingWSRef() {
-		this.id = null;
-	}
-	CT_DrawingWSRef.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_DrawingWSRef.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			if ("id" === reader.GetNameNoNS()) {
-				this.id = reader.GetValueDecodeXml();
-			}
-		}
-	};
-
-	function CT_SheetData(ws) {
-		this.ws = ws;
-		this._openRow = new AscCommonExcel.Row(ws);
-	}
-
-	CT_SheetData.prototype.fromXml = function(reader) {
-		var depth = reader.GetDepth();
-		var row = reader.GetContext().row;
-		while (reader.ReadNextSiblingNode(depth)) {
-			if ("row" === reader.GetName()) {
-				row.clear();
-				row.fromXml(reader);
-				row.saveContent();
-			}
-		}
-	};
-	function CT_Sheets() {
-		this.sheets = [];
-	}
-	CT_Sheets.prototype.fromXml = function(reader) {
-		var depth = reader.GetDepth();
-		while( reader.ReadNextSiblingNode(depth) ) {
-			if ( "sheet" === reader.GetNameNoNS() ) {
-				var sheet = new CT_Sheet();
-				sheet.fromXml(reader);
-				this.sheets.push(sheet);
-			}
-		}
-	};
-	function CT_Sheet() {
-		//Attributes
-		this.id = null;
-	}
-	CT_Sheet.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_Sheet.prototype.readAttributes = function(attr, uq) {
-		if (attr()) {
-			this.parseAttributes(attr());
-		}
-	};
-	CT_Sheet.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			if ("id" === reader.GetNameNoNS()) {
-				this.id = reader.GetValueDecodeXml();
-			}
-		}
-	};
-	CT_Sheet.prototype.parseAttributes = function(vals, uq) {
-		var val;
-		val = vals["r:id"];
-		if (undefined !== val) {
-			this.id = AscCommon.unleakString(uq(val));
-		}
-	};
-	function CT_Value() {
-		//Attributes
-		this.space = null;
-		this.val = null;
-	}
-	CT_Value.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		this.val = reader.GetText();
-	};
-	CT_Value.prototype.readAttributes = function(attr, uq) {
-		if (attr()) {
-			this.parseAttributes(attr());
-		}
-	};
-	CT_Value.prototype.readAttr = function(reader) {
-		//todo space
-	};
-	CT_Value.prototype.parseAttributes = function(vals, uq) {
-		var val;
-		val = vals["r:id"];
-		if (undefined !== val) {
-			this.id = AscCommon.unleakString(uq(val));
-		}
-	};
-	function CT_PivotCache() {
-		//Attributes
-		this.cacheId = null;
-		this.id = null;
-	}
-	CT_PivotCache.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_PivotCache.prototype.readAttributes = function(attr, uq) {
-		if (attr()) {
-			var vals = attr();
-			this.parseAttributes(attr(), uq);
-		}
-	};
-	CT_PivotCache.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			var name = reader.GetNameNoNS();
-			if ("id" === name) {
-				this.id = reader.GetValueDecodeXml();
-			} else if ("cacheId" === name) {
-				this.cacheId = parseInt(reader.GetValue());
-			}
-		}
-	};
-	CT_PivotCache.prototype.parseAttributes = function(vals, uq) {
-		var val;
-		val = vals["cacheId"];
-		if (undefined !== val) {
-			this.cacheId = val - 0;
-		}
-		val = vals["r:id"];
-		if (undefined !== val) {
-			this.id = AscCommon.unleakString(uq(val));
-		}
-	};
-	/**
+		/**
 	 * @constructor
 	 */
 	function Workbook(eventsHandlers, oApi){
@@ -8914,32 +8718,6 @@
 			}
 		}
 	};
-	Worksheet.prototype.fromXml = function(reader) {
-		if (!reader.ReadNextNode()) {
-			return;
-		}
-		if ("worksheet" !== reader.GetNameNoNS()) {
-			if (!reader.ReadNextNode()) {
-				return;
-			}
-		}
-		if ("worksheet" === reader.GetNameNoNS()) {
-			var context = reader.GetContext();
-			context.initFromWS(this);
-			var depth = reader.GetDepth();
-			while (reader.ReadNextSiblingNode(depth)) {
-				var name = reader.GetNameNoNS();
-				if ("sheetData" === name) {
-					var sheetData = new CT_SheetData(this);
-					sheetData.fromXml(reader);
-				} else if ("drawing" === name) {
-					var drawing = new CT_DrawingWSRef(this);
-					drawing.fromXml(reader);
-					context.drawingId = drawing.id;
-				}
-			}
-		}
-	};
 
 	//need recalculate formulas after change rows
 	Worksheet.prototype.needRecalFormulas = function(start, stop) {
@@ -13019,48 +12797,6 @@
 			this.parseAttributes(attr(), uq);
 		}
 	};
-	Cell.prototype.readAttr = function(reader) {
-		var val;
-		var cellBase = reader.GetContext().cellBase;
-		while (reader.MoveToNextAttribute()) {
-			if ("r" === reader.GetName()) {
-				val = reader.GetValue();
-				cellBase.fromRefA1(val);
-				this.setRowCol(cellBase.row, cellBase.col);
-				this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.nRow);
-				this.ws.nColsCount = Math.max(this.ws.nColsCount, this.nCol);
-				this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.nCol);
-			} else if ("s" === reader.GetName()) {
-				val = reader.GetValue();
-				this.xfs = null;//parseInt(val);
-			} else if ("t" === reader.GetName()) {
-				val = reader.GetValue();
-				switch(val) {
-					case "s":
-						this.type = CellValueType.String;
-						break;
-					case "str":
-						this.type = CellValueType.String;
-						break;
-					case "n":
-						this.type = CellValueType.Number;
-						break;
-					case "e":
-						this.type = CellValueType.Error;
-						break;
-					case "b":
-						this.type = CellValueType.Bool;
-						break;
-					case "inlineStr":
-						this.type = CellValueType.String;
-						break;
-					case "d":
-						this.type = CellValueType.String;
-						break;
-				}
-			}
-		}
-	};
 	Cell.prototype.parseAttributes = function(vals, uq) {
 		var val;
 		val = vals["r"];
@@ -13099,30 +12835,6 @@
 			res = false;
 		}
 		return res;
-	};
-	Cell.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		var value = reader.GetContext().cellValue;
-		var depth = reader.GetDepth();
-		while (reader.ReadNextSiblingNode(depth)) {
-			if ("v" === reader.GetName()) {
-				value.fromXml(reader);
-				if (CellValueType.String === this.type) {
-					var ss = reader.GetContext().sharedStrings[parseInt(value.val)];
-					if (undefined !== ss) {
-						if (typeof ss === 'string') {
-							this.setValueTextInternal(ss);
-						} else {
-							this.setValueMultiTextInternal(ss);
-						}
-					}
-				} else if (CellValueType.Error === this.type) {
-					this.setValueTextInternal(value.val);
-				} else {
-					this.setValueNumberInternal(parseFloat(value.val));
-				}
-			}
-		}
 	};
 	Cell.prototype.getXLSBSizeFormula = function(formulaToWrite) {
 		var len = 2 + 4 + 4;
@@ -17751,8 +17463,6 @@
 	window['AscCommonExcel'].angleFormatToInterface2 = angleFormatToInterface2;
 	window['AscCommonExcel'].angleInterfaceToFormat = angleInterfaceToFormat;
 	window['AscCommonExcel'].Workbook = Workbook;
-	window['AscCommonExcel'].CT_SharedStrings = CT_SharedStrings;
-	window['AscCommonExcel'].CT_Value = CT_Value;
 	window['AscCommonExcel'].Worksheet = Worksheet;
 	window['AscCommonExcel'].Cell = Cell;
 	window['AscCommonExcel'].Range = Range;

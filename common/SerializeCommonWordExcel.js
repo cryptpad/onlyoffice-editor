@@ -1007,6 +1007,17 @@ var g_oCellAddressUtils = new CellAddressUtils();
 		this.col = Math.min(this.col, gc_nMaxCol0);
 		this.col = Math.max(this.col, 0);
 	};
+	CellBase.prototype.toRefA1 = function(row, col) {
+		var res = '';
+		var columnNumber = num;
+		var currentLetterNumber;
+		while (row > 0) {
+			currentLetterNumber = (row - 1) % 26;
+			res += String.fromCharCode(currentLetterNumber + 65);
+			row = (row - (currentLetterNumber + 1)) / 26;
+		}
+		return res + row;
+	};
 /**
  * @constructor
  */

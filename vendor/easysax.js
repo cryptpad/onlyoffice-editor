@@ -1520,3 +1520,21 @@ XmlParserContext.prototype.initFromWS = function(ws) {
     this.cellBase = new AscCommon.CellBase(0,0);
     this.drawingId = null;
 };
+function XmlWriterContext(){
+    //common
+    this.zip = null;
+    //docx
+    //xlsx
+    this.sheetIds = [];
+    this.sharedStrings = null;
+    this.isCopyPaste = null;
+    this.stylesForWrite = new AscCommonExcel.StylesForWrite();
+    //pptx
+}
+XmlWriterContext.prototype.initFromWS = function(ws) {
+    this.ws = ws;
+    this.row = new AscCommonExcel.Row(ws);
+    this.cellValue = new AscCommonExcel.CT_Value();
+    this.cellBase = new AscCommon.CellBase(0,0);
+    this.drawingId = null;
+};

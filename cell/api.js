@@ -1423,7 +1423,7 @@ var editor;
 		wbPart = doc.getPartByRelationshipType(openXml.Types.workbook.relationType);
 		var contentWorkbook = wbPart.getDocumentContent();
 		AscCommonExcel.executeInR1C1Mode(false, function() {
-			wbXml = new AscCommon.CT_Workbook(wb);
+			wbXml = new AscCommonExcel.CT_Workbook(wb);
 			var reader = new StaxParser(contentWorkbook, wbPart, xmlParserContext);
 			wbXml.fromXml(reader);
 		});
@@ -1491,7 +1491,7 @@ var editor;
 					wb.aWorksheetsById[ws.getId()] = ws;
 					var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
 					if (drawingPart) {
-						var drawingWS = new AscCommon.CT_DrawingWS();
+						var drawingWS = new AscCommonExcel.CT_DrawingWS();
 						var contentDrawing = drawingPart.getDocumentContent();
 						var reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
 						drawingWS.fromXml(reader);

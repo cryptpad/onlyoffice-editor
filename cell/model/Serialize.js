@@ -11849,6 +11849,7 @@
 
 	window["AscCommonExcel"].BinaryStylesTableWriter = BinaryStylesTableWriter;
 	window["AscCommonExcel"].Binary_StylesTableReader = Binary_StylesTableReader;
+    window["AscCommonExcel"].StylesForWrite = StylesForWrite;
 
     window['Asc']['ETotalsRowFunction'] = window['AscCommonExcel'].ETotalsRowFunction = ETotalsRowFunction;
     prot = ETotalsRowFunction;
