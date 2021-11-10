@@ -4076,6 +4076,15 @@
     ApiTableCell.prototype["SetTextDirection"]            = ApiTableRow.prototype.SetTextDirection;
 
 
+    Api.prototype.private_CreateApiSlide = function(oSlide){
+        return new ApiSlide(oSlide);
+    };
+    Api.prototype.private_CreateApiMaster = function(oMaster){
+        return new ApiMaster(oMaster);
+    };
+    Api.prototype.private_CreateApiLayout = function(oLayout){
+        return new ApiLayout(oLayout);
+    };
 
     function private_GetCurrentSlide(){
         var oApiPresentation = editor.GetPresentation();

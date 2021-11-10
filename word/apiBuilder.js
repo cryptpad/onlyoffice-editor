@@ -4031,6 +4031,12 @@
 				return new ApiStyle(oStyle);
 			case "tableStyle":
 				return new ApiTableStylePr(oParsedObj.styleType, null, oReader.TableStylePrFromJSON(oParsedObj));
+			case "slide":
+				return this.private_CreateApiSlide(oReader.SlideFromJSON(oParsedObj));
+			case "sldLayout":
+				return this.private_CreateApiLayout(oReader.SlideLayoutFromJSON(oParsedObj));
+			case "sldMaster":
+				return this.private_CreateApiSlide(oReader.MasterSlideFromJSON(oParsedObj));
 		}
 	};
 

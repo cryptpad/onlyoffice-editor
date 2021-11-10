@@ -61,6 +61,12 @@
 	{
 		return editor.WordControl.m_oLogicDocument;
 	}
+	function private_GetStyles()
+	{
+		var oLogicDocument = private_GetLogicDocument();
+
+		return oLogicDocument instanceof AscCommonWord.CDocument ? oLogicDocument.Get_Styles() : oLogicDocument.globalTableStyles;
+	}
 	function private_MM2Twips(mm)
 	{
 		return mm / (25.4 / 72.0 / 20);
@@ -2082,20 +2088,19 @@
 		oStyleWithFullPr.Link = oStyle.Link;
 		oStyleWithFullPr.Id   = oStyle.Id;
 
-		var oDocument        = private_GetLogicDocument();
-		
+		var oStyles = private_GetStyles();
 		function GetFullStylePr(styleObj)
 		{
 			var nBasedOnId    = styleObj.GetBasedOn();
 			var oStyleBasedOn = null;
 			if (nBasedOnId)
 			{
-				oStyleBasedOn = oDocument.Styles.Get(nBasedOnId);
+				oStyleBasedOn = oStyles.Get(nBasedOnId);
 				oStyleBasedOn = oStyleBasedOn ? oStyleBasedOn.Copy() : null;
 			}
 
 			var nBasedOnBasedOnId    = oStyleBasedOn ? oStyleBasedOn.GetBasedOn() : null;
-			var oStyleBasedOnBasedOn = nBasedOnBasedOnId ? oDocument.Styles.Get(nBasedOnBasedOnId) : null;
+			var oStyleBasedOnBasedOn = nBasedOnBasedOnId ? oStyles.Get(nBasedOnBasedOnId) : null;
 			
 			if (!oStyleBasedOn)
 				return;
@@ -2388,8 +2393,9 @@
 
 		} : undefined) : undefined;
 
+		var oStyles = private_GetStyles();
 		// table style
-		var oTableStyle = oTable ? private_GetLogicDocument().Styles.Get(oTable.TableStyle) : undefined;
+		var oTableStyle = oTable ? oStyles.Get(oTable.TableStyle) : undefined;
 
 		return {
 			jc:         sJc,
@@ -2437,6 +2443,7 @@
 
 		var oLogicDocument = private_GetLogicDocument();
 		var oTableObj = {
+			bPresentation: oTable.bPresentation,
 			tblGrid: [],
 			tblPr:   this.SerTablePr(oTable.Pr, oTable),
 			content: [],
@@ -2454,7 +2461,7 @@
 			oTableObj["content"].push(this.SerTableRow(oTable.Content[nRow], aComplexFieldsToSave, oMapCommentsInfo));
 
 		// Revisions
-		var aChanges = oLogicDocument.TrackRevisionsManager.GetElementChanges(oTable.Id);
+		var aChanges = oLogicDocument.TrackRevisionsManager ? oLogicDocument.TrackRevisionsManager.GetElementChanges(oTable.Id) : [];
 
 		for (var nChange = 0; nChange < aChanges.length; nChange++)
 		{
@@ -2683,8 +2690,9 @@
 	{
 		var oDocContentObj = 
 		{
-			content: [],
-			type:    "docContent"
+			bPresentation: oDocContent.bPresentation,
+			content:       [],
+			type:          "docContent"
 		}
 
 		if (!aComplexFieldsToSave)
@@ -2742,8 +2750,9 @@
 		if (!oParaPr)
 			return oParaPr;
 
+		var oStyles = private_GetStyles();
 		// paragraph style
-		var oParaStyle   = oParaPr.PStyle ? private_GetLogicDocument().Styles.Get(oParaPr.PStyle) : undefined;
+		var oParaStyle   = oParaPr.PStyle ? oStyles.Get(oParaPr.PStyle) : undefined;
 		
 		// horizontal align
 		var sJc = undefined;
@@ -3046,10 +3055,11 @@
 	WriterToJSON.prototype.SerParagraph = function(oPara, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo)
 	{
 		var oParaObject = {
-			pPr: this.SerParaPr(oPara.Pr),
-			content: [],
-			changes: [],
-			type: "paragraph"
+			bFromDocument: oPara.bFromDocument,
+			pPr:           this.SerParaPr(oPara.Pr),
+			content:       [],
+			changes:       [],
+			type:          "paragraph"
 		};
 		
 		if (!oMapCommentsInfo)
@@ -3070,14 +3080,15 @@
 		var oNumPr           = null;
 		var oGlobalNumbering = null;
 		var oParaParent      = oPara.GetParent();
-		if (!(oParaParent instanceof AscFormat.CDrawingDocContent))
+		var oLogicDocument   = private_GetLogicDocument();
+
+		if (!(oParaParent instanceof AscFormat.CDrawingDocContent) && oLogicDocument instanceof AscCommonWord.CDocument)
 		{
 			oNumPr           = oPara.GetNumPr();
 			oGlobalNumbering = oLogicDocument.GetNumbering();
 		}
-			
-		var oLogicDocument = private_GetLogicDocument();
-		var oNum           = null;
+		
+		var oNum = null;
 		if (oNumPr)
 			oNum = oGlobalNumbering.GetNum(oNumPr.NumId);
 
@@ -3088,7 +3099,7 @@
 		{
 			oTempElm = oPara.Content[nElm];
 			
-			if (oTempElm instanceof AscCommonWord.ParaRun)
+			if (oTempElm instanceof AscCommonWord.ParaRun && !oTempElm.FieldType && !oTempElm.Guid)
 			{
 				var oRunObject = this.SerParaRun(oTempElm, aComplexFieldsToSave);
 				//if (oRunObject.content.length !== 0)
@@ -3104,7 +3115,7 @@
 				if (oTempResult)
 					oParaObject["content"].push(oTempResult);
 			}
-			else if (oTempElm instanceof AscCommonWord.CParagraphBookmark)
+			else if (AscCommonWord.CParagraphBookmark && oTempElm instanceof AscCommonWord.CParagraphBookmark)
 			{
 				oTempResult = this.SerParaBookmark(oTempElm, oMapBookmarksInfo);
 				if (oTempResult)
@@ -3120,6 +3131,10 @@
 			{
 				oParaObject["content"].push(this.SerRevisionMove(oTempElm));
 			}
+			else if (oTempElm instanceof AscCommonWord.CPresentationField && oTempElm.FieldType && oTempElm.Guid)
+			{
+				oParaObject["content"].push(this.SerPresField(oTempElm));
+			}
 		}
 
 		// Revisions
@@ -3131,6 +3146,15 @@
 		}
 
 		return oParaObject;
+	};
+	WriterToJSON.prototype.SerPresField = function(oPresField)
+	{
+		var oPresFieldObj = this.SerParaRun(oPresField);
+
+		oPresFieldObj.type = "presField";
+		oPresFieldObj.fldType = oPresField.FieldType;
+
+		return oPresFieldObj;
 	};
 	WriterToJSON.prototype.SerFootEndnote = function(oFootEndnote)
 	{
@@ -4113,6 +4137,9 @@
 		if (!oMap)
 			oMap = {};
 
+		if (!AscCommonWord.CParagraphBookmark)
+			return oMap;
+
 		for (var nElm = 0; nElm < arrContent.length; nElm++)
 		{
 			var oElm = arrContent[nElm];
@@ -4247,8 +4274,9 @@
 				break;
 		}
 
+		var oStyles = private_GetStyles();
 		// style
-		var oStyle   = oLvl.PStyle ? private_GetLogicDocument().Styles.Get(oLvl.PStyle) : undefined;
+		var oStyle   = oLvl.PStyle ? oStyles.Get(oLvl.PStyle) : undefined;
 
 		// suff
 		var sSuffType = undefined;
@@ -6255,8 +6283,9 @@
 		if (!oTextPr)
 			return oTextPr;
 		
+		var oStyles = private_GetStyles();
 		// run style
-		var oRunStyle = oTextPr.RStyle ? private_GetLogicDocument().Styles.Get(oTextPr.RStyle) : undefined;
+		var oRunStyle = oTextPr.RStyle ? oStyles.Get(oTextPr.RStyle) : undefined;
 		
 		var sVAlign = undefined;
 
@@ -7101,7 +7130,25 @@
 		if (!notCompletedFields)
 			notCompletedFields = [];
 
-		var oRun = oParsedRun.type === "mathRun" ? new ParaRun(oParentPara, true) : new ParaRun(oParentPara, false);
+		var oRun = null;
+		switch (oParsedRun.type)
+		{
+			case "mathRun":
+				oRun = new ParaRun(oParentPara, true);
+				break;
+			case "presField":
+				oRun = new AscCommonWord.CPresentationField(oParentPara);
+				break;
+			default:
+				oRun = new ParaRun(oParentPara, false);
+				break;
+		}
+
+		if (oParsedRun.type === "presField")
+		{
+			oRun.SetGuid(AscCommon.CreateGUID());
+			oRun.SetFieldType(oParsedRun.fldType);
+		}
 
 		// Footnotes
 		for (var nElm = 0; nElm < oParsedRun.footnotes.length; nElm++)
@@ -7141,9 +7188,7 @@
 			// записываем текстовый контент в ран(либо обычный ран либо mathRun)
 			if (typeof aContent[nElm] === "string")
 			{
-				if (oParsedRun.type === "run")
-					oRun.AddText(aContent[nElm]);
-				else
+				if (oParsedRun.type === "mathRun")
 				{
 					for (var nChar = 0; nChar < aContent[nElm].length; nChar++)
 					{
@@ -7165,6 +7210,8 @@
 						}
 					}
 				}
+				else (oParsedRun.type === "run")
+					oRun.AddText(aContent[nElm]);
 				continue;
 			}
 
@@ -7297,10 +7344,10 @@
 					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.ParagraphFromJSON(aContent[nElm], oFootEndnote, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo), false);
 					break;
 				case "table":
-					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.TableFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.TableFromJSON(aContent[nElm], oFootEndnote, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
 					break;
 				case "blockLvlSdt":
-					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.BlockLvlSdtFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					oFootEndnote.AddToContent(oFootEndnote.Content.length, this.BlockLvlSdtFromJSON(aContent[nElm], oFootEndnote, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
 					break;
 			}
 		}
@@ -7384,21 +7431,21 @@
 
 		// style 
 		var oStyle    = oPr.rStyle ? this.StyleFromJSON(oPr.rStyle) : oPr.rStyle;
-		var oDocument = private_GetLogicDocument();
+		var oStyles = private_GetStyles();
 		if (oStyle)
 		{
-			var nExistingStyle = oDocument.Styles.GetStyleIdByName(oStyle.Name);
+			var nExistingStyle = oStyles.GetStyleIdByName(oStyle.Name);
 			// если такого стиля нет - добавляем новый
 			if (nExistingStyle === null)
-				oDocument.Styles.Add(oStyle);
+				oStyles.Add(oStyle);
 			else
 			{
-				var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
+				var oExistingStyle = oStyles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
 				if (!oStyle.IsEqual(oExistingStyle))
 				{
 					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
-					oDocument.Styles.Add(oStyle);
+					oStyles.Add(oStyle);
 				}
 				else
 					oStyle = oExistingStyle;
@@ -7433,7 +7480,7 @@
 		oTextPr.RFonts.Hint           = oPr["rFonts"].hint;
 
 		oTextPr.PrChange              = oPr["rPrChange"] ? this.TextPrFromJSON(oPr["rPrChange"]) : oPr["rPrChange"];
-		oTextPr.RStyle                = oStyle ? oDocument.Styles.GetStyleIdByName(oStyle.Name) : oTextPr.RStyle;
+		oTextPr.RStyle                = oStyle ? oStyles.GetStyleIdByName(oStyle.Name) : oTextPr.RStyle;
 		oTextPr.RTL                   = oPr["rtl"];
 		oTextPr.Shd                   = oPr["shd"] ? this.ShadeFromJSON(oPr["shd"]) : oPr["shd"];
 		oTextPr.SmallCaps             = oPr["smallCaps"];
@@ -7477,7 +7524,7 @@
 
 		return oShade;
 	};
-	ReaderFromJSON.prototype.ParagraphFromJSON = function(oParsedPara, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo, bFromDocument)
+	ReaderFromJSON.prototype.ParagraphFromJSON = function(oParsedPara, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo)
 	{
 		if (!notCompletedFields)
 			notCompletedFields = [];
@@ -7490,10 +7537,10 @@
 		var oPr       = oParsedPara["pPr"];
 		var oDocument = private_GetLogicDocument();
 		var oParaPr   = this.ParaPrFromJSON(oPr, oParsedPara.numbering, oPrevNumIdInfo);
-		var oPara     = new AscCommonWord.Paragraph(private_GetDrawingDocument(), oParent || oDocument, bFromDocument);
+		var oPara     = new AscCommonWord.Paragraph(private_GetDrawingDocument(), oParent || oDocument, !oParsedPara.bFromDocument);
 
 		oPara.SetParagraphPr(oParaPr);
-
+		
 		// section prop.
 		oPr.sectPr && oPara.Set_SectionPr(this.SectPrFromJSON(oPr.sectPr));
 
@@ -7506,6 +7553,7 @@
 			{
 				case "run":
 				case "mathRun":
+				case "presField":
 					oPara.AddToContent(oPara.Content.length - 1, this.ParaRunFromJSON(aContent[nElm], oPara, notCompletedFields));
 					break;
 				case "endRun":
@@ -7616,21 +7664,21 @@
 
 		// style 
 		var oStyle    = oParsedParaPr.pStyle ? this.StyleFromJSON(oParsedParaPr.pStyle) : oParsedParaPr.pStyle;
-		var oDocument = private_GetLogicDocument();
+		var oStyles   = private_GetStyles();
 		if (oStyle)
 		{
-			var nExistingStyle = oDocument.Styles.GetStyleIdByName(oStyle.Name);
+			var nExistingStyle = oStyles.GetStyleIdByName(oStyle.Name);
 			// если такого стиля нет - добавляем новый
 			if (nExistingStyle === null)
-				oDocument.Styles.Add(oStyle);
+				oStyles.Add(oStyle);
 			else
 			{
-				var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
+				var oExistingStyle = oStyles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
 				if (!oStyle.IsEqual(oExistingStyle))
 				{
 					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
-					oDocument.Styles.Add(oStyle);
+					oStyles.Add(oStyle);
 				}
 				else
 					oStyle = oExistingStyle;
@@ -7653,12 +7701,12 @@
 		oParaPr.Brd.Left        = oParsedParaPr.pBdr.left    ? this.DocBorderFromJSON(oParsedParaPr.pBdr.left)     : oParaPr.Brd.Left;
 		oParaPr.Brd.Right       = oParsedParaPr.pBdr.right   ? this.DocBorderFromJSON(oParsedParaPr.pBdr.right)    : oParaPr.Brd.Right;
 		oParaPr.Brd.Top         = oParsedParaPr.pBdr.top     ? this.DocBorderFromJSON(oParsedParaPr.pBdr.top)      : oParaPr.Brd.Top;
-		oParaPr.PStyle          = oStyle ? oDocument.Styles.GetStyleIdByName(oStyle.Name) : oParaPr.PStyle;
+		oParaPr.PStyle          = oStyle ? oStyles.GetStyleIdByName(oStyle.Name) : oParaPr.PStyle;
 		oParaPr.PageBreakBefore = oParsedParaPr.pageBreakBefore;
-		oParaPr.Shd             = oParsedParaPr.shd  ? this.ShadeFromJSON(oParsedParaPr.shd) : oParaPr.shd;
-		oParaPr.Tabs            = oParsedParaPr.tabs ? this.TabsFromJSON(oParsedParaPr.tabs) : oParaPr.tabs;
+		oParaPr.Shd             = oParsedParaPr.shd  ? this.ShadeFromJSON(oParsedParaPr.shd) : oParaPr.Shd;
+		oParaPr.Tabs            = oParsedParaPr.tabs ? this.TabsFromJSON(oParsedParaPr.tabs) : oParaPr.Tabs;
 		oParaPr.WidowControl    = oParsedParaPr.widowControl;
-		oParsedParaPr.bullet && oPara.Add_PresentationNumbering(this.BulletFromJSON(oParsedParaPr.bullet));
+		oParaPr.Bullet          = oParsedParaPr.bullet ? this.BulletFromJSON(oParsedParaPr.bullet) : oParaPr.Bullet;
 
 		return oParaPr;
 	};
@@ -9154,20 +9202,21 @@
 		// style 
 		var oStyle    = oParsedNumLvl.pStyle ? this.StyleFromJSON(oParsedNumLvl.pStyle) : oParsedNumLvl.pStyle;
 		var oDocument = private_GetLogicDocument();
+		var oStyles   = private_GetStyles();
 		if (oStyle)
 		{
-			var nExistingStyle = oDocument.Styles.GetStyleIdByName(oStyle.Name);
+			var nExistingStyle = oStyles.GetStyleIdByName(oStyle.Name);
 			// если такого стиля нет - добавляем новый
 			if (nExistingStyle === null)
-				oDocument.Styles.Add(oStyle);
+				oStyles.Add(oStyle);
 			else
 			{
-				var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
+				var oExistingStyle = oStyles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
 				if (!oStyle.IsEqual(oExistingStyle))
 				{
 					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
-					oDocument.Styles.Add(oStyle);
+					oStyles.Add(oStyle);
 				}
 				else
 					oStyle = oExistingStyle;
@@ -9255,7 +9304,7 @@
 		oNumLvl.Suff    = nSuffType;
 		oNumLvl.Restart = oParsedNumLvl.restart;
 		oNumLvl.Start   = oParsedNumLvl.start;
-		oNumLvl.PStyle  = oStyle ? oDocument.Styles.GetStyleIdByName(oStyle.Name) : oNumLvl.PStyle;
+		oNumLvl.PStyle  = oStyle ? oStyles.GetStyleIdByName(oStyle.Name) : oNumLvl.PStyle;
 		if (oParsedNumLvl.lvlText.numValue !== undefined)
 		{
 			oNumLvl.LvlText[0] = new CNumberingLvlTextNum(oParsedNumLvl.lvlText.numValue);
@@ -9324,7 +9373,7 @@
 
 		return oContentControl;
 	};
-	ReaderFromJSON.prototype.BlockLvlSdtFromJSON = function(oParsedSdt, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
+	ReaderFromJSON.prototype.BlockLvlSdtFromJSON = function(oParsedSdt, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
 	{
 		if (!notCompletedFields)
 			notCompletedFields = [];
@@ -9333,7 +9382,7 @@
 		if (!oMapBookmarksInfo)
 			oMapBookmarksInfo = {};
 
-		var oContentControl     = new AscCommonWord.CBlockLevelSdt(private_GetLogicDocument(), private_GetLogicDocument());
+		var oContentControl     = new AscCommonWord.CBlockLevelSdt(private_GetLogicDocument(), oParent || private_GetLogicDocument());
 		
 		oContentControl.Pr      = this.SdtPrFromJSON(oParsedSdt.sdtPr);
 		oContentControl.Content = this.DocContentFromJSON(oParsedSdt.sdtContent, oContentControl, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo);
@@ -9533,13 +9582,13 @@
 		
 		return oRowPr;
 	};
-	ReaderFromJSON.prototype.TableFromJSON = function(oParsedTable, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
+	ReaderFromJSON.prototype.TableFromJSON = function(oParsedTable, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
 	{
 		var aTableGrid = [];
 		for (var nGrid = 0; nGrid < oParsedTable.tblGrid.length; nGrid++)
 			aTableGrid.push(private_Twips2MM(oParsedTable.tblGrid[nGrid].w));
 
-		var oTable     = new CTable(private_GetDrawingDocument(), private_GetLogicDocument(), true, 0, 0, aTableGrid, false);
+		var oTable     = new CTable(private_GetDrawingDocument(), oParent || private_GetLogicDocument(), true, 0, 0, aTableGrid, oParsedTable.bPresentation);
 		var aContent   = oParsedTable.content; 
 	
 		// table prop.
@@ -9721,28 +9770,28 @@
 			{
 				// style 
 				var oStyle    = this.StyleFromJSON(oParsedPr.tblStyle);
-				var oDocument = private_GetLogicDocument();
+				var oStyles   = private_GetStyles();
 				if (oStyle)
 				{
-					var nExistingStyle = oDocument.Styles.GetStyleIdByName(oStyle.Name);
+					var nExistingStyle = oStyles.GetStyleIdByName(oStyle.Name);
 					// если такого стиля нет - добавляем новый
 					if (nExistingStyle === null)
-						oDocument.Styles.Add(oStyle);
+						oStyles.Add(oStyle);
 					else
 					{
-						var oExistingStyle = oDocument.Styles.Get(nExistingStyle);
+						var oExistingStyle = oStyles.Get(nExistingStyle);
 						// если стили идентичны, стиль не добавляем
 						if (!oStyle.IsEqual(oExistingStyle))
 						{
 							oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
-							oDocument.Styles.Add(oStyle);
+							oStyles.Add(oStyle);
 						}
 						else
 							oStyle = oExistingStyle;
 					}
 				}
 
-				oParentTable.TableStyle = oDocument.Styles.GetStyleIdByName(oStyle.Name);
+				oParentTable.TableStyle = oStyles.GetStyleIdByName(oStyle.Name);
 			}
 		}
 	
@@ -9750,7 +9799,7 @@
 	};
 	ReaderFromJSON.prototype.DocContentFromJSON = function(oParsedDocContent, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
 	{
-		var oDocContent = new AscCommonWord.CDocumentContent(oParent ? oParent : private_GetLogicDocument(), private_GetDrawingDocument(), 0, 0, 0, 0, true, false, false);
+		var oDocContent = new AscCommonWord.CDocumentContent(oParent || private_GetLogicDocument(), private_GetDrawingDocument(), 0, 0, 0, 0, true, false, oParsedDocContent.bPresentation);
 		var aContent    = oParsedDocContent.content;
 	
 		if (!notCompletedFields)
@@ -9770,10 +9819,10 @@
 					oDocContent.AddToContent(oDocContent.Content.length, this.ParagraphFromJSON(aContent[nElm], oDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo), false);
 					break;
 				case "table":
-					oDocContent.AddToContent(oDocContent.Content.length, this.TableFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					oDocContent.AddToContent(oDocContent.Content.length, this.TableFromJSON(aContent[nElm], oDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
 					break;
 				case "blockLvlSdt":
-					oDocContent.AddToContent(oDocContent.Content.length, this.BlockLvlSdtFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					oDocContent.AddToContent(oDocContent.Content.length, this.BlockLvlSdtFromJSON(aContent[nElm], oDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
 					break;
 			}
 		}
@@ -9784,7 +9833,7 @@
 
 		return oDocContent;
 	};
-	ReaderFromJSON.prototype.DrawingDocContentFromJSON = function(oParsedDocContent, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, bFromDocument)
+	ReaderFromJSON.prototype.DrawingDocContentFromJSON = function(oParsedDocContent, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
 	{
 		var oDocContent = new AscFormat.CDrawingDocContent(oParent ? oParent : private_GetLogicDocument(), private_GetDrawingDocument(), 0, 0, 0, 0, true, false, false);
 		var aContent    = oParsedDocContent.content;
@@ -9803,13 +9852,13 @@
 			switch (aContent[nElm].type)
 			{
 				case "paragraph":
-					oDocContent.AddToContent(oDocContent.Content.length, this.ParagraphFromJSON(aContent[nElm], oDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo, !bFromDocument), false);
+					oDocContent.AddToContent(oDocContent.Content.length, this.ParagraphFromJSON(aContent[nElm], oDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo), false);
 					break;
 				case "table":
-					oDocContent.AddToContent(oDocContent.Content.length, this.TableFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					oDocContent.AddToContent(oDocContent.Content.length, this.TableFromJSON(aContent[nElm], oDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
 					break;
 				case "blockLvlSdt":
-					oDocContent.AddToContent(oDocContent.Content.length, this.BlockLvlSdtFromJSON(aContent[nElm], notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
+					oDocContent.AddToContent(oDocContent.Content.length, this.BlockLvlSdtFromJSON(aContent[nElm], oDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
 					break;
 			}
 		}
@@ -10558,10 +10607,12 @@
 		for (var nUserShape = 0; nUserShape < oParsedChart.userShapes.length; nUserShape++)
 			oChartSpace.addUserShape(undefined, this.UserShapeFromJSON(oParsedChart.userShapes[nUserShape]));
 
-		oChartSpace.setParent(oParentDrawing);
-		oParentDrawing.Set_GraphicObject(oChartSpace);
-
-		oParentDrawing.setExtent(oChartSpace.spPr.xfrm.extX, oChartSpace.spPr.xfrm.extY);
+		if (oParentDrawing)
+		{
+			oChartSpace.setParent(oParentDrawing);
+			oParentDrawing.Set_GraphicObject(oChartSpace);
+			oParentDrawing.setExtent(oChartSpace.spPr.xfrm.extX, oChartSpace.spPr.xfrm.extY);
+		}
 
 		oChartSpace.bDeleted = false;
 		oChartSpace.updateLinks();
@@ -10636,7 +10687,7 @@
 	};
 	ReaderFromJSON.prototype.UserShapeFromJSON = function(oParsedUserShape)
 	{
-		var oUserShape = oParsedUserShape.type === "relSizeAnchor" ? new AscFormat.CRelSizeAnchor() : new AscFormat.CAbsSizeAnchor();
+		var oUserShape  = oParsedUserShape.type === "relSizeAnchor" ? new AscFormat.CRelSizeAnchor() : new AscFormat.CAbsSizeAnchor();
 		var oGraphicObj = null;
 		switch (oParsedUserShape.object.type)
 		{
@@ -10835,18 +10886,7 @@
 	};
 	ReaderFromJSON.prototype.ShapeFromJSON = function(oParsedShape, oParentDrawing)
 	{
-		var oLogicDocument   = private_GetLogicDocument();
-		var oDrawingDocuemnt = private_GetDrawingDocument();
-
-		var sPreset = oParsedShape.spPr.custGeom.preset;
-        var nWidth  = private_EMU2MM(oParsedShape.extX) || 914400;
-	    var nHeight = private_EMU2MM(oParsedShape.extY) || 914400;
-		var nW = private_EMU2MM(nWidth);
-		var nH = private_EMU2MM(nHeight);
-
-		var oShapeTrack = new AscFormat.NewShapeTrack(sPreset, 0, 0, oLogicDocument.theme, null, null, null, 0);
-		oShapeTrack.track({}, nW, nH);
-		var oShape = oShapeTrack.getShape(true, oDrawingDocuemnt, null);
+		var oShape = new AscFormat.CShape();
 
 		if (oParentDrawing)
 		{
@@ -10861,12 +10901,16 @@
 		oShape.setStyle(this.SpStyleFromJSON(oParsedShape.style));
 		oParsedShape.bodyPr && oShape.setBodyPr(this.BodyPrFromJSON(oParsedShape.bodyPr));
 
-		if (!oParsedShape.lstStyle)
-			oParsedShape.content && oShape.setTextBoxContent(this.DocContentFromJSON(oParsedShape.content, oShape));
-		else
+		if (oParsedShape.content)
 		{
-			
+			if (oParsedShape.content.type === "docContent")
+				oShape.setTextBoxContent(this.DocContentFromJSON(oParsedShape.content, oShape));
+			else
+				oShape.setTxBody(this.TxPrFromJSON(oParsedShape.content, oShape));
 		}
+
+		oShape.setBDeleted(false);
+		oShape.recalculate();
 
 		return oShape;
 	};
@@ -10874,8 +10918,10 @@
 	{
 		var nW     = private_EMU2MM(oParsedImage.extX);
 		var nH     = private_EMU2MM(oParsedImage.extY);
-		var oImage = private_GetLogicDocument().DrawingObjects.createImage(oParsedImage.base64, 0, 0, nW, nH);
 		
+		var oImage = new AscFormat.CImageShape();
+        AscFormat.fillImage(oImage, oParsedImage.base64, 0, 0, nW, nH);
+
 		if (oParentDrawing)
 		{
 			oImage.setParent(oParentDrawing);
@@ -12203,7 +12249,7 @@
 
 		oParsedTxPr.bodyPr && oTxPr.setBodyPr(this.BodyPrFromJSON(oParsedTxPr.bodyPr));
 		oParsedTxPr.lstStyle && oTxPr.setLstStyle(this.LstStyleFromJSON(oParsedTxPr.lstStyle));
-		oParsedTxPr.content && oTxPr.setContent(this.DrawingDocContentFromJSON(oParsedTxPr.content, oTxPr, undefined, undefined, false));
+		oParsedTxPr.content && oTxPr.setContent(this.DrawingDocContentFromJSON(oParsedTxPr.content, oTxPr, undefined, undefined));
 		
 		return oTxPr;
 	};
@@ -12422,7 +12468,7 @@
 		oSpPr.setBwMode(oParsedPr.bwMode);
 		oParsedPr.custGeom && oSpPr.setGeometry(this.GeometryFromJSON(oParsedPr.custGeom));
 		oParsedPr.ln && oSpPr.setLn(this.LnFromJSON(oParsedPr.ln));
-		oParsedPr.xfrm && oSpPr.setXfrm(this.XfrmFromJSON(oParsedPr.xfrm));
+		oParsedPr.xfrm && oSpPr.setXfrm(this.XfrmFromJSON(oParsedPr.xfrm, oSpPr));
 
 		return oSpPr;
 	};
@@ -12984,17 +13030,19 @@
 
 		return oLineJoin;
 	};
-	ReaderFromJSON.prototype.XfrmFromJSON = function(oParsedXfrm)
+	ReaderFromJSON.prototype.XfrmFromJSON = function(oParsedXfrm, oParent)
 	{
 		var oXfrm = new AscFormat.CXfrm();
 
-		oParsedXfrm.ext.cx && oXfrm.setExtX(private_EMU2MM(oParsedXfrm.ext.cx));
-		oParsedXfrm.ext.cy && oXfrm.setExtY(private_EMU2MM(oParsedXfrm.ext.cy));
-		oParsedXfrm.off.x && oXfrm.setOffX(private_EMU2MM(oParsedXfrm.off.x));
-		oParsedXfrm.off.y && oXfrm.setOffY(private_EMU2MM(oParsedXfrm.off.y));
-		oXfrm.setFlipH(oParsedXfrm.flipH);
-		oXfrm.setFlipV(oParsedXfrm.flipV);
-		oXfrm.setRot(oParsedXfrm.rot);
+		oParent && oXfrm.setParent(oParent);
+
+		oParsedXfrm.ext.cx != undefined && oXfrm.setExtX(private_EMU2MM(oParsedXfrm.ext.cx));
+		oParsedXfrm.ext.cy != undefined && oXfrm.setExtY(private_EMU2MM(oParsedXfrm.ext.cy));
+		oParsedXfrm.off.x != undefined && oXfrm.setOffX(private_EMU2MM(oParsedXfrm.off.x));
+		oParsedXfrm.off.y != undefined && oXfrm.setOffY(private_EMU2MM(oParsedXfrm.off.y));
+		oParsedXfrm.flipH != undefined && oXfrm.setFlipH(oParsedXfrm.flipH);
+		oParsedXfrm.flipV != undefined && oXfrm.setFlipV(oParsedXfrm.flipV);
+		oParsedXfrm.rot != undefined && oXfrm.setRot(oParsedXfrm.rot);
 
 		return oXfrm;
 	};
@@ -13053,7 +13101,7 @@
 
 		oGeom.rectS  = oParsedGeom.rect;
 		if (oParsedGeom.preset)
-			oGeom.preset = oParsedGeom.preset
+			oGeom.setPreset(oParsedGeom.preset);
 
 		return oGeom;
 	};

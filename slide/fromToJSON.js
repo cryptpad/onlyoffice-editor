@@ -351,7 +351,7 @@
 			cSld:       this.SerCSld(oNoteMaster.cSld),
 			hf:         this.SerHF(oNoteMaster.hf),
 			notesStyle: this.SerLstStyle(oNoteMaster.txStyles),
-			theme:      themesMap[oNoteMaster.Theme.Id] ? this.SerTheme(oNoteMaster.Theme) : oNoteMaster.Theme.Id 
+			theme:      themesMap[oNoteMaster.Theme.Id] ? oNoteMaster.Theme.Id : this.SerTheme(oNoteMaster.Theme)  
 		}
 
 		// мапим, чтобы не записывать несколько раз
@@ -368,18 +368,18 @@
 			cSld:             this.SerCSld(oNote.cSld),
 			showMasterPhAnim: oNote.showMasterPhAnim,
 			showMasterSp:     oNote.showMasterSp,
-			master:           notesMasterMap[oNote.Master.Id] ? this.SerNoteMaster(oNote.Master) : oNote.Master.Id
+			master:           notesMasterMap[oNote.Master.Id] ? oNote.Master.Id : this.SerNoteMaster(oNote.Master)
 		}
 	};
 	WriterToJSON.prototype.SerSlide = function(oSlide, bWriteLayout, bWriteMaster, bWriteAllMasLayouts)
 	{
-		var oMaster = oSlide.Master.Id;
+		var oMaster = oSlide.Layout.Master.Id;
 		var oLayout = oSlide.Layout.Id;
 
 		if (bWriteLayout)
 		{
 			if (bWriteMaster)
-				oMaster = this.SerMasterSlide(oSlide.Master, bWriteAllMasLayouts);
+				oMaster = this.SerMasterSlide(oSlide.Layout.Master, bWriteAllMasLayouts);
 			else
 				oLayout = this.SerSlideLayout(oSlide.Layout, false);
 		}
@@ -607,7 +607,7 @@
 			else if (oCSld.spTree[nElm].isChart())
 				aSpTree.push(this.SerChartSpace(oCSld.spTree[nElm]));
 			else if (oCSld.spTree[nElm].isImage())
-				aSpTree.push(this.SerChartSpace(oCSld.spTree[nElm]));
+				aSpTree.push(this.SerImage(oCSld.spTree[nElm]));
 			else if (oCSld.spTree[nElm].isTable())
 				aSpTree.push(this.SerGraphicFrame(oCSld.spTree[nElm]));
 		}
@@ -1784,14 +1784,27 @@
 		var oCSld = this.CSldFromJSON(oParsedMaster.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
 			oMasterSlide.shapeAdd(undefined, oCSld.spTree[nShape]);
-		oCSld.bg && oMasterSlide.changeBackground(oCSld.bg);
-		oMasterSlide.setCSldName(oCSld.name);
+		oCSld.Bg && oMasterSlide.changeBackground(oCSld.Bg);
+		oCSld.name && oMasterSlide.setCSldName(oCSld.name);
 
+		// hf
 		oParsedMaster.hf && oMasterSlide.setHF(this.HFFromJSON(oParsedMaster.hf));
 
 		// layouts
 		for (var nLayout = 0; nLayout < oParsedMaster.sldLayoutLst.length; nLayout++)
 			oMasterSlide.addToSldLayoutLstToPos(oMasterSlide.sldLayoutLst.length, this.SlideLayoutFromJSON(oParsedMaster.sldLayoutLst[nLayout]));
+
+		// transition
+		oParsedMaster.transition && oMasterSlide.applyTransition(this.TransitionFromJSON(oParsedMaster.transition));
+
+		// timing 
+		oParsedMaster.timing && oMasterSlide.setTiming(this.TimingFromJSON(oParsedMaster.timing));
+
+		//txStyles
+		oParsedMaster.txStyles && oMasterSlide.setTxStyles(this.TxStylesFromJSON(oParsedMaster.txStyles));
+
+		oMasterSlide.preserve    = oParsedMaster.preserve;
+		oMasterSlide.ImageBase64 = oParsedMaster.imgBase64;
 
 		if (!oPres)
 		{
@@ -1800,6 +1813,16 @@
 		}
 
 		return oMasterSlide;
+	};
+	ReaderFromJSON.prototype.TxStylesFromJSON = function(oParsedTxStyles)
+	{
+		var oTxStyles = new AscFormat.CTextStyles();
+
+		oTxStyles.bodyStyle = oParsedTxStyles.bodyStyle ? this.LstStyleFromJSON(oParsedTxStyles.bodyStyle) : oTxStyles.bodyStyle;
+		oTxStyles.otherStyle = oParsedTxStyles.otherStyle ? this.LstStyleFromJSON(oParsedTxStyles.otherStyle) : oTxStyles.otherStyle;
+		oTxStyles.titleStyle = oParsedTxStyles.titleStyle ? this.LstStyleFromJSON(oParsedTxStyles.titleStyle) : oTxStyles.titleStyle;
+
+		return oTxStyles;
 	};
 	ReaderFromJSON.prototype.SlideLayoutFromJSON = function(oParsedLayout)
 	{
@@ -1925,15 +1948,18 @@
 		var oCSld = this.CSldFromJSON(oParsedLayout.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
 			oLayout.shapeAdd(undefined, oCSld.spTree[nShape]);
-		oCSld.bg && oLayout.changeBackground(oCSld.bg);
-		oLayout.setCSldName(oCSld.name);
+		oCSld.Bg && oLayout.changeBackground(oCSld.Bg);
+		oCSld.name && oLayout.setCSldName(oCSld.name);
 
+		// hf
 		oParsedLayout.hf && oLayout.setHF(this.HFFromJSON(oParsedLayout.hf));
 
+		// timing
 		oParsedLayout.timing && oLayout.setTiming(this.TimingFromJSON(oParsedLayout.timing));
+		// transition
 		oParsedLayout.transition && oLayout.applyTransition(this.TransitionFromJSON(oParsedLayout.transition));
 
-		oLayout.setMatchingName(oParsedLayout.matchingName);
+		oParsedLayout.matchingName && oLayout.setMatchingName(oParsedLayout.matchingName);
 		oLayout.preserve = oParsedLayout.preserve;	
 		oParsedLayout.showMasterPhAnim && oLayout.setShowPhAnim(oParsedLayout.showMasterPhAnim);
 		oParsedLayout.showMasterSp && oLayout.setShowMasterSp(oParsedLayout.showMasterSp);
@@ -1958,17 +1984,31 @@
 		if (oMaster)
 			oLayout = layoutsMap[oParsedSlide.layout];
 
-		var oSlide = new AscCommonSlide.Slide(oPresentation, oLayout, 0);
+		if (!oLayout)
+		{
+			var CurSlide = oPresentation.Slides[oPresentation.CurPage];
+			if (!CurSlide)
+			{
+				oMaster = oPresentation.slideMasters[0];
+				if (oPresentation.lastMaster)
+					oMaster = oPresentation.lastMaster;
+				oLayout = AscFormat.isRealNumber(layoutIndex) ? (oMaster.sldLayoutLst[layoutIndex] ? oMaster.sldLayoutLst[layoutIndex] : oMaster.sldLayoutLst[0]) : oMaster.sldLayoutLst[0];
+			}
+			else
+				oLayout = CurSlide.Layout;
+		}
 
+		var oSlide = new AscCommonSlide.Slide(oPresentation, oLayout, 0);
+		
 		oParsedSlide.notes && oSlide.setNotes(this.NotesFromJSON(oParsedSlide.notes, oPresentation));
-		oParsedSlide.clrMapOvr && oLayout.setClMapOverride(this.ColorMapOvrFromJSON(oParsedSlide.clrMapOvr));
+		oParsedSlide.clrMapOvr && oSlide.setClMapOverride(this.ColorMapOvrFromJSON(oParsedSlide.clrMapOvr));
 
 		// cSld
 		var oCSld = this.CSldFromJSON(oParsedSlide.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
 			oSlide.shapeAdd(undefined, oCSld.spTree[nShape]);
-		oCSld.bg && oParsedSlide.changeBackground(oCSld.bg);
-		oParsedSlide.setCSldName(oCSld.name);
+		oCSld.Bg && oSlide.changeBackground(oCSld.Bg);
+		oCSld.name && oSlide.setCSldName(oCSld.name);
 
 		oParsedSlide.transition && oSlide.applyTransition(this.TransitionFromJSON(oParsedSlide.transition));
 		oParsedSlide.timing && oSlide.setTiming(this.TimingFromJSON(oParsedSlide.timing));
@@ -1987,9 +2027,9 @@
 		// cSld
 		var oCSld = this.CSldFromJSON(oParsedNotes.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
-			oNotes.shapeAdd(undefined, oCSld.spTree[nShape]);
-		oCSld.bg && oParsedNotes.changeBackground(oCSld.bg);
-		oParsedNotes.setCSldName(oCSld.name);
+			oNotes.addToSpTreeToPos(nShape, oCSld.spTree[nShape]);
+		oCSld.Bg && oNotes.changeBackground(oCSld.Bg);
+		oCSld.name && oNotes.setCSldName(oCSld.name);
 
 		oParsedNotes.show != undefined && oNotes.setShow(oParsedNotes.show);
 		oParsedNotes.showMasterPhAnim != undefined && oNotes.setShowPhAnim(oParsedNotes.showMasterPhAnim);
@@ -2005,12 +2045,14 @@
 		var oNotesMaster = new AscCommonSlide.CNotesMaster();
 
 		oParsedNotesMaster.clrMapOvr && oNotesMaster.setClMapOverride(this.ColorMapOvrFromJSON(oParsedNotesMaster.clrMapOvr));
+	
 		// cSld
 		var oCSld = this.CSldFromJSON(oParsedNotesMaster.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
-			oParsedNotesMaster.shapeAdd(undefined, oCSld.spTree[nShape]);
-		oCSld.bg && oParsedNotesMaster.changeBackground(oCSld.bg);
-		oParsedNotesMaster.setCSldName(oCSld.name);
+			oNotesMaster.addToSpTreeToPos(nShape, oCSld.spTree[nShape]);
+		oCSld.Bg && oNotesMaster.changeBackground(oCSld.Bg);
+		oCSld.name && oNotesMaster.setCSldName(oCSld.name);
+
 		oParsedNotesMaster.hf && oNotesMaster.setHF(this.HFFromJSON(oParsedNotesMaster.hf));
 		oParsedNotesMaster.notesStyle && oNotesMaster.setNotesStyle(this.LstStyleFromJSON(oParsedNotesMaster.notesStyle));
 
@@ -3139,7 +3181,7 @@
 			}
 		}
 			
-		oCSld.bg   = oParsedCSld.bg ? this.BgFromJSON(oParsedCSld.bg) : oCSld.bg;
+		oCSld.Bg   = oParsedCSld.bg ? this.BgFromJSON(oParsedCSld.bg) : oCSld.Bg;
 		oCSld.name = oParsedCSld.name;
 
 		return oCSld;
@@ -3150,8 +3192,10 @@
 
 		oParsedGraphFrame.nvGraphicFramePr && oGraphicFrame.setNvSpPr(this.UniNvPrFromJSON(oParsedGraphFrame.nvGraphicFramePr));
 		oParsedGraphFrame.spPr && oGraphicFrame.setSpPr(this.SpPrFromJSON(oParsedGraphFrame.spPr));
-		oParsedGraphFrame.graphic && oGraphicFrame.setGraphicObject(this.TableFromJSON(oParsedGraphFrame.graphic));
+		oParsedGraphFrame.graphic && oGraphicFrame.setGraphicObject(this.TableFromJSON(oParsedGraphFrame.graphic, oGraphicFrame));
 
+		oGraphicFrame.setBDeleted(false);
+		
 		return oGraphicFrame;
 	};
 	ReaderFromJSON.prototype.BgFromJSON = function(oParsedBg)
@@ -3196,7 +3240,7 @@
 				break;
 		}
 
-		oBg.setBwMode(nBwModeType);
+		nBwModeType != undefined && oBg.setBwMode(nBwModeType);
 		oParsedBg.bgPr && oBg.setBgPr(this.BgPrFromJSON(oParsedBg.bgPr));
 		oParsedBg.bgRef && oBg.setBgRef(this.StyleRefFromJSON(oParsedBg.bgRef));
 
@@ -3270,6 +3314,8 @@
 		for (var nFill = 0; nFill < oParsedFmtScheme.lnStyleLst.length; nFill++)
 			oFmtScheme.addLnToStyleLst(this.LnFromJSON(oParsedFmtScheme.lnStyleLst[nFill]));
 
+		oParsedFmtScheme.name && oFmtScheme.setName(oParsedFmtScheme.name);
+
 		return oFmtScheme;
 	};
 	ReaderFromJSON.prototype.FontSchemeFromJSON = function(oParsedFntScheme)
@@ -3277,6 +3323,8 @@
 		var oFontScheme = new AscFormat.FontScheme();
 		oFontScheme.setMajorFont(this.FontCollectionFromJSON(oParsedFntScheme.majorFont));
 		oFontScheme.setMinorFont(this.FontCollectionFromJSON(oParsedFntScheme.majorFont));
+
+		oParsedFntScheme.name && oFontScheme.setName(oParsedFntScheme.name);
 
 		return oFontScheme;
 	};
@@ -3300,11 +3348,6 @@
 		return oDefSpDefinition;
 	};
 	
-	ReaderFromJSON.prototype.SlideFromJSON = function(oParsedSlide)
-	{
-
-	};
-
     //----------------------------------------------------------export----------------------------------------------------
     window['AscCommon']       = window['AscCommon'] || {};
     window['AscFormat']       = window['AscFormat'] || {};
