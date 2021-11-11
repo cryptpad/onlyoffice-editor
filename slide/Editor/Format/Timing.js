@@ -176,7 +176,7 @@
     AscFormat.EXIT_BASIC_SWIVEL = AscFormat["EXIT_BASIC_SWIVEL"] = 19;
     AscFormat.EXIT_WEDGE = AscFormat["EXIT_WEDGE"] = 20;
     AscFormat.EXIT_WHEEL = AscFormat["EXIT_WHEEL"] = 21;
-    AscFormat.EXIT_WHIPE_FROM = AscFormat["EXIT_WHIPE_FROM"] = 22;
+    AscFormat.EXIT_WIPE_FROM = AscFormat["EXIT_WIPE_FROM"] = 22;
     AscFormat.EXIT_BASIC_ZOOM = AscFormat["EXIT_BASIC_ZOOM"] = 23;
     AscFormat.EXIT_BOOMERANG = AscFormat["EXIT_BOOMERANG"] = 25;
     AscFormat.EXIT_BOUNCE = AscFormat["EXIT_BOUNCE"] = 26;
@@ -217,7 +217,7 @@
     AscFormat.ENTRANCE_BASIC_SWIVEL = AscFormat["ENTRANCE_BASIC_SWIVEL"] = 19;
     AscFormat.ENTRANCE_WEDGE = AscFormat["ENTRANCE_WEDGE"] = 20;
     AscFormat.ENTRANCE_WHEEL = AscFormat["ENTRANCE_WHEEL"] = 21;
-    AscFormat.ENTRANCE_WHIPE_FROM = AscFormat["ENTRANCE_WHIPE_FROM"] = 22;
+    AscFormat.ENTRANCE_WIPE_FROM = AscFormat["ENTRANCE_WIPE_FROM"] = 22;
     AscFormat.ENTRANCE_BASIC_ZOOM = AscFormat["ENTRANCE_BASIC_ZOOM"] = 23;
     AscFormat.ENTRANCE_BOOMERANG = AscFormat["ENTRANCE_BOOMERANG"] = 25;
     AscFormat.ENTRANCE_BOUNCE = AscFormat["ENTRANCE_BOUNCE"] = 26;
@@ -267,10 +267,10 @@
     AscFormat.EXIT_ZOOM_OBJECT_CENTER = AscFormat["EXIT_ZOOM_OBJECT_CENTER"] = 32;
     AscFormat.EXIT_ZOOM_SLIDE_CENTER = AscFormat["EXIT_ZOOM_SLIDE_CENTER"] = 544;
 
-    AscFormat.EXIT_WHIPE_FROM_TOP = AscFormat["EXIT_WHIPE_FROM_TOP"] = 1;
-    AscFormat.EXIT_WHIPE_FROM_RIGHT = AscFormat["EXIT_WHIPE_FROM_RIGHT"] = 2;
-    AscFormat.EXIT_WHIPE_FROM_BOTTOM = AscFormat["EXIT_WHIPE_FROM_BOTTOM"] = 4;
-    AscFormat.EXIT_WHIPE_FROM_LEFT = AscFormat["EXIT_WHIPE_FROM_LEFT"] = 8;
+    AscFormat.EXIT_WIPE_FROM_TOP = AscFormat["EXIT_WIPE_FROM_TOP"] = 1;
+    AscFormat.EXIT_WIPE_FROM_RIGHT = AscFormat["EXIT_WIPE_FROM_RIGHT"] = 2;
+    AscFormat.EXIT_WIPE_FROM_BOTTOM = AscFormat["EXIT_WIPE_FROM_BOTTOM"] = 4;
+    AscFormat.EXIT_WIPE_FROM_LEFT = AscFormat["EXIT_WIPE_FROM_LEFT"] = 8;
 
     AscFormat.EXIT_WHEEL_1_SPOKE = AscFormat["EXIT_WHEEL_1_SPOKE"] = 1;
     AscFormat.EXIT_WHEEL_2_SPOKES = AscFormat["EXIT_WHEEL_2_SPOKES"] = 2;
@@ -342,10 +342,10 @@
     AscFormat.ENTRANCE_ZOOM_OBJECT_CENTER = AscFormat["ENTRANCE_ZOOM_OBJECT_CENTER"] = 16;
     AscFormat.ENTRANCE_ZOOM_SLIDE_CENTER = AscFormat["ENTRANCE_ZOOM_SLIDE_CENTER"] = 528;
 
-    AscFormat.ENTRANCE_WHIPE_FROM_TOP = AscFormat["ENTRANCE_WHIPE_FROM_TOP"] = 1;
-    AscFormat.ENTRANCE_WHIPE_FROM_RIGHT = AscFormat["ENTRANCE_WHIPE_FROM_RIGHT"] = 2;
-    AscFormat.ENTRANCE_WHIPE_FROM_BOTTOM = AscFormat["ENTRANCE_WHIPE_FROM_BOTTOM"] = 4;
-    AscFormat.ENTRANCE_WHIPE_FROM_LEFT = AscFormat["ENTRANCE_WHIPE_FROM_LEFT"] = 8;
+    AscFormat.ENTRANCE_WIPE_FROM_TOP = AscFormat["ENTRANCE_WIPE_FROM_TOP"] = 1;
+    AscFormat.ENTRANCE_WIPE_FROM_RIGHT = AscFormat["ENTRANCE_WIPE_FROM_RIGHT"] = 2;
+    AscFormat.ENTRANCE_WIPE_FROM_BOTTOM = AscFormat["ENTRANCE_WIPE_FROM_BOTTOM"] = 4;
+    AscFormat.ENTRANCE_WIPE_FROM_LEFT = AscFormat["ENTRANCE_WIPE_FROM_LEFT"] = 8;
 
     AscFormat.ENTRANCE_WHEEL_1_SPOKE = AscFormat["ENTRANCE_WHEEL_1_SPOKE"] = 1;
     AscFormat.ENTRANCE_WHEEL_2_SPOKES = AscFormat["ENTRANCE_WHEEL_2_SPOKES"] = 2;
@@ -9899,9 +9899,13 @@
     var CONTROL_TYPE_TIMELINE = 15;
     var CONTROL_TYPE_EFFECT_BAR = 16;
 
+    var LEFT_TIMELINE_INDENT = 14 * AscCommon.g_dKoef_pix_to_mm;
+    var LABEL_TIMELINE_WIDTH = 155 * AscCommon.g_dKoef_pix_to_mm;
+
     function CControl(oParentControl) {
         AscFormat.ExecuteNoHistory(function() {
             AscFormat.CShape.call(this);
+            this.setRecalculateInfo();
             this.setBDeleted(false);
             this.setLayout(0, 0, 0, 0);
         }, this, []);
@@ -10293,11 +10297,26 @@
         this.parentControl = v;
     };
     CControl.prototype.getTiming = function() {
-        var oCurControl = this;
-        while(!oCurControl.timing) {
-            oCurControl = oCurControl.parentControl;
+        var oSlide = this.getSlide();
+        if(oSlide) {
+            return oSlide.timing;
         }
-        return oCurControl.timing;
+        return null;
+    };
+    CControl.prototype.getSlide = function() {
+        var oSlide = null;
+        if(editor.WordControl && editor.WordControl.m_oLogicDocument) {
+            oSlide = editor.WordControl.m_oLogicDocument.GetCurrentSlide();
+            return oSlide;
+        }
+        return null;
+    };
+    CControl.prototype.getSlideNum = function() {
+        var oSlide = this.getSlide();
+        if(oSlide) {
+            return oSlide.num;
+        }
+        return -1;
     };
     CControl.prototype.getFillColor = function() {
         var sFillColor;
@@ -10510,48 +10529,49 @@
     CControlContainer.prototype.canHandleEvents = function() {
         return false;
     };
-
-    function CSeqListContainer(oParentControl) {
-        CControlContainer.call(this, oParentControl);
-        this.seqList = this.addControl(new CSeqList(this));
-        this.scrollVert = this.addControl(new CScrollVert(this, this, this.seqList));
-    }
-    InitClass(CSeqListContainer, CControlContainer, CONTROL_TYPE_SEQ_LIST_CONTAINER);
-    CSeqListContainer.prototype.getAnimCaptionRightPos = function() {
-        return this.parentControl.getAnimCaptionRightPos();
+    CControlContainer.prototype.onResize = function() {
+        this.handleUpdateExtents();
+        this.recalculate();
     };
-    CSeqListContainer.prototype.getScrollOffsetY = function(oChild) {
-        if(oChild !== this.scrollVert) {
-            return -this.scrollVert.getScrollOffset();
+
+
+    function CTopControl(oDrawer) {
+        CControlContainer.call(this, null);
+        this.drawer = oDrawer;
+    }
+    InitClass(CTopControl, CControlContainer, CONTROL_TYPE_UNKNOWN);
+    CTopControl.prototype.onUpdate = function() {
+        if(this.drawer) {
+            var oSlide = this.getSlide();
+            if(oSlide) {
+                var oBounds = this.getBounds();
+                this.drawer.OnAnimPaneChanged(oSlide.num, oBounds);
+            }
         }
+    };
+    CTopControl.prototype.onResize = function() {
+        this.setLayout(0, 0, this.drawer.GetWidth(), this.drawer.GetHeight());
+        CControlContainer.prototype.onResize.call(this);
+        this.onUpdate();
+    };
+
+    function CSeqListContainer(oDrawer) {
+        CTopControl.call(this, oDrawer);
+        this.seqList = this.addControl(new CSeqList(this));
+    }
+    InitClass(CSeqListContainer, CTopControl, CONTROL_TYPE_SEQ_LIST_CONTAINER);
+    CSeqListContainer.prototype.getScrollOffsetY = function(oChild) {
         return 0;
     };
     CSeqListContainer.prototype.recalculateChildrenLayout = function() {
         this.seqList.setLayout(0, 0, this.getWidth(), this.seqList.getHeight());
         this.seqList.recalculate();
-        if(this.seqList.getHeight() > this.getHeight()) {
-            this.scrollVert.show();
-            this.scrollVert.setLayout(this.getWidth() - SCROLL_THICKNESS, 0, SCROLL_THICKNESS, this.getHeight());
-            this.seqList.setLayout(0, 0, this.getWidth() - this.scrollVert.getWidth(), this.seqList.getHeight());
-            this.seqList.recalculate();
-        }
-        else {
-            this.scrollVert.hide();
-        }
+        this.setLayout(0, 0, this.seqList.getWidth(), this.seqList.getHeight());
     };
     CSeqListContainer.prototype.clipStart = function(graphics) {
-        if(!this.scrollVert.isHidden()) {
-            graphics.SaveGrState();
-            graphics.transform3(this.transform);
-            graphics.SaveGrState();
 
-            graphics.AddClipRect(0, 0, this.getWidth(), this.getHeight());
-        }
     };
     CSeqListContainer.prototype.clipEnd = function(graphics) {
-        if(!this.scrollVert.isHidden()) {
-            graphics.RestoreGrState();
-        }
     };
     CSeqListContainer.prototype.onScroll = function() {
         this.onUpdate();
@@ -10563,13 +10583,6 @@
         return null;
     };
     CSeqListContainer.prototype.onMouseWheel = function (e, deltaY, X, Y) {
-        if(!this.scrollVert.isHidden()) {
-            if(this.hit(X, Y)) {
-                this.scrollVert.startScroll(deltaY);
-                this.scrollVert.endScroll();
-                return true;
-            }
-        }
         return false;
     };
 
@@ -10886,18 +10899,17 @@
     CSeqList.prototype.getIndexLabelRight = function() {
         return 10;//TODO
     };
-    CSeqList.prototype.getAnimCaptionRightPos = function() {
-        return {x: this.parentControl.getAnimCaptionRightPos().x - this.getLeft(), y: 0};
-    };
     CSeqList.prototype.recalculateChildren = function() {
         this.clear();
         var oTiming = this.getTiming();
-        var aAllSeqs = oTiming.getRootSequences();
-        var oLastSeqView = null;
-        for(var nSeq = 0; nSeq < aAllSeqs.length; ++nSeq) {
-            var oSeqView = new CAnimSequence(this, aAllSeqs[nSeq]);
-            this.addControl(oSeqView);
-            oLastSeqView = oSeqView;
+        if(oTiming) {
+            var aAllSeqs = oTiming.getRootSequences();
+            var oLastSeqView = null;
+            for(var nSeq = 0; nSeq < aAllSeqs.length; ++nSeq) {
+                var oSeqView = new CAnimSequence(this, aAllSeqs[nSeq]);
+                this.addControl(oSeqView);
+                oLastSeqView = oSeqView;
+            }
         }
     };
     CSeqList.prototype.recalculateChildrenLayout = function() {
@@ -10960,9 +10972,6 @@
     CAnimSequence.prototype.getIndexLabelRight = function() {
         return this.parentControl.getIndexLabelRight() - this.getLeft();
     };
-    CAnimSequence.prototype.getAnimCaptionRightPos = function() {
-        return this.parentControl.getAnimCaptionRightPos();
-    };
     CAnimSequence.prototype.recalculateChildren = function() {
         this.clear();
         var sLabel = this.seq.getLabel();
@@ -11004,9 +11013,6 @@
     InitClass(CAnimGroupList, CControlContainer, CONTROL_TYPE_ANIM_GROUP_LIST);
     CAnimGroupList.prototype.getIndexLabelRight = function() {
         return this.parentControl.getIndexLabelRight() - this.getLeft();
-    };
-    CAnimGroupList.prototype.getAnimCaptionRightPos = function() {
-        return this.parentControl.getAnimCaptionRightPos();
     };
     CAnimGroupList.prototype.getSeq = function() {
         return this.parentControl.getSeq();
@@ -11080,9 +11086,7 @@
         return this.parentControl.getIndexLabelRight() - this.getLeft();
     };
     CAnimItem.prototype.getEffectLabelRight = function() {
-        var oAbsPos = this.parentControl.getAnimCaptionRightPos();
-        var oRelPos = this.convertAbsToRel(oAbsPos);
-        return oRelPos.x;
+        return LABEL_TIMELINE_WIDTH;
     };
     CAnimItem.prototype.recalculateChildrenLayout = function() {
         var dIndexLabelRight = this.getIndexLabelRight();
@@ -11296,14 +11300,14 @@
         }
     };
 
-    function CHeader(oParentControl) {
-        CControlContainer.call(this, oParentControl);
+    function CAnimPaneHeader(oDrawer) {
+        CTopControl.call(this, oDrawer);
         this.label = this.addControl(new CLabel(this, "Animation Pane", 14));
         this.taskButton = this.addControl(new CButton(this));
         this.closeButton = this.addControl(new CButton(this));
     }
-    InitClass(CHeader, CControlContainer, CONTROL_TYPE_HEADER);
-    CHeader.prototype.recalculateChildrenLayout = function() {
+    InitClass(CAnimPaneHeader, CTopControl, CONTROL_TYPE_HEADER);
+    CAnimPaneHeader.prototype.recalculateChildrenLayout = function() {
         this.closeButton.setLayout(
             this.getWidth() - BUTTON_SIZE,
             (this.getHeight() - BUTTON_SIZE) / 2,
@@ -11324,10 +11328,10 @@
         );
 
     };
-    CHeader.prototype.getFillColor = function() {
+    CAnimPaneHeader.prototype.getFillColor = function() {
         return null;
     };
-    CHeader.prototype.getOutlineColor = function() {
+    CAnimPaneHeader.prototype.getOutlineColor = function() {
         return null;
     };
 
@@ -11360,19 +11364,19 @@
         return null;
     };
 
-    function CTimelineContainer(oParentControl) {
-        CControlContainer.call(this, oParentControl);
+
+
+    function CTimelineContainer(oDrawer) {
+        CTopControl.call(this, oDrawer);
+        this.drawer = oDrawer;
         this.secondsButton = this.addControl(new CButton(this));
         this.timeline = this.addControl(new CTimeline(this));
     }
-    InitClass(CTimelineContainer, CControlContainer, CONTROL_TYPE_TIMELINE_CONTAINER);
+    InitClass(CTimelineContainer, CTopControl, CONTROL_TYPE_TIMELINE_CONTAINER);
     CTimelineContainer.prototype.recalculateChildrenLayout = function() {
         var dPosY = (this.getHeight() - SCROLL_THICKNESS) / 2;
         this.secondsButton.setLayout(0, dPosY, ANIM_LABEL_WIDTH - 3*SCROLL_THICKNESS / 2, SCROLL_THICKNESS);
         this.timeline.setLayout(this.secondsButton.getRight(), dPosY, this.getWidth() - this.secondsButton.getWidth(), SCROLL_THICKNESS);
-    };
-    CTimelineContainer.prototype.getAnimCaptionRightPos = function() {
-        return this.timeline.getAnimCaptionRightPos();
     };
     CTimelineContainer.prototype.getFillColor = function() {
         return null;
@@ -11509,10 +11513,6 @@
     };
     CTimeline.prototype.getPaneLeft = function() {
         return SCROLL_BUTTON_SIZE;
-    };
-    CTimeline.prototype.getAnimCaptionRightPos = function() {
-       // return this.convertRelToAbs({x: this.getPaneLeft(), y: 0});
-        return this.convertRelToAbs({x: this.getPaneLeft(), y: 0});
     };
     CTimeline.prototype.getFillColor = function() {
         return null;
@@ -11658,7 +11658,7 @@
     function CAnimPane(oTiming) {
         CControlContainer.call(this, null);
         this.timing = oTiming;
-        this.header = this.addControl(new CHeader(this));
+        this.header = this.addControl(new CAnimPaneHeader(this));
         this.toolbar = this.addControl(new CToolbar(this));
         this.seqListContainer = this.addControl(new CSeqListContainer(this));
         this.timelineContainer = this.addControl(new CTimelineContainer(this));
@@ -11669,9 +11669,6 @@
         this.recalcInfo.recalculateTimelineContainer = true;
     }
     InitClass(CAnimPane, CControlContainer, CONTROL_TYPE_UNKNOWN);
-    CAnimPane.prototype.getAnimCaptionRightPos = function() {
-        return this.timelineContainer.getAnimCaptionRightPos();
-    };
     CAnimPane.prototype.getHeader = function() {
         return this.getChildByType(CONTROL_TYPE_HEADER);
     };
@@ -11969,6 +11966,12 @@
         console.log(sResultScript);
     }
     AscFormat.generate_preset_data = generate_preset_data;
+
+
+    window['AscCommon'] = window['AscCommon'] || {};
+    window['AscCommon'].CAnimPaneHeader = CAnimPaneHeader;
+    window['AscCommon'].CSeqListContainer = CSeqListContainer;
+    window['AscCommon'].CTimelineContainer = CTimelineContainer;
 
     var ANIMATION_PRESET_CLASSES = [];
     var PRESET_TYPES;
