@@ -617,6 +617,7 @@ CLaTeXParser.prototype.Parse = function (str) {
 			(str[i + 1] == "[" && strTempWord != "\\") ||
 			(str[i + 1] == "]" && strTempWord != "\\") ||
 			strTempWord == "(" ||
+			strTempWord == "\\middle" ||
 			strTempWord == ")" ||
 			strTempWord == "[" ||
 			strTempWord == "]" ||
@@ -837,21 +838,6 @@ CLaTeXParser.prototype.GetBracetCode = new Map([
 	[".", "empty"],
 ]);
 
-CLaTeXParser.prototype.GetCloseBracet = new Map([
-	["|", "|"],
-	["(", ")"],
-	["{", "}"],
-	["[", "]"],
-	["\\{", "\\}"],
-	["\\|", "\\|"],
-	["\\langle", "\\rangle"],
-	["\\lfloor", "\\rfloor"],
-	["\\lceil", "\\rceil"],
-	["\\ulcorner", "\\urcorner"],
-	["/", "\\backslash"],
-	["\\left", "\\right"],
-]);
-
 CLaTeXParser.prototype.CheckDegreeAndIndexForLexer = function () {
 	return (
 		(this.CheckSyntaxSequence(["^", 1]) && this.GetFutureAtom(-2) != "_") ||
@@ -978,26 +964,6 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 	CLaTeXLexer(this, Formula.getBase());
 };
 
-CLaTeXParser.prototype.AddSqrt = function (FormArgument) {
-	var strTempAtom = this.GetNextAtom();
-	var Pr = this.Pr;
-
-	if (strTempAtom == "[") {
-		Pr.type = DEGREE_RADICAL;
-	} else {
-		Pr.type = SQUARE_RADICAL;
-		Pr.degHide = true;
-	}
-
-	var Radical = new CRadical(Pr);
-	FormArgument.Add_Element(Radical);
-
-	if (strTempAtom == "[") {
-		CLaTeXLexer(this, Radical.getDegree());
-	}
-
-	CLaTeXLexer(this, Radical.getBase());
-};
 
 CLaTeXParser.prototype.AddIntegral = function (FormArgument) {
 	var strNameOfIntegral = this.arrAtomsOfFormula[this.indexOfAtom - 1];
@@ -1115,38 +1081,6 @@ CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, str) {
 	this.StartLexer(Narny.getBase(), ["{", "("]);
 };
 
-CLaTeXParser.prototype.AddBracetBlock = function (FormArgument, bracet) {
-	/**
-		todo: does not work if the closing and opening parentheses same \\| = \\|
-		todo: implement manual sizing
-		todo: implement \\left \\right \\middle  -  \\left( 1 \\middle| 5 \\right) = (1|5)
-												 -  \\left. 1 \\right|             =   1|
-		https://ru.overleaf.com/learn/latex/Brackets_and_Parentheses
-	*/
-	var intIndexOfCloseBracet = this.CheckExistanceOfCloseBracet(
-		this.GetFutureAtom(-1)
-	);
-	var strOpenBracet = this.GetFutureAtom(-1);
-	var strExit;
-	var strCloseBracet = (strExit = this.GetCloseBracet.get(strOpenBracet));
-
-	strOpenBracet = this.GetBracetCode.get(strOpenBracet);
-	strCloseBracet = this.GetBracetCode.get(strCloseBracet);
-
-	//console.log(intIndexOfCloseBracet, strOpenBracet, strCloseBracet);
-	if (intIndexOfCloseBracet) {
-		var one = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPrp,
-			1,
-			[null],
-			strOpenBracet,
-			strCloseBracet
-		);
-		CLaTeXLexer(this, one.getElementMathContent(0), strExit);
-		return true;
-	}
-	return false;
-};
 
 CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
 	//todo: align text inside matrix
@@ -1238,35 +1172,14 @@ CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
 	this.RecipientSeveralAtom(3);
 };
 
-CLaTeXParser.prototype.CheckExistanceOfCloseBracet = function (strSymbol) {
-	var CloseBracet = this.GetCloseBracet.get(strSymbol);
-	var intPatternIndex = 1;
-	var arrOfData = this.arrAtomsOfFormula;
-	var intIndexData = this.indexOfAtom;
-
-	while (intIndexData < arrOfData.length) {
-		if (arrOfData[intIndexData] == strSymbol) {
-			intPatternIndex++;
-		} else if (arrOfData[intIndexData] == CloseBracet) {
-			intPatternIndex--;
-		}
-
-		if (arrOfData[intIndexData] == CloseBracet && intPatternIndex == 0) {
-			return intIndexData;
-		}
-
-		intIndexData++;
-	}
-	return false;
-};
 
 CLaTeXParser.prototype.AddLeftRightBLock = function (FormArgument) {
 	var strFBracet = this.GetNextAtom();
 	var strSBracet;
 	var index = this.CheckExistanceOfCloseBracet("\\left");
 
-	if (index != false) {
-		strSBracet = this.arrAtomsOfFormula[index + 1];
+	if (index[0] != false) {
+		strSBracet = this.arrAtomsOfFormula[index[0] + 1];
 	}
 
 	var strOpenBracet = this.GetBracetCode.get(strFBracet);
@@ -1295,13 +1208,14 @@ CLaTeXParser.prototype.AddLeftRightBLock = function (FormArgument) {
 
 //Service
 CLaTeXParser.prototype.ExitFromLexer = function (strFAtom, exitIfSee) {
-	if (
-		(exitIfSee && typeof exitIfSee != "number" && strFAtom == exitIfSee) ||
-		(exitIfSee && Array.isArray(exitIfSee) && exitIfSee.includes(strFAtom)) ||
-		(!exitIfSee && (strFAtom == "}" || strFAtom == "]"))
-	)
+	if (exitIfSee && typeof exitIfSee != "number" && strFAtom == exitIfSee)
 	{
+		console.log('====EXIT====')
 		return true;
+	} 
+	
+	else {
+		return false;
 	}
 };
 
@@ -1408,19 +1322,10 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 
 	if (!arrSymbol) {
 		var strOpentBracet = this.GetFutureAtom();
+		var strCloseBracet = this.GetCloseBracet.get(strOpentBracet);
 
-		if (this.GetBracetCode.get(strOpentBracet)) {
-			CLaTeXLexer(this, context, this.GetCloseBracet.get(strOpentBracet));
-		}
-
-		else {
-			CLaTeXLexer(this, context, 1);
-		}
-	}
-
-	else if (Array.isArray(arrSymbol)) {
-		if (arrSymbol.includes(this.GetFutureAtom())) {
-			CLaTeXLexer(this, context);
+		if (strCloseBracet) {
+			CLaTeXLexer(this, context, strCloseBracet);
 		}
 
 		else {
@@ -1429,12 +1334,12 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	}
 
 	else if (arrSymbol) {
-		if (this.GetBracetCode.get(this.GetFutureAtom()) !== undefined) {
-			CLaTeXLexer(this, context);
+		if (typeof arrSymbol != 'number') {
+			CLaTeXLexer(this, context, arrSymbol);
 		}
 
 		else {
-			CLaTeXLexer(this, context, 1);
+			CLaTeXLexer(this, context, arrSymbol);
 		}
 	}
 };
@@ -1707,6 +1612,178 @@ CLaTeXParser.prototype.AddScriptForText = function(FormArgument, strFAtom) {
 	this.AddScript(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex);
 };
 
+//Radical
+CLaTeXParser.prototype.AddRadical = function (FormArgument) {
+	var typeOfRadical = null;
+	if (this.GetFutureAtom() == '[') {
+		typeOfRadical  = DEGREE_RADICAL;
+	} else {
+		typeOfRadical = SQUARE_RADICAL;
+	}
+
+	var Radical = this.CreateRadical(FormArgument, typeOfRadical);
+	this.FillRadicalContent(Radical, typeOfRadical);
+};
+
+CLaTeXParser.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
+	if (typeOfRadical == SQUARE_RADICAL) {
+		this.Pr.degHide = true;
+	} else if (typeOfRadical == DEGREE_RADICAL) {
+		this.Pr.type = typeOfRadical;
+	}
+
+	var Radical = FormArgument.Add_Radical(this.Pr, null, null);
+	return Radical
+};
+
+CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
+	if (typeOfRadical == DEGREE_RADICAL) {
+		this.StartLexer(Radical.getDegree())
+	}
+	
+	this.StartLexer(Radical.getBase())
+};
+
+CLaTeXParser.prototype.AddPMod = function (FormArgument) {
+	var Mod = this.AddBracet(
+		FormArgument, 
+		this.GetBracetCode.get('('),
+		this.GetBracetCode.get(')')
+		);
+
+	var MathContent = Mod.getElementMathContent(0);
+	MathContent.Add_Text('mod ', this.Paragraph);
+	this.StartLexer(MathContent);
+}
+
+CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
+	if (open == undefined) {
+		open = null
+	};
+
+	if (close == undefined) {
+		close = null
+	};
+	
+	var Bracet = FormArgument.Add_DelimiterEx(
+		this.Pr.ctrPrp,
+		1,
+		[null],
+		open,
+		close
+	);
+
+	return Bracet;	
+}
+
+//BracetBlock
+CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
+	var strOpenBracet = strFAtom;
+	var strCloseBracet = this.GetCloseBracet.get(strOpenBracet);
+	if (!strCloseBracet) {
+		return
+	}
+
+	var indexOfCloseBracet = this.checkCloseBracet(strOpenBracet, strCloseBracet);
+	var OutputMiddleFunc = this.middleCount(indexOfCloseBracet);
+	var intCountOfMiddle = OutputMiddleFunc[0];
+	var strTypeOfMiddle = OutputMiddleFunc[1]; //todo
+
+	strOpenBracet = this.GetBracetCode.get(strOpenBracet);
+	strCloseBracet = this.GetBracetCode.get(strCloseBracet);
+
+	var Bracet = this.CreateBracetBlock(
+		FormArgument,
+		strOpenBracet,
+		strCloseBracet,
+		intCountOfMiddle,
+		); 
+	
+	this.FillBracetBlockContent(Bracet, intCountOfMiddle, this.GetCloseBracet.get(strFAtom));
+}
+
+CLaTeXParser.prototype.checkCloseBracet = function(strOpenBracet, strCloseBracet) {
+	var intPatternIndex = 1;
+	var arrOfData = this.arrAtomsOfFormula;
+	var intIndexData = this.indexOfAtom;
+
+	while (intIndexData < arrOfData.length) {
+	
+		if (arrOfData[intIndexData] == strOpenBracet) {
+			intPatternIndex++;
+		} 
+		else if (arrOfData[intIndexData] == strCloseBracet) {
+			intPatternIndex--;
+		}
+
+		if (arrOfData[intIndexData] == strCloseBracet && intPatternIndex == 0) {
+			return intIndexData;
+		}
+
+		intIndexData++;
+	}
+	return false;
+}
+
+CLaTeXParser.prototype.middleCount = function(countOfMiddle) {
+	var arrOfData = this.arrAtomsOfFormula;
+	var intIndexData = this.indexOfAtom;
+
+	var intCount = 0;
+	var strDelim = null;
+	while (intIndexData < countOfMiddle) {
+	
+		if (arrOfData[intIndexData] == '\\middle') {
+			intCount++;
+			if (intCount == 0) {
+				strDelim = arrOfData[intIndexData + 1];
+			}
+		} 
+		intIndexData++;
+	}
+	return [intCount, strDelim];
+}
+
+CLaTeXParser.prototype.CreateBracetBlock = function (FormArgument, strOpenBracet, strCloseBracet, middleCount) {
+	var BracetBlock = FormArgument.Add_DelimiterEx(
+		this.Pr.ctrPrp,
+		1 + middleCount,
+		[null],
+		strOpenBracet,
+		strCloseBracet
+	);
+	return BracetBlock;
+}
+
+CLaTeXParser.prototype.FillBracetBlockContent = function (BracetBlock, countOfDelim, exit) {
+	if (countOfDelim + 1 > 1) {
+		for(var index = 0; index <= countOfDelim; index++) {
+			this.StartLexer(BracetBlock.getElementMathContent(index), '\\middle');
+			this.GetNextAtom();
+		}
+
+	} else {
+		console.log(this.GetFutureAtom())
+		this.StartLexer(BracetBlock.getElementMathContent(0), exit);
+	}
+}
+
+CLaTeXParser.prototype.GetCloseBracet = new Map([
+	//["|", "|"],
+	["(", ")"],
+	["{", "}"],
+	["[", "]"],
+	["\\{", "\\}"],
+	//["\\|", "\\|"],
+	["\\langle", "\\rangle"],
+	["\\lfloor", "\\rfloor"],
+	["\\lceil", "\\rceil"],
+	["\\ulcorner", "\\urcorner"],
+	["/", "\\backslash"],
+	["\\left", "\\right"],
+]);
+
+
 /**
  * @param Parser
  * @param FormArgument Функция в которую будет записываться контент.
@@ -1722,9 +1799,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		strFAtom = Parser.GetNextAtom();
 
 		//check
-		if (Parser.ExitFromLexer(strFAtom, exitIfSee)) {
-			return;
-		}
+		 if (Parser.ExitFromLexer(strFAtom, exitIfSee)){return};
 
 		//construction
 		if (Parser.GetTypeOfFunction.get(strFAtom) != null) {
@@ -1736,9 +1811,14 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			Parser.AddFraction(FormArgument, strFAtom)
 			intFAtoms++;
 		}
-		
+
 		else if (strFAtom == "\\binom") {
 			Parser.AddBinom(FormArgument);
+			intFAtoms++;
+		}
+
+		else if (strFAtom == "\\sqrt") {
+			Parser.AddRadical(FormArgument);
 			intFAtoms++;
 		}
 		
@@ -1747,10 +1827,6 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		} else if (strFAtom == "\\pmod") {
 			Parser.AddPMod(FormArgument);
-			intFAtoms++;
-		} else if (strFAtom == "\\sqrt") {
-			Parser.CheckSqrtSyntax();
-			Parser.AddSqrt(FormArgument);
 			intFAtoms++;
 		} else if (strFAtom == "\\left") {
 			Parser.AddLeftRightBLock(FormArgument);
@@ -1770,14 +1846,25 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		} else if (Parser.CheckIsMatrix()) {
 			Parser.AddMatrix(FormArgument);
 			intFAtoms++;
-		} else if (Parser.CheckIsBrackets()) {
-			Parser.AddBracetBlock(FormArgument, strFAtom);
+		} 
+		
+		else if (Parser.CheckIsBrackets()) {
+			Parser.AddBracets(FormArgument, strFAtom);
 			intFAtoms++;
-		} else if (Parser.CheckDegreeAndIndexForLexer()) {
+		} 
+		
+		else if (Parser.CheckDegreeAndIndexForLexer()) {
 			//Parser.AddDegreeForText(FormArgument, strFAtom);
 			Parser.AddScriptForText(FormArgument, strFAtom);
 			intFAtoms++;
-		} else if (Parser.CheckIsText(strFAtom) && !Parser.GetBracetCode.get(strFAtom)) {
+		} else if (
+			Parser.CheckIsText(strFAtom) && 
+			!Parser.GetBracetCode.get(strFAtom) && 
+			strFAtom != undefined &&
+			strFAtom != '(' &&
+			strFAtom != ')'
+			
+			) {
 			Parser.AddText(strFAtom, FormArgument);
 			intFAtoms++;
 		}
@@ -1785,7 +1872,8 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		if (typeof exitIfSee === "number" && intFAtoms >= exitIfSee) {
 			return;
 		}
-	} while (strFAtom != null);
+
+	} while (strFAtom != undefined);
 }
 
 //--------------------------------------------------------export----------------------------------------------------
