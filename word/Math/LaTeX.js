@@ -1210,7 +1210,6 @@ CLaTeXParser.prototype.AddLeftRightBLock = function (FormArgument) {
 CLaTeXParser.prototype.ExitFromLexer = function (strFAtom, exitIfSee) {
 	if (exitIfSee && typeof exitIfSee != "number" && strFAtom == exitIfSee)
 	{
-		console.log('====EXIT====')
 		return true;
 	} 
 	
@@ -1684,8 +1683,8 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 		return
 	}
 
-	var indexOfCloseBracet = this.checkCloseBracet(strOpenBracet, strCloseBracet);
-	var OutputMiddleFunc = this.middleCount(indexOfCloseBracet);
+	var indexOfCloseBracet = this.CheckCloseBracet(strOpenBracet, strCloseBracet);
+	var OutputMiddleFunc = this.MiddleCount(indexOfCloseBracet);
 	var intCountOfMiddle = OutputMiddleFunc[0];
 	var strTypeOfMiddle = OutputMiddleFunc[1]; //todo
 
@@ -1702,7 +1701,7 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 	this.FillBracetBlockContent(Bracet, intCountOfMiddle, this.GetCloseBracet.get(strFAtom));
 }
 
-CLaTeXParser.prototype.checkCloseBracet = function(strOpenBracet, strCloseBracet) {
+CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet) {
 	var intPatternIndex = 1;
 	var arrOfData = this.arrAtomsOfFormula;
 	var intIndexData = this.indexOfAtom;
@@ -1725,7 +1724,7 @@ CLaTeXParser.prototype.checkCloseBracet = function(strOpenBracet, strCloseBracet
 	return false;
 }
 
-CLaTeXParser.prototype.middleCount = function(countOfMiddle) {
+CLaTeXParser.prototype.MiddleCount = function(countOfMiddle) {
 	var arrOfData = this.arrAtomsOfFormula;
 	var intIndexData = this.indexOfAtom;
 
@@ -1744,10 +1743,10 @@ CLaTeXParser.prototype.middleCount = function(countOfMiddle) {
 	return [intCount, strDelim];
 }
 
-CLaTeXParser.prototype.CreateBracetBlock = function (FormArgument, strOpenBracet, strCloseBracet, middleCount) {
+CLaTeXParser.prototype.CreateBracetBlock = function (FormArgument, strOpenBracet, strCloseBracet, MiddleCount) {
 	var BracetBlock = FormArgument.Add_DelimiterEx(
 		this.Pr.ctrPrp,
-		1 + middleCount,
+		1 + MiddleCount,
 		[null],
 		strOpenBracet,
 		strCloseBracet
