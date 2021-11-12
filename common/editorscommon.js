@@ -5804,7 +5804,7 @@
 									if (groups[1000]) {
 										if (groups[1000] >= 100) {
 											resArr = resArr.concat(cardinalSplittingNL(groups[1000]));
-										} else if(groups[1000] !== 1) {
+										} else if(groups[1000] !== 1 || groups[1] !== 0 || groups[100] !== 0) {
 											resArr = resArr.concat(letterNumberLessThen100NL(groups[1000]));
 										}
 										resArr.push('duizend');
@@ -6751,7 +6751,31 @@
 						}
 						break;
 					}
-					case 'nl-NL':
+					case 'nl-NL': {
+						var alphaBet = {
+							'één': 'eerste',
+							'twee': 'tweede',
+							'drie': 'derde',
+							'vier': 'vierde',
+							'vijf': 'vijfde',
+							'zes': 'zesde',
+							'zeven': 'zevende',
+							'acht': 'achtste',
+							'negen': 'negende',
+							'tien': 'tiende'
+						};
+						var arrWithDigits = ordinalText.arrAnswer;
+						var lastWord = arrWithDigits[arrWithDigits.length - 1];
+						if (alphaBet[lastWord]) {
+							arrWithDigits[arrWithDigits.length - 1] = alphaBet[lastWord];
+						} else if (nValue < 20) {
+							arrWithDigits[arrWithDigits.length - 1] += 'de';
+						} else if (nValue < 1000000) {
+							arrWithDigits[arrWithDigits.length - 1] += 'ste';
+						}
+						break;
+					}
+					case 'pt-BR':
 					case 'pt-PT': {
 						alphaBet = {
 							'um': 'primeiro',
