@@ -1193,7 +1193,7 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 			FormArgument,
 			strOpenBracet,
 			strCloseBracet,
-			intCountOfMiddle,
+			intCountOfMiddle
 			); 
 		
 		this.FillBracetBlockContent(Bracet, intCountOfMiddle, this.GetCloseBracet.get(strFAtom));
@@ -1225,7 +1225,7 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 			FormArgument,
 			strOpenBracet,
 			strCloseBracet,
-			intCountOfMiddle,
+			intCountOfMiddle
 			); 
 		
 		this.FillBracetBlockContent(Bracet, intCountOfMiddle, "\\right");
