@@ -912,12 +912,10 @@ CLaTeXParser.prototype.GetTypeOfFrac = new Map([
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	var typeOfLimit = this.GetTypeOfLimit.get(strFAtom);
 	var typeOfBottom = this.CheckSyntax(
-		// _{1}^{2}
 		[['^', '{'], 'BOTTOM_WITH_BRACETS_DEGREE'],
 		[['_', '{'], 'BOTTOM_WITH_BRACETS_INDEX'],
 		[['^', 1], 'BOTTOM_DEGREE'],
-		[['_', 1], 'BOTTOM_INDEX'],
-		//[[1], 'NO_INDEX'],
+		[['_', 1], 'BOTTOM_INDEX']
 	)
 	
 	if (typeOfBottom) {
@@ -1025,7 +1023,7 @@ CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIn
 			[['_', '{', '^', '{'], 'SUB_SUP'],
 			[['^', '{', '_', '{'], 'SUP_SUB'],
 			[['_', 1, '^', 1], 'SUB_SUP'],
-			[['^', 1, '_', 1], 'SUP_SUB'],
+			[['^', 1, '_', 1], 'SUP_SUB']
 		);
 
 		Script = this.CreateScript(FormArgument, typeOfScript);
@@ -1034,7 +1032,7 @@ CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIn
 	else if (isDegreeOrIndex) {
 		typeOfScript = this.CheckSyntax(
 			[['_'], 'DEGREE_SUBSCRIPT'],
-			[['^'], 'DEGREE_SUPERSCRIPT'],
+			[['^'], 'DEGREE_SUPERSCRIPT']
 		);
 
 		Script = this.CreateScript(FormArgument, typeOfScript);
