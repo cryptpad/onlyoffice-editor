@@ -126,15 +126,20 @@
 	var currentHashWorker = null;
 
 	window['AscCommon'] = window['AscCommon'] || {};
-	window['AscCommon'].calculateProtectHash = function(password, salt, spinCount, alg, callback) {
-		var message = {
-			"password" : password,
-			"salt" : salt,
-			"spinCount" : spinCount,
-			"alg" : alg
-		};
 
-		currentHashWorker = new CHashWorker(message, callback);
+	window['AscCommon'].calculateProtectHash = function(args, callback) {
+		var sendedData = [];
+		for (var i = 0, len = args.length; i < len; i++)
+		{
+			sendedData.push({
+				"password" : args[i].password,
+				"salt" : args[i].salt,
+				"spinCount" : args[i].spinCount,
+				"alg" : args[i].alg
+			});
+		}
+
+		currentHashWorker = new CHashWorker(sendedData, callback);
 	};
 
 	window['AscCommon'].HashAlgs = {
