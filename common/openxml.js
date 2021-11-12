@@ -284,12 +284,10 @@
 		outputParts = outputParts.concat(toParts.slice(samePartsLength));
 		return outputParts.join('/');
 	};
-	openXml.OpenXmlPackage.prototype.addPartWithoutRels = function (uri, contentType, data) {
+	openXml.OpenXmlPackage.prototype.addPartWithoutRels = function (uri, contentType) {
 		//add part
 		var newPart = new openXml.OpenXmlPart(this, uri, contentType);
 		this.parts[uri] = newPart;
-		//zip
-		this.zip.addFile(newPart.getUriRelative(), data);
 		// update [Content_Types].xml
 		var changed = this.cntTypes.add(uri, contentType);
 		if(changed) {
@@ -298,8 +296,8 @@
 		}
 		return newPart;
 	}
-	openXml.OpenXmlPackage.prototype.addPart = function (type, data) {
-		return this.getRootPart().addPart(type, data);
+	openXml.OpenXmlPackage.prototype.addPart = function (type) {
+		return this.getRootPart().addPart(type);
 	}
 	openXml.OpenXmlPackage.prototype.addRelationship = function (relationshipType, target, targetMode) {
 		return this.getRootPart().addRelationship(relationshipType, target, targetMode);
@@ -400,13 +398,16 @@
 			return data;
 		}
 	};
-	openXml.OpenXmlPart.prototype.addPart = function (type, data) {
+	openXml.OpenXmlPart.prototype.addPart = function (type) {
 		var uri = this.pkg.generateUriByType(type);
-		var newPart = this.pkg.addPartWithoutRels(uri, type.contentType, data);
+		var newPart = this.pkg.addPartWithoutRels(uri, type.contentType);
 		//update rels
 		var target = this.pkg.getRelativeUri(this.uri, uri);
 		this.addRelationship(type.relationType, target);
 		return newPart;
+	}
+	openXml.OpenXmlPart.prototype.setData = function (data) {
+		this.pkg.zip.addFile(this.getUriRelative(), data);
 	}
 	openXml.OpenXmlPart.prototype.addRelationship = function (relationshipType, target, targetMode) {
 		var relsFilename = getRelsPartUriOfPart(this);
@@ -415,7 +416,8 @@
 		var newRel = new openXml.OpenXmlRelationship(rels.pkg, rels.part, rId, relationshipType, target, targetMode);
 		rels.rels.push(newRel);
 		this.pkg.removePart(relsFilename);
-		this.pkg.addPartWithoutRels(relsFilename, null, this.pkg.getXmlBytes(rels, this.pkg.xmlWriter));
+		var relsPart = this.pkg.addPartWithoutRels(relsFilename, null);
+		relsPart.setData(this.pkg.getXmlBytes(rels, this.pkg.xmlWriter));
 		return rId;
 	}
 
