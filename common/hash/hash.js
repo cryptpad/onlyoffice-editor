@@ -76,7 +76,7 @@
 		{
 			this.stop();
 
-			var worker_src = this.useWasm ? "hash.js" : "hash_ie.js";
+			var worker_src = this.useWasm ? "engine.js" : "engine_ie.js";
 			worker_src = this.enginePath + worker_src;
 
 			this.worker = new Worker(worker_src);

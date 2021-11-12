@@ -299,4 +299,4 @@
     };
 
 
-})(window || self);
+})(window);
