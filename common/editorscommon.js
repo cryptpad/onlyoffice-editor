@@ -6485,8 +6485,9 @@
 							sResult += 'e';
 						break;
 					}
-						case 'pt-PT':
-						case 'pt-BR': {
+					case 'pt-PT':
+					case 'es-ES':
+					case 'pt-BR': {
 							sResult += 'º';
 						break;
 					}
@@ -6516,7 +6517,6 @@
 					case 'ja-JP':
 					case 'vi-VN':
 					case 'lv-LV':
-					case 'en-ES':
 					case 'ko-KR':
 					case 'sk-SK':
 					case 'az-Latn-AZ':
@@ -6776,51 +6776,110 @@
 						break;
 					}
 					case 'pt-BR':
+					case 'es-ES':
 					case 'pt-PT': {
-						alphaBet = {
-							'um': 'primeiro',
-							'dois': 'segundo',
-							'três': 'terceiro',
-							'quatro': 'quarto',
+						if (textLang === 'pt-BR' || textLang === 'pt-PT') {
+							alphaBet = {
+								'um': 'primeiro',
+								'dois': 'segundo',
+								'três': 'terceiro',
+								'quatro': 'quarto',
+								'cinco': 'quinto',
+								'seis': 'sexto',
+								'sete': 'sétimo',
+								'oito': 'oitavo',
+								'nove': 'nono',
+								'dez': 'décimo',
+								'onze': 'décimo primeiro',
+								'doze': 'décimo segundo',
+								'treze': 'décimo terceiro',
+								'quartorze': 'décimo quarto',
+								'quinze': 'décimo quinto',
+								'dezesseis': 'décimo sexto',
+								'dezessete': 'décimo sétimo',
+								'dezoito': 'décimo oitavo',
+								'dezenove': 'décimo nono',
+								'vinte': 'vigésimo',
+								'trinta': 'trigésimo',
+								'quarenta': 'quadragésimo',
+								'cinqüenta': 'quinquagésimo',
+								'sessenta': 'sexagésimo',
+								'setenta': 'septuagésimo',
+								'oitenta': 'octogésimo',
+								'noventa': 'nonagésimo',
+								'cem': 'centésimo',
+								'duzentos': 'ducentésimo',
+								'trezentos': 'tricentésimo',
+								'quatrocentos': 'quadringentésimo',
+								'quinhentos': 'quingentésimo',
+								'seissentos': 'seiscentésimo',
+								'setecentos': 'septingentésimo',
+								'oitocentos': 'octingentésimo',
+								'novecentos': 'nongentésimo',
+								'mil': 'milésimo'
+							}
+						} else if (textLang === 'es-ES') {
+							alphaBet = {
+							'uno': 'primero',
+							'dos': 'segundo',
+							'tres': 'tercero',
+							'cuatro': 'cuarto',
 							'cinco': 'quinto',
 							'seis': 'sexto',
-							'sete': 'sétimo',
-							'oito': 'oitavo',
-							'nove': 'nono',
-							'dez': 'décimo',
-							'onze': 'décimo primeiro',
-							'doze': 'décimo segundo',
-							'treze': 'décimo terceiro',
-							'quartorze': 'décimo quarto',
-							'quinze': 'décimo quinto',
-							'dezesseis': 'décimo sexto',
-							'dezessete': 'décimo sétimo',
-							'dezoito': 'décimo oitavo',
-							'dezenove': 'décimo nono',
-							'vinte': 'vigésimo',
-							'trinta': 'trigésimo',
-							'quarenta': 'quadragésimo',
-							'cinqüenta': 'quinquagésimo',
-							'sessenta': 'sexagésimo',
+							'siete': 'séptimo',
+							'ocho': 'octavo',
+							'nueve': 'noveno',
+							'diez': 'décimo',
+							'once': 'undécimo',
+							'doce': 'duodécimo',
+							'trece': 'decimotercero',
+							'catorce': 'decimocuarto',
+							'quince': 'decimoquinto',
+							'dieciséis': 'decimosexto',
+							'diecisiete': 'decimoséptimo',
+							'dieciocho': 'decimoctavo',
+							'diecinueve': 'decimonoveno',
+							'veint': 'vigésimo',
+							'veinte': 'vigésimo',
+							'veinti': 'vigésimo',
+							'treinta': 'trigésimo',
+							'cuarenta': 'cuadragésimo',
+							'cincuenta': 'quincuagésimo',
+							'sesenta': 'sexagésimo',
 							'setenta': 'septuagésimo',
-							'oitenta': 'octogésimo',
+							'ochenta': 'octogésimo',
 							'noventa': 'nonagésimo',
-							'cem': 'centésimo',
-							'duzentos': 'ducentésimo',
-							'trezentos': 'tricentésimo',
-							'quatrocentos': 'quadringentésimo',
-							'quinhentos': 'quingentésimo',
-							'seissentos': 'seiscentésimo',
-							'setecentos': 'septingentésimo',
-							'oitocentos': 'octingentésimo',
-							'novecentos': 'nongentésimo',
-							'mil': 'milésimo'
+							'ciento': 'centésimo',
+							'doscientos': 'ducentésimo',
+							'trescientos': 'tricentésimo',
+							'cuatrocientos': 'cuadringentésimo',
+							'quinientos': 'quingentésimo',
+							'seiscientos': 'sexcentésimo',
+							'setecientos': 'septingentésimo',
+							'ochocientos': 'octingentésimo',
+							'novecientos': 'noningentésimo',
+							'mil': 'milésimo',
+							'dós': 'segundo',
+							'trés': 'tercero',
+							'séis': 'sexto',
+							}
 						}
+
 						var arrWithDigits = ordinalText.arrAnswer;
 						var newAnswerArr = [];
 						for (var i = 0; i < arrWithDigits.length; i += 1) {
-							if (alphaBet[arrWithDigits[i]]) {
-								newAnswerArr.push(alphaBet[arrWithDigits[i]]);
+							if (Array.isArray(arrWithDigits[i])) {
+								var iterArr = arrWithDigits[i];
+								for (var j = 0; j < iterArr.length; j += 1) {
+									if (alphaBet[iterArr[j]]) {
+										newAnswerArr.push(alphaBet[iterArr[j]]);
+									}
+								}
+
+							} else {
+								if (alphaBet[arrWithDigits[i]]) {
+									newAnswerArr.push(alphaBet[arrWithDigits[i]]);
+								}
 							}
 						}
 						ordinalText.arrAnswer = newAnswerArr;
