@@ -603,7 +603,7 @@ function CEditorPage(api)
 		this.m_oBottomPanesContainer.AddControl(this.m_oAnimationPaneContainer);
 
 		this.m_oAnimPaneHeaderContainer = CreateControlContainer("id_anim_header");
-		this.m_oAnimPaneHeaderContainer.Bounds.SetParams(TIMELINE_LEFT_MARGIN, 0, TIMELINE_HEADER_RIGHT_MARGIN, HEADER_HEIGHT, true, false, true, true, -1, HEADER_HEIGHT);
+		this.m_oAnimPaneHeaderContainer.Bounds.SetParams(0, 0, 1000, HEADER_HEIGHT, true, false, false, true, -1, HEADER_HEIGHT);
 		this.m_oAnimPaneHeaderContainer.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top);
 		this.m_oAnimationPaneContainer.AddControl(this.m_oAnimPaneHeaderContainer);
 
@@ -1004,7 +1004,7 @@ function CEditorPage(api)
 
 		if(this.IsSupportAnimPane)
 		{
-			this.m_oAnimPaneApi = new CAnimationPaneDrawer(this);
+			this.m_oAnimPaneApi = new CAnimationPaneDrawer(this, this.m_oAnimationPaneContainer.HtmlElement);
 			this.m_oAnimPaneApi.Init();
 		}
 
@@ -3200,10 +3200,6 @@ function CEditorPage(api)
 		{
 			this.m_oAnimationPaneContainer.HtmlElement.style.display = "block";
 		}
-
-
-
-		this.m_oAnimPaneHeaderContainer
 	};
 
 	this.OnResize = function(isAttack)

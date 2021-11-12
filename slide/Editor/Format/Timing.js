@@ -10552,14 +10552,20 @@
         this.drawer = oDrawer;
     }
     InitClass(CTopControl, CControlContainer, CONTROL_TYPE_UNKNOWN);
-    CTopControl.prototype.onUpdate = function() {
+    CTopControl.prototype.onUpdateRect = function(oBounds) {
         if(this.drawer) {
             var oSlide = this.getSlide();
             if(oSlide) {
-                var oBounds = this.getBounds();
                 this.drawer.OnAnimPaneChanged(oSlide.num, oBounds);
             }
         }
+    };
+    CTopControl.prototype.onUpdate = function() {
+        var oBounds = this.getBounds();
+        this.onUpdateRect(oBounds);
+    };
+    CTopControl.prototype.onChildUpdate = function(oBounds) {
+        this.onUpdateRect(oBounds);
     };
     CTopControl.prototype.onResize = function() {
         this.setLayout(0, 0, this.drawer.GetWidth(), this.drawer.GetHeight());
@@ -11317,7 +11323,7 @@
 
     var PLAY_BUTTON_WIDTH = 82 * AscCommon.g_dKoef_pix_to_mm;
     var PLAY_BUTTON_HEIGHT = 24 * AscCommon.g_dKoef_pix_to_mm;
-    var PLAY_BUTTON_LEFT = (145 - AscCommon.TIMELINE_LEFT_MARGIN) * AscCommon.g_dKoef_pix_to_mm;
+    var PLAY_BUTTON_LEFT = 145 * AscCommon.g_dKoef_pix_to_mm;
     var PLAY_BUTTON_TOP = 12 * AscCommon.g_dKoef_pix_to_mm;
     function CAnimPaneHeader(oDrawer) {
         CTopControl.call(this, oDrawer);
@@ -11328,7 +11334,7 @@
     InitClass(CAnimPaneHeader, CTopControl, CONTROL_TYPE_HEADER);
     CAnimPaneHeader.prototype.recalculateChildrenLayout = function() {
         this.closeButton.setLayout(
-            this.getWidth() - BUTTON_SIZE,
+            this.getWidth() - AscCommon.TIMELINE_LIST_RIGHT_MARGIN - BUTTON_SIZE,
             (this.getHeight() - BUTTON_SIZE) / 2,
             BUTTON_SIZE,
             BUTTON_SIZE
@@ -11340,7 +11346,7 @@
             PLAY_BUTTON_HEIGHT
         );
         this.label.setLayout(
-            0,
+            AscCommon.TIMELINE_LEFT_MARGIN,
             0,
             this.playButton.getLeft(),
             this.getHeight()

@@ -6693,7 +6693,7 @@ function CreateBrowserEventObject()
 	return _e;
 }
 
-function CPaneDrawerBase(page, htmlElement, parentDrawer)
+function CPaneDrawerBase(page, htmlElement, parentDrawer, pageControl)
 {
 	this.parentDrawer = parentDrawer ? parentDrawer : null;
 	if(this.parentDrawer)
@@ -6709,6 +6709,7 @@ function CPaneDrawerBase(page, htmlElement, parentDrawer)
 
 	this.HtmlPage = page;
 	this.HtmlElement = htmlElement;
+	this.PageParentControl = pageControl;
 
 	this.DrawTask = new CAnimPaneDrawTask();
 
@@ -6840,7 +6841,15 @@ function CPaneDrawerBase(page, htmlElement, parentDrawer)
 	oThis.GetPosition = function (e)
 	{
 		var _x = global_mouseEvent.X - oThis.HtmlPage.X - ((oThis.HtmlPage.m_oMainParent.AbsolutePosition.L * g_dKoef_mm_to_pix + 0.5) >> 0);
-		var _y = global_mouseEvent.Y - oThis.HtmlPage.Y - ((oThis.HtmlPage.m_oAnimationPaneContainer.AbsolutePosition.T * g_dKoef_mm_to_pix + 0.5) >> 0);
+		var nTopPos = oThis.HtmlPage.m_oBottomPanesContainer.AbsolutePosition.T;
+		nTopPos += oThis.HtmlPage.m_oAnimationPaneContainer.AbsolutePosition.T;
+		if(oThis.PageParentControl)
+		{
+			nTopPos += oThis.PageParentControl.AbsolutePosition.T;
+		}
+
+		var _y = global_mouseEvent.Y - oThis.HtmlPage.Y - ((nTopPos * g_dKoef_mm_to_pix + 0.5) >> 0);
+		_y += oThis.Scroll;
 		_x *= g_dKoef_pix_to_mm;
 		_y *= g_dKoef_pix_to_mm;
 		return { Page : oThis.GetCurrentSlideNumber(), X : _x, Y : _y, isNotes : false };
@@ -7000,7 +7009,7 @@ function CPaneDrawerBase(page, htmlElement, parentDrawer)
 
 function CAnimPaneHeaderDrawer(page, htmlElement, parentDrawer)
 {
-	CPaneDrawerBase.call(this, page, htmlElement, parentDrawer);
+	CPaneDrawerBase.call(this, page, htmlElement, parentDrawer, page.m_oAnimPaneHeaderContainer);
 	var oThis = this;
 	oThis.CreateControl = function()
 	{
@@ -7011,7 +7020,7 @@ function CAnimPaneHeaderDrawer(page, htmlElement, parentDrawer)
 
 function CAnimPaneListDrawer(page, htmlElement, parentDrawer)
 {
-	CPaneDrawerBase.call(this, page, htmlElement, parentDrawer);
+	CPaneDrawerBase.call(this, page, htmlElement, parentDrawer, page.m_oAnimPaneListContainer);
 	this.SlideNum = -1;
 	var oThis = this;
 	oThis.CreateControl = function()
@@ -7121,7 +7130,7 @@ function CAnimPaneListDrawer(page, htmlElement, parentDrawer)
 
 function CAnimPaneTimelineDrawer(page, htmlElement, parentDrawer)
 {
-	CPaneDrawerBase.call(this, page, htmlElement, parentDrawer);
+	CPaneDrawerBase.call(this, page, htmlElement, parentDrawer, page.m_oAnimPaneTimelineContainer);
 	var oThis = this;
 	oThis.CreateControl = function()
 	{
@@ -7130,9 +7139,9 @@ function CAnimPaneTimelineDrawer(page, htmlElement, parentDrawer)
 	};
 }
 
-function CAnimationPaneDrawer(page, htmlElement, parentDrawer)
+function CAnimationPaneDrawer(page, htmlElement)
 {
-	CPaneDrawerBase.call(this, page, page.m_oAnimationPaneContainer.HtmlElement, null);
+	CPaneDrawerBase.call(this, page, htmlElement, null, null);
 	this.header = new CAnimPaneHeaderDrawer(page, page.m_oAnimPaneHeader.HtmlElement, this);
 	this.list = new CAnimPaneListDrawer(page, page.m_oAnimPaneList.HtmlElement, this);
 	this.timeline = new CAnimPaneTimelineDrawer(page, page.m_oAnimPaneTimeline.HtmlElement, this);
