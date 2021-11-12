@@ -1727,7 +1727,7 @@ ParaRun.prototype.AddText = function(sString, nPos, InsertTextItems)
                     {
                         case c_oSearchItemType.NewLine: this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true); break;
                         case c_oSearchItemType.Tab: this.AddToContent(nCharPos++, new ParaTab(), true); break;
-                        case c_oSearchItemType.BrackPage: this.AddToContent(nCharPos++, new ParaNewLine(break_Page), true); break;
+                        case c_oSearchItemType.BreakPage: this.AddToContent(nCharPos++, new ParaNewLine(break_Page), true); break;
                         case c_oSearchItemType.ColumnBreak: this.AddToContent(nCharPos++, new ParaNewLine(break_Column), true); break;
                         // Как то нужно добавлять новый параграф и переходить в него или добавлять новые параграфы после всех других вставок
                         case c_oSearchItemType.ParaEnd:
@@ -1793,7 +1793,7 @@ ParaRun.prototype.AddText = function(sString, nPos, InsertTextItems)
                     {
                         case c_oSearchItemType.NewLine: this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true); break;
                         case c_oSearchItemType.Tab: this.AddToContent(nCharPos++, new ParaTab(), true); break;
-                        case c_oSearchItemType.BrackPage: this.AddToContent(nCharPos++, new ParaNewLine(break_Page), true); break;
+                        case c_oSearchItemType.BreakPage: this.AddToContent(nCharPos++, new ParaNewLine(break_Page), true); break;
                         case c_oSearchItemType.ColumnBreak: this.AddToContent(nCharPos++, new ParaNewLine(break_Column), true); break;
                         // Как то нужно добавлять новый параграф и переходить в него или добавлять новые параграфы после всех других вставок
                         case c_oSearchItemType.ParaEnd:
@@ -13618,6 +13618,52 @@ ParaRun.prototype.CalculateTextToTable = function(oEngine)
 			}
 		}
 	}
+};
+/**
+ * Получаем предыдущий элемент, с учетом предыдущих классов внутри параграфа
+ * @param nPos {number} позиция внутри данного рана
+ * @returns {?CParagraphContentBase}
+ */
+ParaRun.prototype.GetPrevRunElement = function(nPos)
+{
+	if (nPos > 0)
+		return this.Content[nPos - 1];
+
+	var oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return null;
+
+	var oContentPos  = this.GetParagraphContentPosFromObject(0);
+	var oRunElements = new CParagraphRunElements(oContentPos, 1, null, true);
+	oParagraph.GetPrevRunElements(oRunElements);
+
+	if (oRunElements.Elements.length <= 0)
+		return null;
+
+	return oRunElements.Elements[0];
+};
+/**
+ * Получаем следующий элемент, с учетом следующих классов внутри параграфа
+ * @param nPos {number} позиция внутри данного рана
+ * @returns {?CParagraphContentBase}
+ */
+ParaRun.prototype.GetNextRunElement = function(nPos)
+{
+	if (nPos <= this.Content.length - 1 && nPos >= 0)
+		return this.Content[nPos];
+
+	var oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return null;
+
+	var oContentPos  = this.GetParagraphContentPosFromObject(this.Content.length);
+	var oRunElements = new CParagraphRunElements(oContentPos, 1, null, true);
+	oParagraph.GetNextRunElements(oRunElements);
+
+	if (oRunElements.Elements.length <= 0)
+		return null;
+
+	return oRunElements.Elements[0];
 };
 
 

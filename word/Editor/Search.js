@@ -64,6 +64,7 @@ function CDocumentSearch()
     this.Text          = "";
     this.MatchCase     = false;
 	this.Word	   	   = false;
+	this.Pattern       = new CSearchPatternEngine();
 
     this.Prefix        = [];
 
@@ -86,7 +87,9 @@ CDocumentSearch.prototype.Reset = function()
 };
 CDocumentSearch.prototype.Compare = function(Text, Props)
 {
-	return (this.Text === Text && this.MatchCase === Props.MatchCase && this.Word === Props.Word);
+	return (this.Text === Text
+		&& this.MatchCase === Props.MatchCase
+		&& this.Word === Props.Word);
 };
 CDocumentSearch.prototype.Clear = function()
 {
@@ -243,6 +246,11 @@ CDocumentSearch.prototype.Set = function(sText, oProps)
 	this.MatchCase = oProps ? oProps.MatchCase : false;
 	this.Word      = oProps ? oProps.Word : false;
 
+	var _sText = sText;
+	if (this.MatchCase)
+		_sText = sText.toLowerCase();
+
+	this.Pattern.Set(_sText);
 	this.private_CalculatePrefix();
 };
 CDocumentSearch.prototype.SetFootnotes = function(arrFootnotes)
@@ -271,7 +279,7 @@ CDocumentSearch.prototype.SetDirection = function(bDirection)
 };
 CDocumentSearch.prototype.private_CalculatePrefix = function()
 {
-	var nLen = this.TextItemBase.arrElements.length;
+	var nLen = this.Pattern.GetLength();
 
 	this.Prefix    = new Int32Array(nLen);
 	this.Prefix[0] = 0;
@@ -279,199 +287,82 @@ CDocumentSearch.prototype.private_CalculatePrefix = function()
 	for (var nPos = 1, nK = 0; nPos < nLen; ++nPos)
 	{
 		nK = this.Prefix[nPos - 1]
-		while (nK > 0 && !(this.TextItemBase.arrElements[nPos].Value === this.TextItemBase.arrElements[nK].Value || CheckTextForSpecialSymbols(this.TextItemBase, nPos, nK)))
+		while (nK > 0 && !(this.Pattern.Get(nPos).IsMatch(this.Pattern.Get(nK))))
 			nK = this.Prefix[nK - 1];
 
-		if (this.TextItemBase.arrElements[nPos].Value === this.TextItemBase.arrElements[nK].Value || CheckTextForSpecialSymbols(this.TextItemBase, nPos, nK))
+		if (this.Pattern.Get(nPos).IsMatch(this.Pattern.Get(nK)))
 			nK++;
 
 		this.Prefix[nPos] = nK;
-	}
-	function CheckTextForSpecialSymbols(sStringText, nPos, nK)
-	{
-		var bText = false;
-		var CurrentValue;
-		var FirstElement = sStringText.arrElements[nPos].IsSpecialItem();
-		var SecondElement = sStringText.arrElements[nK].IsSpecialItem();
-		if (FirstElement && SecondElement)
-		{
-			var TypeFirst = sStringText.arrElements[nPos].GetType();
-			var TypeSecond = sStringText.arrElements[nK].GetType();
-			if (TypeFirst === TypeSecond) bText = true;
-			else
-				switch (TypeFirst)
-				{
-					case c_oSearchItemType.AnySymbol: bText = true; break;
-					case c_oSearchItemType.AnyDigit: (TypeSecond === c_oSearchItemType.AnySymbol) ? bText = true : bText = false; break;
-					case c_oSearchItemType.AnyLetter: (TypeSecond === c_oSearchItemType.AnySymbol) ? bText = true : bText = false; break;
-					case c_oSearchItemType.NonBreakingHyphen: (TypeSecond === c_oSearchItemType.AnySymbol) ? bText = true : bText = false; break;
-					case c_oSearchItemType.NonBreakingSpace: (TypeSecond === c_oSearchItemType.AnySymbol) ? bText = true : bText = false; break;
-					case c_oSearchItemType.CaretCharacter: (TypeSecond === c_oSearchItemType.AnySymbol) ? bText = true : bText = false; break;
-					case c_oSearchItemType.AnySpace: (TypeSecond === c_oSearchItemType.AnySymbol || TypeSecond === c_oSearchItemType.NonBreakingSpace) ? bText = true : bText = false; break;
-					case c_oSearchItemType.EmDash: (TypeSecond === c_oSearchItemType.AnySymbol) ? bText = true : bText = false; break;
-					case c_oSearchItemType.EnDash: (TypeSecond === c_oSearchItemType.AnySymbol) ? bText = true : bText = false; break;
-					default: bText = false; break;
-				}
-		}
-		else if (FirstElement && !SecondElement)
-		{
-			CurrentValue = sStringText.arrElements[nK].Value;
-			switch (sStringText.arrElements[nPos].GetType())
-			{
-				case c_oSearchItemType.AnySymbol: bText = true; break;
-				case c_oSearchItemType.AnyDigit: (String.fromCharCode(CurrentValue) >= '0' && String.fromCharCode(CurrentValue) <= '9') ? bText = true : bText = false; break;
-				case c_oSearchItemType.AnyLetter: ((String.fromCharCode(CurrentValue) >= 'A' && String.fromCharCode(CurrentValue) <= 'Z')
-													|| (String.fromCharCode(CurrentValue) >= 'a' && String.fromCharCode(CurrentValue) <= 'z')
-													|| (String.fromCharCode(CurrentValue) >= 'А' && String.fromCharCode(CurrentValue) <= 'Я')
-													|| (String.fromCharCode(CurrentValue) >= 'а' && String.fromCharCode(CurrentValue) <= 'я')
-													|| (String.fromCharCode(CurrentValue) === 'Ё')
-													|| (String.fromCharCode(CurrentValue) === 'ё')) ? bText = true : bText = false; break;
-				case c_oSearchItemType.NonBreakingHyphen: (CurrentValue === 45) ? bText = true : bText = false; break;
-				case c_oSearchItemType.NonBreakingSpace: (CurrentValue === 160) ? bText = true : bText = false; break;
-				case c_oSearchItemType.CaretCharacter:(CurrentValue === 94) ? bText = true : bText = false; break;
-				case c_oSearchItemType.AnySpace: (AscCommon.IsSpace(CurrentValue)) ? bText = true : bText = false; break;
-				case c_oSearchItemType.EmDash: (CurrentValue >= 8208 && CurrentValue <= 8213) ? bText = true : bText = false; break;
-				case c_oSearchItemType.EnDash: (CurrentValue === 45) ? bText = true : bText = false; break;
-				default: bText = false; break;
-			}
-		}
-		else if (!FirstElement && SecondElement)
-		{
-			CurrentValue = sStringText.arrElements[nPos].Value;
-			switch (sStringText.arrElements[nK].GetType())
-			{
-				case c_oSearchItemType.AnySymbol: bText = true; break;
-				case c_oSearchItemType.AnyDigit: (String.fromCharCode(CurrentValue) >= '0' && String.fromCharCode(CurrentValue) <= '9') ? bText = true : bText = false; break;
-				case c_oSearchItemType.AnyLetter: ((String.fromCharCode(CurrentValue) >= 'A' && String.fromCharCode(CurrentValue) <= 'Z')
-													|| (String.fromCharCode(CurrentValue) >= 'a' && String.fromCharCode(CurrentValue) <= 'z')
-													|| (String.fromCharCode(CurrentValue) >= 'А' && String.fromCharCode(CurrentValue) <= 'Я')
-													|| (String.fromCharCode(CurrentValue) >= 'а' && String.fromCharCode(CurrentValue) <= 'я')
-													|| (String.fromCharCode(CurrentValue) === 'Ё')
-													|| (String.fromCharCode(CurrentValue) === 'ё')) ? bText = true : bText = false; break;
-				case c_oSearchItemType.NonBreakingHyphen: (CurrentValue === 45) ? bText = true : bText = false; break;
-				case c_oSearchItemType.NonBreakingSpace: (CurrentValue === 160) ? bText = true : bText = false; break;
-				case c_oSearchItemType.CaretCharacter:(CurrentValue === 94) ? bText = true : bText = false; break;
-				case c_oSearchItemType.AnySpace: (AscCommon.IsSpace(CurrentValue)) ? bText = true : bText = false; break;
-				case c_oSearchItemType.EmDash: (CurrentValue >= 8208 && CurrentValue <= 8213) ? bText = true : bText = false; break;
-				case c_oSearchItemType.EnDash: (CurrentValue === 45) ? bText = true : bText = false; break;
-				default: bText = false; break;
-			}
-		}
-		return bText;
 	}
 };
 CDocumentSearch.prototype.GetPrefix = function(nIndex)
 {
 	return this.Prefix[nIndex];
 };
-var c_oSearchItemType = {
-	Text: 0, 
-	NewLine: 1,
-	Tab: 2,
-	ParaEnd: 3,
-	AnySymbol: 4,
-	AnyDigit: 5,
-	AnyLetter: 6,
-	ColumnBreak: 7,
-	EndNoteMark: 8,
-	Field: 9,
-	FootNoteMark: 10,
-	GraphicObj: 11,
-	BrackPage: 12,
-	NonBreakingHyphen: 13,
-	NonBreakingSpace: 14,
-	CaretCharacter: 15,
-	AnySpace: 16,
-	EmDash: 17,
-	EnDash: 18,
-	SectionCharacter: 19,
-	ParagraphCharacter: 20,
-	AnyDash: 21
-};
 
+var c_oSearchItemType = {
+	Text               : 0,
+	NewLine            : 1,
+	Tab                : 2,
+	ParaEnd            : 3,
+	AnySymbol          : 4,
+	AnyDigit           : 5,
+	AnyLetter          : 6,
+	ColumnBreak        : 7,
+	EndNoteMark        : 8,
+	Field              : 9,
+	FootNoteMark       : 10,
+	GraphicObj         : 11,
+	BreakPage          : 12,
+	NonBreakingHyphen  : 13,
+	NonBreakingSpace   : 14,
+	AnySpace           : 15,
+	EmDash             : 16,
+	EnDash             : 17,
+	SectionCharacter   : 18,
+	ParagraphCharacter : 19,
+	AnyDash            : 20,
+	Unknown            : 0xFFFF
+};
 //----------------------------------------------------------------------------------------------------------------------
 // CSearchTextItemBase
 //----------------------------------------------------------------------------------------------------------------------
 function CSearchTextItemBase()
 {
-	this.str = "";
-	this.arrElements = [];
-	this.fFlag = 0;
-	this.sSpecial = "";
+	this.Type = c_oSearchItemType.Unknown;
 }
-CSearchTextItemBase.prototype.SetElements = function(sStr)
-{
-	this.str = sStr;
-	var Elements = {
-		"l" : new CSearchTextSpecialNewLine(), 				// ^l - new line
-		"t" : new CSearchTextSpecialTab(), 					// ^t - tab
-		"p" : new CSearchTextSpecialParaEnd(), 				// ^p - paraEnd
-		"?" : new CSearchTextSpecialAnySymbol(), 			// ^? - any symbol
-		"#" : new CSearchTextSpecialAnyDigit(), 			// ^# - any digit
-		"$" : new CSearchTextSpecialAnyLetter(), 			// ^$ - any letter
-		"n" : new CSearchTextSpecialColumnBreak(), 			// ^n - column Break
-		"e" : new CSearchTextSpecialEndonteMark(), 			// ^e - endnote mark
-		"d" : new CSearchTextSpecialField(), 				// ^d - field
-		"f" : new CSearchTextSpecialFootnoteMark(), 		// ^f - footnote mark
-		"g" : new CSearchTextSpecialGraphicOjbect(), 		// ^g - graphic object
-		"m" : new CSearchTextSpecialBreakPage(), 			// ^m - break page
-		"~" : new CSearchTextSpecialNonbreakingHyphen(), 	// ^~ - nonbreaking hyphen
-		"s" : new CSearchTextSpecialNonbreakingSpace(), 	// ^s - nonbreaking space
-		"^" : new CSearchTextSpecialCaretCharacter(),		// ^^ - caret character
-		"w" : new CSearchTextSpecialAnySpace(), 			// ^w - any space
-		"+" : new CSearchTextSpecialEmDash(), 				// ^+ - em dash
-		"=" : new CSearchTextSpecialEnDash(), 				// ^= - en dash
-		"%" : new CSearchTextSpecialSectionCharacter(),	 	// ^% - § Section Character
-		"v" : new CSearchTextSpecialParagraphCharater(),  	// ^v - ¶ Paragraph Character
-		"y" : new CSearchTextSpecialAnyDash()				// ^y - any dash
-	};
-
-	this.arrElements = [];
-	this.fFlag = 0;
-	this.sSpecial = "ltp?#$nedfgm~s^w+=%vy";
-	for (var i = 0; i < this.str.length; i++)
-	{
-		if (this.str[i] === "^" && i !== this.str.length - 1 && this.sSpecial.indexOf(this.str[i + 1]) !== -1)
-		{
-			this.arrElements[i + this.fFlag] = Elements[this.str[i + 1]]
-			var op = "^" + this.str[i + 1];
-			this.str = this.str.replace(op, "");
-			i--;
-			this.fFlag++;
-		}
-		else
-		{
-			this.arrElements[i + this.fFlag] = new CSearchTextItemChar(this.str[i]);
-		}
-	}
-	this.str = "";
-};
-CSearchTextItemBase.prototype.IsSpecialItem = function()
-{
-	return (this.Type === c_oSearchItemType.Text) ? false : true;
-};
-CSearchTextItemBase.prototype.CheckParaSearch = function(ParaSearch)
-{
-	if (ParaSearch != null) ParaSearch.Reset();
-	return false;
-};
 CSearchTextItemBase.prototype.GetType = function()
 {
 	return this.Type;
 };
 CSearchTextItemBase.prototype.GetValue = function()
 {
-	return (this.Value != null) ? this.Value : false;
+	return this.Value;
 };
-function CSearchTextItemChar(Letter)
-{
-	this.Value = Letter.charCodeAt(0);
-	this.Type = c_oSearchItemType.Text;
-}
-CSearchTextItemChar.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextItemChar.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+/**
+ * Проверяем, подходит ли заданный символ под текущий
+ * @param {CSearchTextItemBase} oItem
+ * @returns {boolean}
+ */
+CSearchTextItemBase.prototype.IsMatch = function(oItem)
 {
 	return false;
+};
+CSearchTextItemBase.prototype.IsChar = function()
+{
+	return (this.Type === c_oSearchItemType.Text);
+};
+
+function CSearchTextItemChar(nCharCode)
+{
+	this.Value = nCharCode;
+	this.Type  = c_oSearchItemType.Text;
+}
+CSearchTextItemChar.prototype = Object.create(CSearchTextItemBase.prototype);
+CSearchTextItemBase.prototype.IsMatch = function(oItem)
+{
+	return (oItem.IsChar() && this.GetValue() === oItem.GetValue());
 };
 
 function CSearchTextSpecialNewLine()
@@ -479,21 +370,20 @@ function CSearchTextSpecialNewLine()
 	this.Type = c_oSearchItemType.NewLine;
 }
 CSearchTextSpecialNewLine.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialNewLine.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialNewLine.prototype.IsMatch = function(oItem)
 {
-	if (Item.Type === 16) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
+
 
 function CSearchTextSpecialTab()
 {
 	this.Type = c_oSearchItemType.Tab;
 }
 CSearchTextSpecialTab.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialTab.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialTab.prototype.IsMatch = function(oItem)
 {
-	if (Item.Type === 21) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
 function CSearchTextSpecialParaEnd()
@@ -501,10 +391,9 @@ function CSearchTextSpecialParaEnd()
 	this.Type = c_oSearchItemType.ParaEnd;
 }
 CSearchTextSpecialParaEnd.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialParaEnd.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialParaEnd.prototype.IsMatch = function(oItem)
 {
-	if (Item.Type === 4) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
 function CSearchTextSpecialAnySymbol()
@@ -512,10 +401,19 @@ function CSearchTextSpecialAnySymbol()
 	this.Type = c_oSearchItemType.AnySymbol;
 }
 CSearchTextSpecialAnySymbol.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialAnySymbol.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialAnySymbol.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value !== undefined) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return (c_oSearchItemType.Text === nType
+		|| c_oSearchItemType.AnySymbol === nType
+		|| c_oSearchItemType.AnyDigit === nType
+		|| c_oSearchItemType.AnyLetter === nType
+		|| c_oSearchItemType.NonBreakingHyphen === nType
+		|| c_oSearchItemType.NonBreakingSpace === nType
+		|| c_oSearchItemType.CaretCharacter === nType
+		|| c_oSearchItemType.AnySpace === nType
+		|| c_oSearchItemType.EmDash === nType
+		|| c_oSearchItemType.EnDash === nType);
 };
 
 function CSearchTextSpecialAnyDigit()
@@ -523,10 +421,12 @@ function CSearchTextSpecialAnyDigit()
 	this.Type = c_oSearchItemType.AnyDigit;
 }
 CSearchTextSpecialAnyDigit.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialAnyDigit.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialAnyDigit.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value >= 48 && Item.Value <= 57) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && AscCommon.IsDigit(oItem.GetValue()))
+		|| c_oSearchItemType.AnyDigit === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
 function CSearchTextSpecialAnyLetter()
@@ -534,14 +434,12 @@ function CSearchTextSpecialAnyLetter()
 	this.Type = c_oSearchItemType.AnyLetter;
 }
 CSearchTextSpecialAnyLetter.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialAnyLetter.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialAnyLetter.prototype.IsMatch = function(oItem)
 {
-	if ((Item.Value >=1040 && Item.Value <= 1071)
-	|| (Item.Value >=1072 && Item.Value <= 1103)
-		|| (Item.Value === 1105 || Item.Value === 1025)
-			|| (Item.Value >= 65 && Item.Value <= 90)
-				|| (Item.Value >= 97 && Item.Value <= 122)) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && AscCommon.IsLetter(oItem.GetValue()))
+		|| c_oSearchItemType.AnyLetter === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
 function CSearchTextSpecialColumnBreak()
@@ -550,21 +448,19 @@ function CSearchTextSpecialColumnBreak()
 	this.BreakType = 3;
 }
 CSearchTextSpecialColumnBreak.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialColumnBreak.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialColumnBreak.prototype.IsMatch = function(oItem)
 {
-	if (Item.BreakType === 3) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
-function CSearchTextSpecialEndonteMark()
+function CSearchTextSpecialEndnoteMark()
 {
 	this.Type = c_oSearchItemType.EndNoteMark;
 }
-CSearchTextSpecialEndonteMark.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialEndonteMark.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialEndnoteMark.prototype = Object.create(CSearchTextItemBase.prototype);
+CSearchTextSpecialEndnoteMark.prototype.IsMatch = function(oItem)
 {
-	if (Item.Type === 64) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
 function CSearchTextSpecialField()
@@ -572,10 +468,9 @@ function CSearchTextSpecialField()
 	this.Type = c_oSearchItemType.Field;
 }
 CSearchTextSpecialField.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialField.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialField.prototype.IsMatch = function(oItem)
 {
-	if (Item.Type === 69) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
 function CSearchTextSpecialFootnoteMark()
@@ -583,70 +478,59 @@ function CSearchTextSpecialFootnoteMark()
 	this.Type = c_oSearchItemType.FootNoteMark;
 }
 CSearchTextSpecialFootnoteMark.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialFootnoteMark.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialFootnoteMark.prototype.IsMatch = function(oItem)
 {
-	if (Item.Type === 57) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
-function CSearchTextSpecialGraphicOjbect()
+function CSearchTextSpecialGraphicObject()
 {
 	this.Type = c_oSearchItemType.GraphicObj;
 	this.DrawingType = 1;
 }
-CSearchTextSpecialGraphicOjbect.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialGraphicOjbect.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialGraphicObject.prototype = Object.create(CSearchTextItemBase.prototype);
+CSearchTextSpecialGraphicObject.prototype.IsMatch = function(oItem)
 {
-	if (Item.DrawingType === 1) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
 function CSearchTextSpecialBreakPage()
 {
-	this.Type = c_oSearchItemType.BrackPage;
+	this.Type = c_oSearchItemType.BreakPage;
 	this.BreakType = 2;
 }
 CSearchTextSpecialBreakPage.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialBreakPage.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialBreakPage.prototype.IsMatch = function(oItem)
 {
-	if (Item.BreakType === 2) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (oItem.GetType() === this.GetType());
 };
 
-function CSearchTextSpecialNonbreakingHyphen()
+function CSearchTextSpecialNonBreakingHyphen()
 {
 	this.Type = c_oSearchItemType.NonBreakingHyphen;
 	this.Value = 8209;
 }
-CSearchTextSpecialNonbreakingHyphen.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialNonbreakingHyphen.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialNonBreakingHyphen.prototype = Object.create(CSearchTextItemBase.prototype);
+CSearchTextSpecialNonBreakingHyphen.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value === 8209) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
+		|| c_oSearchItemType.NonBreakingHyphen === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
-function CSearchTextSpecialNonbreakingSpace()
+function CSearchTextSpecialNonBreakingSpace()
 {
 	this.Type = c_oSearchItemType.NonBreakingSpace;
 	this.Value = 160;
 }
-CSearchTextSpecialNonbreakingSpace.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialNonbreakingSpace.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialNonBreakingSpace.prototype = Object.create(CSearchTextItemBase.prototype);
+CSearchTextSpecialNonBreakingSpace.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value === 160) return true;
-	else return this.CheckParaSearch(ParaSearch);
-};
-
-function CSearchTextSpecialCaretCharacter()
-{
-	this.Type = c_oSearchItemType.CaretCharacter;
-	this.Value = 94;
-}
-CSearchTextSpecialCaretCharacter.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialCaretCharacter.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
-{
-	if (Item.Value === 94) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && 0xA0 === oItem.GetValue())
+		|| c_oSearchItemType.NonBreakingSpace === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
 function CSearchTextSpecialAnySpace()
@@ -654,34 +538,41 @@ function CSearchTextSpecialAnySpace()
 	this.Type = c_oSearchItemType.AnySpace;
 }
 CSearchTextSpecialAnySpace.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialAnySpace.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialAnySpace.prototype.IsMatch = function(oItem)
 {
-	if (AscCommon.IsSpace(Item.Value)) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && AscCommon.IsSpace(oItem.GetValue()))
+		|| c_oSearchItemType.AnySpace === nType
+		|| c_oSearchItemType.NonBreakingSpace === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
 function CSearchTextSpecialEmDash()
 {
 	this.Type = c_oSearchItemType.EmDash;
-	this.Value = 8212;
+	this.Value = 0x2014;
 }
 CSearchTextSpecialEmDash.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialEmDash.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialEmDash.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value === 8212) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && 0x2010 <= oItem.GetValue() && oItem.GetValue() <= 0x2015)
+		|| c_oSearchItemType.EmDash === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
 function CSearchTextSpecialEnDash()
 {
 	this.Type = c_oSearchItemType.EnDash;
-	this.Value = 8211;
+	this.Value = 0x2013;
 }
 CSearchTextSpecialEnDash.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialEnDash.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialEnDash.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value === 8211) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
+		|| c_oSearchItemType.EnDash === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
 function CSearchTextSpecialSectionCharacter()
@@ -690,32 +581,35 @@ function CSearchTextSpecialSectionCharacter()
 	this.Value = 167;
 }
 CSearchTextSpecialSectionCharacter.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialSectionCharacter.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialSectionCharacter.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value === 167) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (this.GetType() === oItem.GetType());
 };
 
-function CSearchTextSpecialParagraphCharater()
+function CSearchTextSpecialParagraphCharacter()
 {
 	this.Type = c_oSearchItemType.ParagraphCharacter;
 	this.Value = 182;
 }
-CSearchTextSpecialParagraphCharater.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialParagraphCharater.prototype.CheckSpecialSymbol = function(Item,ParaSearch)
+CSearchTextSpecialParagraphCharacter.prototype = Object.create(CSearchTextItemBase.prototype);
+CSearchTextSpecialParagraphCharacter.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value === 182) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	return (this.GetType() === oItem.GetType());
 };
+
 function CSearchTextSpecialAnyDash()
 {
 	this.Type = c_oSearchItemType.AnyDash;
 }
 CSearchTextSpecialAnyDash.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextSpecialAnyDash.prototype.CheckSpecialSymbol = function(Item, ParaSearch)
+CSearchTextSpecialAnyDash.prototype.IsMatch = function(oItem)
 {
-	if (Item.Value >=8208 && Item.Value <= 8213 || Item.Value === 45) return true;
-	else return this.CheckParaSearch(ParaSearch);
+	var nType = oItem.GetType();
+	return ((c_oSearchItemType.Text === nType && (0x2D === oItem.GetValue() || (0x2010 <= oItem.GetValue() && oItem.GetValue() <= 0x2015)))
+		|| c_oSearchItemType.AnyDash === nType
+		|| c_oSearchItemType.EmDash === nType
+		|| c_oSearchItemType.EnDash === nType
+		|| c_oSearchItemType.AnySymbol === nType);
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -723,33 +617,22 @@ CSearchTextSpecialAnyDash.prototype.CheckSpecialSymbol = function(Item, ParaSear
 //----------------------------------------------------------------------------------------------------------------------
 CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
-	//var StartTime = new Date().getTime() ;
+	//var StartTime = new Date().getTime();
+
 	oProps.Word = false;
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
-	this.SearchEngine.TextItemBase = new CSearchTextItemBase();
-	this.SearchEngine.TextItemBase.SetElements(sStr);
 
 	this.SearchEngine.Clear();
 	this.SearchEngine.Set(sStr, oProps);
 
-	var oParaSearch = new CParagraphSearch(this.Content[0], sStr, oProps, this.SearchEngine, search_Common);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Content[nIndex].IsParagraph())
-		    this.Content[nIndex].Search_(oParaSearch);
-		else
-		    this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
+	    this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
 	}
 
 	this.SectionsInfo.Search(sStr, oProps, this.SearchEngine);
 
-	/*//-------------------------------------------------------
-	var counts = "Elements found: " + this.SearchEngine.Count;
-    var elements = document.getElementsByClassName('title');
-    elements[3].innerHTML = counts;
-	//-------------------------------------------------------
-	*/
 	var arrFootnotes = this.GetFootnotesList(null, null);
 	this.SearchEngine.SetFootnotes(arrFootnotes);
 	for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
@@ -767,7 +650,7 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 	if (false !== bDraw)
 		this.Redraw(-1, -1);
 
-	//console.log( "Search logic: " + ((new Date().getTime() - StartTime) / 1000) + " s"  );
+	//console.log("Search logic: " + ((new Date().getTime() - StartTime) / 1000) + " s");
 
 	return this.SearchEngine;
 };
@@ -1481,17 +1364,6 @@ CTable.prototype.GetSearchElementId = function(bNext, bCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // Paragraph
 //----------------------------------------------------------------------------------------------------------------------
-Paragraph.prototype.Search_ = function(oParaSearch)
-{
-	var Para = this;
-	oParaSearch.Paragraph = Para;
-	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
-	{
-		this.Content[nPos].Search(oParaSearch);
-	}
-
-    return;
-};
 Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
 	var oParaSearch = new CParagraphSearch(this, sStr, oProps, oSearchEngine, nType);
@@ -1711,135 +1583,73 @@ ParaRun.prototype.Search = function(ParaSearch)
 	var SearchEngine = ParaSearch.SearchEngine;
 	var Type         = ParaSearch.Type;
 
-	var ArrElements  = ParaSearch.SearchEngine.TextItemBase.arrElements;
-    
 	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
 	{
 		var oItem = this.Content[nPos];
 		if (para_Drawing === oItem.Type)
-		{
 			oItem.Search(Str, Props, SearchEngine, Type);
-			if (oItem.DrawingType !== 1)
-				ParaSearch.Reset();
+
+		while (ParaSearch.SearchIndex > 0 && !ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+		{
+			if (Props.Word)
+			{
+				ParaSearch.SearchIndex = 0;
+			}
+			else
+			{
+
+				ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
+				if (0 === ParaSearch.SearchIndex)
+				{
+					ParaSearch.Reset();
+					break;
+				}
+				else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+				{
+					ParaSearch.StartPos = ParaSearch.StartPosBuf.shift();
+					break;
+				}
+			}
 		}
 
-		var bElement = (ParaSearch.Check(ParaSearch.SearchIndex, oItem)
-			|| ArrElements[ParaSearch.SearchIndex].CheckSpecialSymbol(oItem, undefined));
-		while (ParaSearch.SearchIndex > 0 && !bElement)
-		{
-			ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
-			if (0 === ParaSearch.SearchIndex)
-			{
-				ParaSearch.Reset();
-				break;
-			}
-			else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
-			{
-				ParaSearch.StartPos = ParaSearch.StartPosBuf.shift();
-				break;
-			}
-			else if (ArrElements[ParaSearch.SearchIndex].CheckSpecialSymbol(oItem))
-			{
-				ParaSearch.StartPos = ParaSearch.StartPosBuf.shift();
-				break;
-			}
-		}
-		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || ArrElements[ParaSearch.SearchIndex].IsSpecialItem())
+		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
 		{		
-			var bCheck = true;
 			if (0 === ParaSearch.SearchIndex)
 			{    
-				if (Props.Word === true)
+				if (Props.Word)
 				{
-					if (nPos === 0)
-					{
+					var oPrevElement = this.GetPrevRunElement(nPos);
+					if (!oPrevElement || (!oPrevElement.IsLetter() && !oPrevElement.IsDigit()))
 						ParaSearch.StartPos = {Run : this, Pos : nPos};
-					}
-					else
-					{
-						if (this.Content[nPos - 1].IsPunctuation() 
-							|| this.Content[nPos - 1].Value === undefined  
-								|| this.Content[nPos - 1].IsDiacriticalSymbol()
-									|| AscCommon.IsSpace(this.Content[nPos - 1].Value))
-						{
-							ParaSearch.StartPos = {Run : this, Pos : nPos};
-						}
-						else 
-						{
-							bCheck = false;
-						}
-					}
 				}
 				else
 				{
 					ParaSearch.StartPos = {Run : this, Pos : nPos};
 				}
 			}
-			if (ArrElements[ParaSearch.SearchIndex].IsSpecialItem())
-			{
-				bCheck = ArrElements[ParaSearch.SearchIndex].CheckSpecialSymbol(oItem, ParaSearch);
-			}
-			if (Props.Word === true)
-			{
-				if (bCheck)
-				{
-					if (0 !== ParaSearch.GetPrefix(ParaSearch.SearchIndex))
-						ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
 
-					ParaSearch.SearchIndex++;
-
-					if (ParaSearch.SearchIndex === ArrElements.length)
-					{
-						if (nPos === nContentLen - 1)
-						{
-							if (ParaSearch.StartPos)
-							{
-								Para.AddSearchResult(
-									SearchEngine.Add(Para),
-									ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
-									this.GetParagraphContentPosFromObject(nPos + 1),
-									Type
-								);
-							}
-
-						ParaSearch.Reset();
-						}
-						else
-						{
-							if (this.Content[nPos + 1].IsPunctuation()  
-								|| this.Content[nPos + 1].IsDiacriticalSymbol()
-									|| AscCommon.IsSpace(this.Content[nPos + 1].Value)
-										|| this.Content[nPos + 1].Value === undefined)
-							{
-								if (ParaSearch.StartPos)
-								{
-									Para.AddSearchResult(
-										SearchEngine.Add(Para),
-										ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
-										this.GetParagraphContentPosFromObject(nPos + 1),
-										Type
-									);
-								}
-							}
-							ParaSearch.Reset();
-						}
-					}
-				}
-				else
-				{
-					ParaSearch.Reset();
-				}
-			}
-			else
-			{
-				if (0 !== ParaSearch.GetPrefix(ParaSearch.SearchIndex))
+			if (0 !== ParaSearch.GetPrefix(ParaSearch.SearchIndex))
 				ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
 
-				ParaSearch.SearchIndex++;
+			ParaSearch.SearchIndex++;
 
-				if (ParaSearch.SearchIndex === ArrElements.length)
+			if (ParaSearch.CheckSearchEnd())
+			{
+				if (ParaSearch.StartPos)
 				{
-					if (ParaSearch.StartPos)
+					var isAdd = false;
+					if (Props.Word)
+					{
+						var oNextElement = this.GetNextRunElement(nPos + 1);
+						if (!oNextElement || (!oNextElement.IsLetter() && !oNextElement.IsDigit()))
+							isAdd = true;
+					}
+					else
+					{
+						isAdd = true;
+					}
+
+					if (isAdd)
 					{
 						Para.AddSearchResult(
 							SearchEngine.Add(Para),
@@ -1848,13 +1658,11 @@ ParaRun.prototype.Search = function(ParaSearch)
 							Type
 						);
 					}
-
-					ParaSearch.Reset();
 				}
-				if (!bCheck)
-					ParaSearch.Reset();
+
+				ParaSearch.Reset();
 			}
-		}	
+		}
      }	 
 };
 ParaRun.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
@@ -2022,17 +1830,15 @@ CParagraphSearch.prototype.Reset = function()
 };
 CParagraphSearch.prototype.Check = function(nIndex, oItem)
 {
-	var nItemType = oItem.Type;
-
-	return ((para_Space === nItemType && 32 === this.SearchEngine.TextItemBase.arrElements[nIndex].Value)
-		|| (para_Math_Text === nItemType && oItem.value === this.SearchEngine.TextItemBase.arrElements[nIndex].Value)
-		|| (para_Text === nItemType
-			&& ((true !== this.Props.MatchCase && (String.fromCharCode(oItem.Value)).toLowerCase() === String.fromCharCode(this.SearchEngine.TextItemBase.arrElements[nIndex].Value).toLowerCase())
-				|| (true === this.Props.MatchCase && oItem.Value === this.SearchEngine.TextItemBase.arrElements[nIndex].Value))));
+	return this.SearchEngine.Pattern.Check(nIndex, oItem, this.Props);
 };
 CParagraphSearch.prototype.GetPrefix = function(nIndex)
 {
 	return this.SearchEngine.GetPrefix(nIndex);
+};
+CParagraphSearch.prototype.CheckSearchEnd = function()
+{
+	return (this.SearchIndex === this.SearchEngine.Pattern.GetLength());
 };
 
 function CParagraphSearchMark(SearchResult, Start, Depth)
@@ -2041,3 +1847,88 @@ function CParagraphSearchMark(SearchResult, Start, Depth)
 	this.Start        = Start;
 	this.Depth        = Depth;
 }
+
+function CSearchPatternEngine()
+{
+	this.Elements = [];
+}
+CSearchPatternEngine.prototype.Set = function(sString)
+{
+	this.Elements = [];
+	for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+	{
+		var nCharCode = oIterator.value();
+
+		if (0x005E === nCharCode)
+		{
+			oIterator.next();
+			if (!oIterator.check())
+			{
+				this.Elements.push(new CSearchTextItemChar(nCharCode));
+				break;
+			}
+
+			var nNextCharCode = oIterator.value();
+			var oSpecialElement = this.private_GetSpecialElement(nNextCharCode);
+			if (oSpecialElement)
+			{
+				this.Elements.push(oSpecialElement);
+			}
+			else
+			{
+				this.Elements.push(new CSearchTextItemChar(nCharCode));
+				this.Elements.push(new CSearchTextItemChar(nNextCharCode));
+			}
+		}
+		else
+		{
+			this.Elements.push(new CSearchTextItemChar(nCharCode));
+		}
+	}
+};
+CSearchPatternEngine.prototype.private_GetSpecialElement = function(nCharCode)
+{
+	switch(nCharCode)
+	{
+		case 0x006C: return new CSearchTextSpecialNewLine();	        // ^l - new line
+		case 0x0074: return new CSearchTextSpecialTab();                // ^t - tab
+		case 0x0070: return new CSearchTextSpecialParaEnd();            // ^p - paraEnd
+		case 0x003F: return new CSearchTextSpecialAnySymbol();          // ^? - any symbol
+		case 0x0023: return new CSearchTextSpecialAnyDigit();           // ^# - any digit
+		case 0x0024: return new CSearchTextSpecialAnyLetter();          // ^$ - any letter
+		case 0x006E: return new CSearchTextSpecialColumnBreak();        // ^n - column Break
+		case 0x0065: return new CSearchTextSpecialEndnoteMark();        // ^e - endnote mark
+		case 0x0064: return new CSearchTextSpecialField();              // ^d - field
+		case 0x0066: return new CSearchTextSpecialFootnoteMark();       // ^f - footnote mark
+		case 0x0067: return new CSearchTextSpecialGraphicObject();      // ^g - graphic object
+		case 0x006D: return new CSearchTextSpecialBreakPage();          // ^m - break page
+		case 0x007E: return new CSearchTextSpecialNonBreakingHyphen();  // ^~ - nonbreaking hyphen
+		case 0x0073: return new CSearchTextSpecialNonBreakingSpace();   // ^s - nonbreaking space
+		case 0x005E: return new CSearchTextItemChar(0x5E);              // ^^ - caret character
+		case 0x0077: return new CSearchTextSpecialAnySpace();           // ^w - any space
+		case 0x002B: return new CSearchTextSpecialEmDash();             // ^+ - em dash
+		case 0x003D: return new CSearchTextSpecialEnDash();             // ^= - en dash
+		case 0x0025: return new CSearchTextSpecialSectionCharacter();   // ^% - § Section Character
+		case 0x0076: return new CSearchTextSpecialParagraphCharacter(); // ^v - ¶ Paragraph Character
+		case 0x0079: return new CSearchTextSpecialAnyDash();            // ^y - any dash
+	}
+
+	return null;
+};
+CSearchPatternEngine.prototype.Get = function(nIndex)
+{
+	return this.Elements[nIndex];
+};
+CSearchPatternEngine.prototype.GetLength = function()
+{
+	return this.Elements.length;
+};
+CSearchPatternEngine.prototype.Check = function(nPos, oRunItem, oProps)
+{
+	var oSearchElement = oRunItem.ToSearchElement(oProps);
+
+	if (!oSearchElement)
+		return false;
+
+	return this.Elements[nPos].IsMatch(oSearchElement);
+};
