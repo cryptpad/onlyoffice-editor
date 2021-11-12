@@ -77,6 +77,7 @@ function CDocumentSearch()
     this.Selection     = false;
     this.Footnotes     = [];
     this.Endnotes      = [];
+	this.InsertPattern = new CSearchPatternEngine();
 }
 
 CDocumentSearch.prototype.Reset = function()
@@ -140,8 +141,8 @@ CDocumentSearch.prototype.Reset_Current = function()
 };
 CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 {
-	this.InsertTextItems = new CSearchTextItemBase();
-	this.InsertTextItems.SetElements(sReplaceString);
+	this.InsertPattern.Set(sReplaceString);
+
 	var oPara = this.Elements[Id];
 	if (oPara)
 	{
@@ -175,7 +176,7 @@ CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 
 				if (reviewtype_Add === oEndRun.GetReviewType() && oEndRun.GetReviewInfo().IsCurrentUser())
 				{
-					oEndRun.AddText(sReplaceString, nRunPos, this.InsertTextItems.arrElements);
+					this.private_AddReplacedStringToRun(oEndRun, nRunPos);
 				}
 				else
 				{
@@ -186,7 +187,7 @@ CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 					if (!oReplaceRun.IsEmpty())
 						oReplaceRun.Split2(0, oRunParent, nRunPosInParent + 1);
 
-					oReplaceRun.AddText(sReplaceString, 0, this.InsertTextItems.arrElements);
+					this.private_AddReplacedStringToRun(oReplaceRun, 0);
 					oReplaceRun.SetReviewType(reviewtype_Add);
 
 					// Выделяем старый объект поиска и удаляем его
@@ -202,7 +203,7 @@ CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 				var StartRun        = SearchElement.ClassesS[SearchElement.ClassesS.length - 1];
 
 				var RunPos = StartContentPos.Get(SearchElement.ClassesS.length - 1);
-				StartRun.AddText(sReplaceString, RunPos, this.InsertTextItems.arrElements);
+				this.private_AddReplacedStringToRun(StartRun, RunPos);
 			}
 
 			// Выделяем старый объект поиска и удаляем его
@@ -227,6 +228,19 @@ CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
 				oPara.Selection.Use = bSelection;
 				oPara.Clear_NearestPosArray();
 			}
+		}
+	}
+};
+CDocumentSearch.prototype.private_AddReplacedStringToRun = function(oRun, nInRunPos)
+{
+	var isMathRun = oRun.IsMathRun();
+	for (var nIndex = 0, nAdd = 0, nCount = this.InsertPattern.GetLength(); nIndex < nCount; ++nIndex)
+	{
+		var oItem = this.InsertPattern.Get(nIndex).ToRunElement(isMathRun);
+		if (oItem)
+		{
+			oRun.AddToContent(nInRunPos + nAdd, oItem, false);
+			nAdd++;
 		}
 	}
 };
@@ -353,6 +367,15 @@ CSearchTextItemBase.prototype.IsChar = function()
 {
 	return (this.Type === c_oSearchItemType.Text);
 };
+/**
+ * Конвертируем данный элемент в элемент рана для вставки в документ
+ * @param {boolean} isMathRun
+ * @returns {?CRunElementBase}
+ */
+CSearchTextItemBase.prototype.ToRunElement = function(isMathRun)
+{
+	return null
+};
 
 function CSearchTextItemChar(nCharCode)
 {
@@ -360,9 +383,25 @@ function CSearchTextItemChar(nCharCode)
 	this.Type  = c_oSearchItemType.Text;
 }
 CSearchTextItemChar.prototype = Object.create(CSearchTextItemBase.prototype);
-CSearchTextItemBase.prototype.IsMatch = function(oItem)
+CSearchTextItemChar.prototype.IsMatch = function(oItem)
 {
 	return (oItem.IsChar() && this.GetValue() === oItem.GetValue());
+};
+CSearchTextItemChar.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+	{
+		var oMathText = new CMathText();
+		oMathText.add(this.Value);
+		return oMathText;
+	}
+	else
+	{
+		if (AscCommon.IsSpace(this.Value))
+			return new ParaSpace(this.Value);
+		else
+			return new ParaText(this.Value);
+	}
 };
 
 function CSearchTextSpecialNewLine()
@@ -373,6 +412,13 @@ CSearchTextSpecialNewLine.prototype = Object.create(CSearchTextItemBase.prototyp
 CSearchTextSpecialNewLine.prototype.IsMatch = function(oItem)
 {
 	return (oItem.GetType() === this.GetType());
+};
+CSearchTextSpecialNewLine.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+		return null;
+
+	return new ParaNewLine(break_Line);
 };
 
 
@@ -385,6 +431,14 @@ CSearchTextSpecialTab.prototype.IsMatch = function(oItem)
 {
 	return (oItem.GetType() === this.GetType());
 };
+CSearchTextSpecialTab.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+		return null;
+
+	return new ParaTab();
+};
+
 
 function CSearchTextSpecialParaEnd()
 {
@@ -452,6 +506,13 @@ CSearchTextSpecialColumnBreak.prototype.IsMatch = function(oItem)
 {
 	return (oItem.GetType() === this.GetType());
 };
+CSearchTextSpecialColumnBreak.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+		return null;
+
+	return new ParaNewLine(break_Column);
+};
 
 function CSearchTextSpecialEndnoteMark()
 {
@@ -504,11 +565,17 @@ CSearchTextSpecialBreakPage.prototype.IsMatch = function(oItem)
 {
 	return (oItem.GetType() === this.GetType());
 };
+CSearchTextSpecialBreakPage.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+		return null;
+
+	return new ParaNewLine(break_Page);
+};
 
 function CSearchTextSpecialNonBreakingHyphen()
 {
 	this.Type = c_oSearchItemType.NonBreakingHyphen;
-	this.Value = 8209;
 }
 CSearchTextSpecialNonBreakingHyphen.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextSpecialNonBreakingHyphen.prototype.IsMatch = function(oItem)
@@ -517,6 +584,21 @@ CSearchTextSpecialNonBreakingHyphen.prototype.IsMatch = function(oItem)
 	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
 		|| c_oSearchItemType.NonBreakingHyphen === nType
 		|| c_oSearchItemType.AnySymbol === nType);
+};
+CSearchTextSpecialNonBreakingHyphen.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+	{
+		var oMathText = new CMathText();
+		oMathText.add(0x2D);
+		return oMathText;
+	}
+	else
+	{
+		var oElement = new ParaText(0x2D);
+		oElement.Set_SpaceAfter(false);
+		return oElement;
+	}
 };
 
 function CSearchTextSpecialNonBreakingSpace()
@@ -531,6 +613,13 @@ CSearchTextSpecialNonBreakingSpace.prototype.IsMatch = function(oItem)
 	return ((c_oSearchItemType.Text === nType && 0xA0 === oItem.GetValue())
 		|| c_oSearchItemType.NonBreakingSpace === nType
 		|| c_oSearchItemType.AnySymbol === nType);
+};
+CSearchTextSpecialNonBreakingSpace.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+		return null;
+
+	return new ParaText(0x00A0);
 };
 
 function CSearchTextSpecialAnySpace()
@@ -560,6 +649,19 @@ CSearchTextSpecialEmDash.prototype.IsMatch = function(oItem)
 		|| c_oSearchItemType.EmDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
+CSearchTextSpecialEmDash.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+	{
+		var oMathText = new CMathText();
+		oMathText.add(0x2014);
+		return oMathText;
+	}
+	else
+	{
+		return new ParaText(0x2014);
+	}
+};
 
 function CSearchTextSpecialEnDash()
 {
@@ -573,6 +675,19 @@ CSearchTextSpecialEnDash.prototype.IsMatch = function(oItem)
 	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
 		|| c_oSearchItemType.EnDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
+};
+CSearchTextSpecialEmDash.prototype.ToRunElement = function(isMathRun)
+{
+	if (isMathRun)
+	{
+		var oMathText = new CMathText();
+		oMathText.add(0x2013);
+		return oMathText;
+	}
+	else
+	{
+		return new ParaText(0x2013);
+	}
 };
 
 function CSearchTextSpecialSectionCharacter()
