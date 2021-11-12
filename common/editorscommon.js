@@ -6839,7 +6839,31 @@
 						}
 						break;
 					}
-					case 'sv-SE':
+					case 'sv-SE': {
+						var alphaBet = {
+							'ett': 'första',
+							'två': 'andra',
+							'tre': 'tredje',
+							'fyra': 'fjärde',
+							'fem': 'femte',
+							'sex': 'sjätte',
+							'sju': 'sjunde',
+							'åtta': 'åttonde',
+							'nio': 'nionde',
+							'tio': 'tionde',
+							'elva': 'elfte',
+							'tolv': 'tolfte'
+						};
+						var arrWithDigit = ordinalText.arrAnswer;
+						if (alphaBet[arrWithDigit[arrWithDigit.length - 1]]) {
+							arrWithDigit[arrWithDigit.length - 1] = alphaBet[arrWithDigit[arrWithDigit.length - 1]];
+						} else if (nValue % 100 < 20) {
+							arrWithDigit[arrWithDigit.length - 1] += 'de';
+						} else if (nValue < 1000000) {
+							arrWithDigit[arrWithDigit.length - 1] += 'nde';
+						}
+						break;
+					}
 					case 'bg-BG':
 					case 'en-GB':
 					case 'en-US': {
