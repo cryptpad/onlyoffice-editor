@@ -6529,6 +6529,18 @@
     CTimeNodeContainer.prototype.getLabel = function() {
         return "This is a sequence";
     };
+    CTimeNodeContainer.prototype.getEffectName = function() {
+        if(this.isAnimEffect()) {
+            return "Effect";//Todo
+        }
+        return "";
+    };
+    CTimeNodeContainer.prototype.getObjectName = function() {
+        if(this.isAnimEffect()) {
+            return "Effect";//Todo
+        }
+        return "";
+    };
     CTimeNodeContainer.prototype.asc_getStartType = function() {
         if(this.cTn) {
             return this.cTn.nodeType;
@@ -10976,7 +10988,7 @@
         this.clear();
         var sLabel = this.seq.getLabel();
         if(typeof sLabel === "string" && sLabel.length > 0) {
-            this.label = this.addControl(new CLabel(this, sLabel, 12));
+            this.label = this.addControl(new CLabel(this, sLabel, 9, true));
         }
         else {
             this.label = null;
@@ -11072,10 +11084,10 @@
 
     function CAnimItem(oParentControl, oEffect) {
         CControlContainer.call(this, oParentControl);
-        this.indexLabel = this.addControl(new CLabel(this, "1", 12));
+        this.indexLabel = this.addControl(new CLabel(this, "1.", 7.5));
         this.eventTypeImage = this.addControl(new CImageControl(this));
         this.effectTypeImage = this.addControl(new CImageControl(this));
-        this.effectLabel = this.addControl(new CLabel(this, "Effect Label", 12));
+        this.effectLabel = this.addControl(new CLabel(this, oEffect.getObjectName(), 7.5));
         this.effectBar = this.addControl(new CEffectBar(this));
         this.contextMenuButton = this.addControl(new CButton(this));
 
@@ -11114,7 +11126,7 @@
     //CAnimItem.prototype.draw = function() {
     //};
 
-    function CLabel(oParentControl, sString, nFontSize) {
+    function CLabel(oParentControl, sString, nFontSize, bBold) {
         CControl.call(this, oParentControl);
         AscFormat.ExecuteNoHistory(function(){
             this.string = sString;
@@ -11124,6 +11136,9 @@
             oTxLstStyle.levels[0] =  new CParaPr();
             oTxLstStyle.levels[0].DefaultRunPr = new AscCommonWord.CTextPr();
             oTxLstStyle.levels[0].DefaultRunPr.FontSize = nFontSize;
+            oTxLstStyle.levels[0].DefaultRunPr.Bold = bBold;
+            oTxLstStyle.levels[0].DefaultRunPr.Color = new AscCommonWord.CDocumentColor(0x44, 0x44, 0x44, false);
+            oTxLstStyle.levels[0].DefaultRunPr.RFonts.SetAll("Arial", -1);
             this.txBody.setLstStyle(oTxLstStyle);
             this.bodyPr = new AscFormat.CBodyPr();
             this.bodyPr.setDefault();
@@ -11300,10 +11315,14 @@
         }
     };
 
+    var PLAY_BUTTON_WIDTH = 82 * AscCommon.g_dKoef_pix_to_mm;
+    var PLAY_BUTTON_HEIGHT = 24 * AscCommon.g_dKoef_pix_to_mm;
+    var PLAY_BUTTON_LEFT = (145 - AscCommon.TIMELINE_LEFT_MARGIN) * AscCommon.g_dKoef_pix_to_mm;
+    var PLAY_BUTTON_TOP = 12 * AscCommon.g_dKoef_pix_to_mm;
     function CAnimPaneHeader(oDrawer) {
         CTopControl.call(this, oDrawer);
-        this.label = this.addControl(new CLabel(this, "Animation Pane", 14));
-        this.taskButton = this.addControl(new CButton(this));
+        this.label = this.addControl(new CLabel(this, "Animation Pane", 10, true));
+        this.playButton = this.addControl(new CButton(this));
         this.closeButton = this.addControl(new CButton(this));
     }
     InitClass(CAnimPaneHeader, CTopControl, CONTROL_TYPE_HEADER);
@@ -11314,16 +11333,16 @@
             BUTTON_SIZE,
             BUTTON_SIZE
         );
-        this.taskButton.setLayout(
-            this.closeButton.getLeft() - BUTTON_SPACE - BUTTON_SIZE,
-            (this.getHeight() - BUTTON_SIZE) / 2,
-            BUTTON_SIZE,
-            BUTTON_SIZE
+        this.playButton.setLayout(
+            PLAY_BUTTON_LEFT,
+            PLAY_BUTTON_TOP,
+            PLAY_BUTTON_WIDTH,
+            PLAY_BUTTON_HEIGHT
         );
         this.label.setLayout(
             0,
             0,
-            this.taskButton.getLeft(),
+            this.playButton.getLeft(),
             this.getHeight()
         );
 
@@ -11366,6 +11385,9 @@
 
 
 
+    var SECONDS_BUTTON_WIDTH = 76 * AscCommon.g_dKoef_pix_to_mm;
+    var SECONDS_BUTTON_HEIGHT = 24 * AscCommon.g_dKoef_pix_to_mm;
+    var SECONDS_BUTTON_LEFT = 57 * AscCommon.g_dKoef_pix_to_mm;
     function CTimelineContainer(oDrawer) {
         CTopControl.call(this, oDrawer);
         this.drawer = oDrawer;
@@ -11374,9 +11396,12 @@
     }
     InitClass(CTimelineContainer, CTopControl, CONTROL_TYPE_TIMELINE_CONTAINER);
     CTimelineContainer.prototype.recalculateChildrenLayout = function() {
-        var dPosY = (this.getHeight() - SCROLL_THICKNESS) / 2;
-        this.secondsButton.setLayout(0, dPosY, ANIM_LABEL_WIDTH - 3*SCROLL_THICKNESS / 2, SCROLL_THICKNESS);
-        this.timeline.setLayout(this.secondsButton.getRight(), dPosY, this.getWidth() - this.secondsButton.getWidth(), SCROLL_THICKNESS);
+        var dPosY = (this.getHeight() - SECONDS_BUTTON_HEIGHT) / 2;
+        this.secondsButton.setLayout(SECONDS_BUTTON_LEFT, dPosY, SECONDS_BUTTON_WIDTH, SECONDS_BUTTON_HEIGHT);
+        var dLeft = LABEL_TIMELINE_WIDTH + AscCommon.TIMELINE_LEFT_MARGIN - 1.5*SCROLL_THICKNESS;
+        var dWidth = this.getWidth() - AscCommon.TIMELINE_LIST_RIGHT_MARGIN - dLeft;
+        dPosY = (this.getHeight() - SCROLL_THICKNESS) / 2;
+        this.timeline.setLayout(dLeft, dPosY, dWidth, SCROLL_THICKNESS);
     };
     CTimelineContainer.prototype.getFillColor = function() {
         return null;
@@ -11452,7 +11477,7 @@
       return this.cacheLabel(nTime, scale);
     };
     CTimeline.prototype.cacheLabel = function(nTime, scale) {
-      var oLabel = new CLabel(this, this.getTimeString(nTime), 10);
+      var oLabel = new CLabel(this, this.getTimeString(nTime), 7.5);
       var oContent = oLabel.txBody.content;
       oLabel.setLayout(0, 0, LABEL_WIDTH, this.getHeight());
       if(this.cachedParaPr) {
@@ -11644,7 +11669,7 @@
     var PADDING_BOTTOM = PADDING_LEFT;
     var VERTICAL_SPACE = PADDING_LEFT;
     var HORIZONTAL_SPACE = PADDING_LEFT;
-    var SCROLL_THICKNESS = 3*PADDING_LEFT / 2;
+    var SCROLL_THICKNESS = 15 * AscCommon.g_dKoef_pix_to_mm;
     var SCROLL_BUTTON_SIZE = SCROLL_THICKNESS;
     var TIMELINE_HEIGHT = SCROLL_THICKNESS + 1;
     var BUTTON_SPACE = HORIZONTAL_SPACE / 2;
