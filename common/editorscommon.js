@@ -6725,6 +6725,30 @@
 						}
 						break;
 					}
+					case 'it-IT': {
+						var alphaBet = {
+							'uno': 'primo',
+							'due': 'secondo',
+							'tré': 'terzo',
+							'quattro': 'quarto',
+							'cinque': 'quinto',
+							'sei': 'sesto',
+							'sette': 'settimo',
+							'otto': 'ottavo',
+							'nove': 'nono',
+							'dieci': 'decimo'
+						};
+						var arrWithDigit = ordinalText.arrAnswer;
+						var lastWord = arrWithDigit[arrWithDigit.length - 1];
+						if (lastWord) {
+							if (alphaBet[lastWord]) {
+								arrWithDigit[arrWithDigit.length - 1] = alphaBet[lastWord];
+							} else {
+								arrWithDigit[arrWithDigit.length - 1] = lastWord.substring(0, lastWord.length - 1) + 'esimo';
+							}
+						}
+						break;
+					}
 					case 'nl-NL':
 					case 'pt-PT':
 					case 'pt-BR':
