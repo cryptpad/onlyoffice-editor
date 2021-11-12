@@ -5404,6 +5404,7 @@
 							}
 
 							arrAnswer = cardinalSplittingPT(nValue);
+							break;
 						}
 						case 'sk-SK': {
 							alphaBet = {
@@ -5498,6 +5499,7 @@
 							getConcatStringByRule = function (array) {
 								return array.join('');
 							}
+							break;
 						}
 						case 'bg-BG': {
 							alphaBet = {
@@ -6750,7 +6752,56 @@
 						break;
 					}
 					case 'nl-NL':
-					case 'pt-PT':
+					case 'pt-PT': {
+						alphaBet = {
+							'um': 'primeiro',
+							'dois': 'segundo',
+							'três': 'terceiro',
+							'quatro': 'quarto',
+							'cinco': 'quinto',
+							'seis': 'sexto',
+							'sete': 'sétimo',
+							'oito': 'oitavo',
+							'nove': 'nono',
+							'dez': 'décimo',
+							'onze': 'décimo primeiro',
+							'doze': 'décimo segundo',
+							'treze': 'décimo terceiro',
+							'quartorze': 'décimo quarto',
+							'quinze': 'décimo quinto',
+							'dezesseis': 'décimo sexto',
+							'dezessete': 'décimo sétimo',
+							'dezoito': 'décimo oitavo',
+							'dezenove': 'décimo nono',
+							'vinte': 'vigésimo',
+							'trinta': 'trigésimo',
+							'quarenta': 'quadragésimo',
+							'cinqüenta': 'quinquagésimo',
+							'sessenta': 'sexagésimo',
+							'setenta': 'septuagésimo',
+							'oitenta': 'octogésimo',
+							'noventa': 'nonagésimo',
+							'cem': 'centésimo',
+							'duzentos': 'ducentésimo',
+							'trezentos': 'tricentésimo',
+							'quatrocentos': 'quadringentésimo',
+							'quinhentos': 'quingentésimo',
+							'seissentos': 'seiscentésimo',
+							'setecentos': 'septingentésimo',
+							'oitocentos': 'octingentésimo',
+							'novecentos': 'nongentésimo',
+							'mil': 'milésimo'
+						}
+						var arrWithDigits = ordinalText.arrAnswer;
+						var newAnswerArr = [];
+						for (var i = 0; i < arrWithDigits.length; i += 1) {
+							if (alphaBet[arrWithDigits[i]]) {
+								newAnswerArr.push(alphaBet[arrWithDigits[i]]);
+							}
+						}
+						ordinalText.arrAnswer = newAnswerArr;
+						break;
+					}
 					case 'pt-BR':
 					case 'ru-RU': {
 						var alphaBet = {
