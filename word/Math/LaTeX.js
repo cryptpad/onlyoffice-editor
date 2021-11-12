@@ -596,7 +596,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 ]);
 
 CLaTeXParser.prototype.Parse = function (str) {
-	//todo: next
 	var strTempWord = "";
 	for (var i = 0; i < str.length; i++) {
 		strTempWord += str[i];
@@ -640,6 +639,7 @@ CLaTeXParser.prototype.Parse = function (str) {
 	);
 };
 
+//Service
 CLaTeXParser.prototype.GetNextAtom = function () {
 	this.indexOfAtom++;
 	return this.indexOfAtom - 1 <= this.length
@@ -647,7 +647,7 @@ CLaTeXParser.prototype.GetNextAtom = function () {
 		: this.arrAtomsOfFormula[this.indexOfAtom - 1];
 };
 
-CLaTeXParser.prototype.GetFutureAtom = function (n) {
+CLaTeXParser.prototype.CheckFutureAtom = function (n) {
 	if (n) {
 		return this.arrAtomsOfFormula[this.indexOfAtom + n];
 	}
@@ -657,367 +657,6 @@ CLaTeXParser.prototype.GetFutureAtom = function (n) {
 	}
 };
 
-// Check
-CLaTeXParser.prototype.CheckIsAccent = function (strFAtom) {
-	return (
-		this.GetAccent.get(strFAtom) ||
-		this.GetIsAddBar.get(strFAtom) ||
-		this.GetIsAddGroupChar.get(strFAtom)
-	);
-};
-
-CLaTeXParser.prototype.GetAccent = new Map([
-	["\\widetilde", 771],
-	["\\widehat", 770],
-	["\\overrightarrow", 8407],
-	["\\overleftarrow", 8406],
-	["\\dot", 775],
-	["\\ddot", 776],
-	["\\hat", 770],
-	["\\check", 780],
-	["\\acute", 769],
-	["\\grave", 768],
-	["\\bar", 773],
-	["\\vec", 8407],
-	["\\breve", 774],
-	["\\tilde", 771],
-]);
-
-CLaTeXParser.prototype.GetIsAddBar = new Map([
-	["\\overline", true],
-	["\\underline", true],
-]);
-
-CLaTeXParser.prototype.GetIsAddGroupChar = new Map([
-	["\\overbrace", true],
-	["\\underbrace", true],
-]);
-
-CLaTeXParser.prototype.GetIsFunc = new Map([
-	//["\\lim", true],
-	["\\cos", true],
-	["\\sin", true],
-	["\\tan", true],
-	["\\cot", true],
-	["\\arcsin", true],
-	["\\arccos", true],
-	["\\arctan", true],
-	["\\arccot", true],
-	["\\sinh", true],
-	["\\cosh", true],
-	["\\tanh", true],
-	["\\coth", true],
-	["\\sec", true],
-	["\\exp", true],
-	["\\csc", true],
-]);
-
-CLaTeXParser.prototype.GetCountOfIntegral = new Map([
-	["\\int", 1],
-	["\\oint", 1],
-	["\\iint", 2],
-	["\\oiint", 2],
-	["\\iiint", 3],
-	["\\oiiint", 3],
-]);
-
-CLaTeXParser.prototype.GetTypeOfIntegral = new Map([
-	["\\int", false],
-	["\\oint", true],
-	["\\iint", false],
-	["\\oiint", true],
-	["\\iiint", false],
-	["\\oiiint", true],
-]);
-
-
-CLaTeXParser.prototype.CheckIsMatrix = function () {
-	return (
-		this.CheckElementSequence(["\\begin", "{", "matrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "pmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "bmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "Bmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "vmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "Vmatrix", "}"], true, 3)
-	);
-};
-
-CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
-	return !(
-		strFAtom == "matrix" &&
-		strFAtom == "\\left" &&
-		strFAtom == "\\right"
-	);
-};
-
-CLaTeXParser.prototype.CheckDegreeAndIndexForLexer = function () {
-	return (
-		(this.CheckSyntaxSequence(["^", 1]) && this.GetFutureAtom(-2) != "_") ||
-		(this.CheckSyntaxSequence(["_", 1]) && this.GetFutureAtom(-2) != "^") ||
-		this.CheckSyntaxSequence(["_", "{", "^", "{"]) ||
-		this.CheckSyntaxSequence(["^", "{", "_", "{"]) ||
-		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
-		this.CheckSyntaxSequence(["_", 1, "^", 1])
-	);
-};
-
-
-
-
-
-//Functions for Lexer
-CLaTeXParser.prototype.AddTinyFrac = function (FormArgument) {
-	var oBox = new CBox(this.Pr);
-	FormArgument.Add_Element(oBox);
-
-	var BoxMathContent = oBox.getBase();
-	BoxMathContent.SetArgSize(-1);
-	var frac = BoxMathContent.Add_Fraction(this.Pr, null, null);
-
-	CLaTeXLexer(this, frac.getNumeratorMathContent());
-	CLaTeXLexer(this, frac.getDenominatorMathContent());
-};
-
-CLaTeXParser.prototype.AddInlineFraction = function (FormArgument) {
-	var strFirstAtom = this.GetNextAtom();
-	this.GetNextAtom();
-	this.GetNextAtom();
-	var strSecondAtom = this.GetNextAtom();
-
-	var Pr = this.Pr;
-	Pr.type = SKEWED_FRACTION;
-	FormArgument.Add_Fraction(Pr, strFirstAtom, strSecondAtom);
-};
-
-CLaTeXParser.prototype.AddText = function (strFAtom, FormArgument) {
-	this.AddSymbol(strFAtom, FormArgument);
-};
-
-CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument) {
-	var strCode = this.arrLaTeXSymbols.get(strFAtom);
-
-	if (strCode) {
-		FormArgument.Add_Text(String.fromCharCode(strCode), this.Paragraph);
-	}
-
-	else {
-		if (strFAtom == ",")
-		{
-			FormArgument.Add_Text(", ", this.Paragraph);
-		}
-
-		else
-		{
-			FormArgument.Add_Text(strFAtom, this.Paragraph);
-		}
-	}
-};
-
-
-CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
-	var Formula;
-
-	if (this.GetIsAddBar.get(name)) {
-		if (name == "\\overline") {
-			Formula = FormArgument.Add_Bar({ ctrPrp: this.Pr.ctrPrp, pos: 0 }, null);
-		}
-
-		if (name == "\\underline") {
-			Formula = FormArgument.Add_Bar({ ctrPrp: this.Pr.ctrPrp, pos: 1 }, null);
-		}
-	}
-
-	else if (this.GetIsAddGroupChar.get(name)) {
-		if (name == "\\overbrace") {
-			Formula = FormArgument.Add_GroupCharacter(
-				{
-					ctrPrp: this.Pr.ctrPrp,
-					chr: 9182,
-					pos: VJUST_TOP,
-					vertJc: VJUST_BOT,
-				},
-				null
-			);
-		}
-
-		if (name == "\\underbrace") {
-			Formula = FormArgument.Add_GroupCharacter(
-				{ ctrPrp: this.Pr.ctrPrp },
-				null
-			);
-		}
-	}
-
-	else {
-		Formula = FormArgument.Add_Accent(
-			this.Pr.ctrPrp,
-			this.GetAccent.get(name),
-			null
-		);
-	}
-
-	CLaTeXLexer(this, Formula.getBase());
-};
-
-CLaTeXParser.prototype.AddIntegral = function (FormArgument) {
-	var strNameOfIntegral = this.arrAtomsOfFormula[this.indexOfAtom - 1];
-	var intCountOfIntegral = this.GetCountOfIntegral.get(strNameOfIntegral);
-	var isOTypeIntegral = this.GetTypeOfIntegral.get(strNameOfIntegral);
-
-	var hideBoxes = {
-		supHide: false,
-		subHide: false,
-	};
-	var TypeOFLoc =
-		this.GetFutureAtom() == "\\limits"
-			? ((strTempAtom = this.GetNextAtom()), 0)
-			: 1;
-
-	if (this.CheckIsDegreeOrIndex()) {
-		this.CheckSyntaxSequence(["^", 1], "_")
-			? ((hideBoxes.subHide = true), (hideBoxes.supHide = false))
-			: ((hideBoxes.subHide = false), (hideBoxes.supHide = true));
-	}
-
-	if (!this.CheckIsDegreeOrIndex() && !this.CheckIsDegreeAndIndex()) {
-		(hideBoxes.supHide = true), (hideBoxes.subHide = true);
-	}
-
-	var strTempAtom = this.GetNextAtom();
-	var Integral = FormArgument.Add_Integral(
-		intCountOfIntegral,
-		isOTypeIntegral,
-		TypeOFLoc,
-		hideBoxes.supHide,
-		hideBoxes.subHide,
-		this.Pr.ctrPrp,
-		null,
-		null,
-		null
-	);
-
-	var createSupMathContent = function (context) {
-		strTempAtom = context.GetNextAtom();
-		if (strTempAtom == "{") {
-			CLaTeXLexer(context, Integral.getSupMathContent());
-		} else {
-			context.AddSymbol(strTempAtom, Integral.getSupMathContent());
-		}
-	};
-
-	var createSubMathContent = function (context) {
-		strTempAtom = context.GetNextAtom();
-
-		if (strTempAtom == "{") {
-			CLaTeXLexer(context, Integral.getSubMathContent());
-		} else {
-			context.AddSymbol(strTempAtom, Integral.getSubMathContent());
-		}
-	};
-
-	strTempAtom == "^"
-		? (createSupMathContent(this),
-		  (strTempAtom = this.GetNextAtom()),
-		  createSubMathContent(this))
-		: (createSubMathContent(this),
-		  (strTempAtom = this.GetNextAtom()),
-		  createSupMathContent(this));
-
-	this.StartLexer(Integral.getBase(), ["{", "("]);
-};
-
-CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
-	//todo: align text inside matrix
-	var typeOfMatrix = this.GetFutureAtom(-2);
-
-	if (typeOfMatrix == "pmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("("),
-			this.GetBracetCode.get(")")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
-	}
-	else if (typeOfMatrix == "bmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("["),
-			this.GetBracetCode.get("]")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
-	}
-	else if (typeOfMatrix == "Bmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("{"),
-			this.GetBracetCode.get("}")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
-	}
-	else if (typeOfMatrix == "vmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("|"),
-			this.GetBracetCode.get("|")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
-	}
-	else if (typeOfMatrix == "Vmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("\\|"),
-			this.GetBracetCode.get("\\|")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
-	}
-
-	var intColsCount = 1;
-	var intRowsCount = 1;
-	var strTempArr;
-	var intIndex = 0;
-
-	do {
-		strTempArr = this.GetFutureAtom(intIndex);
-		if (strTempArr == "&" && intRowsCount == 1) {
-			intColsCount++;
-		}
-		if (strTempArr == "\\") {
-			intRowsCount++;
-		}
-		intIndex++;
-	} while (strTempArr != "\\end");
-
-	var Pr = {
-		ctrPrp: this.Pr.ctrPr,
-		row: intRowsCount,
-		mcs: [{ count: intColsCount, mcJc: 0 }], //todo mcJc  0 = center;
-		plcHide: false,
-	};
-
-	var Matrix = new CMathMatrix(Pr);
-	FormArgument.Add_Element(Matrix);
-
-	for (var RowIndex = 0; RowIndex < intRowsCount; RowIndex++) {
-		for (var ColIndex = 0; ColIndex < intColsCount; ColIndex++) {
-			var MathContent = Matrix.getContentElement(RowIndex, ColIndex);
-			CLaTeXLexer(this, MathContent, ["&", "\\", "\\end"]);
-		}
-	}
-	this.RecipientSeveralAtom(3);
-};
-
-
-//Service
 CLaTeXParser.prototype.ExitFromLexer = function (strFAtom, exitIfSee) {
 	if (exitIfSee && typeof exitIfSee != "number" && strFAtom == exitIfSee)
 	{
@@ -1126,12 +765,12 @@ CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotTh
 };
 
 CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
-	if (this.GetFutureAtom() == '^' || this.GetFutureAtom() == '_') {
+	if (this.CheckFutureAtom() == '^' || this.CheckFutureAtom() == '_') {
 		this.GetNextAtom();
 	}
 
 	if (!arrSymbol) {
-		var strOpentBracet = this.GetFutureAtom();
+		var strOpentBracet = this.CheckFutureAtom();
 		var strCloseBracet = this.GetCloseBracet.get(strOpentBracet);
 
 		if (strCloseBracet) {
@@ -1154,27 +793,69 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	}
 };
 
+CLaTeXParser.prototype.CheckIsDegreeAndIndex = function () {
+	if (
+		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
+		this.CheckSyntaxSequence(["^", "{", "_", "{"]) ||
+		this.CheckSyntaxSequence(["_", 1, "^", 1]) ||
+		this.CheckSyntaxSequence(["_", "{", "^", "{"]) ||
+		this.CheckSyntaxSequence(["^", "{", "_", 1]) ||
+		this.CheckSyntaxSequence(["^", 1, "_", "{"]) ||
+		this.CheckSyntaxSequence(["_", 1, "^", "{"]) ||
+		this.CheckSyntaxSequence(["_", "{", "^", 1]) 
+	) 
+	{
+		return true;
+	} 
+	
+	else 
+	{
+		return false;
+	}
+};
+
+CLaTeXParser.prototype.CheckIsDegreeOrIndex = function () {
+	if (
+		this.CheckSyntaxSequence(["_", 1], "^") ||
+		this.CheckSyntaxSequence(["^", 1], "_") ||
+		this.CheckSyntaxSequence(["_", '{'], "^")||
+		this.CheckSyntaxSequence(["^", '{'], "_")
+	)
+	{
+		return true;
+	}
+	
+	else
+	{
+		return false;
+	}
+};
+
 //Fraction
 CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom, type) {
+	var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)
+
 	if (!strFAtom) {
 		strFAtom = this.GetNextAtom();
 	}
 
 	var typeOfFraction = null;
-	if (!type) {
-		typeOfFraction = this.GetTypeOfFrac.get(strFAtom); //duplication in Lexer!
-	}
+	
+	if (isInlineFraction) {
+		typeOfFraction = 'SKEWED_FRACTION';
+	} 
 	else {
-		typeOfFraction = type;
+		if (!type) {
+			typeOfFraction = this.GetTypeOfFrac.get(strFAtom); //duplication in Lexer!
+		}
+		else {
+			typeOfFraction = type;
+		}
 	}
-
-	var typeOfArgument = this.CheckSyntax(
-		[['{', '{'], 'ARGUMENT_WITH_BRACETS'],
-		[[1,1], 'ARGUMENT_WITHOUT_BRACETS']);
 
 	if (typeOfFraction) {
 		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
-		this.FillFracContent(Fraction, typeOfArgument);
+		this.FillFracContent(Fraction, isInlineFraction);
 	}
 };
 
@@ -1200,18 +881,22 @@ CLaTeXParser.prototype.CreateFraction = function (FormArgument, typeOfFraction) 
 		var Fraction = Box.Add_Fraction(this.Pr, null, null);
 		return Fraction;
 
-	} else {
-		this.Pr.type = undefined;
+	} 
+	else {
 		var Fraction = FormArgument.Add_Fraction(this.Pr, null, null);
 		return Fraction;
 	}
 };
 
-CLaTeXParser.prototype.FillFracContent = function (FormArgument, typeOfArgument) {
-	if (typeOfArgument == 'ARGUMENT_WITH_BRACETS' ||
-		typeOfArgument == 'ARGUMENT_WITHOUT_BRACETS') {
+CLaTeXParser.prototype.FillFracContent = function (FormArgument, isInlineFraction) {
+	if (!isInlineFraction) {
 		this.StartLexer(FormArgument.getNumeratorMathContent());
-		this.StartLexer(FormArgument.getDenominatorMathContent())
+		this.StartLexer(FormArgument.getDenominatorMathContent());
+	}
+	else {
+		this.StartLexer(FormArgument.getNumeratorMathContent());
+		this.GetNextAtom();
+		this.StartLexer(FormArgument.getDenominatorMathContent());
 	}
 };
 
@@ -1285,7 +970,7 @@ CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 			Function.getFName().Add_Text(strFAtom.slice(1), this.Paragraph);
 			this.StartLexer(Function.getArgument());
 		}
-		
+	
 	} 
 
 	else if (typeOfFunction == 2) {
@@ -1394,13 +1079,13 @@ CLaTeXParser.prototype.FillScriptContent = function(Script, name, typeOfScript) 
 
 CLaTeXParser.prototype.FillScriptContentWriteSup = function(Script) {
 	var Iterator = Script.getUpperIterator();
-	this.GetFutureAtom(); // get ^ sup
+	this.CheckFutureAtom(); // get ^ sup
 	this.StartLexer(Iterator);
 };
 
 CLaTeXParser.prototype.FillScriptContentWriteSub = function(Script) {
 	var Iterator = Script.getLowerIterator();
-	this.GetFutureAtom(); // get _ sub
+	this.CheckFutureAtom(); // get _ sub
 	this.StartLexer(Iterator);
 };
 
@@ -1411,52 +1096,21 @@ CLaTeXParser.prototype.AddScriptForText = function(FormArgument, strFAtom) {
 	this.AddScript(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex);
 };
 
-CLaTeXParser.prototype.CheckIsDegreeAndIndex = function () {
-		console.log(this.CheckSyntaxSequence(["^", 1, "_", 1]))
-		console.log(this.CheckSyntaxSequence(["^", "{", "_", "{"]))
-		console.log(this.CheckSyntaxSequence(["_", 1, "^", 1]))
-		console.log(this.CheckSyntaxSequence(["_", "{", "^", "{"]))
-		console.log(this.CheckSyntaxSequence(["^", "{", "_", 1]))
-		console.log(this.CheckSyntaxSequence(["^", 1, "_", "{"]))
-		console.log(this.CheckSyntaxSequence(["_", 1, "^", "{"]))
-		console.log(this.CheckSyntaxSequence(["_", "{", "^", 1]))
-
-	if (
-		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
-		this.CheckSyntaxSequence(["^", "{", "_", "{"]) ||
-		this.CheckSyntaxSequence(["_", 1, "^", 1]) ||
+CLaTeXParser.prototype.CheckSupSubForLexer = function () {
+	return (
+		(this.CheckSyntaxSequence(["^", 1]) && this.CheckFutureAtom(-2) != "_") ||
+		(this.CheckSyntaxSequence(["_", 1]) && this.CheckFutureAtom(-2) != "^") ||
 		this.CheckSyntaxSequence(["_", "{", "^", "{"]) ||
-		this.CheckSyntaxSequence(["^", "{", "_", 1]) ||
-		this.CheckSyntaxSequence(["^", 1, "_", "{"]) ||
-		this.CheckSyntaxSequence(["_", 1, "^", "{"]) ||
-		this.CheckSyntaxSequence(["_", "{", "^", 1]) 
-	) {
-		return true;
-	} else {
-		return false;
-	}
-};
-
-CLaTeXParser.prototype.CheckIsDegreeOrIndex = function () {
-	if (
-		this.CheckIsDegreeAndIndex &&
-		(this.CheckSyntaxSequence(["_", 1], "^") ||
-		this.CheckSyntaxSequence(["^", 1], "_") ||
-		this.CheckSyntaxSequence(["_", '{'], "^")||
-		this.CheckSyntaxSequence(["^", '{'], "_"))
-	){
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+		this.CheckSyntaxSequence(["^", "{", "_", "{"]) ||
+		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
+		this.CheckSyntaxSequence(["_", 1, "^", 1])
+	);
 };
 
 //Radical
 CLaTeXParser.prototype.AddRadical = function (FormArgument) {
 	var typeOfRadical = null;
-	if (this.GetFutureAtom() == '[') {
+	if (this.CheckFutureAtom() == '[') {
 		typeOfRadical  = DEGREE_RADICAL;
 	} else {
 		typeOfRadical = SQUARE_RADICAL;
@@ -1693,7 +1347,7 @@ CLaTeXParser.prototype.GetBracetCode = new Map([
 ]);
 
 CLaTeXParser.prototype.CheckIsBrackets = function (strFAtom) {
-	var  strTempAtom = this.GetFutureAtom(-1);
+	var  strTempAtom = this.CheckFutureAtom(-1);
 	if (
 		strTempAtom == "|" ||
 		strTempAtom == "(" ||
@@ -1732,7 +1386,7 @@ CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, str) {
 
 	var intTypeOFLoc = 1;
 
-	if (this.GetFutureAtom() == "\\limits") {
+	if (this.CheckFutureAtom() == "\\limits") {
 		this.GetNextAtom();
 		intTypeOFLoc = 0;
 	}
@@ -1772,12 +1426,12 @@ CLaTeXParser.prototype.CreateLargeOperator = function(FormArgument, intTypeOFLoc
 
 CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 	
-	var strTempAtom = this.GetFutureAtom();
+	var strTempAtom = this.CheckFutureAtom();
 	
 	if (strTempAtom == "^") {
 		this.StartLexer(LargeOperator.getSupMathContent());
 
-		if (this.GetFutureAtom() == "_") {
+		if (this.CheckFutureAtom() == "_") {
 			this.StartLexer(LargeOperator.getSubMathContent());
 		}
 	} 
@@ -1785,11 +1439,11 @@ CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 	else if (strTempAtom == "_") {
 		this.StartLexer(LargeOperator.getSubMathContent());
 
-		if (this.GetFutureAtom() == "^") {
+		if (this.CheckFutureAtom() == "^") {
 			this.StartLexer(LargeOperator.getSupMathContent());
 		}
 	}
-	
+
 	this.StartLexer(LargeOperator.getBase());
 }
 
@@ -1802,6 +1456,331 @@ CLaTeXParser.prototype.CheckIsLargeOperator = new Map([
 	["\\bigvee", 8897],
 	["\\bigwedge", 8896],
 ]);
+
+//Accent 
+CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
+	var Accent;
+	var intPosition = null;
+	
+	if (this.GetIsAddBar.get(name)) {
+		if (name == "\\overline") {
+			intPosition = 0;
+		}
+	
+		else if (name == "\\underline") {
+			intPosition = 1;
+		}
+
+		Accent = FormArgument.Add_Bar({ ctrPrp: this.Pr.ctrPrp, pos: intPosition }, null);
+	}
+	
+	else if (this.GetIsAddGroupChar.get(name)) {
+		if (name == "\\overbrace") {
+			Accent = FormArgument.Add_GroupCharacter(
+				{
+					ctrPrp: this.Pr.ctrPrp,
+					chr: 9182,
+					pos: VJUST_TOP,
+					vertJc: VJUST_BOT,
+				},
+				null
+			);
+		}
+
+		if (name == "\\underbrace") {
+			Accent = FormArgument.Add_GroupCharacter(
+				{ ctrPrp: this.Pr.ctrPrp },
+				null
+			);
+		}
+	}
+
+	else {
+		Accent = FormArgument.Add_Accent(
+			this.Pr.ctrPrp,
+			this.GetAccent.get(name),
+			null
+		);
+	}
+
+	this.StartLexer(Accent.getBase())
+};
+
+CLaTeXParser.prototype.GetIsAddBar = new Map([
+	["\\overline", true],
+	["\\underline", true],
+]);
+
+CLaTeXParser.prototype.GetIsAddGroupChar = new Map([
+	["\\overbrace", true],
+	["\\underbrace", true],
+]);
+
+CLaTeXParser.prototype.CheckIsAccent = function (strFAtom) {
+	return (
+		this.GetAccent.get(strFAtom) ||
+		this.GetIsAddBar.get(strFAtom) ||
+		this.GetIsAddGroupChar.get(strFAtom)
+	);
+};
+
+CLaTeXParser.prototype.GetAccent = new Map([
+	["\\widetilde", 771],
+	["\\widehat", 770],
+	["\\overrightarrow", 8407],
+	["\\overleftarrow", 8406],
+	["\\dot", 775],
+	["\\ddot", 776],
+	["\\hat", 770],
+	["\\check", 780],
+	["\\acute", 769],
+	["\\grave", 768],
+	["\\bar", 773],
+	["\\vec", 8407],
+	["\\breve", 774],
+	["\\tilde", 771],
+]);
+
+//Inetegral todo: check is base block closed
+CLaTeXParser.prototype.AddIntegral = function (FormArgument, strFAtom) {
+	var Integral = this.CreateIntegral(FormArgument, strFAtom);
+	this.FillIntegralContent(Integral);
+};
+
+CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
+	var strNameOfIntegral = strFAtom;
+	var intCountOfIntegral = this.GetCountOfIntegral.get(strNameOfIntegral);
+	var isOTypeIntegral = this.GetTypeOfIntegral.get(strNameOfIntegral);
+	var TypeOFLoc = 1;
+
+	var hideBoxes = {
+		supHide: false,
+		subHide: false,
+	};
+
+	if (this.CheckFutureAtom() == "\\limits") {
+		TypeOFLoc = 0;
+		this.GetNextAtom();
+	}
+
+	if (this.CheckIsDegreeOrIndex() && !this.CheckIsDegreeAndIndex()) {
+		if (this.CheckFutureAtom() == "^") {
+			hideBoxes.subHide = true;
+			hideBoxes.supHide = false
+		}
+		else if (this.CheckFutureAtom() == "_") {
+			hideBoxes.subHide = false;
+			hideBoxes.supHide = true
+		}
+	}
+
+	if (!this.CheckIsDegreeOrIndex() && !this.CheckIsDegreeAndIndex()) {
+		hideBoxes.supHide = true; 
+		hideBoxes.subHide = true;
+	}
+
+	var Integral = FormArgument.Add_Integral(
+		intCountOfIntegral,
+		isOTypeIntegral,
+		TypeOFLoc,
+		hideBoxes.supHide,
+		hideBoxes.subHide,
+		this.Pr.ctrPrp,
+		null,
+		null,
+		null
+	);
+	
+	return Integral;
+}
+
+CLaTeXParser.prototype.FillIntegralContent =  function(Integral) {
+	if (this.CheckFutureAtom() == '^') {
+		this.StartLexer(Integral.getSupMathContent());
+		
+		if (this.CheckFutureAtom() == '_') {
+			this.StartLexer(Integral.getSubMathContent());
+		}
+	}
+
+	else if (this.CheckFutureAtom() == '_') {
+		this.StartLexer(Integral.getSubMathContent());
+		
+		if (this.CheckFutureAtom() == '_') {
+			this.StartLexer(Integral.getSupMathContent());
+		}
+	}
+
+	this.StartLexer(Integral.getBase());
+}
+
+CLaTeXParser.prototype.GetCountOfIntegral = new Map([
+	["\\int", 1],
+	["\\oint", 1],
+	["\\iint", 2],
+	["\\oiint", 2],
+	["\\iiint", 3],
+	["\\oiiint", 3],
+]);
+
+CLaTeXParser.prototype.GetTypeOfIntegral = new Map([
+	["\\int", false],
+	["\\oint", true],
+	["\\iint", false],
+	["\\oiint", true],
+	["\\iiint", false],
+	["\\oiiint", true],
+]);
+
+//Matrix 
+CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
+	
+	var typeOfMatrix = this.CheckFutureAtom(-2);
+	console.log(typeOfMatrix)
+	if (typeOfMatrix == "pmatrix") {
+		var Delimiter = FormArgument.Add_DelimiterEx(
+			this.Pr.ctrPr,
+			1,
+			[null],
+			this.GetBracetCode.get("("),
+			this.GetBracetCode.get(")")
+		);
+		FormArgument = Delimiter.getElementMathContent(0);
+	}
+	else if (typeOfMatrix == "bmatrix") {
+		var Delimiter = FormArgument.Add_DelimiterEx(
+			this.Pr.ctrPr,
+			1,
+			[null],
+			this.GetBracetCode.get("["),
+			this.GetBracetCode.get("]")
+		);
+		FormArgument = Delimiter.getElementMathContent(0);
+	}
+	else if (typeOfMatrix == "Bmatrix") {
+		var Delimiter = FormArgument.Add_DelimiterEx(
+			this.Pr.ctrPr,
+			1,
+			[null],
+			this.GetBracetCode.get("{"),
+			this.GetBracetCode.get("}")
+		);
+		FormArgument = Delimiter.getElementMathContent(0);
+	}
+	else if (typeOfMatrix == "vmatrix") {
+		var Delimiter = FormArgument.Add_DelimiterEx(
+			this.Pr.ctrPr,
+			1,
+			[null],
+			this.GetBracetCode.get("|"),
+			this.GetBracetCode.get("|")
+		);
+		FormArgument = Delimiter.getElementMathContent(0);
+	}
+	else if (typeOfMatrix == "Vmatrix") {
+		var Delimiter = FormArgument.Add_DelimiterEx(
+			this.Pr.ctrPr,
+			1,
+			[null],
+			this.GetBracetCode.get("\\|"),
+			this.GetBracetCode.get("\\|")
+		);
+		FormArgument = Delimiter.getElementMathContent(0);
+	}
+
+	var intColsCount = 1;
+	var intRowsCount = 1;
+	var strTempArr;
+	var intIndex = 0;
+
+	do {
+		strTempArr = this.CheckFutureAtom(intIndex);
+		if (strTempArr == "&" && intRowsCount == 1) {
+			intColsCount++;
+		}
+		if (strTempArr == "\\") {
+			intRowsCount++;
+		}
+		intIndex++;
+	} while (strTempArr != "\\end");
+
+	var Pr = {
+		ctrPrp: this.Pr.ctrPr,
+		row: intRowsCount,
+		mcs: [{ count: intColsCount, mcJc: 0 }], //todo mcJc  0 = center;
+		plcHide: false,
+	};
+
+	var Matrix = new CMathMatrix(Pr);
+	FormArgument.Add_Element(Matrix);
+
+	for (var RowIndex = 0; RowIndex < intRowsCount; RowIndex++) {
+		for (var ColIndex = 0; ColIndex < intColsCount; ColIndex++) {
+			var MathContent = Matrix.getContentElement(RowIndex, ColIndex);
+			CLaTeXLexer(this, MathContent, ["&", "\\", "\\end"]);
+		}
+	}
+	this.RecipientSeveralAtom(3);
+};
+
+CLaTeXParser.prototype.CreateMatrix = function() {
+	
+}
+
+CLaTeXParser.prototype.CheckIsMatrix = function () {
+	return (
+		this.CheckElementSequence(["\\begin", "{", "matrix", "}"], true, 3) ||
+		this.CheckElementSequence(["\\begin", "{", "pmatrix", "}"], true, 3) ||
+		this.CheckElementSequence(["\\begin", "{", "bmatrix", "}"], true, 3) ||
+		this.CheckElementSequence(["\\begin", "{", "Bmatrix", "}"], true, 3) ||
+		this.CheckElementSequence(["\\begin", "{", "vmatrix", "}"], true, 3) ||
+		this.CheckElementSequence(["\\begin", "{", "Vmatrix", "}"], true, 3)
+	);
+};
+
+//Text
+CLaTeXParser.prototype.AddText = function (strFAtom, FormArgument) {
+	this.AddSymbol(strFAtom, FormArgument);
+};
+
+CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument) {
+	var strCode = this.arrLaTeXSymbols.get(strFAtom);
+
+	if (strCode) {
+		FormArgument.Add_Text(String.fromCharCode(strCode), this.Paragraph);
+	}
+
+	else {
+		if (strFAtom == ",")
+		{
+			FormArgument.Add_Text(", ", this.Paragraph);
+		}
+
+		else
+		{
+			FormArgument.Add_Text(strFAtom, this.Paragraph);
+		}
+	}
+};
+
+CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
+	if (this.GetBracetCode.get(strFAtom)) {
+		return false;
+	}
+
+	else if (
+		strFAtom == "matrix" &&
+		strFAtom == "\\left" &&
+		strFAtom == "\\right" &&
+		strFAtom != undefined &&
+		strFAtom != '(' &&
+		strFAtom != ')' 
+	) {
+		return false
+	}
+
+	return true
+};
 
 
 /**
@@ -1828,8 +1807,8 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 	
-		else if (Parser.GetTypeOfFrac.get(strFAtom) != null) {
-			Parser.AddFraction(FormArgument, strFAtom)
+		else if (Parser.GetTypeOfFrac.get(strFAtom) != null || Parser.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)) {
+			Parser.AddFraction(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
@@ -1846,50 +1825,51 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		else if (strFAtom == "\\bmod") {
 			Parser.AddText(" mod ", FormArgument);
 			intFAtoms++;
-		} else if (strFAtom == "\\pmod") {
+		} 
+		
+		else if (strFAtom == "\\pmod") {
 			Parser.AddPMod(FormArgument);
 			intFAtoms++;
-		} else if (Parser.CheckIsLargeOperator.get(strFAtom)) {
+		} 
+		
+		else if (Parser.CheckIsLargeOperator.get(strFAtom)) {
 			Parser.AddLargeOperator(FormArgument, strFAtom);
 			intFAtoms++;
-		} else if (Parser.GetCountOfIntegral.get(strFAtom)) {
-			Parser.AddIntegral(FormArgument);
+		} 
+		
+		else if (Parser.GetCountOfIntegral.get(strFAtom)) {
+			Parser.AddIntegral(FormArgument, strFAtom);
 			intFAtoms++;
-		} else if (Parser.CheckIsAccent(strFAtom)) {
+		} 
+		
+		else if (Parser.CheckIsAccent(strFAtom)) {
 			Parser.AddAccent(FormArgument, strFAtom);
 			intFAtoms++;
-		} else if (Parser.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)) {
-			Parser.AddInlineFraction(FormArgument);
-			intFAtoms++;
-		} else if (Parser.CheckIsMatrix()) {
+		} 
+		
+		else if (Parser.CheckIsMatrix()) {
 			Parser.AddMatrix(FormArgument);
 			intFAtoms++;
 		} 
 		
 		else if (
 			Parser.CheckIsBrackets(strFAtom) && 
-			Parser.GetFutureAtom(-2) != '\\sqrt' && 
-			Parser.GetFutureAtom(-1) != '\\pmod' &&
-			Parser.GetFutureAtom(-2) != '_' &&
-			Parser.GetFutureAtom(-2) != '^'
+			Parser.CheckFutureAtom(-2) != '\\sqrt' && 
+			Parser.CheckFutureAtom(-1) != '\\pmod' &&
+			Parser.CheckFutureAtom(-2) != '_' &&
+			Parser.CheckFutureAtom(-2) != '^'
 		) 
 		{
 			Parser.AddBracets(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 		
-		else if (Parser.CheckDegreeAndIndexForLexer()) {
-			//Parser.AddDegreeForText(FormArgument, strFAtom);
+		else if (Parser.CheckSupSubForLexer()) {
 			Parser.AddScriptForText(FormArgument, strFAtom);
 			intFAtoms++;
-		} else if (
-			Parser.CheckIsText(strFAtom) && 
-			!Parser.GetBracetCode.get(strFAtom) && 
-			strFAtom != undefined &&
-			strFAtom != '(' &&
-			strFAtom != ')'
-			
-			) {
+		} 
+		
+		else if (Parser.CheckIsText(strFAtom)) {
 			Parser.AddText(strFAtom, FormArgument);
 			intFAtoms++;
 		}
