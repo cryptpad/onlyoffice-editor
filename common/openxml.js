@@ -131,7 +131,6 @@
 		return this;
 	};
 	ContentTypes.prototype.toXml = function(writer) {
-		writer.Seek(0);
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("Types");
 		writer.WriteXmlString(" xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"");
@@ -153,7 +152,6 @@
 			}
 		}
 		writer.WriteXmlNodeEnd("Types");
-		return writer.GetDataUint8();
 	};
 	ContentTypes.prototype.add = function(partName, contentType) {
 		var exti = partName.lastIndexOf(".");
@@ -194,7 +192,6 @@
 		return this;
 	};
 	Rels.prototype.toXml = function(writer) {
-		writer.Seek(0);
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("Relationships");
 		writer.WriteXmlString(" xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"");
@@ -203,7 +200,6 @@
 			elem.toXml(writer, "Relationship");
 		});
 		writer.WriteXmlNodeEnd("Relationships");
-		return writer.GetDataUint8();
 	};
 	Rels.prototype.getNextRId = function() {
 		return "rId" + (this.nextRId++);
@@ -292,7 +288,7 @@
 		var changed = this.cntTypes.add(uri, contentType);
 		if(changed) {
 			this.zip.removeFile("[Content_Types].xml");
-			this.zip.addFile("[Content_Types].xml", this.getXmlBytes(this.cntTypes, this.xmlWriter));
+			this.zip.addFile("[Content_Types].xml", this.getXmlBytes(this.getRootPart(), this.cntTypes, this.xmlWriter));
 		}
 		return newPart;
 	}
@@ -369,10 +365,18 @@
 		}
 		return ct;
 	};
-	openXml.OpenXmlPackage.prototype.getXmlBytes = function(data, writer) {
-		writer.Seek(0);
+	openXml.OpenXmlPackage.prototype.getXmlBytes = function(part, data, writer) {
+		var oldPart = writer.context.part;
+		writer.context.part = part;
+
+		var oldPos = writer.GetCurPosition();
 		data.toXml(writer);
-		return writer.GetDataUint8();
+		var pos = writer.GetCurPosition();
+		var res = writer.GetDataUint8(oldPos, pos - oldPos);
+
+		writer.Seek(oldPos);
+		writer.context.part = oldPart;
+		return res;
 	};
 
 	/*********** OpenXmlPart ***********/
@@ -403,10 +407,14 @@
 		var newPart = this.pkg.addPartWithoutRels(uri, type.contentType);
 		//update rels
 		var target = this.pkg.getRelativeUri(this.uri, uri);
-		this.addRelationship(type.relationType, target);
-		return newPart;
+		var rId = this.addRelationship(type.relationType, target);
+		return {part: newPart, rId: rId};
 	}
 	openXml.OpenXmlPart.prototype.setData = function (data) {
+		this.pkg.zip.addFile(this.getUriRelative(), data);
+	}
+	openXml.OpenXmlPart.prototype.setDataXml = function (xmlObj, writer) {
+		var data = this.pkg.getXmlBytes(this, xmlObj, writer);
 		this.pkg.zip.addFile(this.getUriRelative(), data);
 	}
 	openXml.OpenXmlPart.prototype.addRelationship = function (relationshipType, target, targetMode) {
@@ -417,7 +425,7 @@
 		rels.rels.push(newRel);
 		this.pkg.removePart(relsFilename);
 		var relsPart = this.pkg.addPartWithoutRels(relsFilename, null);
-		relsPart.setData(this.pkg.getXmlBytes(rels, this.pkg.xmlWriter));
+		relsPart.setData(this.pkg.getXmlBytes(relsPart, rels, this.pkg.xmlWriter));
 		return rId;
 	}
 

@@ -522,9 +522,15 @@
 				res[i] = this.data[i];
 			return res;
 		}
-		this.GetDataUint8   = function()
+		this.GetDataUint8   = function(pos, len)
 		{
-			return this.data.slice(0, this.GetCurPosition());
+			if (undefined === pos) {
+				pos = 0;
+			}
+			if (undefined === len) {
+				len = this.GetCurPosition() - pos;
+			}
+			return this.data.slice(pos, pos + len);
 		}
 		this.GetCurPosition     = function()
 		{
@@ -951,6 +957,95 @@
 		{
 			this.WriteXmlAttributeString(name, val.toString());
 		};
+		this.WriteXmlNullable = function(val)
+		{
+			if (val) {
+				val.toXml(this);
+			}
+		};
+		this.WriteXmlNullableAttributeString = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlAttributeString(name, val)
+			}
+		};
+		this.WriteXmlNullableAttributeStringEncode = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlAttributeStringEncode(name, val)
+			}
+		};
+		this.WriteXmlNullableAttributeBool = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlAttributeBool(name, val)
+			}
+		};
+		this.WriteXmlNullableAttributeNumber = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlAttributeNumber(name, val)
+			}
+		};
+		this.WriteXmlAttributeBoolIfTrue = function(name, val)
+		{
+			if (val) {
+				this.WriteXmlAttributeBool(name, val)
+			}
+		};
+		this.WriteXmlValueString = function(name, val)
+		{
+			this.WriteXmlNodeStart(name);
+			this.WriteXmlAttributesEnd();
+			this.WriteXmlString(val);
+			this.WriteXmlNodeEnd(name);
+		};
+		this.WriteXmlValueStringEncode = function(name, val)
+		{
+			this.WriteXmlNodeStart(name);
+			this.WriteXmlAttributesEnd();
+			this.WriteXmlStringEncode(val);
+			this.WriteXmlNodeEnd(name);
+		};
+		this.WriteXmlValueBool = function(name, val)
+		{
+			this.WriteXmlNodeStart(name);
+			this.WriteXmlAttributesEnd();
+			this.WriteXmlStringBool(val);
+			this.WriteXmlNodeEnd(name);
+		};
+		this.WriteXmlValueNumber = function(name, val)
+		{
+			this.WriteXmlNodeStart(name);
+			this.WriteXmlAttributesEnd();
+			this.WriteXmlNumber(val);
+			this.WriteXmlNodeEnd(name);
+		};
+		this.WriteXmlNullableValueString = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlValueString(name, val)
+			}
+		};
+		this.WriteXmlNullableValueStringEncode = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlValueStringEncode(name, val)
+			}
+		};
+		this.WriteXmlNullableValueBool = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlValueBool(name, val)
+			}
+		};
+		this.WriteXmlNullableValueNumber = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlValueNumber(name, val)
+			}
+		};
+
 		this.XlsbStartRecord = function(type, len) {
 			//Type
 			if (type < 0x80) {

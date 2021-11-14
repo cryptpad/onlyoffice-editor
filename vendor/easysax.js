@@ -1523,12 +1523,15 @@ XmlParserContext.prototype.initFromWS = function(ws) {
 function XmlWriterContext(){
     //common
     this.zip = null;
+    this.part = null;
     //docx
     //xlsx
+    this.wb = null;
     this.sheetIds = [];
     this.sharedStrings = null;
     this.isCopyPaste = null;
     this.stylesForWrite = new AscCommonExcel.StylesForWrite();
+    this.oSharedStrings = {index: 0, strings: {}};
     //pptx
 }
 XmlWriterContext.prototype.initFromWS = function(ws) {

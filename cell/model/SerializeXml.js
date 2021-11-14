@@ -41,31 +41,36 @@
 
 	AscCommonExcel.Workbook.prototype.toZip = function () {
 		var res = null;
+		var context = new XmlWriterContext();
+		context.wb = this;
 		var memory = new AscCommon.CMemory();
-		memory.context = new XmlWriterContext();
+		memory.context = context;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
 		if (jsZipWrapper.create()) {
 			var filePart = new AscCommon.openXml.OpenXmlPackage(jsZipWrapper, memory);
-
-			memory.Seek(0);
-			memory.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x15" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><fileVersion appName="xl" lastEdited="6" lowestEdited="6" rupBuild="14420"/><workbookPr defaultThemeVersion="153222"/><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="25200" windowHeight="11985"/></bookViews><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="152511"/><extLst><ext uri="{140A7094-0E35-4892-8432-C4D2E57EDEB5}" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><x15:workbookPr chartTrackingRefBase="1"/></ext></extLst></workbook>');
-			sampleData = memory.GetDataUint8();
+			var wbXml = new CT_Workbook(this);
 			var wbPart = filePart.addPart(AscCommon.openXml.Types.workbook);
-			wbPart.setData(sampleData);
-			this.forEach(function(ws){
-				var wsPart = wbPart.addPart(AscCommon.openXml.Types.worksheet);
-				wsPart.setData(filePart.getXmlBytes(ws, memory));
-			});
+			wbPart.part.setDataXml(wbXml, memory);
 			memory.Seek(0);
-			memory.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office Theme"><a:themeElements><a:clrScheme name="Office"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="44546A"/></a:dk2><a:lt2><a:srgbClr val="E7E6E6"/></a:lt2><a:accent1><a:srgbClr val="4472C4"/></a:accent1><a:accent2><a:srgbClr val="ED7D31"/></a:accent2><a:accent3><a:srgbClr val="A5A5A5"/></a:accent3><a:accent4><a:srgbClr val="FFC000"/></a:accent4><a:accent5><a:srgbClr val="5B9BD5"/></a:accent5><a:accent6><a:srgbClr val="70AD47"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="Office"><a:majorFont><a:latin typeface="Calibri Light" panose="020F0302020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游ゴシック Light"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线 Light"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Times New Roman"/><a:font script="Hebr" typeface="Times New Roman"/><a:font script="Thai" typeface="Angsana New"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="MoolBoran"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Times New Roman"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:majorFont><a:minorFont><a:latin typeface="Calibri" panose="020F0502020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游明朝"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Arial"/><a:font script="Hebr" typeface="Arial"/><a:font script="Thai" typeface="Cordia New"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="DaunPenh"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Arial"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:minorFont></a:fontScheme><a:fmtScheme name="Office"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:lumMod val="110000"/><a:satMod val="105000"/><a:tint val="67000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="103000"/><a:tint val="73000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="109000"/><a:tint val="81000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:satMod val="103000"/><a:lumMod val="102000"/><a:tint val="94000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:satMod val="110000"/><a:lumMod val="100000"/><a:shade val="100000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="99000"/><a:satMod val="120000"/><a:shade val="78000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:fillStyleLst><a:lnStyleLst><a:ln w="6350" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="12700" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="19050" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst><a:outerShdw blurRad="57150" dist="19050" dir="5400000" algn="ctr" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="63000"/></a:srgbClr></a:outerShdw></a:effectLst></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"><a:tint val="95000"/><a:satMod val="170000"/></a:schemeClr></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:tint val="93000"/><a:satMod val="150000"/><a:shade val="98000"/><a:lumMod val="102000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:tint val="98000"/><a:satMod val="130000"/><a:shade val="90000"/><a:lumMod val="103000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:shade val="63000"/><a:satMod val="120000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/><a:extLst><a:ext uri="{05A4C25C-085E-4340-85A3-A5531E510DB2}"><thm15:themeFamily xmlns:thm15="http://schemas.microsoft.com/office/thememl/2012/main" name="Office Theme" id="{62F939B6-93AF-4DB8-9C6B-D6C7DFDC589F}" vid="{4A3C46E8-61CC-4603-A589-7422A47A8E4A}"/></a:ext></a:extLst></a:theme>');
-			var sampleData = memory.GetDataUint8();
-			var themePart = wbPart.addPart(AscCommon.openXml.Types.theme);
-			themePart.setData(sampleData);
-			memory.Seek(0);
+
+			if (context.oSharedStrings.index > 0) {
+				var sharedString = new CT_SharedStrings();
+				sharedString.initFromMap(this, context.oSharedStrings);
+				var sharedStringPart = wbPart.part.addPart(AscCommon.openXml.Types.sharedStringTable);
+				sharedStringPart.part.setDataXml(sharedString, memory);
+				memory.Seek(0);
+			}
 			memory.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"><fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="204"/><scheme val="minor"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="0"/><tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/><extLst><ext uri="{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:slicerStyles defaultSlicerStyle="SlicerStyleLight1"/></ext><ext uri="{9260A510-F301-46a8-8635-F512D64BE5F5}" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><x15:timelineStyles defaultTimelineStyle="TimeSlicerStyleLight1"/></ext></extLst></styleSheet>');
 			sampleData = memory.GetDataUint8();
-			var stylePart = wbPart.addPart(AscCommon.openXml.Types.workbookStyles);
-			stylePart.setData(sampleData);
+			var stylePart = wbPart.part.addPart(AscCommon.openXml.Types.workbookStyles);
+			stylePart.part.setData(sampleData);
+			memory.Seek(0);
+
+			memory.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office Theme"><a:themeElements><a:clrScheme name="Office"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="44546A"/></a:dk2><a:lt2><a:srgbClr val="E7E6E6"/></a:lt2><a:accent1><a:srgbClr val="4472C4"/></a:accent1><a:accent2><a:srgbClr val="ED7D31"/></a:accent2><a:accent3><a:srgbClr val="A5A5A5"/></a:accent3><a:accent4><a:srgbClr val="FFC000"/></a:accent4><a:accent5><a:srgbClr val="5B9BD5"/></a:accent5><a:accent6><a:srgbClr val="70AD47"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="Office"><a:majorFont><a:latin typeface="Calibri Light" panose="020F0302020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游ゴシック Light"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线 Light"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Times New Roman"/><a:font script="Hebr" typeface="Times New Roman"/><a:font script="Thai" typeface="Angsana New"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="MoolBoran"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Times New Roman"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:majorFont><a:minorFont><a:latin typeface="Calibri" panose="020F0502020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游明朝"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Arial"/><a:font script="Hebr" typeface="Arial"/><a:font script="Thai" typeface="Cordia New"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="DaunPenh"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Arial"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:minorFont></a:fontScheme><a:fmtScheme name="Office"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:lumMod val="110000"/><a:satMod val="105000"/><a:tint val="67000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="103000"/><a:tint val="73000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="109000"/><a:tint val="81000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:satMod val="103000"/><a:lumMod val="102000"/><a:tint val="94000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:satMod val="110000"/><a:lumMod val="100000"/><a:shade val="100000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="99000"/><a:satMod val="120000"/><a:shade val="78000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:fillStyleLst><a:lnStyleLst><a:ln w="6350" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="12700" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="19050" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst><a:outerShdw blurRad="57150" dist="19050" dir="5400000" algn="ctr" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="63000"/></a:srgbClr></a:outerShdw></a:effectLst></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"><a:tint val="95000"/><a:satMod val="170000"/></a:schemeClr></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:tint val="93000"/><a:satMod val="150000"/><a:shade val="98000"/><a:lumMod val="102000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:tint val="98000"/><a:satMod val="130000"/><a:shade val="90000"/><a:lumMod val="103000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:shade val="63000"/><a:satMod val="120000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/><a:extLst><a:ext uri="{05A4C25C-085E-4340-85A3-A5531E510DB2}"><thm15:themeFamily xmlns:thm15="http://schemas.microsoft.com/office/thememl/2012/main" name="Office Theme" id="{62F939B6-93AF-4DB8-9C6B-D6C7DFDC589F}" vid="{4A3C46E8-61CC-4603-A589-7422A47A8E4A}"/></a:ext></a:extLst></a:theme>');
+			var sampleData = memory.GetDataUint8();
+			var themePart = wbPart.part.addPart(AscCommon.openXml.Types.theme);
+			themePart.part.setData(sampleData);
+			memory.Seek(0);
 
 			res = jsZipWrapper.save();
 		}
@@ -92,7 +97,7 @@
 			while (reader.ReadNextSiblingNode(depth)) {
 				var name = reader.GetNameNoNS();
 				if ("sheets" === name) {
-					var sheets = new CT_Sheets();
+					var sheets = new CT_Sheets(this.wb);
 					sheets.fromXml(reader);
 					this.sheets = sheets.sheets
 				} else if ("pivotCaches" === name) {
@@ -112,15 +117,15 @@
 		writer.WriteXmlNodeStart('workbookPr');
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNodeStart('bookViews');
+		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNodeStart('workbookView');
 		if (null != this.wb.nActive) {
 			writer.WriteXmlAttributeNumber("activeTab", this.wb.nActive);
 		}
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNodeEnd('bookViews');
-		if (this.sheets) {
-			this.sheets.toXml(writer, "sheets");
-		}
+		var sheetsXml = new CT_Sheets(this.wb);
+		sheetsXml.toXml(writer);
 		writer.WriteXmlNodeStart('calcPr');
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNodeEnd("workbook");
@@ -163,7 +168,7 @@
 		writer.WriteXmlString('<sheetFormatPr defaultRowHeight="15" x14ac:dyDescent="0.25"/>');
 		writer.WriteXmlNodeStart('sheetData');
 		writer.WriteXmlAttributesEnd();
-		//this.toXmlSheetData(writer);
+		this.toXmlSheetData(writer);
 		writer.WriteXmlNodeEnd("sheetData");
 		writer.WriteXmlNodeEnd("worksheet");
 	};
@@ -204,27 +209,27 @@
 				tempRow.toXml(writer);
 				curRow = tempRow.getIndex();
 			}
-
-			//готовим ячейку к записи
-			var nXfsId;
-			var cellXfs = cell.xfs;
-			nXfsId = oThis.stylesForWrite.add(cell.xfs);
-
 			//сохраняем как и Excel даже пустой стиль(нужно чтобы убрать стиль строки/колонки)
-			if (null != cellXfs || false == cell.isNullText()) {
-				// var formulaToWrite;
-				// if (cell.isFormula() && !(isCopyPaste && ws.bIgnoreWriteFormulas)) {
-				// 	formulaToWrite = oThis.PrepareFormulaToWrite(cell);
-				// }
+			if (null != cell.xfs || false == cell.isNullText()) {
 				cell.toXml(writer);
-				cell.toXLSB(oThis.memory, nXfsId, formulaToWrite, oThis.oSharedStrings);
 			}
 		}, (ws.bExcludeHiddenRows && isCopyPaste));
-		if (isFirstRow) {
-			isFirstRow = false;
-		} else {
-			writer.WriteXmlNodeEnd("row");
-		}
+		writeEndRow();
+	};
+	AscCommonExcel.Row.prototype.toXml = function(writer) {
+		var context = writer.context;
+		var s = context.stylesForWrite.add(this.xfs) || null;
+		var outlineLevel = this.outlineLevel > 0 ? this.outlineLevel : null;
+
+		writer.WriteXmlNodeStart("row");
+		writer.WriteXmlAttributeNumber("r", this.index+1);
+		writer.WriteXmlNullableAttributeNumber("s", s);
+		writer.WriteXmlNullableAttributeNumber("ht", this.h);
+		writer.WriteXmlAttributeBoolIfTrue("hidden", this.getHidden());
+		writer.WriteXmlAttributeBoolIfTrue("customHeight", this.getCustomHeight());
+		writer.WriteXmlNullableAttributeNumber("outlineLevel", outlineLevel);
+		writer.WriteXmlAttributeBoolIfTrue("collapsed", this.getCollapsed());
+		writer.WriteXmlAttributesEnd();
 	};
 	AscCommonExcel.Cell.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
@@ -293,50 +298,63 @@
 		}
 	};
 	AscCommonExcel.Cell.prototype.toXml = function(writer) {
-		var ref = CellBase.prototype.toRefA1(this.nRow, this.nCol);
-		var style;
-		var type;
-		writer.WriteXmlString("c");
+		var context = writer.context;
+		var ws = this.ws;
+		var ref = AscCommon.CellBase.prototype.toRefA1(this.nRow, this.nCol);
+		var s = context.stylesForWrite.add(this.xfs) || null;
+		var formulaToWrite = null;
+		if (this.isFormula() && !(context.isCopyPaste && ws.bIgnoreWriteFormulas)) {
+			formulaToWrite = ws.PrepareFormulaToWrite(this);
+		}
+		var text = null;
+		var number = null;
+		var type = null;
+		switch (this.type) {
+			case CellValueType.String:
+				type = "s";
+				if (formulaToWrite) {
+					text = this.text;
+				} else {
+					var textIndex = this.getTextIndex();
+					if (null !== textIndex) {
+						var index = context.oSharedStrings.strings[textIndex];
+						if (undefined === index) {
+							index = context.oSharedStrings.index++;
+							context.oSharedStrings.strings[textIndex] = index;
+						}
+						number = index;
+					}
+				}
+				break;
+			case CellValueType.Error:
+				type = "e";
+				text = this.text;
+				break;
+			case CellValueType.Bool:
+				type = "b";
+				number = this.number;
+				break;
+			default:
+				number = this.number;
+				break;
+		}
+		writer.WriteXmlNodeStart("c");
 		writer.WriteXmlAttributeString("r", ref);
-		writer.WriteXmlAttributeString("s", style);
-		writer.WriteXmlAttributeString("t", type);
-		if(!this.isNullText()) {
+		writer.WriteXmlNullableAttributeNumber("s", s);
+		writer.WriteXmlNullableAttributeString("t", type);
+		if (!this.isNullText()) {
 			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlNullableValueString("f", formulaToWrite);
+			if(null !== text) {
+				writer.WriteXmlValueString("v", text);
+			} else if(null !== number) {
+				writer.WriteXmlValueNumber("v", number);
+			}
 			writer.WriteXmlNodeEnd("c");
 
 		} else {
 			writer.WriteXmlAttributesEnd(true);
 		}
-
-
-
-		// WritingStringNullableAttrInt(L"s", m_oStyle, *m_oStyle);
-		// if(m_oType.IsInit() && SimpleTypes::Spreadsheet::celltypeNumber != m_oType->GetValue())
-		// {
-		// 	writer.WriteString(L" t=\"");
-		// 	writer.WriteString(m_oType->ToString());
-		// 	writer.WriteString(L"\"");
-		// }
-		// WritingStringNullableAttrInt(L"cm", m_oCellMetadata, m_oCellMetadata->GetValue());
-		// WritingStringNullableAttrInt(L"vm", m_oValueMetadata, m_oValueMetadata->GetValue());
-		// WritingStringNullableAttrBool(L"ph", m_oShowPhonetic);
-		// if(m_oFormula.IsInit() || m_oRichText.IsInit() || m_oValue.IsInit())
-		// {
-		// 	writer.WriteString(_T(">"));
-		// 	if(m_oFormula.IsInit())
-		// 		m_oFormula->toXML(writer);
-		// 	if(m_oRichText.IsInit())
-		// 	{
-		// 		writer.WriteString(_T("<is>"));
-		// 		m_oRichText->toXML2(writer);
-		// 		writer.WriteString(_T("</is>"));
-		// 	}
-		// 	if(m_oValue.IsInit())
-		// 		m_oValue->toXML2(writer, _T("v"));
-		// 	writer.WriteString(_T("</c>"));
-		// }
-		// else
-		// 	writer.WriteString(_T("/>"));
 	};
 
 	function CT_DrawingWS() {
@@ -369,6 +387,15 @@
 	function CT_SharedStrings() {
 		this.sharedStrings = [];
 	}
+	CT_SharedStrings.prototype.initFromMap = function(wb, oSharedStrings) {
+		for (var i in oSharedStrings.strings) {
+			if (oSharedStrings.strings.hasOwnProperty(i)){
+				var from = parseInt(i);
+				var to = oSharedStrings.strings[i];
+				this.sharedStrings[to] = wb.sharedStrings.get(from);
+			}
+		}
+	};
 	CT_SharedStrings.prototype.fromXml = function(reader) {
 		if (!reader.ReadNextNode()) {
 			return;
@@ -398,6 +425,22 @@
 		}
 		reader.GetContext().sharedStrings = this.sharedStrings;
 	};
+	CT_SharedStrings.prototype.toXml = function(writer) {
+		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+		writer.WriteXmlNodeStart("sst");
+		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"');
+		writer.WriteXmlAttributeNumber("count", this.sharedStrings.length);
+		writer.WriteXmlAttributeNumber("uniqueCount", this.sharedStrings.length);
+		writer.WriteXmlAttributesEnd();
+
+		var si = new CT_Si();
+		this.sharedStrings.forEach(function(elem) {
+			si.clean();
+			si.text = elem;
+			si.toXml(writer);
+		});
+		writer.WriteXmlNodeEnd("sst");
+	};
 	function CT_Si() {
 		this.text = null;
 		this.multiText = null;
@@ -415,6 +458,17 @@
 				this.text = reader.GetTextDecodeXml();
 			}
 		}
+	};
+	CT_Si.prototype.toXml = function(writer) {
+		writer.WriteXmlNodeStart("si");
+		writer.WriteXmlAttributesEnd();
+		if (null !== this.text) {
+			writer.WriteXmlValueString("t", this.text);
+		} else if (null !== this.multiText) {
+			//todo
+			//writer.WriteXmlValueString("r", this.multiText);
+		}
+		writer.WriteXmlNodeEnd("si");
 	};
 
 	function CT_PivotCaches() {
@@ -461,7 +515,8 @@
 			}
 		}
 	};
-	function CT_Sheets() {
+	function CT_Sheets(wb) {
+		this.wb = wb;
 		this.sheets = [];
 	}
 	CT_Sheets.prototype.fromXml = function(reader) {
@@ -474,13 +529,43 @@
 			}
 		}
 	};
+	CT_Sheets.prototype.toXml = function(writer) {
+		var t = this;
+		var context = writer.context;
+		var index = 1;
+		this.wb.forEach(function(ws) {
+			var sheetXml = new CT_Sheet();
+			var wsPart = context.part.addPart(AscCommon.openXml.Types.worksheet);
+			wsPart.part.setDataXml(ws, writer);
+			sheetXml.id = wsPart.rId;
+			sheetXml.sheetId = index++;
+			sheetXml.name = ws.getName();
+			t.sheets.push(sheetXml);
+			context.sheetIds[ws.getId()] = sheetXml.sheetId;
+		}, context.isCopyPaste);
+		writer.WriteXmlNodeStart("sheets");
+		writer.WriteXmlAttributesEnd();
+		this.sheets.forEach(function(sheetXml) {
+			sheetXml.toXml(writer);
+		}, context.isCopyPaste);
+		writer.WriteXmlNodeEnd("sheets");
+	};
 	function CT_Sheet() {
 		//Attributes
+		this.name = null;
+		this.sheetId = null;
 		this.id = null;
 	}
 	CT_Sheet.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
+	};
+	CT_Sheet.prototype.toXml = function(writer) {
+		writer.WriteXmlNodeStart("sheet");
+		writer.WriteXmlNullableAttributeString("name", this.name);
+		writer.WriteXmlNullableAttributeNumber("sheetId", this.sheetId);
+		writer.WriteXmlNullableAttributeString("r:id", this.id);
+		writer.WriteXmlAttributesEnd(true);
 	};
 	CT_Sheet.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
