@@ -6927,6 +6927,33 @@
 						ordinalText.arrAnswer = newAnswerArr;
 						break;
 					}
+					case 'lv-LV': {
+						var alphaBet = {
+							'viens': 'pirmais',
+							'divi': 'otrais',
+							'trīs': 'trešais',
+							'četri': 'ceturtais',
+							'pieci': 'piektais',
+							'seši': 'sestais',
+							'septiņi': 'septītais',
+							'astoņi': 'astotais',
+							'deviņi': 'devītais',
+						};
+						var arrWithDigits = ordinalText.arrAnswer;
+						if (nValue >= 1000) {
+							for (var i = 0; i < arrWithDigits.length; i += 1) {
+								if (arrWithDigits[i] === 'tūkstotis' || arrWithDigits[i] === 'tūkstoši') {
+									arrWithDigits[i] = 'tūkstoš';
+								}
+							}
+						}
+						if (alphaBet[arrWithDigits[arrWithDigits.length - 1]]) {
+							arrWithDigits[arrWithDigits.length - 1] = alphaBet[arrWithDigits[arrWithDigits.length - 1]];
+						} else {
+							arrWithDigits[arrWithDigits.length - 1] += 'ais';
+						}
+						break;
+					}
 					case 'uk-UA':
 					case 'ru-RU': {
 						var alphaBet = {
