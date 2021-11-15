@@ -658,14 +658,10 @@ CLaTeXParser.prototype.CheckFutureAtom = function (n) {
 };
 
 CLaTeXParser.prototype.ExitFromLexer = function (strFAtom, exitIfSee) {
-	if (exitIfSee && typeof exitIfSee != "number" && strFAtom == exitIfSee)
-	{
-		return true;
-	} 
-	
-	else {
-		return false;
-	}
+	return (
+		(exitIfSee && typeof exitIfSee != "number" && strFAtom == exitIfSee) ||
+		(exitIfSee && Array.isArray(exitIfSee) && exitIfSee.includes(strFAtom))
+	)
 };
 
 CLaTeXParser.prototype.CreateLitleBox = function (FormArgument) {
@@ -908,6 +904,12 @@ CLaTeXParser.prototype.GetTypeOfFrac = new Map([
 	['\\dfrac', 'DEFAULT_FRACTION'], // todo dfrac
 ]);
 
+CLaTeXParser.prototype.CheckIsFractionLexer = function(strFAtom) {
+	return (
+		this.GetTypeOfFrac.get(strFAtom) != null || 
+		this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)
+	)
+}
 //Limit
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	var typeOfLimit = this.GetTypeOfLimit.get(strFAtom);
@@ -1365,6 +1367,16 @@ CLaTeXParser.prototype.CheckIsBrackets = function (strFAtom) {
 	}
 };
 
+CLaTeXParser.prototype.CheckBraketsLatex = function(strFAtom) {
+	return (
+		this.CheckIsBrackets(strFAtom) &&
+		this.CheckFutureAtom(-2) != '\\sqrt' &&
+		this.CheckFutureAtom(-1) != '\\pmod' &&
+		this.CheckFutureAtom(-2) != '_' &&
+		this.CheckFutureAtom(-2) != '^'
+	)
+}
+
 //Binom
 CLaTeXParser.prototype.AddBinom = function (FormArgument) {
 	var Delimiter = this.AddBracet(FormArgument);
@@ -1630,111 +1642,120 @@ CLaTeXParser.prototype.GetTypeOfIntegral = new Map([
 	["\\oiiint", true],
 ]);
 
-//Matrix 
+//Matrix todo: check variant of matrix
 CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
+	this.GetNextAtom(); // skip {
+	var typeOfMatrix = this.GetNextAtom();
+	this.GetNextAtom(); // skip }
+
+	var arrTempMatrixData = this.CreateMatrix(FormArgument, typeOfMatrix);
 	
-	var typeOfMatrix = this.CheckFutureAtom(-2);
-	console.log(typeOfMatrix)
+	var Matrix = arrTempMatrixData[0];
+	var arrExitData = arrTempMatrixData[1];
+	var intRowsCount = arrTempMatrixData[2];
+	var intColsCount = arrTempMatrixData[3];
+
+	this.FillMatrixContent(
+		Matrix,
+		arrExitData,
+		intRowsCount,
+		intColsCount
+	);
+
+	this.RecipientSeveralAtom(3);
+};
+
+CLaTeXParser.prototype.CreateMatrix = function(FormArgument, typeOfMatrix) {
+	var Bracets = []
+
 	if (typeOfMatrix == "pmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("("),
-			this.GetBracetCode.get(")")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
+		Bracets.push(this.GetBracetCode.get("("), this.GetBracetCode.get(")"))
 	}
 	else if (typeOfMatrix == "bmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("["),
-			this.GetBracetCode.get("]")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
+		Bracets.push(this.GetBracetCode.get("["), this.GetBracetCode.get("]"))
 	}
 	else if (typeOfMatrix == "Bmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("{"),
-			this.GetBracetCode.get("}")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
+		Bracets.push(this.GetBracetCode.get("{"), this.GetBracetCode.get("}"))
 	}
 	else if (typeOfMatrix == "vmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("|"),
-			this.GetBracetCode.get("|")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
+		Bracets.push(this.GetBracetCode.get("|"), this.GetBracetCode.get("|"))
 	}
 	else if (typeOfMatrix == "Vmatrix") {
-		var Delimiter = FormArgument.Add_DelimiterEx(
-			this.Pr.ctrPr,
-			1,
-			[null],
-			this.GetBracetCode.get("\\|"),
-			this.GetBracetCode.get("\\|")
-		);
-		FormArgument = Delimiter.getElementMathContent(0);
+		Bracets.push(this.GetBracetCode.get("\\|"), this.GetBracetCode.get("\\|"))
 	}
-
+	
 	var intColsCount = 1;
 	var intRowsCount = 1;
 	var strTempArr;
 	var intIndex = 0;
 
+	var arrBufferExit = [];
 	do {
 		strTempArr = this.CheckFutureAtom(intIndex);
+		if (strTempArr == "&") {
+			arrBufferExit.push('&');
+		}
 		if (strTempArr == "&" && intRowsCount == 1) {
 			intColsCount++;
 		}
 		if (strTempArr == "\\") {
 			intRowsCount++;
+			arrBufferExit.push('\\');
 		}
 		intIndex++;
 	} while (strTempArr != "\\end");
+	arrBufferExit.push('\\end');
 
-	var Pr = {
-		ctrPrp: this.Pr.ctrPr,
-		row: intRowsCount,
-		mcs: [{ count: intColsCount, mcJc: 0 }], //todo mcJc  0 = center;
-		plcHide: false,
-	};
+	var Matrix = FormArgument.Add_MatrixWithBrackets(
+		Bracets[0],
+		Bracets[1],
+		this.Pr.ctrPrp,
+		intRowsCount,
+		intColsCount,
+		false,
+		[]
+	);
 
-	var Matrix = new CMathMatrix(Pr);
-	FormArgument.Add_Element(Matrix);
+	return[Matrix, arrBufferExit, intRowsCount, intColsCount];
+}
+
+CLaTeXParser.prototype.FillMatrixContent = function(Matrix, arrExitData, intRowsCount, intColsCount) {
+	var intIndexOfExitBuffer = 0;
 
 	for (var RowIndex = 0; RowIndex < intRowsCount; RowIndex++) {
+		
 		for (var ColIndex = 0; ColIndex < intColsCount; ColIndex++) {
 			var MathContent = Matrix.getContentElement(RowIndex, ColIndex);
-			CLaTeXLexer(this, MathContent, ["&", "\\", "\\end"]);
+			this.StartLexer(MathContent, arrExitData[intIndexOfExitBuffer]);
+			intIndexOfExitBuffer++;
 		}
 	}
-	this.RecipientSeveralAtom(3);
-};
-
-CLaTeXParser.prototype.CreateMatrix = function() {
-	
 }
 
 CLaTeXParser.prototype.CheckIsMatrix = function () {
 	return (
-		this.CheckElementSequence(["\\begin", "{", "matrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "pmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "bmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "Bmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "vmatrix", "}"], true, 3) ||
-		this.CheckElementSequence(["\\begin", "{", "Vmatrix", "}"], true, 3)
+		this.CheckElementSequence(["\\begin", "{", "matrix", "}"], true) ||
+		this.CheckElementSequence(["\\begin", "{", "pmatrix", "}"], true) ||
+		this.CheckElementSequence(["\\begin", "{", "bmatrix", "}"], true) ||
+		this.CheckElementSequence(["\\begin", "{", "Bmatrix", "}"], true) ||
+		this.CheckElementSequence(["\\begin", "{", "vmatrix", "}"], true) ||
+		this.CheckElementSequence(["\\begin", "{", "Vmatrix", "}"], true)
 	);
 };
+
+//Array 
+// CLaTeXParser.prototype.AddArray = function(FormArgument) {
+// 	this.Pr.row = 4;
+// 	this.Pr.col = 4;
+// 	FormArgument.Add_EqArray(this.Pr, 2, []);
+// 	return;
+// }
+
+// CLaTeXParser.prototype.CheckIsArrayLatex = function () {
+// 	return (
+// 		this.CheckElementSequence(["\\begin", "{", "array", "}"], true)
+// 	);
+// };
 
 //Text
 CLaTeXParser.prototype.AddText = function (strFAtom, FormArgument) {
@@ -1784,7 +1805,7 @@ CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
 /**
  * @param Parser
  * @param FormArgument Функция в которую будет записываться контент.
- * @param exitIfSee Число элементов которые может обработать Lexer, или символ/массив символов при нахождении которых Lexer завершит работу.
+ * @param exitIfSee Число элементов которые может обработать функция, или символ при нахождении которых функция завершит работу.
  */
 function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 	//todo: update parser (y_0 y_1y_2y_3y_4)
@@ -1797,7 +1818,9 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		strFAtom = Parser.GetNextAtom();
 
 		//check
-		 if (Parser.ExitFromLexer(strFAtom, exitIfSee)){return};
+		if (Parser.ExitFromLexer(strFAtom, exitIfSee)) {
+			return
+		};
 
 		//construction
 		if (Parser.GetTypeOfFunction.get(strFAtom) != null) {
@@ -1805,7 +1828,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 	
-		else if (Parser.GetTypeOfFrac.get(strFAtom) != null || Parser.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)) {
+		else if (Parser.CheckIsFractionLexer(strFAtom)) {
 			Parser.AddFraction(FormArgument, strFAtom);
 			intFAtoms++;
 		}
@@ -1850,17 +1873,15 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		} 
 		
-		else if (
-			Parser.CheckIsBrackets(strFAtom) && 
-			Parser.CheckFutureAtom(-2) != '\\sqrt' && 
-			Parser.CheckFutureAtom(-1) != '\\pmod' &&
-			Parser.CheckFutureAtom(-2) != '_' &&
-			Parser.CheckFutureAtom(-2) != '^'
-		) 
-		{
+		else if (Parser.CheckBraketsLatex(strFAtom)) {
 			Parser.AddBracets(FormArgument, strFAtom);
 			intFAtoms++;
 		}
+
+		// else if (Parser.CheckIsArrayLatex()) {
+		// 	Parser.AddArray(FormArgument);
+		// 	return;
+		// }
 		
 		else if (Parser.CheckSupSubForLexer()) {
 			Parser.AddScriptForText(FormArgument, strFAtom);
@@ -1870,12 +1891,12 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		else if (Parser.CheckIsText(strFAtom)) {
 			Parser.AddText(strFAtom, FormArgument);
 			intFAtoms++;
-		}
+		};
 
+		//post check
 		if (typeof exitIfSee === "number" && intFAtoms >= exitIfSee) {
 			return;
 		}
-
 	} while (strFAtom != undefined);
 }
 
