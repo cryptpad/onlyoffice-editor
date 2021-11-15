@@ -431,7 +431,49 @@ var c_oAscSlideIterateType = {
 	Lt: 1,
 	Wd: 2
 };
-
+/** @enum {number} */
+var c_oAscBlendModeType = {
+	Darken:  0,
+	Lighten: 1,
+	Mult:    2,
+	Over:    3,
+	Screen:  4
+};
+/** @enum {number} */
+var c_oAscRectAlignType = {
+	b:   0,
+	bl:  1,
+	br:  2,
+	ctr: 3,
+	l:   4,
+	r:   5,
+	t:   6,
+	tl:  7,
+	tr:  8
+};
+/** @enum {number} */
+var c_oAscPresetShadowVal = {
+	shdw1:  0,
+	shdw2:  1,
+	shdw3:  2,
+	shdw4:  3,
+	shdw5:  4,
+	shdw6:  5,
+	shdw7:  6,
+	shdw8:  7,
+	shdw9:  8,
+	shdw10: 9,
+	shdw11: 10,
+	shdw12: 11,
+	shdw13: 12,
+	shdw14: 13,
+	shdw15: 14,
+	shdw16: 15,
+	shdw17: 16,
+	shdw18: 17,
+	shdw19: 18,
+	shdw20: 19
+};
 var c_oSerFormat = {
 	Version   : 1,
 	Signature : "PPTY"

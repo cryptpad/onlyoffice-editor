@@ -101,6 +101,79 @@
 		return mm / (25.4 / 72.0);
 	};
 
+	function GetRectAlgnStrType(nAlgnType)
+	{
+		var sAlgnType = undefined;
+		switch (nAlgnType) 
+		{
+			case c_oAscRectAlignType.b:
+				sAlgnType = "b";
+				break;
+			case c_oAscRectAlignType.bl:
+				sAlgnType = "bl";
+				break;
+			case c_oAscRectAlignType.br:
+				sAlgnType = "br";
+				break;
+			case c_oAscRectAlignType.ctr:
+				sAlgnType = "ctr";
+				break;
+			case c_oAscRectAlignType.l:
+				sAlgnType = "l";
+				break;
+			case c_oAscRectAlignType.r:
+				sAlgnType = "r";
+				break;
+			case c_oAscRectAlignType.t:
+				sAlgnType = "t";
+				break;
+			case c_oAscRectAlignType.tl:
+				sAlgnType = "tl";
+				break;
+			case c_oAscRectAlignType.tr:
+				sAlgnType = "tr";
+				break;
+		}
+
+		return sAlgnType;
+	};
+	function GetRectAlgnNumType(sAlgnType)
+	{
+		var nAlgnType = undefined;
+		switch (sAlgnType) 
+		{
+			case "b":
+				nAlgnType = c_oAscRectAlignType.b;
+				break;
+			case "bl":
+				nAlgnType = c_oAscRectAlignType.bl;
+				break;
+			case "br":
+				nAlgnType = c_oAscRectAlignType.br;
+				break;
+			case "ctr":
+				nAlgnType = c_oAscRectAlignType.ctr;
+				break;
+			case "l":
+				nAlgnType = c_oAscRectAlignType.l;
+				break;
+			case "r":
+				nAlgnType = c_oAscRectAlignType.r;
+				break;
+			case "t":
+				nAlgnType = c_oAscRectAlignType.t;
+				break;
+			case "tl":
+				nAlgnType = c_oAscRectAlignType.tl;
+				break;
+			case "tr":
+				nAlgnType = c_oAscRectAlignType.tr;
+				break;
+		}
+
+		return nAlgnType;
+	};
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// End of private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -354,12 +427,33 @@
 
 		if (oGraphicObj.isChart())
 			return this.SerChartSpace(oGraphicObj, aComplexFieldsToSave);
-		if (oGraphicObj.isImage())
+		else if (oGraphicObj.isImage())
 			return this.SerImage(oGraphicObj, aComplexFieldsToSave);
-		if (oGraphicObj.isShape())
-			return this.SerShape(oGraphicObj, aComplexFieldsToSave);
-		
+		else if (oGraphicObj.isShape())
+		{
+			if (oGraphicObj.constructor.name === "CConnectionShape")
+			{
+				var oShapeObj = this.SerShape(oGraphicObj, aComplexFieldsToSave);
+				oShapeObj.type = "connectShape";
+
+				return oShapeObj;
+			}
+			else
+				return this.SerShape(oGraphicObj, aComplexFieldsToSave);
+		}
+		else if (oGraphicObj.isTable())
+			return this.SerGraphicFrame(oGraphicObj);
+			
 		return null;
+	};
+	WriterToJSON.prototype.SerGraphicFrame = function(oGraphicFrame)
+	{
+		return {
+			graphic:          this.SerTable(oGraphicFrame.graphicObject),
+			nvGraphicFramePr: this.SerUniNvPr(oGraphicFrame.nvGraphicFramePr),
+			spPr:             this.SerSpPr(oGraphicFrame.spPr),
+			type:             "graphicFrame"
+		}
 	};
 	WriterToJSON.prototype.SerCNvPr = function(oCNvPr)
 	{
@@ -1172,76 +1266,14 @@
 			return oEffectLst;
 		
 		return {
-			blur: oEffectLst.blur ? 
-			{
-				grow: oEffectLst.blur.grow,
-				rad:  oEffectLst.blur.rad
-			} : oEffectLst.blur,
-
-			fillOverlay: oEffectLst.fillOverlay ? 
-			{
-				fill:  this.SerFill(oEffectLst.fillOverlay.fill),
-				blend: oEffectLst.fillOverlay.blend
-			} : oEffectLst.fillOverlay,
-
-			glow: oEffectLst.glow ? 
-			{
-				color: this.SerColor(oEffectLst.glow.color),
-				rad:   oEffectLst.glow.rad
-			} : oEffectLst.glow,
-
-			innerShdw: oEffectLst.innerShdw ? 
-			{
-				color:   this.SerColor(oEffectLst.innerShdw.color),
-				blurRad: oEffectLst.innerShdw.blurRad,
-				dir:     oEffectLst.innerShdw.dir,
-				dist:    oEffectLst.innerShdw.dist
-			} : oEffectLst.innerShdw,
-
-			outerShdw: oEffectLst.outerShdw ? 
-			{
-				color:        this.SerColor(oEffectLst.outerShdw.color),
-				algn:         oEffectLst.outerShdw.algn,
-				blurRad:      oEffectLst.outerShdw.blurRad,
-				dir:          oEffectLst.outerShdw.dir,
-				dist:         oEffectLst.outerShdw.dist,
-				kx:           oEffectLst.outerShdw.kx,
-				ky:           oEffectLst.outerShdw.ky,
-				rotWithShape: oEffectLst.outerShdw.rotWithShape,
-				sx:           oEffectLst.outerShdw.sx,
-				sy:           oEffectLst.outerShdw.sy
-			} : oEffectLst.outerShdw,
-
-			prstShdw: oEffectLst.prstShdw ? 
-			{
-				color: this.SerColor(oEffectLst.prstShdw.color),
-				dir:   oEffectLst.prstShdw.dir,
-				dist:  oEffectLst.prstShdw.dis,
-				prst:  oEffectLst.prstShdw.prst
-			} : oEffectLst.prstShdw,
-
-			reflection: oEffectLst.reflection ?
-			{
-				algn:         oEffectLst.reflection.algn,
-				blurRad:      oEffectLst.reflection.blurRad,
-				dir:          oEffectLst.reflection.dir,
-				dist:         oEffectLst.reflection.dist,
-				endA:         oEffectLst.reflection.endA,
-				endPos:       oEffectLst.reflection.endPos,
-				fadeDir:      oEffectLst.reflection.fadeDir,
-				kx:           oEffectLst.reflection.kx,
-				ky:           oEffectLst.reflection.ky,
-				rotWithShape: oEffectLst.reflection.rotWithShape,
-				stA:          oEffectLst.reflection.stA,
-				stPos:        oEffectLst.reflection.stPos,
-				sx:           oEffectLst.reflection.sx,
-				sy:           oEffectLst.reflection.sy
-			} : oEffectLst.reflection,
-
-			softEdge: oEffectLst.softEdge ? 
-			{
-				rad: oEffectLst.softEdge.rad
-			} : oEffectLst.softEdge
+			blur:        this.SerEffect(oEffectLst.blur),
+			fillOverlay: this.SerEffect(oEffectLst.fillOverlay),
+			glow:        this.SerEffect(oEffectLst.glow),
+			innerShdw:   this.SerEffect(oEffectLst.innerShdw),
+			outerShdw:   this.SerEffect(oEffectLst.outerShdw),
+			prstShdw:    this.SerEffect(oEffectLst.prstShdw),
+			reflection:  this.SerEffect(oEffectLst.reflection),
+			softEdge:    this.SerEffect(oEffectLst.softEdge)
 		}
 	};
 	WriterToJSON.prototype.SerEffectDag = function(oEffectDag)
@@ -1261,269 +1293,376 @@
 	{
 		var arrEffectLst = [];
 		for (var nEffect = 0; nEffect < arrEffects.length; nEffect++)
-		{
-			var oElm = null;
-			if (arrEffects[nEffect] instanceof AscFormat.CAlphaBiLevel)
-			{
-				oElm = {
-					thresh: arrEffects[nEffect].tresh,
-					type:   "alphaBiLvl"
-				}
-									
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CAlphaCeiling)
-			{
-				oElm = {
-					type: "alphaCeiling"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CAlphaFloor)
-			{
-				oElm = {
-					type: "alphaFloor"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CAlphaInv)
-			{
-				oElm = {
-					color: this.SerColor(arrEffects[nEffect].unicolor),
-					type:  "alphaInv"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CAlphaMod)
-			{
-				oElm = {
-					cont: this.SerEffectDag(arrEffects[nEffect].cont),
-					type: "alphaMod"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CAlphaModFix)
-			{
-				oElm = {
-					amt:  arrEffects[nEffect].amt,
-					type: "alphaModFix"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CAlphaOutset)
-			{
-				oElm = {
-					rad:  arrEffects[nEffect].rad,
-					type: "alphaOutset"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CAlphaRepl)
-			{
-				oElm = {
-					a:     arrEffects[nEffect].a,
-					type: "alphaRepl"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CBiLevel)
-			{
-				oElm = {
-					thresh: arrEffects[nEffect].thresh,
-					type:   "biLvl"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CBlend)
-			{
-				oElm = {
-					cont:  this.SerEffectDag(arrEffects[nEffect].cont),
-					blend: arrEffects[nEffect].blend,
-					type:  "blend"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CBlur)
-			{
-				oElm = {
-					grow: arrEffects[nEffect].grow,
-					rad:  arrEffects[nEffect].rad,
-					type: "blur"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CClrChange)
-			{
-				oElm = {
-					clrFrom: this.SerColor(arrEffects[nEffect].clrFrom),
-					clrTo:   this.SerColor(arrEffects[nEffect].clrTo),
-					useA:    arrEffects[nEffect].useA,
-					type:    "clrChange"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CClrRepl)
-			{
-				oElm = {
-					color: this.SerColor(arrEffects[nEffect].color),
-					type:  "clrRepl"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CEffectContainer)
-			{
-				oElm = {
-					cont: this.SerEffectDag(arrEffects[nEffect]),
-					type: "effCont"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CDuotone)
-			{
-				var arrColors = [];
-				for (var nColor = 0; nColor < arrEffects[nEffect].colors.length; nColor++)
-				{
-					arrColors.push(this.SerColor(arrEffects[nEffect].colors[nColor]));
-				}
-				oElm = {
-					colors: arrColors,
-					type:   "duotone"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CEffectElement)
-			{
-				oElm = {
-					ref:  arrEffects[nEffect].ref,
-					type: "effect"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CFillEffect)
-			{
-				oElm = {
-					fill: this.SerFill(arrEffects[nEffect].fill),
-					type: "fill"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CFillOverlay)
-			{
-				oElm = {
-					fill:  this.SerFill(arrEffects[nEffect].fill),
-					blend: arrEffects[nEffect].blend,
-					type:  "fillOvrl"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CGlow)
-			{
-				oElm = {
-					color: this.SerColor(arrEffects[nEffect].color),
-					rad:   arrEffects[nEffect].rad,
-					type:  "glow"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CGrayscl)
-			{
-				oElm = {
-					type: "gray"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CHslEffect)
-			{
-				oElm = {
-					hue:  arrEffects[nEffect].h,
-					lum:  arrEffects[nEffect].l,
-					sat:  arrEffects[nEffect].s,
-					type: "hsl"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CInnerShdw)
-			{
-				oElm = {
-					color:   this.SerColor(arrEffects[nEffect].color),
-					blurRad: arrEffects[nEffect].blurRad,
-					dir:     arrEffects[nEffect].dir,
-					dist:    arrEffects[nEffect].dist,
-					type:    "innerShdw"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CLumEffect)
-			{
-				oElm = {
-					bright:   arrEffects[nEffect].bright,
-					contrast: arrEffects[nEffect].contrast,
-					type:     "lum"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.COuterShdw)
-			{
-				oElm = {
-					color:        this.SerColor(arrEffects[nEffect].color),
-					algn:         arrEffects[nEffect].algn,
-					blurRad:      arrEffects[nEffect].blurRad,
-					dir:          arrEffects[nEffect].dir,
-					dist:         arrEffects[nEffect].dist,
-					kx:           arrEffects[nEffect].kx,
-					ky:           arrEffects[nEffect].ky,
-					rotWithShape: arrEffects[nEffect].rotWithShape,
-					sx:           arrEffects[nEffect].sx,
-					sy:           arrEffects[nEffect].sy,
-					type:         "outerShdw"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CPrstShdw)
-			{
-				oElm = {
-					color: this.SerColor(arrEffects[nEffect].color),
-					dir:   arrEffects[nEffect].dir,
-					dist:  arrEffects[nEffect].dis,
-					prst:  arrEffects[nEffect].prst,
-					type:  "prstShdw"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CReflection)
-			{
-				oElm = {
-					algn:         arrEffects[nEffect].algn,
-					blurRad:      arrEffects[nEffect].blurRad,
-					dir:          arrEffects[nEffect].dir,
-					dist:         arrEffects[nEffect].dist,
-					endA:         arrEffects[nEffect].endA,
-					endPos:       arrEffects[nEffect].endPos,
-					fadeDir:      arrEffects[nEffect].fadeDir,
-					kx:           arrEffects[nEffect].kx,
-					ky:           arrEffects[nEffect].ky,
-					rotWithShape: arrEffects[nEffect].rotWithShape,
-					stA:          arrEffects[nEffect].stA,
-					stPos:        arrEffects[nEffect].stPos,
-					sx:           arrEffects[nEffect].sx,
-					sy:           arrEffects[nEffect].sy,
-					type: "reflection"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CRelOff)
-			{
-				oElm = {
-					tx:   arrEffects[nEffect].tx,
-					ty:   arrEffects[nEffect].ty,
-					type: "relOff"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CSoftEdge)
-			{
-				oElm = {
-					rad:  arrEffects[nEffect].rad,
-					type: "softEdge"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CTintEffect)
-			{
-				oElm = {
-					amt: arrEffects[nEffect].amt,
-					hue: arrEffects[nEffect].hue,
-					type: "tint"
-				}
-			}
-			else if (arrEffects[nEffect] instanceof AscFormat.CXfrmEffect)
-			{
-				oElm = {
-					kx: arrEffects[nEffect].kx,
-					ky: arrEffects[nEffect].ky,
-					sx: arrEffects[nEffect].sx,
-					sy: arrEffects[nEffect].sy,
-					tx: arrEffects[nEffect].tx,
-					ty: arrEffects[nEffect].ty,
-					type: "xfrm"
-				}
-			}
-			arrEffectLst.push(oElm);
-		}
+			arrEffectLst.push(this.SerEffect(arrEffects[nEffect]));
 
 		return arrEffectLst;
+	};
+	WriterToJSON.prototype.SerEffect = function(oEffect)
+	{
+		var oElm = null;
+		
+		if (oEffect instanceof AscFormat.CAlphaBiLevel)
+		{
+			oElm = {
+				thresh: oEffect.tresh,
+				type:   "alphaBiLvl"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CAlphaCeiling)
+		{
+			oElm = {
+				type: "alphaCeiling"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CAlphaFloor)
+		{
+			oElm = {
+				type: "alphaFloor"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CAlphaInv)
+		{
+			oElm = {
+				color: this.SerColor(oEffect.unicolor),
+				type:  "alphaInv"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CAlphaMod)
+		{
+			oElm = {
+				cont: this.SerEffectDag(oEffect.cont),
+				type: "alphaMod"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CAlphaModFix)
+		{
+			oElm = {
+				amt:  oEffect.amt,
+				type: "alphaModFix"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CAlphaOutset)
+		{
+			oElm = {
+				rad:  oEffect.rad,
+				type: "alphaOutset"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CAlphaRepl)
+		{
+			oElm = {
+				a:     oEffect.a,
+				type: "alphaRepl"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CBiLevel)
+		{
+			oElm = {
+				thresh: oEffect.thresh,
+				type:   "biLvl"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CBlend)
+		{
+			var sBlendType = undefined;
+			switch (oEffect.blend)
+			{
+				case c_oAscBlendModeType.Darken:
+					sBlendType = "darken";
+					break;
+				case c_oAscBlendModeType.Lighten:
+					sBlendType = "lighten";
+					break;
+				case c_oAscBlendModeType.Mult:
+					sBlendType = "mult";
+					break;
+				case c_oAscBlendModeType.Over:
+					sBlendType = "over";
+					break;
+				case c_oAscBlendModeType.Screen:
+					sBlendType = "screen";
+					break;
+			}
+
+			oElm = {
+				cont:  this.SerEffectDag(oEffect.cont),
+				blend: sBlendType,
+				type:  "blend"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CBlur)
+		{
+			oElm = {
+				grow: oEffect.grow,
+				rad:  oEffect.rad,
+				type: "blur"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CClrChange)
+		{
+			oElm = {
+				clrFrom: this.SerColor(oEffect.clrFrom),
+				clrTo:   this.SerColor(oEffect.clrTo),
+				useA:    oEffect.useA,
+				type:    "clrChange"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CClrRepl)
+		{
+			oElm = {
+				color: this.SerColor(oEffect.color),
+				type:  "clrRepl"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CEffectContainer)
+		{
+			oElm = {
+				cont: this.SerEffectDag(oEffect),
+				type: "effCont"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CDuotone)
+		{
+			var arrColors = [];
+			for (var nColor = 0; nColor < oEffect.colors.length; nColor++)
+				arrColors.push(this.SerColor(oEffect.colors[nColor]));
+
+			oElm = {
+				colors: arrColors,
+				type:   "duotone"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CEffectElement)
+		{
+			oElm = {
+				ref:  oEffect.ref,
+				type: "effect"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CFillEffect)
+		{
+			oElm = {
+				fill: this.SerFill(oEffect.fill),
+				type: "fill"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CFillOverlay)
+		{
+			var sBlendType = undefined;
+			switch (oEffect.blend)
+			{
+				case c_oAscBlendModeType.Darken:
+					sBlendType = "darken";
+					break;
+				case c_oAscBlendModeType.Lighten:
+					sBlendType = "lighten";
+					break;
+				case c_oAscBlendModeType.Mult:
+					sBlendType = "mult";
+					break;
+				case c_oAscBlendModeType.Over:
+					sBlendType = "over";
+					break;
+				case c_oAscBlendModeType.Screen:
+					sBlendType = "screen";
+					break;
+			}
+
+			oElm = {
+				fill:  this.SerFill(oEffect.fill),
+				blend: sBlendType,
+				type:  "fillOvrl"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CGlow)
+		{
+			oElm = {
+				color: this.SerColor(oEffect.color),
+				rad:   oEffect.rad,
+				type:  "glow"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CGrayscl)
+		{
+			oElm = {
+				type: "gray"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CHslEffect)
+		{
+			oElm = {
+				hue:  oEffect.h,
+				lum:  oEffect.l,
+				sat:  oEffect.s,
+				type: "hsl"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CInnerShdw)
+		{
+			oElm = {
+				color:   this.SerColor(oEffect.color),
+				blurRad: oEffect.blurRad,
+				dir:     oEffect.dir,
+				dist:    oEffect.dist,
+				type:    "innerShdw"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CLumEffect)
+		{
+			oElm = {
+				bright:   oEffect.bright,
+				contrast: oEffect.contrast,
+				type:     "lum"
+			}
+		}
+		else if (oEffect instanceof AscFormat.COuterShdw)
+		{
+			oElm = {
+				color:        this.SerColor(oEffect.color),
+				algn:         GetRectAlgnStrType(oEffect.algn),
+				blurRad:      oEffect.blurRad,
+				dir:          oEffect.dir,
+				dist:         oEffect.dist,
+				kx:           oEffect.kx,
+				ky:           oEffect.ky,
+				rotWithShape: oEffect.rotWithShape,
+				sx:           oEffect.sx,
+				sy:           oEffect.sy,
+				type:         "outerShdw"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CPrstShdw)
+		{
+			var sPrstType = undefined;
+			switch (oEffect.blend)
+			{
+				case c_oAscPresetShadowVal.shdw1:
+					sPrstType = "shdw1";
+					break;
+				case c_oAscPresetShadowVal.shdw2:
+					sPrstType = "shdw2";
+					break;
+				case c_oAscPresetShadowVal.shdw3:
+					sPrstType = "shdw3";
+					break;
+				case c_oAscPresetShadowVal.shdw4:
+					sPrstType = "shdw4";
+					break;
+				case c_oAscPresetShadowVal.shdw5:
+					sPrstType = "shdw5";
+					break;
+				case c_oAscPresetShadowVal.shdw6:
+					sPrstType = "shdw6";
+					break;
+				case c_oAscPresetShadowVal.shdw7:
+					sPrstType = "shdw7";
+					break;
+				case c_oAscPresetShadowVal.shdw8:
+					sPrstType = "shdw8";
+					break;
+				case c_oAscPresetShadowVal.shdw9:
+					sPrstType = "shdw9";
+					break;
+				case c_oAscPresetShadowVal.shdw10:
+					sPrstType = "shdw10";
+					break;
+				case c_oAscPresetShadowVal.shdw11:
+					sPrstType = "shdw11";
+					break;
+				case c_oAscPresetShadowVal.shdw12:
+					sPrstType = "shdw12";
+					break;
+				case c_oAscPresetShadowVal.shdw13:
+					sPrstType = "shdw13";
+					break;
+				case c_oAscPresetShadowVal.shdw14:
+					sPrstType = "shdw14";
+					break;
+				case c_oAscPresetShadowVal.shdw15:
+					sPrstType = "shdw15";
+					break;
+				case c_oAscPresetShadowVal.shdw16:
+					sPrstType = "shdw16";
+					break;
+				case c_oAscPresetShadowVal.shdw17:
+					sPrstType = "shdw17";
+					break;
+				case c_oAscPresetShadowVal.shdw18:
+					sPrstType = "shdw18";
+					break;
+				case c_oAscPresetShadowVal.shdw19:
+					sPrstType = "shdw19";
+					break;
+				case c_oAscPresetShadowVal.shdw20:
+					sPrstType = "shdw20";
+					break;
+			}
+
+			oElm = {
+				color: this.SerColor(oEffect.color),
+				dir:   oEffect.dir,
+				dist:  oEffect.dis,
+				prst:  sPrstType,
+				type:  "prstShdw"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CReflection)
+		{
+			oElm = {
+				algn:         GetRectAlgnStrType(oEffect.algn),
+				blurRad:      oEffect.blurRad,
+				dir:          oEffect.dir,
+				dist:         oEffect.dist,
+				endA:         oEffect.endA,
+				endPos:       oEffect.endPos,
+				fadeDir:      oEffect.fadeDir,
+				kx:           oEffect.kx,
+				ky:           oEffect.ky,
+				rotWithShape: oEffect.rotWithShape,
+				stA:          oEffect.stA,
+				stPos:        oEffect.stPos,
+				sx:           oEffect.sx,
+				sy:           oEffect.sy,
+				type: "reflection"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CRelOff)
+		{
+			oElm = {
+				tx:   oEffect.tx,
+				ty:   oEffect.ty,
+				type: "relOff"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CSoftEdge)
+		{
+			oElm = {
+				rad:  oEffect.rad,
+				type: "softEdge"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CTintEffect)
+		{
+			oElm = {
+				amt: oEffect.amt,
+				hue: oEffect.hue,
+				type: "tint"
+			}
+		}
+		else if (oEffect instanceof AscFormat.CXfrmEffect)
+		{
+			oElm = {
+				kx: oEffect.kx,
+				ky: oEffect.ky,
+				sx: oEffect.sx,
+				sy: oEffect.sy,
+				tx: oEffect.tx,
+				ty: oEffect.ty,
+				type: "xfrm"
+			}
+		}
+
+		return oElm;
 	};
 	WriterToJSON.prototype.SerFill = function(oFill)
 	{
@@ -5642,22 +5781,26 @@
 
 		return {
 			blip: this.SerEffects(oBlipFill.Effects),
+
 			srcRect: oBlipFill.srcRect ? {
 				b: oBlipFill.srcRect.b,
 				l: oBlipFill.srcRect.l,
 				r: oBlipFill.srcRect.r,
 				t: oBlipFill.srcRect.t
 			} : oBlipFill.srcRect,
-			stretch: oBlipFill.stretch,
+
 			tile: oBlipFill.tile ? {
-				algn: oBlipFill.tile.algn,
+				algn: GetRectAlgnStrType(oBlipFill.tile.algn),
 				flip: oBlipFill.tile.flip,
-				sx: oBlipFill.tile.sx,
-				sy: oBlipFill.tile.sy,
-				tx: oBlipFill.tile.tx,
-				ty: oBlipFill.tile.ty
+				sx:   oBlipFill.tile.sx,
+				sy:   oBlipFill.tile.sy,
+				tx:   oBlipFill.tile.tx,
+				ty:   oBlipFill.tile.ty
 			} : oBlipFill.tile,
-			rotWithShape: oBlipFill.rotWithShape,
+
+			stretch:       oBlipFill.stretch,
+			rotWithShape:  oBlipFill.rotWithShape,
+			rasterImageId: oBlipFill.RasterImageId,
 			type: "blipFill"
 		};
 	};
@@ -6251,24 +6394,24 @@
 			type:     "image"
 		}
 	};
-	WriterToJSON.prototype.SerShape = function(oShapeObject)
+	WriterToJSON.prototype.SerShape = function(oShape)
 	{
-		if (!oShapeObject)
-			return oShapeObject;
+		if (!oShape)
+			return oShape;
 
 		var oSerContent = null;
-		if (oShapeObject.textBoxContent)
-			oSerContent = this.SerDocContent(oShapeObject.textBoxContent);
-		else if (oShapeObject.txBody)
-			oSerContent = this.SerTxPr(oShapeObject.txBody);
+		if (oShape.textBoxContent)
+			oSerContent = this.SerDocContent(oShape.textBoxContent);
+		else if (oShape.txBody)
+			oSerContent = this.SerTxPr(oShape.txBody);
 		
-		var oShape = {
-			extX:        private_MM2EMU(oShapeObject.extX),
-			extY:        private_MM2EMU(oShapeObject.extY),
-			nvSpPr:      this.SerUniNvPr(oShapeObject.nvSpPr),
-			spPr:        this.SerSpPr(oShapeObject.spPr),
-			style:       this.SerSpStyle(oShapeObject.style),
-			bodyPr:      this.SerBodyPr(oShapeObject.bodyPr),
+		var oShapeObject = {
+			extX:        private_MM2EMU(oShape.extX),
+			extY:        private_MM2EMU(oShape.extY),
+			nvSpPr:      this.SerUniNvPr(oShape.nvSpPr),
+			spPr:        this.SerSpPr(oShape.spPr),
+			style:       this.SerSpStyle(oShape.style),
+			bodyPr:      this.SerBodyPr(oShape.bodyPr),
 			content:     oSerContent,
 			type:        "shape",
 		}
@@ -6276,7 +6419,7 @@
 		//if (oShapeObject.txBody)
 		//	oShape["lstStyle"] = this.SerLstStyle(oShapeObject.txBody.lstStyle);
 
-		return oShape; 
+		return oShapeObject; 
 	};
 	WriterToJSON.prototype.SerTextPr = function(oTextPr)
 	{
@@ -7210,8 +7353,9 @@
 						}
 					}
 				}
-				else (oParsedRun.type === "run")
+				else
 					oRun.AddText(aContent[nElm]);
+
 				continue;
 			}
 
@@ -7950,6 +8094,8 @@
 		oBullet.bulletSize     = oParsedBullet.bulletSize ? BulletSizeFromJSON(oParsedBullet.bulletSize) : oBullet.bulletSize;
 		oBullet.bulletTypeface = oParsedBullet.bulletTypeface ? BulletTypeFaceFromJSON(oParsedBullet.bulletTypeface) : oBullet.bulletTypeface;
 		oBullet.bulletType     = oParsedBullet.bulletType ? BulletTypeFromJSON(oParsedBullet.bulletType) : oBullet.bulletType;
+	
+		return oBullet;
 	};
 	ReaderFromJSON.prototype.ParaMathFromJSON = function(oParsedParaMath)
 	{
@@ -10227,7 +10373,7 @@
 
 		return oMods;
 	};
-	ReaderFromJSON.prototype.BlipFillFromJSON = function(oParsedFill, sRasterImageId)
+	ReaderFromJSON.prototype.BlipFillFromJSON = function(oParsedFill)
 	{
 		var oBlipFill = new AscFormat.CBlipFill();
 
@@ -10249,17 +10395,18 @@
 			oBlipFill.tile.sx   = oParsedFill.sx;
 			oBlipFill.tile.sy   = oParsedFill.sy;
 			oBlipFill.tile.flip = oParsedFill.flip;
-			oBlipFill.tile.algn = oParsedFill.algn;
+			oBlipFill.tile.algn = GetRectAlgnNumType(oParsedFill.algn);
 		}
 
 		for (var nEffect = 0; nEffect < oParsedFill.blip.length; nEffect++)
-			oBlipFill.Effects.push(this.EffectDagFromJSON(oParsedFill.blip[nEffect]));
+			oBlipFill.Effects.push(this.EffectFromJSON(oParsedFill.blip[nEffect]));
 
-		oParsedFill.rotWithShape = oParsedFill.rotWithShape;
-		oBlipFill.RasterImageId  = sRasterImageId;
+		oParsedFill.rotWithShape != undefined && oBlipFill.setRotWithShape(oParsedFill.rotWithShape);
+		oParsedFill.rasterImageId != undefined &&  oBlipFill.setRasterImageId(oParsedFill.rasterImageId);
+
 		return oBlipFill;
 	};
-	ReaderFromJSON.prototype.EffectDagFromJSON = function(oParsedEff)
+	ReaderFromJSON.prototype.EffectFromJSON = function(oParsedEff)
 	{
 		var oEffect = null;
 
@@ -10300,9 +10447,29 @@
 				oEffect.thresh       = oParsedEff.thresh;
 				return oEffect;
 			case "blend":
+				var nBlendType = undefined;
+				switch (oEffect.blend)
+				{
+					case "darken":
+						nBlendType = c_oAscBlendModeType.Darken;
+						break;
+					case "lighten":
+						nBlendType = c_oAscBlendModeType.Lighten;
+						break;
+					case "mult":
+						nBlendType = c_oAscBlendModeType.Mult;
+						break;
+					case "over":
+						nBlendType = c_oAscBlendModeType.Over;
+						break;
+					case "screen":
+						nBlendType = c_oAscBlendModeType.Screen;
+						break;
+				}
+
 				oEffect              = new AscFormat.CBlend();
 				oEffect.cont         = this.EffectContainerFromJSON(oParsedEff.cont);
-				oEffect.blend        = oParsedEff.blend;
+				oEffect.blend        = nBlendType;
 				return oEffect;
 			case "blur":
 				oEffect              = new AscFormat.CBlur();
@@ -10337,9 +10504,29 @@
 				oEffect.fill         = this.FillFromJSON(oParsedEff.fill);
 				return oEffect;
 			case "fillOvrl":
+				var nBlendType = undefined;
+				switch (oEffect.blend)
+				{
+					case "darken":
+						nBlendType = c_oAscBlendModeType.Darken;
+						break;
+					case "lighten":
+						nBlendType = c_oAscBlendModeType.Lighten;
+						break;
+					case "mult":
+						nBlendType = c_oAscBlendModeType.Mult;
+						break;
+					case "over":
+						nBlendType = c_oAscBlendModeType.Over;
+						break;
+					case "screen":
+						nBlendType = c_oAscBlendModeType.Screen;
+						break;
+				}
+
 				oEffect              = new AscFormat.CFillOverlay();
 				oEffect.fill         = this.FillFromJSON(oParsedEff.fill);
-				oEffect.blend        = oParsedEff.blend;
+				oEffect.blend        = nBlendType;
 				return oEffect;
 			case "glow":
 				oEffect              = new AscFormat.CGlow();
@@ -10370,7 +10557,7 @@
 			case "outerShdw":
 				oEffect              = new AscFormat.COuterShdw();
 				oEffect.color        = this.ColorFromJSON(oParsedEff.color);
-				oEffect.algn         = oParsedEff.algn;
+				oEffect.algn         = GetRectAlgnNumType(oParsedEff.algn);
 				oEffect.blurRad      = oParsedEff.blurRad;
 				oEffect.dir          = oParsedEff.dir;
 				oEffect.dist         = oParsedEff.dist;
@@ -10381,15 +10568,80 @@
 				oEffect.sy           = oParsedEff.sy;
 				return oEffect;
 			case "prstShdw":
+				var nPrstType = undefined;
+				switch (oEffect.blend)
+				{
+					case "shdw1":
+						nPrstType = c_oAscPresetShadowVal.shdw1;
+						break;
+					case "shdw2":
+						nPrstType = c_oAscPresetShadowVal.shdw2;
+						break;
+					case "shdw3":
+						nPrstType = c_oAscPresetShadowVal.shdw3;
+						break;
+					case "shdw4":
+						nPrstType = c_oAscPresetShadowVal.shdw4;
+						break;
+					case "shdw5":
+						nPrstType = c_oAscPresetShadowVal.shdw5;
+						break;
+					case "shdw6":
+						nPrstType = c_oAscPresetShadowVal.shdw6;
+						break;
+					case "shdw7":
+						nPrstType = c_oAscPresetShadowVal.shdw7;
+						break;
+					case "shdw8":
+						nPrstType = c_oAscPresetShadowVal.shdw8;
+						break;
+					case "shdw9":
+						nPrstType = c_oAscPresetShadowVal.shdw9;
+						break;
+					case "shdw10":
+						nPrstType = c_oAscPresetShadowVal.shdw10;
+						break;
+					case "shdw11":
+						nPrstType = c_oAscPresetShadowVal.shdw11;
+						break;
+					case "shdw12":
+						nPrstType = c_oAscPresetShadowVal.shdw12;
+						break;
+					case "shdw13":
+						nPrstType = c_oAscPresetShadowVal.shdw13;
+						break;
+					case "shdw14":
+						nPrstType = c_oAscPresetShadowVal.shdw14;
+						break;
+					case "shdw15":
+						nPrstType = c_oAscPresetShadowVal.shdw15;
+						break;
+					case "shdw16":
+						nPrstType = c_oAscPresetShadowVal.shdw16;
+						break;
+					case "shdw17":
+						nPrstType = c_oAscPresetShadowVal.shdw17;
+						break;
+					case "shdw18":
+						nPrstType = c_oAscPresetShadowVal.shdw18;
+						break;
+					case "shdw19":
+						nPrstType = c_oAscPresetShadowVal.shdw19;
+						break;
+					case "shdw20":
+						nPrstType = c_oAscPresetShadowVal.shdw20;
+						break;
+				}
+
 				oEffect              = new AscFormat.CPrstShdw();
 				oEffect.color        = this.ColorFromJSON(oParsedEff.color);
 				oEffect.dir          = oParsedEff.dir;
 				oEffect.dis          = oParsedEff.dist;
-				oEffect.prst         = oParsedEff.prst;
+				oEffect.prst         = nPrstType;
 				return oEffect;
 			case "reflection":
 				oEffect              = new AscFormat.CReflection();
-				oEffect.algn         = oParsedEff.algn;
+				oEffect.algn         = GetRectAlgnNumType(oParsedEff.algn);
 				oEffect.blurRad      = oParsedEff.blurRad;
 				oEffect.dir          = oParsedEff.dir;
 				oEffect.dist         = oParsedEff.dist;
@@ -10437,7 +10689,7 @@
 		oEffectContainer.name = oParsedCont.name;
 
 		for (var nEffect = 0; nEffect < oParsedCont.effectList.length; nEffect++)
-			oEffectContainer.push(this.EffectDagFromJSON(oParsedCont.effectList[nEffect]));
+			oEffectContainer.push(this.EffectFromJSON(oParsedCont.effectList[nEffect]));
 
 		return oEffectContainer;
 	};
@@ -10445,13 +10697,13 @@
 	{
 		var oEffectLst = new AscFormat.CEffectLst();
 
-		oEffectLst.blur        = oParsedLst.blur        ? this.EffectDagFromJSON(oParsedLst.blur)        : oParsedLst.blur;
-		oEffectLst.fillOverlay = oParsedLst.fillOverlay ? this.EffectDagFromJSON(oParsedLst.fillOverlay) : oParsedLst.fillOverlay;
-		oEffectLst.innerShdw   = oParsedLst.innerShdw   ? this.EffectDagFromJSON(oParsedLst.innerShdw)   : oParsedLst.innerShdw;
-		oEffectLst.outerShdw   = oParsedLst.outerShdw   ? this.EffectDagFromJSON(oParsedLst.outerShdw)   : oParsedLst.outerShdw;
-		oEffectLst.prstShdw    = oParsedLst.prstShdw    ? this.EffectDagFromJSON(oParsedLst.prstShdw)    : oParsedLst.prstShdw;
-		oEffectLst.reflection  = oParsedLst.reflection  ? this.EffectDagFromJSON(oParsedLst.reflection)  : oParsedLst.reflection;
-		oEffectLst.softEdge    = oParsedLst.softEdge    ? this.EffectDagFromJSON(oParsedLst.softEdge)    : oParsedLst.softEdge;
+		oEffectLst.blur        = oParsedLst.blur        ? this.EffectFromJSON(oParsedLst.blur)        : oParsedLst.blur;
+		oEffectLst.fillOverlay = oParsedLst.fillOverlay ? this.EffectFromJSON(oParsedLst.fillOverlay) : oParsedLst.fillOverlay;
+		oEffectLst.innerShdw   = oParsedLst.innerShdw   ? this.EffectFromJSON(oParsedLst.innerShdw)   : oParsedLst.innerShdw;
+		oEffectLst.outerShdw   = oParsedLst.outerShdw   ? this.EffectFromJSON(oParsedLst.outerShdw)   : oParsedLst.outerShdw;
+		oEffectLst.prstShdw    = oParsedLst.prstShdw    ? this.EffectFromJSON(oParsedLst.prstShdw)    : oParsedLst.prstShdw;
+		oEffectLst.reflection  = oParsedLst.reflection  ? this.EffectFromJSON(oParsedLst.reflection)  : oParsedLst.reflection;
+		oEffectLst.softEdge    = oParsedLst.softEdge    ? this.EffectFromJSON(oParsedLst.softEdge)    : oParsedLst.softEdge;
 
 		return oEffectLst;
 	};
@@ -10569,6 +10821,7 @@
 				oGraphicObj = this.ImageFromJSON(oParsedDrawing.graphic, oDrawing);
 				break;
 			case "shape":
+			case "connectShape":
 				oGraphicObj = this.ShapeFromJSON(oParsedDrawing.graphic, oDrawing);
 				break;
 			case "chartSpace":
@@ -10695,6 +10948,7 @@
 				oGraphicObj = this.ImageFromJSON(oParsedUserShape.object, null);
 				break;
 			case "shape":
+			case "connectShape":
 				oGraphicObj = this.ShapeFromJSON(oParsedUserShape.object, null);
 				break;
 			case "chartSpace":
@@ -10886,7 +11140,7 @@
 	};
 	ReaderFromJSON.prototype.ShapeFromJSON = function(oParsedShape, oParentDrawing)
 	{
-		var oShape = new AscFormat.CShape();
+		var oShape = oParsedShape.type === "shape" ? new AscFormat.CShape() : new AscFormat.CConnectionShape();
 
 		if (oParentDrawing)
 		{
@@ -10928,7 +11182,7 @@
 			oParentDrawing.Set_GraphicObject(oImage);
 		}
 
-		oImage.setBlipFill(this.BlipFillFromJSON(oParsedImage.blipFill, oImage.blipFill.RasterImageId));
+		oImage.setBlipFill(this.BlipFillFromJSON(oParsedImage.blipFill));
 		oImage.setNvPicPr(this.UniNvPrFromJSON(oParsedImage.nvPicPr));
 		oImage.setSpPr(this.SpPrFromJSON(oParsedImage.spPr, oImage));
 
@@ -13217,11 +13471,11 @@
 				break;
 		}
 		
-		oPlaceholder.setHasCustomPrompt(oParsedPh.hasCustomPrompt);
-		oPlaceholder.setIdx(oParsedPh.idx);
-		oPlaceholder.setOrient(nOrient);
-		oPlaceholder.setSz(nPhSz);
-		oPlaceholder.setType(this.GetNumPhType(oParsedPh.type));
+		oParsedPh.hasCustomPrompt != undefined && oPlaceholder.setHasCustomPrompt(oParsedPh.hasCustomPrompt);
+		oParsedPh.idx != undefined && oPlaceholder.setIdx(oParsedPh.idx);
+		nOrient != undefined && oPlaceholder.setOrient(nOrient);
+		nPhSz != undefined && oPlaceholder.setSz(nPhSz);
+		oParsedPh.type != undefined && oPlaceholder.setType(this.GetNumPhType(oParsedPh.type));
 		
 		return oPlaceholder;
 	};

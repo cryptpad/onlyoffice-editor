@@ -376,6 +376,7 @@
 		var oMaster = oSlide.Layout.Master.Id;
 		var oLayout = oSlide.Layout.Id;
 
+		// нет смысла тащить master за слайдом без layout
 		if (bWriteLayout)
 		{
 			if (bWriteMaster)
@@ -419,7 +420,7 @@
 			autorName: oComment.Data.m_sUserName,
 			authorId:  oComment.Data.m_sUserId,
 			dt:        oComment.Data.m_sOOTime,
-			idx:       oComment.slideComments.comments.indexOf(oComment)
+			idx:       oComment.Parent.comments.indexOf(oComment)
 		}
 	};
 	WriterToJSON.prototype.SerSlideLayout = function(oLayout, bWriteMaster)
@@ -601,16 +602,7 @@
 	{
 		var aSpTree = [];
 		for (var nElm = 0; nElm < oCSld.spTree.length; nElm++)
-		{
-			if (oCSld.spTree[nElm].isShape())
-				aSpTree.push(this.SerShape(oCSld.spTree[nElm]));
-			else if (oCSld.spTree[nElm].isChart())
-				aSpTree.push(this.SerChartSpace(oCSld.spTree[nElm]));
-			else if (oCSld.spTree[nElm].isImage())
-				aSpTree.push(this.SerImage(oCSld.spTree[nElm]));
-			else if (oCSld.spTree[nElm].isTable())
-				aSpTree.push(this.SerGraphicFrame(oCSld.spTree[nElm]));
-		}
+			aSpTree.push(this.SerGrapicObject(oCSld.spTree[nElm]));
 
 		return {
 			bg:     this.SerBg(oCSld.Bg),
@@ -675,15 +667,6 @@
 		return {
 			fill:         this.SerFill(oBgPr.Fill),
 			shadeToTitle: oBgPr.shadeToTitle
-		}
-	};
-	WriterToJSON.prototype.SerGraphicFrame = function(oGraphicFrame)
-	{
-		return {
-			graphic:          this.SerTable(oGraphicFrame.graphicObject),
-			nvGraphicFramePr: this.SerUniNvPr(oGraphicFrame.nvGraphicFramePr),
-			spPr:             this.SerSpPr(oGraphicFrame.spPr),
-			type:             "graphicFrame"
 		}
 	};
 	WriterToJSON.prototype.SerTransition = function(oTransition)
@@ -1783,7 +1766,7 @@
 		// cSld
 		var oCSld = this.CSldFromJSON(oParsedMaster.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
-			oMasterSlide.shapeAdd(undefined, oCSld.spTree[nShape]);
+			oMasterSlide.shapeAdd(nShape, oCSld.spTree[nShape]);
 		oCSld.Bg && oMasterSlide.changeBackground(oCSld.Bg);
 		oCSld.name && oMasterSlide.setCSldName(oCSld.name);
 
@@ -1947,7 +1930,7 @@
 		// cSld
 		var oCSld = this.CSldFromJSON(oParsedLayout.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
-			oLayout.shapeAdd(undefined, oCSld.spTree[nShape]);
+			oLayout.shapeAdd(nShape, oCSld.spTree[nShape]);
 		oCSld.Bg && oLayout.changeBackground(oCSld.Bg);
 		oCSld.name && oLayout.setCSldName(oCSld.name);
 
@@ -1998,6 +1981,13 @@
 				oLayout = CurSlide.Layout;
 		}
 
+		// установим MasterSlide для Layout, если не задан
+		if (!oLayout.Master)
+		{
+			oMaster = oPresentation.lastMaster ? oPresentation.lastMaster : oPresentation.slideMasters[0];
+			oLayout.setMaster(oMaster);
+		}
+
 		var oSlide = new AscCommonSlide.Slide(oPresentation, oLayout, 0);
 		
 		oParsedSlide.notes && oSlide.setNotes(this.NotesFromJSON(oParsedSlide.notes, oPresentation));
@@ -2006,18 +1996,40 @@
 		// cSld
 		var oCSld = this.CSldFromJSON(oParsedSlide.cSld);
 		for (var nShape = 0; nShape < oCSld.spTree.length; nShape++)
-			oSlide.shapeAdd(undefined, oCSld.spTree[nShape]);
+			oSlide.shapeAdd(nShape, oCSld.spTree[nShape]);
 		oCSld.Bg && oSlide.changeBackground(oCSld.Bg);
 		oCSld.name && oSlide.setCSldName(oCSld.name);
 
+		// comments
+		for (var nComment = 0; nComment < oParsedSlide.comments.length; nComment++)
+			oSlide.slideComments.addComment(this.CommentFromJSON(oParsedSlide.comments[nComment], oSlide.slideComments));
+
 		oParsedSlide.transition && oSlide.applyTransition(this.TransitionFromJSON(oParsedSlide.transition));
 		oParsedSlide.timing && oSlide.setTiming(this.TimingFromJSON(oParsedSlide.timing));
-		/// oParsedSlide.comments && oSlide.setTiming(this.TimingFromJSON(oParsedSlide.comments)); // ?? comments
 		oParsedSlide.show != undefined && oSlide.setShow(oParsedSlide.show);
 		oParsedSlide.showMasterPhAnim != undefined && oSlide.setShowPhAnim(oParsedSlide.showMasterPhAnim);
 		oParsedSlide.showMasterSp != undefined && oSlide.setShowMasterSp(oParsedSlide.showMasterSp);
 
+		oSlide.setSlideSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
+
 		return oSlide;
+	};
+	ReaderFromJSON.prototype.CommentFromJSON = function(oParsedComment, oParent)
+	{
+		var oAscCommentData = new Asc.asc_CCommentData({
+			m_sText:     oParsedComment.text,
+			m_sUserName: oParsedComment.autorName,
+			m_sUserId:   oParsedComment.authorId,
+			m_sOOTime:   oParsedComment.dt
+		});
+
+		var oCommentData = new AscCommon.CCommentData();
+		oCommentData.Read_FromAscCommentData(oAscCommentData);
+
+		var oComment = new AscCommon.CComment(oParent, oCommentData);
+		oComment.setPosition(oParsedComment.pos.x, oParsedComment.pos.y);
+
+		return oComment;
 	};
 	ReaderFromJSON.prototype.NotesFromJSON = function(oParsedNotes, oPres)
 	{
@@ -3167,6 +3179,7 @@
 			switch (oParsedCSld.spTree[nShape].type)
 			{
 				case "shape":
+				case "connectShape":
 					oCSld.spTree.push(this.ShapeFromJSON(oParsedCSld.spTree[nShape]));
 					break;
 				case "chartSpace":
@@ -3322,7 +3335,7 @@
 	{
 		var oFontScheme = new AscFormat.FontScheme();
 		oFontScheme.setMajorFont(this.FontCollectionFromJSON(oParsedFntScheme.majorFont));
-		oFontScheme.setMinorFont(this.FontCollectionFromJSON(oParsedFntScheme.majorFont));
+		oFontScheme.setMinorFont(this.FontCollectionFromJSON(oParsedFntScheme.minorFont));
 
 		oParsedFntScheme.name && oFontScheme.setName(oParsedFntScheme.name);
 

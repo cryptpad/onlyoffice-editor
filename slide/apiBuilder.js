@@ -2691,7 +2691,7 @@
 	 * Convert to JSON object. 
 	 * @memberof ApiSlide
      * @param {bool} [bWriteLayout=false] - determines whether SlideLayout will be saved.
-     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved.
+     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved. (bWriteMaster is false if bWriteLayout === false)
      * @param {bool} [bWriteAllMasLayouts=false] - determines whether all child SlideLaytouts from the MasterSlide will be saved.
 	 * @typeofeditors ["CPE"]
 	 * @returns {JSON}
