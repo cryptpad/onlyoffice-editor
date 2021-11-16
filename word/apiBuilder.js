@@ -4037,6 +4037,12 @@
 				return this.private_CreateApiLayout(oReader.SlideLayoutFromJSON(oParsedObj));
 			case "sldMaster":
 				return this.private_CreateApiSlide(oReader.MasterSlideFromJSON(oParsedObj));
+			case "fontScheme":
+				return this.private_CreateApiFontScheme(oReader.FontSchemeFromJSON(oParsedObj));
+			case "fmtScheme":
+				return this.private_CreateApiFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj));
+			case "clrScheme":
+				return this.private_CreateApiColorScheme(oReader.ClrSchemeFromJSON(oParsedObj));
 		}
 	};
 

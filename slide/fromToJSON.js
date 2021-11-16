@@ -136,7 +136,8 @@
 			saveSubsetFonts:          oPres.pres.attrSaveSubsetFonts,
 			serverZoom:               oPres.pres.attrServerZoom,
 			showSpecialPlsOnTitleSld: oPres.pres.attrShowSpecialPlsOnTitleSld,
-			strictFirstAndLastChars:  oPres.pres.attrStrictFirstAndLastChars
+			strictFirstAndLastChars:  oPres.pres.attrStrictFirstAndLastChars,
+			type:                     "presentation"
 		}
 
 		return oPres;
@@ -189,7 +190,8 @@
 			accent5:  this.SerColor(oClrScheme.colors[10]),
 			accent6:  this.SerColor(oClrScheme.colors[11]),
 			hlink:    this.SerColor(oClrScheme.colors[12]),
-			folHlink: this.SerColor(oClrScheme.colors[13])
+			folHlink: this.SerColor(oClrScheme.colors[13]),
+			type:     "clrScheme"
 		}
 	};
 	WriterToJSON.prototype.SerFmtScheme = function(oFmtScheme)
@@ -215,7 +217,8 @@
 			name:           oFmtScheme.name,
 			bgFillStyleLst: aBgFillStyleLst,
 			fillStyleLst:   aFillStyleLst,
-			lnStyleLst:     aLnStyleLst
+			lnStyleLst:     aLnStyleLst,
+			type:           "fmtScheme"
 		}
 	};
 	WriterToJSON.prototype.SerFontScheme = function(oFontScheme)
@@ -226,7 +229,8 @@
 		return {
 			name:      oFontScheme.name,
 			majorFont: this.SerFontCollection(oFontScheme.majorFont),
-			minorFont: this.SerFontCollection(oFontScheme.minorFont)
+			minorFont: this.SerFontCollection(oFontScheme.minorFont),
+			type:      "fontScheme"
 		}
 	};
 	WriterToJSON.prototype.SerFontCollection = function(oFontCollection)

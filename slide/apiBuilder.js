@@ -1948,6 +1948,17 @@
         return new ApiThemeColorScheme(this.ColorScheme.createDuplicate());
     };
 
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiThemeColorScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeColorScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerClrScheme(this.ColorScheme));
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiThemeFormatScheme
@@ -2080,6 +2091,17 @@
         return new ApiThemeFormatScheme(this.FormatScheme.createDuplicate());
     };
 
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiThemeFormatScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeFormatScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerFmtScheme(this.FormatScheme));
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiThemeFontScheme
@@ -2155,6 +2177,17 @@
     ApiThemeFontScheme.prototype.Copy = function()
     {
         return new ApiThemeFontScheme(this.FontScheme.createDuplicate());
+    };
+
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiThemeFontScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeFontScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerFontScheme(this.FontScheme));
     };
     
     //------------------------------------------------------------------------------------------------------------------
@@ -2946,6 +2979,18 @@
         return null;
     };
 
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+	ApiDrawing.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerDrawing(this.Drawing));
+	};
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiImage
@@ -3527,6 +3572,17 @@
         this.Table.Set_Pr(oPr);
     };
 
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiTable
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+	ApiTable.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerTable(this.Table));
+	};
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -3907,7 +3963,7 @@
     ApiPresentation.prototype["GetMaster"]                = ApiPresentation.prototype.GetMaster;
     ApiPresentation.prototype["AddMaster"]                = ApiPresentation.prototype.AddMaster;
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
-    ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
+    //ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
 
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
@@ -3964,6 +4020,7 @@
     ApiThemeColorScheme.prototype["SetSchemeName"]        = ApiThemeColorScheme.prototype.SetSchemeName;
     ApiThemeColorScheme.prototype["ChangeColor"]          = ApiThemeColorScheme.prototype.ChangeColor;
     ApiThemeColorScheme.prototype["Copy"]                 = ApiThemeColorScheme.prototype.Copy;
+    ApiThemeColorScheme.prototype["ToJSON"]               = ApiThemeColorScheme.prototype.ToJSON;
 
     ApiThemeFormatScheme.prototype["GetClassType"]        = ApiThemeFormatScheme.prototype.GetClassType;
     ApiThemeFormatScheme.prototype["SetSchemeName"]       = ApiThemeFormatScheme.prototype.SetSchemeName;
@@ -3971,12 +4028,13 @@
     ApiThemeFormatScheme.prototype["ChangeBgFillStyles"]  = ApiThemeFormatScheme.prototype.ChangeBgFillStyles;
     ApiThemeFormatScheme.prototype["ChangeLineStyles"]    = ApiThemeFormatScheme.prototype.ChangeLineStyles;
     ApiThemeFormatScheme.prototype["Copy"]                = ApiThemeFormatScheme.prototype.Copy;
+    ApiThemeFormatScheme.prototype["ToJSON"]              = ApiThemeFormatScheme.prototype.ToJSON;
 
     ApiThemeFontScheme.prototype["GetClassType"]          = ApiThemeFontScheme.prototype.GetClassType;
     ApiThemeFontScheme.prototype["SetSchemeName"]         = ApiThemeFontScheme.prototype.SetSchemeName;
     ApiThemeFontScheme.prototype["SetFonts"]              = ApiThemeFontScheme.prototype.SetFonts;
     ApiThemeFontScheme.prototype["Copy"]                  = ApiThemeFontScheme.prototype.Copy;
-
+    ApiThemeFontScheme.prototype["ToJSON"]                = ApiThemeFontScheme.prototype.ToJSON;
 
     ApiSlide.prototype["GetClassType"]                    = ApiSlide.prototype.GetClassType;
     ApiSlide.prototype["RemoveAllObjects"]                = ApiSlide.prototype.RemoveAllObjects;
@@ -4014,6 +4072,7 @@
     ApiDrawing.prototype["Delete"]                        = ApiDrawing.prototype.Delete;
     ApiDrawing.prototype["SetPlaceholder"]                = ApiDrawing.prototype.SetPlaceholder;
     ApiDrawing.prototype["GetPlaceholder"]                = ApiDrawing.prototype.GetPlaceholder;
+    ApiDrawing.prototype["ToJSON"]                        = ApiDrawing.prototype.ToJSON;
 
     ApiImage.prototype["GetClassType"]                    = ApiImage.prototype.GetClassType;
 
@@ -4055,6 +4114,7 @@
     ApiTable.prototype["RemoveRow"]                       = ApiTable.prototype.RemoveRow;
     ApiTable.prototype["RemoveColumn"]                    = ApiTable.prototype.RemoveColumn;
     ApiTable.prototype["SetShd"]                          = ApiTable.prototype.SetShd;
+    ApiTable.prototype["ToJSON"]    				      = ApiTable.prototype.ToJSON;
 
     ApiTableRow.prototype["GetClassType"]                 = ApiTableRow.prototype.GetClassType;
     ApiTableRow.prototype["GetCellsCount"]                = ApiTableRow.prototype.GetCellsCount;
@@ -4084,6 +4144,18 @@
     };
     Api.prototype.private_CreateApiLayout = function(oLayout){
         return new ApiLayout(oLayout);
+    };
+    Api.prototype.private_CreateApiFontScheme = function(oFontScheme){
+        return new ApiThemeFontScheme(oFontScheme);
+    };
+    Api.prototype.private_CreateApiFormatScheme = function(oFormatScheme){
+        return new ApiThemeFormatScheme(oFormatScheme);
+    };
+    Api.prototype.private_CreateApiColorScheme = function(oColorScheme){
+        return new ApiThemeColorScheme(oColorScheme);
+    };
+    Api.prototype.private_CreateApiPresentation = function(oPresentation){
+        return new ApiPresentation(oPresentation);
     };
 
     function private_GetCurrentSlide(){
