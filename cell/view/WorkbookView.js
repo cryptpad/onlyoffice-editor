@@ -305,8 +305,8 @@
 											<canvas id="ws-canvas-overlay"></canvas>\
 											<canvas id="ws-canvas-graphic"></canvas>\
 											<canvas id="ws-canvas-graphic-overlay"></canvas>\
-											<canvas id="id_target_cursor" class="block_elem" width="1" height="1"\
-												style="width:2px;height:13px;display:none;z-index:9;"></canvas>\
+											<div id="id_target_cursor" class="block_elem" width="1" height="1"\
+												style="width:2px;height:13px;display:none;z-index:9;"></div>\
 										</div>';
 		}
 

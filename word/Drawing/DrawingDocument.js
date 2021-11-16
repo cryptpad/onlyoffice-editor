@@ -3164,8 +3164,8 @@ function CDrawingDocument()
 
 	this.CheckTargetDraw = function (x, y)
 	{
-		var oldW = this.TargetHtmlElement.width;
-		var oldH = this.TargetHtmlElement.height;
+		var oldW = this.TargetHtmlElement.width_old;
+		var oldH = this.TargetHtmlElement.height_old;
 
 		var newW = 2;
 		var newH = (this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
@@ -3178,6 +3178,8 @@ function CDrawingDocument()
 
 			this.TargetHtmlElement.style.width = pixNewW + "px";
 			this.TargetHtmlElement.style.height = newH + "px";
+			this.TargetHtmlElement.width_old = newW;
+			this.TargetHtmlElement.height_old = newH;
 			this.TargetHtmlElement.oldColor = null;
 		}
 

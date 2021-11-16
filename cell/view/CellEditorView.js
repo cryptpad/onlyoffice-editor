@@ -1516,6 +1516,8 @@
 		if (!window['IS_NATIVE_EDITOR']) {
 			this.cursorStyle.left = curLeft + "px";
 			this.cursorStyle.top = curTop + "px";
+
+			this.cursorStyle.width = (((2 * AscCommon.AscBrowser.retinaPixelRatio) >> 0) / AscCommon.AscBrowser.retinaPixelRatio) + "px";
 			this.cursorStyle.height = curHeight + "px";
 		}
 
