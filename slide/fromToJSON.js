@@ -371,39 +371,6 @@
 			master:           notesMasterMap[oNote.Master.Id] ? oNote.Master.Id : this.SerNoteMaster(oNote.Master)
 		}
 	};
-	WriterToJSON.prototype.SerSlide = function(oSlide, bWriteLayout, bWriteMaster, bWriteAllMasLayouts)
-	{
-		var oMaster = oSlide.Layout.Master.Id;
-		var oLayout = oSlide.Layout.Id;
-
-		// нет смысла тащить master за слайдом без layout
-		if (bWriteLayout)
-		{
-			if (bWriteMaster)
-			{
-				oMaster = this.SerMasterSlide(oSlide.Layout.Master, bWriteAllMasLayouts);
-				if (!bWriteAllMasLayouts)
-					oLayout = this.SerSlideLayout(oSlide.Layout, false);
-			}
-			else
-				oLayout = this.SerSlideLayout(oSlide.Layout, false);
-		}
-
-		return {
-			notes:            this.SerNotes(oSlide.notes),
-			master:           oMaster,
-			clrMapOvr:        this.SerColorMapOvr(oSlide.clrMap),
-			layout:           oLayout,
-			cSld:             this.SerCSld(oSlide.cSld),
-			transition:       this.SerTransition(oSlide.transition),
-			timing:           this.SerTiming(oSlide.timing),
-			comments:         this.SerSldComments(oSlide.slideComments),
-			show:             oSlide.show,
-			showMasterPhAnim: oSlide.showMasterPhAnim,
-			showMasterSp:     oSlide.showMasterSp,
-			type:             "slide"
-		}
-	};
 	WriterToJSON.prototype.SerSldComments = function(oSldComments)
 	{
 		var aComments = [];
@@ -581,6 +548,39 @@
 			preserve:         oMaster.preserve,
 			imgBase64:        oMaster.ImageBase64,
 			type:             "sldMaster"
+		}
+	};
+	WriterToJSON.prototype.SerSlide = function(oSlide, bWriteLayout, bWriteMaster, bWriteAllMasLayouts)
+	{
+		var oMaster = oSlide.Layout.Master.Id;
+		var oLayout = oSlide.Layout.Id;
+
+		// нет смысла тащить master за слайдом без layout
+		if (bWriteLayout)
+		{
+			if (bWriteMaster)
+			{
+				oMaster = this.SerMasterSlide(oSlide.Layout.Master, bWriteAllMasLayouts);
+				if (!bWriteAllMasLayouts)
+					oLayout = this.SerSlideLayout(oSlide.Layout, false);
+			}
+			else
+				oLayout = this.SerSlideLayout(oSlide.Layout, false);
+		}
+
+		return {
+			notes:            this.SerNotes(oSlide.notes),
+			master:           oMaster,
+			clrMapOvr:        this.SerColorMapOvr(oSlide.clrMap),
+			layout:           oLayout,
+			cSld:             this.SerCSld(oSlide.cSld),
+			transition:       this.SerTransition(oSlide.transition),
+			timing:           this.SerTiming(oSlide.timing),
+			comments:         this.SerSldComments(oSlide.slideComments),
+			show:             oSlide.show,
+			showMasterPhAnim: oSlide.showMasterPhAnim,
+			showMasterSp:     oSlide.showMasterSp,
+			type:             "slide"
 		}
 	};
 	WriterToJSON.prototype.SerTxStyles = function(oTxStyles)
@@ -2027,6 +2027,88 @@
 		oSlide.setSlideSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
 
 		return oSlide;
+	};
+	ReaderFromJSON.prototype.SlideSizeFromJSON = function(oParsedSldSize)
+	{
+		var nSldSzType = undefined;
+		switch (oParsedSldSize.type)
+		{
+			case Asc.c_oAscSlideSZType.Sz35mm:
+				nSldSzType = "35mm";
+				break;
+			case Asc.c_oAscSlideSZType.SzA3:
+				nSldSzType = "A3";
+				break;
+			case Asc.c_oAscSlideSZType.SzA4:
+				nSldSzType = "A4";
+				break;
+			case Asc.c_oAscSlideSZType.SzB4ISO:
+				nSldSzType = "B4ISO";
+				break;
+			case Asc.c_oAscSlideSZType.SzB4JIS:
+				nSldSzType = "B4JIS";
+				break;
+			case Asc.c_oAscSlideSZType.SzB5ISO:
+				nSldSzType = "B5ISO";
+				break;
+			case Asc.c_oAscSlideSZType.SzB5JIS:
+				nSldSzType = "B5JIS";
+				break;
+			case Asc.c_oAscSlideSZType.SzBanner:
+				nSldSzType = "banner";
+				break;
+			case Asc.c_oAscSlideSZType.SzCustom:
+				nSldSzType = "custom";
+				break;
+			case Asc.c_oAscSlideSZType.SzHagakiCard:
+				nSldSzType = "hagakiCard";
+				break;
+			case Asc.c_oAscSlideSZType.SzLedger:
+				nSldSzType = "ledger";
+				break;
+			case Asc.c_oAscSlideSZType.SzLetter:
+				nSldSzType = "letter";
+				break;
+			case Asc.c_oAscSlideSZType.SzOverhead:
+				nSldSzType = "overhead";
+				break;
+			case Asc.c_oAscSlideSZType.SzScreen16x10:
+				nSldSzType = "screen16x10";
+				break;
+			case Asc.c_oAscSlideSZType.SzScreen16x9:
+				nSldSzType = "screen16x9";
+				break;
+			case Asc.c_oAscSlideSZType.SzScreen4x3:
+				nSldSzType = "screen4x3";
+				break;
+			case Asc.c_oAscSlideSZType.SzWidescreen:
+				nSldSzType = "wideScreen";
+				break;
+		}
+
+		var oSldSize = new AscCommonSlide.CSlideSize();
+
+		oParsedSldSize.cx != undefined && oSldSize.setCX(oParsedSldSize.cx);
+		oParsedSldSize.cy != undefined && oSldSize.setCY(oParsedSldSize.cy);
+		nSldSzType != undefined && oSldSize.setType(oParsedSldSize.cx);
+
+		return oSldSize;
+	};
+	ReaderFromJSON.prototype.ShowPrFromJSON = function(oParsedShowPr)
+	{
+		var oShowPr = new CShowPr();
+
+		oShowPr.browse = oParsedShowPr.browse !== undefined ? oParsedShowPr.browse : oShowPr.browse;
+		oShowPr.kiosk = oParsedShowPr.kiosk !== undefined ? oParsedShowPr.kiosk : oShowPr.kiosk;
+		oShowPr.penClr = oParsedShowPr.penClr !== undefined ? this.ColorFromJSON(oParsedShowPr.penClr) : oShowPr.penClr;
+		oShowPr.present = oParsedShowPr.present !== undefined ? oParsedShowPr.present : oShowPr.present;
+		oShowPr.show = oParsedShowPr.show !== undefined ? oParsedShowPr.show : oShowPr.show;
+		oShowPr.loop = oParsedShowPr.loop !== undefined ? oParsedShowPr.loop : oShowPr.loop;
+		oShowPr.showAnimation = oParsedShowPr.showAnimation !== undefined ? oParsedShowPr.showAnimation : oShowPr.showAnimation;
+		oShowPr.showNarration = oParsedShowPr.showNarration !== undefined ? oParsedShowPr.showNarration : oShowPr.showNarration;
+		oShowPr.useTimings = oParsedShowPr.useTimings !== undefined ? oParsedShowPr.useTimings : oShowPr.useTimings;
+
+		return oShowPr;
 	};
 	ReaderFromJSON.prototype.CommentFromJSON = function(oParsedComment, oParent)
 	{
