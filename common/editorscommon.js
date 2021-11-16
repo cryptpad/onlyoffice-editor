@@ -7156,6 +7156,58 @@
 						}
 						break;
 					}
+					case 'bg-BG': {
+						var alphaBet = {
+								1: {
+									'един': 'първият',
+									'два': 'вторият',
+									'три': 'третият',
+									'четири': 'четвъртият',
+									'пет': 'петият',
+									'шест': 'шестият',
+									'седем': 'седмият',
+									'осем': 'осмият',
+									'хиляди': 'хилядният'
+								},
+								100: {
+									'сто': 'стотеният',
+									'двеста': 'двестотеният',
+									'триста': 'тристотеният',
+									'четиристотин': 'четиристотеният',
+									'петстотин': 'петстотеният',
+									'шестстотин': 'шестстотеният',
+									'седемстотин': 'седемстотеният',
+									'осемстотин': 'осемстотеният',
+									'деветстотин': 'деветстотеният'
+								}
+						};
+						var arrOfDigits = ordinalText.arrAnswer;
+						for (var i = 0; i < arrOfDigits.length; i += 1) {
+							if (arrOfDigits[i] === 'хиляда') {
+								arrOfDigits[i] = 'хиляди';
+							}
+						}
+
+						var lastWord = arrOfDigits[arrOfDigits.length - 1];
+						if (alphaBet[1][lastWord] || alphaBet[100][lastWord]) {
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[1][lastWord] || alphaBet[100][lastWord];
+						} else if (nValue % 100 !== 0) {
+							arrOfDigits[arrOfDigits.length - 1] += 'ият';
+						}
+						
+						if (Math.floor(nValue / 1000) === 1) {
+							arrOfDigits.unshift('една');
+						}
+						for (var i = 0; i < arrOfDigits.length - 1; i += 1) {
+							if (alphaBet[100][arrOfDigits[i]]
+								&& arrOfDigits[i + 1]
+								&& arrOfDigits[i + 1] !== 'хилядният'
+								&& arrOfDigits[i + 1] !== 'и') {
+								arrOfDigits[i] += ' и';
+							}
+						}
+						break;
+					}
 					case 'sv-SE': {
 						var alphaBet = {
 							'ett': 'första',
