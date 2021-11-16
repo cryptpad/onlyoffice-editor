@@ -6955,6 +6955,7 @@
 						break;
 					}
 					case 'uk-UA':
+					case 'pl-PL':
 					case 'ru-RU': {
 						var alphaBet = {
 							'ru-RU': {
@@ -7125,31 +7126,136 @@
 								'thousandEntry': 'тисяч',
 								'thousandType': 'тисячний'
 							},
+							'pl-PL': {
+								'tens': {
+									'dwadzieścia': 'dwudziesty',
+									'trzydzieści': 'trzydziesty',
+									'czterdzieści': 'czterdziesty',
+									'pięćdziesiąt': 'pięćdziesiąty',
+									'sześćdziesiąt': 'sześćdziesiąty',
+									'siedemdziesiąt': 'siedemdziesiąty',
+									'osiemdziesiąt': 'osiemdziesiąty',
+									'dziewięćdziesiąt': 'dziewięćdziesiąty'
+								},
+								'numbers': {
+									'jeden': 'pierwszy',
+									'dwa': 'drugi',
+									'trzy': 'trzeci',
+									'cztery': 'czwarty',
+									'pięć': 'piąty',
+									'sześć': 'szósty',
+									'siedem': 'siódmy',
+									'osiem': 'ósmy',
+									'dziewięć': 'dziewiąty',
+									'dziesięć': 'dziesiąty',
+									'jedenaście': 'jedenasty',
+									'dwanaście': 'dwunasty',
+									'trzynaście': 'trzynasty',
+									'czternaście': 'czternasty',
+									'piętnaście': 'piętnasty',
+									'szesnaście': 'szesnasty',
+									'siedemnaście': 'siedemnasty',
+									'osiemnaście': 'osiemnasty',
+									'dziewiętnaście': 'dziewiętnasty',
+									'dwadzieścia': 'dwudziesty',
+									'trzydzieści': 'trzydziesty',
+									'czterdzieści': 'czterdziesty',
+									'pięćdziesiąt': 'pięćdziesiąty',
+									'sześćdziesiąt': 'sześćdziesiąty',
+									'siedemdziesiąt': 'siedemdziesiąty',
+									'osiemdziesiąt': 'osiemdziesiąty',
+									'dziewięćdziesiąt': 'dziewięćdziesiąty',
+									'sto': 'setny',
+									'dwieście': 'dwóchsetny',
+									'trzysta': 'trzechsetny',
+									'czterysta': 'czterechsetny',
+									'pięćset': 'pięćsetny',
+									'sześćset': 'sześćsetny',
+									'siedemset': 'siedemsetny',
+									'osiemset': 'osiemsetny',
+									'dziewięćset': 'dziewięćsetny'
+
+								},
+								'thousand': {
+									1: {
+										'jeden': 'jedno',
+										'dwa': 'dwu',
+										'trzy': 'trzy',
+										'cztery': 'cztero',
+										'pięć': 'piącio',
+										'sześć': 'szeącio',
+										'siedem': 'siedmio',
+										'osiem': 'óąmio',
+										'dziewięć': 'dziewiącio',
+										'dziesięć': 'dziesiącio',
+										'jedenaście': 'jedenasto',
+										'dwanaście': 'dwunasto',
+										'trzynaście': 'trzynasto',
+										'czternaście': 'czternasto',
+										'piętnaście': 'piętnasto',
+										'szesnaście': 'szesnasto',
+										'siedemnaście': 'siedemnasto',
+										'osiemnaście': 'osiemnastotysięczny',
+										'dziewiętnaście': 'dziewiętnastotysięczny',
+										'dwadzieścia': 'dwudziestotysięczny',
+										'trzydzieści': 'trzydziestotysięczny',
+										'czterdzieści': 'czterdziesto',
+										'pięćdziesiąt': 'pięćdziesiącio',
+										'sześćdziesiąt': 'sześćdziesiącio',
+										'siedemdziesiąt': 'siedemdziesiącio',
+										'osiemdziesiąt': 'osiemdziesiącio',
+										'dziewięćdziesiąt': 'dziewięćdziesiącio'
+									},
+									100: {
+										'sto': 'stu',
+										'dwieście': 'dwustu',
+										'trzysta': 'trzystu',
+										'czterysta': 'czterystu',
+										'pięćset': 'pięćset',
+										'sześćset': 'szeuśćset',
+										'siedemset': 'siedemset',
+										'osiemset': 'osiemset',
+										'dziewięćset': 'dziewięćset',
+									}
+								},
+								'thousandEntry': 'tysiąc',
+								'thousandType': 'tysiączny'
+							}
 						}
-						var arrWithDigit = ordinalText.arrAnswer;
-						var lastWord = arrWithDigit[arrWithDigit.length - 1];
+						var arrOfDigits = ordinalText.arrAnswer;
+						var lastWord = arrOfDigits[arrOfDigits.length - 1];
 						if (lastWord.indexOf(alphaBet[textLang]['thousandEntry']) !== -1) {
 							var answer = [];
 							answer.unshift(alphaBet[textLang]['thousandType']);
-							arrWithDigit.pop();
-							var lastWord = arrWithDigit[arrWithDigit.length - 1];
+							arrOfDigits.pop();
+							var lastWord = arrOfDigits[arrOfDigits.length - 1];
 							if (typeof alphaBet[textLang]['thousand'][1][lastWord] === 'string') {
 								answer.unshift(alphaBet[textLang]['thousand'][1][lastWord]);
-								arrWithDigit.pop();
-								lastWord = arrWithDigit[arrWithDigit.length - 1];
+								arrOfDigits.pop();
+								lastWord = arrOfDigits[arrOfDigits.length - 1];
 								if (alphaBet[textLang]['thousand'][1][lastWord]) {
 									answer.unshift(alphaBet[textLang]['thousand'][1][lastWord]);
-									arrWithDigit.pop();
+									arrOfDigits.pop();
 								}
 							}
-							lastWord = arrWithDigit[arrWithDigit.length - 1];
+							lastWord = arrOfDigits[arrOfDigits.length - 1];
 							if (alphaBet[textLang]['thousand'][100][lastWord]) {
-								arrWithDigit.pop();
+								arrOfDigits.pop();
 								answer.unshift(alphaBet[textLang]['thousand'][100][lastWord]);
 							}
-							arrWithDigit.push(answer.join(''));
+							arrOfDigits.push(answer.join(''));
 						} else {
-							arrWithDigit[arrWithDigit.length - 1] = alphaBet[textLang]['numbers'][arrWithDigit[arrWithDigit.length - 1]];
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[textLang]['numbers'][arrOfDigits[arrOfDigits.length - 1]];
+						}
+						if (textLang === 'pl-PL') {
+							for (var i = 0; i < arrOfDigits.length; i += 1) {
+								if (arrOfDigits[i] === 'tysiączny') {
+									break;
+								}
+								if (alphaBet[textLang]['tens'][arrOfDigits[i]]) {
+									arrOfDigits[i] = alphaBet[textLang]['tens'][arrOfDigits[i]];
+								}
+							}
 						}
 						ordinalText.getConcatStringByRule = function (arr) {
 							return arr.join(' ');
