@@ -7181,7 +7181,51 @@
 						}
 						break;
 					}
-					case 'bg-BG':
+					case 'sk-SK': {
+						var alphaBet = {
+							'jeden': 'prvý',
+							'dva': 'druhý',
+							'tri': 'tretí',
+							'štyri': 'štvrtý',
+							'päť': 'piaty',
+							'šesť': 'šiesty',
+							'sedem': 'siedmy',
+							'osem': 'ôsmy',
+							'deväť': 'deviaty',
+							'desať': 'desiaty',
+							'jedenásť': 'jedenásty',
+							'dvanásť': 'dvanásty',
+							'trinásť': 'trinásty',
+							'štrnásť': 'štrnásty',
+							'pätnásť': 'pätnásty',
+							'šestnásť': 'šestnásty',
+							'sedemnásť': 'sedemnásty',
+							'osemnásť': 'osemnásty',
+							'devätnásť': 'devätnásty',
+							'dvadsať': 'dvadsiaty',
+							'tridsať': 'tridsiaty',
+							'štyridsať': 'štyridsiaty',
+							'päťdesiat': 'päťdesiaty',
+							'šesťdesiat': 'šesťdesiaty',
+							'sedemdesiat': 'sedemdesiaty',
+							'osemdesiat': 'osemdesiaty',
+							'deväťdesiat': 'deväťdesiaty',
+							'tisíc': 'tisíci',
+							'sto': 'stý'
+						}
+						var arrWithDigits = ordinalText.arrAnswer;
+						if (alphaBet[arrWithDigits[arrWithDigits.length - 1]]) {
+							arrWithDigits[arrWithDigits.length - 1] = alphaBet[arrWithDigits[arrWithDigits.length - 1]];
+						}
+						break;
+					}
+
+					case 'zh-CN':
+					case 'ja-JP':
+					case 'ko-KR':
+					case 'az-Latn-AZ':
+					case 'en-US':
+					case 'vi-VN':
 					case 'en-GB':
 					case 'en-US': {
 						var alphaBet = {
