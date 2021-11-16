@@ -55,6 +55,15 @@ CLaTeXParser.prototype.prepare = function() {
 	CLaTeXLexer(this, this.EqArray.getElementMathContent(this.intEqLines - 1));
 	var t1 = performance.now();
 	console.log("Lexer work " + (t1 - t0) + " milliseconds.");
+
+	this.Root.Correct_Content(true);
+
+	var Conveter = new ToLaTex(this.Root);
+	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
+	Conveter.objTempData = Conveter.objTempData['CEqArray_1']['CMathContent_0'];
+
+	Conveter.Convert(Conveter.objStringOfData, Conveter.objTempData);
+	console.log('LaTex string:', Conveter.objStringOfData.arr.join(''));
 };
 
 CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
@@ -1823,7 +1832,7 @@ CLaTeXParser.prototype.AddNewLine = function() {
 
 	this.EqArray.Add_Row(this.intEqLines);
 	CLaTeXLexer(this, this.EqArray.getElementMathContent(this.intEqLines - 1));
-}
+};
 
 /**
  * @param Parser
@@ -1923,7 +1932,83 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			return;
 		}
 	} while (strFAtom != undefined);
-}
+};
+
+function ToLaTex(Root) {
+	this.Root = Root;
+	this.objTempData = {};
+	this.objStringOfData = {
+		arr: []
+	};
+};
+
+ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
+	if (inputObj) {
+		
+		if (inputObj.Content) {
+			
+			if (inputObj.Content.length > 0) {
+				
+				for (var index = 0; index < inputObj.Content.length; index++) {
+					
+					WriteObject[inputObj.Content[index].constructor.name + "_" + index] = {}	
+					var isEmpty = this.ConvertData(WriteObject[inputObj.Content[index].constructor.name + "_" + index], inputObj.Content[index]);
+					
+					if (isEmpty) {
+						delete WriteObject[inputObj.Content[index].constructor.name + "_" + index]
+					}
+				}
+			}
+		}
+		
+		else {
+			WriteObject[inputObj.constructor.name] = String.fromCharCode(inputObj.getCodeChr());
+		}
+
+	}
+};
+
+ToLaTex.prototype.CheckIsObjectEmpty = function(obj) {
+	for (var key in obj) {
+		return false;
+	  }
+	  return true;
+};
+
+ToLaTex.prototype.Convert = function(str, obj) {
+	var propert = Object.keys(obj);
+
+	for (var index = 0; index < propert.length; index++) {
+		var name = propert[index];
+		var nameForCheck = name.slice(0, -2)
+
+		if (nameForCheck == 'CEqArray') {
+			//console.log('Array')
+		}
+
+		if (nameForCheck == 'CFraction') {
+			str.arr.push('\\frac')
+
+			for (var index in obj[name]) {
+				str.arr.push('{')
+				this.Convert(str, obj[name][index])
+				str.arr.push('}')
+			}
+		}
+
+		if (nameForCheck == 'ParaRun') {
+			this.Convert(str, obj[name])
+		}
+
+		if (nameForCheck == 'CMathContent') {
+			this.Convert(str, obj[name])
+		}
+
+		if (nameForCheck == 'CMathText') {
+			str.arr.push(obj[name].CMathText) 
+		}
+	}
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window["AscCommonWord"] = window["AscCommonWord"] || {};

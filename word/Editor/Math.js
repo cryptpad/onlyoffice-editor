@@ -3504,7 +3504,6 @@ ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
     var oLaTeXParser = new CLaTeXParser(this, strLaTeX);
     oLaTeXParser.Parse(strLaTeX);
     oLaTeXParser.prepare();
-    this.Root.Correct_Content(true);
 };
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
