@@ -57,13 +57,6 @@ CLaTeXParser.prototype.prepare = function() {
 	console.log("Lexer work " + (t1 - t0) + " milliseconds.");
 
 	this.Root.Correct_Content(true);
-
-	var Conveter = new ToLaTex(this.Root);
-	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
-	Conveter.objTempData = Conveter.objTempData['CEqArray_1']['CMathContent_0'];
-
-	Conveter.Convert(Conveter.objStringOfData, Conveter.objTempData);
-	console.log('LaTex string:', Conveter.objStringOfData.arr.join(''));
 };
 
 CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
@@ -1076,7 +1069,7 @@ CLaTeXParser.prototype.CreateScript = function(FormArgument, type) {
 };
 
 CLaTeXParser.prototype.FillScriptContent = function(Script, name, typeOfScript) {
-	Script.getBase().Add_Text(name, this.Paragraph);
+	this.AddText(name, Script.getBase())
 
 	if (typeOfScript == 'DEGREE_SUPERSCRIPT') {
 		this.FillScriptContentWriteSub(Script);
@@ -1127,6 +1120,7 @@ CLaTeXParser.prototype.CheckSupSubForLexer = function () {
 //Radical
 CLaTeXParser.prototype.AddRadical = function (FormArgument) {
 	var typeOfRadical = null;
+	console.log(this.CheckFutureAtom())
 	if (this.CheckFutureAtom() == '[') {
 		typeOfRadical  = DEGREE_RADICAL;
 	} else {
@@ -1141,7 +1135,7 @@ CLaTeXParser.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
 	if (typeOfRadical == SQUARE_RADICAL) {
 		this.Pr.degHide = true;
 	} else if (typeOfRadical == DEGREE_RADICAL) {
-		this.Pr.type = typeOfRadical;
+		this.Pr.degHide = false;
 	}
 
 	var Radical = FormArgument.Add_Radical(this.Pr, null, null);
@@ -1188,7 +1182,7 @@ CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 	return Bracet;	
 };
 
-//BracetBlock
+//BracetBlock todo: convert bracets in left right block
 CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 	if (!strFAtom) {
 		strFAtom = this.GetNextAtom();
@@ -1939,7 +1933,7 @@ function ToLaTex(Root) {
 	this.objTempData = {};
 	this.objStringOfData = {
 		arr: []
-	};
+	}
 };
 
 ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
@@ -1951,21 +1945,51 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 				
 				for (var index = 0; index < inputObj.Content.length; index++) {
 					
-					WriteObject[inputObj.Content[index].constructor.name + "_" + index] = {}	
-					var isEmpty = this.ConvertData(WriteObject[inputObj.Content[index].constructor.name + "_" + index], inputObj.Content[index]);
+					if (inputObj.Content[index].constructor.name == 'CFraction' || inputObj.Content[index].constructor.name == 'CDegree') {
+						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {
+							data: {
+								type: inputObj.Content[index].Pr.type
+							}
+						}
+					} 
+					else if(inputObj.Content[index].constructor.name == 'CRadical') {
+						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {
+							data: {
+								degHide: inputObj.Content[index].Pr.degHide
+							}
+						}
+					}
+					
+					else if(inputObj.Content[index].constructor.name == 'CDelimiter') {
+						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {
+							data: {
+								begOper: inputObj.Content[index]['begOper'].code,
+								endOper: inputObj.Content[index].endOper.code,
+								sepOper: inputObj.Content[index].sepOper.code,
+								nCol: inputObj.Content[index].nCol
+							}
+						}
+					}
+					
+					else {
+						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {}
+					}
+					
+					var isEmpty = this.ConvertData(WriteObject[index + '_' + inputObj.Content[index].constructor.name], inputObj.Content[index]);
 					
 					if (isEmpty) {
-						delete WriteObject[inputObj.Content[index].constructor.name + "_" + index]
+						delete WriteObject[index + '_' + inputObj.Content[index].constructor.name]
 					}
 				}
 			}
 		}
-		
 		else {
 			WriteObject[inputObj.constructor.name] = String.fromCharCode(inputObj.getCodeChr());
 		}
 
 	}
+
+	return this.CheckIsObjectEmpty(WriteObject)
 };
 
 ToLaTex.prototype.CheckIsObjectEmpty = function(obj) {
@@ -1975,37 +1999,104 @@ ToLaTex.prototype.CheckIsObjectEmpty = function(obj) {
 	  return true;
 };
 
-ToLaTex.prototype.Convert = function(str, obj) {
-	var propert = Object.keys(obj);
+ToLaTex.prototype.GetNamesOfObject = function(obj) {
+	var names = Object.keys(obj);
+	
+	names = names.filter(function(item) {
+		return item !== 'data'
+	})
 
+	return names
+};
+
+//todo: type of delimeter () {} [] || ... 
+//binom
+//type of Large Operator
+//type of accent
+ToLaTex.prototype.Convert = function(str, obj) {
+	var propert = this.GetNamesOfObject(obj)
+	
 	for (var index = 0; index < propert.length; index++) {
 		var name = propert[index];
-		var nameForCheck = name.slice(0, -2)
+		var nameForCheck = name.slice(2)
 
 		if (nameForCheck == 'CEqArray') {
-			//console.log('Array')
+			this.Convert(str, obj[name])
 		}
 
-		if (nameForCheck == 'CFraction') {
+		else if (nameForCheck == 'CFraction') {
 			str.arr.push('\\frac')
 
-			for (var index in obj[name]) {
+			for (var indexInner in obj[name]) {
 				str.arr.push('{')
-				this.Convert(str, obj[name][index])
+				this.Convert(str, obj[name][indexInner])
 				str.arr.push('}')
 			}
 		}
 
-		if (nameForCheck == 'ParaRun') {
+		else if (nameForCheck == 'CMathFunc') {
+			str.arr.push('\\')
+			for (var indexInner in obj[name]) {
+				this.Convert(str, obj[name][indexInner])
+			}
+		}
+		
+		else if (nameForCheck == 'CRadical') {
+			str.arr.push('\\sqrt')
+			var degree = Object.keys(obj[name])
+			str.arr.push('[')
+			this.Convert(str, obj[name][degree[0]])
+			str.arr.push(']')
+			str.arr.push('{')
+			this.Convert(str, obj[name][degree[1]])
+			str.arr.push('}')
+		}
+
+		else if (nameForCheck == 'CDegree') {
+			var degree = Object.keys(obj[name])
+			this.Convert(str, obj[name][degree[0]])
+			str.arr.push('^')
+			this.Convert(str, obj[name][degree[1]])
+		}
+		
+		else if (nameForCheck == 'CDelimiter') {
+			str.arr.push('(')
+			this.Convert(str, obj[name])
+			str.arr.push(')')
+		}
+
+		else if (nameForCheck == 'CDegreeSubSup') {
+			var degree = Object.keys(obj[name])
+			this.Convert(str, obj[name][degree[0]])
+			str.arr.push('^')
+			this.Convert(str, obj[name][degree[1]])
+			str.arr.push('_')
+			this.Convert(str, obj[name][degree[2]])
+		}
+
+		else if (nameForCheck == 'CLimit') {
+			var degree = Object.keys(obj[name])
+			this.Convert(str, obj[name][degree[0]])
+			str.arr.push('_{')
+			this.Convert(str, obj[name][degree[1]])
+			str.arr.push('}')
+		}
+		
+		else if (nameForCheck == 'ParaRun') {
 			this.Convert(str, obj[name])
 		}
 
-		if (nameForCheck == 'CMathContent') {
+		else if (nameForCheck == 'CMathContent') {
 			this.Convert(str, obj[name])
 		}
+		
+		else if (nameForCheck == 'CMathText') {
+			var text = obj[name].CMathText
 
-		if (nameForCheck == 'CMathText') {
-			str.arr.push(obj[name].CMathText) 
+			if (text.charCodeAt() == 0x03b8) {
+				text = '\\theta'
+			}
+			str.arr.push(text) 
 		}
 	}
 };

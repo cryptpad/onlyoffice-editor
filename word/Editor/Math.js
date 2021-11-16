@@ -3506,6 +3506,18 @@ ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
     oLaTeXParser.prepare();
 };
 
+ParaMath.prototype.ConvertToLaTeX = function()
+{
+    var Conveter = new ToLaTex(this.Root.Content[1].Content[0]);
+
+	console.log(this.Root)
+	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
+
+	console.log(Conveter.objTempData)
+	Conveter.Convert(Conveter.objStringOfData, Conveter.objTempData);
+	console.log('LaTex string:', Conveter.objStringOfData.arr.join(''));
+};
+
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {
     var FontKoef = 1;
