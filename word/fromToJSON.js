@@ -8090,10 +8090,10 @@
 			return oBulletType;
 		};
 
-		oBullet.bulletColor    = oParsedBullet.bulletColor ? BulletColorFromJSON(oParsedBullet.bulletColor) : oBullet.bulletColor;
-		oBullet.bulletSize     = oParsedBullet.bulletSize ? BulletSizeFromJSON(oParsedBullet.bulletSize) : oBullet.bulletSize;
-		oBullet.bulletTypeface = oParsedBullet.bulletTypeface ? BulletTypeFaceFromJSON(oParsedBullet.bulletTypeface) : oBullet.bulletTypeface;
-		oBullet.bulletType     = oParsedBullet.bulletType ? BulletTypeFromJSON(oParsedBullet.bulletType) : oBullet.bulletType;
+		oBullet.bulletColor    = oParsedBullet.bulletColor ? BulletColorFromJSON.call(this, oParsedBullet.bulletColor) : oBullet.bulletColor;
+		oBullet.bulletSize     = oParsedBullet.bulletSize ? BulletSizeFromJSON.call(this, oParsedBullet.bulletSize) : oBullet.bulletSize;
+		oBullet.bulletTypeface = oParsedBullet.bulletTypeface ? BulletTypeFaceFromJSON.call(this, oParsedBullet.bulletTypeface) : oBullet.bulletTypeface;
+		oBullet.bulletType     = oParsedBullet.bulletType ? BulletTypeFromJSON.call(this, oParsedBullet.bulletType) : oBullet.bulletType;
 	
 		return oBullet;
 	};
@@ -10879,7 +10879,7 @@
 		for (var nClrScheme = 0; nClrScheme < oParsedClrMap.length; nClrScheme++)
 		{
 			var nClrSchemeType = null;
-			switch (oClrMap.color_map[nClrScheme])
+			switch (oParsedClrMap[nClrScheme])
 			{
 				case "accent1":
 					nClrSchemeType = c_oAscColorSchemeIndex.Accent1;

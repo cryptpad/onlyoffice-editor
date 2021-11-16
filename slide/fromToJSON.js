@@ -380,7 +380,11 @@
 		if (bWriteLayout)
 		{
 			if (bWriteMaster)
+			{
 				oMaster = this.SerMasterSlide(oSlide.Layout.Master, bWriteAllMasLayouts);
+				if (!bWriteAllMasLayouts)
+					oLayout = this.SerSlideLayout(oSlide.Layout, false);
+			}
 			else
 				oLayout = this.SerSlideLayout(oSlide.Layout, false);
 		}
@@ -539,6 +543,7 @@
 		}
 
 		return {
+			id:               oLayout.Id,
 			master:           bWriteMaster ? this.SerMasterSlide(oLayout.Master, false) : oLayout.Master.Id,
 			clrMapOvr:        this.SerColorMapOvr(oLayout.clrMap),
 			cSld:             this.SerCSld(oLayout.cSld),
@@ -1774,7 +1779,7 @@
 		oParsedMaster.hf && oMasterSlide.setHF(this.HFFromJSON(oParsedMaster.hf));
 
 		// layouts
-		for (var nLayout = 0; nLayout < oParsedMaster.sldLayoutLst.length; nLayout++)
+		for (var nLayout = 0; nLayout < Math.min(2, oParsedMaster.sldLayoutLst.length); nLayout++)
 			oMasterSlide.addToSldLayoutLstToPos(oMasterSlide.sldLayoutLst.length, this.SlideLayoutFromJSON(oParsedMaster.sldLayoutLst[nLayout]));
 
 		// transition
@@ -1950,6 +1955,9 @@
 		oLayout.setType(nLayoutType);
 		oLayout.ImageBase64 = oParsedLayout.imgBase64;
 
+		// мапим, чтобы повторно не восстанавливать
+		layoutsMap[oParsedLayout.id] = oLayout;
+
 		return oLayout;
 	};
 	ReaderFromJSON.prototype.SlideFromJSON = function(oParsedSlide, oPres)
@@ -1961,12 +1969,17 @@
 
 		if (typeof oParsedSlide.layout === "object")
 			oLayout = this.SlideLayoutFromJSON(oParsedSlide.layout);
-		else if (typeof oParsedSlide.master === "object")
+		if (typeof oParsedSlide.master === "object")
 			oMaster = this.MasterSlideFromJSON(oParsedSlide.master, oPresentation);
 
 		if (oMaster)
-			oLayout = layoutsMap[oParsedSlide.layout];
-
+		{
+			if (!oLayout)
+				oLayout = layoutsMap[oParsedSlide.layout];
+			else
+				oMaster.addToSldLayoutLstToPos(oMaster.length, oLayout);
+		}
+			
 		if (!oLayout)
 		{
 			var CurSlide = oPresentation.Slides[oPresentation.CurPage];
@@ -1986,6 +1999,7 @@
 		{
 			oMaster = oPresentation.lastMaster ? oPresentation.lastMaster : oPresentation.slideMasters[0];
 			oLayout.setMaster(oMaster);
+			oMaster.addToSldLayoutLstToPos(oMaster.length, oLayout);
 		}
 
 		var oSlide = new AscCommonSlide.Slide(oPresentation, oLayout, 0);
@@ -2043,8 +2057,7 @@
 		oCSld.Bg && oNotes.changeBackground(oCSld.Bg);
 		oCSld.name && oNotes.setCSldName(oCSld.name);
 
-		oParsedNotes.show != undefined && oNotes.setShow(oParsedNotes.show);
-		oParsedNotes.showMasterPhAnim != undefined && oNotes.setShowPhAnim(oParsedNotes.showMasterPhAnim);
+		oParsedNotes.showMasterPhAnim != undefined && oNotes.setShowMasterPhAnim(oParsedNotes.showMasterPhAnim);
 		oParsedNotes.showMasterSp != undefined && oNotes.setShowMasterSp(oParsedNotes.showMasterSp);
 
 		var oNotesMaster = typeof oParsedNotes.master === "object" ? this.NotesMasterFromJSON(oParsedNotes.master, oPres) : oParsedNotes.master;
