@@ -1687,7 +1687,7 @@ ParaRun.prototype.AddText = function(sString, nPos)
 	var nCharPos = undefined !== nPos && null !== nPos && -1 !== nPos ? nPos : this.Content.length;
 
 	var oTextForm = this.GetTextForm();
-	var nMax = oTextForm ? oTextForm.MaxCharacters : 0;
+	var nMax      = oTextForm ? oTextForm.MaxCharacters : 0;
 
 	if (this.IsMathRun())
 	{
@@ -2859,6 +2859,12 @@ ParaRun.prototype.GetSelectedText = function(bAll, bClearText, oPr)
             case para_Text :
             {
                 Str += AscCommon.encodeSurrogateChar(Item.Value);
+                break;
+            }
+            case para_Math_Text:
+            case para_Math_BreakOperator:
+            {
+                Str += AscCommon.encodeSurrogateChar(Item.value);
                 break;
             }
             case para_Space:
@@ -12373,6 +12379,71 @@ ParaRun.prototype.private_GetSuitableNumberedLvlForAutoCorrect = function(sText)
 
 	return null;
 };
+ParaRun.prototype.ChangeUnicodeText = function(ListForUnicode, oSettings)
+{
+	var nStartPos = 0;
+	var nEndPos   = -1;
+
+	if (this.Selection.Use)
+	{
+        if (oSettings.nDirection === 1)
+            oSettings.textForUnicode += this.GetSelectedText(false);
+        else
+            oSettings.textForUnicode = this.GetSelectedText(false) + oSettings.textForUnicode;
+		nStartPos = this.Selection.StartPos;
+		nEndPos   = this.Selection.EndPos;
+		if (nStartPos > nEndPos)
+		{
+            oSettings.nDirection = -1;
+            for (var nPos = nStartPos, nCount = nEndPos; nPos >= nCount; --nPos)
+            {
+                var oItem = this.Content[nPos];
+                if (nPos >= nEndPos && nPos < nStartPos)
+                {
+                    if (oItem.Type === para_Text || oItem.Type === para_Space || oItem.Type === para_Math_Text || oItem.Type === para_Math_BreakOperator)
+                    {
+                        ListForUnicode[oSettings.fFlagForUnicode] = {
+                            oRun: this,
+                            currentPos: nPos,
+                            value: (oItem.Type === para_Math_Text || oItem.Type === para_Math_BreakOperator) ? oItem.value : oItem.Value
+                        };
+                        oSettings.fFlagForUnicode++;
+                        if (oItem.Type === para_Math_Text || oItem.Type === para_Math_BreakOperator)
+                            oSettings.IsForMathPart = -1;
+                    }
+                    else
+                    {
+                        oSettings.bBreak = true;
+                    }
+                }
+            }
+		}
+        else
+            for (var nPos = nStartPos, nCount = nEndPos; nPos < nCount; ++nPos)
+            {
+                var oItem = this.Content[nPos];
+                if (nPos >= nStartPos && nPos < nEndPos)
+                {
+                    oSettings.nDirection = 1;
+                    if (oItem.Type === para_Text || oItem.Type === para_Space || oItem.Type === para_Math_Text || oItem.Type === para_Math_BreakOperator)
+                    {
+                        ListForUnicode[oSettings.fFlagForUnicode] = {
+                            oRun: this,
+                            currentPos: nPos,
+                            value: (oItem.Type === para_Math_Text || oItem.Type === para_Math_BreakOperator) ? oItem.value : oItem.Value
+                        };
+                        oSettings.fFlagForUnicode++;
+                        if (oItem.Type === para_Math_Text || oItem.Type === para_Math_BreakOperator)
+                            oSettings.IsForMathPart = -1;
+                    }
+                    else
+                    {
+                        oSettings.bBreak = true;
+                    }
+                }
+            }
+	}
+};
 ParaRun.prototype.private_GetSuitablePrBulletForAutoCorrect = function (sText)
 {
 	if ('*' === sText)
@@ -13561,6 +13632,52 @@ ParaRun.prototype.CalculateTextToTable = function(oEngine)
 			}
 		}
 	}
+};
+/**
+ * Получаем предыдущий элемент, с учетом предыдущих классов внутри параграфа
+ * @param nPos {number} позиция внутри данного рана
+ * @returns {?CParagraphContentBase}
+ */
+ParaRun.prototype.GetPrevRunElement = function(nPos)
+{
+	if (nPos > 0)
+		return this.Content[nPos - 1];
+
+	var oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return null;
+
+	var oContentPos  = this.GetParagraphContentPosFromObject(0);
+	var oRunElements = new CParagraphRunElements(oContentPos, 1, null, true);
+	oParagraph.GetPrevRunElements(oRunElements);
+
+	if (oRunElements.Elements.length <= 0)
+		return null;
+
+	return oRunElements.Elements[0];
+};
+/**
+ * Получаем следующий элемент, с учетом следующих классов внутри параграфа
+ * @param nPos {number} позиция внутри данного рана
+ * @returns {?CParagraphContentBase}
+ */
+ParaRun.prototype.GetNextRunElement = function(nPos)
+{
+	if (nPos <= this.Content.length - 1 && nPos >= 0)
+		return this.Content[nPos];
+
+	var oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return null;
+
+	var oContentPos  = this.GetParagraphContentPosFromObject(this.Content.length);
+	var oRunElements = new CParagraphRunElements(oContentPos, 1, null, true);
+	oParagraph.GetNextRunElements(oRunElements);
+
+	if (oRunElements.Elements.length <= 0)
+		return null;
+
+	return oRunElements.Elements[0];
 };
 
 

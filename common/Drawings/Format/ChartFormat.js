@@ -2296,6 +2296,9 @@
     CBaseChartObject.prototype.isForm = function() {
         return false;
     };
+    CBaseChartObject.prototype.isObjectInSmartArt = function() {
+        return false;
+    };
 
     function getMinMaxFromArrPoints(aPoints) {
         if(Array.isArray(aPoints) && aPoints.length > 0) {

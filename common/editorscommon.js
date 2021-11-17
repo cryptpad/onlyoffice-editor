@@ -7656,13 +7656,48 @@
 	c_oAscSpaces[0xFEFF] = 1;
 
 	/**
-	 * Проверяем является ли заданный юников пробелом
+	 * Проверяем является ли заданный юникод пробелом
 	 * @param nUnicode {number}
 	 * @returns {boolean}
 	 */
 	function IsSpace(nUnicode)
 	{
 		return !!(c_oAscSpaces[nUnicode]);
+	}
+
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function IntToHex(nValue)
+	{
+		var sRes = nValue.toString(16);
+		if (sRes.length === 2)
+			sRes = "00" + sRes;
+		else if (sRes.length === 3)
+			sRes = "0" + sRes;
+		return sRes;
+	}
+
+	/**
+	 * Проверяем является ли заданный юникод цифрой
+	 * @param nUnicode {number}
+	 * @returns {boolean}
+	 */
+	function IsDigit(nUnicode)
+	{
+		return (nUnicode >= 48 && nUnicode <= 57);
+	}
+
+	/**
+	 * Проверяем является ли заданный юникод цифрой
+	 * @param nUnicode {number}
+	 * @returns {boolean}
+	 */
+	function IsLetter(nUnicode)
+	{
+		return (String.fromCodePoint(nUnicode).search(new RegExp("^\\p{L}", 'u')) !== -1);
 	}
 
 	function private_IsAbbreviation(sWord) {
@@ -10403,6 +10438,9 @@
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
+	window["AscCommon"].IntToHex = IntToHex;
+	window["AscCommon"].IsDigit = IsDigit;
+	window["AscCommon"].IsLetter = IsLetter;
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;
 
 	window["AscCommon"].loadSdk = loadSdk;
