@@ -3510,12 +3510,12 @@ ParaMath.prototype.ConvertToLaTeX = function()
 {
     var Conveter = new ToLaTex(this.Root.Content[1].Content[0]);
 
-	console.log(this.Root)
+	console.log(this.Root.Content[1].Content[0])
 	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
 
 	console.log(Conveter.objTempData)
-	Conveter.Convert(Conveter.objStringOfData, Conveter.objTempData);
-	console.log('LaTex string:', Conveter.objStringOfData.arr.join(''));
+	Conveter.Convert(Conveter.objTempData);
+	console.log('LaTex string:', Conveter.objString.arr.join(''));
 };
 
 function MatGetKoeffArgSize(FontSize, ArgSize)

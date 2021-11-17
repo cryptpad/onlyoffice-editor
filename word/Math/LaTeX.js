@@ -1182,7 +1182,7 @@ CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 	return Bracet;	
 };
 
-//BracetBlock todo: convert bracets in left right block
+//BracetBlock
 CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 	if (!strFAtom) {
 		strFAtom = this.GetNextAtom();
@@ -1837,7 +1837,11 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 	//todo: update parser (y_0 y_1y_2y_3y_4)
 	//todo: space in math - https://ru.overleaf.com/learn/latex/Spacing_in_math_mode
 	//todo: bmod to func
+	//todo: _0^1 
 	//fix radical
+	//nary big cup on default with limits 
+	//todo add 2/3 frac
+	//todo \left[-\frac{1}{x}\right]_1^\infty
 	var intFAtoms = 0;
 	var strFAtom = 0;
 	do {
@@ -1902,7 +1906,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			Parser.AddMatrix(FormArgument);
 			intFAtoms++;
 		} 
-		
+	
 		else if (Parser.CheckBraketsLatex(strFAtom)) {
 			Parser.AddBracets(FormArgument, strFAtom);
 			if (exitIfSee == Parser.CheckFutureAtom(-1)) {
@@ -1931,64 +1935,69 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 function ToLaTex(Root) {
 	this.Root = Root;
 	this.objTempData = {};
-	this.objStringOfData = {
+	this.objString = {
 		arr: []
 	}
 };
 
 ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 	if (inputObj) {
-		
 		if (inputObj.Content) {
-			
 			if (inputObj.Content.length > 0) {
-				
 				for (var index = 0; index < inputObj.Content.length; index++) {
 					
-					if (inputObj.Content[index].constructor.name == 'CFraction' || inputObj.Content[index].constructor.name == 'CDegree') {
-						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {
-							data: {
-								type: inputObj.Content[index].Pr.type
-							}
-						}
-					} 
-					else if(inputObj.Content[index].constructor.name == 'CRadical') {
-						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {
-							data: {
-								degHide: inputObj.Content[index].Pr.degHide
-							}
+					var name = index + '_' + inputObj.Content[index].constructor.name;
+					var CName = inputObj.Content[index].constructor.name
+					var content = inputObj.Content[index];
+					var data = {};
+					
+					if (CName == 'CFraction' || CName == 'CDegree') {
+						data = {
+							type: content.Pr.type
 						}
 					}
-					
-					else if(inputObj.Content[index].constructor.name == 'CDelimiter') {
-						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {
-							data: {
-								begOper: inputObj.Content[index]['begOper'].code,
-								endOper: inputObj.Content[index].endOper.code,
-								sepOper: inputObj.Content[index].sepOper.code,
-								nCol: inputObj.Content[index].nCol
-							}
+					else if (CName == 'CRadical') {
+						data = {
+							degHide: content.Pr.degHide
 						}
 					}
-					
-					else {
-						WriteObject[index + '_' + inputObj.Content[index].constructor.name] = {}
+					else if(CName == 'CNary') {
+						data = {
+							chr: content.Pr.chr,
+							limLoc: content.Pr.limLoc
+						}
+					}
+					else if(CName == 'CAccent') {
+						data = {
+							chr: content.Pr.chr
+						}
+					}
+					else if(CName == 'CDelimiter') {
+						data = {
+							begOper: content['begOper'].code,
+							endOper: content.endOper.code,
+							sepOper: content.sepOper.code,
+							nCol: content.nCol
+						}
+					}
+
+					if (Object.keys(data).length > 0) {
+						WriteObject[name] = {data};
+					} else {
+						WriteObject[name] = {};
 					}
 					
-					var isEmpty = this.ConvertData(WriteObject[index + '_' + inputObj.Content[index].constructor.name], inputObj.Content[index]);
-					
+					var isEmpty = this.ConvertData(WriteObject[name], content);
 					if (isEmpty) {
-						delete WriteObject[index + '_' + inputObj.Content[index].constructor.name]
+						delete WriteObject[name]
 					}
 				}
 			}
 		}
 		else {
 			WriteObject[inputObj.constructor.name] = String.fromCharCode(inputObj.getCodeChr());
-		}
-
+		}	
 	}
-
 	return this.CheckIsObjectEmpty(WriteObject)
 };
 
@@ -2009,96 +2018,204 @@ ToLaTex.prototype.GetNamesOfObject = function(obj) {
 	return names
 };
 
-//todo: type of delimeter () {} [] || ... 
 //binom
-//type of Large Operator
-//type of accent
-ToLaTex.prototype.Convert = function(str, obj) {
-	var propert = this.GetNamesOfObject(obj)
+//type of frac
+// overline underline
+ToLaTex.prototype.Convert = function(obj, start, end) {
+	if (start) {
+		this.objString.arr.push(start);
+	}
+
+	var propert = this.GetNamesOfObject(obj);
 	
 	for (var index = 0; index < propert.length; index++) {
+
 		var name = propert[index];
 		var nameForCheck = name.slice(2)
 
 		if (nameForCheck == 'CEqArray') {
-			this.Convert(str, obj[name])
+			this.Convert( obj[name])
 		}
-
 		else if (nameForCheck == 'CFraction') {
-			str.arr.push('\\frac')
-
-			for (var indexInner in obj[name]) {
-				str.arr.push('{')
-				this.Convert(str, obj[name][indexInner])
-				str.arr.push('}')
-			}
+			this.AddFraction(name, obj)
 		}
-
+		else if (nameForCheck == 'CAccent') {
+			this.AddAccent(name, obj)
+		}
 		else if (nameForCheck == 'CMathFunc') {
-			str.arr.push('\\')
-			for (var indexInner in obj[name]) {
-				this.Convert(str, obj[name][indexInner])
-			}
+			this.AddFunction(name, obj);
 		}
-		
+		else if (nameForCheck == 'CNary') {
+			this.AddNary(name, obj);
+		}
 		else if (nameForCheck == 'CRadical') {
-			str.arr.push('\\sqrt')
-			var degree = Object.keys(obj[name])
-			str.arr.push('[')
-			this.Convert(str, obj[name][degree[0]])
-			str.arr.push(']')
-			str.arr.push('{')
-			this.Convert(str, obj[name][degree[1]])
-			str.arr.push('}')
+			this.AddRadical(name, obj);
 		}
-
 		else if (nameForCheck == 'CDegree') {
-			var degree = Object.keys(obj[name])
-			this.Convert(str, obj[name][degree[0]])
-			str.arr.push('^')
-			this.Convert(str, obj[name][degree[1]])
+			this.AddDegree(name, obj);
 		}
-		
 		else if (nameForCheck == 'CDelimiter') {
-			str.arr.push('(')
-			this.Convert(str, obj[name])
-			str.arr.push(')')
+			this.AddBrakets(name, obj)
 		}
-
 		else if (nameForCheck == 'CDegreeSubSup') {
-			var degree = Object.keys(obj[name])
-			this.Convert(str, obj[name][degree[0]])
-			str.arr.push('^')
-			this.Convert(str, obj[name][degree[1]])
-			str.arr.push('_')
-			this.Convert(str, obj[name][degree[2]])
+			this.AddDegreeSubSup(name, obj);
 		}
-
 		else if (nameForCheck == 'CLimit') {
-			var degree = Object.keys(obj[name])
-			this.Convert(str, obj[name][degree[0]])
-			str.arr.push('_{')
-			this.Convert(str, obj[name][degree[1]])
-			str.arr.push('}')
+			this.AddLimit(name, obj);
 		}
-		
 		else if (nameForCheck == 'ParaRun') {
-			this.Convert(str, obj[name])
+			this.Convert(obj[name])
 		}
-
 		else if (nameForCheck == 'CMathContent') {
-			this.Convert(str, obj[name])
+			this.Convert(obj[name])
 		}
-		
 		else if (nameForCheck == 'CMathText') {
-			var text = obj[name].CMathText
-
-			if (text.charCodeAt() == 0x03b8) {
-				text = '\\theta'
-			}
-			str.arr.push(text) 
+			this.AddText(name, obj);
 		}
 	}
+	if (end) {
+		this.objString.arr.push(end);
+	}
+	
+};
+
+ToLaTex.prototype.AddFraction = function(name, obj) {
+	var type = obj[name].data.type; 
+	this.objString.arr.push('\\frac')
+
+	for (var indexInner in obj[name]) {
+		if (indexInner != 'data') {
+			this.objString.arr.push('{')
+			this.Convert(obj[name][indexInner])
+			this.objString.arr.push('}')
+		}
+	}
+};
+
+ToLaTex.prototype.AddBrakets = function(name, obj) {
+	this.objString.arr.push('(')
+	this.Convert(obj[name])
+	this.objString.arr.push(')')
+};
+
+ToLaTex.prototype.AddDegree = function(name, obj)  {
+	var degree = this.GetNamesOfObject(obj[name]);
+	var type = obj[name].data.type;
+
+	this.Convert(obj[name][degree[0]])
+	
+	if (type == 1) {
+		this.objString.arr.push('^')
+	} else if (type == -1) {
+		this.objString.arr.push('_')
+	}
+
+	this.Convert(obj[name][degree[1]])
+};
+
+ToLaTex.prototype.AddRadical = function(name, obj) {
+	var radical = this.GetNamesOfObject(obj[name]);
+	var degHide = obj[name].data.degHide;
+	
+	this.objString.arr.push('\\sqrt')
+
+	if (!degHide) {
+		this.Convert(obj[name][radical[0]], '[', ']')
+	}
+	this.Convert(obj[name][radical[1]], '{', '}')
+};
+
+ToLaTex.prototype.AddDegreeSubSup = function(name, obj) {
+	var degree = this.GetNamesOfObject(obj[name]);
+	
+	this.Convert(obj[name][degree[0]], null, '^{')
+	this.Convert(obj[name][degree[1]], null, '}_{')
+	this.Convert(obj[name][degree[2]], null, '}')
+};
+
+ToLaTex.prototype.AddFunction = function(name, obj) {
+	this.objString.arr.push('\\');
+
+	for (var indexInner in obj[name]) {
+		this.Convert(obj[name][indexInner])
+	}
+};
+
+ToLaTex.prototype.AddNary = function(name, obj) {
+	var chr = obj[name].data.chr;
+	var integral = this.GetNaryCode.get(chr);
+	
+	this.objString.arr.push(integral);
+
+	if (obj[name].data.limLoc == false) {
+		this.objString.arr.push('\\limits');
+	}
+
+	var integ = this.GetNamesOfObject(obj[name]);
+
+	var inde = obj[name][integ[0]];
+	var degree =  obj[name][integ[1]];
+	var base = obj[name][integ[2]];
+
+	if (inde['0_ParaRun']['0_CMathText'].CMathText != '⬚') {
+		this.Convert(inde, '_{', '}');
+	}
+	if (degree['0_ParaRun']['0_CMathText'].CMathText != '⬚') {
+		this.Convert(degree, '^{', '}');
+	}
+	this.Convert(base);
+};
+
+ToLaTex.prototype.GetNaryCode = new Map([
+	[undefined, '\\int'],
+	[8748, '\\iint'],
+	[8749, '\\iiint'],
+	[8750, '\\oint'],
+	[8751, '\\oiint'],
+	[8752, '\\oiiint'],
+	[8721, '\\sum'],
+	[8899, '\\bigcup'],
+	[8898, '\\bigcap'],
+	[8719, '\\prod'],
+	[8720, '\\coprod'],
+	[8897, '\\bigvee'],
+	[8896, '\\bigwedge']
+])
+
+ToLaTex.prototype.AddLimit = function(name, obj) {
+	var degree = Object.keys(obj[name])
+	this.Convert(obj[name][degree[0]], null, '_{')
+	this.Convert(obj[name][degree[1]], null, '}')
+};
+
+ToLaTex.prototype.AddAccent = function(name, obj) {
+	var type = obj[name].data.chr;
+	type = this.GetCodeAccent.get(type);
+
+	this.objString.arr.push(type)
+	this.Convert(obj[name]['0_CMathContent'], '{', '}')
+};
+
+ToLaTex.prototype.GetCodeAccent = new Map([
+	[8407, '\\vec'],
+	[773, '\\bar'],
+	[774, '\\breve'],
+	[776, '\\ddot'],
+	[775, '\\dot'],
+	[768, '\\grave'],
+	[769, '\\acute'],
+	[771, '\\tilde'],
+	[780, '\\check'],
+	[770, '\\hat']
+])
+
+ToLaTex.prototype.AddText = function(name, obj) {
+	var text = obj[name].CMathText
+
+	if (text.charCodeAt() == 0x03b8) {
+		text = '\\theta'
+	}
+	this.objString.arr.push(text);
 };
 
 //--------------------------------------------------------export----------------------------------------------------
