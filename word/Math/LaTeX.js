@@ -1981,10 +1981,15 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 						}
 					}
 
-					if (Object.keys(data).length > 0) {
-						WriteObject[name] = {data};
-					} else {
-						WriteObject[name] = {};
+					if (Object.keys(data).length > 0) 
+					{
+						WriteObject[name] = {
+							data: data
+						}
+					}
+					else 
+					{
+						WriteObject[name] = {}
 					}
 					
 					var isEmpty = this.ConvertData(WriteObject[name], content);
