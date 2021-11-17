@@ -3945,6 +3945,7 @@
 	/**
 	 * Convert from JSON to object.
 	 * @memberof Api
+	 * @param {JSON} sMessage
 	 * @typeofeditors ["CDE"]
 	 */
 	Api.prototype.FromJSON = function(sMessage)
@@ -3971,10 +3972,6 @@
 				return new ApiInlineLvlSdt(oReader.InlineLvlSdtFromJSON(oParsedObj));
 			case "blockLvlSdt":
 				return new ApiBlockLvlSdt(oReader.BlockLvlSdtFromJSON(oParsedObj));
-			case "tblCell":
-				return new ApiTableCell(oReader.TableCellFromJSON(oParsedObj));
-			case "tblRow":
-				return new ApiTableRow(oReader.TableRowFromJSON(oParsedObj));
 			case "table":
 				return new ApiTable(oReader.TableFromJSON(oParsedObj));
 			case "drawing":
@@ -4031,18 +4028,6 @@
 				return new ApiStyle(oStyle);
 			case "tableStyle":
 				return new ApiTableStylePr(oParsedObj.styleType, null, oReader.TableStylePrFromJSON(oParsedObj));
-			case "slide":
-				return this.private_CreateApiSlide(oReader.SlideFromJSON(oParsedObj));
-			case "sldLayout":
-				return this.private_CreateApiLayout(oReader.SlideLayoutFromJSON(oParsedObj));
-			case "sldMaster":
-				return this.private_CreateApiSlide(oReader.MasterSlideFromJSON(oParsedObj));
-			case "fontScheme":
-				return this.private_CreateApiFontScheme(oReader.FontSchemeFromJSON(oParsedObj));
-			case "fmtScheme":
-				return this.private_CreateApiFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj));
-			case "clrScheme":
-				return this.private_CreateApiColorScheme(oReader.ClrSchemeFromJSON(oParsedObj));
 		}
 	};
 
@@ -14575,6 +14560,31 @@
 	Api.prototype.private_CreateApiDocContent = function(oDocContent){
 		return new ApiDocumentContent(oDocContent);
 	};
+	Api.prototype.private_CreateApiRun = function(oRun){
+		return new ApiRun(oRun);
+	};
+	Api.prototype.private_CreateApiHyperlink = function(oHyperlink){
+		return new ApiRun(oHyperlink);
+	};
+	Api.prototype.private_CreateApiTextPr = function(oTextPr){
+		return new ApiTextPr(null, oTextPr);
+	};
+	Api.prototype.private_CreateApiParaPr = function(oParaPr){
+		return new ApiParaPr(null, oParaPr);
+	};
+	Api.prototype.private_CreateApiFill = function(oFill){
+		return new ApiFill(oFill);
+	};
+	Api.prototype.private_CreateApiStroke = function(oStroke){
+		return new ApiStroke(oStroke);
+	};
+	Api.prototype.private_CreateApiGradStop = function(oApiUniColor, pos){
+		return new ApiGradientStop(oApiUniColor, pos);
+	};
+	Api.prototype.private_CreateApiUniColor = function(oUniColor){
+		return new ApiUniColor(oUniColor);
+	};
+	
 }(window, null));
 
 

@@ -611,7 +611,7 @@
 	{
 		var aSpTree = [];
 		for (var nElm = 0; nElm < oCSld.spTree.length; nElm++)
-			aSpTree.push(this.SerGrapicObject(oCSld.spTree[nElm]));
+			aSpTree.push(this.SerGraphicObject(oCSld.spTree[nElm]));
 
 		return {
 			bg:     this.SerBg(oCSld.Bg),
@@ -3274,24 +3274,7 @@
 		var oCSld = new AscFormat.CSld();
 
 		for (var nShape = 0; nShape < oParsedCSld.spTree.length; nShape++)
-		{
-			switch (oParsedCSld.spTree[nShape].type)
-			{
-				case "shape":
-				case "connectShape":
-					oCSld.spTree.push(this.ShapeFromJSON(oParsedCSld.spTree[nShape]));
-					break;
-				case "chartSpace":
-					oCSld.spTree.push(this.ChartSpaceFromJSON(oParsedCSld.spTree[nShape]));
-					break;
-				case "image":
-					oCSld.spTree.push(this.ImageFromJSON(oParsedCSld.spTree[nShape]));
-					break;
-				case "graphicFrame":
-					oCSld.spTree.push(this.GraphicFrameFromJSON(oParsedCSld.spTree[nShape]));
-					break;
-			}
-		}
+			oCSld.spTree.push(this.GraphicObjFromJSON(oParsedCSld.spTree[nShape]));
 			
 		oCSld.Bg   = oParsedCSld.bg ? this.BgFromJSON(oParsedCSld.bg) : oCSld.Bg;
 		oCSld.name = oParsedCSld.name;

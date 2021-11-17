@@ -543,6 +543,7 @@
         return new ApiThemeFontScheme(oFontScheme);
     };
     
+
     /**
      * Create a new slide.
      * @typeofeditors ["CPE"]
@@ -780,6 +781,68 @@
         return true;
     };
 
+    /**
+	 * Convert from JSON to object.
+	 * @memberof Api
+	 * @param {JSON} sMessage
+	 * @typeofeditors ["CDE"]
+	 */
+	Api.prototype.FromJSON = function(sMessage)
+	{
+		var oReader = new AscCommon.ReaderFromJSON();
+
+		var oParsedObj  = JSON.parse(sMessage);
+
+		switch (oParsedObj.type)
+		{
+			case "docContent":
+				return this.private_CreateApiDocContent(oReader.DocContentFromJSON(oParsedObj));
+			case "drawingDocContent":
+				return this.private_CreateApiDocContent(oReader.DrawingDocContentFromJSON(oParsedObj));
+			case "paragraph":
+				return this.private_CreateApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
+			case "run":
+			case "mathRun":
+			case "endRun":
+				return this.private_CreateApiRun(oReader.ParaRunFromJSON(oParsedObj));
+			case "hyperlink":
+				return this.private_CreateApiHyperlink(oReader.HyperlinkFromJSON(oParsedObj));
+            case "graphicFrame":
+                return ApiTable(oReader.GraphicObjFromJSON(oParsedObj));
+			case "image":
+				return new ApiImage(oReader.GraphicObjFromJSON(oParsedObj));
+            case "shape":
+            case "connectShape":
+                return new ApiShape(oReader.GraphicObjFromJSON(oParsedObj));
+            case "chartSpace":
+                return new ApiChart(oReader.GraphicObjFromJSON(oParsedObj));
+			case "textPr":
+				return this.private_CreateApiTextPr(oReader.TextPrFromJSON(oParsedObj));
+			case "paraPr":
+				return this.private_CreateApiParaPr(oReader.ParaPrFromJSON(oParsedObj));
+			case "fill":
+				return this.private_CreateApiFill(oReader.FillFromJSON(oParsedObj));
+			case "stroke":
+				return this.private_CreateApiStroke(oReader.LnFromJSON(oParsedObj));
+			case "gradStop":
+				var oGs = oReader.GradStopFromJSON(oParsedObj);
+				return this.private_CreateApiGradStop(this.private_CreateApiUniColor(oGs.color), oGs.pos);
+			case "uniColor":
+				return this.private_CreateApiUniColor(oReader.ColorFromJSON(oParsedObj));
+			case "slide":
+				return new ApiSlide(oReader.SlideFromJSON(oParsedObj));
+			case "sldLayout":
+				return new ApiLayout(oReader.SlideLayoutFromJSON(oParsedObj));
+			case "sldMaster":
+				return new ApiMaster(oReader.MasterSlideFromJSON(oParsedObj));
+			case "fontScheme":
+				return new ApiThemeFontScheme(oReader.FontSchemeFromJSON(oParsedObj));
+			case "fmtScheme":
+				return new ApiThemeFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj));
+			case "clrScheme":
+				return new ApiThemeColorScheme(oReader.ClrSchemeFromJSON(oParsedObj));
+		}
+	};
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiPresentation
@@ -2988,7 +3051,7 @@
 	ApiDrawing.prototype.ToJSON = function()
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerDrawing(this.Drawing));
+		return JSON.stringify(oWriter.SerGrapicObject(this.Drawing));
 	};
 
     //------------------------------------------------------------------------------------------------------------------
@@ -3581,7 +3644,7 @@
 	ApiTable.prototype.ToJSON = function()
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerTable(this.Table));
+		return JSON.stringify(oWriter.SerGrapicObject(this.Drawing));
 	};
 
     //------------------------------------------------------------------------------------------------------------------
@@ -4144,15 +4207,6 @@
     };
     Api.prototype.private_CreateApiLayout = function(oLayout){
         return new ApiLayout(oLayout);
-    };
-    Api.prototype.private_CreateApiFontScheme = function(oFontScheme){
-        return new ApiThemeFontScheme(oFontScheme);
-    };
-    Api.prototype.private_CreateApiFormatScheme = function(oFormatScheme){
-        return new ApiThemeFormatScheme(oFormatScheme);
-    };
-    Api.prototype.private_CreateApiColorScheme = function(oColorScheme){
-        return new ApiThemeColorScheme(oColorScheme);
     };
     Api.prototype.private_CreateApiPresentation = function(oPresentation){
         return new ApiPresentation(oPresentation);

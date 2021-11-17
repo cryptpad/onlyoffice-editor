@@ -420,7 +420,7 @@
 				return "none";
 		}
 	};
-	WriterToJSON.prototype.SerGrapicObject = function(oGraphicObj, aComplexFieldsToSave)
+	WriterToJSON.prototype.SerGraphicObject = function(oGraphicObj, aComplexFieldsToSave)
 	{
 		if (!oGraphicObj)
 			return null;
@@ -4119,7 +4119,7 @@
 			docPr:          this.SerCNvPr(oDrawing.docPr),
 			effectExtent:   this.SerEffectExtent(oDrawing.EffectExtent),
 			extent:         this.SerExtent(oDrawing.Extent),
-			graphic:        this.SerGrapicObject(oDrawing.GraphicObj, aComplexFieldsToSave),
+			graphic:        this.SerGraphicObject(oDrawing.GraphicObj, aComplexFieldsToSave),
 			positionH:      this.SerPositionH(oDrawing.PositionH),
 			positionV:      this.SerPositionV(oDrawing.PositionV),
 			simplePos:      this.SerSimplePos(oDrawing.SimplePos),
@@ -6221,7 +6221,7 @@
 		return {
 			fromX:  oUserShape.fromX != undefined ? private_MM2Twips(oUserShape.fromX) : oUserShape.fromX,
 			fromY:  oUserShape.fromY != undefined ? private_MM2Twips(oUserShape.fromY) : oUserShape.fromY,
-			object: this.SerGrapicObject(oUserShape.object),
+			object: this.SerGraphicObject(oUserShape.object),
 			toX:    oUserShape.toX,
 			toY:    oUserShape.toY,
 			type:   sType
@@ -10814,26 +10814,34 @@
 		oDrawing.Set_WrappingType(this.GetWrapNumType(oParsedDrawing.wrapType));
 		oDrawing.Set_DrawingType(oParsedDrawing.drawingType === "inline" ? drawing_Inline : drawing_Anchor);
 
-		var oGraphicObj = null;
-		switch (oParsedDrawing.graphic.type)
-		{
-			case "image":
-				oGraphicObj = this.ImageFromJSON(oParsedDrawing.graphic, oDrawing);
-				break;
-			case "shape":
-			case "connectShape":
-				oGraphicObj = this.ShapeFromJSON(oParsedDrawing.graphic, oDrawing);
-				break;
-			case "chartSpace":
-				oGraphicObj = this.ChartSpaceFromJSON(oParsedDrawing.graphic, oDrawing);
-				break;
-		}
+		var oGraphicObj = this.GraphicObjFromJSON(oParsedDrawing.graphic);
 
-		oGraphicObj.setParent(oDrawing);
 		oDrawing.Set_GraphicObject(oGraphicObj);
 		oDrawing.CheckWH();
 
 		return oDrawing;
+	};
+	ReaderFromJSON.prototype.GraphicObjFromJSON = function(oParsedObj, oParent)
+	{
+		var oGraphicObj = null;
+		switch (oParsedObj.type)
+		{
+			case "image":
+				oGraphicObj = this.ImageFromJSON(oParsedObj, oParent);
+				break;
+			case "shape":
+			case "connectShape":
+				oGraphicObj = this.ShapeFromJSON(oParsedObj, oParent);
+				break;
+			case "chartSpace":
+				oGraphicObj = this.ChartSpaceFromJSON(oParsedObj, oParent);
+				break;
+			case "graphicFrame":
+				oGraphicObj = this.GraphicFrameFromJSON(oParsedObj);
+				break;
+		}
+
+		return oGraphicObj;
 	};
 	ReaderFromJSON.prototype.ChartSpaceFromJSON = function(oParsedChart, oParentDrawing)
 	{
@@ -10941,20 +10949,7 @@
 	ReaderFromJSON.prototype.UserShapeFromJSON = function(oParsedUserShape)
 	{
 		var oUserShape  = oParsedUserShape.type === "relSizeAnchor" ? new AscFormat.CRelSizeAnchor() : new AscFormat.CAbsSizeAnchor();
-		var oGraphicObj = null;
-		switch (oParsedUserShape.object.type)
-		{
-			case "image":
-				oGraphicObj = this.ImageFromJSON(oParsedUserShape.object, null);
-				break;
-			case "shape":
-			case "connectShape":
-				oGraphicObj = this.ShapeFromJSON(oParsedUserShape.object, null);
-				break;
-			case "chartSpace":
-				oGraphicObj = this.ChartSpaceFromJSON(oParsedUserShape.object, null);
-				break;
-		}
+		var oGraphicObj = this.GraphicObjFromJSON(oParsedUserShape.object);
 
 		oUserShape.setFromTo(private_Twips2MM(oParsedUserShape.fromX), private_Twips2MM(oParsedUserShape.fromY), oParsedUserShape.toX, oParsedUserShape.toY);
 		oUserShape.setObject(oGraphicObj);
