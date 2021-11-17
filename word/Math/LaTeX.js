@@ -42,8 +42,7 @@ function CLaTeXParser(props, str) {
 	this.Root = props.Root;
 	this.EqArray;
 	this.intEqLines = 1;
-}
-
+};
 CLaTeXParser.prototype.prepare = function() {
 	var t0 = performance.now();
 
@@ -58,7 +57,6 @@ CLaTeXParser.prototype.prepare = function() {
 
 	this.Root.Correct_Content(true);
 };
-
 CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\Alpha", 0x0391],
 	["\\alpha", 0x03b1],
@@ -152,15 +150,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\biguplus", 0x2a04],
 	["\\bigvee", 0x22c1],
 	["\\bigwedge", 0x22c0],
-	[
-		"\\binomial",
-		[
-			0x0028, 0x0061, 0x002b, 0x0062, 0x0029, 0x005e, 0x005e, 0x003d, 0x2211,
-			0x005f, 0x0028, 0x006b, 0x003d, 0x0030, 0x0029, 0x005e, 0x006e, 0x0020,
-			0x2592, 0x0028, 0x006e, 0x00a6, 0x006b, 0x0029, 0x0061, 0x005e, 0x006b,
-			0x0020, 0x0062, 0x005e, 0x0028, 0x006e, 0x002d, 0x006b, 0x0029,
-		],
-	],
 	["\\bot", 0x22a5],
 	["\\bowtie", 0x22c8],
 	["\\box", 0x25a1],
@@ -338,14 +327,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\hphantom", 0x2b04],
 	["\\hsmash", 0x2b0c],
 	["\\hvec", 0x20d1],
-	[
-		"\\identitymatrix",
-		[
-			0x0028, 0x25a0, 0x0028, 0x0031, 0x0026, 0x0030, 0x0026, 0x0030, 0x0040,
-			0x0030, 0x0026, 0x0031, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026, 0x0030,
-			0x0026, 0x0031, 0x0029, 0x0029,
-		],
-	],
 	["\\ii", 0x2148],
 	["\\iiint", 0x222d],
 	["\\iint", 0x222c],
@@ -356,18 +337,7 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\inc", 0x2206],
 	["\\infty", 0x221e],
 	["\\int", 0x222b],
-	[
-		"\\integral",
-		[
-			0x0031, 0x002f, 0x0032, 0x03c0, 0x222b, 0x005f, 0x0030, 0x005e, 0x0032,
-			0x03c0, 0x2592, 0x2146, 0x03b8, 0x0020, 0x0028, 0x0061, 0x002b, 0x0062,
-			0x0073, 0x0069, 0x006e, 0x0020, 0x03b8, 0x0029, 0x003d, 0x0031, 0x002f,
-			0x221a, 0x0028, 0x0061, 0x005e, 0x0032, 0x002d, 0x0062, 0x005e, 0x0032,
-			0x0029,
-		],
-	],
 	["\\itimes", 0x2062],
-	["\\j", [0x004a, 0x0061, 0x0079]],
 	["\\jj", 0x2149],
 	["\\jmath", 0x0237],
 	["\\ket", 0x27e9],
@@ -390,14 +360,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\leq", 0x2264],
 	["\\lfloor", 0x230a],
 	["\\lhvec", 0x20d0],
-	[
-		"\\limit",
-		[
-			0x006c, 0x0069, 0x006d, 0x005f, 0x0028, 0x006e, 0x2192, 0x221e, 0x0029,
-			0x2061, 0x3016, 0x0028, 0x0031, 0x002b, 0x0031, 0x002f, 0x006e, 0x0029,
-			0x005e, 0x006e, 0x3017, 0x003d, 0x0065,
-		],
-	],
 	["\\ll", 0x226a],
 	["\\lmoust", 0x23b0],
 	["\\Longleftarrow", 0x27f8],
@@ -457,14 +419,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\prod", 0x220f],
 	["\\propto", 0x221d],
 	["\\qdrt", 0x221c],
-	[
-		"\\quadratic",
-		[
-			0x0078, 0x003d, 0x0028, 0x002d, 0x0062, 0x00b1, 0x221a, 0x0028, 0x0062,
-			0x005e, 0x0032, 0x002d, 0x0034, 0x0061, 0x0063, 0x0029, 0x0029, 0x002f,
-			0x0032, 0x0061,
-		],
-	],
 	["\\rangle", 0x232a],
 	["\\Rangle", 0x27eb],
 	["\\ratio", 0x2236],
@@ -552,7 +506,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\sqsuperseteq", 0x2292],
 	["\\star", 0x22c6],
 	["\\subset", 0x2282],
-	// ['/\\subseteq', 0x2288],
 	["\\subseteq", 0x2286],
 	["\\succ", 0x227b],
 	["\\succeq", 0x227d],
@@ -604,10 +557,9 @@ CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	[">=", 0x2265],
 	[">>", 0x226b],
 ]);
-
 CLaTeXParser.prototype.Parse = function (str) {
 	var strTempWord = "";
-	for (var i = 0; i < str.length; i++) {
+	for (var i = 0; i <= str.length; i++) {
 		strTempWord += str[i];
 		if (
 			str[i + 1] == "\\" ||
@@ -624,6 +576,7 @@ CLaTeXParser.prototype.Parse = function (str) {
 			str[i + 1] == " " ||
 			(str[i + 1] == "[" && strTempWord != "\\") ||
 			(str[i + 1] == "]" && strTempWord != "\\") ||
+			(str[i - 1] == "_" && str[i + 2] == "_") ||
 			strTempWord == "(" ||
 			strTempWord == "\\middle" ||
 			strTempWord == ")" ||
@@ -648,7 +601,6 @@ CLaTeXParser.prototype.Parse = function (str) {
 		this.arrAtomsOfFormula
 	);
 };
-
 //Service
 CLaTeXParser.prototype.GetNextAtom = function () {
 	this.indexOfAtom++;
@@ -656,7 +608,6 @@ CLaTeXParser.prototype.GetNextAtom = function () {
 		? null
 		: this.arrAtomsOfFormula[this.indexOfAtom - 1];
 };
-
 CLaTeXParser.prototype.CheckFutureAtom = function (n) {
 	if (n) {
 		return this.arrAtomsOfFormula[this.indexOfAtom + n];
@@ -666,14 +617,12 @@ CLaTeXParser.prototype.CheckFutureAtom = function (n) {
 		return this.arrAtomsOfFormula[this.indexOfAtom];
 	}
 };
-
 CLaTeXParser.prototype.ExitFromLexer = function (strFAtom, exitIfSee) {
 	return (
 		(exitIfSee && typeof exitIfSee != "number" && strFAtom == exitIfSee) ||
 		(exitIfSee && Array.isArray(exitIfSee) && exitIfSee.includes(strFAtom))
 	)
 };
-
 CLaTeXParser.prototype.CreateLitleBox = function (FormArgument) {
 	var oBox = new CBox(this.Pr);
 	FormArgument.Add_Element(oBox);
@@ -681,7 +630,6 @@ CLaTeXParser.prototype.CreateLitleBox = function (FormArgument) {
 	BoxMathContent.SetArgSize(-1);
 	return BoxMathContent;
 };
-
 CLaTeXParser.prototype.CheckSyntax = function () {
 	for (var i = 0; i <= arguments.length; i++) {
 		if (this.CheckSyntaxSequence(arguments[i][0])) {
@@ -692,7 +640,6 @@ CLaTeXParser.prototype.CheckSyntax = function () {
 	console.log('Проблема')
 	return false;
 };
-
 CLaTeXParser.prototype.CheckElementSequence = function (strPattern, now, countOfPostParse) {
 	var arrOfData = this.arrAtomsOfFormula;
 	var intIndexData = now ? this.indexOfAtom - 1 : this.indexOfAtom;
@@ -706,13 +653,11 @@ CLaTeXParser.prototype.CheckElementSequence = function (strPattern, now, countOf
 	}
 	return true;
 };
-
 CLaTeXParser.prototype.RecipientSeveralAtom = function (intCount) {
 	for (var index = 1; index <= intCount; index++) {
 		this.GetNextAtom();
 	}
 };
-
 CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotThatSymbol, now) {
 	var intPatternIndex = 0;
 	var arrOfData = this.arrAtomsOfFormula;
@@ -769,7 +714,6 @@ CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotTh
 
 	return isCorrect;
 };
-
 CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	if (this.CheckFutureAtom() == '^' || this.CheckFutureAtom() == '_') {
 		this.GetNextAtom();
@@ -798,7 +742,6 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 		}
 	}
 };
-
 CLaTeXParser.prototype.CheckIsDegreeAndIndex = function () {
 	if (
 		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
@@ -819,7 +762,6 @@ CLaTeXParser.prototype.CheckIsDegreeAndIndex = function () {
 		return false;
 	}
 };
-
 CLaTeXParser.prototype.CheckIsDegreeOrIndex = function () {
 	if (
 		this.CheckSyntaxSequence(["_", 1], "^") ||
@@ -836,26 +778,29 @@ CLaTeXParser.prototype.CheckIsDegreeOrIndex = function () {
 		return false;
 	}
 };
-
 //Fraction
 CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom, type) {
 	var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)
-
-	if (!strFAtom) {
-		strFAtom = this.GetNextAtom();
-	}
-
 	var typeOfFraction = null;
-	
+
 	if (isInlineFraction) {
 		typeOfFraction = 'SKEWED_FRACTION';
-	} 
+	}
+
 	else {
-		if (!type) {
-			typeOfFraction = this.GetTypeOfFrac.get(strFAtom); //duplication in Lexer!
+		if (!type && !strFAtom) {
+			if (!strFAtom) {
+				strFAtom = this.GetNextAtom();
+			} 
 		}
+		
 		else {
-			typeOfFraction = type;
+			if (!type) {
+				typeOfFraction = this.GetTypeOfFrac.get(strFAtom);
+			}
+			else {
+				typeOfFraction = type;
+			}
 		}
 	}
 
@@ -863,8 +808,8 @@ CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom, type) {
 		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
 		this.FillFracContent(Fraction, isInlineFraction);
 	}
+	
 };
-
 CLaTeXParser.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
 	if (typeOfFraction == 'BAR_FRACTION') {
 		this.Pr.type = 0;
@@ -893,7 +838,6 @@ CLaTeXParser.prototype.CreateFraction = function (FormArgument, typeOfFraction) 
 		return Fraction;
 	}
 };
-
 CLaTeXParser.prototype.FillFracContent = function (FormArgument, isInlineFraction) {
 	if (!isInlineFraction) {
 		this.StartLexer(FormArgument.getNumeratorMathContent());
@@ -905,7 +849,6 @@ CLaTeXParser.prototype.FillFracContent = function (FormArgument, isInlineFractio
 		this.StartLexer(FormArgument.getDenominatorMathContent());
 	}
 };
-
 CLaTeXParser.prototype.GetTypeOfFrac = new Map([
 	['\\frac', 'DEFAULT_FRACTION'],
 	['\\tfrac', 'LITLE_DEFAULT_FRACTION'],
@@ -913,13 +856,13 @@ CLaTeXParser.prototype.GetTypeOfFrac = new Map([
 	['\\nicefrac', 'LINEAR_FRACTION'],
 	['\\dfrac', 'DEFAULT_FRACTION'], // todo dfrac
 ]);
-
 CLaTeXParser.prototype.CheckIsFractionLexer = function(strFAtom) {
 	return (
 		this.GetTypeOfFrac.get(strFAtom) != null || 
-		this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)
+		this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true) ||
+		this.CheckSyntaxSequence(["^", "{", "/", "_", "{"], null, true)
 	)
-}
+};
 //Limit
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	var typeOfLimit = this.GetTypeOfLimit.get(strFAtom);
@@ -936,25 +879,21 @@ CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	}
 	
 };
-
 CLaTeXParser.prototype.FillLimitContent = function(Limit, typeOfLimit) {
 	Limit.getFName().Add_Text(typeOfLimit, this.Paragraph, STY_PLAIN);
 	this.StartLexer(Limit.getIterator());
 };
-
 CLaTeXParser.prototype.CreateLimit = function (FormArgument, typeOfBottom) {
 	this.Pr.type = this.GetTypeOfIndexLimit.get(typeOfBottom);
 	var Limit = FormArgument.Add_Limit(this.Pr, null, null); 
 	return Limit;
 };
-
 CLaTeXParser.prototype.GetTypeOfIndexLimit = new Map([
 	['BOTTOM_DEGREE', 1],
 	['BOTTOM_WITH_BRACETS_DEGREE', 1],
 	['BOTTOM_INDEX', 0],
 	['BOTTOM_WITH_BRACETS_INDEX', 0],
 ]);
-
 CLaTeXParser.prototype.GetTypeOfLimit = new Map([
 	['\\lim', 'lim'],
 	['\\inf', 'inf'],
@@ -962,7 +901,6 @@ CLaTeXParser.prototype.GetTypeOfLimit = new Map([
 	['\\max', 'max'],
 	['\\min', 'min'],
 ]);
-
 //Function 
 CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 	var typeOfFunction = this.GetTypeOfFunction.get(strFAtom);
@@ -993,12 +931,10 @@ CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 		this.StartLexer(Function.getArgument());
 	}
 };
-
 CLaTeXParser.prototype.CreateFunction = function (FormArgument) {
 	var Function = FormArgument.Add_Function(this.Pr, null, null)
 	return Function;
-}
-
+};
 CLaTeXParser.prototype.GetTypeOfFunction = new Map([
 	["\\cos", 1],
 	["\\sin", 1],
@@ -1024,7 +960,6 @@ CLaTeXParser.prototype.GetTypeOfFunction = new Map([
 	['\\max', 2],
 	['\\min', 2],
 ]);
-
 //Script
 CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex, isPre) {
 	var Script = null; 
@@ -1052,7 +987,6 @@ CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIn
 
 	this.FillScriptContent(Script, strFAtom, typeOfScript)
 };
-
 CLaTeXParser.prototype.CreateScript = function(FormArgument, type) {
 	var isBothDegreeAndIndex = false;
 	if (type == 'DEGREE_SUPERSCRIPT') {
@@ -1067,7 +1001,6 @@ CLaTeXParser.prototype.CreateScript = function(FormArgument, type) {
 	var Script = FormArgument.Add_Script(isBothDegreeAndIndex, this.Pr, null, null, null);
 	return Script;
 };
-
 CLaTeXParser.prototype.FillScriptContent = function(Script, name, typeOfScript) {
 	this.AddText(name, Script.getBase())
 
@@ -1086,26 +1019,22 @@ CLaTeXParser.prototype.FillScriptContent = function(Script, name, typeOfScript) 
 		this.FillScriptContentWriteSub(Script);
 	}
 };
-
 CLaTeXParser.prototype.FillScriptContentWriteSup = function(Script) {
 	var Iterator = Script.getUpperIterator();
 	this.CheckFutureAtom(); // get ^ sup
 	this.StartLexer(Iterator);
 };
-
 CLaTeXParser.prototype.FillScriptContentWriteSub = function(Script) {
 	var Iterator = Script.getLowerIterator();
 	this.CheckFutureAtom(); // get _ sub
 	this.StartLexer(Iterator);
 };
-
 CLaTeXParser.prototype.AddScriptForText = function(FormArgument, strFAtom) {
 	var isDegreeOrIndex = this.CheckIsDegreeOrIndex();
 	var isDegreeAndIndex = this.CheckIsDegreeAndIndex();
 
 	this.AddScript(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex);
 };
-
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
 	return (
 		(this.CheckSyntaxSequence(["^", 1]) && this.CheckFutureAtom(-2) != "_") ||
@@ -1116,7 +1045,6 @@ CLaTeXParser.prototype.CheckSupSubForLexer = function () {
 		this.CheckSyntaxSequence(["_", 1, "^", 1])
 	);
 };
-
 //Radical
 CLaTeXParser.prototype.AddRadical = function (FormArgument) {
 	var typeOfRadical = null;
@@ -1130,7 +1058,6 @@ CLaTeXParser.prototype.AddRadical = function (FormArgument) {
 	var Radical = this.CreateRadical(FormArgument, typeOfRadical);
 	this.FillRadicalContent(Radical, typeOfRadical);
 };
-
 CLaTeXParser.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
 	if (typeOfRadical == SQUARE_RADICAL) {
 		this.Pr.degHide = true;
@@ -1141,7 +1068,6 @@ CLaTeXParser.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
 	var Radical = FormArgument.Add_Radical(this.Pr, null, null);
 	return Radical
 };
-
 CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
 	if (typeOfRadical == DEGREE_RADICAL) {
 		this.StartLexer(Radical.getDegree());
@@ -1149,7 +1075,6 @@ CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
 	}
 	this.StartLexer(Radical.getBase());
 };
-
 CLaTeXParser.prototype.AddPMod = function (FormArgument) {
 	var Mod = this.AddBracet(
 		FormArgument, 
@@ -1161,7 +1086,6 @@ CLaTeXParser.prototype.AddPMod = function (FormArgument) {
 	MathContent.Add_Text('mod ', this.Paragraph);
 	this.StartLexer(MathContent);
 };
-
 CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 	if (open == undefined) {
 		open = null
@@ -1181,7 +1105,6 @@ CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 
 	return Bracet;	
 };
-
 //BracetBlock
 CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 	if (!strFAtom) {
@@ -1245,7 +1168,6 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 		this.GetNextAtom();
 	}
 };
-
 CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet) {
 	if (!strCloseBracet) {
 		strCloseBracet = this.GetCloseBracet.get(strOpenBracet);
@@ -1272,7 +1194,6 @@ CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet
 	}
 	return false;
 };
-
 CLaTeXParser.prototype.MiddleCount = function(countOfMiddle) {
 	var arrOfData = this.arrAtomsOfFormula;
 	var intIndexData = this.indexOfAtom;
@@ -1291,7 +1212,6 @@ CLaTeXParser.prototype.MiddleCount = function(countOfMiddle) {
 	}
 	return [intCount, strDelim];
 };
-
 CLaTeXParser.prototype.CreateBracetBlock = function (FormArgument, strOpenBracet, strCloseBracet, MiddleCount) {
 	var BracetBlock = FormArgument.Add_DelimiterEx(
 		this.Pr.ctrPrp,
@@ -1302,7 +1222,6 @@ CLaTeXParser.prototype.CreateBracetBlock = function (FormArgument, strOpenBracet
 	);
 	return BracetBlock;
 };
-
 CLaTeXParser.prototype.FillBracetBlockContent = function (BracetBlock, countOfDelim, exit) {
 	if (countOfDelim + 1 > 1) {
 		for(var index = 0; index < countOfDelim; index++) {
@@ -1315,7 +1234,6 @@ CLaTeXParser.prototype.FillBracetBlockContent = function (BracetBlock, countOfDe
 		this.StartLexer(BracetBlock.getElementMathContent(0), exit);
 	}
 };
-
 CLaTeXParser.prototype.GetCloseBracet = new Map([
 	//["|", "|"],
 	["(", ")"],
@@ -1330,7 +1248,6 @@ CLaTeXParser.prototype.GetCloseBracet = new Map([
 	["/", "\\backslash"],
 	["\\left", "\\right"],
 ]);
-
 CLaTeXParser.prototype.GetBracetCode = new Map([
 	["(", null],
 	[")", null],
@@ -1356,7 +1273,6 @@ CLaTeXParser.prototype.GetBracetCode = new Map([
 	["\\backslash", 0x5c],
 	[".", "empty"],
 ]);
-
 CLaTeXParser.prototype.CheckIsBrackets = function (strFAtom) {
 	var  strTempAtom = this.CheckFutureAtom(-1);
 	if (
@@ -1377,7 +1293,6 @@ CLaTeXParser.prototype.CheckIsBrackets = function (strFAtom) {
 		return false;
 	}
 };
-
 CLaTeXParser.prototype.CheckBraketsLatex = function(strFAtom) {
 	return (
 		this.CheckIsBrackets(strFAtom) &&
@@ -1387,20 +1302,17 @@ CLaTeXParser.prototype.CheckBraketsLatex = function(strFAtom) {
 		this.CheckFutureAtom(-2) != '^'
 	)
 }
-
 //Binom
 CLaTeXParser.prototype.AddBinom = function (FormArgument) {
 	var Delimiter = this.AddBracet(FormArgument);
     var BaseMathContent = Delimiter.getElementMathContent(0);
-	this.AddFraction(BaseMathContent, null, NO_BAR_FRACTION);
+	this.AddFraction(BaseMathContent, null, 'NO_BAR_FRACTION');
 };
-
 //Mod : todo add bmod variant
 CLaTeXParser.prototype.AddPMod = function (FormArgument) {
 	var Delimiter = this.AddBracet(FormArgument);
 	this.AddFunction(Delimiter.getElementMathContent(0), "mod");
 };
-
 //Large Operator
 CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, str) {
 	var strNameOfLargeOperator = this.CheckIsLargeOperator.get(str);
@@ -1415,7 +1327,6 @@ CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, str) {
 	var LargeOperator = this.CreateLargeOperator(FormArgument, intTypeOFLoc, strNameOfLargeOperator);
 	this.FillLargeOperatorContent(LargeOperator);
 };
-
 CLaTeXParser.prototype.CreateLargeOperator = function(FormArgument, intTypeOFLoc, strName) {
 	var Pr = {
 		ctrPrp: new CTextPr(),
@@ -1444,7 +1355,6 @@ CLaTeXParser.prototype.CreateLargeOperator = function(FormArgument, intTypeOFLoc
 	var LargeOperator = FormArgument.Add_NAry(Pr, null, null, null);
 	return LargeOperator;
 }
-
 CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 	
 	var strTempAtom = this.CheckFutureAtom();
@@ -1467,7 +1377,6 @@ CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 
 	this.StartLexer(LargeOperator.getBase());
 }
-
 CLaTeXParser.prototype.CheckIsLargeOperator = new Map([
 	["\\sum", 8721],
 	["\\prod", 8719],
@@ -1477,7 +1386,6 @@ CLaTeXParser.prototype.CheckIsLargeOperator = new Map([
 	["\\bigvee", 8897],
 	["\\bigwedge", 8896],
 ]);
-
 //Accent 
 CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 	var Accent;
@@ -1526,17 +1434,14 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 
 	this.StartLexer(Accent.getBase())
 };
-
 CLaTeXParser.prototype.GetIsAddBar = new Map([
 	["\\overline", true],
 	["\\underline", true],
 ]);
-
 CLaTeXParser.prototype.GetIsAddGroupChar = new Map([
 	["\\overbrace", true],
 	["\\underbrace", true],
 ]);
-
 CLaTeXParser.prototype.CheckIsAccent = function (strFAtom) {
 	return (
 		this.GetAccent.get(strFAtom) ||
@@ -1544,7 +1449,6 @@ CLaTeXParser.prototype.CheckIsAccent = function (strFAtom) {
 		this.GetIsAddGroupChar.get(strFAtom)
 	);
 };
-
 CLaTeXParser.prototype.GetAccent = new Map([
 	["\\widetilde", 771],
 	["\\widehat", 770],
@@ -1561,13 +1465,11 @@ CLaTeXParser.prototype.GetAccent = new Map([
 	["\\breve", 774],
 	["\\tilde", 771],
 ]);
-
 //Inetegral
 CLaTeXParser.prototype.AddIntegral = function (FormArgument, strFAtom) {
 	var Integral = this.CreateIntegral(FormArgument, strFAtom);
 	this.FillIntegralContent(Integral);
 };
-
 CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	var strNameOfIntegral = strFAtom;
 	var intCountOfIntegral = this.GetCountOfIntegral.get(strNameOfIntegral);
@@ -1614,7 +1516,6 @@ CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	
 	return Integral;
 }
-
 CLaTeXParser.prototype.FillIntegralContent =  function(Integral) {
 	if (this.CheckFutureAtom() == '^') {
 		this.StartLexer(Integral.getSupMathContent());
@@ -1634,7 +1535,6 @@ CLaTeXParser.prototype.FillIntegralContent =  function(Integral) {
 
 	this.StartLexer(Integral.getBase());
 }
-
 CLaTeXParser.prototype.GetCountOfIntegral = new Map([
 	["\\int", 1],
 	["\\oint", 1],
@@ -1643,7 +1543,6 @@ CLaTeXParser.prototype.GetCountOfIntegral = new Map([
 	["\\iiint", 3],
 	["\\oiiint", 3],
 ]);
-
 CLaTeXParser.prototype.GetTypeOfIntegral = new Map([
 	["\\int", false],
 	["\\oint", true],
@@ -1652,7 +1551,7 @@ CLaTeXParser.prototype.GetTypeOfIntegral = new Map([
 	["\\iiint", false],
 	["\\oiiint", true],
 ]);
-
+//Matrix
 CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
 	this.GetNextAtom(); // skip {
 	var typeOfMatrix = this.GetNextAtom();
@@ -1678,7 +1577,6 @@ CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
 	}
 	this.GetNextAtom(); // skip }
 };
-
 CLaTeXParser.prototype.CreateMatrix = function(FormArgument, typeOfMatrix) {
 	var Bracets = []
 
@@ -1746,8 +1644,7 @@ CLaTeXParser.prototype.CreateMatrix = function(FormArgument, typeOfMatrix) {
 	}
 
 	return[Matrix, arrBufferExit, intRowsCount, intColsCount];
-}
-
+};
 CLaTeXParser.prototype.FillMatrixContent = function(Matrix, arrExitData, intRowsCount, intColsCount) {
 	var intIndexOfExitBuffer = 0;
 
@@ -1759,8 +1656,7 @@ CLaTeXParser.prototype.FillMatrixContent = function(Matrix, arrExitData, intRows
 			intIndexOfExitBuffer++;
 		}
 	}
-}
-
+};
 CLaTeXParser.prototype.CheckIsMatrix = function () {
 	return (
 		this.CheckElementSequence(["\\begin", "{", "matrix", "}"], true) ||
@@ -1772,12 +1668,10 @@ CLaTeXParser.prototype.CheckIsMatrix = function () {
 		this.CheckElementSequence(["\\begin", "{", "array", "}"], true) 
 	);
 };
-
 //Text
 CLaTeXParser.prototype.AddText = function (strFAtom, FormArgument) {
 	this.AddSymbol(strFAtom, FormArgument);
 };
-
 CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument) {
 	var strCode = this.arrLaTeXSymbols.get(strFAtom);
 
@@ -1797,7 +1691,6 @@ CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument) {
 		}
 	}
 };
-
 CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
 	if (this.GetBracetCode.get(strFAtom)) {
 		return false;
@@ -1816,7 +1709,6 @@ CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
 
 	return true
 };
-
 //New line 
 CLaTeXParser.prototype.AddNewLine = function() {
 	this.Root.Correct_Content(true);
@@ -1827,21 +1719,16 @@ CLaTeXParser.prototype.AddNewLine = function() {
 	this.EqArray.Add_Row(this.intEqLines);
 	CLaTeXLexer(this, this.EqArray.getElementMathContent(this.intEqLines - 1));
 };
-
 /**
  * @param Parser
  * @param FormArgument Функция в которую будет записываться контент.
  * @param exitIfSee Число элементов которые может обработать функция, или символ при нахождении которых функция завершит работу.
  */
 function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
-	//todo: update parser (y_0 y_1y_2y_3y_4)
-	//todo: space in math - https://ru.overleaf.com/learn/latex/Spacing_in_math_mode
 	//todo: bmod to func
-	//todo: _0^1 
-	//fix radical
 	//nary big cup on default with limits 
 	//todo add 2/3 frac
-	//todo \left[-\frac{1}{x}\right]_1^\infty
+	//if after bracets block |^3_2 then block is script
 	var intFAtoms = 0;
 	var strFAtom = 0;
 	do {
@@ -1931,7 +1818,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		}
 	} while (strFAtom != undefined);
 };
-
+//To LaTex
 function ToLaTex(Root) {
 	this.Root = Root;
 	this.objTempData = {};
@@ -1939,7 +1826,7 @@ function ToLaTex(Root) {
 		arr: []
 	}
 };
-
+//Service
 ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 	if (inputObj) {
 		if (inputObj.Content) {
@@ -2005,14 +1892,12 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 	}
 	return this.CheckIsObjectEmpty(WriteObject)
 };
-
 ToLaTex.prototype.CheckIsObjectEmpty = function(obj) {
 	for (var key in obj) {
 		return false;
 	  }
 	  return true;
 };
-
 ToLaTex.prototype.GetNamesOfObject = function(obj) {
 	var names = Object.keys(obj);
 	
@@ -2022,10 +1907,6 @@ ToLaTex.prototype.GetNamesOfObject = function(obj) {
 
 	return names
 };
-
-//binom
-//type of frac
-// overline underline
 ToLaTex.prototype.Convert = function(obj, start, end) {
 	if (start) {
 		this.objString.arr.push(start);
@@ -2060,7 +1941,7 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 			this.AddDegree(name, obj);
 		}
 		else if (nameForCheck == 'CDelimiter') {
-			this.AddBrakets(name, obj)
+			this.AddBracets(name, obj)
 		}
 		else if (nameForCheck == 'CDegreeSubSup') {
 			this.AddDegreeSubSup(name, obj);
@@ -2083,7 +1964,8 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 	}
 	
 };
-
+//Convert frac, overline underline
+// sqrt[5+i](90 + 20)
 ToLaTex.prototype.AddFraction = function(name, obj) {
 	var type = obj[name].data.type; 
 	this.objString.arr.push('\\frac')
@@ -2096,13 +1978,38 @@ ToLaTex.prototype.AddFraction = function(name, obj) {
 		}
 	}
 };
+ToLaTex.prototype.AddBracets = function(name, obj) {
+	if (obj[name]['0_CMathContent']['1_CFraction']) {
+		this.AddBinom('1_CFraction', obj[name]['0_CMathContent']);
+	}
+	else {
+		var left = '\\left' + String.fromCharCode(obj[name].data.begOper);
+		var right =  (obj[name].data.endOper == null) 
+			? '\\right.'
+			: '\\right' + String.fromCharCode(obj[name].data.endOper)
 
-ToLaTex.prototype.AddBrakets = function(name, obj) {
-	this.objString.arr.push('(')
-	this.Convert(obj[name])
-	this.objString.arr.push(')')
+		var count = obj[name].data.nCol;
+		var sep ='\\middle' + String.fromCharCode(obj[name].data.sepOper);
+
+		if (count > 1) {
+			this.objString.arr.push(left);
+			var i = 0;
+			for (var frac in obj[name]) {
+
+				if (i == count || i == 0) {
+					this.Convert(obj[name][frac])
+				} 
+				
+				else {
+					this.Convert(obj[name][frac], null, sep)
+				}
+
+				i++;
+			}
+			this.objString.arr.push(right);
+		}
+	}
 };
-
 ToLaTex.prototype.AddDegree = function(name, obj)  {
 	var degree = this.GetNamesOfObject(obj[name]);
 	var type = obj[name].data.type;
@@ -2117,7 +2024,6 @@ ToLaTex.prototype.AddDegree = function(name, obj)  {
 
 	this.Convert(obj[name][degree[1]])
 };
-
 ToLaTex.prototype.AddRadical = function(name, obj) {
 	var radical = this.GetNamesOfObject(obj[name]);
 	var degHide = obj[name].data.degHide;
@@ -2129,7 +2035,6 @@ ToLaTex.prototype.AddRadical = function(name, obj) {
 	}
 	this.Convert(obj[name][radical[1]], '{', '}')
 };
-
 ToLaTex.prototype.AddDegreeSubSup = function(name, obj) {
 	var degree = this.GetNamesOfObject(obj[name]);
 	
@@ -2137,7 +2042,6 @@ ToLaTex.prototype.AddDegreeSubSup = function(name, obj) {
 	this.Convert(obj[name][degree[1]], null, '}_{')
 	this.Convert(obj[name][degree[2]], null, '}')
 };
-
 ToLaTex.prototype.AddFunction = function(name, obj) {
 	this.objString.arr.push('\\');
 
@@ -2145,7 +2049,17 @@ ToLaTex.prototype.AddFunction = function(name, obj) {
 		this.Convert(obj[name][indexInner])
 	}
 };
+ToLaTex.prototype.AddBinom = function(name, obj) {
+	this.objString.arr.push('\\binom')
 
+	for (var indexInner in obj[name]) {
+		if (indexInner != 'data') {
+			this.objString.arr.push('{')
+			this.Convert(obj[name][indexInner])
+			this.objString.arr.push('}')
+		}
+	}
+};
 ToLaTex.prototype.AddNary = function(name, obj) {
 	var chr = obj[name].data.chr;
 	var integral = this.GetNaryCode.get(chr);
@@ -2170,7 +2084,6 @@ ToLaTex.prototype.AddNary = function(name, obj) {
 	}
 	this.Convert(base);
 };
-
 ToLaTex.prototype.GetNaryCode = new Map([
 	[undefined, '\\int'],
 	[8748, '\\iint'],
@@ -2186,13 +2099,11 @@ ToLaTex.prototype.GetNaryCode = new Map([
 	[8897, '\\bigvee'],
 	[8896, '\\bigwedge']
 ])
-
 ToLaTex.prototype.AddLimit = function(name, obj) {
 	var degree = Object.keys(obj[name])
 	this.Convert(obj[name][degree[0]], null, '_{')
 	this.Convert(obj[name][degree[1]], null, '}')
 };
-
 ToLaTex.prototype.AddAccent = function(name, obj) {
 	var type = obj[name].data.chr;
 	type = this.GetCodeAccent.get(type);
@@ -2200,7 +2111,6 @@ ToLaTex.prototype.AddAccent = function(name, obj) {
 	this.objString.arr.push(type)
 	this.Convert(obj[name]['0_CMathContent'], '{', '}')
 };
-
 ToLaTex.prototype.GetCodeAccent = new Map([
 	[8407, '\\vec'],
 	[773, '\\bar'],
@@ -2212,8 +2122,7 @@ ToLaTex.prototype.GetCodeAccent = new Map([
 	[771, '\\tilde'],
 	[780, '\\check'],
 	[770, '\\hat']
-])
-
+]);
 ToLaTex.prototype.AddText = function(name, obj) {
 	var text = obj[name].CMathText
 
