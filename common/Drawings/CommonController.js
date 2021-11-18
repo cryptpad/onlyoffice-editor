@@ -3217,12 +3217,12 @@ DrawingObjectsController.prototype =
 
     deleteSelectedObjects: function(){
         if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection)){
-            return;
+            return true;
         }
         var aSelectedObjects = this.selectedObjects;
         for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
             if(!aSelectedObjects[nIdx].canEdit()) {
-                return;
+                return false;
             }
         }
         var oThis = this;
@@ -3239,6 +3239,7 @@ DrawingObjectsController.prototype =
             oThis.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
             oThis.updateSelectionState();
         }, [], false, AscDFH.historydescription_Spreadsheet_Remove);
+        return true;
     },
 
 
