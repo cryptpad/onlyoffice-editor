@@ -120,6 +120,10 @@ var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
         {
             this.HtmlElement.style.display = "none";
         }
+        else
+        {
+            this.HtmlElement.style.display = "block";
+        }
         return bShow;
     };
 
