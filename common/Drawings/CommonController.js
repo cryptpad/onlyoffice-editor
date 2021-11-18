@@ -3219,6 +3219,12 @@ DrawingObjectsController.prototype =
         if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection)){
             return;
         }
+        var aSelectedObjects = this.selectedObjects;
+        for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
+            if(!aSelectedObjects[nIdx].canEdit()) {
+                return;
+            }
+        }
         var oThis = this;
         this.checkSelectedObjectsAndCallback(function(){
 

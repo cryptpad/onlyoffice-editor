@@ -11329,6 +11329,12 @@
             var isMobileVersion = this.workbook && this.workbook.Api && this.workbook.Api.isMobileVersion;
 			if((bIsCut || isMobileVersion) && isIntoShape) {
                 if(isIntoShape.Selection && isIntoShape.Selection.Use) {
+                    var oSelectedObject = AscFormat.getTargetTextObject(this.objectRender.controller);
+                    if(oSelectedObject && oSelectedObject.getObjectType() === AscDFH.historyitem_type_Shape) {
+                        if(!oSelectedObject.canEditText()) {
+                            return;
+                        }
+                    }
                     this.objectRender.controller.remove(-1, undefined, undefined, undefined, undefined);
                 }
 			} else {
