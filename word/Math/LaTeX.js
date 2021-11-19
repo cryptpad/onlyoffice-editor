@@ -972,8 +972,6 @@ CLaTeXParser.prototype.GetTypeOfFunction = new Map([
 ]);
 //Script
 CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex, isPre) {
-	console.log(FormArgument)
-	
 	var Script = null; 
 	var typeOfScript = null;
 
@@ -1046,9 +1044,10 @@ CLaTeXParser.prototype.AddScriptForText = function(FormArgument, strFAtom) {
 	this.AddScript(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex);
 };
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
+	// console.log(this.CheckFutureAtom(2))
 	return (
-		(this.CheckSyntaxSequence(["^", 1]) && this.CheckFutureAtom(-2) != "_") ||
-		(this.CheckSyntaxSequence(["_", 1]) && this.CheckFutureAtom(-2) != "^") ||
+		(this.CheckSyntaxSequence(["^", 1]) && this.CheckFutureAtom(-2) != "_" && this.CheckFutureAtom(2) != '/') ||
+		(this.CheckSyntaxSequence(["_", 1]) && this.CheckFutureAtom(-2) != "^" && this.CheckFutureAtom(2) != '/') ||
 		this.CheckSyntaxSequence(["_", "{", "^", "{"]) ||
 		this.CheckSyntaxSequence(["^", "{", "_", "{"]) ||
 		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
@@ -1182,7 +1181,6 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 		); 
 		
 		this.FillBracetBlockContent(Bracet, intCountOfMiddle, "\\right");
-		this.GetNextAtom();
 	}
 };
 CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet) {
@@ -1325,7 +1323,7 @@ CLaTeXParser.prototype.AddBinom = function (FormArgument) {
     var BaseMathContent = Delimiter.getElementMathContent(0);
 	this.AddFraction(BaseMathContent, null, 'NO_BAR_FRACTION');
 };
-//Mod : todo add bmod variant
+//Mod
 CLaTeXParser.prototype.AddPMod = function (FormArgument) {
 	var Delimiter = this.AddBracet(FormArgument);
 	this.AddFunction(Delimiter.getElementMathContent(0), "mod");
@@ -1371,7 +1369,7 @@ CLaTeXParser.prototype.CreateLargeOperator = function(FormArgument, intTypeOFLoc
 
 	var LargeOperator = FormArgument.Add_NAry(Pr, null, null, null);
 	return LargeOperator;
-}
+};
 CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 	
 	var strTempAtom = this.CheckFutureAtom();
@@ -1393,7 +1391,7 @@ CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 	}
 
 	this.StartLexer(LargeOperator.getBase());
-}
+};
 CLaTeXParser.prototype.CheckIsLargeOperator = new Map([
 	["\\sum", 8721],
 	["\\prod", 8719],
@@ -1532,7 +1530,7 @@ CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	);
 	
 	return Integral;
-}
+};
 CLaTeXParser.prototype.FillIntegralContent =  function(Integral) {
 	if (this.CheckFutureAtom() == '^') {
 		this.StartLexer(Integral.getSupMathContent());
@@ -1551,7 +1549,7 @@ CLaTeXParser.prototype.FillIntegralContent =  function(Integral) {
 	}
 
 	this.StartLexer(Integral.getBase());
-}
+};
 CLaTeXParser.prototype.GetCountOfIntegral = new Map([
 	["\\int", 1],
 	["\\oint", 1],
@@ -1742,7 +1740,6 @@ CLaTeXParser.prototype.AddNewLine = function() {
  * @param exitIfSee Число элементов которые может обработать функция, или символ при нахождении которых функция завершит работу.
  */
 function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
-	//todo: bmod to func
 	//nary big cup on default with limits 
 	//todo add 2/3 frac
 	//if after bracets block |^3_2 then block is script
@@ -1866,6 +1863,12 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 							degHide: content.Pr.degHide
 						}
 					}
+					else if (CName == 'CMathMatrix') {
+						data = {
+							nRow: content.nRow,
+							nCol: content.nCol
+						}
+					}
 					else if(CName == 'CNary') {
 						data = {
 							chr: content.Pr.chr,
@@ -1880,6 +1883,11 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 					else if(CName == 'CBar') {
 						data = {
 							pos: content.Pr.pos
+						}
+					}
+					else if(CName == 'CEqArray') {
+						data = {
+							row: content.Pr.row
 						}
 					}
 					else if(CName == 'CDelimiter') {
@@ -1943,7 +1951,7 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 		var nameForCheck = name.slice(2)
 
 		if (nameForCheck == 'CEqArray') {
-			this.Convert( obj[name])
+			this.AddCEqArray(name, obj)
 		}
 		else if (nameForCheck == 'CFraction') {
 			this.AddFraction(name, obj)
@@ -1975,6 +1983,9 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 		else if (nameForCheck == 'CLimit') {
 			this.AddLimit(name, obj);
 		}
+		else if (nameForCheck == 'CMathMatrix') {
+			this.AddMatrix(name, obj)
+		}
 		else if (nameForCheck == 'ParaRun') {
 			this.Convert(obj[name])
 		}
@@ -1995,6 +2006,18 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 };
 //Convert frac
 //\lim\limits_{a}^{b}8
+ToLaTex.prototype.AddCEqArray = function(name, obj) {
+	var row = obj[name].data.row;
+
+	if (row > 1) {
+		var ArrayContent = this.GetNamesOfObject(obj[name]);
+		for (var arr in ArrayContent) {
+			this.Convert(obj[name][ArrayContent[arr]], ' ', ' \\\\')
+		}
+	} else {
+		this.Convert(obj[name]);
+	}
+};
 ToLaTex.prototype.AddFraction = function(name, obj) {
 	var type = obj[name].data.type; 
 	if (type == 1) {
@@ -2016,7 +2039,7 @@ ToLaTex.prototype.AddFraction = function(name, obj) {
 	
 };
 ToLaTex.prototype.AddBracets = function(name, obj) {
-	if (obj[name]['0_CMathContent']['1_CFraction']) {
+	if (obj[name]['0_CMathContent']['1_CFraction'] && obj[name]['0_CMathContent']['1_CFraction'].data.type == 3) {
 		this.AddBinom('1_CFraction', obj[name]['0_CMathContent']);
 	}
 
@@ -2160,7 +2183,7 @@ ToLaTex.prototype.GetNaryCode = new Map([
 	[8720, '\\coprod'],
 	[8897, '\\bigvee'],
 	[8896, '\\bigwedge']
-])
+]);
 ToLaTex.prototype.AddLimit = function(name, obj) {
 	var degree = Object.keys(obj[name])
 	this.Convert(obj[name][degree[0]], null, '_{')
@@ -2192,6 +2215,32 @@ ToLaTex.prototype.AddBox = function(name, obj) {
 	}
 
 };
+ToLaTex.prototype.AddMatrix = function(name, obj) {
+	var objMatrixContent = this.GetNamesOfObject(obj[name]);
+	var intCol = obj[name].data.nCol;
+	var intRow = obj[name].data.nRow;
+
+	var indexCol = 0;
+	var indexRow = 0;
+
+	this.objString.arr.push('\\begin{matrix}')
+
+	for(var sub in objMatrixContent) {
+		indexCol++
+		
+		if (indexCol < intCol) {
+			this.Convert(obj[name][objMatrixContent[sub]], '', '&')
+		} 
+
+		else if (indexCol == intCol) {
+			this.Convert(obj[name][objMatrixContent[sub]])
+			this.objString.arr.push('\\\\')
+			indexCol = 0;
+			indexRow++;
+		}
+	}
+	this.objString.arr.push('\\end{matrix}')
+};
 ToLaTex.prototype.CheckIsMod = function(name, obj) {
 	if (obj[name]['0_CMathContent']['1_CMathFunc'] != undefined) {
 		var mod = obj[name]['0_CMathContent']['1_CMathFunc']['0_CMathContent']['0_ParaRun']
@@ -2221,6 +2270,9 @@ ToLaTex.prototype.AddText = function(name, obj) {
 
 	if (text.charCodeAt() == 0x03b8) {
 		text = '\\theta'
+	}
+	if (text.charCodeAt() == 0x2B1A) {
+		text = ' '
 	}
 	this.objString.arr.push(text);
 };

@@ -3508,9 +3508,9 @@ ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
 
 ParaMath.prototype.ConvertToLaTeX = function()
 {
-    var Conveter = new ToLaTex(this.Root.Content[1].Content[0]);
+    var Conveter = new ToLaTex(this.Root);
 
-	console.log(this.Root.Content[1].Content[0])
+	console.log(this.Root)
 	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
 
 	console.log(Conveter.objTempData)
