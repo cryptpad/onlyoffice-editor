@@ -1099,10 +1099,10 @@
         return !this.isIndefinite() && !this.isUnresolved();
     };
     CAnimationTime.prototype.isResolved = function() {
-        return this.val !== this.isUnresolved();
+        return !this.isUnresolved();
     };
     CAnimationTime.prototype.isSpecified = function() {
-        return this.val !== this.isUnspecified();
+        return !this.isUnspecified();
     };
     CAnimationTime.prototype.less = function(oTime) {
         return this.val < oTime.val;
@@ -5828,8 +5828,14 @@
             oComplexTrigger.addTrigger(function () {
                var oLastChild = aChildren[aChildren.length - 1];
                if(oLastChild) {
-                   if(oLastChild.isAtEnd() || oLastChild.isActive()) {
+                   if(oLastChild.isAtEnd()) {
                        return false;
+                   }
+                   if(oLastChild.isActive()) {
+                       var oSimpleDuration = oLastChild.simpleDuration;
+                       if(oSimpleDuration && (oSimpleDuration.isIndefinite() || oSimpleDuration.isUnresolved())) {
+                           return false;
+                       }
                    }
                }
                return true;
