@@ -2250,6 +2250,7 @@
             bg.bgPr      = new AscFormat.CBgPr();
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Slide.changeBackground(bg);
+            this.Slide.recalculateBackground();
         }
     };
 
@@ -2434,6 +2435,7 @@
         bg.bgPr       = new AscFormat.CBgPr();
         bg.bgPr.Fill  = apiNoFill.UniFill;
         this.Slide.changeBackground(bg);
+        this.Slide.recalculateBackground();
 
         return true;
     };
@@ -2452,6 +2454,7 @@
         if (Layout && Layout.cSld.Bg)
         {
             this.Slide.changeBackground(Layout.cSld.Bg);
+            this.Slide.recalculateBackground();
             return true;
         }
         else 
