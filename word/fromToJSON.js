@@ -13346,7 +13346,7 @@
 
 		// pathLst
 		for (var nPath = 0; nPath < oParsedGeom.pathLst.length; nPath++)
-			oGeom.pathLst.push(this.GeomPathFromJSON(oParsedGeom.pathLst[nPath]));
+			oGeom.AddPath(this.GeomPathFromJSON(oParsedGeom.pathLst[nPath]));
 
 		oGeom.rectS  = oParsedGeom.rect;
 		if (oParsedGeom.preset)
@@ -13398,14 +13398,14 @@
 			}
 				
 
-			oPath.ArrPathCommandInfo.push(oCommand);
+			oPath.addPathCommand(oCommand);
 		}
 
-		oPath.extrusionOk = oParsedPath.extrusionOk;
-		oPath.fill        = oParsedPath.fill;
-		oPath.pathH       = oParsedPath.h;
-		oPath.stroke      = oParsedPath.stroke;
-		oPath.pathW       = oParsedPath.w;
+		oParsedPath.extrusionOk != undefined && oPath.setExtrusionOk(oParsedPath.extrusionOk);
+		oParsedPath.fill        != undefined && oPath.setFill(oParsedPath.fill);
+		oParsedPath.h           != undefined && oPath.setPathH(oParsedPath.h);
+		oParsedPath.stroke      != undefined && oPath.setStroke(oParsedPath.stroke);
+		oParsedPath.w           != undefined && oPath.setPathW(oParsedPath.w);
 
 		return oPath;
 	};
