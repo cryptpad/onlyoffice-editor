@@ -661,63 +661,91 @@ CLaTeXParser.prototype.RecipientSeveralAtom = function (intCount) {
 CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotThatSymbol, now, index) {
 	var intPatternIndex = 0;
 	var arrOfData = this.arrAtomsOfFormula;
+	
 	if (!index) {
 		var intIndexData = now ? this.indexOfAtom - 1 : this.indexOfAtom;
-	} else if (index) {
+	} else {
 		var intIndexData = index;
 	}
-	var isCorrect = true;
-
+	
 	do {
-		if (
-			typeof strPattern[intPatternIndex] === "number" &&
-			typeof Number(arrOfData[intIndexData]) === "number"
-		)
-		{
+		
+		if (arrOfData[intIndexData] == strPattern[intPatternIndex]) {
 			intPatternIndex++;
-			var index = 0;
-
-			do {
-				intIndexData++;
-				index++;
-			} while (index < strPattern[intPatternIndex]);
-		}
-
-		else if (
-			strPattern[intPatternIndex] == arrOfData[intIndexData] &&
-			strPattern[intPatternIndex] != "{"
-		) {
 			intIndexData++;
-			intPatternIndex++;
-		}
-
-		else if (
-			strPattern[intPatternIndex] == arrOfData[intIndexData] &&
-			arrOfData[intIndexData] == "{"
-		)
-		{
-			intIndexData++;
-			do {
-				intIndexData++;
-			} while (arrOfData[intIndexData - 1] != "}");
-
-			intPatternIndex++;
-		}
-
-		else {
+		} else {
 			return false
 		}
+		
+		if (this.GetBracetCodeLexer.get(arrOfData[intIndexData]))
+		{
+			var intBrac = 1;
+			var startBracet = arrOfData[intIndexData];
+			var closeBracet = this.GetCloseBracet.get(startBracet);
+
+			do {
+				intIndexData++;
+				
+				if (arrOfData[intIndexData] == startBracet) {
+					intBrac++;
+				}
+				
+				else if (arrOfData[intIndexData] == closeBracet) {
+					intBrac--;
+				}
+
+				//если не нашли скобку и вышли за границы
+				if (arrOfData[intIndexData] == undefined) {
+					return false;
+				}
+
+			} while (intBrac != 0);
+			intIndexData++;
+			intPatternIndex++;
+		}
+
+		else if (typeof strPattern[intPatternIndex] == 'number')
+		{
+			intPatternIndex++;
+			intIndexData++;
+		} 
+
 	} while (intPatternIndex != strPattern.length);
 
-	if (
-		afterAllNotThatSymbol &&
-		arrOfData[intIndexData] == afterAllNotThatSymbol
-	) {
-		return true;
+	if (afterAllNotThatSymbol) {
+		if (arrOfData[intIndexData] == afterAllNotThatSymbol) {
+			return false;
+		} 
+		else {
+			return true
+		}
 	}
-
-	return isCorrect;
+	return true;
 };
+CLaTeXParser.prototype.GetBracetCodeLexer = new Map([
+	["(", 40],
+	[")", 41],
+	["{", 123],
+	["}", 125],
+	["\\{", 123],
+	["\\}", 125],
+	["[", 91],
+	["]", 93],
+	["\\[", 91],
+	["\\]", 93],
+	["|", 124],
+	["\\|", 8214],
+	["\\langle", 10216],
+	["\\rangle", 10217],
+	["\\lfloor", 0x230a],
+	["\\rfloor", 0x230b],
+	["\\lceil", 0x2308],
+	["\\rceil", 0x2309],
+	["\\ulcorner", 0xcbb9],
+	["\\urcorner", 0xcbba],
+	["/", 0x2f],
+	["\\backslash", 0x5c],
+]);
 CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	if (this.CheckFutureAtom() == '^' || this.CheckFutureAtom() == '_') {
 		this.GetNextAtom();
@@ -747,47 +775,23 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	}
 };
 CLaTeXParser.prototype.CheckIsDegreeAndIndex = function (index) {
-	if (
+	return (
 		this.CheckSyntaxSequence(["^", 1, "_", 1], null, null, index) ||
-		this.CheckSyntaxSequence(["^", "{", "_", "{"], null, null, index) ||
-		this.CheckSyntaxSequence(["_", 1, "^", 1], null, null, index) ||
-		this.CheckSyntaxSequence(["_", "{", "^", "{"], null, null, index) ||
-		this.CheckSyntaxSequence(["^", "{", "_", 1], null, null, index) ||
-		this.CheckSyntaxSequence(["^", 1, "_", "{"], null, null, index) ||
-		this.CheckSyntaxSequence(["_", 1, "^", "{"], null, null, index) ||
-		this.CheckSyntaxSequence(["_", "{", "^", 1], null, null, index) 
+		this.CheckSyntaxSequence(["_", 1, "^", 1], null, null, index)
 	) 
-	{
-		return true;
-	} 
-	
-	else 
-	{
-		return false;
-	}
 };
 CLaTeXParser.prototype.CheckIsDegreeOrIndex = function (index) {
-	if (
+	return (
 		this.CheckSyntaxSequence(["_", 1], "^", null, index) ||
-		this.CheckSyntaxSequence(["^", 1], "_", null, index) ||
-		this.CheckSyntaxSequence(["_", '{'], "^", null, index)||
-		this.CheckSyntaxSequence(["^", '{'], "_", null, index)
+		this.CheckSyntaxSequence(["^", 1], "_", null, index)
 	)
-	{
-		return true;
-	}
-	
-	else
-	{
-		return false;
-	}
 };
 //Fraction
 CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom, type) {
 	var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
-	if (isInlineFraction == false) {
-		isInlineFraction = this.CheckSyntaxSequence(["^","{", "/", "_", "{"], null, true);
-	}
+	console.log(isInlineFraction)
+
+
 	var typeOfFraction = null;
 
 	if (isInlineFraction) {
@@ -857,17 +861,16 @@ CLaTeXParser.prototype.FillFracContent = function (FormArgument, isInlineFractio
 	}
 };
 CLaTeXParser.prototype.GetTypeOfFrac = new Map([
-	['\\frac', 'DEFAULT_FRACTION'],
+	['\\frac', 'BAR_FRACTION'],
 	['\\tfrac', 'LITLE_DEFAULT_FRACTION'],
 	['\\sfrac', 'SKEWED_FRACTION'],
 	['\\nicefrac', 'LINEAR_FRACTION'],
-	['\\dfrac', 'DEFAULT_FRACTION'], // todo dfrac
+	['\\dfrac', 'BAR_FRACTION'], // todo dfrac
 ]);
 CLaTeXParser.prototype.CheckIsFractionLexer = function(strFAtom) {
 	return (
 		this.GetTypeOfFrac.get(strFAtom) != null || 
-		this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true) ||
-		this.CheckSyntaxSequence(["^", "{", "/", "_", "{"], null, true)
+		this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)
 	)
 };
 //Limit
@@ -1044,12 +1047,9 @@ CLaTeXParser.prototype.AddScriptForText = function(FormArgument, strFAtom) {
 	this.AddScript(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex);
 };
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
-	// console.log(this.CheckFutureAtom(2))
 	return (
 		(this.CheckSyntaxSequence(["^", 1]) && this.CheckFutureAtom(-2) != "_" && this.CheckFutureAtom(2) != '/') ||
 		(this.CheckSyntaxSequence(["_", 1]) && this.CheckFutureAtom(-2) != "^" && this.CheckFutureAtom(2) != '/') ||
-		this.CheckSyntaxSequence(["_", "{", "^", "{"]) ||
-		this.CheckSyntaxSequence(["^", "{", "_", "{"]) ||
 		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
 		this.CheckSyntaxSequence(["_", 1, "^", 1])
 	);
@@ -1181,6 +1181,7 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 		); 
 		
 		this.FillBracetBlockContent(Bracet, intCountOfMiddle, "\\right");
+		this.GetNextAtom();
 	}
 };
 CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet) {
@@ -1261,7 +1262,7 @@ CLaTeXParser.prototype.GetCloseBracet = new Map([
 	["\\lceil", "\\rceil"],
 	["\\ulcorner", "\\urcorner"],
 	["/", "\\backslash"],
-	["\\left", "\\right"],
+	["\\left", "\\right"]
 ]);
 CLaTeXParser.prototype.GetBracetCode = new Map([
 	["(", null],
@@ -1286,7 +1287,7 @@ CLaTeXParser.prototype.GetBracetCode = new Map([
 	["\\urcorner", 0xcbba],
 	["/", 0x2f],
 	["\\backslash", 0x5c],
-	[".", "empty"],
+	[".", "empty"]
 ]);
 CLaTeXParser.prototype.CheckIsBrackets = function (strFAtom) {
 	var strTempAtom = this.CheckFutureAtom(-1);
@@ -1740,7 +1741,6 @@ CLaTeXParser.prototype.AddNewLine = function() {
  * @param exitIfSee Число элементов которые может обработать функция, или символ при нахождении которых функция завершит работу.
  */
 function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
-	//nary big cup on default with limits 
 	//todo add 2/3 frac
 	//if after bracets block |^3_2 then block is script
 	//f(n) = n^5 + 4n^2 + 2 |_{n=17}
@@ -1820,7 +1820,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		else if (Parser.CheckSupSubForLexer()) {
 			Parser.AddScriptForText(FormArgument, strFAtom);
 			intFAtoms++;
-		} 
+		}
 		
 		else if (Parser.CheckIsText(strFAtom)) {
 			Parser.AddText(strFAtom, FormArgument);
@@ -1948,7 +1948,7 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 	for (var index = 0; index < propert.length; index++) {
 
 		var name = propert[index];
-		var nameForCheck = name.slice(2)
+		var nameForCheck = name.split('_')[1]
 
 		if (nameForCheck == 'CEqArray') {
 			this.AddCEqArray(name, obj)
@@ -1999,10 +1999,10 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 			this.AddBox(name, obj);
 		}
 	}
+	
 	if (end) {
 		this.objString.arr.push(end);
 	}
-	
 };
 //Convert frac
 //\lim\limits_{a}^{b}8
@@ -2077,7 +2077,6 @@ ToLaTex.prototype.AddBracets = function(name, obj) {
 			}
 			this.objString.arr.push(right);
 		}
-
 	}
 };
 ToLaTex.prototype.AddDegree = function(name, obj)  {
