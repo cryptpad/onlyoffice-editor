@@ -840,24 +840,6 @@ CImageShape.prototype.Load_LinkData = function(linkData)
 {
 };
 
-    CImageShape.prototype.fromXml = function(reader)
-    {
-        var depth = reader.GetDepth();
-        while (reader.ReadNextSiblingNode(depth)) {
-            if ("blipFill" === reader.GetNameNoNS()) {
-                var uni_fill = new AscFormat.CUniFill();
-                uni_fill.fromXml(reader);
-                this.setBlipFill(uni_fill.fill);
-            } else if ("spPr" === reader.GetNameNoNS()) {
-                var spPr = new AscFormat.CSpPr();
-                spPr.setParent(this);
-                spPr.fromXml(reader);
-                this.setSpPr(spPr);
-            }
-            //todo
-        }
-    };
-
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CImageShape = CImageShape;

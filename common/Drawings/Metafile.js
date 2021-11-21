@@ -957,10 +957,10 @@
 		{
 			this.WriteXmlAttributeString(name, val.toString());
 		};
-		this.WriteXmlNullable = function(val)
+		this.WriteXmlNullable = function(val, name)
 		{
 			if (val) {
-				val.toXml(this);
+				val.toXml(this, name);
 			}
 		};
 		this.WriteXmlNullableAttributeString = function(name, val)
@@ -1011,7 +1011,7 @@
 		{
 			this.WriteXmlNodeStart(name);
 			this.WriteXmlAttributesEnd();
-			this.WriteXmlStringBool(val);
+			this.WriteXmlBool(val);
 			this.WriteXmlNodeEnd(name);
 		};
 		this.WriteXmlValueNumber = function(name, val)

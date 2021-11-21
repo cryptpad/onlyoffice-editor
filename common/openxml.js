@@ -567,7 +567,7 @@
 				workingCurrentPath = this.fromPart.uri.substring(0, slashIndex) + "/";
 			}
 		}
-		if (targetMode === "External") {
+		if (targetMode === openXml.TargetMode.external) {
 			this.targetFullName = this.target;
 			return;
 		}
@@ -596,7 +596,7 @@
 		if (this.target) {
 			writer.WriteXmlAttributeStringEncode("Target", this.target);
 		}
-		if (this.targetMode) {
+		if (this.targetMode && this.targetMode !== openXml.TargetMode.internal) {
 			writer.WriteXmlAttributeString("TargetMode", this.targetMode);
 		}
 		writer.WriteXmlAttributesEnd(true);
@@ -743,6 +743,13 @@
 		ctrlProp: {dir: "xl/ctrlProps", filename: "ctrlProp[N].xml", contentType: "application/vnd.ms-excel.controlproperties+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/ctrlProp"},
 		slicer: {dir: "xl/namedSheetViews", filename: "namedSheetView[N].xml", contentType: "application/vnd.ms-excel.namedsheetviews+xml", relationType: "http://schemas.microsoft.com/office/2019/04/relationships/namedSheetView"},
 		workbookComment: {dir: "xl", filename: "workbookComments.bin", contentType: "", relationType: "http://schemas.onlyoffice.com/workbookComments"},
+
+		//todo
+		image: {dir: "xl/media", filename: "image[N].jpeg", contentType: "", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"},
+	};
+	openXml.TargetMode = {
+		internal: "Internal",
+		external: "External"
 	}
 
 	window.openXml = openXml;

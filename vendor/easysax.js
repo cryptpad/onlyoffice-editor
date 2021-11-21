@@ -1533,6 +1533,7 @@ function XmlWriterContext(){
     this.stylesForWrite = new AscCommonExcel.StylesForWrite();
     this.oSharedStrings = {index: 0, strings: {}};
     //pptx
+    this.cNvPrIndex = 1;
 }
 XmlWriterContext.prototype.initFromWS = function(ws) {
     this.ws = ws;

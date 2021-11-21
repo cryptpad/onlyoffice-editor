@@ -1473,11 +1473,11 @@ var editor;
 		}
 		if (wbXml.sheets) {
 			wbXml.sheets.forEach(function(wbSheetXml) {
-				if (null !== wbSheetXml.id) {
+				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
 					var contentSheetXml = wsPart.getDocumentContent();
 					var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
-					ws.wsPart = wsPart;
+					ws.sName = wbSheetXml.name;
 					var wsView = new AscCommonExcel.asc_CSheetViewSettings();
 					wsView.pane = new AscCommonExcel.asc_CPane();
 					ws.sheetViews.push(wsView);
@@ -1491,14 +1491,13 @@ var editor;
 					wb.aWorksheetsById[ws.getId()] = ws;
 					var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
 					if (drawingPart) {
-						var drawingWS = new AscCommonExcel.CT_DrawingWS();
+						var drawingWS = new AscCommonExcel.CT_DrawingWS(ws);
 						var contentDrawing = drawingPart.getDocumentContent();
 						var reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
 						drawingWS.fromXml(reader);
 					}
 					if (wsPart) {
-						var pivotParts = wsPart.getPartsByRelationshipType(
-							openXml.Types.pivotTable.relationType);
+						var pivotParts = wsPart.getPartsByRelationshipType(openXml.Types.pivotTable.relationType);
 						for (var i = 0; i < pivotParts.length; ++i) {
 							var contentPivotTable = pivotParts[i].getDocumentContent();
 							var pivotTable = new Asc.CT_pivotTableDefinition(true);

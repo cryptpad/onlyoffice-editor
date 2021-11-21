@@ -150,7 +150,7 @@
 					var sheetData = new AscCommonExcel.CT_SheetData(this);
 					sheetData.fromXml(reader);
 				} else if ("drawing" === name) {
-					var drawing = new AscCommonExcel.CT_DrawingWSRef(this);
+					var drawing = new AscCommonExcel.CT_DrawingWSRef();
 					drawing.fromXml(reader);
 					context.drawingId = drawing.id;
 				}
@@ -158,6 +158,8 @@
 		}
 	};
 	AscCommonExcel.Worksheet.prototype.toXml = function (writer) {
+		var t = this;
+		var context = writer.context;
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("worksheet");
 		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"');
@@ -170,6 +172,14 @@
 		writer.WriteXmlAttributesEnd();
 		this.toXmlSheetData(writer);
 		writer.WriteXmlNodeEnd("sheetData");
+		if (this.Drawings.length > 0) {
+			var drawing = new AscCommonExcel.CT_DrawingWS(t);
+			var drawingPart = context.part.addPart(AscCommon.openXml.Types.drawings);
+			drawingPart.part.setDataXml(drawing, writer);
+			var drawingRef = new AscCommonExcel.CT_DrawingWSRef();
+			drawingRef.id = drawingPart.rId;
+			drawingRef.toXml(writer, "drawing");
+		}
 		writer.WriteXmlNodeEnd("worksheet");
 	};
 	AscCommonExcel.Worksheet.prototype.toXmlSheetData = function (writer) {
@@ -357,7 +367,8 @@
 		}
 	};
 
-	function CT_DrawingWS() {
+	function CT_DrawingWS(ws) {
+		this.ws = ws;
 		this.anchors = [];
 	}
 
@@ -383,6 +394,16 @@
 				}
 			}
 		}
+	};
+	CT_DrawingWS.prototype.toXml = function (writer) {
+		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+		writer.WriteXmlNodeStart("xdr:wsDr");
+		writer.WriteXmlString(' xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"');
+		writer.WriteXmlAttributesEnd();
+		this.ws.Drawings.forEach(function(drawing) {
+			drawing.toXml(writer);
+		});
+		writer.WriteXmlNodeEnd("xdr:wsDr");
 	};
 	function CT_SharedStrings() {
 		this.sharedStrings = [];
@@ -491,6 +512,11 @@
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
+	CT_DrawingWSRef.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("r:id", this.id);
+		writer.WriteXmlAttributesEnd(true);
+	};
 	CT_DrawingWSRef.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
 			if ("id" === reader.GetNameNoNS()) {
@@ -574,7 +600,12 @@
 	};
 	CT_Sheet.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
-			if ("id" === reader.GetNameNoNS()) {
+			var name = reader.GetNameNoNS();
+			if ("name" === name) {
+				this.name = reader.GetValueDecodeXml();
+			} else if ("sheetId" === name) {
+				this.sheetId = reader.GetValueInt();
+			} else if ("id" === name) {
 				this.id = reader.GetValueDecodeXml();
 			}
 		}
@@ -654,5 +685,4 @@
 	window['AscCommonExcel'].CT_Value = CT_Value;
 	window['AscCommonExcel'].CT_DrawingWS = CT_DrawingWS;
 	window['AscCommonExcel'].CT_DrawingWSRef = CT_DrawingWSRef;
-	AscCommonExcel
 })(window);

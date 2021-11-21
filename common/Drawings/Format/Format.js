@@ -2729,28 +2729,6 @@ CBlipFill.prototype =
             this.Effects.push(effect);
         }
     },
-    fromXml: function(reader)
-    {
-        var depth = reader.GetDepth();
-        while (reader.ReadNextSiblingNode(depth)) {
-            if ("blip" === reader.GetNameNoNS()) {
-                while (reader.MoveToNextAttribute()) {
-                    if ("embed" === reader.GetNameNoNS()) {
-                        var rId = reader.GetValue();
-                        var rel = reader.rels.getRelationship(rId);
-                        if ("Internal" === rel.targetMode) {
-                            var path = rel.targetFullName.substring(1);
-                            var data = reader.GetContext().zip.files[path].sync('uint8array');
-                            var blob = new Blob([data], {type: "image/png"});
-                            var url = window.URL.createObjectURL(blob);
-                            AscCommon.g_oDocumentUrls.addImageUrl(path, url);
-                            AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, this);
-                        }
-                    }
-                }
-            }
-        }
-    },
 
     Refresh_RecalcData: function()
     {},
@@ -5242,21 +5220,6 @@ function FormatRGBAColor()
             }
         }
     };
-    CUniFill.prototype.fromXml = function(reader)
-    {
-        var name = reader.GetNameNoNS();
-        var depth = reader.GetDepth();
-        switch (name) {
-            case "blipFill":
-                var blipFill = new AscFormat.CBlipFill()
-                blipFill.fromXml(reader);
-                this.setFill(blipFill);
-                break;
-            default:
-                reader.ReadTillEnd(depth);
-                break;
-        }
-    };
     CUniFill.prototype.calculate = function(theme, slide, layout, masterSlide, RGBA, colorMap)
     {
         if(this.fill )
@@ -7360,52 +7323,6 @@ CXfrm.prototype =
     {
         this.Id = r.GetString2();
     },
-    fromXml: function(reader) {
-        this.readAttr(reader);
-
-        var depth = reader.GetDepth();
-        while (reader.ReadNextSiblingNode(depth)) {
-            if ("off" === reader.GetNameNoNS()) {
-                this.readAttrOff(reader, this.setOffX, this.setOffY);
-            } else if ("ext" === reader.GetNameNoNS()) {
-                this.readAttrExt(reader, this.setExtX, this.setExtY);
-            } else if ("chOff" === reader.GetNameNoNS()) {
-                this.readAttrOff(reader, this.setChOffX, this.setChOffY);
-            } else if ("chExt" === reader.GetNameNoNS()) {
-                this.readAttrExt(reader, this.setChExtX, this.setChExtY);
-            }
-        }
-    },
-    readAttr: function(reader) {
-        while (reader.MoveToNextAttribute()) {
-            if ("flipH" === reader.GetName()) {
-                this.setFlipH(reader.GetValueBool());
-            } else if ("flipV" === reader.GetName()) {
-                this.setFlipV(reader.GetValueBool());
-            } else if ("rot" === reader.GetName()) {
-                this.setRot((reader.GetValueInt()/60000)*Math.PI/180);
-            }
-        }
-    },
-    readAttrOff: function(reader, fSetX, fSetY) {
-        while (reader.MoveToNextAttribute()) {
-            if ("x" === reader.GetName()) {
-                fSetX.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
-            } else if ("y" === reader.GetName()) {
-                fSetY.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
-            }
-        }
-    },
-    readAttrExt: function(reader, fSetCX, fSetCY) {
-        while (reader.MoveToNextAttribute()) {
-            if ("cx" === reader.GetName()) {
-                fSetCX.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
-            } else if ("cy" === reader.GetName()) {
-                fSetCY.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
-            }
-        }
-    },
-
 
     isNotNull: function()
     {
@@ -8259,30 +8176,6 @@ CSpPr.prototype =
         if(this.ln && this.ln.Fill)
         {
             this.setFill(this.ln.Fill.createDuplicate());
-        }
-    },
-
-    fromXml: function(reader)
-    {
-        var depth = reader.GetDepth();
-        while (reader.ReadNextSiblingNode(depth)) {
-            if ("xfrm" === reader.GetNameNoNS()) {
-                var xfrm = new AscFormat.CXfrm();
-                xfrm.fromXml(reader);
-                this.setXfrm(xfrm);
-                this.xfrm.setParent(this);
-            } else if ("prstGeom" === reader.GetNameNoNS()) {
-                //todo
-                var prst = "";
-                while (reader.MoveToNextAttribute()) {
-                    if ("prst" === reader.GetName()) {
-                        prst = reader.GetValueDecodeXml();
-                    }
-                }
-                var oGeometry = AscFormat.CreateGeometry(prst);
-                if(oGeometry && oGeometry.pathLst.length > 0)
-                    this.setGeometry(oGeometry);
-            }
         }
     }
 };

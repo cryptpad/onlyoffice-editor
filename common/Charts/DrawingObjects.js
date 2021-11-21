@@ -433,6 +433,17 @@ CCellObjectInfo.prototype.fromXml = function(reader) {
 		}
 	}
 };
+CCellObjectInfo.prototype.toXml = function(writer, name) {
+    writer.WriteXmlNodeStart(name);
+    writer.WriteXmlAttributesEnd();
+
+    writer.WriteXmlValueNumber("xdr:col", this.col);
+    writer.WriteXmlValueNumber("xdr:colOff", Math.round(this.colOff * g_dKoef_mm_to_emu));
+    writer.WriteXmlValueNumber("xdr:row", this.row);
+    writer.WriteXmlValueNumber("xdr:rowOff", Math.round(this.rowOff * g_dKoef_mm_to_emu));
+
+    writer.WriteXmlNodeEnd(name);
+};
 CCellObjectInfo.prototype.initAfterSerialize = function() {
 	this.row = Math.max(0, this.row);
 	this.row = Math.max(0, this.row);
@@ -1833,6 +1844,49 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 		var ws = reader.GetContext().ws;
 		this.initAfterSerialize(ws);
 	};
+    DrawingBase.prototype.toXml = function (writer, name) {
+        var editAs = null;
+        switch (this.Type) {
+            case c_oAscCellAnchorType.cellanchorTwoCell:
+                name = "xdr:twoCellAnchor";
+                switch (this.editAs) {
+                    case c_oAscCellAnchorType.cellanchorTwoCell:
+                        editAs = "twoCell";
+                        break;
+                    case c_oAscCellAnchorType.cellanchorOneCell:
+                        editAs = "oneCell";
+                        break;
+                    case c_oAscCellAnchorType.cellanchorAbsolute:
+                        editAs = "absolute";
+                        break;
+                }
+                break;
+            case c_oAscCellAnchorType.cellanchorOneCell:
+                name = "xdr:oneCellAnchor";
+                break;
+            case c_oAscCellAnchorType.cellanchorAbsolute:
+                name = "xdr:absoluteAnchor";
+                break;
+        }
+        writer.WriteXmlNodeStart(name);
+        writer.WriteXmlNullableAttributeString("editAs", editAs);
+        writer.WriteXmlAttributesEnd();
+        writer.WriteXmlNullable(this.from, "xdr:from");
+        writer.WriteXmlNullable(this.to, "xdr:to");
+        switch (this.graphicObject.getObjectType()) {
+            case AscDFH.historyitem_type_Shape:
+                break;
+            case AscDFH.historyitem_type_Cnx:
+                break;
+            case AscDFH.historyitem_type_OleObject:
+            case AscDFH.historyitem_type_ImageShape:
+                writer.WriteXmlNullable(this.graphicObject, "xdr:pic");
+                break;
+        }
+        writer.WriteXmlNodeStart("xdr:clientData");
+        writer.WriteXmlAttributesEnd(true);
+        writer.WriteXmlNodeEnd(name);
+    };
 	DrawingBase.prototype.readAttr = function(reader) {
 		var name = reader.GetNameNoNS();
 		switch (name) {
