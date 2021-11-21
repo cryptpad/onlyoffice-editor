@@ -671,6 +671,8 @@ function CFontSelect()
     this.m_shXHeight        = 0;
     this.m_shCapHeight      = 0;
 
+    this.m_usType = 0;
+
     this.m_names = null;
 }
 CFontSelect.prototype =
@@ -687,6 +689,11 @@ CFontSelect.prototype =
 		var _version = window["__all_fonts_js_version__"];
 		if (undefined === _version)
 			_version = 0;
+
+		var recordLen = 0;
+		var currentPos = fs.cur;
+		if (_version >= 2)
+		    recordLen = fs.GetLong();
 
         // name
         var _len = fs.GetLong();
@@ -785,6 +792,13 @@ CFontSelect.prototype =
         this.m_shLineGap        = FT_Common.UShort_To_Short(fs.GetUShort());
         this.m_shXHeight        = FT_Common.UShort_To_Short(fs.GetUShort());
         this.m_shCapHeight      = FT_Common.UShort_To_Short(fs.GetUShort());
+
+        if (_version >= 2)
+        {
+            this.m_usType = fs.GetUShort();
+
+            fs.Seek2(currentPos + recordLen);
+        }
     },
 
     GetStyle : function()
