@@ -36,10 +36,6 @@
       // Import
 	var openXml = AscCommon.openXml;
 
-      var g_memory = AscFonts.g_memory;
-      var DecodeBase64Char = AscFonts.DecodeBase64Char;
-      var b64_decode = AscFonts.b64_decode;
-
       var CellValueType = AscCommon.CellValueType;
       var c_oAscCellAnchorType = AscCommon.c_oAscCellAnchorType;
       var c_oAscBorderStyles = AscCommon.c_oAscBorderStyles;
@@ -89,7 +85,8 @@
         App: 6,
         Core: 7,
         PersonList: 8,
-        CustomProperties: 9
+        CustomProperties: 9,
+        Customs: 10
     };
     /** @enum */
     var c_oSerStylesTypes =
@@ -1105,16 +1102,6 @@
         SecurityDescriptor: 6
 	};
 
-	//TODO в x2t следующий набор констант
-	/*	namespace c_oSerWorkbookProtection {enum c_oSerWorkbookProtection{
-     AlgorithmName = 0,
-     SpinCount = 1,
-     HashValue = 2,
-     SaltValue = 3,
-     LockStructure = 4,
-     LockWindows = 5
-     }*/
-
 	var c_oSerWorkbookProtection = {
 		WorkbookAlgorithmName: 0,
 		WorkbookSpinCount: 1,
@@ -1128,18 +1115,13 @@
 		RevisionsSpinCount: 9,
 		LockRevision: 10
 	};
-	var c_oSerProtectedAlgorithmNameTypes = {
-		MD2: 1,
-		MD4: 2,
-		MD5: 3,
-		RIPEMD_128: 4,
-		RIPEMD_160: 5,
-		SHA_1: 6,
-		SHA_256: 7,
-		SHA_384: 8,
-		SHA_512: 9,
-		WHIRLPOOL: 10
-	};
+    var c_oSerCustoms = {
+        Custom: 0, 
+        ItemId: 1,
+        Uri: 2,
+        Content: 3
+    };
+
 	/** @enum */
     var EBorderStyle =
     {
@@ -1678,6 +1660,45 @@
         }
         return res;
 	}
+
+    //TODO копия кода из serialize2
+    function BinaryCustomsTableWriter(memory, CustomXmls)
+    {
+        this.memory = memory;
+        //this.Document = doc;
+        this.bs = new BinaryCommonWriter(this.memory);
+        this.CustomXmls = CustomXmls;
+        this.Write = function()
+        {
+            var oThis = this;
+            this.bs.WriteItemWithLength(function(){oThis.WriteCustomXmls();});
+        };
+        this.WriteCustomXmls = function()
+        {
+            var oThis = this;
+            for (var i = 0; i < this.CustomXmls.length; ++i) {
+                this.bs.WriteItem(c_oSerCustoms.Custom, function() {oThis.WriteCustomXml(oThis.CustomXmls[i]);});
+            }
+        };
+        this.WriteCustomXml = function(customXml) {
+            var oThis = this;
+            for(var i = 0; i < customXml.Uri.length; ++i){
+                this.bs.WriteItem(c_oSerCustoms.Uri, function () {
+                    oThis.memory.WriteString3(customXml.Uri[i]);
+                });
+            }
+            if (null !== customXml.ItemId) {
+                this.bs.WriteItem(c_oSerCustoms.ItemId, function() {
+                    oThis.memory.WriteString3(customXml.ItemId);
+                });
+            }
+            if (null !== customXml.Content) {
+                this.bs.WriteItem(c_oSerCustoms.Content, function() {
+                    oThis.memory.WriteString3(customXml.Content);
+                });
+            }
+        };
+    }
 
     /** @constructor */
     function BinaryTableWriter(memory, aDxfs, isCopyPaste, tableIds)
@@ -4119,7 +4140,7 @@
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(sheetProtection.insertRows);
 			}
-			if (null != sheetProtection.objects) {
+			if (null != sheetProtection.objects && sheetProtection.sheet) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.Objects);
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(sheetProtection.objects);
@@ -4129,7 +4150,9 @@
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(sheetProtection.pivotTables);
 			}
-			if (null != sheetProtection.scenarios) {
+			//scenarios - в MS может быть всталена в true если только лист защищен
+			//если выставлена в true при незазищенном листе, то после сохранения и открытия в ms обратно в false возвращается
+			if (null != sheetProtection.scenarios && sheetProtection.sheet) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.Scenarios);
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(sheetProtection.scenarios);
@@ -4166,8 +4189,8 @@
 		this.WriteProtectedRange = function (oProtectedRange) {
 			if (null != oProtectedRange.algorithmName) {
 				this.memory.WriteByte(c_oSerProtectedRangeTypes.AlgorithmName);
-				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(oProtectedRange.algorithmName);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(oProtectedRange.algorithmName);
 			}
 			if (null != oProtectedRange.spinCount) {
 				this.memory.WriteByte(c_oSerProtectedRangeTypes.SpinCount);
@@ -5908,6 +5931,10 @@
                     pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
                 }});
             }
+            if (t.wb.customXmls && t.wb.customXmls.length > 0) {
+                this.WriteTable(c_oSerTableTypes.Customs, new BinaryCustomsTableWriter(this.Memory, t.wb.customXmls));
+            }
+
             var oSharedStrings = {index: 0, strings: {}};
             //Write SharedStrings
             var nSharedStringsPos = this.ReserveTable(c_oSerTableTypes.SharedStrings);
@@ -8784,7 +8811,7 @@
 		this.ReadProtectedRange = function (type, length, oProtectedRange) {
 			var res = c_oSerConstants.ReadOk;
 			if (c_oSerProtectedRangeTypes.AlgorithmName === type) {
-				oProtectedRange.algorithmName = this.stream.GetString2LE(length);
+				oProtectedRange.algorithmName = this.stream.GetUChar();
 			} else if (c_oSerProtectedRangeTypes.SpinCount === type) {
 				oProtectedRange.spinCount = this.stream.GetLong();
 			} else if (c_oSerProtectedRangeTypes.HashValue === type) {
@@ -10602,6 +10629,47 @@
         };
     }
 
+    //TODO копия кода из serialize2
+    function Binary_CustomsTableReader(stream, CustomXmls) {
+        //this.Document = doc;
+        //this.oReadResult = oReadResult;
+        this.stream = stream;
+        this.CustomXmls = CustomXmls;
+        this.bcr = new Binary_CommonReader(this.stream);
+        this.Read = function() {
+            var oThis = this;
+            return this.bcr.ReadTable(function(t, l) {
+                return oThis.ReadCustom(t, l);
+            });
+        };
+        this.ReadCustom = function(type, length) {
+            var res = c_oSerConstants.ReadOk;
+            var oThis = this;
+            if (c_oSerCustoms.Custom === type) {
+                var custom = {Uri: [], ItemId: null, Content: null};
+                res = this.bcr.Read1(length, function(t, l) {
+                    return oThis.ReadCustomContent(t, l, custom);
+                });
+                this.CustomXmls.push(custom);
+            }
+            else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+        this.ReadCustomContent = function(type, length, custom) {
+            var res = c_oSerConstants.ReadOk;
+            if (c_oSerCustoms.Uri === type) {
+                custom.Uri.push(this.stream.GetString2LE(length));
+            } else if (c_oSerCustoms.ItemId === type) {
+                custom.ItemId = this.stream.GetString2LE(length);
+            } else if (c_oSerCustoms.Content === type) {
+                custom.Content = this.stream.GetString2LE(length);
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+    }
+
     function getBinaryOtherTableGVar(wb)
     {
         AscCommonExcel.g_oColorManager.setTheme(wb.theme);
@@ -10753,73 +10821,9 @@
 			if (Asc.c_nVersionNoBase64 !== nVersion) {
 				var dstLen = parseInt(dst_len);
 
-				var pointer = g_memory.Alloc(dstLen);
-				stream = new AscCommon.FT_Stream2(pointer.data, dstLen);
-				stream.obj = pointer.obj;
+				var memoryData = AscCommon.Base64.decode(szSrc, false, dstLen, index);
+				stream = new AscCommon.FT_Stream2(memoryData, memoryData.length);
 
-				var dstPx = stream.data;
-
-				if (window.chrome)
-				{
-					while (index < srcLen)
-					{
-						var dwCurr = 0;
-						var i;
-						var nBits = 0;
-						for (i=0; i<4; i++)
-						{
-							if (index >= srcLen)
-								break;
-							var nCh = DecodeBase64Char(isBase64 ? szSrc.charCodeAt(index++) : szSrc[index++]);
-							if (nCh == -1)
-							{
-								i--;
-								continue;
-							}
-							dwCurr <<= 6;
-							dwCurr |= nCh;
-							nBits += 6;
-						}
-
-						dwCurr <<= 24-nBits;
-						for (i=0; i<nBits/8; i++)
-						{
-							dstPx[nWritten++] = ((dwCurr & 0x00ff0000) >>> 16);
-							dwCurr <<= 8;
-						}
-					}
-				}
-				else
-				{
-					var p = b64_decode;
-					while (index < srcLen)
-					{
-						var dwCurr = 0;
-						var i;
-						var nBits = 0;
-						for (i=0; i<4; i++)
-						{
-							if (index >= srcLen)
-								break;
-							var nCh = p[isBase64 ? szSrc.charCodeAt(index++) : szSrc[index++]];
-							if (nCh == undefined)
-							{
-								i--;
-								continue;
-							}
-							dwCurr <<= 6;
-							dwCurr |= nCh;
-							nBits += 6;
-						}
-
-						dwCurr <<= 24-nBits;
-						for (i=0; i<nBits/8; i++)
-						{
-							dstPx[nWritten++] = ((dwCurr & 0x00ff0000) >>> 16);
-							dwCurr <<= 8;
-						}
-					}
-				}
 			} else {
 				stream = new AscCommon.FT_Stream2(szSrc, szSrc.length);
 				//skip header
@@ -10836,70 +10840,7 @@
             var dstPx = stream.data;
             var index = szSrcOffset;
 
-            if (window.chrome)
-            {
-                while (index < srcLen)
-                {
-                    var dwCurr = 0;
-                    var i;
-                    var nBits = 0;
-                    for (i=0; i<4; i++)
-                    {
-                        if (index >= srcLen)
-                            break;
-                        var nCh = DecodeBase64Char(szSrc.charCodeAt(index++));
-                        if (nCh == -1)
-                        {
-                            i--;
-                            continue;
-                        }
-                        dwCurr <<= 6;
-                        dwCurr |= nCh;
-                        nBits += 6;
-                    }
-
-                    dwCurr <<= 24-nBits;
-                    var nLen = (nBits/8) | 0;
-                    for (i=0; i<nLen; i++)
-                    {
-                        dstPx[nWritten++] = ((dwCurr & 0x00ff0000) >>> 16);
-                        dwCurr <<= 8;
-                    }
-                }
-            }
-            else
-            {
-                var p = b64_decode;
-                while (index < srcLen)
-                {
-                    var dwCurr = 0;
-                    var i;
-                    var nBits = 0;
-                    for (i=0; i<4; i++)
-                    {
-                        if (index >= srcLen)
-                            break;
-                        var nCh = p[szSrc.charCodeAt(index++)];
-                        if (nCh == undefined)
-                        {
-                            i--;
-                            continue;
-                        }
-                        dwCurr <<= 6;
-                        dwCurr |= nCh;
-                        nBits += 6;
-                    }
-
-                    dwCurr <<= 24-nBits;
-                    var nLen = (nBits/8) | 0;
-                    for (i=0; i<nLen; i++)
-                    {
-                        dstPx[nWritten++] = ((dwCurr & 0x00ff0000) >>> 16);
-                        dwCurr <<= 8;
-                    }
-                }
-            }
-            return nWritten;
+            return AscCommon.Base64.decodeData(szSrc, index, srcLen, dstPx, nWritten);
         };
         this.Read = function(data, wb)
         {
@@ -11070,6 +11011,11 @@
                             wb.CustomProperties = new AscCommon.CCustomProperties();
                             wb.CustomProperties.fromStream(fileStream);
                             this.stream.FromFileStream(fileStream);
+                            break;
+                        case c_oSerTableTypes.Customs:
+                            this.stream.Seek2(mtiOffBits);
+                            wb.customXmls = [];
+                            res = (new Binary_CustomsTableReader(this.stream, wb.customXmls)).Read();
                             break;
                     }
                     if(c_oSerConstants.ReadOk != res)

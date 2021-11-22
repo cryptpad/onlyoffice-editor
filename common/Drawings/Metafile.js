@@ -447,81 +447,6 @@
 		}
 	};
 
-	var g_stringBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-	var g_arrayBase64  = [];
-	for (var index64 = 0; index64 < g_stringBase64.length; index64++)
-	{
-		g_arrayBase64.push(g_stringBase64.charAt(index64));
-	}
-
-	function Base64Encode(srcData, nSrcLen, nOffset)
-	{
-		if ("undefined" === typeof(nOffset))
-			nOffset = 0;
-
-		var nWritten = 0;
-		var nLen1    = (((nSrcLen / 3) >> 0) * 4);
-		var nLen2    = (nLen1 / 76) >> 0;
-		var nLen3    = 19;
-		var srcInd   = 0;
-		var dstStr   = [];
-
-		var _s = "";
-		for (var i = 0; i <= nLen2; i++)
-		{
-			if (i == nLen2)
-				nLen3 = ((nLen1 % 76) / 4) >> 0;
-
-			for (var j = 0; j < nLen3; j++)
-			{
-				var dwCurr = 0;
-				for (var n = 0; n < 3; n++)
-				{
-					dwCurr |= srcData[srcInd++ + nOffset];
-					dwCurr <<= 8;
-				}
-
-				_s = "";
-				for (var k = 0; k < 4; k++)
-				{
-					var b = (dwCurr >>> 26) & 0xFF;
-					_s += g_arrayBase64[b];
-					dwCurr <<= 6;
-					dwCurr &= 0xFFFFFFFF;
-				}
-				dstStr.push(_s);
-			}
-		}
-		nLen2 = (nSrcLen % 3 != 0) ? (nSrcLen % 3 + 1) : 0;
-		if (nLen2)
-		{
-			var dwCurr = 0;
-			for (var n = 0; n < 3; n++)
-			{
-				if (n < (nSrcLen % 3))
-					dwCurr |= srcData[srcInd++ + nOffset];
-				dwCurr <<= 8;
-			}
-
-			_s = "";
-			for (var k = 0; k < nLen2; k++)
-			{
-				var b = (dwCurr >>> 26) & 0xFF;
-				_s += g_arrayBase64[b];
-				dwCurr <<= 6;
-			}
-
-			nLen3 = (nLen2 != 0) ? 4 - nLen2 : 0;
-			for (var j = 0; j < nLen3; j++)
-			{
-				_s += '=';
-			}
-			dstStr.push(_s);
-		}
-
-		return dstStr.join("");
-	}
-
 	function CMemory(bIsNoInit)
 	{
 		this.Init = function()
@@ -574,11 +499,11 @@
 		}
 		this.GetBase64Memory    = function()
 		{
-			return Base64Encode(this.data, this.pos, 0);
+			return AscCommon.Base64.encode(this.data, 0, this.pos);
 		}
 		this.GetBase64Memory2   = function(nPos, nLen)
 		{
-			return Base64Encode(this.data, nLen, nPos);
+			return AscCommon.Base64.encode(this.data, nPos, nLen);
 		}
 		this.GetData   = function(nPos, nLen)
 		{
@@ -2068,6 +1993,13 @@
 
 				if (oTextFormPr.AutoFit)
 					nFlag |= (1 << 24);
+
+				var sPlaceHolderText = oForm.GetPlaceholderText();
+				if (sPlaceHolderText)
+				{
+					nFlag |= (1 << 25);
+					this.Memory.WriteString(sPlaceHolderText);
+				}
 			}
 			else if (oForm.IsComboBox() || oForm.IsDropDownList())
 			{
@@ -2076,7 +2008,7 @@
 
 				var oFormPr = isComboBox ? oForm.GetComboBoxPr() : oForm.GetDropDownListPr();
 
-				if (!isComboBox)
+				if (isComboBox)
 					nFlag |= (1 << 20);
 
 				var sValue         = oForm.GetSelectedText(true);
@@ -2116,6 +2048,13 @@
 					nFlag |= (1 << 22);
 					this.Memory.WriteString(sValue);
 				}
+
+				var sPlaceHolderText = oForm.GetPlaceholderText();
+				if (sPlaceHolderText)
+				{
+					nFlag |= (1 << 23);
+					this.Memory.WriteString(sPlaceHolderText);
+				}
 			}
 			else if (oForm.IsCheckBox())
 			{
@@ -2135,11 +2074,19 @@
 				else if (0x25C9 === nCheckedSymbol && 0x25CB === nUncheckedSymbol)
 					nType = 0x0002;
 
+				var sCheckedFont = oCheckBoxPr.GetCheckedFont();
+				if (AscCommon.IsAscFontSupport(sCheckedFont, nCheckedSymbol))
+					sCheckedFont = "ASCW3";
+
+				var sUncheckedFont = oCheckBoxPr.GetUncheckedFont();
+				if (AscCommon.IsAscFontSupport(sUncheckedFont, nUncheckedSymbol))
+					sUncheckedFont = "ASCW3";
+
 				this.Memory.WriteLong(nType);
-				this.Memory.WriteLong(oCheckBoxPr.GetCheckedSymbol());
-				this.Memory.WriteString(oCheckBoxPr.GetCheckedFont());
-				this.Memory.WriteLong(oCheckBoxPr.GetUncheckedSymbol());
-				this.Memory.WriteString(oCheckBoxPr.GetUncheckedFont());
+				this.Memory.WriteLong(nCheckedSymbol);
+				this.Memory.WriteString(sCheckedFont);
+				this.Memory.WriteLong(nUncheckedSymbol);
+				this.Memory.WriteString(sUncheckedFont);
 
 				var sGroupName = oCheckBoxPr.GetGroupKey();
 				if (sGroupName)
@@ -3632,7 +3579,6 @@
 	window['AscCommon'].CGrRFonts                = CGrRFonts;
 	window['AscCommon'].CFontSetup               = CFontSetup;
 	window['AscCommon'].CGrState                 = CGrState;
-	window['AscCommon'].Base64Encode             = Base64Encode;
 	window['AscCommon'].CMemory                  = CMemory;
 	window['AscCommon'].CDocumentRenderer        = CDocumentRenderer;
 	window['AscCommon'].MATRIX_ORDER_PREPEND     = MATRIX_ORDER_PREPEND;

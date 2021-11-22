@@ -1672,9 +1672,8 @@
         }
         return { kd1: 1, kd2: 1 };
     };
-    CGraphicObjectBase.prototype.GetAllContentControls = function(arrContentControls)
-    {
-    };
+    CGraphicObjectBase.prototype.GetAllContentControls = function(arrContentControls) {};
+	CGraphicObjectBase.prototype.GetAllDrawingObjects = function(arrDrawingObjects) {};
     CGraphicObjectBase.prototype.CheckContentControlEditingLock = function () {
         if(this.group){
             this.group.CheckContentControlEditingLock();
@@ -2381,6 +2380,20 @@
 	CGraphicObjectBase.prototype.getInnerForm = function() {
 		return null;
 	};
+	CGraphicObjectBase.prototype.isContainedInTopDocument = function() {
+		var oParentContent = this.parent && this.parent.DocumentContent;
+        if(!oParentContent) {
+            return true;
+        }
+        return (oParentContent === oParentContent.GetLogicDocument());
+	};
+	CGraphicObjectBase.prototype.isContainedInMainDoc = function() {
+		var oParentContent = this.parent && this.parent.DocumentContent;
+        if(!oParentContent) {
+            return true;
+        }
+        return (oParentContent.GetTopDocumentContent() === oParentContent.GetLogicDocument());
+	};
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
         var oCopy = this.bounds.copy();
         oCopy.l -= 3;
@@ -2447,6 +2460,10 @@
             }
         }
         return true;
+    };
+    //for bug 52775. remove in the next version
+    CGraphicObjectBase.prototype.applySmartArtTextStyle = function() {
+
     };
 
     CGraphicObjectBase.prototype.convertFromSmartArt = function() {

@@ -1873,7 +1873,6 @@ function CGroupShape()
         }
     };
 
-
     CGroupShape.prototype.getCopyWithSourceFormatting = function(oIdMap){
         var oPr = new AscFormat.CCopyObjectProperties();
         oPr.idMap = oIdMap;
@@ -1955,6 +1954,13 @@ function CGroupShape()
         fCallback(this);
         for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
             this.spTree[nSp].handleObject(fCallback);
+        }
+    };
+
+    //for bug 52775. remove in the next version
+    CGroupShape.prototype.applySmartArtTextStyle = function() {
+        for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
+            this.spTree[nSp].applySmartArtTextStyle();
         }
     };
 

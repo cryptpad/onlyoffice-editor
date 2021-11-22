@@ -716,6 +716,9 @@ function DrawingObjectsController(drawingObjects)
     this.chartForProps = null;
 
     this.handleEventMode = HANDLE_EVENT_MODE_HANDLE;
+
+
+    this.lastCursorInfo = null;
 }
 
 function CanStartEditText(oController)
@@ -1722,19 +1725,55 @@ DrawingObjectsController.prototype =
         }
     },
 
+    checkSendCursorInfo: function()
+    {
+        var oTargetInfo = this.getDocumentPositionForCollaborative();
+        var bSend = false;
+        if(oTargetInfo)
+        {
+            if(!this.lastCursorInfo)
+            {
+                bSend = true;
+            }
+            else
+            {
+                if(this.lastCursorInfo.Class !== oTargetInfo.Class ||
+                    this.lastCursorInfo.Position !== oTargetInfo.Position)
+                {
+                    bSend = true;
+                }
+            }
+        }
+        else
+        {
+            if(this.lastCursorInfo)
+            {
+                bSend = true;
+            }
+        }
+        if(bSend)
+        {
+            this.lastCursorInfo = oTargetInfo;
+            Asc.editor.wb.updateTargetForCollaboration();
+        }
+    },
+
     recalculateCurPos: function(bUpdateX, bUpdateY)
 	{
 		var oTargetDocContent = this.getTargetDocContent(undefined, true);
-		if (oTargetDocContent) {
+		if (oTargetDocContent)
+        {
 
             var oRet = oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
-            if(Asc.editor && Asc.editor.wb) {
-                Asc.editor.wb.updateTargetForCollaboration();
+            if(Asc.editor && Asc.editor.wb)
+            {
+                this.checkSendCursorInfo();
             }
             return oRet;
         }
-        if(Asc.editor && Asc.editor.wb) {
-            Asc.editor.wb.updateTargetForCollaboration();
+        if(Asc.editor && Asc.editor.wb)
+        {
+            this.checkSendCursorInfo();
         }
         return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
 	},
@@ -1891,6 +1930,13 @@ DrawingObjectsController.prototype =
                 ty = invert_transform_text.TransformPointY(x, y);
                 if(!this.isSlideShow() && (this.document || (this.drawingObjects.cSld && !(this.noNeedUpdateCursorType === true))))
                 {
+                	if (this.document && this.document.IsDocumentEditor() && object instanceof CShape && object.isForm())
+					{
+						var oForm = object.getInnerForm();
+						if (oForm)
+						 	oForm.DrawContentControlsTrack(true, tx, ty, 0, false);
+					}
+
                     var nPageIndex = pageIndex;
                     if(this.drawingObjects.cSld && !( this.noNeedUpdateCursorType === true ) && AscFormat.isRealNumber(this.drawingObjects.num))
                     {
@@ -3227,7 +3273,13 @@ DrawingObjectsController.prototype =
 
     deleteSelectedObjects: function(){
         if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection)){
-            return;
+            return true;
+        }
+        var aSelectedObjects = this.selectedObjects;
+        for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
+            if(!aSelectedObjects[nIdx].canEdit()) {
+                return false;
+            }
         }
         var oThis = this;
         this.checkSelectedObjectsAndCallback(function(){
@@ -3243,6 +3295,7 @@ DrawingObjectsController.prototype =
             oThis.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
             oThis.updateSelectionState();
         }, [], false, AscDFH.historydescription_Spreadsheet_Remove);
+        return true;
     },
 
 
@@ -6733,8 +6786,7 @@ DrawingObjectsController.prototype =
             bRet = true;
             if(this.document)
             {
-                this.document.DrawingDocument.OnRecalculatePage( nPageNum1, this.document.Pages[nPageNum1] );
-                this.document.DrawingDocument.OnEndRecalculate( false, true );
+                this.document.DrawingDocument.OnRepaintPage( nPageNum1);
             }
             else if(this.drawingObjects.cSld)
             {
@@ -6755,8 +6807,7 @@ DrawingObjectsController.prototype =
             bRet = true;
             if(this.document)
             {
-                this.document.DrawingDocument.OnRecalculatePage( nPageNum2, this.document.Pages[nPageNum2] );
-                this.document.DrawingDocument.OnEndRecalculate( false, true );
+                this.document.DrawingDocument.OnRepaintPage(nPageNum2);
             }
             else if(this.drawingObjects.cSld)
             {
@@ -9703,7 +9754,7 @@ function drawingsUpdateForeignCursor(oDrawingsController, oDrawingDocument, Curs
     }
 
     var Changes = new AscCommon.CCollaborativeChanges();
-    var Reader = Changes.GetStream(CursorInfo, 0, CursorInfo.length);
+    var Reader = Changes.GetStream(CursorInfo);
 
     var RunId = Reader.GetString2();
     var InRunPos = Reader.GetLong();

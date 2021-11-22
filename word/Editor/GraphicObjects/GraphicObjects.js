@@ -2481,12 +2481,10 @@ CGraphicObjects.prototype =
         var page;
         if(content.IsHdrFtr())
         {
-            page = this.getHdrFtrObjectsByPageIndex(pageIndex);
+            //we draw objects from header/footer in drawBehindDocHdrFtr
+            return;
         }
-        else
-        {
-            page = this.graphicPages[pageIndex];
-        }
+        page = this.graphicPages[pageIndex];
         page && page.drawBehindObjectsByContent(graphics, content)
     },
 
@@ -2495,12 +2493,10 @@ CGraphicObjects.prototype =
         var page;
         if(content.IsHdrFtr())
         {
-            page = this.getHdrFtrObjectsByPageIndex(pageIndex);
+            //we draw objects from header/footer in drawBeforeDocHdrFtr
+            return;
         }
-        else
-        {
-            page = this.graphicPages[pageIndex];
-        }
+        page = this.graphicPages[pageIndex];
         page && page.drawBeforeObjectsByContent(graphics, content)
     },
 

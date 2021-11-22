@@ -586,7 +586,7 @@
 		function IsQuoteLine(oParagraph)
 		{
 			var Styles         = private_GetLogicDocument().Get_Styles();
-			var sParaStyleId   = oParagraph.Paragraph.Get_CompiledPr2().ParaPr.Get_PStyle();
+			var sParaStyleId   = oParagraph.Paragraph.Get_CompiledPr2().ParaPr.GetPStyle();
 			var sQuoteStyleId1 = Styles.GetStyleIdByName('Quote');
 			var sQuoteStyleId2 = Styles.GetStyleIdByName('Intense Quote');
 
@@ -13023,6 +13023,7 @@
 	Api.prototype["MailMerge"]                       = Api.prototype.MailMerge;
 	Api.prototype["ReplaceTextSmart"]				 = Api.prototype.ReplaceTextSmart;
 	Api.prototype["CoAuthoringChatSendMessage"]		 = Api.prototype.CoAuthoringChatSendMessage;
+	Api.prototype["ConvertDocument"]		         = Api.prototype.ConvertDocument;
 	
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 

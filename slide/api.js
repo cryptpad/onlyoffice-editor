@@ -1364,7 +1364,7 @@ background-repeat: no-repeat;\
                                 <div id=\"id_main_view\" class=\"block_elem\" style=\"overflow:hidden\">\
                                     <canvas id=\"id_viewer\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:6\"></canvas>\
                                     <canvas id=\"id_viewer_overlay\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
-                                    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;display:none;z-index:9;\"></canvas>\
+                                    <div id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;display:none;z-index:9;\"></div>\
                                 </div>\
 							    <div id=\"id_panel_right\" class=\"block_elem\" style=\"margin-right:1px;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:0;\">\
 							        <div id=\"id_buttonRulers\" class=\"block_elem buttonRuler\"></div>\
@@ -2141,6 +2141,9 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_DownloadAs = function(options)
 	{
+		if (this.isLongAction()) {
+			return;
+		}
 		this.downloadAs(c_oAscAsyncAction.DownloadAs, options);
 	};
 	asc_docs_api.prototype.Resize                       = function()
@@ -4877,6 +4880,11 @@ background-repeat: no-repeat;\
 			return;
 		}
 		oPresentation.ResolveAllComments(isMine, isCurrent, arrIds);
+	};
+
+	asc_docs_api.prototype.asc_GetCommentLogicPosition = function()
+	{
+		return -1;
 	};
 
 	asc_docs_api.prototype.asc_onDeleteComment = function(Id, oCommentData)
@@ -8163,6 +8171,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_removeComment']                   = asc_docs_api.prototype.asc_removeComment;
 	asc_docs_api.prototype['asc_RemoveAllComments']               = asc_docs_api.prototype.asc_RemoveAllComments;
 	asc_docs_api.prototype['asc_ResolveAllComments']              = asc_docs_api.prototype.asc_ResolveAllComments;
+	asc_docs_api.prototype['asc_GetCommentLogicPosition']         = asc_docs_api.prototype.asc_GetCommentLogicPosition;
 	asc_docs_api.prototype['asc_changeComment']                   = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                   = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                     = asc_docs_api.prototype.asc_showComment;
