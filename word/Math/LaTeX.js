@@ -37,7 +37,7 @@ function CLaTeXParser(props, str) {
 	this.indexOfAtom = 0;
 	this.arrAtomsOfFormula = [];
 	this.Pr = { ctrPrp: new CTextPr() };
-	this.Paragraph = CMathContent.Paragraph;
+	this.Paragraph = props.Paragraph;
 	this.ParaMath = props;
 	this.Root = props.Root;
 	this.EqArray;
@@ -596,10 +596,7 @@ CLaTeXParser.prototype.Parse = function (str) {
 		}
 	}
 	this.arrAtomsOfFormula = this.arrAtomsOfFormula.filter(Boolean);
-	console.log(
-		"🚀 ~ file: Math.js ~ line 4053 ~ this.arrAtomsOfFormula",
-		this.arrAtomsOfFormula
-	);
+	console.log(this.arrAtomsOfFormula);
 };
 //Service
 CLaTeXParser.prototype.GetNextAtom = function () {
@@ -789,9 +786,6 @@ CLaTeXParser.prototype.CheckIsDegreeOrIndex = function (index) {
 //Fraction
 CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom, type) {
 	var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
-	console.log(isInlineFraction)
-
-
 	var typeOfFraction = null;
 
 	if (isInlineFraction) {
@@ -1684,27 +1678,173 @@ CLaTeXParser.prototype.CheckIsMatrix = function () {
 		this.CheckElementSequence(["\\begin", "{", "array", "}"], true) 
 	);
 };
+
+CLaTeXParser.prototype.GetMathCal = new Map([
+	['A', 0x0001D49C],
+	['C', 0x0001D49E],
+	['D', 0x0001D49F],
+	['G', 0x0001D4A2],
+	['J', 0x0001D4A5],
+	['K', 0x0001D4A6],
+	['N', 0x0001D4A9],
+	['O', 0x0001D4AA],
+	['P', 0x0001D4AB],
+	['Q', 0x0001D4AC],
+	['S', 0x0001D4AE],
+	['T', 0x0001D4AF],
+	['U', 0x0001D4B0],
+	['V', 0x0001D4B1],
+	['W', 0x0001D4B2],
+	['X', 0x0001D4B3],
+	['Y', 0x0001D4B4],
+	['Z', 0x0001D4B5],
+	['a', 0x0001D4B6],
+	['b', 0x0001D4B7],
+	['c', 0x0001D4B8],
+	['d', 0x0001D4B9],
+	['f', 0x0001D4BB],
+	['h', 0x0001D4BD],
+	['i', 0x0001D4BE],
+	['j', 0x0001D4BF],
+	['k', 0x0001D4C0],
+	['l', 0x0001D4C1],
+	['m', 0x0001D4C2],
+	['n', 0x0001D4C3],
+	['p', 0x0001D4C5],
+	['q', 0x0001D4C6],
+	['r', 0x0001D4C7],
+	['s', 0x0001D4C8],
+	['t', 0x0001D4C9],
+	['u', 0x0001D4CA],
+	['v', 0x0001D4CB],
+	['w', 0x0001D4CC],
+	['x', 0x0001D4CD],
+	['y', 0x0001D4CE],
+	['z', 0x0001D4CF]
+]);
+CLaTeXParser.prototype.GetMathBb = new Map([
+	[0, 0x0001D7D8],
+	[1, 0x0001D7D9],
+	[2, 0x0001D7DA],
+	[3, 0x0001D7DB],
+	[4, 0x0001D7DC],
+	[5, 0x0001D7DD],
+	[6, 0x0001D7DE],
+	[7, 0x0001D7DF],
+	[8, 0x0001D7E0],
+	[9, 0x0001D7E1],
+	['A', 0x0001D538],
+	['B', 0x0001D539],
+	['D', 0x0001D53B],
+	['E', 0x0001D53C],
+	['F', 0x0001D53D],
+	['G', 0x0001D53E],
+	['I', 0x0001D540],
+	['J', 0x0001D541],
+	['K', 0x0001D542],
+	['L', 0x0001D543],
+	['M', 0x0001D544],
+	['O', 0x0001D546],
+	['S', 0x0001D54A],
+	['T', 0x0001D54B],
+	['U', 0x0001D54C],
+	['V', 0x0001D54D],
+	['W', 0x0001D54E],
+	['X', 0x0001D54F],
+	['Y', 0x0001D550],
+	['a', 0x0001D552],
+	['b', 0x0001D553],
+	['c', 0x0001D554],
+	['d', 0x0001D555],
+	['e', 0x0001D556],
+	['f', 0x0001D557],
+	['g', 0x0001D558],
+	['h', 0x0001D559],
+	['i', 0x0001D55A],
+	['j', 0x0001D55B],
+	['k', 0x0001D55C],
+	['l', 0x0001D55D],
+	['m', 0x0001D55E],
+	['n', 0x0001D55F],
+	['o', 0x0001D560],
+	['p', 0x0001D561],
+	['q', 0x0001D562],
+	['r', 0x0001D563],
+	['s', 0x0001D564],
+	['t', 0x0001D565],
+	['u', 0x0001D566],
+	['v', 0x0001D567],
+	['w', 0x0001D568],
+	['x', 0x0001D569],
+	['y', 0x0001D56A],
+	['z', 0x0001D56B]
+]);
+CLaTeXParser.prototype.GetMathFrac = new Map([
+	['A', 0x0001D504],
+	['B', 0x0001D505],
+	['D', 0x0001D507],
+	['E', 0x0001D508],
+	['F', 0x0001D509],
+	['G', 0x0001D50A],
+	['J', 0x0001D50D],
+	['K', 0x0001D50E],
+	['L', 0x0001D50F],
+	['M', 0x0001D510],
+	['N', 0x0001D511],
+	['O', 0x0001D512],
+	['P', 0x0001D513],
+	['Q', 0x0001D514],
+	['S', 0x0001D516],
+	['T', 0x0001D517],
+	['U', 0x0001D518],
+	['V', 0x0001D519],
+	['W', 0x0001D51A],
+	['X', 0x0001D51B],
+	['Y', 0x0001D51C],
+	['a', 0x0001D51E],
+	['b', 0x0001D51F],
+	['c', 0x0001D520],
+	['d', 0x0001D521],
+	['e', 0x0001D522],
+	['f', 0x0001D523],
+	['g', 0x0001D524],
+	['h', 0x0001D525],
+	['i', 0x0001D526],
+	['j', 0x0001D527],
+	['k', 0x0001D528],
+	['l', 0x0001D529],
+	['m', 0x0001D52A],
+	['n', 0x0001D52B],
+	['o', 0x0001D52C],
+	['p', 0x0001D52D],
+	['q', 0x0001D52E],
+	['r', 0x0001D52F],
+	['s', 0x0001D530],
+	['t', 0x0001D531],
+	['u', 0x0001D532],
+	['v', 0x0001D533],
+	['w', 0x0001D534],
+	['x', 0x0001D535],
+	['y', 0x0001D536],
+	['z', 0x0001D537]
+]);
 //Text
 CLaTeXParser.prototype.AddText = function (strFAtom, FormArgument) {
 	this.AddSymbol(strFAtom, FormArgument);
 };
-CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument) {
+CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type) {
 	var strCode = this.arrLaTeXSymbols.get(strFAtom);
-
 	if (strCode) {
 		FormArgument.Add_Text(String.fromCharCode(strCode), this.Paragraph);
 	}
 
-	else {
-		if (strFAtom == ",")
-		{
-			FormArgument.Add_Text(", ", this.Paragraph);
+	else
+	{
+		if (strFAtom) {
+			this.Pr['scr'] = type;
+			FormArgument.Add_Symbol(strFAtom.charCodeAt(0), undefined, this.Pr);
 		}
-
-		else
-		{
-			FormArgument.Add_Text(strFAtom, this.Paragraph);
-		}
+		
 	}
 };
 CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
@@ -1735,14 +1875,30 @@ CLaTeXParser.prototype.AddNewLine = function() {
 	this.EqArray.Add_Row(this.intEqLines);
 	CLaTeXLexer(this, this.EqArray.getElementMathContent(this.intEqLines - 1));
 };
+CLaTeXParser.prototype.AddMathFrac = function(FormArgument) {
+	var strFAtom = this.GetNextAtom();
+	do {
+		strFAtom = this.GetNextAtom();
+		if (strFAtom != '{' && strFAtom != '}') {
+
+			if (strFAtom.length == 1) {
+				this.AddSymbol(strFAtom, FormArgument, 2);
+			} else if (strFAtom.length > 1) {
+				for (var i = 0; i < strFAtom.length; i++) {
+					this.AddSymbol(strFAtom[i], FormArgument, 2);
+				}
+			}
+		}
+	} while (strFAtom != '}');
+};
+
 /**
  * @param Parser
  * @param FormArgument Функция в которую будет записываться контент.
  * @param exitIfSee Число элементов которые может обработать функция, или символ при нахождении которых функция завершит работу.
  */
 function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
-	//todo add 2/3 frac
-	//if after bracets block |^3_2 then block is script
+	//\left.\frac{x^3}{3}\right|_0^1
 	//f(n) = n^5 + 4n^2 + 2 |_{n=17}
 	var intFAtoms = 0;
 	var strFAtom = 0;
@@ -1783,6 +1939,11 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		else if (strFAtom == "\\pmod") {
 			Parser.AddPMod(FormArgument);
 			intFAtoms++;
+		}
+
+		else if (strFAtom == "\\mathfrak") {
+			Parser.AddMathFrac(FormArgument);
+			intFAtoms++;
 		} 
 		
 		else if (Parser.CheckIsLargeOperator.get(strFAtom)) {
@@ -1809,6 +1970,11 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		} 
 	
+		else if (Parser.CheckSupSubForLexer()) {
+			Parser.AddScriptForText(FormArgument, strFAtom);
+			intFAtoms++;
+		}
+
 		else if (Parser.CheckBraketsLatex(strFAtom)) {
 			Parser.AddBracets(FormArgument, strFAtom);
 			if (exitIfSee == Parser.CheckFutureAtom(-1)) {
@@ -1817,11 +1983,6 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckSupSubForLexer()) {
-			Parser.AddScriptForText(FormArgument, strFAtom);
-			intFAtoms++;
-		}
-		
 		else if (Parser.CheckIsText(strFAtom)) {
 			Parser.AddText(strFAtom, FormArgument);
 			intFAtoms++;
@@ -1840,8 +2001,10 @@ function ToLaTex(Root) {
 	this.objString = {
 		arr: []
 	}
+	this.scr;
 };
 //Service
+//Convert data while convert?
 ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 	if (inputObj) {
 		if (inputObj.Content) {
@@ -1888,6 +2051,11 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 					else if(CName == 'CEqArray') {
 						data = {
 							row: content.Pr.row
+						}
+					}
+					else if(CName == 'ParaRun' && content.Content.length > 0) {
+						data = {
+							scr: content.MathPrp.scr
 						}
 					}
 					else if(CName == 'CDelimiter') {
@@ -1948,16 +2116,16 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 	for (var index = 0; index < propert.length; index++) {
 
 		var name = propert[index];
-		var nameForCheck = name.split('_')[1]
+		var nameForCheck = name.split('_')[1];
 
 		if (nameForCheck == 'CEqArray') {
-			this.AddCEqArray(name, obj)
+			this.AddCEqArray(name, obj);
 		}
 		else if (nameForCheck == 'CFraction') {
-			this.AddFraction(name, obj)
+			this.AddFraction(name, obj);
 		}
 		else if (nameForCheck == 'CAccent') {
-			this.AddAccent(name, obj)
+			this.AddAccent(name, obj);
 		}
 		else if (nameForCheck == 'CMathFunc') {
 			this.AddFunction(name, obj);
@@ -1972,7 +2140,7 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 			this.AddDegree(name, obj);
 		}
 		else if (nameForCheck == 'CDelimiter') {
-			this.AddBracets(name, obj)
+			this.AddBracets(name, obj);
 		}
 		else if (nameForCheck == 'CDegreeSubSup') {
 			this.AddDegreeSubSup(name, obj);
@@ -1984,13 +2152,13 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 			this.AddLimit(name, obj);
 		}
 		else if (nameForCheck == 'CMathMatrix') {
-			this.AddMatrix(name, obj)
+			this.AddMatrix(name, obj);
 		}
 		else if (nameForCheck == 'ParaRun') {
-			this.Convert(obj[name])
+			this.CheckParaRun(name, obj);
 		}
 		else if (nameForCheck == 'CMathContent') {
-			this.Convert(obj[name])
+			this.Convert(obj[name]);
 		}
 		else if (nameForCheck == 'CMathText') {
 			this.AddText(name, obj);
@@ -2006,6 +2174,7 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 };
 //Convert frac
 //\lim\limits_{a}^{b}8
+//check all variable names
 ToLaTex.prototype.AddCEqArray = function(name, obj) {
 	var row = obj[name].data.row;
 
@@ -2266,7 +2435,6 @@ ToLaTex.prototype.GetCodeAccent = new Map([
 ]);
 ToLaTex.prototype.AddText = function(name, obj) {
 	var text = obj[name].CMathText
-
 	if (text.charCodeAt() == 0x03b8) {
 		text = '\\theta'
 	}
@@ -2274,6 +2442,25 @@ ToLaTex.prototype.AddText = function(name, obj) {
 		text = ' '
 	}
 	this.objString.arr.push(text);
+};
+ToLaTex.prototype.CheckParaRun = function(name, obj) {
+	
+	if (this.scr == undefined && obj[name].data.scr != undefined) {
+		this.scr = obj[name].data.scr;
+
+		if (this.scr == 2) {
+			this.objString.arr.push('\\mathfrak{');
+		}
+
+	}
+
+	else if (this.scr != obj[name].data.scr) {
+		this.scr = obj[name].data.scr; 
+		this.objString.arr.push('}');
+	}
+	
+
+	this.Convert(obj[name])
 };
 
 //--------------------------------------------------------export----------------------------------------------------

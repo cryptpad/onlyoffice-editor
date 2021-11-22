@@ -3236,15 +3236,19 @@ ParaMath.prototype.Handle_AddNewLine = function()
 
     var NeedRecalculate = false;
 
-    if(MATH_EQ_ARRAY === CurrContent.ParentElement.kind)
+    if(MATH_EQ_ARRAY === CurrContent.ParentElement.kind && this.Cursor_Is_End())
     {
-        var oEqArray = CurrContent.Parent;
-
+        var oEqArray = CurrContent.ParentElement;
         oEqArray.Add_Row(oEqArray.CurPos + 1);
         oEqArray.CurPos++;
 
         NeedRecalculate = true;
     }
+    //todo duplication EQ_ARRAY while creating new line 
+    // else if(MATH_EQ_ARRAY === CurrContent.ParentElement.kind)
+    // {
+
+    // }
     else if(MATH_MATRIX !== CurrContent.ParentElement.kind)
     {
         var ctrPrp = CurrContent.Parent.CtrPrp.Copy();
@@ -3278,8 +3282,7 @@ ParaMath.prototype.Handle_AddNewLine = function()
 
         NeedRecalculate = true;
     }
-
-
+    //console.log(CurrContent.ParentElement)
     return NeedRecalculate;
 };
 
