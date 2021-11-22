@@ -5664,6 +5664,9 @@ Paragraph.prototype.MoveCursorRightWithSelectionFromStart = function(Word)
 };
 Paragraph.prototype.MoveCursorToXY = function(X, Y, bLine, bDontChangeRealPos, CurPage)
 {
+	if (!this.IsRecalculated())
+		return;
+
 	var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, bLine, false);
 
 	this.Set_ParaContentPos(SearchPosXY.Pos, false, SearchPosXY.Line, SearchPosXY.Range);

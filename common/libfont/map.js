@@ -692,13 +692,18 @@ CFontSelect.prototype =
 
 		var recordLen = 0;
 		var currentPos = fs.cur;
+
+		var bIsUseVersion = (bIsDictionary !== false) ? true : false;
+		if (!bIsUseVersion)
+		    _version = 0;
+
 		if (_version >= 2)
 		    recordLen = fs.GetLong();
 
         // name
         var _len = fs.GetLong();
 
-        if (bIsDictionary === false)
+        if (!bIsUseVersion)
             this.m_wsFontName = fs.GetString1(_len);
         else
         {
@@ -725,7 +730,7 @@ CFontSelect.prototype =
             }
 		}
 
-        if (bIsDictionary !== false)
+        if (bIsUseVersion)
         {
 			switch (_version)
 			{
@@ -766,7 +771,7 @@ CFontSelect.prototype =
         this.m_bIsFixed = (1 == fs.GetLong());
 
         var _panose_len = 10;
-        if (bIsDictionary !== false)
+        if (bIsUseVersion)
             _panose_len = fs.GetLong(); // 10
 
         for (var i = 0; i < _panose_len; i++)
@@ -796,7 +801,12 @@ CFontSelect.prototype =
         if (_version >= 2)
         {
             this.m_usType = fs.GetUShort();
+        }
 
+        // if new versions - load addition data in this place
+
+        if (_version >= 2)
+        {
             fs.Seek2(currentPos + recordLen);
         }
     },
