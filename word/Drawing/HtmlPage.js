@@ -1539,6 +1539,8 @@ function CEditorPage(api)
 				oWordControl.MouseHandObject.ScrollX = oWordControl.m_dScrollX;
 				oWordControl.MouseHandObject.ScrollY = oWordControl.m_dScrollY;
 				oWordControl.m_oDrawingDocument.SetCursorType("grabbing");
+
+				oWordControl.m_oLogicDocument && oWordControl.m_oLogicDocument.EndFormEditing();
 				return;
 			}
 		}
