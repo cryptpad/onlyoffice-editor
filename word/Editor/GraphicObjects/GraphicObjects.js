@@ -802,11 +802,16 @@ CGraphicObjects.prototype =
             }
         }
         this.document.Recalculate();
-        if(oApplyProps.textArtProperties && typeof oApplyProps.textArtProperties.asc_getForm() === "string")
+        if(oApplyProps &&
+            (oApplyProps.ChartProperties ||
+            oApplyProps.textArtProperties && typeof oApplyProps.textArtProperties.asc_getForm() === "string" ||
+            AscFormat.isRealNumber(oApplyProps.verticalTextAlign) ||
+            AscFormat.isRealNumber(oApplyProps.vert))
+        )
         {
             this.document.Document_UpdateSelectionState();
+            this.document.RecalculateCurPos();
         }
-        oApplyProps && (AscFormat.isRealNumber(oApplyProps.verticalTextAlign) || AscFormat.isRealNumber(oApplyProps.vert)) && this.document.Document_UpdateSelectionState();
     },
 
     applyDrawingProps: DrawingObjectsController.prototype.applyDrawingProps,

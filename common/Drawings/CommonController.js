@@ -4570,6 +4570,9 @@ DrawingObjectsController.prototype =
         }
         var oApi = this.getEditorApi();
         oChartSpace.resetSelection(true);
+        if(this.selection && this.selection.chartSelection === oChartSpace) {
+            this.selection.chartSelection = null;
+        }
         var oCurProps = this.getPropsFromChart(oChartSpace);
 
         //Check data labels. Todo: check it
@@ -7531,6 +7534,10 @@ DrawingObjectsController.prototype =
                             bNeedRecalculateCurPos = true;
                         }
                     }
+                    else
+                    {
+                        bNeedRecalculateCurPos = true;
+                    }
                 }
             }
             else if(oDrawingSelectionState.wrapObject)
@@ -7576,6 +7583,7 @@ DrawingObjectsController.prototype =
 
         if(this.document && bNeedRecalculateCurPos){
             this.document.NeedUpdateTarget = true;
+            this.document.private_UpdateTargetForCollaboration();
             this.document.RecalculateCurPos();
         }
         return this.selectedObjects.length > 0;
@@ -8996,7 +9004,6 @@ DrawingObjectsController.prototype =
                 aAdditionalObjects = this.getConnectorsForCheck2();
             }
             var bNoSendProperties = AscCommon.isRealObject(props.SlicerProperties);
-            this.checkSelectedObjectsAndCallback(this.setGraphicObjectPropsCallBack, [props], bNoSendProperties, AscDFH.historydescription_Spreadsheet_SetGraphicObjectsProps, aAdditionalObjects);
             var oApplyProps = null;
             if(props)
             {
@@ -9009,10 +9016,13 @@ DrawingObjectsController.prototype =
                     oApplyProps = props;
                 }
             }
+            var bUpdateSelection = false;
             if(oApplyProps &&  (oApplyProps.textArtProperties && typeof oApplyProps.textArtProperties.asc_getForm() === "string"  || oApplyProps.ChartProperties))
             {
-                this.updateSelectionState();
+                bUpdateSelection = true;
             }
+            this.checkSelectedObjectsAndCallback(this.setGraphicObjectPropsCallBack, [props, bUpdateSelection], bNoSendProperties, AscDFH.historydescription_Spreadsheet_SetGraphicObjectsProps, aAdditionalObjects);
+
         }
         else
         {
@@ -9110,7 +9120,7 @@ DrawingObjectsController.prototype =
         return Asc.editor.checkObjectsLock(aId, callback2);
     },
 
-    setGraphicObjectPropsCallBack: function(props)
+    setGraphicObjectPropsCallBack: function(props, bUpdateSelection)
     {
         var apply_props;
         if(AscFormat.isRealNumber(props.Width) && AscFormat.isRealNumber(props.Height))
@@ -9122,6 +9132,11 @@ DrawingObjectsController.prototype =
             apply_props = props.ShapeProperties ? props.ShapeProperties : props;
         }
         var objects_by_types = this.applyDrawingProps(apply_props);
+        if(bUpdateSelection)
+        {
+            this.updateSelectionState();
+            this.recalculateCurPos(true, true);
+        }
     },
 
     paraApplyCallback: function(Props)
