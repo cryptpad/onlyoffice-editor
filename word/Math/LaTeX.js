@@ -42,12 +42,14 @@ function CLaTeXParser(props, str) {
 	this.Root = props.Root;
 	this.EqArray;
 	this.intEqLines = 1;
+	this.isError = false;
 };
 CLaTeXParser.prototype.prepare = function() {
 	var t0 = performance.now();
 
 	this.Pr.row = this.intEqLines;
 	var EqArray = new CEqArray(this.Pr);
+
 	this.Root.Add_Element(EqArray);
 	this.EqArray = EqArray;
 
@@ -661,19 +663,12 @@ CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotTh
 	
 	if (!index) {
 		var intIndexData = now ? this.indexOfAtom - 1 : this.indexOfAtom;
-	} else {
+	}
+	else {
 		var intIndexData = index;
 	}
 	
 	do {
-		
-		if (arrOfData[intIndexData] == strPattern[intPatternIndex]) {
-			intPatternIndex++;
-			intIndexData++;
-		} else {
-			return false
-		}
-		
 		if (this.GetBracetCodeLexer.get(arrOfData[intIndexData]))
 		{
 			var intBrac = 1;
@@ -706,6 +701,14 @@ CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotTh
 			intPatternIndex++;
 			intIndexData++;
 		} 
+
+		else if (arrOfData[intIndexData] == strPattern[intPatternIndex]) {
+			intPatternIndex++;
+			intIndexData++;
+		}
+		else {
+			return false
+		}
 
 	} while (intPatternIndex != strPattern.length);
 
@@ -783,8 +786,24 @@ CLaTeXParser.prototype.CheckIsDegreeOrIndex = function (index) {
 		this.CheckSyntaxSequence(["^", 1], "_", null, index)
 	)
 };
-CLaTeXParser.prototype.GetError = function () {
+CLaTeXParser.prototype.GetError = function (rule) {
+	var str = '';
+	if (this.indexOfAtom - 1 > 0) {
+		str += this.arrAtomsOfFormula[this.indexOfAtom - 1];
+	} 
+	
+	str += this.arrAtomsOfFormula[this.indexOfAtom];
+	
+	if (this.indexOfAtom + 1 < this.arrAtomsOfFormula.length) {
+		str += this.arrAtomsOfFormula[this.indexOfAtom + 1];
+	}
+	if (this.indexOfAtom + 2 < this.arrAtomsOfFormula.length) {
+		str += this.arrAtomsOfFormula[this.indexOfAtom + 2];
+	}
 
+	console.log(rule, '\nПримерное место ошибки', str);
+	this.Root.Remove_Content(0, this.Root.Content.length);
+	this.isError = true;
 }
 //Fraction
 CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom, type) {
@@ -868,6 +887,22 @@ CLaTeXParser.prototype.CheckIsFractionLexer = function(strFAtom) {
 		this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)
 	)
 };
+CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
+	if (this.GetTypeOfFrac.get(strFAtom) != null) {
+
+		if (
+			this.CheckSyntaxSequence(["{", "{"]) ||
+			this.CheckSyntaxSequence(["^", 1, "/", "_", 1])
+		) {
+			return true;
+		} 
+		
+		else {
+			this.GetError('Проблема с делением (frac, sfrac, dfrac...)')
+			return false;
+		}
+	}
+}
 //Limit
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	var typeOfLimit = this.GetTypeOfLimit.get(strFAtom);
@@ -1775,14 +1810,21 @@ CLaTeXParser.prototype.AddNewLine = function() {
  * @param exitIfSee Число элементов которые может обработать функция, или символ при нахождении которых функция завершит работу.
  */
 function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
+	if (Parser.isError) {
+		return
+	}
 	//\left.\frac{x^3}{3}\right|_0^1
 	var intFAtoms = 0;
 	var strFAtom = 0;
 	do {
+		if (Parser.isError) {
+			return
+		}
+
 		strFAtom = Parser.GetNextAtom();
 
 		//check
-		if (Parser.ExitFromLexer(strFAtom, exitIfSee)) {
+		if (Parser.ExitFromLexer(strFAtom, exitIfSee) ) {
 			return
 		};
 
@@ -1792,7 +1834,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckIsFractionLexer(strFAtom)) {
+		else if (Parser.CheckSyntaxOfFraction(strFAtom) && !Parser.isError) {
 			Parser.AddFraction(FormArgument, strFAtom);
 			intFAtoms++;
 		}
@@ -1802,56 +1844,56 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 
-		else if (strFAtom == "\\sqrt") {
+		else if (strFAtom == "\\sqrt" && !Parser.isError) {
 			Parser.AddRadical(FormArgument);
 			intFAtoms++;
 		}
 
-		else if (strFAtom == "\\bmod") {
+		else if (strFAtom == "\\bmod" && !Parser.isError) {
 			FormArgument.Add_Box(Parser.Pr, "mod")
 			intFAtoms++;
 		}
 
-		else if (strFAtom == "\\pmod") {
+		else if (strFAtom == "\\pmod" && !Parser.isError) {
 			Parser.AddPMod(FormArgument);
 			intFAtoms++;
 		}
 
-		else if (typeof Parser.CheckMathText.get(strFAtom) == 'number') {
+		else if (typeof Parser.CheckMathText.get(strFAtom) == 'number' && !Parser.isError) {
 			Parser.AddMathText(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckIsLargeOperator.get(strFAtom)) {
+		else if (Parser.CheckIsLargeOperator.get(strFAtom) && !Parser.isError) {
 			Parser.AddLargeOperator(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
-		else if (Parser.GetCountOfIntegral.get(strFAtom)) {
+		else if (Parser.GetCountOfIntegral.get(strFAtom) && !Parser.isError) {
 			Parser.AddIntegral(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckIsAccent(strFAtom)) {
+		else if (Parser.CheckIsAccent(strFAtom) && !Parser.isError) {
 			Parser.AddAccent(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
-		else if (strFAtom == '\\') {
+		else if (strFAtom == '\\' && !Parser.isError) {
 			Parser.AddNewLine();
 		}
 
-		else if (Parser.CheckIsMatrix()) {
+		else if (Parser.CheckIsMatrix() && !Parser.isError) {
 			Parser.AddMatrix(FormArgument);
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckSupSubForLexer()) {
+		else if (Parser.CheckSupSubForLexer() && !Parser.isError) {
 			Parser.AddScriptForText(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckBraketsLatex(strFAtom)) {
+		else if (Parser.CheckBraketsLatex(strFAtom) && !Parser.isError) {
 			Parser.AddBracets(FormArgument, strFAtom);
 			if (exitIfSee == Parser.CheckFutureAtom(-1)) {
 				return
@@ -1859,7 +1901,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckIsText(strFAtom)) {
+		else if (Parser.CheckIsText(strFAtom) && !Parser.isError) {
 			Parser.AddText(strFAtom, FormArgument);
 			intFAtoms++;
 		}

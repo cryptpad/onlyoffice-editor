@@ -3513,7 +3513,7 @@ ParaMath.prototype.ConvertToLaTeX = function()
 {
     var Conveter = new ToLaTex(this.Root);
 
-	console.log(this.Root)
+	//console.log(this.Root)
 	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
 
 	console.log(Conveter.objTempData)
