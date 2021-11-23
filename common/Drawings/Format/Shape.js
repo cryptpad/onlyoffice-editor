@@ -4655,10 +4655,12 @@ CShape.prototype.updateCursorType = function (x, y, e)
     }
 };
 
-
-
 CShape.prototype.selectionSetStart = function (e, x, y, slideIndex)
 {
+    if(this.isProtectedText && this.isProtectedText())
+    {
+        return;
+    }
     var content = this.getDocContent();
     if (isRealObject(content))
     {
@@ -4687,6 +4689,10 @@ CShape.prototype.selectionSetStart = function (e, x, y, slideIndex)
 
 CShape.prototype.selectionSetEnd = function (e, x, y, slideIndex)
 {
+    if(this.isProtectedText && this.isProtectedText())
+    {
+        return;
+    }
     var content = this.getDocContent();
     if (isRealObject(content)) {
         var tx, ty;

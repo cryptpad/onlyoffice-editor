@@ -1660,6 +1660,9 @@
         if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
             return -1;
         }
+        if(this.isProtected && this.isProtected()) {
+            return -1;
+        }
         return AscFormat.hitToHandles(x, y, this);
     };
     CGraphicObjectBase.prototype.onMouseMove = function (e, x, y) {
@@ -2345,15 +2348,39 @@
         AscCommon.IsShapeToImageConverter = false;
         return new AscFormat.CBaseAnimTexture(oCanvas, scale, nX, nY)
     };
+
+    CGraphicObjectBase.prototype.isOnProtectedSheet = function() {
+        if(this.worksheet) {
+            if(this.worksheet.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CGraphicObjectBase.prototype.isProtectedText = function() {
+        if(this.getProtectionLockText()) {
+            if(this.isOnProtectedSheet()) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CGraphicObjectBase.prototype.isProtected = function() {
+        if(this.getProtectionLocked()) {
+            if(this.isOnProtectedSheet()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+
+
 	CGraphicObjectBase.prototype.canEditText = function() {
         if(this.getObjectType() === AscDFH.historyitem_type_Shape) {
             if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) && !this.signatureLine) {
-                if(this.getProtectionLockText()) {
-                    if(this.worksheet) {
-                        if(this.worksheet.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
-                            return false;
-                        }
-                    }
+                if(this.isProtectedText()) {
+                    return false;
                 }
                 return true;
             }
@@ -2361,12 +2388,8 @@
         return false;
 	};
     CGraphicObjectBase.prototype.canEdit = function() {
-        if(this.getProtectionLocked()) {
-            if(this.worksheet) {
-                if(this.worksheet.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
-                    return false;
-                }
-            }
+        if(this.isProtected()) {
+            return false;
         }
         return true;
     };

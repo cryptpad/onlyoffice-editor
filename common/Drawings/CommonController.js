@@ -1031,6 +1031,10 @@ DrawingObjectsController.prototype =
     //for mobile spreadsheet editor
     startEditTextCurrentShape: function()
     {
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         if(!CanStartEditText(this))
         {
             return;
@@ -1101,6 +1105,12 @@ DrawingObjectsController.prototype =
 
     startImageCrop: function()
     {
+
+
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         var cropObject = this.getObjectForCrop();
         if(!cropObject)
         {
@@ -1138,6 +1148,12 @@ DrawingObjectsController.prototype =
     },
 
     cropFit: function(){
+
+
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         var cropObject = this.getObjectForCrop();
         if(!cropObject)
         {
@@ -1197,6 +1213,12 @@ DrawingObjectsController.prototype =
     },
 
     cropFill: function(){
+
+
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         var cropObject = this.getObjectForCrop();
         if(!cropObject)
         {
@@ -1252,6 +1274,10 @@ DrawingObjectsController.prototype =
     },
 
     setCropAspect: function(dAspect){
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         //dAscpect = widh/height
         var cropObject = this.getObjectForCrop();
         if(!cropObject)
@@ -1510,7 +1536,11 @@ DrawingObjectsController.prototype =
     },
 
 
-    handleDblClickEmptyShape: function(oShape){
+    handleDblClickEmptyShape: function(oShape) {
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         if(!oShape.getDocContent() && oShape.canEditText()){
             this.checkSelectedObjectsAndCallback(function () {
                 if(!oShape.bWordShape){
@@ -1550,6 +1580,10 @@ DrawingObjectsController.prototype =
         var oAnimPlayer = this.getAnimationPlayer();
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
+            if(this.isObjectsProtected() && object.getProtectionLocked())
+            {
+                return {objectId: (group || object).Get_Id(), cursorType: "default", bMarker: bInSelect};
+            }
             var selector = group ? group : this;
             this.checkChartTextSelection();
             this.arrPreTrackObjects.length = 0;
@@ -1645,6 +1679,10 @@ DrawingObjectsController.prototype =
         }
         else
         {
+            if(this.isObjectsProtected() && object.getProtectionLocked())
+            {
+                return {objectId: (group || object).Get_Id(), cursorType: "default", bMarker: bInSelect};
+            }
             var sId = object.Get_Id();
             if(object.isCrop && object.parentCrop)
             {
@@ -1769,6 +1807,12 @@ DrawingObjectsController.prototype =
 	},
 
     startEditCurrentOleObject: function(){
+
+
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         var oSelector = this.selection.groupSelection ? this.selection.groupSelection : this;
         var oThis = this;
         if(oSelector.selectedObjects.length === 1 && oSelector.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_OleObject){
@@ -1794,7 +1838,6 @@ DrawingObjectsController.prototype =
             }, []);
         }
     },
-
 
     checkSelectedObjectsForMove: function(group, pageIndex)
     {
@@ -1823,13 +1866,66 @@ DrawingObjectsController.prototype =
         return false;
     },
 
+    isObjectsProtected: function()
+    {
+        var oApi = this.getEditorApi();
+        if(oApi && oApi.wb && oApi.wb.getWorksheet)
+        {
+            var ws = oApi.wb.getWorksheet();
+            if(ws && ws.model && ws.model.getSheetProtection(window["Asc"].c_oAscSheetProtectType.objects))
+            {
+                return true;
+            }
+        }
+        return false;
+    },
 
+    checkSelectedObjectsProtection: function(bNoSendEvent)
+    {
+        if(!this.isObjectsProtected())
+        {
+            return false;
+        }
+        var aSelectedObjects = this.getSelectedArray();
+        for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx)
+        {
+            if(aSelectedObjects[nIdx].isProtected())
+            {
+                var bSendEvent = bNoSendEvent !== true;
+                bSendEvent && this.getEditorApi().sendEvent("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+                return true;
+            }
+        }
+        return false;
+    },
+    checkSelectedObjectsProtectionText: function(bNoSendEvent)
+    {
+        if(!this.isObjectsProtected())
+        {
+            return false;
+        }
+        var aSelectedObjects = this.getSelectedArray();
+        for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx)
+        {
+            if(aSelectedObjects[nIdx].isProtectedText())
+            {
+                var bSendEvent = bNoSendEvent !== true;
+                bSendEvent && this.getEditorApi().sendEvent("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+                return true;
+            }
+        }
+        return false;
+    },
 
     handleTextHit: function(object, e, x, y, group, pageIndex, bWord)
     {
         var content, invert_transform_text, tx, ty, hit_paragraph, par, check_hyperlink;
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
+            if(this.isObjectsProtected() && object.getProtectionLockText())
+            {
+                return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
+            }
             var bNotes = (this.drawingObjects && this.drawingObjects.getObjectType && this.drawingObjects.getObjectType() === AscDFH.historyitem_type_Notes);
             if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
@@ -2827,6 +2923,10 @@ DrawingObjectsController.prototype =
                     oContent = oSelectedObject.getDocContent();
                     if(!oContent){
                         if(oSelectedObject.canEditText()){
+                            if(this.checkSelectedObjectsProtectionText(true))
+                            {
+                                return nRet;
+                            }
                             this.checkSelectedObjectsAndCallback(function () {
                                 if(oSelectedObject.bWordShape){
                                     oSelectedObject.createTextBoxContent();
@@ -2845,6 +2945,10 @@ DrawingObjectsController.prototype =
                         }
                     }
                     else{
+                        if(this.checkSelectedObjectsProtectionText(true))
+                        {
+                            return nRet;
+                        }
                         if(oContent.IsEmpty()){
                             oContent.MoveCursorToStartPos();
                         }
@@ -3004,6 +3108,10 @@ DrawingObjectsController.prototype =
     {
         var oContent = this.getTargetDocContent(false);
             if(oContent){
+                if(this.checkSelectedObjectsProtectionText())
+                {
+                    return;
+                }
                 this.checkSelectedObjectsAndCallback(function(){
                     var oContent2 = this.getTargetDocContent(true);
                     if(oContent2){
@@ -3073,6 +3181,11 @@ DrawingObjectsController.prototype =
 
     setCellFontName: function (fontName) {
 
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3084,6 +3197,10 @@ DrawingObjectsController.prototype =
 
     setCellFontSize: function (fontSize) {
 
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3093,6 +3210,11 @@ DrawingObjectsController.prototype =
     },
 
     setCellBold: function (isBold) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3103,6 +3225,11 @@ DrawingObjectsController.prototype =
     },
 
     setCellItalic: function (isItalic) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3112,6 +3239,11 @@ DrawingObjectsController.prototype =
     },
 
     setCellUnderline: function (isUnderline) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3121,6 +3253,11 @@ DrawingObjectsController.prototype =
     },
 
     setCellStrikeout: function (isStrikeout) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3130,6 +3267,11 @@ DrawingObjectsController.prototype =
     },
 
     setCellSubscript: function (isSubscript) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3139,6 +3281,11 @@ DrawingObjectsController.prototype =
     },
 
     setCellSuperscript: function (isSuperscript) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3148,11 +3295,19 @@ DrawingObjectsController.prototype =
     },
 
     setCellAlign: function (align) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.setParagraphAlign, [align], false, AscDFH.historydescription_Spreadsheet_SetCellAlign);
     },
 
     setCellVertAlign: function (align) {
-
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var vert_align;
         switch (align)
         {
@@ -3195,6 +3350,10 @@ DrawingObjectsController.prototype =
     },
 
     setCellTextColor: function (color) {
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var oThis = this;
         var callBack = function()
         {
@@ -3208,6 +3367,11 @@ DrawingObjectsController.prototype =
 
     setCellBackgroundColor: function (color)
     {
+
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         var fill = new Asc.asc_CShapeFill();
         if(color)
         {
@@ -3225,6 +3389,11 @@ DrawingObjectsController.prototype =
 
 
     setCellAngle: function (angle) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         if (0 === angle) {
             angle = AscFormat.nVertTThorz;
         } else if (-90 === angle) {
@@ -3244,12 +3413,21 @@ DrawingObjectsController.prototype =
 
     // Увеличение размера шрифта
     increaseFontSize: function () {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.paragraphIncDecFontSize, [true], false, AscDFH.historydescription_Spreadsheet_SetCellIncreaseFontSize);
 
     },
 
     // Уменьшение размера шрифта
     decreaseFontSize: function () {
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.paragraphIncDecFontSize, [false], false, AscDFH.historydescription_Spreadsheet_SetCellDecreaseFontSize);
 
     },
@@ -3258,11 +3436,9 @@ DrawingObjectsController.prototype =
         if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection)){
             return true;
         }
-        var aSelectedObjects = this.selectedObjects;
-        for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
-            if(!aSelectedObjects[nIdx].canEdit()) {
-                return false;
-            }
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
         }
         var oThis = this;
         this.checkSelectedObjectsAndCallback(function(){
@@ -3363,6 +3539,11 @@ DrawingObjectsController.prototype =
 
 
     insertHyperlink: function (options) {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         if(!this.getHyperlinkInfo())
         {
             this.checkSelectedObjectsAndCallback(this.hyperlinkAdd, [{Text: options.text, Value: options.hyperlinkModel.Hyperlink, ToolTip: options.hyperlinkModel.Tooltip}], false, AscDFH.historydescription_Spreadsheet_SetCellHyperlinkAdd);
@@ -3374,6 +3555,11 @@ DrawingObjectsController.prototype =
     },
 
     removeHyperlink: function () {
+
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.hyperlinkRemove, [], false, AscDFH.historydescription_Spreadsheet_SetCellHyperlinkRemove);
     },
 
@@ -5001,6 +5187,21 @@ DrawingObjectsController.prototype =
         {
             return;
         }
+        var oTargetContent = this.getTargetDocContent();
+        if(oTargetContent)
+        {
+            if(this.checkSelectedObjectsProtectionText())
+            {
+                return;
+            }
+        }
+        else
+        {
+            if(this.checkSelectedObjectsProtection())
+            {
+                return;
+            }
+        }
         this.checkSelectedObjectsAndCallback(this.removeCallback, [dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord, undefined], false, AscDFH.historydescription_Spreadsheet_Remove);
     },
 
@@ -5775,14 +5976,9 @@ DrawingObjectsController.prototype =
     canEdit: function()
     {
         var oApi = this.getEditorApi();
-        if(oApi && oApi.wb && oApi.wb.getWorksheet) {
-            var ws = oApi.wb.getWorksheet();
-            if(ws && ws.model && ws.model.getSheetProtection(window["Asc"].c_oAscSheetProtectType.objects)){
-                return false;
-            }
-        }
         var _ret = true;
-        if(oApi){
+        if(oApi)
+        {
             _ret = oApi.canEdit();
         }
         return _ret;
@@ -5830,13 +6026,15 @@ DrawingObjectsController.prototype =
         {
             if(this.getTargetDocContent())
             {
-
-                var oThis = this;
-                var callBack = function()
+                if(!this.checkSelectedObjectsProtectionText())
                 {
-                    oThis.paragraphAdd(new ParaTab());
-                };
-                this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddTab, undefined, window["Asc"]["editor"].collaborativeEditing.getFast())
+                    var oThis = this;
+                    var callBack = function()
+                    {
+                        oThis.paragraphAdd(new ParaTab());
+                    };
+                    this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddTab, undefined, window["Asc"]["editor"].collaborativeEditing.getFast())
+                }
             }
             else
             {
@@ -5858,35 +6056,37 @@ DrawingObjectsController.prototype =
                 }
                 else
                 {
-                    var oSelectedInfo = new CSelectedElementsInfo();
-                    target_doc_content.GetSelectedElementsInfo(oSelectedInfo);
-                    var oMath         = oSelectedInfo.GetMath();
-                    if (null !== oMath && oMath.Is_InInnerContent())
+                    if(!this.checkSelectedObjectsProtectionText())
                     {
-                        this.checkSelectedObjectsAndCallback(function()
+                        var oSelectedInfo = new CSelectedElementsInfo();
+                        target_doc_content.GetSelectedElementsInfo(oSelectedInfo);
+                        var oMath         = oSelectedInfo.GetMath();
+                        if (null !== oMath && oMath.Is_InInnerContent())
                         {
-                            oMath.Handle_AddNewLine();
-                        }, [], false, AscDFH.historydescription_Spreadsheet_AddNewParagraph, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
-                        this.recalculate();
-                    }
-                    else
-                    {
-                        if(e.shiftKey)
-                        {
-                            var oThis = this;
-                            var callBack = function()
+                            this.checkSelectedObjectsAndCallback(function()
                             {
-                                oThis.paragraphAdd(new ParaNewLine(AscCommonWord.break_Line));
-                            };
-                            this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddItem, undefined, window["Asc"]["editor"].collaborativeEditing.getFast())
+                                oMath.Handle_AddNewLine();
+                            }, [], false, AscDFH.historydescription_Spreadsheet_AddNewParagraph, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+                            this.recalculate();
                         }
                         else
                         {
-                            this.checkSelectedObjectsAndCallback(this.addNewParagraph, [], false, AscDFH.historydescription_Spreadsheet_AddNewParagraph, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+                            if(e.shiftKey)
+                            {
+                                var oThis = this;
+                                var callBack = function()
+                                {
+                                    oThis.paragraphAdd(new ParaNewLine(AscCommonWord.break_Line));
+                                };
+                                this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddItem, undefined, window["Asc"]["editor"].collaborativeEditing.getFast())
+                            }
+                            else
+                            {
+                                this.checkSelectedObjectsAndCallback(this.addNewParagraph, [], false, AscDFH.historydescription_Spreadsheet_AddNewParagraph, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+                            }
+                            this.recalculate();
                         }
-                        this.recalculate();
                     }
-
                 }
             }
             else{
@@ -6228,24 +6428,26 @@ DrawingObjectsController.prototype =
         }
         else if ( e.keyCode == 189 && canEdit ) // Клавиша Num-
         {
-
-            var Item = null;
-            var oThis = this;
-            var callBack = function()
+            if(!this.checkSelectedObjectsProtectionText())
             {
                 var Item = null;
-                if ( true === ctrlKey && true === e.shiftKey )
+                var oThis = this;
+                var callBack = function()
                 {
-                    Item = new ParaText(0x2013);
-                    Item.SpaceAfter = false;
-                }
-                else if ( true === e.shiftKey )
-                    Item = new ParaText("_".charCodeAt(0));
-                else
-                    Item = new ParaText("-".charCodeAt(0));
-                oThis.paragraphAdd(Item);
-            };
-            this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddItem, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+                    var Item = null;
+                    if ( true === ctrlKey && true === e.shiftKey )
+                    {
+                        Item = new ParaText(0x2013);
+                        Item.SpaceAfter = false;
+                    }
+                    else if ( true === e.shiftKey )
+                        Item = new ParaText("_".charCodeAt(0));
+                    else
+                        Item = new ParaText("-".charCodeAt(0));
+                    oThis.paragraphAdd(Item);
+                };
+                this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddItem, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+            }
             bRetValue = true;
         }
         else if ( e.keyCode == 190 && true === ctrlKey ) // Ctrl + .
@@ -6347,7 +6549,10 @@ DrawingObjectsController.prototype =
 
     addTextWithPr: function(sText, oTextPr, isMoveCursorOutside)
     {
-
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(function(){
             var oTargetDocContent = this.getTargetDocContent(true, false);
             if(oTargetDocContent) {
@@ -6867,6 +7072,10 @@ DrawingObjectsController.prototype =
 
     unGroup: function()
     {
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.unGroupCallback, null, false, AscDFH.historydescription_CommonControllerUnGroup);
     },
 
@@ -8730,6 +8939,10 @@ DrawingObjectsController.prototype =
 
     putPrLineSpacing: function(type, value)
     {
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.setParagraphSpacing, [{ LineRule : type,  Line : value }], false, AscDFH.historydescription_Spreadsheet_PutPrLineSpacing);
         //TODO
     },
@@ -8737,6 +8950,10 @@ DrawingObjectsController.prototype =
 
     putLineSpacingBeforeAfter: function(type, value)
     {
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var arg;
         switch (type)
         {
@@ -8770,6 +8987,10 @@ DrawingObjectsController.prototype =
     {
         if(typeof Asc.asc_CParagraphProperty !== "undefined" && !(props instanceof Asc.asc_CParagraphProperty))
         {
+            if(this.checkSelectedObjectsProtection())
+            {
+                return;
+            }
             var aAdditionalObjects = null;
             if(AscFormat.isRealNumber(props.Width) && AscFormat.isRealNumber(props.Height)){
                 aAdditionalObjects = this.getConnectorsForCheck2();
@@ -8795,6 +9016,10 @@ DrawingObjectsController.prototype =
         }
         else
         {
+            if(this.checkSelectedObjectsProtectionText())
+            {
+                return;
+            }
             this.checkSelectedObjectsAndCallback(this.paraApplyCallback, [props], false, AscDFH.historydescription_Spreadsheet_ParaApply);
         }
     },
@@ -8988,6 +9213,7 @@ DrawingObjectsController.prototype =
     },
     assignMacrosToCurrentDrawing: function(sGuid)
     {
+
         var aSelectedObjects;
         if(this.selection.groupSelection) {
             aSelectedObjects = this.selection.groupSelection;
@@ -8997,6 +9223,9 @@ DrawingObjectsController.prototype =
         }
         if(aSelectedObjects.length === 1) {
 
+            if(this.checkSelectedObjectsProtection()) {
+                return;
+            }
             var oDrawing = aSelectedObjects[0];
             this.checkSelectedObjectsAndCallback(function() {
                 oDrawing.assignMacro(sGuid);
@@ -9006,6 +9235,10 @@ DrawingObjectsController.prototype =
     // layers
     setGraphicObjectLayer: function(layerType)
     {
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         if(this.selection.groupSelection)
         {
             this.checkSelectedObjectsAndCallback(this.setGraphicObjectLayerCallBack, [layerType], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
@@ -9020,15 +9253,27 @@ DrawingObjectsController.prototype =
 
     setGraphicObjectAlign: function(alignType)
     {
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.setGraphicObjectAlignCallBack, [alignType], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
     },
     distributeGraphicObjectHor: function()
     {
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.distributeHor, [true], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
     },
 
     distributeGraphicObjectVer: function()
     {
+        if(this.checkSelectedObjectsProtection())
+        {
+            return;
+        }
         this.checkSelectedObjectsAndCallback(this.distributeVer, [true], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
     },
 
