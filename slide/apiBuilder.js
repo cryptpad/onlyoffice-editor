@@ -1035,17 +1035,6 @@
        return false;
     };
     /**
-	 * Get a set of default properties for the text run in the current presentation.
-	 * @memberof ApiPresentation
-	 * @typeofeditors ["CPE"]
-	 * @returns {ApiTextPr}
-	 */
-    ApiPresentation.prototype.GetDefaultTextPr = function()
-	{
-		var oStyles = this.Presentation.Get_Styles();
-		return editor.private_CreateTextPr(this, oStyles.styles.Get_DefaultTextPr().Copy());
-	};
-    /**
 	 * Remove a range of slides from presentation.
      * Deletes all slides without parameters.
 	 * @memberof ApiPresentation
@@ -3921,9 +3910,8 @@
     ApiPresentation.prototype["GetMaster"]                = ApiPresentation.prototype.GetMaster;
     ApiPresentation.prototype["AddMaster"]                = ApiPresentation.prototype.AddMaster;
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
-    ApiPresentation.prototype["GetDefaultTextPr"]         = ApiPresentation.prototype.GetDefaultTextPr;
     ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
-    ApiPresentation.prototype["SetLanguage"]           = ApiPresentation.prototype.SetLanguage;
+    ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;
 
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
