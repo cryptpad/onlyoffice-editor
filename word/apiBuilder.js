@@ -586,7 +586,7 @@
 		function IsQuoteLine(oParagraph)
 		{
 			var Styles         = private_GetLogicDocument().Get_Styles();
-			var sParaStyleId   = oParagraph.Paragraph.Get_CompiledPr2().ParaPr.Get_PStyle();
+			var sParaStyleId   = oParagraph.Paragraph.Get_CompiledPr2().ParaPr.GetPStyle();
 			var sQuoteStyleId1 = Styles.GetStyleIdByName('Quote');
 			var sQuoteStyleId2 = Styles.GetStyleIdByName('Intense Quote');
 
@@ -12474,6 +12474,22 @@
 	};
 
 	/**
+	 * Gets the paragraph that contains the current content control.
+	 * @memberof ApiInlineLvlSdt
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiBlockLvlSdt | null} - returns null if parent paragraph doesn't exist.
+	 */
+	ApiInlineLvlSdt.prototype.GetParentParagraph = function()
+	{
+		var oPara = this.Sdt.GetParagraph();
+
+		if (oPara)
+			return new ApiParagraph(oPara);
+
+		return null; 
+	};
+
+	/**
 	 * Get the content control that contains the current content control.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
@@ -13436,8 +13452,7 @@
 	Api.prototype["MailMerge"]                       = Api.prototype.MailMerge;
 	Api.prototype["ReplaceTextSmart"]				 = Api.prototype.ReplaceTextSmart;
 	Api.prototype["CoAuthoringChatSendMessage"]		 = Api.prototype.CoAuthoringChatSendMessage;
-	Api.prototype["FromJSON"]		                 = Api.prototype.FromJSON;
-	
+	Api.prototype["ConvertDocument"]		         = Api.prototype.ConvertDocument;	Api.prototype["FromJSON"]		                 = Api.prototype.FromJSON;	
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 
 	ApiDocumentContent.prototype["GetClassType"]     = ApiDocumentContent.prototype.GetClassType;
@@ -13965,6 +13980,7 @@
 	ApiInlineLvlSdt.prototype["AddText"]                = ApiInlineLvlSdt.prototype.AddText;
 	ApiInlineLvlSdt.prototype["Delete"]                 = ApiInlineLvlSdt.prototype.Delete;
 	ApiInlineLvlSdt.prototype["SetTextPr"]              = ApiInlineLvlSdt.prototype.SetTextPr;
+	ApiInlineLvlSdt.prototype["GetParentParagraph"]     = ApiInlineLvlSdt.prototype.GetParentParagraph;
 	ApiInlineLvlSdt.prototype["GetParentContentControl"]= ApiInlineLvlSdt.prototype.GetParentContentControl;
 	ApiInlineLvlSdt.prototype["GetParentTable"]         = ApiInlineLvlSdt.prototype.GetParentTable;
 	ApiInlineLvlSdt.prototype["GetParentTableCell"]     = ApiInlineLvlSdt.prototype.GetParentTableCell;
@@ -14555,6 +14571,9 @@
 
 	Api.prototype.private_CreateApiParagraph = function(oParagraph){
 		return new ApiParagraph(oParagraph);
+	};
+	Api.prototype.private_CreateTextPr = function(oParent, oTextPr){
+		return new ApiTextPr(oParent, oTextPr);
 	};
 
 	Api.prototype.private_CreateApiDocContent = function(oDocContent){

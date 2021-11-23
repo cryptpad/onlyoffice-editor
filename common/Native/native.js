@@ -110,8 +110,8 @@ function native_context2d(parent)
 
 	this.globalAlpha = 0;
 	this.globalCompositeOperation = "";
-	this.fillStyle = "";
-	this.strokeStyle = "";
+	this.fillStyle = "#000000";
+	this.strokeStyle = "#000000";
 
 	this.lineWidth = 0;
 	this.lineCap = 0;
@@ -308,3 +308,9 @@ var console = {
 	timeEnd: function (param) {}
 };
 
+var performance = window.performance = (function(){
+	var basePerformanceOffset = Date.now();
+	return {
+		now : function() { return Date.now() - basePerformanceOffset; }
+	};
+})();

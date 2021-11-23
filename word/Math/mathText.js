@@ -65,8 +65,14 @@ CMathSize.prototype.Set = function(size)
     this.ascent = size.ascent;
 };
 
+/**
+ * @extends {CRunElementBase}
+ * @constructor
+ */
 function CMathBaseText()
 {
+    CRunElementBase.call(this);
+
     this.Type           = null;
     this.bJDraw         = false;
     this.value          = null;
@@ -87,6 +93,8 @@ function CMathBaseText()
     this.GapLeft        = 0;
     this.GapRight       = 0;
 }
+CMathBaseText.prototype = Object.create(CRunElementBase.prototype);
+CMathBaseText.prototype.constructor = CMathBaseText;
 CMathBaseText.prototype.Get_Width = function() // работаем через функцию, т.к. поля  GapLeft и GapRight могут измениться из-за изменения переноса, а пересчет (Measure) в этом случае не прийдет
 {
     var Width = this.size.width;
@@ -169,6 +177,11 @@ CMathBaseText.prototype.IsNeedUpdateGaps = function()
 {
     return this.bUpdateGaps;
 };
+CMathBaseText.prototype.ToSearchElement = function(oProps)
+{
+	return null;
+};
+
 
 /**
  *
@@ -994,6 +1007,13 @@ CMathText.prototype.Read_FromBinary = function(Reader)
 CMathText.prototype.Is_LetterCS = function()
 {
     return this.FontSlot == fontslot_CS;
+};
+CMathText.prototype.ToSearchElement = function(oProps)
+{
+	if (oProps.MatchCase)
+		return new CSearchTextItemChar(String.fromCodePoint(this.Value).toLowerCase().codePointAt(0));
+
+	return new CSearchTextItemChar(this.Value);
 };
 /*CMathText.prototype.Recalculate_Reset = function(StartRange, StartLine, PRS)
 {

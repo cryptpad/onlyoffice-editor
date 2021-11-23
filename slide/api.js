@@ -1364,7 +1364,7 @@ background-repeat: no-repeat;\
                                 <div id=\"id_main_view\" class=\"block_elem\" style=\"overflow:hidden\">\
                                     <canvas id=\"id_viewer\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:6\"></canvas>\
                                     <canvas id=\"id_viewer_overlay\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
-                                    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;display:none;z-index:9;\"></canvas>\
+                                    <div id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;display:none;z-index:9;\"></div>\
                                 </div>\
 							    <div id=\"id_panel_right\" class=\"block_elem\" style=\"margin-right:1px;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:0;\">\
 							        <div id=\"id_buttonRulers\" class=\"block_elem buttonRuler\"></div>\
@@ -2141,6 +2141,9 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_DownloadAs = function(options)
 	{
+		if (this.isLongAction()) {
+			return;
+		}
 		this.downloadAs(c_oAscAsyncAction.DownloadAs, options);
 	};
 	asc_docs_api.prototype.Resize                       = function()
@@ -2617,6 +2620,14 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onInitTableTemplates", styles);
 		}
 	};
+	asc_docs_api.prototype.asc_getTableStylesPreviews    = function(bUseDefault)
+	{
+		if(this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			return this.WordControl.m_oDrawingDocument.GetTableStylesPreviews(bUseDefault);
+		}
+		return [];
+	};
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with paragraph*/
@@ -2978,12 +2989,14 @@ background-repeat: no-repeat;\
 		this.noCreatePoint  = true;
 		this.exucuteHistory = true;
 		this.incrementCounterLongAction();
+		this.WordControl.m_oLogicDocument.TurnOff_InterfaceEvents();
 	};
 	asc_docs_api.prototype.setEndPointHistory   = function()
 	{
 		this.noCreatePoint     = false;
 		this.exucuteHistoryEnd = true;
 		this.decrementCounterLongAction();
+		this.WordControl.m_oLogicDocument.TurnOn_InterfaceEvents();
 	};
 	asc_docs_api.prototype.SetSlideProps        = function(prop)
 	{
@@ -3897,6 +3910,25 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.LockCursorType("crosshair");
 		}
 	};
+	asc_docs_api.prototype.asc_canEditGeometry = function ()
+	{
+		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
+		if(!oPresentation)
+		{
+			return false;
+		}
+		return oPresentation.CanEditGeometry();
+	};
+
+	asc_docs_api.prototype.asc_editPointsGeometry = function()
+	{
+		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
+		if(!oPresentation)
+		{
+			return;
+		}
+		return oPresentation.StartEditGeometry();
+	};
 
 	asc_docs_api.prototype.asc_addSlideNumber = function()
 	{
@@ -4264,7 +4296,7 @@ background-repeat: no-repeat;\
 			if (!g_oDocumentUrls.getImageLocal(ImagePr.ImageUrl))
 			{
 				sImageUrl = ImagePr.ImageUrl;
-				sToken = ImagePr.Token;
+				sToken = obj.Token;
 			}
 
 			var oApi           = this;
@@ -4850,6 +4882,11 @@ background-repeat: no-repeat;\
 		oPresentation.ResolveAllComments(isMine, isCurrent, arrIds);
 	};
 
+	asc_docs_api.prototype.asc_GetCommentLogicPosition = function()
+	{
+		return -1;
+	};
+
 	asc_docs_api.prototype.asc_onDeleteComment = function(Id, oCommentData)
 	{
 		var AscCommentData = new asc_CCommentData(oCommentData);
@@ -5213,6 +5250,11 @@ background-repeat: no-repeat;\
 			}
 		}
 		this.onDocumentContentReady();
+
+		if(this.asc_IsStartDemonstartionOnOpen())
+		{
+			this.sendEvent("asc_onStartDemonstration");
+		}
 		this.isApplyChangesOnOpen = false;
 
 		this.WordControl.InitControl();
@@ -5238,7 +5280,10 @@ background-repeat: no-repeat;\
 		this.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
 		this.goTo();
 	};
-
+	asc_docs_api.prototype.asc_IsStartDemonstartionOnOpen = function()
+	{
+		return this.documentFormat === "ppsx";
+	};
 
 	asc_docs_api.prototype.asc_AddMath = function(Type)
 	{
@@ -5565,6 +5610,62 @@ background-repeat: no-repeat;\
 		}
 		this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
 		this.WordControl.Thumbnails.OnUpdateOverlay();
+	};
+
+	asc_docs_api.prototype.asc_moveSelectedSlidesToEnd = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSelectedSlidesToEnd();
+	};
+	asc_docs_api.prototype.asc_moveSlidesNextPos = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSlidesNextPos();
+	};
+	asc_docs_api.prototype.asc_moveSelectedSlidesToStart = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSelectedSlidesToStart();
+	};
+	asc_docs_api.prototype.asc_moveSlidesPrevPos = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSlidesPrevPos();
+	};
+
+	asc_docs_api.prototype.asc_IsSlideSelected = function(nIdx)
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return false;
+		}
+		var aSelected = this.WordControl.m_oLogicDocument.GetSelectedSlides();
+		for(var nSld = 0; nSld < aSelected.length; ++nSld) {
+			if(aSelected[nSld] === nIdx) {
+				return true;
+			}
+		}
+		return false;
+	};
+	asc_docs_api.prototype.asc_IsFirstSlideSelected = function()
+	{
+		return this.asc_IsSlideSelected(0);
+	};
+	asc_docs_api.prototype.asc_IsLastSlideSelected = function()
+	{
+		return this.asc_IsSlideSelected(this.getCountPages() - 1);
 	};
 
 	asc_docs_api.prototype.AddShape        = function(shapetype)
@@ -5906,6 +6007,14 @@ background-repeat: no-repeat;\
             }
         }
     };
+
+	asc_docs_api.prototype.asc_restartCheckSpelling = function()
+	{
+		if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+			return null;
+
+		this.WordControl.m_oLogicDocument.Restart_CheckSpelling();
+	};
 
 	asc_docs_api.prototype.sync_shapePropCallback = function(pr)
 	{
@@ -8011,6 +8120,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_addImage']                        = asc_docs_api.prototype.asc_addImage;
 	asc_docs_api.prototype['asc_AddToLayout']                     = asc_docs_api.prototype.asc_AddToLayout;
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
+	asc_docs_api.prototype['asc_canEditGeometry']                 = asc_docs_api.prototype.asc_canEditGeometry;
+	asc_docs_api.prototype['asc_editPointsGeometry']              = asc_docs_api.prototype.asc_editPointsGeometry;
 	asc_docs_api.prototype['AddTextArt']                          = asc_docs_api.prototype.AddTextArt;
 	asc_docs_api.prototype['asc_canEditCrop']                     = asc_docs_api.prototype.asc_canEditCrop;
 	asc_docs_api.prototype['asc_startEditCrop']                   = asc_docs_api.prototype.asc_startEditCrop;
@@ -8060,6 +8171,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_removeComment']                   = asc_docs_api.prototype.asc_removeComment;
 	asc_docs_api.prototype['asc_RemoveAllComments']               = asc_docs_api.prototype.asc_RemoveAllComments;
 	asc_docs_api.prototype['asc_ResolveAllComments']              = asc_docs_api.prototype.asc_ResolveAllComments;
+	asc_docs_api.prototype['asc_GetCommentLogicPosition']         = asc_docs_api.prototype.asc_GetCommentLogicPosition;
 	asc_docs_api.prototype['asc_changeComment']                   = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                   = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                     = asc_docs_api.prototype.asc_showComment;
@@ -8097,6 +8209,13 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['DeleteSlide']                         = asc_docs_api.prototype.DeleteSlide;
 	asc_docs_api.prototype['DublicateSlide']                      = asc_docs_api.prototype.DublicateSlide;
 	asc_docs_api.prototype['SelectAllSlides']                     = asc_docs_api.prototype.SelectAllSlides;
+	asc_docs_api.prototype['asc_moveSelectedSlidesToEnd']         = asc_docs_api.prototype.asc_moveSelectedSlidesToEnd;
+	asc_docs_api.prototype['asc_moveSlidesNextPos']               = asc_docs_api.prototype.asc_moveSlidesNextPos;
+	asc_docs_api.prototype['asc_moveSelectedSlidesToStart']       = asc_docs_api.prototype.asc_moveSelectedSlidesToStart;
+	asc_docs_api.prototype['asc_moveSlidesPrevPos']               = asc_docs_api.prototype.asc_moveSlidesPrevPos;
+	asc_docs_api.prototype['asc_IsSlideSelected']                 = asc_docs_api.prototype.asc_IsSlideSelected;
+	asc_docs_api.prototype['asc_IsFirstSlideSelected']            = asc_docs_api.prototype.asc_IsFirstSlideSelected;
+	asc_docs_api.prototype['asc_IsLastSlideSelected']             = asc_docs_api.prototype.asc_IsLastSlideSelected;
 	asc_docs_api.prototype['AddShape']                            = asc_docs_api.prototype.AddShape;
 	asc_docs_api.prototype['ChangeShapeType']                     = asc_docs_api.prototype.ChangeShapeType;
 	asc_docs_api.prototype['AddText']                             = asc_docs_api.prototype.AddText;
@@ -8275,6 +8394,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype["sync_OnConvertEquationToMath"] 		    = asc_docs_api.prototype.sync_OnConvertEquationToMath;
 	asc_docs_api.prototype["asc_ConvertEquationToMath"] 		    = asc_docs_api.prototype.asc_ConvertEquationToMath;
+	asc_docs_api.prototype["asc_getTableStylesPreviews"] 		    = asc_docs_api.prototype.asc_getTableStylesPreviews;
 
 
 	window['Asc']['asc_CCommentData'] = window['Asc'].asc_CCommentData = asc_CCommentData;

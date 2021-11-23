@@ -217,6 +217,10 @@ ParaFieldChar.prototype.IsNumValue = function()
 {
 	return (this.IsSeparate() && null !== this.NumValue ? true : false);
 };
+ParaFieldChar.prototype.IsNeedSaveRecalculateObject = function()
+{
+	return true;
+};
 ParaFieldChar.prototype.SaveRecalculateObject = function(Copy)
 {
 	return new CPageNumRecalculateObject(this.Type, this.Widths, this.String, this.Width, Copy);
@@ -1458,8 +1462,7 @@ CComplexField.prototype.GetInstruction = function()
 };
 CComplexField.prototype.private_UpdateInstruction = function()
 {
-	if (this.InstructionLine &&
-		(!this.Instruction || !this.Instruction.CheckInstructionLine(this.InstructionLine)))
+	if ((!this.Instruction || !this.Instruction.CheckInstructionLine(this.InstructionLine)))
 	{
 		var oParser = new CFieldInstructionParser();
 		this.Instruction = oParser.GetInstructionClass(this.InstructionLine);

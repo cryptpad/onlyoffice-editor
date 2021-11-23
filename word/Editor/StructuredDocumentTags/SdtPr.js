@@ -1229,7 +1229,7 @@ function CSdtTextFormPr(nMax, isComb, nWidth, nSymbol, sFont, oCombBorder)
 	this.CombPlaceholderSymbol = nSymbol;
 	this.CombPlaceholderFont   = sFont;
 	this.CombBorder            = undefined !== oCombBorder ? oCombBorder.Copy() : undefined;
-	this.MultiLine             = true;
+	this.MultiLine             = false;
 	this.AutoFit               = false;
 }
 CSdtTextFormPr.prototype.Copy = function()
@@ -1593,7 +1593,7 @@ CSdtFormPr.prototype.SetAscBorder = function(oAscBorder)
 		this.Border.Set_FromObject(oAscBorder);
 	}
 };
-CSdtFormPr.prototype.SetShd = function()
+CSdtFormPr.prototype.GetShd = function()
 {
 	return this.Shd;
 };
@@ -1604,16 +1604,39 @@ CSdtFormPr.prototype.GetAscShd = function()
 
 	return (new Asc.asc_CParagraphShd(this.Shd));
 };
-CSdtFormPr.prototype.SetAscShd = function(oAscShd)
+CSdtFormPr.prototype.SetAscShd = function(isShd, oAscColor)
 {
-	if (!oAscShd)
+	if (!isShd || !oAscColor)
 	{
 		this.Shd = undefined;
 	}
 	else
 	{
+		var oUnifill        = new AscFormat.CUniFill();
+		oUnifill.fill       = new AscFormat.CSolidFill();
+		oUnifill.fill.color = AscFormat.CorrectUniColor(oAscColor, oUnifill.fill.color, 1);
+
+		var oLogicDocument = editor.WordControl.m_oLogicDocument;
+		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
+			oUnifill.check(oLogicDocument.GetTheme(), oLogicDocument.GetColorMap());
+
 		this.Shd = new CDocumentShd();
-		this.Shd.Set_FromObject(oAscShd);
+		this.Shd.Set_FromObject({
+			Value: Asc.c_oAscShd.Clear,
+			Color: {
+				r: oAscColor.asc_getR(),
+				g: oAscColor.asc_getG(),
+				b: oAscColor.asc_getB(),
+				Auto: false
+			},
+			Fill: {
+				r: oAscColor.asc_getR(),
+				g: oAscColor.asc_getG(),
+				b: oAscColor.asc_getB(),
+				Auto: false
+			},
+			Unifill: oUnifill
+		});
 	}
 };
 

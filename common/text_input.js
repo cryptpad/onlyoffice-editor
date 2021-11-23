@@ -149,7 +149,7 @@
 
         this.isKeyPressOnUp = AscCommon.AscBrowser.isAppleDevices; // keyPress может приходить ДО oncompositionstart, а это проблема.
 		this.keyPressOnUpCodes = [];
-		this.isKeyPressOnUpStackedMode = false;
+		this.isKeyPressOnUpStackedMode = this.isKeyPressOnUp;
 
 		this.isHardCheckKeyboard = AscCommon.AscBrowser.isSailfish;
 	}
@@ -447,6 +447,7 @@
 				which : code,
 				keyCode : code,
 				code : "",
+				emulated: true,
 
 				preventDefault : function() {},
 				stopPropagation : function() {}

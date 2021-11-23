@@ -1010,6 +1010,23 @@
     };
 
     /**
+	 * Specify the languages which will be used to check spelling and grammar (if requested).
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sLangId - The possible value for this parameter is a language identifier as defined by
+	 * RFC 4646/BCP 47. Example: "en-CA".
+     * @returns {bool}
+	 */
+    ApiPresentation.prototype.SetLanguage = function(sLangId)
+    {
+        var nLcid = Asc.g_oLcidNameToIdMap[sLangId];
+        if (nLcid === undefined)
+            return false;
+
+        this.Presentation.SetLanguage(nLcid);
+        return true;
+    };
+    /**
      * Gets slides count.
      * @typeofeditors ["CPE"]
      * @returns {number}
@@ -1081,6 +1098,34 @@
        return false;
     };
     /**
+	 * Remove a range of slides from presentation.
+     * Deletes all slides without parameters.
+	 * @memberof ApiPresentation
+     * @param {Number} [nStart=0] - beginning of the deletion range.
+     * @param {Number} [nCount=ApiPresentation.GetSlidesCount()] - count of slides for deletion.
+	 * @typeofeditors ["CPE"]
+	 * @returns {bool}
+	 */
+    ApiPresentation.prototype.RemoveSlides = function(nStart, nCount)
+	{
+        nStart = nStart || 0;
+        nCount = nCount || this.GetSlidesCount();
+        if (AscFormat.isRealNumber(nStart) && nStart > -1 && nStart < this.GetSlidesCount())
+        {
+            if (AscFormat.isRealNumber(nCount) && nCount > 0)
+            {
+                nCount = Math.min(nCount, this.GetSlidesCount());
+                for (var nSlide = 0; nSlide < nCount; nSlide++)
+                    this.Presentation.removeSlide(nStart);
+
+                return true;
+            }
+        }
+
+        return false;
+	};
+
+    /**
 	 * Convert to JSON object. 
 	 * @memberof ApiPresentation
 	 * @typeofeditors ["CPE"]
@@ -1089,9 +1134,7 @@
     ApiPresentation.prototype.ToJSON = function(){
         var oWriter = new AscCommon.WriterToJSON();
 		return JSON.stringify(oWriter.SerPresentation(this.Presentation));
-    };
-
-    //------------------------------------------------------------------------------------------------------------------
+    };    //------------------------------------------------------------------------------------------------------------------
     //
     // ApiMaster
     //
@@ -2339,6 +2382,7 @@
             bg.bgPr      = new AscFormat.CBgPr();
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Slide.changeBackground(bg);
+            this.Slide.recalculateBackground();
         }
     };
 
@@ -2523,6 +2567,7 @@
         bg.bgPr       = new AscFormat.CBgPr();
         bg.bgPr.Fill  = apiNoFill.UniFill;
         this.Slide.changeBackground(bg);
+        this.Slide.recalculateBackground();
 
         return true;
     };
@@ -2541,6 +2586,7 @@
         if (Layout && Layout.cSld.Bg)
         {
             this.Slide.changeBackground(Layout.cSld.Bg);
+            this.Slide.recalculateBackground();
             return true;
         }
         else 
@@ -4026,8 +4072,8 @@
     ApiPresentation.prototype["GetMaster"]                = ApiPresentation.prototype.GetMaster;
     ApiPresentation.prototype["AddMaster"]                = ApiPresentation.prototype.AddMaster;
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
-    //ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
-
+	ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
+    ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;    //ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
     ApiMaster.prototype["AddLayout"]                      = ApiMaster.prototype.AddLayout;

@@ -203,6 +203,8 @@
 		this.Shortcuts = new AscCommon.CShortcuts();
 		this.initDefaultShortcuts();
 
+		this.isUseNativeViewer = true;
+
 		return this;
 	}
 
@@ -507,6 +509,12 @@
 	baseEditorsApi.prototype.sync_InitEditorFonts            = function(gui_fonts)
 	{
 		if (!this.isViewMode) {
+			// корректируем имена для текущего языка интерфейса
+			var currentLang = this.asc_getLocale();
+			if (typeof currentLang !== "string")
+				currentLang = (AscCommon.g_oDefaultCultureInfo && (typeof AscCommon.g_oDefaultCultureInfo.Name === "string")) ? AscCommon.g_oDefaultCultureInfo.Name : "en";
+
+			AscFonts.g_fontApplication && AscFonts.g_fontApplication.CheckNamesForInterface(currentLang);
 			this.sendEvent("asc_onInitEditorFonts", gui_fonts);
 		}
 	};
@@ -681,6 +689,21 @@
 				"lcid"          : locale,
 				"nobase64"      : true
 			};
+
+			if (this.isUseNativeViewer)
+			{
+				switch (this.documentFormat)
+				{
+					case "pdf":
+					case "xps":
+					case "djvu":
+						rData["convertToOrigin"] = true;
+						break;
+					default:
+						break;
+				}
+			}
+
 			if (versionHistory)
 			{
 				rData["serverVersion"] = versionHistory.serverVersion;
@@ -732,7 +755,8 @@
 		var t = this;
 		AscCommon.openFileCommand(this.documentId, data, this.documentUrlChanges, this.documentTokenChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
-			if (error || (!result.bSerFormat && !Asc.c_rUneditableTypes.test(t.DocInfo && t.DocInfo.get_Format())))
+			var signature = result.data && String.fromCharCode(result.data[0], result.data[1], result.data[2], result.data[3]);
+			if (error || (!result.bSerFormat && (t.editorId !== c_oEditorId.Word || 'XLSY' === signature || 'PPTY' === signature)))
 			{
 				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
@@ -812,6 +836,10 @@
 
 		if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["onDocumentContentReady"])
             window["AscDesktopEditor"]["onDocumentContentReady"]();
+
+		// теперь на старте нельзя удалить бинарник для подбора - он может пригодиться в nativeViewer
+		if (!this.disableRemoveFonts)
+			delete window["g_fonts_selection_bin"];
 	};
 	// Save
 	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType, filetype)
@@ -1291,15 +1319,18 @@
 							case "ok":
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
-								if (null != urls['Editor.bin']) {
+								var documentUrl = urls['Editor.bin'];
+								if (t.isUseNativeViewer && !documentUrl)
+									documentUrl = urls['origin.pdf'] || urls['origin.xps'] || urls['origin.djvu'];
+								if (null != documentUrl) {
 									if ('ok' === input["status"] || t.getViewMode()) {
-										t._onOpenCommand(urls['Editor.bin']);
+										t._onOpenCommand(documentUrl);
 									} else {
 										t.sendEvent("asc_onDocumentUpdateVersion", function () {
 											if (t.isCoAuthoringEnable) {
 												t.asc_coAuthoringDisconnect();
 											}
-											t._onOpenCommand(urls['Editor.bin']);
+											t._onOpenCommand(documentUrl);
 										})
 									}
 								} else {
@@ -1571,6 +1602,9 @@
     baseEditorsApi.prototype.asc_spellCheckClearDictionary       = function()
     {
     };
+	baseEditorsApi.prototype.asc_restartCheckSpelling            = function()
+	{
+	};
 	// Print Desktop
 	baseEditorsApi.prototype._waitPrint                          = function (actionType, options)
 	{
@@ -1588,9 +1622,6 @@
 	};
 	baseEditorsApi.prototype.downloadAs                         = function (actionType, options)
 	{
-		if (this.isLongAction()) {
-			return;
-		}
 		var isCloudCrypto = !!(window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"]));
 		if (isCloudCrypto)
 		{
@@ -1995,11 +2026,15 @@
 		if (window["AscDesktopEditor"] && this._printDesktop(options)) {
 			return;
 		}
+		if (this.isLongAction()) {
+			return;
+		}
 
 		if (!options) {
 			options = new Asc.asc_CDownloadOptions();
 		}
 		options.fileType = Asc.c_oAscFileType.PDF;
+		options.isPdfPrint = true;
 		this.downloadAs(c_oAscAsyncAction.Print, options);
 	};
 	baseEditorsApi.prototype.asc_Save = function (isAutoSave, isIdle) {
@@ -2219,7 +2254,10 @@
 			asc_color_scheme = AscCommon.getAscColorScheme(_scheme, theme);
 			nIndex = AscCommon.getIndexColorSchemeInArray(result, asc_color_scheme);
 			if(nIndex === -1) {
-				aCustomSchemes.push(asc_color_scheme);
+				var nIdxInCustom = AscCommon.getIndexColorSchemeInArray(aCustomSchemes, asc_color_scheme);
+				if(nIdxInCustom === -1) {
+					aCustomSchemes.push(asc_color_scheme);
+				}
 			}
 			aCustomSchemes.sort(function (a, b) {
 				if(a.name === "" || a.name === null) return -1;
@@ -2238,12 +2276,7 @@
 			result = result.concat(aCustomSchemes);
 
 			if(nIndex === -1) {
-				for (i = 0; i < result.length; ++i) {
-					if (result[i] === asc_color_scheme) {
-						nIndex = i;
-						break;
-					}
-				}
+				nIndex = AscCommon.getIndexColorSchemeInArray(result, asc_color_scheme);
 			}
 		}
 		return {schemes: result, index: nIndex};
@@ -2380,6 +2413,10 @@
     };
     baseEditorsApi.prototype.endInlineDropTarget = function(e)
     {
+    };
+    baseEditorsApi.prototype.isSliderDragged = function()
+    {
+		return this.noCreatePoint || this.exucuteHistory || this.exucuteHistoryEnd;
     };
 
     baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code, pr)

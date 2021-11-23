@@ -1,5 +1,38 @@
+/*
+ * (c) Copyright Ascensio System SIA 2010-2019
+ *
+ * This program is a free software product. You can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License (AGPL)
+ * version 3 as published by the Free Software Foundation. In accordance with
+ * Section 7(a) of the GNU AGPL its Section 15 shall be amended to the effect
+ * that Ascensio System SIA expressly excludes the warranty of non-infringement
+ * of any third-party rights.
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
+ * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * street, Riga, Latvia, EU, LV-1050.
+ *
+ * The  interactive user interfaces in modified source and object code versions
+ * of the Program must display Appropriate Legal Notices, as required under
+ * Section 5 of the GNU AGPL version 3.
+ *
+ * Pursuant to Section 7(b) of the License you must retain the original Product
+ * logo when distributing the program. Pursuant to Section 7(e) we decline to
+ * grant you any rights under trademark law for use of our trademarks.
+ *
+ * All the Product's GUI elements, including illustrations and icon sets, as
+ * well as technical writing content are licensed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International. See the License
+ * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
+ *
+ */
+
 (function(window, undefined) {
 
+    var supportImageDataConstructor = (AscCommon.AscBrowser.isIE && !AscCommon.AscBrowser.isIeEdge) ? false : true;
     function CDocMetaSelection()
     {
         this.Page1 = 0;
@@ -25,26 +58,38 @@
     }
 
     // interface
-    CFile.prototype.loadFromData = function(data) {};
-    CFile.prototype.load = function(arrayBuffer)
+    CFile.prototype.close = function() 
     {
-        return this.loadFromData(new Uint8Array(arrayBuffer));
+        if (this.nativeFile)
+        {
+            this.nativeFile["close"]();
+            this.nativeFile = null;
+        }
     };
-
-    CFile.prototype.getInfo = function() {};
-    CFile.prototype.getPagePixmap = function(pageIndex, width, height) {};
-    CFile.prototype.close = function() {};
-    CFile.prototype.memory = function() {};
-    CFile.prototype.free = function(pointer) {};
+    CFile.prototype.memory = function()
+    {
+        return this.nativeFile ? this.nativeFile["memory"]() : null;
+    };
+    CFile.prototype.free = function(pointer)
+    {
+        this.nativeFile && this.nativeFile["free"](pointer);
+    };
+    CFile.prototype.getStructure = function() 
+    {
+        return this.nativeFile ? this.nativeFile["getStructure"]() : [];
+    };
 
 	CFile.prototype.getPage = function(pageIndex, width, height, isNoUseCacheManager)
 	{
+        if (!this.nativeFile)
+            return null;
 		if (pageIndex < 0 || pageIndex >= this.pages.length)
 			return null;
+
 		if (!width) width = this.pages[pageIndex].W;
 		if (!height) height = this.pages[pageIndex].H;
 		var t0 = performance.now();
-		var pixels = this.getPagePixmap(pageIndex, width, height);
+		var pixels = this.nativeFile["getPagePixmap"](pageIndex, width, height);
 		if (!pixels)
 			return null;
         
@@ -63,6 +108,11 @@
         this.free(pixels);
         return image;
 	};
+
+    CFile.prototype.getLinks = function(pageIndex)
+    {
+        return this.nativeFile ? this.nativeFile["getLinks"](pageIndex) : [];
+    };
 
     CFile.prototype.GetNearestPos = function(pageIndex, x, y)
     {
@@ -248,9 +298,18 @@
             canvas.height = height;
         }
         
-        var mappedBuffer = new Uint8ClampedArray(this.memory().buffer, pixels, 4 * width * height);
-        var imageData = new ImageData(mappedBuffer, width, height);
         var ctx = canvas.getContext("2d");
+        var mappedBuffer = new Uint8ClampedArray(this.memory().buffer, pixels, 4 * width * height);
+        var imageData = null;
+        if (supportImageDataConstructor)
+        {
+            imageData = new ImageData(mappedBuffer, width, height);
+        }
+        else
+        {
+            imageData = ctx.createImageData(width, height);
+            imageData.data.set(mappedBuffer, 0);                    
+        }
         if (ctx)
             ctx.putImageData(imageData, 0, 0);
         return canvas;
@@ -379,63 +438,68 @@ void main() {\n\
         }
     };
 
-    window["AscViewer"] = window["AscViewer"] || {};
-    window["AscViewer"].IFile = CFile;
-
-    window["AscViewer"].createFile = function(buffer)
+    CFile.prototype.isNeedPassword = function()
     {
-        var data = new Uint8Array(buffer);
-        var file = null;
+        return this.nativeFile ? this.nativeFile["isNeedPassword"]() : false;
+    };
 
-        var maxCheck = Math.min(100, data.length - 5);
-        var pdfCheck = [
-            "%".charCodeAt(0),
-            "P".charCodeAt(0),
-            "D".charCodeAt(0),
-            "F".charCodeAt(0),
-            "-".charCodeAt(0)
-        ];
-        var isPdf = false;
-        for (var i = 0; i < maxCheck; i++)
+    window["AscViewer"] = window["AscViewer"] || {};
+
+    window["AscViewer"]["baseUrl"] = (typeof document !== 'undefined' && document.currentScript) ? "" : "./../src/engine/";
+    window["AscViewer"]["baseEngineUrl"] = "./../src/engine/";
+
+    window["AscViewer"].createFile = function(data)
+    {
+        var file = new CFile();
+        file.nativeFile = new window["AscViewer"]["CDrawingFile"]();
+        var error = file.nativeFile["loadFromData"](data);
+        if (0 === error)
         {
-            if (data[i + 0] == pdfCheck[0] &&
-                data[i + 1] == pdfCheck[1] &&
-                data[i + 2] == pdfCheck[2] &&
-                data[i + 3] == pdfCheck[3] &&
-                data[i + 4] == pdfCheck[4])
+            file.nativeFile.onRepaintPages = function(pages) {
+                file.onRepaintPages && file.onRepaintPages(pages);
+            };
+            file.pages = file.nativeFile["getPages"]();
+
+            for (var i = 0, len = file.pages.length; i < len; i++)
             {
-                isPdf = true;
-                break;
+                var page = file.pages[i];
+                page.W = page["W"];
+                page.H = page["H"];
+                page.Dpi = page["Dpi"];
             }
-        }
 
-        if (isPdf)
+            file.cacheManager = new AscCommon.CCacheManager(); 
+            return file;   
+        }
+        else if (4 === error)
         {
-            file = new window["AscViewer"].PdfFile();
-            file.type = 0;
+            return file;
         }
+        
+        file.close();
+        return null;
+    };
 
-        if (data.length > 7 && !file &&
-            0x41 == data[0] && 0x54 == data[1] && 0x26 == data[2] && 0x54 == data[3] &&
-            0x46 == data[4] && 0x4f == data[5] && 0x52 == data[6] && 0x4d == data[7])
+    window["AscViewer"].setFilePassword = function(file, password)
+    {
+        var error = file.nativeFile["loadFromDataWithPassword"](password);
+        if (0 === error)
         {
-            file = new window["AscViewer"].DjVuFile();
-        }
+            file.nativeFile.onRepaintPages = function(pages) {
+                file.onRepaintPages && file.onRepaintPages(pages);
+            };
+            file.pages = file.nativeFile["getPages"]();
 
-        if (!file)
-        {
-            file = new window["AscViewer"].XpsFile();
-        }
+            for (var i = 0, len = file.pages.length; i < len; i++)
+            {
+                var page = file.pages[i];
+                page.W = page["W"];
+                page.H = page["H"];
+                page.Dpi = page["Dpi"];
+            }
 
-        if (!file)
-        {
-            file = new window["AscViewer"].PdfFile();
-            file.type = 1;
+            file.cacheManager = new AscCommon.CCacheManager();
         }
-
-        file.loadFromData(data);
-        file.cacheManager = new AscCommon.CCacheManager();
-        return file;
     };
 
 })(window, undefined);

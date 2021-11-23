@@ -247,7 +247,7 @@ CGraphics.prototype =
         this.isDarkMode = true;
         function _darkColor(_this, _func) {
             return function(r, g, b, a) {
-                if (_this.isDarkMode && !this.isShapeDraw && AscCommon.darkModeCheckColor(r, g, b))
+                if (_this.isDarkMode && AscCommon.darkModeCheckColor(r, g, b))
                     _func.call(_this, 255 - r, 255 - g, 255 - b, a);
                 else
                     _func.call(_this, r, g, b, a);
@@ -2597,7 +2597,8 @@ CGraphics.prototype =
 
     drawFlowAnchor : function(x, y)
     {
-        if (!AscCommon.g_flow_anchor || !AscCommon.g_flow_anchor.asc_complete || (!editor || !editor.ShowParaMarks))
+        var _flow_anchor = (AscCommon.OverlayRasterIcons && AscCommon.OverlayRasterIcons.Anchor) ? AscCommon.OverlayRasterIcons.Anchor.get() : undefined;
+        if (!_flow_anchor || (!editor || !editor.ShowParaMarks))
             return;
 
         if (false === this.m_bIntegerGrid)
@@ -2608,7 +2609,7 @@ CGraphics.prototype =
         var _x = this.m_oFullTransform.TransformPointX(x,y) >> 0;
         var _y = this.m_oFullTransform.TransformPointY(x,y) >> 0;
 
-        this.m_oContext.drawImage(AscCommon.g_flow_anchor, _x, _y);
+        this.m_oContext.drawImage(_flow_anchor, _x, _y);
 
         if (false === this.m_bIntegerGrid)
         {
@@ -2841,9 +2842,9 @@ CGraphics.prototype =
         }
     },
 
-    CheckUseFonts2 : function(_transform)
+    CheckUseFonts2 : function(_transform, isForm)
     {
-        this.isShapeDraw = true;
+        this.isShapeDraw = !isForm;
         if (!global_MatrixTransformer.IsIdentity2(_transform))
         {
             if (!AscCommon.g_fontManager2)
