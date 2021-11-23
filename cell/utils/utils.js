@@ -2265,7 +2265,19 @@
 			var nHIns = (height / 6 / 5 + 0.5) >> 0;
 			//whole
 			dxfWhole = oTableStyle.wholeTable && oTableStyle.wholeTable.dxf;
+			var oOldFill;
+			if(dxfWhole) {
+				oOldFill = dxfWhole.getFill();
+				if(!oOldFill) {
+					var oFill = new AscCommonExcel.Fill();
+					oFill.fromColor(new AscCommonExcel.RgbColor(0xFFFFFF));
+					dxfWhole.setFill(oFill);
+				}
+			}
 			drawSlicerPreviewElement(dxfWhole, null, ctx, graphics, 0, 0, width, height);
+			if(dxfWhole) {
+				dxfWhole.setFill(oOldFill);
+			}
 			dxfWhole = dxfWhole || true;
 
 			//header
