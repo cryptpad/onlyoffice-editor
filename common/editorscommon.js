@@ -6938,7 +6938,7 @@
 		var new_width = 0;
 		var new_height = 0;
 
-		// в мозилле поправили баг. отключаем особую ветку
+		// в мозилле баг. включаем особую ветку
 		if (!AscCommon.AscBrowser.isMozilla)
 		{
 			new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
@@ -6946,13 +6946,23 @@
 		}
 		else
 		{
-			var sizeW = _getIntegerByDivide(rect.width);
-			var sizeH = _getIntegerByDivide(rect.height);
-			if (sizeW.start !== rect.width) element.style.width = sizeW.start + "px";
-			if (sizeH.start !== rect.height) element.style.height = sizeH.start + "px";
+			if (true)
+			{
+				new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
+				new_height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
 
-			new_width = sizeW.end;
-			new_height = sizeH.end;
+				element.style.imageRendering = "pixelated";
+			}
+			else
+			{
+				var sizeW = _getIntegerByDivide(rect.width);
+				var sizeH = _getIntegerByDivide(rect.height);
+				if (sizeW.start !== rect.width) element.style.width = sizeW.start + "px";
+				if (sizeH.start !== rect.height) element.style.height = sizeH.start + "px";
+
+				new_width = sizeW.end;
+				new_height = sizeH.end;
+			}
 		}
 
 		setCanvasSize(element,
