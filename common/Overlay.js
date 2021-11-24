@@ -945,10 +945,8 @@ CAutoshapeTrack.prototype =
 			return;
 
         var bDrawHandles = (isDrawHandles !== false);
-        if(bDrawHandles === false)
-        {
+        if (bDrawHandles === false)
             type = AscFormat.TYPE_TRACK.SHAPE;
-        }
 
 		if (this.m_oOverlay.IsCellEditor)
         {
@@ -1380,7 +1378,7 @@ CAutoshapeTrack.prototype =
 
                     ctx.beginPath();
 
-                    if(isDrawHandles)
+                    if (bDrawHandles)
                     {
                         if (!isLine && isCanRotate)
                         {
