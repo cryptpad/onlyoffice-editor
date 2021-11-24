@@ -788,20 +788,28 @@ CLaTeXParser.prototype.CheckIsDegreeOrIndex = function (index) {
 };
 CLaTeXParser.prototype.GetError = function (rule) {
 	var str = '';
-	if (this.indexOfAtom - 1 > 0) {
-		str += this.arrAtomsOfFormula[this.indexOfAtom - 1];
+
+	var strMinOne  = this.arrAtomsOfFormula[this.indexOfAtom - 1]
+	if (strMinOne != undefined && this.indexOfAtom - 1 >= 0) {
+		str += strMinOne;
 	} 
 	
-	str += this.arrAtomsOfFormula[this.indexOfAtom];
-	
-	if (this.indexOfAtom + 1 < this.arrAtomsOfFormula.length) {
-		str += this.arrAtomsOfFormula[this.indexOfAtom + 1];
+	var now = this.arrAtomsOfFormula[this.indexOfAtom];
+	if (now != undefined) {
+		str += now;
 	}
-	if (this.indexOfAtom + 2 < this.arrAtomsOfFormula.length) {
-		str += this.arrAtomsOfFormula[this.indexOfAtom + 2];
+	
+	var strPlusOne  = this.arrAtomsOfFormula[this.indexOfAtom + 1]
+	if (strPlusOne != undefined && this.indexOfAtom + 1 < this.arrAtomsOfFormula.length) {
+		str += strPlusOne;
 	}
 
-	console.log(rule, '\nПримерное место ошибки', str);
+	var strPlusTwo  = this.arrAtomsOfFormula[this.indexOfAtom + 2]
+	if (strPlusTwo != undefined && this.indexOfAtom + 2 < this.arrAtomsOfFormula.length) {
+		str += strPlusTwo;
+	}
+
+	console.error(rule, '\nПримерное место ошибки:', "..."+str+"...");
 	this.Root.Remove_Content(0, this.Root.Content.length);
 	this.isError = true;
 }
@@ -881,12 +889,6 @@ CLaTeXParser.prototype.GetTypeOfFrac = new Map([
 	['\\nicefrac', 'LINEAR_FRACTION'],
 	['\\dfrac', 'BAR_FRACTION'], // todo dfrac
 ]);
-CLaTeXParser.prototype.CheckIsFractionLexer = function(strFAtom) {
-	return (
-		this.GetTypeOfFrac.get(strFAtom) != null || 
-		this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true)
-	)
-};
 CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
 	if (this.GetTypeOfFrac.get(strFAtom) != null) {
 
@@ -1010,8 +1012,8 @@ CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIn
 
 	if (isDegreeAndIndex) {
 		typeOfScript = this.CheckSyntax(
-			[['_', '{', '^', '{'], 'SUB_SUP'],
-			[['^', '{', '_', '{'], 'SUP_SUB'],
+			[['_', 1, '^', 1], 'SUB_SUP'],
+			[['^', 1, '_', 1], 'SUP_SUB'],
 			[['_', 1, '^', 1], 'SUB_SUP'],
 			[['^', 1, '_', 1], 'SUP_SUB']
 		);
@@ -1025,6 +1027,14 @@ CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIn
 		);
 
 		Script = this.CreateScript(FormArgument, typeOfScript);
+	}
+
+	if (!(this.CheckSyntaxSequence(["_", "{", "^", "{"]) ||
+		this.CheckSyntaxSequence(["^", "{", "_", "{"]) || 
+		this.CheckSyntaxSequence(["^", "{"], '_') ||
+		this.CheckSyntaxSequence(["_", "{"], '^'))
+	) {
+		this.GetError('Проблема с индексом или степенью: ^{}, _{}, ^{}_{}')
 	}
 	this.FillScriptContent(Script, strFAtom, typeOfScript)
 };
@@ -1108,22 +1118,23 @@ CLaTeXParser.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
 };
 CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
 	if (typeOfRadical == DEGREE_RADICAL) {
-		this.StartLexer(Radical.getDegree());
-		
+		if (this.CheckSyntaxSequence(["["])) {
+			this.StartLexer(Radical.getDegree());
+		}
+		else {
+			this.GetError('Проблема с индексом корня: sqrt[_]{}')
+		}
 	}
-	this.StartLexer(Radical.getBase());
-};
-CLaTeXParser.prototype.AddPMod = function (FormArgument) {
-	var Mod = this.AddBracet(
-		FormArgument, 
-		this.GetBracetCode.get('('),
-		this.GetBracetCode.get(')')
-		);
+	if (this.CheckSyntaxSequence(["{"])) {
+		this.StartLexer(Radical.getBase());
+	}
+	else {
+		this.GetError('Проблема с данными корня: sqrt[]{_}')
+	}
 
-	var MathContent = Mod.getElementMathContent(0);
-	MathContent.Add_Text('mod ', this.Paragraph);
-	this.StartLexer(MathContent);
+	
 };
+//Bracet
 CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 	if (open == undefined) {
 		open = null
@@ -1184,6 +1195,8 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 
 		if (indexOfCloseBracet != false) {
 			strCloseBracet = this.arrAtomsOfFormula[indexOfCloseBracet + 1];
+		} else {
+			this.GetError('Нет закрывающей скобки: \left( \middle| \right)')
 		}
 
 		strOpenBracet = this.GetBracetCode.get(strStartBracet);
@@ -1195,13 +1208,6 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 		if (strOpenBracet == "empty") {
 			strOpenBracet = -1;
 		}
-		// if (this.CheckIsDegreeOrIndex(indexOfCloseBracet + 2)) {
-
-		// } else if (this.CheckIsDegreeAndIndex(indexOfCloseBracet + 2)){
-			
-		// } else {
-
-		// }
 
 		var Bracet = this.CreateBracetBlock(
 			FormArgument,
@@ -1350,14 +1356,28 @@ CLaTeXParser.prototype.CheckBraketsLatex = function(strFAtom) {
 }
 //Binom
 CLaTeXParser.prototype.AddBinom = function (FormArgument) {
-	var Delimiter = this.AddBracet(FormArgument);
-    var BaseMathContent = Delimiter.getElementMathContent(0);
-	this.AddFraction(BaseMathContent, null, 'NO_BAR_FRACTION');
+	if (this.CheckSyntaxSequence(["{", "{"])) {
+		var Delimiter = this.AddBracet(FormArgument);
+		var BaseMathContent = Delimiter.getElementMathContent(0);
+		this.AddFraction(BaseMathContent, null, 'NO_BAR_FRACTION');
+	}
+	
+	else {
+		this.GetError('Проблема с биномом: \binom{}{}')
+	}
 };
 //Mod
 CLaTeXParser.prototype.AddPMod = function (FormArgument) {
-	var Delimiter = this.AddBracet(FormArgument);
+	if (this.CheckSyntaxSequence(["{"])) {
+		var Delimiter = this.AddBracet(FormArgument);
 	this.AddFunction(Delimiter.getElementMathContent(0), "mod");
+	}
+
+	else {
+		this.GetError('Проблема с модулем: \pmod{}')
+	}
+
+	
 };
 //Large Operator
 CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, str) {
@@ -1434,51 +1454,57 @@ CLaTeXParser.prototype.CheckIsLargeOperator = new Map([
 ]);
 //Accent 
 CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
-	var Accent;
-	var intPosition = null;
-	
-	if (this.GetIsAddBar.get(name)) {
-		if (name == "\\overline") {
-			intPosition = 0;
+	if (this.CheckSyntaxSequence(["{"])) {
+		var Accent;
+		var intPosition = null;
+		
+		if (this.GetIsAddBar.get(name)) {
+			if (name == "\\overline") {
+				intPosition = 0;
+			}
+		
+			else if (name == "\\underline") {
+				intPosition = 1;
+			}
+
+			Accent = FormArgument.Add_Bar({ ctrPrp: this.Pr.ctrPrp, pos: intPosition }, null);
 		}
-	
-		else if (name == "\\underline") {
-			intPosition = 1;
+		
+		else if (this.GetIsAddGroupChar.get(name)) {
+			if (name == "\\overbrace") {
+				Accent = FormArgument.Add_GroupCharacter(
+					{
+						ctrPrp: this.Pr.ctrPrp,
+						chr: 9182,
+						pos: VJUST_TOP,
+						vertJc: VJUST_BOT,
+					},
+					null
+				);
+			}
+
+			if (name == "\\underbrace") {
+				Accent = FormArgument.Add_GroupCharacter(
+					{ ctrPrp: this.Pr.ctrPrp },
+					null
+				);
+			}
 		}
 
-		Accent = FormArgument.Add_Bar({ ctrPrp: this.Pr.ctrPrp, pos: intPosition }, null);
-	}
-	
-	else if (this.GetIsAddGroupChar.get(name)) {
-		if (name == "\\overbrace") {
-			Accent = FormArgument.Add_GroupCharacter(
-				{
-					ctrPrp: this.Pr.ctrPrp,
-					chr: 9182,
-					pos: VJUST_TOP,
-					vertJc: VJUST_BOT,
-				},
+		else {
+			Accent = FormArgument.Add_Accent(
+				this.Pr.ctrPrp,
+				this.GetAccent.get(name),
 				null
 			);
 		}
 
-		if (name == "\\underbrace") {
-			Accent = FormArgument.Add_GroupCharacter(
-				{ ctrPrp: this.Pr.ctrPrp },
-				null
-			);
-		}
+		this.StartLexer(Accent.getBase())
 	}
-
 	else {
-		Accent = FormArgument.Add_Accent(
-			this.Pr.ctrPrp,
-			this.GetAccent.get(name),
-			null
-		);
+		this.GetError("Проблема с акцентом: hat{}, overline{}...");
 	}
-
-	this.StartLexer(Accent.getBase())
+	
 };
 CLaTeXParser.prototype.GetIsAddBar = new Map([
 	["\\overline", true],
