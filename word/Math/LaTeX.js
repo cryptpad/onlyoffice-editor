@@ -563,7 +563,26 @@ CLaTeXParser.prototype.Parse = function (str) {
 	var strTempWord = "";
 	for (var i = 0; i <= str.length; i++) {
 		strTempWord += str[i];
-		if (
+
+		if (strTempWord == '^' && str[i+1] != '{') {
+			strTempWord = "";
+			this.arrAtomsOfFormula.push('^');
+			this.arrAtomsOfFormula.push('{');
+			i++;
+			this.arrAtomsOfFormula.push(str[i].trim());
+			this.arrAtomsOfFormula.push('}');
+		} 
+
+		else if (strTempWord == '_' && str[i+1] != '{') {
+			strTempWord = ""
+			this.arrAtomsOfFormula.push('_');
+			this.arrAtomsOfFormula.push('{');
+			i++;
+			this.arrAtomsOfFormula.push(str[i].trim());
+			this.arrAtomsOfFormula.push('}');
+		} 
+
+		else if (
 			str[i + 1] == "\\" ||
 			str[i + 1] == "^" ||
 			str[i + 1] == "_" ||
@@ -576,6 +595,7 @@ CLaTeXParser.prototype.Parse = function (str) {
 			(str[i + 1] == "{" && strTempWord != "\\") ||
 			(str[i + 1] == "}" && strTempWord != "\\") ||
 			str[i + 1] == " " ||
+			str[i + 1] == "," ||
 			(str[i + 1] == "[" && strTempWord != "\\") ||
 			(str[i + 1] == "]" && strTempWord != "\\") ||
 			(str[i - 1] == "_" && str[i + 2] == "_") ||
@@ -782,8 +802,8 @@ CLaTeXParser.prototype.CheckIsDegreeAndIndex = function (index) {
 };
 CLaTeXParser.prototype.CheckIsDegreeOrIndex = function (index) {
 	return (
-		this.CheckSyntaxSequence(["_", 1], "^", null, index) ||
-		this.CheckSyntaxSequence(["^", 1], "_", null, index)
+		this.CheckSyntaxSequence(["_", "{"], "^", null, index) ||
+		this.CheckSyntaxSequence(["^", "{"], "_", null, index)
 	)
 };
 CLaTeXParser.prototype.GetError = function (rule) {
@@ -908,9 +928,10 @@ CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
 //Limit
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	var typeOfLimit = this.GetTypeOfLimit.get(strFAtom);
-	// if (this.CheckFutureAtom() == '\\limits') {
-	// 	this.GetNextAtom();
-	// }
+	
+	if (this.CheckFutureAtom() == '\\limits') {
+		this.GetNextAtom();
+	}
 	var typeOfBottom = this.CheckSyntax(
 		[['^', '{'], 'BOTTOM_WITH_BRACETS_DEGREE'],
 		[['_', '{'], 'BOTTOM_WITH_BRACETS_INDEX'],
@@ -946,7 +967,7 @@ CLaTeXParser.prototype.GetTypeOfLimit = new Map([
 	['\\max', 'max'],
 	['\\min', 'min'],
 ]);
-//Function 
+//Function
 CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 	var typeOfFunction = this.GetTypeOfFunction.get(strFAtom);
 	var Function = this.CreateFunction(FormArgument)
@@ -954,7 +975,7 @@ CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 	if (typeOfFunction == 1) {
 		var isDegreeOrIndex = this.CheckIsDegreeOrIndex();
 		var isDegreeAndIndex = this.CheckIsDegreeAndIndex();
-
+		console.log(isDegreeOrIndex , isDegreeAndIndex)
 		if (isDegreeAndIndex || isDegreeOrIndex) {
 			this.AddScript(Function.getFName(), strFAtom.slice(1), isDegreeOrIndex, isDegreeAndIndex);
 			this.StartLexer(Function.getArgument());
@@ -1088,10 +1109,7 @@ CLaTeXParser.prototype.AddScriptForText = function(FormArgument, strFAtom) {
 };
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
 	return (
-		(this.CheckSyntaxSequence(["^", 1]) && this.CheckFutureAtom(-2) != "_" && this.CheckFutureAtom(2) != '/') ||
-		(this.CheckSyntaxSequence(["_", 1]) && this.CheckFutureAtom(-2) != "^" && this.CheckFutureAtom(2) != '/') ||
-		this.CheckSyntaxSequence(["^", 1, "_", 1]) ||
-		this.CheckSyntaxSequence(["_", 1, "^", 1])
+		this.CheckIsDegreeAndIndex() || this.CheckIsDegreeOrIndex()
 	);
 };
 //Radical
@@ -1745,8 +1763,11 @@ CLaTeXParser.prototype.AddText = function (strFAtom, FormArgument) {
 	this.AddSymbol(strFAtom, FormArgument);
 };
 CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type, typeText) {
-	var strCode = this.arrLaTeXSymbols.get(strFAtom);
+	if (strFAtom == '\\quad') {
+		strFAtom = ' '
+	}
 
+	var strCode = this.arrLaTeXSymbols.get(strFAtom);
 	if (typeof type == 'number') {
 			this.Pr['scr'] = type;
 			FormArgument.Add_Symbol(strFAtom.charCodeAt(0), typeText, this.Pr);
