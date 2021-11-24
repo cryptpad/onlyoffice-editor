@@ -545,7 +545,7 @@
 
 		var tm = this._roundTextMetrics(this.stringRender.measureString("A"));
 		var headersHeightByFont = tm.height;
-		this.defaultRowHeightForPrintPx = AscCommonExcel.convertPtToPx(Math.min(Asc.c_oAscMaxRowHeight, AscCommonExcel.convertPxToPt(headersHeightByFont)));
+		this.defaultRowHeightForPrintPt = Math.min(Asc.c_oAscMaxRowHeight, AscCommonExcel.convertPxToPt(headersHeightByFont));
 
 		if (needReplacePpi) {
 			this.drawingCtx.ppiY = truePPIY;
@@ -811,8 +811,14 @@
 		return null;
 	};
 	WorksheetView.prototype._getHeightForPrint = function (i) {
-		return (i < this.rows.length) ? this.rows[i]._heightForPrint :
-			(!this.model.isDefaultHeightHidden()) * Asc.round(this.defaultRowHeightForPrintPx * this.getZoom());
+		//_heightForPrint и defaultRowHeightForPrintPt всегда в пунктах, здесь перевожу в px
+		var height;
+		if (i < this.rows.length) {
+			height = this.rows[i]._heightForPrint !== null ? this.rows[i]._heightForPrint : this.defaultRowHeightForPrintPt;
+		} else {
+			height = (!this.model.isDefaultHeightHidden()) * this.defaultRowHeightForPrintPt;
+		}
+		return Asc.round((height / (72 / 96)) * this.getZoom());
 	};
 
 
@@ -923,7 +929,7 @@
 		return res;
 	};
 
-    WorksheetView.prototype.changeZoom = function (isUpdate) {
+    WorksheetView.prototype.changeZoom = function (isUpdate, changeZoomOnPrint) {
         if (isUpdate) {
             this.isZooming = true;
             this.notUpdateRowHeight = true;
@@ -934,7 +940,9 @@
             this._cleanCellsTextMetricsCache();
 
             // ToDo check this
-			this._scrollToRange();
+			if (!changeZoomOnPrint) {
+				this._scrollToRange();
+			}
 
             this._prepareCellTextMetricsCache();
             this.cellCommentator.updateActiveComment();
@@ -1755,7 +1763,7 @@
 		r = this.rows[i] = new CacheRow();
 		r.top = y;
 		r.height = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
-		r._heightForPrint = isDefaultHeight ? Asc.round(this.defaultRowHeightForPrintPx * this.getZoom()) : Asc.round((hR / (72 / 96)) * this.getZoom());
+		r._heightForPrint = isDefaultHeight ? null : hR;
 		r.descender = this.defaultRowDescender;
 	};
 
@@ -2507,6 +2515,8 @@
 				this._calcHeaderColumnWidth();
 				this._calcHeaderRowHeight();
 			}
+
+			this._setDefaultFont(drawingCtx);
 
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
@@ -5517,7 +5527,7 @@
         }
 
 		//меняю толщину линии для селекта(только в случае сплошной линии) и масштаба 200%
-		var isRetina = !isDashLine && AscCommon.AscBrowser.convertToRetinaValue(1, true) === 2;
+		var isRetina = !isDashLine && AscBrowser.retinaPixelRatio === 2;
 		var widthLine = isDashLine ? 1 : 2;
 		if (isRetina) {
 			widthLine = AscCommon.AscBrowser.convertToRetinaValue(widthLine, true);
@@ -5581,35 +5591,42 @@
         var isResize = AscCommonExcel.selectionLineType.Resize & selectionLineType;
         var isPromote = AscCommonExcel.selectionLineType.Promote & selectionLineType;
         if (isResize || isPromote) {
-            ctx.setFillStyle(colorN);
+            //isResize - пока не увеличиваю квадрат при выборе диапазона в формуле, поскольку нужно менять логику очистки селекта в режиме формул
+			var retinaKf = isRetina && !isResize ? 2 : 1;
+			var size = 5 * retinaKf;
+			var sizeBorder = size + 2 * retinaKf;
+			var diff = Math.floor(size/2) + 1;
+			var diffBorder = Math.floor(sizeBorder/2) + 1 * retinaKf;
+
+			ctx.setFillStyle(colorN);
             if (drawRightSide && drawBottomSide) {
-                ctx.fillRect(x2 - 4, y2 - 4, 7, 7);
+                ctx.fillRect(x2 - diffBorder, y2 - diffBorder, sizeBorder, sizeBorder);
             }
             ctx.setFillStyle(strokeColor);
             if (drawRightSide && drawBottomSide) {
-                ctx.fillRect(x2 - 3, y2 - 3, 5, 5);
+                ctx.fillRect(x2 - diff, y2 - diff, size, size);
             }
 
             if (isResize) {
                 ctx.setFillStyle(colorN);
                 if (drawLeftSide && drawTopSide) {
-                    ctx.fillRect(x1 - 4, y1 - 4, 7, 7);
+                    ctx.fillRect(x1 - diffBorder, y1 - diffBorder, sizeBorder, sizeBorder);
                 }
                 if (drawRightSide && drawTopSide) {
-                    ctx.fillRect(x2 - 4, y1 - 4, 7, 7);
+                    ctx.fillRect(x2 - diffBorder, y1 - diffBorder, sizeBorder, sizeBorder);
                 }
                 if (drawLeftSide && drawBottomSide) {
-                    ctx.fillRect(x1 - 4, y2 - 4, 7, 7);
+                    ctx.fillRect(x1 - diffBorder, y2 - diffBorder, sizeBorder, sizeBorder);
                 }
                 ctx.setFillStyle(strokeColor);
                 if (drawLeftSide && drawTopSide) {
-                    ctx.fillRect(x1 - 3, y1 - 3, 5, 5);
+                    ctx.fillRect(x1 - diff, y1 - diff, size, size);
                 }
                 if (drawRightSide && drawTopSide) {
-                    ctx.fillRect(x2 - 3, y1 - 3, 5, 5);
+                    ctx.fillRect(x2 - diff, y1 - diff, size, size);
                 }
                 if (drawLeftSide && drawBottomSide) {
-                    ctx.fillRect(x1 - 3, y2 - 3, 5, 5);
+                    ctx.fillRect(x1 - diff, y2 - diff, size, size);
                 }
             }
         }
@@ -5680,6 +5697,25 @@
           .rect(this.cellsLeft, this.cellsTop, ctx.getWidth() - this.cellsLeft, ctx.getHeight() - this.cellsTop)
           .clip();
 
+		//draw foreign cursors
+		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
+			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
+			for (var i in foreignCursors) {
+				if (foreignCursors[i] && foreignCursors[i].sheetId === this.model.Id) {
+					var color = AscCommon.getUserColorById(foreignCursors[i].shortId, null, true);
+					for (var j = 0; j < foreignCursors[i].ranges.length; j++) {
+						this._drawElements(this._drawSelectionElement, foreignCursors[i].ranges[j],
+							AscCommonExcel.selectionLineType.None, color);
+
+						if (j === 0 && foreignCursors[i].needDrawLabel) {
+							this.Show_ForeignCursorLabel(i, foreignCursors[i], j, color);
+							foreignCursors[i].needDrawLabel = null;
+						}
+					}
+				}
+			}
+		}
+
 		if(this.viewPrintLines) {
 			this._drawPrintArea();
 		}
@@ -5726,25 +5762,6 @@
                 this._drawElements(this.drawOverlayButtons);
             }
         }
-
-        //draw foreign cursors
-		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
-			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
-			for (var i in foreignCursors) {
-				if (foreignCursors[i] && foreignCursors[i].sheetId === this.model.Id) {
-					var color = AscCommon.getUserColorById(foreignCursors[i].shortId, null, true);
-					for (var j = 0; j < foreignCursors[i].ranges.length; j++) {
-						this._drawElements(this._drawSelectionElement, foreignCursors[i].ranges[j],
-							AscCommonExcel.selectionLineType.None, color);
-
-						if (j === 0 && foreignCursors[i].needDrawLabel) {
-							this.Show_ForeignCursorLabel(i, foreignCursors[i], j, color);
-							foreignCursors[i].needDrawLabel = null;
-						}
-					}
-				}
-			}
-		}
 
         // restore canvas' original clipping range
         ctx.restore();
@@ -6723,6 +6740,7 @@
 		}
 
 		rowInfo.height = Asc.round(th * this.getZoom());
+		rowInfo._heightForPrint = this.updateRowHeightValuePx ? null : this._getRowHeightReal(cell.nRow);
 		rowInfo.descender = d;
 		return th;
 	};
@@ -6764,6 +6782,7 @@
 				var _rowHeight = Asc.round(newHeight * this.getZoom());
 				if (rowInfo) {
 					rowInfo.height = _rowHeight;
+					rowInfo._heightForPrint = AscCommonExcel.convertPxToPt(_rowHeight);
 				}
 				History.TurnOff();
 				res = newHeight;
@@ -6814,6 +6833,7 @@
 					t.updateRowHeightValuePx = t.defaultRowHeightPx;
 					row = t.rows[r];
 					row.height = Asc.round(t.defaultRowHeightPx * t.getZoom());
+					row._heightForPrint = null;
 					row.descender = t.defaultRowDescender;
 
 					cache = t._getRowCache(r);
@@ -11309,10 +11329,25 @@
             var isMobileVersion = this.workbook && this.workbook.Api && this.workbook.Api.isMobileVersion;
 			if((bIsCut || isMobileVersion) && isIntoShape) {
                 if(isIntoShape.Selection && isIntoShape.Selection.Use) {
+                    var oSelectedObject = AscFormat.getTargetTextObject(this.objectRender.controller);
+                    if(oSelectedObject && oSelectedObject.getObjectType() === AscDFH.historyitem_type_Shape) {
+                        if(!oSelectedObject.canEditText()) {
+                            if(this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+                                this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+                                return;
+                            }
+                            return;
+                        }
+                    }
                     this.objectRender.controller.remove(-1, undefined, undefined, undefined, undefined);
                 }
 			} else {
-				this.objectRender.controller.deleteSelectedObjects();
+				if(!this.objectRender.controller.deleteSelectedObjects()) {
+                    if(this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+                        this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+                        return;
+                    }
+                }
 			}
 		} else {
             this.setSelectionInfo( "empty", options, null, isMineComments );
@@ -13160,6 +13195,10 @@
 				pastedRangeProps.shrinkToFit = align.getShrinkToFit();
 
 				pastedRangeProps.indent = align.getIndent();
+
+				pastedRangeProps.hidden = newVal.getHidden();
+
+				pastedRangeProps.locked = newVal.getLocked();
 			}
 
 			var tableDxf = getTableDxf(pasteRow, pasteCol, newVal);
@@ -13771,6 +13810,16 @@
 		//indent
 		if (rangeStyle.indent && specialPasteProps.format) {
 			range.setIndent(rangeStyle.indent);
+		}
+
+		//locked
+		if (rangeStyle.locked !== undefined && specialPasteProps.format) {
+			range.setLocked(rangeStyle.locked);
+		}
+
+		//hidden
+		if (rangeStyle.hidden !== undefined && specialPasteProps.format) {
+			range.setHiddenFormulas(rangeStyle.hidden);
 		}
 
 		//hyperLink
@@ -17291,7 +17340,7 @@
 		var buttonProps = this._getPropsCollapseButton(offsetX, offsetY, props);
 
 		if (buttonProps) {
-			var img = props.idPivotCollapse.sd ? pivotCollapseButtonOpen : pivotCollapseButtonClose;
+			var img = props.idPivotCollapse.hidden ? null : (props.idPivotCollapse.sd ? pivotCollapseButtonOpen : pivotCollapseButtonClose);
 			if (!img) {
 				return;
 			}
@@ -17511,7 +17560,7 @@
 		if (isDataValidation && col !== AscCommon.gc_nMaxCol0) {
 			x1 = left + 0.5;
 			x2 = left + width + 0.5;
-		} else if (pivotCollapse) {
+		} else if (pivotCollapse && !pivotCollapse.hidden) {
 			var zoom = this.getZoom();
 			var buttonProps = this._getPropsCollapseButton(0, 0, {row: row, col: col});
 			if (buttonProps) {
@@ -22570,12 +22619,16 @@
 	};
 
 	WorksheetView.prototype.updateTopLeftCell = function () {
-		History.Create_NewPoint();
-		History.StartTransaction();
+		var t = this;
+		var callback = function () {
+			t.model.updateTopLeftCell(t.visibleRange);
+		};
 
-		this.model.updateTopLeftCell(this.visibleRange);
-
-		History.EndTransaction();
+		if (AscCommon.g_specialPasteHelper) {
+			AscCommon.g_specialPasteHelper.executeWithoutHideButton(callback);
+		} else {
+			callback();
+		}
 	};
 
 	WorksheetView.prototype.scrollToTopLeftCell = function () {
@@ -22734,6 +22787,7 @@
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 			callback(false);
 		} else if (aCheckPasswordRanges.length === 1) {
+			//внутри asc_onConfirmAction дёргаем checkProtectedRangesPassword
 			this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmChangeProtectRange, function (can, isCancel) {
 				if (!can && !isCancel) {
 					t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);

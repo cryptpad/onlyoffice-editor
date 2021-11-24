@@ -5664,6 +5664,9 @@ Paragraph.prototype.MoveCursorRightWithSelectionFromStart = function(Word)
 };
 Paragraph.prototype.MoveCursorToXY = function(X, Y, bLine, bDontChangeRealPos, CurPage)
 {
+	if (!this.IsRecalculated())
+		return;
+
 	var SearchPosXY = this.Get_ParaContentPosByXY(X, Y, CurPage, bLine, false);
 
 	this.Set_ParaContentPos(SearchPosXY.Pos, false, SearchPosXY.Line, SearchPosXY.Range);
@@ -11706,7 +11709,8 @@ Paragraph.prototype.Is_Inline = function()
 	if (undefined === this.Parent || (!(this.Parent instanceof CDocument) && (undefined === this.Parent.Parent || !(this.Parent.Parent instanceof CHeaderFooter))))
 		return true;
 
-	if (undefined != this.Pr.FramePr && Asc.c_oAscYAlign.Inline !== this.Pr.FramePr.YAlign)
+	var oFramePr = this.Get_FramePr();
+	if (oFramePr && !oFramePr.IsInline())
 		return false;
 
 	return true;
@@ -13299,6 +13303,21 @@ Paragraph.prototype.RemoveCommentMarks = function(Id)
 			Count--;
 		}
 	}
+};
+Paragraph.prototype.GetCommentMark = function(sId, isStart)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oElement = this.Content[nPos];
+		if (para_Comment === oElement.Type
+			&& sId === oElement.GetCommentId()
+			&& isStart === oElement.IsCommentStart())
+		{
+			return oElement;
+		}
+	}
+
+	return null;
 };
 Paragraph.prototype.MoveCursorToCommentMark = function(sId)
 {
@@ -17454,7 +17473,7 @@ CParagraphContentPos.prototype.GetDepth = function()
 	return this.Depth - 1;
 };
 /**
- * Получаем позицию NerestPos
+ * Получаем позицию NearestPos
  * @param oParagraph
  */
 CParagraphContentPos.prototype.ToAnchorPos = function(oParagraph)

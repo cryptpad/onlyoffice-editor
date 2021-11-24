@@ -2444,10 +2444,39 @@ PasteProcessor.prototype =
 
 		if (oTable && !aNewContent[0].IsTable() && oTable.IsCellSelection())
 		{
-			var arrSelectedCells = oTable.GetSelectionArray();
-
+			var arrSelectedCells = oTable.GetSelectionArray(true);
 			var nPrevRow      = -1;
 			var nElementIndex = -1;
+			var nRowIndex     = -1;
+			var arrNewContent = [];
+			for (var i = aNewContent.length - 1; i >= 0; i--)
+			{
+				arrNewContent.unshift([]);
+				var oElem = aNewContent[i].Copy();
+				if (oElem.IsParagraph())
+				{
+					for (var j = oElem.Content.length - 1; j >= 0; j--)
+					{
+						var oNestedElem = oElem.Content[j];
+						if (oNestedElem.Type === para_Run && oNestedElem.Content.length)
+						{
+							for (var k = oNestedElem.Content.length - 1; k >= 0; k--)
+							{
+								var oThirdElem = oNestedElem.Content[k];
+								if (oThirdElem.Type === para_Tab)
+								{
+									var oPar = new Paragraph(oDoc.DrawingDocument);
+									arrNewContent[0].unshift(oPar);
+									var oRun = oNestedElem.Split2(k);
+									oRun.RemoveFromContent(0, 1);
+									oPar.AddToContent(0, oRun);
+								}
+							}
+						}	
+					}
+				}
+				arrNewContent[0].unshift(oElem);
+			}
 			for (var nIndex = 0, nCount = arrSelectedCells.length; nIndex < nCount; ++nIndex)
 			{
 				var oPos  = arrSelectedCells[nIndex];
@@ -2460,28 +2489,47 @@ PasteProcessor.prototype =
 				if (!oCell)
 					continue;
 
-				var oCellContent = oCell.GetContent();
-				oCellContent.ClearContent(true);
+				var isMerged = oCell.GetVMerge() === vmerge_Continue;
+				if (isMerged)
+					oCell = oTable.GetStartMergedCell(oPos.Cell, oPos.Row);
 
-				var oPara = oCellContent.GetElement(0);
+				var oCellContent = oCell.GetContent();
+				var oPara;
+				if (isMerged) {
+					oPara = new Paragraph(oDoc.DrawingDocument);
+					oCellContent.AddToContent(oCellContent.Content.length, oPara, true);
+					oPara.Document_SetThisElementCurrent(false);
+				}
+				else
+				{
+					oCellContent.ClearContent(true);
+					oPara = oCellContent.GetElement(0);
+				}
+
 				if (!oPara || !oPara.IsParagraph())
 					continue;
 
 				if (oPos.Row !== nPrevRow)
 				{
 					nPrevRow = oPos.Row;
-					nElementIndex++;
+					nRowIndex++;
+					nElementIndex = -1;
 
-					if (nElementIndex > aNewContent.length - 1)
-						nElementIndex = 0;
+					if (nRowIndex > arrNewContent.length - 1)
+						nRowIndex = 0;
 				}
 
-				if (nElementIndex < 0)
+				nElementIndex++;
+
+				if (nElementIndex > arrNewContent[nRowIndex].length - 1)
+					nElementIndex = 0;
+
+				if (nRowIndex < 0 || nElementIndex < 0)
 					break;
 
 				oSelectedContent.Reset();
 
-				var NewElem = aNewContent[nElementIndex].Copy();
+				var NewElem = arrNewContent[nRowIndex][nElementIndex].Copy();
 
 				var NearPos = oPara.GetCurrentAnchorPosition();
 				if (bIsSpecialPaste)
@@ -2508,11 +2556,11 @@ PasteProcessor.prototype =
 						{
 							if (j === 0)
 							{
-								aNewContent.splice(nElementIndex + j, 1, parseItem[j]);
+								arrNewContent.splice(nRowIndex + j, 1, parseItem[j]);
 							}
 							else
 							{
-								aNewContent.splice(nElementIndex + j, 0, parseItem[j]);
+								arrNewContent.splice(nRowIndex + j, 0, parseItem[j]);
 							}
 						}
 					}
@@ -2523,7 +2571,7 @@ PasteProcessor.prototype =
 				oSelectedElement.Element = NewElem;
 
 				var type = this._specialPasteGetElemType(NewElem);
-				if (0 === i)
+				if (0 === nIndex)
 				{
 					this.pasteTypeContent = type;
 				}
@@ -7570,6 +7618,10 @@ PasteProcessor.prototype =
 								break;
 						}
 					}
+					var startPos = curNumbering["mso-level-start-at"];
+					if (null != startPos) {
+						res.SetLvlStart(i-1, startPos);
+					}
 				}
 				//res.GetAbstractNum().Lvl[i-1].ParaPr
 				var marginLeft = getPropValue("margin-left", msoLinkStyles, curNumbering);
@@ -7641,10 +7693,14 @@ PasteProcessor.prototype =
 			font-weight:bold;
 			mso-bidi-font-weight:normal;}*/
 
+		var getProperty = function (name) {
+			return (numberingProps && numberingProps[name]) || (msoLinkStyles && msoLinkStyles[name]);
+		};
+
 		var rPr = new CTextPr();
 
-		var font_family = numberingProps["font-family"] || msoLinkStyles["font-family"];
-		font_family = font_family.split(",");
+		var font_family = getProperty("font-family");
+		font_family = font_family && font_family.split(",");
 		if (font_family && font_family[0] && "" != font_family[0]) {
 			var oFontItem = this.oFonts[font_family[0]];
 			if (null != oFontItem && null != oFontItem.Name) {
@@ -7655,7 +7711,7 @@ PasteProcessor.prototype =
 			}
 		}
 
-		var font_size = numberingProps["font-size"] || msoLinkStyles["font-size"];
+		var font_size = getProperty("font-size");
 		if (font_size) {
 			font_size = CheckDefaultFontSize(font_size, this.apiEditor);
 			if (font_size) {
@@ -7679,16 +7735,16 @@ PasteProcessor.prototype =
 			}
 		}
 
-		var font_weight = numberingProps["font-weight"] || msoLinkStyles["font-weight"];
+		var font_weight = getProperty("font-weight");
 		if (font_weight) {
 			if ("bold" === font_weight || "bolder" === font_weight || 400 < font_weight)
 				rPr.Bold = true;
 		}
-		var font_style = numberingProps["mso-ansi-font-style"] || msoLinkStyles["mso-ansi-font-style"];
+		var font_style = getProperty("mso-ansi-font-style");
 		if ("italic" === font_style)
 			rPr.Italic = true;
 
-		var color = numberingProps["color"] || msoLinkStyles["color"];
+		var color = getProperty("color");
 		if (color && (color = this._ParseColor(color))) {
 			if (PasteElementsId.g_bIsDocumentCopyPaste) {
 				rPr.Color = color;
@@ -7699,7 +7755,7 @@ PasteProcessor.prototype =
 			}
 		}
 
-		var spacing = numberingProps["letter-spacing"] || msoLinkStyles["letter-spacing"];
+		var spacing = getProperty("letter-spacing");
 		if (spacing && null != (spacing = AscCommon.valueToMm(spacing)))
 			rPr.Spacing = spacing;
 
@@ -7709,7 +7765,7 @@ PasteProcessor.prototype =
 		var Strikeout = null;
 		var vertical_align = null;
 
-		var text_decoration = numberingProps["text-decoration"] || msoLinkStyles["text-decoration"];
+		var text_decoration = getProperty("text-decoration");
 		if (text_decoration) {
 			if (-1 !== text_decoration.indexOf("underline")) {
 				underline = true;
@@ -7723,12 +7779,12 @@ PasteProcessor.prototype =
 			}
 		}
 
-		background_color = numberingProps["background-color"] || msoLinkStyles["background-color"];
+		background_color = getProperty("background-color");
 		if (background_color) {
 			background_color = this._ParseColor(background_color);
 		}
 
-		vertical_align = numberingProps["vertical-align"] || msoLinkStyles["vertical-align"];
+		vertical_align = getProperty("vertical-align");
 		if (!vertical_align) {
 			vertical_align = null;
 		}

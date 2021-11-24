@@ -450,10 +450,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			var nBaseLine  = nTextAscent;
 
 			if ((this.IsTextForm() || this.IsDropDownList() || this.IsComboBox())
-				&& (!this.IsFixedForm() || !this.IsMultiLineForm())
-				&& g_oTextMeasurer.m_oManager.m_pFont
-				&& g_oTextMeasurer.m_oManager.m_pFont.m_pFaceInfo
-				&& g_oTextMeasurer.m_oLastFont)
+				&& (!this.IsFixedForm() || !this.IsMultiLineForm()))
 			{
 				if (oTransform)
 				{
@@ -461,13 +458,9 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 					nBaseLine += (oTransform.TransformPointY(oParagraph.X, oParagraph.Y) - Y);
 				}
 
-				var oFaceInfo = g_oTextMeasurer.m_oManager.m_pFont.m_pFaceInfo;
+				var oLimits = g_oTextMeasurer.GetLimitsY();
 
-				var nKoef = g_oTextMeasurer.m_oLastFont.SetUpSize / g_oTextMeasurer.m_oManager.m_lUnits_Per_Em * g_dKoef_pt_to_mm;
-				var yMin  = oFaceInfo.header_yMin * nKoef;
-				var yMax  = oFaceInfo.header_yMax * nKoef;
-
-				var nMidPoint = ((nBaseLine - yMin) + (nBaseLine - yMax)) / 2;
+				var nMidPoint = ((nBaseLine - oLimits.min) + (nBaseLine - oLimits.max)) / 2;
 
 				var nDiff = nH / 2 - nMidPoint;
 				if (Math.abs(nDiff) > 0.001)
@@ -748,7 +741,7 @@ CInlineLevelSdt.prototype.GetFixedFormBounds = function()
 
 	return {X : 0, Y : 0, W : 0, H : 0, Page : 0};
 };
-CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
+CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage, isCheckHit)
 {
 	if (!this.Paragraph && this.Paragraph.LogicDocument)
 		return;
@@ -774,7 +767,7 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCu
 			}
 		}
 
-		if (!isHit)
+		if (false !== isCheckHit && !isHit)
 			return;
 
 		var sHelpText = "";
@@ -1327,7 +1320,7 @@ CInlineLevelSdt.prototype.SetContentControlPr = function(oPr)
 
 	oPr.SetToContentControl(this);
 
-	if (this.IsForm())
+	if (this.IsAutoFitContent())
 		this.GetLogicDocument().CheckFormAutoFit(this);
 };
 CInlineLevelSdt.prototype.GetContentControlPr = function()
@@ -1519,7 +1512,7 @@ CInlineLevelSdt.prototype.ToggleCheckBox = function(isChecked)
 		return;
 
 	var oLogicDocument = this.GetLogicDocument();
-	if (oLogicDocument || this.IsRadioButton() || this.GetFormKey())
+	if (oLogicDocument && (this.IsRadioButton() || this.GetFormKey()))
 		oLogicDocument.OnChangeForm(this.IsRadioButton() ? this.Pr.CheckBox.GroupKey : this.GetFormKey(), this);
 
 	if (undefined === isChecked && this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
@@ -2636,6 +2629,17 @@ CInlineLevelSdt.prototype.ConvertFormToFixed = function()
 	oParent.RemoveFromContent(nPosInParent, 1, true);
 	oParent.AddToContent(nPosInParent, oRun, true);
 
+	if (this.IsAutoFitContent())
+		oLogicDocument.CheckFormAutoFit(this);
+
+	var oTextPr = this.GetTextFormPr();
+	if (oTextPr && oTextPr.GetMultiLine())
+	{
+		var oNewTextPr = oTextPr.Copy();
+		oNewTextPr.SetMultiLine(false);
+		this.SetTextFormPr(oNewTextPr);
+	}
+
 	return oParaDrawing;
 };
 CInlineLevelSdt.prototype.ConvertFormToInline = function()
@@ -2684,6 +2688,14 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 		oParent.RemoveFromContent(nPosInParent, 1, true);
 		oRun.RemoveFromContent(nInRunPos, 1);
 		oRunParent.AddToContent(nInRunParentPos, this, true);
+	}
+
+	var oTextPr = this.GetTextFormPr();
+	if (oTextPr && oTextPr.GetMultiLine())
+	{
+		var oNewTextPr = oTextPr.Copy();
+		oNewTextPr.SetMultiLine(false);
+		this.SetTextFormPr(oNewTextPr);
 	}
 
 	return true;

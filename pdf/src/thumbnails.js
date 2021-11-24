@@ -54,8 +54,8 @@
         selectColorWidth : 3,
 
         isDrawCurrentRect : true,
-        drawCurrentColor : "#FF0000",
-        drawCurrentWidth : 1
+        drawCurrentColor : "#888888",
+        drawCurrentWidth : 2
     };
 
     var ThumbnailsStyle = {
@@ -182,7 +182,7 @@
             if (pixR <= pixX) return;
             if (pixB <= pixY) return;
 
-            var lineW = Math.max(1, (PageStyle.drawCurrentColor * AscCommon.AscBrowser.retinaPixelRatio) >> 0);
+            var lineW = Math.max(1, (PageStyle.drawCurrentWidth * AscCommon.AscBrowser.retinaPixelRatio) >> 0);
             var offsetW = 0.5 * lineW;
 
             ctx.lineWidth = lineW;

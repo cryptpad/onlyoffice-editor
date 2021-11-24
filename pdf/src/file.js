@@ -109,6 +109,11 @@
         return image;
 	};
 
+    CFile.prototype.getLinks = function(pageIndex)
+    {
+        return this.nativeFile ? this.nativeFile["getLinks"](pageIndex) : [];
+    };
+
     CFile.prototype.GetNearestPos = function(pageIndex, x, y)
     {
         var _line = -1;
@@ -433,6 +438,11 @@ void main() {\n\
         }
     };
 
+    CFile.prototype.isNeedPassword = function()
+    {
+        return this.nativeFile ? this.nativeFile["isNeedPassword"]() : false;
+    };
+
     window["AscViewer"] = window["AscViewer"] || {};
 
     window["AscViewer"]["baseUrl"] = (typeof document !== 'undefined' && document.currentScript) ? "" : "./../src/engine/";
@@ -442,7 +452,8 @@ void main() {\n\
     {
         var file = new CFile();
         file.nativeFile = new window["AscViewer"]["CDrawingFile"]();
-        if (file.nativeFile["loadFromData"](data))
+        var error = file.nativeFile["loadFromData"](data);
+        if (0 === error)
         {
             file.nativeFile.onRepaintPages = function(pages) {
                 file.onRepaintPages && file.onRepaintPages(pages);
@@ -460,9 +471,35 @@ void main() {\n\
             file.cacheManager = new AscCommon.CCacheManager(); 
             return file;   
         }
+        else if (4 === error)
+        {
+            return file;
+        }
         
         file.close();
         return null;
+    };
+
+    window["AscViewer"].setFilePassword = function(file, password)
+    {
+        var error = file.nativeFile["loadFromDataWithPassword"](password);
+        if (0 === error)
+        {
+            file.nativeFile.onRepaintPages = function(pages) {
+                file.onRepaintPages && file.onRepaintPages(pages);
+            };
+            file.pages = file.nativeFile["getPages"]();
+
+            for (var i = 0, len = file.pages.length; i < len; i++)
+            {
+                var page = file.pages[i];
+                page.W = page["W"];
+                page.H = page["H"];
+                page.Dpi = page["Dpi"];
+            }
+
+            file.cacheManager = new AscCommon.CCacheManager();
+        }
     };
 
 })(window, undefined);

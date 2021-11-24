@@ -305,8 +305,8 @@
 											<canvas id="ws-canvas-overlay"></canvas>\
 											<canvas id="ws-canvas-graphic"></canvas>\
 											<canvas id="ws-canvas-graphic-overlay"></canvas>\
-											<canvas id="id_target_cursor" class="block_elem" width="1" height="1"\
-												style="width:2px;height:13px;display:none;z-index:9;"></canvas>\
+											<div id="id_target_cursor" class="block_elem" width="1" height="1"\
+												style="width:2px;height:13px;display:none;z-index:9;"></div>\
 										</div>';
 		}
 
@@ -1579,7 +1579,7 @@
     }
   };
   WorkbookView.prototype._onPivotCollapseClick = function(idPivotCollapse) {
-    if (!idPivotCollapse) {
+    if (!idPivotCollapse || idPivotCollapse.hidden) {
       return;
     }
     var pivotTable = this.model.getPivotTableById(idPivotCollapse.id);
@@ -1742,7 +1742,7 @@
       t.Api.cleanSpelling(true);
 
       t.updateTargetForCollaboration();
-      t.sendCursor();
+      t.sendCursor(true);
 
       asc_applyFunction(callback, true);
     };
@@ -1812,7 +1812,21 @@
   };
 
   WorkbookView.prototype._onEmpty = function() {
-    this.getWorksheet().emptySelection(c_oAscCleanOptions.Text);
+	  var ws = this.getWorksheet();
+	  if (ws) {
+		  var doDelete = function (success) {
+			  if (success) {
+				  ws.emptySelection(c_oAscCleanOptions.Text);
+			  }
+		  };
+		  var selection = ws._getSelection();
+		  var ranges = selection && selection.ranges;
+		  if (!ws.objectRender.selectedGraphicObjectsExists()) {
+			  ws.checkProtectRangeOnEdit(ranges, doDelete);
+		  } else {
+			  doDelete(true);
+		  }
+	  }
   };
 
   WorkbookView.prototype._onShowNextPrevWorksheet = function(direction) {
@@ -2204,7 +2218,7 @@
     return this.drawingCtx.getZoom();
   };
 
-  WorkbookView.prototype.changeZoom = function(factor) {
+  WorkbookView.prototype.changeZoom = function(factor, changeZoomOnPrint) {
   	if (factor === this.getZoom()) {
       return;
     }
@@ -2244,7 +2258,8 @@
       if (!factor) {
       	item._initWorksheetDefaultWidth();
 	  }
-      item.changeZoom(/*isDraw*/i == activeIndex);
+	  //changeZoomOnPrint - добавляю, поскольку при конвертации файлов есть проблемы. проверить, возможно отрисовка тоже не нужна
+      item.changeZoom(/*isDraw*/i == activeIndex, changeZoomOnPrint);
       this._reInitGraphics();
       item.objectRender.changeZoom(this.drawingCtx.scaleFactor);
       if (i == activeIndex && factor) {
@@ -2564,7 +2579,16 @@
    WorkbookView.prototype.checkCopyToClipboard = function(_clipboard, _formats) {
     var t = this, ws;
     ws = t.getWorksheet();
-    g_clipboardExcel.checkCopyToClipboard(ws, _clipboard, _formats);
+	if (ws && ws.model && ws.model.getSheetProtection() && AscCommon.g_clipboardBase.bCut) {
+		var selection = ws._getSelection();
+		var selectionRanges = selection ? selection.ranges : null;
+		if (selectionRanges && ws.model.isIntersectLockedRanges(selectionRanges)) {
+			//this.handlers.trigger("onErrorEvent", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+			return false;
+		}
+	}
+
+	g_clipboardExcel.checkCopyToClipboard(ws, _clipboard, _formats);
   };
 
   WorkbookView.prototype.pasteData = function(_format, data1, data2, text_data, doNotShowButton) {
@@ -2604,13 +2628,22 @@
 		if (this.getCellEditMode()) {
 			this.cellEditor.cutSelection();
 		} else {
-			if (this.getWorksheet().isNeedSelectionCut()) {
-				this.getWorksheet().emptySelection(c_oAscCleanOptions.All, true);
+			var ws = this.getWorksheet();
+			if (ws && ws.model && ws.model.getSheetProtection() && AscCommon.g_clipboardBase.bCut) {
+				var selection = ws._getSelection();
+				var selectionRanges = selection ? selection.ranges : null;
+				if (selectionRanges && ws.model.isIntersectLockedRanges(selectionRanges)) {
+					this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+					return false;
+				}
+			}
+			if (ws.isNeedSelectionCut()) {
+				ws.emptySelection(c_oAscCleanOptions.All, true);
 			} else {
 				//в данном случае не вырезаем, а записываем
-				if(false === this.getWorksheet().isMultiSelect()) {
-					this.cutIdSheet = this.getWorksheet().model.Id;
-					this.getWorksheet().cutRange = this.getWorksheet().model.selectionRange.getLast();
+				if(false === ws.isMultiSelect()) {
+					this.cutIdSheet = ws.model.Id;
+					ws.cutRange = ws.model.selectionRange.getLast();
 				}
 			}
 		}
@@ -3045,15 +3078,15 @@
 		//приходится несколько раз выполнять действия, чтобы ppi выставился правильно
 		//если не делать init, то не сбросится ppi от системного зума - смотри функцию DrawingContext.prototype.changeZoom
 		if (viewZoom !== 1) {
-			this.changeZoom(1);
+			this.changeZoom(1, true);
 		}
-		this.changeZoom(null);
+		this.changeZoom(null, true);
 
 		runFunction();
 
 		AscCommon.AscBrowser.retinaPixelRatio = trueRetinaPixelRatio;
-		this.changeZoom(null);
-		this.changeZoom(viewZoom);
+		this.changeZoom(null, true);
+		this.changeZoom(viewZoom, true);
 	};
 
   WorkbookView.prototype._calcPagesPrintSheet = function (index, printPagesData, onlySelection, adjustPrint) {
@@ -4028,9 +4061,9 @@
 		}
 	};
 
-	WorkbookView.prototype.sendCursor = function () {
+	WorkbookView.prototype.sendCursor = function (needSend) {
 		var CurTime = new Date().getTime();
-		if (true === this.NeedUpdateTargetForCollaboration && (CurTime - this.LastUpdateTargetTime > 1000))
+		if (needSend || (true === this.NeedUpdateTargetForCollaboration && (CurTime - this.LastUpdateTargetTime > 1000)))
 		{
 			this.NeedUpdateTargetForCollaboration = false;
 			var HaveChanges = History.Have_Changes(true);
@@ -4085,7 +4118,7 @@
 		}
 
 		var Changes = new AscCommon.CCollaborativeChanges();
-		var Reader = Changes.GetStream(selectionInfo, 0, selectionInfo.length);
+		var Reader = Changes.GetStream(selectionInfo);
 
 		var sheetId = Reader.GetString2();
 		var isEdit = Reader.GetBool();
