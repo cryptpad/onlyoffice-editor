@@ -6951,7 +6951,7 @@
 				new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
 				new_height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
 
-				element.style.imageRendering = "pixelated";
+				element.style["imageRendering"] = "pixelated";
 			}
 			else
 			{
