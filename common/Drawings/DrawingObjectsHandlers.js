@@ -1271,6 +1271,10 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
     var bIsMobileVersion = oApi && oApi.isMobileVersion;
     if(drawing.hit(x, y))
     {
+        if(drawingObjectsController.isObjectsProtected() && drawing.getProtectionLocked())
+        {
+            return false;
+        }
         var bClickFlag =  !window["IS_NATIVE_EDITOR"] && (drawingObjectsController.handleEventMode === AscFormat.HANDLE_EVENT_MODE_CURSOR || e.ClickCount < 2);
         var selector = group ? group : drawingObjectsController;
         var legend = drawing.getLegend();

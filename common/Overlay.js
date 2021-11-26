@@ -3132,11 +3132,6 @@ CAutoshapeTrack.prototype =
         {
             this.ArrowCanvas = this.CreateArrowCanvas();
         }
-        var oCanvas = this.ArrowCanvas;
-        var cntx = oCanvas.getContext('2d');
-        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-        cntx.clearRect(0, 0, oCanvas.width, oCanvas.height)
-        this.m_oOverlay.drawArrow(cntx, 0, 0, Math.round(4 * rPR), {r: 147, g: 147, b: 147}, true);
         return this.ArrowCanvas;
     },
     GetRotatedArrowCanvas: function()

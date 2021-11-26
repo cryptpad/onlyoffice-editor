@@ -1905,9 +1905,12 @@ DrawingObjectsController.prototype =
             return false;
         }
         var aSelectedObjects = this.getSelectedArray();
+        var oSelectedObject;
         for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx)
         {
-            if(aSelectedObjects[nIdx].isProtectedText())
+            oSelectedObject = aSelectedObjects[nIdx];
+            if(oSelectedObject.isProtectedText() ||
+                oSelectedObject.getObjectType() === AscDFH.historyitem_type_ChartSpace && oSelectedObject.isProtected())
             {
                 var bSendEvent = bNoSendEvent !== true;
                 bSendEvent && this.getEditorApi().sendEvent("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
@@ -8353,6 +8356,14 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.bFromImage = props.shapeChartProps.bFromImage;
             shape_props.ShapeProperties.lockAspect = props.shapeChartProps.lockAspect;
             shape_props.ShapeProperties.anchor = props.shapeChartProps.anchor;
+
+            shape_props.ShapeProperties.protectionLockText = props.shapeChartProps.protectionLockText;
+            shape_props.ShapeProperties.protectionLocked = props.shapeChartProps.protectionLocked;
+            shape_props.ShapeProperties.protectionPrint = props.shapeChartProps.protectionPrint;
+
+            shape_props.protectionLockText = props.shapeChartProps.protectionLockText;
+            shape_props.protectionLocked = props.shapeChartProps.protectionLocked;
+            shape_props.protectionPrint = props.shapeChartProps.protectionPrint;
 
             if(props.shapeChartProps.paddings)
             {

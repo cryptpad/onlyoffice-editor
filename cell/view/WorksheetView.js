@@ -22685,10 +22685,14 @@
 				}
 			}
 		}
-        var oObjectRender = this.objectRender;
-        if(oObjectRender && oObjectRender.controller) {
-            oObjectRender.OnUpdateOverlay();
-            oObjectRender.controller.updateSelectionState(true);
+        if(this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+            this._endSelectionShape();
+        } else {
+            var oObjectRender = this.objectRender;
+            if(oObjectRender && oObjectRender.controller) {
+                oObjectRender.OnUpdateOverlay();
+                oObjectRender.controller.updateSelectionState(true);
+            }
         }
 		this.draw();
 	};
