@@ -1589,6 +1589,9 @@ CGraphics.prototype =
 
     DrawHeaderEdit : function(yPos, lock_type, sectionNum, bIsRepeat, type)
     {
+        var isShapeDraw = this.isShapeDraw;
+        this.isShapeDraw = true;
+
         var _y = this.m_oFullTransform.TransformPointY(0,yPos);
         _y = (_y >> 0) + 0.5;
         var _x = 0;
@@ -1613,10 +1616,8 @@ CGraphics.prototype =
             case locktype_None:
             case locktype_Mine:
             {
-                //this.p_color(155, 187, 277, 255);
-                //ctx.lineWidth = 2;
-                // GlobalSkin.RulerOutline
-                this.p_color(0xBB, 0xBE, 0xC2, 255);
+                var c = AscCommon.RgbaHexToRGBA(GlobalSkin.RulerOutline);
+                this.p_color(c.R, c.G, c.B, 255);
                 ctx.lineWidth = _lineWidth;
                 break;
             }
@@ -1683,10 +1684,15 @@ CGraphics.prototype =
 
         if (false == bIsNoIntGrid)
             this.SetIntegerGrid(false);
+
+        this.isShapeDraw = isShapeDraw;
     },
 
     DrawFooterEdit : function(yPos, lock_type, sectionNum, bIsRepeat, type)
     {
+        var isShapeDraw = this.isShapeDraw;
+        this.isShapeDraw = true;
+
         var _y = this.m_oFullTransform.TransformPointY(0,yPos);
         _y = (_y >> 0) + 0.5;
         var _x = 0;
@@ -1707,10 +1713,8 @@ CGraphics.prototype =
             case locktype_None:
             case locktype_Mine:
             {
-                //this.p_color(155, 187, 277, 255);
-                //ctx.lineWidth = 2;
-                // GlobalSkin.RulerOutline
-                this.p_color(0xBB, 0xBE, 0xC2, 255);
+                var c = AscCommon.RgbaHexToRGBA(GlobalSkin.RulerOutline);
+                this.p_color(c.R, c.G, c.B, 255);
                 ctx.lineWidth = _lineWidth;
                 break;
             }
@@ -1779,6 +1783,8 @@ CGraphics.prototype =
 
         if (false == bIsNoIntGrid)
             this.SetIntegerGrid(false);
+
+        this.isShapeDraw = isShapeDraw;
     },
 
     DrawLockParagraph : function(lock_type, x, y1, y2)
