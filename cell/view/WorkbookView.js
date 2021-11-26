@@ -280,6 +280,8 @@
     this.NeedUpdateTargetForCollaboration = true;
     this.LastUpdateTargetTime = 0;
 
+	this.printPreviewState = new AscCommonExcel.CPrintPreviewState(this);
+
     return this;
   }
 
@@ -3087,6 +3089,38 @@
 		AscCommon.AscBrowser.retinaPixelRatio = trueRetinaPixelRatio;
 		this.changeZoom(null, true);
 		this.changeZoom(viewZoom, true);
+	};
+
+	WorkbookView.prototype.printSheetPrintPreview = function(index) {
+		var printPreviewState = this.printPreviewState;
+		var page = printPreviewState.getPage(index);
+		var printPreviewContext = printPreviewState.getCtx();
+
+		if (page) {
+			page = page.clone();
+		}
+
+		var kF = printPreviewState.pageZoom;
+		//TODO 1 -
+		if (page) {
+			page.leftFieldInPx = Math.floor(page.leftFieldInPx * kF)  - 1;
+			page.pageClipRectHeight = Math.ceil(page.pageClipRectHeight * kF) + 2;
+			page.pageClipRectLeft = Math.floor(page.pageClipRectLeft * kF);
+			page.pageClipRectTop = Math.floor(page.pageClipRectTop * kF);
+			page.pageClipRectWidth = Math.ceil(page.pageClipRectWidth * kF) + 2;
+			page.topFieldInPx = Math.floor(page.topFieldInPx * kF) - 1;
+		}
+
+		printPreviewContext.clear();
+		var ws;
+		if (!page) {
+			// Печать пустой страницы
+			ws = this.getWorksheet();
+			ws.drawForPrint(printPreviewContext, null);
+		} else {
+			ws = this.getWorksheet(page.indexWorksheet);
+			ws.drawForPrint(printPreviewContext, page, index, printPreviewState.getPagesLength());
+		}
 	};
 
   WorkbookView.prototype._calcPagesPrintSheet = function (index, printPagesData, onlySelection, adjustPrint) {
