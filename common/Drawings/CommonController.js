@@ -1920,6 +1920,16 @@ DrawingObjectsController.prototype =
         return false;
     },
 
+    checkPasteInText: function(fCallback)
+    {
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            fCallback(false);
+            return;
+        }
+        this.checkSelectedObjectsAndCallback2(fCallback);
+    },
+
     handleTextHit: function(object, e, x, y, group, pageIndex, bWord)
     {
         var content, invert_transform_text, tx, ty, hit_paragraph, par, check_hyperlink;
