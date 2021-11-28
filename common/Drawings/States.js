@@ -1709,6 +1709,7 @@ TextAddState.prototype =
             this.drawingObjects.drawingObjects.showDrawingObjects();
             if(this.drawingObjects.isSlideShow())
             {
+                cursor_type.hyperlink.Visited = true;
                 oApi.sync_HyperlinkClickCallback(cursor_type.hyperlink.Value);
             }
         }

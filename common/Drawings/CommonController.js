@@ -731,7 +731,8 @@ DrawingObjectsController.prototype =
 
     checkDrawingHyperlinkAndMacro: function(drawing, e, hit_in_text_rect, x, y, pageIndex){
         var oApi = this.getEditorApi();
-        if(!oApi){
+        if(!oApi)
+        {
             return;
         }
 
@@ -763,54 +764,126 @@ DrawingObjectsController.prototype =
 
 
         var oNvPr;
-        if(this.document || this.drawingObjects && this.drawingObjects.cSld){
-            if(/*e.CtrlKey*/true){
-                oNvPr = drawing.getCNvProps();
-                if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
-                    if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
-                        if(e.CtrlKey || this.isSlideShow()){
-                            var oAnimPlayer = this.getAnimationPlayer();
-                            if(oAnimPlayer) {
-                                oAnimPlayer.onSpClick(drawing);
-                            }
-                            editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
-                            return true;
-                        }
-                    }
-                    else{
-                        var ret = {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
-                        if( !(this.noNeedUpdateCursorType === true))
+        if(this.document || this.drawingObjects && this.drawingObjects.cSld)
+        {
+            var bCheckTextHyperlink = false;
+            if(this.isSlideShow())
+            {
+                bCheckTextHyperlink = true;
+            }
+            var sHyperlink = null;
+            var sTooltip = "";
+            var oTextHyperlink;
+            var bRedrawFrame = false;
+            if(bCheckTextHyperlink)
+            {
+                if(hit_in_text_rect)
+                {
+                    oTextHyperlink = fCheckObjectHyperlink(drawing, x, y);
+                    if(oTextHyperlink &&
+                        typeof oTextHyperlink.Value === "string" &&
+                        oTextHyperlink.Value.length > 0)
+                    {
+                        sHyperlink = oTextHyperlink.GetValue();
+                        sTooltip = oTextHyperlink.GetToolTip() || "";
+                        if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                         {
-                            var oDD = editor &&  editor.WordControl && editor.WordControl.m_oDrawingDocument;
-                            if(oDD){
-                                var MMData         = new AscCommon.CMouseMoveData();
-                                var Coords         = oDD.ConvertCoordsToCursorWR(x, y, pageIndex, null);
-                                MMData.X_abs       = Coords.X;
-                                MMData.Y_abs       = Coords.Y;
-                                MMData.Type      = Asc.c_oAscMouseMoveDataTypes.Hyperlink;
-                                MMData.Hyperlink = new Asc.CHyperlinkProperty({Text: null, Value: oNvPr.hlinkClick.id, ToolTip: oNvPr.hlinkClick.tooltip, Class: null});
-                                if(this.isSlideShow())
-                                {
-                                    ret.cursorType = "pointer";
-                                    MMData.Hyperlink = null;
-                                    oDD.SetCursorType("pointer", MMData);
-                                }
-                                else
-                                {
-                                    editor.sync_MouseMoveCallback(MMData);
-                                    if(hit_in_text_rect)
-                                    {
-                                        var sCursorType = e.CtrlKey ? "pointer" : "text";
-                                        ret.cursorType = sCursorType;
-                                        oDD.SetCursorType(sCursorType, MMData);
-                                    }
-                                }
-
-                                ret.updated = true;
+                            var bOldVisitedValue = oTextHyperlink.GetVisited();
+                            oTextHyperlink.SetVisited(true);
+                            if(!bOldVisitedValue)
+                            {
+                                bRedrawFrame = true;
                             }
                         }
-                        return ret;
                     }
+                }
+            }
+            if(sHyperlink === null)
+            {
+                oNvPr = drawing.getCNvProps();
+                if(oNvPr
+                    && oNvPr.hlinkClick
+                    && typeof oNvPr.hlinkClick.id === "string"
+                    && oNvPr.hlinkClick.id.length > 0)
+                {
+                    sHyperlink = oNvPr.hlinkClick.id;
+                    sTooltip = oNvPr.hlinkClick.tooltip || "";
+                }
+            }
+            oNvPr = drawing.getCNvProps();
+            if(sHyperlink !== null)
+            {
+                if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+                {
+                    if(e.CtrlKey || this.isSlideShow())
+                    {
+                        if(this.isSlideShow())
+                        {
+                            var oAnimPlayer = this.getAnimationPlayer();
+                            if(oAnimPlayer)
+                            {
+                                oAnimPlayer.onSpClick(drawing);
+                                if(bRedrawFrame)
+                                {
+                                    var sId;
+                                    if(!drawing.group)
+                                    {
+                                        sId = drawing.Get_Id();
+                                    }
+                                    else
+                                    {
+                                        var oMainGroup = drawing.getMainGroup();
+                                        if(oMainGroup)
+                                        {
+                                            sId = oMainGroup.Get_Id();
+                                        }
+                                        else
+                                        {
+                                            sId = drawing.Get_Id();
+                                        }
+                                    }
+                                    oAnimPlayer.clearObjectTexture(sId);
+                                    oAnimPlayer.onRecalculateFrame();
+                                }
+                            }
+                        }
+                        editor.sync_HyperlinkClickCallback(sHyperlink);
+                        return true;
+                    }
+                }
+                else{
+                    var ret = {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
+                    if( !(this.noNeedUpdateCursorType === true))
+                    {
+                        var oDD = editor &&  editor.WordControl && editor.WordControl.m_oDrawingDocument;
+                        if(oDD){
+                            var MMData         = new AscCommon.CMouseMoveData();
+                            var Coords         = oDD.ConvertCoordsToCursorWR(x, y, pageIndex, null);
+                            MMData.X_abs       = Coords.X;
+                            MMData.Y_abs       = Coords.Y;
+                            MMData.Type      = Asc.c_oAscMouseMoveDataTypes.Hyperlink;
+                            MMData.Hyperlink = new Asc.CHyperlinkProperty({Text: null, Value: sHyperlink, ToolTip: sTooltip, Class: null});
+                            if(this.isSlideShow())
+                            {
+                                ret.cursorType = "pointer";
+                                MMData.Hyperlink = null;
+                                oDD.SetCursorType("pointer", MMData);
+                            }
+                            else
+                            {
+                                editor.sync_MouseMoveCallback(MMData);
+                                if(hit_in_text_rect)
+                                {
+                                    var sCursorType = e.CtrlKey ? "pointer" : "text";
+                                    ret.cursorType = sCursorType;
+                                    oDD.SetCursorType(sCursorType, MMData);
+                                }
+                            }
+
+                            ret.updated = true;
+                        }
+                    }
+                    return ret;
                 }
             }
         }

@@ -7897,6 +7897,9 @@
             }
         }
     };
+    CAnimationDrawer.prototype.clearObjectTexture = function(sId) {
+        this.texturesCache.removeTexture(sId);
+    };
 
     function CAnimationPlayer(oSlide, drawer) {
         this.slide = oSlide;
@@ -8094,6 +8097,9 @@
     };
     CAnimationPlayer.prototype.getExternalEvent = function() {
       return this.eventsProcessor.getExternalEvent();
+    };
+    CAnimationPlayer.prototype.clearObjectTexture = function(sId) {
+        this.animationDrawer.clearObjectTexture(sId);
     };
 
     var DEFAULT_SIMPLE_TRIGGER = function() {

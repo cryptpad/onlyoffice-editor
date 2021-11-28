@@ -414,7 +414,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     var hit_in_inner_area = drawing.hitInInnerArea && drawing.hitInInnerArea(x, y);
     var hit_in_path = drawing.hitInPath && drawing.hitInPath(x, y);
     var hit_in_text_rect = drawing.hitInTextRect && drawing.hitInTextRect(x, y);
-    if(hit_in_inner_area || hit_in_path)
+    if(hit_in_inner_area || hit_in_path || hit_in_text_rect)
     {
         if(drawingObjectsController.checkDrawingHyperlinkAndMacro){
             var ret =  drawingObjectsController.checkDrawingHyperlinkAndMacro(drawing, e, hit_in_text_rect, x, y, pageIndex);
@@ -516,7 +516,7 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
     var hit_in_path = shape.hitInPath && shape.hitInPath(x, y);
     var hit_in_text_rect = shape.hitInTextRect && shape.hitInTextRect(x, y);
     var ret;
-    if(hit_in_inner_area || hit_in_path)
+    if(hit_in_inner_area || hit_in_path || hit_in_text_rect)
     {
         if(drawingObjectsController.checkDrawingHyperlinkAndMacro){
             var ret =  drawingObjectsController.checkDrawingHyperlinkAndMacro(shape, e, hit_in_text_rect, x, y, pageIndex);

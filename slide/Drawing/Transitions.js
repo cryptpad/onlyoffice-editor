@@ -3588,6 +3588,10 @@ function CDemonstrationManager(htmlpage)
             {
                 _x -= ((oThis.HtmlPage.m_oMainParent.AbsolutePosition.L * g_dKoef_mm_to_pix) >> 0);
             }
+            if(oThis.HtmlPage.m_oApi.isEmbedVersion)
+            {
+                _y -= oThis.HtmlPage.Y;
+            }
 
             _x = _x * _w_mm / _w;
             _y = _y * _h_mm / _h;
