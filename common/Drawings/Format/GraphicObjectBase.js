@@ -623,7 +623,7 @@
     };
     CGraphicObjectBase.prototype.setClientData = function(oClientData)
     {
-        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_ShapeSetClientData, this.clientdata, oClientData));
+        History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ShapeSetClientData, this.clientData, oClientData));
         this.clientData = oClientData;
     };
     CGraphicObjectBase.prototype.checkClientData = function()
@@ -643,7 +643,7 @@
             return this.group.getProtectionLocked();
         }
         if(!this.clientData) {
-            return false;
+            return true;
         }
         return this.clientData.fLocksWithSheet !== false;
     };
