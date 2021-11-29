@@ -9089,15 +9089,6 @@ DrawingObjectsController.prototype =
     {
         if(typeof Asc.asc_CParagraphProperty !== "undefined" && !(props instanceof Asc.asc_CParagraphProperty))
         {
-            if(this.checkSelectedObjectsProtection())
-            {
-                return;
-            }
-            var aAdditionalObjects = null;
-            if(AscFormat.isRealNumber(props.Width) && AscFormat.isRealNumber(props.Height)){
-                aAdditionalObjects = this.getConnectorsForCheck2();
-            }
-            var bNoSendProperties = AscCommon.isRealObject(props.SlicerProperties);
             var oApplyProps = null;
             if(props)
             {
@@ -9110,6 +9101,27 @@ DrawingObjectsController.prototype =
                     oApplyProps = props;
                 }
             }
+
+            if(oApplyProps && oApplyProps.textArtProperties)
+            {
+                if(this.checkSelectedObjectsProtectionText())
+                {
+                    return;
+                }
+            }
+            else
+            {
+                if(this.checkSelectedObjectsProtection())
+                {
+                    return;
+                }
+            }
+            var aAdditionalObjects = null;
+            if(AscFormat.isRealNumber(props.Width) && AscFormat.isRealNumber(props.Height)){
+                aAdditionalObjects = this.getConnectorsForCheck2();
+            }
+            var bNoSendProperties = AscCommon.isRealObject(props.SlicerProperties);
+
             var bUpdateSelection = false;
             if(oApplyProps &&  (oApplyProps.textArtProperties && typeof oApplyProps.textArtProperties.asc_getForm() === "string"  || oApplyProps.ChartProperties))
             {
