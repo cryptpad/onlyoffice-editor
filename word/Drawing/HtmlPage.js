@@ -199,6 +199,8 @@ function CEditorPage(api)
 	this.IsUpdateOverlayOnlyEndReturn = false;
 	this.IsUpdateOverlayOnEndCheck    = false;
 
+	this.IsRepaintOnCallbackLongAction = false;
+
 	this.m_oApi = api;
 	var oThis   = this;
 
@@ -3321,7 +3323,14 @@ function CEditorPage(api)
 			isNoPaint = false;
 
 		if (isNoPaint)
+		{
+			if (false === this.IsRepaintOnCallbackLongAction)
+			{
+				this.m_oApi.checkLongActionCallback(this.OnScroll.bind(this), true);
+			}
+			this.IsRepaintOnCallbackLongAction = true;
 			return;
+		}
 
 		if (this.DrawingFreeze || true === window["DisableVisibleComponents"])
 		{
@@ -3503,8 +3512,11 @@ function CEditorPage(api)
 		oThis.m_oLogicDocument.ContinueCheckSpelling();
 		oThis.m_oLogicDocument.ContinueTrackRevisions();
 	};
-	this.OnScroll       = function()
+	this.OnScroll       = function(isFromLA)
 	{
+		if (isFromLA)
+			this.IsRepaintOnCallbackLongAction = false;
+
 		this.OnCalculatePagesPlace();
 		this.m_bIsScroll = true;
 	};

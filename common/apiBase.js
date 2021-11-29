@@ -2157,7 +2157,7 @@
 		}
 		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
 
-		}, 0);
+		}, 0, true);
 
 		this.sendEvent('asc_onInitStandartTextures', arr);
 	};

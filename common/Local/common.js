@@ -163,7 +163,7 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 	}
 
 	var file = new AscCommon.OpenFileResult();
-	file.data = getBinaryArray(_data, _len);
+	file.data = (0 === _data.indexOf("binary_content://")) ? new Uint8Array(window["AscDesktopEditor"]["GetOpenedFile"](_data)) : getBinaryArray(_data, _len);
 	file.bSerFormat = AscCommon.checkStreamSignature(file.data, AscCommon.c_oSerFormat.Signature);
 	file.url = _url;
 	editor.openDocument(file);
