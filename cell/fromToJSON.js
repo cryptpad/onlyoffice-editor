@@ -112,13 +112,19 @@
 		for (var nDrawing = 0; nDrawing < oWorksheet.Drawings.length; nDrawing++)
 			aDrawings.push(this.SerDrawingExel(oWorksheet.Drawings[nDrawing]));
 
+		var aHyperlinks = [];
+		var aWorksheetLinks = oWorksheet.worksheet.hyperlinkManager.getAll();
+		for (var nHyperlink = 0; nHyperlink < aWorksheetLinks.length; nHyperlink++)
+			aHyperlinks.push(this.SerHyperlinkExel(aWorksheetLinks[nHyperlink]));
+
 		return {
 			autoFilter:            this.SerAutoFilter(oWorksheet.AutoFilter),
 			cols:                  aCols,
 			conditionalFormatting: this.SerCondFormatting(),
 			dataValidations:       this.SerDataValidations(oWorksheet.dataValidations),
 			drawings:              aDrawings,      
-
+			headerFooter:          null, /// всегда лежит объект CHeaderFooterData
+			hiperlinks:            aHyperlinks ///
 
 		}
 	};

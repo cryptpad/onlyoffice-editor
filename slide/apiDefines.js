@@ -380,11 +380,6 @@ var c_oAscSlideTLColorSpaceType = {
 	Hsl: 1
 };
 /** @enum {number} */
-var c_oAscSlideTLColorDirection = {
-	Ccw: 0,
-	Cw:  1
-};
-/** @enum {number} */
 var c_oAscSlideTLOriginType = {
 	Parent: 0,
 	Layout: 1
@@ -438,18 +433,6 @@ var c_oAscBlendModeType = {
 	Mult:    2,
 	Over:    3,
 	Screen:  4
-};
-/** @enum {number} */
-var c_oAscRectAlignType = {
-	b:   0,
-	bl:  1,
-	br:  2,
-	ctr: 3,
-	l:   4,
-	r:   5,
-	t:   6,
-	tl:  7,
-	tr:  8
 };
 /** @enum {number} */
 var c_oAscPresetShadowVal = {

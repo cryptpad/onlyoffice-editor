@@ -3974,7 +3974,7 @@
 				return new ApiBlockLvlSdt(oReader.BlockLvlSdtFromJSON(oParsedObj));
 			case "table":
 				return new ApiTable(oReader.TableFromJSON(oParsedObj));
-			case "drawing":
+			case "paraDrawing":
 				return new ApiDrawing(oReader.DrawingFromJSON(oParsedObj));
 			case "nextPage":
 			case "oddPage":

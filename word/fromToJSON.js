@@ -106,31 +106,31 @@
 		var sAlgnType = undefined;
 		switch (nAlgnType) 
 		{
-			case c_oAscRectAlignType.b:
+			case AscCommon.c_oAscRectAlignType.b:
 				sAlgnType = "b";
 				break;
-			case c_oAscRectAlignType.bl:
+			case AscCommon.c_oAscRectAlignType.bl:
 				sAlgnType = "bl";
 				break;
-			case c_oAscRectAlignType.br:
+			case AscCommon.c_oAscRectAlignType.br:
 				sAlgnType = "br";
 				break;
-			case c_oAscRectAlignType.ctr:
+			case AscCommon.c_oAscRectAlignType.ctr:
 				sAlgnType = "ctr";
 				break;
-			case c_oAscRectAlignType.l:
+			case AscCommon.c_oAscRectAlignType.l:
 				sAlgnType = "l";
 				break;
-			case c_oAscRectAlignType.r:
+			case AscCommon.c_oAscRectAlignType.r:
 				sAlgnType = "r";
 				break;
-			case c_oAscRectAlignType.t:
+			case AscCommon.c_oAscRectAlignType.t:
 				sAlgnType = "t";
 				break;
-			case c_oAscRectAlignType.tl:
+			case AscCommon.c_oAscRectAlignType.tl:
 				sAlgnType = "tl";
 				break;
-			case c_oAscRectAlignType.tr:
+			case AscCommon.c_oAscRectAlignType.tr:
 				sAlgnType = "tr";
 				break;
 		}
@@ -143,31 +143,31 @@
 		switch (sAlgnType) 
 		{
 			case "b":
-				nAlgnType = c_oAscRectAlignType.b;
+				nAlgnType = AscCommon.c_oAscRectAlignType.b;
 				break;
 			case "bl":
-				nAlgnType = c_oAscRectAlignType.bl;
+				nAlgnType = AscCommon.c_oAscRectAlignType.bl;
 				break;
 			case "br":
-				nAlgnType = c_oAscRectAlignType.br;
+				nAlgnType = AscCommon.c_oAscRectAlignType.br;
 				break;
 			case "ctr":
-				nAlgnType = c_oAscRectAlignType.ctr;
+				nAlgnType = AscCommon.c_oAscRectAlignType.ctr;
 				break;
 			case "l":
-				nAlgnType = c_oAscRectAlignType.l;
+				nAlgnType = AscCommon.c_oAscRectAlignType.l;
 				break;
 			case "r":
-				nAlgnType = c_oAscRectAlignType.r;
+				nAlgnType = AscCommon.c_oAscRectAlignType.r;
 				break;
 			case "t":
-				nAlgnType = c_oAscRectAlignType.t;
+				nAlgnType = AscCommon.c_oAscRectAlignType.t;
 				break;
 			case "tl":
-				nAlgnType = c_oAscRectAlignType.tl;
+				nAlgnType = AscCommon.c_oAscRectAlignType.tl;
 				break;
 			case "tr":
-				nAlgnType = c_oAscRectAlignType.tr;
+				nAlgnType = AscCommon.c_oAscRectAlignType.tr;
 				break;
 		}
 
@@ -425,11 +425,11 @@
 		if (!oGraphicObj)
 			return null;
 
-		if (oGraphicObj.isChart())
+		if (oGraphicObj instanceof AscFormat.CChartSpace)
 			return this.SerChartSpace(oGraphicObj, aComplexFieldsToSave);
-		else if (oGraphicObj.isImage())
+		else if (oGraphicObj instanceof AscFormat.CImageShape)
 			return this.SerImage(oGraphicObj, aComplexFieldsToSave);
-		else if (oGraphicObj.isShape())
+		else if (oGraphicObj instanceof AscFormat.CShape)
 		{
 			if (oGraphicObj.constructor.name === "CConnectionShape")
 			{
@@ -441,10 +441,724 @@
 			else
 				return this.SerShape(oGraphicObj, aComplexFieldsToSave);
 		}
-		else if (oGraphicObj.isTable())
+		else if (oGraphicObj instanceof AscFormat.CGraphicFrame)
 			return this.SerGraphicFrame(oGraphicObj);
+		else if (oGraphicObj instanceof AscFormat.SmartArt)
+			return this.SerSmartArt(oGraphicObj);
 			
 		return null;
+	};
+	WriterToJSON.prototype.SerSmartArt = function(oSmartArt)
+	{
+		return {
+			colorsDef: this.SerColorsDef(oSmartArt.colorsDef),
+			dataModel: this.SerData(oSmartArt.dataModel, "diagramData"),
+			layoutDef: this.SerLayoutDef(oSmartArt.layoutDef),
+			styleDef:  this.SerStyleDef(oSmartArt.styleDef),
+			drawing:   this.SerDrawing(oSmartArt.drawing),
+			nvGrpSpPr: this.SerUniNvPr(oSmartArt.nvGrpSpPr),
+			spPr:      this.SerSpPr(oSmartArt.spPr),
+			type:      "smartArt"
+		}
+	};
+	WriterToJSON.prototype.SerStyleDef = function(oStyleDef)
+	{
+		if (!oStyleDef)
+			return oStyleDef;
+
+		var aStyleLbl = [];
+		for (var nStyle = 0; nStyle < oStyleDef.styleLbl.length; nStyle++)
+			aStyleLbl.push(this.SerDefStyleLbl(oStyleDef.styleLbl[nStyle]));
+
+		return {
+			catLst:     this.SerCatLst(oStyleDef.catLst),
+			desc:       this.SerDesc(oStyleDef.desc, "desc"),
+			scene3d:    this.SerScene3d(oStyleDef.scene3d),
+			styleLbl:   aStyleLbl,
+			minVer:     oStyleDef.minVer,
+			title:      this.SerDesc(oStyleDef.title, "diagramTitle"),
+			uniqueId:   oStyleDef.uniqueId
+		}
+	};
+	WriterToJSON.prototype.SerDefStyleLbl = function(oDefStyleLbl)
+	{
+		if (!oDefStyleLbl)
+			return oDefStyleLbl;
+
+		return {
+			scene3d: this.SerScene3d(oDefStyleLbl.scene3d),
+			sp3d:    this.SerSp3D(oDefStyleLbl.sp3d),
+			style:   this.SerSpStyle(oDefStyleLbl.style),
+			txPr:    this.SerTxPr(oDefStyleLbl.txPr),
+			name:    oDefStyleLbl.name
+		}
+	};
+	WriterToJSON.prototype.SerSp3D = function(oSp3D)
+	{
+		if (!oSp3D)
+			return oSp3D;
+
+		return {
+			bevelB:       this.SerBevel(oSp3D.bevelB),
+			bevelT:       this.SerBevel(oSp3D.bevelT),
+			contourClr:   this.SerContourClr(oSp3D.contourClr),
+			extrusionClr: this.SerExtrusionClr(oSp3D.extrusionClr),
+			contourW:     oSp3D.contourW,
+			extrusionH:   oSp3D.extrusionH,
+			prstMaterial: To_XML_ST_PresetMaterialType(oSp3D.prstMaterial),
+			z:            oSp3D.z
+		}
+	};
+	WriterToJSON.prototype.SerExtrusionClr = function(oExtrusionClr)
+	{
+		if (!oExtrusionClr)
+			return oExtrusionClr;
+
+		return {
+			color: this.SerColor(oExtrusionClr.color)
+		}
+	};
+	WriterToJSON.prototype.SerContourClr = function(oContourClr)
+	{
+		if (!oContourClr)
+			return oContourClr;
+
+		return {
+			color: this.SerColor(oContourClr.color)
+		}
+	};
+	WriterToJSON.prototype.SerBevel = function(oBevel)
+	{
+		if (!oBevel)
+			return oBevel;
+
+		return {
+			h:    oBevel.h,
+			prst: To_XML_ST_BevelPresetType(oBevel.prst),
+			w:    oBevel.w
+		}
+	};
+	WriterToJSON.prototype.SerScene3d = function(oScene3d)
+	{
+		if (!oScene3d)
+			return oScene3d;
+
+		return {
+			backdrop: this.SerBackdrop(oScene3d.backdrop),
+			camera:   this.SerCamera(oScene3d.camera),
+			lightRig: this.SerLightRig(oScene3d.lightRig)
+		}
+	};
+	WriterToJSON.prototype.SerLightRig = function(oLightRig)
+	{
+		if (!oLightRig)
+			return oLightRig;
+
+		return {
+			rot: this.SerCameraRot(oLightRig.rot),
+			dir: To_XML_ST_LightRigDirection(oLightRig.dir),
+			rig: To_XML_ST_LightRigType(oLightRig.rig)
+		}
+	};
+	WriterToJSON.prototype.SerCamera = function(oCamera)
+	{
+		if (!oCamera)
+			return oCamera;
+
+		return {
+			rot:  this.SerCameraRot(oCamera.rot),
+			fov:  oCamera.fov,
+			prst: To_XML_ST_PresetCameraType(oCamera.prst),
+			zoom: oCamera.zoom
+		}
+	};
+	WriterToJSON.prototype.SerCameraRot = function(oCameraRot)
+	{
+		if (!oCameraRot)
+			return oCameraRot;
+
+		return {
+			lat: oCameraRot.lat,
+			lon: oCameraRot.lon,
+			rev: oCameraRot.rev
+		}
+	};
+	WriterToJSON.prototype.SerBackdrop = function(oBackdrop)
+	{
+		if (!oBackdrop)
+			return oBackdrop;
+
+		return {
+			anchor: { // function BackdropAnchor() 
+				x: oBackdrop.anchor.x,
+				y: oBackdrop.anchor.y,
+				z: oBackdrop.anchor.z
+			},
+			norm: { // function BackdropNorm() 
+				dx: oBackdrop.norm.dx,
+				dy: oBackdrop.norm.dy,
+				dz: oBackdrop.norm.dz
+			},
+			up: { // function BackdropUp() 
+				dx: oBackdrop.up.dx,
+				dy: oBackdrop.up.dy,
+				dz: oBackdrop.up.dz
+			}
+		}
+	};
+	WriterToJSON.prototype.SerLayoutDef = function(oLayoutDef)
+	{
+		if (!oLayoutDef)
+			return oLayoutDef;
+
+		return {
+			catLst:     this.SerCatLst(oLayoutDef.catLst),
+			clrData:    this.SerData(oLayoutDef.clrData, "clrData"),
+			defStyle:   oLayoutDef.oLayoutDef,
+			desc:       this.SerDesc(oLayoutDef.desc, "desc"),
+			layoutNode: this.SerLayoutNode(oLayoutDef.layoutNode),
+			minVer:     oLayoutDef.minVer,
+			sampData:   this.SerData(oLayoutDef.sampData, "sampData"),
+			styleData:  this.SerData(oLayoutDef.styleData, "styleData"),
+			title:      this.SerDesc(oLayoutDef.title, "diagramTitle"),
+			uniqueId:   oLayoutDef.uniqueId
+		}
+	};
+	WriterToJSON.prototype.SerLayoutNode = function(oLayoutNode)
+	{
+		if (!oLayoutNode)
+			return oLayoutNode;
+
+		var aItems = [];
+		for (var nItem = 0; nItem < oLayoutNode.list.length; nItem++)
+			aItems.push(this.SerNodeItem(oLayoutNode.list[nItem]));
+
+		return {
+			chOrder:  To_XML_ST_ChildOrderType(oLayoutNode.chOrder),
+			moveWith: oLayoutNode.moveWith,
+			name:     oLayoutNode.name,
+			styleLbl: oLayoutNode.styleLbl,
+			list:     aItems,
+			objType:  "layoutNode"
+		}
+	};
+	WriterToJSON.prototype.SerNodeItem = function(oNodeItem)
+	{
+		if (oNodeItem instanceof AscFormat.Alg)
+			return this.SerAlg(oNodeItem);
+		if (oNodeItem instanceof AscFormat.Choose)
+			return this.SerChoose(oNodeItem);
+		if (oNodeItem instanceof AscFormat.ConstrLst)
+			return this.SerConstrLst(oNodeItem);
+		if (oNodeItem instanceof AscFormat.ForEach)
+			return this.SerForEach(oNodeItem);
+		if (oNodeItem instanceof AscFormat.LayoutNode)
+			return this.SerLayoutNode(oNodeItem);
+		if (oNodeItem instanceof AscFormat.PresOf)
+			return this.SerPresOf(oNodeItem);
+		if (oNodeItem instanceof AscFormat.RuleLst)
+			return this.SerRuleLst(oNodeItem);
+		if (oNodeItem instanceof AscFormat.SShape)
+			return this.SerSShape(oNodeItem);
+		if (oNodeItem instanceof AscFormat.VarLst)
+			return this.SerVarLst(oNodeItem);
+	};
+	WriterToJSON.prototype.SerSShape = function(oSShape)
+	{
+		return {
+			blip:      oSShape.blip,
+			blipPhldr: oSShape.blipPhldr,
+			hideGeom:  oSShape.hideGeom,
+			lkTxEntry: oSShape.lkTxEntry,
+			rot:       oSShape.rot,
+			type:      To_XML_ST_LayoutShapeType(oSShape.type),
+			zOrderOff: oSShape.zOrderOff,
+			adjLst:    this.SerAdjLst(oSShape.adjLst),
+			objType:   "sshape"
+		}
+	};
+	WriterToJSON.prototype.SerAdjLst = function(oSerAdjLst)
+	{
+		var aSerAdjLst = [];
+		for (var nRule = 0; nRule < oSerAdjLst.list.length; nRule++)
+			aSerAdjLst.push(this.SerAdj(oSerAdjLst.list[nRule]));
+
+		return {
+			list: aSerAdjLst
+		};
+	};
+	WriterToJSON.prototype.SerAdj = function(oSerAdj)
+	{
+		return {
+			idx: oSerAdj.idx,
+			val: oSerAdj.val
+		};
+	};
+	WriterToJSON.prototype.SerRuleLst = function(oRuleLst)
+	{
+		var aRuleLst = [];
+		for (var nRule = 0; nRule < oRuleLst.list.length; nRule++)
+			aRuleLst.push(this.SerRule(oRuleLst.list[nRule]));
+
+		return {
+			list:    aRuleLst,
+			objType: "ruleLst"
+		};
+	};
+	WriterToJSON.prototype.SerRule = function(oRule)
+	{
+		return {
+			fact:    oRule.fact,
+			for:     To_XML_ST_ConstraintRelationship(oRule.for),
+			forName: oRule.forName,
+			max:     oRule.max,
+			ptType:  this.SerBaseFormatObj(oRule.ptType, "element"),
+			type:    To_XML_ST_ConstraintType(oRule.type),
+			val:     oRule.val
+		}
+	};
+	WriterToJSON.prototype.SerPresOf = function(oPresOf)
+	{
+		var oResult        = this.SerIteratorAttributes(oPresOf);
+		oResult["objType"] = "presOf";
+
+		return oResult;
+	};
+	WriterToJSON.prototype.SerForEach = function(oForEach)
+	{
+		var aNodeItems = [];
+		for (var nItem = 0; nItem < oForEach.list.length; nItem++)
+			aNodeItems.push(this.SerNodeItem(oForEach.list[nItem]));
+
+		var oResult = this.SerIteratorAttributes(oForEach);
+
+		oResult["list"]    = aNodeItems;
+		oResult["name"]    = oForEach.name;
+		oResult["ref"]     = oForEach.ref;
+		oResult["objType"] = "forEach";
+
+		return oResult;
+	};
+	WriterToJSON.prototype.SerChoose = function(oChoose)
+	{
+		var aIf = [];
+		for (var nIf = 0; nIf < oChoose.if.length; nIf++)
+			aIf.push(this.SerIf(oChoose.if[nIf]));
+
+		return {
+			name:    oChoose.name,
+			if:      aIf,
+			else:    this.SerElse(oChoose.else),
+			objType: "choose"
+		}
+	};
+	WriterToJSON.prototype.SerIf = function(oIf)
+	{
+		var aNodeItems = [];
+		for (var nItem = 0; nItem < oIf.list.length; nItem++)
+			aNodeItems.push(this.SerNodeItem(oIf.list[nItem]));
+
+		var oResult = this.SerIteratorAttributes(oIf);
+
+		oResult["list"] = aNodeItems;
+		oResult["arg"]  = To_XML_ST_VariableType(oIf.arg);
+		oResult["func"] = To_XML_ST_FunctionType(oIf.func);
+		oResult["name"] = oIf.name;
+		oResult["op"]   = To_XML_ST_FunctionOperator(oIf.op);
+		oResult["val"]  = oIf.val;
+
+		return oResult;
+	};
+	WriterToJSON.prototype.SerElse = function(oElse)
+	{
+		var aNodeItems = [];
+		for (var nItem = 0; nItem < oElse.list.length; nItem++)
+			aNodeItems.push(this.SerNodeItem(oElse.list[nItem]));
+
+		return {
+			list: aNodeItems,
+			name: oElse.name
+		}
+	};
+	WriterToJSON.prototype.SerIteratorAttributes = function(oIteratorAttributes)
+	{
+		var aAxis = [];
+		for (var nAxie = 0; nAxie < oIteratorAttributes.axis.length; nAxie++)
+			aAxis.push(this.SerBaseFormatObj(oIteratorAttributes.axis[nAxie], "axie"));
+		
+		var aCnt = [];
+		for (var nCnt = 0; nCnt < oIteratorAttributes.cnt.length; nCnt++)
+			aCnt.push(oIteratorAttributes.cnt[nCnt]);
+
+		var aHideLastTrans = [];
+		for (var nItem = 0; nItem < oIteratorAttributes.hideLastTrans.length; nItem++)
+			aHideLastTrans.push(oIteratorAttributes.hideLastTrans[nItem]);
+
+		var aPtTypes = [];
+		for (var nPtType = 0; nPtType < oIteratorAttributes.ptType.length; nPtType++)
+			aPtTypes.push(this.SerBaseFormatObj(oIteratorAttributes.ptType[nPtType], "element"));
+
+		var aSt = [];
+		for (var nSt = 0; nSt < oIteratorAttributes.st.length; nSt++)
+			aSt.push(oIteratorAttributes.st[nSt]);
+		
+		var aStep = [];
+		for (var nStep = 0; nStep < oIteratorAttributes.step.length; nStep++)
+			aStep.push(this.oIteratorAttributes.step[nStep]);
+			
+		return {
+			axis:          aAxis,
+			cnt:           aCnt,
+			hideLastTrans: aHideLastTrans,
+			ptType:        aPtTypes,
+			st:            aSt,
+			step:          aStep
+		}
+	};
+	WriterToJSON.prototype.SerConstrLst = function(oConstrLst)
+	{
+		var aContsLst = [];
+		for (var nItem = 0; nItem < oConstrLst.list.length; nItem++)
+			aContsLst.push(this.SerConstr(oConstrLst.list[nItem]));
+
+		return {
+			list:    aContsLst,
+			objType: "constrLst"
+		}
+	};
+	WriterToJSON.prototype.SerConstr = function(oConstr)
+	{
+		return {
+			fact:       oConstr.fact,
+			for:        To_XML_ST_ConstraintRelationship(oConstr.for),
+			forName:    oConstr.forName,
+			op:         To_XML_ST_BoolOperator(oConstr.op),
+			ptType:     this.SerBaseFormatObj(oConstr.ptType, "element"),
+			refFor:     To_XML_ST_ConstraintRelationship(oConstr.refFor),
+			refForName: oConstr.refForName,
+			refPtType:  this.SerBaseFormatObj(oConstr.refPtType, "element"),
+			refType:    To_XML_ST_ConstraintType(oConstr.refType),
+			type:       To_XML_ST_ConstraintType(oConstr.type),
+			val:        oConstr.val,
+			type:       "constrLst"
+		}
+	};
+	WriterToJSON.prototype.SerAlg = function(oAlg)
+	{
+		var aParams = [];
+		for (var nParam = 0; nParam < oAlg.param.length; nParam++)
+			aParams.push(this.SerAlgParam(oAlg.param[nParam]));
+
+		return {
+			param:   aParams,
+			rev:     oAlg.rev,
+			type:    To_XML_ST_AlgorithmType(oAlg.type),
+			objType: "alg"
+		}
+	};
+	WriterToJSON.prototype.SerAlgParam = function(oAlgParam)
+	{
+		return {
+			type: To_XML_ST_ParameterId(oAlgParam.type),
+			val:  oAlgParam.val
+		}
+	};
+	WriterToJSON.prototype.SerData = function(oData, sType)
+	{
+		if (!oData)
+			return oData;
+
+		var oResult = {
+			dataModel: this.SerDataModel(oData.dataModel),
+			type:      sType
+		}
+		
+		switch (sType)
+		{
+			case "diagramData":
+				break;
+			case "styleData":
+			case "clrData":
+			case "sampData":
+				oResult.useDef = oData.useDef;
+				break;
+		} 
+
+		return oResult;
+	};
+	WriterToJSON.prototype.SerDataModel = function(oDataModel)
+	{
+		if (!oDataModel)
+			return oDataModel;
+
+		return {
+			bg:     this.SerBgFormat(oDataModel.bg),
+			cxnLst: this.SerCxnLst(oDataModel.cxnLst),
+			ptLst:  this.SerPtLst(oDataModel.ptLst),
+			whole:  this.SerWhole(oDataModel.whole)
+		}
+	};
+	WriterToJSON.prototype.SerWhole = function(oWhole)
+	{
+		if (!oWhole)
+			return oWhole;
+
+		return {
+			effectLst: oWhole.effect ? this.SerEffectLst(oWhole.effect.EffectLst) : oWhole.effect,
+			effectDag: oWhole.effect ? this.SerEffectDag(oWhole.effect.EffectDag) : oWhole.effect,
+			ln: this.SerLn(oWhole.ln)
+		}
+	};
+	WriterToJSON.prototype.SerPtLst = function(oPtLst)
+	{
+		if (!oPtLst)
+			return oPtLst;
+
+		var aPtLst = [];
+		for (var nItem = 0; nItem < oPtLst.list.length; nItem++)
+			aPtLst.push(this.SerPt(oPtLst.list[nItem]));
+			
+		return {
+			list: aPtLst
+		}
+	};
+	WriterToJSON.prototype.SerPt = function(oPt)
+	{
+		return {
+			prSet:   this.SerPtPrSet(oPt.prSet),
+			spPr:    this.SerSpPr(oPt.spPr),
+			t:       this.SerTxPr(oPt.t),
+			cxnId:   oPt.cxnId,
+			modelId: oPt.modelId,
+			type:    To_XML_ST_PtType(oPt.type)
+		}
+	};
+	WriterToJSON.prototype.SerPtPrSet = function(oPtPrSet)
+	{
+		if (!oPtPrSet)
+			return oPtPrSet;
+
+		return {
+			coherent3DOff:        oPtPrSet.coherent3DOff,
+			csCatId:              oPtPrSet.csCatId,
+			csTypeId:             oPtPrSet.csTypeId,
+			custAng:              oPtPrSet.custAng,
+			custFlipHor:          oPtPrSet.custFlipHor,
+			custFlipVert:         oPtPrSet.custFlipVert,
+			custLinFactNeighborX: oPtPrSet.custLinFactNeighborX,
+			custLinFactNeighborY: oPtPrSet.custLinFactNeighborY,
+			custLinFactX:         oPtPrSet.coherentcustLinFactX3DOff,
+			custLinFactY:         oPtPrSet.custLinFactY,
+			custRadScaleInc:      oPtPrSet.custRadScaleInc,
+			custRadScaleRad:      oPtPrSet.custRadScaleRad,
+			custScaleX:           oPtPrSet.custScaleX,
+			custScaleY:           oPtPrSet.custScaleY,
+			custSzX:              oPtPrSet.custSzX,
+			custSzY:              oPtPrSet.custSzY,
+			custT:                oPtPrSet.custT,
+			loCatId:              oPtPrSet.loCatId,
+			loTypeId:             oPtPrSet.loTypeId,
+			phldr:                oPtPrSet.phldr,
+			phldrT:               oPtPrSet.phldrT,
+			presAssocID:          oPtPrSet.presAssocID,
+			presLayoutVars:       this.SerNodeItem(oPtPrSet.presLayoutVars),
+			presName:             oPtPrSet.presName,
+			presStyleCnt:         oPtPrSet.presStyleCnt,
+			presStyleIdx:         oPtPrSet.presStyleIdx,
+			presStyleLbl:         oPtPrSet.presStyleLbl,
+			qsCatId:              oPtPrSet.qsCatId,
+			qsTypeId:             oPtPrSet.qsTypeId,
+			style:                this.SerData(oPtPrSet.style, "styleData")
+		}
+	};
+	WriterToJSON.prototype.SerVarLst = function(oPresLayoutVars)
+	{
+		if (!oPresLayoutVars)
+			return oPresLayoutVars;
+
+		return {
+			animLvl:       this.SerBaseFormatObj(oPresLayoutVars.animLvl, "animLvl"),
+			animOne:       this.SerBaseFormatObj(oPresLayoutVars.animOne, "animOne"),
+			bulletEnabled: this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "bulletEnabled"),
+			chMax:         this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "chMax"),
+			chPref:        this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "chPref"),
+			dir:           this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "dir"),
+			hierBranch:    this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "hierBranch"),
+			orgChart:      this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "orgChart"),
+			resizeHandles: this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "resizeHandles"),
+			objType:       "varLst"
+		}
+	};
+	WriterToJSON.prototype.SerBaseFormatObj = function(oBaseFormatObj, sType)
+	{
+		if (!oBaseFormatObj)
+			return oBaseFormatObj;
+
+		var oResult = {
+			type: sType
+		};
+		switch (sType)
+		{
+			case "animLvl":
+				oResult["val"] = To_XML_ST_AnimLvlStr(oBaseFormatObj.val);
+				break;
+			case "animOne":
+				oResult["val"] = To_XML_ST_AnimOneStr(oBaseFormatObj.val);
+				break;
+			case "bulletEnabled":
+			case "chMax":
+			case "chPref":
+			case "orgChart":
+				oResult["val"] = oBaseFormatObj.val;
+				break;
+			case "dir":
+				oResult["val"] = To_XML_ST_Direction(oBaseFormatObj.val)
+				break;
+			case "hierBranch":
+				oResult["val"] = To_XML_ST_HierBranchStyle(oBaseFormatObj.val);
+				break;
+			case "resizeHandles":
+				oResult["val"] = To_XML_ST_ResizeHandlesStr(oBaseFormatObj.val);
+				break;
+			case "element":
+				oResult["val"] = To_XML_ST_ElementType(oBaseFormatObj.val);
+				break;
+			case "axie":
+				oResult["val"] = To_XML_ST_AxisType(oBaseFormatObj.val);
+				break;
+		} 
+
+		return oResult;
+	};
+	WriterToJSON.prototype.SerCxnLst = function(oCxnLst)
+	{
+		if (!oCxnLst)
+			return oCxnLst;
+
+		var aCxnLst = [];
+		for (var nItem = 0; nItem < oCxnLst.list.length; nItem++)
+			aCxnLst.push(this.SerCxn(oCxnLst.list[nItem]));
+			
+		return {
+			list: aCxnLst
+		}
+	};
+	WriterToJSON.prototype.SerCxn = function(oCxn)
+	{
+		return {
+			destId:     oCxn.destId,
+			destOrd:    oCxn.destOrd,
+			modelId:    oCxn.modelId,
+			parTransId: oCxn.parTransId,
+			presId:     oCxn.presId,
+			sibTransId: oCxn.sibTransId,
+			srcId:      oCxn.srcId,
+			srcOrd:     oCxn.srcOrd,
+			type:       oCxn.type
+		}
+	};
+	WriterToJSON.prototype.SerBgFormat = function(oBgFormat)
+	{
+		if (!oBgFormat)
+			return oBgFormat;
+
+		return {
+			effectLst: oBgFormat.effect ? this.SerEffectLst(oBgFormat.effect.EffectLst) : oBgFormat.effect,
+			effectDag: oBgFormat.effect ? this.SerEffectDag(oBgFormat.effect.EffectDag) : oBgFormat.effect,
+			fill: this.SerFill(oBgFormat.fill)
+		}
+	};
+	WriterToJSON.prototype.SerColorsDef = function(oColorsDef)
+	{
+		if (!oColorsDef)
+			return oColorsDef;
+
+		var aStyleLbl = [];
+		for (var nStyle = 0; nStyle < oColorsDef.styleLbl.length; nStyle++)
+			aStyleLbl.push(this.SerColorDefStyleLbl(oColorsDef.styleLbl[nStyle]));
+
+		return {
+			catLst:   this.SerCatLst(oColorsDef.catLst),
+			desc:     this.SerDesc(oColorsDef.desc, "desc"),
+			styleLbl: aStyleLbl,
+			title:    this.SerDesc(oColorsDef.title, "diagramTitle"),
+			minVer:   oColorsDef.minVer,
+			uniqueId: oColorsDef.uniqueId
+		}
+	};
+	WriterToJSON.prototype.SerColorDefStyleLbl = function(oStyleLbl)
+	{
+		if (!oStyleLbl)
+			return oStyleLbl;
+
+		return {
+			effectClrLst:   this.SerClrLst(oStyleLbl.effectClrLst, "effectClrLst"),
+			fillClrLst:     this.SerClrLst(oStyleLbl.fillClrLst, "fillClrLst"),
+			linClrLst:      this.SerClrLst(oStyleLbl.linClrLst, "linClrLst"),
+			txEffectClrLst: this.SerClrLst(oStyleLbl.txEffectClrLst, "txEffectClrLst"),
+			txFillClrLst:   this.SerClrLst(oStyleLbl.txFillClrLst, "txFillClrLst"),
+			txLinClrLst:    this.SerClrLst(oStyleLbl.txLinClrLst, "txLinClrLst"),
+			name:           oStyleLbl.name
+		}
+	};
+	WriterToJSON.prototype.SerClrLst = function(oClrLst, sType)
+	{
+		if (!oClrLst)
+			return oClrLst;
+
+		var aColors = [];
+		for (var nColor = 0; nColor < oClrLst.list.length; nColor++)
+			aColors.push(this.SerColor(oClrLst.list[nColor]));
+
+		return {
+			list:   aColors,
+			hueDir: To_XML_ST_HueDir(oClrLst.hueDir),
+			meth:   To_XML_ST_ClrAppMethod(oClrLst.meth),
+			type:   sType
+		}
+	};
+	WriterToJSON.prototype.SerDesc = function(oDesc, sType)
+	{
+		if (!oDesc)
+			return oDesc;
+
+		return {
+			lang: oDesc.lang,
+			val:  oDesc.val,
+			type: sType
+		}
+	};
+	WriterToJSON.prototype.SerCatLst = function(oCatLst)
+	{
+		if (!oCatLst)
+			return oCatLst;
+
+		var aCatLst = [];
+		for (var nCat = 0; nCat < oCatLst.list.length; nCat++)
+			aCatLst.push(this.SerSCat(oCatLst.list[nCat]));
+
+		return {
+			list: aCatLst
+		}
+	};
+	WriterToJSON.prototype.SerSCat = function(oSCat)
+	{
+		return {
+			pri:  oSCat.pri,
+			type: oSCat.type
+		}
+	};
+	WriterToJSON.prototype.SerDrawing = function(oDrawing)
+	{
+		var aSpTree = [];
+		for (var nDrawing = 0; nDrawing < oDrawing.spTree.length; nDrawing++)
+			aSpTree.push(this.SerGraphicObject(oDrawing.spTree[nDrawing]));
+
+		return {
+			spTree: aSpTree,
+			spPr:   this.SerSpPr(oDrawing.spPr),
+			type:   "drawing"
+		}
 	};
 	WriterToJSON.prototype.SerGraphicFrame = function(oGraphicFrame)
 	{
@@ -1841,7 +2555,7 @@
 					oColorObj  = {
 						rgba: {
 							red:   oColor.color.RGBA.R,
-							green:  oColor.color.RGBA.G,
+							green: oColor.color.RGBA.G,
 							blue:  oColor.color.RGBA.B,
 							alpha: oColor.color.RGBA.A 
 						},
@@ -3958,7 +4672,7 @@
 				case para_Drawing:
 				{
 					oRunObject["content"].push(sTempRunText);
-					oRunObject["content"].push(this.SerDrawing(Item));
+					oRunObject["content"].push(this.SerParaDrawing(Item));
 					sTempRunText = '';
 					break;
 				}
@@ -4113,7 +4827,7 @@
 			prevInfo: this.SerReviewInfo(oReviewInfo.PrevInfo)
 		}
 	};
-	WriterToJSON.prototype.SerDrawing = function(oDrawing, aComplexFieldsToSave)
+	WriterToJSON.prototype.SerParaDrawing = function(oDrawing, aComplexFieldsToSave)
 	{
 		var oDrawingObject = {
 			docPr:          this.SerCNvPr(oDrawing.docPr),
@@ -4135,7 +4849,7 @@
 			relativeHeight: oDrawing.RelativeHeight,
 			wrapType:       this.GetWrapStrType(oDrawing.wrappingType),
 			drawingType:    oDrawing.DrawingType === drawing_Inline ? "inline" : "anchor",
-			type:           "drawing"
+			type:           "paraDrawing"
 		};
 
 		return oDrawingObject;
@@ -7411,8 +8125,8 @@
 					oRun.AddInstrText(aContent[nElm].instr);
 					oCurComplexField.SetInstructionLine(aContent[nElm].instr);
 					break;
-				case "drawing":
-					var oDrawing = this.DrawingFromJSON(aContent[nElm]);
+				case "paraDrawing":
+					var oDrawing = this.ParaDrawingFromJSON(aContent[nElm]);
 					oRun.Add_ToContent(-1, oDrawing);
 					oDrawing.Set_Parent(oRun);
 					break;
@@ -10776,7 +11490,7 @@
 
 		return oTableStylePr;
 	};
-	ReaderFromJSON.prototype.DrawingFromJSON = function(oParsedDrawing)
+	ReaderFromJSON.prototype.ParaDrawingFromJSON = function(oParsedDrawing)
 	{
 		var oDrawing = new ParaDrawing(undefined, undefined, null, private_GetDrawingDocument(), private_GetLogicDocument(), null);
 		
@@ -10814,9 +11528,10 @@
 		oDrawing.Set_WrappingType(this.GetWrapNumType(oParsedDrawing.wrapType));
 		oDrawing.Set_DrawingType(oParsedDrawing.drawingType === "inline" ? drawing_Inline : drawing_Anchor);
 
-		var oGraphicObj = this.GraphicObjFromJSON(oParsedDrawing.graphic);
+		var oGraphicObj = this.GraphicObjFromJSON(oParsedDrawing.graphic, oDrawing);
 
-		oDrawing.Set_GraphicObject(oGraphicObj);
+		if (!oDrawing.GraphicObj)
+			oDrawing.Set_GraphicObject(oGraphicObj);
 		oDrawing.CheckWH();
 
 		return oDrawing;
@@ -10839,9 +11554,754 @@
 			case "graphicFrame":
 				oGraphicObj = this.GraphicFrameFromJSON(oParsedObj);
 				break;
+			case "smartArt":
+				oGraphicObj = this.SmartArtFromJSON(oParsedObj, oParent);
+				break;
+
 		}
 
 		return oGraphicObj;
+	};
+	ReaderFromJSON.prototype.SmartArtFromJSON = function(oParsedArt, oParentDrawing)
+	{
+		var oSmartArt = new AscFormat.SmartArt();
+
+		oParsedArt.colorsDef && oSmartArt.setColorsDef(this.ColorsDefFromJSON(oParsedArt.colorsDef));
+		oParsedArt.dataModel && oSmartArt.setDataModel(this.DataFromJSON(oParsedArt.dataModel));
+		oParsedArt.layoutDef && oSmartArt.setLayoutDef(this.LayoutDefFromJSON(oParsedArt.layoutDef));
+		oParsedArt.styleDef && oSmartArt.setStyleDef(this.StyleDefFromJSON(oParsedArt.styleDef));
+
+		oParsedArt.drawing && oSmartArt.setDrawing(this.DrawingFromJSON(oParsedArt.drawing));
+		oParsedArt.nvGrpSpPr && oSmartArt.setNvGrpSpPr(this.UniNvPrFromJSON(oParsedArt.nvGrpSpPr));
+		oParsedArt.spPr && oSmartArt.setSpPr(this.SpPrFromJSON(oParsedArt.spPr, oSmartArt));
+		
+		if (oParentDrawing)
+		{
+			oSmartArt.setParent(oParentDrawing);
+			oParentDrawing.Set_GraphicObject(oSmartArt);
+		}
+
+		oSmartArt.setBDeleted(false);
+		//oSmartArt.recalculate();
+		return oSmartArt;
+	};
+	ReaderFromJSON.prototype.DrawingFromJSON = function(oParsedDrawing)
+	{
+		var oDrawing = new AscFormat.Drawing();
+
+		for (var nDrawing = 0; nDrawing < oParsedDrawing.spTree.length; nDrawing++)
+			oDrawing.addToSpTree(oDrawing.spTree.length, this.GraphicObjFromJSON(oParsedDrawing.spTree[nDrawing]));
+
+		oParsedDrawing.spPr && oDrawing.setSpPr(this.SpPrFromJSON(oParsedDrawing.spPr));
+
+		oDrawing.setBDeleted(false);
+		//oDrawing.recalculate();
+		return oDrawing;
+	};
+	ReaderFromJSON.prototype.StyleDefFromJSON = function(oParsedStyleDef)
+	{
+		var oStyleDef = new AscFormat.StyleDef();
+
+		for (var nStyle = 0; nStyle < oParsedStyleDef.styleLbl.length; nStyle++)
+			oStyleDef.addToLstStyleLbl(oStyleDef.styleLbl.length, this.DefStyleLblFromJSON(oParsedStyleDef.styleLbl[nStyle]));
+
+		oParsedStyleDef.catLst && oStyleDef.setCatLst(this.CatLstFromJSON(oParsedStyleDef.catLst));
+		oParsedStyleDef.desc && oStyleDef.setDesc(this.DescFromJSON(oParsedStyleDef.desc));
+		oParsedStyleDef.scene3d && oStyleDef.setScene3d(this.Scene3dFromJSON(oParsedStyleDef.scene3d));
+		oParsedStyleDef.minVer != undefined && oStyleDef.setMinVer(oParsedStyleDef.minVer);
+		oParsedStyleDef.title && oStyleDef.setTitle(this.DescFromJSON(oParsedStyleDef.title));
+		oParsedStyleDef.uniqueId != undefined && oStyleDef.setUniqueId(oParsedStyleDef.uniqueId);
+
+		return oStyleDef;
+	};
+	ReaderFromJSON.prototype.DefStyleLblFromJSON = function(oParsedDefStyleLbl)
+	{
+		var oDefStyleLbl = new AscFormat.StyleDefStyleLbl();
+
+		oParsedDefStyleLbl.scene3d && oDefStyleLbl.setScene3d(this.Scene3dFromJSON(oParsedDefStyleLbl.scene3d));
+		oParsedDefStyleLbl.sp3d && oDefStyleLbl.setSp3d(this.Sp3DFromJSON(oParsedDefStyleLbl.sp3d));
+		oParsedDefStyleLbl.style && oDefStyleLbl.setStyle(this.SpStyleFromJSON(oParsedDefStyleLbl.style));
+		oParsedDefStyleLbl.txPr && oDefStyleLbl.setTxPr(this.TxPrFromJSON(oParsedDefStyleLbl.txPr));
+		oParsedDefStyleLbl.name != undefined && oDefStyleLbl.setName(oParsedDefStyleLbl.name);
+
+		return oDefStyleLbl;
+	};
+	ReaderFromJSON.prototype.Sp3DFromJSON = function(oParsedSp3D)
+	{
+		var oSp3D = new AscFormat.Sp3d();
+
+		oParsedSp3D.bevelB && oSp3D.setBevelB(this.BevelFromJSON(oParsedSp3D.bevelB));
+		oParsedSp3D.bevelT && oSp3D.setBevelT(this.BevelFromJSON(oParsedSp3D.bevelT));
+		oParsedSp3D.contourClr && oSp3D.setContourClr(this.ContourClrFromJSON(oParsedSp3D.contourClr));
+		oParsedSp3D.extrusionClr && oSp3D.setExtrusionClr(this.ExtrusionClrFromJSON(oParsedSp3D.extrusionClr));
+		oParsedSp3D.contourW != undefined && oSp3D.setContourW(oParsedSp3D.contourW);
+		oParsedSp3D.extrusionH != undefined && oSp3D.setExtrusionH(oParsedSp3D.extrusionH);
+		oParsedSp3D.prstMaterial != undefined && oSp3D.setPrstMaterial(From_XML_ST_PresetMaterialType(oParsedSp3D.prstMaterial));
+		oParsedSp3D.z != undefined && oSp3D.setZ(oParsedSp3D.z);
+
+		return oSp3D;
+	};
+	ReaderFromJSON.prototype.ExtrusionClrFromJSON = function(oParsedExtrusionClr)
+	{
+		var oExtrusionClr = new AscFormat.ExtrusionClr();
+
+		oParsedExtrusionClr.color && oExtrusionClr.setColor(this.ColorFromJSON(oParsedExtrusionClr.color));
+
+		return oExtrusionClr;
+	};
+	ReaderFromJSON.prototype.ContourClrFromJSON = function(oParsedContourClr)
+	{
+		var oContourClr = new AscFormat.ContourClr();
+
+		oParsedContourClr.color && oContourClr.setColor(this.ColorFromJSON(oParsedContourClr.color));
+
+		return oContourClr;
+	};
+	ReaderFromJSON.prototype.BevelFromJSON = function(oParsedBevel)
+	{
+		var oBevel = new AscFormat.Bevel();
+
+		oParsedBevel.h != undefined && oBevel.setH(oParsedBevel.h);
+		oParsedBevel.w != undefined && oBevel.setW(oParsedBevel.w);
+		oParsedBevel.prst != undefined && oBevel.setPrst(To_XML_ST_BevelPresetType(oParsedBevel.prst));
+
+		return oBevel;
+	};
+	ReaderFromJSON.prototype.Scene3dFromJSON = function(oParsedScene3d)
+	{
+		var oScene3d = new AscFormat.Scene3d();
+
+		oParsedScene3d.backdrop && oScene3d.setBackdrop(this.BackdropFromJSON(oParsedScene3d.backdrop));
+		oParsedScene3d.camera && oScene3d.setCamera(this.CameraFromJSON(oParsedScene3d.camera));
+		oParsedScene3d.lightRig && oScene3d.setLightRig(this.LightRigFromJSON(oParsedScene3d.lightRig));
+
+		return oScene3d;
+	};
+	ReaderFromJSON.prototype.LightRigFromJSON = function(oParsedLightRig)
+	{
+		var oLightRig = new AscFormat.LightRig();
+
+		oParsedLightRig.rot && oLightRig.setRot(this.CameraRotFromJSON(oParsedLightRig.rot));
+		oParsedLightRig.dir != undefined && oLightRig.setDir(From_XML_ST_LightRigDirection(oParsedLightRig.dir));
+		oParsedLightRig.rig != undefined && oLightRig.setRig(From_XML_ST_LightRigType(oParsedLightRig.rig));
+
+		return oLightRig;
+	};
+	ReaderFromJSON.prototype.CameraFromJSON = function(oParsedCamera)
+	{
+		var oCamera = new AscFormat.Camera();
+
+		oParsedCamera.rot && oCamera.setRot(this.CameraRotFromJSON(oParsedCamera.rot));
+		oParsedCamera.fov != undefined && oCamera.setFov(oParsedCamera.fov);
+		oParsedCamera.prst != undefined && oCamera.setPrst(From_XML_ST_PresetCameraType(oParsedCamera.prst));
+		oParsedCamera.zoom != undefined && oCamera.setZoom(oParsedCamera.zoom);
+		
+		return oCamera;
+	};
+	ReaderFromJSON.prototype.CameraRotFromJSON = function(oParsedCameraRot)
+	{
+		var oCameraRot = new AscFormat.Rot();
+
+		oParsedCameraRot.lat != undefined && oCameraRot.setLat(oParsedCameraRot.lat);
+		oParsedCameraRot.lon != undefined && oCameraRot.setLon(oParsedCameraRot.lon);
+		oParsedCameraRot.rev != undefined && oCameraRot.setRev(oParsedCameraRot.rev);
+
+		return oCameraRot;
+	};
+	ReaderFromJSON.prototype.BackdropFromJSON = function(oParsedBackdrop)
+	{
+		var oBackdrop = new AscFormat.Backdrop();
+
+		oBackdrop.setAnchor(this.BackdropAnchorFromJSON(oParsedBackdrop.anchor));
+		oBackdrop.setNorm(this.BackdropNormFromJSON(oParsedBackdrop.norm));
+		oBackdrop.setUp(this.BackdropUpFromJSON(oParsedBackdrop.up));
+
+		return oBackdrop;
+	};
+	ReaderFromJSON.prototype.BackdropUpFromJSON = function(oParsedBackdropUp)
+	{
+		var oBackdropUp = new AscFormat.BackdropUp();
+
+		oParsedBackdropUp.dx != undefined && oBackdropUp.setDx(oParsedBackdropUp.dx);
+		oParsedBackdropUp.dy != undefined && oBackdropUp.setDy(oParsedBackdropUp.dy);
+		oParsedBackdropUp.dz != undefined && oBackdropUp.setDz(oParsedBackdropUp.dz);
+
+		return oBackdropUp;
+	};
+	ReaderFromJSON.prototype.BackdropNormFromJSON = function(oParsedBackdropNorm)
+	{
+		var oBackdropNorm = new AscFormat.BackdropNorm();
+
+		oParsedBackdropNorm.dx != undefined && oBackdropNorm.setDx(oParsedBackdropNorm.dx);
+		oParsedBackdropNorm.dy != undefined && oBackdropNorm.setDy(oParsedBackdropNorm.dy);
+		oParsedBackdropNorm.dz != undefined && oBackdropNorm.setDz(oParsedBackdropNorm.dz);
+
+		return BackdropNorm;
+	};
+	ReaderFromJSON.prototype.BackdropAnchorFromJSON = function(oParsedBackdropAnchor)
+	{
+		var oBackdropAnchor = new AscFormat.BackdropAnchor();
+
+		oParsedBackdropAnchor.x != undefined && oBackdropAnchor.setX(oParsedBackdropAnchor.x);
+		oParsedBackdropAnchor.y != undefined && oBackdropAnchor.setY(oParsedBackdropAnchor.y);
+		oParsedBackdropAnchor.z != undefined && oBackdropAnchor.setZ(oParsedBackdropAnchor.z);
+
+		return oBackdropAnchor;
+	};
+	ReaderFromJSON.prototype.LayoutDefFromJSON = function(oParsedLayoutDef)
+	{
+		var oLayoutDef = new AscFormat.LayoutDef();
+
+		oParsedLayoutDef.catLst && oLayoutDef.setCatLst(this.CatLstFromJSON(oParsedLayoutDef.catLst));
+		oParsedLayoutDef.clrData && oLayoutDef.setClrData(this.DataFromJSON(oParsedLayoutDef.clrData));
+		oParsedLayoutDef.defStyle && oLayoutDef.setDefStyle(oParsedLayoutDef.defStyle);
+		oParsedLayoutDef.desc && oLayoutDef.setDesc(this.DescFromJSON(oParsedLayoutDef.desc));
+		oParsedLayoutDef.layoutNode && oLayoutDef.setLayoutNode(this.LayoutNodeFromJSON(oParsedLayoutDef.layoutNode));
+		oParsedLayoutDef.minVer && oLayoutDef.setMinVer(oParsedLayoutDef.minVer);
+		oParsedLayoutDef.sampData && oLayoutDef.setSampData(this.DataFromJSON(oParsedLayoutDef.sampData));
+		oParsedLayoutDef.styleData && oLayoutDef.setStyleData(this.DataFromJSON(oParsedLayoutDef.styleData));
+		oParsedLayoutDef.title && oLayoutDef.setTitle(this.DescFromJSON(oParsedLayoutDef.title));
+		oParsedLayoutDef.uniqueId && oLayoutDef.setUniqueId(oParsedLayoutDef.uniqueId);
+
+		return oLayoutDef;
+	};
+	ReaderFromJSON.prototype.DataFromJSON = function(oParsedData)
+	{
+		var oData = null;
+		switch (oParsedData.type)
+		{
+			case "diagramData":
+				oData = new AscFormat.DiagramData();
+				break;
+			case "styleData":
+				oData = new AscFormat.StyleData();
+				oParsedData.useDef != undefined && oData.setUseDef(oParsedData.useDef);
+				break;
+			case "clrData":
+				oData = new AscFormat.ClrData();
+				oParsedData.useDef != undefined && oData.setUseDef(oParsedData.useDef);
+				break;
+			case "sampData":
+				oData = new AscFormat.SampData();
+				oParsedData.useDef != undefined && oData.setUseDef(oParsedData.useDef);
+				break;
+		}
+
+		if (oData)
+			oParsedData.dataModel && oData.setDataModel(this.DataModelFromJSON(oParsedData.dataModel));
+
+		return oData;
+	};
+	ReaderFromJSON.prototype.DataModelFromJSON = function(oParsedDataModel)
+	{
+		var oDataModel = new AscFormat.DataModel();
+
+		oParsedDataModel.bg && oDataModel.setBg(this.BgFormatFromJSON(oParsedDataModel.bg));
+		oParsedDataModel.cxnLst && oDataModel.setCxnLst(this.CxnLstFromJSON(oParsedDataModel.cxnLst));
+		oParsedDataModel.ptLst && oDataModel.setPtLst(this.PtLstFromJSON(oParsedDataModel.ptLst));
+		oParsedDataModel.whole && oDataModel.setWhole(this.WholeFromJSON(oParsedDataModel.whole));
+
+		return oDataModel;
+	};
+	ReaderFromJSON.prototype.WholeFromJSON = function(oParsedWhole)
+	{
+		var oWhole = new AscFormat.Whole();
+
+		(oParsedWhole.effectDag || oParsedWhole.effectLst) && oWhole.setEffect(this.EffectPropsFromJSON(oParsedWhole.effectDag, oParsedWhole.effectLst));
+		oParsedWhole.whole && oWhole.setLn(this.LnFromJSON(oParsedWhole.whole));
+
+		return oWhole;
+	};
+	ReaderFromJSON.prototype.PtLstFromJSON = function(oParsedPtLst)
+	{
+		var oPtLst = new AscFormat.PtLst();
+
+		for (var nItem = 0; nItem < oParsedPtLst.list.length; nItem++)
+			oPtLst.addToLst(oPtLst.list.length, this.PtFromJSON(oParsedPtLst.list[nItem]));
+
+		return oPtLst;
+	};
+	ReaderFromJSON.prototype.PtFromJSON = function(oParsedPt)
+	{
+		var oPt = new AscFormat.Point();
+
+		oParsedPt.prSet && oPt.setPrSet(this.PtPrSetFromJSON(oParsedPt.prSet));
+		oParsedPt.spPr && oPt.setSpPr(this.SpPrFromJSON(oParsedPt.spPr));
+		oParsedPt.t && oPt.setT(this.TxPrFromJSON(oParsedPt.t));
+		oParsedPt.cxnId != undefined && oPt.setCxnId(oParsedPt.cxnId);
+		oParsedPt.modelId != undefined && oPt.setModelId(oParsedPt.modelId);
+		oParsedPt.type != undefined && oPt.setType(From_XML_ST_PtType(oParsedPt.type));
+
+		return oPt;
+	};
+	ReaderFromJSON.prototype.PtPrSetFromJSON = function(oParsedPtPrSet)
+	{
+		var oPtPrSet = new AscFormat.PrSet();
+
+		oParsedPtPrSet.coherent3DOff != undefined && oPtPrSet.setCoherent3DOff(oParsedPtPrSet.coherent3DOff);
+		oParsedPtPrSet.csCatId != undefined && oPtPrSet.setCsCatId(oParsedPtPrSet.csCatId);
+		oParsedPtPrSet.csTypeId != undefined && oPtPrSet.setCsTypeId(oParsedPtPrSet.csTypeId);
+		oParsedPtPrSet.custAng != undefined && oPtPrSet.setCustAng(oParsedPtPrSet.custAng);
+		oParsedPtPrSet.custFlipHor != undefined && oPtPrSet.setCustFlipHor(oParsedPtPrSet.custFlipHor);
+		oParsedPtPrSet.custFlipVert != undefined && oPtPrSet.setCustFlipVert(oParsedPtPrSet.custFlipVert);
+		oParsedPtPrSet.custLinFactNeighborX != undefined && oPtPrSet.setCustLinFactNeighborX(oParsedPtPrSet.custLinFactNeighborX);
+		oParsedPtPrSet.custLinFactNeighborY != undefined && oPtPrSet.setCustLinFactNeighborY(oParsedPtPrSet.custLinFactNeighborY);
+		oParsedPtPrSet.custLinFactX != undefined && oPtPrSet.setCustLinFactX(oParsedPtPrSet.custLinFactX);
+		oParsedPtPrSet.custLinFactY != undefined && oPtPrSet.setCustLinFactY(oParsedPtPrSet.custLinFactY);
+		oParsedPtPrSet.custRadScaleInc != undefined && oPtPrSet.setCustRadScaleInc(oParsedPtPrSet.custRadScaleInc);
+		oParsedPtPrSet.custRadScaleRad != undefined && oPtPrSet.setCustRadScaleRad(oParsedPtPrSet.custRadScaleRad);
+		oParsedPtPrSet.custScaleX != undefined && oPtPrSet.setCustScaleX(oParsedPtPrSet.custScaleX);
+		oParsedPtPrSet.custScaleY != undefined && oPtPrSet.setCustScaleY(oParsedPtPrSet.custScaleY);
+		oParsedPtPrSet.custSzX != undefined && oPtPrSet.setCustSzX(oParsedPtPrSet.custSzX);
+		oParsedPtPrSet.custSzY != undefined && oPtPrSet.setCustSzY(oParsedPtPrSet.custSzY);
+		oParsedPtPrSet.custT != undefined && oPtPrSet.setCustT(oParsedPtPrSet.custT);
+		oParsedPtPrSet.loCatId != undefined && oPtPrSet.setLoCatId(oParsedPtPrSet.loCatId);
+		oParsedPtPrSet.loTypeId != undefined && oPtPrSet.setLoTypeId(oParsedPtPrSet.loTypeId);
+		oParsedPtPrSet.phldr != undefined && oPtPrSet.setPhldr(oParsedPtPrSet.phldr);
+		oParsedPtPrSet.phldrT != undefined && oPtPrSet.setPhldrT(oParsedPtPrSet.phldrT);
+		oParsedPtPrSet.presAssocID != undefined && oPtPrSet.setPresAssocID(oParsedPtPrSet.presAssocID);
+		oParsedPtPrSet.presLayoutVars != undefined && oPtPrSet.setPresLayoutVars(this.NodeItemFromJSON(oParsedPtPrSet.presLayoutVars));
+		oParsedPtPrSet.presName != undefined && oPtPrSet.setPresName(oParsedPtPrSet.presName);
+		oParsedPtPrSet.presStyleCnt != undefined && oPtPrSet.setPresStyleCnt(oParsedPtPrSet.presStyleCnt);
+		oParsedPtPrSet.presStyleIdx != undefined && oPtPrSet.setPresStyleIdx(oParsedPtPrSet.presStyleIdx);
+		oParsedPtPrSet.presStyleLbl != undefined && oPtPrSet.setPresStyleLbl(oParsedPtPrSet.presStyleLbl);
+		oParsedPtPrSet.qsCatId != undefined && oPtPrSet.setQsCatId(oParsedPtPrSet.qsCatId);
+		oParsedPtPrSet.qsTypeId != undefined && oPtPrSet.setQsTypeId(oParsedPtPrSet.qsTypeId);
+		oParsedPtPrSet.style != undefined && oPtPrSet.setStyle(this.DataFromJSON(oParsedPtPrSet.style));
+
+		return oPtPrSet;
+	};
+	ReaderFromJSON.prototype.NodeItemFromJSON = function(oParsedNodeItem)
+	{
+		switch (oParsedNodeItem.objType)
+		{
+			case "alg":
+				return this.AlgFromJSON(oParsedNodeItem);
+			case "choose":
+				return this.ChooseFromJSON(oParsedNodeItem);
+			case "constrLst":
+				return this.ConstrLstFromJSON(oParsedNodeItem);
+			case "forEach":
+				return this.ForEachFromJSON(oParsedNodeItem);
+			case "layoutNode":
+				return this.LayoutNodeFromJSON(oParsedNodeItem);
+			case "presOf":
+				return this.PresOfFromJSON(oParsedNodeItem);
+			case "ruleLst":
+				return this.RuleLstFromJSON(oParsedNodeItem);
+			case "sshape":
+				return this.SShapeFromJSON(oParsedNodeItem);
+			case "varLst":
+				return this.VarLstFromJSON(oParsedNodeItem);
+			default:
+				return null;
+		}
+	};
+	ReaderFromJSON.prototype.SShapeFromJSON = function(oParsedSShape)
+	{
+		var oSShape = new AscFormat.SShape();
+
+		oParsedSShape.blip != undefined && oSShape.setBlip(oParsedSShape.blip);
+		oParsedSShape.blipPhldr != undefined && oSShape.setBlipPhldr(oParsedSShape.blipPhldr);
+		oParsedSShape.hideGeom != undefined && oSShape.setHideGeom(oParsedSShape.hideGeom);
+		oParsedSShape.lkTxEntry != undefined && oSShape.setLkTxEntry(oParsedSShape.lkTxEntry);
+		oParsedSShape.rot != undefined && oSShape.setRot(oParsedSShape.rot);
+		oParsedSShape.type != undefined && oSShape.setType(From_XML_ST_LayoutShapeType(oParsedSShape.type));
+		oParsedSShape.zOrderOff != undefined && oSShape.setZOrderOff(oParsedSShape.zOrderOff);
+		oParsedSShape.adjLst != undefined && oSShape.setAdjLst(this.AdjLstFromJSON(oParsedSShape.adjLst));
+
+		return oSShape;
+	};
+	ReaderFromJSON.prototype.AdjLstFromJSON = function(oParsedAdjLst)
+	{
+		var oAdjLst = new AscFormat.AdjLst();
+
+		for (var nItem = 0; nItem < oParsedAdjLst.list.length; nItem++)
+			oAdjLst.addToLst(oAdjLst.list.length, this.AdjFromJSON(oParsedAdjLst.list[nItem]));
+		
+		return oAdjLst;
+	};
+	ReaderFromJSON.prototype.AdjFromJSON = function(oParsedAdj)
+	{
+		var oAdj = new AscFormat.Adj();
+
+		oParsedAdj.idx != undefined && oAdj.setIdx(oParsedAdj.idx);
+		oParsedAdj.val != undefined && oAdj.setVal(oParsedAdj.val);
+
+		return oAdj;
+	};
+	ReaderFromJSON.prototype.RuleLstFromJSON = function(oParsedRuleLst)
+	{
+		var oRuleLst = new AscFormat.RuleLst();
+
+		for (var nItem = 0; nItem < oParsedRuleLst.list.length; nItem++)
+			oRuleLst.addToLst(oRuleLst.list.length, this.RuleFromJSON(oParsedRuleLst.list[nItem]));
+
+		return oRuleLst;
+	};
+	ReaderFromJSON.prototype.RuleFromJSON = function(oParsedRule)
+	{
+		var oRule = new AscFormat.Rule();
+
+		oParsedRule.fact != undefined && oRule.setFact(oParsedRule.fact);
+		oParsedRule.for != undefined && oRule.setFor(From_XML_ST_ConstraintRelationship(oParsedRule.for));
+		oParsedRule.forName != undefined && oRule.setForName(oParsedRule.forName);
+		oParsedRule.max != undefined && oRule.setMax(oParsedRule.max);
+		oParsedRule.ptType != undefined && oRule.setPtType(this.BaseFormatObjFromJSON(oParsedRule.ptType));
+		oParsedRule.type != undefined && oRule.setType(From_XML_ST_ConstraintType(oParsedRule.type));
+		oParsedRule.val != undefined && oRule.setVal(oParsedRule.val);
+
+		return oRule;
+	};
+	ReaderFromJSON.prototype.PresOfFromJSON = function(oParsedPresOf)
+	{
+		var oPresOf = new AscFormat.PresOf();
+
+		this.IteratorAttributesFromJSON(oParsedPresOf, oPresOf);
+
+		return oPresOf;
+	};
+	ReaderFromJSON.prototype.LayoutNodeFromJSON = function(oParsedLayoutNode)
+	{
+		var oLayoutNode = new AscFormat.LayoutNode();
+
+		for (var nItem = 0; nItem < oParsedLayoutNode.list.length; nItem++)
+			oLayoutNode.addToLst(oLayoutNode.list.length, this.NodeItemFromJSON(oParsedLayoutNode.list[nItem]));
+
+		oParsedLayoutNode.chOrder != undefined && oLayoutNode.setChOrder(From_XML_ST_ChildOrderType(oParsedLayoutNode.chOrder));
+		oParsedLayoutNode.moveWith != undefined && oLayoutNode.setMoveWith(oParsedLayoutNode.moveWith);
+		oParsedLayoutNode.name != undefined && oLayoutNode.setName(oParsedLayoutNode.name);
+		oParsedLayoutNode.styleLbl != undefined && oLayoutNode.setStyleLbl(oParsedLayoutNode.styleLbl);
+		
+		return oLayoutNode;
+	};
+	ReaderFromJSON.prototype.ForEachFromJSON = function(oParsedForEach)
+	{
+		var oForEach = new AscFormat.ForEach();
+
+		for (var nItem = 0; nItem < oParsedForEach.list.length; nItem++)
+			oForEach.addToLstList(oForEach.list.length, this.NodeItemFromJSON(oParsedForEach.list[nItem]));
+
+		oParsedForEach.name != undefined && oForEach.setName(oParsedForEach.name);
+		oParsedForEach.ref != undefined && oForEach.setRef(oParsedForEach.ref);
+
+		this.IteratorAttributesFromJSON(oParsedForEach, oForEach);
+
+		return oForEach;
+	};
+	ReaderFromJSON.prototype.ConstrLstFromJSON = function(oParsedConstrLst)
+	{
+		var oConstrLst = new AscFormat.ConstrLst();
+
+		for (var nItem = 0; nItem < oParsedConstrLst.list.length; nItem++)
+			oConstrLst.addToLst(oConstrLst.list.length, this.ConstrFromJSON(oParsedConstrLst.list[nItem]));
+			
+		return oConstrLst;
+	};
+	ReaderFromJSON.prototype.ConstrFromJSON = function(oParsedConstr)
+	{
+		var oConstr = new AscFormat.Constr();
+
+		oParsedConstr.fact != undefined && oConstr.setFact(oParsedConstr.fact);
+		oParsedConstr.for != undefined && oConstr.setFor(From_XML_ST_ConstraintRelationship(oParsedConstr.for));
+		oParsedConstr.forName != undefined && oConstr.setForName(oParsedConstr.forName);
+		oParsedConstr.op != undefined && oConstr.setOp(From_XML_ST_BoolOperator(oParsedConstr.op));
+		oParsedConstr.ptType != undefined && oConstr.setPtType(this.BaseFormatObjFromJSON(oParsedConstr.ptType));
+		oParsedConstr.refFor != undefined && oConstr.setRefFor(From_XML_ST_ConstraintRelationship(oParsedConstr.refFor));
+		oParsedConstr.refForName != undefined && oConstr.setRefForName(oParsedConstr.refForName);
+		oParsedConstr.refPtType != undefined && oConstr.setRefPtType(this.BaseFormatObjFromJSON(oParsedConstr.refPtType));
+		oParsedConstr.refType != undefined && oConstr.setRefType(From_XML_ST_ConstraintType(oParsedConstr.refType));
+		oParsedConstr.type != undefined && oConstr.setType(From_XML_ST_ConstraintType(oParsedConstr.type));
+		oParsedConstr.val != undefined && oConstr.setVal(oParsedConstr.val);
+
+		return oConstr;
+	};
+	ReaderFromJSON.prototype.ChooseFromJSON = function(oParsedChoose)
+	{
+		var oChoose = new AscFormat.Choose();
+
+		for (var nIf = 0; nIf < oParsedChoose.if.length; nIf++)
+			oChoose.addToLstIf(oChoose.if.length, this.IfFromJSON(oParsedChoose.if[nIf]));
+
+		oParsedChoose.else && oChoose.setElse(this.ElseFromJSON(oParsedChoose.else));
+		oParsedChoose.name != undefined && oChoose.setName(oParsedChoose.name);
+		
+		return oChoose;
+	};
+	ReaderFromJSON.prototype.ElseFromJSON = function(oParsedElse)
+	{
+		var oElse = new AscFormat.Else();
+
+		for (var nItem = 0; nItem < oParsedElse.list.length; nItem++)
+			oElse.addToLst(oElse.list.length, this.NodeItemFromJSON(oParsedElse.list[nItem]));
+
+		oParsedElse.name != undefined && oElse.setName(oParsedElse.name);
+
+		return oElse;
+	};
+	ReaderFromJSON.prototype.IfFromJSON = function(oParsedIf)
+	{
+		var oIf = new AscFormat.If();
+
+		for (var nItem = 0; nItem < oParsedIf.list.length; nItem++)
+			oIf.addToLstList(oIf.list.length, this.NodeItemFromJSON(oParsedIf.list[nItem]));
+
+		oParsedIf.arg != undefined && oIf.setArg(From_XML_ST_VariableType(oParsedIf.arg));
+		oParsedIf.func != undefined && oIf.setFunc(From_XML_ST_FunctionType(oParsedIf.func));
+		oParsedIf.name != undefined && oIf.setName(oParsedIf.name);
+		oParsedIf.op != undefined && oIf.setOp(From_XML_ST_FunctionOperator(oParsedIf.op));
+		oParsedIf.val != undefined && oIf.setName(oParsedIf.val);
+
+		this.IteratorAttributesFromJSON(oParsedIf, oIf);
+
+		return oIf;
+	};
+	ReaderFromJSON.prototype.IteratorAttributesFromJSON = function(oParsedIterAttr, oParent)
+	{
+		for (var nAxie = 0; nAxie < oParsedIterAttr.axis.length; nAxie++)
+			oParent.addToLstAxis(oParent.axis.length, this.BaseFormatObjFromJSON(oParsedIterAttr.axis[nAxie]));
+		
+		for (var nCnt = 0; nCnt < oParsedIterAttr.cnt.length; nCnt++)
+			oParent.addToLstCnt(oParent.cnt.length, oParsedIterAttr.cnt[nCnt]);
+		
+		for (var nItem = 0; nItem < oParsedIterAttr.hideLastTrans.length; nItem++)
+			oParent.addToLstHideLastTrans(oParent.hideLastTrans.length, oParsedIterAttr.hideLastTrans[nItem]);
+
+		for (var nPtType = 0; nPtType < oParsedIterAttr.ptType.length; nPtType++)
+			oParent.addToLstPtType(oParent.ptType.length, this.BaseFormatObjFromJSON(oParsedIterAttr.ptType[nPtType]));
+
+		for (var nSt = 0; nSt < oParsedIterAttr.st.length; nSt++)
+			oParent.addToLstSt(oParent.st.length, oParsedIterAttr.st[nSt]);
+
+		for (var nStep = 0; nStep < oParsedIterAttr.step.length; nStep++)
+			oParent.addToLstStep(oParent.step.length, oParsedIterAttr.step[nStep]);
+	};
+	ReaderFromJSON.prototype.AlgFromJSON = function(oParsedAlg)
+	{
+		var oAlg = new AscFormat.Alg();
+
+		for (var nParam = 0; nParam < oParsedAlg.param.length; nParam++)
+			oAlg.addToLstParam(oAlg.param.length, this.AlgParamFromJSON(oParsedAlg.param[nParam]));
+
+		oParsedAlg.rev != undefined && oAlg.setRev(oParsedAlg.rev);
+		oParsedAlg.type != undefined && oAlg.setType(From_XML_ST_AlgorithmType(oParsedAlg.type));
+
+		return oAlg;
+	};
+	ReaderFromJSON.prototype.AlgParamFromJSON = function(oParsedAlgParam)
+	{
+		var oAlgParam = new AscFormat.Param();
+
+		oParsedAlgParam.type != undefined && oAlgParam.setType(From_XML_ST_ParameterId(oParsedAlgParam.type));
+		oParsedAlgParam.val != undefined && oAlgParam.setVal(oParsedAlgParam.val);
+
+		return oAlgParam;
+	};
+	ReaderFromJSON.prototype.VarLstFromJSON = function(oParsedVarLst)
+	{
+		var oVarLst = new AscFormat.VarLst();
+
+		oParsedVarLst.animLvl && oVarLst.setAnimLvl(this.BaseFormatObjFromJSON(oParsedVarLst.animLvl));
+		oParsedVarLst.animOne && oVarLst.setAnimOne(this.BaseFormatObjFromJSON(oParsedVarLst.animOne));
+		oParsedVarLst.bulletEnabled && oVarLst.setBulletEnabled(this.BaseFormatObjFromJSON(oParsedVarLst.bulletEnabled));
+		oParsedVarLst.chMax && oVarLst.setChMax(this.BaseFormatObjFromJSON(oParsedVarLst.chMax));
+		oParsedVarLst.chPref && oVarLst.setChPref(this.BaseFormatObjFromJSON(oParsedVarLst.chPref));
+		oParsedVarLst.dir && oVarLst.setDir(this.BaseFormatObjFromJSON(oParsedVarLst.dir));
+		oParsedVarLst.hierBranch && oVarLst.setHierBranch(this.BaseFormatObjFromJSON(oParsedVarLst.hierBranch));
+		oParsedVarLst.orgChart && oVarLst.setOrgChart(this.BaseFormatObjFromJSON(oParsedVarLst.orgChart));
+		oParsedVarLst.resizeHandles && oVarLst.setResizeHandles(this.BaseFormatObjFromJSON(oParsedVarLst.resizeHandles));
+
+		return oVarLst;
+	};
+	ReaderFromJSON.prototype.BaseFormatObjFromJSON = function(oParsedBaseFormatObj)
+	{
+		var oBaseFormatObj = null;
+
+		switch (oParsedBaseFormatObj.type)
+		{
+			case "animLvl":
+				oBaseFormatObj = new AscFormat.AnimLvl();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(From_XML_ST_AnimLvlStr(oParsedBaseFormatObj.val));
+				break;
+			case "animOne":
+				oBaseFormatObj = new AscFormat.AnimOne();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(From_XML_ST_AnimOneStr(oParsedBaseFormatObj.val));
+				break;
+			case "bulletEnabled":
+				oBaseFormatObj = new AscFormat.BulletEnabled();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(oParsedBaseFormatObj.val);
+				break;
+			case "chMax":
+				oBaseFormatObj = new AscFormat.ChMax();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(oParsedBaseFormatObj.val);
+				break;
+			case "chPref":
+				oBaseFormatObj = new AscFormat.ChPref();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(oParsedBaseFormatObj.val);
+				break;
+			case "orgChart":
+				oBaseFormatObj = new AscFormat.OrgChart();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(oParsedBaseFormatObj.val);
+				break;
+			case "dir":
+				oBaseFormatObj = new AscFormat.DiagramDirection();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(From_XML_ST_Direction(oParsedBaseFormatObj.val));
+				break;
+			case "hierBranch":
+				oBaseFormatObj = new AscFormat.HierBranch();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(From_XML_ST_HierBranchStyle(oParsedBaseFormatObj.val));
+				break;
+			case "resizeHandles":
+				oBaseFormatObj = new AscFormat.ResizeHandles();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(From_XML_ST_ResizeHandlesStr(oParsedBaseFormatObj.val));
+				break;
+			case "element":
+				oBaseFormatObj = new AscFormat.ElementType();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(From_XML_ST_ElementType(oParsedBaseFormatObj.val));
+				break;
+			case "axie":
+				oBaseFormatObj = new AscFormat.AxisType();
+				oParsedBaseFormatObj.val != undefined && oBaseFormatObj.setVal(From_XML_ST_AxisType(oParsedBaseFormatObj.val));
+				break;
+		}
+
+		return oBaseFormatObj;
+	};
+	ReaderFromJSON.prototype.CxnLstFromJSON = function(oParsedCxnLst)
+	{
+		var oCxnLst = new AscFormat.CxnLst();
+
+		for (var nItem = 0; nItem < oParsedCxnLst.list.length; nItem++)
+			oCxnLst.addToLst(oCxnLst.list.length, this.CxnFromJSON(oParsedCxnLst.list[nItem]));
+
+		return oCxnLst;
+	};
+	ReaderFromJSON.prototype.CxnFromJSON = function(oParsedCxn)
+	{
+		var oCxn = new AscFormat.Cxn();
+
+		oParsedCxn.destId != undefined && oCxn.setDestId(oParsedCxn.destId);
+		oParsedCxn.destOrd != undefined && oCxn.setDestOrd(oParsedCxn.destOrd);
+		oParsedCxn.modelId != undefined && oCxn.setModelId(oParsedCxn.modelId);
+		oParsedCxn.parTransId != undefined && oCxn.setParTransId(oParsedCxn.parTransId);
+		oParsedCxn.presId != undefined && oCxn.setPresId(oParsedCxn.presId);
+		oParsedCxn.sibTransId != undefined && oCxn.setSibTransId(oParsedCxn.sibTransId);
+		oParsedCxn.srcId != undefined && oCxn.setSrcId(oParsedCxn.srcId);
+		oParsedCxn.srcOrd != undefined && oCxn.setSrcOrd(oParsedCxn.srcOrd);
+		oParsedCxn.type != undefined && oCxn.setType(oParsedCxn.type);
+
+		return oCxn;
+	};
+	ReaderFromJSON.prototype.BgFormatFromJSON = function(oParsedBgFormat)
+	{
+		var oBgFormat = new AscFormat.BgFormat();
+
+		(oParsedBgFormat.effectDag || oParsedBgFormat.effectLst) && oBgFormat.setEffect(this.EffectPropsFromJSON(oParsedBgFormat.effectDag, oParsedBgFormat.effectLst));
+		oParsedBgFormat.fill && oBgFormat.setFill(this.FillFromJSON(oParsedBgFormat.fill));
+
+		return oBgFormat;
+	};
+	ReaderFromJSON.prototype.ColorsDefFromJSON = function(oParsedColorsDef)
+	{
+		var oColorsDef = new AscFormat.ColorsDef();
+
+		oParsedColorsDef.catLst && oColorsDef.setCatLst(this.CatLstFromJSON(oParsedColorsDef.catLst));
+		oParsedColorsDef.desc && oColorsDef.setDesc(this.DescFromJSON(oParsedColorsDef.desc));
+
+		for (var nStyle = 0; nStyle < oParsedColorsDef.styleLbl.length; nStyle++)
+			oColorsDef.addToLstStyleLbl(oColorsDef.styleLbl.length, this.ColorDefStyleLblFromJSON(oParsedColorsDef.styleLbl[nStyle]));
+
+		oParsedColorsDef.title && oColorsDef.setTitle(this.DescFromJSON(oParsedColorsDef.title));
+
+		oParsedColorsDef.minVer != undefined && oColorsDef.setMinVer(oParsedColorsDef.minVer);
+		oParsedColorsDef.uniqueId != undefined && oColorsDef.setUniqueId(oParsedColorsDef.uniqueId);
+
+		return oColorsDef;
+	};
+	ReaderFromJSON.prototype.ColorDefStyleLblFromJSON = function(oParsedLbl)
+	{
+		var oLbl = new AscFormat.ColorDefStyleLbl();
+
+		oParsedLbl.effectClrLst && oLbl.setEffectClrLst(this.ClrLstFromJSON(oParsedLbl.effectClrLst));
+		oParsedLbl.fillClrLst && oLbl.setFillClrLst(this.ClrLstFromJSON(oParsedLbl.fillClrLst));
+		oParsedLbl.linClrLst && oLbl.setLinClrLst(this.ClrLstFromJSON(oParsedLbl.linClrLst));
+		oParsedLbl.txEffectClrLst && oLbl.setTxEffectClrLst(this.ClrLstFromJSON(oParsedLbl.txEffectClrLst));
+		oParsedLbl.txFillClrLst && oLbl.setTxFillClrLst(this.ClrLstFromJSON(oParsedLbl.txFillClrLst));
+		oParsedLbl.txLinClrLst && oLbl.setTxLinClrLst(this.ClrLstFromJSON(oParsedLbl.txLinClrLst));
+		oParsedLbl.name != undefined && oLbl.setName(oParsedLbl.name);
+
+		return oLbl;
+	};
+	ReaderFromJSON.prototype.ClrLstFromJSON = function(oParsedClrLst)
+	{
+		var oClrLst = null;
+
+		switch (oParsedClrLst.type)
+		{
+			case "effectClrLst":
+				oClrLst = new AscFormat.EffectClrLst();
+				break;
+			case "fillClrLst":
+				oClrLst = new AscFormat.FillClrLst();
+				break;
+			case "linClrLst":
+				oClrLst = new AscFormat.LinClrLst();
+				break;
+			case "txEffectClrLst":
+				oClrLst = new AscFormat.TxEffectClrLst();
+				break;
+			case "txFillClrLst":
+				oClrLst = new AscFormat.TxFillClrLst();
+				break;
+			case "txLinClrLst":
+				oClrLst = new AscFormat.TxLinClrLst();
+				break;
+		}
+
+		if (oClrLst)
+		{
+			oParsedClrLst.hueDir != undefined && oClrLst.setHueDir(From_XML_ST_HueDir(oParsedClrLst.hueDir));
+			oParsedClrLst.meth != undefined && oClrLst.setMeth(From_XML_ST_ClrAppMethod(oParsedClrLst.meth));
+
+			for (var nColor = 0; nColor < oParsedClrLst.list.length; nColor++)
+				oClrLst.addToLst(oClrLst.list.length, this.ColorFromJSON(oParsedClrLst.list[nColor]));
+		}
+
+		return oClrLst;
+	};
+	ReaderFromJSON.prototype.DescFromJSON = function(oParsedDesc)
+	{
+		var oDesc = null;
+		if (oParsedDesc.type === "desc")
+			oDesc = new AscFormat.Desc();
+		else if (oParsedDesc.type === "diagramTitle")
+			oDesc = new AscFormat.DiagramTitle();
+
+		if (oDesc)
+		{
+			oParsedDesc.val  != undefined && oDesc.setVal(oParsedDesc.val);
+			oParsedDesc.lang != undefined && oDesc.setLang(oParsedDesc.lang);
+		}
+
+		return oDesc;
+	};
+	ReaderFromJSON.prototype.CatLstFromJSON = function(oParsedCatLst)
+	{
+		var oCatLst = new AscFormat.CatLst();
+	
+		for (var nCat = 0; nCat < oParsedCatLst.list.length; nCat++)
+			oCatLst.addToLst(oCatLst.list.length, this.SCatFromJSON(oParsedCatLst.list[nCat]));
+
+		return oCatLst;
+	};
+	ReaderFromJSON.prototype.SCatFromJSON = function(oParsedSCat)
+	{
+		var oSCat = new AscFormat.SCat();
+
+		oParsedSCat.pri != undefined && oSCat.setPri(oParsedSCat.pri);
+		oParsedSCat.type != undefined && oSCat.setType(oParsedSCat.type);
+
+		return oSCat;
 	};
 	ReaderFromJSON.prototype.ChartSpaceFromJSON = function(oParsedChart, oParentDrawing)
 	{
@@ -13643,7 +15103,3643 @@
 			Value:        nValue
 		}
 	};
+	function To_XML_ST_HueDir(nType)
+	{
+		var sDir = undefined;
+		switch (nType)
+		{
+			case AscCommon.ST_HueDir.Ccw:
+				sDir = "ccw";
+				break;
+			case AscCommon.ST_HueDir.Cw:
+				sDir = "cw";
+				break;
+		}
 
+		return sDir;
+	}
+	function From_XML_ST_HueDir(sType)
+	{
+		var nDir = undefined;
+		switch (sType)
+		{
+			case "ccw":
+				nDir = AscCommon.ST_HueDir.Ccw;
+				break;
+			case "cw":
+				nDir = AscCommon.ST_HueDir.Cw;
+				break;
+		}
+
+		return nDir;
+	}
+	function To_XML_ST_ClrAppMethod(nType)
+	{
+		var sType = undefined;
+		switch (nType)
+		{
+			case AscCommon.ST_ClrAppMethod.cycle:
+				sType = "cycle";
+				break;
+			case AscCommon.ST_ClrAppMethod.repeat:
+				sType = "repeat";
+				break;
+			case AscCommon.ST_ClrAppMethod.span:
+				sType = "span";
+				break;
+		}
+
+		return sType;
+	}
+	function From_XML_ST_ClrAppMethod(sType)
+	{
+		var nType = undefined;
+		switch (sType)
+		{
+			case "cycle":
+				nType = AscCommon.ST_ClrAppMethod.cycle;
+				break;
+			case "repeat":
+				nType = AscCommon.ST_ClrAppMethod.repeat;
+				break;
+			case "span":
+				nType = AscCommon.ST_ClrAppMethod.span;
+				break;
+		}
+
+		return nType;
+	}
+	function To_XML_ST_AnimLvlStr(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_AnimLvlStr.ctr:
+				sVal = "ctr";
+				break;
+			case AscCommon.ST_AnimLvlStr.lvl:
+				sVal = "lvl";
+				break;
+			case AscCommon.ST_AnimLvlStr.none:
+				sVal = "none";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_AnimLvlStr(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "ctr":
+				nVal = AscCommon.ST_AnimLvlStr.ctr;
+				break;
+			case "lvl":
+				nVal = AscCommon.ST_AnimLvlStr.lvl;
+				break;
+			case "none":
+				nVal = AscCommon.ST_AnimLvlStr.none;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_AnimOneStr(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_AnimOneStr.branch:
+				sVal = "branch";
+				break;
+			case AscCommon.ST_AnimOneStr.none:
+				sVal = "none";
+				break;
+			case AscCommon.ST_AnimOneStr.one:
+				sVal = "one";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_AnimOneStr(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "branch":
+				nVal = AscCommon.ST_AnimOneStr.branch;
+				break;
+			case "none":
+				nVal = AscCommon.ST_AnimOneStr.none;
+				break;
+			case "one":
+				nVal = AscCommon.ST_AnimOneStr.one;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_Direction(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_Direction.norm:
+				sVal = "norm";
+				break;
+			case AscCommon.ST_Direction.rev:
+				sVal = "rev";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_Direction(nVal)
+	{
+		var sVal = undefined;
+		switch (sVal)
+		{
+			case "norm":
+				nVal = AscCommon.ST_Direction.norm;
+				break;
+			case "rev":
+				nVal = AscCommon.ST_Direction.rev;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_HierBranchStyle(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_HierBranchStyle.hang:
+				sVal = "hang";
+				break;
+			case AscCommon.ST_HierBranchStyle.init:
+				sVal = "init";
+				break;
+			case AscCommon.ST_HierBranchStyle.l:
+				sVal = "l";
+				break;
+			case AscCommon.ST_HierBranchStyle.r:
+				sVal = "r";
+				break;
+			case AscCommon.ST_HierBranchStyle.std:
+				sVal = "std";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_HierBranchStyle(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "hang":
+				nVal = AscCommon.ST_HierBranchStyle.hang;
+				break;
+			case "init":
+				nVal = AscCommon.ST_HierBranchStyle.init;
+				break;
+			case "l":
+				nVal = AscCommon.ST_HierBranchStyle.l;
+				break;
+			case "r":
+				nVal = AscCommon.ST_HierBranchStyle.r;
+				break;
+			case "std":
+				nVal = AscCommon.ST_HierBranchStyle.std;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_ResizeHandlesStr(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_ResizeHandlesStr.exact:
+				sVal = "exact";
+				break;
+			case AscCommon.ST_ResizeHandlesStr.rel:
+				sVal = "rel";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_ResizeHandlesStr(nVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "exact":
+				nVal = AscCommon.ST_ResizeHandlesStr.exact;
+				break;
+			case "rel":
+				nVal = AscCommon.ST_ResizeHandlesStr.rel;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_PtType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_PtType.node:
+				sVal = "node";
+				break;
+			case AscCommon.ST_PtType.asst:
+				sVal = "asst";
+				break;
+			case AscCommon.ST_PtType.doc:
+				sVal = "doc";
+				break;
+			case AscCommon.ST_PtType.pres:
+				sVal = "pres";
+				break;
+			case AscCommon.ST_PtType.parTrans:
+				sVal = "parTrans";
+				break;
+			case AscCommon.ST_PtType.sibTrans:
+				sVal = "sibTrans";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_PtType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case AscCommon.ST_PtType.node:
+				nVal = "node";
+				break;
+			case AscCommon.ST_PtType.asst:
+				nVal = "asst";
+				break;
+			case AscCommon.ST_PtType.doc:
+				nVal = "doc";
+				break;
+			case AscCommon.ST_PtType.pres:
+				nVal = "pres";
+				break;
+			case AscCommon.ST_PtType.parTrans:
+				nVal = "parTrans";
+				break;
+			case AscCommon.ST_PtType.sibTrans:
+				nVal = "sibTrans";
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_ChildOrderType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_ChildOrderType.b:
+				sVal = "b";
+				break;
+			case AscCommon.ST_ChildOrderType.t:
+				sVal = "t";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_ChildOrderType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "b":
+				nVal = AscCommon.ST_ChildOrderType.b;
+				break;
+			case "t":
+				nVal = AscCommon.ST_ChildOrderType.t;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_AlgorithmType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_AlgorithmType.composite:
+				sVal = "composite";
+				break;
+			case AscCommon.ST_AlgorithmType.conn:
+				sVal = "conn";
+				break;
+			case AscCommon.ST_AlgorithmType.cycle:
+				sVal = "cycle";
+				break;
+			case AscCommon.ST_AlgorithmType.hierChild:
+				sVal = "hierChild";
+				break;
+			case AscCommon.ST_AlgorithmType.hierRoot:
+				sVal = "hierRoot";
+				break;
+			case AscCommon.ST_AlgorithmType.pyra:
+				sVal = "pyra";
+				break;
+			case AscCommon.ST_AlgorithmType.lin:
+				sVal = "lin";
+				break;
+			case AscCommon.ST_AlgorithmType.sp:
+				sVal = "sp";
+				break;
+			case AscCommon.ST_AlgorithmType.tx:
+				sVal = "tx";
+				break;
+			case AscCommon.ST_AlgorithmType.snake:
+				sVal = "snake";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_AlgorithmType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "composite":
+				nVal = AscCommon.ST_AlgorithmType.composite;
+				break;
+			case "conn":
+				nVal = AscCommon.ST_AlgorithmType.conn;
+				break;
+			case "cycle":
+				nVal = AscCommon.ST_AlgorithmType.cycle;
+				break;
+			case "hierChild":
+				nVal = AscCommon.ST_AlgorithmType.hierChild;
+				break;
+			case "hierRoot":
+				nVal = AscCommon.ST_AlgorithmType.hierRoot;
+				break;
+			case "pyra":
+				nVal = AscCommon.ST_AlgorithmType.pyra;
+				break;
+			case "lin":
+				nVal = AscCommon.ST_AlgorithmType.lin;
+				break;
+			case "sp":
+				nVal = AscCommon.ST_AlgorithmType.sp;
+				break;
+			case "tx":
+				nVal = AscCommon.ST_AlgorithmType.tx;
+				break;
+			case "snake":
+				nVal = AscCommon.ST_AlgorithmType.snake;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_ConstraintRelationship(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_ConstraintRelationship.self:
+				sVal = "self";
+				break;
+			case AscCommon.ST_ConstraintRelationship.ch:
+				sVal = "ch";
+				break;
+			case AscCommon.ST_ConstraintRelationship.des:
+				sVal = "des";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_ConstraintRelationship(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "self":
+				nVal = AscCommon.ST_ConstraintRelationship.self;
+				break;
+			case "ch":
+				nVal = AscCommon.ST_ConstraintRelationship.ch;
+				break;
+			case "des":
+				nVal = AscCommon.ST_ConstraintRelationship.des;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_BoolOperator(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_ConstraintRelationship.none:
+				sVal = "none";
+				break;
+			case AscCommon.ST_ConstraintRelationship.equ:
+				sVal = "equ";
+				break;
+			case AscCommon.ST_ConstraintRelationship.gte:
+				sVal = "gte";
+				break;
+			case AscCommon.ST_ConstraintRelationship.lte:
+				sVal = "lte";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_BoolOperator(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "none":
+				nVal = AscCommon.ST_ConstraintRelationship.none;
+				break;
+			case "equ":
+				nVal = AscCommon.ST_ConstraintRelationship.equ;
+				break;
+			case "gte":
+				nVal = AscCommon.ST_ConstraintRelationship.gte;
+				break;
+			case "lte":
+				nVal = AscCommon.ST_ConstraintRelationship.lte;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_ElementType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_ElementType.all:
+				sVal = "all";
+				break;
+			case AscCommon.ST_ElementType.doc:
+				sVal = "doc";
+				break;
+			case AscCommon.ST_ElementType.node:
+				sVal = "node";
+				break;
+			case AscCommon.ST_ElementType.norm:
+				sVal = "norm";
+				break;
+			case AscCommon.ST_ElementType.nonNorm:
+				sVal = "nonNorm";
+				break;
+			case AscCommon.ST_ElementType.asst:
+				sVal = "asst";
+				break;
+			case AscCommon.ST_ElementType.nonAsst:
+				sVal = "nonAsst";
+				break;
+			case AscCommon.ST_ElementType.parTrans:
+				sVal = "parTrans";
+				break;
+			case AscCommon.ST_ElementType.pres:
+				sVal = "pres";
+				break;
+			case AscCommon.ST_ElementType.sibTrans:
+				sVal = "sibTrans";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_ElementType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "all":
+				nVal = AscCommon.ST_ElementType.all;
+				break;
+			case "doc":
+				nVal = AscCommon.ST_ElementType.doc;
+				break;
+			case "node":
+				nVal = AscCommon.ST_ElementType.node;
+				break;
+			case "norm":
+				nVal = AscCommon.ST_ElementType.norm;
+				break;
+			case "nonNorm":
+				nVal = AscCommon.ST_ElementType.nonNorm;
+				break;
+			case "asst":
+				nVal = AscCommon.ST_ElementType.asst;
+				break;
+			case "nonAsst":
+				nVal = AscCommon.ST_ElementType.nonAsst;
+				break;
+			case "parTrans":
+				nVal = AscCommon.ST_ElementType.parTrans;
+				break;
+			case "pres":
+				nVal = AscCommon.ST_ElementType.pres;
+				break;
+			case "sibTrans":
+				nVal = AscCommon.ST_ElementType.sibTrans;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_ConstraintType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_ConstraintType.alignOff:
+				sVal = "alignOff";
+				break;
+			case AscCommon.ST_ConstraintType.b:
+				sVal = "b";
+				break;
+			case AscCommon.ST_ConstraintType.begMarg:
+				sVal = "begMarg";
+				break;
+			case AscCommon.ST_ConstraintType.begPad:
+				sVal = "begPad";
+				break;
+			case AscCommon.ST_ConstraintType.bendDist:
+				sVal = "bendDist";
+				break;
+			case AscCommon.ST_ConstraintType.bMarg:
+				sVal = "bMarg";
+				break;
+			case AscCommon.ST_ConstraintType.bOff:
+				sVal = "bOff";
+				break;
+			case AscCommon.ST_ConstraintType.connDist:
+				sVal = "connDist";
+				break;
+			case AscCommon.ST_ConstraintType.ctrX:
+				sVal = "ctrX";
+				break;
+			case AscCommon.ST_ConstraintType.ctrXOff:
+				sVal = "ctrXOff";
+				break;
+			case AscCommon.ST_ConstraintType.ctrY:
+				sVal = "ctrY";
+				break;
+			case AscCommon.ST_ConstraintType.ctrYOff:
+				sVal = "ctrYOff";
+				break;
+			case AscCommon.ST_ConstraintType.diam:
+				sVal = "diam";
+				break;
+			case AscCommon.ST_ConstraintType.endMarg:
+				sVal = "endMarg";
+				break;
+			case AscCommon.ST_ConstraintType.endPad:
+				sVal = "endPad";
+				break;
+			case AscCommon.ST_ConstraintType.h:
+				sVal = "h";
+				break;
+			case AscCommon.ST_ConstraintType.hArH:
+				sVal = "hArH";
+				break;
+			case AscCommon.ST_ConstraintType.hOff:
+				sVal = "hOff";
+				break;
+			case AscCommon.ST_ConstraintType.l:
+				sVal = "l";
+				break;
+			case AscCommon.ST_ConstraintType.lMarg:
+				sVal = "lMarg";
+				break;
+			case AscCommon.ST_ConstraintType.lOff:
+				sVal = "lOff";
+				break;
+			case AscCommon.ST_ConstraintType.none:
+				sVal = "none";
+				break;
+			case AscCommon.ST_ConstraintType.primFontSz:
+				sVal = "primFontSz";
+				break;
+			case AscCommon.ST_ConstraintType.pyraAcctRatio:
+				sVal = "pyraAcctRatio";
+				break;
+			case AscCommon.ST_ConstraintType.r:
+				sVal = "r";
+				break;
+			case AscCommon.ST_ConstraintType.rMarg:
+				sVal = "rMarg";
+				break;
+			case AscCommon.ST_ConstraintType.rOff:
+				sVal = "rOff";
+				break;
+			case AscCommon.ST_ConstraintType.secFontSz:
+				sVal = "secFontSz";
+				break;
+			case AscCommon.ST_ConstraintType.secSibSp:
+				sVal = "secSibSp";
+				break;
+			case AscCommon.ST_ConstraintType.sibSp:
+				sVal = "sibSp";
+				break;
+			case AscCommon.ST_ConstraintType.sp:
+				sVal = "sp";
+				break;
+			case AscCommon.ST_ConstraintType.stemThick:
+				sVal = "stemThick";
+				break;
+			case AscCommon.ST_ConstraintType.t:
+				sVal = "t";
+				break;
+			case AscCommon.ST_ConstraintType.tMarg:
+				sVal = "tMarg";
+				break;
+			case AscCommon.ST_ConstraintType.tOff:
+				sVal = "tOff";
+				break;
+			case AscCommon.ST_ConstraintType.userA:
+				sVal = "userA";
+				break;
+			case AscCommon.ST_ConstraintType.userB:
+				sVal = "userB";
+				break;
+			case AscCommon.ST_ConstraintType.userC:
+				sVal = "userC";
+				break;
+			case AscCommon.ST_ConstraintType.userD:
+				sVal = "userD";
+				break;
+			case AscCommon.ST_ConstraintType.userE:
+				sVal = "userE";
+				break;
+			case AscCommon.ST_ConstraintType.userF:
+				sVal = "userF";
+				break;
+			case AscCommon.ST_ConstraintType.userG:
+				sVal = "userG";
+				break;
+			case AscCommon.ST_ConstraintType.userH:
+				sVal = "userH";
+				break;
+			case AscCommon.ST_ConstraintType.userI:
+				sVal = "userI";
+				break;
+			case AscCommon.ST_ConstraintType.userJ:
+				sVal = "userJ";
+				break;
+			case AscCommon.ST_ConstraintType.userK:
+				sVal = "userK";
+				break;
+			case AscCommon.ST_ConstraintType.userL:
+				sVal = "userL";
+				break;
+			case AscCommon.ST_ConstraintType.userM:
+				sVal = "userM";
+				break;
+			case AscCommon.ST_ConstraintType.userN:
+				sVal = "userN";
+				break;
+			case AscCommon.ST_ConstraintType.userO:
+				sVal = "userO";
+				break;
+			case AscCommon.ST_ConstraintType.userP:
+				sVal = "userP";
+				break;
+			case AscCommon.ST_ConstraintType.userQ:
+				sVal = "userQ";
+				break;
+			case AscCommon.ST_ConstraintType.userR:
+				sVal = "userR";
+				break;
+			case AscCommon.ST_ConstraintType.userS:
+				sVal = "userS";
+				break;
+			case AscCommon.ST_ConstraintType.userT:
+				sVal = "userT";
+				break;
+			case AscCommon.ST_ConstraintType.userU:
+				sVal = "userU";
+				break;
+			case AscCommon.ST_ConstraintType.userV:
+				sVal = "userV";
+				break;
+			case AscCommon.ST_ConstraintType.userW:
+				sVal = "userW";
+				break;
+			case AscCommon.ST_ConstraintType.userX:
+				sVal = "userX";
+				break;
+			case AscCommon.ST_ConstraintType.userY:
+				sVal = "userY";
+				break;
+			case AscCommon.ST_ConstraintType.userZ:
+				sVal = "userZ";
+				break;
+			case AscCommon.ST_ConstraintType.w:
+				sVal = "w";
+				break;
+			case AscCommon.ST_ConstraintType.wArH:
+				sVal = "wArH";
+				break;
+			case AscCommon.ST_ConstraintType.wOff:
+				sVal = "wOff";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_ConstraintType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "alignOff":
+				nVal = AscCommon.ST_ConstraintType.alignOff;
+				break;
+			case "b":
+				nVal = AscCommon.ST_ConstraintType.b;
+				break;
+			case "begMarg":
+				nVal = AscCommon.ST_ConstraintType.begMarg;
+				break;
+			case "begPad":
+				nVal = AscCommon.ST_ConstraintType.begPad;
+				break;
+			case "bendDist":
+				nVal = AscCommon.ST_ConstraintType.bendDist;
+				break;
+			case "bMarg":
+				nVal = AscCommon.ST_ConstraintType.bMarg;
+				break;
+			case "bOff":
+				nVal = AscCommon.ST_ConstraintType.bOff;
+				break;
+			case "connDist":
+				nVal = AscCommon.ST_ConstraintType.connDist;
+				break;
+			case "ctrX":
+				nVal = AscCommon.ST_ConstraintType.ctrX;
+				break;
+			case "ctrXOff":
+				nVal = AscCommon.ST_ConstraintType.ctrXOff;
+				break;
+			case "ctrY":
+				nVal = AscCommon.ST_ConstraintType.ctrY;
+				break;
+			case "ctrYOff":
+				nVal = AscCommon.ST_ConstraintType.ctrYOff;
+				break;
+			case "diam":
+				nVal = AscCommon.ST_ConstraintType.diam;
+				break;
+			case "endMarg":
+				nVal = AscCommon.ST_ConstraintType.endMarg;
+				break;
+			case "endPad":
+				nVal = AscCommon.ST_ConstraintType.endPad;
+				break;
+			case "h":
+				nVal = AscCommon.ST_ConstraintType.h;
+				break;
+			case "hArH":
+				nVal = AscCommon.ST_ConstraintType.hArH;
+				break;
+			case "hOff":
+				nVal = AscCommon.ST_ConstraintType.hOff;
+				break;
+			case "l":
+				nVal = AscCommon.ST_ConstraintType.l;
+				break;
+			case "lMarg":
+				nVal = AscCommon.ST_ConstraintType.lMarg;
+				break;
+			case "lOff":
+				nVal = AscCommon.ST_ConstraintType.lOff;
+				break;
+			case "none":
+				nVal = AscCommon.ST_ConstraintType.none;
+				break;
+			case "primFontSz":
+				nVal = AscCommon.ST_ConstraintType.primFontSz;
+				break;
+			case "pyraAcctRatio":
+				nVal = AscCommon.ST_ConstraintType.pyraAcctRatio;
+				break;
+			case "r":
+				nVal = AscCommon.ST_ConstraintType.r;
+				break;
+			case "rMarg":
+				nVal = AscCommon.ST_ConstraintType.rMarg;
+				break;
+			case "rOff":
+				nVal = AscCommon.ST_ConstraintType.rOff;
+				break;
+			case "secFontSz":
+				nVal = AscCommon.ST_ConstraintType.secFontSz;
+				break;
+			case "secSibSp":
+				nVal = AscCommon.ST_ConstraintType.secSibSp;
+				break;
+			case "sibSp":
+				nVal = AscCommon.ST_ConstraintType.sibSp;
+				break;
+			case "sp":
+				nVal = AscCommon.ST_ConstraintType.sp;
+				break;
+			case "stemThick":
+				nVal = AscCommon.ST_ConstraintType.stemThick;
+				break;
+			case "t":
+				nVal = AscCommon.ST_ConstraintType.t;
+				break;
+			case "tMarg":
+				nVal = AscCommon.ST_ConstraintType.tMarg;
+				break;
+			case "tOff":
+				nVal = AscCommon.ST_ConstraintType.tOff;
+				break;
+			case "userA":
+				nVal = AscCommon.ST_ConstraintType.userA;
+				break;
+			case "userB":
+				nVal = AscCommon.ST_ConstraintType.userB;
+				break;
+			case "userC":
+				nVal = AscCommon.ST_ConstraintType.userC;
+				break;
+			case "userD":
+				nVal = AscCommon.ST_ConstraintType.userD;
+				break;
+			case "userE":
+				nVal = AscCommon.ST_ConstraintType.userE;
+				break;
+			case "userF":
+				nVal = AscCommon.ST_ConstraintType.userF;
+				break;
+			case "userG":
+				nVal = AscCommon.ST_ConstraintType.userG;
+				break;
+			case "userH":
+				nVal = AscCommon.ST_ConstraintType.userH;
+				break;
+			case "userI":
+				nVal = AscCommon.ST_ConstraintType.userI;
+				break;
+			case "userJ":
+				nVal = AscCommon.ST_ConstraintType.userJ;
+				break;
+			case "userK":
+				nVal = AscCommon.ST_ConstraintType.userK;
+				break;
+			case "userL":
+				nVal = AscCommon.ST_ConstraintType.userL;
+				break;
+			case "userM":
+				nVal = AscCommon.ST_ConstraintType.userM;
+				break;
+			case "userN":
+				nVal = AscCommon.ST_ConstraintType.userN;
+				break;
+			case "userO":
+				nVal = AscCommon.ST_ConstraintType.userO;
+				break;
+			case "userP":
+				nVal = AscCommon.ST_ConstraintType.userP;
+				break;
+			case "userQ":
+				nVal = AscCommon.ST_ConstraintType.userQ;
+				break;
+			case "userR":
+				nVal = AscCommon.ST_ConstraintType.userR;
+				break;
+			case "userS":
+				nVal = AscCommon.ST_ConstraintType.userS;
+				break;
+			case "userT":
+				nVal = AscCommon.ST_ConstraintType.userT;
+				break;
+			case "userU":
+				nVal = AscCommon.ST_ConstraintType.userU;
+				break;
+			case "userV":
+				nVal = AscCommon.ST_ConstraintType.userV;
+				break;
+			case "userW":
+				nVal = AscCommon.ST_ConstraintType.userW;
+				break;
+			case "userX":
+				nVal = AscCommon.ST_ConstraintType.userX;
+				break;
+			case "userY":
+				nVal = AscCommon.ST_ConstraintType.userY;
+				break;
+			case "userZ":
+				nVal = AscCommon.ST_ConstraintType.userZ;
+				break;
+			case "w":
+				nVal = AscCommon.ST_ConstraintType.w;
+				break;
+			case "wArH":
+				nVal = AscCommon.ST_ConstraintType.wArH;
+				break;
+			case "wOff":
+				nVal = AscCommon.ST_ConstraintType.wOff;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_VariableType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_VariableType.animLvl:
+				sVal = "animLvl";
+				break;
+			case AscCommon.ST_VariableType.animOne:
+				sVal = "animOne";
+				break;
+			case AscCommon.ST_VariableType.bulEnabled:
+				sVal = "bulEnabled";
+				break;
+			case AscCommon.ST_VariableType.chMax:
+				sVal = "chMax";
+				break;
+			case AscCommon.ST_VariableType.chPref:
+				sVal = "chPref";
+				break;
+			case AscCommon.ST_VariableType.dir:
+				sVal = "dir";
+				break;
+			case AscCommon.ST_VariableType.hierBranch:
+				sVal = "hierBranch";
+				break;
+			case AscCommon.ST_VariableType.none:
+				sVal = "none";
+				break;
+			case AscCommon.ST_VariableType.orgChart:
+				sVal = "orgChart";
+				break;
+			case AscCommon.ST_VariableType.resizeHandles:
+				sVal = "resizeHandles";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_VariableType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "animLvl":
+				nVal = AscCommon.ST_VariableType.animLvl;
+				break;
+			case "animOne":
+				nVal = AscCommon.ST_VariableType.animOne;
+				break;
+			case "bulEnabled":
+				nVal = AscCommon.ST_VariableType.bulEnabled;
+				break;
+			case "chMax":
+				nVal = AscCommon.ST_VariableType.chMax;
+				break;
+			case "chPref":
+				nVal = AscCommon.ST_VariableType.chPref;
+				break;
+			case "dir":
+				nVal = AscCommon.ST_VariableType.dir;
+				break;
+			case "hierBranch":
+				nVal = AscCommon.ST_VariableType.hierBranch;
+				break;
+			case "none":
+				nVal = AscCommon.ST_VariableType.none;
+				break;
+			case "orgChart":
+				nVal = AscCommon.ST_VariableType.orgChart;
+				break;
+			case "resizeHandles":
+				nVal = AscCommon.ST_VariableType.resizeHandles;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_AxisType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_AxisType.ancst:
+				sVal = "ancst";
+				break;
+			case AscCommon.ST_AxisType.ancstOrSelf:
+				sVal = "ancstOrSelf";
+				break;
+			case AscCommon.ST_AxisType.ch:
+				sVal = "ch";
+				break;
+			case AscCommon.ST_AxisType.des:
+				sVal = "des";
+				break;
+			case AscCommon.ST_AxisType.desOrSelf:
+				sVal = "desOrSelf";
+				break;
+			case AscCommon.ST_AxisType.follow:
+				sVal = "follow";
+				break;
+			case AscCommon.ST_AxisType.followSib:
+				sVal = "followSib";
+				break;
+			case AscCommon.ST_AxisType.none:
+				sVal = "none";
+				break;
+			case AscCommon.ST_AxisType.par:
+				sVal = "par";
+				break;
+			case AscCommon.ST_AxisType.preced:
+				sVal = "preced";
+				break;
+			case AscCommon.ST_AxisType.precedSib:
+				sVal = "precedSib";
+				break;
+			case AscCommon.ST_AxisType.root:
+				sVal = "root";
+				break;
+			case AscCommon.ST_AxisType.self:
+				sVal = "self";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_AxisType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "ancst":
+				nVal = AscCommon.ST_AxisType.ancst;
+				break;
+			case "ancstOrSelf":
+				nVal = AscCommon.ST_AxisType.ancstOrSelf;
+				break;
+			case "ch":
+				nVal = AscCommon.ST_AxisType.ch;
+				break;
+			case "des":
+				nVal = AscCommon.ST_AxisType.des;
+				break;
+			case "desOrSelf":
+				nVal = AscCommon.ST_AxisType.desOrSelf;
+				break;
+			case "follow":
+				nVal = AscCommon.ST_AxisType.follow;
+				break;
+			case "followSib":
+				nVal = AscCommon.ST_AxisType.followSib;
+				break;
+			case "none":
+				nVal = AscCommon.ST_AxisType.none;
+				break;
+			case "par":
+				nVal = AscCommon.ST_AxisType.par;
+				break;
+			case "preced":
+				nVal = AscCommon.ST_AxisType.preced;
+				break;
+			case "precedSib":
+				nVal = AscCommon.ST_AxisType.precedSib;
+				break;
+			case "root":
+				nVal = AscCommon.ST_AxisType.root;
+				break;
+			case "self":
+				nVal = AscCommon.ST_AxisType.self;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_FunctionType(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_FunctionType.cnt:
+				sVal = "cnt";
+				break;
+			case AscCommon.ST_FunctionType.depth:
+				sVal = "depth";
+				break;
+			case AscCommon.ST_FunctionType.maxDepth:
+				sVal = "maxDepth";
+				break;
+			case AscCommon.ST_FunctionType.pos:
+				sVal = "pos";
+				break;
+			case AscCommon.ST_FunctionType.posEven:
+				sVal = "posEven";
+				break;
+			case AscCommon.ST_FunctionType.posOdd:
+				sVal = "posOdd";
+				break;
+			case AscCommon.ST_FunctionType.revPos:
+				sVal = "revPos";
+				break;
+			case AscCommon.ST_FunctionType.var:
+				sVal = "var";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_FunctionType(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "cnt":
+				nVal = AscCommon.ST_FunctionType.cnt;
+				break;
+			case "depth":
+				nVal = AscCommon.ST_FunctionType.depth;
+				break;
+			case "maxDepth":
+				nVal = AscCommon.ST_FunctionType.maxDepth;
+				break;
+			case "pos":
+				nVal = AscCommon.ST_FunctionType.pos;
+				break;
+			case "posEven":
+				nVal = AscCommon.ST_FunctionType.posEven;
+				break;
+			case "posOdd":
+				nVal = AscCommon.ST_FunctionType.posOdd;
+				break;
+			case "revPos":
+				nVal = AscCommon.ST_FunctionType.revPos;
+				break;
+			case "var":
+				nVal = AscCommon.ST_FunctionType.var;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_FunctionOperator(nVal)
+	{
+		var sVal = undefined;
+		switch (nVal)
+		{
+			case AscCommon.ST_FunctionOperator.equ:
+				sVal = "equ";
+				break;
+			case AscCommon.ST_FunctionOperator.gt:
+				sVal = "gt";
+				break;
+			case AscCommon.ST_FunctionOperator.gte:
+				sVal = "gte";
+				break;
+			case AscCommon.ST_FunctionOperator.lt:
+				sVal = "lt";
+				break;
+			case AscCommon.ST_FunctionOperator.lte:
+				sVal = "lte";
+				break;
+			case AscCommon.ST_FunctionOperator.neq:
+				sVal = "neq";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_FunctionOperator(sVal)
+	{
+		var nVal = undefined;
+		switch (sVal)
+		{
+			case "equ":
+				nVal = AscCommon.ST_FunctionOperator.equ;
+				break;
+			case "gt":
+				nVal = AscCommon.ST_FunctionOperator.gt;
+				break;
+			case "gte":
+				nVal = AscCommon.ST_FunctionOperator.gte;
+				break;
+			case "lt":
+				nVal = AscCommon.ST_FunctionOperator.lt;
+				break;
+			case "lte":
+				nVal = AscCommon.ST_FunctionOperator.lte;
+				break;
+			case "neq":
+				nVal = AscCommon.ST_FunctionOperator.neq;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_LayoutShapeType(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_LayoutShapeType.conn:
+				sVal = "conn";
+				break;
+			case AscCommon.ST_LayoutShapeType.none:
+				sVal = "none";
+				break;
+			case AscCommon.ST_LayoutShapeType.accentBorderCallout1:
+				sVal = "accentBorderCallout1";
+				break;
+			case AscCommon.ST_LayoutShapeType.accentBorderCallout2:
+				sVal = "accentBorderCallout2";
+				break;
+			case AscCommon.ST_LayoutShapeType.accentBorderCallout3:
+				sVal = "accentBorderCallout3";
+				break;
+			case AscCommon.ST_LayoutShapeType.accentCallout1:
+				sVal = "accentCallout1";
+				break;
+			case AscCommon.ST_LayoutShapeType.accentCallout2:
+				sVal = "accentCallout2";
+				break;
+			case AscCommon.ST_LayoutShapeType.accentCallout3:
+				sVal = "accentCallout3";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonBackPrevious:
+				sVal = "actionButtonBackPrevious";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonBeginning:
+				sVal = "actionButtonBeginning";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonBlank:
+				sVal = "actionButtonBlank";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonDocument:
+				sVal = "actionButtonDocument";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonEnd:
+				sVal = "actionButtonEnd";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonForwardNext:
+				sVal = "actionButtonForwardNext";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonHelp:
+				sVal = "actionButtonHelp";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonHome:
+				sVal = "actionButtonHome";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonInformation:
+				sVal = "actionButtonInformation";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonMovie:
+				sVal = "actionButtonMovie";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonReturn:
+				sVal = "actionButtonReturn";
+				break;
+			case AscCommon.ST_LayoutShapeType.actionButtonSound:
+				sVal = "actionButtonSound";
+				break;
+			case AscCommon.ST_LayoutShapeType.arc:
+				sVal = "arc";
+				break;
+			case AscCommon.ST_LayoutShapeType.bentArrow:
+				sVal = "bentArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.bentConnector2:
+				sVal = "bentConnector2";
+				break;
+			case AscCommon.ST_LayoutShapeType.bentConnector3:
+				sVal = "bentConnector3";
+				break;
+			case AscCommon.ST_LayoutShapeType.bentConnector4:
+				sVal = "bentConnector4";
+				break;
+			case AscCommon.ST_LayoutShapeType.bentConnector5:
+				sVal = "bentConnector5";
+				break;
+			case AscCommon.ST_LayoutShapeType.bentUpArrow:
+				sVal = "bentUpArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.bevel:
+				sVal = "bevel";
+				break;
+			case AscCommon.ST_LayoutShapeType.blockArc:
+				sVal = "blockArc";
+				break;
+			case AscCommon.ST_LayoutShapeType.borderCallout1:
+				sVal = "borderCallout1";
+				break;
+			case AscCommon.ST_LayoutShapeType.borderCallout2:
+				sVal = "borderCallout2";
+				break;
+			case AscCommon.ST_LayoutShapeType.borderCallout3:
+				sVal = "borderCallout3";
+				break;
+			case AscCommon.ST_LayoutShapeType.bracePair:
+				sVal = "bracePair";
+				break;
+			case AscCommon.ST_LayoutShapeType.bracketPair:
+				sVal = "bracketPair";
+				break;
+			case AscCommon.ST_LayoutShapeType.callout1:
+				sVal = "callout1";
+				break;
+			case AscCommon.ST_LayoutShapeType.callout2:
+				sVal = "callout2";
+				break;
+			case AscCommon.ST_LayoutShapeType.callout3:
+				sVal = "callout3";
+				break;
+			case AscCommon.ST_LayoutShapeType.can:
+				sVal = "can";
+				break;
+			case AscCommon.ST_LayoutShapeType.chartPlus:
+				sVal = "chartPlus";
+				break;
+			case AscCommon.ST_LayoutShapeType.chartStar:
+				sVal = "chartStar";
+				break;
+			case AscCommon.ST_LayoutShapeType.chartX:
+				sVal = "chartX";
+				break;
+			case AscCommon.ST_LayoutShapeType.chevron:
+				sVal = "chevron";
+				break;
+			case AscCommon.ST_LayoutShapeType.chord:
+				sVal = "chord";
+				break;
+			case AscCommon.ST_LayoutShapeType.circularArrow:
+				sVal = "circularArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.cloud:
+				sVal = "cloud";
+				break;
+			case AscCommon.ST_LayoutShapeType.cloudCallout:
+				sVal = "cloudCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.corner:
+				sVal = "corner";
+				break;
+			case AscCommon.ST_LayoutShapeType.cornerTabs:
+				sVal = "cornerTabs";
+				break;
+			case AscCommon.ST_LayoutShapeType.cube:
+				sVal = "cube";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedConnector2:
+				sVal = "curvedConnector2";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedConnector3:
+				sVal = "curvedConnector3";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedConnector4:
+				sVal = "curvedConnector4";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedConnector5:
+				sVal = "curvedConnector5";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedDownArrow:
+				sVal = "curvedDownArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedLeftArrow:
+				sVal = "curvedLeftArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedRightArrow:
+				sVal = "curvedRightArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.curvedUpArrow:
+				sVal = "curvedUpArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.decagon:
+				sVal = "decagon";
+				break;
+			case AscCommon.ST_LayoutShapeType.diagStripe:
+				sVal = "diagStripe";
+				break;
+			case AscCommon.ST_LayoutShapeType.diamond:
+				sVal = "diamond";
+				break;
+			case AscCommon.ST_LayoutShapeType.dodecagon:
+				sVal = "dodecagon";
+				break;
+			case AscCommon.ST_LayoutShapeType.donut:
+				sVal = "donut";
+				break;
+			case AscCommon.ST_LayoutShapeType.doubleWave:
+				sVal = "doubleWave";
+				break;
+			case AscCommon.ST_LayoutShapeType.downArrow:
+				sVal = "downArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.downArrowCallout:
+				sVal = "downArrowCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.ellipse:
+				sVal = "ellipse";
+				break;
+			case AscCommon.ST_LayoutShapeType.ellipseRibbon:
+				sVal = "ellipseRibbon";
+				break;
+			case AscCommon.ST_LayoutShapeType.ellipseRibbon2:
+				sVal = "ellipseRibbon2";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartAlternateProcess:
+				sVal = "flowChartAlternateProcess";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartCollate:
+				sVal = "flowChartCollate";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartConnector:
+				sVal = "flowChartConnector";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartDecision:
+				sVal = "flowChartDecision";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartDelay:
+				sVal = "flowChartDelay";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartDisplay:
+				sVal = "flowChartDisplay";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartDocument:
+				sVal = "flowChartDocument";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartExtract:
+				sVal = "flowChartExtract";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartInputOutput:
+				sVal = "flowChartInputOutput";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartInternalStorage:
+				sVal = "flowChartInternalStorage";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartMagneticDisk:
+				sVal = "flowChartMagneticDisk";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartMagneticDrum:
+				sVal = "flowChartMagneticDrum";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartMagneticTape:
+				sVal = "flowChartMagneticTape";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartManualInput:
+				sVal = "flowChartManualInput";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartManualOperation:
+				sVal = "flowChartManualOperation";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartMerge:
+				sVal = "flowChartMerge";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartMultidocument:
+				sVal = "flowChartMultidocument";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartOfflineStorage:
+				sVal = "flowChartOfflineStorage";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartOffpageConnector:
+				sVal = "flowChartOffpageConnector";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartOnlineStorage:
+				sVal = "flowChartOnlineStorage";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartOr:
+				sVal = "flowChartOr";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartPredefinedProcess:
+				sVal = "flowChartPredefinedProcess";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartPreparation:
+				sVal = "flowChartPreparation";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartProcess:
+				sVal = "flowChartProcess";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartPunchedCard:
+				sVal = "flowChartPunchedCard";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartPunchedTape:
+				sVal = "flowChartPunchedTape";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartSort:
+				sVal = "flowChartSort";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartSummingJunction:
+				sVal = "flowChartSummingJunction";
+				break;
+			case AscCommon.ST_LayoutShapeType.flowChartTerminator:
+				sVal = "flowChartTerminator";
+				break;
+			case AscCommon.ST_LayoutShapeType.foldedCorner:
+				sVal = "foldedCorner";
+				break;
+			case AscCommon.ST_LayoutShapeType.frame:
+				sVal = "frame";
+				break;
+			case AscCommon.ST_LayoutShapeType.funnel:
+				sVal = "funnel";
+				break;
+			case AscCommon.ST_LayoutShapeType.gear6:
+				sVal = "gear6";
+				break;
+			case AscCommon.ST_LayoutShapeType.gear9:
+				sVal = "gear9";
+				break;
+			case AscCommon.ST_LayoutShapeType.halfFrame:
+				sVal = "halfFrame";
+				break;
+			case AscCommon.ST_LayoutShapeType.heart:
+				sVal = "heart";
+				break;
+			case AscCommon.ST_LayoutShapeType.heptagon:
+				sVal = "heptagon";
+				break;
+			case AscCommon.ST_LayoutShapeType.hexagon:
+				sVal = "hexagon";
+				break;
+			case AscCommon.ST_LayoutShapeType.homePlate:
+				sVal = "homePlate";
+				break;
+			case AscCommon.ST_LayoutShapeType.horizontalScroll:
+				sVal = "horizontalScroll";
+				break;
+			case AscCommon.ST_LayoutShapeType.irregularSeal1:
+				sVal = "irregularSeal1";
+				break;
+			case AscCommon.ST_LayoutShapeType.irregularSeal2:
+				sVal = "irregularSeal2";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftArrow:
+				sVal = "leftArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftArrowCallout:
+				sVal = "leftArrowCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftBrace:
+				sVal = "leftBrace";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftBracket:
+				sVal = "leftBracket";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftCircularArrow:
+				sVal = "leftCircularArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftRightArrow:
+				sVal = "leftRightArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftRightArrowCallout:
+				sVal = "leftRightArrowCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftRightCircularArrow:
+				sVal = "leftRightCircularArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftRightRibbon:
+				sVal = "leftRightRibbon";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftRightUpArrow:
+				sVal = "leftRightUpArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.leftUpArrow:
+				sVal = "leftUpArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.lightningBolt:
+				sVal = "lightningBolt";
+				break;
+			case AscCommon.ST_LayoutShapeType.line:
+				sVal = "line";
+				break;
+			case AscCommon.ST_LayoutShapeType.lineInv:
+				sVal = "lineInv";
+				break;
+			case AscCommon.ST_LayoutShapeType.mathDivide:
+				sVal = "mathDivide";
+				break;
+			case AscCommon.ST_LayoutShapeType.mathEqual:
+				sVal = "mathEqual";
+				break;
+			case AscCommon.ST_LayoutShapeType.mathMinus:
+				sVal = "mathMinus";
+				break;
+			case AscCommon.ST_LayoutShapeType.mathMultiply:
+				sVal = "mathMultiply";
+				break;
+			case AscCommon.ST_LayoutShapeType.mathNotEqual:
+				sVal = "mathNotEqual";
+				break;
+			case AscCommon.ST_LayoutShapeType.mathPlus:
+				sVal = "mathPlus";
+				break;
+			case AscCommon.ST_LayoutShapeType.moon:
+				sVal = "moon";
+				break;
+			case AscCommon.ST_LayoutShapeType.nonIsoscelesTrapezoid:
+				sVal = "nonIsoscelesTrapezoid";
+				break;
+			case AscCommon.ST_LayoutShapeType.noSmoking:
+				sVal = "noSmoking";
+				break;
+			case AscCommon.ST_LayoutShapeType.notchedRightArrow:
+				sVal = "notchedRightArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.octagon:
+				sVal = "octagon";
+				break;
+			case AscCommon.ST_LayoutShapeType.parallelogram:
+				sVal = "parallelogram";
+				break;
+			case AscCommon.ST_LayoutShapeType.pentagon:
+				sVal = "pentagon";
+				break;
+			case AscCommon.ST_LayoutShapeType.pie:
+				sVal = "pie";
+				break;
+			case AscCommon.ST_LayoutShapeType.pieWedge:
+				sVal = "pieWedge";
+				break;
+			case AscCommon.ST_LayoutShapeType.plaque:
+				sVal = "plaque";
+				break;
+			case AscCommon.ST_LayoutShapeType.plaqueTabs:
+				sVal = "plaqueTabs";
+				break;
+			case AscCommon.ST_LayoutShapeType.plus:
+				sVal = "plus";
+				break;
+			case AscCommon.ST_LayoutShapeType.quadArrow:
+				sVal = "quadArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.quadArrowCallout:
+				sVal = "quadArrowCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.rect:
+				sVal = "rect";
+				break;
+			case AscCommon.ST_LayoutShapeType.ribbon:
+				sVal = "ribbon";
+				break;
+			case AscCommon.ST_LayoutShapeType.ribbon2:
+				sVal = "ribbon2";
+				break;
+			case AscCommon.ST_LayoutShapeType.rightArrow:
+				sVal = "rightArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.rightArrowCallout:
+				sVal = "rightArrowCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.rightBrace:
+				sVal = "rightBrace";
+				break;
+			case AscCommon.ST_LayoutShapeType.rightBracket:
+				sVal = "rightBracket";
+				break;
+			case AscCommon.ST_LayoutShapeType.round1Rect:
+				sVal = "round1Rect";
+				break;
+			case AscCommon.ST_LayoutShapeType.round2DiagRect:
+				sVal = "round2DiagRect";
+				break;
+			case AscCommon.ST_LayoutShapeType.round2SameRect:
+				sVal = "round2SameRect";
+				break;
+			case AscCommon.ST_LayoutShapeType.roundRect:
+				sVal = "roundRect";
+				break;
+			case AscCommon.ST_LayoutShapeType.rtTriangle:
+				sVal = "rtTriangle";
+				break;
+			case AscCommon.ST_LayoutShapeType.smileyFace:
+				sVal = "smileyFace";
+				break;
+			case AscCommon.ST_LayoutShapeType.snip1Rect:
+				sVal = "snip1Rect";
+				break;
+			case AscCommon.ST_LayoutShapeType.snip2DiagRect:
+				sVal = "snip2DiagRect";
+				break;
+			case AscCommon.ST_LayoutShapeType.snip2SameRect:
+				sVal = "snip2SameRect";
+				break;
+			case AscCommon.ST_LayoutShapeType.snipRoundRect:
+				sVal = "snipRoundRect";
+				break;
+			case AscCommon.ST_LayoutShapeType.squareTabs:
+				sVal = "squareTabs";
+				break;
+			case AscCommon.ST_LayoutShapeType.star10:
+				sVal = "star10";
+				break;
+			case AscCommon.ST_LayoutShapeType.star12:
+				sVal = "star12";
+				break;
+			case AscCommon.ST_LayoutShapeType.star16:
+				sVal = "star16";
+				break;
+			case AscCommon.ST_LayoutShapeType.star24:
+				sVal = "star24";
+				break;
+			case AscCommon.ST_LayoutShapeType.star32:
+				sVal = "star32";
+				break;
+			case AscCommon.ST_LayoutShapeType.star4:
+				sVal = "star4";
+				break;
+			case AscCommon.ST_LayoutShapeType.star5:
+				sVal = "star5";
+				break;
+			case AscCommon.ST_LayoutShapeType.star6:
+				sVal = "star6";
+				break;
+			case AscCommon.ST_LayoutShapeType.star7:
+				sVal = "star7";
+				break;
+			case AscCommon.ST_LayoutShapeType.star8:
+				sVal = "star8";
+				break;
+			case AscCommon.ST_LayoutShapeType.straightConnector1:
+				sVal = "straightConnector1";
+				break;
+			case AscCommon.ST_LayoutShapeType.stripedRightArrow:
+				sVal = "stripedRightArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.sun:
+				sVal = "sun";
+				break;
+			case AscCommon.ST_LayoutShapeType.swooshArrow:
+				sVal = "swooshArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.teardrop:
+				sVal = "teardrop";
+				break;
+			case AscCommon.ST_LayoutShapeType.trapezoid:
+				sVal = "trapezoid";
+				break;
+			case AscCommon.ST_LayoutShapeType.triangle:
+				sVal = "triangle";
+				break;
+			case AscCommon.ST_LayoutShapeType.upArrow:
+				sVal = "upArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.upArrowCallout:
+				sVal = "upArrowCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.upDownArrow:
+				sVal = "upDownArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.upDownArrowCallout:
+				sVal = "upDownArrowCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.uturnArrow:
+				sVal = "uturnArrow";
+				break;
+			case AscCommon.ST_LayoutShapeType.verticalScroll:
+				sVal = "verticalScroll";
+				break;
+			case AscCommon.ST_LayoutShapeType.wave:
+				sVal = "wave";
+				break;
+			case AscCommon.ST_LayoutShapeType.wedgeEllipseCallout:
+				sVal = "wedgeEllipseCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.wedgeRectCallout:
+				sVal = "wedgeRectCallout";
+				break;
+			case AscCommon.ST_LayoutShapeType.wedgeRoundRectCallout:
+				sVal = "wedgeRoundRectCallout";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_LayoutShapeType(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "conn":
+				nVal = AscCommon.ST_LayoutShapeType.conn;
+				break;
+			case "none":
+				nVal = AscCommon.ST_LayoutShapeType.none;
+				break;
+			case "accentBorderCallout1":
+				nVal = AscCommon.ST_LayoutShapeType.accentBorderCallout1;
+				break;
+			case "accentBorderCallout2":
+				nVal = AscCommon.ST_LayoutShapeType.accentBorderCallout2;
+				break;
+			case "accentBorderCallout3":
+				nVal = AscCommon.ST_LayoutShapeType.accentBorderCallout3;
+				break;
+			case "accentCallout1":
+				nVal = AscCommon.ST_LayoutShapeType.accentCallout1;
+				break;
+			case "accentCallout2":
+				nVal = AscCommon.ST_LayoutShapeType.accentCallout2;
+				break;
+			case "accentCallout3":
+				nVal = AscCommon.ST_LayoutShapeType.accentCallout3;
+				break;
+			case "actionButtonBackPrevious":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonBackPrevious;
+				break;
+			case "actionButtonBeginning":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonBeginning;
+				break;
+			case "actionButtonBlank":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonBlank;
+				break;
+			case "actionButtonDocument":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonDocument;
+				break;
+			case "actionButtonEnd":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonEnd;
+				break;
+			case "actionButtonForwardNext":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonForwardNext;
+				break;
+			case "actionButtonHelp":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonHelp;
+				break;
+			case "actionButtonHome":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonHome;
+				break;
+			case "actionButtonInformation":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonInformation;
+				break;
+			case "actionButtonMovie":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonMovie;
+				break;
+			case "actionButtonReturn":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonReturn;
+				break;
+			case "actionButtonSound":
+				nVal = AscCommon.ST_LayoutShapeType.actionButtonSound;
+				break;
+			case "arc":
+				nVal = AscCommon.ST_LayoutShapeType.arc;
+				break;
+			case "bentArrow":
+				nVal = AscCommon.ST_LayoutShapeType.bentArrow;
+				break;
+			case "bentConnector2":
+				nVal = AscCommon.ST_LayoutShapeType.bentConnector2;
+				break;
+			case "bentConnector3":
+				nVal = AscCommon.ST_LayoutShapeType.bentConnector3;
+				break;
+			case "bentConnector4":
+				nVal = AscCommon.ST_LayoutShapeType.bentConnector4;
+				break;
+			case "bentConnector5":
+				nVal = AscCommon.ST_LayoutShapeType.bentConnector5;
+				break;
+			case "bentUpArrow":
+				nVal = AscCommon.ST_LayoutShapeType.bentUpArrow;
+				break;
+			case "bevel":
+				nVal = AscCommon.ST_LayoutShapeType.bevel;
+				break;
+			case "blockArc":
+				nVal = AscCommon.ST_LayoutShapeType.blockArc;
+				break;
+			case "borderCallout1":
+				nVal = AscCommon.ST_LayoutShapeType.borderCallout1;
+				break;
+			case "borderCallout2":
+				nVal = AscCommon.ST_LayoutShapeType.borderCallout2;
+				break;
+			case "borderCallout3":
+				nVal = AscCommon.ST_LayoutShapeType.borderCallout3;
+				break;
+			case "bracePair":
+				nVal = AscCommon.ST_LayoutShapeType.bracePair;
+				break;
+			case "bracketPair":
+				nVal = AscCommon.ST_LayoutShapeType.bracketPair;
+				break;
+			case "callout1":
+				nVal = AscCommon.ST_LayoutShapeType.callout1;
+				break;
+			case "callout2":
+				nVal = AscCommon.ST_LayoutShapeType.callout2;
+				break;
+			case "callout3":
+				nVal = AscCommon.ST_LayoutShapeType.callout3;
+				break;
+			case "can":
+				nVal = AscCommon.ST_LayoutShapeType.can;
+				break;
+			case "chartPlus":
+				nVal = AscCommon.ST_LayoutShapeType.chartPlus;
+				break;
+			case "chartStar":
+				nVal = AscCommon.ST_LayoutShapeType.chartStar;
+				break;
+			case "chartX":
+				nVal = AscCommon.ST_LayoutShapeType.chartX;
+				break;
+			case "chevron":
+				nVal = AscCommon.ST_LayoutShapeType.chevron;
+				break;
+			case "chord":
+				nVal = AscCommon.ST_LayoutShapeType.chord;
+				break;
+			case "circularArrow":
+				nVal = AscCommon.ST_LayoutShapeType.circularArrow;
+				break;
+			case "cloud":
+				nVal = AscCommon.ST_LayoutShapeType.cloud;
+				break;
+			case "cloudCallout":
+				nVal = AscCommon.ST_LayoutShapeType.cloudCallout;
+				break;
+			case "corner":
+				nVal = AscCommon.ST_LayoutShapeType.corner;
+				break;
+			case "cornerTabs":
+				nVal = AscCommon.ST_LayoutShapeType.cornerTabs;
+				break;
+			case "cube":
+				nVal = AscCommon.ST_LayoutShapeType.cube;
+				break;
+			case "curvedConnector2":
+				nVal = AscCommon.ST_LayoutShapeType.curvedConnector2;
+				break;
+			case "curvedConnector3":
+				nVal = AscCommon.ST_LayoutShapeType.curvedConnector3;
+				break;
+			case "curvedConnector4":
+				nVal = AscCommon.ST_LayoutShapeType.curvedConnector4;
+				break;
+			case "curvedConnector5":
+				nVal = AscCommon.ST_LayoutShapeType.curvedConnector5;
+				break;
+			case "curvedDownArrow":
+				nVal = AscCommon.ST_LayoutShapeType.curvedDownArrow;
+				break;
+			case "curvedLeftArrow":
+				nVal = AscCommon.ST_LayoutShapeType.curvedLeftArrow;
+				break;
+			case "curvedRightArrow":
+				nVal = AscCommon.ST_LayoutShapeType.curvedRightArrow;
+				break;
+			case "curvedUpArrow":
+				nVal = AscCommon.ST_LayoutShapeType.curvedUpArrow;
+				break;
+			case "decagon":
+				nVal = AscCommon.ST_LayoutShapeType.decagon;
+				break;
+			case "diagStripe":
+				nVal = AscCommon.ST_LayoutShapeType.diagStripe;
+				break;
+			case "diamond":
+				nVal = AscCommon.ST_LayoutShapeType.diamond;
+				break;
+			case "dodecagon":
+				nVal = AscCommon.ST_LayoutShapeType.dodecagon;
+				break;
+			case "donut":
+				nVal = AscCommon.ST_LayoutShapeType.donut;
+				break;
+			case "doubleWave":
+				nVal = AscCommon.ST_LayoutShapeType.doubleWave;
+				break;
+			case "downArrow":
+				nVal = AscCommon.ST_LayoutShapeType.downArrow;
+				break;
+			case "downArrowCallout":
+				nVal = AscCommon.ST_LayoutShapeType.downArrowCallout;
+				break;
+			case "ellipse":
+				nVal = AscCommon.ST_LayoutShapeType.ellipse;
+				break;
+			case "ellipseRibbon":
+				nVal = AscCommon.ST_LayoutShapeType.ellipseRibbon;
+				break;
+			case "ellipseRibbon2":
+				nVal = AscCommon.ST_LayoutShapeType.ellipseRibbon2;
+				break;
+			case "flowChartAlternateProcess":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartAlternateProcess;
+				break;
+			case "flowChartCollate":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartCollate;
+				break;
+			case "flowChartConnector":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartConnector;
+				break;
+			case "flowChartDecision":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartDecision;
+				break;
+			case "flowChartDelay":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartDelay;
+				break;
+			case "flowChartDisplay":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartDisplay;
+				break;
+			case "flowChartDocument":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartDocument;
+				break;
+			case "flowChartExtract":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartExtract;
+				break;
+			case "flowChartInputOutput":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartInputOutput;
+				break;
+			case "flowChartInternalStorage":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartInternalStorage;
+				break;
+			case "flowChartMagneticDisk":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartMagneticDisk;
+				break;
+			case "flowChartMagneticDrum":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartMagneticDrum;
+				break;
+			case "flowChartMagneticTape":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartMagneticTape;
+				break;
+			case "flowChartManualInput":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartManualInput;
+				break;
+			case "flowChartManualOperation":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartManualOperation;
+				break;
+			case "flowChartMerge":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartMerge;
+				break;
+			case "flowChartMultidocument":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartMultidocument;
+				break;
+			case "flowChartOfflineStorage":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartOfflineStorage;
+				break;
+			case "flowChartOffpageConnector":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartOffpageConnector;
+				break;
+			case "flowChartOnlineStorage":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartOnlineStorage;
+				break;
+			case "flowChartOr":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartOr;
+				break;
+			case "flowChartPredefinedProcess":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartPredefinedProcess;
+				break;
+			case "flowChartPreparation":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartPreparation;
+				break;
+			case "flowChartProcess":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartProcess;
+				break;
+			case "flowChartPunchedCard":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartPunchedCard;
+				break;
+			case "flowChartPunchedTape":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartPunchedTape;
+				break;
+			case "flowChartSort":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartSort;
+				break;
+			case "flowChartSummingJunction":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartSummingJunction;
+				break;
+			case "flowChartTerminator":
+				nVal = AscCommon.ST_LayoutShapeType.flowChartTerminator;
+				break;
+			case "foldedCorner":
+				nVal = AscCommon.ST_LayoutShapeType.foldedCorner;
+				break;
+			case "frame":
+				nVal = AscCommon.ST_LayoutShapeType.frame;
+				break;
+			case "funnel":
+				nVal = AscCommon.ST_LayoutShapeType.funnel;
+				break;
+			case "gear6":
+				nVal = AscCommon.ST_LayoutShapeType.gear6;
+				break;
+			case "gear9":
+				nVal = AscCommon.ST_LayoutShapeType.gear9;
+				break;
+			case "halfFrame":
+				nVal = AscCommon.ST_LayoutShapeType.halfFrame;
+				break;
+			case "heart":
+				nVal = AscCommon.ST_LayoutShapeType.heart;
+				break;
+			case "heptagon":
+				nVal = AscCommon.ST_LayoutShapeType.heptagon;
+				break;
+			case "hexagon":
+				nVal = AscCommon.ST_LayoutShapeType.hexagon;
+				break;
+			case "homePlate":
+				nVal = AscCommon.ST_LayoutShapeType.homePlate;
+				break;
+			case "horizontalScroll":
+				nVal = AscCommon.ST_LayoutShapeType.horizontalScroll;
+				break;
+			case "irregularSeal1":
+				nVal = AscCommon.ST_LayoutShapeType.irregularSeal1;
+				break;
+			case "irregularSeal2":
+				nVal = AscCommon.ST_LayoutShapeType.irregularSeal2;
+				break;
+			case "leftArrow":
+				nVal = AscCommon.ST_LayoutShapeType.leftArrow;
+				break;
+			case "leftArrowCallout":
+				nVal = AscCommon.ST_LayoutShapeType.leftArrowCallout;
+				break;
+			case "leftBrace":
+				nVal = AscCommon.ST_LayoutShapeType.leftBrace;
+				break;
+			case "leftBracket":
+				nVal = AscCommon.ST_LayoutShapeType.leftBracket;
+				break;
+			case "leftCircularArrow":
+				nVal = AscCommon.ST_LayoutShapeType.leftCircularArrow;
+				break;
+			case "leftRightArrow":
+				nVal = AscCommon.ST_LayoutShapeType.leftRightArrow;
+				break;
+			case "leftRightArrowCallout":
+				nVal = AscCommon.ST_LayoutShapeType.leftRightArrowCallout;
+				break;
+			case "leftRightCircularArrow":
+				nVal = AscCommon.ST_LayoutShapeType.leftRightCircularArrow;
+				break;
+			case "leftRightRibbon":
+				nVal = AscCommon.ST_LayoutShapeType.leftRightRibbon;
+				break;
+			case "leftRightUpArrow":
+				nVal = AscCommon.ST_LayoutShapeType.leftRightUpArrow;
+				break;
+			case "leftUpArrow":
+				nVal = AscCommon.ST_LayoutShapeType.leftUpArrow;
+				break;
+			case "lightningBolt":
+				nVal = AscCommon.ST_LayoutShapeType.lightningBolt;
+				break;
+			case "line":
+				nVal = AscCommon.ST_LayoutShapeType.line;
+				break;
+			case "lineInv":
+				nVal = AscCommon.ST_LayoutShapeType.lineInv;
+				break;
+			case "mathDivide":
+				nVal = AscCommon.ST_LayoutShapeType.mathDivide;
+				break;
+			case "mathEqual":
+				nVal = AscCommon.ST_LayoutShapeType.mathEqual;
+				break;
+			case "mathMinus":
+				nVal = AscCommon.ST_LayoutShapeType.mathMinus;
+				break;
+			case "mathMultiply":
+				nVal = AscCommon.ST_LayoutShapeType.mathMultiply;
+				break;
+			case "mathNotEqual":
+				nVal = AscCommon.ST_LayoutShapeType.mathNotEqual;
+				break;
+			case "mathPlus":
+				nVal = AscCommon.ST_LayoutShapeType.mathPlus;
+				break;
+			case "moon":
+				nVal = AscCommon.ST_LayoutShapeType.moon;
+				break;
+			case "nonIsoscelesTrapezoid":
+				nVal = AscCommon.ST_LayoutShapeType.nonIsoscelesTrapezoid;
+				break;
+			case "noSmoking":
+				nVal = AscCommon.ST_LayoutShapeType.noSmoking;
+				break;
+			case "notchedRightArrow":
+				nVal = AscCommon.ST_LayoutShapeType.notchedRightArrow;
+				break;
+			case "octagon":
+				nVal = AscCommon.ST_LayoutShapeType.octagon;
+				break;
+			case "parallelogram":
+				nVal = AscCommon.ST_LayoutShapeType.parallelogram;
+				break;
+			case "pentagon":
+				nVal = AscCommon.ST_LayoutShapeType.pentagon;
+				break;
+			case "pie":
+				nVal = AscCommon.ST_LayoutShapeType.pie;
+				break;
+			case "pieWedge":
+				nVal = AscCommon.ST_LayoutShapeType.pieWedge;
+				break;
+			case "plaque":
+				nVal = AscCommon.ST_LayoutShapeType.plaque;
+				break;
+			case "plaqueTabs":
+				nVal = AscCommon.ST_LayoutShapeType.plaqueTabs;
+				break;
+			case "plus":
+				nVal = AscCommon.ST_LayoutShapeType.plus;
+				break;
+			case "quadArrow":
+				nVal = AscCommon.ST_LayoutShapeType.quadArrow;
+				break;
+			case "quadArrowCallout":
+				nVal = AscCommon.ST_LayoutShapeType.quadArrowCallout;
+				break;
+			case "rect":
+				nVal = AscCommon.ST_LayoutShapeType.rect;
+				break;
+			case "ribbon":
+				nVal = AscCommon.ST_LayoutShapeType.ribbon;
+				break;
+			case "ribbon2":
+				nVal = AscCommon.ST_LayoutShapeType.ribbon2;
+				break;
+			case "rightArrow":
+				nVal = AscCommon.ST_LayoutShapeType.rightArrow;
+				break;
+			case "rightArrowCallout":
+				nVal = AscCommon.ST_LayoutShapeType.rightArrowCallout;
+				break;
+			case "rightBrace":
+				nVal = AscCommon.ST_LayoutShapeType.rightBrace;
+				break;
+			case "rightBracket":
+				nVal = AscCommon.ST_LayoutShapeType.rightBracket;
+				break;
+			case "round1Rect":
+				nVal = AscCommon.ST_LayoutShapeType.round1Rect;
+				break;
+			case "round2DiagRect":
+				nVal = AscCommon.ST_LayoutShapeType.round2DiagRect;
+				break;
+			case "round2SameRect":
+				nVal = AscCommon.ST_LayoutShapeType.round2SameRect;
+				break;
+			case "roundRect":
+				nVal = AscCommon.ST_LayoutShapeType.roundRect;
+				break;
+			case "rtTriangle":
+				nVal = AscCommon.ST_LayoutShapeType.rtTriangle;
+				break;
+			case "smileyFace":
+				nVal = AscCommon.ST_LayoutShapeType.smileyFace;
+				break;
+			case "snip1Rect":
+				nVal = AscCommon.ST_LayoutShapeType.snip1Rect;
+				break;
+			case "snip2DiagRect":
+				nVal = AscCommon.ST_LayoutShapeType.snip2DiagRect;
+				break;
+			case "snip2SameRect":
+				nVal = AscCommon.ST_LayoutShapeType.snip2SameRect;
+				break;
+			case "snipRoundRect":
+				nVal = AscCommon.ST_LayoutShapeType.snipRoundRect;
+				break;
+			case "squareTabs":
+				nVal = AscCommon.ST_LayoutShapeType.squareTabs;
+				break;
+			case "star10":
+				nVal = AscCommon.ST_LayoutShapeType.star10;
+				break;
+			case "star12":
+				nVal = AscCommon.ST_LayoutShapeType.star12;
+				break;
+			case "star16":
+				nVal = AscCommon.ST_LayoutShapeType.star16;
+				break;
+			case "star24":
+				nVal = AscCommon.ST_LayoutShapeType.star24;
+				break;
+			case "star32":
+				nVal = AscCommon.ST_LayoutShapeType.star32;
+				break;
+			case "star4":
+				nVal = AscCommon.ST_LayoutShapeType.star4;
+				break;
+			case "star5":
+				nVal = AscCommon.ST_LayoutShapeType.star5;
+				break;
+			case "star6":
+				nVal = AscCommon.ST_LayoutShapeType.star6;
+				break;
+			case "star7":
+				nVal = AscCommon.ST_LayoutShapeType.star7;
+				break;
+			case "star8":
+				nVal = AscCommon.ST_LayoutShapeType.star8;
+				break;
+			case "straightConnector1":
+				nVal = AscCommon.ST_LayoutShapeType.straightConnector1;
+				break;
+			case "stripedRightArrow":
+				nVal = AscCommon.ST_LayoutShapeType.stripedRightArrow;
+				break;
+			case "sun":
+				nVal = AscCommon.ST_LayoutShapeType.sun;
+				break;
+			case "swooshArrow":
+				nVal = AscCommon.ST_LayoutShapeType.swooshArrow;
+				break;
+			case "teardrop":
+				nVal = AscCommon.ST_LayoutShapeType.teardrop;
+				break;
+			case "trapezoid":
+				nVal = AscCommon.ST_LayoutShapeType.trapezoid;
+				break;
+			case "triangle":
+				nVal = AscCommon.ST_LayoutShapeType.triangle;
+				break;
+			case "upArrow":
+				nVal = AscCommon.ST_LayoutShapeType.upArrow;
+				break;
+			case "upArrowCallout":
+				nVal = AscCommon.ST_LayoutShapeType.upArrowCallout;
+				break;
+			case "upDownArrow":
+				nVal = AscCommon.ST_LayoutShapeType.upDownArrow;
+				break;
+			case "upDownArrowCallout":
+				nVal = AscCommon.ST_LayoutShapeType.upDownArrowCallout;
+				break;
+			case "uturnArrow":
+				nVal = AscCommon.ST_LayoutShapeType.uturnArrow;
+				break;
+			case "verticalScroll":
+				nVal = AscCommon.ST_LayoutShapeType.verticalScroll;
+				break;
+			case "wave":
+				nVal = AscCommon.ST_LayoutShapeType.wave;
+				break;
+			case "wedgeEllipseCallout":
+				nVal = AscCommon.ST_LayoutShapeType.wedgeEllipseCallout;
+				break;
+			case "wedgeRectCallout":
+				nVal = AscCommon.ST_LayoutShapeType.wedgeRectCallout;
+				break;
+			case "wedgeRoundRectCallout":
+				nVal = AscCommon.ST_LayoutShapeType.wedgeRoundRectCallout;
+				break;
+		}
+
+		return nVal;
+	}
+	
+	function To_XML_ST_ParameterId(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_ParameterId.alignTx:
+				sVal = "alignTx";
+				break;
+			case AscCommon.ST_ParameterId.ar:
+				sVal = "ar";
+				break;
+			case AscCommon.ST_ParameterId.autoTxRot:
+				sVal = "autoTxRot";
+				break;
+			case AscCommon.ST_ParameterId.begPts:
+				sVal = "begPts";
+				break;
+			case AscCommon.ST_ParameterId.begSty:
+				sVal = "begSty";
+				break;
+			case AscCommon.ST_ParameterId.bendPt:
+				sVal = "bendPt";
+				break;
+			case AscCommon.ST_ParameterId.bkpt:
+				sVal = "bkpt";
+				break;
+			case AscCommon.ST_ParameterId.bkPtFixedVal:
+				sVal = "bkPtFixedVal";
+				break;
+			case AscCommon.ST_ParameterId.chAlign:
+				sVal = "chAlign";
+				break;
+			case AscCommon.ST_ParameterId.chDir:
+				sVal = "chDir";
+				break;
+			case AscCommon.ST_ParameterId.connRout:
+				sVal = "connRout";
+				break;
+			case AscCommon.ST_ParameterId.contDir:
+				sVal = "contDir";
+				break;
+			case AscCommon.ST_ParameterId.ctrShpMap:
+				sVal = "ctrShpMap";
+				break;
+			case AscCommon.ST_ParameterId.dim:
+				sVal = "dim";
+				break;
+			case AscCommon.ST_ParameterId.dstNode:
+				sVal = "dstNode";
+				break;
+			case AscCommon.ST_ParameterId.endPts:
+				sVal = "endPts";
+				break;
+			case AscCommon.ST_ParameterId.endSty:
+				sVal = "endSty";
+				break;
+			case AscCommon.ST_ParameterId.fallback:
+				sVal = "fallback";
+				break;
+			case AscCommon.ST_ParameterId.flowDir:
+				sVal = "flowDir";
+				break;
+			case AscCommon.ST_ParameterId.grDir:
+				sVal = "grDir";
+				break;
+			case AscCommon.ST_ParameterId.hierAlign:
+				sVal = "hierAlign";
+				break;
+			case AscCommon.ST_ParameterId.horzAlign:
+				sVal = "horzAlign";
+				break;
+			case AscCommon.ST_ParameterId.linDir:
+				sVal = "linDir";
+				break;
+			case AscCommon.ST_ParameterId.lnSpAfChP:
+				sVal = "lnSpAfChP";
+				break;
+			case AscCommon.ST_ParameterId.lnSpAfParP:
+				sVal = "lnSpAfParP";
+				break;
+			case AscCommon.ST_ParameterId.lnSpCh:
+				sVal = "lnSpCh";
+				break;
+			case AscCommon.ST_ParameterId.lnSpPar:
+				sVal = "lnSpPar";
+				break;
+			case AscCommon.ST_ParameterId.nodeHorzAlign:
+				sVal = "nodeHorzAlign";
+				break;
+			case AscCommon.ST_ParameterId.nodeVertAlign:
+				sVal = "nodeVertAlign";
+				break;
+			case AscCommon.ST_ParameterId.off:
+				sVal = "off";
+				break;
+			case AscCommon.ST_ParameterId.parTxLTRAlign:
+				sVal = "parTxLTRAlign";
+				break;
+			case AscCommon.ST_ParameterId.parTxRTLAlign:
+				sVal = "parTxRTLAlign";
+				break;
+			case AscCommon.ST_ParameterId.pyraAcctBkgdNode:
+				sVal = "pyraAcctBkgdNode";
+				break;
+			case AscCommon.ST_ParameterId.pyraAcctPos:
+				sVal = "pyraAcctPos";
+				break;
+			case AscCommon.ST_ParameterId.pyraAcctTxMar:
+				sVal = "pyraAcctTxMar";
+				break;
+			case AscCommon.ST_ParameterId.pyraAcctTxNode:
+				sVal = "pyraAcctTxNode";
+				break;
+			case AscCommon.ST_ParameterId.pyraLvlNode:
+				sVal = "pyraLvlNode";
+				break;
+			case AscCommon.ST_ParameterId.rotPath:
+				sVal = "rotPath";
+				break;
+			case AscCommon.ST_ParameterId.rtShortDist:
+				sVal = "rtShortDist";
+				break;
+			case AscCommon.ST_ParameterId.secChAlign:
+				sVal = "secChAlign";
+				break;
+			case AscCommon.ST_ParameterId.secLinDir:
+				sVal = "secLinDir";
+				break;
+			case AscCommon.ST_ParameterId.shpTxLTRAlignCh:
+				sVal = "shpTxLTRAlignCh";
+				break;
+			case AscCommon.ST_ParameterId.shpTxRTLAlignCh:
+				sVal = "shpTxRTLAlignCh";
+				break;
+			case AscCommon.ST_ParameterId.spanAng:
+				sVal = "spanAng";
+				break;
+			case AscCommon.ST_ParameterId.srcNode:
+				sVal = "srcNode";
+				break;
+			case AscCommon.ST_ParameterId.stAng:
+				sVal = "stAng";
+				break;
+			case AscCommon.ST_ParameterId.stBulletLvl:
+				sVal = "stBulletLvl";
+				break;
+			case AscCommon.ST_ParameterId.stElem:
+				sVal = "stElem";
+				break;
+			case AscCommon.ST_ParameterId.txAnchorHorz:
+				sVal = "txAnchorHorz";
+				break;
+			case AscCommon.ST_ParameterId.txAnchorHorzCh:
+				sVal = "txAnchorHorzCh";
+				break;
+			case AscCommon.ST_ParameterId.txAnchorVert:
+				sVal = "txAnchorVert";
+				break;
+			case AscCommon.ST_ParameterId.txAnchorVertCh:
+				sVal = "txAnchorVertCh";
+				break;
+			case AscCommon.ST_ParameterId.txBlDir:
+				sVal = "txBlDir";
+				break;
+			case AscCommon.ST_ParameterId.txDir:
+				sVal = "txDir";
+				break;
+			case AscCommon.ST_ParameterId.vertAlign:
+				sVal = "vertAlign";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_ParameterId(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "alignTx":
+				nVal = AscCommon.ST_ParameterId.alignTx;
+				break;
+			case "ar":
+				nVal = AscCommon.ST_ParameterId.ar;
+				break;
+			case "autoTxRot":
+				nVal = AscCommon.ST_ParameterId.autoTxRot;
+				break;
+			case "begPts":
+				nVal = AscCommon.ST_ParameterId.begPts;
+				break;
+			case "begSty":
+				nVal = AscCommon.ST_ParameterId.begSty;
+				break;
+			case "bendPt":
+				nVal = AscCommon.ST_ParameterId.bendPt;
+				break;
+			case "bkpt":
+				nVal = AscCommon.ST_ParameterId.bkpt;
+				break;
+			case "bkPtFixedVal":
+				nVal = AscCommon.ST_ParameterId.bkPtFixedVal;
+				break;
+			case "chAlign":
+				nVal = AscCommon.ST_ParameterId.chAlign;
+				break;
+			case "chDir":
+				nVal = AscCommon.ST_ParameterId.chDir;
+				break;
+			case "connRout":
+				nVal = AscCommon.ST_ParameterId.connRout;
+				break;
+			case "contDir":
+				nVal = AscCommon.ST_ParameterId.contDir;
+				break;
+			case "ctrShpMap":
+				nVal = AscCommon.ST_ParameterId.ctrShpMap;
+				break;
+			case "dim":
+				nVal = AscCommon.ST_ParameterId.dim;
+				break;
+			case "dstNode":
+				nVal = AscCommon.ST_ParameterId.dstNode;
+				break;
+			case "endPts":
+				nVal = AscCommon.ST_ParameterId.endPts;
+				break;
+			case "endSty":
+				nVal = AscCommon.ST_ParameterId.endSty;
+				break;
+			case "fallback":
+				nVal = AscCommon.ST_ParameterId.fallback;
+				break;
+			case "flowDir":
+				nVal = AscCommon.ST_ParameterId.flowDir;
+				break;
+			case "grDir":
+				nVal = AscCommon.ST_ParameterId.grDir;
+				break;
+			case "hierAlign":
+				nVal = AscCommon.ST_ParameterId.hierAlign;
+				break;
+			case "horzAlign":
+				nVal = AscCommon.ST_ParameterId.horzAlign;
+				break;
+			case "linDir":
+				nVal = AscCommon.ST_ParameterId.linDir;
+				break;
+			case "lnSpAfChP":
+				nVal = AscCommon.ST_ParameterId.lnSpAfChP;
+				break;
+			case "lnSpAfParP":
+				nVal = AscCommon.ST_ParameterId.lnSpAfParP;
+				break;
+			case "lnSpCh":
+				nVal = AscCommon.ST_ParameterId.lnSpCh;
+				break;
+			case "lnSpPar":
+				nVal = AscCommon.ST_ParameterId.lnSpPar;
+				break;
+			case "nodeHorzAlign":
+				nVal = AscCommon.ST_ParameterId.nodeHorzAlign;
+				break;
+			case "nodeVertAlign":
+				nVal = AscCommon.ST_ParameterId.nodeVertAlign;
+				break;
+			case "off":
+				nVal = AscCommon.ST_ParameterId.off;
+				break;
+			case "parTxLTRAlign":
+				nVal = AscCommon.ST_ParameterId.parTxLTRAlign;
+				break;
+			case "parTxRTLAlign":
+				nVal = AscCommon.ST_ParameterId.parTxRTLAlign;
+				break;
+			case "pyraAcctBkgdNode":
+				nVal = AscCommon.ST_ParameterId.pyraAcctBkgdNode;
+				break;
+			case "pyraAcctPos":
+				nVal = AscCommon.ST_ParameterId.pyraAcctPos;
+				break;
+			case "pyraAcctTxMar":
+				nVal = AscCommon.ST_ParameterId.pyraAcctTxMar;
+				break;
+			case "pyraAcctTxNode":
+				nVal = AscCommon.ST_ParameterId.pyraAcctTxNode;
+				break;
+			case "pyraLvlNode":
+				nVal = AscCommon.ST_ParameterId.pyraLvlNode;
+				break;
+			case "rotPath":
+				nVal = AscCommon.ST_ParameterId.rotPath;
+				break;
+			case "rtShortDist":
+				nVal = AscCommon.ST_ParameterId.rtShortDist;
+				break;
+			case "secChAlign":
+				nVal = AscCommon.ST_ParameterId.secChAlign;
+				break;
+			case "secLinDir":
+				nVal = AscCommon.ST_ParameterId.secLinDir;
+				break;
+			case "shpTxLTRAlignCh":
+				nVal = AscCommon.ST_ParameterId.shpTxLTRAlignCh;
+				break;
+			case "shpTxRTLAlignCh":
+				nVal = AscCommon.ST_ParameterId.shpTxRTLAlignCh;
+				break;
+			case "spanAng":
+				nVal = AscCommon.ST_ParameterId.spanAng;
+				break;
+			case "srcNode":
+				nVal = AscCommon.ST_ParameterId.srcNode;
+				break;
+			case "stAng":
+				nVal = AscCommon.ST_ParameterId.stAng;
+				break;
+			case "stBulletLvl":
+				nVal = AscCommon.ST_ParameterId.stBulletLvl;
+				break;
+			case "stElem":
+				nVal = AscCommon.ST_ParameterId.stElem;
+				break;
+			case "txAnchorHorz":
+				nVal = AscCommon.ST_ParameterId.txAnchorHorz;
+				break;
+			case "txAnchorHorzCh":
+				nVal = AscCommon.ST_ParameterId.txAnchorHorzCh;
+				break;
+			case "txAnchorVert":
+				nVal = AscCommon.ST_ParameterId.txAnchorVert;
+				break;
+			case "txAnchorVertCh":
+				nVal = AscCommon.ST_ParameterId.txAnchorVertCh;
+				break;
+			case "txBlDir":
+				nVal = AscCommon.ST_ParameterId.txBlDir;
+				break;
+			case "txDir":
+				nVal = AscCommon.ST_ParameterId.txDir;
+				break;
+			case "vertAlign":
+				nVal = AscCommon.ST_ParameterId.vertAlign;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_PresetCameraType(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_PresetCameraType.isometricBottomDown:
+				sVal = "isometricBottomDown";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricBottomUp:
+				sVal = "isometricBottomUp";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricLeftDown:
+				sVal = "isometricLeftDown";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricLeftUp:
+				sVal = "isometricLeftUp";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis1Left:
+				sVal = "isometricOffAxis1Left";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis1Right:
+				sVal = "isometricOffAxis1Right";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis1Top:
+				sVal = "isometricOffAxis1Top";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis2Left:
+				sVal = "isometricOffAxis2Left";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis2Right:
+				sVal = "isometricOffAxis2Right";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis2Top:
+				sVal = "isometricOffAxis2Top";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis3Bottom:
+				sVal = "isometricOffAxis3Bottom";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis3Left:
+				sVal = "isometricOffAxis3Left";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis3Right:
+				sVal = "isometricOffAxis3Right";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis4Bottom:
+				sVal = "isometricOffAxis4Bottom";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis4Left:
+				sVal = "isometricOffAxis4Left";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricOffAxis4Right:
+				sVal = "isometricOffAxis4Right";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricRightDown:
+				sVal = "isometricRightDown";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricRightUp:
+				sVal = "isometricRightUp";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricTopDown:
+				sVal = "isometricTopDown";
+				break;
+			case AscCommon.ST_PresetCameraType.isometricTopUp:
+				sVal = "isometricTopUp";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueBottom:
+				sVal = "legacyObliqueBottom";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueBottomLeft:
+				sVal = "legacyObliqueBottomLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueBottomRight:
+				sVal = "legacyObliqueBottomRight";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueFront:
+				sVal = "legacyObliqueFront";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueLeft:
+				sVal = "legacyObliqueLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueRight:
+				sVal = "legacyObliqueRight";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueTop:
+				sVal = "legacyObliqueTop";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueTopLeft:
+				sVal = "legacyObliqueTopLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyObliqueTopRight:
+				sVal = "legacyObliqueTopRight";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveBottom:
+				sVal = "legacyPerspectiveBottom";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveBottomLeft:
+				sVal = "legacyPerspectiveBottomLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveBottomRight:
+				sVal = "legacyPerspectiveBottomRight";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveFront:
+				sVal = "legacyPerspectiveFront";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveLeft:
+				sVal = "legacyPerspectiveLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveRight:
+				sVal = "legacyPerspectiveRight";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveTop:
+				sVal = "legacyPerspectiveTop";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveTopLeft:
+				sVal = "legacyPerspectiveTopLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.legacyPerspectiveTopRight:
+				sVal = "legacyPerspectiveTopRight";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueBottom:
+				sVal = "obliqueBottom";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueBottomLeft:
+				sVal = "obliqueBottomLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueBottomRight:
+				sVal = "obliqueBottomRight";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueLeft:
+				sVal = "obliqueLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueRight:
+				sVal = "obliqueRight";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueTop:
+				sVal = "obliqueTop";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueTopLeft:
+				sVal = "obliqueTopLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.obliqueTopRight:
+				sVal = "obliqueTopRight";
+				break;
+			case AscCommon.ST_PresetCameraType.orthographicFront:
+				sVal = "orthographicFront";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveAbove:
+				sVal = "perspectiveAbove";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveAboveLeftFacing:
+				sVal = "perspectiveAboveLeftFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveAboveRightFacing:
+				sVal = "perspectiveAboveRightFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveBelow:
+				sVal = "perspectiveBelow";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveContrastingLeftFacing:
+				sVal = "perspectiveContrastingLeftFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveContrastingRightFacing:
+				sVal = "perspectiveContrastingRightFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveFront:
+				sVal = "perspectiveFront";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveHeroicExtremeLeftFacing:
+				sVal = "perspectiveHeroicExtremeLeftFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveHeroicExtremeRightFacing:
+				sVal = "perspectiveHeroicExtremeRightFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveHeroicLeftFacing:
+				sVal = "perspectiveHeroicLeftFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveHeroicRightFacing:
+				sVal = "perspectiveHeroicRightFacing";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveLeft:
+				sVal = "perspectiveLeft";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveRelaxed:
+				sVal = "perspectiveRelaxed";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveRelaxedModerately:
+				sVal = "perspectiveRelaxedModerately";
+				break;
+			case AscCommon.ST_PresetCameraType.perspectiveRight:
+				sVal = "perspectiveRight";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_PresetCameraType(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "isometricBottomDown":
+				nVal = AscCommon.ST_PresetCameraType.isometricBottomDown;
+				break;
+			case "isometricBottomUp":
+				nVal = AscCommon.ST_PresetCameraType.isometricBottomUp;
+				break;
+			case "isometricLeftDown":
+				nVal = AscCommon.ST_PresetCameraType.isometricLeftDown;
+				break;
+			case "isometricLeftUp":
+				nVal = AscCommon.ST_PresetCameraType.isometricLeftUp;
+				break;
+			case "isometricOffAxis1Left":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis1Left;
+				break;
+			case "isometricOffAxis1Right":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis1Right;
+				break;
+			case "isometricOffAxis1Top":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis1Top;
+				break;
+			case "isometricOffAxis2Left":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis2Left;
+				break;
+			case "isometricOffAxis2Right":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis2Right;
+				break;
+			case "isometricOffAxis2Top":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis2Top;
+				break;
+			case "isometricOffAxis3Bottom":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis3Bottom;
+				break;
+			case "isometricOffAxis3Left":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis3Left;
+				break;
+			case "isometricOffAxis3Right":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis3Right;
+				break;
+			case "isometricOffAxis4Bottom":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis4Bottom;
+				break;
+			case "isometricOffAxis4Left":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis4Left;
+				break;
+			case "isometricOffAxis4Right":
+				nVal = AscCommon.ST_PresetCameraType.isometricOffAxis4Right;
+				break;
+			case "isometricRightDown":
+				nVal = AscCommon.ST_PresetCameraType.isometricRightDown;
+				break;
+			case "isometricRightUp":
+				nVal = AscCommon.ST_PresetCameraType.isometricRightUp;
+				break;
+			case "isometricTopDown":
+				nVal = AscCommon.ST_PresetCameraType.isometricTopDown;
+				break;
+			case "isometricTopUp":
+				nVal = AscCommon.ST_PresetCameraType.isometricTopUp;
+				break;
+			case "legacyObliqueBottom":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueBottom;
+				break;
+			case "legacyObliqueBottomLeft":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueBottomLeft;
+				break;
+			case "legacyObliqueBottomRight":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueBottomRight;
+				break;
+			case "legacyObliqueFront":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueFront;
+				break;
+			case "legacyObliqueLeft":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueLeft;
+				break;
+			case "legacyObliqueRight":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueRight;
+				break;
+			case "legacyObliqueTop":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueTop;
+				break;
+			case "legacyObliqueTopLeft":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueTopLeft;
+				break;
+			case "legacyObliqueTopRight":
+				nVal = AscCommon.ST_PresetCameraType.legacyObliqueTopRight;
+				break;
+			case "legacyPerspectiveBottom":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveBottom;
+				break;
+			case "legacyPerspectiveBottomLeft":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveBottomLeft;
+				break;
+			case "legacyPerspectiveBottomRight":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveBottomRight;
+				break;
+			case "legacyPerspectiveFront":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveFront;
+				break;
+			case "legacyPerspectiveLeft":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveLeft;
+				break;
+			case "legacyPerspectiveRight":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveRight;
+				break;
+			case "legacyPerspectiveTop":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveTop;
+				break;
+			case "legacyPerspectiveTopLeft":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveTopLeft;
+				break;
+			case "legacyPerspectiveTopRight":
+				nVal = AscCommon.ST_PresetCameraType.legacyPerspectiveTopRight;
+				break;
+			case "obliqueBottom":
+				nVal = AscCommon.ST_PresetCameraType.obliqueBottom;
+				break;
+			case "obliqueBottomLeft":
+				nVal = AscCommon.ST_PresetCameraType.obliqueBottomLeft;
+				break;
+			case "obliqueBottomRight":
+				nVal = AscCommon.ST_PresetCameraType.obliqueBottomRight;
+				break;
+			case "obliqueLeft":
+				nVal = AscCommon.ST_PresetCameraType.obliqueLeft;
+				break;
+			case "obliqueRight":
+				nVal = AscCommon.ST_PresetCameraType.obliqueRight;
+				break;
+			case "obliqueTop":
+				nVal = AscCommon.ST_PresetCameraType.obliqueTop;
+				break;
+			case "obliqueTopLeft":
+				nVal = AscCommon.ST_PresetCameraType.obliqueTopLeft;
+				break;
+			case "obliqueTopRight":
+				nVal = AscCommon.ST_PresetCameraType.obliqueTopRight;
+				break;
+			case "orthographicFront":
+				nVal = AscCommon.ST_PresetCameraType.orthographicFront;
+				break;
+			case "perspectiveAbove":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveAbove;
+				break;
+			case "perspectiveAboveLeftFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveAboveLeftFacing;
+				break;
+			case "perspectiveAboveRightFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveAboveRightFacing;
+				break;
+			case "perspectiveBelow":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveBelow;
+				break;
+			case "perspectiveContrastingLeftFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveContrastingLeftFacing;
+				break;
+			case "perspectiveContrastingRightFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveContrastingRightFacing;
+				break;
+			case "perspectiveFront":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveFront;
+				break;
+			case "perspectiveHeroicExtremeLeftFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveHeroicExtremeLeftFacing;
+				break;
+			case "perspectiveHeroicExtremeRightFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveHeroicExtremeRightFacing;
+				break;
+			case "perspectiveHeroicLeftFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveHeroicLeftFacing;
+				break;
+			case "perspectiveHeroicRightFacing":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveHeroicRightFacing;
+				break;
+			case "perspectiveLeft":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveLeft;
+				break;
+			case "perspectiveRelaxed":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveRelaxed;
+				break;
+			case "perspectiveRelaxedModerately":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveRelaxedModerately;
+				break;
+			case "perspectiveRight":
+				nVal = AscCommon.ST_PresetCameraType.perspectiveRight;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_LightRigDirection(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_LightRigDirection.b:
+				sVal = "b";
+				break;
+			case AscCommon.ST_LightRigDirection.bl:
+				sVal = "bl";
+				break;
+			case AscCommon.ST_LightRigDirection.br:
+				sVal = "br";
+				break;
+			case AscCommon.ST_LightRigDirection.l:
+				sVal = "l";
+				break;
+			case AscCommon.ST_LightRigDirection.r:
+				sVal = "r";
+				break;
+			case AscCommon.ST_LightRigDirection.t:
+				sVal = "t";
+				break;
+			case AscCommon.ST_LightRigDirection.tl:
+				sVal = "tl";
+				break;
+			case AscCommon.ST_LightRigDirection.tr:
+				sVal = "tr";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_LightRigDirection(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "b":
+				nVal = AscCommon.ST_LightRigDirection.b;
+				break;
+			case "bl":
+				nVal = AscCommon.ST_LightRigDirection.bl;
+				break;
+			case "br":
+				nVal = AscCommon.ST_LightRigDirection.br;
+				break;
+			case "l":
+				nVal = AscCommon.ST_LightRigDirection.l;
+				break;
+			case "r":
+				nVal = AscCommon.ST_LightRigDirection.r;
+				break;
+			case "t":
+				nVal = AscCommon.ST_LightRigDirection.t;
+				break;
+			case "tl":
+				nVal = AscCommon.ST_LightRigDirection.tl;
+				break;
+			case "tr":
+				nVal = AscCommon.ST_LightRigDirection.tr;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_LightRigType(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_LightRigType.balanced:
+				sVal = "balanced";
+				break;
+			case AscCommon.ST_LightRigType.brightRoom:
+				sVal = "brightRoom";
+				break;
+			case AscCommon.ST_LightRigType.chilly:
+				sVal = "chilly";
+				break;
+			case AscCommon.ST_LightRigType.contrasting:
+				sVal = "contrasting";
+				break;
+			case AscCommon.ST_LightRigType.flat:
+				sVal = "flat";
+				break;
+			case AscCommon.ST_LightRigType.flood:
+				sVal = "flood";
+				break;
+			case AscCommon.ST_LightRigType.freezing:
+				sVal = "freezing";
+				break;
+			case AscCommon.ST_LightRigType.glow:
+				sVal = "glow";
+				break;
+			case AscCommon.ST_LightRigType.harsh:
+				sVal = "harsh";
+				break;
+			case AscCommon.ST_LightRigType.legacyFlat1:
+				sVal = "legacyFlat1";
+				break;
+			case AscCommon.ST_LightRigType.legacyFlat2:
+				sVal = "legacyFlat2";
+				break;
+			case AscCommon.ST_LightRigType.legacyFlat3:
+				sVal = "legacyFlat3";
+				break;
+			case AscCommon.ST_LightRigType.legacyFlat4:
+				sVal = "legacyFlat4";
+				break;
+			case AscCommon.ST_LightRigType.legacyHarsh1:
+				sVal = "legacyHarsh1";
+				break;
+			case AscCommon.ST_LightRigType.legacyHarsh2:
+				sVal = "legacyHarsh2";
+				break;
+			case AscCommon.ST_LightRigType.legacyHarsh3:
+				sVal = "legacyHarsh3";
+				break;
+			case AscCommon.ST_LightRigType.legacyHarsh4:
+				sVal = "legacyHarsh4";
+				break;
+			case AscCommon.ST_LightRigType.legacyNormal1:
+				sVal = "legacyNormal1";
+				break;
+			case AscCommon.ST_LightRigType.legacyNormal2:
+				sVal = "legacyNormal2";
+				break;
+			case AscCommon.ST_LightRigType.legacyNormal3:
+				sVal = "legacyNormal3";
+				break;
+			case AscCommon.ST_LightRigType.legacyNormal4:
+				sVal = "legacyNormal4";
+				break;
+			case AscCommon.ST_LightRigType.morning:
+				sVal = "morning";
+				break;
+			case AscCommon.ST_LightRigType.soft:
+				sVal = "soft";
+				break;
+			case AscCommon.ST_LightRigType.sunrise:
+				sVal = "sunrise";
+				break;
+			case AscCommon.ST_LightRigType.sunset:
+				sVal = "sunset";
+				break;
+			case AscCommon.ST_LightRigType.threePt:
+				sVal = "threePt";
+				break;
+			case AscCommon.ST_LightRigType.twoPt:
+				sVal = "twoPt";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_LightRigType(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "balanced":
+				nVal = AscCommon.ST_LightRigType.balanced;
+				break;
+			case "brightRoom":
+				nVal = AscCommon.ST_LightRigType.brightRoom;
+				break;
+			case "chilly":
+				nVal = AscCommon.ST_LightRigType.chilly;
+				break;
+			case "contrasting":
+				nVal = AscCommon.ST_LightRigType.contrasting;
+				break;
+			case "flat":
+				nVal = AscCommon.ST_LightRigType.flat;
+				break;
+			case "flood":
+				nVal = AscCommon.ST_LightRigType.flood;
+				break;
+			case "freezing":
+				nVal = AscCommon.ST_LightRigType.freezing;
+				break;
+			case "glow":
+				nVal = AscCommon.ST_LightRigType.glow;
+				break;
+			case "harsh":
+				nVal = AscCommon.ST_LightRigType.harsh;
+				break;
+			case "legacyFlat1":
+				nVal = AscCommon.ST_LightRigType.legacyFlat1;
+				break;
+			case "legacyFlat2":
+				nVal = AscCommon.ST_LightRigType.legacyFlat2;
+				break;
+			case "legacyFlat3":
+				nVal = AscCommon.ST_LightRigType.legacyFlat3;
+				break;
+			case "legacyFlat4":
+				nVal = AscCommon.ST_LightRigType.legacyFlat4;
+				break;
+			case "legacyHarsh1":
+				nVal = AscCommon.ST_LightRigType.legacyHarsh1;
+				break;
+			case "legacyHarsh2":
+				nVal = AscCommon.ST_LightRigType.legacyHarsh2;
+				break;
+			case "legacyHarsh3":
+				nVal = AscCommon.ST_LightRigType.legacyHarsh3;
+				break;
+			case "legacyHarsh4":
+				nVal = AscCommon.ST_LightRigType.legacyHarsh4;
+				break;
+			case "legacyNormal1":
+				nVal = AscCommon.ST_LightRigType.legacyNormal1;
+				break;
+			case "legacyNormal2":
+				nVal = AscCommon.ST_LightRigType.legacyNormal2;
+				break;
+			case "legacyNormal3":
+				nVal = AscCommon.ST_LightRigType.legacyNormal3;
+				break;
+			case "legacyNormal4":
+				nVal = AscCommon.ST_LightRigType.legacyNormal4;
+				break;
+			case "morning":
+				nVal = AscCommon.ST_LightRigType.morning;
+				break;
+			case "soft":
+				nVal = AscCommon.ST_LightRigType.soft;
+				break;
+			case "sunrise":
+				nVal = AscCommon.ST_LightRigType.sunrise;
+				break;
+			case "sunset":
+				nVal = AscCommon.ST_LightRigType.sunset;
+				break;
+			case "threePt":
+				nVal = AscCommon.ST_LightRigType.threePt;
+				break;
+			case "twoPt":
+				nVal = AscCommon.ST_LightRigType.twoPt;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_BevelPresetType(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_BevelPresetType.angle:
+				sVal = "angle";
+				break;
+			case AscCommon.ST_BevelPresetType.artDeco:
+				sVal = "artDeco";
+				break;
+			case AscCommon.ST_BevelPresetType.circle:
+				sVal = "circle";
+				break;
+			case AscCommon.ST_BevelPresetType.convex:
+				sVal = "convex";
+				break;
+			case AscCommon.ST_BevelPresetType.coolSlant:
+				sVal = "coolSlant";
+				break;
+			case AscCommon.ST_BevelPresetType.cross:
+				sVal = "cross";
+				break;
+			case AscCommon.ST_BevelPresetType.divot:
+				sVal = "divot";
+				break;
+			case AscCommon.ST_BevelPresetType.hardEdge:
+				sVal = "hardEdge";
+				break;
+			case AscCommon.ST_BevelPresetType.relaxedInset:
+				sVal = "relaxedInset";
+				break;
+			case AscCommon.ST_BevelPresetType.riblet:
+				sVal = "riblet";
+				break;
+			case AscCommon.ST_BevelPresetType.slope:
+				sVal = "slope";
+				break;
+			case AscCommon.ST_BevelPresetType.softRound:
+				sVal = "softRound";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_BevelPresetType(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "angle":
+				nVal = AscCommon.ST_BevelPresetType.angle;
+				break;
+			case "artDeco":
+				nVal = AscCommon.ST_BevelPresetType.artDeco;
+				break;
+			case "circle":
+				nVal = AscCommon.ST_BevelPresetType.circle;
+				break;
+			case "convex":
+				nVal = AscCommon.ST_BevelPresetType.convex;
+				break;
+			case "coolSlant":
+				nVal = AscCommon.ST_BevelPresetType.coolSlant;
+				break;
+			case "cross":
+				nVal = AscCommon.ST_BevelPresetType.cross;
+				break;
+			case "divot":
+				nVal = AscCommon.ST_BevelPresetType.divot;
+				break;
+			case "hardEdge":
+				nVal = AscCommon.ST_BevelPresetType.hardEdge;
+				break;
+			case "relaxedInset":
+				nVal = AscCommon.ST_BevelPresetType.relaxedInset;
+				break;
+			case "riblet":
+				nVal = AscCommon.ST_BevelPresetType.riblet;
+				break;
+			case "slope":
+				nVal = AscCommon.ST_BevelPresetType.slope;
+				break;
+			case "softRound":
+				nVal = AscCommon.ST_BevelPresetType.softRound;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_PresetMaterialType(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_PresetMaterialType.clear:
+				sVal = "clear";
+				break;
+			case AscCommon.ST_PresetMaterialType.dkEdge:
+				sVal = "dkEdge";
+				break;
+			case AscCommon.ST_PresetMaterialType.flat:
+				sVal = "flat";
+				break;
+			case AscCommon.ST_PresetMaterialType.legacyMatte:
+				sVal = "legacyMatte";
+				break;
+			case AscCommon.ST_PresetMaterialType.legacyMetal:
+				sVal = "legacyMetal";
+				break;
+			case AscCommon.ST_PresetMaterialType.legacyPlastic:
+				sVal = "legacyPlastic";
+				break;
+			case AscCommon.ST_PresetMaterialType.legacyWireframe:
+				sVal = "legacyWireframe";
+				break;
+			case AscCommon.ST_PresetMaterialType.matte:
+				sVal = "matte";
+				break;
+			case AscCommon.ST_PresetMaterialType.metal:
+				sVal = "metal";
+				break;
+			case AscCommon.ST_PresetMaterialType.plastic:
+				sVal = "plastic";
+				break;
+			case AscCommon.ST_PresetMaterialType.powder:
+				sVal = "powder";
+				break;
+			case AscCommon.ST_PresetMaterialType.softEdge:
+				sVal = "softEdge";
+				break;
+			case AscCommon.ST_PresetMaterialType.softmetal:
+				sVal = "softmetal";
+				break;
+			case AscCommon.ST_PresetMaterialType.translucentPowder:
+				sVal = "translucentPowder";
+				break;
+			case AscCommon.ST_PresetMaterialType.warmMatte:
+				sVal = "warmMatte";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_PresetMaterialType(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "clear":
+				nVal = AscCommon.ST_PresetMaterialType.clear;
+				break;
+			case "dkEdge":
+				nVal = AscCommon.ST_PresetMaterialType.dkEdge;
+				break;
+			case "flat":
+				nVal = AscCommon.ST_PresetMaterialType.flat;
+				break;
+			case "legacyMatte":
+				nVal = AscCommon.ST_PresetMaterialType.legacyMatte;
+				break;
+			case "legacyMetal":
+				nVal = AscCommon.ST_PresetMaterialType.legacyMetal;
+				break;
+			case "legacyPlastic":
+				nVal = AscCommon.ST_PresetMaterialType.legacyPlastic;
+				break;
+			case "legacyWireframe":
+				nVal = AscCommon.ST_PresetMaterialType.legacyWireframe;
+				break;
+			case "matte":
+				nVal = AscCommon.ST_PresetMaterialType.matte;
+				break;
+			case "metal":
+				nVal = AscCommon.ST_PresetMaterialType.metal;
+				break;
+			case "plastic":
+				nVal = AscCommon.ST_PresetMaterialType.plastic;
+				break;
+			case "powder":
+				nVal = AscCommon.ST_PresetMaterialType.powder;
+				break;
+			case "softEdge":
+				nVal = AscCommon.ST_PresetMaterialType.softEdge;
+				break;
+			case "softmetal":
+				nVal = AscCommon.ST_PresetMaterialType.softmetal;
+				break;
+			case "translucentPowder":
+				nVal = AscCommon.ST_PresetMaterialType.translucentPowder;
+				break;
+			case "warmMatte":
+				nVal = AscCommon.ST_PresetMaterialType.warmMatte;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_ST_CxnType(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_CxnType.parOf:
+				sVal = "parOf";
+				break;
+			case AscCommon.ST_CxnType.presOf:
+				sVal = "presOf";
+				break;
+			case AscCommon.ST_CxnType.presParOf:
+				sVal = "presParOf";
+				break;
+			case AscCommon.ST_CxnType.unknownRelationShip:
+				sVal = "unknownRelationShip";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_ST_CxnType(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "parOf":
+				nVal = AscCommon.ST_CxnType.parOf;
+				break;
+			case "presOf":
+				nVal = AscCommon.ST_CxnType.presOf;
+				break;
+			case "presParOf":
+				nVal = AscCommon.ST_CxnType.presParOf;
+				break;
+			case "unknownRelationShip":
+				nVal = AscCommon.ST_CxnType.unknownRelationShip;
+				break;
+		}
+
+		return nVal;
+	}
     //----------------------------------------------------------export----------------------------------------------------
     window['AscCommon']       = window['AscCommon'] || {};
     window['AscFormat']       = window['AscFormat'] || {};

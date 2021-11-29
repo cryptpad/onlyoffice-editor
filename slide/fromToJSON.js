@@ -1408,10 +1408,10 @@
 		var sColorDir = undefined;
 		switch (oAnimClr.dir)
 		{
-			case c_oAscSlideTLColorDirection.Ccw:
+			case AscCommon.ST_HueDir.Ccw:
 				sColorDir = "ccw";
 				break;
-			case c_oAscSlideTLColorDirection.Cw:
+			case AscCommon.ST_HueDir.Cw:
 				sColorDir = "cw";
 				break;
 		}
@@ -2974,10 +2974,10 @@
 		switch (oParsedAnimClr.dir)
 		{
 			case "ccw":
-				nColorDir = c_oAscSlideTLColorDirection.Ccw;
+				nColorDir = AscCommon.ST_HueDir.Ccw;
 				break;
 			case "cw":
-				nColorDir = c_oAscSlideTLColorDirection.Cw;
+				nColorDir = AscCommon.ST_HueDir.Cw;
 				break;
 		}
 
