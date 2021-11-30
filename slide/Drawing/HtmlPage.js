@@ -3168,7 +3168,7 @@ function CEditorPage(api)
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_After();
 
-		if (this.IsSupportNotes && this.m_oNotesApi)
+		if (this.IsSupportNotes && this.m_oNotesApi && this.m_oApi.isDocumentLoadComplete/* asc_setSkin => OnResize before fonts loaded => crash on Notes.OnResize() */)
 			this.m_oNotesApi.OnResize();
 
 		this.FullRulersUpdate();
