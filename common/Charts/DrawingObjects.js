@@ -4255,6 +4255,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.Begin_CompositeInput = function(){
+        if(!_this.controller.canEdit()) {
+            return;
+        }
         if(_this.controller.checkSelectedObjectsProtectionText()) {
             return;
         }
