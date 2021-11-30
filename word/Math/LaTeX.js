@@ -38,25 +38,14 @@ function CLaTeXParser(props, str) {
 	this.arrAtomsOfFormula = [];
 	this.Pr = { ctrPrp: new CTextPr() };
 	this.Paragraph = props.Paragraph;
-	this.ParaMath = props;
 	this.Root = props.Root;
-	this.EqArray;
-	this.intEqLines = 1;
 	this.isError = false;
 };
 CLaTeXParser.prototype.prepare = function() {
 	var t0 = performance.now();
-
-	this.Pr.row = this.intEqLines;
-	var EqArray = new CEqArray(this.Pr);
-
-	this.Root.Add_Element(EqArray);
-	this.EqArray = EqArray;
-
-	CLaTeXLexer(this, this.EqArray.getElementMathContent(this.intEqLines - 1));
+	CLaTeXLexer(this, this.Root);
 	var t1 = performance.now();
 	console.log("Lexer work " + (t1 - t0) + " milliseconds.");
-
 	this.Root.Correct_Content(true);
 };
 CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
@@ -1074,7 +1063,7 @@ CLaTeXParser.prototype.CreateScript = function(FormArgument, type) {
 	return Script;
 };
 CLaTeXParser.prototype.FillScriptContent = function(Script, name, typeOfScript) {
-	this.AddText(name, Script.getBase())
+	this.AddSymbol(name, Script.getBase())
 
 	if (typeOfScript == 'DEGREE_SUPERSCRIPT') {
 		this.FillScriptContentWriteSub(Script);
@@ -1093,19 +1082,11 @@ CLaTeXParser.prototype.FillScriptContent = function(Script, name, typeOfScript) 
 };
 CLaTeXParser.prototype.FillScriptContentWriteSup = function(Script) {
 	var Iterator = Script.getUpperIterator();
-	this.CheckFutureAtom(); // get ^ sup
 	this.StartLexer(Iterator);
 };
 CLaTeXParser.prototype.FillScriptContentWriteSub = function(Script) {
 	var Iterator = Script.getLowerIterator();
-	this.CheckFutureAtom(); // get _ sub
 	this.StartLexer(Iterator);
-};
-CLaTeXParser.prototype.AddScriptForText = function(FormArgument, strFAtom) {
-	var isDegreeOrIndex = this.CheckIsDegreeOrIndex();
-	var isDegreeAndIndex = this.CheckIsDegreeAndIndex();
-
-	this.AddScript(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex);
 };
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
 	return (
@@ -1564,7 +1545,7 @@ CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	var strNameOfIntegral = strFAtom;
 	var intCountOfIntegral = this.GetCountOfIntegral.get(strNameOfIntegral);
 	var isOTypeIntegral = this.GetTypeOfIntegral.get(strNameOfIntegral);
-	var TypeOFLoc = 1;
+	var TypeOFLoc = 0;
 
 	var hideBoxes = {
 		supHide: false,
@@ -1572,7 +1553,7 @@ CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	};
 
 	if (this.CheckFutureAtom() == "\\limits") {
-		TypeOFLoc = 0;
+		TypeOFLoc = 1;
 		this.GetNextAtom();
 	}
 
@@ -1758,27 +1739,42 @@ CLaTeXParser.prototype.CheckIsMatrix = function () {
 		this.CheckElementSequence(["\\begin", "{", "array", "}"], true) 
 	);
 };
-//Text
-CLaTeXParser.prototype.AddText = function (strFAtom, FormArgument) {
-	this.AddSymbol(strFAtom, FormArgument);
-};
+//Text and symbols
 CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type, typeText) {
-	if (strFAtom == '\\quad') {
-		strFAtom = ' '
+	if (strFAtom === undefined) {
+		return
 	}
 
-	var strCode = this.arrLaTeXSymbols.get(strFAtom);
-	if (typeof type == 'number') {
-			this.Pr['scr'] = type;
-			FormArgument.Add_Symbol(strFAtom.charCodeAt(0), typeText, this.Pr);
+	if (strFAtom.length < 1) {
+		return
 	}
 
-	else if (strCode) {
-		FormArgument.Add_Text(String.fromCharCode(strCode), this.Paragraph);
+	if (this.CheckFutureAtom() == '\\') {
+		if (strFAtom.length > 1) {
+			FormArgument.Add_Text(strFAtom, this.Paragraph, {brk: true});
+		} 
+		
+		else {
+			FormArgument.Add_Symbol(strFAtom.charCodeAt(0), this.Pr,  {brk: true});
+		}
+
+		this.GetNextAtom()
 	}
 
 	else {
-		FormArgument.Add_Text(strFAtom, this.Paragraph);
+	
+		if (type) {
+			this.Pr['scr'] = type;
+			FormArgument.Add_Symbol(strFAtom.charCodeAt(0), typeText, this.Pr);
+		}
+
+		else if (strFAtom.length > 1) {
+			FormArgument.Add_Text(strFAtom, this.Paragraph);
+		}
+
+		else {
+			FormArgument.Add_Symbol(strFAtom.charCodeAt(0), this.Pr);
+		}
 	}
 };
 CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
@@ -1841,16 +1837,6 @@ CLaTeXParser.prototype.CheckMathTextSty = new Map([
 	['\\mathfrak', {Italic: false, Bold: false}],
 	['\\mathrm', {Italic: false}]
 ]);
-//New line
-CLaTeXParser.prototype.AddNewLine = function() {
-	this.Root.Correct_Content(true);
-	this.intEqLines++;
-	var Pr = new CMathEqArrPr()
-	Pr.row = this.intEqLines;
-
-	this.EqArray.Add_Row(this.intEqLines);
-	CLaTeXLexer(this, this.EqArray.getElementMathContent(this.intEqLines - 1));
-};
 /**
  * @param Parser
  * @param FormArgument Функция в которую будет записываться контент.
@@ -1879,6 +1865,10 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		if (Parser.GetTypeOfFunction.get(strFAtom) != null) {
 			Parser.AddFunction(FormArgument, strFAtom);
 			intFAtoms++;
+		}
+
+		else if (Parser.CheckFutureAtom() == '\\') {
+			Parser.AddSymbol(strFAtom, FormArgument)
 		}
 
 		else if (Parser.CheckSyntaxOfFraction(strFAtom) && !Parser.isError) {
@@ -1926,17 +1916,15 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 
-		else if (strFAtom == '\\' && !Parser.isError) {
-			Parser.AddNewLine();
-		}
-
 		else if (Parser.CheckIsMatrix() && !Parser.isError) {
 			Parser.AddMatrix(FormArgument);
 			intFAtoms++;
 		}
 
 		else if (Parser.CheckSupSubForLexer() && !Parser.isError) {
-			Parser.AddScriptForText(FormArgument, strFAtom);
+			var isDegreeOrIndex = Parser.CheckIsDegreeOrIndex();
+			var isDegreeAndIndex = Parser.CheckIsDegreeAndIndex();
+			Parser.AddScript(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex);
 			intFAtoms++;
 		}
 
@@ -1949,7 +1937,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		}
 
 		else if (Parser.CheckIsText(strFAtom) && !Parser.isError) {
-			Parser.AddText(strFAtom, FormArgument);
+			Parser.AddSymbol(strFAtom, FormArgument);
 			intFAtoms++;
 		}
 
@@ -1968,6 +1956,7 @@ function ToLaTex(Root) {
 		arr: []
 	};
 	this.scr;
+	this.brk = false;
 };
 //Service
 ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
@@ -2019,9 +2008,9 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 						}
 					}
 					else if(CName == 'ParaRun' && content.Content.length > 0) {
-					
 						data = {
 							scr: content.MathPrp.scr,
+							brk: content.MathPrp.brk,
 							bold: content.CompiledPr.Bold,
 							italic: content.CompiledPr.Italic,
 						}
@@ -2126,6 +2115,10 @@ ToLaTex.prototype.Convert = function(obj, start, end) {
 		}
 		else if (nameForCheck == 'ParaRun') {
 			this.CheckParaRun(name, obj);
+			if (this.brk == true) {
+				this.objString.arr.push(' \\\\ ');
+				this.brk = false;
+			}
 		}
 		else if (nameForCheck == 'CMathContent') {
 			this.Convert(obj[name]);
@@ -2419,11 +2412,14 @@ ToLaTex.prototype.AddText = function(name, obj) {
 	this.objString.arr.push(strText);
 };
 ToLaTex.prototype.CheckParaRun = function(name, obj) {
-	
+	if (obj[name].data.brk != undefined) {
+		this.brk = true;
+	}
+
 	if (this.scr == undefined && obj[name].data.scr != undefined) {
 		this.scr = obj[name].data.scr;
-		var strItalic = obj[name].data.strItalic;
-		var strBold = obj[name].data.strBold;
+		var strItalic = obj[name].data.bold;
+		var strBold = obj[name].data.italic;
 
 		if (this.scr == 1) {
 			this.objString.arr.push('\\mathcal{');
