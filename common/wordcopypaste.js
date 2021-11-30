@@ -5518,8 +5518,7 @@ PasteProcessor.prototype =
 				if (null != background_color) {
 					var Shd = new CDocumentShd();
 					Shd.Value = c_oAscShdClear;
-					Shd.Color =
-						new CDocumentColor(background_color.getR(), background_color.getG(), background_color.getB());
+					Shd.Color = Shd.Fill = new CDocumentColor(background_color.getR(), background_color.getG(), background_color.getB());
 					oCurCell.Set_Shd(Shd);
 				}
 
@@ -6706,6 +6705,7 @@ PasteProcessor.prototype =
 					var Shd = new CDocumentShd();
 					Shd.Value = c_oAscShdClear;
 					Shd.Color = background_color;
+					Shd.Fill = background_color;
 					Para.Set_Shd(Shd);
 				}
 			}
@@ -8604,6 +8604,7 @@ PasteProcessor.prototype =
 			Shd = new CDocumentShd();
 			Shd.Value = c_oAscShdClear;
 			Shd.Color = background_color;
+			Shd.Fill = background_color;
 		}
 
 		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
@@ -8660,6 +8661,7 @@ PasteProcessor.prototype =
 			var Shd = new CDocumentShd();
 			Shd.Value = c_oAscShdClear;
 			Shd.Color = background_color;
+			Shd.Fill = background_color;
 			cell.Set_Shd(Shd);
 		}
 		var border = this._ExecuteBorder(computedStyle, node, "left", "Left", bAddIfNull);
