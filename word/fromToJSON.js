@@ -11532,7 +11532,7 @@
 
 		if (!oDrawing.GraphicObj)
 			oDrawing.Set_GraphicObject(oGraphicObj);
-		oDrawing.CheckWH();
+//		oDrawing.CheckWH();
 
 		return oDrawing;
 	};
@@ -11572,6 +11572,11 @@
 		oParsedArt.styleDef && oSmartArt.setStyleDef(this.StyleDefFromJSON(oParsedArt.styleDef));
 
 		oParsedArt.drawing && oSmartArt.setDrawing(this.DrawingFromJSON(oParsedArt.drawing));
+		if(oSmartArt.drawing)
+		{
+			oSmartArt.drawing.setGroup(oSmartArt);
+			oSmartArt.addToSpTree(0, oSmartArt.drawing);
+		}
 		oParsedArt.nvGrpSpPr && oSmartArt.setNvGrpSpPr(this.UniNvPrFromJSON(oParsedArt.nvGrpSpPr));
 		oParsedArt.spPr && oSmartArt.setSpPr(this.SpPrFromJSON(oParsedArt.spPr, oSmartArt));
 		
