@@ -6807,6 +6807,36 @@
         }, this, []);
     };
     CTimeNodeContainer.prototype["asc_putSubtype"] = CTimeNodeContainer.prototype.asc_putSubtype;
+    CTimeNodeContainer.prototype.isEqualProperties = function(oPr) {
+        if(!oPr) {
+            return false;
+        }
+        if(this.asc_getStartType() !== oPr.asc_getStartType()) {
+            return false;
+        }
+        if(this.asc_getDelay() !== oPr.asc_getDelay()) {
+            return false;
+        }
+        if(this.asc_getDuration() !== oPr.asc_getDuration()) {
+            return false;
+        }
+        if(this.asc_getRepeatCount() !== oPr.asc_getRepeatCount()) {
+            return false;
+        }
+        if(this.asc_getRewind() !== oPr.asc_getRewind()) {
+            return false;
+        }
+        if(this.asc_getClass() !== oPr.asc_getClass()) {
+            return false;
+        }
+        if(this.asc_getType() !== oPr.asc_getType()) {
+            return false;
+        }
+        if(this.asc_getSubtype() !== oPr.asc_getSubtype()) {
+            return false;
+        }
+        return true;
+    };
 
     AscFormat["untilNextClick"] = AscFormat.untilNextClick = -1;
     AscFormat["untilNextSlide"] = AscFormat.untilNextSlide = -2;
@@ -9053,27 +9083,26 @@
     function CAnimationPlayer(oSlide, drawer) {
         this.slide = oSlide;
         this.timings = [];
-        if(oSlide.timing) {
-            this.timings.push(oSlide.timing);
-        }
-        if(oSlide.Layout.timing) {
-            this.timings.push(oSlide.Layout.timing);
-        }
-        if(oSlide.Layout.Master.timing) {
-            this.timings.push(oSlide.Layout.Master.timing);
-        }
-        for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
-            var oRoot = this.timings[nTiming].getTimingRootNode();
-            if(oRoot) {
-                oRoot.resetState();
-            }
-        }
+        this.updateTimingList();
         this.eventsProcessor = new CEventsProcessor(this);
         this.animationScheduler = new CAnimationScheduler(this);
         this.animationDrawer = new CAnimationDrawer(this);
         this.timer = new CAnimationTimer(this);
         this.drawer = drawer;
     }
+    CAnimationPlayer.prototype.updateTimingList = function() {
+        this.timings.length = 0;
+        if(this.slide.timing) {
+            this.timings.push(this.slide.timing);
+        }
+        if(this.slide.Layout.timing) {
+            this.timings.push(this.slide.Layout.timing);
+        }
+        if(this.slide.Layout.Master.timing) {
+            this.timings.push(this.slide.Layout.Master.timing);
+        }
+        this.resetNodesState();
+    };
     CAnimationPlayer.prototype.getPresentation = function() {
         return editor.WordControl.m_oLogicDocument;
     };
@@ -9093,7 +9122,7 @@
         var bIsPaused = this.isPaused();
         this.timer.start();
         if(!bIsPaused) {
-            this.resetNodesState();
+            this.updateTimingList();
             this.scheduleNodesStart();
         }
         if(this.isMainSequenceFinished()) {
