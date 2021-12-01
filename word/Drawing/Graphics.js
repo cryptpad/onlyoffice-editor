@@ -1491,7 +1491,7 @@ CGraphics.prototype =
         var _ctx = this.m_oContext;
         _ctx.beginPath();
         _ctx.fillStyle = "#E1E1E1";
-        _ctx.strokeStyle = GlobalSkin.RulerOutline;
+        _ctx.strokeStyle = this.isDarkMode ? "#E1E1E1" : GlobalSkin.RulerOutline;
         this.m_bBrushColorInit = false;
         this.m_bPenColorInit = false;
 
@@ -1548,7 +1548,7 @@ CGraphics.prototype =
         var _ctx = this.m_oContext;
         _ctx.beginPath();
         _ctx.fillStyle = "#E1E1E1";
-        _ctx.strokeStyle = GlobalSkin.RulerOutline;
+        _ctx.strokeStyle = this.isDarkMode ? "#E1E1E1" : GlobalSkin.RulerOutline;
         this.m_bBrushColorInit = false;
         this.m_bPenColorInit = false;
 
@@ -1616,8 +1616,15 @@ CGraphics.prototype =
             case locktype_None:
             case locktype_Mine:
             {
-                var c = AscCommon.RgbaHexToRGBA(GlobalSkin.RulerOutline);
-                this.p_color(c.R, c.G, c.B, 255);
+                if (!this.isDarkMode)
+                {
+                    var c = AscCommon.RgbaHexToRGBA(GlobalSkin.RulerOutline);
+                    this.p_color(c.R, c.G, c.B, 255);
+                }
+                else
+                {
+                    ctx.strokeStyle = "#E1E1E1";
+                }
                 ctx.lineWidth = _lineWidth;
                 break;
             }
