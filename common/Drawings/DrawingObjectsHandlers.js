@@ -1268,6 +1268,8 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         return false;
     }
     var ret = false, i, title, hit_to_handles;
+
+    var oApi = drawingObjectsController.getEditorApi();
     var bIsMobileVersion = oApi && oApi.isMobileVersion;
     if(drawing.hit(x, y))
     {
@@ -1569,14 +1571,18 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         }
 
         var chart_titles = drawing.getAllTitles();
-        var oApi = editor || Asc['editor'];
         for(i = 0; i < chart_titles.length; ++i)
         {
             title = chart_titles[i];
             var hit_in_inner_area = title.hitInInnerArea(x, y);
             var hit_in_path = title.hitInPath(x, y);
             var hit_in_text_rect = title.hitInTextRect(x, y);
-            if((hit_in_inner_area && (!hit_in_text_rect || drawing.selection.title !== title) || (hit_in_path && bIsMobileVersion !== true)) || (drawing.selection.title === title && title.hitInBoundingRect(x, y) )&& !window["NATIVE_EDITOR_ENJINE"])
+
+            var bMobileEditor = window["IS_NATIVE_EDITOR"] || bIsMobileVersion;
+            var bSameTitle = (drawing.selection.title === title);
+            if((hit_in_inner_area && (!hit_in_text_rect || !bSameTitle) ||
+                (hit_in_path && !bMobileEditor)) ||
+                (bSameTitle && title.hitInBoundingRect(x, y) && (!bMobileEditor || !hit_in_text_rect)))
             {
 
                 var selector = group ? group : drawingObjectsController;
