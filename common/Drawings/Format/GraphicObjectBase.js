@@ -2579,6 +2579,12 @@
             }
         }
     };
+    CGraphicObjectBase.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Graphic Object");
+    };
+    CGraphicObjectBase.prototype.getObjectName = function() {
+        return this.getTypeName() + " " + this.getFormatId();
+    };
 
     function CRelSizeAnchor() {
         CBaseObject.call(this);

@@ -12183,6 +12183,9 @@ var GLOBAL_PATH_COUNT = 0;
             this.resetToChartStyle();
         }
     };
+    CChartSpace.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Chart");
+    };
 
     function CAdditionalStyleData() {
         this.dLbls = null;

@@ -840,6 +840,9 @@ CImageShape.prototype.Load_LinkData = function(linkData)
 {
 };
 
+    CImageShape.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Picture");
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CImageShape = CImageShape;

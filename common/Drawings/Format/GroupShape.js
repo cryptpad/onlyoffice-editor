@@ -1964,6 +1964,9 @@ function CGroupShape()
         }
     };
 
+    CGroupShape.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Group");
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;

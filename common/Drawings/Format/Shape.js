@@ -7010,6 +7010,10 @@ CShape.prototype.getColumnNumber = function(){
         }
     };
 
+    CShape.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Shape");
+    };
+
 function CreateBinaryReader(szSrc, offset, srcLen)
 {
     var memoryData = AscCommon.Base64.decode(szSrc, true, srcLen, offset);
