@@ -6807,6 +6807,21 @@
         }, this, []);
     };
     CTimeNodeContainer.prototype["asc_putSubtype"] = CTimeNodeContainer.prototype.asc_putSubtype;
+    CTimeNodeContainer.prototype.asc_getTriggerClickSequence = function(v) {
+        return true;
+    };
+    CTimeNodeContainer.prototype["asc_getTriggerClickSequence"] = CTimeNodeContainer.prototype.asc_getTriggerClickSequence;
+    CTimeNodeContainer.prototype.asc_putTriggerClickSequence = function(v) {
+
+    };
+    CTimeNodeContainer.prototype.asc_getTriggerObjectClick = function(v) {
+        return null;
+    };
+    CTimeNodeContainer.prototype["asc_getTriggerObjectClick"] = CTimeNodeContainer.prototype.asc_getTriggerObjectClick;
+    CTimeNodeContainer.prototype.asc_putTriggerObjectClick = function(v) {
+
+    };
+    CTimeNodeContainer.prototype["asc_putTriggerObjectClick"] = CTimeNodeContainer.prototype.asc_putTriggerObjectClick;
     CTimeNodeContainer.prototype.isEqualProperties = function(oPr) {
         if(!oPr) {
             return false;
