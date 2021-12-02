@@ -832,7 +832,7 @@ CLaTeXParser.prototype.CheckIsStrFAtomUndefined = function(strFAtom) {
 }
 CLaTeXParser.prototype.GetErrorNames = function(map, isSlice) {
 	var strSentence = '';
-	for (let vegetable of map.keys()) {
+	for (var vegetable of map.keys()) {
 		strSentence += vegetable + ', ';
 	}
 	strSentence = '(' + strSentence + '...' + ')';
@@ -1112,12 +1112,7 @@ CLaTeXParser.prototype.CheckScriptErrorsLexer = function () {
 };
 //Radical
 CLaTeXParser.prototype.AddRadical = function (FormArgument) {
-	var typeOfRadical = null;
-	if (this.CheckFutureAtom() == '[') {
-		typeOfRadical  = DEGREE_RADICAL;
-	} else {
-		typeOfRadical = SQUARE_RADICAL;
-	}
+	var typeOfRadical = this.GetTypeOfRadical();
 
 	var Radical = this.CreateRadical(FormArgument, typeOfRadical);
 	this.FillRadicalContent(Radical, typeOfRadical);
@@ -1125,13 +1120,21 @@ CLaTeXParser.prototype.AddRadical = function (FormArgument) {
 CLaTeXParser.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
 	if (typeOfRadical == SQUARE_RADICAL) {
 		this.Pr.degHide = true;
-	} else if (typeOfRadical == DEGREE_RADICAL) {
+	}
+	else if (typeOfRadical == DEGREE_RADICAL) {
 		this.Pr.degHide = false;
 	}
 
 	var Radical = FormArgument.Add_Radical(this.Pr, null, null);
 	return Radical
 };
+CLaTeXParser.prototype.GetTypeOfRadical = function () {
+	if (this.CheckFutureAtom() == '[') {
+		return DEGREE_RADICAL;
+	} else {
+		return SQUARE_RADICAL;
+	}
+}
 CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
 	if (typeOfRadical == DEGREE_RADICAL) {
 		if (this.CheckSyntaxSequence(["["])) {
@@ -1141,14 +1144,14 @@ CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
 			this.GetError('Проблема с индексом корня: sqrt[_]{}')
 		}
 	}
+
 	if (this.CheckSyntaxSequence(["{"])) {
 		this.StartLexer(Radical.getBase());
 	}
+
 	else {
 		this.GetError('Проблема с данными корня: sqrt[]{_}')
 	}
-
-	
 };
 //Bracet
 CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
@@ -1168,7 +1171,7 @@ CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 		close
 	);
 
-	return Bracet;	
+	return Bracet;
 };
 //BracetBlock
 CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
@@ -1310,13 +1313,17 @@ CLaTeXParser.prototype.CreateBracetBlock = function (FormArgument, strOpenBracet
 };
 CLaTeXParser.prototype.FillBracetBlockContent = function (BracetBlock, countOfDelim, exit) {
 	if (countOfDelim + 1 > 1) {
+		
 		for(var index = 0; index < countOfDelim; index++) {
 			this.StartLexer(BracetBlock.getElementMathContent(index), '\\middle');
 			this.GetNextAtom();
 		}
+
 		this.StartLexer(BracetBlock.getElementMathContent(index), exit);
 		this.GetNextAtom();
-	} else {
+	}
+
+	else {
 		this.StartLexer(BracetBlock.getElementMathContent(0), exit);
 	}
 };
@@ -1390,29 +1397,28 @@ CLaTeXParser.prototype.CheckBraketsLatex = function(strFAtom) {
 };
 //Binom
 CLaTeXParser.prototype.AddBinom = function (FormArgument) {
+	
 	if (this.CheckSyntaxSequence(["{", "{"])) {
 		var Delimiter = this.AddBracet(FormArgument);
 		var BaseMathContent = Delimiter.getElementMathContent(0);
-		console.log(this.CheckFutureAtom())
 		this.AddFraction(BaseMathContent, '\\binom');
 	}
-	
+
 	else {
 		this.GetError('Проблема с биномом: \binom{}{}')
 	}
 };
 //Mod
 CLaTeXParser.prototype.AddPMod = function (FormArgument) {
+	
 	if (this.CheckSyntaxSequence(["{"])) {
 		var Delimiter = this.AddBracet(FormArgument);
-	this.AddFunction(Delimiter.getElementMathContent(0), "mod");
+		this.AddFunction(Delimiter.getElementMathContent(0), "mod");
 	}
 
 	else {
 		this.GetError('Проблема с модулем: \pmod{}')
 	}
-
-	
 };
 //Large Operator
 CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, strFAtom) {
@@ -1421,7 +1427,6 @@ CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, strFAtom) {
 	}
 
 	var strNameOfLargeOperator = this.CheckIsLargeOperator.get(strFAtom);
-
 	var intTypeOFLoc = 1;
 
 	if (this.CheckFutureAtom() == "\\limits") {
@@ -1444,13 +1449,13 @@ CLaTeXParser.prototype.CreateLargeOperator = function(FormArgument, intTypeOFLoc
 	if (this.CheckIsDegreeAndIndex()) {
 		Pr.supHide = false;
 		Pr.subHide = false;
-	} 
+	}
 	
 	else if (this.CheckIsDegreeOrIndex()) {
 		this.CheckSyntaxSequence(["^", 1])
 			? ((Pr.subHide = true), (Pr.supHide = false))
 			: ((Pr.subHide = false), (Pr.supHide = true));
-	} 
+	}
 	
 	else {
 		Pr.supHide = true;
@@ -1470,7 +1475,7 @@ CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 		if (this.CheckFutureAtom() == "_") {
 			this.StartLexer(LargeOperator.getSubMathContent());
 		}
-	} 
+	}
 	
 	else if (strTempAtom == "_") {
 		this.StartLexer(LargeOperator.getSubMathContent());
@@ -1502,6 +1507,7 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 		var intPosition = null;
 		
 		if (this.GetIsAddBar.get(name)) {
+			
 			if (name == "\\overline") {
 				intPosition = 0;
 			}
@@ -1547,7 +1553,6 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 	else {
 		this.GetError("Проблема с акцентом: hat{}, overline{}...");
 	}
-	
 };
 CLaTeXParser.prototype.GetIsAddBar = new Map([
 	["\\overline", true],
@@ -1608,11 +1613,11 @@ CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	if (this.CheckIsDegreeOrIndex() && !this.CheckIsDegreeAndIndex()) {
 		if (this.CheckFutureAtom() == "^") {
 			hideBoxes.subHide = true;
-			hideBoxes.supHide = false
+			hideBoxes.supHide = false;
 		}
 		else if (this.CheckFutureAtom() == "_") {
 			hideBoxes.subHide = false;
-			hideBoxes.supHide = true
+			hideBoxes.supHide = true;
 		}
 	}
 
@@ -3007,6 +3012,13 @@ ToLaTex.prototype.GetCode = new Map([
 	[0x2265, '\>='],
 	[0x226B, '\>>']
 ]);
+
+
+function UnicodeMathToMathMl (str) {
+	this.str = str;
+}
+
+
 //--------------------------------------------------------export----------------------------------------------------
 window["AscCommonWord"] = window["AscCommonWord"] || {};
 window["AscCommonWord"].CLaTeXParser = CLaTeXParser;
