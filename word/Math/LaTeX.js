@@ -32,6 +32,12 @@
 
 "use strict";
 
+var BAR_FRACTION				= 0;
+var SKEWED_FRACTION				= 1;
+var LINEAR_FRACTION				= 2;
+var NO_BAR_FRACTION				= 3;
+var LITLE_DEFAULT				= 4;
+
 function CLaTeXParser(props, str) {
 	this.str = str;
 	this.indexOfAtom = 0;
@@ -821,85 +827,71 @@ CLaTeXParser.prototype.GetError = function (rule) {
 	this.Root.Remove_Content(0, this.Root.Content.length);
 	this.isError = true;
 }
+CLaTeXParser.prototype.CheckIsStrFAtomUndefined = function(strFAtom) {
+	return (strFAtom === undefined || strFAtom === null)
+}
+CLaTeXParser.prototype.GetErrorNames = function(map, isSlice) {
+	var strSentence = '';
+	for (let vegetable of map.keys()) {
+		strSentence += vegetable + ', ';
+	}
+	strSentence = '(' + strSentence + '...' + ')';
+	return strSentence
+}
 //Fraction
-CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom, type) {
+CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
+		return
+	}
+
+	// ^{ ... }/_{ ... }
 	var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
-	var typeOfFraction = null;
-
-	if (isInlineFraction) {
-		typeOfFraction = 'SKEWED_FRACTION';
-	}
-
+	var typeOfFraction;
+	
+	if (isInlineFraction === true) {
+		typeOfFraction = SKEWED_FRACTION;
+	} 
 	else {
-		if (!type && !strFAtom) {
-				strFAtom = this.GetNextAtom();
-		}
-		
-		else {
-			if (!type) {
-				typeOfFraction = this.GetTypeOfFrac.get(strFAtom);
-			}
-			else {
-				typeOfFraction = type;
-			}
-		}
-	}
-
-	if (typeOfFraction) {
-		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
-		this.FillFracContent(Fraction, isInlineFraction);
+		typeOfFraction = this.GetTypeOfFrac.get(strFAtom);
 	}
 	
+	if (typeof typeOfFraction === 'number') {
+		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
+		this.FillFracContent(Fraction, typeOfFraction);
+	}
 };
 CLaTeXParser.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
-	if (typeOfFraction == 'BAR_FRACTION') {
+	var Fraction;
+	this.Pr.type = typeOfFraction;
+
+	if (typeOfFraction === LITLE_DEFAULT) {
 		this.Pr.type = 0;
-	}
-
-	if (typeOfFraction == 'SKEWED_FRACTION') {
-		this.Pr.type = 1;
-	}
-
-	else if (typeOfFraction == 'LINEAR_FRACTION') {
-		this.Pr.type = 2;
-	}
-
-	else if (typeOfFraction == 'NO_BAR_FRACTION') {
-		this.Pr.type = 3;
-	}
-
-	if (typeOfFraction == 'LITLE_DEFAULT_FRACTION') {
 		var Box = this.CreateLitleBox(FormArgument);
-		var Fraction = Box.Add_Fraction(this.Pr, null, null);
-		return Fraction;
+		Fraction = Box.Add_Fraction(this.Pr, null, null);
+	}
 
-	} else {
-		var Fraction = FormArgument.Add_Fraction(this.Pr, null, null);
-		return Fraction;
+	else if (typeOfFraction !== LITLE_DEFAULT) {
+		Fraction = FormArgument.Add_Fraction(this.Pr, null, null);
 	}
+
+	return Fraction;
 };
-CLaTeXParser.prototype.FillFracContent = function (FormArgument, isInlineFraction) {
-	if (!isInlineFraction) {
-		this.StartLexer(FormArgument.getNumeratorMathContent());
-		this.StartLexer(FormArgument.getDenominatorMathContent());
-	}
-	else {
-		this.StartLexer(FormArgument.getNumeratorMathContent());
-		this.GetNextAtom();
-		this.GetNextAtom();
-		this.StartLexer(FormArgument.getDenominatorMathContent());
-	}
+CLaTeXParser.prototype.FillFracContent = function (FormArgument, typeOfFraction) {
+	this.StartLexer(FormArgument.getNumeratorMathContent());
+	this.StartLexer(FormArgument.getDenominatorMathContent());
 };
 CLaTeXParser.prototype.GetTypeOfFrac = new Map([
-	['\\frac', 'BAR_FRACTION'],
-	['\\tfrac', 'LITLE_DEFAULT_FRACTION'],
-	['\\sfrac', 'SKEWED_FRACTION'],
-	['\\nicefrac', 'LINEAR_FRACTION'],
-	['\\dfrac', 'BAR_FRACTION'], // todo dfrac
+	['\\frac', BAR_FRACTION],
+	['\\tfrac', LITLE_DEFAULT],
+	['\\sfrac', SKEWED_FRACTION],
+	['\\nicefrac', LINEAR_FRACTION],
+	['\\dfrac', BAR_FRACTION],
+	['\\binom', NO_BAR_FRACTION]
 ]);
 CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
-	if (this.GetTypeOfFrac.get(strFAtom) != null) {
-
+	//binom must be processed if AddBinom func
+	if (typeof this.GetTypeOfFrac.get(strFAtom) === 'number' && strFAtom != '\\binom') {
+		
 		if (
 			this.CheckSyntaxSequence(["{", "{"]) ||
 			this.CheckSyntaxSequence(["^", 1, "/", "_", 1])
@@ -908,21 +900,27 @@ CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
 		} 
 		
 		else {
-			this.GetError('Проблема с делением (frac, sfrac, dfrac...)')
+			var strMessage = this.GetErrorNames(this.GetTypeOfFrac);
+			this.GetError(`Error while read: ${strMessage}`)
 			return false;
 		}
 	}
+	return false
 }
 //Limit
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
+		return
+	}
+
+	if (!(this.CheckSyntaxSequence(["_", '{'], '^') || this.CheckSyntaxSequence(["^", '{'], '_'))) {
+		var strMessage = this.GetErrorNames(this.GetTypeOfLimit);
+		this.GetError(`Error while read: ${strMessage}`)
+	}
+	
 	var typeOfLimit = this.GetTypeOfLimit.get(strFAtom);
 	
-	if (this.CheckFutureAtom() == '\\limits') {
-		this.GetNextAtom();
-	}
 	var typeOfBottom = this.CheckSyntax(
-		[['^', '{'], 'BOTTOM_WITH_BRACETS_DEGREE'],
-		[['_', '{'], 'BOTTOM_WITH_BRACETS_INDEX'],
 		[['^', 1], 'BOTTOM_DEGREE'],
 		[['_', 1], 'BOTTOM_INDEX']
 	)
@@ -931,22 +929,19 @@ CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 		var Limit = this.CreateLimit(FormArgument, typeOfBottom);
 		this.FillLimitContent(Limit, typeOfLimit);
 	}
-	
-};
-CLaTeXParser.prototype.FillLimitContent = function(Limit, typeOfLimit) {
-	Limit.getFName().Add_Text(typeOfLimit, this.Paragraph, STY_PLAIN);
-	this.StartLexer(Limit.getIterator());
 };
 CLaTeXParser.prototype.CreateLimit = function (FormArgument, typeOfBottom) {
 	this.Pr.type = this.GetTypeOfIndexLimit.get(typeOfBottom);
 	var Limit = FormArgument.Add_Limit(this.Pr, null, null); 
 	return Limit;
 };
+CLaTeXParser.prototype.FillLimitContent = function(Limit, typeOfLimit) {
+	Limit.getFName().Add_Text(typeOfLimit, this.Paragraph, STY_PLAIN);
+	this.StartLexer(Limit.getIterator());
+};
 CLaTeXParser.prototype.GetTypeOfIndexLimit = new Map([
 	['BOTTOM_DEGREE', 1],
-	['BOTTOM_WITH_BRACETS_DEGREE', 1],
-	['BOTTOM_INDEX', 0],
-	['BOTTOM_WITH_BRACETS_INDEX', 0],
+	['BOTTOM_INDEX', 0]
 ]);
 CLaTeXParser.prototype.GetTypeOfLimit = new Map([
 	['\\lim', 'lim'],
@@ -957,36 +952,41 @@ CLaTeXParser.prototype.GetTypeOfLimit = new Map([
 ]);
 //Function
 CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
+		return
+	}
+
 	var typeOfFunction = this.GetTypeOfFunction.get(strFAtom);
 	var Function = this.CreateFunction(FormArgument)
 
-	if (typeOfFunction == 1) {
+	if (typeOfFunction === 1) {
 		var isDegreeOrIndex = this.CheckIsDegreeOrIndex();
 		var isDegreeAndIndex = this.CheckIsDegreeAndIndex();
-		console.log(isDegreeOrIndex , isDegreeAndIndex)
+		var strName = strFAtom.slice(1);
+		
 		if (isDegreeAndIndex || isDegreeOrIndex) {
-			this.AddScript(Function.getFName(), strFAtom.slice(1), isDegreeOrIndex, isDegreeAndIndex);
-			this.StartLexer(Function.getArgument());
-		} 
-		else {
-			Function.getFName().Add_Text(strFAtom.slice(1), this.Paragraph);
+			
+			this.AddScript(Function.getFName(), strName, isDegreeOrIndex, isDegreeAndIndex);
 			this.StartLexer(Function.getArgument());
 		}
-	
-	} 
+		else {
+			Function.getFName().Add_Text(strName, this.Paragraph);
+			this.StartLexer(Function.getArgument());
+		}
+	}
 
-	else if (typeOfFunction == 2) {
+	else if (typeOfFunction === 2) {
 		this.AddLimit(Function.getFName(), strFAtom);
 		this.StartLexer(Function.getArgument());
 	}
 
-	else if (typeOfFunction == 3) {
+	else if (typeOfFunction === 3) {
 		Function.getFName().Add_Text(strFAtom, this.Paragraph);
 		this.StartLexer(Function.getArgument());
 	}
 };
 CLaTeXParser.prototype.CreateFunction = function (FormArgument) {
-	var Function = FormArgument.Add_Function(this.Pr, null, null)
+	var Function = FormArgument.Add_Function(this.Pr, null, null);
 	return Function;
 };
 CLaTeXParser.prototype.GetTypeOfFunction = new Map([
@@ -1012,11 +1012,16 @@ CLaTeXParser.prototype.GetTypeOfFunction = new Map([
 	['\\inf', 2],
 	['\\sup', 2],
 	['\\max', 2],
-	['\\min', 2],
+	['\\min', 2]
 ]);
 //Script
 CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
+		return
+	}
+
 	this.CheckScriptErrorsLexer();
+
 	var typeOfScript = this.GetTypeOfScript(isDegreeOrIndex, isDegreeAndIndex);
 	var Script = this.CreateScript(FormArgument, typeOfScript);
 	this.FillScriptBase(Script, strFAtom, typeOfScript);
@@ -1037,11 +1042,16 @@ CLaTeXParser.prototype.GetTypeOfOrScript = function(index) {
 };
 CLaTeXParser.prototype.CreateScript = function(FormArgument, type) {
 	var isBothDegreeAndIndex = false;
+
 	if (type == 'DEGREE_SUPERSCRIPT') {
 		this.Pr.type = DEGREE_SUPERSCRIPT;
-	} else if (type == 'DEGREE_SUBSCRIPT') {
+	}
+
+	else if (type == 'DEGREE_SUBSCRIPT') {
 		this.Pr.type = DEGREE_SUBSCRIPT;
-	} else if (type == 'SUB_SUP' || type == 'SUP_SUB') {
+	}
+	
+	else if (type == 'SUB_SUP' || type == 'SUP_SUB') {
 		isBothDegreeAndIndex = true;
 		this.Pr.type = DEGREE_SubSup;
 	}
@@ -1084,9 +1094,7 @@ CLaTeXParser.prototype.GetTypeOfScript = function(isOr, isAnd, index) {
 	} else if (isOr) {
 		type = this.GetTypeOfOrScript(index);
 	}
-	console.log(type)
 	return type
-	
 };
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
 	return (
@@ -1102,7 +1110,6 @@ CLaTeXParser.prototype.CheckScriptErrorsLexer = function () {
 		this.GetError('Проблема с индексом или степенью: ^{}, _{}, ^{}_{}')
 	}
 };
-
 //Radical
 CLaTeXParser.prototype.AddRadical = function (FormArgument) {
 	var typeOfRadical = null;
@@ -1165,6 +1172,10 @@ CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 };
 //BracetBlock
 CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
+		return
+	}
+
 	var Script;
 	var strTypeOfScript;
 	if (!strFAtom) {
@@ -1382,7 +1393,8 @@ CLaTeXParser.prototype.AddBinom = function (FormArgument) {
 	if (this.CheckSyntaxSequence(["{", "{"])) {
 		var Delimiter = this.AddBracet(FormArgument);
 		var BaseMathContent = Delimiter.getElementMathContent(0);
-		this.AddFraction(BaseMathContent, null, 'NO_BAR_FRACTION');
+		console.log(this.CheckFutureAtom())
+		this.AddFraction(BaseMathContent, '\\binom');
 	}
 	
 	else {
@@ -1403,8 +1415,12 @@ CLaTeXParser.prototype.AddPMod = function (FormArgument) {
 	
 };
 //Large Operator
-CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, str) {
-	var strNameOfLargeOperator = this.CheckIsLargeOperator.get(str);
+CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, strFAtom) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
+		return
+	}
+
+	var strNameOfLargeOperator = this.CheckIsLargeOperator.get(strFAtom);
 
 	var intTypeOFLoc = 1;
 
@@ -1477,6 +1493,10 @@ CLaTeXParser.prototype.CheckIsLargeOperator = new Map([
 ]);
 //Accent 
 CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
+	if (this.CheckIsStrFAtomUndefined(name)) {
+		return
+	}
+	
 	if (this.CheckSyntaxSequence(["{"])) {
 		var Accent;
 		var intPosition = null;
@@ -1562,6 +1582,10 @@ CLaTeXParser.prototype.GetAccent = new Map([
 ]);
 //Inetegral
 CLaTeXParser.prototype.AddIntegral = function (FormArgument, strFAtom) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
+		return
+	}
+
 	var Integral = this.CreateIntegral(FormArgument, strFAtom);
 	this.FillIntegralContent(Integral);
 };
@@ -1765,8 +1789,7 @@ CLaTeXParser.prototype.CheckIsMatrix = function () {
 };
 //Text and symbols
 CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type, typeText) {
-	
-	if (strFAtom === undefined || (strFAtom && strFAtom.length < 1)) {
+	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
 		return
 	}
 
