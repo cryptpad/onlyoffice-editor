@@ -91,6 +91,7 @@
     AscFormat.PRESET_CLASS_EXIT = AscFormat["PRESET_CLASS_EXIT"] = 2;
     AscFormat.PRESET_CLASS_PATH = AscFormat["PRESET_CLASS_PATH"] = 4;
 
+    AscFormat.ANIM_PRESET_NONE = AscFormat["ANIM_PRESET_NONE"] = -2;
     AscFormat.ANIM_PRESET_MULTIPLE = AscFormat["ANIM_PRESET_MULTIPLE"] = -1;
     AscFormat.MOTION_CUSTOM_PATH = AscFormat["MOTION_CUSTOM_PATH"] = 0;
     AscFormat.MOTION_CIRCLE = AscFormat["MOTION_CIRCLE"] = 1;
@@ -1920,7 +1921,15 @@
                 oResultEffect.merge(oNode);
             }
         });
+        if(!oResultEffect) {
+            oResultEffect = this.staticCreateNoneEffect();
+        }
         return oResultEffect;
+    };
+    CTiming.prototype.staticCreateNoneEffect = function() {
+        return AscFormat.ExecuteNoHistory(function() {
+            return CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite")
+        }, this, []);
     };
     CTiming.prototype.getAllAnimEffects = function(aObjectId) {
         if(!this.tnLst) {
@@ -2006,7 +2015,7 @@
     };
     CTiming.prototype.createPar = function(nFill, sDelay) {
         var oPar = new CPar();
-        var oCTn = this.createCCTn(null, nFill, sDelay, null, null, true);
+        var oCTn = CTiming.prototype.createCCTn(null, nFill, sDelay, null, null, true);
         oPar.setCTn(oCTn);
         return oPar;
     };
@@ -6792,6 +6801,9 @@
     CTimeNodeContainer.prototype["asc_getClass"] = CTimeNodeContainer.prototype.asc_getClass;
     CTimeNodeContainer.prototype.asc_getType = function(v) {
         if(this.cTn.presetID === "undefined") {
+            if(!Array.isArray(this.merged) || this.merged.length == 0) {
+                return AscFormat.ANIM_PRESET_NONE;
+            }
             return AscFormat.ANIM_PRESET_MULTIPLE;
         }
         return this.cTn.presetID;

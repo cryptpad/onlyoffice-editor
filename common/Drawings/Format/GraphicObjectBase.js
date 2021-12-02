@@ -2469,7 +2469,7 @@
         if(oTiming) {
             return oTiming.getAnimEffect(this.Get_Id());
         }
-        return null;
+        return AscFormat.CTiming.prototype.staticCreateNoneEffect();
     };
     //for bug 52775. remove in the next version
     CGraphicObjectBase.prototype.applySmartArtTextStyle = function() {
