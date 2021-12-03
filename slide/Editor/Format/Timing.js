@@ -1808,6 +1808,9 @@
         return [this.bldLst, this.tnLst];
     };
     CTiming.prototype.onRemoveObject = function(sObjectId) {
+        this.removeObjectAnimation(sObjectId);
+    };
+    CTiming.prototype.removeObjectAnimation = function(sObjectId) {
         this.traverse(function(oNode) {
             oNode.handleRemoveObject(sObjectId);
             return false;
@@ -2000,7 +2003,7 @@
         }
         return oTmRoot.getChildTimeNodeByType(NODE_TYPE_MAINSEQ);
     };
-    CTiming.prototype.addToMainSequence = function(oEffect, bReplace) {
+    CTiming.prototype.addToMainSequence = function(oEffect) {
         var oMainSeq = this.checkMainSequence();
         var oPar2Lvl = this.createPar(NODE_FILL_HOLD, "indefinite");
         var oPar3Lvl = this.createPar(NODE_FILL_HOLD, "0");
@@ -2011,7 +2014,10 @@
     };
     CTiming.prototype.addEffectToMainSequence = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace) {
         var oEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
-        this.addToMainSequence(oEffect, bReplace);
+        if(bReplace) {
+            this.removeObjectAnimation(sObjectId);
+        }
+        this.addToMainSequence(oEffect);
     };
     CTiming.prototype.createPar = function(nFill, sDelay) {
         var oPar = new CPar();
@@ -2065,13 +2071,18 @@
     };
     CTiming.prototype.setAnimationProperties = function(aObjectId, oPr, oCurPr) {
         var aEffects = this.getAllAnimEffects(aObjectId);
+        var sObjectId, nObjectId;
+        var oEffect;
         for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
-            var oEffect = aEffects[nEffect];
-            if(oPr.asc_getStartType() !== oCurPr.asc_getStartType()) {
-
+            oEffect = aEffects[nEffect];
+            sObjectId = null;
+            for(nObjectId = 0; nObjectId < aObjectId.length; ++nObjectId) {
+                if(oEffect.isObjectEffect(aObjectId[nObjectId])) {
+                    break;
+                }
             }
             if(oPr.asc_getSubtype() !== oCurPr.asc_getSubtype()) {
-
+                oEffect.cTn.changeSubtype(oPr.asc_getSubtype());
             }
             if(oPr.asc_getDelay() !== oCurPr.asc_getDelay() && AscFormat.isRealNumber(oPr.asc_getDelay())) {
                 oEffect.cTn.changeDelay(oPr.asc_getDelay());
@@ -2084,6 +2095,9 @@
             }
             if(oPr.asc_getRewind() !== oCurPr.asc_getRewind() && AscFormat.isRealBool(oCurPr.asc_getRewind())) {
                 oEffect.cTn.changeRewind(oPr.asc_getRewind());
+            }
+            if(oPr.asc_getStartType() !== oCurPr.asc_getStartType()) {
+                oEffect.cTn.changeStartType(oPr.asc_getStartType());
             }
         }
     };
@@ -2106,12 +2120,32 @@
     CCommonTimingList.prototype.push = function(oPr) {
         this.addToLst(this.getLength(), oPr);
     };
+    CCommonTimingList.prototype.splice = function() {
+        var nStart = arguments[0];
+        var nDeleteCount;
+        if(arguments.length > 1) {
+            nDeleteCount = arguments[1];
+        }
+        else {
+            nDeleteCount = this.getLength() - nStart;
+        }
+        var aDeleted = [];
+        for(var nIdx = nStart + nDeleteCount - 1; nIdx >= nStart; ++nIdx) {
+            aDeleted.push(this.removeFromLst(nIdx));
+        }
+        aDeleted.reverse();
+        for(nIdx = arguments.length - 1; nIdx > 2 ; --nIdx) {
+            this.addToLst(nStart, arguments[nIdx]);
+        }
+        return aDeleted;
+    };
     CCommonTimingList.prototype.removeFromLst = function(nIdx) {
         if(nIdx > -1 && nIdx < this.list.length) {
             this.list[nIdx].setParent(null);
             History.Add(new CChangeContent(this, AscDFH.historyitem_CommonTimingListRemove, nIdx, [this.list[nIdx]], false));
-            this.list.splice(nIdx, 1);
+            return this.list.splice(nIdx, 1)[0];
         }
+        return null;
     };
     CCommonTimingList.prototype.clear = function() {
         for(var nIdx = this.list.length - 1; nIdx > -1; --nIdx) {
@@ -4184,6 +4218,105 @@
     };
     CCTn.prototype.changeRewind = function(v) {
         this.setFill(v === true ? NODE_FILL_REMOVE : NODE_FILL_HOLD);
+    };
+    CCTn.prototype.getObjectId = function(v) {
+        var sObjectId = null;
+        this.traverse(function(oChild) {
+            if(oChild.isTimeNode() && (sObjectId = oChild.getTargetObjectId())) {
+                return true;
+            }
+            return false
+        });
+        return sObjectId;
+    };
+    CCTn.prototype.changeSubtype = function(v) {
+        if(AscFormat.isRealNumber(v)) {
+            var sObjectId = this.getObjectId();
+            if(sObjectId !== null) {
+                var oNewEffect = CTiming.prototype.createEffect(sObjectId, this.presetClass, this.presetID, v);
+                if(oNewEffect) {
+                    var oNewCTn = oNewEffect.cTn;
+                    if(this.getEffectDuration() !== oNewCTn.getEffectDuration()) {
+                        oNewCTn.changeEffectDuration(this.getEffectDuration());
+                    }
+                    this.setPresetSubtype(v);
+                    this.childTnLst.clear();
+                    oNewCTn.childTnLst.fillObject(this.childTnLst, {});
+                }
+            }
+        }
+    };
+    CCTn.prototype.changeStartType = function(v) {
+        if(this.nodeType === v) {
+            return;
+        }
+        var oEffectNode = this.parent;
+        if(!oEffectNode) {
+            return;
+        }
+        var oCurPar2Lvl, oCurPar3Lvl, oCurMainSeq;
+        var nIdx2, nIdx3, nMainIdx;
+        oCurPar3Lvl = oEffectNode.getParentTimeNode();
+        if(!oCurPar3Lvl) {
+            return;
+        }
+        nIdx3 = oCurPar3Lvl.getChildNodeIdx(oEffectNode);
+        oCurPar2Lvl = oCurPar3Lvl.getParentTimeNode();
+        if(!oCurPar2Lvl) {
+            return;
+        }
+        nIdx2 = oCurPar2Lvl.getChildNodeIdx(oCurPar3Lvl);
+        oCurMainSeq = oCurPar2Lvl.getParentTimeNode();
+        if(!oCurMainSeq) {
+            return;
+        }
+        nMainIdx = oCurMainSeq.getChildNodeIdx(oCurPar2Lvl);
+
+        var oPar2Lvl, oPar3Lvl;
+        if(v === NODE_TYPE_CLICKEFFECT) {
+            oEffectNode.cTn.setNodeType(NODE_TYPE_CLICKEFFECT);
+            oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+            oPar3Lvl.splice(0, 0, oCurPar3Lvl.splice(nIdx3));
+            oPar2Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite");
+            oPar2Lvl.pushToChildTnLst(oPar3Lvl);
+            oPar2Lvl.splice(1, 0, oCurPar2Lvl.splice(nIdx2 + 1));
+            oCurMainSeq.splice(nMainIdx + 1, 0, oPar2Lvl);
+            if(oCurPar3Lvl.getChildrenCount() === 0) {
+                oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
+            }
+        }
+        else if(v === NODE_TYPE_WITHEFFECT) {
+            oEffectNode.cTn.setNodeType(NODE_TYPE_WITHEFFECT);
+            if(nIdx3 === 0) {
+                if(nIdx2 === 0) {
+                    if(nMainIdx === 0) {
+                        //do nothing: no previous animation
+                    }
+                    else {
+                        oCurPar3Lvl.splice(nIdx3);
+                        oPar2Lvl = oCurMainSeq.getChildNode(nMainIdx - 1);
+                        oPar3Lvl = oPar2Lvl.getChildNode(oPar2Lvl.getChildrenCount() - 1);
+                        if(!oPar3Lvl) {
+                            oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+                            oPar2Lvl.pushToChildTnLst(oPar3Lvl);
+                        }
+                        oPar3Lvl.pushToChildTnLst(oEffectNode);
+                    }
+                }
+                else {
+                    oCurPar3Lvl.splice(nIdx3);
+                    oPar3Lvl = oCurPar2Lvl.getChildNode(nIdx2 - 1);
+                    oPar3Lvl.pushToChildTnLst(oEffectNode);
+                }
+            }
+            if(oCurPar3Lvl.getChildrenCount() === 0) {
+                oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
+            }
+        }
+        else if(v === NODE_TYPE_AFTEREFFECT) {
+            oEffectNode.cTn.setNodeType(NODE_TYPE_AFTEREFFECT);
+        }
+
     };
 
 
@@ -6669,6 +6802,12 @@
     CTimeNodeContainer.prototype.pushToChildTnLst = function(oNode) {
         this.cTn.pushToChildTnLst(oNode);
     };
+    CTimeNodeContainer.prototype.splice = function() {
+        this.cTn.childTnLst.splice.apply(this.cTn, arguments);
+    };
+    CTimeNodeContainer.prototype.getChildrenCount = function() {
+        this.cTn.childTnLst.getLength();
+    };
     CTimeNodeContainer.prototype.getChildTimeNodeByType = function(nType) {
         return this.cTn.getTimeNodeByType(nType);
     };
@@ -6860,6 +6999,12 @@
             return false;
         }
         if(this.asc_getSubtype() !== oPr.asc_getSubtype()) {
+            return false;
+        }
+        if(this.asc_getTriggerClickSequence() !== oPr.asc_getTriggerClickSequence()) {
+            return false;
+        }
+        if(this.asc_getTriggerObjectClick() !== oPr.asc_getTriggerObjectClick()) {
             return false;
         }
         return true;
