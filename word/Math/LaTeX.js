@@ -609,11 +609,17 @@ CLaTeXParser.prototype.Parse = function (str) {
 			strTempWord == "\\left" ||
 			strTempWord == "\\right"
 		) {
-			this.arrAtomsOfFormula.push(strTempWord.trim());
-			strTempWord = "";
+			console.log(strTempWord, strTempWord.charCodeAt())
+			if (strTempWord.charCodeAt() != 10) {
+				this.arrAtomsOfFormula.push(strTempWord);
+				strTempWord = "";
+			} else {
+				strTempWord = "";
+			}
+			
 		}
 	}
-	this.arrAtomsOfFormula = this.arrAtomsOfFormula.filter(Boolean);
+	this.arrAtomsOfFormula = this.arrAtomsOfFormula;
 	console.log(this.arrAtomsOfFormula);
 };
 //Service
@@ -1598,7 +1604,7 @@ CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	var strNameOfIntegral = strFAtom;
 	var intCountOfIntegral = this.GetCountOfIntegral.get(strNameOfIntegral);
 	var isOTypeIntegral = this.GetTypeOfIntegral.get(strNameOfIntegral);
-	var TypeOFLoc = 0;
+	var TypeOFLoc = 1;
 
 	var hideBoxes = {
 		supHide: false,
@@ -1606,7 +1612,7 @@ CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	};
 
 	if (this.CheckFutureAtom() == "\\limits") {
-		TypeOFLoc = 1;
+		TypeOFLoc = 0;
 		this.GetNextAtom();
 	}
 
@@ -2407,7 +2413,7 @@ ToLaTex.prototype.AddBox = function(name, obj) {
 	}
 	else
 	{
-		return;
+		this.Convert(obj[name]);
 	}
 
 };

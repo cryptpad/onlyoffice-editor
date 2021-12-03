@@ -5240,7 +5240,7 @@ CMathContent.prototype.Is_CurrentContent = function()
 CMathContent.prototype.Set_MenuProps = function(Props)
 {
     var Pos = this.private_FindCurrentPosInContent();
-
+    
     if(true == this.Is_CurrentContent())
     {
         this.Apply_MenuProps(Props, Pos);
@@ -8304,7 +8304,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 	var getAndPushTextContent = function(elem, bAddBrackets) {
 		var tempStr = elem.GetTextContent();
 		if (tempStr.str) {
-			addText(tempStr.str, tempStr.bIsContainsOperator || bAddBrackets, tempStr.paraRunArr);
+			addText(tempStr.str.trim(), tempStr.bIsContainsOperator || bAddBrackets, tempStr.paraRunArr);
 		}
     };
     
@@ -8450,7 +8450,18 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             }
         } else if (elem instanceof CFraction) {//дробь
             //числитель
+            var isBracet = !(elem.getNumerator().GetTextContent().str.includes('/'));
+
+            if (isBracet === true) {
+                addText(String.fromCharCode(40));
+            }
+
 			getAndPushTextContent(elem.getNumerator(), checkBracket(elem.getNumerator().GetTextContent().str));
+            
+            if (isBracet === true) {
+                addText(String.fromCharCode(41));
+            }
+
             switch (elem.Pr.type) {
                 case 0:
                     addText(String.fromCharCode(47));
@@ -8466,8 +8477,19 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                     addText(String.fromCharCode(166));
                     break;
             }
+            
 			//знаменатель
+            isBracet = !(elem.getDenominator().GetTextContent().str.includes('/'));
+
+            if (isBracet === true) {
+                addText(String.fromCharCode(40));
+            }
+
             getAndPushTextContent(elem.getDenominator(), checkBracket(elem.getDenominator().GetTextContent().str));       
+            
+            if (isBracet === true) {
+                addText(String.fromCharCode(41));
+            }
 		} else if (elem instanceof CRadical) {//корень
 			addText(String.fromCharCode(8730));
 			//степень корня
