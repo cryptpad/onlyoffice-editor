@@ -907,7 +907,7 @@ CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
 		
 		else {
 			var strMessage = this.GetErrorNames(GetTypeOfFrac);
-			this.GetError(`Error while read: ${strMessage}`)
+			this.GetError("Error while read: " + strMessage)
 			return false;
 		}
 	}
@@ -921,7 +921,7 @@ CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 
 	if (!(this.CheckSyntaxSequence(["_", '{'], '^') || this.CheckSyntaxSequence(["^", '{'], '_'))) {
 		var strMessage = this.GetErrorNames(GetTypeOfLimit);
-		this.GetError(`Error while read: ${strMessage}`)
+		this.GetError("Error while read: " + strMessage)
 	}
 	
 	var typeOfLimit = GetTypeOfLimit[strFAtom];
