@@ -10875,6 +10875,7 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
         this.StartAction(0);
         oSlide.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
         this.FinalizeAction();
+        this.Document_UpdateInterfaceState();
     }
 };
 CPresentation.prototype.GetCurSlideObjectsNamesPairs = function() {
@@ -10911,6 +10912,7 @@ CPresentation.prototype.SetAnimationProperties = function(oPr) {
         this.StartAction(0);
         oSlide.setAnimationProperties(oPr);
         this.FinalizeAction();
+        this.Document_UpdateInterfaceState();
     }
 };
 

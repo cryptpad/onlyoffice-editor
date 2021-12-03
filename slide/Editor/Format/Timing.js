@@ -1864,6 +1864,9 @@
             var aPresetType = aPresetClass[nPresetId];
             if(aPresetType) {
                 var sPresetBinary = aPresetType[nPresetSubtype];
+                if(!sPresetBinary) {
+                    sPresetBinary = aPresetType[0];
+                }
                 if(sPresetBinary) {
                     AscCommon.pptx_content_loader.Clear(true);
                     var stream = AscFormat.CreateBinaryReader(sPresetBinary, "PPTY;v10;".length, sPresetBinary.length);
@@ -2014,6 +2017,9 @@
     };
     CTiming.prototype.addEffectToMainSequence = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace) {
         var oEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
+        if(!oEffect) {
+            return;
+        }
         if(bReplace) {
             this.removeObjectAnimation(sObjectId);
         }
@@ -2130,11 +2136,11 @@
             nDeleteCount = this.getLength() - nStart;
         }
         var aDeleted = [];
-        for(var nIdx = nStart + nDeleteCount - 1; nIdx >= nStart; ++nIdx) {
+        for(var nIdx = nStart + nDeleteCount - 1; nIdx >= nStart; --nIdx) {
             aDeleted.push(this.removeFromLst(nIdx));
         }
         aDeleted.reverse();
-        for(nIdx = arguments.length - 1; nIdx > 2 ; --nIdx) {
+        for(nIdx = arguments.length - 1; nIdx > 1 ; --nIdx) {
             this.addToLst(nStart, arguments[nIdx]);
         }
         return aDeleted;
@@ -4276,14 +4282,12 @@
         if(v === NODE_TYPE_CLICKEFFECT) {
             oEffectNode.cTn.setNodeType(NODE_TYPE_CLICKEFFECT);
             oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
-            oPar3Lvl.splice(0, 0, oCurPar3Lvl.splice(nIdx3));
+            oPar3Lvl.splice(0, 0, oCurPar3Lvl.splice(nIdx3)[0]);
             oPar2Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite");
             oPar2Lvl.pushToChildTnLst(oPar3Lvl);
-            oPar2Lvl.splice(1, 0, oCurPar2Lvl.splice(nIdx2 + 1));
+            oPar2Lvl.splice(1, 0, oCurPar2Lvl.splice(nIdx2 + 1)[0]);
             oCurMainSeq.splice(nMainIdx + 1, 0, oPar2Lvl);
-            if(oCurPar3Lvl.getChildrenCount() === 0) {
-                oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
-            }
+
         }
         else if(v === NODE_TYPE_WITHEFFECT) {
             oEffectNode.cTn.setNodeType(NODE_TYPE_WITHEFFECT);
@@ -4309,12 +4313,16 @@
                     oPar3Lvl.pushToChildTnLst(oEffectNode);
                 }
             }
-            if(oCurPar3Lvl.getChildrenCount() === 0) {
-                oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
-            }
         }
         else if(v === NODE_TYPE_AFTEREFFECT) {
             oEffectNode.cTn.setNodeType(NODE_TYPE_AFTEREFFECT);
+            oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+            oPar3Lvl.splice(0, 0, oCurPar3Lvl.splice(nIdx3)[0]);
+            oPar2Lvl = oCurPar2Lvl;
+            oPar2Lvl.splice(nIdx2 + 1, 0, oPar3Lvl);
+        }
+        if(oCurPar3Lvl.getChildrenCount() === 0) {
+            oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
         }
 
     };
@@ -6803,7 +6811,7 @@
         this.cTn.pushToChildTnLst(oNode);
     };
     CTimeNodeContainer.prototype.splice = function() {
-        this.cTn.childTnLst.splice.apply(this.cTn, arguments);
+        return this.cTn.childTnLst.splice.apply(this.cTn.childTnLst, arguments);
     };
     CTimeNodeContainer.prototype.getChildrenCount = function() {
         this.cTn.childTnLst.getLength();
