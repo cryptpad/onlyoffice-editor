@@ -10630,7 +10630,7 @@ CSlideBoundsChecker.prototype =
 // ASC Classes
 //-----------------------------------------------------------------------------------
 
-function GetMinSnapDistanceXObject(pointX, arrGrObjects)
+function GetMinSnapDistanceXObject(pointX, arrGrObjects, oExclude)
 {
     var min_dx = null;
     var ret = null;
@@ -10638,6 +10638,10 @@ function GetMinSnapDistanceXObject(pointX, arrGrObjects)
     {
         var cur_snap_arr_x = arrGrObjects[i].snapArrayX;
         if(!cur_snap_arr_x)
+        {
+            continue;
+        }
+        if(oExclude === arrGrObjects[i])
         {
             continue;
         }
@@ -10663,7 +10667,7 @@ function GetMinSnapDistanceXObject(pointX, arrGrObjects)
     return ret;
 }
 
-function GetMinSnapDistanceYObject(pointY, arrGrObjects)
+function GetMinSnapDistanceYObject(pointY, arrGrObjects, oExclude)
 {
     var min_dy = null;
     var ret = null;
@@ -10671,6 +10675,10 @@ function GetMinSnapDistanceYObject(pointY, arrGrObjects)
     {
         var cur_snap_arr_y = arrGrObjects[i].snapArrayY;
         if(!cur_snap_arr_y)
+        {
+            continue;
+        }
+        if(oExclude === arrGrObjects[i])
         {
             continue;
         }

@@ -1030,9 +1030,21 @@ ResizeState.prototype =
             this.onMouseUp(e, x, y, pageIndex);
             return;
         }
+        var start_arr = this.drawingObjects.getDrawingArray();
         var coords = AscFormat.CheckCoordsNeedPage(x, y, pageIndex, this.majorObject.selectStartPage, this.drawingObjects.getDrawingDocument());
-        var resize_coef = this.majorObject.getResizeCoefficients(this.handleNum, coords.x, coords.y);
+        var resize_coef = this.majorObject.getResizeCoefficients(this.handleNum, coords.x, coords.y, start_arr);
         this.drawingObjects.trackResizeObjects(resize_coef.kd1, resize_coef.kd2, e, x, y);
+        if(this.drawingObjects.drawingObjects.cSld)
+        {
+            if(AscFormat.isRealNumber(resize_coef.snapX))
+            {
+                this.drawingObjects.getDrawingDocument().DrawVerAnchor(pageIndex, resize_coef.snapX);
+            }
+            if(AscFormat.isRealNumber(resize_coef.snapY))
+            {
+                this.drawingObjects.getDrawingDocument().DrawHorAnchor(pageIndex, resize_coef.snapY);
+            }
+        }
         this.drawingObjects.updateOverlay();
     },
 
