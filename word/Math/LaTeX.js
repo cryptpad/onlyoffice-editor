@@ -689,11 +689,11 @@ CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotTh
 	}
 	
 	do {
-		if (this.GetBracetCodeLexer.get(arrOfData[intIndexData]))
+		if (GetBracetCodeLexer[arrOfData[intIndexData]])
 		{
 			var intBrac = 1;
 			var startBracet = arrOfData[intIndexData];
-			var closeBracet = this.GetCloseBracet.get(startBracet);
+			var closeBracet = GetCloseBracet[startBracet];
 
 			do {
 				intIndexData++;
@@ -742,30 +742,30 @@ CLaTeXParser.prototype.CheckSyntaxSequence = function (strPattern, afterAllNotTh
 	}
 	return true;
 };
-CLaTeXParser.prototype.GetBracetCodeLexer = new Map([
-	["(", 40],
-	[")", 41],
-	["{", 123],
-	["}", 125],
-	["\\{", 123],
-	["\\}", 125],
-	["[", 91],
-	["]", 93],
-	["\\[", 91],
-	["\\]", 93],
-	["|", 124],
-	["\\|", 8214],
-	["\\langle", 10216],
-	["\\rangle", 10217],
-	["\\lfloor", 0x230a],
-	["\\rfloor", 0x230b],
-	["\\lceil", 0x2308],
-	["\\rceil", 0x2309],
-	["\\ulcorner", 0xcbb9],
-	["\\urcorner", 0xcbba],
-	["/", 0x2f],
-	["\\backslash", 0x5c],
-]);
+var GetBracetCodeLexer = {
+	"(": 40,
+	")": 41,
+	"{": 123,
+	"}": 125,
+	"\\{": 123,
+	"\\}": 125,
+	"[": 91,
+	"]": 93,
+	"\\[": 91,
+	"\\]": 93,
+	"|": 124,
+	"\\|": 8214,
+	"\\langle": 10216,
+	"\\rangle": 10217,
+	"\\lfloor": 0x230a,
+	"\\rfloor": 0x230b,
+	"\\lceil": 0x2308,
+	"\\rceil": 0x2309,
+	"\\ulcorner": 0xcbb9,
+	"\\urcorner": 0xcbba,
+	"/": 0x2f,
+	"\\backslash": 0x5c
+}
 CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	if (this.CheckFutureAtom() == '^' || this.CheckFutureAtom() == '_') {
 		this.GetNextAtom();
@@ -773,7 +773,7 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 
 	if (!arrSymbol) {
 		var strOpentBracet = this.CheckFutureAtom();
-		var strCloseBracet = this.GetCloseBracet.get(strOpentBracet);
+		var strCloseBracet = GetCloseBracet[strOpentBracet];
 
 		if (strCloseBracet) {
 			CLaTeXLexer(this, context, strCloseBracet);
@@ -836,9 +836,9 @@ CLaTeXParser.prototype.GetError = function (rule) {
 CLaTeXParser.prototype.CheckIsStrFAtomUndefined = function(strFAtom) {
 	return (strFAtom === undefined || strFAtom === null)
 }
-CLaTeXParser.prototype.GetErrorNames = function(map, isSlice) {
+CLaTeXParser.prototype.GetErrorNames = function(map) {
 	var strSentence = '';
-	for (var vegetable of map.keys()) {
+	for (var vegetable in map) {
 		strSentence += vegetable + ', ';
 	}
 	strSentence = '(' + strSentence + '...' + ')';
@@ -858,7 +858,7 @@ CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom) {
 		typeOfFraction = SKEWED_FRACTION;
 	} 
 	else {
-		typeOfFraction = this.GetTypeOfFrac.get(strFAtom);
+		typeOfFraction = GetTypeOfFrac[strFAtom];
 	}
 	
 	if (typeof typeOfFraction === 'number') {
@@ -886,17 +886,17 @@ CLaTeXParser.prototype.FillFracContent = function (FormArgument, typeOfFraction)
 	this.StartLexer(FormArgument.getNumeratorMathContent());
 	this.StartLexer(FormArgument.getDenominatorMathContent());
 };
-CLaTeXParser.prototype.GetTypeOfFrac = new Map([
-	['\\frac', BAR_FRACTION],
-	['\\tfrac', LITLE_DEFAULT],
-	['\\sfrac', SKEWED_FRACTION],
-	['\\nicefrac', LINEAR_FRACTION],
-	['\\dfrac', BAR_FRACTION],
-	['\\binom', NO_BAR_FRACTION]
-]);
+var GetTypeOfFrac = {
+	'\\frac' : BAR_FRACTION,
+	'\\tfrac': LITLE_DEFAULT,
+	'\\sfrac': SKEWED_FRACTION,
+	'\\nicefrac': LINEAR_FRACTION,
+	'\\dfrac': BAR_FRACTION,
+	'\\binom': NO_BAR_FRACTION
+}
 CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
 	//binom must be processed if AddBinom func
-	if (typeof this.GetTypeOfFrac.get(strFAtom) === 'number' && strFAtom != '\\binom') {
+	if (typeof GetTypeOfFrac[strFAtom] === 'number' && strFAtom != '\\binom') {
 		
 		if (
 			this.CheckSyntaxSequence(["{", "{"]) ||
@@ -906,7 +906,7 @@ CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
 		} 
 		
 		else {
-			var strMessage = this.GetErrorNames(this.GetTypeOfFrac);
+			var strMessage = this.GetErrorNames(GetTypeOfFrac);
 			this.GetError(`Error while read: ${strMessage}`)
 			return false;
 		}
@@ -920,11 +920,11 @@ CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	}
 
 	if (!(this.CheckSyntaxSequence(["_", '{'], '^') || this.CheckSyntaxSequence(["^", '{'], '_'))) {
-		var strMessage = this.GetErrorNames(this.GetTypeOfLimit);
+		var strMessage = this.GetErrorNames(GetTypeOfLimit);
 		this.GetError(`Error while read: ${strMessage}`)
 	}
 	
-	var typeOfLimit = this.GetTypeOfLimit.get(strFAtom);
+	var typeOfLimit = GetTypeOfLimit[strFAtom];
 	
 	var typeOfBottom = this.CheckSyntax(
 		[['^', 1], 'BOTTOM_DEGREE'],
@@ -937,7 +937,7 @@ CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	}
 };
 CLaTeXParser.prototype.CreateLimit = function (FormArgument, typeOfBottom) {
-	this.Pr.type = this.GetTypeOfIndexLimit.get(typeOfBottom);
+	this.Pr.type = GetTypeOfIndexLimit[typeOfBottom];
 	var Limit = FormArgument.Add_Limit(this.Pr, null, null); 
 	return Limit;
 };
@@ -945,24 +945,23 @@ CLaTeXParser.prototype.FillLimitContent = function(Limit, typeOfLimit) {
 	Limit.getFName().Add_Text(typeOfLimit, this.Paragraph, STY_PLAIN);
 	this.StartLexer(Limit.getIterator());
 };
-CLaTeXParser.prototype.GetTypeOfIndexLimit = new Map([
-	['BOTTOM_DEGREE', 1],
-	['BOTTOM_INDEX', 0]
-]);
-CLaTeXParser.prototype.GetTypeOfLimit = new Map([
-	['\\lim', 'lim'],
-	['\\inf', 'inf'],
-	['\\sup', 'sup'],
-	['\\max', 'max'],
-	['\\min', 'min'],
-]);
+var GetTypeOfIndexLimit = {
+	'BOTTOM_DEGREE': 1,
+	'BOTTOM_INDEX': 0
+};
+var GetTypeOfLimit = {
+	'\\lim': 'lim',
+	'\\inf': 'inf',
+	'\\sup': 'sup',
+	'\\max': 'max',
+	'\\min': 'min'
+}
 //Function
 CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
 		return
 	}
-
-	var typeOfFunction = this.GetTypeOfFunction.get(strFAtom);
+	var typeOfFunction = GetTypeOfFunction[strFAtom];
 	var Function = this.CreateFunction(FormArgument)
 
 	if (typeOfFunction === 1) {
@@ -995,31 +994,31 @@ CLaTeXParser.prototype.CreateFunction = function (FormArgument) {
 	var Function = FormArgument.Add_Function(this.Pr, null, null);
 	return Function;
 };
-CLaTeXParser.prototype.GetTypeOfFunction = new Map([
-	["\\cos", 1],
-	["\\sin", 1],
-	["\\tan", 1],
-	["\\cot", 1],
-	["\\arcsin", 1],
-	["\\arccos", 1],
-	["\\arctan", 1],
-	["\\arccot", 1],
-	["\\sinh", 1],
-	["\\cosh", 1],
-	["\\tanh", 1],
-	["\\coth", 1],
-	["\\sec", 1],
-	["\\exp", 1],
-	["\\csc", 1],
+var GetTypeOfFunction = {
+	"\\cos": 1,
+	"\\sin": 1,
+	"\\tan": 1,
+	"\\cot": 1,
+	"\\arcsin": 1,
+	"\\arccos": 1,
+	"\\arctan": 1,
+	"\\arccot": 1,
+	"\\sinh": 1,
+	"\\cosh": 1,
+	"\\tanh": 1,
+	"\\coth": 1,
+	"\\sec": 1,
+	"\\exp": 1,
+	"\\csc": 1,
 
-	["mod", 3],
-
-	['\\lim', 2],
-	['\\inf', 2],
-	['\\sup', 2],
-	['\\max', 2],
-	['\\min', 2]
-]);
+	"mod": 3,
+	
+	"\\lim": 2,
+	"\\inf": 2,
+	"\\sup": 2,
+	"\\max": 2,
+	"\\min": 2
+};
 //Script
 CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIndex, isDegreeAndIndex) {
 	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
@@ -1193,7 +1192,7 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 
 	if (strFAtom != '\\left') {
 		var strOpenBracet = strFAtom;
-		var strCloseBracet = this.GetCloseBracet.get(strOpenBracet);
+		var strCloseBracet = GetCloseBracet[strOpenBracet];
 		if (!strCloseBracet) {
 			return
 		}
@@ -1203,8 +1202,8 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 		var intCountOfMiddle = OutputMiddleFunc[0];
 		var strTypeOfMiddle = OutputMiddleFunc[1]; //todo
 
-		strOpenBracet = this.GetBracetCode.get(strOpenBracet);
-		strCloseBracet = this.GetBracetCode.get(strCloseBracet);
+		strOpenBracet = GetBracetCode[strOpenBracet];
+		strCloseBracet = GetBracetCode[strCloseBracet];
 
 		var Bracet = this.CreateBracetBlock(
 			FormArgument,
@@ -1213,7 +1212,7 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 			intCountOfMiddle
 			); 
 		
-		this.FillBracetBlockContent(Bracet, intCountOfMiddle, this.GetCloseBracet.get(strFAtom));
+		this.FillBracetBlockContent(Bracet, intCountOfMiddle, GetCloseBracet[strFAtom]);
 	}
 	else if (strFAtom == '\\left') {
 		var strStartBracet = this.GetNextAtom();
@@ -1238,8 +1237,8 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 			FormArgument = Script.getBase();
 		}
 
-		strOpenBracet = this.GetBracetCode.get(strStartBracet);
-		strCloseBracet = this.GetBracetCode.get(strCloseBracet);
+		strOpenBracet = GetBracetCode[strStartBracet];
+		strCloseBracet = GetBracetCode[strCloseBracet];
 
 		if (strCloseBracet == "empty") {
 			strCloseBracet = -1;
@@ -1265,7 +1264,7 @@ CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
 };
 CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet) {
 	if (!strCloseBracet) {
-		strCloseBracet = this.GetCloseBracet.get(strOpenBracet);
+		strCloseBracet = GetCloseBracet[strOpenBracet];
 	}
 
 	var intPatternIndex = 1;
@@ -1333,45 +1332,45 @@ CLaTeXParser.prototype.FillBracetBlockContent = function (BracetBlock, countOfDe
 		this.StartLexer(BracetBlock.getElementMathContent(0), exit);
 	}
 };
-CLaTeXParser.prototype.GetCloseBracet = new Map([
-	//["|", "|"],
-	["(", ")"],
-	["{", "}"],
-	["[", "]"],
-	["\\{", "\\}"],
-	//["\\|", "\\|"],
-	["\\langle", "\\rangle"],
-	["\\lfloor", "\\rfloor"],
-	["\\lceil", "\\rceil"],
-	["\\ulcorner", "\\urcorner"],
-	["/", "\\backslash"],
-	["\\left", "\\right"]
-]);
-CLaTeXParser.prototype.GetBracetCode = new Map([
-	["(", null],
-	[")", null],
-	["{", 123],
-	["}", 125],
-	["\\{", 123],
-	["\\}", 125],
-	["[", 91],
-	["]", 93],
-	["\\[", 91],
-	["\\]", 93],
-	["|", 124],
-	["\\|", 8214],
-	["\\langle", 10216],
-	["\\rangle", 10217],
-	["\\lfloor", 0x230a],
-	["\\rfloor", 0x230b],
-	["\\lceil", 0x2308],
-	["\\rceil", 0x2309],
-	["\\ulcorner", 0xcbb9],
-	["\\urcorner", 0xcbba],
-	["/", 0x2f],
-	["\\backslash", 0x5c],
-	[".", "empty"]
-]);
+var GetCloseBracet = {
+	//["|", "|",
+	"(": ")",
+	"{": "}",
+	"[": "]",
+	"\\{": "\\}",
+	//["\\|", "\\|",
+	"\\langle": "\\rangle",
+	"\\lfloor": "\\rfloor",
+	"\\lceil": "\\rceil",
+	"\\ulcorner": "\\urcorner",
+	"/": "\\backslash",
+	"\\left": "\\right"
+};
+var GetBracetCode = {
+	"(": null,
+	")": null,
+	"{": 123,
+	"}": 125,
+	"\\{": 123,
+	"\\}": 125,
+	"[": 91,
+	"]": 93,
+	"\\[": 91,
+	"\\]": 93,
+	"|": 124,
+	"\\|": 8214,
+	"\\langle": 10216,
+	"\\rangle": 10217,
+	"\\lfloor": 0x230a,
+	"\\rfloor": 0x230b,
+	"\\lceil": 0x2308,
+	"\\rceil": 0x2309,
+	"\\ulcorner": 0xcbb9,
+	"\\urcorner": 0xcbba,
+	"/": 0x2f,
+	"\\backslash": 0x5c,
+	".": "empty"
+};
 CLaTeXParser.prototype.CheckIsBrackets = function (strFAtom) {
 	var strTempAtom = this.CheckFutureAtom(-1);
 	if (
@@ -1432,7 +1431,7 @@ CLaTeXParser.prototype.AddLargeOperator = function (FormArgument, strFAtom) {
 		return
 	}
 
-	var strNameOfLargeOperator = this.CheckIsLargeOperator.get(strFAtom);
+	var strNameOfLargeOperator = CheckIsLargeOperator[strFAtom];
 	var intTypeOFLoc = 1;
 
 	if (this.CheckFutureAtom() == "\\limits") {
@@ -1493,15 +1492,15 @@ CLaTeXParser.prototype.FillLargeOperatorContent = function(LargeOperator) {
 
 	this.StartLexer(LargeOperator.getBase());
 };
-CLaTeXParser.prototype.CheckIsLargeOperator = new Map([
-	["\\sum", 8721],
-	["\\prod", 8719],
-	["\\coprod", 8720],
-	["\\bigcup", 8899],
-	["\\bigcap", 8898],
-	["\\bigvee", 8897],
-	["\\bigwedge", 8896],
-]);
+var CheckIsLargeOperator = {
+	"\\sum": 8721,
+	"\\prod": 8719,
+	"\\coprod": 8720,
+	"\\bigcup": 8899,
+	"\\bigcap": 8898,
+	"\\bigvee": 8897,
+	"\\bigwedge": 8896,
+};
 //Accent 
 CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 	if (this.CheckIsStrFAtomUndefined(name)) {
@@ -1512,7 +1511,7 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 		var Accent;
 		var intPosition = null;
 		
-		if (this.GetIsAddBar.get(name)) {
+		if (GetIsAddBar[name]) {
 			
 			if (name == "\\overline") {
 				intPosition = 0;
@@ -1525,7 +1524,7 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 			Accent = FormArgument.Add_Bar({ ctrPrp: this.Pr.ctrPrp, pos: intPosition }, null);
 		}
 		
-		else if (this.GetIsAddGroupChar.get(name)) {
+		else if (GetIsAddGroupChar[name]) {
 			if (name == "\\overbrace") {
 				Accent = FormArgument.Add_GroupCharacter(
 					{
@@ -1549,7 +1548,7 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 		else {
 			Accent = FormArgument.Add_Accent(
 				this.Pr.ctrPrp,
-				this.GetAccent.get(name),
+				GetAccent[name],
 				null
 			);
 		}
@@ -1560,37 +1559,37 @@ CLaTeXParser.prototype.AddAccent = function (FormArgument, name) {
 		this.GetError("Проблема с акцентом: hat{}, overline{}...");
 	}
 };
-CLaTeXParser.prototype.GetIsAddBar = new Map([
-	["\\overline", true],
-	["\\underline", true],
-]);
-CLaTeXParser.prototype.GetIsAddGroupChar = new Map([
-	["\\overbrace", true],
-	["\\underbrace", true],
-]);
+var GetIsAddBar = {
+	"\\overline": true,
+	"\\underline": true
+};
+var GetIsAddGroupChar = {
+	"\\overbrace": true,
+	"\\underbrace": true,
+};
 CLaTeXParser.prototype.CheckIsAccent = function (strFAtom) {
 	return (
-		this.GetAccent.get(strFAtom) ||
-		this.GetIsAddBar.get(strFAtom) ||
-		this.GetIsAddGroupChar.get(strFAtom)
+		GetAccent[strFAtom] ||
+		GetIsAddBar[strFAtom] ||
+		GetIsAddGroupChar[strFAtom]
 	);
 };
-CLaTeXParser.prototype.GetAccent = new Map([
-	["\\widetilde", 771],
-	["\\widehat", 770],
-	["\\overrightarrow", 8407],
-	["\\overleftarrow", 8406],
-	["\\dot", 775],
-	["\\ddot", 776],
-	["\\hat", 770],
-	["\\check", 780],
-	["\\acute", 769],
-	["\\grave", 768],
-	["\\bar", 773],
-	["\\vec", 8407],
-	["\\breve", 774],
-	["\\tilde", 771],
-]);
+var GetAccent = {
+	"\\widetilde": 771,
+	"\\widehat": 770,
+	"\\overrightarrow": 8407,
+	"\\overleftarrow": 8406,
+	"\\dot": 775,
+	"\\ddot": 776,
+	"\\hat": 770,
+	"\\check": 780,
+	"\\acute": 769,
+	"\\grave": 768,
+	"\\bar": 773,
+	"\\vec": 8407,
+	"\\breve": 774,
+	"\\tilde": 771
+};
 //Inetegral
 CLaTeXParser.prototype.AddIntegral = function (FormArgument, strFAtom) {
 	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
@@ -1602,8 +1601,8 @@ CLaTeXParser.prototype.AddIntegral = function (FormArgument, strFAtom) {
 };
 CLaTeXParser.prototype.CreateIntegral =  function(FormArgument, strFAtom) {
 	var strNameOfIntegral = strFAtom;
-	var intCountOfIntegral = this.GetCountOfIntegral.get(strNameOfIntegral);
-	var isOTypeIntegral = this.GetTypeOfIntegral.get(strNameOfIntegral);
+	var intCountOfIntegral = GetCountOfIntegral[strNameOfIntegral];
+	var isOTypeIntegral = GetTypeOfIntegral[strNameOfIntegral];
 	var TypeOFLoc = 1;
 
 	var hideBoxes = {
@@ -1665,22 +1664,22 @@ CLaTeXParser.prototype.FillIntegralContent =  function(Integral) {
 
 	this.StartLexer(Integral.getBase());
 };
-CLaTeXParser.prototype.GetCountOfIntegral = new Map([
-	["\\int", 1],
-	["\\oint", 1],
-	["\\iint", 2],
-	["\\oiint", 2],
-	["\\iiint", 3],
-	["\\oiiint", 3],
-]);
-CLaTeXParser.prototype.GetTypeOfIntegral = new Map([
-	["\\int", false],
-	["\\oint", true],
-	["\\iint", false],
-	["\\oiint", true],
-	["\\iiint", false],
-	["\\oiiint", true],
-]);
+var GetCountOfIntegral = {
+	"\\int": 1,
+	"\\oint": 1,
+	"\\iint": 2,
+	"\\oiint": 2,
+	"\\iiint": 3,
+	"\\oiiint": 3
+};
+var GetTypeOfIntegral = {
+	"\\int": false,
+	"\\oint": true,
+	"\\iint": false,
+	"\\oiint": true,
+	"\\iiint": false,
+	"\\oiiint": true
+};
 //Matrix
 CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
 	this.GetNextAtom(); // skip {
@@ -1717,16 +1716,16 @@ CLaTeXParser.prototype.CreateMatrix = function(FormArgument, typeOfMatrix) {
 	}
 
 	if (typeOfMatrix == "pmatrix") {
-		Bracets.push(this.GetBracetCode.get("("), this.GetBracetCode.get(")"))
+		Bracets.push(GetBracetCode["("], GetBracetCode[")"])
 	}
 	else if (typeOfMatrix == "bmatrix") {
-		Bracets.push(this.GetBracetCode.get("["), this.GetBracetCode.get("]"))
+		Bracets.push(GetBracetCode["["], GetBracetCode["]"])
 	}
 	else if (typeOfMatrix == "Bmatrix") {
-		Bracets.push(this.GetBracetCode.get("{"), this.GetBracetCode.get("}"))
+		Bracets.push(GetBracetCode["{"], GetBracetCode["}"])
 	}
 	else if (typeOfMatrix == "vmatrix") {
-		Bracets.push(this.GetBracetCode.get("|"), this.GetBracetCode.get("|"))
+		Bracets.push(GetBracetCode["|"], GetBracetCode["|"])
 	}
 	
 	var intColsCount = 1;
@@ -1844,7 +1843,7 @@ CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type, typeT
 	}
 };
 CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
-	if (this.GetBracetCode.get(strFAtom)) {
+	if (GetBracetCode[strFAtom]) {
 		return false;
 	}
 
@@ -1862,8 +1861,8 @@ CLaTeXParser.prototype.CheckIsText = function (strFAtom) {
 	return true
 };
 CLaTeXParser.prototype.AddMathText = function(FormArgument, strFAtom) {
-	var type = this.CheckMathText.get(strFAtom);
-	var objSty = this.CheckMathTextSty.get(strFAtom);
+	var type = CheckMathText[strFAtom];
+	var objSty = CheckMathTextSty[strFAtom];
 
 	var strFAtom = this.GetNextAtom();
 
@@ -1885,24 +1884,24 @@ CLaTeXParser.prototype.AddMathText = function(FormArgument, strFAtom) {
 		}
 	} while (strFAtom != '}');
 };
-CLaTeXParser.prototype.CheckMathText = new Map([
-	['\\mathnormal', 0],
-	['\\mathbf', 0],
-	['\\mathrm', 0],
-	['\\mathcal', 1],
-	['\\mathfrak', 2],
-	['\\mathbb', 3],
-	['\\mathsf', 4],
-	['\\mathtt', 5]
-]);
-CLaTeXParser.prototype.CheckMathTextSty = new Map([
-	['\\mathnormal', {Italic: true, Bold: false}],
-	['\\mathbf', {Italic: false, Bold: true}],
-	['\\mathsf', {Italic: false, Bold: false}],
-	['\\mathtt', {Italic: false, Bold: false}],
-	['\\mathfrak', {Italic: false, Bold: false}],
-	['\\mathrm', {Italic: false}]
-]);
+var CheckMathText = {
+	'\\mathnormal': 0,
+	'\\mathbf': 0,
+	'\\mathrm': 0,
+	'\\mathcal': 1,
+	'\\mathfrak': 2,
+	'\\mathbb': 3,
+	'\\mathsf': 4,
+	'\\mathtt': 5
+};
+var CheckMathTextSty = {
+	'\\mathnormal': {Italic: true, Bold: false},
+	'\\mathbf': {Italic: false, Bold: true},
+	'\\mathsf': {Italic: false, Bold: false},
+	'\\mathtt': {Italic: false, Bold: false},
+	'\\mathfrak': {Italic: false, Bold: false},
+	'\\mathrm': {Italic: false}
+};
 /**
  * @param Parser
  * @param FormArgument Функция в которую будет записываться контент.
@@ -1928,7 +1927,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 		};
 
 		//construction
-		if (Parser.GetTypeOfFunction.get(strFAtom) != null) {
+		if (GetTypeOfFunction[strFAtom] != null) {
 			Parser.AddFunction(FormArgument, strFAtom);
 			intFAtoms++;
 		}
@@ -1962,17 +1961,17 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 
-		else if (typeof Parser.CheckMathText.get(strFAtom) == 'number' && !Parser.isError) {
+		else if (typeof CheckMathText[strFAtom] == 'number' && !Parser.isError) {
 			Parser.AddMathText(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckIsLargeOperator.get(strFAtom) && !Parser.isError) {
+		else if (CheckIsLargeOperator[strFAtom] && !Parser.isError) {
 			Parser.AddLargeOperator(FormArgument, strFAtom);
 			intFAtoms++;
 		}
 
-		else if (Parser.GetCountOfIntegral.get(strFAtom) && !Parser.isError) {
+		else if (GetCountOfIntegral[strFAtom] && !Parser.isError) {
 			Parser.AddIntegral(FormArgument, strFAtom);
 			intFAtoms++;
 		}
@@ -2344,7 +2343,7 @@ ToLaTex.prototype.AddBinom = function(name, obj) {
 };
 ToLaTex.prototype.AddNary = function(name, obj) {
 	var strChr = obj[name].data.chr;
-	var strTypeOfLargeOperator = this.GetNaryCode.get(strChr);
+	var strTypeOfLargeOperator = GetNaryCode[strChr];
 	
 	this.objString.arr.push(strTypeOfLargeOperator);
 
@@ -2369,21 +2368,21 @@ ToLaTex.prototype.AddNary = function(name, obj) {
 	}
 	this.Convert(objBase);
 };
-ToLaTex.prototype.GetNaryCode = new Map([
-	[undefined, '\\int'],
-	[8748, '\\iint'],
-	[8749, '\\iiint'],
-	[8750, '\\oint'],
-	[8751, '\\oiint'],
-	[8752, '\\oiiint'],
-	[8721, '\\sum'],
-	[8899, '\\bigcup'],
-	[8898, '\\bigcap'],
-	[8719, '\\prod'],
-	[8720, '\\coprod'],
-	[8897, '\\bigvee'],
-	[8896, '\\bigwedge']
-]);
+var GetNaryCode = {
+	undefined: '\\int',
+	8748: '\\iint',
+	8749: '\\iiint',
+	8750: '\\oint',
+	8751: '\\oiint',
+	8752: '\\oiiint',
+	8721: '\\sum',
+	8899: '\\bigcup',
+	8898: '\\bigcap',
+	8719: '\\prod',
+	8720: '\\coprod',
+	8897: '\\bigvee',
+	8896: '\\bigwedge'
+};
 ToLaTex.prototype.AddLimit = function(name, obj) {
 	var objDegree = Object.keys(obj[name]);
 	this.Convert(obj[name][objDegree[0]], null, '_{');
@@ -2391,7 +2390,7 @@ ToLaTex.prototype.AddLimit = function(name, obj) {
 };
 ToLaTex.prototype.AddAccent = function(name, obj) {
 	var intType = obj[name].data.chr;
-	var strType = this.GetCodeAccent.get(intType) + '{';
+	var strType = GetCodeAccent[intType] + '{';
 
 	this.Convert(obj[name]['0_CMathContent'], strType, '}');
 };
@@ -2455,18 +2454,18 @@ ToLaTex.prototype.CheckIsMod = function(name, obj) {
 	}
 	
 };
-ToLaTex.prototype.GetCodeAccent = new Map([
-	[8407, '\\vec'],
-	[773, '\\bar'],
-	[774, '\\breve'],
-	[776, '\\ddot'],
-	[775, '\\dot'],
-	[768, '\\grave'],
-	[769, '\\acute'],
-	[771, '\\tilde'],
-	[780, '\\check'],
-	[770, '\\hat']
-]);
+var GetCodeAccent = {
+	8407: '\\vec',
+	773: '\\bar',
+	774: '\\breve',
+	776: '\\ddot',
+	775: '\\dot',
+	768: '\\grave',
+	769: '\\acute',
+	771: '\\tilde',
+	780: '\\check',
+	770: '\\hat',
+};
 ToLaTex.prototype.AddText = function(name, obj) {
 	var strText = obj[name].CMathText;
 
@@ -3018,13 +3017,6 @@ ToLaTex.prototype.GetCode = new Map([
 	[0x2265, '\>='],
 	[0x226B, '\>>']
 ]);
-
-
-function UnicodeMathToMathMl (str) {
-	this.str = str;
-}
-
-
 //--------------------------------------------------------export----------------------------------------------------
 window["AscCommonWord"] = window["AscCommonWord"] || {};
 window["AscCommonWord"].CLaTeXParser = CLaTeXParser;
