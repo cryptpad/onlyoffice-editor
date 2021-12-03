@@ -866,7 +866,7 @@ DrawingObjectsController.prototype =
                             if(this.isSlideShow())
                             {
                                 ret.cursorType = "pointer";
-                                MMData.Hyperlink = null;
+                                //MMData.Hyperlink = null;
                                 oDD.SetCursorType("pointer", MMData);
                             }
                             else
