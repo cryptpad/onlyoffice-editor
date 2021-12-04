@@ -7255,7 +7255,14 @@
         return this.createDiamond(1 - fTime, sOperation);
     };
     CAnimTexture.prototype.createDiamondOut = function(fTime, nTransition) {
-        return this.createDiamond(1 - fTime, "destination-in");
+        var sOperationType;
+        if(nTransition === TRANSITION_TYPE_IN) {
+            sOperationType = 'destination-in';
+        }
+        else {
+            sOperationType = 'destination-out';
+        }
+        return this.createDiamond(fTime, sOperationType);
     };
     CAnimTexture.prototype.getRandomRanges = function(fTime, nTransition) {
         var nFilledBars = RANDOM_BARS_ARRAY.length * fTime + 0.5 >> 0;
