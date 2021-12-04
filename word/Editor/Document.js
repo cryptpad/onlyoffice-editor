@@ -9265,7 +9265,7 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 			{
 				if (SelectedContent.DrawingObjects[nIndex].IsPicture())
 				{
-					oSrcPicture = SelectedContent.DrawingObjects[nIndex].GraphicObj;
+					oSrcPicture = SelectedContent.DrawingObjects[nIndex].GraphicObj.copy();
 					break;
 				}
 			}
