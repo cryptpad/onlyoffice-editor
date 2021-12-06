@@ -97,6 +97,8 @@
     var pageBreakPreviewMode = false;
 	var pageBreakPreviewModeOverlay = false;
 
+	var c_maxColFillDataCount = 10000;
+
     /*
      * Constants
      * -----------------------------------------------------------------------------
@@ -15589,7 +15591,9 @@
 		//***array-formula***
 		var changeRangesIfArrayFormula = function() {
 			if(ctrlKey) {
+				//TODO есть баг с тем, что не лочатся все ячейки при данном действии
 				c = t.getSelectedRange();
+				var isAllColumnSelect = c && c.bbox && (c.bbox.getType() === c_oAscSelectionType.RangeMax || c.bbox.getType() === c_oAscSelectionType.RangeCol);
 				if(c.bbox.isOneCell()) {
 					//проверяем, есть ли формула массива в этой ячейке
 					t.model._getCell(c.bbox.r1, c.bbox.c1, function(cell){
@@ -15598,6 +15602,30 @@
 							c = t.model.getRange3(formulaRef.r1, formulaRef.c1, formulaRef.r2, formulaRef.c2);
 						}
 					});
+				} else if ((!flags || !flags.notCheckMax) && isAllColumnSelect) {
+					var allRows = t.model.getRowsCount();
+					var filledRows;
+					if (window["AscDesktopEditor"]) {
+						filledRows = Math.max(c_maxColFillDataCount, allRows);
+						bbox = new Asc.Range(c.bbox.c1, 0, c.bbox.c2, filledRows - 1);
+						c = t._getRange(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+
+						if (filledRows -1 !== gc_nMaxRow0) {
+							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.FillAllRowsWarning, c_oAscError.Level.NoCritical, [filledRows, allRows], function () {
+								if (!flags) {
+									flags = []
+								}
+								flags.notCheckMax = true;
+								t._saveCellValueAfterEdit(c, val, flags, isNotHistory, lockDraw);
+							});
+						}
+					} else {
+						filledRows = c_maxColFillDataCount;
+						bbox = new Asc.Range(c.bbox.c1, 0, c.bbox.c2, filledRows - 1);
+						c = t._getRange(bbox.c1, bbox.r1, bbox.c2, bbox.r2);
+						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.FillAllRowsWarning, c_oAscError.Level.NoCritical, [filledRows, allRows]);
+					}
+					return;
 				}
 				bbox = c.bbox;
 			}
