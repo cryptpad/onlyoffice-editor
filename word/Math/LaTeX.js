@@ -47,6 +47,7 @@ function CLaTeXParser(props, str) {
 	this.Paragraph = props.Paragraph;
 	this.Root = props.Root;
 	this.isError = false;
+	this.isInMatrix = false;
 };
 CLaTeXParser.prototype.prepare = function() {
 	var t0 = performance.now();
@@ -591,6 +592,7 @@ CLaTeXParser.prototype.Parse = function (str) {
 			(str[i + 1] == "{" && strTempWord != "\\") ||
 			(str[i + 1] == "}" && strTempWord != "\\") ||
 			str[i + 1] == " " ||
+			str[i + 1] == "&" ||
 			str[i + 1] == "," ||
 			(str[i + 1] == "[" && strTempWord != "\\") ||
 			(str[i + 1] == "]" && strTempWord != "\\") ||
@@ -601,6 +603,7 @@ CLaTeXParser.prototype.Parse = function (str) {
 			strTempWord == "[" ||
 			strTempWord == "]" ||
 			strTempWord == "{" ||
+			strTempWord == "&" ||
 			strTempWord == "}" ||
 			strTempWord == "^" ||
 			strTempWord == "-" ||
@@ -609,17 +612,11 @@ CLaTeXParser.prototype.Parse = function (str) {
 			strTempWord == "\\left" ||
 			strTempWord == "\\right"
 		) {
-			console.log(strTempWord, strTempWord.charCodeAt())
-			if (strTempWord.charCodeAt() != 10) {
-				this.arrAtomsOfFormula.push(strTempWord);
-				strTempWord = "";
-			} else {
-				strTempWord = "";
-			}
-			
+			this.arrAtomsOfFormula.push(strTempWord.trim());
+			strTempWord = "";
 		}
 	}
-	this.arrAtomsOfFormula = this.arrAtomsOfFormula;
+	this.arrAtomsOfFormula = this.arrAtomsOfFormula.filter(Boolean);
 	console.log(this.arrAtomsOfFormula);
 };
 //Service
@@ -1682,12 +1679,14 @@ var GetTypeOfIntegral = {
 };
 //Matrix
 CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
+	this.isInMatrix = true;
+
 	this.GetNextAtom(); // skip {
 	var typeOfMatrix = this.GetNextAtom();
 	this.GetNextAtom(); // skip }
 
 	var arrTempMatrixData = this.CreateMatrix(FormArgument, typeOfMatrix);
-	
+	console.log(arrTempMatrixData)
 	var Matrix = arrTempMatrixData[0];
 	var arrExitData = arrTempMatrixData[1];
 	var intRowsCount = arrTempMatrixData[2];
@@ -1705,6 +1704,7 @@ CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
 		console.log('error in matrix')
 	}
 	this.GetNextAtom(); // skip }
+	this.isInMatrix = false;
 };
 CLaTeXParser.prototype.CreateMatrix = function(FormArgument, typeOfMatrix) {
 	var Bracets = []
@@ -1782,6 +1782,7 @@ CLaTeXParser.prototype.FillMatrixContent = function(Matrix, arrExitData, intRows
 		for (var ColIndex = 0; ColIndex < intColsCount; ColIndex++) {
 			var MathContent = Matrix.getContentElement(RowIndex, ColIndex);
 			this.StartLexer(MathContent, arrExitData[intIndexOfExitBuffer]);
+			var to = MathContent.GetTextContent().str
 			intIndexOfExitBuffer++;
 		}
 	}
@@ -1803,7 +1804,7 @@ CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type, typeT
 		return
 	}
 
-	if (this.CheckFutureAtom() == '\\') {
+	if (this.CheckFutureAtom() == '\\' && !this.isInMatrix) {
 		if (type) {
 			if (type) {
 				this.Pr['scr'] = type;
@@ -1932,7 +1933,7 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee) {
 			intFAtoms++;
 		}
 
-		else if (Parser.CheckFutureAtom() == '\\') {
+		else if (Parser.CheckFutureAtom() == '\\' && !Parser.isInMatrix) {
 			Parser.AddSymbol(strFAtom, FormArgument)
 		}
 
@@ -2290,6 +2291,7 @@ ToLaTex.prototype.AddDegree = function(name, obj)  {
 		this.objString.arr.push('_')
 	}
 
+	console.log(obj[name][objDegree[1]])
 	this.Convert(obj[name][objDegree[1]], '{', '}')
 };
 ToLaTex.prototype.AddRadical = function(name, obj) {
