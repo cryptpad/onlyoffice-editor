@@ -3926,7 +3926,7 @@ background-repeat: no-repeat;\
 		{
 			return;
 		}
-		this.doNotSetProps = true;
+		//this.doNotSetProps = true;
 		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
 	};
 	asc_docs_api.prototype.asc_getCurSlideObjectsNames = function()
@@ -3943,11 +3943,11 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
 	{
-		if(this.doNotSetProps)
-		{
-			this.doNotSetProps = false;
-			return;
-		}
+		// if(this.doNotSetProps)
+		// {
+		// 	this.doNotSetProps = false;
+		// 	return;
+		// }
 		var oController = this.WordControl.m_oLogicDocument.GetCurrentController();
 		if(!oController)
 		{

@@ -684,6 +684,16 @@
         }
         return oCurElem;
     };
+    CTimeNodeBase.prototype.getTiming = function() {
+        var oCurElem = this;
+        while(oCurElem.parent && oCurElem.getObjectType() !== AscDFH.historyitem_type_Timing) {
+            oCurElem = oCurElem.parent;
+        }
+        if(oCurElem.getObjectType() === AscDFH.historyitem_type_Timing) {
+            return oCurElem;
+        }
+        return null;
+    };
     CTimeNodeBase.prototype.getDepth = function() {
         var nDepth = 0;
         var oCurNode = this;
@@ -1094,6 +1104,23 @@
         var oAttr = this.getAttributesObject();
         var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
         console.log(sPrefix + " | ID: " + this.Id + " | TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | STATE: " + oSTATEDESCRMAP[this.state] + " | TIME: " + (new Date()).getTime() + " | FORMAT ID: " + oAttr.id);
+    };
+
+    CTimeNodeBase.prototype.printTree = function () {
+        var nDepth = this.getDepth();
+        var sString = "";
+        for(var nIdx = 0; nIdx < nDepth; ++nIdx) {
+            sString += "        ";
+        }
+
+        var oAttr = this.getAttributesObject();
+        var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
+        sString += (nDepth + " TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | FORMAT ID: " + oAttr.id );
+        console.log(sString);
+        var aChildren = this.getChildrenTimeNodes();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            aChildren[nChild].printTree();
+        }
     };
     CTimeNodeBase.prototype.getFormatId = function () {
         return this.getAttributesObject().id;
@@ -2116,6 +2143,12 @@
             if(oPr.asc_getStartType() !== oCurPr.asc_getStartType()) {
                 oEffect.cTn.changeStartType(oPr.asc_getStartType());
             }
+        }
+    };
+    CTiming.prototype.printTree = function() {
+        var oRoot = this.getTimingRootNode();
+        if(oRoot) {
+            oRoot.printTree();
         }
     };
 
@@ -3881,7 +3914,7 @@
         this.tmFilter = pr;
     };
     CCTn.prototype.fillObject = function(oCopy, oIdMap) {
-        if(this.childTnLst !== null) {
+        if(AscCommon.isRealObject(this.childTnLst)) {
             oCopy.setChildTnLst(this.childTnLst.createDuplicate(oIdMap));
         }
         if(this.endCondLst !== null) {
@@ -4290,15 +4323,16 @@
         nMainIdx = oCurMainSeq.getChildNodeIdx(oCurPar2Lvl);
 
         var oPar2Lvl, oPar3Lvl;
+        var aWithEffects, aAfterEffects;
         if(v === NODE_TYPE_CLICKEFFECT) {
             oEffectNode.cTn.setNodeType(NODE_TYPE_CLICKEFFECT);
             oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
-            oPar3Lvl.splice(0, 0, oCurPar3Lvl.splice(nIdx3)[0]);
+            aWithEffects = oCurPar3Lvl.splice(nIdx3);
+            oPar3Lvl.addEffects(0, aWithEffects);
             oPar2Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite");
             oPar2Lvl.pushToChildTnLst(oPar3Lvl);
-            oPar2Lvl.splice(1, 0, oCurPar2Lvl.splice(nIdx2 + 1)[0]);
+            oPar2Lvl.addEffects(1, oCurPar2Lvl.splice(nIdx2 + 1));
             oCurMainSeq.splice(nMainIdx + 1, 0, oPar2Lvl);
-
         }
         else if(v === NODE_TYPE_WITHEFFECT) {
             oEffectNode.cTn.setNodeType(NODE_TYPE_WITHEFFECT);
@@ -4327,15 +4361,34 @@
         }
         else if(v === NODE_TYPE_AFTEREFFECT) {
             oEffectNode.cTn.setNodeType(NODE_TYPE_AFTEREFFECT);
-            oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
-            oPar3Lvl.splice(0, 0, oCurPar3Lvl.splice(nIdx3)[0]);
-            oPar2Lvl = oCurPar2Lvl;
-            oPar2Lvl.splice(nIdx2 + 1, 0, oPar3Lvl);
+            if(nIdx3 === 0) {
+                if(nIdx2 > 0) {
+                    //do nothing
+                }
+                else {
+                    if(nMainIdx > 0) {
+                        oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+                        oPar3Lvl.addEffects(0, oCurPar3Lvl.splice(nIdx3));
+                        oPar2Lvl = oCurMainSeq.getChildNode(nMainIdx - 1);
+                        oPar2Lvl.pushToChildTnLst(oPar3Lvl);
+                    }
+                }
+            }
+            else {
+                oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+                oPar3Lvl.addEffects(0, oCurPar3Lvl.splice(nIdx3));
+                oPar2Lvl = oCurPar2Lvl;
+                oPar2Lvl.splice(nIdx2 + 1, 0, oPar3Lvl);
+            }
         }
         if(oCurPar3Lvl.getChildrenCount() === 0) {
             oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
         }
-
+        var oTiming = oEffectNode.getTiming();
+        if(oTiming) {
+            oTiming.updateNodesIDs();
+        }
+        oEffectNode.getRoot().printTree();
     };
 
 
@@ -6824,8 +6877,13 @@
     CTimeNodeContainer.prototype.splice = function() {
         return this.cTn.childTnLst.splice.apply(this.cTn.childTnLst, arguments);
     };
+    CTimeNodeContainer.prototype.addEffects = function(nInsertIdx, aEffects) {
+        for(var nIdx = 0; nIdx < aEffects.length; ++nIdx) {
+            this.splice(nInsertIdx + nIdx, 0, aEffects[nIdx]);
+        }
+    };
     CTimeNodeContainer.prototype.getChildrenCount = function() {
-        this.cTn.childTnLst.getLength();
+        return this.cTn.childTnLst.getLength();
     };
     CTimeNodeContainer.prototype.getChildTimeNodeByType = function(nType) {
         return this.cTn.getTimeNodeByType(nType);
