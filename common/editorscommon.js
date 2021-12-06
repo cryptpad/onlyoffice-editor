@@ -7116,6 +7116,13 @@
 		return t.mmapCache[col] || [];
 	};
 
+	function IsLinkPPAction(sAction) {
+		if(!(typeof sAction === "string")) {
+			return false;
+		}
+		return sAction.indexOf("ppaction://hlink") === 0;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -7263,6 +7270,7 @@
 	window["AscCommon"].CCustomShortcutActionSymbol = window["AscCommon"]["CCustomShortcutActionSymbol"] = CCustomShortcutActionSymbol;
 	window['AscCommon'].g_oCRC32  = g_oCRC32;
 	window["AscCommon"].RangeTopBottomIterator = RangeTopBottomIterator;
+	window["AscCommon"].IsLinkPPAction = IsLinkPPAction;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
