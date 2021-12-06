@@ -25700,11 +25700,6 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 
 			var arrParagraphs = this.GetSelectedParagraphs();
 
-			oChangeEngine.SentenceSettings = [];
-			oChangeEngine.flag = 0;
-			oChangeEngine.GlobalSettings = true;
-			oChangeEngine.CurrentParagraph = 0;
-			oChangeEngine.isAllinTable = true;
 			if (oChangeEngine.ChangeType === Asc.c_oAscChangeTextCaseType.SentenceCase || oChangeEngine.ChangeType === Asc.c_oAscChangeTextCaseType.CapitalizeWords)
 			{
 				for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
@@ -28738,6 +28733,11 @@ function CDocumentChangeTextCaseEngine(nType)
 	this.currentSentence = "";
 	this.word = "";
 	this.lineWords = 0;
+    this.SentenceSettings = [];
+    this.flag = 0;
+    this.GlobalSettings = true;
+    this.CurrentParagraph = 0;
+    this.isAllinTable = true;
 }
 CDocumentChangeTextCaseEngine.prototype.Reset = function()
 {
