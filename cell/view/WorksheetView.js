@@ -22735,6 +22735,10 @@
                 oObjectRender.controller.updateSelectionState(true);
             }
         }
+		var ar = this.model.selectionRange && this.model.selectionRange.getLast();
+		if (ar) {
+			this._updateRange(ar);
+		}
 		this.draw();
 	};
 
