@@ -1004,6 +1004,25 @@ var editor;
       }
   };
 
+	spreadsheet_api.prototype.asc_SetPrintHeadings = function(val, index) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return false;
+		}
+		var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+		var ws = this.wb.getWorksheet(sheetIndex);
+		ws.setPrintHeadings(val);
+	};
+
+	spreadsheet_api.prototype.asc_SetPrintGridlines = function(val, index) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return false;
+		}
+
+		var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+		var ws = this.wb.getWorksheet(sheetIndex);
+		ws.setGridLines(val);
+	};
+
   spreadsheet_api.prototype.asc_changePrintTitles = function (cols, rows, index) {
 	  if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
 		  return false;
@@ -1159,6 +1178,54 @@ var editor;
     }
   };
 
+	spreadsheet_api.prototype.asc_initPrintPreview = function (containerId) {
+		var curElem = document.getElementById(containerId);
+		if (curElem) {
+			var canvasId = containerId + "-canvas"
+			var canvas = document.getElementById(canvasId);
+			if (!canvas) {
+				canvas = document.createElement('canvas');
+				canvas.id = canvasId;
+				canvas.width = curElem.clientWidth;
+				canvas.height = curElem.clientHeight;
+				//obj.canvas.style.width = AscCommon.AscBrowser.convertToRetinaValue(t.parentWidth) + "px";
+				canvas.style.border = "1px solid";
+				canvas.style.borderColor = "#" + this.wb.defaults.worksheetView.cells.defaultState.border.get_hex();
+				curElem.appendChild(canvas);
+
+				this.wb.printPreviewState.setCtx(new asc.DrawingContext({
+					canvas: canvas, units: 0/*px*/, fmgrGraphics: this.wb.fmgrGraphics, font: this.wb.m_oFont
+				}));
+			}
+		}
+
+		this.wb.printPreviewState.init();
+		var pages = this.wb.calcPagesPrint();
+		this.wb.printPreviewState.setPages(pages);
+
+		this.asc_drawPrintPreview(0);
+		return pages.arrPages.length;
+	};
+
+	spreadsheet_api.prototype.asc_updatePrintPreview = function (options) {
+		var pages = this.wb.calcPagesPrint(options.advancedOptions);
+		this.wb.printPreviewState.setPages(pages);
+		var pagesCount = pages.arrPages.length;
+		return pagesCount ? pagesCount : 1;
+	};
+
+	spreadsheet_api.prototype.asc_drawPrintPreview = function (index) {
+		this.wb.printPreviewState.setPage(index, true);
+		this.wb.printSheetPrintPreview(index);
+		var curPage = this.wb.printPreviewState.getPage(index);
+		//возвращаю инфомарцию об активном листе, который печатаем
+		this.handlers.trigger("asc_onPrintPreviewSheetChanged", curPage && curPage.indexWorksheet);
+	};
+
+	spreadsheet_api.prototype.asc_closePrintPreview = function () {
+		this.wb.printPreviewState.clean(true);
+	};
+
   spreadsheet_api.prototype.processSavedFile             = function(url, downloadType, filetype)
   {
     if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.convertCallback)
@@ -1224,6 +1291,7 @@ var editor;
    * asc_onLockDocumentProps/asc_onUnLockDocumentProps    - эвент о том, что залочены опции layout
    * asc_onUpdateDocumentProps                            - эвент о том, что необходимо обновить данные во вкладке layout
    * asc_onLockPrintArea/asc_onUnLockPrintArea            - эвент о локе в меню опции print area во вкладке layout
+   * asc_onPrintPreviewSheetChanged                 - эвент о смене печатаемого листа при предварительной печати
    */
 
   spreadsheet_api.prototype.asc_registerCallback = function(name, callback, replaceOldCallback) {
@@ -4648,19 +4716,12 @@ var editor;
 		return res;
 	};
 
-	spreadsheet_api.prototype.asc_checkActiveCellPassword = function () {
+	spreadsheet_api.prototype.asc_checkActiveCellPassword = function (val, callback) {
 		var ws = this.wbModel.getActiveWs();
-		var protectedRanges = ws.getProtectedRangesByActiveCell();
-		if (protectedRanges) {
-			//TODO добавить проверку пароля
-			for (var i = 0; i < protectedRanges.length; i++) {
-				if (protectedRanges[i].asc_isPassword()) {
-					return true;
-				}
-			}
-			return false;
+		var activeCell = ws && ws.selectionRange && ws.selectionRange.activeCell;
+		if (activeCell) {
+			ws.checkProtectedRangesPassword(val, activeCell, callback);
 		}
-		return true;
 	};
 
   // Формат по образцу
@@ -5888,6 +5949,11 @@ var editor;
 			return false;
 		}
 
+		if (this.wb && this.wb.getCellEditMode()) {
+			return;
+			//this.asc_closeCellEditor(true);
+		}
+
 		var ws = this.wb.getWorksheet();
 		var t = this;
 
@@ -6065,6 +6131,12 @@ var editor;
 		if (!props) {
 			this.handlers.trigger("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);
 			this.handlers.trigger("asc_onChangeProtectWorksheet", i);
+			return;
+		}
+
+		if (this.wb && this.wb.getCellEditMode()) {
+			return;
+			//this.asc_closeCellEditor(true);
 		}
 
 		var wsView = this.wb.getWorksheet();
@@ -6160,6 +6232,11 @@ var editor;
 			this.handlers.trigger("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);
 			this.handlers.trigger("asc_onChangeProtectWorkbook");
 			return;
+		}
+
+		if (this.wb && this.wb.getCellEditMode()) {
+			return;
+			//this.asc_closeCellEditor(true);
 		}
 
 		var wb = this.wbModel;
@@ -6377,6 +6454,10 @@ var editor;
   prot["asc_TextToColumns"] = prot.asc_TextToColumns;
   prot["asc_TextFromFileOrUrl"] = prot.asc_TextFromFileOrUrl;
 
+  prot["asc_initPrintPreview"] = prot.asc_initPrintPreview;
+  prot["asc_updatePrintPreview"] = prot.asc_updatePrintPreview;
+  prot["asc_drawPrintPreview"] = prot.asc_drawPrintPreview;
+  prot["asc_closePrintPreview"] = prot.asc_closePrintPreview;
 
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
@@ -6403,6 +6484,9 @@ var editor;
   prot["asc_changePageOrient"] = prot.asc_changePageOrient;
   prot["asc_changePrintTitles"] = prot.asc_changePrintTitles;
   prot["asc_getPrintTitlesRange"] = prot.asc_getPrintTitlesRange;
+  prot["asc_SetPrintHeadings"] = prot.asc_SetPrintHeadings;
+  prot["asc_SetPrintGridlines"] = prot.asc_SetPrintGridlines;
+
 
   prot["asc_ChangePrintArea"] = prot.asc_ChangePrintArea;
   prot["asc_CanAddPrintArea"] = prot.asc_CanAddPrintArea;

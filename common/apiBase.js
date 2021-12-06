@@ -2181,7 +2181,7 @@
 		}
 		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
 
-		}, 0);
+		}, 0, true);
 
 		this.sendEvent('asc_onInitStandartTextures', arr);
 	};
@@ -3485,6 +3485,12 @@
 		return nActionType;
 	};
 	baseEditorsApi.prototype.asc_setSkin = function(obj)
+	{
+	};
+	baseEditorsApi.prototype.asc_initPrintPreview                     = function()
+	{
+	};
+	baseEditorsApi.prototype.asc_drawPrintPreview                     = function()
 	{
 	};
 	//---------------------------------------------------------version----------------------------------------------------

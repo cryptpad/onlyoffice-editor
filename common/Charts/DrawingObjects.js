@@ -2508,6 +2508,10 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 
     _this.setListType = function(type, subtype)
     {
+        if(_this.controller.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var NumberInfo =
             {
                 Type    : 0,
@@ -3509,6 +3513,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     };
 
     _this.applyMoveResizeRange = function(oRanges) {
+
         var oChart = null;
         var aSelectedObjects = _this.controller.selection.groupSelection ? _this.controller.selection.groupSelection.selectedObjects : _this.controller.selectedObjects;
         if(aSelectedObjects.length === 1
@@ -3580,6 +3585,11 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     _this.groupGraphicObjects = function() {
 
         if ( _this.controller.canGroup() ) {
+
+            if(this.controller.checkSelectedObjectsProtection())
+            {
+                return;
+            }
             _this.controller.checkSelectedObjectsAndCallback(_this.controller.createGroup, [], false, AscDFH.historydescription_Spreadsheet_CreateGroup);
             worksheet.setSelectionShape(true);
         }
@@ -4217,11 +4227,11 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     };
 
     _this.Begin_CompositeInput = function(){
-        var oWsView = _this.getWorksheet();
-        var oWS = oWsView.model;
-        if(oWS && oWS.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
-            oWS.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
-            return false;
+        if(!_this.controller.canEdit()) {
+            return;
+        }
+        if(_this.controller.checkSelectedObjectsProtectionText()) {
+            return;
         }
         History.Create_NewPoint(AscDFH.historydescription_Document_CompositeInput);
         _this.beginCompositeInput();
