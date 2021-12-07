@@ -9435,8 +9435,17 @@
         if (this.model.selectionRange) {
             var ranges = this.model.selectionRange.ranges;
             for (var i = 0; i < ranges.length; ++i) {
+				var range = ranges[i];
+				//делаю условие только для формул, просмотреть все остальные диапазоны
+				if (this.getFormulaEditMode()) {
+					var isMerged = this.model.getMergedByCell(range.r1, range.c1);
+					if (isMerged && isMerged.isEqual(range)) {
+						range = new Asc.Range(range.c1, range.r1, range.c1, range.r1);
+					}
+				}
+
                 // ToDo проблема с выбором целого столбца/строки
-                name = ranges[i].getName(absName ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
+                name = range.getName(absName ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
                 if (addSheet) {
                     name = parserHelp.get3DRef(this.model.getName(), name);
                 }

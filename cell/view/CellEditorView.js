@@ -865,6 +865,13 @@
 					}
 					oSelectionRange.addRange();
 					range = oSelectionRange.getLast();
+					if (bboxOper.isOneCell()) {
+						var isMerged = ws.getMergedByCell(bboxOper.r1, bboxOper.c1);
+						if (isMerged) {
+							bboxOper.r2 = isMerged.r2;
+							bboxOper.c2 = isMerged.c2;
+						}
+					}
 					range.assign2(bboxOper);
 					range.cursorePos = range.colorRangePos = r.start + 1;
 					range.formulaRangeLength = r.end - r.start;
