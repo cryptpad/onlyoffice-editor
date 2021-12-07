@@ -1622,9 +1622,6 @@
 	};
 	baseEditorsApi.prototype.downloadAs                         = function (actionType, options)
 	{
-		if (this.isLongAction()) {
-			return;
-		}
 		var isCloudCrypto = !!(window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"]));
 		if (isCloudCrypto)
 		{
@@ -2029,6 +2026,9 @@
 		if (window["AscDesktopEditor"] && this._printDesktop(options)) {
 			return;
 		}
+		if (this.isLongAction()) {
+			return;
+		}
 
 		if (!options) {
 			options = new Asc.asc_CDownloadOptions();
@@ -2181,7 +2181,7 @@
 		}
 		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
 
-		}, 0);
+		}, 0, true);
 
 		this.sendEvent('asc_onInitStandartTextures', arr);
 	};
@@ -3485,6 +3485,12 @@
 		return nActionType;
 	};
 	baseEditorsApi.prototype.asc_setSkin = function(obj)
+	{
+	};
+	baseEditorsApi.prototype.asc_initPrintPreview                     = function()
+	{
+	};
+	baseEditorsApi.prototype.asc_drawPrintPreview                     = function()
 	{
 	};
 	//---------------------------------------------------------version----------------------------------------------------

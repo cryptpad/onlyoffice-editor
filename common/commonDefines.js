@@ -305,7 +305,9 @@
 			ChangeOnProtectedSheet: 1030,
 			PasswordIsNotCorrect: 1031,
 			DeleteColumnContainsLockedCell: 1032,
-			DeleteRowContainsLockedCell: 1033
+			DeleteRowContainsLockedCell: 1033,
+
+			FillAllRowsWarning: 1040
 		}
 	};
 
@@ -2534,6 +2536,7 @@
 	prot['PasswordIsNotCorrect']             = prot.PasswordIsNotCorrect;
 	prot['DeleteColumnContainsLockedCell']   = prot.DeleteColumnContainsLockedCell;
 	prot['DeleteRowContainsLockedCell']      = prot.DeleteRowContainsLockedCell;
+	prot['FillAllRowsWarning']               = prot.FillAllRowsWarning;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
@@ -2599,12 +2602,14 @@
 	prot['Image']                     = prot.Image;
 	prot['Header']                    = prot.Header;
 	prot['Hyperlink']                 = prot.Hyperlink;
+
 	prot['SpellCheck']                = prot.SpellCheck;
 	prot['Shape']                     = prot.Shape;
 	prot['Slide']                     = prot.Slide;
 	prot['Chart']                     = prot.Chart;
 	prot['Math']                      = prot.Math;
 	prot['MailMerge']                 = prot.MailMerge;
+	prot['ContentControl']            = prot.ContentControl;
 	window['Asc']['linerule_AtLeast'] = window['Asc'].linerule_AtLeast = linerule_AtLeast;
 	window['Asc']['linerule_Auto'] = window['Asc'].linerule_Auto = linerule_Auto;
 	window['Asc']['linerule_Exact'] = window['Asc'].linerule_Exact = linerule_Exact;

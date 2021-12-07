@@ -1352,6 +1352,14 @@
 			this.canvasOuterStyle.zIndex = this.top < 0 ? -1 : z;
 		}
 
+		// в сафари с включенным аппаратным ускорением баг при вводе текста.
+		// видимо они кешируют по особенному текстуры, которые размером (w*h<5000)
+		// формула точная. ни пикселом меньше. больше - можно сколько угодно.
+		// нужно проверять каждое обновление сафари - и как поправят - убрать эту заглушку
+		// canvas'ы прозрачные и их увеличенный размер не влияет на результат.
+		if (AscCommon.AscBrowser.isSafariMacOs && (widthStyle * heightStyle) < 5000)
+			widthStyle = ((5000 / heightStyle) >> 0) + 1;
+
 		this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
 		this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
 	};
@@ -1544,6 +1552,8 @@
 		if (!window['IS_NATIVE_EDITOR']) {
 			this.cursorStyle.left = curLeft + "px";
 			this.cursorStyle.top = curTop + "px";
+
+			this.cursorStyle.width = (((2 * AscCommon.AscBrowser.retinaPixelRatio) >> 0) / AscCommon.AscBrowser.retinaPixelRatio) + "px";
 			this.cursorStyle.height = curHeight + "px";
 		}
 
@@ -2261,7 +2271,7 @@
 		var t = this, kind = undefined, hieroglyph = false;
 		var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
-		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents)) {
+		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents && event.emulated !== true)) {
 			return true;
 		}
 

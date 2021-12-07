@@ -2530,6 +2530,10 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
     _this.setListType = function(type, subtype)
     {
+        if(_this.controller.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var NumberInfo =
             {
                 Type    : 0,
@@ -3531,6 +3535,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.applyMoveResizeRange = function(oRanges) {
+
         var oChart = null;
         var aSelectedObjects = _this.controller.selection.groupSelection ? _this.controller.selection.groupSelection.selectedObjects : _this.controller.selectedObjects;
         if(aSelectedObjects.length === 1
@@ -3602,6 +3607,11 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     _this.groupGraphicObjects = function() {
 
         if ( _this.controller.canGroup() ) {
+
+            if(this.controller.checkSelectedObjectsProtection())
+            {
+                return;
+            }
             _this.controller.checkSelectedObjectsAndCallback(_this.controller.createGroup, [], false, AscDFH.historydescription_Spreadsheet_CreateGroup);
             worksheet.setSelectionShape(true);
         }
@@ -4239,7 +4249,12 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.Begin_CompositeInput = function(){
-
+        if(!_this.controller.canEdit()) {
+            return;
+        }
+        if(_this.controller.checkSelectedObjectsProtectionText()) {
+            return;
+        }
         History.Create_NewPoint(AscDFH.historydescription_Document_CompositeInput);
         _this.beginCompositeInput();
         _this.controller.recalculateCurPos(true, true);

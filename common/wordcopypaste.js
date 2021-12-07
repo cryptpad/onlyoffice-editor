@@ -5566,8 +5566,7 @@ PasteProcessor.prototype =
 				if (null != background_color) {
 					var Shd = new CDocumentShd();
 					Shd.Value = c_oAscShdClear;
-					Shd.Color =
-						new CDocumentColor(background_color.getR(), background_color.getG(), background_color.getB());
+					Shd.Color = Shd.Fill = new CDocumentColor(background_color.getR(), background_color.getG(), background_color.getB());
 					oCurCell.Set_Shd(Shd);
 				}
 
@@ -7618,6 +7617,10 @@ PasteProcessor.prototype =
 								break;
 						}
 					}
+					var startPos = curNumbering["mso-level-start-at"];
+					if (null != startPos) {
+						res.SetLvlStart(i-1, startPos);
+					}
 				}
 				//res.GetAbstractNum().Lvl[i-1].ParaPr
 				var marginLeft = getPropValue("margin-left", msoLinkStyles, curNumbering);
@@ -7689,10 +7692,14 @@ PasteProcessor.prototype =
 			font-weight:bold;
 			mso-bidi-font-weight:normal;}*/
 
+		var getProperty = function (name) {
+			return (numberingProps && numberingProps[name]) || (msoLinkStyles && msoLinkStyles[name]);
+		};
+
 		var rPr = new CTextPr();
 
-		var font_family = numberingProps["font-family"] || msoLinkStyles["font-family"];
-		font_family = font_family.split(",");
+		var font_family = getProperty("font-family");
+		font_family = font_family && font_family.split(",");
 		if (font_family && font_family[0] && "" != font_family[0]) {
 			var oFontItem = this.oFonts[font_family[0]];
 			if (null != oFontItem && null != oFontItem.Name) {
@@ -7703,7 +7710,7 @@ PasteProcessor.prototype =
 			}
 		}
 
-		var font_size = numberingProps["font-size"] || msoLinkStyles["font-size"];
+		var font_size = getProperty("font-size");
 		if (font_size) {
 			font_size = CheckDefaultFontSize(font_size, this.apiEditor);
 			if (font_size) {
@@ -7727,16 +7734,16 @@ PasteProcessor.prototype =
 			}
 		}
 
-		var font_weight = numberingProps["font-weight"] || msoLinkStyles["font-weight"];
+		var font_weight = getProperty("font-weight");
 		if (font_weight) {
 			if ("bold" === font_weight || "bolder" === font_weight || 400 < font_weight)
 				rPr.Bold = true;
 		}
-		var font_style = numberingProps["mso-ansi-font-style"] || msoLinkStyles["mso-ansi-font-style"];
+		var font_style = getProperty("mso-ansi-font-style");
 		if ("italic" === font_style)
 			rPr.Italic = true;
 
-		var color = numberingProps["color"] || msoLinkStyles["color"];
+		var color = getProperty("color");
 		if (color && (color = this._ParseColor(color))) {
 			if (PasteElementsId.g_bIsDocumentCopyPaste) {
 				rPr.Color = color;
@@ -7747,7 +7754,7 @@ PasteProcessor.prototype =
 			}
 		}
 
-		var spacing = numberingProps["letter-spacing"] || msoLinkStyles["letter-spacing"];
+		var spacing = getProperty("letter-spacing");
 		if (spacing && null != (spacing = AscCommon.valueToMm(spacing)))
 			rPr.Spacing = spacing;
 
@@ -7757,7 +7764,7 @@ PasteProcessor.prototype =
 		var Strikeout = null;
 		var vertical_align = null;
 
-		var text_decoration = numberingProps["text-decoration"] || msoLinkStyles["text-decoration"];
+		var text_decoration = getProperty("text-decoration");
 		if (text_decoration) {
 			if (-1 !== text_decoration.indexOf("underline")) {
 				underline = true;
@@ -7771,12 +7778,12 @@ PasteProcessor.prototype =
 			}
 		}
 
-		background_color = numberingProps["background-color"] || msoLinkStyles["background-color"];
+		background_color = getProperty("background-color");
 		if (background_color) {
 			background_color = this._ParseColor(background_color);
 		}
 
-		vertical_align = numberingProps["vertical-align"] || msoLinkStyles["vertical-align"];
+		vertical_align = getProperty("vertical-align");
 		if (!vertical_align) {
 			vertical_align = null;
 		}
@@ -8278,27 +8285,139 @@ PasteProcessor.prototype =
 	_ExecuteBlockLevelStd : function (node, pPr) {
 		var blockLevelSdt = new CBlockLevelSdt(this.oLogicDocument, this.oDocument);
 
-		//content
-		var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
-		oPasteProcessor.msoComments = this.msoComments;
-		oPasteProcessor.oFonts = this.oFonts;
-		oPasteProcessor.oImages = this.oImages;
-		oPasteProcessor.oDocument = blockLevelSdt.Content;
-		oPasteProcessor.bIgnoreNoBlockText = true;
-		oPasteProcessor.aMsoHeadStylesStr = this.aMsoHeadStylesStr;
-		oPasteProcessor.oMsoHeadStylesListMap = this.oMsoHeadStylesListMap;
-		oPasteProcessor.msoListMap = this.msoListMap;
-		oPasteProcessor._Execute(node, pPr, true, true, false);
-		oPasteProcessor._PrepareContent();
-		oPasteProcessor._AddNextPrevToContent(blockLevelSdt.Content);
-
-		//добавляем новый параграфы
-		for (var i = 0, length = oPasteProcessor.aContent.length; i < length; ++i) {
-			if (i === length - 1) {
-				blockLevelSdt.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], true);
-			} else {
-				blockLevelSdt.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], false);
+		//ms в буфер записывает только lock контента
+		if (node && node.attributes) {
+			var contentLocked = node.attributes["contentlocked"];
+			if (contentLocked /*&& contentLocked.value === "t"*/) {
+				blockLevelSdt.SetContentControlLock(c_oAscSdtLockType.SdtContentLocked);
 			}
+			//далее тег и титульник, цвета нет
+			var alias = node.attributes["title"];
+			if (alias && alias.value) {
+				blockLevelSdt.SetAlias(alias.value);
+			}
+			var tag = node.attributes["sdttag"];
+			if (tag && tag.value) {
+				blockLevelSdt.SetTag(tag.value);
+			}
+			var temporary = node.attributes["temporary"];
+			if (temporary && temporary.value) {
+				blockLevelSdt.SetContentControlTemporary(temporary.value === "t");
+			}
+
+			var placeHolder = node.attributes["showingplchdr"];
+			if (placeHolder && placeHolder.value === "t") {
+				blockLevelSdt.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
+			}
+
+			//TODO поддержать Picture CC
+			/*var aspicture = node.attributes["displayaspicture"];
+			if (aspicture) {
+				blockLevelSdt.SetPicturePr(aspicture.value === "t");
+			}*/
+
+
+			var getCharCode = function (text) {
+				var charCode;
+				for (var oIterator = text.getUnicodeIterator(); oIterator.check(); oIterator.next()) {
+					charCode = oIterator.value();
+				}
+				return charCode;
+			}
+
+			var setListItems = function (addFunc) {
+				for (var i = 0, length = node.childNodes.length; i < length; i++) {
+					var child = node.childNodes[i];
+					if (child && "w:listitem" === child.nodeName.toLowerCase()) {
+						if (child.attributes) {
+							var listvalue = child.attributes["listvalue"] && child.attributes["listvalue"].value;
+							var datavalue = child.attributes["datavalue"] && child.attributes["datavalue"].value;
+							if (datavalue) {
+								addFunc(datavalue, listvalue ? listvalue : undefined);
+							}
+						}
+					}
+				}
+			};
+
+			var oPr;
+			var checkBox = node.attributes["checkbox"];
+			if (checkBox && checkBox.value === "t") {
+				oPr = new CSdtCheckBoxPr();
+				var checked = node.attributes["checkboxischecked"];
+				if (checked) {
+					oPr.Checked = checked.value === "t";
+				}
+				var checkedFont = node.attributes["checkboxfontchecked"];
+				if (checkedFont) {
+					oPr.CheckedFont = checkedFont.value;
+				}
+				var checkedSymbol = node.attributes["checkboxvaluechecked"];
+				if (checkedSymbol) {
+					oPr.CheckedSymbol = getCharCode(checkedSymbol.value);
+				}
+				var uncheckedFont = node.attributes["checkboxfontunchecked"];
+				if (uncheckedFont) {
+					oPr.UncheckedFont = uncheckedFont.value;
+				}
+				var uncheckedSymbol = node.attributes["checkboxvalueunchecked"];
+				if (checkedSymbol) {
+					oPr.UncheckedSymbol = getCharCode(uncheckedSymbol.value);
+				}
+
+				blockLevelSdt.ApplyCheckBoxPr(oPr);
+			}
+
+			var id = node.attributes["id"];
+			if (id) {
+				blockLevelSdt.Pr.Id = id;
+			}
+
+			var comboBox = node.attributes["combobox"];
+			if (comboBox && comboBox.value === "t") {
+				oPr = new CSdtComboBoxPr();
+			}
+
+			var dropdown = node.attributes["dropdown"];
+			if (dropdown && dropdown.value === "t") {
+				oPr = new CSdtComboBoxPr();
+			}
+
+			if (comboBox || dropdown) {
+				//TODO по грамотному нужно пропарсить всё содержимое и отдать все свойства
+				//пока только для listitem делаю
+				setListItems(function (sDisplay, sValue) {
+					oPr.AddItem(sDisplay, sValue);
+				});
+				blockLevelSdt.ApplyComboBoxPr(oPr);
+			}
+		}
+
+		//content
+		if (!checkBox && !comboBox && !dropdown) {
+			var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
+			oPasteProcessor.msoComments = this.msoComments;
+			oPasteProcessor.oFonts = this.oFonts;
+			oPasteProcessor.oImages = this.oImages;
+			oPasteProcessor.oDocument = blockLevelSdt.Content;
+			oPasteProcessor.bIgnoreNoBlockText = true;
+			oPasteProcessor.aMsoHeadStylesStr = this.aMsoHeadStylesStr;
+			oPasteProcessor.oMsoHeadStylesListMap = this.oMsoHeadStylesListMap;
+			oPasteProcessor.msoListMap = this.msoListMap;
+			oPasteProcessor._Execute(node, pPr, true, true, false);
+			oPasteProcessor._PrepareContent();
+			oPasteProcessor._AddNextPrevToContent(blockLevelSdt.Content);
+
+			//добавляем новый параграфы
+			for (var i = 0, length = oPasteProcessor.aContent.length; i < length; ++i) {
+				if (i === length - 1) {
+					blockLevelSdt.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], true);
+				} else {
+					blockLevelSdt.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], false);
+				}
+			}
+
+			blockLevelSdt.Content.Internal_Content_Remove(0, 1);
 		}
 
 		this.aContent.push(blockLevelSdt);
@@ -8533,6 +8652,7 @@ PasteProcessor.prototype =
 			Shd = new CDocumentShd();
 			Shd.Value = c_oAscShdClear;
 			Shd.Color = background_color;
+			Shd.Fill = background_color;
 		}
 
 		for (var i = 0, length = node.childNodes.length; i < length; ++i) {

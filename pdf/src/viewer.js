@@ -1134,7 +1134,9 @@
 		this.Copy = function(_text_format)
 		{
 			var ret = "<div>";
-			_text_format.Text = "";
+			if (_text_format && _text_format.Text)
+				_text_format.Text = "";
+
 			ret += "</div>";
 			return ret;
 		};

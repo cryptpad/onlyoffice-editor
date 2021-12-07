@@ -2101,6 +2101,8 @@
 		this.addingWorksheet = null;
 
 		this.workbookProtection = null;
+
+		this.customXmls = null;//[]
 	}
 	Workbook.prototype.init=function(tableCustomFunc, tableIds, sheetIds, bNoBuildDep, bSnapshot){
 		if(this.nActive < 0)
@@ -4318,6 +4320,18 @@
 
 		if(wsFrom.headerFooter) {
 			this.headerFooter = wsFrom.headerFooter.clone(this);
+		}
+
+		if(wsFrom.sheetProtection) {
+			this.sheetProtection = wsFrom.sheetProtection.clone(this);
+		}
+		if(wsFrom.aProtectedRanges) {
+			for (i = 0; i < wsFrom.aProtectedRanges.length; i++) {
+				if (!this.aProtectedRanges) {
+					this.aProtectedRanges = [];
+				}
+				this.aProtectedRanges.push(wsFrom.aProtectedRanges[i].clone(this));
+			}
 		}
 
 		return renameParams;
@@ -7252,6 +7266,7 @@
 	};
 	Worksheet.prototype.moveSparklineGroup = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom) {
 		var t = this;
+		var isMove = !wsFrom;
 		if (!wsTo) {
 			wsTo = this;
 		}
@@ -7296,14 +7311,72 @@
 
 						//необходимо ещё сдвинуть _f
 						if (_elem && _elem._f && cloneElem._f) {
-							cloneElem._f.setOffset(offset);
-							if (wsTo.sName !== cloneElem._f.sheet) {
-								cloneElem._f.setSheet(wsTo.sName);
+							if (wsTo === wsFrom) {
+								if (cloneElem._f.intersection(oBBoxFrom)) {
+									var _isChangeF = false;
+									var isContainsFormula = oBBoxFrom.containsRange(cloneElem._f);
+									if (isContainsFormula) {
+										cloneElem._f.setOffset(offset);
+										_isChangeF = true;
+									} else {
+
+										//при перемещении есть такой нюанс - если перемещаем последнюю ячейку формулы вниз(вверх аналогично для первой строки) + не затрагиваем весь диапазон формулы
+										//то формулу растягиваем до перемещаемой ячейки
+
+										var bColF = cloneElem._f.c1 === cloneElem._f.c2;
+										if (bColF) {
+											if (oBBoxFrom.contains(cloneElem._f.c1, cloneElem._f.r2) && !offset.col) {
+												cloneElem._f.setOffsetLast(offset);
+												_isChangeF = true;
+											} else if (oBBoxFrom.contains(cloneElem._f.c1, cloneElem._f.r1)&& !offset.col) {
+												cloneElem._f.setOffsetFirst(offset);
+												_isChangeF = true;
+											}
+										} else {
+											if (oBBoxFrom.contains(cloneElem._f.c2, cloneElem._f.r1) && !offset.row) {
+												cloneElem._f.setOffsetLast(offset);
+												_isChangeF = true;
+											} else if (oBBoxFrom.contains(cloneElem._f.c1, cloneElem._f.r1)&& !offset.row) {
+												cloneElem._f.setOffsetFirst(offset);
+												_isChangeF = true;
+											}
+										}
+									}
+
+									if (_isChangeF) {
+										if (wsTo.sName !== cloneElem._f.sheet) {
+											cloneElem._f.setSheet(wsTo.sName);
+										}
+										AscCommonExcel.executeInR1C1Mode(false, function () {
+											cloneElem.f = cloneElem._f.getName();
+										});
+										isChange = true;
+									}
+								}
+							} else {
+								if (isMove) {
+									//если реальный перенос внутри книги, а не копирование/вставка
+									if (oBBoxFrom.containsRange(cloneElem._f)) {
+										cloneElem._f.setOffset(offset);
+										if (wsTo.sName !== cloneElem._f.sheet) {
+											cloneElem._f.setSheet(wsTo.sName);
+										}
+										AscCommonExcel.executeInR1C1Mode(false, function () {
+											cloneElem.f = cloneElem._f.getName();
+										});
+										isChange = true;
+									}
+								} else {
+									cloneElem._f.setOffset(offset);
+									if (wsTo.sName !== cloneElem._f.sheet) {
+										cloneElem._f.setSheet(wsTo.sName);
+									}
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+										cloneElem.f = cloneElem._f.getName();
+									});
+									isChange = true;
+								}
 							}
-							AscCommonExcel.executeInR1C1Mode(false, function () {
-								cloneElem.f = cloneElem._f.getName();
-							});
-							isChange = true;
 						}
 
 						if (!moveOnNewSheet) {
@@ -7719,6 +7792,9 @@
 				} else if (Asc.c_oAscItemType.Blank === item.t) {
 					break;
 				} else {
+					if (rowFieldsOffset) {
+						outline = outlines[r + j];
+					}
 					oCellValue = new AscCommonExcel.CCellValue();
 					oCellValue.type = AscCommon.CellValueType.String;
 					if (r + j > valuesIndex) {
@@ -9959,15 +10035,23 @@
 			return null;
 		}
 
+		//todo закрепленные области
 		var newVal;
 		if (range.c1 === 0 && range.r1 === 0) {
 			newVal = null;
 		} else {
-			newVal = new Asc.Range(0, 0, 0, 0);
-			newVal.c1 = range.c1;
-			newVal.r1 = range.r1;
-			newVal.c2 = range.c1;
-			newVal.r2 = range.r1;
+			var topLeftFrozenCell = this.sheetViews[0] && this.sheetViews[0].pane && this.sheetViews[0].pane.topLeftFrozenCell;
+			if (topLeftFrozenCell && topLeftFrozenCell.col > 1 && topLeftFrozenCell.row > 1) {
+				newVal = null;
+			} else {
+				newVal = new Asc.Range(0, 0, 0, 0);
+				if (!topLeftFrozenCell || topLeftFrozenCell.col <= 1) {
+					newVal.c1 = newVal.c2 = range.c1;
+				}
+				if (!topLeftFrozenCell || topLeftFrozenCell.row <= 1) {
+					newVal.r1 = newVal.r2 = range.r1;
+				}
+			}
 		}
 
 		return newVal;
@@ -9979,12 +10063,12 @@
 			return;
 		}
 		
-		if (val !== view.topLeftCell || (val && view.topLeftCell && !val.isEqual(view.topLeftCell))) {
+		if ((!val && view.topLeftCell) || (val && !view.topLeftCell) || (val && view.topLeftCell && !val.isEqual(view.topLeftCell))) {
 			var oldValue = view.topLeftCell ? view.topLeftCell.clone() : null;
 			view.topLeftCell = val;
 			if (addToHistory) {
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetTopLeftCell,
-					this.getId(), null, new UndoRedoData_FromTo(new UndoRedoData_BBox(oldValue), new UndoRedoData_BBox(val)));
+					this.getId(), null, new UndoRedoData_FromTo(oldValue ? new UndoRedoData_BBox(oldValue) : oldValue, val ? new UndoRedoData_BBox(val) : val));
 			}
 		}
 	};
@@ -10153,8 +10237,12 @@
 	Worksheet.prototype.setProtectedSheet = function (props, addToHistory) {
 		if (!this.sheetProtection) {
 			this.sheetProtection = new window["Asc"].CSheetProtection();
+			this.sheetProtection.setDefaultInterface();
 		}
 		this.sheetProtection.set(props, addToHistory, this);
+		if (this.sheetProtection.isDefault()) {
+			this.sheetProtection = null;
+		}
 		return true;
 	};
 
@@ -10277,21 +10365,46 @@
 		return res.length ? res : null;
 	};
 
-	Worksheet.prototype.checkProtectedRangesPassword = function (val, data) {
-		var res = false;
+	Worksheet.prototype.checkProtectedRangesPassword = function (val, data, callback) {
+		//здесь првоеряем в тч при попытке ввода в ячейку
+		var t = this;
 		if (this.aProtectedRanges && this.aProtectedRanges.length) {
+			var aCheckHash = [];
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
-				if (this.aProtectedRanges[i].asc_isPassword() && this.aProtectedRanges[i].contains(data.c1, data.r1) && this.aProtectedRanges[i].asc_checkPassword(val)) {
-					res = true;
-					break;
+				if (!this.aProtectedRanges[i].asc_isPassword() || this.aProtectedRanges[i]._isEnterPassword) {
+					callback && callback(true);
+					return;
+				} else if (this.aProtectedRanges[i].asc_isPassword() && this.aProtectedRanges[i].contains(data.col, data.row)) {
+					aCheckHash.push({
+						password: val,
+						salt: this.aProtectedRanges[i].saltValue,
+						spinCount: this.aProtectedRanges[i].spinCount,
+						alg: AscCommonExcel.fromModelAlgoritmName(this.aProtectedRanges[i].algorithmName)
+					});
 				}
 			}
+			if (aCheckHash && aCheckHash.length) {
+				AscCommon.calculateProtectHash(aCheckHash, function (aHash) {
+					for (var i = 0; i < aHash.length; i++) {
+						if (aHash[i] === t.aProtectedRanges[i].hashValue) {
+							t.aProtectedRanges[i]._isEnterPassword = true;
+							callback && callback(true);
+							return;
+						}
+					}
+					callback && callback(false);
+				});
+			} else {
+				callback && callback(true);
+			}
+		} else {
+			callback && callback(true);
 		}
-		return res;
 	};
 
 	Worksheet.prototype.checkProtectedRangeName = function (name) {
 		var res = c_oAscDefinedNameReason.OK;
+		//TODO пересмотреть проверку на rx_defName
 		if (!AscCommon.rx_defName.test(name.toLowerCase()) || name.length > g_nDefNameMaxLength) {
 			return c_oAscDefinedNameReason.WrongName;
 		}
@@ -10313,8 +10426,42 @@
 	};
 
 	Worksheet.prototype.isLockedRange = function (range) {
+		var rangeType = range.getType();
+		var oRange = this.getRange3(range.r1, range.c1, range.r2, range.c2);
 		var res = true;
-		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach2(function(cell){
+		var unLockedRowIndex = range.r1 - 1;
+		oRange._foreachRowNoEmpty(function(row){
+			if(null != row && row.xfs && false === row.xfs.getLocked()) {
+				if (unLockedRowIndex + 1 === row.index) {
+					unLockedRowIndex++;
+				}
+			}
+		});
+		if (unLockedRowIndex === range.r2) {
+			//если все строки разлочены, далее можно не проверять
+			return false;
+		} else if (rangeType === Asc.c_oAscSelectionType.RangeMax || rangeType === Asc.c_oAscSelectionType.RangeRow) {
+			//если выделены все строки, но среди них не все разлочены - далее не проверяем и возвращаем true
+			return true;
+		}
+
+		var unLockedColndex = range.c1 - 1;
+		oRange._foreachColNoEmpty(function(col){
+			if(null != col && col.xfs && false === col.xfs.getLocked()) {
+				if (unLockedColndex + 1 === col.index) {
+					unLockedColndex++;
+				}
+			}
+		});
+		if (unLockedColndex === range.c2) {
+			//если все столбцы разлочены, далее можно не проверять
+			return false;
+		} else if (rangeType === Asc.c_oAscSelectionType.RangeMax || rangeType === Asc.c_oAscSelectionType.RangeCol) {
+			//если выделены все столбцы, но среди них не все разлочены - далее не проверяем и возвращаем true
+			return true;
+		}
+
+		oRange._foreach2(function(cell){
 			if (!cell) {
 				res = true;
 				return true;
@@ -10471,6 +10618,9 @@
 		var t = this;
 		if (!wsTo) {
 			wsTo = this;
+		}
+		if (wsTo.getSheetProtection()) {
+			return;
 		}
 		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
 			//чистим ту область, куда переносим
@@ -11464,7 +11614,7 @@
 		// if (CellValueType.Error == this.getType()) {
 		// 	return this._getValueTypeError(textValueForEdit);
 		// }
-		if (this.isFormula() && this.ws && this.ws.getSheetProtection() && this.xfs && this.xfs.getHidden()) {
+		if (this.ws && this.ws.getSheetProtection() && this.xfs && this.xfs.getHidden()) {
 			return "";
 		}
 
@@ -14450,6 +14600,32 @@
 			}
 		});
 		return fill;
+	};
+	Range.prototype.getLocked = function () {
+		var t = this;
+		var nRow = this.bbox.r1;
+		var nCol = this.bbox.c1;
+		var isLocked = true;
+		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
+			var xfs = cell ? cell.getCompiledStyle() : t.worksheet.getCompiledStyle(nRow, nCol);
+			if (xfs) {
+				isLocked = xfs.getLocked();
+			}
+		});
+		return isLocked;
+	};
+	Range.prototype.getHidden = function () {
+		var t = this;
+		var nRow = this.bbox.r1;
+		var nCol = this.bbox.c1;
+		var isHidden = false;
+		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
+			var xfs = cell ? cell.getCompiledStyle() : t.worksheet.getCompiledStyle(nRow, nCol);
+			if (xfs) {
+				isHidden = xfs.getHidden();
+			}
+		});
+		return isHidden;
 	};
 	Range.prototype.getBorderSrc = function (opt_row, opt_col) {
 		//Возвращает как записано в файле, не проверяя бордеры соседних ячеек

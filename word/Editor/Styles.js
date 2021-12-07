@@ -9875,6 +9875,20 @@ CDocumentColor.prototype.IsAuto = function()
 {
 	return this.Auto;
 };
+CDocumentColor.prototype.IsEqualRGB = function(oColor)
+{
+	return (oColor && this.r === oColor.r && this.g === oColor.g && this.b === oColor.b);
+};
+CDocumentColor.prototype.SetFromColor = function(oColor)
+{
+	if (!oColor)
+		return;
+
+	this.r    = undefined !== oColor.r ? oColor.r : 0;
+	this.g    = undefined !== oColor.g ? oColor.g : 0;
+	this.b    = undefined !== oColor.b ? oColor.b : 0;
+	this.Auto = undefined !== oColor.Auto ? oColor.Auto : false;
+};
 
 
 function CDocumentShd()
@@ -15797,6 +15811,21 @@ CFramePr.prototype.Merge = function(oFramePr)
 
 		this.YAlign = oFramePr.YAlign;
 	}
+};
+/**
+ * Является ли рамка инлайновой
+ * @returns {boolean}
+ */
+CFramePr.prototype.IsInline = function()
+{
+	return ((undefined === this.XAlign || c_oAscXAlign.Left === this.XAlign)
+		&& (undefined === this.YAlign || Asc.c_oAscYAlign.Inline === this.YAlign)
+		&& (undefined === this.HAnchor || Asc.c_oAscHAnchor.Margin === this.HAnchor)
+		&& (undefined === this.VAnchor || Asc.c_oAscVAnchor.Margin === this.VAnchor)
+		&& (undefined === this.X || 0 === AscCommon.MMToTwips(this.X))
+		&& (undefined === this.Y || 0 === AscCommon.MMToTwips(this.Y))
+		&& (undefined === this.W || 0 === AscCommon.MMToTwips(this.W))
+		&& (undefined === this.W || 0 === AscCommon.MMToTwips(this.W)));
 };
 
 function CCalculatedFrame(FramePr, L, T, W, H, L2, T2, W2, H2, PageIndex, Index, FlowCount)

@@ -36,10 +36,6 @@
 
 var prot;
 // Import
-var g_memory = AscFonts.g_memory;
-var DecodeBase64Char = AscFonts.DecodeBase64Char;
-var b64_decode = AscFonts.b64_decode;
-
 var g_nodeAttributeEnd = AscCommon.g_nodeAttributeEnd;
 
 var c_oAscShdClear = Asc.c_oAscShdClear;
@@ -305,74 +301,8 @@ function BinaryPPTYLoader()
 			var dstLen_str = read_main_prop;
 
 			var dstLen = parseInt(dstLen_str);
-
-			var pointer = g_memory.Alloc(dstLen);
-			this.stream = new AscCommon.FileStream(pointer.data, dstLen);
-			this.stream.obj = pointer.obj;
-
-			var dstPx = this.stream.data;
-
-			if (window.chrome)
-			{
-				while (index < srcLen)
-				{
-					var dwCurr = 0;
-					var i;
-					var nBits = 0;
-					for (i=0; i<4; i++)
-					{
-						if (index >= srcLen)
-							break;
-						var nCh = DecodeBase64Char(isBase64 ? base64_ppty.charCodeAt(index++) : base64_ppty[index++]);
-						if (nCh == -1)
-						{
-							i--;
-							continue;
-						}
-						dwCurr <<= 6;
-						dwCurr |= nCh;
-						nBits += 6;
-					}
-
-					dwCurr <<= 24-nBits;
-					for (i=0; i<nBits/8; i++)
-					{
-						dstPx[nWritten++] = ((dwCurr & 0x00ff0000) >>> 16);
-						dwCurr <<= 8;
-					}
-				}
-			}
-			else
-			{
-				var p = b64_decode;
-				while (index < srcLen)
-				{
-					var dwCurr = 0;
-					var i;
-					var nBits = 0;
-					for (i=0; i<4; i++)
-					{
-						if (index >= srcLen)
-							break;
-						var nCh = p[isBase64 ? base64_ppty.charCodeAt(index++) : base64_ppty[index++]];
-						if (nCh == undefined)
-						{
-							i--;
-							continue;
-						}
-						dwCurr <<= 6;
-						dwCurr |= nCh;
-						nBits += 6;
-					}
-
-					dwCurr <<= 24-nBits;
-					for (i=0; i<nBits/8; i++)
-					{
-						dstPx[nWritten++] = ((dwCurr & 0x00ff0000) >>> 16);
-						dwCurr <<= 8;
-					}
-				}
-			}
+			var memoryData = AscCommon.Base64.decode(base64_ppty, false, dstLen, index);
+			this.stream = new AscCommon.FileStream(memoryData, memoryData.length);
 		} else {
 			this.stream = new AscCommon.FileStream();
 			this.stream.obj    = null;
@@ -12549,7 +12479,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                                 case 1:
                                 {
                                     sp = this.ReadShape();
-                                    if(sp.spPr && sp.spPr.xfrm){
+                                    if(!IsHiddenObj(sp) && sp.spPr && sp.spPr.xfrm){
                                         sp.setGroup(shape);
                                         shape.addToSpTree(shape.spTree.length, sp);
                                     }
@@ -12561,7 +12491,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                                 case 8:
                                 {
                                     sp = this.ReadPic(_type);
-                                    if(sp.spPr && sp.spPr.xfrm){
+                                    if(!IsHiddenObj(sp) && sp.spPr && sp.spPr.xfrm){
                                         sp.setGroup(shape);
                                         shape.addToSpTree(shape.spTree.length, sp);
                                     }
@@ -12570,7 +12500,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                                 case 3:
                                 {
                                     sp = this.ReadCxn();
-                                    if(sp.spPr && sp.spPr.xfrm) {
+                                    if(!IsHiddenObj(sp) && sp.spPr && sp.spPr.xfrm) {
                                         sp.setGroup(shape);
                                         shape.addToSpTree(shape.spTree.length, sp);
                                     }
@@ -12579,7 +12509,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                                 case 4:
                                 {
                                     sp = this.ReadGroupShape();
-                                    if(sp && sp.spPr && sp.spPr.xfrm && sp.spTree.length > 0) {
+                                    if(sp && !IsHiddenObj(sp) && sp.spPr && sp.spPr.xfrm && sp.spTree.length > 0 ) {
                                         sp.setGroup(shape);
                                         shape.addToSpTree(shape.spTree.length, sp);
                                     }

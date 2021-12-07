@@ -794,8 +794,8 @@ Paragraph.prototype.private_RecalculatePageXY          = function(CurLine, CurPa
     //       сразу с рамки. Надо бы не разбивать в данной ситуации рамку на страницы, а просто новую страницу начать
     //       с нее на уровне DocumentContent.
 
-    var XStart, YStart, XLimit, YLimit;
-    if ( 0 === CurPage || ( undefined != this.Get_FramePr() && this.LogicDocument === this.Parent ) )
+    var XStart, YStart, XLimit, YLimit, oFramePr;
+	if (0 === CurPage || ((oFramePr = this.Get_FramePr()) && !oFramePr.IsInline() && this.LogicDocument === this.Parent))
     {
         XStart = this.X;
         YStart = this.Y;
@@ -1306,7 +1306,24 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
     var BaseLineOffset = 0;
     if (CurLine === this.Pages[CurPage].FirstLine)
     {
-        BaseLineOffset = this.Lines[CurLine].Metrics.Ascent;
+    	var oForm = null;
+    	if (this.IsInFixedForm() && (oForm = this.GetInnerForm()) && oForm.IsMultiLineForm() && oForm.IsTextForm())
+		{
+			var oRun = oForm.GetElement(0);
+			if (oRun && oRun instanceof ParaRun)
+			{
+				// Адобовский вариант отступа первой строки для многострочных форм
+				var oTextPr = oRun.Get_CompiledTextPr(false);
+				g_oTextMeasurer.SetTextPr(oTextPr, this.GetTheme());
+				var oLimits = g_oTextMeasurer.GetLimitsY();
+				var nBBoxH  = oLimits.max - oLimits.min + 2 * 25.4 / 72;
+
+				if (this.Lines[CurLine].Metrics.Ascent < nBBoxH)
+					this.Lines[CurLine].Metrics.Ascent = nBBoxH;
+			}
+		}
+
+    	BaseLineOffset = this.Lines[CurLine].Metrics.Ascent;
 
         if (this.Check_FirstPage(CurPage, true))
 		{

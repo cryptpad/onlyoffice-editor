@@ -3031,7 +3031,7 @@ CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, Colu
 
 	var _X      = this.X;
 	var _XLimit = this.XLimit;
-	if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
+	if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline() && this.Parent && this.Parent.CheckRange)
 	{
 		var arrRanges = this.Parent.CheckRange(_X, this.Y, _XLimit, this.Y + 0.001, this.Y, this.Y + 0.001, _X, _XLimit, this.private_GetRelativePageIndex(0));
 		if (arrRanges.length > 0)
@@ -19057,9 +19057,10 @@ CTable.prototype.GetMaxTableGridWidth = function()
 {
 	this.private_RecalculateGrid();
 
+	var nIndent = this.Get_CompiledPr(false).TablePr.TableInd;
 	return {
-		GapLeft   : -this.GetTableOffsetCorrection(),
-		GapRight  : this.GetRightTableOffsetCorrection(),
+		GapLeft   : -this.GetTableOffsetCorrection() - nIndent,
+		GapRight  : this.GetRightTableOffsetCorrection() + nIndent,
 		GridWidth : this.TableSumGrid[this.TableSumGrid.length - 1] + this.GetTableOffsetCorrection() - this.GetRightTableOffsetCorrection()
 	};
 };

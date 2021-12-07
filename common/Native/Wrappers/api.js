@@ -2162,10 +2162,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
         case 202: // ASC_MENU_EVENT_TYPE_DOCUMENT_PDFBASE64
+        case 203: // ASC_MENU_EVENT_TYPE_DOCUMENT_PDFBASE64_PRINT
         {
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
-            _stream["WriteStringA"](this.WordControl.m_oDrawingDocument.ToRenderer());
+            _stream["WriteStringA"](this.WordControl.m_oDrawingDocument.ToRenderer(203 === type));
             _return = _stream;
             break;
         }
@@ -6462,8 +6463,8 @@ function onApiShowRevisionsChange(data) {
                         changes.push("|Change tabs|");
                     if (value.Get_NumPr() !== undefined)
                         changes.push("|Change numbering|");
-                    if (value.Get_PStyle() !== undefined) {
-                        var style = me.api.asc_GetStyleNameById(value.Get_PStyle());
+                    if (value.GetPStyle() !== undefined) {
+                        var style = me.api.asc_GetStyleNameById(value.GetPStyle());
                         if (!_.isEmpty(style)) {
                             changes.push(style)
                         }
@@ -6734,12 +6735,9 @@ function getHexColor(r, g, b) {
 
 function onFocusObject(SelectedObjects) {
     var settings = [];
-    var isChart = false;
-    var control_props = _api.asc_IsContentControl() ? _api.asc_GetContentControlProperties() : null,
-        control_lock = false;
+    var control_props = _api.asc_IsContentControl() ? _api.asc_GetContentControlProperties() : null;
 
-    for (i = 0; i < SelectedObjects.length; i++) {
-        var content_locked = false;
+    for (var i = 0; i < SelectedObjects.length; i++) {
         var eltype = SelectedObjects[i].get_ObjectType();
         var value = SelectedObjects[i].get_ObjectValue();
         
