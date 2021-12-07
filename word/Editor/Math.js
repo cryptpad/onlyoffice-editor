@@ -1163,6 +1163,7 @@ ParaMath.prototype.Get_CompiledTextPr = function(Copy)
 
 ParaMath.prototype.Add = function(Item)
 {
+    console.log('Add')
     var LogicDocument  = (this.Paragraph ? this.Paragraph.LogicDocument : undefined);
     var TrackRevisions = (LogicDocument && true === LogicDocument.IsTrackRevisions() ? true : false);
 
@@ -3513,12 +3514,21 @@ ParaMath.prototype.ConvertToLaTeX = function()
 {
     var Conveter = new ToLaTex(this.Root);
 
-	//console.log(this.Root)
+	// console.log(this.Root)
 	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
 
-	console.log(Conveter.objTempData)
+	// console.log(Conveter.objTempData)
 	Conveter.Convert(Conveter.objTempData);
 	console.log('LaTex string:', Conveter.objString.arr.join(''));
+
+    var strin = this.GetText();
+    console.log('Unicode string:', strin);
+
+    this.Root.Remove_Content(0, this.Root.Content.length);
+    this.Root.Correct_Content(true);
+    
+    var Unicode = new CUnicodeParser(strin, this);
+    Unicode.Start();
 };
 
 function MatGetKoeffArgSize(FontSize, ArgSize)

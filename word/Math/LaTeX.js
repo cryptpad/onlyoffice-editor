@@ -38,6 +38,10 @@ var LINEAR_FRACTION				= 2;
 var NO_BAR_FRACTION				= 3;
 var LITLE_DEFAULT				= 4;
 
+var DEGREE_SUPERSCRIPT      	=  1;
+var DEGREE_SUBSCRIPT        	= -1;
+var DEGREE_SubSup           	=  1;
+
 function CLaTeXParser(props, str) {
 	this.str = str;
 	this.indexOfAtom = 0;
@@ -3027,6 +3031,8 @@ function CUnicodeParser(str, props) {
 	this.IndexOfArray = 0;
 	this.Root = props.Root;
 	this.ParaMath = props;
+	this.Pr = { ctrPrp: new CTextPr() };
+	this.Paragraph = props.Paragraph;
 };
 CUnicodeParser.prototype.parser = function() {
 	var strTempWord = "";
@@ -3086,6 +3092,7 @@ CUnicodeParser.prototype.Start = function() {
 	this.parser();
 	console.log(this.ArrayOfAtoms);
 	CUnicodeLexer(this, this.Root);
+	this.Root.Correct_Content(true);
 };
 CUnicodeParser.prototype.BracetSyntaxChecker = function(index) {
 	var Obj = {
@@ -3142,25 +3149,82 @@ CUnicodeParser.prototype.CheckAfterBracet = function(Obj) {
 	}
 };
 CUnicodeParser.prototype.AddScript = function(strAtom, FormArgument) {
+	var type = this.GetTypeOfScript();
+	var Script = this.CreateScript(FormArgument, type);
+	this.FillScriptBase(Script, strAtom, type);
+};
+CUnicodeParser.prototype.GetTypeOfANDScript = function(type) {
+	if (type[0] == '^' && type[2] == '_') {
+		return 'SUP_SUB'
+	}
+	else if (type[0] == '_' && type[2] == '^') {
+		return 'SUB_SUP'
+	}
+};
+CUnicodeParser.prototype.GetTypeOfOrScript = function(type) {
+	if (type[0] == '^') {
+		return 'DEGREE_SUPERSCRIPT'
+	}
+	else if (type[0] == '_') {
+		return 'DEGREE_SUBSCRIPT'
+	}
+};
+CUnicodeParser.prototype.GetTypeOfScript = function() {
 	var type = this.BracetSyntaxChecker(this.IndexOfArray);
 
-	//if only index OR degree
 	if (type.length == 2) {
-		if (type[0] == '^') {
+		return this.GetTypeOfOrScript(type);
+	}
+	else if (type.length == 4) {
+		return this.GetTypeOfANDScript(type);
+	}
+};
+CUnicodeParser.prototype.CreateScript = function(FormArgument, type) {
+	var isBothDegreeAndIndex = false;
 
-		}
-		else if (type[0] == '_') {
-
-		}
-	//if degre AND INDEX
-	} else if (type.length == 4) {
-		
+	if (type == 'DEGREE_SUPERSCRIPT') {
+		this.Pr.type = DEGREE_SUPERSCRIPT;
 	}
 
-
+	else if (type == 'DEGREE_SUBSCRIPT') {
+		this.Pr.type = DEGREE_SUBSCRIPT;
+	}
 	
-	
+	else if (type == 'SUB_SUP' || type == 'SUP_SUB') {
+		isBothDegreeAndIndex = true;
+		this.Pr.type = DEGREE_SubSup;
+	}
 
+	var Script = FormArgument.Add_Script(isBothDegreeAndIndex, this.Pr, null, null, null);
+	return Script;
+};
+CUnicodeParser.prototype.FillScriptBase = function(Script, name, typeOfScript) {
+	Script.getBase().Add_Text(name, this.Paragraph);
+	this.FillScriptContent(Script, typeOfScript);
+};
+CUnicodeParser.prototype.FillScriptContent = function(Script, typeOfScript) {
+	if (typeOfScript == 'DEGREE_SUPERSCRIPT') {
+		this.FillScriptContentWriteSub(Script);
+	}
+	else if (typeOfScript == 'DEGREE_SUBSCRIPT') {
+		this.FillScriptContentWriteSup(Script);
+	}
+	else if (typeOfScript == 'SUB_SUP') {
+		this.FillScriptContentWriteSub(Script);
+		this.FillScriptContentWriteSup(Script);
+	}
+	else if (typeOfScript == 'SUP_SUB') {
+		this.FillScriptContentWriteSup(Script);
+		this.FillScriptContentWriteSub(Script);
+	}
+};
+CUnicodeParser.prototype.FillScriptContentWriteSup = function(Script) {
+	var Iterator = Script.getUpperIterator();
+	this.StartUnicodeLexer(Iterator);
+};
+CUnicodeParser.prototype.FillScriptContentWriteSub = function(Script) {
+	var Iterator = Script.getLowerIterator();
+	this.StartUnicodeLexer(Iterator);
 };
 CUnicodeParser.prototype.StartUnicodeLexer = function(Context, arrSymbol) {
 	var strAtom = this.CheckUnicodeFutureAtom();
@@ -3193,7 +3257,12 @@ CUnicodeParser.prototype.StartUnicodeLexer = function(Context, arrSymbol) {
 	}
 };
 function CUnicodeLexer(Parser, FormArgument, exitIfSee) {
+	var countOfPushedAtoms = 0;
 	do {
+		if (typeof exitIfSee == 'number' && countOfPushedAtoms >= exitIfSee) {
+			return
+		}
+
 		var atom = Parser.GetNextUnicode();
 		var future = Parser.CheckUnicodeFutureAtom();
 
@@ -3203,6 +3272,12 @@ function CUnicodeLexer(Parser, FormArgument, exitIfSee) {
 
 		if (future == '^' || future == '_') {
 			Parser.AddScript(atom, FormArgument);
+			countOfPushedAtoms++;
+		}
+
+		else {
+			FormArgument.Add_Text(atom, Parser.Paragraph);
+			countOfPushedAtoms++;
 		}
 		
 	} while (atom != undefined);
