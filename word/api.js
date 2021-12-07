@@ -1068,12 +1068,12 @@
 		if (this.WordControl && this.WordControl.m_oDrawingDocument)
 			this.WordControl.m_oDrawingDocument.StartTableStylesCheck();
 	};
-	asc_docs_api.prototype.sync_EndCatchSelectedElements   = function()
+	asc_docs_api.prototype.sync_EndCatchSelectedElements = function(isExternalTrigger)
 	{
 		if (this.WordControl && this.WordControl.m_oDrawingDocument)
 			this.WordControl.m_oDrawingDocument.EndTableStylesCheck();
 
-		this.sendEvent("asc_onFocusObject", this.SelectedObjectsStack);
+		this.sendEvent("asc_onFocusObject", this.SelectedObjectsStack, !isExternalTrigger);
 	};
 	asc_docs_api.prototype.getSelectedElements             = function(bUpdate)
 	{
@@ -1578,7 +1578,7 @@ background-repeat: no-repeat;\
                         editor.sendEvent("asc_onLockCore", true);
                     }
 					// Теперь обновлять состояние необходимо, чтобы обновить локи в режиме рецензирования.
-					t.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+					t.WordControl.m_oLogicDocument.UpdateInterface(undefined, true);
 				}
 				else
 				{
@@ -1629,7 +1629,7 @@ background-repeat: no-repeat;\
 					Lock.Set_Type(NewType, true);
 
 					// Теперь обновлять состояние необходимо, чтобы обновить локи в режиме рецензирования.
-					t.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+					t.WordControl.m_oLogicDocument.UpdateInterface(undefined, true);
 
 					if (Class instanceof AscCommonWord.CHeaderFooterController)
 					{
@@ -2249,10 +2249,11 @@ background-repeat: no-repeat;\
 		if (!_logicDoc || _logicDoc.IsSelectionEmpty(true))
 			return;
 
-		if (false === _logicDoc.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
+		if (!_logicDoc.IsSelectionLocked(AscCommon.changestype_Remove, null, true, _logicDoc.IsFormFieldEditing()))
 		{
 			_logicDoc.StartAction(AscDFH.historydescription_Cut);
 			_logicDoc.Remove(-1, true, true); // -1 - нормальное удаление  (например, для таблиц)
+			_logicDoc.Recalculate();
 			_logicDoc.UpdateSelection();
 			_logicDoc.FinalizeAction();
 		}

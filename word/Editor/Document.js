@@ -3056,11 +3056,12 @@ CDocument.prototype.UpdateSelection = function(isRemoveEmptySelection)
 /**
  * Сообщаем документу, что потребуется обновить состояние интерфейса
  * @param {?boolean} bSaveCurRevisionChange
+ * @param {boolean} [isExternalTrigger=false] - обновление интерфейса вызвано не действиями данного пользователя (например, совместкой)
  */
-CDocument.prototype.UpdateInterface = function(bSaveCurRevisionChange)
+CDocument.prototype.UpdateInterface = function(bSaveCurRevisionChange, isExternalTrigger)
 {
-	if (undefined !== bSaveCurRevisionChange)
-		this.private_UpdateInterface(bSaveCurRevisionChange);
+	if (undefined !== bSaveCurRevisionChange || true === isExternalTrigger)
+		this.private_UpdateInterface(bSaveCurRevisionChange, isExternalTrigger);
 	else if (this.Action.Start)
 		this.Action.UpdateInterface = true;
 	else
@@ -9257,6 +9258,7 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 	}
 	else if (para_Run === LastClass.Type)
 	{
+		var oForm = null;
 		var oDstPictureCC = LastClass.GetParentPictureContentControl();
 		if (oDstPictureCC)
 		{
@@ -9293,8 +9295,15 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 
 			return;
 		}
-		else if (LastClass.GetParentForm())
+		else if ((oForm = LastClass.GetParentForm()))
 		{
+			if ((!oForm.IsTextForm() || oForm.IsComboBox()))
+				return;
+
+			var sInsertedText = SelectedContent.GetText({ParaEndToSpace : false});
+			if (!sInsertedText || !sInsertedText.length)
+				return;
+
 			var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1];
 
 			var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
@@ -9309,7 +9318,7 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 			LastClass.State.ContentPos = nInLastClassPos;
 
 			var nInRunStartPos = LastClass.State.ContentPos;
-			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), nInLastClassPos);
+			LastClass.AddText(sInsertedText, nInLastClassPos);
 			var nInRunEndPos = LastClass.State.ContentPos;
 
 			var nLastClassLen = LastClass.GetElementsCount();
@@ -12328,7 +12337,7 @@ CDocument.prototype.Document_UpdateInterfaceState = function(bSaveCurRevisionCha
 {
 	this.UpdateInterface(bSaveCurRevisionChange);
 };
-CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange)
+CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange, isExternalTrigger)
 {
 	if (!this.Api.isDocumentLoadComplete || true === AscCommon.g_oIdCounter.m_bLoad || true === AscCommon.g_oIdCounter.m_bRead)
 		return;
@@ -12351,7 +12360,7 @@ CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange)
 	this.TrackRevisionsManager.EndCollectChanges(this);
 
 	// Сообщаем, что список составлен
-	this.Api.sync_EndCatchSelectedElements();
+	this.Api.sync_EndCatchSelectedElements(isExternalTrigger);
 
 	this.Document_UpdateUndoRedoState();
 	this.Document_UpdateCanAddHyperlinkState();
@@ -25277,32 +25286,7 @@ CDocument.prototype.ClearAllSpecialForms = function()
 			if (!oCurrentForm && oForm.Is_UseInDocument())
 				oCurrentForm = oForm;
 
-			if (oForm.IsCheckBox())
-			{
-				oForm.SetCheckBoxChecked(false);
-			}
-			else if (oForm.IsPicture())
-			{
-				var arrDrawings = oForm.GetAllDrawingObjects();
-				if (arrDrawings.length > 0 && arrDrawings[0].IsPicture())
-				{
-					var nW = arrDrawings[0].Extent.W;
-					var nH = arrDrawings[0].Extent.H;
-
-					oForm.ReplaceContentWithPlaceHolder();
-					oForm.ApplyPicturePr(true, nW, nH);
-				}
-				else
-				{
-					oForm.ReplaceContentWithPlaceHolder();
-					oForm.ApplyPicturePr(true);
-				}
-			}
-			else
-			{
-				oForm.ReplaceContentWithPlaceHolder();
-			}
-
+			oForm.ClearContentControlExt();
 			oForm.RemoveSelection();
 		}
 
