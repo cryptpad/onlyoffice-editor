@@ -6009,12 +6009,12 @@
 							function cardinalSplittingIT(num) {
 								var resArr = [];
 								var groups = {};
+								if (num > 0 && num < 1000000) {
 								groups[1000] = Math.floor(num / 1000);
 								num %= 1000;
 								groups[100] = Math.floor(num / 100);
 								num %= 100;
 								groups[1] = num;
-								if (num > 0 && num < 1000000) {
 									if (groups[1000]) {
 										if (groups[1000] >= 100) {
 											resArr = resArr.concat(cardinalSplittingIT(groups[1000]));
