@@ -2667,7 +2667,7 @@
 	 * Delete the object.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {String} shift - Specifies how to shift cells to replace deleted cells ("up", "left")
+	 * @param {?String} shift - Specifies how to shift cells to replace deleted cells ("up", "left")
 	 */
 	ApiRange.prototype.Delete = function(shift) {
 		if (shift && typeof Shift == "string") {
@@ -2688,7 +2688,7 @@
 	 * Inserts a cell or a range of cells into the worksheet or macro sheet and shifts other cells away to make space.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {String} shift - Specifies which way to shift the cells ("right", "down")
+	 * @param {?String} shift - Specifies which way to shift the cells ("right", "down")
 	 */
 	 ApiRange.prototype.Insert = function(shift) {
 		if (shift && typeof Shift == "string") {
@@ -2703,6 +2703,22 @@
 			this.range.addCellsShiftBottom();
 		else
 			this.range.addCellsShiftRight()
+	};
+
+	/**
+	 * Changes the width of the columns in the range or the height of the rows in the range to achieve the best fit.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {?bool} bRows - Defines will we make autofit rows
+	 * @param {?bool} bCols - Defines will we make autofit cols
+	 */
+	ApiRange.prototype.AutoFit = function(bRows, bCols) {
+		var index = this.range.worksheet.getIndex();
+		if (bRows)
+			this.range.worksheet.workbook.oApi.wb.getWorksheet(index).autoFitRowHeight(this.range.bbox.r1, this.range.bbox.r2);
+
+		for (var i = this.range.bbox.c1; i <= this.range.bbox.c2 && bCols; i++)
+			this.range.worksheet.workbook.oApi.wb.getWorksheet(index).autoFitColumnsWidth(i);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -3426,6 +3442,7 @@
 	ApiRange.prototype["SetSort"] = ApiRange.prototype.SetSort;
 	ApiRange.prototype["Delete"] = ApiRange.prototype.Delete;
 	ApiRange.prototype["Insert"] = ApiRange.prototype.Insert;
+	ApiRange.prototype["AutoFit"] = ApiRange.prototype.AutoFit;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;
