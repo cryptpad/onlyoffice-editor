@@ -7385,7 +7385,7 @@
 					case 'en-US':
 					case 'vi-VN':
 					case 'en-GB':
-					case 'en-US': {
+					default: {
 						var alphaBet = {
 							'one': 'first',
 							'two': 'second',
