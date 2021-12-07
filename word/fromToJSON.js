@@ -445,9 +445,18 @@
 			return this.SerGraphicFrame(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.SmartArt)
 			return this.SerSmartArt(oGraphicObj);
+		else if (oGraphicObj instanceof AscFormat.CGroupShape && oGraphicObj.constructor.name === "CGroupShape")
+            return this.SerGroupShape(oGraphicObj);
 			
 		return null;
 	};
+	WriterToJSON.prototype.SerGroupShape = function(oGroupShape)
+    {
+        var oResult  = this.SerDrawing(oGroupShape);
+        oResult.type = "groupShape";
+
+        return oResult;
+    };
 	WriterToJSON.prototype.SerSmartArt = function(oSmartArt)
 	{
 		return {
@@ -11557,10 +11566,30 @@
 			case "smartArt":
 				oGraphicObj = this.SmartArtFromJSON(oParsedObj, oParent);
 				break;
-
+			case "groupShape":
+				oGraphicObj = this.GroupShapeFromJSON(oParsedObj, oParent);
+				break;
 		}
 
 		return oGraphicObj;
+	};
+	ReaderFromJSON.prototype.GroupShapeFromJSON = function(oParsedGrpShp, oParentDrawing)
+	{
+		var oGroupShape = new AscFormat.CGroupShape();
+
+		if (oParentDrawing)
+		{
+			oGroupShape.setParent(oParentDrawing);
+			oParentDrawing.Set_GraphicObject(oGroupShape);
+		}
+
+		for (var nDrawing = 0; nDrawing < oParsedGrpShp.spTree.length; nDrawing++)
+			oGroupShape.addToSpTree(oGroupShape.spTree.length, this.GraphicObjFromJSON(oParsedGrpShp.spTree[nDrawing]));
+
+		oParentDrawing.spPr && oGroupShape.setSpPr(this.SpPrFromJSON(oParentDrawing.spPr, oGroupShape));
+
+		oGroupShape.setBDeleted(false);
+		return oGroupShape;
 	};
 	ReaderFromJSON.prototype.SmartArtFromJSON = function(oParsedArt, oParentDrawing)
 	{
@@ -14793,7 +14822,7 @@
 
 		// adj
 		for (var key in oParsedGeom.adjLst)
-			oGeom.gdLst[key] = oParsedGeom.adjLst[key];
+			oGeom.AddAdj(key, undefined, oParsedGeom.adjLst[key]);
 
 		// Cnx
 		for (var nItem = 0; nItem < oParsedGeom.cnxLst.length; nItem++)
@@ -14813,7 +14842,7 @@
 		for (var nPath = 0; nPath < oParsedGeom.pathLst.length; nPath++)
 			oGeom.AddPath(this.GeomPathFromJSON(oParsedGeom.pathLst[nPath]));
 
-		oGeom.rectS  = oParsedGeom.rect;
+		oGeom.AddRect(oParsedGeom.rect.l, oParsedGeom.rect.t, oParsedGeom.rect.r, oParsedGeom.rect.b);
 		if (oParsedGeom.preset)
 			oGeom.setPreset(oParsedGeom.preset);
 
