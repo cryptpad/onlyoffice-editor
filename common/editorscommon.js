@@ -6740,13 +6740,13 @@
 							'nove': 'nono',
 							'dieci': 'decimo'
 						};
-						var arrWithDigit = ordinalText.arrAnswer;
-						var lastWord = arrWithDigit[arrWithDigit.length - 1];
+						var arrOfDigits = ordinalText.arrAnswer;
+						var lastWord = arrOfDigits[arrOfDigits.length - 1];
 						if (lastWord) {
 							if (alphaBet[lastWord]) {
-								arrWithDigit[arrWithDigit.length - 1] = alphaBet[lastWord];
+								arrOfDigits[arrOfDigits.length - 1] = alphaBet[lastWord];
 							} else {
-								arrWithDigit[arrWithDigit.length - 1] = lastWord.substring(0, lastWord.length - 1) + 'esimo';
+								arrOfDigits[arrOfDigits.length - 1] = lastWord.substring(0, lastWord.length - 1) + 'esimo';
 							}
 						}
 						break;
@@ -6764,14 +6764,14 @@
 							'negen': 'negende',
 							'tien': 'tiende'
 						};
-						var arrWithDigits = ordinalText.arrAnswer;
-						var lastWord = arrWithDigits[arrWithDigits.length - 1];
+						var arrOfDigits = ordinalText.arrAnswer;
+						var lastWord = arrOfDigits[arrOfDigits.length - 1];
 						if (alphaBet[lastWord]) {
-							arrWithDigits[arrWithDigits.length - 1] = alphaBet[lastWord];
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[lastWord];
 						} else if (nValue < 20) {
-							arrWithDigits[arrWithDigits.length - 1] += 'de';
+							arrOfDigits[arrOfDigits.length - 1] += 'de';
 						} else if (nValue < 1000000) {
-							arrWithDigits[arrWithDigits.length - 1] += 'ste';
+							arrOfDigits[arrOfDigits.length - 1] += 'ste';
 						}
 						break;
 					}
@@ -6907,11 +6907,11 @@
 							};
 						}
 
-						var arrWithDigits = ordinalText.arrAnswer;
+						var arrOfDigits = ordinalText.arrAnswer;
 						var newAnswerArr = [];
-						for (var i = 0; i < arrWithDigits.length; i += 1) {
-							if (Array.isArray(arrWithDigits[i])) {
-								var iterArr = arrWithDigits[i];
+						for (var i = 0; i < arrOfDigits.length; i += 1) {
+							if (Array.isArray(arrOfDigits[i])) {
+								var iterArr = arrOfDigits[i];
 								for (var j = 0; j < iterArr.length; j += 1) {
 									if (alphaBet[iterArr[j]]) {
 										newAnswerArr.push(alphaBet[iterArr[j]]);
@@ -6919,8 +6919,8 @@
 								}
 
 							} else {
-								if (alphaBet[arrWithDigits[i]]) {
-									newAnswerArr.push(alphaBet[arrWithDigits[i]]);
+								if (alphaBet[arrOfDigits[i]]) {
+									newAnswerArr.push(alphaBet[arrOfDigits[i]]);
 								}
 							}
 						}
@@ -6939,18 +6939,18 @@
 							'astoņi': 'astotais',
 							'deviņi': 'devītais',
 						};
-						var arrWithDigits = ordinalText.arrAnswer;
+						var arrOfDigits = ordinalText.arrAnswer;
 						if (nValue >= 1000) {
-							for (var i = 0; i < arrWithDigits.length; i += 1) {
-								if (arrWithDigits[i] === 'tūkstotis' || arrWithDigits[i] === 'tūkstoši') {
-									arrWithDigits[i] = 'tūkstoš';
+							for (var i = 0; i < arrOfDigits.length; i += 1) {
+								if (arrOfDigits[i] === 'tūkstotis' || arrOfDigits[i] === 'tūkstoši') {
+									arrOfDigits[i] = 'tūkstoš';
 								}
 							}
 						}
-						if (alphaBet[arrWithDigits[arrWithDigits.length - 1]]) {
-							arrWithDigits[arrWithDigits.length - 1] = alphaBet[arrWithDigits[arrWithDigits.length - 1]];
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
 						} else {
-							arrWithDigits[arrWithDigits.length - 1] += 'ais';
+							arrOfDigits[arrOfDigits.length - 1] += 'ais';
 						}
 						break;
 					}
@@ -7329,13 +7329,13 @@
 							'elva': 'elfte',
 							'tolv': 'tolfte'
 						};
-						var arrWithDigit = ordinalText.arrAnswer;
-						if (alphaBet[arrWithDigit[arrWithDigit.length - 1]]) {
-							arrWithDigit[arrWithDigit.length - 1] = alphaBet[arrWithDigit[arrWithDigit.length - 1]];
+						var arrOfDigits = ordinalText.arrAnswer;
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
 						} else if (nValue % 100 < 20) {
-							arrWithDigit[arrWithDigit.length - 1] += 'de';
+							arrOfDigits[arrOfDigits.length - 1] += 'de';
 						} else if (nValue < 1000000) {
-							arrWithDigit[arrWithDigit.length - 1] += 'nde';
+							arrOfDigits[arrOfDigits.length - 1] += 'nde';
 						}
 						break;
 					}
@@ -7371,9 +7371,9 @@
 							'tisíc': 'tisíci',
 							'sto': 'stý'
 						}
-						var arrWithDigits = ordinalText.arrAnswer;
-						if (alphaBet[arrWithDigits[arrWithDigits.length - 1]]) {
-							arrWithDigits[arrWithDigits.length - 1] = alphaBet[arrWithDigits[arrWithDigits.length - 1]];
+						var arrOfDigits = ordinalText.arrAnswer;
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
 						}
 						break;
 					}
@@ -7400,18 +7400,18 @@
 							'eleven': 'eleventh',
 							'twelve': 'twelfth',
 						};
-						var arrWithDigit = ordinalText.arrAnswer;
-						var changeArray = arrWithDigit;
+						var arrOfDigits = ordinalText.arrAnswer;
+						var changeArray = arrOfDigits;
 						if (Array.isArray(changeArray[changeArray.length - 1])) {
-							arrWithDigit = changeArray[changeArray.length - 1];
+							arrOfDigits = changeArray[changeArray.length - 1];
 						}
-						if (alphaBet[arrWithDigit[arrWithDigit.length - 1]]) {
-							arrWithDigit[arrWithDigit.length - 1] = alphaBet[arrWithDigit[arrWithDigit.length - 1]];
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
 						} else {
 							if (nValue % 10 === 0 && nValue % 100 !== 0) {
-								arrWithDigit[arrWithDigit.length - 1] = arrWithDigit[arrWithDigit.length - 1].slice(0, arrWithDigit[arrWithDigit.length - 1].length - 1) + 'ie';
+								arrOfDigits[arrOfDigits.length - 1] = arrOfDigits[arrOfDigits.length - 1].slice(0, arrOfDigits[arrOfDigits.length - 1].length - 1) + 'ie';
 							}
-							arrWithDigit[arrWithDigit.length - 1] += 'th';
+							arrOfDigits[arrOfDigits.length - 1] += 'th';
 
 						}
 						break;
