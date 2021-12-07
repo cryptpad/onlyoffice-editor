@@ -408,6 +408,8 @@ CChangesRunRemoveItem.prototype.Load = function()
 {
 	var oRun = this.Class;
 
+    if (!oRun.m_oContentChanges) { return; } // XXX CryptPad: Error after checkpoints
+
 	var nLastChangesPos = null;
 	var nChangesCount   = 0;
 	for (var Index = 0, Count = this.PosArray.length; Index < Count; Index++)
