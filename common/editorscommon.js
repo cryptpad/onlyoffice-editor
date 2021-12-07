@@ -7416,17 +7416,6 @@
 						}
 						break;
 					}
-					case 'zh-CN':
-					case 'uk-UA':
-					case 'ja-JP':
-					case 'vi-VN':
-					case 'lv-LV':
-					case 'en-ES':
-					case 'ko-KR':
-					case 'sk-SK':
-					case 'az-Latn-AZ':
-					default:
-						break;
 				}
 				sResult = ordinalText.getConcatStringByRule(ordinalText.arrAnswer).sentenceCase();
 				break;
