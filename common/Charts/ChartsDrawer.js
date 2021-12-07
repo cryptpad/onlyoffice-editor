@@ -3891,7 +3891,7 @@ CChartsDrawer.prototype =
 		addPathToArr(true, faceFront, 0);
 
 		//down
-		if (val === 0 && this.calcProp.type === c_oChartTypes.Bar) {
+		if (val === 0) {
 			face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, false, true, true);
 			addPathToArr(true, face, 1);
 		} else {
@@ -3900,7 +3900,7 @@ CChartsDrawer.prototype =
 		}
 
 		//up
-		if (val === 0 && this.calcProp.type === c_oChartTypes.Bar) {
+		if (val === 0) {
 			face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, true, false, true);
 			addPathToArr(true, face, 4);
 		} else {
@@ -5018,18 +5018,27 @@ CChartsDrawer.prototype =
 			};
 	},
 
-	_calculateCylinder: function (startX, startY, individualBarWidth, height, val, gapDepth, perspectiveDepth, checkPathMethod) {
-		var x1 = startX + individualBarWidth / 2, y1 = startY, z1 = 0 + gapDepth + perspectiveDepth / 2;
-		var x5 = startX + individualBarWidth / 2, y5 = startY - height, z5 = 0 + gapDepth  + perspectiveDepth / 2;
+	_calculateCylinder: function (startX, startY, individualBarWidth, height, val, gapDepth, perspectiveDepth, checkPathMethod, hbar) {
+		var centerUpX, centerUpY, centerUpZ, centerDownX, centerDownY, centerDownZ;
+
+		if (hbar) {
+			centerDownX = startX, centerDownY = startY + individualBarWidth / 2, centerDownZ = 0 + gapDepth + perspectiveDepth / 2;
+			centerUpX = startX + height, centerUpY = startY + individualBarWidth / 2, centerUpZ = 0 + gapDepth  + perspectiveDepth / 2;
+		} else {
+			centerDownX = startX + individualBarWidth / 2, centerDownY = startY, centerDownZ = 0 + gapDepth + perspectiveDepth / 2;
+			centerUpX = startX + individualBarWidth / 2, centerUpY = startY - height, centerUpZ = 0 + gapDepth  + perspectiveDepth / 2;
+		}
 
 		var segmentPoints = [];
 		var segmentPoints2 = [];
+		var segmentPoint1, segmentPoint2;
 
-		var x, z;
+		var A, B;
 		// в ms 180 градусов составляют 17 сегментов
 		// todo пока что рассчитываем дополнительные точки, нужно будет оптимизировать
 		var dt = Math.PI / 34; //Math.PI / 17;
 
+		//большая и малая полуось эллипса
 		var sizes1 = individualBarWidth / 2;
 		var sizes2 = perspectiveDepth / 2;
 
@@ -5040,11 +5049,17 @@ CChartsDrawer.prototype =
 
 		// получаем точки основания цилиндра через парамметрические уравнения эллиптического цилиндра
 		for (var t = k; t <= Math.PI * 2 + k; t += dt) {
-			x = sizes1 * Math.cos(t);
-			z = sizes2 * Math.sin(t);
+			A = sizes1 * Math.cos(t);
+			B = sizes2 * Math.sin(t);
 
-			var segmentPoint1 = this._convertAndTurnPoint(x1 - x, y1, z1 + z);
-			var segmentPoint2 = this._convertAndTurnPoint(x5 - x, y5, z5 + z);
+			if (hbar) {
+				segmentPoint1 = this._convertAndTurnPoint(centerDownX, centerDownY + A, centerDownZ + B);
+				segmentPoint2 = this._convertAndTurnPoint(centerUpX, centerUpY + A, centerUpZ + B);
+			} else {
+				segmentPoint1 = this._convertAndTurnPoint(centerDownX - A, centerDownY, centerDownZ + B);
+				segmentPoint2 = this._convertAndTurnPoint(centerUpX - A, centerUpY, centerUpZ + B);
+			}
+
 			segmentPoints.push(segmentPoint1);
 			segmentPoints2.push(segmentPoint2);
 		}
@@ -5079,26 +5094,44 @@ CChartsDrawer.prototype =
 			sortCylinderPoints1 = segmentPoints;
 			sortCylinderPoints2 = segmentPoints2;
 		}
+		var x12, y12, z12, x22, y22, z22, x32, y32, z32, x42, y42, z42, x52, y52, z52, x62, y62, z62, x72, y72, z72, x82, y82, z82;
+		var point1, point2, point4, point5, point6, point8;
 
-		var x12 = startX, y12 = startY, z12 = 0 + gapDepth;
-		var x22 = startX, y22 = startY, z22 = perspectiveDepth + gapDepth;
-		var x42 = startX + individualBarWidth, y42 = startY, z42 = 0 + gapDepth;
-		var x52 = startX, y52 = startY - height, z52 = 0 + gapDepth;
-		var x62 = startX, y62 = startY - height, z62 = perspectiveDepth + gapDepth;
-		var x82 = startX + individualBarWidth, y82 = startY - height, z82 = 0 + gapDepth;
+		if (hbar) {
+			x12 = startX, y12 = startY, z12 = 0 + gapDepth;
+			x42 = startX + height, y42 = startY, z42 = perspectiveDepth + gapDepth;
+			x52 = startX, y52 = startY + individualBarWidth, z52 = 0 + gapDepth;
+			x62 = startX, y62 = startY + individualBarWidth, z62 = perspectiveDepth + gapDepth;
+			x72 = startX + height, y72 = startY + individualBarWidth, z72 =  perspectiveDepth + gapDepth;
+			x82 = startX + height, y82 = startY + individualBarWidth, z82 = 0 + gapDepth;
 
-		var point1 = this._convertAndTurnPoint(x12, y12, z12);
-		var point2 = this._convertAndTurnPoint(x22, y22, z22);
-		var point4 = this._convertAndTurnPoint(x42, y42, z42);
-		var point5 = this._convertAndTurnPoint(x52, y52, z52);
-		var point6 = this._convertAndTurnPoint(x62, y62, z62);
-		var point8 = this._convertAndTurnPoint(x82, y82, z82);
+			point1 = this._convertAndTurnPoint(x12, y12, z12);
+			point2 = this._convertAndTurnPoint(x52, y52, z52);
+			point4 = this._convertAndTurnPoint(x62, y62, z62);
+			point5 = this._convertAndTurnPoint(x72, y72, z72);
+			point6 = this._convertAndTurnPoint(x42, y42, z42);
+			point8 = this._convertAndTurnPoint(x82, y82, z82);
+		} else {
+			x12 = startX, y12 = startY, z12 = 0 + gapDepth;
+			x22 = startX, y22 = startY, z22 = perspectiveDepth + gapDepth;
+			x42 = startX + individualBarWidth, y42 = startY, z42 = 0 + gapDepth;
+			x52 = startX, y52 = startY - height, z52 = 0 + gapDepth;
+			x62 = startX, y62 = startY - height, z62 = perspectiveDepth + gapDepth;
+			x82 = startX + individualBarWidth, y82 = startY - height, z82 = 0 + gapDepth;
+
+			point1 = this._convertAndTurnPoint(x12, y12, z12);
+			point2 = this._convertAndTurnPoint(x22, y22, z22);
+			point4 = this._convertAndTurnPoint(x42, y42, z42);
+			point5 = this._convertAndTurnPoint(x52, y52, z52);
+			point6 = this._convertAndTurnPoint(x62, y62, z62);
+			point8 = this._convertAndTurnPoint(x82, y82, z82);
+		}
 
 		var points = [segmentPoints, segmentPoints2, point1, point2, point4, point5, point6, point8,
 			sortCylinderPoints1, sortCylinderPoints2];
 		var paths = this.calculateCylinder(points, val, checkPathMethod);
 
-		return { paths: paths };
+		return paths;
 	}
 };
 
@@ -5944,8 +5977,8 @@ drawBarChart.prototype = {
 			
 			paths = paths.paths;
 		} else if (type === AscFormat.BAR_SHAPE_CYLINDER) {
-			paths = this.cChartDrawer._calculateCylinder(startX, startY, individualBarWidth, height, val, gapDepth, perspectiveDepth, this.subType !== "standard");
-			paths = paths.paths;
+			paths = this.cChartDrawer._calculateCylinder(startX, startY, individualBarWidth, height, val, gapDepth,
+				perspectiveDepth, this.subType !== "standard");
 		} else {
 			points = [point1, point2, point3, point4, point5, point6, point7, point8];
 			paths = this.cChartDrawer.calculateRect3D(points, val, null, this.subType !== "standard", false);
@@ -8203,7 +8236,7 @@ drawHBarChart.prototype = {
 			var isValMoreZero = false;
 			var isValLessZero = 0;
 			var shapeType = null !== this.chart.series[i].shape ? this.chart.series[i].shape : this.chart.shape;
-			//shapeType = 4;
+			//shapeType = 3;
 			for (var j = 0; j < seria.length; j++) {
 				//стартовая позиция колонки Y(+ высота с учётом поправок на накопительные диаграммы)
 				val = parseFloat(seria[j].val);
@@ -8596,7 +8629,7 @@ drawHBarChart.prototype = {
 
 	calculateParallalepiped: function (newStartX, newStartY, val, width, DiffGapDepth, perspectiveDepth,
 									   individualBarHeight, seriesHeight, i, idx, cubeCount, type, maxH, minH) {
-		var paths;
+		var paths, paths2;
 		var point1, point2, point3, point4, point5, point6, point7, point8;
 		var x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, x5, y5, z5, x6, y6, z6, x7, y7, z7, x8, y8, z8;
 		var xPoints = this.valAx.xPoints;
@@ -8634,8 +8667,13 @@ drawHBarChart.prototype = {
 			var nullPositionOX = this.catAx.posX * this.chartProp.pxToMM;
 			paths = this.cChartDrawer.calculatePyramid(true, this.subType, newStartX, newStartY, width, DiffGapDepth, 
 				individualBarHeight, perspectiveDepth, val, nullPositionOX, maxH, minH);
+			paths2 = this.cChartDrawer.calculateRect3D(points, val, null, true);
+		} else if (type === AscFormat.BAR_SHAPE_CYLINDER) {
+			paths = this.cChartDrawer._calculateCylinder(newStartX, newStartY, individualBarHeight, width, val, DiffGapDepth, perspectiveDepth, true, true);
+			paths2 = this.cChartDrawer.calculateRect3D(points, val, null, true);
 		} else {
-			paths = this.cChartDrawer.calculateRect3D(points, val, null, true);
+			paths2 = this.cChartDrawer.calculateRect3D(points, val, null, true);
+			paths = paths2;
 		}
 
 		if (this.cChartDrawer.processor3D.view3D.getRAngAx()) {
@@ -8740,7 +8778,7 @@ drawHBarChart.prototype = {
 			}
 		}
 
-		return paths;
+		return paths2;
 	},
 
 	//TODO delete after test
