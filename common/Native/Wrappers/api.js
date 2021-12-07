@@ -4958,7 +4958,7 @@ Asc['asc_docs_api'].prototype.Send_Menu_Event = function(type)
     window["native"]["OnCallMenuEvent"](type, global_memory_stream_menu);
 };
 
-Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
+Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function(isExternalTrigger)
 {
     if (this.WordControl && this.WordControl.m_oDrawingDocument)
         this.WordControl.m_oDrawingDocument.EndTableStylesCheck();
@@ -5041,7 +5041,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
     }
 
     this.Send_Menu_Event(6);
-    this.sendEvent("asc_onFocusObject", this.SelectedObjectsStack);
+    this.sendEvent("asc_onFocusObject", this.SelectedObjectsStack, !isExternalTrigger);
 };
 
 function Deserialize_Table_Markup(_params, _cols, _margins, _rows)
