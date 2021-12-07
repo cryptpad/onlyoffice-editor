@@ -3523,13 +3523,16 @@ ParaMath.prototype.ConvertToLaTeX = function()
 
     var strin = this.GetText();
     console.log('Unicode string:', strin);
+    return strin
+};
 
-    this.Root.Remove_Content(0, this.Root.Content.length);
-    this.Root.Correct_Content(true);
-    
+ParaMath.prototype.UnicodeToMathMl = function(strin) {
     var Unicode = new CUnicodeParser(strin, this);
     Unicode.Start();
-};
+    this.Root.Correct_Content(true);
+}
+
+
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {

@@ -3084,9 +3084,9 @@ CUnicodeParser.prototype.GetNextUnicode = function() {
 };
 CUnicodeParser.prototype.CheckUnicodeFutureAtom = function(n) {
 	if (n === undefined) {
-		n = 0;
+		n = this.IndexOfArray
 	}
-	return this.ArrayOfAtoms[this.IndexOfArray + n]
+	return this.ArrayOfAtoms[n]
 };
 CUnicodeParser.prototype.Start = function() {
 	this.parser();
@@ -3097,7 +3097,7 @@ CUnicodeParser.prototype.Start = function() {
 CUnicodeParser.prototype.BracetSyntaxChecker = function(index) {
 	var Obj = {
 		Script : [],
-		index : index - 1,
+		index : index,
 		symbol: null,
 	};
 
@@ -3238,6 +3238,7 @@ CUnicodeParser.prototype.StartUnicodeLexer = function(Context, arrSymbol) {
 		var strCloseBracet = GetCloseBracet[strOpentBracet];
 
 		if (strCloseBracet) {
+			this.GetNextUnicode();
 			CUnicodeLexer(this, Context, strCloseBracet);
 		}
 
@@ -3266,11 +3267,15 @@ function CUnicodeLexer(Parser, FormArgument, exitIfSee) {
 		var atom = Parser.GetNextUnicode();
 		var future = Parser.CheckUnicodeFutureAtom();
 
+		if (typeof exitIfSee != 'number' && exitIfSee == atom) {
+			return
+		}
+
 		if (atom === undefined) {
 			return;
 		}
 
-		if (future == '^' || future == '_') {
+		if (future == '^' || future == '_' && exitIfSee != 1) {
 			Parser.AddScript(atom, FormArgument);
 			countOfPushedAtoms++;
 		}

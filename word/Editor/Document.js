@@ -26773,12 +26773,13 @@ CDocument.prototype.ConvertLaTeXToMath = function(sText)
 		// oSelectedContent.On_EndCollectElements(this, false);
 		// oCurrentParagraph.GetParent().InsertContent(oSelectedContent, oCurrentParagraph.GetCurrentAnchorPosition());
 
+
+		var strin = oMath.ConvertToLaTeX();
+		oMath.UnicodeToMathMl(strin);
+
 		this.Recalculate();
 		this.UpdateInterface();
 		this.FinalizeAction();
-
-		//temporally
-		oMath.ConvertToLaTeX()
 	}
 };
 
