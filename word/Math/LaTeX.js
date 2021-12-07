@@ -2023,6 +2023,8 @@ function ToLaTex(Root) {
 	};
 	this.scr;
 	this.brk = false;
+	this.unicode;
+	this.unicodeArr = [];
 };
 //Service
 ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
@@ -3019,7 +3021,195 @@ ToLaTex.prototype.GetCode = new Map([
 	[0x2265, '\>='],
 	[0x226B, '\>>']
 ]);
+function CUnicodeParser(str, props) {
+	this.str = str;
+	this.ArrayOfAtoms = [];
+	this.IndexOfArray = 0;
+	this.Root = props.Root;
+	this.ParaMath = props;
+};
+CUnicodeParser.prototype.parser = function() {
+	var strTempWord = "";
+	var arrStr = [];
+	for (var i = 0; i <= this.str.length; i++) {
+		
+		if (this.str[i] != undefined) {
+			strTempWord += this.str[i];
+
+			if (
+				this.str[i + 1] == "+" ||
+				this.str[i + 1] == "^" ||
+				this.str[i + 1] == "_" ||
+				this.str[i + 1] == "-" ||
+				this.str[i + 1] == "*" ||
+				this.str[i + 1] == "/" ||
+				this.str[i + 1] == "(" ||
+				this.str[i + 1] == ")" ||
+				this.str[i + 1] == "{" ||
+				this.str[i + 1] == "}" ||
+				this.str[i + 1] == " " ||
+				this.str[i + 1] == "&" ||
+				this.str[i + 1] == '┬' ||
+				this.str[i + 1] == "[" ||
+				this.str[i + 1] == "]" ||
+				strTempWord == '(' ||
+				strTempWord == ')' ||
+				strTempWord == '}' ||
+				strTempWord == '{' ||
+				strTempWord == '+' ||
+				strTempWord == '^' ||
+				strTempWord == '_' ||
+				strTempWord == '┬'
+			) {
+				arrStr.push(strTempWord.trim());
+				strTempWord = "";
+			}
+			else {
+				arrStr.push(strTempWord.trim());
+				strTempWord = "";
+			}
+		}
+	}
+	this.ArrayOfAtoms = arrStr.filter(Boolean);
+};
+CUnicodeParser.prototype.GetNextUnicode = function() {
+	this.IndexOfArray++;
+	return this.ArrayOfAtoms[this.IndexOfArray - 1]
+};
+CUnicodeParser.prototype.CheckUnicodeFutureAtom = function(n) {
+	if (n === undefined) {
+		n = 0;
+	}
+	return this.ArrayOfAtoms[this.IndexOfArray + n]
+};
+CUnicodeParser.prototype.Start = function() {
+	this.parser();
+	console.log(this.ArrayOfAtoms);
+	CUnicodeLexer(this, this.Root);
+};
+CUnicodeParser.prototype.BracetSyntaxChecker = function(index) {
+	var Obj = {
+		Script : [],
+		index : index - 1,
+		symbol: null,
+	};
+
+	Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
+	Obj.index++;
+
+	if (Obj.symbol == '^' || Obj.symbol == '_') {
+		Obj.Script.push(Obj.symbol);
+
+		//скобка или символы
+		Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
+		Obj.Script.push(Obj.symbol == '(' ? '(' : '1');
+		Obj.symbol = false;
+		
+		//Скобка с данными
+		if (Obj.Script[Obj.Script.length - 1] == '(') {
+			Obj.symbol = this.CheckAfterBracet(Obj);
+		} else {
+			Obj.index++;
+			Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
+		}
+		
+		//После скобки новый элемент
+		if (Obj.symbol!==false && Obj.symbol!== undefined && Obj.Script[0] == '^' ? (Obj.symbol == '_') : (Obj.symbol == '^')) {
+			Obj.Script.push(Obj.symbol);
+			Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index + 1);
+			Obj.Script.push(Obj.symbol == '(' ? '(' : '1');
+		}
+	}
+	return Obj.Script;
+};
+CUnicodeParser.prototype.CheckAfterBracet = function(Obj) {
+	var one = this.CheckUnicodeFutureAtom(Obj.index)
+	if ( one == '(') {
+		var atom;
+		
+		do {
+			atom = this.CheckUnicodeFutureAtom(Obj.index);
+			Obj.index++;
+		} while (atom != ')' && atom != undefined);
+
+		if (atom == ')') {
+			return this.CheckUnicodeFutureAtom(Obj.index);
+		}
+		
+		else {
+			return false;
+		}
+	}
+};
+CUnicodeParser.prototype.AddScript = function(strAtom, FormArgument) {
+	var type = this.BracetSyntaxChecker(this.IndexOfArray);
+
+	//if only index OR degree
+	if (type.length == 2) {
+		if (type[0] == '^') {
+
+		}
+		else if (type[0] == '_') {
+
+		}
+	//if degre AND INDEX
+	} else if (type.length == 4) {
+		
+	}
+
+
+	
+	
+
+};
+CUnicodeParser.prototype.StartUnicodeLexer = function(Context, arrSymbol) {
+	var strAtom = this.CheckUnicodeFutureAtom();
+
+	if (strAtom == '^' || strAtom == '_') {
+		this.GetNextUnicode();
+	}
+
+	if (!arrSymbol) {
+		var strOpentBracet = this.CheckUnicodeFutureAtom();
+		var strCloseBracet = GetCloseBracet[strOpentBracet];
+
+		if (strCloseBracet) {
+			CUnicodeLexer(this, Context, strCloseBracet);
+		}
+
+		else {
+			CUnicodeLexer(this, Context, 1);
+		}
+	}
+
+	else if (arrSymbol) {
+		if (typeof arrSymbol != 'number') {
+			CUnicodeLexer(this, Context, arrSymbol);
+		}
+
+		else {
+			CUnicodeLexer(this, Context, arrSymbol);
+		}
+	}
+};
+function CUnicodeLexer(Parser, FormArgument, exitIfSee) {
+	do {
+		var atom = Parser.GetNextUnicode();
+		var future = Parser.CheckUnicodeFutureAtom();
+
+		if (atom === undefined) {
+			return;
+		}
+
+		if (future == '^' || future == '_') {
+			Parser.AddScript(atom, FormArgument);
+		}
+		
+	} while (atom != undefined);
+};
+
 //--------------------------------------------------------export----------------------------------------------------
 window["AscCommonWord"] = window["AscCommonWord"] || {};
 window["AscCommonWord"].CLaTeXParser = CLaTeXParser;
 window["AscCommonWord"].CLaTeXLexer = CLaTeXLexer;
+window["AscCommonWord"].CUnicodeParser = CUnicodeParser;
