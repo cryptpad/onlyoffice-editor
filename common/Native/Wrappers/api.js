@@ -6733,7 +6733,7 @@ function getHexColor(r, g, b) {
     return r + g + b;
 }
 
-function onFocusObject(SelectedObjects) {
+function onFocusObject(SelectedObjects, localTrigger) {
     var settings = [];
     var control_props = _api.asc_IsContentControl() ? _api.asc_GetContentControlProperties() : null;
 
@@ -6752,6 +6752,7 @@ function onFocusObject(SelectedObjects) {
             {
                 settings.push({
                     type: eltype,
+                    localTrigger: (typeof localTrigger === 'boolean') ? localTrigger : true,
                     rawValue: JSON.prune(value, 5)
                 });
                 break;
@@ -6770,6 +6771,7 @@ function onFocusObject(SelectedObjects) {
         settings.push({
             type: Asc.c_oAscTypeSelectElement.ContentControl,
             spectype: spectype,
+            localTrigger: (typeof localTrigger === 'boolean') ? localTrigger : true,
             rawValue: JSON.prune(control_props, 4),
             value: readSDKContentControl(control_props, SelectedObjects)
         });
