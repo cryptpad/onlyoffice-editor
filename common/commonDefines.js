@@ -122,6 +122,13 @@
 		ICO  : 0x040d
 	};
 
+	var c_oAscTextAssociation = {
+		Char: 0,
+		Line: 1,
+		NoFrames: 2,
+		Block: 3
+	};
+
 	var c_oAscError = {
 		Level : {
 			Critical   : -1,
@@ -2295,6 +2302,12 @@
 	prot['RAS']                  = prot.RAS;
 	prot['PSD']                  = prot.PSD;
 	prot['ICO']                  = prot.ICO;
+
+	window['Asc']['c_oAscTextAssociation'] = window['Asc'].c_oAscTextAssociation = c_oAscTextAssociation;
+	prot['Char']                  = prot.Char;
+	prot['Line']                  = prot.Line;
+	prot['NoFrames']              = prot.NoFrames;
+	prot['Block']                 = prot.Block;
 
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;

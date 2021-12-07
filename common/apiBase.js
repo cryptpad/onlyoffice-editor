@@ -1686,6 +1686,9 @@
 			}
 			oAdditionalData["title"] = AscCommon.changeFileExtention(this.documentTitle, "zip", Asc.c_nMaxDownloadTitleLen);
 		}
+		if (options.textParams) {
+			oAdditionalData["textParams"] = {"association": options.textParams.asc_getAssociation()};
+		}
 
 		if (this._downloadAs(actionType, options, oAdditionalData, dataContainer))
 		{
