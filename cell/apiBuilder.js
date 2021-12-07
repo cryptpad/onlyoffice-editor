@@ -1805,7 +1805,7 @@
 			return false;
 		
 		if (Array.isArray(data)) {
-			var checkDepth = x => Array.isArray(x) ? 1 + Math.max.apply(this, x.map(checkDepth)) : 0;
+			var checkDepth = function(x) { return Array.isArray(x) ? 1 + Math.max.apply(this, x.map(checkDepth)) : 0;};
 			var maxDepth = checkDepth(data);
 			if (maxDepth <= 2) {
 				if (this.range.isOneCell()) {
@@ -2663,6 +2663,48 @@
 		}
 	});*/
 
+	/**
+	 * Delete the object.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {String} shift - Specifies how to shift cells to replace deleted cells ("up", "left")
+	 */
+	ApiRange.prototype.Delete = function(shift) {
+		if (shift && typeof Shift == "string") {
+			shift = shift.toLocaleLowerCase();
+		} else {
+			var bbox = this.range.bbox;
+			var rows = bbox.r2 - bbox.r1 + 1;
+			var cols = bbox.c2 - bbox.c1 + 1;
+			shift = (rows <= cols) ? "up" : "left";
+		}
+		if (shift == "up")
+			this.range.deleteCellsShiftUp();
+		else
+			this.range.deleteCellsShiftLeft()
+	};
+
+	/**
+	 * Inserts a cell or a range of cells into the worksheet or macro sheet and shifts other cells away to make space.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {String} shift - Specifies which way to shift the cells ("right", "down")
+	 */
+	 ApiRange.prototype.Insert = function(shift) {
+		if (shift && typeof Shift == "string") {
+			shift = shift.toLocaleLowerCase();
+		} else {
+			var bbox = this.range.bbox;
+			var rows = bbox.r2 - bbox.r1 + 1;
+			var cols = bbox.c2 - bbox.c1 + 1;
+			shift = (rows <= cols) ? "down" : "right";
+		}
+		if (shift == "down")
+			this.range.addCellsShiftBottom();
+		else
+			this.range.addCellsShiftRight()
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing
@@ -3382,6 +3424,8 @@
 	ApiRange.prototype["SetOrientation"] = ApiRange.prototype.SetOrientation;
 	ApiRange.prototype["GetOrientation"] = ApiRange.prototype.GetOrientation;
 	ApiRange.prototype["SetSort"] = ApiRange.prototype.SetSort;
+	ApiRange.prototype["Delete"] = ApiRange.prototype.Delete;
+	ApiRange.prototype["Insert"] = ApiRange.prototype.Insert;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;
