@@ -547,6 +547,11 @@
           if (!self.canEdit()) {
             return;
           }
+		  if (self.isProtectActiveCell()) {
+			  self.input.blur();
+			  self.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+			  return;
+		  }
           self._onStopFormatPainter();
           self.cellEditor.callTopLineMouseup = true;
           if (!self.getCellEditMode() && !self.controller.isFillHandleMode) {
@@ -750,6 +755,8 @@
 				  self.controller._onWindowKeyDown.apply(self.controller, arguments);
 			  }, "canEdit": function () {
 				  return self.canEdit();
+			  }, "isProtectActiveCell": function () {
+				  return self.isProtectActiveCell();
 			  }, "getFormulaRanges": function () {
 			      return self.isActive() ? self.getWorksheet().oOtherRanges : null;
 			  }, "isActive": function () {
@@ -1731,6 +1738,9 @@
 	}
 
     var editFunction = function() {
+      if (needBlurFunc) {
+		  t.input && t.input.focus();
+	  }
       t.setCellEditMode(true);
       t.hideSpecialPasteButton();
       ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
@@ -1767,7 +1777,15 @@
 		}
 	};
 
-    ws.checkProtectRangeOnEdit([new Asc.Range(activeCellRange.c1, activeCellRange.r1, activeCellRange.c1, activeCellRange.r1)], doEdit);
+	var needBlur = false;
+	var needBlurFunc;
+	if (t.input && t.input.isFocused) {
+		needBlurFunc = function () {
+			t.input && t.input.blur();
+			needBlur = true;
+		}
+	}
+    ws.checkProtectRangeOnEdit([new Asc.Range(activeCellRange.c1, activeCellRange.r1, activeCellRange.c1, activeCellRange.r1)], doEdit, null, needBlurFunc);
   };
 
   WorkbookView.prototype._checkStopCellEditorInFormulas = function() {
@@ -2158,8 +2176,17 @@
   WorkbookView.prototype.getCellEditMode = function() {
 	  return this.isCellEditMode;
   };
+
 	WorkbookView.prototype.canEdit = function() {
 		return this.Api.canEdit();
+	};
+
+	WorkbookView.prototype.isProtectActiveCell = function() {
+		var ws = this.getWorksheet();
+		if (!ws) {
+			return false;
+		}
+		return ws.isProtectActiveCell();
 	};
 
     WorkbookView.prototype.getDialogSheetName = function () {
