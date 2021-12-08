@@ -7090,7 +7090,7 @@
     };
     CTimeNodeContainer.prototype["asc_getClass"] = CTimeNodeContainer.prototype.asc_getClass;
     CTimeNodeContainer.prototype.asc_getType = function(v) {
-        if(this.cTn.presetID === "undefined") {
+        if(typeof this.cTn.presetID === "undefined") {
             if(!Array.isArray(this.merged) || this.merged.length == 0) {
                 return AscFormat.ANIM_PRESET_NONE;
             }
