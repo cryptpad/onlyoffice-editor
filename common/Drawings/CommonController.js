@@ -5697,7 +5697,8 @@ DrawingObjectsController.prototype =
 					{
 						oEndPara = oEndContent.GetCurrentParagraph();
 					}
-					if (oEndPara !== oStartPara)
+					if (oEndPara !== oStartPara &&
+                        (oStartPara && oStartPara.IsEmptyWithBullet() || oEndPara && oEndPara.IsEmptyWithBullet() ))
 					{
 						bRedraw = true;
 					}

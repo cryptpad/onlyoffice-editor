@@ -9657,6 +9657,21 @@ Paragraph.prototype.GetBulletNum = function()
 	}
 	return BulletNum;
 };
+Paragraph.prototype.IsEmptyWithBullet = function()
+{
+	if(this.IsEmpty())
+	{
+		var oBullet =  this.PresentationPr && this.PresentationPr.Bullet;
+		if(oBullet)
+		{
+			if(!oBullet.IsNone())
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+};
 //----------------------------------------------------------------------------------------------------------------------
 /**
  * Формируем конечные свойства параграфа на основе стиля, возможной нумерации и прямых настроек.
