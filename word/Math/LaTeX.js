@@ -47,7 +47,7 @@ function EquationProcessing(str, array, index, ParaMath, Parent) {
 	this.ArrayOfAtoms = array;
 	this.IndexOfArray = index;
 	this.ParaMath = ParaMath;
-	this.Parent = Parent;
+	this.Parent = Parent; 
 };
 EquationProcessing.prototype.GetNextUnicode = function() {
 	this.IndexOfArray++;
@@ -98,15 +98,35 @@ EquationProcessing.prototype.BracetSyntaxChecker = function(index) {
 EquationProcessing.prototype.CheckAfterBracet = function(Obj) {
 	var one = this.CheckUnicodeFutureAtom(Obj.index);
 
-	if ( one == '(' || one == '{') {
+	var tempIndex = Obj.index;
+	var strOpenBracet;
+	var strCloseBracet;
+
+	if (one == '(') {
+		strOpenBracet = '(';
+		strCloseBracet = ')'
+	} else if (one == '{') {
+		strOpenBracet = '{';
+		strCloseBracet = '}'
+	}
+
+	if (one == strOpenBracet) {
 		var atom;
-		
+		var ind = 1;
+		var isReturn;
 		do {
 			atom = this.CheckUnicodeFutureAtom(Obj.index);
+			if (atom == strOpenBracet && tempIndex != Obj.index) {
+				ind++;
+			}
 			Obj.index++;
-		} while ((atom != ')' && atom != '}') && atom != undefined);
 
-		if (atom == ')' || atom == '}') {
+			if (atom == strCloseBracet) {
+				ind--;
+			}
+		} while (!(ind == 0 && atom == strCloseBracet));
+
+		if (atom == strCloseBracet) {
 			return this.CheckUnicodeFutureAtom(Obj.index);
 		}
 		
@@ -196,7 +216,6 @@ EquationProcessing.prototype.FillScriptContentWriteSub = function(Script) {
 	var Iterator = Script.getLowerIterator();
 	this.Parent.StartLexer(Iterator);
 };
-
 
 function CLaTeXParser(props, str) {
 	this.str = str;
@@ -3164,14 +3183,14 @@ CUnicodeParser.prototype.Start = function() {
 
 	console.log(this.ArrayOfAtoms);
 
-	CUnicodeLexer(this, this.ParaMath.Root);
+	CUnicodeLexer(this, this.ParaMath.Root, undefined, true);
 	this.ParaMath.Root.Correct_Content(true);
 };
 CUnicodeParser.prototype.StartLexer = function(Context, arrSymbol) {
 	var strAtom = this.CheckUnicodeFutureAtom();
 
 	if (strAtom == '^' || strAtom == '_') {
-		this.GetNextUnicode();
+		strAtom = this.GetNextUnicode();
 	}
 
 	if (!arrSymbol) {
@@ -3179,7 +3198,7 @@ CUnicodeParser.prototype.StartLexer = function(Context, arrSymbol) {
 		var strCloseBracet = GetCloseBracet[strOpentBracet];
 
 		if (strCloseBracet) {
-			this.GetNextUnicode();
+			this.GetNextUnicode()
 			CUnicodeLexer(this, Context, strCloseBracet);
 		}
 
@@ -3198,18 +3217,35 @@ CUnicodeParser.prototype.StartLexer = function(Context, arrSymbol) {
 		}
 	}
 };
-function CUnicodeLexer(Parser, FormArgument, exitIfSee) {
+function CUnicodeLexer(Parser, FormArgument, exitIfSee, isStart) {
 	var countOfPushedAtoms = 0;
+	var indexOfBracets = isStart === true ? 0: 1;
+	var max = indexOfBracets;
+
 	do {
 		if (typeof exitIfSee == 'number' && countOfPushedAtoms >= exitIfSee) {
 			return
 		}
 
+		
 		var atom = Parser.GetNextUnicode();
 		var future = Parser.CheckUnicodeFutureAtom();
+		
 
-		if (typeof exitIfSee != 'number' && exitIfSee == atom) {
-			return
+		if (atom == '(') {
+			indexOfBracets++;
+			max = indexOfBracets;
+		}
+		if (atom == exitIfSee) {
+			indexOfBracets--;
+			
+			if (indexOfBracets == 0) {
+				if (max > 1) {
+					FormArgument.Add_Text(atom, Parser.Paragraph);
+				}
+				
+				return
+			}
 		}
 
 		if (atom === undefined) {
@@ -3222,7 +3258,12 @@ function CUnicodeLexer(Parser, FormArgument, exitIfSee) {
 		}
 
 		else {
-			FormArgument.Add_Text(atom, Parser.Paragraph);
+			if (atom == ')' && max == 1) {
+				FormArgument.Add_Text(atom, Parser.Paragraph)
+			} else if (atom != ')') {
+				FormArgument.Add_Text(atom, Parser.Paragraph)
+			}
+		
 			countOfPushedAtoms++;
 		}
 		
