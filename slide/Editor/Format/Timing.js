@@ -601,6 +601,8 @@
     var NODE_FILL_REMOVE = 2;
     var NODE_FILL_TRANSITION = 3;
 
+    var ANIM_TREE_LAVELS_COUNT = 5;
+
 
     function CTimeNodeBase() {
         CBaseAnimObject.call(this);
@@ -1547,6 +1549,63 @@
         oTgt.setSpTgt(oSpTgt);
         return oTgt;
     };
+    CTimeNodeBase.prototype.getHierarchy = function() {
+        var oParentTimeNode = this.getParentTimeNode();
+        var aHierarchy;
+        if(oParentTimeNode) {
+            aHierarchy = oParentTimeNode.getHierarchy();
+        }
+        else {
+            aHierarchy = [];
+        }
+        aHierarchy.push(this);
+        return aHierarchy;
+    };
+    CTimeNodeBase.prototype.getAllAnimEffects = function (aEffects) {
+        var aEffectsInternal = aEffects;
+        if(!Array.isArray(aEffectsInternal)) {
+            aEffectsInternal = []
+        }
+        if(this.isAnimEffect()) {
+            aEffectsInternal.push(this);
+        }
+        else {
+            var aChildren = this.getChildrenTimeNodes();
+            for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].getAllAnimEffects(aEffectsInternal);
+            }
+        }
+        return aEffectsInternal;
+    };
+
+    CTimeNodeBase.prototype.getNeighbourEffect = function(bPrev) {
+        if(!this.isAnimEffect()) {
+            return null;
+        }
+        var aHierarchy = this.getHierarchy();
+        if(aHierarchy.length !== ANIM_TREE_LAVELS_COUNT) {
+            return null;
+        }
+        var oL1 = aHierarchy[1];
+        var aAllEffects = oL1.getAllAnimEffects();
+        for(var nEffect = 0; nEffect < aAllEffects.length; ++nEffect) {
+            if(aAllEffects[nEffect] === this) {
+                if(bPrev) {
+                    return aAllEffects[nEffect - 1] || null;
+                }
+                else {
+                    return aAllEffects[nEffect + 1] || null;
+                }
+            }
+        }
+
+    };
+    CTimeNodeBase.prototype.getPreviousEffect = function() {
+        return this.getNeighbourEffect(true);
+    };
+    CTimeNodeBase.prototype.getNextEffect = function() {
+        return this.getNeighbourEffect(false);
+    };
 
     function CAnimationTime(val) {
         this.val = 0;
@@ -1983,17 +2042,7 @@
         if(!oTmRoot) {
             return [];
         }
-        var aResult = [];
-        oTmRoot.traverseTimeNodes(function(oNode) {
-            if(oNode.isAnimEffect()) {
-                for(var nObjectID = 0; nObjectID < aObjectId.length; ++nObjectID) {
-                    if(oNode.isObjectEffect(aObjectId[nObjectID])) {
-                        aResult.push(oNode);
-                    }
-                }
-            }
-        });
-        return aResult;
+        return oTmRoot.getAllAnimEffects();
     };
     CTiming.prototype.checkMainSequence = function() {
         if(!this.tnLst) {
@@ -2142,6 +2191,10 @@
             }
             if(oPr.asc_getStartType() !== oCurPr.asc_getStartType()) {
                 oEffect.cTn.changeStartType(oPr.asc_getStartType());
+            }
+            if(oPr.asc_getTriggerClickSequence() !== oCurPr.asc_getTriggerClickSequence()
+                || oPr.asc_getTriggerObjectClick() !== oCurPr.asc_getTriggerObjectClick()) {
+                oEffect.cTn.changeTrigger(oPr.asc_getTriggerClickSequence() ? null : oPr.asc_getTriggerObjectClick());
             }
         }
     };
@@ -4172,6 +4225,15 @@
             this.setChildTnLst(new CChildTnLst());
         }
     };
+    CCTn.prototype.getDelayShift = function() {
+        if(this.nodeType === NODE_TYPE_AFTEREFFECT) {
+            var oPrev = this.parent.getPreviousEffect();
+            if(oPrev && oPrev.cTn) {
+                return oPrev.cTn.getDelay() + oPrev.cTn.getEffectDuration();
+            }
+        }
+        return 0;
+    };
     CCTn.prototype.getDelay = function() {
         var delay = 0;
         var aConds;
@@ -4179,9 +4241,13 @@
             aConds = this.stCondLst.list;
             for(var nCond = 0; nCond < aConds.length; ++nCond) {
                 if(aConds[nCond].delay !== null) {
-                    return aConds[nCond].getDelayTime().getVal();
+                    delay = aConds[nCond].getDelayTime().getVal();
+                    break;
                 }
             }
+        }
+        if(this.nodeType === NODE_TYPE_AFTEREFFECT) {
+            delay = Math.max(0, delay - this.getDelayShift());
         }
         return delay;
     };
@@ -4199,7 +4265,7 @@
         }
         var oCond = new CCond();
         this.stCondLst.push(oCond);
-        oCond.setDelay(nDelay + "");
+        oCond.setDelay((nDelay + this.getDelayShift()) + "");
         return delay;
     };
     CCTn.prototype.getEffectDuration = function() {
@@ -4389,6 +4455,14 @@
             oTiming.updateNodesIDs();
         }
         oEffectNode.getRoot().printTree();
+    };
+    CCTn.prototype.changeTrigger = function(v) {
+        if(!v) {
+            //move to main sequence
+        }
+        else {
+
+        }
     };
 
 
@@ -7035,14 +7109,14 @@
         }, this, []);
     };
     CTimeNodeContainer.prototype["asc_putSubtype"] = CTimeNodeContainer.prototype.asc_putSubtype;
-    CTimeNodeContainer.prototype.asc_getTriggerClickSequence = function(v) {
+    CTimeNodeContainer.prototype.asc_getTriggerClickSequence = function() {
         return true;
     };
     CTimeNodeContainer.prototype["asc_getTriggerClickSequence"] = CTimeNodeContainer.prototype.asc_getTriggerClickSequence;
     CTimeNodeContainer.prototype.asc_putTriggerClickSequence = function(v) {
 
     };
-    CTimeNodeContainer.prototype.asc_getTriggerObjectClick = function(v) {
+    CTimeNodeContainer.prototype.asc_getTriggerObjectClick = function() {
         return null;
     };
     CTimeNodeContainer.prototype["asc_getTriggerObjectClick"] = CTimeNodeContainer.prototype.asc_getTriggerObjectClick;
