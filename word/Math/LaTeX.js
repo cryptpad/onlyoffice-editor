@@ -42,23 +42,178 @@ var DEGREE_SUPERSCRIPT      	=  1;
 var DEGREE_SUBSCRIPT        	= -1;
 var DEGREE_SubSup           	=  1;
 
+function EquationProcessing(str, array, index, ParaMath, Parent) {
+	this.str = str;
+	this.ArrayOfAtoms = array;
+	this.IndexOfArray = index;
+	this.ParaMath = ParaMath;
+	this.Parent = Parent;
+};
+EquationProcessing.prototype.GetNextUnicode = function() {
+	this.IndexOfArray++;
+	return this.ArrayOfAtoms[this.IndexOfArray - 1]
+};
+EquationProcessing.prototype.CheckUnicodeFutureAtom = function(n) {
+	if (n === undefined) {
+		n = this.IndexOfArray
+	}
+	return this.ArrayOfAtoms[n]
+};
+EquationProcessing.prototype.BracetSyntaxChecker = function(index) {
+	var Obj = {
+		Script : [],
+		index : index,
+		symbol: null,
+	};
+
+	Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
+	Obj.index++;
+
+	if (Obj.symbol == '^' || Obj.symbol == '_') {
+		Obj.Script.push(Obj.symbol);
+
+		//скобка или символы
+		Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
+		Obj.Script.push(Obj.symbol == '(' || Obj.symbol == '{' ? '(' : '1');
+		Obj.symbol = false;
+		
+		//Скобка с данными
+		if (Obj.Script[Obj.Script.length - 1] == '(') {
+			Obj.symbol = this.CheckAfterBracet(Obj);
+		} else {
+			Obj.index++;
+			Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
+		}
+		
+		//После скобки новый элемент
+		if (Obj.symbol!==false && Obj.symbol!== undefined && Obj.Script[0] == '^' ? (Obj.symbol == '_') : (Obj.symbol == '^')) {
+			Obj.Script.push(Obj.symbol);
+			//скобка или элемент
+			Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index + 1);
+			Obj.Script.push(Obj.symbol == '(' || Obj.symbol == '{' ? '(' : '1');
+		}
+	}
+	return Obj.Script;
+};
+EquationProcessing.prototype.CheckAfterBracet = function(Obj) {
+	var one = this.CheckUnicodeFutureAtom(Obj.index);
+
+	if ( one == '(' || one == '{') {
+		var atom;
+		
+		do {
+			atom = this.CheckUnicodeFutureAtom(Obj.index);
+			Obj.index++;
+		} while ((atom != ')' && atom != '}') && atom != undefined);
+
+		if (atom == ')' || atom == '}') {
+			return this.CheckUnicodeFutureAtom(Obj.index);
+		}
+		
+		else {
+			return false;
+		}
+	}
+};
+//Script
+EquationProcessing.prototype.AddScript = function(strAtom, FormArgument, Index) {
+	this.IndexOfArray = Index;
+	var type = this.GetTypeOfScript();
+	var Script = this.CreateScript(FormArgument, type);
+	this.FillScriptBase(Script, strAtom, type);
+};
+EquationProcessing.prototype.GetTypeANDScript = function(type) {
+	if (type[0] == '^' && type[2] == '_') {
+		return 'SUP_SUB'
+	}
+	else if (type[0] == '_' && type[2] == '^') {
+		return 'SUB_SUP'
+	}
+};
+EquationProcessing.prototype.GetTypeOrScript = function(type) {
+	if (type[0] == '^') {
+		return 'DEGREE_SUPERSCRIPT'
+	}
+	else if (type[0] == '_') {
+		return 'DEGREE_SUBSCRIPT'
+	}
+};
+EquationProcessing.prototype.GetTypeOfScript = function() {
+	var type = this.BracetSyntaxChecker(this.IndexOfArray);
+
+	if (type.length == 2) {
+		return this.GetTypeOrScript(type);
+	}
+	else if (type.length == 4) {
+		return this.GetTypeANDScript(type);
+	}
+};
+EquationProcessing.prototype.CreateScript = function(FormArgument, type) {
+	var Pr = {};
+	var isBothDegreeAndIndex = false;
+
+	if (type == 'DEGREE_SUPERSCRIPT') {
+		Pr.type = DEGREE_SUPERSCRIPT;
+	}
+
+	else if (type == 'DEGREE_SUBSCRIPT') {
+		Pr.type = DEGREE_SUBSCRIPT;
+	}
+	
+	else if (type == 'SUB_SUP' || type == 'SUP_SUB') {
+		isBothDegreeAndIndex = true;
+		Pr.type = DEGREE_SubSup;
+	}
+
+	var Script = FormArgument.Add_Script(isBothDegreeAndIndex, Pr, null, null, null);
+	return Script;
+};
+EquationProcessing.prototype.FillScriptBase = function(Script, name, typeOfScript) {
+	Script.getBase().Add_Text(name, this.ParaMath.Paragraph);
+	this.FillScriptContent(Script, typeOfScript);
+};
+EquationProcessing.prototype.FillScriptContent = function(Script, typeOfScript) {
+	if (typeOfScript == 'DEGREE_SUPERSCRIPT') {
+		this.FillScriptContentWriteSub(Script);
+	}
+	else if (typeOfScript == 'DEGREE_SUBSCRIPT') {
+		this.FillScriptContentWriteSup(Script);
+	}
+	else if (typeOfScript == 'SUB_SUP') {
+		this.FillScriptContentWriteSub(Script);
+		this.FillScriptContentWriteSup(Script);
+	}
+	else if (typeOfScript == 'SUP_SUB') {
+		this.FillScriptContentWriteSup(Script);
+		this.FillScriptContentWriteSub(Script);
+	}
+};
+EquationProcessing.prototype.FillScriptContentWriteSup = function(Script) {
+	var Iterator = Script.getUpperIterator();
+	this.Parent.StartLexer(Iterator);
+};
+EquationProcessing.prototype.FillScriptContentWriteSub = function(Script) {
+	var Iterator = Script.getLowerIterator();
+	this.Parent.StartLexer(Iterator);
+};
+
+
 function CLaTeXParser(props, str) {
 	this.str = str;
 	this.indexOfAtom = 0;
 	this.arrAtomsOfFormula = [];
 	this.Pr = { ctrPrp: new CTextPr() };
 	this.ParaMath = props;
-	this.Paragraph = props.Paragraph;
-	this.Root = props.Root;
 	this.isError = false;
 	this.isInMatrix = false;
 };
 CLaTeXParser.prototype.prepare = function() {
+	this.Processing = new EquationProcessing(this.str, this.arrAtomsOfFormula, this.indexOfAtom, this.ParaMath, this);
 	var t0 = performance.now();
-	CLaTeXLexer(this, this.Root);
+	CLaTeXLexer(this, this.ParaMath.Root);
 	var t1 = performance.now();
 	console.log("Lexer work " + (t1 - t0) + " milliseconds.");
-	this.Root.Correct_Content(true);
+	this.ParaMath.Root.Correct_Content(true);
 };
 CLaTeXParser.prototype.arrLaTeXSymbols = new Map([
 	["\\Alpha", 0x0391],
@@ -831,7 +986,7 @@ CLaTeXParser.prototype.GetError = function (rule) {
 	}
 
 	console.error(rule, '\nПримерное место ошибки:', "..."+str+"...");
-	this.Root.Remove_Content(0, this.Root.Content.length);
+	this.ParaMath.Root.Remove_Content(0, this.ParaMath.Root.Content.length);
 	this.isError = true;
 }
 CLaTeXParser.prototype.CheckIsStrFAtomUndefined = function(strFAtom) {
@@ -943,7 +1098,7 @@ CLaTeXParser.prototype.CreateLimit = function (FormArgument, typeOfBottom) {
 	return Limit;
 };
 CLaTeXParser.prototype.FillLimitContent = function(Limit, typeOfLimit) {
-	Limit.getFName().Add_Text(typeOfLimit, this.Paragraph, STY_PLAIN);
+	Limit.getFName().Add_Text(typeOfLimit, this.ParaMath.Paragraph, STY_PLAIN);
 	this.StartLexer(Limit.getIterator());
 };
 var GetTypeOfIndexLimit = {
@@ -976,7 +1131,7 @@ CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 			this.StartLexer(Function.getArgument());
 		}
 		else {
-			Function.getFName().Add_Text(strName, this.Paragraph);
+			Function.getFName().Add_Text(strName, this.ParaMath.Paragraph);
 			this.StartLexer(Function.getArgument());
 		}
 	}
@@ -987,7 +1142,7 @@ CLaTeXParser.prototype.AddFunction = function (FormArgument, strFAtom) {
 	}
 
 	else if (typeOfFunction === 3) {
-		Function.getFName().Add_Text(strFAtom, this.Paragraph);
+		Function.getFName().Add_Text(strFAtom, this.ParaMath.Paragraph);
 		this.StartLexer(Function.getArgument());
 	}
 };
@@ -1025,96 +1180,12 @@ CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom, isDegreeOrIn
 	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
 		return
 	}
-
-	this.CheckScriptErrorsLexer();
-
-	var typeOfScript = this.GetTypeOfScript(isDegreeOrIndex, isDegreeAndIndex);
-	var Script = this.CreateScript(FormArgument, typeOfScript);
-	this.FillScriptBase(Script, strFAtom, typeOfScript);
-};
-CLaTeXParser.prototype.GetTypeOfANDScript = function(index) {
-	return this.CheckSyntax(
-		[['_', 1, '^', 1], 'SUB_SUP', index],
-		[['^', 1, '_', 1], 'SUP_SUB', index],
-		[['_', 1, '^', 1], 'SUB_SUP', index],
-		[['^', 1, '_', 1], 'SUP_SUB', index]
-	);
-};
-CLaTeXParser.prototype.GetTypeOfOrScript = function(index) {
-	return this.CheckSyntax(
-		[['_'], 'DEGREE_SUBSCRIPT', index],
-		[['^'], 'DEGREE_SUPERSCRIPT', index]
-	);
-};
-CLaTeXParser.prototype.CreateScript = function(FormArgument, type) {
-	var isBothDegreeAndIndex = false;
-
-	if (type == 'DEGREE_SUPERSCRIPT') {
-		this.Pr.type = DEGREE_SUPERSCRIPT;
-	}
-
-	else if (type == 'DEGREE_SUBSCRIPT') {
-		this.Pr.type = DEGREE_SUBSCRIPT;
-	}
-	
-	else if (type == 'SUB_SUP' || type == 'SUP_SUB') {
-		isBothDegreeAndIndex = true;
-		this.Pr.type = DEGREE_SubSup;
-	}
-
-	var Script = FormArgument.Add_Script(isBothDegreeAndIndex, this.Pr, null, null, null);
-	return Script;
-};
-CLaTeXParser.prototype.FillScriptBase = function(Script, name, typeOfScript) {
-	this.AddSymbol(name, Script.getBase());
-	this.FillScriptContent(Script, typeOfScript);
-};
-CLaTeXParser.prototype.FillScriptContent = function(Script, typeOfScript) {
-	if (typeOfScript == 'DEGREE_SUPERSCRIPT') {
-		this.FillScriptContentWriteSub(Script);
-	}
-	else if (typeOfScript == 'DEGREE_SUBSCRIPT') {
-		this.FillScriptContentWriteSup(Script);
-	}
-	else if (typeOfScript == 'SUB_SUP') {
-		this.FillScriptContentWriteSub(Script);
-		this.FillScriptContentWriteSup(Script);
-	}
-	else if (typeOfScript == 'SUP_SUB') {
-		this.FillScriptContentWriteSup(Script);
-		this.FillScriptContentWriteSub(Script);
-	}
-};
-CLaTeXParser.prototype.FillScriptContentWriteSup = function(Script) {
-	var Iterator = Script.getUpperIterator();
-	this.StartLexer(Iterator);
-};
-CLaTeXParser.prototype.FillScriptContentWriteSub = function(Script) {
-	var Iterator = Script.getLowerIterator();
-	this.StartLexer(Iterator);
-};
-CLaTeXParser.prototype.GetTypeOfScript = function(isOr, isAnd, index) {
-	var type;
-	if (isAnd) {
-		type = this.GetTypeOfANDScript(index);
-	} else if (isOr) {
-		type = this.GetTypeOfOrScript(index);
-	}
-	return type
+	this.Processing.AddScript(strFAtom, FormArgument, this.indexOfAtom);
 };
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
 	return (
 		this.CheckIsDegreeAndIndex() || this.CheckIsDegreeOrIndex()
 	);
-};
-CLaTeXParser.prototype.CheckScriptErrorsLexer = function () {
-	if (!(this.CheckSyntaxSequence(["_", "{", "^", "{"]) ||
-		this.CheckSyntaxSequence(["^", "{", "_", "{"]) || 
-		this.CheckSyntaxSequence(["^", "{"], '_') ||
-		this.CheckSyntaxSequence(["_", "{"], '^'))
-	) {
-		this.GetError('Проблема с индексом или степенью: ^{}, _{}, ^{}_{}')
-	}
 };
 //Radical
 CLaTeXParser.prototype.AddRadical = function (FormArgument) {
@@ -1817,7 +1888,7 @@ CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type, typeT
 		} else {
 			
 			if (strFAtom.length > 1) {
-				FormArgument.Add_Text(strFAtom, this.Paragraph, {brk: true});
+				FormArgument.Add_Text(strFAtom, this.ParaMath.Paragraph, {brk: true});
 			} 
 			
 			else {
@@ -1840,7 +1911,7 @@ CLaTeXParser.prototype.AddSymbol = function (strFAtom, FormArgument, type, typeT
 		}
 
 		else if (strFAtom.length > 1) {
-			FormArgument.Add_Text(strFAtom, this.Paragraph);
+			FormArgument.Add_Text(strFAtom, this.ParaMath.Paragraph);
 		}
 		else {
 			FormArgument.Add_Symbol(strFAtom.charCodeAt(0), this.Pr);
@@ -3025,14 +3096,13 @@ ToLaTex.prototype.GetCode = new Map([
 	[0x2265, '\>='],
 	[0x226B, '\>>']
 ]);
+
 function CUnicodeParser(str, props) {
 	this.str = str;
 	this.ArrayOfAtoms = [];
 	this.IndexOfArray = 0;
-	this.Root = props.Root;
 	this.ParaMath = props;
-	this.Pr = { ctrPrp: new CTextPr() };
-	this.Paragraph = props.Paragraph;
+	this.Processing;
 };
 CUnicodeParser.prototype.parser = function() {
 	var strTempWord = "";
@@ -3090,143 +3160,14 @@ CUnicodeParser.prototype.CheckUnicodeFutureAtom = function(n) {
 };
 CUnicodeParser.prototype.Start = function() {
 	this.parser();
+	this.Processing = new EquationProcessing(this.str, this.ArrayOfAtoms, this.IndexOfArray, this.ParaMath.Paragraph, this);
+
 	console.log(this.ArrayOfAtoms);
-	CUnicodeLexer(this, this.Root);
-	this.Root.Correct_Content(true);
-};
-CUnicodeParser.prototype.BracetSyntaxChecker = function(index) {
-	var Obj = {
-		Script : [],
-		index : index,
-		symbol: null,
-	};
 
-	Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
-	Obj.index++;
-
-	if (Obj.symbol == '^' || Obj.symbol == '_') {
-		Obj.Script.push(Obj.symbol);
-
-		//скобка или символы
-		Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
-		Obj.Script.push(Obj.symbol == '(' ? '(' : '1');
-		Obj.symbol = false;
-		
-		//Скобка с данными
-		if (Obj.Script[Obj.Script.length - 1] == '(') {
-			Obj.symbol = this.CheckAfterBracet(Obj);
-		} else {
-			Obj.index++;
-			Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index);
-		}
-		
-		//После скобки новый элемент
-		if (Obj.symbol!==false && Obj.symbol!== undefined && Obj.Script[0] == '^' ? (Obj.symbol == '_') : (Obj.symbol == '^')) {
-			Obj.Script.push(Obj.symbol);
-			Obj.symbol = this.CheckUnicodeFutureAtom(Obj.index + 1);
-			Obj.Script.push(Obj.symbol == '(' ? '(' : '1');
-		}
-	}
-	return Obj.Script;
+	CUnicodeLexer(this, this.ParaMath.Root);
+	this.ParaMath.Root.Correct_Content(true);
 };
-CUnicodeParser.prototype.CheckAfterBracet = function(Obj) {
-	var one = this.CheckUnicodeFutureAtom(Obj.index)
-	if ( one == '(') {
-		var atom;
-		
-		do {
-			atom = this.CheckUnicodeFutureAtom(Obj.index);
-			Obj.index++;
-		} while (atom != ')' && atom != undefined);
-
-		if (atom == ')') {
-			return this.CheckUnicodeFutureAtom(Obj.index);
-		}
-		
-		else {
-			return false;
-		}
-	}
-};
-CUnicodeParser.prototype.AddScript = function(strAtom, FormArgument) {
-	var type = this.GetTypeOfScript();
-	var Script = this.CreateScript(FormArgument, type);
-	this.FillScriptBase(Script, strAtom, type);
-};
-CUnicodeParser.prototype.GetTypeOfANDScript = function(type) {
-	if (type[0] == '^' && type[2] == '_') {
-		return 'SUP_SUB'
-	}
-	else if (type[0] == '_' && type[2] == '^') {
-		return 'SUB_SUP'
-	}
-};
-CUnicodeParser.prototype.GetTypeOfOrScript = function(type) {
-	if (type[0] == '^') {
-		return 'DEGREE_SUPERSCRIPT'
-	}
-	else if (type[0] == '_') {
-		return 'DEGREE_SUBSCRIPT'
-	}
-};
-CUnicodeParser.prototype.GetTypeOfScript = function() {
-	var type = this.BracetSyntaxChecker(this.IndexOfArray);
-
-	if (type.length == 2) {
-		return this.GetTypeOfOrScript(type);
-	}
-	else if (type.length == 4) {
-		return this.GetTypeOfANDScript(type);
-	}
-};
-CUnicodeParser.prototype.CreateScript = function(FormArgument, type) {
-	var isBothDegreeAndIndex = false;
-
-	if (type == 'DEGREE_SUPERSCRIPT') {
-		this.Pr.type = DEGREE_SUPERSCRIPT;
-	}
-
-	else if (type == 'DEGREE_SUBSCRIPT') {
-		this.Pr.type = DEGREE_SUBSCRIPT;
-	}
-	
-	else if (type == 'SUB_SUP' || type == 'SUP_SUB') {
-		isBothDegreeAndIndex = true;
-		this.Pr.type = DEGREE_SubSup;
-	}
-
-	var Script = FormArgument.Add_Script(isBothDegreeAndIndex, this.Pr, null, null, null);
-	return Script;
-};
-CUnicodeParser.prototype.FillScriptBase = function(Script, name, typeOfScript) {
-	Script.getBase().Add_Text(name, this.Paragraph);
-	this.FillScriptContent(Script, typeOfScript);
-};
-CUnicodeParser.prototype.FillScriptContent = function(Script, typeOfScript) {
-	if (typeOfScript == 'DEGREE_SUPERSCRIPT') {
-		this.FillScriptContentWriteSub(Script);
-	}
-	else if (typeOfScript == 'DEGREE_SUBSCRIPT') {
-		this.FillScriptContentWriteSup(Script);
-	}
-	else if (typeOfScript == 'SUB_SUP') {
-		this.FillScriptContentWriteSub(Script);
-		this.FillScriptContentWriteSup(Script);
-	}
-	else if (typeOfScript == 'SUP_SUB') {
-		this.FillScriptContentWriteSup(Script);
-		this.FillScriptContentWriteSub(Script);
-	}
-};
-CUnicodeParser.prototype.FillScriptContentWriteSup = function(Script) {
-	var Iterator = Script.getUpperIterator();
-	this.StartUnicodeLexer(Iterator);
-};
-CUnicodeParser.prototype.FillScriptContentWriteSub = function(Script) {
-	var Iterator = Script.getLowerIterator();
-	this.StartUnicodeLexer(Iterator);
-};
-CUnicodeParser.prototype.StartUnicodeLexer = function(Context, arrSymbol) {
+CUnicodeParser.prototype.StartLexer = function(Context, arrSymbol) {
 	var strAtom = this.CheckUnicodeFutureAtom();
 
 	if (strAtom == '^' || strAtom == '_') {
@@ -3276,7 +3217,7 @@ function CUnicodeLexer(Parser, FormArgument, exitIfSee) {
 		}
 
 		if (future == '^' || future == '_' && exitIfSee != 1) {
-			Parser.AddScript(atom, FormArgument);
+			Parser.Processing.AddScript(atom, FormArgument, Parser.IndexOfArray);
 			countOfPushedAtoms++;
 		}
 
