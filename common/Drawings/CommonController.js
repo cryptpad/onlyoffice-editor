@@ -7109,23 +7109,11 @@ DrawingObjectsController.prototype =
     getBoundsForGroup: function(arrDrawings)
     {
         var bounds = arrDrawings[0].getBoundsInGroup();
-        var max_x = bounds.r;
-        var max_y = bounds.b;
-        var min_x = bounds.l;
-        var min_y = bounds.t;
         for(var i = 1; i < arrDrawings.length; ++i)
         {
-            bounds = arrDrawings[i].getBoundsInGroup();
-            if(max_x < bounds.r)
-                max_x = bounds.r;
-            if(max_y < bounds.b)
-                max_y = bounds.b;
-            if(min_x > bounds.l)
-                min_x = bounds.l;
-            if(min_y > bounds.t)
-                min_y = bounds.t;
+            bounds.checkByOther(arrDrawings[i].getBoundsInGroup());
         }
-        return new AscFormat.CGraphicBounds(min_x, min_y, max_x, max_y);
+        return bounds;
     },
 
 
