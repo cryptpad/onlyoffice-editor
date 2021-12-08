@@ -1658,7 +1658,10 @@ DrawingObjectsController.prototype =
         {
             if(this.isObjectsProtected() && object.getProtectionLocked())
             {
-                return {objectId: (group || object).Get_Id(), cursorType: "default", bMarker: bInSelect};
+                if(object.getObjectType() !== AscDFH.historyitem_type_Shape || object.getProtectionLockText())
+                {
+                    return {objectId: (group || object).Get_Id(), cursorType: "default", bMarker: bInSelect};
+                }
             }
             var selector = group ? group : this;
             this.checkChartTextSelection();
