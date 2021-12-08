@@ -1494,9 +1494,6 @@ CDocumentContent.prototype.Draw                           = function(nPageIndex,
         pGraphics.RestoreGrState();
     }
 
-	if (this.LogicDocument)
-		this.LogicDocument.DrawingObjects.drawBeforeObjectsByContent(this.Get_AbsolutePage(CurPage), pGraphics, this);
-
     if (pGraphics.End_Command)
     {
         pGraphics.End_Command();
