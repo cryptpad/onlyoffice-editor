@@ -234,6 +234,7 @@
 
 	window['AscFormat'].CBlipFill.prototype.fromXml = function(reader)
 	{
+		var context = reader.context;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("blip" === reader.GetNameNoNS()) {
@@ -242,12 +243,11 @@
 						var rId = reader.GetValue();
 						var rel = reader.rels.getRelationship(rId);
 						if ("Internal" === rel.targetMode) {
-							var path = rel.targetFullName.substring(1);
-							var data = reader.GetContext().zip.files[path].sync('uint8array');
-							var blob = new Blob([data], {type: "image/png"});
-							var url = window.URL.createObjectURL(blob);
-							AscCommon.g_oDocumentUrls.addImageUrl(path, url);
-							AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, this);
+							var blipFills = context.imageMap[rel.targetFullName.substring(1)];
+							if (!blipFills) {
+								context.imageMap[rel.targetFullName.substring(1)] = blipFills = [];
+							}
+							blipFills.push(this);
 						}
 					}
 				}
@@ -257,13 +257,23 @@
 	window['AscFormat'].CBlipFill.prototype.toXml = function(writer, name)
 	{
 		var context = writer.context;
+		var imagePart = context.imageMap[this.RasterImageId];
+		if (!imagePart) {
+			var ext = AscCommon.GetFileExtension(this.RasterImageId);
+			var type = context.editorId === AscCommon.c_oEditorId.Word? AscCommon.openXml.Types.imageWord : AscCommon.openXml.Types.image;
+			type = Object.assign({}, type);
+			type.filename += ext;
+			type.contentType = openXml.GetMimeType(ext);
+			imagePart = context.part.addPart(type);
+			context.imageMap[this.RasterImageId] = imagePart;
+		}
+
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 
 		writer.WriteXmlNodeStart("a:blip");
 		writer.WriteXmlString(' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
-		var rId = context.part.addRelationship(AscCommon.openXml.Types.image.relationType, "https://static.tildacdn.com/tild6433-3065-4530-b337-313461393462/-PClxnhCxUk.jpg", openXml.TargetMode.external);
-		writer.WriteXmlAttributeString("r:embed", rId);
+		writer.WriteXmlAttributeString("r:embed", imagePart.rId);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlString('<a:extLst><a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/></a:ext></a:extLst>');
 		writer.WriteXmlNodeEnd("a:blip");

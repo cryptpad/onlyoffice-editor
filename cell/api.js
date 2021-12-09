@@ -1159,12 +1159,14 @@ var editor;
       oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
       dataContainer.data = last.data;
     } else {
-		var data = this.wbModel.toZip();
-		var blob = new Blob([data], {type: openXml.MimeTypes["xlsx"]});
-		var link = document.createElement("a");
-		link.href = window.URL.createObjectURL(blob);
-		link.download = this.documentTitle;
-		link.click();
+		var title = this.documentTitle;
+		this.saveDocumentToZip(this.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
+			var blob = new Blob([data], {type: openXml.GetMimeType("xlsx")});
+			var link = document.createElement("a");
+			link.href = window.URL.createObjectURL(blob);
+			link.download = title;
+			link.click();
+		});
 		return;
 
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
@@ -1515,12 +1517,11 @@ var editor;
 		if (window['OPEN_IN_BROWSER']) {
 			wb.init([], [], {});
 		}
-		wb.initPostOpenZip(pivotCaches);
+		wb.initPostOpenZip(pivotCaches, xmlParserContext);
 		jsZipWrapper.close();
 		//clean up
 		openXml.SaxParserDataTransfer = {};
 		Asc.ReadDefTableStyles(wb);
-		wb.initPostOpenZip(pivotCaches);
 		return true;
 	};
 

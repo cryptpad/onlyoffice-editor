@@ -2115,6 +2115,31 @@
 	baseEditorsApi.prototype.openDocumentFromZip  = function()
 	{
 	};
+	baseEditorsApi.prototype.saveDocumentToZip  = function(model, editorType, callback)
+	{
+		var context = new XmlWriterContext(editorType);
+		var jsZipWrapper = new AscCommon.JSZipWrapper();
+		jsZipWrapper.create();
+		model.toZip(jsZipWrapper, context);
+		var imageMapKeys = Object.keys(context.imageMap);
+		var downloadImages = function (imageMapKeys) {
+			if (imageMapKeys.length > 0) {
+				var elem = imageMapKeys.pop();
+				var url = AscCommon.g_oDocumentUrls.getImageUrl(elem);
+				AscCommon.loadFileContent(url, function (httpRequest) {
+					if (httpRequest && httpRequest.response) {
+						context.imageMap[elem].part.setData(httpRequest.response);
+					}
+					downloadImages(imageMapKeys);
+				}, "arraybuffer");
+			} else {
+				var data = jsZipWrapper.save();
+				jsZipWrapper.close();
+				callback(data);
+			}
+		};
+		downloadImages(imageMapKeys);
+	};
 	baseEditorsApi.prototype.onEndLoadDocInfo = function()
 	{
 		if (this.isLoadFullApi && this.DocInfo)

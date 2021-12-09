@@ -161,7 +161,7 @@
 			this.Overrides[partName] = contentType;
 		}
 		if (!this.Defaults[ext]) {
-			var mime = openXml.MimeTypes[ext];
+			var mime = openXml.GetMimeType(ext);
 			this.Defaults[ext] = mime;
 		}
 		return res;
@@ -250,10 +250,10 @@
 			return type.filename;
 		} else {
 			var nextIndex = 1;
-			if (!this.fileNameIndexes[type.contentType]) {
-				this.fileNameIndexes[type.contentType] = nextIndex + 1;
+			if (!this.fileNameIndexes[type.relationType]) {
+				this.fileNameIndexes[type.relationType] = nextIndex + 1;
 			} else {
-				nextIndex = this.fileNameIndexes[type.contentType]++;
+				nextIndex = this.fileNameIndexes[type.relationType]++;
 			}
 			return type.filename.replace(/\[N\]/g, nextIndex.toString());
 		}
@@ -647,6 +647,9 @@
 		"vsd": "application/vnd.visio",
 		"vsdx": "application/vnd.ms-visio.drawing"
 	};
+	openXml.GetMimeType = function(ext) {
+		return openXml.MimeTypes[ext] || "application/octet-stream";
+	};
 	/******************************** OpenXmlRelationship ********************************/
 	openXml.Types = {
 		calculationChain: {dir: "", filename: "calcChain.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.calcChain+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/calcChain"},
@@ -740,15 +743,16 @@
 		person: {dir: "../persons", filename: "person.xml", contentType: "application/vnd.ms-excel.person+xml", relationType: "http://schemas.microsoft.com/office/2017/10/relationships/person"},
 		ctrlProp: {dir: "../ctrlProps", filename: "ctrlProp[N].xml", contentType: "application/vnd.ms-excel.controlproperties+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/ctrlProp"},
 		slicer: {dir: "../namedSheetViews", filename: "namedSheetView[N].xml", contentType: "application/vnd.ms-excel.namedsheetviews+xml", relationType: "http://schemas.microsoft.com/office/2019/04/relationships/namedSheetView"},
-		workbookComment: {dir: "", filename: "workbookComments.bin", contentType: "", relationType: "http://schemas.onlyoffice.com/workbookComments"},
+		workbookComment: {dir: "", filename: "workbookComments.bin", contentType: "application/octet-stream", relationType: "http://schemas.onlyoffice.com/workbookComments"},
 
 		//todo
-		image: {dir: "../media", filename: "image[N].jpeg", contentType: "", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"},
+		image: {dir: "../media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"},
+		imageWord: {dir: "media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"}
 	};
 	openXml.TargetMode = {
 		internal: "Internal",
 		external: "External"
-	}
+	};
 
 	window.openXml = openXml;
 	//----------------------------------------------------------export----------------------------------------------------

@@ -1504,6 +1504,7 @@ StaxParser.prototype.GetContext = function() {
 function XmlParserContext(){
     //common
     this.zip = null;
+    this.imageMap = {};
     //docx
     //xlsx
     this.sharedStrings = [];
@@ -1520,10 +1521,12 @@ XmlParserContext.prototype.initFromWS = function(ws) {
     this.cellBase = new AscCommon.CellBase(0,0);
     this.drawingId = null;
 };
-function XmlWriterContext(){
+function XmlWriterContext(editorId){
     //common
+    this.editorId = editorId;
     this.zip = null;
     this.part = null;
+    this.imageMap = {};
     //docx
     //xlsx
     this.wb = null;

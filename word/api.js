@@ -8364,12 +8364,14 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
-			var data = this.WordControl.m_oLogicDocument.toZip();
-			var blob = new Blob([data], {type: openXml.MimeTypes["docx"]});
-			var link = document.createElement("a");
-			link.href = window.URL.createObjectURL(blob);
-			link.download = this.documentTitle;
-			link.click();
+			var title = this.documentTitle;
+			this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Word, function(data) {
+				var blob = new Blob([data], {type: openXml.GetMimeType("docx")});
+				var link = document.createElement("a");
+				link.href = window.URL.createObjectURL(blob);
+				link.download = title;
+				link.click();
+			});
 			return;
 
 			if (options.advancedOptions instanceof Asc.asc_CTextOptions)

@@ -2083,11 +2083,25 @@
 			this.snapshot = this._getSnapshot();
 		}
 	};
-	Workbook.prototype.initPostOpenZip=function(pivotCaches){
+	Workbook.prototype.initPostOpenZip=function(pivotCaches, xmlParserContext){
 		var t = this;
 		this.forEach(function (ws) {
 			ws.initPostOpenZip(pivotCaches, t.oNumFmtsOpen);
 		});
+		if (xmlParserContext) {
+			var context = xmlParserContext;
+			for (var path in context.imageMap) {
+				if (context.imageMap.hasOwnProperty(path)) {
+					var data = context.zip.files[path].sync('uint8array');
+					var blob = new Blob([data], {type: "image/png"});
+					var url = window.URL.createObjectURL(blob);
+					AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+					context.imageMap[path].forEach(function(blipFill) {
+						AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
+					});
+				}
+			}
+		}
 	};
 	Workbook.prototype.setCommonIndexObjectsFrom = function(wb) {
 		this.oStyleManager = wb.oStyleManager;
