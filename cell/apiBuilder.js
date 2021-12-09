@@ -241,9 +241,11 @@
 	 * Class representing the areas.
 	 * @constructor
 	 * @property {number} Count - Returns a value that represents the number of objects in the collection.
+	 * @property {ApiRange} Parent - Returns the parent object for the specified object.
 	 */
-	function ApiAreas(items) {
+	function ApiAreas(items, parent) {
 		this.Items = [];
+		this._parent = parent;
 		for (var i = 0; i < items.length; i++) {
 			this.Items.push(new ApiRange(items[i]));
 		}
@@ -2747,7 +2749,7 @@
 	 * @return {ApiAreas}
 	 */
 	ApiRange.prototype.GetAreas = function() {
-		return new ApiAreas(this.areas || [this.range]);
+		return new ApiAreas(this.areas || [this.range], this);
 	};
 	Object.defineProperty(ApiRange.prototype, "Areas", {
 		get: function () {
@@ -3394,6 +3396,21 @@
 		return this.Items[ind - 1] || null;
 	};
 
+	/**
+	 * Returns a value that represents the number of objects in the collection.
+	 * @memberof ApiAreas
+	 * @typeofeditors ["CSE"]
+	 * @returns {number}
+	 */
+	 ApiAreas.prototype.GetParent = function () {
+		return this._parent;
+	};
+	Object.defineProperty(ApiAreas.prototype, "Parent", {
+		get: function () {
+			return this.GetParent();
+		}
+	});
+
 	Api.prototype["Format"]                = Api.prototype.Format;
 	Api.prototype["AddSheet"]              = Api.prototype.AddSheet;
 	Api.prototype["GetSheets"]             = Api.prototype.GetSheets;
@@ -3570,6 +3587,7 @@
 
 	ApiAreas.prototype["GetCount"]               = ApiAreas.prototype.GetCount;
 	ApiAreas.prototype["GetItem"]                = ApiAreas.prototype.GetItem;
+	ApiAreas.prototype["GetParent"]              = ApiAreas.prototype.GetParent;
 
 
 	function private_SetCoords(oDrawing, oWorksheet, nExtX, nExtY, nFromCol, nColOffset,  nFromRow, nRowOffset, pos){
