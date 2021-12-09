@@ -1264,6 +1264,13 @@
         }
         return false;
     };
+    CTimeNodeBase.prototype.isInteractiveSeq = function(sSpId) {
+        var oAttr = this.getAttributesObject();
+        if(this.getNodeType() === NODE_TYPE_INTERACTIVESEQ && this.isAdvancedByShapeClick(sSpId)) {
+            return true;
+        }
+        return false;
+    };
     CTimeNodeBase.prototype.traverseTimeNodes = function(fCallback) {
         fCallback(this);
         var aChildren = this.getChildrenTimeNodes();
@@ -1607,6 +1614,13 @@
     };
     CTimeNodeBase.prototype.getNextEffect = function() {
         return this.getNeighbourEffect(false);
+    };
+    CTimeNodeBase.prototype.isAdvancedByShapeClick = function(sSpId) {
+        if(this.stCondLst && this.nextCondLst && 
+            this.stCondLst.isSpClick(sSpId) && this.nextCondLst.isSpClick(sSpId)) {
+                return true;
+        }
+        return false;
     };
 
     function CAnimationTime(val) {
@@ -2093,6 +2107,60 @@
         }
         return oMainSeq;
     };
+    CTiming.prototype.checkInteractiveSequence = function(sObjectId) {
+        if(!this.tnLst) {
+            this.setTnLst(new CTnLst());
+        }
+        var oTnContainer, oCTn;
+        var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
+        if(!oTmRoot) {
+            //create timing root
+            oTnContainer = new CPar();
+            oCTn = this.createCCTn("indefinite", null, null, NODE_TYPE_TMROOT, RESTART_TYPE_NEVER, true);
+            oTnContainer.setCTn(oCTn);
+            this.tnLst.addToLst(0, oTnContainer);
+            oTmRoot = oTnContainer;
+        }
+        var aSeq = oTmRoot.getChildrenTimeNodes();
+        var oInteractiveSeq;
+        var oSeq;
+        for(var nSeq = 0; nSeq < aSeq.length; ++nSeq) {
+            oSeq = aSeq[nSeq];
+            if(oSeq.isInteractiveSeq(sObjectId)) {
+                oInteractiveSeq = oSeq;
+                break;
+            } 
+        }
+        if(!oInteractiveSeq) {
+            oTnContainer = new CSeq();
+            oTnContainer.setConcurrent(true);
+            oTnContainer.setNextAc(NEXT_AC_SEEK);
+            oCTn = this.createCCTn(null, NODE_FILL_HOLD, null, NODE_TYPE_INTERACTIVESEQ, RESTART_TYPE_WHEN_NOT_ACTIVE, true, null);
+            oTnContainer.setCTn(oCTn);
+            oCTn.setEvtFilter("cancelBubble");
+            var oStCondLst = new CCondLst();
+            var oCond = new CCond();
+            oCond.setEvt(COND_EVNT_ON_NEXT);
+            oCond.setDelay("0");
+            var oTgt = new CTgtEl();
+            var oSpTgt = new CSpTgt();
+            oSpTgt.setSpid(sObjectId);
+            oTgt.setSpTgt(oSpTgt);
+            oCond.setTgtEl(oTgt);
+            oStCondLst.addToLst(oCond);
+            oCTn.setStCondLst(oStCondLst);
+            var oNextCondLst = oStCondLst.createDuplicate();
+            oCTn.setNextCondLst(oNextCondLst);
+            var oEndSync = new CCond();
+            oEndSync.setEvt(COND_EVNT_END);
+            oEndSync.setDelay("0");
+            oEndSync.setRtn(RTN_ALL);
+            oCTn.setEndSync(oEndSync);
+            oTmRoot.pushToChildTnLst(oTnContainer);
+            oInteractiveSeq = oTnContainer;
+        }
+        return oInteractiveSeq;
+    };
     CTiming.prototype.getMainSequence = function() {
         var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
         if(!oTmRoot) {
@@ -2107,6 +2175,15 @@
         oPar3Lvl.pushToChildTnLst(oEffect);
         oPar2Lvl.pushToChildTnLst(oPar3Lvl);
         oMainSeq.pushToChildTnLst(oPar2Lvl);
+        this.updateNodesIDs();
+    };
+    CTiming.prototype.addToInteractiveSequence = function(oEffect, sObjectId) {
+        var oInteractiveSeq = this.checkInteractiveSequence(sObjectId);
+        var oPar2Lvl = this.createPar(NODE_FILL_HOLD, "0");
+        var oPar3Lvl = this.createPar(NODE_FILL_HOLD, "0");
+        oPar3Lvl.pushToChildTnLst(oEffect);
+        oPar2Lvl.pushToChildTnLst(oPar3Lvl);
+        oInteractiveSeq.pushToChildTnLst(oPar2Lvl);
         this.updateNodesIDs();
     };
     CTiming.prototype.addEffectToMainSequence = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace) {
@@ -2395,6 +2472,19 @@
             this.list[nCond].fillTrigger(oPlayer, oComplexTrigger)
         }
         return oComplexTrigger;
+    };
+    CCondLst.prototype.isSpClick = function(sSpId) {
+        if(this.list.length === 1) {
+            var oCond = this.list[0];
+            if(oCond) {
+                if(oCond.evt === COND_EVNT_ON_CLICK) {
+                    if(oCond.getTargetObjectId() === sSpId) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     };
 
     function CChildTnLst() {
@@ -4464,11 +4554,53 @@
         oEffectNode.getRoot().printTree();
     };
     CCTn.prototype.changeTrigger = function(v) {
+        var oEffect = this.parent;
+        if(!oEffect) {
+            return;
+        }
+        var oTiming = oEffect.getTiming();
+        if(!oTiming) {
+            return;
+        }
+        var aHierarchy = oEffect.getHierarchy();
+        
+        var oCurPar2Lvl, oCurPar3Lvl, oCurTopSeq;
+        oCurPar3Lvl = aHierarchy[3];
+        oCurPar2Lvl = aHierarchy[2];
+        oCurTopSeq = aHierarchy[1];
+        
+        if(!oCurTopSeq || !oCurPar2Lvl || !oCurPar3Lvl) {
+            return;
+        }
+        var nIdx3 = oCurPar3Lvl.getChildNodeIdx(oEffectNode);
         if(!v) {
-            //move to main sequence
+            //move to the main sequence
+            if(oCurTopSeq.isMainSequence()) {
+                //do nothing
+                return;
+            }
+            else {
+                oCurPar3Lvl.splice(nIdx3);
+                if(oCurPar3Lvl.getChildrenCount() === 0) {
+                    oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
+                }
+                oTiming.addToMainSequence(oEffect);
+            }
         }
         else {
-
+            //move to interactive seq with spId = v;
+            var sSpId = v;
+            if(oCurTopSeq.isInteractiveSeq(sSpId)) {
+                //do nothing
+                return;
+            }
+            else {
+                oCurPar3Lvl.splice(nIdx3);
+                if(oCurPar3Lvl.getChildrenCount() === 0) {
+                    oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
+                }
+                oTiming.addToInteractiveSequence(oEffect, sObjectId);
+            }
         }
     };
 
@@ -4511,6 +4643,10 @@
     EVENT_DESCR_MAP[COND_EVNT_ON_NEXT] = "ON_NEXT";
     EVENT_DESCR_MAP[COND_EVNT_ON_PREV] = "ON_PREV";
     EVENT_DESCR_MAP[COND_EVNT_ON_STOPAUDIO] = "ON_STOPAUDIO";
+
+    var RTN_ALL = 0;
+    var RTN_FIRST = 1;
+    var RTN_LAST = 2;
 
     function CCond() {
         CBaseAnimObject.call(this);
@@ -4719,6 +4855,12 @@
                 break;
             }
         }
+    };
+    CCond.prototype.getTargetObjectId = function() {
+        if(this.tgtEl) {
+            return this.tgtEl.getSpId();
+        }
+        return null;
     };
 
     changesFactory[AscDFH.historyitem_RtnVal] = CChangeLong;
@@ -6878,6 +7020,9 @@
     function CTimeNodeContainer() {//par, excl
         CTimeNodeBase.call(this);
         this.cTn = null;
+
+        this.triggerClickSequence = undefined;
+        this.triggerObjectClick = undefined;
     }
     InitClass(CTimeNodeContainer, CTimeNodeBase, AscDFH.historyitem_type_TimeNodeContainer);
     CTimeNodeContainer.prototype.setCTn = function(pr) {
@@ -7117,7 +7262,14 @@
     };
     CTimeNodeContainer.prototype["asc_putSubtype"] = CTimeNodeContainer.prototype.asc_putSubtype;
     CTimeNodeContainer.prototype.asc_getTriggerClickSequence = function() {
-        return true;
+        if(this.triggerClickSequence !== undefined) {
+            return this.triggerClickSequence;
+        }
+        if(Array.isArray(this.merged) && this.merged.length > 0) {
+            
+        }
+        this.triggerClickSequence = undefined;
+        this.triggerObjectClick = undefined;
     };
     CTimeNodeContainer.prototype["asc_getTriggerClickSequence"] = CTimeNodeContainer.prototype.asc_getTriggerClickSequence;
     CTimeNodeContainer.prototype.asc_putTriggerClickSequence = function(v) {
