@@ -4703,7 +4703,9 @@
 					break;
 				}
 				case para_NewLine:
-					SerParaNewLine(Item);
+					oRunObject["content"].push(sTempRunText);
+					oRunObject["content"].push(SerParaNewLine(Item));
+					sTempRunText = '';
 					break;
 				case para_Space:
 				{
@@ -6952,6 +6954,9 @@
 	};
 	WriterToJSON.prototype.SerChartColors = function(oChartColors)
 	{
+		if (!oChartColors)
+			return oChartColors;
+
 		var aItems = [];
 		for (var nItem = 0; nItem < oChartColors.items.length; nItem++)
 		{
@@ -9956,7 +9961,7 @@
 	};
 	ReaderFromJSON.prototype.NumPrFromJSON = function(oParsedNumPr, oParsedNumbering, oPrevNumIdInfo)
 	{
-		if (oPrevNumIdInfo.sPrevCreatedNumId)
+		if (oPrevNumIdInfo && oPrevNumIdInfo.sPrevCreatedNumId)
 		{
 			if (oParsedNumPr.numId === oPrevNumIdInfo.nNumId && oPrevNumIdInfo.sPrevCreatedNumId)
 			{
@@ -9965,13 +9970,19 @@
 		}
 		
 		// numbering
-		var sNumId  = this.NumberingFromJSON(oParsedNumbering); // тут создаем AbstrackNum и CNum 
+		var sNumId  = oParsedNumbering ? this.NumberingFromJSON(oParsedNumbering) : oParsedNumbering; // тут создаем AbstrackNum и CNum 
 		var nNumLvl = oParsedNumPr.ilvl;
 
-		oPrevNumIdInfo.sPrevCreatedNumId = sNumId;
-		oPrevNumIdInfo.nNumId            = oParsedNumPr.numId;
+		if (oPrevNumIdInfo)
+		{
+			oPrevNumIdInfo.sPrevCreatedNumId = sNumId;
+			oPrevNumIdInfo.nNumId            = oParsedNumPr.numId;
+		}
 
-		return new CNumPr(sNumId, nNumLvl);
+		var oNumPr = new CNumPr(sNumId, nNumLvl);
+		oNumPr.NumId = oPrevNumIdInfo ? oNumPr.NumId : undefined;
+
+		return oNumPr;
 	};
 	ReaderFromJSON.prototype.ParaSpacingFromJSON = function(oParsedSpacing)
 	{
@@ -10012,11 +10023,11 @@
 		var oAbstractNum = this.AbstractNumFromJSON(oParsedNumbering.abstractNum);
 		var oNum         = new CNum(private_GetLogicDocument().Numbering, oAbstractNum.GetId());
 		oNum             = this.CNumFromJSON(oNum, oParsedNumbering.num.lvlOverride);
-		var nNumId       = oNum.GetId();
+		var sNumId       = oNum.GetId();
 
-		oDocument.Numbering.Num[nNumId] = oNum;
+		oDocument.Numbering.Num[sNumId] = oNum;
 
-		return oNum;
+		return sNumId;
 	};
 	ReaderFromJSON.prototype.AbstractNumFromJSON = function(oParsedAbstrNum)
 	{
@@ -10253,8 +10264,16 @@
 
 		var oContentControl     = new AscCommonWord.CBlockLevelSdt(private_GetLogicDocument(), oParent || private_GetLogicDocument());
 		
-		oContentControl.Pr      = this.SdtPrFromJSON(oParsedSdt.sdtPr);
-		oContentControl.Content = this.DocContentFromJSON(oParsedSdt.sdtContent, oContentControl, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo);
+		oContentControl.SetContentControlPr(this.SdtPrFromJSON(oParsedSdt.sdtPr));
+		
+		var oDocContent = this.DocContentFromJSON(oParsedSdt.sdtContent, oContentControl, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo);
+
+		for (var nElm = 0; nElm < oDocContent.Content.length; nElm++)
+			oContentControl.Content.AddToContent(oContentControl.Content.length, oDocContent.Content[nElm].Copy());
+
+		if (oContentControl.Content.Content.length > 1)
+			// удаляем параграф, который добавляется при создании CDocumentContent
+			oContentControl.Content.RemoveFromContent(oContentControl.Content.Content.length - 1, 1);
 
 		return oContentControl;
 	};
@@ -10822,7 +10841,7 @@
 		oSdtPr.Label         = oParsedSdtPr.label;
 		oSdtPr.Lock          = nLockType;
 		oSdtPr.Picture       = oParsedSdtPr.picture;
-		oSdtPr.Placeholder   = oParsedSdtPr.placeholder.docPart;
+		oSdtPr.Placeholder   = oParsedSdtPr.placeholder ? oParsedSdtPr.placeholder.docPart : oSdtPr.Placeholder;
 		oSdtPr.TextPr        = this.TextPrFromJSON(oParsedSdtPr.rPr);
 		oSdtPr.ShowingPlcHdr = oParsedSdtPr.showingPlcHdr;
 		oSdtPr.Tag           = oParsedSdtPr.tag;
@@ -12366,7 +12385,7 @@
 		{
 			oChartSpace.setParent(oParentDrawing);
 			oParentDrawing.Set_GraphicObject(oChartSpace);
-			oParentDrawing.setExtent(oChartSpace.spPr.xfrm.extX, oChartSpace.spPr.xfrm.extY);
+			oChartSpace.spPr.xfrm && oParentDrawing.setExtent(oChartSpace.spPr.xfrm.extX, oChartSpace.spPr.xfrm.extY);
 		}
 
 		oChartSpace.bDeleted = false;
@@ -13874,7 +13893,7 @@
 
 		// TickLblPos
 		var nDLblPos = undefined;
-		switch (oDlbl.dLblPos)
+		switch (oParsedDlbl.dLblPos)
 		{
 			case "b":
 				nDLblPos = Asc.c_oAscChartDataLabelsPos.b;
@@ -14166,7 +14185,7 @@
 		}
 
 		oBodyPr.flatTx           = oParsedBodyPr.flatTx != undefined ? private_EMU2MM(oParsedBodyPr.flatTx) : oBodyPr.flatTx;
-		oBodyPr.normAutofit      = oParsedBodyPr.normAutofit ? this.TextFitFromJSON(oParsedBodyPr.normAutofit) : oBodyPr.normAutofit;
+		oBodyPr.textFit          = oParsedBodyPr.normAutofit ? this.TextFitFromJSON(oParsedBodyPr.normAutofit) : oBodyPr.textFit;
 		oBodyPr.prstTxWarp       = oParsedBodyPr.prstTxWarp ? this.GeometryFromJSON(oParsedBodyPr.prstTxWarp) : oBodyPr.prstTxWarp;
 		oBodyPr.anchor           = nAnchorType;
 		oBodyPr.anchorCtr        = oParsedBodyPr.anchorCtr;
@@ -14842,7 +14861,7 @@
 		for (var nPath = 0; nPath < oParsedGeom.pathLst.length; nPath++)
 			oGeom.AddPath(this.GeomPathFromJSON(oParsedGeom.pathLst[nPath]));
 
-		oGeom.AddRect(oParsedGeom.rect.l, oParsedGeom.rect.t, oParsedGeom.rect.r, oParsedGeom.rect.b);
+		oParsedGeom.rect && oGeom.AddRect(oParsedGeom.rect.l, oParsedGeom.rect.t, oParsedGeom.rect.r, oParsedGeom.rect.b);
 		if (oParsedGeom.preset)
 			oGeom.setPreset(oParsedGeom.preset);
 
@@ -15040,7 +15059,7 @@
 		var nHorAlign = undefined;
 		if (oParsedPosH.align)
 		{
-			switch (oPosH.align)
+			switch (oParsedPosH.align)
 			{
 				case "center":
 					nHorAlign = Asc.c_oAscXAlign.Center;

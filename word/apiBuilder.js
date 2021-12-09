@@ -4253,7 +4253,7 @@
 	 * @typeofeditors ["CDE"]
 	 * @returns {Array}
 	 */
-	ApiDocumentContent.prototype.GetContent = function()
+	ApiDocumentContent.prototype.GetContent = function(bGetCopies)
 	{
 		var aContent = [];
 		var oTempElm = null;
@@ -4261,6 +4261,10 @@
 		for (var nElm = 0; nElm < this.Document.Content.length; nElm++)
 		{
 			oTempElm = this.Document.Content[nElm];
+
+			if (bGetCopies)
+				oTempElm = oTempElm.Copy();
+				
 			if (oTempElm instanceof AscCommonWord.CTable)
 				aContent.push(new ApiTable(oTempElm));
 			else if (oTempElm instanceof AscCommonWord.Paragraph)
