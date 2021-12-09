@@ -3921,12 +3921,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_AddAnimation      = function(nPresetClass, nPresetId, nPresetSubtype, bReplace)
 	{
 		if(!AscFormat.isRealNumber(nPresetClass)
-		|| !AscFormat.isRealNumber(nPresetId)
-		|| !AscFormat.isRealNumber(nPresetSubtype))
+		|| !AscFormat.isRealNumber(nPresetId))
 		{
 			return;
 		}
-		//this.doNotSetProps = true;
 		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
 	};
 	asc_docs_api.prototype.asc_getCurSlideObjectsNames = function()
@@ -3944,11 +3942,6 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
 	{
-		// if(this.doNotSetProps)
-		// {
-		// 	this.doNotSetProps = false;
-		// 	return;
-		// }
 		var oController = this.WordControl.m_oLogicDocument.GetCurrentController();
 		if(!oController)
 		{

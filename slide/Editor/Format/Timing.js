@@ -265,6 +265,8 @@
     AscFormat.EMPHASIS_BLINK = AscFormat["EMPHASIS_BLINK"] = 35;
     AscFormat.EMPHASIS_SHIMMER = AscFormat["EMPHASIS_SHIMMER"] = 36;
 
+
+    //preset subtypes
     AscFormat.EXIT_ZOOM_OBJECT_CENTER = AscFormat["EXIT_ZOOM_OBJECT_CENTER"] = 32;
     AscFormat.EXIT_ZOOM_SLIDE_CENTER = AscFormat["EXIT_ZOOM_SLIDE_CENTER"] = 544;
 
@@ -1962,7 +1964,12 @@
             if(aPresetType) {
                 var sPresetBinary = aPresetType[nPresetSubtype];
                 if(!sPresetBinary) {
-                    sPresetBinary = aPresetType[0];
+                    for(var nSutype = 0; nSubtype < aPresetType.length; ++nSubtype) {
+                        if(aPresetType[nSutype]) {
+                            sPresetBinary = aPresetType[nSubtype];
+                            break;
+                        }
+                    }
                 }
                 if(sPresetBinary) {
                     AscCommon.pptx_content_loader.Clear(true);
