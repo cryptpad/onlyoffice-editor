@@ -3426,7 +3426,8 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 			return;
 		}
 
-		if (indexOfCloseBracet == Parser.intIndexArray) {
+		if (indexOfCloseBracet == Parser.intIndexArray - 1) {
+			Parser.GetNextUnicode();
 			return
 		}
 		else if (future == '^' || future == '_') {
