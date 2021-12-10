@@ -14777,6 +14777,9 @@
     CompiledMarker.prototype.isEmptyPlaceholder = function() {
         return false;
     };
+    CompiledMarker.prototype.isForm = function() {
+        return false;
+    };
 
     function CUnionMarker() {
         this.lineMarker = null;
