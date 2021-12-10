@@ -5037,7 +5037,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
     }
 
     if(graphics.StartDrawShape) {
-        graphics.StartDrawShape();
+        graphics.StartDrawShape(undefined, this.isForm());
     }
     var oClipRect;
     if(!graphics.IsSlideBoundsCheckerType && this.getClipRect){
