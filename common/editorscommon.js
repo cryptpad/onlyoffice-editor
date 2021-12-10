@@ -4952,19 +4952,19 @@
 										'τέσσερα',
 										'πέντε',
 										'έξι',
-										'εφτά',
-										'οχτώ',
-										'εννιά',
+										'επτά',
+										'οκτώ',
+										'εννέά',
 										'δέκα',
-										'έντεκα',
+										'ένδεκα',
 										'δώδεκα',
 										'δεκατρία',
 										'δεκατέσσερα',
 										'δεκαπέντε',
 										'δεκαέξι',
-										'δεκαεφτά',
-										'δεκαοχτώ',
-										'δεκαεννιά'
+										'δεκαεπτά',
+										'δεκαοκτώ',
+										'δεκαεννέά'
 									],
 									10: [
 										'είκοσι',
@@ -4983,8 +4983,8 @@
 										'τετρακόσια',
 										'πεντακόσια',
 										'εξακόσια',
-										'εφτακόσια',
-										'οχτακόσια',
+										'επτακόσια',
+										'οκτακόσια',
 										'εννιακόσια'
 									],
 									'thousand': [
@@ -5041,9 +5041,9 @@
 										'dziewięćset'
 									],
 									'thousand': [
-										'tysięcy',
+										'tysiąc',
 										'tysiące',
-										'tysiąc'
+										'tysięcy'
 									],
 									'thousandType': [
 										'jeden',
@@ -5197,7 +5197,7 @@
 										"шістсот",
 										"сімсот",
 										"вісімсот",
-										"дев'ятьсот"
+										"дев'ятсот"
 									],
 									'thousand': [
 										'тисяча',
@@ -5232,74 +5232,77 @@
 							function cardinalSplittingCyrillicMim(num, skipThousand) {
 								var resArr = [];
 								var groups = {};
+								if (num < 1000000 && num > 0) {
+									groups[1000] = Math.floor(num / 1000);
+									num %= 1000;
+									groups[100] = Math.floor(num / 100);
+									num %= 100;
+									groups[1] = num;
 
-								groups[1000] = Math.floor(num / 1000);
-								num %= 1000;
-								groups[100] = Math.floor(num / 100);
-								num %= 100;
-								groups[1] = num;
-
-								if (groups[1000]) {
-									var thousandType = groups[1000] % 10;
-									var groupArr = [];
-									if (groups[1000] >= 100) {
-										groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000]));
-									} else {
-										groupArr = groupArr.concat(letterNumberLessThen100CyrillicMim(groups[1000]));
-									}
-									var thousand;
-									switch (thousandType) {
-										case 1:
-											thousand = alphaBet[lang]['thousand'][0];
-											if (lang === 'el-GR') {
-												thousand = alphaBet[lang]['thousand'][1];
-											}
-											if (skipThousand && groups[1000] === 1) {
-												groupArr.pop();
+									if (groups[1000]) {
+										var thousandType = groups[1000] % 10;
+										var groupArr = [];
+										if (groups[1000] >= 100) {
+											groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000]));
+										} else {
+											if (groups[1000] === 4 && lang === 'el-GR') {
+												groupArr = groupArr.concat(['τέσσερις']);
 											} else {
-												groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][0];
+												groupArr = groupArr.concat(letterNumberLessThen100CyrillicMim(groups[1000]));
 											}
-											break;
-										case 2:
-										case 3:
-										case 4:
-											thousand = alphaBet[lang]['thousand'][1];
-											if (thousandType === 2) {
-												groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][1];
+										}
+										var thousand;
+										switch (thousandType) {
+											case 1:
+												thousand = alphaBet[lang]['thousand'][0];
+												if (skipThousand && groups[1000] === 1) {
+													groupArr.pop();
+												} else {
+													groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][0];
+												}
+												break;
+											case 2:
+											case 3:
+											case 4:
+												thousand = alphaBet[lang]['thousand'][1];
+												if (thousandType === 2) {
+													groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][1];
+												}
+												break;
+											case 5:
+											case 6:
+											case 7:
+											case 8:
+											case 9:
+											case 0:
+												thousand = alphaBet[lang]['thousand'][2];
+												break;
+											default:
+												break;
+										}
+										groupArr.push(thousand);
+										resArr = resArr.concat(groupArr);
+									}
+									if (groups[100]) {
+										resArr.push(alphaBet[lang][100][groups[100] - 1]);
+
+										if (groups[100] === 1 && groups[1]) {
+
+											if (lang === 'el-GR') {
+												resArr[resArr.length - 1] = resArr[resArr.length - 1] + 'v';
 											}
-											break;
-										case 5:
-										case 6:
-										case 7:
-										case 8:
-										case 9:
-										case 0:
-											thousand = alphaBet[lang]['thousand'][2];
-											break;
-										default:
-											break;
-									}
-									groupArr.push(thousand);
-									resArr = resArr.concat(groupArr);
-								}
-								if (groups[100]) {
-									resArr.push(alphaBet[lang][100][groups[100] - 1]);
+											if (lang === 'lv-LV') {
+												resArr[resArr.length - 1] = resArr[resArr.length - 1].slice(0, resArr[resArr.length - 1].length - 1) + 's';
+											}
 
-									if (groups[100] === 1 && groups[1]) {
-
-										if (lang === 'el-GR') {
-											resArr[resArr.length - 1] = resArr[resArr.length - 1] + 'v';
-										}
-										if (lang === 'lv-LV') {
-											resArr[resArr.length - 1] = resArr[resArr.length - 1].slice(0, resArr[resArr.length - 1].length - 1) + 's';
 										}
 
 									}
 
-								}
-
-								if (groups[1]) {
-									resArr = resArr.concat(letterNumberLessThen100CyrillicMim(groups[1]));
+									if (groups[1]) {
+										var letterArr = letterNumberLessThen100CyrillicMim(groups[1]);
+										resArr = resArr.concat(letterArr);
+									}
 								}
 								return resArr;
 							}
@@ -5311,7 +5314,8 @@
 							}
 							break;
 						}
-						case 'pt-PT': {
+						case 'pt-PT':
+						case 'pt-BR': {
 							alphaBet = {
 								1: [
 									'um',
@@ -5350,7 +5354,7 @@
 									'trezentos',
 									'quatrocentos',
 									'quinhentos',
-									'seissentos',
+									'seiscentos',
 									'setecentos',
 									'oitocentos',
 									'novecentos',
@@ -5393,12 +5397,16 @@
 											}
 										}
 										resArr.push('mil');
-										if (groups[100] || groups[1]) {
+										if ((groups[100] && !groups[1]) || (groups[1] && !groups[100])) {
 											resArr.push('e');
 										}
 									}
 									if (groups[100]) {
-										resArr.push(alphaBet[100][groups[100] - 1]);
+										if (groups[100] === 1 && (groups[1] || groups[1000])) {
+											resArr.push('cento');
+										} else {
+											resArr.push(alphaBet[100][groups[100] - 1]);
+										}
 										if (groups[1]) {
 											resArr.push('e');
 										}
@@ -5639,9 +5647,8 @@
 										}
 										resArr = resArr.concat(letterNumberLessThen100BG(groups[1]));
 									}
-
-									return resArr;
 								}
+								return resArr;
 								}
 
 								arrAnswer = cardinalSplittingBG(nValue);
@@ -5915,7 +5922,7 @@
 								return resArr;
 							}
 
-							function cardinalSplittingES(num) {
+							function cardinalSplittingES(num, isRecursive) {
 								var resArr = [];
 								var groups = {};
 								if (num > 0 && num < 1000000) {
@@ -5927,7 +5934,7 @@
 
 									if (groups[1000]) {
 										if (groups[1000] >= 100) {
-											resArr = resArr.concat(cardinalSplittingES(groups[1000]));
+											resArr = resArr.concat(cardinalSplittingES(groups[1000], true));
 										} else {
 											if (groups[1000] !== 1) {
 												resArr.push(letterNumberLessThen100ES(groups[1000]));
@@ -5937,7 +5944,11 @@
 									}
 
 									if (groups[100]) {
-										resArr.push(alphaBet[100][groups[100] - 1]);
+										if (isRecursive && groups[100] === 1) {
+											resArr.push('cien');
+										} else {
+											resArr.push(alphaBet[100][groups[100] - 1]);
+										}
 									}
 									if (groups[1]) {
 										resArr.push(letterNumberLessThen100ES(groups[1]));
@@ -5961,7 +5972,7 @@
 								1: [
 									'uno',
 									'due',
-									'tré',
+									'tre',
 									'quattro',
 									'cinque',
 									'sei',
@@ -6000,7 +6011,7 @@
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										var deg = alphaBet[10][degree10 - 2];
-										if (reminder === 1) {
+										if (reminder === 1 || reminder === 8) {
 											resArr.push(deg.slice(0, deg.length - 1));
 										} else {
 											resArr.push(deg);
@@ -6044,6 +6055,9 @@
 									}
 									if (groups[1]) {
 										resArr = resArr.concat(letterNumberLessThen100IT(groups[1]));
+										if (groups[1] > 20 && groups[1] % 10 === 3) {
+											resArr[resArr.length - 1] = 'tré';
+										}
 									}
 								}
 
