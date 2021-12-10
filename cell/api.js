@@ -5132,6 +5132,8 @@ var editor;
     var _printPagesData = this.wb.calcPagesPrint(_adjustPrint);
 
     if (undefined === _printer && _page === undefined) {
+      // ПУСТОЙ вызов, так как он должен быть ДО команд печати (картинки). А реальзый вызов - после (pagescount)
+      window["AscDesktopEditor"] && window["AscDesktopEditor"]["Print_Start"]();
       _printer = this.wb.printSheets(_printPagesData).DocumentRenderer;
 
       if (undefined !== window["AscDesktopEditor"]) {
