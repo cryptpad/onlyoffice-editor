@@ -8142,7 +8142,7 @@
 				case "paraDrawing":
 					var oDrawing = this.ParaDrawingFromJSON(aContent[nElm]);
 					oRun.Add_ToContent(-1, oDrawing);
-					oDrawing.Set_Parent(oRun);
+					oDrawing.Set_Parent(oRun.Paragraph);
 					break;
 				case "revisionMove":
 					// создаём новый moveId(moveName), мапим к нему значения moveId(moveName) из JSON
@@ -11523,7 +11523,7 @@
 		var oDrawing = new ParaDrawing(undefined, undefined, null, private_GetDrawingDocument(), private_GetLogicDocument(), null);
 		
 		// doc prop
-		oDrawing.docPr = this.CNvPrFromJSON(oParsedDrawing.docPr);
+		oDrawing.docPr.setFromOther(this.CNvPrFromJSON(oParsedDrawing.docPr));
 
 		// effect extent
 		oDrawing.setEffectExtent(oParsedDrawing.effectExtent.l, oParsedDrawing.effectExtent.t, oParsedDrawing.effectExtent.r, oParsedDrawing.effectExtent.b);
