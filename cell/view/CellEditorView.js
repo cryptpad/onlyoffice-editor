@@ -2788,6 +2788,9 @@
 		if (!this.handlers.trigger("canEdit") || this.loadFonts) {
 			return true;
 		}
+		if (this.handlers.trigger("isProtectActiveCell")) {
+			return true;
+		}
 		this.loadFonts = true;
 		AscFonts.FontPickerByCharacter.checkText(this.input.value, this, function () {
 			t.loadFonts = false;
