@@ -332,7 +332,7 @@ EquationProcessing.prototype.AddBracet = function(FormArgument) {
 	if (BracetBlockData.strStartBracet == '(') {
 		BracetBlockData.strStartBracet = null;
 	}
-	if (BracetBlockData.strCloseBracet == '(') {
+	if (BracetBlockData.strCloseBracet == ')') {
 		BracetBlockData.strCloseBracet = null;
 	}
 
@@ -350,14 +350,16 @@ EquationProcessing.prototype.StartBracet = {
 	'{': true,
 	'[': true,
 	'├': true,
-	'\\open': true
+	'\\open': true,
+	'\\left': true
 };
 EquationProcessing.prototype.CloseBracet = {
 	')': true,
 	'}': true,
 	']': true,
 	'┤': true,
-	'\\close': true
+	'\\close': true,
+	'\\right': true
 };
 EquationProcessing.prototype.GetBracet = function(Obj, type) {
 	type = (type == 0)
@@ -1146,12 +1148,11 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	}
 
 	if (!arrSymbol) {
-		var strOpentBracet = this.CheckFutureAtom();
 		var intCloseBracetIndex = this.Processing.CheckCloseBracet();
+		var strCloseBracet = this.arrAtomsOfFormula[intCloseBracetIndex];
 
-		var strCloseBracet = GetCloseBracet[strOpentBracet];
-
-		if (strCloseBracet) {
+		if (intCloseBracetIndex) {
+			this.GetNextAtom()
 			CLaTeXLexer(this, context, strCloseBracet, intCloseBracetIndex);
 		}
 
@@ -1472,89 +1473,7 @@ CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 };
 //BracetBlock
 CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
-	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
-		return
-	}
-
 	this.Processing.AddBracet(FormArgument);
-
-	// var Script;
-	// var strTypeOfScript;
-	// if (!strFAtom) {
-	// 	strFAtom = this.GetNextAtom();
-	// }
-
-	// if (strFAtom != '\\left') {
-	// 	var strOpenBracet = strFAtom;
-	// 	var strCloseBracet = GetCloseBracet[strOpenBracet];
-	// 	if (!strCloseBracet) {
-	// 		return
-	// 	}
-
-	// 	var indexOfCloseBracet = this.CheckCloseBracet(strOpenBracet, strCloseBracet);
-	// 	var OutputMiddleFunc = this.MiddleCount(indexOfCloseBracet);
-	// 	var intCountOfMiddle = OutputMiddleFunc[0];
-	// 	var strTypeOfMiddle = OutputMiddleFunc[1]; //todo
-
-	// 	strOpenBracet = GetBracetCode[strOpenBracet];
-	// 	strCloseBracet = GetBracetCode[strCloseBracet];
-
-	// 	var Bracet = this.CreateBracetBlock(
-	// 		FormArgument,
-	// 		strOpenBracet,
-	// 		strCloseBracet,
-	// 		intCountOfMiddle
-	// 		); 
-		
-	// 	this.FillBracetBlockContent(Bracet, intCountOfMiddle, GetCloseBracet[strFAtom]);
-	// }
-	// else if (strFAtom == '\\left') {
-	// 	var strStartBracet = this.GetNextAtom();
-	// 	var strCloseBracet;
-	// 	var indexOfCloseBracet = this.CheckCloseBracet("\\left");
-		
-	// 	var OutputMiddleFunc = this.MiddleCount(indexOfCloseBracet);
-	// 	var intCountOfMiddle = OutputMiddleFunc[0];
-	// 	var strTypeOfMiddle = OutputMiddleFunc[1]; //todo
-
-	// 	if (indexOfCloseBracet != false) {
-	// 		strCloseBracet = this.arrAtomsOfFormula[indexOfCloseBracet + 1];
-	// 	} else {
-	// 		this.GetError('Нет закрывающей скобки: \left( \middle| \right)')
-	// 	}
-
-	// 	var isBeforeBracetsDegreeOrIndex = this.CheckIsDegreeOrIndex(indexOfCloseBracet + 2)
-	// 	var isBeforeBracetsDegreeAndIndex = this.CheckIsDegreeAndIndex(indexOfCloseBracet + 2)
-	// 	if(isBeforeBracetsDegreeOrIndex || isBeforeBracetsDegreeAndIndex) {
-	// 		strTypeOfScript = this.GetTypeOfScript(isBeforeBracetsDegreeOrIndex, isBeforeBracetsDegreeAndIndex, indexOfCloseBracet + 2);
-	// 		Script = this.CreateScript(FormArgument, strTypeOfScript);
-	// 		FormArgument = Script.getBase();
-	// 	}
-
-	// 	strOpenBracet = GetBracetCode[strStartBracet];
-	// 	strCloseBracet = GetBracetCode[strCloseBracet];
-
-	// 	if (strCloseBracet == "empty") {
-	// 		strCloseBracet = -1;
-	// 	}
-	// 	if (strOpenBracet == "empty") {
-	// 		strOpenBracet = -1;
-	// 	}
-
-	// 	var Bracet = this.CreateBracetBlock(
-	// 		FormArgument,
-	// 		strOpenBracet,
-	// 		strCloseBracet,
-	// 		intCountOfMiddle
-	// 	); 
-		
-	// 	this.FillBracetBlockContent(Bracet, intCountOfMiddle, "\\right");
-	// 	this.GetNextAtom();
-		
-	// 	if (Script !== undefined) {
-	// 		this.FillScriptContent(Script, strTypeOfScript)
-	// 	}
-	// }
 };
 CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet) {
 	if (!strCloseBracet) {
@@ -2250,13 +2169,16 @@ function CLaTeXLexer(Parser, FormArgument, exitIfSee, countIndex) {
 
 		strFAtom = Parser.GetNextAtom();
 
+		if (strFAtom == '\\right' && countIndex) {
+			strFAtom = Parser.GetNextAtom()
+		}
 		if (countIndex == Parser.indexOfAtom - 1) {
+			Parser.GetNextAtom()
 			return
 		}
 
-
 		//check
-		if (Parser.ExitFromLexer(strFAtom, exitIfSee) ) {
+		else if (Parser.ExitFromLexer(strFAtom, exitIfSee) ) {
 			return
 		};
 
