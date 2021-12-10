@@ -279,6 +279,9 @@ EquationProcessing.prototype.CheckCloseBracet = function() {
 	while (intIndexData < arrOfData.length) {
 	
 		if (this.StartBracet[arrOfData[intIndexData]]) {
+			if (arrOfData[intIndexData] == '\\left' || arrOfData[intIndexData] == '\\open') {
+				this.Parent.GetNextAtom()
+			}
 			intPatternIndex++;
 		}
 
@@ -396,27 +399,6 @@ EquationProcessing.prototype.FillBracetBlockContent = function (BracetBlock, ind
 	this.Parent.StartLexer(BracetBlock.getElementMathContent(0));
 	//CUnicodeLexer(this.Parent, BracetBlock.getElementMathContent(0), indexOfExit);
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2138,9 +2120,6 @@ var CheckMathTextSty = {
 	'\\mathfrak': {Italic: false, Bold: false},
 	'\\mathrm': {Italic: false}
 };
-
-
-
 /**
  * @param Parser
  * @param FormArgument Функция в которую будет записываться контент.
@@ -2249,35 +2228,6 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 
 	} while (strFAtom != undefined);
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3294,19 +3244,6 @@ ToLaTex.prototype.GetCode = new Map([
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function CUnicodeParser(str, props) {
 	this.str = str;
 	this.arrAtoms = [];
@@ -3318,11 +3255,11 @@ CUnicodeParser.prototype.parser = function() {
 	var strTempWord = "";
 	var arrStr = [];
 	for (var i = 0; i <= this.str.length; i++) {
+		
 		if (this.str[i] !== undefined) {
 			strTempWord += this.str[i];
 		}
 		
-
 		if (
 			this.str[i + 1] == "+" ||
 			this.str[i + 1] == " " ||
@@ -3409,8 +3346,22 @@ CUnicodeParser.prototype.StartLexer = function(Context, arrSymbol) {
 		}
 	}
 };
-
-
+CUnicodeParser.prototype.StartBracet = {
+	'(': true,
+	'{': true,
+	'[': true,
+	'├': true,
+	'\\open': true,
+	'|': true
+};
+CUnicodeParser.prototype.CloseBracet = {
+	')': true,
+	'}': true,
+	']': true,
+	'┤': true,
+	'\\close': true,
+	'|': true
+};
 function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 	var countOfPushedAtoms = 0;
 
@@ -3447,23 +3398,6 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 		}
 
 	} while (atom != undefined);
-};
-
-CUnicodeParser.prototype.StartBracet = {
-	'(': true,
-	'{': true,
-	'[': true,
-	'├': true,
-	'\\open': true,
-	'|': true
-};
-CUnicodeParser.prototype.CloseBracet = {
-	')': true,
-	'}': true,
-	']': true,
-	'┤': true,
-	'\\close': true,
-	'|': true
 };
 
 //--------------------------------------------------------export----------------------------------------------------
