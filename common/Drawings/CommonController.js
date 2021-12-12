@@ -2009,6 +2009,26 @@ DrawingObjectsController.prototype =
         this.checkSelectedObjectsAndCallback2(fCallback);
     },
 
+    isProtectedFromCut: function() 
+    {
+        var bIsTextSelection = AscCommon.isRealObject(this.getTargetDocContent(false, false));
+        if(bIsTextSelection) 
+        {
+            if(this.checkSelectedObjectsProtectionText(true)) 
+            {
+                return true;
+            }
+        }
+        else 
+        {
+            if(this.checkSelectedObjectsProtection(true)) 
+            {
+                return true;
+            }
+        }
+        return false;
+    },
+
     handleTextHit: function(object, e, x, y, group, pageIndex, bWord)
     {
         var content, invert_transform_text, tx, ty, hit_paragraph, par, check_hyperlink;
@@ -9097,7 +9117,9 @@ DrawingObjectsController.prototype =
                 }
             }
 
-            if(oApplyProps && oApplyProps.textArtProperties)
+            if(oApplyProps && oApplyProps.textArtProperties || 
+                AscFormat.isRealNumber(oApplyProps.verticalTextAlign) || 
+                AscFormat.isRealNumber(oApplyProps.vert))
             {
                 if(this.checkSelectedObjectsProtectionText())
                 {
