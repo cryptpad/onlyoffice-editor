@@ -1978,8 +1978,8 @@
             if(aPresetType) {
                 var sPresetBinary = aPresetType[nPresetSubtype];
                 if(!sPresetBinary) {
-                    for(var nSutype = 0; nSubtype < aPresetType.length; ++nSubtype) {
-                        if(aPresetType[nSutype]) {
+                    for(var nSubtype = 0; nSubtype < aPresetType.length; ++nSubtype) {
+                        if(aPresetType[nSubtype]) {
                             sPresetBinary = aPresetType[nSubtype];
                             break;
                         }
