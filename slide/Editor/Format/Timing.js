@@ -185,7 +185,7 @@
     AscFormat.EXIT_FLOAT = AscFormat["EXIT_FLOAT"] = 30;
     AscFormat.EXIT_SHRINK_AND_TURN = AscFormat["EXIT_SHRINK_AND_TURN"] = 31;
     AscFormat.EXIT_PINWHEEL = AscFormat["EXIT_PINWHEEL"] = 35;
-    AscFormat.EXIT_SHRINK_DOWN = AscFormat["EXIT_SHRINK_DOWN"] = 37;
+    AscFormat.EXIT_SINK_DOWN = AscFormat["EXIT_SINK_DOWN"] = 37;
     AscFormat.EXIT_DROP = AscFormat["EXIT_DROP"] = 38;
     AscFormat.EXIT_WHIP = AscFormat["EXIT_WHIP"] = 41;
     AscFormat.EXIT_FLOAT_DOWN = AscFormat["EXIT_FLOAT_DOWN"] = 42;
