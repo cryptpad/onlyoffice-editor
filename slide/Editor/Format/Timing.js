@@ -1264,12 +1264,28 @@
         }
         return false;
     };
-    CTimeNodeBase.prototype.isInteractiveSeq = function(sSpId) {
-        var oAttr = this.getAttributesObject();
-        if(this.getNodeType() === NODE_TYPE_INTERACTIVESEQ && this.isAdvancedByShapeClick(sSpId)) {
-            return true;
+    CTimeNodeBase.prototype.isPartOfMainSequence = function() {
+        var aHierarchy = this.getHierarchy();
+        if(aHierarchy[1]) {
+            return aHierarchy[1].isMainSequence();
         }
         return false;
+    };
+    CTimeNodeBase.prototype.isInteractiveSeq = function(sSpId) {
+        return sSpId === this.getSpClickInteractiveSeq();
+    };
+    CTimeNodeBase.prototype.isPartOfInteractiveSeq = function() {
+        var aHierarchy = this.getHierarchy();
+        if(aHierarchy[1]) {
+            return aHierarchy[1].getSpClickInteractiveSeq();
+        }
+        return null;
+    };
+    CTimeNodeBase.prototype.getSpClickInteractiveSeq = function() {
+        if(this.getNodeType() === NODE_TYPE_INTERACTIVESEQ) {
+            return this.getSpClickAdvance();
+        }
+        return null;
     };
     CTimeNodeBase.prototype.traverseTimeNodes = function(fCallback) {
         fCallback(this);
@@ -1616,11 +1632,24 @@
         return this.getNeighbourEffect(false);
     };
     CTimeNodeBase.prototype.isAdvancedByShapeClick = function(sSpId) {
-        if(this.stCondLst && this.nextCondLst && 
-            this.stCondLst.isSpClick(sSpId) && this.nextCondLst.isSpClick(sSpId)) {
-                return true;
+        return sSpId === this.getSpClickAdvance();
+    };
+    CTimeNodeBase.prototype.getSpClickAdvance = function() {
+        var oAttr = this.getAttributesObject();
+        if(!oAttr) {
+            return null;
         }
-        return false;
+        if(oAttr.stCondLst && this.nextCondLst) {
+            var sStSpClick = oAttr.stCondLst.getSpClick();
+            if(!sStSpClick) {
+                return sStSpClick;
+            }
+            var sNextSpClick = this.nextCondLst.getSpClick();
+            if(sNextSpClick === sStSpClick) {
+                return sStSpClick;
+            }
+        }
+        return null;
     };
 
     function CAnimationTime(val) {
@@ -2140,17 +2169,17 @@
             oCTn.setEvtFilter("cancelBubble");
             var oStCondLst = new CCondLst();
             var oCond = new CCond();
-            oCond.setEvt(COND_EVNT_ON_NEXT);
+            oCond.setEvt(COND_EVNT_ON_CLICK);
             oCond.setDelay("0");
             var oTgt = new CTgtEl();
             var oSpTgt = new CSpTgt();
             oSpTgt.setSpid(sObjectId);
             oTgt.setSpTgt(oSpTgt);
             oCond.setTgtEl(oTgt);
-            oStCondLst.addToLst(oCond);
+            oStCondLst.push(oCond);
             oCTn.setStCondLst(oStCondLst);
             var oNextCondLst = oStCondLst.createDuplicate();
-            oCTn.setNextCondLst(oNextCondLst);
+            oTnContainer.setNextCondLst(oNextCondLst);
             var oEndSync = new CCond();
             oEndSync.setEvt(COND_EVNT_END);
             oEndSync.setDelay("0");
@@ -2473,18 +2502,19 @@
         }
         return oComplexTrigger;
     };
-    CCondLst.prototype.isSpClick = function(sSpId) {
+    CCondLst.prototype.getSpClick = function() {
         if(this.list.length === 1) {
             var oCond = this.list[0];
             if(oCond) {
                 if(oCond.evt === COND_EVNT_ON_CLICK) {
-                    if(oCond.getTargetObjectId() === sSpId) {
-                        return true;
-                    }
+                    return oCond.getTargetObjectId();
                 }
             }
         }
-        return false;
+        return null;
+    };
+    CCondLst.prototype.isSpClick = function(sSpId) {
+        return this.getSpClick() === sSpId;
     };
 
     function CChildTnLst() {
@@ -4562,6 +4592,15 @@
         if(!oTiming) {
             return;
         }
+        var oTimingParent = oTiming.parent;//might be slide, layout, master
+        if(!oTimingParent) {
+            return;
+        }
+        var oCSld = oTimingParent.cSld;
+        if(!oCSld) {
+            return;
+        }
+
         var aHierarchy = oEffect.getHierarchy();
         
         var oCurPar2Lvl, oCurPar3Lvl, oCurTopSeq;
@@ -4572,7 +4611,7 @@
         if(!oCurTopSeq || !oCurPar2Lvl || !oCurPar3Lvl) {
             return;
         }
-        var nIdx3 = oCurPar3Lvl.getChildNodeIdx(oEffectNode);
+        var nIdx3 = oCurPar3Lvl.getChildNodeIdx(oEffect);
         if(!v) {
             //move to the main sequence
             if(oCurTopSeq.isMainSequence()) {
@@ -4589,8 +4628,13 @@
         }
         else {
             //move to interactive seq with spId = v;
-            var sSpId = v;
-            if(oCurTopSeq.isInteractiveSeq(sSpId)) {
+            var sObjectId;
+            var oDrawing = oCSld.getObjectByName(v);
+            if(!oDrawing) {
+                return;
+            }
+            sObjectId = oDrawing.Get_Id();
+            if(oCurTopSeq.isInteractiveSeq(sObjectId)) {
                 //do nothing
                 return;
             }
@@ -7077,14 +7121,18 @@
         return false;
     };
     CTimeNodeContainer.prototype.merge = function(oTNContainer) {
-        if(oTNContainer === this) {
-            return;
-        }
-        this.cTn.merge(oTNContainer.cTn);
-        if(!Array.isArray(this.merged)) {
-            this.merged = [];
-        }
-        this.merged.push(oTNContainer.createDuplicate());
+        AscFormat.ExecuteNoHistory(function() {
+            if(oTNContainer === this) {
+                return;
+            }
+            this.cTn.merge(oTNContainer.cTn);
+            if(!Array.isArray(this.merged)) {
+                this.merged = [];
+            }
+            var oCopy = oTNContainer.createDuplicate();
+            oCopy.setParent(oTNContainer.parent);
+            this.merged.push(oCopy);
+        }, this, []);
     };
     CTimeNodeContainer.prototype.isMultiple = function(oTNContainer) {
         if(this.merged && this.merged.length > 1) {
@@ -7266,21 +7314,48 @@
             return this.triggerClickSequence;
         }
         if(Array.isArray(this.merged) && this.merged.length > 0) {
-            
+            var bIsInMainSeq = this.merged[0].isPartOfMainSequence();
+            var bCurVal;
+            for(var nEffect = 1; nEffect < this.merged.length; ++nEffect) {
+                bCurVal = this.merged[nEffect].isPartOfMainSequence();;
+                if(bCurVal !== bIsInMainSeq) {
+                    return undefined;
+                }
+            }
+            return bIsInMainSeq;
         }
-        this.triggerClickSequence = undefined;
-        this.triggerObjectClick = undefined;
+        return this.isPartOfMainSequence();
     };
     CTimeNodeContainer.prototype["asc_getTriggerClickSequence"] = CTimeNodeContainer.prototype.asc_getTriggerClickSequence;
     CTimeNodeContainer.prototype.asc_putTriggerClickSequence = function(v) {
-
+        this.triggerClickSequence = v;
     };
     CTimeNodeContainer.prototype.asc_getTriggerObjectClick = function() {
-        return null;
+        if(this.triggerObjectClick !== undefined) {
+            return this.triggerObjectClick;
+        }
+        var sInteractiveSeq;
+        if(Array.isArray(this.merged) && this.merged.length > 0) {
+            sInteractiveSeq = this.merged[0].isPartOfInteractiveSeq();
+            var sCurVal;
+            for(var nEffect = 1; nEffect < this.merged.length; ++nEffect) {
+                sCurVal = this.merged[nEffect].isPartOfInteractiveSeq();
+                if(sCurVal !== sInteractiveSeq) {
+                    return undefined;
+                }
+            }
+        }
+        if(!sInteractiveSeq) {
+            sInteractiveSeq = this.isPartOfInteractiveSeq();
+        }
+        var oSp = AscCommon.g_oTableId.Get_ById(sInteractiveSeq);
+        if(oSp) {
+            return oSp.getObjectName();
+        }
     };
     CTimeNodeContainer.prototype["asc_getTriggerObjectClick"] = CTimeNodeContainer.prototype.asc_getTriggerObjectClick;
     CTimeNodeContainer.prototype.asc_putTriggerObjectClick = function(v) {
-
+        this.triggerObjectClick = v;
     };
     CTimeNodeContainer.prototype["asc_putTriggerObjectClick"] = CTimeNodeContainer.prototype.asc_putTriggerObjectClick;
     CTimeNodeContainer.prototype.isEqualProperties = function(oPr) {

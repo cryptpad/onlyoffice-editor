@@ -10883,28 +10883,14 @@ CPresentation.prototype.GetCurSlideObjectsNamesPairs = function() {
     if(!oSlide) {
         return []
     }
-    var aPairs = [];
-    var aSpTree = oSlide.cSld.spTree;
-    for(var nSp = 0; nSp < aSpTree.length; ++nSp) {
-        var oSp = aSpTree[nSp];
-        if(!oSp.isEmptyPlaceholder()) {
-            aPairs.push({object: oSp, name: oSp.getObjectName()});
-        }
-    }
-    return aPairs
+    return oSlide.cSld.getObjectsNamesPairs();
 };
 CPresentation.prototype.GetCurSlideObjectsNames = function() {
     var oSlide = this.GetCurrentSlide();
     if(!oSlide) {
         return []
     }
-    var aPairs = this.GetCurSlideObjectsNamesPairs();
-    var aNames = [];
-    for(var nPair = 0; nPair < aPairs.length; ++nPair) {
-        var oPair = aPairs[nPair];
-        aNames.push(oPair.name);
-    }
-    return aNames;
+    return oSlide.cSld.getObjectsNames();
 };
 CPresentation.prototype.SetAnimationProperties = function(oPr) {
     var oSlide = this.GetCurrentSlide();

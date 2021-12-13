@@ -9372,6 +9372,45 @@ function CSld()
     this.Bg = null;
     this.spTree = [];//new GroupShape();
 }
+CSld.prototype.getObjectsNamesPairs = function() 
+{
+    var aPairs = [];
+    var aSpTree = this.spTree;
+    for(var nSp = 0; nSp < aSpTree.length; ++nSp) 
+    {
+        var oSp = aSpTree[nSp];
+        if(!oSp.isEmptyPlaceholder()) 
+        {
+            aPairs.push({object: oSp, name: oSp.getObjectName()});
+        }
+    }
+    return aPairs;
+};
+CSld.prototype.getObjectsNames = function() 
+{
+    var aPairs = this.getObjectsNamesPairs();
+    var aNames = [];
+    for(var nPair = 0; nPair < aPairs.length; ++nPair) 
+    {
+        var oPair = aPairs[nPair];
+        aNames.push(oPair.name);
+    }
+    return aNames;
+};
+CSld.prototype.getObjectByName = function(sName) 
+{
+    var aSpTree = this.spTree;
+    for(var nSp = 0; nSp < aSpTree.length; ++nSp) 
+    {
+        var oSp = aSpTree[nSp];
+        if(oSp.getObjectName() === sName) 
+        {
+            return oSp;
+        }
+    }
+    return null;
+};
+
 
 // ----------------------------------
 
