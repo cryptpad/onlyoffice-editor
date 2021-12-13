@@ -200,11 +200,11 @@ EquationProcessing.prototype.FillScriptContent = function(Script, typeOfScript) 
 };
 EquationProcessing.prototype.FillScriptContentWriteSup = function(Script) {
 	var Iterator = Script.getUpperIterator();
-	this.Parent.StartLexer(Iterator);
+	this.Parent.StartLexer(Iterator, true);
 };
 EquationProcessing.prototype.FillScriptContentWriteSub = function(Script) {
 	var Iterator = Script.getLowerIterator();
-	this.Parent.StartLexer(Iterator);
+	this.Parent.StartLexer(Iterator, true);
 };
 //Function 
 EquationProcessing.prototype.AddFunction = function (FormArgument, strFAtom) {
@@ -286,6 +286,9 @@ EquationProcessing.prototype.CheckCloseBracet = function() {
 		}
 
 		else if (this.CloseBracet[arrOfData[intIndexData]]) {
+			if (arrOfData[intIndexData] == '\\right' || arrOfData[intIndexData] == '\\close') {
+				this.Parent.GetNextAtom()
+			}
 			intPatternIndex--;
 		}
 
@@ -317,7 +320,13 @@ EquationProcessing.prototype.AddBracet = function(FormArgument) {
 	this.GetBracet(BracetBlockData, 0);
 	this.GetBracet(BracetBlockData, 1);
 
-	console.log(BracetBlockData);
+	
+	if (BracetBlockData.strStartBracet == '.') {
+		BracetBlockData.strStartBracet = -1;
+	}
+	if (BracetBlockData.strCloseBracet == '.') {
+		BracetBlockData.strCloseBracet = -1;
+	}
 
 	if (BracetBlockData.strStartBracet == '(') {
 		BracetBlockData.strStartBracet = null;
@@ -326,10 +335,14 @@ EquationProcessing.prototype.AddBracet = function(FormArgument) {
 		BracetBlockData.strCloseBracet = null;
 	}
 
+
+	
+
+	console.log(BracetBlockData);
 	var Bracet = this.CreateBracetBlock(
 		FormArgument,
-		BracetBlockData.strStartBracet,
-		BracetBlockData.strCloseBracet,
+		typeof BracetBlockData.strStartBracet === 'string' ? BracetBlockData.strStartBracet.charCodeAt() : BracetBlockData.strStartBracet,
+		typeof BracetBlockData.strCloseBracet === 'string' ? BracetBlockData.strCloseBracet.charCodeAt() : BracetBlockData.strCloseBracet,
 		0
 	);
 	
@@ -337,6 +350,7 @@ EquationProcessing.prototype.AddBracet = function(FormArgument) {
 };
 EquationProcessing.prototype.StartBracet = {
 	'(': true,
+	'.': true,
 	'{': true,
 	'[': true,
 	'├': true,
@@ -345,6 +359,7 @@ EquationProcessing.prototype.StartBracet = {
 };
 EquationProcessing.prototype.CloseBracet = {
 	')': true,
+	'.': true,
 	'}': true,
 	']': true,
 	'┤': true,
@@ -399,8 +414,6 @@ EquationProcessing.prototype.FillBracetBlockContent = function (BracetBlock, ind
 	this.Parent.StartLexer(BracetBlock.getElementMathContent(0));
 	//CUnicodeLexer(this.Parent, BracetBlock.getElementMathContent(0), indexOfExit);
 };
-
-
 
 
 
@@ -1129,7 +1142,7 @@ var GetBracetCodeLexer = {
 	"/": 0x2f,
 	"\\backslash": 0x5c
 };
-CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
+CLaTeXParser.prototype.StartLexer = function (context, isInFunc) {
 	if (this.CheckFutureAtom() == '^' || this.CheckFutureAtom() == '_') {
 		this.GetNextAtom();
 	}
@@ -1137,7 +1150,13 @@ CLaTeXParser.prototype.StartLexer = function (context, arrSymbol) {
 	var intCloseBracetIndex = this.Processing.CheckCloseBracet();
 	
 	if (intCloseBracetIndex) {
+		if (isInFunc === true) {
+			this.GetNextAtom()
+		}
 		CLaTeXLexer(this, context, intCloseBracetIndex);
+		if (isInFunc === true) {
+			this.GetNextAtom()
+		}
 	}
 	else {
 		CLaTeXLexer(this, context);
@@ -2139,10 +2158,12 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 
 		strFAtom = Parser.GetNextAtom();
 
-		if (strFAtom == '\\right' && indexOfCloseAtom == Parser.intIndexArray) {
+		if ((strFAtom == '\\right' || strFAtom == '}') && indexOfCloseAtom == Parser.intIndexArray - 1) {
 			strFAtom = Parser.GetNextAtom()
+			return
 		}
-		if (indexOfCloseAtom == Parser.intIndexArray - 1) {
+
+		else if (indexOfCloseAtom == Parser.intIndexArray - 1) {
 			return
 		}
 
@@ -2228,7 +2249,6 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 
 	} while (strFAtom != undefined);
 };
-
 
 
 
@@ -2467,11 +2487,11 @@ ToLaTex.prototype.AddBracets = function(name, obj) {
 
 	else {
 		var strLeft = (obj[name].data.begOper == null) 
-			? '\\left.' 
+			? '\\left(' 
 			: '\\left' + String.fromCharCode(obj[name].data.begOper);
 
 		var strRight =  (obj[name].data.endOper == null) 
-			? '\\right.'
+			? '\\right)'
 			: '\\right' + String.fromCharCode(obj[name].data.endOper);
 
 		var strSeparator = (obj[name].data.sepOper == null) 
@@ -3241,11 +3261,8 @@ ToLaTex.prototype.GetCode = new Map([
 ]);
 
 
-
-
-
 function CUnicodeParser(str, props) {
-	this.str = str;
+	this.str = str.trim();
 	this.arrAtoms = [];
 	this.intIndexArray = 0;
 	this.ParaMath = props;
@@ -3316,51 +3333,29 @@ CUnicodeParser.prototype.Start = function() {
 	CUnicodeLexer(this, this.ParaMath.Root);
 	this.ParaMath.Root.Correct_Content(true);
 };
-CUnicodeParser.prototype.StartLexer = function(Context, arrSymbol) {
+CUnicodeParser.prototype.StartLexer = function(Context, isInFunc) {
 	var strAtom = this.CheckFutureAtom();
 
 	if (strAtom == '^' || strAtom == '_') {
 		strAtom = this.GetNextUnicode();
 	}
 
-	if (!arrSymbol) {
 		var strOpentBracet = this.CheckFutureAtom();
 		var intCloseBracetIndex = this.Processing.CheckCloseBracet(strOpentBracet);
 
 		if (intCloseBracetIndex) {
+			if (isInFunc === true) {
+				this.GetNextUnicode()
+			}
 			CUnicodeLexer(this, Context, intCloseBracetIndex);
+			if (isInFunc === true) {
+				this.GetNextUnicode()
+			}
 		}
 
 		else {
 			CUnicodeLexer(this, Context, undefined, 1);
 		}
-	}
-
-	else if (arrSymbol) {
-		if (typeof arrSymbol != 'number') {
-			CUnicodeLexer(this, Context, undefined, arrSymbol);
-		}
-
-		else {
-			CUnicodeLexer(this, Context, undefined, arrSymbol);
-		}
-	}
-};
-CUnicodeParser.prototype.StartBracet = {
-	'(': true,
-	'{': true,
-	'[': true,
-	'├': true,
-	'\\open': true,
-	'|': true
-};
-CUnicodeParser.prototype.CloseBracet = {
-	')': true,
-	'}': true,
-	']': true,
-	'┤': true,
-	'\\close': true,
-	'|': true
 };
 function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 	var countOfPushedAtoms = 0;
