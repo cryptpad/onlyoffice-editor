@@ -3975,7 +3975,7 @@
 			case "table":
 				return new ApiTable(oReader.TableFromJSON(oParsedObj));
 			case "paraDrawing":
-				return new ApiDrawing(oReader.DrawingFromJSON(oParsedObj));
+				return new ApiDrawing(oReader.ParaDrawingFromJSON(oParsedObj));
 			case "nextPage":
 			case "oddPage":
 			case "evenPage":
@@ -11363,7 +11363,7 @@
 	ApiDrawing.prototype.ToJSON = function()
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerDrawing(this.Drawing));
+		return JSON.stringify(oWriter.SerParaDrawing(this.Drawing));
 	};
 
 

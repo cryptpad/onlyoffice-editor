@@ -178,7 +178,14 @@
 	// End of private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function WriterToJSON(){};
+    function WriterToJSON()
+	{
+		this.layoutsMap     = {};
+		this.mastersMap     = {};
+		this.notesMasterMap = {};
+		this.themesMap      = {};
+	};
+
     WriterToJSON.prototype.SerHlink = function(oHlink)
 	{
 		if (!oHlink)
@@ -445,10 +452,20 @@
 			return this.SerGraphicFrame(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.SmartArt)
 			return this.SerSmartArt(oGraphicObj);
+		else if (oGraphicObj instanceof AscFormat.CLockedCanvas)
+			return this.SerLockedCanvas(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.CGroupShape && oGraphicObj.constructor.name === "CGroupShape")
             return this.SerGroupShape(oGraphicObj);
+		
 			
 		return null;
+	};
+	WriterToJSON.prototype.SerLockedCanvas = function(oLockedCanvas)
+	{
+		var oResult  = this.SerDrawing(oLockedCanvas);
+        oResult.type = "lockedCanvas";
+
+        return oResult;
 	};
 	WriterToJSON.prototype.SerGroupShape = function(oGroupShape)
     {
@@ -7134,6 +7151,7 @@
 			oSerContent = this.SerTxPr(oShape.txBody);
 		
 		var oShapeObject = {
+			bWordShape:  oShape.bWordShape,
 			extX:        private_MM2EMU(oShape.extX),
 			extY:        private_MM2EMU(oShape.extY),
 			nvSpPr:      this.SerUniNvPr(oShape.nvSpPr),
@@ -7989,6 +8007,10 @@
 	{
 		this.MoveMap = {};
 		this.FootEndNoteMap = {};
+		this.layoutsMap     = {};
+		this.mastersMap     = {};
+		this.notesMasterMap = {};
+		this.themesMap      = {};
 	};
 
 	ReaderFromJSON.prototype.ParaRunFromJSON = function(oParsedRun, oParentPara, notCompletedFields)
@@ -10262,18 +10284,11 @@
 		if (!oMapBookmarksInfo)
 			oMapBookmarksInfo = {};
 
-		var oContentControl     = new AscCommonWord.CBlockLevelSdt(private_GetLogicDocument(), oParent || private_GetLogicDocument());
+		var oContentControl = new AscCommonWord.CBlockLevelSdt(private_GetLogicDocument(), oParent || private_GetLogicDocument());
 		
 		oContentControl.SetContentControlPr(this.SdtPrFromJSON(oParsedSdt.sdtPr));
 		
-		var oDocContent = this.DocContentFromJSON(oParsedSdt.sdtContent, oContentControl, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo);
-
-		for (var nElm = 0; nElm < oDocContent.Content.length; nElm++)
-			oContentControl.Content.AddToContent(oContentControl.Content.length, oDocContent.Content[nElm].Copy());
-
-		if (oContentControl.Content.Content.length > 1)
-			// удаляем параграф, который добавляется при создании CDocumentContent
-			oContentControl.Content.RemoveFromContent(oContentControl.Content.Content.length - 1, 1);
+		oContentControl.Content.Copy2(this.DocContentFromJSON(oParsedSdt.sdtContent, oContentControl, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo));
 
 		return oContentControl;
 	};
@@ -10281,8 +10296,9 @@
 	{
 		var oCell = new CTableCell(oParentRow);
 
-		oCell.Pr      = oParsedCell.tcPr    ? this.TableCellPrFromJSON(oParsedCell.tcPr)          : oParsedCell.tcPr;
-		oCell.Content = oParsedCell.content ? this.DocContentFromJSON(oParsedCell.content, oCell, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo) : oParsedCell.content;
+		oParsedCell.tcPr && oCell.Set_Pr(this.TableCellPrFromJSON(oParsedCell.tcPr));
+
+		oCell.Content.Copy2(this.DocContentFromJSON(oParsedCell.content, oCell, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo));
 	
 		return oCell;
 	};
@@ -10410,10 +10426,10 @@
 		var oReviewInfo = oParsedRow.reviewInfo ? this.ReviewInfoFromJSON(oParsedRow.reviewInfo) : oRow.ReviewInfo;
 		oRow.SetReviewTypeWithInfo(nReviewType, oReviewInfo);
 
-		oRow.Pr = this.TableRowPrFromJSON(oParsedRow.trPr);
+		oRow.Set_Pr(this.TableRowPrFromJSON(oParsedRow.trPr));
 
 		for (var nCell = 0; nCell < aContent.length; nCell++)
-			oRow.Content[nCell] = this.TableCellFromJSON(aContent[nCell], oRow, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo);
+			oRow.Add_Cell(nCell, oRow, this.TableCellFromJSON(aContent[nCell], oRow, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo), false);
 
 		return oRow;
 	};
@@ -10480,11 +10496,11 @@
 		var aContent   = oParsedTable.content; 
 	
 		// table prop.
-		oTable.Pr = this.TablePrFromJSON(oTable, oParsedTable.tblPr);
+		oTable.SetPr(this.TablePrFromJSON(oTable, oParsedTable.tblPr));
 
 		// fill table content
 		for (var nRow = 0; nRow < aContent.length; nRow++)
-			oTable.Content[nRow] = this.TableRowFromJSON(aContent[nRow], oTable, nRow, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo);
+			oTable.private_AddRow(nRow, 0, false, this.TableRowFromJSON(aContent[nRow], oTable, nRow, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo));
 
 		// выставляем текущую ячейку
 		oTable.CurCell = oTable.Content[0].Get_Cell(0);
@@ -10551,15 +10567,14 @@
 		// if oParentTalbe is exist
 		if (oParentTable)
 		{
-			oParentTable.AllowOverlap = oParsedPr.tblOverlap === "overlap" ? true : false;
-			oParentTable.Inline       = oParsedPr.inline;
+			oParsedPr.tblOverlap === "overlap" ? oParentTable.Set_AllowOverlap(true) : oParentTable.Set_AllowOverlap(false);
+			oParentTable.Inline !== undefined && oParentTable.Set_Inline(oParsedPr.inline);
 			
-			oParentTable.TableLook.m_bFirst_Col = oParsedPr.tblLook ? oParsedPr.tblLook.firstColumn : oParentTable.TableLook.m_bFirst_Col;
-			oParentTable.TableLook.m_bFirst_Row = oParsedPr.tblLook ? oParsedPr.tblLook.firstRow    : oParentTable.TableLook.m_bFirst_Row;
-			oParentTable.TableLook.m_bLast_Col  = oParsedPr.tblLook ? oParsedPr.tblLook.lastColumn  : oParentTable.TableLook.m_bLast_Col;
-			oParentTable.TableLook.m_bLast_Row  = oParsedPr.tblLook ? oParsedPr.tblLook.lastRow     : oParentTable.TableLook.m_bLast_Row;
-			oParentTable.TableLook.m_bBand_Hor  = oParsedPr.tblLook ? !oParsedPr.tblLook.noHBand    : oParentTable.TableLook.m_bBand_Hor;
-			oParentTable.TableLook.m_bBand_Ver  = oParsedPr.tblLook ? !oParsedPr.tblLook.noVBand    : oParentTable.TableLook.m_bBand_Ver;
+			if (oParsedPr.tblLook)
+			{
+				var oNewLook = new CTableLook(oParsedPr.tblLook.firstColumn, oParsedPr.tblLook.firstRow, oParsedPr.tblLook.lastColumn, oParsedPr.tblLook.lastRow, !oParsedPr.tblLook.noHBand, !oParsedPr.tblLook.noVBand);
+				oParentTable.Set_TableLook(oNewLook);
+			}
 
 			// position prop
 			if (oParsedPr.tblpPr)
@@ -10639,18 +10654,10 @@
 						break;
 				}
 
-				oParentTable.PositionH.RelativeFrom = nHorAnchor;
-				oParentTable.PositionH.Value        = nHorAlign == undefined ? private_Twips2MM(oParsedPr.tblpPr.tblpX) : nHorAlign;
-				oParentTable.PositionH.Align        = nHorAlign == undefined ? false : true;
+				oParentTable.Set_PositionH(nHorAnchor, nHorAlign == undefined ? false : true, nHorAlign == undefined ? private_Twips2MM(oParsedPr.tblpPr.tblpX) : nHorAlign);
+				oParentTable.Set_PositionV(nVerAnchor, nVerAlign == undefined ? false : true, nVerAlign == undefined ? private_Twips2MM(oParsedPr.tblpPr.tblpY) : nVerAlign);
 
-				oParentTable.PositionV.RelativeFrom = nVerAnchor;
-				oParentTable.PositionV.Value        = nVerAlign == undefined ? private_Twips2MM(oParsedPr.tblpPr.tblpY) : nVerAlign;
-				oParentTable.PositionV.Align        = nVerAlign == undefined ? false : true;
-
-				oParentTable.Distance.B = private_Twips2MM(oParsedPr.tblpPr.bottomFromText);
-				oParentTable.Distance.L = private_Twips2MM(oParsedPr.tblpPr.leftFromText);
-				oParentTable.Distance.R = private_Twips2MM(oParsedPr.tblpPr.rightFromText);	
-				oParentTable.Distance.T = private_Twips2MM(oParsedPr.tblpPr.topFromText);
+				oParentTable.Set_Distance(private_Twips2MM(oParsedPr.tblpPr.bottomFromText), private_Twips2MM(oParsedPr.tblpPr.leftFromText), private_Twips2MM(oParsedPr.tblpPr.rightFromText), private_Twips2MM(oParsedPr.tblpPr.topFromText));
 			}
 
 			// style
@@ -10679,7 +10686,7 @@
 					}
 				}
 
-				oParentTable.TableStyle = oStyles.GetStyleIdByName(oStyle.Name);
+				oParentTable.Set_TableStyle(oStyles.GetStyleIdByName(oStyle.Name));
 			}
 		}
 	
@@ -11474,34 +11481,34 @@
 		}
 		var oStyle = new CStyle(sStyleName, nBasedOnId, nNextId, nStyleType, bNoCreateTablePr);
 
-		oStyle.Link           = oParsedStyle.link;
-		oStyle.Custom         = oParsedStyle.customStyle;
-		oStyle.qFormat        = oParsedStyle.qFormat;
-		oStyle.uiPriority     = oParsedStyle.uiPriority;
-		oStyle.hHidden        = oParsedStyle.hidden;
-		oStyle.semiHidden     = oParsedStyle.semiHidden;
-		oStyle.unhideWhenUsed = oParsedStyle.unhideWhenUsed;
-		oStyle.TextPr         = this.TextPrFromJSON(oParsedStyle.rPr);
-		oStyle.ParaPr         = this.ParaPrFromJSON(oParsedStyle.pPr);
-		oStyle.TablePr        = this.TablePrFromJSON(null, oParsedStyle.tblPr);
-		oStyle.TableRowPr     = this.TableRowPrFromJSON(oParsedStyle.trPr);
-		oStyle.TableCellPr    = this.TableCellPrFromJSON(oParsedStyle.tcPr);
+		oParsedStyle.link != undefined && oStyle.SetLink(oParsedStyle.link);
+		oParsedStyle.customStyle != undefined && oStyle.SetCustom(oParsedStyle.customStyle);
+		oParsedStyle.qFormat != undefined && oStyle.SetQFormat(oParsedStyle.qFormat);
+		oParsedStyle.uiPriority != undefined && oStyle.SetUiPriority(oParsedStyle.uiPriority);
+		oParsedStyle.hidden != undefined && oStyle.SetHidden(oParsedStyle.hidden);
+		oParsedStyle.semiHidden != undefined && oStyle.SetSemiHidden(oParsedStyle.semiHidden);
+		oParsedStyle.unhideWhenUsed != undefined && oStyle.SetUnhideWhenUsed(oParsedStyle.unhideWhenUsed);
+		oParsedStyle.rPr != undefined && oStyle.SetTextPr(this.TextPrFromJSON(oParsedStyle.rPr));
+		oParsedStyle.pPr != undefined && oStyle.SetParaPr(this.ParaPrFromJSON(oParsedStyle.pPr));
+		oParsedStyle.tblPr != undefined && oStyle.Set_TablePr(this.TablePrFromJSON(null, oParsedStyle.tblPr));
+		oParsedStyle.trPr != undefined && oStyle.Set_TableRowPr(this.TableRowPrFromJSON(oParsedStyle.trPr));
+		oParsedStyle.tcPr != undefined && oStyle.Set_TableCellPr(this.TableCellPrFromJSON(oParsedStyle.tcPr));
 
 		if (!bNoCreateTablePr)
 		{
-			oStyle.TableBand1Horz  = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band1Horz);
-			oStyle.TableBand1Vert  = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band1Vert);
-			oStyle.TableBand2Horz  = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band2Horz);
-			oStyle.TableBand2Vert  = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band2Vert);
-			oStyle.TableFirstCol   = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.firstCol);
-			oStyle.TableFirstRow   = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.firstRow);
-			oStyle.TableLastCol    = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.lastCol);
-			oStyle.TableLastRow    = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.lastRow);
-			oStyle.TableTLCell     = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.neCell);
-			oStyle.TableTRCell     = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.nwCell);
-			oStyle.TableBLCell     = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.seCell);
-			oStyle.TableBRCell     = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.swCell);
-			oStyle.TableWholeTable = this.TableStylePrFromJSON(oParsedStyle.tblStylePr.wholeTable);
+			oParsedStyle.tblStylePr.band1Horz && oStyle.Set_TableBand1Horz(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band1Horz));
+			oParsedStyle.tblStylePr.band1Vert && oStyle.Set_TableBand1Vert(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band1Vert));
+			oParsedStyle.tblStylePr.band2Horz && oStyle.Set_TableBand2Horz(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band2Horz));
+			oParsedStyle.tblStylePr.band2Vert && oStyle.Set_TableBand2Vert(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.band2Vert));
+			oParsedStyle.tblStylePr.firstCol && oStyle.Set_TableFirstCol(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.firstCol));
+			oParsedStyle.tblStylePr.firstRow && oStyle.Set_TableFirstRow(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.firstRow));
+			oParsedStyle.tblStylePr.lastCol && oStyle.Set_TableLastCol(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.lastCol));
+			oParsedStyle.tblStylePr.lastRow && oStyle.Set_TableLastRow(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.lastRow));
+			oParsedStyle.tblStylePr.neCell && oStyle.Set_TableTLCell(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.neCell));
+			oParsedStyle.tblStylePr.nwCell && oStyle.Set_TableTRCell(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.nwCell));
+			oParsedStyle.tblStylePr.seCell && oStyle.Set_TableBLCell(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.seCell));
+			oParsedStyle.tblStylePr.swCell && oStyle.Set_TableBRCell(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.swCell));
+			oParsedStyle.tblStylePr.wholeTable && oStyle.Set_TableWholeTable(this.TableStylePrFromJSON(oParsedStyle.tblStylePr.wholeTable));
 		}
 
 		return oStyle;
@@ -11588,9 +11595,30 @@
 			case "groupShape":
 				oGraphicObj = this.GroupShapeFromJSON(oParsedObj, oParent);
 				break;
+			case "lockedCanvas":
+				oGraphicObj = this.LockedCanvasFromJSON(oParsedObj, oParent);
+				break;
 		}
 
 		return oGraphicObj;
+	};
+	ReaderFromJSON.prototype.LockedCanvasFromJSON = function(oParsedLocCanvas, oParentDrawing)
+	{
+		var oLockedCanvas = new AscFormat.CLockedCanvas();
+
+		if (oParentDrawing)
+		{
+			oLockedCanvas.setParent(oParentDrawing);
+			oParentDrawing.Set_GraphicObject(oLockedCanvas);
+		}
+
+		for (var nDrawing = 0; nDrawing < oParsedLocCanvas.spTree.length; nDrawing++)
+			oLockedCanvas.addToSpTree(oLockedCanvas.spTree.length, this.GraphicObjFromJSON(oParsedLocCanvas.spTree[nDrawing]));
+
+		oParentDrawing.spPr && oLockedCanvas.setSpPr(this.SpPrFromJSON(oParentDrawing.spPr, oLockedCanvas));
+
+		oLockedCanvas.setBDeleted(false);
+		return oLockedCanvas;
 	};
 	ReaderFromJSON.prototype.GroupShapeFromJSON = function(oParsedGrpShp, oParentDrawing)
 	{
@@ -12656,6 +12684,7 @@
 			oParentDrawing.Set_GraphicObject(oShape);
 		}
 		
+		oParsedShape.bWordShape && oShape.setWordShape(oParsedShape.bWordShape);
 		oParsedShape.nvSpPr && oShape.setNvSpPr(this.UniNvPrFromJSON(oParsedShape.nvSpPr));
 
 		oParsedShape.spPr && oShape.setSpPr(this.SpPrFromJSON(oParsedShape.spPr, oShape));

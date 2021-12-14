@@ -841,6 +841,12 @@
 				return new ApiThemeFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj));
 			case "clrScheme":
 				return new ApiThemeColorScheme(oReader.ClrSchemeFromJSON(oParsedObj));
+            case "slides":
+                var aApiSlides = []    
+                var aSlides = oReader.SlidesFromJSON(oParsedObj);
+                for (var nSlide = 0; nSlide < aSlides.length; nSlide++)
+                    aApiSlides.push(new ApiSlide(aSlides[nSlide]));
+                return aApiSlides;
 		}
 	};
     //------------------------------------------------------------------------------------------------------------------
@@ -1134,7 +1140,32 @@
     ApiPresentation.prototype.ToJSON = function(){
         var oWriter = new AscCommon.WriterToJSON();
 		return JSON.stringify(oWriter.SerPresentation(this.Presentation));
-    };    //------------------------------------------------------------------------------------------------------------------
+    };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CPE"]
+     * @param {bool} [nStart=0] - index to the start slide
+     * @param {bool} [nStart=ApiPresentation.GetSlidesCount() - 1] - index to the end slide
+     * @param {bool} [bWriteLayout=false] - determines whether SlideLayout will be saved.
+     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved. (bWriteMaster is false if bWriteLayout === false)
+     * @param {bool} [bWriteAllMasLayouts=false] - determines whether all child SlideLaytouts from the MasterSlide will be saved.
+	 * @returns {JSON[]}
+	 */
+    ApiPresentation.prototype.SlidesToJSON = function(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts){
+        var oWriter = new AscCommon.WriterToJSON();
+        
+        nStart = nStart == undefined ? 0 : nStart;
+        nEnd = nEnd == undefined ? this.Presentation.Slides.length - 1 : nEnd;
+
+        if (nStart < 0 || nStart >= this.Presentation.Slides.length)
+            return;
+        if (nEnd < 0 || nEnd >= this.Presentation.Slides.length)
+            return;
+
+        return JSON.stringify(oWriter.SerSlides(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts));
+    };
+    //------------------------------------------------------------------------------------------------------------------
     //
     // ApiMaster
     //
@@ -4073,7 +4104,9 @@
     ApiPresentation.prototype["AddMaster"]                = ApiPresentation.prototype.AddMaster;
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
 	ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
-    ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;    //ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
+    ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;
+    ApiPresentation.prototype["SlidesToJSON"]             = ApiPresentation.prototype.SlidesToJSON;
+    //ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
     ApiMaster.prototype["AddLayout"]                      = ApiMaster.prototype.AddLayout;

@@ -90,10 +90,6 @@
 		return mm / (25.4 / 72.0);
 	};
 
-	var layoutsMap     = {};
-	var mastersMap     = {};
-	var notesMasterMap = {};
-	var themesMap      = {};
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// End of private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,7 +164,7 @@
 		}
 
 		// памим, чтобы не записывать несколько раз
-		themesMap[oTheme.Id] = oThemeObj;
+		this.themesMap[oTheme.Id] = oThemeObj;
 
 		return oThemeObj;
 	};
@@ -355,11 +351,11 @@
 			cSld:       this.SerCSld(oNoteMaster.cSld),
 			hf:         this.SerHF(oNoteMaster.hf),
 			notesStyle: this.SerLstStyle(oNoteMaster.txStyles),
-			theme:      themesMap[oNoteMaster.Theme.Id] ? oNoteMaster.Theme.Id : this.SerTheme(oNoteMaster.Theme)  
+			theme:      this.themesMap[oNoteMaster.Theme.Id] ? oNoteMaster.Theme.Id : this.SerTheme(oNoteMaster.Theme)  
 		}
 
 		// мапим, чтобы не записывать несколько раз
-		notesMasterMap[oNoteMaster.Id] = oNotesMasterObj;
+		this.notesMasterMap[oNoteMaster.Id] = oNotesMasterObj;
 
 		return oNotesMasterObj;
 	};
@@ -372,7 +368,7 @@
 			cSld:             this.SerCSld(oNote.cSld),
 			showMasterPhAnim: oNote.showMasterPhAnim,
 			showMasterSp:     oNote.showMasterSp,
-			master:           notesMasterMap[oNote.Master.Id] ? oNote.Master.Id : this.SerNoteMaster(oNote.Master)
+			master:           this.notesMasterMap[oNote.Master.Id] ? oNote.Master.Id : this.SerNoteMaster(oNote.Master)
 		}
 	};
 	WriterToJSON.prototype.SerSldComments = function(oSldComments)
@@ -541,6 +537,7 @@
 		}
 
 		return {
+			id:               oMaster.Id,
 			theme:            this.SerTheme(oMaster.Theme),
 			clrMapOvr:        this.SerColorMapOvr(oMaster.clrMap),
 			cSld:             this.SerCSld(oMaster.cSld),
@@ -560,15 +557,12 @@
 		var oLayout = oSlide.Layout.Id;
 
 		// нет смысла тащить master за слайдом без layout
-		if (bWriteLayout)
+		if (bWriteLayout || (bWriteMaster && bWriteAllMasLayouts))
 		{
 			if (bWriteMaster)
-			{
 				oMaster = this.SerMasterSlide(oSlide.Layout.Master, bWriteAllMasLayouts);
-				if (!bWriteAllMasLayouts)
-					oLayout = this.SerSlideLayout(oSlide.Layout, false);
-			}
-			else
+
+			if (!bWriteAllMasLayouts)
 				oLayout = this.SerSlideLayout(oSlide.Layout, false);
 		}
 
@@ -585,6 +579,48 @@
 			showMasterPhAnim: oSlide.showMasterPhAnim,
 			showMasterSp:     oSlide.showMasterSp,
 			type:             "slide"
+		}
+	};
+	WriterToJSON.prototype.SerSlides = function(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts)
+	{
+		var aMasters = [];
+		var aLayouts = [];
+		var aSlides  = [];
+
+		var oPresentation = private_GetPresentation();
+		for (var nSlide = nStart; nSlide <= nEnd; nSlide++)
+		{
+			aSlides.push(this.SerSlide(oPresentation.Slides[nSlide], false, false, false));
+
+			if (bWriteLayout || (bWriteMaster && bWriteAllMasLayouts))
+			{
+				if (bWriteMaster)
+				{
+					var sMasterId = oPresentation.Slides[nSlide].Layout.Master ? oPresentation.Slides[nSlide].Layout.Master.Id : "";
+					if (sMasterId && !this.mastersMap[sMasterId])
+					{
+						this.mastersMap[sMasterId] = this.SerMasterSlide(oPresentation.Slides[nSlide].Layout.Master, bWriteAllMasLayouts);
+						aMasters.push(this.mastersMap[sMasterId]);
+					}
+				}
+
+				if (!bWriteAllMasLayouts)
+				{
+					var sLayoutId = oPresentation.Slides[nSlide].Layout ? oPresentation.Slides[nSlide].Layout.Id : "";
+					if (!this.layoutsMap[sLayoutId])
+					{
+						this.layoutsMap[sLayoutId] = this.SerSlideLayout(oPresentation.Slides[nSlide].Layout);
+						aLayouts.push(this.layoutsMap[sLayoutId]);
+					}
+				}
+			}
+		}
+			
+		return {
+			masters: aMasters,
+			layouts: aLayouts,
+			slides:  aSlides,
+			type:    "slides"
 		}
 	};
 	WriterToJSON.prototype.SerTxStyles = function(oTxStyles)
@@ -1799,10 +1835,10 @@
 		oMasterSlide.ImageBase64 = oParsedMaster.imgBase64;
 
 		if (!oPres)
-		{
 			oPres = private_GetPresentation();
-			oPres.addSlideMaster(oPres.slideMasters.length, oMasterSlide);
-		}
+
+		oPres.addSlideMaster(oPres.slideMasters.length, oMasterSlide);
+		this.mastersMap[oParsedMaster.id] = oMasterSlide;
 
 		return oMasterSlide;
 	};
@@ -1960,7 +1996,13 @@
 		oLayout.ImageBase64 = oParsedLayout.imgBase64;
 
 		// мапим, чтобы повторно не восстанавливать
-		layoutsMap[oParsedLayout.id] = oLayout;
+		this.layoutsMap[oParsedLayout.id] = oLayout;
+
+		if (this.mastersMap[oParsedLayout.master])
+		{
+			var oMaster = this.mastersMap[oParsedLayout.master];
+			oMaster.addToSldLayoutLstToPos(oMaster.sldLayoutLst.length, oLayout);
+		}
 
 		return oLayout;
 	};
@@ -1979,23 +2021,28 @@
 		if (oMaster)
 		{
 			if (!oLayout)
-				oLayout = layoutsMap[oParsedSlide.layout];
+				oLayout = this.layoutsMap[oParsedSlide.layout];
 			else
 				oMaster.addToSldLayoutLstToPos(oMaster.length, oLayout);
 		}
 			
 		if (!oLayout)
 		{
-			var CurSlide = oPresentation.Slides[oPresentation.CurPage];
-			if (!CurSlide)
+			if (!this.layoutsMap[oParsedSlide.layout])
 			{
-				oMaster = oPresentation.slideMasters[0];
-				if (oPresentation.lastMaster)
-					oMaster = oPresentation.lastMaster;
-				oLayout = AscFormat.isRealNumber(layoutIndex) ? (oMaster.sldLayoutLst[layoutIndex] ? oMaster.sldLayoutLst[layoutIndex] : oMaster.sldLayoutLst[0]) : oMaster.sldLayoutLst[0];
+				var CurSlide = oPresentation.Slides[oPresentation.CurPage];
+				if (!CurSlide)
+				{
+					oMaster = oPresentation.slideMasters[0];
+					if (oPresentation.lastMaster)
+						oMaster = oPresentation.lastMaster;
+					oLayout = AscFormat.isRealNumber(layoutIndex) ? (oMaster.sldLayoutLst[layoutIndex] ? oMaster.sldLayoutLst[layoutIndex] : oMaster.sldLayoutLst[0]) : oMaster.sldLayoutLst[0];
+				}
+				else
+					oLayout = CurSlide.Layout;
 			}
 			else
-				oLayout = CurSlide.Layout;
+				oLayout = this.layoutsMap[oParsedSlide.layout];
 		}
 
 		// установим MasterSlide для Layout, если не задан
@@ -2031,6 +2078,22 @@
 		oSlide.setSlideSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
 
 		return oSlide;
+	};
+	ReaderFromJSON.prototype.SlidesFromJSON = function(oParsedSlides, oPres)
+	{
+		var oPresentation = oPres || private_GetPresentation();
+		var aSlides       = [];
+
+		for (var nMaster = 0; nMaster < oParsedSlides.masters.length; nMaster++)
+			this.MasterSlideFromJSON(oParsedSlides.masters[nMaster], oPresentation);
+		
+		for (var nLayout = 0; nLayout < oParsedSlides.layouts.length; nLayout++)
+			this.SlideLayoutFromJSON(oParsedSlides.layouts[nLayout]);
+
+		for (var nSlide = 0; nSlide < oParsedSlides.slides.length; nSlide++)
+			aSlides.push(this.SlideFromJSON(oParsedSlides.slides[nSlide]));
+
+		return aSlides;
 	};
 	ReaderFromJSON.prototype.SlideSizeFromJSON = function(oParsedSldSize)
 	{
@@ -2147,7 +2210,7 @@
 		oParsedNotes.showMasterSp != undefined && oNotes.setShowMasterSp(oParsedNotes.showMasterSp);
 
 		var oNotesMaster = typeof oParsedNotes.master === "object" ? this.NotesMasterFromJSON(oParsedNotes.master, oPres) : oParsedNotes.master;
-		typeof oNotesMaster === "object" ? oNotes.setNotesMaster(oNotesMaster) : oNotes.setNotesMaster(notesMasterMap[oNotesMaster]);
+		typeof oNotesMaster === "object" ? oNotes.setNotesMaster(oNotesMaster) : oNotes.setNotesMaster(this.notesMasterMap[oNotesMaster]);
 
 		return oNotes;
 	};
@@ -2169,10 +2232,10 @@
 
 		// oTheme здесь будет либо объект темы, либо Id по которому тема уже создана и замаплена
 		var oTheme = typeof oParsedNotesMaster.theme === "object" ? this.ThemeFromJSON(oParsedNotesMaster.theme) : oParsedNotesMaster.theme;
-		typeof oParsedNotesMaster.theme === "object" ? oNotesMaster.setTheme(oTheme) : oNotesMaster.setTheme(themesMap[oTheme]);
+		typeof oParsedNotesMaster.theme === "object" ? oNotesMaster.setTheme(oTheme) : oNotesMaster.setTheme(this.themesMap[oTheme]);
 
 		oPres.notesMasters[oPres.notesMasters.length] = oNotesMaster;
-		notesMasterMap[oParsedNotesMaster.id] = oNotesMaster;
+		this.notesMasterMap[oParsedNotesMaster.id] = oNotesMaster;
 
 		return oNotesMaster;
 	};
@@ -3365,7 +3428,7 @@
 		oParsedTheme.themeElements.fontScheme && oTheme.setFontScheme(this.FontSchemeFromJSON(oParsedTheme.themeElements.fontScheme));
 		oTheme.setIsThemeOverride(oParsedTheme.isThemeOverride);
 
-		themesMap[oParsedTheme.Id] = oTheme;
+		this.themesMap[oParsedTheme.Id] = oTheme;
 
 		return oTheme;
 	};
@@ -3416,21 +3479,27 @@
 	ReaderFromJSON.prototype.FontSchemeFromJSON = function(oParsedFntScheme)
 	{
 		var oFontScheme = new AscFormat.FontScheme();
-		oFontScheme.setMajorFont(this.FontCollectionFromJSON(oParsedFntScheme.majorFont));
-		oFontScheme.setMinorFont(this.FontCollectionFromJSON(oParsedFntScheme.minorFont));
+		this.FontCollectionFromJSON(oParsedFntScheme.majorFont, "major", oFontScheme);
+		this.FontCollectionFromJSON(oParsedFntScheme.minorFont, "minor", oFontScheme);
 
 		oParsedFntScheme.name && oFontScheme.setName(oParsedFntScheme.name);
 
 		return oFontScheme;
 	};
-	ReaderFromJSON.prototype.FontCollectionFromJSON = function(oParsedFntColl)
+	ReaderFromJSON.prototype.FontCollectionFromJSON = function(oParsedFntColl, sType, oParentFntScheme)
 	{
-		var oFontCollection = new AscFormat.FontCollection();
-		oFontCollection.setLatin(oParsedFntColl.latin);
-		oFontCollection.setEA(oParsedFntColl.ea);
-		oFontCollection.setCS(oParsedFntColl.cs);
-
-		return oFontCollection;
+		if (sType === "major")
+		{
+			oParentFntScheme.majorFont.setLatin(oParsedFntColl.latin);
+			oParentFntScheme.majorFont.setEA(oParsedFntColl.ea);
+			oParentFntScheme.majorFont.setCS(oParsedFntColl.cs);
+		}
+		if (sType === "minor")
+		{
+			oParentFntScheme.minorFont.setLatin(oParsedFntColl.latin);
+			oParentFntScheme.minorFont.setEA(oParsedFntColl.ea);
+			oParentFntScheme.minorFont.setCS(oParsedFntColl.cs);
+		}
 	};
 	ReaderFromJSON.prototype.DefSpDefinitionFromJSON = function(oParsedDefSpDef)
 	{
