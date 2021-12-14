@@ -271,10 +271,10 @@ var GetTypeOfFunction = {
 	"\\min": 2
 };
 //Bracet
-EquationProcessing.prototype.CheckCloseBracet = function() {
+EquationProcessing.prototype.CheckCloseBracet = function(index) {
 	var intPatternIndex = 0;
 	var arrOfData = this.Parent.arrAtoms;
-	var intIndexData = this.Parent.intIndexArray - 1;
+	var intIndexData = index !== undefined ? index : this.Parent.intIndexArray - 1;
 
 	while (intIndexData < arrOfData.length) {
 	
@@ -334,9 +334,6 @@ EquationProcessing.prototype.AddBracet = function(FormArgument) {
 	if (BracetBlockData.strCloseBracet == ')') {
 		BracetBlockData.strCloseBracet = null;
 	}
-
-
-	
 
 	console.log(BracetBlockData);
 	var Bracet = this.CreateBracetBlock(
@@ -401,24 +398,203 @@ EquationProcessing.prototype.CreateBracetBlock = function (FormArgument, strOpen
 	return BracetBlock;
 };
 EquationProcessing.prototype.FillBracetBlockContent = function (BracetBlock, indexOfExit) {
-	// if (countOfDelim + 1 > 1) {
-
-	// 	for(var index = 0; index < countOfDelim; index++) {
-	// 		this.StartLexer(BracetBlock.getElementMathContent(index), '\\middle');
-	// 		this.GetNextAtom();
-	// 	}
-
-	// 	this.StartLexer(BracetBlock.getElementMathContent(index), exit);
-	// 	this.GetNextAtom();
-	// }
 	this.Parent.StartLexer(BracetBlock.getElementMathContent(0));
-	//CUnicodeLexer(this.Parent, BracetBlock.getElementMathContent(0), indexOfExit);
+};
+//Fraction
+EquationProcessing.prototype.CheckIsUnicodeFrac = function() {
+	var checkIsFrac = function(str) {
+		if (str == '\\frac' ||
+			str == '\\sfrac' ||
+			str == '\\dfrac' ||
+			str == '\\cfrac' ||
+			str == '\\sdiv' ||
+			str == '\\ldiv' ||
+			str == '\\ndiv'
+		) {
+			return true;
+		} else {
+			return false
+		}
+	}
+
+	var checkUnicodeFrac = function(str) {
+		if (str.charCodeAt() == 47 ||   //sdiv
+			str.charCodeAt() == 8260 || //sdiv
+			str.charCodeAt() == 8725 || //ldiv
+			str.charCodeAt() == 8856 || //ndiv
+			str == '\/'
+		) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	var isFrac = checkIsFrac(this.Parent.arrAtoms[this.Parent.intIndexArray - 1]);
+	var indexOfCLose = this.CheckCloseBracet();
+
+	if (isFrac) {
+		console.log('\\frac и т.п')
+		console.log(isFrac, this.Parent.arrAtoms[this.Parent.intIndexArray - 1]);
+	} else if (checkUnicodeFrac(this.Parent.arrAtoms[indexOfCLose + 1])) {
+		console.log('a \ b ...')
+		console.log(checkUnicodeFrac(this.Parent.arrAtoms[indexOfCLose + 1]), this.Parent.arrAtoms[indexOfCLose + 1])
+	}
+	else {
+		console.log('nope')
+	}
+	
+	
+	//two type of syntaxis:
+	//
+	//	1.	a/b		a∕b		a⊘c
+	//	2.	/sdiv(a)(b)		/ldiv(a)(b)		/ndiv(a)(b)
+	//	3. \frac{}{} \sfrac{}{} \cfrac{}{} ...
+	//
+	//sdiv standart
+	//ldiv skewed
+	//ndiv inline
+
+};
+EquationProcessing.prototype.CheckIsUnicodeSmallFrac = function(str) {
+	if (UnicodeSmallFrac[str] === true) {
+		return true;
+	} else {
+		return false
+	}
+};
+var UnicodeSmallFrac = {
+	47: true,
+	8260: true,
+	8725: true,
+	8856: true,
+	'\/': true
+};
+EquationProcessing.prototype.CheckIsLaTeXFullFrac = function(str) {
+	if (LaTeXFullFrac[str] === true) {
+		return true;
+	} else {
+		return false
+	}
+};
+var LaTeXFullFrac = {
+	'\\frac': true,
+	'\\sfrac': true,
+	'\\cfrac': true,
+	'\\nicefrac': true
+};
+EquationProcessing.prototype.CheckIsFrac = function() {
+	var type = this.CheckTypeOfParent();
+	var isFrac;
+
+	if (type === 'LaTeX') {
+		isFrac = this.CheckIsLaTeXFullFrac(this.Parent.arrAtoms[this.Parent.intIndexArray - 1]);
+
+		if (isFrac === false) {
+			return false;
+		}
+		return true;
+	}
+
+	else if (type === 'Unicode') {
+		var index = this.CheckCloseBracet();
+		
+		if (index === false) {
+			return false;
+		}
+
+		if (index !== false) {
+			isFrac = this.CheckIsUnicodeSmallFrac(this.Parent.arrAtoms[index + 1]);
+			return this.CheckCloseBracet(index+2) && isFrac;
+		}
+	}
+};
+EquationProcessing.prototype.CheckTypeOfParent = function() {
+	if (this.Parent instanceof CLaTeXParser) {
+		return 'LaTeX'
+	} else if (this.Parent instanceof CUnicodeParser) {
+		return 'Unicode'
+	}
+};
+EquationProcessing.prototype.AddFraction = function(FormArgument, strFAtom) {
+	var type = this.CheckTypeOfParent();
+	var typeOfFraction;
+	
+	if (type === 'LaTeX') {
+		typeOfFraction = GetTypeOfFrac[strFAtom];
+		//var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
+	}
+	else if (type === 'Unicode') {
+		var index = this.CheckCloseBracet();
+		typeOfFraction = GetTypeOfFrac[this.Parent.arrAtoms[index + 1]];
+	}
+
+	
+	if (typeof typeOfFraction === 'number') {
+		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
+		this.FillFracContent(Fraction, type);
+	}
+}
+EquationProcessing.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
+	var Fraction;
+	this.Parent.Pr.type = typeOfFraction;
+
+	if (typeOfFraction === LITLE_DEFAULT) {
+		this.Parent.Pr.type = 0;
+		var Box = this.CreateLitleBox(FormArgument);
+		Fraction = Box.Add_Fraction(this.Parent.Pr.type, null, null);
+	}
+
+	else if (typeOfFraction !== LITLE_DEFAULT) {
+		Fraction = FormArgument.Add_Fraction(this.Parent.Pr.type, null, null);
+	}
+
+	return Fraction;
+};
+EquationProcessing.prototype.FillFracContent = function (FormArgument, type) {
+	if (type === 'LaTeX') {
+		this.Parent.StartLexer(FormArgument.getNumeratorMathContent());
+		this.Parent.StartLexer(FormArgument.getDenominatorMathContent());
+	}
+	else if (type === 'Unicode') {
+		this.Parent.StartLexer(FormArgument.getNumeratorMathContent());
+		this.Parent.GetNextUnicode();
+		this.Parent.StartLexer(FormArgument.getDenominatorMathContent());
+	}
+};
+var GetTypeOfFrac = {
+	'\\frac' : BAR_FRACTION,
+	'\\tfrac': LITLE_DEFAULT,
+	'\\sfrac': SKEWED_FRACTION,
+	'\\nicefrac': LINEAR_FRACTION,
+	'\\dfrac': BAR_FRACTION,
+	'\\binom': NO_BAR_FRACTION,
+	'\\': BAR_FRACTION,
+	"⁄" : SKEWED_FRACTION,
+	'⊘': LINEAR_FRACTION,
+	'\/': BAR_FRACTION
 };
 
-
-
-
-
+// CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
+// 	this.Processing.CheckIsFrac()
+// 	//binom must be processed if AddBinom func
+// 	if (typeof GetTypeOfFrac[strFAtom] === 'number' && strFAtom != '\\binom') {
+		
+// 		if (
+// 			this.CheckSyntaxSequence(["{", "{"]) ||
+// 			this.CheckSyntaxSequence(["^", 1, "/", "_", 1])
+// 		) {
+// 			return true;
+// 		} 
+		
+// 		else {
+// 			var strMessage = this.GetErrorNames(GetTypeOfFrac);
+// 			this.GetError("Error while read: " + strMessage)
+// 			return false;
+// 		}
+// 	}
+// 	return false
+// };
 
 function CLaTeXParser(props, str) {
 	this.str = str;
@@ -1213,75 +1389,6 @@ CLaTeXParser.prototype.GetErrorNames = function(map) {
 	strSentence = '(' + strSentence + '...' + ')';
 	return strSentence
 }
-//Fraction
-CLaTeXParser.prototype.AddFraction = function(FormArgument, strFAtom) {
-	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
-		return
-	}
-
-	var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
-	var typeOfFraction;
-	
-	if (isInlineFraction === true) {
-		typeOfFraction = SKEWED_FRACTION;
-	}
-	else {
-		typeOfFraction = GetTypeOfFrac[strFAtom];
-	}
-	
-	if (typeof typeOfFraction === 'number') {
-		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
-		this.FillFracContent(Fraction, typeOfFraction);
-	}
-};
-CLaTeXParser.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
-	var Fraction;
-	this.Pr.type = typeOfFraction;
-
-	if (typeOfFraction === LITLE_DEFAULT) {
-		this.Pr.type = 0;
-		var Box = this.CreateLitleBox(FormArgument);
-		Fraction = Box.Add_Fraction(this.Pr, null, null);
-	}
-
-	else if (typeOfFraction !== LITLE_DEFAULT) {
-		Fraction = FormArgument.Add_Fraction(this.Pr, null, null);
-	}
-
-	return Fraction;
-};
-CLaTeXParser.prototype.FillFracContent = function (FormArgument) {
-
-	this.StartLexer(FormArgument.getNumeratorMathContent());
-	this.StartLexer(FormArgument.getDenominatorMathContent());
-};
-var GetTypeOfFrac = {
-	'\\frac' : BAR_FRACTION,
-	'\\tfrac': LITLE_DEFAULT,
-	'\\sfrac': SKEWED_FRACTION,
-	'\\nicefrac': LINEAR_FRACTION,
-	'\\dfrac': BAR_FRACTION,
-	'\\binom': NO_BAR_FRACTION
-};
-CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
-	//binom must be processed if AddBinom func
-	if (typeof GetTypeOfFrac[strFAtom] === 'number' && strFAtom != '\\binom') {
-		
-		if (
-			this.CheckSyntaxSequence(["{", "{"]) ||
-			this.CheckSyntaxSequence(["^", 1, "/", "_", 1])
-		) {
-			return true;
-		} 
-		
-		else {
-			var strMessage = this.GetErrorNames(GetTypeOfFrac);
-			this.GetError("Error while read: " + strMessage)
-			return false;
-		}
-	}
-	return false
-};
 //Limit
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
@@ -2148,7 +2255,7 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 	if (Parser.isError) {
 		return
 	}
-	//\left.\frac{x^3}{3}\right|_0^1
+
 	var intFAtoms = 0;
 	var strFAtom = 0;
 	do {
@@ -2182,10 +2289,10 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		// 	Parser.AddSymbol(strFAtom, FormArgument)
 		// }
 
-		// else if (Parser.CheckSyntaxOfFraction(strFAtom) && !Parser.isError) {
-		// 	Parser.AddFraction(FormArgument, strFAtom);
-		// 	intFAtoms++;
-		// }
+		else if (Parser.Processing.CheckIsFrac() && !Parser.isError) {
+			Parser.Processing.AddFraction(FormArgument, strFAtom)
+			intFAtoms++;
+		}
 
 		// else if (strFAtom == "\\binom") {
 		// 	Parser.AddBinom(FormArgument);
@@ -3265,6 +3372,7 @@ function CUnicodeParser(str, props) {
 	this.str = str.trim();
 	this.arrAtoms = [];
 	this.intIndexArray = 0;
+	this.Pr = { ctrPrp: new CTextPr() };
 	this.ParaMath = props;
 	this.Processing;
 };
@@ -3340,8 +3448,7 @@ CUnicodeParser.prototype.StartLexer = function(Context, isInFunc) {
 		strAtom = this.GetNextUnicode();
 	}
 
-		var strOpentBracet = this.CheckFutureAtom();
-		var intCloseBracetIndex = this.Processing.CheckCloseBracet(strOpentBracet);
+	var intCloseBracetIndex = this.Processing.CheckCloseBracet();
 
 		if (intCloseBracetIndex) {
 			if (isInFunc === true) {
@@ -3357,6 +3464,9 @@ CUnicodeParser.prototype.StartLexer = function(Context, isInFunc) {
 			CUnicodeLexer(this, Context, undefined, 1);
 		}
 };
+CUnicodeParser.prototype.TypeOfFraction = function(str) {
+
+}
 function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 	var countOfPushedAtoms = 0;
 
@@ -3375,6 +3485,9 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 		if (indexOfCloseBracet == Parser.intIndexArray - 1) {
 			Parser.GetNextUnicode();
 			return
+		}
+		else if (Parser.Processing.CheckIsFrac()) {
+			Parser.Processing.AddFraction(FormArgument)
 		}
 		else if (future == '^' || future == '_') {
 			Parser.Processing.AddScript(atom, FormArgument);
