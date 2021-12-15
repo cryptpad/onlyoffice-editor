@@ -11690,6 +11690,8 @@ var GLOBAL_PATH_COUNT = 0;
         if(this.drawLocks(this.transform, graphics)) {
             graphics.RestoreGrState();
         }
+        
+        this.drawAnimLabels && this.drawAnimLabels(graphics);
     };
     CChartSpace.prototype.addToSetPosition = function(dLbl) {
         if(dLbl instanceof AscFormat.CDLbl)

@@ -717,6 +717,7 @@ CImageShape.prototype.draw = function(graphics, transform)
     }
     graphics.reset();
     graphics.SetIntegerGrid(true);
+    this.drawAnimLabels && this.drawAnimLabels(graphics);
 };
 
 

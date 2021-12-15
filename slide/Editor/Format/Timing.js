@@ -7273,17 +7273,46 @@
     CTimeNodeContainer.prototype.drawEffectLabel = function(oGraphics, dX, dY, dW, dH) {
         AscFormat.ExecuteNoHistory(function(){
             oGraphics.SaveGrState();
+            
             var oMatrix = new AscCommon.CMatrix();
             oMatrix.tx = dX;
             oMatrix.ty = dY;
             oGraphics.transform3(oMatrix);
             //draw rect
+            
+            oGraphics.SetIntegerGrid(true);
+            var nFillColor = this.isSelected() ? 0xE0E0E0 : 0xFFFFFF;
+            var nLineColor = 0xCBCBCB; 
+            oGraphics.b_color1((nFillColor >> 16) & 0xFF, (nFillColor >> 8) & 0xFF, nFillColor & 0xFF, 0xFF);
+            oGraphics.p_color((nLineColor >> 16) & 0xFF, (nLineColor >> 8) & 0xFF, nLineColor & 0xFF, 255);
+            oGraphics.p_width(0);
+            oGraphics._s();
             oGraphics.rect(0, 0, dW, dH);
             oGraphics.df();
             oGraphics.ds();
+            
+            // oGraphics.p_color((nLineColor >> 16) & 0xFF, (nLineColor >> 8) & 0xFF, nLineColor & 0xFF, 255);
+            // oGraphics.p_width(0);
+            // oGraphics._s();
+            // oGraphics.drawVerLine(1, 0, 0, dH, 0);
+            // oGraphics.drawVerLine(1, dW, 0, dH, 0);
+            // oGraphics.drawHorLine(1, 0, 0, dW, 0);
+            // oGraphics.drawHorLine(1, dH, 0, dW, 0);
+            // oGraphics.ds();
             //draw internal part
             
             oGraphics.RestoreGrState();
+            
+
+            if(this.isPartOfMainSequence()) {
+                var nIdx = this.getIndexInSequence();
+                if(AscFormat.isRealNumber(nIdx)) {
+                    var oLabel = new CLabel(null, (nIdx + 1) + "", 9, false, AscCommon.align_Center);
+                    oLabel.setLayout(dX, dY, dW, dH);
+                    oLabel.recalculate();
+                    oLabel.draw(oGraphics);
+                }
+            }
 
         }, this, []);
     };
@@ -12353,7 +12382,7 @@
     //CAnimItem.prototype.draw = function() {
     //};
 
-    function CLabel(oParentControl, sString, nFontSize, bBold) {
+    function CLabel(oParentControl, sString, nFontSize, bBold, nParaAlign) {
         CControl.call(this, oParentControl);
         AscFormat.ExecuteNoHistory(function(){
             this.string = sString;
@@ -12366,6 +12395,9 @@
             oTxLstStyle.levels[0].DefaultRunPr.Bold = bBold;
             oTxLstStyle.levels[0].DefaultRunPr.Color = new AscCommonWord.CDocumentColor(0x44, 0x44, 0x44, false);
             oTxLstStyle.levels[0].DefaultRunPr.RFonts.SetAll("Arial", -1);
+            if(AscFormat.isRealNumber(nParaAlign)) {
+                oTxLstStyle.levels[0].Jc = nParaAlign;
+            }
             this.txBody.setLstStyle(oTxLstStyle);
             this.bodyPr = new AscFormat.CBodyPr();
             this.bodyPr.setDefault();
