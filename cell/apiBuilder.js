@@ -2880,6 +2880,22 @@
 	};
 
 	/**
+	 * Get the shape inner contents where a paragraph or text runs can be inserted. 
+	 * @memberof ApiShape
+	 * @typeofeditors ["CSE"]
+	 * @returns {?ApiDocumentContent}
+	 */
+	ApiShape.prototype.GetDocContent = function()
+	{
+		var oApi = Asc["editor"];
+		if(oApi && this.Drawing && this.Drawing.txBody && this.Drawing.txBody.content)
+		{
+			return oApi.private_CreateApiDocContent(this.Drawing.txBody.content);
+		}
+		return null;
+	};
+
+	/**
 	 * Set the vertical alignment for the shape content where a paragraph or text runs can be inserted.
 	 * @memberof ApiShape
 	 * @typeofeditors ["CSE"]
