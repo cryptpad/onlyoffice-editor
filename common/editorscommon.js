@@ -4112,7 +4112,7 @@
 							0x0634, 0x062A, 0x062B, 0x062E,
 							0x0630, 0x0636, 0x063A, 0x0638
 						];
-					} else if (nFormat === Asc.c_oAscNumberingFormat.ArabicAbjad) {
+					} else if (nFormat === Asc.c_oAscNumberingFormat.ArabicAlpha) {
 						charArr = [
 							0x0623, 0x0628, 0x062A, 0x062B,
 							0x062C, 0x062D, 0x062E, 0x062F,
