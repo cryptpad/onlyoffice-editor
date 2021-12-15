@@ -7442,36 +7442,54 @@
 						}
 						var arrOfDigits = ordinalText.arrAnswer;
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
-						if (lastWord.indexOf(alphaBet[textLang]['thousandEntry']) !== -1) {
-							var answer = [];
-							answer.unshift(alphaBet[textLang]['thousandType']);
-							arrOfDigits.pop();
-							var lastWord = arrOfDigits[arrOfDigits.length - 1];
-							if (typeof alphaBet[textLang]['thousand'][1][lastWord] === 'string') {
-								answer.unshift(alphaBet[textLang]['thousand'][1][lastWord]);
+						if (lastWord) {
+							var thousandType;
+							if (textLang === 'pl-PL') {
+								switch (lastWord) {
+									case 'tysiąc':
+										thousandType = 'tysiączny';
+										break;
+									case 'tysiące':
+									case 'tysięcy':
+										thousandType = 'tysięczny';
+										break;
+									default:
+										break;
+								}
+							} else if (lastWord.indexOf(alphaBet[textLang]['thousandEntry']) !== -1) {
+								thousandType = alphaBet[textLang]['thousandType'];
+							}
+							if (thousandType) {
+								var answer = [];
+								answer.unshift(thousandType);
 								arrOfDigits.pop();
-								lastWord = arrOfDigits[arrOfDigits.length - 1];
-								if (alphaBet[textLang]['thousand'][1][lastWord]) {
+								var lastWord = arrOfDigits[arrOfDigits.length - 1];
+								if (typeof alphaBet[textLang]['thousand'][1][lastWord] === 'string') {
 									answer.unshift(alphaBet[textLang]['thousand'][1][lastWord]);
 									arrOfDigits.pop();
+									lastWord = arrOfDigits[arrOfDigits.length - 1];
+									if (alphaBet[textLang]['thousand'][1][lastWord]) {
+										answer.unshift(alphaBet[textLang]['thousand'][1][lastWord]);
+										arrOfDigits.pop();
+									}
 								}
-							}
-							lastWord = arrOfDigits[arrOfDigits.length - 1];
-							if (alphaBet[textLang]['thousand'][100][lastWord]) {
-								arrOfDigits.pop();
-								answer.unshift(alphaBet[textLang]['thousand'][100][lastWord]);
-							}
-							arrOfDigits.push(answer.join(''));
-						} else {
-							arrOfDigits[arrOfDigits.length - 1] = alphaBet[textLang]['numbers'][arrOfDigits[arrOfDigits.length - 1]];
-						}
-						if (textLang === 'pl-PL') {
-							for (var i = 0; i < arrOfDigits.length; i += 1) {
-								if (arrOfDigits[i] === 'tysiączny') {
-									break;
+								lastWord = arrOfDigits[arrOfDigits.length - 1];
+								if (alphaBet[textLang]['thousand'][100][lastWord]) {
+									arrOfDigits.pop();
+									answer.unshift(alphaBet[textLang]['thousand'][100][lastWord]);
 								}
-								if (alphaBet[textLang]['tens'][arrOfDigits[i]]) {
-									arrOfDigits[i] = alphaBet[textLang]['tens'][arrOfDigits[i]];
+								arrOfDigits.push(answer.join(''));
+							} else {
+								arrOfDigits[arrOfDigits.length - 1] = alphaBet[textLang]['numbers'][arrOfDigits[arrOfDigits.length - 1]];
+							}
+							if (textLang === 'pl-PL') {
+								for (var i = 0; i < arrOfDigits.length; i += 1) {
+									if (arrOfDigits[i] === 'tysiączny') {
+										break;
+									}
+									if (alphaBet[textLang]['tens'][arrOfDigits[i]]) {
+										arrOfDigits[i] = alphaBet[textLang]['tens'][arrOfDigits[i]];
+									}
 								}
 							}
 						}
