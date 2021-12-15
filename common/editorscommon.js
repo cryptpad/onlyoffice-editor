@@ -5750,7 +5750,11 @@
 										} else {
 											resArr = resArr.concat(letterNumberLessThen100SV(groups[1000]));
 										}
-										resArr.push('tusen');
+										if (groups[1000] === 1) {
+											resArr.push('usen');
+										} else {
+											resArr.push('tusen');
+										}
 									}
 
 									if (groups[100]) {
