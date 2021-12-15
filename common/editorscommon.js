@@ -4703,7 +4703,8 @@
 							String.fromCharCode(0x4F0D),
 							String.fromCharCode(0x516D),
 							String.fromCharCode(0x4E03),
-							String.fromCharCode(0x516B)
+							String.fromCharCode(0x516B),
+							String.fromCharCode(0x4E5D)
 						];
 						degrees = [
 							'萬',
@@ -4743,6 +4744,7 @@
 							String.fromCharCode(0x4E5D)
 						];
 						degrees = [
+							'万',
 							'千',
 							'百',
 							'十'
