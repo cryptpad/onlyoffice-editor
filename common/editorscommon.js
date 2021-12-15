@@ -7115,7 +7115,8 @@
 
 						var arrOfDigits = ordinalText.arrAnswer;
 						var newAnswerArr = [];
-						for (var i = 0; i < arrOfDigits.length; i += 1) {
+						var isSkip = false;
+						for (var i = arrOfDigits.length - 1; i >= 0; i -= 1) {
 							if (Array.isArray(arrOfDigits[i])) {
 								var iterArr = arrOfDigits[i];
 								for (var j = 0; j < iterArr.length; j += 1) {
@@ -7125,12 +7126,21 @@
 								}
 
 							} else {
-								if (alphaBet[arrOfDigits[i]]) {
+								if (isSkip) {
+									newAnswerArr.push(arrOfDigits[i]);
+								} else if (alphaBet[arrOfDigits[i]]) {
 									newAnswerArr.push(alphaBet[arrOfDigits[i]]);
+									if (arrOfDigits[i] === 'mil' && nValue >= 2000) {
+										newAnswerArr[newAnswerArr.length - 1] += 's';
+									}
+								}
+								if (!isSkip && arrOfDigits[i] === 'mil') {
+									isSkip = true;
 								}
 							}
 						}
-						ordinalText.arrAnswer = newAnswerArr;
+
+						ordinalText.arrAnswer = newAnswerArr.reverse();
 						break;
 					}
 					case 'lv-LV': {
