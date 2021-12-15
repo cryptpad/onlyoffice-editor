@@ -6906,15 +6906,20 @@
 									switchingValue[switchingValue.length - 1] = 'premier';
 								}
 								break;
+							case 'cents':
+								switchingValue[switchingValue.length - 1] = 'cent';
+								break;
 							default:
 								break;
 						}
-						var lastWord = switchingValue[switchingValue.length - 1];
-						if (lastWord[lastWord.length - 1] === 'e' || lastWord[lastWord.length - 1] === 'e') {
-							switchingValue[switchingValue.length - 1] = lastWord.slice(0, lastWord.length - 1);
-						}
-						if (switchingValue[switchingValue.length - 1] !== 'premier') {
-							switchingValue[switchingValue.length - 1] += 'ième';
+						if (nValue < 1000000) {
+							var lastWord = switchingValue[switchingValue.length - 1];
+							if (lastWord[lastWord.length - 1] === 'e' || lastWord[lastWord.length - 1] === 'e') {
+								switchingValue[switchingValue.length - 1] = lastWord.slice(0, lastWord.length - 1);
+							}
+							if (switchingValue[switchingValue.length - 1] !== 'premier') {
+								switchingValue[switchingValue.length - 1] += 'ième';
+							}
 						}
 						break;
 					}
