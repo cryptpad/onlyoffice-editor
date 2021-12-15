@@ -2072,7 +2072,7 @@
             return CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite")
         }, this, []);
     };
-    CTiming.prototype.getAllAnimEffects = function(aObjectId) {
+    CTiming.prototype.getAllAnimEffects = function() {
         if(!this.tnLst) {
             return [];
         }
@@ -2366,20 +2366,24 @@
     CTiming.prototype.getSelectedEffects = function() {
         //todo 
         var aEffects = [];
-        var oSlide = this.parent;
-        if(!oSlide) {
-            return aEffects;
+        var aAllEffects = this.getAllAnimEffects();
+        for(var nIdx = 0; nIdx < aAllEffects.length; ++nIdx) {
+            var oEffect = aAllEffects[nIdx];
+            if(oEffect.isSelected()) {
+                aEffects.push(oEffect);
+            }
         }
-        var oGrObjects = oSlide.graphicObjects;
-        if(!oGrObjects) {
-            return aEffects;
-        }
-        var aSelectedDrawings = oGrObjects.selectedObjects;
-        for(var nIdx = 0; nIdx < aSelectedDrawings.length; ++nIdx) {
-            aEffects = aEffects.concat(this.getObjectEffects(aSelectedDrawings[nIdx].Get_Id()));
-        }
-        if(aEffects.length === 0 && aSelectedDrawings.length > 0) {
-            aEffects.push(this.staticCreateNoneEffect());
+        if(aEffects.length === 0) {
+            var oSlide = this.parent;
+            if(oSlide) {
+                var oGrObjects = oSlide.graphicObjects;
+                if(oGrObjects) {
+                    var aSelectedDrawings = oGrObjects.selectedObjects;
+                    if(aSelectedDrawings.length > 0) {
+                        aEffects.push(this.staticCreateNoneEffect());
+                    }
+                }
+            }
         }
         return aEffects;
     };
@@ -2526,6 +2530,14 @@
             return this.list[this.list.length - 1];
         }
         return null;
+    };
+    CCommonTimingList.prototype.getChildIdx = function(oChild) {
+        for(var nIdx = this.list.length - 1; nIdx > -1; --nIdx) {
+            if(this.list[nIdx] === oChild) {
+                return nIdx;
+            }
+        }
+        return -1;
     };
 
     function CAttrNameLst() {
@@ -7232,6 +7244,49 @@
     CTimeNodeContainer.prototype.isAnimEffect = function() {
         return this.cTn.isAnimEffect();
     };
+    CTimeNodeContainer.prototype.findSeqWithIdx = function() {
+        var oTiming = this.getTiming();
+        if(!oTiming) {
+            return null;
+        }
+        var aSeqs = oTiming.getEffectsSequences();
+        for(var nSeq = 0; nSeq < aSeqs.length; ++nSeq) {
+            var aSeq = aSeqs[nSeq];
+            for(var nEffect = aSeq.length - 1; nEffect > 0; --nEffect) {
+                if(aSeq[nEffect] === this) {
+                    return {seq: aSeq, idx: nEffect};
+                }
+            }
+        }
+        return null;
+    };
+    CTimeNodeContainer.prototype.getIndexInSequence = function() {
+        var aHierarchy = this.getHierarchy();
+        if(aHierarchy[1] && aHierarchy[2]) {
+            return aHierarchy[1].getChildNodeIdx(aHierarchy[2]);
+        }
+        return -1;
+    };
+    CTimeNodeContainer.prototype.getLabelFillColor = function() {
+
+    };
+    CTimeNodeContainer.prototype.drawEffectLabel = function(oGraphics, dX, dY, dW, dH) {
+        AscFormat.ExecuteNoHistory(function(){
+            oGraphics.SaveGrState();
+            var oMatrix = new AscCommon.CMatrix();
+            oMatrix.tx = dX;
+            oMatrix.ty = dY;
+            oGraphics.transform3(oMatrix);
+            //draw rect
+            oGraphics.rect(0, 0, dW, dH);
+            oGraphics.df();
+            oGraphics.ds();
+            //draw internal part
+            
+            oGraphics.RestoreGrState();
+
+        }, this, []);
+    };
     CTimeNodeContainer.prototype.getObjectId = function() {
         if(this.isAnimEffect()) {
             return this.cTn.getObjectId();
@@ -7341,6 +7396,9 @@
     CTimeNodeContainer.prototype.getChildTimeNodeByType = function(nType) {
         return this.cTn.getTimeNodeByType(nType);
     };
+    CTimeNodeContainer.prototype.getChildNodeIdx = function(oChildNode) {
+        return this.cTn.childTnLst.getChildIdx(oChildNode);
+    };
     CTimeNodeContainer.prototype.getAllEffects = function() {
         var aAllEffects = [];
         this.traverse(function(oChild){
@@ -7370,6 +7428,14 @@
             return oObject.getObjectName();
         }
         return "";
+    };
+    CTimeNodeContainer.prototype.isSelected = function() {
+        var sObjectId = this.getObjectId();
+        var oObject = AscCommon.g_oTableId.Get_ById(sObjectId);
+        if(oObject && !oObject.bDeleted) {
+            return oObject.selected;
+        }
+        return false;
     };
     CTimeNodeContainer.prototype.asc_getStartType = function() {
         if(this.cTn) {
@@ -7450,7 +7516,6 @@
     CTimeNodeContainer.prototype["asc_getRepeatCount"] = CTimeNodeContainer.prototype.asc_getRepeatCount;
     CTimeNodeContainer.prototype.asc_putRepeatCount = function(v) {
         AscFormat.ExecuteNoHistory(function() {
-            var oAttrObject = this.getAttributesObject();
             if(this.cTn) {
                 this.cTn.changeRepeatCount(v);
             }

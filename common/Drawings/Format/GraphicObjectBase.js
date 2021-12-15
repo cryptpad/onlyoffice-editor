@@ -2571,16 +2571,6 @@
         }
         return true;
     };
-    CGraphicObjectBase.prototype.getAnimEffect = function() {
-        if(this.group) {
-            return this.group.getAnimEffect();
-        }
-        var oTiming = (this.parent && this.parent.timing);
-        if(oTiming) {
-            return oTiming.getAnimEffect(this.Get_Id());
-        }
-        return AscFormat.CTiming.prototype.staticCreateNoneEffect();
-    };
     //for bug 52775. remove in the next version
     CGraphicObjectBase.prototype.applySmartArtTextStyle = function() {
 
@@ -2695,6 +2685,38 @@
     CGraphicObjectBase.prototype.getObjectName = function() {
         return this.getTypeName() + " " + this.getFormatId();
     };
+    CGraphicObjectBase.prototype.getTimimng = function() {
+        if(this.group) {
+            return this.group.getTimimng();
+        }
+        return (this.parent && this.parent.timing) || null;
+    };
+    CGraphicObjectBase.prototype.drawAnimLabels = function(oGraphics) {
+        if(this.group) {
+            return;
+        }
+        var oTiming = this.getTimimng();
+        if(!oTiming) {
+            return;
+        }
+        var aEffects = oTiming.getObjectEffects(this.Get_Id());
+        if(aEffects.length === 0) {
+            return;
+        }
+        var oBounds = this.bounds;
+        var dX = oBounds.x - this.convertPixToMM(9) - this.convertPixToMM(ANIM_LABEL_WIDTH_PIX);
+        var dY = oBounds.y;
+        var dW = this.convertPixToMM(ANIM_LABEL_WIDTH_PIX);
+        var dH = this.convertPixToMM(ANIM_LABEL_HEIGHT_PIX);
+        for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            aEffects[nEffect].drawEffectLabel(oGraphics, dX, dY, dW, dH);
+            dY += this.convertPixToMM(4);
+        }
+    };
+
+    var ANIM_LABEL_WIDTH_PIX = 22;
+    var ANIM_LABEL_HEIGHT_PIX = 17;
+
 
     function CRelSizeAnchor() {
         CBaseObject.call(this);
