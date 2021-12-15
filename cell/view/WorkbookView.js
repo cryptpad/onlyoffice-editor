@@ -1738,12 +1738,15 @@
 
     var activeWsModel = this.model.getActiveWs();
     if (activeWsModel.inPivotTable(activeCellRange)) {
+		if (t.input.isFocused) {
+			t.input.blur();
+		}
 		this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
 		return;
 	}
 
     var editFunction = function() {
-      if (needBlurFunc) {
+      if (needBlur) {
 		  t.input && t.input.focus();
 	  }
       t.setCellEditMode(true);
@@ -2606,18 +2609,11 @@
   };
 
    WorkbookView.prototype.checkCopyToClipboard = function(_clipboard, _formats) {
-    var t = this, ws;
-    ws = t.getWorksheet();
-	if (ws && ws.model && ws.model.getSheetProtection() && AscCommon.g_clipboardBase.bCut) {
-		var selection = ws._getSelection();
-		var selectionRanges = selection ? selection.ranges : null;
-		if (selectionRanges && ws.model.isIntersectLockedRanges(selectionRanges)) {
-			//this.handlers.trigger("onErrorEvent", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
-			return false;
-		}
-	}
-
-	g_clipboardExcel.checkCopyToClipboard(ws, _clipboard, _formats);
+    if(this.isProtectedFromCut()) {
+      return false;
+    }
+    var ws = this.getWorksheet();
+    g_clipboardExcel.checkCopyToClipboard(ws, _clipboard, _formats);
   };
 
   WorkbookView.prototype.pasteData = function(_format, data1, data2, text_data, doNotShowButton) {
@@ -2652,20 +2648,36 @@
 			this.handlers.trigger("hideSpecialPasteOptions");
 		//}
 	};
-
+  WorkbookView.prototype.isProtectedFromCut = function() {
+    var ws = this.getWorksheet();
+    if (ws && ws.model && ws.model.getSheetProtection() && AscCommon.g_clipboardBase.bCut) {
+      if(ws.isSelectOnShape) {
+        if(ws.objectRender && ws.objectRender.controller) {
+          var oController = ws.objectRender.controller;
+          if(oController.isProtectedFromCut()) {
+            return true;
+          }
+        }
+      } else {
+        var selection = ws._getSelection();
+        var selectionRanges = selection ? selection.ranges : null;
+        if (selectionRanges && ws.model.isIntersectLockedRanges(selectionRanges)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
 	WorkbookView.prototype.selectionCut = function () {
 		if (this.getCellEditMode()) {
 			this.cellEditor.cutSelection();
 		} else {
 			var ws = this.getWorksheet();
-			if (ws && ws.model && ws.model.getSheetProtection() && AscCommon.g_clipboardBase.bCut) {
-				var selection = ws._getSelection();
-				var selectionRanges = selection ? selection.ranges : null;
-				if (selectionRanges && ws.model.isIntersectLockedRanges(selectionRanges)) {
-					this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
-					return false;
-				}
-			}
+      if(this.isProtectedFromCut()) {
+        this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+        return false;
+      }
+
 			if (ws.isNeedSelectionCut()) {
 				ws.emptySelection(c_oAscCleanOptions.All, true);
 			} else {
@@ -3416,7 +3428,6 @@
 		  // Переводим в px и приводим к целому (int)
 		  t.model.maxDigitWidth = t.maxDigitWidth = t.stringRender.getWidestCharWidth();
 		  // Проверка для Calibri 11 должно быть this.maxDigitWidth = 7
-		  console.log(t.model.maxDigitWidth);
 
 		  if (!t.maxDigitWidth) {
 			  throw new Error("Error: can't measure text string");

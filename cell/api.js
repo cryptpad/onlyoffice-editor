@@ -5215,6 +5215,8 @@ var editor;
     var _printPagesData = this.wb.calcPagesPrint(_adjustPrint);
 
     if (undefined === _printer && _page === undefined) {
+      // ПУСТОЙ вызов, так как он должен быть ДО команд печати (картинки). А реальзый вызов - после (pagescount)
+      window["AscDesktopEditor"] && window["AscDesktopEditor"]["Print_Start"]();
       _printer = this.wb.printSheets(_printPagesData).DocumentRenderer;
 
       if (undefined !== window["AscDesktopEditor"]) {
@@ -6280,7 +6282,10 @@ var editor;
 					props.workbookHashValue = hash && hash[0];
 					t.collaborativeEditing.lock(arrLocks, callback);
 				} else {
-					if (hash && hash[0] === props.workbookHashValue) {
+					if (props.isPasswordXL() && hash && hash[0] && hash[0].toLowerCase() === props.workbookPassword.toLowerCase()) {
+						props.workbookPassword = null;
+						t.collaborativeEditing.lock(arrLocks, callback);
+					} else if (!props.isPasswordXL() && hash && hash[0] === props.workbookHashValue) {
 						props.workbookHashValue = null;
 						props.workbookSaltValue = null;
 						props.workbookSpinCount = null;
@@ -6302,9 +6307,13 @@ var editor;
 		//only lockStructure
 		this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction);
 		if (props && props.temporaryPassword) {
-			var checkHash = {password: props.temporaryPassword, salt: props.workbookSaltValue, spinCount: props.workbookSpinCount,
-				alg: AscCommonExcel.fromModelAlgoritmName(props.workbookAlgorithmName)};
-			AscCommon.calculateProtectHash([checkHash], checkPassword);
+			if (props.isPasswordXL()) {
+				checkPassword([AscCommonExcel.getPasswordHash(props.temporaryPassword, true)]);
+			} else {
+				var checkHash = {password: props.temporaryPassword, salt: props.workbookSaltValue, spinCount: props.workbookSpinCount,
+					alg: AscCommonExcel.fromModelAlgoritmName(props.workbookAlgorithmName)};
+				AscCommon.calculateProtectHash([checkHash], checkPassword);
+			}
 		} else {
 			checkPassword(null, true);
 		}
@@ -6417,10 +6426,6 @@ var editor;
 	spreadsheet_api.prototype.hideForeignSelectLabel = function (UserId) {
 		this.sendEvent("asc_onHideForeignCursorLabel", UserId);
 	};
-
-	//TODO убрать!
-	window['Asc']['Addons'] = window['Asc']['Addons'] || {};
-	window['Asc']['Addons']['sheet-views'] = true;
 
 	//TODO временно положил в прототип. перенести!
 	spreadsheet_api.prototype.sheetViewManagerLocks = [];
