@@ -909,8 +909,12 @@
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("filterColumn" === reader.GetName()) {
-				/*val = reader.GetValue();
-				this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(val);*/
+				var filterColumn = new AscCommonExcel.FilterColumn();
+				filterColumn.fromXml(reader);
+				if (!this.FilterColumns) {
+					this.FilterColumns = [];
+				}
+				this.FilterColumns.push(filterColumn);
 			} else if ("sortState" === reader.GetName()) {
 				var sortState = new AscCommonExcel.SortState();
 				sortState.fromXml(reader);
@@ -931,8 +935,9 @@
 	AscCommonExcel.TableStyleInfo.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
-		if ( !reader.IsEmptyNode() )
+		if (!reader.IsEmptyNode()) {
 			reader.ReadTillEnd();
+		}
 
 	};
 	AscCommonExcel.TableStyleInfo.prototype.readAttr = function(reader) {
@@ -960,7 +965,7 @@
 	AscCommonExcel.TableColumn.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
-		if (!reader.IsEmptyNode()) {
+		if (reader.IsEmptyNode()) {
 			return;
 		}
 
@@ -1016,7 +1021,7 @@
 				val = reader.GetValueBool();
 				this.TotalsRowFunction = val;
 			} else if ("dataDxfId" === reader.GetName()) {
-				val = reader.GetValueBool();
+				val = reader.GetValue();
 				this.dxf = val;
 				/*var DxfId = this.stream.GetULongLE();
 				oTableColumn.dxf = this.Dxfs[DxfId];*/
@@ -1026,8 +1031,9 @@
 			} else if ("queryTableFieldId" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.queryTableFieldId = val;
+				//oTableColumn.queryTableFieldId = this.stream.GetULongLE();
 			} else if ("uniqueName" === reader.GetName()) {
-				val = reader.GetValueBool();
+				val = reader.GetValue();
 				this.uniqueName = val;
 			}
 		}
@@ -1036,7 +1042,7 @@
 	AscCommonExcel.SortState.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
-		if (!reader.IsEmptyNode()) {
+		if (reader.IsEmptyNode()) {
 			return;
 		}
 
@@ -1066,8 +1072,6 @@
 			} else if ("sortMethod" === reader.GetName()) {
 				val = reader.GetValue();
 				this.SortMethod = val;
-				/*var DxfId = this.stream.GetULongLE();
-				oTableColumn.dxf = this.Dxfs[DxfId];*/
 			}
 		}
 	};
@@ -1075,25 +1079,34 @@
 	AscCommonExcel.FilterColumn.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
-		if (!reader.IsEmptyNode()) {
+		if (reader.IsEmptyNode()) {
 			return;
 		}
 
+		var val;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("colorFilter" === name) {
-				var sortCondition = new AscCommonExcel.SortCondition();
-				sortCondition.fromXml(reader);
-				this.SortCondition = sortCondition;
+				val = new Asc.ColorFilter();
+				val.fromXml(reader);
+				this.ColorFilter = val;
 			} else if ("dynamicFilter" === name) {
-
+				val = new Asc.DynamicFilter();
+				val.fromXml(reader);
+				this.DynamicFilter = val;
 			} else if ("customFilters" === name) {
-
+				val = new Asc.CustomFilters();
+				val.fromXml(reader);
+				this.CustomFiltersObj = val;
 			} else if ("filters" === name) {
-
+				val = new AscCommonExcel.Filters();
+				val.fromXml(reader);
+				this.Filters = val;
 			} else if ("top10" === name) {
-
+				val = new AscCommonExcel.Top10();
+				val.fromXml(reader);
+				this.Filters = val;
 			}
 		}
 	};
@@ -1110,6 +1123,230 @@
 			} else if ("showButton" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.ShowButton = val;
+			}
+		}
+	};
+
+	AscCommonExcel.SortCondition.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (!reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.SortCondition.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_SortCondition">
+			160 <xsd:attribute name="descending" type="xsd:boolean" use="optional" default="false"/>
+			161 <xsd:attribute name="sortBy" type="ST_SortBy" use="optional" default="value"/>
+			162 <xsd:attribute name="ref" type="ST_Ref" use="required"/>
+			163 <xsd:attribute name="customList" type="s:ST_Xstring" use="optional"/>
+			164 <xsd:attribute name="dxfId" type="ST_DxfId" use="optional"/>
+			165 <xsd:attribute name="iconSet" type="ST_IconSetType" use="optional" default="3Arrows"/>
+			166 <xsd:attribute name="iconId" type="xsd:unsignedInt" use="optional"/>
+			167 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("descending"),      m_oDescending )
+		WritingElement_ReadAttributes_Read_if     ( oReader, _T("ref"),      m_oRef )
+		WritingElement_ReadAttributes_Read_if     ( oReader, _T("sortBy"),      m_oSortBy )
+		WritingElement_ReadAttributes_Read_if     ( oReader, _T("dxfId"),      m_oDxfId )*/
+
+		//serialize
+		/*var res = c_oSerConstants.ReadOk;
+		if ( c_oSer_SortState.ConditionRef == type )
+			oSortCondition.Ref = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));
+		else if ( c_oSer_SortState.ConditionSortBy == type )
+			oSortCondition.ConditionSortBy = this.stream.GetUChar();
+		else if ( c_oSer_SortState.ConditionDescending == type )
+			oSortCondition.ConditionDescending = this.stream.GetBool();
+		else if ( c_oSer_SortState.ConditionDxfId == type )
+		{
+			var DxfId = this.stream.GetULongLE();
+			oSortCondition.dxf = this.Dxfs[DxfId];
+		}
+		else
+			res = c_oSerConstants.ReadUnknown;
+		return res;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("descending" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ConditionDescending = val;
+			} else if ("ref" === reader.GetName()) {
+				val = AscCommonExcel.g_oRangeCache.getAscRange(reader.GetValue());
+				this.Ref = val;
+			} else if ("sortBy" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ConditionSortBy = val;
+			} else if ("dxfId" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.dxf = val;
+				/*var DxfId = this.stream.GetULongLE();
+				oSortCondition.dxf = this.Dxfs[DxfId];*/
+			}
+		}
+	};
+
+	Asc.ColorFilter.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (!reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.ColorFilter.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_ColorFilter">
+		67 <xsd:attribute name="dxfId" type="ST_DxfId" use="optional"/>
+		68 <xsd:attribute name="cellColor" type="xsd:boolean" use="optional" default="true"/>
+		69 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Start( oReader )
+
+		WritingElement_ReadAttributes_Read_if     ( oReader, _T("cellColor"),      m_oCellColor )
+		WritingElement_ReadAttributes_Read_if     ( oReader, _T("dxfId"),      m_oDxfId )
+
+		WritingElement_ReadAttributes_End( oReader )*/
+
+		//serialize
+		/*  var res = c_oSerConstants.ReadOk;
+		if ( c_oSer_ColorFilter.CellColor == type )
+			oColorFilter.CellColor = this.stream.GetBool();
+		else if ( c_oSer_ColorFilter.DxfId == type )
+		{
+			var DxfId = this.stream.GetULongLE();
+			oColorFilter.dxf = this.Dxfs[DxfId];
+		}
+		else
+			res = c_oSerConstants.ReadUnknown;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("cellColor" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.CellColor = val;
+			} else if ("dxfId" === reader.GetName()) {
+				//TODO все dxf проверить
+				val = reader.GetValue();
+				this.dxf = val;
+				/*var DxfId = this.stream.GetULongLE();
+				oColorFilter.dxf = this.Dxfs[DxfId];*/
+			}
+		}
+	};
+
+	Asc.DynamicFilter.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (!reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.DynamicFilter.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_DynamicFilter">
+		85 <xsd:attribute name="type" type="ST_DynamicFilterType" use="required"/>
+		86 <xsd:attribute name="valIso" type="xsd:dateTime" use="optional"/>
+		87 <xsd:attribute name="maxValIso" type="xsd:dateTime" use="optional"/>
+		88 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("type"),      m_oType )
+		WritingElement_ReadAttributes_Read_if     ( oReader, _T("val"),      m_oVal )
+		WritingElement_ReadAttributes_Read_if     ( oReader, _T("maxVal"),      m_oMaxVal )*/
+
+		//serialize
+		/*   if ( c_oSer_DynamicFilter.Type == type )
+                oDynamicFilter.Type = this.stream.GetUChar();
+            else if ( c_oSer_DynamicFilter.Val == type )
+                oDynamicFilter.Val = this.stream.GetDoubleLE();
+            else if ( c_oSer_DynamicFilter.MaxVal == type )
+                oDynamicFilter.MaxVal = this.stream.GetDoubleLE();*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("type" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Type = val;
+			} else if ("val" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.val = val;
+			} else if ("maxVal" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.MaxVal = val;
+			}
+		}
+	};
+
+	Asc.CustomFilters.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("customFilter" === name) {
+				var val = new AscCommonExcel.CustomFilter();
+				val.fromXml(reader);
+				if (!this.CustomFilters) {
+					this.CustomFilters = [];
+				}
+				this.CustomFilters.push(val);
+			}
+		}
+
+		/*ReadAttributes( oReader );
+
+		if ( oReader.IsEmptyNode() )
+			return;
+
+		int nCurDepth = oReader.GetDepth();
+		while( oReader.ReadNextSiblingNode( nCurDepth ) )
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+			if ( _T("customFilter") == sName )
+				m_arrItems.push_back( new CCustomFilter(oReader));
+		}*/
+	};
+
+	Asc.CustomFilters.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_CustomFilters">
+		51 <xsd:sequence>
+		52 <xsd:element name="customFilter" type="CT_CustomFilter" minOccurs="1" maxOccurs="2"/>
+		53 </xsd:sequence>
+		54 <xsd:attribute name="and" type="xsd:boolean" use="optional" default="false"/>
+		55 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("and"),      m_oAnd )*/
+
+		//serialize
+		/*    if ( c_oSer_CustomFilters.And == type )
+                oCustomFilters.And = this.stream.GetBool();
+            else if ( c_oSer_CustomFilters.CustomFilters == type )
+            {
+                oCustomFilters.CustomFilters = [];
+                res = this.bcr.Read1(length, function(t,l){
+                    return oThis.ReadCustomFiltersItems(t,l, oCustomFilters.CustomFilters);
+                });
+            }*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("And" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.And = val;
 			}
 		}
 	};
