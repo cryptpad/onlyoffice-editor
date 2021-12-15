@@ -1421,7 +1421,7 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     }
     if (content_to_add)
     {
-    	if (this.isForm() && !content_to_add.IsCursorInSpecialForm())
+    	if (this.isForm && this.isForm() && !content_to_add.IsCursorInSpecialForm())
     		return;
 
         docContentFunction.apply(content_to_add, args);
@@ -2245,7 +2245,7 @@ CShape.prototype.getFormRelRect = function (isUsePaddings) {
 	var nY = 0, nH = this.extY;
 
 	var oInnerForm = null;
-	if (isUsePaddings && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
+	if (isUsePaddings && this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
 	{
 		nX += g_nDefaultFormHorPadding;
 		nW -= 2 * g_nDefaultFormHorPadding;
@@ -2373,7 +2373,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     }
 
     var oForm = null;
-	if (this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
+	if (this.isForm && this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
 	{
 		l_ins = g_nDefaultFormHorPadding;
 		r_ins = g_nDefaultFormHorPadding;
@@ -4181,7 +4181,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
     }
 
 	var oForm = null;
-	if (this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
+	if (this.isForm && this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
 	{
 		l_ins = g_nDefaultFormHorPadding;
 		r_ins = g_nDefaultFormHorPadding;
@@ -4893,7 +4893,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
             else
             {
             	var oForm;
-            	if (this.isForm() && (oForm = this.getInnerForm()) && oForm.IsAutoFitContent() && oForm.GetLogicDocument() && oForm.GetLogicDocument().CheckFormAutoFit)
+            	if (this.isForm && this.isForm() && (oForm = this.getInnerForm()) && oForm.IsAutoFitContent() && oForm.GetLogicDocument() && oForm.GetLogicDocument().CheckFormAutoFit)
 					oForm.GetLogicDocument().CheckFormAutoFit(oForm);
 
                 if(bForce)
@@ -5409,6 +5409,9 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         return;
     }
 
+    if(graphics.StartDrawShape) {
+        graphics.StartDrawShape(undefined, this.isForm && this.isForm() ? true : false);
+    }
     var oClipRect;
     if(!graphics.IsSlideBoundsCheckerType && this.getClipRect){
         oClipRect = this.getClipRect();
@@ -5562,7 +5565,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
                 var result_page_index = AscFormat.isRealNumber(graphics.shapePageIndex) ? graphics.shapePageIndex : old_start_page;
 
                 if (graphics.CheckUseFonts2 !== undefined)
-                    graphics.CheckUseFonts2(this.transformText, this.isForm());
+                    graphics.CheckUseFonts2(this.transformText, this.isForm && this.isForm() ? true : false);
 
                 if (AscCommon.IsShapeToImageConverter)
                 {
@@ -5693,6 +5696,9 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
     //}
     graphics.SetIntegerGrid(true);
     graphics.reset();
+    if(graphics.EndDrawShape) {
+        graphics.EndDrawShape();
+    }
 };
 
     CShape.prototype.recalculateGeometry = function()
@@ -6280,7 +6286,7 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
 
-    if (isDrawHandles && this.isForm() && this.getInnerForm() && this.getInnerForm().IsFormLocked())
+    if (isDrawHandles && this.isForm && this.isForm() && this.getInnerForm() && this.getInnerForm().IsFormLocked())
     	isDrawHandles = false;
 
     if(isDrawHandles === false)
@@ -6339,7 +6345,7 @@ CShape.prototype.hit = function (x, y) {
 CShape.prototype.hitInPath = function (x, y) {
 
 	var oInnerForm = null;
-	if (this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm()) {
+	if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm()) {
 		var oApi = Asc.editor || editor;
 		var oLogicDocument = oApi && oApi.WordControl && oApi.WordControl.m_oLogicDocument ? oApi.WordControl.m_oLogicDocument : null;
 		if (oLogicDocument && oLogicDocument.IsDocumentEditor() && oLogicDocument.IsFillingFormMode())
@@ -6387,7 +6393,7 @@ CShape.prototype.hitInInnerArea = function (x, y) {
 CShape.prototype.hitInBoundingRect = function (x, y) {
 
 	var oInnerForm = null;
-	if (this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm()) {
+	if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm()) {
 		var oApi = Asc.editor || editor;
 		var oLogicDocument = oApi && oApi.WordControl && oApi.WordControl.m_oLogicDocument ? oApi.WordControl.m_oLogicDocument : null;
 		if (oLogicDocument && oLogicDocument.IsDocumentEditor() && oLogicDocument.IsFillingFormMode())

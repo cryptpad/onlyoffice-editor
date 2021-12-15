@@ -1686,6 +1686,9 @@
 			}
 			oAdditionalData["title"] = AscCommon.changeFileExtention(this.documentTitle, "zip", Asc.c_nMaxDownloadTitleLen);
 		}
+		if (options.textParams) {
+			oAdditionalData["textParams"] = {"association": options.textParams.asc_getAssociation()};
+		}
 
 		if (this._downloadAs(actionType, options, oAdditionalData, dataContainer))
 		{
@@ -3486,6 +3489,28 @@
 	};
 	baseEditorsApi.prototype.asc_setSkin = function(obj)
 	{
+	};
+	baseEditorsApi.prototype.isLocalMode = function()
+	{
+		if (window["AscDesktopEditor"])
+		{
+			if (window["AscDesktopEditor"]["IsLocalFile"]())
+				return true;
+			if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isNeedCrypt())
+				return true;
+		}
+		return false;
+	};
+	baseEditorsApi.prototype.isCloudModeCrypt = function()
+	{
+		if (window["AscDesktopEditor"])
+		{
+			if (window["AscDesktopEditor"]["IsLocalFile"]())
+				return false;
+			if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isNeedCrypt())
+				return true;
+		}
+		return false;
 	};
 	baseEditorsApi.prototype.asc_initPrintPreview                     = function()
 	{

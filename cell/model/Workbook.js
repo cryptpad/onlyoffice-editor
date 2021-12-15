@@ -10239,11 +10239,20 @@
 			this.sheetProtection = new window["Asc"].CSheetProtection();
 			this.sheetProtection.setDefaultInterface();
 		}
+		this.cleanTempProtectedRanges();
 		this.sheetProtection.set(props, addToHistory, this);
 		if (this.sheetProtection.isDefault()) {
 			this.sheetProtection = null;
 		}
 		return true;
+	};
+
+	Worksheet.prototype.cleanTempProtectedRanges = function () {
+		if (this.aProtectedRanges && this.aProtectedRanges.length) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				this.aProtectedRanges[i].cleanTemp();
+			}
+		}
 	};
 
 	Worksheet.prototype.getSheetProtection = function (type) {
@@ -13542,7 +13551,7 @@
 				_formula.outStack = [];
 				_formula.parse(true);
 				var offset = new AscCommon.CellBase(cell.nRow - activeCell.row, cell.nCol - activeCell.col);
-				_val = "=" + _formula.changeOffset(offset, null, true).assemble(true);
+				_val = "=" + _formula.changeOffset(offset, null, true).assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true, true);
 			}
 			cell.setValue(_val, callback, isCopyPaste, byRef, ignoreHyperlink);
 		});

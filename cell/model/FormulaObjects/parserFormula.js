@@ -7179,8 +7179,8 @@ function parserFormula( formula, parent, _ws ) {
 	};
 
 	/* Сборка функции в инфиксную форму */
-	parserFormula.prototype.assembleLocale = function (locale, digitDelim) {
-		if (this.outStack.length === 1 && this.outStack[this.outStack.length - 1] instanceof cError) {
+	parserFormula.prototype.assembleLocale = function (locale, digitDelim, rFormula) {
+		if (!rFormula && this.outStack.length === 1 && this.outStack[this.outStack.length - 1] instanceof cError) {
 			return this.Formula;
 		}
 

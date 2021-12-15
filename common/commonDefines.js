@@ -54,7 +54,9 @@
 	var c_oAscFileType = {
 		UNKNOWN : 0,
 		PDF     : 0x0201,
-		PDFA    : 0x0901,
+		PDFA    : 0x0209,
+		DJVU    : 0x0203,
+		XPS     : 0x0204,
 		HTML    : 0x0803,
 
 		// Word
@@ -120,6 +122,13 @@
 		RAS  : 0x040b,
 		PSD  : 0x040c,
 		ICO  : 0x040d
+	};
+
+	var c_oAscTextAssociation = {
+		Char: 0,
+		Line: 1,
+		NoFrames: 2,
+		Block: 3
 	};
 
 	var c_oAscError = {
@@ -2338,6 +2347,8 @@
 	prot['UNKNOWN']              = prot.UNKNOWN;
 	prot['PDF']                  = prot.PDF;
 	prot['PDFA']                 = prot.PDFA;
+	prot['DJVU']                 = prot.DJVU;
+	prot['XPS']                  = prot.XPS;
 	prot['HTML']                 = prot.HTML;
 	prot['DOCX']                 = prot.DOCX;
 	prot['DOC']                  = prot.DOC;
@@ -2395,6 +2406,12 @@
 	prot['RAS']                  = prot.RAS;
 	prot['PSD']                  = prot.PSD;
 	prot['ICO']                  = prot.ICO;
+
+	window['Asc']['c_oAscTextAssociation'] = window['Asc'].c_oAscTextAssociation = c_oAscTextAssociation;
+	prot['Char']                  = prot.Char;
+	prot['Line']                  = prot.Line;
+	prot['NoFrames']              = prot.NoFrames;
+	prot['Block']                 = prot.Block;
 
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;

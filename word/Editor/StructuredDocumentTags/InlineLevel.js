@@ -690,14 +690,15 @@ CInlineLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
 	return 0;
 };
 /**
- * Специальная функция для мобильных версий, возвращает правую среднюю точку границы
- * @return {{X:number, Y:number, Page:number, Transform:object}}
+ * Функция возвращает рект, содержащий все отрезки данного контрола
+ * @return {{X:number, Y:number, W:number, H:number, Page:number, Transform:object}}
  */
-CInlineLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
+CInlineLevelSdt.prototype.GetBoundingRect = function()
 {
-	var nR  = 0;
-	var nT = -1;
-	var nB = -1;
+	var nR = null;
+	var nT = null;
+	var nB = null;
+	var nL = null;
 
 	var nCurPage = -1;
 
@@ -708,7 +709,7 @@ CInlineLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
 	}
 
 	if (-1 === nCurPage)
-		return {X : 0, Y : 0, Page : -1, Transform : null};
+		return {X: 0, Y : 0, W : 0, H : 0, Page : 0, Transform : null};
 
 	var nPageAbs = this.Paragraph.GetAbsolutePage(nCurPage);
 	for (var Key in this.Bounds)
@@ -716,17 +717,30 @@ CInlineLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
 		if (nCurPage !== this.Bounds[Key].PageInternal)
 			continue;
 
-		if (nR < this.Bounds[Key].X + this.Bounds[Key].W)
+		if (null === nL || nL > this.Bounds[Key].X)
+			nL = this.Bounds[Key].X;
+
+		if (null === nR || nR < this.Bounds[Key].X + this.Bounds[Key].W)
 			nR = this.Bounds[Key].X + this.Bounds[Key].W;
 
-		if (-1 === nT || nT > this.Bounds[Key].Y)
+		if (null === nT || nT > this.Bounds[Key].Y)
 			nT = this.Bounds[Key].Y;
 
-		if (-1 === nB || nB < this.Bounds[Key].Y + this.Bounds[Key].H)
+		if (null === nB || nB < this.Bounds[Key].Y + this.Bounds[Key].H)
 			nB = this.Bounds[Key].Y + this.Bounds[Key].H;
 	}
 
-	return {X : nR, Y : (nT + nB) / 2, Page : nPageAbs, Transform : this.Get_ParentTextTransform()};
+	if (null === nL || null === nT || null === nR || null === nB)
+		return {X: 0, Y : 0, W : 0, H : 0, Page : 0, Transform : null};
+
+	return {
+		X : nL,
+		Y : nT,
+		W : nR - nL,
+		H : nB - nT,
+		Page : nPageAbs,
+		Transform : this.Get_ParentTextTransform()
+	};
 };
 CInlineLevelSdt.prototype.IsFixedForm = function()
 {
@@ -808,8 +822,26 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCu
 
 	oDrawingDocument.OnDrawContentControl(this, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, this.GetBoundingPolygon());
 };
+CInlineLevelSdt.prototype.IsDrawContentControlsTrackBounds = function()
+{
+	var oShd;
+	return (!this.IsForm()
+		|| !this.IsCurrent()
+		|| !(oShd = this.GetFormPr().GetShd())
+		|| oShd.IsNil());
+};
 CInlineLevelSdt.prototype.SelectContentControl = function()
 {
+	var arrDrawings, oLogicDocument;
+	if (this.IsPicture()
+		&& (arrDrawings = this.GetAllDrawingObjects())
+		&& arrDrawings.length > 0
+		&& (oLogicDocument = this.GetLogicDocument()))
+	{
+		oLogicDocument.Select_DrawingObject(arrDrawings[0].GetId());
+		return;
+	}
+
 	if (this.IsForm() && this.IsPlaceHolder() && this.GetLogicDocument() && this.GetLogicDocument().CheckFormPlaceHolder)
 	{
 		this.RemoveSelection();
@@ -860,11 +892,11 @@ CInlineLevelSdt.prototype.RemoveContentControlWrapper = function()
 {
 	var oParent = this.Get_Parent();
 	if (!oParent)
-		return;
+		return {Parent : null, Pos : -1, Count : 0};
 
 	var nElementPos = this.Get_PosInParent(oParent);
 	if (-1 === nElementPos)
-		return;
+		return {Parent : null, Pos : -1, Count : 0};
 
 	var nParentCurPos            = oParent instanceof Paragraph ? oParent.CurPos.ContentPos : oParent.State.ContentPos;
 	var nParentSelectionStartPos = oParent.Selection.StartPos;
@@ -904,6 +936,8 @@ CInlineLevelSdt.prototype.RemoveContentControlWrapper = function()
 		oParent.Selection.EndPos = nParentSelectionEndPos + nCount - 1;
 
 	this.Remove_FromContent(0, this.Content.length);
+
+	return {Parent : oParent, Pos : nElementPos, Count : nCount};
 };
 CInlineLevelSdt.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 {
