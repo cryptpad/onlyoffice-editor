@@ -10901,6 +10901,30 @@ CPresentation.prototype.SetAnimationProperties = function(oPr) {
         this.Document_UpdateInterfaceState();
     }
 };
+CPresentation.prototype.GetCurTiming = function(bEarlier) {
+    var oSlide = this.GetCurrentSlide();
+    if(!oSlide) {
+        return null;
+    }
+    var oTiming = oSlide.timing;
+    if(!oTiming) {
+        return null;
+    }
+    return oTiming;
+};
+CPresentation.prototype.CanMoveAnimation = function(bEarlier) {
+    var oTiming = this.GetCurTiming();
+    return oTiming && oTiming.canMoveAnimation(bEarlier) || false;
+};
+
+CPresentation.prototype.MoveAnimation = function(bEarlier) {
+    History.Create_NewPoint(0);
+    var oTiming = this.GetCurTiming();
+    if(oTiming) {
+        oTiming.moveAnimation(bEarlier);
+        this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
+    }
+};
 
 CPresentation.prototype.StartAddShape = function (preset, _is_apply) {
     if (this.Slides[this.CurPage]) {

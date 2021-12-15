@@ -3954,6 +3954,22 @@ background-repeat: no-repeat;\
 		}
 		this.WordControl.m_oLogicDocument.SetAnimationProperties(oPr)
 	};
+	asc_docs_api.prototype.asc_canMoveAnimationEarlier = function() 
+	{
+		return this.WordControl.m_oLogicDocument.CanMoveAnimation(true);
+	};
+	asc_docs_api.prototype.asc_canMoveAnimationLater = function() 
+	{
+		return this.WordControl.m_oLogicDocument.CanMoveAnimation(false);
+	};
+	asc_docs_api.prototype.asc_moveAnimationEarlier = function() 
+	{
+		return this.WordControl.m_oLogicDocument.MoveAnimation(true);
+	};
+	asc_docs_api.prototype.asc_moveAnimationLater = function() 
+	{
+		return this.WordControl.m_oLogicDocument.MoveAnimation(false);
+	};
 	asc_docs_api.prototype.StartAddShape = function(prst, is_apply)
 	{
 		this.WordControl.m_oLogicDocument.StartAddShape(prst, is_apply);
@@ -8177,6 +8193,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getCurSlideObjectsNames']         = asc_docs_api.prototype.asc_getCurSlideObjectsNames;
 	asc_docs_api.prototype['asc_StopAnimationPreview']            = asc_docs_api.prototype.asc_StopAnimationPreview;
 	asc_docs_api.prototype['asc_SetAnimationProperties']          = asc_docs_api.prototype.asc_SetAnimationProperties;
+	asc_docs_api.prototype['asc_canMoveAnimationEarlier']         = asc_docs_api.prototype.asc_canMoveAnimationEarlier;
+	asc_docs_api.prototype['asc_canMoveAnimationLater']           = asc_docs_api.prototype.asc_canMoveAnimationLater;
+	asc_docs_api.prototype['asc_moveAnimationEarlier']            = asc_docs_api.prototype.asc_moveAnimationEarlier;
+	asc_docs_api.prototype['asc_moveAnimationLater']              = asc_docs_api.prototype.asc_moveAnimationLater;
 
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['asc_canEditGeometry']                 = asc_docs_api.prototype.asc_canEditGeometry;

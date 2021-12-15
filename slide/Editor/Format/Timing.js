@@ -2206,6 +2206,128 @@
         oPar.setCTn(oCTn);
         return oPar;
     };
+
+    CTiming.prototype.getSelectionRanges = function(aSeqs) {
+        var nSeq, nEffect;
+        var aRanges = [];
+        var aLastRange = null;
+        for(var nSeq = 0; nSeq < aSeqs.length; ++nSeq) {
+            var aSeq = aSeqs[nSeq];
+            for(nEffect = 1; nEffect < aSeq.length; ++nEffect) {
+                if(aSeq[nEffect].isSelected()) {
+                    if(!Array.isArray(aLastRange)) {
+                        aLastRange = [[nSeq, nEffect], [nSeq, nEffect]];
+                        aRanges.push(aLastRange);
+                    }
+                    else {
+                        aLastRange[1][0] = nSeq;
+                        aLastRange[1][1] = nEffect;
+                    }
+                }
+                else {
+                    aLastRange = null;
+                }
+            }
+        }
+        return aRanges;
+    };
+
+    CTiming.prototype.getSequencesForMove = function(bEarlier, bCheckPossibility) {
+        var aSeqs = this.getEffectsSequences();
+        var aRanges = this.getSelectionRanges(aSeqs);
+        var nSeq, aSeq, nEffect;
+        if(aRanges.length !== 1) {
+            return bCheckPossibility ? false : null;
+        }
+        var aRange = aRanges[0];
+        var aStart = aRange[0];
+        var aEnd = aRange[1];
+        var nEffectStart;
+        var nEffectEnd;
+        var nCount;
+        var aEffectsToInsert = [];
+        var nPos;
+        if(bEarlier) {
+            if(aStart[0] === 0) {
+                if(aStart[1] === 1) {
+                    return bCheckPossibility ? false : null;
+                }
+            }
+            if(bCheckPossibility) {
+                return true;
+            }
+        }
+        else {
+            if(aEnd[0] === aSeqs.length - 1) {
+                if(aEnd[1] === aSeqs[aSeqs.length - 1].length - 1) {
+                    return bCheckPossibility ? false : null;
+                }
+            }
+            if(bCheckPossibility) {
+                return true;
+            }
+        }
+
+
+        var nPosStartEnd;
+        if(bEarlier) {
+            if(aStart[1] === 1) {
+                aSeq = aSeqs[aStart[0] - 1];
+                nPosStartEnd = aSeq.length - 1;
+            }
+            else {
+                aSeq = aSeqs[aStart[0]];
+                nPosStartEnd = aStart[1] - 1;
+            }
+        }
+        else {
+            if(aEnd[1] === aSeqs[aEnd[0]].length - 1) {
+                aSeq = aSeqs[aEnd[0] + 1];
+                nPosStartEnd = aSeq.length;
+            }
+            else {
+                aSeq = aSeqs[aEnd[0]];
+                nPosStartEnd = aSeq.length - (aEnd[1] + 2);
+            }
+        }
+
+
+        for(nSeq = aStart[0]; nSeq <= aEnd[0]; ++nSeq) {
+            aSeq = aSeqs[nSeq];
+            if(nSeq === aStart[0]) {
+                nEffectStart = aStart[1];
+            }
+            else {
+                nEffectStart = 1;
+            }
+            if(nSeq === aEnd[0]) {
+                nEffectEnd = aEnd[1];
+            }
+            else {
+                nEffectEnd = aSeq.length - 1;
+            }
+            nCount = nEffectEnd - nEffectStart + 1;
+            aEffectsToInsert = aEffectsToInsert.concat(aSeq.splice(nEffectStart, nCount));
+        }
+        if(bEarlier) {
+            nPos = nPosStartEnd;
+        }
+        else {
+            nPos = aSeq.length - nPosStartEnd;
+        }
+        aSeq.splice.apply(aSeq, [nPos, 0].concat(aEffectsToInsert));
+        return aSeqs;
+    };
+    CTiming.prototype.canMoveAnimation = function(bEarlier) {
+        return this.getSequencesForMove(bEarlier, true);
+    };
+    CTiming.prototype.moveAnimation = function(bEarlier) {
+        var aSeqs = this.getSequencesForMove(bEarlier, false);
+        if(!Array.isArray(aSeqs)) {
+            return;
+        }
+        this.buildTree(aSeqs);
+    };
     CTiming.prototype.drawAnimPane = function(oGraphics) {
         if(!this.animPane) {
             this.animPane = new CAnimPane(this);
@@ -2269,7 +2391,7 @@
                 aCurSequence = [sSeqId];
                 aSequences.push(aCurSequence);
             }
-            aCurSequence.push(sSeqId);
+            aCurSequence.push(oEffect);
         }
         return aSequences;
     };
@@ -2282,7 +2404,7 @@
         var oCont1;//containers by depth
         //substract delay shift from afterEffect nodes
         for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
-            aCurSequence = aSequences;
+            aCurSequence = aSequences[nSeq];
             for(nEffect = 1; nEffect < aCurSequence.length; ++nEffect) {
                 oEffect = aCurSequence[nEffect];
                 oEffect.resetDelayShift();
@@ -2290,7 +2412,7 @@
         }
 
         for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
-            aCurSequence = aSequences;
+            aCurSequence = aSequences[nSeq];
             sSeqId = aCurSequence[0];
             if(sSeqId === null) {
                 oCont1 = this.checkMainSequence();
@@ -7307,7 +7429,7 @@
             if(this.isPartOfMainSequence()) {
                 var nIdx = this.getIndexInSequence();
                 if(AscFormat.isRealNumber(nIdx)) {
-                    var oLabel = new CLabel(null, (nIdx + 1) + "", 9, false, AscCommon.align_Center);
+                    var oLabel = new CLabel(null, (nIdx + 1) + "", 8, false, AscCommon.align_Center);
                     oLabel.setLayout(dX, dY, dW, dH);
                     oLabel.recalculate();
                     oLabel.draw(oGraphics);
@@ -7358,6 +7480,11 @@
     };
     CTimeNodeContainer.prototype.clearChildTnLst = function() {
         this.cTn.clearChildTnLst();
+    };
+    CTimeNodeContainer.prototype.resetDelayShift = function() {
+        if(this.isAnimEffect()) {
+            this.cTn.resetDelayShift();
+        }
     };
     CTimeNodeContainer.prototype.splice = function() {
         return this.cTn.childTnLst.splice.apply(this.cTn.childTnLst, arguments);
