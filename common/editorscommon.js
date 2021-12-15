@@ -7056,6 +7056,7 @@
 							'ochenta': 'octogésimo',
 							'noventa': 'nonagésimo',
 							'ciento': 'centésimo',
+							'cien': 'cien',
 							'doscientos': 'ducentésimo',
 							'trescientos': 'tricentésimo',
 							'cuatrocientos': 'cuadringentésimo',
