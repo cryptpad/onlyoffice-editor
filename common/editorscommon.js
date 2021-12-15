@@ -7156,6 +7156,7 @@
 							'deviņi': 'devītais',
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
+						var lastWord = arrOfDigits[arrOfDigits.length - 1];
 						if (nValue >= 1000) {
 							for (var i = 0; i < arrOfDigits.length; i += 1) {
 								if (arrOfDigits[i] === 'tūkstotis' || arrOfDigits[i] === 'tūkstoši') {
@@ -7163,9 +7164,12 @@
 								}
 							}
 						}
-						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
-							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
+						if (alphaBet[lastWord]) {
+							arrOfDigits[arrOfDigits.length - 1] = alphaBet[lastWord];
 						} else {
+							if (nValue % 100 === 0 && nValue % 1000 !== 0) {
+								arrOfDigits[arrOfDigits.length - 1] = lastWord.slice(0, lastWord.length - 1);
+							}
 							arrOfDigits[arrOfDigits.length - 1] += 'ais';
 						}
 						break;
