@@ -4752,7 +4752,7 @@
 					}
 
 					var degreeCount = Math.pow(10, degrees.length);
-					var koreanLegalSplitting = function (numberLessThanX) {
+					var koreanLegalSplitting = function (numberLessThanX, skip, isOver10000) {
 						var answer = [];
 						var count;
 						var degreeCountCopy = degreeCount;
@@ -4767,16 +4767,30 @@
 							}
 							degreeCountCopy /= 10;
 						}
+						if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional && !skip) {
+							var deminder100 = (nValue > 100 || isOver10000) && nValue % 100;
+							var isLowDeminderFor100 = deminder100 > 0 && deminder100 < 10;
+							if (isLowDeminderFor100) {
+									answer.push('零');
+							}
+						}
 						if (numberLessThanX > 0) {
 							answer.push(digits[numberLessThanX - 1]);
 						}
 						return answer;
 					}
-					if (nValue < degreeCount) {
-						sResult = koreanLegalSplitting(nValue, degreeCount).join('');
-					} else { // Поддержка чисел до 100 000 000
-						var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount));
-						sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount)).concat(resultWith10000Reminder).join('');
+					if (nValue < degreeCount || (!addFirstDegreeSymbol && nValue < degreeCount * 2
+						&& nFormat !== Asc.c_oAscNumberingFormat.JapaneseCounting)) {
+						sResult = koreanLegalSplitting(nValue).join('');
+					} else {
+						if (nValue < 1000000 || differentFormat) {
+							var skippedAddingIdeograph = false;
+							if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional) {
+								skippedAddingIdeograph = true;
+							}
+							var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount, undefined, true));
+							sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount), skippedAddingIdeograph, false).concat(resultWith10000Reminder).join('');
+						}
 					}
 				}
 				ideographCount();
