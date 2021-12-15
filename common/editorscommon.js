@@ -6927,7 +6927,7 @@
 						var alphaBet = {
 							'uno': 'primo',
 							'due': 'secondo',
-							'tré': 'terzo',
+							'tre': 'terzo',
 							'quattro': 'quarto',
 							'cinque': 'quinto',
 							'sei': 'sesto',
@@ -6939,10 +6939,18 @@
 						var arrOfDigits = ordinalText.arrAnswer;
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
 						if (lastWord) {
-							if (alphaBet[lastWord]) {
+							if (alphaBet[lastWord] && arrOfDigits.length === 1) {
 								arrOfDigits[arrOfDigits.length - 1] = alphaBet[lastWord];
+							} else if (lastWord === 'tré') {
+								arrOfDigits[arrOfDigits.length - 1] = 'treesimo';
 							} else {
-								arrOfDigits[arrOfDigits.length - 1] = lastWord.substring(0, lastWord.length - 1) + 'esimo';
+								if (lastWord !== 'sei') {
+									arrOfDigits[arrOfDigits.length - 1] = lastWord.substring(0, lastWord.length - 1);
+								}
+								if (lastWord === 'mila') {
+									arrOfDigits.push('l');
+								}
+								arrOfDigits.push('esimo');
 							}
 						}
 						break;
