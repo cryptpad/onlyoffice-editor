@@ -1097,8 +1097,15 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 				pickDecimal();
 				break;
 			}
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese: {
+				pickDecimal();
+				for (var nValue = 0; nValue < 10; ++nValue)
+				{
+					AscFonts.FontPickerByCharacter.getFontBySymbol(0x2460 + nValue);
+				}
+				break;
+			}
 			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
 			{
 				pickDecimal();
 				for (var nValue = 0; nValue < 20; ++nValue)
