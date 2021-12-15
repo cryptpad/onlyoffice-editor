@@ -3938,10 +3938,6 @@ PasteProcessor.prototype =
 	//from WORD to WORD
 	_pasteBinaryFromWordToWord: function (base64FromWord, bIsOnlyFromBinary) {
 		var oThis = this;
-		var glossaryDoc = this.oDocument.GetGlossaryDocument();
-		var map = {};
-		var i;
-		
 		//при чтении документа создаётся новый DocPart, который добавляется в DocParts, но не добавляется в g_oTableId
 		//чтобы он добавлялся в g_oTableId и соответсвенно в историю, делаю ему Copy()
 
@@ -3954,22 +3950,7 @@ PasteProcessor.prototype =
 
 		//но появляется другая проблема - при повтроном копировании делается CDocPart-> Copy и снова создаётся DocPart с таким именем
 		//и добавляется в DocParts. далее при вставке снова всё повторяется...
-
-		for (i in glossaryDoc.DocParts) {
-			map[i] = 1;
-		}
 		var aContent = this.ReadFromBinary(base64FromWord);
-		var aDelIndexes = [];
-		for (i in glossaryDoc.DocParts) {
-			if (!map[i]) {
-				glossaryDoc.DocParts[i].Copy();
-				aDelIndexes.push(i);
-			}
-		}
-		for (i = 0; i < aDelIndexes.length; i++) {
-			delete glossaryDoc.DocParts[aDelIndexes[i]];
-		}
-
 		if (null === aContent) {
 			return null;
 		}
@@ -4000,7 +3981,7 @@ PasteProcessor.prototype =
 			aContent.aPastedImages = [];
 
 			var newContent = [];
-			for (i = 0; i < aContent.content.length; i++) {
+			for (var i = 0; i < aContent.content.length; i++) {
 				if (type_Paragraph === aContent.content[i].Get_Type()) {
 					newContent.push(
 						AscFormat.ConvertParagraphToPPTX(aContent.content[i], this.oDocument.DrawingDocument,
