@@ -4197,9 +4197,10 @@
 			}
 
 			case Asc.c_oAscNumberingFormat.Hex: {
-
-				sResult = (nValue+0x10000).toString(16).substr(-4).toUpperCase();
-				sResult = sResult.replace(/^0+/, '');
+				if (nValue <= 0xFFFF) {
+					sResult = (nValue+0x10000).toString(16).substr(-4).toUpperCase();
+					sResult = sResult.replace(/^0+/, '');
+				}
 				break;
 			}
 
@@ -4251,10 +4252,11 @@
 						0x56DB, 0x4E94, 0x516D, 0x4E03,
 						0x516B, 0x4E5D
 					];
-
-				var strValue = nValue.toString();
-				for(var i = 0; i < strValue.length; i++) {
-					sResult += String.fromCharCode(digits[strValue[i]]);
+				if (nValue < 10000) {
+					var strValue = nValue.toString();
+					for(var i = 0; i < strValue.length; i++) {
+						sResult += String.fromCharCode(digits[strValue[i]]);
+					}
 				}
 				break;
 			}
@@ -4443,108 +4445,108 @@
 					1000  : String.fromCharCode(0x5343),
 					10000 : String.fromCharCode(0x4E07)
 				};
+				if (nValue < 1000000) {
+					var nRemValue = nValue;
 
-				var nRemValue = nValue;
-
-				while (true)
-				{
-					var nTTQuotient  = (nRemValue / 10000) | 0;
-					var nTTRemainder = nRemValue - nTTQuotient * 10000;
-
-					nRemValue = nTTQuotient;
-
-					var sGroup = "", isPrevZero = false;
-
-					if (nTTQuotient > 0)
-						sGroup += arrChinese[10000];
-					else
-						isPrevZero = true;
-
-					if (nTTRemainder <= 0)
+					while (true)
 					{
-						sResult = sGroup + sResult;
+						var nTTQuotient  = (nRemValue / 10000) | 0;
+						var nTTRemainder = nRemValue - nTTQuotient * 10000;
 
-						if (nRemValue <= 0)
-							break;
+						nRemValue = nTTQuotient;
 
-						continue;
-					}
+						var sGroup = "", isPrevZero = false;
 
-					var nQuotient  = (nTTRemainder / 1000) | 0;
-					var nRemainder = nTTRemainder - nQuotient * 1000;
-
-					if (0 !== nQuotient)
-					{
-						sGroup += arrChinese[nQuotient] + arrChinese[1000];
-						isPrevZero = false;
-					}
-					else if (nTTQuotient > 0)
-					{
-						sGroup += arrChinese[0];
-						isPrevZero = true;
-					}
-
-					if (nRemainder <= 0)
-					{
-						sResult = sGroup + sResult;
-
-						if (nRemValue <= 0)
-							break;
-
-						continue;
-					}
-
-					nQuotient  = (nRemainder / 100) | 0;
-					nRemainder = nRemainder - nQuotient * 100;
-
-					if (0 !== nQuotient)
-					{
-						sGroup += arrChinese[nQuotient] + arrChinese[100];
-						isPrevZero = false;
-					}
-					else if (!isPrevZero)
-					{
-						sGroup += arrChinese[0];
-						isPrevZero = true;
-					}
-
-					if (nRemainder <= 0)
-					{
-						sResult = sGroup + sResult;
-
-						if (nRemValue <= 0)
-							break;
-
-						continue;
-					}
-
-					nQuotient  = (nRemainder / 10) | 0;
-					nRemainder = nRemainder - nQuotient * 10;
-
-					if (0 !== nQuotient)
-					{
-						if (nValue < 20)
-							sGroup += arrChinese[10];
+						if (nTTQuotient > 0)
+							sGroup += arrChinese[10000];
 						else
-							sGroup += arrChinese[nQuotient] + arrChinese[10];
+							isPrevZero = true;
 
-						isPrevZero = false;
+						if (nTTRemainder <= 0)
+						{
+							sResult = sGroup + sResult;
+
+							if (nRemValue <= 0)
+								break;
+
+							continue;
+						}
+
+						var nQuotient  = (nTTRemainder / 1000) | 0;
+						var nRemainder = nTTRemainder - nQuotient * 1000;
+
+						if (0 !== nQuotient)
+						{
+							sGroup += arrChinese[nQuotient] + arrChinese[1000];
+							isPrevZero = false;
+						}
+						else if (nTTQuotient > 0)
+						{
+							sGroup += arrChinese[0];
+							isPrevZero = true;
+						}
+
+						if (nRemainder <= 0)
+						{
+							sResult = sGroup + sResult;
+
+							if (nRemValue <= 0)
+								break;
+
+							continue;
+						}
+
+						nQuotient  = (nRemainder / 100) | 0;
+						nRemainder = nRemainder - nQuotient * 100;
+
+						if (0 !== nQuotient)
+						{
+							sGroup += arrChinese[nQuotient] + arrChinese[100];
+							isPrevZero = false;
+						}
+						else if (!isPrevZero)
+						{
+							sGroup += arrChinese[0];
+							isPrevZero = true;
+						}
+
+						if (nRemainder <= 0)
+						{
+							sResult = sGroup + sResult;
+
+							if (nRemValue <= 0)
+								break;
+
+							continue;
+						}
+
+						nQuotient  = (nRemainder / 10) | 0;
+						nRemainder = nRemainder - nQuotient * 10;
+
+						if (0 !== nQuotient)
+						{
+							if (nValue < 20)
+								sGroup += arrChinese[10];
+							else
+								sGroup += arrChinese[nQuotient] + arrChinese[10];
+
+							isPrevZero = false;
+						}
+						else if (!isPrevZero)
+						{
+							sGroup += arrChinese[0];
+							isPrevZero = true;
+						}
+
+						if (0 !== nRemainder)
+							sGroup += arrChinese[nRemainder];
+
+						sResult = sGroup + sResult;
+
+						if (nRemValue <= 0)
+							break;
 					}
-					else if (!isPrevZero)
-					{
-						sGroup += arrChinese[0];
-						isPrevZero = true;
-					}
-
-					if (0 !== nRemainder)
-						sGroup += arrChinese[nRemainder];
-
-					sResult = sGroup + sResult;
-
-					if (nRemValue <= 0)
-						break;
 				}
-
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.ChineseLegalSimplified:
@@ -4565,104 +4567,104 @@
 					1000  : String.fromCharCode(0x4EDF),
 					10000 : String.fromCharCode(0x842C)
 				};
+				if (nValue < 1000000) {
+					var nRemValue = nValue;
 
-				var nRemValue = nValue;
-
-				while (true)
-				{
-					var nTTQuotient  = (nRemValue / 10000) | 0;
-					var nTTRemainder = nRemValue - nTTQuotient * 10000;
-
-					nRemValue = nTTQuotient;
-
-					var sGroup = "", isPrevZero = false;
-
-					if (nTTQuotient > 0)
-						sGroup += arrChinese[10000];
-					else
-						isPrevZero = true;
-
-					if (nTTRemainder <= 0)
+					while (true)
 					{
+						var nTTQuotient  = (nRemValue / 10000) | 0;
+						var nTTRemainder = nRemValue - nTTQuotient * 10000;
+
+						nRemValue = nTTQuotient;
+
+						var sGroup = "", isPrevZero = false;
+
+						if (nTTQuotient > 0)
+							sGroup += arrChinese[10000];
+						else
+							isPrevZero = true;
+
+						if (nTTRemainder <= 0)
+						{
+							sResult = sGroup + sResult;
+
+							if (nRemValue <= 0)
+								break;
+
+							continue;
+						}
+
+						var nQuotient  = (nTTRemainder / 1000) | 0;
+						var nRemainder = nTTRemainder - nQuotient * 1000;
+
+						if (0 !== nQuotient)
+						{
+							sGroup += arrChinese[nQuotient] + arrChinese[1000];
+							isPrevZero = false;
+						}
+						else if (nTTQuotient > 0)
+						{
+							sGroup += arrChinese[0];
+							isPrevZero = true;
+						}
+
+						if (nRemainder <= 0)
+						{
+							sResult = sGroup + sResult;
+
+							if (nRemValue <= 0)
+								break;
+
+							continue;
+						}
+
+						nQuotient  = (nRemainder / 100) | 0;
+						nRemainder = nRemainder - nQuotient * 100;
+
+						if (0 !== nQuotient)
+						{
+							sGroup += arrChinese[nQuotient] + arrChinese[100];
+							isPrevZero = false;
+						}
+						else if (!isPrevZero)
+						{
+							sGroup += arrChinese[0];
+							isPrevZero = true;
+						}
+
+						if (nRemainder <= 0)
+						{
+							sResult = sGroup + sResult;
+
+							if (nRemValue <= 0)
+								break;
+
+							continue;
+						}
+
+						nQuotient  = (nRemainder / 10) | 0;
+						nRemainder = nRemainder - nQuotient * 10;
+
+						if (0 !== nQuotient)
+						{
+							sGroup += arrChinese[nQuotient] + arrChinese[10];
+							isPrevZero = false;
+						}
+						else if (!isPrevZero)
+						{
+							sGroup += arrChinese[0];
+							isPrevZero = true;
+						}
+
+						if (0 !== nRemainder)
+							sGroup += arrChinese[nRemainder];
+
 						sResult = sGroup + sResult;
 
 						if (nRemValue <= 0)
 							break;
-
-						continue;
 					}
-
-					var nQuotient  = (nTTRemainder / 1000) | 0;
-					var nRemainder = nTTRemainder - nQuotient * 1000;
-
-					if (0 !== nQuotient)
-					{
-						sGroup += arrChinese[nQuotient] + arrChinese[1000];
-						isPrevZero = false;
-					}
-					else if (nTTQuotient > 0)
-					{
-						sGroup += arrChinese[0];
-						isPrevZero = true;
-					}
-
-					if (nRemainder <= 0)
-					{
-						sResult = sGroup + sResult;
-
-						if (nRemValue <= 0)
-							break;
-
-						continue;
-					}
-
-					nQuotient  = (nRemainder / 100) | 0;
-					nRemainder = nRemainder - nQuotient * 100;
-
-					if (0 !== nQuotient)
-					{
-						sGroup += arrChinese[nQuotient] + arrChinese[100];
-						isPrevZero = false;
-					}
-					else if (!isPrevZero)
-					{
-						sGroup += arrChinese[0];
-						isPrevZero = true;
-					}
-
-					if (nRemainder <= 0)
-					{
-						sResult = sGroup + sResult;
-
-						if (nRemValue <= 0)
-							break;
-
-						continue;
-					}
-
-					nQuotient  = (nRemainder / 10) | 0;
-					nRemainder = nRemainder - nQuotient * 10;
-
-					if (0 !== nQuotient)
-					{
-						sGroup += arrChinese[nQuotient] + arrChinese[10];
-						isPrevZero = false;
-					}
-					else if (!isPrevZero)
-					{
-						sGroup += arrChinese[0];
-						isPrevZero = true;
-					}
-
-					if (0 !== nRemainder)
-						sGroup += arrChinese[nRemainder];
-
-					sResult = sGroup + sResult;
-
-					if (nRemValue <= 0)
-						break;
 				}
-
 				break;
 			}
 			case Asc.c_oAscNumberingFormat.JapaneseLegal:
@@ -4782,7 +4784,10 @@
 						&& nFormat !== Asc.c_oAscNumberingFormat.JapaneseCounting)) {
 						sResult = koreanLegalSplitting(nValue).join('');
 					} else {
-						if (nValue < 1000000 || differentFormat) {
+						if (
+							nValue < 1000000
+							|| differentFormat
+							|| nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal) {
 							var skippedAddingIdeograph = false;
 							if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional) {
 								skippedAddingIdeograph = true;
