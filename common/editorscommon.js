@@ -7437,9 +7437,7 @@
 										'osiemset': 'osiemset',
 										'dziewięćset': 'dziewięćset',
 									}
-								},
-								'thousandEntry': 'tysiąc',
-								'thousandType': 'tysiączny'
+								}
 							}
 						}
 						var arrOfDigits = ordinalText.arrAnswer;
