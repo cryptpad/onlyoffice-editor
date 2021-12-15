@@ -6787,19 +6787,19 @@
 					break;
 			}
 
-			switch (oBullet.bulletType)
+			switch (oBulletType.type)
 			{
 				case AscFormat.BULLET_TYPE_BULLET_NONE:
-					sBulleSizeType = "none";
+					sBulleType = "none";
 					break;
 				case AscFormat.BULLET_TYPE_BULLET_CHAR:
-					sBulleSizeType = "char";
+					sBulleType = "char";
 					break;
 				case AscFormat.BULLET_TYPE_BULLET_AUTONUM:
-					sBulleSizeType = "autonum";
+					sBulleType = "autonum";
 					break;	
 				case AscFormat.BULLET_TYPE_BULLET_BLIP:
-					sBulleSizeType = "blip";
+					sBulleType = "blip";
 					break;
 			}
 
@@ -8816,7 +8816,7 @@
 					break;
 			}
 
-			switch (oParsedBulletType.bulletType)
+			switch (oParsedBulletType.type)
 			{
 				case "none":
 					nBulleType = AscFormat.BULLET_TYPE_BULLET_NONE;
@@ -8832,10 +8832,10 @@
 					break;
 			}
 
-			oBulletType.type    = nBulleType;
-			oBullet.Char        = oParsedBulletType.char;
-			oBullet.AutoNumType = nAutoNumType;
-			oBullet.startAt     = oParsedBulletType.startAt;
+			oBulletType.type        = nBulleType;
+			oBulletType.Char        = oParsedBulletType.char;
+			oBulletType.AutoNumType = nAutoNumType;
+			oBulletType.startAt     = oParsedBulletType.startAt;
 
 			return oBulletType;
 		};
