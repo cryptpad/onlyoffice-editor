@@ -3914,7 +3914,6 @@
 	function IntToNumberFormat(nValue, nFormat, nLang)
 	{
 		var sResult = "";
-		nFormat = Asc.c_oAscNumberingFormat.HindiCounting; //delete
 
 		switch (nFormat)
 		{
