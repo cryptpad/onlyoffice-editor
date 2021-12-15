@@ -6745,11 +6745,148 @@
 						}
 						break;
 					}
-					case 'pl-PL':
-					case 'cs-CZ':
-					case 'el-GR':
-					case 'fr-FR':
-					case 'it-IT':
+					case 'el-GR': {
+						var arrOfDigits = ordinalText.arrAnswer;
+						alphaBet = {
+							1: [
+								'πρώτο',
+								'δεύτερο',
+								'τρίτο',
+								'τετάρτο',
+								'πέμπτο',
+								'έκτο',
+								'έβδομο',
+								'όγδοο',
+								'ένατο',
+								'δέκατο',
+								'ενδέκατο',
+								'δωδέκατο',
+								'δέκατο τρίτο',
+								'δέκατο τέταρτο',
+								'δέκατο πέμπτο',
+								'δέκατο έκτο',
+								'δέκατο έβδομο',
+								'δέκατο όγδο',
+								'δέκατο ένατο'
+							],
+							10: [
+								'εικοστό',
+								'τριακοστό',
+								'τεσσερακοστό',
+								'πεντηκοστό',
+								'εξηκοστό',
+								'εβδομηκοστό',
+								'ογδοηκοστό',
+								'ενενηκοστό'
+							],
+							100: [
+								'εκατοστό',
+								'διακοσιοστό',
+								'τριακοσιοστό',
+								'τετρακοσιοστό',
+								'πεντακοσιοστό',
+								'εξακοσιοστό',
+								'επτακοσιοστό',
+								'οκτακοσιοστό',
+								'εννιακοσιοστό'
+							],
+							1000: [
+								'',
+								'δισ',
+								'τρισ',
+								'τετρακισ',
+								'πεντακισ',
+								'εξακισ',
+								'επτακισ',
+								'οκτακισ',
+								'εννιακισ',
+								'δεκακισ',
+								'ενδεκακισ',
+								'δωδεκακισ',
+								'δεκατριακισ',
+								'δεκατετρακισ',
+								'δεκαπεντακισ',
+								'δεκαεξακισ',
+								'δεκαεπτακισ',
+								'δεκαοκτακισ',
+								'δεκαεννιακισ',
+								'εικοσακισ'
+							],
+						}
+
+						function letterOrdinalNumberLessThen100GR(num) {
+							var resArr = [];
+							if (num < 100 && num > 0) {
+								if (num < 20) {
+									resArr.push(alphaBet[1][num - 1]);
+								}else {
+									var reminder = num % 10;
+									var degree10 = Math.floor(num / 10);
+									resArr.push(alphaBet[10][degree10 - 2]);
+									if (reminder) {
+										resArr.push(alphaBet[1][reminder - 1]);
+									}
+								}
+							}
+							return resArr;
+						}
+
+						function cardinalTextGR(num) {
+							var groups = {};
+							var resArr = [];
+							if (num < 1000000) {
+								groups[1000] = Math.floor(num / 1000);
+								num %= 1000;
+								groups[100] = Math.floor(num / 100);
+								num %= 100;
+								groups[1] = num;
+								if (groups[1000]) {
+									if (groups[1000] > 20) {
+										var reminder;
+										if (groups[1000] < 100) {
+											reminder = letterOrdinalNumberLessThen100GR(groups[1000]);
+										} else {
+											reminder = [];
+											if (arrOfDigits[0] === 'εκατό') {
+												reminder.push('ένα');
+											}
+											for (var i = 0; arrOfDigits[i] !== 'χίλια' && arrOfDigits[i] !== 'χιλιάδες'; i += 1) {
+												reminder.push(arrOfDigits[i]);
+											}
+										}
+										reminder.push('χιλιοστό');
+										if (groups[1000] % 100 === 0) {
+											reminder = reminder.join('');
+										}
+										resArr.push(reminder);
+									} else {
+										resArr.push(alphaBet[1000][groups[1000] - 1] + 'χιλιοστό');
+									}
+								}
+
+								if (groups[100]) {
+									resArr.push(alphaBet[100][groups[100] - 1]);
+								}
+
+								if (groups[1]) {
+									resArr.push(letterOrdinalNumberLessThen100GR(groups[1]));
+								}
+							}
+							return resArr;
+						}
+						ordinalText.arrAnswer = cardinalTextGR(nValue);
+						ordinalText.getConcatStringByRule = function (arr) {
+							return arr.reduce(function (acc, b) {
+								if (Array.isArray(b)) {
+									acc.push(b.join(' '));
+								} else {
+									acc.push(b);
+								}
+								return acc;
+							}, []).join(' ');
+						}
+						break;
+					}
 					case 'fr-FR': {
 						var arrOfDigits = ordinalText.arrAnswer;
 						var switchingValue = arrOfDigits;
