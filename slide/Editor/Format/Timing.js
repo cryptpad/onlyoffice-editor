@@ -7232,14 +7232,15 @@
     CTimeNodeContainer.prototype.isAnimEffect = function() {
         return this.cTn.isAnimEffect();
     };
+    CTimeNodeContainer.prototype.getObjectId = function() {
+        if(this.isAnimEffect()) {
+            return this.cTn.getObjectId();
+        }
+        return null;
+    };
     CTimeNodeContainer.prototype.isObjectEffect = function(sObjectId) {
         if(this.isAnimEffect()) {
-            return this.traverse(function(oChild) {
-                if(oChild.isTimeNode() && oChild.getTargetObjectId() === sObjectId) {
-                    return true;
-                }
-                return false
-            });
+            return this.getObjectId() === sObjectId;
         }
         return false;
     };
@@ -7350,17 +7351,23 @@
         return aAllEffects;
     };
     CTimeNodeContainer.prototype.getLabel = function() {
-        return "This is a sequence";
-    };
-    CTimeNodeContainer.prototype.getEffectName = function() {
-        if(this.isAnimEffect()) {
-            return "Effect";//Todo
+        if(this.isMainSequence()) {
+            return null;
         }
-        return "";
+        var sClickSp = this.getSpClickInteractiveSeq();
+        if(sClickSp) {
+            var oSp = AscCommon.g_oTableId.Get_ById(sClickSp);
+            if(oSp) {
+                return AscCommon.translateManager.getValue("Trigger:") + " " + oSp.getObjectName();
+            }
+        }
+        return null;
     };
     CTimeNodeContainer.prototype.getObjectName = function() {
-        if(this.isAnimEffect()) {
-            return "Effect";//Todo
+        var sObjectId = this.getObjectId();
+        var oObject = AscCommon.g_oTableId.Get_ById(sObjectId);
+        if(oObject) {
+            return oObject.getObjectName();
         }
         return "";
     };
