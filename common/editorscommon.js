@@ -6169,7 +6169,9 @@
 									if (groups[1000]) {
 										if (groups[1000] >= 100) {
 											resArr = resArr.concat(cardinalSplittingDE(groups[1000]));
-										} else {
+										} else if (groups[1000] === 1) {
+											resArr.push('ein');
+										}	else {
 											resArr = resArr.concat(letterNumberLessThen100DE(groups[1000]));
 										}
 										resArr.push('tausend');
