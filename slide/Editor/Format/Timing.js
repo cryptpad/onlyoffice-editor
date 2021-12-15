@@ -4837,7 +4837,7 @@
     }
     InitClass(CCond, CBaseAnimObject, AscDFH.historyitem_type_Cond);
     CCond.prototype.setRtn = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CondRtn, this.rtn, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CondRtn, this.rtn, pr));
         this.rtn = pr;
         this.setParentToChild(pr);
     };
