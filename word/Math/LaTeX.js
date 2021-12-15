@@ -200,11 +200,13 @@ EquationProcessing.prototype.FillScriptContent = function(Script, typeOfScript) 
 };
 EquationProcessing.prototype.FillScriptContentWriteSup = function(Script) {
 	var Iterator = Script.getUpperIterator();
-	this.Parent.StartLexer(Iterator, true);
+	this.Parent.intIndexArray++;
+	this.Parent.StartLexer(Iterator);
 };
 EquationProcessing.prototype.FillScriptContentWriteSub = function(Script) {
 	var Iterator = Script.getLowerIterator();
-	this.Parent.StartLexer(Iterator, true);
+	this.Parent.intIndexArray++;
+	this.Parent.StartLexer(Iterator);
 };
 //Function 
 EquationProcessing.prototype.AddFunction = function (FormArgument, strFAtom) {
@@ -274,29 +276,29 @@ var GetTypeOfFunction = {
 EquationProcessing.prototype.CheckCloseBracet = function(index) {
 	var intPatternIndex = 0;
 	var arrOfData = this.Parent.arrAtoms;
-	var intIndexData = index !== undefined ? index : this.Parent.intIndexArray - 1;
+	var intTempIndex = index !== undefined ? index : this.Parent.intIndexArray;
 
-	while (intIndexData < arrOfData.length) {
+	while (intTempIndex < arrOfData.length) {
 	
-		if (this.StartBracet[arrOfData[intIndexData]]) {
-			if (arrOfData[intIndexData] == '\\left' || arrOfData[intIndexData] == '\\open') {
-				this.Parent.GetNextAtom()
+		if (this.StartBracet[arrOfData[intTempIndex]]) {
+			if (arrOfData[intTempIndex] == '\\left' || arrOfData[intTempIndex] == '\\open') {
+				intTempIndex++;
 			}
 			intPatternIndex++;
 		}
 
-		else if (this.CloseBracet[arrOfData[intIndexData]]) {
-			if (arrOfData[intIndexData] == '\\right' || arrOfData[intIndexData] == '\\close') {
-				this.Parent.GetNextAtom()
+		else if (this.CloseBracet[arrOfData[intTempIndex]]) {
+			if (arrOfData[intTempIndex] == '\\right' || arrOfData[intTempIndex] == '\\close') {
+				intTempIndex++;
 			}
 			intPatternIndex--;
 		}
 
-		if (this.CloseBracet[arrOfData[intIndexData]] && intPatternIndex == 0) {
-			return intIndexData;
+		if (this.CloseBracet[arrOfData[intTempIndex]] && intPatternIndex == 0) {
+			return intTempIndex;
 		}
 
-		intIndexData++;
+		intTempIndex++;
 	}
 	return false;
 };
@@ -315,7 +317,7 @@ EquationProcessing.prototype.AddBracet = function(FormArgument) {
 	var BracetBlockData = {};
 
 	BracetBlockData.intIndexStartBracet = this.Parent.intIndexArray - 1;
-	BracetBlockData.intIndexCloseBracet = this.CheckCloseBracet();
+	BracetBlockData.intIndexCloseBracet = this.CheckCloseBracet(BracetBlockData.intIndexStartBracet);
 	
 	this.GetBracet(BracetBlockData, 0);
 	this.GetBracet(BracetBlockData, 1);
@@ -373,14 +375,17 @@ EquationProcessing.prototype.GetBracet = function(Obj, type) {
 	if (strBracet == '├' || strBracet == '┤') {
 		Obj['intIndex' + type] = Obj['intIndex' + type] + 1;
 		Obj['str' + type] = this.GetAtomByIndex(Obj['intIndex' + type]);
+		this.Parent.intIndexArray++;
 	}
 	else if (strBracet == '\\left' || strBracet == '\\right') {
 		Obj['intIndex' + type] = Obj['intIndex' + type] + 1;
 		Obj['str' + type] = this.GetAtomByIndex(Obj['intIndex' + type]);
+		this.Parent.intIndexArray++;
 	}
 	else if (strBracet == '\\open' || strBracet == '\\close') {
 		Obj['intIndex' + type] = Obj['intIndex' + type] + 1;
 		Obj['str' + type] = this.GetAtomByIndex(Obj['intIndex' + type]);
+		this.Parent.intIndexArray++;
 	}
 
 	else {
@@ -398,7 +403,7 @@ EquationProcessing.prototype.CreateBracetBlock = function (FormArgument, strOpen
 	return BracetBlock;
 };
 EquationProcessing.prototype.FillBracetBlockContent = function (BracetBlock, indexOfExit) {
-	this.Parent.StartLexer(BracetBlock.getElementMathContent(0));
+	this.Parent.StartLexer(BracetBlock.getElementMathContent(0), indexOfExit);
 };
 //Fraction
 EquationProcessing.prototype.CheckIsUnicodeFrac = function() {
@@ -497,7 +502,7 @@ EquationProcessing.prototype.CheckIsFrac = function() {
 	}
 
 	else if (type === 'Unicode') {
-		var index = this.CheckCloseBracet();
+		var index = this.CheckCloseBracet(this.Parent.intIndexArray - 1);
 		
 		if (index === false) {
 			return false;
@@ -558,7 +563,7 @@ EquationProcessing.prototype.FillFracContent = function (FormArgument, type) {
 	}
 	else if (type === 'Unicode') {
 		this.Parent.StartLexer(FormArgument.getNumeratorMathContent());
-		this.Parent.GetNextUnicode();
+		this.Parent.intIndexArray++;
 		this.Parent.StartLexer(FormArgument.getDenominatorMathContent());
 	}
 };
@@ -1323,16 +1328,12 @@ CLaTeXParser.prototype.StartLexer = function (context, isInFunc) {
 		this.GetNextAtom();
 	}
 
-	var intCloseBracetIndex = this.Processing.CheckCloseBracet();
+	if (isInFunc === undefined) {
+		isInFunc =  this.Processing.CheckCloseBracet();
+	}
 	
-	if (intCloseBracetIndex) {
-		if (isInFunc === true) {
-			this.GetNextAtom()
-		}
-		CLaTeXLexer(this, context, intCloseBracetIndex);
-		if (isInFunc === true) {
-			this.GetNextAtom()
-		}
+	if (isInFunc) {
+		CLaTeXLexer(this, context, isInFunc);
 	}
 	else {
 		CLaTeXLexer(this, context);
@@ -1571,35 +1572,6 @@ CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 	return Bracet;
 };
 //BracetBlock
-CLaTeXParser.prototype.AddBracets = function(FormArgument, strFAtom) {
-	this.Processing.AddBracet(FormArgument);
-};
-CLaTeXParser.prototype.CheckCloseBracet = function(strOpenBracet, strCloseBracet) {
-	if (!strCloseBracet) {
-		strCloseBracet = GetCloseBracet[strOpenBracet];
-	}
-
-	var intPatternIndex = 1;
-	var arrOfData = this.arrAtoms;
-	var intIndexData = this.intIndexArray;
-
-	while (intIndexData < arrOfData.length) {
-	
-		if (arrOfData[intIndexData] == strOpenBracet) {
-			intPatternIndex++;
-		} 
-		else if (arrOfData[intIndexData] == strCloseBracet) {
-			intPatternIndex--;
-		}
-
-		if (arrOfData[intIndexData] == strCloseBracet && intPatternIndex == 0) {
-			return intIndexData;
-		}
-
-		intIndexData++;
-	}
-	return false;
-};
 CLaTeXParser.prototype.MiddleCount = function(countOfMiddle) {
 	var arrOfData = this.arrAtoms;
 	var intIndexData = this.intIndexArray;
@@ -2266,7 +2238,6 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		strFAtom = Parser.GetNextAtom();
 
 		if ((strFAtom == '\\right' || strFAtom == '}') && indexOfCloseAtom == Parser.intIndexArray - 1) {
-			strFAtom = Parser.GetNextAtom()
 			return
 		}
 
@@ -2274,6 +2245,9 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 			return
 		}
 
+		else if (indexOfCloseAtom == Parser.intIndexArray && strFAtom == '\\right') {
+			strFAtom = Parser.GetNextAtom();
+		}
 		//check
 		// else if (Parser.ExitFromLexer(strFAtom, exitIfSee) ) {
 		// 	return
@@ -2345,7 +2319,7 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		}
 
 		else if (Parser.CheckIsBrackets(strFAtom) && !Parser.isError) {
-			Parser.AddBracets(FormArgument, strFAtom);
+			Parser.Processing.AddBracet(FormArgument);
 			intFAtoms++;
 		}
 
@@ -3441,28 +3415,28 @@ CUnicodeParser.prototype.Start = function() {
 	CUnicodeLexer(this, this.ParaMath.Root);
 	this.ParaMath.Root.Correct_Content(true);
 };
-CUnicodeParser.prototype.StartLexer = function(Context, isInFunc) {
+CUnicodeParser.prototype.StartLexer = function(Context, indexOfExit) {
 	var strAtom = this.CheckFutureAtom();
 
 	if (strAtom == '^' || strAtom == '_') {
 		strAtom = this.GetNextUnicode();
 	}
 
-	var intCloseBracetIndex = this.Processing.CheckCloseBracet();
+	if (indexOfExit === undefined) {
+		indexOfExit = this.Processing.CheckCloseBracet();
+	}
 
-		if (intCloseBracetIndex) {
-			if (isInFunc === true) {
-				this.GetNextUnicode()
-			}
-			CUnicodeLexer(this, Context, intCloseBracetIndex);
-			if (isInFunc === true) {
-				this.GetNextUnicode()
-			}
-		}
+	if (strAtom == '(') {
+		strAtom = this.GetNextUnicode();
+	}
+		
+	if (indexOfExit) {
+		CUnicodeLexer(this, Context, indexOfExit);
+	}
 
-		else {
-			CUnicodeLexer(this, Context, undefined, 1);
-		}
+	else {
+		CUnicodeLexer(this, Context);
+	}
 };
 CUnicodeParser.prototype.TypeOfFraction = function(str) {
 
@@ -3483,10 +3457,10 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 		}
 
 		if (indexOfCloseBracet == Parser.intIndexArray - 1) {
-			Parser.GetNextUnicode();
 			return
 		}
 		else if (Parser.Processing.CheckIsFrac()) {
+			Parser.intIndexArray--;
 			Parser.Processing.AddFraction(FormArgument)
 		}
 		else if (future == '^' || future == '_') {
