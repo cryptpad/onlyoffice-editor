@@ -1510,6 +1510,24 @@ var editor;
 								ws.insertPivotTable(pivotTable);
 							}
 						}
+
+						var tableParts = wsPart.getPartsByRelationshipType(openXml.Types.tableDefinition.relationType);
+						for (var i = 0; i < tableParts.length; ++i) {
+							var contentTable = tableParts[i].getDocumentContent();
+							var oNewTable = ws.createTablePart();
+							var reader = new StaxParser(contentTable, oNewTable, xmlParserContext);
+							oNewTable.fromXml(reader);
+							ws.TableParts.push(oNewTable);
+
+
+							/*var oNewTable = this.ws.createTablePart();
+							res = this.bcr.Read1(length, function(t,l){
+								return oThis.ReadTable(t,l, oNewTable);
+							});
+							if(null != oNewTable.Ref && null != oNewTable.DisplayName)
+								this.ws.workbook.dependencyFormulas.addTableName(this.ws, oNewTable, true);
+							aTables.push(oNewTable);*/
+						}
 					}
 				}
 			});

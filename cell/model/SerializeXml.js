@@ -144,7 +144,11 @@
 					var drawing = new AscCommonExcel.CT_DrawingWSRef();
 					drawing.fromXml(reader);
 					context.drawingId = drawing.id;
-				}
+				} /*else if ("tableParts" === name) {
+					var tables = new AscCommonExcel.CT_TableParts();
+					tables.fromXml(reader);
+					context.tablePartIds = tables;
+				}*/
 			}
 		}
 	};
@@ -668,6 +672,449 @@
 			this.id = AscCommon.unleakString(uq(val));
 		}
 	};
+
+	/*function CT_TableParts(ws) {
+		this.ws = ws;
+		this.tableParts = [];
+	}
+	CT_TableParts.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while( reader.ReadNextSiblingNode(depth) ) {
+			if ( "tablePart" === reader.GetNameNoNS() ) {
+				var tablePart = new CT_TablePart();
+				tablePart.fromXml(reader);
+				this.tableParts.push(tablePart);
+			}
+		}
+	};
+	function CT_TablePart() {
+		//Attributes
+		this.name = null;
+		this.sheetId = null;
+		this.id = null;
+	}
+	CT_TablePart.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_TablePart.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			this.parseAttributes(attr());
+		}
+	};
+	CT_TablePart.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			var name = reader.GetNameNoNS();
+			if ("id" === name) {
+				this.id = reader.GetValueDecodeXml();
+			}
+		}
+	};*/
+
+
+	AscCommonExcel.TablePart.prototype.fromXml = function(reader) {
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("autoFilter" === name) {
+				var autoFilter = new AscCommonExcel.AutoFilter();
+				autoFilter.fromXml(reader);
+				this.AutoFilter = autoFilter;
+			} else if ("sortState" === name) {
+				var sortState = new AscCommonExcel.SortState();
+				sortState.fromXml(reader);
+				this.SortState = sortState;
+			} else if ("tableColumns" === name) {
+				var _depth = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(_depth)) {
+					var _name = reader.GetNameNoNS();
+					if ("tableColumn" === _name) {
+						var tableColumn = new AscCommonExcel.TableColumn();
+						tableColumn.fromXml(reader);
+						if (!this.TableColumns) {
+							this.TableColumns = [];
+						}
+						this.TableColumns.push(tableColumn);
+					}
+				}
+			} else if ("tableStyleInfo" === name) {
+				var tableStyleInfo = new AscCommonExcel.TableStyleInfo();
+				tableStyleInfo.fromXml(reader);
+				this.TableStyleInfo = tableStyleInfo;
+			}  else if ("extLst" === name) {
+
+			}
+		}
+
+		/*ReadAttributes( oReader );
+
+		if ( oReader.IsEmptyNode() )
+			return;
+
+		int nCurDepth = oReader.GetDepth();
+		while( oReader.ReadNextSiblingNode( nCurDepth ) )
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+			if ( (L"autoFilter") == sName )
+			m_oAutoFilter = oReader;
+		else if ( (L"sortState") == sName )
+			m_oSortState = oReader;
+		else if ( (L"tableColumns") == sName )
+			m_oTableColumns = oReader;
+		else if ( (L"tableStyleInfo") == sName )
+			m_oTableStyleInfo = oReader;
+		else if ((L"extLst") == sName)
+			m_oExtLst = oReader;
+		}*/
+
+	};
+	AscCommonExcel.TablePart.prototype.readAttr = function(reader) {
+		var val;
+
+		/*( oReader, L"name",					m_oName )
+		( oReader, L"headerRowCount",		m_oHeaderRowCount )
+		( oReader, L"totalsRowCount",		m_oTotalsRowCount )
+		( oReader, L"displayName",			m_oDisplayName )
+		( oReader, L"tableBorderDxfId",		m_oTableBorderDxfId )
+		( oReader, L"comment",				m_oComment )
+		( oReader, L"connectionId",			m_oConnectionId )
+		( oReader, L"dataDxfId",			m_oDataDxfId )
+		( oReader, L"dataCellStyle",		m_oDataCellStyle )
+		( oReader, L"headerRowBorderDxfId",	m_oHeaderRowBorderDxfId )
+		( oReader, L"headerRowCellStyle",	m_oHeaderRowCellStyle )
+		( oReader, L"headerRowDxfId",		m_oHeaderRowDxfId )
+		( oReader, L"insertRow",			m_oInsertRow )
+		( oReader, L"insertRowShift",		m_oInsertRowShift )
+		( oReader, L"published",			m_oPublished )
+		( oReader, L"id",					m_oId )
+		( oReader, L"tableType",			m_oTableType )
+		( oReader, L"totalsRowBorderDxfId",	m_oTotalsRowBorderDxfId )
+		( oReader, L"totalsRowCellStyle",	m_oTotalsRowCellStyle )
+		( oReader, L"totalsRowDxfId",		m_oTotalsRowDxfId )
+		( oReader, L"totalsRowShown",		m_oTotalsRowShown )*/
+
+		/*AutoFilter: null
+		DisplayName: null
+		HeaderRowCount: null
+		QueryTable: null
+		Ref: null
+		SortState: null
+		TableColumns: null
+		TableStyleInfo: null
+		TotalsRowCount: null
+		altText: null
+		altTextSummary: null
+		handlers: null
+		result: null
+		tableType: null*/
+
+		
+		while (reader.MoveToNextAttribute()) {
+			if ("ref" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(val);
+			} else if ("displayName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.DisplayName = val;
+			} else if ("headerRowCount" === reader.GetName()) {
+				val = reader.GetValue();
+				this.HeaderRowCount = val;
+			} else if ("totalsRowCount" === reader.GetName()) {
+				val = reader.GetValue();
+				this.TotalsRowCount = val;
+			}
+		}
+	};
+	AscCommonExcel.TablePart.prototype.setAttr = function(attr, val, oAttr) {
+		//была идея делать так для удобства, но память нужно экономить
+		/*var oAttr = {"ref": "Ref", "displayName" : "DisplayName", "headerRowCount" : "HeaderRowCount"};
+		while (reader.MoveToNextAttribute()) {
+			this.setAttr(reader.GetName(), reader.GetValue(), oAttr);
+		}*/
+
+		if (oAttr[attr]) {
+			this[oAttr[attr]] = val;
+		}
+	};
+
+	/*void CTable::fromXML(XmlUtils::CXmlLiteReader& oReader)
+	{
+		ReadAttributes( oReader );
+
+		if ( oReader.IsEmptyNode() )
+			return;
+
+		int nCurDepth = oReader.GetDepth();
+		while( oReader.ReadNextSiblingNode( nCurDepth ) )
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+			if ( (L"autoFilter") == sName )
+			m_oAutoFilter = oReader;
+		else if ( (L"sortState") == sName )
+			m_oSortState = oReader;
+		else if ( (L"tableColumns") == sName )
+			m_oTableColumns = oReader;
+		else if ( (L"tableStyleInfo") == sName )
+			m_oTableStyleInfo = oReader;
+		else if ((L"extLst") == sName)
+			m_oExtLst = oReader;
+		}
+	}
+	void CTable::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
+	{
+		WritingElement_ReadAttributes_Start( oReader )
+		( oReader, L"ref",					m_oRef )
+			( oReader, L"name",					m_oName )
+			( oReader, L"headerRowCount",		m_oHeaderRowCount )
+			( oReader, L"totalsRowCount",		m_oTotalsRowCount )
+			( oReader, L"displayName",			m_oDisplayName )
+			( oReader, L"tableBorderDxfId",		m_oTableBorderDxfId )
+			( oReader, L"comment",				m_oComment )
+			( oReader, L"connectionId",			m_oConnectionId )
+			( oReader, L"dataDxfId",			m_oDataDxfId )
+			( oReader, L"dataCellStyle",		m_oDataCellStyle )
+			( oReader, L"headerRowBorderDxfId",	m_oHeaderRowBorderDxfId )
+			( oReader, L"headerRowCellStyle",	m_oHeaderRowCellStyle )
+			( oReader, L"headerRowDxfId",		m_oHeaderRowDxfId )
+			( oReader, L"insertRow",			m_oInsertRow )
+			( oReader, L"insertRowShift",		m_oInsertRowShift )
+			( oReader, L"published",			m_oPublished )
+			( oReader, L"id",					m_oId )
+			( oReader, L"tableType",			m_oTableType )
+			( oReader, L"totalsRowBorderDxfId",	m_oTotalsRowBorderDxfId )
+			( oReader, L"totalsRowCellStyle",	m_oTotalsRowCellStyle )
+			( oReader, L"totalsRowDxfId",		m_oTotalsRowDxfId )
+			( oReader, L"totalsRowShown",		m_oTotalsRowShown )
+		WritingElement_ReadAttributes_End( oReader )
+	}*/
+	AscCommonExcel.AutoFilter.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("filterColumn" === reader.GetName()) {
+				/*val = reader.GetValue();
+				this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(val);*/
+			} else if ("sortState" === reader.GetName()) {
+				var sortState = new AscCommonExcel.SortState();
+				sortState.fromXml(reader);
+				this.SortState = sortState;
+			}
+		}
+	};
+	AscCommonExcel.AutoFilter.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("ref" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(val);
+			}
+		}
+	};
+
+	AscCommonExcel.TableStyleInfo.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if ( !reader.IsEmptyNode() )
+			reader.ReadTillEnd();
+
+	};
+	AscCommonExcel.TableStyleInfo.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Name = val;
+			} else if ("showColumnStripes" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowColumnStripes = val;
+			} else if ("showFirstColumn" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowFirstColumn = val;
+			} else if ("showLastColumn" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowLastColumn = val;
+			} else if ("showRowStripes" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowRowStripes = val;
+			}
+		}
+	};
+
+	AscCommonExcel.TableColumn.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (!reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("totalsRowFormula" === name) {
+				/*var formula = this.stream.GetString2LE(length);
+				this.oReadResult.tableCustomFunc.push({formula: formula, column: oTableColumn, ws: this.ws});*/
+			} else if ("calculatedColumnFormula" === name) {
+				/*var DxfId = this.stream.GetULongLE();
+				oTableColumn.dxf = this.Dxfs[DxfId];*/
+			}
+		}
+
+		/*int nCurDepth = oReader.GetDepth();
+		while( oReader.ReadNextSiblingNode( nCurDepth ) )
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+			if ( (L"totalsRowFormula") == sName )
+			m_oTotalsRowFormula = oReader.GetText3();
+		else if ( (L"calculatedColumnFormula") == sName )
+			m_oCalculatedColumnFormula = oReader.GetText3();
+		}*/
+	};
+	AscCommonExcel.TableColumn.prototype.readAttr = function(reader) {
+
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, L"dataCellStyle",		m_oDataCellStyle )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"dataDxfId",			m_oDataDxfId )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"headerRowCellStyle",	m_oHeaderRowCellStyle )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"headerRowDxfId",		m_oHeaderRowDxfId )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"id",					m_oId )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"name",				m_oName )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"queryTableFieldId",	m_oQueryTableFieldId )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"totalsRowCellStyle",	m_oTotalsRowCellStyle )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"totalsRowDxfId",		m_oTotalsRowDxfId )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"totalsRowLabel",		m_oTotalsRowLabel )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"totalsRowFunction",	m_oTotalsRowFunction )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"uniqueName",			m_oUniqueName )
+		WritingElement_ReadAttributes_Read_if     ( oReader, L"uid",				m_oUid )*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Name = val;
+			} else if ("totalsRowLabel" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.TotalsRowLabel = val;
+			} else if ("totalsRowFunction" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.TotalsRowFunction = val;
+			} else if ("dataDxfId" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.dxf = val;
+				/*var DxfId = this.stream.GetULongLE();
+				oTableColumn.dxf = this.Dxfs[DxfId];*/
+			} else if ("showRowStripes" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowRowStripes = val;
+			} else if ("queryTableFieldId" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.queryTableFieldId = val;
+			} else if ("uniqueName" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.uniqueName = val;
+			}
+		}
+	};
+
+	AscCommonExcel.SortState.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (!reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("sortCondition" === name) {
+				var sortCondition = new AscCommonExcel.SortCondition();
+				sortCondition.fromXml(reader);
+				this.SortCondition = sortCondition;
+			}
+		}
+	};
+
+	AscCommonExcel.SortState.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("ref" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(val);
+			} else if ("caseSensitive" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.CaseSensitive = val;
+			} else if ("columnSort" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ColumnSort = val;
+			} else if ("sortMethod" === reader.GetName()) {
+				val = reader.GetValue();
+				this.SortMethod = val;
+				/*var DxfId = this.stream.GetULongLE();
+				oTableColumn.dxf = this.Dxfs[DxfId];*/
+			}
+		}
+	};
+
+	AscCommonExcel.FilterColumn.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (!reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("colorFilter" === name) {
+				var sortCondition = new AscCommonExcel.SortCondition();
+				sortCondition.fromXml(reader);
+				this.SortCondition = sortCondition;
+			} else if ("dynamicFilter" === name) {
+
+			} else if ("customFilters" === name) {
+
+			} else if ("filters" === name) {
+
+			} else if ("top10" === name) {
+
+			}
+		}
+	};
+
+	AscCommonExcel.FilterColumn.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("colId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.ColId = val;
+			} else if ("hiddenButton" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowButton = !val;
+			} else if ("showButton" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowButton = val;
+			}
+		}
+	};
+
+
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
