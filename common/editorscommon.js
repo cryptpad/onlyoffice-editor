@@ -7605,11 +7605,57 @@
 							'osemdesiat': 'osemdesiaty',
 							'deväťdesiat': 'deväťdesiaty',
 							'tisíc': 'tisíci',
-							'sto': 'stý'
+							'sto': 'stý',
+							100: {
+								'dve': 'dvoj',
+								'dva': 'dvoj',
+								'tri': 'troj'
+							},
+							'other': {
+								'dve': 'dvoj',
+								'dva': 'dvoj',
+								'tri': 'tretí',
+								'štyri': 'štvrtý',
+								'päť': 'piaty',
+								'osem': 'ôsmy',
+								'deväť': 'deviaty',
+								'jedenásť': 'jedenásty',
+								'dvanásť': 'dvanásty',
+								'trinásť': 'trinásty',
+								'štrnásť': 'štrnásty',
+								'pätnásť': 'pätnásty',
+								'šestnásť': 'šestnásty',
+								'sedemnásť': 'sedemnásty',
+								'osemnásť': 'osemnásty',
+								'devätnásť': 'devätnásty',
+								'tridsať': 'třicátý',
+								'štyridsať': 'čtyřicátý',
+								'šesťdesiat': 'šedesátý',
+								'sedemdesiat': 'sedmdesátý',
+								'osemdesiat': 'osmdesátý',
+								'deväťdesiat': 'devadesátý'
+							}
 						}
 						var arrOfDigits = ordinalText.arrAnswer;
+						if (nValue % 10 !== 0 && nValue % 100 > 10) {
+							if (alphaBet[arrOfDigits[arrOfDigits.length - 2]]) {
+								arrOfDigits[arrOfDigits.length - 2] = alphaBet[arrOfDigits[arrOfDigits.length - 2]];
+							}
+						}
+						if (Math.floor(nValue / 1000) === 1) {
+							arrOfDigits.shift();
+						}
 						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
+						}
+						for (var i = 1; i < arrOfDigits.length; i += 1) {
+							if (arrOfDigits[i] === 'sto' || arrOfDigits[i] === 'stý') {
+								if (alphaBet[100][arrOfDigits[i - 1]]) {
+									arrOfDigits[i - 1] = alphaBet[100][arrOfDigits[i - 1]];
+								}
+							} else if (alphaBet['other'][arrOfDigits[i - 1]]) {
+								arrOfDigits[i - 1] = alphaBet['other'][arrOfDigits[i - 1]];
+							}
 						}
 						break;
 					}
