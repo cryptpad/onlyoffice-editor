@@ -1274,6 +1274,7 @@
     CTimeNodeBase.prototype.isInteractiveSeq = function(sSpId) {
         return sSpId === this.getSpClickInteractiveSeq();
     };
+
     CTimeNodeBase.prototype.isPartOfInteractiveSeq = function() {
         var aHierarchy = this.getHierarchy();
         if(aHierarchy[1]) {
@@ -1286,6 +1287,15 @@
             return this.getSpClickAdvance();
         }
         return null;
+    };
+    CTimeNodeBase.prototype.isClickEffect = function() {
+        return this.isAnimEffect() && this.getNodeType() === NODE_TYPE_CLICKEFFECT;
+    };
+    CTimeNodeBase.prototype.isWithEffect = function() {
+        return this.isAnimEffect() && this.getNodeType() === NODE_TYPE_WITHEFFECT;
+    };
+    CTimeNodeBase.prototype.isAfterEffect = function() {
+        return this.isAnimEffect() && this.getNodeType() === NODE_TYPE_AFTEREFFECT;
     };
     CTimeNodeBase.prototype.traverseTimeNodes = function(fCallback) {
         fCallback(this);
@@ -2057,28 +2067,6 @@
         }
         return oMainSeq.isAtEnd();
     };
-    CTiming.prototype.getAnimEffect = function(sObjectId) {
-        if(!this.tnLst) {
-            return null;
-        }
-        var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
-        if(!oTmRoot) {
-            return null;
-        }
-        var oResultEffect = null;
-        oTmRoot.traverseTimeNodes(function(oNode) {
-            if(oNode.isObjectEffect(sObjectId)) {
-                if(!oResultEffect) {
-                    oResultEffect = oNode.createDuplicate();
-                }
-                oResultEffect.merge(oNode);
-            }
-        });
-        if(!oResultEffect) {
-            oResultEffect = this.staticCreateNoneEffect();
-        }
-        return oResultEffect;
-    };
     CTiming.prototype.staticCreateNoneEffect = function() {
         return AscFormat.ExecuteNoHistory(function() {
             return CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite")
@@ -2094,7 +2082,7 @@
         }
         return oTmRoot.getAllAnimEffects();
     };
-    CTiming.prototype.checkMainSequence = function() {
+    CTiming.prototype.checkTimeRoot = function() {
         if(!this.tnLst) {
             this.setTnLst(new CTnLst());
         }
@@ -2108,6 +2096,11 @@
             this.tnLst.addToLst(0, oTnContainer);
             oTmRoot = oTnContainer;
         }
+        return oTmRoot;
+    };
+    CTiming.prototype.checkMainSequence = function() {
+        var oTnContainer, oCTn;
+        var oTmRoot = this.checkTimeRoot();
         var oMainSeq = oTmRoot.getChildTimeNodeByType(NODE_TYPE_MAINSEQ);
         if(!oMainSeq) {
             oTnContainer = new CSeq();
@@ -2137,19 +2130,8 @@
         return oMainSeq;
     };
     CTiming.prototype.checkInteractiveSequence = function(sObjectId) {
-        if(!this.tnLst) {
-            this.setTnLst(new CTnLst());
-        }
         var oTnContainer, oCTn;
-        var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
-        if(!oTmRoot) {
-            //create timing root
-            oTnContainer = new CPar();
-            oCTn = this.createCCTn("indefinite", null, null, NODE_TYPE_TMROOT, RESTART_TYPE_NEVER, true);
-            oTnContainer.setCTn(oCTn);
-            this.tnLst.addToLst(0, oTnContainer);
-            oTmRoot = oTnContainer;
-        }
+        var oTmRoot = this.checkTimeRoot();
         var aSeq = oTmRoot.getChildrenTimeNodes();
         var oInteractiveSeq;
         var oSeq;
@@ -2199,29 +2181,22 @@
     };
     CTiming.prototype.addToMainSequence = function(oEffect) {
         var oMainSeq = this.checkMainSequence();
-        var oPar2Lvl = this.createPar(NODE_FILL_HOLD, "indefinite");
-        var oPar3Lvl = this.createPar(NODE_FILL_HOLD, "0");
-        oPar3Lvl.pushToChildTnLst(oEffect);
-        oPar2Lvl.pushToChildTnLst(oPar3Lvl);
-        oMainSeq.pushToChildTnLst(oPar2Lvl);
+        oMainSeq.addEffectToTheEndOfSeq(oEffect);
         this.updateNodesIDs();
     };
     CTiming.prototype.addToInteractiveSequence = function(oEffect, sObjectId) {
         var oInteractiveSeq = this.checkInteractiveSequence(sObjectId);
-        var oPar2Lvl = this.createPar(NODE_FILL_HOLD, "0");
-        var oPar3Lvl = this.createPar(NODE_FILL_HOLD, "0");
-        oPar3Lvl.pushToChildTnLst(oEffect);
-        oPar2Lvl.pushToChildTnLst(oPar3Lvl);
-        oInteractiveSeq.pushToChildTnLst(oPar2Lvl);
+        oInteractiveSeq.addEffectToTheEndOfSeq(oEffect);
         this.updateNodesIDs();
     };
     CTiming.prototype.addEffectToMainSequence = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+     
+        if(bReplace) {
+            this.removeObjectAnimation(sObjectId);
+        }
         var oEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
         if(!oEffect) {
             return;
-        }
-        if(bReplace) {
-            this.removeObjectAnimation(sObjectId);
         }
         this.addToMainSequence(oEffect);
     };
@@ -2275,6 +2250,62 @@
 
         return aSeqs;
     };
+    CTiming.prototype.getEffectsSequences = function() {
+        var aSequences = [];
+        var aAllEffects = this.getAllAnimEffects();
+        var aCurSequence = null;
+        var oEffect;
+        var sSeqId;
+        var nEffect;
+        for(nEffect = 0; nEffect < aAllEffects.length; ++nEffect) {
+            oEffect = aAllEffects[nEffect];
+            if(oEffect.isPartOfMainSequence()) {
+                sSeqId = null;
+            }
+            else {
+                sSeqId = oEffect.isPartOfInteractiveSeq();
+            }
+            if(!Array.isArray(aCurSequence) || aCurSequence[0] !== sSeqId) {
+                aCurSequence = [sSeqId];
+                aSequences.push(aCurSequence);
+            }
+            aCurSequence.push(sSeqId);
+        }
+        return aSequences;
+    };
+    CTiming.prototype.buildTree = function(aSequences) {
+        var aCurSequence;
+        var oEffect;
+        var sSeqId;
+        var nEffect;
+        var nSeq;
+        var oCont1;//containers by depth
+        //substract delay shift from afterEffect nodes
+        for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
+            aCurSequence = aSequences;
+            for(nEffect = 1; nEffect < aCurSequence.length; ++nEffect) {
+                oEffect = aCurSequence[nEffect];
+                oEffect.resetDelayShift();
+            }
+        }
+
+        for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
+            aCurSequence = aSequences;
+            sSeqId = aCurSequence[0];
+            if(sSeqId === null) {
+                oCont1 = this.checkMainSequence();
+            }
+            else {
+                oCont1 = this.checkInteractiveSequence(sSeqId);
+            }
+            oCont1.clearChildTnLst();
+            for(nEffect = 1; nEffect < aCurSequence.length; ++nEffect) {
+                oEffect = aCurSequence[nEffect];
+                oCont1.addEffectToTheEndOfSeq(oEffect);
+            }
+        }
+        this.updateNodesIDs();
+    };
     CTiming.prototype.setAnimationProperties = function(aObjectId, oPr, oCurPr) {
         var aEffects = this.getAllAnimEffects(aObjectId);
         var sObjectId, nObjectId;
@@ -2310,6 +2341,63 @@
                 oEffect.cTn.changeTrigger(oPr.asc_getTriggerClickSequence() ? null : oPr.asc_getTriggerObjectClick());
             }
         }
+    };
+    
+    CTiming.prototype.getObjectEffects = function(sObjectId) {
+        var aEffects = [];
+        if(!this.tnLst) {
+            return aEffects;
+        }
+        var oTmRoot = this.tnLst.getTimeNodeByType(NODE_TYPE_TMROOT);
+        if(!oTmRoot) {
+            return aEffects;
+        }
+        oTmRoot.traverseTimeNodes(function(oNode) {
+            if(oNode.isObjectEffect(sObjectId)) {
+                aEffects.push(oNode);
+            }
+        });
+        return aEffects;
+    };
+    CTiming.prototype.getAnimEffect = function(sObjectId) {
+        var aEffects = this.getObjectEffects(sObjectId);
+        return this.getPropertiesFromEffects(aEffects);
+    };
+    CTiming.prototype.getSelectedEffects = function() {
+        //todo 
+        var aEffects = [];
+        var oSlide = this.parent;
+        if(!oSlide) {
+            return aEffects;
+        }
+        var oGrObjects = oSlide.graphicObjects;
+        if(!oGrObjects) {
+            return aEffects;
+        }
+        var aSelectedDrawings = oGrObjects.selectedObjects;
+        for(var nIdx = 0; nIdx < aSelectedDrawings.length; ++nIdx) {
+            aEffects = aEffects.concat(this.getObjectEffects(aSelectedDrawings[nIdx].Get_Id()));
+        }
+        if(aEffects.length === 0 && aSelectedDrawings.length > 0) {
+            aEffects.push(this.staticCreateNoneEffect());
+        }
+        return aEffects;
+    };
+    CTiming.prototype.getPropertiesFromEffects = function(aEffects) {
+        var oResultEffect = null;
+        var oEffect;
+        for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            oEffect = aEffects[nEffect];
+            if(!oResultEffect) {
+                oResultEffect = oEffect.createDuplicate();
+            }
+            oResultEffect.merge(oEffect);
+        }
+        return oResultEffect;
+    };
+    CTiming.prototype.getAnimProperties = function() {
+        var aEffects = this.getSelectedEffects();
+        return this.getPropertiesFromEffects(aEffects);
     };
     CTiming.prototype.printTree = function() {
         var oRoot = this.getTimingRootNode();
@@ -2430,6 +2518,12 @@
             if(this.list[nNode].getNodeType() === nType) {
                 return this.list[nNode];
             }
+        }
+        return null;
+    };
+    CCommonTimingList.prototype.getLast = function(nType) {
+        if(this.list.length > 0) {
+            return this.list[this.list.length - 1];
         }
         return null;
     };
@@ -4347,6 +4441,11 @@
             this.childTnLst.push(oNode);
         }
     };
+    CCTn.prototype.clearChildTnLst = function() {
+        if(this.childTnLst) {
+            this.childTnLst.clear();
+        }
+    };
     CCTn.prototype.createChildTnLst = function() {
         if(!this.childTnLst) {
             this.setChildTnLst(new CChildTnLst());
@@ -4361,7 +4460,7 @@
         }
         return 0;
     };
-    CCTn.prototype.getDelay = function() {
+    CCTn.prototype.getDelay = function(bUseDelayShift) {
         var delay = 0;
         var aConds;
         if(this.stCondLst) {
@@ -4373,13 +4472,26 @@
                 }
             }
         }
-        if(this.nodeType === NODE_TYPE_AFTEREFFECT) {
-            delay = Math.max(0, delay - this.getDelayShift());
+        var nDelayShift;
+        if(bUseDelayShift === false) {
+            nDelayShift = 0;
         }
+        else {
+            nDelayShift = this.getDelayShift();
+        }
+        delay = Math.max(0, delay - nDelayShift);
         return delay;
     };
-    CCTn.prototype.changeDelay = function(nDelay) {
-        var delay = 0;
+    CCTn.prototype.changeDelay = function(nDelay, bUseDelayShift) {
+        var nDelayShift;
+        if(bUseDelayShift === false) {
+            nDelayShift = 0;
+        }
+        else {
+            nDelayShift = this.getDelayShift();
+        }
+        var nNewDelay = Math.max(0, nDelay + nDelayShift);
+        var sNewDelay = nNewDelay + "";
         var aConds;
         if(!this.stCondLst) {
             this.setStCondLst(new CCondLst());
@@ -4387,13 +4499,24 @@
         aConds = this.stCondLst.list;
         for(var nCond = 0; nCond < aConds.length; ++nCond) {
             if(aConds[nCond].delay !== null) {
-                return aConds[nCond].setDelay(nDelay + "");
+                return aConds[nCond].setDelay(sNewDelay);
             }
         }
         var oCond = new CCond();
         this.stCondLst.push(oCond);
-        oCond.setDelay((nDelay + this.getDelayShift()) + "");
-        return delay;
+        oCond.setDelay(sNewDelay);
+    };
+    CCTn.prototype.resetDelayShift = function() {
+        var nDelayShift = this.getDelayShift();
+        if(nDelayShift > 0) {
+            this.changeDelay(this.getDelay(false) - this.getDelayShift(), false);
+        }
+    };
+    CCTn.prototype.setDelayShift = function() {
+        var nDelayShift = this.getDelayShift();
+        if(nDelayShift > 0) {
+            this.changeDelay(this.getDelay(false), true);
+        }
     };
     CCTn.prototype.getEffectDuration = function() {
         var nDur = 0;
@@ -7134,8 +7257,8 @@
             this.merged.push(oCopy);
         }, this, []);
     };
-    CTimeNodeContainer.prototype.isMultiple = function(oTNContainer) {
-        if(this.merged && this.merged.length > 1) {
+    CTimeNodeContainer.prototype.isMultipleEffect = function() {
+        if(Array.isArray(this.merged) && this.merged.length > 1) {
             if(this.presetClass === undefined || this.presetID === undefined || this.presetSubtype === undefined) {
                 return true;
             }
@@ -7148,12 +7271,67 @@
     CTimeNodeContainer.prototype.pushToChildTnLst = function(oNode) {
         this.cTn.pushToChildTnLst(oNode);
     };
+    CTimeNodeContainer.prototype.clearChildTnLst = function() {
+        this.cTn.clearChildTnLst();
+    };
     CTimeNodeContainer.prototype.splice = function() {
         return this.cTn.childTnLst.splice.apply(this.cTn.childTnLst, arguments);
+    };
+    CTimeNodeContainer.prototype.getLastChild = function() {
+        return this.cTn.childTnLst.getLast();
     };
     CTimeNodeContainer.prototype.addEffects = function(nInsertIdx, aEffects) {
         for(var nIdx = 0; nIdx < aEffects.length; ++nIdx) {
             this.splice(nInsertIdx + nIdx, 0, aEffects[nIdx]);
+        }
+    };
+    CTimeNodeContainer.prototype.addEffectToTheEndOfSeqAsClickEffect = function(oEffect) {
+        var oPar2Lvl, oPar3Lvl;
+        var sSecondLevelDelay = this.isMainSequence() ? "indefinite" : "0";
+        oPar2Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, sSecondLevelDelay);
+        oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+        oPar3Lvl.pushToChildTnLst(oEffect);
+        oPar2Lvl.pushToChildTnLst(oPar3Lvl);
+        this.pushToChildTnLst(oPar2Lvl);
+    };
+    CTimeNodeContainer.prototype.addEffectToTheEndOfSeq = function(oEffect) {
+        if(!this.isMainSequence() && !this.getSpClickInteractiveSeq()) {
+            return;
+        }
+        if(!oEffect) {
+            return;
+        }
+        var oPar2Lvl, oPar3Lvl;
+        if(oEffect.isClickEffect()) {
+            this.addEffectToTheEndOfSeqAsClickEffect(oEffect);
+        }
+        else if(oEffect.isAfterEffect()) {
+            oPar2Lvl = this.getLastChild();
+            if(!oPar2Lvl) {
+                this.addEffectToTheEndOfSeqAsClickEffect(oEffect);
+            }
+            else {
+                oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+                oPar3Lvl.pushToChildTnLst(oEffect);
+                oPar2Lvl.pushToChildTnLst(oPar3Lvl);
+            }
+        }
+        else if(oEffect.isWithEffect()) {
+            oPar2Lvl = this.getLastChild();
+            if(!oPar2Lvl) {
+                this.addEffectToTheEndOfSeqAsClickEffect(oEffect);
+            }
+            else {
+                oPar3Lvl = oPar2Lvl.getLastChild();
+                if(oPar3Lvl) {
+                    oPar3Lvl.pushToChildTnLst(oEffect);
+                }
+                else {
+                    oPar3Lvl = CTiming.prototype.createPar(NODE_FILL_HOLD, "0");
+                    oPar3Lvl.pushToChildTnLst(oEffect);
+                    oPar2Lvl.pushToChildTnLst(oPar3Lvl);
+                }
+            }
         }
     };
     CTimeNodeContainer.prototype.getChildrenCount = function() {
@@ -7162,7 +7340,6 @@
     CTimeNodeContainer.prototype.getChildTimeNodeByType = function(nType) {
         return this.cTn.getTimeNodeByType(nType);
     };
-
     CTimeNodeContainer.prototype.getAllEffects = function() {
         var aAllEffects = [];
         this.traverse(function(oChild){
@@ -7291,10 +7468,7 @@
     CTimeNodeContainer.prototype["asc_getClass"] = CTimeNodeContainer.prototype.asc_getClass;
     CTimeNodeContainer.prototype.asc_getType = function(v) {
         if(typeof this.cTn.presetID === "undefined") {
-            if(!Array.isArray(this.merged) || this.merged.length == 0) {
-                return AscFormat.ANIM_PRESET_NONE;
-            }
-            return AscFormat.ANIM_PRESET_MULTIPLE;
+            return this.isMultipleEffect() ? AscFormat.ANIM_PRESET_MULTIPLE : AscFormat.ANIM_PRESET_NONE;
         }
         return this.cTn.presetID;
     };
