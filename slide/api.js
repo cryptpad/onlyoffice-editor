@@ -3920,11 +3920,6 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_AddAnimation      = function(nPresetClass, nPresetId, nPresetSubtype, bReplace)
 	{
-		if(!AscFormat.isRealNumber(nPresetClass)
-		|| !AscFormat.isRealNumber(nPresetId))
-		{
-			return;
-		}
 		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
 	};
 	asc_docs_api.prototype.asc_getCurSlideObjectsNames = function()

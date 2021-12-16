@@ -788,10 +788,7 @@ Slide.prototype =
             if(!this.timing) {
                 this.setTiming(new AscFormat.CTiming());
             }
-            for(var nObject = 0; nObject < aSelectedObjects.length; ++nObject) {
-                sObjectId = aSelectedObjects[nObject].Get_Id();
-                this.timing.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace);
-            }
+            this.timing.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
         }
     },
     setAnimationProperties: function(oPr) {
@@ -807,6 +804,7 @@ Slide.prototype =
                 aObjectId.push(sObjectId);
             }
             this.timing.setAnimationProperties(aObjectId, oPr, this.graphicObjects.getDrawingProps().animProps);
+            this.showDrawingObjects();
         }
     },
 

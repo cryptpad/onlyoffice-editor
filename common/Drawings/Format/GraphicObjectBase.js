@@ -2710,7 +2710,7 @@
         var dH = this.convertPixToMM(ANIM_LABEL_HEIGHT_PIX);
         for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
             aEffects[nEffect].drawEffectLabel(oGraphics, dX, dY, dW, dH);
-            dY += this.convertPixToMM(4);
+            dY += (this.convertPixToMM(4) + dH);
         }
     };
 

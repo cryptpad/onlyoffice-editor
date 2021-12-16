@@ -86,10 +86,20 @@
     AscFormat.getAnimPresetsScript = getAnimPresetsScript;
 
 
-    AscFormat.PRESET_CLASS_EMPH = AscFormat["PRESET_CLASS_EMPH"] = 0;
-    AscFormat.PRESET_CLASS_ENTR = AscFormat["PRESET_CLASS_ENTR"] = 1;
-    AscFormat.PRESET_CLASS_EXIT = AscFormat["PRESET_CLASS_EXIT"] = 2;
-    AscFormat.PRESET_CLASS_PATH = AscFormat["PRESET_CLASS_PATH"] = 4;
+    
+    var PRESET_CLASS_EMPH = 0;
+    var PRESET_CLASS_ENTR = 1;
+    var PRESET_CLASS_EXIT = 2;
+    var PRESET_CLASS_MEDIACALL = 3;
+    var PRESET_CLASS_PATH = 4;
+    var PRESET_CLASS_VERB = 5;
+
+    AscFormat.PRESET_CLASS_EMPH = AscFormat["PRESET_CLASS_EMPH"] = PRESET_CLASS_EMPH;
+    AscFormat.PRESET_CLASS_ENTR = AscFormat["PRESET_CLASS_ENTR"] = PRESET_CLASS_ENTR;
+    AscFormat.PRESET_CLASS_EXIT = AscFormat["PRESET_CLASS_EXIT"] = PRESET_CLASS_EXIT;
+    AscFormat.PRESET_CLASS_MEDIACALL = AscFormat["PRESET_CLASS_MEDIACALL"] = PRESET_CLASS_MEDIACALL;
+    AscFormat.PRESET_CLASS_PATH = AscFormat["PRESET_CLASS_PATH"] = PRESET_CLASS_PATH;
+    AscFormat.PRESET_CLASS_VERB = AscFormat["PRESET_CLASS_VERB"] = PRESET_CLASS_VERB;
 
     AscFormat.ANIM_PRESET_NONE = AscFormat["ANIM_PRESET_NONE"] = -2;
     AscFormat.ANIM_PRESET_MULTIPLE = AscFormat["ANIM_PRESET_MULTIPLE"] = -1;
@@ -455,6 +465,9 @@
         };
     }
     CBaseAnimObject.prototype.isTimeNode = function() {
+        return false;
+    };
+    CBaseAnimObject.prototype.isTimingContainer = function() {
         return false;
     };
     CBaseAnimObject.prototype.parseTime = function(val) {
@@ -1993,6 +2006,19 @@
     CTiming.prototype.updateNodesIDs = function() {
         var oReplaceMap = {};
         var nIdCounter = 0;
+        
+        //remove empty nodes
+        this.traverse(function(oChild) {
+            if(oChild.getObjectType() === AscDFH.historyitem_type_CTn) {
+                if(oChild.parent && oChild.parent.isTimingContainer() && 
+                oChild.childTnLst && oChild.childTnLst.isEmpty()) {
+                    if(oChild.parent) {
+                        oChild.parent.onRemoveChild(oChild);
+                    }
+                    return;
+                }
+            }
+        });
         this.traverse(function(oChild) {
             if(oChild.getObjectType() === AscDFH.historyitem_type_CTn) {
                 var nOldId = oChild.id;
@@ -2187,6 +2213,77 @@
     CTiming.prototype.addToInteractiveSequence = function(oEffect, sObjectId) {
         var oInteractiveSeq = this.checkInteractiveSequence(sObjectId);
         oInteractiveSeq.addEffectToTheEndOfSeq(oEffect);
+        this.updateNodesIDs();
+    };
+    CTiming.prototype.addAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+        if(nPresetId === AscFormat.ANIM_PRESET_NONE) {
+            this.removeSelectedEffects();
+            return;
+        }
+        if(!AscFormat.isRealNumber(nPresetClass)
+		|| !AscFormat.isRealNumber(nPresetId))
+		{
+			return;
+		}
+        var aSelectedEffects = this.getSelectedEffects();
+        var nIdx;
+        var nEffectIdx;
+        var oParentList;
+        var oEffect;
+        var oNewEffect;
+        var sObjectId;
+        var oDrawingsIdMap = {};
+        if(bReplace) {
+            for(nIdx = 0; nIdx < aSelectedEffects.length; ++nIdx) {
+                oEffect = aSelectedEffects[nIdx];
+                oParentList = oEffect.parent;
+                nEffectIdx = oParentList.removeChild(oEffect);
+                if(nEffectIdx > -1) {
+                    sObjectId = oEffect.getObjectId();
+                    if(sObjectId) {
+                        if(!oDrawingsIdMap[sObjectId]) {
+                            oNewEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
+                            if(oNewEffect) {
+                                oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
+                                oParentList.addToLst(nEffectIdx, oNewEffect);
+                                oDrawingsIdMap[sObjectId] = true;
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+        else {
+            if(aSelectedEffects.length > 0) {
+                for(nIdx = 0; nIdx < aSelectedEffects.length; ++nIdx) {
+                    oEffect = aSelectedEffects[nIdx];
+                    sObjectId = oEffect.getObjectId();
+                    if(sObjectId) {
+                        if(!oDrawingsIdMap[sObjectId]) {
+                            this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
+                            oDrawingsIdMap[sObjectId] = true;
+                        }
+                    }
+                }
+            }
+            else {
+                var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
+                for(nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
+                    sObjectId = aSelectedObjects[nIdx].Get_Id();
+                    this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
+                }
+            }
+        }
+        this.updateNodesIDs();
+    };
+    CTiming.prototype.removeSelectedEffects = function() {
+        var aSelectedEffects = this.getSelectedEffects();
+        for(var nIdx = 0; nIdx < aSelectedEffects.length; ++nIdx) {
+            var oEffect = aSelectedEffects[nIdx];
+            if(oEffect.parent) {
+                oEffect.parent.onRemoveChild(oEffect);
+            }
+        }
         this.updateNodesIDs();
     };
     CTiming.prototype.addEffectToMainSequence = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace) {
@@ -2495,18 +2592,6 @@
                 aEffects.push(oEffect);
             }
         }
-        if(aEffects.length === 0) {
-            var oSlide = this.parent;
-            if(oSlide) {
-                var oGrObjects = oSlide.graphicObjects;
-                if(oGrObjects) {
-                    var aSelectedDrawings = oGrObjects.selectedObjects;
-                    if(aSelectedDrawings.length > 0) {
-                        aEffects.push(this.staticCreateNoneEffect());
-                    }
-                }
-            }
-        }
         return aEffects;
     };
     CTiming.prototype.getPropertiesFromEffects = function(aEffects) {
@@ -2523,6 +2608,18 @@
     };
     CTiming.prototype.getAnimProperties = function() {
         var aEffects = this.getSelectedEffects();
+        if(aEffects.length === 0) {
+            var oSlide = this.parent;
+            if(oSlide) {
+                var oGrObjects = oSlide.graphicObjects;
+                if(oGrObjects) {
+                    var aSelectedDrawings = oGrObjects.selectedObjects;
+                    if(aSelectedDrawings.length > 0) {
+                        aEffects.push(this.staticCreateNoneEffect());
+                    }
+                }
+            }
+        }
         return this.getPropertiesFromEffects(aEffects);
     };
     CTiming.prototype.printTree = function() {
@@ -2582,6 +2679,9 @@
             this.removeFromLst(nIdx);
         }
     };
+    CCommonTimingList.prototype.isEmpty = function() {
+        return this.getLength() === 0;
+    };
     CCommonTimingList.prototype.fillObject = function(oCopy, oIdMap) {
         for(var nIdx = 0; nIdx < this.list.length; ++nIdx) {
             oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
@@ -2623,16 +2723,23 @@
     CCommonTimingList.prototype.getChildren = function() {
         return [].concat(this.list);
     };
-    CCommonTimingList.prototype.onRemoveChild = function(oChild) {
+    
+    CCommonTimingList.prototype.removeChild = function(oChild) {
         if(this.parent) {
             for(var nIdx = this.list.length - 1; nIdx > -1; --nIdx) {
                 if(this.list[nIdx] === oChild) {
                     this.removeFromLst(nIdx);
-                    if(this.list.length === 0) {
-                        this.parent.onRemoveChild(this);
-                    }
-                    return;
+                    return nIdx;
                 }
+            }
+        }
+        return -1;
+    };
+    CCommonTimingList.prototype.onRemoveChild = function(oChild) {
+        this.removeChild(oChild);
+        if(this.parent) {
+            if(this.list.length === 0) {
+                this.parent.onRemoveChild(this);
             }
         }
     };
@@ -4096,12 +4203,6 @@
         }
     };
 
-    var PRESTET_CLASS_EMPH = 0;
-    var PRESTET_CLASS_ENTR = 1;
-    var PRESTET_CLASS_EXIT = 2;
-    var PRESTET_CLASS_MEDIACALL = 3;
-    var PRESTET_CLASS_PATH = 4;
-    var PRESTET_CLASS_VERB = 5;
 
     var RESTART_TYPE_ALWAYS = 0;
     var RESTART_TYPE_NEVER = 1;

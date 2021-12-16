@@ -10875,6 +10875,7 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
         this.StartAction(0);
         oSlide.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
         this.FinalizeAction();
+        this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
         this.Document_UpdateInterfaceState();
     }
 };
