@@ -8200,7 +8200,7 @@
             var oParentNode;
             while(oParentNode = oCurNode.getParentTimeNode()) {
                 var oAttrObject = oParentNode.getAttributesObject();
-                if(PRESTET_CLASS_ENTR === oAttrObject.presetClass) {
+                if(PRESET_CLASS_ENTR === oAttrObject.presetClass) {
                     return true;
                 }
                 oCurNode = oParentNode;
