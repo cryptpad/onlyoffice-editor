@@ -3529,6 +3529,16 @@
         }
         return false;
 	};
+
+    // это для отложенных действий на клике (диалоги в мобильной версии)
+	baseEditorsApi.prototype.setHandlerOnClick = function(handler)
+	{
+		this._handlerOnClick = handler;
+	};
+	baseEditorsApi.prototype.getHandlerOnClick = function()
+	{
+		return this._handlerOnClick;
+	};
 	// ---------------------------------------------------- interface events ---------------------------------------------
 	baseEditorsApi.prototype["asc_onShowPopupWindow"] = function()
 	{

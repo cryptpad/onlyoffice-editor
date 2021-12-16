@@ -1578,7 +1578,11 @@ function CEditorPage(api)
 					if (-1 == oWordControl.m_oTimerScrollSelect && AscCommon.global_mouseEvent.IsLocked)
 						oWordControl.m_oTimerScrollSelect = setInterval(oWordControl.SelectWheel, 20);
 
-					AscCommon.stopEvent(e);
+					if (oWordControl.MobileTouchManager && oWordControl.MobileTouchManager.iScroll)
+						oWordControl.MobileTouchManager.iScroll.disableLongTapAction();
+
+					if (!oWordControl.m_oApi.getHandlerOnClick())
+						AscCommon.stopEvent(e);
 					return;
 				}
 
@@ -1659,7 +1663,10 @@ function CEditorPage(api)
 
 					oWordControl.m_oDrawingDocument.SetCursorType("grab");
 
-					oThis.m_oOverlayApi && oThis.m_oOverlayApi.Clear();
+					oWordControl.m_oLogicDocument && oWordControl.m_oLogicDocument.UpdateCursorType();
+					oWordControl.StartUpdateOverlay();
+					oWordControl.OnUpdateOverlay();
+					oWordControl.EndUpdateOverlay();
 					return;
 				}
 			}

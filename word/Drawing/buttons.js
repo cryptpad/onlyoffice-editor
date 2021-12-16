@@ -850,6 +850,19 @@
 		In 		: 1
 	};
 
+	// показ диалогов в мобильной версии должен быть только по клику
+	function _sendEventToApi(api, obj, x, y, isclick)
+	{
+		if (!api.isMobileVersion || isclick || obj.type !== Asc.c_oAscContentControlSpecificType.Picture || !obj.isForm)
+		{
+			api.sendEvent("asc_onShowContentControlsActions", obj, x, y);
+			return;
+		}
+		api.setHandlerOnClick(function(){
+			api.sendEvent("asc_onShowContentControlsActions", obj, x, y);
+		});
+	}
+
 	function CCIcons()
 	{
 		/**
@@ -1391,6 +1404,7 @@
 			"obj" : this.base,
 			"type" : this.type,
 			"button" : button,
+			"isForm" : this.isForm,
 			"pr" : this.base.GetContentControlPr ? this.base.GetContentControlPr() : null
 		}
 	};
@@ -2443,7 +2457,7 @@
 								}
 
 								var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-								oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(-1), posOnScreen.X, posOnScreen.Y);
+								_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(-1), posOnScreen.X, posOnScreen.Y);
 							}
 
 							oWordControl.ShowOverlay();
@@ -2522,7 +2536,7 @@
 									}
 
 									var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-									oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexButton), posOnScreen.X, posOnScreen.Y);
+									_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(indexButton), posOnScreen.X, posOnScreen.Y);
 								}
 
 								oWordControl.ShowOverlay();
@@ -2578,7 +2592,7 @@
 								}
 
 								var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, rectCombo.Page);
-								oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
+								_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
 							}
 
 							oWordControl.ShowOverlay();
