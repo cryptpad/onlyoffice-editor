@@ -672,7 +672,9 @@
 			this.id = AscCommon.unleakString(uq(val));
 		}
 	};
+	
 
+	//Tables & AutoFilter
 	/*function CT_TableParts(ws) {
 		this.ws = ws;
 		this.tableParts = [];
@@ -1052,7 +1054,10 @@
 			if ("sortCondition" === name) {
 				var sortCondition = new AscCommonExcel.SortCondition();
 				sortCondition.fromXml(reader);
-				this.SortCondition = sortCondition;
+				if (!this.SortConditions) {
+					this.SortConditions = [];
+				}
+				this.SortConditions.push(sortCondition);
 			}
 		}
 	};
@@ -1103,6 +1108,12 @@
 				val = new AscCommonExcel.Filters();
 				val.fromXml(reader);
 				this.Filters = val;
+				this.Filters.sortDate();
+				/*oFilterColumn.Filters = new AscCommonExcel.Filters();
+				res = this.bcr.Read1(length, function(t,l){
+					return oThis.ReadFilters(t,l, oFilterColumn.Filters);
+				});
+				oFilterColumn.Filters.sortDate();*/
 			} else if ("top10" === name) {
 				val = new AscCommonExcel.Top10();
 				val.fromXml(reader);
@@ -1295,7 +1306,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("customFilter" === name) {
-				var val = new AscCommonExcel.CustomFilter();
+				var val = new Asc.CustomFilter();
 				val.fromXml(reader);
 				if (!this.CustomFilters) {
 					this.CustomFilters = [];
@@ -1351,7 +1362,291 @@
 		}
 	};
 
+	Asc.CustomFilter.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
 
+	Asc.CustomFilter.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_CustomFilters">
+		51 <xsd:sequence>
+		52 <xsd:element name="customFilter" type="CT_CustomFilter" minOccurs="1" maxOccurs="2"/>
+		53 </xsd:sequence>
+		54 <xsd:attribute name="and" type="xsd:boolean" use="optional" default="false"/>
+		55 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("operator"),      m_oOperator )
+					WritingElement_ReadAttributes_Read_if     ( oReader, _T("val"),      m_oVal )*/
+
+		//serialize
+		/*     var res = c_oSerConstants.ReadOk;
+            if ( c_oSer_CustomFilters.Operator == type )
+                oCustomFiltersItem.Operator = this.stream.GetUChar();
+            else if ( c_oSer_CustomFilters.Val == type )
+                oCustomFiltersItem.Val = this.stream.GetString2LE(length);*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("operator" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Operator = this.convertOperator(val);
+			} else if ("val" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Val = val;
+			}
+		}
+	};
+
+	Asc.CustomFilter.prototype.convertOperator = function(val) {
+		/*<xsd:simpleType name="ST_FilterOperator">
+					75 <xsd:restriction base="xsd:string">
+					76 <xsd:enumeration value="equal"/>
+					77 <xsd:enumeration value="lessThan"/>
+					78 <xsd:enumeration value="lessThanOrEqual"/>
+					79 <xsd:enumeration value="notEqual"/>
+					80 <xsd:enumeration value="greaterThanOrEqual"/>
+					81 <xsd:enumeration value="greaterThan"/>
+					82 </xsd:restriction>
+					83 </xsd:simpleType>*/
+
+		/*var c_oAscCustomAutoFilter = {
+			equals: 1,
+			isGreaterThan: 2,
+			isGreaterThanOrEqualTo: 3,
+			isLessThan: 4,
+			isLessThanOrEqualTo: 5,
+			doesNotEqual: 6,
+			beginsWith: 7,
+			doesNotBeginWith: 8,
+			endsWith: 9,
+			doesNotEndWith: 10,
+			contains: 11,
+			doesNotContain: 12
+		};*/
+
+		var res;
+		switch (val) {
+			case "equal":
+				res = Asc.c_oAscCustomAutoFilter.equals;
+				break;
+			case "lessThan":
+				res = Asc.c_oAscCustomAutoFilter.isLessThan;
+				break;
+			case "lessThanOrEqual":
+				res = Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo;
+				break;
+			case "notEqual":
+				res = Asc.c_oAscCustomAutoFilter.doesNotEqual;
+				break;
+			case "greaterThanOrEqual":
+				res = Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo;
+				break;
+			case "greaterThan":
+				res = Asc.c_oAscCustomAutoFilter.isGreaterThan;
+				break;
+		}
+		return res;
+	};
+
+	AscCommonExcel.Filters.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("dateGroupItem" === name) {
+				val = new AscCommonExcel.DateGroupItem();
+				val.fromXml(reader);
+				var autoFilterDateElem = new AscCommonExcel.AutoFilterDateElem();
+				autoFilterDateElem.convertDateGroupItemToRange(val);
+				this.Dates.push(autoFilterDateElem);
+			} else if ("filter" === name) {
+				val = new AscCommonExcel.Filter();
+				val.fromXml(reader);
+				if (null != val.Val) {
+					this.Values[val.Val] = 1;
+				}
+			}
+		}
+
+		/*ReadAttributes( oReader );
+
+		if ( oReader.IsEmptyNode() )
+			return;
+
+		int nCurDepth = oReader.GetDepth();
+		while( oReader.ReadNextSiblingNode( nCurDepth ) )
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+			if ( _T("dateGroupItem") == sName )
+				m_arrItems.push_back( new CDateGroupItem(oReader));
+			if ( _T("filter") == sName )
+				m_arrItems.push_back( new CFilter(oReader));
+		}*/
+
+	};
+
+	AscCommonExcel.Filters.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_Filters">
+		39 <xsd:sequence>
+		40 <xsd:element name="filter" type="CT_Filter" minOccurs="0" maxOccurs="unbounded"/>
+		41 <xsd:element name="dateGroupItem" type="CT_DateGroupItem" minOccurs="0"
+		42 maxOccurs="unbounded"/>
+		43 </xsd:sequence>Annex A
+		4409
+		44 <xsd:attribute name="blank" type="xsd:boolean" use="optional" default="false"/>
+		45 <xsd:attribute name="calendarType" type="s:ST_CalendarType" use="optional" default="none"/>
+		46 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("blank"),      m_oBlank )*/
+
+		//serialize
+		/*    var res = c_oSerConstants.ReadOk;
+		var oThis = this;
+		if ( c_oSer_FilterColumn.Filter == type )
+		{
+			var oFilterVal = new AscCommonExcel.Filter();
+			res = this.bcr.Read1(length, function(t,l){
+				return oThis.ReadFilter(t,l, oFilterVal);
+			});
+			if(null != oFilterVal.Val)
+				oFilters.Values[oFilterVal.Val] = 1;
+		}
+		else if ( c_oSer_FilterColumn.DateGroupItem == type )
+		{
+			var oDateGroupItem = new AscCommonExcel.DateGroupItem();
+			res = this.bcr.Read2Spreadsheet(length, function(t,l){
+				return oThis.ReadDateGroupItem(t,l, oDateGroupItem);
+			});
+
+			var autoFilterDateElem = new AscCommonExcel.AutoFilterDateElem();
+			autoFilterDateElem.convertDateGroupItemToRange(oDateGroupItem);
+			oFilters.Dates.push(autoFilterDateElem);
+		}
+		else if ( c_oSer_FilterColumn.FiltersBlank == type )
+			oFilters.Blank = this.stream.GetBool();
+		else
+			res = c_oSerConstants.ReadUnknown;
+		return res;*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("blank" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.Blank = val;
+			}
+		}
+	};
+
+	AscCommonExcel.DateGroupItem.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+
+	AscCommonExcel.DateGroupItem.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:simpleType name="ST_DateTimeGrouping">
+		193 <xsd:restriction base="xsd:string">
+		194 <xsd:enumeration value="year"/>
+		195 <xsd:enumeration value="month"/>
+		196 <xsd:enumeration value="day"/>
+		197 <xsd:enumeration value="hour"/>
+		198 <xsd:enumeration value="minute"/>
+		199 <xsd:enumeration value="second"/>
+		200 </xsd:restriction>
+		201 </xsd:simpleType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("dateTimeGrouping"),      m_oDateTimeGrouping )
+					WritingElement_ReadAttributes_Read_if     ( oReader, _T("day"),      m_oDay )
+					WritingElement_ReadAttributes_Read_if     ( oReader, _T("hour"),      m_oHour )
+					WritingElement_ReadAttributes_Read_if     ( oReader, _T("minute"),      m_oMinute )
+					WritingElement_ReadAttributes_Read_if     ( oReader, _T("month"),      m_oMonth )
+					WritingElement_ReadAttributes_Read_if     ( oReader, _T("second"),      m_oSecond )
+					WritingElement_ReadAttributes_Read_if     ( oReader, _T("year"),      m_oYear )*/
+
+		//serialize
+		/*   if ( c_oSer_DateGroupItem.DateTimeGrouping == type )
+                oDateGroupItem.DateTimeGrouping = this.stream.GetUChar();
+            else if ( c_oSer_DateGroupItem.Day == type )
+                oDateGroupItem.Day = this.stream.GetULongLE();
+            else if ( c_oSer_DateGroupItem.Hour == type )
+                oDateGroupItem.Hour = this.stream.GetULongLE();
+            else if ( c_oSer_DateGroupItem.Minute == type )
+                oDateGroupItem.Minute = this.stream.GetULongLE();
+            else if ( c_oSer_DateGroupItem.Month == type )
+                oDateGroupItem.Month = this.stream.GetULongLE();
+            else if ( c_oSer_DateGroupItem.Second == type )
+                oDateGroupItem.Second = this.stream.GetULongLE();
+            else if ( c_oSer_DateGroupItem.Year == type )
+                oDateGroupItem.Year = this.stream.GetULongLE();
+            else*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("dateTimeGrouping" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Blank = val;
+			} else if ("day" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.Blank = val;
+			} else if ("hour" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.Blank = val;
+			} else if ("minute" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.Blank = val;
+			} else if ("month" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.Blank = val;
+			} else if ("second" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.Blank = val;
+			} else if ("year" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.Blank = val;
+			}
+		}
+	};
+
+	AscCommonExcel.Filter.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+
+	AscCommonExcel.Filter.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:attribute name="val" type="s:ST_Xstring"/>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("val"),      m_oVal )*/
+
+		//serialize
+		/*    var res = c_oSerConstants.ReadOk;
+            if ( c_oSer_Filter.Val == type )
+                oFilter.Val = this.stream.GetString2LE(length);*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("val" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Val = val;
+			}
+		}
+	};
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
