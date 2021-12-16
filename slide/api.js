@@ -3929,7 +3929,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_StartAnimationPreview = function()
 	{
 		this.asc_StopAnimationPreview();
-		this.sendEvent("asc_onStartDemonstration");//todo
+		this.WordControl.m_oLogicDocument.StartAnimationPreview();
+		//this.sendEvent("asc_onStartDemonstration");//todo
 	};
 	asc_docs_api.prototype.asc_StopAnimationPreview = function()
 	{

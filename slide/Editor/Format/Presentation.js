@@ -10902,7 +10902,7 @@ CPresentation.prototype.SetAnimationProperties = function(oPr) {
         this.Document_UpdateInterfaceState();
     }
 };
-CPresentation.prototype.GetCurTiming = function(bEarlier) {
+CPresentation.prototype.GetCurTiming = function() {
     var oSlide = this.GetCurrentSlide();
     if(!oSlide) {
         return null;
@@ -10912,6 +10912,18 @@ CPresentation.prototype.GetCurTiming = function(bEarlier) {
         return null;
     }
     return oTiming;
+};
+CPresentation.prototype.StartAnimationPreview = function() {
+    var oSlide = this.GetCurrentSlide();
+    if(!oSlide) {
+        return null;
+    }
+    var oTiming = oSlide.timing;
+    if(!oTiming) {
+        return null;
+    }
+    var oPlayer = new AscFormat.CDemoAnimPlayer(oSlide);
+    oPlayer.start();
 };
 CPresentation.prototype.CanMoveAnimation = function(bEarlier) {
     var oTiming = this.GetCurTiming();

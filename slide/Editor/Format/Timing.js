@@ -2035,6 +2035,29 @@
                 }
             }
         });
+
+        var aAllEffects = this.getAllAnimEffects();
+        var oEffect = aAllEffects[0];
+        if(oEffect.isAfterEffect() || oEffect.isWithEffect()) {
+            var aHierarchy = oEffect.getHierarchy();
+            var oSeqNode = aHierarchy[1];
+            var oPar2Lvl = aHierarchy[2];
+            var oPar3Lvl = aHierarchy[3];
+            if(oSeqNode && oPar2Lvl && oPar3Lvl) {
+                if(oPar3Lvl.getChildNodeIdx(oEffect) === 0 &&
+                oPar2Lvl.getChildNodeIdx(oPar3Lvl) === 0 && 
+                oSeqNode.getChildNodeIdx(oPar2Lvl) === 0) {
+                    if(oPar2Lvl.cTn.stCondLst.getLength() < 2) {
+                        var oCond = new CCond();
+                        oCond.setEvt(COND_EVNT_BEGIN);
+                        oCond.setDelay("0");
+                        oCond.setTn(oSeqNode.cTn.id);
+                        oPar2Lvl.cTn.stCondLst.push(oCond);
+                    }
+                }
+            }
+        }
+
     };
     CTiming.prototype.createEffect = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype) {
         var aPresetClass = ANIMATION_PRESET_CLASSES[nPresetClass];
@@ -2607,26 +2630,48 @@
         return oResultEffect;
     };
     CTiming.prototype.getAnimProperties = function() {
-        var aEffects = this.getSelectedEffects();
-        if(aEffects.length === 0) {
-            var oSlide = this.parent;
-            if(oSlide) {
-                var oGrObjects = oSlide.graphicObjects;
-                if(oGrObjects) {
-                    var aSelectedDrawings = oGrObjects.selectedObjects;
-                    if(aSelectedDrawings.length > 0) {
-                        aEffects.push(this.staticCreateNoneEffect());
+        return AscFormat.ExecuteNoHistory(function(){
+            var aEffects = this.getSelectedEffects();
+            if(aEffects.length === 0) {
+                var oSlide = this.parent;
+                if(oSlide) {
+                    var oGrObjects = oSlide.graphicObjects;
+                    if(oGrObjects) {
+                        var aSelectedDrawings = oGrObjects.selectedObjects;
+                        if(aSelectedDrawings.length > 0) {
+                            aEffects.push(this.staticCreateNoneEffect());
+                        }
                     }
                 }
             }
-        }
-        return this.getPropertiesFromEffects(aEffects);
+            return this.getPropertiesFromEffects(aEffects);
+        }, this, []);
     };
     CTiming.prototype.printTree = function() {
         var oRoot = this.getTimingRootNode();
         if(oRoot) {
             oRoot.printTree();
         }
+    };
+    CTiming.prototype.createDemoTiming = function() {
+        return AscFormat.ExecuteNoHistory(function() {
+            var aSeqs = [];
+            var aSeq = [null];
+            aSeqs.push(aSeq);
+            var aSelectedEffects = this.getSelectedEffects();
+            for(var nIdx = 0; nIdx < aSelectedEffects.length; ++nIdx) {
+                var oCopyEffect = aSelectedEffects[nIdx].createDuplicate();
+                if(oCopyEffect.cTn.nodeType === NODE_TYPE_CLICKEFFECT) {
+                    oCopyEffect.cTn.setNodeType(nIdx === 0 ? NODE_TYPE_WITHEFFECT : NODE_TYPE_AFTEREFFECT);
+                }
+                oCopyEffect.cTn.changeRepeatCount(1000);
+                aSeq.push(oCopyEffect);
+            }
+            var oTiming = new CTiming();
+            oTiming.setParent(this.parent);
+            oTiming.buildTree(aSeqs);
+            return oTiming;
+        }, this, []);
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -4614,7 +4659,6 @@
         return [this.stCondLst, this.endCondLst, this.endSync, this.iterate, this.childTnLst, this.subTnLst];
     };
     CCTn.prototype.merge = function(oOther) {
-        CBaseAnimObject.call(this);
         this.childTnLst = undefined;
         this.endCondLst = this.checkEqualChild(this.endCondLst, oOther.endCondLst);
         this.endSync = this.checkEqualChild(this.endSync, oOther.endSync);
@@ -7791,19 +7835,19 @@
     };
     CTimeNodeContainer.prototype["asc_putRewind"] = CTimeNodeContainer.prototype.asc_putRewind;
 
-    CTimeNodeContainer.prototype.asc_getClass = function(v) {
-        return this.cTn.presetClass;
+    CTimeNodeContainer.prototype.asc_getClass = function() {
+        return this.isMultipleEffect() ? undefined : this.cTn.presetClass;
     };
     CTimeNodeContainer.prototype["asc_getClass"] = CTimeNodeContainer.prototype.asc_getClass;
-    CTimeNodeContainer.prototype.asc_getType = function(v) {
+    CTimeNodeContainer.prototype.asc_getType = function() {
         if(typeof this.cTn.presetID === "undefined") {
             return this.isMultipleEffect() ? AscFormat.ANIM_PRESET_MULTIPLE : AscFormat.ANIM_PRESET_NONE;
         }
         return this.cTn.presetID;
     };
     CTimeNodeContainer.prototype["asc_getType"] = CTimeNodeContainer.prototype.asc_getType;
-    CTimeNodeContainer.prototype.asc_getSubtype = function(v) {
-        return this.cTn.presetSubtype;
+    CTimeNodeContainer.prototype.asc_getSubtype = function() {
+        return this.isMultipleEffect() ? undefined : this.cTn.presetSubtype;
     };
     CTimeNodeContainer.prototype["asc_getSubtype"] = CTimeNodeContainer.prototype.asc_getSubtype;
     CTimeNodeContainer.prototype.asc_putSubtype = function(v) {
@@ -10082,9 +10126,7 @@
         oGraphics.m_oFontManager = AscCommon.g_fontManager;
         oGraphics.transform(1,0,0,1,0,0);
         oGraphics.IsNoDrawingEmptyPlaceholder = true;
-        if(editor.WordControl.DemonstrationManager.Mode) {
-            oGraphics.IsDemonstrationMode = true;
-        }
+        oGraphics.IsDemonstrationMode = true;
         return oGraphics;
     };
     CAnimationDrawer.prototype.onRecalculateFrame = function() {
@@ -10348,6 +10390,37 @@
     };
     CAnimationPlayer.prototype.clearObjectTexture = function(sId) {
         this.animationDrawer.clearObjectTexture(sId);
+    };
+
+
+    function CDemoAnimPlayer(oSlide) {
+        CAnimationPlayer.call(this, oSlide, null);
+    }
+    InitClass(CDemoAnimPlayer, CAnimationPlayer, 0);
+    CDemoAnimPlayer.prototype.updateTimingList = function() {
+        this.timings.length = 0;
+        var oTiming = this.slide.timing;
+        if(oTiming) {
+            this.timings.push(oTiming.createDemoTiming());
+        }
+        var oTr      = editor.WordControl.m_oDrawingDocument.TransitionSlide;
+        oTr.CalculateRect();
+        var oR = oTr.Rect;
+        this.rect = new AscFormat.CGraphicBounds(oR.x, oR.y, oR.x + oR.w, oR.y + oR.h);
+        this.overlayCanvas = editor.WordControl.m_oOverlayApi.m_oContext.canvas;
+        this.overlay = editor.WordControl.m_oOverlayApi;
+    };
+    CDemoAnimPlayer.prototype.onMainSeqFinished = function () {
+        this.stop();
+        this.overlay.Clear();
+        this.overlay.CheckRect(this.rect.x, this.rect.y, this.rect.w, this.rect.h);
+        this.slide.showDrawingObjects();
+
+    };
+    CDemoAnimPlayer.prototype.onRecalculateFrame = function() {
+        this.overlay.Clear();
+        this.overlay.CheckRect(this.rect.x, this.rect.y, this.rect.w, this.rect.h);
+        this.drawFrame(this.overlayCanvas, this.rect);
     };
 
     var DEFAULT_SIMPLE_TRIGGER = function() {
@@ -13337,6 +13410,8 @@
     window['AscFormat'].CBaseAnimObject = CBaseAnimObject;
     window['AscFormat'].CAnimFormulaParser = CFormulaParser;
     window['AscFormat'].CBaseAnimTexture = CBaseAnimTexture;
+    window['AscFormat'].CDemoAnimPlayer = CDemoAnimPlayer;
+    
 
 
     function generate_preset_data() {

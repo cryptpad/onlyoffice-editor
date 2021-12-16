@@ -2692,6 +2692,9 @@
         return (this.parent && this.parent.timing) || null;
     };
     CGraphicObjectBase.prototype.drawAnimLabels = function(oGraphics) {
+        if(AscCommon.IsShapeToImageConverter) {
+            return;
+        }
         if(this.group) {
             return;
         }
