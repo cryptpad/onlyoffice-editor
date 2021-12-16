@@ -127,7 +127,6 @@ EquationProcessing.prototype.CheckAfterBracet = function(Obj) {
 };
 //Script
 EquationProcessing.prototype.AddScript = function(strAtom, FormArgument) {
-	//console.log(this.Parent instanceof CLaTeXParser)
 	var type = this.GetTypeOfScript();
 	var Script = this.CreateScript(FormArgument, type);
 	this.FillScriptBase(Script, strAtom, type);
@@ -199,14 +198,23 @@ EquationProcessing.prototype.FillScriptContent = function(Script, typeOfScript) 
 	}
 };
 EquationProcessing.prototype.FillScriptContentWriteSup = function(Script) {
+	var type = this.CheckTypeOfParent();
 	var Iterator = Script.getUpperIterator();
 	this.Parent.intIndexArray++;
 	this.Parent.StartLexer(Iterator);
+	if (type === 'Unicode' && this.CloseBracet[this.Parent.arrAtoms[this.Parent.intIndexArray]]) {
+		this.Parent.intIndexArray++;
+	}
+	
 };
 EquationProcessing.prototype.FillScriptContentWriteSub = function(Script) {
+	var type = this.CheckTypeOfParent();
 	var Iterator = Script.getLowerIterator();
 	this.Parent.intIndexArray++;
 	this.Parent.StartLexer(Iterator);
+	if (type === 'Unicode' && this.CloseBracet[this.Parent.arrAtoms[this.Parent.intIndexArray]]) {
+		this.Parent.intIndexArray++;
+	}
 };
 //Function 
 EquationProcessing.prototype.AddFunction = function (FormArgument, strFAtom) {
@@ -524,20 +532,21 @@ EquationProcessing.prototype.CheckTypeOfParent = function() {
 EquationProcessing.prototype.AddFraction = function(FormArgument, strFAtom) {
 	var type = this.CheckTypeOfParent();
 	var typeOfFraction;
-	
+	var exitIndex;
 	if (type === 'LaTeX') {
 		typeOfFraction = GetTypeOfFrac[strFAtom];
 		//var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
 	}
+	
 	else if (type === 'Unicode') {
-		var index = this.CheckCloseBracet();
-		typeOfFraction = GetTypeOfFrac[this.Parent.arrAtoms[index + 1]];
+		exitIndex = this.CheckCloseBracet() + 1;
+		typeOfFraction = GetTypeOfFrac[this.Parent.arrAtoms[exitIndex]];
 	}
 
 	
 	if (typeof typeOfFraction === 'number') {
 		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
-		this.FillFracContent(Fraction, type);
+		this.FillFracContent(Fraction, type, exitIndex);
 	}
 }
 EquationProcessing.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
@@ -556,15 +565,16 @@ EquationProcessing.prototype.CreateFraction = function (FormArgument, typeOfFrac
 
 	return Fraction;
 };
-EquationProcessing.prototype.FillFracContent = function (FormArgument, type) {
+EquationProcessing.prototype.FillFracContent = function (FormArgument, type, exitIndex) {
 	if (type === 'LaTeX') {
 		this.Parent.StartLexer(FormArgument.getNumeratorMathContent());
 		this.Parent.StartLexer(FormArgument.getDenominatorMathContent());
 	}
 	else if (type === 'Unicode') {
-		this.Parent.StartLexer(FormArgument.getNumeratorMathContent());
 		this.Parent.intIndexArray++;
-		this.Parent.StartLexer(FormArgument.getDenominatorMathContent());
+		this.Parent.StartLexer(FormArgument.getNumeratorMathContent(), exitIndex);
+		this.Parent.intIndexArray++;
+		this.Parent.StartLexer(FormArgument.getDenominatorMathContent(), exitIndex);
 	}
 };
 var GetTypeOfFrac = {
@@ -3424,23 +3434,19 @@ CUnicodeParser.prototype.StartLexer = function(Context, indexOfExit) {
 
 	if (indexOfExit === undefined) {
 		indexOfExit = this.Processing.CheckCloseBracet();
+		if (indexOfExit && strAtom == '(') {
+			strAtom = this.GetNextUnicode();
+		}
 	}
 
-	if (strAtom == '(') {
-		strAtom = this.GetNextUnicode();
-	}
-		
 	if (indexOfExit) {
 		CUnicodeLexer(this, Context, indexOfExit);
 	}
 
 	else {
-		CUnicodeLexer(this, Context);
+		CUnicodeLexer(this, Context, this.intIndexArray + 1);
 	}
 };
-CUnicodeParser.prototype.TypeOfFraction = function(str) {
-
-}
 function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 	var countOfPushedAtoms = 0;
 
@@ -3470,7 +3476,7 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 		else if (GetTypeOfFunction[atom] != null) {
 			Parser.AddFunction(FormArgument, atom);
 		}
-		else if (Parser.Processing.CheckIsBrackets(atom) && !indexOfCloseBracet) {
+		else if (Parser.Processing.CheckIsBrackets(atom)) {
 			Parser.Processing.AddBracet(FormArgument);
 			countOfPushedAtoms++;
 		}
