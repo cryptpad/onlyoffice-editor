@@ -144,7 +144,11 @@
 					var drawing = new AscCommonExcel.CT_DrawingWSRef();
 					drawing.fromXml(reader);
 					context.drawingId = drawing.id;
-				} /*else if ("tableParts" === name) {
+				} else if ("autoFilter" === name) {
+					var autoFilter = new AscCommonExcel.AutoFilter();
+					autoFilter.fromXml(reader);
+					this.AutoFilter = autoFilter;
+				}/*else if ("tableParts" === name) {
 					var tables = new AscCommonExcel.CT_TableParts();
 					tables.fromXml(reader);
 					context.tablePartIds = tables;
@@ -174,6 +178,42 @@
 			var drawingRef = new AscCommonExcel.CT_DrawingWSRef();
 			drawingRef.id = drawingPart.rId;
 			drawingRef.toXml(writer, "drawing");
+		}
+
+
+		/*if(m_arrItems.empty()) return;
+
+		writer.WriteString(L"<tableParts");
+		WritingStringAttrInt(L"count", (int)m_arrItems.size());
+		writer.WriteString(L">");
+
+		for ( size_t i = 0; i < m_arrItems.size(); ++i)
+		{
+			if ( m_arrItems[i] )
+			{
+				m_arrItems[i]->toXML(writer);
+			}
+		}
+
+		writer.WriteString(L"</tableParts>");*/
+
+
+		if (this.TableParts && this.TableParts.length > 0) {
+
+			writer.WriteXmlNodeStart("tableParts");
+			writer.WriteXmlAttributeNumber("count", this.TableParts.length);
+			writer.WriteXmlAttributesEnd();
+
+			for (var i = 0; i < this.TableParts.length; i++) {
+				var tablePart = context.part.addPart(AscCommon.openXml.Types.tableDefinition);
+				tablePart.part.setDataXml(this.TableParts[i], writer);
+				//CT_DrawingWSRef - внутри только id, поэтому здесь использую. либо переимонвать, либо базовый сделать с такими аттрибутами
+				var tableRef = new AscCommonExcel.CT_DrawingWSRef();
+				tableRef.id = tablePart.rId;
+				tableRef.toXml(writer, "tablePart");
+			}
+
+			writer.WriteXmlNodeEnd("tableParts");
 		}
 		writer.WriteXmlNodeEnd("worksheet");
 	};
@@ -838,6 +878,107 @@
 			}
 		}
 	};
+	AscCommonExcel.TablePart.prototype.toXml = function(writer) {
+
+		/*writer.WriteString(L"<table \
+xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" \
+xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
+mc:Ignorable=\"xr xr3\" \
+xmlns:xr=\"http://schemas.microsoft.com/office/spreadsheetml/2014/revision\" \
+xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"");
+
+		WritingStringNullableAttrInt(L"id", m_oId, m_oId->GetValue());
+		WritingStringNullableAttrEncodeXmlString(L"name", m_oName, *m_oName);
+		WritingStringNullableAttrEncodeXmlString(L"displayName", m_oDisplayName, *m_oDisplayName);
+		WritingStringNullableAttrString(L"ref", m_oRef, m_oRef->ToString());
+		WritingStringNullableAttrInt(L"connectionId", m_oConnectionId, m_oConnectionId->GetValue());
+		WritingStringNullableAttrString(L"tableType", m_oTableType, m_oTableType->ToString());
+		WritingStringNullableAttrString(L"comment", m_oComment, *m_oComment);
+		WritingStringNullableAttrInt(L"tableBorderDxfId", m_oTableBorderDxfId, m_oTableBorderDxfId->GetValue());
+		WritingStringNullableAttrString(L"dataCellStyle", m_oDataCellStyle, *m_oDataCellStyle);
+		WritingStringNullableAttrInt(L"dataDxfId", m_oDataDxfId, m_oDataDxfId->GetValue());
+		WritingStringNullableAttrString(L"headerRowCellStyle", m_oHeaderRowCellStyle, *m_oHeaderRowCellStyle);
+		WritingStringNullableAttrInt(L"headerRowBorderDxfId", m_oHeaderRowBorderDxfId, m_oHeaderRowBorderDxfId->GetValue());
+		WritingStringNullableAttrInt(L"headerRowDxfId", m_oHeaderRowDxfId, m_oHeaderRowDxfId->GetValue());
+		WritingStringNullableAttrString(L"totalsRowCellStyle", m_oTotalsRowCellStyle, *m_oTotalsRowCellStyle);
+		WritingStringNullableAttrInt(L"totalsRowDxfId", m_oTotalsRowDxfId, m_oTotalsRowDxfId->GetValue());
+		WritingStringNullableAttrInt(L"totalsRowBorderDxfId", m_oTotalsRowBorderDxfId, m_oTotalsRowBorderDxfId->GetValue());
+
+		//if (m_oHeaderRowCount.IsInit() && 0 == m_oHeaderRowCount->GetValue())
+		//	WritingStringAttrString(L"headerRowCount", L"1");
+		//if (m_oTotalsRowCount.IsInit() && m_oTotalsRowCount->GetValue() > 0)
+		//          WritingStringAttrString(L"totalsRowCount", L"1");
+		//      else
+		//	WritingStringAttrString(L"totalsRowShown", L"0");//m_oTotalsRowShown
+		WritingStringNullableAttrInt(L"headerRowCount", m_oHeaderRowCount, m_oHeaderRowCount->GetValue());
+		WritingStringNullableAttrInt(L"totalsRowCount", m_oTotalsRowCount, m_oTotalsRowCount->GetValue());
+		WritingStringNullableAttrBool2(L"totalsRowShown", m_oTotalsRowShown);
+
+		WritingStringNullableAttrBool2(L"insertRow", m_oInsertRow);
+		WritingStringNullableAttrBool2(L"insertRowShift", m_oInsertRowShift);
+		WritingStringNullableAttrBool2(L"published", m_oPublished);
+
+		writer.WriteString(L">");
+
+		if(m_oAutoFilter.IsInit())
+			m_oAutoFilter->toXML(writer);
+		if(m_oSortState.IsInit())
+			m_oSortState->toXML(writer);
+		if(m_oTableColumns.IsInit())
+			m_oTableColumns->toXML(writer);
+		if(m_oTableStyleInfo.IsInit())
+			m_oTableStyleInfo->toXML(writer);
+		if(m_oExtLst.IsInit())
+		{
+			writer.WriteString(m_oExtLst->toXMLWithNS(L""));
+		}
+		writer.WriteString(L"</table>");*/
+
+
+
+
+
+		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+		writer.WriteXmlNodeStart("table");
+		writer.WriteXmlString(' xmlns=\\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\\" \\\n' +
+			'xmlns:mc=\\"http://schemas.openxmlformats.org/markup-compatibility/2006\\" \\\n' + 'mc:Ignorable=\\"xr xr3\\" \\\n' +
+			'xmlns:xr=\\"http://schemas.microsoft.com/office/spreadsheetml/2014/revision\\" \\\n' +
+			'xmlns:xr3=\\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\\"" ');
+		writer.WriteXmlNullableAttributeNumber("id", this.Id ? this.Id : null);
+		writer.WriteXmlNullableAttributeStringEncode("name", this.Name ? this.Name : null);
+		writer.WriteXmlNullableAttributeStringEncode("displayName", this.DisplayName);
+		writer.WriteXmlNullableAttributeString("ref", this.Ref.getName());
+		writer.WriteXmlNullableAttributeNumber("headerRowCount", this.HeaderRowCount);
+		writer.WriteXmlNullableAttributeNumber("totalsRowCount", this.TotalsRowCount);
+
+		writer.WriteXmlAttributesEnd();
+
+		if (this.AutoFilter) {
+			this.AutoFilter.toXml(writer);
+		}
+		if (this.SortState) {
+			this.SortState.toXml(writer);
+		}
+		if(this.TableColumns) {
+			writer.WriteXmlNodeStart("tableColumns");
+			writer.WriteXmlAttributeNumber("count", this.TableColumns.length);
+			writer.WriteXmlAttributesEnd();
+
+			for (var i = 0; i < this.TableColumns.length; ++i) {
+				this.TableColumns[i].toXml(writer);
+			}
+			writer.WriteXmlNodeEnd("tableColumns");
+		}
+		if (this.TableStyleInfo) {
+			this.TableStyleInfo.toXml(writer);
+		}
+		/*if(m_oExtLst.IsInit())
+		{
+			writer.WriteString(m_oExtLst->toXMLWithNS(L""));
+		}*/
+
+		writer.WriteXmlNodeEnd("table");
+	};
 	AscCommonExcel.TablePart.prototype.setAttr = function(attr, val, oAttr) {
 		//была идея делать так для удобства, но память нужно экономить
 		/*var oAttr = {"ref": "Ref", "displayName" : "DisplayName", "headerRowCount" : "HeaderRowCount"};
@@ -933,6 +1074,24 @@
 			}
 		}
 	};
+	AscCommonExcel.AutoFilter.prototype.toXml = function(writer) {
+		writer.WriteXmlNodeStart("autoFilter");
+		if (null !== this.Ref) {
+			writer.WriteXmlAttributeStringEncode("ref", this.Ref.getName());
+		}
+		writer.WriteXmlAttributesEnd();
+		if (this.FilterColumns) {
+			for (var i = 0; i < this.FilterColumns.length; ++i) {
+				var elem = this.FilterColumns[i];
+				elem.toXml(writer);
+			}
+		}
+		if (this.SortState) {
+			this.SortState.toXml(writer);
+		}
+
+		writer.WriteXmlNodeEnd("autoFilter");
+	};
 
 	AscCommonExcel.TableStyleInfo.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
@@ -962,6 +1121,46 @@
 				this.ShowRowStripes = val;
 			}
 		}
+	};
+
+	AscCommonExcel.TableStyleInfo.prototype.toXml = function (writer) {
+
+		/*int nShowColumnStripes = 0;
+		int nShowFirstColumn = 0;
+		int nShowLastColumn = 0;
+		int nShowRowStripes = 0;
+		if(m_oShowColumnStripes.IsInit() && true == m_oShowColumnStripes->ToBool())
+		nShowColumnStripes = 1;
+		if(m_oShowFirstColumn.IsInit() && true == m_oShowFirstColumn->ToBool())
+		nShowFirstColumn = 1;
+		if(m_oShowLastColumn.IsInit() && true == m_oShowLastColumn->ToBool())
+		nShowLastColumn = 1;
+		if(m_oShowRowStripes.IsInit() && true == m_oShowRowStripes->ToBool())
+		nShowRowStripes = 1;
+
+		writer.WriteString(L"<tableStyleInfo");
+		WritingStringNullableAttrEncodeXmlString(L"name", m_oName, m_oName.get());
+		WritingStringAttrInt(L"showFirstColumn", nShowFirstColumn);
+		WritingStringAttrInt(L"showLastColumn", nShowLastColumn);
+		WritingStringAttrInt(L"showRowStripes", nShowRowStripes);
+		WritingStringAttrInt(L"showColumnStripes", nShowColumnStripes);
+		writer.WriteString(L"/>");*/
+
+		var nShowColumnStripes = this.ShowColumnStripes === true ? 1 : 0;
+		var nShowFirstColumn = this.ShowFirstColumn === true ? 1 : 0;
+		var nShowLastColumn = this.ShowLastColumn === true ? 1 : 0;
+		var nShowRowStripes = this.ShowRowStripes === true ? 1 : 0;
+
+		writer.WriteXmlNodeStart("tableStyleInfo");
+
+		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
+		writer.WriteXmlAttributeNumber("showFirstColumn", nShowFirstColumn);
+		writer.WriteXmlAttributeNumber("showLastColumn", nShowLastColumn);
+		writer.WriteXmlAttributeNumber("showRowStripes", nShowRowStripes);
+		writer.WriteXmlAttributeNumber("showColumnStripes", nShowColumnStripes);
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("tableStyleInfo");
 	};
 
 	AscCommonExcel.TableColumn.prototype.fromXml = function (reader) {
@@ -1041,6 +1240,65 @@
 		}
 	};
 
+
+	AscCommonExcel.TableColumn.prototype.toXml = function (writer) {
+
+		/*std::wstring sRoot;
+	writer.WriteString(L"<tableColumn");
+	WritingStringNullableAttrInt(L"id", m_oId, m_oId->GetValue());
+	WritingStringNullableAttrEncodeXmlString(L"name", m_oName, *m_oName);
+	WritingStringNullableAttrEncodeXmlString(L"uniqueName", m_oUniqueName, *m_oUniqueName);
+	WritingStringNullableAttrEncodeXmlString(L"totalsRowLabel", m_oTotalsRowLabel, m_oTotalsRowLabel.get());
+	//есть такой баг: при сохранениии "sum" и названия таблицы "Table1" (русский excel), выдается ошибка в формулах
+	WritingStringNullableAttrString(L"totalsRowFunction", m_oTotalsRowFunction, m_oTotalsRowFunction->ToString());
+	WritingStringNullableAttrInt(L"queryTableFieldId", m_oQueryTableFieldId, m_oQueryTableFieldId->GetValue());
+	WritingStringNullableAttrString(L"dataCellStyle", m_oDataCellStyle, *m_oDataCellStyle);
+	WritingStringNullableAttrInt(L"dataDxfId", m_oDataDxfId, m_oDataDxfId->GetValue());
+	WritingStringNullableAttrString(L"headerRowCellStyle", m_oHeaderRowCellStyle, *m_oHeaderRowCellStyle);
+	WritingStringNullableAttrInt(L"headerRowDxfId", m_oHeaderRowDxfId, m_oHeaderRowDxfId->GetValue());
+	WritingStringNullableAttrString(L"totalsRowCellStyle", m_oTotalsRowCellStyle, *m_oTotalsRowCellStyle);
+	WritingStringNullableAttrInt(L"totalsRowDxfId", m_oTotalsRowDxfId, m_oTotalsRowDxfId->GetValue());
+	if(m_oTotalsRowFormula.IsInit() || m_oCalculatedColumnFormula.IsInit())
+	{
+		writer.WriteString(L">");
+
+		if(m_oCalculatedColumnFormula.IsInit())
+		{
+			WritingStringValEncodeXmlString(L"calculatedColumnFormula", m_oCalculatedColumnFormula.get());
+		}
+		if(m_oTotalsRowFormula.IsInit())
+		{
+			WritingStringValEncodeXmlString(L"totalsRowFormula", m_oTotalsRowFormula.get());
+		}
+
+		writer.WriteString(L"</tableColumn>");
+	}
+	else
+	{
+		writer.WriteString(L"/>");
+	}*/
+
+
+		writer.WriteXmlNodeStart("tableColumn");
+
+		writer.WriteXmlNullableAttributeNumber("id", this.Id ? this.Id : null);
+		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
+		writer.WriteXmlNullableAttributeStringEncode("uniqueName", this.UniqueName ? this.UniqueName : null);
+		writer.WriteXmlNullableAttributeStringEncode("totalsRowLabel", this.TotalsRowLabel);
+		//есть такой баг: при сохранениии "sum" и названия таблицы "Table1" (русский excel), выдается ошибка в формулах
+		writer.WriteXmlNullableAttributeString("totalsRowFunction", this.TotalsRowFunction);
+		writer.WriteXmlNullableAttributeNumber("queryTableFieldId", this.QueryTableFieldId ? this.QueryTableFieldId :  null);
+		writer.WriteXmlNullableAttributeString("dataCellStyle", this.DataCellStyle ? this.DataCellStyle : null);
+		writer.WriteXmlNullableAttributeNumber("dataDxfId", this.DataDxfId ? this.DataDxfId : null);
+		writer.WriteXmlNullableAttributeString("headerRowCellStyle", this.HeaderRowCellStyle ? this.HeaderRowCellStyle : null);
+		writer.WriteXmlNullableAttributeNumber("headerRowDxfId", this.HeaderRowDxfId ? this.HeaderRowDxfId : null);
+		writer.WriteXmlNullableAttributeString("totalsRowCellStyle", this.TotalsRowCellStyle ? this.TotalsRowCellStyle : null);
+		writer.WriteXmlNullableAttributeNumber("totalsRowDxfId", this.TotalsRowDxfId ? this.TotalsRowDxfId : null);
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("tableColumn");
+	};
+
 	AscCommonExcel.SortState.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -1080,6 +1338,54 @@
 			}
 		}
 	};
+
+	AscCommonExcel.SortState.prototype.toXml = function (writer) {
+
+		/*if(m_oRef.IsInit() && !m_arrItems.empty())
+		{
+			writer.WriteString(L"<sortState");
+			WritingStringAttrEncodeXmlString(L"ref", m_oRef->ToString());
+			WritingStringNullableAttrBool(L"caseSensitive", m_oCaseSensitive);
+			WritingStringNullableAttrBool(L"columnSort", m_oColumnSort);
+			WritingStringNullableAttrString(L"sortMethod", m_oSortMethod, m_oSortMethod->ToString());
+			writer.WriteString(L">");
+
+			for ( size_t i = 0; i < m_arrItems.size(); ++i)
+			{
+				if (  m_arrItems[i] )
+				{
+					m_arrItems[i]->toXML(writer);
+				}
+			}
+
+			writer.WriteString(L"</sortState>");*/
+
+		writer.WriteXmlNodeStart("sortState");
+
+		if (null !== this.Ref) {
+			writer.WriteXmlAttributeStringEncode("ref", this.Ref.getName());
+		}
+		if (null !== this.CaseSensitive) {
+			writer.WriteXmlAttributeBool("caseSensitive", this.CaseSensitive);
+		}
+		if (null !== this.ColumnSort) {
+			writer.WriteXmlAttributeBool("columnSort", this.ColumnSort);
+		}
+		if (null !== this.SortMethod) {
+			writer.WriteXmlAttributeString("sortMethod", this.SortMethod);
+		}
+		writer.WriteXmlAttributesEnd();
+
+		if (this.SortConditions) {
+			for (var i = 0; i < this.SortConditions.length; ++i) {
+				this.SortConditions[i].toXml(writer);
+			}
+		}
+
+		writer.WriteXmlNodeEnd("sortState");
+
+	};
+
 
 	AscCommonExcel.FilterColumn.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
@@ -1136,6 +1442,61 @@
 				this.ShowButton = val;
 			}
 		}
+	};
+
+	AscCommonExcel.FilterColumn.prototype.toXml = function(writer) {
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringNullableAttrInt(L"colId", m_oColId, m_oColId->GetValue());
+		if(m_oShowButton.IsInit() && false == m_oShowButton->ToBool())
+		writer.WriteString(L" showButton=\"0\"");
+		WritingStringNullableAttrBool(L"hiddenButton", m_oHiddenButton);
+		writer.EndAttributes();
+		if(m_oColorFilter.IsInit())
+			m_oColorFilter->toXMLWithNS(writer, child_ns, L"colorFilter", child_ns);
+		if(m_oDynamicFilter.IsInit())
+			m_oDynamicFilter->toXMLWithNS(writer, child_ns, L"dynamicFilter", child_ns);
+		if(m_oCustomFilters.IsInit())
+			m_oCustomFilters->toXMLWithNS(writer, child_ns, L"customFilters", child_ns);
+		if(m_oFilters.IsInit())
+			m_oFilters->toXMLWithNS(writer, child_ns, L"filters", child_ns);
+		if(m_oTop10.IsInit())
+			m_oTop10->toXMLWithNS(writer, child_ns, L"top10", child_ns);
+		writer.EndNodeWithNS(node_ns, node_name);*/
+
+		//TODO дублиуется код в workbookElems
+
+		writer.WriteXmlNodeStart("filterColumn");
+
+		if (null !== this.ColId) {
+			writer.WriteXmlAttributeNumber("colId", this.ColId);
+		}
+		if (true !== this.ShowButton) {
+			if (this.ShowButton) {
+				writer.WriteXmlAttributeBool("showButton", this.ShowButton);
+			} else {
+				writer.WriteXmlAttributeBool("hiddenButton", !this.ShowButton);
+			}
+		}
+		writer.WriteXmlAttributesEnd();
+
+		if (null !== this.ColorFilter) {
+			this.ColorFilter.toXml(writer);
+		}
+		if (null !== this.CustomFiltersObj) {
+			this.CustomFiltersObj.toXml(writer);
+		}
+		if (null !== this.DynamicFilter) {
+			this.DynamicFilter.toXml(writer);
+		}
+		if (null !== this.Filters) {
+			this.Filters.toXml(writer);
+		}
+		if (null !== this.Top10) {
+			this.Top10.toXml(writer);
+		}
+		writer.WriteXmlNodeEnd("filterColumn");
+
 	};
 
 	AscCommonExcel.SortCondition.prototype.fromXml = function (reader) {
@@ -1201,6 +1562,37 @@
 		}
 	};
 
+	AscCommonExcel.SortCondition.prototype.toXml = function (writer) {
+
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringNullableAttrString(L"sortBy", m_oSortBy, m_oSortBy->ToString());
+		WritingStringNullableAttrBool(L"descending", m_oDescending);
+		WritingStringNullableAttrEncodeXmlString(L"ref", m_oRef, m_oRef->ToString());
+		WritingStringNullableAttrInt(L"dxfId", m_oDxfId, m_oDxfId->GetValue());
+		writer.EndAttributesAndNode();*/
+
+		writer.WriteXmlNodeStart("sortCondition");
+
+		if (null !== this.ConditionSortBy) {
+			writer.WriteXmlAttributeString("sortBy", this.ConditionSortBy);
+		}
+		if (null !== this.ConditionDescending) {
+			writer.WriteXmlAttributeBool("descending", this.ConditionDescending);
+		}
+		if (null !== this.Ref) {
+			writer.WriteXmlAttributeStringEncode("ref", this.Ref.getName());
+		}
+		if (null !== this.dxf) {
+			writer.WriteXmlAttributeNumber("dxfId", this.dxf);
+		}
+		writer.WriteXmlAttributesEnd();
+
+
+		writer.WriteXmlNodeEnd("sortCondition");
+
+	};
+
 	Asc.ColorFilter.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -1251,6 +1643,24 @@
 		}
 	};
 
+	Asc.ColorFilter.prototype.toXml = function(writer) {
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringAttrInt(L"dxfId", m_oDxfId->GetValue());
+		if(m_oCellColor.IsInit() && false == m_oCellColor->ToBool())
+		writer.WriteString(L" cellColor=\"0\"");
+		writer.EndAttributesAndNode();*/
+
+		writer.WriteXmlNodeStart("colorFilter");
+		writer.WriteXmlNullableAttributeNumber("dxfId", this.dxf ? this.dxf : null);
+		if (this.CellColor === false) {
+			writer.WriteXmlNullableAttributeNumber("cellColor", 0);
+		}
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("colorFilter");
+	};
+
 	Asc.DynamicFilter.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -1293,6 +1703,23 @@
 				this.MaxVal = val;
 			}
 		}
+	};
+
+	Asc.DynamicFilter.prototype.toXml = function(writer) {
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringAttrString(L"type", m_oType->ToString());
+		WritingStringNullableAttrDouble(L"val", m_oVal, m_oVal->GetValue());
+		WritingStringNullableAttrDouble(L"maxVal", m_oMaxVal, m_oMaxVal->GetValue());
+		writer.EndAttributesAndNode();*/
+
+		writer.WriteXmlNodeStart("dynamicFilter");
+		writer.WriteXmlAttributeString("type", this.Type);
+		writer.WriteXmlNullableAttributeNumber("val", this.val);
+		writer.WriteXmlNullableAttributeNumber("maxVal", this.MaxVal);
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("dynamicFilter");
 	};
 
 	Asc.CustomFilters.prototype.fromXml = function (reader) {
@@ -1362,6 +1789,38 @@
 		}
 	};
 
+	Asc.CustomFilters.prototype.toXml = function(writer) {
+		/*if(m_arrItems.empty()) return;
+
+		writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		if (m_oAnd.IsInit() && true == m_oAnd->ToBool())
+		writer.WriteString(L" and=\"1\"");
+		writer.EndAttributes();
+
+		for ( size_t i = 0; i < m_arrItems.size(); ++i)
+		{
+			if (  m_arrItems[i] )
+			{
+				m_arrItems[i]->toXMLWithNS(writer, child_ns, L"customFilter", child_ns);
+			}
+		}
+
+		writer.EndNodeWithNS(node_ns, node_name);*/
+
+		writer.WriteXmlNodeStart("сustomFilters");
+
+		writer.WriteXmlNullableAttributeString("and", this.And ? 1 : null);
+
+		for ( var i = 0; i < this.CustomFilters.length; ++i)
+		{
+			this.CustomFilters[i].toXml(writer);
+		}
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("сustomFilters");
+	};
+
 	Asc.CustomFilter.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
@@ -1399,7 +1858,26 @@
 		}
 	};
 
-	Asc.CustomFilter.prototype.convertOperator = function(val) {
+	Asc.CustomFilter.prototype.toXml = function(writer) {
+		/*if(m_oOperator.IsInit() && m_oVal.IsInit())
+		{
+			writer.StartNodeWithNS(node_ns, node_name);
+			writer.StartAttributes();
+			WritingStringAttrString(L"operator", m_oOperator->ToString());
+			WritingStringAttrEncodeXmlString(L"val", m_oVal.get());
+			writer.EndAttributesAndNode();
+		}*/
+
+		writer.WriteXmlNodeStart("сustomFilter");
+
+		writer.WriteXmlAttributeString("operator", this.convertOperator(this.Operator, true));
+		writer.WriteXmlAttributeStringEncode("val", this.Val);
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("сustomFilter");
+	};
+
+	Asc.CustomFilter.prototype.convertOperator = function(val, revert) {
 		/*<xsd:simpleType name="ST_FilterOperator">
 					75 <xsd:restriction base="xsd:string">
 					76 <xsd:enumeration value="equal"/>
@@ -1427,26 +1905,50 @@
 		};*/
 
 		var res;
-		switch (val) {
-			case "equal":
-				res = Asc.c_oAscCustomAutoFilter.equals;
-				break;
-			case "lessThan":
-				res = Asc.c_oAscCustomAutoFilter.isLessThan;
-				break;
-			case "lessThanOrEqual":
-				res = Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo;
-				break;
-			case "notEqual":
-				res = Asc.c_oAscCustomAutoFilter.doesNotEqual;
-				break;
-			case "greaterThanOrEqual":
-				res = Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo;
-				break;
-			case "greaterThan":
-				res = Asc.c_oAscCustomAutoFilter.isGreaterThan;
-				break;
+		if (revert) {
+			switch (val) {
+				case Asc.c_oAscCustomAutoFilter.equals:
+					res = "equal";
+					break;
+				case Asc.c_oAscCustomAutoFilter.isLessThan:
+					res = "lessThan";
+					break;
+				case Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo:
+					res = "lessThanOrEqual";
+					break;
+				case Asc.c_oAscCustomAutoFilter.doesNotEqual:
+					res = "notEqual";
+					break;
+				case Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo:
+					res = "greaterThanOrEqual";
+					break;
+				case Asc.c_oAscCustomAutoFilter.isGreaterThan:
+					res = "greaterThan";
+					break;
+			}
+		} else {
+			switch (val) {
+				case "equal":
+					res = Asc.c_oAscCustomAutoFilter.equals;
+					break;
+				case "lessThan":
+					res = Asc.c_oAscCustomAutoFilter.isLessThan;
+					break;
+				case "lessThanOrEqual":
+					res = Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo;
+					break;
+				case "notEqual":
+					res = Asc.c_oAscCustomAutoFilter.doesNotEqual;
+					break;
+				case "greaterThanOrEqual":
+					res = Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo;
+					break;
+				case "greaterThan":
+					res = Asc.c_oAscCustomAutoFilter.isGreaterThan;
+					break;
+			}
 		}
+
 		return res;
 	};
 
@@ -1549,6 +2051,57 @@
 		}
 	};
 
+	AscCommonExcel.Filters.prototype.toXml = function(writer) {
+
+
+		/*if(!m_arrItems.empty() || m_oBlank.IsInit())
+		{
+			writer.StartNodeWithNS(node_ns, node_name);
+			writer.StartAttributes();
+			WritingStringNullableAttrBool(L"blank", m_oBlank);
+			writer.EndAttributes();
+
+			for ( size_t i = 0; i < m_arrItems.size(); ++i)
+			{
+				if (  m_arrItems[i] )
+				{
+					CFilter* pFilter = dynamic_cast<CFilter*>(m_arrItems[i]);
+					CDateGroupItem* pDateGroupItem = dynamic_cast<CDateGroupItem*>(m_arrItems[i]);
+					if(pFilter)
+					{
+						pFilter->toXMLWithNS(writer, child_ns, L"filter", child_ns);
+					}
+					else if(pDateGroupItem)
+					{
+						pDateGroupItem->toXMLWithNS(writer, child_ns, L"dateGroupItem", child_ns);
+					}
+				}
+			}
+
+			writer.EndNodeWithNS(node_ns, node_name);
+		}*/
+
+		writer.WriteXmlNodeStart("filters");
+
+		writer.WriteXmlNullableAttributeBool("blank", this.Blank);
+		writer.WriteXmlAttributesEnd();
+
+		var i;
+		if (this.Values) {
+			for (i = 0; i < this.Values.length; i++) {
+				this.Values[i].toXml(writer);
+			}
+		}
+		if (this.Dates) {
+			for (i = 0; i < this.Dates.length; i++) {
+				this.Dates[i].toXml(writer);
+			}
+		}
+
+		writer.WriteXmlNodeEnd("filters");
+
+	};
+
 	AscCommonExcel.DateGroupItem.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
@@ -1598,27 +2151,56 @@
 		while (reader.MoveToNextAttribute()) {
 			if ("dateTimeGrouping" === reader.GetName()) {
 				val = reader.GetValue();
-				this.Blank = val;
+				this.DateTimeGrouping = val;
 			} else if ("day" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.Blank = val;
+				this.Day = val;
 			} else if ("hour" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.Blank = val;
+				this.Hour = val;
 			} else if ("minute" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.Blank = val;
+				this.Minute = val;
 			} else if ("month" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.Blank = val;
+				this.Month = val;
 			} else if ("second" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.Blank = val;
+				this.Second = val;
 			} else if ("year" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.Blank = val;
+				this.Year = val;
 			}
 		}
+	};
+
+	AscCommonExcel.DateGroupItem.prototype.toXml = function(writer) {
+
+
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringNullableAttrInt(L"year", m_oYear, m_oYear->GetValue());
+		WritingStringNullableAttrInt(L"month", m_oMonth, m_oMonth->GetValue());
+		WritingStringNullableAttrInt(L"day", m_oDay, m_oDay->GetValue());
+		WritingStringNullableAttrInt(L"hour", m_oHour, m_oHour->GetValue());
+		WritingStringNullableAttrInt(L"minute", m_oMinute, m_oMinute->GetValue());
+		WritingStringNullableAttrInt(L"second", m_oSecond, m_oSecond->GetValue());
+		WritingStringNullableAttrString(L"dateTimeGrouping", m_oDateTimeGrouping, m_oDateTimeGrouping->ToString());
+		writer.EndAttributesAndNode();*/
+
+		writer.WriteXmlNodeStart("dateGroupItem");
+
+		writer.WriteXmlNullableAttributeNumber("year", this.Year);
+		writer.WriteXmlNullableAttributeNumber("month", this.Month);
+		writer.WriteXmlNullableAttributeNumber("day", this.Day);
+		writer.WriteXmlNullableAttributeNumber("hour", this.Hour);
+		writer.WriteXmlNullableAttributeNumber("minute", this.Minute);
+		writer.WriteXmlNullableAttributeNumber("second", this.Second);
+		writer.WriteXmlNullableAttributeString("dateTimeGrouping", this.DateTimeGrouping);
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("dateGroupItem");
+
 	};
 
 	AscCommonExcel.Filter.prototype.fromXml = function (reader) {
@@ -1646,6 +2228,25 @@
 				this.Val = val;
 			}
 		}
+	};
+
+	AscCommonExcel.Filter.prototype.toXml = function(writer) {
+
+		/*if(m_oVal.IsInit())
+		{
+			writer.StartNodeWithNS(node_ns, node_name);
+			writer.StartAttributes();
+			WritingStringAttrEncodeXmlString(L"val", *m_oVal);
+			writer.EndAttributesAndNode();
+		}*/
+
+		writer.WriteXmlNodeStart("filter");
+
+		writer.WriteXmlNullableAttributeStringEncode("val", this.Val);
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd("filter");
+
 	};
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
