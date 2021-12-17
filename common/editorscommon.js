@@ -4960,7 +4960,7 @@
 						String.fromCharCode(0xC721),
 						String.fromCharCode(0xCE60),
 						String.fromCharCode(0xD314),
-						String.fromCharCode(0xAD6C),
+						String.fromCharCode(0xAD6C)
 					];
 				} else if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital2 || nFormat === Asc.c_oAscNumberingFormat.TaiwaneseDigital)
 				{
@@ -5021,7 +5021,7 @@
 					String.fromCharCode(0x516D),
 					String.fromCharCode(0x4E03),
 					String.fromCharCode(0x516B),
-					String.fromCharCode(0x4E5D),
+					String.fromCharCode(0x4E5D)
 				];
 				var conv = decimalNumberConversion(nValue, digits.length);
 				if(nValue >= digits.length * 10)
@@ -5571,7 +5571,7 @@
 									'seiscentos',
 									'setecentos',
 									'oitocentos',
-									'novecentos',
+									'novecentos'
 								]
 							}
 
@@ -5681,8 +5681,7 @@
 									'sedemdesiat',
 									'osemdesiat',
 									'deväťdesiat'
-								],
-
+								]
 							}
 
 							function letterNumberLessThen100SK(num, options)
@@ -5941,7 +5940,7 @@
 									'sjuttio',
 									'åttio',
 									'nittio'
-								],
+								]
 							};
 
 							function letterNumberLessThen100SV(num)
@@ -6049,7 +6048,7 @@
 									'zeventig',
 									'tachtig',
 									'negentig'
-								],
+								]
 							}
 
 							function letterNumberLessThen100NL(num)
@@ -6175,7 +6174,7 @@
 								20: {
 									2: 'dós',
 									3: 'trés',
-									6: 'séis',
+									6: 'séis'
 								}
 							}
 
@@ -6290,7 +6289,7 @@
 									'sedici',
 									'diciassette',
 									'diciotto',
-									'diciannove',
+									'diciannove'
 								],
 								10: [
 									'venti',
@@ -6300,7 +6299,7 @@
 									'sessanta',
 									'settanta',
 									'ottanta',
-									'novanta',
+									'novanta'
 								]
 							}
 
@@ -6408,7 +6407,7 @@
 									'sechzehn',
 									'siebzehn',
 									'achtzehn',
-									'neunzehn',
+									'neunzehn'
 								],
 								10: [
 									'zwanzig',
@@ -6418,8 +6417,8 @@
 									'sechzig',
 									'siebzig',
 									'achtzig',
-									'neunzig',
-								],
+									'neunzig'
+								]
 							}
 
 							function letterNumberLessThen100DE(num)
@@ -6528,7 +6527,7 @@
 									'soixante-dix',
 									'quatre-vingt',
 									'quatre-vingt'
-								],
+								]
 							}
 
 							function letterNumberLessThen100FR(num)
@@ -6687,7 +6686,7 @@
 									'seventy',
 									'eighty',
 									'ninety'
-								],
+								]
 							};
 
 							function letterNumberLessThen100EN(num)
@@ -6823,7 +6822,7 @@
 						String.fromCharCode(0x05D6),
 						String.fromCharCode(0x05d7),
 						String.fromCharCode(0x05D8)
-					],
+					]
 				}
 				nValue = ((nValue - 1) % 392) + 1;
 
@@ -7104,7 +7103,7 @@
 							'sechzehn': 'sechzehnte',
 							'siebzehn': 'siebzehnte',
 							'achtzehn': 'achtzehnte',
-							'neunzehn': 'neunzehnte',
+							'neunzehn': 'neunzehnte'
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
 						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]])
@@ -7181,7 +7180,7 @@
 								'δεκαοκτακισ',
 								'δεκαεννιακισ',
 								'εικοσακισ'
-							],
+							]
 						}
 
 						function letterOrdinalNumberLessThen100GR(num)
@@ -7471,7 +7470,7 @@
 							'mil': 'milésimo',
 							'dós': 'segundo',
 							'trés': 'tercero',
-							'séis': 'sexto',
+							'séis': 'sexto'
 							}
 						} else if (textLang === 'cs-CZ')
 						{
@@ -7513,7 +7512,7 @@
 								'osm set': 'osmistý',
 								'devět set': 'devítistý',
 								'tisíc': 'tisící',
-								'tisíce': 'tisící',
+								'tisíce': 'tisící'
 							};
 						}
 
@@ -7565,7 +7564,7 @@
 							'seši': 'sestais',
 							'septiņi': 'septītais',
 							'astoņi': 'astotais',
-							'deviņi': 'devītais',
+							'deviņi': 'devītais'
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
@@ -7852,7 +7851,7 @@
 										'sześćset': 'szeuśćset',
 										'siedemset': 'siedemset',
 										'osiemset': 'osiemset',
-										'dziewięćset': 'dziewięćset',
+										'dziewięćset': 'dziewięćset'
 									}
 								}
 							}
@@ -8128,7 +8127,7 @@
 							'nine': 'ninth',
 							'ten': 'tenth',
 							'eleven': 'eleventh',
-							'twelve': 'twelfth',
+							'twelve': 'twelfth'
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
 						var changeArray = arrOfDigits;
@@ -8170,7 +8169,7 @@
 				];
 				var degrees = {
 					100: "सौ",
-					1000: "हज़ार",
+					1000: "हज़ार"
 				}
 				function hindiCounting(num)
 				{
