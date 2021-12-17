@@ -3907,6 +3907,10 @@
 		return (nFirstCharCode - 64) + 26 * (nLen - 1);
 	}
 
+	function repeatNumberingLvl(num, nLastTrueSymbol) {
+		return ((num - 1) % nLastTrueSymbol) + 1;
+	}
+
 	/**
 	 * Переводим числовое значение в строку с заданным форматом нумерации
 	 * @param nValue {number}
@@ -3978,6 +3982,7 @@
 			case Asc.c_oAscNumberingFormat.UpperLetter:
 			{
 				// Формат: a,..,z,aa,..,zz,aaa,...,zzz,...
+				nValue = repeatNumberingLvl(nValue, 780);
 				var Num = nValue - 1;
 
 				var Count = (Num - Num % 26) / 26;
@@ -3999,6 +4004,7 @@
 			case Asc.c_oAscNumberingFormat.RussianUpper:
 			{
 				// Формат: а,..,я,аа,..,яя,ааа,...,яяя,...
+				nValue = repeatNumberingLvl(nValue, 870);
 				var Num = nValue - 1;
 
 				var Count = (Num - Num % 29) / 29;
@@ -4027,6 +4033,7 @@
 			case Asc.c_oAscNumberingFormat.LowerRoman:
 			case Asc.c_oAscNumberingFormat.UpperRoman:
 			{
+				nValue = repeatNumberingLvl(nValue, 32767);
 				var Num = nValue;
 
 				// Переводим число Num в римскую систему исчисления
@@ -4059,6 +4066,7 @@
 			case Asc.c_oAscNumberingFormat.Aiueo: {
 
 				var count = 1, numberOfLetters = 46;
+				nValue = repeatNumberingLvl(nValue, 46);
 				while (nValue > numberOfLetters) {
 					++count;
 					nValue -= numberOfLetters;
@@ -4073,6 +4081,7 @@
 			case Asc.c_oAscNumberingFormat.AiueoFullWidth: {
 
 				var count = 1, numberOfLetters = 46, letter;
+				nValue = repeatNumberingLvl(nValue, 46);
 				while (nValue > numberOfLetters) {
 					++count;
 					nValue -= numberOfLetters;
@@ -4113,6 +4122,7 @@
 				var count = 1, charArr;
 
 					if (nFormat === Asc.c_oAscNumberingFormat.ArabicAbjad) {
+						nValue = repeatNumberingLvl(nValue, 392);
 						charArr = [
 							0x0623, 0x0628, 0x062C, 0x062F,
 							0x0647, 0x0648, 0x0632, 0x062D,
@@ -4120,9 +4130,10 @@
 							0x0645, 0x0646, 0x0633, 0x0639,
 							0x0641, 0x0635, 0x0642, 0x0631,
 							0x0634, 0x062A, 0x062B, 0x062E,
-							0x0630, 0x0636, 0x063A, 0x0638
+							0x0630, 0x0636, 0x0638, 0x063A
 						];
 					} else if (nFormat === Asc.c_oAscNumberingFormat.ArabicAlpha) {
+						nValue = repeatNumberingLvl(nValue, 392);
 						charArr = [
 							0x0623, 0x0628, 0x062A, 0x062B,
 							0x062C, 0x062D, 0x062E, 0x062F,
@@ -4133,8 +4144,10 @@
 							0x0646, 0x0647, 0x0648, 0x064A
 						];
 					} else if (nFormat === Asc.c_oAscNumberingFormat.Chicago) {
+						nValue = repeatNumberingLvl(nValue, 120);
 						charArr = [0x002A, 0x2020, 0x2021, 0x00A7]
 					} else if(nFormat === Asc.c_oAscNumberingFormat.Chosung) {
+						nValue = repeatNumberingLvl(nValue, 14);
 						charArr = [
 							0x3131, 0x3134, 0x3137, 0x3139,
 							0x3141, 0x3142, 0x3145, 0x3147,
@@ -4142,6 +4155,7 @@
 							0x314D, 0x314E
 						]
 					} else if (nFormat === Asc.c_oAscNumberingFormat.Ganada) {
+						nValue = repeatNumberingLvl(nValue, 14);
 						charArr = [
 							0xAC00, 0xB098, 0xB2E4, 0xB77C,
 							0xB9C8, 0xBC14, 0xC0AC, 0xC544,
@@ -4183,6 +4197,7 @@
 			}
 
 			case Asc.c_oAscNumberingFormat.Hebrew2: {
+				nValue = repeatNumberingLvl(nValue, 392);
 				var numberOfLetters = 22, count = 0,
 					charArr = [
 						0x05D0, 0x05D1, 0x05D2, 0x05D3,
@@ -4216,6 +4231,7 @@
 			}
 
 			case Asc.c_oAscNumberingFormat.HindiConsonants: {
+				nValue = repeatNumberingLvl(nValue, 304);
 				var count = 1, numberOfLetters = 18;
 
 				var charArr = [
@@ -4246,24 +4262,26 @@
 			case Asc.c_oAscNumberingFormat.IdeographDigital:
 			case Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand: {
 				var digits;
-				if (nFormat === Asc.c_oAscNumberingFormat.HindiNumbers)
+				if (nFormat === Asc.c_oAscNumberingFormat.HindiNumbers) {
+					nValue = repeatNumberingLvl(nValue, 32767);
 					digits = [
 						0x0966, 0x0967, 0x0968, 0x0969, 0x096A,
 						0x096B, 0x096C, 0x096D, 0x096E, 0x096F
 					];
-				else if (nFormat === Asc.c_oAscNumberingFormat.IdeographDigital)
+				} else if (nFormat === Asc.c_oAscNumberingFormat.IdeographDigital) {
 					digits = [
 						0x3007, 0x4E00, 0x4E8C, 0x4E09,
 						0x56DB, 0x4E94, 0x516D, 0x4E03,
 						0x516B, 0x4E5D
 					];
-				else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand)
+				} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand) {
 					digits = [
 						0x3007, 0x4E00, 0x4E8C, 0x4E09,
 						0x56DB, 0x4E94, 0x516D, 0x4E03,
 						0x516B, 0x4E5D
 					];
-				if (nValue < 10000) {
+				}
+				if (nFormat !== Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand || nValue < 10000) {
 					var strValue = nValue.toString();
 					for(var i = 0; i < strValue.length; i++) {
 						sResult += String.fromCharCode(digits[strValue[i]]);
@@ -4273,6 +4291,7 @@
 			}
 
 			case Asc.c_oAscNumberingFormat.HindiVowels: {
+				nValue = repeatNumberingLvl(nValue, 304);
 				var count = 1, numberOfLetters = 37;
 
 				while (nValue > numberOfLetters) {
@@ -4891,6 +4910,7 @@
 					if (nFormat === Asc.c_oAscNumberingFormat.TaiwaneseDigital) digits[0] = String.fromCharCode(0x25CB);
 
 				} else if (nFormat === Asc.c_oAscNumberingFormat.ThaiNumbers) {
+					nValue = repeatNumberingLvl(nValue, 32767);
 					digits = [
 						String.fromCharCode(0x0E50),
 						String.fromCharCode(0x0E51),
@@ -4958,6 +4978,7 @@
 				}
 				break;
 			case Asc.c_oAscNumberingFormat.ThaiLetters:
+				nValue = repeatNumberingLvl(nValue, 1230);
 				var spaces = [1, 3, 4, 5];
 				var repeatAmount = Math.floor((nValue - 1) / 41) + 1;
 				var repeatIndex = (nValue - 1) % 41;
