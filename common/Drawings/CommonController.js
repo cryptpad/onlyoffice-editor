@@ -7603,6 +7603,46 @@ DrawingObjectsController.prototype =
     },
 
 
+    checkRedrawAnimLabels: function(aStartSelectedAnim) 
+    {
+        var aAnimSelection = this.getAnimSelectionState();
+        if(aAnimSelection.length !== aStartSelectedAnim.length) 
+        {
+            this.drawingObjects.showDrawingObjects();
+            return true;
+        }
+        for(var nAnim = 0; nAnim < aAnimSelection.length; ++nAnim) 
+        {
+            if(aAnimSelection[nAnim] !== aStartSelectedAnim[nAnim]) 
+            {
+                this.drawingObjects.showDrawingObjects();
+                return true;
+            }
+        }
+        return false;
+    },
+
+    getAnimSelectionState: function() 
+    {
+        var oTiming = this.drawingObjects.timing;
+        if(oTiming) 
+        {
+            return oTiming.getSelectionState();
+        }
+        return [];
+    },
+
+    
+    setAnimSelectionState: function(oState) 
+    {
+        var oTiming = this.drawingObjects.timing;
+        if(oTiming) 
+        {
+            return oTiming.setSelectionState(oState);
+        }
+        return [];
+    },
+
     getSelectionState: function()
     {
         var selection_state = {};

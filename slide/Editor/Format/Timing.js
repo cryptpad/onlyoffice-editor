@@ -2747,6 +2747,10 @@
         return aRet;
     };
     CTiming.prototype.setSelectionState = function(aSelected) {
+        if(!Array.isArray(aSelected)) {
+            this.resetSelection();
+            return;
+        }
         var aAllEffects = this.getAllAnimEffects();
         var sCurId;
         for(var nEff = 0; nEff < aAllEffects.length; ++nEff) {

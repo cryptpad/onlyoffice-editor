@@ -274,42 +274,14 @@ function NullState(drawingObjects)
 
 NullState.prototype =
 {
-    getAnimSelection: function()
+    checkRedrawOnMouseDown: function(oStartContent, oStartPara)
     {
-        var oSlide = this.drawingObjects.drawingObjects;
-        if(oSlide) 
-        {
-            var oTiming = oSlide.timing;
-            if(oTiming) 
-            {
-                return oTiming.getSelectionState();
-            }
-        }
-        return [];
-    },
-    checkRedrawOnMouseDown: function(oStartContent, oStartPara, aStartSelectedAnim)
-    {
-        var aAnimSelection = this.getAnimSelection();
-        if(aAnimSelection.length !== aStartSelectedAnim.length) 
-        {
-            this.drawingObjects.drawingObjects.showDrawingObjects();
-            return;
-        }
-        for(var nAnim = 0; nAnim < aAnimSelection.length; ++nAnim) 
-        {
-            if(aAnimSelection[nAnim] !== aStartSelectedAnim[nAnim]) 
-            {
-                this.drawingObjects.drawingObjects.showDrawingObjects();
-                return;
-            }
-        }
         this.drawingObjects.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
     },
     onMouseDown: function(e, x, y, pageIndex, bTextFlag)
     {
         var start_target_doc_content, end_target_doc_content, selected_comment_index = -1;
         var oStartPara = null;
-        var aStartSelectedAnim = null;
         if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
             start_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
@@ -322,7 +294,6 @@ NullState.prototype =
                 }
             }
             this.startTargetTextObject = AscFormat.getTargetTextObject(this.drawingObjects);
-            aStartSelectedAnim = this.getAnimSelection();
         }
         var ret;
         ret = this.drawingObjects.handleSlideComments(e, x, y, pageIndex);
@@ -343,7 +314,7 @@ NullState.prototype =
             {
                 if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
-                    this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara, aStartSelectedAnim);
+                    this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                     AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
                 }
                 return ret;
@@ -353,7 +324,7 @@ NullState.prototype =
             {
                 if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
-                    this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara, aStartSelectedAnim);
+                    this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                     AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
                 }
                 return ret;
@@ -366,7 +337,7 @@ NullState.prototype =
         {
             if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
             {
-                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara, aStartSelectedAnim);
+                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                 AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
             }
             return ret;
@@ -377,7 +348,7 @@ NullState.prototype =
         {
             if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
             {
-                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara, aStartSelectedAnim);
+                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                 AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
             }
             return ret;
