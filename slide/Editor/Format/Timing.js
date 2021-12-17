@@ -2584,7 +2584,6 @@
             }
         }
     };
-    
     CTiming.prototype.getObjectEffects = function(sObjectId) {
         var aEffects = [];
         
@@ -2671,7 +2670,6 @@
         }
         return aEffectsForDemo;
     };
-    
     CTiming.prototype.canStartDemo = function() {
         return this.getEffectsForDemo() !== null;
     };
@@ -2706,6 +2704,55 @@
             return null;
         }
         return new CDemoAnimPlayer(this.parent);
+    };
+    CTiming.prototype.onChangeDrawingsSelection = function() {
+        var oSlide = this.parent;
+        if(!oSlide) {
+            return;
+        }
+        var aSelectedDrawings = oSlide.graphicObjects.selectedObjects;
+        var aEffects = this.getAllAnimEffects();
+        for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            var oEffect = aEffects[nEffect];
+            for(var nDrawing = 0; nDrawing < aSelectedDrawings.length; ++nDrawing) {
+                if(oEffect.isObjectEffect(aSelectedDrawings[nDrawing].Get_Id())) {
+                    break;
+                }
+            }
+            if(nDrawing < aSelectedDrawings.length) {
+                oEffect.select();
+            }
+            else {
+                oEffect.deselect();
+            }
+        }
+    };
+    CTiming.prototype.getSelectionState = function() {
+        var aSelectedEffects = this.getSelectedEffects();
+        var aRet = [];
+        for(var nEff = 0; nEff < aSelectedEffects.length; ++nEff) {
+            aRet.push(aSelectedEffects[nEff].Get_Id());
+        }
+        return aRet;
+    };
+    CTiming.prototype.setSelectionState = function(aSelected) {
+        var aAllEffects = this.getAllAnimEffects();
+        var sCurId;
+        for(var nEff = 0; nEff < aAllEffects.length; ++nEff) {
+            var oEff = aAllEffects[nEff];
+            sCurId = oEff.Get_Id();
+            for(var nSel = 0; nSel < aSelected.length; ++nSel) {
+                if(aSelected[nSel] === sCurId) {
+                    break;
+                }
+            }
+            if(nSel < aSelected.length) {
+                oEff.select();
+            }
+            else {
+                oEff.deselect();
+            }
+        }
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -7503,6 +7550,7 @@
 
         this.triggerClickSequence = undefined;
         this.triggerObjectClick = undefined;
+        this.selected = false;
     }
     InitClass(CTimeNodeContainer, CTimeNodeBase, AscDFH.historyitem_type_TimeNodeContainer);
     CTimeNodeContainer.prototype.setCTn = function(pr) {
@@ -7764,14 +7812,6 @@
         }
         return "";
     };
-    CTimeNodeContainer.prototype.isSelected = function() {
-        var sObjectId = this.getObjectId();
-        var oObject = AscCommon.g_oTableId.Get_ById(sObjectId);
-        if(oObject && !oObject.bDeleted) {
-            return oObject.selected;
-        }
-        return false;
-    };
     CTimeNodeContainer.prototype.asc_getStartType = function() {
         if(this.cTn) {
             return this.cTn.nodeType;
@@ -7974,6 +8014,18 @@
             return false;
         }
         return true;
+    };
+    CTimeNodeContainer.prototype.isSelected = function() {
+        if(this.isAnimEffect()) {
+            return this.selected === true;
+        }
+        return false;
+    };
+    CTimeNodeContainer.prototype.select = function() {
+        this.selected = true;
+    };
+    CTimeNodeContainer.prototype.deselect = function() {
+        this.selected = false;
     };
 
     AscFormat["untilNextClick"] = AscFormat.untilNextClick = -1;

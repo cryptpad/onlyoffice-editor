@@ -2569,6 +2569,15 @@ DrawingObjectsController.prototype =
 		return;
     },
 
+    onChangeDrawingsSelection: function() 
+    {
+        var oTiming = this.drawingObjects && this.drawingObjects.timing;
+        if(oTiming) 
+        {
+            oTiming.onChangeDrawingsSelection();
+        }
+    },
+
     selectObject: function(object, pageIndex)
     {
         object.select(this, pageIndex);
@@ -7584,6 +7593,12 @@ DrawingObjectsController.prototype =
                 }
             }
         }
+        if(selection_state.timingSelection) {
+            var oTiming = this.drawingObjects.timing;
+            if(oTiming) {
+                oTiming.setSelectionState(selection_state.timingSelection);
+            }
+        }
     },
 
 
@@ -7654,6 +7669,10 @@ DrawingObjectsController.prototype =
             {
                 selection_state.worksheetId = worksheetView.model.getId();
             }
+        }
+        var oTiming = this.drawingObjects.timing;
+        if(oTiming) {
+            selection_state.timingSelection = oTiming.getSelectionState();
         }
         return [selection_state];
     },
@@ -7803,6 +7822,14 @@ DrawingObjectsController.prototype =
                     {
                         this.selectObject(oSp, bDocument ? (oSp.parent ? oSp.parent.PageNum : nPageIndex) : nPageIndex);
                     }
+                }
+            }
+            if(oDrawingSelectionState.timingSelection)
+            {
+                var oTiming = this.drawingObjects.timing;
+                if(oTiming) 
+                {
+                    oTiming.setSelectionState(oDrawingSelectionState.timingSelection);
                 }
             }
         }

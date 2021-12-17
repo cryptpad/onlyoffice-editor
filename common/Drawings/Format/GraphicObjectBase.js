@@ -2421,6 +2421,8 @@
         }
         if (i === selected_objects.length)
             selected_objects.push(this);
+
+        drawingObjectsController.onChangeDrawingsSelection();
     };
     CGraphicObjectBase.prototype.deselect = function (drawingObjectsController) {
         this.selected = false;
@@ -2439,6 +2441,8 @@
         {
             this.graphicObject.RemoveSelection();
         }
+        
+        drawingObjectsController.onChangeDrawingsSelection();
         return this;
     };
     CGraphicObjectBase.prototype.hitInBoundingRect = function (x, y) {
