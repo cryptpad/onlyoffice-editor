@@ -3929,11 +3929,19 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_StartAnimationPreview = function()
 	{
 		this.asc_StopAnimationPreview();
-		this.WordControl.m_oLogicDocument.StartAnimationPreview();
+		if(this.WordControl.m_oLogicDocument.StartAnimationPreview()) {
+			this.sendEvent("asc_onAnimPreviewStarted");
+		}
 		//this.sendEvent("asc_onStartDemonstration");//todo
+	};
+	
+	asc_docs_api.prototype.asc_canStartAnimationPreview = function()
+	{
+		return this.WordControl.m_oLogicDocument.CanStartAnimationPreview();
 	};
 	asc_docs_api.prototype.asc_StopAnimationPreview = function()
 	{
+		this.WordControl.m_oLogicDocument.StopAnimationPreview();
 		this.sendEvent("asc_onAnimPreviewFinished");
 	};
 	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
@@ -8186,6 +8194,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_AddToLayout']                     = asc_docs_api.prototype.asc_AddToLayout;
 	asc_docs_api.prototype['asc_AddAnimation']                    = asc_docs_api.prototype.asc_AddAnimation;
 	asc_docs_api.prototype['asc_StartAnimationPreview']           = asc_docs_api.prototype.asc_StartAnimationPreview;
+	asc_docs_api.prototype['asc_canStartAnimationPreview']        = asc_docs_api.prototype.asc_canStartAnimationPreview;
 	asc_docs_api.prototype['asc_getCurSlideObjectsNames']         = asc_docs_api.prototype.asc_getCurSlideObjectsNames;
 	asc_docs_api.prototype['asc_StopAnimationPreview']            = asc_docs_api.prototype.asc_StopAnimationPreview;
 	asc_docs_api.prototype['asc_SetAnimationProperties']          = asc_docs_api.prototype.asc_SetAnimationProperties;

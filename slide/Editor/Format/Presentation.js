@@ -10913,18 +10913,40 @@ CPresentation.prototype.GetCurTiming = function() {
     }
     return oTiming;
 };
-CPresentation.prototype.StartAnimationPreview = function() {
-    var oSlide = this.GetCurrentSlide();
-    if(!oSlide) {
-        return null;
-    }
-    var oTiming = oSlide.timing;
+CPresentation.prototype.CanStartAnimationPreview = function() {
+    var oTiming = this.GetCurTiming();
     if(!oTiming) {
-        return null;
+        return false;
     }
-    var oPlayer = new AscFormat.CDemoAnimPlayer(oSlide);
-    oPlayer.start();
+    return oTiming.canStartDemo();
 };
+CPresentation.prototype.StartAnimationPreview = function() {
+    if(!this.CanStartAnimationPreview()) {
+        return false;
+    }
+    var oTiming = this.GetCurTiming();
+    if(!oTiming) {
+        return false;
+    }
+    var oPlayer = oTiming.createDemoPlayer();
+    if(!oPlayer) {
+        return false;
+    }
+    if(oPlayer.start()) {
+        this.previewPlayer = oPlayer;
+        return true;
+    }
+    return false;
+};
+CPresentation.prototype.StopAnimationPreview = function() {
+    if(this.previewPlayer) {
+        if(this.previewPlayer.isStarted()) {
+            this.previewPlayer.stop();
+        }
+        this.previewPlayer = null;
+    }
+};
+
 CPresentation.prototype.CanMoveAnimation = function(bEarlier) {
     var oTiming = this.GetCurTiming();
     return oTiming && oTiming.canMoveAnimation(bEarlier) || false;

@@ -2653,14 +2653,38 @@
             oRoot.printTree();
         }
     };
+    CTiming.prototype.getEffectsForDemo = function() {
+        var aEffectsForDemo;
+        var aSelectedEffects = this.getSelectedEffects();
+        if(aSelectedEffects.length > 0) {
+            aEffectsForDemo = aSelectedEffects;
+        }
+        else {
+            aEffectsForDemo = this.getAllAnimEffects();
+        }
+        if(aEffectsForDemo.length === 0) {
+            return null;
+        }
+        return aEffectsForDemo;
+    };
+    
+    CTiming.prototype.canStartDemo = function() {
+        return this.getEffectsForDemo() !== null;
+    };
     CTiming.prototype.createDemoTiming = function() {
         return AscFormat.ExecuteNoHistory(function() {
+            if(!this.canStartDemo()) {
+                return null;
+            }
+            var aEffectsForDemo = this.getEffectsForDemo();
+            if(!aEffectsForDemo) {
+                return null;
+            }
             var aSeqs = [];
             var aSeq = [null];
             aSeqs.push(aSeq);
-            var aSelectedEffects = this.getSelectedEffects();
-            for(var nIdx = 0; nIdx < aSelectedEffects.length; ++nIdx) {
-                var oCopyEffect = aSelectedEffects[nIdx].createDuplicate();
+            for(var nIdx = 0; nIdx < aEffectsForDemo.length; ++nIdx) {
+                var oCopyEffect = aEffectsForDemo[nIdx].createDuplicate();
                 if(oCopyEffect.cTn.nodeType === NODE_TYPE_CLICKEFFECT) {
                     oCopyEffect.cTn.setNodeType(nIdx === 0 ? NODE_TYPE_WITHEFFECT : NODE_TYPE_AFTEREFFECT);
                 }
@@ -2672,6 +2696,12 @@
             oTiming.buildTree(aSeqs);
             return oTiming;
         }, this, []);
+    };
+    CTiming.prototype.createDemoPlayer = function() {
+        if(!this.canStartDemo()) {
+            return null;
+        }
+        return new CDemoAnimPlayer(this.parent);
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -10401,7 +10431,11 @@
         this.timings.length = 0;
         var oTiming = this.slide.timing;
         if(oTiming) {
-            this.timings.push(oTiming.createDemoTiming());
+            var oDemoTiming = oTiming.createDemoTiming();
+            if(oDemoTiming) {
+
+            }
+            this.timings.push(oDemoTiming);
         }
         var oTr      = editor.WordControl.m_oDrawingDocument.TransitionSlide;
         oTr.CalculateRect();
@@ -10415,6 +10449,7 @@
         this.overlay.Clear();
         this.overlay.CheckRect(this.rect.x, this.rect.y, this.rect.w, this.rect.h);
         this.slide.showDrawingObjects();
+        editor.WordControl.m_oLogicDocument.StopAnimationPreview();
 
     };
     CDemoAnimPlayer.prototype.onRecalculateFrame = function() {
