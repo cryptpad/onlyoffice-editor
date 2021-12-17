@@ -2270,7 +2270,9 @@
 		g_oLcidNameToIdMap[name] = id;
 		g_oLcidIdToNameMap[id] = name;
 	}
-
+	var availableIdeographLanguages = ['zh-CN', 'vi-VN', 'ko-KR', 'ja-JP', 'zh-Hans', 'zh-TW', 'zh-CN', 'zh-HK', 'zh-SG',
+		'zh-MO', 'zh-Hant', 'zh'];
+	var availableBidiLanguages = [];
 	var document_compatibility_mode_Word11 = 11;
 	var document_compatibility_mode_Word12 = 12;
 	var document_compatibility_mode_Word14 = 14;
@@ -2342,6 +2344,8 @@
 	window['Asc']['c_nMaxHyperlinkLength'] = window['Asc'].c_nMaxHyperlinkLength = c_nMaxHyperlinkLength;
 	window['Asc']['c_oAscFileType'] = window['Asc'].c_oAscFileType = c_oAscFileType;
 	window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
+	window['Asc'].availableIdeographLanguages = availableIdeographLanguages;
+	window['Asc'].availableBidiLanguages = availableBidiLanguages;
 	window['Asc'].g_oLcidIdToNameMap = g_oLcidIdToNameMap;
 	prot                         = c_oAscFileType;
 	prot['UNKNOWN']              = prot.UNKNOWN;

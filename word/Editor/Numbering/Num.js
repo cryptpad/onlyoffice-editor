@@ -505,7 +505,7 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 			{
 				oContext.SetFontSlot(fontslot_ASCII, dKoef);
 				g_oTextMeasurer.SetFontSlot(fontslot_ASCII, dKoef);
-				var langForTextNumbering = oNumTextPr.GetLang();
+				var langForTextNumbering = oNumTextPr.Lang;
 
 				var nCurLvl = arrText[nTextIndex].Value;
 				var T = "";
@@ -568,7 +568,7 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 			{
 				oContext.SetFontSlot(fontslot_ASCII, dKoef);
 				var nCurLvl = arrText[nTextIndex].Value;
-				var langForTextNumbering = oNumTextPr.GetLang();
+				var langForTextNumbering = oNumTextPr.Lang;
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)

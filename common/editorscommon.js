@@ -50,6 +50,8 @@
 	var g_oCellAddressUtils = AscCommon.g_oCellAddressUtils;
 	var c_oAscFileType = Asc.c_oAscFileType;
 	var languages = window['Asc'].g_oLcidIdToNameMap;
+	var availableIdeographLanguages = window['Asc'].availableIdeographLanguages;
+	var availableBidiLanguages = window['Asc'].availableBidiLanguages;
 
 	String.prototype.sentenceCase = function () {
 		var trimStr = this.trim();
@@ -3911,8 +3913,17 @@
 	 * @param nFormat {Asc.c_oAscNumberingFormat}
 	 * @returns {string}
 	 */
-	function IntToNumberFormat(nValue, nFormat, nLang)
+	function IntToNumberFormat(nValue, nFormat, oLang)
 	{
+		var nLang;
+		if (oLang) {
+			nLang = oLang.Val;
+			if (availableIdeographLanguages.indexOf(languages[nLang]) !== -1) {
+				nLang = oLang.EastAsia;
+			} else if (availableBidiLanguages.indexOf(languages[nLang]) !== -1) {
+				nLang = oLang.Bidi;
+			}
+		}
 		var sResult = "";
 
 		switch (nFormat)
