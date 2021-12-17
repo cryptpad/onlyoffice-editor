@@ -134,6 +134,14 @@ CNumberingLvl.prototype.GetLvlText = function()
 	return this.LvlText;
 };
 /**
+ * Получение языка нумерации
+ * @returns {CLang}
+ */
+CNumberingLvl.prototype.GetOLang = function()
+{
+	return this.TextPr && this.TextPr.Lang;
+};
+/**
  * Выставляем содержимое нумерации
  * @constructor
  */
