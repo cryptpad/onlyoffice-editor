@@ -2587,6 +2587,10 @@
     
     CTiming.prototype.getObjectEffects = function(sObjectId) {
         var aEffects = [];
+        
+        if(!sObjectId) {
+            return aEffects;
+        }
         if(!this.tnLst) {
             return aEffects;
         }
