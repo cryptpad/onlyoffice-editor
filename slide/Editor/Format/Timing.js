@@ -4865,7 +4865,7 @@
         else {
             nDelayShift = this.getDelayShift();
         }
-        var nNewDelay = Math.max(0, nDelay + nDelayShift);
+        var nNewDelay = ((Math.max(0, nDelay + nDelayShift) + 0.5) >> 0);
         var sNewDelay = nNewDelay + "";
         var aConds;
         if(!this.stCondLst) {
@@ -4910,8 +4910,9 @@
     CCTn.prototype.changeEffectDuration = function(v) {
         var dOldV = this.getEffectDuration();
         var dCoef = null;
+        var v_ = Math.max(10, v);
         if(dOldV > 0) {
-            dCoef = v/dOldV;
+            dCoef = v_/dOldV;
         }
         var aChildren = this.childTnLst && this.childTnLst.list;
         if(aChildren) {
@@ -4920,12 +4921,17 @@
                 var oDur = oChild.getDur();
                 if(oDur.isSpecified()) {
                     var oAttr = oChild.getAttributesObject();
+                    var nDelay = oAttr.getDelay(false);
                     if(dCoef !== null) {
-                        oAttr.setDur((oDur.getVal()*dCoef + 0.5 >> 0) + "")
+                        oAttr.setDur((oDur.getVal()*dCoef + 0.5 >> 0) + "");
+                        if(AscFormat.isRealNumber(nDelay) && nDelay !== 0) {
+                            oAttr.changeDelay(nDelay*dCoef);
+                        }
                     }
                     else {
-                        oAttr.setDur(v + "")
+                        oAttr.setDur(v_ + "");
                     }
+
                 }
             }
         }
