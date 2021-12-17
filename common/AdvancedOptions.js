@@ -255,7 +255,7 @@
 		prot["asc_getName"]				= prot.asc_getName;
 		prot["asc_getLocaleName"]	= prot.asc_getLocaleName;
 
-		window["AscCommon"].asc_CTextParams = asc_CTextParams;
+		window["AscCommon"].asc_CTextParams = window["AscCommon"]["asc_CTextParams"] = asc_CTextParams;
 		prot = asc_CTextParams.prototype;
 		prot["asc_getAssociation"]				= prot.asc_getAssociation;
 
