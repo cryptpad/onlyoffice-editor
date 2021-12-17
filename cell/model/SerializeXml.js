@@ -962,7 +962,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteXmlAttributesEnd();
 
 			for (var i = 0; i < this.TableColumns.length; ++i) {
-				this.TableColumns[i].toXml(writer);
+				this.TableColumns[i].toXml(writer, i);
 			}
 			writer.WriteXmlNodeEnd("tableColumns");
 		}
@@ -1213,10 +1213,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValue();
 				this.Name = val;
 			} else if ("totalsRowLabel" === reader.GetName()) {
-				val = reader.GetValueBool();
+				val = reader.GetValue();
 				this.TotalsRowLabel = val;
 			} else if ("totalsRowFunction" === reader.GetName()) {
-				val = reader.GetValueBool();
+				val = reader.GetValue();
 				this.TotalsRowFunction = val;
 			} else if ("dataDxfId" === reader.GetName()) {
 				val = reader.GetValue();
@@ -1238,7 +1238,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	AscCommonExcel.TableColumn.prototype.toXml = function (writer) {
+	AscCommonExcel.TableColumn.prototype.toXml = function (writer, index) {
 
 		/*std::wstring sRoot;
 	writer.WriteString(L"<tableColumn");
@@ -1278,7 +1278,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlNodeStart("tableColumn");
 
-		writer.WriteXmlNullableAttributeNumber("id", this.Id ? this.Id : null);
+		writer.WriteXmlNullableAttributeNumber("id", this.Id ? this.Id : index + 1);
 		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
 		writer.WriteXmlNullableAttributeStringEncode("uniqueName", this.UniqueName ? this.UniqueName : null);
 		writer.WriteXmlNullableAttributeStringEncode("totalsRowLabel", this.TotalsRowLabel);
@@ -1358,6 +1358,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteString(L"</sortState>");*/
 
 		writer.WriteXmlNodeStart("sortState");
+		writer.WriteXmlString(' xmlns:xlrd2="http://schemas.microsoft.com/office/spreadsheetml/2017/richdata2"');
 
 		if (null !== this.Ref) {
 			writer.WriteXmlAttributeStringEncode("ref", this.Ref.getName());
@@ -1587,7 +1588,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 		writer.WriteXmlNodeEnd("sortCondition");
-
 	};
 
 	Asc.ColorFilter.prototype.fromXml = function (reader) {
@@ -1808,12 +1808,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeStart("сustomFilters");
 
 		writer.WriteXmlNullableAttributeString("and", this.And ? 1 : null);
+		writer.WriteXmlAttributesEnd();
 
 		for ( var i = 0; i < this.CustomFilters.length; ++i)
 		{
 			this.CustomFilters[i].toXml(writer);
 		}
-		writer.WriteXmlAttributesEnd();
 
 		writer.WriteXmlNodeEnd("сustomFilters");
 	};
@@ -2085,8 +2085,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		var i;
 		if (this.Values) {
-			for (i = 0; i < this.Values.length; i++) {
-				this.Values[i].toXml(writer);
+			for (i in this.Values) {
+				writer.WriteXmlNodeStart("filter");
+
+				writer.WriteXmlNullableAttributeStringEncode("val", i);
+				writer.WriteXmlAttributesEnd();
+
+				writer.WriteXmlNodeEnd("filter");
 			}
 		}
 		if (this.Dates) {
