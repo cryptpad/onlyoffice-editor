@@ -53,11 +53,14 @@
 	var availableIdeographLanguages = window['Asc'].availableIdeographLanguages;
 	var availableBidiLanguages = window['Asc'].availableBidiLanguages;
 
-	String.prototype.sentenceCase = function () {
+	String.prototype.sentenceCase = function ()
+	{
 		var trimStr = this.trim();
-		if (trimStr.length === 0) {
+		if (trimStr.length === 0)
+		{
 			return "";
-		} else if (trimStr.length === 1) {
+		} else if (trimStr.length === 1)
+		{
 			return trimStr[0].toUpperCase();
 		}
 		return trimStr[0].toUpperCase() + trimStr.slice(1);
@@ -3907,7 +3910,8 @@
 		return (nFirstCharCode - 64) + 26 * (nLen - 1);
 	}
 
-	function repeatNumberingLvl(num, nLastTrueSymbol) {
+	function repeatNumberingLvl(num, nLastTrueSymbol)
+	{
 		return ((num - 1) % nLastTrueSymbol) + 1;
 	}
 
@@ -3920,11 +3924,14 @@
 	function IntToNumberFormat(nValue, nFormat, oLang)
 	{
 		var nLang;
-		if (oLang) {
+		if (oLang)
+		{
 			nLang = oLang.Val;
-			if (availableIdeographLanguages.indexOf(languages[nLang]) !== -1) {
+			if (availableIdeographLanguages.indexOf(languages[nLang]) !== -1)
+			{
 				nLang = oLang.EastAsia;
-			} else if (availableBidiLanguages.indexOf(languages[nLang]) !== -1) {
+			} else if (availableBidiLanguages.indexOf(languages[nLang]) !== -1)
+			{
 				nLang = oLang.Bidi;
 			}
 		}
@@ -4067,7 +4074,8 @@
 
 				var count = 1, numberOfLetters = 46;
 				nValue = repeatNumberingLvl(nValue, 46);
-				while (nValue > numberOfLetters) {
+				while (nValue > numberOfLetters)
+				{
 					++count;
 					nValue -= numberOfLetters;
 				}
@@ -4082,29 +4090,40 @@
 
 				var count = 1, numberOfLetters = 46, letter;
 				nValue = repeatNumberingLvl(nValue, 46);
-				while (nValue > numberOfLetters) {
+				while (nValue > numberOfLetters)
+				{
 					++count;
 					nValue -= numberOfLetters;
 				}
-				if (nValue >= 1 && nValue <= 5) {
+				if (nValue >= 1 && nValue <= 5)
+				{
 					letter = 0x30A2 + (nValue - 1) * 2;
-				} else if (nValue >= 6 && nValue <= 17) {
+				} else if (nValue >= 6 && nValue <= 17)
+				{
 					letter = 0x30AB + (nValue - 6) * 2;
-				} else if (nValue >= 18 && nValue <= 21) {
+				} else if (nValue >= 18 && nValue <= 21)
+				{
 					letter = 0x30C4 + (nValue - 18) * 2;
-				} else if (nValue >= 22 && nValue <= 26) {
+				} else if (nValue >= 22 && nValue <= 26)
+				{
 					letter = 0x30CB + nValue - 22;
-				} else if (nValue >= 27 && nValue <= 31) {
+				} else if (nValue >= 27 && nValue <= 31)
+				{
 					letter = 0x30D2 + (nValue - 27) * 3;
-				} else if (nValue >= 32 && nValue <= 35) {
+				} else if (nValue >= 32 && nValue <= 35)
+				{
 					letter = 0x30DF + nValue - 32;
-				} else if (nValue >= 36 && nValue <= 38) {
+				} else if (nValue >= 36 && nValue <= 38)
+				{
 					letter = 0x30E4 + nValue - 36;
-				} else if (nValue >= 39 && nValue <= 43) {
+				} else if (nValue >= 39 && nValue <= 43)
+				{
 					letter = 0x30E9 + nValue - 39;
-				} else if (nValue === 44) {
+				} else if (nValue === 44)
+				{
 					letter = 0x30EF + nValue - 44;
-				} else if (nValue >= 45 && nValue <= 46) {
+				} else if (nValue >= 45 && nValue <= 46)
+				{
 					letter = 0x30F2 + nValue - 45;
 				}
 
@@ -4121,7 +4140,8 @@
 			case Asc.c_oAscNumberingFormat.Ganada: {
 				var count = 1, charArr;
 
-					if (nFormat === Asc.c_oAscNumberingFormat.ArabicAbjad) {
+					if (nFormat === Asc.c_oAscNumberingFormat.ArabicAbjad)
+					{
 						nValue = repeatNumberingLvl(nValue, 392);
 						charArr = [
 							0x0623, 0x0628, 0x062C, 0x062F,
@@ -4132,7 +4152,8 @@
 							0x0634, 0x062A, 0x062B, 0x062E,
 							0x0630, 0x0636, 0x0638, 0x063A
 						];
-					} else if (nFormat === Asc.c_oAscNumberingFormat.ArabicAlpha) {
+					} else if (nFormat === Asc.c_oAscNumberingFormat.ArabicAlpha)
+					{
 						nValue = repeatNumberingLvl(nValue, 392);
 						charArr = [
 							0x0623, 0x0628, 0x062A, 0x062B,
@@ -4143,10 +4164,12 @@
 							0x0642, 0x0643, 0x0644, 0x0645,
 							0x0646, 0x0647, 0x0648, 0x064A
 						];
-					} else if (nFormat === Asc.c_oAscNumberingFormat.Chicago) {
+					} else if (nFormat === Asc.c_oAscNumberingFormat.Chicago)
+					{
 						nValue = repeatNumberingLvl(nValue, 120);
 						charArr = [0x002A, 0x2020, 0x2021, 0x00A7]
-					} else if(nFormat === Asc.c_oAscNumberingFormat.Chosung) {
+					} else if(nFormat === Asc.c_oAscNumberingFormat.Chosung)
+					{
 						nValue = repeatNumberingLvl(nValue, 14);
 						charArr = [
 							0x3131, 0x3134, 0x3137, 0x3139,
@@ -4154,7 +4177,8 @@
 							0x3148, 0x314A, 0x314B, 0x314C,
 							0x314D, 0x314E
 						]
-					} else if (nFormat === Asc.c_oAscNumberingFormat.Ganada) {
+					} else if (nFormat === Asc.c_oAscNumberingFormat.Ganada)
+					{
 						nValue = repeatNumberingLvl(nValue, 14);
 						charArr = [
 							0xAC00, 0xB098, 0xB2E4, 0xB77C,
@@ -4166,7 +4190,8 @@
 
 
 
-					while (nValue > charArr.length) {
+					while (nValue > charArr.length)
+					{
 						++count;
 						nValue -= charArr.length;
 					}
@@ -4190,7 +4215,8 @@
 
 				var zeroInHex = nFormat === Asc.c_oAscNumberingFormat.DecimalFullWidth ? 0xFF10 : 0x0030;
 				var strValue = String(nValue);
-				for(var i = 0; i < strValue.length; i++) {
+				for(var i = 0; i < strValue.length; i++)
+				{
 					sResult += String.fromCharCode(zeroInHex + parseInt(strValue[i]));
 				}
 				break;
@@ -4208,14 +4234,16 @@
 						0x05E9, 0x05EA
 					];
 
-				while (nValue > numberOfLetters) {
+				while (nValue > numberOfLetters)
+				{
 					++count;
 					nValue -= numberOfLetters;
 				}
 
 				sResult = String.fromCharCode(charArr[nValue - 1]);
 
-				while(count !== 0) {
+				while(count !== 0)
+				{
 					sResult += String.fromCharCode(charArr[21]);
 					--count;
 				}
@@ -4223,7 +4251,8 @@
 			}
 
 			case Asc.c_oAscNumberingFormat.Hex: {
-				if (nValue <= 0xFFFF) {
+				if (nValue <= 0xFFFF)
+				{
 					sResult = (nValue+0x10000).toString(16).substr(-4).toUpperCase();
 					sResult = sResult.replace(/^0+/, '');
 				}
@@ -4242,16 +4271,20 @@
 					0x0905, 0x0905
 				];
 
-				while (nValue > numberOfLetters) {
+				while (nValue > numberOfLetters)
+				{
 					++count;
 					nValue -= numberOfLetters;
 				}
-				for (var i = 0; i < count; i++) {
+				for (var i = 0; i < count; i++)
+				{
 					sResult += String.fromCharCode(charArr[nValue - 1]);
 
-					if(nValue === 17) {
+					if(nValue === 17)
+					{
 						sResult += String.fromCharCode(0x0902)
-					} else if(nValue === 18) {
+					} else if(nValue === 18)
+					{
 						sResult += String.fromCharCode(0x0903)
 					}
 				}
@@ -4262,28 +4295,33 @@
 			case Asc.c_oAscNumberingFormat.IdeographDigital:
 			case Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand: {
 				var digits;
-				if (nFormat === Asc.c_oAscNumberingFormat.HindiNumbers) {
+				if (nFormat === Asc.c_oAscNumberingFormat.HindiNumbers)
+				{
 					nValue = repeatNumberingLvl(nValue, 32767);
 					digits = [
 						0x0966, 0x0967, 0x0968, 0x0969, 0x096A,
 						0x096B, 0x096C, 0x096D, 0x096E, 0x096F
 					];
-				} else if (nFormat === Asc.c_oAscNumberingFormat.IdeographDigital) {
+				} else if (nFormat === Asc.c_oAscNumberingFormat.IdeographDigital)
+				{
 					digits = [
 						0x3007, 0x4E00, 0x4E8C, 0x4E09,
 						0x56DB, 0x4E94, 0x516D, 0x4E03,
 						0x516B, 0x4E5D
 					];
-				} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand) {
+				} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand)
+				{
 					digits = [
 						0x3007, 0x4E00, 0x4E8C, 0x4E09,
 						0x56DB, 0x4E94, 0x516D, 0x4E03,
 						0x516B, 0x4E5D
 					];
 				}
-				if (nFormat !== Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand || nValue < 10000) {
+				if (nFormat !== Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand || nValue < 10000)
+				{
 					var strValue = nValue.toString();
-					for(var i = 0; i < strValue.length; i++) {
+					for(var i = 0; i < strValue.length; i++)
+					{
 						sResult += String.fromCharCode(digits[strValue[i]]);
 					}
 				}
@@ -4294,12 +4332,14 @@
 				nValue = repeatNumberingLvl(nValue, 304);
 				var count = 1, numberOfLetters = 37;
 
-				while (nValue > numberOfLetters) {
+				while (nValue > numberOfLetters)
+				{
 					++count;
 					nValue -= numberOfLetters;
 				}
 
-				for (var i = 0; i < count; i++) {
+				for (var i = 0; i < count; i++)
+				{
 					sResult += String.fromCharCode(0x0915 + nValue - 1);
 				}
 				break;
@@ -4356,7 +4396,8 @@
 					0x8F9B, 0x9149, 0x58EC, 0x620D, 0x7678, 0x4EA5
 				];
 
-				while (nValue > digits.length / 2) {
+				while (nValue > digits.length / 2)
+				{
 					nValue -= digits.length / 2;
 				}
 
@@ -4401,7 +4442,8 @@
 						0x30E2, 0x30BB, 0x30B9, 0x30F3
 					]
 
-				while (nValue > digits.length) {
+				while (nValue > digits.length)
+				{
 					nValue -= digits.length;
 				}
 
@@ -4475,7 +4517,8 @@
 					1000  : String.fromCharCode(0x5343),
 					10000 : String.fromCharCode(0x4E07)
 				};
-				if (nValue < 1000000) {
+				if (nValue < 1000000)
+				{
 					var nRemValue = nValue;
 
 					while (true)
@@ -4597,7 +4640,8 @@
 					1000  : String.fromCharCode(0x4EDF),
 					10000 : String.fromCharCode(0x842C)
 				};
-				if (nValue < 1000000) {
+				if (nValue < 1000000)
+				{
 					var nRemValue = nValue;
 
 					while (true)
@@ -4716,7 +4760,8 @@
 					'拾'
 				];
 
-				var IdeographLegalTraditionalSplitting = function (numberLessThen10000, isOver10000) {
+				var IdeographLegalTraditionalSplitting = function (numberLessThen10000, isOver10000)
+				{
 					var resArr = [];
 					var groups = {};
 
@@ -4731,31 +4776,39 @@
 
 					groups[1] = numberLessThen10000;
 
-					if (groups[1000]) {
+					if (groups[1000])
+					{
 						resArr.push(digits[groups[1000] - 1], degrees[1]);
 
-						if (!groups[100] && (groups[1] || groups[10])) {
+						if (!groups[100] && (groups[1] || groups[10]))
+						{
 							resArr.push('零');
 						}
 					}
 
-					if (groups[100]) {
+					if (groups[100])
+					{
 						resArr.push(digits[groups[100] - 1], degrees[2]);
 
-						if (!groups[10] && groups[1]) {
+						if (!groups[10] && groups[1])
+						{
 							resArr.push('零');
 						}
 					}
 
-					if (groups[10]) {
-						if (isOver10000 && !groups[1000] && !groups[100] && !groups[1]) {
+					if (groups[10])
+					{
+						if (isOver10000 && !groups[1000] && !groups[100] && !groups[1])
+						{
 							resArr.push('零');
 						}
 						resArr.push(digits[groups[10] - 1], degrees[3]);
 					}
 
-					if (groups[1]) {
-						if (isOver10000 && !groups[1000] && !groups[100] && !groups[10]) {
+					if (groups[1])
+					{
+						if (isOver10000 && !groups[1000] && !groups[100] && !groups[10])
+						{
 							resArr.push('零');
 						}
 						resArr.push(digits[numberLessThen10000 - 1]);
@@ -4765,10 +4818,12 @@
 				}
 
 
-				if (nValue < 10000) {
+				if (nValue < 10000)
+				{
 					sResult = IdeographLegalTraditionalSplitting(nValue).join('');
 				} else {
-					if (nValue < 1000000) {
+					if (nValue < 1000000)
+					{
 						var resultWith10000Reminder = ([degrees[0]]).concat(IdeographLegalTraditionalSplitting(nValue % 10000, true));
 						sResult = IdeographLegalTraditionalSplitting(Math.floor(nValue / 10000)).concat(resultWith10000Reminder).join('');
 					}
@@ -4778,12 +4833,15 @@
 			case Asc.c_oAscNumberingFormat.JapaneseLegal:
 			case Asc.c_oAscNumberingFormat.KoreanCounting:
 			case Asc.c_oAscNumberingFormat.JapaneseCounting:
-				function ideographCount(differentFormat) {
-					if (differentFormat) {
+				function ideographCount(differentFormat)
+				{
+					if (differentFormat)
+					{
 						nFormat = differentFormat;
 					}
 					var addFirstDegreeSymbol = true;
-					if (nFormat === Asc.c_oAscNumberingFormat.KoreanCounting) {
+					if (nFormat === Asc.c_oAscNumberingFormat.KoreanCounting)
+					{
 						addFirstDegreeSymbol = false;
 						digits = [
 							String.fromCharCode(0xC77C),
@@ -4802,7 +4860,8 @@
 							'백',
 							'십'
 						];
-					} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal) {
+					} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal)
+					{
 						digits = [
 							String.fromCharCode(0x58F1),
 							String.fromCharCode(0x5F10),
@@ -4820,7 +4879,8 @@
 							'百',
 							'拾'
 						];
-					} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseCounting) {
+					} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseCounting)
+					{
 						addFirstDegreeSymbol = false;
 						digits = [
 							String.fromCharCode(0x4E00),
@@ -4842,14 +4902,18 @@
 					}
 
 					var degreeCount = Math.pow(10, degrees.length);
-					var koreanLegalSplitting = function (numberLessThanX) {
+					var koreanLegalSplitting = function (numberLessThanX)
+					{
 						var answer = [];
 						var count;
 						var degreeCountCopy = degreeCount;
-						for (var i = 0; i < degrees.length; i += 1) {
-							if (numberLessThanX / degreeCountCopy >= 1) {
+						for (var i = 0; i < degrees.length; i += 1)
+						{
+							if (numberLessThanX / degreeCountCopy >= 1)
+							{
 								count = Math.floor(numberLessThanX / degreeCountCopy);
-								if (count !== 1 || addFirstDegreeSymbol) {
+								if (count !== 1 || addFirstDegreeSymbol)
+								{
 									answer.push(digits[count - 1]);
 								}
 								answer.push(degrees[i]);
@@ -4857,19 +4921,22 @@
 							}
 							degreeCountCopy /= 10;
 						}
-						if (numberLessThanX > 0) {
+						if (numberLessThanX > 0)
+						{
 							answer.push(digits[numberLessThanX - 1]);
 						}
 						return answer;
 					}
 					if (nValue < degreeCount || (!addFirstDegreeSymbol && nValue < degreeCount * 2
-						&& nFormat !== Asc.c_oAscNumberingFormat.JapaneseCounting)) {
+						&& nFormat !== Asc.c_oAscNumberingFormat.JapaneseCounting))
+					{
 						sResult = koreanLegalSplitting(nValue).join('');
 					} else {
 						if (
 							nValue < 1000000
 							|| differentFormat
-							|| nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal) {
+							|| nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal)
+						{
 							var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount));
 							sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount)).concat(resultWith10000Reminder).join('');
 						}
@@ -4881,7 +4948,8 @@
 			case Asc.c_oAscNumberingFormat.ThaiNumbers:
 			case Asc.c_oAscNumberingFormat.KoreanDigital2:
 			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:
-				if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital) {
+				if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital)
+				{
 					digits = [
 						String.fromCharCode(0xC601),
 						String.fromCharCode(0xC77C),
@@ -4894,7 +4962,8 @@
 						String.fromCharCode(0xD314),
 						String.fromCharCode(0xAD6C),
 					];
-				} else if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital2 || nFormat === Asc.c_oAscNumberingFormat.TaiwaneseDigital) {
+				} else if (nFormat === Asc.c_oAscNumberingFormat.KoreanDigital2 || nFormat === Asc.c_oAscNumberingFormat.TaiwaneseDigital)
+				{
 					digits = [
 						String.fromCharCode(0x96F6),
 						String.fromCharCode(0x4E00),
@@ -4909,7 +4978,8 @@
 					];
 					if (nFormat === Asc.c_oAscNumberingFormat.TaiwaneseDigital) digits[0] = String.fromCharCode(0x25CB);
 
-				} else if (nFormat === Asc.c_oAscNumberingFormat.ThaiNumbers) {
+				} else if (nFormat === Asc.c_oAscNumberingFormat.ThaiNumbers)
+				{
 					nValue = repeatNumberingLvl(nValue, 32767);
 					digits = [
 						String.fromCharCode(0x0E50),
@@ -4924,9 +4994,11 @@
 						String.fromCharCode(0x0E59)
 					];
 				}
-				if (nFormat !== Asc.c_oAscNumberingFormat.KoreanDigital2 || nValue < 1000000) {
+				if (nFormat !== Asc.c_oAscNumberingFormat.KoreanDigital2 || nValue < 1000000)
+				{
 					var conv = decimalNumberConversion(nValue, digits.length);
-					sResult = conv.map(function (num) {
+					sResult = conv.map(function (num)
+					{
 						return digits[num];
 					}).join('');
 				}
@@ -4952,24 +5024,31 @@
 					String.fromCharCode(0x4E5D),
 				];
 				var conv = decimalNumberConversion(nValue, digits.length);
-				if(nValue >= digits.length * 10) {
+				if(nValue >= digits.length * 10)
+				{
 					digits[0] = String.fromCharCode(0x25CB);
-					sResult = conv.map(function (num) {
+					sResult = conv.map(function (num)
+					{
 						return digits[num];
 					}).join('');
 				} else {
 					var previousIsPlus = false;
-					sResult = conv.map(function (num, idx) {
-						if (conv.length === 2) {
-							if (idx === 0) {
-								if (num === 1) {
+					sResult = conv.map(function (num, idx)
+					{
+						if (conv.length === 2)
+						{
+							if (idx === 0)
+							{
+								if (num === 1)
+								{
 									previousIsPlus = true;
 									return digits[0];
 								} else {
 									previousIsPlus = true;
 									return digits[num] + digits[0];
 								}
-							} else if (previousIsPlus && num === 0) {
+							} else if (previousIsPlus && num === 0)
+							{
 								return '';
 							}
 						}
@@ -4991,12 +5070,15 @@
 				sResult = String.fromCharCode(0x0E01 + repeatIndex + currentSpace).repeat(repeatAmount);
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
-				function getCardinalTextFromValue(lang) {
+				function getCardinalTextFromValue(lang)
+				{
 					var arrAnswer = [];
-					var getConcatStringByRule = function (array) {
+					var getConcatStringByRule = function (array)
+					{
 						return array.join(' ');
 					}
-					switch (lang) {
+					switch (lang)
+					{
 						case 'ru-RU':
 						case 'uk-UA':
 						case 'cs-CZ':
@@ -5324,15 +5406,19 @@
 								}
 							}
 
-							function letterNumberLessThen100CyrillicMim(num) {
+							function letterNumberLessThen100CyrillicMim(num)
+							{
 								var resArr = [];
 								var reminder = num % 10;
 								var degree10 = Math.floor(num / 10);
-								if (num < 100 && num > 0) {
-									if (num < 20) {
+								if (num < 100 && num > 0)
+								{
+									if (num < 20)
+									{
 										resArr.push(alphaBet[lang][1][num - 1]);
 									} else {
-										if (reminder === 0) {
+										if (reminder === 0)
+										{
 											resArr.push(alphaBet[lang][10][degree10 - 2]);
 										} else {
 											resArr.push(alphaBet[lang][10][degree10 - 2], alphaBet[lang][1][reminder - 1]);
@@ -5342,33 +5428,40 @@
 								return resArr;
 							}
 
-							function cardinalSplittingCyrillicMim(num, skipThousand) {
+							function cardinalSplittingCyrillicMim(num, skipThousand)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num < 1000000 && num > 0) {
+								if (num < 1000000 && num > 0)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
 
-									if (groups[1000]) {
+									if (groups[1000])
+									{
 										var thousandType = groups[1000] % 10;
 										var groupArr = [];
-										if (groups[1000] >= 100) {
+										if (groups[1000] >= 100)
+										{
 											groupArr = groupArr.concat(cardinalSplittingCyrillicMim(groups[1000]));
 										} else {
-											if (groups[1000] === 4 && lang === 'el-GR') {
+											if (groups[1000] === 4 && lang === 'el-GR')
+											{
 												groupArr = groupArr.concat(['τέσσερις']);
 											} else {
 												groupArr = groupArr.concat(letterNumberLessThen100CyrillicMim(groups[1000]));
 											}
 										}
 										var thousand;
-										switch (thousandType) {
+										switch (thousandType)
+										{
 											case 1:
 												thousand = alphaBet[lang]['thousand'][0];
-												if (skipThousand && groups[1000] === 1) {
+												if (skipThousand && groups[1000] === 1)
+												{
 													groupArr.pop();
 												} else {
 													groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][0];
@@ -5378,7 +5471,8 @@
 											case 3:
 											case 4:
 												thousand = alphaBet[lang]['thousand'][1];
-												if (thousandType === 2) {
+												if (thousandType === 2)
+												{
 													groupArr[groupArr.length - 1] = alphaBet[lang]['thousandType'][1];
 												}
 												break;
@@ -5396,15 +5490,19 @@
 										groupArr.push(thousand);
 										resArr = resArr.concat(groupArr);
 									}
-									if (groups[100]) {
+									if (groups[100])
+									{
 										resArr.push(alphaBet[lang][100][groups[100] - 1]);
 
-										if (groups[100] === 1 && groups[1]) {
+										if (groups[100] === 1 && groups[1])
+										{
 
-											if (lang === 'el-GR') {
+											if (lang === 'el-GR')
+											{
 												resArr[resArr.length - 1] = resArr[resArr.length - 1] + 'v';
 											}
-											if (lang === 'lv-LV') {
+											if (lang === 'lv-LV')
+											{
 												resArr[resArr.length - 1] = resArr[resArr.length - 1].slice(0, resArr[resArr.length - 1].length - 1) + 's';
 											}
 
@@ -5412,7 +5510,8 @@
 
 									}
 
-									if (groups[1]) {
+									if (groups[1])
+									{
 										var letterArr = letterNumberLessThen100CyrillicMim(groups[1]);
 										resArr = resArr.concat(letterArr);
 									}
@@ -5420,9 +5519,11 @@
 								return resArr;
 							}
 
-							if (lang === 'uk-UA' || lang === 'cs-CZ' || lang === 'pl-PL' || lang === 'el-GR' || lang === 'lv-LV') {
+							if (lang === 'uk-UA' || lang === 'cs-CZ' || lang === 'pl-PL' || lang === 'el-GR' || lang === 'lv-LV')
+							{
 								arrAnswer = cardinalSplittingCyrillicMim(nValue, true);
-							} else if (lang === 'ru-RU') {
+							} else if (lang === 'ru-RU')
+							{
 								arrAnswer = cardinalSplittingCyrillicMim(nValue);
 							}
 							break;
@@ -5474,16 +5575,20 @@
 								]
 							}
 
-							function letterNumberLessThen100PT(num) {
+							function letterNumberLessThen100PT(num)
+							{
 								var resArr = [];
-								if (num > 0 && num < 100) {
+								if (num > 0 && num < 100)
+								{
 									var degree10 = Math.floor(num / 10);
 									var reminder = num % 10;
-									if (num < 20) {
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										resArr.push(alphaBet[10][degree10 - 2]);
-										if (reminder) {
+										if (reminder)
+										{
 											resArr.push('e', alphaBet[1][reminder - 1]);
 										}
 									}
@@ -5491,40 +5596,50 @@
 								return resArr;
 							}
 
-							function cardinalSplittingPT(num) {
+							function cardinalSplittingPT(num)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num > 0 && num < 1000000) {
+								if (num > 0 && num < 1000000)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
 
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingPT(groups[1000]));
 										} else {
-											if (groups[1000] !== 1) {
+											if (groups[1000] !== 1)
+											{
 												resArr = resArr.concat(letterNumberLessThen100PT(groups[1000]));
 											}
 										}
 										resArr.push('mil');
-										if ((groups[100] && !groups[1]) || (groups[1] && !groups[100])) {
+										if ((groups[100] && !groups[1]) || (groups[1] && !groups[100]))
+										{
 											resArr.push('e');
 										}
 									}
-									if (groups[100]) {
-										if (groups[100] === 1 && (groups[1] || groups[1000])) {
+									if (groups[100])
+									{
+										if (groups[100] === 1 && (groups[1] || groups[1000]))
+										{
 											resArr.push('cento');
 										} else {
 											resArr.push(alphaBet[100][groups[100] - 1]);
 										}
-										if (groups[1]) {
+										if (groups[1])
+										{
 											resArr.push('e');
 										}
 									}
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr = resArr.concat(letterNumberLessThen100PT(num));
 									}
 								}
@@ -5570,20 +5685,25 @@
 
 							}
 
-							function letterNumberLessThen100SK(num, options) {
+							function letterNumberLessThen100SK(num, options)
+							{
 								var resArr = [];
-								if (num < 100 && num > 0) {
+								if (num < 100 && num > 0)
+								{
 									var degree10 = Math.floor(num / 10);
 									var reminder = num % 10;
-									if (num < 20) {
-										if (num === 2 && options && options.isHundred) {
+									if (num < 20)
+									{
+										if (num === 2 && options && options.isHundred)
+										{
 											resArr.push('dve');
 										} else {
 											resArr.push(alphaBet[1][num - 1]);
 										}
 									} else {
 										resArr.push(alphaBet[10][degree10 - 2]);
-										if (reminder) {
+										if (reminder)
+										{
 											resArr.push(alphaBet[1][reminder - 1]);
 										}
 									}
@@ -5591,31 +5711,38 @@
 								return resArr;
 							}
 
-							function cardinalSplittingSK(num) {
+							function cardinalSplittingSK(num)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num > 0 && num < 1000000) {
+								if (num > 0 && num < 1000000)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
 
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingSK(groups[1000]));
 										} else {
 											resArr = resArr.concat(letterNumberLessThen100SK(groups[1000]));
 										}
 										resArr.push('tisíc');
 									}
-									if (groups[100]) {
-										if (groups[100] !== 1) {
+									if (groups[100])
+									{
+										if (groups[100] !== 1)
+										{
 											resArr = resArr.concat(letterNumberLessThen100SK(groups[100], {isHundred: true}));
 										}
 										resArr.push('sto');
 									}
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr = resArr.concat(letterNumberLessThen100SK(groups[1]));
 									}
 								}
@@ -5624,7 +5751,8 @@
 							}
 
 							arrAnswer = cardinalSplittingSK(nValue);
-							getConcatStringByRule = function (array) {
+							getConcatStringByRule = function (array)
+							{
 								return array.join('');
 							}
 							break;
@@ -5684,18 +5812,22 @@
 								]
 							}
 
-							function letterNumberLessThen100BG(num) {
+							function letterNumberLessThen100BG(num)
+							{
 								var resArr = [];
 
-								if (num > 0 && num < 100) {
-									if (num < 20) {
+								if (num > 0 && num < 100)
+								{
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										var reminder = num % 10;
 										var degree10 = Math.floor(num / 10);
 
 										resArr.push(alphaBet[10][degree10 - 2]);
-										if (reminder) {
+										if (reminder)
+										{
 											resArr.push('и', alphaBet[1][reminder - 1]);
 										}
 									}
@@ -5704,26 +5836,32 @@
 								return resArr;
 							}
 
-							function cardinalSplittingBG(num) {
+							function cardinalSplittingBG(num)
+							{
 								var resArr = [];
 								var groups = {};
 
-								if (num > 0 && num < 1000000) {
+								if (num > 0 && num < 1000000)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
-									if (groups[1000]) {
+									if (groups[1000])
+									{
 										var thousandType = groups[1000] % 10;
 										var groupArr = [];
-										if (groups[1000] >= 100) {
+										if (groups[1000] >= 100)
+										{
 											groupArr = groupArr.concat(cardinalSplittingBG(groups[1000]));
-										} else if (groups[1000] !== 1) {
+										} else if (groups[1000] !== 1)
+										{
 											groupArr = groupArr.concat(letterNumberLessThen100BG(groups[1000]));
 										}
 										var thousand;
-										switch (thousandType) {
+										switch (thousandType)
+										{
 											case 1:
 												thousand = alphaBet['thousand'][0];
 												break;
@@ -5731,7 +5869,8 @@
 											case 3:
 											case 4:
 												thousand = alphaBet['thousand'][1];
-												if (thousandType === 2) {
+												if (thousandType === 2)
+												{
 													groupArr[groupArr.length - 1] = alphaBet['thousandType'][1];
 												}
 												break;
@@ -5750,12 +5889,15 @@
 										resArr = resArr.concat(groupArr);
 									}
 
-									if (groups[100]) {
+									if (groups[100])
+									{
 										resArr = resArr.concat(alphaBet[100][groups[100] - 1]);
 									}
 
-									if (groups[1]) {
-										if ((groups[1] < 11 || groups[1] % 10 === 0) && (groups[100] || groups[1000])) {
+									if (groups[1])
+									{
+										if ((groups[1] < 11 || groups[1] % 10 === 0) && (groups[100] || groups[1000]))
+										{
 											resArr.push('и');
 										}
 										resArr = resArr.concat(letterNumberLessThen100BG(groups[1]));
@@ -5802,17 +5944,21 @@
 								],
 							};
 
-							function letterNumberLessThen100SV(num) {
+							function letterNumberLessThen100SV(num)
+							{
 								var resArr = [];
-								if (num > 0 && num < 100) {
-									if (num < 20) {
+								if (num > 0 && num < 100)
+								{
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										var degree10 = Math.floor(num / 10);
 										var reminder = num % 10;
 
 										resArr.push(alphaBet[10][degree10 - 2]);
-										if (reminder) {
+										if (reminder)
+										{
 											resArr.push(alphaBet[1][reminder - 1]);
 										}
 									}
@@ -5820,35 +5966,42 @@
 								return resArr;
 							}
 
-							function cardinalSplittingSV(num) {
+							function cardinalSplittingSV(num)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num < 1000000 && num > 0) {
+								if (num < 1000000 && num > 0)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
 
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingSV(groups[1000]));
 										} else {
 											resArr = resArr.concat(letterNumberLessThen100SV(groups[1000]));
 										}
-										if (groups[1000] === 1) {
+										if (groups[1000] === 1)
+										{
 											resArr.push('usen');
 										} else {
 											resArr.push('tusen');
 										}
 									}
 
-									if (groups[100]) {
+									if (groups[100])
+									{
 										resArr = resArr.concat(letterNumberLessThen100SV(groups[100]));
 										resArr.push('hundra');
 									}
 
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr = resArr.concat(letterNumberLessThen100SV(groups[1]));
 									}
 								}
@@ -5857,7 +6010,8 @@
 							}
 
 							arrAnswer = cardinalSplittingSV(nValue);
-							getConcatStringByRule = function (array) {
+							getConcatStringByRule = function (array)
+							{
 								return array.join('');
 							}
 
@@ -5898,19 +6052,24 @@
 								],
 							}
 
-							function letterNumberLessThen100NL(num) {
+							function letterNumberLessThen100NL(num)
+							{
 								var resArr = [];
-								if (num > 0 && num < 100) {
-									if (num < 20) {
+								if (num > 0 && num < 100)
+								{
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										var degree10 = Math.floor(num / 10);
 										var reminder = num % 10;
 
-										if (reminder) {
+										if (reminder)
+										{
 											var letterReminder = alphaBet[1][reminder - 1];
 											resArr.push(letterReminder);
-											if (letterReminder[letterReminder.length - 1] === 'e') {
+											if (letterReminder[letterReminder.length - 1] === 'e')
+											{
 												resArr.push('ën');
 											} else {
 												resArr.push('en');
@@ -5922,31 +6081,38 @@
 								return resArr;
 							}
 
-							function cardinalSplittingNL(num) {
+							function cardinalSplittingNL(num)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num < 1000000 && num > 0) {
+								if (num < 1000000 && num > 0)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
 
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingNL(groups[1000]));
-										} else if(groups[1000] !== 1 || groups[1] !== 0 || groups[100] !== 0) {
+										} else if(groups[1000] !== 1 || groups[1] !== 0 || groups[100] !== 0)
+										{
 											resArr = resArr.concat(letterNumberLessThen100NL(groups[1000]));
 										}
 										resArr.push('duizend');
 									}
 
-									if (groups[100]) {
+									if (groups[100])
+									{
 										resArr = resArr.concat(letterNumberLessThen100NL(groups[100]));
 										resArr.push('honderd');
 									}
 
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr = resArr.concat(letterNumberLessThen100NL(groups[1]));
 									}
 								}
@@ -5955,7 +6121,8 @@
 							}
 
 							arrAnswer = cardinalSplittingNL(nValue);
-							getConcatStringByRule = function (array) {
+							getConcatStringByRule = function (array)
+							{
 								return array.join('');
 							}
 
@@ -6012,18 +6179,24 @@
 								}
 							}
 
-							function letterNumberLessThen100ES(num) {
+							function letterNumberLessThen100ES(num)
+							{
 								var resArr = [];
-								if (num < 100 && num > 0) {
+								if (num < 100 && num > 0)
+								{
 									var degree10 = Math.floor(num / 10);
 									var reminder = num % 10;
-									if (num < 20) {
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
-									} else if (degree10 === 2) {
-										if (reminder === 0) {
+									} else if (degree10 === 2)
+									{
+										if (reminder === 0)
+										{
 											resArr.push(alphaBet[10][degree10 - 2] + 'e');
 										} else {
-											if (reminder === 2 || reminder === 3 || reminder === 6) {
+											if (reminder === 2 || reminder === 3 || reminder === 6)
+											{
 												resArr.push(alphaBet[10][degree10 - 2] + 'i', alphaBet[20][reminder]);
 											} else {
 												resArr.push(alphaBet[10][degree10 - 2] + 'i', alphaBet[1][reminder - 1]);
@@ -6031,7 +6204,8 @@
 										}
 									} else {
 										resArr.push(alphaBet[10][degree10 - 2]);
-										if (reminder !== 0) {
+										if (reminder !== 0)
+										{
 											resArr.push(' y ', alphaBet[1][reminder - 1]);
 										}
 									}
@@ -6039,44 +6213,55 @@
 								return resArr;
 							}
 
-							function cardinalSplittingES(num, isRecursive) {
+							function cardinalSplittingES(num, isRecursive)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num > 0 && num < 1000000) {
+								if (num > 0 && num < 1000000)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
 
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingES(groups[1000], true));
 										} else {
-											if (groups[1000] !== 1) {
+											if (groups[1000] !== 1)
+											{
 												resArr.push(letterNumberLessThen100ES(groups[1000]));
 											}
 										}
 										resArr.push('mil');
 									}
 
-									if (groups[100]) {
-										if (isRecursive && groups[100] === 1) {
+									if (groups[100])
+									{
+										if (isRecursive && groups[100] === 1)
+										{
 											resArr.push('cien');
 										} else {
 											resArr.push(alphaBet[100][groups[100] - 1]);
 										}
 									}
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr.push(letterNumberLessThen100ES(groups[1]));
 									}
 								}
 								return resArr;
 							}
 							arrAnswer = cardinalSplittingES(nValue);
-							getConcatStringByRule = function (array) {
-								return array.map(function (element) {
-									if (Array.isArray(element)) {
+							getConcatStringByRule = function (array)
+							{
+								return array.map(function (element)
+								{
+									if (Array.isArray(element))
+									{
 										return element.join('');
 									}
 									return element;
@@ -6119,21 +6304,26 @@
 								]
 							}
 
-							function letterNumberLessThen100IT(num) {
+							function letterNumberLessThen100IT(num)
+							{
 								var resArr = [];
-								if (num < 100 && num > 0) {
+								if (num < 100 && num > 0)
+								{
 									var degree10 = Math.floor(num / 10);
 									var reminder = num % 10;
-									if (num < 20) {
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										var deg = alphaBet[10][degree10 - 2];
-										if (reminder === 1 || reminder === 8) {
+										if (reminder === 1 || reminder === 8)
+										{
 											resArr.push(deg.slice(0, deg.length - 1));
 										} else {
 											resArr.push(deg);
 										}
-										if (reminder) {
+										if (reminder)
+										{
 											resArr.push(alphaBet[1][reminder - 1]);
 										}
 									}
@@ -6141,38 +6331,48 @@
 								return resArr;
 							}
 
-							function cardinalSplittingIT(num) {
+							function cardinalSplittingIT(num)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num > 0 && num < 1000000) {
+								if (num > 0 && num < 1000000)
+								{
 								groups[1000] = Math.floor(num / 1000);
 								num %= 1000;
 								groups[100] = Math.floor(num / 100);
 								num %= 100;
 								groups[1] = num;
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingIT(groups[1000]));
 										} else {
-											if (groups[1000] !== 1) {
+											if (groups[1000] !== 1)
+											{
 												resArr = resArr.concat(letterNumberLessThen100IT(groups[1000]));
 											}
 										}
-										if (groups[1000] === 1) {
+										if (groups[1000] === 1)
+										{
 											resArr.push('mille');
 										} else {
 											resArr.push('mila');
 										}
 									}
-									if (groups[100]) {
-										if (groups[100] !== 1) {
+									if (groups[100])
+									{
+										if (groups[100] !== 1)
+										{
 											resArr = resArr.concat(letterNumberLessThen100IT(groups[100]));
 										}
 										resArr.push('cento');
 									}
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr = resArr.concat(letterNumberLessThen100IT(groups[1]));
-										if (groups[1] > 20 && groups[1] % 10 === 3) {
+										if (groups[1] > 20 && groups[1] % 10 === 3)
+										{
 											resArr[resArr.length - 1] = 'tré';
 										}
 									}
@@ -6181,7 +6381,8 @@
 								return resArr;
 							}
 							arrAnswer = cardinalSplittingIT(nValue);
-							getConcatStringByRule = function (array) {
+							getConcatStringByRule = function (array)
+							{
 								return array.join('');
 							}
 							break;
@@ -6221,17 +6422,22 @@
 								],
 							}
 
-							function letterNumberLessThen100DE(num) {
+							function letterNumberLessThen100DE(num)
+							{
 								var resArr = [];
 
-								if (num < 100 && num > 0) {
+								if (num < 100 && num > 0)
+								{
 									var reminder = num % 10;
 									var degree10 = Math.floor(num / 10);
-									if (num < 20) {
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
-										if (reminder !== 0) {
-											if (reminder === 1) {
+										if (reminder !== 0)
+										{
+											if (reminder === 1)
+											{
 												resArr.push(alphaBet[1][reminder - 1].slice(0, alphaBet[1][reminder - 1].length - 1), 'und');
 											} else {
 												resArr.push(alphaBet[1][reminder - 1], 'und');
@@ -6243,32 +6449,40 @@
 								return resArr;
 							}
 
-							function cardinalSplittingDE(num) {
+							function cardinalSplittingDE(num)
+							{
 								var resArr = [];
 								var groups = {};
-								if (num > 0 && num < 1000000) {
+								if (num > 0 && num < 1000000)
+								{
 								groups[1000] = Math.floor(num / 1000);
 								num %= 1000;
 								groups[100] = Math.floor(num / 100);
 								num %= 100;
 								groups[1] = num;
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingDE(groups[1000]));
-										} else if (groups[1000] === 1) {
+										} else if (groups[1000] === 1)
+										{
 											resArr.push('ein');
 										}	else {
 											resArr = resArr.concat(letterNumberLessThen100DE(groups[1000]));
 										}
 										resArr.push('tausend');
 									}
-									if (groups[100]) {
-										if (groups[100] !== 1) {
+									if (groups[100])
+									{
+										if (groups[100] !== 1)
+										{
 											resArr = resArr.concat(letterNumberLessThen100DE(groups[100]));
 										}
 										resArr.push('hundert');
 									}
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr = resArr.concat(letterNumberLessThen100DE(groups[1]));
 									}
 								}
@@ -6276,7 +6490,8 @@
 								return resArr;
 							}
 							arrAnswer = cardinalSplittingDE(nValue);
-							getConcatStringByRule = function (array) {
+							getConcatStringByRule = function (array)
+							{
 								return array.join('');
 							}
 							break;
@@ -6316,19 +6531,25 @@
 								],
 							}
 
-							function letterNumberLessThen100FR(num) {
+							function letterNumberLessThen100FR(num)
+							{
 								var resArr = [];
-								if (num > 0 && num < 100) {
-									if (num < 20) {
+								if (num > 0 && num < 100)
+								{
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										var degree10 = Math.floor(num / 10);
 										var reminder = num % 10;
-										switch (degree10) {
+										switch (degree10)
+										{
 											case 7:
-												if (reminder === 0) {
+												if (reminder === 0)
+												{
 													return alphaBet[10][degree10 - 2];
-												} else if (reminder === 1) {
+												} else if (reminder === 1)
+												{
 													resArr.push(alphaBet[10][(degree10 - 1) - 2], ' et ', alphaBet[1][9 + reminder]);
 												} else {
 													resArr.push(alphaBet[10][(degree10 - 1) - 2], '-', alphaBet[1][9 + reminder]);
@@ -6336,7 +6557,8 @@
 												break;
 
 											case 8:
-												if (reminder === 0) {
+												if (reminder === 0)
+												{
 													resArr.push(alphaBet[10][degree10 - 2], 's');
 												} else {
 													resArr.push(alphaBet[10][degree10 - 2], '-', alphaBet[1][reminder - 1]);
@@ -6344,7 +6566,8 @@
 												break;
 
 											case 9:
-												if (reminder === 0) {
+												if (reminder === 0)
+												{
 													resArr.push(alphaBet[10][degree10 - 2], '-dix');
 												} else {
 													resArr.push(alphaBet[10][degree10 - 2], '-', alphaBet[1][9 + reminder]);
@@ -6352,9 +6575,11 @@
 												break;
 
 											default:
-												if (reminder === 0) {
+												if (reminder === 0)
+												{
 													resArr.push(alphaBet[10][degree10 - 2]);
-												} else if (reminder === 1) {
+												} else if (reminder === 1)
+												{
 													resArr.push(alphaBet[10][degree10 - 2], ' et ', alphaBet[1][reminder - 1]);
 												} else {
 													resArr.push(alphaBet[10][degree10 - 2], '-', alphaBet[1][reminder - 1]);
@@ -6365,44 +6590,56 @@
 								return resArr;
 							}
 
-							function cardinalSplittingFR(num) {
+							function cardinalSplittingFR(num)
+							{
 								var groups = {};
 								var resArr = [];
-								if (num < 1000000 && num > 0) {
+								if (num < 1000000 && num > 0)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingFR(groups[1000]));
-										} else if (groups[1000] !== 1) {
+										} else if (groups[1000] !== 1)
+										{
 											resArr.push(letterNumberLessThen100FR(groups[1000]));
 										}
 										resArr.push('mille');
 									}
-									if (groups[100]) {
+									if (groups[100])
+									{
 										var hundred = 'cents';
-										if (groups[1] || groups[100] === 1) {
+										if (groups[1] || groups[100] === 1)
+										{
 											hundred = 'cent';
 										}
-										if (groups[100] === 1) {
+										if (groups[100] === 1)
+										{
 											resArr.push(hundred);
 										} else {
 											resArr.push(letterNumberLessThen100FR(groups[100]), hundred);
 										}
 									}
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr.push(letterNumberLessThen100FR(groups[1]));
 									}
 								}
 								return resArr;
 							}
 							arrAnswer = cardinalSplittingFR(nValue);
-							getConcatStringByRule = function (array) {
-								return array.map(function (element) {
-									if (Array.isArray(element)) {
+							getConcatStringByRule = function (array)
+							{
+								return array.map(function (element)
+								{
+									if (Array.isArray(element))
+									{
 										return element.join('');
 									}
 									return element;
@@ -6453,16 +6690,20 @@
 								],
 							};
 
-							function letterNumberLessThen100EN(num) {
+							function letterNumberLessThen100EN(num)
+							{
 								var resArr = [];
-								if (num > 0 && num < 100) {
-									if (num < 20) {
+								if (num > 0 && num < 100)
+								{
+									if (num < 20)
+									{
 										resArr.push(alphaBet[1][num - 1]);
 									} else {
 										var degree10 = Math.floor(num / 10);
 										var reminder = num % 10;
 										resArr.push(alphaBet[10][degree10 - 2]);
-										if (reminder) {
+										if (reminder)
+										{
 											resArr.push(alphaBet[1][reminder - 1]);
 										}
 									}
@@ -6470,19 +6711,23 @@
 								return resArr;
 							}
 
-							function cardinalSplittingEN(num) {
+							function cardinalSplittingEN(num)
+							{
 								var resArr = [];
 								var groups = {};
 
-								if (num < 1000000 && num > 0) {
+								if (num < 1000000 && num > 0)
+								{
 									groups[1000] = Math.floor(num / 1000);
 									num %= 1000;
 									groups[100] = Math.floor(num / 100);
 									num %= 100;
 									groups[1] = num;
 
-									if (groups[1000]) {
-										if (groups[1000] >= 100) {
+									if (groups[1000])
+									{
+										if (groups[1000] >= 100)
+										{
 											resArr = resArr.concat(cardinalSplittingEN(groups[1000]));
 										} else {
 											resArr.push(letterNumberLessThen100EN(groups[1000]));
@@ -6490,11 +6735,13 @@
 										resArr.push('thousand');
 									}
 
-									if (groups[100]) {
+									if (groups[100])
+									{
 										resArr.push(letterNumberLessThen100EN(groups[100]), 'hundred');
 									}
 
-									if (groups[1]) {
+									if (groups[1])
+									{
 										resArr.push(letterNumberLessThen100EN(groups[1]));
 									}
 								}
@@ -6502,9 +6749,12 @@
 								return resArr;
 							}
 
-							getConcatStringByRule = function (array) {
-								return array.map(function (element) {
-									if (Array.isArray(element)) {
+							getConcatStringByRule = function (array)
+							{
+								return array.map(function (element)
+								{
+									if (Array.isArray(element))
+									{
 										return element.join('-');
 									}
 									return element;
@@ -6577,18 +6827,22 @@
 				}
 				nValue = ((nValue - 1) % 392) + 1;
 
-				if (nValue % 100 === 15) {
+				if (nValue % 100 === 15)
+				{
 					nValue -= 15;
 					resArr.push('וט');
-				} else if (nValue % 100 === 16) {
+				} else if (nValue % 100 === 16)
+				{
 					nValue -= 16;
 					resArr.push('זט');
 				}
 				var nValueString = '' + nValue;
 
-				for (var i = nValueString.length - 1; i >= 0; i -= 1) {
+				for (var i = nValueString.length - 1; i >= 0; i -= 1)
+				{
 					var degree = Math.pow(10, nValueString.length - i - 1);
-					if (nValueString[i] !== '0') {
+					if (nValueString[i] !== '0')
+					{
 						resArr.push(digits[degree][+nValueString[i] - 1]);
 					}
 				}
@@ -6598,7 +6852,8 @@
 			case Asc.c_oAscNumberingFormat.Ordinal:
 				var textLang = languages[nLang];
 				sResult	+= nValue;
-				switch (textLang) {
+				switch (textLang)
+				{
 						case 'de-DE':
 						case 'pl-PL':
 						case 'cs-CZ': {
@@ -6610,7 +6865,8 @@
 						break;
 					}
 						case 'fr-FR': {
-							if (nValue === 1) {
+							if (nValue === 1)
+							{
 								sResult += 'er';
 							} else {
 								sResult += 'e';
@@ -6636,10 +6892,13 @@
 						break;
 					}
 						case 'sv-SE': {
-							if (nValue !== 11 && nValue !== 12) {
-								if (nValue % 10 === 1) {
+							if (nValue !== 11 && nValue !== 12)
+							{
+								if (nValue % 10 === 1)
+								{
 									sResult += ':a';
-								} else if (nValue % 10 === 2) {
+								} else if (nValue % 10 === 2)
+								{
 									sResult += ':a';
 								} else {
 									sResult += ':e';
@@ -6661,12 +6920,16 @@
 					case 'sk-SK':
 					case 'az-Latn-AZ':
 					default: {
-						if (nValue !== 11 && nValue !== 12 && nValue !== 13) {
-							if (nValue % 10 === 1) {
+						if (nValue !== 11 && nValue !== 12 && nValue !== 13)
+						{
+							if (nValue % 10 === 1)
+							{
 								sResult += 'st';
-							} else if (nValue % 10 === 2) {
+							} else if (nValue % 10 === 2)
+							{
 								sResult += 'nd';
-							} else if (nValue % 10 === 3) {
+							} else if (nValue % 10 === 3)
+							{
 								sResult += 'rd';
 							} else {
 								sResult += 'th';
@@ -6697,70 +6960,87 @@
 					'十'
 				];
 
-				function taiwaneseCountingSplitting(initialNumber, isBigNumber, isSplit) {
+				function taiwaneseCountingSplitting(initialNumber, isBigNumber, isSplit)
+				{
 					var resArr = [];
 					var copyNumber = initialNumber;
 					var isGroup = {};
 					var maxDegree = Math.pow(10, degrees.length);
 
-					for (var i = 0; i < degrees.length + 1; i += 1) {
-						if (copyNumber / maxDegree >= 1) {
+					for (var i = 0; i < degrees.length + 1; i += 1)
+					{
+						if (copyNumber / maxDegree >= 1)
+						{
 							isGroup[maxDegree] = Math.floor(copyNumber / maxDegree);
 						}
 						copyNumber %= maxDegree;
 						maxDegree /= 10;
 					}
 
-					if (isGroup[10000]) {
-						if (isGroup[10000] > 9) {
+					if (isGroup[10000])
+					{
+						if (isGroup[10000] > 9)
+						{
 							resArr.push(taiwaneseCountingSplitting(isGroup[10000], undefined, true).join(''));
 						} else {
 							resArr.push(digits[isGroup[10000] - 1]);
 						}
 						resArr.push(degrees[0]);
-					} else if (initialNumber > 100000 && initialNumber % 10000 !== 0 && isGroup[1000]) {
+					} else if (initialNumber > 100000 && initialNumber % 10000 !== 0 && isGroup[1000])
+					{
 						resArr.push('零');
 					}
 
-					if (isGroup[1000]) {
+					if (isGroup[1000])
+					{
 						resArr.push(digits[isGroup[1000] - 1]);
 						resArr.push('千');
-					} else if (initialNumber > 10000 && initialNumber % 1000 !== 0 && isGroup[100]) {
+					} else if (initialNumber > 10000 && initialNumber % 1000 !== 0 && isGroup[100])
+					{
 						resArr.push('零');
 					}
 
-					if (isGroup[100]) {
+					if (isGroup[100])
+					{
 						resArr.push(digits[isGroup[100] - 1]);
 						resArr.push('百');
-					} else if (initialNumber > 1000 && initialNumber % 100 !== 0 && isGroup[10]) {
+					} else if (initialNumber > 1000 && initialNumber % 100 !== 0 && isGroup[10])
+					{
 						resArr.push('零');
 					}
 
-					if (isGroup[10]) {
-						if (isGroup[10] !== 1 || initialNumber > 100 || isSplit) {
+					if (isGroup[10])
+					{
+						if (isGroup[10] !== 1 || initialNumber > 100 || isSplit)
+						{
 							resArr.push(digits[isGroup[10] - 1]);
 						}
 						resArr.push('十');
 					} else {
-						if (initialNumber > 100 && initialNumber % 10 !== 0) {
+						if (initialNumber > 100 && initialNumber % 10 !== 0)
+						{
 							resArr.push('零');
 						}
 					}
 
-					if (isGroup[1]) {
+					if (isGroup[1])
+					{
 						resArr.push(digits[isGroup[1] - 1]);
 					}
 
 					return resArr;
 				}
-				if (nValue < 100000) {
+				if (nValue < 100000)
+				{
 					sResult = taiwaneseCountingSplitting(nValue).join('');
-				} else if (nValue >= 100000 && nValue < 1000000) {
+				} else if (nValue >= 100000 && nValue < 1000000)
+				{
 					sResult = taiwaneseCountingSplitting(nValue, true).join('');
 				}
 				break;
 			case Asc.c_oAscNumberingFormat.KoreanLegal:
-				if (nValue < 100) {
+				if (nValue < 100)
+				{
 					var answer = [];
 					digits = {
 						1: [
@@ -6786,10 +7066,12 @@
 							String.fromCharCode(0xC544, 0xD754)
 						]
 					};
-					if (nValue / 10 >= 1) {
+					if (nValue / 10 >= 1)
+					{
 						answer.push(digits[10][Math.floor(nValue / 10) - 1]);
 					}
-					if (nValue % 10 >= 1) {
+					if (nValue % 10 >= 1)
+					{
 						answer.push(digits[1][(nValue % 10) - 1]);
 					}
 					sResult = answer.join('');
@@ -6800,7 +7082,8 @@
 			case Asc.c_oAscNumberingFormat.OrdinalText:
 				var textLang = languages[nLang];
 				var ordinalText = getCardinalTextFromValue(textLang);
-				switch (textLang) {
+				switch (textLang)
+				{
 					case 'de-DE': {
 						var alphaBet = {
 							'eins': 'erste',
@@ -6824,7 +7107,8 @@
 							'neunzehn': 'neunzehnte',
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
-						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]])
+						{
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
 						} else {
 							arrOfDigits[arrOfDigits.length - 1] += 'ste';
@@ -6900,16 +7184,20 @@
 							],
 						}
 
-						function letterOrdinalNumberLessThen100GR(num) {
+						function letterOrdinalNumberLessThen100GR(num)
+						{
 							var resArr = [];
-							if (num < 100 && num > 0) {
-								if (num < 20) {
+							if (num < 100 && num > 0)
+							{
+								if (num < 20)
+								{
 									resArr.push(alphaBet[1][num - 1]);
 								}else {
 									var reminder = num % 10;
 									var degree10 = Math.floor(num / 10);
 									resArr.push(alphaBet[10][degree10 - 2]);
-									if (reminder) {
+									if (reminder)
+									{
 										resArr.push(alphaBet[1][reminder - 1]);
 									}
 								}
@@ -6917,31 +7205,39 @@
 							return resArr;
 						}
 
-						function cardinalTextGR(num) {
+						function cardinalTextGR(num)
+						{
 							var groups = {};
 							var resArr = [];
-							if (num < 1000000) {
+							if (num < 1000000)
+							{
 								groups[1000] = Math.floor(num / 1000);
 								num %= 1000;
 								groups[100] = Math.floor(num / 100);
 								num %= 100;
 								groups[1] = num;
-								if (groups[1000]) {
-									if (groups[1000] > 20) {
+								if (groups[1000])
+								{
+									if (groups[1000] > 20)
+									{
 										var reminder;
-										if (groups[1000] < 100) {
+										if (groups[1000] < 100)
+										{
 											reminder = letterOrdinalNumberLessThen100GR(groups[1000]);
 										} else {
 											reminder = [];
-											if (arrOfDigits[0] === 'εκατό') {
+											if (arrOfDigits[0] === 'εκατό')
+											{
 												reminder.push('ένα');
 											}
-											for (var i = 0; arrOfDigits[i] !== 'χίλια' && arrOfDigits[i] !== 'χιλιάδες'; i += 1) {
+											for (var i = 0; arrOfDigits[i] !== 'χίλια' && arrOfDigits[i] !== 'χιλιάδες'; i += 1)
+											{
 												reminder.push(arrOfDigits[i]);
 											}
 										}
 										reminder.push('χιλιοστό');
-										if (groups[1000] % 100 === 0) {
+										if (groups[1000] % 100 === 0)
+										{
 											reminder = reminder.join('');
 										}
 										resArr.push(reminder);
@@ -6950,20 +7246,25 @@
 									}
 								}
 
-								if (groups[100]) {
+								if (groups[100])
+								{
 									resArr.push(alphaBet[100][groups[100] - 1]);
 								}
 
-								if (groups[1]) {
+								if (groups[1])
+								{
 									resArr.push(letterOrdinalNumberLessThen100GR(groups[1]));
 								}
 							}
 							return resArr;
 						}
 						ordinalText.arrAnswer = cardinalTextGR(nValue);
-						ordinalText.getConcatStringByRule = function (arr) {
-							return arr.reduce(function (acc, b) {
-								if (Array.isArray(b)) {
+						ordinalText.getConcatStringByRule = function (arr)
+						{
+							return arr.reduce(function (acc, b)
+							{
+								if (Array.isArray(b))
+								{
 									acc.push(b.join(' '));
 								} else {
 									acc.push(b);
@@ -6976,11 +7277,13 @@
 					case 'fr-FR': {
 						var arrOfDigits = ordinalText.arrAnswer;
 						var switchingValue = arrOfDigits;
-						if (Array.isArray(arrOfDigits[arrOfDigits.length - 1])) {
+						if (Array.isArray(arrOfDigits[arrOfDigits.length - 1]))
+						{
 							var arr = arrOfDigits[arrOfDigits.length - 1];
 							switchingValue = arr;
 						}
-						switch (switchingValue[switchingValue.length - 1]) {
+						switch (switchingValue[switchingValue.length - 1])
+						{
 							case 'neuf':
 								switchingValue[switchingValue.length - 1] = 'neuv';
 								break;
@@ -6988,7 +7291,8 @@
 								switchingValue[switchingValue.length - 1] = 'cinqu';
 								break;
 							case 'un':
-								if(switchingValue.length === 1 && arrOfDigits.length === 1) {
+								if(switchingValue.length === 1 && arrOfDigits.length === 1)
+								{
 									switchingValue[switchingValue.length - 1] = 'premier';
 								}
 								break;
@@ -6998,12 +7302,15 @@
 							default:
 								break;
 						}
-						if (nValue < 1000000) {
+						if (nValue < 1000000)
+						{
 							var lastWord = switchingValue[switchingValue.length - 1];
-							if (lastWord[lastWord.length - 1] === 'e' || lastWord[lastWord.length - 1] === 'e') {
+							if (lastWord[lastWord.length - 1] === 'e' || lastWord[lastWord.length - 1] === 'e')
+							{
 								switchingValue[switchingValue.length - 1] = lastWord.slice(0, lastWord.length - 1);
 							}
-							if (switchingValue[switchingValue.length - 1] !== 'premier') {
+							if (switchingValue[switchingValue.length - 1] !== 'premier')
+							{
 								switchingValue[switchingValue.length - 1] += 'ième';
 							}
 						}
@@ -7024,16 +7331,21 @@
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
-						if (lastWord) {
-							if (alphaBet[lastWord] && arrOfDigits.length === 1) {
+						if (lastWord)
+						{
+							if (alphaBet[lastWord] && arrOfDigits.length === 1)
+							{
 								arrOfDigits[arrOfDigits.length - 1] = alphaBet[lastWord];
-							} else if (lastWord === 'tré') {
+							} else if (lastWord === 'tré')
+							{
 								arrOfDigits[arrOfDigits.length - 1] = 'treesimo';
 							} else {
-								if (lastWord !== 'sei') {
+								if (lastWord !== 'sei')
+								{
 									arrOfDigits[arrOfDigits.length - 1] = lastWord.substring(0, lastWord.length - 1);
 								}
-								if (lastWord === 'mila') {
+								if (lastWord === 'mila')
+								{
 									arrOfDigits.push('l');
 								}
 								arrOfDigits.push('esimo');
@@ -7056,11 +7368,14 @@
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
-						if (alphaBet[lastWord]) {
+						if (alphaBet[lastWord])
+						{
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[lastWord];
-						} else if (nValue < 20) {
+						} else if (nValue < 20)
+						{
 							arrOfDigits[arrOfDigits.length - 1] += 'de';
-						} else if (nValue < 1000000) {
+						} else if (nValue < 1000000)
+						{
 							arrOfDigits[arrOfDigits.length - 1] += 'ste';
 						}
 						break;
@@ -7069,7 +7384,8 @@
 					case 'es-ES':
 					case 'cs-CZ':
 					case 'pt-PT': {
-						if (textLang === 'pt-BR' || textLang === 'pt-PT') {
+						if (textLang === 'pt-BR' || textLang === 'pt-PT')
+						{
 							alphaBet = {
 								'um': 'primeiro',
 								'dois': 'segundo',
@@ -7110,7 +7426,8 @@
 								'novecentos': 'nongentésimo',
 								'mil': 'milésimo'
 							}
-						} else if (textLang === 'es-ES') {
+						} else if (textLang === 'es-ES')
+						{
 							alphaBet = {
 							'uno': 'primero',
 							'dos': 'segundo',
@@ -7156,7 +7473,8 @@
 							'trés': 'tercero',
 							'séis': 'sexto',
 							}
-						} else if (textLang === 'cs-CZ') {
+						} else if (textLang === 'cs-CZ')
+						{
 							alphaBet = {
 								'jedna': 'první',
 								'dva': 'druhý',
@@ -7202,25 +7520,33 @@
 						var arrOfDigits = ordinalText.arrAnswer;
 						var newAnswerArr = [];
 						var isSkip = false;
-						for (var i = arrOfDigits.length - 1; i >= 0; i -= 1) {
-							if (Array.isArray(arrOfDigits[i])) {
+						for (var i = arrOfDigits.length - 1; i >= 0; i -= 1)
+						{
+							if (Array.isArray(arrOfDigits[i]))
+							{
 								var iterArr = arrOfDigits[i];
-								for (var j = 0; j < iterArr.length; j += 1) {
-									if (alphaBet[iterArr[j]]) {
+								for (var j = 0; j < iterArr.length; j += 1)
+								{
+									if (alphaBet[iterArr[j]])
+									{
 										newAnswerArr.push(alphaBet[iterArr[j]]);
 									}
 								}
 
 							} else {
-								if (isSkip) {
+								if (isSkip)
+								{
 									newAnswerArr.push(arrOfDigits[i]);
-								} else if (alphaBet[arrOfDigits[i]]) {
+								} else if (alphaBet[arrOfDigits[i]])
+								{
 									newAnswerArr.push(alphaBet[arrOfDigits[i]]);
-									if (arrOfDigits[i] === 'mil' && nValue >= 2000) {
+									if (arrOfDigits[i] === 'mil' && nValue >= 2000)
+									{
 										newAnswerArr[newAnswerArr.length - 1] += 's';
 									}
 								}
-								if (!isSkip && arrOfDigits[i] === 'mil') {
+								if (!isSkip && arrOfDigits[i] === 'mil')
+								{
 									isSkip = true;
 								}
 							}
@@ -7243,17 +7569,22 @@
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
-						if (nValue >= 1000) {
-							for (var i = 0; i < arrOfDigits.length; i += 1) {
-								if (arrOfDigits[i] === 'tūkstotis' || arrOfDigits[i] === 'tūkstoši') {
+						if (nValue >= 1000)
+						{
+							for (var i = 0; i < arrOfDigits.length; i += 1)
+							{
+								if (arrOfDigits[i] === 'tūkstotis' || arrOfDigits[i] === 'tūkstoši')
+								{
 									arrOfDigits[i] = 'tūkstoš';
 								}
 							}
 						}
-						if (alphaBet[lastWord]) {
+						if (alphaBet[lastWord])
+						{
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[lastWord];
 						} else {
-							if (nValue % 100 === 0 && nValue % 1000 !== 0) {
+							if (nValue % 100 === 0 && nValue % 1000 !== 0)
+							{
 								arrOfDigits[arrOfDigits.length - 1] = lastWord.slice(0, lastWord.length - 1);
 							}
 							arrOfDigits[arrOfDigits.length - 1] += 'ais';
@@ -7528,10 +7859,13 @@
 						}
 						var arrOfDigits = ordinalText.arrAnswer;
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
-						if (lastWord) {
+						if (lastWord)
+						{
 							var thousandType;
-							if (textLang === 'pl-PL') {
-								switch (lastWord) {
+							if (textLang === 'pl-PL')
+							{
+								switch (lastWord)
+								{
 									case 'tysiąc':
 										thousandType = 'tysiączny';
 										break;
@@ -7542,25 +7876,30 @@
 									default:
 										break;
 								}
-							} else if (lastWord.indexOf(alphaBet[textLang]['thousandEntry']) !== -1) {
+							} else if (lastWord.indexOf(alphaBet[textLang]['thousandEntry']) !== -1)
+							{
 								thousandType = alphaBet[textLang]['thousandType'];
 							}
-							if (thousandType) {
+							if (thousandType)
+							{
 								var answer = [];
 								answer.unshift(thousandType);
 								arrOfDigits.pop();
 								var lastWord = arrOfDigits[arrOfDigits.length - 1];
-								if (typeof alphaBet[textLang]['thousand'][1][lastWord] === 'string') {
+								if (typeof alphaBet[textLang]['thousand'][1][lastWord] === 'string')
+								{
 									answer.unshift(alphaBet[textLang]['thousand'][1][lastWord]);
 									arrOfDigits.pop();
 									lastWord = arrOfDigits[arrOfDigits.length - 1];
-									if (alphaBet[textLang]['thousand'][1][lastWord]) {
+									if (alphaBet[textLang]['thousand'][1][lastWord])
+									{
 										answer.unshift(alphaBet[textLang]['thousand'][1][lastWord]);
 										arrOfDigits.pop();
 									}
 								}
 								lastWord = arrOfDigits[arrOfDigits.length - 1];
-								if (alphaBet[textLang]['thousand'][100][lastWord]) {
+								if (alphaBet[textLang]['thousand'][100][lastWord])
+								{
 									arrOfDigits.pop();
 									answer.unshift(alphaBet[textLang]['thousand'][100][lastWord]);
 								}
@@ -7568,18 +7907,23 @@
 							} else {
 								arrOfDigits[arrOfDigits.length - 1] = alphaBet[textLang]['numbers'][arrOfDigits[arrOfDigits.length - 1]];
 							}
-							if (textLang === 'pl-PL') {
-								for (var i = 0; i < arrOfDigits.length; i += 1) {
-									if (arrOfDigits[i] === 'tysiączny') {
+							if (textLang === 'pl-PL')
+							{
+								for (var i = 0; i < arrOfDigits.length; i += 1)
+								{
+									if (arrOfDigits[i] === 'tysiączny')
+									{
 										break;
 									}
-									if (alphaBet[textLang]['tens'][arrOfDigits[i]]) {
+									if (alphaBet[textLang]['tens'][arrOfDigits[i]])
+									{
 										arrOfDigits[i] = alphaBet[textLang]['tens'][arrOfDigits[i]];
 									}
 								}
 							}
 						}
-						ordinalText.getConcatStringByRule = function (arr) {
+						ordinalText.getConcatStringByRule = function (arr)
+						{
 							return arr.join(' ');
 						}
 						break;
@@ -7610,27 +7954,34 @@
 								}
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
-						for (var i = 0; i < arrOfDigits.length; i += 1) {
-							if (arrOfDigits[i] === 'хиляда') {
+						for (var i = 0; i < arrOfDigits.length; i += 1)
+						{
+							if (arrOfDigits[i] === 'хиляда')
+							{
 								arrOfDigits[i] = 'хиляди';
 							}
 						}
 
 						var lastWord = arrOfDigits[arrOfDigits.length - 1];
-						if (alphaBet[1][lastWord] || alphaBet[100][lastWord]) {
+						if (alphaBet[1][lastWord] || alphaBet[100][lastWord])
+						{
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[1][lastWord] || alphaBet[100][lastWord];
-						} else if (nValue % 100 !== 0) {
+						} else if (nValue % 100 !== 0)
+						{
 							arrOfDigits[arrOfDigits.length - 1] += 'ият';
 						}
 						
-						if (Math.floor(nValue / 1000) === 1) {
+						if (Math.floor(nValue / 1000) === 1)
+						{
 							arrOfDigits.unshift('една');
 						}
-						for (var i = 0; i < arrOfDigits.length - 1; i += 1) {
+						for (var i = 0; i < arrOfDigits.length - 1; i += 1)
+						{
 							if (alphaBet[100][arrOfDigits[i]]
 								&& arrOfDigits[i + 1]
 								&& arrOfDigits[i + 1] !== 'хилядният'
-								&& arrOfDigits[i + 1] !== 'и') {
+								&& arrOfDigits[i + 1] !== 'и')
+							{
 								arrOfDigits[i] += ' и';
 							}
 						}
@@ -7652,11 +8003,14 @@
 							'tolv': 'tolfte'
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
-						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]])
+						{
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
-						} else if (nValue % 100 < 20) {
+						} else if (nValue % 100 < 20)
+						{
 							arrOfDigits[arrOfDigits.length - 1] += 'de';
-						} else if (nValue < 1000000) {
+						} else if (nValue < 1000000)
+						{
 							arrOfDigits[arrOfDigits.length - 1] += 'nde';
 						}
 						break;
@@ -7723,23 +8077,31 @@
 							}
 						}
 						var arrOfDigits = ordinalText.arrAnswer;
-						if (nValue % 10 !== 0 && nValue % 100 > 10) {
-							if (alphaBet[arrOfDigits[arrOfDigits.length - 2]]) {
+						if (nValue % 10 !== 0 && nValue % 100 > 10)
+						{
+							if (alphaBet[arrOfDigits[arrOfDigits.length - 2]])
+							{
 								arrOfDigits[arrOfDigits.length - 2] = alphaBet[arrOfDigits[arrOfDigits.length - 2]];
 							}
 						}
-						if (Math.floor(nValue / 1000) === 1) {
+						if (Math.floor(nValue / 1000) === 1)
+						{
 							arrOfDigits.shift();
 						}
-						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]])
+						{
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
 						}
-						for (var i = 1; i < arrOfDigits.length; i += 1) {
-							if (arrOfDigits[i] === 'sto' || arrOfDigits[i] === 'stý') {
-								if (alphaBet[100][arrOfDigits[i - 1]]) {
+						for (var i = 1; i < arrOfDigits.length; i += 1)
+						{
+							if (arrOfDigits[i] === 'sto' || arrOfDigits[i] === 'stý')
+							{
+								if (alphaBet[100][arrOfDigits[i - 1]])
+								{
 									arrOfDigits[i - 1] = alphaBet[100][arrOfDigits[i - 1]];
 								}
-							} else if (alphaBet['other'][arrOfDigits[i - 1]]) {
+							} else if (alphaBet['other'][arrOfDigits[i - 1]])
+							{
 								arrOfDigits[i - 1] = alphaBet['other'][arrOfDigits[i - 1]];
 							}
 						}
@@ -7770,13 +8132,16 @@
 						};
 						var arrOfDigits = ordinalText.arrAnswer;
 						var changeArray = arrOfDigits;
-						if (Array.isArray(changeArray[changeArray.length - 1])) {
+						if (Array.isArray(changeArray[changeArray.length - 1]))
+						{
 							arrOfDigits = changeArray[changeArray.length - 1];
 						}
-						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]]) {
+						if (alphaBet[arrOfDigits[arrOfDigits.length - 1]])
+						{
 							arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
 						} else {
-							if (nValue % 10 === 0 && nValue % 100 !== 0) {
+							if (nValue % 10 === 0 && nValue % 100 !== 0)
+							{
 								arrOfDigits[arrOfDigits.length - 1] = arrOfDigits[arrOfDigits.length - 1].slice(0, arrOfDigits[arrOfDigits.length - 1].length - 1) + 'ie';
 							}
 							arrOfDigits[arrOfDigits.length - 1] += 'th';
@@ -7807,7 +8172,8 @@
 					100: "सौ",
 					1000: "हज़ार",
 				}
-				function hindiCounting(num) {
+				function hindiCounting(num)
+				{
 					var resArr = [];
 					var groups = {};
 					groups[1000] = Math.floor(num / 1000);
@@ -7815,13 +8181,16 @@
 					groups[100] = Math.floor(num / 100);
 					num %= 100;
 					groups[1] = num;
-					if (groups[1000]) {
+					if (groups[1000])
+					{
 						resArr.push(alphabet[(groups[1000] - 1) % 99], degrees[1000]);
 					}
-					if (groups[100]) {
+					if (groups[100])
+					{
 						resArr.push(alphabet[(groups[100] - 1) % 99], degrees[100]);
 					}
-					if (groups[1]) {
+					if (groups[1])
+					{
 						resArr.push(alphabet[(groups[1] - 1) % 99]);
 					}
 					return resArr;
@@ -7844,12 +8213,17 @@
 						'สิบ'
 				]
 
-				function thaiCountingLess100(num, isInitialValueGreat100) {
+				function thaiCountingLess100(num, isInitialValueGreat100)
+				{
 					var resArr = [];
-					if (num > 0 && num < 100) {
-						if (num <= 10) {
-							if (isInitialValueGreat100) {
-								if (num !== 1) {
+					if (num > 0 && num < 100)
+					{
+						if (num <= 10)
+						{
+							if (isInitialValueGreat100)
+							{
+								if (num !== 1)
+								{
 									resArr.push(digits[num - 1]);
 								} else {
 									resArr.push('เอ็ด');
@@ -7861,8 +8235,10 @@
 							var degree10 = Math.floor(num / 10);
 							var reminder10 = num % 10;
 
-							if (degree10 !== 1) {
-								if (degree10 === 2) {
+							if (degree10 !== 1)
+							{
+								if (degree10 === 2)
+								{
 									resArr.push('ยี่');
 								} else {
 									resArr.push(digits[degree10 - 1]);
@@ -7870,8 +8246,10 @@
 							}
 							resArr.push(digits[9]);
 
-							if (reminder10) {
-								if (reminder10 !== 1) {
+							if (reminder10)
+							{
+								if (reminder10 !== 1)
+								{
 									resArr.push(digits[reminder10 - 1]);
 								} else {
 									resArr.push('เอ็ด');
@@ -7882,8 +8260,10 @@
 					return resArr;
 				}
 
-				function thaiCounting(num) {
-					if (num >= 1000000000) {
+				function thaiCounting(num)
+				{
+					if (num >= 1000000000)
+					{
 						return ['ศูนย์'];
 					}
 					var resArr = [];
@@ -7900,31 +8280,38 @@
 					num %= 100;
 					groups[1] = num;
 
-					if (groups[1000000]) {
-						if (groups[1000000] >= 100) {
+					if (groups[1000000])
+					{
+						if (groups[1000000] >= 100)
+						{
 							resArr = resArr.concat(thaiCounting(groups[1000000]));
 						} else {
 							resArr = resArr.concat(thaiCountingLess100(groups[1000000]));
 						}
 						resArr.push('ล้าน');
 					}
-					if (groups[100000]) {
+					if (groups[100000])
+					{
 						resArr = resArr.concat(thaiCountingLess100(groups[100000]));
 						resArr.push('แสน');
 					}
-					if (groups[10000]) {
+					if (groups[10000])
+					{
 						resArr = resArr.concat(thaiCountingLess100(groups[10000]));
 						resArr.push('หมื่น');
 					}
-					if (groups[1000]) {
+					if (groups[1000])
+					{
 						resArr = resArr.concat(thaiCountingLess100(groups[1000]));
 						resArr.push('พัน');
 					}
-					if (groups[100]) {
+					if (groups[100])
+					{
 						resArr = resArr.concat(thaiCountingLess100(groups[100]));
 						resArr.push('ร้อย');
 					}
-					if (groups[1]) {
+					if (groups[1])
+					{
 						resArr = resArr.concat(thaiCountingLess100(groups[1], groups[100] || groups[1000] || groups[10000] || groups[100000] || groups[1000000]));
 					}
 					return resArr;
@@ -7940,19 +8327,24 @@
 			case Asc.c_oAscNumberingFormat.VietnameseCounting:
 				digits = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
 
-				var letterNumberLessThen100VI = function (num) {
+				var letterNumberLessThen100VI = function (num)
+				{
 					var resArr = [];
-					 if (num > 0 && num < 100) {
-					 	if (num <= 10) {
+					 if (num > 0 && num < 100)
+					 {
+					 	if (num <= 10)
+					 	{
 					 		resArr.push(digits[num - 1]);
 						} else {
 					 		var degree10 = Math.floor(num / 10);
 					 		var reminder = num % 10;
-					 		if (degree10 !== 1) {
+					 		if (degree10 !== 1)
+					 		{
 								resArr.push(digits[degree10 - 1]);
 							}
 							resArr.push('mười');
-					 		if (reminder) {
+					 		if (reminder)
+					 		{
 					 			resArr.push(digits[reminder - 1]);
 							}
 						}
@@ -7960,7 +8352,8 @@
 					return resArr;
 				}
 
-				var vietnameseCounting = function (num) { //fixme: Сделано, как в Word, правильный счет только до тысячи - дальше отсчет идет с 1
+				var vietnameseCounting = function (num)
+				{
 					var adaptVal = (num - 1) % 1000 + 1;
 					var resArr = [];
 					var groups = {};
@@ -7970,16 +8363,20 @@
 					adaptVal %= 100;
 					groups[1] = adaptVal;
 
-					if (groups[1000]) {
+					if (groups[1000])
+					{
 						resArr.push(digits[groups[1000] - 1], 'ngàn');
 					}
-					if (groups[100]) {
+					if (groups[100])
+					{
 						resArr.push(digits[groups[100] - 1], 'trăm');
-						if (groups[1] / 10 < 1 && groups[1] !== 0) {
+						if (groups[1] / 10 < 1 && groups[1] !== 0)
+						{
 							resArr.push('lẻ');
 						}
 					}
-					if (groups[1]) {
+					if (groups[1])
+					{
 						resArr = resArr.concat(letterNumberLessThen100VI(groups[1]));
 					}
 					return resArr;
