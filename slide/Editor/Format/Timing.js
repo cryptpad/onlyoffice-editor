@@ -2038,7 +2038,7 @@
 
         var aAllEffects = this.getAllAnimEffects();
         var oEffect = aAllEffects[0];
-        if(oEffect.isAfterEffect() || oEffect.isWithEffect()) {
+        if(oEffect && (oEffect.isAfterEffect() || oEffect.isWithEffect())) {
             var aHierarchy = oEffect.getHierarchy();
             var oSeqNode = aHierarchy[1];
             var oPar2Lvl = aHierarchy[2];
