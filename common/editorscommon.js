@@ -4667,8 +4667,85 @@
 				}
 				break;
 			}
+			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional: {
+				digits = [
+					String.fromCharCode(0x58F9),
+					String.fromCharCode(0x8CB3),
+					String.fromCharCode(0x53C3),
+					String.fromCharCode(0x8086),
+					String.fromCharCode(0x4F0D),
+					String.fromCharCode(0x9678),
+					String.fromCharCode(0x67D2),
+					String.fromCharCode(0x634C),
+					String.fromCharCode(0x7396)
+				];
+				degrees = [
+					'萬',
+					'仟',
+					'佰',
+					'拾'
+				];
+
+				var IdeographLegalTraditionalSplitting = function (numberLessThen10000, isOver10000) {
+					var resArr = [];
+					var groups = {};
+
+					groups[1000] = Math.floor(numberLessThen10000 / 1000);
+					numberLessThen10000 %= 1000;
+
+					groups[100] = Math.floor(numberLessThen10000 / 100);
+					numberLessThen10000 %= 100;
+
+					groups[10] = Math.floor(numberLessThen10000 / 10);
+					numberLessThen10000 %= 10;
+
+					groups[1] = numberLessThen10000;
+
+					if (groups[1000]) {
+						resArr.push(digits[groups[1000] - 1], degrees[1]);
+
+						if (!groups[100] && (groups[1] || groups[10])) {
+							resArr.push('零');
+						}
+					}
+
+					if (groups[100]) {
+						resArr.push(digits[groups[100] - 1], degrees[2]);
+
+						if (!groups[10] && groups[1]) {
+							resArr.push('零');
+						}
+					}
+
+					if (groups[10]) {
+						if (isOver10000 && !groups[1000] && !groups[100] && !groups[1]) {
+							resArr.push('零');
+						}
+						resArr.push(digits[groups[10] - 1], degrees[3]);
+					}
+
+					if (groups[1]) {
+						if (isOver10000 && !groups[1000] && !groups[100] && !groups[10]) {
+							resArr.push('零');
+						}
+						resArr.push(digits[numberLessThen10000 - 1]);
+					}
+
+					return resArr;
+				}
+
+
+				if (nValue < 10000) {
+					sResult = IdeographLegalTraditionalSplitting(nValue).join('');
+				} else {
+					if (nValue < 1000000) {
+						var resultWith10000Reminder = ([degrees[0]]).concat(IdeographLegalTraditionalSplitting(nValue % 10000, true));
+						sResult = IdeographLegalTraditionalSplitting(Math.floor(nValue / 10000)).concat(resultWith10000Reminder).join('');
+					}
+				}
+				break;
+			}
 			case Asc.c_oAscNumberingFormat.JapaneseLegal:
-			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
 			case Asc.c_oAscNumberingFormat.KoreanCounting:
 			case Asc.c_oAscNumberingFormat.JapaneseCounting:
 				function ideographCount(differentFormat) {
@@ -4713,24 +4790,6 @@
 							'百',
 							'拾'
 						];
-					} else if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional) {
-						digits = [
-							String.fromCharCode(0x58F9),
-							String.fromCharCode(0x8CB3),
-							String.fromCharCode(0x53C3),
-							String.fromCharCode(0x8086),
-							String.fromCharCode(0x4F0D),
-							String.fromCharCode(0x9678),
-							String.fromCharCode(0x67D2),
-							String.fromCharCode(0x634C),
-							String.fromCharCode(0x7396)
-						];
-						degrees = [
-							'萬',
-							'仟',
-							'佰',
-							'拾'
-						];
 					} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseCounting) {
 						addFirstDegreeSymbol = false;
 						digits = [
@@ -4753,7 +4812,7 @@
 					}
 
 					var degreeCount = Math.pow(10, degrees.length);
-					var koreanLegalSplitting = function (numberLessThanX, skip, isOver10000) {
+					var koreanLegalSplitting = function (numberLessThanX) {
 						var answer = [];
 						var count;
 						var degreeCountCopy = degreeCount;
@@ -4768,13 +4827,6 @@
 							}
 							degreeCountCopy /= 10;
 						}
-						if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional && !skip) {
-							var deminder100 = (nValue > 100 || isOver10000) && nValue % 100;
-							var isLowDeminderFor100 = deminder100 > 0 && deminder100 < 10;
-							if (isLowDeminderFor100) {
-									answer.push('零');
-							}
-						}
 						if (numberLessThanX > 0) {
 							answer.push(digits[numberLessThanX - 1]);
 						}
@@ -4788,12 +4840,8 @@
 							nValue < 1000000
 							|| differentFormat
 							|| nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal) {
-							var skippedAddingIdeograph = false;
-							if (nFormat === Asc.c_oAscNumberingFormat.IdeographLegalTraditional) {
-								skippedAddingIdeograph = true;
-							}
-							var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount, undefined, true));
-							sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount), skippedAddingIdeograph, false).concat(resultWith10000Reminder).join('');
+							var resultWith10000Reminder = ([degrees[0]]).concat(koreanLegalSplitting(nValue % degreeCount));
+							sResult = koreanLegalSplitting(Math.floor(nValue / degreeCount)).concat(resultWith10000Reminder).join('');
 						}
 					}
 				}
