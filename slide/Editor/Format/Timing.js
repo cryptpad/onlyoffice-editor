@@ -10450,11 +10450,14 @@
     };
     CDemoAnimPlayer.prototype.onMainSeqFinished = function () {
         this.stop();
+        editor.WordControl.m_oLogicDocument.StopAnimationPreview();
+
+    };
+    CDemoAnimPlayer.prototype.stop = function () {
+        CAnimationPlayer.prototype.stop.call(this);
         this.overlay.Clear();
         this.overlay.CheckRect(this.rect.x, this.rect.y, this.rect.w, this.rect.h);
         this.slide.showDrawingObjects();
-        editor.WordControl.m_oLogicDocument.StopAnimationPreview();
-
     };
     CDemoAnimPlayer.prototype.onRecalculateFrame = function() {
         this.overlay.Clear();

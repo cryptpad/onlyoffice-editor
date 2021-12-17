@@ -3929,7 +3929,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_StartAnimationPreview = function()
 	{
 		this.asc_StopAnimationPreview();
-		if(this.WordControl.m_oLogicDocument.StartAnimationPreview()) {
+		if(this.WordControl.m_oLogicDocument.StartAnimationPreview()) 
+		{
 			this.sendEvent("asc_onAnimPreviewStarted");
 		}
 		//this.sendEvent("asc_onStartDemonstration");//todo
@@ -3941,8 +3942,9 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_StopAnimationPreview = function()
 	{
-		this.WordControl.m_oLogicDocument.StopAnimationPreview();
-		this.sendEvent("asc_onAnimPreviewFinished");
+		if(this.WordControl.m_oLogicDocument.StopAnimationPreview()) 
+		{
+		}
 	};
 	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
 	{

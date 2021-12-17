@@ -10932,19 +10932,20 @@ CPresentation.prototype.StartAnimationPreview = function() {
     if(!oPlayer) {
         return false;
     }
-    if(oPlayer.start()) {
-        this.previewPlayer = oPlayer;
-        return true;
-    }
-    return false;
+    oPlayer.start();
+    this.previewPlayer = oPlayer;
+    return true;
 };
 CPresentation.prototype.StopAnimationPreview = function() {
     if(this.previewPlayer) {
         if(this.previewPlayer.isStarted()) {
             this.previewPlayer.stop();
         }
+		this.Api.sendEvent("asc_onAnimPreviewFinished");
         this.previewPlayer = null;
+        return true;
     }
+    return false;
 };
 
 CPresentation.prototype.CanMoveAnimation = function(bEarlier) {
