@@ -7948,6 +7948,8 @@ function BinaryFileReader(doc, openParams)
 				stDefault.Quote = oNewId.id;
 			if (stDefault.IntenseQuote == stId)
 				stDefault.IntenseQuote = oNewId.id;
+			if (stDefault.Caption == stId)
+				stDefault.Caption = oNewId.id;
 
             if(true == oNewId.def)
             {
@@ -8029,6 +8031,8 @@ function BinaryFileReader(doc, openParams)
 				numberingNameId = sNewStyleId;
 			if("normaltable" == sNewStyleName)
 				tableNameId = sNewStyleId;
+			if ("caption" == sNewStyleName)
+				stDefault.Caption = sNewStyleName;
 			oDocStyle.Add(oNewStyle);
 		}
 		var oStyleTypes = {par: 1, table: 2, lvl: 3, run: 4, styleLink: 5, numStyleLink: 6};
