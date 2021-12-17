@@ -2268,6 +2268,7 @@
                             oNewEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
+                                oNewEffect.select();
                                 oParentList.addToLst(nEffectIdx, oNewEffect);
                                 oDrawingsIdMap[sObjectId] = true;
                             }
@@ -2319,6 +2320,7 @@
             return;
         }
         this.addToMainSequence(oEffect);
+        oEffect.select();
     };
     CTiming.prototype.createPar = function(nFill, sDelay) {
         var oPar = new CPar();
@@ -2727,6 +2729,15 @@
             }
         }
     };
+    CTiming.prototype.resetSelection = function() {
+        var aSelectedEffects = this.getSelectedEffects();
+        var aRet = [];
+        for(var nEff = 0; nEff < aSelectedEffects.length; ++nEff) {
+            aSelectedEffects[nEff].deselect();
+        }
+        return aRet;
+    };
+    
     CTiming.prototype.getSelectionState = function() {
         var aSelectedEffects = this.getSelectedEffects();
         var aRet = [];

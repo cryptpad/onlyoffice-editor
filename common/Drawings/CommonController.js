@@ -7156,6 +7156,7 @@ DrawingObjectsController.prototype =
             cropSelection: null,
             geometrySelection: null
         };
+        this.onChangeDrawingsSelection();
     },
 
     clearPreTrackObjects: function()
@@ -7526,7 +7527,7 @@ DrawingObjectsController.prototype =
         return null;
     },
 
-    setSelectionState: function( state, stateIndex )
+    setSelectionState: function(state, stateIndex)
     {
         if(!Array.isArray(state)){
             return;
@@ -7921,7 +7922,7 @@ DrawingObjectsController.prototype =
     getDrawingPropsFromArray: function(drawings)
     {
         var image_props, shape_props, chart_props, table_props = undefined, new_image_props, new_shape_props, new_chart_props, new_table_props, shape_chart_props, locked;
-        var anim_props;
+        var anim_props = null;
         var drawing;
         var slicer_props, new_slicer_props;
         if(this.drawingObjects.cSld) 
@@ -7932,7 +7933,10 @@ DrawingObjectsController.prototype =
             }
             else 
             {
-                anim_props = AscFormat.CTiming.prototype.staticCreateNoneEffect();
+                if(this.selectedObjects.length > 0) 
+                {
+                    anim_props = AscFormat.CTiming.prototype.staticCreateNoneEffect();
+                }
             }
         }
         var bGroupSelection = AscCommon.isRealObject(this.selection.groupSelection);
