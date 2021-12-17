@@ -4893,10 +4893,12 @@
 						String.fromCharCode(0x0E59)
 					];
 				}
-				var conv = decimalNumberConversion(nValue, digits.length);
-				sResult = conv.map(function (num) {
-					return digits[num];
-				}).join('');
+				if (nFormat !== Asc.c_oAscNumberingFormat.KoreanDigital2 || nValue < 1000000) {
+					var conv = decimalNumberConversion(nValue, digits.length);
+					sResult = conv.map(function (num) {
+						return digits[num];
+					}).join('');
+				}
 				break;
 			case Asc.c_oAscNumberingFormat.None:
 				sResult = '';
