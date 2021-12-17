@@ -10958,6 +10958,7 @@ CPresentation.prototype.MoveAnimation = function(bEarlier) {
     if(oTiming) {
         oTiming.moveAnimation(bEarlier);
         this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
+        this.Document_UpdateInterfaceState();
     }
 };
 
