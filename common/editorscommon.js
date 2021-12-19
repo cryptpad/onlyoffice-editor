@@ -4833,7 +4833,7 @@
 			case Asc.c_oAscNumberingFormat.JapaneseLegal:
 			case Asc.c_oAscNumberingFormat.KoreanCounting:
 			case Asc.c_oAscNumberingFormat.JapaneseCounting:
-				function ideographCount(differentFormat)
+				var ideographCount = function(differentFormat)
 				{
 					if (differentFormat)
 					{
@@ -5070,7 +5070,7 @@
 				sResult = String.fromCharCode(0x0E01 + repeatIndex + currentSpace).repeat(repeatAmount);
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
-				function getCardinalTextFromValue(lang)
+				var getCardinalTextFromValue = function(lang)
 				{
 					var arrAnswer = [];
 					var getConcatStringByRule = function (array)
@@ -5406,7 +5406,7 @@
 								}
 							}
 
-							function letterNumberLessThen100CyrillicMim(num)
+							var letterNumberLessThen100CyrillicMim = function(num)
 							{
 								var resArr = [];
 								var reminder = num % 10;
@@ -5426,9 +5426,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingCyrillicMim(num, skipThousand)
+							var cardinalSplittingCyrillicMim = function(num, skipThousand)
 							{
 								var resArr = [];
 								var groups = {};
@@ -5517,7 +5517,7 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
 							if (lang === 'uk-UA' || lang === 'cs-CZ' || lang === 'pl-PL' || lang === 'el-GR' || lang === 'lv-LV')
 							{
@@ -5575,7 +5575,7 @@
 								]
 							}
 
-							function letterNumberLessThen100PT(num)
+							var letterNumberLessThen100PT = function(num)
 							{
 								var resArr = [];
 								if (num > 0 && num < 100)
@@ -5594,9 +5594,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingPT(num)
+							var cardinalSplittingPT = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -5644,7 +5644,7 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
 							arrAnswer = cardinalSplittingPT(nValue);
 							break;
@@ -5684,7 +5684,7 @@
 								]
 							}
 
-							function letterNumberLessThen100SK(num, options)
+							var letterNumberLessThen100SK = function(num, options)
 							{
 								var resArr = [];
 								if (num < 100 && num > 0)
@@ -5708,9 +5708,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingSK(num)
+							var cardinalSplittingSK = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -5747,13 +5747,13 @@
 								}
 
 								return resArr;
-							}
+							};
 
 							arrAnswer = cardinalSplittingSK(nValue);
 							getConcatStringByRule = function (array)
 							{
 								return array.join('');
-							}
+							};
 							break;
 						}
 						case 'bg-BG': {
@@ -5811,7 +5811,7 @@
 								]
 							}
 
-							function letterNumberLessThen100BG(num)
+							var letterNumberLessThen100BG = function(num)
 							{
 								var resArr = [];
 
@@ -5833,9 +5833,9 @@
 								}
 
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingBG(num)
+							var cardinalSplittingBG = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -5903,9 +5903,9 @@
 									}
 								}
 								return resArr;
-								}
+								};
 
-								arrAnswer = cardinalSplittingBG(nValue);
+							arrAnswer = cardinalSplittingBG(nValue);
 							break;
 						}
 						case 'sv-SE': {
@@ -5943,7 +5943,7 @@
 								]
 							};
 
-							function letterNumberLessThen100SV(num)
+							var letterNumberLessThen100SV = function(num)
 							{
 								var resArr = [];
 								if (num > 0 && num < 100)
@@ -5963,9 +5963,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingSV(num)
+							var cardinalSplittingSV = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -6006,13 +6006,13 @@
 								}
 
 								return resArr;
-							}
+							};
 
 							arrAnswer = cardinalSplittingSV(nValue);
 							getConcatStringByRule = function (array)
 							{
 								return array.join('');
-							}
+							};
 
 							break;
 						}
@@ -6051,7 +6051,7 @@
 								]
 							}
 
-							function letterNumberLessThen100NL(num)
+							var letterNumberLessThen100NL = function(num)
 							{
 								var resArr = [];
 								if (num > 0 && num < 100)
@@ -6078,9 +6078,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingNL(num)
+							var cardinalSplittingNL = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -6117,13 +6117,13 @@
 								}
 
 								return resArr;
-							}
+							};
 
 							arrAnswer = cardinalSplittingNL(nValue);
 							getConcatStringByRule = function (array)
 							{
 								return array.join('');
-							}
+							};
 
 							break;
 						}
@@ -6178,7 +6178,7 @@
 								}
 							}
 
-							function letterNumberLessThen100ES(num)
+							var letterNumberLessThen100ES = function(num)
 							{
 								var resArr = [];
 								if (num < 100 && num > 0)
@@ -6210,9 +6210,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingES(num, isRecursive)
+							var cardinalSplittingES = function(num, isRecursive)
 							{
 								var resArr = [];
 								var groups = {};
@@ -6253,7 +6253,7 @@
 									}
 								}
 								return resArr;
-							}
+							};
 							arrAnswer = cardinalSplittingES(nValue);
 							getConcatStringByRule = function (array)
 							{
@@ -6265,7 +6265,7 @@
 									}
 									return element;
 								}).join(' ');
-							}
+							};
 							break;
 						}
 						case 'it-IT': {
@@ -6303,7 +6303,7 @@
 								]
 							}
 
-							function letterNumberLessThen100IT(num)
+							var letterNumberLessThen100IT = function(num)
 							{
 								var resArr = [];
 								if (num < 100 && num > 0)
@@ -6328,9 +6328,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingIT(num)
+							var cardinalSplittingIT = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -6378,12 +6378,12 @@
 								}
 
 								return resArr;
-							}
+							};
 							arrAnswer = cardinalSplittingIT(nValue);
 							getConcatStringByRule = function (array)
 							{
 								return array.join('');
-							}
+							};
 							break;
 						}
 						case 'de-DE': {
@@ -6421,7 +6421,7 @@
 								]
 							}
 
-							function letterNumberLessThen100DE(num)
+							var letterNumberLessThen100DE = function(num)
 							{
 								var resArr = [];
 
@@ -6446,9 +6446,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingDE(num)
+							var cardinalSplittingDE = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -6487,12 +6487,12 @@
 								}
 
 								return resArr;
-							}
+							};
 							arrAnswer = cardinalSplittingDE(nValue);
 							getConcatStringByRule = function (array)
 							{
 								return array.join('');
-							}
+							};
 							break;
 						}
 						case 'fr-FR': {
@@ -6530,7 +6530,7 @@
 								]
 							}
 
-							function letterNumberLessThen100FR(num)
+							var letterNumberLessThen100FR = function(num)
 							{
 								var resArr = [];
 								if (num > 0 && num < 100)
@@ -6587,9 +6587,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingFR(num)
+							var cardinalSplittingFR = function(num)
 							{
 								var groups = {};
 								var resArr = [];
@@ -6631,7 +6631,7 @@
 									}
 								}
 								return resArr;
-							}
+							};
 							arrAnswer = cardinalSplittingFR(nValue);
 							getConcatStringByRule = function (array)
 							{
@@ -6643,7 +6643,7 @@
 									}
 									return element;
 								}).join(' ');
-							}
+							};
 
 							break;
 						}
@@ -6689,7 +6689,7 @@
 								]
 							};
 
-							function letterNumberLessThen100EN(num)
+							var letterNumberLessThen100EN = function(num)
 							{
 								var resArr = [];
 								if (num > 0 && num < 100)
@@ -6708,9 +6708,9 @@
 									}
 								}
 								return resArr;
-							}
+							};
 
-							function cardinalSplittingEN(num)
+							var cardinalSplittingEN = function(num)
 							{
 								var resArr = [];
 								var groups = {};
@@ -6746,7 +6746,7 @@
 								}
 
 								return resArr;
-							}
+							};
 
 							getConcatStringByRule = function (array)
 							{
@@ -6758,7 +6758,7 @@
 									}
 									return element;
 								}).join(' ');
-							}
+							};
 							arrAnswer = cardinalSplittingEN(nValue);
 
 							break;
@@ -6959,7 +6959,7 @@
 					'十'
 				];
 
-				function taiwaneseCountingSplitting(initialNumber, isBigNumber, isSplit)
+				var taiwaneseCountingSplitting = function(initialNumber, isBigNumber, isSplit)
 				{
 					var resArr = [];
 					var copyNumber = initialNumber;
@@ -7028,7 +7028,7 @@
 					}
 
 					return resArr;
-				}
+				};
 				if (nValue < 100000)
 				{
 					sResult = taiwaneseCountingSplitting(nValue).join('');
@@ -7183,7 +7183,7 @@
 							]
 						}
 
-						function letterOrdinalNumberLessThen100GR(num)
+						var letterOrdinalNumberLessThen100GR = function(num)
 						{
 							var resArr = [];
 							if (num < 100 && num > 0)
@@ -7202,9 +7202,9 @@
 								}
 							}
 							return resArr;
-						}
+						};
 
-						function cardinalTextGR(num)
+						var cardinalTextGR = function(num)
 						{
 							var groups = {};
 							var resArr = [];
@@ -7256,7 +7256,7 @@
 								}
 							}
 							return resArr;
-						}
+						};
 						ordinalText.arrAnswer = cardinalTextGR(nValue);
 						ordinalText.getConcatStringByRule = function (arr)
 						{
@@ -7270,7 +7270,7 @@
 								}
 								return acc;
 							}, []).join(' ');
-						}
+						};
 						break;
 					}
 					case 'fr-FR': {
@@ -7924,7 +7924,7 @@
 						ordinalText.getConcatStringByRule = function (arr)
 						{
 							return arr.join(' ');
-						}
+						};
 						break;
 					}
 					case 'bg-BG': {
@@ -8171,7 +8171,7 @@
 					100: "सौ",
 					1000: "हज़ार"
 				}
-				function hindiCounting(num)
+				var hindiCounting = function(num)
 				{
 					var resArr = [];
 					var groups = {};
@@ -8193,7 +8193,7 @@
 						resArr.push(alphabet[(groups[1] - 1) % 99]);
 					}
 					return resArr;
-				}
+				};
 				var adaptVal = ((nValue - 1) % 9999) + 1;
 
 				sResult = hindiCounting(adaptVal).join(' ');
@@ -8212,7 +8212,7 @@
 						'สิบ'
 				]
 
-				function thaiCountingLess100(num, isInitialValueGreat100)
+				var thaiCountingLess100 = function(num, isInitialValueGreat100)
 				{
 					var resArr = [];
 					if (num > 0 && num < 100)
@@ -8257,9 +8257,9 @@
 						}
 					}
 					return resArr;
-				}
+				};
 
-				function thaiCounting(num)
+				var thaiCounting = function(num)
 				{
 					if (num >= 1000000000)
 					{
@@ -8314,7 +8314,7 @@
 						resArr = resArr.concat(thaiCountingLess100(groups[1], groups[100] || groups[1000] || groups[10000] || groups[100000] || groups[1000000]));
 					}
 					return resArr;
-				}
+				};
 				sResult = thaiCounting(nValue).join('');
 				break;
 			case Asc.c_oAscNumberingFormat.DollarText:
@@ -8349,7 +8349,7 @@
 						}
 					 }
 					return resArr;
-				}
+				};
 
 				var vietnameseCounting = function (num)
 				{
@@ -8379,7 +8379,7 @@
 						resArr = resArr.concat(letterNumberLessThen100VI(groups[1]));
 					}
 					return resArr;
-				}
+				};
 
 				sResult = vietnameseCounting(nValue).join(' ');
 				break;
