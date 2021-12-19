@@ -624,6 +624,8 @@
         this.state = TIME_NODE_STATE_IDLE;
 
         this.simpleDurationIdx = -1;
+
+        this.originalNode = undefined;
     }
     InitClass(CTimeNodeBase, CBaseAnimObject, AscDFH.historyitem_type_Unknown);
     CTimeNodeBase.prototype.isTimingContainer = function() {
@@ -1630,6 +1632,9 @@
         if(!this.isAnimEffect()) {
             return null;
         }
+        if(this.originalNode) {
+            return this.originalNode.getNeighbourEffect(bPrev);
+        }
         var aHierarchy = this.getHierarchy();
         if(aHierarchy.length !== ANIM_TREE_LAVELS_COUNT) {
             return null;
@@ -2550,26 +2555,59 @@
         }
         this.updateNodesIDs();
     };
-    CTiming.prototype.setAnimationProperties = function(aObjectId, oPr, oCurPr) {
-        var aEffects = this.getAllAnimEffects(aObjectId);
-        var sObjectId, nObjectId;
-        var oEffect;
+    CTiming.prototype.executeWithCheckDelay = function(fCallback, aEffects) {
+        var aDelays = [];
         for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
-            oEffect = aEffects[nEffect];
-            sObjectId = null;
-            for(nObjectId = 0; nObjectId < aObjectId.length; ++nObjectId) {
-                if(oEffect.isObjectEffect(aObjectId[nObjectId])) {
+            aDelays.push(aEffects[nEffect].cTn.getDelay(true));
+        }
+        fCallback();
+        for(nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            if(aEffects[nEffect].isAfterEffect()) {
+                aEffects[nEffect].cTn.changeDelay(aDelays[nEffect], true);
+            }
+        }
+    };
+    CTiming.prototype.setAnimationProperties = function(oPr) {
+        var aEffects = this.getSelectedEffects();
+        var oCurPr = this.getAnimProperties();
+        var nEffect, oEffect;
+        var aAllEffects = this.getAllAnimEffects();
+        var aEffectsForCheck;
+
+        if(oPr.asc_getDelay() !== oCurPr.asc_getDelay() && AscFormat.isRealNumber(oPr.asc_getDelay())) {
+            for(nEffect = aAllEffects.length - 1; nEffect > -1; --nEffect) {
+                if(aAllEffects[nEffect].isSelected()) {
                     break;
                 }
             }
+            aEffectsForCheck = aAllEffects.slice(nEffect + 1);
+            this.executeWithCheckDelay(function () {
+                for(nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+                    oEffect = aEffects[nEffect];
+                    oEffect.cTn.changeDelay(oPr.asc_getDelay());
+                }
+            }, aEffectsForCheck);
+        }
+        
+        if(oPr.asc_getDuration() !== oCurPr.asc_getDuration() && AscFormat.isRealNumber(oPr.asc_getDuration())) {
+            for(nEffect = 0; nEffect < aAllEffects.length; ++nEffect) {
+                if(aAllEffects[nEffect].isSelected()) {
+                    break;
+                }
+            }
+            aEffectsForCheck = aAllEffects.slice(nEffect + 1);
+            this.executeWithCheckDelay(function () {
+                for(nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+                    oEffect = aEffects[nEffect];
+                    oEffect.cTn.changeEffectDuration(oPr.asc_getDuration());
+                }
+            }, aEffectsForCheck);
+        }
+
+        for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            oEffect = aEffects[nEffect];
             if(oPr.asc_getSubtype() !== oCurPr.asc_getSubtype()) {
                 oEffect.cTn.changeSubtype(oPr.asc_getSubtype());
-            }
-            if(oPr.asc_getDelay() !== oCurPr.asc_getDelay() && AscFormat.isRealNumber(oPr.asc_getDelay())) {
-                oEffect.cTn.changeDelay(oPr.asc_getDelay());
-            }
-            if(oPr.asc_getDuration() !== oCurPr.asc_getDuration() && AscFormat.isRealNumber(oPr.asc_getDuration())) {
-                oEffect.cTn.changeEffectDuration(oPr.asc_getDuration());
             }
             if(oPr.asc_getRepeatCount() !== oCurPr.asc_getRepeatCount() && AscFormat.isRealNumber(oPr.asc_getRepeatCount())) {
                 oEffect.cTn.changeRepeatCount(oPr.asc_getRepeatCount());
@@ -4913,6 +4951,9 @@
         var v_ = Math.max(10, v);
         if(dOldV > 0) {
             dCoef = v_/dOldV;
+            if(AscFormat.fApproxEqual(dCoef, 1.0)) {
+                return;
+            }
         }
         var aChildren = this.childTnLst && this.childTnLst.list;
         if(aChildren) {
@@ -5077,6 +5118,7 @@
                 oPar2Lvl = oCurPar2Lvl;
                 oPar2Lvl.splice(nIdx2 + 1, 0, oPar3Lvl);
             }
+            oEffectNode.setDelayShift();
         }
         if(oCurPar3Lvl.getChildrenCount() === 0) {
             oCurPar3Lvl.parent.onRemoveChild(oCurPar3Lvl);
@@ -7571,6 +7613,7 @@
 
         this.triggerClickSequence = undefined;
         this.triggerObjectClick = undefined;
+        this.settingsDelay = undefined;
         this.selected = false;
     }
     InitClass(CTimeNodeContainer, CTimeNodeBase, AscDFH.historyitem_type_TimeNodeContainer);
@@ -7708,6 +7751,7 @@
                 this.merged = [];
             }
             var oCopy = oTNContainer.createDuplicate();
+            oCopy.originalNode = oTNContainer;
             oCopy.setParent(oTNContainer.parent);
             this.merged.push(oCopy);
         }, this, []);
@@ -7732,6 +7776,11 @@
     CTimeNodeContainer.prototype.resetDelayShift = function() {
         if(this.isAnimEffect()) {
             this.cTn.resetDelayShift();
+        }
+    };
+    CTimeNodeContainer.prototype.setDelayShift = function() {
+        if(this.isAnimEffect()) {
+            this.cTn.setDelayShift();
         }
     };
     CTimeNodeContainer.prototype.splice = function() {
@@ -7775,6 +7824,7 @@
                 oPar3Lvl.pushToChildTnLst(oEffect);
                 oPar2Lvl.pushToChildTnLst(oPar3Lvl);
             }
+            oEffect.setDelayShift();
         }
         else if(oEffect.isWithEffect()) {
             oPar2Lvl = this.getLastChild();
@@ -7848,6 +7898,20 @@
     };
     CTimeNodeContainer.prototype["asc_putStartType"] = CTimeNodeContainer.prototype.asc_putStartType;
     CTimeNodeContainer.prototype.asc_getDelay = function() {
+        if(AscFormat.isRealNumber(this.settingsDelay)) {
+            return this.settingsDelay;
+        }
+        if(Array.isArray(this.merged) && this.merged.length > 0) {
+            var nFirst = this.merged[0].asc_getDelay();
+            var nCurDelay;
+            for(var nIdx = 1; nIdx < this.merged.length; ++nIdx) {
+                nCurDelay = this.merged[nIdx];
+                if(nFirst !== nCurDelay) {
+                    return undefined;
+                }
+            }
+            return nFirst;
+        }
         if(this.cTn) {
             return this.cTn.getDelay();
         }
@@ -7856,6 +7920,7 @@
     CTimeNodeContainer.prototype["asc_getDelay"] = CTimeNodeContainer.prototype.asc_getDelay;
     CTimeNodeContainer.prototype.asc_putDelay = function(v) {
         AscFormat.ExecuteNoHistory(function() {
+            this.settingsDelay = v;
             if(this.cTn) {
                 return this.cTn.changeDelay(v);
             }
@@ -10524,7 +10589,12 @@
     CDemoAnimPlayer.prototype.onMainSeqFinished = function () {
         this.stop();
         editor.WordControl.m_oLogicDocument.StopAnimationPreview();
-
+    };
+    
+    CDemoAnimPlayer.prototype.start = function () {
+        CAnimationPlayer.prototype.start.call(this);
+        this.overlay.ClearAll = true;
+        this.onRecalculateFrame();
     };
     CDemoAnimPlayer.prototype.stop = function () {
         CAnimationPlayer.prototype.stop.call(this);

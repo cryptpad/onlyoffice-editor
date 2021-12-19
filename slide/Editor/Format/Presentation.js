@@ -4232,6 +4232,7 @@ CPresentation.prototype.replaceMisspelledWord = function (Word, SpellCheckProper
 
 CPresentation.prototype.Recalculate = function (RecalcData) {
     this.DrawingDocument.OnStartRecalculate(this.Slides.length);
+    this.StopAnimationPreview();
     ++this.RecalcId;
 
     if (undefined === RecalcData && this.private_RecalculateFastRunRange(History.GetNonRecalculatedChanges()))
@@ -6152,6 +6153,9 @@ CPresentation.prototype.OnKeyDown = function (e) {
     var bUpdateSelection = true;
     var bRetValue = keydownresult_PreventNothing;
 
+    if(this.StopAnimationPreview()) {
+        return keydownresult_PreventAll;
+    }
     // Сбрасываем текущий элемент в поиске
     if (this.SearchEngine.Count > 0)
         this.SearchEngine.Reset_Current();
@@ -6877,6 +6881,9 @@ CPresentation.prototype.OnKeyPress = function (e) {
     if (!oCurSlide || !oCurSlide.graphicObjects) {
         return;
     }
+    if(this.StopAnimationPreview()) {
+        return;
+    }
     if (!this.FocusOnNotes && oCurSlide.graphicObjects.selectedObjects.length === 0) {
         var oTitle = oCurSlide.getMatchingShape(AscFormat.phType_title, null);
         if (oTitle) {
@@ -6999,6 +7006,11 @@ CPresentation.prototype.OnMouseDown = function (e, X, Y, PageIndex) {
     if (PageIndex < 0)
         return;
 
+        
+    if(this.StopAnimationPreview()) {
+        return;
+    }
+
     // Сбрасываем текущий элемент в поиске
     if (this.SearchEngine.Count > 0)
         this.SearchEngine.Reset_Current();
@@ -7093,7 +7105,6 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
     if (!oController) {
         return;
     }
-
     var oContent = oController.getTargetDocContent();
     if (oContent && oContent.CheckPosInSelection(0, 0, 0, NearPos)) {
         var Paragraph = NearPos.Paragraph;
@@ -11230,6 +11241,7 @@ CPresentation.prototype.IsViewModeInReview = function () {
 };
 CPresentation.prototype.StartAction = function (nDescription) {
     this.Create_NewHistoryPoint(nDescription);
+    this.StopAnimationPreview();
 };
 CPresentation.prototype.FinalizeAction = function () {
     this.Recalculate();

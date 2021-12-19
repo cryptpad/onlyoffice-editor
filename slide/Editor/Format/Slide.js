@@ -795,17 +795,9 @@ Slide.prototype =
         if(!this.timing) {
             return;
         }
-        var sObjectId;
-        var aSelectedObjects = this.graphicObjects.selectedObjects;
-        if(aSelectedObjects.length > 0) {
-            var aObjectId = [];
-            for(var nObject = 0; nObject < aSelectedObjects.length; ++nObject) {
-                sObjectId = aSelectedObjects[nObject].Get_Id();
-                aObjectId.push(sObjectId);
-            }
-            this.timing.setAnimationProperties(aObjectId, oPr, this.graphicObjects.getDrawingProps().animProps);
-            this.showDrawingObjects();
-        }
+        
+        this.timing.setAnimationProperties(oPr);
+        this.showDrawingObjects();
     },
 
     isVisible: function(){
