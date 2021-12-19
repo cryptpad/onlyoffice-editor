@@ -10593,7 +10593,7 @@
     
     CDemoAnimPlayer.prototype.start = function () {
         CAnimationPlayer.prototype.start.call(this);
-        this.overlay.ClearAll = true;
+        this.overlay.CheckRect(this.rect.x, this.rect.y, this.rect.w, this.rect.h);
         this.onRecalculateFrame();
     };
     CDemoAnimPlayer.prototype.stop = function () {
