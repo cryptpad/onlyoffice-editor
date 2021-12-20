@@ -2757,6 +2757,42 @@
 		}
 	});
 
+	/**
+	 * Copies the range to the specified range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {ApiRange} destination - Specifies the new range to which the specified range will be copied
+	 */
+	ApiRange.prototype.Copy = function(destination) {
+		if (destination && destination instanceof ApiRange) {
+			var cols = this.GetCols().Count - 1;
+			var rows = this.GetRows().Count - 1;
+			var bbox = destination.range.bbox;
+			var range = destination.range.worksheet.getRange3(bbox.r1, bbox.c1, (bbox.r1 + rows), (bbox.c1 + cols) );
+			this.range.move(range.bbox, true, destination.range.worksheet);
+		} else {
+			return new Error ("Invalid destination");
+		}
+	};
+	
+	/**
+	 * Pastes a Range object.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {ApiRange} rangeFrom - Specifies the range to be pasted to the current range
+	 */
+	ApiRange.prototype.Paste = function(rangeFrom) {
+		if (rangeFrom && rangeFrom instanceof ApiRange) {
+			var cols = rangeFrom.GetCols().Count - 1;
+			var rows = rangeFrom.GetRows().Count - 1;
+			var bbox = this.range.bbox;
+			var range = this.range.worksheet.getRange3(bbox.r1, bbox.c1, (bbox.r1 + rows), (bbox.c1 + cols) );
+			rangeFrom.range.move(range.bbox, true, range.worksheet);
+		} else {
+			return new Error ("Invalid range");
+		}
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing
@@ -2870,6 +2906,22 @@
 	 * @returns {?ApiDocumentContent}
 	 */
 	ApiShape.prototype.GetContent = function()
+	{
+		var oApi = Asc["editor"];
+		if(oApi && this.Drawing && this.Drawing.txBody && this.Drawing.txBody.content)
+		{
+			return oApi.private_CreateApiDocContent(this.Drawing.txBody.content);
+		}
+		return null;
+	};
+
+	/**
+	 * Get the shape inner contents where a paragraph or text runs can be inserted. 
+	 * @memberof ApiShape
+	 * @typeofeditors ["CSE"]
+	 * @returns {?ApiDocumentContent}
+	 */
+	ApiShape.prototype.GetDocContent = function()
 	{
 		var oApi = Asc["editor"];
 		if(oApi && this.Drawing && this.Drawing.txBody && this.Drawing.txBody.content)
@@ -3527,6 +3579,8 @@
 	ApiRange.prototype["Insert"] = ApiRange.prototype.Insert;
 	ApiRange.prototype["AutoFit"] = ApiRange.prototype.AutoFit;
 	ApiRange.prototype["GetAreas"] = ApiRange.prototype.GetAreas;
+	ApiRange.prototype["Copy"] = ApiRange.prototype.Copy;
+	ApiRange.prototype["Paste"] = ApiRange.prototype.Paste;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;

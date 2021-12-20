@@ -3882,7 +3882,7 @@ CChartsDrawer.prototype =
 		return result;
 	},
 
-	calculateCylinder: function(points, val, isNotOnlyFrontFaces, notDraw) {
+	calculateCylinder: function(points, val, isNotOnlyFrontFaces, notDraw, check) {
 		var res;
 		var segmentPoints = points[0];
 		var segmentPoints2 = points[1];
@@ -3912,7 +3912,7 @@ CChartsDrawer.prototype =
 		var face, faceFront;
 
 		//front
-		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true);
+		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true, check);
 		addPathToArr(this._isVisibleVerge3D(sortCylinderPoints1[0], sortCylinderPoints1[sortCylinderPoints1.length - 1],
 			sortCylinderPoints2[0], val, true), faceFront, 0);
 
@@ -3937,7 +3937,7 @@ CChartsDrawer.prototype =
 		}
 		
 		//unfront
-		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true);
+		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true, check);
 		addPathToArr(this._isVisibleVerge3D(sortCylinderPoints1[0], sortCylinderPoints1[sortCylinderPoints1.length - 1],
 			sortCylinderPoints2[0], val), faceFront, 5);
 
@@ -3950,7 +3950,7 @@ CChartsDrawer.prototype =
 		return res;
 	},
 
-	_calculatePathFaceCylinder: function(segmentPoints, segmentPoints2, up, down, isConvertPxToMM)
+	_calculatePathFaceCylinder: function(segmentPoints, segmentPoints2, up, down, isConvertPxToMM, check)
 	{
 		var pxToMm = 1;
 		if(isConvertPxToMM)
@@ -3970,17 +3970,36 @@ CChartsDrawer.prototype =
 					path.lnTo(segmentPoints2[i].x / pxToMm * pathW, segmentPoints2[i].y / pxToMm * pathH);
 				}
 			}
+			path.lnTo(segmentPoints2[0].x / pxToMm * pathW, segmentPoints2[0].y / pxToMm * pathH);
 		} else if (down) {
 			for (var i = 0; i < segmentPoints.length; i++) {
 				if (i % 2 === 0) {
 					path.lnTo(segmentPoints[i].x / pxToMm * pathW, segmentPoints[i].y / pxToMm * pathH);
 				}
 			}
+			path.lnTo(segmentPoints[0].x / pxToMm * pathW, segmentPoints[0].y / pxToMm * pathH)
 		} else {
 			var endIndex = 0;
 			var startIndex = segmentPoints.length - 1;
 
-			if (segmentPoints2.length === 1) {
+			if (!check) {
+				path.moveTo(segmentPoints2[0].x / pxToMm * pathW, segmentPoints2[0].y / pxToMm * pathH)
+				for (var i = 0; i < segmentPoints2.length; i++) {
+					if (i % 2 === 0) {
+						path.lnTo(segmentPoints2[i].x / pxToMm * pathW, segmentPoints2[i].y / pxToMm * pathH);
+					}
+				}
+				path.lnTo(segmentPoints2[0].x / pxToMm * pathW, segmentPoints2[0].y / pxToMm * pathH);
+
+				path.moveTo(segmentPoints[0].x / pxToMm * pathW, segmentPoints[0].y / pxToMm * pathH)
+				for (var i = 0; i < segmentPoints.length; i++) {
+					if (i % 2 === 0) {
+						path.lnTo(segmentPoints[i].x / pxToMm * pathW, segmentPoints[i].y / pxToMm * pathH);
+					}
+				}
+				path.lnTo(segmentPoints[0].x / pxToMm * pathW, segmentPoints[0].y / pxToMm * pathH)
+
+			} else if (segmentPoints2.length === 1) {
 				path.lnTo(segmentPoints[endIndex].x / pxToMm * pathW, segmentPoints[endIndex].y / pxToMm * pathH);
 				path.lnTo(segmentPoints2[0].x / pxToMm * pathW, segmentPoints2[0].y / pxToMm * pathH);
 
@@ -3993,8 +4012,7 @@ CChartsDrawer.prototype =
 
 			} else {
 
-				path.lnTo(segmentPoints[endIndex].x / pxToMm * pathW, segmentPoints[endIndex].y / pxToMm * pathH);
-				path.lnTo(segmentPoints2[endIndex].x / pxToMm * pathW, segmentPoints2[endIndex].y / pxToMm * pathH);
+				path.moveTo(segmentPoints[endIndex].x / pxToMm * pathW, segmentPoints[endIndex].y / pxToMm * pathH)
 			
 				for (var k = endIndex; k <= startIndex; k++) {
 					if (k % 2 === 0) {
@@ -4007,6 +4025,7 @@ CChartsDrawer.prototype =
 						path.lnTo(segmentPoints2[k].x / pxToMm * pathW, segmentPoints2[k].y / pxToMm * pathH);
 					}
 				}
+				path.lnTo(segmentPoints[endIndex].x / pxToMm * pathW, segmentPoints[endIndex].y / pxToMm * pathH);
 			}
 
 		}
@@ -4847,10 +4866,12 @@ CChartsDrawer.prototype =
 			}
 		}
 		if (this.cChartSpace.chart.plotArea.valAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
-			if (hbar && (subType === "stacked" || subType === "stackedPer")) {
-				startX = val < 0 ? --startX : ++startX; 
-			} else if (val < 0 && !hbar) {
-				++startY;
+			if (subType === "stacked" || subType === "stackedPer") {
+				if (hbar) {
+					startX = val < 0 ? --startX : ++startX;
+				} else {
+					startY = val < 0 ? ++startY : --startY;
+				}
 			}
 		}
 
@@ -5211,7 +5232,7 @@ CChartsDrawer.prototype =
 				sizes22 = 0;
 				sizes1 = points.wDown;
 				sizes2 = points.lDown;
-			} else if ((val < 0 || (hbar && subType !== "normal")) && this.cChartSpace.chart.plotArea.valAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
+			} else if ((subType === "stacked" || subType === "stackedPer") && this.cChartSpace.chart.plotArea.valAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
 				sizes12 = points.wUp !== 0 ? points.wUp : individualBarWidth / 2;
 				sizes22 = points.lUp !== 0 ? points.lUp : perspectiveDepth / 2;
 				sizes1 = points.wDown;
@@ -5244,7 +5265,7 @@ CChartsDrawer.prototype =
 		k += angel;
 
 		// получаем точки основания цилиндра через парамметрические уравнения эллиптического цилиндра
-		for (var t = k; t <= Math.PI * 2 + k + dt * 2; t += dt) {
+		for (var t = k; t <= Math.PI * 2 + k; t += dt) {
 			A = sizes1 * Math.cos(t);
 			B = sizes2 * Math.sin(t);
 
@@ -5298,10 +5319,15 @@ CChartsDrawer.prototype =
 				}
 			}
 		}		
-		if (sortCylinderPoints2.length === 0 || sortCylinderPoints1.length === 0) {
+
+		// проверяем если все точки поверхности цилиндра(конуса) либо видимы либо невидимы
+		// если уловие выполняется, то для отрисовки цилиндра(конуса) достаточно отрисовать эллипс (т.е вид сверху или снизу)
+		if (sortCylinderPoints1.length === 0 || sortCylinderPoints2.length === 0) {
 			sortCylinderPoints1 = segmentPoints;
 			sortCylinderPoints2 = segmentPoints2;
+			check = false;
 		}
+
 		var x12, y12, z12, x22, y22, z22, x32, y32, z32, x42, y42, z42, x52, y52, z52, x62, y62, z62, x72, y72, z72, x82, y82, z82;
 		var point1, point2, point4, point5, point6, point8;
 
@@ -5337,7 +5363,7 @@ CChartsDrawer.prototype =
 
 		var points = [segmentPoints, segmentPoints2, point1, point2, point4, point5, point6, point8,
 			sortCylinderPoints1, sortCylinderPoints2];
-		var paths = this.calculateCylinder(points, val, checkPathMethod);
+		var paths = this.calculateCylinder(points, val, checkPathMethod, false, check);
 
 		return paths;
 	}

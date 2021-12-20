@@ -9495,22 +9495,67 @@ background-repeat: no-repeat;\
 		if (!oContentControl)
 			return null;
 
-		var oAnchor = oContentControl.GetBoundingPolygonAnchorPoint();
+		var oAnchor = oContentControl.GetBoundingRect();
 
 		if (!oAnchor || oAnchor.Page < 0)
 			return null;
 
-		var nX = oAnchor.X;
-		var nY = oAnchor.Y;
+		var nX = oAnchor.X + oAnchor.W;
+		var nY = oAnchor.Y + oAnchor.H / 2;
 
 		if (oAnchor.Transform)
 		{
-			nX = oAnchor.Transform.TransformPointX(oAnchor.X, oAnchor.Y);
-			nY = oAnchor.Transform.TransformPointY(oAnchor.X, oAnchor.Y);
+			nX = oAnchor.Transform.TransformPointX(oAnchor.X + oAnchor.W, oAnchor.Y + oAnchor.H / 2);
+			nY = oAnchor.Transform.TransformPointY(oAnchor.X + oAnchor.W, oAnchor.Y + oAnchor.H / 2);
 		}
 
 		var oRealCoords = oLogicDocument.GetDrawingDocument().ConvertCoordsToCursorWR(nX, nY, oAnchor.Page);
 		return [oRealCoords.X, oRealCoords.Y];
+	};
+	asc_docs_api.prototype.asc_GetContentControlBoundingRect = function(sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return null;
+
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl)
+			return null;
+
+		var oRect = oContentControl.GetBoundingRect();
+
+		if (!oRect || oRect.Page < 0)
+			return null;
+
+		var nX, nY, nW, nH;
+		var oTransform = oRect.Transform;
+		if (oTransform)
+		{
+			var nX0 = oTransform.TransformPointX(oRect.X, oRect.Y);
+			var nY0 = oTransform.TransformPointY(oRect.X, oRect.Y);
+			var nX1 = oTransform.TransformPointX(oRect.X + oRect.W, oRect.Y);
+			var nY1 = oTransform.TransformPointY(oRect.X + oRect.W, oRect.Y);
+			var nX2 = oTransform.TransformPointX(oRect.X + oRect.W, oRect.Y + oRect.H);
+			var nY2 = oTransform.TransformPointY(oRect.X + oRect.W, oRect.Y + oRect.H);
+			var nX3 = oTransform.TransformPointX(oRect.X, oRect.Y + oRect.H);
+			var nY3 = oTransform.TransformPointY(oRect.X, oRect.Y + oRect.H);
+
+			nX = Math.min(nX0, nX1, nX2, nX3);
+			nY = Math.min(nY0, nY1, nY2, nY3);
+			nW = Math.max(nX0, nX1, nX2, nX3) - nX;
+			nH = Math.max(nY0, nY1, nY2, nY3) - nY;
+		}
+		else
+		{
+			nX = oRect.X;
+			nY = oRect.Y;
+			nW = oRect.W;
+			nH = oRect.H;
+		}
+
+		var oRealCoords0 = oLogicDocument.GetDrawingDocument().ConvertCoordsToCursorWR(nX, nY, oRect.Page);
+		var oRealCoords1 = oLogicDocument.GetDrawingDocument().ConvertCoordsToCursorWR(nX + nW, nY + nH, oRect.Page);
+		return [oRealCoords0.X, oRealCoords0.Y, oRealCoords1.X, oRealCoords1.Y];
 	};
 	asc_docs_api.prototype.asc_SetGlobalContentControlHighlightColor = function(r, g, b)
 	{
@@ -10994,6 +11039,22 @@ background-repeat: no-repeat;\
 		return oLogicDocument.GetFirstLetterAutoCorrectExceptions();
 	};
 
+	asc_docs_api.prototype.asc_GetCurrentWord = function(nDirection)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return "";
+
+		return oLogicDocument.GetCurrentWord(nDirection);
+	};
+	asc_docs_api.prototype.asc_ReplaceCurrentWord = function(nDirection, sReplace)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return "";
+
+		return oLogicDocument.ReplaceCurrentWord(nDirection, sReplace);
+	};
 	asc_docs_api.prototype.asc_GetSelectedText = function()
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
@@ -12580,6 +12641,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_GetCurrentContentControl"]              = asc_docs_api.prototype.asc_GetCurrentContentControl;
 	asc_docs_api.prototype["asc_ClearContentControl"]                   = asc_docs_api.prototype.asc_ClearContentControl;
 	asc_docs_api.prototype["asc_GetContentControlRightAnchorPosition"]  = asc_docs_api.prototype.asc_GetContentControlRightAnchorPosition;
+	asc_docs_api.prototype["asc_GetContentControlBoundingRect"]         = asc_docs_api.prototype.asc_GetContentControlBoundingRect;
 	asc_docs_api.prototype["asc_UncheckContentControlButtons"]          = asc_docs_api.prototype.asc_UncheckContentControlButtons;
 	asc_docs_api.prototype['asc_SetGlobalContentControlHighlightColor'] = asc_docs_api.prototype.asc_SetGlobalContentControlHighlightColor;
 	asc_docs_api.prototype['asc_GetGlobalContentControlHighlightColor'] = asc_docs_api.prototype.asc_GetGlobalContentControlHighlightColor;
@@ -12666,6 +12728,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions;
 	asc_docs_api.prototype['asc_GetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions;
 
+	asc_docs_api.prototype['asc_GetCurrentWord']                        = asc_docs_api.prototype.asc_GetCurrentWord;
+	asc_docs_api.prototype['asc_ReplaceCurrentWord']                    = asc_docs_api.prototype.asc_ReplaceCurrentWord;
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
     asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;

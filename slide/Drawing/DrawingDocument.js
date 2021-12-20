@@ -3478,7 +3478,7 @@ function CDrawingDocument()
                     var correctNum = 1;
                     if (levelNum === level.Text[i].Value)
                         correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format);
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.GetOLang());
                     break;
                 default:
                     break;
@@ -3703,7 +3703,7 @@ function CDrawingDocument()
 							text += curLvl.Text[j].Value;
 							break;
 						case Asc.c_oAscNumberingLvlTextType.Num:
-							text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+							text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
 							break;
 						default:
 							break;
@@ -3840,7 +3840,7 @@ function CDrawingDocument()
 							var correctNum = 1;
 							if (levelNum === props[i].Text[k].Value)
 								correctNum = counterCurrent;
-							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format);
+							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].GetOLang());
 							break;
 						default:
 							break;
