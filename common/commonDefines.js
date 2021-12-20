@@ -92,8 +92,11 @@
 		XLSM : 0x0105,
 		XLTX : 0x0106,
 		XLTM : 0x0107,
-		FODS : 0x0108,
-		OTS  : 0x0109,
+		XLSB : 0x0108,
+		FODS : 0x0109,
+		OTS  : 0x010a,
+		XLSX_FLAT  : 0x010b,
+		XLSX_PACKAGE  : 0x010c,
 		XLSY : 0x1002,
 
 		// PowerPoint
@@ -107,6 +110,7 @@
 		POTM : 0x0088,
 		FODP : 0x0089,
 		OTP  : 0x008a,
+		PPTX_PACKAGE  : 0x008b,
 
 		//image
 		JPG  : 0x0401,
@@ -2384,8 +2388,11 @@
 	prot['XLSM']                 = prot.XLSM;
 	prot['XLTX']                 = prot.XLTX;
 	prot['XLTM']                 = prot.XLTM;
+	prot['XLSB']                 = prot.XLSB;
 	prot['FODS']                 = prot.FODS;
 	prot['OTS']                  = prot.OTS;
+	prot['XLSX_FLAT']            = prot.XLSX_FLAT;
+	prot['XLSX_PACKAGE']         = prot.XLSX_PACKAGE;
 	prot['XLSY']                 = prot.XLSY;
 	prot['PPTX']                 = prot.PPTX;
 	prot['PPT']                  = prot.PPT;
@@ -2397,6 +2404,7 @@
 	prot['POTM']                 = prot.POTM;
 	prot['FODP']                 = prot.FODP;
 	prot['OTP']                  = prot.OTP;
+	prot['PPTX_PACKAGE']         = prot.PPTX_PACKAGE;
 
 	prot['JPG']                  = prot.JPG;
 	prot['TIFF']                 = prot.TIFF;
