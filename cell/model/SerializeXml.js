@@ -938,7 +938,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 
-		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
 		writer.WriteXmlNodeStart("table");
 		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" mc:Ignorable="xr xr3"');
 		writer.WriteXmlNullableAttributeNumber("id", this.Id ? this.Id : null);
