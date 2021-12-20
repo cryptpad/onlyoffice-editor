@@ -448,7 +448,8 @@
 		Chart          : 8,
 		Math           : 9,
 		MailMerge      : 10,
-		ContentControl : 11
+		ContentControl : 11,
+		Animation      : 12
 	};
 
 	var c_oAscLineDrawingRule = {
