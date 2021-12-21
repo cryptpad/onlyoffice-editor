@@ -43,7 +43,8 @@ var DEGREE_SUBSCRIPT			= -1;
 var DEGREE_SubSup				= 1;
 
 function EquationProcessing(Parent) {
-	this.Parent = Parent; 
+	this.Parent = Parent;
+	this.IndexesOfIgnoredAtoms = {};
 };
 EquationProcessing.prototype.GetAtomByIndex = function(n) {
 	return this.Parent.arrAtoms[n];
@@ -51,7 +52,7 @@ EquationProcessing.prototype.GetAtomByIndex = function(n) {
 EquationProcessing.prototype.BracetSyntaxChecker = function(index) {
 	var Obj = {
 		Script : [],
-		index : index,
+		index : index + 1,
 		symbol: null,
 	};
 
@@ -148,7 +149,7 @@ EquationProcessing.prototype.GetTypeOrScript = function(type) {
 	}
 };
 EquationProcessing.prototype.GetTypeOfScript = function() {
-	var type = this.BracetSyntaxChecker(this.Parent.intIndexArray + 1);
+	var type = this.BracetSyntaxChecker(this.Parent.intIndexArray);
 
 	if (type.length == 2) {
 		return this.GetTypeOrScript(type);
@@ -199,13 +200,26 @@ EquationProcessing.prototype.FillScriptContent = function(Script, typeOfScript) 
 };
 EquationProcessing.prototype.FillScriptContentWriteSup = function(Script) {
 	var Iterator = Script.getUpperIterator();
-	this.Parent.intIndexArray++;
-	this.Parent.StartLexer(Iterator);
+
+	if (this.StartBracet[this.Parent.arrAtoms[this.Parent.intIndexArray + 2]]) {
+		this.AddBracetBlockToIgnor();
+		this.Parent.StartLexer(Iterator);
+	}
+	else {
+		this.AddBracetBlockToIgnor(2, true);
+		this.Parent.StartLexer(Iterator, this.Parent.intIndexArray + 2);
+	}
 };
 EquationProcessing.prototype.FillScriptContentWriteSub = function(Script) {
 	var Iterator = Script.getLowerIterator();
-	this.Parent.intIndexArray++;
-	this.Parent.StartLexer(Iterator);
+	
+	if (this.StartBracet[this.Parent.arrAtoms[this.Parent.intIndexArray + 2]]) {
+		this.AddBracetBlockToIgnor();
+		this.Parent.StartLexer(Iterator);
+	} else {
+		this.AddBracetBlockToIgnor(this.Parent.intIndexArray + 2, true);
+		this.Parent.StartLexer(Iterator, this.Parent.intIndexArray + 2);
+	}
 };
 EquationProcessing.prototype.CheckSubOrSup = function() {
 	// верхний или нижний
@@ -214,6 +228,11 @@ EquationProcessing.prototype.CheckSubOrSup = function() {
 		this.Parent.arrAtoms[this.Parent.intIndexArray + 1] == '^'
 	) {
 		var index = this.CheckCloseBracet(this.Parent.intIndexArray + 2);
+		if (index === false) {
+			if (this.Parent.arrAtoms[this.Parent.intIndexArray + 2]) {
+				return true
+			}
+		}
 		return typeof index === 'number';
 		// add a_b & i^2
 	}
@@ -242,6 +261,33 @@ EquationProcessing.prototype.CheckSubAndSup = function() {
 		
 		return typeof index === 'number';
 		// add a_b & i^2
+	}
+};
+EquationProcessing.prototype.AddIndexToIgnor = function(intIndex, isWriteOnSee) {
+	if (isWriteOnSee === undefined) {
+		isWriteOnSee = false;
+	}
+	if (!this.IndexesOfIgnoredAtoms[intIndex]) {
+		this.IndexesOfIgnoredAtoms[intIndex] = isWriteOnSee;
+	}
+};
+EquationProcessing.prototype.AddBracetBlockToIgnor = function(n, isWriteOnSee) {
+	var intIndex;
+	if (n === undefined) {
+		intIndex = 1
+	} else {
+		intIndex = n;
+	}
+	this.AddIndexToIgnor(this.Parent.intIndexArray + intIndex, isWriteOnSee);
+
+	var strTempAtom = this.Parent.arrAtoms[this.Parent.intIndexArray + intIndex];
+	if(strTempAtom == '_' || strTempAtom == '^') {
+		intIndex++;
+		this.AddIndexToIgnor(this.Parent.intIndexArray + intIndex, isWriteOnSee);
+	}
+	var intExitIndex = this.CheckCloseBracet(this.Parent.intIndexArray + intIndex);
+	if (intExitIndex !== false) {
+		this.AddIndexToIgnor(intExitIndex, isWriteOnSee)
 	}
 };
 //Function 
@@ -562,21 +608,20 @@ EquationProcessing.prototype.CheckTypeOfParent = function() {
 EquationProcessing.prototype.AddFraction = function(FormArgument, strFAtom) {
 	var type = this.CheckTypeOfParent();
 	var typeOfFraction;
-	var exitIndex;
+
 	if (type === 'LaTeX') {
 		typeOfFraction = GetTypeOfFrac[strFAtom];
 		//var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
 	}
-	
 	else if (type === 'Unicode') {
-		exitIndex = this.CheckCloseBracet();
-		typeOfFraction = GetTypeOfFrac[this.Parent.arrAtoms[exitIndex]];
+		var exitIndex = this.CheckCloseBracet();
+		this.AddIndexToIgnor(exitIndex)
+		typeOfFraction = GetTypeOfFrac[this.Parent.arrAtoms[exitIndex + 1]];
 	}
-
 	
 	if (typeof typeOfFraction === 'number') {
 		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
-		this.FillFracContent(Fraction, type, exitIndex);
+		this.FillFracContent(Fraction, type);
 	}
 }
 EquationProcessing.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
@@ -595,19 +640,21 @@ EquationProcessing.prototype.CreateFraction = function (FormArgument, typeOfFrac
 
 	return Fraction;
 };
-EquationProcessing.prototype.FillFracContent = function (FormArgument, type, exitIndex) {
+EquationProcessing.prototype.FillFracContent = function (FormArgument, type) {
 	if (type === 'LaTeX') {
+		this.AddBracetBlockToIgnor();
 		this.Parent.StartLexer(FormArgument.getNumeratorMathContent());
+		this.AddBracetBlockToIgnor();
+		this.Parent.intIndexArray++;
 		this.Parent.StartLexer(FormArgument.getDenominatorMathContent());
 	}
 	else if (type === 'Unicode') {
-		var exit = this.CheckCloseBracet();
+		this.Parent.intIndexArray--;
+		this.AddBracetBlockToIgnor();
+		this.Parent.StartLexer(FormArgument.getNumeratorMathContent());
 		this.Parent.intIndexArray++;
-		this.Parent.StartLexer(FormArgument.getNumeratorMathContent(), exit);
-
-		exit = this.CheckCloseBracet();
-		this.Parent.intIndexArray++;
-		this.Parent.StartLexer(FormArgument.getDenominatorMathContent(), exit);
+		this.AddBracetBlockToIgnor();
+		this.Parent.StartLexer(FormArgument.getDenominatorMathContent());
 	}
 };
 var GetTypeOfFrac = {
@@ -1236,7 +1283,7 @@ CLaTeXParser.prototype.CheckFutureAtom = function (n) {
 	}
 
 	else {
-		return this.arrAtoms[this.intIndexArray];
+		return this.arrAtoms[this.intIndexArray + 1];
 	}
 };
 CLaTeXParser.prototype.ExitFromLexer = function (strFAtom, exitIfSee) {
@@ -1367,7 +1414,7 @@ CLaTeXParser.prototype.StartLexer = function (context, isInFunc) {
 	}
 
 	if (isInFunc === undefined) {
-		isInFunc =  this.Processing.CheckCloseBracet();
+		isInFunc = this.Processing.CheckCloseBracet();
 	}
 	
 	if (isInFunc) {
@@ -1376,7 +1423,6 @@ CLaTeXParser.prototype.StartLexer = function (context, isInFunc) {
 	else {
 		CLaTeXLexer(this, context);
 	}
-	
 };
 CLaTeXParser.prototype.CheckIsDegreeAndIndex = function () {
 	return (
@@ -1416,10 +1462,10 @@ CLaTeXParser.prototype.GetError = function (rule) {
 	console.error(rule, '\nПримерное место ошибки:', "..."+str+"...");
 	this.ParaMath.Root.Remove_Content(0, this.ParaMath.Root.Content.length);
 	this.isError = true;
-}
+};
 CLaTeXParser.prototype.CheckIsStrFAtomUndefined = function(strFAtom) {
 	return (strFAtom === undefined || strFAtom === null)
-}
+};
 CLaTeXParser.prototype.GetErrorNames = function(map) {
 	var strSentence = '';
 	for (var vegetable in map) {
@@ -1427,7 +1473,7 @@ CLaTeXParser.prototype.GetErrorNames = function(map) {
 	}
 	strSentence = '(' + strSentence + '...' + ')';
 	return strSentence
-}
+};
 //Limit
 CLaTeXParser.prototype.AddLimit = function (FormArgument, strFAtom) {
 	if (this.CheckIsStrFAtomUndefined(strFAtom)) {
@@ -1542,10 +1588,6 @@ CLaTeXParser.prototype.AddScript = function(FormArgument, strFAtom) {
 	this.Processing.AddScript(strFAtom, FormArgument, this.intIndexArray);
 };
 CLaTeXParser.prototype.CheckSupSubForLexer = function () {
-
-
-
-
 	return (
 		this.CheckIsDegreeAndIndex() || this.CheckIsDegreeOrIndex()
 	);
@@ -1574,7 +1616,7 @@ CLaTeXParser.prototype.GetTypeOfRadical = function () {
 	} else {
 		return SQUARE_RADICAL;
 	}
-}
+};
 CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
 	if (typeOfRadical == DEGREE_RADICAL) {
 		if (this.CheckSyntaxSequence(["["])) {
@@ -2278,20 +2320,17 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 
 		strFAtom = Parser.GetNextAtom();
 
-		if (strFAtom === undefined) {
+		if (indexOfCloseAtom == Parser.intIndexArray) {
+			if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == true) {
+				Parser.AddSymbol(strFAtom, FormArgument);
+			}
 			return
 		}
-		if ((strFAtom == '\\right' || strFAtom == '}') && indexOfCloseAtom == Parser.intIndexArray) {
-			return
-		}
-
-		else if (indexOfCloseAtom == Parser.intIndexArray) {
-			return
-		}
-
-		else if (indexOfCloseAtom == Parser.intIndexArray && strFAtom == '\\right') {
+		
+		else if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == false) {
 			strFAtom = Parser.GetNextAtom();
 		}
+
 		//check
 		// else if (Parser.ExitFromLexer(strFAtom, exitIfSee) ) {
 		// 	return
@@ -2307,7 +2346,7 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		// 	Parser.AddSymbol(strFAtom, FormArgument)
 		// }
 
-		else if (Parser.Processing.CheckIsFrac() && !Parser.isError) {
+		if (Parser.Processing.CheckIsFrac() && !Parser.isError) {
 			Parser.Processing.AddFraction(FormArgument, strFAtom)
 			intFAtoms++;
 		}
@@ -2366,8 +2405,9 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 			Parser.Processing.AddBracet(FormArgument);
 			intFAtoms++;
 		}
-
-		else if (Parser.CheckIsText(strFAtom) && !Parser.isError) {
+		
+		//Parser.CheckIsText(strFAtom)
+		else if ( !Parser.isError) {
 			Parser.AddSymbol(strFAtom, FormArgument);
 			intFAtoms++;
 		}
@@ -3385,11 +3425,10 @@ ToLaTex.prototype.GetCode = new Map([
 	[0x226B, '\>>']
 ]);
 
-
 function CUnicodeParser(str, props) {
 	this.str = str.trim();
 	this.arrAtoms = [];
-	this.intIndexArray = 0;
+	this.intIndexArray = -1;
 	this.Pr = { ctrPrp: new CTextPr() };
 	this.ParaMath = props;
 	this.Processing;
@@ -3442,11 +3481,11 @@ CUnicodeParser.prototype.parser = function() {
 };
 CUnicodeParser.prototype.GetNextUnicode = function() {
 	this.intIndexArray++;
-	return this.arrAtoms[this.intIndexArray - 1];
+	return this.arrAtoms[this.intIndexArray];
 };
 CUnicodeParser.prototype.CheckFutureAtom = function(n) {
 	if (n === undefined) {
-		n = this.intIndexArray
+		n = this.intIndexArray + 1;
 	}
 	return this.arrAtoms[n]
 };
@@ -3466,11 +3505,8 @@ CUnicodeParser.prototype.StartLexer = function(Context, indexOfExit) {
 		strAtom = this.GetNextUnicode();
 	}
 
-	if (indexOfExit === undefined && this.intIndexArray >= indexOfExit) {
+	if (indexOfExit === undefined ) {
 		indexOfExit = this.Processing.CheckCloseBracet();
-		if (indexOfExit && strAtom == '(') {
-			strAtom = this.GetNextUnicode();
-		}
 	}
 
 	if (indexOfExit) {
@@ -3478,7 +3514,7 @@ CUnicodeParser.prototype.StartLexer = function(Context, indexOfExit) {
 	}
 
 	else {
-		CUnicodeLexer(this, Context, this.intIndexArray + 1);
+		CUnicodeLexer(this, Context);
 	}
 };
 function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
@@ -3490,20 +3526,25 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 		}
 
 		var atom = Parser.GetNextUnicode();
-		var future = Parser.CheckFutureAtom();
+		if (indexOfCloseBracet == Parser.intIndexArray) {
+			if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == true) {
+				FormArgument.Add_Text(atom, Parser.Paragraph);
+			}
+			return
+		}
+		
+		else if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == false) {
+			atom = Parser.GetNextUnicode();;
+		}
 
 		if (atom === undefined) {
 			return;
 		}
 
-		if (indexOfCloseBracet == Parser.intIndexArray) {
-			return
+		else if (Parser.Processing.CheckIsFrac() && Parser.Processing.StartBracet[atom]) {
+			Parser.Processing.AddFraction(FormArgument, atom);
 		}
-		else if (Parser.Processing.CheckIsFrac()) {
-			Parser.intIndexArray--;
-			Parser.Processing.AddFraction(FormArgument)
-		}
-		else if (future == '^' || future == '_') {
+		else if (Parser.Processing.CheckSubOrSup() || Parser.Processing.CheckSubAndSup()) {
 			Parser.Processing.AddScript(atom, FormArgument);
 			countOfPushedAtoms++;
 		}
