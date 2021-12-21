@@ -148,11 +148,32 @@
 					var autoFilter = new AscCommonExcel.AutoFilter();
 					autoFilter.fromXml(reader);
 					this.AutoFilter = autoFilter;
-				}/*else if ("tableParts" === name) {
-					var tables = new AscCommonExcel.CT_TableParts();
-					tables.fromXml(reader);
-					context.tablePartIds = tables;
-				}*/
+				} else if ("dataValidations" === name) {
+					var dataValidations = new AscCommonExcel.CDataValidations();
+					dataValidations.fromXml(reader);
+					this.dataValidations = dataValidations;
+				} else if ("extLst" === name) {
+
+					/*virtual void fromXML(XmlUtils::CXmlLiteReader& oReader)
+					{
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+							if ( _T("ext") == sName )
+							{
+								OOX::Drawing::COfficeArtExtension *oExt = new OOX::Drawing::COfficeArtExtension(oReader);
+								if (oExt) m_arrExt.push_back( oExt );
+							}
+						}
+					}*/
+
+					var extLst = new COfficeArtExtensionList();
+					extLst.fromXml(reader);
+				}
 			}
 		}
 	};
@@ -2250,6 +2271,654 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeEnd("filter");
 
 	};
+
+
+	/*void CDataValidations::fromXML(XmlUtils::CXmlLiteReader& oReader)
+	{
+		ReadAttributes( oReader );
+
+		if ( oReader.IsEmptyNode() )
+			return;
+
+		int nCurDepth = oReader.GetDepth();
+		while( oReader.ReadNextSiblingNode( nCurDepth ) )
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+			if ( L"dataValidation" == sName )
+			{
+				m_arrItems.push_back( new CDataValidation( oReader ));
+			}
+		}
+	}
+
+	void CDataValidations::ReadAttributes(XmlUtils::CXmlLiteReader& oReader)
+	{
+		WritingElement_ReadAttributes_Start( oReader )
+		WritingElement_ReadAttributes_Read_if		( oReader, L"count",	m_oCount)
+		WritingElement_ReadAttributes_Read_else_if	( oReader, L"disablePrompts",m_oDisablePrompts)
+		WritingElement_ReadAttributes_Read_else_if	( oReader, L"xWindow",	m_oXWindow)
+		WritingElement_ReadAttributes_Read_else_if	( oReader, L"yWindow",	m_oYWindow)
+		WritingElement_ReadAttributes_End( oReader )
+	}*/
+
+	AscCommonExcel.CDataValidations.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("dataValidation" === name) {
+				val = new AscCommonExcel.CDataValidation();
+				val.fromXml(reader);
+				this.elems.push(val);
+			}
+		}
+
+		/*void CDataValidations::fromXML(XmlUtils::CXmlLiteReader& oReader)
+		{
+			ReadAttributes( oReader );
+
+			if ( oReader.IsEmptyNode() )
+				return;
+
+			int nCurDepth = oReader.GetDepth();
+			while( oReader.ReadNextSiblingNode( nCurDepth ) )
+			{
+				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+				if ( L"dataValidation" == sName )
+				{
+					m_arrItems.push_back( new CDataValidation( oReader ));
+				}
+			}
+		}*/
+	};
+
+	AscCommonExcel.CDataValidations.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_DataValidations">
+			2595 <xsd:sequence>
+			2596 <xsd:element name="dataValidation" type="CT_DataValidation" minOccurs="1"
+			2597 maxOccurs="unbounded"/>
+			2598 </xsd:sequence>
+			2599 <xsd:attribute name="disablePrompts" type="xsd:boolean" use="optional" default="false"/>
+			2600 <xsd:attribute name="xWindow" type="xsd:unsignedInt" use="optional"/>
+			2601 <xsd:attribute name="yWindow" type="xsd:unsignedInt" use="optional"/>
+			2602 <xsd:attribute name="count" type="xsd:unsignedInt" use="optional"/>
+			2603 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Start( oReader )
+			WritingElement_ReadAttributes_Read_if		( oReader, L"count",	m_oCount)
+			WritingElement_ReadAttributes_Read_else_if	( oReader, L"disablePrompts",m_oDisablePrompts)
+			WritingElement_ReadAttributes_Read_else_if	( oReader, L"xWindow",	m_oXWindow)
+			WritingElement_ReadAttributes_Read_else_if	( oReader, L"yWindow",	m_oYWindow)
+			WritingElement_ReadAttributes_End( oReader )*/
+
+		//serialize
+		/*   var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			if (c_oSer_DataValidation.DataValidations == type) {
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadDataValidationsContent(t, l, dataValidations);
+				});
+			} else if (c_oSer_DataValidation.DisablePrompts == type) {
+				dataValidations.disablePrompts = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.XWindow == type) {
+				dataValidations.xWindow = this.stream.GetLong();
+			} else if (c_oSer_DataValidation.YWindow == type) {
+				dataValidations.yWindow = this.stream.GetLong();
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("disablePrompts" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.disablePrompts = val;
+			} else if ("XWindow" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.XWindow = val;
+			} else if ("yWindow" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.yWindow = val;
+			}
+		}
+	};
+
+	AscCommonExcel.CDataValidation.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		//TODO EXT x14:
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("formula1" === name) {
+				val = new Asc.CDataFormula(reader.GetText());
+				this.formula1 = val;
+			} else if ("formula2" === name) {
+				val = new Asc.CDataFormula(reader.GetText());
+				this.formula2 = val;
+			} else if ("sqref" === name) {
+				this.setSqRef(reader.GetText());
+			}
+			//--------------------------------------------------- xml spreadsheet 2002
+			else if ("Range" == name) {
+				/*r1c1_formula_convert::base_row = 1;
+				r1c1_formula_convert::base_col = 1;
+
+				r1c1_formula_convert convert;
+
+				m_oSqRef = convert.convert(oReader.GetText2());*/
+			} else if ("Type" == name) {
+				/*m_oType = oReader.GetText2();
+
+				m_oAllowBlank.Init();
+				m_oAllowBlank->FromBool(true);
+
+				m_oShowInputMessage.Init();
+				m_oShowInputMessage->FromBool(true);*/
+			} else if ("Value" == name) {
+				/*r1c1_formula_convert::base_row = 1;
+				r1c1_formula_convert::base_col = 1;
+
+				r1c1_formula_convert convert;
+
+				m_oFormula1 = new CDataValidationFormula(m_pMainDocument);
+				m_oFormula1->m_sText = convert.convert(oReader.GetText3());*/
+			}
+		}
+
+		/*void CDataValidation::fromXML(XmlUtils::CXmlLiteReader& oReader)
+		{
+			ReadAttributes( oReader );
+
+			if ( oReader.IsEmptyNode() )
+				return;
+
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+				if (L"formula1" == sName)
+				{
+					m_oFormula1 = oReader;
+				}
+			else if (L"formula2" == sName)
+				{
+					m_oFormula2 = oReader;
+				}
+			else if (L"sqref" == sName)
+				{
+					m_oSqRef = oReader.GetText2();
+				}
+//--------------------------------------------------- xml spreadsheet 2002
+			else if (L"Range" == sName)
+				{
+					r1c1_formula_convert::base_row = 1;
+					r1c1_formula_convert::base_col = 1;
+
+					r1c1_formula_convert convert;
+
+					m_oSqRef = convert.convert(oReader.GetText2());
+				}
+			else if (L"Type" == sName)
+				{
+					m_oType = oReader.GetText2();
+
+					m_oAllowBlank.Init();
+					m_oAllowBlank->FromBool(true);
+
+					m_oShowInputMessage.Init();
+					m_oShowInputMessage->FromBool(true);
+				}
+			else if (L"Value" == sName)
+				{
+					r1c1_formula_convert::base_row = 1;
+					r1c1_formula_convert::base_col = 1;
+
+					r1c1_formula_convert convert;
+
+					m_oFormula1 = new CDataValidationFormula(m_pMainDocument);
+					m_oFormula1->m_sText = convert.convert(oReader.GetText3());
+
+					//if (m_oFormula1->m_sText.find(L"!") == std::wstring::npos)
+					//{
+					//	CXlsxFlat* xlsx_flat = dynamic_cast<CXlsxFlat*>(m_pMainDocument);
+					//	if (xlsx_flat)
+					//	{
+					//		CSheet *pSheet = xlsx_flat->m_pWorkbook->m_oSheets->m_arrItems.back();
+					//		if (pSheet->m_oName.IsInit())
+					//		{
+					//			m_oFormula1->m_sText = *pSheet->m_oName + L"!" + m_oFormula1->m_sText;
+					//		}
+					//	}
+					//}
+				}
+			}
+		}*/
+	};
+
+	AscCommonExcel.CDataValidation.prototype.readAttr = function(reader) {
+		//documentation
+		/*<xsd:complexType name="CT_DataValidation">
+			2605 <xsd:sequence>
+			2606 <xsd:element name="formula1" type="ST_Formula" minOccurs="0" maxOccurs="1"/>
+			2607 <xsd:element name="formula2" type="ST_Formula" minOccurs="0" maxOccurs="1"/>
+			2608 </xsd:sequence>
+			2609 <xsd:attribute name="type" type="ST_DataValidationType" use="optional" default="none"/>
+			2610 <xsd:attribute name="errorStyle" type="ST_DataValidationErrorStyle" use="optional"
+			2611 default="stop"/>
+			2612 <xsd:attribute name="imeMode" type="ST_DataValidationImeMode" use="optional"
+			2613 default="noControl"/>
+			2614 <xsd:attribute name="operator" type="ST_DataValidationOperator" use="optional"
+			2615 default="between"/>
+			2616 <xsd:attribute name="allowBlank" type="xsd:boolean" use="optional" default="false"/>
+			2617 <xsd:attribute name="showDropDown" type="xsd:boolean" use="optional" default="false"/>
+			2618 <xsd:attribute name="showInputMessage" type="xsd:boolean" use="optional" default="false"/>
+			2619 <xsd:attribute name="showErrorMessage" type="xsd:boolean" use="optional" default="false"/>
+			2620 <xsd:attribute name="errorTitle" type="s:ST_Xstring" use="optional"/>
+			2621 <xsd:attribute name="error" type="s:ST_Xstring" use="optional"/>
+			2622 <xsd:attribute name="promptTitle" type="s:ST_Xstring" use="optional"/>
+			2623 <xsd:attribute name="prompt" type="s:ST_Xstring" use="optional"/>
+			2624 <xsd:attribute name="sqref" type="ST_Sqref" use="required"/>
+			2625 </xsd:complexType>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_StartChar( oReader )
+			WritingElement_ReadAttributes_Read_ifChar		( oReader, "allowBlank",	m_oAllowBlank)
+			else if ( strcmp("error", wsName) == 0 )
+			{
+				m_oError = oReader.GetAttributeTextWithHHHH();
+			}
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "errorStyle",	m_oErrorStyle)
+			else if ( strcmp("errorTitle", wsName) == 0 )
+			{
+				m_oErrorTitle = oReader.GetAttributeTextWithHHHH();
+			}
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "imeMode",		m_oImeMode)
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "operator",		m_oOperator)
+			else if ( strcmp("prompt", wsName) == 0 )
+			{
+				m_oPrompt = oReader.GetAttributeTextWithHHHH();
+			}
+			else if ( strcmp("promptTitle", wsName) == 0 )
+			{
+				m_oPromptTitle = oReader.GetAttributeTextWithHHHH();
+			}
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "showDropDown",	m_oShowDropDown)
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "showErrorMessage",m_oShowErrorMessage)
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "showInputMessage",m_oShowInputMessage)
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "sqref",			m_oSqRef)
+			WritingElement_ReadAttributes_Read_else_ifChar	( oReader, "type",			m_oType)
+			WritingElement_ReadAttributes_EndChar( oReader )*/
+
+		//serialize
+		/*  var res = c_oSerConstants.ReadOk;
+			if (c_oSer_DataValidation.AllowBlank == type) {
+				dataValidation.allowBlank = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.Type == type) {
+				dataValidation.type = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.Error == type) {
+				dataValidation.error = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.ErrorTitle == type) {
+				dataValidation.errorTitle = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.ErrorStyle == type) {
+				dataValidation.errorStyle = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.ImeMode == type) {
+				dataValidation.imeMode = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.Operator == type) {
+				dataValidation.operator = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.Prompt == type) {
+				dataValidation.prompt = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.PromptTitle == type) {
+				dataValidation.promptTitle = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.ShowDropDown == type) {
+				dataValidation.showDropDown = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.ShowErrorMessage == type) {
+				dataValidation.showErrorMessage = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.ShowInputMessage == type) {
+				dataValidation.showInputMessage = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.SqRef == type) {
+			    dataValidation.setSqRef(this.stream.GetString2LE(length));
+			} else if (c_oSer_DataValidation.Formula1 == type) {
+			    dataValidation.formula1 = new Asc.CDataFormula(this.stream.GetString2LE(length));
+			} else if (c_oSer_DataValidation.Formula2 == type) {
+                dataValidation.formula2 = new Asc.CDataFormula(this.stream.GetString2LE(length));
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("allowBlank" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.allowBlank = val;
+			} else if ("error" === reader.GetName()) {
+				val = reader.GetValue();
+				this.error = val;
+			} else if ("errorStyle" === reader.GetName()) {
+				val = reader.GetValue();
+				this.errorStyle = val;
+			} else if ("errorTitle" === reader.GetName()) {
+				val = reader.GetValue();
+				this.errorTitle = val;
+			} else if ("imeMode" === reader.GetName()) {
+				val = reader.GetValue();
+				this.imeMode = val;
+			} else if ("operator" === reader.GetName()) {
+				val = reader.GetValue();
+				this.operator = val;
+			} else if ("prompt" === reader.GetName()) {
+				val = reader.GetValue();
+				this.prompt = val;
+			} else if ("promptTitle" === reader.GetName()) {
+				val = reader.GetValue();
+				this.promptTitle = val;
+			} else if ("showDropDown" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showDropDown = val;
+			} else if ("showErrorMessage" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showErrorMessage = val;
+			} else if ("showInputMessage" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showInputMessage = val;
+			} else if ("sqref" === reader.GetName()) {
+				val = reader.GetValue();
+				this.setSqRef(val);
+			} else if ("type" === reader.GetName()) {
+				val = reader.GetValue();
+				this.type = val;
+			}
+		}
+	};
+
+
+	//COfficeArtExtensionList
+
+	/*virtual void fromXML(XmlUtils::CXmlLiteReader& oReader)
+	{
+		if ( oReader.IsEmptyNode() )
+			return;
+
+		int nCurDepth = oReader.GetDepth();
+		while( oReader.ReadNextSiblingNode( nCurDepth ) )
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+			if ( _T("ext") == sName )
+			{
+				OOX::Drawing::COfficeArtExtension *oExt = new OOX::Drawing::COfficeArtExtension(oReader);
+				if (oExt) m_arrExt.push_back( oExt );
+			}
+		}
+	}*/
+
+	function COfficeArtExtensionList () {
+		this.m_arrExt = [];
+	}
+
+	COfficeArtExtensionList.prototype.fromXml = function (reader) {
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		/*virtual void fromXML(XmlUtils::CXmlLiteReader& oReader)
+		{
+			if ( oReader.IsEmptyNode() )
+				return;
+
+			int nCurDepth = oReader.GetDepth();
+			while( oReader.ReadNextSiblingNode( nCurDepth ) )
+			{
+				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+				if ( _T("ext") == sName )
+				{
+					OOX::Drawing::COfficeArtExtension *oExt = new OOX::Drawing::COfficeArtExtension(oReader);
+					if (oExt) m_arrExt.push_back( oExt );
+				}
+			}
+		}*/
+
+		//TODO обработать ext!
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("ext" === name) {
+				val = new COfficeArtExtension();
+				val.fromXml(reader);
+				this.m_arrExt.push(val.extArr);
+			}
+		}
+	};
+
+	function COfficeArtExtension() {
+		this.uri = null;
+		this.extArr = [];
+	}
+
+	COfficeArtExtension.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		if (this.uri === "{63B3BB69-23CF-44E3-9099-C40C66FF867C}"	||
+		this.uri === "{05C60535-1F16-4fd2-B633-F4F36F0B64E0}"	||
+		this.uri === "{504A1905-F514-4f6f-8877-14C23A59335A}"	||
+		this.uri === "{78C0D931-6437-407d-A8EE-F0AAD7539E65}"	||
+		this.uri === "{B025F937-C7B1-47D3-B67F-A62EFF666E3E}"	||
+		this.uri === "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}"	||
+		this.uri === "{A8765BA9-456A-4dab-B4F3-ACF838C121DE}"	||
+		this.uri === "{3A4CF648-6AED-40f4-86FF-DC5316D8AED3}"	||
+		this.uri === "{BBE1A952-AA13-448e-AADC-164F8A28A991}"	||
+		this.uri === "{46BE6895-7355-4a93-B00E-2C351335B9C9}"	||
+		this.uri === "{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}"	||
+		this.uri === "{03082B11-2C62-411c-B77F-237D8FCFBE4C}"	||
+		this.uri === "{2F2917AC-EB37-4324-AD4E-5DD8C200BD13}"	||
+		this.uri === "{470722E0-AACD-4C17-9CDC-17EF765DBC7E}"	||
+		this.uri === "{46F421CA-312F-682f-3DD2-61675219B42D}"	||
+		this.uri === "{DE250136-89BD-433C-8126-D09CA5730AF9}"	||
+		this.uri === "{19B8F6BF-5375-455C-9EA6-DF929625EA0E}"	||
+		this.uri === "http://schemas.microsoft.com/office/drawing/2008/diagram") {
+			var val;
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+				if ("compatExt" === name) {
+					/*val = new AscCommonExcel.CDataValidation();
+					val.fromXml(reader);
+					this.elems.push(val);*/
+				} else if ("compatExt" === name) {
+
+				} else if ("sparklineGroups" === name) {
+
+				} else if ("dataModelExt" === name) {
+
+				} else if ("table" === name) {
+
+				} else if ("conditionalFormattings" === name) {
+
+				} else if ("dataValidations" === name) {
+					val = new AscCommonExcel.CDataValidations();
+					val.fromXml(reader);
+					this.extArr.push(val);
+				} else if ("connection" === name) {
+
+				} else if ("slicerList" === name) {
+
+				} else if ("slicerCaches" === name) {
+
+				} else if ("dxfs" === name) {
+
+				} else if ("slicerStyles" === name) {
+
+				} else if ("slicerCachePivotTables" === name) {
+
+				} else if ("tableSlicerCache" === name) {
+
+				} else if ("slicerCacheHideItemsWithNoData" === name) {
+
+				} else if ("id" === name) {
+
+				}  else if ("presenceInfo" === name) {
+
+				}
+			}
+		}
+
+
+		/*if ((m_sUri.IsInit()) && (*m_sUri == L"{63B3BB69-23CF-44E3-9099-C40C66FF867C}"	||
+		*m_sUri == L"{05C60535-1F16-4fd2-B633-F4F36F0B64E0}"	||
+	*m_sUri == L"{504A1905-F514-4f6f-8877-14C23A59335A}"	||
+	*m_sUri == L"{78C0D931-6437-407d-A8EE-F0AAD7539E65}"	||
+	*m_sUri == L"{B025F937-C7B1-47D3-B67F-A62EFF666E3E}"	||
+	*m_sUri == L"{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}"	||
+	*m_sUri == L"{A8765BA9-456A-4dab-B4F3-ACF838C121DE}"	||
+	*m_sUri == L"{3A4CF648-6AED-40f4-86FF-DC5316D8AED3}"	||
+	*m_sUri == L"{BBE1A952-AA13-448e-AADC-164F8A28A991}"	||
+	*m_sUri == L"{46BE6895-7355-4a93-B00E-2C351335B9C9}"	||
+	*m_sUri == L"{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}"	||
+	*m_sUri == L"{03082B11-2C62-411c-B77F-237D8FCFBE4C}"	||
+	*m_sUri == L"{2F2917AC-EB37-4324-AD4E-5DD8C200BD13}"	||
+	*m_sUri == L"{470722E0-AACD-4C17-9CDC-17EF765DBC7E}"	||
+	*m_sUri == L"{46F421CA-312F-682f-3DD2-61675219B42D}"	||
+	*m_sUri == L"{DE250136-89BD-433C-8126-D09CA5730AF9}"	||
+	*m_sUri == L"{19B8F6BF-5375-455C-9EA6-DF929625EA0E}"	||
+	*m_sUri == L"http://schemas.microsoft.com/office/drawing/2008/diagram"))
+		{
+			int nCurDepth = oReader.GetDepth();
+			while( oReader.ReadNextSiblingNode( nCurDepth ) )
+			{
+				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+				if (sName == L"compatExt")//2.3.1.2 compatExt
+				{	//attributes spid -https://msdn.microsoft.com/en-us/library/hh657207(v=office.12).aspx
+					m_oCompatExt = oReader;
+				}
+			else if (sName == L"sparklineGroups")
+				{
+					m_oSparklineGroups = oReader;
+				}
+			else if (sName == L"dataModelExt")
+				{
+					m_oDataModelExt = oReader;
+				}
+			else if (sName == L"table")
+				{
+					m_oAltTextTable = oReader;
+				}
+			else if (sName == L"conditionalFormattings")
+				{
+					if ( oReader.IsEmptyNode() )
+						continue;
+
+					int nCurDepth1 = oReader.GetDepth();
+					while( oReader.ReadNextSiblingNode( nCurDepth1 ) )
+					{
+						m_arrConditionalFormatting.push_back(new OOX::Spreadsheet::CConditionalFormatting(oReader));
+					}
+				}
+			else if (sName == L"dataValidations")
+				{
+					m_oDataValidations = oReader;
+				}
+			else if (sName == L"connection")
+				{
+					m_oConnection = oReader;
+				}
+			else if (sName == L"slicerList")
+				{
+					if (L"{A8765BA9-456A-4dab-B4F3-ACF838C121DE}" == *m_sUri)
+					{
+						m_oSlicerList = oReader;
+					}
+				else
+					{
+						m_oSlicerListExt = oReader;
+					}
+				}
+			else if (sName == L"slicerCaches")
+				{
+					if (L"{BBE1A952-AA13-448e-AADC-164F8A28A991}" == *m_sUri)
+					{
+						m_oSlicerCaches = oReader;
+					}
+				else
+					{
+						m_oSlicerCachesExt = oReader;
+					}
+				}
+			else if (sName == L"dxfs")
+				{
+					m_oDxfs = oReader;
+				}
+			else if (sName == L"slicerStyles")
+				{
+					m_oSlicerStyles = oReader;
+				}
+			else if (sName == L"slicerCachePivotTables")
+				{
+					if ( oReader.IsEmptyNode() )
+						continue;
+
+					int nCurDepth1 = oReader.GetDepth();
+					while( oReader.ReadNextSiblingNode( nCurDepth1 ) )
+					{
+						m_oSlicerCachePivotTables.push_back(new OOX::Spreadsheet::CSlicerCachePivotTable(oReader));
+					}
+				}
+			else if (sName == L"tableSlicerCache")
+				{
+					m_oTableSlicerCache = oReader;
+				}
+			else if (sName == L"slicerCacheHideItemsWithNoData")
+				{
+					m_oSlicerCacheHideItemsWithNoData = oReader;
+				}
+			else if (sName == L"id")
+				{
+					m_oId = oReader.GetText2();
+				}
+			else if (sName == L"presenceInfo")
+				{
+					m_oPresenceInfo = oReader;
+				}
+			}
+		}
+	else
+		{
+			if ( !oReader.IsEmptyNode() )
+				oReader.ReadTillEnd();
+		}
+	}*/
+	};
+
+	COfficeArtExtension.prototype.readAttr = function (reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("uri" === reader.GetName()) {
+				val = reader.GetValue();
+				this.uri = val;
+			}
+		}
+	}
+
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
