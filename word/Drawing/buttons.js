@@ -853,7 +853,7 @@
 	// показ диалогов в мобильной версии должен быть только по клику
 	function _sendEventToApi(api, obj, x, y, isclick)
 	{
-		if (!api.isMobileVersion || isclick || obj.type !== Asc.c_oAscContentControlSpecificType.Picture || !obj.isForm)
+		if (!api.isMobileVersion || isclick || obj["type"] !== Asc.c_oAscContentControlSpecificType.Picture || !obj["isForm"])
 		{
 			api.sendEvent("asc_onShowContentControlsActions", obj, x, y);
 			return;
