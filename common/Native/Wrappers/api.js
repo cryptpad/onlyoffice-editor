@@ -2789,7 +2789,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 isAll = json["IsAll"] || true,
                 isEndnote = json["IsEndnote"] || false;
 
-            props = new Asc.CAscFootnotePr();
+            var props = new Asc.CAscFootnotePr();
             props.put_Pos(pos);
             props.put_NumFormat(numFormat);
             props.put_NumStart(numStart);
