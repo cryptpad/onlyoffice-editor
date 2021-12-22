@@ -11864,4 +11864,6 @@
     prot['totalrowfunctionSum'] = prot.totalrowfunctionSum;
     prot['totalrowfunctionVar'] = prot.totalrowfunctionVar;
 
+    window["AscCommonExcel"].getSqRefString = getSqRefString;
+
 })(window);
