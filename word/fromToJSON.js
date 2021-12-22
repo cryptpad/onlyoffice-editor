@@ -11817,7 +11817,7 @@
 		oParsedBackdropNorm.dy != undefined && oBackdropNorm.setDy(oParsedBackdropNorm.dy);
 		oParsedBackdropNorm.dz != undefined && oBackdropNorm.setDz(oParsedBackdropNorm.dz);
 
-		return BackdropNorm;
+		return oBackdropNorm;
 	};
 	ReaderFromJSON.prototype.BackdropAnchorFromJSON = function(oParsedBackdropAnchor)
 	{

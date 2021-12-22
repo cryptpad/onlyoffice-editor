@@ -566,7 +566,7 @@
 				oLayout = this.SerSlideLayout(oSlide.Layout, false);
 		}
 
-		return {
+		var oResult = {
 			notes:            this.SerNotes(oSlide.notes),
 			master:           oMaster,
 			clrMapOvr:        this.SerColorMapOvr(oSlide.clrMap),
@@ -580,6 +580,8 @@
 			showMasterSp:     oSlide.showMasterSp,
 			type:             "slide"
 		}
+
+		return oResult;
 	};
 	WriterToJSON.prototype.SerSlides = function(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts)
 	{
@@ -701,7 +703,7 @@
 		return {
 			bwMode: sBwModeType,
 			bgPr:   this.SerBgPr(oBg.bgPr),
-			bgref:	this.SerStyleRef(oBg.bgRef)
+			bgRef:	this.SerStyleRef(oBg.bgRef)
 		}
 	};
 	WriterToJSON.prototype.SerBgPr = function(oBgPr)
@@ -865,13 +867,13 @@
 		var aBldLst = [];
 		for (var nElm = 0; nElm < oBldLst.list.length; nElm++)
 		{
-			if (oBldLst.list[nElm] instanceof CBldDgm)
+			if (oBldLst.list[nElm] instanceof AscFormat.CBldDgm)
 				aBldLst.push(this.SerBldDgm(oBldLst.list[nElm]));
-			else if (oBldLst.list[nElm] instanceof CBldOleChart)
+			else if (oBldLst.list[nElm] instanceof AscFormat.CBldOleChart)
 				aBldLst.push(this.SerBldOleChart(oBldLst.list[nElm]));
-			else if (oBldLst.list[nElm] instanceof CBldGraphic)
+			else if (oBldLst.list[nElm] instanceof AscFormat.CBldGraphic)
 				aBldLst.push(this.SerBldGraphic(oBldLst.list[nElm]));
-			else if (oBldLst.list[nElm] instanceof CBldP)
+			else if (oBldLst.list[nElm] instanceof AscFormat.CBldP)
 				aBldLst.push(this.SerBldP(oBldLst.list[nElm]));
 		}
 
@@ -1005,35 +1007,35 @@
 		for (var nElm = 0; nElm < oTnLst.list.length; nElm++)
 		{
 			oTempElm = oTnLst.list[nElm];
-			if (oTempElm instanceof AscFormat.CPar())
+			if (oTempElm instanceof AscFormat.CPar)
 				aTnLst.push(this.SerPar(oTempElm));
-			else if (oTempElm instanceof AscFormat.CSeq())
+			else if (oTempElm instanceof AscFormat.CSeq)
 				aTnLst.push(this.SerSeq(oTempElm));
-			else if (oTempElm instanceof AscFormat.CAudio())
+			else if (oTempElm instanceof AscFormat.CAudio)
 				aTnLst.push(this.SerAudio(oTempElm));
-			else if (oTempElm instanceof AscFormat.CVideo())
+			else if (oTempElm instanceof AscFormat.CVideo)
 				aTnLst.push(this.SerVideo(oTempElm));
-			else if (oTempElm instanceof AscFormat.CExcl())
+			else if (oTempElm instanceof AscFormat.CExcl)
 				aTnLst.push(this.SerExcl(oTempElm));
-			else if (oTempElm instanceof AscFormat.CAnim())
+			else if (oTempElm instanceof AscFormat.CAnim)
 				aTnLst.push(this.SerAnim(oTempElm));
-			else if (oTempElm instanceof AscFormat.CAnimClr())
+			else if (oTempElm instanceof AscFormat.CAnimClr)
 				aTnLst.push(this.SerAnimClr(oTempElm));
-			else if (oTempElm instanceof AscFormat.CAnimEffect())
+			else if (oTempElm instanceof AscFormat.CAnimEffect)
 				aTnLst.push(this.SerAnimEffect(oTempElm));
-			else if (oTempElm instanceof AscFormat.CAnimMotion())
+			else if (oTempElm instanceof AscFormat.CAnimMotion)
 				aTnLst.push(this.SerAnimMotion(oTempElm));
-			else if (oTempElm instanceof AscFormat.CAnimRot())
+			else if (oTempElm instanceof AscFormat.CAnimRot)
 				aTnLst.push(this.SerAnimRot(oTempElm));
-			else if (oTempElm instanceof AscFormat.CAnimScale())
+			else if (oTempElm instanceof AscFormat.CAnimScale)
 				aTnLst.push(this.SerAnimScale(oTempElm));
-			else if (oTempElm instanceof AscFormat.CCmd())
+			else if (oTempElm instanceof AscFormat.CCmd)
 				aTnLst.push(this.SerCmd(oTempElm));
-			else if (oTempElm instanceof AscFormat.CSet())
+			else if (oTempElm instanceof AscFormat.CSet)
 				aTnLst.push(this.SerSet(oTempElm));
 		}	
 
-		return aTmplLst;
+		return aTnLst;
 	};
 	WriterToJSON.prototype.SerPar = function(oPar)
 	{
@@ -1216,7 +1218,7 @@
 		}
 
 		return {
-			cTn:         this.SerCTn(oPar.cTn),
+			cTn:         this.SerCTn(oSeq.cTn),
 			nextCondLst: this.SerCondLst(oSeq.nextCondLst),
 			prevCondLst: this.SerCondLst(oSeq.prevCondLst),
 			concurrent:  oSeq.concurrent,
@@ -1227,6 +1229,9 @@
 	};
 	WriterToJSON.prototype.SerIterate = function(oIterate)
 	{
+		if (!oIterate)
+			return oIterate;
+
 		var sIterateType = undefined;
 		switch (oIterate.type)
 		{
@@ -1404,10 +1409,10 @@
 			return oTavLst;
 
 		var aTavLst = [];
-		for (var nTav = 0; nTab < oTavLst.list.length; nTav++)
+		for (var nTav = 0; nTav < oTavLst.list.length; nTav++)
 			aTavLst.push(this.SerTav(oTavLst.list[nTav]));
 
-		return oTavLst;
+		return aTavLst;
 	};
 	WriterToJSON.prototype.SerTav = function(oTav)
 	{
@@ -1502,7 +1507,7 @@
 	WriterToJSON.prototype.SerAnimMotion = function(oAnimMotion)
 	{
 		var sOriginType = undefined;
-		switch (oAnimClr.origin)
+		switch (oAnimMotion.origin)
 		{
 			case c_oAscSlideTLOriginType.Parent:
 				sOriginType = "parent";
@@ -1513,7 +1518,7 @@
 		}
 
 		var sPathEditMode = undefined;
-		switch (oAnimClr.pathEditMode)
+		switch (oAnimMotion.pathEditMode)
 		{
 			case c_oAscSlideTLPathEditMode.Fixed:
 				sPathEditMode = "fixed";
@@ -1613,6 +1618,9 @@
 	};
 	WriterToJSON.prototype.SerCondLst = function(oCondLst)
 	{
+		if (!oCondLst)
+			return oCondLst;
+
 		var aCondLst = [];
 		for (var nCond = 0; nCond < oCondLst.list.length; nCond++)
 			aCondLst.push(this.SerCond(oCondLst.list[nCond]));
@@ -1621,6 +1629,9 @@
 	};
 	WriterToJSON.prototype.SerCond = function(oCond)
 	{
+		if (!oCond)
+			return oCond;
+
 		var sEventType = undefined;
 		switch (oCond.evt)
 		{
@@ -1669,6 +1680,9 @@
 	};
 	WriterToJSON.prototype.SerRtn = function(oRtn)
 	{
+		if (!oRtn)
+			return oRtn;
+
 		var sType = undefined;
 		switch (oRtn.val)
 		{
@@ -1689,6 +1703,9 @@
 	};
 	WriterToJSON.prototype.SerTgtEl = function(oTgtEl)
 	{
+		if (!oTgtEl)
+			return oTgtEl;
+
 		return {
 			inkTgt: this.SerInkTgt(oTgtEl.inkTgt),
 			sldTgt: null, /// ???
@@ -2256,11 +2273,11 @@
 			if (oParsedBldLst[nElm].type === "bldDgm")
 				oBldLst.addToLst(oBldLst.list.length, this.BldDgmFromJSON(oParsedBldLst[nElm]));
 			else if (oParsedBldLst[nElm].type === "bldOleChart")
-				aBldLst.addToLst(oBldLst.list.length, this.BldOleChartFromJSON(oParsedBldLst[nElm]));
+				oBldLst.addToLst(oBldLst.list.length, this.BldOleChartFromJSON(oParsedBldLst[nElm]));
 			else if (oParsedBldLst[nElm].type === "bldGraphic")
-				aBldLst.addToLst(oBldLst.list.length, this.BldGraphicFromJSON(oParsedBldLst[nElm]));
+				oBldLst.addToLst(oBldLst.list.length, this.BldGraphicFromJSON(oParsedBldLst[nElm]));
 			else if (oParsedBldLst[nElm].type === "bldP")
-				aBldLst.addToLst(oBldLst.list.length, this.BldPFromJSON(oParsedBldLst[nElm]));
+				oBldLst.addToLst(oBldLst.list.length, this.BldPFromJSON(oParsedBldLst[nElm]));
 		}
 
 		return oBldLst;
@@ -2575,8 +2592,8 @@
 	{
 		var oCondLst = new AscFormat.CCondLst();
 
-		for (var nCond = 0; nCond < oParsedCondLst.list.length; nCond++)
-			oCondLst.addToLst(oCondLst.list.length, this.CondFromJSON(oParsedCondLst.list[nCond]));
+		for (var nCond = 0; nCond < oParsedCondLst.length; nCond++)
+			oCondLst.addToLst(oCondLst.list.length, this.CondFromJSON(oParsedCondLst[nCond]));
 
 		return oCondLst;
 	};
@@ -2585,7 +2602,7 @@
 		var oCond = new AscFormat.CCond();
 
 		var nEventType = undefined;
-		switch (oParsedCondLst.evt)
+		switch (oParsedCond.evt)
 		{
 			case "begin":
 				nEventType = c_oAscSlideTriggerEventType.Begin;
