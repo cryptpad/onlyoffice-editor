@@ -92,8 +92,11 @@
 		XLSM : 0x0105,
 		XLTX : 0x0106,
 		XLTM : 0x0107,
-		FODS : 0x0108,
-		OTS  : 0x0109,
+		XLSB : 0x0108,
+		FODS : 0x0109,
+		OTS  : 0x010a,
+		XLSX_FLAT  : 0x010b,
+		XLSX_PACKAGE  : 0x010c,
 		XLSY : 0x1002,
 
 		// PowerPoint
@@ -107,6 +110,7 @@
 		POTM : 0x0088,
 		FODP : 0x0089,
 		OTP  : 0x008a,
+		PPTX_PACKAGE  : 0x008b,
 
 		//image
 		JPG  : 0x0401,
@@ -448,7 +452,8 @@
 		Chart          : 8,
 		Math           : 9,
 		MailMerge      : 10,
-		ContentControl : 11
+		ContentControl : 11,
+		Animation      : 12
 	};
 
 	var c_oAscLineDrawingRule = {
@@ -2206,21 +2211,121 @@
 
 	/** @enum {number} */
 	var c_oAscNumberingFormat = {
-		None                  : 0x0000,
-		Bullet                : 0x1001,
-		Decimal               : 0x2002,
-		LowerRoman            : 0x2003,
-		UpperRoman            : 0x2004,
-		LowerLetter           : 0x2005,
-		UpperLetter           : 0x2006,
-		DecimalZero           : 0x2007,
-		DecimalEnclosedCircle : 0x2008,
-		RussianLower          : 0x2009,
-		RussianUpper          : 0x200a,
-
-		ChineseCounting         : 0x2101,
-		ChineseCountingThousand : 0x2102,
-		ChineseLegalSimplified  : 0x2103,
+		Aiueo                        :  0,
+		AiueoFullWidth               :  1,
+		ArabicAbjad                  :  2,
+		ArabicAlpha                  :  3,
+		BahtText                     :  4,
+		Bullet                       :  5,
+		CardinalText                 :  6,
+		Chicago                      :  7,
+		ChineseCounting              :  8,
+		ChineseCountingThousand      :  9,
+		ChineseLegalSimplified       : 10,
+		Chosung                      : 11,
+		Custom                       : 12,
+		Decimal                      : 13,
+		DecimalEnclosedCircle        : 14,
+		DecimalEnclosedCircleChinese : 15,
+		DecimalEnclosedFullstop      : 16,
+		DecimalEnclosedParen         : 17,
+		DecimalFullWidth             : 18,
+		DecimalFullWidth2            : 19,
+		DecimalHalfWidth             : 20,
+		DecimalZero                  : 21,
+		DollarText                   : 22,
+		Ganada                       : 23,
+		Hebrew1                      : 24,
+		Hebrew2                      : 25,
+		Hex                          : 26,
+		HindiConsonants              : 27,
+		HindiCounting                : 28,
+		HindiNumbers                 : 29,
+		HindiVowels                  : 30,
+		IdeographDigital             : 31,
+		IdeographEnclosedCircle      : 32,
+		IdeographLegalTraditional    : 33,
+		IdeographTraditional         : 34,
+		IdeographZodiac              : 35,
+		IdeographZodiacTraditional   : 36,
+		Iroha                        : 37,
+		IrohaFullWidth               : 38,
+		JapaneseCounting             : 39,
+		JapaneseDigitalTenThousand   : 40,
+		JapaneseLegal                : 41,
+		KoreanCounting               : 42,
+		KoreanDigital                : 43,
+		KoreanDigital2               : 44,
+		KoreanLegal                  : 45,
+		LowerLetter                  : 46,
+		LowerRoman                   : 47,
+		None                         : 48,
+		NumberInDash                 : 49,
+		Ordinal                      : 50,
+		OrdinalText                  : 51,
+		RussianLower                 : 52,
+		RussianUpper                 : 53,
+		TaiwaneseCounting            : 54,
+		TaiwaneseCountingThousand    : 55,
+		TaiwaneseDigital             : 56,
+		ThaiCounting                 : 57,
+		ThaiLetters                  : 58,
+		ThaiNumbers                  : 59,
+		UpperLetter                  : 60,
+		UpperRoman                   : 61,
+		VietnameseCounting           : 62,
+		// None                         : 0x0000,
+		// Bullet                       : 0x1001,
+		// Decimal                      : 0x2002,
+		// LowerRoman                   : 0x2003,
+		// UpperRoman                   : 0x2004,
+		// LowerLetter                  : 0x2005,
+		// UpperLetter                  : 0x2006,
+		// DecimalZero                  : 0x2007,
+		// DecimalEnclosedCircle        : 0x2008,
+		// RussianLower                 : 0x2009,
+		// RussianUpper                 : 0x200a,
+		// Aiueo                        : 0x200b,
+		// AiueoFullWidth               : 0x200c,
+		// ArabicAbjad                  : 0x200d,
+		// ArabicAlpha                  : 0x200e,
+		// // BahtText                  : 0x200f,
+		// // CardinalText              : 0x2010,
+		// Chicago                      : 0x2011,
+		// Chosung                      : 0x2012,
+		// // Custom                    : 0x2013,
+		// DecimalEnclosedCircleChinese : 0x2014,
+		// DecimalEnclosedFullstop      : 0x2015,
+		// DecimalEnclosedParen         : 0x2016,
+		// DecimalFullWidth             : 0x2017,
+		// DecimalHalfWidth             : 0x2018,
+		// //DecimalFullWidth2          : 0x2019,
+		// // DollarText                : 0x201a,
+		// Ganada                       : 0x201b,
+		// // Hebrew1                   : 0x201c,
+		// Hebrew2                      : 0x201d,
+		// Hex                          : 0x201e,
+		// HindiConsonants              : 0x201f,
+		// // HindiCounting             : 0x2020,
+		// HindiNumbers                 : 0x2021,
+		// HindiVowels                  : 0x2022,
+		// IdeographDigital             : 0x2023,
+		// IdeographEnclosedCircle      : 0x2024,
+		// // IdeographLegalTraditional : 0x2025,
+		// IdeographTraditional         : 0x2026,
+		// IdeographZodiac              : 0x2027,
+		// IdeographZodiacTraditional   : 0x2028,
+		// Iroha                        : 0x2029,
+		// IrohaFullWidth               : 0x203a,
+		// // JapaneseCounting          : 0x203b,
+		// JapaneseDigitalTenThousand   : 0x203c,
+		//
+		//
+		//
+		//
+		// ChineseCounting         : 0x2101,
+		// ChineseCountingThousand : 0x2102,
+		// ChineseLegalSimplified  : 0x2103,
 
 		BulletFlag   : 0x1000,
 		NumberedFlag : 0x2000
@@ -2788,7 +2893,9 @@
 		g_oLcidNameToIdMap[name] = id;
 		g_oLcidIdToNameMap[id] = name;
 	}
-
+	var availableIdeographLanguages = ['zh-CN', 'vi-VN', 'ko-KR', 'ja-JP', 'zh-Hans', 'zh-TW', 'zh-CN', 'zh-HK', 'zh-SG',
+		'zh-MO', 'zh-Hant', 'zh'];
+	var availableBidiLanguages = [];
 	var document_compatibility_mode_Word11 = 11;
 	var document_compatibility_mode_Word12 = 12;
 	var document_compatibility_mode_Word14 = 14;
@@ -2860,6 +2967,8 @@
 	window['Asc']['c_nMaxHyperlinkLength'] = window['Asc'].c_nMaxHyperlinkLength = c_nMaxHyperlinkLength;
 	window['Asc']['c_oAscFileType'] = window['Asc'].c_oAscFileType = c_oAscFileType;
 	window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
+	window['Asc'].availableIdeographLanguages = availableIdeographLanguages;
+	window['Asc'].availableBidiLanguages = availableBidiLanguages;
 	window['Asc'].g_oLcidIdToNameMap = g_oLcidIdToNameMap;
 	prot                         = c_oAscFileType;
 	prot['UNKNOWN']              = prot.UNKNOWN;
@@ -2897,8 +3006,11 @@
 	prot['XLSM']                 = prot.XLSM;
 	prot['XLTX']                 = prot.XLTX;
 	prot['XLTM']                 = prot.XLTM;
+	prot['XLSB']                 = prot.XLSB;
 	prot['FODS']                 = prot.FODS;
 	prot['OTS']                  = prot.OTS;
+	prot['XLSX_FLAT']            = prot.XLSX_FLAT;
+	prot['XLSX_PACKAGE']         = prot.XLSX_PACKAGE;
 	prot['XLSY']                 = prot.XLSY;
 	prot['PPTX']                 = prot.PPTX;
 	prot['PPT']                  = prot.PPT;
@@ -2910,6 +3022,7 @@
 	prot['POTM']                 = prot.POTM;
 	prot['FODP']                 = prot.FODP;
 	prot['OTP']                  = prot.OTP;
+	prot['PPTX_PACKAGE']         = prot.PPTX_PACKAGE;
 
 	prot['JPG']                  = prot.JPG;
 	prot['TIFF']                 = prot.TIFF;

@@ -4063,6 +4063,11 @@ CGraphicObjects.prototype =
 
     },
 
+    onChangeDrawingsSelection: function() 
+    {
+        
+    },
+
     calculateAfterChangeTheme: function()
     {
         /*todo*/
