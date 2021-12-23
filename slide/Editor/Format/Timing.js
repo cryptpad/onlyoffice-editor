@@ -2348,7 +2348,7 @@
                 oEffect = aSeq[nEffect];
                 for(nEffectToRemove = aEffectsToRemove.length - 1; nEffectToRemove > -1; --nEffectToRemove) {
                     if(oEffect === aEffectsToRemove[nEffectToRemove]) {
-                        aSeq.splice(nEffect);
+                        aSeq.splice(nEffect, 1);
                         break;
                     }
                 }
@@ -2582,6 +2582,10 @@
                }
            }
         }
+        var oTmRoot = this.getTimingRootNode();
+        if(oTmRoot) {
+            oTmRoot.clearChildTnLst();
+        }
         for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
             aCurSequence = aSequences[nSeq];
             if(aCurSequence.length > 1) {
@@ -2592,7 +2596,6 @@
                 else {
                     oCont1 = this.checkInteractiveSequence(sSeqId);
                 }
-                oCont1.clearChildTnLst();
                 for(nEffect = 1; nEffect < aCurSequence.length; ++nEffect) {
                     oEffect = aCurSequence[nEffect];
                     oCont1.addEffectToTheEndOfSeq(oEffect);
