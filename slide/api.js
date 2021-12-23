@@ -3942,9 +3942,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_StopAnimationPreview = function()
 	{
-		if(this.WordControl.m_oLogicDocument.StopAnimationPreview()) 
-		{
-		}
+		this.WordControl.m_oLogicDocument.StopAnimationPreview();
 	};
 	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
 	{
@@ -3967,6 +3965,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_canMoveAnimationLater = function() 
 	{
 		return this.WordControl.m_oLogicDocument.CanMoveAnimation(false);
+	};
+	asc_docs_api.prototype.asc_onShowAnimTab = function(bShow) 
+	{
 	};
 	asc_docs_api.prototype.asc_moveAnimationEarlier = function() 
 	{
@@ -8204,6 +8205,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_canMoveAnimationLater']           = asc_docs_api.prototype.asc_canMoveAnimationLater;
 	asc_docs_api.prototype['asc_moveAnimationEarlier']            = asc_docs_api.prototype.asc_moveAnimationEarlier;
 	asc_docs_api.prototype['asc_moveAnimationLater']              = asc_docs_api.prototype.asc_moveAnimationLater;
+	asc_docs_api.prototype['asc_onShowAnimTab']                   = asc_docs_api.prototype.asc_onShowAnimTab;
+	
 
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['asc_canEditGeometry']                 = asc_docs_api.prototype.asc_canEditGeometry;
