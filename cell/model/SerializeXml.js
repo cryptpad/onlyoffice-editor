@@ -3627,6 +3627,511 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+
+	/*var x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\t\tif (oReader.IsEmptyNode())\n' + '\t\t\treturn;\n' + '\n' + '\t\tint nCurDepth = oReader.GetDepth();\n' +
+		'\t\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t\t{\n' + '\t\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' +
+		'\t\t\tif (L"cfvo" == sName)\n' + '\t\t\t{\n' + '\t\t\t\tnullable<CConditionalFormatValueObject> item = oReader;\n' + '\t\t\t\tm_arrValues.push_back(item);\n' +
+		'\t\t\t}\n' + '\t\t\telse if ( L"color" == sName || L"fillColor" == sName )\n' + '\t\t\t\tm_oColor = oReader;\n' + '\t\t\telse if ( L"axisColor" == sName)\n' +
+		'\t\t\t\tm_oAxisColor = oReader;\n' + '\t\t\telse if ( L"borderColor" == sName)\n' + '\t\t\t\tm_oBorderColor = oReader;\n' +
+		'\t\t\telse if ( L"negativeFillColor" == sName )\n' + '\t\t\t\tm_oNegativeFillColor = oReader;\n' + '\t\t\telse if ( L"negativeBorderColor" == sName )\n' +
+		'\t\t\t\tm_oNegativeBorderColor = oReader;\n' + '\t\t}'
+
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t(oReader, L"maxLength"\t, m_oMaxLength)\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"minLength"\t, m_oMinLength)\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"showValue"\t, m_oShowValue)\n' + '\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"axisPosition", m_oAxisPosition)\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"border"\t\t, m_oBorder)\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"gradient"\t, m_oGradient)\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"direction"\t, m_oDirection)\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"negativeBarColorSameAsPositive", m_oNegativeBarColorSameAsPositive)\n' +
+		'\t\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"negativeBarBorderColorSameAsPositive", m_oNegativeBarBorderColorSameAsPositive)';
+
+	var _documentation = '<xsd:complexType name="CT_DataBar">\n' + '\t\t\t2801 <xsd:sequence>\n' +
+		'\t\t\t2802 <xsd:element name="cfvo" type="CT_Cfvo" minOccurs="2" maxOccurs="2"/>\n' +
+		'\t\t\t2803 <xsd:element name="color" type="CT_Color" minOccurs="1" maxOccurs="1"/>\n' + '\t\t\t2804 </xsd:sequence>\n' +
+		'\t\t\t2805 <xsd:attribute name="minLength" type="xsd:unsignedInt" use="optional" default="10"/>\n' +
+		'\t\t\t2806 <xsd:attribute name="maxLength" type="xsd:unsignedInt" use="optional" default="90"/>\n' +
+		'\t\t\t2807 <xsd:attribute name="showValue" type="xsd:boolean" use="optional" default="true"/>\n' + '\t\t\t2808 </xsd:complexType>'
+
+	var _serialize = '' +
+		'            if (c_oSer_ConditionalFormattingDataBar.MaxLength === type)\n' + '                oDataBar.MaxLength = this.stream.GetULongLE();\n' +
+		'            else if (c_oSer_ConditionalFormattingDataBar.MinLength === type)\n' + '                oDataBar.MinLength = this.stream.GetULongLE();\n' +
+		'            else if (c_oSer_ConditionalFormattingDataBar.ShowValue === type)\n' + '                oDataBar.ShowValue = this.stream.GetBool();\n' +
+		'            else if (c_oSer_ConditionalFormattingDataBar.Color === type) {\n' + '\t\t\t\tvar color = ReadColorSpreadsheet2(this.bcr, length);\n' +
+		'\t\t\t\tif (color) {\n' + '\t\t\t\t\toDataBar.Color = color;\n' + '\t\t\t\t}\n' + '\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.NegativeColor === type) {\n' +
+		'\t\t\t\tvar color = ReadColorSpreadsheet2(this.bcr, length);\n' + '\t\t\t\tif (color) {\n' + '\t\t\t\t\toDataBar.NegativeColor = color;\n' + '\t\t\t\t}\n' +
+		'\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.BorderColor === type) {\n' + '\t\t\t\tvar color = ReadColorSpreadsheet2(this.bcr, length);\n' +
+		'\t\t\t\tif (color) {\n' + '\t\t\t\t\toDataBar.BorderColor = color;\n' + '\t\t\t\t}\n' + '\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.AxisColor === type) {\n' +
+		'\t\t\t\tvar color = ReadColorSpreadsheet2(this.bcr, length);\n' + '\t\t\t\tif (color) {\n' + '\t\t\t\t\toDataBar.AxisColor = color;\n' + '\t\t\t\t} else {\n' +
+		'\t\t\t\t\toDataBar.AxisColor = new AscCommonExcel.RgbColor(0);\n' + '\t\t\t\t}\n' +
+		'\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.NegativeBorderColor === type) {\n' + '\t\t\t\tvar color = ReadColorSpreadsheet2(this.bcr, length);\n' +
+		'\t\t\t\tif (color) {\n' + '\t\t\t\t\toDataBar.NegativeBorderColor = color;\n' + '\t\t\t\t}\n' +
+		'\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.AxisPosition === type) {\n' + '\t\t\t\toDataBar.AxisPosition = this.stream.GetULongLE();\n' +
+		'\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.Direction === type) {\n' + '\t\t\t\toDataBar.Direction = this.stream.GetULongLE();\n' +
+		'\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.GradientEnabled === type) {\n' + '\t\t\t\toDataBar.Gradient = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.NegativeBarColorSameAsPositive === type) {\n' +
+		'\t\t\t\toDataBar.NegativeBarColorSameAsPositive = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSer_ConditionalFormattingDataBar.NegativeBarBorderColorSameAsPositive === type) {\n' +
+		'\t\t\t\toDataBar.NegativeBarBorderColorSameAsPositive = this.stream.GetBool();\n' + '            } else if (c_oSer_ConditionalFormattingDataBar.CFVO === type) {\n' +
+		'                oObject = new AscCommonExcel.CConditionalFormatValueObject();\n' + '                res = this.bcr.Read1(length, function (t, l) {\n' +
+		'                    return oThis.ReadCFVO(t, l, oObject);\n' + '                });\n' + '                oDataBar.aCFVOs.push(oObject);\n' + '            } else\n' +
+		'                res = c_oSerConstants.ReadUnknown;\n' + '            return res;'*/
+
+	AscCommonExcel.CDataBar.prototype.fromXml = function (reader) {
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+
+		this.readAttr(reader);
+
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("cfvo" === name) {
+				val = new AscCommonExcel.CConditionalFormatValueObject();
+				val.fromXml(reader);
+				this.aCFVOs.push(val);
+			} else if ("color" === name ) {
+				//TODO
+				/*var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}*/
+			} else if ("color" === name || "fillColor" === name) {
+				//TODO
+				/*var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}*/
+			} else if ("axisColor" === name) {
+				//TODO
+				/*var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}*/
+			} else if ("borderColor" === name) {
+				//TODO
+				/*var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}*/
+			} else if ("negativeFillColor" === name) {
+				//TODO
+				/*var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}*/
+			}  else if ("negativeBorderColor" === name) {
+				//TODO
+				/*var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					oDataBar.BorderColor = color;
+				}*/
+			}
+		}
+	};
+
+	AscCommonExcel.CDataBar.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("maxLength" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.MaxLength = val;
+			} else if ("minLength" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.MinLength = val;
+			} else if ("showValue" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowValue = val;
+			} else if ("axisPosition" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.AxisPosition = val;
+			} else if ("border" === reader.GetName()) {
+				val = reader.GetValue;
+				this.Border = val;
+			} else if ("gradient" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.Gradient = val;
+			} else if ("direction" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.Direction = val;
+			} else if ("negativeBarColorSameAsPositive" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.NegativeBarColorSameAsPositive = val;
+			} else if ("negativeBarBorderColorSameAsPositive" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.NegativeBarBorderColorSameAsPositive = val;
+			}
+		}
+	};
+
+
+
+	/*var x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
+		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' +
+		'\t\tif (L"formula" == sName || L"f" == sName)\n' + '\t\tm_oFormula = oReader;\n' + '\t}'
+
+
+
+
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t(oReader, L"gte"\t, m_oGte)\n' + '\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"type"\t, m_oType)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"val"\t, m_oVal)';
+
+	var _documentation = '<xsd:sequence>\n' + '2820 <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>\n' + '2821 </xsd:sequence>\n' +
+		'2822 <xsd:attribute name="type" type="ST_CfvoType" use="required"/>\n' + '2823 <xsd:attribute name="val" type="s:ST_Xstring" use="optional"/>\n' +
+		'2824 <xsd:attribute name="gte" type="xsd:boolean" use="optional" default="true"/>'
+
+	var _serialize = 'if (c_oSer_ConditionalFormattingValueObject.Gte === type)\n' + '                oCFVO.Gte = this.stream.GetBool();\n' +
+		'            else if (c_oSer_ConditionalFormattingValueObject.Type === type)\n' + '                oCFVO.Type = this.stream.GetUChar();\n' +
+		'\t\t\telse if (c_oSer_ConditionalFormattingValueObject.Val === type || c_oSer_ConditionalFormattingValueObject.Formula === type)\n' +
+		'                oCFVO.Val = this.stream.GetString2LE(length);'*/
+
+	AscCommonExcel.CConditionalFormatValueObject.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+
+		if (oReader.IsEmptyNode())
+			return;
+
+		int nCurDepth = oReader.GetDepth();
+		while (oReader.ReadNextSiblingNode(nCurDepth))
+		{
+			std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+			if (L"formula" == sName || L"f" == sName)
+			m_oFormula = oReader;
+		}
+
+		if (!reader.ReadNextNode()) {
+			return;
+		}*/
+
+		this.readAttr(reader);
+
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("formula" === name || "f" == name) {
+				this.Val = reader.GetValue();
+			}
+		}
+	};
+
+	AscCommonExcel.CConditionalFormatting.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("gte" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.Gte = val;
+			} else if ("type" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Type = val;
+			} else if ("val" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Val = val;
+			}
+		}
+	};
+
+
+	/*var x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
+		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\t\tif (L"cfvo" == sName)\n' +
+		'\t\t{\n' + '\t\t\tnullable<CConditionalFormatValueObject> item(oReader);\n' + '\t\t\tm_arrValues.push_back(item);\n' + '\t\t}\n' + '\t\telse if (L"cfIcon" == sName)\n' +
+		'\t\t{\n' + '\t\t\tnullable<CConditionalFormatIconSet> item(oReader);\n' + '\t\t\tm_arrIconSets.push_back(item);\n' + '\t\t}\n' + '\t}'
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t(oReader, L"iconSet"\t, m_oIconSet)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"percent"\t, m_oPercent)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"reverse"\t, m_oReverse)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"showValue"\t, m_oShowValue)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"custom"\t\t, m_oCustom)';
+	var _documentation = 'xsd:sequence>\n' + '2811 <xsd:element name="cfvo" type="CT_Cfvo" minOccurs="2" maxOccurs="unbounded"/>\n' + '2812 </xsd:sequence>\n' +
+		'2813 <xsd:attribute name="iconSet" type="ST_IconSetType" use="optional" default="3TrafficLights1"/>\n' +
+		'2814 <xsd:attribute name="showValue" type="xsd:boolean" use="optional" default="true"/>\n' + '2815 <xsd:attribute name="percent" type="xsd:boolean" default="true"/>\n' +
+		'2816 <xsd:attribute name="reverse" type="xsd:boolean" use="optional" default="false"/'
+	var _serialize = ' if (c_oSer_ConditionalFormattingIconSet.IconSet === type)\n' + '                oIconSet.IconSet = this.stream.GetUChar();\n' +
+		'            else if (c_oSer_ConditionalFormattingIconSet.Percent === type)\n' + '                oIconSet.Percent = this.stream.GetBool();\n' +
+		'            else if (c_oSer_ConditionalFormattingIconSet.Reverse === type)\n' + '                oIconSet.Reverse = this.stream.GetBool();\n' +
+		'            else if (c_oSer_ConditionalFormattingIconSet.ShowValue === type)\n' + '                oIconSet.ShowValue = this.stream.GetBool();\n' +
+		'            else if (c_oSer_ConditionalFormattingIconSet.CFVO === type) {\n' + '                oObject = new AscCommonExcel.CConditionalFormatValueObject();\n' +
+		'                res = this.bcr.Read1(length, function (t, l) {\n' + '                    return oThis.ReadCFVO(t, l, oObject);\n' + '                });\n' +
+		'                oIconSet.aCFVOs.push(oObject);\n' + '\t\t\t} else if (c_oSer_ConditionalFormattingIconSet.CFIcon === type) {\n' +
+		'\t\t\t\toObject = new AscCommonExcel.CConditionalFormatIconSet();\n' + '\t\t\t\tres = this.bcr.Read1(length, function(t, l) {\n' +
+		'\t\t\t\t\treturn oThis.ReadCFIS(t, l, oObject);\n' + '\t\t\t\t});\n' + '\t\t\t\toIconSet.aIconSets.push(oObject);\n' + '            }'*/
+
+	AscCommonExcel.CIconSet.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("cfvo" === name) {
+				val = new AscCommonExcel.CConditionalFormatValueObject();
+				val.fromXml(reader);
+				this.aCFVOs.push(val);
+			} else if ("cfIcon" === name) {
+				val = new AscCommonExcel.CConditionalFormatIconSet();
+				val.fromXml(reader);
+				this.aIconSets.push(val);
+			}
+		}
+
+		/*ReadAttributes(oReader);
+
+			if (oReader.IsEmptyNode())
+				return;
+
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+				if (L"cfvo" == sName)
+				{
+					nullable<CConditionalFormatValueObject> item(oReader);
+					m_arrValues.push_back(item);
+				}
+				else if (L"cfIcon" == sName)
+				{
+					nullable<CConditionalFormatIconSet> item(oReader);
+					m_arrIconSets.push_back(item);
+				}
+			}*/
+
+	};
+
+	AscCommonExcel.CConditionalFormatIconSet.prototype.readAttr = function(reader) {
+		//documentation
+		/*xsd:sequence>
+		2811 <xsd:element name="cfvo" type="CT_Cfvo" minOccurs="2" maxOccurs="unbounded"/>
+		2812 </xsd:sequence>
+		2813 <xsd:attribute name="iconSet" type="ST_IconSetType" use="optional" default="3TrafficLights1"/>
+		2814 <xsd:attribute name="showValue" type="xsd:boolean" use="optional" default="true"/>
+		2815 <xsd:attribute name="percent" type="xsd:boolean" default="true"/>
+		2816 <xsd:attribute name="reverse" type="xsd:boolean" use="optional" default="false"/*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if		(oReader, L"iconSet"	, m_oIconSet)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"percent"	, m_oPercent)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"reverse"	, m_oReverse)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"showValue"	, m_oShowValue)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"custom"		, m_oCustom)*/
+
+		//serialize
+		/*   if (c_oSer_ConditionalFormattingIconSet.IconSet === type)
+                oIconSet.IconSet = this.stream.GetUChar();
+            else if (c_oSer_ConditionalFormattingIconSet.Percent === type)
+                oIconSet.Percent = this.stream.GetBool();
+            else if (c_oSer_ConditionalFormattingIconSet.Reverse === type)
+                oIconSet.Reverse = this.stream.GetBool();
+            else if (c_oSer_ConditionalFormattingIconSet.ShowValue === type)
+                oIconSet.ShowValue = this.stream.GetBool();
+            else if (c_oSer_ConditionalFormattingIconSet.CFVO === type) {
+                oObject = new AscCommonExcel.CConditionalFormatValueObject();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadCFVO(t, l, oObject);
+                });
+                oIconSet.aCFVOs.push(oObject);
+			} else if (c_oSer_ConditionalFormattingIconSet.CFIcon === type) {
+				oObject = new AscCommonExcel.CConditionalFormatIconSet();
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadCFIS(t, l, oObject);
+				});
+				oIconSet.aIconSets.push(oObject);
+            }*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("iconSet" === reader.GetName()) {
+				val = reader.GetValue();
+				this.IconSet = val;
+			} else if ("percent" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.Percent = val;
+			} else if ("reverse" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.Reverse = val;
+			} else if ("showValue" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ShowValue = val;
+			} else if ("custom" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Custom = val;
+			}
+		}
+	};
+
+	/*var x2tFromXml = ''
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t(oReader, L"iconSet", m_oIconSet)\n' + '\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"iconId"\t, m_oIconId)';
+	var _documentation = 'xsd:attribute name="iconSet" type="ST_IconSetType" use="required"/>\n' + '72 <xsd:attribute name="iconId" type="xsd:unsignedInt" use="optional"/>'
+	var _serialize = 'if (c_oSer_ConditionalFormattingIcon.iconSet === type)\n' + '\t\t\t\toCFVO.IconSet = this.stream.GetLong();\n' +
+		'\t\t\telse if (c_oSer_ConditionalFormattingIcon.iconId === type)\n' + '\t\t\t\toCFVO.IconId = this.stream.GetLong();\n' + '\t\t\telse'*/
+
+	AscCommonExcel.CConditionalFormatIconSet.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+
+		/*ReadAttributes(oReader);
+
+		if (oReader.IsEmptyNode())
+			return;*/
+	};
+
+	AscCommonExcel.CConditionalFormatIconSet.prototype.readAttr = function(reader) {
+		//documentation
+		/*xsd:attribute name="iconSet" type="ST_IconSetType" use="required"/>
+		72 <xsd:attribute name="iconId" type="xsd:unsignedInt" use="optional"/>*/
+
+		//x2t
+		/*WritingElement_ReadAttributes_Read_if		(oReader, L"iconSet", m_oIconSet)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"iconId"	, m_oIconId)*/
+
+		//serialize
+		/*  if (c_oSer_ConditionalFormattingIcon.iconSet === type)
+				oCFVO.IconSet = this.stream.GetLong();
+			else if (c_oSer_ConditionalFormattingIcon.iconId === type)
+				oCFVO.IconId = this.stream.GetLong();
+			else*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("iconSet" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.IconSet = val;
+			} else if ("iconId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.IconId = val;
+			}
+		}
+	};
+
+
+	/*var x2tFromXml = ''
+	var _x2t = '';
+	var _documentation = ''
+	var _serialize = ''*/
+
+	//by test automatic add function
+	analizeAttr(_x2t, _documentation, _serialize, true);
+	function analizeAttr (x2t, documentation, serialize) {
+		var isUpperCaseName = false;
+
+		var _getAttrVal =  function (from, _name) {
+			var _split = from.split(_name + "=\"")
+			var _res = null;
+			if (_split && _split[1]) {
+				for (var i = 0; i < _split[1].length; i++) {
+					if (!_res) {
+						_res = ""
+					}
+					if (_split[1][i] === '"') {
+						break;
+					}
+					_res += _split[1][i];
+				}
+			}
+			return _res;
+		};
+
+		var docSplit = documentation && documentation.split("attribute");
+		var attributeMapType = [];
+		if (docSplit) {
+			for (var j = 0; j < docSplit.length; j++) {
+				var _name = _getAttrVal(docSplit[j], "name");
+				var _type = _getAttrVal(docSplit[j], "type");
+				if (_name && _type) {
+					attributeMapType[_name] = _type;
+				}
+			}
+		}
+
+		var getFuncName = function (_attrName) {
+			var _res = null;
+			var _type = attributeMapType[_attrName] && attributeMapType[_attrName].toLowerCase();
+			if (_type) {
+				if (-1 !== _type.indexOf("bool")) {
+					_res = "GetValueBool()"
+				} else if (-1 !== _type.indexOf("int")) {
+					_res = "GetValueInt()"
+				}
+			}
+			return _res;
+		};
+
+		var serializeSplit = serialize ? serialize.split("if (") : null;
+		var getFuncNameFromSerialize = function (_attrName, _upperAttrName) {
+			var _res = null;
+			if (!serializeSplit) {
+				return null;
+			}
+
+			for (var n = 0; n < serializeSplit.length; n++) {
+				var isFound
+				if (-1 !== (serializeSplit[n].indexOf(_attrName + " = "))) {
+					isFound = true
+				} else if (-1 !== (serializeSplit[n].indexOf(_upperAttrName  + " = "))) {
+					isUpperCaseName = true;
+					isFound = true
+				}
+
+				if (isFound) {
+					var _split2 = serializeSplit[n].split(" = ")
+					if (_split2 && _split2[1]) {
+						var _type = _split2[1].toLowerCase()
+						if (-1 !== _type.indexOf("bool")) {
+							_res = "GetValueBool()"
+						} else if (-1 !== _type.indexOf("int") || -1 !== _type.indexOf("long")) {
+							_res = "GetValueInt()"
+						}
+					}
+					return _res;
+				}
+			}
+			return _res;
+		};
+
+		var initUpperCase = false;
+		var x2tSplit = x2t.split("WritingElement_ReadAttributes_Read_else_if")
+		var res = "var val;\n" + "\t\twhile (reader.MoveToNextAttribute()) {\n"
+		for (var i = 0; i < x2tSplit.length; i++) {
+			var attr = x2tSplit[i].split('"');
+			if (attr[1]) {
+				if (i !== 0) {
+					res += "else "
+				}
+				res += 'if ("' + attr[1] + '" === reader.GetName()) {\n'
+
+				var funcName = getFuncName(attr[1]);
+				if (funcName === null) {
+					funcName = getFuncNameFromSerialize(attr[1], attr[1][0].toUpperCase() + attr[1].slice(1));
+				} else if (!initUpperCase) {
+					getFuncNameFromSerialize(attr[1], attr[1][0].toUpperCase() + attr[1].slice(1));
+				}
+
+				initUpperCase = true;
+
+				if (funcName === null) {
+					funcName = "GetValue()";
+				}
+
+				var attrName = attr[1];
+				if (isUpperCaseName) {
+					attrName = attr[1][0].toUpperCase() + attr[1].slice(1);
+				}
+
+				res += "val = reader." + funcName + ";\n"
+				res += "this." + attrName + " = val;\n} ";
+			}
+		}
+		res += "}";
+		console.log(res)
+	}
+
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
 	window['AscCommonExcel'].CT_SharedStrings = CT_SharedStrings;
