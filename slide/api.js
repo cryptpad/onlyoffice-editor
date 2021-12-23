@@ -599,6 +599,7 @@
 		this.isKeepLinesTogether  = false;
 		this.isPresentationEditor = true;
 		this.bSelectedSlidesTheme = false;
+		this.bIsShowAnimTab       = false;
 
 		this.isPaintFormat              = AscCommon.c_oAscFormatPainterState.kOff;
 		this.isMarkerFormat             = false;
@@ -3968,6 +3969,19 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_onShowAnimTab = function(bShow) 
 	{
+		this.bIsShowAnimTab = bShow;
+		if(this.WordControl && this.WordControl.m_oLogicDocument) 
+		{
+			var slide = this.WordControl.m_oLogicDocument.Slides[this.WordControl.m_oLogicDocument.CurPage];
+			if(slide) 
+			{
+				this.WordControl.m_oDrawingDocument.OnRecalculatePage(this.WordControl.m_oLogicDocument.CurPage, slide);
+			}
+		}
+	};
+	asc_docs_api.prototype.isDrawAnimLabels = function() 
+	{
+		return this.bIsShowAnimTab;
 	};
 	asc_docs_api.prototype.asc_moveAnimationEarlier = function() 
 	{
