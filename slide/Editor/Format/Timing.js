@@ -2403,8 +2403,11 @@
 
     CTiming.prototype.getSequencesForMove = function(bEarlier, bCheckPossibility) {
         var aSeqs = this.getEffectsSequences();
+        if(bEarlier && aSeqs[0][0] !== null) {
+            aSeqs.splice(0, 0, [null]);
+        }
         var aRanges = this.getSelectionRanges(aSeqs);
-        var nSeq, aSeq, nEffect;
+        var nSeq, aSeq;
         if(aRanges.length !== 1) {
             return bCheckPossibility ? false : null;
         }
@@ -2439,24 +2442,25 @@
 
 
         var nPosStartEnd;
+        var aSeqToInsert;
         if(bEarlier) {
             if(aStart[1] === 1) {
-                aSeq = aSeqs[aStart[0] - 1];
-                nPosStartEnd = aSeq.length - 1;
+                aSeqToInsert = aSeqs[aStart[0] - 1];
+                nPosStartEnd = aSeqToInsert.length;
             }
             else {
-                aSeq = aSeqs[aStart[0]];
+                aSeqToInsert = aSeqs[aStart[0]];
                 nPosStartEnd = aStart[1] - 1;
             }
         }
         else {
             if(aEnd[1] === aSeqs[aEnd[0]].length - 1) {
-                aSeq = aSeqs[aEnd[0] + 1];
-                nPosStartEnd = aSeq.length;
+                aSeqToInsert = aSeqs[aEnd[0] + 1];
+                nPosStartEnd = aSeqToInsert.length - 1;
             }
             else {
-                aSeq = aSeqs[aEnd[0]];
-                nPosStartEnd = aSeq.length - (aEnd[1] + 2);
+                aSeqToInsert = aSeqs[aEnd[0]];
+                nPosStartEnd = aSeqToInsert.length - (aEnd[1] + 2);
             }
         }
 
@@ -2482,9 +2486,9 @@
             nPos = nPosStartEnd;
         }
         else {
-            nPos = aSeq.length - nPosStartEnd;
+            nPos = aSeqToInsert.length - nPosStartEnd;
         }
-        aSeq.splice.apply(aSeq, [nPos, 0].concat(aEffectsToInsert));
+        aSeqToInsert.splice.apply(aSeqToInsert, [nPos, 0].concat(aEffectsToInsert));
         return aSeqs;
     };
     CTiming.prototype.canMoveAnimation = function(bEarlier) {
