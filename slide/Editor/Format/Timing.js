@@ -2303,7 +2303,7 @@
                             oNewEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
-                                oNewEffect.cTn.changeDelay(oEffect.cTn.getDelay(true))
+                                oNewEffect.cTn.changeDelay(oEffect.cTn.getDelay(true));
                                 oNewEffect.select();
                                 aSeq[nEffectIdx] = oNewEffect;
                                 bNeedRebuild = true;
@@ -10580,7 +10580,7 @@
         }
     };
     CAnimationPlayer.prototype.isMainSequenceFinished = function () {
-        var oTiming = this.slide && this.slide.timing;
+        var oTiming = this.timings[0];
         if(oTiming) {
             return oTiming.isMainSequenceAtEnd();
         }
