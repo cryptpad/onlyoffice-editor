@@ -3497,6 +3497,63 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.CConditionalFormatting.prototype.toXml = function (writer, bExtendedWrite) {
+
+		/*std::wstring node_name = bExtendedWrite ? L"x14:conditionalFormatting" : L"conditionalFormatting";
+
+			writer.WriteString(L"<" + node_name);
+				if (bExtendedWrite)
+				{
+					WritingStringAttrString(L"xmlns:xm", L"http://schemas.microsoft.com/office/excel/2006/main");
+				}
+				else
+				{
+					WritingStringAttrString(L"sqref", m_oSqRef.get());
+				}
+				if (m_oPivot.IsInit() && true == m_oPivot->ToBool())
+				{
+					writer.WriteString(L" pivot=\"1\"");
+				}
+			writer.WriteString(L">");
+
+			for ( size_t i = 0; i < m_arrItems.size(); ++i)
+			{
+				if (  m_arrItems[i] )
+				{
+					m_arrItems[i]->toXML2(writer, bExtendedWrite);
+				}
+			}
+			if (bExtendedWrite)
+			{
+				writer.WriteString(L"<xm:sqref>" + m_oSqRef.get() + L"</xm:sqref>");
+			}
+			writer.WriteString(L"</" + node_name + L">");*/
+
+		var node_name = bExtendedWrite ? "x14:conditionalFormatting" : "conditionalFormatting";
+
+		writer.WriteXmlString("<" + node_name);
+		if (bExtendedWrite) {
+			//TODO
+			//writer.WriteXmlAttributeString("xmlns:xm", this.xmlns:xm);
+		} else {
+			writer.WriteXmlAttributeString("sqref", AscCommonExcel.getSqRefString(this.ranges));
+		}
+		if (this.pivot) {
+			writer.WriteXmlString(" pivot=\"1\"");
+		}
+		writer.WriteXmlString(">");
+
+		for (var i = 0; i < this.aRules.length; ++i) {
+			if (this.aRules[i]) {
+				this.aRules[i].toXML(writer, bExtendedWrite);
+			}
+		}
+		if (bExtendedWrite) {
+			writer.WriteXmlString("<xm:sqref>" + AscCommonExcel.getSqRefString(this.ranges) + "</xm:sqref>");
+		}
+		writer.WriteXmlString("</" + node_name + ">");
+	};
+
 	AscCommonExcel.CConditionalFormattingRule.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -3702,6 +3759,110 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.CConditionalFormattingRule.prototype.toXml = function (writer, bExtendedWrite) {
+
+		/*if (false == isValid()) return;
+
+			std::wstring node_name = bExtendedWrite ? L"x14:cfRule" : L"cfRule";
+
+			writer.WriteString(L"<" + node_name);
+				WritingStringAttrString(L"type", m_oType->ToString());
+				WritingStringAttrInt(L"priority", m_oPriority->GetValue());
+				if (m_oAboveAverage.IsInit() && false == m_oAboveAverage->ToBool())
+					writer.WriteString(L" aboveAverage=\"0\"");
+				if (m_oBottom.IsInit() && true == m_oBottom->ToBool())
+					writer.WriteString(L" bottom=\"1\"");
+				WritingStringNullableAttrInt(L"dxfId", m_oDxfId, m_oDxfId->GetValue());
+				if (m_oEqualAverage.IsInit() && true == m_oEqualAverage->ToBool())
+					writer.WriteString(L" equalAverage=\"1\"");
+				WritingStringNullableAttrString(L"operator", m_oOperator, m_oOperator->ToString());
+				if (m_oPercent.IsInit() && true == m_oPercent->ToBool())
+					writer.WriteString(L" percent=\"1\"");
+				WritingStringNullableAttrInt(L"rank", m_oRank, m_oRank->GetValue());
+				WritingStringNullableAttrInt(L"stdDev", m_oStdDev, m_oStdDev->GetValue());
+				if (m_oStopIfTrue.IsInit() && true == m_oStopIfTrue->ToBool())
+					writer.WriteString(L" stopIfTrue=\"1\"");
+				WritingStringNullableAttrEncodeXmlString(L"text", m_oText, m_oText.get());
+				WritingStringNullableAttrString(L"timePeriod", m_oTimePeriod, m_oTimePeriod->ToString());
+
+				if (bExtendedWrite)
+				{
+					if (false == m_oId.IsInit())
+					{
+						WritingStringAttrString(L"id", L"{" + XmlUtils::GenerateGuid() + L"}");
+					}
+					else
+						WritingStringNullableAttrString(L"id", m_oId, m_oId.get());
+				}
+			writer.WriteString(L">");
+
+			if (m_oIconSet.IsInit())
+				m_oIconSet->toXML2(writer, bExtendedWrite);
+			if (m_oColorScale.IsInit())
+				m_oColorScale->toXML2(writer, bExtendedWrite);
+			if (m_oDataBar.IsInit())
+				m_oDataBar->toXML2(writer, bExtendedWrite);
+
+			for (size_t i = 0; i < m_arrFormula.size(); i++)
+			{
+				if (m_arrFormula[i].IsInit())
+					m_arrFormula[i]->toXML2(writer, bExtendedWrite);
+			}
+
+			if (m_oDxf.IsInit() && bExtendedWrite)
+			{
+				m_oDxf->toXML2(writer, L"x14:dxf");
+			}
+
+			writer.WriteString(L"</" + node_name + L">");*/
+
+		var node_name = bExtendedWrite ? "x14:cfRule" : "cfRule";
+
+		writer.WriteXmlString("<" + node_name);
+		writer.WriteXmlAttributeString("type", this.type);
+		writer.WriteXmlAttributeNumber("priority", this.priority);
+
+		if (false === this.aboveAverage) {
+			writer.WriteXmlString(" aboveAverage=\"0\"");
+		}
+		if (false === this.bottom) {
+			writer.WriteXmlString(" bottom=\"1\"");
+		}
+		writer.WriteXmlNullableAttributeNumber("dxfId", this.dxfId);
+		if (true === this.equalAverage) {
+			writer.WriteXmlString(" equalAverage=\"1\"");
+		}
+		writer.WriteXmlNullableAttributeString("operator", this.operator);
+		if (true === this.percent) {
+			writer.WriteXmlString(" percent=\"1\"");
+		}
+		writer.WriteXmlNullableAttributeNumber("rank", this.rank);
+		writer.WriteXmlNullableAttributeNumber("stdDev", this.stdDev);
+		if (true === this.stopIfTrue) {
+			writer.WriteXmlString(" stopIfTrue=\"1\"");
+		}
+		writer.WriteXmlNullableAttributeStringEncode("text", this.text);
+		writer.WriteXmlNullableAttributeString("timePeriod", this.timePeriod);
+
+		if (bExtendedWrite) {
+			//TODO
+			if (this.id) {
+				writer.WriteXmlAttributeString("id", this.id);
+			} else {
+				writer.WriteXmlNullableAttributeString("id", this.id);
+			}
+		}
+		writer.WriteXmlString(">");
+
+
+		for (var i = 0; i < this.aRuleElements.length; ++i) {
+			var elem = this.aRuleElements[i];
+			elem.toXML(writer, bExtendedWrite);
+		}
+
+		writer.WriteXmlString("</" + node_name + ">");
+	};
+
 	AscCommonExcel.CColorScale.prototype.fromXml = function (reader) {
 
 		//documentation
@@ -3768,6 +3929,53 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val.fromXml(reader);
 				this.aRuleElements.push(val);*/
 			}
+		}
+	};
+
+	AscCommonExcel.CColorScale.prototype.toXml = function (writer, bExtendedWrite) {
+
+		/*if (1 < m_arrValues.size() && 1 < m_arrColors.size()) // min 2 + 2
+			{
+				std::wstring sValue;
+				writer.WriteString(L"<colorScale>");
+
+				for ( size_t i = 0; i < m_arrValues.size(); ++i)//todooo - проверить можно ли не чередовать,а как есть записать
+				{
+					if ( m_arrValues[i].IsInit() )
+					{
+						m_arrValues[i]->toXML2(writer, bExtendedWrite);
+					}
+					//if ( (i < m_arrColors.size()) && (m_arrColors[i].IsInit()) )
+					//{
+					//	m_arrColors[i]->toXML(writer);
+					//}
+				}
+				for ( size_t i = 0; i < m_arrColors.size(); ++i)
+		{
+			if ( m_arrColors[i].IsInit() )
+			{
+				m_arrColors[i]->toXML(writer);
+			}
+		}
+		writer.WriteString(L"</colorScale>");
+	}*/
+
+		if (1 < this.aCFVOs.length && 1 < this.aColors.length) // min 2 + 2
+		{
+			writer.WriteXmlString("<colorScale>");
+			var i;
+			for (i = 0; i < this.aCFVOs.length; ++i)//todooo - проверить можно ли не чередовать,а как есть записать
+			{
+				if (this.aCFVOs[i]) {
+					this.aCFVOs[i].toXML(writer, bExtendedWrite);
+				}
+			}
+			for (i = 0/*m_arrValues.length*/; i < this.aColors.length; ++i) {
+				if (this.aColors[i]) {
+					this.aColors[i].toXML(writer);
+				}
+			}
+			writer.WriteXmlString("</colorScale>");
 		}
 	};
 
@@ -4473,10 +4681,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	/*
-	val = new COutlinePr();
-	val.fromXml();
-	this.OutlinePr = val;*/
+
+	
+
+
+
+
+
+
+
 
 
 	/*var _x2tFromXml = ''
@@ -4658,6 +4871,111 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 		console.log(res);
 	}
+
+	var _x2tToXml = 'if (1 < m_arrValues.size() && 1 < m_arrColors.size()) // min 2 + 2\n' + '\t{\n' + '        std::wstring sValue;\n' +
+		'\t\twriter.WriteString(L"<colorScale>");\n' + '\n' +
+		'        for ( size_t i = 0; i < m_arrValues.size(); ++i)//todooo - проверить можно ли не чередовать,а как есть записать\n' + '        {\n' +
+		'\t\t\tif ( m_arrValues[i].IsInit() )\n' + '            {\n' + '                m_arrValues[i]->toXML2(writer, bExtendedWrite);\n' + '            }\n' +
+		'\t\t\t//if ( (i < m_arrColors.size()) && (m_arrColors[i].IsInit()) )\n' + '\t\t\t//{\n' + '\t\t\t//\tm_arrColors[i]->toXML(writer);\n' + '\t\t\t//}\n' + '\t\t}\n' +
+		'        for ( size_t i = 0/*m_arrValues.size()*/; i < m_arrColors.size(); ++i)\n' + '        {\n' + '\t\t\tif ( m_arrColors[i].IsInit() )\n' + '            {\n' +
+		'                m_arrColors[i]->toXML(writer);\n' + '            }\n' + '\t\t}\n' + '\t\twriter.WriteString(L"</colorScale>");\n' + '\t}'
+
+	analizeXmlTo(_x2tToXml);
+	function analizeXmlTo (x2tToXml, isUpperCaseName) {
+
+		var res = "TEST.prototype.toXml = function (writer) {\n"
+
+		res += '\n/*' + x2tToXml + '*/\n\n';
+
+		var toAttrMap = {
+			WritingStringNullableAttrInt: "WriteXmlNullableAttributeNumber",
+			WritingStringNullableAttrString: "WriteXmlNullableAttributeString",
+			WritingStringNullableAttrEncodeXmlString: "WriteXmlNullableAttributeStringEncode",
+			WritingStringAttrString: "WriteXmlAttributeString",
+			WritingStringAttrInt: "WriteXmlAttributeNumber"
+		};
+
+		var splitRows = x2tToXml.split("\n");
+		for (var i = 0; i < splitRows.length; i++) {
+			var isWriteAttr = false;
+			if (-1 != splitRows[i].indexOf("WritingStringNullableAttrInt")) {
+				isWriteAttr = "WritingStringNullableAttrInt";
+			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrString")) {
+				isWriteAttr = "WritingStringNullableAttrString";
+			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrEncodeXmlString")) {
+				isWriteAttr = "WritingStringNullableAttrEncodeXmlString";
+			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrEncodeXmlString")) {
+				isWriteAttr = "WritingStringNullableAttrEncodeXmlString";
+			} else if (-1 != splitRows[i].indexOf("WritingStringAttrString")) {
+				isWriteAttr = "WritingStringAttrString";
+			} else if (-1 != splitRows[i].indexOf("WritingStringAttrInt")) {
+				isWriteAttr = "WritingStringAttrInt";
+			}
+
+			if (isWriteAttr) {
+				var attrName = splitRows[i].indexOf('L"');
+				if (-1 !== attrName) {
+					attrName = splitRows[i].substring(attrName)
+					attrName = attrName.split('"')
+					if (attrName && attrName[1]) {
+						attrName = attrName[1]
+					}
+				}
+
+				if (!attrName) {
+					res += "ERROR Do not found attr NAme"
+				} else {
+					var propName = attrName;
+					if (isUpperCaseName) {
+						propName = attrName[0].toUpperCase() + attrName.slice(1);
+					}
+					res += "writer." + toAttrMap[isWriteAttr] + '("' + attrName + '", ' + "this." + propName + ");\n"
+				}
+			} else {
+				if (-1 != splitRows[i].indexOf("WriteString")) {
+					splitRows[i] = splitRows[i].replaceAll("WriteString", "WriteXmlString");
+				}
+				if (-1 != splitRows[i].indexOf("std::wstring")) {
+					splitRows[i] = splitRows[i].replaceAll("std::wstring", "var");
+				}
+				if (-1 != splitRows[i].indexOf("size_t")) {
+					splitRows[i] = splitRows[i].replaceAll("size_t", "var");
+				}
+				if (-1 != splitRows[i].indexOf(' (L"')) {
+					splitRows[i] = splitRows[i].replaceAll(' (L"', '("');
+				}
+				if (-1 != splitRows[i].indexOf('(L"')) {
+					splitRows[i] = splitRows[i].replaceAll('(L"', '("');
+				}
+				if (-1 != splitRows[i].indexOf('(L')) {
+					splitRows[i] = splitRows[i].replaceAll('(L', '(');
+				}
+				if (-1 != splitRows[i].indexOf('L"')) {
+					splitRows[i] = splitRows[i].replaceAll('L"', '"');
+				}
+				if (-1 != splitRows[i].indexOf('.size()')) {
+					splitRows[i] = splitRows[i].replaceAll('.size()', '.length');
+				}
+				if (-1 != splitRows[i].indexOf('->toXML')) {
+					splitRows[i] = splitRows[i].replaceAll('->toXML', '.toXML');
+				}
+				if (-1 != splitRows[i].indexOf('->')) {
+					splitRows[i] = splitRows[i].replaceAll('->', '.');
+				}
+
+
+				res += splitRows[i] + "\n";
+			}
+
+		}
+
+		res += "};"
+
+		console.log(res)
+		return res;
+	}
+
+
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CT_Workbook = CT_Workbook;
