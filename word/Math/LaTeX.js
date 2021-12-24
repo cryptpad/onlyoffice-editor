@@ -328,7 +328,6 @@ EquationProcessing.prototype.AddFunction = function (FormArgument, strFAtom) {
 		if (this.StartBracet[this.Parent.arrAtoms[this.Parent.intIndexArray + 1]]) {
 			this.AddBracetBlockToIgnor();
 		}
-
 		this.Parent.StartLexer(Function.getArgument());
 	}
 
@@ -691,14 +690,15 @@ EquationProcessing.prototype.AddLimit = function (FormArgument, strFAtom) {
 	if (type === 'Unicode') {
 		var strTempSymbol = this.Parent.arrAtoms[this.Parent.intIndexArray + 1].charCodeAt();
 		
-		// 9524 = ┴
 		if(strTempSymbol == 9524) {
 			this.Parent.intIndexArray++;
-			typeOfBottom = 1;
+			typeOfBottom = '^';
 		} else if (strTempSymbol == 9516) {
 			this.Parent.intIndexArray++;
-			typeOfBottom = 0;
+			typeOfBottom = '_';
 		}
+
+		typeOfBottom = this.GetTypeOrScript([typeOfBottom]);
 	}
 	else {
 		typeOfBottom = this.BracetSyntaxChecker(this.Parent.intIndexArray);
@@ -729,6 +729,43 @@ var GetTypeOfIndexLimit = {
 	'DEGREE_SUBSCRIPT': 0,
 	'DEGREE_SUPERSCRIPT': 1
 };
+//Radical
+EquationProcessing.prototype.AddRadical = function (FormArgument) {
+	var typeOfRadical = this.GetTypeOfRadical();
+
+	var Radical = this.CreateRadical(FormArgument, typeOfRadical);
+	this.FillRadicalContent(Radical, typeOfRadical);
+};
+EquationProcessing.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
+	var Pr = {};
+	if (typeOfRadical == SQUARE_RADICAL) {
+		Pr.degHide = true;
+	}
+	else if (typeOfRadical == DEGREE_RADICAL) {
+		Pr.degHide = false;
+	}
+
+	var Radical = FormArgument.Add_Radical(Pr, null, null);
+	return Radical
+};
+EquationProcessing.prototype.GetTypeOfRadical = function () {
+	if (this.Parent.arrAtoms[this.Parent.intIndexArray + 1] == '[') {
+		return DEGREE_RADICAL;
+	} else {
+		return SQUARE_RADICAL;
+	}
+};
+EquationProcessing.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
+	if (this.Parent.arrAtoms[this.Parent.intIndexArray + 1] == '[') {
+		this.AddBracetBlockToIgnor();
+		this.Parent.StartLexer(Radical.getDegree());
+	}
+
+	if (this.Parent.arrAtoms[this.Parent.intIndexArray + 1] == '{') {
+		this.AddBracetBlockToIgnor();
+		this.Parent.StartLexer(Radical.getBase());
+	}
+}
 
 // CLaTeXParser.prototype.CheckSyntaxOfFraction = function(strFAtom) {
 // 	this.Processing.CheckIsFrac()
@@ -1534,49 +1571,6 @@ CLaTeXParser.prototype.GetErrorNames = function(map) {
 	strSentence = '(' + strSentence + '...' + ')';
 	return strSentence
 };
-//Radical
-CLaTeXParser.prototype.AddRadical = function (FormArgument) {
-	var typeOfRadical = this.GetTypeOfRadical();
-
-	var Radical = this.CreateRadical(FormArgument, typeOfRadical);
-	this.FillRadicalContent(Radical, typeOfRadical);
-};
-CLaTeXParser.prototype.CreateRadical = function (FormArgument, typeOfRadical) {
-	if (typeOfRadical == SQUARE_RADICAL) {
-		this.Pr.degHide = true;
-	}
-	else if (typeOfRadical == DEGREE_RADICAL) {
-		this.Pr.degHide = false;
-	}
-
-	var Radical = FormArgument.Add_Radical(this.Pr, null, null);
-	return Radical
-};
-CLaTeXParser.prototype.GetTypeOfRadical = function () {
-	if (this.CheckFutureAtom() == '[') {
-		return DEGREE_RADICAL;
-	} else {
-		return SQUARE_RADICAL;
-	}
-};
-CLaTeXParser.prototype.FillRadicalContent = function (Radical, typeOfRadical) {
-	if (typeOfRadical == DEGREE_RADICAL) {
-		if (this.CheckSyntaxSequence(["["])) {
-			this.StartLexer(Radical.getDegree());
-		}
-		else {
-			this.GetError('Проблема с индексом корня: sqrt[_]{}')
-		}
-	}
-
-	if (this.CheckSyntaxSequence(["{"])) {
-		this.StartLexer(Radical.getBase());
-	}
-
-	else {
-		this.GetError('Проблема с данными корня: sqrt[]{_}')
-	}
-};
 //Bracet
 CLaTeXParser.prototype.AddBracet = function (FormArgument, open, close) {
 	if (open == undefined) {
@@ -2287,10 +2281,10 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		// 	Parser.AddBinom(FormArgument);
 		// 	intFAtoms++;
 		// }
-		// else if (strFAtom == "\\sqrt" && !Parser.isError) {
-		// 	Parser.AddRadical(FormArgument);
-		// 	intFAtoms++;
-		// }
+		else if (strFAtom == "\\sqrt" && !Parser.isError) {
+			Parser.Processing.AddRadical(FormArgument);
+			intFAtoms++;
+		}
 		// else if (strFAtom == "\\bmod" && !Parser.isError) {
 		// 	FormArgument.Add_Box(Parser.Pr, "mod")
 		// 	intFAtoms++;
@@ -2393,6 +2387,11 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 							pos: content.Pr.pos
 						}
 					}
+					else if(CName == 'CLimit') {
+						data = {
+							type: content.Pr.type
+						}
+					}
 					else if(CName == 'CEqArray') {
 						data = {
 							row: content.Pr.row
@@ -2421,7 +2420,7 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 							data: data
 						}
 					}
-					else 
+					else
 					{
 						WriteObject[name] = {}
 					}
@@ -2436,7 +2435,7 @@ ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 		}
 		else {
 			WriteObject[inputObj.constructor.name] = String.fromCharCode(inputObj.getCodeChr());
-		}	
+		}
 	}
 	return this.CheckIsObjectEmpty(WriteObject)
 };
@@ -2711,9 +2710,17 @@ var GetNaryCode = {
 	8896: '\\bigwedge'
 };
 ToLaTex.prototype.AddLimit = function(name, obj) {
-	var objDegree = Object.keys(obj[name]);
-	this.Convert(obj[name][objDegree[0]], null, '_{');
-	this.Convert(obj[name][objDegree[1]], null, '}');
+	var objDegree = this.GetNamesOfObject(obj[name]);
+	var LimitType = obj[name].data.type;
+
+	if (LimitType === 0) {
+		this.Convert(obj[name][objDegree[0]], null, '_{');
+	}
+	else if (LimitType === 1) {
+		this.Convert(obj[name][objDegree[0]], null, '^{');
+	}
+
+	this.Convert(obj[name][objDegree[1]], '', '}');
 };
 ToLaTex.prototype.AddAccent = function(name, obj) {
 	var intType = obj[name].data.chr;
@@ -3374,6 +3381,7 @@ CUnicodeParser.prototype.parser = function() {
 		if (
 			this.str[i + 1] == "+" ||
 			this.str[i + 1] == "^" ||
+			this.str[i + 1] == '&' ||
 			this.str[i + 1] == "_" ||
 			this.str[i + 1] == "-" ||
 			this.str[i + 1] == "┴" ||
@@ -3397,6 +3405,7 @@ CUnicodeParser.prototype.parser = function() {
 			strTempWord == "〗" ||
 			strTempWord == '(' ||
 			strTempWord == ')' ||
+			strTempWord == '&' ||
 			strTempWord == '}' ||
 			strTempWord == '{' ||
 			strTempWord == '+' ||
@@ -3485,6 +3494,9 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet, countOfAtoms) {
 		}
 		else if (GetTypeOfFunction[atom] != null) {
 			Parser.AddFunction(FormArgument, atom);
+		}
+		else if (atom.charCodeAt() === 8730) {
+			Parser.Processing.AddRadical(FormArgument);
 		}
 		else if (Parser.Processing.CheckIsBrackets(atom)) {
 			Parser.Processing.AddBracet(FormArgument);
