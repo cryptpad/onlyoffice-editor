@@ -2929,8 +2929,16 @@ ParaRun.prototype.GetSelectedText = function(bAll, bClearText, oPr)
                 Str += AscCommon.encodeSurrogateChar(Item.Value);
                 break;
             }
-            case para_Space:
-            case para_Tab  : Str += " "; break;
+			case para_Space:
+			{
+				Str += " ";
+				break;
+			}
+			case para_Tab:
+			{
+				Str += oPr && oPr.TabSymbol ? oPr.TabSymbol : ' ';
+				break;
+			}
 			case para_NewLine:
 			{
 				if (oPr && true === oPr.NewLine)
