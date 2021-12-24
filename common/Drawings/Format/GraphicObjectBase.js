@@ -2701,10 +2701,14 @@
         return (this.parent && this.parent.timing) || null;
     };
     CGraphicObjectBase.prototype.drawAnimLabels = function(oGraphics) {
-        if(AscCommon.IsShapeToImageConverter) {
+        if(oGraphics.IsThumbnail === true || oGraphics.IsDemonstrationMode === true || AscCommon.IsShapeToImageConverter) {
             return;
         }
         if(this.group) {
+            return;
+        }
+        var oApi = Asc.editor || editor;
+        if(!oApi.isDrawAnimLabels || !oApi.isDrawAnimLabels()) {
             return;
         }
         var oTiming = this.getTimimng();
