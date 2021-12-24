@@ -2299,10 +2299,11 @@
                     for(nEffectIdx = 1; nEffectIdx < aSeq.length; ++nEffectIdx) {
                         oEffect = aSeq[nEffectIdx];
                         if(oEffect.isSelected()) {
+                            sObjectId = oEffect.getObjectId();
                             oNewEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
-                                oNewEffect.cTn.changeDelay(oEffect.getDelay(true))
+                                oNewEffect.cTn.changeDelay(oEffect.cTn.getDelay(true))
                                 oNewEffect.select();
                                 aSeq[nEffectIdx] = oNewEffect;
                                 bNeedRebuild = true;
