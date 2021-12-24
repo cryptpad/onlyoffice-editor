@@ -2382,9 +2382,9 @@
 		
 		return oTmlp;
 	};
-	ReaderFromJSON.prototype.TnLstFromJSON = function(oParsedTnLst)
+	ReaderFromJSON.prototype.TnLstFromJSON = function(oParsedTnLst, bChildLst)
 	{
-		var oTnLSt   = new AscFormat.CTnLst();
+		var oTnLSt   = bChildLst ? new AscFormat.CChildTnLst() : new AscFormat.CTnLst();
 		var oTempElm = null;
 		for (var nElm = 0; nElm < oParsedTnLst.length; nElm++)
 		{
@@ -2444,7 +2444,7 @@
 	{
 		var oCTn = new AscFormat.CCTn();
 
-		oParsedCTn.childTnLst && oCTn.setChildTnLst(this.TnLstFromJSON(oParsedCTn.childTnLst));
+		oParsedCTn.childTnLst && oCTn.setChildTnLst(this.TnLstFromJSON(oParsedCTn.childTnLst, true));
 		oParsedCTn.endCondLst && oCTn.setEndCondLst(this.CondLstFromJSON(oParsedCTn.endCondLst));
 		oParsedCTn.endSync    && oCTn.setEndSync(this.CondFromJSON(oParsedCTn.endSync));
 		oParsedCTn.iterate    && oCTn.setIterate(this.IterateFromJSON(oParsedCTn.iterate));

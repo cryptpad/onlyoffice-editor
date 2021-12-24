@@ -484,7 +484,8 @@
 			drawing:   this.SerDrawing(oSmartArt.drawing),
 			nvGrpSpPr: this.SerUniNvPr(oSmartArt.nvGrpSpPr),
 			spPr:      this.SerSpPr(oSmartArt.spPr),
-			type:      "smartArt"
+			type:      "smartArt",
+			artType:   oSmartArt.type
 		}
 	};
 	WriterToJSON.prototype.SerStyleDef = function(oStyleDef)
@@ -1006,12 +1007,12 @@
 			animLvl:       this.SerBaseFormatObj(oPresLayoutVars.animLvl, "animLvl"),
 			animOne:       this.SerBaseFormatObj(oPresLayoutVars.animOne, "animOne"),
 			bulletEnabled: this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "bulletEnabled"),
-			chMax:         this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "chMax"),
-			chPref:        this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "chPref"),
-			dir:           this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "dir"),
-			hierBranch:    this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "hierBranch"),
-			orgChart:      this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "orgChart"),
-			resizeHandles: this.SerBaseFormatObj(oPresLayoutVars.bulletEnabled, "resizeHandles"),
+			chMax:         this.SerBaseFormatObj(oPresLayoutVars.chMax, "chMax"),
+			chPref:        this.SerBaseFormatObj(oPresLayoutVars.chPref, "chPref"),
+			dir:           this.SerBaseFormatObj(oPresLayoutVars.dir, "dir"),
+			hierBranch:    this.SerBaseFormatObj(oPresLayoutVars.hierBranch, "hierBranch"),
+			orgChart:      this.SerBaseFormatObj(oPresLayoutVars.orgChart, "orgChart"),
+			resizeHandles: this.SerBaseFormatObj(oPresLayoutVars.resizeHandles, "resizeHandles"),
 			objType:       "varLst"
 		}
 	};
@@ -1852,7 +1853,12 @@
 			},
 			flipH: oXfrm.flipH,
 			flipV: oXfrm.flipV,
-			rot: oXfrm.rot
+			rot: oXfrm.rot,
+
+			chOffX: oXfrm.chOffX ? private_MM2EMU(oXfrm.chOffX) : oXfrm.chOffX,
+    		chOffY: oXfrm.chOffY ? private_MM2EMU(oXfrm.chOffY) : oXfrm.chOffY,
+    		chExtX: oXfrm.chExtX ? private_MM2EMU(oXfrm.chExtX) : oXfrm.chExtX,
+   			chExtY: oXfrm.chExtY ? private_MM2EMU(oXfrm.chExtY) : oXfrm.chExtY
 		}
 	};
 	WriterToJSON.prototype.SerLn = function(oLn)
@@ -4686,18 +4692,18 @@
 			switch (ItemType)
 			{
 				case para_PageNum:
-					oRunObject["content"].push(sTempRunText);
+					sTempRunText !== "" && oRunObject["content"].push(sTempRunText);
 					oRunObject["content"].push(SerPageNum(Item));
 					sTempRunText = '';
 					break;
 				case para_PageCount:
-					oRunObject["content"].push(sTempRunText);
+					sTempRunText !== "" && oRunObject["content"].push(sTempRunText);
 					oRunObject["content"] = oRunObject["content"].concat(SerPageCount(Item));
 					sTempRunText = '';
 					break;
 				case para_Drawing:
 				{
-					oRunObject["content"].push(sTempRunText);
+					sTempRunText !== "" && oRunObject["content"].push(sTempRunText);
 					oRunObject["content"].push(this.SerParaDrawing(Item));
 					sTempRunText = '';
 					break;
@@ -4712,15 +4718,15 @@
 					sTempRunText += String.fromCharCode(Item.Value);
 					break;
 				}
-				case para_Math_Text:
 				case para_Math_BreakOperator:
 				case para_Math_Placeholder:
-				{
-					sTempRunText += String.fromCharCode(Item.value);
+				case para_Math_Text:
+					sTempRunText !== "" && oRunObject["content"].push(sTempRunText);
+					oRunObject["content"].push(this.SerMathText(Item));
+					sTempRunText = '';
 					break;
-				}
 				case para_NewLine:
-					oRunObject["content"].push(sTempRunText);
+					sTempRunText !== "" && oRunObject["content"].push(sTempRunText);
 					oRunObject["content"].push(SerParaNewLine(Item));
 					sTempRunText = '';
 					break;
@@ -4730,7 +4736,7 @@
 					break;
 				}
 				case para_Tab:
-					oRunObject["content"].push(sTempRunText);
+					sTempRunText !== "" && oRunObject["content"].push(sTempRunText);
 					oRunObject["content"].push({
 						type: "tab"
 					});
@@ -4778,9 +4784,16 @@
 				break;
 		}
 		if (ContentLen !== 0)
-			oRunObject["content"].push(sTempRunText);
+			sTempRunText !== "" && oRunObject["content"].push(sTempRunText);
 
 		return oRunObject;
+	};
+	WriterToJSON.prototype.SerMathText = function(oMathText)
+	{
+		return {
+			value: oMathText.value,
+			type: "mathTxt"
+		}
 	};
 	WriterToJSON.prototype.SerParaFootEndNoteRef = function(oFootnoteRef)
 	{
@@ -7159,6 +7172,7 @@
 			style:       this.SerSpStyle(oShape.style),
 			bodyPr:      this.SerBodyPr(oShape.bodyPr),
 			content:     oSerContent,
+			modelId:     oShape.modelId,
 			type:        "shape",
 		}
 
@@ -8079,27 +8093,41 @@
 		for (var nElm = 0; nElm < aContent.length; nElm++)
 		{
 			// записываем текстовый контент в ран(либо обычный ран либо mathRun)
-			if (typeof aContent[nElm] === "string")
+			if (typeof aContent[nElm] === "string" || aContent[nElm].type === "mathTxt")
 			{
 				if (oParsedRun.type === "mathRun")
 				{
-					for (var nChar = 0; nChar < aContent[nElm].length; nChar++)
+					// if (0x0026 == aContent[nElm].charCodeAt(0))
+					// 	var oText = new CMathAmp();
+					// else
+					// {
+					// 	var oText = new CMathText(false);
+					// 	if (aContent[nElm][nChar] === String.fromCharCode(StartTextElement))
+					// 	{
+					// 		oText.SetPlaceholder();
+					// 		oRun.Add_ToContent(0, oText, false);
+					// 	}
+					// 	else
+					// 	{
+					// 		oText.add(aContent[nElm][nChar]);
+					// 		oRun.Add(oText, true);
+					// 	}
+					// }
+
+					if (0x0026 == aContent[nElm].value)
+						var oText = new CMathAmp();
+					else
 					{
-						if (0x0026 == aContent[nElm].charCodeAt(0))
-							var oText = new CMathAmp();
+						var oText = new CMathText(false);
+						if (aContent[nElm].value === StartTextElement)
+						{
+							oText.SetPlaceholder();
+							oRun.Add_ToContent(0, oText, false);
+						}
 						else
 						{
-							var oText = new CMathText(false);
-							if (aContent[nElm][nChar] === String.fromCharCode(StartTextElement))
-							{
-								oText.SetPlaceholder();
-								oRun.Add_ToContent(0, oText, false);
-							}
-							else
-							{
-								oText.addTxt(aContent[nElm][nChar]);
-								oRun.Add(oText, true);
-							}
+							oText.add(aContent[nElm].value);
+							oRun.Add(oText, true);
 						}
 					}
 				}
@@ -11623,7 +11651,8 @@
 	ReaderFromJSON.prototype.GroupShapeFromJSON = function(oParsedGrpShp, oParentDrawing)
 	{
 		var oGroupShape = new AscFormat.CGroupShape();
-
+		var oTempGraphObj = null;
+		
 		if (oParentDrawing)
 		{
 			oGroupShape.setParent(oParentDrawing);
@@ -11631,8 +11660,12 @@
 		}
 
 		for (var nDrawing = 0; nDrawing < oParsedGrpShp.spTree.length; nDrawing++)
-			oGroupShape.addToSpTree(oGroupShape.spTree.length, this.GraphicObjFromJSON(oParsedGrpShp.spTree[nDrawing]));
-
+		{
+			oTempGraphObj = this.GraphicObjFromJSON(oParsedGrpShp.spTree[nDrawing]);
+			oGroupShape.addToSpTree(oGroupShape.spTree.length, oTempGraphObj);
+			oTempGraphObj.setGroup(oGroupShape);
+		}
+			
 		oParentDrawing.spPr && oGroupShape.setSpPr(this.SpPrFromJSON(oParentDrawing.spPr, oGroupShape));
 
 		oGroupShape.setBDeleted(false);
@@ -11642,6 +11675,7 @@
 	{
 		var oSmartArt = new AscFormat.SmartArt();
 
+		oParsedArt.artType != undefined && oSmartArt.setType(oParsedArt.artType);
 		oParsedArt.colorsDef && oSmartArt.setColorsDef(this.ColorsDefFromJSON(oParsedArt.colorsDef));
 		oParsedArt.dataModel && oSmartArt.setDataModel(this.DataFromJSON(oParsedArt.dataModel));
 		oParsedArt.layoutDef && oSmartArt.setLayoutDef(this.LayoutDefFromJSON(oParsedArt.layoutDef));
@@ -11669,11 +11703,16 @@
 	ReaderFromJSON.prototype.DrawingFromJSON = function(oParsedDrawing)
 	{
 		var oDrawing = new AscFormat.Drawing();
+		var oTempGraphObj = null; 
 
 		for (var nDrawing = 0; nDrawing < oParsedDrawing.spTree.length; nDrawing++)
-			oDrawing.addToSpTree(oDrawing.spTree.length, this.GraphicObjFromJSON(oParsedDrawing.spTree[nDrawing]));
+		{
+			oTempGraphObj = this.GraphicObjFromJSON(oParsedDrawing.spTree[nDrawing]);
+			oDrawing.addToSpTree(oDrawing.spTree.length, oTempGraphObj);
+			oTempGraphObj.setGroup(oDrawing);
+		}
 
-		oParsedDrawing.spPr && oDrawing.setSpPr(this.SpPrFromJSON(oParsedDrawing.spPr));
+		oParsedDrawing.spPr && oDrawing.setSpPr(this.SpPrFromJSON(oParsedDrawing.spPr, oDrawing));
 
 		oDrawing.setBDeleted(false);
 		//oDrawing.recalculate();
@@ -12699,6 +12738,8 @@
 			else
 				oShape.setTxBody(this.TxPrFromJSON(oParsedShape.content, oShape));
 		}
+
+		oParsedShape.modelId != undefined && oShape.setModelId(oParsedShape.modelId);
 
 		oShape.setBDeleted(false);
 		oShape.recalculate();
@@ -14834,6 +14875,11 @@
 		oParsedXfrm.flipH != undefined && oXfrm.setFlipH(oParsedXfrm.flipH);
 		oParsedXfrm.flipV != undefined && oXfrm.setFlipV(oParsedXfrm.flipV);
 		oParsedXfrm.rot != undefined && oXfrm.setRot(oParsedXfrm.rot);
+
+		oParsedXfrm.chOffX != undefined && oXfrm.setChOffX(private_EMU2MM(oParsedXfrm.chOffX));
+		oParsedXfrm.chOffY != undefined && oXfrm.setChOffY(private_EMU2MM(oParsedXfrm.chOffY));
+		oParsedXfrm.chExtX != undefined && oXfrm.setChExtX(private_EMU2MM(oParsedXfrm.chExtX));
+		oParsedXfrm.chExtY != undefined && oXfrm.setChExtY(private_EMU2MM(oParsedXfrm.chExtY));
 
 		return oXfrm;
 	};
