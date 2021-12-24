@@ -4063,6 +4063,11 @@ CGraphicObjects.prototype =
 
     },
 
+    onChangeDrawingsSelection: function() 
+    {
+        
+    },
+
     calculateAfterChangeTheme: function()
     {
         /*todo*/
@@ -4077,6 +4082,12 @@ CGraphicObjects.prototype =
     updateSelectionState: function()
     {
         return;
+    },
+
+    isChartSelection: function () 
+    {
+        var oSelectedor = this.selection.groupSelection ? this.selection.groupSelection : this;
+        return AscCommon.isRealObject(oSelectedor.chartSelection);
     },
 
 

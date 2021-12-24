@@ -10828,6 +10828,9 @@
       oCopy.setBDeleted2(false);
       return oCopy;
     };
+    SmartArt.prototype.getTypeName = function() {
+      return AscCommon.translateManager.getValue("Diagram");
+    };
 
     function SmartArtTree(rootInfo, rootData, parent) {
       CBaseFormatObject.call(this);

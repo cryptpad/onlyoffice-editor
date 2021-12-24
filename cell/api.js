@@ -234,6 +234,9 @@ var editor;
 		}
 		return result;
 	};
+	spreadsheet_api.prototype.asc_getAdditionalCurrencySymbols = function () {
+		return AscCommon.g_aAdditionalCurrencySymbols;
+	};
 	spreadsheet_api.prototype.asc_getLocaleExample = function(format, value, culture) {
 		var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
 		var numFormat = AscCommon.oNumFormatCache.get(format);
@@ -284,7 +287,7 @@ var editor;
     if (!cultureInfo) {
       cultureInfo = AscCommon.g_aCultureInfos[1033];
     }
-    return AscCommonExcel.getCurrencyFormat(cultureInfo, 2, true, true);
+    return AscCommonExcel.getCurrencyFormat(cultureInfo, 2, true, true, null);
   };
 
 
@@ -1132,7 +1135,7 @@ var editor;
 		}
 	};
 
-  spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer) {
+  spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer, downloadType) {
     var fileType = options.fileType;
     if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType) {
       var printPagesData = this.wb.calcPagesPrint(options.advancedOptions);
@@ -6754,6 +6757,7 @@ var editor;
   prot["asc_changeDocInfo"] = prot.asc_changeDocInfo;
   prot['asc_getFunctionArgumentSeparator'] = prot.asc_getFunctionArgumentSeparator;
   prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
+  prot['asc_getAdditionalCurrencySymbols'] = prot.asc_getAdditionalCurrencySymbols;
   prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
   prot['asc_convertNumFormatLocal2NumFormat'] = prot.asc_convertNumFormatLocal2NumFormat;
   prot['asc_convertNumFormat2NumFormatLocal'] = prot.asc_convertNumFormat2NumFormatLocal;
