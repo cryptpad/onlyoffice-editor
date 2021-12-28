@@ -8824,6 +8824,24 @@ CDocument.prototype.CheckPosInSelection = function(X, Y, PageAbs, NearPos)
  */
 CDocument.prototype.SelectAll = function()
 {
+	if (this.IsFillingFormMode())
+	{
+		var oSelectedElementsInfo = this.GetSelectedElementsInfo();
+
+		var oSdt = oSelectedElementsInfo.GetInlineLevelSdt();
+		if (!oSdt)
+			oSdt = oSelectedElementsInfo.GetBlockLevelSdt();
+
+		if (oSdt)
+		{
+			oSdt.SelectContentControl();
+			this.UpdateSelection();
+			this.UpdateInterface();
+		}
+
+		return;
+	}
+
 	this.private_UpdateTargetForCollaboration();
 
 	this.ResetWordSelection();
