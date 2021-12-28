@@ -3506,7 +3506,6 @@ ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
 {
     if (!strLaTeX) return;
     var oLaTeXParser = new CLaTeXParser(this, strLaTeX);
-    oLaTeXParser.Parse(strLaTeX);
     oLaTeXParser.prepare();
 };
 
@@ -3514,10 +3513,10 @@ ParaMath.prototype.ConvertToLaTeX = function()
 {
     var Conveter = new ToLaTex(this.Root);
 
-	// console.log(this.Root)
+	//console.log(this.Root)
 	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
 
-	// console.log(Conveter.objTempData)
+	//console.log(Conveter.objTempData)
 	Conveter.Convert(Conveter.objTempData);
 	console.log('LaTex string:', Conveter.objString.arr.join(''));
 
