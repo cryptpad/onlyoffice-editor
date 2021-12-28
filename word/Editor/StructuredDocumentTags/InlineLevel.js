@@ -2152,6 +2152,9 @@ CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 		{
 			var oInfo = this.Paragraph.LogicDocument.GetSelectedElementsInfo();
 			bSelectedOnlyThis = (oInfo.GetInlineLevelSdt() === this);
+
+			if (bSelectedOnlyThis && oInfo.IsFixedFormShape())
+				bSelectedOnlyThis = false;
 		}
 
 		if (c_oAscSdtLockType.SdtContentLocked === nContentControlLock

@@ -409,7 +409,6 @@ function CSelectedContent()
     	Table : Asc.c_oSpecialPasteProps.overwriteCells
 	};
 
-
     // Опции для отслеживания переноса
     this.TrackRevisions = false;
     this.MoveTrackId    = null;
@@ -889,7 +888,6 @@ CSelectedContent.prototype.CheckComments = function(oLogicDocument, isFromCopy)
 		}
 	}
 };
-
 
 
 function CDocumentRecalculateState()
@@ -1929,6 +1927,7 @@ function CSelectedElementsInfo(oPr)
 	this.m_oPresentationField = null;
 	this.m_arrMoveMarks       = [];
 	this.m_arrFootEndNoteRefs = [];
+	this.m_bFixedFormShape    = false; // Специальная ситуация, когда выделена автофигура вокруг fixed-form, но при этом мы в m_oInlineLevelSdt мы возвращаем эту форму (хотя в ней не находимся по факту)
 }
 CSelectedElementsInfo.prototype.Reset = function()
 {
@@ -2248,6 +2247,14 @@ CSelectedElementsInfo.prototype.RegisterFootEndNoteRef = function(oRef)
 CSelectedElementsInfo.prototype.GetFootEndNoteRefs  = function()
 {
 	return this.m_arrFootEndNoteRefs;
+};
+CSelectedElementsInfo.prototype.SetFixedFormShape = function(isFixedFormShape)
+{
+	this.FixedFormShape = isFixedFormShape;
+};
+CSelectedElementsInfo.prototype.IsFixedFormShape = function()
+{
+	return this.FixedFormShape;
 };
 
 function CDocumentSettings()
