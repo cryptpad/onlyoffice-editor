@@ -97,7 +97,9 @@ CInlineLevelSdt.prototype.Add = function(Item)
 	var oTextFormRun;
 	if (this.IsTextForm())
 	{
-		if (Item.Type !== para_Text && Item.Type !== para_Space)
+		if (para_Tab === Item.Type)
+			return CParagraphContentWithParagraphLikeContent.prototype.Add.call(this, new ParaSpace());
+		else if (Item.Type !== para_Text && Item.Type !== para_Space)
 			return;
 
 		oTextFormRun = this.MakeSingleRunElement(false);
