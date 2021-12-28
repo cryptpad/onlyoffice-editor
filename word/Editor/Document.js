@@ -21991,6 +21991,13 @@ CDocument.prototype.IsFormFieldEditing = function()
 };
 CDocument.prototype.MoveToFillingForm = function(isNext)
 {
+	var oInfo = this.GetSelectedElementsInfo();
+	var oForm;
+	if ((oForm = oInfo.GetInlineLevelSdt()) || (oForm = oInfo.GetBlockLevelSdt()))
+		oForm.SelectContentControl();
+	else if ((oForm = oInfo.GetField()) instanceof ParaField)
+		oForm.SelectThisElement();
+
 	var oRes = null;
 	if (docpostype_DrawingObjects === this.GetDocPosType())
 	{
