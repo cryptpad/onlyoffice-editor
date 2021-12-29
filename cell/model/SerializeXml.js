@@ -41,6 +41,8 @@
 
 	AscCommonExcel.Workbook.prototype.toZip = function (zip, context) {
 		context.wb = this;
+		context.InitSaveManager = new AscCommonExcel.InitSaveManager(this);
+
 		var memory = new AscCommon.CMemory();
 		memory.context = context;
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
@@ -105,8 +107,37 @@
 		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
 		writer.WriteXmlAttributesEnd();
 
-		writer.WriteXmlNodeStart('workbookPr');
-		writer.WriteXmlAttributesEnd(true);
+		var oWorkbookPr = this.wb.WorkbookPr;
+		if (oWorkbookPr != null) {
+			writer.WriteXmlNodeStart('workbookPr');
+
+			/*WritingStringNullableAttrBool(L"allowRefreshQuery", m_oAllowRefreshQuery);
+			WritingStringNullableAttrBool(L"autoCompressPictures", m_oAutoCompressPictures);
+			WritingStringNullableAttrBool(L"backupFile", m_oBackupFile);
+			WritingStringNullableAttrBool(L"checkCompatibility", m_oCheckCompatibility);
+			WritingStringNullableAttrBool(L"codeName", m_oCodeName);
+			WritingStringNullableAttrBool(L"date1904", m_oDate1904);
+			WritingStringNullableAttrBool(L"dateCompatibility", m_oDateCompatibility);
+			WritingStringNullableAttrInt(L"defaultThemeVersion", m_oDefaultThemeVersion, m_oDefaultThemeVersion->GetValue());
+			WritingStringNullableAttrBool(L"filterPrivacy", m_oFilterPrivacy);
+			WritingStringNullableAttrBool(L"hidePivotFieldList", m_oHidePivotFieldList);
+			WritingStringNullableAttrBool(L"promptedSolutions", m_oPromptedSolutions);
+			WritingStringNullableAttrBool(L"publishItems", m_oPublishItems);
+			WritingStringNullableAttrBool(L"refreshAllConnections", m_oRefreshAllConnections);
+			WritingStringNullableAttrBool(L"showBorderUnselectedTables", m_oShowBorderUnselectedTables);
+			WritingStringNullableAttrBool(L"showInkAnnotation", m_oShowInkAnnotation);
+			WritingStringNullableAttrBool(L"showObjects", m_oShowObjects);
+			WritingStringNullableAttrBool(L"showPivotChartFilter", m_oShowPivotChartFilter);
+			WritingStringNullableAttrString(L"updateLinks", m_oUpdateLinks, m_oUpdateLinks->ToString());*/
+
+			writer.WriteXmlNullableAttributeBool("date1904", this.wb.WorkbookPr.Date1904);
+			writer.WriteXmlNullableAttributeBool("dateCompatibility", this.wb.WorkbookPr.DateCompatibility);
+			writer.WriteXmlNullableAttributeBool("hidePivotFieldList", this.wb.WorkbookPr.HidePivotFieldList);
+			writer.WriteXmlNullableAttributeBool("showPivotChartFilter", this.wb.WorkbookPr.ShowPivotChartFilter);
+			writer.WriteXmlAttributesEnd(true);
+			writer.WriteXmlNodeEnd('workbookPr');
+		}
+
 		writer.WriteXmlNodeStart('bookViews');
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNodeStart('workbookView');
@@ -115,11 +146,47 @@
 		}
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNodeEnd('bookViews');
+
+		var defNameList = writer.context.InitSaveManager.defNameList;
+		if (defNameList && defNameList.length) {
+			writer.WriteXmlNodeStart("definedNames");
+
+			for (var i = 0; i < defNameList.length; ++i) {
+				if (defNameList[i]) {
+					defNameList[i].toXML(writer);
+				}
+			}
+
+			writer.WriteXmlNodeEnd("definedNames");
+		}
+
 		var sheetsXml = new CT_Sheets(this.wb);
 		sheetsXml.toXml(writer);
 		writer.WriteXmlNodeStart('calcPr');
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNodeEnd("workbook");
+	};
+
+	Asc.asc_CDefName.prototype.toXml = function (writer) {
+
+		/* writer.WriteString(L"<definedName");
+						WritingStringNullableAttrEncodeXmlString(L"name", m_oName, *m_oName);
+						WritingStringNullableAttrInt(L"localSheetId", m_oLocalSheetId, m_oLocalSheetId->GetValue());
+						WritingStringNullableAttrBool(L"hidden", m_oHidden);
+						writer.WriteString(L">");
+						if(m_oRef.IsInit())
+							writer.WriteEncodeXmlString(*m_oRef);
+						writer.WriteString(L"</definedName>");*/
+
+		writer.WriteXmlString("<definedName");
+		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
+		writer.WriteXmlNullableAttributeNumber("localSheetId", this.LocalSheetId);
+		writer.WriteXmlNullableAttributeBool("hidden", this.Hidden);
+		writer.WriteXmlString(">");
+		if (this.Ref) {
+			writer.WriteXmlStringEncode(this.Ref);
+		}
+		writer.WriteXmlString("</definedName>");
 	};
 
 	AscCommonExcel.Worksheet.prototype.fromXml = function(reader) {
@@ -5102,8 +5169,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		console.log(res);
 	}
 
-	var _x2tToXml = 'writer.WriteString((L"<pageSetUpPr"));\n' + '\t\t\t\tWritingStringNullableAttrBool(L"autoPageBreaks", m_oAutoPageBreaks);\n' +
-		'\t\t\t\tWritingStringNullableAttrBool(L"fitToPage", m_oFitToPage);\n' + '\t\t\t\twriter.WriteString((L"/>"));'
+	var _x2tToXml = ' writer.WriteString(L"<definedName");\n' + '\t\t\t\tWritingStringNullableAttrEncodeXmlString(L"name", m_oName, *m_oName);\n' +
+		'\t\t\t\tWritingStringNullableAttrInt(L"localSheetId", m_oLocalSheetId, m_oLocalSheetId->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrBool(L"hidden", m_oHidden);\n' + '\t\t\t\twriter.WriteString(L">");\n' + '\t\t\t\tif(m_oRef.IsInit())\n' +
+		'\t\t\t\t\twriter.WriteEncodeXmlString(*m_oRef);\n' + '\t\t\t\twriter.WriteString(L"</definedName>");'
 
 	analizeXmlTo(_x2tToXml, true);
 	function analizeXmlTo (x2tToXml, isUpperCaseName) {
@@ -5119,7 +5188,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			WritingStringAttrString: "WriteXmlAttributeString",
 			WritingStringAttrInt: "WriteXmlAttributeNumber",
 			WritingStringAttrEncodeXmlString: "WriteXmlAttributeStringEncode",
-			WritingStringNullableAttrBool: "WriteXmlNullableAttributeBool"
+			WritingStringNullableAttrBool: "WriteXmlNullableAttributeBool",
+			WriteEncodeXmlString: "WriteXmlStringEncode"
 		};
 
 		var splitRows = x2tToXml.split("\n");
@@ -5141,6 +5211,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				isWriteAttr = "WritingStringAttrEncodeXmlString"
 			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrBool")) {
 				isWriteAttr = "WritingStringNullableAttrBool"
+			} else if (-1 != splitRows[i].indexOf("WriteEncodeXmlString")) {
+				isWriteAttr = "WriteEncodeXmlString"
 			}
 
 			if (isWriteAttr) {

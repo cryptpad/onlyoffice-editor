@@ -2367,13 +2367,13 @@
 		};
     }
     /** @constructor */
-	function BinarySharedStringsTableWriter(memory, wb, oSharedStrings, bsw)
+	function BinarySharedStringsTableWriter(memory, wb, bsw, initSaveManager)
     {
         this.memory = memory;
 		this.wb = wb;
         this.bs = new BinaryCommonWriter(this.memory);
 		this.bsw = bsw;
-        this.oSharedStrings = oSharedStrings;
+        this.InitSaveManager = initSaveManager;
         this.Write = function()
         {
             var oThis = this;
@@ -2382,9 +2382,10 @@
         this.WriteSharedStringsContent = function()
         {
             var oThis = this;
+            var oSharedStrings = this.InitSaveManager.oSharedStrings;
             var aSharedStrings = [];
-			for (var i in this.oSharedStrings.strings) {
-				if (this.oSharedStrings.strings.hasOwnProperty(i)){
+			for (var i in oSharedStrings.strings) {
+				if (oSharedStrings.strings.hasOwnProperty(i)){
 					var from = i - 0;
 					var to = oSharedStrings.strings[i];
 					aSharedStrings[to] = this.wb.sharedStrings.get(from);
@@ -2523,12 +2524,12 @@
 		return elem;
 	};
     /** @constructor */
-	function BinaryStylesTableWriter(memory, wb, aDxfs)
+	function BinaryStylesTableWriter(memory, wb, initSaveManager)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
         this.wb = wb;
-		this.aDxfs = aDxfs;
+		this.InitSaveManager = initSaveManager;
 		this.stylesForWrite = new StylesForWrite();
         this.Write = function()
         {
@@ -2556,8 +2557,9 @@
             if(null != wb.TableStyles)
                 this.bs.WriteItem(c_oSerStylesTypes.TableStyles, function(){oThis.WriteTableStyles(wb.TableStyles);});
             //Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
-			if(null != this.aDxfs && this.aDxfs.length > 0) {
-				this.bs.WriteItem(c_oSerStylesTypes.Dxfs, function(){oThis.WriteDxfs(oThis.aDxfs);});
+            var dxfs = this.InitSaveManager.getDxfs();
+			if(null != dxfs && dxfs.length > 0) {
+				this.bs.WriteItem(c_oSerStylesTypes.Dxfs, function(){oThis.WriteDxfs(dxfs);});
             }
             var aExtDxfs = [];
             var slicerStyles = this.PrepareSlicerStyles(wb.SlicerStyles, aExtDxfs);
@@ -3196,30 +3198,148 @@
                 this.memory.WriteByte(c_oSerPropLenType.Long);
                 this.memory.WriteLong(customElement.size);
             }
-            if(null != customElement.dxf && null != this.aDxfs)
+            var dxfs = this.InitSaveManager.getDxfs();
+            if(null != customElement.dxf && null != dxfs)
             {
                 this.memory.WriteByte(c_oSer_TableStyleElement.DxfId);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(this.aDxfs.length);
-                this.aDxfs.push(customElement.dxf);
+                this.memory.WriteLong(dxfs.length);
+                dxfs.push(customElement.dxf);
             }
         };
     }
-    function BinaryWorkbookTableWriter(memory, wb, oBinaryWorksheetsTableWriter, isCopyPaste, tableIds, sheetIds)
+
+
+    function InitSaveManager(wb, isCopyPaste) {
+        this.tableIds = {};
+        this.sheetIds = {};
+
+        this.aDxfs = [];
+
+        this.slicerCaches = null;
+        this.slicerCachesExt = null;
+
+        this.oSharedStrings = {index: 0, strings: {}};
+        this.personList = {};
+        this.commentUniqueGuids = {};
+
+        this.defNameList;
+
+        this.isCopyPaste = isCopyPaste;
+        this.wb = wb;
+
+        this.prepare();
+    }
+
+    InitSaveManager.prototype.prepare = function () {
+        var oThis = this;
+        var tablesIndex = 1;
+        var sheetIndex = 1;
+        this.wb.forEach(function(ws) {
+            //prepare tables IDs
+            var i;
+            if (ws.TableParts) {
+                for (i = 0; i < ws.TableParts.length; ++i) {
+                    oThis.tableIds[ws.TableParts[i].DisplayName] = {id: tablesIndex++, table: ws.TableParts[i]}
+                }
+            }
+            //prepare sheet IDs
+            oThis.sheetIds[ws.getId()] = sheetIndex++;
+
+            //break slicers on ext and standard
+            var slicerCacheIndex = 0;
+            var slicerCacheExtIndex = 0;
+            for (i = 0; i < ws.aSlicers.length; ++i) {
+                var slicerCache = ws.aSlicers[i].getSlicerCache();
+                if (slicerCache) {
+                    if (ws.aSlicers[i].isExt()) {
+                        if (!this.slicerCachesExt) {
+                            this.slicerCachesExt = {};
+                        }
+                        this.slicerCachesExt[slicerCache.name] = slicerCache;
+                        slicerCacheExtIndex++;
+                    } else {
+                        if (!this.slicerCaches) {
+                            this.slicerCaches = {};
+                        }
+                        this.slicerCaches[slicerCache.name] = slicerCache;
+                        slicerCacheIndex++;
+                    }
+                }
+            }
+        }, this.isCopyPaste);
+
+
+        //prepare defnames
+        var defNameList = this.wb.dependencyFormulas.saveDefName(this.isCopyPaste === false);
+        var filterDefName = "_xlnm._FilterDatabase";
+        var tempMap = {};
+        var printAreaDefName = "Print_Area";
+        var prefix = "_xlnm.";
+
+        if(null != defNameList ){
+            for(var i = 0; i < defNameList.length; i++){
+                if(defNameList[i].Name !== filterDefName) {
+                    //TODO временная правка. на открытие может приходить _FilterDatabase. защищаемся от записи двух одинаковых именванных диапазона
+                    if(defNameList[i].Name === "_FilterDatabase") {
+                        tempMap[defNameList[i].LocalSheetId] = 1;
+                    }
+                    //на запись добавляем к области печати префикс
+                    if(printAreaDefName === defNameList[i].Name && null != defNameList[i].LocalSheetId && true === defNameList[i].isXLNM) {
+                        defNameList[i].Name = prefix + defNameList[i].Name;
+                    }
+                }
+            }
+        }
+
+        //write filters defines name
+        //TODO сделать добавление данных именованных диапазонов при добавлении а/ф
+        var ws, ref, defNameRef, defName;
+        for(var i = 0; i < this.wb.aWorksheets.length; i++) {
+            ws = this.wb.aWorksheets[i];
+            if(ws && ws.AutoFilter && ws.AutoFilter.Ref && !tempMap[ws.index]) {
+                ref = ws.AutoFilter.Ref;
+                defNameRef = AscCommon.parserHelp.get3DRef(ws.getName(), ref.getAbsName());
+                defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, null, true);
+                defNameList.push(defName);
+            }
+        }
+        this.defNameList = defNameList;
+
+        //TODO pivot
+    };
+
+    InitSaveManager.prototype.getSlicersCache = function (isExt) {
+        return isExt ? this.slicerCaches : this.slicerCachesExt;
+    };
+    InitSaveManager.prototype.getTableIds = function () {
+        return this.tableIds;
+    };
+    InitSaveManager.prototype.getSheetIds = function () {
+        return this.sheetIds;
+    };
+    InitSaveManager.prototype.getDxfs = function () {
+        return this.aDxfs;
+    };
+
+
+
+    function BinaryWorkbookTableWriter(memory, wb, oBinaryWorksheetsTableWriter, isCopyPaste, initSaveManager/*, tableIds, sheetIds*/)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
         this.wb = wb;
         this.oBinaryWorksheetsTableWriter = oBinaryWorksheetsTableWriter;
         this.isCopyPaste = isCopyPaste;
-        this.tableIds = tableIds;
-        this.sheetIds = sheetIds;
+        this.InitSaveManager = initSaveManager;
+        //this.tableIds = tableIds;
+        //this.sheetIds = sheetIds;
         this.Write = function()
         {
             var oThis = this;
             this.bs.WriteItemWithLength(function(){oThis.WriteWorkbookContent();});
         };
-        this.PrepareTableIds = function()
+        /*this.PrepareTableIds = function()
         {
             var oThis = this;
             var index = 1;
@@ -3236,7 +3356,7 @@
             this.oBinaryWorksheetsTableWriter.wb.forEach(function(ws) {
                 oThis.sheetIds[ws.getId()] = index++;
             }, this.oBinaryWorksheetsTableWriter.isCopyPaste);
-        };
+        };*/
         this.WriteWorkbookContent = function()
         {
             var oThis = this;
@@ -3289,12 +3409,12 @@
 			}
 			//slicerCaches
             //for copy/paste write string name table/column ?
-            if (!this.oBinaryWorksheetsTableWriter.isCopyPaste) {
+            /*if (!this.oBinaryWorksheetsTableWriter.isCopyPaste) {
                 this.PrepareTableIds();
             }
-            this.PrepareSheetIds();
+            this.PrepareSheetIds();*/
 
-            var slicerCacheIndex = 0;
+            /*var slicerCacheIndex = 0;
             var slicerCaches = {};
             var slicerCacheExtIndex = 0;
             var slicerCachesExt = {};
@@ -3311,12 +3431,15 @@
                         }
                     }
                 }
-            }, this.oBinaryWorksheetsTableWriter.isCopyPaste);
-            if (slicerCacheIndex > 0) {
-                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCaches, function () {oThis.WriteSlicerCaches(slicerCaches, oThis.tableIds, oThis.sheetIds);});
+            }, this.oBinaryWorksheetsTableWriter.isCopyPaste);*/
+
+            var slicerCaches = this.InitSaveManager.getSlicersCache();
+            var slicerCachesExt = this.InitSaveManager.getSlicersCache(true);
+            if (slicerCaches) {
+                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCaches, function () {oThis.WriteSlicerCaches(slicerCaches/*, oThis.tableIds, oThis.sheetIds*/);});
             }
-            if (slicerCacheExtIndex > 0) {
-                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCachesExt, function () {oThis.WriteSlicerCaches(slicerCachesExt, oThis.tableIds, oThis.sheetIds);});
+            if (slicerCachesExt) {
+                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCachesExt, function () {oThis.WriteSlicerCaches(slicerCachesExt/*, oThis.tableIds, oThis.sheetIds*/);});
             }
 			if (!this.isCopyPaste && this.wb.externalReferences.length > 0) {
 				this.bs.WriteItem(c_oSerWorkbookTypes.ExternalReferences, function() {oThis.WriteExternalReferences();});
@@ -3392,44 +3515,10 @@
         this.WriteDefinedNames = function()
         {
             var oThis = this;
-            var defNameList = this.wb.dependencyFormulas.saveDefName(this.isCopyPaste === false);
-
-            var filterDefName = "_xlnm._FilterDatabase";
-			var tempMap = {};
-			var printAreaDefName = "Print_Area";
-			var prefix = "_xlnm.";
-
-            if(null != defNameList ){
-                for(var i = 0; i < defNameList.length; i++){
-                    if(defNameList[i].Name !== filterDefName) {
-						//TODO временная правка. на открытие может приходить _FilterDatabase. защищаемся от записи двух одинаковых именванных диапазона
-						if(defNameList[i].Name === "_FilterDatabase") {
-							tempMap[defNameList[i].LocalSheetId] = 1;
-						}
-						var oldName = null;
-						//на запись добавляем к области печати префикс
-						if(printAreaDefName === defNameList[i].Name && null != defNameList[i].LocalSheetId && true === defNameList[i].isXLNM) {
-							oldName = defNameList[i].Name;
-							defNameList[i].Name = prefix + defNameList[i].Name;
-						}
-						this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defNameList[i]);});
-						if(null !== oldName) {
-							defNameList[i].Name = oldName;
-						}
-                    }
-                }
-            }
-
-            //write filters defines name
-            //TODO сделать добавление данных именованных диапазонов при добавлении а/ф
-            var ws, ref, defNameRef, defName;
-            for(var i = 0; i < wb.aWorksheets.length; i++) {
-				ws = wb.aWorksheets[i];
-                if(ws && ws.AutoFilter && ws.AutoFilter.Ref && !tempMap[ws.index]) {
-                    ref = ws.AutoFilter.Ref;
-					defNameRef = AscCommon.parserHelp.get3DRef(ws.getName(), ref.getAbsName());
-					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, null, true);
-                    this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defName);});
+            if (this.InitSaveManager.defNameList) {
+                var defNames = this.InitSaveManager.defNameList;
+                for (var i = 0; i < defNames.length; i++) {
+                    this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defNames[i]);});
                 }
             }
         };
@@ -3531,7 +3620,7 @@
 			}
 			pivotCache.id = oldId;
 		};
-        this.WriteSlicerCaches = function(slicerCaches, tableIds, sheetIds) {
+        this.WriteSlicerCaches = function(slicerCaches/*, tableIds, sheetIds*/) {
             var oThis = this;
             var stream = pptx_content_writer.BinaryFileWriter;
             for (var name in slicerCaches) {
@@ -3542,7 +3631,7 @@
                         stream.ImportFromMemory(oThis.memory);
 
                         stream.StartRecord(0);
-                        slicerCaches[name].toStream(stream, tableIds, sheetIds, oThis.isCopyPaste || oThis.isCopyPaste === false);
+                        slicerCaches[name].toStream(stream, oThis.InitSaveManager.getTableIds(), oThis.InitSaveManager.getSheetIds(), oThis.isCopyPaste || oThis.isCopyPaste === false);
                         stream.EndRecord();
 
                         stream.ExportToMemory(oThis.memory);
@@ -3758,23 +3847,20 @@
 		
 		};
     }
-	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw, saveThreadedComments, commentUniqueGuids, tableIds, sheetIds)
+	function BinaryWorksheetsTableWriter(memory, wb, isCopyPaste, bsw, saveThreadedComments, initSaveManager)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
 		this.bsw = bsw;
         this.wb = wb;
-        this.oSharedStrings = oSharedStrings;
-        this.aDxfs = aDxfs;
-        this.personList = personList;
 		this.stylesForWrite = bsw.stylesForWrite;
         this.isCopyPaste = isCopyPaste;
         this.saveThreadedComments = saveThreadedComments;
         this.sharedFormulas = {};
 		this.sharedFormulasIndex = 0;
-        this.commentUniqueGuids = commentUniqueGuids;
-        this.tableIds = tableIds;
-        this.sheetIds = sheetIds;
+        this.InitSaveManager = initSaveManager;
+        /*this.tableIds = tableIds;
+        this.sheetIds = sheetIds;*/
         this._getCrc32FromObjWithProperty = function(val)
         {
             return Asc.crc32(this._getStringFromObjWithProperty(val));
@@ -3829,8 +3915,9 @@
 			}, this.isCopyPaste);
 
 			//Fix excel crash with colorFilter in NamedSheetView
-			if(hasColorFilter && 0 === this.aDxfs.length) {
-				this.aDxfs.push(new AscCommonExcel.CellXfs());
+            var dxfs = this.InitSaveManager.getDxfs();
+			if(hasColorFilter && 0 === dxfs.length) {
+                dxfs.push(new AscCommonExcel.CellXfs());
 			}
         };
         this.WriteWorksheet = function(ws)
@@ -3882,17 +3969,17 @@
             var oBinaryTableWriter;
             if(null != ws.AutoFilter && !this.isCopyPaste)
             {
-                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs, false, {});
+                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.InitSaveManager.getDxfs(), false, {});
                 this.bs.WriteItem(c_oSerWorksheetsTypes.Autofilter, function(){oBinaryTableWriter.WriteAutoFilter(ws.AutoFilter);});
             }
             if(null != ws.sortState && !this.isCopyPaste)
             {
-                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs, false, {});
+                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.InitSaveManager.getDxfs(), false, {});
                 this.bs.WriteItem(c_oSerWorksheetsTypes.SortState, function(){oBinaryTableWriter.WriteSortState(ws.sortState);});
             }
             if(null != ws.TableParts && ws.TableParts.length > 0)
             {
-                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs, this.isCopyPaste, this.tableIds);
+                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.InitSaveManager.getDxfs(), this.isCopyPaste, this.InitSaveManager.getTableIds());
                 this.bs.WriteItem(c_oSerWorksheetsTypes.TableParts, function(){oBinaryTableWriter.Write(ws.TableParts, ws);});
             }
 			if (ws.aSparklineGroups.length > 0) {
@@ -3956,7 +4043,7 @@
 					pptx_content_writer.BinaryFileWriter.ImportFromMemory(oThis.memory);
 
 					pptx_content_writer.BinaryFileWriter.StartRecord(0);
-					namedSheetViews.toStream(pptx_content_writer.BinaryFileWriter, oThis.tableIds);
+					namedSheetViews.toStream(pptx_content_writer.BinaryFileWriter, this.InitSaveManager.getTableIds());
 					pptx_content_writer.BinaryFileWriter.EndRecord();
 
 					pptx_content_writer.BinaryFileWriter.ExportToMemory(oThis.memory);
@@ -5034,7 +5121,7 @@
 					if (cell.isFormula() && !(oThis.isCopyPaste && cell.ws && cell.ws.bIgnoreWriteFormulas)) {
 						formulaToWrite = oThis.PrepareFormulaToWrite(cell);
                     }
-					cell.toXLSB(oThis.memory, nXfsId, formulaToWrite, oThis.oSharedStrings);
+					cell.toXLSB(oThis.memory, nXfsId, formulaToWrite, oThis.InitSaveManager.oSharedStrings);
 				}
             }, (ws.bExcludeHiddenRows && oThis.isCopyPaste));
 
@@ -5131,11 +5218,11 @@
         };
         this.checkCommentGuid = function(comment) {
             var sGuid = comment.asc_getGuid();
-            while (!sGuid || this.commentUniqueGuids[sGuid]) {
+            while (!sGuid || this.InitSaveManager.commentUniqueGuids[sGuid]) {
                 sGuid = AscCommon.CreateGUID();
                 comment.asc_putGuid(sGuid);
             }
-            this.commentUniqueGuids[sGuid] = 1;
+            this.InitSaveManager.commentUniqueGuids[sGuid] = 1;
             if (comment.aReplies) {
                 for (var i = 0; i < comment.aReplies.length; ++i) {
                     this.checkCommentGuid(comment.aReplies[i]);
@@ -5316,12 +5403,12 @@
             var userId = oCommentData.asc_getUserId();
             var displayName = oCommentData.asc_getUserName();
             var providerId = oCommentData.asc_getProviderId();
-            var person = this.personList.find(function isPrime(element) {
+            var person = this.InitSaveManager.personList.find(function isPrime(element) {
                 return userId === element.userId && displayName === element.displayName && providerId === element.providerId;
             });
             if (!person) {
                 person = {id: AscCommon.CreateGUID(), userId: userId, displayName: displayName, providerId: providerId};
-                this.personList.push(person);
+                this.InitSaveManager.personList.push(person);
             }
             this.bs.WriteItem( c_oSer_ThreadedComment.personId, function(){oThis.memory.WriteString3(person.id);});
             var guid = oCommentData.asc_getGuid();
@@ -5874,6 +5961,7 @@
         this.saveThreadedComments = true;
         this.nLastFilePos = 0;
         this.nRealTableCount = 0;
+        this.InitSaveManager = new InitSaveManager(wb, isCopyPaste);
         this.bs = new BinaryCommonWriter(this.Memory);
         this.Write = function(noBase64, onlySaveBase64)
         {
@@ -5944,29 +6032,28 @@
                 this.WriteTable(c_oSerTableTypes.Customs, new BinaryCustomsTableWriter(this.Memory, t.wb.customXmls));
             }
 
-            var oSharedStrings = {index: 0, strings: {}};
+            //var oSharedStrings = {index: 0, strings: {}};
             //Write SharedStrings
             var nSharedStringsPos = this.ReserveTable(c_oSerTableTypes.SharedStrings);
             //Write Styles
             var nStylesTablePos = this.ReserveTable(c_oSerTableTypes.Styles);
             //Workbook
-            var aDxfs = [];
-            var personList = [];
-            var commentUniqueGuids = {};
-            var tableIds = {};
-            var sheetIds = {};
-			var oBinaryStylesTableWriter = new BinaryStylesTableWriter(this.Memory, this.wb, aDxfs);
-			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter, this.saveThreadedComments, commentUniqueGuids, tableIds, sheetIds);
-            this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste, tableIds, sheetIds));
+            //var personList = [];
+            //var commentUniqueGuids = {};
+            /*var tableIds = {};
+            var sheetIds = {};*/
+			var oBinaryStylesTableWriter = new BinaryStylesTableWriter(this.Memory, this.wb, this.InitSaveManager);
+			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, this.isCopyPaste, oBinaryStylesTableWriter, this.saveThreadedComments, this.InitSaveManager);
+            this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste, this.InitSaveManager));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
-            if (personList.length > 0) {
-                this.WriteTable(c_oSerTableTypes.PersonList, new BinaryPersonTableWriter(this.Memory, personList));
+            if (this.InitSaveManager.personList.length > 0) {
+                this.WriteTable(c_oSerTableTypes.PersonList, new BinaryPersonTableWriter(this.Memory, this.InitSaveManager.personList));
             }
 			if(!this.isCopyPaste)
 				this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb));
             //Write SharedStrings
-			this.WriteReserved(new BinarySharedStringsTableWriter(this.Memory, this.wb, oSharedStrings, oBinaryStylesTableWriter), nSharedStringsPos);
+			this.WriteReserved(new BinarySharedStringsTableWriter(this.Memory, this.wb, oBinaryStylesTableWriter, this.InitSaveManager), nSharedStringsPos);
             //Write Styles
 			this.WriteReserved(oBinaryStylesTableWriter, nStylesTablePos);
             //Пишем количество таблиц
@@ -11865,5 +11952,7 @@
     prot['totalrowfunctionVar'] = prot.totalrowfunctionVar;
 
     window["AscCommonExcel"].getSqRefString = getSqRefString;
+
+    window["AscCommonExcel"].InitSaveManager = InitSaveManager;
 
 })(window);
