@@ -8335,6 +8335,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             //показатель
             getAndPushTextContent(elem.getIterator(), elem.getIterator().GetTextContent().str.length > 1 ? true : false);
         } else if (elem instanceof CDegreeSubSup) {//^ и _
+            console.log(elem.Pr.type)
             var bAddBrackets = false;
             var base = elem.getBase();
             var lower = elem.getLowerIterator();
@@ -8350,20 +8351,35 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                     addText("〗");
                 }
                 addText("^");
-                console.log(upper.GetTextContent().str.length > 1)
                 getAndPushTextContent(upper, upper.GetTextContent().str.length > 1 ? true : false);
                 addText("_");
                 //показатель _
-                console.log(lower.GetTextContent())
                 getAndPushTextContent(lower, lower.GetTextContent().str.length > 1 ? true : false);
             } else {
+                
+                addText("(")
                 //показатель _
-                getAndPushTextContent(lower, checkBracket(lower.GetTextContent().str));
                 addText("_");
-                //показатель ^
-                getAndPushTextContent(upper, checkBracket(upper.GetTextContent().str));
+                if (lower.GetTextContent().paraRunArr.length > 1) {
+                    addText("(")
+                }
+                getAndPushTextContent(lower, checkBracket(lower.GetTextContent().str));
+                if (lower.GetTextContent().paraRunArr.length > 1) {
+                    addText(")")
+                }
+
                 addText("^");
-                if (checkBracket(base.GetTextContent().str)) {
+                //показатель ^
+                if (upper.GetTextContent().paraRunArr.length > 1) {
+                    addText("(")
+                }
+                getAndPushTextContent(upper, checkBracket(upper.GetTextContent().str));
+                if (upper.GetTextContent().paraRunArr.length > 1) {
+                    addText(")")
+                }
+
+                addText(")")
+                if (base.GetTextContent().paraRunArr.length > 1) {
                     addText("〖");
                     bAddBrackets = true;
                 }
@@ -8427,18 +8443,18 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                 if (i != elem.Content.length - 1)
                     addText(String.fromCharCode(elem.sepOper.code))
             }
-            addText(String.fromCharCode(elem.Pr.endChr || elem.endOper.code || 41));            
+            addText(String.fromCharCode(elem.Pr.endChr || elem.endOper.code || 41));
 		} else if (elem instanceof CNary) {
             addText(String.fromCharCode(elem.Pr.chr || elem.getSign().chrCode));
             //верхняя граница суммирования
             if (!elem.Pr.supHide) {
 				addText("^");             
-                getAndPushTextContent(elem.getSupMathContent(), checkBracket(elem.getSupMathContent().GetTextContent().str) || elem.getSupMathContent().GetTextContent().str.length > 1 ? true : fals);
+                getAndPushTextContent(elem.getSupMathContent(), checkBracket(elem.getSupMathContent().GetTextContent().str) || elem.getSupMathContent().GetTextContent().str.length > 1 ? true : false);
             }
             //нижняя граница суммирования
 			if (!elem.Pr.subHide) {
 				addText("_");
-                getAndPushTextContent(elem.getSubMathContent(), checkBracket(elem.getSubMathContent().GetTextContent().str) || elem.getSubMathContent().GetTextContent().str.length > 1 ? true : fals);
+                getAndPushTextContent(elem.getSubMathContent(), checkBracket(elem.getSubMathContent().GetTextContent().str) || elem.getSubMathContent().GetTextContent().str.length > 1 ? true : false);
 			}
             addText(String.fromCharCode(9618));
             var bAddBrackets = false;
@@ -8474,9 +8490,10 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 			addText(String.fromCharCode(8730));
 			//степень корня
 			tempStr = elem.getDegree().GetTextContent(bSelectedText);
-			var bOpenBr = false;
+			addText("(");
+            var bOpenBr = false;
 			if (tempStr.str) {
-				addText("(");
+				
 				addText(tempStr.str, tempStr.bIsContainsOperator, tempStr.paraRunArr);
 				bOpenBr = true;
 			}
@@ -8492,9 +8509,8 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                 //подкоренное выражение
 			    getAndPushTextContent(elem.getBase());
             } 
-            if (bOpenBr) {
-                addText(")");
-            }
+            
+            addText(")")
         } else if (elem instanceof CMathMatrix) {//matrix
             var symbol = [];
             for (var row = 0; row < elem.nRow; row++) {
@@ -8520,16 +8536,12 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             getAndPushTextContent(elem.getFName());
             addText(String.fromCharCode(0x2061));
             var tmp = elem.getArgument();
-            var bAddBrackets = false;
-            if (checkBracket(tmp.GetTextContent().str)) {
-                addText("〖");
-                bAddBrackets = true;
-            }
+    
+            addText("〖");
 			//аргумент
             getAndPushTextContent(tmp, false);
-            if (bAddBrackets) {
-                addText("〗");
-            }
+            addText("〗");
+            
 		} else if (elem instanceof CLimit) {
 			//функция
             getAndPushTextContent(elem.getFName(), false);
