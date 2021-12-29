@@ -5416,7 +5416,7 @@ PasteProcessor.prototype =
 
 					tempParagraph.Content.splice(tempParagraph.Content.length - 1, 0, tempParaRun);
 				} else if (isGraphicFrame) {
-					drawing.setBDeleted(true);
+					drawing.bDeleted = true;
 					drawing.setWordFlag(false);
 					var copyObj = drawing.graphicObject.Copy();
 					copyObj.Set_Parent(this.oDocument);
