@@ -1069,7 +1069,53 @@ CGraphicFrame.prototype.setWordFlag = function(bPresentation, Document)
             }
         }
 };
+CGraphicFrame.prototype.getWordTable = function()
+{
+    if(!this.graphicObject) 
+    {
+        return null;
+    }
+    var bOldBDeleted = this.bDeleted;
+    this.bDeleted = true;
+    this.setWordFlag(false);
+    var oTable = this.graphicObject.Copy();
+    this.setWordFlag(true);
+    this.bDeleted = bOldBDeleted;
+    var aRows = oTable.Content;
+    var aCells;
+    var nRow, nCell;
+    var oRow, oCell;
+    var oShd;
+    for(nRow = 0; nRow < aRows.length; ++nRow) 
+    {
+        oRow = aRows[nRow];
+        aCells = oRow.Content;
+        for(nCell = 0; nCell < aCells.length; ++nCell) 
+        {
+            oCell = aCells[nCell];
+            if(oCell.Pr) 
+            {
+                if(oCell.Pr.Shd) 
+                {
+                    oShd = oCell.Pr.Shd;
+                    oCell.Set_Shd(ConvertToWordTableShd(oShd));
+                }
+                
+                if(oCell.Pr.TableCellBorders) 
+                {
+                    var oBorders = oCell.Pr.TableCellBorders;
+                     // 0 - Top, 1 - Right, 2- Bottom, 3- Left
+                    oCell.Set_Border(ConvertToWordTableBorder(oBorders.Top), 0);
+                    oCell.Set_Border(ConvertToWordTableBorder(oBorders.Right), 1);
+                    oCell.Set_Border(ConvertToWordTableBorder(oBorders.Bottom), 2);
+                    oCell.Set_Border(ConvertToWordTableBorder(oBorders.Left), 3);
+                }
+            }
+        }
+    }
+    return oTable;
 
+};
 CGraphicFrame.prototype.Get_Styles = function(level)
     {
         if(AscFormat.isRealNumber(level))
@@ -1302,6 +1348,80 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             this.graphicObject.Document_CreateFontMap(oMap);
         }
     };
+
+    function ConvertToWordTableBorder(oBorder) {
+        if(!oBorder) {
+            return undefined;
+        }
+        var oFill = oBorder.Unifill;
+        if(!oFill) {
+            return oBorder;
+        }
+        var oNewBorder;
+        var oRGBA;
+        if(oFill.isSolidFillRGB()) {
+            if(oFill.fill.color.color) {
+                oRGBA = oFill.fill.color.color.RGBA;
+            }
+        }
+        
+        oNewBorder = oBorder.Copy();
+        oNewBorder.Unifill = undefined;
+        if(oRGBA) {
+            oNewBorder.Color = new AscCommonWord.CDocumentColor(oRGBA.R, oRGBA.G, oRGBA.B, false);
+        }
+        else {
+            oNewBorder.Color = new AscCommonWord.CDocumentColor(0, 0, 0, false);
+        }
+        return oNewBorder;
+     }
+    function ConvertToWordTableShd(oShd) {
+        if(!oShd) {
+            return undefined;
+        }
+        var oFill = oShd.Unifill;
+        if(!oFill) {
+            return oShd;
+        }
+        var oNewShd;
+        var oCopyFill;
+        if(oFill) {
+            if(oFill.isSolidFillRGB()) {
+                var oRGBA;
+                if(oFill.fill.color.color) {
+                    oRGBA = oFill.fill.color.color.RGBA;
+                    if(oRGBA) {
+                        oNewShd = new AscCommonWord.CDocumentShd();
+                        
+                        oCopyFill = oFill.createDuplicate();
+                        oNewShd.Set_FromObject({
+                            Value      : Asc.c_oAscShd.Clear,
+                            Color : {
+                                r: oRGBA.R,
+                                g: oRGBA.G,
+                                b: oRGBA.B,
+                                Auto: false
+                            },
+                            ThemeColor : oCopyFill,
+                            ThemeFill  : oCopyFill
+                        });
+                        return oNewShd;
+                    }
+                }
+            }
+            if(oFill.isSolidFillScheme()) {
+                oNewShd = new AscCommonWord.CDocumentShd();
+                oCopyFill = oFill.createDuplicate();
+                oNewShd.Set_FromObject({
+                    Value      : Asc.c_oAscShd.Clear,
+                    ThemeColor : oCopyFill,
+                    ThemeFill  : oCopyFill
+                });
+                return oNewShd;
+            }
+        }
+        return undefined;
+    }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGraphicFrame = CGraphicFrame;
