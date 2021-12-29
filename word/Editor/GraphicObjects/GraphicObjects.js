@@ -1765,6 +1765,11 @@ CGraphicObjects.prototype =
                 for(i = 0; i < selectedObjects.length; ++i)
                 {
                     run =  new ParaRun(para, false);
+
+					var oRunPr = selectedObjects[i].parent && selectedObjects[i].parent.GetRun() ? selectedObjects[i].parent.GetRun().GetDirectTextPr() : null;
+					if (oRunPr)
+						run.SetPr(oRunPr.Copy());
+
                     selectedObjects[i].recalculate();
                     var oGraphicObj = selectedObjects[i].copy();
                     if(this.selection.groupSelection.getObjectType() === AscDFH.historyitem_type_SmartArt)
@@ -1803,6 +1808,11 @@ CGraphicObjects.prototype =
                 for(i = 0; i < selectedObjects.length; ++i)
                 {
                     run =  new ParaRun(para, false);
+
+					var oRunPr = selectedObjects[i].parent && selectedObjects[i].parent.GetRun() ? selectedObjects[i].parent.GetRun().GetDirectTextPr() : null;
+					if (oRunPr)
+						run.SetPr(oRunPr.Copy());
+
                     var oSp = selectedObjects[i];
                     var oDr = oSp.parent;
                     oSp.recalculate();

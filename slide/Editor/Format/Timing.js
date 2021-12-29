@@ -1516,6 +1516,9 @@
         if(!oTargetObject) {
             return null;
         }
+        if(!oStartUniColor || !oEndUniColor) {
+            return null;
+        }
         var parents = oTargetObject.getParentObjects();
         var RGBA = {R:0, G:0, B:0, A:255};
         oEndUniColor.Calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);

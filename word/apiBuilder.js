@@ -12975,7 +12975,7 @@
 							case para_Space:
 							case para_Tab  : 
 							{
-								oInfo.String += " ";
+								oInfo.String += " ";
 								oInfo.StringCount++; 
 								break;
 							}

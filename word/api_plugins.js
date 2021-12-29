@@ -338,7 +338,8 @@
             {
                 NewLine : (prop.hasOwnProperty("NewLine")) ? prop.NewLine : true,
                 NewLineParagraph : (prop.hasOwnProperty("NewLineParagraph")) ? prop.NewLineParagraph : true,
-                Numbering : (prop.hasOwnProperty("Numbering")) ? prop.Numbering : true
+                Numbering : (prop.hasOwnProperty("Numbering")) ? prop.Numbering : true,
+                Math : (prop.hasOwnProperty("Math")) ? prop.Math : true
             }
         }
         else
