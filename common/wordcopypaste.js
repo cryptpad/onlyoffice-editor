@@ -5416,14 +5416,14 @@ PasteProcessor.prototype =
 
 					tempParagraph.Content.splice(tempParagraph.Content.length - 1, 0, tempParaRun);
 				} else if (isGraphicFrame) {
-					drawing.bDeleted = true;
-					drawing.setWordFlag(false);
-					var copyObj = drawing.graphicObject.Copy();
-					copyObj.Set_Parent(this.oDocument);
-					aContent[aContent.length] = copyObj;
-					drawing.setWordFlag(true);
+					
+					var copyObj = drawing.getWordTable();
+					if(copyObj) {
+						copyObj.Set_Parent(this.oDocument);
+						aContent[aContent.length] = copyObj;
+						drawing.getAllFonts(font_map);
+					}
 
-					drawing.getAllFonts(font_map);
 				} else {
 					if (!tempParagraph)
 						tempParagraph = new Paragraph(this.oDocument.DrawingDocument, this.oDocument);
