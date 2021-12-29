@@ -1075,9 +1075,9 @@ Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
 				if (null != Comment)
 				{
 					if (true === Item.Start)
-						Comment.Set_StartId(null);
+						Comment.SetRangeStart(null);
 					else
-						Comment.Set_EndId(null);
+						Comment.SetRangeEnd(null);
 				}
 
 				CommentsToDelete.push(CommentId);
@@ -1184,9 +1184,9 @@ Paragraph.prototype.ClearContent = function()
 			if (oComment)
 			{
 				if (true === oItem.Start)
-					oComment.Set_StartId(null);
+					oComment.SetRangeStart(null);
 				else
-					oComment.Set_EndId(null);
+					oComment.SetRangeEnd(null);
 			}
 
 			arrCommentsToDelete.push(CommentId);
@@ -13242,13 +13242,14 @@ Paragraph.prototype.Set_SelectionState2 = function(ParaState)
 //----------------------------------------------------------------------------------------------------------------------
 Paragraph.prototype.AddComment = function(Comment, bStart, bEnd)
 {
-	if (true == this.ApplyToAll)
+	if (this.ApplyToAll)
 	{
 		if (true === bEnd)
 		{
 			var EndContentPos = this.Get_EndPos(false);
 
 			var CommentEnd = new AscCommon.ParaComment(false, Comment.Get_Id());
+			Comment.SetRangeEnd(CommentEnd.GetId());
 
 			var EndPos = EndContentPos.Get(0);
 
@@ -13269,6 +13270,7 @@ Paragraph.prototype.AddComment = function(Comment, bStart, bEnd)
 			var StartContentPos = this.Get_StartPos();
 
 			var CommentStart = new AscCommon.ParaComment(true, Comment.Get_Id());
+			Comment.SetRangeStart(CommentStart.GetId());
 
 			var StartPos = StartContentPos.Get(0);
 
@@ -13305,6 +13307,7 @@ Paragraph.prototype.AddComment = function(Comment, bStart, bEnd)
 			if (true === bEnd)
 			{
 				var CommentEnd = new AscCommon.ParaComment(false, Comment.Get_Id());
+				Comment.SetRangeEnd(CommentEnd.GetId());
 
 				var EndPos = EndContentPos.Get(0);
 
@@ -13324,6 +13327,7 @@ Paragraph.prototype.AddComment = function(Comment, bStart, bEnd)
 			if (true === bStart)
 			{
 				var CommentStart = new AscCommon.ParaComment(true, Comment.Get_Id());
+				Comment.SetRangeStart(CommentStart.GetId());
 
 				var StartPos = StartContentPos.Get(0);
 
@@ -13355,6 +13359,7 @@ Paragraph.prototype.AddComment = function(Comment, bStart, bEnd)
 			if (true === bEnd)
 			{
 				var CommentEnd = new AscCommon.ParaComment(false, Comment.Get_Id());
+				Comment.SetRangeEnd(CommentEnd.GetId());
 
 				var EndPos = ContentPos.Get(0);
 
@@ -13373,6 +13378,7 @@ Paragraph.prototype.AddComment = function(Comment, bStart, bEnd)
 			if (true === bStart)
 			{
 				var CommentStart = new AscCommon.ParaComment(true, Comment.Get_Id());
+				Comment.SetRangeStart(CommentStart.GetId());
 
 				var StartPos = ContentPos.Get(0);
 

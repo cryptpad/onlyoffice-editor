@@ -1763,6 +1763,11 @@ CGraphicObjects.prototype =
                 for(i = 0; i < selectedObjects.length; ++i)
                 {
                     run =  new ParaRun(para, false);
+
+					var oRunPr = selectedObjects[i].parent && selectedObjects[i].parent.GetRun() ? selectedObjects[i].parent.GetRun().GetDirectTextPr() : null;
+					if (oRunPr)
+						run.SetPr(oRunPr.Copy());
+
                     selectedObjects[i].recalculate();
                     drawing = new ParaDrawing(0, 0, selectedObjects[i].copy(), this.document.DrawingDocument, this.document, null);
                     drawing.Set_DrawingType(groupParaDrawing.DrawingType);
@@ -1792,7 +1797,12 @@ CGraphicObjects.prototype =
                 for(i = 0; i < selectedObjects.length; ++i)
                 {
                     run =  new ParaRun(para, false);
-                    selectedObjects[i].recalculate();
+
+					var oRunPr = selectedObjects[i].parent && selectedObjects[i].parent.GetRun() ? selectedObjects[i].parent.GetRun().GetDirectTextPr() : null;
+					if (oRunPr)
+						run.SetPr(oRunPr.Copy());
+
+					selectedObjects[i].recalculate();
                     drawing = new ParaDrawing(0, 0, selectedObjects[i].copy(), this.document.DrawingDocument, this.document, null);
 
                     drawing.Set_DrawingType(selectedObjects[i].parent.DrawingType);

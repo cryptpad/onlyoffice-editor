@@ -400,16 +400,9 @@ CChangesParagraphAddItem.prototype.Load = function(Color)
 		{
 			if (para_Comment === Element.Type)
 			{
-				var Comment = AscCommon.g_oTableId.Get_ById(Element.CommentId);
-
-				// При копировании не всегда сразу заполняется правильно CommentId
-				if (null != Comment && Comment instanceof AscCommon.CComment)
-				{
-					if (true === Element.Start)
-						Comment.Set_StartId(oParagraph.Get_Id());
-					else
-						Comment.Set_EndId(oParagraph.Get_Id());
-				}
+				var oComment = AscCommon.g_oTableId.Get_ById(Element.CommentId);
+				if (oComment instanceof AscCommon.CComment)
+					oComment.UpdatePosition();
 			}
 
 			if (Element.SetParagraph)

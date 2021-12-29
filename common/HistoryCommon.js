@@ -1753,9 +1753,11 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе СComment
 	//------------------------------------------------------------------------------------------------------------------
-	window['AscDFH'].historyitem_Comment_Change   = window['AscDFH'].historyitem_type_Comment | 1;
-	window['AscDFH'].historyitem_Comment_TypeInfo = window['AscDFH'].historyitem_type_Comment | 2;
-	window['AscDFH'].historyitem_Comment_Position = window['AscDFH'].historyitem_type_Comment | 3;
+	window['AscDFH'].historyitem_Comment_Change     = window['AscDFH'].historyitem_type_Comment | 1;
+	window['AscDFH'].historyitem_Comment_TypeInfo   = window['AscDFH'].historyitem_type_Comment | 2;
+	window['AscDFH'].historyitem_Comment_Position   = window['AscDFH'].historyitem_type_Comment | 3;
+	window['AscDFH'].historyitem_Comment_RangeStart = window['AscDFH'].historyitem_type_Comment | 4;
+	window['AscDFH'].historyitem_Comment_RangeEnd   = window['AscDFH'].historyitem_type_Comment | 5;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе AscCommon.CComments
 	//------------------------------------------------------------------------------------------------------------------
