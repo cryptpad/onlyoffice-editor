@@ -8434,7 +8434,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             addText(String.fromCharCode(elem.Pr.chr || elem.operator.Get_CodeChr()));
             getAndPushTextContent(elem.getBase(), true);
         } else if (elem instanceof CAccent) {
-            getAndPushTextContent(elem.getBase(), elem.getBase().GetTextContent().str.length > 1 ? true : false);
+            getAndPushTextContent(elem.getBase(), elem.getBase().GetTextContent().str);
             addText(String.fromCharCode(elem.Pr.chr || elem.operator.Get_CodeChr()));
         } else if (elem instanceof CDelimiter) {
             addText(String.fromCharCode(elem.Pr.begChr || elem.begOper.code || 40));
