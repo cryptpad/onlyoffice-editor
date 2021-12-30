@@ -85,6 +85,8 @@
 				return;
 			}
 		}
+
+		var val;
 		if ("workbook" === reader.GetNameNoNS()) {
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
@@ -92,11 +94,129 @@
 				if ("sheets" === name) {
 					var sheets = new CT_Sheets(this.wb);
 					sheets.fromXml(reader);
-					this.sheets = sheets.sheets
+					this.sheets = sheets.sheets;
 				} else if ("pivotCaches" === name) {
 					var pivotCaches = new CT_PivotCaches();
 					pivotCaches.fromXml(reader);
-					this.pivotCaches = pivotCaches.pivotCaches
+					this.pivotCaches = pivotCaches.pivotCaches;
+				} else if ("workbookPr" === name) {
+					this.wb.workbookPr = {};
+					while (reader.MoveToNextAttribute()) {
+						/*if ("allowRefreshQuery" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.allowRefreshQuery = val;
+						} else if ("autoCompressPictures" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.autoCompressPictures = val;
+						} else if ("backupFile" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.backupFile = val;
+						} else if ("checkCompatibility" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.checkCompatibility = val;
+						} else if ("codeName" === reader.GetName()) {
+							val = reader.GetValue();
+							this.codeName = val;
+						} else*/ if ("date1904" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.workbookPr.Date1904 = val;
+						} else if ("dateCompatibility" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.workbookPr.DateCompatibility = val;
+						} /*else if ("defaultThemeVersion" === reader.GetName()) {
+							val = reader.GetValueInt();
+							this.defaultThemeVersion = val;
+						} else if ("filterPrivacy" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.filterPrivacy = val;
+						}*/ else if ("hidePivotFieldList" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.workbookPr.HidePivotFieldList = val;
+						} /*else if ("promptedSolutions" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.promptedSolutions = val;
+						} else if ("publishItems" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.publishItems = val;
+						} else if ("refreshAllConnections" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.refreshAllConnections = val;
+						} else if ("showBorderUnselectedTables" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.showBorderUnselectedTables = val;
+						} else if ("showInkAnnotation" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.showInkAnnotation = val;
+						} else if ("showObjects" === reader.GetName()) {
+							val = reader.GetValue();
+							this.showObjects = val;
+						}*/ else if ("showPivotChartFilter" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.workbookPr.ShowPivotChartFilter = val;
+						} /*else if ("updateLinks" === reader.GetName()) {
+							val = reader.GetValue();
+							this.updateLinks = val;
+						}*/
+					}
+				}  else if ("bookViews" === name) {
+					var depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						var name2 = reader.GetNameNoNS();
+						if ("workbookView" === name2) {
+							while (reader.MoveToNextAttribute()) {
+								if ("activeTab" === reader.GetNameNoNS()) {
+									this.wb.nActive = reader.GetValueInt();
+								}
+							}
+						}
+					}
+				} else if ("calcPr" === name) {
+					while (reader.MoveToNextAttribute()) {
+						if ("calcId" === reader.GetName()) {
+							val = reader.GetValueInt();
+							this.wb.calcPr.calcId = val;
+						} else if ("calcMode" === reader.GetName()) {
+							val = reader.GetValue();
+							this.wb.calcPr.calcMode = val;
+						} else if ("fullCalcOnLoad" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.calcPr.fullCalcOnLoad = val;
+						} else if ("refMode" === reader.GetName()) {
+							val = reader.GetValue();
+							this.wb.calcPr.refMode = val;
+						} else if ("iterate" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.calcPr.iterate = val;
+						} else if ("iterateCount" === reader.GetName()) {
+							val = reader.GetValueInt();
+							this.wb.calcPr.iterateCount = val;
+						} else if ("iterateDelta" === reader.GetName()) {
+							val = reader.GetValue();
+							this.wb.calcPr.iterateDelta = val;
+						} else if ("fullPrecision" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.calcPr.fullPrecision = val;
+						} else if ("calcCompleted" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.calcPr.calcCompleted = val;
+						} else if ("calcOnSave" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.calcPr.calcOnSave = val;
+						} else if ("concurrentCalc" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.calcPr.concurrentCalc = val;
+						} else if ("concurrentManualCount" === reader.GetName()) {
+							val = reader.GetValueInt();
+							this.wb.calcPr.concurrentManualCount = val;
+						} else if ("forceFullCalc" === reader.GetName()) {
+							val = reader.GetValueBool();
+							this.wb.calcPr.forceFullCalc = val;
+						}
+					}
+				} else if ("workbookProtection" === name) {
+					var workbooProtection = new Asc.CWorkbookProtection(this.wb);
+					workbooProtection.fromXml(reader);
+					this.wb.workbookProtection = workbooProtection;
 				}
 			}
 		}
@@ -138,6 +258,10 @@
 			writer.WriteXmlNodeEnd('workbookPr');
 		}
 
+		if (this.wb.workbookProtection) {
+			this.wb.workbookProtection.toXml(writer);
+		}
+
 		writer.WriteXmlNodeStart('bookViews');
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNodeStart('workbookView');
@@ -146,6 +270,11 @@
 		}
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNodeEnd('bookViews');
+
+		var sheetsXml = new CT_Sheets(this.wb);
+		sheetsXml.toXml(writer);
+
+		//m_oExternalReferences
 
 		var defNameList = writer.context.InitSaveManager.defNameList;
 		if (defNameList && defNameList.length) {
@@ -160,33 +289,166 @@
 			writer.WriteXmlNodeEnd("definedNames");
 		}
 
-		var sheetsXml = new CT_Sheets(this.wb);
-		sheetsXml.toXml(writer);
 		writer.WriteXmlNodeStart('calcPr');
+		writer.WriteXmlNullableAttributeNumber("calcId", this.calcId != undefined ? this.calcId : null);
+		writer.WriteXmlNullableAttributeString("calcMode", this.calcMode != undefined ? this.calcMode : null);
+		writer.WriteXmlNullableAttributeBool("fullCalcOnLoad", this.fullCalcOnLoad != undefined ? this.fullCalcOnLoad : null);
+		writer.WriteXmlNullableAttributeString("refMode", this.refMode != undefined ? this.refMode : null);
+		writer.WriteXmlNullableAttributeBool("iterate", this.iterate != undefined ? this.iterate : null);
+		writer.WriteXmlNullableAttributeNumber("iterateCount", this.iterateCount != undefined ? this.iterateCount : null);
+		writer.WriteXmlNullableAttributeNumber("iterateDelta", this.iterateDelta != undefined ? this.iterateDelta : null);
+		writer.WriteXmlNullableAttributeBool("fullPrecision", this.fullPrecision != undefined ? this.fullPrecision : null);
+		writer.WriteXmlNullableAttributeBool("calcCompleted", this.calcCompleted != undefined ? this.calcCompleted : null);
+		writer.WriteXmlNullableAttributeBool("calcOnSave", this.calcOnSave != undefined ? this.calcOnSave : null);
+		writer.WriteXmlNullableAttributeBool("concurrentCalc", this.concurrentCalc != undefined ? this.concurrentCalc : null);
+		writer.WriteXmlNullableAttributeNumber("concurrentManualCount", this.concurrentManualCount != undefined ? this.concurrentManualCount : null);
+		writer.WriteXmlNullableAttributeBool("forceFullCalc", this.forceFullCalc != undefined ? this.forceFullCalc : null);
 		writer.WriteXmlAttributesEnd(true);
+
+		/*if(m_oPivotCachesXml.IsInit())
+			writer.WriteString(m_oPivotCachesXml.get());
+		if(m_oExtLst.IsInit())
+			writer.WriteString(m_oExtLst->toXMLWithNS(L""));*/
+
 		writer.WriteXmlNodeEnd("workbook");
 	};
 
-	Asc.asc_CDefName.prototype.toXml = function (writer) {
 
-		/* writer.WriteString(L"<definedName");
-						WritingStringNullableAttrEncodeXmlString(L"name", m_oName, *m_oName);
-						WritingStringNullableAttrInt(L"localSheetId", m_oLocalSheetId, m_oLocalSheetId->GetValue());
-						WritingStringNullableAttrBool(L"hidden", m_oHidden);
-						writer.WriteString(L">");
-						if(m_oRef.IsInit())
-							writer.WriteEncodeXmlString(*m_oRef);
-						writer.WriteString(L"</definedName>");*/
 
-		writer.WriteXmlString("<definedName");
-		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
-		writer.WriteXmlNullableAttributeNumber("localSheetId", this.LocalSheetId);
-		writer.WriteXmlNullableAttributeBool("hidden", this.Hidden);
-		writer.WriteXmlString(">");
-		if (this.Ref) {
-			writer.WriteXmlStringEncode(this.Ref);
+	Asc.CWorkbookProtection.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<workbookProtection");
+							WritingStringNullableAttrString(L"workbookAlgorithmName", m_oWorkbookAlgorithmName, m_oWorkbookAlgorithmName->ToString());
+							WritingStringNullableAttrString(L"workbookHashValue", m_oWorkbookHashValue, m_oWorkbookHashValue.get());
+							WritingStringNullableAttrString(L"workbookSaltValue", m_oWorkbookSaltValue, m_oWorkbookSaltValue.get());
+							WritingStringNullableAttrInt(L"workbookSpinCount", m_oWorkbookSpinCount, m_oWorkbookSpinCount->GetValue());
+							WritingStringNullableAttrInt(L"lockStructure", m_oLockStructure, m_oLockStructure->ToBool() ? 1 : 0);
+							WritingStringNullableAttrInt(L"lockWindows", m_oLockWindows, m_oLockWindows->ToBool() ? 1 : 0);
+							WritingStringNullableAttrString(L"workbookPassword", m_oPassword, m_oPassword.get());
+						writer.WriteString(L"/>");*/
+
+		writer.WriteXmlString("<workbookProtection");
+		writer.WriteXmlNullableAttributeString("workbookAlgorithmName", this.workbookAlgorithmName);
+		writer.WriteXmlNullableAttributeString("workbookHashValue", this.workbookHashValue);
+		writer.WriteXmlNullableAttributeString("workbookSaltValue", this.workbookSaltValue);
+		writer.WriteXmlNullableAttributeNumber("workbookSpinCount", this.workbookSpinCount);
+		writer.WriteXmlNullableAttributeNumber("lockStructure", this.lockStructure ? 1 : 0);
+		writer.WriteXmlNullableAttributeNumber("lockWindows", this.lockWindows ? 1 : 0);
+		writer.WriteXmlNullableAttributeString("workbookPassword", this.workbookPassword);
+		writer.WriteXmlString("/>");
+	};
+
+	Asc.CWorkbookProtection.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+
+						if (!oReader.IsEmptyNode())
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
 		}
-		writer.WriteXmlString("</definedName>");
+	};
+
+	Asc.CWorkbookProtection.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:attribute name="lockStructure" type="xsd:boolean" use="optional" default="false"/>
+		4386 <xsd:attribute name="lockWindows" type="xsd:boolean" use="optional" default="false"/>
+		4387 <xsd:attribute name="lockRevision" type="xsd:boolean" use="optional" default="false"/>Annex A
+		4491
+		4388 <xsd:attribute name="revisionsAlgorithmName" type="s:ST_Xstring" use="optional"/>
+		4389 <xsd:attribute name="revisionsHashValue" type="xsd:base64Binary" use="optional"/>
+		4390 <xsd:attribute name="revisionsSaltValue" type="xsd:base64Binary" use="optional"/>
+		4391 <xsd:attribute name="revisionsSpinCount" type="xsd:unsignedInt" use="optional"/>
+		4392 <xsd:attribute name="workbookAlgorithmName" type="s:ST_Xstring" use="optional"/>
+		4393 <xsd:attribute name="workbookHashValue" type="xsd:base64Binary" use="optional"/>
+		4394 <xsd:attribute name="workbookSaltValue" type="xsd:base64Binary" use="optional"/>
+		4395 <xsd:attribute name="workbookSpinCount" type="xsd:unsignedInt" use="optional"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if(oReader, (L"workbookAlgorithmName"), m_oWorkbookAlgorithmName)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookHashValue"), m_oWorkbookHashValue)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookSaltValue"), m_oWorkbookSaltValue)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookSpinCount"), m_oWorkbookSpinCount)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsAlgorithmName"), m_oRevisionsAlgorithmName)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsHashValue"), m_oRevisionsHashValue)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsSaltValue"), m_oRevisionsSaltValue)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsSpinCount"), m_oRevisionsSpinCount)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"lockRevision"), m_oLockRevision)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"lockStructure"), m_oLockStructure)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"lockWindows"), m_oLockWindows)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookPassword"), m_oPassword)*/
+
+//serialize
+		/*if (c_oSerWorkbookProtection.LockStructure == type) {
+						workbookProtection.lockStructure = this.stream.GetBool();
+					} else if (c_oSerWorkbookProtection.LockWindows == type) {
+						workbookProtection.lockWindows = this.stream.GetBool();
+					} else if (c_oSerWorkbookProtection.LockRevision == type) {
+						workbookProtection.lockRevision = this.stream.GetBool();
+					} else if (c_oSerWorkbookProtection.RevisionsAlgorithmName == type) {
+						workbookProtection.revisionsAlgorithmName = this.stream.GetUChar();
+					} else if (c_oSerWorkbookProtection.RevisionsSpinCount == type) {
+						workbookProtection.revisionsSpinCount = this.stream.GetLong();
+					} else if (c_oSerWorkbookProtection.RevisionsHashValue == type) {
+						workbookProtection.revisionsHashValue = this.stream.GetString2LE(length);
+					} else if (c_oSerWorkbookProtection.RevisionsSaltValue == type) {
+						workbookProtection.revisionsSaltValue = this.stream.GetString2LE(length);
+					} else if (c_oSerWorkbookProtection.WorkbookAlgorithmName == type) {
+						workbookProtection.workbookAlgorithmName = this.stream.GetUChar();
+					} else if (c_oSerWorkbookProtection.WorkbookSpinCount == type) {
+						workbookProtection.workbookSpinCount = this.stream.GetLong();
+					} else if (c_oSerWorkbookProtection.WorkbookHashValue == type) {
+						workbookProtection.workbookHashValue = this.stream.GetString2LE(length);
+					} else if (c_oSerWorkbookProtection.WorkbookSaltValue == type) {
+						workbookProtection.workbookSaltValue = this.stream.GetString2LE(length);
+					} else if (c_oSerWorkbookProtection.Password == type) {
+						workbookProtection.workbookPassword = this.stream.GetString2LE(length);
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("workbookAlgorithmName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.workbookAlgorithmName = val;
+			} else if ("workbookHashValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.workbookHashValue = val;
+			} else if ("workbookSaltValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.workbookSaltValue = val;
+			} else if ("workbookSpinCount" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.workbookSpinCount = val;
+			} else if ("revisionsAlgorithmName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.revisionsAlgorithmName = val;
+			} else if ("revisionsHashValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.revisionsHashValue = val;
+			} else if ("revisionsSaltValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.revisionsSaltValue = val;
+			} else if ("revisionsSpinCount" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.revisionsSpinCount = val;
+			} else if ("lockRevision" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.lockRevision = val;
+			} else if ("lockStructure" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.lockStructure = val;
+			} else if ("lockWindows" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.lockWindows = val;
+			} else if ("workbookPassword" === reader.GetName()) {
+				val = reader.GetValue();
+				this.workbookPassword = val;
+			}
+		}
 	};
 
 	AscCommonExcel.Worksheet.prototype.fromXml = function(reader) {
@@ -528,6 +790,29 @@
 		}
 		writer.WriteXmlNodeEnd("worksheet");
 	};
+
+	Asc.asc_CDefName.prototype.toXml = function (writer) {
+
+		/* writer.WriteString(L"<definedName");
+						WritingStringNullableAttrEncodeXmlString(L"name", m_oName, *m_oName);
+						WritingStringNullableAttrInt(L"localSheetId", m_oLocalSheetId, m_oLocalSheetId->GetValue());
+						WritingStringNullableAttrBool(L"hidden", m_oHidden);
+						writer.WriteString(L">");
+						if(m_oRef.IsInit())
+							writer.WriteEncodeXmlString(*m_oRef);
+						writer.WriteString(L"</definedName>");*/
+
+		writer.WriteXmlString("<definedName");
+		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
+		writer.WriteXmlNullableAttributeNumber("localSheetId", this.LocalSheetId);
+		writer.WriteXmlNullableAttributeBool("hidden", this.Hidden);
+		writer.WriteXmlString(">");
+		if (this.Ref) {
+			writer.WriteXmlStringEncode(this.Ref);
+		}
+		writer.WriteXmlString("</definedName>");
+	};
+
 	AscCommonExcel.Worksheet.prototype.toXmlSheetData = function (writer) {
 		var ws = this;
 		var context = writer.context;
@@ -1261,7 +1546,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		//if (m_oTotalsRowCount.IsInit() && m_oTotalsRowCount->GetValue() > 0)
 		//          WritingStringAttrString(L"totalsRowCount", L"1");
 		//      else
-		//	WritingStringAttrString(L"totalsRowShown", L"0");//m_oTotalsRowShown
+		//	WritingStringAttrString(L"totalsRowShown", L"0");//m_oTotalsRowShownz
 		WritingStringNullableAttrInt(L"headerRowCount", m_oHeaderRowCount, m_oHeaderRowCount->GetValue());
 		WritingStringNullableAttrInt(L"totalsRowCount", m_oTotalsRowCount, m_oTotalsRowCount->GetValue());
 		WritingStringNullableAttrBool2(L"totalsRowShown", m_oTotalsRowShown);
@@ -1293,7 +1578,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
 		writer.WriteXmlNodeStart("table");
 		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" mc:Ignorable="xr xr3"');
-		writer.WriteXmlNullableAttributeNumber("id", this.Id ? this.Id : null);
+		var tableIds = writer.context.InitSaveManager.getTableIds();
+		writer.WriteXmlNullableAttributeNumber("id", undefined != tableIds[this.DisplayName] ? tableIds[this.DisplayName].id : null);
 		writer.WriteXmlNullableAttributeStringEncode("name", this.Name ? this.Name : null);
 		writer.WriteXmlNullableAttributeStringEncode("displayName", this.DisplayName);
 		writer.WriteXmlNullableAttributeString("ref", this.Ref.getName());
@@ -4989,13 +5275,45 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 
-	/*var _x2tFromXml = ''
-	var _x2t = '';
-	var _documentation = ''
-	var _serialize = ''*/
+	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\t\t\t\tif (!oReader.IsEmptyNode())\n' + '\t\t\t\t\toReader.ReadTillEnd();'
+	var _x2t = 'WritingElement_ReadAttributes_Read_if(oReader, (L"workbookAlgorithmName"), m_oWorkbookAlgorithmName)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookHashValue"), m_oWorkbookHashValue)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookSaltValue"), m_oWorkbookSaltValue)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookSpinCount"), m_oWorkbookSpinCount)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsAlgorithmName"), m_oRevisionsAlgorithmName)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsHashValue"), m_oRevisionsHashValue)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsSaltValue"), m_oRevisionsSaltValue)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"revisionsSpinCount"), m_oRevisionsSpinCount)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"lockRevision"), m_oLockRevision)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"lockStructure"), m_oLockStructure)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"lockWindows"), m_oLockWindows)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, (L"workbookPassword"), m_oPassword)';
+	var _documentation = '<xsd:attribute name="lockStructure" type="xsd:boolean" use="optional" default="false"/>\n' +
+		'4386 <xsd:attribute name="lockWindows" type="xsd:boolean" use="optional" default="false"/>\n' +
+		'4387 <xsd:attribute name="lockRevision" type="xsd:boolean" use="optional" default="false"/>Annex A\n' + '4491\n' +
+		'4388 <xsd:attribute name="revisionsAlgorithmName" type="s:ST_Xstring" use="optional"/>\n' +
+		'4389 <xsd:attribute name="revisionsHashValue" type="xsd:base64Binary" use="optional"/>\n' +
+		'4390 <xsd:attribute name="revisionsSaltValue" type="xsd:base64Binary" use="optional"/>\n' +
+		'4391 <xsd:attribute name="revisionsSpinCount" type="xsd:unsignedInt" use="optional"/>\n' +
+		'4392 <xsd:attribute name="workbookAlgorithmName" type="s:ST_Xstring" use="optional"/>\n' +
+		'4393 <xsd:attribute name="workbookHashValue" type="xsd:base64Binary" use="optional"/>\n' +
+		'4394 <xsd:attribute name="workbookSaltValue" type="xsd:base64Binary" use="optional"/>\n' +
+		'4395 <xsd:attribute name="workbookSpinCount" type="xsd:unsignedInt" use="optional"/>'
+	var _serialize = 'if (c_oSerWorkbookProtection.LockStructure == type) {\n' + '\t\t\t\tworkbookProtection.lockStructure = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.LockWindows == type) {\n' + '\t\t\t\tworkbookProtection.lockWindows = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.LockRevision == type) {\n' + '\t\t\t\tworkbookProtection.lockRevision = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.RevisionsAlgorithmName == type) {\n' + '\t\t\t\tworkbookProtection.revisionsAlgorithmName = this.stream.GetUChar();\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.RevisionsSpinCount == type) {\n' + '\t\t\t\tworkbookProtection.revisionsSpinCount = this.stream.GetLong();\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.RevisionsHashValue == type) {\n' + '\t\t\t\tworkbookProtection.revisionsHashValue = this.stream.GetString2LE(length);\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.RevisionsSaltValue == type) {\n' + '\t\t\t\tworkbookProtection.revisionsSaltValue = this.stream.GetString2LE(length);\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.WorkbookAlgorithmName == type) {\n' + '\t\t\t\tworkbookProtection.workbookAlgorithmName = this.stream.GetUChar();\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.WorkbookSpinCount == type) {\n' + '\t\t\t\tworkbookProtection.workbookSpinCount = this.stream.GetLong();\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.WorkbookHashValue == type) {\n' + '\t\t\t\tworkbookProtection.workbookHashValue = this.stream.GetString2LE(length);\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.WorkbookSaltValue == type) {\n' + '\t\t\t\tworkbookProtection.workbookSaltValue = this.stream.GetString2LE(length);\n' +
+		'\t\t\t} else if (c_oSerWorkbookProtection.Password == type) {\n' + '\t\t\t\tworkbookProtection.workbookPassword = this.stream.GetString2LE(length);\n' + '\t\t\t}'
 
 	//by test automatic add function
-	//analizeXmlFrom(_x2tFromXml);
+	analizeXmlFrom(_x2tFromXml);
 	function analizeAttr (x2t, documentation, serialize) {
 		var isUpperCaseName = false;
 
@@ -5169,12 +5487,18 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		console.log(res);
 	}
 
-	var _x2tToXml = ' writer.WriteString(L"<definedName");\n' + '\t\t\t\tWritingStringNullableAttrEncodeXmlString(L"name", m_oName, *m_oName);\n' +
-		'\t\t\t\tWritingStringNullableAttrInt(L"localSheetId", m_oLocalSheetId, m_oLocalSheetId->GetValue());\n' +
-		'\t\t\t\tWritingStringNullableAttrBool(L"hidden", m_oHidden);\n' + '\t\t\t\twriter.WriteString(L">");\n' + '\t\t\t\tif(m_oRef.IsInit())\n' +
-		'\t\t\t\t\twriter.WriteEncodeXmlString(*m_oRef);\n' + '\t\t\t\twriter.WriteString(L"</definedName>");'
+	var _x2tToXml = 'writer.WriteString(_T("<calcPr"));\n' + '\t\t\t\tWritingStringNullableAttrInt(L"calcId", m_oCalcId, m_oCalcId->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrString(L"calcMode", m_oCalcMode, m_oCalcMode->ToString());\n' +
+		'\t\t\t\tWritingStringNullableAttrBool(L"fullCalcOnLoad", m_oFullCalcOnLoad);\n' +
+		'\t\t\t\tWritingStringNullableAttrString(L"refMode", m_oRefMode, m_oRefMode->ToString());\n' + '\t\t\t\tWritingStringNullableAttrBool(L"iterate", m_oIterate);\n' +
+		'\t\t\t\tWritingStringNullableAttrInt(L"iterateCount", m_oIterateCount, m_oIterateCount->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrDouble(L"iterateDelta", m_oIterateDelta, m_oIterateDelta->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrBool(L"fullPrecision", m_oFullPrecision);\n' + '\t\t\t\tWritingStringNullableAttrBool(L"calcCompleted", m_oCalcCompleted);\n' +
+		'\t\t\t\tWritingStringNullableAttrBool(L"calcOnSave", m_oCalcOnSave);\n' + '\t\t\t\tWritingStringNullableAttrBool(L"concurrentCalc", m_oConcurrentCalc);\n' +
+		'\t\t\t\tWritingStringNullableAttrInt(L"concurrentManualCount", m_oConcurrentManualCount, m_oConcurrentManualCount->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrBool(L"forceFullCalc", m_oForceFullCalc);\n' + '\t\t\t\twriter.WriteString(_T("/>"));'
 
-	analizeXmlTo(_x2tToXml, true);
+	//analizeXmlTo(_x2tToXml, false);
 	function analizeXmlTo (x2tToXml, isUpperCaseName) {
 
 		var res = "TEST.prototype.toXml = function (writer) {\n"
@@ -5211,8 +5535,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				isWriteAttr = "WritingStringAttrEncodeXmlString"
 			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrBool")) {
 				isWriteAttr = "WritingStringNullableAttrBool"
-			} else if (-1 != splitRows[i].indexOf("WriteEncodeXmlString")) {
-				isWriteAttr = "WriteEncodeXmlString"
+			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrDouble")) {
+				isWriteAttr = "WritingStringNullableAttrInt"
 			}
 
 			if (isWriteAttr) {
@@ -5264,6 +5588,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				}
 				if (-1 != splitRows[i].indexOf('->')) {
 					splitRows[i] = splitRows[i].replaceAll('->', '.');
+				}
+				if (-1 != splitRows[i].indexOf("WriteEncodeXmlString")) {
+					splitRows[i] = splitRows[i].replaceAll('WriteXmlStringEncode', '.');
 				}
 
 
