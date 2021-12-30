@@ -1266,16 +1266,16 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
                                 var oCellPr = new CTableCellPr();
                                 if(oPr2.TableBorders){
                                     if(i === 0){
-                                        if(oPr2.TableBorders.Top){
+                                        if(oPr2.TableBorders.Top && oPr2.TableBorders.Top.Color){
                                             oCellPr.TableCellBorders.Top = oPr2.TableBorders.Top.Copy();
                                         }
                                     }
                                     if(i === oCopyTable.Content.length - 1){
-                                        if(oPr2.TableBorders.Bottom){
+                                        if(oPr2.TableBorders.Bottom && oPr2.TableBorders.Bottom.Color){
                                             oCellPr.TableCellBorders.Bottom = oPr2.TableBorders.Bottom.Copy();
                                         }
                                     }
-                                    if(oPr2.TableBorders.InsideH){
+                                    if(oPr2.TableBorders.InsideH && oPr2.TableBorders.InsideH.Color){
                                         if(i !== 0){
                                             oCellPr.TableCellBorders.Top = oPr2.TableBorders.InsideH.Copy();
                                         }
@@ -1284,16 +1284,16 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
                                         }
                                     }
                                     if(j === 0){
-                                        if(oPr2.TableBorders.Left){
+                                        if(oPr2.TableBorders.Left && oPr2.TableBorders.Left.Color){
                                             oCellPr.TableCellBorders.Left = oPr2.TableBorders.Left.Copy();
                                         }
                                     }
                                     if(j === aSourceCells.length - 1){
-                                        if(oPr2.TableBorders.Right){
+                                        if(oPr2.TableBorders.Right && oPr2.TableBorders.Right.Color){
                                             oCellPr.TableCellBorders.Right = oPr2.TableBorders.Right.Copy();
                                         }
                                     }
-                                    if(oPr2.TableBorders.InsideV){
+                                    if(oPr2.TableBorders.InsideV && oPr2.TableBorders.InsideV.Color){
                                         if(j !== 0){
                                             oCellPr.TableCellBorders.Left = oPr2.TableBorders.InsideV.Copy();
                                         }
