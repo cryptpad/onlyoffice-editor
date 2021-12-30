@@ -1079,6 +1079,7 @@ CGraphicFrame.prototype.getWordTable = function()
     this.bDeleted = true;
     this.setWordFlag(false);
     var oTable = this.graphicObject.Copy();
+    oTable.Set_TableStyle2(undefined);
     this.setWordFlag(true);
     this.bDeleted = bOldBDeleted;
     var aRows = oTable.Content;
