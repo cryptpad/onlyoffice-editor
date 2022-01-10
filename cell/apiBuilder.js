@@ -2060,7 +2060,7 @@
 	* @param {pt} nHeight The row height in the range specified, measured in points.
 	 */
 	ApiRange.prototype.SetRowHeight = function (nHeight) {
-		this.range.worksheet.setRowHeight(nHeight, this.range.bbox.r1, this.range.bbox.r2, false);
+		this.range.worksheet.setRowHeight(nHeight, this.range.bbox.r1, this.range.bbox.r2, true);
 	};
 	Object.defineProperty(ApiRange.prototype, "RowHeight", {
 		get: function () {
