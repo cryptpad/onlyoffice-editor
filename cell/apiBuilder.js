@@ -3413,7 +3413,7 @@
 	 * @returns {number}
 	 */
 	 ApiComment.prototype.GetClassType = function () {
-		return this.Comment.getType();
+		return "comment";
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
