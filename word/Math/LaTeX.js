@@ -164,7 +164,6 @@ EquationProcessing.prototype.BracetSyntaxChecker = function(index) {
 //replace names of variables!
 EquationProcessing.prototype.CheckAfterBracet = function(Obj) {
 	var one = this.GetAtomByIndex(Obj.index);
-
 	var tempIndex = Obj.index;
 	var strOpenBracet;
 	var strCloseBracet;
@@ -1400,11 +1399,11 @@ EquationProcessing.prototype.ArrMatrixTypes = [
 	'bmatrix',
 	'Bmatrix',
 	'vmatrix',
-	'Vmatrix'
+	'Vmatrix',
 ];
 var GetIsAddBar = {
 	"\\overline": true,
-	"\\underline": true
+	"\\underline": true,
 };
 var GetIsAddGroupChar = {
 	"\\overbrace": true,
@@ -1464,7 +1463,7 @@ var GetAccent = {
 	773 : "\\bar",
 	8407: "\\vec",
 	774 : "\\breve",
-	771 : "\\tilde"
+	771 : "\\tilde",
 };
 var GetBracetCodeLexer = {
 	"(": 40,
@@ -1488,8 +1487,109 @@ var GetBracetCodeLexer = {
 	"\\ulcorner": 0xcbb9,
 	"\\urcorner": 0xcbba,
 	"/": 0x2f,
-	"\\backslash": 0x5c
+	"\\backslash": 0x5c,
 };
+//Text and symbols
+EquationProcessing.prototype.AddSymbol = function (strAtom, FormArgument, type, typeText) {
+	if (this.GetFutureAtom() == '\\' && !this.isInMatrix) {
+		if (type) {
+			if (type) {
+				this.Pr['scr'] = type;
+				FormArgument.Add_Symbol(strAtom.charCodeAt(0), typeText, {brk: true});
+			}
+		} else {
+			
+			if (strAtom.length > 1) {
+				FormArgument.Add_Text(strAtom, this.ParaMath.Paragraph, {brk: true});
+			}
+			
+			else {
+				FormArgument.Add_Symbol(strAtom.charCodeAt(0), this.Pr, {brk: true});
+			}
+		}
+	}
+
+	else {
+	
+		if (type) {
+			this.Pr['scr'] = type;
+			FormArgument.Add_Symbol(strAtom.charCodeAt(0), typeText, this.Pr);
+		}
+
+		var strCode = this.Parent.arrLaTeXSymbols[strAtom];
+		if (strCode) {
+			FormArgument.Add_Symbol(strCode, this.Pr);
+		}
+
+		else if (strAtom.length > 1) {
+			FormArgument.Add_Text(strAtom, this.Parent.ParaMath.Paragraph);
+		}
+		else {
+			FormArgument.Add_Symbol(strAtom.charCodeAt(0), this.Pr);
+		}
+	}
+};
+EquationProcessing.prototype.CheckIsText = function (strAtom) {
+	if (GetBracetCode[strAtom]) {
+		return false;
+	}
+
+	else if (
+		strAtom == "matrix" &&
+		strAtom == "\\left" &&
+		strAtom == "\\right" &&
+		strAtom != undefined &&
+		strAtom != '(' &&
+		strAtom != ')' 
+	) {
+		return false
+	}
+
+	return true
+};
+EquationProcessing.prototype.AddMathText = function(FormArgument, strAtom) {
+	var type = CheckMathText[strAtom];
+	var objSty = CheckMathTextSty[strAtom];
+
+	var strAtom = this.GetNextAtom();
+
+	do {
+		strAtom = this.GetNextAtom();
+		
+		if (strAtom != '{' && strAtom != '}') {
+
+			if (strAtom.length == 1) {
+				this.AddSymbol(strAtom, FormArgument, type, objSty);
+			}
+			
+			else if (strAtom.length > 1) {
+				
+				for (var i = 0; i < strAtom.length; i++) {
+					this.AddSymbol(strAtom[i], FormArgument, type, objSty);
+				}
+			}
+		}
+	} while (strAtom != '}');
+};
+var CheckMathText = {
+	'\\mathnormal': 0,
+	'\\mathbf': 0,
+	'\\mathrm': 0,
+	'\\mathcal': 1,
+	'\\mathfrak': 2,
+	'\\mathbb': 3,
+	'\\mathsf': 4,
+	'\\mathtt': 5,
+};
+var CheckMathTextSty = {
+	'\\mathnormal': {Italic: true, Bold: false},
+	'\\mathbf': {Italic: false, Bold: true},
+	'\\mathsf': {Italic: false, Bold: false},
+	'\\mathtt': {Italic: false, Bold: false},
+	'\\mathfrak': {Italic: false, Bold: false},
+	'\\mathrm': {Italic: false}
+};
+
 
 //========================================================================//
 //==========================LaTeX_Lexer===================================//
@@ -2005,108 +2105,7 @@ CLaTeXParser.prototype.arrLaTeXSymbols = {
 	"wp": 0x2118,
 	"zwnj": 0x200c,
 	"wr": 0x2240,
-	"zwsp": 0x200b
-};
-//Text and symbols
-CLaTeXParser.prototype.AddSymbol = function (strAtom, FormArgument, type, typeText) {
-	if (this.Processing.GetFutureAtom() == '\\' && !this.isInMatrix) {
-		if (type) {
-			if (type) {
-				this.Pr['scr'] = type;
-				FormArgument.Add_Symbol(strAtom.charCodeAt(0), typeText, {brk: true});
-			}
-		} else {
-			
-			if (strAtom.length > 1) {
-				FormArgument.Add_Text(strAtom, this.ParaMath.Paragraph, {brk: true});
-			}
-			
-			else {
-				FormArgument.Add_Symbol(strAtom.charCodeAt(0), this.Pr, {brk: true});
-			}
-		}
-		this.Processing.GetNextAtom()
-	}
-
-	else {
-	
-		if (type) {
-			this.Pr['scr'] = type;
-			FormArgument.Add_Symbol(strAtom.charCodeAt(0), typeText, this.Pr);
-		}
-
-		var strCode = this.arrLaTeXSymbols[strAtom];
-		if (strCode) {
-			FormArgument.Add_Symbol(strCode, this.Pr);
-		}
-
-		else if (strAtom.length > 1) {
-			FormArgument.Add_Text(strAtom, this.ParaMath.Paragraph);
-		}
-		else {
-			FormArgument.Add_Symbol(strAtom.charCodeAt(0), this.Pr);
-		}
-	}
-};
-CLaTeXParser.prototype.CheckIsText = function (strAtom) {
-	if (GetBracetCode[strAtom]) {
-		return false;
-	}
-
-	else if (
-		strAtom == "matrix" &&
-		strAtom == "\\left" &&
-		strAtom == "\\right" &&
-		strAtom != undefined &&
-		strAtom != '(' &&
-		strAtom != ')' 
-	) {
-		return false
-	}
-
-	return true
-};
-CLaTeXParser.prototype.AddMathText = function(FormArgument, strAtom) {
-	var type = CheckMathText[strAtom];
-	var objSty = CheckMathTextSty[strAtom];
-
-	var strAtom = this.GetNextAtom();
-
-	do {
-		strAtom = this.GetNextAtom();
-		
-		if (strAtom != '{' && strAtom != '}') {
-
-			if (strAtom.length == 1) {
-				this.AddSymbol(strAtom, FormArgument, type, objSty);
-			}
-			
-			else if (strAtom.length > 1) {
-				
-				for (var i = 0; i < strAtom.length; i++) {
-					this.AddSymbol(strAtom[i], FormArgument, type, objSty);
-				}
-			}
-		}
-	} while (strAtom != '}');
-};
-var CheckMathText = {
-	'\\mathnormal': 0,
-	'\\mathbf': 0,
-	'\\mathrm': 0,
-	'\\mathcal': 1,
-	'\\mathfrak': 2,
-	'\\mathbb': 3,
-	'\\mathsf': 4,
-	'\\mathtt': 5
-};
-var CheckMathTextSty = {
-	'\\mathnormal': {Italic: true, Bold: false},
-	'\\mathbf': {Italic: false, Bold: true},
-	'\\mathsf': {Italic: false, Bold: false},
-	'\\mathtt': {Italic: false, Bold: false},
-	'\\mathfrak': {Italic: false, Bold: false},
-	'\\mathrm': {Italic: false}
+	"zwsp": 0x200b,
 };
 function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 	var strAtom;
@@ -2166,21 +2165,11 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		// 	Parser.AddMathText(FormArgument, strAtom);
 		// }
 		else if (!Parser.isError && strAtom !== undefined) {
-			Parser.AddSymbol(strAtom, FormArgument);
+			Parser.Processing.AddSymbol(strAtom, FormArgument);
 		}
-
-		// else if (Parser.CheckFutureAtom() == '\\' && !Parser.isInMatrix) {
-		// 	Parser.AddSymbol(strAtom, FormArgument)
-		// }
-		// else if (strAtom == "\\bmod" && !Parser.isError) {
-		// 	FormArgument.Add_Box(Parser.Pr, "mod")
-		// }
-		// else if (Parser.CheckIsMatrix() && !Parser.isError) {
-		// 	Parser.AddMatrix(FormArgument);
-		// }
-		//Parser.CheckIsText(strAtom)
 	} while (strAtom != undefined);
 };
+
 
 //========================================================================//
 //==========================Unicode_Lexer=================================//
@@ -2256,6 +2245,10 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet) {
 	} while (strAtom != undefined);
 };
 
+
+//========================================================================//
+//==========================MathMl -> LaTeX===============================//
+//========================================================================//
 function ToLaTex(Root) {
 	this.Root = Root;
 	this.objTempData = {};
