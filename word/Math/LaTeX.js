@@ -32,6 +32,9 @@
 
 "use strict";
 
+//========================================================================//
+//========Processing class for LaTeX and Unicode lexers===================//
+//========================================================================//
 function EquationProcessing(Parent) {
 	this.Parent = Parent;
 	this.IndexesOfIgnoredAtoms = {};
@@ -46,7 +49,7 @@ EquationProcessing.prototype.Parse = function() {
 	var strTempWord = "";
 	var str = this.Parent.str;
 	var arrAtoms = [];
-
+	var isInMatrix = false;
 	for (var i = 0; i <= str.length; i++) {
 		
 		if (this.type === 'Unicode') {
@@ -59,6 +62,14 @@ EquationProcessing.prototype.Parse = function() {
 		
 		if (str[i] !== undefined) {
 			strTempWord += str[i];
+		}
+
+		if (this.ArrMatrixTypes.includes(strTempWord)) {
+			if (isInMatrix) {
+				isInMatrix = false;
+			} else {
+				isInMatrix = true;
+			}
 		}
 
 		if (this.type === 'LaTeX') {
@@ -81,7 +92,14 @@ EquationProcessing.prototype.Parse = function() {
 			}
 		}
 		
-		if (this.ParserData.includes(str[i + 1]) || this.ParserData.includes(strTempWord) || str[i+1] == '//') {
+		if (this.ParserData.includes(str[i + 1]) || 
+			this.ParserData.includes(strTempWord) ||
+			str[i+1] == '//' ||
+			str[i+1] == '@' ||
+			strTempWord == '@' ||
+			strTempWord == '\\' && isInMatrix && str[i+1] != 'e' && str[i+2] != 'n' && str[i+3] != 'd' ||
+			str[i+1] == '\\' && isInMatrix 
+			) {
 			arrAtoms.push(strTempWord.trim());
 			strTempWord = "";
 		}
@@ -1217,6 +1235,173 @@ EquationProcessing.prototype.AddAccent = function (FormArgument, name) {
 		this.Parent.intIndexArray++;
 	}
 };
+//Matrix
+EquationProcessing.prototype.AddMatrix = function (FormArgument) {
+	if (this.type === 'LaTeX') {
+		this.Parent.isInMatrix = true;
+
+		this.GetNextAtom(); // skip {
+		var typeOfMatrix = this.GetNextAtom();
+		this.GetNextAtom(); // skip }
+
+		var arrTempMatrixData = this.CreateMatrix(FormArgument, typeOfMatrix);
+	
+		var Matrix =		arrTempMatrixData[0];
+		var arrExitData =	arrTempMatrixData[1];
+		var intRowsCount =	arrTempMatrixData[2];
+		var intColsCount =	arrTempMatrixData[3];
+
+		this.FillMatrixContent(
+			Matrix,
+			arrExitData,
+			intRowsCount,
+			intColsCount
+		);
+
+		this.GetNextAtom() // skip {
+		if (typeOfMatrix != this.GetNextAtom()) {
+			console.log('error in matrix')
+		}
+		this.GetNextAtom(); // skip }
+		this.Parent.isInMatrix = false;
+	}
+	
+	else if (this.type === 'Unicode') {
+		this.GetNextAtom(); // skip (
+		var arrTempMatrixData = this.CreateMatrix(FormArgument, 'matrix');
+		var Matrix =		arrTempMatrixData[0];
+		var arrExitData =	arrTempMatrixData[1];
+		var intRowsCount =	arrTempMatrixData[2];
+		var intColsCount =	arrTempMatrixData[3];
+
+		this.FillMatrixContent(
+			Matrix,
+			arrExitData,
+			intRowsCount,
+			intColsCount
+		);
+	}
+};
+EquationProcessing.prototype.CreateMatrix = function(FormArgument, typeOfMatrix) {
+	var Bracets = [];
+	
+	if (this.type === 'LaTeX') {
+		if (this.GetFutureAtom() == '{') {
+			do {
+				var strAtom = this.GetNextAtom();
+			} while (strAtom != '}');
+		}
+	
+		if (typeOfMatrix == "pmatrix") {
+			Bracets.push(GetBracetCode["("], GetBracetCode[")"])
+		}
+		else if (typeOfMatrix == "bmatrix") {
+			Bracets.push(GetBracetCode["["], GetBracetCode["]"])
+		}
+		else if (typeOfMatrix == "Bmatrix") {
+			Bracets.push(GetBracetCode["{"], GetBracetCode["}"])
+		}
+		else if (typeOfMatrix == "vmatrix") {
+			Bracets.push(GetBracetCode["|"], GetBracetCode["|"])
+		}
+	} else {
+
+	}
+
+	var intColsCount = 1;
+	var intRowsCount = 1;
+	var strTempArr;
+	var intIndex = this.Parent.intIndexArray + 1;
+
+	var arrBufferExit = [];
+	do {
+		strTempArr = this.GetAtomByIndex(intIndex);
+		if (strTempArr == "&") {
+			arrBufferExit.push(intIndex);
+		}
+		if (strTempArr == "&" && intRowsCount == 1) {
+			intColsCount++;
+		}
+		if (strTempArr == "\\" || strTempArr == '@') {
+			intRowsCount++;
+			arrBufferExit.push(intIndex);
+		}
+		intIndex++;
+	} while (strTempArr != "\\end" && strTempArr != ')');
+	arrBufferExit.push(intIndex-1);
+
+	if (typeOfMatrix != 'matrix' && typeOfMatrix != 'array') {
+		var Matrix = FormArgument.Add_MatrixWithBrackets(
+			Bracets[0],
+			Bracets[1],
+			this.Parent.Pr.ctrPrp,
+			intRowsCount,
+			intColsCount,
+			false,
+			[]
+		);
+	}
+	else {
+		var Matrix = FormArgument.Add_Matrix(
+			this.Parent.Pr.ctrPrp,
+			intRowsCount,
+			intColsCount,
+			false,
+			[]
+		);
+	}
+
+	return[Matrix, arrBufferExit, intRowsCount, intColsCount];
+};
+EquationProcessing.prototype.FillMatrixContent = function(Matrix, arrExitData, intRowsCount, intColsCount) {
+	var intIndexOfExitBuffer = 0;
+
+	for (var RowIndex = 0; RowIndex < intRowsCount; RowIndex++) {
+		for (var ColIndex = 0; ColIndex < intColsCount; ColIndex++) {
+			var MathContent = Matrix.getContentElement(RowIndex, ColIndex);
+			this.StartLexer(MathContent, arrExitData[intIndexOfExitBuffer]);
+			intIndexOfExitBuffer++;
+		}
+	}
+};
+EquationProcessing.prototype.CheckIsMatrix = function (str) {
+	if (this.type === 'LaTeX') {
+		var n = 0, isBegin, isBracet, isMatrix;
+		isBegin = this.GetFutureAtom(n) === '\\begin'; n++;
+		
+		if (isBegin) {
+			isBracet = this.GetFutureAtom(n) === '{';
+			n++;
+		}
+
+		if (isBegin && isBracet) {
+			isMatrix = this.ArrMatrixTypes.includes(this.GetFutureAtom(n));
+			n++;
+		}
+
+		if (isBegin && isBracet && isMatrix) {
+			isBracet = this.GetFutureAtom(n) === '}';
+		}
+
+		return isBegin && isBracet && isMatrix;	
+	}
+
+	else if (this.type === 'Unicode') {
+		if (str && str.codePointAt() === 9632) {
+			return true;
+		} else {
+			return false
+		}
+	}
+};
+EquationProcessing.prototype.ArrMatrixTypes = [
+	'matrix',
+	'pmatrix',
+	'bmatrix',
+	'Bmatrix',
+	'vmatrix',
+	'Vmatrix'
+];
 var GetIsAddBar = {
 	"\\overline": true,
 	"\\underline": true
@@ -1237,10 +1422,14 @@ EquationProcessing.prototype.CheckIsAccent = function (strAtom) {
 		if (this.StartBracet[this.GetNowAtom()]) {
 			var intCloseExitBracet = this.CheckCloseBracet(this.Parent.intIndexArray);
 			if (typeof intCloseExitBracet === 'number') {
-				var accent = GetAccent[this.GetAtomByIndex(intCloseExitBracet + 1).charCodeAt()];
+				var strTempTtom = this.GetAtomByIndex(intCloseExitBracet + 1);
+				if (strTempTtom) {
+					var accent = GetAccent[strTempTtom.charCodeAt()];
+				}
+				
 				if (accent) {
 					this.accent = this.GetAtomByIndex(intCloseExitBracet + 1).charCodeAt();
-				return true;
+					return true;
 				}
 			}
 		}
@@ -1302,7 +1491,9 @@ var GetBracetCodeLexer = {
 	"\\backslash": 0x5c
 };
 
-
+//========================================================================//
+//==========================LaTeX_Lexer===================================//
+//========================================================================//
 function CLaTeXParser(props, str) {
 	this.str = str;
 	this.intIndexArray = -1;
@@ -1815,131 +2006,9 @@ CLaTeXParser.prototype.arrLaTeXSymbols = {
 	"zwnj": 0x200c,
 	"wr": 0x2240,
 	"zwsp": 0x200b
-}
-//Matrix
-CLaTeXParser.prototype.AddMatrix = function (FormArgument) {
-	this.isInMatrix = true;
-
-	this.GetNextAtom(); // skip {
-	var typeOfMatrix = this.GetNextAtom();
-	this.GetNextAtom(); // skip }
-
-	var arrTempMatrixData = this.CreateMatrix(FormArgument, typeOfMatrix);
-	console.log(arrTempMatrixData)
-	var Matrix = arrTempMatrixData[0];
-	var arrExitData = arrTempMatrixData[1];
-	var intRowsCount = arrTempMatrixData[2];
-	var intColsCount = arrTempMatrixData[3];
-
-	this.FillMatrixContent(
-		Matrix,
-		arrExitData,
-		intRowsCount,
-		intColsCount
-	);
-
-	this.GetNextAtom(); // skip {
-	if (typeOfMatrix != this.GetNextAtom()) {
-		console.log('error in matrix')
-	}
-	this.GetNextAtom(); // skip }
-	this.isInMatrix = false;
-};
-CLaTeXParser.prototype.CreateMatrix = function(FormArgument, typeOfMatrix) {
-	var Bracets = []
-
-	if (this.CheckFutureAtom() == '{') {
-		do {
-			var strAtom = this.GetNextAtom();
-		} while (strAtom != '}');
-	}
-
-	if (typeOfMatrix == "pmatrix") {
-		Bracets.push(GetBracetCode["("], GetBracetCode[")"])
-	}
-	else if (typeOfMatrix == "bmatrix") {
-		Bracets.push(GetBracetCode["["], GetBracetCode["]"])
-	}
-	else if (typeOfMatrix == "Bmatrix") {
-		Bracets.push(GetBracetCode["{"], GetBracetCode["}"])
-	}
-	else if (typeOfMatrix == "vmatrix") {
-		Bracets.push(GetBracetCode["|"], GetBracetCode["|"])
-	}
-	
-	var intColsCount = 1;
-	var intRowsCount = 1;
-	var strTempArr;
-	var intIndex = 0;
-
-	var arrBufferExit = [];
-	do {
-		strTempArr = this.CheckFutureAtom(intIndex);
-		if (strTempArr == "&") {
-			arrBufferExit.push('&');
-		}
-		if (strTempArr == "&" && intRowsCount == 1) {
-			intColsCount++;
-		}
-		if (strTempArr == "\\") {
-			intRowsCount++;
-			arrBufferExit.push('\\');
-		}
-		intIndex++;
-	} while (strTempArr != "\\end");
-	arrBufferExit.push('\\end');
-
-	if (typeOfMatrix != 'matrix' && typeOfMatrix != 'array') {
-		var Matrix = FormArgument.Add_MatrixWithBrackets(
-			Bracets[0],
-			Bracets[1],
-			this.Pr.ctrPrp,
-			intRowsCount,
-			intColsCount,
-			false,
-			[]
-		);
-	}
-
-	else {
-		var Matrix = FormArgument.Add_Matrix(
-			this.Pr.ctrPrp,
-			intRowsCount,
-			intColsCount,
-			false,
-			[]
-		);
-	}
-
-	return[Matrix, arrBufferExit, intRowsCount, intColsCount];
-};
-CLaTeXParser.prototype.FillMatrixContent = function(Matrix, arrExitData, intRowsCount, intColsCount) {
-	var intIndexOfExitBuffer = 0;
-
-	for (var RowIndex = 0; RowIndex < intRowsCount; RowIndex++) {
-		
-		for (var ColIndex = 0; ColIndex < intColsCount; ColIndex++) {
-			var MathContent = Matrix.getContentElement(RowIndex, ColIndex);
-			this.StartLexer(MathContent, arrExitData[intIndexOfExitBuffer]);
-			var to = MathContent.GetTextContent().str
-			intIndexOfExitBuffer++;
-		}
-	}
-};
-CLaTeXParser.prototype.CheckIsMatrix = function () {
-	return (
-		this.CheckElementSequence(["\\begin", "{", "matrix", "}"], true) ||
-		this.CheckElementSequence(["\\begin", "{", "pmatrix", "}"], true) ||
-		this.CheckElementSequence(["\\begin", "{", "bmatrix", "}"], true) ||
-		this.CheckElementSequence(["\\begin", "{", "Bmatrix", "}"], true) ||
-		this.CheckElementSequence(["\\begin", "{", "vmatrix", "}"], true) ||
-		this.CheckElementSequence(["\\begin", "{", "Vmatrix", "}"], true) ||
-		this.CheckElementSequence(["\\begin", "{", "array", "}"], true) 
-	);
 };
 //Text and symbols
 CLaTeXParser.prototype.AddSymbol = function (strAtom, FormArgument, type, typeText) {
-
 	if (this.Processing.GetFutureAtom() == '\\' && !this.isInMatrix) {
 		if (type) {
 			if (type) {
@@ -1950,13 +2019,13 @@ CLaTeXParser.prototype.AddSymbol = function (strAtom, FormArgument, type, typeTe
 			
 			if (strAtom.length > 1) {
 				FormArgument.Add_Text(strAtom, this.ParaMath.Paragraph, {brk: true});
-			} 
+			}
 			
 			else {
 				FormArgument.Add_Symbol(strAtom.charCodeAt(0), this.Pr, {brk: true});
 			}
 		}
-		this.GetNextAtom()
+		this.Processing.GetNextAtom()
 	}
 
 	else {
@@ -2039,11 +2108,6 @@ var CheckMathTextSty = {
 	'\\mathfrak': {Italic: false, Bold: false},
 	'\\mathrm': {Italic: false}
 };
-/**
- * @param Parser
- * @param FormArgument Функция в которую будет записываться контент.
- * @param exitIfSee Число элементов которые может обработать функция, или символ при нахождении которых функция завершит работу.
- */
 function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 	var strAtom;
 	var isDontWrite = function(index) {
@@ -2074,6 +2138,9 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		else if (strAtom == "\\sqrt" && !Parser.isError) {
 			Parser.Processing.AddRadical(FormArgument);
 		}
+		else if (Parser.Processing.CheckIsMatrix()) {
+			Parser.Processing.AddMatrix(FormArgument);
+		}
 		else if (Parser.Processing.CheckIsLargeOperator[strAtom.slice(1)] && !Parser.isError) {
 			Parser.Processing.AddLargeOperator(FormArgument, strAtom);
 		}
@@ -2102,7 +2169,6 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 			Parser.AddSymbol(strAtom, FormArgument);
 		}
 
-
 		// else if (Parser.CheckFutureAtom() == '\\' && !Parser.isInMatrix) {
 		// 	Parser.AddSymbol(strAtom, FormArgument)
 		// }
@@ -2116,7 +2182,80 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 	} while (strAtom != undefined);
 };
 
-//To LaTex
+//========================================================================//
+//==========================Unicode_Lexer=================================//
+//========================================================================//
+function CUnicodeParser(str, props) {
+	this.str = str;
+	this.intIndexArray = -1;
+	this.arrAtoms = [];
+	this.Pr = {ctrPrp: new CTextPr()};
+	this.ParaMath = props;
+	this.Processing;
+};
+CUnicodeParser.prototype.Start = function() {
+	this.Processing = new EquationProcessing(this);
+	this.Processing.Parse();
+	
+	var t0 = performance.now();
+	CUnicodeLexer(this, this.ParaMath.Root);
+	var t1 = performance.now();
+	console.log("Unicode work " + (t1 - t0) + " milliseconds.");
+	
+	this.ParaMath.Root.Correct_Content(true);
+};
+function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet) {
+	do {
+		var strAtom = Parser.Processing.GetNextAtom();
+		if (indexOfCloseBracet == Parser.intIndexArray) {
+			if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == true) {
+				FormArgument.Add_Text(strAtom, Parser.Paragraph);
+			}
+			return;
+		}
+		else if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == false) {
+			strAtom = Parser.Processing.GetNextAtom();
+		}
+		if (strAtom === undefined) {
+			return;
+		}
+		else if (Parser.Processing.CheckIsFrac() && Parser.Processing.StartBracet[strAtom]) {
+			Parser.Processing.AddFraction(FormArgument, strAtom);
+		}
+		else if (Parser.Processing.GetTypeOfFunction[strAtom] != null) {
+			Parser.Processing.AddFunction(FormArgument, strAtom);
+		}
+		else if (Parser.Processing.UnicodeLargeOperator[strAtom.charCodeAt()]) {
+			Parser.Processing.AddLargeOperator(FormArgument, strAtom)
+		}
+		else if (Parser.Processing.CheckSubOrSup() || Parser.Processing.CheckSubAndSup()) {
+			Parser.Processing.AddScript(strAtom, FormArgument);
+		}
+		else if (Parser.Processing.CheckPreScript()) {
+			Parser.intIndexArray++;
+			Parser.Processing.AddPreScript(FormArgument, strAtom);
+		}
+		else if (Parser.Processing.CheckIsMatrix(strAtom)) {
+			Parser.Processing.AddMatrix(FormArgument);
+		}
+		else if (strAtom.charCodeAt() === 8730) {
+			Parser.Processing.AddRadical(FormArgument);
+		}
+		else if (Parser.Processing.CheckIsBinom()) {
+			Parser.Processing.AddBinom(FormArgument);
+		}
+		else if (Parser.Processing.CheckIsAccent(strAtom)) {
+			Parser.Processing.AddAccent(FormArgument);
+		}
+		else if (Parser.Processing.CheckIsBrackets(strAtom)) {
+			Parser.Processing.AddBracet(FormArgument);
+		}
+		else {
+			FormArgument.Add_Text(strAtom, Parser.Paragraph);
+		}
+	} while (strAtom != undefined);
+};
+
 function ToLaTex(Root) {
 	this.Root = Root;
 	this.objTempData = {};
@@ -2128,7 +2267,6 @@ function ToLaTex(Root) {
 	this.unicode;
 	this.unicodeArr = [];
 };
-//Service
 ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
 	if (inputObj) {
 		if (inputObj.Content) {
@@ -3136,74 +3274,6 @@ ToLaTex.prototype.GetCode = new Map([
 	[0x2265, '\>='],
 	[0x226B, '\>>']
 ]);
-
-function CUnicodeParser(str, props) {
-	this.str = str;
-	this.intIndexArray = -1;
-	this.arrAtoms = [];
-	this.Pr = {ctrPrp: new CTextPr()};
-	this.ParaMath = props;
-	this.Processing;
-};
-CUnicodeParser.prototype.Start = function() {
-	this.Processing = new EquationProcessing(this);
-	this.Processing.Parse();
-	
-	var t0 = performance.now();
-	CUnicodeLexer(this, this.ParaMath.Root);
-	var t1 = performance.now();
-	console.log("Unicode work " + (t1 - t0) + " milliseconds.");
-	
-	this.ParaMath.Root.Correct_Content(true);
-};
-function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet) {
-	do {
-		var strAtom = Parser.Processing.GetNextAtom();
-		if (indexOfCloseBracet == Parser.intIndexArray) {
-			if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == true) {
-				FormArgument.Add_Text(strAtom, Parser.Paragraph);
-			}
-			return;
-		}
-		else if(Parser.Processing.IndexesOfIgnoredAtoms[Parser.intIndexArray] == false) {
-			strAtom = Parser.Processing.GetNextAtom();
-		}
-		if (strAtom === undefined) {
-			return;
-		}
-		else if (Parser.Processing.CheckIsFrac() && Parser.Processing.StartBracet[strAtom]) {
-			Parser.Processing.AddFraction(FormArgument, strAtom);
-		}
-		else if (Parser.Processing.GetTypeOfFunction[strAtom] != null) {
-			Parser.Processing.AddFunction(FormArgument, strAtom);
-		}
-		else if (Parser.Processing.UnicodeLargeOperator[strAtom.charCodeAt()]) {
-			Parser.Processing.AddLargeOperator(FormArgument, strAtom)
-		}
-		else if (Parser.Processing.CheckSubOrSup() || Parser.Processing.CheckSubAndSup()) {
-			Parser.Processing.AddScript(strAtom, FormArgument);
-		}
-		else if (Parser.Processing.CheckPreScript()) {
-			Parser.intIndexArray++;
-			Parser.Processing.AddPreScript(FormArgument, strAtom);
-		}
-		else if (strAtom.charCodeAt() === 8730) {
-			Parser.Processing.AddRadical(FormArgument);
-		}
-		else if (Parser.Processing.CheckIsBinom()) {
-			Parser.Processing.AddBinom(FormArgument);
-		}
-		else if (Parser.Processing.CheckIsAccent(strAtom)) {
-			Parser.Processing.AddAccent(FormArgument);
-		}
-		else if (Parser.Processing.CheckIsBrackets(strAtom)) {
-			Parser.Processing.AddBracet(FormArgument);
-		}
-		else {
-			FormArgument.Add_Text(strAtom, Parser.Paragraph);
-		}
-	} while (strAtom != undefined);
-};
 
 //--------------------------------------------------------export----------------------------------------------------
 window["AscCommonWord"] = window["AscCommonWord"] || {};
