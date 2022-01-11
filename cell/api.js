@@ -3023,6 +3023,13 @@ var editor;
     if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
+
+    var ws = this.wb.getWorksheet();
+    if (ws.model.getSheetProtection()) {
+        this.handlers.trigger("asc_onError", c_oAscError.ID.CannotUseCommandProtectedSheet, c_oAscError.Level.NoCritical);
+        return;
+    }
+
     options.lookIn = Asc.c_oAscFindLookIn.Formulas; // При замене поиск только в формулах
     this.wb.replaceCellText(options);
   };
@@ -3729,7 +3736,8 @@ var editor;
     }
     return null;
   };
-  spreadsheet_api.prototype.asc_GetSelectedText = function() {
+  spreadsheet_api.prototype.asc_GetSelectedText = function(bClearText, select_Pr) {
+    bClearText = typeof(bClearText) === "boolean" ? bClearText : true;
     var ws = this.wb.getWorksheet();
     if (this.wb.getCellEditMode()) {
       var fragments = this.wb.cellEditor.copySelection();
@@ -3738,7 +3746,7 @@ var editor;
       }
     }
     if (ws && ws.objectRender && ws.objectRender.controller) {
-      return ws.objectRender.controller.GetSelectedText(true);
+      return ws.objectRender.controller.GetSelectedText(bClearText, select_Pr);
     }
     return "";
   };
