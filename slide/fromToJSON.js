@@ -2676,7 +2676,7 @@
 		oParsedTgtEl.inkTgt && oTgtEl.setInkTgt(this.InkTgtFromJSON(oParsedTgtEl.inkTgt));
 		//oParsedTgtEl.sldTgt && oTgtEl.setSldTgt(this.SldTgtFromJSON(oParsedTgtEl.sldTgt));
 		oParsedTgtEl.sndTgt && oTgtEl.setSndTgt(this.SndTgtFromJSON(oParsedTgtEl.sndTgt));
-		oParsedTgtEl.setSpTgt && oTgtEl.setInkTgt(this.SpTgtFromJSON(oParsedTgtEl.setSpTgt));
+		oParsedTgtEl.spTgt && oTgtEl.setSpTgt(this.SpTgtFromJSON(oParsedTgtEl.spTgt));
 		
 		return oTgtEl;
 	};
@@ -3008,7 +3008,7 @@
 	ReaderFromJSON.prototype.TavLstFromJSON = function(oParsedTavLst)
 	{
 		var oTavLst = new AscFormat.CTavLst();
-		for (var nTav = 0; nTav < oTavLst.length; nTav++)
+		for (var nTav = 0; nTav < oParsedTavLst.length; nTav++)
 			oTavLst.addToLst(oTavLst.list.length, this.TavFromJSON(oParsedTavLst[nTav]));
 
 		return oTavLst;

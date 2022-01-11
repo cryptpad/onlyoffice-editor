@@ -4379,3 +4379,36 @@
         return new CTableMeasurement(nType, nW);
     }
 })(window, null);
+function isEqual(a, b)
+{
+    var bResult = true;
+
+    for (key in a)
+    {
+        if (key === "Id" || key === "parent")
+            continue;
+
+        if (typeof(a[key]) === "object" && Array.isArray(a[key]) === false)
+        {
+            bResult = bResult && isEqual(a[key], b[key]);
+            if (!bResult)
+                return false;
+        }
+
+        if (Array.isArray(a[key]))
+        {
+            if (a[key].length !== b[key].length)
+                return false;
+
+            for (var nItem = 0; nItem < a[key].length; nItem++)
+            {
+                if (typeof(a[key][nItem]) === "object")
+                    bResult = bResult && isEqual(a[key][nItem], b[key][nItem]);
+                else if (a[key][nItem] !== b[key][nItem])
+                    return false;
+            }
+        }
+    }
+
+    return bResult;
+}
