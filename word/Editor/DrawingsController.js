@@ -477,8 +477,11 @@ CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 	if (oParaDrawing && oParaDrawing.IsForm())
 	{
 		var oInnerForm = oParaDrawing.GetInnerForm();
-		if (oInnerForm)
+		if (oInnerForm && oInnerForm !== oInfo.GetInlineLevelSdt())
+		{
 			oInfo.SetInlineLevelSdt(oInnerForm);
+			oInfo.SetFixedFormShape(true);
+		}
 	}
 
 };
