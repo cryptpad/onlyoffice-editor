@@ -5421,6 +5421,10 @@ function FormatRGBAColor()
         return (this.fill && this.fill.color && this.fill.color.color
         && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SRGB)
     };
+    CUniFill.prototype.isSolidFillScheme = function() {
+        return (this.fill && this.fill.color && this.fill.color.color
+        && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME)
+    };
     CUniFill.prototype.isNoFill = function() {
         return this.fill && this.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_NOFILL;
     };
