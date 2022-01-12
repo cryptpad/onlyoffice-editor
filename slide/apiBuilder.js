@@ -4381,33 +4381,42 @@
 })(window, null);
 function isEqual(a, b)
 {
+    if (!a)
+        return true;
+
+    var aKeys = Object.keys(a);
+    var sCurKey = "";
+
     var bResult = true;
 
-    for (key in a)
+    for (var nKey = 0; nKey < aKeys.length; nKey++)
     {
-        if (key === "Id" || key === "parent")
+        sCurKey = aKeys[nKey];
+
+        if (sCurKey === "Id" || sCurKey === "parent" || sCurKey === "spid")
             continue;
 
-        if (typeof(a[key]) === "object" && Array.isArray(a[key]) === false)
+        if (typeof(a[sCurKey]) === "object" && Array.isArray(a[sCurKey]) === false)
         {
-            bResult = bResult && isEqual(a[key], b[key]);
+            bResult = bResult && isEqual(a[sCurKey], b[sCurKey]);
             if (!bResult)
                 return false;
         }
-
-        if (Array.isArray(a[key]))
+        else if (Array.isArray(a[sCurKey]))
         {
-            if (a[key].length !== b[key].length)
+            if (a[sCurKey].length !== b[sCurKey].length)
                 return false;
 
-            for (var nItem = 0; nItem < a[key].length; nItem++)
+            for (var nItem = 0; nItem < a[sCurKey].length; nItem++)
             {
-                if (typeof(a[key][nItem]) === "object")
-                    bResult = bResult && isEqual(a[key][nItem], b[key][nItem]);
-                else if (a[key][nItem] !== b[key][nItem])
+                if (typeof(a[sCurKey][nItem]) === "object")
+                    bResult = bResult && isEqual(a[sCurKey][nItem], b[sCurKey][nItem]);
+                else if (a[sCurKey][nItem] !== b[sCurKey][nItem])
                     return false;
             }
         }
+        else if (a[sCurKey] !== b[sCurKey])
+            return false;
     }
 
     return bResult;

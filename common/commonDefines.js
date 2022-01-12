@@ -1750,6 +1750,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		softRound: 11
 	}
 
+	var ST_TLAnimateEffectTransition = {
+		in:   0,
+		out:  1,
+		none: 2
+	}
+
 	var ST_PresetMaterialType = {
 		clear: 0,
 		dkEdge: 1,
@@ -4514,4 +4520,5 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window['AscCommon'].ST_LightRigType = ST_LightRigType;
 	window['AscCommon'].ST_BevelPresetType = ST_BevelPresetType;
 	window['AscCommon'].ST_PresetMaterialType = ST_PresetMaterialType;
+	window['AscCommon'].ST_TLAnimateEffectTransition = ST_TLAnimateEffectTransition;
 	})(window);

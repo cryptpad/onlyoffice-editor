@@ -1495,12 +1495,13 @@
 	};
 	WriterToJSON.prototype.SerAnimEffect = function(oAnimEffect)
 	{
+
 		return {
 			cBhvr:      this.SerCBhvr(oAnimEffect.cBhvr),
 			progress:   this.SerAnimVariant(oAnimEffect.progress),
 			filter:     oAnimEffect.filter,
 			prLst:      oAnimEffect.prLst,
-			transition: this.SerTransition(oAnimEffect.transition),
+			transition: To_XML_TLAnimateEffectTransition(oAnimEffect.transition),
 			objType:    "animEffect"
 		}
 	};
@@ -2288,7 +2289,7 @@
 
 		oParsedBldDgm.bld != undefined && oBldDgm.setBld(oParsedBldDgm.bld);
 		oParsedBldDgm.grpId != undefined && oBldDgm.setGrpId(oParsedBldDgm.grpId);
-		oParsedBldDgm.spid != undefined && oBldDgm.setSpid(oParsedBldDgm.spid);
+		oParsedBldDgm.spid != undefined && oBldDgm.setSpid(this.drawingsMap[oParsedBldDgm.spid].Id);
 		oParsedBldDgm.uiExpand != undefined && oBldDgm.setUiExpand(oParsedBldDgm.uiExpand);
 
 		return oBldDgm;
@@ -2300,7 +2301,7 @@
 		oParsedBldOleChart.animBg != undefined && oBldOleChart.setAnimBg(oParsedBldOleChart.animBg);
 		oParsedBldOleChart.bld != undefined && oBldOleChart.setBld(oParsedBldOleChart.bld);
 		oParsedBldOleChart.grpId != undefined && oBldOleChart.setGrpId(oParsedBldOleChart.grpId);
-		oParsedBldOleChart.spid != undefined && oBldOleChart.setSpid(oParsedBldOleChart.spid);
+		oParsedBldOleChart.spid != undefined && oBldOleChart.setSpid(this.drawingsMap[oParsedBldOleChart.spid].Id);
 		oParsedBldOleChart.uiExpand != undefined && oBldOleChart.setUiExpand(oParsedBldOleChart.uiExpand);
 
 		return oBldOleChart;
@@ -2313,7 +2314,7 @@
 		oParsedBldGraphic.bldSub && oBldGraphic.setBldSub(this.BldSubFromJSON(oParsedBldGraphic.bldSub));
 
 		oParsedBldGraphic.grpId != undefined && oBldGraphic.setGrpId(oParsedBldGraphic.grpId);
-		oParsedBldGraphic.spid != undefined && oBldGraphic.setSpid(oParsedBldGraphic.spid);
+		oParsedBldGraphic.spid != undefined && oBldGraphic.setSpid(this.drawingsMap[oParsedBldGraphic.spid].Id);
 		oParsedBldGraphic.uiExpand != undefined && oBldGraphic.setUiExpand(oParsedBldGraphic.uiExpand);
 
 		return oBldGraphic;
@@ -2359,7 +2360,7 @@
 		nBuildType != undefined && oBldP.setBuild(nBuildType);
 		oParsedBldP.grpId != undefined && oBldP.setGrpId(oParsedBldP.grpId);
 		oParsedBldP.rev != undefined && oBldP.setRev(oParsedBldP.rev);
-		oParsedBldP.spid != undefined && oBldP.setSpid(oParsedBldP.spid);
+		oParsedBldP.spid != undefined && oBldP.setSpid(this.drawingsMap[oParsedBldP.spid].Id);
 		oParsedBldP.uiExpand != undefined && oBldP.setUiExpand(oParsedBldP.uiExpand);
 
 		return oBldP;
@@ -2684,7 +2685,7 @@
 	{
 		var oInkTgt = new AscFormat.CObjectTarget();
 
-		oParsedInkTgt.spid != undefined && oInkTgt.setSpid(oParsedInkTgt.spid);
+		oParsedInkTgt.spid != undefined && oInkTgt.setSpid(this.drawingsMap[oParsedInkTgt.spid].Id);
 
 		return oInkTgt;
 	};
@@ -2706,9 +2707,9 @@
 	{
 		var oSpTgt = new AscFormat.CSpTgt();
 
-		oParsedSpTgt.spid != undefined && oSpTgt.setSpid(oParsedSpTgt.spid);
+		oParsedSpTgt.spid != undefined && oSpTgt.setSpid(this.drawingsMap[oParsedSpTgt.spid].Id);
 		oParsedSpTgt.bg != undefined && oSpTgt.setBg(oParsedSpTgt.bg);
-		oParsedSpTgt.subSpId != undefined && oSpTgt.setSubSpId(oParsedSpTgt.subSpId);
+		oParsedSpTgt.subSpId != undefined && oSpTgt.setSubSpId(this.drawingsMap[oParsedSpTgt.subSpId].Id);
 
 		oParsedSpTgt.oleChartEl && oSpTgt.setOleChartEl(this.OleChartElFromJSON(oParsedSpTgt.oleChartEl));
 		oParsedSpTgt.txEl && oSpTgt.setTxEl(this.TxElFromJSON(oParsedSpTgt.txEl));
@@ -2797,7 +2798,7 @@
 		oParsedIterate.tmAbs != undefined && oIterate.setTmAbs(oParsedIterate.tmAbs);
 		oParsedIterate.tmPct != undefined && oIterate.setTmPct(oParsedIterate.tmPct);
 		oParsedIterate.backwards != undefined && oIterate.setBackwards(oParsedIterate.backwards);
-		nIterateType != undefined && oIterate.setType(oPnIterateType);
+		nIterateType != undefined && oIterate.setType(nIterateType);
 
 		return oIterate;
 	};
@@ -3098,7 +3099,7 @@
 		oParsedAnimEffect.progress && oAnimEffect.setProgress(this.AnimVariantFromJSON(oParsedAnimEffect.progress));
 		oParsedAnimEffect.filter != undefined && oAnimEffect.setFilter(oParsedAnimEffect.filter);
 		oParsedAnimEffect.prLst != undefined && oAnimEffect.setPrLst(oParsedAnimEffect.prLst);
-		oParsedAnimEffect.transition && oAnimEffect.setTransition(this.TransitionFromJSON(oParsedAnimEffect.transition));
+		oParsedAnimEffect.transition && oAnimEffect.setTransition(From_XML_TLAnimateEffectTransition(oParsedAnimEffect.transition));
 
 		return oAnimEffect;
 	};
@@ -3529,6 +3530,42 @@
 		return oDefSpDefinition;
 	};
 	
+	function To_XML_TLAnimateEffectTransition(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.ST_TLAnimateEffectTransition.in:
+				sVal = "in";
+				break;
+			case AscCommon.ST_TLAnimateEffectTransition.out:
+				sVal = "out";
+				break;
+			case AscCommon.ST_TLAnimateEffectTransition.none:
+				sVal = "none";
+				break;
+		}
+
+		return sVal;
+	};
+	function From_XML_TLAnimateEffectTransition(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "in":
+				nVal = AscCommon.ST_TLAnimateEffectTransition.in;
+				break;
+			case "out":
+				nVal = AscCommon.ST_TLAnimateEffectTransition.out;
+				break;
+			case "none":
+				nVal = AscCommon.ST_TLAnimateEffectTransition.none;
+				break;
+		}
+
+		return nVal;
+	};
     //----------------------------------------------------------export----------------------------------------------------
     window['AscCommon']       = window['AscCommon'] || {};
     window['AscFormat']       = window['AscFormat'] || {};

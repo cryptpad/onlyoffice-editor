@@ -432,10 +432,12 @@
 		if (!oGraphicObj)
 			return null;
 
+		var oResultObj = null;
+
 		if (oGraphicObj instanceof AscFormat.CChartSpace)
-			return this.SerChartSpace(oGraphicObj, aComplexFieldsToSave);
+			oResultObj = this.SerChartSpace(oGraphicObj, aComplexFieldsToSave);
 		else if (oGraphicObj instanceof AscFormat.CImageShape)
-			return this.SerImage(oGraphicObj, aComplexFieldsToSave);
+			oResultObj = this.SerImage(oGraphicObj, aComplexFieldsToSave);
 		else if (oGraphicObj instanceof AscFormat.CShape)
 		{
 			if (oGraphicObj.constructor.name === "CConnectionShape")
@@ -443,22 +445,23 @@
 				var oShapeObj = this.SerShape(oGraphicObj, aComplexFieldsToSave);
 				oShapeObj.type = "connectShape";
 
-				return oShapeObj;
+				oResultObj = oShapeObj;
 			}
 			else
-				return this.SerShape(oGraphicObj, aComplexFieldsToSave);
+				oResultObj = this.SerShape(oGraphicObj, aComplexFieldsToSave);
 		}
 		else if (oGraphicObj instanceof AscFormat.CGraphicFrame)
-			return this.SerGraphicFrame(oGraphicObj);
+			ResultObj = this.SerGraphicFrame(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.SmartArt)
-			return this.SerSmartArt(oGraphicObj);
+			oResultObj = this.SerSmartArt(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.CLockedCanvas)
-			return this.SerLockedCanvas(oGraphicObj);
+			oResultObj = this.SerLockedCanvas(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.CGroupShape && oGraphicObj.constructor.name === "CGroupShape")
-            return this.SerGroupShape(oGraphicObj);
+			oResultObj = this.SerGroupShape(oGraphicObj);
 		
-			
-		return null;
+		oResultObj["id"] = oGraphicObj.Id;
+
+		return oResultObj;
 	};
 	WriterToJSON.prototype.SerLockedCanvas = function(oLockedCanvas)
 	{
@@ -8025,6 +8028,7 @@
 		this.mastersMap     = {};
 		this.notesMasterMap = {};
 		this.themesMap      = {};
+		this.drawingsMap    = {};
 	};
 
 	ReaderFromJSON.prototype.ParaRunFromJSON = function(oParsedRun, oParentPara, notCompletedFields)
@@ -11628,6 +11632,8 @@
 				break;
 		}
 
+		this.drawingsMap[oParsedObj.id] = oGraphicObj;
+		
 		return oGraphicObj;
 	};
 	ReaderFromJSON.prototype.LockedCanvasFromJSON = function(oParsedLocCanvas, oParentDrawing)
@@ -11643,7 +11649,7 @@
 		for (var nDrawing = 0; nDrawing < oParsedLocCanvas.spTree.length; nDrawing++)
 			oLockedCanvas.addToSpTree(oLockedCanvas.spTree.length, this.GraphicObjFromJSON(oParsedLocCanvas.spTree[nDrawing]));
 
-		oParentDrawing.spPr && oLockedCanvas.setSpPr(this.SpPrFromJSON(oParentDrawing.spPr, oLockedCanvas));
+		oParsedLocCanvas.spPr && oLockedCanvas.setSpPr(this.SpPrFromJSON(oParsedLocCanvas.spPr, oLockedCanvas));
 
 		oLockedCanvas.setBDeleted(false);
 		return oLockedCanvas;
@@ -11666,7 +11672,7 @@
 			oTempGraphObj.setGroup(oGroupShape);
 		}
 			
-		oParentDrawing.spPr && oGroupShape.setSpPr(this.SpPrFromJSON(oParentDrawing.spPr, oGroupShape));
+		oParsedGrpShp.spPr && oGroupShape.setSpPr(this.SpPrFromJSON(oParsedGrpShp.spPr, oGroupShape));
 
 		oGroupShape.setBDeleted(false);
 		return oGroupShape;
@@ -14900,7 +14906,7 @@
 		for (var nItem = 0; nItem < oParsedGeom.ahLst.ahPolar.length; nItem++)
 		{
 			var oItem = oParsedGeom.ahLst.ahPolar[nItem];
-			oGeom.AddHandlePolar(oItem.gdRefAng, oItem.minAng, oItem.maxAng, oItem.gdRefR, oItem.minR, oItem.maxR, oItem.pos.x, oItem.pox.y)
+			oGeom.AddHandlePolar(oItem.gdRefAng, oItem.minAng, oItem.maxAng, oItem.gdRefR, oItem.minR, oItem.maxR, oItem.pos.x, oItem.pos.y)
 		}
 		
 		// AhXY
