@@ -14071,7 +14071,7 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 		this.Comments.Add(Comment);
 
 		// Обновляем информацию для Undo/Redo
-		this.Document_UpdateInterfaceState();
+		this.UpdateInterface();
 	}
 	else
 	{
@@ -14098,9 +14098,9 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 		this.Comments.Add(Comment);
 		this.Controller.AddComment(Comment);
 
-		// TODO: Продумать, как избавиться от пересчета
 		this.Recalculate();
-		this.Document_UpdateInterfaceState();
+		this.UpdateInterface();
+		this.UpdateSelection();
 	}
 
 	return Comment;
@@ -14158,6 +14158,7 @@ CDocument.prototype.SelectComment = function(sId, isScrollToComment)
 	var oComment = this.Comments.Get_ById(sId);
 	if (isScrollToComment && oComment)
 	{
+		this.RemoveSelection();
 		oComment.MoveCursorToStart();
 		this.UpdateSelection();
 		this.UpdateInterface();
@@ -14225,6 +14226,9 @@ CDocument.prototype.private_GetCommentWorldAnchorPoint = function(oComment)
 	var nY         = oComment.m_oStartInfo.Y;
 	var nX         = this.Get_PageLimits(nPage).XLimit;
 	var oStartMark = this.TableId.Get_ById(oComment.GetRangeStart());
+
+	if (!oStartMark)
+		return {X : 0, Y : 0};
 
 	var oCommentParagraph = oStartMark.GetParagraph();
 	if (oCommentParagraph)
