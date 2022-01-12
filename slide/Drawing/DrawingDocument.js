@@ -849,7 +849,7 @@ function CDrawingDocument()
 
 		// check dark theme
 		if (AscCommon.GlobalSkin.Type !== "dark" || (this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10))
-			return this.TargetCursorColor.R;
+			return this.TargetCursorColor;
 
 		return { R : 255 - this.TargetCursorColor.R, G : 255 - this.TargetCursorColor.G, B : 255 - this.TargetCursorColor.B };
 	};
