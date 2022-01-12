@@ -243,9 +243,9 @@ CGraphicObjects.prototype =
                 var oApi = Asc.editor || editor;
                 var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
 
-                var oShape     = null;
+                var oShape     = AscCommon.g_oTableId.Get_ById(ret.objectId);
                 var oInnerForm = null;
-                if ((oShape = AscCommon.g_oTableId.Get_ById(ret.objectId)) && oShape.isForm() && (oInnerForm = oShape.getInnerForm()))
+                if (oShape && oShape.isForm && oShape.isForm() && (oInnerForm = oShape.getInnerForm())) // XXX CryptPad fix
 				{
 					if (isDrawHandles && oInnerForm.IsFormLocked())
 						isDrawHandles = false;
