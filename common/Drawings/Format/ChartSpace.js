@@ -3730,9 +3730,6 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.isShape = function() {
         return false;
     };
-    CChartSpace.prototype.isImage = function() {
-        return false;
-    };
     CChartSpace.prototype.isGroup = function() {
         return false;
     };

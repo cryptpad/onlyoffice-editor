@@ -1682,10 +1682,6 @@ CShape.prototype.isShape = function () {
     return true;
 };
 
-CShape.prototype.isImage = function () {
-    return false;
-};
-
 CShape.prototype.isChart = function () {
     return false;
 };

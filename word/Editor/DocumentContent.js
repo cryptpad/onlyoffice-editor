@@ -5003,6 +5003,10 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
             DocContent.Selection.Start = false;
         }
     }
+	if(Para.bFromDocument) 
+	{
+		SelectedContent.CheckDrawingsSize();
+	}
 	SelectedContent.CheckSignatures();
 };
 CDocumentContent.prototype.SetParagraphPr = function(oParaPr)

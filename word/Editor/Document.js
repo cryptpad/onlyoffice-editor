@@ -590,7 +590,43 @@ CSelectedContent.prototype =
         {
             editor.sendEvent("asc_onAddSignature", sLastSignatureId);
         }
-    }
+    },
+
+	CheckDrawingsSize: function() 
+	{
+		//correct size of inline image when SelectedContent contains the only one inline image
+		if(this.DrawingObjects.length === 1) 
+		{
+			var oParaDrawing = this.DrawingObjects[0];
+			if(oParaDrawing.IsInline()) 
+			{
+				if(this.Elements.length === 1) 
+				{
+					var oElement = this.Elements[0];
+					var oContentElement = oElement.Element;
+					if(oContentElement.IsParagraph()) 
+					{
+						var bAdditionalContent = oContentElement.CheckRunContent(function(oRun) {
+							var aContent = oRun.Content;
+							for(var nIdx = 0; nIdx < aContent.length; ++nIdx) 
+							{
+								var oItem = aContent[nIdx];
+								if(oItem.Type !== para_End && oItem.Type !== para_Drawing) 
+								{
+									return true;
+								}
+							}
+							return false;
+						});
+						if(!bAdditionalContent) 
+						{
+							oParaDrawing.CheckFitToColumn();
+						}
+					}
+				}
+			}
+		}
+	}
 };
 CSelectedContent.prototype.SetInsertOptionForTable = function(nType)
 {
@@ -9602,6 +9638,10 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 			this.CurPos.ContentPos  = LastPos;
 		}
         SelectedContent.CheckSignatures();
+		if(Para.bFromDocument) 
+		{
+        	SelectedContent.CheckDrawingsSize();
+		}
 		if (docpostype_DrawingObjects !== this.CurPos.Type)
 			this.SetDocPosType(docpostype_Content);
 	}

@@ -2731,6 +2731,10 @@
             dY += (this.convertPixToMM(4) + dH);
         }
     };
+    
+    CGraphicObjectBase.prototype.isImage = function() {
+        return this.getObjectType() === AscDFH.historyitem_type_ImageShape;
+    };
 
     var ANIM_LABEL_WIDTH_PIX = 22;
     var ANIM_LABEL_HEIGHT_PIX = 17;

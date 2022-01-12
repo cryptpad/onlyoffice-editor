@@ -488,11 +488,6 @@ CGraphicFrame.prototype.isShape = function()
         return false;
 };
 
-CGraphicFrame.prototype.isImage = function()
-    {
-        return false;
-};
-
 CGraphicFrame.prototype.isGroup = function()
     {
         return false;
