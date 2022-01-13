@@ -2684,7 +2684,7 @@
     CGraphicObjectBase.prototype.changeFlipV = function(bFlipV) {
         if(this.spPr && this.spPr.xfrm) {
             var oXfrm = this.spPr.xfrm;
-            oXfrm.setFlipH(bFlipV);
+            oXfrm.setFlipV(bFlipV);
             if(this.isObjectInSmartArt()) {
                 //TODO
             }
@@ -2730,6 +2730,10 @@
             aEffects[nEffect].drawEffectLabel(oGraphics, dX, dY, dW, dH);
             dY += (this.convertPixToMM(4) + dH);
         }
+    };
+    
+    CGraphicObjectBase.prototype.isImage = function() {
+        return this.getObjectType() === AscDFH.historyitem_type_ImageShape;
     };
 
     var ANIM_LABEL_WIDTH_PIX = 22;

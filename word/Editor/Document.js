@@ -590,7 +590,43 @@ CSelectedContent.prototype =
         {
             editor.sendEvent("asc_onAddSignature", sLastSignatureId);
         }
-    }
+    },
+
+	CheckDrawingsSize: function() 
+	{
+		//correct size of inline image when SelectedContent contains the only one inline image
+		if(this.DrawingObjects.length === 1) 
+		{
+			var oParaDrawing = this.DrawingObjects[0];
+			if(oParaDrawing.IsInline()) 
+			{
+				if(this.Elements.length === 1) 
+				{
+					var oElement = this.Elements[0];
+					var oContentElement = oElement.Element;
+					if(oContentElement.IsParagraph()) 
+					{
+						var bAdditionalContent = oContentElement.CheckRunContent(function(oRun) {
+							var aContent = oRun.Content;
+							for(var nIdx = 0; nIdx < aContent.length; ++nIdx) 
+							{
+								var oItem = aContent[nIdx];
+								if(oItem.Type !== para_End && oItem.Type !== para_Drawing) 
+								{
+									return true;
+								}
+							}
+							return false;
+						});
+						if(!bAdditionalContent) 
+						{
+							oParaDrawing.CheckFitToColumn();
+						}
+					}
+				}
+			}
+		}
+	}
 };
 CSelectedContent.prototype.SetInsertOptionForTable = function(nType)
 {
@@ -9602,6 +9638,10 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 			this.CurPos.ContentPos  = LastPos;
 		}
         SelectedContent.CheckSignatures();
+		if(Para.bFromDocument) 
+		{
+        	SelectedContent.CheckDrawingsSize();
+		}
 		if (docpostype_DrawingObjects !== this.CurPos.Type)
 			this.SetDocPosType(docpostype_Content);
 	}
@@ -14071,7 +14111,7 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 		this.Comments.Add(Comment);
 
 		// Обновляем информацию для Undo/Redo
-		this.Document_UpdateInterfaceState();
+		this.UpdateInterface();
 	}
 	else
 	{
@@ -14098,9 +14138,9 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 		this.Comments.Add(Comment);
 		this.Controller.AddComment(Comment);
 
-		// TODO: Продумать, как избавиться от пересчета
 		this.Recalculate();
-		this.Document_UpdateInterfaceState();
+		this.UpdateInterface();
+		this.UpdateSelection();
 	}
 
 	return Comment;
@@ -14158,6 +14198,7 @@ CDocument.prototype.SelectComment = function(sId, isScrollToComment)
 	var oComment = this.Comments.Get_ById(sId);
 	if (isScrollToComment && oComment)
 	{
+		this.RemoveSelection();
 		oComment.MoveCursorToStart();
 		this.UpdateSelection();
 		this.UpdateInterface();
@@ -14225,6 +14266,9 @@ CDocument.prototype.private_GetCommentWorldAnchorPoint = function(oComment)
 	var nY         = oComment.m_oStartInfo.Y;
 	var nX         = this.Get_PageLimits(nPage).XLimit;
 	var oStartMark = this.TableId.Get_ById(oComment.GetRangeStart());
+
+	if (!oStartMark)
+		return {X : 0, Y : 0};
 
 	var oCommentParagraph = oStartMark.GetParagraph();
 	if (oCommentParagraph)

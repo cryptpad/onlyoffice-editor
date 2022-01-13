@@ -11109,6 +11109,7 @@
 			}
 		});
 	}
+
 	if (!Object.values) {
 		Object.values = function (obj) {
 			return Object.keys(obj).map(function (e) {
@@ -11291,6 +11292,9 @@
 			res[i - start] = i;
 		}
 		return res;
+	}
+	function isEqualSortedArrays(array1, array2) {
+		return array1.length === array2.length && array1.every(function(value, index) { return value === array2[index]});
 	}
 
 	var g_oBackoffDefaults = {
@@ -11839,6 +11843,7 @@
 	window["AscCommon"].valueToMmType = valueToMmType;
 	window["AscCommon"].arrayMove = arrayMove;
 	window["AscCommon"].getRangeArray = getRangeArray;
+	window["AscCommon"].isEqualSortedArrays = isEqualSortedArrays;
 
 	window["AscCommon"].CUnicodeStringEmulator = CUnicodeStringEmulator;
 

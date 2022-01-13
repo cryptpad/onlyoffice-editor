@@ -5467,19 +5467,22 @@ var editor;
 			this._asc_insertPivot(wb, dataRef, ws, location.bbox, false);
 		}
 	};
-	spreadsheet_api.prototype._asc_insertPivot = function(wb, dataRef, ws, location, confirmation) {
+	spreadsheet_api.prototype._asc_insertPivot = function(wb, dataRef, ws, bbox, confirmation) {
 		var t = this;
 		History.Create_NewPoint();
 		History.StartTransaction();
 		var pivotName = wb.dependencyFormulas.getNextPivotName();
 		var pivot = new Asc.CT_pivotTableDefinition(true);
-		var cacheDefinition = wb.getPivotCacheByDataRef(dataRef);
+		var dataLocation = AscFormat.ExecuteNoHistory(function() {
+			return Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRef);
+		}, this, []);
+		var cacheDefinition = wb.getPivotCacheByDataLocation(dataLocation);
 		if (!cacheDefinition) {
 			cacheDefinition = new Asc.CT_PivotCacheDefinition();
 			cacheDefinition.asc_create();
 			cacheDefinition.fromDataRef(dataRef);
 		}
-		pivot.asc_create(ws, pivotName, cacheDefinition, location);
+		pivot.asc_create(ws, pivotName, cacheDefinition, bbox);
 		pivot.stashEmptyReportRange();
 		this._changePivotWithLockExt(pivot, confirmation, true, function() {
 			ws.insertPivotTable(pivot, true, false);
@@ -5488,7 +5491,7 @@ var editor;
 			t._changePivotEndCheckError(error, warn, function(can) {
 				if (can) {
 					//repeate with whole checks because of collaboration changes
-					t._asc_insertPivot(wb, dataRef, ws, location, true);
+					t._asc_insertPivot(wb, dataRef, ws, bbox, true);
 				}
 			});
 		});
@@ -6180,7 +6183,7 @@ var editor;
 				t.collaborativeEditing.lock([lockInfo], callback);
 			} else {
 				if (props.sheet) {
-					props.hashValue = hash && hash[0];
+					props.hashValue = hash && hash[0] ? hash[0] : null;
 					t.collaborativeEditing.lock([lockInfo], callback);
 				} else {
 					if (props.isPasswordXL() && hash && hash[0] && hash[0].toLowerCase() === props.password.toLowerCase()) {
@@ -6317,8 +6320,10 @@ var editor;
 
 		//only lockStructure
 		this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction);
-		if (props && props.temporaryPassword) {
-			if (props.isPasswordXL()) {
+		if (props && props.temporaryPassword != null) {
+			if (props.temporaryPassword === "") {
+				checkPassword([""]);
+			} else if (props.isPasswordXL()) {
 				checkPassword([AscCommonExcel.getPasswordHash(props.temporaryPassword, true)]);
 			} else {
 				var checkHash = {password: props.temporaryPassword, salt: props.workbookSaltValue, spinCount: props.workbookSpinCount,

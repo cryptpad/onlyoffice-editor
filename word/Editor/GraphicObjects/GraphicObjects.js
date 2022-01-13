@@ -1744,6 +1744,35 @@ CGraphicObjects.prototype =
         return content && content.Is_CurrentElementTable();
     },
 
+    getColumnSize: function() 
+    {
+        var oTargetTexObject = AscFormat.getTargetTextObject(this);
+        if(oTargetTexObject && oTargetTexObject.getObjectType() === AscDFH.historyitem_type_Shape) 
+        {
+            var oRect = oTargetTexObject.getTextRect();
+            if(oRect) 
+            {
+                var oBodyPr = oTargetTexObject.getBodyPr();
+                var l_ins = AscFormat.isRealNumber(oBodyPr.lIns) ? oBodyPr.lIns : 2.54;
+                var t_ins = AscFormat.isRealNumber(oBodyPr.tIns) ? oBodyPr.tIns : 1.27;
+                var r_ins = AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54;
+                var b_ins = AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27;
+                var dW = oRect.r - oRect.l - (l_ins + r_ins);
+                var dH = oRect.b - oRect.t - (t_ins + b_ins);
+                if(dW > 0 && dH > 0) 
+                {
+                    return {
+                        W : dW,
+                        H : dH
+                    };
+                }
+            }
+        }
+        return {
+            W : AscCommon.Page_Width - (AscCommon.X_Left_Margin + AscCommon.X_Right_Margin),
+            H : AscCommon.Page_Height - (AscCommon.Y_Top_Margin + AscCommon.Y_Bottom_Margin)
+        };
+    },
 
 	GetSelectedContent : function(SelectedContent)
     {
