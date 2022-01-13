@@ -2195,7 +2195,7 @@
     changesFactory[AscDFH.historyitem_IndexRgSt] = CChangeLong;
     changesFactory[AscDFH.historyitem_IndexRgEnd] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_IndexRgSt] = function(oClass, value) {oClass.st = value;};
-    drawingsChangesMap[AscDFH.historyitem_IndexRgEnd] = function(oClass, value) {oClass.st = value;};
+    drawingsChangesMap[AscDFH.historyitem_IndexRgEnd] = function(oClass, value) {oClass.end = value;};
     function CIndexRg() {//charrg, pRg
         CBaseAnimObject.call(this);
         this.st = null;
@@ -4634,15 +4634,15 @@
     changesFactory[AscDFH.historyitem_AnimMotionRAng] = CChangeLong;
 
     drawingsChangesMap[AscDFH.historyitem_AnimMotionBy] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionCBhvr] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionFrom] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionRCtr] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionTo] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionOrigin] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionPath] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionPathEditMode] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionPtsTypes] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionRAng] = function(oClass, value) {oClass.by = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionCBhvr] = function(oClass, value) {oClass.cBhvr = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionFrom] = function(oClass, value) {oClass.from = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionRCtr] = function(oClass, value) {oClass.rCtr = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionTo] = function(oClass, value) {oClass.to = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionOrigin] = function(oClass, value) {oClass.origin = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionPath] = function(oClass, value) {oClass.path = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionPathEditMode] = function(oClass, value) {oClass.pathEditMode = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionPtsTypes] = function(oClass, value) {oClass.ptsTypes = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionRAng] = function(oClass, value) {oClass.rAng = value;};
 
 
     var ORIGIN_PARENT = 0;
