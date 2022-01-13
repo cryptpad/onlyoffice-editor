@@ -2684,7 +2684,7 @@
     CGraphicObjectBase.prototype.changeFlipV = function(bFlipV) {
         if(this.spPr && this.spPr.xfrm) {
             var oXfrm = this.spPr.xfrm;
-            oXfrm.setFlipH(bFlipV);
+            oXfrm.setFlipV(bFlipV);
             if(this.isObjectInSmartArt()) {
                 //TODO
             }
