@@ -5430,12 +5430,86 @@ StyleManager.prototype =
 		return res;
 	};
 	Row.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("c" === reader.GetName()) {
 				this._tempCell.clear();
 				this._tempCell.fromXml(reader);
 				this._tempCell.saveContent();
+			}
+		}
+	};
+
+	Row.prototype.readAttr = function(reader) {
+
+		/*var res = c_oSerConstants.ReadOk;
+		var oThis = this;
+		if ( c_oSerRowTypes.Row == type )
+		{
+			var index = this.stream.GetULongLE() - 1;
+			tmp.row.setIndex(index);
+		}
+		else if ( c_oSerRowTypes.Style == type )
+		{
+			var xfs = this.aCellXfs[this.stream.GetULongLE()];
+			if(xfs)
+				tmp.row.setStyle(xfs);
+		}
+		else if ( c_oSerRowTypes.Height == type )
+		{
+			var h = this.stream.GetDoubleLE();
+			tmp.row.setHeight(h);
+			if(AscCommon.CurFileVersion < 2)
+				tmp.row.setCustomHeight(true);
+		}
+		else if ( c_oSerRowTypes.CustomHeight == type )
+		{
+			var CustomHeight = this.stream.GetBool();
+			if(CustomHeight)
+				tmp.row.setCustomHeight(true);
+		}
+		else if ( c_oSerRowTypes.Hidden == type )
+		{
+			var hd = this.stream.GetBool();
+			if(hd)
+				tmp.row.setHidden(true);
+		}
+		else if ( c_oSerRowTypes.OutLevel == type )
+		{
+			tmp.row.setOutlineLevel(this.stream.GetULongLE());
+		}
+		else if ( c_oSerRowTypes.Collapsed == type )
+		{
+			tmp.row.setCollapsed(this.stream.GetBool());
+		}
+		else if ( c_oSerRowTypes.Cells == type )
+		{
+			//запоминам место чтобы читать Cells в конце, когда уже зачитан oRow.index
+			tmp.pos = this.stream.GetCurPos();
+			tmp.len = length;
+			res = c_oSerConstants.ReadUnknown;
+		}
+		else
+			res = c_oSerConstants.ReadUnknown;
+		return res;*/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("r" === reader.GetName() || "ss:Index" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(val);
+			} else if ("caseSensitive" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.CaseSensitive = val;
+			} else if ("columnSort" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ColumnSort = val;
+			} else if ("sortMethod" === reader.GetName()) {
+				val = reader.GetValue();
+				this.SortMethod = val;
 			}
 		}
 	};

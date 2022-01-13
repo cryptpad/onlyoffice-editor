@@ -1429,6 +1429,17 @@ var editor;
 			var reader = new StaxParser(contentWorkbook, wbPart, xmlParserContext);
 			wbXml.fromXml(reader);
 		});
+
+		var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
+		if (personListPart) {
+			var contentPersonList = personListPart.getDocumentContent();
+			if (contentPersonList) {
+				var personList = new AscCommonExcel.CT_PersonList();
+				var reader = new StaxParser(contentPersonList, personListPart, xmlParserContext);
+				personList.fromXml(reader);
+			}
+		}
+
 		if (wbXml.pivotCaches) {
 			wbXml.pivotCaches.forEach(function(wbPivotCacheXml) {
 				var pivotTableCacheDefinitionPart;
