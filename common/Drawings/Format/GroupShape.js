@@ -407,10 +407,6 @@ function CGroupShape()
         return false;
     };
 
-    CGroupShape.prototype.isImage = function()
-    {
-        return false;
-    };
 
     CGroupShape.prototype.isChart = function()
     {

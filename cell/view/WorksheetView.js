@@ -5761,7 +5761,7 @@
         if (isOtherSelectionMode) {
             this._drawSelectRange();
         } else {
-            isShapeSelect = (asc["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists());
+            isShapeSelect = this.objectRender.selectedGraphicObjectsExists();
             if (isShapeSelect) {
                 if (this.isChartAreaEditMode) {
                     this._drawFormulaRanges(this.oOtherRanges);

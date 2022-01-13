@@ -9344,6 +9344,20 @@ PasteProcessor.prototype =
 									oThis.oCurRun.Pr.Underline = false;
 								}
 
+								if(oThis.oLogicDocument && oThis.oLogicDocument.GetColumnSize) {
+									var oColumnSize = oThis.oLogicDocument.GetColumnSize();
+									if(oColumnSize) {
+										if(nWidth > oColumnSize.W || nHeight > oColumnSize.H) {
+											if(oColumnSize.W > 0 && oColumnSize.H > 0)  {
+												var dScaleW = oColumnSize.W/nWidth;
+												var dScaleH = oColumnSize.H/nHeight;
+												var dScale = Math.min(dScaleW, dScaleH);
+												nWidth *= dScale;
+												nHeight *= dScale;
+											}
+										}
+									}
+								}
 								var Drawing = CreateImageFromBinary(sSrc, nWidth, nHeight);
 								// oTargetDocument.DrawingObjects.Add( Drawing );
 
