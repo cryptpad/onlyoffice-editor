@@ -2622,12 +2622,13 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
     this.GlossaryDocument = new CGlossaryDocument(this);
 
-    this.AutoCorrectSettings = {
-    	SmartQuotes            : true,
+	this.AutoCorrectSettings = {
+		SmartQuotes            : true,
 		HyphensWithDash        : true,
-    	AutomaticBulletedLists : true,
+		AutomaticBulletedLists : true,
 		AutomaticNumberedLists : true,
 		FrenchPunctuation      : true,
+		DoubleSpaceWithPeriod  : false,
 		FirstLetterOfSentences : true,
 		FirstLetterOfCells     : true,
 		Hyperlinks             : true,
@@ -22326,7 +22327,7 @@ CDocument.prototype.MoveToFillingForm = function(isNext)
 
 				if (oRes === oForm)
 					oRes = null;
-				
+
 				if (oRes)
 				{
 					break;
@@ -24215,6 +24216,23 @@ CDocument.prototype.IsAutoCorrectHyphensWithDash = function()
 CDocument.prototype.IsAutoCorrectFrenchPunctuation = function()
 {
 	return this.AutoCorrectSettings.FrenchPunctuation;
+};
+/**
+ * Запрашиваем настройку автозамены двойного пробела на точку
+ * @returns {boolean}
+ */
+CDocument.prototype.IsAutoCorrectDoubleSpaceWithPeriod = function()
+{
+
+	return this.AutoCorrectSettings.DoubleSpaceWithPeriod;
+};
+/**
+ * Выставляем настройку атозамены двойного пробела на точку
+ * @param {boolean} isCorrect
+ */
+CDocument.prototype.SetAutoCorrectDoubleSpaceWithPeriod = function(isCorrect)
+{
+	this.AutoCorrectSettings.DoubleSpaceWithPeriod = isCorrect;
 };
 /**
  * Выставляем настройку атозамены для первого символа предложения
