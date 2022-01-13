@@ -8611,11 +8611,11 @@
 			}
 		}
 
-		oParaPr.FramePr         = oParsedParaPr.framePr       ? this.FramePrFromJSON(oParsedParaPr.framePr)        : oParaPr.FramePr;
-		oParaPr.Spacing         = oParsedParaPr.spacing       ? this.ParaSpacingFromJSON(oParsedParaPr.spacing)    : oParaPr.Spacing;
-		oParaPr.Ind.Left        = oParsedParaPr.ind.left      ? private_Twips2MM(oParsedParaPr.ind.left)      : oParaPr.Ind.Left;
-		oParaPr.Ind.Right       = oParsedParaPr.ind.right     ? private_Twips2MM(oParsedParaPr.ind.right)     : oParaPr.Ind.Right;
-		oParaPr.Ind.FirstLine   = oParsedParaPr.ind.firstLine ? private_Twips2MM(oParsedParaPr.ind.firstLine) : oParaPr.Ind.FirstLine;
+		oParaPr.FramePr         = oParsedParaPr.framePr != undefined ? this.FramePrFromJSON(oParsedParaPr.framePr)        : oParaPr.FramePr;
+		oParaPr.Spacing         = oParsedParaPr.spacing != undefined ? this.ParaSpacingFromJSON(oParsedParaPr.spacing)    : oParaPr.Spacing;
+		oParaPr.Ind.Left        = oParsedParaPr.ind.left != undefined ? private_Twips2MM(oParsedParaPr.ind.left)      : oParaPr.Ind.Left;
+		oParaPr.Ind.Right       = oParsedParaPr.ind.right != undefined ? private_Twips2MM(oParsedParaPr.ind.right)     : oParaPr.Ind.Right;
+		oParaPr.Ind.FirstLine   = oParsedParaPr.ind.firstLine != undefined ? private_Twips2MM(oParsedParaPr.ind.firstLine) : oParaPr.Ind.FirstLine;
 		oParaPr.Jc              = nJc;
 		oParaPr.KeepLines       = oParsedParaPr.keepLines;
 		oParaPr.KeepNext        = oParsedParaPr.keepNext;
