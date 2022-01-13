@@ -451,7 +451,7 @@
 				oResultObj = this.SerShape(oGraphicObj, aComplexFieldsToSave);
 		}
 		else if (oGraphicObj instanceof AscFormat.CGraphicFrame)
-			ResultObj = this.SerGraphicFrame(oGraphicObj);
+			oResultObj = this.SerGraphicFrame(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.SmartArt)
 			oResultObj = this.SerSmartArt(oGraphicObj);
 		else if (oGraphicObj instanceof AscFormat.CLockedCanvas)
@@ -2283,7 +2283,7 @@
 		else if (oEffect instanceof AscFormat.CPrstShdw)
 		{
 			var sPrstType = undefined;
-			switch (oEffect.blend)
+			switch (oEffect.prst)
 			{
 				case c_oAscPresetShadowVal.shdw1:
 					sPrstType = "shdw1";
@@ -11229,7 +11229,7 @@
 				return oEffect;
 			case "blend":
 				var nBlendType = undefined;
-				switch (oEffect.blend)
+				switch (oParsedEff.blend)
 				{
 					case "darken":
 						nBlendType = c_oAscBlendModeType.Darken;
@@ -11286,7 +11286,7 @@
 				return oEffect;
 			case "fillOvrl":
 				var nBlendType = undefined;
-				switch (oEffect.blend)
+				switch (oParsedEff.blend)
 				{
 					case "darken":
 						nBlendType = c_oAscBlendModeType.Darken;
@@ -11350,7 +11350,7 @@
 				return oEffect;
 			case "prstShdw":
 				var nPrstType = undefined;
-				switch (oEffect.blend)
+				switch (oParsedEff.prst)
 				{
 					case "shdw1":
 						nPrstType = c_oAscPresetShadowVal.shdw1;

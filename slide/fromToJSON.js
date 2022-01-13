@@ -1161,6 +1161,8 @@
 		}
 
 		return {
+			Id:         oCTn.Id,
+
 			childTnLst: this.SerTnLst(oCTn.childTnLst),
 			endCondLst: this.SerCondLst(oCTn.endCondLst),
 			endSync:    this.SerCond(oCTn.endSync),
@@ -2418,6 +2420,9 @@
 					break;
 				case "animMotion":
 					oTnLSt.addToLst(oTnLSt.list.length, this.AnimMotionFromJSON(oTempElm));
+					break;
+				case "animRot":
+					oTnLSt.addToLst(oTnLSt.list.length, this.AnimRotFromJSON(oTempElm));
 					break;
 				case "animScale":
 					oTnLSt.addToLst(oTnLSt.list.length, this.AnimScaleFromJSON(oTempElm));
