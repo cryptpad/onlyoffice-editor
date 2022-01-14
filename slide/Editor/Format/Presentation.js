@@ -10955,6 +10955,7 @@ CPresentation.prototype.StartAnimationPreview = function() {
     }
     this.previewPlayer = oPlayer;
     oPlayer.start();
+    this.DrawingDocument.TargetEnd()
     return true;
 };
 CPresentation.prototype.StopAnimationPreview = function() {
@@ -10964,6 +10965,7 @@ CPresentation.prototype.StopAnimationPreview = function() {
         }
 		this.Api.sendEvent("asc_onAnimPreviewFinished");
         this.previewPlayer = null;
+        this.UpdateSelection();
         return true;
     }
     return false;
