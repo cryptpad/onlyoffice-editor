@@ -4814,6 +4814,7 @@
                 return;
             }
         }
+        var bIsIndefinite = (v === AscFormat.untilNextSlide || v === AscFormat.untilNextClick);
         var aChildren = this.childTnLst && this.childTnLst.list;
         if(aChildren) {
             for(var nChild = 0; nChild < aChildren.length; ++nChild) {
@@ -4822,7 +4823,10 @@
                 if(oDur.isSpecified()) {
                     var oAttr = oChild.getAttributesObject();
                     var nDelay = oAttr.getDelay(false);
-                    if(dCoef !== null) {
+                    if(bIsIndefinite) {
+                        oAttr.setDur("indefinite");
+                    }
+                    else if(dCoef !== null) {
                         oAttr.setDur((oDur.getVal()*dCoef + 0.5 >> 0) + "");
                         if(AscFormat.isRealNumber(nDelay) && nDelay !== 0) {
                             oAttr.changeDelay(nDelay*dCoef);
@@ -4834,6 +4838,9 @@
 
                 }
             }
+        }
+        if(bIsIndefinite) {
+            this.changeRepeatCount(v);
         }
     };
     CCTn.prototype.changeRepeatCount = function(v) {
@@ -7860,21 +7867,33 @@
     };
     CTimeNodeContainer.prototype["asc_putDelay"] = CTimeNodeContainer.prototype.asc_putDelay;
     CTimeNodeContainer.prototype.asc_getDuration = function() {
+        var nDur = 0;
         if(Array.isArray(this.merged) && this.merged.length > 0) {
-            var nDur = this.merged[0].asc_getDuration();
+            nDur = this.merged[0].asc_getDuration();
             for(var nIdx = 1; nIdx < this.merged.length; ++nIdx) {
                 if(nDur !== this.merged[nIdx].asc_getDuration()) {
                     return undefined;
                 }
             }
-            return nDur;
         }
         else {
             if(this.cTn) {
-                return this.cTn.getEffectDuration();
+                nDur = this.cTn.getEffectDuration();
             }
         }
-        return 0;
+        var oTime = new CAnimationTime(nDur);
+        if(oTime.isIndefinite()) {
+            if(this.cTn.endCondLst && this.cTn.endCondLst) {
+                var aCond = this.cTn.endCondLst.list;
+                if(aCond[0] &&  aCond[0].evt === COND_EVNT_ON_NEXT ) {
+                    return AscFormat.untilNextSlide;
+                }
+            }
+            return AscFormat.untilNextClick;
+        }
+        else {
+            return nDur;
+        }
     };
     CTimeNodeContainer.prototype["asc_getDuration"] = CTimeNodeContainer.prototype.asc_getDuration;
     CTimeNodeContainer.prototype.asc_getIsAutoDuration = function() {
