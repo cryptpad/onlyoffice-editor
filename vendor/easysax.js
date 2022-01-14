@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 /*
 new function() {
@@ -1499,6 +1499,34 @@ StaxParser.prototype.GetEventType = function() {
 };
 StaxParser.prototype.GetContext = function() {
     return this.context;
+};
+StaxParser.prototype.getState = function() {
+    return {
+        depth: this.depth,
+        eventType: this.eventType,
+        index: this.index,
+        isInAttr: this.isInAttr,
+        isTagEnd: this.isTagEnd,
+        isTagStart: this.isTagStart,
+        length: this.length,
+        name: this.name,
+        stop: this.stop,
+        text: this.text,
+        value: this.value
+    };
+};
+StaxParser.prototype.setState = function(state) {
+    this.depth = state.depth;
+    this.eventType = state.eventType;
+    this.index = state.index;
+    this.isInAttr = state.isInAttr;
+    this.isTagEnd = state.isTagEnd;
+    this.isTagStart = state.isTagStart;
+    this.length = state.length;
+    this.name = state.name;
+    this.stop = state.stop;
+    this.text = state.text;
+    this.value = state.value;
 };
 
 function XmlParserContext(){

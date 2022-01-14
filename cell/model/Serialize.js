@@ -3240,10 +3240,134 @@
         }
     };
 
-    InitOpenManager.prototype.prepare = function () {
-
+    InitOpenManager.prototype.PostLoadPrepare = function(wb)
+    {
+        if (wb.WorkbookPr && null != wb.WorkbookPr.Date1904) {
+            AscCommon.bDate1904 = wb.WorkbookPr.Date1904;
+            AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
+        }
+        if (this.oReadResult.macros) {
+            wb.oApi.macros.SetData(this.oReadResult.macros);
+        }
+        if (this.oReadResult.vbaMacros) {
+            wb.oApi.vbaMacros = this.oReadResult.vbaMacros;
+        }
+        wb.checkCorrectTables();
+    };
+    InitOpenManager.prototype.PostLoadPrepareDefNames = function(wb)
+    {
+        this.oReadResult.defNames.forEach(function (defName) {
+            if (null != defName.Name && null != defName.Ref) {
+                var _type = Asc.c_oAscDefNameType.none;
+                if (wb.getSlicerCacheByName(defName.Name)) {
+                    _type = Asc.c_oAscDefNameType.slicer;
+                }
+                wb.dependencyFormulas.addDefNameOpen(defName.Name, defName.Ref, defName.LocalSheetId, defName.Hidden, _type);
+            }
+        });
     };
 
+    InitOpenManager.prototype.initCellAfterRead = function(tmp)
+    {
+        //use only excel
+        if(!(this.copyPasteObj && this.copyPasteObj.isCopyPaste && typeof editor != "undefined" && editor)) {
+            this.setFormulaOpen(tmp);
+        }
+        tmp.cell.saveContent();
+        if (tmp.cell.nCol >= tmp.ws.nColsCount) {
+            tmp.ws.nColsCount = tmp.cell.nCol + 1;
+        }
+    };
+
+    InitOpenManager.prototype.setFormulaOpen = function(tmp) {
+        var cell = tmp.cell;
+        var formula = tmp.formula;
+        var curFormula;
+        var prevFormula = tmp.prevFormulas[cell.nCol];
+        if (null !== formula.si && (curFormula = tmp.sharedFormulas[formula.si])) {
+            curFormula.parsed.getShared().ref.union3(cell.nCol, cell.nRow);
+            if (prevFormula !== curFormula) {
+                if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
+                    prevFormula.parsed.buildDependencies();
+                }
+                tmp.prevFormulas[cell.nCol] = curFormula;
+            }
+        } else if (formula.v && formula.v.length <= AscCommon.c_oAscMaxFormulaLength) {
+            if (formula.v.startsWith("_xludf.")) {
+                //при открытии подобных формул ms удаляет префикс
+                //TODO так же он проставляет флаг ca - рассмотреть стоит ли его нам доблавлять
+                formula.v = formula.v.replace("_xludf.", "");
+            }
+
+            var offsetRow;
+            var shared;
+            var sharedRef;
+            if (prevFormula && (shared = prevFormula.parsed.getShared())) {
+                offsetRow = cell.nRow - shared.ref.r1;
+            } else {
+                offsetRow = 1;
+            }
+            //проверка на ECellFormulaType.cellformulatypeArray нужна для:
+            //1.формула массива не может быть шаренной
+            //2.в случае, когда две ячейки в одном столбце - каждая формула массива
+            //и далее они становятся двумя шаренными
+            //после того, как формула становится шаренной, ref array у второй начинает ссылаться на первую ячейку
+            //поэтому при изменении второй ячейки из двух шаренных в функции _saveCellValueAfterEdit
+            //берём array ref и присваиваем ему введенные данные, и поэтому в первой ячейки появляются данные второй
+            if (prevFormula && formula.t !== ECellFormulaType.cellformulatypeArray &&
+                prevFormula.t !== ECellFormulaType.cellformulatypeArray &&
+                prevFormula.nRow + offsetRow === cell.nRow &&
+                AscCommonExcel.compareFormula(prevFormula.formula, prevFormula.refPos, formula.v, offsetRow)) {
+                if (!(shared && shared.ref)) {
+                    sharedRef = new Asc.Range(cell.nCol, prevFormula.nRow, cell.nCol, cell.nRow);
+                    prevFormula.parsed.setShared(sharedRef, prevFormula.base);
+                } else {
+                    shared.ref.union3(cell.nCol, cell.nRow);
+                }
+                curFormula = prevFormula;
+            } else {
+                if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
+                    prevFormula.parsed.buildDependencies();
+                }
+                var parseResult = new AscCommonExcel.ParseResult([]);
+                var newFormulaParent = new AscCommonExcel.CCellWithFormula(cell.ws, cell.nRow, cell.nCol);
+                var parsed = new AscCommonExcel.parserFormula(formula.v, newFormulaParent, cell.ws);
+                parsed.ca = formula.ca;
+                parsed.parse(undefined, undefined, parseResult);
+                if (parseResult.error === Asc.c_oAscError.ID.FrmlMaxReference) {
+                    tmp.ws.workbook.openErrors.push(cell.getName());
+                    return;
+                }
+
+                if (null !== formula.ref) {
+                    if(formula.t === ECellFormulaType.cellformulatypeShared) {
+                        sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
+                        parsed.setShared(sharedRef, newFormulaParent);
+                    } else if(formula.t === ECellFormulaType.cellformulatypeArray) {//***array-formula***
+                        if(AscCommonExcel.bIsSupportArrayFormula) {
+                            parsed.setArrayFormulaRef(AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone());
+                            tmp.formulaArray.push(parsed);
+                        }
+                    }
+                }
+
+                curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
+                tmp.prevFormulas[cell.nCol] = curFormula;
+            }
+            if (null !== formula.si && curFormula.parsed.getShared()) {
+                tmp.sharedFormulas[formula.si] = curFormula;
+                tmp.siFormulas[curFormula.parsed.getListenerId()] = curFormula.parsed;
+            }
+        } else if (formula.v && !(this.copyPasteObj && this.copyPasteObj.isCopyPaste)) {
+            tmp.ws.workbook.openErrors.push(cell.getName());
+        }
+        if (curFormula) {
+            cell.setFormulaInternal(curFormula.parsed);
+            if (curFormula.parsed.ca || cell.isNullTextString()) {
+                tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
+            }
+        }
+    };
 
     function InitSaveManager(wb, isCopyPaste) {
         this.tableIds = {};
@@ -9217,7 +9341,7 @@
 
 				tmp.ws.fromXLSB(this.stream, this.stream.XlsbReadRecordType(), tmp, this.aCellXfs, this.aSharedStrings,
 					function(tmp) {
-						oThis.initCellAfterRead(tmp);
+						oThis.InitOpenManager.initCellAfterRead(tmp);
 					});
 
 				this.stream.Seek2(oldPos);
@@ -9327,111 +9451,11 @@
                     tmp.prevCol++;
                     tmp.cell.setRowCol(tmp.prevRow, tmp.prevCol);
                 }
-				this.initCellAfterRead(tmp);
+				this.InitOpenManager.initCellAfterRead(tmp);
 			}
 			else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
-		};
-		this.initCellAfterRead = function(tmp)
-		{
-            //use only excel
-            if(!(this.InitOpenManager.copyPasteObj && this.InitOpenManager.copyPasteObj.isCopyPaste && typeof editor != "undefined" && editor)) {
-                this.setFormulaOpen(tmp);
-            }
-            tmp.cell.saveContent();
-            if (tmp.cell.nCol >= tmp.ws.nColsCount) {
-                tmp.ws.nColsCount = tmp.cell.nCol + 1;
-            }
-        };
-		this.setFormulaOpen = function(tmp) {
-			var cell = tmp.cell;
-			var formula = tmp.formula;
-			var curFormula;
-			var prevFormula = tmp.prevFormulas[cell.nCol];
-			if (null !== formula.si && (curFormula = tmp.sharedFormulas[formula.si])) {
-				curFormula.parsed.getShared().ref.union3(cell.nCol, cell.nRow);
-				if (prevFormula !== curFormula) {
-					if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
-						prevFormula.parsed.buildDependencies();
-					}
-					tmp.prevFormulas[cell.nCol] = curFormula;
-				}
-			} else if (formula.v && formula.v.length <= AscCommon.c_oAscMaxFormulaLength) {
-				if (formula.v.startsWith("_xludf.")) {
-					//при открытии подобных формул ms удаляет префикс
-					//TODO так же он проставляет флаг ca - рассмотреть стоит ли его нам доблавлять
-					formula.v = formula.v.replace("_xludf.", "");
-				}
-
-				var offsetRow;
-				var shared;
-				var sharedRef;
-				if (prevFormula && (shared = prevFormula.parsed.getShared())) {
-					offsetRow = cell.nRow - shared.ref.r1;
-				} else {
-					offsetRow = 1;
-				}
-				//проверка на ECellFormulaType.cellformulatypeArray нужна для:
-				//1.формула массива не может быть шаренной
-				//2.в случае, когда две ячейки в одном столбце - каждая формула массива
-				//и далее они становятся двумя шаренными
-				//после того, как формула становится шаренной, ref array у второй начинает ссылаться на первую ячейку
-				//поэтому при изменении второй ячейки из двух шаренных в функции _saveCellValueAfterEdit
-				//берём array ref и присваиваем ему введенные данные, и поэтому в первой ячейки появляются данные второй
-				if (prevFormula && formula.t !== ECellFormulaType.cellformulatypeArray &&
-					prevFormula.t !== ECellFormulaType.cellformulatypeArray &&
-					prevFormula.nRow + offsetRow === cell.nRow &&
-					AscCommonExcel.compareFormula(prevFormula.formula, prevFormula.refPos, formula.v, offsetRow)) {
-					if (!(shared && shared.ref)) {
-						sharedRef = new Asc.Range(cell.nCol, prevFormula.nRow, cell.nCol, cell.nRow);
-						prevFormula.parsed.setShared(sharedRef, prevFormula.base);
-					} else {
-						shared.ref.union3(cell.nCol, cell.nRow);
-					}
-					curFormula = prevFormula;
-				} else {
-					if (prevFormula && !tmp.bNoBuildDep && !tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
-						prevFormula.parsed.buildDependencies();
-					}
-					var parseResult = new AscCommonExcel.ParseResult([]);
-					var newFormulaParent = new AscCommonExcel.CCellWithFormula(cell.ws, cell.nRow, cell.nCol);
-					var parsed = new AscCommonExcel.parserFormula(formula.v, newFormulaParent, cell.ws);
-					parsed.ca = formula.ca;
-					parsed.parse(undefined, undefined, parseResult);
-					if (parseResult.error === Asc.c_oAscError.ID.FrmlMaxReference) {
-                        tmp.ws.workbook.openErrors.push(cell.getName());
-                        return;
-                    }
-
-					if (null !== formula.ref) {
-						if(formula.t === ECellFormulaType.cellformulatypeShared) {
-							sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
-							parsed.setShared(sharedRef, newFormulaParent);
-						} else if(formula.t === ECellFormulaType.cellformulatypeArray) {//***array-formula***
-							if(AscCommonExcel.bIsSupportArrayFormula) {
-								parsed.setArrayFormulaRef(AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone());
-								tmp.formulaArray.push(parsed);
-							}
-						}
-					}
-
-					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
-					tmp.prevFormulas[cell.nCol] = curFormula;
-				}
-				if (null !== formula.si && curFormula.parsed.getShared()) {
-					tmp.sharedFormulas[formula.si] = curFormula;
-					tmp.siFormulas[curFormula.parsed.getListenerId()] = curFormula.parsed;
-				}
-			} else if (formula.v && !(this.InitOpenManager.copyPasteObj && this.InitOpenManager.copyPasteObj.isCopyPaste)) {
-				tmp.ws.workbook.openErrors.push(cell.getName());
-            }
-			if (curFormula) {
-				cell.setFormulaInternal(curFormula.parsed);
-				if (curFormula.parsed.ca || cell.isNullTextString()) {
-					tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
-				}
-			}
 		};
         this.ReadCell = function(type, length, tmp, oCell, nRowIndex)
         {
@@ -11096,13 +11120,13 @@
                         break;
                 }
             }
-			this.PostLoadPrepareDefNames(wb);
+			this.InitOpenManager.PostLoadPrepareDefNames(wb);
             //todo инициализация формул из-за именованных диапазонов перенесена в wb.init ее надо вызывать в любом случае(Rev: 61959)
             if(!this.InitOpenManager.copyPasteObj.isCopyPaste || this.InitOpenManager.copyPasteObj.selectAllSheet)
             {
 				bwtr.ReadSheetDataExternal(false);
 				if (!this.InitOpenManager.copyPasteObj.isCopyPaste) {
-					this.PostLoadPrepare(wb);
+					this.InitOpenManager.PostLoadPrepare(wb);
 				}
                 wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, this.oReadResult.sheetIds, false, true);
             } else {
@@ -11113,32 +11137,6 @@
             }
             return res;
         };
-		this.PostLoadPrepare = function(wb)
-		{
-			if (wb.WorkbookPr && null != wb.WorkbookPr.Date1904) {
-				AscCommon.bDate1904 = wb.WorkbookPr.Date1904;
-				AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
-			}
-			if (this.oReadResult.macros) {
-                wb.oApi.macros.SetData(this.oReadResult.macros);
-            }
-			if (this.oReadResult.vbaMacros) {
-				wb.oApi.vbaMacros = this.oReadResult.vbaMacros;
-			}
-            wb.checkCorrectTables();
-		}
-		this.PostLoadPrepareDefNames = function(wb)
-		{
-			this.oReadResult.defNames.forEach(function (defName) {
-				if (null != defName.Name && null != defName.Ref) {
-					var _type = Asc.c_oAscDefNameType.none;
-					if (wb.getSlicerCacheByName(defName.Name)) {
-						_type = Asc.c_oAscDefNameType.slicer;
-					}
-					wb.dependencyFormulas.addDefNameOpen(defName.Name, defName.Ref, defName.LocalSheetId, defName.Hidden, _type);
-				}
-			});
-		}
 	}
     function CSlicerStyles()
     {

@@ -691,8 +691,9 @@
 			while (reader.ReadNextSiblingNode(depth)) {
 				var name = reader.GetNameNoNS();
 				if ("sheetData" === name) {
-					var sheetData = new AscCommonExcel.CT_SheetData(this);
-					sheetData.fromXml(reader);
+					/*var sheetData = new AscCommonExcel.CT_SheetData(this);
+					sheetData.fromXml(reader);*/
+					context.InitOpenManager.oReadResult.sheetData.push({ws: this, reader: reader, state: reader.getState()});
 				} else if ("drawing" === name) {
 					var drawing = new AscCommonExcel.CT_DrawingWSRef();
 					drawing.fromXml(reader);
@@ -1048,6 +1049,7 @@
 	};
 	AscCommonExcel.Cell.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
+
 		var value = reader.GetContext().cellValue;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -1415,6 +1417,69 @@
 			}
 		}
 	};
+	CT_SheetData.prototype.fromXml2 = function(reader) {
+
+		var depth = reader.GetDepth();
+		var tmp = reader.GetContext().InitOpenManager.tmp;
+		if (tmp) {
+			while (reader.ReadNextSiblingNode(depth)) {
+				if ("row" === reader.GetName()) {
+					tmp.row.clear();
+					tmp.row.fromXml2(reader);
+				} /*else if (xlsb) {
+
+			}*/
+			}
+		}
+
+		/*var res = c_oSerConstants.ReadOk;
+		var oThis = this;
+		if ( c_oSerWorksheetsTypes.XlsbPos === type )
+		{
+			var oldPos = this.stream.GetCurPos();
+			this.stream.Seek2(this.stream.GetULongLE());
+
+			tmp.ws.fromXLSB(this.stream, this.stream.XlsbReadRecordType(), tmp, this.aCellXfs, this.aSharedStrings,
+				function(tmp) {
+					oThis.initCellAfterRead(tmp);
+				});
+
+			this.stream.Seek2(oldPos);
+			res = c_oSerConstants.ReadUnknown;
+		}
+		else if ( c_oSerWorksheetsTypes.Row === type )
+		{
+			tmp.pos =  null;
+			tmp.len = null;
+			tmp.row.clear();
+			res = this.bcr.Read2Spreadsheet(length, function(t,l){
+				return oThis.ReadRow(t,l, tmp);
+			});
+			if(null === tmp.row.index) {
+				tmp.row.index = tmp.prevRow + 1;
+			}
+			tmp.row.saveContent();
+			tmp.ws.cellsByColRowsCount = Math.max(tmp.ws.cellsByColRowsCount, tmp.row.index + 1);
+			tmp.ws.nRowsCount = Math.max(tmp.ws.nRowsCount, tmp.ws.cellsByColRowsCount);
+			tmp.prevRow = tmp.row.index;
+			tmp.prevCol = -1;
+			//читаем ячейки
+			if (null !== tmp.pos && null !== tmp.len) {
+				var nOldPos = this.stream.GetCurPos();
+				this.stream.Seek2(tmp.pos);
+				res = this.bcr.Read1(tmp.len, function(t,l){
+					return oThis.ReadCells(t,l, tmp);
+				});
+				this.stream.Seek2(nOldPos);
+			}
+		}
+		else
+			res = c_oSerConstants.ReadUnknown;
+		return res;*/
+
+		
+	};
+
 	function CT_Sheets(wb) {
 		this.wb = wb;
 		this.sheets = [];
@@ -5477,7 +5542,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( oReader.IsEmptyNode() )\n' + '\t\t\t\t\treturn;\n' + '\n' + '\t\t\t\tm_oRef = oReader.GetText3();'
+	var _x2tFromXml = ''
 	var _x2t = 'WritingElement_ReadAttributes_Start( oReader )\n' + '\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, L"comment",\t\tm_oComment )\n' +
 		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"customMenu",\t\tm_oCustomMenu )\n' +
 		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"description",\tm_oDescription )\n' +

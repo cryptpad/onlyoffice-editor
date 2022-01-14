@@ -5441,75 +5441,85 @@ StyleManager.prototype =
 			}
 		}
 	};
+	Row.prototype.fromXml2 = function(reader) {
+		this.readAttr(reader);
+
+		var tmp = reader.GetContext().InitOpenManager.tmp;
+		if (tmp) {
+			if(null === this.index) {
+				this.index = tmp.prevRow + 1;
+			}
+			this.saveContent();
+
+			this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.index + 1);
+			this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.ws.cellsByColRowsCount);
+			tmp.prevRow = this.index;
+			tmp.prevCol = -1;
+		}
+
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("c" === reader.GetName()) {
+
+
+				tmp.cell.clear();
+				tmp.formula.clean();
+
+				tmp.cell.fromXml(reader);
+
+				if (tmp.cell.isNullTextString()) {
+					//set default value in case of empty cell value
+					tmp.cell.setTypeInternal(CellValueType.Number);
+				}
+				if (tmp.cell.hasRowCol()) {
+					tmp.prevCol = tmp.cell.nCol;
+				} else {
+					tmp.prevCol++;
+					tmp.cell.setRowCol(tmp.prevRow, tmp.prevCol);
+				}
+
+				reader.GetContext().InitOpenManager.initCellAfterRead(tmp);
+			}
+		}
+	};
 
 	Row.prototype.readAttr = function(reader) {
-
-		/*var res = c_oSerConstants.ReadOk;
-		var oThis = this;
-		if ( c_oSerRowTypes.Row == type )
-		{
-			var index = this.stream.GetULongLE() - 1;
-			tmp.row.setIndex(index);
-		}
-		else if ( c_oSerRowTypes.Style == type )
-		{
-			var xfs = this.aCellXfs[this.stream.GetULongLE()];
-			if(xfs)
-				tmp.row.setStyle(xfs);
-		}
-		else if ( c_oSerRowTypes.Height == type )
-		{
-			var h = this.stream.GetDoubleLE();
-			tmp.row.setHeight(h);
-			if(AscCommon.CurFileVersion < 2)
-				tmp.row.setCustomHeight(true);
-		}
-		else if ( c_oSerRowTypes.CustomHeight == type )
-		{
-			var CustomHeight = this.stream.GetBool();
-			if(CustomHeight)
-				tmp.row.setCustomHeight(true);
-		}
-		else if ( c_oSerRowTypes.Hidden == type )
-		{
-			var hd = this.stream.GetBool();
-			if(hd)
-				tmp.row.setHidden(true);
-		}
-		else if ( c_oSerRowTypes.OutLevel == type )
-		{
-			tmp.row.setOutlineLevel(this.stream.GetULongLE());
-		}
-		else if ( c_oSerRowTypes.Collapsed == type )
-		{
-			tmp.row.setCollapsed(this.stream.GetBool());
-		}
-		else if ( c_oSerRowTypes.Cells == type )
-		{
-			//запоминам место чтобы читать Cells в конце, когда уже зачитан oRow.index
-			tmp.pos = this.stream.GetCurPos();
-			tmp.len = length;
-			res = c_oSerConstants.ReadUnknown;
-		}
-		else
-			res = c_oSerConstants.ReadUnknown;
-		return res;*/
-
 
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("r" === reader.GetName() || "ss:Index" === reader.GetName()) {
-				val = reader.GetValue();
-				this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(val);
-			} else if ("caseSensitive" === reader.GetName()) {
+				val = reader.GetValueInt() - 1;
+				this.setIndex(val);
+			} else if ("s" === reader.GetName()) {
+				/*var xfs = this.aCellXfs[this.stream.GetULongLE()];
+				if(xfs)
+					this.setStyle(xfs);*/
+			} else if ("customFormat" === reader.GetName()) {
+			} else if ("ht" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.setHeight(val);
+				if(AscCommon.CurFileVersion < 2)
+					this.setCustomHeight(true);
+			} else if ("ss:Height" === reader.GetName()) {
+			} else if ("hidden" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.CaseSensitive = val;
-			} else if ("columnSort" === reader.GetName()) {
+				if(val)
+					this.setHidden(true);
+			} else if ("customHeight" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.ColumnSort = val;
-			} else if ("sortMethod" === reader.GetName()) {
-				val = reader.GetValue();
-				this.SortMethod = val;
+				if(val)
+					this.setCustomHeight(true);
+			} else if ("outlineLevel" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.setOutlineLevel(val);
+			} else if ("collapsed" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.setCollapsed(val);
+			} else if ("x14ac:dyDescent" === reader.GetName()) {
+			} else if ("thickBot" === reader.GetName()) {
+			} else if ("thickTop" === reader.GetName()) {
+			} else if ("ph" === reader.GetName()) {
 			}
 		}
 	};
