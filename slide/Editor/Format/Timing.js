@@ -7877,6 +7877,10 @@
         return 0;
     };
     CTimeNodeContainer.prototype["asc_getDuration"] = CTimeNodeContainer.prototype.asc_getDuration;
+    CTimeNodeContainer.prototype.asc_getIsAutoDuration = function() {
+        return (new CAnimationTime(this.asc_getDuration())).isIndefinite();
+    };
+    CTimeNodeContainer.prototype["asc_getIsAutoDuration"] = CTimeNodeContainer.prototype.asc_getIsAutoDuration;
     CTimeNodeContainer.prototype.asc_putDuration = function(v) {
         AscFormat.ExecuteNoHistory(function() {
             if(this.cTn) {
