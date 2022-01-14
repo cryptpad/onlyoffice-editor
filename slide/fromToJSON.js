@@ -2289,9 +2289,10 @@
 	{
 		var oBldDgm = new AscFormat.CBldDgm();
 
+		var spId = this.drawingsMap[oParsedBldDgm.spid] ? this.drawingsMap[oParsedBldDgm.spid].Id : oParsedBldDgm.spid;
 		oParsedBldDgm.bld != undefined && oBldDgm.setBld(oParsedBldDgm.bld);
 		oParsedBldDgm.grpId != undefined && oBldDgm.setGrpId(oParsedBldDgm.grpId);
-		oParsedBldDgm.spid != undefined && oBldDgm.setSpid(this.drawingsMap[oParsedBldDgm.spid].Id);
+		oParsedBldDgm.spid != undefined && oBldDgm.setSpid(spId);
 		oParsedBldDgm.uiExpand != undefined && oBldDgm.setUiExpand(oParsedBldDgm.uiExpand);
 
 		return oBldDgm;
@@ -2300,10 +2301,12 @@
 	{
 		var oBldOleChart = new AscFormat.CBldOleChart();
 
+		var spId = this.drawingsMap[oParsedBldOleChart.spid] ? this.drawingsMap[oParsedBldOleChart.spid].Id : oParsedBldOleChart.spid;
+
 		oParsedBldOleChart.animBg != undefined && oBldOleChart.setAnimBg(oParsedBldOleChart.animBg);
 		oParsedBldOleChart.bld != undefined && oBldOleChart.setBld(oParsedBldOleChart.bld);
 		oParsedBldOleChart.grpId != undefined && oBldOleChart.setGrpId(oParsedBldOleChart.grpId);
-		oParsedBldOleChart.spid != undefined && oBldOleChart.setSpid(this.drawingsMap[oParsedBldOleChart.spid].Id);
+		oParsedBldOleChart.spid != undefined && oBldOleChart.setSpid(spId);
 		oParsedBldOleChart.uiExpand != undefined && oBldOleChart.setUiExpand(oParsedBldOleChart.uiExpand);
 
 		return oBldOleChart;
@@ -2312,11 +2315,13 @@
 	{
 		var oBldGraphic = new AscFormat.CBldGraphic();
 
+		var spId = this.drawingsMap[oParsedBldGraphic.spid] ? this.drawingsMap[oParsedBldGraphic.spid].Id : oParsedBldGraphic.spid;
+
 		oParsedBldGraphic.bldAsOne && oBldGraphic.setBldAsOne(new AscFormat.CEmptyObject());
 		oParsedBldGraphic.bldSub && oBldGraphic.setBldSub(this.BldSubFromJSON(oParsedBldGraphic.bldSub));
 
 		oParsedBldGraphic.grpId != undefined && oBldGraphic.setGrpId(oParsedBldGraphic.grpId);
-		oParsedBldGraphic.spid != undefined && oBldGraphic.setSpid(this.drawingsMap[oParsedBldGraphic.spid].Id);
+		oParsedBldGraphic.spid != undefined && oBldGraphic.setSpid(spId);
 		oParsedBldGraphic.uiExpand != undefined && oBldGraphic.setUiExpand(oParsedBldGraphic.uiExpand);
 
 		return oBldGraphic;
@@ -2337,6 +2342,8 @@
 	{
 		var oBldP = new AscFormat.CBldP();
 		
+		var spId = this.drawingsMap[oParsedBldP.spid] ? this.drawingsMap[oParsedBldP.spid].Id : oParsedBldP.spid;
+
 		var nBuildType = undefined;
 		switch (oParsedBldP.build)
 		{
@@ -2362,7 +2369,7 @@
 		nBuildType != undefined && oBldP.setBuild(nBuildType);
 		oParsedBldP.grpId != undefined && oBldP.setGrpId(oParsedBldP.grpId);
 		oParsedBldP.rev != undefined && oBldP.setRev(oParsedBldP.rev);
-		oParsedBldP.spid != undefined && oBldP.setSpid(this.drawingsMap[oParsedBldP.spid].Id);
+		oParsedBldP.spid != undefined && oBldP.setSpid(spId);
 		oParsedBldP.uiExpand != undefined && oBldP.setUiExpand(oParsedBldP.uiExpand);
 
 		return oBldP;
@@ -2690,7 +2697,9 @@
 	{
 		var oInkTgt = new AscFormat.CObjectTarget();
 
-		oParsedInkTgt.spid != undefined && oInkTgt.setSpid(this.drawingsMap[oParsedInkTgt.spid].Id);
+		var spId = this.drawingsMap[oParsedInkTgt.spid] ? this.drawingsMap[oParsedInkTgt.spid].Id : oParsedInkTgt.spid;
+
+		oParsedInkTgt.spid != undefined && oInkTgt.setSpid(spId);
 
 		return oInkTgt;
 	};
@@ -2712,9 +2721,12 @@
 	{
 		var oSpTgt = new AscFormat.CSpTgt();
 
-		oParsedSpTgt.spid != undefined && oSpTgt.setSpid(this.drawingsMap[oParsedSpTgt.spid].Id);
+		var spId = this.drawingsMap[oParsedSpTgt.spid] ? this.drawingsMap[oParsedSpTgt.spid].Id : oParsedSpTgt.spid;
+		var subSpId = this.drawingsMap[oParsedSpTgt.subSpId] ? this.drawingsMap[oParsedSpTgt.subSpId].Id : oParsedSpTgt.subSpId;
+
+		oParsedSpTgt.spid != undefined && oSpTgt.setSpid(spId);
 		oParsedSpTgt.bg != undefined && oSpTgt.setBg(oParsedSpTgt.bg);
-		oParsedSpTgt.subSpId != undefined && oSpTgt.setSubSpId(this.drawingsMap[oParsedSpTgt.subSpId].Id);
+		oParsedSpTgt.subSpId != undefined && oSpTgt.setSubSpId(subSpId);
 
 		oParsedSpTgt.oleChartEl && oSpTgt.setOleChartEl(this.OleChartElFromJSON(oParsedSpTgt.oleChartEl));
 		oParsedSpTgt.txEl && oSpTgt.setTxEl(this.TxElFromJSON(oParsedSpTgt.txEl));

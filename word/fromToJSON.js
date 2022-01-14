@@ -3674,6 +3674,7 @@
 			outlineLvl:        oParaPr.OutlineLvl,
 			pageBreakBefore:   oParaPr.PageBreakBefore,
 			defaultRunPr:      this.SerTextPr(oParaPr.DefaultRunPr),
+			lvl:               oParaPr.Lvl,
 
 			pBdr: oParaPr.Brd ? 
 			{
@@ -8611,6 +8612,7 @@
 			}
 		}
 
+		oParaPr.Lvl             = oParsedParaPr.lvl != undefined ? oParsedParaPr.lvl : oParaPr.Lvl;
 		oParaPr.FramePr         = oParsedParaPr.framePr != undefined ? this.FramePrFromJSON(oParsedParaPr.framePr)        : oParaPr.FramePr;
 		oParaPr.Spacing         = oParsedParaPr.spacing != undefined ? this.ParaSpacingFromJSON(oParsedParaPr.spacing)    : oParaPr.Spacing;
 		oParaPr.Ind.Left        = oParsedParaPr.ind.left != undefined ? private_Twips2MM(oParsedParaPr.ind.left)      : oParaPr.Ind.Left;
