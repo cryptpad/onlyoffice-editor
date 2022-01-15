@@ -18261,6 +18261,9 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	if (null === this.CompositeInput)
 		return;
 
+	if (!this.CompositeInput.Length && !arrCharCodes.length)
+		return;
+
 	this.StartAction(AscDFH.historydescription_Document_CompositeInputReplace);
 	this.Start_SilentMode();
 	this.private_RemoveCompositeText(this.CompositeInput.Length);
@@ -18269,6 +18272,14 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 		this.private_AddCompositeText(arrCharCodes[nIndex]);
 	}
 	this.End_SilentMode(false);
+
+	var oRun = this.CompositeInput.Run;
+	var oForm;
+	if (oRun.IsEmpty() && (oForm = oRun.GetParentForm()))
+	{
+		oForm.ReplaceContentWithPlaceHolder();
+		AscCommon.g_inputContext.externalEndCompositeInput();
+	}
 
 	this.Recalculate();
 	this.UpdateSelection();
