@@ -1483,7 +1483,7 @@ background-repeat: no-repeat;\
 	{
 		BeforeOpenDocument.call(this);
 
-		var openParams        = {checkFileSize : /*this.isMobileVersion*/false, charCount : 0, parCount : 0};
+		var openParams        = {};
 		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
 		if (!oBinaryFileReader.Read(gObject))
 			editor.sendEvent("asc_onError", c_oAscError.ID.MobileUnexpectedCharCount, c_oAscError.Level.Critical);
@@ -1503,7 +1503,7 @@ background-repeat: no-repeat;\
 		}
 		BeforeOpenDocument.call(this);
 
-		var openParams        = {checkFileSize : /*this.isMobileVersion*/false, charCount : 0, parCount : 0};
+		var openParams        = {};
 		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
 		oBinaryFileReader.PreLoadPrepare();
 
@@ -11421,7 +11421,7 @@ background-repeat: no-repeat;\
 
 		g_oIdCounter.Set_Load(true);
 
-		var openParams        = {checkFileSize : /*this.isMobileVersion*/false, charCount : 0, parCount : 0};
+		var openParams        = {};
 		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
 
 		if (undefined !== version)

@@ -1263,10 +1263,6 @@ var c_oAscBrkBinSub = {
   MinusPlus: 0x01,
   MinusMinus: 0x02
 };
-
-var g_sErrorCharCountMessage = "g_sErrorCharCountMessage";
-var g_nErrorCharCount = 30000;
-var g_nErrorParagraphCount = 1000;
 var c_oToNextParType = {
 	BookmarkStart: 0,
 	BookmarkEnd: 1,
@@ -7527,20 +7523,10 @@ function BinaryFileReader(doc, openParams)
     };
 	this.ReadFromStream = function(stream, bClearStreamOnly)
 	{
-		try{
-			this.stream = stream;
-			this.PreLoadPrepare(bClearStreamOnly);
-			this.ReadMainTable();
-			this.PostLoadPrepare();
-		}
-		catch(e)
-		{
-			if(e.message == g_sErrorCharCountMessage)
-				return false;
-			else
-				throw e;
-		}
-
+		this.stream = stream;
+		this.PreLoadPrepare(bClearStreamOnly);
+		this.ReadMainTable();
+		this.PostLoadPrepare();
 		return true;
 	};
     this.Read = function(data)
@@ -7745,7 +7731,7 @@ function BinaryFileReader(doc, openParams)
 				case c_oSerTableTypes.Glossary:
 					if(!this.oReadResult.bCopyPaste || this.oReadResult.isDocumentPasting()) {
 						AscFormat.ExecuteNoHistory(function(){
-							var oBinaryFileReader, openParams = {checkFileSize : /*this.isMobileVersion*/false, charCount : 0, parCount : 0};
+							var oBinaryFileReader, openParams = {};
 							var doc = new AscCommonWord.CDocument(editor.WordControl.m_oDrawingDocument, false);
 							var oldDoc = editor.WordControl.m_oLogicDocument;
 							editor.WordControl.m_oDrawingDocument.m_oLogicDocument = doc;
@@ -11137,12 +11123,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         var oThis = this;
         if ( c_oSerParType.Par === type )
         {
-			if(null != this.openParams && true == this.openParams.checkFileSize)
-			{
-				this.openParams.parCount += 1;
-				if(this.openParams.parCount >= g_nErrorParagraphCount)
-					throw new Error(g_sErrorCharCountMessage);
-			}
             var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadParagraph(t,l, oNewParagraph, Content);
@@ -11884,12 +11864,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         if (c_oSerRunType.run === type || c_oSerRunType.delText === type)
         {
             var text = this.stream.GetString2LE(length);
-			if(null != this.openParams && true == this.openParams.checkFileSize)
-			{
-				this.openParams.charCount += length / 2;
-				if(this.openParams.charCount >= g_nErrorCharCount)
-					throw new Error(g_sErrorCharCountMessage);
-			}
 			if(this.nCurCommentsCount > 0)
 			{
 				for(var i in this.oCurComments)
