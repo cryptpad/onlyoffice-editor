@@ -7780,6 +7780,26 @@ function BinaryFileReader(doc, openParams)
 			}
 		}
 	};
+	this.PostLoadPrepareCorrectContent = function(Content, Styles) {
+		for (var i = 0; i < Content.length; ++i) {
+			var elem = Content[i];
+			var type = elem.GetType();
+			if (type_Paragraph === type) {
+				elem.Correct_Content();
+			}
+			else if (type_Table === type) {
+				elem.ReIndexing(0);
+				if (Styles && !elem.Parent.Styles) {
+					var oldStyles = elem.Parent.Styles;
+					elem.Parent.Styles = Styles;
+					elem.Correct_BadTable();
+					elem.Parent.Styles = oldStyles;
+				} else {
+					elem.Correct_BadTable();
+				}
+			}
+		}
+	};
     this.PostLoadPrepare = function()
     {
 		if (null !== this.oReadResult.compatibilityMode) {
@@ -8269,12 +8289,8 @@ function BinaryFileReader(doc, openParams)
 				}
 			}
 		}
-		// this.Document.Content = this.oReadResult.DocumentContent;
-		// if(this.Document.Content.length == 0)
-        // {
-        //     var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
-        //     this.Document.Content.push(oNewParagraph);
-        // }
+		this.Document.ReplaceContent(this.oReadResult.DocumentContent);
+		this.PostLoadPrepareCorrectContent(this.Document.Content);
 		// for(var i = 0, length = this.oReadResult.aPostOpenStyleNumCallbacks.length; i < length; ++i)
 			// this.oReadResult.aPostOpenStyleNumCallbacks[i].call();
 		if (null != this.oReadResult.trackRevisions) {
@@ -8282,11 +8298,6 @@ function BinaryFileReader(doc, openParams)
 		}
 		for (var i = 0; i < this.oReadResult.drawingToMath.length; ++i) {
 			this.oReadResult.drawingToMath[i].ConvertToMath();
-		}
-		for (var i = 0, length = this.oReadResult.aTableCorrect.length; i < length; ++i) {
-			var table = this.oReadResult.aTableCorrect[i];
-			table.ReIndexing(0);
-			table.Correct_BadTable();
 		}
 		if (this.oReadResult.SplitPageBreakAndParaMark) {
 			this.Document.Settings.SplitPageBreakAndParaMark = this.oReadResult.SplitPageBreakAndParaMark;
@@ -8504,20 +8515,6 @@ function BinaryFileReader(doc, openParams)
         for (var i in oPastedImagesUnique)
             aPrepeareImages.push(i);
 
-		//todo below is not needed in copy/paste
-		if(!isCopyPaste)
-		{
-			this.Document.Content = this.oReadResult.DocumentContent;
-			
-			if(this.Document.Content.length == 0)
-			{
-				var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
-				this.Document.Content.push(oNewParagraph);
-			}
-
-			this.Document.UpdateDefaultsDependingOnCompatibility();
-			this.Document.On_EndLoad();
-		}
 		//split runs after styles because rPr can have a RStyle
 		for (var i = 0; i < this.oReadResult.runsToSplit.length; ++i) {
 			var run = this.oReadResult.runsToSplit[i];
@@ -8642,22 +8639,10 @@ function BinaryFileReader(doc, openParams)
 				}
 			}
 		}
-		for (var i = 0, length = this.oReadResult.aTableCorrect.length; i < length; ++i) {
-			var table = this.oReadResult.aTableCorrect[i];
-			table.ReIndexing(0);
-			
-			//при вставке вложенных таблиц из документов в презентации и создании cDocumentContent не проставляется CStyles
-			if(editor && !editor.isDocumentEditor && !table.Parent.Styles)
-			{
-				var oldStyles = table.Parent.Styles;
-				table.Parent.Styles = this.Document.Styles;
-				table.Correct_BadTable();
-				table.Parent.Styles = oldStyles;
-			}
-			else
-			{
-				table.Correct_BadTable();
-			}
+		if (editor && !editor.isDocumentEditor) {
+			this.PostLoadPrepareCorrectContent(this.oReadResult.DocumentContent, this.Document.Styles);
+		} else {
+			this.PostLoadPrepareCorrectContent(this.oReadResult.DocumentContent);
 		}
 		//чтобы удалялся stream с бинарником
 		pptx_content_loader.Clear(true);
@@ -11087,7 +11072,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
     this.brPrr = new Binary_rPrReader(this.Document, this.oReadResult, this.stream);
     this.bpPrr = new Binary_pPrReader(this.Document, this.oReadResult, this.stream);
 	this.btblPrr = new Binary_tblPrReader(this.Document, this.oReadResult, this.stream);
-    this.lastPar = null;
     this.oComments = oComments;
     this.aFields = [];
 	this.nCurCommentsCount = 0;
@@ -11095,14 +11079,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 	this.curNote = curNote;
 	this.lastParStruct = null;
 	this.toNextParStruct = [];
-    this.Reset = function()
-    {
-        this.lastPar = null;
-    }
     this.ReadAsTable = function(OpenContent)
     {
-        this.Reset();
-		
         var oThis = this;
         return this.bcr.ReadTable(function(t, l){
                 return oThis.ReadDocumentContent(t, l, OpenContent);
@@ -11110,8 +11088,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
     };
 	this.Read = function(length, OpenContent)
     {
-        this.Reset();
-		
         var oThis = this;
         return this.bcr.Read1(length, function(t, l){
                 return oThis.ReadDocumentContent(t, l, OpenContent);
@@ -11128,14 +11104,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
                 return oThis.ReadParagraph(t,l, oNewParagraph, Content);
             });
 			if (reviewtype_Common === oNewParagraph.GetReviewType() || this.oReadResult.checkReadRevisions()) {
-				oNewParagraph.Correct_Content();
-				//Prev/Next
-				if(null != this.lastPar)
-				{
-					oNewParagraph.Set_DocumentPrev(this.lastPar);
-					this.lastPar.Set_DocumentNext(oNewParagraph);
-				}
-				this.lastPar = oNewParagraph;
 				Content.push(oNewParagraph);
 			}
         }
@@ -11147,7 +11115,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
                 return oThis.ReadDocTable(t, l, oNewTable);
             });
             if (oNewTable.Content.length > 0) {
-				this.oReadResult.aTableCorrect.push(oNewTable);
               if(2 == AscCommon.CurFileVersion && false == oNewTable.Inline)
               {
                   //делаем смещение левой границы
@@ -11157,12 +11124,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
                       oNewTable.PositionH.Value += dx;
                   }
               }
-              if(null != this.lastPar)
-              {
-                  oNewTable.Set_DocumentPrev(this.lastPar);
-                  this.lastPar.Set_DocumentNext(oNewTable);
-              }
-              this.lastPar = oNewTable;
               Content.push(oNewTable);
             }
         }
@@ -11203,13 +11164,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadSdt(t,l, oSdt, 0);
 			});
-			//Prev/Next
-			if(null != this.lastPar)
-			{
-				oSdt.Set_DocumentPrev(this.lastPar);
-				this.lastPar.Set_DocumentNext(oSdt);
-			}
-			this.lastPar = oSdt;
 			Content.push(oSdt);
 		// } else if ( c_oSerParType.Background === type ) {
 			// oThis.Document.Background = {Color: null, Unifill: null, shape: null};
@@ -11276,13 +11230,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			var bdtr = new Binary_DocumentTableReader(docPart, this.oReadResult, this.openParams, this.stream, docPart, this.oReadResult.oCommentsPlaces);
 			bdtr.Read(length, noteContent);
 			if (noteContent.length > 0) {
-				for (var i = 0; i < noteContent.length; ++i) {
-					if (i == length - 1)
-						docPart.Internal_Content_Add(i + 1, noteContent[i], true);
-					else
-						docPart.Internal_Content_Add(i + 1, noteContent[i], false);
-				}
-				docPart.Internal_Content_Remove(0, 1);
+				docPart.ReplaceContent(noteContent);
 			}
 		} else
 			res = c_oSerConstants.ReadUnknown;
@@ -12980,16 +12928,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			oCellContentReader.lastParStruct = this.lastParStruct;
 			oCellContentReader.Read(length, oCellContent);
 			this.nCurCommentsCount = oCellContentReader.nCurCommentsCount;
-			if(oCellContent.length > 0)
-			{
-				for(var i = 0; i < oCellContent.length; ++i)
-				{
-					if(i == oCellContent.length - 1)
-						cell.Content.Internal_Content_Add(i + 1, oCellContent[i], true);
-					else
-						cell.Content.Internal_Content_Add(i + 1, oCellContent[i], false);
-				}
-				cell.Content.Internal_Content_Remove(0, 1);
+			if(oCellContent.length > 0) {
+				cell.Content.ReplaceContent(oCellContent);
 			}
 			this.toNextParStruct = oCellContentReader.toNextParStruct;
 			this.lastParStruct = oCellContentReader.lastParStruct;
@@ -13033,14 +12973,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				oSdtContentReader.Read(length, oSdtContent);
 				this.nCurCommentsCount = oSdtContentReader.nCurCommentsCount;
 				if (oSdtContent.length > 0) {
-					for (var i = 0; i < oSdtContent.length; ++i) {
-						if (i == oSdtContent.length - 1) {
-							oSdt.Content.Internal_Content_Add(i + 1, oSdtContent[i], true);
-						} else {
-							oSdt.Content.Internal_Content_Add(i + 1, oSdtContent[i], false);
-						}
-					}
-					oSdt.Content.Internal_Content_Remove(0, 1);
+					oSdt.Content.ReplaceContent(oSdtContent);
 				}
 				this.toNextParStruct = oSdtContentReader.toNextParStruct;
 				this.lastParStruct = oSdtContentReader.lastParStruct;
@@ -17140,16 +17073,8 @@ function Binary_NotesTableReader(doc, oReadResult, openParams, stream, notes, lo
 			var noteContent = [];
 			var bdtr = new Binary_DocumentTableReader(noteElem, this.oReadResult, this.openParams, this.stream, noteElem, this.oReadResult.oCommentsPlaces);
 			bdtr.Read(length, noteContent);
-			if(noteContent.length > 0)
-			{
-				for(var i = 0; i < noteContent.length; ++i)
-				{
-					if(i == length - 1)
-						noteElem.Internal_Content_Add(i + 1, noteContent[i], true);
-					else
-						noteElem.Internal_Content_Add(i + 1, noteContent[i], false);
-				}
-				noteElem.Internal_Content_Remove(0, 1);
+			if(noteContent.length > 0) {
+				noteElem.ReplaceContent(noteContent);
 			}
 			//если 0 == noteContent.length в ячейке остается параграф который был там при создании.
 			note.content = noteElem;
@@ -17462,7 +17387,6 @@ function DocReadResult(doc) {
 	this.hasRevisions = false;
 	this.disableRevisions = false;
 	this.drawingToMath = [];
-	this.aTableCorrect = [];
 	this.footnotes = {};
 	this.footnoteRefs = [];
 	this.endnotes = {};
