@@ -7788,6 +7788,7 @@ function BinaryFileReader(doc, openParams)
 				elem.Correct_Content();
 			}
 			else if (type_Table === type) {
+				elem.Set_Pr(elem.Pr);//after style initialization
 				elem.ReIndexing(0);
 				if (Styles && !elem.Parent.Styles) {
 					var oldStyles = elem.Parent.Styles;
@@ -11111,6 +11112,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
             var doc = this.Document;
 			var oNewTable = new CTable(doc.DrawingDocument, doc, true, 0, 0, []);
+			oNewTable.Set_TableStyle2(null);
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadDocTable(t, l, oNewTable);
             });
@@ -12733,21 +12735,17 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
             res = c_oSerConstants.ReadUnknown;
         return res;
 	}
-	this.ReadDocTable = function(type, length, table, tableFlow)
+	this.ReadDocTable = function(type, length, table)
     {
         var res = c_oSerConstants.ReadOk;
         var oThis = this;
         if( c_oSerDocTableType.tblPr === type )
         {
-			table.Set_TableStyle2(null);
 			var oNewTablePr = new CTablePr();
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.btblPrr.Read_tblPr(t,l, oNewTablePr, table);
             });
 			table.Pr = oNewTablePr;
-			this.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-				table.Set_Pr(oNewTablePr);
-			});
         }
         else if( c_oSerDocTableType.tblGrid === type )
         {
@@ -12762,8 +12760,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.Read_TableContent(t, l, table);
             });
-			if(table.Content.length > 0)
-				table.CurCell = table.Content[0].Get_Cell( 0 );
         }
         else
             res = c_oSerConstants.ReadUnknown;

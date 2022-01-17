@@ -1513,7 +1513,7 @@ background-repeat: no-repeat;\
 		var contentDocument = documentPart.getDocumentContent();
 		var reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
 
-		this.WordControl.m_oLogicDocument.fromXml(reader);
+		this.WordControl.m_oLogicDocument.fromXml(reader, oBinaryFileReader.oReadResult.DocumentContent);
 
 		oBinaryFileReader.PostLoadPrepare();
 		AfterOpenDocument.call(this, data, data.length);

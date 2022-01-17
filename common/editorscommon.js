@@ -6914,6 +6914,27 @@
 		}
 		return null;
 	}
+	function universalMeasureToMm(val, koef) {
+		var nVal = parseFloat(val);
+		var nRes = null;
+		if (!isNaN(nVal)) {
+			if (-1 != val.indexOf("mm"))
+				nRes = nVal;
+			else if (-1 != val.indexOf("cm"))
+				nRes = nVal * 10;
+			else if (-1 != val.indexOf("in"))
+				nRes = nVal * AscCommonWord.g_dKoef_in_to_mm;
+			else if (-1 != val.indexOf("pt"))
+				nRes = nVal * AscCommonWord.g_dKoef_pt_to_mm;
+			else if (-1 != val.indexOf("pc") || -1 != val.indexOf("pi"))
+				nRes = nVal * AscCommonWord.g_dKoef_pc_to_mm;
+			else if (-1 != val.indexOf("px"))
+				nRes = nVal * AscCommonWord.g_dKoef_pix_to_mm;
+			else
+				nRes = nVal * koef;
+		}
+		return nRes;
+	};
 
 	function arrayMove(array, from, to) {
 		array.splice(to, 0, array.splice(from, 1)[0]);
@@ -7470,6 +7491,7 @@
 
 	window["AscCommon"].valueToMm = valueToMm;
 	window["AscCommon"].valueToMmType = valueToMmType;
+	window["AscCommon"].universalMeasureToMm = universalMeasureToMm;
 	window["AscCommon"].arrayMove = arrayMove;
 	window["AscCommon"].getRangeArray = getRangeArray;
 

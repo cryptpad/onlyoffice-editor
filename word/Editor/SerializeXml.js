@@ -73,7 +73,7 @@
 		fontsPart.part.setData(sampleData);
 		memory.Seek(0);
 	};
-	CDocument.prototype.fromXml = function (reader) {
+	CDocument.prototype.fromXml = function (reader, Content) {
 		var name;
 		if (!reader.ReadNextNode()) {
 			return;
@@ -92,86 +92,99 @@
 				if ("background" === name) {
 
 				} else if ("body" === name) {
-					this.fromXmlBody(reader);
+					this.fromXmlDocContent(reader, Content);
 				} else if ("docParts" === name) {
 
 				}
 			}
 		}
 	};
-	CDocument.prototype.fromXmlBody = function (reader) {
+	CDocument.prototype.fromXmlDocContent = function (reader, Content) {
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
-			var newItem;
-			switch (name) {
-				case "altChunk":
-					break;
-				case "bookmarkStart":
-					break;
-				case "bookmarkEnd":
-					break;
-				case "commentRangeStart":
-					break;
-				case "commentRangeEnd":
-					break;
-				case "customXmlDelRangeStart":
-					break;
-				case "customXmlDelRangeEnd":
-					break;
-				case "customXmlInsRangeStart":
-					break;
-				case "customXmlInsRangeEnd":
-					break;
-				case "customXmlMoveFromRangeStart":
-					break;
-				case "customXmlMoveFromRangeEnd":
-					break;
-				case "customXmlMoveToRangeStart":
-					break;
-				case "customXmlMoveToRangeEnd":
-					break;
-				case "del":
-					break;
-				case "ins":
-					break;
-				case "moveFrom":
-					break;
-				case "moveFromRangeStart":
-					break;
-				case "moveFromRangeEnd":
-					break;
-				case "moveTo":
-					break;
-				case "moveToRangeStart":
-					break;
-				case "moveToRangeEnd":
-					break;
-				case "oMath":
-					break;
-				case "oMathPara":
-					break;
-				case "p":
-					newItem = new Paragraph(this.DrawingDocument, this);
-					break;
-				case "permStart":
-					break;
-				case "permEnd":
-					break;
-				case "proofErr":
-					break;
-				case "sdt":
-					break;
-				case "sectPr":
-					break;
-				case "tbl":
-					break;
-			}
-			if (newItem) {
-				newItem.fromXml(reader);
-				this.Content.push(newItem);
-			}
+			CDocument.prototype.fromXmlDocContentElem(reader, name, Content, this.DrawingDocument, this);
 		}
+	};
+	CDocument.prototype.fromXmlDocContentElem = function (reader, name, Content, DrawingDocument, Parent) {
+		var res = null;
+		var newItem = null;
+		switch (name) {
+			case "altChunk":
+				break;
+			case "bookmarkStart":
+				break;
+			case "bookmarkEnd":
+				break;
+			case "commentRangeStart":
+				break;
+			case "commentRangeEnd":
+				break;
+			case "customXmlDelRangeStart":
+				break;
+			case "customXmlDelRangeEnd":
+				break;
+			case "customXmlInsRangeStart":
+				break;
+			case "customXmlInsRangeEnd":
+				break;
+			case "customXmlMoveFromRangeStart":
+				break;
+			case "customXmlMoveFromRangeEnd":
+				break;
+			case "customXmlMoveToRangeStart":
+				break;
+			case "customXmlMoveToRangeEnd":
+				break;
+			case "del":
+				break;
+			case "ins":
+				break;
+			case "moveFrom":
+				break;
+			case "moveFromRangeStart":
+				break;
+			case "moveFromRangeEnd":
+				break;
+			case "moveTo":
+				break;
+			case "moveToRangeStart":
+				break;
+			case "moveToRangeEnd":
+				break;
+			case "oMath":
+				break;
+			case "oMathPara":
+				break;
+			case "p":
+				newItem = new Paragraph(DrawingDocument, Parent);
+				break;
+			case "permStart":
+				break;
+			case "permEnd":
+				break;
+			case "proofErr":
+				break;
+			case "sdt":
+				break;
+			case "sectPr":
+				break;
+			case "tbl":
+				var table = new CTable(DrawingDocument, Parent, true, 0, 0, []);
+				table.Set_TableStyle2(null);
+				table.fromXml(reader);
+				if (table.Get_RowsCount() > 0) {
+					res = table;
+					Content.push(table);
+				}
+				break;
+		}
+		if (newItem) {
+			newItem.fromXml(reader);
+			res = newItem;
+			Content.push(newItem);
+		}
+		return res;
 	};
 	CDocument.prototype.toXml = function (writer) {
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
@@ -184,25 +197,405 @@
 		writer.WriteXmlNodeStart("w:body");
 		writer.WriteXmlAttributesEnd();
 		this.Content.forEach(function (item) {
-			switch (item.GetType()) {
-				case type_Paragraph:
-					item.toXml(writer, "w:p");
-					break;
-				case type_Table:
-					break;
-				case type_BlockLevelSdt:
-					break;
-			}
+			CDocument.prototype.toXmlDocContentElem(writer, item);
 		});
 		// this.SectPr.toXml(writer, "w:background");
 		writer.WriteXmlNodeEnd("w:body");
 		writer.WriteXmlNodeEnd("w:document");
 	};
+	CDocument.prototype.toXmlDocContentElem = function (writer, item) {
+		switch (item.GetType()) {
+			case type_Paragraph:
+				item.toXml(writer, "w:p");
+				break;
+			case type_Table:
+				item.toXml(writer, "w:tbl");
+				break;
+			case type_BlockLevelSdt:
+				break;
+		}
+	};
+	CTable.prototype.fromXml = function (reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "bookmarkStart" : {
+					break;
+				}
+				case "bookmarkEnd" : {
+					break;
+				}
+				case "moveFromRangeStart" : {
+					break;
+				}
+				case "moveFromRangeEnd" : {
+					break;
+				}
+				case "moveToRangeStart" : {
+					break;
+				}
+				case "moveToRangeEnd" : {
+					break;
+				}
+				case "commentRangeStart" : {
+					break;
+				}
+				case "commentRangeEnd" : {
+					break;
+				}
+				case "customXmlInsRangeStart" : {
+					break;
+				}
+				case "customXmlInsRangeEnd" : {
+					break;
+				}
+				case "customXmlDelRangeStart" : {
+					break;
+				}
+				case "customXmlDelRangeEnd" : {
+					break;
+				}
+				case "customXmlMoveFromRangeStart" : {
+					break;
+				}
+				case "customXmlMoveFromRangeEnd" : {
+					break;
+				}
+				case "customXmlMoveToRangeStart" : {
+					break;
+				}
+				case "customXmlMoveToRangeEnd" : {
+					break;
+				}
+				case "tblPr" : {
+					// var tblPr = new CT_TblPr();
+					// this.tblPr.fromXml(reader);
+					break;
+				}
+				case "tblGrid" : {
+					var tblGrid = new CT_TblGrid();
+					tblGrid.fromXml(reader);
+					tblGrid.toTable(this);
+					break;
+				}
+				case "tr" : {
+					var row = this.private_AddRow(this.Content.length, 0);
+					row.fromXml(reader);
+					break;
+				}
+				case "customXml" : {
+					break;
+				}
+				case "sdt" : {
+					break;
+				}
+				case "todo_EG_RunLevelElts" : {
+					break;
+				}
+			}
+		}
+	};
+	CTable.prototype.toXml = function(writer, name) {
+		var tblGrid = new CT_TblGrid();
+		tblGrid.fromTable(this);
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlArray(this.bookmarkStart, "w:bookmarkStart");
+		writer.WriteXmlArray(this.bookmarkEnd, "w:bookmarkEnd");
+		writer.WriteXmlArray(this.moveFromRangeStart, "w:moveFromRangeStart");
+		writer.WriteXmlArray(this.moveFromRangeEnd, "w:moveFromRangeEnd");
+		writer.WriteXmlArray(this.moveToRangeStart, "w:moveToRangeStart");
+		writer.WriteXmlArray(this.moveToRangeEnd, "w:moveToRangeEnd");
+		writer.WriteXmlArray(this.commentRangeStart, "w:commentRangeStart");
+		writer.WriteXmlArray(this.commentRangeEnd, "w:commentRangeEnd");
+		writer.WriteXmlArray(this.customXmlInsRangeStart, "w:customXmlInsRangeStart");
+		writer.WriteXmlArray(this.customXmlInsRangeEnd, "w:customXmlInsRangeEnd");
+		writer.WriteXmlArray(this.customXmlDelRangeStart, "w:customXmlDelRangeStart");
+		writer.WriteXmlArray(this.customXmlDelRangeEnd, "w:customXmlDelRangeEnd");
+		writer.WriteXmlArray(this.customXmlMoveFromRangeStart, "w:customXmlMoveFromRangeStart");
+		writer.WriteXmlArray(this.customXmlMoveFromRangeEnd, "w:customXmlMoveFromRangeEnd");
+		writer.WriteXmlArray(this.customXmlMoveToRangeStart, "w:customXmlMoveToRangeStart");
+		writer.WriteXmlArray(this.customXmlMoveToRangeEnd, "w:customXmlMoveToRangeEnd");
+		writer.WriteXmlNullable(this.tblPr, "w:tblPr");
+		tblGrid.toXml(writer, "w:tblGrid");
+		writer.WriteXmlArray(this.Content, "w:tr");
+		writer.WriteXmlArray(this.customXml, "w:customXml");
+		writer.WriteXmlArray(this.sdt, "w:sdt");
+		writer.WriteXmlArray(this.todo_EG_RunLevelElts, "w:todo_EG_RunLevelElts");
+		writer.WriteXmlNodeEnd(name);
+	};
+	function CT_TblGrid() {
+		this.gridCol = [];
+		this.tblGridChange = null;
+		return this;
+	}
+	CT_TblGrid.prototype.fromTable = function(table) {
+		if (table.TableGrid) {
+			for(var i = 0; i < table.TableGrid.length; ++i) {
+				var elem = new CT_TblGridCol();
+				elem.w = table.TableGrid[i];
+				this.gridCol.push(elem);
+			}
+		}
+	};
+	CT_TblGrid.prototype.toTable = function(table) {
+		var tableGrid = this.gridCol.map(function(elem) {return elem.w;});
+		table.SetTableGrid(tableGrid);
+		//todo tblGridChange
+	};
+	CT_TblGrid.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "gridCol" : {
+					var elem = new CT_TblGridCol();
+					elem.fromXml(reader);
+					this.gridCol.push(elem);
+					break;
+				}
+				case "tblGridChange" : {
+					break;
+				}
+			}
+		}
+	};
+	CT_TblGrid.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlArray(this.gridCol, "w:gridCol");
+		writer.WriteXmlNullable(this.tblGridChange, "w:tblGridChange");
+		writer.WriteXmlNodeEnd(name);
+	};
+	function CT_TblGridCol() {
+		this.w = null;
+		return this;
+	}
+	CT_TblGridCol.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "w": {
+					this.w = reader.GetTextMeasureUnsignedMm(AscCommonWord.g_dKoef_twips_to_mm);
+					break;
+				}
+			}
+		}
+	};
+	CT_TblGridCol.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_TblGridCol.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeNumberWithRounding("w:w", this.w * g_dKoef_mm_to_twips);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CTableRow.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "rsidRPr": {
+					break;
+				}
+				case "rsidR": {
+					break;
+				}
+				case "rsidDel": {
+					break;
+				}
+				case "rsidTr": {
+					break;
+				}
+			}
+		}
+	};
+	CTableRow.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "tblPrEx" : {
+					break;
+				}
+				case "trPr" : {
+					var rowPr = new CTableRowPr();
+					rowPr.fromXml(reader);
+					this.Set_Pr(rowPr);
+					break;
+				}
+				case "tc" : {
+					var cell = this.Add_Cell(this.Get_CellsCount(), this, null, false);
+					cell.fromXml(reader);
+					break;
+				}
+				case "customXml" : {
+					break;
+				}
+				case "sdt" : {
+					break;
+				}
+				case "todo_EG_RunLevelElts" : {
+					break;
+				}
+			}
+		}
+	};
+	CTableRow.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		// writer.WriteXmlNullable(this.tblPrEx, "w:tblPrEx");
+		writer.WriteXmlNullable(this.Pr, "w:trPr");
+		writer.WriteXmlArray(this.Content, "w:tc");
+		// writer.WriteXmlArray(this.customXml, "w:customXml");
+		// writer.WriteXmlArray(this.sdt, "w:sdt");
+		// writer.WriteXmlArray(this.todo_EG_RunLevelElts, "w:todo_EG_RunLevelElts");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CTableRowPr.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "cnfStyle" : {
+					break;
+				}
+				case "divId" : {
+					this.divId = new CT_DecimalNumber();
+					this.divId.fromXml(reader);
+					break;
+				}
+				case "gridBefore" : {
+					this.gridBefore = new CT_DecimalNumber();
+					this.gridBefore.fromXml(reader);
+					break;
+				}
+				case "gridAfter" : {
+					this.gridAfter = new CT_DecimalNumber();
+					this.gridAfter.fromXml(reader);
+					break;
+				}
+				case "wBefore" : {
+					this.wBefore = new CT_TblWidth();
+					this.wBefore.fromXml(reader);
+					break;
+				}
+				case "wAfter" : {
+					this.wAfter = new CT_TblWidth();
+					this.wAfter.fromXml(reader);
+					break;
+				}
+				case "cantSplit" : {
+					this.cantSplit = new CT_OnOff();
+					this.cantSplit.fromXml(reader);
+					break;
+				}
+				case "trHeight" : {
+					this.trHeight = new CT_Height();
+					this.trHeight.fromXml(reader);
+					break;
+				}
+				case "tblHeader" : {
+					this.tblHeader = new CT_OnOff();
+					this.tblHeader.fromXml(reader);
+					break;
+				}
+				case "tblCellSpacing" : {
+					this.tblCellSpacing = new CT_TblWidth();
+					this.tblCellSpacing.fromXml(reader);
+					break;
+				}
+				case "jc" : {
+					this.jc = new CT_JcTable();
+					this.jc.fromXml(reader);
+					break;
+				}
+				case "hidden" : {
+					this.hidden = new CT_OnOff();
+					this.hidden.fromXml(reader);
+					break;
+				}
+				case "ins" : {
+					this.ins = new CT_TrackChange();
+					this.ins.fromXml(reader);
+					break;
+				}
+				case "del" : {
+					this.del = new CT_TrackChange();
+					this.del.fromXml(reader);
+					break;
+				}
+				case "trPrChange" : {
+					this.trPrChange = new CT_TrPrChange();
+					this.trPrChange.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CTableRowPr.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.cnfStyle, "w:cnfStyle");
+		writer.WriteXmlNullable(this.divId, "w:divId");
+		writer.WriteXmlNullable(this.gridBefore, "w:gridBefore");
+		writer.WriteXmlNullable(this.gridAfter, "w:gridAfter");
+		writer.WriteXmlNullable(this.wBefore, "w:wBefore");
+		writer.WriteXmlNullable(this.wAfter, "w:wAfter");
+		writer.WriteXmlNullable(this.cantSplit, "w:cantSplit");
+		writer.WriteXmlNullable(this.trHeight, "w:trHeight");
+		writer.WriteXmlNullable(this.tblHeader, "w:tblHeader");
+		writer.WriteXmlNullable(this.tblCellSpacing, "w:tblCellSpacing");
+		writer.WriteXmlNullable(this.jc, "w:jc");
+		writer.WriteXmlNullable(this.hidden, "w:hidden");
+		writer.WriteXmlNullable(this.ins, "w:ins");
+		writer.WriteXmlNullable(this.del, "w:del");
+		writer.WriteXmlNullable(this.trPrChange, "w:trPrChange");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CTableCell.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "id": {
+					break;
+				}
+			}
+		}
+	};
+	CTableCell.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var Content = [];
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			var newItem = CDocument.prototype.fromXmlDocContentElem(reader, name, Content, this.Content.DrawingDocument, this.Content);
+			if (!newItem) {
+				switch (name) {
+					case "tcPr" : {
+						// var cellPr = new CTableCellPr();
+						// cellPr.fromXml(reader);
+						// this.Set_Pr(cellPr);
+						break;
+					}
+				}
+			}
+		}
+		if (Content.length > 0) {
+			this.Content.ReplaceContent(Content);
+		}
+	};
+	CTableCell.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		// writer.WriteXmlNullableAttributeString("id", this.id);
+		writer.WriteXmlAttributesEnd();
+		// writer.WriteXmlNullable(this.tcPr, "w:tcPr");
+		this.Content.Content.forEach(function (item) {
+			CDocument.prototype.toXmlDocContentElem(writer, item);
+		});
+		writer.WriteXmlNodeEnd(name);
+	};
 	Paragraph.prototype.fromXml = function (reader) {
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
-			var newItem;
+			var newItem = null;
 			switch (name) {
 				case "bdo":
 					break;

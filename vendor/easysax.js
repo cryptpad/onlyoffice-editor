@@ -1401,6 +1401,12 @@ StaxParser.prototype.GetValueInt = function () {
 StaxParser.prototype.GetValueDouble = function () {
     return parseFloat(this.GetValue()) || 0;
 };
+StaxParser.prototype.GetValueMeasureMm = function (koef) {
+    return AscCommon.universalMeasureToMm(this.GetValue(), koef) || 0;
+};
+StaxParser.prototype.GetValueMeasureUnsignedMm = function (koef) {
+    return Math.abs(this.GetValueMeasureMm(koef));
+};
 StaxParser.prototype.GetValueDecodeXml = function () {
     return this.DecodeXml(this.text);
 };
@@ -1477,6 +1483,12 @@ StaxParser.prototype.GetTextInt = function () {
 };
 StaxParser.prototype.GetTextDouble = function () {
     return parseFloat(this.GetText()) || 0;
+};
+StaxParser.prototype.GetTextMeasureMm = function (koef) {
+    return AscCommon.universalMeasureToMm(this.GetValue(), koef) || 0;
+};
+StaxParser.prototype.GetTextMeasureUnsignedMm = function (koef) {
+    return Math.abs(this.GetValueMeasureMm(koef));
 };
 StaxParser.prototype.ConvertToString = function(xml, start, end) {
     return xml.substring(start, end);

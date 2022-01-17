@@ -913,6 +913,10 @@
 		{
 			this.WriteXmlString(val.toString());
 		};
+		this.WriteXmlNumberWithRounding = function(val)
+		{
+			this.WriteXmlString(Math.round(val).toString());
+		};
 		this.WriteXmlNodeStart = function(name)
 		{
 			this.WriteUtf8Char(0x3c);
@@ -957,10 +961,29 @@
 		{
 			this.WriteXmlAttributeString(name, val.toString());
 		};
+		this.WriteXmlAttributeNumberWithRounding = function(name, val)
+		{
+			this.WriteXmlAttributeString(name, Math.round(val).toString());
+		};
 		this.WriteXmlNullable = function(val, name)
 		{
 			if (val) {
 				val.toXml(this, name);
+			}
+		};
+		this.WriteXmlArray = function(val, name, opt_parentName)
+		{
+			if(val && val.length > 0) {
+				if(opt_parentName) {
+					this.WriteXmlNodeStart(opt_parentName);
+					this.WriteXmlAttributesEnd();
+				}
+				val.forEach(function(elem){
+					elem.toXml(this, name);
+				}, this);
+				if(opt_parentName) {
+					writer.WriteXmlNodeEnd(opt_parentName);
+				}
 			}
 		};
 		this.WriteXmlNullableAttributeString = function(name, val)
@@ -985,6 +1008,12 @@
 		{
 			if (null !== val) {
 				this.WriteXmlAttributeNumber(name, val)
+			}
+		};
+		this.WriteXmlNullableAttributeNumberWithRounding = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlAttributeNumberWithRounding(name, val)
 			}
 		};
 		this.WriteXmlAttributeBoolIfTrue = function(name, val)
@@ -1021,6 +1050,13 @@
 			this.WriteXmlNumber(val);
 			this.WriteXmlNodeEnd(name);
 		};
+		this.WriteXmlValueNumberWithRounding = function(name, val)
+		{
+			this.WriteXmlNodeStart(name);
+			this.WriteXmlAttributesEnd();
+			this.WriteXmlNumberWithRounding(val);
+			this.WriteXmlNodeEnd(name);
+		};
 		this.WriteXmlNullableValueString = function(name, val)
 		{
 			if (null !== val) {
@@ -1045,7 +1081,12 @@
 				this.WriteXmlValueNumber(name, val)
 			}
 		};
-
+		this.WriteXmlNullableValueNumberWithRounding = function(name, val)
+		{
+			if (null !== val) {
+				this.WriteXmlValueNumberWithRounding(name, val)
+			}
+		};
 		this.XlsbStartRecord = function(type, len) {
 			//Type
 			if (type < 0x80) {
