@@ -1534,12 +1534,12 @@
         };
     };
 
-      function OpenColor() {
-          this.rgb = null;
-          this.auto = null;
-          this.theme = null;
-          this.tint = null;
-      }
+    function OpenColor() {
+        this.rgb = null;
+        this.auto = null;
+        this.theme = null;
+        this.tint = null;
+    }
 
 	function OpenFormula() {
 		this.aca = null;
@@ -1598,6 +1598,7 @@
 		this.locked = null;
 		this.hidden = null;
 	}
+
 	function ReadColorSpreadsheet2(bcr, length) {
 		var output = null;
 		var color = new OpenColor();
@@ -11006,10 +11007,17 @@
                 else
                     aSeekTable.push( {type: mtiType, offset: mtiOffBits} );
             }
+
+
+
+
             var aSharedStrings = [];
             var aCellXfs = [];
             var aDxfs = [];
             var oMediaArray = {};
+
+
+            //****TODO Не нахожу в файле****
             wb.aWorksheets = [];
             if(null != nOtherTableOffset)
             {
@@ -11019,6 +11027,10 @@
             }
 
             this.InitOpenManager.initSchemeAndTheme(wb);
+            //****TODO Не нахожу в файле****
+
+
+
 
             if(null != nSharedStringTableOffset)
             {
@@ -11026,6 +11038,11 @@
                 if(c_oSerConstants.ReadOk == res)
                     res = (new Binary_SharedStringTableReader(this.stream, wb, aSharedStrings)).Read();
             }
+
+
+
+
+
 			this.InitOpenManager.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb, aCellXfs, this.InitOpenManager.copyPasteObj.isCopyPaste)
             if(null != nStyleTableOffset)
             {
@@ -11038,6 +11055,9 @@
                 }
 
             }
+
+
+
             var personList = {};
             if(null != nPersonListTableOffset)
             {
@@ -11978,5 +11998,8 @@
 
     window["AscCommonExcel"].InitSaveManager = InitSaveManager;
     window["AscCommonExcel"].InitOpenManager = InitOpenManager;
+
+    window["AscCommonExcel"].CT_Stylesheet = CT_Stylesheet;
+    window["AscCommonExcel"].OpenXf = OpenXf;
 
 })(window);

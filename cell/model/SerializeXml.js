@@ -5532,7 +5532,744 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString(("/>"));
 	};
 
-	
+
+	//***STYLE****
+	AscCommonExcel.CT_Stylesheet.prototype.fromXml = function (reader) {
+
+		/*virtual void fromXML(XmlUtils::CXmlLiteReader& oReader)
+					{
+						if ( oReader.IsEmptyNode() ) return;
+
+						int nStylesDepth = oReader.GetDepth();
+						while ( oReader.ReadNextSiblingNode( nStylesDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"borders" == sName )
+								m_oBorders = oReader;
+							else if ( _T("cellStyles") == sName )
+								m_oCellStyles = oReader;
+							else if ( L"cellStyleXfs" == sName )
+								m_oCellStyleXfs = oReader;
+							else if ( L"cellXfs" == sName )
+								m_oCellXfs = oReader;
+							else if ( L"colors" == sName )
+								m_oColors = oReader;
+							else if ( L"dxfs" == sName )
+								m_oDxfs = oReader;
+							//else if ( _T("extLst") == sName )
+							//	pItem = new CSi( oReader );
+							else if ( L"fills" == sName )
+								m_oFills = oReader;
+							else if ( L"fonts" == sName )
+								m_oFonts = oReader;
+							else if ( L"numFmts" == sName )
+								m_oNumFmts = oReader;
+							else if ( L"tableStyles" == sName )
+								m_oTableStyles = oReader;
+							else if (L"Style" == sName)
+							{
+								CStyle2003 *style = new CStyle2003(WritingElement::m_pMainDocument);
+								style->fromXML(oReader);
+
+								m_arrStyles2003.push_back( style);
+							}
+							else if (L"extLst" == sName)
+								m_oExtLst = oReader;
+						}
+						AfterRead();
+					}*/
+
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+
+		var sName = reader.GetNameNoNS();
+		var val, depth2, name2;
+		if ("styleSheet" === sName) {
+			if (reader.IsEmptyNode()) {
+				return;
+			}
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+				if ("borders" === name) {
+					//count
+					//this.readAttr(reader);
+
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("border" === name2 || "Border" === name2) {
+							val = new AscCommonExcel.Border();
+							val.fromXml(reader);
+							this.borders.push(val);
+						}
+					}
+				} else if ("cellStyleXfs" === name) {
+					//count
+					//this.readAttr(reader);
+
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("xf" === name2) {
+							val = new AscCommonExcel.OpenXf();
+							val.fromXml(reader);
+							this.cellStyleXfs.push(val);
+						}
+					}
+				} else if ("cellXfs" === name) {
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("xf" === name2) {
+							val = new AscCommonExcel.OpenXf();
+							val.fromXml(reader);
+							this.cellXfs.push(val);
+						}
+					}
+				} else if ("colors" === name) {
+
+				} else if ("dxfs" === name) {
+
+				} else if ("fills" === name) {
+
+				} else if ("fonts" === name) {
+
+				} else if ("numFmts" === name) {
+
+				} else if ("tableStyles" === name) {
+
+				} else if ("Style" === name) {
+
+				} else if ("extLst" === name) {
+
+				}
+			}
+		}
+	};
+
+
+	AscCommonExcel.OpenXf.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("alignment") == sName )
+								m_oAligment = oReader;
+							else if( _T("protection") == sName )
+								m_oProtection = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("alignment" === name) {
+				if (null == this.align) {
+					this.align = new AscCommonExcel.Align();
+				}
+				this.align.fromXml(reader);
+			} else if ("protection" === name) {
+				while (reader.MoveToNextAttribute()) {
+					if ("hidden" === reader.GetName()) {
+						this.hidden = reader.GetValueBool();
+					} else if ("locked" === reader.GetName()) {
+						this.locked = reader.GetValueBool();
+					}
+				}
+			}
+		}
+	};
+
+	AscCommonExcel.OpenXf.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_Xf">
+		3610 <xsd:sequence>
+		3611 <xsd:element name="alignment" type="CT_CellAlignment" minOccurs="0" maxOccurs="1"/>
+		3612 <xsd:element name="protection" type="CT_CellProtection" minOccurs="0" maxOccurs="1"/>
+		3613 <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+		3614 </xsd:sequence>
+		3615 <xsd:attribute name="numFmtId" type="ST_NumFmtId" use="optional"/>
+		3616 <xsd:attribute name="fontId" type="ST_FontId" use="optional"/>
+		3617 <xsd:attribute name="fillId" type="ST_FillId" use="optional"/>
+		3618 <xsd:attribute name="borderId" type="ST_BorderId" use="optional"/>
+		3619 <xsd:attribute name="xfId" type="ST_CellStyleXfId" use="optional"/>
+		3620 <xsd:attribute name="quotePrefix" type="xsd:boolean" use="optional" default="false"/>
+		3621 <xsd:attribute name="pivotButton" type="xsd:boolean" use="optional" default="false"/>
+		3622 <xsd:attribute name="applyNumberFormat" type="xsd:boolean" use="optional"/>
+		3623 <xsd:attribute name="applyFont" type="xsd:boolean" use="optional"/>
+		3624 <xsd:attribute name="applyFill" type="xsd:boolean" use="optional"/>
+		3625 <xsd:attribute name="applyBorder" type="xsd:boolean" use="optional"/>
+		3626 <xsd:attribute name="applyAlignment" type="xsd:boolean" use="optional"/>
+		3627 <xsd:attribute name="applyProtection" type="xsd:boolean" use="optional"/>
+		3628 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Start( oReader )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("applyAlignment"),      m_oApplyAlignment )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("applyBorder"),      m_oApplyBorder )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("applyFill"),      m_oApplyFill )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("applyFont"),      m_oApplyFont )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("applyNumberFormat"),      m_oApplyNumberFormat )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("applyProtection"),      m_oApplyProtection )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("borderId"),      m_oBorderId )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("fillId"),      m_oFillId )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("fontId"),      m_oFontId )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("numFmtId"),      m_oNumFmtId )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("pivotButton"),      m_oPivotButton )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("quotePrefix"),      m_oQuotePrefix )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("xfId"),      m_oXfId )
+						WritingElement_ReadAttributes_End( oReader )*/
+
+//serialize
+		/* var res = c_oSerConstants.ReadOk;
+					var oThis = this;
+					if ( c_oSerXfsTypes.ApplyAlignment == type )
+						oXfs.ApplyAlignment = this.stream.GetBool();
+					else if ( c_oSerXfsTypes.ApplyBorder == type )
+						oXfs.ApplyBorder = this.stream.GetBool();
+					else if ( c_oSerXfsTypes.ApplyFill == type )
+						oXfs.ApplyFill = this.stream.GetBool();
+					else if ( c_oSerXfsTypes.ApplyFont == type )
+						oXfs.ApplyFont = this.stream.GetBool();
+					else if ( c_oSerXfsTypes.ApplyNumberFormat == type )
+						oXfs.ApplyNumberFormat = this.stream.GetBool();
+					else if ( c_oSerXfsTypes.BorderId == type )
+						oXfs.borderid = this.stream.GetULongLE();
+					else if ( c_oSerXfsTypes.FillId == type )
+						oXfs.fillid = this.stream.GetULongLE();
+					else if ( c_oSerXfsTypes.FontId == type )
+						oXfs.fontid = this.stream.GetULongLE();
+					else if ( c_oSerXfsTypes.NumFmtId == type )
+						oXfs.numid = this.stream.GetULongLE();
+					else if ( c_oSerXfsTypes.QuotePrefix == type )
+						oXfs.QuotePrefix = this.stream.GetBool();
+					else if ( c_oSerXfsTypes.PivotButton == type )
+						oXfs.PivotButton = this.stream.GetBool();
+					else if (c_oSerXfsTypes.XfId === type)
+						oXfs.XfId = this.stream.GetULongLE();
+					else if ( c_oSerXfsTypes.Aligment == type )
+					{
+						if(null == oXfs.align)
+							oXfs.align = new AscCommonExcel.Align();
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadAligment(t,l,oXfs.align);
+						});
+					}
+					else if (c_oSerXfsTypes.ApplyProtection == type) {
+						oXfs.applyProtection = this.stream.GetBool();
+					}
+					else if ( c_oSerXfsTypes.Protection == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadProtection(t,l,oXfs);
+						});
+					}
+					else
+						res = c_oSerConstants.ReadUnknown;
+					return res;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("applyAlignment" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ApplyAlignment = val;
+			} else if ("applyBorder" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ApplyBorder = val;
+			} else if ("applyFill" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ApplyFill = val;
+			} else if ("applyFont" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ApplyFont = val;
+			} else if ("applyNumberFormat" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ApplyNumberFormat = val;
+			} else if ("applyProtection" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ApplyProtection = val;
+			} else if ("borderId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.BorderId = val;
+			} else if ("fillId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.fillId = val;
+			} else if ("fontId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.fontId = val;
+			} else if ("numFmtId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.numid = val;
+			} else if ("pivotButton" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.PivotButton = val;
+			} else if ("quotePrefix" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.QuotePrefix = val;
+			} else if ("xfId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.XfId = val;
+			}
+		}
+	};
+
+	AscCommonExcel.BorderProp.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"color" == sName )
+								m_oColor = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("color" === name) {
+				//ReadColorSpreadsheet2 - возможно стоит объединить
+				this.c = AscCommon.getColorFromXml2(reader);
+			}
+		}
+	};
+
+	AscCommonExcel.BorderProp.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_BorderPr">
+		3479 <xsd:sequence>
+		3480 <xsd:element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+		3481 </xsd:sequence>
+		3482 <xsd:attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+		3483 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if(oReader, L"style", m_oStyle)
+							WritingElement_ReadAttributes_Read_else_if(oReader, L"ss:Color", sColor)
+							WritingElement_ReadAttributes_Read_else_if(oReader, L"ss:LineStyle", sLineStyle)
+							WritingElement_ReadAttributes_Read_else_if(oReader, L"ss:Position", m_oType)
+							WritingElement_ReadAttributes_Read_else_if(oReader, L"ss:Weight", iWeight)*/
+
+//serialize
+		/*  var res = c_oSerConstants.ReadOk;
+					var oThis = this;
+					if ( c_oSerBorderPropTypes.Style == type )
+					{
+						switch(this.stream.GetUChar())
+						{
+							case EBorderStyle.borderstyleDashDot:			oBorderProp.setStyle(c_oAscBorderStyles.DashDot);break;
+							case EBorderStyle.borderstyleDashDotDot:		oBorderProp.setStyle(c_oAscBorderStyles.DashDotDot);break;
+							case EBorderStyle.borderstyleDashed:			oBorderProp.setStyle(c_oAscBorderStyles.Dashed);break;
+							case EBorderStyle.borderstyleDotted:			oBorderProp.setStyle(c_oAscBorderStyles.Dotted);break;
+							case EBorderStyle.borderstyleDouble:			oBorderProp.setStyle(c_oAscBorderStyles.Double);break;
+							case EBorderStyle.borderstyleHair:				oBorderProp.setStyle(c_oAscBorderStyles.Hair);break;
+							case EBorderStyle.borderstyleMedium:			oBorderProp.setStyle(c_oAscBorderStyles.Medium);break;
+							case EBorderStyle.borderstyleMediumDashDot:		oBorderProp.setStyle(c_oAscBorderStyles.MediumDashDot);break;
+							case EBorderStyle.borderstyleMediumDashDotDot:	oBorderProp.setStyle(c_oAscBorderStyles.MediumDashDotDot);break;
+							case EBorderStyle.borderstyleMediumDashed:		oBorderProp.setStyle(c_oAscBorderStyles.MediumDashed);break;
+							case EBorderStyle.borderstyleNone:				oBorderProp.setStyle(c_oAscBorderStyles.None);break;
+							case EBorderStyle.borderstyleSlantDashDot:		oBorderProp.setStyle(c_oAscBorderStyles.SlantDashDot);break;
+							case EBorderStyle.borderstyleThick:				oBorderProp.setStyle(c_oAscBorderStyles.Thick);break;
+							case EBorderStyle.borderstyleThin:				oBorderProp.setStyle(c_oAscBorderStyles.Thin);break;
+							default :										oBorderProp.setStyle(c_oAscBorderStyles.None);break;
+						}
+					}
+					else if ( c_oSerBorderPropTypes.Color == type ) {
+						oBorderProp.c = ReadColorSpreadsheet2(this.bcr, length);
+					}
+					else
+						res = c_oSerConstants.ReadUnknown;
+					return res;*/
+
+		var toEBorderStyle = function (sValue) {
+
+			var res = Asc.EBorderStyle.borderstyleNone;
+			if ("dashDot" === sValue) {
+				res = Asc.EBorderStyle.borderstyleDashDot;
+			} else if ("dashDotDot" === sValue) {
+				res = Asc.EBorderStyle.borderstyleDashDotDot;
+			} else if ("dashed" === sValue) {
+				res = Asc.EBorderStyle.borderstyleDashed;
+			} else if ("dotted" === sValue) {
+				res = Asc.EBorderStyle.borderstyleDotted;
+			} else if ("double" === sValue) {
+				res = Asc.EBorderStyle.borderstyleDouble;
+			} else if ("hair" === sValue) {
+				res = Asc.EBorderStyle.borderstyleHair;
+			} else if ("medium" === sValue) {
+				res = Asc.EBorderStyle.borderstyleMedium;
+			} else if ("mediumDashDot" === sValue) {
+				res = Asc.EBorderStyle.borderstyleMediumDashDot;
+			} else if ("mediumDashDotDot" === sValue) {
+				res = Asc.EBorderStyle.borderstyleMediumDashDotDot;
+			} else if ("mediumDashed" === sValue) {
+				res = Asc.EBorderStyle.borderstyleMediumDashed;
+			} else if ("none" === sValue) {
+				res = Asc.EBorderStyle.borderstyleNone;
+			} else if ("slantDashDot" === sValue) {
+				res = Asc.EBorderStyle.borderstyleSlantDashDot;
+			} else if ("thick" === sValue) {
+				res = Asc.EBorderStyle.borderstyleThick;
+			} else if ("thin" === sValue) {
+				res = Asc.EBorderStyle.borderstyleThin;
+			}
+
+			return res;
+		};
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("style" === reader.GetName()) {
+				val = toEBorderStyle(reader.GetValue());
+				switch(val)
+				{
+					case Asc.EBorderStyle.borderstyleDashDot:			this.setStyle(AscCommon.c_oAscBorderStyles.DashDot);break;
+					case Asc.EBorderStyle.borderstyleDashDotDot:		this.setStyle(AscCommon.c_oAscBorderStyles.DashDotDot);break;
+					case Asc.EBorderStyle.borderstyleDashed:			this.setStyle(AscCommon.c_oAscBorderStyles.Dashed);break;
+					case Asc.EBorderStyle.borderstyleDotted:			this.setStyle(AscCommon.c_oAscBorderStyles.Dotted);break;
+					case Asc.EBorderStyle.borderstyleDouble:			this.setStyle(AscCommon.c_oAscBorderStyles.Double);break;
+					case Asc.EBorderStyle.borderstyleHair:				this.setStyle(AscCommon.c_oAscBorderStyles.Hair);break;
+					case Asc.EBorderStyle.borderstyleMedium:			this.setStyle(AscCommon.c_oAscBorderStyles.Medium);break;
+					case Asc.EBorderStyle.borderstyleMediumDashDot:		this.setStyle(AscCommon.c_oAscBorderStyles.MediumDashDot);break;
+					case Asc.EBorderStyle.borderstyleMediumDashDotDot:	this.setStyle(AscCommon.c_oAscBorderStyles.MediumDashDotDot);break;
+					case Asc.EBorderStyle.borderstyleMediumDashed:		this.setStyle(AscCommon.c_oAscBorderStyles.MediumDashed);break;
+					case Asc.EBorderStyle.borderstyleNone:				this.setStyle(AscCommon.c_oAscBorderStyles.None);break;
+					case Asc.EBorderStyle.borderstyleSlantDashDot:		this.setStyle(AscCommon.c_oAscBorderStyles.SlantDashDot);break;
+					case Asc.EBorderStyle.borderstyleThick:				this.setStyle(AscCommon.c_oAscBorderStyles.Thick);break;
+					case Asc.EBorderStyle.borderstyleThin:				this.setStyle(AscCommon.c_oAscBorderStyles.Thin);break;
+					default :										this.setStyle(AscCommon.c_oAscBorderStyles.None);break;
+				}
+			} /*else if ("ss:Color" === reader.GetName()) {
+				val = reader.GetValue();
+
+			} else if ("ss:LineStyle" === reader.GetName()) {
+
+			}*/
+		}
+	};
+
+	AscCommonExcel.Border.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("bottom") == sName )
+								m_oBottom = oReader;
+							else if ( _T("diagonal") == sName )
+								m_oDiagonal = oReader;
+							else if ( _T("end") == sName || _T("right") == sName )
+								m_oEnd = oReader;
+							else if ( _T("horizontal") == sName )
+								m_oHorizontal = oReader;
+							else if ( _T("start") == sName || _T("left") == sName )
+								m_oStart = oReader;
+							else if ( _T("top") == sName )
+								m_oTop = oReader;
+							else if ( L"vertical" == sName )
+								m_oVertical = oReader;
+							else if (L"Border" == sName)
+							{
+								CBorderProp* border = new CBorderProp(oReader);
+								if ((border) && (border->m_oType.IsInit()))
+								{
+									if (*border->m_oType == L"Bottom")		m_oBottom	= border;
+									else if (*border->m_oType == L"Top")	m_oTop		= border;
+									else if (*border->m_oType == L"Left")	m_oStart	= border;
+									else if (*border->m_oType == L"Right")	m_oEnd		= border;
+
+									if (border->bBorderContinuous)
+										bBorderContinuous = true;
+								}
+								else
+								{
+									delete border;
+								}
+							}
+
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode())
+			return;
+		var depth = reader.GetDepth();
+		var borderProp;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("bottom" == name) {
+				this.b.fromXml(reader);
+			} else if ("diagonal" == name) {
+				this.d.fromXml(reader);
+			} else if ("end" == name || "right" == name) {
+				this.r.fromXml(reader);
+			} else if ("horizontal" == name) {
+				this.ih.fromXml(reader);
+			} else if ("start" == name || "left" == name) {
+				this.l.fromXml(reader);
+			} else if ("top" == name) {
+				this.t.fromXml(reader);
+			} else if ("vertical" == name) {
+				this.iv.fromXml(reader);
+			}
+		}
+	};
+
+	AscCommonExcel.Border.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_Border">
+		3465 <xsd:sequence>
+		3466 <xsd:element name="start" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+		3467 <xsd:element name="end" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+		3468 <xsd:element name="top" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+		3469 <xsd:element name="bottom" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+		3470 <xsd:element name="diagonal" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+		3471 <xsd:element name="vertical" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+		3472 <xsd:element name="horizontal" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+		3473 </xsd:sequence>
+		3474 <xsd:attribute name="diagonalUp" type="xsd:boolean" use="optional"/>
+		3475 <xsd:attribute name="diagonalDown" type="xsd:boolean" use="optional"/>
+		3476 <xsd:attribute name="outline" type="xsd:boolean" use="optional" default="true"/>
+		3477 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Start( oReader )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("diagonalDown"),	m_oDiagonalDown )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("diagonalUp"),		m_oDiagonalUp )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("outline"),			m_oOutline )
+						WritingElement_ReadAttributes_End( oReader )*/
+
+//serialize
+		/*  var res = c_oSerConstants.ReadOk;
+					var oThis = this;
+					if ( c_oSerBorderTypes.Bottom == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadBorderProp(t,l,oNewBorder.b);
+						});
+					}
+					else if ( c_oSerBorderTypes.Diagonal == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadBorderProp(t,l,oNewBorder.d);
+						});
+					}
+					else if ( c_oSerBorderTypes.End == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadBorderProp(t,l,oNewBorder.r);
+						});
+					}
+					else if ( c_oSerBorderTypes.Horizontal == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadBorderProp(t,l,oNewBorder.ih);
+						});
+					}
+					else if ( c_oSerBorderTypes.Start == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadBorderProp(t,l,oNewBorder.l);
+						});
+					}
+					else if ( c_oSerBorderTypes.Top == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadBorderProp(t,l,oNewBorder.t);
+						});
+					}
+					else if ( c_oSerBorderTypes.Vertical == type )
+					{
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadBorderProp(t,l,oNewBorder.iv);
+						});
+					}
+					else if ( c_oSerBorderTypes.DiagonalDown == type )
+					{
+						oNewBorder.dd = this.stream.GetBool();
+					}
+					else if ( c_oSerBorderTypes.DiagonalUp == type )
+					{
+						oNewBorder.du = this.stream.GetBool();
+					}
+					// else if ( c_oSerBorderTypes.Outline == type )
+					// {
+					// oNewBorder.outline = this.stream.GetBool();
+					// }
+					else
+						res = c_oSerConstants.ReadUnknown;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("diagonalDown" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.dd = val;
+			} else if ("diagonalUp" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.du = val;
+			} else if ("outline" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.outline = val;
+			}
+		}
+	};
+
+	AscCommonExcel.Align.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.Align.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_CellAlignment">
+		3430 <xsd:attribute name="horizontal" type="ST_HorizontalAlignment" use="optional"/>
+		3431 <xsd:attribute name="vertical" type="ST_VerticalAlignment" use="optional"/>
+		3432 <xsd:attribute name="textRotation" type="xsd:unsignedInt" use="optional"/>
+		3433 <xsd:attribute name="wrapText" type="xsd:boolean" use="optional"/>
+		3434 <xsd:attribute name="indent" type="xsd:unsignedInt" use="optional"/>Annex A
+		4473
+		3435 <xsd:attribute name="relativeIndent" type="xsd:int" use="optional"/>
+		3436 <xsd:attribute name="justifyLastLine" type="xsd:boolean" use="optional"/>
+		3437 <xsd:attribute name="shrinkToFit" type="xsd:boolean" use="optional"/>
+		3438 <xsd:attribute name="readingOrder" type="xsd:unsignedInt" use="optional"/>
+		3439 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Start( oReader )
+							WritingElement_ReadAttributes_Read_if( oReader, _T("horizontal"),			m_oHorizontal )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("indent"),			m_oIndent )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("justifyLastLine"),	m_oJustifyLastLine )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("readingOrder"),	m_oReadingOrder )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("relativeIndent"),	m_oRelativeIndent )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("shrinkToFit"),		m_oShrinkToFit )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("textRotation"),	m_oTextRotation )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("vertical"),		m_oVertical )
+							WritingElement_ReadAttributes_Read_else_if( oReader, _T("wrapText"),		m_oWrapText )
+					// 2003
+							WritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Horizontal"),	m_oHorizontal)
+							WritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Vertical"),		m_oVertical)
+							WritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:WrapText"),		m_oWrapText)
+							WritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Indent"),		m_oIndent)
+							WritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:ReadingOrder"),	readingOrder)
+							WritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Rotate"),		rotate)
+							WritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:ShrinkToFit"),	m_oShrinkToFit)
+						WritingElement_ReadAttributes_End( oReader )*/
+
+//serialize
+		/*if ( c_oSerAligmentTypes.Horizontal == type )
+					{
+						switch(this.stream.GetUChar())
+						{
+							case 0 :
+							case 1 : oAligment.hor = AscCommon.align_Center;break;
+							case 2 :
+							case 3 :
+							case 5 : oAligment.hor = AscCommon.align_Justify;break;
+							case 4 : oAligment.hor = null;break;
+							case 6 : oAligment.hor = AscCommon.align_Left;break;
+							case 7 : oAligment.hor = AscCommon.align_Right;break;
+							case 8 : oAligment.hor = AscCommon.align_CenterContinuous;break;
+						}
+					}
+					else if ( c_oSerAligmentTypes.Indent == type )
+						oAligment.indent = this.stream.GetULongLE();
+					else if ( c_oSerAligmentTypes.RelativeIndent == type )
+						oAligment.RelativeIndent = this.stream.GetULongLE();
+					else if ( c_oSerAligmentTypes.ShrinkToFit == type )
+						oAligment.shrink = this.stream.GetBool();
+					else if ( c_oSerAligmentTypes.TextRotation == type )
+						oAligment.angle = this.stream.GetULongLE();
+					else if ( c_oSerAligmentTypes.Vertical == type )
+						oAligment.ver = this.stream.GetUChar();
+					else if ( c_oSerAligmentTypes.WrapText == type )
+						oAligment.wrap= this.stream.GetBool();
+					else
+						res = c_oSerConstants.ReadUnknown;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("horizontal" === reader.GetName() || "ss:Horizontal" === reader.GetName()) {
+				val = reader.GetValue();
+				this.hor = AscCommonExcel.FromXml_ST_HorizontalAlignment(val);
+			} else if ("indent" === reader.GetName() || "ss:Indent" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.indent = val;
+			} else if ("justifyLastLine" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.justifyLastLine = val;
+			} else if ("readingOrder" === reader.GetName() || "ss:ReadingOrder" === reader.GetName()) {
+				//val = reader.GetValueInt();
+				//this.readingOrder = val;
+			} else if ("relativeIndent" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.RelativeIndent = val;
+			} else if ("shrinkToFit" === reader.GetName() || "ss:ShrinkToFit" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.shrink = val;
+			} else if ("textRotation" === reader.GetName() || "ss:Rotate" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.angle = val;
+			} else if ("vertical" === reader.GetName() || "ss:Vertical" === reader.GetName()) {
+				val = reader.GetValue();
+				this.ver = AscCommonExcel.FromXml_ST_VerticalAlignment(val);
+			} else if ("wrapText" === reader.GetName() || "ss:WrapText" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.wrap = val;
+			}
+		}
+	};
 
 
 
@@ -5540,32 +6277,41 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 
-
-
-	var _x2tFromXml = ''
-	var _x2t = 'WritingElement_ReadAttributes_Start( oReader )\n' + '\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, L"comment",\t\tm_oComment )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"customMenu",\t\tm_oCustomMenu )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"description",\tm_oDescription )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"function",\t\tm_oFunction )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"functionGroupId",m_oFunctionGroupId )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"help",\t\t\tm_oHelp )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"hidden",\t\t\tm_oHidden )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"localSheetId",\tm_oLocalSheetId )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"name",\t\t\tm_oName )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"publishToServer",m_oPublishToServer )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"shortcutKey ",\tm_oShortcutKey  )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"statusBar",\t\tm_oStatusBar  )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"vbProcedure",\tm_oVbProcedure  )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"workbookParameter",\tm_oWorkbookParameter  )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"xlm",\t\t\tm_oXlm  )\n' + '\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"ss:Name",\t\tm_oName )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, L"ss:RefersTo",\toRefersTo )';
-	var _documentation = ''
-	var _serialize = ' var res = c_oSerConstants.ReadOk;\n' + '            if ( c_oSerDefinedNameTypes.Name == type )\n' +
-		'                oDefinedName.Name = this.stream.GetString2LE(length);\n' + '            else if ( c_oSerDefinedNameTypes.Ref == type )\n' +
-		'                oDefinedName.Ref = this.stream.GetString2LE(length);\n' + '            else if ( c_oSerDefinedNameTypes.LocalSheetId == type )\n' +
-		'                oDefinedName.LocalSheetId = this.stream.GetULongLE();\n' + '            else if ( c_oSerDefinedNameTypes.Hidden == type )\n' +
-		'                oDefinedName.Hidden = this.stream.GetBool();\n' + '            else\n' + '                res = c_oSerConstants.ReadUnknown;\n' + '            return res;'
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
+	var _x2t = 'WritingElement_ReadAttributes_Start( oReader )\n' + '\t\t\t\t\tWritingElement_ReadAttributes_Read_if( oReader, _T("horizontal"),\t\t\tm_oHorizontal )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("indent"),\t\t\tm_oIndent )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("justifyLastLine"),\tm_oJustifyLastLine )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("readingOrder"),\tm_oReadingOrder )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("relativeIndent"),\tm_oRelativeIndent )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("shrinkToFit"),\t\tm_oShrinkToFit )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("textRotation"),\tm_oTextRotation )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("vertical"),\t\tm_oVertical )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("wrapText"),\t\tm_oWrapText )\n' + '\t\t\t// 2003\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Horizontal"),\tm_oHorizontal)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Vertical"),\t\tm_oVertical)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:WrapText"),\t\tm_oWrapText)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Indent"),\t\tm_oIndent)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:ReadingOrder"),\treadingOrder)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Rotate"),\t\trotate)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:ShrinkToFit"),\tm_oShrinkToFit)\n' + '\t\t\t\tWritingElement_ReadAttributes_End( oReader )'
+	var _documentation = '<xsd:complexType name="CT_CellAlignment">\n' + '3430 <xsd:attribute name="horizontal" type="ST_HorizontalAlignment" use="optional"/>\n' +
+		'3431 <xsd:attribute name="vertical" type="ST_VerticalAlignment" use="optional"/>\n' + '3432 <xsd:attribute name="textRotation" type="xsd:unsignedInt" use="optional"/>\n' +
+		'3433 <xsd:attribute name="wrapText" type="xsd:boolean" use="optional"/>\n' + '3434 <xsd:attribute name="indent" type="xsd:unsignedInt" use="optional"/>Annex A\n' +
+		'4473\n' + '3435 <xsd:attribute name="relativeIndent" type="xsd:int" use="optional"/>\n' +
+		'3436 <xsd:attribute name="justifyLastLine" type="xsd:boolean" use="optional"/>\n' + '3437 <xsd:attribute name="shrinkToFit" type="xsd:boolean" use="optional"/>\n' +
+		'3438 <xsd:attribute name="readingOrder" type="xsd:unsignedInt" use="optional"/>\n' + '3439 </xsd:complexType>'
+	var _serialize = 'if ( c_oSerAligmentTypes.Horizontal == type )\n' + '            {\n' + '                switch(this.stream.GetUChar())\n' + '                {\n' +
+		'                    case 0 :\n' + '                    case 1 : oAligment.hor = AscCommon.align_Center;break;\n' + '                    case 2 :\n' +
+		'                    case 3 :\n' + '                    case 5 : oAligment.hor = AscCommon.align_Justify;break;\n' +
+		'                    case 4 : oAligment.hor = null;break;\n' + '                    case 6 : oAligment.hor = AscCommon.align_Left;break;\n' +
+		'                    case 7 : oAligment.hor = AscCommon.align_Right;break;\n' + '                    case 8 : oAligment.hor = AscCommon.align_CenterContinuous;break;\n' +
+		'                }\n' + '            }\n' + '            else if ( c_oSerAligmentTypes.Indent == type )\n' +
+		'                oAligment.indent = this.stream.GetULongLE();\n' + '            else if ( c_oSerAligmentTypes.RelativeIndent == type )\n' +
+		'                oAligment.RelativeIndent = this.stream.GetULongLE();\n' + '            else if ( c_oSerAligmentTypes.ShrinkToFit == type )\n' +
+		'                oAligment.shrink = this.stream.GetBool();\n' + '            else if ( c_oSerAligmentTypes.TextRotation == type )\n' +
+		'                oAligment.angle = this.stream.GetULongLE();\n' + '            else if ( c_oSerAligmentTypes.Vertical == type )\n' +
+		'                oAligment.ver = this.stream.GetUChar();\n' + '            else if ( c_oSerAligmentTypes.WrapText == type )\n' +
+		'                oAligment.wrap= this.stream.GetBool();\n' + '            else\n' + '                res = c_oSerConstants.ReadUnknown;'
 
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);
@@ -5653,7 +6399,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		res += '\n//serialize\n/*' + serialize + '*/\n\n';
 
 		var initUpperCase = false;
-		var x2tSplit = x2t.split("WritingElement_ReadAttributes_Read_else_if")
+		var x2tSplit = x2t.indexOf("WritingElement_ReadAttributes_Read_else_if") !== -1 ? x2t.split("WritingElement_ReadAttributes_Read_else_if") : x2t.split("WritingElement_ReadAttributes_Read_if")
 		res += "var val;\n" + "\t\twhile (reader.MoveToNextAttribute()) {\n"
 		for (var i = 0; i < x2tSplit.length; i++) {
 			var attr = x2tSplit[i].split('"');

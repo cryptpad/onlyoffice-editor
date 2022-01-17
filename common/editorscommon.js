@@ -4582,6 +4582,27 @@
 		}
 		return null;
 	}
+	function getColorFromXml2(reader) {
+		var theme, rgb, tint;
+		while (reader.MoveToNextAttribute()) {
+			if ("auto" === reader.GetName()) {
+			} else if ("theme" === reader.GetName()) {
+				theme = reader.GetValue();
+			} else if ("tint" === reader.GetName()) {
+				tint = reader.GetValue();
+			} else if ("rgb" === reader.GetName()) {
+				rgb = reader.GetValue();
+			}
+		}
+
+		if(null != theme) {
+			return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(theme), getNumFromXml(tint));
+		} else if(null != rgb){
+			return new AscCommonExcel.RgbColor(0x00ffffff & getNumFromXml(rgb));
+		}
+
+		return null;
+	}
 	function getBoolFromXml(val) {
 		return "0" !== val && "false" !== val && "off" !== val;
 	}
@@ -7373,6 +7394,7 @@
 	window["AscCommon"].readValAttr = readValAttr;
 	window["AscCommon"].getNumFromXml = getNumFromXml;
 	window["AscCommon"].getColorFromXml = getColorFromXml;
+	window["AscCommon"].getColorFromXml2 = getColorFromXml2;
 	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 	window["AscCommon"].checkStreamSignature = checkStreamSignature;

@@ -1433,6 +1433,20 @@ var editor;
 
 		//this.InitOpenManager.PostLoadPrepareDefNames(wb);
 
+
+		//styles
+		var stylesPart = wbPart.getPartByRelationshipType(openXml.Types.styles.relationType);
+		if (stylesPart) {
+			var contentStyles = stylesPart.getDocumentContent();
+			if (contentStyles) {
+				var styleSheet = new AscCommonExcel.CT_Stylesheet(/*new Asc.CTableStyles()*/);
+				var reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
+				styleSheet.fromXml(reader);
+			}
+		}
+
+
+
 		var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
 		if (personListPart) {
 			var contentPersonList = personListPart.getDocumentContent();

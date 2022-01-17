@@ -12321,4 +12321,8 @@ QueryTableField.prototype.clone = function() {
 
 	window["AscCommonExcel"].CPrintPreviewState = CPrintPreviewState;
 
+	window["AscCommonExcel"].FromXml_ST_HorizontalAlignment = FromXml_ST_HorizontalAlignment;
+	window["AscCommonExcel"].FromXml_ST_VerticalAlignment   = FromXml_ST_VerticalAlignment;
+
+
 })(window);
