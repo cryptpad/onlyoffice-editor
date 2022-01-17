@@ -96,6 +96,11 @@
         CBaseFormatObject.call(this);
     }
     InitClass(CBaseAnimObject, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CBaseAnimObject.prototype.Refresh_RecalcData2 = function() {
+        if(this.parent && this.parent.Refresh_RecalcData2) {
+            this.parent.Refresh_RecalcData2();
+        }
+    };
 
     if(GENERATE_PRESETS_SCRIPT) {
         CBaseAnimObject.prototype.fromPPTY = function(pReader) {
@@ -1634,6 +1639,18 @@
             }
         }
     };
+    
+    CTiming.prototype.Refresh_RecalcData2 = function() {
+        AscCommon.History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});
+    };
+    CTiming.prototype.recalculate = function() {
+    };
+    CTiming.prototype.getSlideIndex = function() {
+        if(this.parent && this.parent.getSlideIndex) {
+            return this.parent.getSlideIndex();
+        }
+        return null;
+    };
     CTiming.prototype.getChildren = function() {
         return [this.bldLst, this.tnLst];
     };
@@ -2948,7 +2965,9 @@
             pWriter.EndRecord();
         }
     };
-
+    CChildTnLst.prototype.Refresh_RecalcData = function(oData) {
+        this.Refresh_RecalcData2();
+    };
 
 
     function CTmplLst() {

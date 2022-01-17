@@ -5571,9 +5571,23 @@ CPresentation.prototype.Remove = function (Count, bOnlyText, bRemoveOnlySelectio
     if (this.SendRemoveCommentEvent()) {
         return;
     }
-    if (oController && oController.selectedObjects.length !== 0) {
-        oController.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
-        this.Document_UpdateInterfaceState();
+    if (oController) {
+        if(oController.selectedObjects.length !== 0) {
+            oController.remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
+            this.Document_UpdateInterfaceState();
+
+        }
+        else {
+            var aAnims = oController.getAnimSelectionState();
+            if(aAnims.length > 0) {
+                var oTiming = this.GetCurTiming();
+                if(oTiming) {
+                    AscCommon.History.Create_NewPoint(0);
+                    oTiming.removeSelectedEffects();
+                    this.Recalculate();
+                }
+            }
+        }
     }
 };
 
