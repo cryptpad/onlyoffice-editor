@@ -578,10 +578,8 @@ COverlay.prototype =
     {
         this.m_oContext.strokeStyle = "#AAAAAA";
         var nW = 2;
-        if(AscCommon.AscBrowser.isRetina)
-        {
-            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
-        }
+
+        nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
         this.CheckPoint1(left, y - nW);
         this.CheckPoint2(right, y + nW);
         this.m_oContext.lineWidth = nW;
@@ -594,10 +592,8 @@ COverlay.prototype =
     {
         this.m_oContext.strokeStyle = "#AAAAAA";
         var nW = 2;
-        if(AscCommon.AscBrowser.isRetina)
-        {
-            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
-        }
+
+        nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
         this.CheckPoint1(x - nW, top);
         this.CheckPoint2(x + nW, bottom);
         this.m_oContext.lineWidth = nW;
@@ -607,9 +603,8 @@ COverlay.prototype =
         this.m_oContext.stroke();
     },
     drawArrow : function(ctx, x, y, len, rgb, needToCorrectLen) {
-        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
         ctx.beginPath();
-        var arrowSize = Math.round(13 * rPR);
+        var arrowSize = this.GetArrowSize();
 
         if (needToCorrectLen && 0 == (len & 1) )
             len += 1;
@@ -643,6 +638,12 @@ COverlay.prototype =
         }
 
         ctx.putImageData(_data, x, y);
+    },
+
+    GetArrowSize: function()
+    {
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+        return Math.round(13 * rPR);
     }
 };
 
@@ -658,6 +659,9 @@ function CAutoshapeTrack()
 
     this.PageIndex = -1;
     this.CurrentPageInfo = null;
+
+    this.ArrowCanvas = null;
+    this.RotatedArrowCanvas = null;
 }
 
 CAutoshapeTrack.prototype =
@@ -949,10 +953,8 @@ CAutoshapeTrack.prototype =
 			return;
 
         var bDrawHandles = (isDrawHandles !== false);
-        if(bDrawHandles === false)
-        {
+        if (bDrawHandles === false)
             type = AscFormat.TYPE_TRACK.SHAPE;
-        }
 
 		if (this.m_oOverlay.IsCellEditor)
         {
@@ -1188,9 +1190,7 @@ CAutoshapeTrack.prototype =
 
                                     overlay.CheckRect(_xI, _yI - radius * 2, _w, _w);
                                     ctx.fillStyle = "#939393";
-                                    var cnvs = document.createElement('canvas'),
-                                        cntx = cnvs.getContext('2d');
-                                    overlay.drawArrow(cntx, 0, 0, Math.round(4 * rPR), {r: 147, g: 147, b: 147}, true);
+                                    var cnvs = this.GetArrowCanvas();
                                     ctx.drawImage(cnvs, xC - Math.round(12.5 * rPR), _yI - Math.round(4.5 * rPR))
                                     ctx.beginPath();
                                     ctx.lineWidth = Math.round(rPR);
@@ -1384,7 +1384,7 @@ CAutoshapeTrack.prototype =
 
                     ctx.beginPath();
 
-                    if(isDrawHandles)
+                    if (bDrawHandles)
                     {
                         if (!isLine && isCanRotate)
                         {
@@ -1426,18 +1426,15 @@ CAutoshapeTrack.prototype =
 
                                     ctx.save();
 
-                                    var cnvs = document.createElement('canvas'),
-                                        cntx = cnvs.getContext('2d'),
-                                        cnvsRotate = document.createElement('canvas'),
+                                    var cnvs = this.GetArrowCanvas(),
+                                        cnvsRotate = this.GetRotatedArrowCanvas(),
                                         cntxRotate = cnvsRotate.getContext('2d'),
-                                        x = Math.round(13 * rPR) / 2,
-                                        y = Math.round(13 * rPR) / 2,
+                                        arrowSize = overlay.GetArrowSize(),
+                                        x = arrowSize / 2,
+                                        y = arrowSize / 2,
                                         radius = Math.round(6 * rPR);
 
                                     ctx.beginPath();
-                                    //at first draw arrow
-                                    overlay.drawArrow(cntx, 0, 0, Math.round(4 * rPR), {r: 147, g: 147, b: 147}, true);
-
                                     // rotate arrow depending on the angle
                                     cntxRotate.translate(x, y)
                                     cntxRotate.rotate(_angle);
@@ -1628,9 +1625,7 @@ CAutoshapeTrack.prototype =
                                 overlay.CheckRect(_xI, _yI - radius * 2, _w, _w);
 
                                 ctx.fillStyle = "#939393";
-                                var cnvs = document.createElement('canvas'),
-                                    cntx = cnvs.getContext('2d');
-                                overlay.drawArrow(cntx, 0, 0, Math.round(4 * rPR), {r: 147, g: 147, b: 147}, true);
+                                var cnvs = this.GetArrowCanvas();
                                 ctx.drawImage(cnvs, xC - Math.round(12.5 * rPR), _yI - Math.round(4.5 * rPR))
 
                                 ctx.beginPath();
@@ -1844,17 +1839,15 @@ CAutoshapeTrack.prototype =
 
 								ctx.save();
 
-                                var cnvs = document.createElement('canvas'),
-                                    cntx = cnvs.getContext('2d'),
-                                    cnvsRotate = document.createElement('canvas'),
+                                var cnvs = this.GetArrowCanvas(),
+                                    cnvsRotate = this.GetRotatedArrowCanvas(),
                                     cntxRotate = cnvsRotate.getContext('2d'),
-                                    x = Math.round(13 * rPR) / 2,
-                                    y = Math.round(13 * rPR) / 2,
+                                    arrowSize = overlay.GetArrowSize(),
+                                    x = arrowSize / 2,
+                                    y = arrowSize / 2,
                                     radius = Math.round(6 * rPR);
 
                                 ctx.beginPath();
-                                //at first draw arrow
-                                overlay.drawArrow(cntx, 0, 0, Math.round(4 * rPR), {r: 147, g: 147, b: 147}, true);
 
                                 // rotate arrow depending on the angle
                                 cntxRotate.translate(x, y)
@@ -3132,22 +3125,43 @@ CAutoshapeTrack.prototype =
         ctx.globalAlpha = _oldAlpha;
     },
 
-    DrawFrozenPaneBorderHor: function(y, left, right)
+    GetArrowCanvas: function()
     {
-        this.m_oOverlay.SetBaseTransform();
-        autoShapeTrack.p_color(0xAA, 0xAA, 0xAA);
-        var nW = BORDER_WIDTH;
-        if(AscCommon.AscBrowser.isRetina) {
-            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+        if(!this.ArrowCanvas ||
+            this.ArrowCanvas.width !== this.m_oOverlay.GetArrowSize())
+        {
+            this.ArrowCanvas = this.CreateArrowCanvas();
         }
-        autoShapeTrack.Graphics.SetIntegerGrid(true);
-        autoShapeTrack.p_width(nW);
-        autoShapeTrack._s();
-        autoShapeTrack._m(left, y);
-        autoShapeTrack._l(right, y);
-        autoShapeTrack.ds();
-        autoShapeTrack.Graphics.SetIntegerGrid(false);
-    } 
+        return this.ArrowCanvas;
+    },
+    GetRotatedArrowCanvas: function()
+    {
+        if(!this.RotatedArrowCanvas ||
+            this.RotatedArrowCanvas.width !== this.m_oOverlay.GetArrowSize())
+        {
+            this.RotatedArrowCanvas = this.CreateEmptyArrowCanvas();
+        }
+        var oCtx = this.RotatedArrowCanvas.getContext('2d');
+        oCtx.setTransform(1, 0, 0, 1, 0, 0);
+        oCtx.clearRect(0, 0, this.RotatedArrowCanvas.width, this.RotatedArrowCanvas.height);
+        return this.RotatedArrowCanvas;
+    },
+    CreateEmptyArrowCanvas: function()
+    {
+        var arrowSize = this.m_oOverlay.GetArrowSize();
+        var oCanvas = document.createElement('canvas');
+        oCanvas.width = arrowSize;
+        oCanvas.height = arrowSize;
+        return oCanvas;
+    },
+    CreateArrowCanvas: function()
+    {
+        var oCanvas = this.CreateEmptyArrowCanvas();
+        var cntx = oCanvas.getContext('2d');
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+        this.m_oOverlay.drawArrow(cntx, 0, 0, Math.round(4 * rPR), {r: 147, g: 147, b: 147}, true);
+        return oCanvas;
+    }
 };
 
 	function DrawTextByCenter() // this!

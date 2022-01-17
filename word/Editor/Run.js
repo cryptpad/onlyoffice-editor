@@ -2120,7 +2120,7 @@ ParaRun.prototype.GetSimpleChangesRange = function(arrChanges, nStart, nEnd)
 	var _nStart = undefined !== nStart ? nStart : 0;
 	var _nEnd   = undefined !== nEnd ? nEnd : arrChanges.length - 1;
 
-	var nChangeCount = 0;
+	var arrAddItems = [], arrRemItems = [];
 	for (var nIndex = _nStart; nIndex <= _nEnd; ++nIndex)
 	{
 		var oChange = arrChanges[nIndex];
@@ -2136,17 +2136,17 @@ ParaRun.prototype.GetSimpleChangesRange = function(arrChanges, nStart, nEnd)
 			return null;
 
 		var nItemsCount = oChange.GetItemsCount();
-		if (AscDFH.historyitem_ParaRun_AddItem === nType)
-			nChangeCount += nItemsCount;
-		else
-			nChangeCount -= nItemsCount;
-
 		for (var nItemIndex = 0; nItemIndex < nItemsCount; ++nItemIndex)
 		{
 			var oItem = oChange.GetItem(nItemIndex);
 
 			if (!oItem)
 				return null;
+
+			if (AscDFH.historyitem_ParaRun_AddItem === nType)
+				arrAddItems.push(oItem);
+			else
+				arrRemItems.push(oItem);
 
 			// Добавление/удаление картинок может изменить размер строки. Добавление/удаление переноса строки/страницы/колонки
 			// нельзя обсчитывать функцией Recalculate_Fast. Добавление и удаление разметок сложных полей тоже нельзя
@@ -2163,8 +2163,9 @@ ParaRun.prototype.GetSimpleChangesRange = function(arrChanges, nStart, nEnd)
 				|| para_EndnoteReference === nItemType)
 				return null;
 
+			var nChangePos = oChange.GetPos(nItemIndex);
 			// Проверяем, что все изменения произошли в одном и том же отрезке
-			var oCurParaPos = this.Get_SimpleChanges_ParaPos(nType, oChange.GetPos(nItemIndex));
+			var oCurParaPos = this.Get_SimpleChanges_ParaPos(nType, nChangePos);
 			if (!oCurParaPos)
 				return null;
 
@@ -2177,12 +2178,92 @@ ParaRun.prototype.GetSimpleChangesRange = function(arrChanges, nStart, nEnd)
 		}
 	}
 
-	// Если после изменений Run стал пустым, или, наоборот, он был пустым, а стал не пустым, тогда
-	// мы не можем быть уверены, что высота строки не изменилась
-	if (0 === this.Content.length || 0 === this.Content.length - nChangeCount)
+	// Сравниваем, нужно ли использовать метрики данного Run до и после изменений
+	// Если значение не совпало, тогда метрики поменялись, значит пересчитывать надо полноценно
+	if (this.private_IsChangedLineMetrics(arrAddItems, arrRemItems))
 		return null;
 
 	return oParaPos;
+};
+ParaRun.prototype.private_IsChangedLineMetrics = function(arrAddItems, arrRemItems)
+{
+	var isUseMetricsBefore = false;
+	var isUseMetricsAfter  = false;
+
+	for (var nPos = 0, nContentCount = this.Content.length; nPos < nContentCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		var nItemType = oItem.Type;
+
+		if (para_Sym === nItemType
+			|| para_Text === nItemType
+			|| para_PageNum === nItemType
+			|| para_PageCount === nItemType
+			|| para_FootnoteReference === nItemType
+			|| para_FootnoteRef === nItemType
+			|| para_EndnoteReference === nItemType
+			|| para_EndnoteRef === nItemType
+			|| para_Separator === nItemType
+			|| para_ContinuationSeparator === nItemType
+			|| para_Math_Text === nItemType
+			|| para_Math_Ampersand === nItemType
+			|| para_Math_Placeholder === nItemType
+			|| para_Math_BreakOperator === nItemType
+			|| (para_Drawing === nItemType && (true === oItem.Is_Inline() || true === this.GetParagraph().Parent.Is_DrawingShape()))
+			|| (para_FieldChar === nItemType  && oItem.IsNumValue()))
+		{
+
+			var isAdd = false;
+			for (var nIndex = 0, nCount = arrAddItems.length; nIndex < nCount; ++nIndex)
+			{
+				if (oItem === arrAddItems[nIndex])
+				{
+					isAdd = true;
+					break;
+				}
+			}
+
+			if (!isAdd)
+				isUseMetricsBefore = true;
+
+			isUseMetricsAfter = true;
+		}
+
+		if (isUseMetricsAfter && isUseMetricsBefore)
+			break;
+	}
+
+	if (!isUseMetricsBefore)
+	{
+		for (var nIndex = 0, nCount = arrRemItems.length; nIndex < nCount; ++nIndex)
+		{
+			var oItem = arrRemItems[nIndex];
+			var nItemType = oItem.Type;
+
+			if (para_Sym === nItemType
+				|| para_Text === nItemType
+				|| para_PageNum === nItemType
+				|| para_PageCount === nItemType
+				|| para_FootnoteReference === nItemType
+				|| para_FootnoteRef === nItemType
+				|| para_EndnoteReference === nItemType
+				|| para_EndnoteRef === nItemType
+				|| para_Separator === nItemType
+				|| para_ContinuationSeparator === nItemType
+				|| para_Math_Text === nItemType
+				|| para_Math_Ampersand === nItemType
+				|| para_Math_Placeholder === nItemType
+				|| para_Math_BreakOperator === nItemType
+				|| (para_Drawing === nItemType && (true === oItem.Is_Inline() || true === this.GetParagraph().Parent.Is_DrawingShape()))
+				|| (para_FieldChar === nItemType  && oItem.IsNumValue()))
+			{
+				isUseMetricsBefore = true;
+				break;
+			}
+		}
+	}
+
+	return (isUseMetricsBefore !== isUseMetricsAfter);
 };
 /**
  * Проверяем произошло ли простое изменение параграфа, сейчас главное, чтобы это было не добавлениe/удаление картинки
@@ -2410,10 +2491,12 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
 		}
     }
 
-
-	// Разделяем содержимое по ранам
-    NewRun.ConcatToContent( this.Content.slice(CurPos) );
-    this.Remove_FromContent( CurPos, this.Content.length - CurPos, true );
+    // ВСЕГДА копируем элементы, для корректной работы не надо переносить имеющиеся элементы в новый ран
+	for (var nIndex = CurPos, nNewIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex, ++nNewIndex)
+	{
+		NewRun.AddToContent(nNewIndex, this.Content[nIndex].Copy());
+	}
+    this.RemoveFromContent(CurPos, this.Content.length - CurPos, true);
 
     // Если были точки орфографии, тогда переместим их в новый ран
     var SpellingMarksCount = this.SpellingMarks.length;
@@ -2846,8 +2929,16 @@ ParaRun.prototype.GetSelectedText = function(bAll, bClearText, oPr)
                 Str += AscCommon.encodeSurrogateChar(Item.Value);
                 break;
             }
-            case para_Space:
-            case para_Tab  : Str += " "; break;
+			case para_Space:
+			{
+				Str += " ";
+				break;
+			}
+			case para_Tab:
+			{
+				Str += oPr && oPr.TabSymbol ? oPr.TabSymbol : ' ';
+				break;
+			}
 			case para_NewLine:
 			{
 				if (oPr && true === oPr.NewLine)
@@ -2860,10 +2951,18 @@ ParaRun.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 			{
 				if (oPr && true === oPr.NewLineParagraph)
 				{
-					if (this.Paragraph && null === this.Paragraph.Get_DocumentNext() && true === this.Paragraph.Parent.IsTableCellContent() && true !== this.Paragraph.Parent.IsLastTableCellInRow(true))
-						Str += '\t';
+					var oParagraph = this.GetParagraph();
+					if (oParagraph && null === oParagraph.Get_DocumentNext() && oParagraph.Parent.IsTableCellContent())
+					{
+						if (!oParagraph.Parent.IsLastTableCellInRow(true))
+							Str += oPr.TableCellSeparator ? oPr.TableCellSeparator : '\t';
+						else
+							Str += oPr.TableRowSeparator ? oPr.TableRowSeparator : '\r\n';
+					}
 					else
-						Str += '\r\n';
+					{
+						Str += oPr.ParaSeparator ? oPr.ParaSeparator : '\r\n';
+					}
 				}
 
 				break;
@@ -2997,6 +3096,9 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 
 	g_oTextMeasurer.SetTextPr(oTextPr, oTheme);
 	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+
+	if (this.private_IsUseAscFont(oTextPr))
+		g_oTextMeasurer.SetFont({FontFamily : {Name : "ASCW3", Index : -1}, FontSize : oTextPr.FontSize, Italic : oTextPr.Italic, Bold : oTextPr.Bold});
 
 	// Запрашиваем текущие метрики шрифта, под TextAscent мы будем понимать ascent + linegap(которые записаны в шрифте)
 	this.TextHeight  = g_oTextMeasurer.GetHeight();
@@ -5994,7 +6096,17 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
     var Y = PDSE.Y;
 
     var CurTextPr = this.Get_CompiledPr( false );
-    pGraphics.SetTextPr( CurTextPr, Theme );
+
+    if (this.private_IsUseAscFont(CurTextPr))
+	{
+		var oFontTextPr = CurTextPr.Copy();
+		oFontTextPr.RFonts.SetAll("ASCW3", -1);
+		pGraphics.SetTextPr(oFontTextPr, Theme);
+	}
+    else
+	{
+		pGraphics.SetTextPr(CurTextPr, Theme);
+	}
 
     var InfoMathText ;
     if(this.Type == para_Math_Run)
@@ -6360,6 +6472,8 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     var aDUnderline = PDSL.DUnderline;
     var aFormBorder = PDSL.FormBorder;
 
+    var isFormPlaceHolder = false;
+
     var oForm       = this.GetParentForm();
     var oFormBorder = null;
     var nCombMax    = -1;
@@ -6372,6 +6486,8 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 
 		if (oForm.IsTextForm() && oForm.GetTextFormPr().IsComb())
 			nCombMax = oForm.GetTextFormPr().GetMaxCharacters();
+
+		isFormPlaceHolder = (oForm.IsPlaceHolder() && PDSL.Graphics.isPrintMode);
 	}
 
     var CurTextPr = this.Get_CompiledPr( false );
@@ -6512,21 +6628,47 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			var oFormBorderColor = oFormBorder.GetColor();
 
 			var oFormBounds = oForm.GetRangeBounds(PDSL.Line, PDSL.Range);
+			var oFormAdditional = {
+				Form : oForm,
+				Comb : nCombMax,
+				Y    : oFormBounds.Y,
+				H    : oFormBounds.H
+			};
 
 			if (Item.RGapCount)
 			{
 				var nGapEnd = X + ItemWidthVisible;
-				aFormBorder.Add(Y, Y, X, nGapEnd - Item.RGapCount * Item.RGapShift, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax, Y : oFormBounds.Y, H : oFormBounds.H});
+				aFormBorder.Add(Y, Y, X, nGapEnd - Item.RGapCount * Item.RGapShift,
+					nFormBorderW,
+					oFormBorderColor.r,
+					oFormBorderColor.g,
+					oFormBorderColor.b,
+					oFormAdditional);
+
 				for (var nGapIndex = 0; nGapIndex < Item.RGapCount; ++nGapIndex)
 				{
-					aFormBorder.Add(Y, Y, nGapEnd - (Item.RGapCount - nGapIndex) * Item.RGapShift, nGapEnd - (Item.RGapCount - nGapIndex - 1) * Item.RGapShift, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax, Y : oFormBounds.Y, H : oFormBounds.H});
+					aFormBorder.Add(Y, Y, nGapEnd - (Item.RGapCount - nGapIndex) * Item.RGapShift, nGapEnd - (Item.RGapCount - nGapIndex - 1) * Item.RGapShift,
+						nFormBorderW,
+						oFormBorderColor.r,
+						oFormBorderColor.g,
+						oFormBorderColor.b,
+						oFormAdditional);
 				}
 			}
 			else
 			{
-				aFormBorder.Add(Y, Y, X, X + ItemWidthVisible, nFormBorderW, oFormBorderColor.r, oFormBorderColor.g, oFormBorderColor.b, {Comb : nCombMax, Y : oFormBounds.Y, H : oFormBounds.H});
+				aFormBorder.Add(Y, Y, X, X + ItemWidthVisible,
+					nFormBorderW,
+					oFormBorderColor.r,
+					oFormBorderColor.g,
+					oFormBorderColor.b,
+					oFormAdditional);
 			}
 		}
+
+		// Для плейсхолдера форм нам нужна только рамка
+		if (isFormPlaceHolder)
+			continue;
 
 		switch (ItemType)
 		{
@@ -7143,7 +7285,7 @@ ParaRun.prototype.Get_ElementByPos = function(ContentPos, Depth)
     return this;
 };
 
-ParaRun.prototype.Get_PosByDrawing = function(Id, ContentPos, Depth)
+ParaRun.prototype.GetPosByDrawing = function(Id, ContentPos, Depth)
 {
     var Count = this.Content.length;
     for ( var CurPos = 0; CurPos < Count; CurPos++ )
@@ -9295,37 +9437,103 @@ ParaRun.prototype.Set_RFonts = function(Value)
     this.Recalc_CompiledPr(true);
     this.private_UpdateTrackRevisionOnChangeTextPr(true);
 };
-
 ParaRun.prototype.Get_RFonts = function()
 {
     return this.Get_CompiledPr(false).RFonts;
 };
-
-ParaRun.prototype.Set_RFonts2 = function(RFonts)
+ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 {
-	if (undefined !== RFonts)
+	if (undefined !== oRFonts)
 	{
-		if (undefined !== RFonts.Ascii)
-			this.Set_RFonts_Ascii(RFonts.Ascii);
+		if (oRFonts.AsciiTheme)
+		{
+			this.Set_RFonts_Ascii(undefined);
+			this.SetRFontsAsciiTheme(oRFonts.AsciiTheme);
+		}
+		else if (oRFonts.Ascii)
+		{
+			this.Set_RFonts_Ascii(oRFonts.Ascii);
+			this.SetRFontsAsciiTheme(undefined);
+		}
+		else
+		{
+			if (null === oRFonts.Ascii)
+				this.Set_RFonts_Ascii(undefined);
 
-		if (undefined !== RFonts.HAnsi)
-			this.Set_RFonts_HAnsi(RFonts.HAnsi);
+			if (null === oRFonts.AsciiTheme)
+				this.SetRFontsAsciiTheme(undefined);
+		}
 
-		if (undefined !== RFonts.CS)
-			this.Set_RFonts_CS(RFonts.CS);
+		if (oRFonts.HAnsiTheme)
+		{
+			this.Set_RFonts_HAnsi(undefined);
+			this.SetRFontsHAnsiTheme(oRFonts.HAnsiTheme);
+		}
+		else if (oRFonts.HAnsi)
+		{
+			this.Set_RFonts_HAnsi(oRFonts.HAnsi);
+			this.SetRFontsHAnsiTheme(undefined);
+		}
+		else
+		{
+			if (null === oRFonts.HAnsi)
+				this.Set_RFonts_HAnsi(undefined);
 
-		if (undefined !== RFonts.EastAsia)
-			this.Set_RFonts_EastAsia(RFonts.EastAsia);
+			if (null === oRFonts.HAnsiTheme)
+				this.SetRFontsHAnsiTheme(undefined);
+		}
 
-		if (undefined !== RFonts.Hint)
-			this.Set_RFonts_Hint(RFonts.Hint);
+		if (oRFonts.CSTheme)
+		{
+			this.Set_RFonts_CS(undefined);
+			this.SetRFontsCSTheme(oRFonts.CSTheme);
+		}
+		else if (oRFonts.CS)
+		{
+			this.Set_RFonts_CS(oRFonts.CS);
+			this.SetRFontsCSTheme(undefined);
+		}
+		else
+		{
+			if (null === oRFonts.CS)
+				this.Set_RFonts_CS(undefined);
+
+			if (null === oRFonts.CSTheme)
+				this.SetRFontsCSTheme(undefined);
+		}
+
+		if (oRFonts.EastAsiaTheme)
+		{
+			this.Set_RFonts_EastAsia(undefined);
+			this.SetRFontsEastAsiaTheme(oRFonts.EastAsiaTheme);
+		}
+		else if (oRFonts.EastAsia)
+		{
+			this.Set_RFonts_EastAsia(oRFonts.EastAsia);
+			this.SetRFontsEastAsiaTheme(undefined);
+		}
+		else
+		{
+			if (null === oRFonts.EastAsia)
+				this.Set_RFonts_EastAsia(undefined);
+
+			if (null === oRFonts.EastAsiaTheme)
+				this.SetRFontsEastAsiaTheme(undefined);
+		}
+
+		if (undefined !== oRFonts.Hint)
+			this.Set_RFonts_Hint(null === oRFonts.Hint ? undefined : oRFonts.Hint);
 	}
 	else
 	{
 		this.Set_RFonts_Ascii(undefined);
+		this.SetRFontsAsciiTheme(undefined);
 		this.Set_RFonts_HAnsi(undefined);
+		this.SetRFontsHAnsiTheme(undefined);
 		this.Set_RFonts_CS(undefined);
+		this.SetRFontsCSTheme(undefined);
 		this.Set_RFonts_EastAsia(undefined);
+		this.SetRFontsEastAsiaTheme(undefined);
 		this.Set_RFonts_Hint(undefined);
 	}
 };
@@ -9402,6 +9610,54 @@ ParaRun.prototype.Set_RFonts_Hint = function(Value)
 		this.Pr.RFonts.Hint = _Value;
 
 		History.Add(new CChangesRunRFontsHint(this, OldValue, _Value, this.private_IsCollPrChangeMine()));
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
+ParaRun.prototype.SetRFontsAsciiTheme = function(sValue)
+{
+	var _sValue = (!sValue ? undefined : sValue);
+
+	if (_sValue !== this.Pr.RFonts.AsciiTheme)
+	{
+		AscCommon.History.Add(new CChangesRunRFontsAsciiTheme(this, this.Pr.RFonts.AsciiTheme, _sValue, this.private_IsCollPrChangeMine()));
+		this.Pr.RFonts.AsciiTheme = _sValue;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
+ParaRun.prototype.SetRFontsHAnsiTheme = function(sValue)
+{
+	var _sValue = (!sValue ? undefined : sValue);
+
+	if (_sValue !== this.Pr.RFonts.HAnsiTheme)
+	{
+		AscCommon.History.Add(new CChangesRunRFontsHAnsiTheme(this, this.Pr.RFonts.HAnsiTheme, _sValue, this.private_IsCollPrChangeMine()));
+		this.Pr.RFonts.HAnsiTheme = _sValue;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
+ParaRun.prototype.SetRFontsCSTheme = function(sValue)
+{
+	var _sValue = (!sValue ? undefined : sValue);
+
+	if (_sValue !== this.Pr.RFonts.CSTheme)
+	{
+		AscCommon.History.Add(new CChangesRunRFontsCSTheme(this, this.Pr.RFonts.CSTheme, _sValue, this.private_IsCollPrChangeMine()));
+		this.Pr.RFonts.CSTheme = _sValue;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
+ParaRun.prototype.SetRFontsEastAsiaTheme = function(sValue)
+{
+	var _sValue = (!sValue ? undefined : sValue);
+
+	if (_sValue !== this.Pr.RFonts.EastAsiaTheme)
+	{
+		AscCommon.History.Add(new CChangesRunRFontsEastAsiaTheme(this, this.Pr.RFonts.EastAsiaTheme, _sValue, this.private_IsCollPrChangeMine()));
+		this.Pr.RFonts.EastAsiaTheme = _sValue;
 		this.Recalc_CompiledPr(true);
 		this.private_UpdateTrackRevisionOnChangeTextPr(true);
 	}
@@ -11865,21 +12121,31 @@ ParaRun.prototype.IsFootEndnoteReferenceRun = function()
 };
 /**
  * Производим автозамену
- * @param nPos - позиция, на которой был добавлен последний элемент, с которого стартовала автозамена
- * @param nFlags - флаги, какие автозамены мы пробуем делать
- * @returns {boolean}
+ * @param {number} nPos - позиция, на которой был добавлен последний элемент, с которого стартовала автозамена
+ * @param {number} nFlags - флаги, какие автозамены мы пробуем делать
+ * @param {number} [nHistoryActions=1] Автозамене предществовало заданное количество точек в истории
+ * @returns {number} Возвращаются флаги, произведенных автозамен
  */
-ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags)
+ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags, nHistoryActions)
 {
+	if (undefined === nHistoryActions || null === nHistoryActions)
+		nHistoryActions = 1;
+
 	var nRes = AUTOCORRECT_FLAGS_NONE;
 
+	function private_IsCheckLock()
+	{
+		return (0 === nHistoryActions && nRes === AUTOCORRECT_FLAGS_NONE);
+	}
+
 	if (!nFlags)
-		return false;
+		return nRes;
 
 	// Сколько максимально просматриваем элементов влево
 	var nMaxElements = 1000;
 
 	var oParagraph = this.GetParagraph();
+
 	if (!oParagraph)
 		return nRes;
 
@@ -11893,15 +12159,24 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags)
 
 	oContentPos.Update(nPos, oContentPos.GetDepth() + 1);
 
+	// Чтобы позиция oContentPos была актуальна, отключаем корректировку содержимого параграфа на время выполеняни
+	// автозамены. Все изменения должны происходить ТОЛЬКО внтури ранов
+	oParagraph.TurnOffCorrectContent();
+	function private_Return()
+	{
+		oParagraph.TurnOnCorrectContent();
+		return nRes;
+	}
+
 	var nLang = this.Get_CompiledPr(false).Lang ? this.Get_CompiledPr(false).Lang.Val : 1033;
 
-	if (nFlags & AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION && this.private_ProcessFrenchPunctuation(oDocument, oParagraph, oContentPos, nPos, nLang))
+	if (nFlags & AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION && this.private_ProcessFrenchPunctuation(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
 		nRes |= AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION;
 
-	if (nFlags & AUTOCORRECT_FLAGS_SMART_QUOTES && this.private_ProcessSmartQuotesAutoCorrect(oDocument, oParagraph, oContentPos, nPos, nLang))
+	if (nFlags & AUTOCORRECT_FLAGS_SMART_QUOTES && this.private_ProcessSmartQuotesAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
 		nRes |= AUTOCORRECT_FLAGS_SMART_QUOTES;
 
-	if (nFlags & AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH && this.private_ProcessHyphenWithDashAutoCorrect(oDocument, oParagraph, oContentPos, nPos, nLang))
+	if (nFlags & AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH && this.private_ProcessHyphenWithDashAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
 		nRes |= AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 
 	var oRunElementsBefore = new CParagraphRunElements(oContentPos, nMaxElements, [para_Text], false);
@@ -11911,30 +12186,38 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags)
 	oParagraph.GetPrevRunElements(oRunElementsBefore);
 	var arrElements = oRunElementsBefore.GetElements();
 	if (arrElements.length <= 0)
-		return nRes;
+		return private_Return();
 
 	var sText = "";
 	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
 	{
 		if (para_Text !== arrElements[nCount - 1 - nIndex].Type)
-			return;
+			return private_Return();
 
 		sText += String.fromCharCode(arrElements[nCount - 1 - nIndex].Value);
 	}
 
-	if (nFlags & AUTOCORRECT_FLAGS_HYPERLINK && this.private_ProcessHyperlinkAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText))
+	var isAsYouType = false;
+	var oHistory = oDocument.GetHistory();
+	if (arrElements.length > 0 && oHistory.CheckAsYouTypeAutoCorrect)
+		isAsYouType = oHistory.CheckAsYouTypeAutoCorrect(arrElements[0], nHistoryActions);
+
+	if (nFlags & AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH && isAsYouType && this.private_ProcessSpaceHyphenWithDashAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, oRunElementsBefore))
+		nRes |= AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
+
+	if (nFlags & AUTOCORRECT_FLAGS_HYPERLINK && this.private_ProcessHyperlinkAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, oRunElementsBefore, sText))
 		nRes |= AUTOCORRECT_FLAGS_HYPERLINK;
 
-	if (nFlags & AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE && this.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText))
+	if (nFlags & AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE && isAsYouType && this.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, oRunElementsBefore, sText))
 		nRes |= AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE;
 
 	if (!(nFlags & AUTOCORRECT_FLAGS_NUMBERING))
-		return nRes;
+		return private_Return();
 
 	// Автосоздание списка
 	if (oParagraph.bFromDocument && oParagraph.GetNumPr()
 	|| !oParagraph.bFromDocument && !oParagraph.PresentationPr.Bullet.IsNone())
-		return nRes;
+		return private_Return();
 
 	var oPrevNumPr = null;
 	var oPrevParagraph = oParagraph.Get_DocumentPrev();
@@ -12065,11 +12348,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags)
 
 			if (oNumPr)
 			{
-				if (false === oDocument.Document_Is_SelectionLocked({
-						Type      : AscCommon.changestype_2_ElementsArray_and_Type,
-						Elements  : [oParagraph],
-						CheckType : AscCommon.changestype_Paragraph_Properties
-					}))
+				if (!private_IsCheckLock() || !this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
 				{
 					oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
 
@@ -12125,15 +12404,27 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags)
 		}
 	}
 
-	return nRes;
+	return private_Return();
 };
-ParaRun.prototype.ProcessAutoCorrectOnParaEnd = function()
+/**
+ * Выполняем автозамену в конце параграфа
+ * @param {number} [nHistoryActions=1] Автозамене предществовало заданное количество точек в истории
+ */
+ParaRun.prototype.ProcessAutoCorrectOnParaEnd = function(nHistoryActions)
 {
 	var oParaEnd = this.GetParaEnd();
 	if (!oParaEnd)
 		return;
 
-	this.ProcessAutoCorrect(0, oParaEnd.GetAutoCorrectFlags());
+	this.ProcessAutoCorrect(0, oParaEnd.GetAutoCorrectFlags(), nHistoryActions);
+};
+ParaRun.prototype.private_CheckDocumentLockedBeforeAutoCorrect = function(oDocument, oParagraph)
+{
+	return oDocument.IsSelectionLocked(AscCommon.changestype_None, {
+		Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+		Elements  : [oParagraph],
+		CheckType : AscCommon.changestype_Paragraph_Properties
+	}, true, false);
 };
 /**
  * Подбираем подходящий маркированный список
@@ -12157,6 +12448,13 @@ ParaRun.prototype.private_GetSuitableBulletedLvlForAutoCorrect = function(sText)
 		var oTextPr = new CTextPr();
 		oTextPr.RFonts.SetAll("Arial");
 		oNumberingLvl.SetByType(c_oAscNumberingLevel.Bullet, 0, String.fromCharCode(0x2013), oTextPr);
+		return oNumberingLvl;
+	}
+	else if ('>' === sText)
+	{
+		var oTextPr = new CTextPr();
+		oTextPr.RFonts.SetAll("Wingdings");
+		oNumberingLvl.SetByType(c_oAscNumberingLevel.Bullet, 0, String.fromCharCode(0x00D8), oTextPr);
 		return oNumberingLvl;
 	}
 
@@ -12419,12 +12717,13 @@ ParaRun.prototype.private_GetSuitablePrNumberingForAutoCorrect = function (sText
  * Производим автозамену для французской пунктуации
  * @param oDocument {CDocument}
  * @param oParagraph {Paragraph}
+ * @param isCheckLock {boolean}
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
  * @param nLang {number}
  * @returns {boolean}
  */
-ParaRun.prototype.private_ProcessFrenchPunctuation = function(oDocument, oParagraph, oContentPos, nPos, nLang)
+ParaRun.prototype.private_ProcessFrenchPunctuation = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, nLang)
 {
 	if (!oDocument.IsAutoCorrectFrenchPunctuation())
 		return false;
@@ -12447,6 +12746,9 @@ ParaRun.prototype.private_ProcessFrenchPunctuation = function(oDocument, oParagr
 			&& para_Space === arrElements[0].Type
 			&& para_Space === arrElements[1].Type
 			&& para_Space === arrElements[2].Type))
+		return false;
+
+	if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
 		return false;
 
 	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectCommon);
@@ -12486,12 +12788,13 @@ ParaRun.prototype.private_ProcessFrenchPunctuation = function(oDocument, oParagr
  * Производим автозамену для умных кавычек
  * @param oDocument {CDocument}
  * @param oParagraph {Paragraph}
+ * @param isCheckLock {boolean}
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
  * @param nLang {number}
  * @returns {boolean}
  */
-ParaRun.prototype.private_ProcessSmartQuotesAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, nLang)
+ParaRun.prototype.private_ProcessSmartQuotesAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, nLang)
 {
 	if (!oDocument.IsAutoCorrectSmartQuotes())
 		return false;
@@ -12519,7 +12822,9 @@ ParaRun.prototype.private_ProcessSmartQuotesAutoCorrect = function(oDocument, oP
 	if (!isDoubleQoute && (1050 === nLang || 1060 === nLang))
 		return false;
 
-	// Проверку на лок можно не делать, т.к. мы собираемся менять содержимое данного рана, а такую проверку мы уже делали
+	if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
+		return false;
+
 	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectSmartQuotes);
 
 	this.RemoveFromContent(nPos, 1);
@@ -12643,12 +12948,13 @@ ParaRun.prototype.private_ProcessSmartQuotesAutoCorrect = function(oDocument, oP
  * Производим автозамену замены двух дефисов длинным тире
  * @param oDocument {CDocument}
  * @param oParagraph {Paragraph}
+ * @param isCheckLock {boolean}
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
  * @param nLang {number}
  * @returns {boolean}
  */
-ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, nLang)
+ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, nLang)
 {
 	if (!oDocument.IsAutoCorrectHyphensWithDash())
 		return false;
@@ -12662,6 +12968,9 @@ ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument,
 	var arrElements = oRunElementsBefore.GetElements();
 	if (arrElements.length > 0 && para_Text === arrElements[0].Type && 45 === arrElements[0].Value)
 	{
+		if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
+			return false;
+
 		oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
 
 		var oDash = new ParaText(8212);
@@ -12687,24 +12996,105 @@ ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument,
 			}
 		}
 
+		oDocument.Recalculate();
 		oDocument.FinalizeAction();
+		return true;
 	}
 
-	return true;
+	return false;
+};
+/**
+ * Производим автозамену hyphen на dash в случаях <space-hyphen> или <space-hyphen-space>
+ * @param oDocument {CDocument}
+ * @param oParagraph {Paragraph}
+ * @param isCheckLock {boolean}
+ * @param oContentPos {CParagraphContentPos}
+ * @param nPos {number}
+ * @param oRunElementsBefore {CParagraphRunElements}
+ * @returns {boolean}
+ */
+ParaRun.prototype.private_ProcessSpaceHyphenWithDashAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, oRunElementsBefore)
+{
+	if (!oDocument.IsAutoCorrectHyphensWithDash())
+		return false;
+
+	var arrElements    = oRunElementsBefore.GetElements();
+	var nElementsCount = arrElements.length;
+	if (nElementsCount <= 0)
+		return false;
+
+	for (var nIndex = 0; nIndex < nElementsCount; ++nIndex)
+	{
+		var oItem = arrElements[nIndex];
+		if (!oItem.IsLetter() && (nIndex !== nElementsCount - 1 || !oItem.IsHyphen()))
+			return false;
+	}
+
+	var oChangePos = null;
+	if (para_Text === arrElements[nElementsCount - 1].Type && 45 === arrElements[nElementsCount - 1].Value)
+	{
+		if (arrElements.length > 1 && para_Text === arrElements[nElementsCount - 2].Type && 45 !== arrElements[nElementsCount - 2].Value)
+		{
+			var oTempRunElementsBefore = new CParagraphRunElements(oRunElementsBefore.GetContentPositions()[nElementsCount - 1], 1, null, false);
+			oTempRunElementsBefore.SetSaveContentPositions(true);
+			oParagraph.GetPrevRunElements(oTempRunElementsBefore);
+			arrElements = oTempRunElementsBefore.GetElements();
+			if (arrElements.length > 0 && para_Space === arrElements[0].Type)
+				oChangePos = oRunElementsBefore.GetContentPositions()[nElementsCount - 1];
+		}
+	}
+	else
+	{
+		var oTempRunElementsBefore = new CParagraphRunElements(oRunElementsBefore.GetContentPositions()[nElementsCount - 1], 3, null, false);
+		oTempRunElementsBefore.SetSaveContentPositions(true);
+		oParagraph.GetPrevRunElements(oTempRunElementsBefore);
+		arrElements = oTempRunElementsBefore.GetElements();
+		if (3 === arrElements.length
+			&& para_Space === arrElements[0].Type
+			&& para_Text === arrElements[1].Type && 45 === arrElements[1].Value
+			&& para_Space === arrElements[2].Type)
+			oChangePos = oTempRunElementsBefore.GetContentPositions()[1];
+	}
+
+	if (oChangePos)
+	{
+		var nInRunPos = oChangePos.Get(oChangePos.GetDepth());
+		oChangePos.DecreaseDepth(1);
+		var oRun = oParagraph.GetClassByPos(oChangePos);
+
+		if (oRun instanceof ParaRun && oRun.Content.length > nInRunPos)
+		{
+			if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
+				return false;
+
+			oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
+			oRun.RemoveFromContent(nInRunPos, 1);
+			oRun.AddToContent(nInRunPos, new ParaText(8211));
+			oDocument.Recalculate();
+			oDocument.FinalizeAction();
+			return true;
+		}
+	}
+
+	return false;
 };
 /**
  * Производим автозаменку для гиперссылок
- * @param oDocument {CDocument}
+ * @param oDocument {CDocument | CPresentation}
  * @param oParagraph {Paragraph}
+ * @param isCheckLock {boolean}
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
  * @param oRunElementsBefore {CParagraphRunElements}
  * @param sText {string}
  * @returns {boolean}
  */
-ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText)
+ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, oRunElementsBefore, sText)
 {
-	var isPresentation = !!(AscCommonSlide.CPresentation && oDocument instanceof AscCommonSlide.CPresentation);
+	if (!oDocument.IsAutoCorrectHyperlinks())
+		return false;
+
+	var isPresentation = oDocument.IsPresentationEditor();
 
 	if (this.IsInHyperlink())
 		return false;
@@ -12717,55 +13107,51 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
 		var nTypeHyper = AscCommon.getUrlType(sText);
 		if (AscCommon.c_oAscUrlType.Invalid !== nTypeHyper)
 		{
-			if (isPresentation || !oDocument.IsSelectionLocked({
-				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
-				Elements  : [oParagraph],
-				CheckType : AscCommon.changestype_Paragraph_Properties
-			}))
-			{
-				oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
-				var oTopElement;
+			if (isCheckLock && !isPresentation && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
+				return false;
 
-				if (isPresentation)
+			oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
+			var oTopElement;
+
+			if (isPresentation)
+			{
+				var oParentContent = oParagraph.Parent;
+				var oTable         = oParentContent.IsInTable(true);
+				if (oTable)
 				{
-					var oParentContent = oParagraph.Parent;
-					var oTable         = oParentContent.IsInTable(true);
-					if (oTable)
-					{
-						oTopElement = oTable;
-					}
-					else
-					{
-						oTopElement = oParentContent;
-					}
+					oTopElement = oTable;
 				}
 				else
 				{
-					oTopElement = oDocument;
+					oTopElement = oParentContent;
 				}
-
-				var arrContentPosition = oRunElementsBefore.GetContentPositions();
-				var oStartPos          = arrContentPosition.length > 0 ? arrContentPosition[arrContentPosition.length - 1] : oRunElementsBefore.CurContentPos;
-				var oEndPos            = oContentPos;
-				oContentPos.Update(nPos, oContentPos.GetDepth());
-
-
-				var oDocPos = [{Class : this, Position : nPos + 1}];
-				this.GetDocumentPositionFromObject(oDocPos);
-				oDocument.TrackDocumentPositions([oDocPos]);
-
-
-				oParagraph.RemoveSelection();
-				oParagraph.SetSelectionUse(true);
-				oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-				oParagraph.AddHyperlink(new Asc.CHyperlinkProperty({Value : AscCommon.prepareUrl(sText, nTypeHyper)}));
-				oParagraph.RemoveSelection();
-
-				oDocument.RefreshDocumentPositions([oDocPos]);
-				oTopElement.SetContentPosition(oDocPos, 0, 0);
-				oDocument.Recalculate();
-				oDocument.FinalizeAction();
 			}
+			else
+			{
+				oTopElement = oDocument;
+			}
+
+			var arrContentPosition = oRunElementsBefore.GetContentPositions();
+			var oStartPos          = arrContentPosition.length > 0 ? arrContentPosition[arrContentPosition.length - 1] : oRunElementsBefore.CurContentPos;
+			var oEndPos            = oContentPos;
+			oContentPos.Update(nPos, oContentPos.GetDepth());
+
+
+			var oDocPos = [{Class : this, Position : nPos + 1}];
+			this.GetDocumentPositionFromObject(oDocPos);
+			oDocument.TrackDocumentPositions([oDocPos]);
+
+
+			oParagraph.RemoveSelection();
+			oParagraph.SetSelectionUse(true);
+			oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
+			oParagraph.AddHyperlink(new Asc.CHyperlinkProperty({Value : AscCommon.prepareUrl(sText, nTypeHyper)}));
+			oParagraph.RemoveSelection();
+
+			oDocument.RefreshDocumentPositions([oDocPos]);
+			oTopElement.SetContentPosition(oDocPos, 0, 0);
+			oDocument.Recalculate();
+			oDocument.FinalizeAction();
 
 			return true;
 		}
@@ -12777,16 +13163,24 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
  * Производим автозамену для первого символа в предложении
  * @param oDocument {CDocument}
  * @param oParagraph {Paragraph}
+ * @param isCheckLock {boolean}
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
  * @param oRunElementsBefore {CParagraphRunElements}
  * @param sText {string}
  * @return {boolean}
  */
-ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText)
+ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, oRunElementsBefore, sText)
 {
 	if (!oDocument.IsAutoCorrectFirstLetterOfSentences())
 		return false;
+
+	if (oRunElementsBefore.IsEnd()
+		&& oParagraph.IsTableCellContent()
+		&& !oDocument.IsAutoCorrectFirstLetterOfCells())
+	{
+		return false;
+	}
 
 	if ("www" === sText || "http" === sText || "https" === sText)
 		return;
@@ -12795,10 +13189,6 @@ ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = f
 
 	var arrElements = oRunElementsBefore.GetElements();
 	if (arrElements.length <= 0)
-		return false;
-
-	var oHistory = oDocument.GetHistory();
-	if (oHistory.CheckAsYouTypeAutoCorrect && !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0]))
 		return false;
 
 	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
@@ -12859,8 +13249,7 @@ ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = f
 			{
 				var oElement = arrElements[nIndex];
 
-				// TODO: Заменить на (!oElement.IsLetter())
-				if (para_Text !== oElement.Type || oElement.Is_Number() || oElement.IsPunctuation())
+				if (!oElement.IsLetter())
 					break;
 
 				sCheckException = String.fromCharCode(oElement.Value) + sCheckException;
@@ -12886,12 +13275,16 @@ ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = f
 	if (!oItem || oItem.Type !== para_Text)
 		return false;
 
+	if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
+		return false;
+
 	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence);
 
 	var oNewItem = new ParaText(String.fromCharCode(oItem.Value).toUpperCase().charCodeAt(0));
 	oRun.RemoveFromContent(nInRunPos, 1, true);
 	oRun.AddToContent(nInRunPos, oNewItem, true);
 
+	oDocument.Recalculate();
 	oDocument.FinalizeAction();
 
 	return true;
@@ -13137,9 +13530,9 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 		}
 	}
 };
-ParaRun.prototype.ChangeTextCase = function(oEngine)
+ParaRun.prototype.CheckTextForTextCase = function(oEngine)
 {
-	var nStartPos = 0;
+    var nStartPos = 0;
 	var nEndPos   = -1;
 
 	if (this.Selection.Use)
@@ -13154,35 +13547,153 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 		}
 	}
 
-	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+    for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		var oItem = this.Content[nPos];
 		if (para_Text === oItem.Type)
 		{
 			if (oItem.IsDot())
 			{
-				oEngine.FlushWord();
-				oEngine.SetStartSentence(true);
+                oEngine.currentSentence += oEngine.word;
+                oEngine.currentSentence += " ";
+                oEngine.word = "";
+                oEngine.CheckWords(oEngine);
 			}
 			else
 			{
 				if (!oItem.IsPunctuation())
 				{
-					oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
+                    if (nPos >= nStartPos && nPos < nEndPos)
+                    {
+                        var nCharCode  = oItem.Value;
+                        var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
+                        var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
+
+                        if (AscCommon.IsSpace(nCharCode))
+                            oEngine.word += " ";
+                        if (nLowerCode !== nCharCode || nUpperCode !== nCharCode || oItem.Is_Number())
+                            oEngine.word += String.fromCharCode(nCharCode);
+                    }
 				}
 				else
 				{
-					oEngine.FlushWord();
-					oEngine.SetStartSentence(false);
+                    oEngine.currentSentence += oEngine.word;
+                    oEngine.currentSentence += " ";
+                    oEngine.word = "";
+                    oEngine.CheckWords(oEngine);
 				}
 			}
 		}
 		else
 		{
-			oEngine.FlushWord();
+            oEngine.currentSentence += oEngine.word;
+            oEngine.currentSentence += " ";
+            oEngine.word = "";
 
 			if (para_Tab !== oItem.Type && para_Space !== oItem.Type)
-				oEngine.SetStartSentence(false);
+                oEngine.CheckWords(oEngine);
+
+            if (para_End === oItem.Type && oEngine.SentenceSettings.length === 0)
+                oEngine.GlobalSettings = false;
+		}
+	}
+};
+ParaRun.prototype.ChangeTextCase = function(oEngine)
+{
+	var nCaseType = oEngine.GetCaseType();
+	if (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType || Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType)
+	{
+		var nStartPos = 0;
+		var nEndPos   = -1;
+
+		if (this.Selection.Use)
+		{
+			nStartPos = this.Selection.StartPos;
+			nEndPos   = this.Selection.EndPos;
+			if (nStartPos > nEndPos)
+			{
+				var nTemp = nStartPos;
+				nStartPos = nEndPos;
+				nEndPos   = nTemp;
+			}
+		}
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			var oItem = this.Content[nPos];
+			if (para_Text === oItem.Type)
+			{
+				if (oItem.IsDot())
+				{
+                    oEngine.FlushWord();
+                    oEngine.SetStartSentence(true);
+				}
+				else
+				{
+					if (!oItem.IsPunctuation())
+					{
+                        if (!AscCommon.IsSpace(oItem.Value))
+						    oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
+                        else
+                            oEngine.FlushWord();  
+					}
+					else
+					{
+						oEngine.FlushWord();
+						if (oItem.Value === 33 || oItem.Value === 63 || oItem.Value === 46)
+							oEngine.SetStartSentence(true);
+						else
+							oEngine.SetStartSentence(false);
+					}
+				}
+			}
+			else
+			{
+				oEngine.FlushWord();
+
+				if (para_Tab !== oItem.Type && para_Space !== oItem.Type)
+					oEngine.SetStartSentence(false);
+			}
+		}
+	}
+	else
+	{
+		var nStartPos = 0;
+		var nEndPos   = -1;
+
+		if (this.Selection.Use)
+		{
+			nStartPos = this.Selection.StartPos;
+			nEndPos   = this.Selection.EndPos;
+			if (nStartPos > nEndPos)
+			{
+				var nTemp = nStartPos;
+				nStartPos = nEndPos;
+				nEndPos   = nTemp;
+			}
+		}
+		for (var nPos = nStartPos; nPos < nEndPos; ++nPos)
+		{
+			var oItem = this.Content[nPos];
+			if (para_Text === oItem.Type)
+			{
+				var nCharCode  = oItem.Value;
+				var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
+				var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
+
+				if (nLowerCode !== nCharCode || nUpperCode !== nCharCode)
+				{
+					if (nLowerCode === nCharCode && (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType || Asc.c_oAscChangeTextCaseType.UpperCase === nCaseType))
+					{
+						this.AddToContent(nPos, new ParaText(nUpperCode), false);
+						this.RemoveFromContent(nPos + 1, 1, false);
+					}
+					else if (nUpperCode === nCharCode && (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType || Asc.c_oAscChangeTextCaseType.LowerCase === nCaseType))
+					{
+						this.AddToContent(nPos, new ParaText(nLowerCode), false);
+						this.RemoveFromContent(nPos + 1, 1, false);
+					}
+				}
+			}
 		}
 	}
 };
@@ -13301,6 +13812,13 @@ ParaRun.prototype.CalculateTextToTable = function(oEngine)
 			}
 		}
 	}
+};
+ParaRun.prototype.private_IsUseAscFont = function(oTextPr)
+{
+	return (1 === this.Content.length
+		&& para_Text === this.Content[0].Type
+		&& this.IsInCheckBox()
+		&& AscCommon.IsAscFontSupport(oTextPr.RFonts.Ascii.Name, this.Content[0].Value));
 };
 
 

@@ -331,6 +331,14 @@ CRunElementBase.prototype.IsSpaceAfter = function()
 	return false;
 };
 /**
+ * Является ли данный элемент буквой (не цифрой, не знаком пунктуации и т.д.)
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsLetter = function()
+{
+	return false;
+};
+/**
  * Нужно ли сохранять данные этого элемента при сохранении состояния пересчета
  * @returns {boolean}
  */
@@ -601,9 +609,11 @@ ParaText.prototype.GetAutoCorrectFlags = function()
 		|| 63 === this.Value)
 		return AUTOCORRECT_FLAGS_ALL;
 
-	// слэш и обратный слэш - исключения, на них мы не должны стартовать атозамену первой буквы предложения
-	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value)
-		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE;
+	// /,\,@  - исключения, на них мы не должны стартовать атозамену первой буквы предложения
+	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
+		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
+
+	return AUTOCORRECT_FLAGS_NONE;
 };
 ParaText.prototype.IsDiacriticalSymbol = function()
 {
@@ -696,6 +706,10 @@ ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, o
 
 	if (this.RGapFont)
 		oContext.SetTextPr(oTextPr, PDSE.Theme);
+};
+ParaText.prototype.IsLetter = function()
+{
+	return (!this.IsPunctuation() && !this.Is_Number() && !this.IsNBSP());
 };
 
 
@@ -1144,7 +1158,8 @@ ParaEnd.prototype.Read_FromBinary = function(Reader)
 ParaEnd.prototype.GetAutoCorrectFlags = function()
 {
 	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-		| AUTOCORRECT_FLAGS_HYPERLINK);
+		| AUTOCORRECT_FLAGS_HYPERLINK
+		| AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
 };
 
 /**
@@ -1750,6 +1765,10 @@ ParaTab.prototype.LoadRecalculateObject = function(RecalcObj)
 ParaTab.prototype.PrepareRecalculateObject = function()
 {
 };
+ParaTab.prototype.GetAutoCorrectFlags = function()
+{
+	return AUTOCORRECT_FLAGS_ALL;
+};
 
 /**
  * Класс представляющий элемент номер страницы
@@ -2241,6 +2260,15 @@ ParaFootnoteReference.prototype.GetRun = function()
 {
 	return this.Run;
 };
+ParaFootnoteReference.prototype.PreDelete = function()
+{
+	var oFootnote = this.Footnote;
+	if (oFootnote)
+	{
+		oFootnote.PreDelete();
+		oFootnote.ClearContent(true);
+	}
+};
 
 /**
  * Класс представляющий номер сноски внутри сноски.
@@ -2294,6 +2322,9 @@ ParaFootnoteRef.prototype.UpdateNumber = function(oFootnote)
 		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
 		this.private_Measure();
 	}
+};
+ParaFootnoteRef.prototype.PreDelete = function()
+{
 };
 
 /**
@@ -2365,7 +2396,7 @@ ParaSeparator.prototype.LoadRecalculateObject = function(oRecalcObj)
 	this.Width        = oRecalcObj.Width;
 	this.WidthVisible = oRecalcObj.Width;
 };
-ParaSeparator.PrepareRecalculateObject = function()
+ParaSeparator.prototype.PrepareRecalculateObject = function()
 {
 };
 
@@ -2438,7 +2469,7 @@ ParaContinuationSeparator.prototype.LoadRecalculateObject = function(oRecalcObj)
 	this.Width        = oRecalcObj.Width;
 	this.WidthVisible = oRecalcObj.Width;
 };
-ParaContinuationSeparator.PrepareRecalculateObject = function()
+ParaContinuationSeparator.prototype.PrepareRecalculateObject = function()
 {
 };
 
@@ -2698,6 +2729,9 @@ ParaEndnoteRef.prototype.UpdateNumber = function(oEndnote)
 		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
 		this.private_Measure();
 	}
+};
+ParaEndnoteRef.prototype.PreDelete = function()
+{
 };
 
 function ParagraphContent_Read_FromBinary(Reader)

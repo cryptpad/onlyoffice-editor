@@ -159,6 +159,121 @@
 		return text.replace( /[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&" );
 	};
 
+	Math.sinh = function ( arg ) {
+		return (this.pow( this.E, arg ) - this.pow( this.E, -arg )) / 2;
+	};
+
+	Math.cosh = function ( arg ) {
+		return (this.pow( this.E, arg ) + this.pow( this.E, -arg )) / 2;
+	};
+
+	Math.tanh = Math.tanh || function(x) {
+			if (x === Infinity) {
+				return 1;
+			} else if (x === -Infinity) {
+				return -1;
+			} else {
+				var y = Math.exp(2 * x);
+				if (y === Infinity) {
+					return 1;
+				} else if (y === -Infinity) {
+					return -1;
+				}
+				return (y - 1) / (y + 1);
+			}
+		};
+
+	Math.asinh = function ( arg ) {
+		return this.log( arg + this.sqrt( arg * arg + 1 ) );
+	};
+
+	Math.acosh = function ( arg ) {
+		return this.log( arg + this.sqrt( arg + 1 ) * this.sqrt( arg - 1 ) );
+	};
+
+	Math.atanh = function ( arg ) {
+		return 0.5 * this.log( (1 + arg) / (1 - arg) );
+	};
+
+	Math.fact = function ( n ) {
+		var res = 1;
+		n = this.floor( n );
+		if ( n < 0 ) {
+			return NaN;
+		} else if (n > 170) {
+			return Infinity;
+		}
+		while ( n !== 0 ) {
+			res *= n--;
+		}
+		return res;
+	};
+
+	Math.doubleFact = function ( n ) {
+		var res = 1;
+		n = this.floor( n );
+		if ( n < 0 ) {
+			return NaN;
+		} else if (n > 170) {
+			return Infinity;
+		}
+//    n = Math.floor((n+1)/2);
+		while ( n > 0 ) {
+			res *= n;
+			n -= 2;
+		}
+		return res;
+	};
+
+	Math.factor = function ( n ) {
+		var res = 1;
+		n = this.floor( n );
+		while ( n !== 0 ) {
+			res = res * n--;
+		}
+		return res;
+	};
+
+	Math.ln = Math.log;
+
+	Math.log10 = function ( x ) {
+		return this.log( x ) / this.log( 10 );
+	};
+
+	Math.log1p = Math.log1p || function(x) {
+		return Math.log(1 + x);
+	};
+
+	Math.expm1 = Math.expm1 || function(x) {
+		return Math.exp(x) - 1;
+	};
+
+	Math.binomCoeff = function ( n, k ) {
+		return this.fact( n ) / (this.fact( k ) * this.fact( n - k ));
+	};
+
+	Math.permut = function ( n, k ) {
+		return this.floor( this.fact( n ) / this.fact( n - k ) + 0.5 );
+	};
+
+	Math.approxEqual = function ( a, b ) {
+		if ( a === b ) {
+			return true;
+		}
+		return this.abs( a - b ) < 1e-15;
+	};
+
+	if (typeof Math.sign != 'function') {
+		Math['sign'] = Math.sign = function (n) {
+			return n == 0 ? 0 : n < 0 ? -1 : 1;
+		};
+	}
+
+	Math.trunc = Math.trunc || function(v) {
+		v = +v;
+		return (v - v % 1)   ||   (!isFinite(v) || v === 0 ? v : v < 0 ? -0 : 0);
+	};
+
 	if (typeof require === 'function' && !window['XRegExp'])
 	{
 		window['XRegExp'] = require('xregexp');
@@ -169,6 +284,7 @@
 	var sUploadServiceLocalUrl = "../../../../upload";
 	var sUploadServiceLocalUrlOld = "../../../../uploadold";
 	var sSaveFileLocalUrl = "../../../../savefile";
+	var sDownloadFileLocalUrl = "../../../../downloadfile";
 	var nMaxRequestLength = 5242880;//5mb <requestLimits maxAllowedContentLength="30000000" /> default 30mb
 
 	function getSockJs()
@@ -313,10 +429,7 @@
 
 	function DocumentUrls()
 	{
-		this.urls = {};
-		this.urlsReverse = {};
-		this.documentUrl = "";
-		this.imageCount = 0;
+		this.Clear();
 	}
 
 	DocumentUrls.prototype = {
@@ -325,6 +438,13 @@
 						 {
 							 this.addUrls(urls);
 						 },
+		Clear:			function ()
+						{
+							this.urls = {};
+							this.urlsReverse = {};
+							this.documentUrl = "";
+							this.imageCount = 0;
+						},
 		getUrls:         function ()
 						 {
 							 return this.urls;
@@ -530,7 +650,7 @@
 			ext += "+xml";
 		if (null !== ext && oZipImages && (content = oZipImages[name]))
 		{
-			return 'data:image/' + ext + ';base64,' + AscCommon.Base64Encode(content, content.length, 0);
+			return 'data:image/' + ext + ';base64,' + AscCommon.Base64.encode(content);
 		}
 		return null;
 	}
@@ -569,7 +689,7 @@
 		}
 		return false;
 	}
-	function openFileCommand(binUrl, changesUrl, Signature, callback)
+	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
 		var bError = false, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
 		var onEndOpen = function ()
@@ -614,16 +734,11 @@
 		if (changesUrl)
 		{
 			oZipImages = {};
-			getJSZipUtils().getBinaryContent(changesUrl, function (err, data)
-			{
-				if (err)
-				{
-					bEndLoadChanges = true;
-					bError = true;
-					onEndOpen();
-					return;
-				}
-
+			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
+				bEndLoadChanges = true;
+				bError = true;
+				onEndOpen();
+			}, function(data) {
 				oResult.changes = [];
 				getJSZip().loadAsync(data).then(function (zipChanges)
 				{
@@ -751,6 +866,7 @@
 				nRes = Asc.c_oAscError.ID.ConvertationTimeout;
 				break;
 			case c_oAscServerError.ConvertDRM :
+			case c_oAscServerError.ConvertDRM_UNSUPPORTED :
 			case c_oAscServerError.ConvertPASSWORD :
 				nRes = Asc.c_oAscError.ID.ConvertationPassword;
 				break;
@@ -1126,7 +1242,7 @@
 		this.test = function (str)
 		{
 			var match, m1, m2;
-			if (!nameRangeRE.test(str) && "_xlnm.print_area" !== str)
+			if ((!nameRangeRE.test(str) && "_xlnm.print_area" !== str) || !rx_r1c1DefError.test(str))
 			{
 				return false;
 			}
@@ -1296,6 +1412,7 @@
 		ConvertUnknownFormat:     -82,
 		ConvertTimeout:           -83,
 		ConvertReadFile:          -84,
+		ConvertDRM_UNSUPPORTED:   -85,
 		ConvertCONVERT_CORRUPTED: -86,
 		ConvertLIBREOFFICE:       -87,
 		ConvertPARAMS:            -88,
@@ -1332,6 +1449,11 @@
 	var c_oAscDocumentUploadProp = {
 		MaxFileSize:      104857600, //100 mb
 		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf", "wps"]
+	};
+
+	var c_oAscSpreadsheetUploadProp = {
+		MaxFileSize:      104857600, //100 mb
+		SupportedFormats: ["xlsx", "xlsm", "xls", "ods", "csv", "xltx", "xltm", "xlt", "fods", "ots"]
 	};
 
 	var c_oAscTextUploadProp = {
@@ -1432,6 +1554,24 @@
 			case c_oAscFileType.OTT:
 				return 'ott';
 				break;
+			case c_oAscFileType.DOC_FLAT:
+				return 'doc';
+				break;
+			case c_oAscFileType.DOCX_FLAT:
+				return 'docx';
+				break;
+			case c_oAscFileType.HTML_IN_CONTAINER:
+				return 'zip';
+				break;
+			case c_oAscFileType.DOCX_PACKAGE:
+				return 'xml';
+				break;
+			case c_oAscFileType.OFORM:
+				return 'oform';
+				break;
+			case c_oAscFileType.DOCXF:
+				return 'docxf';
+				break;
 			case c_oAscFileType.DOCY:
 				return 'doct';
 				break;
@@ -1502,6 +1642,49 @@
 				break;
 			case c_oAscFileType.OTP:
 				return 'otp';
+				break;
+
+			case c_oAscFileType.IMG:
+				return 'zip';
+				break;
+			case c_oAscFileType.JPG:
+				return 'jpg';
+				break;
+			case c_oAscFileType.TIFF:
+				return 'tiff';
+				break;
+			case c_oAscFileType.TGA:
+				return 'tga';
+				break;
+			case c_oAscFileType.GIF:
+				return 'gif';
+				break;
+			case c_oAscFileType.PNG:
+				return 'png';
+				break;
+			case c_oAscFileType.EMF:
+				return 'emf';
+				break;
+			case c_oAscFileType.WMF:
+				return 'wmf';
+				break;
+			case c_oAscFileType.BMP:
+				return 'bmp';
+				break;
+			case c_oAscFileType.CR2:
+				return 'cr2';
+				break;
+			case c_oAscFileType.PCX:
+				return 'pcx';
+				break;
+			case c_oAscFileType.RAS:
+				return 'ras';
+				break;
+			case c_oAscFileType.PSD:
+				return 'psd';
+				break;
+			case c_oAscFileType.ICO:
+				return 'ico';
 				break;
 		}
 		return '';
@@ -1683,6 +1866,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowSpreadsheetFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscSpreadsheetUploadProp.SupportedFormats), false, false, ValidateUploadSpreadsheet, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 	function ShowTextFileDialog(callback) {
 		if (false === _ShowFileDialog(getAcceptByArray(c_oAscTextUploadProp.SupportedFormats), false, false, ValidateUploadText, callback)) {
 			callback(Asc.c_oAscError.ID.Unknown);
@@ -1769,6 +1957,20 @@
 		}
 	}
 
+	function DownloadOriginalFile(documentId, url, urlPathInToken, token, fError, fSuccess) {
+		asc_ajax({
+			url: sDownloadFileLocalUrl + '/' + documentId,
+			responseType: "arraybuffer",
+			headers: {
+				'Authorization': 'Bearer ' + token,
+				'x-url': url
+			},
+			success: function(resp) {
+				fSuccess(resp.response);
+			},
+			error: fError
+		});
+	}
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
 		if (files.length > 0)
@@ -1947,6 +2149,10 @@
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscDocumentUploadProp);
 	}
+	function ValidateUploadSpreadsheet(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscSpreadsheetUploadProp);
+	}
 	function ValidateUploadText(files)
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscTextUploadProp);
@@ -2070,8 +2276,11 @@
 		str_namedSheetsRange  = "\u0001-\u0026\u0028-\u0029\u002B-\u002D\u003B-\u003E\u0040\u005E\u0060\u007B-\u007F\u0082\u0084\u008B\u0092\u0095\u0098\u009B\u00A0\u00A6\u00A9\u00AB-\u00AC\u00AE\u00BB\u0378-\u0379\u037E-\u0383\u0387\u038B\u038D\u03A2\u0524-\u0530\u0557-\u0558\u055A-\u0560\u0588-\u0590\u05BE\u05C0\u05C3\u05C6\u05C8-\u05CF\u05EB-\u05EF\u05F3-\u05FF\u0604-\u0605\u0609-\u060A\u060C-\u060D\u061B-\u061E\u0620\u065F\u066A-\u066D\u06D4\u0700-\u070E\u074B-\u074C\u07B2-\u07BF\u07F7-\u07F9\u07FB-\u0900\u093A-\u093B\u094E-\u094F\u0955-\u0957\u0964-\u0965\u0970\u0973-\u097A\u0980\u0984\u098D-\u098E\u0991-\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BB\u09C5-\u09C6\u09C9-\u09CA\u09CF-\u09D6\u09D8-\u09DB\u09DE\u09E4-\u09E5\u09FB-\u0A00\u0A04\u0A0B-\u0A0E\u0A11-\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A3B\u0A3D\u0A43-\u0A46\u0A49-\u0A4A\u0A4E-\u0A50\u0A52-\u0A58\u0A5D\u0A5F-\u0A65\u0A76-\u0A80\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABB\u0AC6\u0ACA\u0ACE-\u0ACF\u0AD1-\u0ADF\u0AE4-\u0AE5\u0AF0\u0AF2-\u0B00\u0B04\u0B0D-\u0B0E\u0B11-\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3B\u0B45-\u0B46\u0B49-\u0B4A\u0B4E-\u0B55\u0B58-\u0B5B\u0B5E\u0B64-\u0B65\u0B72-\u0B81\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BBD\u0BC3-\u0BC5\u0BC9\u0BCE-\u0BCF\u0BD1-\u0BD6\u0BD8-\u0BE5\u0BFB-\u0C00\u0C04\u0C0D\u0C11\u0C29\u0C34\u0C3A-\u0C3C\u0C45\u0C49\u0C4E-\u0C54\u0C57\u0C5A-\u0C5F\u0C64-\u0C65\u0C70-\u0C77\u0C80-\u0C81\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBB\u0CC5\u0CC9\u0CCE-\u0CD4\u0CD7-\u0CDD\u0CDF\u0CE4-\u0CE5\u0CF0\u0CF3-\u0D01\u0D04\u0D0D\u0D11\u0D29\u0D3A-\u0D3C\u0D45\u0D49\u0D4E-\u0D56\u0D58-\u0D5F\u0D64-\u0D65\u0D76-\u0D78\u0D80-\u0D81\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE-\u0DBF\u0DC7-\u0DC9\u0DCB-\u0DCE\u0DD5\u0DD7\u0DE0-\u0DF1\u0DF4-\u0E00\u0E3B-\u0E3E\u0E4F\u0E5A-\u0E80\u0E83\u0E85-\u0E86\u0E89\u0E8B-\u0E8C\u0E8E-\u0E93\u0E98\u0EA0\u0EA4\u0EA6\u0EA8-\u0EA9\u0EAC\u0EBA\u0EBE-\u0EBF\u0EC5\u0EC7\u0ECE-\u0ECF\u0EDA-\u0EDB\u0EDE-\u0EFF\u0F04-\u0F12\u0F3A-\u0F3D\u0F48\u0F6D-\u0F70\u0F85\u0F8C-\u0F8F\u0F98\u0FBD\u0FCD\u0FD0-\u0FFF\u104A-\u104F\u109A-\u109D\u10C6-\u10CF\u10FB\u10FD-\u10FF\u115A-\u115E\u11A3-\u11A7\u11FA-\u11FF\u1249\u124E-\u124F\u1257\u1259\u125E-\u125F\u1289\u128E-\u128F\u12B1\u12B6-\u12B7\u12BF\u12C1\u12C6-\u12C7\u12D7\u1311\u1316-\u1317\u135B-\u135E\u1361-\u1368\u137D-\u137F\u139A-\u139F\u13F5-\u1400\u166D-\u166E\u1677-\u167F\u169B-\u169F\u16EB-\u16ED\u16F1-\u16FF\u170D\u1715-\u171F\u1735-\u173F\u1754-\u175F\u176D\u1771\u1774-\u177F\u17D4-\u17D6\u17D8-\u17DA\u17DE-\u17DF\u17EA-\u17EF\u17FA-\u180A\u180F\u181A-\u181F\u1878-\u187F\u18AB-\u18FF\u191D-\u191F\u192C-\u192F\u193C-\u193F\u1941-\u1945\u196E-\u196F\u1975-\u197F\u19AA-\u19AF\u19CA-\u19CF\u19DA-\u19DF\u1A1C-\u1AFF\u1B4C-\u1B4F\u1B5A-\u1B60\u1B7D-\u1B7F\u1BAB-\u1BAD\u1BBA-\u1BFF\u1C38-\u1C3F\u1C4A-\u1C4C\u1C7E-\u1CFF\u1DE7-\u1DFD\u1F16-\u1F17\u1F1E-\u1F1F\u1F46-\u1F47\u1F4E-\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E-\u1F7F\u1FB5\u1FC5\u1FD4-\u1FD5\u1FDC\u1FF0-\u1FF1\u1FF5\u1FFF\u200e\u2011-\u2012\u2017\u2019-\u201B\u201E-\u201F\u2022-\u2024\u2031\u2034\u2036-\u203A\u203C-\u2043\u2045-\u2051\u2053-\u205E\u2065-\u2069\u2072-\u2073\u207D-\u207E\u208D-\u208F\u2095-\u209F\u20B6-\u20CF\u20F1-\u20FF\u2150-\u2152\u2189-\u218F\u2329-\u232A\u23E8-\u23FF\u2427-\u243F\u244B-\u245F\u269E-\u269F\u26BD-\u26BF\u26C4-\u2700\u2705\u270A-\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u275F-\u2760\u2768-\u2775\u2795-\u2797\u27B0\u27BF\u27C5-\u27C6\u27CB\u27CD-\u27CF\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC-\u29FD\u2B4D-\u2B4F\u2B55-\u2BFF\u2C2F\u2C5F\u2C70\u2C7E-\u2C7F\u2CEB-\u2CFC\u2CFE-\u2CFF\u2D26-\u2D2F\u2D66-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF\u2E00-\u2E2E\u2E30-\u2E7F\u2E9A\u2EF4-\u2EFF\u2FD6-\u2FEF\u2FFC-\u2FFF\u3018-\u301C\u3030\u303D\u3040\u3097-\u3098\u30A0\u3100-\u3104\u312E-\u3130\u318F\u31B8-\u31BF\u31E4-\u31EF\u321F\u3244-\u324F\u32FF\u4DB6-\u4DBF\u9FC4-\u9FFF\uA48D-\uA48F\uA4C7-\uA4FF\uA60D-\uA60F\uA62C-\uA63F\uA660-\uA661\uA673-\uA67B\uA67E\uA698-\uA6FF\uA78D-\uA7FA\uA82C-\uA83F\uA874-\uA87F\uA8C5-\uA8CF\uA8DA-\uA8FF\uA92F\uA954-\uA9FF\uAA37-\uAA3F\uAA4E-\uAA4F\uAA5A-\uABFF\uD7A4-\uD7FF\uFA2E-\uFA2F\uFA6B-\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90-\uFD91\uFDC8-\uFDEF\uFDFE-\uFDFF\uFE10-\uFE1F\uFE27-\uFE2F\uFE32\uFE45-\uFE48\uFE53\uFE58\uFE67\uFE6C-\uFE6F\uFE75\uFEFD-\uFEFE\uFF00\uFF5F-\uFF60\uFFBF-\uFFC1\uFFC8-\uFFC9\uFFD0-\uFFD1\uFFD8-\uFFD9\uFFDD-\uFFDF\uFFE7\uFFEF-\uFFF8\uFFFE-\uFFFF",
 		rx_operators          = /^ *[-+*\/^&%<=>:] */,
 		rg                    = new XRegExp("^((?:_xlfn.)?[\\p{L}\\d._]+ *)[-+*/^&%<=>:;\\(\\)]"),
-		rgRange               = /^(\$?[A-Za-z]+\$?\d+:\$?[A-Za-z]+\$?\d+)(?:[-+*\/^&%<=>: ;),]|$)/,
-		rgRangeR1C1           = /^(([Rr]{1}(\[)?(-?\d*)(\])?)([Cc]{1}(\[)?(-?\d*)(\])?):([Rr]{1}(\[)?(-?\d*)(\])?)([Cc]{1}(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
+		//TODO для правки ввода формулы SUM(A1:B1.) - меняю rgRange/rgRangeR1C1 ,
+		// есть ещё символы, на которые ругается ms подобным образом - ~@#(мы тоже ругаемся, но не выделяем диапазон перед данными символами).
+		// для проверки нужно ввести в ячейку SUM(A1:B1@)
+		rgRange               = /^(\$?[A-Za-z]+\$?\d+:\$?[A-Za-z]+\$?\d+)(?:[-+*\/^&%<=>: ;),.]|$)/,
+		rgRangeR1C1           = /^(([Rr]{1}(\[)?(-?\d*)(\])?)([Cc]{1}(\[)?(-?\d*)(\])?):([Rr]{1}(\[)?(-?\d*)(\])?)([Cc]{1}(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),.]|$)/,
 		rgCols                = /^(\$?[A-Za-z]+:\$?[A-Za-z]+)(?:[-+*\/^&%<=>: ;),]|$)/,
 		rgColsR1C1            = /^(([Cc]{1}(\[)?(-?\d*)(\])?(:)?)([Cc]?(\[)?(-?\d*)(\])?))([-+*\/^&%<=>: ;),]|$)/,
 		rgRows                = /^(\$?\d+:\$?\d+)(?:[-+*\/^&%<=>: ;),]|$)/,
@@ -2104,6 +2313,8 @@
 		rx_arraySeparatorsDef = /^ *[,;] */,
 		rx_numberDef          = /^ *[+-]?\d*(\d|\.)\d*([eE][+-]?\d+)?/,
 		rx_CommaDef           = /^ *[,;] */,
+		//пока не объединяю с проверкой именованных диапазонов, подумать на счёт объединения. при объединении в парсере формул проблема - мы не попадаем в isName, а далее заходим в isFunc
+		rx_r1c1DefError       = /^(?!(([Rr]|[Cc]|([Rr][Cc]))(\d)))/i,
 
 		rx_ControlSymbols     = /^ *[\u0000-\u001F\u007F-\u009F] */,
 
@@ -3181,6 +3392,7 @@
 			error = null, success = null, httpRequest = null,
 			contentType                               = "application/x-www-form-urlencoded",
 			responseType = '',
+			headers = null,
 
 			init                                      = function (obj)
 			{
@@ -3219,6 +3431,10 @@
 				if (typeof (obj.responseType) !== 'undefined')
 				{
 					responseType = obj.responseType;
+				}
+				if (typeof (obj.headers) !== 'undefined')
+				{
+					headers = obj.headers;
 				}
 
 				if (window.XMLHttpRequest)
@@ -3259,6 +3475,13 @@
 				httpRequest.open(type, url, async);
 				if (type === "POST")
 					httpRequest.setRequestHeader("Content-Type", contentType);
+				if (headers) {
+					for (var header in headers) {
+						if (headers.hasOwnProperty(header)) {
+							httpRequest.setRequestHeader(header, headers[header]);
+						}
+					}
+				}
 				if (responseType)
 					httpRequest.responseType = responseType;
 				httpRequest.send(data);
@@ -4117,6 +4340,7 @@
 		return isCeil ? Math.ceil(nFontSize * 2) / 2 : Math.floor(nFontSize * 2) / 2;
 	}
 
+	// Non-breaking-space сюда не добавлять!
 	var c_oAscSpaces = [];
 	c_oAscSpaces[0x000A] = 1;
 	c_oAscSpaces[0x0020] = 1;
@@ -4127,13 +4351,28 @@
 	c_oAscSpaces[0xFEFF] = 1;
 
 	/**
-	 * Проверяем является ли заданный юников пробелом
+	 * Проверяем является ли заданный юникод пробелом
 	 * @param nUnicode {number}
 	 * @returns {boolean}
 	 */
 	function IsSpace(nUnicode)
 	{
 		return !!(c_oAscSpaces[nUnicode]);
+	}
+
+	/**
+	 * Присутствует ли символ заданного шрифта в шрифте ASCW3
+	 * @param sFontFamily
+	 * @param nUnicode
+	 * @returns {boolean}
+	 */
+	function IsAscFontSupport(sFontFamily, nUnicode)
+	{
+		return ("Segoe UI Symbol" === sFontFamily
+			&& (0x25C9 === nUnicode
+				|| 0x25CB === nUnicode
+				|| 0x2611 === nUnicode
+				|| 0x2610 === nUnicode));
 	}
 
 	function private_IsAbbreviation(sWord) {
@@ -5809,40 +6048,180 @@
 		var x, y;
 		var eps = 0.0001;
 
+		// 0 left, 1 down, 2 right, 3 up
+		var directions = [];
+		var isUseShift = (shiftX > 0.1 || shiftY > 0.1) ? true : false;
+
+		if (isUseShift)
+		{
+			for (var nIndex = 0; nIndex < nCount; nIndex++)
+			{
+				if (Math.abs(PrevX - Points[nIndex].X) < eps && Math.abs(PrevY - Points[nIndex].Y) < eps)
+					continue;
+
+				if (PrevX > (Points[nIndex].X + eps))
+				{
+					directions.push(0)
+				}
+				else if (PrevX < (Points[nIndex].X - eps))
+				{
+					directions.push(2);
+				}
+
+				if (PrevY > (Points[nIndex].Y + eps))
+				{
+					directions.push(3);
+				}
+				else if (PrevY < (Points[nIndex].Y - eps))
+				{
+					directions.push(1);
+				}
+				PrevX = Points[nIndex].X;
+				PrevY = Points[nIndex].Y;
+			}
+		}
+
+		PrevX = Points[nCount - 2].X;
+		PrevY = Points[nCount - 2].Y;
+		var directionIndex = 0;
 		for (var nIndex = 0; nIndex < nCount; nIndex++)
 		{
+			if (Math.abs(PrevX - Points[nIndex].X) < eps && Math.abs(PrevY - Points[nIndex].Y) < eps)
+				continue;
+
 			x = transform ? transform.TransformPointX(Points[nIndex].X, Points[nIndex].Y) : Points[nIndex].X;
 			y = transform ? transform.TransformPointY(Points[nIndex].X, Points[nIndex].Y) : Points[nIndex].Y;
 
 			x = (left + dKoefX * x) * rPR;
 			y = (top + dKoefY * y) * rPR;
 
-			if (shiftX > 0.1 || shiftY > 0.1)
+			if (isUseShift)
 			{
-				// заточка на то, что это ректы
-				if (PrevX > (Points[nIndex].X + eps))
+				var nextDirection = (directionIndex === (directions.length - 1)) ? directions[0] : directions[directionIndex + 1];
+				switch (directions[directionIndex])
 				{
-					x -= shiftX;
-					y -= shiftY;
-				}
-				else if (PrevX < (Points[nIndex].X - eps))
-				{
-					x += shiftX;
-					y += shiftY;
-				}
-
-				if (PrevY > (Points[nIndex].Y + eps))
-				{
-					x += shiftX;
-					y -= shiftY;
-				}
-				else if (PrevY < (Points[nIndex].Y - eps))
-				{
-					x -= shiftX;
-					y += shiftY;
+					case 0:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								y -= shiftY;
+								break
+							}
+							case 1:
+							{
+								x -= shiftX;
+								y -= shiftY;
+								break;
+							}
+							case 2:
+							{
+								break;
+							}
+							case 3:
+							{
+								x += shiftX;
+								y -= shiftY;
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					case 1:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								x -= shiftX;
+								y -= shiftY;
+								break;
+							}
+							case 1:
+							{
+								x -= shiftX;
+								break;
+							}
+							case 2:
+							{
+								x -= shiftX;
+								y += shiftY;
+								break
+							}
+							case 3:
+							default:
+								break;
+						}
+						break;
+					}
+					case 2:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								break;
+							}
+							case 1:
+							{
+								x -= shiftX;
+								y += shiftY;
+								break;
+							}
+							case 2:
+							{
+								y += shiftY;
+								break;
+							}
+							case 3:
+							{
+								x += shiftX;
+								y += shiftY;
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					case 3:
+					{
+						switch (nextDirection)
+						{
+							case 0:
+							{
+								x += shiftX;
+								y -= shiftY;
+								break;
+							}
+							case 1:
+							{
+								break;
+							}
+							case 2:
+							{
+								x += shiftX;
+								y += shiftY;
+								break;
+							}
+							case 3:
+							{
+								x += shiftX;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					default:
+						break;
 				}
 			}
 
+			directionIndex++;
 			PrevX = Points[nIndex].X;
 			PrevY = Points[nIndex].Y;
 
@@ -5923,6 +6302,236 @@
 		return this.MathSelectPolygons[nIndex];
 	};
 
+	function CDrawingCollaborativeTargetBase()
+	{
+		this.Id      = "";
+		this.ShortId = "";
+
+		this.X    = 0;
+		this.Y    = 0;
+		this.Size = 0;
+
+		this.Color     = null;
+		this.Transform = null;
+
+		this.HtmlElement  = null;
+		this.HtmlElementX = 0;
+		this.HtmlElementY = 0;
+
+		this.Style = "";
+		this.HtmlParent = null;
+	}
+	CDrawingCollaborativeTargetBase.prototype.CreateElement = function()
+	{
+		this.HtmlElement = document.createElement('canvas');
+		this.HtmlElement.style.cssText = "pointer-events: none;position:absolute;padding:0;margin:0;-webkit-user-select:none;width:1px;height:1px;display:block;z-index:3;";
+		this.HtmlElement.width = 1;
+		this.HtmlElement.height = 1;
+
+		this.Color = AscCommon.getUserColorById(this.ShortId, null, true);
+		this.Style = "rgb(" + this.Color.r + "," + this.Color.g + "," + this.Color.b + ")";
+	};
+	CDrawingCollaborativeTargetBase.prototype.GetZoom = function()
+	{
+		return 1.0;
+	};
+	CDrawingCollaborativeTargetBase.prototype.CheckStyleDisplay = function()
+	{
+	};
+	CDrawingCollaborativeTargetBase.prototype.ConvertCoords = function(x, y)
+	{
+		return {
+			X: (x * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix ) >> 0,
+			Y: (y * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix ) >> 0
+		};
+	};
+	CDrawingCollaborativeTargetBase.prototype.GetMobileTouchManager = function()
+	{
+		return null;
+	};
+	CDrawingCollaborativeTargetBase.prototype.UseStylePosition = function()
+	{
+		return (!this.GetMobileTouchManager() && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit;
+	};
+	CDrawingCollaborativeTargetBase.prototype.GetParentElement = function()
+	{
+		return null;
+	};
+	CDrawingCollaborativeTargetBase.prototype.CalculateSizeAndPos = function()
+	{
+		var _newW = 2;
+		var _newH = (this.Size * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix) >> 0;
+
+		var _oldW = this.HtmlElement.width;
+		var _oldH = this.HtmlElement.height;
+
+		if (null != this.Transform && !AscCommon.global_MatrixTransformer.IsIdentity2(this.Transform))
+		{
+			var _x1 = this.Transform.TransformPointX(this.X, this.Y);
+			var _y1 = this.Transform.TransformPointY(this.X, this.Y);
+
+			var _x2 = this.Transform.TransformPointX(this.X, this.Y + this.Size);
+			var _y2 = this.Transform.TransformPointY(this.X, this.Y + this.Size);
+
+			var pos1 = this.ConvertCoords(_x1, _y1);
+			var pos2 = this.ConvertCoords(_x2, _y2);
+
+			_newW = (Math.abs(pos1.X - pos2.X) >> 0) + 1;
+			_newH = (Math.abs(pos1.Y - pos2.Y) >> 0) + 1;
+
+			if (2 > _newW)
+				_newW = 2;
+			if (2 > _newH)
+				_newH = 2;
+
+			if (_oldW == _newW && _oldH == _newH)
+			{
+				if (_newW != 2 && _newH != 2)
+				{
+					// просто очищаем
+					this.HtmlElement.width = _newW;
+				}
+			}
+			else
+			{
+				this.HtmlElement.style.width = _newW + "px";
+				this.HtmlElement.style.height = _newH + "px";
+
+				this.HtmlElement.width = _newW;
+				this.HtmlElement.height = _newH;
+			}
+			var ctx = this.HtmlElement.getContext('2d');
+
+			if (_newW == 2 || _newH == 2)
+			{
+				ctx.fillStyle = this.Style;
+				ctx.fillRect(0, 0, _newW, _newH);
+			}
+			else
+			{
+				ctx.beginPath();
+				ctx.strokeStyle = this.Style;
+				ctx.lineWidth = 2;
+
+				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
+				{
+					ctx.moveTo(0, 0);
+					ctx.lineTo(_newW, _newH);
+				}
+				else
+				{
+					ctx.moveTo(0, _newH);
+					ctx.lineTo(_newW, 0);
+				}
+
+				ctx.stroke();
+			}
+
+			this.HtmlElementX = Math.min(pos1.X, pos2.X) >> 0;
+			this.HtmlElementY = Math.min(pos1.Y, pos2.Y) >> 0;
+			if (this.UseStylePosition())
+			{
+				this.HtmlElement.style.left = this.HtmlElementX + "px";
+				this.HtmlElement.style.top = this.HtmlElementY + "px";
+			}
+			else
+			{
+				this.HtmlElement.style.left = "0px";
+				this.HtmlElement.style.top = "0px";
+				this.HtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + this.HtmlElementX + "," + this.HtmlElementY + ")";
+			}
+		}
+		else
+		{
+			if (_oldW == _newW && _oldH == _newH)
+			{
+				// просто очищаем
+				this.HtmlElement.width = _newW;
+			}
+			else
+			{
+				this.HtmlElement.style.width = _newW + "px";
+				this.HtmlElement.style.height = _newH + "px";
+
+				this.HtmlElement.width = _newW;
+				this.HtmlElement.height = _newH;
+			}
+
+			var ctx = this.HtmlElement.getContext('2d');
+
+			ctx.fillStyle = this.Style;
+			ctx.fillRect(0, 0, _newW, _newH);
+
+			var pos;
+			if (null != this.Transform)
+			{
+				pos = this.ConvertCoords(this.Transform.tx + this.X, this.Transform.ty + this.Y);
+			}
+			else
+			{
+				pos = this.ConvertCoords(this.X, this.Y);
+			}
+
+			this.HtmlElementX = pos.X >> 0;
+			this.HtmlElementY = pos.Y >> 0;
+
+			if (this.UseStylePosition())
+			{
+				this.HtmlElement.style.left = this.HtmlElementX + "px";
+				this.HtmlElement.style.top = this.HtmlElementY + "px";
+			}
+			else
+			{
+				this.HtmlElement.style.left = "0px";
+				this.HtmlElement.style.top = "0px";
+				this.HtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + this.HtmlElementX + "," + this.HtmlElementY + ")";
+			}
+		}
+	};
+	CDrawingCollaborativeTargetBase.prototype.CheckPosition = function()
+	{
+	};
+	CDrawingCollaborativeTargetBase.prototype.CheckNeedDraw = function()
+	{
+		return true;
+	};
+	CDrawingCollaborativeTargetBase.prototype.Remove = function()
+	{
+		if(this.HtmlParent)
+		{
+			this.HtmlParent.removeChild(this.HtmlElement);
+			this.HtmlParent = null;
+		}
+	};
+	CDrawingCollaborativeTargetBase.prototype.Update = function()
+	{
+		// 1) создаем новый элемент, если еще его не было
+		if (this.HtmlElement == null)
+		{
+			this.CreateElement();
+		}
+
+		if(!this.CheckNeedDraw())
+		{
+			return;
+		}
+		// 2) определяем размер
+		this.CalculateSizeAndPos();
+
+		if (AscCommon.CollaborativeEditing)
+			AscCommon.CollaborativeEditing.Update_ForeignCursorLabelPosition(this.Id, this.HtmlElementX, this.HtmlElementY, this.Color);
+
+		// 3) добавить, если нужно
+		var oParentElement = this.GetParentElement();
+		if(oParentElement && oParentElement !== this.HtmlParent)
+		{
+			oParentElement.appendChild(this.HtmlElement);
+			this.HtmlParent = oParentElement;
+		}
+		this.CheckStyleDisplay();
+	};
+
+
 	//------------------------------------------------------------fill polyfill--------------------------------------------
 	if (!Array.prototype.findIndex) {
 		Object.defineProperty(Array.prototype, 'findIndex', {
@@ -5991,6 +6600,13 @@
 				return O;
 			}
 		});
+	}
+	if (!Object.values) {
+		Object.values = function (obj) {
+			return Object.keys(obj).map(function (e) {
+				return obj[e];
+			});
+		}
 	}
 	if (typeof Int8Array !== 'undefined' && !Int8Array.prototype.fill) {
 		Int8Array.prototype.fill = Array.prototype.fill;
@@ -6372,21 +6988,31 @@
 		var new_width = 0;
 		var new_height = 0;
 
-		// в мозилле поправили баг. отключаем особую ветку
-		if (true || !AscCommon.AscBrowser.isMozilla)
+		// в мозилле баг. включаем особую ветку
+		if (!AscCommon.AscBrowser.isMozilla)
 		{
 			new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
 			new_height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
 		}
 		else
 		{
-			var sizeW = _getIntegerByDivide(rect.width);
-			var sizeH = _getIntegerByDivide(rect.height);
-			if (sizeW.start !== rect.width) element.style.width = sizeW.start + "px";
-			if (sizeH.start !== rect.height) element.style.height = sizeH.start + "px";
+			if (true)
+			{
+				new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
+				new_height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
 
-			new_width = sizeW.end;
-			new_height = sizeH.end;
+				element.style["imageRendering"] = "pixelated";
+			}
+			else
+			{
+				var sizeW = _getIntegerByDivide(rect.width);
+				var sizeH = _getIntegerByDivide(rect.height);
+				if (sizeW.start !== rect.width) element.style.width = sizeW.start + "px";
+				if (sizeH.start !== rect.height) element.style.height = sizeH.start + "px";
+
+				new_width = sizeW.end;
+				new_height = sizeH.end;
+			}
 		}
 
 		setCanvasSize(element,
@@ -6444,6 +7070,101 @@
 
 	var g_oCRC32 = new CRC32();
 
+	function RangeTopBottomIterator() {
+		this.size = 0;
+		this.rangesTop = null;
+		this.indexTop = 0;
+		this.rangesBottom = null;
+		this.indexBottom = 0;
+		this.lastRow = -1;
+		this.mmap = null;
+		this.mmapCache = null;
+	}
+	RangeTopBottomIterator.prototype.init = function (arr, fGetRanges) {
+		var rangesTop = this.rangesTop = [];
+		var rangesBottom = this.rangesBottom = [];
+		var nextId = 0;
+		this.size = arr.length;
+		arr.forEach(function (elem) {
+			var ranges = fGetRanges(elem);
+			for (var i = 0; i < ranges.length; i++) {
+				var rangeElem = {id: nextId++, bbox: ranges[i], data: elem, isInsert: false};
+				rangesTop.push(rangeElem);
+				rangesBottom.push(rangeElem);
+			}
+		});
+		//Array.sort is stable in all browsers
+		//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+		this.rangesTop.sort(RangeTopBottomIterator.prototype.compareByLeftTop);
+		this.rangesBottom.sort(RangeTopBottomIterator.prototype.compareByRightBottom);
+		this.reset();
+	};
+	RangeTopBottomIterator.prototype.compareByLeftTop = function (a, b) {
+		return Asc.Range.prototype.compareByLeftTop(a.bbox, b.bbox);
+	};
+	RangeTopBottomIterator.prototype.compareByRightBottom = function (a, b) {
+		return Asc.Range.prototype.compareByRightBottom(a.bbox, b.bbox);
+	};
+	RangeTopBottomIterator.prototype.getSize = function () {
+		return this.size;
+	};
+	RangeTopBottomIterator.prototype.reset = function () {
+		this.indexTop = 0;
+		this.indexBottom = 0;
+		this.lastRow = -1;
+		if (this.mmap) {
+			this.mmap.forEach(function (rangeElem) {
+				rangeElem.isInsert = false;
+			});
+		}
+		this.mmap = new Map();
+		this.mmapCache = null;
+	};
+	RangeTopBottomIterator.prototype.get = function (row, col) {
+		//todo binary search
+		//todo dynamic column range or preassigned column range
+		if (this.lastRow > row) {
+			this.reset();
+		}
+		var rangeElem;
+		while (this.indexTop < this.rangesTop.length && row >= this.rangesTop[this.indexTop].bbox.r1) {
+			rangeElem = this.rangesTop[this.indexTop++];
+			if (row <= rangeElem.bbox.r2) {
+				rangeElem.isInsert = true;
+				this.mmap.set(rangeElem.id, rangeElem);
+				this.mmapCache = null;
+			}
+		}
+		while (this.indexBottom < this.rangesBottom.length && row > this.rangesBottom[this.indexBottom].bbox.r2) {
+			rangeElem = this.rangesBottom[this.indexBottom++];
+			if (rangeElem.isInsert) {
+				rangeElem.isInsert = false;
+				this.mmap.delete(rangeElem.id);
+				this.mmapCache = null;
+			}
+		}
+		var t = this;
+		if (!this.mmapCache) {
+			this.mmapCache = [];
+			this.mmap.forEach(function (rangeElem) {
+				for (var i = rangeElem.bbox.c1; i <= rangeElem.bbox.c2; ++i) {
+					if (!t.mmapCache[i]) {
+						t.mmapCache[i] = [];
+					}
+					t.mmapCache[i].push(rangeElem.data);
+				}
+			});
+		}
+		this.lastRow = row;
+		return t.mmapCache[col] || [];
+	};
+
+	function IsLinkPPAction(sAction) {
+		if(!(typeof sAction === "string")) {
+			return false;
+		}
+		return sAction.indexOf("ppaction://hlink") === 0;
+	}
 
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
@@ -6477,10 +7198,12 @@
 	window["AscCommon"].InitOnMessage = InitOnMessage;
 	window["AscCommon"].ShowImageFileDialog = ShowImageFileDialog;
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
+	window["AscCommon"].ShowSpreadsheetFileDialog = ShowSpreadsheetFileDialog;
 	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
+	window["AscCommon"].DownloadOriginalFile = DownloadOriginalFile;
 	window["AscCommon"].CanDropFiles = CanDropFiles;
 	window["AscCommon"].getUrlType = getUrlType;
 	window["AscCommon"].prepareUrl = prepareUrl;
@@ -6508,6 +7231,7 @@
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;
+	window["AscCommon"].IsAscFontSupport = IsAscFontSupport;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
@@ -6521,6 +7245,7 @@
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
 	window["AscCommon"].CMathTrack = CMathTrack;
 	window["AscCommon"].CPolygon = CPolygon;
+	window['AscCommon'].CDrawingCollaborativeTargetBase = CDrawingCollaborativeTargetBase;
 
 	window["AscCommon"].JSZipWrapper = JSZipWrapper;
 	window["AscCommon"].g_oDocumentUrls = g_oDocumentUrls;
@@ -6532,6 +7257,7 @@
 	window["AscCommon"].rx_space_g = rx_space_g;
 	window["AscCommon"].rx_space = rx_space;
 	window["AscCommon"].rx_defName = rx_defName;
+	window["AscCommon"].rx_r1c1DefError = rx_r1c1DefError;
 
 	window["AscCommon"].kCurFormatPainterWord = kCurFormatPainterWord;
 	window["AscCommon"].parserHelp = parserHelp;
@@ -6586,6 +7312,8 @@
 
 	window["AscCommon"].CCustomShortcutActionSymbol = window["AscCommon"]["CCustomShortcutActionSymbol"] = CCustomShortcutActionSymbol;
 	window['AscCommon'].g_oCRC32  = g_oCRC32;
+	window["AscCommon"].RangeTopBottomIterator = RangeTopBottomIterator;
+	window["AscCommon"].IsLinkPPAction = IsLinkPPAction;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
@@ -6793,6 +7521,14 @@ window["buildCryptoFile_End"] = function(url, error, hash, password)
 					break;
 				default:
 					break;
+			}
+
+			if (ext === ".docx")
+			{
+				if (_editor.DocInfo.Format === "oform")
+					ext = ".oform";
+				else if (_editor.DocInfo.Format === "docxf")
+					ext = ".docxf";
 			}
 
 			AscCommon.sendSaveFile(_editor.documentId, _editor.documentUserId, "output" + ext, _editor.asc_getSessionToken(), fileData, function(err) {

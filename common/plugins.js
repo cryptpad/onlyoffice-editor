@@ -1044,7 +1044,7 @@
 				{
 					if (pluginData.getAttribute("interface"))
 					{
-						var _script = "(function(){ var Api = window.g_asc_plugins.api;\n" + value + "\n})();";
+						var _script = "(function(){ var Api = window.g_asc_plugins.api;\n" + value.replace(/\\/g, "\\\\") + "\n})();";
 						eval(_script);
 					}
 					else if (!window.g_asc_plugins.api.isLongAction() && (pluginData.getAttribute("resize") || window.g_asc_plugins.api.asc_canPaste()))
@@ -1052,7 +1052,7 @@
 						window.g_asc_plugins.api._beforeEvalCommand();
 
                         AscFonts.IsCheckSymbols = true;
-						var _script = "(function(){ var Api = window.g_asc_plugins.api;\n" + value + "\n})();";
+						var _script = "(function(){ var Api = window.g_asc_plugins.api;\n" + value.replace(/\\/g, "\\\\") + "\n})();";
 						try
 						{
 							eval(_script);

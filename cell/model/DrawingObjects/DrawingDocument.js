@@ -43,16 +43,89 @@ var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
     var g_dKoef_mm_to_pix = AscCommon.g_dKoef_mm_to_pix;
 
 
-function CDrawingPage()
-{
-    this.left   = 0;
-    this.top    = 0;
-    this.right  = 0;
-    this.bottom = 0;
 
-    this.cachedImage = null;
-}
+    function CDrawingCollaborativeTarget(DrawingDocument)
+    {
+        AscCommon.CDrawingCollaborativeTargetBase.call(this);
+        this.SheetId = null;
+        this.DrawingDocument = DrawingDocument;
+    }
+    CDrawingCollaborativeTarget.prototype = Object.create(AscCommon.CDrawingCollaborativeTargetBase.prototype);
 
+    CDrawingCollaborativeTarget.prototype.GetZoom = function()
+    {
+        return Asc.editor.wb.getZoom();
+    };
+    CDrawingCollaborativeTarget.prototype.ConvertCoords = function(x, y)
+    {
+        var oTrack = this.DrawingDocument.AutoShapesTrack;
+        if(!oTrack)
+        {
+            return {X: 0, Y: 0};
+        }
+        var oGraphics = oTrack.Graphics;
+        if(!oGraphics)
+        {
+            return {X: 0, Y: 0};
+        }
+        var oTransform = oGraphics.m_oCoordTransform;
+        var _offX = 0;
+        var _offY = 0;
+        var dKoef = this.DrawingDocument.drawingObjects.convertMetric(1, 3, 0);
+        if (oTransform)
+        {
+            _offX = oTransform.tx;
+            _offY = oTransform.ty;
+        }
+        var _X = AscCommon.AscBrowser.convertToRetinaValue(_offX + dKoef * x, false);
+        var _Y = AscCommon.AscBrowser.convertToRetinaValue(_offY + dKoef * y, false);
+        return { X : _X, Y : _Y};
+    };
+    CDrawingCollaborativeTarget.prototype.GetMobileTouchManager = function()
+    {
+        return Asc.editor.wb.MobileTouchManager;
+    };
+    CDrawingCollaborativeTarget.prototype.GetParentElement = function()
+    {
+        return Asc.editor.HtmlElement;
+    };
+    CDrawingCollaborativeTarget.prototype.CheckPosition = function(_x, _y, _size, sheetId, _transform)
+    {
+        this.Transform = _transform;
+        this.Size = _size;
+        this.X = _x;
+        this.Y = _y;
+        this.SheetId = sheetId;
+        this.Update();
+    };
+    CDrawingCollaborativeTarget.prototype.CheckStyleDisplay = function()
+    {
+    };
+    CDrawingCollaborativeTarget.prototype.CheckNeedDraw = function()
+    {
+        var bShow = false;
+        var oWorksheetView = Asc.editor.wb.getWorksheet();
+        if(oWorksheetView)
+        {
+            var oModel = oWorksheetView.model;
+            if(oModel)
+            {
+                if(oModel.Id === this.SheetId)
+                {
+                    bShow = true;
+                }
+            }
+        }
+        if(!bShow)
+        {
+            this.HtmlElement.style.display = "none";
+        }
+        else
+        {
+            this.HtmlElement.style.display = "block";
+        }
+        return bShow;
+    };
 
 function CDrawingDocument()
 {
@@ -82,12 +155,13 @@ function CDrawingDocument()
     this.m_lTargetPage = -1;
     this.m_dTargetSize = 1;
 
-    this.NeedScrollToTarget = true;
-    this.NeedScrollToTargetFlag = false;
 
     this.TargetHtmlElement = null;
     this.TargetHtmlElementLeft = 0;
     this.TargetHtmlElementTop = 0;
+
+    this.CollaborativeTargets = [];
+    this.CollaborativeTargetsUpdateTasks = [];
 
     this.m_bIsBreakRecalculate = false;
 
@@ -338,138 +412,108 @@ function CDrawingDocument()
         this.TargetCursorColor.B = b;
     };
 
-    this.CheckTargetDraw = function(x, y)
+    this.CheckTargetDraw = function (x, y)
     {
         var drawingObjects = this.getDrawingObjects();
-        if(!drawingObjects) {
+        if (!drawingObjects)
             return;
-        }
-        var _oldW = this.TargetHtmlElement.width;
-        var _oldH = this.TargetHtmlElement.height;
 
         var dKoef = drawingObjects.convertMetric(1, 3, 0);
+        dKoef /= AscCommon.AscBrowser.retinaPixelRatio;
 
-        var _newW = 2;
-        var _newH = this.m_dTargetSize * dKoef;
+        var oldW = this.TargetHtmlElement.width_old;
+        var oldH = this.TargetHtmlElement.height_old;
+
+        var newW = 2;
+        var newH = (this.m_dTargetSize * dKoef) >> 0;
 
         var _offX = 0;
         var _offY = 0;
         if (this.AutoShapesTrack && this.AutoShapesTrack.Graphics && this.AutoShapesTrack.Graphics.m_oCoordTransform)
         {
-            _offX = this.AutoShapesTrack.Graphics.m_oCoordTransform.tx;
-            _offY = this.AutoShapesTrack.Graphics.m_oCoordTransform.ty;
+            _offX = this.AutoShapesTrack.Graphics.m_oCoordTransform.tx / AscCommon.AscBrowser.retinaPixelRatio;
+            _offY = this.AutoShapesTrack.Graphics.m_oCoordTransform.ty / AscCommon.AscBrowser.retinaPixelRatio;
         }
 
-        var targetPosX = 0;
-        var targetPosY = 0;
+        this.TargetHtmlElement.style.transformOrigin = "top left";
 
-        if (null != this.TextMatrix && !global_MatrixTransformer.IsIdentity2(this.TextMatrix))
+        if (oldW !== newW || oldH !== newH)
         {
-            var _x1 = this.TextMatrix.TransformPointX(x, y);
-            var _y1 = this.TextMatrix.TransformPointY(x, y);
+            var pixNewW = ((newW * AscCommon.AscBrowser.retinaPixelRatio) >> 0) / AscCommon.AscBrowser.retinaPixelRatio;
 
-            var _x2 = this.TextMatrix.TransformPointX(x, y + this.m_dTargetSize);
-            var _y2 = this.TextMatrix.TransformPointY(x, y + this.m_dTargetSize);
-
-            var pos1 = { X : _offX + dKoef * _x1, Y : _offY + dKoef * _y1 };
-            var pos2 = { X : _offX + dKoef * _x2, Y : _offY + dKoef * _y2 };
-
-            _newW = (((Math.abs(pos1.X - pos2.X) >> 0) + 1) >> 1) << 1;
-            _newH = (((Math.abs(pos1.Y - pos2.Y) >> 0) + 1) >> 1) << 1;
-
-            if (2 > _newW)
-                _newW = 2;
-            if (2 > _newH)
-                _newH = 2;
-
-            if (_oldW == _newW && _oldH == _newH)
-            {
-                // просто очищаем
-                this.TargetHtmlElement.width = _newW;
-            }
-            else
-            {
-                this.TargetHtmlElement.style.width = AscCommon.AscBrowser.convertToRetinaValue(_newW, false) + "px";
-                this.TargetHtmlElement.style.height = AscCommon.AscBrowser.convertToRetinaValue(_newH, false) + "px";
-
-                this.TargetHtmlElement.width = _newW;
-                this.TargetHtmlElement.height = _newH;
-            }
-            var ctx = this.TargetHtmlElement.getContext('2d');
-
-            if (_newW  == 2 || _newH == 2)
-            {
-                ctx.fillStyle = this.GetTargetStyle();
-                ctx.fillRect(0, 0, _newW, _newH);
-            }
-            else
-            {
-                ctx.beginPath();
-                ctx.strokeStyle = this.GetTargetStyle();
-                ctx.lineWidth = 2;
-
-                if (((pos1.X - pos2.X)*(pos1.Y - pos2.Y)) >= 0)
-                {
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(_newW, _newH);
-                }
-                else
-                {
-                    ctx.moveTo(0, _newH);
-                    ctx.lineTo(_newW, 0);
-                }
-
-                ctx.stroke();
-            }
-
-			targetPosX =  AscCommon.AscBrowser.convertToRetinaValue(Math.min(pos1.X, pos2.X), false);
-            targetPosY =  AscCommon.AscBrowser.convertToRetinaValue(Math.min(pos1.Y, pos2.Y), false);
-
-            this.TargetHtmlElementLeft = targetPosX;
-            this.TargetHtmlElementTop = targetPosY;
-            this.TargetHtmlElement.style.left = targetPosX + "px";
-            this.TargetHtmlElement.style.top = targetPosY + "px";
+            this.TargetHtmlElement.style.width = pixNewW + "px";
+            this.TargetHtmlElement.style.height = newH + "px";
+            this.TargetHtmlElement.width_old = newW;
+            this.TargetHtmlElement.height_old = newH;
+            this.TargetHtmlElement.oldColor = null;
         }
-        else
+
+        var oldColor = this.TargetHtmlElement.oldColor;
+        if (!oldColor ||
+            oldColor.R !== this.TargetCursorColor.R ||
+            oldColor.G !== this.TargetCursorColor.G ||
+            oldColor.B !== this.TargetCursorColor.B)
         {
-            if (_oldW == _newW && _oldH == _newH)
-            {
-                // просто очищаем
-                this.TargetHtmlElement.width = _newW;
-            }
-            else
-            {
-                this.TargetHtmlElement.style.width =  AscCommon.AscBrowser.convertToRetinaValue(_newW, false) + "px";
-                this.TargetHtmlElement.style.height =  AscCommon.AscBrowser.convertToRetinaValue(_newH , false) + "px";
+            this.TargetHtmlElement.style.backgroundColor = this.GetTargetStyle();
+            this.TargetHtmlElement.oldColor = { R : this.TargetCursorColor.R, G : this.TargetCursorColor.G, B : this.TargetCursorColor.B };
+        }
 
-                this.TargetHtmlElement.width = _newW;
-                this.TargetHtmlElement.height = _newH;
-            }
-
-            var ctx = this.TargetHtmlElement.getContext('2d');
-
-            ctx.fillStyle = this.GetTargetStyle();
-            ctx.fillRect(0, 0, _newW, _newH);
-
+        if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity2(this.TextMatrix))
+        {
             if (null != this.TextMatrix)
             {
                 x += this.TextMatrix.tx;
                 y += this.TextMatrix.ty;
             }
 
-            var pos = { X : _offX + dKoef * x, Y : _offY + dKoef * y };
+            var pos1 = { X : _offX + x * dKoef, Y : _offY + y * dKoef };
+            pos1.X -= (newW / 2);
 
-			targetPosX =  AscCommon.AscBrowser.convertToRetinaValue(pos.X, false);
-			targetPosY =  AscCommon.AscBrowser.convertToRetinaValue(pos.Y, false);
+            this.TargetHtmlElementLeft = pos1.X >> 0;
+            this.TargetHtmlElementTop = pos1.Y >> 0;
 
-            this.TargetHtmlElementLeft = targetPosX;
-            this.TargetHtmlElementTop = targetPosY;
-			this.TargetHtmlElement.style.left = targetPosX + "px";
-			this.TargetHtmlElement.style.top = targetPosY + "px";
+            this.TargetHtmlElement.style["transform"] = "";
+            this.TargetHtmlElement.style["msTransform"] = "";
+            this.TargetHtmlElement.style["mozTransform"] = "";
+            this.TargetHtmlElement.style["webkitTransform"] = "";
+
+            if (!AscCommon.AscBrowser.isSafariMacOs || !AscCommon.AscBrowser.isWebkit)
+            {
+                this.TargetHtmlElement.style.left = this.TargetHtmlElementLeft + "px";
+                this.TargetHtmlElement.style.top = this.TargetHtmlElementTop + "px";
+            }
+            else
+            {
+                this.TargetHtmlElement.style.left = "0px";
+                this.TargetHtmlElement.style.top = "0px";
+                this.TargetHtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + oThis.TargetHtmlElementLeft + "," + oThis.TargetHtmlElementTop + ")";
+            }
+        }
+        else
+        {
+            var x1 = _offX + this.TextMatrix.TransformPointX(x, y) * dKoef;
+            var y1 = _offY + this.TextMatrix.TransformPointY(x, y) * dKoef;
+
+            var pos1 = { X : x1, Y : y1 };
+            pos1.X -= (newW / 2);
+
+            this.TargetHtmlElementLeft = pos1.X >> 0;
+            this.TargetHtmlElementTop = pos1.Y >> 0;
+
+            var transform = "matrix(" + this.TextMatrix.sx + ", " + this.TextMatrix.shy + ", " + this.TextMatrix.shx + ", " +
+                this.TextMatrix.sy + ", " + pos1.X + ", " + pos1.Y + ")";
+
+            this.TargetHtmlElement.style.left = "0px";
+            this.TargetHtmlElement.style.top = "0px";
+
+            this.TargetHtmlElement.style["transform"] = transform;
+            this.TargetHtmlElement.style["msTransform"] = transform;
+            this.TargetHtmlElement.style["mozTransform"] = transform;
+            this.TargetHtmlElement.style["webkitTransform"] = transform;
         }
 
-		if (AscCommon.g_inputContext)
-			AscCommon.g_inputContext.move(targetPosX, targetPosY);
+        if (AscCommon.g_inputContext)
+            AscCommon.g_inputContext.move(this.TargetHtmlElementLeft, this.TargetHtmlElementTop);
     };
 
     this.UpdateTargetTransform = function(matrix)
@@ -518,7 +562,7 @@ function CDrawingDocument()
     this.SetTargetSize = function(size)
     {
         this.m_dTargetSize = size;
-        //this.TargetHtmlElement.style.height = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) + "px";
+        //this.TargetHtmlElement.style.height = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) + "px";
         //this.TargetHtmlElement.style.width = "2px";
     };
 
@@ -831,7 +875,7 @@ function CDrawingDocument()
 
     this.GetDotsPerMM = function(value)
     {
-        return value * Asc.editor.wb.getZoom() * g_dKoef_mm_to_pix;
+        return value * Asc.editor.wb.getZoom() * AscCommon.g_dKoef_mm_to_pix;
     };
 
     this.GetMMPerDot = function(value)
@@ -1292,13 +1336,13 @@ function CDrawingDocument()
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, _wPx, _hPx);
 
-            var _pxBoundsW = par.Lines[0].Ranges[0].W * g_dKoef_mm_to_pix;//(_bounds.Right - _bounds.Left) * g_dKoef_mm_to_pix;
-            var _pxBoundsH = (_bounds.Bottom - _bounds.Top) * g_dKoef_mm_to_pix;
+            var _pxBoundsW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;//(_bounds.Right - _bounds.Left) * AscCommon.g_dKoef_mm_to_pix;
+            var _pxBoundsH = (_bounds.Bottom - _bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
 
             if (this.GuiLastTextProps.Position !== undefined && this.GuiLastTextProps.Position != null && this.GuiLastTextProps.Position != 0)
             {
                 // TODO: нужна высота без учета Position
-                // _pxBoundsH -= (this.GuiLastTextProps.Position * g_dKoef_mm_to_pix);
+                // _pxBoundsH -= (this.GuiLastTextProps.Position * AscCommon.g_dKoef_mm_to_pix);
             }
 
             if (_pxBoundsH < _hPx && _pxBoundsW < _wPx)
@@ -1321,7 +1365,7 @@ function CDrawingDocument()
                 ctx.beginPath();
             }
 
-            var _yOffset = (((_hPx + _pxBoundsH) / 2) - baseLineOffset * g_dKoef_mm_to_pix) >> 0;
+            var _yOffset = (((_hPx + _pxBoundsH) / 2) - baseLineOffset * AscCommon.g_dKoef_mm_to_pix) >> 0;
             var _xOffset = ((_wPx - _pxBoundsW) / 2) >> 0;
 
             var graphics = new AscCommon.CGraphics();
@@ -1348,6 +1392,74 @@ function CDrawingDocument()
 
     this.OnSelectEnd = function()
     {
+    };
+
+    // collaborative targets
+    this.Collaborative_UpdateTarget      = function(_id, _shortId, _x, _y, _size, sheetId, _transform, is_from_paint)
+    {
+        //if (is_from_paint !== true)
+        //{
+        //    this.CollaborativeTargetsUpdateTasks.push([_id, _shortId, _x, _y, _size, sheetId, _transform]);
+        //    return;
+        //}
+
+        for (var i = 0; i < this.CollaborativeTargets.length; i++)
+        {
+            if (_id == this.CollaborativeTargets[i].Id)
+            {
+                this.CollaborativeTargets[i].CheckPosition(_x, _y, _size, sheetId, _transform);
+                return;
+            }
+        }
+        var _target     = new CDrawingCollaborativeTarget(this);
+        _target.Id      = _id;
+        _target.ShortId = _shortId;
+        _target.SheetId = sheetId;
+        _target.CheckPosition(_x, _y, _size, sheetId, _transform);
+        this.CollaborativeTargets[this.CollaborativeTargets.length] = _target;
+    };
+    this.Collaborative_RemoveTarget      = function(_id)
+    {
+        var i = 0;
+        for (i = 0; i < this.CollaborativeTargets.length; i++)
+        {
+            if (_id == this.CollaborativeTargets[i].Id)
+            {
+                this.CollaborativeTargets[i].Remove(this);
+                this.CollaborativeTargets.splice(i, 1);
+                i--;
+            }
+        }
+
+        for (i = 0; i < this.CollaborativeTargetsUpdateTasks.length; i++)
+        {
+            var _tmp = this.CollaborativeTargetsUpdateTasks[i];
+            if (_tmp[0] == _id)
+            {
+                this.CollaborativeTargetsUpdateTasks.splice(i, 1);
+                i--;
+            }
+        }
+    };
+    this.Collaborative_TargetsUpdate     = function(bIsChangePosition)
+    {
+        if (bIsChangePosition)
+        {
+            for (var i = 0; i < this.CollaborativeTargets.length; i++)
+            {
+                this.CollaborativeTargets[i].Update();
+            }
+        }
+    };
+    this.Collaborative_GetTargetPosition = function(UserId)
+    {
+        for (var i = 0; i < this.CollaborativeTargets.length; i++)
+        {
+            if (UserId == this.CollaborativeTargets[i].Id)
+                return {X : this.CollaborativeTargets[i].HtmlElementX, Y : this.CollaborativeTargets[i].HtmlElementY};
+        }
+
+        return null;
     };
 
     this.privateGetParagraphByString = function(level, levelNum, counterCurrent, x, y, lineHeight, ctx, w, h, spApi)
@@ -1400,7 +1512,7 @@ function CDrawingDocument()
         var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
         var parH = (bounds.Bottom - bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
 
-        var yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+        var yOffset = y - ((baseLineOffset * AscCommon.g_dKoef_mm_to_pix) >> 0);
         var xOffset = x;
         switch (level.Align)
         {
@@ -1726,6 +1838,17 @@ function CDrawingDocument()
             }
         }
     };
+	this.CloseFile = function ()
+	{
+		this.ClearCachePages();
+		this.FirePaint();
+		this.m_arrPages.splice(0, this.m_arrPages.length);
+		this.m_lPagesCount = 0;
+
+		this.m_lDrawingFirst = -1;
+		this.m_lDrawingEnd = -1;
+		this.m_lCurrentPage = -1;
+	};
 }
 
 // заглушка

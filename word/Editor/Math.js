@@ -1704,6 +1704,9 @@ ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 		if (true === bClearText)
 			return null;
 
+		if (oPr && false === oPr.Math)
+			return "";
+
 		var res             = "";
 		var selectedContent = this.GetSelectContent(bAll);
 		if (selectedContent && selectedContent.Content && selectedContent.Content.GetTextContent)
@@ -3002,7 +3005,7 @@ ParaMath.prototype.Get_ClassesByPos = function(Classes, ContentPos, Depth)
     this.Root.Get_ClassesByPos(Classes, ContentPos, Depth);
 };
 
-ParaMath.prototype.Get_PosByDrawing = function(Id, ContentPos, Depth)
+ParaMath.prototype.GetPosByDrawing = function(Id, ContentPos, Depth)
 {
     return false;
 };

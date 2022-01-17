@@ -41,26 +41,10 @@ var History = AscCommon.History;
 
 var G_O_DEFAULT_COLOR_MAP = AscFormat.GenerateDefaultColorMap();
 
-CShape.prototype.setDrawingObjects = function(drawingObjects)
-{
-};
-
-
     CShape.prototype.getEditorType = function()
     {
         return 0;
     };
-CShape.prototype.setDrawingBase = function(drawingBase)
-{
-    this.drawingBase = drawingBase;
-    if(Array.isArray(this.spTree))
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            this.spTree[i].setDrawingBase(drawingBase);
-        }
-    }
-};
 
 CShape.prototype.Get_Numbering =  function()
 {
@@ -478,6 +462,7 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
     {
         this.setSignature(this.signatureLine);
     }
+    this.checkClientData();
     var oApi = Asc.editor;
     if(oApi && this.signatureLine)
     {

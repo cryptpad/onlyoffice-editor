@@ -1470,7 +1470,7 @@
 
 							var currentRange = worksheet.model.getCell3(row, col);
 							var textRange = currentRange.getValueWithFormat();
-							if (textRange !== '') {
+							if (textRange !== '' && textRange !== undefined) {
 								res += textRange;
 							}
 						}
@@ -1578,7 +1578,7 @@
 						window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 					};
 
-					worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+					worksheet.objectRender.controller.checkPasteInText(callback);
 				};
 
 				var res = false;
@@ -1677,6 +1677,13 @@
 					if(fromRange) {
 						var aRange = ws.model.selectionRange.getLast();
 						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
+
+						if (ws.model.getSheetProtection() && ws.model.isIntersectLockedRanges([toRange])) {
+							ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+							ws.handlers.trigger("cleanCutData", true);
+							return true;
+						}
+
 						var wsTo = ws.model.Id !== wsFrom.model.Id ? ws : null;
 						wsFrom.applyCutRange(fromRange, toRange, wsTo);
 						ws.handlers.trigger("cleanCutData", true);
@@ -1720,7 +1727,7 @@
 						window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 					};
 
-					worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+					worksheet.objectRender.controller.checkPasteInText(callback);
 				} else {
 					var oPasteFromBinaryWord = new pasteFromBinaryWord(this, worksheet);
 					oPasteFromBinaryWord._paste(worksheet, pasteData);
@@ -1803,7 +1810,7 @@
 							window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 						};
 
-						worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+						worksheet.objectRender.controller.checkPasteInText(callback);
 						return true;
 					} else {
 						History.TurnOff();
@@ -2588,7 +2595,7 @@
 						}
 					};
 
-					worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+					worksheet.objectRender.controller.checkPasteInText(callback);
 					return;
 				}
 
@@ -3304,7 +3311,7 @@
 					//check text
 					AscFonts.FontPickerByCharacter.getFontsByString(text);
 					worksheet._loadFonts([], function () {
-						worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+						worksheet.objectRender.controller.checkPasteInText(callback);
 					});
 					return;
 				}

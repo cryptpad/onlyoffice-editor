@@ -240,6 +240,28 @@
 			{
 				this.Clips[i].ToRenderer(renderer);
 			}
+		},
+
+		Apply : function(parent)
+		{
+			for (var i = 0, len = this.Clips.length; i < len; i++)
+			{
+				parent.transform3(this.Clips[i].Transform);
+				parent.SetIntegerGrid(this.Clips[i].IsIntegerGrid);
+
+				var _r = this.Clips[i].Rect;
+
+				parent.StartClipPath();
+
+				parent._s();
+				parent._m(_r.x, _r.y);
+				parent._l(_r.x + _r.w, _r.y);
+				parent._l(_r.x + _r.w, _r.y + _r.h);
+				parent._l(_r.x, _r.y + _r.h);
+				parent._l(_r.x, _r.y);
+
+				parent.EndClipPath();
+			}
 		}
 	};
 
@@ -348,7 +370,7 @@
 				return;
 
 			var _state = this.States[_ind];
-			if (_state.Type == gr_state_state)
+			if (_state.Type === gr_state_state)
 			{
 				if (this.Clips.length > 0)
 				{
@@ -357,33 +379,8 @@
 
 					for (var i = 0; i <= _ind; i++)
 					{
-						var _s = this.States[i];
-
-						if (_s.Type == gr_state_state)
-						{
-							var _c = _s.Clips;
-							var _l = _c.length;
-
-							for (var j = 0; j < _l; j++)
-							{
-								this.Parent.transform3(_c[j].Transform);
-								this.Parent.SetIntegerGrid(_c[j].IsIntegerGrid);
-
-								var _r = _c[j].Rect;
-								//this.Parent.AddClipRect(_r.x, _r.y, _r.w, _r.h);
-
-								this.Parent.StartClipPath();
-
-								this.Parent._s();
-								this.Parent._m(_r.x, _r.y);
-								this.Parent._l(_r.x + _r.w, _r.y);
-								this.Parent._l(_r.x + _r.w, _r.y + _r.h);
-								this.Parent._l(_r.x, _r.y + _r.h);
-								this.Parent._l(_r.x, _r.y);
-
-								this.Parent.EndClipPath();
-							}
-						}
+						if (this.States[i].Type === gr_state_state)
+							this.States[i].Apply(this.Parent);
 					}
 				}
 
@@ -393,6 +390,41 @@
 				this.Parent.transform3(_state.Transform);
 				this.Parent.SetIntegerGrid(_state.IsIntegerGrid);
 			}
+		},
+
+		RemoveLastClip : function()
+		{
+			// цель - убрать примененные this.Clips
+			if (this.Clips.length === 0)
+				return;
+
+			this.lastState = new CGrState_State();
+			this.lastState.Init(this.Parent.m_oTransform, !!this.Parent.m_bIntegerGrid, this.Clips);
+
+			this.Parent.RemoveClip();
+			for (var i = 0, len = this.States.length; i < len; i++)
+			{
+				if (this.States[i].Type === gr_state_state)
+					this.States[i].Apply(this.Parent);
+			}
+
+			this.Clips = [];
+			this.Parent.transform3(this.lastState.Transform);
+			this.Parent.SetIntegerGrid(this.lastState.IsIntegerGrid);
+		},
+		RestoreLastClip : function()
+		{
+			// цель - вернуть примененные this.lastState.Clips
+			if (!this.lastState)
+				return;
+
+			this.lastState.Apply(this.Parent);
+
+			this.Clips = this.lastState.Clips;
+			this.Parent.transform3(this.lastState.Transform);
+			this.Parent.SetIntegerGrid(this.lastState.IsIntegerGrid);
+
+			this.lastState = null;
 		},
 
 		Save : function()
@@ -447,81 +479,6 @@
 		}
 	};
 
-	var g_stringBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-	var g_arrayBase64  = [];
-	for (var index64 = 0; index64 < g_stringBase64.length; index64++)
-	{
-		g_arrayBase64.push(g_stringBase64.charAt(index64));
-	}
-
-	function Base64Encode(srcData, nSrcLen, nOffset)
-	{
-		if ("undefined" === typeof(nOffset))
-			nOffset = 0;
-
-		var nWritten = 0;
-		var nLen1    = (((nSrcLen / 3) >> 0) * 4);
-		var nLen2    = (nLen1 / 76) >> 0;
-		var nLen3    = 19;
-		var srcInd   = 0;
-		var dstStr   = [];
-
-		var _s = "";
-		for (var i = 0; i <= nLen2; i++)
-		{
-			if (i == nLen2)
-				nLen3 = ((nLen1 % 76) / 4) >> 0;
-
-			for (var j = 0; j < nLen3; j++)
-			{
-				var dwCurr = 0;
-				for (var n = 0; n < 3; n++)
-				{
-					dwCurr |= srcData[srcInd++ + nOffset];
-					dwCurr <<= 8;
-				}
-
-				_s = "";
-				for (var k = 0; k < 4; k++)
-				{
-					var b = (dwCurr >>> 26) & 0xFF;
-					_s += g_arrayBase64[b];
-					dwCurr <<= 6;
-					dwCurr &= 0xFFFFFFFF;
-				}
-				dstStr.push(_s);
-			}
-		}
-		nLen2 = (nSrcLen % 3 != 0) ? (nSrcLen % 3 + 1) : 0;
-		if (nLen2)
-		{
-			var dwCurr = 0;
-			for (var n = 0; n < 3; n++)
-			{
-				if (n < (nSrcLen % 3))
-					dwCurr |= srcData[srcInd++ + nOffset];
-				dwCurr <<= 8;
-			}
-
-			_s = "";
-			for (var k = 0; k < nLen2; k++)
-			{
-				var b = (dwCurr >>> 26) & 0xFF;
-				_s += g_arrayBase64[b];
-				dwCurr <<= 6;
-			}
-
-			nLen3 = (nLen2 != 0) ? 4 - nLen2 : 0;
-			for (var j = 0; j < nLen3; j++)
-			{
-				_s += '=';
-			}
-			dstStr.push(_s);
-		}
-
-		return dstStr.join("");
-	}
-
 	function CMemory(bIsNoInit)
 	{
 		this.Init = function()
@@ -574,11 +531,11 @@
 		}
 		this.GetBase64Memory    = function()
 		{
-			return Base64Encode(this.data, this.pos, 0);
+			return AscCommon.Base64.encode(this.data, 0, this.pos);
 		}
 		this.GetBase64Memory2   = function(nPos, nLen)
 		{
-			return Base64Encode(this.data, nLen, nPos);
+			return AscCommon.Base64.encode(this.data, nPos, nLen);
 		}
 		this.GetData   = function(nPos, nLen)
 		{
@@ -824,6 +781,17 @@
 				this.data[this.pos++] = (c >>> 8) & 0xFF;
 			}
 		}
+		this.WriteStringA = function(text)
+		{
+			var count = text.length & 0xFFFF;
+			this.WriteULong(count);
+			this.CheckSize(count);
+			for (var i=0;i<count;i++)
+			{
+				var c = text.charCodeAt(i) & 0xFF;
+				this.data[this.pos++] = c;
+			}
+		};
 		this.ClearNoAttack      = function()
 		{
 			this.pos = 0;
@@ -2002,7 +1970,7 @@
 				nFlag |= (1 << 3);
 
 			// 7-ой и 8-ой биты зарезервированы для бордера
-			var oBorder = oForm.GetTextFormPr() ? oForm.GetTextFormPr().CombBorder : null;
+			var oBorder = oFormPr.GetBorder();
 			if (oBorder && !oBorder.IsNone())
 			{
 				nFlag |= (1 << 6);
@@ -2016,6 +1984,25 @@
 				this.Memory.WriteByte(0x255);
 			}
 
+			var oParagraph = oForm.GetParagraph();
+
+			var oShd = oFormPr.GetShd();
+			if (oParagraph && oShd && !oShd.IsNil())
+			{
+				nFlag |= (1 << 9);
+
+				var oColor = oShd.GetSimpleColor(oParagraph.GetTheme(), oParagraph.GetColorMap());
+				this.Memory.WriteByte(oColor.r);
+				this.Memory.WriteByte(oColor.g);
+				this.Memory.WriteByte(oColor.b);
+				this.Memory.WriteByte(0x255);
+			}
+
+			if (oParagraph && AscCommon.align_Left !== oParagraph.GetParagraphAlign())
+			{
+				nFlag |= (1 << 10);
+				this.Memory.WriteByte(oParagraph.GetParagraphAlign());
+			}
 
 			// 0 - Unknown
 			// 1 - Text
@@ -2043,6 +2030,19 @@
 					nFlag |= (1 << 22);
 					this.Memory.WriteString(sValue);
 				}
+
+				if (oTextFormPr.MultiLine && oForm.IsFixedForm())
+					nFlag |= (1 << 23);
+
+				if (oTextFormPr.AutoFit)
+					nFlag |= (1 << 24);
+
+				var sPlaceHolderText = oForm.GetPlaceholderText();
+				if (sPlaceHolderText)
+				{
+					nFlag |= (1 << 25);
+					this.Memory.WriteString(sPlaceHolderText);
+				}
 			}
 			else if (oForm.IsComboBox() || oForm.IsDropDownList())
 			{
@@ -2051,7 +2051,7 @@
 
 				var oFormPr = isComboBox ? oForm.GetComboBoxPr() : oForm.GetDropDownListPr();
 
-				if (!isComboBox)
+				if (isComboBox)
 					nFlag |= (1 << 20);
 
 				var sValue         = oForm.GetSelectedText(true);
@@ -2091,6 +2091,13 @@
 					nFlag |= (1 << 22);
 					this.Memory.WriteString(sValue);
 				}
+
+				var sPlaceHolderText = oForm.GetPlaceholderText();
+				if (sPlaceHolderText)
+				{
+					nFlag |= (1 << 23);
+					this.Memory.WriteString(sPlaceHolderText);
+				}
 			}
 			else if (oForm.IsCheckBox())
 			{
@@ -2101,10 +2108,28 @@
 				if (oCheckBoxPr.GetChecked())
 					nFlag |= (1 << 20);
 
-				this.Memory.WriteLong(oCheckBoxPr.GetCheckedSymbol());
-				this.Memory.WriteString(oCheckBoxPr.GetCheckedFont());
-				this.Memory.WriteLong(oCheckBoxPr.GetUncheckedSymbol());
-				this.Memory.WriteString(oCheckBoxPr.GetUncheckedFont());
+				var nCheckedSymbol   = oCheckBoxPr.GetCheckedSymbol();
+				var nUncheckedSymbol = oCheckBoxPr.GetUncheckedSymbol();
+
+				var nType = 0x0000;
+				if (0x2611 === nCheckedSymbol && 0x2610 === nUncheckedSymbol)
+					nType = 0x0001;
+				else if (0x25C9 === nCheckedSymbol && 0x25CB === nUncheckedSymbol)
+					nType = 0x0002;
+
+				var sCheckedFont = oCheckBoxPr.GetCheckedFont();
+				if (AscCommon.IsAscFontSupport(sCheckedFont, nCheckedSymbol))
+					sCheckedFont = "ASCW3";
+
+				var sUncheckedFont = oCheckBoxPr.GetUncheckedFont();
+				if (AscCommon.IsAscFontSupport(sUncheckedFont, nUncheckedSymbol))
+					sUncheckedFont = "ASCW3";
+
+				this.Memory.WriteLong(nType);
+				this.Memory.WriteLong(nCheckedSymbol);
+				this.Memory.WriteString(sCheckedFont);
+				this.Memory.WriteLong(nUncheckedSymbol);
+				this.Memory.WriteString(sUncheckedFont);
 
 				var sGroupName = oCheckBoxPr.GetGroupKey();
 				if (sGroupName)
@@ -2116,7 +2141,44 @@
 			else if (oForm.IsPicture())
 			{
 				this.Memory.WriteLong(4);
-				// TODO: Параметры для картиночной формы
+
+				var oPicturePr = oForm.GetPictureFormPr();
+
+				if (oPicturePr.IsConstantProportions())
+					nFlag |= (1 << 20);
+
+				if (oPicturePr.IsRespectBorders())
+					nFlag |= (1 << 21);
+
+				nFlag |= ((oPicturePr.GetScaleFlag() & 0xF) << 24);
+				this.Memory.WriteLong(oPicturePr.GetShiftX() * 1000);
+				this.Memory.WriteLong(oPicturePr.GetShiftY() * 1000);
+
+				if (!oForm.IsPlaceHolder())
+				{
+					var arrDrawings = oForm.GetAllDrawingObjects();
+					if (arrDrawings.length > 0 && arrDrawings[0].IsPicture() && arrDrawings[0].GraphicObj.blipFill)
+					{
+						var isLocalUse = true;
+						if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsFilePrinting"])
+							isLocalUse = ((!window["AscDesktopEditor"]["IsLocalFile"]()) && window["AscDesktopEditor"]["IsFilePrinting"]()) ? false : true;
+
+						if (window["AscDesktopEditor"] && !isLocalUse)
+						{
+							if ((undefined !== window["AscDesktopEditor"]["CryptoMode"]) && (0 < window["AscDesktopEditor"]["CryptoMode"]))
+								isLocalUse = true;
+						}
+
+						var src = AscCommon.getFullImageSrc2(arrDrawings[0].GraphicObj.blipFill.RasterImageId);
+
+						var srcLocal = AscCommon.g_oDocumentUrls.getLocal(src);
+						if (srcLocal && isLocalUse)
+							src = srcLocal;
+
+						nFlag |= (1 << 22);
+						this.Memory.WriteString(src);
+					}
+				}
 			}
 			else
 			{
@@ -2161,6 +2223,8 @@
 		this.UseOriginImageUrl = false;
 
         this.FontPicker = null;
+
+        this.isPrintMode = false;
 	}
 
 	CDocumentRenderer.prototype =
@@ -2815,6 +2879,21 @@
 			var _t                = this.m_oBaseTransform;
 			this.m_oBaseTransform = null;
 			this.GrState.RestoreGrState();
+			this.m_oBaseTransform = _t;
+		},
+
+		RemoveLastClip : function()
+		{
+			var _t                = this.m_oBaseTransform;
+			this.m_oBaseTransform = null;
+			this.GrState.RemoveLastClip();
+			this.m_oBaseTransform = _t;
+		},
+		RestoreLastClip : function()
+		{
+			var _t                = this.m_oBaseTransform;
+			this.m_oBaseTransform = null;
+			this.GrState.RestoreLastClip();
 			this.m_oBaseTransform = _t;
 		},
 
@@ -3537,7 +3616,6 @@
 	window['AscCommon'].CGrRFonts                = CGrRFonts;
 	window['AscCommon'].CFontSetup               = CFontSetup;
 	window['AscCommon'].CGrState                 = CGrState;
-	window['AscCommon'].Base64Encode             = Base64Encode;
 	window['AscCommon'].CMemory                  = CMemory;
 	window['AscCommon'].CDocumentRenderer        = CDocumentRenderer;
 	window['AscCommon'].MATRIX_ORDER_PREPEND     = MATRIX_ORDER_PREPEND;

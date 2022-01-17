@@ -46,6 +46,32 @@ var AscBrowser = AscCommon.AscBrowser;
 var CMatrixL = AscCommon.CMatrixL;
 var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
 
+AscCommon.darkModeEdge = 10;
+AscCommon.darkModeCheckColor = function(r, g, b)
+{
+    return (r < AscCommon.darkModeEdge && g < AscCommon.darkModeEdge && b < AscCommon.darkModeEdge) ? true : false;
+};
+AscCommon.darkModeCheckColor2 = function(r, g, b)
+{
+    if (r < AscCommon.darkModeEdge && g < AscCommon.darkModeEdge && b < AscCommon.darkModeEdge) return true;
+    var max = 255 - AscCommon.darkModeEdge;
+	if (r > max && g > max && b > max) return true;
+	return false;
+};
+AscCommon.darkModeCorrectColor = function(r, g, b)
+{
+    return AscCommon.darkModeCheckColor(r, g, b) ? { R : 255 - r, G: 255 - g, B : 255 - b } : { R : r, G : g, B : b };
+};
+AscCommon.darkModeCorrectColor2 = function(r, g, b)
+{
+	var oHSL = {}, oRGB = {};
+	AscFormat.CColorModifiers.prototype.RGB2HSL(r, g, b, oHSL);
+	var dKoefL = (255 - 58) / 255;
+	oHSL.L = 255 - ((dKoefL * oHSL.L) >> 0);
+	AscFormat.CColorModifiers.prototype.HSL2RGB(oHSL, oRGB);
+	return oRGB;
+};
+
 function CGraphics()
 {
     this.m_oContext     = null;
@@ -115,6 +141,12 @@ function CGraphics()
     this.dash_no_smart = null;
 
     this.textAlpha = undefined;
+
+    this.endGlobalAlphaColor = null;
+    this.isDarkMode = false;
+
+    this.shapeDrawCounter = 0;
+    this.isFormDraw = 0;
 }
 
 CGraphics.prototype =
@@ -194,7 +226,13 @@ CGraphics.prototype =
             this.m_oContext.setTransform(1,0,0,1,0,0);
         }
 
-        this.b_color1(255, 255, 255, 140);
+        var oldDarkMode = this.isDarkMode;
+        this.isDarkMode = false;
+        if (!this.endGlobalAlphaColor)
+            this.b_color1(255, 255, 255, 140);
+        else
+            this.b_color1(this.endGlobalAlphaColor[0], this.endGlobalAlphaColor[1], this.endGlobalAlphaColor[2], 140);
+		this.isDarkMode = oldDarkMode;
 
         this.m_oContext.fillRect(0, 0, this.m_lWidthPix, this.m_lHeightPix);
         this.m_oContext.beginPath();
@@ -205,12 +243,68 @@ CGraphics.prototype =
                 this.m_oFullTransform.sy,this.m_oFullTransform.tx,this.m_oFullTransform.ty);
         }
     },
-    darkModeOverride : function(r,g,b,a)
+
+    darkModeOverride : function()
     {
-        this.p_color_old = this.p_color; this.p_color = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.p_color_old(255-r,255-g,255-b,a) : this.p_color_old(r,g,b,a); };
-		this.b_color1_old = this.b_color1; this.b_color1 = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.b_color1_old(255-r,255-g,255-b,a) : this.b_color1_old(r,g,b,a); };
-		this.b_color2_old = this.b_color2; this.b_color2 = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.b_color2_old(255-r,255-g,255-b,a) : this.b_color2_old(r,g,b,a); };
+        this.isDarkMode = true;
+        function _darkColor(_this, _func) {
+            return function(r, g, b, a) {
+                if (_this.isDarkMode && AscCommon.darkModeCheckColor(r, g, b))
+                    _func.call(_this, 255 - r, 255 - g, 255 - b, a);
+                else
+                    _func.call(_this, r, g, b, a);
+            };
+        }
+
+        this.p_color_old = this.p_color; this.p_color = _darkColor(this, this.p_color_old);
+		this.b_color1_old = this.b_color1; this.b_color1 = _darkColor(this, this.b_color1_old);
+		this.b_color2_old = this.b_color2; this.b_color2 = _darkColor(this, this.b_color2_old);
     },
+	darkModeOverride2 : function()
+	{
+		this.isDarkMode = true;
+		function _darkColor(_this, _func) {
+			return function(r, g, b, a) {
+			    var isCorrect = _this.isDarkMode;
+			    if (isCorrect && 0 !== this.shapeDrawCounter)
+			        if (!(1 === this.shapeDrawCounter && this.isFormDraw)) //форму первого уровня не корректируем
+			            isCorrect = false;
+				if (isCorrect && AscCommon.darkModeCheckColor2(r, g, b))
+					_func.call(_this, 255 - r, 255 - g, 255 - b, a);
+				else
+					_func.call(_this, r, g, b, a);
+			};
+		}
+
+		this.p_color_old = this.p_color; this.p_color = _darkColor(this, this.p_color_old);
+		this.b_color1_old = this.b_color1; this.b_color1 = _darkColor(this, this.b_color1_old);
+		this.b_color2_old = this.b_color2; this.b_color2 = _darkColor(this, this.b_color2_old);
+	},
+	darkModeOverride3 : function()
+	{
+		this.isDarkMode = true;
+		function _darkColor(_this, _func) {
+			return function(r, g, b, a) {
+                var isCorrect = _this.isDarkMode;
+                if (isCorrect && 0 !== this.shapeDrawCounter)
+                    if (!(1 === this.shapeDrawCounter && this.isFormDraw)) //форму первого уровня не корректируем
+                        isCorrect = false;
+				if (isCorrect)
+				{
+					var c = AscCommon.darkModeCorrectColor2(r, g, b);
+					_func.call(_this, c.R, c.G, c.B, a);
+				}
+				else
+                {
+					_func.call(_this, r, g, b, a);
+                }
+			};
+		}
+
+		this.p_color_old = this.p_color; this.p_color = _darkColor(this, this.p_color_old);
+		this.b_color1_old = this.b_color1; this.b_color1 = _darkColor(this, this.b_color1_old);
+		this.b_color2_old = this.b_color2; this.b_color2 = _darkColor(this, this.b_color2_old);
+	},
     // pen methods
     p_color : function(r,g,b,a)
     {
@@ -1407,7 +1501,7 @@ CGraphics.prototype =
         var _ctx = this.m_oContext;
         _ctx.beginPath();
         _ctx.fillStyle = "#E1E1E1";
-        _ctx.strokeStyle = GlobalSkin.RulerOutline;
+        _ctx.strokeStyle = this.isDarkMode ? "#E1E1E1" : GlobalSkin.RulerOutline;
         this.m_bBrushColorInit = false;
         this.m_bPenColorInit = false;
 
@@ -1464,7 +1558,7 @@ CGraphics.prototype =
         var _ctx = this.m_oContext;
         _ctx.beginPath();
         _ctx.fillStyle = "#E1E1E1";
-        _ctx.strokeStyle = GlobalSkin.RulerOutline;
+        _ctx.strokeStyle = this.isDarkMode ? "#E1E1E1" : GlobalSkin.RulerOutline;
         this.m_bBrushColorInit = false;
         this.m_bPenColorInit = false;
 
@@ -1505,6 +1599,8 @@ CGraphics.prototype =
 
     DrawHeaderEdit : function(yPos, lock_type, sectionNum, bIsRepeat, type)
     {
+        this.StartDrawShape();
+
         var _y = this.m_oFullTransform.TransformPointY(0,yPos);
         _y = (_y >> 0) + 0.5;
         var _x = 0;
@@ -1529,10 +1625,15 @@ CGraphics.prototype =
             case locktype_None:
             case locktype_Mine:
             {
-                //this.p_color(155, 187, 277, 255);
-                //ctx.lineWidth = 2;
-                // GlobalSkin.RulerOutline
-                this.p_color(0xBB, 0xBE, 0xC2, 255);
+                if (!this.isDarkMode)
+                {
+                    var c = AscCommon.RgbaHexToRGBA(GlobalSkin.RulerOutline);
+                    this.p_color(c.R, c.G, c.B, 255);
+                }
+                else
+                {
+                    ctx.strokeStyle = "#E1E1E1";
+                }
                 ctx.lineWidth = _lineWidth;
                 break;
             }
@@ -1599,10 +1700,14 @@ CGraphics.prototype =
 
         if (false == bIsNoIntGrid)
             this.SetIntegerGrid(false);
+
+        this.EndDrawShape();
     },
 
     DrawFooterEdit : function(yPos, lock_type, sectionNum, bIsRepeat, type)
     {
+        this.StartDrawShape();
+
         var _y = this.m_oFullTransform.TransformPointY(0,yPos);
         _y = (_y >> 0) + 0.5;
         var _x = 0;
@@ -1623,10 +1728,8 @@ CGraphics.prototype =
             case locktype_None:
             case locktype_Mine:
             {
-                //this.p_color(155, 187, 277, 255);
-                //ctx.lineWidth = 2;
-                // GlobalSkin.RulerOutline
-                this.p_color(0xBB, 0xBE, 0xC2, 255);
+                var c = AscCommon.RgbaHexToRGBA(GlobalSkin.RulerOutline);
+                this.p_color(c.R, c.G, c.B, 255);
                 ctx.lineWidth = _lineWidth;
                 break;
             }
@@ -1695,6 +1798,8 @@ CGraphics.prototype =
 
         if (false == bIsNoIntGrid)
             this.SetIntegerGrid(false);
+
+        this.EndDrawShape();
     },
 
     DrawLockParagraph : function(lock_type, x, y1, y2)
@@ -2570,6 +2675,15 @@ CGraphics.prototype =
         this.GrState.RestoreGrState();
     },
 
+    RemoveLastClip : function()
+    {
+        this.GrState.RemoveLastClip();
+    },
+    RestoreLastClip : function()
+    {
+        this.GrState.RestoreLastClip();
+    },
+
     StartClipPath : function()
     {
     },
@@ -2758,7 +2872,7 @@ CGraphics.prototype =
         }
     },
 
-    CheckUseFonts2 : function(_transform)
+    CheckUseFonts2 : function(_transform, isForm)
     {
         if (!global_MatrixTransformer.IsIdentity2(_transform))
         {
@@ -2910,6 +3024,17 @@ CGraphics.prototype =
 
         if (!_old)
             this.SetIntegerGrid(false);
+    },
+
+    StartDrawShape : function(type, isForm)
+    {
+        this.shapeDrawCounter++;
+        this.isFormDraw = isForm;
+    },
+    EndDrawShape : function()
+    {
+        this.isFormDraw = false;
+        this.shapeDrawCounter--;
     }
 };
 

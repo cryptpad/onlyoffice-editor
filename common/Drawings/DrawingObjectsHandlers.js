@@ -327,7 +327,7 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
             }
             case AscDFH.historyitem_type_GraphicFrame:
             {
-                ret = !drawingObjectsController.isSlideShow() && handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pageIndex);
+                ret = handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pageIndex);
                 break;
             }
         }
@@ -414,7 +414,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     var hit_in_inner_area = drawing.hitInInnerArea && drawing.hitInInnerArea(x, y);
     var hit_in_path = drawing.hitInPath && drawing.hitInPath(x, y);
     var hit_in_text_rect = drawing.hitInTextRect && drawing.hitInTextRect(x, y);
-    if(hit_in_inner_area || hit_in_path)
+    if(hit_in_inner_area || hit_in_path || hit_in_text_rect)
     {
         if(drawingObjectsController.checkDrawingHyperlinkAndMacro){
             var ret =  drawingObjectsController.checkDrawingHyperlinkAndMacro(drawing, e, hit_in_text_rect, x, y, pageIndex);
@@ -447,6 +447,14 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             var sMediaFile = drawing.getMediaFileName();
             if(!sMediaFile)
             {
+                var oAnimPlayer = drawingObjectsController.getAnimationPlayer();
+                if(oAnimPlayer)
+                {
+                    if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing))
+                    {
+                        return true;
+                    }
+                }
                 return false;
             }
         }
@@ -473,9 +481,19 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
         }
         if(drawingObjectsController.isSlideShow())
         {
-            if(!AscFormat.fCheckObjectHyperlink(drawing,x, y))
+            if(AscFormat.fCheckObjectHyperlink(drawing,x, y))
             {
-                return false;
+                return true;
+            }
+            if(drawing.hitInInnerArea(x, y))
+            {
+                var oAnimPlayer = drawingObjectsController.getAnimationPlayer();
+                if(oAnimPlayer)
+                {
+                    if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing)) {
+                        return true;
+                    }
+                }
             }
         }
         var oTextObject = AscFormat.getTargetTextObject(drawingObjectsController);
@@ -498,7 +516,7 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
     var hit_in_path = shape.hitInPath && shape.hitInPath(x, y);
     var hit_in_text_rect = shape.hitInTextRect && shape.hitInTextRect(x, y);
     var ret;
-    if(hit_in_inner_area || hit_in_path)
+    if(hit_in_inner_area || hit_in_path || hit_in_text_rect)
     {
         if(drawingObjectsController.checkDrawingHyperlinkAndMacro){
             var ret =  drawingObjectsController.checkDrawingHyperlinkAndMacro(shape, e, hit_in_text_rect, x, y, pageIndex);
@@ -1250,9 +1268,15 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         return false;
     }
     var ret = false, i, title, hit_to_handles;
+
+    var oApi = drawingObjectsController.getEditorApi();
     var bIsMobileVersion = oApi && oApi.isMobileVersion;
     if(drawing.hit(x, y))
     {
+        if(drawingObjectsController.isObjectsProtected() && drawing.getProtectionLocked())
+        {
+            return false;
+        }
         var bClickFlag =  !window["IS_NATIVE_EDITOR"] && (drawingObjectsController.handleEventMode === AscFormat.HANDLE_EVENT_MODE_CURSOR || e.ClickCount < 2);
         var selector = group ? group : drawingObjectsController;
         var legend = drawing.getLegend();
@@ -1547,14 +1571,18 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         }
 
         var chart_titles = drawing.getAllTitles();
-        var oApi = editor || Asc['editor'];
         for(i = 0; i < chart_titles.length; ++i)
         {
             title = chart_titles[i];
             var hit_in_inner_area = title.hitInInnerArea(x, y);
             var hit_in_path = title.hitInPath(x, y);
             var hit_in_text_rect = title.hitInTextRect(x, y);
-            if((hit_in_inner_area && (!hit_in_text_rect || drawing.selection.title !== title) || (hit_in_path && bIsMobileVersion !== true)) || (drawing.selection.title === title && title.hitInBoundingRect(x, y) )&& !window["NATIVE_EDITOR_ENJINE"])
+
+            var bMobileEditor = window["IS_NATIVE_EDITOR"] || bIsMobileVersion;
+            var bSameTitle = (drawing.selection.title === title);
+            if((hit_in_inner_area && (!hit_in_text_rect || !bSameTitle) ||
+                (hit_in_path && !bMobileEditor)) ||
+                (bSameTitle && title.hitInBoundingRect(x, y) && (!bMobileEditor || !hit_in_text_rect)))
             {
 
                 var selector = group ? group : drawingObjectsController;
@@ -2035,6 +2063,20 @@ function handleMouseUpPreMoveState(drawingObjects, e, x, y, pageIndex, bWord)
 
 function handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pageIndex)
 {
+    if(drawingObjectsController.isSlideShow())
+    {
+        if(drawing.hitInInnerArea(x, y))
+        {
+            var oAnimPlayer = drawingObjectsController.getAnimationPlayer();
+            if(oAnimPlayer)
+            {
+                if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     if(drawing.hitInBoundingRect(x, y))
     {
         return drawingObjectsController.handleMoveHit(drawing, e, x, y, group, false, pageIndex, false);

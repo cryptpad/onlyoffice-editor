@@ -2227,7 +2227,13 @@
             }
         }
         oParaPr.DefaultRunPr = oTextPr;
-        var oTxPr = AscFormat.CreateTextBodyFromString("", this.getDrawingDocument(), this);
+        var oTxPr;
+        if(this.txPr && this.txPr.content && this.txPr.content.Content[0]) {
+            oTxPr = this.txPr;
+        }
+        else {
+            oTxPr = AscFormat.CreateTextBodyFromString("", this.getDrawingDocument(), this);
+        }
         if(oStyleEntry.bodyPr) {
             oTxPr.setBodyPr(oStyleEntry.bodyPr.createDuplicate())
         }
@@ -6652,6 +6658,8 @@
             oCopy.setBarDir(this.barDir);
         if(AscFormat.isRealNumber(this.gapWidth) && oCopy.setGapWidth)
             oCopy.setGapWidth(this.gapWidth);
+        if(AscFormat.isRealNumber(this.gapDepth) && oCopy.setGapDepth)
+            oCopy.setGapDepth(this.gapDepth);
         if(AscFormat.isRealNumber(this.grouping) && oCopy.setGrouping)
             oCopy.setGrouping(this.grouping);
         if(AscFormat.isRealNumber(this.overlap) && oCopy.setOverlap)
@@ -14767,6 +14775,9 @@
     CompiledMarker.prototype.draw = CShape.prototype.draw;
     CompiledMarker.prototype.check_bounds = CShape.prototype.check_bounds;
     CompiledMarker.prototype.isEmptyPlaceholder = function() {
+        return false;
+    };
+    CompiledMarker.prototype.isForm = function() {
         return false;
     };
 

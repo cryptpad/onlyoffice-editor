@@ -633,6 +633,22 @@
 		this.iScroll._initEvents();
 	};
 
+	CMobileTouchManagerBase.prototype.checkHandlersOnClick = function()
+	{
+		var handler = this.Api.getHandlerOnClick();
+		if (handler)
+		{
+			handler.call(this);
+			this.Api.setHandlerOnClick(undefined);
+		}
+	};
+	CMobileTouchManagerBase.prototype.removeHandlersOnClick = function()
+	{
+		var handler = this.Api.getHandlerOnClick();
+		if (handler)
+			this.Api.setHandlerOnClick(undefined);
+	};
+
 	// создание вспомогательного элемента, для прокрутки. по идее потом можно изменить
 	// просто на сдвиги. но пока так
 	CMobileTouchManagerBase.prototype.CreateScrollerDiv = function(_wrapper)
@@ -1506,7 +1522,7 @@
 	// заточка на определенного делегата
 	CMobileTouchManagerBase.prototype.CheckTableRules = function(overlay)
 	{
-		if (this.Api.isViewMode || !this.TableTrackEnabled)
+		if (this.Api.isViewMode || this.Api.isRestrictionForms() || !this.TableTrackEnabled)
 			return;
 
 		var HtmlPage = this.delegate.HtmlPage;

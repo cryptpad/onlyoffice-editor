@@ -580,7 +580,23 @@
         }
     };
 
+    /**
+	 * Specify the languages which will be used to check spelling and grammar (if requested).
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sLangId - The possible value for this parameter is a language identifier as defined by
+	 * RFC 4646/BCP 47. Example: "en-CA".
+     * @returns {bool}
+	 */
+    ApiPresentation.prototype.SetLanguage = function(sLangId)
+    {
+        var nLcid = Asc.g_oLcidNameToIdMap[sLangId];
+        if (nLcid === undefined)
+            return false;
 
+        this.Presentation.SetLanguage(nLcid);
+        return true;
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1663,6 +1679,7 @@
     ApiPresentation.prototype["CreateNewHistoryPoint"] = ApiPresentation.prototype.CreateNewHistoryPoint;
     ApiPresentation.prototype["SetSizes"]              = ApiPresentation.prototype.SetSizes;
     ApiPresentation.prototype["ReplaceCurrentImage"]   = ApiPresentation.prototype.ReplaceCurrentImage;
+    ApiPresentation.prototype["SetLanguage"]           = ApiPresentation.prototype.SetLanguage;
 
     ApiSlide.prototype["GetClassType"]               = ApiSlide.prototype.GetClassType;
     ApiSlide.prototype["RemoveAllObjects"]           = ApiSlide.prototype.RemoveAllObjects;

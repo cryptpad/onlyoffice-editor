@@ -137,6 +137,16 @@ CHeaderFooter.prototype =
         }        
     },
 
+	SetPage : function(nPageAbs)
+	{
+		this.Set_Page(nPageAbs);
+	},
+
+	GetPage : function()
+	{
+		return this.RecalcInfo.CurPage;
+	},
+
 	Is_NeedRecalculate : function(PageAbs)
 	{
 		var PageNumInfo = this.LogicDocument.Get_SectionPageNumInfo(PageAbs);
@@ -992,6 +1002,9 @@ CHeaderFooter.prototype =
 
 	DrawSelectionOnPage : function(CurPage)
     {
+    	if (CurPage !== this.GetPage())
+    		return;
+
         return this.Content.DrawSelectionOnPage(0, true, true);
     },
 
@@ -1285,6 +1298,17 @@ CHeaderFooter.prototype =
 	{
 		return this.Content.CanAddComment();
 	}
+};
+CHeaderFooter.prototype.GetSectionIndex = function()
+{
+	if (!this.LogicDocument)
+		return -1;
+
+	return this.LogicDocument.SectionsInfo.Find_ByHdrFtr(this);
+};
+CHeaderFooter.prototype.GetSectionPr = function()
+{
+	return this.Get_SectPr();
 };
 CHeaderFooter.prototype.Get_SectPr = function()
 {
@@ -2228,7 +2252,7 @@ CHeaderFooterController.prototype =
 
 	DrawSelectionOnPage : function(CurPage)
 	{
-		if (null != this.CurHdrFtr)
+		if (this.CurHdrFtr)
 			return this.CurHdrFtr.DrawSelectionOnPage(CurPage);
 	},
 
@@ -2442,7 +2466,10 @@ CHeaderFooterController.prototype =
 
 	GetCurrentParagraph : function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 	{
-		return this.CurHdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
+		if (this.CurHdrFtr)
+			return this.CurHdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
+
+		return null;
 	},
 
 	GetCurrentTablesStack : function(arrTables)

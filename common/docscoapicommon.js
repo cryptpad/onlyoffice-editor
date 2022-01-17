@@ -138,7 +138,8 @@
 	jwtExpired: 4005,
 	jwtError: 4006,
 	drop: 4007,
-	updateVersion: 4008
+	updateVersion: 4008,
+	noCache: 4009
   };
   
 	var c_oAscServerCommandErrors = {
@@ -181,8 +182,8 @@
 		return code;
 	}
 
-	function getEnableDownloadByErrorCode(code) {
-		return Asc.c_oAscError.ID.UpdateVersion === code || Asc.c_oAscError.ID.SessionIdle === code || Asc.c_oAscError.ID.SessionAbsolute === code;
+	function getEnableDownloadByCloseCode(code) {
+		return c_oCloseCode.noCache !== code;
 	}
 
   /*
@@ -201,7 +202,7 @@
   prot["asc_getView"] = prot.asc_getView;
 
   window["AscCommon"].getDisconnectErrorCode = getDisconnectErrorCode;
-  window["AscCommon"].getEnableDownloadByErrorCode = getEnableDownloadByErrorCode;
+  window["AscCommon"].getEnableDownloadByCloseCode = getEnableDownloadByCloseCode;
 
   window["AscCommon"].ConnectionState = ConnectionState;
   window["AscCommon"].c_oEditorId = c_oEditorId;

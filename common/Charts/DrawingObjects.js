@@ -1965,8 +1965,8 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             // Check drawing area
             drawingObject.drawingArea = _this.drawingArea;
             drawingObject.worksheet = currentSheet;
-            drawingObject.graphicObject.drawingBase = aObjects[i];
-            drawingObject.graphicObject.drawingObjects = _this;
+            drawingObject.graphicObject.setDrawingBase(drawingObject);
+            drawingObject.graphicObject.setDrawingObjects(_this);
             drawingObject.graphicObject.getAllRasterImages(aImagesSync);
         }
 
@@ -2182,6 +2182,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 }
         _this.OnUpdateOverlay();
         _this.controller.updateSelectionState(true);
+        AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
     };
 
     _this.updateRange = function(oRange) {
@@ -2196,6 +2197,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
         _this.OnUpdateOverlay();
         _this.controller.updateSelectionState(true);
+        AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
     };
 
     _this.print = function(oOptions) {
@@ -2528,6 +2530,10 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
     _this.setListType = function(type, subtype)
     {
+        if(_this.controller.checkSelectedObjectsProtectionText())
+        {
+            return;
+        }
         var NumberInfo =
             {
                 Type    : 0,
@@ -3102,7 +3108,8 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
                 var bCanMove = false;
                 var bCanResize = false;
-                var nDrawingBaseType = obj.graphicObject.getDrawingBaseType();
+                var oGraphicObject = obj.graphicObject;
+                var nDrawingBaseType = oGraphicObject.getDrawingBaseType();
                 switch (nDrawingBaseType)
                 {
                     case AscCommon.c_oAscCellAnchorType.cellanchorTwoCell:
@@ -3360,59 +3367,53 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 // Normalize position
                 if (metrics)
                 {
-                    if (metrics.from.col < 0)
+                    var oFrom = metrics.from;
+                    var oTo = metrics.to;
+                    if (oFrom.col < 0)
                     {
-                        metrics.from.col = 0;
-                        metrics.from.colOff = 0;
+                        oFrom.col = 0;
+                        oFrom.colOff = 0;
                     }
 
-                    if (metrics.to.col <= 0) {
-                        metrics.to.col = 1;
-                        metrics.to.colOff = 0;
+                    if (oTo.col <= 0) {
+                        oTo.col = 1;
+                        oTo.colOff = 0;
                     }
 
-                    if (metrics.from.row < 0) {
-                        metrics.from.row = 0;
-                        metrics.from.rowOff = 0;
+                    if (oFrom.row < 0) {
+                        oFrom.row = 0;
+                        oFrom.rowOff = 0;
                     }
 
-                    if (metrics.to.row <= 0) {
-                        metrics.to.row = 1;
-                        metrics.to.rowOff = 0;
+                    if (oTo.row <= 0) {
+                        oTo.row = 1;
+                        oTo.rowOff = 0;
                     }
 
-                    if (metrics.from.col == metrics.to.col) {
-                        metrics.to.col++;
-                        metrics.to.colOff = 0;
+                    if (oFrom.col === oTo.col) {
+                        if(oFrom.colOff > oTo.colOff) {
+                            oTo.colOff = oFrom.colOff;
+                        }
                     }
-                    if (metrics.from.row == metrics.to.row) {
-                        metrics.to.row++;
-                        metrics.to.rowOff = 0;
+                    if (oFrom.row === oTo.row) {
+                        if(oFrom.rowOff > oTo.rowOff) {
+                            oTo.rowOff = oFrom.rowOff;
+                        }
                     }
 
-                    /*obj.from.col = metrics.from.col;
-                    obj.from.colOff = metrics.from.colOff;
-                    obj.from.row = metrics.from.row;
-                    obj.from.rowOff = metrics.from.rowOff;
+                    oGraphicObject.setDrawingBaseCoords(oFrom.col, oFrom.colOff, oFrom.row, oFrom.rowOff,
+                        oTo.col, oTo.colOff, oTo.row, oTo.rowOff, obj.Pos.X, obj.Pos.Y, obj.ext.cx, obj.ext.cy);
+                    oGraphicObject.recalculate();
 
-                    obj.to.col = metrics.to.col;
-                    obj.to.colOff = metrics.to.colOff;
-                    obj.to.row = metrics.to.row;
-                    obj.to.rowOff = metrics.to.rowOff;
-                    */
-
-
-                    obj.graphicObject.setDrawingBaseCoords(metrics.from.col, metrics.from.colOff, metrics.from.row, metrics.from.rowOff,
-                        metrics.to.col, metrics.to.colOff, metrics.to.row, metrics.to.rowOff, obj.Pos.X, obj.Pos.Y, obj.ext.cx, obj.ext.cy);
-                    obj.graphicObject.recalculate();
-
-                    if(obj.graphicObject.spPr && obj.graphicObject.spPr.xfrm){
-                        obj.graphicObject.spPr.xfrm.setOffX(obj.graphicObject.x);
-                        obj.graphicObject.spPr.xfrm.setOffY(obj.graphicObject.y);
-                        obj.graphicObject.spPr.xfrm.setExtX(obj.graphicObject.extX);
-                        obj.graphicObject.spPr.xfrm.setExtY(obj.graphicObject.extY);
+                    if(oGraphicObject.spPr && oGraphicObject.spPr.xfrm)
+                    {
+                        var oXfrm = oGraphicObject.spPr.xfrm;
+                        oXfrm.setOffX(oGraphicObject.x);
+                        oXfrm.setOffY(oGraphicObject.y);
+                        oXfrm.setExtX(oGraphicObject.extX);
+                        oXfrm.setExtY(oGraphicObject.extY);
                     }
-                    obj.graphicObject.recalculate();
+                    oGraphicObject.recalculate();
                     bNeedRedraw = true;
                 }
             }
@@ -3534,6 +3535,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.applyMoveResizeRange = function(oRanges) {
+
         var oChart = null;
         var aSelectedObjects = _this.controller.selection.groupSelection ? _this.controller.selection.groupSelection.selectedObjects : _this.controller.selectedObjects;
         if(aSelectedObjects.length === 1
@@ -3605,6 +3607,11 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     _this.groupGraphicObjects = function() {
 
         if ( _this.controller.canGroup() ) {
+
+            if(this.controller.checkSelectedObjectsProtection())
+            {
+                return;
+            }
             _this.controller.checkSelectedObjectsAndCallback(_this.controller.createGroup, [], false, AscDFH.historydescription_Spreadsheet_CreateGroup);
             worksheet.setSelectionShape(true);
         }
@@ -3946,8 +3953,15 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         _this.lastX = x;
         _this.lastY = y;
         var offsets = _this.drawingArea.getOffsets(x, y, true);
-        if ( offsets )
-            _this.controller.onMouseMove( e, pxToMm(x - offsets.x), pxToMm(y - offsets.y) );
+        if ( offsets ) {
+
+            var fX = pxToMm(x - offsets.x);
+            var fY = pxToMm(y - offsets.y);
+            _this.controller.onMouseMove( e, fX, fY );
+            if(worksheet && worksheet.model) {
+                AscCommon.CollaborativeEditing.Check_ForeignCursorsLabels(fX, fY, worksheet.model.Id);
+            }
+        }
     };
 
     _this.graphicObjectMouseUp = function(e, x, y) {
@@ -3957,8 +3971,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.isPointInDrawingObjects3 = function(x, y, page, bSelected, bText) {
-
-
         var offsets = _this.drawingArea.getOffsets(x, y, true);
         if ( offsets )
             return _this.controller.isPointInDrawingObjects3(pxToMm(x - offsets.x), pxToMm(y - offsets.y), page, bSelected, bText );
@@ -4243,7 +4255,12 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.Begin_CompositeInput = function(){
-
+        if(!_this.controller.canEdit()) {
+            return;
+        }
+        if(_this.controller.checkSelectedObjectsProtectionText()) {
+            return;
+        }
         History.Create_NewPoint(AscDFH.historydescription_Document_CompositeInput);
         _this.beginCompositeInput();
         _this.controller.recalculateCurPos(true, true);
@@ -4404,7 +4421,19 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 		}
 		return coords;
 	};
-
+    DrawingObjects.prototype.getDocumentPositionBinary = function() {
+        if(this.controller) {
+            var oPosition = this.controller.getDocumentPositionForCollaborative();
+            if(!oPosition) {
+                return "";
+            }
+            //console.log("POSITION: " + oPosition.Position);
+            var oWriter = new AscCommon.CMemory(true);
+            oWriter.CheckSize(50);
+            return AscCommon.CollaborativeEditing.GetDocumentPositionBinary(oWriter, oPosition);
+        }
+        return "";
+    };
 function ClickCounter() {
     this.x = 0;
     this.y = 0;

@@ -1989,6 +1989,8 @@ CTable.prototype.Set_Props = function(Props)
 				var Row = this.Content[CurRow];
 				for (var CurCell = 0; CurCell < Row.Get_CellsCount(); CurCell++)
 				{
+					var oUnifill = Props.CellsBackground.Unifill;
+
 					var Cell   = Row.Get_Cell(CurCell);
 					var NewShd = {
 						Value : Props.CellsBackground.Value,
@@ -2005,7 +2007,8 @@ CTable.prototype.Set_Props = function(Props)
 							Auto : false
 						},
 
-						Unifill : Props.CellsBackground.Unifill.createDuplicate()
+						Unifill   : oUnifill ? oUnifill.createDuplicate() : undefined,
+						ThemeFill : oUnifill ? oUnifill.createDuplicate() : undefined
 					};
 
 					Cell.Set_Shd(NewShd);
@@ -2024,6 +2027,7 @@ CTable.prototype.Set_Props = function(Props)
 
 				if (Props.CellsBackground.Value != Cell_shd.Value || Props.CellsBackground.Color.r != Cell_shd.Color.r || Props.CellsBackground.Color.g != Cell_shd.Color.g || Props.CellsBackground.Color.b != Cell_shd.Color.b || !AscFormat.CompareUnifillBool(Props.CellsBackground.Unifill, Cell_shd.Unifill))
 				{
+					var oUnifill = Props.CellsBackground.Unifill;
 					var NewShd = {
 						Value : Props.CellsBackground.Value,
 						Color : {
@@ -2040,7 +2044,9 @@ CTable.prototype.Set_Props = function(Props)
 							Auto : false
 						},
 
-						Unifill : Props.CellsBackground.Unifill.createDuplicate()
+						Unifill   : oUnifill ? oUnifill.createDuplicate() : undefined,
+						ThemeFill : oUnifill ? oUnifill.createDuplicate() : undefined
+
 					};
 
 					Cell.Set_Shd(NewShd);
@@ -2056,6 +2062,7 @@ CTable.prototype.Set_Props = function(Props)
 
 			if (Props.CellsBackground.Value != Cell_shd.Value || Props.CellsBackground.Color.r != Cell_shd.Color.r || Props.CellsBackground.Color.g != Cell_shd.Color.g || Props.CellsBackground.Color.b != Cell_shd.Color.b || !AscFormat.CompareUnifillBool(Props.CellsBackground.Unifill, Cell_shd.Unifill))
 			{
+				var oUnifill = Props.CellsBackground.Unifill;
 				var NewShd = {
 					Value : Props.CellsBackground.Value,
 					Color : {
@@ -2071,7 +2078,8 @@ CTable.prototype.Set_Props = function(Props)
 						b    : Props.CellsBackground.Color.b,
 						Auto : false
 					},
-					Unifill : Props.CellsBackground.Unifill.createDuplicate()
+					Unifill   : oUnifill ? oUnifill.createDuplicate() : undefined,
+					ThemeFill : oUnifill ? oUnifill.createDuplicate() : undefined
 				};
 
 				Cell.Set_Shd(NewShd);
@@ -3030,7 +3038,7 @@ CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, Colu
 
 	var _X      = this.X;
 	var _XLimit = this.XLimit;
-	if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
+	if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline() && this.Parent && this.Parent.CheckRange)
 	{
 		var arrRanges = this.Parent.CheckRange(_X, this.Y, _XLimit, this.Y + 0.001, this.Y, this.Y + 0.001, _X, _XLimit, this.private_GetRelativePageIndex(0));
 		if (arrRanges.length > 0)
@@ -7105,6 +7113,10 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 	}
 	else
 	{
+		var oLogicDocument = this.GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
 		if (true === this.IsInnerTable())
 			return this.CurCell.Content.MoveCursorToCell(bNext);
 
@@ -7115,18 +7127,26 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 			Cell : Pos_c,
 			Row  : Pos_r
 		};
+		
+		var oCheckAutoCorrectPara = null;
+		if (!this.IsSelectionUse())
+		{
+			oCheckAutoCorrectPara = this.CurCell.GetContent().GetCurrentParagraph();
+			if (oCheckAutoCorrectPara && !oCheckAutoCorrectPara.IsCursorAtEnd())
+				oCheckAutoCorrectPara = null;
+		}
 
 		if (true === bNext)
 		{
 			var TempCell = this.Internal_Get_NextCell(Pos);
-			while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+			while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 				TempCell = this.Internal_Get_NextCell(Pos);
 
 			if (null != TempCell)
 				CurCell = TempCell;
 			else
 			{
-				if (false == editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_Element_and_Type,
 						Element   : this,
 						CheckType : AscCommon.changestype_Table_Properties
@@ -7134,14 +7154,26 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 				{
 					this.LogicDocument.StartAction(AscDFH.historydescription_Document_TableAddNewRowByTab);
 					this.AddTableRow(false);
+
+					if (oCheckAutoCorrectPara)
+					{
+						var oParaEndRun = oCheckAutoCorrectPara.GetParaEndRun();
+						if (oParaEndRun)
+							oParaEndRun.ProcessAutoCorrectOnParaEnd(1);
+
+						oCheckAutoCorrectPara = null;
+					}
+
 					this.LogicDocument.Recalculate();
 					this.LogicDocument.FinalizeAction();
 				}
 				else
+				{
 					return;
+				}
 
 				var TempCell = this.Internal_Get_NextCell(Pos);
-				while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+				while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 					TempCell = this.Internal_Get_NextCell(Pos);
 
 				if (null != TempCell)
@@ -7151,15 +7183,25 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 		else
 		{
 			var TempCell = this.Internal_Get_PrevCell(Pos);
-			while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+			while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 				TempCell = this.Internal_Get_PrevCell(Pos);
 
 			if (null != TempCell)
 				CurCell = TempCell;
 		}
 
-		// Предварительно очистим текущий селект
-		editor.WordControl.m_oLogicDocument.RemoveSelection();
+		if (oCheckAutoCorrectPara)
+		{
+			var oParaEndRun = oCheckAutoCorrectPara.GetParaEndRun();
+			if (oParaEndRun)
+				oParaEndRun.ProcessAutoCorrectOnParaEnd(0);
+
+			oCheckAutoCorrectPara = null;
+		}
+
+
+		// Т.к. мы собираемся выставить селект заново, то предварительно очистим текущий селект
+		oLogicDocument.RemoveSelection();
 
 		this.CurCell = CurCell;
 		this.CurCell.Content.SelectAll();
@@ -8401,11 +8443,16 @@ CTable.prototype.Clear_DirectFormatting = function(bClearMerge)
 };
 CTable.prototype.Set_Pr = function(TablePr)
 {
+	var isHavePrChange = this.HavePrChange();
+
 	this.private_AddPrChange();
 	History.Add(new CChangesTablePr(this, this.Pr, TablePr));
 	this.Pr = TablePr;
 	this.Recalc_CompiledPr2();
 	this.private_UpdateTableGrid();
+
+	if (isHavePrChange || this.HavePrChange())
+		this.UpdateTrackRevisions();
 };
 CTable.prototype.SetPr = function(oTablePr)
 {
@@ -9117,7 +9164,7 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 	if (true === bApplyToInnerTable)
 		return false;
 
-	if (true != this.Selection.Use || table_Selection_Cell != this.Selection.Type || this.Selection.Data.length <= 1)
+	if (true !== this.Selection.Use || table_Selection_Cell !== this.Selection.Type || this.Selection.Data.length <= 1)
 		return false;
 
 	// В массиве this.Selection.Data идет список ячеек по строкам (без разрывов)
@@ -9132,25 +9179,53 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 	if (false === bCanMerge)
 		return false;
 
+	var oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument && !oLogicDocument.IsDocumentEditor())
+		oLogicDocument = undefined;
+
 	// Объединяем содержимое всех ячеек в левую верхнюю ячейку. (Все выделенные
 	// ячейки идут у нас последовательно, начиная с левой верхней), и объединяем
 	// сами ячейки.
 
 	var Pos_tl  = this.Selection.Data[0];
-	var Cell_tl = this.Content[Pos_tl.Row].Get_Cell(Pos_tl.Cell);
+	var Cell_tl = this.GetRow(Pos_tl.Row).GetCell(Pos_tl.Cell);
 
-	for (var Index = 0; Index < this.Selection.Data.length; Index++)
+	// Добавляем содержимое данной ячейки к содержимому левой верхней ячейки
+	// Комментарии сохраняем, т.к. метка начала комментария при этом перенесится только еще в более раннюю
+	// позицию, поэтому нарушения логики быть не должно
+	// TODO: Возможно стоить обновление позиций комментариев запихнуть внутрь CDocumentContent.AddContent
+
+	var isRemoveComments = null;
+	if (oLogicDocument)
 	{
-		var Pos  = this.Selection.Data[Index];
-		var Row  = this.Content[Pos.Row];
-		var Cell = Row.Get_Cell(Pos.Cell);
+		isRemoveComments = oLogicDocument.RemoveCommentsOnPreDelete;
+		oLogicDocument.RemoveCommentsOnPreDelete = false;
+	}
 
-		// Добавляем содержимое данной ячейки к содержимому левой верхней ячейки
-		if (0 != Index)
+	var oMainCellContent = Cell_tl.GetContent();
+	var arrMovedComments = [];
+	for (var nIndex = 1; nIndex < this.Selection.Data.length; ++nIndex)
+	{
+		var oPos         = this.Selection.Data[nIndex];
+		var oCellContent = this.GetRow(oPos.Row).GetCell(oPos.Cell).GetContent();
+
+		oCellContent.GetAllComments(arrMovedComments);
+		oMainCellContent.AddContent(oCellContent.Content);
+		oCellContent.ClearContent();
+	}
+
+	if (oLogicDocument)
+	{
+		var oCommentsManager = oLogicDocument.GetCommentsManager();
+		for (var nIndex = 0, nCount = arrMovedComments.length; nIndex < nCount; ++nIndex)
 		{
-			Cell_tl.Content_Merge(Cell.Content);
-			Cell.Content.Clear_Content();
+			var oCommentMark = arrMovedComments[nIndex].Comment;
+			var oComment = oCommentsManager.GetById(oCommentMark.GetCommentId());
+			if (oComment)
+				oComment.UpdatePosition();
 		}
+
+		oLogicDocument.RemoveCommentsOnPreDelete = isRemoveComments;
 	}
 
 	if (true !== isClearMerge)
@@ -9212,14 +9287,7 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 	this.private_SetSelectionData([Pos_tl]);
 
 	this.CurCell = Cell_tl;
-
 	this.CurCell.GetContent().SelectAll();
-
-	if (true !== isClearMerge)
-	{
-		// Запускаем пересчет
-		this.Internal_Recalculate_1();
-	}
 
 	return true;
 };
@@ -12619,18 +12687,23 @@ CTable.prototype.HorSplitCells = function(Y, RowIndex, CellsIndexes, CurPageStar
 			var Grid_span  = Cell.Get_GridSpan();
 
 			var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
+			var CellVMerge   = Cell.GetVMerge();
 
-			var Cells	  = [];
-			var Cells_pos = [];
-			var Rows_     = [];
-
+			var Cells	       = [];
+			var Cells_pos      = [];
+			var Rows_          = [];
+			var ElmsToTransfer = [];
+			var TempCell	   = null;
+			
 			if (VMerge_count > 1)
 			{
+				var TempRow	       = null;
+				
 				// Если попадаем в окрестность верхней границы ячейки, то добавляем границу сверху
 				if (Math.abs(this.RowsInfo[RowIndex].Y[CurPageStart] - Y) <= 1.5)
 				{
-					var TempRow	     = this.GetRow(Cell_pos.Row);
-					var TempCell	 = TempRow.Get_Cell(Cell_pos.Cell);
+					TempRow	     = this.GetRow(Cell_pos.Row);
+					TempCell	 = TempRow.Get_Cell(Cell_pos.Cell);
 					TempCell.SetVMerge(vmerge_Restart);
 				}
 				// Если попадаем в окрестность нижней границы, то добавляем границу снизу
@@ -12638,8 +12711,8 @@ CTable.prototype.HorSplitCells = function(Y, RowIndex, CellsIndexes, CurPageStar
 				{
 					if (RowIndex != this.Get_RowsCount() - 1)
 					{
-						var TempRow 	 = this.GetRow(Cell_pos.Row + 1);
-						var TempCell	 = this.GetCellByStartGridCol(TempRow.GetIndex(), Grid_start);
+						TempRow 	 = this.GetRow(Cell_pos.Row + 1);
+						TempCell	 = this.GetCellByStartGridCol(TempRow.GetIndex(), Grid_start);
 
 						TempCell.SetVMerge(vmerge_Restart);
 					}
@@ -12670,6 +12743,45 @@ CTable.prototype.HorSplitCells = function(Y, RowIndex, CellsIndexes, CurPageStar
 					continue;
 				}
 			}
+
+			// разбиение контента по линии
+			var CellToSplit = null;
+			var Grid_start  = Cell.Row.Get_CellInfo(Cell.Index).StartGridCol;
+			if (CellVMerge === 2)
+			{
+				for (var nRow = Cell.Row.Index - 1; nRow >= 0; nRow--)
+				{
+					CellToSplit = this.GetCellByStartGridCol(nRow, Grid_start);
+					if (CellToSplit.GetVMerge() === 1)
+						break;
+					else
+						CellToSplit = null;
+				}
+			}
+			if (!CellToSplit)
+				CellToSplit = Cell;
+
+			var CellToAddContent = TempCell;
+
+			if (!TempCell)
+				continue;
+				
+			for (var nElm = 0; nElm < CellToSplit.Content.Content.length; nElm++)
+			{
+				if (Y < CellToSplit.Content.Content[nElm].Y + 1.5)
+				{
+					ElmsToTransfer.push(CellToSplit.Content.Content[nElm].Copy());
+					CellToSplit.Content.Remove_FromContent(nElm, 1);
+					nElm--;
+				}
+			}
+			
+			for (var nElm = ElmsToTransfer.length - 1; nElm >= 0; nElm--)
+			{
+				CellToAddContent.Content.Add_ToContent(0, ElmsToTransfer[nElm]);
+			}
+
+			ElmsToTransfer = [];
 		}
 	}
 
@@ -12689,9 +12801,10 @@ CTable.prototype.HorSplitCells = function(Y, RowIndex, CellsIndexes, CurPageStar
 
 		var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
 
-		var Cells	  = [];
-		var Cells_pos = [];
-		var Rows_     = [];
+		var Cells	        = [];
+		var Cells_pos       = [];
+		var Rows_           = [];
+		var ElmsToTransfer  = [];
 
 		Rows_[0]     = Row;
 		Cells[0]     = Cell;
@@ -12712,7 +12825,7 @@ CTable.prototype.HorSplitCells = function(Y, RowIndex, CellsIndexes, CurPageStar
 		Rows_[1]     = NewRow;
 		Cells[1]     = null;
 		Cells_pos[1] = null;
-
+		
 		// Копируем настройки всех ячеек исходной строки в новую строку
 		for (var CurCell = 0; CurCell < CellsCount; CurCell++)
 		{
@@ -12736,6 +12849,43 @@ CTable.prototype.HorSplitCells = function(Y, RowIndex, CellsIndexes, CurPageStar
 			{
 				if (CurCell != CellsIndexes[0])
 					New_Cell.SetVMerge(vmerge_Restart);
+			}
+
+			// разбиение контента по линии
+			if (-1 !== CellsIndexes.indexOf(CurCell))
+			{
+				var CellToSplit  = null;
+				var Grid_start   = Old_Cell.Row.Get_CellInfo(Old_Cell.Index).StartGridCol;
+				if (Old_Cell.GetVMerge() === 2)
+				{
+					for (var nRow = Old_Cell.Row.Index; nRow >= 0; nRow--)
+					{
+						CellToSplit = this.GetCellByStartGridCol(nRow, Grid_start);
+						if (CellToSplit.GetVMerge() === 1)
+							break;
+						else
+							CellToSplit = null;
+					}
+				}
+				if (!CellToSplit)
+					CellToSplit = Old_Cell;
+
+				for (var nElm = 0; nElm < CellToSplit.Content.Content.length; nElm++)
+				{
+					if (Y < CellToSplit.Content.Content[nElm].Y)
+					{
+						ElmsToTransfer.push(CellToSplit.Content.Content[nElm].Copy());
+						CellToSplit.Content.Remove_FromContent(nElm, 1);
+						nElm--;
+					}
+				}
+				
+				for (var nElm = ElmsToTransfer.length - 1; nElm >= 0; nElm--)
+				{
+					New_Cell.Content.Add_ToContent(0, ElmsToTransfer[nElm]);
+				}
+
+				ElmsToTransfer = [];
 			}
 
 			Old_Cell.CheckNonEmptyBorder(2);
@@ -16974,6 +17124,7 @@ CTable.prototype.SetTableGridChange = function(arrTableGridChange)
 {
 	History.Add(new CChangesTableTableGridChange(this, this.TableGridChange, arrTableGridChange));
 	this.TableGridChange = arrTableGridChange;
+	this.UpdateTrackRevisions();
 };
 /**
  * Получаем ширину заданного промежутка в сетке таблицы
@@ -18940,9 +19091,10 @@ CTable.prototype.GetMaxTableGridWidth = function()
 {
 	this.private_RecalculateGrid();
 
+	var nIndent = this.Get_CompiledPr(false).TablePr.TableInd;
 	return {
-		GapLeft   : -this.GetTableOffsetCorrection(),
-		GapRight  : this.GetRightTableOffsetCorrection(),
+		GapLeft   : -this.GetTableOffsetCorrection() - nIndent,
+		GapRight  : this.GetRightTableOffsetCorrection() + nIndent,
 		GridWidth : this.TableSumGrid[this.TableSumGrid.length - 1] + this.GetTableOffsetCorrection() - this.GetRightTableOffsetCorrection()
 	};
 };

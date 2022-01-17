@@ -40,6 +40,9 @@
 			"common/libfont/manager.js",
 			"common/libfont/classification.js",
 
+			"common/stringserialize.js",
+			"common/random.js",
+
 			"common/Drawings/Metafile.js",
 			"common/libfont/textmeasurer.js",
 			"common/Drawings/WorkEvents.js",
@@ -69,7 +72,6 @@
 			"common/Drawings/Format/ChartSpace.js",
 			"common/Drawings/Format/ChartFormat.js",
 			"common/Drawings/Format/TextBody.js",
-			"common/Drawings/Format/GraphicFrame.js",
 			"common/Charts/charts.js",
 			"common/Charts/DrawingObjects.js",
 			"common/Charts/3DTransformation.js",
@@ -94,6 +96,7 @@
 			"common/scroll.js",
 			"vendor/iscroll.js",
 			"vendor/delta.js",
+			"vendor/minhash.js",
 			"common/Scrolls/mobileTouchManagerBase.js",
 			"word/Drawing/mobileTouchManager.js",
 
@@ -111,6 +114,7 @@
 			"word/Editor/GraphicObjects/Format/ImagePrototype.js",
 			"word/Editor/GraphicObjects/Format/GroupPrototype.js",
 			"word/Editor/GraphicObjects/Format/ChartSpacePrototype.js",
+			"common/Drawings/Format/GraphicFrame.js",
 			"common/Drawings/Format/LockedCanvas.js",
 			"word/Editor/GraphicObjects/GraphicObjects.js",
 			"word/Editor/GraphicObjects/GraphicPage.js",
@@ -190,6 +194,8 @@
 			"word/Editor/EndnotesChanges.js",
 		    "word/Editor/GlossaryDocument.js",
 		    "word/Editor/GlossaryDocumentChanges.js",
+			"word/Editor/DocumentProtection.js",
+			"word/Editor/Comparison.js",
 
 			"word/Drawing/Graphics.js",
 			"word/Drawing/ShapeDrawer.js",

@@ -1113,6 +1113,7 @@
 	CellEditor.prototype._fireUpdated = function () {
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
 		var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
+		var api = window["Asc"]["editor"];
 		var fPos, fName, match, fCurrent;
 
 		if (!this.isTopLineActive || !this.skipTLUpdate || this.undoMode) {
@@ -1134,7 +1135,10 @@
 		}
 
 		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName);
-		this.handlers.trigger("updatedEditableFunction", fCurrent);
+		this.handlers.trigger("updatedEditableFunction", fCurrent, fPos !== undefined ? this.calculateOffset(fPos) : null);
+		if (api && api.isMobileVersion) {
+			this.restoreFocus();
+		}
 	};
 
 	CellEditor.prototype._getEditableFunction = function (parseResult, bEndCurPos) {
@@ -1303,7 +1307,7 @@
 
 	CellEditor.prototype._adjustCanvas = function () {
 		var z = this.defaults.canvasZIndex;
-		var borderSize = AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var borderSize = AscBrowser.retinaPixelRatio === 1.5 ? 1 : AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var left = this.left * this.kx;
 		var top = this.top * this.ky;
 		var width, height, widthStyle, heightStyle;
@@ -1323,6 +1327,14 @@
 		if(!this.getMenuEditorMode()) {
 			this.canvasOuterStyle.zIndex = this.top < 0 ? -1 : z;
 		}
+
+		// в сафари с включенным аппаратным ускорением баг при вводе текста.
+		// видимо они кешируют по особенному текстуры, которые размером (w*h<5000)
+		// формула точная. ни пикселом меньше. больше - можно сколько угодно.
+		// нужно проверять каждое обновление сафари - и как поправят - убрать эту заглушку
+		// canvas'ы прозрачные и их увеличенный размер не влияет на результат.
+		if (AscCommon.AscBrowser.isSafariMacOs && (widthStyle * heightStyle) < 5000)
+			widthStyle = ((5000 / heightStyle) >> 0) + 1;
 
 		this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
 		this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
@@ -1414,8 +1426,8 @@
 			var _begInfo = this.textRender.calcCharOffset(pos);
 			var _topLine = _begInfo ? this.textRender.calcLineOffset(_begInfo.lineIndex) : null;
 
-			left = _begInfo && _begInfo.left ? _begInfo.left : 0;
-			top = _topLine != null && _top != null ? _topLine - _top : 0;
+			left = _begInfo && _begInfo.left ? AscCommon.AscBrowser.convertToRetinaValue(_begInfo.left) : 0;
+			top = _topLine != null && _top != null ? AscCommon.AscBrowser.convertToRetinaValue(_topLine - _top) : 0;
 		}
 
 		return [left, top];
@@ -1516,6 +1528,8 @@
 		if (!window['IS_NATIVE_EDITOR']) {
 			this.cursorStyle.left = curLeft + "px";
 			this.cursorStyle.top = curTop + "px";
+
+			this.cursorStyle.width = (((2 * AscCommon.AscBrowser.retinaPixelRatio) >> 0) / AscCommon.AscBrowser.retinaPixelRatio) + "px";
 			this.cursorStyle.height = curHeight + "px";
 		}
 
@@ -2225,7 +2239,7 @@
 		var t = this, kind = undefined, hieroglyph = false;
 		var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
-		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents)) {
+		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents && event.emulated !== true)) {
 			return true;
 		}
 
@@ -2732,6 +2746,9 @@
 	CellEditor.prototype._onInputTextArea = function (event) {
 		var t = this;
 		if (!this.handlers.trigger("canEdit") || this.loadFonts) {
+			return true;
+		}
+		if (this.handlers.trigger("isProtectActiveCell")) {
 			return true;
 		}
 		this.loadFonts = true;

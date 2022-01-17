@@ -232,6 +232,7 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_Shape]                  = AscFormat.CShape;
 		this.m_oFactoryClass[AscDFH.historyitem_type_DispUnits]              = AscFormat.CDispUnits;
 		this.m_oFactoryClass[AscDFH.historyitem_type_GroupShape]             = AscFormat.CGroupShape;
+		this.m_oFactoryClass[AscDFH.historyitem_type_LockedCanvas]           = AscFormat.CLockedCanvas;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ImageShape]             = AscFormat.CImageShape;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Geometry]               = AscFormat.Geometry;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Path]                   = AscFormat.Path;
@@ -323,7 +324,6 @@
 			this.m_oFactoryClass[AscDFH.historyitem_type_SndTgt]              = AscFormat.CSndTgt;
 			this.m_oFactoryClass[AscDFH.historyitem_type_SpTgt]               = AscFormat.CSpTgt;
 			this.m_oFactoryClass[AscDFH.historyitem_type_IterateData]         = AscFormat.CIterateData;
-			this.m_oFactoryClass[AscDFH.historyitem_type_Tm]                  = AscFormat.CTm;
 			this.m_oFactoryClass[AscDFH.historyitem_type_Tav]                 = AscFormat.CTav;
 			this.m_oFactoryClass[AscDFH.historyitem_type_AnimVariant]         = AscFormat.CAnimVariant;
 			this.m_oFactoryClass[AscDFH.historyitem_type_AnimClr]             = AscFormat.CAnimClr;
