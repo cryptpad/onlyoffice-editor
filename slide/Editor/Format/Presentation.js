@@ -6162,7 +6162,10 @@ CPresentation.prototype.OnKeyDown = function (e) {
 
 
     var oController = this.GetCurrentController();
-    var aStartAnims = oController.getAnimSelectionState();
+    var aStartAnims;
+    if(oController) {
+        aStartAnims = oController.getAnimSelectionState();
+    }
 
     var nShortcutAction = this.Api.getShortcut(e);
     switch (nShortcutAction) {
@@ -6860,7 +6863,9 @@ CPresentation.prototype.OnKeyDown = function (e) {
         this.Document_UpdateSelectionState();
 
         
-    oController.checkRedrawAnimLabels(aStartAnims);
+    if(oController) {
+        oController.checkRedrawAnimLabels(aStartAnims);
+    }
     return bRetValue;
 };
 
@@ -7019,9 +7024,12 @@ CPresentation.prototype.OnMouseDown = function (e, X, Y, PageIndex) {
     e.ctrlKey = e.CtrlKey;
     e.shiftKey = e.ShiftKey;
     var oController = this.Slides[this.CurPage].graphicObjects;
-    var aStartAnims = oController.getAnimSelectionState();
-    var ret = oController.onMouseDown(e, X, Y);
-    oController.checkRedrawAnimLabels(aStartAnims);
+    var ret = null;
+    if(oController) {
+        var aStartAnims = oController.getAnimSelectionState();
+        ret = oController.onMouseDown(e, X, Y);
+        oController.checkRedrawAnimLabels(aStartAnims);
+    }
     this.private_UpdateCursorXY(true, true);
     if (!ret) {
         this.Document_UpdateSelectionState();
@@ -7043,7 +7051,6 @@ CPresentation.prototype.OnMouseUp = function (e, X, Y, PageIndex) {
 
     var oController = this.Slides[this.CurPage] && this.Slides[this.CurPage].graphicObjects;
     if (oController) {
-        
         var aStartAnims = oController.getAnimSelectionState();
         oController.onMouseUp(e, X, Y);
         oController.checkRedrawAnimLabels(aStartAnims);
