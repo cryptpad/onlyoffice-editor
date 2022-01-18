@@ -1084,8 +1084,13 @@
 				this.ws.nColsCount = Math.max(this.ws.nColsCount, this.nCol);
 				this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.nCol);
 			} else if ("s" === reader.GetName()) {
-				val = reader.GetValue();
-				this.xfs = null;//parseInt(val);
+				var nStyleIndex = reader.GetValueInt();
+				if (0 != nStyleIndex) {
+					var xfs = reader.GetContext().InitOpenManager.aCellXfs[nStyleIndex];
+					if (null != xfs) {
+						this.setStyle(xfs);
+					}
+				}
 			} else if ("t" === reader.GetName()) {
 				val = reader.GetValue();
 				switch(val) {
@@ -5533,6 +5538,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
+
 	//***STYLE****
 	AscCommonExcel.CT_Stylesheet.prototype.fromXml = function (reader) {
 
@@ -5639,7 +5645,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						}
 					}
 				} else if ("colors" === name) {
-
+					//TODO не вижу в serialize
 				} else if ("dxfs" === name) {
 					if (reader.IsEmptyNode()) {
 						continue;
@@ -5729,10 +5735,20 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					//this.readAttr(reader);
 					this.tableStyles.fromXml(reader);
 				} else if ("Style" === name) {
-
+					//TODO
 				} else if ("extLst" === name) {
-
+					//TODO ExtDxfs ?
 				}
+
+
+				//TODO  - есть в serialize
+				/*else if (c_oSerStylesTypes.SlicerStyles === type && typeof Asc.CT_slicerStyles != "undefined") {
+					var fileStream = this.stream.ToFileStream();
+					fileStream.GetUChar();
+					oStyleObject.oCustomSlicerStyles = new Asc.CT_slicerStyles();
+					oStyleObject.oCustomSlicerStyles.fromStream(fileStream);
+					this.stream.FromFileStream(fileStream);
+				}*/
 			}
 		}
 	};
@@ -5895,10 +5911,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.BorderId = val;
 			} else if ("fillId" === reader.GetName()) {
 				val = reader.GetValueInt();
-				this.fillId = val;
+				this.fillid = val;
 			} else if ("fontId" === reader.GetName()) {
 				val = reader.GetValueInt();
-				this.fontId = val;
+				this.fontid = val;
 			} else if ("numFmtId" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.numid = val;
@@ -6538,7 +6554,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("bgColor" === name) {
-				this.fgColor = AscCommon.getColorFromXml2(reader);
+				this.bgColor = AscCommon.getColorFromXml2(reader);
 			} else if ("fgColor" === name) {
 				this.fgColor = AscCommon.getColorFromXml2(reader);
 			}
@@ -6571,7 +6587,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.MoveToNextAttribute()) {
 			if ("patternType" === reader.GetName()) {
 				val = reader.GetValue();
-				this.patternType = val;
+				val = AscCommonExcel.FromXml_ST_PatternType(val);
+				if (-1 !== val) {
+					this.patternType = val;
+				}
 			}
 		}
 	};

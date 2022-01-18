@@ -12323,6 +12323,7 @@ QueryTableField.prototype.clone = function() {
 
 	window["AscCommonExcel"].FromXml_ST_HorizontalAlignment = FromXml_ST_HorizontalAlignment;
 	window["AscCommonExcel"].FromXml_ST_VerticalAlignment   = FromXml_ST_VerticalAlignment;
+	window["AscCommonExcel"].FromXml_ST_PatternType         = FromXml_ST_PatternType;
 
 
 })(window);

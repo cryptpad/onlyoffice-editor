@@ -1414,7 +1414,7 @@ var editor;
 		var openXml = AscCommon.openXml;
 		var pivotCaches = {};
 		var xmlParserContext = new XmlParserContext();
-		xmlParserContext.InitOpenManager = new AscCommonExcel.InitOpenManager();
+		xmlParserContext.InitOpenManager = new AscCommonExcel.InitOpenManager(null, wb);
 		var wbPart = null;
 		var wbXml = null;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
@@ -1435,6 +1435,7 @@ var editor;
 
 
 		//styles
+		var aCellXfs = [];
 		var stylesPart = wbPart.getPartByRelationshipType(openXml.Types.styles.relationType);
 		if (stylesPart) {
 			var contentStyles = stylesPart.getDocumentContent();
@@ -1442,6 +1443,13 @@ var editor;
 				var styleSheet = new AscCommonExcel.CT_Stylesheet(new Asc.CTableStyles());
 				var reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
 				styleSheet.fromXml(reader);
+
+
+				//TODO oCustomSlicerStyles/aExtDxfs
+				var oStyleObject = {aBorders: styleSheet.borders, aFills: styleSheet.fills, aFonts: styleSheet.fonts, oNumFmts: styleSheet.numFmts, aCellStyleXfs: styleSheet.cellStyleXfs,
+					aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: [], aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: null};
+
+				xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
 			}
 		}
 
@@ -1575,6 +1583,8 @@ var editor;
 
 			var sheetData = new AscCommonExcel.CT_SheetData();
 			xmlParserContext.InitOpenManager.tmp = tmp;
+			xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
+
 			sheetDataElem.reader.setState(sheetDataElem.state);
 			//TODO пересмотреть фунцию fromXml
 			sheetData.fromXml2(sheetDataElem.reader);

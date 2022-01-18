@@ -4592,13 +4592,15 @@
 				tint = reader.GetValue();
 			} else if ("rgb" === reader.GetName()) {
 				rgb = reader.GetValue();
-			}
+			} /*else if ("indexed" === reader.GetName()) {
+				rgb = reader.GetValue();
+			}*/
 		}
 
 		if(null != theme) {
 			return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(theme), getNumFromXml(tint));
 		} else if(null != rgb){
-			return new AscCommonExcel.RgbColor(0x00ffffff & getNumFromXml(rgb));
+			return new AscCommonExcel.RgbColor(0x00ffffff & "0x"+ rgb);
 		}
 
 		return null;

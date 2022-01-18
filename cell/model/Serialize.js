@@ -3210,13 +3210,10 @@
         };
     }
 
-    function InitOpenManager(isCopyPaste) {
-        this.copyPasteObj =
-            {
-                isCopyPaste: isCopyPaste,
-                activeRange: null,
-                selectAllSheet: null
-            };
+    function InitOpenManager(isCopyPaste, wb) {
+        this.copyPasteObj = {
+            isCopyPaste: isCopyPaste, activeRange: null, selectAllSheet: null
+        };
         this.oReadResult = {
             tableCustomFunc: [],
             sheetData: [],
@@ -3229,6 +3226,7 @@
             defNames: [],
             sheetIds: {}
         };
+        this.wb = wb;
     }
 
     InitOpenManager.prototype.initSchemeAndTheme = function (wb) {
@@ -3369,6 +3367,374 @@
             }
         }
     };
+    InitOpenManager.prototype.InitStyleManager = function (oStyleObject, aCellXfs)
+    {
+        var i, xf, firstFont, firstFill, secondFill, firstBorder, firstXf, newXf, oCellStyle;
+        if (0 === oStyleObject.aFonts.length) {
+            oStyleObject.aFonts[0] = new AscCommonExcel.Font();
+            oStyleObject.aFonts[0].initDefault(this.wb);
+        }
+        if (0 === oStyleObject.aCellXfs.length) {
+            xf = new OpenXf();
+            xf.fontid = xf.fillid = xf.borderid = xf.numid = xf.XfId = 0;
+            oStyleObject.aCellXfs[0] = xf;
+        }
+        if (0 === oStyleObject.aCellStyleXfs.length) {
+            xf = new OpenXf();
+            xf.fontid = xf.fillid = xf.borderid = xf.numid = 0;
+            oStyleObject.aCellStyleXfs[0] = xf;
+        }
+        var hasNormalStyle = false;
+        for (i = 0; i < oStyleObject.aCellStyles.length; ++i) {
+            oCellStyle = oStyleObject.aCellStyles[i];
+            if (0 === oCellStyle.BuiltinId) {
+                hasNormalStyle = true;
+                break;
+            }
+        }
+        if (!hasNormalStyle) {
+            oCellStyle = new AscCommonExcel.CCellStyle();
+            oCellStyle.Name = "Normal";
+            oCellStyle.BuiltinId = 0;
+            oCellStyle.XfId = 0;
+            oStyleObject.aCellStyles.push(oCellStyle);
+        }
+
+        var defFont = oStyleObject.aFonts[oStyleObject.aCellXfs[0].fontid];
+        if (defFont) {
+            defFont.initDefault(this.wb);
+        }
+
+        for (i = 0; i < oStyleObject.aFonts.length; ++i) {
+            oStyleObject.aFonts[i] = g_StyleCache.addFont(oStyleObject.aFonts[i]);
+        }
+        firstFont = oStyleObject.aFonts[0];
+
+        for (i = 2; i < oStyleObject.aFills.length; ++i) {
+            oStyleObject.aFills[i] = g_StyleCache.addFill(oStyleObject.aFills[i]);
+        }
+        //addXf with force flag should be last operation
+        firstFill = new AscCommonExcel.Fill();
+        firstFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.None, null);
+        secondFill = new AscCommonExcel.Fill();
+        secondFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.Gray125, null);
+        if (!this.copyPasteObj.isCopyPaste) {
+            firstFill = g_StyleCache.addFill(firstFill, true);
+            secondFill = g_StyleCache.addFill(secondFill, true);
+        } else {
+            firstFill = g_StyleCache.addFill(firstFill);
+            secondFill = g_StyleCache.addFill(secondFill);
+        }
+        oStyleObject.aFills[0] = firstFill;
+        oStyleObject.aFills[1] = secondFill;
+
+        oStyleObject.aBorders[0] = new AscCommonExcel.Border();
+        for (i = 0; i < oStyleObject.aBorders.length; ++i) {
+            oStyleObject.aBorders[i] = g_StyleCache.addBorder(oStyleObject.aBorders[i]);
+        }
+        firstBorder = oStyleObject.aBorders[0];
+        for (i = 0; i < oStyleObject.aCellStyleXfs.length; ++i) {
+            xf = oStyleObject.aCellStyleXfs[i];
+            if (xf.align) {
+                xf.align = g_StyleCache.addAlign(xf.align);
+            }
+        }
+        for (i = 0; i < oStyleObject.aCellXfs.length; ++i) {
+            xf = oStyleObject.aCellXfs[i];
+            if (xf.align) {
+                xf.align = g_StyleCache.addAlign(xf.align);
+            }
+        }
+        this.InitDxfs(oStyleObject.aDxfs);
+        this.InitDxfs(oStyleObject.aExtDxfs);
+
+        // ToDo убрать - это заглушка
+        var arrStyleMap = {};
+        var nIndexStyleMap = 1;//0 reserver for Normal style
+        var XfIdTmp;
+        // Список имен для стилей
+        var oCellStyleNames = {};
+        var normalXf = null;
+
+        for (i = 0; i < oStyleObject.aCellStyles.length; ++i) {
+            oCellStyle = oStyleObject.aCellStyles[i];
+            newXf = new AscCommonExcel.CellXfs();
+            // XfId
+            XfIdTmp = oCellStyle.XfId;
+            if (null !== XfIdTmp) {
+                if (0 === oCellStyle.BuiltinId) {
+                    arrStyleMap[XfIdTmp] = 0;
+                    if (!normalXf) {
+                        XfIdTmp = oCellStyle.XfId = 0;
+                        normalXf = newXf;
+                        //default fontid is always 0
+                        if (oStyleObject.aCellStyleXfs[XfIdTmp]) {
+                            oStyleObject.aCellStyleXfs[XfIdTmp].fontid = 0;
+                        }
+                    } else {
+                        continue;
+                    }
+                } else {
+                    arrStyleMap[XfIdTmp] = nIndexStyleMap;
+                    oCellStyle.XfId = nIndexStyleMap++;
+                }
+            } else
+                continue;	// Если его нет, то это ошибка по спецификации
+
+            var oCellStyleXfs = oStyleObject.aCellStyleXfs[XfIdTmp];
+            // Если есть стиль, но нет описания, то уберем этот стиль (Excel делает также)
+            if (null == oCellStyleXfs)
+                continue;
+
+            // Border
+            if (null != oCellStyleXfs.borderid) {
+                var borderCellStyle = oStyleObject.aBorders[oCellStyleXfs.borderid];
+                if(null != borderCellStyle)
+                    newXf.border = borderCellStyle;
+            }
+            // Fill
+            if (null != oCellStyleXfs.fillid) {
+                var fillCellStyle = oStyleObject.aFills[oCellStyleXfs.fillid];
+                if(null != fillCellStyle)
+                    newXf.fill = fillCellStyle;
+            }
+            // Font
+            if(null != oCellStyleXfs.fontid) {
+                var fontCellStyle = oStyleObject.aFonts[oCellStyleXfs.fontid];
+                if(null != fontCellStyle)
+                    newXf.font = fontCellStyle;
+            }
+            // NumFmt
+            if(null != oCellStyleXfs.numid) {
+                var oCurNumCellStyle = oStyleObject.oNumFmts[oCellStyleXfs.numid];
+                if(null != oCurNumCellStyle)
+                    newXf.num = g_StyleCache.addNum(oCurNumCellStyle);
+                else
+                    newXf.num = g_StyleCache.addNum(this.ParseNum({id: oCellStyleXfs.numid, f: null}, oStyleObject.oNumFmts));
+            }
+            // QuotePrefix
+            if(null != oCellStyleXfs.QuotePrefix)
+                newXf.QuotePrefix = oCellStyleXfs.QuotePrefix;
+            //PivotButton
+            if(null != oCellStyleXfs.PivotButton)
+                newXf.PivotButton = oCellStyleXfs.PivotButton;
+            // hidden
+            if(null != oCellStyleXfs.hidden)
+                newXf.hidden = oCellStyleXfs.hidden;
+            // locked
+            if(null != oCellStyleXfs.locked)
+                newXf.locked = oCellStyleXfs.locked;
+            if(null != oCellStyleXfs.applyProtection)
+                newXf.applyProtection = oCellStyleXfs.applyProtection;
+            // align
+            if(null != oCellStyleXfs.align)
+                newXf.align = oCellStyleXfs.align;
+            // ApplyBorder (ToDo возможно это свойство должно быть в xfs)
+            if (null !== oCellStyleXfs.ApplyBorder)
+                oCellStyle.ApplyBorder = oCellStyleXfs.ApplyBorder;
+            // ApplyFill (ToDo возможно это свойство должно быть в xfs)
+            if (null !== oCellStyleXfs.ApplyFill)
+                oCellStyle.ApplyFill = oCellStyleXfs.ApplyFill;
+            // ApplyFont (ToDo возможно это свойство должно быть в xfs)
+            if (null !== oCellStyleXfs.ApplyFont)
+                oCellStyle.ApplyFont = oCellStyleXfs.ApplyFont;
+            // ApplyNumberFormat (ToDo возможно это свойство должно быть в xfs)
+            if (null !== oCellStyleXfs.ApplyNumberFormat)
+                oCellStyle.ApplyNumberFormat = oCellStyleXfs.ApplyNumberFormat;
+
+            oCellStyle.xfs = g_StyleCache.addXf(newXf);
+            // ToDo при отсутствии имени все не очень хорошо будет!
+            this.wb.CellStyles.CustomStyles.push(oCellStyle);
+            if (null !== oCellStyle.Name)
+                oCellStyleNames[oCellStyle.Name] = true;
+        }
+
+        // ToDo стоит это переделать в дальнейшем (пробежимся по именам, и у отсутствующих создадим имя)
+        var nNewStyleIndex = 1, newStyleName;
+        for (var i = 0, length = this.wb.CellStyles.CustomStyles.length; i < length; ++i) {
+            if (null === this.wb.CellStyles.CustomStyles[i].Name) {
+                do {
+                    newStyleName = "Style" + nNewStyleIndex++;
+                } while (oCellStyleNames[newStyleName])
+                    ;
+                this.wb.CellStyles.CustomStyles[i].Name = newStyleName;
+            }
+        }
+
+        // ToDo это нужно будет переделать (проходимся по всем стилям и меняем у них XfId по порядку)
+
+        for(var i = 0, length = oStyleObject.aCellXfs.length; i < length; ++i) {
+            var xfs = oStyleObject.aCellXfs[i];
+            newXf = new AscCommonExcel.CellXfs();
+
+            if(null != xfs.borderid)
+            {
+                var border = oStyleObject.aBorders[xfs.borderid];
+                if(null != border)
+                    newXf.border = border;
+            }
+            if(null != xfs.fillid)
+            {
+                var fill = oStyleObject.aFills[xfs.fillid];
+                if(null != fill)
+                    newXf.fill = fill;
+            }
+            if(null != xfs.fontid)
+            {
+                var font = oStyleObject.aFonts[xfs.fontid];
+                if(null != font)
+                    newXf.font = font;
+            }
+            if(null != xfs.numid)
+            {
+                var oCurNum = oStyleObject.oNumFmts[xfs.numid];
+                //todo
+                if(null != oCurNum)
+                    newXf.num = g_StyleCache.addNum(oCurNum);
+                else
+                    newXf.num = g_StyleCache.addNum(this.ParseNum({id: xfs.numid, f: null}, oStyleObject.oNumFmts));
+            }
+            if(null != xfs.QuotePrefix)
+                newXf.QuotePrefix = xfs.QuotePrefix;
+            if(null != xfs.PivotButton)
+                newXf.PivotButton = xfs.PivotButton;
+            // hidden
+            if(null != xfs.hidden)
+                newXf.hidden = xfs.hidden;
+            // locked
+            if(null != xfs.locked)
+                newXf.locked = xfs.locked;
+            if(null != xfs.applyProtection)
+                newXf.applyProtection = xfs.applyProtection;
+            if(null != xfs.align)
+                newXf.align = xfs.align;
+            if (null !== xfs.XfId) {
+                XfIdTmp = arrStyleMap[xfs.XfId];
+                if (null == XfIdTmp)
+                    XfIdTmp = 0;
+                newXf.XfId = XfIdTmp;
+            }
+
+            if (0 == aCellXfs.length && !this.copyPasteObj.isCopyPaste) {
+                firstXf = newXf;
+            } else {
+                newXf = g_StyleCache.addXf(newXf);
+            }
+            aCellXfs.push(newXf);
+        }
+        if (firstXf && !this.copyPasteObj.isCopyPaste) {
+            //addXf with force flag should be last operation
+            firstXf = g_StyleCache.addXf(firstXf, true);
+            this.wb.oStyleManager.init(firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf);
+        }
+        this.InitTableStyles(this.wb.TableStyles.CustomStyles, oStyleObject.oCustomTableStyles, oStyleObject.aDxfs);
+        this.wb.SlicerStyles.addCustomStylesAtOpening(oStyleObject.oCustomSlicerStyles, oStyleObject.aExtDxfs);
+    };
+    InitOpenManager.prototype.InitDefSlicerStyles = function (wb, oStyleObject)
+    {
+        this.InitDxfs(oStyleObject.aDxfs);
+        this.InitDxfs(oStyleObject.aExtDxfs);
+        this.InitTableStyles(wb.TableStyles.DefaultStyles, oStyleObject.oCustomTableStyles, oStyleObject.aDxfs);
+        wb.SlicerStyles.addDefaultStylesAtOpening(oStyleObject.oCustomSlicerStyles, oStyleObject.aExtDxfs);
+    };
+    InitOpenManager.prototype.InitDxfs = function (Dxfs)
+    {
+        for (var i = 0; i < Dxfs.length; ++i) {
+            Dxfs[i] = g_StyleCache.addXf(Dxfs[i]);
+        }
+    };
+    InitOpenManager.prototype.InitTableStyles = function (tableStyles, oCustomTableStyles, aDxfs)
+    {
+        for(var i in oCustomTableStyles)
+        {
+            var item = oCustomTableStyles[i];
+            if(null != item)
+            {
+                var style = item.style;
+                var elems = item.elements;
+                this.initTableStyle(style, elems, aDxfs);
+                tableStyles[i] = style;
+            }
+        }
+    };
+    InitOpenManager.prototype.initTableStyle = function(style, elems, Dxfs)
+    {
+        for(var j = 0, length2 = elems.length; j < length2; ++j)
+        {
+            var elem = elems[j];
+            if(null != elem.DxfId)
+            {
+                var Dxf = Dxfs[elem.DxfId];
+                if(null != Dxf)
+                {
+                    var oTableStyleElement = new CTableStyleElement();
+                    oTableStyleElement.dxf = Dxf;
+                    if(null != elem.Size)
+                        oTableStyleElement.size = elem.Size;
+                    switch(elem.Type)
+                    {
+                        case ETableStyleType.tablestyletypeBlankRow: style.blankRow = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstColumn: style.firstColumn = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstColumnStripe: style.firstColumnStripe = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstColumnSubheading: style.firstColumnSubheading = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstHeaderCell: style.firstHeaderCell = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstRowStripe: style.firstRowStripe = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstRowSubheading: style.firstRowSubheading = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstSubtotalColumn: style.firstSubtotalColumn = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstSubtotalRow: style.firstSubtotalRow = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeFirstTotalCell: style.firstTotalCell = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeHeaderRow: style.headerRow = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeLastColumn: style.lastColumn = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeLastHeaderCell: style.lastHeaderCell = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeLastTotalCell: style.lastTotalCell = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypePageFieldLabels: style.pageFieldLabels = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypePageFieldValues: style.pageFieldValues = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeSecondColumnStripe: style.secondColumnStripe = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeSecondColumnSubheading: style.secondColumnSubheading = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeSecondRowStripe: style.secondRowStripe = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeSecondRowSubheading: style.secondRowSubheading = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeSecondSubtotalColumn: style.secondSubtotalColumn = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeSecondSubtotalRow: style.secondSubtotalRow = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeThirdColumnSubheading: style.thirdColumnSubheading = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeThirdRowSubheading: style.thirdRowSubheading = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeThirdSubtotalColumn: style.thirdSubtotalColumn = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeThirdSubtotalRow: style.thirdSubtotalRow = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeTotalRow: style.totalRow = oTableStyleElement;break;
+                        case ETableStyleType.tablestyletypeWholeTable: style.wholeTable = oTableStyleElement;break;
+                    }
+                }
+            }
+        }
+    };
+    InitOpenManager.prototype.ParseNum = function(oNum, oNumFmts, _useNumId) {
+        var oRes = new AscCommonExcel.Num();
+        var useNumId = false;
+        if (null != oNum && null != oNum.f) {
+            oRes.f = oNum.f;
+        } else {
+            var sStandartNumFormat = AscCommonExcel.aStandartNumFormats[oNum.id];
+            if (null != sStandartNumFormat) {
+                oRes.f = sStandartNumFormat;
+            }
+            if (null == oRes.f) {
+                oRes.f = "General";
+            }
+            //format string is more priority then id. so, fill oRes.id only if format is empty
+            useNumId = true;
+        }
+        if ((useNumId || _useNumId) &&
+            ((5 <= oNum.id && oNum.id <= 8) || (14 <= oNum.id && oNum.id <= 17) || 22 == oNum.id ||
+                (27 <= oNum.id && oNum.id <= 31) || (36 <= oNum.id && oNum.id <= 44))) {
+            oRes.id = oNum.id;
+        }
+        var numFormat = AscCommon.oNumFormatCache.get(oRes.f);
+        numFormat.checkCultureInfoFontPicker();
+        if (null != oNumFmts) {
+            oNumFmts[oNum.id] = oRes;
+        }
+        return oRes;
+    };
+
 
     function InitSaveManager(wb, isCopyPaste) {
         this.tableIds = {};
@@ -7135,14 +7501,14 @@
         };
     }
     /** @constructor */
-    function Binary_StylesTableReader(stream, wb, aCellXfs, isCopyPaste, useNumId)
+    function Binary_StylesTableReader(stream, wb, useNumId/*, aCellXfs, isCopyPaste, useNumId*/)
     {
         this.stream = stream;
         this.wb = wb;
-        this.aCellXfs = aCellXfs;
+        //this.aCellXfs = aCellXfs;
         this.bcr = new Binary_CommonReader(this.stream);
         this.bssr = new Binary_SharedStringTableReader(this.stream, wb);
-		this.isCopyPaste = isCopyPaste;
+		//this.isCopyPaste = isCopyPaste;
 		this.useNumId = useNumId;
         this.Read = function()
         {
@@ -7154,373 +7520,6 @@
             });
             return oStyleObject;
         };
-        this.InitStyleManager = function (oStyleObject)
-        {
-			var i, xf, firstFont, firstFill, secondFill, firstBorder, firstXf, newXf, oCellStyle;
-			if (0 === oStyleObject.aFonts.length) {
-				oStyleObject.aFonts[0] = new AscCommonExcel.Font();
-				oStyleObject.aFonts[0].initDefault(this.wb);
-			}
-			if (0 === oStyleObject.aCellXfs.length) {
-				xf = new OpenXf();
-				xf.fontid = xf.fillid = xf.borderid = xf.numid = xf.XfId = 0;
-				oStyleObject.aCellXfs[0] = xf;
-			}
-			if (0 === oStyleObject.aCellStyleXfs.length) {
-				xf = new OpenXf();
-				xf.fontid = xf.fillid = xf.borderid = xf.numid = 0;
-				oStyleObject.aCellStyleXfs[0] = xf;
-			}
-			var hasNormalStyle = false;
-			for (i = 0; i < oStyleObject.aCellStyles.length; ++i) {
-				oCellStyle = oStyleObject.aCellStyles[i];
-				if (0 === oCellStyle.BuiltinId) {
-					hasNormalStyle = true;
-					break;
-				}
-			}
-			if (!hasNormalStyle) {
-				oCellStyle = new AscCommonExcel.CCellStyle();
-				oCellStyle.Name = "Normal";
-				oCellStyle.BuiltinId = 0;
-				oCellStyle.XfId = 0;
-				oStyleObject.aCellStyles.push(oCellStyle);
-			}
-
-			var defFont = oStyleObject.aFonts[oStyleObject.aCellXfs[0].fontid];
-			if (defFont) {
-				defFont.initDefault(this.wb);
-			}
-
-			for (i = 0; i < oStyleObject.aFonts.length; ++i) {
-				oStyleObject.aFonts[i] = g_StyleCache.addFont(oStyleObject.aFonts[i]);
-			}
-			firstFont = oStyleObject.aFonts[0];
-
-			for (i = 2; i < oStyleObject.aFills.length; ++i) {
-				oStyleObject.aFills[i] = g_StyleCache.addFill(oStyleObject.aFills[i]);
-			}
-			//addXf with force flag should be last operation
-			firstFill = new AscCommonExcel.Fill();
-			firstFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.None, null);
-			secondFill = new AscCommonExcel.Fill();
-			secondFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.Gray125, null);
-			if (!this.isCopyPaste) {
-				firstFill = g_StyleCache.addFill(firstFill, true);
-				secondFill = g_StyleCache.addFill(secondFill, true);
-			} else {
-				firstFill = g_StyleCache.addFill(firstFill);
-				secondFill = g_StyleCache.addFill(secondFill);
-			}
-			oStyleObject.aFills[0] = firstFill;
-			oStyleObject.aFills[1] = secondFill;
-
-			oStyleObject.aBorders[0] = new AscCommonExcel.Border();
-			for (i = 0; i < oStyleObject.aBorders.length; ++i) {
-				oStyleObject.aBorders[i] = g_StyleCache.addBorder(oStyleObject.aBorders[i]);
-			}
-            firstBorder = oStyleObject.aBorders[0];
-			for (i = 0; i < oStyleObject.aCellStyleXfs.length; ++i) {
-				xf = oStyleObject.aCellStyleXfs[i];
-				if (xf.align) {
-					xf.align = g_StyleCache.addAlign(xf.align);
-				}
-			}
-			for (i = 0; i < oStyleObject.aCellXfs.length; ++i) {
-				xf = oStyleObject.aCellXfs[i];
-				if (xf.align) {
-					xf.align = g_StyleCache.addAlign(xf.align);
-				}
-			}
-            this.InitDxfs(oStyleObject.aDxfs);
-            this.InitDxfs(oStyleObject.aExtDxfs);
-
-            // ToDo убрать - это заглушка
-            var arrStyleMap = {};
-			var nIndexStyleMap = 1;//0 reserver for Normal style
-            var XfIdTmp;
-            // Список имен для стилей
-            var oCellStyleNames = {};
-			var normalXf = null;
-
-			for (i = 0; i < oStyleObject.aCellStyles.length; ++i) {
-				oCellStyle = oStyleObject.aCellStyles[i];
-				newXf = new AscCommonExcel.CellXfs();
-                // XfId
-                XfIdTmp = oCellStyle.XfId;
-                if (null !== XfIdTmp) {
-					if (0 === oCellStyle.BuiltinId) {
-						arrStyleMap[XfIdTmp] = 0;
-						if (!normalXf) {
-							XfIdTmp = oCellStyle.XfId = 0;
-							normalXf = newXf;
-							//default fontid is always 0
-							if (oStyleObject.aCellStyleXfs[XfIdTmp]) {
-								oStyleObject.aCellStyleXfs[XfIdTmp].fontid = 0;
-							}
-						} else {
-							continue;
-						}
-					} else {
-                        arrStyleMap[XfIdTmp] = nIndexStyleMap;
-                        oCellStyle.XfId = nIndexStyleMap++;
-                    }
-                } else
-                    continue;	// Если его нет, то это ошибка по спецификации
-
-				var oCellStyleXfs = oStyleObject.aCellStyleXfs[XfIdTmp];
-				// Если есть стиль, но нет описания, то уберем этот стиль (Excel делает также)
-				if (null == oCellStyleXfs)
-					continue;
-
-                // Border
-                if (null != oCellStyleXfs.borderid) {
-                    var borderCellStyle = oStyleObject.aBorders[oCellStyleXfs.borderid];
-                    if(null != borderCellStyle)
-						newXf.border = borderCellStyle;
-                }
-                // Fill
-                if (null != oCellStyleXfs.fillid) {
-                    var fillCellStyle = oStyleObject.aFills[oCellStyleXfs.fillid];
-                    if(null != fillCellStyle)
-						newXf.fill = fillCellStyle;
-                }
-                // Font
-                if(null != oCellStyleXfs.fontid) {
-                    var fontCellStyle = oStyleObject.aFonts[oCellStyleXfs.fontid];
-                    if(null != fontCellStyle)
-						newXf.font = fontCellStyle;
-                }
-                // NumFmt
-                if(null != oCellStyleXfs.numid) {
-                    var oCurNumCellStyle = oStyleObject.oNumFmts[oCellStyleXfs.numid];
-                    if(null != oCurNumCellStyle)
-						newXf.num = g_StyleCache.addNum(oCurNumCellStyle);
-                    else
-						newXf.num = g_StyleCache.addNum(this.ParseNum({id: oCellStyleXfs.numid, f: null}, oStyleObject.oNumFmts));
-                }
-                // QuotePrefix
-                if(null != oCellStyleXfs.QuotePrefix)
-					newXf.QuotePrefix = oCellStyleXfs.QuotePrefix;
-				//PivotButton
-				if(null != oCellStyleXfs.PivotButton)
-					newXf.PivotButton = oCellStyleXfs.PivotButton;
-				// hidden
-				if(null != oCellStyleXfs.hidden)
-					newXf.hidden = oCellStyleXfs.hidden;
-				// locked
-				if(null != oCellStyleXfs.locked)
-					newXf.locked = oCellStyleXfs.locked;
-				if(null != oCellStyleXfs.applyProtection)
-                    newXf.applyProtection = oCellStyleXfs.applyProtection;
-                // align
-				if(null != oCellStyleXfs.align)
-                    newXf.align = oCellStyleXfs.align;
-                // ApplyBorder (ToDo возможно это свойство должно быть в xfs)
-				if (null !== oCellStyleXfs.ApplyBorder)
-                    oCellStyle.ApplyBorder = oCellStyleXfs.ApplyBorder;
-                // ApplyFill (ToDo возможно это свойство должно быть в xfs)
-				if (null !== oCellStyleXfs.ApplyFill)
-                    oCellStyle.ApplyFill = oCellStyleXfs.ApplyFill;
-                // ApplyFont (ToDo возможно это свойство должно быть в xfs)
-				if (null !== oCellStyleXfs.ApplyFont)
-                    oCellStyle.ApplyFont = oCellStyleXfs.ApplyFont;
-                // ApplyNumberFormat (ToDo возможно это свойство должно быть в xfs)
-				if (null !== oCellStyleXfs.ApplyNumberFormat)
-                    oCellStyle.ApplyNumberFormat = oCellStyleXfs.ApplyNumberFormat;
-
-				oCellStyle.xfs = g_StyleCache.addXf(newXf);
-                // ToDo при отсутствии имени все не очень хорошо будет!
-                this.wb.CellStyles.CustomStyles.push(oCellStyle);
-                if (null !== oCellStyle.Name)
-                    oCellStyleNames[oCellStyle.Name] = true;
-            }
-
-            // ToDo стоит это переделать в дальнейшем (пробежимся по именам, и у отсутствующих создадим имя)
-            var nNewStyleIndex = 1, newStyleName;
-            for (var i = 0, length = this.wb.CellStyles.CustomStyles.length; i < length; ++i) {
-                if (null === this.wb.CellStyles.CustomStyles[i].Name) {
-                    do {
-                        newStyleName = "Style" + nNewStyleIndex++;
-                    } while (oCellStyleNames[newStyleName])
-                        ;
-                    this.wb.CellStyles.CustomStyles[i].Name = newStyleName;
-                }
-            }
-
-            // ToDo это нужно будет переделать (проходимся по всем стилям и меняем у них XfId по порядку)
-
-            for(var i = 0, length = oStyleObject.aCellXfs.length; i < length; ++i) {
-                var xfs = oStyleObject.aCellXfs[i];
-				newXf = new AscCommonExcel.CellXfs();
-
-                if(null != xfs.borderid)
-                {
-                    var border = oStyleObject.aBorders[xfs.borderid];
-                    if(null != border)
-						newXf.border = border;
-                }
-                if(null != xfs.fillid)
-                {
-                    var fill = oStyleObject.aFills[xfs.fillid];
-                    if(null != fill)
-						newXf.fill = fill;
-                }
-                if(null != xfs.fontid)
-                {
-                    var font = oStyleObject.aFonts[xfs.fontid];
-                    if(null != font)
-						newXf.font = font;
-                }
-                if(null != xfs.numid)
-                {
-                    var oCurNum = oStyleObject.oNumFmts[xfs.numid];
-                    //todo
-                    if(null != oCurNum)
-						newXf.num = g_StyleCache.addNum(oCurNum);
-                    else
-						newXf.num = g_StyleCache.addNum(this.ParseNum({id: xfs.numid, f: null}, oStyleObject.oNumFmts));
-                }
-                if(null != xfs.QuotePrefix)
-					newXf.QuotePrefix = xfs.QuotePrefix;
-				if(null != xfs.PivotButton)
-					newXf.PivotButton = xfs.PivotButton;
-				// hidden
-				if(null != xfs.hidden)
-					newXf.hidden = xfs.hidden;
-				// locked
-				if(null != xfs.locked)
-					newXf.locked = xfs.locked;
-                if(null != xfs.applyProtection)
-                    newXf.applyProtection = xfs.applyProtection;
-                if(null != xfs.align)
-					newXf.align = xfs.align;
-                if (null !== xfs.XfId) {
-                    XfIdTmp = arrStyleMap[xfs.XfId];
-                    if (null == XfIdTmp)
-                        XfIdTmp = 0;
-					newXf.XfId = XfIdTmp;
-                }
-
-				if (0 == this.aCellXfs.length && !this.isCopyPaste) {
-					firstXf = newXf;
-				} else {
-					newXf = g_StyleCache.addXf(newXf);
-				}
-				this.aCellXfs.push(newXf);
-            }
-			if (firstXf && !this.isCopyPaste) {
-				//addXf with force flag should be last operation
-				firstXf = g_StyleCache.addXf(firstXf, true);
-                this.wb.oStyleManager.init(firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf);
-			}
-            this.InitTableStyles(this.wb.TableStyles.CustomStyles, oStyleObject.oCustomTableStyles, oStyleObject.aDxfs);
-            wb.SlicerStyles.addCustomStylesAtOpening(oStyleObject.oCustomSlicerStyles, oStyleObject.aExtDxfs);
-        };
-        this.InitDefSlicerStyles = function (wb, oStyleObject)
-        {
-            this.InitDxfs(oStyleObject.aDxfs);
-            this.InitDxfs(oStyleObject.aExtDxfs);
-            this.InitTableStyles(wb.TableStyles.DefaultStyles, oStyleObject.oCustomTableStyles, oStyleObject.aDxfs);
-            wb.SlicerStyles.addDefaultStylesAtOpening(oStyleObject.oCustomSlicerStyles, oStyleObject.aExtDxfs);
-        };
-        this.InitDxfs = function (Dxfs)
-        {
-            for (var i = 0; i < Dxfs.length; ++i) {
-                Dxfs[i] = g_StyleCache.addXf(Dxfs[i]);
-            }
-        };
-        this.InitTableStyles = function (tableStyles, oCustomTableStyles, aDxfs)
-        {
-            for(var i in oCustomTableStyles)
-            {
-                var item = oCustomTableStyles[i];
-                if(null != item)
-                {
-                    var style = item.style;
-                    var elems = item.elements;
-                    this.initTableStyle(style, elems, aDxfs);
-                    tableStyles[i] = style;
-                }
-            }
-        };
-        this.initTableStyle = function(style, elems, Dxfs)
-        {
-            for(var j = 0, length2 = elems.length; j < length2; ++j)
-            {
-                var elem = elems[j];
-                if(null != elem.DxfId)
-                {
-                    var Dxf = Dxfs[elem.DxfId];
-                    if(null != Dxf)
-                    {
-                        var oTableStyleElement = new CTableStyleElement();
-                        oTableStyleElement.dxf = Dxf;
-                        if(null != elem.Size)
-                            oTableStyleElement.size = elem.Size;
-                        switch(elem.Type)
-                        {
-                            case ETableStyleType.tablestyletypeBlankRow: style.blankRow = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstColumn: style.firstColumn = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstColumnStripe: style.firstColumnStripe = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstColumnSubheading: style.firstColumnSubheading = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstHeaderCell: style.firstHeaderCell = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstRowStripe: style.firstRowStripe = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstRowSubheading: style.firstRowSubheading = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstSubtotalColumn: style.firstSubtotalColumn = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstSubtotalRow: style.firstSubtotalRow = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeFirstTotalCell: style.firstTotalCell = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeHeaderRow: style.headerRow = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeLastColumn: style.lastColumn = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeLastHeaderCell: style.lastHeaderCell = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeLastTotalCell: style.lastTotalCell = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypePageFieldLabels: style.pageFieldLabels = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypePageFieldValues: style.pageFieldValues = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeSecondColumnStripe: style.secondColumnStripe = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeSecondColumnSubheading: style.secondColumnSubheading = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeSecondRowStripe: style.secondRowStripe = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeSecondRowSubheading: style.secondRowSubheading = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeSecondSubtotalColumn: style.secondSubtotalColumn = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeSecondSubtotalRow: style.secondSubtotalRow = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeThirdColumnSubheading: style.thirdColumnSubheading = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeThirdRowSubheading: style.thirdRowSubheading = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeThirdSubtotalColumn: style.thirdSubtotalColumn = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeThirdSubtotalRow: style.thirdSubtotalRow = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeTotalRow: style.totalRow = oTableStyleElement;break;
-                            case ETableStyleType.tablestyletypeWholeTable: style.wholeTable = oTableStyleElement;break;
-                        }
-                    }
-                }
-            }
-        };
-		this.ParseNum = function(oNum, oNumFmts) {
-			var oRes = new AscCommonExcel.Num();
-			var useNumId = false;
-			if (null != oNum && null != oNum.f) {
-				oRes.f = oNum.f;
-			} else {
-				var sStandartNumFormat = AscCommonExcel.aStandartNumFormats[oNum.id];
-				if (null != sStandartNumFormat) {
-					oRes.f = sStandartNumFormat;
-				}
-				if (null == oRes.f) {
-					oRes.f = "General";
-				}
-				//format string is more priority then id. so, fill oRes.id only if format is empty
-				useNumId = true;
-			}
-			if ((useNumId || this.useNumId) &&
-				((5 <= oNum.id && oNum.id <= 8) || (14 <= oNum.id && oNum.id <= 17) || 22 == oNum.id ||
-				(27 <= oNum.id && oNum.id <= 31) || (36 <= oNum.id && oNum.id <= 44))) {
-					oRes.id = oNum.id;
-				}
-			var numFormat = AscCommon.oNumFormatCache.get(oRes.f);
-			numFormat.checkCultureInfoFontPicker();
-			if (null != oNumFmts) {
-				oNumFmts[oNum.id] = oRes;
-			}
-			return oRes;
-		};
         this.ReadStylesContent = function (type, length, oStyleObject) {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
@@ -7923,7 +7922,7 @@
                     return oThis.ReadNumFmt(t,l,oNewNumFmt);
                 });
 				if (null != oNewNumFmt.id) {
-					this.ParseNum(oNewNumFmt, oNumFmts);
+                    AscCommonExcel.InitOpenManager.prototype.ParseNum.call(this, oNewNumFmt, oNumFmts, this.useNumId);
 				}
             }
             else
@@ -8037,7 +8036,7 @@
                     return oThis.ReadNumFmt(t,l,oNewNumFmt);
                 });
                 if(null != oNewNumFmt.id)
-                    oDxf.num = this.ParseNum(oNewNumFmt, null);
+                    oDxf.num = AscCommonExcel.InitOpenManager.prototype.ParseNum.call(this, oNewNumFmt, null, this.useNumId);
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -11043,17 +11042,16 @@
 
 
 
-			this.InitOpenManager.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb, aCellXfs, this.InitOpenManager.copyPasteObj.isCopyPaste)
+			this.InitOpenManager.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb/*, aCellXfs, this.InitOpenManager.copyPasteObj.isCopyPaste*/)
             if(null != nStyleTableOffset)
             {
                 res = this.stream.Seek(nStyleTableOffset);
                 if (c_oSerConstants.ReadOk == res) {
                     var oStyleObject = this.InitOpenManager.oReadResult.stylesTableReader.Read();
-                    this.InitOpenManager.oReadResult.stylesTableReader.InitStyleManager(oStyleObject);
+                    this.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
                     aDxfs = oStyleObject.aDxfs;
                     wb.oNumFmtsOpen = oStyleObject.oNumFmts;
                 }
-
             }
 
 
@@ -11285,7 +11283,6 @@
                             val.displayName = val.name;
                         this.CustomStyles[val.name] = {style : val, elements: aElements};
                     }
-                    this.CustomStyles[val.name] = val;
 
                     /*if(null != oNewStyle.name) {
                         if (null === oNewStyle.displayName)
@@ -11693,7 +11690,7 @@
         var oBinaryFileReader = new BinaryFileReader();
         var stream = oBinaryFileReader.getbase64DecodedData(sStyles);
         var bcr = new Binary_CommonReader(stream);
-        var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, [], undefined, true);
+        var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, true/*, [], undefined, true*/);
 
         var length = stream.GetULongLE();
 
@@ -11761,7 +11758,8 @@
                     if(null != oCurNum)
 						newXf.num = g_StyleCache.addNum(oCurNum);
                     else
-						newXf.num = g_StyleCache.addNum(oBinary_StylesTableReader.ParseNum({id: oStyleObject.xfs.numid, f: null}, oStyleObject.oNumFmts));
+						newXf.num = g_StyleCache.addNum( AscCommonExcel.InitOpenManager.prototype.ParseNum.call(this, {id: oStyleObject.xfs.numid, f: null}, oStyleObject.oNumFmts, oBinary_StylesTableReader.useNumId));
+                        //g_StyleCache.addNum(oBinary_StylesTableReader.ParseNum({id: oStyleObject.xfs.numid, f: null}, oStyleObject.oNumFmts))
                 }
                 // QuotePrefix
                 if(null != oStyleObject.xfs.QuotePrefix)
@@ -11845,10 +11843,10 @@
         var oBinaryFileReader = new BinaryFileReader();
         var stream = oBinaryFileReader.getbase64DecodedData(sStyles);
         new Binary_CommonReader(stream);
-        var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, [], undefined, true);
+        var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, true/*, [], undefined, true*/);
         var oStyleObject = oBinary_StylesTableReader.Read();
         RenameDefSlicerStyle(oStyleObject);
-        oBinary_StylesTableReader.InitDefSlicerStyles(wb, oStyleObject);
+        AscCommonExcel.InitOpenManager.prototype.InitDefSlicerStyles.call(this, wb, oStyleObject)
     }
 
 	function CT_PresetTableStyles(tableStyles, pivotStyles) {
