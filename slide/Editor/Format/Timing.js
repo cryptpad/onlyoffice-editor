@@ -507,7 +507,8 @@
             case AscFormat.NODE_TYPE_WITHEFFECT: {
                 oPreviousTimeNode = this;
                 while ((oPreviousTimeNode = oPreviousTimeNode.getPreviousNode()) &&
-                (oPreviousTimeNode.getNodeType() === AscFormat.NODE_TYPE_WITHEFFECT)) {
+                (oPreviousTimeNode.getNodeType() === AscFormat.NODE_TYPE_WITHEFFECT ||
+                 oPreviousTimeNode.getNodeType() === AscFormat.NODE_TYPE_AFTEREFFECT)) {
                 }
                 if(oPreviousTimeNode) {
                     oTrigger = this.createEffectTrigger(function() {
@@ -767,11 +768,12 @@
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
 
-        //this.logState("SET STATE:");
+        this.logState("SET STATE:");
     };
     CTimeNodeBase.prototype.logState = function (sPrefix) {
         var oAttr = this.getAttributesObject();
         var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
+        if(sNodeType) 
         console.log(sPrefix + " | ID: " + this.Id + " | TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | STATE: " + oSTATEDESCRMAP[this.state] + " | TIME: " + (new Date()).getTime() + " | FORMAT ID: " + oAttr.id);
     };
 
@@ -2529,16 +2531,18 @@
             for(var nIdx = 0; nIdx < aEffectsForDemo.length; ++nIdx) {
                 oEffect = aEffectsForDemo[nIdx];
                 var oCopyEffect = oEffect.createDuplicate();
+                oCopyEffect.originalNode = oEffect;
+                oCopyEffect.cTn.resetDelayShift();
                 if(oCopyEffect.cTn.nodeType === AscFormat.NODE_TYPE_CLICKEFFECT) {
                     oCopyEffect.cTn.setNodeType(nIdx === 0 ? AscFormat.NODE_TYPE_WITHEFFECT : AscFormat.NODE_TYPE_AFTEREFFECT);
                 }
-                oCopyEffect.cTn.changeDelay(oEffect.cTn.getDelay(true), false);
                 oCopyEffect.cTn.changeRepeatCount(1000);
+                oCopyEffect.originalNode = null;
                 aSeq.push(oCopyEffect);
             }
             var oTiming = new CTiming();
             oTiming.setParent(this.parent);
-            oTiming.buildTree(aSeqs);
+            oTiming.buildTree(aSeqs, false);
             return oTiming;
         }, this, []);
     };
@@ -4743,10 +4747,15 @@
         }
     };
     CCTn.prototype.getDelayShift = function() {
-        if(this.nodeType === AscFormat.NODE_TYPE_AFTEREFFECT) {
+        if(this.nodeType === AscFormat.NODE_TYPE_AFTEREFFECT || 
+            this.nodeType === AscFormat.NODE_TYPE_WITHEFFECT) {
             var oPrev = this.parent.getPreviousEffect();
             if(oPrev && oPrev.cTn) {
-                return oPrev.cTn.getDelay() + oPrev.cTn.getEffectDuration();
+                var nShift =  oPrev.cTn.getDelay(false);
+                if(this.nodeType === AscFormat.NODE_TYPE_AFTEREFFECT) {
+                    nShift += oPrev.cTn.getEffectDuration()
+                }
+                return nShift;
             }
         }
         return 0;
