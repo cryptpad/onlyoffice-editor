@@ -1439,7 +1439,7 @@ var editor;
 		if (stylesPart) {
 			var contentStyles = stylesPart.getDocumentContent();
 			if (contentStyles) {
-				var styleSheet = new AscCommonExcel.CT_Stylesheet(/*new Asc.CTableStyles()*/);
+				var styleSheet = new AscCommonExcel.CT_Stylesheet(new Asc.CTableStyles());
 				var reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
 				styleSheet.fromXml(reader);
 			}

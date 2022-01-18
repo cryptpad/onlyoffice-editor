@@ -5641,15 +5641,93 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("colors" === name) {
 
 				} else if ("dxfs" === name) {
-
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("dxf" === name2) {
+							val = new AscCommonExcel.CellXfs();
+							val.fromXml(reader);
+							this.dxfs.push(val);
+						}
+					}
 				} else if ("fills" === name) {
+					//count
+					//this.readAttr(reader);
 
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("fill" === name2) {
+							val = new AscCommonExcel.Fill();
+							val.fromXml(reader);
+							this.fills.push(val);
+						}
+					}
 				} else if ("fonts" === name) {
+					//count
+					//this.readAttr(reader);
 
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("font" === name2) {
+							val = new AscCommonExcel.Font();
+							val.fromXml(reader);
+							//TODO wb!
+							//val.checkSchemeFont(this.wb.theme);
+							this.fonts.push(val);
+						}
+					}
 				} else if ("numFmts" === name) {
+					//count
+					//this.readAttr(reader);
 
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("numFmt" === name2) {
+
+							/*if ( c_oSerStylesTypes.NumFmt == type )
+							{
+								var oNewNumFmt = {f: null, id: null};
+								res = this.bcr.Read2Spreadsheet(length, function(t,l){
+									return oThis.ReadNumFmt(t,l,oNewNumFmt);
+								});
+								if (null != oNewNumFmt.id) {
+									this.ParseNum(oNewNumFmt, oNumFmts);
+								}
+							}*/
+
+							val = {f: null, id: null};
+							while (reader.MoveToNextAttribute()) {
+								if ("formatCode" === reader.GetName()) {
+									val.f = reader.GetValue();
+								} else if ("numFmtId" === reader.GetName()) {
+									val.id = reader.GetValueInt();
+								}
+							}
+
+							//TODO parseNum
+							/*if (null != oNewNumFmt.id) {
+								this.ParseNum(oNewNumFmt, oNumFmts);
+							}*/
+						}
+					}
 				} else if ("tableStyles" === name) {
-
+					//this.readAttr(reader);
+					this.tableStyles.fromXml(reader);
 				} else if ("Style" === name) {
 
 				} else if ("extLst" === name) {
@@ -6271,47 +6349,580 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.CellXfs.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("alignment") == sName )
+								m_oAlignment = oReader;
+							else if ( _T("border") == sName )
+								m_oBorder = oReader;
+							else if ( _T("fill") == sName )
+								m_oFill = oReader;
+							else if ( _T("font") == sName )
+								m_oFont = oReader;
+							else if ( _T("numFmt") == sName )
+								m_oNumFmt = oReader;
+							else if ( _T("protection") == sName )
+								m_oProtection = oReader;
+						}*/
+
+		//documentation
+		/*<xsd:sequence>
+		3654 <xsd:element name="font" type="CT_Font" minOccurs="0" maxOccurs="1"/>
+		3655 <xsd:element name="numFmt" type="CT_NumFmt" minOccurs="0" maxOccurs="1"/>
+		3656 <xsd:element name="fill" type="CT_Fill" minOccurs="0" maxOccurs="1"/>
+		3657 <xsd:element name="alignment" type="CT_CellAlignment" minOccurs="0" maxOccurs="1"/>
+		3658 <xsd:element name="border" type="CT_Border" minOccurs="0" maxOccurs="1"/>
+		3659 <xsd:element name="protection" type="CT_CellProtection" minOccurs="0" maxOccurs="1"/>
+		3660 <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+		3661 </xsd:sequence>*/
+
+//x2t
+		/**/
+
+//serialize
+		/* if ( c_oSer_Dxf.Alignment == type )
+					{
+						oDxf.align = new AscCommonExcel.Align();
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadAligment(t,l,oDxf.align);
+						});
+					}
+					else if ( c_oSer_Dxf.Border == type )
+					{
+						var oNewBorder = new AscCommonExcel.Border();
+						res = this.bcr.Read1(length, function(t,l){
+							return oThis.ReadBorder(t,l,oNewBorder);
+						});
+						oDxf.border = oNewBorder;
+					}
+					else if ( c_oSer_Dxf.Fill == type )
+					{
+						var oNewFill = new AscCommonExcel.Fill();
+						res = this.bcr.Read1(length, function(t,l){
+							return oThis.ReadFill(t,l,oNewFill);
+						});
+						oNewFill.fixForDxf();
+						oDxf.fill = oNewFill;
+					}
+					else if ( c_oSer_Dxf.Font == type )
+					{
+						var oNewFont = new AscCommonExcel.Font();
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.bssr.ReadRPr(t,l,oNewFont);
+						});
+						oNewFont.checkSchemeFont(this.wb.theme);
+						oDxf.font = oNewFont;
+					}
+					else if ( c_oSer_Dxf.NumFmt == type )
+					{
+						var oNewNumFmt = {f: null, id: null};
+						res = this.bcr.Read2Spreadsheet(length, function(t,l){
+							return oThis.ReadNumFmt(t,l,oNewNumFmt);
+						});
+						if(null != oNewNumFmt.id)
+							oDxf.num = this.ParseNum(oNewNumFmt, null);
+					}*/
+
+		if (reader.IsEmptyNode())
+			return;
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			var val;
+			if ("alignment" === name) {
+				val = new AscCommonExcel.Align()();
+				val.fromXml(reader);
+				this.align = val;
+			} else if ("border" === name) {
+				val = new AscCommonExcel.Border();
+				val.fromXml(reader);
+				this.border = val;
+			} else if ("fill" === name) {
+				val = new AscCommonExcel.Fill();
+				val.fromXml(reader);
+				val.fixForDxf();
+				this.fill = val;
+			} else if ("font" === name) {
+				val = new AscCommonExcel.Font();
+				val.fromXml(reader);
+				//TODO
+				val.checkSchemeFont(this.wb.theme);
+				this.font = val;
+			} else if ("NumFmt" === name) {
+				/*val = new AscCommonExcel.Border();
+				val.fromXml(reader);
+				this.border = val;*/
+			}
+		}
+	};
+
+	AscCommonExcel.Fill.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"gradientFill" == sName )
+								m_oGradientFill = oReader;
+							else if ( L"patternFill" == sName )
+								m_oPatternFill = oReader;
+						}*/
+
+
+		/*ritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:PatternColor"), sPatternColor )
+		WritingElement_ReadAttributes_Read_else_if( oReader, _T("ss:Pattern"), sPattern )
+		WritingElement_ReadAttributes_Read_else_if( oReader, _T("ss:Color"), sColor )*/
+		//this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		var val;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("patternFill" === name) {
+				val = new AscCommonExcel.PatternFill();
+				val.fromXml(reader);
+				this.patternFill = val;
+			} else if ("gradientFill" === name) {
+				val = new AscCommonExcel.GradientFill();
+				val.fromXml(reader);
+				this.gradientFill = val;
+			}
+		}
+	};
+
+	AscCommonExcel.PatternFill.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"bgColor" == sName )
+								m_oBgColor = oReader;
+							else if ( L"fgColor" == sName )
+								m_oFgColor = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			var val;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("bgColor" === name) {
+				this.fgColor = AscCommon.getColorFromXml2(reader);
+			} else if ("fgColor" === name) {
+				this.fgColor = AscCommon.getColorFromXml2(reader);
+			}
+			//TODO PatternBgColor_deprecated ?
+		}
+	};
+
+	AscCommonExcel.PatternFill.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Start( oReader )
+							WritingElement_ReadAttributes_Read_if ( oReader, L"patternType", m_oPatternType )
+						WritingElement_ReadAttributes_End( oReader )*/
+
+//serialize
+		/* if ( c_oSerFillTypes.PatternBgColor_deprecated == type ) {
+						patternFill.fromColor(ReadColorSpreadsheet2(this.bcr, length));
+					} else if ( c_oSerFillTypes.PatternType == type ) {
+						patternFill.patternType = this.stream.GetUChar();
+					} else if ( c_oSerFillTypes.PatternFgColor == type ) {
+						patternFill.fgColor = ReadColorSpreadsheet2(this.bcr, length);
+					} else if ( c_oSerFillTypes.PatternBgColor == type ) {
+						patternFill.bgColor = ReadColorSpreadsheet2(this.bcr, length);
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("patternType" === reader.GetName()) {
+				val = reader.GetValue();
+				this.patternType = val;
+			}
+		}
+	};
+
+	AscCommonExcel.GradientFill.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"stop" == sName )
+								m_arrItems.push_back( new CGradientStop( oReader ));
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("stop" === name) {
+				var val = new AscCommonExcel.GradientStop();
+				val.fromXml(reader);
+				this.stop.push(val);
+			}
+		}
+	};
+
+	AscCommonExcel.GradientFill.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:sequence>
+		3545 <xsd:element name="stop" type="CT_GradientStop" minOccurs="0" maxOccurs="unbounded"/>
+		3546 </xsd:sequence>
+		3547 <xsd:attribute name="type" type="ST_GradientType" use="optional" default="linear"/>
+		3548 <xsd:attribute name="degree" type="xsd:double" use="optional" default="0"/>
+		3549 <xsd:attribute name="left" type="xsd:double" use="optional" default="0"/>
+		3550 <xsd:attribute name="right" type="xsd:double" use="optional" default="0"/>
+		3551 <xsd:attribute name="top" type="xsd:double" use="optional" default="0"/>
+		3552 <xsd:attribute name="bottom" type="xsd:double" use="optional" default="0"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, L"bottom",	m_oBottom )
+							WritingElement_ReadAttributes_Read_if     ( oReader, L"degree",	m_oDegree )
+							WritingElement_ReadAttributes_Read_if     ( oReader, L"left",	m_oLeft )
+							WritingElement_ReadAttributes_Read_if     ( oReader, L"right",	m_oRight )
+							WritingElement_ReadAttributes_Read_if     ( oReader, L"top",	m_oTop )
+							WritingElement_ReadAttributes_Read_if     ( oReader, L"type",	m_oType )*/
+
+//serialize
+		/*  if ( c_oSerFillTypes.GradientType == type ) {
+						gradientFill.type = this.stream.GetUChar();
+					} else if ( c_oSerFillTypes.GradientLeft == type ) {
+						gradientFill.left = this.stream.GetDoubleLE();
+					} else if ( c_oSerFillTypes.GradientTop == type ) {
+						gradientFill.top = this.stream.GetDoubleLE();
+					} else if ( c_oSerFillTypes.GradientRight == type ) {
+						gradientFill.right = this.stream.GetDoubleLE();
+					} else if ( c_oSerFillTypes.GradientBottom == type ) {
+						gradientFill.bottom = this.stream.GetDoubleLE();
+					} else if ( c_oSerFillTypes.GradientDegree == type ) {
+						gradientFill.degree = this.stream.GetDoubleLE();
+					} else if ( c_oSerFillTypes.GradientStop == type ) {
+						var gradientStop = new AscCommonExcel.GradientStop();
+						res = this.bcr.Read1(length, function(t, l) {
+							return oThis.ReadGradientFillStop(t, l, gradientStop);
+						});
+						gradientFill.stop.push(gradientStop);
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("bottom" === reader.GetName()) {
+				val = reader.GetValue();
+				this.bottom = val;
+			} else if ("degree" === reader.GetName()) {
+				val = reader.GetValue();
+				this.degree = val;
+			} else if ("left" === reader.GetName()) {
+				val = reader.GetValue();
+				this.left = val;
+			} else if ("right" === reader.GetName()) {
+				val = reader.GetValue();
+				this.right = val;
+			} else if ("top" === reader.GetName()) {
+				val = reader.GetValue();
+				this.top = val;
+			} else if ("type" === reader.GetName()) {
+				val = reader.GetValue();
+				this.type = val;
+			}
+		}
+	};
+
+	AscCommonExcel.GradientStop.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"color" == sName )
+								m_oColor = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("color" === name) {
+				this.color = AscCommon.getColorFromXml2(reader);
+			}
+		}
+	};
+
+	AscCommonExcel.GradientStop.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:sequence>
+		3556 <xsd:element name="color" type="CT_Color" minOccurs="1" maxOccurs="1"/>
+		3557 </xsd:sequence>
+		3558 <xsd:attribute name="position" type="xsd:double" use="required"/>*/
+
+//x2t
+		/*ritingElement_ReadAttributes_Start( oReader )
+							WritingElement_ReadAttributes_Read_if ( oReader, L"position", m_oPosition )
+						WritingElement_ReadAttributes_End( oReader )*/
+
+//serialize
+		/*  if ( c_oSerFillTypes.GradientStopPosition == type ) {
+						gradientStop.position = this.stream.GetDoubleLE();
+					} else if ( c_oSerFillTypes.GradientStopColor == type ) {
+						gradientStop.color = ReadColorSpreadsheet2(this.bcr, length);
+					} else
+						res = c_oSerConstants.ReadUnknown;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("position" === reader.GetName()) {
+				val = reader.GetValue();
+				this.position = val;
+			}
+		}
+	};
+
+	AscCommonExcel.Font.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"b" == sName )
+								m_oBold = oReader;
+							else if ( L"charset" == sName )
+								m_oCharset = oReader;
+							else if ( L"color" == sName )
+								m_oColor = oReader;
+							else if ( L"condense" == sName )
+								m_oCondense = oReader;
+							else if ( L"extend" == sName )
+								m_oExtend = oReader;
+							else if ( L"family" == sName )
+								m_oFamily = oReader;
+							else if ( L"i" == sName )
+								m_oItalic = oReader;
+							else if ( L"name" == sName )
+								m_oRFont = oReader;
+							else if ( L"outline" == sName )
+								m_oOutline = oReader;
+							else if ( L"scheme" == sName )
+								m_oScheme = oReader;
+							else if ( L"shadow" == sName )
+								m_oShadow = oReader;
+							else if ( L"strike" == sName )
+								m_oStrike = oReader;
+							else if ( L"sz" == sName )
+								m_oSz = oReader;
+							else if ( L"u" == sName )
+								m_oUnderline = oReader;
+							else if ( L"vertAlign" == sName )
+								m_oVertAlign = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("b" === name) {
+				this.b = reader.GetValueBool();
+			} else if ("charset" === name) {
+			} else if ("color" === name) {
+				this.c = AscCommon.getColorFromXml2(reader);
+			} else if ("condense" === name) {
+			} else if ("extend" === name) {
+			} else if ("family" === name) {
+			} else if ("i" === name) {
+				this.i = reader.GetValueBool();
+			} else if ("name" === name) {
+			} else if ("outline" === name) {
+			} else if ("scheme" === name) {
+				this.scheme = reader.GetValue();
+			} else if ("shadow" === name) {
+			} else if ("strike" === name) {
+				this.s = reader.GetValueBool();
+			} else if ("sz" === name) {
+				this.fs = reader.GetValueInt();
+			} else if ("u" === name) {
+				this.u = reader.GetValueBool();
+			} else if ("vertAlign" === name) {
+				//TODO
+				this.va = reader.GetValue();
+				//server constants SubScript:1, SuperScript: 2
+				if (this.va === AscCommon.vertalign_SubScript) {
+					this.va = AscCommon.vertalign_SuperScript;
+				} else if (this.va === AscCommon.vertalign_SuperScript) {
+					this.va = AscCommon.vertalign_SubScript;
+				}
+			}
+		}
+	};
+
+	AscCommonExcel.Font.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:choice maxOccurs="unbounded">
+		3794 <xsd:element name="name" type="CT_FontName" minOccurs="0" maxOccurs="1"/>
+		3795 <xsd:element name="charset" type="CT_IntProperty" minOccurs="0" maxOccurs="1"/>
+		3796 <xsd:element name="family" type="CT_IntProperty" minOccurs="0" maxOccurs="1"/>
+		3797 <xsd:element name="b" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+		3798 <xsd:element name="i" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+		3799 <xsd:element name="strike" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+		3800 <xsd:element name="outline" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+		3801 <xsd:element name="shadow" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+		3802 <xsd:element name="condense" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+		3803 <xsd:element name="extend" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+		3804 <xsd:element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+		3805 <xsd:element name="sz" type="CT_FontSize" minOccurs="0" maxOccurs="1"/>ECMA-376 Part 1
+		4480
+		3806 <xsd:element name="u" type="CT_UnderlineProperty" minOccurs="0" maxOccurs="1"/>
+		3807 <xsd:element name="vertAlign" type="CT_VerticalAlignFontProperty" minOccurs="0"
+		3808 maxOccurs="1"/>
+		3809 <xsd:element name="scheme" type="CT_FontScheme" minOccurs="0" maxOccurs="1"/>
+		3810 </xsd:choice>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:FontName"),	sFont )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("x:Family"),	oFamily )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("x:CharSet"),	oCharset )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:Size"),		dSz )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:Color"),	sColor )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:Underline"),oUnderline )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:Bold"),		bBold )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:Italic"),	bItalic )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("ss:Italic"),	bItalic )
+							WritingElement_ReadAttributes_Read_if(oReader, _T("ss:VerticalAlign"), oVerticalAlignment)*/
+
+//serialize
+		/*   var res = c_oSerConstants.ReadOk;
+            var oThis = this;
+            if ( c_oSerFontTypes.Bold == type )
+                rPr.b = this.stream.GetBool();
+            else if ( c_oSerFontTypes.Color == type ){
+				var color = ReadColorSpreadsheet2(this.bcr, length);
+				if (color) {
+					rPr.c = color;
+				}
+			} else if ( c_oSerFontTypes.Italic == type )
+                rPr.i = this.stream.GetBool();
+            else if ( c_oSerFontTypes.RFont == type )
+                rPr.fn = this.stream.GetString2LE(length);
+            else if ( c_oSerFontTypes.Strike == type )
+                rPr.s = this.stream.GetBool();
+            else if ( c_oSerFontTypes.Sz == type )
+                rPr.fs = this.stream.GetDoubleLE();
+            else if ( c_oSerFontTypes.Underline == type )
+                rPr.u = this.stream.GetUChar();
+            else if ( c_oSerFontTypes.VertAlign == type )
+            {
+                rPr.va = this.stream.GetUChar();
+                //server constants SubScript:1, SuperScript: 2
+                if (rPr.va === AscCommon.vertalign_SubScript) {
+                    rPr.va = AscCommon.vertalign_SuperScript;
+                } else if (rPr.va === AscCommon.vertalign_SuperScript) {
+                    rPr.va = AscCommon.vertalign_SubScript;
+                }
+            }
+            else if ( c_oSerFontTypes.Scheme == type )
+                rPr.scheme = this.stream.GetUChar();
+            else
+                res = c_oSerConstants.ReadUnknown;
+            return res;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("ss:FontName" === reader.GetName()) {
+			} else if ("x:Family" === reader.GetName()) {
+			} else if ("x:CharSet" === reader.GetName()) {
+			} else if ("ss:Size" === reader.GetName()) {
+			} else if ("ss:Color" === reader.GetName()) {
+			} else if ("ss:Underline" === reader.GetName()) {
+			} else if ("ss:Bold" === reader.GetName()) {
+			} else if ("ss:Italic" === reader.GetName()) {
+			} else if ("ss:Italic" === reader.GetName()) {
+			} else if ("ss:VerticalAlign" === reader.GetName()) {
+			}
+		}
+	};
 
 
 
 
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
-	var _x2t = 'WritingElement_ReadAttributes_Start( oReader )\n' + '\t\t\t\t\tWritingElement_ReadAttributes_Read_if( oReader, _T("horizontal"),\t\t\tm_oHorizontal )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("indent"),\t\t\tm_oIndent )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("justifyLastLine"),\tm_oJustifyLastLine )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("readingOrder"),\tm_oReadingOrder )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("relativeIndent"),\tm_oRelativeIndent )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("shrinkToFit"),\t\tm_oShrinkToFit )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("textRotation"),\tm_oTextRotation )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("vertical"),\t\tm_oVertical )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, _T("wrapText"),\t\tm_oWrapText )\n' + '\t\t\t// 2003\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Horizontal"),\tm_oHorizontal)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Vertical"),\t\tm_oVertical)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:WrapText"),\t\tm_oWrapText)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Indent"),\t\tm_oIndent)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:ReadingOrder"),\treadingOrder)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:Rotate"),\t\trotate)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if(oReader, _T("ss:ShrinkToFit"),\tm_oShrinkToFit)\n' + '\t\t\t\tWritingElement_ReadAttributes_End( oReader )'
-	var _documentation = '<xsd:complexType name="CT_CellAlignment">\n' + '3430 <xsd:attribute name="horizontal" type="ST_HorizontalAlignment" use="optional"/>\n' +
-		'3431 <xsd:attribute name="vertical" type="ST_VerticalAlignment" use="optional"/>\n' + '3432 <xsd:attribute name="textRotation" type="xsd:unsignedInt" use="optional"/>\n' +
-		'3433 <xsd:attribute name="wrapText" type="xsd:boolean" use="optional"/>\n' + '3434 <xsd:attribute name="indent" type="xsd:unsignedInt" use="optional"/>Annex A\n' +
-		'4473\n' + '3435 <xsd:attribute name="relativeIndent" type="xsd:int" use="optional"/>\n' +
-		'3436 <xsd:attribute name="justifyLastLine" type="xsd:boolean" use="optional"/>\n' + '3437 <xsd:attribute name="shrinkToFit" type="xsd:boolean" use="optional"/>\n' +
-		'3438 <xsd:attribute name="readingOrder" type="xsd:unsignedInt" use="optional"/>\n' + '3439 </xsd:complexType>'
-	var _serialize = 'if ( c_oSerAligmentTypes.Horizontal == type )\n' + '            {\n' + '                switch(this.stream.GetUChar())\n' + '                {\n' +
-		'                    case 0 :\n' + '                    case 1 : oAligment.hor = AscCommon.align_Center;break;\n' + '                    case 2 :\n' +
-		'                    case 3 :\n' + '                    case 5 : oAligment.hor = AscCommon.align_Justify;break;\n' +
-		'                    case 4 : oAligment.hor = null;break;\n' + '                    case 6 : oAligment.hor = AscCommon.align_Left;break;\n' +
-		'                    case 7 : oAligment.hor = AscCommon.align_Right;break;\n' + '                    case 8 : oAligment.hor = AscCommon.align_CenterContinuous;break;\n' +
-		'                }\n' + '            }\n' + '            else if ( c_oSerAligmentTypes.Indent == type )\n' +
-		'                oAligment.indent = this.stream.GetULongLE();\n' + '            else if ( c_oSerAligmentTypes.RelativeIndent == type )\n' +
-		'                oAligment.RelativeIndent = this.stream.GetULongLE();\n' + '            else if ( c_oSerAligmentTypes.ShrinkToFit == type )\n' +
-		'                oAligment.shrink = this.stream.GetBool();\n' + '            else if ( c_oSerAligmentTypes.TextRotation == type )\n' +
-		'                oAligment.angle = this.stream.GetULongLE();\n' + '            else if ( c_oSerAligmentTypes.Vertical == type )\n' +
-		'                oAligment.ver = this.stream.GetUChar();\n' + '            else if ( c_oSerAligmentTypes.WrapText == type )\n' +
-		'                oAligment.wrap= this.stream.GetBool();\n' + '            else\n' + '                res = c_oSerConstants.ReadUnknown;'
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( oReader.IsEmptyNode() )\n' + '\t\t\t\t\treturn;\n' + '\n' +
+		'\t\t\t\tint nCurDepth = oReader.GetDepth();\n' + '\t\t\t\twhile( oReader.ReadNextSiblingNode( nCurDepth ) )\n' + '\t\t\t\t{\n' +
+		'\t\t\t\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\n' + '\t\t\t\t\tif ( _T("tableStyleElement") == sName )\n' +
+		'\t\t\t\t\t\tm_arrItems.push_back( new CTableStyleElement( oReader ));\n' + '\t\t\t\t}';
+	var _x2t = 'WritingElement_ReadAttributes_Read_if     ( oReader, _T("count"),      m_oCount )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("name"),       m_oName )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("pivot"),      m_oPivot )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("table"),      m_oTable )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("displayName"),m_oDisplayName )'
+	var _documentation = ''
+	var _serialize = ''
 
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);

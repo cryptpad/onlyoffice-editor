@@ -11252,8 +11252,84 @@
 				newContext = null;
 			}
 			return newContext;
-		}
+		},
+        fromXml: function (reader) {
+
+            /*ReadAttributes( oReader );
+
+							if ( oReader.IsEmptyNode() )
+								return;
+
+							int nCurDepth = oReader.GetDepth();
+							while( oReader.ReadNextSiblingNode( nCurDepth ) )
+							{
+								std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+								if ( _T("tableStyle") == sName )
+									m_arrItems.push_back( new CTableStyle( oReader ));
+							}*/
+
+            this.readAttr(reader);
+
+            if (reader.IsEmptyNode())
+                return;
+            var depth = reader.GetDepth();
+            while (reader.ReadNextSiblingNode(depth)) {
+                var name = reader.GetNameNoNS();
+                if ("tableStyle" === name) {
+                    var val = new CTableStyle();
+                    var aElements = [];
+                    val.fromXml(reader, aElements);
+                    if(null != val.name) {
+                        if (null === val.displayName)
+                            val.displayName = val.name;
+                        this.CustomStyles[val.name] = {style : val, elements: aElements};
+                    }
+                    this.CustomStyles[val.name] = val;
+
+                    /*if(null != oNewStyle.name) {
+                        if (null === oNewStyle.displayName)
+                            oNewStyle.displayName = oNewStyle.name;
+                        oCustomStyles[oNewStyle.name] = {style : oNewStyle, elements: aElements};
+                    }*/
+                }
+            }
+        },
+
+        readAttr: function (reader) {
+
+//documentation
+            /*>
+			3709 <xsd:sequence>
+			3710 <xsd:element name="tableStyleElement" type="CT_TableStyleElement" minOccurs="0"
+			3711 maxOccurs="unbounded"/>
+			3712 </xsd:sequence>
+			3713 <xsd:attribute name="name" type="xsd:string" use="required"/>
+			3714 <xsd:attribute name="pivot" type="xsd:boolean" use="optional" default="true"/>
+			3715 <xsd:attribute name="table" type="xsd:boolean" use="optional" default="true"/>
+			3716 <xsd:attribute name="count" type="xsd:unsignedInt" use="optional"/>*/
+
+//x2t
+            /*WritingElement_ReadAttributes_Read_if     ( oReader, _T("count"),      m_oCount )
+								WritingElement_ReadAttributes_Read_if     ( oReader, _T("defaultPivotStyle"),      m_oDefaultPivotStyle )
+								WritingElement_ReadAttributes_Read_if     ( oReader, _T("defaultTableStyle"),      m_oDefaultTableStyle )*/
+
+//serialize
+            /**/
+
+            var val;
+            while (reader.MoveToNextAttribute()) {
+                if ("defaultPivotStyle" === reader.GetName()) {
+                    val = reader.GetValue();
+                    this.DefaultPivotStyle = val;
+                } else if ("defaultTableStyle" === reader.GetName()) {
+                    val = reader.GetValue();
+                    this.DefaultTableStyle = val;
+                }
+            }
+        }
     };
+
 	function CTableStyleStripe(size, offset, opt_row){
 		this.size = size;
 		this.offset = offset;
@@ -11406,6 +11482,98 @@
 		}
 		return newContext;
 	};
+    CTableStyle.prototype.fromXml = function (reader, aElements) {
+
+        /*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("tableStyleElement") == sName )
+								m_arrItems.push_back( new CTableStyleElement( oReader ));
+						}*/
+
+        this.readAttr(reader);
+
+        if (reader.IsEmptyNode())
+            return;
+        var depth = reader.GetDepth();
+        while (reader.ReadNextSiblingNode(depth)) {
+            var name = reader.GetNameNoNS();
+            if ("tableStyleElement" === name) {
+                var val = {Type: null, Size: null, DxfId: null};
+
+                while (reader.MoveToNextAttribute()) {
+                    if ("dxfId" === reader.GetName()) {
+                        val = reader.GetValueInt();
+                        this.DxfId = val;
+                    } else if ("size" === reader.GetName()) {
+                        val = reader.GetValueInt();
+                        this.Size = val;
+                    } else if ("type" === reader.GetName()) {
+                        val = reader.GetValue();
+                        this.Type = val;
+                    }
+                }
+
+                /*var oNewStyleElement = {Type: null, Size: null, DxfId: null};
+                res = this.bcr.Read2Spreadsheet(length, function(t,l){
+                    return oThis.ReadTableCustomStyleElement(t,l, oNewStyleElement);
+                });
+                if(null != oNewStyleElement.Type && null != oNewStyleElement.DxfId)
+                    aElements.push(oNewStyleElement);*/
+
+                /*if (c_oSer_TableStyleElement.Type === type)
+                    oNewStyleElement.Type = this.stream.GetUChar();
+                else if (c_oSer_TableStyleElement.Size === type)
+                    oNewStyleElement.Size = this.stream.GetULongLE();
+                else if (c_oSer_TableStyleElement.DxfId === type)
+                    oNewStyleElement.DxfId = this.stream.GetULongLE();
+                else
+                    res = c_oSerConstants.ReadUnknown;*/
+
+                aElements.push(val);
+            }
+        }
+    };
+
+    CTableStyle.prototype.readAttr = function (reader) {
+
+//documentation
+        /**/
+
+//x2t
+        /*WritingElement_ReadAttributes_Read_if     ( oReader, _T("count"),      m_oCount )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("name"),       m_oName )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("pivot"),      m_oPivot )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("table"),      m_oTable )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("displayName"),m_oDisplayName )*/
+
+//serialize
+        /**/
+
+        var val;
+        while (reader.MoveToNextAttribute()) {
+            if ("name" === reader.GetName()) {
+                val = reader.GetValue();
+                this.name = val;
+            } else if ("pivot" === reader.GetName()) {
+                val = reader.GetValue();
+                this.pivot = val;
+            } else if ("table" === reader.GetName()) {
+                val = reader.GetValue();
+                this.table = val;
+            } else if ("displayName" === reader.GetName()) {
+                val = reader.GetValue();
+                this.displayName = val;
+            }
+        }
+    };
 
     function CTableStyleElement()
     {
