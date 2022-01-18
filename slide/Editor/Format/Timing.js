@@ -2536,7 +2536,15 @@
                 if(oCopyEffect.cTn.nodeType === AscFormat.NODE_TYPE_CLICKEFFECT) {
                     oCopyEffect.cTn.setNodeType(nIdx === 0 ? AscFormat.NODE_TYPE_WITHEFFECT : AscFormat.NODE_TYPE_AFTEREFFECT);
                 }
-                oCopyEffect.cTn.changeRepeatCount(1000);
+                var oRepeatCount = oCopyEffect.getRepeatCount();
+                if(!oRepeatCount.isDefinite()) {
+                    oCopyEffect.cTn.changeRepeatCount(1000);
+                }
+                var oDur = oCopyEffect.getDur();
+                if(!oDur.isDefinite()) {
+                    oCopyEffect.cTn.changeEffectDuration(1000);
+                }
+
                 oCopyEffect.originalNode = null;
                 aSeq.push(oCopyEffect);
             }
