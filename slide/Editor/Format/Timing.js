@@ -2536,12 +2536,12 @@
                 if(oCopyEffect.cTn.nodeType === AscFormat.NODE_TYPE_CLICKEFFECT) {
                     oCopyEffect.cTn.setNodeType(nIdx === 0 ? AscFormat.NODE_TYPE_WITHEFFECT : AscFormat.NODE_TYPE_AFTEREFFECT);
                 }
-                var oRepeatCount = oCopyEffect.getRepeatCount();
-                if(!oRepeatCount.isDefinite()) {
+                var nRepeatCount = oCopyEffect.asc_getRepeatCount();
+                if(nRepeatCount === AscFormat.untilNextSlide || nRepeatCount === AscFormat.untilNextClick) {
                     oCopyEffect.cTn.changeRepeatCount(1000);
                 }
-                var oDur = oCopyEffect.getDur();
-                if(!oDur.isDefinite()) {
+                var nDur = oCopyEffect.asc_getDuration();
+                if(nDur === AscFormat.untilNextSlide || nDur === AscFormat.untilNextClick) {
                     oCopyEffect.cTn.changeEffectDuration(1000);
                 }
 
