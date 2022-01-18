@@ -4379,7 +4379,7 @@
         return new CTableMeasurement(nType, nW);
     }
 })(window, null);
-function isEqual(a, b)
+function isEqual(a, b, arrSkip)
 {
     if (!a)
         return true;
@@ -4393,12 +4393,12 @@ function isEqual(a, b)
     {
         sCurKey = aKeys[nKey];
 
-        if (sCurKey === "Id" || sCurKey === "parent" || sCurKey === "spid")
+        if (arrSkip.indexOf(sCurKey) !== -1 || sCurKey.search("compiled") !== -1)
             continue;
 
         if (typeof(a[sCurKey]) === "object" && Array.isArray(a[sCurKey]) === false)
         {
-            bResult = bResult && isEqual(a[sCurKey], b[sCurKey]);
+            bResult = bResult && isEqual(a[sCurKey], b[sCurKey], arrSkip);
             if (!bResult)
                 return false;
         }
@@ -4410,13 +4410,24 @@ function isEqual(a, b)
             for (var nItem = 0; nItem < a[sCurKey].length; nItem++)
             {
                 if (typeof(a[sCurKey][nItem]) === "object")
-                    bResult = bResult && isEqual(a[sCurKey][nItem], b[sCurKey][nItem]);
-                else if (a[sCurKey][nItem] !== b[sCurKey][nItem])
+                    bResult = bResult && isEqual(a[sCurKey][nItem], b[sCurKey][nItem], arrSkip);
+                else if (typeof(a[sCurKey][nItem]) === "number" && typeof(b[sCurKey][nItem]) === "number")
+                {
+                    if (a[sCurKey][nItem].toFixed(4) !== b[sCurKey][nItem].toFixed(4))
+                        return false;
+                }
+                else if (a[sCurKey][nItem] !== b[sCurKey][nItem] && (a[sCurKey][nItem] != null && b[sCurKey][nItem] != null))
                     return false;
             }
         }
-        else if (a[sCurKey] !== b[sCurKey])
-            return false;
+        else
+            if (typeof(a[sCurKey]) === "number" && typeof(b[sCurKey]) === "number")
+            {
+                if (a[sCurKey].toFixed(4) !== b[sCurKey].toFixed(4))
+                    return false;
+            }
+            else if (a[sCurKey] !== b[sCurKey] && (a[sCurKey] != null && b[sCurKey] != null))
+                return false;
     }
 
     return bResult;

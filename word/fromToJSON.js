@@ -1316,7 +1316,7 @@
 			arrResultPts.push({
 				v:          oNumLit.pts[nItem].val,
 				formatCode: oNumLit.pts[nItem].formatCode,
-				idx:        oNumLit.pts[nItem].idx,
+				idx:        oNumLit.pts[nItem].idx
 			});
 		}
 
@@ -2604,7 +2604,8 @@
 					oColorType = "style";
 					oColorObj  = {
 						auto: oColor.color.bAuto,
-						val:  oColor.color.val
+						val:  oColor.color.val,
+						type: oColorType
 					}
 					break;
 				}
@@ -8370,10 +8371,7 @@
 				var oExistingStyle = oStyles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
 				if (!oStyle.IsEqual(oExistingStyle))
-				{
-					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 					oStyles.Add(oStyle);
-				}
 				else
 					oStyle = oExistingStyle;
 			}
@@ -8603,10 +8601,7 @@
 				var oExistingStyle = oStyles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
 				if (!oStyle.IsEqual(oExistingStyle))
-				{
-					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 					oStyles.Add(oStyle);
-				}
 				else
 					oStyle = oExistingStyle;
 			}
@@ -10150,10 +10145,7 @@
 				var oExistingStyle = oStyles.Get(nExistingStyle);
 				// если стили идентичны, стиль не добавляем
 				if (!oStyle.IsEqual(oExistingStyle))
-				{
-					oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 					oStyles.Add(oStyle);
-				}
 				else
 					oStyle = oExistingStyle;
 			}
@@ -10711,10 +10703,7 @@
 						var oExistingStyle = oStyles.Get(nExistingStyle);
 						// если стили идентичны, стиль не добавляем
 						if (!oStyle.IsEqual(oExistingStyle))
-						{
-							oStyle.Set_Name("Custom_Style " + AscCommon.g_oIdCounter.Get_NewId());
 							oStyles.Add(oStyle);
-						}
 						else
 							oStyle = oExistingStyle;
 					}
@@ -12529,7 +12518,7 @@
 					nClrSchemeType = c_oAscColorSchemeIndex.Tx2;
 					break;
 			}
-			oClrMap.setClr(nClrScheme, nClrSchemeType);
+			nClrSchemeType != null && oClrMap.setClr(nClrScheme, nClrSchemeType);
 		}
 
 		return oClrMap;
