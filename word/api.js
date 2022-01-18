@@ -1433,6 +1433,10 @@ background-repeat: no-repeat;\
 		if (this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
 			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.navigate(value);
 	};
+	asc_docs_api.prototype["asc_setViewerTargetType"] = function(type) {
+		if (this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
+			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.setTargetType(type);
+	};
 
 	asc_docs_api.prototype.OpenDocument2 = function(url, gObject)
 	{

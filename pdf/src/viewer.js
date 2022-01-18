@@ -695,6 +695,11 @@
 			this.m_oScrollVerApi.scrollToY(posY);
 		};
 
+		this.setTargetType = function(type)
+		{
+
+		};
+
 		this.updateCurrentPage = function(pageObject)
 		{
 			if (this.currentPage != pageObject.num)
