@@ -1397,7 +1397,8 @@
 						lineCharCount++;
 
 						var char = stream.GetUShort();
-						lineText += String.fromCharCode(char);
+						if (char !== 0xFFFF)
+							lineText += String.fromCharCode(char);
 						if (lineGidExist)
 							stream.Skip(2);
 
