@@ -768,7 +768,7 @@
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
 
-        this.logState("SET STATE:");
+        //this.logState("SET STATE:");
     };
     CTimeNodeBase.prototype.logState = function (sPrefix) {
         var oAttr = this.getAttributesObject();
