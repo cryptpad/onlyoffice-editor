@@ -1434,14 +1434,26 @@ var editor;
 		//this.InitOpenManager.PostLoadPrepareDefNames(wb);
 
 		//external reference
-		var externalWorkbookPart = wbPart.getPartByRelationshipType(openXml.Types.externalWorkbook.relationType);
-		if (externalWorkbookPart) {
-			var contentExternalWorkbook = externalWorkbookPart.getDocumentContent();
-			if (contentExternalWorkbook) {
-				var externalReference = new AscCommonExcel.CT_ExternalReference(wb);
-				var reader = new StaxParser(contentExternalWorkbook, externalWorkbookPart, xmlParserContext);
-				externalReference.fromXml(reader);
-			}
+		if (wbXml.externalReferences) {
+			wbXml.externalReferences.forEach(function (externalReference) {
+				if (null !== externalReference) {
+					var externalWorkbookPart = wbPart.getPartById(externalReference);
+					if (externalWorkbookPart) {
+						var contentExternalWorkbook = externalWorkbookPart.getDocumentContent();
+						if (contentExternalWorkbook) {
+							var oExternalReference = new AscCommonExcel.CT_ExternalReference(wb);
+							var reader = new StaxParser(contentExternalWorkbook, externalWorkbookPart, xmlParserContext);
+							oExternalReference.fromXml(reader);
+							if (oExternalReference.val) {
+								if (oExternalReference.val.Id) {
+									oExternalReference.val.Id = externalReference;
+								}
+								wb.externalReferences.push(oExternalReference.val);
+							}
+						}
+					}
+				}
+			});
 		}
 
 		//styles

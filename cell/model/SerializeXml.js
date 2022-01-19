@@ -75,6 +75,7 @@
 		this.wb = wb;
 		this.sheets = null;
 		this.pivotCaches = null;
+		this.externalReferences = null;
 	}
 	CT_Workbook.prototype.fromXml = function(reader) {
 		if (!reader.ReadNextNode()) {
@@ -237,10 +238,16 @@
 					depth2 = reader.GetDepth();
 					while (reader.ReadNextSiblingNode(depth2)) {
 						name2 = reader.GetNameNoNS();
-						if ("externalReferences" === name2) {
-							//var externalReferences = new CT_ExternalReference();
-							//externalReferences.fromXml(reader);
-							//this.pivotCaches = pivotCaches.pivotCaches;
+						if ("externalReference" === name2) {
+							while (reader.MoveToNextAttribute()) {
+								if ("id" === reader.GetNameNoNS()) {
+									val = reader.GetValue();
+									if (!this.externalReferences) {
+										this.externalReferences = [];
+									}
+									this.externalReferences.push(val);
+								}
+							}
 						}
 					}
 
@@ -6942,8 +6949,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	function CT_ExternalReference(wb) {
-		this.wb = wb;
+	function CT_ExternalReference() {
+		this.val = null;
 	}
 	CT_ExternalReference.prototype.fromXml = function (reader) {
 
@@ -7041,7 +7048,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							}
 						}
 
-						this.wb.externalReferences.push(externalBook);
+						this.val = externalBook;
 					} else if ("oleLink" === name) {
 						//TODO
 						//хранится в бинарном виде
@@ -7115,6 +7122,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			return;
 		}
 		var depth = reader.GetDepth();
+		var val;
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 
