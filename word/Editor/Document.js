@@ -2622,21 +2622,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
     this.GlossaryDocument = new CGlossaryDocument(this);
 
-	this.AutoCorrectSettings = {
-		SmartQuotes            : true,
-		HyphensWithDash        : true,
-		AutomaticBulletedLists : true,
-		AutomaticNumberedLists : true,
-		FrenchPunctuation      : true,
-		DoubleSpaceWithPeriod  : false,
-		FirstLetterOfSentences : true,
-		FirstLetterOfCells     : true,
-		Hyperlinks             : true,
-		FirstLetterExceptions  : {},
-		FirstLetterExcMaxLen   : 0,
-	};
-
-    this.private_InitDefaultFirstLetterAutoCorrectExceptions();
+	this.AutoCorrectSettings = new AscCommon.CAutoCorrectOptions();
 
     // Контролируем изменения интерфейса
     this.ChangedStyles      = []; // Объект с Id стилями, которые были изменены/удалены/добавлены
@@ -24156,13 +24142,17 @@ CDocument.prototype.RestartNumbering = function(nRestartValue)
 
 	return true;
 };
+CDocument.prototype.GetAutoCorrectSettings = function()
+{
+	return this.AutoCorrectSettings;
+};
 /**
  * Устанавливаем настройку автосоздания маркированных списков
  * @param isAuto {boolean}
  */
 CDocument.prototype.SetAutomaticBulletedLists = function(isAuto)
 {
-	this.AutoCorrectSettings.AutomaticBulletedLists = isAuto;
+	this.AutoCorrectSettings.SetAutomaticBulletedLists(isAuto);
 };
 /**
  * Запрашиваем настройку автосоздания маркированных списков
@@ -24170,7 +24160,7 @@ CDocument.prototype.SetAutomaticBulletedLists = function(isAuto)
  */
 CDocument.prototype.IsAutomaticBulletedLists = function()
 {
-	return this.AutoCorrectSettings.AutomaticBulletedLists;
+	return this.AutoCorrectSettings.IsAutomaticBulletedLists();
 };
 /**
  * Устанавливаем настройку автосоздания нумерованных списков
@@ -24178,7 +24168,7 @@ CDocument.prototype.IsAutomaticBulletedLists = function()
  */
 CDocument.prototype.SetAutomaticNumberedLists = function(isAuto)
 {
-	this.AutoCorrectSettings.AutomaticNumberedLists = isAuto;
+	this.AutoCorrectSettings.SetAutomaticNumberedLists(isAuto);
 };
 /**
  * Запрашиваем настройку автосоздания нумерованных списков
@@ -24186,7 +24176,7 @@ CDocument.prototype.SetAutomaticNumberedLists = function(isAuto)
  */
 CDocument.prototype.IsAutomaticNumberedLists = function()
 {
-	return this.AutoCorrectSettings.AutomaticNumberedLists;
+	return this.AutoCorrectSettings.IsAutomaticNumberedLists();
 };
 /**
  * Устанавливаем параметр автозамены: заменять ли прямые кавычки "умными"
@@ -24194,7 +24184,7 @@ CDocument.prototype.IsAutomaticNumberedLists = function()
  */
 CDocument.prototype.SetAutoCorrectSmartQuotes = function(isSmartQuotes)
 {
-	this.AutoCorrectSettings.SmartQuotes = isSmartQuotes;
+	this.AutoCorrectSettings.SetSmartQuotes(isSmartQuotes);
 };
 /**
  * Запрашиваем настройку автозамены: заменять ли прямые кавычки "умными"
@@ -24202,7 +24192,7 @@ CDocument.prototype.SetAutoCorrectSmartQuotes = function(isSmartQuotes)
  */
 CDocument.prototype.IsAutoCorrectSmartQuotes = function()
 {
-	return this.AutoCorrectSettings.SmartQuotes;
+	return this.AutoCorrectSettings.IsSmartQuotes();
 };
 /**
  * Устанавливаем параметр автозамены двух дефисов на тире
@@ -24210,7 +24200,7 @@ CDocument.prototype.IsAutoCorrectSmartQuotes = function()
  */
 CDocument.prototype.SetAutoCorrectHyphensWithDash = function(isReplace)
 {
-	this.AutoCorrectSettings.HyphensWithDash = isReplace;
+	this.AutoCorrectSettings.SetHyphensWithDash(isReplace);
 };
 /**
  * Запрашиваем настройку автозамены двух дефисов на тире
@@ -24218,7 +24208,7 @@ CDocument.prototype.SetAutoCorrectHyphensWithDash = function(isReplace)
  */
 CDocument.prototype.IsAutoCorrectHyphensWithDash = function()
 {
-	return this.AutoCorrectSettings.HyphensWithDash;
+	return this.AutoCorrectSettings.IsHyphensWithDash();
 };
 /**
  * Запрашиваем настройку автозамены для французской пунктуации
@@ -24226,7 +24216,7 @@ CDocument.prototype.IsAutoCorrectHyphensWithDash = function()
  */
 CDocument.prototype.IsAutoCorrectFrenchPunctuation = function()
 {
-	return this.AutoCorrectSettings.FrenchPunctuation;
+	return this.AutoCorrectSettings.IsFrenchPunctuation();
 };
 /**
  * Запрашиваем настройку автозамены двойного пробела на точку
@@ -24234,8 +24224,7 @@ CDocument.prototype.IsAutoCorrectFrenchPunctuation = function()
  */
 CDocument.prototype.IsAutoCorrectDoubleSpaceWithPeriod = function()
 {
-
-	return this.AutoCorrectSettings.DoubleSpaceWithPeriod;
+	return this.AutoCorrectSettings.IsDoubleSpaceWithPeriod();
 };
 /**
  * Выставляем настройку атозамены двойного пробела на точку
@@ -24243,7 +24232,7 @@ CDocument.prototype.IsAutoCorrectDoubleSpaceWithPeriod = function()
  */
 CDocument.prototype.SetAutoCorrectDoubleSpaceWithPeriod = function(isCorrect)
 {
-	this.AutoCorrectSettings.DoubleSpaceWithPeriod = isCorrect;
+	this.AutoCorrectSettings.SetDoubleSpaceWithPeriod(isCorrect);
 };
 /**
  * Выставляем настройку атозамены для первого символа предложения
@@ -24251,7 +24240,7 @@ CDocument.prototype.SetAutoCorrectDoubleSpaceWithPeriod = function(isCorrect)
  */
 CDocument.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
 {
-	this.AutoCorrectSettings.FirstLetterOfSentences = isCorrect;
+	this.AutoCorrectSettings.SetFirstLetterOfSentences(isCorrect);
 };
 /**
  * Запрашиваем настройку атозамены для первого символа предложения
@@ -24259,7 +24248,7 @@ CDocument.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
  */
 CDocument.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
-	return this.AutoCorrectSettings.FirstLetterOfSentences;
+	return this.AutoCorrectSettings.IsFirstLetterOfSentences();
 };
 /**
  * Выставляем настройку атозамены для первого символа в ячейке таблицы
@@ -24267,7 +24256,7 @@ CDocument.prototype.IsAutoCorrectFirstLetterOfSentences = function()
  */
 CDocument.prototype.SetAutoCorrectFirstLetterOfCells = function(isCorrect)
 {
-	this.AutoCorrectSettings.FirstLetterOfCells = isCorrect;
+	this.AutoCorrectSettings.SetFirstLetterOfCells(isCorrect);
 }
 /**
  * Запрашиваем настройку атозамены для первого символа ячейки таблицы
@@ -24275,7 +24264,7 @@ CDocument.prototype.SetAutoCorrectFirstLetterOfCells = function(isCorrect)
  */
 CDocument.prototype.IsAutoCorrectFirstLetterOfCells = function()
 {
-	return this.AutoCorrectSettings.FirstLetterOfCells;
+	return this.AutoCorrectSettings.IsFirstLetterOfCells();
 };
 /**
  * Выставляем настройку атозамены для гиперссылок
@@ -24283,7 +24272,7 @@ CDocument.prototype.IsAutoCorrectFirstLetterOfCells = function()
  */
 CDocument.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
 {
-	this.AutoCorrectSettings.Hyperlinks = isCorrect;
+	this.AutoCorrectSettings.SetHyperlinks(isCorrect);
 };
 /**
  * Запрашиваем настройку атозамены для гиперссылок
@@ -24291,7 +24280,7 @@ CDocument.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
  */
 CDocument.prototype.IsAutoCorrectHyperlinks = function()
 {
-	return this.AutoCorrectSettings.Hyperlinks;
+	return this.AutoCorrectSettings.IsHyperlinks();
 };
 /**
  * Получаем массив исключений для автозамены первой буквы предложения
@@ -24299,13 +24288,7 @@ CDocument.prototype.IsAutoCorrectHyperlinks = function()
  */
 CDocument.prototype.GetFirstLetterAutoCorrectExceptions = function()
 {
-	var arrResult = [];
-	for (var nChar in this.AutoCorrectSettings.FirstLetterExceptions)
-	{
-		arrResult = arrResult.concat(this.AutoCorrectSettings.FirstLetterExceptions[nChar]);
-	}
-
-	return arrResult;
+	return this.AutoCorrectSettings.GetFirstLetterAutoCorrectExceptions();
 };
 /**
  * Задаем массив исключений для автозамены первой буквы предложения
@@ -24313,26 +24296,7 @@ CDocument.prototype.GetFirstLetterAutoCorrectExceptions = function()
  */
 CDocument.prototype.SetFirstLetterAutoCorrectExceptions = function(arrExceptions)
 {
-	this.AutoCorrectSettings.FirstLetterExceptions = {};
-
-	var nMaxLen = 0;
-	for (var nIndex = 0, nCount = arrExceptions.length; nIndex < nCount; ++nIndex)
-	{
-		if (!arrExceptions[nIndex].length)
-			continue;
-
-		if (arrExceptions[nIndex].length > nMaxLen)
-			nMaxLen = arrExceptions[nIndex].length;
-
-		var nChar = arrExceptions[nIndex].charAt(0);
-
-		if (!this.AutoCorrectSettings.FirstLetterExceptions[nChar])
-			this.AutoCorrectSettings.FirstLetterExceptions[nChar] = [];
-
-		this.AutoCorrectSettings.FirstLetterExceptions[nChar].push(arrExceptions[nIndex]);
-	}
-
-	this.AutoCorrectSettings.FirstLetterExcMaxLen = nMaxLen;
+	this.AutoCorrectSettings.SetFirstLetterAutoCorrectExceptions(arrExceptions);
 };
 /**
  * Проверяем слово, попадает ли оно в список исключений
@@ -24341,88 +24305,11 @@ CDocument.prototype.SetFirstLetterAutoCorrectExceptions = function(arrExceptions
  */
 CDocument.prototype.CheckFirstLetterAutoCorrectException = function(sWord)
 {
-	var _sWord = sWord.toLowerCase();
-
-	var nChar = _sWord.charAt(0);
-	if (!this.AutoCorrectSettings.FirstLetterExceptions[nChar])
-		return false;
-
-	var arrExceptions = this.AutoCorrectSettings.FirstLetterExceptions[nChar];
-	for (var nIndex = 0, nCount = arrExceptions.length; nIndex < nCount; ++nIndex)
-	{
-		if (_sWord === arrExceptions[nIndex])
-			return true;
-	}
-
-	return false;
+	return this.AutoCorrectSettings.CheckFirstLetterAutoCorrectException(sWord);
 };
 CDocument.prototype.GetFirstLetterAutoCorrectExceptionsMaxLen = function()
 {
-	return this.AutoCorrectSettings.FirstLetterExcMaxLen;
-};
-CDocument.prototype.private_InitDefaultFirstLetterAutoCorrectExceptions = function()
-{
-	// Init default for Latin and Cyrillic
-	this.SetFirstLetterAutoCorrectExceptions([
-		"a", "abbr", "abs", "acct", "addn", "adj", "advt", "al", "alt", "amt", "anon", "approx", "appt", "apr", "apt", "assn", "assoc", "asst", "attn", "attrib", "aug", "aux", "ave", "avg",
-		"b", "bal", "bldg", "blvd", "bot", "bro", "bros",
-		"c", "ca", "calc", "cc", "cert", "certif", "cf", "cit", "cm", "co", "comp", "conf", "confed", "const", "cont", "contrib", "coop", "corp", "ct",
-		"d", "dbl", "dec", "decl", "def", "defn", "dept", "deriv", "diag", "diff", "div", "dm", "dr", "dup", "dupl",
-		"e", "encl", "eq", "eqn", "equip", "equiv", "esp", "esq", "est", "etc", "excl", "ext",
-		"f", "feb", "ff", "fig", "freq", "fri", "ft", "fwd",
-		"g", "gal", "gen", "gov", "govt",
-		"h", "hdqrs", "hgt", "hist", "hosp", "hq", "hr", "hrs", "ht", "hwy",
-		"i", "ib", "ibid", "illus", "in", "inc", "incl", "incr", "int", "intl", "irreg", "ital",
-		"j", "jan", "jct", "jr", "jul", "jun",
-		"k", "kg", "km", "kmh",
-		"l", "lang", "lb", "lbs", "lg", "lit", "ln", "lt",
-		"m", "mar", "masc", "max", "mfg", "mg", "mgmt", "mgr", "mgt", "mhz", "mi", "min", "misc", "mkt", "mktg", "ml", "mm", "mngr", "mon", "mph", "mr", "mrs", "msec", "msg", "mt", "mtg", "mtn", "mun",
-		"n", "na", "name", "nat", "natl", "ne", "neg", "ng", "no", "norm", "nos", "nov", "num", "nw",
-		"o", "obj", "occas", "oct", "op", "opt", "ord", "org", "orig", "oz",
-		"p", "pa", "pg", "pkg", "pl", "pls", "pos", "pp", "ppt", "pred", "pref", "prepd", "prev", "priv", "prof", "proj", "pseud", "psi", "pt", "publ",
-		"q", "qlty", "qt", "qty",
-		"r", "rd", "re", "rec", "ref", "reg", "rel", "rep", "req", "reqd", "resp", "rev",
-		"s", "sat", "sci", "se", "sec", "sect", "sep", "sept", "seq", "sig", "soln", "soph", "spec", "specif", "sq", "sr", "st", "sta", "stat", "std", "subj", "subst", "sun", "supvr", "sw",
-		"t", "tbs", "tbsp", "tech", "tel", "temp", "thur", "thurs", "tkt", "tot", "transf", "transl", "tsp", "tues",
-		"u", "univ", "util",
-		"v", "var", "veg", "vert", "viz", "vol", "vs",
-		"w", "wed", "wk", "wkly", "wt",
-		"x",
-		"y", "yd", "yr",
-		"z",
-
-		"а",
-		"б",
-		"вв",
-		"гг", "гл",
-		"д", "др",
-		"е", "ед",
-		"ё",
-		"ж",
-		"з",
-		"и",
-		"й",
-		"к", "кв", "кл", "коп", "куб",
-		"лл",
-		"м", "мл", "млн", "млрд",
-		"н", "наб", "нач",
-		"о", "обл", "обр", "ок",
-		"п", "пер", "пл", "пос", "пр",
-		"руб",
-		"сб", "св", "см", "соч", "ср", "ст", "стр",
-		"тт", "тыс",
-		"у",
-		"ф",
-		"х",
-		"ц",
-		"ш", "шт",
-		"щ",
-		"ъ",
-		"ы",
-		"ь",
-		"э", "экз",
-		"ю"]
-	);
+	return this.AutoCorrectSettings.GetFirstLetterAutoCorrectExceptionsMaxLen();
 };
 /**
  * Получаем идентификатор текущего пользователя

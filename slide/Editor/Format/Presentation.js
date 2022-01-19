@@ -2902,16 +2902,7 @@ function CPresentation(DrawingDocument) {
 
     this.lastMaster = null;
 
-    this.AutoCorrectSettings = {
-        SmartQuotes            : true,
-        HyphensWithDash        : true,
-        AutomaticBulletedLists : true,
-        AutomaticNumberedLists : true,
-        FrenchPunctuation      : true,
-		FirstLetterOfSentences : true,
-        FirstLetterOfCells     : true,
-        Hyperlinks             : true
-    };
+    this.AutoCorrectSettings = new AscCommon.CAutoCorrectOptions();
 }
 
 //CPresentation.prototype = Object.create(CDocumentContentBase.prototype);
@@ -11321,40 +11312,50 @@ CPresentation.prototype.UpdateUndoRedo = function () {
     this.Document_UpdateUndoRedoState();
 };
 
+
+ CPresentation.prototype.GetAutoCorrectSettings = function()
+ {
+     return this.AutoCorrectSettings;
+ };
 /**
  * Устанавливаем настройку автосоздания маркированных списков
  * @param isAuto {boolean}
  */
-CPresentation.prototype.SetAutomaticBulletedLists = function(isAuto) {
-    this.AutoCorrectSettings.AutomaticBulletedLists = isAuto;
+CPresentation.prototype.SetAutomaticBulletedLists = function(isAuto)
+{
+    this.AutoCorrectSettings.SetAutomaticBulletedLists(isAuto);
 };
 /**
  * Запрашиваем настройку автосоздания маркированных списков
  * @returns {boolean}
  */
-CPresentation.prototype.IsAutomaticBulletedLists = function() {
-    return this.AutoCorrectSettings.AutomaticBulletedLists;
+CPresentation.prototype.IsAutomaticBulletedLists = function()
+{
+    return this.AutoCorrectSettings.IsAutomaticBulletedLists();
 };
 /**
  * Устанавливаем настройку автосоздания нумерованных списков
  * @param isAuto {boolean}
  */
-CPresentation.prototype.SetAutomaticNumberedLists = function(isAuto) {
-    this.AutoCorrectSettings.AutomaticNumberedLists = isAuto;
+CPresentation.prototype.SetAutomaticNumberedLists = function(isAuto)
+{
+    this.AutoCorrectSettings.SetAutomaticNumberedLists(isAuto);
 };
 /**
  * Запрашиваем настройку автосоздания нумерованных списков
  * @returns {boolean}
  */
-CPresentation.prototype.IsAutomaticNumberedLists = function() {
-    return this.AutoCorrectSettings.AutomaticNumberedLists;
+CPresentation.prototype.IsAutomaticNumberedLists = function()
+{
+    return this.AutoCorrectSettings.IsAutomaticNumberedLists();
 };
 /**
  * Устанавливаем параметр автозамены: заменять ли прямые кавычки "умными"
  * @param isSmartQuotes {boolean}
  */
-CPresentation.prototype.SetAutoCorrectSmartQuotes = function(isSmartQuotes) {
-    this.AutoCorrectSettings.SmartQuotes = isSmartQuotes;
+CPresentation.prototype.SetAutoCorrectSmartQuotes = function(isSmartQuotes)
+{
+    this.AutoCorrectSettings.SetSmartQuotes(isSmartQuotes);
 };
 /**
  * Запрашиваем настройку автозамены: заменять ли прямые кавычки "умными"
@@ -11362,7 +11363,7 @@ CPresentation.prototype.SetAutoCorrectSmartQuotes = function(isSmartQuotes) {
  */
 CPresentation.prototype.IsAutoCorrectSmartQuotes = function()
 {
-    return this.AutoCorrectSettings.SmartQuotes;
+    return this.AutoCorrectSettings.IsSmartQuotes();
 };
 /**
  * Устанавливаем параметр автозамены двух дефисов на тире
@@ -11370,7 +11371,7 @@ CPresentation.prototype.IsAutoCorrectSmartQuotes = function()
  */
 CPresentation.prototype.SetAutoCorrectHyphensWithDash = function(isReplace)
 {
-    this.AutoCorrectSettings.HyphensWithDash = isReplace;
+    this.AutoCorrectSettings.SetHyphensWithDash(isReplace);
 };
 /**
  * Запрашиваем настройку автозамены двух дефисов на тире
@@ -11378,7 +11379,7 @@ CPresentation.prototype.SetAutoCorrectHyphensWithDash = function(isReplace)
  */
 CPresentation.prototype.IsAutoCorrectHyphensWithDash = function()
 {
-    return this.AutoCorrectSettings.HyphensWithDash;
+    return this.AutoCorrectSettings.IsHyphensWithDash();
 };
 /**
  * Запрашиваем настройку автозамены для французской пунктуации
@@ -11386,39 +11387,39 @@ CPresentation.prototype.IsAutoCorrectHyphensWithDash = function()
  */
 CPresentation.prototype.IsAutoCorrectFrenchPunctuation = function()
 {
-    return this.AutoCorrectSettings.FrenchPunctuation;
+    return this.AutoCorrectSettings.IsFrenchPunctuation();
 };
 /**
- * Выставляем настройку атозамены для первового символа предложения
+ * Запрашиваем настройку автозамены двойного пробела на точку
+ * @returns {boolean}
+ */
+CPresentation.prototype.IsAutoCorrectDoubleSpaceWithPeriod = function()
+{
+    return this.AutoCorrectSettings.IsDoubleSpaceWithPeriod();
+};
+/**
+ * Выставляем настройку атозамены двойного пробела на точку
+ * @param {boolean} isCorrect
+ */
+CPresentation.prototype.SetAutoCorrectDoubleSpaceWithPeriod = function(isCorrect)
+{
+    this.AutoCorrectSettings.SetDoubleSpaceWithPeriod(isCorrect);
+};
+/**
+ * Выставляем настройку атозамены для первого символа предложения
  * @param {boolean} isCorrect
  */
 CPresentation.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
 {
-	this.AutoCorrectSettings.FirstLetterOfSentences = isCorrect;
+    this.AutoCorrectSettings.SetFirstLetterOfSentences(isCorrect);
 };
 /**
- * Запрашиваем настройку атозамены для первового символа предложения
+ * Запрашиваем настройку атозамены для первого символа предложения
  * @return {boolean}
  */
 CPresentation.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
-	return this.AutoCorrectSettings.FirstLetterOfSentences;
-};
-/**
- * Выставляем настройку атозамены для гиперссылок
- * @param {boolean} isCorrect
- */
-CPresentation.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
-{
-	this.AutoCorrectSettings.Hyperlinks = isCorrect;
-};
-/**
- * Запрашиваем настройку атозамены для гиперссылок
- * @return {boolean}
- */
-CPresentation.prototype.IsAutoCorrectHyperlinks = function()
-{
-	return this.AutoCorrectSettings.Hyperlinks;
+    return this.AutoCorrectSettings.IsFirstLetterOfSentences();
 };
 /**
  * Выставляем настройку атозамены для первого символа в ячейке таблицы
@@ -11426,15 +11427,60 @@ CPresentation.prototype.IsAutoCorrectHyperlinks = function()
  */
 CPresentation.prototype.SetAutoCorrectFirstLetterOfCells = function(isCorrect)
 {
-    this.AutoCorrectSettings.FirstLetterOfCells = isCorrect;
+    this.AutoCorrectSettings.SetFirstLetterOfCells(isCorrect);
 }
 /**
  * Запрашиваем настройку атозамены для первого символа ячейки таблицы
  * @return {boolean}
  */
-CPresentation.prototype.IsAutoCorrectFirstLetterOfCells = function()
+ CPresentation.prototype.IsAutoCorrectFirstLetterOfCells = function()
 {
-    return this.AutoCorrectSettings.FirstLetterOfCells;
+    return this.AutoCorrectSettings.IsFirstLetterOfCells();
+};
+/**
+ * Выставляем настройку атозамены для гиперссылок
+ * @param {boolean} isCorrect
+ */
+CPresentation.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
+{
+    this.AutoCorrectSettings.SetHyperlinks(isCorrect);
+};
+/**
+ * Запрашиваем настройку атозамены для гиперссылок
+ * @return {boolean}
+ */
+CPresentation.prototype.IsAutoCorrectHyperlinks = function()
+{
+    return this.AutoCorrectSettings.IsHyperlinks();
+};
+/**
+ * Получаем массив исключений для автозамены первой буквы предложения
+ * @returns {Array.string}
+ */
+CPresentation.prototype.GetFirstLetterAutoCorrectExceptions = function()
+{
+    return this.AutoCorrectSettings.GetFirstLetterAutoCorrectExceptions();
+};
+/**
+ * Задаем массив исключений для автозамены первой буквы предложения
+ * @returns {Array.string}
+ */
+CPresentation.prototype.SetFirstLetterAutoCorrectExceptions = function(arrExceptions)
+{
+    this.AutoCorrectSettings.SetFirstLetterAutoCorrectExceptions(arrExceptions);
+};
+/**
+ * Проверяем слово, попадает ли оно в список исключений
+ * @param sWord
+ * @returns {boolean}
+ */
+CPresentation.prototype.CheckFirstLetterAutoCorrectException = function(sWord)
+{
+    return this.AutoCorrectSettings.CheckFirstLetterAutoCorrectException(sWord);
+};
+CPresentation.prototype.GetFirstLetterAutoCorrectExceptionsMaxLen = function()
+{
+    return this.AutoCorrectSettings.GetFirstLetterAutoCorrectExceptionsMaxLen();
 };
 CPresentation.prototype.StopAnimation = function()
 {
