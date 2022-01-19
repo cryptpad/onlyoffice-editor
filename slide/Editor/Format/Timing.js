@@ -8005,7 +8005,11 @@
     CTimeNodeContainer.prototype["asc_putRewind"] = CTimeNodeContainer.prototype.asc_putRewind;
 
     CTimeNodeContainer.prototype.asc_getClass = function() {
-        return this.isMultipleEffect() ? undefined : this.cTn.presetClass;
+        if(AscFormat.isRealNumber(this.cTn.presetID) 
+        && AscFormat.isRealNumber(this.cTn.presetClass)) {
+            return this.cTn.presetClass;
+        }
+        return undefined;
     };
     CTimeNodeContainer.prototype["asc_getClass"] = CTimeNodeContainer.prototype.asc_getClass;
     CTimeNodeContainer.prototype.asc_getType = function() {
