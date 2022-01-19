@@ -10937,12 +10937,28 @@ CPresentation.prototype.GetCurSlideObjectsNames = function() {
     return oSlide.cSld.getObjectsNames();
 };
 CPresentation.prototype.SetAnimationProperties = function(oPr) {
+    
+    var oController = this.GetCurrentController();
+    if(!oController) {
+        return;
+    }
+    var oCurPr = oController.getDrawingProps().animProps;
+    if(oCurPr && oCurPr.isEqualProperties(oPr)) {
+        return;
+    }
     var oSlide = this.GetCurrentSlide();
     if(oSlide) {
+        var bChangeSubtype = false;
+        if(oPr && oCurPr && oPr.asc_getSubtype() !== oCurPr.asc_getSubtype()) {
+            bChangeSubtype = true;
+        }
         this.StartAction(0);
         oSlide.setAnimationProperties(oPr);
         this.FinalizeAction();
         this.Document_UpdateInterfaceState();
+        if(bChangeSubtype) {
+            this.StartAnimationPreview();
+        }
     }
 };
 CPresentation.prototype.GetCurTiming = function() {

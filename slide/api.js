@@ -3951,16 +3951,6 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
 	{
-		var oController = this.WordControl.m_oLogicDocument.GetCurrentController();
-		if(!oController)
-		{
-			return;
-		}
-		var oCurPr = oController.getDrawingProps().animProps;
-		if(oCurPr && oCurPr.isEqualProperties(oPr))
-		{
-			return;
-		}
 		this.WordControl.m_oLogicDocument.SetAnimationProperties(oPr)
 	};
 	asc_docs_api.prototype.asc_canMoveAnimationEarlier = function() 
