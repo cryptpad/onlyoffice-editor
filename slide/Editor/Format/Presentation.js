@@ -10911,14 +10911,24 @@ CPresentation.prototype.AddToLayout = function () {
     }, [], false, AscDFH.historydescription_Presentation_AddToLayout);
 };
 
-CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace, bPreview) {
     var oSlide = this.GetCurrentSlide();
     if(oSlide) {
         this.StartAction(0);
-        oSlide.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
+        var aAddedEffects = oSlide.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
         this.FinalizeAction();
-        this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
         this.Document_UpdateInterfaceState();
+        if(bPreview && aAddedEffects.length > 0) {
+            oSlide.graphicObjects.resetSelection();
+            oSlide.timing.resetSelection();
+            for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
+                aAddedEffects[nEffect].select();
+            }
+            this.StartAnimationPreview();
+        }
+        else {
+            this.DrawingDocument.OnRecalculatePage(this.CurPage, oSlide);
+        }
     }
 };
 CPresentation.prototype.GetCurSlideObjectsNamesPairs = function() {

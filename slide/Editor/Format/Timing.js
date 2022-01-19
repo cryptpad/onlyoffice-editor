@@ -1943,31 +1943,37 @@
     };
     CTiming.prototype.addAnimationToSelectedObjects = function(nPresetClass, nPresetId, nPresetSubtype) {
         var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
+        var aAddedEffects = [];
         for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
             var sObjectId = aSelectedObjects[nIdx].Get_Id();
-            this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
+            var oEffect = this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
+            if(oEffect) {
+                aAddedEffects.push(oEffect);
+            }
         }
+        return aAddedEffects;
     };
     CTiming.prototype.addAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+        var aAddedEffects = [];
         if(nPresetId === AscFormat.ANIM_PRESET_NONE) {
             this.removeSelectedEffects();
-            return;
+            return aAddedEffects;
         }
         if(!AscFormat.isRealNumber(nPresetClass)
 		|| !AscFormat.isRealNumber(nPresetId))
 		{
-			return;
+			return aAddedEffects;
 		}
         var aSelectedEffects = this.getSelectedEffects();
         var nIdx;
         var nEffectIdx;
         var oEffect;
-        var oNewEffect;
+        var oNewEffect = null;
         var sObjectId;
         var oDrawingsIdMap = {};
         if(bReplace) {
             if(aSelectedEffects.length === 0) {
-                this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
+                return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
             else {
                 var aSeqs = this.getEffectsSequences();
@@ -1986,6 +1992,7 @@
                                 oNewEffect.select();
                                 aSeq[nEffectIdx] = oNewEffect;
                                 bNeedRebuild = true;
+                                aAddedEffects.push(oNewEffect);
                             }
                         }
                     }
@@ -2002,16 +2009,20 @@
                     sObjectId = oEffect.getObjectId();
                     if(sObjectId) {
                         if(!oDrawingsIdMap[sObjectId]) {
-                            this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
+                            oNewEffect = this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
+                            if(oNewEffect) {
+                                aAddedEffects.push(oNewEffect);
+                            }
                             oDrawingsIdMap[sObjectId] = true;
                         }
                     }
                 }
             }
             else {
-                this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
+                aAddedEffects = this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
         }
+        return aAddedEffects;
     };
     CTiming.prototype.removeSelectedEffects = function() {
         this.removeEffects(this.getSelectedEffects());
@@ -2041,10 +2052,11 @@
         }
         var oEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
         if(!oEffect) {
-            return;
+            return null;
         }
         this.addToMainSequence(oEffect);
         oEffect.select();
+        return oEffect;
     };
     CTiming.prototype.createPar = function(nFill, sDelay) {
         var oPar = new CPar();

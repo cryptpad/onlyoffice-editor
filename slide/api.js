@@ -3919,9 +3919,13 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument.AddToLayout();
 	};
-	asc_docs_api.prototype.asc_AddAnimation      = function(nPresetClass, nPresetId, nPresetSubtype, bReplace)
+	asc_docs_api.prototype.asc_AddAnimation      = function(nPresetClass, nPresetId, nPresetSubtype, bReplace, bPreview)
 	{
-		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
+		var bStartPreview = true;
+		if(bPreview === false) {
+			bStartPreview = false;
+		}
+		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace, bStartPreview);
 	};
 	asc_docs_api.prototype.asc_getCurSlideObjectsNames = function()
 	{
