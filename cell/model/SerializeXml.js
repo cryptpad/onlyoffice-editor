@@ -87,6 +87,7 @@
 		}
 
 		var val;
+		var depth2, name2;
 		if ("workbook" === reader.GetNameNoNS()) {
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
@@ -159,9 +160,9 @@
 						}*/
 					}
 				} else if ("bookViews" === name) {
-					var depth2 = reader.GetDepth();
+					depth2 = reader.GetDepth();
 					while (reader.ReadNextSiblingNode(depth2)) {
-						var name2 = reader.GetNameNoNS();
+						name2 = reader.GetNameNoNS();
 						if ("workbookView" === name2) {
 							while (reader.MoveToNextAttribute()) {
 								if ("activeTab" === reader.GetNameNoNS()) {
@@ -175,9 +176,9 @@
 					if (reader.IsEmptyNode()) {
 						continue;
 					}
-					var depth2 = reader.GetDepth();
+					depth2 = reader.GetDepth();
 					while (reader.ReadNextSiblingNode(depth2)) {
-						var name2 = reader.GetNameNoNS();
+						name2 = reader.GetNameNoNS();
 						if ("definedName" === name2 || "NamedRange" === name2) {
 							var oNewDefinedName = new Asc.asc_CDefName();
 							oNewDefinedName.fromXml(reader);
@@ -229,6 +230,20 @@
 							this.wb.calcPr.forceFullCalc = val;
 						}
 					}
+				} else if ("externalReferences" === name) {
+					if (reader.IsEmptyNode()) {
+						continue;
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("externalReferences" === name2) {
+							//var externalReferences = new CT_ExternalReference();
+							//externalReferences.fromXml(reader);
+							//this.pivotCaches = pivotCaches.pivotCaches;
+						}
+					}
+
 				} else if ("comments" === name) {
 
 				}  else if ("slicerCaches" === name) {
@@ -6927,19 +6942,330 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
+	function CT_ExternalReference(wb) {
+		this.wb = wb;
+	}
+	CT_ExternalReference.prototype.fromXml = function (reader) {
+
+		/*m_oReadPath = oPath;
+						IFileContainer::Read( oRootPath, oPath );
+
+						XmlUtils::CXmlLiteReader oReader;
+
+						if ( !oReader.FromFile( oPath.GetPath() ) )
+							return;
+
+						if ( !oReader.ReadNextNode() )
+							return;
+
+						std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+						if ( (L"externalLink") == sName )
+						{
+							ReadAttributes( oReader );
+
+							if ( !oReader.IsEmptyNode() )
+							{
+								int nStylesDepth = oReader.GetDepth();
+								while ( oReader.ReadNextSiblingNode( nStylesDepth ) )
+								{
+									sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+									if ( (L"externalBook") == sName )
+									{
+										m_oExternalBook = oReader;
+									}
+									else if ( (L"oleLink") == sName )
+									{
+										m_oOleLink = oReader;
+									}
+									else if ( (L"ddeLink") == sName )
+									{
+										m_oDdeLink = oReader;
+									}
+								}
+							}
+						}		*/
+
+		//не далаю отдельных классов для externalLink/externalBook
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("externalLink" === name) {
+
+				if (reader.IsEmptyNode()) {
+					return;
+				}
+
+				var depth2 = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth2)) {
+					var name2 = reader.GetNameNoNS();
+					if ("externalBook" === name2) {
+
+						var externalBook = {Type: 0, Id: null, SheetNames: [], DefinedNames: [], SheetDataSet: []};
+
+						while (reader.MoveToNextAttribute()) {
+							if ("id" === reader.GetNameNoNS()) {
+								externalBook.Id = reader.GetValue();
+							}
+						}
+
+						if (reader.IsEmptyNode()) {
+							continue;
+						}
+						var depth3 = reader.GetDepth();
+						while (reader.ReadNextSiblingNode(depth3)) {
+							var name3 = reader.GetNameNoNS();
+							if ("sheetNames" === name3) {
+								val = new CT_ExternalSheetNames();
+								val.fromXml(reader);
+								if (val.val) {
+									externalBook.SheetNames = val.val;
+								}
+							} else if ("definedNames" === name3) {
+								val = new CT_ExternalDefinedNames();
+								val.fromXml(reader);
+								if (val.val) {
+									externalBook.DefinedNames = val.val;
+								}
+							} else if ("sheetDataSet" === name3) {
+								val = new CT_ExternalSheetDataSet();
+								val.fromXml(reader);
+								if (val.val) {
+									externalBook.SheetDataSet = val.val;
+								}
+							}
+						}
+
+						this.wb.externalReferences.push(externalBook);
+					} else if ("oleLink" === name) {
+						//TODO
+						//хранится в бинарном виде
+						//this.oWorkbook.externalReferences.push({Type: 1, Buffer: this.stream.GetBuffer(length)});
+					} else if ("ddeLink" === name) {
+						//TODO
+						//хранится в бинарном виде
+						//this.oWorkbook.externalReferences.push({Type: 2, Buffer: this.stream.GetBuffer(length)});
+					}
+				}
+			}
+		}
+	};
+
+	function CT_ExternalSheetNames() {
+		this.val = null;
+	}
+	CT_ExternalSheetNames.prototype.fromXml = function (reader) {
+
+		/*if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = oReader.GetName();
+							if (L"sheetName" == sName)
+							{
+								m_arrItems.push_back(new ComplexTypes::Spreadsheet::String(oReader));
+							}
+						}*/
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("sheetName" === name) {
+				while (reader.MoveToNextAttribute()) {
+					if ("val" === reader.GetNameNoNS()) {
+						if (!this.val) {
+							this.val = [];
+						}
+						this.val.push(reader.GetValue());
+					}
+				}
+			}
+		}
+	};
+
+	function CT_ExternalDefinedNames() {
+		this.val = null;
+	}
+	CT_ExternalDefinedNames.prototype.fromXml = function (reader) {
+
+		/*if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = oReader.GetName();
+							if (L"definedName" == sName)
+							{
+								m_arrItems.push_back(new CExternalDefinedName(oReader));
+							}
+						}*/
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("definedName" == name) {
+				var definedName = {Name: null, RefersTo: null, SheetId: null};
+				while (reader.MoveToNextAttribute()) {
+					if ("name" === reader.GetName()) {
+						val = reader.GetValue();
+						definedName.Name = val;
+					} else if ("refersTo" === reader.GetName()) {
+						val = reader.GetValue();
+						definedName.RefersTo = val;
+					} else if ("sheetId" === reader.GetName()) {
+						val = reader.GetValue();
+						definedName.SheetId = val;
+					}
+				}
+				if (!this.val) {
+					this.val = [];
+				}
+				this.val.push(definedName);
+			}
+		}
+	};
+
+	function CT_ExternalSheetDataSet() {
+		this.val = null;
+	}
+	CT_ExternalSheetDataSet.prototype.fromXml = function (reader) {
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		var val;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("sheetData" === name) {
+				val = new CT_ExternalSheetData();
+				val.fromXml(reader);
+				if (val.val) {
+					if (!this.val) {
+						this.val = [];
+					}
+
+					this.val.push(val.val);
+				}
+			}
+		}
+	}
+
+	function CT_ExternalSheetData() {
+		this.val = {SheetId: null, RefreshError: null, Row: []};
+	}
+	CT_ExternalSheetData.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("row" === reader.GetName()) {
+				var val = new CT_ExternalRow();
+				val.fromXml(reader);
+				if (val.val) {
+					this.val.Row.push(val.val);
+				}
+			}
+		}
+	}
+
+	CT_ExternalSheetData.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+
+			if ("refersTo" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.RefersTo = val;
+			} else if ("sheetId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.SheetId = val;
+			}
+		}
+	};
+
+
+	function CT_ExternalRow() {
+		this.val = {R: null, Cell: []};
+	}
+	CT_ExternalRow.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("cell" === reader.GetName()) {
+				var row = {R: null, Cell: []};
+
+				var val = new CT_ExternalCell();
+				val.fromXml(reader);
+				if (val.val) {
+					this.val.Cell.push(val.val);
+				}
+			}
+		}
+	}
+	CT_ExternalRow.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+
+			if ("r" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.R = val;
+			}
+		}
+	};
+
+	function CT_ExternalCell() {
+		this.val = {Ref: null, CellType: null, CellValue: null};
+	}
+	CT_ExternalCell.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("v" === reader.GetName()) {
+				var val = reader.GetValue();
+				this.val.CellValue = val;
+			}
+		}
+	}
+	CT_ExternalCell.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+
+			if ("r" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.Ref = val;
+			} else if ("t" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.CellType = val;
+			}  else if ("vm" === reader.GetName()) {
+				/*val = reader.GetValue();
+				this.val.CellType = val;*/
+			}
+		}
+	};
 
 
 
-
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( oReader.IsEmptyNode() )\n' + '\t\t\t\t\treturn;\n' + '\n' +
-		'\t\t\t\tint nCurDepth = oReader.GetDepth();\n' + '\t\t\t\twhile( oReader.ReadNextSiblingNode( nCurDepth ) )\n' + '\t\t\t\t{\n' +
-		'\t\t\t\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\n' + '\t\t\t\t\tif ( _T("tableStyleElement") == sName )\n' +
-		'\t\t\t\t\t\tm_arrItems.push_back( new CTableStyleElement( oReader ));\n' + '\t\t\t\t}';
-	var _x2t = 'WritingElement_ReadAttributes_Read_if     ( oReader, _T("count"),      m_oCount )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("name"),       m_oName )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("pivot"),      m_oPivot )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("table"),      m_oTable )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("displayName"),m_oDisplayName )'
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
+	var _x2t = 'WritingElement_ReadAttributes_Read_if( oReader, (L"name"), m_oName )\n' +
+		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, (L"refersTo"), m_oRefersTo )\n' +
+		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, (L"sheetId"), m_oSheetId )'
 	var _documentation = ''
 	var _serialize = ''
 
@@ -7240,4 +7566,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	window['AscCommonExcel'].CT_Value = CT_Value;
 	window['AscCommonExcel'].CT_DrawingWS = CT_DrawingWS;
 	window['AscCommonExcel'].CT_DrawingWSRef = CT_DrawingWSRef;
+	window['AscCommonExcel'].CT_ExternalReference = CT_ExternalReference;
+
 })(window);

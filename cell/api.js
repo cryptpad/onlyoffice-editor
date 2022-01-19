@@ -1433,6 +1433,16 @@ var editor;
 
 		//this.InitOpenManager.PostLoadPrepareDefNames(wb);
 
+		//external reference
+		var externalWorkbookPart = wbPart.getPartByRelationshipType(openXml.Types.externalWorkbook.relationType);
+		if (externalWorkbookPart) {
+			var contentExternalWorkbook = externalWorkbookPart.getDocumentContent();
+			if (contentExternalWorkbook) {
+				var externalReference = new AscCommonExcel.CT_ExternalReference(wb);
+				var reader = new StaxParser(contentExternalWorkbook, externalWorkbookPart, xmlParserContext);
+				externalReference.fromXml(reader);
+			}
+		}
 
 		//styles
 		var aCellXfs = [];

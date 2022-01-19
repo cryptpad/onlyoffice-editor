@@ -11037,11 +11037,6 @@
                 if(c_oSerConstants.ReadOk == res)
                     res = (new Binary_SharedStringTableReader(this.stream, wb, aSharedStrings)).Read();
             }
-
-
-
-
-
 			this.InitOpenManager.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb/*, aCellXfs, this.InitOpenManager.copyPasteObj.isCopyPaste*/)
             if(null != nStyleTableOffset)
             {
@@ -11053,9 +11048,6 @@
                     wb.oNumFmtsOpen = oStyleObject.oNumFmts;
                 }
             }
-
-
-
             var personList = {};
             if(null != nPersonListTableOffset)
             {
@@ -11077,6 +11069,10 @@
 				if(c_oSerConstants.ReadOk == res)
 					res = (new Binary_WorkbookTableReader(this.stream, this.InitOpenManager, wb, bwtr)).Read();
 			}
+
+
+
+
             if(c_oSerConstants.ReadOk == res)
             {
                 for(var i = 0; i < aSeekTable.length; ++i)
