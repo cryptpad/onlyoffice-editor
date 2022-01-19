@@ -7745,7 +7745,7 @@
     };
     CTimeNodeContainer.prototype.isMultipleEffect = function() {
         if(Array.isArray(this.merged) && this.merged.length > 1) {
-            if(this.presetClass === undefined || this.presetID === undefined || this.presetSubtype === undefined) {
+            if(this.cTn.presetClass === undefined || this.cTn.presetID === undefined) {
                 return true;
             }
         }
@@ -8013,8 +8013,11 @@
     };
     CTimeNodeContainer.prototype["asc_getClass"] = CTimeNodeContainer.prototype.asc_getClass;
     CTimeNodeContainer.prototype.asc_getType = function() {
-        if(typeof this.cTn.presetID === "undefined") {
-            return this.isMultipleEffect() ? AscFormat.ANIM_PRESET_MULTIPLE : AscFormat.ANIM_PRESET_NONE;
+        if(this.isMultipleEffect()) {
+            return AscFormat.ANIM_PRESET_MULTIPLE;
+        }
+        if(typeof this.cTn.presetClass === "undefined" || typeof this.cTn.presetID === "undefined") {
+            return AscFormat.ANIM_PRESET_NONE;
         }
         return this.cTn.presetID;
     };
