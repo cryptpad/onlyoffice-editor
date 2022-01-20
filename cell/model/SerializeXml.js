@@ -3863,6 +3863,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		this.uri = null;
 		this.dataValidations = [];
 		this.slicerCachesIds = [];
+		this.tableSlicerCaches = [];
 	}
 
 	COfficeArtExtension.prototype.fromXml = function (reader) {
@@ -3872,24 +3873,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			return;
 		}
 
-		if (this.uri === "{63B3BB69-23CF-44E3-9099-C40C66FF867C}"	||
-		this.uri === "{05C60535-1F16-4fd2-B633-F4F36F0B64E0}"	||
-		this.uri === "{504A1905-F514-4f6f-8877-14C23A59335A}"	||
-		this.uri === "{78C0D931-6437-407d-A8EE-F0AAD7539E65}"	||
-		this.uri === "{B025F937-C7B1-47D3-B67F-A62EFF666E3E}"	||
-		this.uri === "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}"	||
-		this.uri === "{A8765BA9-456A-4dab-B4F3-ACF838C121DE}"	||
-		this.uri === "{3A4CF648-6AED-40f4-86FF-DC5316D8AED3}"	||
-		this.uri === "{BBE1A952-AA13-448e-AADC-164F8A28A991}"	||
-		this.uri === "{46BE6895-7355-4a93-B00E-2C351335B9C9}"	||
-		this.uri === "{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}"	||
-		this.uri === "{03082B11-2C62-411c-B77F-237D8FCFBE4C}"	||
-		this.uri === "{2F2917AC-EB37-4324-AD4E-5DD8C200BD13}"	||
-		this.uri === "{470722E0-AACD-4C17-9CDC-17EF765DBC7E}"	||
-		this.uri === "{46F421CA-312F-682f-3DD2-61675219B42D}"	||
-		this.uri === "{DE250136-89BD-433C-8126-D09CA5730AF9}"	||
-		this.uri === "{19B8F6BF-5375-455C-9EA6-DF929625EA0E}"	||
-		this.uri === "http://schemas.microsoft.com/office/drawing/2008/diagram") {
+		if (this.uri === "{63B3BB69-23CF-44E3-9099-C40C66FF867C}" || this.uri === "{05C60535-1F16-4fd2-B633-F4F36F0B64E0}" || this.uri ===
+			"{504A1905-F514-4f6f-8877-14C23A59335A}" || this.uri === "{78C0D931-6437-407d-A8EE-F0AAD7539E65}" || this.uri === "{B025F937-C7B1-47D3-B67F-A62EFF666E3E}" ||
+			this.uri === "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}" || this.uri === "{A8765BA9-456A-4dab-B4F3-ACF838C121DE}" || this.uri ===
+			"{3A4CF648-6AED-40f4-86FF-DC5316D8AED3}" || this.uri === "{BBE1A952-AA13-448e-AADC-164F8A28A991}" || this.uri === "{46BE6895-7355-4a93-B00E-2C351335B9C9}" ||
+			this.uri === "{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}" || this.uri === "{03082B11-2C62-411c-B77F-237D8FCFBE4C}" || this.uri ===
+			"{2F2917AC-EB37-4324-AD4E-5DD8C200BD13}" || this.uri === "{470722E0-AACD-4C17-9CDC-17EF765DBC7E}" || this.uri === "{46F421CA-312F-682f-3DD2-61675219B42D}" ||
+			this.uri === "{DE250136-89BD-433C-8126-D09CA5730AF9}" || this.uri === "{19B8F6BF-5375-455C-9EA6-DF929625EA0E}" || this.uri ===
+			"http://schemas.microsoft.com/office/drawing/2008/diagram") {
 			var val;
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
@@ -3936,12 +3927,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("slicerCachePivotTables" === name) {
 
 				} else if ("tableSlicerCache" === name) {
-
+					val = new Asc.CT_tableSlicerCache();
+					val.fromXml(reader);
+					this.tableSlicerCaches.push(val);
 				} else if ("slicerCacheHideItemsWithNoData" === name) {
 
 				} else if ("id" === name) {
 
-				}  else if ("presenceInfo" === name) {
+				} else if ("presenceInfo" === name) {
 
 				}
 			}
@@ -6975,6 +6968,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
+	//***External Reference****
 	function CT_ExternalReference() {
 		this.val = null;
 	}
@@ -7294,6 +7288,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+
+	//****Slicer cache****
 	Asc.CT_slicerCacheDefinition.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes(oReader);
@@ -7322,6 +7318,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					m_oExtLst = oReader;
 			}*/
 
+
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+
 		this.readAttr(reader);
 
 		if (reader.IsEmptyNode()) {
@@ -7347,9 +7348,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val.fromXml(reader);
 				this.data = val;
 			} else if ("extLst" === name) {
-
+				var extLst = new COfficeArtExtensionList(this);
+				extLst.fromXml(reader);
+				this.extLst = extLst.arrExt;
 			}
 		}
+
+		//TODO tableSlicerCache from extLst
+		//CT_tableSlicerCache.prototype.initPostOpen
+		this.parseExtLst();
 	};
 
 	Asc.CT_slicerCacheDefinition.prototype.readAttr = function (reader) {
@@ -7370,13 +7377,27 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			if ("name" === reader.GetName()) {
 				val = reader.GetValue();
 				this.name = val;
-			} else if ("uid" === reader.GetName()) {
+			} /*else if ("uid" === reader.GetNameNoNS()) {
 				val = reader.GetValue();
 				this.uid = val;
-			} else if ("sourceName" === reader.GetName()) {
+			}*/ else if ("sourceName" === reader.GetName()) {
 				val = reader.GetValue();
 				this.sourceName = val;
 			}
+		}
+	};
+
+	Asc.CT_slicerCacheDefinition.prototype.parseExtLst = function () {
+		if (this.extLst) {
+			for (var i = 0; i < this.extLst.length; i++) {
+				var tableSlicerCaches = this.extLst[i].tableSlicerCaches;
+				if (tableSlicerCaches) {
+					for (var j = 0; j < tableSlicerCaches.length; j++) {
+						this.tableSlicerCache = tableSlicerCaches[j];
+					}
+				}
+			}
+			this.extLst = null;
 		}
 	};
 
@@ -7736,7 +7757,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("nd" === reader.GetName()) {
 				val = reader.GetValue();
 				this.nd = val;
-			} }
+			}
+		}
 	};
 
 	//CT_olapSlicerCacheSelection
@@ -7786,14 +7808,208 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	Asc.CT_tabularSlicerCache.prototype.fromXml = function (reader) {
 
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("items", sName) == 0)
+					m_oItems = oReader;
+				else if (strcmp("extLst", sName) == 0)
+					m_oExtLst = oReader;
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("items" === name) {
+				var depth2 = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth2)) {
+					var name2 = reader.GetNameNoNS();
+					if ("i" === name2) {
+						//CTabularSlicerCacheItem
+						var val = Asc.CT_tabularSlicerCacheItem();
+						val.fromXml(reader);
+						this.items.push(val);
+					}
+				}
+			} else if ("extLst" === name) {
+				//TODO
+			}
+		}
+	};
+
+	Asc.CT_tabularSlicerCache.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_ifChar( oReader, "pivotCacheId", m_oPivotCacheId)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "sortOrder", m_oSortOrder)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "customListSort", m_oCustomListSort)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "showMissing", m_oShowMissing)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "crossFilter", m_oCrossFilter)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("pivotCacheId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.pivotCacheId = val;
+			} else if ("sortOrder" === reader.GetName()) {
+				val = reader.GetValue();
+				this.sortOrder = val;
+			} else if ("customListSort" === reader.GetName()) {
+				val = reader.GetValue();
+				this.customListSort = val;
+			} else if ("showMissing" === reader.GetName()) {
+				val = reader.GetValue();
+				this.showMissing = val;
+			} else if ("crossFilter" === reader.GetName()) {
+				val = reader.GetValue();
+				this.crossFilter = val;
+			}
+		}
+	};
+
+	Asc.CT_tabularSlicerCacheItem.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.CT_tabularSlicerCacheItem.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_ifChar( oReader, "x", m_oX)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "s", m_oS)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "nd", m_oNd)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("x" === reader.GetName()) {
+				val = reader.GetValue();
+				this.x = val;
+			} else if ("s" === reader.GetName()) {
+				val = reader.GetValue();
+				this.s = val;
+			} else if ("nd" === reader.GetName()) {
+				val = reader.GetValue();
+				this.nd = val;
+			}
+		}
+	};
+
+	Asc.CT_tableSlicerCache.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("extLst", sName) == 0)
+					m_oExtLst = oReader;
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			/*this.tableId = null;
+			this.tableIdOpen = null;//?
+			this.column = null;
+			this.columnOpen = null;//?
+			this.sortOrder = ST_tabularSlicerCacheSortOrder.Ascending;
+			this.customListSort = true;
+			this.crossFilter = ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop;*/
+
+			if ("extLst" === name) {
+				//TODO
+			}
+		}
+	};
+
+	Asc.CT_tableSlicerCache.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_ifChar( oReader, "tableId", m_oTableId)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "column", m_oColumn)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "sortOrder", m_oSortOrder)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "customListSort", m_oCustomListSort)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "crossFilter", m_oCrossFilter)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("tableId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.tableId = val;
+			} else if ("column" === reader.GetName()) {
+				val = reader.GetValue();
+				this.column = val;
+			} else if ("sortOrder" === reader.GetName()) {
+				//TODO ST_tabularSlicerCacheSortOrder.Ascending;
+				val = reader.GetValue();
+				this.sortOrder = val;
+			} else if ("customListSort" === reader.GetName()) {
+				val = reader.GetValue();
+				this.customListSort = val;
+			} else if ("crossFilter" === reader.GetName()) {
+				//TODO ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop;
+				val = reader.GetValue();
+				this.crossFilter = val;
+			}
+		}
+	};
 
 
 	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
 		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tconst char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());\n' +
-		'\t\tif (strcmp("p", sName) == 0)\n' + '\t\t{\n' + '\t\t\tm_oP.emplace_back();\n' + '\t\t\tm_oP.back() = oReader;\n' + '\t\t}\n' + '\t}';
-	var _x2t = '\tWritingElement_ReadAttributes_Read_ifChar( oReader, "n", m_oN)\n' + '\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "c", m_oC)\n' +
-		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "nd", m_oNd)'
+		'\t\tif (strcmp("extLst", sName) == 0)\n' + '\t\t\tm_oExtLst = oReader;\n' + '\t}';
+	var _x2t = 'WritingElement_ReadAttributes_Read_ifChar( oReader, "tableId", m_oTableId)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "column", m_oColumn)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "sortOrder", m_oSortOrder)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "customListSort", m_oCustomListSort)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "crossFilter", m_oCrossFilter)'
 	var _documentation = ''
 	var _serialize = ''
 
