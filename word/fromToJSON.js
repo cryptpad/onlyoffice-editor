@@ -71,6 +71,14 @@
 	{
 		return mm / (25.4 / 72.0 / 20);
 	}
+	function private_Twips2Px(twips)
+	{
+		return twips * (4 / 3 / 20);
+	}
+	function private_Px2Twips(px)
+	{
+		return px / (4 / 3 / 20);
+	}
 	/**
 	 * Get the first Run in the array specified.
 	 * @typeofeditors ["CDE"]
@@ -436,6 +444,8 @@
 
 		if (oGraphicObj instanceof AscFormat.CChartSpace)
 			oResultObj = this.SerChartSpace(oGraphicObj, aComplexFieldsToSave);
+		else if (oGraphicObj instanceof AscFormat.COleObject)
+			oResultObj = this.SerOleObject(oGraphicObj, aComplexFieldsToSave);
 		else if (oGraphicObj instanceof AscFormat.CImageShape)
 			oResultObj = this.SerImage(oGraphicObj, aComplexFieldsToSave);
 		else if (oGraphicObj instanceof AscFormat.CShape)
@@ -462,6 +472,24 @@
 		oResultObj["id"] = oGraphicObj.Id;
 
 		return oResultObj;
+	};
+	WriterToJSON.prototype.SerOleObject = function(oOleObject)
+	{
+		var oResult  = this.SerImage(oOleObject);
+
+		oResult["appId"] = oOleObject.m_sApplicationId;
+		oResult["data"]  = oOleObject.m_sData;
+
+		oResult["dxaOrig"] = private_Px2Twips(oOleObject.m_nPixWidth);
+		oResult["dyaOrig"] = private_Px2Twips(oOleObject.m_nPixHeight);
+
+		oResult["objFile"]    = oOleObject.m_sObjectFile;
+		oResult["oleType"]    = To_XML_OleObj_Type(oOleObject.m_nOleType);
+		oResult["binaryData"] = oOleObject.m_aBinaryData;
+		oResult["mathObj"]    = this.SerParaMath(oOleObject.m_oMathObject);
+
+		oResult["type"] = "oleObject";
+        return oResult;
 	};
 	WriterToJSON.prototype.SerLockedCanvas = function(oLockedCanvas)
 	{
@@ -11621,6 +11649,9 @@
 			case "lockedCanvas":
 				oGraphicObj = this.LockedCanvasFromJSON(oParsedObj, oParent);
 				break;
+			case "oleObject":
+				oGraphicObj = this.OleObjectFromJSOM(oParsedObj, oParent);
+				break;
 		}
 
 		this.drawingsMap[oParsedObj.id] = oGraphicObj;
@@ -12742,6 +12773,34 @@
 		oShape.recalculate();
 
 		return oShape;
+	};
+	ReaderFromJSON.prototype.OleObjectFromJSOM = function(oParsedOleObj, oParentDrawing)
+	{
+		var oOleObject = new AscFormat.COleObject();
+		oOleObject.setBDeleted(false);
+		
+		if (oParentDrawing)
+		{
+			oOleObject.setParent(oParentDrawing);
+			oParentDrawing.Set_GraphicObject(oOleObject);
+		}
+
+		oParsedOleObj.appId      != undefined && oOleObject.setApplicationId(oParsedOleObj.appId);
+		oParsedOleObj.data       != undefined && oOleObject.setData(oParsedOleObj.data);
+		oParsedOleObj.objFile    != undefined && oOleObject.setObjectFile(oParsedOleObj.objFile);
+		oParsedOleObj.oleType    != undefined && oOleObject.setOleType(From_XML_OleObj_Type(oParsedOleObj.oleType));
+		oParsedOleObj.binaryData != undefined && oOleObject.setBinaryData(oParsedOleObj.binaryData);
+		oParsedOleObj.mathObj    != undefined && oOleObject.setMathObject(this.ParaMathFromJSON(oParsedOleObj.mathObj));
+		
+		if (oParsedOleObj.dxaOrig > 0 && oParsedOleObj.dyaOrig > 0) {
+			oOleObject.setPixSizes(private_Twips2Px(oParsedOleObj.dxaOrig), private_Twips2Px(oParsedOleObj.dyaOrig));
+		}
+
+		oOleObject.setBlipFill(this.BlipFillFromJSON(oParsedOleObj.blipFill));
+		oOleObject.setNvPicPr(this.UniNvPrFromJSON(oParsedOleObj.nvPicPr));
+		oOleObject.setSpPr(this.SpPrFromJSON(oParsedOleObj.spPr, oOleObject));
+
+		return oOleObject;
 	};
 	ReaderFromJSON.prototype.ImageFromJSON = function(oParsedImage, oParentDrawing)
 	{
@@ -18860,6 +18919,42 @@
 				break;
 			case "unknownRelationShip":
 				nVal = AscCommon.ST_CxnType.unknownRelationShip;
+				break;
+		}
+
+		return nVal;
+	}
+	function To_XML_OleObj_Type(nVal)
+	{
+		var sVal = undefined;
+		switch(nVal)
+		{
+			case AscCommon.c_oAscOleObjectTypes.document:
+				sVal = "document";
+				break;
+			case AscCommon.c_oAscOleObjectTypes.spreadsheet:
+				sVal = "spreadsheet";
+				break;
+			case AscCommon.c_oAscOleObjectTypes.formula:
+				sVal = "formula";
+				break;
+		}
+
+		return sVal;
+	}
+	function From_XML_OleObj_Type(sVal)
+	{
+		var nVal = undefined;
+		switch(sVal)
+		{
+			case "document":
+				nVal = AscCommon.c_oAscOleObjectTypes.document;
+				break;
+			case "spreadsheet":
+				nVal = AscCommon.c_oAscOleObjectTypes.spreadsheet;
+				break;
+			case "formula":
+				nVal = AscCommon.c_oAscOleObjectTypes.formula;
 				break;
 		}
 

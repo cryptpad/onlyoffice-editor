@@ -1780,6 +1780,13 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		presParOf: 2,
 		unknownRelationShip: 3
 	}
+	
+	var c_oAscOleObjectTypes = {
+		document:    1,
+		spreadsheet: 2,
+		formula:     4
+	}
+
 	// image wrap style
 	var c_oAscWrapStyle = {
 		Inline : 0,
@@ -4521,4 +4528,5 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window['AscCommon'].ST_BevelPresetType = ST_BevelPresetType;
 	window['AscCommon'].ST_PresetMaterialType = ST_PresetMaterialType;
 	window['AscCommon'].ST_TLAnimateEffectTransition = ST_TLAnimateEffectTransition;
+	window['AscCommon'].c_oAscOleObjectTypes = c_oAscOleObjectTypes;
 	})(window);

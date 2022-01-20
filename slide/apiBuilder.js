@@ -1165,6 +1165,21 @@
 
         return JSON.stringify(oWriter.SerSlides(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts));
     };
+
+    ApiPresentation.prototype.GetInfoOle = function(){
+        for (var nSlide = 0; nSlide < this.Presentation.Slides.length; nSlide++)
+        {
+            var oSlide = this.Presentation.Slides[nSlide];
+            for (var nDrawing = 0; nDrawing < oSlide.cSld.spTree.length; nDrawing++)
+            {
+                var oDrawing = oSlide.cSld.spTree[nDrawing];
+
+                if (oDrawing instanceof AscFormat.COleObject)
+                    return {slide: nSlide, drawing: nDrawing}
+            }
+        }
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiMaster
