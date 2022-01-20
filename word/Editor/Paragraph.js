@@ -9519,7 +9519,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 
 		if (NewType === UndefType)
 		{
-			if (NewType === numbering_presentationnumfrmt_Char)//буллеты
+			if (NewType === numbering_presentationnumfrmt_Char || NewType === numbering_presentationnumfrmt_Blip)//буллеты
 			{
 				var oUndefPresentationBullet = oUndefParaPr.Bullet.getPresentationBullet(oTheme, oColorMap);
 				var oNewPresentationBullet   = oBullet2.getPresentationBullet(oTheme, oColorMap);
@@ -9595,7 +9595,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 					{
 						this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
 					}
-					else
+					else if (NewType !== numbering_presentationnumfrmt_Blip)
 					{
 						if (!IsPrNumberingSameType(NewType, UndefType))
 						{

@@ -2124,11 +2124,8 @@ function CBinaryFileWriter()
                     }
                     case AscFormat.BULLET_TYPE_BULLET_BLIP:
                     {
-                        // not support. char (*)
-                        oThis.StartRecord(AscFormat.BULLET_TYPE_BULLET_CHAR);
-                        oThis.WriteUChar(g_nodeAttributeStart);
-                        oThis._WriteString1(0, "*");
-                        oThis.WriteUChar(g_nodeAttributeEnd);
+                        oThis.StartRecord(AscFormat.BULLET_TYPE_BULLET_BLIP);
+                        bullet.bulletType.Blip.toPPTY(oThis);
                         oThis.EndRecord();
                         break;
                     }
@@ -2919,6 +2916,77 @@ function CBinaryFileWriter()
         }
     };
 
+    this.prepareRasterImageIdForWrite = function(rawSrc) {
+        var _src = rawSrc;
+
+        if (window["IsEmbedImagesInInternalFormat"] === true)
+        {
+            var _image = editor.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(_src)];
+            if (undefined !== _image)
+            {
+                var imgNatural = _image.Image;
+
+                var _canvas = document.createElement("canvas");
+                _canvas.width = imgNatural.width;
+                _canvas.height = imgNatural.height;
+
+                _canvas.getContext("2d").drawImage(imgNatural, 0, 0, _canvas.width, _canvas.height);
+                _src = _canvas.toDataURL("image/png");
+            }
+        }
+        else if (oThis.IsUseFullUrl)
+        {
+            if ((0 == _src.indexOf("theme")) && window.editor)
+            {
+                _src = oThis.PresentationThemesOrigin + _src;
+            }
+            else if (0 != _src.indexOf("http:") && 0 != _src.indexOf("data:") && 0 != _src.indexOf("https:") && 0 != _src.indexOf("ftp:") && 0 != _src.indexOf("file:")){
+                if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages() &&
+                  window["AscDesktopEditor"] && window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"]) {
+                    _src = window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"](_src);
+                } else {
+                    var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
+                    if (imageUrl)
+                        _src = imageUrl;
+                }
+            }
+            if(window["native"] && window["native"]["GetImageTmpPath"]){
+                if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
+                    _src = window["native"]["GetImageTmpPath"](_src);
+                }
+
+            }
+        }
+        return _src;
+    }
+
+    this.WriteBlip = function (fill, _src) {
+
+        oThis.StartRecord(0);
+        oThis.WriteUChar(g_nodeAttributeStart);
+        oThis.WriteUChar(g_nodeAttributeEnd);
+
+
+        var effects_count = fill.Effects.length;
+
+            oThis.StartRecord(2);
+            oThis.WriteULong(effects_count);
+            for(var effect_index = 0; effect_index < effects_count; ++effect_index)
+            {
+                oThis.WriteRecord1(0, fill.Effects[effect_index], oThis.WriteEffect);
+            }
+            oThis.EndRecord();
+
+        oThis.StartRecord(3);
+        oThis.WriteUChar(g_nodeAttributeStart);
+        oThis._WriteString1(0, _src);
+        oThis.WriteUChar(g_nodeAttributeEnd);
+        oThis.EndRecord();
+
+        oThis.EndRecord();
+
+    }
+
     this.WriteUniFill = function(unifill)
     {
         if (undefined === unifill || null == unifill)
@@ -3024,7 +3092,7 @@ function CBinaryFileWriter()
                 oThis.WriteUChar(g_nodeAttributeEnd);
 
                 var _src = fill.RasterImageId;
-				var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(_src);
+                var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(_src);
                 if(imageLocal)
                     _src = imageLocal;
                 else
@@ -3032,84 +3100,9 @@ function CBinaryFileWriter()
 
                 oThis.image_map[_src] = true;
 
-                if (window["IsEmbedImagesInInternalFormat"] === true)
-                {
-                    var _image = editor.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(_src)];
-                    if (undefined !== _image)
-                    {
-                        var imgNatural = _image.Image;
+                _src = oThis.prepareRasterImageIdForWrite(_src);
 
-                        var _canvas = document.createElement("canvas");
-                        _canvas.width = imgNatural.width;
-                        _canvas.height = imgNatural.height;
-
-                        _canvas.getContext("2d").drawImage(imgNatural, 0, 0, _canvas.width, _canvas.height);
-                        _src = _canvas.toDataURL("image/png");
-                    }
-                }
-                else if (oThis.IsUseFullUrl)
-                {
-                    if ((0 == _src.indexOf("theme")) && window.editor)
-                    {
-                        _src = oThis.PresentationThemesOrigin + _src;
-                    }
-                    else if (0 != _src.indexOf("http:") && 0 != _src.indexOf("data:") && 0 != _src.indexOf("https:") && 0 != _src.indexOf("ftp:") && 0 != _src.indexOf("file:")){
-						if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages() &&
-							window["AscDesktopEditor"] && window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"]) {
-						    _src = window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"](_src);
-						} else {
-							var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
-							if (imageUrl)
-							    _src = imageUrl;
-						}
-                    }
-                    if(window["native"] && window["native"]["GetImageTmpPath"]){
-                        if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
-                            _src = window["native"]["GetImageTmpPath"](_src);
-                        }
-
-                    }
-                }
-
-                oThis.StartRecord(0);
-                oThis.WriteUChar(g_nodeAttributeStart);
-                oThis.WriteUChar(g_nodeAttributeEnd);
-
-
-                var effects_count = fill.Effects.length;
-                if(effects_count > 0)
-                {
-
-                    oThis.StartRecord(2);
-                    oThis.WriteULong(effects_count);
-                    for(var effect_index = 0; effect_index < effects_count; ++effect_index)
-                    {
-                        oThis.WriteRecord1(0, fill.Effects[effect_index], oThis.WriteEffect);
-                    }
-                    oThis.EndRecord();
-                }
-
-                // if (null != trans)
-                // {
-                //     oThis.StartRecord(2);
-                //     oThis.WriteULong(1);
-                //     oThis.StartRecord(3);
-                //     oThis.StartRecord(21);
-                //     oThis.WriteUChar(g_nodeAttributeStart);
-                //     oThis._WriteInt1(0, (trans * 100000 / 255) >> 0);
-                //     oThis.WriteUChar(g_nodeAttributeEnd);
-                //     oThis.EndRecord();
-                //     oThis.EndRecord();
-                //     oThis.EndRecord();
-                // }
-
-                oThis.StartRecord(3);
-                oThis.WriteUChar(g_nodeAttributeStart);
-                oThis._WriteString1(0, _src);
-                oThis.WriteUChar(g_nodeAttributeEnd);
-                oThis.EndRecord();
-
-                oThis.EndRecord();
+                oThis.WriteBlip(fill, _src);
 
                 if (fill.srcRect != null)
                 {
