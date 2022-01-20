@@ -7892,7 +7892,7 @@
             var nFirst = this.merged[0].asc_getDelay();
             var nCurDelay;
             for(var nIdx = 1; nIdx < this.merged.length; ++nIdx) {
-                nCurDelay = this.merged[nIdx];
+                nCurDelay = this.merged[nIdx].asc_getDelay();
                 if(nFirst !== nCurDelay) {
                     return undefined;
                 }
