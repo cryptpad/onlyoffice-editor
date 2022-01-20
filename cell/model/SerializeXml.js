@@ -76,6 +76,7 @@
 		this.sheets = null;
 		this.pivotCaches = null;
 		this.externalReferences = null;
+		this.extLst = null;
 	}
 	CT_Workbook.prototype.fromXml = function(reader) {
 		if (!reader.ReadNextNode()) {
@@ -252,14 +253,27 @@
 					}
 
 				} else if ("comments" === name) {
+					//TODO разобраться как читаются/записываются комменты в бинарник
+
+
 
 				}  else if ("slicerCaches" === name) {
+
+
 
 				} else if ("workbookProtection" === name) {
 					var workbooProtection = new Asc.CWorkbookProtection(this.wb);
 					workbooProtection.fromXml(reader);
 					this.wb.workbookProtection = workbooProtection;
+				} else if ("extLst" === name) {
+					var extLst = new COfficeArtExtensionList(this);
+					extLst.fromXml(reader);
+					this.extLst = extLst.arrExt;
 				}
+
+				//TODO
+				//c_oSerWorkbookTypes.VbaProject
+				//c_oSerWorkbookTypes.JsaProject
 			}
 		}
 	};
@@ -3848,6 +3862,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function COfficeArtExtension() {
 		this.uri = null;
 		this.dataValidations = [];
+		this.slicerCachesIds = [];
 	}
 
 	COfficeArtExtension.prototype.fromXml = function (reader) {
@@ -3902,7 +3917,18 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("slicerList" === name) {
 
 				} else if ("slicerCaches" === name) {
+					var depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						var name2 = reader.GetNameNoNS();
+						if ("slicerCache" === name2) {
 
+							while (reader.MoveToNextAttribute()) {
+								if ("id" === reader.GetNameNoNS()) {
+									this.slicerCachesIds.push(reader.GetValue());
+								}
+							}
+						}
+					}
 				} else if ("dxfs" === name) {
 
 				} else if ("slicerStyles" === name) {
@@ -7268,12 +7294,506 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	Asc.CT_slicerCacheDefinition.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("pivotTables", sName) == 0)
+				{
+					int nCurDepth = oReader.GetDepth();
+					while (oReader.ReadNextSiblingNode(nCurDepth))
+					{
+						const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+						if (strcmp("pivotTable", sName) == 0)
+						{
+							m_oPivotTables.emplace_back();
+							m_oPivotTables.back() = oReader;
+						}
+					}
+				}
+				else if (strcmp("data", sName) == 0)
+					m_oData = oReader;
+				else if (strcmp("extLst", sName) == 0)
+					m_oExtLst = oReader;
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		var val;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("pivotTables" === name) {
+				var depth2 = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth2)) {
+					var name2 = reader.GetNameNoNS();
+					if ("pivotTable" === name2) {
+						val = Asc.CT_slicerCachePivotTable();
+						val.fromXml(reader);
+						this.pivotTables.push(val);
+					}
+				}
+			} else if ("data" === name) {
+				val = Asc.CT_slicerCacheData();
+				val.fromXml(reader);
+				this.data = val;
+			} else if ("extLst" === name) {
+
+			}
+		}
+	};
+
+	Asc.CT_slicerCacheDefinition.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*	WritingElement_ReadAttributes_Read_ifChar( oReader, "name", m_oName)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "uid", m_oUid)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "sourceName", m_oSourceName)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			} else if ("uid" === reader.GetName()) {
+				val = reader.GetValue();
+				this.uid = val;
+			} else if ("sourceName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.sourceName = val;
+			}
+		}
+	};
+
+	Asc.CT_slicerCachePivotTable.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.CT_slicerCachePivotTable.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_ifChar( oReader, "tabId", m_oTabId)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "name", m_oName)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("tabId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.tabIdOpen = val;
+			} else if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			}
+			//TODO sheetId ?
+		}
+	};
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
-	var _x2t = 'WritingElement_ReadAttributes_Read_if( oReader, (L"name"), m_oName )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, (L"refersTo"), m_oRefersTo )\n' +
-		'\t\t\t\tWritingElement_ReadAttributes_Read_else_if( oReader, (L"sheetId"), m_oSheetId )'
+	Asc.CT_slicerCacheData.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("olap", sName) == 0)
+					m_oOlap = oReader;
+				else if (strcmp("tabular", sName) == 0)
+					m_oTabular = oReader;
+			}*/
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		var val;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			/*this.olap = null;//OlapSlicerCache
+			this.tabular = null;//TabularSlicerCache*/
+
+			if ("olap" === name) {
+				val = Asc.CT_olapSlicerCache();
+				val.fromXml(reader);
+				this.olap = val;
+			} else if ("tabular" === name) {
+				val = Asc.CT_tabularSlicerCache();
+				val.fromXml(reader);
+				this.tabular = val;
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCache.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("levels", sName) == 0)
+					m_oLevels = oReader;
+				else if (strcmp("selections", sName) == 0)
+					m_oSelections = oReader;
+		//		else if (strcmp("extLst", sName) == 0)
+		//			m_oExtLst = oReader;
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode())
+			return;
+
+		var depth2, name2;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			/*this.levels = [];//OlapSlicerCacheLevelData
+			this.selections = [];//OlapSlicerCacheSelection
+			this.pivotCacheId = null;
+			this.pivotCacheDefinition = null;*/
+
+			if ("levels" === name) {
+				depth2 = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth2)) {
+					name2 = reader.GetNameNoNS();
+					if ("level" === name2) {
+						val = Asc.CT_olapSlicerCacheLevelData();
+						val.fromXml(reader);
+						this.levels.push(val);
+					}
+				}
+			} else if ("selections" === name) {
+				depth2 = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth2)) {
+					name2 = reader.GetNameNoNS();
+					if ("level" === name2) {
+						val = Asc.CT_olapSlicerCacheSelection();
+						val.fromXml(reader);
+						this.selections.push(val);
+					}
+				}
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCache.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_ifChar( oReader, "pivotCacheId", m_oPivotCacheId)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("pivotCacheId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.pivotCacheId = val;
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCacheLevelData.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("ranges", sName) == 0)
+				{
+					int nCurDepth = oReader.GetDepth();
+					while (oReader.ReadNextSiblingNode(nCurDepth))
+					{
+						const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+						if (strcmp("range", sName) == 0)
+						{
+							m_oRanges.emplace_back();
+							m_oRanges.back() = oReader;
+						}
+					}
+				}
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("ranges" === name) {
+				var depth2 = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth2)) {
+					var name2 = reader.GetNameNoNS();
+					if ("range" === name2) {
+						var val = Asc.CT_olapSlicerCacheRange();
+						val.fromXml(reader);
+						this.ranges.push(val);
+					}
+				}
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCacheLevelData.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_ifChar( oReader, "uniqueName", m_oUniqueName)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "sourceCaption", m_oSourceCaption)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "count", m_oCount)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "sortOrder", m_oSortOrder)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "crossFilter", m_oCrossFilter)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("uniqueName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.uniqueName = val;
+			} else if ("sourceCaption" === reader.GetName()) {
+				val = reader.GetValue();
+				this.sourceCaption = val;
+			} else if ("count" === reader.GetName()) {
+				val = reader.GetValue();
+				this.count = val;
+			} else if ("sortOrder" === reader.GetName()) {
+				val = reader.GetValue();
+				this.sortOrder = val;
+			} else if ("crossFilter" === reader.GetName()) {
+				val = reader.GetValue();
+				this.crossFilter = val;
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCacheRange.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("i", sName) == 0)
+				{
+					m_oI.emplace_back();
+					m_oI.back() = oReader;
+				}
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode())
+			return;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			/*this.i = [];//OlapSlicerCacheItem
+			this.startItem = null*/
+
+			if ("i" === name) {
+				var val = Asc.CT_olapSlicerCacheItem();
+				val.fromXml(reader);
+				this.i.push(val);
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCacheRange.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_ifChar( oReader, "startItem", m_oStartItem)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("startItem" === reader.GetName()) {
+				val = reader.GetValue();
+				this.startItem = val;
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCacheItem.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("p", sName) == 0)
+				{
+					m_oP.emplace_back();
+					m_oP.back() = oReader;
+				}
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			/*this.p = [];//OlapSlicerCacheItemParent - состоит из одного поля, поэтому данную структуру не добавляю
+			this.n = null;
+			this.c = null;
+			this.nd = false;*/
+
+			if ("p" === name) {
+				while (reader.MoveToNextAttribute()) {
+					if ("n" === reader.GetName()) {
+						this.p.push(reader.GetValue());
+					}
+				}
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCacheItem.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*	WritingElement_ReadAttributes_Read_ifChar( oReader, "n", m_oN)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "c", m_oC)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "nd", m_oNd)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("n" === reader.GetName()) {
+				val = reader.GetValue();
+				this.n = val;
+			} else if ("c" === reader.GetName()) {
+				val = reader.GetValue();
+				this.c = val;
+			} else if ("nd" === reader.GetName()) {
+				val = reader.GetValue();
+				this.nd = val;
+			} }
+	};
+
+	//CT_olapSlicerCacheSelection
+
+	Asc.CT_olapSlicerCacheSelection.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			/*this.p = [];//OlapSlicerCacheItemParent - состоит из одного поля, поэтому данную структуру не добавляю
+		this.n = null;*/
+
+			if ("p" === name) {
+				while (reader.MoveToNextAttribute()) {
+					if ("n" === reader.GetNameNoNS()) {
+						this.p.push(reader.getValue());
+					}
+				}
+			}
+		}
+	};
+
+	Asc.CT_olapSlicerCacheSelection.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*	WritingElement_ReadAttributes_Read_ifChar( oReader, "n", m_oN)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "c", m_oC)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "nd", m_oNd)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("n" === reader.GetName()) {
+				val = reader.GetValue();
+				this.n = val;
+			}
+		}
+	};
+
+
+
+
+	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
+		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tconst char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());\n' +
+		'\t\tif (strcmp("p", sName) == 0)\n' + '\t\t{\n' + '\t\t\tm_oP.emplace_back();\n' + '\t\t\tm_oP.back() = oReader;\n' + '\t\t}\n' + '\t}';
+	var _x2t = '\tWritingElement_ReadAttributes_Read_ifChar( oReader, "n", m_oN)\n' + '\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "c", m_oC)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "nd", m_oNd)'
 	var _documentation = ''
 	var _serialize = ''
 

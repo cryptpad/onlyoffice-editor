@@ -1444,6 +1444,8 @@ var editor;
 							var oExternalReference = new AscCommonExcel.CT_ExternalReference(wb);
 							var reader = new StaxParser(contentExternalWorkbook, externalWorkbookPart, xmlParserContext);
 							oExternalReference.fromXml(reader);
+
+							//TODO id отличается от serialize
 							if (oExternalReference.val) {
 								if (oExternalReference.val.Id) {
 									oExternalReference.val.Id = externalReference;
@@ -1452,6 +1454,31 @@ var editor;
 							}
 						}
 					}
+				}
+			});
+		}
+
+		if (wbXml.extLst) {
+			wbXml.extLst.forEach(function (ext) {
+				if (ext.slicerCachesIds) {
+					ext.slicerCachesIds.forEach(function (slicerCacheId) {
+						if (null !== slicerCacheId) {
+							var slicerCacheWorkbookPart = wbPart.getPartById(slicerCacheId);
+							if (slicerCacheWorkbookPart) {
+								var contentSlicerCache = slicerCacheWorkbookPart.getDocumentContent();
+								if (contentSlicerCache) {
+									var oSlicerCacheDefinition = new Asc.CT_slicerCacheDefinition();
+									var reader = new StaxParser(contentSlicerCache, slicerCacheWorkbookPart, xmlParserContext);
+									oSlicerCacheDefinition.fromXml(reader);
+
+									//TODO add / flag fromStream
+									/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
+									this.stream.FromFileStream(fileStream);
+									this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
+								}
+							}
+						}
+					});
 				}
 			});
 		}
