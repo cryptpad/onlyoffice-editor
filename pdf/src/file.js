@@ -236,6 +236,12 @@
         return this.nativeFile ? this.nativeFile["getGlyphs"](pageIndex) : [];
     };
 
+    CFile.prototype.destroyText = function()
+    {
+        if (this.nativeFile)
+            this.nativeFile["destroyTextInfo"]();
+    };
+
     CFile.prototype.getPageBase64 = function(pageIndex, width, height)
 	{
 		var _canvas = this.getPage(pageIndex, width, height);

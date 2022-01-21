@@ -1554,6 +1554,9 @@
 				}
 			}
 
+			if (this.pagesInfo.countTextPages === pagesCount)
+				this.file.destroyText();
+
 			return isCommands;
 		};
 
