@@ -1528,12 +1528,11 @@ void main() {\n\
                 sel.Page2 = pagesCount - 1;
                 sel.Line2 = lLinesLastPage;
                 sel.Glyph2 = -1;
-
-                this.onUpdateOverlay();
             }
         }
 
         this.onUpdateSelection();
+        this.onUpdateOverlay();
     };
 
     CFile.prototype.onUpdateOverlay = function()
@@ -1543,8 +1542,8 @@ void main() {\n\
 
     CFile.prototype.onUpdateSelection = function()
     {
-        if (window.editor)
-            window.editor.sendEvent("asc_onSelectionEnd");
+        if (this.viewer.Api)
+            this.viewer.Api.sendEvent("asc_onSelectionEnd");
     };
 
     // SEARCH

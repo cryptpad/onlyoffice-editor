@@ -1744,7 +1744,7 @@
 				bRetValue = true;
 
 				// TODO: waiting if not loaded
-				this.selectAll();
+				this.file.selectAll();
 			}
 			else if ( e.KeyCode == 80 && true === e.CtrlKey ) // Ctrl + P + ...
 			{
