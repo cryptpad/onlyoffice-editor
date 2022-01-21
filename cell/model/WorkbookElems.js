@@ -11961,6 +11961,38 @@ QueryTableField.prototype.clone = function() {
 		this.ctx.DocumentRenderer = oGraphics;
 	};
 
+	function CT_Connection() {
+		this.dbPr = null;//CT_DbPr
+		this.olapPr = null;//CT_OlapPr
+		this.webPr = null;//CT_WebPr
+		this.textPr = null;//CT_TextPr
+		this.parameters = null;//CT_Parameters
+		this.extLst = null;//CT_ExtensionList
+
+		this.id = null;//xsd:unsignedInt
+		this.sourceFile = null;//s:ST_Xstring
+		this.odcFile = null;//s:ST_Xstring
+		this.keepAlive = null;//xsd:boolean
+		this.interval = null;//xsd:unsignedInt
+		this.name = null;//s:ST_Xstring
+		this.description = null;//s:ST_Xstring
+		this.type = null;//xsd:unsignedInt
+		this.reconnectionMethod = null;//xsd:unsignedInt
+		this.refreshedVersion = null;//xsd:unsignedByte
+		this.minRefreshableVersion = null;//xsd:unsignedByte
+		this.savePassword = null;//xsd:boolean
+		this.new = null;//xsd:boolean
+		this.deleted = null;//xsd:boolean
+		this.onlyUseConnectionFile = null;//xsd:boolean
+		this.background = null;//xsd:boolean
+		this.refreshOnLoad = null;//xsd:boolean
+		this.saveData = null;//xsd:boolean
+		this.credentials = null;//ST_CredMethod
+		this.singleSignOnId = null;//s:ST_Xstring
+
+		return this;
+	}
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -12324,6 +12356,8 @@ QueryTableField.prototype.clone = function() {
 	window["AscCommonExcel"].FromXml_ST_HorizontalAlignment = FromXml_ST_HorizontalAlignment;
 	window["AscCommonExcel"].FromXml_ST_VerticalAlignment   = FromXml_ST_VerticalAlignment;
 	window["AscCommonExcel"].FromXml_ST_PatternType         = FromXml_ST_PatternType;
+
+	window["AscCommonExcel"].CT_Connection = CT_Connection;
 
 
 })(window);

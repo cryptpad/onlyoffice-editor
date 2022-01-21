@@ -1414,7 +1414,7 @@ var editor;
 		var openXml = AscCommon.openXml;
 		var pivotCaches = {};
 		var xmlParserContext = new XmlParserContext();
-		xmlParserContext.InitOpenManager = new AscCommonExcel.InitOpenManager(null, wb);
+		var initOpenManager = xmlParserContext.InitOpenManager = new AscCommonExcel.InitOpenManager(null, wb);
 		var wbPart = null;
 		var wbXml = null;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
@@ -1431,7 +1431,11 @@ var editor;
 			wbXml.fromXml(reader);
 		});
 
-		//this.InitOpenManager.PostLoadPrepareDefNames(wb);
+		//defined names
+		if (wbXml.newDefinedNames) {
+			xmlParserContext.InitOpenManager.oReadResult.defNames = wbXml.newDefinedNames;
+			xmlParserContext.InitOpenManager.PostLoadPrepareDefNames(wb);
+		}
 
 		//external reference
 		if (wbXml.externalReferences) {
@@ -1508,6 +1512,14 @@ var editor;
 					}
 				}
 			});
+		}
+
+		//connection
+		//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
+		var connectionsPart = wbPart.getPartByRelationshipType(openXml.Types.connections.relationType);
+		if (connectionsPart) {
+			var contentConnections = connectionsPart.getDocumentContent();
+			wb.connections = contentConnections;
 		}
 
 		//styles
@@ -1645,62 +1657,83 @@ var editor;
 			});
 		}
 
-		var bNoBuildDep = true;
-		for (var i = 0; i < xmlParserContext.InitOpenManager.oReadResult.sheetData.length; ++i) {
-			var sheetDataElem = xmlParserContext.InitOpenManager.oReadResult.sheetData[i];
-			var ws = sheetDataElem.ws;
 
-			var tmp = {
-				pos: null, len: null, bNoBuildDep: bNoBuildDep, ws: ws, row: new AscCommonExcel.Row(ws),
-				cell: new AscCommonExcel.Cell(ws), formula: new AscCommonExcel.OpenFormula(), sharedFormulas: {},
-				prevFormulas: {}, siFormulas: {}, prevRow: -1, prevCol: -1, formulaArray: []
-			};
+		var readSheetDataExternal = function (bNoBuildDep) {
+			for (var i = 0; i < xmlParserContext.InitOpenManager.oReadResult.sheetData.length; ++i) {
+				var sheetDataElem = xmlParserContext.InitOpenManager.oReadResult.sheetData[i];
+				var ws = sheetDataElem.ws;
+
+				var tmp = {
+					pos: null, len: null, bNoBuildDep: bNoBuildDep, ws: ws, row: new AscCommonExcel.Row(ws),
+					cell: new AscCommonExcel.Cell(ws), formula: new AscCommonExcel.OpenFormula(), sharedFormulas: {},
+					prevFormulas: {}, siFormulas: {}, prevRow: -1, prevCol: -1, formulaArray: []
+				};
 
 
-			var sheetData = new AscCommonExcel.CT_SheetData();
-			xmlParserContext.InitOpenManager.tmp = tmp;
-			xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
+				var sheetData = new AscCommonExcel.CT_SheetData();
+				xmlParserContext.InitOpenManager.tmp = tmp;
+				xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
 
-			sheetDataElem.reader.setState(sheetDataElem.state);
-			//TODO пересмотреть фунцию fromXml
-			sheetData.fromXml2(sheetDataElem.reader);
+				sheetDataElem.reader.setState(sheetDataElem.state);
+				//TODO пересмотреть фунцию fromXml
+				sheetData.fromXml2(sheetDataElem.reader);
 
-			if (!bNoBuildDep) {
-				//TODO возможно стоит делать это в worksheet после полного чтения
-				//***array-formula***
-				//добавление ко всем ячейкам массива головной формулы
-				for(var j = 0; j < tmp.formulaArray.length; j++) {
-					var curFormula = tmp.formulaArray[j];
-					var ref = curFormula.ref;
-					if(ref) {
-						var rangeFormulaArray = tmp.ws.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
-						rangeFormulaArray._foreach(function(cell){
-							cell.setFormulaInternal(curFormula);
-							if (curFormula.ca || cell.isNullTextString()) {
-								tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
-							}
-						});
+				if (!bNoBuildDep) {
+					//TODO возможно стоит делать это в worksheet после полного чтения
+					//***array-formula***
+					//добавление ко всем ячейкам массива головной формулы
+					for(var j = 0; j < tmp.formulaArray.length; j++) {
+						var curFormula = tmp.formulaArray[j];
+						var ref = curFormula.ref;
+						if(ref) {
+							var rangeFormulaArray = tmp.ws.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
+							rangeFormulaArray._foreach(function(cell){
+								cell.setFormulaInternal(curFormula);
+								if (curFormula.ca || cell.isNullTextString()) {
+									tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
+								}
+							});
+						}
 					}
-				}
-				for (var nCol in tmp.prevFormulas) {
-					if (tmp.prevFormulas.hasOwnProperty(nCol)) {
-						var prevFormula = tmp.prevFormulas[nCol];
-						if (!tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
-							prevFormula.parsed.buildDependencies();
+					for (var nCol in tmp.prevFormulas) {
+						if (tmp.prevFormulas.hasOwnProperty(nCol)) {
+							var prevFormula = tmp.prevFormulas[nCol];
+							if (!tmp.siFormulas[prevFormula.parsed.getListenerId()]) {
+								prevFormula.parsed.buildDependencies();
+							}
+						}
+					}
+					for (var listenerId in tmp.siFormulas) {
+						if (tmp.siFormulas.hasOwnProperty(listenerId)) {
+							tmp.siFormulas[listenerId].buildDependencies();
 						}
 					}
 				}
-				for (var listenerId in tmp.siFormulas) {
-					if (tmp.siFormulas.hasOwnProperty(listenerId)) {
-						tmp.siFormulas[listenerId].buildDependencies();
-					}
-				}
+			}
+		};
+
+		//TODO общий код с serialize
+		//ReadSheetDataExternal
+		if(!initOpenManager.copyPasteObj.isCopyPaste || initOpenManager.copyPasteObj.selectAllSheet)
+		{
+			readSheetDataExternal(false);
+			if (!initOpenManager.copyPasteObj.isCopyPaste) {
+				initOpenManager.PostLoadPrepare(wb);
+			}
+			wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, false, true);
+		} else {
+			readSheetDataExternal(true);
+			if(window["Asc"] && window["Asc"]["editor"] !== undefined) {
+				wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, true);
 			}
 		}
 
-		if (window['OPEN_IN_BROWSER']) {
+
+		/*if (window['OPEN_IN_BROWSER']) {
 			wb.init([], [], {});
-		}
+		}*/
+
+
 		wb.initPostOpenZip(pivotCaches, xmlParserContext);
 		jsZipWrapper.close();
 		//clean up

@@ -11142,11 +11142,11 @@
 				if (!this.InitOpenManager.copyPasteObj.isCopyPaste) {
 					this.InitOpenManager.PostLoadPrepare(wb);
 				}
-                wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, this.oReadResult.sheetIds, false, true);
+                wb.init(this.InitOpenManager.oReadResult.tableCustomFunc, this.InitOpenManager.oReadResult.tableIds, this.InitOpenManager.oReadResult.sheetIds, false, true);
             } else {
 				bwtr.ReadSheetDataExternal(true);
 				if(window["Asc"] && window["Asc"]["editor"] !== undefined) {
-					wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, this.oReadResult.sheetIds, true);
+					wb.init(this.InitOpenManager.oReadResult.tableCustomFunc, this.InitOpenManager.oReadResult.tableIds, this.InitOpenManager.oReadResult.sheetIds, true);
 				}
             }
             return res;

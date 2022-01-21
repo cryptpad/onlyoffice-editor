@@ -78,6 +78,7 @@
 		this.externalReferences = null;
 		this.extLst = null;
 		this.slicerCachesIds = null;
+		this.newDefinedNames = null;
 	}
 	CT_Workbook.prototype.fromXml = function(reader) {
 		if (!reader.ReadNextNode()) {
@@ -88,7 +89,7 @@
 				return;
 			}
 		}
-		
+
 
 		var val;
 		var depth2, name2;
@@ -187,6 +188,10 @@
 							var oNewDefinedName = new Asc.asc_CDefName();
 							oNewDefinedName.fromXml(reader);
 							//TODO readResult!!!
+							if (!this.newDefinedNames) {
+								this.newDefinedNames = [];
+							}
+							this.newDefinedNames.push(oNewDefinedName);
 							//this.InitOpenManager.oReadResult.defNames.push(oNewDefinedName);
 						}
 					}
@@ -8016,15 +8021,275 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
-		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tconst char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());\n' +
-		'\t\tif (strcmp("extLst", sName) == 0)\n' + '\t\t\tm_oExtLst = oReader;\n' + '\t}';
-	var _x2t = 'WritingElement_ReadAttributes_Read_ifChar( oReader, "tableId", m_oTableId)\n' +
-		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "column", m_oColumn)\n' +
-		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "sortOrder", m_oSortOrder)\n' +
-		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "customListSort", m_oCustomListSort)\n' +
-		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "crossFilter", m_oCrossFilter)'
-	var _documentation = ''
+	//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
+	//connections
+	function CT_Connections() {
+		//Members
+		this.val = [];
+	}
+
+	CT_Connections.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"connection" == sName )
+							{
+								CConnection *pConn = new CConnection(oReader);
+								m_arrItems.push_back(pConn);
+							}
+						}*/
+
+		//count
+		//this.readAttr(reader);
+
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("connection" === name) {
+				var connection = new AscCommonExcel.CT_Connection();
+				connection.fromXml(reader);
+				this.val.push(connection);
+			}
+		}
+	};
+
+	AscCommonExcel.CT_Connection.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( L"dbPr" == sName )
+								m_oDbPr = oReader;
+							else if ( L"olapPr" == sName )
+								m_oOlapPr = oReader;
+							else if ( L"textPr" == sName )
+								m_oTextPr = oReader;
+							else if ( L"webPr" == sName )
+								m_oWebPr = oReader;
+							else if (L"rangePr" == sName) //x15
+								m_oRangePr = oReader;
+							else if (L"extLst" == sName)
+								m_oExtLst = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode())
+			var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ( "dbPr" === name) {
+
+			} else if ( "olapPr" === name) {
+
+			} else if ( "textPr" === name) {
+
+			} else if ( "webPr" === name) {
+
+			} else if ( "rangePr" === name) {
+
+			} else if ( "extLst" === name) {
+
+			} }
+	};
+
+	AscCommonExcel.CT_Connection.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_Connection">
+		379 <xsd:sequence>
+		380 <xsd:element name="dbPr" minOccurs="0" maxOccurs="1" type="CT_DbPr"/>
+		381 <xsd:element name="olapPr" minOccurs="0" maxOccurs="1" type="CT_OlapPr"/>
+		382 <xsd:element name="webPr" minOccurs="0" maxOccurs="1" type="CT_WebPr"/>
+		383 <xsd:element name="textPr" minOccurs="0" maxOccurs="1" type="CT_TextPr"/>
+		384 <xsd:element name="parameters" minOccurs="0" maxOccurs="1" type="CT_Parameters"/>
+		385 <xsd:element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>
+		386 </xsd:sequence>
+		387 <xsd:attribute name="id" use="required" type="xsd:unsignedInt"/>
+		388 <xsd:attribute name="sourceFile" use="optional" type="s:ST_Xstring"/>
+		389 <xsd:attribute name="odcFile" use="optional" type="s:ST_Xstring"/>
+		390 <xsd:attribute name="keepAlive" use="optional" type="xsd:boolean" default="false"/>
+		391 <xsd:attribute name="interval" use="optional" type="xsd:unsignedInt" default="0"/>
+		392 <xsd:attribute name="name" use="optional" type="s:ST_Xstring"/>
+		393 <xsd:attribute name="description" use="optional" type="s:ST_Xstring"/>
+		394 <xsd:attribute name="type" use="optional" type="xsd:unsignedInt"/>
+		395 <xsd:attribute name="reconnectionMethod" use="optional" type="xsd:unsignedInt" default="1"/>
+		396 <xsd:attribute name="refreshedVersion" use="required" type="xsd:unsignedByte"/>
+		397 <xsd:attribute name="minRefreshableVersion" use="optional" type="xsd:unsignedByte"
+		398 default="0"/>
+		399 <xsd:attribute name="savePassword" use="optional" type="xsd:boolean" default="false"/>
+		400 <xsd:attribute name="new" use="optional" type="xsd:boolean" default="false"/>
+		401 <xsd:attribute name="deleted" use="optional" type="xsd:boolean" default="false"/>
+		402 <xsd:attribute name="onlyUseConnectionFile" use="optional" type="xsd:boolean"
+		403 default="false"/>
+		404 <xsd:attribute name="background" use="optional" type="xsd:boolean" default="false"/>
+		405 <xsd:attribute name="refreshOnLoad" use="optional" type="xsd:boolean" default="false"/>
+		406 <xsd:attribute name="saveData" use="optional" type="xsd:boolean" default="false"/>
+		407 <xsd:attribute name="credentials" use="optional" type="ST_CredMethod" default="integrated"/>
+		408 <xsd:attribute name="singleSignOnId" use="optional" type="s:ST_Xstring"/>
+		409 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, L"type",	m_oType )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"name",	m_oName )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"id",	m_oIdExt )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"background",	m_oBackground )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"credentials",	m_oCredentials )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"deleted",		m_oDeleted )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"description",	m_oDescription )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"interval",		m_oInterval )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"keepAlive",	m_oKeepAlive )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"minRefreshableVersion", m_oMinRefreshableVersion )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"new", m_oNew )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"odcFile", m_oOdcFile )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"onlyUseConnectionFile", m_oOnlyUseConnectionFile )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"reconnectionMethod", m_oReconnectionMethod )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"refreshedVersion", m_oRefreshedVersion )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"refreshOnLoad", m_oRefreshOnLoad )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"saveData", m_oSaveData )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"savePassword", m_oSavePassword )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"singleSignOnId", m_oSingleSignOnId )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"sourceFile", m_oSourceFile )*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("type" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.type = val;
+			} else if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			} else if ("id" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.id = val;
+			} else if ("background" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.background = val;
+			} else if ("credentials" === reader.GetName()) {
+				val = reader.GetValue();
+				this.credentials = val;
+			} else if ("deleted" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.deleted = val;
+			} else if ("description" === reader.GetName()) {
+				val = reader.GetValue();
+				this.description = val;
+			} else if ("interval" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.interval = val;
+			} else if ("keepAlive" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.keepAlive = val;
+			} else if ("minRefreshableVersion" === reader.GetName()) {
+				val = reader.GetValue();
+				this.minRefreshableVersion = val;
+			} else if ("new" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.new = val;
+			} else if ("odcFile" === reader.GetName()) {
+				val = reader.GetValue();
+				this.odcFile = val;
+			} else if ("onlyUseConnectionFile" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.onlyUseConnectionFile = val;
+			} else if ("reconnectionMethod" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.reconnectionMethod = val;
+			} else if ("refreshedVersion" === reader.GetName()) {
+				val = reader.GetValue();
+				this.refreshedVersion = val;
+			} else if ("refreshOnLoad" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.refreshOnLoad = val;
+			} else if ("saveData" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.saveData = val;
+			} else if ("savePassword" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.savePassword = val;
+			} else if ("singleSignOnId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.singleSignOnId = val;
+			} else if ("sourceFile" === reader.GetName()) {
+				val = reader.GetValue();
+				this.sourceFile = val;
+			} }
+	};
+
+
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( oReader.IsEmptyNode() )\n' + '\t\t\t\t\treturn;\n' + '\n' +
+		'\t\t\t\tint nCurDepth = oReader.GetDepth();\n' + '\t\t\t\twhile( oReader.ReadNextSiblingNode( nCurDepth ) )\n' + '\t\t\t\t{\n' +
+		'\t\t\t\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\n' + '\t\t\t\t\tif ( L"dbPr" == sName )\n' + '\t\t\t\t\t\tm_oDbPr = oReader;\n' +
+		'\t\t\t\t\telse if ( L"olapPr" == sName )\n' + '\t\t\t\t\t\tm_oOlapPr = oReader;\n' + '\t\t\t\t\telse if ( L"textPr" == sName )\n' + '\t\t\t\t\t\tm_oTextPr = oReader;\n' +
+		'\t\t\t\t\telse if ( L"webPr" == sName )\n' + '\t\t\t\t\t\tm_oWebPr = oReader;\n' + '\t\t\t\t\telse if (L"rangePr" == sName) //x15\n' +
+		'\t\t\t\t\t\tm_oRangePr = oReader;\n' + '\t\t\t\t\telse if (L"extLst" == sName)\n' + '\t\t\t\t\t\tm_oExtLst = oReader;\n' + '\t\t\t\t}';
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, L"type",\tm_oType )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"name",\tm_oName )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"id",\tm_oIdExt )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"background",\tm_oBackground )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"credentials",\tm_oCredentials )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"deleted",\t\tm_oDeleted )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"description",\tm_oDescription )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"interval",\t\tm_oInterval )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"keepAlive",\tm_oKeepAlive )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"minRefreshableVersion", m_oMinRefreshableVersion )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"new", m_oNew )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"odcFile", m_oOdcFile )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"onlyUseConnectionFile", m_oOnlyUseConnectionFile )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"reconnectionMethod", m_oReconnectionMethod )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"refreshedVersion", m_oRefreshedVersion )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"refreshOnLoad", m_oRefreshOnLoad )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"saveData", m_oSaveData )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"savePassword", m_oSavePassword )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"singleSignOnId", m_oSingleSignOnId )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"sourceFile", m_oSourceFile )'
+	var _documentation = '<xsd:complexType name="CT_Connection">\n' + '379 <xsd:sequence>\n' + '380 <xsd:element name="dbPr" minOccurs="0" maxOccurs="1" type="CT_DbPr"/>\n' +
+		'381 <xsd:element name="olapPr" minOccurs="0" maxOccurs="1" type="CT_OlapPr"/>\n' + '382 <xsd:element name="webPr" minOccurs="0" maxOccurs="1" type="CT_WebPr"/>\n' +
+		'383 <xsd:element name="textPr" minOccurs="0" maxOccurs="1" type="CT_TextPr"/>\n' +
+		'384 <xsd:element name="parameters" minOccurs="0" maxOccurs="1" type="CT_Parameters"/>\n' +
+		'385 <xsd:element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>\n' + '386 </xsd:sequence>\n' +
+		'387 <xsd:attribute name="id" use="required" type="xsd:unsignedInt"/>\n' + '388 <xsd:attribute name="sourceFile" use="optional" type="s:ST_Xstring"/>\n' +
+		'389 <xsd:attribute name="odcFile" use="optional" type="s:ST_Xstring"/>\n' + '390 <xsd:attribute name="keepAlive" use="optional" type="xsd:boolean" default="false"/>\n' +
+		'391 <xsd:attribute name="interval" use="optional" type="xsd:unsignedInt" default="0"/>\n' + '392 <xsd:attribute name="name" use="optional" type="s:ST_Xstring"/>\n' +
+		'393 <xsd:attribute name="description" use="optional" type="s:ST_Xstring"/>\n' + '394 <xsd:attribute name="type" use="optional" type="xsd:unsignedInt"/>\n' +
+		'395 <xsd:attribute name="reconnectionMethod" use="optional" type="xsd:unsignedInt" default="1"/>\n' +
+		'396 <xsd:attribute name="refreshedVersion" use="required" type="xsd:unsignedByte"/>\n' +
+		'397 <xsd:attribute name="minRefreshableVersion" use="optional" type="xsd:unsignedByte"\n' + '398 default="0"/>\n' +
+		'399 <xsd:attribute name="savePassword" use="optional" type="xsd:boolean" default="false"/>\n' +
+		'400 <xsd:attribute name="new" use="optional" type="xsd:boolean" default="false"/>\n' +
+		'401 <xsd:attribute name="deleted" use="optional" type="xsd:boolean" default="false"/>\n' +
+		'402 <xsd:attribute name="onlyUseConnectionFile" use="optional" type="xsd:boolean"\n' + '403 default="false"/>\n' +
+		'404 <xsd:attribute name="background" use="optional" type="xsd:boolean" default="false"/>\n' +
+		'405 <xsd:attribute name="refreshOnLoad" use="optional" type="xsd:boolean" default="false"/>\n' +
+		'406 <xsd:attribute name="saveData" use="optional" type="xsd:boolean" default="false"/>\n' +
+		'407 <xsd:attribute name="credentials" use="optional" type="ST_CredMethod" default="integrated"/>\n' +
+		'408 <xsd:attribute name="singleSignOnId" use="optional" type="s:ST_Xstring"/>\n' + '409 </xsd:complexType>'
 	var _serialize = ''
 
 	//by test automatic add function
@@ -8049,17 +8314,34 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			return _res;
 		};
 
-		var docSplit = documentation && documentation.split("attribute");
+		var docSplit = documentation && documentation.split("element");
 		var attributeMapType = [];
+		var documentationClassStr = "";
 		if (docSplit) {
 			for (var j = 0; j < docSplit.length; j++) {
 				var _name = _getAttrVal(docSplit[j], "name");
 				var _type = _getAttrVal(docSplit[j], "type");
 				if (_name && _type) {
 					attributeMapType[_name] = _type;
+					documentationClassStr += "\n" + "this." + _name + " = null;//" + _type
 				}
 			}
 		}
+
+		var docSplit = documentation && documentation.split("attribute");
+		if (docSplit) {
+			for (var j = 0; j < docSplit.length; j++) {
+				var _name = _getAttrVal(docSplit[j], "name");
+				var _type = _getAttrVal(docSplit[j], "type");
+				if (_name && _type) {
+					attributeMapType[_name] = _type;
+					documentationClassStr += "\n" + "this." + _name + " = null;//" + _type
+				}
+			}
+		}
+		console.log(documentationClassStr)
+
+
 
 		var getFuncName = function (_attrName) {
 			var _res = null;
@@ -8325,5 +8607,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	window['AscCommonExcel'].CT_DrawingWS = CT_DrawingWS;
 	window['AscCommonExcel'].CT_DrawingWSRef = CT_DrawingWSRef;
 	window['AscCommonExcel'].CT_ExternalReference = CT_ExternalReference;
+	window['AscCommonExcel'].CT_Connections = CT_Connections;
 
 })(window);
