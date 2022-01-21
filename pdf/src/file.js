@@ -196,7 +196,7 @@
         return this.nativeFile ? this.nativeFile["getStructure"]() : [];
     };
 
-	CFile.prototype.getPage = function(pageIndex, width, height, isNoUseCacheManager)
+	CFile.prototype.getPage = function(pageIndex, width, height, isNoUseCacheManager, backgroundColor)
 	{
         if (!this.nativeFile)
             return null;
@@ -206,7 +206,7 @@
 		if (!width) width = this.pages[pageIndex].W;
 		if (!height) height = this.pages[pageIndex].H;
 		var t0 = performance.now();
-		var pixels = this.nativeFile["getPagePixmap"](pageIndex, width, height);
+		var pixels = this.nativeFile["getPagePixmap"](pageIndex, width, height, backgroundColor);
 		if (!pixels)
 			return null;
         

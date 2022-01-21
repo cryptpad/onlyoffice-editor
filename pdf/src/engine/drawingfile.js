@@ -334,7 +334,7 @@
         return this.pages;
     };
 
-    CFile.prototype["getPagePixmap"] = function(pageIndex, width, height)
+    CFile.prototype["getPagePixmap"] = function(pageIndex, width, height, backgroundColor)
     {
         if (this.pages[pageIndex].fonts.length > 0)
         {
@@ -343,7 +343,7 @@
         }
 
         self.drawingFileCurrentPageIndex = pageIndex;
-        var retValue = Module["_GetPixmap"](this.nativeFile, pageIndex, width, height);
+        var retValue = Module["_GetPixmap"](this.nativeFile, pageIndex, width, height, backgroundColor === undefined ? 0xFFFFFF : backgroundColor);
         self.drawingFileCurrentPageIndex = -1;
 		
 		if (this.pages[pageIndex].fonts.length > 0)

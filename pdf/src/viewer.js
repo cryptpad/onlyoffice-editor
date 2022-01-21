@@ -127,8 +127,9 @@
 		this.pages[index].isPainted = true;
 	};
 
-	function CHtmlPage(id)
+	function CHtmlPage(id, api)
 	{
+		this.Api = api;
 		this.parent = document.getElementById(id);
 		this.thumbnails = null;
 
@@ -186,6 +187,7 @@
 		this.timerScrollSelect = -1;
 
 		this.SearchResults = null;
+		this.isClearPages = false;
 
 		var oThis = this;
 
@@ -197,6 +199,17 @@
 
 			if (this.canvas)
 				this.canvas.style.backgroundColor = this.backgroundColor;
+
+			if (this.thumbnails)
+				this.thumbnails.updateSkin();
+
+			if (this.resize)
+				this.resize();
+		};
+
+		this.updateDarkMode = function()
+		{
+			this.isClearPages = false;
 
 			if (this.thumbnails)
 				this.thumbnails.updateSkin();
@@ -938,6 +951,8 @@
 
 				e.srcElement = AscCommon.global_mouseEvent.Sender;
 				// ------------------------------------------------------
+
+				AscCommon.Window_OnMouseUp(e);
 			}
 
 			AscCommon.check_MouseUpEvent(e);
@@ -1023,7 +1038,10 @@
 				oThis.file.onMouseMove(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
 			}
 
-			AscCommon.stopEvent(e);
+			if (!e) return false;
+			if (e.preventDefault)
+				e.preventDefault();
+			return false;
 		};
 
 		this.onMouseWhell = function(e)
@@ -1437,12 +1455,12 @@
 
 				if (!this.file.cacheManager)
 				{
-					if (page.Image && ((page.Image.width != w) || (page.Image.height != h)))
+					if (this.isClearPages || (page.Image && ((page.Image.width != w) || (page.Image.height != h))))
 						delete page.Image;
 				}
 				else
 				{
-					if (page.Image && ((page.Image.width < w) || (page.Image.height < h)))
+					if (this.isClearPages || (page.Image && ((page.Image.width < w) || (page.Image.height < h))))
 					{
 						if (this.file.cacheManager)
 							this.file.cacheManager.unlock(page.Image);
@@ -1450,9 +1468,11 @@
 						delete page.Image;	
 					}
 				}
+
+				this.isClearPages = false;
 				
 				if (!page.Image)
-					page.Image = this.file.getPage(i, w, h);
+					page.Image = this.file.getPage(i, w, h, undefined, this.Api.isDarkMode ? 0x3A3A3A : 0xFFFFFF);
 
 				let x = ((xCenter * AscCommon.AscBrowser.retinaPixelRatio) >> 0) - (w >> 1);
 				let y = ((page.Y - yPos) * AscCommon.AscBrowser.retinaPixelRatio) >> 0;

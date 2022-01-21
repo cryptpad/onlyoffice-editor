@@ -1385,7 +1385,7 @@ background-repeat: no-repeat;\
 
 		var _t = this;
 
-		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer = new AscCommon.CViewer(this.HtmlElementName);
+		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer = new AscCommon.CViewer(this.HtmlElementName, this);
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onNeedPassword", function(){
 			_t.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.DRM);
 		});
@@ -12044,6 +12044,12 @@ background-repeat: no-repeat;\
         this.isDarkMode = isDarkMode;
         if (this.WordControl && this.WordControl.m_oDrawingDocument)
 		{
+			if (this.isUseNativeViewer && this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
+			{
+				this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.updateDarkMode();
+				return;
+			}
+
 			this.WordControl.m_oDrawingDocument.ClearCachePages();
             this.WordControl.m_oDrawingDocument.FirePaint();
             this.WordControl.m_oDrawingDocument.UpdateTargetNoAttack();

@@ -390,9 +390,34 @@
         settings.screenH = this.panelHeight;
         settings.vscrollStep = 45;
         settings.hscrollStep = 45;
+
+        //settings.isNeedInvertOnActive = GlobalSkin.isNeedInvertOnActive;
         settings.showArrows = false;
         settings.cornerRadius = 1;
-		settings.slimScroll = true;
+        settings.slimScroll = true;
+
+        settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+        settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+        settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
+
+        settings.scrollerColor = GlobalSkin.ScrollerColor;
+        settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+        settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+        settings.arrowColor = GlobalSkin.ScrollArrowColor;
+        settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+        settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+        settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+        settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+        settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+        settings.targetColor = GlobalSkin.ScrollerTargetColor;
+        settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+        settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
+        settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
+        settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
         return settings;
     };
 
@@ -898,16 +923,10 @@
 
     CDocument.prototype.updateSkin = function()
     {
-        if (AscCommon.GlobalSkin.Type === "dark")
-        {
-            ThumbnailsStyle.backgroundColor = "#404040";
-            PageStyle.numberColor = "#FFFFFF";
-        }
-        else
-        {
-            ThumbnailsStyle.backgroundColor = "#F1F1F1";
-            PageStyle.numberColor = "#000000";
-        }
+        ThumbnailsStyle.backgroundColor = AscCommon.GlobalSkin.BackgroundColorThumbnails;
+        PageStyle.hoverColor = AscCommon.GlobalSkin.ThumbnailsPageOutlineHover;
+        PageStyle.selectColor = AscCommon.GlobalSkin.ThumbnailsPageOutlineActive;
+        PageStyle.numberColor = AscCommon.GlobalSkin.ThumbnailsPageNumberText;
 
         if (this.canvas)
             this.canvas.style.backgroundColor = ThumbnailsStyle.backgroundColor;
