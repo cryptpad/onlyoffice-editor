@@ -699,6 +699,7 @@
 				{
 					case "pdf":
 					case "xps":
+					case "oxps":
 					case "djvu":
 						rData["convertToOrigin"] = true;
 						break;

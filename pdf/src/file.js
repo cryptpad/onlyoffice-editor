@@ -1521,7 +1521,7 @@ void main() {\n\
             if (1 != pagesCount || 0 != lLinesLastPage)
             {
                 sel.Glyph1 = -2;
-                sel.Page2 = this.PagesCount - 1;
+                sel.Page2 = pagesCount - 1;
                 sel.Line2 = lLinesLastPage;
                 sel.Glyph2 = -1;
 
@@ -1880,6 +1880,7 @@ void main() {\n\
     CFile.prototype.findText = function(text, isMachingCase, isNext)
     {
         this.SearchResults.IsSearch = true;
+        var pagesCount = this.pages.length;
         if (text === this.SearchResults.Text && isMachingCase === this.SearchResults.MachingCase)
         {
             if (this.SearchResults.Count === 0)
@@ -1902,7 +1903,7 @@ void main() {\n\
                 {
                     var _pageFind = this.SearchResults.CurrentPage + 1;
                     var _bIsFound = false;
-                    for (var i = _pageFind; i < this.PagesCount; i++)
+                    for (var i = _pageFind; i < pagesCount; i++)
                     {
                         if (0 < this.SearchResults.Pages[i].length)
                         {
@@ -1950,7 +1951,7 @@ void main() {\n\
                     }
                     if (!_bIsFound)
                     {
-                        for (var i = this.PagesCount - 1; i > _pageFind; i--)
+                        for (var i = pagesCount - 1; i > _pageFind; i--)
                         {
                             if (0 < this.SearchResults.Pages[i].length)
                             {

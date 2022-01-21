@@ -1618,7 +1618,73 @@
 
 		this.ToSearchResult = function()
 		{
-			// TODO: scroll to CurrentSearchNavi
+			var naviG = this.CurrentSearchNavi;
+
+			var navi = naviG[0];
+			var x    = navi.X;
+			var y    = navi.Y;
+
+			if (navi.Transform)
+			{
+				var xx = navi.Transform.TransformPointX(x, y);
+				var yy = navi.Transform.TransformPointY(x, y);
+
+				x = xx;
+				y = yy;
+			}
+
+			var drawingPage = this.drawingPages[navi.PageNum];
+			if (!drawingPage)
+				return;
+
+			var posY = drawingPage.Y;
+			var offsetBorder = 30;
+
+			var scale = this.file.pages[navi.PageNum].Dpi / 25.4;
+			var dKoefX = scale * drawingPage.W / this.file.pages[navi.PageNum].W;
+			var dKoefY = scale * drawingPage.H / this.file.pages[navi.PageNum].H;
+
+			var nX = drawingPage.X + dKoefX * x;
+			var nY = drawingPage.Y + dKoefY * y;
+
+			if (this.m_oScrollHorApi)
+				nX -= this.m_oScrollHorApi.scrollHCurrentX;
+			nY -= this.m_oScrollVerApi.scrollVCurrentY;
+
+			var boxX = 0;
+			var boxY = 0;
+			var boxR = this.width;
+			var boxB = this.height;
+
+			var nValueScrollHor = 0;
+			if (nX < boxX)
+			{
+				nValueScrollHor = nX - boxX - offsetBorder;
+			}
+			if (nX > boxR)
+			{
+				nValueScrollHor = nX - boxR + offsetBorder;
+			}
+
+			var nValueScrollVer = 0;
+			if (nY < boxY)
+			{
+				nValueScrollVer = nY - boxY - offsetBorder;
+			}
+			if (nY > boxB)
+			{
+				nValueScrollVer = nY - boxB + offsetBorder;
+			}
+
+			if (0 !== nValueScrollHor)
+			{
+				this.m_bIsUpdateTargetNoAttack = true;
+				this.m_oScrollHorApi.scrollByX(nValueScrollHor);
+			}
+			if (0 !== nValueScrollVer)
+			{
+				this.m_oScrollVerApi.scrollByY(nValueScrollVer);
+			}
 		};
 
 		this.OnKeyDown = function(e)
