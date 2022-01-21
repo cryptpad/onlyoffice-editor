@@ -189,6 +189,11 @@
 		this.SearchResults = null;
 		this.isClearPages = false;
 
+		this.isFullText = false;
+		this.isFullTextMessage = false;
+		this.fullTextMessageCallback = null;
+		this.fullTextMessageCallbackArgs = null;
+
 		var oThis = this;
 
 		this.updateSkin = function()
@@ -1518,10 +1523,10 @@
 			if (this.startVisiblePage < 0 || this.endVisiblePage < 0)
 				return false;
 
-			var pagesCount = this.pagesInfo.pages.length;
-			if (this.pagesInfo.countTextPages === pagesCount)
-				return false;
+			if (this.isFullText)
+				return;
 
+			var pagesCount = this.file.pages.length;
 			var isCommands = false;
 			for (var i = this.startVisiblePage; i <= this.endVisiblePage; i++)
 			{
@@ -1555,7 +1560,13 @@
 			}
 
 			if (this.pagesInfo.countTextPages === pagesCount)
+			{
 				this.file.destroyText();
+
+				this.isFullText = true;
+				if (this.isFullTextMessage)
+					this.unshowTextMessage();
+			}
 
 			return isCommands;
 		};
@@ -1615,8 +1626,23 @@
 
 		this.findText = function(text, isMachingCase, isNext)
 		{
-			this.file.findText(text, isMachingCase, isNext);
-			this.onUpdateOverlay();
+			if (this.isFullTextMessage)
+				return bRetValue;
+
+			if (!this.isFullText)
+			{
+				this.fullTextMessageCallbackArgs = [text, isMachingCase, isNext];
+				this.fullTextMessageCallback = function() {
+					this.file.findText(this.fullTextMessageCallbackArgs[0], this.fullTextMessageCallbackArgs[1], this.fullTextMessageCallbackArgs[2]);
+					this.onUpdateOverlay();
+				};
+				this.showTextMessage();
+			}
+			else
+			{
+				this.file.findText(text, isMachingCase, isNext);
+				this.onUpdateOverlay();
+			}
 		};
 
 		this.ToSearchResult = function()
@@ -1742,9 +1768,21 @@
 			else if ( e.KeyCode == 65 && true === e.CtrlKey ) // Ctrl + A
 			{
 				bRetValue = true;
+				if (this.isFullTextMessage)
+					return bRetValue;
 
-				// TODO: waiting if not loaded
-				this.file.selectAll();
+				if (!this.isFullText)
+				{
+					this.fullTextMessageCallbackArgs = [];
+					this.fullTextMessageCallback = function() {
+						this.file.selectAll();
+					};
+					this.showTextMessage();
+				}
+				else
+				{
+					this.file.selectAll();
+				}
 			}
 			else if ( e.KeyCode == 80 && true === e.CtrlKey ) // Ctrl + P + ...
 			{
@@ -1758,6 +1796,28 @@
 			}
 
 			return bRetValue;
+		};
+
+		this.showTextMessage = function()
+		{
+			if (this.isFullTextMessage)
+				return;
+
+			this.isFullTextMessage = true;
+			this.Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+		};
+
+		this.unshowTextMessage = function()
+		{
+			this.isFullTextMessage = false;
+			this.Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+
+			if (this.fullTextMessageCallback)
+			{
+				this.fullTextMessageCallback.apply(this, this.fullTextMessageCallbackArgs);
+				this.fullTextMessageCallback = null;
+				this.fullTextMessageCallbackArgs = null;
+			}
 		};
 	}
 
