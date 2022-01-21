@@ -1228,7 +1228,7 @@
 
 		this.drawSearchPlaces = function(dKoefX, dKoefY, xDst, yDst, places)
 		{
-			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+			var rPR = 1;//AscCommon.AscBrowser.retinaPixelRatio;
 			var len = places.length;
 
 			var ctx = this.overlay.m_oContext;
@@ -1600,8 +1600,8 @@
 			var pixToMM = (25.4 / this.file.pages[pageIndex].Dpi);
 			return {
 				index : pageIndex,
-				x : this.file.pages[pageIndex].W * pixToMM * (x - pageCoords.x) / pageCoords.w,
-				y : this.file.pages[pageIndex].H * pixToMM * (y - pageCoords.y) / pageCoords.h
+				x : this.file.pages[pageIndex].W * pixToMM * (x * AscCommon.AscBrowser.retinaPixelRatio - pageCoords.x) / pageCoords.w,
+				y : this.file.pages[pageIndex].H * pixToMM * (y * AscCommon.AscBrowser.retinaPixelRatio - pageCoords.y) / pageCoords.h
 			};
 		};
 
@@ -1637,7 +1637,6 @@
 			if (!drawingPage)
 				return;
 
-			var posY = drawingPage.Y;
 			var offsetBorder = 30;
 
 			var scale = this.file.pages[navi.PageNum].Dpi / 25.4;
@@ -1646,10 +1645,12 @@
 
 			var nX = drawingPage.X + dKoefX * x;
 			var nY = drawingPage.Y + dKoefY * y;
+			var nY2 = drawingPage.Y + dKoefY * (y + navi.H);
 
 			if (this.m_oScrollHorApi)
 				nX -= this.m_oScrollHorApi.scrollHCurrentX;
 			nY -= this.m_oScrollVerApi.scrollVCurrentY;
+			nY2 -= this.m_oScrollVerApi.scrollVCurrentY;
 
 			var boxX = 0;
 			var boxY = 0;
@@ -1671,9 +1672,9 @@
 			{
 				nValueScrollVer = nY - boxY - offsetBorder;
 			}
-			if (nY > boxB)
+			if (nY2 > boxB)
 			{
-				nValueScrollVer = nY - boxB + offsetBorder;
+				nValueScrollVer = nY2 - boxB + offsetBorder;
 			}
 
 			if (0 !== nValueScrollHor)

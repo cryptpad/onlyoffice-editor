@@ -1051,14 +1051,12 @@ void main() {\n\
 
                     // в принципе код один и тот же. Но почти всегда линии горизонтальные.
                     // а для горизонтальной линии все можно пооптимизировать
-
-                    var rPR = AscCommon.AscBrowser.retinaPixelRatio;
                     if (_lineEx == 1 && _lineEy == 0)
                     {
-                        var _x = (rPR * (x + dKoefX * (_lineX + off1))) >> 0;
-                        var _r = (rPR * (x + dKoefX * (_lineX + off2))) >> 0;
-                        var _y = (rPR * (y + dKoefY * (_lineY - _lineAscent))) >> 0;
-                        var _b = (rPR * (y + dKoefY * (_lineY + _lineDescent))) >> 0;
+                        var _x = (x + dKoefX * (_lineX + off1)) >> 0;
+                        var _r = (x + dKoefX * (_lineX + off2)) >> 0;
+                        var _y = (y + dKoefY * (_lineY - _lineAscent)) >> 0;
+                        var _b = (y + dKoefY * (_lineY + _lineDescent)) >> 0;
 
                         if (_x < overlay.min_x)
                             overlay.min_x = _x;
@@ -1093,15 +1091,15 @@ void main() {\n\
                         var _x4 = _x3 + ortX * (_lineAscent + _lineDescent);
                         var _y4 = _y3 + ortY * (_lineAscent + _lineDescent);
 
-                        _x1 = rPR * (x + dKoefX * _x1);
-                        _x2 = rPR * (x + dKoefX * _x2);
-                        _x3 = rPR * (x + dKoefX * _x3);
-                        _x4 = rPR * (x + dKoefX * _x4);
+                        _x1 = (x + dKoefX * _x1);
+                        _x2 = (x + dKoefX * _x2);
+                        _x3 = (x + dKoefX * _x3);
+                        _x4 = (x + dKoefX * _x4);
 
-                        _y1 = rPR * (y + dKoefY * _y1);
-                        _y2 = rPR * (y + dKoefY * _y2);
-                        _y3 = rPR * (y + dKoefY * _y3);
-                        _y4 = rPR * (y + dKoefY * _y4);
+                        _y1 = (y + dKoefY * _y1);
+                        _y2 = (y + dKoefY * _y2);
+                        _y3 = (y + dKoefY * _y3);
+                        _y4 = (y + dKoefY * _y4);
 
                         overlay.CheckPoint(_x1, _y1);
                         overlay.CheckPoint(_x2, _y2);
