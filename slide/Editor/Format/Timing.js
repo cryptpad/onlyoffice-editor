@@ -7640,6 +7640,8 @@
         }
         return oRect.hit(x, y);
     };
+    var ICON_TRIGGER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAxMSAxNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEgMEg1TDAgN0g0TDAgMTRMMTEgNUg2TDExIDBaIiBmaWxsPSIjNDQ0NDQ0Ii8+PC9zdmc+";
+    
     CTimeNodeContainer.prototype.internalDrawEffectLabel = function(oGraphics) {
         var oRect = this.getLabelRect();
         if(!oRect) {
@@ -7651,6 +7653,12 @@
             dY = oRect.t;
             dW = oRect.w;
             dH = oRect.h;
+            
+            var oContext = oGraphics.m_oContext;
+            if(!oContext) {
+                return;
+            }
+
             oGraphics.SaveGrState();
             
             var oMatrix = new AscCommon.CMatrix();
@@ -7660,13 +7668,24 @@
             //draw rect
             
             oGraphics.SetIntegerGrid(true);
-            var nFillColor = this.isSelected() ? 0xE0E0E0 : 0xFFFFFF;
-            var nLineColor = 0xCBCBCB; 
+            var nFillColor = this.isSelected() ? 0xCBCBCB : 0xFFFFFF;
+            var nLineColor = 0xC0C0C0; 
             oGraphics.b_color1((nFillColor >> 16) & 0xFF, (nFillColor >> 8) & 0xFF, nFillColor & 0xFF, 0xFF);
             oGraphics.p_color((nLineColor >> 16) & 0xFF, (nLineColor >> 8) & 0xFF, nLineColor & 0xFF, 255);
             oGraphics.p_width(0);
             oGraphics._s();
-            oGraphics.rect(0, 0, dW, dH);
+
+            
+            var oFullTr = oGraphics.m_oFullTransform;
+            
+            var _x1 = (oFullTr.TransformPointX(0, 0)) >> 0;
+            var _y1 = (oFullTr.TransformPointY(0, 0)) >> 0;
+            var _x2 = (oFullTr.TransformPointX(dW, dH)) >> 0;
+            var _y2 = (oFullTr.TransformPointY(dW, dH)) >> 0;
+            
+            oContext.lineWidth = 1;
+            oContext.rect(_x1 + 0.5, _y1 + 0.5, _x2 - _x1, _y2 - _y1);
+            //oGraphics.rect(0, 0, dW, dH);
             oGraphics.df();
             oGraphics.ds();
             
@@ -7682,21 +7701,18 @@
             
             oGraphics.RestoreGrState();
 
+            var sObjectId = this.getObjectId();
+            var oObject = AscCommon.g_oTableId.Get_ById(sObjectId);
+            var oT = oGraphics.m_oCoordTransform;
             if(this.isPartOfMainSequence()) {
                 var nIdx = this.getIndexInSequence();
                 if(AscFormat.isRealNumber(nIdx)) {
-
-                    var oContext = oGraphics.m_oContext;
-                    if(oContext) {
-                        var sObjectId = this.getObjectId();
-                        var oObject = AscCommon.g_oTableId.Get_ById(sObjectId);
                         if(!oObject) {
                             return null;
                         }
                         var dTX = dX + dW / 2;
                         var dTY = dY + dH - oObject.convertPixToMM(4);
 
-                        var oT = oGraphics.m_oCoordTransform;
 
                         var nX = oT.TransformPointX(dTX, dTY);
                         var nY = oT.TransformPointY(dTX, dTY);
@@ -7704,11 +7720,25 @@
                         oContext.fillStyle = "#000000";
                         oContext.fillText((nIdx + 1) + "", nX, nY);    
                         oContext.fillStyle = sOldFill;
+                }
+            }
+            else {
+                
+                var oApi = editor || Asc.editor;
+                if(oApi && oApi.ImageLoader) {
+                    var oImage = oApi.ImageLoader.map_image_index[ICON_TRIGGER];
+                    if(oImage)  {
+                        var oNImage = oImage.Image;
+                        var nNativeW = oNImage.width / 2;
+                        var nNativeH = oNImage.height / 2;
+                        var nWidth = AscCommon.AscBrowser.convertToRetinaValue(nNativeW, true);
+                        var nHeight = AscCommon.AscBrowser.convertToRetinaValue(nNativeH, true);
+                        var dTX = dX + (dW - oObject.convertPixToMM(nNativeW)) / 2;
+                        var dTY = dY + (dH - oObject.convertPixToMM(nNativeH)) / 2;
+                        var nX = oT.TransformPointX(dTX, dTY);
+                        var nY = oT.TransformPointY(dTX, dTY);
+                        oContext.drawImage(oImage.Image, nX, nY, nWidth, nHeight);
                     }
-                    //var oLabel = new CLabel(null, (nIdx + 1) + "", 8, false, AscCommon.align_Center);
-                    //oLabel.setLayout(dX, dY, dW, dH);
-                    //oLabel.recalculate();
-                    //oLabel.draw(oGraphics);
                 }
             }
             
@@ -7892,7 +7922,7 @@
             var nFirst = this.merged[0].asc_getDelay();
             var nCurDelay;
             for(var nIdx = 1; nIdx < this.merged.length; ++nIdx) {
-                nCurDelay = this.merged[nIdx];
+                nCurDelay = this.merged[nIdx].asc_getDelay();
                 if(nFirst !== nCurDelay) {
                     return undefined;
                 }
@@ -13615,6 +13645,7 @@
     window['AscFormat'].CAnimFormulaParser = CFormulaParser;
     window['AscFormat'].CBaseAnimTexture = CBaseAnimTexture;
     window['AscFormat'].CDemoAnimPlayer = CDemoAnimPlayer;
+    window['AscFormat'].ICON_TRIGGER = ICON_TRIGGER;
     
 
 
