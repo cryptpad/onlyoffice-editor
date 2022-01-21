@@ -77,6 +77,7 @@
 		this.pivotCaches = null;
 		this.externalReferences = null;
 		this.extLst = null;
+		this.slicerCachesIds = null;
 	}
 	CT_Workbook.prototype.fromXml = function(reader) {
 		if (!reader.ReadNextNode()) {
@@ -87,6 +88,7 @@
 				return;
 			}
 		}
+		
 
 		var val;
 		var depth2, name2;
@@ -258,9 +260,21 @@
 
 
 				}  else if ("slicerCaches" === name) {
+					if (!this.slicerCachesIds) {
+						this.slicerCachesIds = [];
+					}
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("slicerCache" === name2) {
 
-
-
+							while (reader.MoveToNextAttribute()) {
+								if ("id" === reader.GetNameNoNS()) {
+									this.slicerCachesIds.push(reader.GetValue());
+								}
+							}
+						}
+					}
 				} else if ("workbookProtection" === name) {
 					var workbooProtection = new Asc.CWorkbookProtection(this.wb);
 					workbooProtection.fromXml(reader);

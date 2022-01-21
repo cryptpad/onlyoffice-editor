@@ -1458,6 +1458,7 @@ var editor;
 			});
 		}
 
+		//extLxt(slicercache inside)
 		if (wbXml.extLst) {
 			wbXml.extLst.forEach(function (ext) {
 				if (ext.slicerCachesIds) {
@@ -1471,6 +1472,8 @@ var editor;
 									var reader = new StaxParser(contentSlicerCache, slicerCacheWorkbookPart, xmlParserContext);
 									oSlicerCacheDefinition.fromXml(reader);
 
+									xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
+
 									//TODO add / flag fromStream
 									/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
 									this.stream.FromFileStream(fileStream);
@@ -1479,6 +1482,30 @@ var editor;
 							}
 						}
 					});
+				}
+			});
+		}
+
+		//not ext slicer caches
+		if (wbXml.slicerCachesIds) {
+			wbXml.slicerCachesIds.forEach(function (slicerCacheId) {
+				if (null !== slicerCacheId) {
+					var slicerCacheWorkbookPart = wbPart.getPartById(slicerCacheId);
+					if (slicerCacheWorkbookPart) {
+						var contentSlicerCache = slicerCacheWorkbookPart.getDocumentContent();
+						if (contentSlicerCache) {
+							var oSlicerCacheDefinition = new Asc.CT_slicerCacheDefinition();
+							var reader = new StaxParser(contentSlicerCache, slicerCacheWorkbookPart, xmlParserContext);
+							oSlicerCacheDefinition.fromXml(reader);
+
+							xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
+
+							//TODO add / flag fromStream
+							/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
+							this.stream.FromFileStream(fileStream);
+							this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
+						}
+					}
 				}
 			});
 		}
@@ -1503,7 +1530,7 @@ var editor;
 		}
 
 
-
+		//person list
 		var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
 		if (personListPart) {
 			var contentPersonList = personListPart.getDocumentContent();
