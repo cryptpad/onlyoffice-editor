@@ -749,6 +749,37 @@
 					/*var sheetData = new AscCommonExcel.CT_SheetData(this);
 					sheetData.fromXml(reader);*/
 					context.InitOpenManager.oReadResult.sheetData.push({ws: this, reader: reader, state: reader.getState()});
+				} else if ("cols" === name) {
+					var cols = new CT_Cols(this);
+					cols.fromXml(reader);
+					var aTempCols = cols.val;
+
+					//TODO дублирую из serialize
+					//если есть стиль последней колонки, назначаем его стилем всей таблицы и убираем из колонок
+					var oAllCol = null;
+					if (aTempCols.length > 0) {
+						var oLast = aTempCols[aTempCols.length - 1];
+						if (AscCommon.gc_nMaxCol === oLast.Max) {
+							oAllCol = this.getAllCol();
+							oLast.col.cloneTo(oAllCol);
+						}
+					}
+					for (var i = 0; i < aTempCols.length; ++i) {
+						var elem = aTempCols[i];
+						if (elem.Max >= this.nColsCount) {
+							this.nColsCount = elem.Max;
+						}
+						if (null != oAllCol && oAllCol.isEqual(elem.col)) {
+							continue;
+						}
+
+						for (var j = elem.Min; j <= elem.Max; j++) {
+							var oNewCol = new AscCommonExcel.Col(this, j - 1);
+							elem.col.cloneTo(oNewCol);
+							this.aCols[oNewCol.index] = oNewCol;
+						}
+					}
+
 				} else if ("drawing" === name) {
 					var drawing = new AscCommonExcel.CT_DrawingWSRef();
 					drawing.fromXml(reader);
@@ -1001,6 +1032,121 @@
 			}*/
 		}
 	};
+
+
+	function CT_Cols(ws, aCellXfs) {
+		this.val = [];
+		this.ws = ws;
+		this.aCellXfs = aCellXfs;
+	}
+
+	CT_Cols.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("col") == sName )
+							{
+								CCol *pCol = new CCol(m_pMainDocument);
+								pCol->fromXML(oReader);
+
+								m_arrItems.push_back(pCol);
+							}
+						}*/
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("col" === name) {
+
+				/*WritingStringNullableAttrBool(L"bestFit", m_oBestFit);
+				WritingStringNullableAttrBool(L"collapsed", m_oCollapsed);
+				WritingStringNullableAttrBool(L"customWidth", m_oCustomWidth);
+				WritingStringNullableAttrBool(L"hidden", m_oHidden);
+				WritingStringNullableAttrInt(L"min", m_oMin, m_oMin->GetValue());
+				WritingStringNullableAttrInt(L"max", m_oMax, m_oMax->GetValue());
+				WritingStringNullableAttrInt(L"outlineLevel", m_oOutlineLevel, m_oOutlineLevel->GetValue());
+				WritingStringNullableAttrBool(L"phonetic", m_oPhonetic);
+				WritingStringNullableAttrInt(L"style", m_oStyle, m_oStyle->GetValue());
+				WritingStringNullableAttrDouble(L"width", m_oWidth, m_oWidth->GetValue());*/
+
+
+				/*if ( c_oSerWorksheetColTypes.BestFit == type )
+					oTempCol.col.BestFit = this.stream.GetBool();
+				else if ( c_oSerWorksheetColTypes.Hidden == type )
+					oTempCol.col.setHidden(this.stream.GetBool());
+				else if ( c_oSerWorksheetColTypes.Max == type )
+					oTempCol.Max = this.stream.GetULongLE();
+				else if ( c_oSerWorksheetColTypes.Min == type )
+					oTempCol.Min = this.stream.GetULongLE();
+				else if (c_oSerWorksheetColTypes.Style == type) {
+					var xfs = aCellXfs[this.stream.GetULongLE()];
+					if (xfs) {
+						oTempCol.col.setStyle(xfs);
+					}
+				} else if ( c_oSerWorksheetColTypes.Width == type )
+					oTempCol.col.width = this.stream.GetDoubleLE();
+				else if ( c_oSerWorksheetColTypes.CustomWidth == type )
+					oTempCol.col.CustomWidth = this.stream.GetBool();
+				else if ( c_oSerWorksheetColTypes.OutLevel == type )
+					oTempCol.col.outlineLevel = this.stream.GetULongLE();
+				else if ( c_oSerWorksheetColTypes.Collapsed == type )
+					oTempCol.col.collapsed = this.stream.GetBool();*/
+
+
+				var oTempCol = {Max: null, Min: null, col: new AscCommonExcel.Col(this.ws, 0)};
+				var val;
+				while (reader.MoveToNextAttribute()) {
+					if ("bestFit" === reader.GetName()) {
+						val = reader.GetValueBool();
+						oTempCol.col.BestFit = val;
+					} else if ("collapsed" === reader.GetName()) {
+						val = reader.GetValueBool();
+						oTempCol.col.collapsed = val;
+					} else if ("customWidth" === reader.GetName()) {
+						val = reader.GetValueBool();
+						oTempCol.col.CustomWidth = val;
+					} else if ("hidden" === reader.GetName()) {
+						val = reader.GetValueBool();
+						oTempCol.col.setHidden(val);
+					}  else if ("min" === reader.GetName()) {
+						val = reader.GetValueInt();
+						oTempCol.Min = val;
+					}  else if ("max" === reader.GetName()) {
+						val = reader.GetValueInt();
+						oTempCol.Max = val;
+					}  else if ("outlineLevel" === reader.GetName()) {
+						val = reader.GetValueInt();
+						oTempCol.col.outlineLevel = val;
+					} /*else if ("phonetic" === reader.GetName()) {
+						val = reader.GetValueBool();
+						oTempCol.col.phonetic = val;
+					}*/ else if ("style" === reader.GetName()) {
+						var xfs = this.aCellXfs[reader.GetValueInt()];
+						if (xfs) {
+							oTempCol.col.setStyle(xfs);
+						}
+					} else if ("width" === reader.GetName()) {
+						val = reader.GetValueInt();
+						oTempCol.col.width = val;
+					}
+				}
+				this.val.push(oTempCol);
+			}
+		}
+	};
+
 
 	AscCommonExcel.Worksheet.prototype.toXmlSheetData = function (writer) {
 		var ws = this;
@@ -8243,53 +8389,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( oReader.IsEmptyNode() )\n' + '\t\t\t\t\treturn;\n' + '\n' +
-		'\t\t\t\tint nCurDepth = oReader.GetDepth();\n' + '\t\t\t\twhile( oReader.ReadNextSiblingNode( nCurDepth ) )\n' + '\t\t\t\t{\n' +
-		'\t\t\t\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\n' + '\t\t\t\t\tif ( L"dbPr" == sName )\n' + '\t\t\t\t\t\tm_oDbPr = oReader;\n' +
-		'\t\t\t\t\telse if ( L"olapPr" == sName )\n' + '\t\t\t\t\t\tm_oOlapPr = oReader;\n' + '\t\t\t\t\telse if ( L"textPr" == sName )\n' + '\t\t\t\t\t\tm_oTextPr = oReader;\n' +
-		'\t\t\t\t\telse if ( L"webPr" == sName )\n' + '\t\t\t\t\t\tm_oWebPr = oReader;\n' + '\t\t\t\t\telse if (L"rangePr" == sName) //x15\n' +
-		'\t\t\t\t\t\tm_oRangePr = oReader;\n' + '\t\t\t\t\telse if (L"extLst" == sName)\n' + '\t\t\t\t\t\tm_oExtLst = oReader;\n' + '\t\t\t\t}';
-	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, L"type",\tm_oType )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"name",\tm_oName )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"id",\tm_oIdExt )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"background",\tm_oBackground )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"credentials",\tm_oCredentials )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"deleted",\t\tm_oDeleted )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"description",\tm_oDescription )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"interval",\t\tm_oInterval )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"keepAlive",\tm_oKeepAlive )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"minRefreshableVersion", m_oMinRefreshableVersion )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"new", m_oNew )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"odcFile", m_oOdcFile )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"onlyUseConnectionFile", m_oOnlyUseConnectionFile )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"reconnectionMethod", m_oReconnectionMethod )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"refreshedVersion", m_oRefreshedVersion )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"refreshOnLoad", m_oRefreshOnLoad )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"saveData", m_oSaveData )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"savePassword", m_oSavePassword )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"singleSignOnId", m_oSingleSignOnId )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"sourceFile", m_oSourceFile )'
-	var _documentation = '<xsd:complexType name="CT_Connection">\n' + '379 <xsd:sequence>\n' + '380 <xsd:element name="dbPr" minOccurs="0" maxOccurs="1" type="CT_DbPr"/>\n' +
-		'381 <xsd:element name="olapPr" minOccurs="0" maxOccurs="1" type="CT_OlapPr"/>\n' + '382 <xsd:element name="webPr" minOccurs="0" maxOccurs="1" type="CT_WebPr"/>\n' +
-		'383 <xsd:element name="textPr" minOccurs="0" maxOccurs="1" type="CT_TextPr"/>\n' +
-		'384 <xsd:element name="parameters" minOccurs="0" maxOccurs="1" type="CT_Parameters"/>\n' +
-		'385 <xsd:element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>\n' + '386 </xsd:sequence>\n' +
-		'387 <xsd:attribute name="id" use="required" type="xsd:unsignedInt"/>\n' + '388 <xsd:attribute name="sourceFile" use="optional" type="s:ST_Xstring"/>\n' +
-		'389 <xsd:attribute name="odcFile" use="optional" type="s:ST_Xstring"/>\n' + '390 <xsd:attribute name="keepAlive" use="optional" type="xsd:boolean" default="false"/>\n' +
-		'391 <xsd:attribute name="interval" use="optional" type="xsd:unsignedInt" default="0"/>\n' + '392 <xsd:attribute name="name" use="optional" type="s:ST_Xstring"/>\n' +
-		'393 <xsd:attribute name="description" use="optional" type="s:ST_Xstring"/>\n' + '394 <xsd:attribute name="type" use="optional" type="xsd:unsignedInt"/>\n' +
-		'395 <xsd:attribute name="reconnectionMethod" use="optional" type="xsd:unsignedInt" default="1"/>\n' +
-		'396 <xsd:attribute name="refreshedVersion" use="required" type="xsd:unsignedByte"/>\n' +
-		'397 <xsd:attribute name="minRefreshableVersion" use="optional" type="xsd:unsignedByte"\n' + '398 default="0"/>\n' +
-		'399 <xsd:attribute name="savePassword" use="optional" type="xsd:boolean" default="false"/>\n' +
-		'400 <xsd:attribute name="new" use="optional" type="xsd:boolean" default="false"/>\n' +
-		'401 <xsd:attribute name="deleted" use="optional" type="xsd:boolean" default="false"/>\n' +
-		'402 <xsd:attribute name="onlyUseConnectionFile" use="optional" type="xsd:boolean"\n' + '403 default="false"/>\n' +
-		'404 <xsd:attribute name="background" use="optional" type="xsd:boolean" default="false"/>\n' +
-		'405 <xsd:attribute name="refreshOnLoad" use="optional" type="xsd:boolean" default="false"/>\n' +
-		'406 <xsd:attribute name="saveData" use="optional" type="xsd:boolean" default="false"/>\n' +
-		'407 <xsd:attribute name="credentials" use="optional" type="ST_CredMethod" default="integrated"/>\n' +
-		'408 <xsd:attribute name="singleSignOnId" use="optional" type="s:ST_Xstring"/>\n' + '409 </xsd:complexType>'
+	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\t\t\t\tif (!oReader.IsEmptyNode())\n' + '\t\t\t\t\toReader.ReadTillEnd();';
+	var _x2t = 'WritingStringNullableAttrBool(L"bestFit", m_oBestFit);\n' + '\t\t\t\tWritingStringNullableAttrBool(L"collapsed", m_oCollapsed);\n' +
+		'\t\t\t\tWritingStringNullableAttrBool(L"customWidth", m_oCustomWidth);\n' + '\t\t\t\tWritingStringNullableAttrBool(L"hidden", m_oHidden);\n' +
+		'\t\t\t\tWritingStringNullableAttrInt(L"min", m_oMin, m_oMin->GetValue());\n' + '\t\t\t\tWritingStringNullableAttrInt(L"max", m_oMax, m_oMax->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrInt(L"outlineLevel", m_oOutlineLevel, m_oOutlineLevel->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrBool(L"phonetic", m_oPhonetic);\n' + '\t\t\t\tWritingStringNullableAttrInt(L"style", m_oStyle, m_oStyle->GetValue());\n' +
+		'\t\t\t\tWritingStringNullableAttrDouble(L"width", m_oWidth, m_oWidth->GetValue());'
+	var _documentation = ''
 	var _serialize = ''
 
 	//by test automatic add function
