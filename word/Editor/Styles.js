@@ -64,6 +64,8 @@ var g_dKoef_emu_to_mm = 1 / 36000;
 var g_dKoef_mm_to_pt = 1 / g_dKoef_pt_to_mm;
 var g_dKoef_mm_to_twips = 1 / g_dKoef_twips_to_mm;
 var g_dKoef_mm_to_emu = 36000;
+var g_dKoef_twips_to_pt = 20;
+var g_dKoef_pt_to_twips = 1 / g_dKoef_twips_to_pt;
 
 var tblwidth_Auto = 0x00;
 var tblwidth_Mm   = 0x01;
@@ -9889,6 +9891,28 @@ CDocumentColor.prototype.SetFromColor = function(oColor)
 	this.b    = undefined !== oColor.b ? oColor.b : 0;
 	this.Auto = undefined !== oColor.Auto ? oColor.Auto : false;
 };
+CDocumentColor.prototype.SetFromHexColor = function(val) {
+	this.Auto = false;
+	if ("auto" === val || "none" === val) {
+		this.Auto = true;
+	} else if (AscFormat.mapPrstColor[val]) {
+		var rgb = AscFormat.mapPrstColor[val];
+		this.r = (rgb >> 16) & 0xFF;
+		this.g = (rgb >> 8) & 0xFF;
+		this.b = rgb & 0xFF;
+	} else if (6 <= val.length || 3 === val.length) {
+		AscCommon.RgbaHexToRGBA(val);
+	} else {
+		this.Auto = true;
+	}
+};
+CDocumentColor.prototype.ToHexColor = function(val) {
+	if (this.Auto) {
+		return "auto";
+	} else {
+		return (AscCommon.IntToHex(this.r) + AscCommon.IntToHex(this.g) + AscCommon.IntToHex(this.b)).toUpperCase();
+	}
+};
 
 
 function CDocumentShd()
@@ -14850,6 +14874,28 @@ CParaTab.prototype.GetLeader = function()
 {
 	return this.Leader;
 };
+CParaTab.prototype.IsValid = function()
+{
+	return null != this.Pos && null != this.Value;
+}
+CParaTab.prototype.Correct_Content = function()
+{
+	if(null != oNewTab.Pos && null != oNewTab.Value)
+	{
+		if (4 === this.Value) {
+			oNewTab.Value = tab_Right;
+		} else if (6 === this.Value) {
+			oNewTab.Value = tab_Left;
+		} else if (tab_Bar === this.Value || tab_Decimal) {
+			oNewTab.Value = tab_Left;
+		} else if (6 === this.Value) {
+			oNewTab.Value = tab_Left;
+		}
+
+		Tabs.Add(oNewTab);
+	}
+};
+
 
 function CParaTabs()
 {
@@ -15352,6 +15398,19 @@ CParaSpacing.prototype.IsEqual = function(oSpacing)
 		&& IsEqualNullableFloatNumbers(this.BeforePct, oSpacing.BeforePct)
 		&& this.BeforeAutoSpacing === oSpacing.BeforeAutoSpacing
 		&& this.AfterAutoSpacing === oSpacing.AfterAutoSpacing);
+};
+CParaSpacing.prototype.SetLineTwips = function (val) {
+	if (null !== val && undefined !== val) {
+		if (val < 0) {
+			val = Math.abs(val);
+			this.LineRule = Asc.linerule_Exact;
+		}
+		if (Asc.linerule_Auto === this.LineRule) {
+			this.Line = val / 240;
+		} else {
+			this.Line = g_dKoef_twips_to_mm * val;
+		}
+	}
 };
 
 function CNumPr(sNumId, nLvl)
@@ -17388,6 +17447,8 @@ window["AscCommonWord"].g_dKoef_twips_to_mm = g_dKoef_twips_to_mm;
 window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
 window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
 window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
+window["AscCommonWord"].g_dKoef_twips_to_pt = g_dKoef_twips_to_pt;
+window["AscCommonWord"].g_dKoef_pt_to_twips = g_dKoef_pt_to_twips;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;

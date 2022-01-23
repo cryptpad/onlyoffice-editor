@@ -6916,27 +6916,56 @@
 		}
 		return null;
 	}
-	function universalMeasureToMm(val, koef) {
+	function universalMeasureToPt(val, koef, def) {
 		var nVal = parseFloat(val);
-		var nRes = null;
+		var nRes = def;
+		if (!isNaN(nVal)) {
+			if (-1 != val.indexOf("mm"))
+				nRes = nVal * 72 / (2.54 * 10);
+			else if (-1 != val.indexOf("cm"))
+				nRes = nVal * 72 / 2.54;
+			else if (-1 != val.indexOf("in"))
+				nRes = nVal * 72;
+			else if (-1 != val.indexOf("pt"))
+				nRes = nVal;
+			else if (-1 != val.indexOf("pc") || -1 != val.indexOf("pi"))
+				nRes = nVal * 12;
+			else if (-1 != val.indexOf("px"))
+				nRes = nVal / AscCommon.g_dDpiX;
+			else
+				nRes = nVal * koef;
+		}
+		return nRes;
+	}
+	function universalMeasureToMm(val, koef, def) {
+		var nVal = parseFloat(val);
+		var nRes = def;
 		if (!isNaN(nVal)) {
 			if (-1 != val.indexOf("mm"))
 				nRes = nVal;
 			else if (-1 != val.indexOf("cm"))
 				nRes = nVal * 10;
 			else if (-1 != val.indexOf("in"))
-				nRes = nVal * AscCommonWord.g_dKoef_in_to_mm;
+				nRes = nVal * 2.54 * 10;
 			else if (-1 != val.indexOf("pt"))
-				nRes = nVal * AscCommonWord.g_dKoef_pt_to_mm;
+				nRes = nVal * 2.54 * 10 / 72;
 			else if (-1 != val.indexOf("pc") || -1 != val.indexOf("pi"))
-				nRes = nVal * AscCommonWord.g_dKoef_pc_to_mm;
+				nRes = nVal * 12 * 2.54 * 10 / 72;
 			else if (-1 != val.indexOf("px"))
-				nRes = nVal * AscCommonWord.g_dKoef_pix_to_mm;
+				nRes = nVal * AscCommon.g_dKoef_pix_to_mm;
 			else
 				nRes = nVal * koef;
 		}
 		return nRes;
-	};
+	}
+	function universalMeasureToUnsignedPt(val, koef, def) {
+		var res = universalMeasureToPt(val, koef, def);
+		return res >= 0 ? res : def;
+	}
+	function universalMeasureToUnsignedMm(val, koef, def) {
+		var res = universalMeasureToMm(val, koef, def);
+		return res >= 0 ? res : def;
+	}
 
 	function arrayMove(array, from, to) {
 		array.splice(to, 0, array.splice(from, 1)[0]);
@@ -7494,6 +7523,9 @@
 	window["AscCommon"].valueToMm = valueToMm;
 	window["AscCommon"].valueToMmType = valueToMmType;
 	window["AscCommon"].universalMeasureToMm = universalMeasureToMm;
+	window["AscCommon"].universalMeasureToUnsignedMm = universalMeasureToUnsignedMm;
+	window["AscCommon"].universalMeasureToPt = universalMeasureToPt;
+	window["AscCommon"].universalMeasureToUnsignedPt = universalMeasureToUnsignedPt;
 	window["AscCommon"].arrayMove = arrayMove;
 	window["AscCommon"].getRangeArray = getRangeArray;
 

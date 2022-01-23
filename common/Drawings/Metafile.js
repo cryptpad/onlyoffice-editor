@@ -913,9 +913,9 @@
 		{
 			this.WriteXmlString(val.toString());
 		};
-		this.WriteXmlNumberWithRounding = function(val)
+		this.WriteXmlInt = function(val)
 		{
-			this.WriteXmlString(Math.round(val).toString());
+			this.WriteXmlString(val.toFixed(0));
 		};
 		this.WriteXmlNodeStart = function(name)
 		{
@@ -961,9 +961,9 @@
 		{
 			this.WriteXmlAttributeString(name, val.toString());
 		};
-		this.WriteXmlAttributeNumberWithRounding = function(name, val)
+		this.WriteXmlAttributeInt = function(name, val)
 		{
-			this.WriteXmlAttributeString(name, Math.round(val).toString());
+			this.WriteXmlAttributeString(name, val.toFixed(0));
 		};
 		this.WriteXmlNullable = function(val, name)
 		{
@@ -988,32 +988,38 @@
 		};
 		this.WriteXmlNullableAttributeString = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlAttributeString(name, val)
 			}
 		};
 		this.WriteXmlNullableAttributeStringEncode = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlAttributeStringEncode(name, val)
 			}
 		};
 		this.WriteXmlNullableAttributeBool = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlAttributeBool(name, val)
 			}
 		};
 		this.WriteXmlNullableAttributeNumber = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlAttributeNumber(name, val)
 			}
 		};
-		this.WriteXmlNullableAttributeNumberWithRounding = function(name, val)
+		this.WriteXmlNullableAttributeInt = function(name, val)
 		{
-			if (null !== val) {
-				this.WriteXmlAttributeNumberWithRounding(name, val)
+			if (null !== val && undefined !== val) {
+				this.WriteXmlAttributeInt(name, val)
+			}
+		};
+		this.WriteXmlNullableAttributeIntWithKoef = function(name, val, koef)
+		{
+			if (null !== val && undefined !== val) {
+				this.WriteXmlAttributeInt(name, val * koef)
 			}
 		};
 		this.WriteXmlAttributeBoolIfTrue = function(name, val)
@@ -1050,41 +1056,41 @@
 			this.WriteXmlNumber(val);
 			this.WriteXmlNodeEnd(name);
 		};
-		this.WriteXmlValueNumberWithRounding = function(name, val)
+		this.WriteXmlValueInt = function(name, val)
 		{
 			this.WriteXmlNodeStart(name);
 			this.WriteXmlAttributesEnd();
-			this.WriteXmlNumberWithRounding(val);
+			this.WriteXmlInt(val);
 			this.WriteXmlNodeEnd(name);
 		};
 		this.WriteXmlNullableValueString = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlValueString(name, val)
 			}
 		};
 		this.WriteXmlNullableValueStringEncode = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlValueStringEncode(name, val)
 			}
 		};
 		this.WriteXmlNullableValueBool = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlValueBool(name, val)
 			}
 		};
 		this.WriteXmlNullableValueNumber = function(name, val)
 		{
-			if (null !== val) {
+			if (null !== val && undefined !== val) {
 				this.WriteXmlValueNumber(name, val)
 			}
 		};
-		this.WriteXmlNullableValueNumberWithRounding = function(name, val)
+		this.WriteXmlNullableValueInt = function(name, val)
 		{
-			if (null !== val) {
-				this.WriteXmlValueNumberWithRounding(name, val)
+			if (null !== val && undefined !== val) {
+				this.WriteXmlValueInt(name, val)
 			}
 		};
 		this.XlsbStartRecord = function(type, len) {

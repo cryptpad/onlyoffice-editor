@@ -368,49 +368,21 @@ BinaryCommonWriter.prototype.WriteColorTheme = function(unifill, color)
 		this.memory.WriteByte(c_oSer_ColorThemeType.Auto);
 		this.memory.WriteByte(c_oSerPropLenType.Null);
 	}
-	if (null != unifill && null != unifill.fill && null != unifill.fill.color && unifill.fill.color.color instanceof AscFormat.CSchemeColor) {
-		var uniColor = unifill.fill.color;
-		if(null != uniColor.color){
-      var EThemeColor = AscCommonWord.EThemeColor;
-			var nFormatId = EThemeColor.themecolorNone;
-			switch(uniColor.color.id){
-				case 0: nFormatId = EThemeColor.themecolorAccent1;break;
-				case 1: nFormatId = EThemeColor.themecolorAccent2;break;
-				case 2: nFormatId = EThemeColor.themecolorAccent3;break;
-				case 3: nFormatId = EThemeColor.themecolorAccent4;break;
-				case 4: nFormatId = EThemeColor.themecolorAccent5;break;
-				case 5: nFormatId = EThemeColor.themecolorAccent6;break;
-				case 6: nFormatId = EThemeColor.themecolorBackground1;break;
-				case 7: nFormatId = EThemeColor.themecolorBackground2;break;
-				case 8: nFormatId = EThemeColor.themecolorDark1;break;
-				case 9: nFormatId = EThemeColor.themecolorDark2;break;
-				case 10: nFormatId = EThemeColor.themecolorFollowedHyperlink;break;
-				case 11: nFormatId = EThemeColor.themecolorHyperlink;break;
-				case 12: nFormatId = EThemeColor.themecolorLight1;break;
-				case 13: nFormatId = EThemeColor.themecolorLight2;break;
-				case 14: nFormatId = EThemeColor.themecolorNone;break;
-				case 15: nFormatId = EThemeColor.themecolorText1;break;
-				case 16: nFormatId = EThemeColor.themecolorText2;break;
-			}
-			this.memory.WriteByte(c_oSer_ColorThemeType.Color);
-			this.memory.WriteByte(c_oSerPropLenType.Byte);
-			this.memory.WriteByte(nFormatId);
-		}
-		if(null != uniColor.Mods){
-			for(var i = 0, length = uniColor.Mods.Mods.length; i < length; ++i){
-				var mod = uniColor.Mods.Mods[i];
-				if("wordTint" == mod.name){
-					this.memory.WriteByte(c_oSer_ColorThemeType.Tint);
-					this.memory.WriteByte(c_oSerPropLenType.Byte);
-					this.memory.WriteByte(Math.round(mod.val));
-				}
-				else if("wordShade" == mod.name){
-					this.memory.WriteByte(c_oSer_ColorThemeType.Shade);
-					this.memory.WriteByte(c_oSerPropLenType.Byte);
-					this.memory.WriteByte(Math.round(mod.val));
-				}
-			}
-		}
+	var obj = AscCommonWord.CreateFromThemeUnifill(unifill);
+	if (null !== obj.Color) {
+		this.memory.WriteByte(c_oSer_ColorThemeType.Color);
+		this.memory.WriteByte(c_oSerPropLenType.Byte);
+		this.memory.WriteByte(obj.Color);
+	}
+	if (null !== obj.Tint) {
+		this.memory.WriteByte(c_oSer_ColorThemeType.Tint);
+		this.memory.WriteByte(c_oSerPropLenType.Byte);
+		this.memory.WriteByte(obj.Tint);
+	}
+	if (null !== obj.Shade) {
+		this.memory.WriteByte(c_oSer_ColorThemeType.Shade);
+		this.memory.WriteByte(c_oSerPropLenType.Byte);
+		this.memory.WriteByte(obj.Shade);
 	}
 };
 BinaryCommonWriter.prototype.WriteBookmark = function(bookmark) {

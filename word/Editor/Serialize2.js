@@ -1391,6 +1391,48 @@ function CreateThemeUnifill(color, tint, shade){
 	}
 	return ret;
 }
+function CreateFromThemeUnifill(unifill){
+	var res = {Color: null, Tint: null, Shade: null};
+	if (null != unifill && null != unifill.fill && null != unifill.fill.color && unifill.fill.color.color instanceof AscFormat.CSchemeColor) {
+		var uniColor = unifill.fill.color;
+		if(null != uniColor.color){
+			var EThemeColor = AscCommonWord.EThemeColor;
+			var nFormatId = EThemeColor.themecolorNone;
+			switch(uniColor.color.id){
+				case 0: nFormatId = EThemeColor.themecolorAccent1;break;
+				case 1: nFormatId = EThemeColor.themecolorAccent2;break;
+				case 2: nFormatId = EThemeColor.themecolorAccent3;break;
+				case 3: nFormatId = EThemeColor.themecolorAccent4;break;
+				case 4: nFormatId = EThemeColor.themecolorAccent5;break;
+				case 5: nFormatId = EThemeColor.themecolorAccent6;break;
+				case 6: nFormatId = EThemeColor.themecolorBackground1;break;
+				case 7: nFormatId = EThemeColor.themecolorBackground2;break;
+				case 8: nFormatId = EThemeColor.themecolorDark1;break;
+				case 9: nFormatId = EThemeColor.themecolorDark2;break;
+				case 10: nFormatId = EThemeColor.themecolorFollowedHyperlink;break;
+				case 11: nFormatId = EThemeColor.themecolorHyperlink;break;
+				case 12: nFormatId = EThemeColor.themecolorLight1;break;
+				case 13: nFormatId = EThemeColor.themecolorLight2;break;
+				case 14: nFormatId = EThemeColor.themecolorNone;break;
+				case 15: nFormatId = EThemeColor.themecolorText1;break;
+				case 16: nFormatId = EThemeColor.themecolorText2;break;
+			}
+			res.Color = nFormatId;
+		}
+		if(null != uniColor.Mods){
+			for(var i = 0, length = uniColor.Mods.Mods.length; i < length; ++i){
+				var mod = uniColor.Mods.Mods[i];
+				if("wordTint" == mod.name){
+					res.Tint = Math.round(mod.val);
+				}
+				else if("wordShade" == mod.name){
+					res.Shade = Math.round(mod.val);
+				}
+			}
+		}
+	}
+	return res;
+}
 
 function WriteTrackRevision(bs, Id, reviewInfo, options) {
 	//increment id
@@ -7785,6 +7827,7 @@ function BinaryFileReader(doc, openParams)
 			var elem = Content[i];
 			var type = elem.GetType();
 			if (type_Paragraph === type) {
+				elem.Set_Pr(elem.Pr);//after style initialization
 				elem.Correct_Content();
 			}
 			else if (type_Table === type) {
@@ -7822,7 +7865,7 @@ function BinaryFileReader(doc, openParams)
 			if(null != oNumClass && 0 !== numPr.NumId)
 				numPr.NumId = oNumClass.Get_Id();
 			else
-				numPr.NumId = 0;
+				numPr.NumId = "0";
 		}
 		var oDocStyle = this.Document.Styles;
 		var styles = this.Document.Styles.Style;
@@ -8366,7 +8409,7 @@ function BinaryFileReader(doc, openParams)
             if (null != oNumClass)
                 numPr.NumId = oNumClass.Get_Id();
             else
-                numPr.NumId = 0;
+                numPr.NumId = "0";
         }
         //обрабатываем стили
         var isAlreadyContainsStyle;
@@ -8972,17 +9015,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 res = this.bcr.Read2(length, function(t, l){
                         return oThis.ReadSpacing(t, l, pPr.Spacing, spacingTmp);
                     });
-				if (null !== spacingTmp.lineTwips) {
-					if (spacingTmp.lineTwips < 0) {
-						spacingTmp.lineTwips = -spacingTmp.lineTwips;
-						pPr.Spacing.LineRule = Asc.linerule_Exact;
-					}
-					if (Asc.linerule_Auto == pPr.Spacing.LineRule) {
-						pPr.Spacing.Line = spacingTmp.lineTwips / 240;
-					} else {
-						pPr.Spacing.Line = g_dKoef_twips_to_mm * spacingTmp.lineTwips;
-					}
-				}
+				pPr.Spacing.SetLineTwips(spacingTmp.lineTwips);
                 break;
             case c_oSerProp_pPrType.Shd:
                 pPr.Shd = new CDocumentShd();
@@ -9130,20 +9163,6 @@ function Binary_pPrReader(doc, oReadResult, stream)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
-    this.NormalizeBorder = function(border)
-    {
-        if(null == border.Color)
-            border.Color = new CDocumentColor(0, 0, 0, true);
-        else
-            border.Color = new CDocumentColor(border.Color.r, border.Color.g, border.Color.b, border.Color.Auto);
-        if(null == border.Space)
-            border.Space = 0;
-        if(null == border.Size)
-            border.Size = 0.5 * g_dKoef_pt_to_mm;
-        if(null == border.Value)
-            border.Value = border_None;
-        return border;
-    };
     this.ReadBorders = function(type, length, Borders)
     {
         var res = c_oSerConstants.ReadOk;
@@ -9154,58 +9173,49 @@ function Binary_pPrReader(doc, oReadResult, stream)
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadBorder(t, l, oNewBorber);
             });
-            if(null != oNewBorber.Value)
-                Borders.Left = this.NormalizeBorder(oNewBorber);
+			Borders.Left = oNewBorber;
         }
         else if( c_oSerBordersType.top === type )
         {
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadBorder(t, l, oNewBorber);
             });
-            if(null != oNewBorber.Value)
-                Borders.Top = this.NormalizeBorder(oNewBorber);
+            Borders.Top = oNewBorber;
         }
         else if( c_oSerBordersType.right === type )
         {
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadBorder(t, l, oNewBorber);
             });
-            if(null != oNewBorber.Value)
-                Borders.Right = this.NormalizeBorder(oNewBorber);
+			Borders.Right = oNewBorber;
         }
         else if( c_oSerBordersType.bottom === type )
         {
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadBorder(t, l, oNewBorber);
             });
-            if(null != oNewBorber.Value)
-                Borders.Bottom = this.NormalizeBorder(oNewBorber);
+			Borders.Bottom = oNewBorber;
         }
         else if( c_oSerBordersType.insideV === type )
         {
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadBorder(t, l, oNewBorber);
             });
-            if(null != oNewBorber.Value)
-                Borders.InsideV = this.NormalizeBorder(oNewBorber);
+			Borders.InsideV = oNewBorber;
         }
         else if( c_oSerBordersType.insideH === type )
         {
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadBorder(t, l, oNewBorber);
             });
-            if(null != oNewBorber.Value)
-                Borders.InsideH = this.NormalizeBorder(oNewBorber);
-            
+			Borders.InsideH = oNewBorber;
         }
         else if( c_oSerBordersType.between === type )
         {
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadBorder(t, l, oNewBorber);
             });
-            if(null != oNewBorber.Value)
-                Borders.Between = this.NormalizeBorder(oNewBorber);
-            
+			Borders.Between = oNewBorber;
         }
         else
             res = c_oSerConstants.ReadUnknown;
@@ -9258,8 +9268,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
             res = this.bcr.Read2(length, function(t, l){
                         return oThis.ReadTabItem(t, l, oNewTab);
                     });
-            if(null != oNewTab.Pos && null != oNewTab.Value && tab_Bar != oNewTab.Value && tab_Decimal != oNewTab.Value)
-            {
+			if (elem.IsValid()) {
 				if (4 === oNewTab.Value) {
 					oNewTab.Value = tab_Right;
 				} else if (6 === oNewTab.Value) {
@@ -9748,33 +9757,25 @@ function Binary_pPrReader(doc, oReadResult, stream)
 		} else if (c_oSerPageBorders.ZOrder === type) {
 			pgBorders.ZOrder = this.stream.GetUChar();
 		} else if (c_oSerPageBorders.Bottom === type) {
-			var oNewBorber = new CDocumentBorder();
+			pgBorders.Bottom = new CDocumentBorder();
 			res = this.bcr.Read2(length, function(t, l){
-				return oThis.Read_pgBorder(t, l, oNewBorber);
+				return oThis.Read_pgBorder(t, l, pgBorders.Bottom);
 			});
-			if(null != oNewBorber.Value)
-				pgBorders.Bottom = this.NormalizeBorder(oNewBorber);
 		} else if (c_oSerPageBorders.Left === type) {
-			var oNewBorber = new CDocumentBorder();
+			pgBorders.Left = new CDocumentBorder();
 			res = this.bcr.Read2(length, function(t, l){
-				return oThis.Read_pgBorder(t, l, oNewBorber);
+				return oThis.Read_pgBorder(t, l, pgBorders.Left);
 			});
-			if(null != oNewBorber.Value)
-				pgBorders.Left = this.NormalizeBorder(oNewBorber);
 		} else if (c_oSerPageBorders.Right === type) {
-			var oNewBorber = new CDocumentBorder();
+			pgBorders.Right = new CDocumentBorder();
 			res = this.bcr.Read2(length, function(t, l){
-				return oThis.Read_pgBorder(t, l, oNewBorber);
+				return oThis.Read_pgBorder(t, l, pgBorders.Right);
 			});
-			if(null != oNewBorber.Value)
-				pgBorders.Right = this.NormalizeBorder(oNewBorber);
 		} else if (c_oSerPageBorders.Top === type) {
-			var oNewBorber = new CDocumentBorder();
+			pgBorders.Top = new CDocumentBorder();
 			res = this.bcr.Read2(length, function(t, l){
-				return oThis.Read_pgBorder(t, l, oNewBorber);
+				return oThis.Read_pgBorder(t, l, pgBorders.Top);
 			});
-			if(null != oNewBorber.Value)
-				pgBorders.Top = this.NormalizeBorder(oNewBorber);
 		} else
 			res = c_oSerConstants.ReadUnknown;
 		return res;
@@ -11102,7 +11103,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
             var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
             res = this.bcr.Read1(length, function(t, l){
-                return oThis.ReadParagraph(t,l, oNewParagraph, Content);
+                return oThis.ReadParagraph(t,l, oNewParagraph);
             });
 			if (reviewtype_Common === oNewParagraph.GetReviewType() || this.oReadResult.checkReadRevisions()) {
 				Content.push(oNewParagraph);
@@ -11324,7 +11325,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			res = c_oSerConstants.ReadUnknown;
 		return res;
 	}
-    this.ReadParagraph = function(type, length, paragraph, Content)
+    this.ReadParagraph = function(type, length, paragraph)
     {
         var res = c_oSerConstants.ReadOk;
         var oThis = this;
@@ -11332,9 +11333,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
 			var oNewParaPr = paragraph.Pr;
             res = this.bpPrr.Read(length, oNewParaPr, paragraph);
-			this.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-				paragraph.Set_Pr(oNewParaPr);
-			});
         }
         else if ( c_oSerParType.Content === type )
         {
@@ -13204,12 +13202,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		} else if (c_oSerSdt.FormPrRequired === type) {
 			val.Required = this.stream.GetBool();
 		} else if (c_oSerSdt.FormPrBorder === type) {
-			var oNewBorber = new CDocumentBorder();
+			val.Border = new CDocumentBorder();
 			res = this.bcr.Read2(length, function (t, l) {
-				return oThis.bpPrr.ReadBorder(t, l, oNewBorber);
+				return oThis.bpPrr.ReadBorder(t, l, val.Border);
 			});
-			if (null != oNewBorber.Value)
-				val.Border = oThis.bpPrr.NormalizeBorder(oNewBorber);
 		} else if (c_oSerSdt.FormPrShd === type) {
 			val.Shd = new CDocumentShd();
 			ReadDocumentShd(length, this.bcr, val.Shd);
@@ -13229,12 +13225,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		} else if (c_oSerSdt.TextFormPrMaxCharacters === type) {
 			val.MaxCharacters = this.stream.GetLong();
 		} else if (c_oSerSdt.TextFormPrCombBorder === type) {
-			var oNewBorber = new CDocumentBorder();
+			val.CombBorder = new CDocumentBorder();
 			res = this.bcr.Read2(length, function (t, l) {
-				return oThis.bpPrr.ReadBorder(t, l, oNewBorber);
+				return oThis.bpPrr.ReadBorder(t, l, val.CombBorder);
 			});
-			if (null != oNewBorber.Value)
-				val.CombBorder = oThis.bpPrr.NormalizeBorder(oNewBorber);
 		} else if (c_oSerSdt.TextFormPrAutoFit === type) {
 			val.AutoFit = this.stream.GetBool();
 		} else if (c_oSerSdt.TextFormPrMultiLine === type) {
@@ -17421,3 +17415,4 @@ window["AscCommonWord"].c_oSer_OMathContentType = c_oSer_OMathContentType;
 window["AscCommonWord"].DocReadResult = DocReadResult;
 window["AscCommonWord"].DocSaveParams = DocSaveParams;
 window["AscCommonWord"].CreateThemeUnifill = CreateThemeUnifill;
+window["AscCommonWord"].CreateFromThemeUnifill = CreateFromThemeUnifill;

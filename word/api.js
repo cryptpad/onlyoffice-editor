@@ -1505,6 +1505,7 @@ background-repeat: no-repeat;\
 
 		var openParams        = {};
 		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
+		xmlParserContext.oReadResult = oBinaryFileReader.oReadResult;
 		oBinaryFileReader.PreLoadPrepare();
 
 		xmlParserContext.zip = jsZipWrapper;

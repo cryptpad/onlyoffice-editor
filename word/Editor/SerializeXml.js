@@ -375,7 +375,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "w": {
-					this.w = reader.GetTextMeasureUnsignedMm(AscCommonWord.g_dKoef_twips_to_mm);
+					this.w = AscCommon.universalMeasureToUnsignedMm(reader.GetText(), AscCommonWord.g_dKoef_twips_to_mm, 0);
 					break;
 				}
 			}
@@ -387,7 +387,7 @@
 	};
 	CT_TblGridCol.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeNumberWithRounding("w:w", this.w * g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:w", this.w, g_dKoef_mm_to_twips);
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CTableRow.prototype.readAttr = function(reader) {
@@ -646,6 +646,7 @@
 				case "permStart":
 					break;
 				case "pPr":
+					this.Pr.fromXml(reader);
 					break;
 				case "proofErr":
 					break;
@@ -667,7 +668,7 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		if (this.Pr) {
-			//this.Pr.toXml(writer, "w:pPr");
+			this.Pr.toXml(writer, "w:pPr");
 		}
 		this.Content.forEach(function (item) {
 			switch (item.Type) {
@@ -691,6 +692,621 @@
 			}
 		});
 		writer.WriteXmlNodeEnd(name);
+	};
+	CParaPr.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "pStyle" : {
+					var pStyle = new CT_StringStax();
+					pStyle.fromXml(reader);
+					this.PStyle = pStyle.getVal(undefined);
+					break;
+				}
+				case "keepNext" : {
+					var keepNext = new CT_OnOff();
+					keepNext.fromXml(reader);
+					this.KeepNext = keepNext.getVal(undefined);
+					break;
+				}
+				case "keepLines" : {
+					var keepLines = new CT_OnOff();
+					keepLines.fromXml(reader);
+					this.KeepLines = keepLines.getVal(undefined);
+					break;
+				}
+				case "pageBreakBefore" : {
+					var pageBreakBefore = new CT_OnOff();
+					pageBreakBefore.fromXml(reader);
+					this.PageBreakBefore = pageBreakBefore.getVal(undefined);
+					break;
+				}
+				case "framePr" : {
+					this.FramePr = new CFramePr();
+					this.FramePr.fromXml(reader);
+					break;
+				}
+				case "widowControl" : {
+					var widowControl = new CT_OnOff();
+					widowControl.fromXml(reader);
+					this.WidowControl = widowControl.getVal(undefined);
+					break;
+				}
+				case "numPr" : {
+					this.NumPr = new CNumPr();
+					this.NumPr.fromXml(reader);
+					reader.context.oReadResult.paraNumPrs.push(this.NumPr);
+					break;
+				}
+				case "suppressLineNumbers" : {
+					var suppressLineNumbers = new CT_OnOff();
+					suppressLineNumbers.fromXml(reader);
+					this.SuppressLineNumbers = suppressLineNumbers.getVal(undefined);
+					break;
+				}
+				case "pBdr" : {
+					var pBdr = new CT_Bdr();
+					pBdr.fromXml(reader);
+					pBdr.toObj(this.Brd);
+					break;
+				}
+				case "shd" : {
+					this.Shd = new CDocumentShd();
+					this.Shd.fromXml(reader);
+					break;
+				}
+				case "tabs" : {
+					this.Tabs = new CParaTabs();
+					var subDepth = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(subDepth)) {
+						if ("tab" === reader.GetNameNoNS()) {
+							var elem = new CParaTab();
+							elem.fromXml(reader);
+							if (elem.IsValid()) {
+								this.Tabs.Add(elem);
+							}
+						}
+					}
+					break;
+				}
+				// case "suppressAutoHyphens" : {
+				// 	this.Suppressautohyphens = new CT_OnOff();
+				// 	this.Suppressautohyphens.fromXml(reader);
+				// 	break;
+				// }
+				// case "kinsoku" : {
+				// 	this.Kinsoku = new CT_OnOff();
+				// 	this.Kinsoku.fromXml(reader);
+				// 	break;
+				// }
+				// case "wordWrap" : {
+				// 	this.Wordwrap = new CT_OnOff();
+				// 	this.Wordwrap.fromXml(reader);
+				// 	break;
+				// }
+				// case "overflowPunct" : {
+				// 	this.Overflowpunct = new CT_OnOff();
+				// 	this.Overflowpunct.fromXml(reader);
+				// 	break;
+				// }
+				// case "topLinePunct" : {
+				// 	this.Toplinepunct = new CT_OnOff();
+				// 	this.Toplinepunct.fromXml(reader);
+				// 	break;
+				// }
+				// case "autoSpaceDE" : {
+				// 	this.Autospacede = new CT_OnOff();
+				// 	this.Autospacede.fromXml(reader);
+				// 	break;
+				// }
+				// case "autoSpaceDN" : {
+				// 	this.Autospacedn = new CT_OnOff();
+				// 	this.Autospacedn.fromXml(reader);
+				// 	break;
+				// }
+				// case "bidi" : {
+				// 	this.Bidi = new CT_OnOff();
+				// 	this.Bidi.fromXml(reader);
+				// 	break;
+				// }
+				// case "adjustRightInd" : {
+				// 	this.Adjustrightind = new CT_OnOff();
+				// 	this.Adjustrightind.fromXml(reader);
+				// 	break;
+				// }
+				// case "snapToGrid" : {
+				// 	this.Snaptogrid = new CT_OnOff();
+				// 	this.Snaptogrid.fromXml(reader);
+				// 	break;
+				// }
+				case "spacing" : {
+					this.Spacing = new CParaSpacing();
+					this.Spacing.fromXml(reader);
+					break;
+				}
+				case "ind" : {
+					this.Ind = new CParaInd();
+					this.Ind.fromXml(reader);
+					break;
+				}
+				case "contextualSpacing" : {
+					var contextualSpacing = new CT_OnOff();
+					contextualSpacing.fromXml(reader);
+					this.ContextualSpacing = contextualSpacing.getVal(undefined);
+					break;
+				}
+				// case "mirrorIndents" : {
+				// 	this.Mirrorindents = new CT_OnOff();
+				// 	this.Mirrorindents.fromXml(reader);
+				// 	break;
+				// }
+				// case "suppressOverlap" : {
+				// 	this.Suppressoverlap = new CT_OnOff();
+				// 	this.Suppressoverlap.fromXml(reader);
+				// 	break;
+				// }
+				case "jc" : {
+					var jc = new CT_StringStax();
+					jc.fromXml(reader);
+					this.Jc = fromXml_ST_Jc1(jc.getVal(undefined));
+					break;
+				}
+				// case "textDirection" : {
+				// 	this.Textdirection = new CT_TextDirection();
+				// 	this.Textdirection.fromXml(reader);
+				// 	break;
+				// }
+				// case "textAlignment" : {
+				// 	this.Textalignment = new CT_TextAlignment();
+				// 	this.Textalignment.fromXml(reader);
+				// 	break;
+				// }
+				// case "textboxTightWrap" : {
+				// 	this.Textboxtightwrap = new CT_TextboxTightWrap();
+				// 	this.Textboxtightwrap.fromXml(reader);
+				// 	break;
+				// }
+				case "outlineLvl" : {
+					var outlineLvl = new CT_DecimalNumber();
+					outlineLvl.fromXml(reader);
+					this.OutlineLvl = outlineLvl.getValue(undefined);
+					break;
+				}
+				// case "divId" : {
+				// 	this.Divid = new CT_DecimalNumber();
+				// 	this.Divid.fromXml(reader);
+				// 	break;
+				// }
+				// case "cnfStyle" : {
+				// 	this.Cnfstyle = new CT_Cnf();
+				// 	this.Cnfstyle.fromXml(reader);
+				// 	break;
+				// }
+			}
+		}
+	};
+	CParaPr.prototype.toXml = function(writer, name) {
+		var PStyle = CT_StringStax.prototype.fromVal(this.PStyle);
+		var KeepNext = CT_OnOff.prototype.fromVal(this.KeepNext);
+		var KeepLines = CT_OnOff.prototype.fromVal(this.KeepLines);
+		var PageBreakBefore = CT_OnOff.prototype.fromVal(this.PageBreakBefore);
+		var WidowControl = CT_OnOff.prototype.fromVal(this.WidowControl);
+		var SuppressLineNumbers = CT_OnOff.prototype.fromVal(this.SuppressLineNumbers);
+		var pBdr = new CT_Bdr();
+		pBdr.fromObj(this.Brd);
+		if (pBdr.isEmpty()) {
+			pBdr = null;
+		}
+		var Spacing = this.Spacing.Is_Empty() ? null : this.Spacing;
+		var Ind = this.Ind.Is_Empty() ? null : this.Ind;
+		var ContextualSpacing = CT_OnOff.prototype.fromVal(this.ContextualSpacing);
+		var OutlineLvl = CT_DecimalNumber.prototype.fromVal(this.OutlineLvl);
+		var JcStr = toXml_ST_Jc1(this.Jc);
+		var Jc = JcStr ? CT_StringStax.prototype.fromVal(JcStr) : null;
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(PStyle, "w:pStyle");
+		writer.WriteXmlNullable(KeepNext, "w:keepNext");
+		writer.WriteXmlNullable(KeepLines, "w:keepLines");
+		writer.WriteXmlNullable(PageBreakBefore, "w:pageBreakBefore");
+		writer.WriteXmlNullable(this.FramePr, "w:framePr");
+		writer.WriteXmlNullable(WidowControl, "w:widowControl");
+		writer.WriteXmlNullable(this.NumPr, "w:numPr");//todo
+		writer.WriteXmlNullable(this.SuppressLineNumbers, "w:suppressLineNumbers");
+		writer.WriteXmlNullable(pBdr, "w:pBdr");
+		writer.WriteXmlNullable(this.Shd, "w:shd");
+		// writer.WriteXmlArray(this.Tabs, "w:tabs");//todo
+		// writer.WriteXmlNullable(this.Suppressautohyphens, "w:suppressAutoHyphens");
+		// writer.WriteXmlNullable(this.Kinsoku, "w:kinsoku");
+		// writer.WriteXmlNullable(this.Wordwrap, "w:wordWrap");
+		// writer.WriteXmlNullable(this.Overflowpunct, "w:overflowPunct");
+		// writer.WriteXmlNullable(this.Toplinepunct, "w:topLinePunct");
+		// writer.WriteXmlNullable(this.Autospacede, "w:autoSpaceDE");
+		// writer.WriteXmlNullable(this.Autospacedn, "w:autoSpaceDN");
+		// writer.WriteXmlNullable(this.Bidi, "w:bidi");
+		// writer.WriteXmlNullable(this.Adjustrightind, "w:adjustRightInd");
+		// writer.WriteXmlNullable(this.Snaptogrid, "w:snapToGrid");
+		writer.WriteXmlNullable(Spacing, "w:spacing");
+		writer.WriteXmlNullable(Ind, "w:ind");
+		writer.WriteXmlNullable(ContextualSpacing, "w:contextualSpacing");
+		// writer.WriteXmlNullable(this.Mirrorindents, "w:mirrorIndents");
+		// writer.WriteXmlNullable(this.Suppressoverlap, "w:suppressOverlap");
+		writer.WriteXmlNullable(Jc, "w:jc");
+		// writer.WriteXmlNullable(this.Textdirection, "w:textDirection");
+		// writer.WriteXmlNullable(this.Textalignment, "w:textAlignment");
+		// writer.WriteXmlNullable(this.Textboxtightwrap, "w:textboxTightWrap");
+		writer.WriteXmlNullable(OutlineLvl, "w:outlineLvl");
+		// writer.WriteXmlNullable(this.Divid, "w:divId");
+		// writer.WriteXmlNullable(this.Cnfstyle, "w:cnfStyle");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CFramePr.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "dropCap": {
+					this.DropCap = fromXml_ST_DropCap(reader.GetValue());
+					break;
+				}
+				case "lines": {
+					this.Lines = reader.GetValueInt();
+					break;
+				}
+				case "w": {
+					this.W = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				case "h": {
+					this.H = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				case "vSpace": {
+					this.VSpace = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				case "hSpace": {
+					this.HSpace = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				case "wrap": {
+					this.Wrap = fromXml_ST_Wrap(reader.GetValue());
+					break;
+				}
+				case "hAnchor": {
+					this.HAnchor = fromXml_ST_HAnchor(reader.GetValue());
+					break;
+				}
+				case "vAnchor": {
+					this.VAnchor = fromXml_ST_VAnchor(reader.GetValue());
+					break;
+				}
+				case "x": {
+					var x = AscCommon.universalMeasureToPt(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_pt, null);
+					if(null !== x) {
+						if (-4 === x * AscCommonWord.g_dKoef_pt_to_twips) {
+							this.YAlign = Asc.c_oAscXAlign.Center;
+						} else {
+							this.Y = x * AscCommonWord.g_dKoef_pt_to_mm;
+						}
+					}
+					break;
+				}
+				case "xAlign": {
+					this.XAlign = fromXml_ST_XAlign(reader.GetValue());
+					break;
+				}
+				case "y": {
+					var y = AscCommon.universalMeasureToPt(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_pt, null);
+					if(null !== y) {
+						if (-4 === y * AscCommonWord.g_dKoef_pt_to_twips) {
+							this.YAlign = Asc.c_oAscYAlign.Top;
+						} else {
+							this.Y = y * AscCommonWord.g_dKoef_pt_to_mm;
+						}
+					}
+					break;
+				}
+				case "yAlign": {
+					this.YAlign = fromXml_ST_YAlign(reader.GetValue());
+					break;
+				}
+				case "hRule": {
+					this.HRule = fromXml_ST_HeightRule(reader.GetValue());
+					break;
+				}
+				// case "anchorLock": {
+				// 	this.anchorLock = reader.GetValueDecodeXml();
+				// 	break;
+				// }
+			}
+		}
+	};
+	CFramePr.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CFramePr.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:dropCap", toXml_ST_DropCap(this.DropCap));
+		writer.WriteXmlNullableAttributeIntWithKoef("w:lines", this.Lines, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:w", this.W, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:h", this.H, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:vSpace", this.VSpace, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:hSpace", this.HSpace, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeString("w:wrap", toXml_ST_Wrap(this.Wrap));
+		writer.WriteXmlNullableAttributeString("w:hAnchor", toXml_ST_HAnchor(this.HAnchor));
+		writer.WriteXmlNullableAttributeString("w:vAnchor", toXml_ST_VAnchor(this.WAnchor));
+		writer.WriteXmlNullableAttributeIntWithKoef("w:x", this.X, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeString("w:xAlign", toXml_ST_XAlign(this.XAlign));
+		writer.WriteXmlNullableAttributeIntWithKoef("w:y", this.Y, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeString("w:yAlign", toXml_ST_YAlign(this.YAlign));
+		writer.WriteXmlNullableAttributeString("w:hRule", toXml_ST_HeightRule(this.HRule));
+		// writer.WriteXmlNullableAttributeString("w:anchorLock", this.anchorLock);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CNumPr.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "ilvl" : {
+					var ilvl = new CT_DecimalNumber();
+					this.Lvl = ilvl.getValue(undefined);
+					break;
+				}
+				case "numId" : {
+					var numId = new CT_DecimalNumber();
+					this.NumId = numId.getValue(undefined);
+					break;
+				}
+				// case "ins" : {
+				// 	this.ins = new CT_TrackChange();
+				// 	this.ins.fromXml(reader);
+				// 	break;
+				// }
+			}
+		}
+	};
+	CNumPr.prototype.toXml = function(writer, name) {
+		var ilvl = new CT_DecimalNumber();
+		ilvl.val = this.Lvl;
+		var numId = new CT_DecimalNumber();
+		numId.val = parseInt(this.NumId) || 0;
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(ilvl, "w:ilvl");
+		writer.WriteXmlNullable(numId, "w:numId");
+		// writer.WriteXmlNullable(this.ins, "w:ins");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CDocumentShd.prototype.readAttr = function(reader) {
+		var themeColor = {Color: null, Tint: null, Shade: null};
+		var themeFill = {Color: null, Tint: null, Shade: null};
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.Value = fromXml_ST_Shd(reader.GetValue());
+					break;
+				}
+				case "color": {
+					this.Color = new CDocumentColor(255, 255, 255);
+					this.Color.SetFromHexColor(reader.GetValue());
+					break;
+				}
+				case "themeColor": {
+					themeColor.Color = fromXml_ST_ThemeColor(reader.GetValue());
+					break;
+				}
+				case "themeTint": {
+					themeColor.Tint = reader.GetValueUInt();
+					break;
+				}
+				case "themeShade": {
+					themeColor.Shade = reader.GetValueUInt();
+					break;
+				}
+				case "fill": {
+					this.Fill = new CDocumentColor(255, 255, 255);
+					this.Fill.SetFromHexColor(reader.GetValue());
+					break;
+				}
+				case "themeFill": {
+					themeFill.Color = fromXml_ST_ThemeColor(reader.GetValue());
+					break;
+				}
+				case "themeFillTint": {
+					themeFill.Tint = reader.GetValueUInt();
+					break;
+				}
+				case "themeFillShade": {
+					themeFill.Shade = reader.GetValueUInt();
+					break;
+				}
+			}
+		}
+		var unifill = AscCommonWord.CreateThemeUnifill(themeColor.Color, themeColor.Tint, themeColor.Shade);
+		if (null != unifill)
+			this.Unifill = unifill;
+		unifill = AscCommonWord.CreateThemeUnifill(themeFill.Color, themeFill.Tint, themeFill.Shade);
+		if (null != unifill)
+			this.themeFill = unifill;
+	};
+	CDocumentShd.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CDocumentShd.prototype.toXml = function(writer, name) {
+		var themeColor = AscCommonWord.CreateFromThemeUnifill(this.Unifill);
+		var themeFill = AscCommonWord.CreateFromThemeUnifill(this.themeFill);
+		var hexColor = this.Color ? this.Color.ToHexColor() : null;
+		var hexFill = this.Fill ? this.Fill.ToHexColor() : null;
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_Shd(this.Value));
+		writer.WriteXmlNullableAttributeString("w:color", hexColor);
+		writer.WriteXmlNullableAttributeString("w:themeColor", toXml_ST_ThemeColor(themeColor.Color));
+		writer.WriteXmlNullableAttributeNumber("w:themeTint", themeColor.Tint);
+		writer.WriteXmlNullableAttributeNumber("w:themeShade", themeColor.Shade);
+		writer.WriteXmlNullableAttributeString("w:fill", hexFill);
+		writer.WriteXmlNullableAttributeString("w:themeFill", toXml_ST_ThemeColor(themeFill.Color));
+		writer.WriteXmlNullableAttributeNumber("w:themeFillTint", themeFill.Tint);
+		writer.WriteXmlNullableAttributeNumber("w:themeFillShade", themeFill.Shade);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CParaTab.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.Val = fromXml_ST_TabJc(reader.GetValue());
+					break;
+				}
+				case "leader": {
+					this.Leader = fromXml_ST_TabTlc(reader.GetValue());
+					break;
+				}
+				case "pos": {
+					this.Pos = AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+			}
+		}
+	};
+	CParaTab.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CParaTab.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_TabJc(this.Val));
+		writer.WriteXmlNullableAttributeString("w:leader", toXml_ST_TabTlc(this.Leader));
+		writer.WriteXmlNullableAttributeIntWithKoef("w:pos", this.Pos, g_dKoef_mm_to_twips);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CParaSpacing.prototype.readAttr = function(reader) {
+		var linePt = null;
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "before": {
+					this.Before = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				// case "beforeLines": {
+				// 	this.Beforelines = reader.GetValueInt();
+				// 	break;
+				// }
+				case "beforeAutospacing": {
+					this.BeforeAutoSpacing = reader.GetValueBool();
+					break;
+				}
+				case "after": {
+					this.After = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				// case "afterLines": {
+				// 	this.Afterlines = reader.GetValueInt();
+				// 	break;
+				// }
+				case "afterAutospacing": {
+					this.AfterAutoSpacing = reader.GetValueBool();
+					break;
+				}
+				case "line": {
+					linePt = AscCommon.universalMeasureToPt(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_pt, undefined);
+					break;
+				}
+				case "lineRule": {
+					this.LineRule = fromXml_ST_LineSpacingRule(reader.GetValue());
+					break;
+				}
+			}
+		}
+		if (null !== linePt) {
+			this.SetLineTwips(linePt * AscCommonWord.g_dKoef_pt_to_twips);
+		}
+	};
+	CParaSpacing.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CParaSpacing.prototype.toXml = function(writer, name) {
+		var lineKoef = Asc.linerule_Auto === this.LineRule ? 240 : AscCommonWord.g_dKoef_mm_to_twips;
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:before", this.Before, AscCommonWord.g_dKoef_mm_to_twips);
+		// writer.WriteXmlNullableAttributeNumber("w:beforeLines", this.Beforelines);
+		writer.WriteXmlNullableAttributeBool("w:beforeAutospacing", this.BeforeAutoSpacing);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:after", this.After, AscCommonWord.g_dKoef_mm_to_twips);
+		// writer.WriteXmlNullableAttributeNumber("w:afterLines", this.Afterlines);
+		writer.WriteXmlNullableAttributeBool("w:afterAutospacing", this.AfterAutoSpacing);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:line", this.Line, lineKoef);
+		writer.WriteXmlNullableAttributeString("w:lineRule", toXml_ST_LineSpacingRule(this.LineRule));
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CParaInd.prototype.readAttr = function(reader) {
+		var Hanging = undefined;
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "start":
+				case "left": {
+					this.Left = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				// case "startChars": {
+				// 	this.Startchars = reader.GetValueInt();
+				// 	break;
+				// }
+				case "right":
+				case "end": {
+					this.Right = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				// case "endChars": {
+				// 	this.Endchars = reader.GetValueInt();
+				// 	break;
+				// }
+				case "hanging": {
+					Hanging = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				// case "hangingChars": {
+				// 	this.Hangingchars = reader.GetValueInt();
+				// 	break;
+				// }
+				case "firstLine": {
+					this.FirstLine = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				// case "firstLineChars": {
+				// 	this.Firstlinechars = reader.GetValueInt();
+				// 	break;
+				// }
+			}
+			if (undefined !== Hanging) {
+				this.FirstLine = -Hanging;
+			}
+		}
+	};
+	CParaInd.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CParaInd.prototype.toXml = function(writer, name) {
+		var Hanging = null;
+		var FirstLine = this.FirstLine;
+		if (FirstLine < 0) {
+			FirstLine = null;
+			Hanging = Math.abs(FirstLine);
+		}
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:left", this.Left, g_dKoef_mm_to_twips);
+		// writer.WriteXmlNullableAttributeNumber("w:startChars", this.Startchars);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:right", this.Right, g_dKoef_mm_to_twips);
+		// writer.WriteXmlNullableAttributeNumber("w:endChars", this.Endchars);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:hanging", Hanging, g_dKoef_mm_to_twips);
+		// writer.WriteXmlNullableAttributeNumber("w:hangingChars", this.Hangingchars);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:firstLine", FirstLine, g_dKoef_mm_to_twips);
+		// writer.WriteXmlNullableAttributeNumber("w:firstLineChars", this.Firstlinechars);
+		writer.WriteXmlAttributesEnd(true);
 	};
 	ParaRun.prototype.fromXml = function (reader) {
 		var depth = reader.GetDepth();
@@ -790,4 +1406,772 @@
 		}
 		writer.WriteXmlNodeEnd(name);
 	};
+	function CT_StringStax() {
+		this.val = null;
+		return this;
+	}
+	CT_StringStax.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueDecodeXml();
+					break;
+				}
+			}
+		}
+	};
+	CT_StringStax.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_StringStax.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_StringStax.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_StringStax();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_StringStax.prototype.getVal = function(def) {
+		return this.val || def;
+	};
+	function CT_OnOff() {
+		this.val = null;
+		return this;
+	}
+	CT_OnOff.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueBool();
+					break;
+				}
+			}
+		}
+	};
+	CT_OnOff.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_OnOff.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_OnOff.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_OnOff();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_OnOff.prototype.getVal = function(def) {
+		return this.val || def;
+	};
+	function CT_DecimalNumber() {
+		this.val = null;
+		return this;
+	}
+	CT_DecimalNumber.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueInt();
+					break;
+				}
+			}
+		}
+	};
+	CT_DecimalNumber.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_DecimalNumber.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeNumber("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_DecimalNumber.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_DecimalNumber();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_DecimalNumber.prototype.getVal = function(def) {
+		return this.val || def;
+	};
+	function CT_Bdr() {
+		this.Top = null;
+		this.Left = null;
+		this.Bottom = null;
+		this.Right = null;
+		this.Between = null;
+		this.Bar = null;
+		this.InsideH = null;
+		this.InsideV = null;
+		return this;
+	}
+	CT_Bdr.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "top" : {
+					this.Top = new CDocumentBorder();
+					this.Top.fromXml(reader);
+					break;
+				}
+				case "left" : {
+					this.Left = new CDocumentBorder();
+					this.Left.fromXml(reader);
+					break;
+				}
+				case "bottom" : {
+					this.Bottom = new CDocumentBorder();
+					this.Bottom.fromXml(reader);
+					break;
+				}
+				case "right" : {
+					this.Right = new CDocumentBorder();
+					this.Right.fromXml(reader);
+					break;
+				}
+				case "between" : {
+					this.Between = new CDocumentBorder();
+					this.Between.fromXml(reader);
+					break;
+				}
+				case "bar" : {
+					this.Bar = new CDocumentBorder();
+					this.Bar.fromXml(reader);
+					break;
+				}
+				case "insideH" : {
+					this.InsideH = new CDocumentBorder();
+					this.InsideH.fromXml(reader);
+					break;
+				}
+				case "insideV" : {
+					this.InsideV = new CDocumentBorder();
+					this.InsideV.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CT_Bdr.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.Top, "w:top");
+		writer.WriteXmlNullable(this.Left, "w:left");
+		writer.WriteXmlNullable(this.Bottom, "w:bottom");
+		writer.WriteXmlNullable(this.Right, "w:right");
+		writer.WriteXmlNullable(this.Between, "w:between");
+		writer.WriteXmlNullable(this.Bar, "w:bar");
+		writer.WriteXmlNullable(this.InsideH, "w:insideH");
+		writer.WriteXmlNullable(this.InsideV, "w:insideV");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CT_Bdr.prototype.fromObj = function(obj) {
+		for(var elem in obj) {
+			if(obj.hasOwnProperty(elem) && obj[elem]) {
+				this[elem] = obj[elem];
+			}
+		}
+	};
+	CT_Bdr.prototype.toObj = function(obj) {
+		for(var elem in this) {
+			if(this.hasOwnProperty(elem) && this[elem]) {
+				obj[elem] = this[elem];
+			}
+		}
+	};
+	CT_Bdr.prototype.isEmpty = function() {
+		for(var elem in this) {
+			if(this.hasOwnProperty(elem) && this[elem]) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	function fromXml_ST_DropCap(val) {
+		switch (val) {
+			case "none":
+				return Asc.c_oAscDropCap.None;
+			case "drop":
+				return Asc.c_oAscDropCap.Drop;
+			case "margin":
+				return Asc.c_oAscDropCap.Margin;
+		}
+		return undefined;
+	}
+	function toXml_ST_DropCap(val) {
+		switch (val) {
+			case Asc.c_oAscDropCap.None:
+				return "none";
+			case Asc.c_oAscDropCap.Drop:
+				return "drop";
+			case Asc.c_oAscDropCap.Margin:
+				return "margin";
+		}
+		return null;
+	}
+	function fromXml_ST_Wrap(val) {
+		switch (val) {
+			case "auto":
+				return wrap_Auto;
+			case "notBeside":
+				return wrap_NotBeside;
+			case "around":
+				return wrap_Around;
+			case "tight":
+				return wrap_Tight;
+			case "through":
+				return wrap_Through;
+			case "none":
+				return wrap_None;
+		}
+		return undefined;
+	}
+	function toXml_ST_Wrap(val) {
+		switch (val) {
+			case wrap_Auto:
+				return "auto";
+			case wrap_NotBeside:
+				return "notBeside";
+			case wrap_Around:
+				return "around";
+			case wrap_Tight:
+				return "tight";
+			case wrap_Through:
+				return "through";
+			case wrap_None:
+				return "none";
+		}
+		return null;
+	}
+	function fromXml_ST_HAnchor(val) {
+		switch (val) {
+			case "text":
+				return Asc.c_oAscHAnchor.Text;
+			case "margin":
+				return Asc.c_oAscHAnchor.Margin;
+			case "page":
+				return Asc.c_oAscHAnchor.Page;
+		}
+		return undefined;
+	}
+	function toXml_ST_HAnchor(val) {
+		switch (val) {
+			case Asc.c_oAscHAnchor.Text:
+				return "text";
+			case Asc.c_oAscHAnchor.Margin:
+				return "margin";
+			case Asc.c_oAscHAnchor.Page:
+				return "page";
+		}
+		return null;
+	}
+	function fromXml_ST_VAnchor(val) {
+		switch (val) {
+			case "text":
+				return Asc.c_oAscVAnchor.Text;
+			case "margin":
+				return Asc.c_oAscVAnchor.Margin;
+			case "page":
+				return Asc.c_oAscVAnchor.Page;
+		}
+		return undefined;
+	}
+	function toXml_ST_VAnchor(val) {
+		switch (val) {
+			case Asc.c_oAscVAnchor.Text:
+				return "text";
+			case Asc.c_oAscVAnchor.Margin:
+				return "margin";
+			case Asc.c_oAscVAnchor.Page:
+				return "page";
+		}
+		return null;
+	}
+	function fromXml_ST_XAlign(val) {
+		switch (val) {
+			case "left":
+				return Asc.c_oAscXAlign.Left;
+			case "center":
+				return Asc.c_oAscXAlign.Center;
+			case "right":
+				return Asc.c_oAscXAlign.Right;
+			case "inside":
+				return Asc.c_oAscXAlign.Inside;
+			case "outside":
+				return Asc.c_oAscXAlign.Outside;
+		}
+		return undefined;
+	}
+	function toXml_ST_XAlign(val) {
+		switch (val) {
+			case Asc.c_oAscXAlign.Left:
+				return "left";
+			case Asc.c_oAscXAlign.Center:
+				return "center";
+			case Asc.c_oAscXAlign.Right:
+				return "right";
+			case Asc.c_oAscXAlign.Inside:
+				return "inside";
+			case Asc.c_oAscXAlign.Outside:
+				return "outside";
+		}
+		return null;
+	}
+	function fromXml_ST_YAlign(val) {
+		switch (val) {
+			case "inline":
+				return Asc.c_oAscYAlign.Inline;
+			case "top":
+				return Asc.c_oAscYAlign.Top;
+			case "center":
+				return Asc.c_oAscYAlign.Center;
+			case "bottom":
+				return Asc.c_oAscYAlign.Bottom;
+			case "inside":
+				return Asc.c_oAscYAlign.Inside;
+			case "outside":
+				return Asc.c_oAscYAlign.Outside;
+		}
+		return undefined;
+	}
+	function toXml_ST_YAlign(val) {
+		switch (val) {
+			case Asc.c_oAscYAlign.Inline:
+				return "inline";
+			case Asc.c_oAscYAlign.Top:
+				return "top";
+			case Asc.c_oAscYAlign.Center:
+				return "center";
+			case Asc.c_oAscYAlign.Bottom:
+				return "bottom";
+			case Asc.c_oAscYAlign.Inside:
+				return "inside";
+			case Asc.c_oAscYAlign.Outside:
+				return "outside";
+		}
+		return null;
+	}
+	function fromXml_ST_HeightRule(val) {
+		switch (val) {
+			case "auto":
+				return Asc.linerule_Auto;
+			case "exact":
+				return Asc.linerule_Exact;
+			case "atLeast":
+				return Asc.linerule_AtLeast;
+		}
+		return undefined;
+	}
+	function toXml_ST_HeightRule(val) {
+		switch (val) {
+			case Asc.linerule_Auto:
+				return "auto";
+			case Asc.linerule_Exact:
+				return "exact";
+			case Asc.linerule_AtLeast:
+				return "atLeast";
+		}
+		return null;
+	}
+	function fromXml_ST_Shd(val) {
+		switch (val) {
+			case "nil":
+				return Asc.c_oAscShd.Nil;
+			case "clear":
+				return Asc.c_oAscShd.Clear;
+			case "solid":
+				return Asc.c_oAscShd.Solid;
+			case "horzStripe":
+				return Asc.c_oAscShd.HorzStripe;
+			case "vertStripe":
+				return Asc.c_oAscShd.VertStripe;
+			case "reverseDiagStripe":
+				return Asc.c_oAscShd.ReverseDiagStripe;
+			case "diagStripe":
+				return Asc.c_oAscShd.DiagStripe;
+			case "horzCross":
+				return Asc.c_oAscShd.HorzCross;
+			case "diagCross":
+				return Asc.c_oAscShd.DiagCross;
+			case "thinHorzStripe":
+				return Asc.c_oAscShd.ThinHorzStripe;
+			case "thinVertStripe":
+				return Asc.c_oAscShd.ThinVertStripe;
+			case "thinReverseDiagStripe":
+				return Asc.c_oAscShd.ThinReverseDiagStripe;
+			case "thinDiagStripe":
+				return Asc.c_oAscShd.ThinDiagStripe;
+			case "thinHorzCross":
+				return Asc.c_oAscShd.ThinHorzCross;
+			case "thinDiagCross":
+				return Asc.c_oAscShd.ThinDiagCross;
+			case "pct5":
+				return Asc.c_oAscShd.Pct5;
+			case "pct10":
+				return Asc.c_oAscShd.Pct10;
+			case "pct12":
+				return Asc.c_oAscShd.Pct12;
+			case "pct15":
+				return Asc.c_oAscShd.Pct15;
+			case "pct20":
+				return Asc.c_oAscShd.Pct20;
+			case "pct25":
+				return Asc.c_oAscShd.Pct25;
+			case "pct30":
+				return Asc.c_oAscShd.Pct30;
+			case "pct35":
+				return Asc.c_oAscShd.Pct35;
+			case "pct37":
+				return Asc.c_oAscShd.Pct37;
+			case "pct40":
+				return Asc.c_oAscShd.Pct40;
+			case "pct45":
+				return Asc.c_oAscShd.Pct45;
+			case "pct50":
+				return Asc.c_oAscShd.Pct50;
+			case "pct55":
+				return Asc.c_oAscShd.Pct55;
+			case "pct60":
+				return Asc.c_oAscShd.Pct60;
+			case "pct62":
+				return Asc.c_oAscShd.Pct62;
+			case "pct65":
+				return Asc.c_oAscShd.Pct65;
+			case "pct70":
+				return Asc.c_oAscShd.Pct70;
+			case "pct75":
+				return Asc.c_oAscShd.Pct75;
+			case "pct80":
+				return Asc.c_oAscShd.Pct80;
+			case "pct85":
+				return Asc.c_oAscShd.Pct85;
+			case "pct87":
+				return Asc.c_oAscShd.Pct87;
+			case "pct90":
+				return Asc.c_oAscShd.Pct90;
+			case "pct95":
+				return Asc.c_oAscShd.Pct95;
+		}
+		return undefined;
+	}
+	function toXml_ST_Shd(val) {
+		switch (val) {
+			case Asc.c_oAscShd.Nil:
+				return "nil";
+			case Asc.c_oAscShd.Clear:
+				return "clear";
+			case Asc.c_oAscShd.Solid:
+				return "solid";
+			case Asc.c_oAscShd.HorzStripe:
+				return "horzStripe";
+			case Asc.c_oAscShd.VertStripe:
+				return "vertStripe";
+			case Asc.c_oAscShd.ReverseDiagStripe:
+				return "reverseDiagStripe";
+			case Asc.c_oAscShd.DiagStripe:
+				return "diagStripe";
+			case Asc.c_oAscShd.HorzCross:
+				return "horzCross";
+			case Asc.c_oAscShd.DiagCross:
+				return "diagCross";
+			case Asc.c_oAscShd.ThinHorzStripe:
+				return "thinHorzStripe";
+			case Asc.c_oAscShd.ThinVertStripe:
+				return "thinVertStripe";
+			case Asc.c_oAscShd.ThinReverseDiagStripe:
+				return "thinReverseDiagStripe";
+			case Asc.c_oAscShd.ThinDiagStripe:
+				return "thinDiagStripe";
+			case Asc.c_oAscShd.ThinHorzCross:
+				return "thinHorzCross";
+			case Asc.c_oAscShd.ThinDiagCross:
+				return "thinDiagCross";
+			case Asc.c_oAscShd.Pct5:
+				return "pct5";
+			case Asc.c_oAscShd.Pct10:
+				return "pct10";
+			case Asc.c_oAscShd.Pct12:
+				return "pct12";
+			case Asc.c_oAscShd.Pct15:
+				return "pct15";
+			case Asc.c_oAscShd.Pct20:
+				return "pct20";
+			case Asc.c_oAscShd.Pct25:
+				return "pct25";
+			case Asc.c_oAscShd.Pct30:
+				return "pct30";
+			case Asc.c_oAscShd.Pct35:
+				return "pct35";
+			case Asc.c_oAscShd.Pct37:
+				return "pct37";
+			case Asc.c_oAscShd.Pct40:
+				return "pct40";
+			case Asc.c_oAscShd.Pct45:
+				return "pct45";
+			case Asc.c_oAscShd.Pct50:
+				return "pct50";
+			case Asc.c_oAscShd.Pct55:
+				return "pct55";
+			case Asc.c_oAscShd.Pct60:
+				return "pct60";
+			case Asc.c_oAscShd.Pct62:
+				return "pct62";
+			case Asc.c_oAscShd.Pct65:
+				return "pct65";
+			case Asc.c_oAscShd.Pct70:
+				return "pct70";
+			case Asc.c_oAscShd.Pct75:
+				return "pct75";
+			case Asc.c_oAscShd.Pct80:
+				return "pct80";
+			case Asc.c_oAscShd.Pct85:
+				return "pct85";
+			case Asc.c_oAscShd.Pct87:
+				return "pct87";
+			case Asc.c_oAscShd.Pct90:
+				return "pct90";
+			case Asc.c_oAscShd.Pct95:
+				return "pct95";
+		}
+		return null;
+	}
+	function fromXml_ST_ThemeColor(val) {
+		switch (val) {
+			case "dark1":
+				return AscCommonWord.EThemeColor.themecolorDark1;
+			case "light1":
+				return AscCommonWord.EThemeColor.themecolorLight1;
+			case "dark2":
+				return AscCommonWord.EThemeColor.themecolorDark2;
+			case "light2":
+				return AscCommonWord.EThemeColor.themecolorLight2;
+			case "accent1":
+				return AscCommonWord.EThemeColor.themecolorAccent1;
+			case "accent2":
+				return AscCommonWord.EThemeColor.themecolorAccent2;
+			case "accent3":
+				return AscCommonWord.EThemeColor.themecolorAccent3;
+			case "accent4":
+				return AscCommonWord.EThemeColor.themecolorAccent4;
+			case "accent5":
+				return AscCommonWord.EThemeColor.themecolorAccent5;
+			case "accent6":
+				return AscCommonWord.EThemeColor.themecolorAccent6;
+			case "hyperlink":
+				return AscCommonWord.EThemeColor.themecolorHyperlink;
+			case "followedHyperlink":
+				return AscCommonWord.EThemeColor.themecolorFollowedHyperlink;
+			case "none":
+				return AscCommonWord.EThemeColor.themecolorNone;
+			case "background1":
+				return AscCommonWord.EThemeColor.themecolorBackground1;
+			case "text1":
+				return AscCommonWord.EThemeColor.themecolorText1;
+			case "background2":
+				return AscCommonWord.EThemeColor.themecolorBackground2;
+			case "text2":
+				return AscCommonWord.EThemeColor.themecolorText2;
+		}
+		return null;
+	}
+	function toXml_ST_ThemeColor(val) {
+		switch (val) {
+			case AscCommonWord.EThemeColor.themecolorDark1:
+				return "dark1";
+			case AscCommonWord.EThemeColor.themecolorLight1:
+				return "light1";
+			case AscCommonWord.EThemeColor.themecolorDark2:
+				return "dark2";
+			case AscCommonWord.EThemeColor.themecolorLight2:
+				return "light2";
+			case AscCommonWord.EThemeColor.themecolorAccent1:
+				return "accent1";
+			case AscCommonWord.EThemeColor.themecolorAccent2:
+				return "accent2";
+			case AscCommonWord.EThemeColor.themecolorAccent3:
+				return "accent3";
+			case AscCommonWord.EThemeColor.themecolorAccent4:
+				return "accent4";
+			case AscCommonWord.EThemeColor.themecolorAccent5:
+				return "accent5";
+			case AscCommonWord.EThemeColor.themecolorAccent6:
+				return "accent6";
+			case AscCommonWord.EThemeColor.themecolorHyperlink:
+				return "hyperlink";
+			case AscCommonWord.EThemeColor.themecolorFollowedHyperlink:
+				return "followedHyperlink";
+			case AscCommonWord.EThemeColor.themecolorNone:
+				return "none";
+			case AscCommonWord.EThemeColor.themecolorBackground1:
+				return "background1";
+			case AscCommonWord.EThemeColor.themecolorText1:
+				return "text1";
+			case AscCommonWord.EThemeColor.themecolorBackground2:
+				return "background2";
+			case AscCommonWord.EThemeColor.themecolorText2:
+				return "text2";
+		}
+		return null;
+	}
+	function fromXml_ST_TabJc(val) {
+		switch (val) {
+			case "clear":
+				return tab_Clear;
+			case "start":
+			case "left":
+				return tab_Left;
+			case "center":
+				return tab_Center;
+			case "end":
+			case "right":
+				return tab_Right;
+			case "decimal":
+				return tab_Decimal;
+			case "bar":
+				return tab_Bar;
+			case "num":
+				return tab_Num;
+		}
+		return undefined;
+	}
+	function toXml_ST_TabJc(val) {
+		switch (val) {
+			case tab_Clear:
+				return "clear";
+			case tab_Left:
+				return "left";
+			case tab_Center:
+				return "center";
+			case tab_Right:
+				return "right";
+			case tab_Decimal:
+				return "decimal";
+			case tab_Bar:
+				return "bar";
+			case tab_Num:
+				return "num";
+		}
+		return null;
+	}
+	function fromXml_ST_TabTlc(val) {
+		switch (val) {
+			case "none":
+				return Asc.c_oAscTabLeader.None;
+			case "dot":
+				return Asc.c_oAscTabLeader.Dot;
+			case "hyphen":
+				return Asc.c_oAscTabLeader.Hyphen;
+			case "underscore":
+				return Asc.c_oAscTabLeader.Underscore;
+			case "heavy":
+				return Asc.c_oAscTabLeader.Heavy;
+			case "middleDot":
+				return Asc.c_oAscTabLeader.MiddleDot;
+		}
+		return undefined;
+	}
+	function toXml_ST_TabTlc(val) {
+		switch (val) {
+			case Asc.c_oAscTabLeader.None:
+				return "none";
+			case Asc.c_oAscTabLeader.Dot:
+				return "dot";
+			case Asc.c_oAscTabLeader.Hyphen:
+				return "hyphen";
+			case Asc.c_oAscTabLeader.Underscore:
+				return "underscore";
+			case Asc.c_oAscTabLeader.Heavy:
+				return "heavy";
+			case Asc.c_oAscTabLeader.MiddleDot:
+				return "middleDot";
+		}
+		return null;
+	}
+	function fromXml_ST_LineSpacingRule(val) {
+		switch (val) {
+			case "auto":
+				return Asc.linerule_Auto;
+			case "exact":
+				return Asc.linerule_Exact;
+			case "atLeast":
+				return Asc.linerule_AtLeast;
+		}
+		return undefined;
+	}
+	function toXml_ST_LineSpacingRule(val) {
+		switch (val) {
+			case Asc.linerule_Auto:
+				return "auto";
+			case Asc.linerule_Exact:
+				return "exact";
+			case Asc.linerule_AtLeast:
+				return "atLeast";
+		}
+		return null;
+	}
+	var align_Right   = 0;
+	var align_Left    = 1;
+	var align_Center  = 2;
+	var align_Justify = 3;
+	var align_Distributed = 4;
+	var align_CenterContinuous = 5;
+	function fromXml_ST_Jc1(val) {
+		switch (val) {
+			case "start":
+			case "left":
+				return AscCommon.align_Left;
+			case "center":
+				return AscCommon.align_Center;
+			case "end":
+			case "right":
+				return AscCommon.align_Right;
+			case "both":
+				return AscCommon.align_Left;
+			case "mediumKashida":
+				return AscCommon.align_Left;
+			case "distribute":
+				return AscCommon.align_Distributed;
+			case "numTab":
+				return AscCommon.align_Left;
+			case "highKashida":
+				return AscCommon.align_Left;
+			case "lowKashida":
+				return AscCommon.align_Left;
+			case "thaiDistribute":
+				return AscCommon.align_Left;
+		}
+		return undefined;
+	}
+	function toXml_ST_Jc1(val) {
+		switch (val) {
+			case AscCommon.align_Left:
+				return "left";
+			case AscCommon.align_Center:
+				return "center";
+			case AscCommon.align_Right:
+				return "right";
+			// case AscCommon.align_Justify:
+			// 	return "both";
+			case AscCommon.align_Distributed:
+				return "distribute";
+			// case AscCommon.align_CenterContinuous:
+			// 	return "distribute";
+		}
+		return null;
+	}
 })(window);
