@@ -9268,7 +9268,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
             res = this.bcr.Read2(length, function(t, l){
                         return oThis.ReadTabItem(t, l, oNewTab);
                     });
-			if (elem.IsValid()) {
+			if (oNewTab.IsValid()) {
 				if (4 === oNewTab.Value) {
 					oNewTab.Value = tab_Right;
 				} else if (6 === oNewTab.Value) {

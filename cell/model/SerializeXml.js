@@ -4415,11 +4415,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("dxf" === name ) {
 				//TODO
 				val = reader.GetValue();
-				this.setSqRef(val);
+				if (this.setSqRef) {
+					this.setSqRef(val);
+				}
 			} else if ("extLst" === name ) {
 				//TODO
 				val = reader.GetValue();
-				this.setSqRef(val);
+				if (this.setSqRef) {
+					this.setSqRef(val);
+				}
 			}
 		}
 
@@ -5225,7 +5229,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 	AscCommonExcel.CIconSet.prototype.fromXml = function (reader) {
-		this.readAttr(reader);
+		if (this.readAttr) {
+			this.readAttr(reader);
+		}
 
 		if (reader.IsEmptyNode()) {
 			return;
@@ -6664,7 +6670,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 			var val;
 			if ("alignment" === name) {
-				val = new AscCommonExcel.Align()();
+				val = new AscCommonExcel.Align();
 				val.fromXml(reader);
 				this.align = val;
 			} else if ("border" === name) {
@@ -6680,7 +6686,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = new AscCommonExcel.Font();
 				val.fromXml(reader);
 				//TODO
-				val.checkSchemeFont(this.wb.theme);
+				if (this.wb) {
+					val.checkSchemeFont(this.wb.theme);
+				}
 				this.font = val;
 			} else if ("NumFmt" === name) {
 				/*val = new AscCommonExcel.Border();
@@ -7503,13 +7511,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				while (reader.ReadNextSiblingNode(depth2)) {
 					var name2 = reader.GetNameNoNS();
 					if ("pivotTable" === name2) {
-						val = Asc.CT_slicerCachePivotTable();
+						val = new Asc.CT_slicerCachePivotTable();
 						val.fromXml(reader);
 						this.pivotTables.push(val);
 					}
 				}
 			} else if ("data" === name) {
-				val = Asc.CT_slicerCacheData();
+				val = new Asc.CT_slicerCacheData();
 				val.fromXml(reader);
 				this.data = val;
 			} else if ("extLst" === name) {
@@ -7633,11 +7641,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			this.tabular = null;//TabularSlicerCache*/
 
 			if ("olap" === name) {
-				val = Asc.CT_olapSlicerCache();
+				val = new Asc.CT_olapSlicerCache();
 				val.fromXml(reader);
 				this.olap = val;
 			} else if ("tabular" === name) {
-				val = Asc.CT_tabularSlicerCache();
+				val = new Asc.CT_tabularSlicerCache();
 				val.fromXml(reader);
 				this.tabular = val;
 			}
@@ -8003,7 +8011,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					var name2 = reader.GetNameNoNS();
 					if ("i" === name2) {
 						//CTabularSlicerCacheItem
-						var val = Asc.CT_tabularSlicerCacheItem();
+						var val = new Asc.CT_tabularSlicerCacheItem();
 						val.fromXml(reader);
 						this.items.push(val);
 					}

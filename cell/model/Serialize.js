@@ -10941,6 +10941,7 @@
         {
             var t = this;
             pptx_content_loader.Clear();
+            this.InitOpenManager.wb = wb;
 			var pasteBinaryFromExcel = false;
 			if(this.InitOpenManager.copyPasteObj && this.InitOpenManager.copyPasteObj.isCopyPaste && typeof editor != "undefined" && editor)
 				pasteBinaryFromExcel = true;
@@ -11842,7 +11843,7 @@
         var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, true/*, [], undefined, true*/);
         var oStyleObject = oBinary_StylesTableReader.Read();
         RenameDefSlicerStyle(oStyleObject);
-        AscCommonExcel.InitOpenManager.prototype.InitDefSlicerStyles.call(this, wb, oStyleObject)
+        AscCommonExcel.InitOpenManager.prototype.InitDefSlicerStyles.call(AscCommonExcel.InitOpenManager.prototype, wb, oStyleObject)
     }
 
 	function CT_PresetTableStyles(tableStyles, pivotStyles) {
