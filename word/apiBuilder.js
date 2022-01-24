@@ -4508,7 +4508,7 @@
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
 		{
 			var oElement = arrContent[nIndex];
-			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable)
+			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 			{
 				if (true === isInline && oElement instanceof ApiParagraph)
 					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), false));
