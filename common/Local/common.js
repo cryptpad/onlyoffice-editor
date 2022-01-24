@@ -173,6 +173,10 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 			return;
 		}
 	}
+	else
+	{
+		editor.isUseNativeViewer = false;
+	}
 
 	var file = new AscCommon.OpenFileResult();
 	file.data = binaryArray ? binaryArray : getBinaryArray(_data, _len);
