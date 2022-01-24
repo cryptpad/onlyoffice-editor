@@ -3603,38 +3603,44 @@
 			value:      sBorderType
 		}
 	};
-	WriterToJSON.prototype.SerDocContent = function(oDocContent, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo)
+	WriterToJSON.prototype.SerDocContent = function(oDocContent, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields)
 	{
 		var oDocContentObj = 
 		{
 			bPresentation: oDocContent.bPresentation,
-			content:       [],
+			content:       this.SerContent(oDocContent.Content, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields),
 			type:          "docContent"
 		}
 
+		return oDocContentObj;
+	};
+	WriterToJSON.prototype.SerContent = function(aContent, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields)
+	{
+		var aResult = [];
+
 		if (!aComplexFieldsToSave)
-			aComplexFieldsToSave = this.GetComplexFieldsToSave(oDocContent.Content);
+			aComplexFieldsToSave = this.GetComplexFieldsToSave(aContent, undefined, undefined, bAllCompFields);
 
 		if (!oMapCommentsInfo)
-			oMapCommentsInfo = this.GetMapCommentsInfo(oDocContent.Content, oMapCommentsInfo);
+			oMapCommentsInfo = this.GetMapCommentsInfo(aContent, oMapCommentsInfo);
 
 		if (!oMapBookmarksInfo)
-			oMapBookmarksInfo = this.GetMapBookmarksInfo(oDocContent.Content, oMapBookmarksInfo);
+			oMapBookmarksInfo = this.GetMapBookmarksInfo(aContent, oMapBookmarksInfo);
 		
 		var TempElm = null;
-		for (var nElm = 0; nElm < oDocContent.Content.length; nElm++)
+		for (var nElm = 0; nElm < aContent.length; nElm++)
 		{
-			TempElm = oDocContent.Content[nElm];
+			TempElm = aContent[nElm];
 
 			if (TempElm instanceof AscCommonWord.Paragraph)
-				oDocContentObj["content"].push(this.SerParagraph(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
+				aResult.push(this.SerParagraph(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
 			else if (TempElm instanceof AscCommonWord.CTable)
-				oDocContentObj["content"].push(this.SerTable(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
+				aResult.push(this.SerTable(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
 			else if (TempElm instanceof AscCommonWord.CBlockLevelSdt)
-				oDocContentObj["content"].push(this.SerBlockLvlSdt(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
+				aResult.push(this.SerBlockLvlSdt(TempElm, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo));
 		}
 
-		return oDocContentObj;
+		return aResult;
 	};
 	WriterToJSON.prototype.SerDrawingDocContent = function(oDocContent, aComplexFieldsToSave)
 	{
@@ -3645,12 +3651,12 @@
 		}
 
 		if (!aComplexFieldsToSave)
-			aComplexFieldsToSave = this.GetComplexFieldsToSave(oDocContent.Content);
+			aComplexFieldsToSave = this.GetComplexFieldsToSave(oDocContent);
 
 		var TempElm = null;
-		for (var nElm = 0; nElm < oDocContent.Content.length; nElm++)
+		for (var nElm = 0; nElm < oDocContent.length; nElm++)
 		{
-			TempElm = oDocContent.Content[nElm];
+			TempElm = oDocContent[nElm];
 
 			if (TempElm instanceof AscCommonWord.Paragraph)
 				oDocContentObj["content"].push(this.SerParagraph(TempElm, aComplexFieldsToSave));
@@ -4953,7 +4959,7 @@
 	 * @param  {Array} maxStartDocPos - the maximum allowable position not exceeding which we will save the field
 	 * @return {Array}                - returns array with complex fields to save
 	 */
-	WriterToJSON.prototype.GetComplexFieldsToSave = function(arrContent, minStartDocPos, maxStartDocPos)
+	WriterToJSON.prototype.GetComplexFieldsToSave = function(arrContent, minStartDocPos, maxStartDocPos, bAll)
 	{
 		var oMinStartPos          = minStartDocPos ? minStartDocPos : (arrContent.length !== 0 ? arrContent[0].GetDocumentPositionFromObject() : null);
 		var oMaxStartPos          = maxStartDocPos ? maxStartDocPos : (arrContent.length !== 0 ? arrContent[arrContent.length - 1].GetDocumentPositionFromObject() : null);
@@ -4969,17 +4975,21 @@
 			if (oElm instanceof AscCommonWord.Paragraph)
 			{
 				arrTemp = this.GetAllParaComplexFields(oElm);
-				for (var nField = 0; nField < arrTemp.length; nField++)
+				if (!bAll)
 				{
-					oFieldStartPos = arrTemp[nField].GetStartDocumentPosition();
-					oFieldEndPos   = arrTemp[nField].GetEndDocumentPosition();
-
-					if (private_checkRelativePos(oFieldStartPos, oMinStartPos) === 1 || private_checkRelativePos(oFieldEndPos, oMaxStartPos) === -1)
+					for (var nField = 0; nField < arrTemp.length; nField++)
 					{
-						arrTemp.splice(nField, 1);
-						nField--;
+						oFieldStartPos = arrTemp[nField].GetStartDocumentPosition();
+						oFieldEndPos   = arrTemp[nField].GetEndDocumentPosition();
+
+						if (private_checkRelativePos(oFieldStartPos, oMinStartPos) === 1 || private_checkRelativePos(oFieldEndPos, oMaxStartPos) === -1)
+						{
+							arrTemp.splice(nField, 1);
+							nField--;
+						}
 					}
 				}
+				
 				arrCompexFieldsToSave = arrCompexFieldsToSave.concat(arrTemp);
 			}
 			if (oElm instanceof AscCommonWord.CTable)
@@ -10340,7 +10350,7 @@
 
 		var oContentControl = new AscCommonWord.CBlockLevelSdt(private_GetLogicDocument(), oParent || private_GetLogicDocument());
 		
-		oContentControl.SetContentControlPr(this.SdtPrFromJSON(oParsedSdt.sdtPr));
+		oContentControl.SetPr(this.SdtPrFromJSON(oParsedSdt.sdtPr));
 		
 		oContentControl.Content.Copy2(this.DocContentFromJSON(oParsedSdt.sdtContent, oContentControl, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo));
 
@@ -10778,6 +10788,39 @@
 			oDocContent.RemoveFromContent(0, 1);
 
 		return oDocContent;
+	};
+	ReaderFromJSON.prototype.ContentFromJSON = function(oParsedDocContent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
+	{
+		var aContent = oParsedDocContent;
+		var aResult = [];
+		var oDocument = private_GetLogicDocument()
+
+		if (!notCompletedFields)
+			notCompletedFields = [];
+		if (!oMapCommentsInfo)
+			oMapCommentsInfo = {};
+		if (!oMapBookmarksInfo)
+			oMapBookmarksInfo = {};
+
+		var oPrevNumIdInfo = {};
+
+		for (var nElm = 0; nElm < aContent.length; nElm++)
+		{
+			switch (aContent[nElm].type)
+			{
+				case "paragraph":
+					aResult.push(this.ParagraphFromJSON(aContent[nElm], oDocument, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo, oPrevNumIdInfo));
+					break;
+				case "table":
+					aResult.push(this.TableFromJSON(aContent[nElm], oDocument, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo));
+					break;
+				case "blockLvlSdt":
+					aResult.push(this.BlockLvlSdtFromJSON(aContent[nElm], oDocument, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo));
+					break;
+			}
+		}
+
+		return aResult;
 	};
 	ReaderFromJSON.prototype.DrawingDocContentFromJSON = function(oParsedDocContent, oParent, notCompletedFields, oMapCommentsInfo, oMapBookmarksInfo)
 	{

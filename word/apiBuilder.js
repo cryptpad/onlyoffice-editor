@@ -4171,6 +4171,18 @@
 
 		switch (oParsedObj.type)
 		{
+			case "content":
+				var aContent = oReader.ContentFromJSON(oParsedObj.content);
+				for (var nElm = 0; nElm < aContent.length; nElm++)
+				{
+					if (aContent[nElm] instanceof AscCommonWord.Paragraph)
+						aContent[nElm] = new ApiParagraph(aContent[nElm]);
+					else if (aContent[nElm] instanceof AscCommonWord.CTable)
+						aContent[nElm] = new ApiTable(aContent[nElm]);
+					else if (aContent[nElm] instanceof AscCommonWord.CBlockLevelSdt)
+						aContent[nElm] = new ApiBlockLvlSdt(aContent[nElm]);
+				}
+				return aContent;
 			case "docContent":
 				return new ApiDocumentContent(oReader.DocContentFromJSON(oParsedObj));
 			case "drawingDocContent":
@@ -4685,7 +4697,7 @@
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
 		{
 			var oElement = arrContent[nIndex];
-			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable)
+			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 			{
 				if (true === isInline && oElement instanceof ApiParagraph)
 					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), false));
@@ -5321,6 +5333,117 @@
 	};
 
 	/**
+	 * Update all tables of contents.
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @param {bool} [bOnlyPageNumbers=false] - Determines that only page numbers need to be updated.
+	 */
+	ApiDocument.prototype.UpdateAllTOC = function(bOnlyPageNumbers) 
+	{
+		if (typeof(bOnlyPageNumbers) !== "boolean")
+			bOnlyPageNumbers = false;
+
+		var oDocument = private_GetLogicDocument();
+		var allTOC = oDocument.GetAllTablesOfContentsInDoc();
+
+		for (var nItem = 0; nItem < allTOC.length; nItem++)
+		{
+			var oTOC = allTOC[nItem];
+			if (!oTOC)
+			{
+				oTOC = oDocument.GetTableOfContents();
+				if (!oTOC)
+					return;
+			}
+
+			if (oTOC instanceof AscCommonWord.CBlockLevelSdt)
+				oTOC = oTOC.GetInnerTableOfContents();
+
+			if (!oTOC)
+				return;
+
+			var oState = oDocument.SaveDocumentState();
+			
+			oTOC.SelectField();
+
+			if (bOnlyPageNumbers)
+			{
+				var arrParagraphs = oDocument.GetCurrentParagraph(false, true);
+
+					for (var nParaIndex = 0, nParasCount = arrParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+					{
+						var arrPageNumbers = arrParagraphs[nParaIndex].GetComplexFieldsArrayByType(AscCommonWord.fieldtype_PAGEREF);
+						for (var nRefIndex = 0, nRefsCount = arrPageNumbers.length; nRefIndex < nRefsCount; ++nRefIndex)
+						{
+							arrPageNumbers[nRefIndex].Update();
+						}
+					}
+
+					oDocument.LoadDocumentState(oState);
+			}
+			else
+			{
+				oTOC.Update();
+				oDocument.LoadDocumentState(oState);
+			}
+		}
+	};
+	/**
+	 * Update all tables of contents.
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @param {bool} [bOnlyPageNumbers=false] - Determines that only page numbers need to be updated.
+	 */
+	ApiDocument.prototype.UpdateAllTOF = function(bOnlyPageNumbers) 
+	{
+		if (typeof(bOnlyPageNumbers) !== "boolean")
+			bOnlyPageNumbers = false;
+
+		var oDocument = private_GetLogicDocument();
+		var allTOC = oDocument.GetAllTablesOfFiguresInDoc();
+
+		for (var nItem = 0; nItem < allTOC.length; nItem++)
+		{
+			var oTOC = allTOC[nItem];
+			if (!oTOC)
+			{
+				oTOC = oDocument.GetTableOfContents();
+				if (!oTOC)
+					return;
+			}
+
+			if (oTOC instanceof AscCommonWord.CBlockLevelSdt)
+				oTOC = oTOC.GetInnerTableOfContents();
+
+			if (!oTOC)
+				return;
+
+			var oState = oDocument.SaveDocumentState();
+			
+			oTOC.SelectField();
+
+			if (bOnlyPageNumbers)
+			{
+				var arrParagraphs = oDocument.GetCurrentParagraph(false, true);
+
+				for (var nParaIndex = 0, nParasCount = arrParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+				{
+					var arrPageNumbers = arrParagraphs[nParaIndex].GetComplexFieldsArrayByType(AscCommonWord.fieldtype_PAGEREF);
+					for (var nRefIndex = 0, nRefsCount = arrPageNumbers.length; nRefIndex < nRefsCount; ++nRefIndex)
+					{
+						arrPageNumbers[nRefIndex].Update();
+					}
+				}
+
+				oDocument.LoadDocumentState(oState);
+			}
+			else
+			{
+				oTOC.Update();
+				oDocument.LoadDocumentState(oState);
+			}
+		}
+	};	/**
 	 * Convert to JSON object.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
@@ -5329,18 +5452,14 @@
 	ApiDocument.prototype.ToJSON = function()
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		var oDocContent = new AscCommonWord.CDocumentContent(private_GetLogicDocument(), private_GetDrawingDocument(), 0, 0, 0, 0, true, false, false);
-		
-		for (var nElm = 0; nElm < this.Document.Content.length; nElm++)
-			oDocContent.AddToContent(oDocContent.Content.length, this.Document.Content[nElm].Copy());
 
-		if (oDocContent.Content.length > 1)
-		// удаляем параграф, который добавляется при создании CDocumentContent
-			oDocContent.RemoveFromContent(0, 1);
+		var oResult = {
+			type: "content",
+			content: oWriter.SerContent(this.Document.Content, undefined, undefined, undefined, true)
+		}
 
-		return JSON.stringify(oWriter.SerDocContent(oDocContent));
+		return JSON.stringify(oResult);
 	};
-
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -13717,7 +13836,7 @@
 		else
 			return oDocument.ToMarkdown(bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags);
 	};
-
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Export
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -13753,7 +13872,8 @@
 	Api.prototype["MailMerge"]                       = Api.prototype.MailMerge;
 	Api.prototype["ReplaceTextSmart"]				 = Api.prototype.ReplaceTextSmart;
 	Api.prototype["CoAuthoringChatSendMessage"]		 = Api.prototype.CoAuthoringChatSendMessage;
-	Api.prototype["ConvertDocument"]		         = Api.prototype.ConvertDocument;	Api.prototype["FromJSON"]		                 = Api.prototype.FromJSON;	
+	Api.prototype["ConvertDocument"]		         = Api.prototype.ConvertDocument;	
+	Api.prototype["FromJSON"]		                 = Api.prototype.FromJSON;	
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 
 	ApiDocumentContent.prototype["GetClassType"]     = ApiDocumentContent.prototype.GetClassType;
@@ -13832,8 +13952,8 @@
 	ApiDocument.prototype["Search"]                  = ApiDocument.prototype.Search;
 	ApiDocument.prototype["ToMarkdown"]              = ApiDocument.prototype.ToMarkdown;
 	ApiDocument.prototype["ToHtml"]                  = ApiDocument.prototype.ToHtml;
-	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;
-
+	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;	ApiDocument.prototype["UpdateAllTOC"]		     = ApiDocument.prototype.UpdateAllTOC;
+	ApiDocument.prototype["UpdateAllTOF"]		     = ApiDocument.prototype.UpdateAllTOF;
 	ApiParagraph.prototype["GetClassType"]           = ApiParagraph.prototype.GetClassType;
 	ApiParagraph.prototype["AddText"]                = ApiParagraph.prototype.AddText;
 	ApiParagraph.prototype["AddPageBreak"]           = ApiParagraph.prototype.AddPageBreak;

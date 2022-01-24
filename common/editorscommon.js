@@ -1001,7 +1001,17 @@
 		}
 		return stack.join("/");
 	}
-
+	function getSourceImageSize(src)
+	{
+		var oApi = (Asc.editor || editor);
+		if(oApi) {
+			var _img = oApi.ImageLoader.map_image_index[src];
+			if (_img && _img.Image) {
+				return {width: _img.Image.width, height: _img.Image.height};
+			}
+		}
+		return {width: 0, height: 0};
+	}
 	function getFullImageSrc2(src)
 	{
 		if (window["NATIVE_EDITOR_ENJINE"])
@@ -3697,7 +3707,7 @@
 
 			if (bNeedUpdate)
 			{
-				oLogicDocument.TrackRevisionsManager.Clear_VisibleChanges();
+				oLogicDocument.TrackRevisionsManager.ClearSelectedChanges();
 				oLogicDocument.Document_UpdateInterfaceState(false);
 			}
 		}
@@ -11825,6 +11835,8 @@
 	window["AscCommon"].Backoff = Backoff;
 	window["AscCommon"].backoffOnErrorImg = backoffOnErrorImg;
 	window["AscCommon"].isEmptyObject = isEmptyObject;
+
+	window["AscCommon"].getSourceImageSize = getSourceImageSize;
 
 	window["AscCommon"].CSignatureDrawer = window["AscCommon"]["CSignatureDrawer"] = CSignatureDrawer;
 	var prot = CSignatureDrawer.prototype;
