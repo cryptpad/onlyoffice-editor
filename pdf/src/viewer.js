@@ -194,6 +194,8 @@
 		this.fullTextMessageCallback = null;
 		this.fullTextMessageCallbackArgs = null;
 
+		this.isMouseMoveBetweenDownUp = false;
+
 		var oThis = this;
 
 		this.updateSkin = function()
@@ -363,6 +365,16 @@
 			if (!isViewerTask)
 			{
 				oThis.checkPagesText();
+
+				if (this.isFullTextMessage)
+				{
+					var countSync = 10;
+					while ((countSync > 0) && !this.isFullText)
+					{
+						oThis.checkPagesText();
+						--countSync;
+					}
+				}
 			}
 
 			if (!oThis.UseRequestAnimationFrame)
@@ -886,6 +898,8 @@
 			if (!oThis.file || !oThis.file.isValid())
 				return;
 
+			oThis.isMouseMoveBetweenDownUp = false;
+
 			AscCommon.check_MouseDownEvent(e, true);
 			AscCommon.global_mouseEvent.LockMouse();
 
@@ -965,9 +979,20 @@
 			{				
 				oThis.MouseHandObject.Active = false;
 				oThis.setCursorType("grab");
+
+				if (!oThis.isMouseMoveBetweenDownUp)
+				{
+					// делаем клик в логическом документе, чтобы сбросить селект, если он был
+					var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
+					oThis.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+					oThis.file.onMouseUp(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+				}
+
+				oThis.isMouseMoveBetweenDownUp = false;
 				return;
 			}
 
+			oThis.isMouseMoveBetweenDownUp = false;
 			oThis.file.onMouseUp();
 
 			if (-1 !== oThis.timerScrollSelect)
@@ -983,6 +1008,7 @@
 				return;
 
 			AscCommon.check_MouseMoveEvent(e);
+			oThis.isMouseMoveBetweenDownUp = true;
 
 			if (oThis.MouseHandObject)
 			{
@@ -1378,7 +1404,7 @@
 				}
 			}
 
-			if (!this.MouseHandObject)
+			//if (!this.MouseHandObject)
 			{
 				ctx.fillStyle = "rgba(51,102,204,255)";
 				ctx.beginPath();
