@@ -70,6 +70,23 @@
 		themePart.part.setData(sampleData);
 		memory.Seek(0);
 	};
+
+	function getSimpleArrayFromXml (reader, childName, attrName, attrType) {
+		var res = [];
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name2 = reader.GetNameNoNS();
+			if (childName === name2) {
+				while (reader.MoveToNextAttribute()) {
+					if (attrName === reader.GetNameNoNS()) {
+						res.push(reader.GetValue());
+					}
+				}
+			}
+		}
+		return res;
+	}
+
 	function CT_Workbook(wb) {
 		//Members
 		this.wb = wb;
@@ -780,10 +797,41 @@
 						}
 					}
 
+				} else if ("dimension" === name) {
+					//do not support serialize
 				} else if ("drawing" === name) {
 					var drawing = new AscCommonExcel.CT_DrawingWSRef();
 					drawing.fromXml(reader);
 					context.drawingId = drawing.id;
+				} else if ("hyperlinks" === name) {
+
+					//TODO
+					/*if ( c_oSerHyperlinkTypes.Hyperlink == type )
+						oHyperlink.Hyperlink = this.stream.GetString2LE(length);*/
+
+					var hyperlinks = [];
+					var depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						var name2 = reader.GetNameNoNS();
+						if ("hyperlink" === name2) {
+							var hyperlink = new AscCommonExcel.Hyperlink();
+							hyperlink.fromXml(reader, this);
+							hyperlinks.push(hyperlink);
+						}
+						//TODO в serialize аналогичная обработка в ReadWorksheetsContent
+						for (var i = 0; i < hyperlinks.length; ++i) {
+							if (null !== hyperlink.Ref) {
+								hyperlinks[i].Ref.setHyperlinkOpen(hyperlinks[i]);
+							}
+						}
+					}
+				} else if ("mergeCells" === name) {
+					var aMerged = getSimpleArrayFromXml(reader, "mergeCell", "ref");
+					if (aMerged) {
+						//TODO в serialize аналогичная обработка в ReadWorksheetsContent
+						this.mergeManager.initData = aMerged.slice();
+					}
+					//this.aMerged.push(this.stream.GetString2LE(length));
 				} else if ("sheetPr" === name) {
 					this.sheetPr = new AscCommonExcel.asc_CSheetPr();
 					this.sheetPr.fromXml(reader);
@@ -802,6 +850,10 @@
 						oConditionalFormatting.initRules();
 						this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(oConditionalFormatting.aRules);
 					}
+				} else if ("sortState" === name) {
+					var sortState = new AscCommonExcel.SortState();
+					sortState.fromXml(reader);
+					this.SortState = sortState;
 				} else if ("extLst" === name) {
 
 					/*virtual void fromXML(XmlUtils::CXmlLiteReader& oReader)
@@ -1684,6 +1736,64 @@
 		return res;*/
 
 		
+	};
+
+	AscCommonExcel.Hyperlink.prototype.fromXml = function (reader, ws) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader, ws);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.Hyperlink.prototype.readAttr = function (reader, ws) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"display"),	m_oDisplay)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"r:id"),		m_oRid )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"relationships:id"), m_oRid )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"location"),	m_oLocation )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"ref"),		m_oRef )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"tooltip"),	m_oTooltip )*/
+
+//serialize
+		/**/
+
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			/*if ("display" === reader.GetName()) {
+				val = reader.GetValue();
+				this.display = val;
+			} else if ("r:id" === reader.GetName()) {
+				val = reader.GetValue();
+				this.r:id = val;
+			} else if ("relationships:id" === reader.GetName()) {
+				val = reader.GetValue();
+				this.relationships:id = val;
+			} else*/ if ("location" === reader.GetName()) {
+				val = reader.GetValue();
+				this.setLocation(val);
+				//this.setLocation(this.stream.GetString2LE(length));
+			} else if ("ref" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Ref = ws.getRange2(val);
+			} else if ("tooltip" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Tooltip = val;
+			} /*else if ("hyperlink" === reader.GetName()) {
+
+			}*/
+		}
 	};
 
 	function CT_Sheets(wb) {
@@ -8250,24 +8360,26 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
-			var val;
+		if (reader.IsEmptyNode()) {
+			return;
+		}
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
-			if ( "dbPr" === name) {
+			if ("dbPr" === name) {
 
-			} else if ( "olapPr" === name) {
+			} else if ("olapPr" === name) {
 
-			} else if ( "textPr" === name) {
+			} else if ("textPr" === name) {
 
-			} else if ( "webPr" === name) {
+			} else if ("webPr" === name) {
 
-			} else if ( "rangePr" === name) {
+			} else if ("rangePr" === name) {
 
-			} else if ( "extLst" === name) {
+			} else if ("extLst" === name) {
 
-			} }
+			}
+		}
 	};
 
 	AscCommonExcel.CT_Connection.prototype.readAttr = function (reader) {
@@ -8397,13 +8509,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\t\t\t\tif (!oReader.IsEmptyNode())\n' + '\t\t\t\t\toReader.ReadTillEnd();';
-	var _x2t = 'WritingStringNullableAttrBool(L"bestFit", m_oBestFit);\n' + '\t\t\t\tWritingStringNullableAttrBool(L"collapsed", m_oCollapsed);\n' +
-		'\t\t\t\tWritingStringNullableAttrBool(L"customWidth", m_oCustomWidth);\n' + '\t\t\t\tWritingStringNullableAttrBool(L"hidden", m_oHidden);\n' +
-		'\t\t\t\tWritingStringNullableAttrInt(L"min", m_oMin, m_oMin->GetValue());\n' + '\t\t\t\tWritingStringNullableAttrInt(L"max", m_oMax, m_oMax->GetValue());\n' +
-		'\t\t\t\tWritingStringNullableAttrInt(L"outlineLevel", m_oOutlineLevel, m_oOutlineLevel->GetValue());\n' +
-		'\t\t\t\tWritingStringNullableAttrBool(L"phonetic", m_oPhonetic);\n' + '\t\t\t\tWritingStringNullableAttrInt(L"style", m_oStyle, m_oStyle->GetValue());\n' +
-		'\t\t\t\tWritingStringNullableAttrDouble(L"width", m_oWidth, m_oWidth->GetValue());'
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, (L"display"),\tm_oDisplay)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"r:id"),\t\tm_oRid )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"relationships:id"), m_oRid )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"location"),\tm_oLocation )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"ref"),\t\tm_oRef )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"tooltip"),\tm_oTooltip )'
 	var _documentation = ''
 	var _serialize = ''
 
