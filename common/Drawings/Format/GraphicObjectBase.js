@@ -353,6 +353,21 @@
             this.checkWH();
         }
     };
+    CGraphicBounds.prototype.checkPoint = function(dX, dY) {
+        if(dX < this.l) {
+            this.l = dX;
+        }
+        if(dX > this.r){
+            this.r = dX;
+        }
+        if(dY < this.t){
+            this.t = dY;
+        }
+        if(dY > this.b){
+            this.b = dY;
+        }
+        this.checkWH();
+    };
     CGraphicBounds.prototype.checkWH = function(){
 
         this.x = this.l;

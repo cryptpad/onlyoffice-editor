@@ -1134,7 +1134,7 @@ Path.prototype = {
     },
 
     isEmpty : function () {
-        return this.ArrPathCommandInfo.length > 0;
+        return this.ArrPathCommandInfo.length <= 0;
     },
 
     checkBetweenPolygons: function (oBoundsController, oPolygonWrapper1, oPolygonWrapper2) {
