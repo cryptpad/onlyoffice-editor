@@ -8479,6 +8479,8 @@ DrawingObjectsController.prototype =
                         }
                         new_table_props.TableDescription = drawing.getDescription();
                         new_table_props.TableCaption = drawing.getTitle();
+                        new_table_props.FrameWidth = drawing.extX;
+                        new_table_props.FrameHeight = drawing.extY;
                     }
                     else
                     {

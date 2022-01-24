@@ -676,6 +676,20 @@ CGraphicFrame.prototype.IsHdrFtr = function(bool)
 
 	return false;
 };
+CGraphicFrame.prototype.resize = function(extX, extY)
+{
+    var newExtX = AscFormat.isRealNumber(extX) ? extX : this.extX;
+    var newExtY = AscFormat.isRealNumber(extY) ? extY : this.extY;
+    if(!AscFormat.fApproxEqual(newExtX, this.extX) || !AscFormat.fApproxEqual(newExtY, this.extY)) 
+    {
+        this.graphicObject.Resize(newExtX, newExtY);
+        this.recalculateTable();
+        this.recalculateSizes();
+        return true;
+    }
+    return false;
+};
+
 CGraphicFrame.prototype.IsFootnote = function(bReturnFootnote)
 {
 	if (bReturnFootnote)

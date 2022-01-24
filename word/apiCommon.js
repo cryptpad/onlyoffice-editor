@@ -517,6 +517,9 @@
 
 			this.ColumnWidth = tblProp.ColumnWidth;
 			this.RowHeight   = tblProp.RowHeight;
+
+			this.FrameWidth = tblProp.FrameWidth;
+			this.FrameHeight = tblProp.FrameHeight;
 		}
 		else
 		{
@@ -553,6 +556,22 @@
 	CTableProp.prototype.put_Width = function (v)
 	{
 		this.TableWidth = v;
+	};
+	CTableProp.prototype.get_FrameWidth = function ()
+	{
+		return this.FrameWidth;
+	};
+	CTableProp.prototype.put_FrameWidth = function (v)
+	{
+		this.FrameWidth = v;
+	};
+	CTableProp.prototype.get_FrameHeight = function ()
+	{
+		return this.FrameHeight;
+	};
+	CTableProp.prototype.put_FrameHeight = function (v)
+	{
+		this.FrameHeight = v;
 	};
 	CTableProp.prototype.get_Spacing = function ()
 	{
@@ -880,6 +899,11 @@
 	CTableProp.prototype['put_ColumnWidth'] = CTableProp.prototype.put_ColumnWidth;
 	CTableProp.prototype['get_RowHeight'] = CTableProp.prototype.get_RowHeight;
 	CTableProp.prototype['put_RowHeight'] = CTableProp.prototype.put_RowHeight;
+	CTableProp.prototype['get_FrameWidth'] = CTableProp.prototype.get_FrameWidth;
+	CTableProp.prototype['put_FrameWidth'] = CTableProp.prototype.put_FrameWidth;
+	CTableProp.prototype['get_FrameHeight'] = CTableProp.prototype.get_FrameHeight;
+	CTableProp.prototype['put_FrameHeight'] = CTableProp.prototype.put_FrameHeight;
+
 
 // ---------------------------------------------------------------
 	function CBorders(obj)
