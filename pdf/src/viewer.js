@@ -404,9 +404,6 @@
 			settings.targetColor = GlobalSkin.ScrollerTargetColor;
 			settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
 			settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
-
-			settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
-			settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
 			return settings;
 		};
 
@@ -530,6 +527,9 @@
 				if (newScrollY < this.scrollMaxY)
 					this.m_oScrollVerApi.scrollToY(newScrollY);
 			}
+
+			if (this.thumbnails)
+				this.thumbnails.resize();
 
 			this.timerSync();
 		};

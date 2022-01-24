@@ -415,9 +415,6 @@
         settings.targetColor = GlobalSkin.ScrollerTargetColor;
         settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
         settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
-
-        settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
-        settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
         return settings;
     };
 

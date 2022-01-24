@@ -123,22 +123,21 @@ AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, _callback,
 		oThis.Status = 0;
 
 		var fontStreams = AscFonts.g_fonts_streams;
+		var __font_data_idx = fontStreams.length;
 		if (this.response)
 		{
-			var __font_data_idx = fontStreams.length;
 			var _uintData = new Uint8Array(this.response);
 			fontStreams[__font_data_idx] = new AscFonts.FontStream(_uintData, _uintData.length);
-			oThis.SetStreamIndex(__font_data_idx);
 		}
 		else
 		{
-			var __font_data_idx = fontStreams.length;
 			fontStreams[__font_data_idx] = AscFonts.CreateFontData3(this.responseText);
-			oThis.SetStreamIndex(__font_data_idx);
-
-			if (null != oThis.callback)
-				oThis.callback();
 		}
+
+		oThis.SetStreamIndex(__font_data_idx);
+
+		if (null != oThis.callback)
+			oThis.callback();
 	};
 
 	xhr.send(null);
