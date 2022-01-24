@@ -755,18 +755,14 @@
 		} else
 			res = c_oSerConstants.ReadUnknown;*/
 
-
+		var t = this;
 		if ("worksheet" === reader.GetNameNoNS()) {
 			var context = reader.GetContext();
 			context.initFromWS(this);
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				var name = reader.GetNameNoNS();
-				if ("sheetData" === name) {
-					/*var sheetData = new AscCommonExcel.CT_SheetData(this);
-					sheetData.fromXml(reader);*/
-					context.InitOpenManager.oReadResult.sheetData.push({ws: this, reader: reader, state: reader.getState()});
-				} else if ("cols" === name) {
+				if ("cols" === name) {
 					var cols = new CT_Cols(this);
 					cols.fromXml(reader);
 					var aTempCols = cols.val;
@@ -832,6 +828,28 @@
 						this.mergeManager.initData = aMerged.slice();
 					}
 					//this.aMerged.push(this.stream.GetString2LE(length));
+				} else if ("pageMargins" === name) {
+					if (this.PagePrintOptions && this.PagePrintOptions.pageMargins) {
+						this.PagePrintOptions.pageMargins.fromXml(reader);
+					}
+				} else if ("pageSetup" === name) {
+					if (this.PagePrintOptions && this.PagePrintOptions.pageSetup) {
+						this.PagePrintOptions.pageSetup.fromXml(reader);
+					}
+				}  else if ("printOptions" === name) {
+					if (this.PagePrintOptions) {
+						this.PagePrintOptions.fromXml(reader);
+					}
+				} else if ("sheetData" === name) {
+					/*var sheetData = new AscCommonExcel.CT_SheetData(this);
+					sheetData.fromXml(reader);*/
+					context.InitOpenManager.oReadResult.sheetData.push({ws: this, reader: reader, state: reader.getState()});
+				} else if ("WorksheetOptions" === name) {
+					//do not support serialize
+				} else if ("Names" === name) {
+					//TODO
+					//do not support serialize
+					//def names
 				} else if ("sheetPr" === name) {
 					this.sheetPr = new AscCommonExcel.asc_CSheetPr();
 					this.sheetPr.fromXml(reader);
@@ -850,6 +868,19 @@
 						oConditionalFormatting.initRules();
 						this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(oConditionalFormatting.aRules);
 					}
+				} else if ("sheetFormatPr" === name) {
+					//SheetFormatPr
+					if (this.oSheetFormatPr) {
+						this.oSheetFormatPr.fromXml(reader, this);
+					}
+				} else if ("sheetViews" === name) {
+					reader.readAsArray("sheetView", function (index) {
+						if (index === 0) {
+							var sheetViewSettings = new AscCommonExcel.asc_CSheetViewSettings();
+							sheetViewSettings.fromXml(reader, t);
+							t.sheetViews.push(sheetViewSettings);
+						}
+					});
 				} else if ("sortState" === name) {
 					var sortState = new AscCommonExcel.SortState();
 					sortState.fromXml(reader);
@@ -3944,6 +3975,763 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		return result1 || result2;
 	};
 
+
+	Asc.asc_CPageSetup.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.asc_CPageSetup.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:attribute name="paperSize" type="xsd:unsignedInt" use="optional" default="1"/>
+		2843 <xsd:attribute name="paperHeight" type="s:ST_PositiveUniversalMeasure" use="optional"/>
+		2844 <xsd:attribute name="paperWidth" type="s:ST_PositiveUniversalMeasure" use="optional"/>
+		2845 <xsd:attribute name="scale" type="xsd:unsignedInt" use="optional" default="100"/>
+		2846 <xsd:attribute name="firstPageNumber" type="xsd:unsignedInt" use="optional" default="1"/>
+		2847 <xsd:attribute name="fitToWidth" type="xsd:unsignedInt" use="optional" default="1"/>
+		2848 <xsd:attribute name="fitToHeight" type="xsd:unsignedInt" use="optional" default="1"/>
+		2849 <xsd:attribute name="pageOrder" type="ST_PageOrder" use="optional" default="downThenOver"/>
+		2850 <xsd:attribute name="orientation" type="ST_Orientation" use="optional" default="default"/>
+		2851 <xsd:attribute name="usePrinterDefaults" type="xsd:boolean" use="optional" default="true"/>ECMA-376 Part 1
+		4462
+		2852 <xsd:attribute name="blackAndWhite" type="xsd:boolean" use="optional" default="false"/>
+		2853 <xsd:attribute name="draft" type="xsd:boolean" use="optional" default="false"/>
+		2854 <xsd:attribute name="cellComments" type="ST_CellComments" use="optional" default="none"/>
+		2855 <xsd:attribute name="useFirstPageNumber" type="xsd:boolean" use="optional" default="false"/>
+		2856 <xsd:attribute name="errors" type="ST_PrintError" use="optional" default="displayed"/>
+		2857 <xsd:attribute name="horizontalDpi" type="xsd:unsignedInt" use="optional" default="600"/>
+		2858 <xsd:attribute name="verticalDpi" type="xsd:unsignedInt" use="optional" default="600"/>
+		2859 <xsd:attribute name="copies" type="xsd:unsignedInt" use="optional" default="1"/>
+		2860 <xsd:attribute ref="r:id" use="optional"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"blackAndWhite"),	m_oBlackAndWhite)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"cellComments"),	m_oCellComments)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"copies"),			m_oCopies)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"draft"),			m_oDraft)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"errors"),			m_oErrors)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"firstPageNumber"),m_oFirstPageNumber)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"fitToHeight"),	m_oFitToHeight)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"fitToWidth"),		m_oFitToWidth)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"horizontalDpi"),	m_oHorizontalDpi)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"r:id"),			m_oRId)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"relationships:id"), m_oRId)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"orientation"),	m_oOrientation)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"pageOrder"),		m_oPageOrder)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"paperHeight"),	m_oPaperHeight)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"paperSize"),		m_oPaperSize)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"paperWidth"),		m_oPaperWidth)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"paperUnits"),		m_oPaperUnits)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"scale"),			m_oScale)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"useFirstPageNumber"),	m_oUseFirstPageNumber)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"usePrinterDefaults"),	m_oUsePrinterDefaults)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"verticalDpi"),	m_oVerticalDpi)*/
+
+//serialize
+		/* var res = c_oSerConstants.ReadOk;
+					if (c_oSer_PageSetup.BlackAndWhite === type) {
+						oPageSetup.blackAndWhite = this.stream.GetBool();
+					} else if ( c_oSer_PageSetup.CellComments == type ) {
+						oPageSetup.cellComments = this.stream.GetUChar();
+					} else if ( c_oSer_PageSetup.Copies == type ) {
+						oPageSetup.copies = this.stream.GetULongLE();
+					} else if ( c_oSer_PageSetup.Draft == type ) {
+						oPageSetup.draft = this.stream.GetBool();
+					} else if ( c_oSer_PageSetup.Errors == type ) {
+						oPageSetup.errors = this.stream.GetUChar();
+					} else if ( c_oSer_PageSetup.FirstPageNumber == type ) {
+						oPageSetup.firstPageNumber = this.stream.GetULongLE();
+					} else if ( c_oSer_PageSetup.FitToHeight == type ) {
+						oPageSetup.fitToHeight = this.stream.GetULongLE();
+					} else if ( c_oSer_PageSetup.FitToWidth == type ) {
+						oPageSetup.fitToWidth = this.stream.GetULongLE();
+					} else if ( c_oSer_PageSetup.HorizontalDpi == type ) {
+						oPageSetup.horizontalDpi = this.stream.GetULongLE();
+					} else if ( c_oSer_PageSetup.Orientation == type ) {
+						var byteFormatOrientation = this.stream.GetUChar();
+						var byteOrientation = null;
+						switch(byteFormatOrientation)
+						{
+							case EPageOrientation.pageorientPortrait: byteOrientation = c_oAscPageOrientation.PagePortrait;break;
+							case EPageOrientation.pageorientLandscape: byteOrientation = c_oAscPageOrientation.PageLandscape;break;
+						}
+						if(null != byteOrientation)
+							oPageSetup.asc_setOrientation(byteOrientation);
+					} else if ( c_oSer_PageSetup.PageOrder == type ) {
+						oPageSetup.pageOrder = this.stream.GetUChar();
+					// } else if ( c_oSer_PageSetup.PaperHeight == type ) {
+					//     oPageSetup.height = this.stream.GetDoubleLE();
+					} else if ( c_oSer_PageSetup.PaperSize == type ) {
+						var bytePaperSize = this.stream.GetUChar();
+						var item = DocumentPageSize.getSizeById(bytePaperSize);
+						oPageSetup.asc_setWidth(item.w_mm);
+						oPageSetup.asc_setHeight(item.h_mm);
+					// } else if ( c_oSer_PageSetup.PaperWidth == type ) {
+					//     oPageSetup.width = this.stream.GetDoubleLE();
+					// } else if ( c_oSer_PageSetup.PaperUnits == type ) {
+					//     oPageSetup.paperUnits = this.stream.GetUChar();
+					} else if ( c_oSer_PageSetup.Scale == type ) {
+						oPageSetup.scale = this.stream.GetULongLE();
+					} else if ( c_oSer_PageSetup.UseFirstPageNumber == type ) {
+						oPageSetup.useFirstPageNumber = this.stream.GetBool();
+					} else if ( c_oSer_PageSetup.UsePrinterDefaults == type ) {
+						oPageSetup.usePrinterDefaults = this.stream.GetBool();
+					} else if ( c_oSer_PageSetup.VerticalDpi == type ) {
+						oPageSetup.verticalDpi = this.stream.GetULongLE();
+					} else
+						res = c_oSerConstants.ReadUnknown;
+					return res;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("blackAndWhite" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.blackAndWhite = val;
+			} else if ("cellComments" === reader.GetName()) {
+				val = reader.GetValue();
+				this.cellComments = val;
+			} else if ("copies" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.copies = val;
+			} else if ("draft" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.draft = val;
+			} else if ("errors" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.errors = val;
+			} else if ("firstPageNumber" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.firstPageNumber = val;
+			} else if ("fitToHeight" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.fitToHeight = val;
+			} else if ("fitToWidth" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.fitToWidth = val;
+			} else if ("horizontalDpi" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.horizontalDpi = val;
+			} /*else if ("r:id" === reader.GetName()) {
+				val = reader.GetValue();
+				this.r:id = val;
+			} else if ("relationships:id" === reader.GetName()) {
+				val = reader.GetValue();
+				this.relationships:id = val;
+			}*/ else if ("orientation" === reader.GetName()) {
+				//TODO в serialize такая же обработка, нужно сделать общую
+				var byteFormatOrientation = reader.GetValue();
+				var byteOrientation = null;
+				switch (byteFormatOrientation) {
+					case Asc.EPageOrientation.pageorientPortrait:
+						byteOrientation = c_oAscPageOrientation.PagePortrait;
+						break;
+					case Asc.EPageOrientation.pageorientLandscape:
+						byteOrientation = c_oAscPageOrientation.PageLandscape;
+						break;
+				}
+				if (null != byteOrientation) {
+					this.asc_setOrientation(byteOrientation);
+				}
+			} else if ("pageOrder" === reader.GetName()) {
+				val = reader.GetValue();
+				this.PageOrder = val;
+			} else if ("paperHeight" === reader.GetName()) {
+				val = reader.GetValue();
+				this.PaperHeight = val;
+			} else if ("paperSize" === reader.GetName()) {
+				//TODO в serialize такая же обработка, нужно сделать общую
+				var bytePaperSize = reader.GetValueInt();
+				var item = AscCommonExcel.DocumentPageSize.getSizeById(bytePaperSize);
+				this.asc_setWidth(item.w_mm);
+				this.asc_setHeight(item.h_mm);
+			} else if ("paperWidth" === reader.GetName()) {
+				val = reader.GetValue();
+				this.PaperWidth = val;
+			} else if ("paperUnits" === reader.GetName()) {
+				val = reader.GetValue();
+				this.PaperUnits = val;
+			} else if ("scale" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.Scale = val;
+			} else if ("useFirstPageNumber" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.UseFirstPageNumber = val;
+			} else if ("usePrinterDefaults" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.UsePrinterDefaults = val;
+			} else if ("verticalDpi" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.VerticalDpi = val;
+			}
+		}
+	};
+
+	Asc.asc_CPageMargins.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.asc_CPageMargins.prototype.readAttr = function (reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("left" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.asc_setLeft(val);
+			} else if ("top" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.asc_setTop(val);
+			} else if ("right" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.asc_setRight(val);
+			} else if ("bottom" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.asc_setBottom(val);
+			} else if ("header" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.asc_setHeader(val);
+			} else if ("footer" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.asc_setFooter(val);
+			}
+		}
+	};
+
+	Asc.asc_CPageOptions.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.asc_CPageOptions.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:attribute name="horizontalCentered" type="xsd:boolean" use="optional" default="false"/>
+		2836 <xsd:attribute name="verticalCentered" type="xsd:boolean" use="optional" default="false"/>
+		2837 <xsd:attribute name="headings" type="xsd:boolean" use="optional" default="false"/>
+		2838 <xsd:attribute name="gridLines" type="xsd:boolean" use="optional" default="false"/>
+		2839 <xsd:attribute name="gridLinesSet" type="xsd:boolean" use="optional" default="true"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"gridLines"),			m_oGridLines)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"gridLinesSet"),		m_oGridLinesSet)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"headings"),			m_oHeadings)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"horizontalCentered"),	m_oHorizontalCentered)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"verticalCentered"),	m_oVerticalCentered)*/
+
+//serialize
+		/*  if ( c_oSer_PrintOptions.GridLines == type )
+						oPrintOptions.asc_setGridLines(this.stream.GetBool());
+					else if ( c_oSer_PrintOptions.Headings == type )
+						oPrintOptions.asc_setHeadings(this.stream.GetBool());
+					else*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("gridLines" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.asc_setGridLines(val);
+			} /*else if ("gridLinesSet" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.gridLinesSet = val;
+			}*/ else if ("headings" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.asc_setHeadings(val);
+			} /*else if ("horizontalCentered" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.horizontalCentered = val;
+			} else if ("verticalCentered" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.verticalCentered = val;
+			}*/
+		}
+	};
+
+	AscCommonExcel.SheetFormatPr.prototype.fromXml = function (reader, oWorksheet) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader, oWorksheet);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.SheetFormatPr.prototype.readAttr = function (reader, oWorksheet) {
+
+//documentation
+		/*<xsd:attribute name="baseColWidth" type="xsd:unsignedInt" use="optional" default="8"/>
+		2246 <xsd:attribute name="defaultColWidth" type="xsd:double" use="optional"/>
+		2247 <xsd:attribute name="defaultRowHeight" type="xsd:double" use="required"/>
+		2248 <xsd:attribute name="customHeight" type="xsd:boolean" use="optional" default="false"/>
+		2249 <xsd:attribute name="zeroHeight" type="xsd:boolean" use="optional" default="false"/>
+		2250 <xsd:attribute name="thickTop" type="xsd:boolean" use="optional" default="false"/>
+		2251 <xsd:attribute name="thickBottom" type="xsd:boolean" use="optional" default="false"/>
+		2252 <xsd:attribute name="outlineLevelRow" type="xsd:unsignedByte" use="optional" default="0"/>
+		2253 <xsd:attribute name="outlineLevelCol" type="xsd:unsignedByte" use="optional" default="0"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"baseColWidth"),		m_oBaseColWidth)	// ToDo Excel не воспринимает значения не uint (мы приводим к uint)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"customHeight"),		m_oCustomHeight )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"defaultColWidth"),		m_oDefaultColWidth )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"defaultRowHeight"),	m_oDefaultRowHeight )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"outlineLevelCol"),		m_oOutlineLevelCol )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"outlineLevelRow"),		m_oOutlineLevelRow )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"thickBottom"),			m_oThickBottom )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"thickTop"),			m_oThickTop )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"zeroHeight"),			m_oZeroHeight )*/
+
+//serialize
+		/* if ( c_oSerSheetFormatPrTypes.DefaultColWidth == type )
+						oWorksheet.oSheetFormatPr.dDefaultColWidth = this.stream.GetDoubleLE();
+					else if (c_oSerSheetFormatPrTypes.BaseColWidth === type)
+						oWorksheet.oSheetFormatPr.nBaseColWidth = this.stream.GetULongLE();
+					else if ( c_oSerSheetFormatPrTypes.DefaultRowHeight == type )
+					{
+						var oAllRow = oWorksheet.getAllRow();
+						oAllRow.setHeight(this.stream.GetDoubleLE());
+					}
+					else if ( c_oSerSheetFormatPrTypes.CustomHeight == type )
+					{
+						var oAllRow = oWorksheet.getAllRow();
+						var CustomHeight = this.stream.GetBool();
+						if(CustomHeight)
+							oAllRow.setCustomHeight(true);
+					}
+					else if ( c_oSerSheetFormatPrTypes.ZeroHeight == type )
+					{
+						var oAllRow = oWorksheet.getAllRow();
+						var hd = this.stream.GetBool();
+						if(hd)
+							oAllRow.setHidden(true);
+					}
+					else if ( c_oSerSheetFormatPrTypes.OutlineLevelCol == type )
+					{
+						oWorksheet.oSheetFormatPr.nOutlineLevelCol = this.stream.GetULongLE();
+					}
+					else if ( c_oSerSheetFormatPrTypes.OutlineLevelRow == type )
+					{
+						var oAllRow = oWorksheet.getAllRow();
+						oAllRow.setOutlineLevel(this.stream.GetULongLE());
+					}*/
+
+		var val;
+		var oAllRow;
+		while (reader.MoveToNextAttribute()) {
+			if ("baseColWidth" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.nBaseColWidth = val;
+			} else if ("customHeight" === reader.GetName()) {
+				oAllRow = oWorksheet.getAllRow();
+				var CustomHeight = reader.GetValueBool();
+				if (CustomHeight) {
+					oAllRow.setCustomHeight(true);
+				}
+			} else if ("defaultColWidth" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.dDefaultColWidth = val;
+			} else if ("defaultRowHeight" === reader.GetName()) {
+				oAllRow = oWorksheet.getAllRow();
+				oAllRow.setHeight(reader.GetValueDouble());
+			} else if ("outlineLevelCol" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.nOutlineLevelCol = val;
+			} else if ("outlineLevelRow" === reader.GetName()) {
+				oAllRow = oWorksheet.getAllRow();
+				oAllRow.setOutlineLevel(reader.GetValueInt());
+			} /*else if ("thickBottom" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ThickBottom = val;
+			} else if ("thickTop" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.ThickTop = val;
+			}*/ else if ("zeroHeight" === reader.GetName()) {
+				oAllRow = oWorksheet.getAllRow();
+				var hd = reader.GetValueBool();
+				if (hd) {
+					oAllRow.setHidden(true);
+				}
+			}
+		}
+	};
+
+	AscCommonExcel.asc_CSheetViewSettings.prototype.fromXml = function (reader, ws) {
+
+		/*ReadAttributes( oReader );
+
+						if (oReader.IsEmptyNode())
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while (oReader.ReadNextSiblingNode(nCurDepth))
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if (L"pane" == sName)
+								m_oPane = oReader;
+							if (L"selection" == sName)
+							{
+								m_arrItems.push_back(new CSelection(oReader));
+							}
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("pane" === name) {
+				this.pane = new AscCommonExcel.asc_CPane();
+				this.pane.fromXml(reader);
+			} else if ("selection" === name) {
+				ws.selectionRange.clean();
+				ws.selectionRange.fromXml(reader);
+				ws.selectionRange.update();
+			}
+		}
+	};
+
+	AscCommonExcel.asc_CSheetViewSettings.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:sequence>
+		2357 <xsd:element name="pane" type="CT_Pane" minOccurs="0" maxOccurs="1"/>
+		2358 <xsd:element name="selection" type="CT_Selection" minOccurs="0" maxOccurs="4"/>
+		2359 <xsd:element name="pivotSelection" type="CT_PivotSelection" minOccurs="0" maxOccurs="4"/>
+		2360 <xsd:element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>
+		2361 </xsd:sequence>
+		2362 <xsd:attribute name="windowProtection" type="xsd:boolean" use="optional" default="false"/>
+		2363 <xsd:attribute name="showFormulas" type="xsd:boolean" use="optional" default="false"/>
+		2364 <xsd:attribute name="showGridLines" type="xsd:boolean" use="optional" default="true"/>
+		2365 <xsd:attribute name="showRowColHeaders" type="xsd:boolean" use="optional" default="true"/>
+		2366 <xsd:attribute name="showZeros" type="xsd:boolean" use="optional" default="true"/>
+		2367 <xsd:attribute name="rightToLeft" type="xsd:boolean" use="optional" default="false"/>
+		2368 <xsd:attribute name="tabSelected" type="xsd:boolean" use="optional" default="false"/>
+		2369 <xsd:attribute name="showRuler" type="xsd:boolean" use="optional" default="true"/>
+		2370 <xsd:attribute name="showOutlineSymbols" type="xsd:boolean" use="optional" default="true"/>
+		2371 <xsd:attribute name="defaultGridColor" type="xsd:boolean" use="optional" default="true"/>
+		2372 <xsd:attribute name="showWhiteSpace" type="xsd:boolean" use="optional" default="true"/>
+		2373 <xsd:attribute name="view" type="ST_SheetViewType" use="optional" default="normal"/>
+		2374 <xsd:attribute name="topLeftCell" type="ST_CellRef" use="optional"/>Annex A
+		4453
+		2375 <xsd:attribute name="colorId" type="xsd:unsignedInt" use="optional" default="64"/>
+		2376 <xsd:attribute name="zoomScale" type="xsd:unsignedInt" use="optional" default="100"/>
+		2377 <xsd:attribute name="zoomScaleNormal" type="xsd:unsignedInt" use="optional" default="0"/>
+		2378 <xsd:attribute name="zoomScaleSheetLayoutView" type="xsd:unsignedInt" use="optional"
+		2379 default="0"/>
+		2380 <xsd:attribute name="zoomScalePageLayoutView" type="xsd:unsignedInt" use="optional"
+		2381 default="0"/>
+		2382 <xsd:attribute name="workbookViewId" type="xsd:unsignedInt" use="required"/>*/
+
+//x2t
+		/*	WritingElement_ReadAttributes_Read_if		( oReader, (L"colorId"),				m_oColorId)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"defaultGridColor"),	m_oDefaultGridColor)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"rightToLeft"),			m_oRightToLeft)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"showFormulas"),		m_oShowFormulas)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"showGridLines"),		m_oShowGridLines)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"showOutlineSymbols"),	m_oShowOutlineSymbols)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"showRowColHeaders"),	m_oShowRowColHeaders)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"showRuler"),			m_oShowRuler)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"showWhiteSpace"),		m_oShowWhiteSpace)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"showZeros"),			m_oShowZeros)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"tabSelected"),			m_oTabSelected)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"topLeftCell"),			m_oTopLeftCell)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"view"),				m_oView)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"windowProtection"),	m_oWindowProtection)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"workbookViewId"),		m_oWorkbookViewId)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"zoomScale"),			m_oZoomScale)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"zoomScaleNormal"),		m_oZoomScaleNormal)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"zoomScalePageLayoutView"),		m_oZoomScalePageLayoutView)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"zoomScaleSheetLayoutView"),	m_oZoomScaleSheetLayoutView)		*/
+
+//serialize
+		/*his.ReadSheetView = function (type, length, oSheetView) {
+					var oThis = this;
+					var res = c_oSerConstants.ReadOk;
+					if (c_oSer_SheetView.ColorId === type) {
+						this.stream.GetLong();
+					} else if (c_oSer_SheetView.DefaultGridColor === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.RightToLeft === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.ShowFormulas === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.ShowGridLines === type) {
+						oSheetView.showGridLines = this.stream.GetBool();
+					} else if (c_oSer_SheetView.ShowOutlineSymbols === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.ShowRowColHeaders === type) {
+						oSheetView.showRowColHeaders = this.stream.GetBool();
+					} else if (c_oSer_SheetView.ShowRuler === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.ShowWhiteSpace === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.ShowZeros === type) {
+						oSheetView.showZeros = this.stream.GetBool();
+					} else if (c_oSer_SheetView.TabSelected === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.TopLeftCell === type) {
+						var _topLeftCell = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));
+						if (_topLeftCell) {
+							oSheetView.topLeftCell = new Asc.Range(_topLeftCell.c1, _topLeftCell.r1, _topLeftCell.c1, _topLeftCell.r1);
+						}
+					} else if (c_oSer_SheetView.View === type) {
+						this.stream.GetUChar();
+					} else if (c_oSer_SheetView.WindowProtection === type) {
+						this.stream.GetBool();
+					} else if (c_oSer_SheetView.WorkbookViewId === type) {
+						this.stream.GetLong();
+					} else if (c_oSer_SheetView.ZoomScale === type) {
+						oSheetView.asc_setZoomScale(this.stream.GetLong());
+					} else if (c_oSer_SheetView.ZoomScaleNormal === type) {
+						this.stream.GetLong();
+					} else if (c_oSer_SheetView.ZoomScalePageLayoutView === type) {
+						this.stream.GetLong();
+					} else if (c_oSer_SheetView.ZoomScaleSheetLayoutView === type) {
+						this.stream.GetLong();
+					} else if (c_oSer_SheetView.Pane === type) {
+						oSheetView.pane = new AscCommonExcel.asc_CPane();
+						res = this.bcr.Read1(length, function (t, l) {
+							return oThis.ReadPane(t, l, oSheetView.pane);
+						});
+						oSheetView.pane.init();
+					} else if (c_oSer_SheetView.Selection === type) {
+						this.curWorksheet.selectionRange.clean();
+						res = this.bcr.Read1(length, function (t, l) {
+							return oThis.ReadSelection(t, l, oThis.curWorksheet.selectionRange);
+						});
+						this.curWorksheet.selectionRange.update();
+					} else
+						res = c_oSerConstants.ReadUnknown;
+					return res;
+				};*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("colorId" === reader.GetName()) {
+				//val = reader.GetValueInt();
+				//this.colorId = val;
+			} else if ("defaultGridColor" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.defaultGridColor = val;
+			} else if ("rightToLeft" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.rightToLeft = val;
+			} else if ("showFormulas" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.showFormulas = val;
+			} else if ("showGridLines" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showGridLines = val;
+			} else if ("showOutlineSymbols" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.showOutlineSymbols = val;
+			} else if ("showRowColHeaders" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showRowColHeaders = val;
+			} else if ("showRuler" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.showRuler = val;
+			} else if ("showWhiteSpace" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.showWhiteSpace = val;
+			} else if ("showZeros" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showZeros = val;
+			} else if ("tabSelected" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.tabSelected = val;
+			} else if ("topLeftCell" === reader.GetName()) {
+				var _topLeftCell = AscCommonExcel.g_oRangeCache.getAscRange(reader.GetValue());
+				if (_topLeftCell) {
+					this.topLeftCell = new Asc.Range(_topLeftCell.c1, _topLeftCell.r1, _topLeftCell.c1, _topLeftCell.r1);
+				}
+			} else if ("view" === reader.GetName()) {
+				//val = reader.GetValue();
+				//this.View = val;
+			} else if ("windowProtection" === reader.GetName()) {
+				//val = reader.GetValueBool();
+				//this.WindowProtection = val;
+			} else if ("workbookViewId" === reader.GetName()) {
+				//val = reader.GetValueInt();
+				//this.WorkbookViewId = val;
+			} else if ("zoomScale" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.ZoomScale = val;
+			} else if ("zoomScaleNormal" === reader.GetName()) {
+				//val = reader.GetValueInt();
+				//this.ZoomScaleNormal = val;
+			} else if ("zoomScalePageLayoutView" === reader.GetName()) {
+				//val = reader.GetValueInt();
+				//this.ZoomScalePageLayoutView = val;
+			} else if ("zoomScaleSheetLayoutView" === reader.GetName()) {
+				//val = reader.GetValueInt();
+				//this.ZoomScaleSheetLayoutView = val;
+			}
+		}
+	};
+
+	AscCommonExcel.asc_CPane.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.asc_CPane.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:attribute name="xSplit" type="xsd:double" use="optional" default="0"/>
+		2386 <xsd:attribute name="ySplit" type="xsd:double" use="optional" default="0"/>
+		2387 <xsd:attribute name="topLeftCell" type="ST_CellRef" use="optional"/>
+		2388 <xsd:attribute name="activePane" type="ST_Pane" use="optional" default="topLeft"/>
+		2389 <xsd:attribute name="state" type="ST_PaneState" use="optional" default="split"/>*/
+
+//x2t
+		/*WritingStringNullableAttrString(L"activePane", m_oActivePane, m_oActivePane->ToString());
+						WritingStringNullableAttrString(L"state", m_oState, m_oState->ToString());
+						WritingStringNullableAttrString(L"topLeftCell", m_oTopLeftCell, m_oTopLeftCell.get());
+						WritingStringNullableAttrDouble(L"xSplit", m_oXSplit, m_oXSplit->GetValue());
+						WritingStringNullableAttrDouble(L"ySplit", m_oYSplit, m_oYSplit->GetValue());*/
+
+//serialize
+		/*  var res = c_oSerConstants.ReadOk;
+					if (c_oSer_Pane.ActivePane === type)
+						this.stream.GetUChar();
+					else if (c_oSer_Pane.State === type)
+						oPane.state = this.stream.GetString2LE(length);
+					else if (c_oSer_Pane.TopLeftCell === type)
+						oPane.topLeftCell = this.stream.GetString2LE(length);
+					else if (c_oSer_Pane.XSplit === type)
+						oPane.xSplit = this.stream.GetDoubleLE();
+					else if (c_oSer_Pane.YSplit === type)
+						oPane.ySplit = this.stream.GetDoubleLE();
+					else
+						res = c_oSerConstants.ReadUnknown;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("activePane" === reader.GetName()) {
+				val = reader.GetValue();
+				this.activePane = val;
+			} else if ("state" === reader.GetName()) {
+				val = reader.GetValue();
+				this.state = val;
+			} else if ("topLeftCell" === reader.GetName()) {
+				val = reader.GetValue();
+				this.topLeftCell = val;
+			} else if ("xSplit" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.xSplit = val;
+			}  else if ("ySplit" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.ySplit = val;
+			}
+		}
+	};
+
+	AscCommonExcel.SelectionRange.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.SelectionRange.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:attribute name="pane" type="ST_Pane" use="optional" default="topLeft"/>
+		2415 <xsd:attribute name="activeCell" type="ST_CellRef" use="optional"/>
+		2416 <xsd:attribute name="activeCellId" type="xsd:unsignedInt" use="optional" default="0"/>
+		2417 <xsd:attribute name="sqref" type="ST_Sqref" use="optional" default="A1"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"activeCell"),	m_oActiveCell)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"activeCellId"),	m_oActiveCellId)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"sqref"),			m_oSqref)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"pane"),			m_oPane)*/
+
+//serialize
+		/*var res = c_oSerConstants.ReadOk;
+					if (c_oSer_Selection.ActiveCell === type) {
+						var activeCell = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));
+						if (activeCell) {
+							selectionRange.activeCell = new AscCommon.CellBase(activeCell.r1, activeCell.c1);
+						}
+					} else if (c_oSer_Selection.ActiveCellId === type) {
+						selectionRange.activeCellId = this.stream.GetLong();
+					} else if (c_oSer_Selection.Sqref === type) {
+						var sqRef = this.stream.GetString2LE(length);
+						var selectionNew = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
+						if (selectionNew.length > 0) {
+							selectionRange.ranges = selectionNew;
+						}
+					} else if (c_oSer_Selection.Pane === type) {
+						this.stream.GetUChar();*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("activeCell" === reader.GetName()) {
+				var activeCell = AscCommonExcel.g_oRangeCache.getAscRange(reader.GetValue());
+				if (activeCell) {
+					this.activeCell = new AscCommon.CellBase(activeCell.r1, activeCell.c1);
+				}
+			} else if ("activeCellId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.activeCellId = val;
+			} else if ("sqref" === reader.GetName()) {
+				var sqRef = reader.GetValue();
+				var selectionNew = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
+				if (selectionNew.length > 0) {
+					this.ranges = selectionNew;
+				}
+			} else if ("pane" === reader.GetName()) {
+				//val = reader.GetValue();
+				//this.pane = val;
+			}
+		}
+	};
 
 	function COfficeArtExtensionList () {
 		this.arrExt = [];
@@ -8505,19 +9293,27 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("sourceFile" === reader.GetName()) {
 				val = reader.GetValue();
 				this.sourceFile = val;
-			} }
+			}
+		}
 	};
 
 
 	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
-	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, (L"display"),\tm_oDisplay)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"r:id"),\t\tm_oRid )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"relationships:id"), m_oRid )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"location"),\tm_oLocation )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"ref"),\t\tm_oRef )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"tooltip"),\tm_oTooltip )'
-	var _documentation = ''
-	var _serialize = ''
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, (L"activeCell"),\tm_oActiveCell)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"activeCellId"),\tm_oActiveCellId)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"sqref"),\t\t\tm_oSqref)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"pane"),\t\t\tm_oPane)'
+	var _documentation = '<xsd:attribute name="pane" type="ST_Pane" use="optional" default="topLeft"/>\n' +
+		'2415 <xsd:attribute name="activeCell" type="ST_CellRef" use="optional"/>\n' +
+		'2416 <xsd:attribute name="activeCellId" type="xsd:unsignedInt" use="optional" default="0"/>\n' +
+		'2417 <xsd:attribute name="sqref" type="ST_Sqref" use="optional" default="A1"/>'
+	var _serialize = 'var res = c_oSerConstants.ReadOk;\n' + '\t\t\tif (c_oSer_Selection.ActiveCell === type) {\n' +
+		'\t\t\t\tvar activeCell = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));\n' + '\t\t\t\tif (activeCell) {\n' +
+		'\t\t\t\t\tselectionRange.activeCell = new AscCommon.CellBase(activeCell.r1, activeCell.c1);\n' + '\t\t\t\t}\n' +
+		'\t\t\t} else if (c_oSer_Selection.ActiveCellId === type) {\n' + '\t\t\t\tselectionRange.activeCellId = this.stream.GetLong();\n' +
+		'\t\t\t} else if (c_oSer_Selection.Sqref === type) {\n' + '\t\t\t\tvar sqRef = this.stream.GetString2LE(length);\n' +
+		'\t\t\t\tvar selectionNew = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);\n' + '\t\t\t\tif (selectionNew.length > 0) {\n' +
+		'\t\t\t\t\tselectionRange.ranges = selectionNew;\n' + '\t\t\t\t}\n' + '\t\t\t} else if (c_oSer_Selection.Pane === type) {\n' + '\t\t\t\tthis.stream.GetUChar();'
 
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);
@@ -8578,6 +9374,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					_res = "GetValueBool()"
 				} else if (-1 !== _type.indexOf("int")) {
 					_res = "GetValueInt()"
+				} else if (-1 !== _type.indexOf("double")) {
+					_res = "GetValueDouble()"
 				}
 			}
 			return _res;
@@ -8607,6 +9405,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							_res = "GetValueBool()"
 						} else if (-1 !== _type.indexOf("int") || -1 !== _type.indexOf("long")) {
 							_res = "GetValueInt()"
+						}  else if (-1 !== _type.indexOf("double")) {
+							_res = "GetValueDouble()"
 						}
 					}
 					return _res;

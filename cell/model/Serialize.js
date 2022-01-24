@@ -12164,5 +12164,6 @@
 
     window["AscCommonExcel"].CT_Stylesheet = CT_Stylesheet;
     window["AscCommonExcel"].OpenXf = OpenXf;
+    window["AscCommonExcel"].DocumentPageSize = DocumentPageSize;
 
 })(window);

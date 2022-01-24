@@ -1560,6 +1560,16 @@ StaxParser.prototype.setState = function(state) {
     this.text = state.text;
     this.value = state.value;
 };
+StaxParser.prototype.readAsArray = function(childName, func) {
+    var depth = this.GetDepth();
+    var indexChild = 0;
+    while (this.ReadNextSiblingNode(depth)) {
+        if (childName === this.GetNameNoNS()) {
+            func(indexChild);
+            indexChild++;
+        }
+    }
+};
 
 function XmlParserContext(){
     //common
