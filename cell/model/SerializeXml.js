@@ -874,7 +874,7 @@
 						this.oSheetFormatPr.fromXml(reader, this);
 					}
 				} else if ("sheetViews" === name) {
-					reader.readAsArray("sheetView", function (index) {
+					reader.readXmlArray("sheetView", function (index) {
 						if (index === 0) {
 							var sheetViewSettings = new AscCommonExcel.asc_CSheetViewSettings();
 							sheetViewSettings.fromXml(reader, t);
