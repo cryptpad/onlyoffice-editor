@@ -520,6 +520,8 @@
 
 			this.FrameWidth = tblProp.FrameWidth;
 			this.FrameHeight = tblProp.FrameHeight;
+			this.FrameX = tblProp.FrameX;
+			this.FrameY = tblProp.FrameY;
 		}
 		else
 		{
@@ -572,6 +574,22 @@
 	CTableProp.prototype.put_FrameHeight = function (v)
 	{
 		this.FrameHeight = v;
+	};
+	CTableProp.prototype.get_FrameX = function ()
+	{
+		return this.FrameX;
+	};
+	CTableProp.prototype.put_FrameX = function (v)
+	{
+		this.FrameX = v;
+	};
+	CTableProp.prototype.get_FrameY = function ()
+	{
+		return this.FrameY;
+	};
+	CTableProp.prototype.put_FrameY = function (v)
+	{
+		this.FrameY = v;
 	};
 	CTableProp.prototype.get_Spacing = function ()
 	{
@@ -903,7 +921,10 @@
 	CTableProp.prototype['put_FrameWidth'] = CTableProp.prototype.put_FrameWidth;
 	CTableProp.prototype['get_FrameHeight'] = CTableProp.prototype.get_FrameHeight;
 	CTableProp.prototype['put_FrameHeight'] = CTableProp.prototype.put_FrameHeight;
-
+	CTableProp.prototype['get_FrameX'] = CTableProp.prototype.get_FrameX;
+	CTableProp.prototype['put_FrameX'] = CTableProp.prototype.put_FrameX;
+	CTableProp.prototype['get_FrameY'] = CTableProp.prototype.get_FrameY;
+	CTableProp.prototype['put_FrameY'] = CTableProp.prototype.put_FrameY;
 
 // ---------------------------------------------------------------
 	function CBorders(obj)

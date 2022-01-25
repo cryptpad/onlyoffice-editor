@@ -689,6 +689,22 @@ CGraphicFrame.prototype.resize = function(extX, extY)
     }
     return false;
 };
+CGraphicFrame.prototype.setFrameTransform = function(oPr)
+{
+    var bResult = this.resize(oPr.FameWidth, oPr.FrameHeight);
+    var newX = AscFormat.isRealNumber(oPr.FrameX) ? oPr.FrameX : this.x;
+    var newY = AscFormat.isRealNumber(oPr.FrameY) ? oPr.FrameY : this.y;
+    if(!AscFormat.fApproxEqual(newX, this.x) || !AscFormat.fApproxEqual(newY, this.y)) 
+    {
+        AscFormat.CheckSpPrXfrm(this, true);
+        var xfrm = this.spPr.xfrm;
+        xfrm.setOffX(newX);
+        xfrm.setOffY(newY);
+        bResult = true;
+        this.recalculate();
+    }
+    return bResult;
+};
 
 CGraphicFrame.prototype.IsFootnote = function(bReturnFootnote)
 {

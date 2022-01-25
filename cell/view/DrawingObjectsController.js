@@ -130,7 +130,7 @@ DrawingObjectsController.prototype.setTableProps = function(props)
         props.TableCaption = sCaption;
         props.TableDescription = sDescription;
         props.RowHeight = dRowHeight;
-        if(!by_type.tables[0].resize(props.FrameWidth, props.FrameHeight)) 
+        if(!by_type.tables[0].setFrameTransform(props)) 
         {
             editor.WordControl.m_oLogicDocument.Check_GraphicFrameRowHeight(by_type.tables[0], bIgnoreHeight);
         }
