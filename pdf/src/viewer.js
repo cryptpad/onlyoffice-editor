@@ -362,7 +362,7 @@
 				isViewerTask = oThis.thumbnails.checkTasks(isViewerTask);
 			}
 
-			if (!isViewerTask)
+			if (!isViewerTask && !oThis.Api.WordControl.NoneRepaintPages)
 			{
 				oThis.checkPagesText();
 

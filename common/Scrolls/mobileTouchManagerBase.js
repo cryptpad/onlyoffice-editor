@@ -252,6 +252,8 @@
 	};
 	CMobileDelegateEditor.prototype.GetZoom = function()
 	{
+		if (this.IsNativeViewer())
+			return this.DrawingDocument.m_oDocumentRenderer.zoom * 100;
 		return this.HtmlPage.m_nZoomValue;
 	};
 	CMobileDelegateEditor.prototype.SetZoom = function(_value)
