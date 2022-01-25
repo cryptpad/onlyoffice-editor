@@ -762,6 +762,26 @@ CRadical.prototype.Is_ContentUse = function(MathContent)
 
     return false;
 };
+CRadical.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	strTemp += String.fromCharCode(8730); //√
+	var strDegree = this.getDegree().GetTextOfElement();
+	var Base = this.getBase().GetTextOfElement();
+
+	if (Base.length > 1 || strDegree.length > 1) {
+		if (strDegree != "⬚") {
+			strTemp += '(' + strDegree + '&' + Base + ')';
+		}
+		else {
+			strTemp += '(' + Base + ')';
+		}
+	}
+	else {
+		strTemp += Base;
+	}
+
+	return strTemp;
+};
 
 /**
  *

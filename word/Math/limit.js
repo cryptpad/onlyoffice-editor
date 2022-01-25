@@ -315,6 +315,23 @@ CLimit.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos == 1 && false === this.Is_SelectInside();
 };
+CLimit.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var strFuncName = this.getFName().GetTextOfElement();
+	var strLimitSymbol = (this.Pr.type == 1) ? "┴" : "┬";
+	var strArgument = this.getIterator().GetTextOfElement();
+
+	var StartBracet = strArgument.length > 1 ? "(" : "";
+	var CloseBracet = strArgument.length > 1 ? ")" : "";
+
+	strTemp = strFuncName
+		+ strLimitSymbol
+		+ StartBracet
+		+ strArgument
+		+ CloseBracet;
+
+	return strTemp;
+};
 
 /**
  *
@@ -416,6 +433,22 @@ CMathFunc.prototype.fillContent = function()
     this.elements[0][0] = this.getFName();
     this.elements[0][1] = this.getArgument();
 };
+CMathFunc.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var strFuncName = this.getFName().GetTextOfElement();
+	var strArgument = this.getArgument().GetTextOfElement();
+	var StartBracet = strArgument.length > 1 ? "〖" : "";
+	var CloseBracet = strArgument.length > 1 ? "〗" : "";
+
+	strTemp = strFuncName
+		+ ' '
+		+ StartBracet
+		+ strArgument
+		+ CloseBracet;
+
+	return strTemp;
+};
+
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

@@ -614,7 +614,32 @@ CFraction.prototype.raw_SetFractionType = function(FractionType)
     this.Pr.type = FractionType;
     this.fillContent();
 };
+CFraction.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var Numerator = this.getNumerator().GetTextOfElement();
+	var Denominator = this.getDenominator().GetTextOfElement();
 
+	strTemp += Numerator;
+	switch (this.Pr.type) {
+		case 0:
+			strTemp += String.fromCharCode(47);
+			break;
+		case 1:
+			strTemp += String.fromCharCode(8260);
+			break;
+		case 2:
+			strTemp += String.fromCharCode(92); //Escaping for / ????
+			strTemp += String.fromCharCode(47);
+			break;
+		case 3:
+			strTemp += String.fromCharCode(166);
+			break;
+	}
+
+	strTemp += Denominator;
+
+	return strTemp;
+};
 /**
  *
  * @param CMathMenuFraction

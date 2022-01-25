@@ -815,7 +815,40 @@ CNary.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos !== 2 && false === this.Is_SelectInside();
 };
+CNary.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var strStartCode = String.fromCharCode(this.Pr.chr || this.getSign().chrCode);
 
+	strTemp += strStartCode;
+
+	if (!this.Pr.supHide) {
+		strTemp += '^';
+		var SupContent = this.getSupMathContent().GetTextOfElement();
+		var StartBracet = SupContent.length > 1 ? "(" : "";
+		var CloseBracet = SupContent.length > 1 ? ")" : "";
+		
+		strTemp += StartBracet + SupContent + CloseBracet;
+	}
+
+	if (!this.Pr.subHide) {
+		strTemp += '_';
+		var SubContent = this.getSubMathContent().GetTextOfElement();
+		var StartBracet = SubContent.length > 1 ? "(" : "";
+		var CloseBracet = SubContent.length > 1 ? ")" : "";
+
+		strTemp += StartBracet + SubContent + CloseBracet;
+	}
+
+	strTemp += String.fromCharCode(9618); //▒
+
+	var Base = this.getBase().GetTextOfElement();
+	var StartBracet = Base.length > 1 ? "〖" : "";
+	var CloseBracet = Base.length > 1 ? "〗" : "";
+
+	strTemp += StartBracet + Base + CloseBracet;
+
+	return strTemp;
+};
 
 /**
  *

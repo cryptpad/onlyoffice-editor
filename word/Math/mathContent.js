@@ -8282,13 +8282,11 @@ CMathContent.prototype.private_ReplaceAutoCorrect = function(AutoCorrectEngine) 
 CMathContent.prototype.GetTextOfElement = function() {
     var str = "";
     for (var i = 0; i < this.Content.length; i++) {
-        console.log(this.Content[i].constructor)
         str += this.Content[i].GetTextOfElement();
     }
     return str;
 }
 CMathContent.prototype.GetTextContent = function(bSelectedText) {
-    //console.log('GetTextContent', this)
 	var arr = [], str = "", bIsContainsOperator = false, paraRunArr = [];
 	var addText = function(value, bIsAddParenthesis, paraRun) {
 		if (bIsAddParenthesis) {
@@ -8468,6 +8466,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                 addText("〗");
             }
         } else if (elem instanceof CFraction) {//дробь
+            console.log(elem.GetTextOfElement());
             //числитель
 			getAndPushTextContent(elem.getNumerator(), checkBracket(elem.getNumerator().GetTextContent().str));
             switch (elem.Pr.type) {
@@ -8488,6 +8487,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 			//знаменатель
             getAndPushTextContent(elem.getDenominator(), checkBracket(elem.getDenominator().GetTextContent().str));       
 		} else if (elem instanceof CRadical) {//корень
+            console.log(elem.GetTextOfElement());
 			addText(String.fromCharCode(8730));
 			//степень корня
 			tempStr = elem.getDegree().GetTextContent(bSelectedText);
@@ -8513,6 +8513,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                 addText(")");
             }
         } else if (elem instanceof CMathMatrix) {//matrix
+            console.log(elem.GetTextOfElement());
             var symbol = [];
             for (var row = 0; row < elem.nRow; row++) {
 				for(var col = 1; col < elem.nCol; col++) {
@@ -8533,6 +8534,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 			}
 			addText(")");
 		} else if(elem instanceof CMathFunc) {
+            console.log(elem.GetTextOfElement());
 			//функция
             getAndPushTextContent(elem.getFName());
             addText(String.fromCharCode(0x2061));
@@ -8548,13 +8550,13 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                 addText("〗");
             }
 		} else if(elem instanceof CLimit) {
-			//функция
+            console.log(elem.GetTextOfElement());
             getAndPushTextContent(elem.getFName(), false);
             addText((elem.Pr.type == 1) ? "┴" : "┬");
 			//аргумент
             getAndPushTextContent(elem.getIterator(), true);
 		}
-        
+
 	};
 
 	var StartPos = 0, EndPos = this.Content.length;
