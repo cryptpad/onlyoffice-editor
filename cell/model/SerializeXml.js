@@ -814,11 +814,12 @@
 							hyperlink.fromXml(reader, this);
 							hyperlinks.push(hyperlink);
 						}
-						//TODO в serialize аналогичная обработка в ReadWorksheetsContent
-						for (var i = 0; i < hyperlinks.length; ++i) {
-							if (null !== hyperlink.Ref) {
-								hyperlinks[i].Ref.setHyperlinkOpen(hyperlinks[i]);
-							}
+					}
+
+					//TODO в serialize аналогичная обработка в ReadWorksheetsContent
+					for (var i = 0; i < hyperlinks.length; ++i) {
+						if (null !== hyperlink.Ref) {
+							hyperlinks[i].Ref.setHyperlinkOpen(hyperlinks[i]);
 						}
 					}
 				} else if ("mergeCells" === name) {
@@ -1839,13 +1840,17 @@
 			/*if ("display" === reader.GetName()) {
 				val = reader.GetValue();
 				this.display = val;
-			} else if ("r:id" === reader.GetName()) {
+			} else*/ if ("r:id" === reader.GetName()) {
+				//TODO пока обрабатываю здесь, возможно стоит это сдлелать после чтения всей книги
 				val = reader.GetValue();
-				this.r:id = val;
-			} else if ("relationships:id" === reader.GetName()) {
+				var rIdDoc = reader.rels.getRelationshipById(val);
+				if (rIdDoc) {
+					this.Hyperlink = rIdDoc.targetFullName;
+				}
+			/*} else if ("relationships:id" === reader.GetName()) {
 				val = reader.GetValue();
 				this.relationships:id = val;
-			} else*/ if ("location" === reader.GetName()) {
+			*/} else if ("location" === reader.GetName()) {
 				val = reader.GetValue();
 				this.setLocation(val);
 				//this.setLocation(this.stream.GetString2LE(length));
