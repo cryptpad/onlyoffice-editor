@@ -100,6 +100,45 @@
 		return alg;
 	}
 
+	function getAlgorithmNameFromXml(str) {
+		var alg = null;
+		switch (str) {
+			case "MD2" :
+				alg = c_oSerProtectedAlgorithmNameTypes.MD2;
+				break;
+			case "MD4" :
+				alg = c_oSerProtectedAlgorithmNameTypes.MD4;
+				break;
+			case "MD5" :
+				alg = c_oSerProtectedAlgorithmNameTypes.MD5;
+				break;
+			case "RIPEMD-128" :
+				alg = c_oSerProtectedAlgorithmNameTypes.RIPEMD_128;
+				break;
+			case "RIPEMD-160" :
+				alg = c_oSerProtectedAlgorithmNameTypes.RIPEMD_160;
+				break;
+			case "SHA-1" :
+				alg = c_oSerProtectedAlgorithmNameTypes.SHA1;
+				break;
+			case "SHA-256" :
+				alg = c_oSerProtectedAlgorithmNameTypes.SHA_256;
+				break;
+			case "SHA-384" :
+				alg = c_oSerProtectedAlgorithmNameTypes.SHA_384;
+				break;
+			case "SHA-512" :
+				alg = c_oSerProtectedAlgorithmNameTypes.SHA_512;
+				break;
+			case "WHIRLPOOL" :
+				alg = c_oSerProtectedAlgorithmNameTypes.WHIRLPOOL;
+				break;
+		}
+		return alg;
+	}
+
+
+
 	function generateHashParams() {
 		return {spinCount: 100000, saltValue: AscCommon.randomBytes(16).base64(), algorithmName: c_oSerProtectedAlgorithmNameTypes.SHA_512};
 	}
@@ -1363,5 +1402,6 @@
 
 	window["AscCommonExcel"].fromModelAlgoritmName = fromModelAlgoritmName;
 	window["AscCommonExcel"].getPasswordHash = getPasswordHash;
+	window["AscCommonExcel"].getAlgorithmNameFromXml = getAlgorithmNameFromXml;
 
 })(window);

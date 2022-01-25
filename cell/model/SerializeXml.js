@@ -504,7 +504,7 @@
 		while (reader.MoveToNextAttribute()) {
 			if ("workbookAlgorithmName" === reader.GetName()) {
 				val = reader.GetValue();
-				this.workbookAlgorithmName = val;
+				this.workbookAlgorithmName = AscCommonExcel.getAlgorithmNameFromXml(val);
 			} else if ("workbookHashValue" === reader.GetName()) {
 				val = reader.GetValue();
 				this.workbookHashValue = val;
@@ -516,7 +516,7 @@
 				this.workbookSpinCount = val;
 			} else if ("revisionsAlgorithmName" === reader.GetName()) {
 				val = reader.GetValue();
-				this.revisionsAlgorithmName = val;
+				this.revisionsAlgorithmName = AscCommonExcel.getAlgorithmNameFromXml(val);
 			} else if ("revisionsHashValue" === reader.GetName()) {
 				val = reader.GetValue();
 				this.revisionsHashValue = val;
@@ -857,10 +857,24 @@
 					var autoFilter = new AscCommonExcel.AutoFilter();
 					autoFilter.fromXml(reader);
 					this.AutoFilter = autoFilter;
+				} else if ("legacyDrawing" === name) {
+					//do not support serialize
+				} else if ("legacyDrawingHF" === name) {
+					//do not support serialize - commented
+				} else if ("oleObjects" === name) {
+					//do not support serialize
+				} else if ("controls" === name) {
+					//do not support serialize
+				} else if ("headerFooter" === name) {
+					if (this.headerFooter) {
+						this.headerFooter.fromXml(reader);
+					}
 				} else if ("dataValidations" === name) {
 					var dataValidations = new AscCommonExcel.CDataValidations();
 					dataValidations.fromXml(reader);
 					this.dataValidations = dataValidations;
+				} else if ("dataConsolidate" === name) {
+
 				} else if ("conditionalFormatting" === name && typeof AscCommonExcel.CConditionalFormatting != "undefined") {
 					var oConditionalFormatting = new AscCommonExcel.CConditionalFormatting();
 					oConditionalFormatting.fromXml(reader);
@@ -879,6 +893,14 @@
 							var sheetViewSettings = new AscCommonExcel.asc_CSheetViewSettings();
 							sheetViewSettings.fromXml(reader, t);
 							t.sheetViews.push(sheetViewSettings);
+						}
+					});
+				} else if ("protectedRanges" === name) {
+					reader.readXmlArray("protectedRange", function () {
+						var oProtectedRange = Asc.CProtectedRange ? new Asc.CProtectedRange() : null;
+						if (oProtectedRange) {
+							oProtectedRange.fromXml(reader);
+							t.aProtectedRanges.push(oProtectedRange);
 						}
 					});
 				} else if ("sortState" === name) {
@@ -906,6 +928,18 @@
 
 					var extLst = new COfficeArtExtensionList(this);
 					extLst.fromXml(reader);
+				} else if ("picture" === name) {
+					//do not support serialize - commented
+				} else if ("rowBreaks" === name) {
+					//do not support serialize - commented
+				}  else if ("colBreaks" === name) {
+					//do not support serialize - commented
+				} else if ("sheetProtection" === name) {
+					var sheetProtection = Asc.CSheetProtection ? new Asc.CSheetProtection(this) : null;
+					if (sheetProtection) {
+						sheetProtection.fromXml(reader);
+						this.sheetProtection = sheetProtection;
+					}
 				}
 			}
 		}
@@ -4732,6 +4766,444 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
+
+	Asc.CProtectedRange.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+
+						if (oReader.IsEmptyNode())
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while (oReader.ReadNextSiblingNode(nCurDepth))
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if (L"securityDescriptor" == sName)
+								m_arSecurityDescriptors.push_back(oReader.GetText2());
+						}
+		*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			//TODO проверить
+			if ("securityDescriptor" === name) {
+				this.securityDescriptor = reader.GetValue();
+			}
+		}
+	};
+
+	Asc.CProtectedRange.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:sequence>
+		2942 <xsd:element name="securityDescriptor" type="xsd:string" minOccurs="0"
+		2943 maxOccurs="unbounded"/>
+		2944 </xsd:sequence>
+		2945 <xsd:attribute name="sqref" type="ST_Sqref" use="required"/>
+		2946 <xsd:attribute name="name" type="s:ST_Xstring" use="required"/>
+		2947 <xsd:attribute name="algorithmName" type="s:ST_Xstring" use="optional"/>
+		2948 <xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>
+		2949 <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>
+		2950 <xsd:attribute name="spinCount" type="xsd:unsignedInt" use="optional"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if(oReader, (L"algorithmName"), m_oAlgorithmName)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"hashValue"), m_oHashValue)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"saltValue"), m_oSaltValue)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"spinCount"), m_oSpinCount)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"name"), m_oName)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"sqref"), m_oSqref)
+							WritingElement_ReadAttributes_Read_else_if(oReader, (L"securityDescriptor"), desc)*/
+
+//serialize
+		/*if (c_oSerProtectedRangeTypes.AlgorithmName === type) {
+						oProtectedRange.algorithmName = this.stream.GetUChar();
+					} else if (c_oSerProtectedRangeTypes.SpinCount === type) {
+						oProtectedRange.spinCount = this.stream.GetLong();
+					} else if (c_oSerProtectedRangeTypes.HashValue === type) {
+						oProtectedRange.hashValue = this.stream.GetString2LE(length);
+					} else if (c_oSerProtectedRangeTypes.SaltValue === type) {
+						oProtectedRange.saltValue = this.stream.GetString2LE(length);
+					} else if (c_oSerProtectedRangeTypes.Name === type) {
+						oProtectedRange.name = this.stream.GetString2LE(length);
+					} else if (c_oSerProtectedRangeTypes.SqRef === type) {
+						var sqRef = this.stream.GetString2LE(length);
+						var newSqRef = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
+						if (newSqRef.length > 0) {
+							oProtectedRange.sqref = newSqRef;
+						}
+					} else if (c_oSerProtectedRangeTypes.SecurityDescriptor === type) {
+						oProtectedRange.securityDescriptor = this.stream.GetString2LE(length);
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("algorithmName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.algorithmName = AscCommonExcel.getAlgorithmNameFromXml(val);
+			} else if ("hashValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.hashValue = val;
+			} else if ("saltValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.saltValue = val;
+			} else if ("spinCount" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.spinCount = val;
+			} else if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			} else if ("sqref" === reader.GetName()) {
+				var sqRef = reader.GetValue();
+				var newSqRef = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
+				if (newSqRef.length > 0) {
+					this.sqref = newSqRef;
+				}
+			} /*else if ("securityDescriptor" === reader.GetName()) {
+				val = reader.GetValue();
+				this.securityDescriptor = val;
+			}*/
+		}
+	};
+
+	Asc.CHeaderFooter.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( (L"evenFooter") == sName )
+								m_oEvenFooter = oReader;
+							else if ( (L"evenHeader") == sName )
+								m_oEvenHeader = oReader;
+							else if ( (L"firstFooter") == sName )
+								m_oFirstFooter = oReader;
+							else if ( (L"firstHeader") == sName )
+								m_oFirstHeader = oReader;
+							else if ( (L"oddFooter") == sName )
+								m_oOddFooter = oReader;
+							else if ( (L"oddHeader") == sName )
+								m_oOddHeader = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		var val;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("evenFooter" === name) {
+				val = reader.GetText();
+				if(val) {
+					this.setEvenFooter(val);
+				}
+			} else if ("evenHeader" === name) {
+				val = reader.GetText();
+				if(val) {
+					this.setEvenHeader(val);
+				}
+			} else if ("firstFooter" === name) {
+				val = reader.GetText();
+				if(val) {
+					this.setFirstFooter(val);
+				}
+			} else if ("firstHeader" === name) {
+				val = reader.GetText();
+				if(val) {
+					this.setFirstHeader(val);
+				}
+			} else if ("oddFooter" === name) {
+				val = reader.GetText();
+				if(val) {
+					this.setOddFooter(val);
+				}
+			} else if ("oddHeader" === name) {
+				val = reader.GetText();
+				if(val) {
+					this.setOddHeader(val);
+				}
+			}
+		}
+	};
+
+	Asc.CHeaderFooter.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:sequence>
+		2884 <xsd:element name="oddHeader" type="s:ST_Xstring" minOccurs="0" maxOccurs="1"/>
+		2885 <xsd:element name="oddFooter" type="s:ST_Xstring" minOccurs="0" maxOccurs="1"/>
+		2886 <xsd:element name="evenHeader" type="s:ST_Xstring" minOccurs="0" maxOccurs="1"/>
+		2887 <xsd:element name="evenFooter" type="s:ST_Xstring" minOccurs="0" maxOccurs="1"/>
+		2888 <xsd:element name="firstHeader" type="s:ST_Xstring" minOccurs="0" maxOccurs="1"/>
+		2889 <xsd:element name="firstFooter" type="s:ST_Xstring" minOccurs="0" maxOccurs="1"/>
+		2890 </xsd:sequence>
+		2891 <xsd:attribute name="differentOddEven" type="xsd:boolean" default="false"/>
+		2892 <xsd:attribute name="differentFirst" type="xsd:boolean" default="false"/>
+		2893 <xsd:attribute name="scaleWithDoc" type="xsd:boolean" default="true"/>
+		2894 <xsd:attribute name="alignWithMargins" type="xsd:boolean" default="true"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"alignWithMargins"),	m_oAlignWithMargins)
+						WritingElement_ReadAttributes_Read_else_if	( oReader, (L"differentFirst"),	m_oDifferentFirst)
+						WritingElement_ReadAttributes_Read_else_if	( oReader, (L"differentOddEven"),	m_oDifferentOddEven)
+						WritingElement_ReadAttributes_Read_else_if	( oReader, (L"scaleWithDoc"),		m_oScaleWithDoc)*/
+
+//serialize
+		/* if (c_oSer_HeaderFooter.AlignWithMargins === type) {
+						headerFooter.setAlignWithMargins(this.stream.GetBool());
+					} else if (c_oSer_HeaderFooter.DifferentFirst === type) {
+						headerFooter.setDifferentFirst(this.stream.GetBool());
+					} else if (c_oSer_HeaderFooter.DifferentOddEven === type) {
+						headerFooter.setDifferentOddEven(this.stream.GetBool());
+					} else if (c_oSer_HeaderFooter.ScaleWithDoc === type) {
+						headerFooter.setScaleWithDoc(this.stream.GetBool());
+					} else if (c_oSer_HeaderFooter.EvenFooter === type) {
+						sVal = this.stream.GetString2LE(length);
+						if(sVal) {
+							headerFooter.setEvenFooter(sVal);
+						}
+					} else if (c_oSer_HeaderFooter.EvenHeader === type) {
+						sVal = this.stream.GetString2LE(length);
+						if(sVal) {
+							headerFooter.setEvenHeader(sVal);
+						}
+					} else if (c_oSer_HeaderFooter.FirstFooter === type) {
+						sVal = this.stream.GetString2LE(length);
+						if(sVal) {
+							headerFooter.setFirstFooter(sVal);
+						}
+					} else if (c_oSer_HeaderFooter.FirstHeader === type) {
+						sVal = this.stream.GetString2LE(length);
+						if(sVal) {
+							headerFooter.setFirstHeader(sVal);
+						}
+					} else if (c_oSer_HeaderFooter.OddFooter === type) {
+						sVal = this.stream.GetString2LE(length);
+						if(sVal) {
+							headerFooter.setOddFooter(sVal);
+						}
+					} else if (c_oSer_HeaderFooter.OddHeader === type) {
+						sVal = this.stream.GetString2LE(length);
+						if(sVal) {
+							headerFooter.setOddHeader(sVal);
+						}
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("alignWithMargins" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.setAlignWithMargins(val);
+			} else if ("differentFirst" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.setDifferentFirst(val);
+			} else if ("differentOddEven" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.setDifferentOddEven(val);
+			} else if ("scaleWithDoc" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.setScaleWithDoc(val);
+			}
+		}
+	};
+
+	Asc.CSheetProtection.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	Asc.CSheetProtection.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:attribute name="algorithmName" type="s:ST_Xstring" use="optional"/>
+		2914 <xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>
+		2915 <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>
+		2916 <xsd:attribute name="spinCount" type="xsd:unsignedInt" use="optional"/>
+		2917 <xsd:attribute name="sheet" type="xsd:boolean" use="optional" default="false"/>
+		2918 <xsd:attribute name="objects" type="xsd:boolean" use="optional" default="false"/>
+		2919 <xsd:attribute name="scenarios" type="xsd:boolean" use="optional" default="false"/>
+		2920 <xsd:attribute name="formatCells" type="xsd:boolean" use="optional" default="true"/>
+		2921 <xsd:attribute name="formatColumns" type="xsd:boolean" use="optional" default="true"/>
+		2922 <xsd:attribute name="formatRows" type="xsd:boolean" use="optional" default="true"/>
+		2923 <xsd:attribute name="insertColumns" type="xsd:boolean" use="optional" default="true"/>
+		2924 <xsd:attribute name="insertRows" type="xsd:boolean" use="optional" default="true"/>
+		2925 <xsd:attribute name="insertHyperlinks" type="xsd:boolean" use="optional" default="true"/>
+		2926 <xsd:attribute name="deleteColumns" type="xsd:boolean" use="optional" default="true"/>
+		2927 <xsd:attribute name="deleteRows" type="xsd:boolean" use="optional" default="true"/>
+		2928 <xsd:attribute name="selectLockedCells" type="xsd:boolean" use="optional" default="false"/>
+		2929 <xsd:attribute name="sort" type="xsd:boolean" use="optional" default="true"/>
+		2930 <xsd:attribute name="autoFilter" type="xsd:boolean" use="optional" default="true"/>
+		2931 <xsd:attribute name="pivotTables" type="xsd:boolean" use="optional" default="true"/>
+		2932 <xsd:attribute name="selectUnlockedCells" type="xsd:boolean" use="optional" default="false"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"password"),		m_oPassword)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"algorithmName"),	m_oAlgorithmName)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"hashValue"),		m_oHashValue)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"saltValue"),		m_oSaltValue)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"spinCount"),		m_oSpinCount)
+
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"autoFilter"),	m_oAutoFilter)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"content"),		m_oContent)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"deleteColumns"),	m_oDeleteColumns)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"deleteRows"),	m_oDeleteRows)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"formatCells"),	m_oFormatCells)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"formatColumns"),	m_oFormatColumns)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"formatRows"),	m_oFormatRows)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"insertColumns"),	m_oInsertColumns)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"insertHyperlinks"),m_oInsertHyperlinks)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"insertRows"),	m_oInsertRows)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"objects"),		m_oObjects)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"pivotTables"),	m_oPivotTables)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"scenarios"),		m_oScenarios)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"selectLockedCells"),m_oSelectLockedCells)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"selectUnlockedCells"),m_oSelectUnlockedCells)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"sheet"),			m_oSheet)
+							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"sort"),			m_oSort)*/
+
+//serialize
+		/* if (c_oSerWorksheetProtection.AlgorithmName == type) {
+						sheetProtection.algorithmName = this.stream.GetUChar();
+					} else if (c_oSerWorksheetProtection.SpinCount == type) {
+						sheetProtection.spinCount = this.stream.GetLong();
+					} else if (c_oSerWorksheetProtection.HashValue == type) {
+						sheetProtection.hashValue = this.stream.GetString2LE(length);
+					} else if (c_oSerWorksheetProtection.SaltValue == type) {
+						sheetProtection.saltValue = this.stream.GetString2LE(length);
+					} else if (c_oSerWorksheetProtection.Password == type) {
+						sheetProtection.password = this.stream.GetString2LE(length);
+					} else if (c_oSerWorksheetProtection.AutoFilter == type) {
+						sheetProtection.autoFilter = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.Content == type) {
+						sheetProtection.content = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.DeleteColumns == type) {
+						sheetProtection.deleteColumns = this.stream.GetBool(length);
+					} else if (c_oSerWorksheetProtection.DeleteRows == type) {
+						sheetProtection.deleteRows = this.stream.GetBool(length);
+					} else if (c_oSerWorksheetProtection.FormatCells == type) {
+						sheetProtection.formatCells = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.FormatColumns == type) {
+						sheetProtection.formatColumns = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.FormatRows == type) {
+						sheetProtection.formatRows = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.InsertColumns == type) {
+						sheetProtection.insertColumns = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.InsertHyperlinks == type) {
+						sheetProtection.insertHyperlinks = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.InsertRows == type) {
+						sheetProtection.insertRows = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.Objects == type) {
+						sheetProtection.objects = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.PivotTables == type) {
+						sheetProtection.pivotTables = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.Scenarios == type) {
+						sheetProtection.scenarios = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.SelectLockedCells == type) {
+						sheetProtection.selectLockedCells = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.SelectUnlockedCell == type) {
+						sheetProtection.selectUnlockedCell = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.Sheet == type) {
+						sheetProtection.sheet = this.stream.GetBool();
+					} else if (c_oSerWorksheetProtection.Sort == type) {
+						sheetProtection.sort = this.stream.GetBool();*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("password" === reader.GetName()) {
+				val = reader.GetValue();
+				this.password = val;
+			} else if ("algorithmName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.algorithmName = AscCommonExcel.getAlgorithmNameFromXml(val);
+			} else if ("hashValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.hashValue = val;
+			} else if ("saltValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.saltValue = val;
+			} else if ("spinCount" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.spinCount = val;
+			} else if ("autoFilter" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.autoFilter = val;
+			} else if ("content" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.content = val;
+			} else if ("deleteColumns" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.deleteColumns = val;
+			} else if ("deleteRows" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.deleteRows = val;
+			} else if ("formatCells" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.formatCells = val;
+			} else if ("formatColumns" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.formatColumns = val;
+			} else if ("formatRows" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.formatRows = val;
+			} else if ("insertColumns" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.insertColumns = val;
+			} else if ("insertHyperlinks" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.insertHyperlinks = val;
+			} else if ("insertRows" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.insertRows = val;
+			} else if ("objects" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.objects = val;
+			} else if ("pivotTables" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.pivotTables = val;
+			} else if ("scenarios" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.scenarios = val;
+			} else if ("selectLockedCells" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.selectLockedCells = val;
+			} else if ("selectUnlockedCells" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.selectUnlockedCells = val;
+			} else if ("sheet" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.sheet = val;
+			} else if ("sort" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.sort = val;
+			}
+		}
+	};
+
 
 	function COfficeArtExtensionList () {
 		this.arrExt = [];
@@ -9299,21 +9771,69 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
-	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, (L"activeCell"),\tm_oActiveCell)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"activeCellId"),\tm_oActiveCellId)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"sqref"),\t\t\tm_oSqref)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"pane"),\t\t\tm_oPane)'
-	var _documentation = '<xsd:attribute name="pane" type="ST_Pane" use="optional" default="topLeft"/>\n' +
-		'2415 <xsd:attribute name="activeCell" type="ST_CellRef" use="optional"/>\n' +
-		'2416 <xsd:attribute name="activeCellId" type="xsd:unsignedInt" use="optional" default="0"/>\n' +
-		'2417 <xsd:attribute name="sqref" type="ST_Sqref" use="optional" default="A1"/>'
-	var _serialize = 'var res = c_oSerConstants.ReadOk;\n' + '\t\t\tif (c_oSer_Selection.ActiveCell === type) {\n' +
-		'\t\t\t\tvar activeCell = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));\n' + '\t\t\t\tif (activeCell) {\n' +
-		'\t\t\t\t\tselectionRange.activeCell = new AscCommon.CellBase(activeCell.r1, activeCell.c1);\n' + '\t\t\t\t}\n' +
-		'\t\t\t} else if (c_oSer_Selection.ActiveCellId === type) {\n' + '\t\t\t\tselectionRange.activeCellId = this.stream.GetLong();\n' +
-		'\t\t\t} else if (c_oSer_Selection.Sqref === type) {\n' + '\t\t\t\tvar sqRef = this.stream.GetString2LE(length);\n' +
-		'\t\t\t\tvar selectionNew = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);\n' + '\t\t\t\tif (selectionNew.length > 0) {\n' +
-		'\t\t\t\t\tselectionRange.ranges = selectionNew;\n' + '\t\t\t\t}\n' + '\t\t\t} else if (c_oSer_Selection.Pane === type) {\n' + '\t\t\t\tthis.stream.GetUChar();'
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, (L"password"),\t\tm_oPassword)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"algorithmName"),\tm_oAlgorithmName)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"hashValue"),\t\tm_oHashValue)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"saltValue"),\t\tm_oSaltValue)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"spinCount"),\t\tm_oSpinCount)\n' + '\t\t\t\t\t\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"autoFilter"),\tm_oAutoFilter)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"content"),\t\tm_oContent)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"deleteColumns"),\tm_oDeleteColumns)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"deleteRows"),\tm_oDeleteRows)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"formatCells"),\tm_oFormatCells)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"formatColumns"),\tm_oFormatColumns)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"formatRows"),\tm_oFormatRows)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"insertColumns"),\tm_oInsertColumns)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"insertHyperlinks"),m_oInsertHyperlinks)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"insertRows"),\tm_oInsertRows)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"objects"),\t\tm_oObjects)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"pivotTables"),\tm_oPivotTables)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"scenarios"),\t\tm_oScenarios)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"selectLockedCells"),m_oSelectLockedCells)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"selectUnlockedCells"),m_oSelectUnlockedCells)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"sheet"),\t\t\tm_oSheet)\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"sort"),\t\t\tm_oSort)'
+	var _documentation = '<xsd:attribute name="algorithmName" type="s:ST_Xstring" use="optional"/>\n' +
+		'2914 <xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>\n' + '2915 <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>\n' +
+		'2916 <xsd:attribute name="spinCount" type="xsd:unsignedInt" use="optional"/>\n' +
+		'2917 <xsd:attribute name="sheet" type="xsd:boolean" use="optional" default="false"/>\n' +
+		'2918 <xsd:attribute name="objects" type="xsd:boolean" use="optional" default="false"/>\n' +
+		'2919 <xsd:attribute name="scenarios" type="xsd:boolean" use="optional" default="false"/>\n' +
+		'2920 <xsd:attribute name="formatCells" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2921 <xsd:attribute name="formatColumns" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2922 <xsd:attribute name="formatRows" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2923 <xsd:attribute name="insertColumns" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2924 <xsd:attribute name="insertRows" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2925 <xsd:attribute name="insertHyperlinks" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2926 <xsd:attribute name="deleteColumns" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2927 <xsd:attribute name="deleteRows" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2928 <xsd:attribute name="selectLockedCells" type="xsd:boolean" use="optional" default="false"/>\n' +
+		'2929 <xsd:attribute name="sort" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2930 <xsd:attribute name="autoFilter" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2931 <xsd:attribute name="pivotTables" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'2932 <xsd:attribute name="selectUnlockedCells" type="xsd:boolean" use="optional" default="false"/>'
+	var _serialize = ' if (c_oSerWorksheetProtection.AlgorithmName == type) {\n' + '\t\t\t\tsheetProtection.algorithmName = this.stream.GetUChar();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.SpinCount == type) {\n' + '\t\t\t\tsheetProtection.spinCount = this.stream.GetLong();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.HashValue == type) {\n' + '\t\t\t\tsheetProtection.hashValue = this.stream.GetString2LE(length);\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.SaltValue == type) {\n' + '\t\t\t\tsheetProtection.saltValue = this.stream.GetString2LE(length);\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.Password == type) {\n' + '\t\t\t\tsheetProtection.password = this.stream.GetString2LE(length);\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.AutoFilter == type) {\n' + '\t\t\t\tsheetProtection.autoFilter = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.Content == type) {\n' + '\t\t\t\tsheetProtection.content = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.DeleteColumns == type) {\n' + '\t\t\t\tsheetProtection.deleteColumns = this.stream.GetBool(length);\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.DeleteRows == type) {\n' + '\t\t\t\tsheetProtection.deleteRows = this.stream.GetBool(length);\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.FormatCells == type) {\n' + '\t\t\t\tsheetProtection.formatCells = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.FormatColumns == type) {\n' + '\t\t\t\tsheetProtection.formatColumns = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.FormatRows == type) {\n' + '\t\t\t\tsheetProtection.formatRows = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.InsertColumns == type) {\n' + '\t\t\t\tsheetProtection.insertColumns = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.InsertHyperlinks == type) {\n' + '\t\t\t\tsheetProtection.insertHyperlinks = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.InsertRows == type) {\n' + '\t\t\t\tsheetProtection.insertRows = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.Objects == type) {\n' + '\t\t\t\tsheetProtection.objects = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.PivotTables == type) {\n' + '\t\t\t\tsheetProtection.pivotTables = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.Scenarios == type) {\n' + '\t\t\t\tsheetProtection.scenarios = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.SelectLockedCells == type) {\n' + '\t\t\t\tsheetProtection.selectLockedCells = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.SelectUnlockedCell == type) {\n' + '\t\t\t\tsheetProtection.selectUnlockedCell = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.Sheet == type) {\n' + '\t\t\t\tsheetProtection.sheet = this.stream.GetBool();\n' +
+		'\t\t\t} else if (c_oSerWorksheetProtection.Sort == type) {\n' + '\t\t\t\tsheetProtection.sort = this.stream.GetBool();'
 
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);
