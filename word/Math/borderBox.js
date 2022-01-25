@@ -559,6 +559,24 @@ CBorderBox.prototype.Get_InterfaceProps = function()
 {
     return new CMathMenuBorderBox(this);
 };
+CBorderBox.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	console.log(this)
+
+	var strSymbol = String.fromCharCode(9645);
+	var Base = this.getBase().GetTextOfElement();
+
+	var StartBracet = Base.length > 1 ? "(" : "";
+	var CloseBracet = Base.length > 1 ? ")" : "";
+	
+	strTemp =
+		strSymbol
+		+ StartBracet
+		+ Base
+		+ CloseBracet;
+
+	return strTemp;
+};
 
 /**
  *
@@ -945,6 +963,23 @@ CBox.prototype.Apply_ForcedBreak = function(Props)
     if(Props.Action & c_oMathMenuAction.DeleteForcedBreak)
         Props.Action ^= c_oMathMenuAction.DeleteForcedBreak;
 };
+CBox.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+
+	var strSymbol = String.fromCharCode(9633);
+	var Base = this.getBase().GetTextOfElement();
+
+	var StartBracet = Base.length > 1 ? "(" : "";
+	var CloseBracet = Base.length > 1 ? ")" : "";
+	
+	strTemp =
+		strSymbol
+		+ StartBracet
+		+ Base
+		+ CloseBracet;
+
+	return strTemp;
+};
 
 /**
  *
@@ -1082,6 +1117,23 @@ CBar.prototype.raw_SetLinePos = function(Value)
     this.RecalcInfo.bProps = true;
     this.ApplyProperties();
 };
+CBar.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+
+	var strSymbol = String.fromCharCode((this.Pr.pos) ? 9601 : 175);
+	var Base = this.getBase().GetTextOfElement();
+
+	var StartBracet = Base.length > 1 ? "(" : "";
+	var CloseBracet = Base.length > 1 ? ")" : "";
+	
+	strTemp =
+		strSymbol
+		+ StartBracet
+		+ Base
+		+ CloseBracet;
+
+	return strTemp;
+}
 
 /**
  *

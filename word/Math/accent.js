@@ -688,6 +688,21 @@ CAccent.prototype.Get_InterfaceProps = function()
 {
     return new CMathMenuAccent(this);
 };
+CAccent.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var Base = this.getBase().GetTextOfElement();
+	var Accent = String.fromCharCode(this.Pr.chr);
+	var StartBracet = Base.length > 1 ? "(" : "";
+	var CloseBracet = Base.length > 1 ? ")" : "";
+	
+	strTemp =
+		StartBracet
+		+ Base
+		+ CloseBracet
+		+ Accent;
+
+	return strTemp;
+};
 
 /**
  *

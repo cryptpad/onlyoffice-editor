@@ -541,6 +541,19 @@ CDegree.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos == 1 && false === this.Is_SelectInside(); // находимся в итераторе
 };
+CDegree.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var Base = this.getBase().GetTextOfElement();
+	var type = this.Pr.type === 1 ? '^' : '_';
+	var Iterator = this.getIterator().GetTextOfElement();
+
+	strTemp =
+		Base
+		+ type
+		+ Iterator;
+
+	return strTemp;
+};
 
 /**
  *
@@ -1194,6 +1207,33 @@ CDegreeSubSup.prototype.Get_InterfaceProps = function()
 CDegreeSubSup.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos !== 0 && false === this.Is_SelectInside(); // находимся в итераторе
+};
+CDegreeSubSup.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var Base = this.getBase().GetTextOfElement();
+
+	var StartBracet = Base.length > 1 ? "〖" : "";
+	var CloseBracet = Base.length > 1 ? "〗" : "";
+
+	var lower = this.getLowerIterator().GetTextOfElement();
+	var upper = this.getUpperIterator().GetTextOfElement();
+
+	var BaseString =
+		StartBracet
+		+ Base
+		+ CloseBracet ;
+	
+	strTemp =
+		(this.Pr.type == 1 ? BaseString : '')
+		+ (this.Pr.type == -1 ? "(" : '')
+		+ "_"
+		+ lower
+		+ "^"
+		+ upper
+		+ (this.Pr.type == -1 ? ")" : '')
+		+ (this.Pr.type == -1 ? BaseString : '');
+
+	return strTemp;
 };
 
 /**
