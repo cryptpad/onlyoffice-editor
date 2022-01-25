@@ -9553,6 +9553,7 @@ function drawPieChart(chart, chartsDrawer) {
 	this.angleFor3D = null;
 	this.properties3d = null;
 	this.usually3dPropsCalc = [];
+	this.empty3DSegment = null;
 
 	this.tempDrawOrder = null;
 }
@@ -10011,6 +10012,7 @@ drawPieChart.prototype = {
 		if(!numCache || !numCache.pts) {
 			return;
 		}
+		this.empty3DSegment = numCache.pts.length === 1;
 
 		var sumData = this.cChartDrawer._getSumArray(numCache.pts, true);
 
@@ -10157,6 +10159,7 @@ drawPieChart.prototype = {
 		if(!numCache) {
 			return;
 		}
+		this.empty3DSegment = numCache.pts.length === 1;
 
 		var sumData = this.cChartDrawer._getSumArray(numCache.pts, true);
 
@@ -10386,7 +10389,7 @@ drawPieChart.prototype = {
 			return pathId;
 		};
 
-		var calculateUpFace = function (startAng, swapAng) {
+		var calculateUpFace = function (startAng, swapAng, empty) {
 
 			var pathId = oChartSpace.AllocPath();
 			var path = oChartSpace.GetPath(pathId);
@@ -10395,9 +10398,15 @@ drawPieChart.prototype = {
 			var p = getSegmentPoints(startAng, endAng);
 
 			path.moveTo(xCenter / pxToMm * pathW, yCenter / pxToMm * pathH);
-			path.lnTo(p.x0 / pxToMm * pathW, p.y0 / pxToMm * pathH);
-			path.arcTo(radius1 / pxToMm * pathW, radius2 / pxToMm * pathH, -1 * stAng * cToDeg, -1 * swapAng * cToDeg);
-			path.lnTo(xCenter / pxToMm * pathW, yCenter / pxToMm * pathH);
+			if (empty) {
+				path.moveTo(p.x0 / pxToMm * pathW, p.y0 / pxToMm * pathH);
+				path.arcTo(radius1 / pxToMm * pathW, radius2 / pxToMm * pathH, -1 * stAng * cToDeg, -1 * swapAng * cToDeg);
+				path.moveTo(xCenter / pxToMm * pathW, yCenter / pxToMm * pathH);
+			} else {
+				path.lnTo(p.x0 / pxToMm * pathW, p.y0 / pxToMm * pathH);
+				path.arcTo(radius1 / pxToMm * pathW, radius2 / pxToMm * pathH, -1 * stAng * cToDeg, -1 * swapAng * cToDeg);
+				path.lnTo(xCenter / pxToMm * pathW, yCenter / pxToMm * pathH);
+			}
 
 			return pathId;
 		};
@@ -10437,7 +10446,7 @@ drawPieChart.prototype = {
 		var insidePath = calculateInsideFaces(stAng, swAng);
 
 		//UP FACE
-		var upPath = calculateUpFace(stAng, swAng);
+		var upPath = calculateUpFace(stAng, swAng, this.empty3DSegment);
 
 		//DOWN FACE
 		var downPath = calculateDownFace(stAng, swAng);
@@ -10572,7 +10581,7 @@ drawPieChart.prototype = {
 			return pathId;
 		};
 
-		var calculateUpFace = function (startAng, swapAng) {
+		var calculateUpFace = function (startAng, swapAng, empty) {
 
 			if(isNaN(startAng) ||  isNaN(swapAng)) {
 				return null;
@@ -10587,9 +10596,15 @@ drawPieChart.prototype = {
 			var y0 = (yCenter - radiusSpec * Math.sin(startAng));
 
 			path.moveTo(pointCenter1.x / pxToMm * pathW, pointCenter1.y / pxToMm * pathH);
-			path.lnTo(x0 / pxToMm * pathW, y0 / pxToMm * pathH);
-			path.arcTo(radiusUp1 / pxToMm * pathW, radiusUp2 / pxToMm * pathH, -1 * startAng * cToDeg, -1 * swapAng * cToDeg);
-			path.lnTo(pointCenter1.x / pxToMm * pathW, pointCenter1.y / pxToMm * pathH);
+			if (empty) {
+				path.moveTo(x0 / pxToMm * pathW, y0 / pxToMm * pathH);
+				path.arcTo(radiusUp1 / pxToMm * pathW, radiusUp2 / pxToMm * pathH, -1 * startAng * cToDeg, -1 * swapAng * cToDeg);
+				path.moveTo(pointCenter1.x / pxToMm * pathW, pointCenter1.y / pxToMm * pathH);
+			} else {
+				path.lnTo(x0 / pxToMm * pathW, y0 / pxToMm * pathH);
+				path.arcTo(radiusUp1 / pxToMm * pathW, radiusUp2 / pxToMm * pathH, -1 * startAng * cToDeg, -1 * swapAng * cToDeg);
+				path.lnTo(pointCenter1.x / pxToMm * pathW, pointCenter1.y / pxToMm * pathH);
+			}
 
 
 			return pathId;
@@ -10649,7 +10664,7 @@ drawPieChart.prototype = {
 			swapAngle2);
 
 		//UP FACE
-		var upPath = calculateUpFace(upFaceSign * startAngle1, upFaceSign * swapAngle1);
+		var upPath = calculateUpFace(upFaceSign * startAngle1, upFaceSign * swapAngle1, this.empty3DSegment);
 
 		//DOWN FACE
 		var downPath = calculateDownFace(startAngle2, swapAngle2);
