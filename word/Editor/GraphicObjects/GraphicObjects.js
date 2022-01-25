@@ -294,6 +294,7 @@ CGraphicObjects.prototype =
     createImage: DrawingObjectsController.prototype.createImage,
     createOleObject: DrawingObjectsController.prototype.createOleObject,
     createTextArt: DrawingObjectsController.prototype.createTextArt,
+    getOleObject: DrawingObjectsController.prototype.getOleObject,
     getChartObject: DrawingObjectsController.prototype.getChartObject,
     getChartSpace2: DrawingObjectsController.prototype.getChartSpace2,
     CreateDocContent: DrawingObjectsController.prototype.CreateDocContent,
@@ -1526,9 +1527,14 @@ CGraphicObjects.prototype =
 
     handleOleObjectDoubleClick: function(drawing, oleObject, e, x, y, pageIndex)
     {
-		if(drawing && drawing.ParaMath){
-			editor.sync_OnConvertEquationToMath(drawing);
-		}
+        if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
+        {
+            editor.asc_doubleClickOnTableOleObject(oleObject);
+        }
+        return;
+        if(drawing && drawing.ParaMath){
+          editor.sync_OnConvertEquationToMath(drawing);
+        }
         else if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props) || !this.document.CanEdit())
         {
             var pluginData = new Asc.CPluginData();

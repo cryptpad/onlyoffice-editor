@@ -8444,6 +8444,29 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_doubleClickOnChart", obj);
 	};
 
+	asc_docs_api.prototype.asc_doubleClickOnTableOleObject    = function(obj)
+	{
+		this.isChartEditor = true;	// Для совместного редактирования
+		this.asc_onOpenChartFrame();
+
+		if(!window['IS_NATIVE_EDITOR']) {
+			this.WordControl.onMouseUpMainSimple();
+		}
+		this.sendEvent("asc_doubleClickOnChart", obj); // TODO: change event type
+	};
+
+
+	asc_docs_api.prototype.asc_putBinaryDataToFrameFromTableOleObject    = function(oleObject)
+	{
+		if (oleObject instanceof AscFormat.COleObject) {
+			var dataSize = oleObject.m_aBinaryData.length;
+			var data = AscCommon.Base64.encode(oleObject.m_aBinaryData);
+			return {
+				binary: "XLSY;v2;" + dataSize  + ";" + data
+			};
+		}
+		return { binary: null };
+	}
 	asc_docs_api.prototype.asc_onCloseChartFrame               = function()
 	{
 		AscCommon.baseEditorsApi.prototype.asc_onCloseChartFrame.call(this);
