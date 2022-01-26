@@ -194,7 +194,11 @@
 		this.fullTextMessageCallback = null;
 		this.fullTextMessageCallbackArgs = null;
 
+		this.isMouseDown = false;
 		this.isMouseMoveBetweenDownUp = false;
+		this.mouseMoveEpsilon = 5;
+		this.mouseDownCoords = { X : 0, Y : 0 };
+		this.mouseDownLinkObject = null;
 
 		var oThis = this;
 
@@ -905,64 +909,102 @@
 			this.canvas.style.cursor = cursor;
 		};
 
+		this.getPageLinkByMouse = function()
+		{
+			var pageObject = this.getPageByCoords(AscCommon.global_mouseEvent.X - this.x, AscCommon.global_mouseEvent.Y - this.y);
+			if (!pageObject)
+				return null;
+
+			var pageLinks = this.pagesInfo.pages[pageObject.index];
+			if (pageLinks.links)
+			{
+				for (var i = 0, len = pageLinks.links.length; i < len; i++)
+				{
+					if (pageObject.x >= pageLinks.links[i]["x"] && pageObject.x <= (pageLinks.links[i]["x"] + pageLinks.links[i]["w"]) &&
+						pageObject.y >= pageLinks.links[i]["y"] && pageObject.y <= (pageLinks.links[i]["y"] + pageLinks.links[i]["h"]))
+					{
+						return pageLinks.links[i];
+					}
+				}
+			}
+			return null;
+		};
+
 		this.onMouseDown = function(e)
 		{
 			AscCommon.stopEvent(e);
+			oThis.isMouseDown = true;
 
 			if (!oThis.file || !oThis.file.isValid())
 				return;
 
-			oThis.isMouseMoveBetweenDownUp = false;
-
 			AscCommon.check_MouseDownEvent(e, true);
 			AscCommon.global_mouseEvent.LockMouse();
 
-			if (AscCommon.global_keyboardEvent.CtrlKey)
+			oThis.mouseDownCoords.X = AscCommon.global_mouseEvent.X;
+			oThis.mouseDownCoords.Y = AscCommon.global_mouseEvent.Y;
+
+			oThis.isMouseMoveBetweenDownUp = false;
+			oThis.mouseDownLinkObject = oThis.getPageLinkByMouse();
+
+			// нажали мышь - запомнили координаты и находимся ли на ссылке
+			// при выходе за epsilon на mouseMove - сэмулируем нажатие
+			// так что тут только курсор
+
+			var cursorType;
+			if (oThis.mouseDownLinkObject)
+				cursorType = "pointer";
+			else
 			{
-				var pageObject = oThis.getPageByCoords(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
-				if (pageObject)
-				{
-					// links
-					var pageLinks = oThis.pagesInfo.pages[pageObject.index];
-					if (pageLinks.links)
-					{
-						for (var i = 0, len = pageLinks.links.length; i < len; i++)
-						{
-							if (pageObject.x >= pageLinks.links[i]["x"] && pageObject.x <= (pageLinks.links[i]["x"] + pageLinks.links[i]["w"]) &&
-								pageObject.y >= pageLinks.links[i]["y"] && pageObject.y <= (pageLinks.links[i]["y"] + pageLinks.links[i]["h"]))
-							{
-								oThis.setCursorType("pointer");
-								oThis.navigateToLink(pageLinks.links[i]);
-								return;
-							}
-						}
-					}
-				}
+				if (oThis.MouseHandObject)
+					cursorType = "grabbing";
+				else
+					cursorType = "default";
 			}
 
+			oThis.setCursorType(cursorType);
+
+			if (!oThis.MouseHandObject && !oThis.mouseDownLinkObject)
+			{
+				// ждать смысла нет
+				oThis.isMouseMoveBetweenDownUp = true;
+				oThis.onMouseDownEpsilon();
+			}
+		};
+
+		this.onMouseDownEpsilon = function()
+		{
 			if (oThis.MouseHandObject)
 			{
-				oThis.MouseHandObject.X = AscCommon.global_mouseEvent.X;
-				oThis.MouseHandObject.Y = AscCommon.global_mouseEvent.Y;
+				if (oThis.mouseDownLinkObject)
+				{
+					// если нажали на ссылке - то не зажимаем лапу
+					oThis.setCursorType("pointer");
+					return;
+				}
+				// режим лапы. просто начинаем режим Active - зажимаем лапу
+				oThis.setCursorType("grabbing");
+				oThis.MouseHandObject.X = oThis.mouseDownCoords.X;
+				oThis.MouseHandObject.Y = oThis.mouseDownCoords.Y;
 				oThis.MouseHandObject.Active = true;
 				oThis.MouseHandObject.ScrollX = oThis.scrollX;
 				oThis.MouseHandObject.ScrollY = oThis.scrollY;
-				oThis.setCursorType("grabbing");
 				return;
 			}
 
-			var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
-			oThis.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+			var pageObjectLogic = this.getPageByCoords2(oThis.mouseDownCoords.X - oThis.x, oThis.mouseDownCoords.Y - oThis.y);
+			this.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
 
-			if (-1 === oThis.timerScrollSelect && AscCommon.global_mouseEvent.IsLocked)
+			if (-1 === this.timerScrollSelect && AscCommon.global_mouseEvent.IsLocked)
 			{
-				oThis.timerScrollSelect = setInterval(oThis.selectWheel, 20);
+				this.timerScrollSelect = setInterval(this.selectWheel, 20);
 			}
 		};
-		
+
 		this.onMouseUp = function(e)
 		{
 			AscCommon.stopEvent(e);
+			oThis.isMouseDown = false;
 
 			if (!oThis.file || !oThis.file.isValid())
 				return;
@@ -989,25 +1031,61 @@
 			}
 
 			AscCommon.check_MouseUpEvent(e);
-			if (oThis.MouseHandObject && oThis.MouseHandObject.Active)
-			{				
-				oThis.MouseHandObject.Active = false;
-				oThis.setCursorType("grab");
 
-				if (!oThis.isMouseMoveBetweenDownUp)
+			if (oThis.MouseHandObject)
+			{
+				if (oThis.mouseDownLinkObject)
 				{
-					// делаем клик в логическом документе, чтобы сбросить селект, если он был
-					var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
-					oThis.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
-					oThis.file.onMouseUp(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+					// смотрим - если совпало со ссылкой при нажатии - то переходим по ней
+					var mouseUpLinkObject = oThis.getPageLinkByMouse();
+					if (mouseUpLinkObject === oThis.mouseDownLinkObject)
+					{
+						oThis.navigateToLink(mouseUpLinkObject);
+					}
+
+					// если нет - то ничего не делаем
+					if (mouseUpLinkObject)
+						oThis.setCursorType("pointer");
+					else
+						oThis.setCursorType("grab");
+				}
+				else if (oThis.MouseHandObject.Active)
+				{
+					oThis.MouseHandObject.Active = false;
+					oThis.setCursorType("grab");
+
+					if (!oThis.isMouseMoveBetweenDownUp)
+					{
+						// делаем клик в логическом документе, чтобы сбросить селект, если он был
+						var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
+						oThis.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+						oThis.file.onMouseUp(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+					}
 				}
 
 				oThis.isMouseMoveBetweenDownUp = false;
+				oThis.MouseHandObject.Active = false;
+				oThis.mouseDownLinkObject = null;
 				return;
 			}
 
+			if (oThis.mouseDownLinkObject)
+			{
+				// значит не уходили с ссылки
+				// проверим - остались ли на ней
+				var mouseUpLinkObject = oThis.getPageLinkByMouse();
+				if (mouseUpLinkObject === oThis.mouseDownLinkObject)
+				{
+					oThis.navigateToLink(mouseUpLinkObject);
+				}
+			}
+
+			// если было нажатие - то отжимаем
+			if (!oThis.isMouseMoveBetweenDownUp)
+				oThis.file.onMouseUp();
+
 			oThis.isMouseMoveBetweenDownUp = false;
-			oThis.file.onMouseUp();
+			oThis.mouseDownLinkObject = null;
 
 			if (-1 !== oThis.timerScrollSelect)
 			{
@@ -1022,12 +1100,28 @@
 				return;
 
 			AscCommon.check_MouseMoveEvent(e);
-			oThis.isMouseMoveBetweenDownUp = true;
+			if (e && e.preventDefault)
+				e.preventDefault();
+
+			// если мышка нажата и еще не вышли за eps - то проверяем, модет вышли сейчас?
+			// и, если вышли - то эмулируем
+			if (oThis.isMouseDown && !oThis.isMouseMoveBetweenDownUp)
+			{
+				var offX = Math.abs(oThis.mouseDownCoords.X - AscCommon.global_mouseEvent.X);
+				var offY = Math.abs(oThis.mouseDownCoords.Y - AscCommon.global_mouseEvent.Y);
+
+				if (offX > oThis.mouseMoveEpsilon || offY > oThis.mouseMoveEpsilon)
+				{
+					oThis.isMouseMoveBetweenDownUp = true;
+					oThis.onMouseDownEpsilon();
+				}
+			}
 
 			if (oThis.MouseHandObject)
 			{
 				if (oThis.MouseHandObject.Active)
 				{
+					// двигаем рукой
 					oThis.setCursorType("grabbing");
 
 					var scrollX = AscCommon.global_mouseEvent.X - oThis.MouseHandObject.X;
@@ -1050,42 +1144,75 @@
 
 					return;
 				}
-			}
-
-			var pageObject = oThis.getPageByCoords(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
-			if (pageObject && !oThis.file.Selection.IsSelection)
-			{
-				// links
-				var pageLinks = oThis.pagesInfo.pages[pageObject.index];
-				if (pageLinks.links)
+				else
 				{
-					for (var i = 0, len = pageLinks.links.length; i < len; i++)
+					if (oThis.isMouseDown)
 					{
-						if (pageObject.x >= pageLinks.links[i]["x"] && pageObject.x <= (pageLinks.links[i]["x"] + pageLinks.links[i]["w"]) &&
-							pageObject.y >= pageLinks.links[i]["y"] && pageObject.y <= (pageLinks.links[i]["y"] + pageLinks.links[i]["h"]))
+						if (oThis.mouseDownLinkObject)
 						{
+							// не меняем курсор с "ссылочного", если зажимали на ссылке
 							oThis.setCursorType("pointer");
-							return;
+						}
+						else
+						{
+							// даже если не двигали еще и ждем eps, все равно курсор меняем на зажатый
+							oThis.setCursorType("grabbing");
 						}
 					}
+					else
+					{
+						// просто водим мышкой - тогда смотрим, на ссылке или нет, чтобы выставить курсор
+						var mouseMoveLinkObject = oThis.getPageLinkByMouse();
+						if (mouseMoveLinkObject)
+							oThis.setCursorType("pointer");
+						else
+							oThis.setCursorType("grab");
+					}
 				}
-			}
-
-			if (oThis.MouseHandObject)
-			{
-				oThis.setCursorType("grab");
+				return;
 			}
 			else
 			{
-				oThis.setCursorType("default");
+				if (oThis.mouseDownLinkObject)
+				{
+					// селект начат на ссылке. смотрим, нужно ли начать реально селект
+					if (oThis.isMouseMoveBetweenDownUp)
+					{
+						// вышли за eps
+						oThis.mouseDownLinkObject = null;
+						oThis.setCursorType("default");
+					}
+					else
+					{
+						oThis.setCursorType("pointer");
+					}
+				}
 
-				var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
-				oThis.file.onMouseMove(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+				if (oThis.isMouseDown)
+				{
+					if (oThis.isMouseMoveBetweenDownUp)
+					{
+						// нажатая мышка - курсор всегда default (так как за eps вышли)
+						oThis.setCursorType("default");
+
+						var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
+						oThis.file.onMouseMove(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+					}
+					else
+					{
+						// пока на ссылке
+						oThis.setCursorType("pointer");
+					}
+				}
+				else
+				{
+					var mouseMoveLinkObject = oThis.getPageLinkByMouse();
+					if (mouseMoveLinkObject)
+						oThis.setCursorType("pointer");
+					else
+						oThis.setCursorType("default");
+				}
 			}
-
-			if (!e) return false;
-			if (e.preventDefault)
-				e.preventDefault();
 			return false;
 		};
 
