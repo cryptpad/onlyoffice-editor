@@ -189,12 +189,12 @@ BinaryCommonWriter.prototype.WriteBorder = function(border)
         if (null != border.Space) {
             this.memory.WriteByte(c_oSerBorderType.SpacePoint);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.writeMmToPt(border.Space);
+            this.WriteLong(border.getSpaceInPoint());
         }
         if (null != border.Size) {
             this.memory.WriteByte(c_oSerBorderType.Size8Point);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.writeMmToPt(8 * border.Size);
+            this.WriteLong(border.getSizeIn8Point());
         }
         if (null != border.Unifill || (null != border.Color && border.Color.Auto)) {
             this.memory.WriteByte(c_oSerBorderType.ColorTheme);

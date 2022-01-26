@@ -2967,12 +2967,12 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			if (null != border.Space) {
 				this.memory.WriteByte(c_oSerPageBorders.Space);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToPt(border.Space);
+				this.bs.WriteLong(border.getSpaceInPoint());
 			}
 			if (null != border.Size) {
 				this.memory.WriteByte(c_oSerPageBorders.Sz);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToPt(8 * border.Size);
+				this.bs.WriteLong(border.getSizeIn8Point());
 			}
 			if (null != border.Unifill || (null != border.Color && border.Color.Auto)) {
 				this.memory.WriteByte(c_oSerPageBorders.ColorTheme);
@@ -9067,7 +9067,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                             EndRun.SetReviewTypeWithInfo(reviewtype_Add, trackRevision.ins, false);
                         } 
                     }
-                    this.paragraph.TextPr.Apply_TextPr(rPr);
+                    //this.paragraph.TextPr.Apply_TextPr(rPr);
 				}
 				else
 					res = c_oSerConstants.ReadUnknown;
@@ -9133,7 +9133,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
         }
 		else if( c_oSerBorderType.SpacePoint === type )
 		{
-			Border.Space = g_dKoef_pt_to_mm * this.stream.GetULongLE();
+			Border.setSpaceInPoint(this.stream.GetULongLE());
 		}
         else if( c_oSerBorderType.Size === type )
         {
@@ -9141,7 +9141,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
         }
 		else if( c_oSerBorderType.Size8Point === type )
 		{
-			Border.Size = g_dKoef_pt_to_mm * this.stream.GetULongLE() / 8;
+			Border.setSizeIn8Point(this.stream.GetULongLE());
 		}
         else if( c_oSerBorderType.Value === type )
         {
@@ -9960,28 +9960,16 @@ function Binary_rPrReader(doc, oReadResult, stream)
 				rPr.RTL = this.stream.GetBool();
                 break;
 			case c_oSerProp_rPrType.Lang:
-				if(null == rPr.Lang)
-					rPr.Lang = new CLang();
 				var sLang = this.stream.GetString2LE(length);
-				var nLcid = Asc.g_oLcidNameToIdMap[sLang];
-				if(null != nLcid)
-					rPr.Lang.Val = nLcid;
+				rPr.Lang.Val = Asc.g_oLcidNameToIdMap[sLang];
                 break;
 			case c_oSerProp_rPrType.LangBidi:
-				if(null == rPr.Lang)
-					rPr.Lang = new CLang();
 				var sLang = this.stream.GetString2LE(length);
-				var nLcid = Asc.g_oLcidNameToIdMap[sLang];
-				if(null != nLcid)
-					rPr.Lang.Bidi = nLcid;
+				rPr.Lang.Bidi = Asc.g_oLcidNameToIdMap[sLang];
                 break;
 			case c_oSerProp_rPrType.LangEA:
-				if(null == rPr.Lang)
-					rPr.Lang = new CLang();
 				var sLang = this.stream.GetString2LE(length);
-				var nLcid = Asc.g_oLcidNameToIdMap[sLang];
-				if(null != nLcid)
-					rPr.Lang.EastAsia = nLcid;
+				rPr.Lang.EastAsia = Asc.g_oLcidNameToIdMap[sLang];
                 break;
 			case c_oSerProp_rPrType.ColorTheme:
                 var themeColor = {Auto: null, Color: null, Tint: null, Shade: null};
@@ -11753,7 +11741,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         var oThis = this;
         if (c_oSerRunType.rPr === type)
         {
-            var rPr = oParStruct.curRun.Pr;
+            var rPr = new CTextPr();
             res = this.brPrr.Read(length, rPr, oParStruct.curRun);
 			oParStruct.curRun.Set_Pr(rPr);
         }

@@ -4459,6 +4459,18 @@
 			sRes = "0" + sRes;
 		return sRes;
 	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function ByteToHex(nValue)
+	{
+		var sRes = nValue.toString(16);
+		if (sRes.length === 1)
+			sRes = "0" + sRes;
+		return sRes;
+	}
 
 	/**
 	 * Проверяем является ли заданный юникод цифрой
@@ -7465,6 +7477,7 @@
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
 	window["AscCommon"].IntToHex = IntToHex;
+	window["AscCommon"].ByteToHex = ByteToHex;
 	window["AscCommon"].IsDigit = IsDigit;
 	window["AscCommon"].IsLetter = IsLetter;
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;

@@ -9901,16 +9901,19 @@ CDocumentColor.prototype.SetFromHexColor = function(val) {
 		this.g = (rgb >> 8) & 0xFF;
 		this.b = rgb & 0xFF;
 	} else if (6 <= val.length || 3 === val.length) {
-		AscCommon.RgbaHexToRGBA(val);
+		var rgba = AscCommon.RgbaHexToRGBA(val);
+		this.r = rgba.R;
+		this.g = rgba.G;
+		this.b = rgba.B;
 	} else {
 		this.Auto = true;
 	}
 };
-CDocumentColor.prototype.ToHexColor = function(val) {
+CDocumentColor.prototype.ToHexColor = function() {
 	if (this.Auto) {
 		return "auto";
 	} else {
-		return (AscCommon.IntToHex(this.r) + AscCommon.IntToHex(this.g) + AscCommon.IntToHex(this.b)).toUpperCase();
+		return (AscCommon.ByteToHex(this.r) + AscCommon.ByteToHex(this.g) + AscCommon.ByteToHex(this.b)).toUpperCase();
 	}
 };
 
@@ -10586,6 +10589,26 @@ CDocumentBorder.prototype =
 CDocumentBorder.prototype.IsNone = function()
 {
 	return (this.Value === border_None);
+};
+CDocumentBorder.prototype.setSizeIn8Point = function(val)
+{
+	if(null !== val && undefined !== val) {
+		this.Size = g_dKoef_pt_to_mm * val / 8;
+	}
+};
+CDocumentBorder.prototype.getSizeIn8Point = function()
+{
+	return undefined !== this.Size ? Math.round(8 * this.Size * g_dKoef_mm_to_pt) : undefined;
+};
+CDocumentBorder.prototype.setSpaceInPoint = function(val)
+{
+	if(null !== val && undefined !== val) {
+		this.Space = g_dKoef_pt_to_mm * val;
+	}
+};
+CDocumentBorder.prototype.getSpaceInPoint = function(val)
+{
+	return undefined !== this.Space ? Math.round(this.Space * g_dKoef_mm_to_pt) : undefined;
 };
 /**
  * Получаем рассчитанную толщину линии в зависимости от типа.

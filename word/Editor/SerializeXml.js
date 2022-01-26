@@ -646,7 +646,7 @@
 				case "permStart":
 					break;
 				case "pPr":
-					this.Pr.fromXml(reader);
+					this.Pr.fromXml(reader, this);
 					break;
 				case "proofErr":
 					break;
@@ -668,7 +668,7 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		if (this.Pr) {
-			this.Pr.toXml(writer, "w:pPr");
+			this.Pr.toXml(writer, "w:pPr", this);
 		}
 		this.Content.forEach(function (item) {
 			switch (item.Type) {
@@ -693,7 +693,7 @@
 		});
 		writer.WriteXmlNodeEnd(name);
 	};
-	CParaPr.prototype.fromXml = function(reader) {
+	CParaPr.prototype.fromXml = function(reader, opt_paragraph) {
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -882,10 +882,24 @@
 				// 	this.Cnfstyle.fromXml(reader);
 				// 	break;
 				// }
+				case "rPr" : {
+					if (opt_paragraph) {
+						opt_paragraph.TextPr.Value.fromXml(reader);
+					}
+					break;
+				}
+				case "sectPr" : {
+					//todo paragraph
+					break;
+				}
+				case "pPrChange" : {
+					//todo paragraph
+					break;
+				}
 			}
 		}
 	};
-	CParaPr.prototype.toXml = function(writer, name) {
+	CParaPr.prototype.toXml = function(writer, name, opt_paragraph) {
 		var PStyle = CT_StringStax.prototype.fromVal(this.PStyle);
 		var KeepNext = CT_OnOff.prototype.fromVal(this.KeepNext);
 		var KeepLines = CT_OnOff.prototype.fromVal(this.KeepLines);
@@ -913,7 +927,7 @@
 		writer.WriteXmlNullable(this.FramePr, "w:framePr");
 		writer.WriteXmlNullable(WidowControl, "w:widowControl");
 		writer.WriteXmlNullable(this.NumPr, "w:numPr");//todo
-		writer.WriteXmlNullable(this.SuppressLineNumbers, "w:suppressLineNumbers");
+		writer.WriteXmlNullable(SuppressLineNumbers, "w:suppressLineNumbers");
 		writer.WriteXmlNullable(pBdr, "w:pBdr");
 		writer.WriteXmlNullable(this.Shd, "w:shd");
 		// writer.WriteXmlArray(this.Tabs, "w:tabs");//todo
@@ -939,6 +953,11 @@
 		writer.WriteXmlNullable(OutlineLvl, "w:outlineLvl");
 		// writer.WriteXmlNullable(this.Divid, "w:divId");
 		// writer.WriteXmlNullable(this.Cnfstyle, "w:cnfStyle");
+		if (opt_paragraph) {
+			writer.WriteXmlNullable(opt_paragraph.TextPr.Value, "w:rPr");
+			writer.WriteXmlNullable(this.Sectpr, "w:sectPr");
+			writer.WriteXmlNullable(this.Pprchange, "w:pPrChange");
+		}
 		writer.WriteXmlNodeEnd(name);
 	};
 	CFramePr.prototype.readAttr = function(reader) {
@@ -1080,77 +1099,37 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 	CDocumentShd.prototype.readAttr = function(reader) {
-		var themeColor = {Color: null, Tint: null, Shade: null};
-		var themeFill = {Color: null, Tint: null, Shade: null};
+		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
+		var themeFill = new CT_Color("fill", "themeFill", "themeFillTint", "themeFillShade");
 		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "val": {
-					this.Value = fromXml_ST_Shd(reader.GetValue());
-					break;
-				}
-				case "color": {
-					this.Color = new CDocumentColor(255, 255, 255);
-					this.Color.SetFromHexColor(reader.GetValue());
-					break;
-				}
-				case "themeColor": {
-					themeColor.Color = fromXml_ST_ThemeColor(reader.GetValue());
-					break;
-				}
-				case "themeTint": {
-					themeColor.Tint = reader.GetValueUInt();
-					break;
-				}
-				case "themeShade": {
-					themeColor.Shade = reader.GetValueUInt();
-					break;
-				}
-				case "fill": {
-					this.Fill = new CDocumentColor(255, 255, 255);
-					this.Fill.SetFromHexColor(reader.GetValue());
-					break;
-				}
-				case "themeFill": {
-					themeFill.Color = fromXml_ST_ThemeColor(reader.GetValue());
-					break;
-				}
-				case "themeFillTint": {
-					themeFill.Tint = reader.GetValueUInt();
-					break;
-				}
-				case "themeFillShade": {
-					themeFill.Shade = reader.GetValueUInt();
-					break;
-				}
+			var name = reader.GetNameNoNS();
+			if("val" === name) {
+				this.Value = fromXml_ST_Shd(reader.GetValue());
+			} else if(!themeColor.readAttrElem(reader, name)) {
+				themeFill.readAttrElem(reader, name)
 			}
 		}
-		var unifill = AscCommonWord.CreateThemeUnifill(themeColor.Color, themeColor.Tint, themeColor.Shade);
-		if (null != unifill)
-			this.Unifill = unifill;
-		unifill = AscCommonWord.CreateThemeUnifill(themeFill.Color, themeFill.Tint, themeFill.Shade);
-		if (null != unifill)
-			this.themeFill = unifill;
+		this.Color = themeColor.getColor();
+		this.Unifill = themeColor.getUnifill();
+		this.Fill = themeFill.getUnifill();
+		this.themeFill = themeFill.getUnifill();
 	};
 	CDocumentShd.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
 	CDocumentShd.prototype.toXml = function(writer, name) {
-		var themeColor = AscCommonWord.CreateFromThemeUnifill(this.Unifill);
-		var themeFill = AscCommonWord.CreateFromThemeUnifill(this.themeFill);
-		var hexColor = this.Color ? this.Color.ToHexColor() : null;
-		var hexFill = this.Fill ? this.Fill.ToHexColor() : null;
+		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
+		themeColor.setColor(this.Color);
+		themeColor.setUniFill(this.Unifill);
+		var themeFill = new CT_Color("fill", "themeFill", "themeFillTint", "themeFillShade");
+		themeFill.setColor(this.Fill);
+		themeColor.setUniFill(this.themeFill);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_Shd(this.Value));
-		writer.WriteXmlNullableAttributeString("w:color", hexColor);
-		writer.WriteXmlNullableAttributeString("w:themeColor", toXml_ST_ThemeColor(themeColor.Color));
-		writer.WriteXmlNullableAttributeNumber("w:themeTint", themeColor.Tint);
-		writer.WriteXmlNullableAttributeNumber("w:themeShade", themeColor.Shade);
-		writer.WriteXmlNullableAttributeString("w:fill", hexFill);
-		writer.WriteXmlNullableAttributeString("w:themeFill", toXml_ST_ThemeColor(themeFill.Color));
-		writer.WriteXmlNullableAttributeNumber("w:themeFillTint", themeFill.Tint);
-		writer.WriteXmlNullableAttributeNumber("w:themeFillShade", themeFill.Shade);
+		themeColor.toXmlElems(writer);
+		themeFill.toXmlElems(writer);
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CParaTab.prototype.readAttr = function(reader) {
@@ -1365,6 +1344,9 @@
 				case "ptab":
 					break;
 				case "rPr":
+					var textPr = new CTextPr();
+					textPr.fromXml(reader);
+					this.Set_Pr(textPr);
 					break;
 				case "ruby":
 					break;
@@ -1390,7 +1372,7 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		if (this.Pr) {
-			//this.Pr.toXml(writer, "w:rPr");
+			this.Pr.toXml(writer, "w:rPr");
 		}
 		//todo
 		var oText = new CParagraphGetText();
@@ -1406,6 +1388,452 @@
 		}
 		writer.WriteXmlNodeEnd(name);
 	};
+	CTextPr.prototype.fromXml = function (reader) {
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "rStyle" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.RStyle = elem.getVal(undefined);
+					break;
+				}
+				case "rFonts" : {
+					elem = new CRFonts();
+					elem.fromXml(reader);
+					this.RFonts = elem;
+					break;
+				}
+				case "b" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.Bold = elem.getVal(undefined);
+					break;
+				}
+				case "bCs" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.BoldCS = elem.getVal(undefined);
+					break;
+				}
+				case "i" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.Italic = elem.getVal(undefined);
+					break;
+				}
+				case "iCs" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.ItalicCS = elem.getVal(undefined);
+					break;
+				}
+				case "caps" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.Caps = elem.getVal(undefined);
+					break;
+				}
+				case "smallCaps" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.SmallCaps = elem.getVal(undefined);
+					break;
+				}
+				case "strike" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.Strikeout = elem.getVal(undefined);
+					break;
+				}
+				case "dstrike" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.DStrikeout = elem.getVal(undefined);
+					break;
+				}
+				// case "outline" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Outline.push(elem);
+				// 	break;
+				// }
+				// case "shadow" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Shadow.push(elem);
+				// 	break;
+				// }
+				// case "emboss" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Emboss.push(elem);
+				// 	break;
+				// }
+				// case "imprint" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Imprint.push(elem);
+				// 	break;
+				// }
+				// case "noProof" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Noproof.push(elem);
+				// 	break;
+				// }
+				// case "snapToGrid" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Snaptogrid.push(elem);
+				// 	break;
+				// }
+				case "vanish" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.Vanish = elem.getVal(undefined);
+					break;
+				}
+				// case "webHidden" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Webhidden.push(elem);
+				// 	break;
+				// }
+				case "color" : {
+					elem = new CT_Color("val", "themeColor", "themeTint", "themeShade");
+					elem.fromXml(reader);
+					this.Color = elem.getColor();
+					this.Unifill = elem.getUnifill();
+					break;
+				}
+				case "spacing" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.Spacing = AscCommon.universalMeasureToMm(elem.getVal(undefined), AscCommonWord.g_dKoef_twips_to_mm, undefined);
+					break;
+				}
+				// case "w" : {
+				// 	elem = new CT_TextScale();
+				// 	elem.fromXml(reader);
+				// 	this.W.push(elem);
+				// 	break;
+				// }
+				// case "kern" : {
+				// 	elem = new CT_HpsMeasure();
+				// 	elem.fromXml(reader);
+				// 	this.Kern.push(elem);
+				// 	break;
+				// }
+				case "position" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.Position = AscCommon.universalMeasureToMm(elem.getVal(undefined), AscCommonWord.g_dKoef_pt_to_mm / 2, undefined);
+					break;
+				}
+				case "sz" : {
+					elem = new CT_UnsignedDecimalNumber();
+					elem.fromXml(reader);
+					var fontSize = elem.getVal(undefined);
+					if(undefined !== fontSize) {
+						this.FontSize = fontSize / 2;
+					}
+					break;
+				}
+				case "szCs" : {
+					elem = new CT_UnsignedDecimalNumber();
+					elem.fromXml(reader);
+					var fontSizeCS = elem.getVal(undefined);
+					if(undefined !== fontSizeCS) {
+						this.FontSizeCS = fontSizeCS / 2;
+					}
+					break;
+				}
+				case "highlight" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					if (AscFormat.mapPrstColor[elem.getVal(undefined)]) {
+						var highlight = new CDocumentColor(255, 255, 255);
+						highlight.SetFromHexColor(elem.getVal(undefined));
+						if (highlight.IsAuto()) {
+							this.Highlight = highlight_None;
+						} else {
+							this.Highlight = highlight;
+						}
+					}
+					break;
+				}
+				case "u" : {
+					elem = new CT_Underline();
+					elem.fromXml(reader);
+					this.Underline = elem.Val;
+					break;
+				}
+				// case "effect" : {
+				// 	elem = new CT_TextEffect();
+				// 	elem.fromXml(reader);
+				// 	this.Effect.push(elem);
+				// 	break;
+				// }
+				// case "bdr" : {
+				// 	elem = new CT_Border();
+				// 	elem.fromXml(reader);
+				// 	this.Bdr.push(elem);
+				// 	break;
+				// }
+				case "shd" : {
+					this.Shd = new CDocumentShd();
+					this.Shd.fromXml(reader);
+					break;
+				}
+				// case "fitText" : {
+				// 	elem = new CT_FitText();
+				// 	elem.fromXml(reader);
+				// 	this.Fittext.push(elem);
+				// 	break;
+				// }
+				case "vertAlign" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.VertAlign = fromXml_ST_VerticalAlignRun(elem.getVal(undefined));
+					break;
+				}
+				case "rtl" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.RTL = elem.getVal(undefined);
+					break;
+				}
+				case "cs" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.CS = elem.getVal(undefined);
+					break;
+				}
+				// case "em" : {
+				// 	elem = new CT_Em();
+				// 	elem.fromXml(reader);
+				// 	this.Em.push(elem);
+				// 	break;
+				// }
+				case "lang" : {
+					elem = new CLang();
+					elem.fromXml(reader);
+					this.Lang = elem;
+					break;
+				}
+				// case "eastAsianLayout" : {
+				// 	elem = new CT_EastAsianLayout();
+				// 	elem.fromXml(reader);
+				// 	this.Eastasianlayout.push(elem);
+				// 	break;
+				// }
+				// case "specVanish" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Vanish = elem.getVal(undefined);
+				// 	break;
+				// }
+				// case "oMath" : {
+				// 	elem = new CT_OnOff();
+				// 	elem.fromXml(reader);
+				// 	this.Omath.push(elem);
+				// 	break;
+				// }
+				case "rPrChange" : {
+					//todo
+					// this.Rprchange = new CT_RPrChange();
+					// this.Rprchange.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CTextPr.prototype.toXml = function (writer, name) {
+		var RStyle = CT_StringStax.prototype.fromVal(this.RStyle);
+		var RFonts = this.RFonts && this.RFonts.Is_Empty() ? null : this.RFonts;
+		var Bold = CT_OnOff.prototype.fromVal(this.Bold);
+		var BoldCS = CT_OnOff.prototype.fromVal(this.BoldCS);
+		var Italic = CT_OnOff.prototype.fromVal(this.Italic);
+		var ItalicCS = CT_OnOff.prototype.fromVal(this.ItalicCS);
+		var Caps = CT_OnOff.prototype.fromVal(this.Caps);
+		var SmallCaps = CT_OnOff.prototype.fromVal(this.SmallCaps);
+		var Strikeout = CT_OnOff.prototype.fromVal(this.Strikeout);
+		var DStrikeout = CT_OnOff.prototype.fromVal(this.DStrikeout);
+		var Vanish = CT_OnOff.prototype.fromVal(this.Vanish);
+		var Color = new CT_Color("val", "themeColor", "themeTint", "themeShade");
+		Color.setColor(this.Color);
+		Color.setUniFill(this.Unifill);
+		var Spacing;
+		if(undefined !== this.Spacing) {
+			Spacing = CT_DecimalNumber.prototype.fromVal(this.Spacing * g_dKoef_mm_to_twips);
+		}
+		var Position;
+		if(undefined !== this.Position) {
+			Position = CT_DecimalNumber.prototype.fromVal(this.Position * g_dKoef_mm_to_pt * 2);
+		}
+		var FontSize;
+		if(undefined !== this.FontSize) {
+			FontSize = CT_UnsignedDecimalNumber.prototype.fromVal(this.FontSize * 2);
+		}
+		var FontSizeCS;
+		if(undefined !== this.FontSizeCS) {
+			FontSizeCS = CT_UnsignedDecimalNumber.prototype.fromVal(this.FontSizeCS * 2);
+		}
+		var Highlight;
+		if(undefined !== this.Highlight) {
+			Highlight = CT_StringStax.prototype.fromVal(highlight_None !== this.Highlight ? this.Highlight.ToHexColor() : "none");
+		}
+		var Underline;
+		if(undefined !== this.Underline) {
+			Underline = new Underline();
+			Underline.Val = this.Underline;
+		}
+		if(undefined !== this.Underline) {
+			Underline = new Underline();
+			Underline.Val = this.Underline;
+		}
+		var VertAlign = CT_StringStax.prototype.fromVal(toXml_ST_VerticalAlignRun(this.VertAlign));
+		var RTL = CT_OnOff.prototype.fromVal(this.RTL);
+		var CS = CT_OnOff.prototype.fromVal(this.CS);
+		var Lang = this.Lang && this.Lang.Is_Empty() ? null : this.Lang;
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(RStyle, "w:rStyle");
+		writer.WriteXmlNullable(RFonts, "w:rFonts");
+		writer.WriteXmlNullable(Bold, "w:b");
+		writer.WriteXmlNullable(BoldCS, "w:bCs");
+		writer.WriteXmlNullable(Italic, "w:i");
+		writer.WriteXmlNullable(ItalicCS, "w:iCs");
+		writer.WriteXmlNullable(Caps, "w:caps");
+		writer.WriteXmlNullable(SmallCaps, "w:smallCaps");
+		writer.WriteXmlNullable(Strikeout, "w:strike");
+		writer.WriteXmlNullable(DStrikeout, "w:dstrike");
+		// writer.WriteXmlNullable(this.Outline, "w:outline");
+		// writer.WriteXmlNullable(this.Shadow, "w:shadow");
+		// writer.WriteXmlNullable(this.Emboss, "w:emboss");
+		// writer.WriteXmlNullable(this.Imprint, "w:imprint");
+		// writer.WriteXmlNullable(this.NoProof, "w:noProof");
+		// writer.WriteXmlNullable(this.SnapToGrid, "w:snapToGrid");
+		writer.WriteXmlNullable(Vanish, "w:vanish");
+		// writer.WriteXmlNullable(this.WebHidden, "w:webHidden");
+		if (!Color.isEmpty()) {
+			Color.toXml(writer, "w:color");
+		}
+		writer.WriteXmlNullable(Spacing, "w:spacing");
+		// writer.WriteXmlNullable(this.W, "w:w");
+		// writer.WriteXmlNullable(this.Kern, "w:kern");
+		writer.WriteXmlNullable(Position, "w:position");
+		writer.WriteXmlNullable(FontSize, "w:sz");
+		writer.WriteXmlNullable(FontSizeCS, "w:szCs");
+		writer.WriteXmlNullable(Highlight, "w:highlight");
+		writer.WriteXmlNullable(Underline, "w:u");
+		// writer.WriteXmlNullable(this.Effect, "w:effect");
+		// writer.WriteXmlNullable(this.Bdr, "w:bdr");
+		writer.WriteXmlNullable(this.Shd, "w:shd");
+		// writer.WriteXmlNullable(this.FitText, "w:fitText");
+		writer.WriteXmlNullable(VertAlign, "w:vertAlign");
+		writer.WriteXmlNullable(RTL, "w:rtl");
+		writer.WriteXmlNullable(CS, "w:cs");
+		// writer.WriteXmlNullable(this.Em, "w:em");
+		writer.WriteXmlNullable(Lang, "w:lang");
+		// writer.WriteXmlNullable(this.EastAsianLayout, "w:eastAsianLayout");
+		// writer.WriteXmlNullable(Vanish, "w:specVanish");
+		// writer.WriteXmlNullable(this.OMath, "w:oMath");
+		//todo
+		writer.WriteXmlNullable(this.RPrChange, "w:rPrChange");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CRFonts.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "hint": {
+					this.Hint = fromXml_ST_Hint(reader.GetValue());
+					break;
+				}
+				case "ascii": {
+					this.Ascii = {Name: reader.GetValueDecodeXml(), Index: -1};
+					break;
+				}
+				case "hAnsi": {
+					this.Hansi = {Name: reader.GetValueDecodeXml(), Index: -1};
+					break;
+				}
+				case "eastAsia": {
+					this.Eastasia = {Name: reader.GetValueDecodeXml(), Index: -1};
+					break;
+				}
+				case "cs": {
+					this.Cs = {Name: reader.GetValueDecodeXml(), Index: -1};
+					break;
+				}
+				case "asciiTheme": {
+					this.AsciiTheme = reader.GetValue();
+					break;
+				}
+				case "hAnsiTheme": {
+					this.HAnsiTheme = reader.GetValue();
+					break;
+				}
+				case "eastAsiaTheme": {
+					this.EastAsiaTheme = reader.GetValue();
+					break;
+				}
+				case "cstheme": {
+					this.CSTheme = reader.GetValue();
+					break;
+				}
+			}
+		}
+	};
+	CRFonts.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CRFonts.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:hint", toXml_ST_Hint(this.Hint));
+		writer.WriteXmlNullableAttributeStringEncode("w:ascii", this.Ascii);
+		writer.WriteXmlNullableAttributeStringEncode("w:hAnsi", this.Hansi);
+		writer.WriteXmlNullableAttributeStringEncode("w:eastAsia", this.Eastasia);
+		writer.WriteXmlNullableAttributeStringEncode("w:cs", this.Cs);
+		writer.WriteXmlNullableAttributeString("w:asciiTheme", this.AsciiTheme);
+		writer.WriteXmlNullableAttributeString("w:hAnsiTheme", this.HAnsiTheme);
+		writer.WriteXmlNullableAttributeString("w:eastAsiaTheme", this.EastAsiaTheme);
+		writer.WriteXmlNullableAttributeString("w:cstheme", this.CSTheme);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CLang.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.Val = Asc.g_oLcidNameToIdMap[reader.GetValue()];
+					break;
+				}
+				case "eastAsia": {
+					this.EastAsia = Asc.g_oLcidNameToIdMap[reader.GetValue()];
+					break;
+				}
+				case "bidi": {
+					this.Bidi = Asc.g_oLcidNameToIdMap[reader.GetValue()];
+					break;
+				}
+			}
+		}
+	};
+	CLang.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CLang.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("w:val", Asc.g_oLcidIdToNameMap[this.Val]);
+		writer.WriteXmlNullableAttributeStringEncode("w:eastAsia", Asc.g_oLcidIdToNameMap[this.EastAsia]);
+		writer.WriteXmlNullableAttributeStringEncode("w:bidi", Asc.g_oLcidIdToNameMap[this.Bidi]);
+		writer.WriteXmlAttributesEnd(true);
+	};
+
 	function CT_StringStax() {
 		this.val = null;
 		return this;
@@ -1426,7 +1854,7 @@
 	};
 	CT_StringStax.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeString("w:val", this.val);
+		writer.WriteXmlNullableAttributeStringEncode("w:val", this.val);
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CT_StringStax.prototype.fromVal = function(val) {
@@ -1494,7 +1922,7 @@
 	};
 	CT_DecimalNumber.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeNumber("w:val", this.val);
+		writer.WriteXmlNullableAttributeInt("w:val", this.val);
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CT_DecimalNumber.prototype.fromVal = function(val) {
@@ -1506,6 +1934,40 @@
 		return res;
 	};
 	CT_DecimalNumber.prototype.getVal = function(def) {
+		return this.val || def;
+	};
+	function CT_UnsignedDecimalNumber() {
+		this.val = null;
+		return this;
+	}
+	CT_UnsignedDecimalNumber.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueUInt();
+					break;
+				}
+			}
+		}
+	};
+	CT_UnsignedDecimalNumber.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_UnsignedDecimalNumber.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeUInt("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_UnsignedDecimalNumber.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_UnsignedDecimalNumber();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_UnsignedDecimalNumber.prototype.getVal = function(def) {
 		return this.val || def;
 	};
 	function CT_Bdr() {
@@ -1601,7 +2063,559 @@
 		}
 		return true;
 	};
+	CDocumentBorder.prototype.readAttr = function(reader) {
+		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
+		while (reader.MoveToNextAttribute()) {
+			var name = reader.GetNameNoNS();
+			switch (name) {
+				case "val": {
+					this.Value = fromXml_ST_Border(reader.GetValue());
+					break;
+				}
+				case "sz": {
+					this.setSizeIn8Point(reader.GetValueUInt());
+					break;
+				}
+				case "space": {
+					this.setSpaceInPoint(reader.GetValueUInt());
+					break;
+				}
+// 				case "shadow": {
+// 					this.Shadow = reader.GetValueDecodeXml();
+// 					break;
+// 				}
+// 				case "frame": {
+// 					this.Frame = reader.GetValueDecodeXml();
+// 					break;
+// 				}
+				default:
+					themeColor.readAttrElem(reader, name);
+					break;
+			}
+		}
+		this.Color = themeColor.getColor();
+		this.Unifill = themeColor.getUnifill();
+	};
+	CDocumentBorder.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CDocumentBorder.prototype.toXml = function(writer, name) {
+		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
+		themeColor.setColor(this.Color);
+		themeColor.setUniFill(this.Unifill);
 
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_Border(this.Value));
+		themeColor.toXmlElems(writer);
+		writer.WriteXmlNullableAttributeUInt("w:sz", this.getSizeIn8Point());
+		writer.WriteXmlNullableAttributeUInt("w:space", this.getSpaceInPoint());
+// 		writer.WriteXmlNullableAttributeStringEncode("w:shadow", this.Shadow);
+// 		writer.WriteXmlNullableAttributeStringEncode("w:frame", this.Frame);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	function CT_Color(xmlVal, xmlThemeColor, xmlThemeTint, xmlThemeShade) {
+		this.xmlVal = xmlVal;
+		this.xmlThemeColor = xmlThemeColor;
+		this.xmlThemeTint = xmlThemeTint;
+		this.xmlThemeShade = xmlThemeShade;
+
+		this.Val = null;
+		this.ThemeColor = null;
+		this.ThemeTint = null;
+		this.ThemeShade = null;
+		return this;
+	}
+	CT_Color.prototype.readAttrElem = function(reader, name) {
+		if (this.xmlVal === name) {
+			this.Val = reader.GetValueDecodeXml();
+		} else if (this.xmlThemeColor === name) {
+			this.ThemeColor = fromXml_ST_ThemeColor(reader.GetValue());
+		} else if (this.xmlThemeTint === name) {
+			this.ThemeTint = reader.GetValueByte(16);
+		} else if (this.xmlThemeShade === name) {
+			this.ThemeShade = reader.GetValueByte(16);
+		} else {
+			return false;
+		}
+	};
+	CT_Color.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			var name = reader.GetNameNoNS();
+			this.readAttrElem(reader, name);
+		}
+	};
+	CT_Color.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Color.prototype.toXmlElems = function(writer) {
+		var ThemeTint = null !== this.ThemeTint ? AscCommon.ByteToHex(this.ThemeTint).toUpperCase() : null;
+		var ThemeShade = null !== this.ThemeShade ? AscCommon.ByteToHex(this.ThemeShade).toUpperCase() : null;
+		writer.WriteXmlNullableAttributeStringEncode("w:" + this.xmlVal, this.Val);
+		writer.WriteXmlNullableAttributeString("w:" + this.xmlThemeColor, toXml_ST_ThemeColor(this.ThemeColor));
+		writer.WriteXmlNullableAttributeString("w:" + this.xmlThemeTint, ThemeTint);
+		writer.WriteXmlNullableAttributeString("w:" + this.xmlThemeShade, ThemeShade);
+	};
+	CT_Color.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		this.toXmlElems(writer);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_Color.prototype.isEmpty = function() {
+		return null === this.Val && null === this.ThemeColor &&null === this.ThemeTint &&null === this.ThemeShade;
+	};
+	CT_Color.prototype.getColor = function(defR, defG, defB) {
+		if (this.Val) {
+			var color = new CDocumentColor(defR, defG, defB);
+			color.SetFromHexColor(this.Val);
+			return color;
+		}
+		return undefined;
+	};
+	CT_Color.prototype.setColor = function(val) {
+		this.Val = val ? val.ToHexColor() : null;
+	};
+	CT_Color.prototype.getUnifill = function() {
+		var unifill = AscCommonWord.CreateThemeUnifill(this.ThemeColor, this.ThemeTint, this.ThemeShade);
+		return null != unifill ? unifill : undefined;
+	};
+	CT_Color.prototype.setUniFill = function(val) {
+		var obj = AscCommonWord.CreateFromThemeUnifill(val);
+		this.ThemeColor = obj.Color;
+		this.ThemeTint = obj.Tint;
+		this.ThemeShade = obj.Shade;
+	};
+	function CT_Underline() {
+		this.Val = undefined;
+		this.Color = new CT_Color("color", "themeColor", "themeTint", "themeShade");
+		return this;
+	}
+	CT_Underline.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			var name = reader.GetNameNoNS();
+			switch (name) {
+				case "val": {
+					this.Val = fromXml_ST_Underline(reader.GetValue());
+					break;
+				}
+				default:
+					this.Color.readAttrElem(reader, name);
+					break;
+			}
+		}
+	};
+	CT_Underline.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Underline.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_Underline(this.Val));
+		this.Color.toXmlElems(writer);
+		writer.WriteXmlAttributesEnd(true);
+	};
+
+	function fromXml_ST_Border(val) {
+		switch (val) {
+			case "nil":
+				return border_None;
+			case "none":
+				return border_None;
+			case "single":
+				return border_Single;
+			case "thick":
+				return border_Single;
+			case "double":
+				return border_Single;
+			case "dotted":
+				return border_Single;
+			case "dashed":
+				return border_Single;
+			case "dotDash":
+				return border_Single;
+			case "dotDotDash":
+				return border_Single;
+			case "triple":
+				return border_Single;
+			case "thinThickSmallGap":
+				return border_Single;
+			case "thickThinSmallGap":
+				return border_Single;
+			case "thinThickThinSmallGap":
+				return border_Single;
+			case "thinThickMediumGap":
+				return border_Single;
+			case "thickThinMediumGap":
+				return border_Single;
+			case "thinThickThinMediumGap":
+				return border_Single;
+			case "thinThickLargeGap":
+				return border_Single;
+			case "thickThinLargeGap":
+				return border_Single;
+			case "thinThickThinLargeGap":
+				return border_Single;
+			case "wave":
+				return border_Single;
+			case "doubleWave":
+				return border_Single;
+			case "dashSmallGap":
+				return border_Single;
+			case "dashDotStroked":
+				return border_Single;
+			case "threeDEmboss":
+				return border_Single;
+			case "threeDEngrave":
+				return border_Single;
+			case "outset":
+				return border_Single;
+			case "inset":
+				return border_Single;
+			case "apples":
+				return border_Single;
+			case "archedScallops":
+				return border_Single;
+			case "babyPacifier":
+				return border_Single;
+			case "babyRattle":
+				return border_Single;
+			case "balloons3Colors":
+				return border_Single;
+			case "balloonsHotAir":
+				return border_Single;
+			case "basicBlackDashes":
+				return border_Single;
+			case "basicBlackDots":
+				return border_Single;
+			case "basicBlackSquares":
+				return border_Single;
+			case "basicThinLines":
+				return border_Single;
+			case "basicWhiteDashes":
+				return border_Single;
+			case "basicWhiteDots":
+				return border_Single;
+			case "basicWhiteSquares":
+				return border_Single;
+			case "basicWideInline":
+				return border_Single;
+			case "basicWideMidline":
+				return border_Single;
+			case "basicWideOutline":
+				return border_Single;
+			case "bats":
+				return border_Single;
+			case "birds":
+				return border_Single;
+			case "birdsFlight":
+				return border_Single;
+			case "cabins":
+				return border_Single;
+			case "cakeSlice":
+				return border_Single;
+			case "candyCorn":
+				return border_Single;
+			case "celticKnotwork":
+				return border_Single;
+			case "certificateBanner":
+				return border_Single;
+			case "chainLink":
+				return border_Single;
+			case "champagneBottle":
+				return border_Single;
+			case "checkedBarBlack":
+				return border_Single;
+			case "checkedBarColor":
+				return border_Single;
+			case "checkered":
+				return border_Single;
+			case "christmasTree":
+				return border_Single;
+			case "circlesLines":
+				return border_Single;
+			case "circlesRectangles":
+				return border_Single;
+			case "classicalWave":
+				return border_Single;
+			case "clocks":
+				return border_Single;
+			case "compass":
+				return border_Single;
+			case "confetti":
+				return border_Single;
+			case "confettiGrays":
+				return border_Single;
+			case "confettiOutline":
+				return border_Single;
+			case "confettiStreamers":
+				return border_Single;
+			case "confettiWhite":
+				return border_Single;
+			case "cornerTriangles":
+				return border_Single;
+			case "couponCutoutDashes":
+				return border_Single;
+			case "couponCutoutDots":
+				return border_Single;
+			case "crazyMaze":
+				return border_Single;
+			case "creaturesButterfly":
+				return border_Single;
+			case "creaturesFish":
+				return border_Single;
+			case "creaturesInsects":
+				return border_Single;
+			case "creaturesLadyBug":
+				return border_Single;
+			case "crossStitch":
+				return border_Single;
+			case "cup":
+				return border_Single;
+			case "decoArch":
+				return border_Single;
+			case "decoArchColor":
+				return border_Single;
+			case "decoBlocks":
+				return border_Single;
+			case "diamondsGray":
+				return border_Single;
+			case "doubleD":
+				return border_Single;
+			case "doubleDiamonds":
+				return border_Single;
+			case "earth1":
+				return border_Single;
+			case "earth2":
+				return border_Single;
+			case "earth3":
+				return border_Single;
+			case "eclipsingSquares1":
+				return border_Single;
+			case "eclipsingSquares2":
+				return border_Single;
+			case "eggsBlack":
+				return border_Single;
+			case "fans":
+				return border_Single;
+			case "film":
+				return border_Single;
+			case "firecrackers":
+				return border_Single;
+			case "flowersBlockPrint":
+				return border_Single;
+			case "flowersDaisies":
+				return border_Single;
+			case "flowersModern1":
+				return border_Single;
+			case "flowersModern2":
+				return border_Single;
+			case "flowersPansy":
+				return border_Single;
+			case "flowersRedRose":
+				return border_Single;
+			case "flowersRoses":
+				return border_Single;
+			case "flowersTeacup":
+				return border_Single;
+			case "flowersTiny":
+				return border_Single;
+			case "gems":
+				return border_Single;
+			case "gingerbreadMan":
+				return border_Single;
+			case "gradient":
+				return border_Single;
+			case "handmade1":
+				return border_Single;
+			case "handmade2":
+				return border_Single;
+			case "heartBalloon":
+				return border_Single;
+			case "heartGray":
+				return border_Single;
+			case "hearts":
+				return border_Single;
+			case "heebieJeebies":
+				return border_Single;
+			case "holly":
+				return border_Single;
+			case "houseFunky":
+				return border_Single;
+			case "hypnotic":
+				return border_Single;
+			case "iceCreamCones":
+				return border_Single;
+			case "lightBulb":
+				return border_Single;
+			case "lightning1":
+				return border_Single;
+			case "lightning2":
+				return border_Single;
+			case "mapPins":
+				return border_Single;
+			case "mapleLeaf":
+				return border_Single;
+			case "mapleMuffins":
+				return border_Single;
+			case "marquee":
+				return border_Single;
+			case "marqueeToothed":
+				return border_Single;
+			case "moons":
+				return border_Single;
+			case "mosaic":
+				return border_Single;
+			case "musicNotes":
+				return border_Single;
+			case "northwest":
+				return border_Single;
+			case "ovals":
+				return border_Single;
+			case "packages":
+				return border_Single;
+			case "palmsBlack":
+				return border_Single;
+			case "palmsColor":
+				return border_Single;
+			case "paperClips":
+				return border_Single;
+			case "papyrus":
+				return border_Single;
+			case "partyFavor":
+				return border_Single;
+			case "partyGlass":
+				return border_Single;
+			case "pencils":
+				return border_Single;
+			case "people":
+				return border_Single;
+			case "peopleWaving":
+				return border_Single;
+			case "peopleHats":
+				return border_Single;
+			case "poinsettias":
+				return border_Single;
+			case "postageStamp":
+				return border_Single;
+			case "pumpkin1":
+				return border_Single;
+			case "pushPinNote2":
+				return border_Single;
+			case "pushPinNote1":
+				return border_Single;
+			case "pyramids":
+				return border_Single;
+			case "pyramidsAbove":
+				return border_Single;
+			case "quadrants":
+				return border_Single;
+			case "rings":
+				return border_Single;
+			case "safari":
+				return border_Single;
+			case "sawtooth":
+				return border_Single;
+			case "sawtoothGray":
+				return border_Single;
+			case "scaredCat":
+				return border_Single;
+			case "seattle":
+				return border_Single;
+			case "shadowedSquares":
+				return border_Single;
+			case "sharksTeeth":
+				return border_Single;
+			case "shorebirdTracks":
+				return border_Single;
+			case "skyrocket":
+				return border_Single;
+			case "snowflakeFancy":
+				return border_Single;
+			case "snowflakes":
+				return border_Single;
+			case "sombrero":
+				return border_Single;
+			case "southwest":
+				return border_Single;
+			case "stars":
+				return border_Single;
+			case "starsTop":
+				return border_Single;
+			case "stars3d":
+				return border_Single;
+			case "starsBlack":
+				return border_Single;
+			case "starsShadowed":
+				return border_Single;
+			case "sun":
+				return border_Single;
+			case "swirligig":
+				return border_Single;
+			case "tornPaper":
+				return border_Single;
+			case "tornPaperBlack":
+				return border_Single;
+			case "trees":
+				return border_Single;
+			case "triangleParty":
+				return border_Single;
+			case "triangles":
+				return border_Single;
+			case "triangle1":
+				return border_Single;
+			case "triangle2":
+				return border_Single;
+			case "triangleCircle1":
+				return border_Single;
+			case "triangleCircle2":
+				return border_Single;
+			case "shapes1":
+				return border_Single;
+			case "shapes2":
+				return border_Single;
+			case "twistedLines1":
+				return border_Single;
+			case "twistedLines2":
+				return border_Single;
+			case "vine":
+				return border_Single;
+			case "waveline":
+				return border_Single;
+			case "weavingAngles":
+				return border_Single;
+			case "weavingBraid":
+				return border_Single;
+			case "weavingRibbon":
+				return border_Single;
+			case "weavingStrips":
+				return border_Single;
+			case "whiteFlowers":
+				return border_Single;
+			case "woodwork":
+				return border_Single;
+			case "xIllusions":
+				return border_Single;
+			case "zanyTriangles":
+				return border_Single;
+			case "zigZag":
+				return border_Single;
+			case "zigZagStitch":
+				return border_Single;
+			case "custom":
+				return border_Single;
+		}
+		return undefined;
+	}
+	function toXml_ST_Border(val) {
+		switch (val) {
+			case border_None:
+				return "none";
+			case border_Single:
+				return "single";
+		}
+		return null;
+	}
 	function fromXml_ST_DropCap(val) {
 		switch (val) {
 			case "none":
@@ -2124,12 +3138,6 @@
 		}
 		return null;
 	}
-	var align_Right   = 0;
-	var align_Left    = 1;
-	var align_Center  = 2;
-	var align_Justify = 3;
-	var align_Distributed = 4;
-	var align_CenterContinuous = 5;
 	function fromXml_ST_Jc1(val) {
 		switch (val) {
 			case "start":
@@ -2171,6 +3179,100 @@
 				return "distribute";
 			// case AscCommon.align_CenterContinuous:
 			// 	return "distribute";
+		}
+		return null;
+	}
+	function fromXml_ST_Hint(val) {
+		switch (val) {
+			case "default":
+				return fonthint_Default;
+			case "cs":
+				return fonthint_CS;
+			case "eastAsia":
+				return fonthint_EastAsia;
+		}
+		return undefined;
+	}
+	function toXml_ST_Hint(val) {
+		switch (val) {
+			case fonthint_Default:
+				return "default";
+			case fonthint_CS:
+				return "cs";
+			case fonthint_EastAsia:
+				return "eastAsia";
+		}
+		return null;
+	}
+	function fromXml_ST_Underline(val) {
+		switch (val) {
+			case "single":
+				return true;
+			case "words":
+				return true;
+			case "double":
+				return true;
+			case "thick":
+				return true;
+			case "dotted":
+				return true;
+			case "dottedHeavy":
+				return true;
+			case "dash":
+				return true;
+			case "dashedHeavy":
+				return true;
+			case "dashLong":
+				return true;
+			case "dashLongHeavy":
+				return true;
+			case "dotDash":
+				return true;
+			case "dashDotHeavy":
+				return true;
+			case "dotDotDash":
+				return true;
+			case "dashDotDotHeavy":
+				return true;
+			case "wave":
+				return true;
+			case "wavyHeavy":
+				return true;
+			case "wavyDouble":
+				return true;
+			case "none":
+				return false;
+		}
+		return undefined;
+	}
+	function toXml_ST_Underline(val) {
+		switch (val) {
+			case true:
+				return "single";
+			case false:
+				return "none";
+		}
+		return null;
+	}
+	function fromXml_ST_VerticalAlignRun(val) {
+		switch (val) {
+			case "baseline":
+				return AscCommon.vertalign_Baseline;
+			case "superscript":
+				return AscCommon.vertalign_SuperScript;
+			case "subscript":
+				return AscCommon.vertalign_SubScript;
+		}
+		return undefined;
+	}
+	function toXml_ST_VerticalAlignRun(val) {
+		switch (val) {
+			case AscCommon.vertalign_Baseline:
+				return "baseline";
+			case AscCommon.vertalign_SuperScript:
+				return "superscript";
+			case AscCommon.vertalign_SubScript:
+				return "subscript";
 		}
 		return null;
 	}
