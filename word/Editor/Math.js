@@ -3501,16 +3501,23 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 {
 	this.Root.CalculateTextToTable(oEngine);
 };
-
-ParaMath.prototype.ConvertFromLaTeX = function(strLaTeX)
+ParaMath.prototype.ConvertFromLaTeX = function()
 {
-    if (!strLaTeX) return;
+	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
+	return;
+
+    if (!strLaTeX)
+    	return;
+
     var oLaTeXParser = new CLaTeXParser(this, strLaTeX);
     oLaTeXParser.prepare();
 };
-
 ParaMath.prototype.ConvertToLaTeX = function()
 {
+	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
+	return;
+
+
     var Conveter = new ToLaTex(this.Root);
 
 	//console.log(this.Root)
@@ -3524,13 +3531,41 @@ ParaMath.prototype.ConvertToLaTeX = function()
     console.log('Unicode string:', strin);
     return strin
 };
+ParaMath.prototype.ConvertFromUnicodeMath = function()
+{
+	// TODO: Функция конвертации UnicodeMath -> MathML
+	return;
 
-ParaMath.prototype.UnicodeToMathMl = function(strin) {
     var Unicode = new CUnicodeParser(strin, this);
     Unicode.Start();
     this.Root.Correct_Content(true);
-}
+};
+ParaMath.prototype.ConvertToUnicodeMath = function()
+{
+	// TODO: Функция конвертации MathML -> UnicodeMath
+	return;
+};
+ParaMath.prototype.ConvertView = function(isToLinear)
+{
+	var oLogicDocument = this.GetLogicDocument()
 
+	var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+
+	if (isToLinear)
+	{
+		if (Asc.c_oAscMathInputType.Unicode === nInputType)
+			this.ConvertToUnicodeMath();
+		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
+			this.ConvertToLaTeX();
+	}
+	else
+	{
+		if (Asc.c_oAscMathInputType.Unicode === nInputType)
+			this.ConvertFromUnicodeMath();
+		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
+			this.ConvertFromLaTeX();
+	}
+};
 
 
 function MatGetKoeffArgSize(FontSize, ArgSize)

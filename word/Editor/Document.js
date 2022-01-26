@@ -2521,6 +2521,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 	this.PrintSelection            = false; // Печатаем выделенный фрагмент
 	this.CheckFormPlaceHolder      = true;  // Выполняем ли специальную обработку для плейсхолдеров у форм
+	this.MathInputType             = Asc.c_oAscMathInputType.Unicode;
 
 	this.DrawTableMode = {
 		Start  : false,
@@ -26741,46 +26742,53 @@ CDocument.prototype.GetCurrentReviewChanges = function()
 };
 
 /**
- * Создаем формулу на основе языка LaTeX
- * @param {string} sText
+ * Функция конвертации вида формулы из линейного в профессиональный и наоборот
+ * @param {boolean} isToLinear
+ * @param {boolean} isAll
  */
-CDocument.prototype.ConvertLaTeXToMath = function(sText)
+CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 {
-	var oCurrentParagraph = this.GetCurrentParagraph();
-	if (!oCurrentParagraph || !oCurrentParagraph.GetParent())
+	var oInfo = this.GetSelectedElementsInfo();
+	var oMath = oInfo.GetMath();
+	if (!oMath)
 		return;
-
-	if (!sText)
-		sText = this.GetSelectedText();
 
 	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 	{
-		this.StartAction();
+		this.StartAction(AscDFH.historydescription_Document_ConvertMathView);
 
-		if (this.IsTextSelectionUse())
-			this.Remove();
+		if (isAll || !this.IsTextSelectionUse())
+		{
+			this.RemoveTextSelection();
+			oMath.ConvertView(isToLinear);
+		}
+		else
+		{
+			var oSelectedMath = oMath.Copy(true);
+			oMath.Remove(1, false);
+			this.RemoveSelection();
+			oSelectedMath.ConvertView(isToLinear);
 
-		var oMath = new ParaMath();
-		oMath.ConvertFromLaTeX(sText);
-
-		oCurrentParagraph.Add(oMath);
-
-		// var oPara = new Paragraph(this.GetDrawingDocument(), null, false);
-		// oPara.Add(oMath);
-		//
-		// var oSelectedContent = new CSelectedContent();
-		// oSelectedContent.Add(new CSelectedElement(oPara, true));
-		// oSelectedContent.On_EndCollectElements(this, false);
-		// oCurrentParagraph.GetParent().InsertContent(oSelectedContent, oCurrentParagraph.GetCurrentAnchorPosition());
-
-
-		var strin = oMath.ConvertToLaTeX();
-		oMath.UnicodeToMathMl(strin);
-
+			// TODO: Реализовать вставку в oMath содержимого oSelectedMath
+		}
 		this.Recalculate();
 		this.UpdateInterface();
 		this.FinalizeAction();
 	}
+};
+/**
+ * @param {Asc.c_oAscMathInputType} nType
+ */
+CDocument.prototype.SetMathInputType = function(nType)
+{
+	this.MathInputType = nType;
+};
+/**
+ * @returns {Asc.c_oAscMathInputType}
+ */
+CDocument.prototype.GetMathInputType = function()
+{
+	return this.MathInputType;
 };
 
 function CDocumentSelectionState()

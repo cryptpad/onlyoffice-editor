@@ -2686,6 +2686,11 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		Simple   : 3
 	};
 
+	var c_oAscMathInputType = {
+		Unicode : 0,
+		LaTeX   : 1
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -3855,6 +3860,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Final']    = prot.Final;
 	prot['Original'] = prot.Original;
 	prot['Simple']   = prot.Simple;
+
+	prot = window['Asc']['c_oAscMathInputType'] = window['Asc'].c_oAscMathInputType = c_oAscMathInputType;
+	prot['Unicode'] = prot.Unicode;
+	prot['LaTeX']   = prot.LaTeX;
 
 	window['AscFormat'] = window['AscFormat'] || {};
 
