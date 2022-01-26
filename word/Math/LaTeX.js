@@ -161,39 +161,38 @@ EquationProcessing.prototype.BracetSyntaxChecker = function(index) {
 	}
 	return Obj.Script;
 };
-//replace names of variables!
 EquationProcessing.prototype.CheckAfterBracet = function(Obj) {
-	var one = this.GetAtomByIndex(Obj.index);
-	var tempIndex = Obj.index;
+	var strNowAtom = this.GetAtomByIndex(Obj.index);
+	var intTempIndex = Obj.index;
 	var strOpenBracet;
 	var strCloseBracet;
 
-	if (one == '(') {
+	if (strNowAtom == '(') {
 		strOpenBracet = '(';
 		strCloseBracet = ')'
 	}
-	else if (one == '{') {
+	else if (strNowAtom == '{') {
 		strOpenBracet = '{';
 		strCloseBracet = '}'
 	}
 
-	if (one == strOpenBracet) {
-		var atom;
-		var ind = 1;
+	if (strNowAtom == strOpenBracet) {
+		var strAtom;
+		var intCounter = 1;
 
 		do {
-			atom = this.GetAtomByIndex(Obj.index);
-			if (atom == strOpenBracet && tempIndex != Obj.index) {
-				ind++;
+			strAtom = this.GetAtomByIndex(Obj.index);
+			if (strAtom == strOpenBracet && intTempIndex != Obj.index) {
+				intCounter++;
 			}
 			Obj.index++;
 
-			if (atom == strCloseBracet) {
-				ind--;
+			if (strAtom == strCloseBracet) {
+				intCounter--;
 			}
-		} while (!(ind == 0 && atom == strCloseBracet));
+		} while (!(intCounter == 0 && strAtom == strCloseBracet));
 
-		if (atom == strCloseBracet) {
+		if (strAtom == strCloseBracet) {
 			return this.GetAtomByIndex(Obj.index);
 		}
 		
@@ -272,8 +271,7 @@ EquationProcessing.prototype.StartLexer = function(context, indexOfExit) {
 	}
 };
 //Script 
-//todo: prescript
-//		script for bracet block
+//script for bracet block
 EquationProcessing.prototype.AddScript = function(strAtom, FormArgument) {
 	var type = this.GetTypeOfScript();
 	var Script = this.CreateScript(FormArgument, type);
@@ -1171,7 +1169,7 @@ EquationProcessing.prototype.AddAccent = function (FormArgument, name) {
 	if (this.type === 'LaTeX') {
 		var intPosition = null;
 		
-		if (GetIsAddBar[name]) {
+		if (this.GetIsAddBar[name]) {
 			if (name == "\\overline") {
 				intPosition = 0;
 			}
@@ -1182,7 +1180,7 @@ EquationProcessing.prototype.AddAccent = function (FormArgument, name) {
 			Accent = FormArgument.Add_Bar({ ctrPrp: this.Pr.ctrPrp, pos: intPosition }, null);
 		}
 		
-		else if (GetIsAddGroupChar[name]) {
+		else if (this.GetIsAddGroupChar[name]) {
 			if (name == "\\overbrace") {
 				Accent = FormArgument.Add_GroupCharacter(
 					{
@@ -1206,7 +1204,7 @@ EquationProcessing.prototype.AddAccent = function (FormArgument, name) {
 		else {
 			Accent = FormArgument.Add_Accent(
 				this.Parent.Pr.ctrPrp,
-				GetAccent[name],
+				this.GetAccent[name],
 				null
 			);
 		}
@@ -1401,41 +1399,15 @@ EquationProcessing.prototype.ArrMatrixTypes = [
 	'vmatrix',
 	'Vmatrix',
 ];
-var GetIsAddBar = {
+EquationProcessing.prototype.GetIsAddBar = {
 	"\\overline": true,
 	"\\underline": true,
-};
-var GetIsAddGroupChar = {
+}
+EquationProcessing.prototype.GetIsAddGroupChar = {
 	"\\overbrace": true,
 	"\\underbrace": true,
 };
-EquationProcessing.prototype.CheckIsAccent = function (strAtom) {
-	if (this.type === 'LaTeX') {
-		return (
-			GetAccent[strAtom] ||
-			GetIsAddBar[strAtom] ||
-			GetIsAddGroupChar[strAtom]
-		);
-	}
-	else if (this.type === 'Unicode') {
-		if (this.StartBracet[this.GetNowAtom()]) {
-			var intCloseExitBracet = this.CheckCloseBracet(this.Parent.intIndexArray);
-			if (typeof intCloseExitBracet === 'number') {
-				var strTempTtom = this.GetAtomByIndex(intCloseExitBracet + 1);
-				if (strTempTtom) {
-					var accent = GetAccent[strTempTtom.charCodeAt()];
-				}
-				
-				if (accent) {
-					this.accent = this.GetAtomByIndex(intCloseExitBracet + 1).charCodeAt();
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-};
-var GetAccent = {
+EquationProcessing.prototype.GetAccent = {
 	"\\widetilde": 771,
 	"\\widehat": 770,
 	"\\overrightarrow": 8407,
@@ -1450,9 +1422,9 @@ var GetAccent = {
 	"\\vec": 8407,
 	"\\breve": 774,
 	"\\tilde": 771,
-	771 : "\\widetilde",
-	770 : "\\widehat",
-	8407: "\\overrightarrow",
+	//771 : "\\widetilde",
+	//770 : "\\widehat",
+	//8407: "\\overrightarrow",
 	8406: "\\overleftarrow",
 	775 : "\\dot",
 	776 : "\\ddot",
@@ -1465,7 +1437,34 @@ var GetAccent = {
 	774 : "\\breve",
 	771 : "\\tilde",
 };
-var GetBracetCodeLexer = {
+EquationProcessing.prototype.CheckIsAccent = function (strAtom) {
+	if (this.type === 'LaTeX') {
+		return (
+			this.GetAccent[strAtom] ||
+			this.GetIsAddBar[strAtom] ||
+			this.GetIsAddGroupChar[strAtom]
+		);
+	}
+	else if (this.type === 'Unicode') {
+		if (this.StartBracet[this.GetNowAtom()]) {
+			var intCloseExitBracet = this.CheckCloseBracet(this.Parent.intIndexArray);
+			if (typeof intCloseExitBracet === 'number') {
+				var strTempTtom = this.GetAtomByIndex(intCloseExitBracet + 1);
+				if (strTempTtom) {
+					var accent = this.GetAccent[strTempTtom.charCodeAt()];
+				}
+				
+				if (accent) {
+					this.accent = this.GetAtomByIndex(intCloseExitBracet + 1).charCodeAt();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+};
+//GetBracetCodeLexer don't used
+EquationProcessing.prototype.GetBracetCodeLexer = {
 	"(": 40,
 	")": 41,
 	"{": 123,
@@ -1548,8 +1547,8 @@ EquationProcessing.prototype.CheckIsText = function (strAtom) {
 	return true
 };
 EquationProcessing.prototype.AddMathText = function(FormArgument, strAtom) {
-	var type = CheckMathText[strAtom];
-	var objSty = CheckMathTextSty[strAtom];
+	var type = this.CheckMathText[strAtom];
+	var objSty = this.CheckMathTextSty[strAtom];
 
 	var strAtom = this.GetNextAtom();
 
@@ -1571,7 +1570,7 @@ EquationProcessing.prototype.AddMathText = function(FormArgument, strAtom) {
 		}
 	} while (strAtom != '}');
 };
-var CheckMathText = {
+EquationProcessing.prototype.CheckMathText = {
 	'\\mathnormal': 0,
 	'\\mathbf': 0,
 	'\\mathrm': 0,
@@ -1581,7 +1580,7 @@ var CheckMathText = {
 	'\\mathsf': 4,
 	'\\mathtt': 5,
 };
-var CheckMathTextSty = {
+EquationProcessing.prototype.CheckMathTextSty = {
 	'\\mathnormal': {Italic: true, Bold: false},
 	'\\mathbf': {Italic: false, Bold: true},
 	'\\mathsf': {Italic: false, Bold: false},
@@ -1589,7 +1588,6 @@ var CheckMathTextSty = {
 	'\\mathfrak': {Italic: false, Bold: false},
 	'\\mathrm': {Italic: false}
 };
-
 
 //========================================================================//
 //==========================LaTeX_Lexer===================================//
@@ -1674,13 +1672,7 @@ CLaTeXParser.prototype.arrLaTeXSymbols = {
 	"omega": 0x03c9,
 	"Digamma": 0x03dc,
 	"digamma": 0x03dd,
-	"": 0x203c,
 	".": 0x2026,
-	"": 0x2237,
-	"": 0x2254,
-	"": 0x226e,
-	"": 0x226f,
-	"": 0x2260,
 	"above": 0x2534,
 	"acute": 0x0301,
 	"aleph": 0x2135,
@@ -2161,7 +2153,7 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 		else if (Parser.Processing.CheckIsAccent(strAtom) && !Parser.isError) {
 			Parser.Processing.AddAccent(FormArgument, strAtom);
 		}
-		// else if (typeof CheckMathText[strAtom] == 'number' && !Parser.isError) {
+		// else if (typeof Parser.Processing.CheckMathText[strAtom] == 'number' && !Parser.isError) {
 		// 	Parser.AddMathText(FormArgument, strAtom);
 		// }
 		else if (!Parser.isError && strAtom !== undefined) {
@@ -2585,7 +2577,7 @@ ToLaTex.prototype.AddBinom = function(name, obj) {
 };
 ToLaTex.prototype.AddNary = function(name, obj) {
 	var strChr = obj[name].data.chr;
-	var strTypeOfLargeOperator = GetNaryCode[strChr];
+	var strTypeOfLargeOperator = this.GetNaryCode[strChr];
 	
 	this.objString.arr.push(strTypeOfLargeOperator);
 
@@ -2610,7 +2602,7 @@ ToLaTex.prototype.AddNary = function(name, obj) {
 	}
 	this.Convert(objBase);
 };
-var GetNaryCode = {
+ToLaTex.prototype.GetNaryCode = {
 	undefined: '\\int',
 	8748: '\\iint',
 	8749: '\\iiint',
@@ -2640,7 +2632,7 @@ ToLaTex.prototype.AddLimit = function(name, obj) {
 };
 ToLaTex.prototype.AddAccent = function(name, obj) {
 	var intType = obj[name].data.chr;
-	var strType = GetCodeAccent[intType] + '{';
+	var strType = this.GetCodeAccent[intType] + '{';
 
 	this.Convert(obj[name]['0_CMathContent'], strType, '}');
 };
@@ -2704,7 +2696,7 @@ ToLaTex.prototype.CheckIsMod = function(name, obj) {
 	}
 	
 };
-var GetCodeAccent = {
+ToLaTex.prototype.GetCodeAccent = {
 	8407: '\\vec',
 	773: '\\bar',
 	774: '\\breve',
