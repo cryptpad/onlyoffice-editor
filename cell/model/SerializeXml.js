@@ -957,7 +957,7 @@
 			}
 		}
 
-		this.PrepareDataValidations(extLst);
+		this.prepareExtLst(extLst);
 	};
 	AscCommonExcel.Worksheet.prototype.toXml = function (writer) {
 		var t = this;
@@ -1322,7 +1322,49 @@
 		}, (ws.bExcludeHiddenRows && isCopyPaste));
 		writeEndRow();
 	};
-	AscCommonExcel.Worksheet.prototype.PrepareDataValidations = function (extLst) {
+
+	AscCommonExcel.Worksheet.prototype.prepareExtLst = function (extLst) {
+		if (extLst) {
+			this._prepareConditionalFormatting(extLst);
+			this._prepareDataValidations(extLst);
+		}
+	}
+	AscCommonExcel.Worksheet.prototype._prepareConditionalFormatting = function (extLst) {
+		//добавляем из ext
+		if (extLst) {
+			var sheetRules = this.aConditionalFormattingRules;
+			var getSheetCf = function (openId) {
+				for (var n = 0; n < sheetRules.length; n++) {
+					if (sheetRules[n]._openId === openId) {
+						return sheetRules[n];
+					}
+				}
+			};
+
+			for (var i = 0; i < extLst.arrExt.length; i++) {
+				if (extLst.arrExt[i] && extLst.arrExt[i].aConditionalFormattingRules) {
+					for (var j = 0; j < extLst.arrExt[i].aConditionalFormattingRules.length; j++) {
+						var extRule = extLst.arrExt[i].aConditionalFormattingRules[j];
+						//далее смотрим по id, если такое правило на листе
+						var sheetRule = getSheetCf(extRule._openId);
+						if (sheetRule) {
+							//мержим
+							//TODO merge
+							//sheetRule.merge(extRule);
+							sheetRule.initRules();
+						} else {
+							//добавляем
+							if (extRule.isValid()) {
+								extRule.initRules();
+								this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(extRule);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	AscCommonExcel.Worksheet.prototype._prepareDataValidations = function (extLst) {
 
 		if (extLst) {
 			for (var i = 0; i < extLst.arrExt.length; i++) {
@@ -5315,6 +5357,17 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
+	COfficeArtExtensionList.prototype.getConditionalFormattingId = function () {
+		var res = null;
+
+		this.arrExt.forEach(function(ext) {
+			if (ext && ext.ids) {
+				res = ext.ids[0];
+			}
+		});
+
+		return res;
+	};
 
 
 	AscCommonExcel.CDataValidation.prototype.toXml = function(writer, bExtendedWrite) {
@@ -5471,6 +5524,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		this.dataValidations = [];
 		this.slicerCachesIds = [];
 		this.tableSlicerCaches = [];
+		this.aConditionalFormattingRules = [];
+
+		this.ids = [];
 	}
 
 	COfficeArtExtension.prototype.fromXml = function (reader) {
@@ -5488,6 +5544,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			"{2F2917AC-EB37-4324-AD4E-5DD8C200BD13}" || this.uri === "{470722E0-AACD-4C17-9CDC-17EF765DBC7E}" || this.uri === "{46F421CA-312F-682f-3DD2-61675219B42D}" ||
 			this.uri === "{DE250136-89BD-433C-8126-D09CA5730AF9}" || this.uri === "{19B8F6BF-5375-455C-9EA6-DF929625EA0E}" || this.uri ===
 			"http://schemas.microsoft.com/office/drawing/2008/diagram") {
+			var name2, depth2;
 			var val;
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
@@ -5506,6 +5563,19 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 				} else if ("conditionalFormattings" === name) {
 
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("conditionalFormatting" === name2) {
+							var oConditionalFormatting = new AscCommonExcel.CConditionalFormatting();
+							oConditionalFormatting.fromXml(reader);
+							/*if (oConditionalFormatting.isValid()) {
+								oConditionalFormatting.initRules();
+								this.aConditionalFormattingRules.push(oConditionalFormatting.aRules);
+							}*/
+							this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(oConditionalFormatting.aRules);
+						}
+					}
 				} else if ("dataValidations" === name) {
 					val = new AscCommonExcel.CDataValidations();
 					val.fromXml(reader);
@@ -5515,9 +5585,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("slicerList" === name) {
 
 				} else if ("slicerCaches" === name) {
-					var depth2 = reader.GetDepth();
+					depth2 = reader.GetDepth();
 					while (reader.ReadNextSiblingNode(depth2)) {
-						var name2 = reader.GetNameNoNS();
+						name2 = reader.GetNameNoNS();
 						if ("slicerCache" === name2) {
 
 							while (reader.MoveToNextAttribute()) {
@@ -5540,7 +5610,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("slicerCacheHideItemsWithNoData" === name) {
 
 				} else if ("id" === name) {
-
+					val = reader.GetText();
+					this.ids.push(val);
 				} else if ("presenceInfo" === name) {
 
 				}
@@ -5704,8 +5775,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val.fromXml(reader);
 				this.aRules.push(val);
 			} else if ("sqref" === name || "Range" === name) {
-				//TODO
-				val = reader.GetValue();
+				val = reader.GetText();
 				this.setSqRef(val);
 			}
 		}
@@ -5861,11 +5931,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					this.setSqRef(val);
 				}
 			} else if ("extLst" === name ) {
-				//TODO
-				val = reader.GetValue();
-				if (this.setSqRef) {
-					this.setSqRef(val);
-				}
+				var extLst = new COfficeArtExtensionList(this);
+				extLst.fromXml(reader);
+
+				this._idOpen = extLst.getConditionalFormattingId();
 			}
 		}
 
@@ -6077,10 +6146,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						this.type = Asc.ECfType.endsWith;
 						break;
 				}
-			}  /*else if ("id" === reader.GetName()) {
+			}  else if ("id" === reader.GetName()) {
 				val = reader.GetValue();
-				this.type = val;
-			}*/
+				this._idOpen = val;
+			}
 
 		}
 	};
@@ -6552,12 +6621,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		this.Color = null;
-		this.NegativeColor = null;
-		this.BorderColor = null;
-		this.NegativeBorderColor = null;
-		this.AxisColor = null;
-
 		var val;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -6590,7 +6653,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				if (null != val) {
 					this.NegativeColor = val;
 				}
-			}  else if ("negativeBorderColor" === name) {
+			} else if ("negativeBorderColor" === name) {
 				//TODO
 				val = AscCommon.getColorFromXml2(reader);
 				if (null != val) {
