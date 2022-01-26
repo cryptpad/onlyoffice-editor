@@ -2816,7 +2816,7 @@ ParaRun.prototype.CollectDocumentStatistics = function(ParaStats)
 		var bSpace   = false;
 		var bNewWord = false;
 
-		if ((para_Text === ItemType && false === Item.Is_NBSP()) || (para_PageNum === ItemType || para_PageCount === ItemType))
+		if ((para_Text === ItemType && false === Item.IsNBSP()) || (para_PageNum === ItemType || para_PageCount === ItemType))
 		{
 			if (false === ParaStats.Word)
 				bNewWord = true;
@@ -2827,7 +2827,7 @@ ParaRun.prototype.CollectDocumentStatistics = function(ParaStats)
 			ParaStats.Word           = true;
 			ParaStats.EmptyParagraph = false;
 		}
-		else if ((para_Text === ItemType && true === Item.Is_NBSP()) || para_Space === ItemType || para_Tab === ItemType)
+		else if ((para_Text === ItemType && true === Item.IsNBSP()) || para_Space === ItemType || para_Tab === ItemType)
 		{
 			bSymbol = true;
 			bSpace  = true;
@@ -7497,7 +7497,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 				isHiddenCF   = SearchPos.IsHiddenComplexField();
 			}
 
-            if ( para_Space === Type || para_Tab === Type || ( para_Text === Type && true === Item.Is_NBSP() ) || ( para_Drawing === Type && true !== Item.Is_Inline() ) )
+            if ( para_Space === Type || para_Tab === Type || ( para_Text === Type && true === Item.IsNBSP() ) || ( para_Drawing === Type && true !== Item.Is_Inline() ) )
                 bSpace = true;
 
             if (true === bSpace || isFieldCode || isHiddenCF)
@@ -7556,7 +7556,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 		if (isFieldCode || isHiddenCF)
 			continue;
 
-        if ( (para_Text !== TempType && para_Math_Text !== TempType) || true === Item.Is_NBSP() || ( true === SearchPos.Punctuation && true !== Item.IsPunctuation() ) || ( false === SearchPos.Punctuation && false !== Item.IsPunctuation() ) )
+        if ( (para_Text !== TempType && para_Math_Text !== TempType) || true === Item.IsNBSP() || ( true === SearchPos.Punctuation && true !== Item.IsPunctuation() ) || ( false === SearchPos.Punctuation && false !== Item.IsPunctuation() ) )
         {
             SearchPos.Found = true;
             break;
@@ -7600,7 +7600,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 				isHiddenCF   = SearchPos.IsHiddenComplexField();
 			}
 
-            if ( (para_Text === Type || para_Math_Text === Type) && true != Item.Is_NBSP() && ( true === SearchPos.First || ( SearchPos.Punctuation === Item.IsPunctuation() ) ) )
+            if ( (para_Text === Type || para_Math_Text === Type) && true != Item.IsNBSP() && ( true === SearchPos.First || ( SearchPos.Punctuation === Item.IsPunctuation() ) ) )
                 bText = true;
 
             if (true === bText || isFieldCode || isHiddenCF)
@@ -7676,7 +7676,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
     // На втором этапе мы смотрим на каком элементе мы встали: если это не пробел, тогда
     // останавливаемся здесь. В противном случае сдвигаемся вперед, пока не попали на первый
     // не пробельный элемент.
-    if ( !(para_Space === this.Content[CurPos].Type || ( para_Text === this.Content[CurPos].Type && true === this.Content[CurPos].Is_NBSP() ) ) )
+    if ( !(para_Space === this.Content[CurPos].Type || ( para_Text === this.Content[CurPos].Type && true === this.Content[CurPos].IsNBSP() ) ) )
     {
         SearchPos.Pos.Update( CurPos, Depth );
         SearchPos.Found     = true;
@@ -7701,7 +7701,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 			if (isFieldCode || isHiddenCF)
 				continue;
 
-            if ( (true !== StepEnd && para_End === TempType) || !( para_Space === TempType || ( para_Text === TempType && true === Item.Is_NBSP() ) ) )
+            if ( (true !== StepEnd && para_End === TempType) || !( para_Space === TempType || ( para_Text === TempType && true === Item.IsNBSP() ) ) )
             {
                 SearchPos.Found = true;
                 break;
@@ -13728,7 +13728,7 @@ ParaRun.prototype.CheckTextForTextCase = function(oEngine)
 
                         if (AscCommon.IsSpace(nCharCode))
                             oEngine.word += " ";
-                        if (nLowerCode !== nCharCode || nUpperCode !== nCharCode || oItem.Is_Number())
+                        if (nLowerCode !== nCharCode || nUpperCode !== nCharCode || oItem.IsNumber())
                             oEngine.word += String.fromCharCode(nCharCode);
                     }
 				}

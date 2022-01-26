@@ -156,7 +156,7 @@ CMathBaseText.prototype.IsPunctuation = function()
 
     return bPunc || bMathSign;
 };
-CMathBaseText.prototype.Is_NBSP = function()
+CMathBaseText.prototype.IsNBSP = function()
 {
     return false;
 };

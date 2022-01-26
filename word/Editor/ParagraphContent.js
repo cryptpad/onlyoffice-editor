@@ -124,18 +124,6 @@ var nbsp_charcode = 0x00A0;
 var nbsp_string = String.fromCharCode(0x00A0);
 var sp_string   = String.fromCharCode(0x0032);
 
-var g_aNumber     = [];
-g_aNumber[0x0030] = 1;
-g_aNumber[0x0031] = 1;
-g_aNumber[0x0032] = 1;
-g_aNumber[0x0033] = 1;
-g_aNumber[0x0034] = 1;
-g_aNumber[0x0035] = 1;
-g_aNumber[0x0036] = 1;
-g_aNumber[0x0037] = 1;
-g_aNumber[0x0038] = 1;
-g_aNumber[0x0039] = 1;
-
 // Suitable Run content for the paragraph simple changes
 var g_oSRCFPSC             = [];
 g_oSRCFPSC[para_Text]      = 1;
@@ -430,7 +418,7 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 
 	var ResultCharCode = (this.Flags & PARATEXT_FLAGS_CAPITALS ? (String.fromCharCode(CharCode).toUpperCase()).charCodeAt(0) : CharCode);
 
-	if (true !== this.Is_NBSP())
+	if (true !== this.IsNBSP())
 		Context.FillTextCode(X, Y, ResultCharCode);
 	else if (editor && editor.ShowParaMarks)
 		Context.FillText(X, Y, String.fromCharCode(0x00B0));
@@ -519,10 +507,6 @@ ParaText.prototype.IsEqual = function(oElement)
 {
 	return (oElement.Type === this.Type && this.Value === oElement.Value);
 };
-ParaText.prototype.Is_NBSP = function()
-{
-	return (this.Value === nbsp_charcode);
-};
 ParaText.prototype.IsNBSP = function()
 {
 	return (this.Value === nbsp_charcode);
@@ -531,12 +515,9 @@ ParaText.prototype.IsPunctuation = function()
 {
 	return !!(undefined !== AscCommon.g_aPunctuation[this.Value]);
 };
-ParaText.prototype.Is_Number = function()
+ParaText.prototype.IsNumber = function()
 {
-	if (1 === g_aNumber[this.Value])
-		return true;
-
-	return false;
+	return this.IsDigit();
 };
 ParaText.prototype.Is_SpecialSymbol = function()
 {
@@ -604,14 +585,14 @@ ParaText.prototype.private_IsSpaceAfter = function()
 };
 ParaText.prototype.CanBeAtBeginOfLine = function()
 {
-	if (this.Is_NBSP())
+	if (this.IsNBSP())
 		return false;
 
 	return (!(AscCommon.g_aPunctuation[this.Value] & AscCommon.PUNCTUATION_FLAG_CANT_BE_AT_BEGIN));
 };
 ParaText.prototype.CanBeAtEndOfLine = function()
 {
-	if (this.Is_NBSP())
+	if (this.IsNBSP())
 		return false;
 
 	return (!(AscCommon.g_aPunctuation[this.Value] & AscCommon.PUNCTUATION_FLAG_CANT_BE_AT_END));
@@ -635,7 +616,7 @@ ParaText.prototype.GetAutoCorrectFlags = function()
 		return AUTOCORRECT_FLAGS_ALL;
 
 	// /,\,@  - исключения, на них мы не должны стартовать атозамену первой буквы предложения
-	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
+	if ((this.IsPunctuation() || this.IsNumber()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
 		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 
 	return AUTOCORRECT_FLAGS_NONE;
@@ -734,7 +715,7 @@ ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, o
 };
 ParaText.prototype.IsLetter = function()
 {
-	return (!this.IsPunctuation() && !this.Is_Number() && !this.IsNBSP());
+	return (!this.IsPunctuation() && !this.IsNumber() && !this.IsNBSP());
 };
 ParaText.prototype.IsDigit = function()
 {
