@@ -2059,7 +2059,7 @@ void main() {\n\
         var error = file.nativeFile["loadFromData"](data);
         if (0 === error)
         {
-            file.nativeFile.onRepaintPages = function(pages) {
+            file.nativeFile["onRepaintPages"] = function(pages) {
                 file.onRepaintPages && file.onRepaintPages(pages);
             };
             file.pages = file.nativeFile["getPages"]();
@@ -2090,7 +2090,7 @@ void main() {\n\
         var error = file.nativeFile["loadFromDataWithPassword"](password);
         if (0 === error)
         {
-            file.nativeFile.onRepaintPages = function(pages) {
+            file.nativeFile["onRepaintPages"] = function(pages) {
                 file.onRepaintPages && file.onRepaintPages(pages);
             };
             file.pages = file.nativeFile["getPages"]();
