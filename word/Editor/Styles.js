@@ -10759,6 +10759,29 @@ CTableMeasurement.prototype.WriteToBinary = function(oWriter)
 	oWriter.WriteDouble(this.W);
 	oWriter.WriteLong(this.Type);
 };
+CTableMeasurement.prototype.SetValueByType = function(val)
+{
+	if (null !== val && undefined !== val) {
+		if (tblwidth_Mm == this.Type) {
+			this.W = g_dKoef_twips_to_mm * val;
+		} else if (tblwidth_Pct == this.Type) {
+			this.W = 2 * val / 100;
+		} else {
+			this.W = val;
+		}
+	}
+};
+CTableMeasurement.prototype.GetValueByType = function() {
+	var res = this.W;
+	if (null !== res && undefined !== res) {
+		if (tblwidth_Mm == this.Type) {
+			res = Math.round(AscCommonWord.g_dKoef_mm_to_twips * this.W);
+		} else if (tblwidth_Pct == this.Type) {
+			res = Math.round(100 * this.W / 2);
+		}
+	}
+	return res;
+};
 
 function CTablePr()
 {

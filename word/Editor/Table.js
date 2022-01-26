@@ -8515,6 +8515,17 @@ CTable.prototype.Set_PositionH = function(RelativeFrom, Align, Value)
 	this.PositionH.Align        = Align;
 	this.PositionH.Value        = Value;
 };
+CTable.prototype.Get_PositionHValueInTwips = function() {
+	var res;
+	if(this.PositionH && null !== this.PositionH.Value && undefined !== this.PositionH.Value) {
+		res = Math.round(AscCommonWord.g_dKoef_mm_to_twips * this.PositionH.Value);
+		//0 is a special value(left align)
+		if (0 === res) {
+			res = 1;
+		}
+	}
+	return res;
+};
 CTable.prototype.Set_PositionV = function(RelativeFrom, Align, Value)
 {
 	History.Add(new CChangesTablePositionV(this,
@@ -8532,6 +8543,17 @@ CTable.prototype.Set_PositionV = function(RelativeFrom, Align, Value)
 	this.PositionV.RelativeFrom = RelativeFrom;
 	this.PositionV.Align        = Align;
 	this.PositionV.Value        = Value;
+};
+CTable.prototype.Get_PositionVValueInTwips = function() {
+	var res;
+	if(this.PositionV && null !== this.PositionV.Value && undefined !== this.PositionV.Value) {
+		res = Math.round(AscCommonWord.g_dKoef_mm_to_twips * this.PositionV.Value);
+		//0 is a special value(c_oAscVAnchor.Text)
+		if (0 === res) {
+			res = 1;
+		}
+	}
+	return res;
 };
 CTable.prototype.Set_Distance = function(L, T, R, B)
 {

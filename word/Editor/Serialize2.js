@@ -4514,14 +4514,9 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
-				twips = this.bs.mmToTwips(PositionH.Value);
-				//0 is a special value(left align)
-				if (0 === twips) {
-					twips = 1;
-				}
 				this.memory.WriteByte(c_oSer_tblpPrType2.TblpXTwips);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.memory.WriteLong(twips);
+				this.memory.WriteLong(table.Get_PositionHValueInTwips());
 			}
         }
 		if(null != table.PositionV)
@@ -4541,14 +4536,9 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
-				twips = this.bs.mmToTwips(PositionV.Value);
-				//0 is a special value(c_oAscVAnchor.Text)
-				if (0 === twips && Asc.c_oAscVAnchor.Text !== PositionV.RelativeFrom) {
-					twips = 1;
-				}
 				this.memory.WriteByte(c_oSer_tblpPrType2.TblpYTwips);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.memory.WriteLong(twips);
+				this.memory.WriteLong(table.Get_PositionVValueInTwips());
 			}
         }
 		if(null != table.Distance)
@@ -4690,14 +4680,9 @@ Binary_tblPrWriter.prototype =
 		//W
 		if(null != WAfter.W)
 		{
-			var nVal = WAfter.W;
-			if(tblwidth_Mm == WAfter.Type)
-				nVal = this.bs.mmToTwips(WAfter.W);
-			else if(tblwidth_Pct == WAfter.Type)
-				nVal = Math.round(100 * WAfter.W / 2);
 			this.memory.WriteByte(c_oSerWidthType.WDocx);
 			this.memory.WriteByte(c_oSerPropLenType.Long);
-			this.memory.WriteLong(nVal);
+			this.memory.WriteLong(WAfter.GetValueByType());
 		}
     },
     WriteCellPr: function(cellPr, vMerge, cell)
@@ -10103,38 +10088,25 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == Pr.TableW)
-                Pr.TableW = new CTableMeasurement(tblwidth_Auto, 0);
+			Pr.TableW = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, Pr.TableW);
         }
         else if( c_oSerProp_tblPrType.TableCellMar === type )
         {
-            if(null == Pr.TableCellMar)
-                Pr.TableCellMar = this.GetNewMargin();
+			Pr.TableCellMar = this.GetNewMargin();
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadCellMargins(t, l, Pr.TableCellMar);
             });
         }
         else if( c_oSerProp_tblPrType.TableBorders === type )
         {
-            if(null == Pr.TableBorders)
-                Pr.TableBorders =
-                {
-                    Bottom  : undefined,
-                    Left    : undefined,
-                    Right   : undefined,
-                    Top     : undefined,
-                    InsideH : undefined,
-                    InsideV : undefined
-                };
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.bpPrr.ReadBorders(t, l, Pr.TableBorders);
             });
         }
         else if( c_oSerProp_tblPrType.Shd === type )
         {
-            if(null == Pr.Shd)
-                Pr.Shd = new CDocumentShd();
+			Pr.Shd = new CDocumentShd();
 			ReadDocumentShd(length, this.bcr, Pr.Shd);
         }
 		else if( c_oSerProp_tblPrType.Layout === type )
@@ -10258,18 +10230,12 @@ Binary_tblPrReader.prototype =
     },
 	ParseW: function(input, output)
     {
-		if(input.Type)
+		if(null !== input.Type)
 			output.Type = input.Type;
-		if(input.W)
+		if(null !== input.W) {
 			output.W = input.W;
-		if(input.WDocx)
-		{
-			if(tblwidth_Mm == input.Type)
-				output.W = g_dKoef_twips_to_mm * input.WDocx;
-			else if(tblwidth_Pct == input.Type)
-				output.W = 2 * input.WDocx / 100;
-			else
-				output.W = input.WDocx;
+		} else {
+			output.SetValueByType(input.WDocx);
 		}
 	},
     ReadCellMargins: function(type, length, Margins)
@@ -10282,8 +10248,7 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == Margins.Left)
-                Margins.Left = new CTableMeasurement(tblwidth_Auto, 0);
+			Margins.Left = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, Margins.Left);
         }
         else if( c_oSerMarginsType.top === type )
@@ -10292,8 +10257,7 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == Margins.Top)
-                Margins.Top = new CTableMeasurement(tblwidth_Auto, 0);
+			Margins.Top = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, Margins.Top);
         }
         else if( c_oSerMarginsType.right === type )
@@ -10302,8 +10266,7 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == Margins.Right)
-                Margins.Right = new CTableMeasurement(tblwidth_Auto, 0);
+			Margins.Right = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, Margins.Right);
         }
         else if( c_oSerMarginsType.bottom === type )
@@ -10312,8 +10275,7 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == Margins.Bottom)
-                Margins.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+			Margins.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, Margins.Bottom);
         }
         else
@@ -10426,8 +10388,7 @@ Binary_tblPrReader.prototype =
 		}
         else if( c_oSerProp_rowPrType.Height === type )
         {
-            if(null == Pr.Height)
-                Pr.Height = new CTableRowHeight(0,Asc.linerule_Auto);
+            Pr.Height = new CTableRowHeight(0,Asc.linerule_Auto);
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadHeight(t, l, Pr.Height);
             });
@@ -10476,8 +10437,7 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == After.WAfter)
-                After.WAfter = new CTableMeasurement(tblwidth_Auto, 0);
+			After.WAfter = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, After.WAfter);
         }
         else
@@ -10498,8 +10458,7 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == Before.WBefore)
-                Before.WBefore = new CTableMeasurement(tblwidth_Auto, 0);
+			Before.WBefore = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, Before.WBefore);
         }
         else
@@ -10561,8 +10520,7 @@ Binary_tblPrReader.prototype =
         }
         else if( c_oSerProp_cellPrType.CellMar === type )
         {
-			if(null == Pr.TableCellMar)
-                Pr.TableCellMar = this.GetNewMargin();
+			Pr.TableCellMar = this.GetNewMargin();
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadCellMargins(t, l, Pr.TableCellMar);
             });
@@ -10573,8 +10531,7 @@ Binary_tblPrReader.prototype =
             res = this.bcr.Read2(length, function(t, l){
                 return oThis.ReadW(t, l, oW);
             });
-			if(null == Pr.TableCellW)
-                Pr.TableCellW = new CTableMeasurement(tblwidth_Auto, 0);
+			Pr.TableCellW = new CTableMeasurement(tblwidth_Auto, 0);
 			this.ParseW(oW, Pr.TableCellW);
         }
         else if( c_oSerProp_cellPrType.VAlign === type )

@@ -268,8 +268,8 @@
 					break;
 				}
 				case "tblPr" : {
-					// var tblPr = new CT_TblPr();
-					// this.tblPr.fromXml(reader);
+					this.Pr = new CTablePr();
+					this.Pr.fromXml(reader, this);
 					break;
 				}
 				case "tblGrid" : {
@@ -317,12 +317,200 @@
 		writer.WriteXmlArray(this.customXmlMoveFromRangeEnd, "w:customXmlMoveFromRangeEnd");
 		writer.WriteXmlArray(this.customXmlMoveToRangeStart, "w:customXmlMoveToRangeStart");
 		writer.WriteXmlArray(this.customXmlMoveToRangeEnd, "w:customXmlMoveToRangeEnd");
-		writer.WriteXmlNullable(this.tblPr, "w:tblPr");
+		if (null !== this.Pr) {
+			this.Pr.toXml(writer, "w:tblPr", this);
+		}
 		tblGrid.toXml(writer, "w:tblGrid");
 		writer.WriteXmlArray(this.Content, "w:tr");
 		writer.WriteXmlArray(this.customXml, "w:customXml");
 		writer.WriteXmlArray(this.sdt, "w:sdt");
 		writer.WriteXmlArray(this.todo_EG_RunLevelElts, "w:todo_EG_RunLevelElts");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CTablePr.prototype.fromXml = function(reader, opt_table) {
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "tblStyle" : {
+					if(opt_table) {
+						elem = new CT_StringStax();
+						elem.fromXml(reader);
+						if(elem.getVal(undefined)) {
+							reader.context.oReadResult.tableStyles.push({pPr: opt_table, style: elem.getVal(undefined)});
+						}
+					}
+					break;
+				}
+				case "tblpPr" : {
+					if (opt_table) {
+						elem = new CT_TblPPr();
+						elem.fromXml(reader);
+						elem.toTable(opt_table);
+					}
+					break;
+				}
+				// case "tblOverlap" : {
+				// 	this.TblOverlap = new CT_TblOverlap();
+				// 	this.TblOverlap.fromXml(reader);
+				// 	break;
+				// }
+				// case "bidiVisual" : {
+				// 	this.BidiVisual = new CT_OnOff();
+				// 	this.BidiVisual.fromXml(reader);
+				// 	break;
+				// }
+				case "tblStyleRowBandSize" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.TableStyleRowBandSize = elem.getVal(undefined);
+					break;
+				}
+				case "tblStyleColBandSize" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.TableStyleColBandSize = elem.getVal(undefined);
+					break;
+				}
+				case "tblW" : {
+					this.TableW = new CTableMeasurement(tblwidth_Auto, 0);
+					this.TableW.fromXml(reader);
+					break;
+				}
+				case "jc" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.Jc = fromXml_ST_JcTable(elem.getVal(undefined));
+					break;
+				}
+				case "tblCellSpacing" : {
+					var tblCellSpacing = new CTableMeasurement(tblwidth_Auto, 0);
+					tblCellSpacing.fromXml(reader);
+					if (tblwidth_Mm === tblCellSpacing.Type) {
+						//different understanding of TableCellSpacing with Word
+						this.TableCellSpacing = 2 * g_dKoef_twips_to_mm * tblCellSpacing.W;
+					}
+					break;
+				}
+				case "tblInd" : {
+					var tblInd = new CTableMeasurement(tblwidth_Auto, 0);
+					tblInd.fromXml(reader);
+					if (tblwidth_Mm === tblInd.Type) {
+						this.TableInd = g_dKoef_twips_to_mm * tblInd.W;
+					}
+					break;
+				}
+				case "tblBorders" : {
+					var pBdr = new CT_Bdr();
+					pBdr.fromXml(reader);
+					pBdr.toObj(this.TableBorders);
+					break;
+				}
+				case "shd" : {
+					this.Shd = new CDocumentShd();
+					this.Shd.fromXml(reader);
+					break;
+				}
+				case "tblLayout" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.TableLayout = fromXml_ST_TblLayoutType(elem.getVal(undefined));
+					break;
+				}
+				case "tblCellMar" : {
+					this.TableCellMar = {Bottom: undefined, Left: undefined, Right: undefined, Top: undefined};
+					elem = new CT_TblCellMar();
+					elem.fromXml(reader);
+					elem.toObj(this.TableCellMar);
+					break;
+				}
+				case "tblLook" : {
+					if(opt_table) {
+						elem = new CTableLook();
+						elem.SetDefault();
+						elem.fromXml(reader);
+						opt_table.Set_TableLook(elem);
+					}
+					break;
+				}
+				case "tblCaption" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.TableCaption = elem.getVal(undefined);
+					break;
+				}
+				case "tblDescription" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.TableDescription = elem.getVal(undefined);
+					break;
+				}
+				case "tblPrChange" : {
+					//todo
+					// this.TblPrChange = new CT_TblPrChange();
+					// this.TblPrChange.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CTablePr.prototype.toXml = function(writer, name, opt_table) {
+		var TblpPr;
+		if(opt_table && !opt_table.Inline) {
+			TblpPr = new CT_TblPPr();
+			TblpPr.fromTable(opt_table);
+		}
+		var TableStyleRowBandSize = CT_DecimalNumber.prototype.fromVal(this.TableStyleRowBandSize);
+		var TableStyleColBandSize = CT_DecimalNumber.prototype.fromVal(this.TableStyleColBandSize);
+		var Jc = CT_StringStax.prototype.fromVal(toXml_ST_JcTable(this.Jc));
+		var TableCellSpacing;
+		if(undefined !== this.TableCellSpacing) {
+			TableCellSpacing = new CTableMeasurement(tblwidth_Mm, this.TableCellSpacing * g_dKoef_mm_to_twips / 2);
+		}
+		var TableInd;
+		if(undefined !== this.TableInd) {
+			TableInd = new CTableMeasurement(tblwidth_Mm, this.TableInd * g_dKoef_mm_to_twips);
+		}
+		var TableBorders = new CT_Bdr();
+		TableBorders.fromObj(this.TableBorders);
+		if (TableBorders.isEmpty()) {
+			TableBorders = null;
+		}
+		var TableLayout = CT_StringStax.prototype.fromVal(toXml_ST_TblLayoutType(this.TableLayout));
+		var TableCellMar;
+		if (this.TableCellMar) {
+			TableCellMar = new CT_TblCellMar();
+			TableCellMar.fromObj(this.TableCellMar);
+			if (TableCellMar.isEmpty()) {
+				TableCellMar = null;
+			}
+		}
+		var TableCaption = CT_StringStax.prototype.fromVal(this.TableCaption);
+		var TableDescription = CT_StringStax.prototype.fromVal(this.TableDescription);
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		if (opt_table) {
+			writer.WriteXmlNullable(opt_table.Get_TableStyle(), "w:tblStyle");
+		}
+		writer.WriteXmlNullable(TblpPr, "w:tblpPr");
+		// writer.WriteXmlNullable(this.TblOverlap, "w:tblOverlap");
+		// writer.WriteXmlNullable(this.BidiVisual, "w:bidiVisual");
+		writer.WriteXmlNullable(TableStyleRowBandSize, "w:tblStyleRowBandSize");
+		writer.WriteXmlNullable(TableStyleColBandSize, "w:tblStyleColBandSize");
+		writer.WriteXmlNullable(this.TableW, "w:tblW");
+		writer.WriteXmlNullable(Jc, "w:jc");
+		writer.WriteXmlNullable(TableCellSpacing, "w:tblCellSpacing");
+		writer.WriteXmlNullable(TableInd, "w:tblInd");
+		writer.WriteXmlNullable(TableBorders, "w:tblBorders");
+		writer.WriteXmlNullable(this.Shd, "w:shd");
+		writer.WriteXmlNullable(TableLayout, "w:tblLayout");
+		writer.WriteXmlNullable(TableCellMar, "w:tblCellMar");
+		if (opt_table) {
+			writer.WriteXmlNullable(opt_table.Get_TableLook(), "w:tblLook");
+		}
+		writer.WriteXmlNullable(TableCaption, "w:tblCaption");
+		writer.WriteXmlNullable(TableDescription, "w:tblDescription");
+		// writer.WriteXmlNullable(this.TblPrChange, "w:tblPrChange");
 		writer.WriteXmlNodeEnd(name);
 	};
 	function CT_TblGrid() {
@@ -375,7 +563,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "w": {
-					this.w = AscCommon.universalMeasureToUnsignedMm(reader.GetText(), AscCommonWord.g_dKoef_twips_to_mm, 0);
+					this.w = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, 0);
 					break;
 				}
 			}
@@ -388,6 +576,52 @@
 	CT_TblGridCol.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeIntWithKoef("w:w", this.w, g_dKoef_mm_to_twips);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CTableLook.prototype.readAttr = function(reader) {
+		var FirstRow, LastRow, FirstColumn, LastColumn, NoHBand, NoVBand;
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "firstRow": {
+					FirstRow = reader.GetValueBool();
+					break;
+				}
+				case "lastRow": {
+					LastRow = reader.GetValueBool();
+					break;
+				}
+				case "firstColumn": {
+					FirstColumn = reader.GetValueBool();
+					break;
+				}
+				case "lastColumn": {
+					LastColumn = reader.GetValueBool();
+					break;
+				}
+				case "noHBand": {
+					NoHBand = reader.GetValueBool();
+					break;
+				}
+				case "noVBand": {
+					NoVBand = reader.GetValueBool();
+					break;
+				}
+			}
+		}
+		this.Set(!!FirstColumn, !!FirstRow, !!LastColumn, !!LastRow, !NoHBand, !NoVBand);
+	};
+	CTableLook.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CTableLook.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:firstRow", this.Is_FirstRow());
+		writer.WriteXmlNullableAttributeBool("w:lastRow", this.Is_LastRow());
+		writer.WriteXmlNullableAttributeBool("w:firstColumn", this.Is_FirstCol());
+		writer.WriteXmlNullableAttributeBool("w:lastColumn", this.Is_LastCol());
+		writer.WriteXmlNullableAttributeBool("w:noHBand", !this.Is_BandHor());
+		writer.WriteXmlNullableAttributeBool("w:noVBand", !this.Is_BandVer());
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CTableRow.prototype.readAttr = function(reader) {
@@ -451,104 +685,175 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 	CTableRowPr.prototype.fromXml = function(reader) {
-		var depth = reader.GetDepth();
+		var elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
-				case "cnfStyle" : {
-					break;
-				}
-				case "divId" : {
-					this.divId = new CT_DecimalNumber();
-					this.divId.fromXml(reader);
-					break;
-				}
+				// case "cnfStyle" : {
+				// 	this.CnfStyle = new CT_Cnf();
+				// 	this.CnfStyle.fromXml(reader);
+				// 	break;
+				// }
+				// case "divId" : {
+				// 	this.DivId = new CT_DecimalNumber();
+				// 	this.DivId.fromXml(reader);
+				// 	break;
+				// }
 				case "gridBefore" : {
-					this.gridBefore = new CT_DecimalNumber();
-					this.gridBefore.fromXml(reader);
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.GridBefore = elem.getVal(undefined);
 					break;
 				}
 				case "gridAfter" : {
-					this.gridAfter = new CT_DecimalNumber();
-					this.gridAfter.fromXml(reader);
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.GridAfter = elem.getVal(undefined);
 					break;
 				}
 				case "wBefore" : {
-					this.wBefore = new CT_TblWidth();
-					this.wBefore.fromXml(reader);
+					this.WBefore = new CTableMeasurement(tblwidth_Auto, 0);
+					this.WBefore.fromXml(reader);
 					break;
 				}
 				case "wAfter" : {
-					this.wAfter = new CT_TblWidth();
-					this.wAfter.fromXml(reader);
+					this.WAfter = new CTableMeasurement(tblwidth_Auto, 0);
+					this.WAfter.fromXml(reader);
 					break;
 				}
 				case "cantSplit" : {
-					this.cantSplit = new CT_OnOff();
-					this.cantSplit.fromXml(reader);
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.CantSplit = elem.getVal(undefined);
 					break;
 				}
 				case "trHeight" : {
-					this.trHeight = new CT_Height();
-					this.trHeight.fromXml(reader);
+					this.Height = new CTableRowHeight(0, Asc.linerule_Auto);
+					this.Height.fromXml(reader);
 					break;
 				}
 				case "tblHeader" : {
-					this.tblHeader = new CT_OnOff();
-					this.tblHeader.fromXml(reader);
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.TableHeader = elem.getVal(undefined);
 					break;
 				}
 				case "tblCellSpacing" : {
-					this.tblCellSpacing = new CT_TblWidth();
-					this.tblCellSpacing.fromXml(reader);
+					var tblCellSpacing = new CTableMeasurement(tblwidth_Auto, 0);
+					tblCellSpacing.fromXml(reader);
+					if (tblwidth_Mm === tblCellSpacing.Type) {
+						//different understanding of TableCellSpacing with Word
+						this.TableCellSpacing = 2 * g_dKoef_twips_to_mm * tblCellSpacing.W;
+					}
 					break;
 				}
 				case "jc" : {
-					this.jc = new CT_JcTable();
-					this.jc.fromXml(reader);
+					var Jc = new CT_StringStax();
+					Jc.fromXml(reader);
+					this.Jc = fromXml_ST_JcTable(Jc.getVal(undefined));
 					break;
 				}
-				case "hidden" : {
-					this.hidden = new CT_OnOff();
-					this.hidden.fromXml(reader);
-					break;
-				}
+				// case "hidden" : {
+				// 	this.Hidden = new CT_OnOff();
+				// 	this.Hidden.fromXml(reader);
+				// 	break;
+				// }
 				case "ins" : {
-					this.ins = new CT_TrackChange();
-					this.ins.fromXml(reader);
+					//todo
+					// this.Ins = new CT_TrackChange();
+					// this.Ins.fromXml(reader);
 					break;
 				}
 				case "del" : {
-					this.del = new CT_TrackChange();
-					this.del.fromXml(reader);
+					// this.Del = new CT_TrackChange();
+					// this.Del.fromXml(reader);
 					break;
 				}
 				case "trPrChange" : {
-					this.trPrChange = new CT_TrPrChange();
-					this.trPrChange.fromXml(reader);
+					// this.TrPrChange = new CT_TrPrChange();
+					// this.TrPrChange.fromXml(reader);
 					break;
 				}
 			}
 		}
 	};
 	CTableRowPr.prototype.toXml = function(writer, name) {
+		var GridBefore = CT_DecimalNumber.prototype.fromVal(this.GridBefore);
+		var GridAfter = CT_DecimalNumber.prototype.fromVal(this.GridAfter);
+		var CantSplit = CT_OnOff.prototype.fromVal(this.CantSplit);
+		var TableHeader = CT_OnOff.prototype.fromVal(this.TableHeader);
+		var TableCellSpacing;
+		if (undefined !== this.TableCellSpacing) {
+			TableCellSpacing = new CTableMeasurement(tblwidth_Mm, Pr.TableCellSpacing * g_dKoef_mm_to_twips / 2);
+		}
+
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlNullable(this.cnfStyle, "w:cnfStyle");
-		writer.WriteXmlNullable(this.divId, "w:divId");
-		writer.WriteXmlNullable(this.gridBefore, "w:gridBefore");
-		writer.WriteXmlNullable(this.gridAfter, "w:gridAfter");
-		writer.WriteXmlNullable(this.wBefore, "w:wBefore");
-		writer.WriteXmlNullable(this.wAfter, "w:wAfter");
-		writer.WriteXmlNullable(this.cantSplit, "w:cantSplit");
-		writer.WriteXmlNullable(this.trHeight, "w:trHeight");
-		writer.WriteXmlNullable(this.tblHeader, "w:tblHeader");
-		writer.WriteXmlNullable(this.tblCellSpacing, "w:tblCellSpacing");
-		writer.WriteXmlNullable(this.jc, "w:jc");
-		writer.WriteXmlNullable(this.hidden, "w:hidden");
-		writer.WriteXmlNullable(this.ins, "w:ins");
-		writer.WriteXmlNullable(this.del, "w:del");
-		writer.WriteXmlNullable(this.trPrChange, "w:trPrChange");
+		// writer.WriteXmlNullable(this.CnfStyle, "w:cnfStyle");
+		// writer.WriteXmlNullable(this.DivId, "w:divId");
+		writer.WriteXmlNullable(GridBefore, "w:gridBefore");
+		writer.WriteXmlNullable(GridAfter, "w:gridAfter");
+		writer.WriteXmlNullable(this.WBefore, "w:wBefore");
+		writer.WriteXmlNullable(this.WAfter, "w:wAfter");
+		writer.WriteXmlNullable(CantSplit, "w:cantSplit");
+		writer.WriteXmlNullable(this.Height, "w:trHeight");
+		writer.WriteXmlNullable(TableHeader, "w:tblHeader");
+		writer.WriteXmlNullable(TableCellSpacing, "w:tblCellSpacing");
+		writer.WriteXmlNullable(toXml_ST_JcTable(this.Jc), "w:jc");
+		// writer.WriteXmlNullable(this.Hidden, "w:hidden");
+		// writer.WriteXmlNullable(this.Ins, "w:ins");
+		// writer.WriteXmlNullable(this.Del, "w:del");
+		// writer.WriteXmlNullable(this.TrPrChange, "w:trPrChange");
 		writer.WriteXmlNodeEnd(name);
+	};
+	CTableMeasurement.prototype.readAttr = function(reader) {
+		var w;
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "w": {
+					w = reader.GetValueInt();
+					break;
+				}
+				case "type": {
+					this.Type = fromXml_ST_TblWidth(reader.GetValue());
+					break;
+				}
+			}
+		}
+		this.SetValueByType(w);
+	};
+	CTableMeasurement.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CTableMeasurement.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:w", this.GetValueByType());
+		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_TblWidth(this.Type));
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CTableRowHeight.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.Value = AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, 0);
+					break;
+				}
+				case "hRule": {
+					this.HRule = fromXml_ST_HeightRule(reader.GetValue());
+					break;
+				}
+			}
+		}
+	};
+	CTableRowHeight.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CTableRowHeight.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:val", this.Value, AscCommonWord.g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeString("w:hRule", toXml_ST_HeightRule(this.HRule));
+		writer.WriteXmlAttributesEnd(true);
 	};
 	CTableCell.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
@@ -569,9 +874,9 @@
 			if (!newItem) {
 				switch (name) {
 					case "tcPr" : {
-						// var cellPr = new CTableCellPr();
-						// cellPr.fromXml(reader);
-						// this.Set_Pr(cellPr);
+						var cellPr = new CTableCellPr();
+						cellPr.fromXml(reader);
+						this.Set_Pr(cellPr);
 						break;
 					}
 				}
@@ -585,10 +890,161 @@
 		writer.WriteXmlNodeStart(name);
 		// writer.WriteXmlNullableAttributeString("id", this.id);
 		writer.WriteXmlAttributesEnd();
-		// writer.WriteXmlNullable(this.tcPr, "w:tcPr");
+		writer.WriteXmlNullable(this.Pr, "w:tcPr");
 		this.Content.Content.forEach(function (item) {
 			CDocument.prototype.toXmlDocContentElem(writer, item);
 		});
+		writer.WriteXmlNodeEnd(name);
+	};
+	CTableCellPr.prototype.fromXml = function(reader) {
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				// case "cnfStyle" : {
+				// 	this.CnfStyle = new CT_Cnf();
+				// 	this.CnfStyle.fromXml(reader);
+				// 	break;
+				// }
+				case "tcW" : {
+					this.TableCellW = new CTableMeasurement(tblwidth_Auto, 0);
+					this.TableCellW.fromXml(reader);
+					break;
+				}
+				case "gridSpan" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.GridSpan = elem.getVal(undefined);
+					break;
+				}
+				case "hverge" :
+				case "hMerge" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.HMerge = fromXml_ST_Merge(elem.getVal(undefined));
+					break;
+				}
+				case "vmerge" :
+				case "vMerge" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.VMerge = fromXml_ST_Merge(elem.getVal(undefined));
+					break;
+				}
+				case "tcBorders" : {
+					var pBdr = new CT_Bdr();
+					pBdr.fromXml(reader);
+					pBdr.toObj(this.TableCellBorders);
+					break;
+				}
+				case "shd" : {
+					this.Shd = new CDocumentShd();
+					this.Shd.fromXml(reader);
+					break;
+				}
+				case "noWrap" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.NoWrap = elem.getVal(undefined);
+					break;
+				}
+				case "tcMar" : {
+					this.TableCellMar = {Bottom: undefined, Left: undefined, Right: undefined, Top: undefined};
+					elem = new CT_TblCellMar();
+					elem.fromXml(reader);
+					elem.toObj(this.TableCellMar);
+					break;
+				}
+				case "textDirection" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.TextDirection = fromXml_ST_TextDirection(elem.getVal(undefined));
+					break;
+				}
+				// case "tcFitText" : {
+				// 	this.TcFitText = new CT_OnOff();
+				// 	this.TcFitText.fromXml(reader);
+				// 	break;
+				// }
+				case "vAlign" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.VAlign = fromXml_ST_VerticalJc(elem.getVal(undefined));
+					break;
+				}
+				// case "hideMark" : {
+				// 	this.HideMark = new CT_OnOff();
+				// 	this.HideMark.fromXml(reader);
+				// 	break;
+				// }
+				// case "headers" : {
+				// 	this.Headers = new CT_Headers();
+				// 	this.Headers.fromXml(reader);
+				// 	break;
+				// }
+				case "cellIns" : {
+					// this.CellIns = new CT_TrackChange();
+					// this.CellIns.fromXml(reader);
+					break;
+				}
+				case "cellDel" : {
+					// this.CellDel = new CT_TrackChange();
+					// this.CellDel.fromXml(reader);
+					break;
+				}
+				// case "cellMerge" : {
+				// 	this.CellMerge = new CT_CellMergeTrackChange();
+				// 	this.CellMerge.fromXml(reader);
+				// 	break;
+				// }
+				case "tcPrChange" : {
+					// this.TcPrChange = new CT_TcPrChange();
+					// this.TcPrChange.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CTableCellPr.prototype.toXml = function(writer, name) {
+		var GridSpan = CT_DecimalNumber.prototype.fromVal(this.GridSpan);
+		var HMerge = CT_StringStax.prototype.fromVal(toXml_ST_Merge(this.HMerge));
+		var VMerge = CT_StringStax.prototype.fromVal(toXml_ST_Merge(this.VMerge));
+		var TableCellBorders = new CT_Bdr();
+		TableCellBorders.fromObj(this.TableCellBorders);
+		if (TableCellBorders.isEmpty()) {
+			TableCellBorders = null;
+		}
+		var NoWrap = CT_OnOff.prototype.fromVal(this.NoWrap);
+		var TableCellMar;
+		if (this.TableCellMar) {
+			TableCellMar = new CT_TblCellMar();
+			TableCellMar.fromObj(this.TableCellMar);
+			if (TableCellMar.isEmpty()) {
+				TableCellMar = null;
+			}
+		}
+		var TextDirection = CT_StringStax.prototype.fromVal(toXml_ST_TextDirection(this.TextDirection));
+		var VAlign = CT_StringStax.prototype.fromVal(toXml_ST_VerticalJc(this.VAlign));
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		// writer.WriteXmlNullable(this.CnfStyle, "w:cnfStyle");
+		writer.WriteXmlNullable(this.TableCellW, "w:tcW");
+		writer.WriteXmlNullable(GridSpan, "w:gridSpan");
+		writer.WriteXmlNullable(HMerge, "w:hmerge");
+		writer.WriteXmlNullable(VMerge, "w:vmerge");
+		writer.WriteXmlNullable(TableCellBorders, "w:tcBorders");
+		writer.WriteXmlNullable(this.Shd, "w:shd");
+		writer.WriteXmlNullable(NoWrap, "w:noWrap");
+		writer.WriteXmlNullable(TableCellMar, "w:tcMar");
+		writer.WriteXmlNullable(TextDirection, "w:textDirection");
+		// writer.WriteXmlNullable(this.TcFitText, "w:tcFitText");
+		writer.WriteXmlNullable(VAlign, "w:vAlign");
+		// writer.WriteXmlNullable(this.HideMark, "w:hideMark");
+		// writer.WriteXmlNullable(this.Headers, "w:headers");
+		// writer.WriteXmlNullable(this.CellIns, "w:cellIns");
+		// writer.WriteXmlNullable(this.CellDel, "w:cellDel");
+		// writer.WriteXmlNullable(this.CellMerge, "w:cellMerge");
+		// writer.WriteXmlNullable(this.TcPrChange, "w:tcPrChange");
 		writer.WriteXmlNodeEnd(name);
 	};
 	Paragraph.prototype.fromXml = function (reader) {
@@ -1098,6 +1554,57 @@
 		// writer.WriteXmlNullable(this.ins, "w:ins");
 		writer.WriteXmlNodeEnd(name);
 	};
+	CDocumentBorder.prototype.readAttr = function(reader) {
+		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
+		while (reader.MoveToNextAttribute()) {
+			var name = reader.GetNameNoNS();
+			switch (name) {
+				case "val": {
+					this.Value = fromXml_ST_Border(reader.GetValue());
+					break;
+				}
+				case "sz": {
+					this.setSizeIn8Point(reader.GetValueUInt());
+					break;
+				}
+				case "space": {
+					this.setSpaceInPoint(reader.GetValueUInt());
+					break;
+				}
+// 				case "shadow": {
+// 					this.Shadow = reader.GetValueDecodeXml();
+// 					break;
+// 				}
+// 				case "frame": {
+// 					this.Frame = reader.GetValueDecodeXml();
+// 					break;
+// 				}
+				default:
+					themeColor.readAttrElem(reader, name);
+					break;
+			}
+		}
+		this.Color = themeColor.getColor();
+		this.Unifill = themeColor.getUnifill();
+	};
+	CDocumentBorder.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CDocumentBorder.prototype.toXml = function(writer, name) {
+		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
+		themeColor.setColor(this.Color);
+		themeColor.setUniFill(this.Unifill);
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_Border(this.Value));
+		writer.WriteXmlNullableAttributeUInt("w:sz", this.getSizeIn8Point());
+		writer.WriteXmlNullableAttributeUInt("w:space", this.getSpaceInPoint());
+		themeColor.toXmlElems(writer);
+// 		writer.WriteXmlNullableAttributeStringEncode("w:shadow", this.Shadow);
+// 		writer.WriteXmlNullableAttributeStringEncode("w:frame", this.Frame);
+		writer.WriteXmlAttributesEnd(true);
+	};
 	CDocumentShd.prototype.readAttr = function(reader) {
 		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
 		var themeFill = new CT_Color("fill", "themeFill", "themeFillTint", "themeFillShade");
@@ -1111,7 +1618,7 @@
 		}
 		this.Color = themeColor.getColor();
 		this.Unifill = themeColor.getUnifill();
-		this.Fill = themeFill.getUnifill();
+		this.Fill = themeFill.getColor();
 		this.themeFill = themeFill.getUnifill();
 	};
 	CDocumentShd.prototype.fromXml = function(reader) {
@@ -1970,6 +2477,198 @@
 	CT_UnsignedDecimalNumber.prototype.getVal = function(def) {
 		return this.val || def;
 	};
+
+	function CT_TblPPr() {
+		this.LeftFromText = null;
+		this.RightFromText = null;
+		this.TopFromText = null;
+		this.BottomFromText = null;
+		this.VertAnchor = null;
+		this.HorzAnchor = null;
+		this.TblpXSpec = null;
+		this.TblpX = null;
+		this.TblpYSpec = null;
+		this.TblpY = null;
+		return this;
+	}
+	CT_TblPPr.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "leftFromText": {
+					this.LeftFromText = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, 0);
+					break;
+				}
+				case "rightFromText": {
+					this.RightFromText = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, 0);
+					break;
+				}
+				case "topFromText": {
+					this.TopFromText = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, 0);
+					break;
+				}
+				case "bottomFromText": {
+					this.BottomFromText = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, 0);
+					break;
+				}
+				case "vertAnchor": {
+					this.VertAnchor = fromXml_ST_VAnchor(reader.GetValue());
+					break;
+				}
+				case "horzAnchor": {
+					this.HorzAnchor = fromXml_ST_HAnchor(reader.GetValue());
+					break;
+				}
+				case "tblpXSpec": {
+					this.TblpXSpec = fromXml_ST_XAlign(reader.GetValue());
+					break;
+				}
+				case "tblpX": {
+					var TblpX = AscCommon.universalMeasureToPt(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_pt, null);
+					if(null !== TblpX) {
+						this.TblpX = AscCommonWord.g_dKoef_pt_to_twips * TblpX;
+					}
+					break;
+				}
+				case "tblpYSpec": {
+					this.TblpYSpec = fromXml_ST_YAlign(reader.GetValue());
+					break;
+				}
+				case "tblpY": {
+					var TblpY = AscCommon.universalMeasureToPt(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_pt, null);
+					if(null !== TblpY) {
+						this.TblpY = AscCommonWord.g_dKoef_pt_to_twips * TblpY;
+					}
+					break;
+				}
+			}
+		}
+	};
+	CT_TblPPr.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_TblPPr.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:leftFromText", this.LeftFromText, AscCommonWord.g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:rightFromText", this.RightFromText, AscCommonWord.g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:topFromText", this.TopFromText, AscCommonWord.g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:bottomFromText", this.BottomFromText, AscCommonWord.g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeString("w:vertAnchor", toXml_ST_VAnchor(this.VertAnchor));
+		writer.WriteXmlNullableAttributeString("w:horzAnchor", toXml_ST_HAnchor(this.HorzAnchor));
+		writer.WriteXmlNullableAttributeString("w:tblpXSpec", toXml_ST_XAlign(this.TblpXSpec));
+		writer.WriteXmlNullableAttributeInt("w:tblpX", this.TblpX);
+		writer.WriteXmlNullableAttributeString("w:tblpYSpec", toXml_ST_YAlign(this.TblpYSpec));
+		writer.WriteXmlNullableAttributeInt("w:tblpY", this.TblpY);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_TblPPr.prototype.fromTable = function(table) {
+		var PositionH = table.PositionH;
+		if (PositionH) {
+			this.HorzAnchor = PositionH.RelativeFrom;
+			if(PositionH.Align) {
+				this.TblpXSpec = PositionH.Value;
+			} else {
+				this.TblpX = table.Get_PositionHValueInTwips();
+			}
+		}
+		var PositionV = table.PositionV;
+		if (PositionV) {
+			this.VertAnchor = PositionV.RelativeFrom;
+			if(PositionV.Align) {
+				this.TblpYSpec = PositionV.Value;
+			} else {
+				this.TblpY = table.Get_PositionVValueInTwips();
+			}
+		}
+	};
+	CT_TblPPr.prototype.toTable = function(table) {
+		table.Set_Inline(false);
+		if (null !== this.HorzAnchor) {
+			if(null !== this.TblpXSpec) {
+				table.Set_PositionH(this.HorzAnchor, true, this.TblpXSpec);
+			} else if(null !== this.TblpX) {
+				table.Set_PositionH(this.HorzAnchor, true, this.TblpX * AscCommonWord.g_dKoef_twips_to_mm);
+			}
+		}
+		if (null !== this.VertAnchor) {
+			if(null !== this.TblpYSpec) {
+				table.Set_PositionV(this.VertAnchor, true, this.TblpYSpec);
+			} else if(null !== this.TblpY) {
+				table.Set_PositionV(this.VertAnchor, true, this.TblpY * AscCommonWord.g_dKoef_twips_to_mm);
+			}
+		}
+		if (null !== this.LeftFromText || null !== this.TopFromText || null !== this.RightFromText || null !== this.BottomFromText) {
+			table.Set_Distance(this.LeftFromText || 0, this.TopFromText || 0, this.RightFromText || 0,
+				this.BottomFromText || 0);
+		}
+	};
+	function CT_TblCellMar() {
+		this.Top = null;
+		this.Start = null;
+		this.Bottom = null;
+		this.End = null;
+		return this;
+	}
+	CT_TblCellMar.prototype.fromXml = function(reader) {
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "top" : {
+					this.Top = new CTableMeasurement(tblwidth_Auto, 0);
+					this.Top.fromXml(reader);
+					break;
+				}
+				case "left" :
+				case "start" : {
+					this.Left = new CTableMeasurement(tblwidth_Auto, 0);
+					this.Left.fromXml(reader);
+					break;
+				}
+				case "bottom" : {
+					this.Bottom = new CTableMeasurement(tblwidth_Auto, 0);
+					this.Bottom.fromXml(reader);
+					break;
+				}
+				case "right" :
+				case "end" : {
+					this.Right = new CTableMeasurement(tblwidth_Auto, 0);
+					this.Right.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CT_TblCellMar.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.Top, "w:top");
+		writer.WriteXmlNullable(this.Left, "w:left");
+		writer.WriteXmlNullable(this.Bottom, "w:bottom");
+		writer.WriteXmlNullable(this.Right, "w:right");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CT_TblCellMar.prototype.fromObj = function(obj) {
+		for(var elem in obj) {
+			if(obj.hasOwnProperty(elem) && obj[elem]) {
+				this[elem] = obj[elem];
+			}
+		}
+	};
+	CT_TblCellMar.prototype.toObj = function(obj) {
+		for(var elem in this) {
+			if(this.hasOwnProperty(elem) && this[elem]) {
+				obj[elem] = this[elem];
+			}
+		}
+	};
+	CT_TblCellMar.prototype.isEmpty = function() {
+		for(var elem in this) {
+			if(this.hasOwnProperty(elem) && this[elem]) {
+				return false;
+			}
+		}
+		return true;
+	};
 	function CT_Bdr() {
 		this.Top = null;
 		this.Left = null;
@@ -2062,57 +2761,6 @@
 			}
 		}
 		return true;
-	};
-	CDocumentBorder.prototype.readAttr = function(reader) {
-		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
-		while (reader.MoveToNextAttribute()) {
-			var name = reader.GetNameNoNS();
-			switch (name) {
-				case "val": {
-					this.Value = fromXml_ST_Border(reader.GetValue());
-					break;
-				}
-				case "sz": {
-					this.setSizeIn8Point(reader.GetValueUInt());
-					break;
-				}
-				case "space": {
-					this.setSpaceInPoint(reader.GetValueUInt());
-					break;
-				}
-// 				case "shadow": {
-// 					this.Shadow = reader.GetValueDecodeXml();
-// 					break;
-// 				}
-// 				case "frame": {
-// 					this.Frame = reader.GetValueDecodeXml();
-// 					break;
-// 				}
-				default:
-					themeColor.readAttrElem(reader, name);
-					break;
-			}
-		}
-		this.Color = themeColor.getColor();
-		this.Unifill = themeColor.getUnifill();
-	};
-	CDocumentBorder.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CDocumentBorder.prototype.toXml = function(writer, name) {
-		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
-		themeColor.setColor(this.Color);
-		themeColor.setUniFill(this.Unifill);
-
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_Border(this.Value));
-		themeColor.toXmlElems(writer);
-		writer.WriteXmlNullableAttributeUInt("w:sz", this.getSizeIn8Point());
-		writer.WriteXmlNullableAttributeUInt("w:space", this.getSpaceInPoint());
-// 		writer.WriteXmlNullableAttributeStringEncode("w:shadow", this.Shadow);
-// 		writer.WriteXmlNullableAttributeStringEncode("w:frame", this.Frame);
-		writer.WriteXmlAttributesEnd(true);
 	};
 	function CT_Color(xmlVal, xmlThemeColor, xmlThemeTint, xmlThemeShade) {
 		this.xmlVal = xmlVal;
@@ -3273,6 +3921,152 @@
 				return "superscript";
 			case AscCommon.vertalign_SubScript:
 				return "subscript";
+		}
+		return null;
+	}
+	function fromXml_ST_TblWidth(val) {
+		switch (val) {
+			case "nil":
+				return tblwidth_Nil;
+			case "pct":
+				return tblwidth_Pct;
+			case "dxa":
+				return tblwidth_Mm;
+			case "auto":
+				return tblwidth_Auto;
+		}
+		return tblwidth_Auto;
+	}
+	function toXml_ST_TblWidth(val) {
+		switch (val) {
+			case tblwidth_Nil:
+				return "nil";
+			case tblwidth_Pct:
+				return "pct";
+			case tblwidth_Mm:
+				return "dxa";
+			case tblwidth_Auto:
+				return "auto";
+		}
+		return null;
+	}
+	function fromXml_ST_JcTable(val) {
+		switch (val) {
+			case "center":
+				return AscCommon.align_Center;
+			case "right":
+			case "end":
+				return AscCommon.align_Right;
+			case "left":
+			case "start":
+				return AscCommon.align_Left;
+		}
+		return undefined;
+	}
+	function toXml_ST_JcTable(val) {
+		switch (val) {
+			case AscCommon.align_Center:
+				return "center";
+			case AscCommon.align_Right:
+				return "right";
+			case AscCommon.align_Left:
+				return "left";
+		}
+		return null;
+	}
+	function fromXml_ST_TblLayoutType(val) {
+		switch (val) {
+			case "fixed":
+				return tbllayout_Fixed;
+			case "autofit":
+				return tbllayout_AutoFit;
+		}
+		return undefined;
+	}
+	function toXml_ST_TblLayoutType(val) {
+		switch (val) {
+			case tbllayout_Fixed:
+				return "fixed";
+			case tbllayout_AutoFit:
+				return "autofit";
+		}
+		return null;
+	}
+	function fromXml_ST_Merge(val) {
+		switch (val) {
+			case "continue":
+				return vmerge_Continue;
+			case "restart":
+				return vmerge_Restart;
+		}
+		return undefined;
+	}
+	function toXml_ST_Merge(val) {
+		switch (val) {
+			case vmerge_Continue:
+				return "continue";
+			case vmerge_Restart:
+				return "restart";
+		}
+		return null;
+	}
+	function fromXml_ST_TextDirection(val) {
+		switch (val) {
+			case "tb":
+				return textdirection_LRTB;
+			case "rl":
+				return textdirection_TBRL;
+			case "lr":
+				return textdirection_BTLR;
+			case "tbV":
+				return textdirection_LRTBV;
+			case "rlV":
+				return textdirection_TBRLV;
+			case "lrV":
+				return textdirection_TBLRV;
+		}
+		return undefined;
+	}
+	function toXml_ST_TextDirection(val) {
+		switch (val) {
+			case textdirection_LRTB:
+				return "tb";
+			case textdirection_TBRL:
+				return "rl";
+			case textdirection_BTLR:
+				return "lr";
+			case textdirection_LRTBV:
+				return "tbV";
+			case textdirection_TBRLV:
+				return "rlV";
+			case textdirection_TBLRV:
+				return "lrV";
+		}
+		return null;
+	}
+	function fromXml_ST_VerticalJc(val) {
+		switch (val) {
+			case "top":
+				return vertalignjc_Top;
+			case "center":
+				return vertalignjc_Center;
+			case "both":
+				return vertalignjc_Top;
+			case "bottom":
+				return vertalignjc_Bottom;
+		}
+		return undefined;
+	}
+	function toXml_ST_VerticalJc(val) {
+		switch (val) {
+			case vertalignjc_Top:
+				return "top";
+			case vertalignjc_Center:
+				return "center";
+			// case ST_VerticalJc.Both:
+			// 	return "both";
+			case vertalignjc_Bottom:
+				return "bottom";
 		}
 		return null;
 	}

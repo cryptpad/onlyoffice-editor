@@ -1106,6 +1106,12 @@
 				this.WriteXmlAttributeInt(name, val * koef)
 			}
 		};
+		this.WriteXmlNullableAttributeUIntWithKoef = function(name, val, koef)
+		{
+			if (null !== val && undefined !== val) {
+				this.WriteXmlAttributeUInt(name, val * koef)
+			}
+		};
 		this.WriteXmlAttributeBoolIfTrue = function(name, val)
 		{
 			if (val) {
