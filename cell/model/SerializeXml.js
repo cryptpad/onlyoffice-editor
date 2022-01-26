@@ -1388,6 +1388,9 @@
 				} else {
 					this.setValueNumberInternal(parseFloat(value.val));
 				}
+			} else if ("f" === reader.GetName()) {
+				var val = reader.GetContext().InitOpenManager.tmp && reader.GetContext().InitOpenManager.tmp.formula;
+				val.fromXml(reader);
 			}
 		}
 	};
@@ -1497,6 +1500,58 @@
 			writer.WriteXmlAttributesEnd(true);
 		}
 	};
+	AscCommonExcel.OpenFormula.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		this.v = reader.GetText();
+	};
+	AscCommonExcel.OpenFormula.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("aca" === reader.GetName()) {
+				this.aca = reader.GetValueBool();
+			} else if ("bx" === reader.GetName()) {
+				this.bx = reader.GetValueBool();
+			} else if ("ca" === reader.GetName()) {
+				this.ca = reader.GetValueBool();
+			} else if ("del1" === reader.GetName()) {
+				this.del1 = reader.GetValueBool();
+			} else if ("del2" === reader.GetName()) {
+				this.del2 = reader.GetValueBool();
+			} else if ("dt2D" === reader.GetName()) {
+				this.dt2d = reader.GetValueBool();
+			} else if ("dtr" === reader.GetName()) {
+				this.dtr = reader.GetValueBool();
+			} else if ("r1" === reader.GetName()) {
+				this.r1 = reader.GetValue();
+			} else if ("r2" === reader.GetName()) {
+				this.r2 = reader.GetValue();
+			} else if ("ref" === reader.GetName()) {
+				this.ref = reader.GetValue();
+			} else if ("si" === reader.GetName()) {
+				this.si = reader.GetValueInt();
+			} else if ("t" === reader.GetName()) {
+				val = reader.GetValue();
+
+				/*<xsd:restriction base="xsd:string">
+					2323 <xsd:enumeration value="normal"/>
+					2324 <xsd:enumeration value="array"/>
+					2325 <xsd:enumeration value="dataTable"/>
+					2326 <xsd:enumeration value="shared"/>
+					2327 </xsd:restriction>*/
+
+				if (val === "array") {
+					this.t = window["Asc"].ECellFormulaType.cellformulatypeArray;
+				} else if (val === "shared") {
+					this.t = window["Asc"].ECellFormulaType.cellformulatypeShared;
+				} else if (val === "dataTable") {
+					this.t = window["Asc"].ECellFormulaType.cellformulatypeDataTable;
+				} else {
+					this.t = window["Asc"].ECellFormulaType.cellformulatypeNormal;
+				}
+			}
+		}
+	};
+
 
 	function CT_DrawingWS(ws) {
 		this.ws = ws;

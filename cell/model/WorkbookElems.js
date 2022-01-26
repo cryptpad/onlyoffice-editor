@@ -5466,6 +5466,7 @@ StyleManager.prototype =
 				tmp.cell.clear();
 				tmp.formula.clean();
 
+				//AscCommonExcel.Cell -> fromXml
 				tmp.cell.fromXml(reader);
 
 				if (tmp.cell.isNullTextString()) {
