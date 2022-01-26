@@ -1541,6 +1541,7 @@ var editor;
 					xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
 				}
 			}
+			xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
 
 
 			//person list
@@ -1674,7 +1675,6 @@ var editor;
 
 				var sheetData = new AscCommonExcel.CT_SheetData();
 				xmlParserContext.InitOpenManager.tmp = tmp;
-				xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
 
 				sheetDataElem.reader.setState(sheetDataElem.state);
 				//TODO пересмотреть фунцию fromXml

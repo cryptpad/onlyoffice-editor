@@ -5498,7 +5498,7 @@ StyleManager.prototype =
 					this.setStyle(xfs);*/
 			} else if ("customFormat" === reader.GetName()) {
 			} else if ("ht" === reader.GetName()) {
-				val = reader.GetValueInt();
+				val = reader.GetValueDouble();
 				this.setHeight(val);
 				if(AscCommon.CurFileVersion < 2)
 					this.setCustomHeight(true);

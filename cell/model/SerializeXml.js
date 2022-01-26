@@ -87,6 +87,18 @@
 		return res;
 	}
 
+	function readOneAttr (reader, attrName, func) {
+		var res = null;
+
+		while (reader.MoveToNextAttribute()) {
+			if (attrName === reader.GetNameNoNS()) {
+				func();
+			}
+		}
+
+		return res;
+	}
+
 	function CT_Workbook(wb) {
 		//Members
 		this.wb = wb;
@@ -763,7 +775,7 @@
 			while (reader.ReadNextSiblingNode(depth)) {
 				var name = reader.GetNameNoNS();
 				if ("cols" === name) {
-					var cols = new CT_Cols(this);
+					var cols = new CT_Cols(this, context.InitOpenManager.aCellXfs);
 					cols.fromXml(reader);
 					var aTempCols = cols.val;
 
@@ -1256,7 +1268,7 @@
 							oTempCol.col.setStyle(xfs);
 						}
 					} else if ("width" === reader.GetName()) {
-						val = reader.GetValueInt();
+						val = reader.GetValueDouble();
 						oTempCol.col.width = val;
 					}
 				}
@@ -1374,7 +1386,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("v" === reader.GetName()) {
 				value.fromXml(reader);
-				if (CellValueType.String === this.type) {
+				if (Asc.ECfType.aboveAverage === this.type) {
 					var ss = reader.GetContext().sharedStrings[parseInt(value.val)];
 					if (undefined !== ss) {
 						if (typeof ss === 'string') {
@@ -1417,10 +1429,10 @@
 				val = reader.GetValue();
 				switch(val) {
 					case "s":
-						this.type = CellValueType.String;
+						this.type = Asc.ECfType.aboveAverage;
 						break;
 					case "str":
-						this.type = CellValueType.String;
+						this.type = Asc.ECfType.aboveAverage;
 						break;
 					case "n":
 						this.type = CellValueType.Number;
@@ -1432,10 +1444,10 @@
 						this.type = CellValueType.Bool;
 						break;
 					case "inlineStr":
-						this.type = CellValueType.String;
+						this.type = Asc.ECfType.aboveAverage;
 						break;
 					case "d":
-						this.type = CellValueType.String;
+						this.type = Asc.ECfType.aboveAverage;
 						break;
 				}
 			}
@@ -1454,7 +1466,7 @@
 		var number = null;
 		var type = null;
 		switch (this.type) {
-			case CellValueType.String:
+			case Asc.ECfType.aboveAverage:
 				type = "s";
 				if (formulaToWrite) {
 					text = this.text;
@@ -6015,7 +6027,56 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.timePeriod = val;
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
-				this.type = val;
+				switch(val) {
+					case "aboveAverage":
+						this.type = Asc.ECfType.aboveAverage;
+						break;
+					case "beginsWith":
+						this.type = Asc.ECfType.beginsWith;
+						break;
+					case "cellIs":
+						this.type = Asc.ECfType.cellIs;
+						break;
+					case "colorScale":
+						this.type = Asc.ECfType.colorScale;
+						break;
+					case "containsBlanks":
+						this.type = Asc.ECfType.containsBlanks;
+						break;
+					case "containsErrors":
+						this.type = Asc.ECfType.containsErrors;
+						break;
+					case "containsText":
+						this.type = Asc.ECfType.containsText;
+						break;
+					case "dataBar":
+						this.type = Asc.ECfType.dataBar;
+						break;
+					case "duplicateValues":
+						this.type = Asc.ECfType.duplicateValues;
+						break;
+					case "notContainsBlanks":
+						this.type = Asc.ECfType.notContainsBlanks;
+						break;
+					case "notContainsErrors":
+						this.type = Asc.ECfType.notContainsErrors;
+						break;
+					case "notContainsText":
+						this.type = Asc.ECfType.notContainsText;
+						break;
+					case "timePeriod":
+						this.type = Asc.ECfType.timePeriod;
+						break;
+					case "top10":
+						this.type = Asc.ECfType.top10;
+						break;
+					case "uniqueValues":
+						this.type = Asc.ECfType.uniqueValues;
+						break;
+					case "endsWith":
+						this.type = Asc.ECfType.endsWith;
+						break;
+				}
 			}  /*else if ("id" === reader.GetName()) {
 				val = reader.GetValue();
 				this.type = val;
@@ -6190,9 +6251,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.aCFVOs.push(val);
 			} else if ("color" === name ) {
 				//TODO
-				/*val = new AscCommonExcel.CDataBar();
-				val.fromXml(reader);
-				this.aRuleElements.push(val);*/
+				val = AscCommon.getColorFromXml2(reader);
+				if (null != val) {
+					this.aColors.push(val);
+				}
 			}
 		}
 	};
@@ -6265,7 +6327,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			return;
 		}
 
-		var val;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -6307,9 +6368,30 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueBool();
 				this.Gte = val;
 			} else if ("type" === reader.GetName()) {
+
+				/*<xsd:enumeration value="num"/>
+				2727 <xsd:enumeration value="percent"/>
+					2728 <xsd:enumeration value="max"/>
+					2729 <xsd:enumeration value="min"/>
+					2730 <xsd:enumeration value="formula"/>
+					2731 <xsd:enumeration value="percentile"/>*/
+
 				//TODO
 				val = reader.GetValue();
-				this.Type = val;
+
+				if (val === "percent") {
+					this.Type = Asc.c_oAscCfvoType.Percent;
+				} else if (val === "max") {
+					this.Type = Asc.c_oAscCfvoType.Maximum;
+				} else if (val === "min") {
+					this.Type = Asc.c_oAscCfvoType.Minimum;
+				} else if (val === "formula") {
+
+					//TODO
+
+				} else if (val === "percentile") {
+					this.Type = Asc.c_oAscCfvoType.Percentile;
+				}
 			} else if ("val" === reader.GetName()) {
 				val = reader.GetValue();
 				this.Val = val;
@@ -6470,6 +6552,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
+		this.Color = null;
+		this.NegativeColor = null;
+		this.BorderColor = null;
+		this.NegativeBorderColor = null;
+		this.AxisColor = null;
+
 		var val;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -6478,42 +6566,36 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = new AscCommonExcel.CConditionalFormatValueObject();
 				val.fromXml(reader);
 				this.aCFVOs.push(val);
-			} else if ("color" === name ) {
-				//TODO
-				/*var color = ReadColorSpreadsheet2(this.bcr, length);
-				if (color) {
-					oDataBar.BorderColor = color;
-				}*/
 			} else if ("color" === name || "fillColor" === name) {
 				//TODO
-				/*var color = ReadColorSpreadsheet2(this.bcr, length);
-				if (color) {
-					oDataBar.BorderColor = color;
-				}*/
+				val = AscCommon.getColorFromXml2(reader);
+				if (null != val) {
+					this.Color = val;
+				}
 			} else if ("axisColor" === name) {
 				//TODO
-				/*var color = ReadColorSpreadsheet2(this.bcr, length);
-				if (color) {
-					oDataBar.BorderColor = color;
-				}*/
+				val = AscCommon.getColorFromXml2(reader);
+				if (null != val) {
+					this.AxisColor = val;
+				}
 			} else if ("borderColor" === name) {
 				//TODO
-				/*var color = ReadColorSpreadsheet2(this.bcr, length);
-				if (color) {
-					oDataBar.BorderColor = color;
-				}*/
+				val = AscCommon.getColorFromXml2(reader);
+				if (null != val) {
+					this.BorderColor = val;
+				}
 			} else if ("negativeFillColor" === name) {
 				//TODO
-				/*var color = ReadColorSpreadsheet2(this.bcr, length);
-				if (color) {
-					oDataBar.BorderColor = color;
-				}*/
+				val = AscCommon.getColorFromXml2(reader);
+				if (null != val) {
+					this.NegativeColor = val;
+				}
 			}  else if ("negativeBorderColor" === name) {
 				//TODO
-				/*var color = ReadColorSpreadsheet2(this.bcr, length);
-				if (color) {
-					oDataBar.BorderColor = color;
-				}*/
+				val = AscCommon.getColorFromXml2(reader);
+				if (null != val) {
+					this.NegativeBorderColor = val;
+				}
 			}
 		}
 	};
@@ -7550,7 +7632,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.ApplyProtection = val;
 			} else if ("borderId" === reader.GetName()) {
 				val = reader.GetValueInt();
-				this.BorderId = val;
+				this.borderid = val;
 			} else if ("fillId" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.fillid = val;
@@ -8446,11 +8528,18 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (reader.IsEmptyNode()) {
 			return;
 		}
+		var val;
+		var t = this;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("b" === name) {
-				this.b = reader.GetValueBool();
+				//TODO проверка на null. пересмотреть
+				if (reader.GetValue() !== null) {
+					this.b = reader.GetValueBool();
+				} else {
+					this.b = true;
+				}
 			} else if ("charset" === name) {
 			} else if ("color" === name) {
 				this.c = AscCommon.getColorFromXml2(reader);
@@ -8458,28 +8547,55 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("extend" === name) {
 			} else if ("family" === name) {
 			} else if ("i" === name) {
-				this.i = reader.GetValueBool();
+				//TODO проверка на null. пересмотреть
+				if (reader.GetValue() !== null) {
+					this.i = reader.GetValueBool();
+				} else {
+					this.i = true;
+				}
 			} else if ("name" === name) {
+				readOneAttr(reader, "val",function () {
+					t.fn = reader.GetValue();
+				});
 			} else if ("outline" === name) {
 			} else if ("scheme" === name) {
 				this.scheme = reader.GetValue();
 			} else if ("shadow" === name) {
 			} else if ("strike" === name) {
-				this.s = reader.GetValueBool();
-			} else if ("sz" === name) {
-				this.fs = reader.GetValueInt();
-			} else if ("u" === name) {
-				this.u = reader.GetValueBool();
-			} else if ("vertAlign" === name) {
-				//TODO
-				this.va = reader.GetValue();
-				//server constants SubScript:1, SuperScript: 2
-				if (this.va === AscCommon.vertalign_SubScript) {
-					this.va = AscCommon.vertalign_SuperScript;
-				} else if (this.va === AscCommon.vertalign_SuperScript) {
-					this.va = AscCommon.vertalign_SubScript;
+				//TODO проверка на null. пересмотреть
+				if (reader.GetValue() !== null) {
+					this.s = reader.GetValueBool();
+				} else {
+					this.s = true;
 				}
+			} else if ("sz" === name) {
+				readOneAttr(reader, "val", function () {
+					t.fs = reader.GetValueInt();
+				});
+			} else if ("u" === name) {
+				//TODO проверка на null. пересмотреть
+				if (reader.GetValue() !== null) {
+					this.u = reader.GetValueBool();
+				} else {
+					this.u = true;
+				}
+			} else if ("vertAlign" === name) {
+				/*<xsd:enumeration value="baseline"/>
+				56 <xsd:enumeration value="superscript"/>
+					57 <xsd:enumeration value="subscript"/>*/
+
+				readOneAttr(reader, "val", function () {
+					val = reader.GetValue();
+					if (val === "superscript") {
+						t.va = AscCommon.vertalign_SuperScript;
+					} else if (val === "subscript") {
+						t.va = AscCommon.vertalign_SubScript;
+					}
+				});
+
+
 			}
+			//TODO skip, repeate
 		}
 	};
 
