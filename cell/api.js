@@ -1414,7 +1414,7 @@ var editor;
 		var openXml = AscCommon.openXml;
 		var pivotCaches = {};
 		var xmlParserContext = new XmlParserContext();
-		var initOpenManager = xmlParserContext.InitOpenManager = new AscCommonExcel.InitOpenManager(null, wb);
+		var initOpenManager = xmlParserContext.InitOpenManager = AscCommonExcel.InitOpenManager ? new AscCommonExcel.InitOpenManager(null, wb) : null;
 		var wbPart = null;
 		var wbXml = null;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
@@ -1431,128 +1431,130 @@ var editor;
 			wbXml.fromXml(reader);
 		});
 
-		//defined names
-		if (wbXml.newDefinedNames) {
-			xmlParserContext.InitOpenManager.oReadResult.defNames = wbXml.newDefinedNames;
-			xmlParserContext.InitOpenManager.PostLoadPrepareDefNames(wb);
-		}
+		if (window['OPEN_IN_BROWSER']) {
+			//defined names
+			if (wbXml.newDefinedNames) {
+				xmlParserContext.InitOpenManager.oReadResult.defNames = wbXml.newDefinedNames;
+				xmlParserContext.InitOpenManager.PostLoadPrepareDefNames(wb);
+			}
 
-		//external reference
-		if (wbXml.externalReferences) {
-			wbXml.externalReferences.forEach(function (externalReference) {
-				if (null !== externalReference) {
-					var externalWorkbookPart = wbPart.getPartById(externalReference);
-					if (externalWorkbookPart) {
-						var contentExternalWorkbook = externalWorkbookPart.getDocumentContent();
-						if (contentExternalWorkbook) {
-							var oExternalReference = new AscCommonExcel.CT_ExternalReference(wb);
-							var reader = new StaxParser(contentExternalWorkbook, externalWorkbookPart, xmlParserContext);
-							oExternalReference.fromXml(reader);
+			//external reference
+			if (wbXml.externalReferences) {
+				wbXml.externalReferences.forEach(function (externalReference) {
+					if (null !== externalReference) {
+						var externalWorkbookPart = wbPart.getPartById(externalReference);
+						if (externalWorkbookPart) {
+							var contentExternalWorkbook = externalWorkbookPart.getDocumentContent();
+							if (contentExternalWorkbook) {
+								var oExternalReference = new AscCommonExcel.CT_ExternalReference(wb);
+								var reader = new StaxParser(contentExternalWorkbook, externalWorkbookPart, xmlParserContext);
+								oExternalReference.fromXml(reader);
 
-							//TODO id отличается от serialize
-							if (oExternalReference.val) {
-								if (oExternalReference.val.Id) {
-									oExternalReference.val.Id = externalReference;
-								}
-								wb.externalReferences.push(oExternalReference.val);
-							}
-						}
-					}
-				}
-			});
-		}
-
-		//extLxt(slicercache inside)
-		if (wbXml.extLst) {
-			wbXml.extLst.forEach(function (ext) {
-				if (ext.slicerCachesIds) {
-					ext.slicerCachesIds.forEach(function (slicerCacheId) {
-						if (null !== slicerCacheId) {
-							var slicerCacheWorkbookPart = wbPart.getPartById(slicerCacheId);
-							if (slicerCacheWorkbookPart) {
-								var contentSlicerCache = slicerCacheWorkbookPart.getDocumentContent();
-								if (contentSlicerCache) {
-									var oSlicerCacheDefinition = new Asc.CT_slicerCacheDefinition();
-									var reader = new StaxParser(contentSlicerCache, slicerCacheWorkbookPart, xmlParserContext);
-									oSlicerCacheDefinition.fromXml(reader);
-
-									xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
-
-									//TODO add / flag fromStream
-									/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
-									this.stream.FromFileStream(fileStream);
-									this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
+								//TODO id отличается от serialize
+								if (oExternalReference.val) {
+									if (oExternalReference.val.Id) {
+										oExternalReference.val.Id = externalReference;
+									}
+									wb.externalReferences.push(oExternalReference.val);
 								}
 							}
 						}
-					});
-				}
-			});
-		}
+					}
+				});
+			}
 
-		//not ext slicer caches
-		if (wbXml.slicerCachesIds) {
-			wbXml.slicerCachesIds.forEach(function (slicerCacheId) {
-				if (null !== slicerCacheId) {
-					var slicerCacheWorkbookPart = wbPart.getPartById(slicerCacheId);
-					if (slicerCacheWorkbookPart) {
-						var contentSlicerCache = slicerCacheWorkbookPart.getDocumentContent();
-						if (contentSlicerCache) {
-							var oSlicerCacheDefinition = new Asc.CT_slicerCacheDefinition();
-							var reader = new StaxParser(contentSlicerCache, slicerCacheWorkbookPart, xmlParserContext);
-							oSlicerCacheDefinition.fromXml(reader);
+			//extLxt(slicercache inside)
+			if (wbXml.extLst) {
+				wbXml.extLst.forEach(function (ext) {
+					if (ext.slicerCachesIds) {
+						ext.slicerCachesIds.forEach(function (slicerCacheId) {
+							if (null !== slicerCacheId) {
+								var slicerCacheWorkbookPart = wbPart.getPartById(slicerCacheId);
+								if (slicerCacheWorkbookPart) {
+									var contentSlicerCache = slicerCacheWorkbookPart.getDocumentContent();
+									if (contentSlicerCache) {
+										var oSlicerCacheDefinition = new Asc.CT_slicerCacheDefinition();
+										var reader = new StaxParser(contentSlicerCache, slicerCacheWorkbookPart, xmlParserContext);
+										oSlicerCacheDefinition.fromXml(reader);
 
-							xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
+										xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
 
-							//TODO add / flag fromStream
-							/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
-							this.stream.FromFileStream(fileStream);
-							this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
+										//TODO add / flag fromStream
+										/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
+										this.stream.FromFileStream(fileStream);
+										this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
+									}
+								}
+							}
+						});
+					}
+				});
+			}
+
+			//not ext slicer caches
+			if (wbXml.slicerCachesIds) {
+				wbXml.slicerCachesIds.forEach(function (slicerCacheId) {
+					if (null !== slicerCacheId) {
+						var slicerCacheWorkbookPart = wbPart.getPartById(slicerCacheId);
+						if (slicerCacheWorkbookPart) {
+							var contentSlicerCache = slicerCacheWorkbookPart.getDocumentContent();
+							if (contentSlicerCache) {
+								var oSlicerCacheDefinition = new Asc.CT_slicerCacheDefinition();
+								var reader = new StaxParser(contentSlicerCache, slicerCacheWorkbookPart, xmlParserContext);
+								oSlicerCacheDefinition.fromXml(reader);
+
+								xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
+
+								//TODO add / flag fromStream
+								/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
+								this.stream.FromFileStream(fileStream);
+								this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
+							}
 						}
 					}
+				});
+			}
+
+			//connection
+			//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
+			var connectionsPart = wbPart.getPartByRelationshipType(openXml.Types.connections.relationType);
+			if (connectionsPart) {
+				var contentConnections = connectionsPart.getDocumentContent();
+				wb.connections = contentConnections;
+			}
+
+			//styles
+			var aCellXfs = [];
+			var stylesPart = wbPart.getPartByRelationshipType(openXml.Types.styles.relationType);
+			if (stylesPart) {
+				var contentStyles = stylesPart.getDocumentContent();
+				if (contentStyles) {
+					var styleSheet = new AscCommonExcel.CT_Stylesheet(new Asc.CTableStyles());
+					var reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
+					styleSheet.fromXml(reader);
+
+
+					//TODO oCustomSlicerStyles/aExtDxfs
+					var oStyleObject = {aBorders: styleSheet.borders, aFills: styleSheet.fills, aFonts: styleSheet.fonts, oNumFmts: styleSheet.numFmts, aCellStyleXfs: styleSheet.cellStyleXfs,
+						aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: [], aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: null};
+
+					xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
 				}
-			});
-		}
-
-		//connection
-		//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
-		var connectionsPart = wbPart.getPartByRelationshipType(openXml.Types.connections.relationType);
-		if (connectionsPart) {
-			var contentConnections = connectionsPart.getDocumentContent();
-			wb.connections = contentConnections;
-		}
-
-		//styles
-		var aCellXfs = [];
-		var stylesPart = wbPart.getPartByRelationshipType(openXml.Types.styles.relationType);
-		if (stylesPart) {
-			var contentStyles = stylesPart.getDocumentContent();
-			if (contentStyles) {
-				var styleSheet = new AscCommonExcel.CT_Stylesheet(new Asc.CTableStyles());
-				var reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
-				styleSheet.fromXml(reader);
+			}
 
 
-				//TODO oCustomSlicerStyles/aExtDxfs
-				var oStyleObject = {aBorders: styleSheet.borders, aFills: styleSheet.fills, aFonts: styleSheet.fonts, oNumFmts: styleSheet.numFmts, aCellStyleXfs: styleSheet.cellStyleXfs,
-					aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: [], aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: null};
-
-				xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
+			//person list
+			var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
+			if (personListPart) {
+				var contentPersonList = personListPart.getDocumentContent();
+				if (contentPersonList) {
+					var personList = new AscCommonExcel.CT_PersonList();
+					var reader = new StaxParser(contentPersonList, personListPart, xmlParserContext);
+					personList.fromXml(reader);
+				}
 			}
 		}
-
-
-		//person list
-		var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
-		if (personListPart) {
-			var contentPersonList = personListPart.getDocumentContent();
-			if (contentPersonList) {
-				var personList = new AscCommonExcel.CT_PersonList();
-				var reader = new StaxParser(contentPersonList, personListPart, xmlParserContext);
-				personList.fromXml(reader);
-			}
-		}
-
+		
 		if (wbXml.pivotCaches) {
 			wbXml.pivotCaches.forEach(function(wbPivotCacheXml) {
 				var pivotTableCacheDefinitionPart;
@@ -1714,20 +1716,22 @@ var editor;
 
 		//TODO общий код с serialize
 		//ReadSheetDataExternal
-		if(!initOpenManager.copyPasteObj.isCopyPaste || initOpenManager.copyPasteObj.selectAllSheet)
-		{
-			readSheetDataExternal(false);
-			if (!initOpenManager.copyPasteObj.isCopyPaste) {
-				initOpenManager.PostLoadPrepare(wb);
-			}
-			wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, false, true);
-		} else {
-			readSheetDataExternal(true);
-			if(window["Asc"] && window["Asc"]["editor"] !== undefined) {
-				wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, true);
+		if (window['OPEN_IN_BROWSER']) {
+			if(!initOpenManager.copyPasteObj.isCopyPaste || initOpenManager.copyPasteObj.selectAllSheet)
+			{
+				readSheetDataExternal(false);
+				if (!initOpenManager.copyPasteObj.isCopyPaste) {
+					initOpenManager.PostLoadPrepare(wb);
+				}
+				wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, false, true);
+			} else {
+				readSheetDataExternal(true);
+				if(window["Asc"] && window["Asc"]["editor"] !== undefined) {
+					wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, true);
+				}
 			}
 		}
-
+		
 
 		/*if (window['OPEN_IN_BROWSER']) {
 			wb.init([], [], {});
