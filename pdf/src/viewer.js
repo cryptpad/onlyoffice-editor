@@ -649,11 +649,15 @@
 				if (!this.file)
 				{
 					this.file = window["AscViewer"].createFile(data);
-					this.SearchResults = this.file.SearchResults;
-					this.file.viewer = this;
+
+					if (this.file)
+					{
+						this.SearchResults = this.file.SearchResults;
+						this.file.viewer = this;
+					}
 				}
 
-				if (this.file.isNeedPassword())
+				if (this.file && this.file.isNeedPassword())
 				{
 					window["AscViewer"].setFilePassword(this.file, password);
 				}
@@ -664,13 +668,27 @@
 					this.file.close();
 
 				this.file = window["AscViewer"].createFile(data);
-				this.SearchResults = this.file.SearchResults;
-				this.file.viewer = this;
+
+				if (this.file)
+				{
+					this.SearchResults = this.file.SearchResults;
+					this.file.viewer = this;
+				}
+			}
+
+			if (!this.file)
+			{
+				this.Api.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+				return;
 			}
 
 			if (this.file.isNeedPassword())
 			{
-				this.sendEvent("onNeedPassword");
+				// при повторном вводе пароля - проблемы в интерфейсе, если синхронно
+				var _t = this;
+				setTimeout(function(){
+					_t.sendEvent("onNeedPassword");
+				}, 100);
 				return;
 			}
 
@@ -791,6 +809,13 @@
 		{
 			this.MouseHandObject = isEnabled ? {} : null;
 			this.overlay.Clear();
+		};
+
+		this.getPagesCount = function()
+		{
+			if (!this.file || !this.file.isValid)
+				return 0;
+			return this.file.pages.length;
 		};
 
 		this.navigate = function(id)
