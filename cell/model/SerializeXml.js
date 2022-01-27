@@ -1429,7 +1429,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("v" === reader.GetName()) {
 				value.fromXml(reader);
-				if (Asc.ECfType.aboveAverage === this.type) {
+				if (CellValueType.String === this.type) {
 					var ss = reader.GetContext().sharedStrings[parseInt(value.val)];
 					if (undefined !== ss) {
 						if (typeof ss === 'string') {
@@ -1472,10 +1472,10 @@
 				val = reader.GetValue();
 				switch(val) {
 					case "s":
-						this.type = Asc.ECfType.aboveAverage;
+						this.type = CellValueType.String;
 						break;
 					case "str":
-						this.type = Asc.ECfType.aboveAverage;
+						this.type = CellValueType.String;
 						break;
 					case "n":
 						this.type = CellValueType.Number;
@@ -1487,10 +1487,10 @@
 						this.type = CellValueType.Bool;
 						break;
 					case "inlineStr":
-						this.type = Asc.ECfType.aboveAverage;
+						this.type = CellValueType.String;
 						break;
 					case "d":
-						this.type = Asc.ECfType.aboveAverage;
+						this.type = CellValueType.String;
 						break;
 				}
 			}
@@ -1509,7 +1509,7 @@
 		var number = null;
 		var type = null;
 		switch (this.type) {
-			case Asc.ECfType.aboveAverage:
+			case CellValueType.String:
 				type = "s";
 				if (formulaToWrite) {
 					text = this.text;
