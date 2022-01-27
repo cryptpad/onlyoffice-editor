@@ -1350,14 +1350,15 @@
 						if (sheetRule) {
 							//мержим
 							//TODO merge
-							//sheetRule.merge(extRule);
-							sheetRule.initRules();
+							sheetRule.merge(extRule);
+							//sheetRule.updateConditionalFormatting(sheetRule);
 						} else {
 							//добавляем
-							if (extRule.isValid()) {
-								extRule.initRules();
+							/*if (extRule.isValid()) {
+								extRule.updateConditionalFormatting(extRule);
 								this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(extRule);
-							}
+							}*/
+							this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(extRule);
 						}
 					}
 				}
@@ -6460,6 +6461,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 				} else if (val === "percentile") {
 					this.Type = Asc.c_oAscCfvoType.Percentile;
+				} else if (val === "autoMin") {
+					this.Type = Asc.c_oAscCfvoType.AutoMin;
+				}  else if (val === "autoMax") {
+					this.Type = Asc.c_oAscCfvoType.AutoMax;
 				}
 			} else if ("val" === reader.GetName()) {
 				val = reader.GetValue();
@@ -6615,9 +6620,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		'                res = c_oSerConstants.ReadUnknown;\n' + '            return res;'*/
 
 	AscCommonExcel.CDataBar.prototype.fromXml = function (reader) {
-		if (!reader.ReadNextNode()) {
+		/*if (!reader.ReadNextNode()) {
 			return;
-		}
+		}*/
 
 		this.readAttr(reader);
 
@@ -6679,7 +6684,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueInt();
 				this.AxisPosition = val;
 			} else if ("border" === reader.GetName()) {
-				val = reader.GetValue;
+				val = reader.GetValue();
 				this.Border = val;
 			} else if ("gradient" === reader.GetName()) {
 				val = reader.GetValueBool();
