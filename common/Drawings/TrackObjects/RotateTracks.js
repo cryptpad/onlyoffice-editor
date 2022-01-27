@@ -431,7 +431,14 @@ function RotateTrackShapeImage(originalObject)
 
     this.trackEnd = function()
     {
-        if(!this.bIsTracked){
+        if(!this.bIsTracked)
+        {
+            return;
+        }
+        if(this.originalObject.animMotionTrack) 
+        {
+            this.originalObject.updateAnimation(this.originalObject.x, this.originalObject.y, 
+                this.originalObject.extX, this.originalObject.extY, this.angle);
             return;
         }
         AscFormat.CheckSpPrXfrm(this.originalObject);

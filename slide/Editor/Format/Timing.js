@@ -6820,6 +6820,13 @@
         this.editShape.checkRecalculate();
         return this.editShape;
     };
+    CAnimMotion.prototype.Refresh_RecalcData = function(oData) {
+        if(oData) {
+            if(oData.Type === AscDFH.historyitem_AnimMotionPath) {
+                this.Refresh_RecalcData2();
+            }
+        }
+    };
 
     function CSVGPath(sPath) {
         this.pathString = sPath;
@@ -13941,6 +13948,7 @@
         this.slideHeight = null;
         this.objectBounds = null;
         this.path = null;
+        this.animMotionTrack = true;
     }
     InitClass(MoveAnimationDrawObject, AscFormat.CShape, AscDFH.historyitem_type_Shape);
     MoveAnimationDrawObject.prototype.checkRecalculate = function() {
@@ -14032,6 +14040,9 @@
     MoveAnimationDrawObject.prototype.canRotate = function() {
         return false;
     };
+    MoveAnimationDrawObject.prototype.canGroup = function() {
+        return false;
+    };
     MoveAnimationDrawObject.prototype.draw = function(oGraphics) {
         if(oGraphics.IsThumbnail === true || 
             oGraphics.IsDemonstrationMode === true || 
@@ -14062,7 +14073,44 @@
         CShape.prototype.recalculate.call(this);
     };
     MoveAnimationDrawObject.prototype.getSVGPath = function() {
-        
+        if(!this.spPr.geometry) {
+            return null;
+        }
+        var oGeometry = this.spPr.geometry;
+        var oPath = oGeometry.pathLst[0];
+        if(!oPath) {
+            return null;
+        }
+        var dStartX = 0;
+        var dStartY = 0;
+        var nOrigin = this.anim.getOrigin();
+        if(nOrigin === ORIGIN_LAYOUT && this.objectBounds) {
+            var oObjectBounds = this.objectBounds;
+            dStartX = oObjectBounds.x + oObjectBounds.w/2;
+            dStartY = oObjectBounds.y + oObjectBounds.h/2;
+        }
+        return oPath.getSVGPath(this.transform, dStartX, dStartY);
+    };
+    MoveAnimationDrawObject.prototype.updateAnimation = function(x, y, extX, extY, rot, geometry) {
+        var sPath = AscFormat.ExecuteNoHistory(function() {
+            if(this.spPr.geometry) {
+                var oXfrm = this.spPr.xfrm;
+                oXfrm.setOffX(x);
+                oXfrm.setOffY(y);
+                oXfrm.setExtX(extX);
+                oXfrm.setExtY(extY);
+                oXfrm.setRot(rot);
+                this.recalculateTransform();
+                if(geometry) {
+                    this.spPr.geometry = geometry;
+                }
+                this.spPr.geometry.Recalculate(this.extX, this.extY);
+                return this.getSVGPath();
+            }
+        }, this, []);
+        if(typeof sPath === "string" && sPath.length > 0) {
+            this.anim.setPath(sPath);
+        }
     };
     
     // MoveAnimationDrawObject.prototype.recalculateBounds = function() {
