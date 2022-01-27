@@ -99,6 +99,77 @@
 		return res;
 	}
 
+	function FromXml_ST_IconSetType2(val) {
+		//TODO в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
+		var res = null;
+		switch(val) {
+			case "3Arrows":
+				res = Asc.EIconSetType.Arrows3;
+				break;
+			case "3ArrowsGray":
+				res = Asc.EIconSetType.Arrows3Gray;
+				break;
+			case "3Flags":
+				res = Asc.EIconSetType.Flags3;
+				break;
+			case "3TrafficLights1":
+				res = Asc.EIconSetType.Traffic3Lights1;
+				break;
+			case "3TrafficLights2":
+				res = Asc.EIconSetType.Traffic3Lights2;
+				break;
+			case "3Signs":
+				res = Asc.EIconSetType.Signs3;
+				break;
+			case "3Symbols":
+				res = Asc.EIconSetType.Symbols3;
+				break;
+			case "3Symbols2":
+				res = Asc.EIconSetType.Symbols3_2;
+				break;
+			case "4Arrows":
+				res = Asc.EIconSetType.Arrows4;
+				break;
+			case "4ArrowsGray":
+				res = Asc.EIconSetType.Arrows4Gray;
+				break;
+			case "4TrafficLights":
+				res = Asc.EIconSetType.Traffic4Lights;
+				break;
+			case "5Arrows":
+				res = Asc.EIconSetType.Arrows5;
+				break;
+			case "5ArrowsGray":
+				res = Asc.EIconSetType.Arrows5Gray;
+				break;
+			case "5Rating":
+				res = Asc.EIconSetType.Rating5;
+				break;
+			case "5Quarters":
+				res = Asc.EIconSetType.Quarters5;
+				break;
+			case "4RedToBlack":
+				res = Asc.EIconSetType.RedToBlack4;
+				break;
+			case "4Rating":
+				res = Asc.EIconSetType.Rating4;
+				break;
+			case "3Stars":
+				res = Asc.EIconSetType.Stars3;
+				break;
+			case "3Triangles":
+				res = Asc.EIconSetType.Triangles3;
+				break;
+			case "5Boxes":
+				res = Asc.EIconSetType.Boxes5;
+				break;
+			case "NoIcons":
+				res = Asc.EIconSetType.NoIcons;
+				break;
+		}
+		return res;
+	}
+
 	function CT_Workbook(wb) {
 		//Members
 		this.wb = wb;
@@ -6447,6 +6518,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					case "endsWith":
 						this.type = Asc.ECfType.endsWith;
 						break;
+					case "iconSet":
+						this.type = Asc.ECfType.iconSet;
+						break;
 				}
 			}  else if ("id" === reader.GetName()) {
 				val = reader.GetValue();
@@ -6703,7 +6777,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			var name = reader.GetNameNoNS();
 			if ("formula" === name || "f" === name) {
 				//TODO
-				this.Val = reader.GetValue();
+				this.Val = reader.GetText();
 			}
 		}
 	};
@@ -7157,6 +7231,41 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	};
 
+	AscCommonExcel.CIconSet.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		(oReader, L"iconSet"	, m_oIconSet)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"percent"	, m_oPercent)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"showValue"	, m_oShowValue)
+			WritingElement_ReadAttributes_Read_else_if	(oReader, L"custom"		, m_oCustom)*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("iconSet" === reader.GetName()) {
+				val = reader.GetValue();
+				this.IconSet = FromXml_ST_IconSetType2(val);
+			} else if ("percent" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Percent = val;
+			} else if ("showValue" === reader.GetName()) {
+				val = reader.GetValue();
+				this.ShowValue = val;
+			} else if ("custom" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.Custom = val;
+			} else if ("reverse" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Reverse = val;
+			}
+		}
+	};
+
 	AscCommonExcel.CIconSet.prototype.toXml = function (writer, bExtendedWrite) {
 
 		/*if (m_arrValues.size() < 2) return;	// min value = 2
@@ -7267,8 +7376,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("iconSet" === reader.GetName()) {
-				val = reader.GetValueInt();
-				this.IconSet = val;
+				val = reader.GetValue();
+				this.IconSet = FromXml_ST_IconSetType2(val);
 			} else if ("iconId" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.IconId = val;
@@ -10315,16 +10424,16 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( oReader.IsEmptyNode() )\n' + '\t\t\t\t\treturn;\n' + '\n' +
-		'\t\t\t\tint nCurDepth = oReader.GetDepth();\n' + '\t\t\t\twhile( oReader.ReadNextSiblingNode( nCurDepth ) )\n' + '\t\t\t\t{\n' +
-		'\t\t\t\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\n' + '                    if ( _T("f") == sName )\n' +
-		'                        m_oRef = oReader.GetText3();\n' + '                    else if ( _T("sqref") == sName )\n' +
-		'                        m_oSqRef = oReader.GetText3();\n' + '\t\t\t\t}';
-	var _x2t = ''
+	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
+		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\t\tif (L"cfvo" == sName)\n' +
+		'\t\t{\n' + '\t\t\ item(oReader);\n' + '\t\t\tm_arrValues.push_back(item);\n' + '\t\t}\n' + '\t\telse if (L"cfIcon" == sName)\n' +
+		'\t\t{\n' + '\t\t\ item(oReader);\n' + '\t\t\tm_arrIconSets.push_back(item);\n' + '\t\t}\n' + '\t}';
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t(oReader, L"iconSet"\t, m_oIconSet)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"percent"\t, m_oPercent)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"showValue"\t, m_oShowValue)\n' +
+		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"custom"\t\t, m_oCustom)'
 	var _documentation = ''
-	var _serialize = ' if (c_oSer_Sparkline.SparklineRef === type) {\n' + '\t\t\t\toSparkline.setF(this.stream.GetString2LE(length));\n' +
-		'\t\t\t} else if (c_oSer_Sparkline.SparklineSqRef === type) {\n' + '\t\t\t\toSparkline.setSqRef(this.stream.GetString2LE(length));\n' + '\t\t\t} else\n' +
-		'                res = c_oSerConstants.ReadUnknown;'
+	var _serialize = ''
 
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);
