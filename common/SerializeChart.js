@@ -12190,5 +12190,12 @@ BinaryChartReader.prototype.ReadAlternateContentFallback = function (type, lengt
     window['AscFormat'].st_trendlinetypeMOVINGAVG = st_trendlinetypeMOVINGAVG;
     window['AscFormat'].st_trendlinetypePOLY      = st_trendlinetypePOLY;
     window['AscFormat'].st_trendlinetypePOWER     = st_trendlinetypePOWER;
+
+    window['AscFormat'].RADAR_STYLE_STANDARD = RADAR_STYLE_STANDARD;
+    window['AscFormat'].RADAR_STYLE_MARKER   = RADAR_STYLE_MARKER;
+    window['AscFormat'].RADAR_STYLE_FILLED   = RADAR_STYLE_FILLED;
+
+    window['AscFormat'].SIZE_REPRESENTS_AREA = SIZE_REPRESENTS_AREA;
+    window['AscFormat'].SIZE_REPRESENTS_W    = SIZE_REPRESENTS_W;
     
 })(window);

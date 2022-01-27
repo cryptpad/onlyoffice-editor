@@ -4166,12 +4166,104 @@
 	Api.prototype.FromJSON = function(sMessage)
 	{
 		var oReader = new AscCommon.ReaderFromJSON();
-
+		var oDocument = this.GetDocument();
 		var oParsedObj  = JSON.parse(sMessage);
 
 		switch (oParsedObj.type)
 		{
-			case "content":
+			case "document":
+				if (oParsedObj.textPr)
+				{
+					var oNewTextPr = oReader.TextPrFromJSON(oParsedObj.textPr);
+					var oDefaultTextPr = oDocument.GetDefaultTextPr();
+
+					oDefaultTextPr.TextPr.Set_FromObject(oNewTextPr);
+					oDefaultTextPr.private_OnChange();
+				}
+				if (oParsedObj.paraPr)
+				{
+					var oNewParaPr = oReader.ParaPrFromJSON(oParsedObj.paraPr);
+					var oDefaultParaPr = oDocument.GetDefaultParaPr();
+
+					oDefaultParaPr.ParaPr.Set_FromObject(oNewParaPr);
+					oDefaultParaPr.private_OnChange();
+				}
+				if (oParsedObj.theme)
+				{
+					var oDefaultTheme = oDocument.Document.GetTheme();
+
+					oDefaultTheme.setColorScheme(oReader.ClrSchemeFromJSON(oParsedObj.theme.themeElements.clrScheme));
+					oDefaultTheme.setFontScheme(oReader.FontSchemeFromJSON(oParsedObj.theme.themeElements.fontScheme));
+					oDefaultTheme.setFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj.theme.themeElements.fmtScheme));
+
+					oDefaultTheme.setLnDef(oParsedObj.theme.objectDefaults.lnDef ? oReader.DefSpDefinitionFromJSON(oParsedObj.theme.objectDefaults.lnDef) : null);
+					oDefaultTheme.setSpDef(oParsedObj.theme.objectDefaults.spDef ? oReader.DefSpDefinitionFromJSON(oParsedObj.theme.objectDefaults.spDef) : null);
+					oDefaultTheme.setTxDef(oParsedObj.theme.objectDefaults.txDef ? oReader.DefSpDefinitionFromJSON(oParsedObj.theme.objectDefaults.txDef) : null);
+
+					oDefaultTheme.setName(oParsedObj.theme);
+					oDefaultTheme.setIsThemeOverride(true);
+				}
+				if (oParsedObj.sectPr)
+				{
+					var oNewSectPr = oReader.SectPrFromJSON(oParsedObj.sectPr);
+					var oCurSectPr = oDocument.Document.SectPr;
+
+					// borders
+					oCurSectPr.SetBordersOffsetFrom(oNewSectPr.Borders.OffsetFrom);
+					oCurSectPr.Set_Borders_Display(oNewSectPr.Borders.Display);
+					oCurSectPr.Set_Borders_ZOrder(oNewSectPr.Borders.ZOrder);
+
+					oCurSectPr.Set_Borders_Bottom(oNewSectPr.Borders.Bottom ? oNewSectPr.Borders.Bottom.Copy() : null);
+					oCurSectPr.Set_Borders_Left(oNewSectPr.Borders.Left ? oNewSectPr.Borders.Left.Copy() : null);
+					oCurSectPr.Set_Borders_Right(oNewSectPr.Borders.Right ? oNewSectPr.Borders.Right.Copy() : null);
+					oCurSectPr.Set_Borders_Top(oNewSectPr.Borders.Top ? oNewSectPr.Borders.Top.Copy() : null);
+					
+					// columns
+					oCurSectPr.Set_Columns_Cols(oNewSectPr.Columns.Cols);
+					oCurSectPr.Set_Columns_EqualWidth(oNewSectPr.Columns.EqualWidth);
+					oCurSectPr.Set_Columns_Num(oNewSectPr.Columns.Num);
+					oCurSectPr.Set_Columns_Sep(oNewSectPr.Columns.Sep);
+					oCurSectPr.Set_Columns_Space(oNewSectPr.Columns.Space);
+
+					// endnotePr
+					oCurSectPr.SetEndnoteNumFormat(oNewSectPr.EndnotePr.NumFormat);
+					oCurSectPr.SetEndnoteNumRestart(oNewSectPr.EndnotePr.NumRestart);
+					oCurSectPr.SetEndnoteNumStart(oNewSectPr.EndnotePr.NumStart);
+					oCurSectPr.SetEndnotePos(oNewSectPr.EndnotePr.Pos);
+
+					// footnotePr
+					oCurSectPr.SetFootnoteNumFormat(oNewSectPr.FootnotePr.NumFormat);
+					oCurSectPr.SetFootnoteNumRestart(oNewSectPr.FootnotePr.NumRestart);
+					oCurSectPr.SetFootnoteNumStart(oNewSectPr.FootnotePr.NumStart);
+					oCurSectPr.SetFootnotePos(oNewSectPr.FootnotePr.Pos);
+
+					// pageMargins
+					oCurSectPr.SetGutter(oNewSectPr.PageMargins.Gutter);
+					oCurSectPr.SetPageMargins(oNewSectPr.PageMargins.Left, oNewSectPr.PageMargins.Top, oNewSectPr.PageMargins.Right, oNewSectPr.PageMargins.Bottom);
+					oCurSectPr.SetPageMarginFooter(oNewSectPr.PageMargins.Footer);
+					oCurSectPr.GetPageMarginHeader(oNewSectPr.PageMargins.Header);
+
+					// pageSize
+					oCurSectPr.SetPageSize(oNewSectPr.PageSize.W, oNewSectPr.PageSize.H);
+					oCurSectPr.SetOrientation(oNewSectPr.PageSize.Orient);
+
+					// footer
+					oCurSectPr.Set_Footer_Default(oNewSectPr.FooterDefault);
+					oCurSectPr.Set_Footer_Even(oNewSectPr.FooterEven);
+					oCurSectPr.Set_Footer_First(oNewSectPr.FooterFirst);
+
+					// header
+					oCurSectPr.Set_Header_Default(oNewSectPr.HeaderDefault);
+					oCurSectPr.Set_Header_Even(oNewSectPr.HeaderEven);
+					oCurSectPr.Set_Header_First(oNewSectPr.HeaderFirst);
+
+					// other
+					oCurSectPr.Set_TitlePage(oNewSectPr.TitlePage);
+					oCurSectPr.Set_Type(oNewSectPr.Type);
+					oCurSectPr.Set_PageNum_Start(oNewSectPr.PageNumType.Start);
+
+				}
+
 				var aContent = oReader.ContentFromJSON(oParsedObj.content);
 				for (var nElm = 0; nElm < aContent.length; nElm++)
 				{
@@ -4182,6 +4274,7 @@
 					else if (aContent[nElm] instanceof AscCommonWord.CBlockLevelSdt)
 						aContent[nElm] = new ApiBlockLvlSdt(aContent[nElm]);
 				}
+
 				return aContent;
 			case "docContent":
 				return new ApiDocumentContent(oReader.DocContentFromJSON(oParsedObj));
@@ -4420,7 +4513,7 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			this.Document.Internal_Content_Add(this.Document.Content.length, oElement.private_GetImpl());
+			this.Document.Internal_Content_Add(this.Document.Content.length, oElement.private_GetImpl(), false);
 			return true;
 		}
 
@@ -5447,14 +5540,22 @@
 	 * Convert to JSON object.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteDefaultTextPr - Indicates whether or not to record default text properties
+	 * @param bWriteDefaultParaPr - Indicates whether or not to record default paragraph properties
+	 * @param bWriteTheme         - Indicates whether or not to record document theme
+	 * @param bWriteSectionPr     - Indicates whether or not to record section properties of document
 	 * @returns {JSON}
 	 */
-	ApiDocument.prototype.ToJSON = function()
+	ApiDocument.prototype.ToJSON = function(bWriteDefaultTextPr, bWriteDefaultParaPr, bWriteTheme, bWriteSectionPr)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
 
 		var oResult = {
-			type: "content",
+			type: "document",
+			textPr: bWriteDefaultTextPr ? oWriter.SerTextPr(this.GetDefaultTextPr().TextPr) : null,
+			paraPr: bWriteDefaultParaPr ? oWriter.SerParaPr(this.GetDefaultParaPr().ParaPr) : null,
+			theme: bWriteTheme ? oWriter.SerTheme(this.Document.GetTheme()) : null,
+			sectPr: bWriteSectionPr ? oWriter.SerSectionPr(this.Document.SectPr) : null,
 			content: oWriter.SerContent(this.Document.Content, undefined, undefined, undefined, true)
 		}
 

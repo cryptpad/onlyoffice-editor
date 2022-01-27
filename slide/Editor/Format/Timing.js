@@ -13796,7 +13796,8 @@
     window['AscCommon'].CAnimPaneHeader = CAnimPaneHeader;
     window['AscCommon'].CSeqListContainer = CSeqListContainer;
     window['AscCommon'].CTimelineContainer = CTimelineContainer;
-
+    window['AscCommon'].CColorPercentage = CColorPercentage;
+    
     var ANIMATION_PRESET_CLASSES = [];
     var PRESET_TYPES;
     var PRESET_SUBTYPES;

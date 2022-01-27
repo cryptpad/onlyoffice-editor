@@ -88,7 +88,7 @@
 	function private_MM2Pt(mm)
 	{
 		return mm / (25.4 / 72.0);
-	};
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// End of private area
@@ -112,7 +112,7 @@
 			aSldMasters.push(this.SerMasterSlide(oPres.slideMasters[nMaster], true));
 
 		var sConformanceType = oPres.pres.attrConformance === c_oAscConformanceType.Strict ? "strict" : "transitional";
-		var oPres = {
+		return {
 			slides:               aSlides,
 			sldSz:                this.SerSlideSize(oPres.sldSz),
 			showPr:               this.SerShowPr(oPres.showPr),
@@ -134,132 +134,6 @@
 			showSpecialPlsOnTitleSld: oPres.pres.attrShowSpecialPlsOnTitleSld,
 			strictFirstAndLastChars:  oPres.pres.attrStrictFirstAndLastChars,
 			type:                     "presentation"
-		}
-
-		return oPres;
-	};
-	WriterToJSON.prototype.SerTheme = function(oTheme)
-	{
-		var aExtraClrSchemeLst = [];
-		for (var nElm = 0; nElm < oTheme.extraClrSchemeLst.length; nElm++)
-			aExtraClrSchemeLst.push(this.SerExtraClrScheme(oTheme.extraClrSchemeLst[nElm]));
-
-		var oThemeObj = {
-			custClrLst: this.SerColorMapOvr(oTheme.clrMap), // ??? maybe not supported
-			name:       oTheme.name,
-			objectDefaults: {
-				lnDef: this.SerDefSpDefinition(oTheme.lnDef), // AscFormat.DefaultShapeDefinition
-				spDef: this.SerDefSpDefinition(oTheme.spDef),
-				txDef: this.SerDefSpDefinition(oTheme.txDef)
-			},
-			themeElements: {
-				clrScheme:  this.SerClrScheme(oTheme.themeElements.clrScheme),
-				fmtScheme:  this.SerFmtScheme(oTheme.themeElements.fmtScheme),
-				fontScheme: this.SerFontScheme(oTheme.themeElements.fontScheme)
-			},
-
-			extraClrSchemeLst: aExtraClrSchemeLst, // AscFormat.ExtraClrScheme:
-			isThemeOverride:   oTheme.isThemeOverride,
-			id:                oTheme.id
-		}
-
-		// памим, чтобы не записывать несколько раз
-		this.themesMap[oTheme.Id] = oThemeObj;
-
-		return oThemeObj;
-	};
-	WriterToJSON.prototype.SerClrScheme = function(oClrScheme)
-	{
-		if (!oClrScheme)
-			return oClrScheme;
-
-		return {
-			name:     oClrScheme.name,
-			dk1:      this.SerColor(oClrScheme.colors[0]),
-			lt1:      this.SerColor(oClrScheme.colors[1]),
-			dk2:      this.SerColor(oClrScheme.colors[2]),
-			lt2:      this.SerColor(oClrScheme.colors[3]),
-			accent1:  this.SerColor(oClrScheme.colors[4]),
-			accent2:  this.SerColor(oClrScheme.colors[5]),
-			accent3:  this.SerColor(oClrScheme.colors[8]),
-			accent4:  this.SerColor(oClrScheme.colors[9]),
-			accent5:  this.SerColor(oClrScheme.colors[10]),
-			accent6:  this.SerColor(oClrScheme.colors[11]),
-			hlink:    this.SerColor(oClrScheme.colors[12]),
-			folHlink: this.SerColor(oClrScheme.colors[13]),
-			type:     "clrScheme"
-		}
-	};
-	WriterToJSON.prototype.SerFmtScheme = function(oFmtScheme)
-	{
-		if (!oFmtScheme)
-			return oFmtScheme;
-
-		var aBgFillStyleLst = [];
-		for (var nFill = 0; nFill < oFmtScheme.bgFillStyleLst.length; nFill++)
-			aBgFillStyleLst.push(this.SerFill(oFmtScheme.bgFillStyleLst[nFill]));
-
-		var aEffectStyleLst = []; // пока не поддерживаем
-
-		var aFillStyleLst = [];
-		for (var nFill = 0; nFill < oFmtScheme.fillStyleLst.length; nFill++)
-			aFillStyleLst.push(this.SerFill(oFmtScheme.fillStyleLst[nFill]));
-
-		var aLnStyleLst = [];
-		for (var nLn = 0; nLn < oFmtScheme.lnStyleLst.length; nLn++)
-			aLnStyleLst.push(this.SerLn(oFmtScheme.lnStyleLst[nLn]));
-
-		return {
-			name:           oFmtScheme.name,
-			bgFillStyleLst: aBgFillStyleLst,
-			fillStyleLst:   aFillStyleLst,
-			lnStyleLst:     aLnStyleLst,
-			type:           "fmtScheme"
-		}
-	};
-	WriterToJSON.prototype.SerFontScheme = function(oFontScheme)
-	{
-		if (!oFontScheme)
-			return oFontScheme;
-
-		return {
-			name:      oFontScheme.name,
-			majorFont: this.SerFontCollection(oFontScheme.majorFont),
-			minorFont: this.SerFontCollection(oFontScheme.minorFont),
-			type:      "fontScheme"
-		}
-	};
-	WriterToJSON.prototype.SerFontCollection = function(oFontCollection)
-	{
-		if (!oFontCollection)
-			return oFontCollection;
-
-		return {
-			cs:    oFontCollection.cs,
-			ea:    oFontCollection.ea,
-			latin: oFontCollection.latin
-		}
-	};
-	WriterToJSON.prototype.SerExtraClrScheme = function(oExtraClrScheme)
-	{
-		if (!oExtraClrScheme)
-			return oExtraClrScheme;
-
-		return {
-			clrMap:    this.SerColorMapOvr(oExtraClrScheme.clrMap),
-			clrScheme: this.SerClrScheme(oExtraClrScheme.clrScheme)
-		}
-	};
-	WriterToJSON.prototype.SerDefSpDefinition = function(oDefinition)
-	{
-		if (!oDefinition)
-			return oDefinition;
-
-		return {
-			bodyPr:   this.SerBodyPr(oDefinition.bodyPr),
-			lstStyle: this.SerLstStyle(oDefinition.lstStyle),
-			spPr:     this.SerSpPr(oDefinition.spPr),
-			style:    this.SerSpStyle(oDefinition.style)
 		}
 	};
 	WriterToJSON.prototype.SerSlideSize = function(oSldSz)
@@ -566,7 +440,7 @@
 				oLayout = this.SerSlideLayout(oSlide.Layout, false);
 		}
 
-		var oResult = {
+		return {
 			notes:            this.SerNotes(oSlide.notes),
 			master:           oMaster,
 			clrMapOvr:        this.SerColorMapOvr(oSlide.clrMap),
@@ -580,8 +454,6 @@
 			showMasterSp:     oSlide.showMasterSp,
 			type:             "slide"
 		}
-
-		return oResult;
 	};
 	WriterToJSON.prototype.SerSlides = function(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts)
 	{
@@ -757,7 +629,7 @@
 		switch (sTransType)
 		{
 			case "fade":
-				transOption = oTransition.TransitionOption === c_oAscSlideTransitionParams.Fade_Smoothly ? false : true;
+				transOption = oTransition.TransitionOption !== c_oAscSlideTransitionParams.Fade_Smoothly;
 				break;
 			case "push":
 			case "wipe":
@@ -1461,7 +1333,7 @@
 
 		return {
 			by: {
-				rgb: this.SerByColor(oAnimClr.byRGB),
+				rgb: this.SerByRGB(oAnimClr.byRGB),
 				hsl: this.SerByHSL(oAnimClr.byHSL)
 			},
 
@@ -1490,9 +1362,9 @@
 			return oByHSL;
 
 		return {
-			h: oByRGB.c1,
-			s: oByRGB.c2,
-			l: oByRGB.c3
+			h: oByHSL.c1,
+			s: oByHSL.c2,
+			l: oByHSL.c3
 		}
 	};
 	WriterToJSON.prototype.SerAnimEffect = function(oAnimEffect)
@@ -2711,9 +2583,9 @@
 	{
 		var oSndTgt = new AscFormat.CSndTgt();
 
-		oParsedSndTgt.embed != undefined && oInkTgt.setEmbed(oParsedSndTgt.embed);
-		oParsedSndTgt.name != undefined && oInkTgt.setName(oParsedSndTgt.name);
-		oParsedSndTgt.builtIn != undefined && oInkTgt.setBuiltIn(oParsedSndTgt.builtIn);
+		oParsedSndTgt.embed != undefined && oSndTgt.setEmbed(oParsedSndTgt.embed);
+		oParsedSndTgt.name != undefined && oSndTgt.setName(oParsedSndTgt.name);
+		oParsedSndTgt.builtIn != undefined && oSndTgt.setBuiltIn(oParsedSndTgt.builtIn);
 
 		return oSndTgt;
 	};
@@ -3087,6 +2959,8 @@
 		oParsedAnimClr.to != undefined && oAnimClr.setTo(oParsedAnimClr.to);
 		nClrSpcType != undefined && oAnimClr.setClrSpc(nClrSpcType);
 		nColorDir != undefined && oAnimClr.setDir(nColorDir);
+
+		return oAnimClr;
 	};
 	ReaderFromJSON.prototype.ByRGBFromJSON = function(oParsedByRGB)
 	{
@@ -3102,9 +2976,9 @@
 	{
 		var oByHSL = new AscFormat.CColorPercentage();
 
-		oByRGB.c1 = oParsedByHSL.h;
-		oByRGB.c1 = oParsedByHSL.s;
-		oByRGB.c1 = oParsedByHSL.l;
+		oByHSL.c1 = oParsedByHSL.h;
+		oByHSL.c1 = oParsedByHSL.s;
+		oByHSL.c1 = oParsedByHSL.l;
 
 		return oByHSL;
 	};
@@ -3379,18 +3253,6 @@
 
 		return oCSld;
 	};
-	ReaderFromJSON.prototype.GraphicFrameFromJSON = function(oParsedGraphFrame)
-	{
-		var oGraphicFrame = new AscFormat.CGraphicFrame();
-
-		oParsedGraphFrame.nvGraphicFramePr && oGraphicFrame.setNvSpPr(this.UniNvPrFromJSON(oParsedGraphFrame.nvGraphicFramePr));
-		oParsedGraphFrame.spPr && oGraphicFrame.setSpPr(this.SpPrFromJSON(oParsedGraphFrame.spPr));
-		oParsedGraphFrame.graphic && oGraphicFrame.setGraphicObject(this.TableFromJSON(oParsedGraphFrame.graphic, oGraphicFrame));
-
-		oGraphicFrame.setBDeleted(false);
-		
-		return oGraphicFrame;
-	};
 	ReaderFromJSON.prototype.BgFromJSON = function(oParsedBg)
 	{
 		var oBg = new AscFormat.CBg();
@@ -3448,104 +3310,6 @@
 
 		return oBgPr;
 	};
-	ReaderFromJSON.prototype.ThemeFromJSON = function(oParsedTheme)
-	{
-		var oTheme = new AscFormat.CTheme();
-		for (var nElm = 0; nElm < oParsedTheme.extraClrSchemeLst.length; nElm++)
-			oTheme.addExtraClrSceme(this.ExtraClrSchemeFromJSON(oParsedTheme.extraClrSchemeLst[nElm]));
-
-		oTheme.setName(oParsedTheme.name);
-		oParsedTheme.objectDefaults.lnDef && oTheme.setLnDef(this.DefSpDefinitionFromJSON(oParsedTheme.objectDefaults.lnDef));
-		oParsedTheme.objectDefaults.spDef && oTheme.setSpDef(this.DefSpDefinitionFromJSON(oParsedTheme.objectDefaults.spDef));
-		oParsedTheme.objectDefaults.txDef && oTheme.setTxDef(this.DefSpDefinitionFromJSON(oParsedTheme.objectDefaults.txDef));
-		oParsedTheme.themeElements.clrScheme && oTheme.setColorScheme(this.ClrSchemeFromJSON(oParsedTheme.themeElements.clrScheme));
-		oParsedTheme.themeElements.fmtScheme && oTheme.setFormatScheme(this.FmtSchemeFromJSON(oParsedTheme.themeElements.fmtScheme));
-		oParsedTheme.themeElements.fontScheme && oTheme.setFontScheme(this.FontSchemeFromJSON(oParsedTheme.themeElements.fontScheme));
-		oTheme.setIsThemeOverride(oParsedTheme.isThemeOverride);
-
-		this.themesMap[oParsedTheme.Id] = oTheme;
-
-		return oTheme;
-	};
-	ReaderFromJSON.prototype.ExtraClrSchemeFromJSON = function(oParsedExtrClrScheme)
-	{
-		var oExtraClrScheme = new AscFormat.ExtraClrScheme();
-		oParsedExtrClrScheme.clrMap && oExtraClrScheme.setClrMap(this.ColorMapOvrFromJSON(oParsedExtrClrScheme.clrMap));
-		oParsedExtrClrScheme.clrScheme && oExtraClrScheme.setClrScheme(this.ClrSchemeFromJSON(oParsedExtrClrScheme.clrScheme));
-
-		return oExtraClrScheme;
-	};
-	ReaderFromJSON.prototype.ClrSchemeFromJSON = function(oParsedClrScheme)
-	{
-		var oClrScheme = new AscFormat.ClrScheme();
-		oClrScheme.setName(oParsedClrScheme.name);
-		oParsedClrScheme["dk1"] && oClrScheme.addColor(0, this.ColorFromJSON(oParsedClrScheme["dk1"]));
-		oParsedClrScheme["lt1"] && oClrScheme.addColor(1, this.ColorFromJSON(oParsedClrScheme["lt1"]));
-		oParsedClrScheme["dk2"] && oClrScheme.addColor(2, this.ColorFromJSON(oParsedClrScheme["dk2"]));
-		oParsedClrScheme["lt2"] && oClrScheme.addColor(3, this.ColorFromJSON(oParsedClrScheme["lt2"]));
-		oParsedClrScheme["accent1"] && oClrScheme.addColor(4, this.ColorFromJSON(oParsedClrScheme["accent1"]));
-		oParsedClrScheme["accent2"] && oClrScheme.addColor(5, this.ColorFromJSON(oParsedClrScheme["accent2"]));
-		oParsedClrScheme["accent3"] && oClrScheme.addColor(8, this.ColorFromJSON(oParsedClrScheme["accent3"]));
-		oParsedClrScheme["accent4"] && oClrScheme.addColor(9, this.ColorFromJSON(oParsedClrScheme["accent4"]));
-		oParsedClrScheme["accent5"] && oClrScheme.addColor(10, this.ColorFromJSON(oParsedClrScheme["accent5"]));
-		oParsedClrScheme["accent6"] && oClrScheme.addColor(11, this.ColorFromJSON(oParsedClrScheme["accent6"]));
-		oParsedClrScheme["hlink"] && oClrScheme.addColor(12, this.ColorFromJSON(oParsedClrScheme["hlink"]));
-		oParsedClrScheme["folHlink"] && oClrScheme.addColor(13, this.ColorFromJSON(oParsedClrScheme["folHlink"]));
-
-		return oClrScheme;
-	};
-	ReaderFromJSON.prototype.FmtSchemeFromJSON = function(oParsedFmtScheme)
-	{
-		var oFmtScheme = new AscFormat.FmtScheme();
-
-		for (var nBgFill = 0; nBgFill < oParsedFmtScheme.bgFillStyleLst.length; nBgFill++)
-			oFmtScheme.addBgFillToStyleLst(this.FillFromJSON(oParsedFmtScheme.bgFillStyleLst[nBgFill]));
-
-		for (var nFill = 0; nFill < oParsedFmtScheme.fillStyleLst.length; nFill++)
-			oFmtScheme.addFillToStyleLst(this.FillFromJSON(oParsedFmtScheme.fillStyleLst[nFill]));
-		
-		for (var nFill = 0; nFill < oParsedFmtScheme.lnStyleLst.length; nFill++)
-			oFmtScheme.addLnToStyleLst(this.LnFromJSON(oParsedFmtScheme.lnStyleLst[nFill]));
-
-		oParsedFmtScheme.name && oFmtScheme.setName(oParsedFmtScheme.name);
-
-		return oFmtScheme;
-	};
-	ReaderFromJSON.prototype.FontSchemeFromJSON = function(oParsedFntScheme)
-	{
-		var oFontScheme = new AscFormat.FontScheme();
-		this.FontCollectionFromJSON(oParsedFntScheme.majorFont, "major", oFontScheme);
-		this.FontCollectionFromJSON(oParsedFntScheme.minorFont, "minor", oFontScheme);
-
-		oParsedFntScheme.name && oFontScheme.setName(oParsedFntScheme.name);
-
-		return oFontScheme;
-	};
-	ReaderFromJSON.prototype.FontCollectionFromJSON = function(oParsedFntColl, sType, oParentFntScheme)
-	{
-		if (sType === "major")
-		{
-			oParentFntScheme.majorFont.setLatin(oParsedFntColl.latin);
-			oParentFntScheme.majorFont.setEA(oParsedFntColl.ea);
-			oParentFntScheme.majorFont.setCS(oParsedFntColl.cs);
-		}
-		if (sType === "minor")
-		{
-			oParentFntScheme.minorFont.setLatin(oParsedFntColl.latin);
-			oParentFntScheme.minorFont.setEA(oParsedFntColl.ea);
-			oParentFntScheme.minorFont.setCS(oParsedFntColl.cs);
-		}
-	};
-	ReaderFromJSON.prototype.DefSpDefinitionFromJSON = function(oParsedDefSpDef)
-	{
-		var oDefSpDefinition = new AscFormat.DefaultShapeDefinition();
-		oParsedDefSpDef.bodyPr   && oDefSpDefinition.setBodyPr(this.BodyPrFromJSON(oParsedDefSpDef.bodyPr));
-		oParsedDefSpDef.lstStyle && oDefSpDefinition.setLstStyle(this.LstStyleFromJSON(oParsedDefSpDef.lstStyle));
-		oParsedDefSpDef.spPr     && oDefSpDefinition.setSpPr(this.SpPrFromJSON(oParsedDefSpDef.spPr));
-		oParsedDefSpDef.style    && oDefSpDefinition.setStyle(this.SpStyleFromJSON(oParsedDefSpDef.style));
-
-		return oDefSpDefinition;
-	};
 	
 	function To_XML_TLAnimateEffectTransition(nVal)
 	{
@@ -3564,7 +3328,7 @@
 		}
 
 		return sVal;
-	};
+	}
 	function From_XML_TLAnimateEffectTransition(sVal)
 	{
 		var nVal = undefined;
@@ -3582,7 +3346,7 @@
 		}
 
 		return nVal;
-	};
+	}
     //----------------------------------------------------------export----------------------------------------------------
     window['AscCommon']       = window['AscCommon'] || {};
     window['AscFormat']       = window['AscFormat'] || {};

@@ -4529,4 +4529,6 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window['AscCommon'].ST_PresetMaterialType = ST_PresetMaterialType;
 	window['AscCommon'].ST_TLAnimateEffectTransition = ST_TLAnimateEffectTransition;
 	window['AscCommon'].c_oAscOleObjectTypes = c_oAscOleObjectTypes;
+	window['AscCommon'].ST_CxnType = ST_CxnType;
+	
 	})(window);
