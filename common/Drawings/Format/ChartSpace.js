@@ -4326,12 +4326,8 @@ var GLOBAL_PATH_COUNT = 0;
         oAxisGrid.aStrings = aStrings;
         if(oAxis.getObjectType() === AscDFH.historyitem_type_SerAx) {
             this.checkPrecalculateChartObject();
-            var oProcessor3D = this.chartObj && this.chartObj.processor3D;
-            var dDepth = 0;
-            if(oProcessor3D && AscFormat.isRealNumber(oProcessor3D.depthPerspective)) {
-                dDepth = oProcessor3D.depthPerspective;
-            }
-            fInterval =dDepth / nIntervalsCount;
+            var dDepth = this.getDepthPerspective();
+            fInterval = dDepth / nIntervalsCount;
             if(nOrientation === AscFormat.ORIENTATION_MIN_MAX) {
                 oAxisGrid.fStart = 0;
                 oAxisGrid.fStride = fInterval;
@@ -4367,6 +4363,14 @@ var GLOBAL_PATH_COUNT = 0;
                 oAxisGrid.fStride = fInterval;
             }
         }
+    };
+    CChartSpace.prototype.getDepthPerspective = function() {
+        var oProcessor3D = this.chartObj && this.chartObj.processor3D;
+        var dDepth = 0;
+        if(oProcessor3D && AscFormat.isRealNumber(oProcessor3D.depthPerspective)) {
+            dDepth = oProcessor3D.depthPerspective;
+        }
+        return dDepth;
     };
     CChartSpace.prototype.recalculateAxesSet = function(aAxesSet, oRect, oBaseRect, nIndex, fForceContentWidth) {
         var oCorrectedRect = null;
@@ -4951,11 +4955,7 @@ var GLOBAL_PATH_COUNT = 0;
                     var bOnTickMark = ((nCrossType === AscFormat.CROSS_BETWEEN_MID_CAT) && (aAllSeries.length > 1));
                     var nIntervalsCount = bOnTickMark ? (aAllSeries.length - 1) : (aAllSeries.length);
                     oGrid = oSerAx.grid;
-                    var oProcessor3D = this.chartObj && this.chartObj.processor3D;
-                    var dDepth = 0;
-                    if(oProcessor3D && AscFormat.isRealNumber(oProcessor3D.depthPerspective)) {
-                        dDepth = oProcessor3D.depthPerspective;
-                    }
+                    var dDepth = this.getDepthPerspective();
                     var fStart, fStride;
                     if(nOrientation === AscFormat.ORIENTATION_MIN_MAX) {
                         fStart = 0;
