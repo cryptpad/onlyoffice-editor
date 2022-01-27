@@ -420,6 +420,15 @@
     CGraphicBounds.prototype.hit = function(x, y) {
         return x >= this.l && x <= this.r && y >= this.t && y <= this.b;  
     };
+    CGraphicBounds.prototype.isEqual = function(oBounds) {
+        if(!oBounds) {
+            return false;
+        }
+        return AscFormat.fApproxEqual(this.l, oBounds.l) && 
+            AscFormat.fApproxEqual(this.t, oBounds.t) && 
+            AscFormat.fApproxEqual(this.r, oBounds.r) && 
+            AscFormat.fApproxEqual(this.b, oBounds.b);
+    };
 
     function CCopyObjectProperties()
     {

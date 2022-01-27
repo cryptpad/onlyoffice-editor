@@ -6726,13 +6726,16 @@
     CAnimMotion.prototype.getChildren = function() {
         return [this.cBhvr];
     };
-    CAnimMotion.prototype.privateCalculateParams = function() {
+    CAnimMotion.prototype.getParsedPath = function() {
         if(this.path) {
-            this.parsedPath = new CSVGPath(this.path);
+            return new CSVGPath(this.path);
         }
         else {
-            this.parsedPath = null;
+            return null;
         }
+    };
+    CAnimMotion.prototype.privateCalculateParams = function() {
+        this.parsedPath = this.getParsedPath();
     };
     CAnimMotion.prototype.getOrigin = function() {
         if(this.origin !== null) {
@@ -6814,7 +6817,7 @@
                 this.editShape.parent = oTiming.parent;
             }
         }
-        this.editShape.recalculate();
+        this.editShape.checkRecalculate();
         return this.editShape;
     };
 
@@ -7042,41 +7045,52 @@
         }
         return {x: fX, y: fY};
     };
-    CSVGPath.prototype.createGeometry = function(dSlideWidth, dSlideHeight) {
+    CSVGPath.prototype.createGeometry = function(nOrigin, oObjectBounds) {
+        
         var oGeometry = null;
         var oBounds = null;
-        var dX0, dY0, dX1, dY1, dX2, dY2;
-        var dStartX = null, dStartY = null;
-        var oPath, sCmdType, aCmd, nCmd;
+
         if(this.commands.length > 0) {
-            oPath = new AscFormat.Path();
-            
+            var oPresentation = editor.WordControl.m_oLogicDocument;
+            var dSlideWidth = oPresentation.GetWidthMM();
+            var dSlideHeight = oPresentation.GetHeightMM();
+            var dX0, dY0, dX1, dY1, dX2, dY2;
+            var dStartX = null, dStartY = null;
+            var oPath, sCmdType, aCmd, nCmd;
+            var dPathShiftX = 0;
+            var dPathShiftY = 0;
+            if(nOrigin === ORIGIN_LAYOUT) {
+                dPathShiftX = oObjectBounds.x + oObjectBounds.w/2;
+                dPathShiftY = oObjectBounds.y + oObjectBounds.h/2;
+            }
+
+            //find the path bounds relative to the slide
             for(nCmd = 0; nCmd < this.commands.length; ++nCmd) {
                 aCmd = this.commands[nCmd];
                 sCmdType = aCmd[0];
                 if(sCmdType === "M") {
-                    dX0 = aCmd[1]*dSlideWidth;
-                    dY0 = aCmd[2]*dSlideHeight;
+                    dX0 = aCmd[1]*dSlideWidth + dPathShiftX;
+                    dY0 = aCmd[2]*dSlideHeight + dPathShiftY;
                     if(!oBounds) {
                         oBounds = new AscFormat.CGraphicBounds(dX0, dY0, dX0, dY0);
                     }
                     oBounds.checkPoint(dX0, dY0);
                 }
                 else if(sCmdType === "L") {
-                    dX0 = aCmd[1]*dSlideWidth;
-                    dY0 = aCmd[2]*dSlideHeight;
+                    dX0 = aCmd[1]*dSlideWidth + dPathShiftX;
+                    dY0 = aCmd[2]*dSlideHeight + dPathShiftY;
                     if(!oBounds) {
                         oBounds = new AscFormat.CGraphicBounds(dX0, dY0, dX0, dY0);
                     }
                     oBounds.checkPoint(dX0, dY0);
                 }
                 else if(sCmdType === "C") {
-                    dX0 = aCmd[1]*dSlideWidth;
-                    dY0 = aCmd[2]*dSlideHeight;
-                    dX1 = aCmd[3]*dSlideWidth;
-                    dY1 = aCmd[4]*dSlideHeight;
-                    dX2 = aCmd[5]*dSlideWidth;
-                    dY2 = aCmd[6]*dSlideHeight;
+                    dX0 = aCmd[1]*dSlideWidth + dPathShiftX;
+                    dY0 = aCmd[2]*dSlideHeight + dPathShiftY;
+                    dX1 = aCmd[3]*dSlideWidth + dPathShiftX;
+                    dY1 = aCmd[4]*dSlideHeight + dPathShiftY;
+                    dX2 = aCmd[5]*dSlideWidth + dPathShiftX;
+                    dY2 = aCmd[6]*dSlideHeight + dPathShiftY;
                     if(!oBounds) {
                         oBounds = new AscFormat.CGraphicBounds(dX0, dY0, dX0, dY0);
                     }
@@ -7085,39 +7099,37 @@
                     oBounds.checkPoint(dX2, dY2);
                 }
             }
+
+            
+            oPath = new AscFormat.Path();
+            oPath.setPathW(GEOMETRY_RECT_SIZE);
+            oPath.setPathH(GEOMETRY_RECT_SIZE);
+            var calcX = function(dX) {
+                return ((((dX*dSlideWidth + dPathShiftX - oBounds.l) / oBounds.w) * GEOMETRY_RECT_SIZE + 0.5) >> 0) + "";
+            }
+            var calcY = function(dY) {
+                return ((((dY*dSlideHeight + dPathShiftY - oBounds.t) / oBounds.h) * GEOMETRY_RECT_SIZE + 0.5) >> 0) + "";
+            }
             for(nCmd = 0; nCmd < this.commands.length; ++nCmd) {
                 aCmd = this.commands[nCmd];
                 sCmdType = aCmd[0];
                 if(sCmdType === "M") {
-                    dX0 = aCmd[1]*dSlideWidth - oBounds.l;
-                    dY0 = aCmd[2]*dSlideHeight - oBounds.t;
-                    oPath.moveTo(dX0 + "", dY0 + "");
-                    if(dStartX === null || dStartY === null) {
-                        dStartX = dX0;
-                        dStartY = dY0;
-                    }
+                    oPath.moveTo(calcX(aCmd[1]), calcY(aCmd[2]));
                 }
                 else if(sCmdType === "L") {
-                    dX0 = aCmd[1]*dSlideWidth - oBounds.l;
-                    dY0 = aCmd[2]*dSlideHeight - oBounds.t;
-                    oPath.lnTo(dX0 + "", dY0 + "");
-                    if(dStartX === null || dStartY === null) {
-                        dStartX = dX0;
-                        dStartY = dY0;
-                    }
+                    oPath.lnTo(calcX(aCmd[1]), calcY(aCmd[2]));
                 }
                 else if(sCmdType === "C") {
-                    dX0 = aCmd[1]*dSlideWidth - oBounds.l;
-                    dY0 = aCmd[2]*dSlideHeight - oBounds.t;
-                    dX1 = aCmd[3]*dSlideWidth - oBounds.l;
-                    dY1 = aCmd[4]*dSlideHeight - oBounds.t;
-                    dX2 = aCmd[5]*dSlideWidth - oBounds.l;
-                    dY2 = aCmd[6]*dSlideHeight - oBounds.t;
-                    oPath.cubicBezTo(dX0 + "", dY0 + "", dX1 + "", dY1 + "", dX2 + "", dY2 + "");
-                    if(dStartX === null || dStartY === null) {
-                        dStartX = dX0;
-                        dStartY = dY0;
-                    }
+                    dX0 = aCmd[1]*dSlideWidth + dPathShiftX - oBounds.l;
+                    dY0 = aCmd[2]*dSlideHeight + dPathShiftY - oBounds.t;
+                    dX1 = aCmd[3]*dSlideWidth + dPathShiftX - oBounds.l;
+                    dY1 = aCmd[4]*dSlideHeight + dPathShiftY - oBounds.t;
+                    dX2 = aCmd[5]*dSlideWidth + dPathShiftX - oBounds.l;
+                    dY2 = aCmd[6]*dSlideHeight + dPathShiftY - oBounds.t;
+                    oPath.cubicBezTo(
+                        calcX(aCmd[1]), calcY(aCmd[2]), 
+                        calcX(aCmd[3]), calcY(aCmd[4]), 
+                        calcX(aCmd[5]), calcY(aCmd[6]));
                 }
                 else if(sCmdType === "Z") {
                     oPath.close();
@@ -7130,7 +7142,7 @@
                 oGeometry.AddPath(oPath);
             }
         }
-        return {geometry: oGeometry, bounds: oBounds, startX : dStartX, startY: dStartY};
+        return {geometry: oGeometry, bounds: oBounds};
     };
 
     changesFactory[AscDFH.historyitem_AnimRotCBhvr] = CChangeObject;
@@ -13911,60 +13923,86 @@
     }
     AscFormat.generate_preset_data = generate_preset_data;
 
+    var GEOMETRY_RECT_SIZE = 100000;
     function MoveAnimationDrawObject(oAnim) {
         AscFormat.ExecuteNoHistory(function(){
             AscFormat.CShape.call(this);
             if(!this.spPr) {
                 this.setSpPr(new AscFormat.CSpPr());
-                this.spPr.parent = this;
+                this.spPr.setParent(this);
+                this.spPr.setXfrm(new AscFormat.CXfrm());
+                this.spPr.xfrm.setParent(this.spPr);
+                this.bDeleted = false;
             }
         }, this, []);
         this.anim = oAnim;
+
         this.slideWidth = null;
         this.slideHeight = null;
+        this.objectBounds = null;
         this.path = null;
-        this.bDeleted = false;
     }
     InitClass(MoveAnimationDrawObject, AscFormat.CShape, AscDFH.historyitem_type_Shape);
+    MoveAnimationDrawObject.prototype.checkRecalculate = function() {
+        var bNeedRecalculate = false;
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        var dSlideW = oPresentation.GetWidthMM();
+        var dSlideH = oPresentation.GetHeightMM();
+        if(!AscFormat.fApproxEqual(dSlideW, this.slideWidth)) {
+            this.slideWidth = dSlideW;
+            bNeedRecalculate = true;
+        }
+        if(!AscFormat.fApproxEqual(dSlideH, this.slideHeight)) {
+            this.slideHeight = dSlideH;
+            bNeedRecalculate = true;
+        }
+        var oTargetObject = this.anim.getTargetObject();
+        if(!oTargetObject) {
+            return;
+        }
+        var oBounds = oTargetObject.bounds;
+        if(!oBounds) {
+            return;
+        }
+        if(!oBounds.isEqual(this.objectBounds)) {
+            this.objectBounds = oBounds.copy();
+            bNeedRecalculate = true;
+        }
+        if(this.path !== this.anim.path) {
+            this.path = this.anim.path;
+            bNeedRecalculate = true;
+        }
+        if(bNeedRecalculate) {
+            this.recalcGeometry();
+            this.recalculate();
+        }
+    };
     MoveAnimationDrawObject.prototype.recalculateGeometry = function() {
-        this.path = null;
         this.calcGeometry = null;
         if(!this.anim) {
+            return;
+        }
+        if(!this.path) {
             return;
         }
         var oTargetObject = this.anim.getTargetObject();
         if(!oTargetObject) {
             return;
         }
-        var oPresentation = editor.WordControl.m_oLogicDocument;
-        this.slideWidth = oPresentation.GetWidthMM();
-        this.slideHeight = oPresentation.GetHeightMM();
-        this.path = this.anim.path;
+        var oSVGPath = new CSVGPath(this.path);
         this.calcGeometry = null; 
-
-        if(this.path) {
-            var oSVGPath = new CSVGPath(this.anim.path);
-            var oGeometryObject = oSVGPath.createGeometry(this.slideWidth, this.slideHeight);
-            if(oGeometryObject.geometry && oGeometryObject.bounds) {
-                var nOrigin = this.anim.getOrigin();
-                var oBounds = oGeometryObject.bounds;
-                var oTargetObjectBounds = oTargetObject.bounds;
-                this.extX = oBounds.w;
-                this.extY = oBounds.h;
-                this.x = oGeometryObject.startX;
-                this.y = oGeometryObject.startY;
-                if(nOrigin === ORIGIN_LAYOUT) {
-                    this.x += oTargetObjectBounds.x + oTargetObjectBounds.w/2 + oBounds.x;
-                    this.y += oTargetObjectBounds.y + oTargetObjectBounds.h/2 + oBounds.y;
-                }
-                this.bounds.reset(this.x, this.y, this.x + this.extX, this.y + this.extY);
-                this.calcGeometry = oGeometryObject.geometry;
-                this.calcGeometry.Recalculate(this.extX, this.extY);
-                this.transform = new AscCommon.CMatrix();
-                this.transform.tx = this.x;
-                this.transform.ty = this.y;
-                this.spPr.geometry = this.calcGeometry;
-            }
+        var oGeometryObject = oSVGPath.createGeometry(this.anim.getOrigin(), oTargetObject.bounds);
+        if(oGeometryObject.geometry && oGeometryObject.bounds) {
+            var oBounds = oGeometryObject.bounds;
+            this.spPr.xfrm.extX = oBounds.w;
+            this.spPr.xfrm.extY = oBounds.h;
+            this.spPr.xfrm.offX = oBounds.x;
+            this.spPr.xfrm.offY = oBounds.y;
+            this.bounds.fromOther(oBounds);
+            this.recalculateTransform();
+            this.calcGeometry = oGeometryObject.geometry;
+            this.calcGeometry.Recalculate(this.extX, this.extY);
+            this.spPr.geometry = this.calcGeometry;
         }
     };
     MoveAnimationDrawObject.prototype.recalculatePen = function() {
@@ -13991,6 +14029,9 @@
     MoveAnimationDrawObject.prototype.canEditText = function() {
         return false;
     };
+    MoveAnimationDrawObject.prototype.canRotate = function() {
+        return false;
+    };
     MoveAnimationDrawObject.prototype.draw = function(oGraphics) {
         if(oGraphics.IsThumbnail === true || 
             oGraphics.IsDemonstrationMode === true || 
@@ -14001,8 +14042,6 @@
         AscFormat.CShape.prototype.draw.call(this, oGraphics);
         this.pen = this.pen2;
         AscFormat.CShape.prototype.draw.call(this, oGraphics);
-        oGraphics.rect(this.bounds.x, this.bounds.y, this.bounds.w, this.bounds.h);
-        oGraphics.ds();
 
         if(this.selected) {
             //draw target object at start and at end
@@ -14021,6 +14060,9 @@
             this.recalcInfo.recalculateGeometry = true;
         }
         CShape.prototype.recalculate.call(this);
+    };
+    MoveAnimationDrawObject.prototype.getSVGPath = function() {
+        
     };
     
     // MoveAnimationDrawObject.prototype.recalculateBounds = function() {
