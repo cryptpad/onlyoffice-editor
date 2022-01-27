@@ -1327,6 +1327,7 @@
 		if (extLst) {
 			this._prepareConditionalFormatting(extLst);
 			this._prepareDataValidations(extLst);
+			this._prepareSparklineGroups(extLst);
 		}
 	}
 	AscCommonExcel.Worksheet.prototype._prepareConditionalFormatting = function (extLst) {
@@ -1404,6 +1405,21 @@
 				m_oExtLst->m_arrExt[i]->m_oDataValidations->m_arrItems[j] = NULL;
 			}
 		}*/
+	};
+
+	AscCommonExcel.Worksheet.prototype._prepareSparklineGroups = function (extLst) {
+		if (extLst) {
+			for (var i = 0; i < extLst.arrExt.length; i++) {
+				if (extLst.arrExt[i] && extLst.arrExt[i].sparklineGroups) {
+					//TODO обрабатываю только ситуацию, когад 1 элумент. несколько элементов не встречал, но нужно будет проверить и обработать.
+					for (var j = 0; j < extLst.arrExt[i].sparklineGroups.length; j++) {
+						var newSparklineGroup = extLst.arrExt[i].sparklineGroups[j];
+						newSparklineGroup.setWorksheet(this);
+						this.aSparklineGroups.push(newSparklineGroup);
+					}
+				}
+			}
+		}
 	};
 
 	AscCommonExcel.Row.prototype.toXml = function(writer) {
@@ -5319,6 +5335,279 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	//****sparklines****
+	AscCommonExcel.sparklineGroup.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("colorSeries") == sName )
+								m_oColorSeries = oReader;
+							else if ( _T("colorNegative") == sName )
+								m_oColorNegative = oReader;
+							else if ( _T("colorAxis") == sName )
+								m_oColorAxis = oReader;
+							else if ( _T("colorMarkers") == sName )
+								m_oColorMarkers = oReader;
+							else if ( _T("colorFirst") == sName )
+								m_oColorFirst = oReader;
+							else if ( _T("colorLast") == sName )
+								m_oColorLast = oReader;
+							else if ( _T("colorHigh") == sName )
+								m_oColorHigh = oReader;
+							else if ( _T("colorLow") == sName )
+								m_oColorLow = oReader;
+							else if ( _T("f") == sName )
+								m_oRef = oReader.GetText3();
+							else if ( _T("sparklines") == sName )
+								m_oSparklines = oReader;
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("colorSeries" === name) {
+				this.colorSeries = AscCommon.getColorFromXml2(reader);
+			} else if ("colorNegative" === name) {
+				this.colorNegative = AscCommon.getColorFromXml2(reader);
+			} else if ("colorAxis" === name) {
+				this.colorAxis = AscCommon.getColorFromXml2(reader);
+			} else if ("colorMarkers" === name) {
+				this.colorMarkers = AscCommon.getColorFromXml2(reader);
+			} else if ("colorFirst" === name) {
+				this.colorFirst = AscCommon.getColorFromXml2(reader);
+			} else if ("colorLast" === name) {
+				this.colorLast = AscCommon.getColorFromXml2(reader);
+			} else if ("colorHigh" === name) {
+				this.colorHigh = AscCommon.getColorFromXml2(reader);
+			} else if ("colorLow" === name) {
+				this.colorLow = AscCommon.getColorFromXml2(reader);
+			} else if ("f" === name) {
+				this.f = reader.GetText();
+			} else if ("sparklines" === name) {
+				var depth2 = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth2)) {
+					var name2 = reader.GetNameNoNS();
+					if ("sparkline" === name2) {
+						var newSparklineGroup = new AscCommonExcel.sparkline();
+						//newSparklineGroup.setWorksheet(oWorksheet);
+						newSparklineGroup.fromXml(reader);
+						//oWorksheet.aSparklineGroups.push(newSparklineGroup);
+						this.arrSparklines.push(newSparklineGroup);
+					}
+				}
+
+			}
+		}
+	};
+
+	AscCommonExcel.sparklineGroup.prototype.readAttr = function (reader) {
+
+//documentation
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("manualMax"),      m_oManualMax )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("manualMin"),      m_oManualMin )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("lineWeight"),      m_oLineWeight )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("type"),      m_oType )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("dateAxis"),      m_oDateAxis )
+								else if(_T("displayEmptyCellsAs") == wsName)
+								{
+									ST_DispBlanksAs eVal;
+									std::wstring sNodeName = oReader.GetText();
+									if(FromXml_ST_DispBlanksAs(sNodeName, eVal))
+									{
+										m_oDisplayEmptyCellsAs.Init();
+										m_oDisplayEmptyCellsAs.get2() = eVal;
+									}
+								}
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("markers"),      m_oMarkers )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("high"),      m_oHigh )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("low"),      m_oLow )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("first"),      m_oFirst )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("last"),      m_oLast )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("negative"),      m_oNegative )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("displayXAxis"),      m_oDisplayXAxis )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("displayHidden"),      m_oDisplayHidden )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("minAxisType"),      m_oMinAxisType )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("maxAxisType"),      m_oMaxAxisType )
+							WritingElement_ReadAttributes_Read_else_if     ( oReader, _T("rightToLeft"),      m_oRightToLeft )*/
+
+//serialize
+		/* if (c_oSer_Sparkline.ManualMax === type) {
+						oSparklineGroup.manualMax = this.stream.GetDoubleLE();
+					} else if (c_oSer_Sparkline.ManualMin === type) {
+						oSparklineGroup.manualMin = this.stream.GetDoubleLE();
+					} else if (c_oSer_Sparkline.LineWeight === type) {
+						oSparklineGroup.lineWeight = this.stream.GetDoubleLE();
+					} else if (c_oSer_Sparkline.Type === type) {
+						oSparklineGroup.type = this.stream.GetUChar();
+					} else if (c_oSer_Sparkline.DateAxis === type) {
+						oSparklineGroup.dateAxis = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.DisplayEmptyCellsAs === type) {
+						oSparklineGroup.displayEmptyCellsAs = this.stream.GetUChar();
+					} else if (c_oSer_Sparkline.Markers === type) {
+						oSparklineGroup.markers = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.High === type) {
+						oSparklineGroup.high = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.Low === type) {
+						oSparklineGroup.low = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.First === type) {
+						oSparklineGroup.first = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.Last === type) {
+						oSparklineGroup.last = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.Negative === type) {
+						oSparklineGroup.negative = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.DisplayXAxis === type) {
+						oSparklineGroup.displayXAxis = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.DisplayHidden === type) {
+						oSparklineGroup.displayHidden = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.MinAxisType === type) {
+						oSparklineGroup.minAxisType = this.stream.GetUChar();
+					} else if (c_oSer_Sparkline.MaxAxisType === type) {
+						oSparklineGroup.maxAxisType = this.stream.GetUChar();
+					} else if (c_oSer_Sparkline.RightToLeft === type) {
+						oSparklineGroup.rightToLeft = this.stream.GetBool();
+					} else if (c_oSer_Sparkline.ColorSeries === type) {
+						oSparklineGroup.colorSeries = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.ColorNegative === type) {
+						oSparklineGroup.colorNegative = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.ColorAxis === type) {
+						oSparklineGroup.colorAxis = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.ColorMarkers === type) {
+						oSparklineGroup.colorMarkers = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.ColorFirst === type) {
+						oSparklineGroup.colorFirst = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.ColorLast === type) {
+						oSparklineGroup.colorLast = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.ColorHigh === type) {
+						oSparklineGroup.colorHigh = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.ColorLow === type) {
+						oSparklineGroup.colorLow = ReadColorSpreadsheet2(this.bcr, length);
+					} else if (c_oSer_Sparkline.Ref === type) {
+						oSparklineGroup.f = this.stream.GetString2LE(length);
+					} else if (c_oSer_Sparkline.Sparklines === type) {
+						res = this.bcr.Read1(length, function (t, l) {
+							return oThis.ReadSparklines(t, l, oSparklineGroup);
+						});
+					}*/
+
+		//TODO displayEmptyCellsAs
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("manualMax" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.manualMax = val;
+			} else if ("manualMin" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.manualMin = val;
+			} else if ("lineWeight" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.lineWeight = val;
+			} else if ("type" === reader.GetName()) {
+
+				/*<xsd:simpleType name="ST_SparklineType">
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="line"/>
+						<xsd:enumeration value="column"/>
+						<xsd:enumeration value="stacked"/>
+					</xsd:restriction>
+				</xsd:simpleType>*/
+
+				val = reader.GetValue();
+				if (val === "line") {
+					this.type = Asc.c_oAscSparklineType.Line;
+				} else if (val === "column") {
+					this.type = Asc.c_oAscSparklineType.Column;
+				}  else if (val === "stacked") {
+					this.type = Asc.c_oAscSparklineType.Stacked;
+				}
+			} else if ("dateAxis" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.dateAxis = val;
+			} else if ("markers" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.markers = val;
+			} else if ("high" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.high = val;
+			} else if ("low" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.low = val;
+			} else if ("first" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.first = val;
+			} else if ("last" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.last = val;
+			} else if ("negative" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.negative = val;
+			} else if ("displayXAxis" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.displayXAxis = val;
+			} else if ("displayHidden" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.displayHidden = val;
+			} else if ("minAxisType" === reader.GetName()) {
+				val = reader.GetValue();
+				this.minAxisType = val;
+			} else if ("maxAxisType" === reader.GetName()) {
+				val = reader.GetValue();
+				this.maxAxisType = val;
+			} else if ("rightToLeft" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.rightToLeft = val;
+			} }
+	};
+
+	AscCommonExcel.sparkline.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("f") == sName )
+								m_oRef = oReader.GetText3();
+							else if ( _T("sqref") == sName )
+								m_oSqRef = oReader.GetText3();
+						}*/
+
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("f" === name) {
+				this.setF(reader.GetText());
+			} else if ("sqref" === name) {
+				this.setSqRef(reader.GetText());
+			}
+		}
+	};
+
 
 	function COfficeArtExtensionList () {
 		this.arrExt = [];
@@ -5526,6 +5815,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		this.slicerCachesIds = [];
 		this.tableSlicerCaches = [];
 		this.aConditionalFormattingRules = [];
+		this.sparklineGroups = [];
 
 		this.ids = [];
 	}
@@ -5557,7 +5847,18 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("compatExt" === name) {
 
 				} else if ("sparklineGroups" === name) {
+					depth2 = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depth2)) {
+						name2 = reader.GetNameNoNS();
+						if ("sparklineGroup" === name2) {
 
+							var newSparklineGroup = new AscCommonExcel.sparklineGroup(true);
+							//newSparklineGroup.setWorksheet(oWorksheet);
+							newSparklineGroup.fromXml(reader);
+							//oWorksheet.aSparklineGroups.push(newSparklineGroup);
+							this.sparklineGroups.push(newSparklineGroup);
+						}
+					}
 				} else if ("dataModelExt" === name) {
 
 				} else if ("table" === name) {
@@ -10014,70 +10315,16 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
-	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, (L"password"),\t\tm_oPassword)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"algorithmName"),\tm_oAlgorithmName)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"hashValue"),\t\tm_oHashValue)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"saltValue"),\t\tm_oSaltValue)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"spinCount"),\t\tm_oSpinCount)\n' + '\t\t\t\t\t\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"autoFilter"),\tm_oAutoFilter)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"content"),\t\tm_oContent)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"deleteColumns"),\tm_oDeleteColumns)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"deleteRows"),\tm_oDeleteRows)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"formatCells"),\tm_oFormatCells)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"formatColumns"),\tm_oFormatColumns)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"formatRows"),\tm_oFormatRows)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"insertColumns"),\tm_oInsertColumns)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"insertHyperlinks"),m_oInsertHyperlinks)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"insertRows"),\tm_oInsertRows)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"objects"),\t\tm_oObjects)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"pivotTables"),\tm_oPivotTables)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"scenarios"),\t\tm_oScenarios)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"selectLockedCells"),m_oSelectLockedCells)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"selectUnlockedCells"),m_oSelectUnlockedCells)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"sheet"),\t\t\tm_oSheet)\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, (L"sort"),\t\t\tm_oSort)'
-	var _documentation = '<xsd:attribute name="algorithmName" type="s:ST_Xstring" use="optional"/>\n' +
-		'2914 <xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>\n' + '2915 <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>\n' +
-		'2916 <xsd:attribute name="spinCount" type="xsd:unsignedInt" use="optional"/>\n' +
-		'2917 <xsd:attribute name="sheet" type="xsd:boolean" use="optional" default="false"/>\n' +
-		'2918 <xsd:attribute name="objects" type="xsd:boolean" use="optional" default="false"/>\n' +
-		'2919 <xsd:attribute name="scenarios" type="xsd:boolean" use="optional" default="false"/>\n' +
-		'2920 <xsd:attribute name="formatCells" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2921 <xsd:attribute name="formatColumns" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2922 <xsd:attribute name="formatRows" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2923 <xsd:attribute name="insertColumns" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2924 <xsd:attribute name="insertRows" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2925 <xsd:attribute name="insertHyperlinks" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2926 <xsd:attribute name="deleteColumns" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2927 <xsd:attribute name="deleteRows" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2928 <xsd:attribute name="selectLockedCells" type="xsd:boolean" use="optional" default="false"/>\n' +
-		'2929 <xsd:attribute name="sort" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2930 <xsd:attribute name="autoFilter" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2931 <xsd:attribute name="pivotTables" type="xsd:boolean" use="optional" default="true"/>\n' +
-		'2932 <xsd:attribute name="selectUnlockedCells" type="xsd:boolean" use="optional" default="false"/>'
-	var _serialize = ' if (c_oSerWorksheetProtection.AlgorithmName == type) {\n' + '\t\t\t\tsheetProtection.algorithmName = this.stream.GetUChar();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.SpinCount == type) {\n' + '\t\t\t\tsheetProtection.spinCount = this.stream.GetLong();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.HashValue == type) {\n' + '\t\t\t\tsheetProtection.hashValue = this.stream.GetString2LE(length);\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.SaltValue == type) {\n' + '\t\t\t\tsheetProtection.saltValue = this.stream.GetString2LE(length);\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.Password == type) {\n' + '\t\t\t\tsheetProtection.password = this.stream.GetString2LE(length);\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.AutoFilter == type) {\n' + '\t\t\t\tsheetProtection.autoFilter = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.Content == type) {\n' + '\t\t\t\tsheetProtection.content = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.DeleteColumns == type) {\n' + '\t\t\t\tsheetProtection.deleteColumns = this.stream.GetBool(length);\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.DeleteRows == type) {\n' + '\t\t\t\tsheetProtection.deleteRows = this.stream.GetBool(length);\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.FormatCells == type) {\n' + '\t\t\t\tsheetProtection.formatCells = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.FormatColumns == type) {\n' + '\t\t\t\tsheetProtection.formatColumns = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.FormatRows == type) {\n' + '\t\t\t\tsheetProtection.formatRows = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.InsertColumns == type) {\n' + '\t\t\t\tsheetProtection.insertColumns = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.InsertHyperlinks == type) {\n' + '\t\t\t\tsheetProtection.insertHyperlinks = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.InsertRows == type) {\n' + '\t\t\t\tsheetProtection.insertRows = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.Objects == type) {\n' + '\t\t\t\tsheetProtection.objects = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.PivotTables == type) {\n' + '\t\t\t\tsheetProtection.pivotTables = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.Scenarios == type) {\n' + '\t\t\t\tsheetProtection.scenarios = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.SelectLockedCells == type) {\n' + '\t\t\t\tsheetProtection.selectLockedCells = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.SelectUnlockedCell == type) {\n' + '\t\t\t\tsheetProtection.selectUnlockedCell = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.Sheet == type) {\n' + '\t\t\t\tsheetProtection.sheet = this.stream.GetBool();\n' +
-		'\t\t\t} else if (c_oSerWorksheetProtection.Sort == type) {\n' + '\t\t\t\tsheetProtection.sort = this.stream.GetBool();'
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( oReader.IsEmptyNode() )\n' + '\t\t\t\t\treturn;\n' + '\n' +
+		'\t\t\t\tint nCurDepth = oReader.GetDepth();\n' + '\t\t\t\twhile( oReader.ReadNextSiblingNode( nCurDepth ) )\n' + '\t\t\t\t{\n' +
+		'\t\t\t\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\n' + '                    if ( _T("f") == sName )\n' +
+		'                        m_oRef = oReader.GetText3();\n' + '                    else if ( _T("sqref") == sName )\n' +
+		'                        m_oSqRef = oReader.GetText3();\n' + '\t\t\t\t}';
+	var _x2t = ''
+	var _documentation = ''
+	var _serialize = ' if (c_oSer_Sparkline.SparklineRef === type) {\n' + '\t\t\t\toSparkline.setF(this.stream.GetString2LE(length));\n' +
+		'\t\t\t} else if (c_oSer_Sparkline.SparklineSqRef === type) {\n' + '\t\t\t\toSparkline.setSqRef(this.stream.GetString2LE(length));\n' + '\t\t\t} else\n' +
+		'                res = c_oSerConstants.ReadUnknown;'
 
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);

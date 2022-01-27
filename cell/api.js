@@ -1607,9 +1607,9 @@ var editor;
 					var contentSheetXml = wsPart.getDocumentContent();
 					var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
 					ws.sName = wbSheetXml.name;
-					var wsView = new AscCommonExcel.asc_CSheetViewSettings();
-					wsView.pane = new AscCommonExcel.asc_CPane();
-					ws.sheetViews.push(wsView);
+					//var wsView = new AscCommonExcel.asc_CSheetViewSettings();
+					//wsView.pane = new AscCommonExcel.asc_CPane();
+					//ws.sheetViews.push(wsView);
 					if (contentSheetXml) {
 						AscCommonExcel.executeInR1C1Mode(false, function() {
 							var reader = new StaxParser(contentSheetXml, wsPart, xmlParserContext);
