@@ -14102,6 +14102,7 @@
                 }
             }
             if(aPTS.length > 1) {
+                oGraphics.SaveGrState();
                 if(this.selected) {
                     var oTexture = this.getDrawingTexture(oGraphics);
                     var oTransform = null;
@@ -14129,6 +14130,74 @@
                         oGraphics.put_GlobalAlpha(false, 1);
                     }
                 }
+                //draw start arrow
+                var dWidth = 5, dLen = 3;
+                var x0p, y0p, x1p, y1p, x2p, y2p, dx, dy, dStartLen, dWidthCoeff, dLenCoeff;
+                dx = aPTS[1].x - aPTS[0].x;
+                dy = aPTS[1].y - aPTS[0].y;
+                dStartLen = Math.sqrt(dx*dx + dy*dy);
+                dWidthCoeff = dWidth/dStartLen;
+                x0p = aPTS[0].x - dy*dWidthCoeff/2;
+                y0p = aPTS[0].y + dx*dWidthCoeff/2;
+                x1p = aPTS[0].x + dy*dWidthCoeff/2;
+                y1p = aPTS[0].y - dx*dWidthCoeff/2;
+                
+                dLenCoeff = dLen/dStartLen;
+                x2p = aPTS[0].x + dx*dLenCoeff;
+                y2p = aPTS[0].y + dy*dLenCoeff;
+                oGraphics.transform3(this.transform);
+                oGraphics.b_color1(43, 166, 15, 128);
+                oGraphics.p_color(43, 166, 15, 255);
+                oGraphics._s()
+                oGraphics._m(x0p, y0p);
+                oGraphics._l(x1p, y1p);
+                oGraphics._l(x2p, y2p);
+                oGraphics._z();
+                oGraphics.df();
+                oGraphics.ds();
+                oGraphics._e();
+
+
+                if(!bClosed) {
+                    dx = aPTS[aPTS.length - 2].x - aPTS[aPTS.length - 1].x;
+                    dy = aPTS[aPTS.length - 2].y - aPTS[aPTS.length - 1].y;
+                    dStartLen = Math.sqrt(dx*dx + dy*dy);
+                    dLenCoeff = dLen/dStartLen;
+                    dWidthCoeff = dWidth/dStartLen;
+                    var xp = aPTS[aPTS.length - 1].x + dx*dLenCoeff; 
+                    var yp = aPTS[aPTS.length - 1].y + dy*dLenCoeff; 
+
+
+                    x0p = xp - dy*dWidthCoeff/2;
+                    y0p = yp + dx*dWidthCoeff/2;
+                    x1p = xp + dy*dWidthCoeff/2;
+                    y1p = yp - dx*dWidthCoeff/2;
+                    
+                    x2p = aPTS[aPTS.length - 1].x;
+                    y2p = aPTS[aPTS.length - 1].y;
+                    oGraphics.b_color1(222, 5, 5, 128);
+                    oGraphics.p_color(222, 5, 5, 255);
+                    oGraphics._s()
+                    oGraphics._m(x0p, y0p);
+                    oGraphics._l(x1p, y1p);
+                    oGraphics._l(x2p, y2p);
+                    oGraphics._z()
+
+                    
+                    x0p = aPTS[aPTS.length - 1].x - dy*dWidthCoeff/2;
+                    y0p = aPTS[aPTS.length - 1].y + dx*dWidthCoeff/2;
+
+                    x1p = aPTS[aPTS.length - 1].x + dy*dWidthCoeff/2;
+                    y1p = aPTS[aPTS.length - 1].y - dx*dWidthCoeff/2;
+                    oGraphics._m(x0p, y0p);
+                    oGraphics._l(x1p, y1p);
+
+                    oGraphics.df();
+                    oGraphics.ds();
+                    oGraphics._e();
+                }
+
+                oGraphics.RestoreGrState();
             }
         }
     };
