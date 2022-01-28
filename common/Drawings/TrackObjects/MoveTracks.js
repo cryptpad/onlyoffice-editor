@@ -248,6 +248,13 @@ function MoveShapeImageTrack(originalObject)
         {
             return;
         }
+
+        if(this.originalObject.animMotionTrack) 
+        {
+            this.originalObject.updateAnimation(this.x, this.y, this.originalObject.extX, this.originalObject.extY, this.originalObject.rot);
+            return;
+        }
+
         if(bWord)
         {
             if(this.originalObject.selectStartPage !== this.pageIndex)

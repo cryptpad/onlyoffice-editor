@@ -5432,6 +5432,15 @@ DrawingObjectsController.prototype =
         }
         else if(this.selectedObjects.length > 0)
         {
+            if(this.selectedObjects[0].animMotionTrack) 
+            {
+                var oTiming = this.drawingObjects.timing;
+                if(oTiming) 
+                {
+                    oTiming.removeSelectedEffects();
+                }
+                return;
+            }
             var aSO, oSp;
             var worksheet = this.drawingObjects.getWorksheet();
             var oWBView;
