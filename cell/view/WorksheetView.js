@@ -5499,6 +5499,7 @@
         var selectionLineType = args[1];
         var strokeColor = args[2];
         var isAllRange = args[3];
+		var isAllowRetina = args[5] ? 1 : 0;
         var colorN = this.settings.activeCellBorderColor2;
         var ctx = this.overlayCtx;
         var oIntersection = range.intersectionSimple(visibleRange);
@@ -5550,7 +5551,7 @@
         }
 
 		//меняю толщину линии для селекта(только в случае сплошной линии) и масштаба 200%
-		var isRetina = !isDashLine && AscBrowser.retinaPixelRatio === 2;
+		var isRetina = (!isDashLine || isAllowRetina) && AscBrowser.retinaPixelRatio === 2;
 		var widthLine = isDashLine ? 1 : 2;
 		if (isRetina) {
 			widthLine = AscCommon.AscBrowser.convertToRetinaValue(widthLine, true);
@@ -5930,7 +5931,7 @@
         for (i = 0; i < arrayCells.length; ++i) {
             oCellTmp = new asc_Range(arrayCells[i].c1, arrayCells[i].r1, arrayCells[i].c2, arrayCells[i].r2);
             this._drawElements(this._drawSelectionElement, oCellTmp, AscCommonExcel.selectionLineType.Dash,
-              strokeColor);
+              strokeColor, null, null, true);
         }
     };
 
