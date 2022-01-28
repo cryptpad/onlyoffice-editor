@@ -1231,11 +1231,11 @@
 
     EditShapeGeometryTrack.prototype.isCorrect = function() {
         if(this.originalGeometry !== this.getOriginalObjectGeometry() ||
-            this.originalX !== this.originalObject.x ||
-            this.originalY !== this.originalObject.y ||
-            this.originalExtX !== this.originalObject.extX ||
-            this.originalExtY !== this.originalObject.extY ||
-            this.originalRot !== this.originalObject.rot) {
+            !AscFormat.fApproxEqual(this.originalX, this.originalObject.x) ||
+            !AscFormat.fApproxEqual(this.originalY, this.originalObject.y) ||
+            !AscFormat.fApproxEqual(this.originalExtX, this.originalObject.extX) ||
+            !AscFormat.fApproxEqual(this.originalExtY, this.originalObject.extY) ||
+            !AscFormat.fApproxEqual(this.originalRot, this.originalObject.rot)) {
             return false;
         }
         return true;

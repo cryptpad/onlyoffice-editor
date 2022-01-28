@@ -7884,6 +7884,7 @@ DrawingObjectsController.prototype =
                 {
                     this.selectObject(oDrawing, bDocument ? (oDrawing.parent ? oDrawing.parent.PageNum : nPageIndex) : nPageIndex);
                     this.selection.geometrySelection = new CGeometryEditSelection(this, oDrawing);
+                    this.selection.geometrySelection.gmEditPointIdx = oGeomSelection.gmEditPointIdx;
                     if(!oSelectionState.DrawingSelection){
                         bNeedRecalculateCurPos = true;
                     }
