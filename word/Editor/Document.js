@@ -26767,9 +26767,11 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 			var oSelectedMath = oMath.Copy(true);
 			oMath.Remove(1, false);
 			this.RemoveSelection();
+			oMath.Root.Remove_Content(0,1);
 			oSelectedMath.ConvertView(isToLinear);
 
 			// TODO: Реализовать вставку в oMath содержимого oSelectedMath
+			oSelectedMath.Root.CopyTo(oMath.Root)
 		}
 		this.Recalculate();
 		this.UpdateInterface();

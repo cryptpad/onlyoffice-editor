@@ -1163,7 +1163,6 @@ ParaMath.prototype.Get_CompiledTextPr = function(Copy)
 
 ParaMath.prototype.Add = function(Item)
 {
-    console.log('Add')
     var LogicDocument  = (this.Paragraph ? this.Paragraph.LogicDocument : undefined);
     var TrackRevisions = (LogicDocument && true === LogicDocument.IsTrackRevisions() ? true : false);
 
@@ -3504,46 +3503,39 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 ParaMath.prototype.ConvertFromLaTeX = function()
 {
 	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
-	return;
+	var strLaTeX = this.GetText();
+	this.Root.Remove_Content(0, this.Root.Content.length);
+	var oLaTeXParser = new CLaTeXParser(this, strLaTeX);
+	oLaTeXParser.Start();
 
-    if (!strLaTeX)
-    	return;
-
-    var oLaTeXParser = new CLaTeXParser(this, strLaTeX);
-    oLaTeXParser.prepare();
 };
 ParaMath.prototype.ConvertToLaTeX = function()
 {
-	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
-	return;
-
-
-    var Conveter = new ToLaTex(this.Root);
-
-	//console.log(this.Root)
+	var Conveter = new ToLaTex(this.Root);
 	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
-
-	//console.log(Conveter.objTempData)
 	Conveter.Convert(Conveter.objTempData);
-	console.log('LaTex string:', Conveter.objString.arr.join(''));
 
-    var strin = this.GetText();
-    console.log('Unicode string:', strin);
-    return strin
+	console.log("LaTex string:", Conveter.objString.arr.join(""));
+	return Conveter.objString.arr.join("");
+
+	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
 };
 ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
-	// TODO: Функция конвертации UnicodeMath -> MathML
-	return;
+	var strUnicode = this.GetText();
+	//this.Root.Remove_Content(0,this.Root.Content.length);
+	var Unicode = new CUnicodeParser(strUnicode, this);
+	Unicode.Start();
 
-    var Unicode = new CUnicodeParser(strin, this);
-    Unicode.Start();
-    this.Root.Correct_Content(true);
+	// TODO: Функция конвертации UnicodeMath -> MathML
 };
 ParaMath.prototype.ConvertToUnicodeMath = function()
 {
+	var strin = this.GetText();
+	this.Root.Remove_Content(0,this.Root.Content.length);
+	console.log('Unicode string:', strin);
+	this.Root.Add_Text(strin, this.Paragraph);
 	// TODO: Функция конвертации MathML -> UnicodeMath
-	return;
 };
 ParaMath.prototype.ConvertView = function(isToLinear)
 {
@@ -3554,19 +3546,21 @@ ParaMath.prototype.ConvertView = function(isToLinear)
 	if (isToLinear)
 	{
 		if (Asc.c_oAscMathInputType.Unicode === nInputType)
-			this.ConvertToUnicodeMath();
-		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
-			this.ConvertToLaTeX();
-	}
-	else
-	{
-		if (Asc.c_oAscMathInputType.Unicode === nInputType)
 			this.ConvertFromUnicodeMath();
 		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
 			this.ConvertFromLaTeX();
 	}
+	else
+	{
+		if (Asc.c_oAscMathInputType.Unicode === nInputType) {
+			this.ConvertFromLaTeX(); //temp, for debug
+			//this.ConvertToUnicodeMath();
+		}
+		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
+			this.ConvertFromUnicodeMath(); //temp, for debug
+			//this.ConvertFromLaTeX();
+	}
 };
-
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {

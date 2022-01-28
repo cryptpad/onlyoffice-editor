@@ -57,9 +57,14 @@ EquationProcessing.prototype.isUnicode = function() {
 	return this.type === Unicode;
 }
 EquationProcessing.prototype.ParserData = [
-	"+", "^", "√", "&", "_", "-", "┴", "*", "(", ")",
+	"+", "^", "√", "&", "_", "-", "┴", "*", "(", ")", "=",
 	"{", "}", "&", "▒", "┬", "[", "]", "┤", "├", "〖", "〗",
-	"┴", 'tan', '¦', 'mod', 'exp', '=', 'sqrt', 'theta', '|', '\\frac', '\\left', '\\right', '\\middle'
+	"┴", '\\tan', '¦', '\\mod', '\\exp', '\\=', '\\sqrt', '\\theta', '|',
+	'\\frac',
+	'\\left',
+	'\\right',
+	'\\middle',
+	'\\cos'
 ];
 EquationProcessing.prototype.Parse = function() {
 	var strTempWord = "";
@@ -115,7 +120,9 @@ EquationProcessing.prototype.Parse = function() {
 			}
 		}
 		
-		if	(this.ParserData.includes(str[i + 1]) ||
+		if	(
+			
+			this.ParserData.includes(str[i + 1]) ||
 			this.ParserData.includes(strTempWord) ||
 			str[i+1] == '//' ||
 			str[i+1] == '@' ||
@@ -123,11 +130,17 @@ EquationProcessing.prototype.Parse = function() {
 			strTempWord == '\\' && isInMatrix && str[i+1] != 'e' && str[i+2] != 'n' && str[i+3] != 'd' ||
 			str[i+1] == '\\' && isInMatrix 
 			) {
-			arrAtoms.push(strTempWord.trim());
-			strTempWord = "";
+			if (strTempWord.charCodeAt() !== 8289) {
+				arrAtoms.push(strTempWord.trim());
+				strTempWord = "";
+			} else {
+				strTempWord = "";
+			}
+			
 		}
 	}
-	arrAtoms.push(strTempWord.trim());
+	strTempWord.trim();
+	arrAtoms.push(strTempWord);
 
 	this.Parent.arrAtoms = arrAtoms.filter(Boolean);
 	console.log(this.Parent.arrAtoms, this.type === LaTeX ? 'Latex' : 'Unicode');
@@ -295,106 +308,138 @@ EquationProcessing.prototype.StartLexer = function(context, indexOfExit) {
 };
 //Script 
 //script for bracet block
-EquationProcessing.prototype.AddScript = function(strAtom, FormArgument) {
-	var type = this.GetTypeOfScript();
-	var Script = this.CreateScript(FormArgument, type);
-	this.FillScriptBase(Script, strAtom, type);
-};
-EquationProcessing.prototype.GetTypeANDScript = function(type) {
-	if (type[0] === '^' && type[2] === '_') {
-		return 'SUP_SUB'
-	}
-	else if (type[0] === '_' && type[2] === '^') {
-		return 'SUB_SUP'
-	}
-};
-EquationProcessing.prototype.GetTypeOrScript = function(type) {
-	if (type[0] === '^') {
-		return 'DEGREE_SUPERSCRIPT'
-	}
-	else if (type[0] === '_') {
-		return 'DEGREE_SUBSCRIPT'
+//pre-script for bracet block
+EquationProcessing.prototype.AddScript = function(strAtom, FormArgument, isPre) {
+	var arrPreTypeOfScript = this.BracetSyntaxChecker(isPre ? -1 : this.Parent.intIndexArray);
+	var intType = isPre ? -1 : this.GetTypeOfScript(arrPreTypeOfScript);
+	var Script = this.CreateScript(FormArgument, intType, arrPreTypeOfScript.length);
+	if (isPre) {
+		this.FillScriptContent(Script, intType, arrPreTypeOfScript, isPre);
+		this.FillScriptBase(Script, isPre);
+	} else {
+		this.FillScriptBase(Script, null, strAtom);
+		//Script.getBase().Add_Text(strAtom, this.Parent.ParaMath.Paragraph);
+		this.FillScriptContent(Script, intType, arrPreTypeOfScript);
 	}
 };
-EquationProcessing.prototype.GetTypeOfScript = function() {
-	var type = this.BracetSyntaxChecker(this.Parent.intIndexArray);
-
-	if (type.length === 2) {
-		return this.GetTypeOrScript(type);
+EquationProcessing.prototype.GetTypeOfScript = function(arrType) {
+	if (arrType[0] === '^' && arrType.length === 2) {
+		return DEGREE_SUPERSCRIPT;
 	}
-	else if (type.length === 4) {
-		return this.GetTypeANDScript(type);
+	else if (arrType[0] === '_' && arrType.length === 2) {
+		return DEGREE_SUBSCRIPT;
+	}
+	else {
+		return DEGREE_SubSup;
 	}
 };
-EquationProcessing.prototype.CreateScript = function(FormArgument, type) {
-	var Pr = {};
+EquationProcessing.prototype.CreateScript = function(FormArgument, type, lengthOfType) {
+	var Pr = {type: type};
 	var isBothDegreeAndIndex = false;
 
-	if (type === 'DEGREE_SUPERSCRIPT' || type === 'DEGREE_SUBSCRIPT') {
-		Pr.type = this.GetTypeOfIndexLimit[type];
-	}
-	
-	else if (type === 'SUB_SUP' || type === 'SUP_SUB') {
+	if (lengthOfType === 4) {
 		isBothDegreeAndIndex = true;
-		Pr.type = 1;
-	}
-	else if (type === -1) {
-		isBothDegreeAndIndex = true;
-		Pr.type = -1;
 	}
 
 	var Script = FormArgument.Add_Script(isBothDegreeAndIndex, Pr, null, null, null);
 	return Script;
 };
-EquationProcessing.prototype.FillScriptBase = function(Script, name, typeOfScript) {
-	Script.getBase().Add_Text(name, this.Parent.ParaMath.Paragraph);
-	this.FillScriptContent(Script, typeOfScript);
-};
-EquationProcessing.prototype.FillScriptContent = function(Script, typeOfScript) {
-	if (typeOfScript === 'DEGREE_SUPERSCRIPT') {
-		this.FillScriptContentWriteSub(Script);
+EquationProcessing.prototype.FillScriptBase = function(Script, isPre, strFAtom) {
+	if (isPre === true) {
+		if (this.StartBracet[this.GetFutureAtom(0)]) {
+			this.AddBracetBlockToIgnor();
+			this.StartLexer(Script.getBase());
+		}
+		else {
+			this.AddIndexToIgnor(this.Parent.intIndexArray + 0, true);
+			this.StartLexer(Script.getBase(), this.Parent.intIndexArray + 0);
+		}
+	}else {
+		if (this.StartBracet[strFAtom]) {
+			var exit = this.AddBracetBlockToIgnor();
+			console.log(exit)
+			this.StartLexer(Script.getBase());
+		} else {
+			Script.getBase().Add_Text(strFAtom, this.Parent.ParaMath.Paragraph);
+		}
 	}
-	else if (typeOfScript === 'DEGREE_SUBSCRIPT') {
-		this.FillScriptContentWriteSup(Script);
-	}
-	else if (typeOfScript === 'SUB_SUP') {
-		this.FillScriptContentWriteSub(Script);
-		this.FillScriptContentWriteSup(Script);
-	}
-	else if (typeOfScript === 'SUP_SUB') {
-		this.FillScriptContentWriteSup(Script);
-		this.FillScriptContentWriteSub(Script);
-	}
-};
-EquationProcessing.prototype.FillScriptContentWriteSup = function(Script) {
-	var Iterator = Script.getUpperIterator();
 
-	if (this.StartBracet[this.GetFutureAtom(2)]) {
+	
+	
+
+}
+EquationProcessing.prototype.FillScriptContent = function(Script, typeOfScript, PreTypeOfScript, isPre) {
+	var intScriptLength = PreTypeOfScript.length;
+	
+	if (intScriptLength === 2) {
+		if (typeOfScript === DEGREE_SUPERSCRIPT) {
+			this.FillScriptContentWriteSup(Script, isPre);
+		}
+		else if (typeOfScript === DEGREE_SUBSCRIPT) {
+			this.FillScriptContentWriteSub(Script, isPre);
+		}
+	}
+	else if (intScriptLength === 4) {
+		if (PreTypeOfScript[0] === '_') {
+			this.FillScriptContentWriteSub(Script, isPre);
+			if (isPre) {
+				this.Parent.intIndexArray++;
+			}
+			this.FillScriptContentWriteSup(Script, isPre);
+		} else if (PreTypeOfScript[0] === '^') {
+			this.FillScriptContentWriteSup(Script, isPre);
+			if (isPre) {
+				this.Parent.intIndexArray++;
+			}
+			this.FillScriptContentWriteSub(Script, isPre);
+		}
+	}
+};
+EquationProcessing.prototype.FillScriptContentWriteSup = function(Script, isPre) {
+	var Iterator = Script.getUpperIterator();
+	this.FillScriptIterator(Iterator, isPre);
+};
+EquationProcessing.prototype.FillScriptContentWriteSub = function(Script, isPre) {
+	var Iterator = Script.getLowerIterator();
+	this.FillScriptIterator(Iterator, isPre);
+};
+EquationProcessing.prototype.FillScriptIterator = function(Iterator, isPre) {
+	var n = isPre === true ? 1 : 2;
+
+	if (this.StartBracet[this.GetFutureAtom(n)]) {
 		this.AddBracetBlockToIgnor();
 		this.StartLexer(Iterator);
 	}
 	else {
-		this.AddIndexToIgnor(this.Parent.intIndexArray + 2, true);
-		this.StartLexer(Iterator, this.Parent.intIndexArray + 2);
+		this.AddIndexToIgnor(this.Parent.intIndexArray + n, true);
+		this.StartLexer(Iterator, this.Parent.intIndexArray + n);
+	}
+}
+EquationProcessing.prototype.CheckAndScript = function(isPre) {
+	if (isPre === true) {
+		return this.CheckSubAndSup(0); //PreSubOfSup
+	}
+	else {
+		return this.CheckSubAndSup(); //SubOrSup
 	}
 };
-EquationProcessing.prototype.FillScriptContentWriteSub = function(Script) {
-	var Iterator = Script.getLowerIterator();
-	
-	if (this.StartBracet[this.GetFutureAtom(2)]) {
-		this.AddBracetBlockToIgnor();
-		this.StartLexer(Iterator);
-	} else {
-		this.AddIndexToIgnor(this.Parent.intIndexArray + 2, true);
-		this.StartLexer(Iterator, this.Parent.intIndexArray + 2);
+EquationProcessing.prototype.CheckOrScript = function(isPre) {
+	if (isPre === true) {
+		return this.CheckSubOrSup(0); //PreSubOfSup
+	}
+	else {
+		return this.CheckSubOrSup(); //SubOrSup
 	}
 };
-EquationProcessing.prototype.CheckSubOrSup = function() {
-	var strTempAtom = this.GetFutureAtom(1);
+EquationProcessing.prototype.CheckSubOrSup = function(n) {
+	if (n === undefined) {
+		n = 1;
+	}
+	var strTempAtom = this.GetFutureAtom(n);
 	if(strTempAtom === "_" || strTempAtom === '^') {
-		var index = this.CheckCloseBracet(this.Parent.intIndexArray + 2);
+		var index = this.CheckCloseBracet(this.Parent.intIndexArray + n+1);
 		if (index === false) {
-			if (this.GetFutureAtom(2)) {
+			if (this.GetFutureAtom(n+1)) {
 				return true
 			}
 		}
@@ -402,18 +447,22 @@ EquationProcessing.prototype.CheckSubOrSup = function() {
 		// add a_b & i^2
 	}
 };
-EquationProcessing.prototype.CheckSubAndSup = function() {
+EquationProcessing.prototype.CheckSubAndSup = function(n) {
+	if (n === undefined) {
+		n = 1;
+	}
 	var symbol;
-	var strNow = this.GetFutureAtom(1);
+	var strNow = this.GetFutureAtom(n);
 
 	if(strNow === "_" || strNow === '^') {
 		if (strNow === "_") {
 			symbol = '^';
-			var index = this.CheckCloseBracet(this.Parent.intIndexArray + 2);
+			var index = this.CheckCloseBracet(this.Parent.intIndexArray + n+1);
+
 		}
 		if (strNow === "^") {
 			symbol = '_';
-			var index = this.CheckCloseBracet(this.Parent.intIndexArray + 2);
+			var index = this.CheckCloseBracet(this.Parent.intIndexArray + n+1);
 		}
 
 		if (symbol !== undefined) {
@@ -422,81 +471,79 @@ EquationProcessing.prototype.CheckSubAndSup = function() {
 		}
 		
 		return typeof index === 'number';
-		// add a_b & i^2
 	}
 };
-//PreScript
-EquationProcessing.prototype.AddPreScript = function(FormArgument) {
-	var Script = this.CreateScript(FormArgument, -1);
-	this.FillScriptPreScript(Script);
-};
-EquationProcessing.prototype.FillScriptPreScript = function(Script) {
-
-	this.Parent.intIndexArray--;
-	var type = this.GetTypeOfScript();
+// //PreScript
+// EquationProcessing.prototype.AddPreScript = function(FormArgument) {
+// 	var Script = this.CreateScript(FormArgument, -1, 4);
+// 	this.FillScriptPreScript(Script);
+// };
+// EquationProcessing.prototype.FillScriptPreScript = function(Script) {
+// 	this.Parent.intIndexArray--;
+// 	var type = this.GetTypeOfScript();
 	
-	if (type === 'SUB_SUP') {
-		this.FillScriptContentWriteSub(Script);
-		this.FillScriptContentWriteSup(Script);
-	}
-	else if (type === 'SUP_SUB') {
-		this.FillScriptContentWriteSup(Script);
-		this.FillScriptContentWriteSub(Script);
-	}
-	if (this.isUnicode()) {
-		this.Parent.intIndexArray++;
-	}
+// 	if (type === 'SUB_SUP') {
+// 		this.FillScriptContentWriteSub(Script);
+// 		this.FillScriptContentWriteSup(Script);
+// 	}
+// 	else if (type === 'SUP_SUB') {
+// 		this.FillScriptContentWriteSup(Script);
+// 		this.FillScriptContentWriteSub(Script);
+// 	}
+// 	if (this.isUnicode()) {
+// 		this.Parent.intIndexArray++;
+// 	}
 
-	if (this.StartBracet[this.GetFutureAtom(1)]) {
-		var exit = this.AddBracetBlockToIgnor();
-		this.StartLexer(Script.getBase(), exit);
-	} else {
-		this.AddIndexToIgnor(this.Parent.intIndexArray + 1, true);
-		this.StartLexer(Script.getBase(), this.Parent.intIndexArray + 1);
-	}
-};
-EquationProcessing.prototype.CheckPreScript = function() {
-	var n;
-	this.isUnicode()
-		? n = this.Parent.intIndexArray + 1
-		: n = this.Parent.intIndexArray;
+// 	if (this.StartBracet[this.GetFutureAtom(1)]) {
+// 		var exit = this.AddBracetBlockToIgnor();
+// 		this.StartLexer(Script.getBase(), exit);
+// 	} else {
+// 		this.AddIndexToIgnor(this.Parent.intIndexArray + 1, true);
+// 		this.StartLexer(Script.getBase(), this.Parent.intIndexArray + 1);
+// 	}
+// };
+// EquationProcessing.prototype.CheckPreScript = function() {
+// 	var n;
+// 	this.isUnicode()
+// 		? n = this.Parent.intIndexArray + 1
+// 		: n = this.Parent.intIndexArray;
 
-	var symbol;
-	var strNow = this.Parent.arrAtoms[n];
+// 	var symbol;
+// 	var strNow = this.Parent.arrAtoms[n];
 
-	if(strNow === "_" || strNow === '^') {
-		if (strNow === "_") {
-			symbol = '^';
-			if (this.StartBracet[this.Parent.arrAtoms[n+1]]) {
-				var index = this.CheckCloseBracet(n + 1);
-			} else {
-				index = false
-			}
-		}
-		if (strNow === "^") {
-			symbol = '_';
-			if (this.StartBracet[this.Parent.arrAtoms[n+1]]) {
-				var index = this.CheckCloseBracet(n + 1);
-			} else {
-				index = false
-			}
-		}
-		if (symbol !== undefined) {
-			if (index !== false) {
-				strNow = this.Parent.arrAtoms[index];
-				var index = this.CheckCloseBracet(index + 1);
-			}
-			else {
-				var tempIndex = n + 1;
-				var index = this.CheckCloseBracet(tempIndex + 1);
-				if (index === false) {
-					index = tempIndex + 1
-				}
-			}
-		}
-		return typeof index === 'number';
-	}
-};
+// 	if(strNow === "_" || strNow === '^') {
+// 		if (strNow === "_") {
+// 			symbol = '^';
+// 			if (this.StartBracet[this.Parent.arrAtoms[n+1]]) {
+// 				var index = this.CheckCloseBracet(n + 1);
+// 			} else {
+// 				index = false
+// 			}
+// 		}
+// 		if (strNow === "^") {
+// 			symbol = '_';
+// 			if (this.StartBracet[this.Parent.arrAtoms[n+1]]) {
+// 				var index = this.CheckCloseBracet(n + 1);
+// 			} else {
+// 				index = false
+// 			}
+// 		}
+// 		if (symbol !== undefined) {
+// 			if (index !== false) {
+// 				strNow = this.Parent.arrAtoms[index];
+// 				var index = this.CheckCloseBracet(index + 1);
+// 			}
+// 			else {
+// 				var tempIndex = n + 1;
+// 				var index = this.CheckCloseBracet(tempIndex + 1);
+// 				if (index === false) {
+// 					index = tempIndex + 1
+// 				}
+// 			}
+// 		}
+// 		return typeof index === 'number';
+// 	}
+// };
 //Function
 EquationProcessing.prototype.AddFunction = function (FormArgument, strAtom) {
 	if (this.isLaTeX()) {
@@ -1050,7 +1097,7 @@ EquationProcessing.prototype.CreateLargeOperator = function(FormArgument, intTyp
 		Pr.supHide = false;
 		Pr.subHide = false;
 	}
-	else if (this.CheckSubOrSup()) {
+	else if (this.CheckSubOrSup(1)) {
 		if (this.GetFutureAtom() === '^') {
 			Pr.subHide = true;
 			Pr.supHide = false;
@@ -1642,7 +1689,6 @@ CLaTeXParser.prototype.Start = function() {
 	CLaTeXLexer(this, this.ParaMath.Root);
 	var t1 = performance.now();
 	console.log("Lexer work " + (t1 - t0) + " milliseconds.");
-
 	this.ParaMath.Root.Correct_Content(true);
 };
 CLaTeXParser.prototype.arrLaTeXSymbols = {
@@ -2132,7 +2178,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = {
 	"zwsp": 0x200b,
 };
 function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
-	
 	var strAtom;
 	var isDontWrite = function(index) {
 		if (Parser.Processing.IndexesOfIgnoredAtoms[index] === false) {
@@ -2175,11 +2220,11 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 			else if (Parser.Processing.CheckIsLargeOperator[strAtom.slice(1)] && !Parser.isError) {
 				Parser.Processing.AddLargeOperator(FormArgument, strAtom);
 			}
-			else if (Parser.Processing.CheckSubOrSup() || Parser.Processing.CheckSubAndSup() && !Parser.isError) {
-				Parser.Processing.AddScript(strAtom, FormArgument);
+			else if (Parser.Processing.CheckOrScript(true) || Parser.Processing.CheckAndScript(true)) {
+				Parser.Processing.AddScript(strAtom, FormArgument, true);
 			}
-			else if (Parser.Processing.CheckPreScript()) {
-				Parser.Processing.AddPreScript(FormArgument, strAtom);
+			else if (Parser.Processing.CheckOrScript() || Parser.Processing.CheckSubAndSup() && !Parser.isError) {
+				Parser.Processing.AddScript(strAtom, FormArgument);
 			}
 			else if (Parser.Processing.StartBracet[strAtom] && !Parser.isError) {
 				Parser.Processing.AddBracet(FormArgument);
@@ -2252,7 +2297,7 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet) {
 		else if (Parser.Processing.CheckSubOrSup() || Parser.Processing.CheckSubAndSup()) {
 			Parser.Processing.AddScript(strAtom, FormArgument);
 		}
-		else if (Parser.Processing.CheckPreScript()) {
+		else if (Parser.Processing.CheckOrScript(true) || Parser.Processing.CheckAndScript(true)) {
 			Parser.intIndexArray++;
 			Parser.Processing.AddPreScript(FormArgument, strAtom);
 		}
