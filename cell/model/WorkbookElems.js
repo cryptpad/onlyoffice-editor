@@ -5493,9 +5493,14 @@ StyleManager.prototype =
 				val = reader.GetValueInt() - 1;
 				this.setIndex(val);
 			} else if ("s" === reader.GetName()) {
-				/*var xfs = this.aCellXfs[this.stream.GetULongLE()];
-				if(xfs)
-					this.setStyle(xfs);*/
+				val = reader.GetValueInt();
+				var aCellXfs = reader.context.InitOpenManager && reader.context.InitOpenManager.aCellXfs;
+				if (aCellXfs) {
+					var xfs = aCellXfs[val];
+					if (xfs) {
+						this.setStyle(xfs);
+					}
+				}
 			} else if ("customFormat" === reader.GetName()) {
 			} else if ("ht" === reader.GetName()) {
 				val = reader.GetValueDouble();

@@ -1604,56 +1604,58 @@ var editor;
 			wbXml.sheets.forEach(function(wbSheetXml) {
 				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
-					var contentSheetXml = wsPart.getDocumentContent();
-					var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
-					ws.sName = wbSheetXml.name;
-					//var wsView = new AscCommonExcel.asc_CSheetViewSettings();
-					//wsView.pane = new AscCommonExcel.asc_CPane();
-					//ws.sheetViews.push(wsView);
+					var contentSheetXml = wsPart && wsPart.getDocumentContent();
 					if (contentSheetXml) {
-						AscCommonExcel.executeInR1C1Mode(false, function() {
-							var reader = new StaxParser(contentSheetXml, wsPart, xmlParserContext);
-							ws.fromXml(reader);
-						});
-					}
-					wb.aWorksheets.push(ws);
-					wb.aWorksheetsById[ws.getId()] = ws;
-					var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
-					if (drawingPart) {
-						var drawingWS = new AscCommonExcel.CT_DrawingWS(ws);
-						var contentDrawing = drawingPart.getDocumentContent();
-						var reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
-						drawingWS.fromXml(reader);
-					}
-					if (wsPart) {
-						var pivotParts = wsPart.getPartsByRelationshipType(openXml.Types.pivotTable.relationType);
-						for (var i = 0; i < pivotParts.length; ++i) {
-							var contentPivotTable = pivotParts[i].getDocumentContent();
-							var pivotTable = new Asc.CT_pivotTableDefinition(true);
-							new openXml.SaxParserBase().parse(contentPivotTable, pivotTable);
-							var cacheDefinition = pivotCaches[pivotTable.cacheId];
-							if (cacheDefinition) {
-								pivotTable.cacheDefinition = cacheDefinition;
-								ws.insertPivotTable(pivotTable);
-							}
-						}
-
-						var tableParts = wsPart.getPartsByRelationshipType(openXml.Types.tableDefinition.relationType);
-						for (var i = 0; i < tableParts.length; ++i) {
-							var contentTable = tableParts[i].getDocumentContent();
-							var oNewTable = ws.createTablePart();
-							var reader = new StaxParser(contentTable, oNewTable, xmlParserContext);
-							oNewTable.fromXml(reader);
-							ws.TableParts.push(oNewTable);
-
-
-							/*var oNewTable = this.ws.createTablePart();
-							res = this.bcr.Read1(length, function(t,l){
-								return oThis.ReadTable(t,l, oNewTable);
+						var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
+						ws.sName = wbSheetXml.name;
+						//var wsView = new AscCommonExcel.asc_CSheetViewSettings();
+						//wsView.pane = new AscCommonExcel.asc_CPane();
+						//ws.sheetViews.push(wsView);
+						if (contentSheetXml) {
+							AscCommonExcel.executeInR1C1Mode(false, function() {
+								var reader = new StaxParser(contentSheetXml, wsPart, xmlParserContext);
+								ws.fromXml(reader);
 							});
-							if(null != oNewTable.Ref && null != oNewTable.DisplayName)
-								this.ws.workbook.dependencyFormulas.addTableName(this.ws, oNewTable, true);
-							aTables.push(oNewTable);*/
+						}
+						wb.aWorksheets.push(ws);
+						wb.aWorksheetsById[ws.getId()] = ws;
+						var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
+						if (drawingPart) {
+							var drawingWS = new AscCommonExcel.CT_DrawingWS(ws);
+							var contentDrawing = drawingPart.getDocumentContent();
+							var reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
+							drawingWS.fromXml(reader);
+						}
+						if (wsPart) {
+							var pivotParts = wsPart.getPartsByRelationshipType(openXml.Types.pivotTable.relationType);
+							for (var i = 0; i < pivotParts.length; ++i) {
+								var contentPivotTable = pivotParts[i].getDocumentContent();
+								var pivotTable = new Asc.CT_pivotTableDefinition(true);
+								new openXml.SaxParserBase().parse(contentPivotTable, pivotTable);
+								var cacheDefinition = pivotCaches[pivotTable.cacheId];
+								if (cacheDefinition) {
+									pivotTable.cacheDefinition = cacheDefinition;
+									ws.insertPivotTable(pivotTable);
+								}
+							}
+
+							var tableParts = wsPart.getPartsByRelationshipType(openXml.Types.tableDefinition.relationType);
+							for (var i = 0; i < tableParts.length; ++i) {
+								var contentTable = tableParts[i].getDocumentContent();
+								var oNewTable = ws.createTablePart();
+								var reader = new StaxParser(contentTable, oNewTable, xmlParserContext);
+								oNewTable.fromXml(reader);
+								ws.TableParts.push(oNewTable);
+
+
+								/*var oNewTable = this.ws.createTablePart();
+								res = this.bcr.Read1(length, function(t,l){
+									return oThis.ReadTable(t,l, oNewTable);
+								});
+								if(null != oNewTable.Ref && null != oNewTable.DisplayName)
+									this.ws.workbook.dependencyFormulas.addTableName(this.ws, oNewTable, true);
+								aTables.push(oNewTable);*/
+							}
 						}
 					}
 				}

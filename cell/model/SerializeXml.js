@@ -4646,6 +4646,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			if ("pane" === name) {
 				this.pane = new AscCommonExcel.asc_CPane();
 				this.pane.fromXml(reader);
+
+				this.pane.init();
 			} else if ("selection" === name) {
 				ws.selectionRange.clean();
 				ws.selectionRange.fromXml(reader);
@@ -5942,11 +5944,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						if ("conditionalFormatting" === name2) {
 							var oConditionalFormatting = new AscCommonExcel.CConditionalFormatting();
 							oConditionalFormatting.fromXml(reader);
-							/*if (oConditionalFormatting.isValid()) {
+							if (oConditionalFormatting.isValid()) {
 								oConditionalFormatting.initRules();
-								this.aConditionalFormattingRules.push(oConditionalFormatting.aRules);
-							}*/
-							this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(oConditionalFormatting.aRules);
+								this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(oConditionalFormatting.aRules);
+							}
 						}
 					}
 				} else if ("dataValidations" === name) {
@@ -6307,7 +6308,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				var extLst = new COfficeArtExtensionList(this);
 				extLst.fromXml(reader);
 
-				this._idOpen = extLst.getConditionalFormattingId();
+				this._openId = extLst.getConditionalFormattingId();
 			}
 		}
 
@@ -6524,7 +6525,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				}
 			}  else if ("id" === reader.GetName()) {
 				val = reader.GetValue();
-				this._idOpen = val;
+				this._openId = val;
 			}
 
 		}
@@ -7921,16 +7922,16 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							val = {f: null, id: null};
 							while (reader.MoveToNextAttribute()) {
 								if ("formatCode" === reader.GetName()) {
-									val.f = reader.GetValue();
+									val.f = reader.GetValueDecodeXml();
 								} else if ("numFmtId" === reader.GetName()) {
 									val.id = reader.GetValueInt();
 								}
 							}
 
 							//TODO parseNum
-							/*if (null != oNewNumFmt.id) {
-								this.ParseNum(oNewNumFmt, oNumFmts);
-							}*/
+							if (null != val.id) {
+								AscCommonExcel.InitOpenManager.prototype.ParseNum.call(this, val, this.numFmts/*, this.useNumId*/);
+							}
 						}
 					}
 				} else if ("tableStyles" === name) {
