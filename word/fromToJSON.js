@@ -2075,7 +2075,8 @@
 	WriterToJSON.prototype.SerEffect = function(oEffect)
 	{
 		var oElm = null;
-		
+		var sBlendType;
+
 		if (oEffect instanceof AscFormat.CAlphaBiLevel)
 		{
 			oElm = {
@@ -2139,7 +2140,7 @@
 		}
 		else if (oEffect instanceof AscFormat.CBlend)
 		{
-			var sBlendType = To_XML_ST_BlendMode(oEffect.blend);
+			sBlendType = To_XML_ST_BlendMode(oEffect.blend);
 
 			oElm = {
 				cont:  this.SerEffectDag(oEffect.cont),
@@ -2205,7 +2206,7 @@
 		}
 		else if (oEffect instanceof AscFormat.CFillOverlay)
 		{
-			var sBlendType = To_XML_ST_BlendMode(oEffect.blend);
+			sBlendType = To_XML_ST_BlendMode(oEffect.blend);
 
 			oElm = {
 				fill:  this.SerFill(oEffect.fill),
@@ -2818,7 +2819,7 @@
 		return {
 			bodyPr:   this.SerBodyPr(oTxPr.bodyPr),
 			lstStyle: this.SerLstStyle(oTxPr.lstStyle),
-			content:  this.SerDrawingDocContent(oTxPr.content)
+			content:  this.SerDrawingDocContent(oTxPr.content, undefined, undefined, undefined, true)
 		}
 	};
 	WriterToJSON.prototype.SerBodyPr = function(oBodyPr)
@@ -3327,6 +3328,7 @@
 			tblPr:   this.SerTablePr(oTable.Pr, oTable),
 			content: [],
 			changes: [],
+			//tableMarkup: this.SerTableMarkup(oTable.Markup),
 			type:    "table"
 		}
 
@@ -3348,6 +3350,27 @@
 		}
 
 		return oTableObj;	
+	};
+	WriterToJSON.prototype.SerTableMarkup = function(oMarkup)
+	{
+		if (!oMarkup)
+			return oMarkup;
+
+		return {
+			cols:   oMarkup.Cols,
+			curCol: oMarkup.CurCol,
+			curRow: oMarkup.CurRow,
+			internal: {
+				cellIndex: oMarkup.Internal.CellIndex,
+				pageNum:   oMarkup.Internal.PageNum,
+				rowIndex:  oMarkup.Internal.RowIndex
+			},
+			margins:    oMarkup.Margins,
+			rows:       oMarkup.Rows,
+			transformX: oMarkup.TransformX,
+			transformY: oMarkup.TransformY,
+			x:          oMarkup.X
+		}
 	};
 	WriterToJSON.prototype.SerTableCellPr = function(oPr)
 	{
@@ -3573,6 +3596,16 @@
 			type:          "docContent"
 		}
 	};
+	WriterToJSON.prototype.SerDrawingDocContent = function(oDocContent, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields)
+	{
+		var oDocContentObj = 
+		{
+			content: this.SerContent(oDocContent.Content, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields),
+			type:    "drawingDocContent"
+		}
+
+		return oDocContentObj;
+	};
 	WriterToJSON.prototype.SerContent = function(aContent, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields)
 	{
 		var aResult = [];
@@ -3600,32 +3633,6 @@
 		}
 
 		return aResult;
-	};
-	WriterToJSON.prototype.SerDrawingDocContent = function(oDocContent, aComplexFieldsToSave)
-	{
-		var oDocContentObj = 
-		{
-			content: [],
-			type:    "drawingDocContent"
-		}
-
-		if (!aComplexFieldsToSave)
-			aComplexFieldsToSave = this.GetComplexFieldsToSave(oDocContent);
-
-		var TempElm = null;
-		for (var nElm = 0; nElm < oDocContent.length; nElm++)
-		{
-			TempElm = oDocContent[nElm];
-
-			if (TempElm instanceof AscCommonWord.Paragraph)
-				oDocContentObj["content"].push(this.SerParagraph(TempElm, aComplexFieldsToSave));
-			else if (TempElm instanceof AscCommonWord.CTable)
-				oDocContentObj["content"].push(this.SerTable(TempElm, aComplexFieldsToSave));
-			else if (TempElm instanceof AscCommonWord.CBlockLevelSdt)
-				oDocContentObj["content"].push(this.SerBlockLvlSdt(TempElm, aComplexFieldsToSave));
-		}
-
-		return oDocContentObj;
 	};
 	WriterToJSON.prototype.SerParaPr = function(oParaPr)
 	{
@@ -3970,7 +3977,7 @@
 		}
 		
 		var oNum = null;
-		if (oNumPr)
+		if (oNumPr && oGlobalNumbering)
 			oNum = oGlobalNumbering.GetNum(oNumPr.NumId);
 
 		if (oNum)
@@ -4466,7 +4473,7 @@
 			return oHdr;
 
 		return {
-			content: this.SerDocContent(oHdr.Content),
+			content: this.SerDocContent(oHdr.Content, undefined, undefined, undefined, true),
 			type: "hdr"
 		}
 	};
@@ -4476,7 +4483,7 @@
 			return oFtr;
 
 		return {
-			content: this.SerDocContent(oFtr.Content),
+			content: this.SerDocContent(oFtr.Content, undefined, undefined, undefined, true),
 			type: "ftr"
 		}
 	};
@@ -5148,6 +5155,9 @@
 	{
 		var oMinStartPos          = minStartDocPos ? minStartDocPos : (arrContent.length !== 0 ? arrContent[0].GetDocumentPositionFromObject() : null);
 		var oMaxStartPos          = maxStartDocPos ? maxStartDocPos : (arrContent.length !== 0 ? arrContent[arrContent.length - 1].GetDocumentPositionFromObject() : null);
+		if (oMinStartPos[0].Position === -1 || oMaxStartPos[0].Position === -1)
+			bAll = true;
+			
 		var arrCompexFieldsToSave = [];
 		var arrElmContent;
 
@@ -10663,10 +10673,35 @@
 		// выставляем текущую ячейку
 		oTable.CurCell = oTable.Content[0].Get_Cell(0);
 
+		//oTable.Update_TableMarkupFromRuler(this.TableMarkupFromJSON(oParsedTable.tableMarkup, oTable), true, 0);
+		//oTable.Markup = this.TableMarkupFromJSON(oParsedTable.tableMarkup, oTable);
+
 		for (var nChange = 0; nChange < oParsedTable.changes.length; nChange++)
 			this.RevisionFromJSON(oParsedTable.changes[nChange], oTable);
 
 		return oTable;
+	};
+	ReaderFromJSON.prototype.TableMarkupFromJSON = function(oParsedMarkup, oParentTable)
+	{
+		var oMarkup = new AscCommon.CTableMarkup(oParentTable);
+
+		oMarkup.Cols   = oParsedMarkup.cols;
+		oMarkup.CurCol = oParsedMarkup.curCol;
+		oMarkup.CurRow = oParsedMarkup.curRow;
+
+		oMarkup.Internal = {
+			CellIndex: oParsedMarkup.internal.cellIndex,
+			PageNum:   oParsedMarkup.internal.pageNum,
+			RowIndex:  oParsedMarkup.internal.rowIndex
+		}
+
+		oMarkup.Margins    = oParsedMarkup.margins;
+		oMarkup.Rows       = oParsedMarkup.rows;
+		oMarkup.TransformX = oParsedMarkup.transformX;
+		oMarkup.TransformY = oParsedMarkup.transformY;
+		oMarkup.X          = oParsedMarkup.x;
+
+		return oMarkup;
 	};
 	ReaderFromJSON.prototype.TablePrFromJSON = function(oParentTable, oParsedPr)
 	{
@@ -11353,6 +11388,7 @@
 	ReaderFromJSON.prototype.EffectFromJSON = function(oParsedEff)
 	{
 		var oEffect = null;
+		var nBlendType;
 
 		switch (oParsedEff.type)
 		{
@@ -11391,7 +11427,7 @@
 				oEffect.thresh       = oParsedEff.thresh;
 				return oEffect;
 			case "blend":
-				var nBlendType       = From_XML_ST_BlendMode(oParsedEff.blend);
+				nBlendType       = From_XML_ST_BlendMode(oParsedEff.blend);
 				
 				oEffect              = new AscFormat.CBlend();
 				oEffect.cont         = this.EffectContainerFromJSON(oParsedEff.cont);
@@ -11430,7 +11466,7 @@
 				oEffect.fill         = this.FillFromJSON(oParsedEff.fill);
 				return oEffect;
 			case "fillOvrl":
-				var nBlendType       = From_XML_ST_BlendMode(oParsedEff.blend);
+				nBlendType       = From_XML_ST_BlendMode(oParsedEff.blend);
 				
 				oEffect              = new AscFormat.CFillOverlay();
 				oEffect.fill         = this.FillFromJSON(oParsedEff.fill);
@@ -13362,27 +13398,27 @@
 	ReaderFromJSON.prototype.StockSeriesFromJSON = function(arrParsedStockSeries, oParentChart)
 	{
 		var arrStockSeriesResult = [];
-		for (var nStockSeries = 0; nStockSeries < arrParsedStockSeries.length; nStockSeries++)
-		{
-			var oItem       = arrParsedStockSeries[nStockSeries];
-			var oStockSeries = new AscFormat.CStockSeries();
-
-			oStockSeries.setParent(oParentChart);
-
-			oStockSeries.cat            = oItem.cat ? this.CatFromJSON(oItem.cat, oStockSeries) : oStockSeries.cat;
-			oItem.dLbls && oStockSeries.setDLbls(this.DLblsFromJSON(oItem.dLbls));
-			this.DataPointsFromJSON(oItem.dPt, oStockSeries);
-			oStockSeries.errBars        = oItem.errBars ? this.ErrBarsFromJSON(oItem.errBars) : oStockSeries.errBars;
-			oStockSeries.idx            = oItem.idx;
-			oStockSeries.order          = oItem.order;
-			oStockSeries.pictureOptions = oItem.pictureOptions ? this.PicOptionsFromJSON(oItem.pictureOptions) : oStockSeries.pictureOptions;
-			oItem.spPr && oStockSeries.setSpPr(this.SpPrFromJSON(oItem.spPr, oStockSeries));
-			oStockSeries.trendline      = oItem.trendline ? this.TrendlineFromJSON(oItem.trendline) : oStockSeries.trendline;
-			oStockSeries.tx             = oItem.tx ? this.TxFromJSON(oItem.tx, oStockSeries) : oStockSeries.tx;
-			oStockSeries.val            = oItem.val ? this.YVALFromJSON(oItem.val, oStockSeries) : oStockSeries.val;
-			
-			arrStockSeriesResult.push(oStockSeries);
-		}
+		// for (var nStockSeries = 0; nStockSeries < arrParsedStockSeries.length; nStockSeries++)
+		// {
+		// 	var oItem       = arrParsedStockSeries[nStockSeries];
+		// 	var oStockSeries = new AscFormat.CStockSeries();
+		//
+		// 	oStockSeries.setParent(oParentChart);
+		//
+		// 	oStockSeries.cat            = oItem.cat ? this.CatFromJSON(oItem.cat, oStockSeries) : oStockSeries.cat;
+		// 	oItem.dLbls && oStockSeries.setDLbls(this.DLblsFromJSON(oItem.dLbls));
+		// 	this.DataPointsFromJSON(oItem.dPt, oStockSeries);
+		// 	oStockSeries.errBars        = oItem.errBars ? this.ErrBarsFromJSON(oItem.errBars) : oStockSeries.errBars;
+		// 	oStockSeries.idx            = oItem.idx;
+		// 	oStockSeries.order          = oItem.order;
+		// 	oStockSeries.pictureOptions = oItem.pictureOptions ? this.PicOptionsFromJSON(oItem.pictureOptions) : oStockSeries.pictureOptions;
+		// 	oItem.spPr && oStockSeries.setSpPr(this.SpPrFromJSON(oItem.spPr, oStockSeries));
+		// 	oStockSeries.trendline      = oItem.trendline ? this.TrendlineFromJSON(oItem.trendline) : oStockSeries.trendline;
+		// 	oStockSeries.tx             = oItem.tx ? this.TxFromJSON(oItem.tx, oStockSeries) : oStockSeries.tx;
+		// 	oStockSeries.val            = oItem.val ? this.YVALFromJSON(oItem.val, oStockSeries) : oStockSeries.val;
+		//
+		// 	arrStockSeriesResult.push(oStockSeries);
+		// }
 
 		return arrStockSeriesResult;
 	};
@@ -15089,8 +15125,8 @@
 			if (oParsedPath.commands[nCommand].id !== "arcTo" && oParsedPath.commands[nCommand].id !== "close")
 			{
 				var arrPtKeys  = Object.keys(oParsedPath.commands[nCommand]["pt"]);
-				for (var key in arrPtKeys)
-					oCommand[arrPtKeys[key].toUpperCase()] = oParsedPath.commands[nCommand]["pt"][arrPtKeys[key]];
+				for (var ptKey in arrPtKeys)
+					oCommand[arrPtKeys[ptKey].toUpperCase()] = oParsedPath.commands[nCommand]["pt"][arrPtKeys[ptKey]];
 			}
 			for (var key in arrKeys)
 			{
@@ -19469,3 +19505,4 @@
 	window['AscCommon'].WriterToJSON   = WriterToJSON;
 	window['AscCommon'].ReaderFromJSON = ReaderFromJSON;
 })(window);
+

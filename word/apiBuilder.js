@@ -2734,7 +2734,12 @@
 	ApiRange.prototype.ToJSON = function()
 	{
 		var oDocument = private_GetLogicDocument();
-
+		var aContent = [];
+		var aResult = {
+			type: "document",
+			content: []
+		}
+		
 		private_RefreshRangesPosition();
 		private_RemoveEmptyRanges();
 
@@ -2753,16 +2758,18 @@
 		oDocument.LoadDocumentState(oldSelectionInfo);
 		oDocument.UpdateSelection();
 
-		var oDocContent = new AscCommonWord.CDocumentContent(private_GetLogicDocument(), private_GetDrawingDocument(), 0, 0, 0, 0, true, false, false);
 		for (var nElm = 0; nElm < oSelectedContent.Elements.length; nElm++)
-			oDocContent.AddToContent(oDocContent.Content.length, oSelectedContent.Elements[nElm].Element)
+			aContent.push(oSelectedContent.Elements[nElm].Element)
 
-		if (oDocContent.Content.length > 1)
-		// удаляем параграф, который добавляется при создании CDocumentContent
-			oDocContent.RemoveFromContent(0, 1);
-
-		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerDocContent(oDocContent));
+		if (aContent.length > 0)
+		{
+			var oWriter = new AscCommon.WriterToJSON();
+			aResult["content"] = oWriter.SerContent(aContent);
+		}
+		else
+			return "";
+		
+		return JSON.stringify(aResult);
 	};
 
 	/**

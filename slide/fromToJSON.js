@@ -1928,7 +1928,7 @@
 					oMaster = oPresentation.slideMasters[0];
 					if (oPresentation.lastMaster)
 						oMaster = oPresentation.lastMaster;
-					oLayout = AscFormat.isRealNumber(layoutIndex) ? (oMaster.sldLayoutLst[layoutIndex] ? oMaster.sldLayoutLst[layoutIndex] : oMaster.sldLayoutLst[0]) : oMaster.sldLayoutLst[0];
+					oLayout = oMaster.sldLayoutLst[0];
 				}
 				else
 					oLayout = CurSlide.Layout;
@@ -3352,3 +3352,4 @@
     window['AscFormat']       = window['AscFormat'] || {};
 	
 })(window);
+

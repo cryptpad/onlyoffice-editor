@@ -93,7 +93,7 @@
 	function private_MM2Pt(mm)
 	{
 		return mm / (25.4 / 72.0);
-	};
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// End of private area
@@ -114,8 +114,8 @@
 
 		var aHyperlinks = [];
 		var aWorksheetLinks = oWorksheet.worksheet.hyperlinkManager.getAll();
-		for (var nHyperlink = 0; nHyperlink < aWorksheetLinks.length; nHyperlink++)
-			aHyperlinks.push(this.SerHyperlinkExel(aWorksheetLinks[nHyperlink]));
+		// for (var nHyperlink = 0; nHyperlink < aWorksheetLinks.length; nHyperlink++)
+		// 	aHyperlinks.push(this.SerHyperlinkExel(aWorksheetLinks[nHyperlink]));
 
 		return {
 			autoFilter:            this.SerAutoFilter(oWorksheet.AutoFilter),
@@ -124,7 +124,7 @@
 			dataValidations:       this.SerDataValidations(oWorksheet.dataValidations),
 			drawings:              aDrawings,      
 			headerFooter:          null, /// всегда лежит объект CHeaderFooterData
-			hiperlinks:            aHyperlinks ///
+			hiperlinks:            aHyperlinks /// to do
 
 		}
 	};
@@ -204,8 +204,8 @@
 	WriterToJSON.prototype.SerCondFormatting = function(oCondFormatting)
 	{
 		var aCondRules = [];
-		for (var nRule = 0; nRule < oWorksheet.aConditionalFormattingRules.lenght; nRule++)
-			aCondRules.push(this.SerConditionalRule(oWorksheet.aConditionalFormattingRules[nRule]));
+		for (var nRule = 0; nRule < oCondFormatting.aConditionalFormattingRules.length; nRule++)
+			aCondRules.push(this.SerConditionalRule(oCondFormatting.aConditionalFormattingRules[nRule]));
 
 		return {
 			cfRule: aCondRules,
@@ -250,7 +250,7 @@
 	WriterToJSON.prototype.SerFormulaCF = function(oFormulaCf)
 	{
 		return {
-			formula: FormulaCF.Text,
+			formula: oFormulaCf.Text,
 			type:    "formulaCf"
 		}
 	};
@@ -261,7 +261,7 @@
 			aCFVO.push(this.SerCondFmtValObj(oIconSet.aCFVOs[nElem]));
 
 		var aCFIS = [];
-		for (var nElem = 0; nElem < oIconSet.aIconSets.length; nElem++)
+		for (nElem = 0; nElem < oIconSet.aIconSets.length; nElem++)
 			aCFIS.push(this.SerCondFmtIconSet(oIconSet.aIconSets[nElem]));
 
 		return {
@@ -310,18 +310,18 @@
 			case AscCommonExcel.EDataBarDirection.leftToRight:
 				sDir = "leftToRight";
 				break;
-			case AscCommonExcel.EDataBarDirection.context:
+			case AscCommonExcel.EDataBarDirection.rightToLeft:
 				sDir = "rightToLeft";
 				break;
 		}
 
 		return {
 			cfvo:                aCFVO,
-			color:               SerColorExel(oDataBar.Color),
-			negativeColor:       SerColorExel(oDataBar.NegativeColor),
-			borderColor:         SerColorExel(oDataBar.BorderColor),
-			axisColor:           SerColorExel(oDataBar.AxisColor),
-			negativeBorderColor: SerColorExel(oDataBar.NegativeBorderColor),
+			color:               this.SerColorExel(oDataBar.Color),
+			negativeColor:       this.SerColorExel(oDataBar.NegativeColor),
+			borderColor:         this.SerColorExel(oDataBar.BorderColor),
+			axisColor:           this.SerColorExel(oDataBar.AxisColor),
+			negativeBorderColor: this.SerColorExel(oDataBar.NegativeBorderColor),
 			
 			maxLength: oDataBar.MaxLength,
 			minLength: oDataBar.MinLength,
@@ -948,7 +948,7 @@
 	function FromXML_ST_CfvoType(sType)
 	{
 		var nType = -1;
-		switch (nType)
+		switch (sType)
 		{
 			case "formula":
 				nType = AscCommonExcel.ECfvoType.Formula;
@@ -1635,7 +1635,7 @@
 
 		return sType;
 	}
-	function FromXML_ST_DataValidationOperator(sType)
+	function FromXML_ST_DataValidationType(sType)
 	{
 		var nType = undefined;
 		switch (sType)
@@ -1680,13 +1680,13 @@
 				sType = "oneCell";
 				break;
 			case AscCommon.c_oAscCellAnchorType.cellanchorTwoCell:
-				sType = "oneCell";
+				sType = "twoCell";
 				break;
 		}
 
 		return sType;
 	}
-	function FromXML_ST_EditAse(nType)
+	function FromXML_ST_EditAse(sType)
 	{
 		var nType = undefined;
 		switch (sType)
@@ -1697,7 +1697,7 @@
 			case "oneCell":
 				nType = AscCommon.c_oAscCellAnchorType.cellanchorOneCell;
 				break;
-			case "oneCell":
+			case "twoCell":
 				nType = AscCommon.c_oAscCellAnchorType.cellanchorTwoCell;
 				break;
 		}
@@ -1710,3 +1710,4 @@
     window['AscFormat']       = window['AscFormat'] || {};
 	
 })(window);
+
