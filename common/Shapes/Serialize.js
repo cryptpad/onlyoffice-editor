@@ -7247,7 +7247,7 @@ function BinaryPPTYLoader()
         s.Seek2(_end_rec);
 
         this.TempGroupObject = null;
-        if (_chart == null)
+        if (_chart == null || !_chart.hasCharts())
             return null;
 
         return _chart;
@@ -7329,7 +7329,10 @@ function BinaryPPTYLoader()
                         AscCommon.pptx_content_loader.Reader.ImageMapChecker = this.ImageMapChecker;
                         var oBinaryChartReader = new AscCommon.BinaryChartReader(_stream);
                         oBinaryChartReader.ExternalReadCT_ChartSpace(_length, _chart, this.presentation);
-
+                        if(!_chart.hasCharts())
+                        {
+                            _chart = null;
+                        }
                     }
 
                     s.Seek2(_pos + _length);

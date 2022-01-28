@@ -9553,11 +9553,13 @@
                 var oNewChartSpace = new AscFormat.CChartSpace();
                 var oBinaryChartReader = new AscCommon.BinaryChartReader(this.stream);
                 res = oBinaryChartReader.ExternalReadCT_ChartSpace(length, oNewChartSpace, this.curWorksheet);
-                oDrawing.graphicObject = oNewChartSpace;
-                oNewChartSpace.setBDeleted(false);
-                if(oNewChartSpace.setDrawingBase)
-                {
-                    oNewChartSpace.setDrawingBase(oDrawing);
+                if(oNewChartSpace.hasCharts()) {
+                    oDrawing.graphicObject = oNewChartSpace;
+                    oNewChartSpace.setBDeleted(false);
+                    if(oNewChartSpace.setDrawingBase)
+                    {
+                        oNewChartSpace.setDrawingBase(oDrawing);
+                    }
                 }
             }
             else

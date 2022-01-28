@@ -12339,9 +12339,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			var oNewChartSpace = new AscFormat.CChartSpace();
             var oBinaryChartReader = new AscCommon.BinaryChartReader(this.stream);
             res = oBinaryChartReader.ExternalReadCT_ChartSpace(length, oNewChartSpace, this.Document);
-            oNewChartSpace.setBDeleted(false);
-            oParaDrawing.Set_GraphicObject(oNewChartSpace);
-            oNewChartSpace.setParent(oParaDrawing);
+			if(oNewChartSpace.hasCharts())
+			{
+				oNewChartSpace.setBDeleted(false);
+				oParaDrawing.Set_GraphicObject(oNewChartSpace);
+				oNewChartSpace.setParent(oParaDrawing);
+			}
 		}
 		else if( c_oSerImageType2.AllowOverlap === type )
 			var AllowOverlap = this.stream.GetBool();

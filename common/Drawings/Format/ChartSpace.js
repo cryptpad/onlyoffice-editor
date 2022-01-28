@@ -3737,6 +3737,12 @@ var GLOBAL_PATH_COUNT = 0;
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_SetGroup, this.group, group));
         this.group = group;
     };
+    CChartSpace.prototype.hasCharts = function() {
+        if(this.chart && this.chart.plotArea && this.chart.plotArea.charts.length > 0) {
+            return true;
+        }
+        return false;
+    };
     CChartSpace.prototype.getRangeObjectStr = function() {
         var oDataRange = this.getDataRefs();
         var sRange = oDataRange.getRange();
