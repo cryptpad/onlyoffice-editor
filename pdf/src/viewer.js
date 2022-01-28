@@ -682,10 +682,10 @@
 				return;
 			}
 
+			var _t = this;
 			if (this.file.isNeedPassword())
 			{
 				// при повторном вводе пароля - проблемы в интерфейсе, если синхронно
-				var _t = this;
 				setTimeout(function(){
 					_t.sendEvent("onNeedPassword");
 				}, 100);
@@ -694,7 +694,10 @@
 
 			this.pagesInfo.setCount(this.file.pages.length);
 
-			this.sendEvent("onFileOpened");
+			// в интерфейсе есть проблема - нужно посылать onDocumentContentReady после setAdvancedOptions
+			setTimeout(function(){
+				_t.sendEvent("onFileOpened");
+			}, 0);
 
 			this.file.onRepaintPages = this.onUpdatePages.bind(this);
 			this.currentPage = -1;
