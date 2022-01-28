@@ -813,7 +813,7 @@
     CGraphicObjectBase.prototype.canEditGeometry = function(){
         return this.getObjectType() === AscDFH.historyitem_type_Shape &&
             !this.isPlaceholder() &&
-            this.getNoEditPoints() !== true && 
+            this.getNoEditPoints() !== true &&
             !!(this.spPr && this.spPr.geometry);
     };
     CGraphicObjectBase.prototype.canRotate = function() {
