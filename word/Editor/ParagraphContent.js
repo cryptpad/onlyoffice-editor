@@ -723,7 +723,7 @@ ParaText.prototype.IsDigit = function()
 };
 ParaText.prototype.ToSearchElement = function(oProps)
 {
-	if (oProps.MatchCase)
+	if (!oProps.MatchCase)
 		return new CSearchTextItemChar(String.fromCodePoint(this.Value).toLowerCase().codePointAt(0));
 
 	return new CSearchTextItemChar(this.Value);
