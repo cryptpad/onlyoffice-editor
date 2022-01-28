@@ -6977,6 +6977,9 @@ CDocument.prototype.private_SetParagraphNumbering = function(oNumInfo)
 {
 	var oNumPr = this.GetSelectedNum();
 
+	if (!oNumPr && !this.IsTextSelectionUse())
+		oNumPr = this.GetSelectedNum(true);
+
 	var arrSelectedParagraphs;
 
 	if (oNumPr)
