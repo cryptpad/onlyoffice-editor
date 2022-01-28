@@ -780,7 +780,15 @@
             this.setLocks((~nMask) & this.locks);
         }
         else{
-            this.setLocks(this.locks | nMask | (bValue ? nMask << 1 : 0));
+            var nLocks = this.locks;
+            nLocks |= nMask;
+            if(bValue) {
+                nLocks |= (nMask << 1)
+            }
+            else {
+                nLocks &= ~(nMask << 1)
+            }
+            this.setLocks(nLocks);
         }
     };
     CGraphicObjectBase.prototype.getNoGrp = function(){
