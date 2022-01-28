@@ -142,6 +142,7 @@ AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, _callback,
 
 	xhr.send(null);
 };
+AscFonts.CFontFileLoader.prototype["LoadFontAsync"] = AscFonts.CFontFileLoader.prototype.LoadFontAsync;
 
 window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 {
