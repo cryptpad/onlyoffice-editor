@@ -2594,8 +2594,19 @@
         for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
             var oEffect = aEffects[nEffect];
             for(var nDrawing = 0; nDrawing < aSelectedDrawings.length; ++nDrawing) {
-                if(oEffect.isObjectEffect(aSelectedDrawings[nDrawing].Get_Id())) {
-                    break;
+                var oSelectedObject = aSelectedDrawings[nDrawing];
+                if(oSelectedObject instanceof MoveAnimationDrawObject) {
+                    var oAnim = oSelectedObject.anim;
+                    if(oAnim) {
+                        if(oEffect === oAnim.getParentTimeNode()) {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    if(oEffect.isObjectEffect(aSelectedDrawings[nDrawing].Get_Id())) {
+                        break;
+                    }
                 }
             }
             if(nDrawing < aSelectedDrawings.length) {
@@ -9268,19 +9279,8 @@
         this.x = nX;
         this.y = nY;
     }
-
-    function CAnimTexture(oCache, oCanvas, fScale, nX, nY) {
-        CBaseAnimTexture.call(this, oCanvas, fScale, nX, nY);
-        this.cache = oCache;
-        this.effectTexture = null;
-    }
-    CAnimTexture.prototype.checkScale = function(fScale) {
-        if(!AscFormat.fApproxEqual(this.scale, fScale)) {
-            return false;
-        }
-        return true;
-    };
-    CAnimTexture.prototype.draw = function(oGraphics, oTransform) {
+    
+    CBaseAnimTexture.prototype.draw = function(oGraphics, oTransform) {
         var bNoTransform = false;
         if(!oTransform) {
             bNoTransform = true;
@@ -9301,7 +9301,7 @@
             var nDy = oGraphics.m_oCoordTransform.ty;
             oGraphics.m_oContext.drawImage(this.canvas, nDx + this.x, nDy + this.y, this.canvas.width, this.canvas.height);
             oGraphics.RestoreGrState();
-            oGraphics.FreeFont();
+            oGraphics.FreeFont && oGraphics.FreeFont();
         }
         else {
             oGraphics.SaveGrState();
@@ -9309,8 +9309,21 @@
             oGraphics.transform3(oTransform, false);
             oGraphics.drawImage2(this.canvas, 0, 0, this.canvas.width / this.scale, this.canvas.height / this.scale);
             oGraphics.RestoreGrState();
-            oGraphics.FreeFont();
+            oGraphics.FreeFont &&oGraphics.FreeFont();
         }
+    };
+
+    function CAnimTexture(oCache, oCanvas, fScale, nX, nY) {
+        CBaseAnimTexture.call(this, oCanvas, fScale, nX, nY);
+        this.cache = oCache;
+        this.effectTexture = null;
+    }
+    InitClass(CAnimTexture, CBaseAnimTexture, 0);
+    CAnimTexture.prototype.checkScale = function(fScale) {
+        if(!AscFormat.fApproxEqual(this.scale, fScale)) {
+            return false;
+        }
+        return true;
     };
     CAnimTexture.prototype.createEffectTexture = function(oEffect) {
         if(!oEffect) {
@@ -13949,6 +13962,8 @@
         this.objectBounds = null;
         this.path = null;
         this.animMotionTrack = true;
+
+        this.drawingTexture = null;
     }
     InitClass(MoveAnimationDrawObject, AscFormat.CShape, AscDFH.historyitem_type_Shape);
     MoveAnimationDrawObject.prototype.checkRecalculate = function() {
@@ -14007,6 +14022,7 @@
             this.spPr.xfrm.offX = oBounds.x;
             this.spPr.xfrm.offY = oBounds.y;
             this.bounds.fromOther(oBounds);
+            this.boundsByDrawing = oTargetObject.getBoundsByDrawing();
             this.recalculateTransform();
             this.calcGeometry = oGeometryObject.geometry;
             this.calcGeometry.Recalculate(this.extX, this.extY);
@@ -14024,12 +14040,21 @@
         
         this.pen1.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
 
+        this.pen1.headEnd = new AscFormat.EndArrow();
+        this.pen1.headEnd.type = AscFormat.LineEndType.None;
+        this.pen1.headEnd.len = AscFormat.LineEndSize.Mid;
+        this.pen1.headEnd.w = AscFormat.LineEndSize.Mid;
+
         this.pen2 = new AscFormat.CLn();
         this.pen2.w = nWidth;
         this.pen2.prstDash = 0;
         this.pen2.Fill = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(225, 225, 225));
         
         this.pen2.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+        this.pen2.headEnd = new AscFormat.EndArrow();
+        this.pen2.headEnd.type = AscFormat.LineEndType.None;
+        this.pen2.headEnd.len = AscFormat.LineEndSize.Mid;
+        this.pen2.headEnd.w = AscFormat.LineEndSize.Mid;
     };
     MoveAnimationDrawObject.prototype.recalculateBrush = function() {
         this.brush = null;
@@ -14053,9 +14078,58 @@
         AscFormat.CShape.prototype.draw.call(this, oGraphics);
         this.pen = this.pen2;
         AscFormat.CShape.prototype.draw.call(this, oGraphics);
+        var oGeometry = this.spPr.geometry;
+        if(oGeometry) {
+            var oPath = oGeometry.pathLst[0];
+        }
+        if(oPath) {
+            var dStartX1, dStartX2,  dStartY1, dStartY2;
+            var aCommands = oPath.ArrPathCommand, nCmd, oCmd;
+            var aPTS = [];
+            var bClosed = false;
+            for(var nCmd = 0; nCmd < aCommands.length; ++nCmd) {
+                oCmd = aCommands[nCmd];
+                if(oCmd.id === AscFormat.moveTo || oCmd.id === AscFormat.lineTo) {
+                    aPTS.push({x: oCmd.X, y: oCmd.Y})
+                }
+                else if(oCmd.id === AscFormat.bezier4) {
+                    aPTS.push({x: oCmd.X0, y: oCmd.Y0});
+                    aPTS.push({x: oCmd.X1, y: oCmd.Y1});
+                    aPTS.push({x: oCmd.X2, y: oCmd.Y2});
+                }
+                else if(oCmd.id === AscFormat.close) {
+                    bClosed = true;
+                }
+            }
+            if(aPTS.length > 1) {
+                if(this.selected) {
+                    var oTexture = this.getDrawingTexture(oGraphics);
+                    var oTransform = null;
+                    var dXS, dYS, dXE, dYE;
+                    dXS = this.transform.TransformPointX(aPTS[0].x, aPTS[0].y);
+                    dYS = this.transform.TransformPointY(aPTS[0].x, aPTS[0].y);
+                    dXE = this.transform.TransformPointX(aPTS[aPTS.length - 1].x, aPTS[aPTS.length - 1].y);
+                    dYE = this.transform.TransformPointY(aPTS[aPTS.length - 1].x, aPTS[aPTS.length - 1].y);
+                    if(oTexture) {
+                        
+                        oTransform = new AscCommon.CMatrix();
+                        var hc = this.boundsByDrawing.w * 0.5;
+                        var vc = this.boundsByDrawing.h * 0.5;
+                        AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -hc + dXS, -vc + dYS);
 
-        if(this.selected) {
-            //draw target object at start and at end
+                        
+                        oGraphics.put_GlobalAlpha(true, 0.5);
+                        oTexture.draw(oGraphics, oTransform);
+
+                        if(!bClosed) {
+                            oTransform = new AscCommon.CMatrix();
+                            AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -hc + dXE, -vc + dYE);
+                            oTexture.draw(oGraphics, oTransform);
+                        }
+                        oGraphics.put_GlobalAlpha(false, 1);
+                    }
+                }
+            }
         }
     };
     MoveAnimationDrawObject.prototype.recalculate = function() {
@@ -14111,6 +14185,20 @@
         if(typeof sPath === "string" && sPath.length > 0) {
             this.anim.setPath(sPath);
         }
+    };
+    MoveAnimationDrawObject.prototype.checkDrawingTexture = function(oGraphics) {
+        var dScale = oGraphics.m_oCoordTransform.sx;
+        if(!this.drawingTexture || this.drawingTexture.scale !== dScale) {
+            this.drawingTexture = null;
+            var oTargetObject = this.anim.getTargetObject();
+            if(oTargetObject) {
+                this.drawingTexture = oTargetObject.getAnimTexture(dScale);
+            }
+        }
+    };
+    MoveAnimationDrawObject.prototype.getDrawingTexture = function(oGraphics) {
+        this.checkDrawingTexture(oGraphics);
+        return this.drawingTexture;
     };
     
     // MoveAnimationDrawObject.prototype.recalculateBounds = function() {
