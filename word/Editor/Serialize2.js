@@ -2134,26 +2134,18 @@ function BinaryStyleTableWriter(memory, doc, oNumIdMap, copyParams, saveParams)
         //default rPr
         this.bs.WriteItem(c_oSer_st.DefrPr, function(){oThis.brPrs.Write_rPr(oDef_rPr, null, null);});
         //styles
-        this.bs.WriteItem(c_oSer_st.Styles, function(){oThis.WriteStyles(oStyles.Style, oStyles.Default);});
+        this.bs.WriteItem(c_oSer_st.Styles, function(){oThis.WriteStyles(oStyles);});
     };
-    this.WriteStyles = function(styles, oDefault)
+    this.WriteStyles = function(styles)
     {
         var oThis = this;
-		var oStyleToWrite = styles;
+		var oStyleToWrite = styles.Style;
 		if(this.copyParams && this.copyParams.oUsedStyleMap)
 			oStyleToWrite = this.copyParams.oUsedStyleMap;
         for(var styleId in oStyleToWrite)
         {
-            var style = styles[styleId];
-            var bDefault = false;
-			if(styleId == oDefault.Character)
-                bDefault = true;
-            else if(styleId == oDefault.Paragraph)
-                bDefault = true;
-            else if(styleId == oDefault.Numbering)
-                bDefault = true;
-            else if(styleId == oDefault.Table)
-                bDefault = true;
+            var style = oStyleToWrite[styleId];
+			var bDefault = styles.Is_StyleDefault(style.Name);
             this.bs.WriteItem(c_oSer_sts.Style, function(){oThis.WriteStyle(styleId, style, bDefault);});
         }
     };
@@ -7858,7 +7850,8 @@ function BinaryFileReader(doc, openParams)
 		if(AscCommon.CurFileVersion < 2){
 			for(var i in this.oReadResult.styles)
 				this.oReadResult.styles[i].style.qFormat = true;
-		}		
+		}
+		//RemapIdReferences
 		//запоминаем имена стилей, которые были изначально в нашем документе, чтобы потом подменить их
 		var aStartDocStylesNames = {};
 		for(var stId in styles)
