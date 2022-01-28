@@ -175,10 +175,10 @@
 		this.wb = wb;
 		this.sheets = null;
 		this.pivotCaches = null;
-		this.externalReferences = null;
+		this.externalReferences = [];
 		this.extLst = null;
-		this.slicerCachesIds = null;
-		this.newDefinedNames = null;
+		this.slicerCachesIds = [];
+		this.newDefinedNames = [];
 	}
 	CT_Workbook.prototype.fromXml = function(reader) {
 		if (!reader.ReadNextNode()) {
@@ -190,9 +190,7 @@
 			}
 		}
 
-
-		var val;
-		var depth2, name2;
+		var t = this, val;
 		if ("workbook" === reader.GetNameNoNS()) {
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
@@ -206,193 +204,68 @@
 					pivotCaches.fromXml(reader);
 					this.pivotCaches = pivotCaches.pivotCaches;
 				} else if ("workbookPr" === name) {
-					this.wb.workbookPr = {};
-					while (reader.MoveToNextAttribute()) {
-						/*if ("allowRefreshQuery" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.allowRefreshQuery = val;
-						} else if ("autoCompressPictures" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.autoCompressPictures = val;
-						} else if ("backupFile" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.backupFile = val;
-						} else if ("checkCompatibility" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.checkCompatibility = val;
-						} else if ("codeName" === reader.GetName()) {
-							val = reader.GetValue();
-							this.codeName = val;
-						} else*/ if ("date1904" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.workbookPr.Date1904 = val;
-						} else if ("dateCompatibility" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.workbookPr.DateCompatibility = val;
-						} /*else if ("defaultThemeVersion" === reader.GetName()) {
-							val = reader.GetValueInt();
-							this.defaultThemeVersion = val;
-						} else if ("filterPrivacy" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.filterPrivacy = val;
-						}*/ else if ("hidePivotFieldList" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.workbookPr.HidePivotFieldList = val;
-						} /*else if ("promptedSolutions" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.promptedSolutions = val;
-						} else if ("publishItems" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.publishItems = val;
-						} else if ("refreshAllConnections" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.refreshAllConnections = val;
-						} else if ("showBorderUnselectedTables" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.showBorderUnselectedTables = val;
-						} else if ("showInkAnnotation" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.showInkAnnotation = val;
-						} else if ("showObjects" === reader.GetName()) {
-							val = reader.GetValue();
-							this.showObjects = val;
-						}*/ else if ("showPivotChartFilter" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.workbookPr.ShowPivotChartFilter = val;
-						} /*else if ("updateLinks" === reader.GetName()) {
-							val = reader.GetValue();
-							this.updateLinks = val;
-						}*/
-					}
+					val = new CT_WorkbookPr();
+					val.fromXml(reader)
+					this.wb.workbookPr = val.val;
 				} else if ("bookViews" === name) {
-					depth2 = reader.GetDepth();
-					while (reader.ReadNextSiblingNode(depth2)) {
-						name2 = reader.GetNameNoNS();
-						if ("workbookView" === name2) {
-							while (reader.MoveToNextAttribute()) {
-								if ("activeTab" === reader.GetNameNoNS()) {
-									this.wb.nActive = reader.GetValueInt();
-								}
+					reader.readXmlArray("workbookView", function () {
+						while (reader.MoveToNextAttribute()) {
+							if ("activeTab" === reader.GetNameNoNS()) {
+								t.wb.nActive = reader.GetValueInt();
 							}
 						}
-					}
+					});
 				} else if ("definedNames" === name) {
-					//this.readAttr(reader);
 					if (reader.IsEmptyNode()) {
 						continue;
 					}
-					depth2 = reader.GetDepth();
-					while (reader.ReadNextSiblingNode(depth2)) {
-						name2 = reader.GetNameNoNS();
-						if ("definedName" === name2 || "NamedRange" === name2) {
+					var depthInside = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(depthInside)) {
+						var nameInside = reader.GetNameNoNS();
+						if ("definedName" === nameInside || "NamedRange" === nameInside) {
 							var oNewDefinedName = new Asc.asc_CDefName();
 							oNewDefinedName.fromXml(reader);
-							//TODO readResult!!!
-							if (!this.newDefinedNames) {
-								this.newDefinedNames = [];
-							}
+							//PostLoadPrepareDefNames делается в api
 							this.newDefinedNames.push(oNewDefinedName);
-							//this.InitOpenManager.oReadResult.defNames.push(oNewDefinedName);
 						}
 					}
 
 				} else if ("calcPr" === name) {
-					while (reader.MoveToNextAttribute()) {
-						if ("calcId" === reader.GetName()) {
-							val = reader.GetValueInt();
-							this.wb.calcPr.calcId = val;
-						} else if ("calcMode" === reader.GetName()) {
-							val = reader.GetValue();
-							this.wb.calcPr.calcMode = val;
-						} else if ("fullCalcOnLoad" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.calcPr.fullCalcOnLoad = val;
-						} else if ("refMode" === reader.GetName()) {
-							val = reader.GetValue();
-							this.wb.calcPr.refMode = val;
-						} else if ("iterate" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.calcPr.iterate = val;
-						} else if ("iterateCount" === reader.GetName()) {
-							val = reader.GetValueInt();
-							this.wb.calcPr.iterateCount = val;
-						} else if ("iterateDelta" === reader.GetName()) {
-							val = reader.GetValue();
-							this.wb.calcPr.iterateDelta = val;
-						} else if ("fullPrecision" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.calcPr.fullPrecision = val;
-						} else if ("calcCompleted" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.calcPr.calcCompleted = val;
-						} else if ("calcOnSave" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.calcPr.calcOnSave = val;
-						} else if ("concurrentCalc" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.calcPr.concurrentCalc = val;
-						} else if ("concurrentManualCount" === reader.GetName()) {
-							val = reader.GetValueInt();
-							this.wb.calcPr.concurrentManualCount = val;
-						} else if ("forceFullCalc" === reader.GetName()) {
-							val = reader.GetValueBool();
-							this.wb.calcPr.forceFullCalc = val;
-						}
-					}
+					val = new CT_CalcPr();
+					val.fromXml(reader)
+					this.val = val.val;
 				} else if ("externalReferences" === name) {
-					if (reader.IsEmptyNode()) {
-						continue;
-					}
-					depth2 = reader.GetDepth();
-					while (reader.ReadNextSiblingNode(depth2)) {
-						name2 = reader.GetNameNoNS();
-						if ("externalReference" === name2) {
-							while (reader.MoveToNextAttribute()) {
-								if ("id" === reader.GetNameNoNS()) {
-									val = reader.GetValue();
-									if (!this.externalReferences) {
-										this.externalReferences = [];
-									}
-									this.externalReferences.push(val);
-								}
+					reader.readXmlArray("externalReference", function () {
+						while (reader.MoveToNextAttribute()) {
+							if ("id" === reader.GetNameNoNS()) {
+								val = reader.GetValue();
+								t.externalReferences.push(val);
 							}
 						}
-					}
-
+					});
 				} else if ("comments" === name) {
 					//TODO разобраться как читаются/записываются комменты в бинарник
 
 
-
 				}  else if ("slicerCaches" === name) {
-					if (!this.slicerCachesIds) {
-						this.slicerCachesIds = [];
-					}
-					depth2 = reader.GetDepth();
-					while (reader.ReadNextSiblingNode(depth2)) {
-						name2 = reader.GetNameNoNS();
-						if ("slicerCache" === name2) {
-
-							while (reader.MoveToNextAttribute()) {
-								if ("id" === reader.GetNameNoNS()) {
-									this.slicerCachesIds.push(reader.GetValue());
-								}
+					reader.readXmlArray("slicerCache", function () {
+						while (reader.MoveToNextAttribute()) {
+							if ("id" === reader.GetNameNoNS()) {
+								t.slicerCachesIds.push(reader.GetValue());
 							}
 						}
-					}
+					});
 				} else if ("workbookProtection" === name) {
-					var workbooProtection = new Asc.CWorkbookProtection(this.wb);
-					workbooProtection.fromXml(reader);
-					this.wb.workbookProtection = workbooProtection;
+					var workbookProtection = new Asc.CWorkbookProtection(this.wb);
+					workbookProtection.fromXml(reader);
+					this.wb.workbookProtection = workbookProtection;
 				} else if ("extLst" === name) {
 					var extLst = new COfficeArtExtensionList(this);
 					extLst.fromXml(reader);
 					this.extLst = extLst.arrExt;
 				}
-
-				//TODO
-				//c_oSerWorkbookTypes.VbaProject
-				//c_oSerWorkbookTypes.JsaProject
+				//c_oSerWorkbookTypes.VbaProject - binary, not read
+				//c_oSerWorkbookTypes.JsaProject -> read in api
 			}
 		}
 	};
@@ -488,6 +361,209 @@
 		writer.WriteXmlNodeEnd("workbook");
 	};
 
+	function CT_WorkbookPr () {
+		this.val = {};
+	}
+	CT_WorkbookPr.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+	CT_WorkbookPr.prototype.fromXml = function (reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			/*if ("allowRefreshQuery" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.allowRefreshQuery = val;
+			} else if ("autoCompressPictures" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.autoCompressPictures = val;
+			} else if ("backupFile" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.backupFile = val;
+			} else if ("checkCompatibility" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.checkCompatibility = val;
+			} else if ("codeName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.codeName = val;
+			} else*/ if ("date1904" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.Date1904 = val;
+			} else if ("dateCompatibility" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.DateCompatibility = val;
+			} /*else if ("defaultThemeVersion" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.defaultThemeVersion = val;
+			} else if ("filterPrivacy" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.filterPrivacy = val;
+			}*/
+			else if ("hidePivotFieldList" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.HidePivotFieldList = val;
+			} /*else if ("promptedSolutions" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.promptedSolutions = val;
+			} else if ("publishItems" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.publishItems = val;
+			} else if ("refreshAllConnections" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.refreshAllConnections = val;
+			} else if ("showBorderUnselectedTables" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showBorderUnselectedTables = val;
+			} else if ("showInkAnnotation" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showInkAnnotation = val;
+			} else if ("showObjects" === reader.GetName()) {
+				val = reader.GetValue();
+				this.showObjects = val;
+			}*/ else if ("showPivotChartFilter" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.ShowPivotChartFilter = val;
+			} /*else if ("updateLinks" === reader.GetName()) {
+				val = reader.GetValue();
+				this.updateLinks = val;
+			}*/
+		}
+	};
+
+	function CT_CalcPr () {
+		this.val = {
+			calcId: null, calcMode: null, fullCalcOnLoad: null, refMode: null, iterate: null, iterateCount: null,
+			iterateDelta: null, fullPrecision: null, calcCompleted: null, calcOnSave: null, concurrentCalc: null,
+			concurrentManualCount: null, forceFullCalc: null
+		};
+	}
+	CT_CalcPr.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+	CT_CalcPr.prototype.fromXml = function (reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("calcId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.val.calcId = val;
+			} else if ("calcMode" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.calcMode = val;
+			} else if ("fullCalcOnLoad" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.fullCalcOnLoad = val;
+			} else if ("refMode" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.refMode = val;
+			} else if ("iterate" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.iterate = val;
+			} else if ("iterateCount" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.val.iterateCount = val;
+			} else if ("iterateDelta" === reader.GetName()) {
+				val = reader.GetValue();
+				this.val.iterateDelta = val;
+			} else if ("fullPrecision" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.fullPrecision = val;
+			} else if ("calcCompleted" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.calcCompleted = val;
+			} else if ("calcOnSave" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.calcOnSave = val;
+			} else if ("concurrentCalc" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.concurrentCalc = val;
+			} else if ("concurrentManualCount" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.val.concurrentManualCount = val;
+			} else if ("forceFullCalc" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.forceFullCalc = val;
+			}
+		}
+	};
+
+	function CT_WorkbookPr () {
+		this.val = {};
+	}
+	CT_WorkbookPr.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+	CT_WorkbookPr.prototype.fromXml = function (reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			/*if ("allowRefreshQuery" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.allowRefreshQuery = val;
+			} else if ("autoCompressPictures" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.autoCompressPictures = val;
+			} else if ("backupFile" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.backupFile = val;
+			} else if ("checkCompatibility" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.checkCompatibility = val;
+			} else if ("codeName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.codeName = val;
+			} else*/ if ("date1904" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.Date1904 = val;
+			} else if ("dateCompatibility" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.DateCompatibility = val;
+			} /*else if ("defaultThemeVersion" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.defaultThemeVersion = val;
+			} else if ("filterPrivacy" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.filterPrivacy = val;
+			}*/
+			else if ("hidePivotFieldList" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.HidePivotFieldList = val;
+			} /*else if ("promptedSolutions" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.promptedSolutions = val;
+			} else if ("publishItems" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.publishItems = val;
+			} else if ("refreshAllConnections" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.refreshAllConnections = val;
+			} else if ("showBorderUnselectedTables" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showBorderUnselectedTables = val;
+			} else if ("showInkAnnotation" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showInkAnnotation = val;
+			} else if ("showObjects" === reader.GetName()) {
+				val = reader.GetValue();
+				this.showObjects = val;
+			}*/ else if ("showPivotChartFilter" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.val.ShowPivotChartFilter = val;
+			} /*else if ("updateLinks" === reader.GetName()) {
+				val = reader.GetValue();
+				this.updateLinks = val;
+			}*/
+		}
+	};
 
 	Asc.CWorkbookProtection.prototype.toXml = function (writer) {
 
@@ -7794,7 +7870,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 
 		var sName = reader.GetNameNoNS();
-		var val, depth2, name2;
+		var val, depth2, name2, t = this;
 		if ("styleSheet" === sName) {
 			if (reader.IsEmptyNode()) {
 				return;
@@ -7818,10 +7894,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							this.borders.push(val);
 						}
 					}
+				} else if ("cellStyles" === name) {
+					reader.readXmlArray("cellStyle", function () {
+						val = new AscCommonExcel.CCellStyle();
+						val.fromXml(reader);
+						t.cellStyles.push(val);
+					});
 				} else if ("cellStyleXfs" === name) {
-					//count
-					//this.readAttr(reader);
-
 					if (reader.IsEmptyNode()) {
 						continue;
 					}
@@ -7956,6 +8035,80 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.CCellStyle.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( !oReader.IsEmptyNode() )
+							oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.CCellStyle.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:sequence>
+		3637 <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+		3638 </xsd:sequence>
+		3639 <xsd:attribute name="name" type="s:ST_Xstring" use="optional"/>
+		3640 <xsd:attribute name="xfId" type="ST_CellStyleXfId" use="required"/>
+		3641 <xsd:attribute name="builtinId" type="xsd:unsignedInt" use="optional"/>
+		3642 <xsd:attribute name="iLevel" type="xsd:unsignedInt" use="optional"/>
+		3643 <xsd:attribute name="hidden" type="xsd:boolean" use="optional"/>
+		3644 <xsd:attribute name="customBuiltin" type="xsd:boolean" use="optional"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("builtinId"),      m_oBuiltinId )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("customBuiltin"),      m_oCustomBuiltin )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("hidden"),      m_oHidden )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("iLevel"),      m_oILevel )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("name"),      m_oName )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("xfId"),      m_oXfId )*/
+
+//serialize
+		/* if (c_oSer_CellStyle.BuiltinId === type)
+						oCellStyle.BuiltinId = this.stream.GetULongLE();
+					else if (c_oSer_CellStyle.CustomBuiltin === type)
+						oCellStyle.CustomBuiltin = this.stream.GetBool();
+					else if (c_oSer_CellStyle.Hidden === type)
+						oCellStyle.Hidden = this.stream.GetBool();
+					else if (c_oSer_CellStyle.ILevel === type)
+						oCellStyle.ILevel = this.stream.GetULongLE();
+					else if (c_oSer_CellStyle.Name === type)
+						oCellStyle.Name = this.stream.GetString2LE(length);
+					else if (c_oSer_CellStyle.XfId === type)
+						oCellStyle.XfId = this.stream.GetULongLE();*/
+
+		//TODO extLst
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("builtinId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.BuiltinId = val;
+			} else if ("customBuiltin" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.CustomBuiltin = val;
+			} else if ("hidden" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.Hidden = val;
+			} else if ("iLevel" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.ILevel = val;
+			} else if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.Name = val;
+			} else if ("xfId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.XfId = val;
+			}
+		}
+	};
 
 	AscCommonExcel.OpenXf.prototype.fromXml = function (reader) {
 
@@ -10425,16 +10578,23 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
-		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tstd::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());\n' + '\t\tif (L"cfvo" == sName)\n' +
-		'\t\t{\n' + '\t\t\ item(oReader);\n' + '\t\t\tm_arrValues.push_back(item);\n' + '\t\t}\n' + '\t\telse if (L"cfIcon" == sName)\n' +
-		'\t\t{\n' + '\t\t\ item(oReader);\n' + '\t\t\tm_arrIconSets.push_back(item);\n' + '\t\t}\n' + '\t}';
-	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t(oReader, L"iconSet"\t, m_oIconSet)\n' +
-		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"percent"\t, m_oPercent)\n' +
-		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"showValue"\t, m_oShowValue)\n' +
-		'\tWritingElement_ReadAttributes_Read_else_if\t(oReader, L"custom"\t\t, m_oCustom)'
-	var _documentation = ''
-	var _serialize = ''
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();';
+	var _x2t = 'WritingElement_ReadAttributes_Read_if     ( oReader, _T("builtinId"),      m_oBuiltinId )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("customBuiltin"),      m_oCustomBuiltin )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("hidden"),      m_oHidden )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("iLevel"),      m_oILevel )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("name"),      m_oName )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_if     ( oReader, _T("xfId"),      m_oXfId )'
+	var _documentation = '<xsd:sequence>\n' + '3637 <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>\n' + '3638 </xsd:sequence>\n' +
+		'3639 <xsd:attribute name="name" type="s:ST_Xstring" use="optional"/>\n' + '3640 <xsd:attribute name="xfId" type="ST_CellStyleXfId" use="required"/>\n' +
+		'3641 <xsd:attribute name="builtinId" type="xsd:unsignedInt" use="optional"/>\n' + '3642 <xsd:attribute name="iLevel" type="xsd:unsignedInt" use="optional"/>\n' +
+		'3643 <xsd:attribute name="hidden" type="xsd:boolean" use="optional"/>\n' + '3644 <xsd:attribute name="customBuiltin" type="xsd:boolean" use="optional"/>'
+	var _serialize = ' if (c_oSer_CellStyle.BuiltinId === type)\n' + '                oCellStyle.BuiltinId = this.stream.GetULongLE();\n' +
+		'            else if (c_oSer_CellStyle.CustomBuiltin === type)\n' + '                oCellStyle.CustomBuiltin = this.stream.GetBool();\n' +
+		'            else if (c_oSer_CellStyle.Hidden === type)\n' + '                oCellStyle.Hidden = this.stream.GetBool();\n' +
+		'            else if (c_oSer_CellStyle.ILevel === type)\n' + '                oCellStyle.ILevel = this.stream.GetULongLE();\n' +
+		'            else if (c_oSer_CellStyle.Name === type)\n' + '                oCellStyle.Name = this.stream.GetString2LE(length);\n' +
+		'            else if (c_oSer_CellStyle.XfId === type)\n' + '                oCellStyle.XfId = this.stream.GetULongLE();'
 
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);

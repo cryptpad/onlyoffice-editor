@@ -745,6 +745,10 @@
 		slicer: {dir: "../namedSheetViews", filename: "namedSheetView[N].xml", contentType: "application/vnd.ms-excel.namedsheetviews+xml", relationType: "http://schemas.microsoft.com/office/2019/04/relationships/namedSheetView"},
 		workbookComment: {dir: "", filename: "workbookComments.bin", contentType: "application/octet-stream", relationType: "http://schemas.onlyoffice.com/workbookComments"},
 
+		jsaProject: {dir: "", filename: "jsaProject.bin", contentType: "application/octet-stream", relationType: "http://schemas.onlyoffice.com/jsaProject"},
+		vbaProject: {dir: "", filename: "vbaProject.bin", contentType: "application/octet-stream", relationType: "http://schemas.microsoft.com/office/2006/relationships/vbaProject"},
+
+
 		//todo
 		image: {dir: "../media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"},
 		imageWord: {dir: "media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"}

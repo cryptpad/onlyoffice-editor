@@ -10316,9 +10316,7 @@
 
             if(!this.InitOpenManager.copyPasteObj.isCopyPaste)
             {
-                ReadDefCellStyles(wb, wb.CellStyles.DefaultStyles);
-                ReadDefSlicerStyles(wb, wb.CellStyles.DefaultStyles);
-                wb.SlicerStyles.concatStyles();
+                this.InitOpenManager.readDefStyles(wb, wb.CellStyles.DefaultStyles);
                 // ReadDefTableStyles(wb, wb.TableStyles.DefaultStyles);
                 // wb.TableStyles.concatStyles();
             }
@@ -11889,6 +11887,11 @@
             oNumFmts[oNum.id] = oRes;
         }
         return oRes;
+    };
+    InitOpenManager.prototype.readDefStyles = function(wb, output) {
+        ReadDefCellStyles(wb, output);
+        ReadDefSlicerStyles(wb, output);
+        wb.SlicerStyles.concatStyles();
     };
 
 

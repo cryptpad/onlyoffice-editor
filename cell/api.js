@@ -1543,6 +1543,17 @@ var editor;
 			}
 			xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
 
+			//jsaProject
+			var jsaProjectPart = wbPart.getPartByRelationshipType(openXml.Types.jsaProject.relationType);
+			if (jsaProjectPart) {
+				var contentJsaProject = jsaProjectPart.getDocumentContent();
+				if (contentJsaProject) {
+					xmlParserContext.InitOpenManager.oReadResult.macros = contentJsaProject;
+				}
+			}
+
+			//TODO vbaProject
+			//var vbaProjectPart = wbPart.getPartByRelationshipType(openXml.Types.vbaProject.relationType);
 
 			//person list
 			var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
@@ -1733,6 +1744,8 @@ var editor;
 				}
 			}
 		}
+
+		initOpenManager.readDefStyles(wb, wb.CellStyles.DefaultStyles);
 		
 
 		/*if (window['OPEN_IN_BROWSER']) {
