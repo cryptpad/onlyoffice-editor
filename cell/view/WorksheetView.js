@@ -524,7 +524,65 @@
 
 		this.model.initColumns();
 	};
+  WorksheetView.prototype.getMaxSizes = function () {
+    var offX = this.cellsLeft;
+    var offY = this.cellsTop;
+    var lastRow = this.findLastRow();
+    var lastColumn = this.findLastCol();
+    var extX = lastColumn.width + lastColumn.left;
+    var extY = lastRow.top + lastRow.height;
+    return {
+      offX: offX,
+      offY: offY,
+      extX: extX,
+      extY: extY
+    };
+  }
+  WorksheetView.prototype.createImageFromMaxRange = function () {
+    var sizes = this.getMaxSizes();
+    var hiddenCanv = document.createElement('canvas');
+    hiddenCanv.style.display = 'none';
+    document.body.appendChild(hiddenCanv);
+    hiddenCanv.width = sizes.extX;
+    hiddenCanv.height = sizes.extY;
+    var hiddenCtx = hiddenCanv.getContext('2d');
+    var mainCanv = this.drawingCtx.canvas;
+    hiddenCtx.drawImage(
+      mainCanv,
+      sizes.offX,
+      sizes.offY,
+      hiddenCanv.width,
+      hiddenCanv.height,
+      0,
+      0,
+      hiddenCanv.width,
+      hiddenCanv.height);
+    var dataUrl = hiddenCanv.toDataURL();
+    document.body.removeChild(hiddenCanv);
+    return dataUrl;
+  }
 
+  WorksheetView.prototype.findLastRow = function () {
+    if (!this.rows) return;
+
+    return this.rows.reduce(function (acc, b) {
+      if (b.top >= acc.top) {
+        return b;
+      }
+      return acc;
+    }, this.rows[0]);
+  }
+
+  WorksheetView.prototype.findLastCol = function () {
+    if (!this.cols) return;
+
+    return this.cols.reduce(function (acc, b) {
+      if (b.left >= acc.left) {
+        return b;
+      }
+      return acc;
+    }, this.cols[0]);
+  }
 	WorksheetView.prototype._initWorksheetDefaultWidthForPrint = function () {
 		var defaultPpi = 96;
 		var truePPIX = this.drawingCtx.ppiX;

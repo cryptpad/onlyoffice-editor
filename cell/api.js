@@ -3335,6 +3335,32 @@ var editor;
         });
     }
   };
+ /**
+  *
+  * @param { function } endCallback function, which first argument is binaryInfo about workbook
+  */
+  spreadsheet_api.prototype.asc_putBinaryInfoFromSpreadsheetToOleObject = function (endCallback) {
+    var _this = this;
+    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
+    var binaryData = oBinaryFileWriter.Write().split(';');
+    var cleanBinaryData = binaryData[binaryData.length - 1];
+    var worksheet = this.wb.getWorksheet();
+    var dataUrl = worksheet.createImageFromMaxRange();
+
+    var fAfterUploadOleObjectImage = function (url) {
+      var binaryInfo = {};
+
+      binaryInfo.binary = cleanBinaryData;
+      binaryInfo.imageUrl = url;
+      endCallback(binaryInfo);
+    }
+    var obj = {
+      fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+    };
+    AscCommon.uploadDataUrlAsFile(dataUrl, obj, function (nError, files, obj) {
+      _this._uploadCallback(nError, files, obj);
+    });
+  }
 
   spreadsheet_api.prototype.asc_editChartDrawingObject = function(chart) {
     var ws = this.wb.getWorksheet();
@@ -3382,6 +3408,8 @@ var editor;
     if (ws) {
       if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl)) {
         ws.objectRender.editImageDrawingObject(urls[0], obj);
+      } else if (obj && obj.fAfterUploadOleObjectImage) {
+        obj.fAfterUploadOleObjectImage(urls[0]);
       } else {
         ws.objectRender.addImageDrawingObject(urls, null);
       }
