@@ -810,6 +810,12 @@
     CGraphicObjectBase.prototype.setNoChangeAspect = function(bValue){
         return this.setLockValue(LOCKS_MASKS.noChangeAspect, bValue);
     };
+    CGraphicObjectBase.prototype.canEditGeometry = function(){
+        return this.getObjectType() === AscDFH.historyitem_type_Shape &&
+            !this.isPlaceholder() &&
+            this.getNoEditPoints() !== true && 
+            !!(this.spPr && this.spPr.geometry);
+    };
     CGraphicObjectBase.prototype.canRotate = function() {
         if(!this.canEdit()) {
             return false;

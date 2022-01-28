@@ -6205,19 +6205,17 @@ DrawingObjectsController.prototype =
 
     canEditGeometry: function()
     {
-        var selectedObjs = this.selection.groupSelection;
-        for(var i = 0; i < 2; i++)
-        {
-            if (selectedObjs && selectedObjs.selectedObjects && !selectedObjs.selection.textSelection && selectedObjs.selectedObjects.length === 1 &&
-                selectedObjs.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape)
-            {
+        var oTargetTextObject = getTargetTextObject(this);
+        if(oTargetTextObject) {
+            return false;
+        }
+        var aSelectedObjects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+        if(aSelectedObjects.length === 1) {
+            if(aSelectedObjects[0].canEditGeometry()) {
                 return true;
             }
-            if(selectedObjs)
-                return false;
-
-            selectedObjs = this;
         }
+        return false;
     },
 
     startEditGeometry: function()
