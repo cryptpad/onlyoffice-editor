@@ -14023,6 +14023,7 @@
 	ApiRange.prototype["SetStyle"]                   = ApiRange.prototype.SetStyle;
 	ApiRange.prototype["SetTextPr"]                  = ApiRange.prototype.SetTextPr;
 	ApiRange.prototype["Delete"]                     = ApiRange.prototype.Delete;
+	ApiRange.prototype["ToJSON"]                     = ApiRange.prototype.ToJSON;
 
 	ApiDocument.prototype["GetClassType"]            = ApiDocument.prototype.GetClassType;
 	ApiDocument.prototype["CreateNewHistoryPoint"]   = ApiDocument.prototype.CreateNewHistoryPoint;
@@ -14060,8 +14061,10 @@
 	ApiDocument.prototype["Search"]                  = ApiDocument.prototype.Search;
 	ApiDocument.prototype["ToMarkdown"]              = ApiDocument.prototype.ToMarkdown;
 	ApiDocument.prototype["ToHtml"]                  = ApiDocument.prototype.ToHtml;
-	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;	ApiDocument.prototype["UpdateAllTOC"]		     = ApiDocument.prototype.UpdateAllTOC;
+	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;
+	ApiDocument.prototype["UpdateAllTOC"]		     = ApiDocument.prototype.UpdateAllTOC;
 	ApiDocument.prototype["UpdateAllTOF"]		     = ApiDocument.prototype.UpdateAllTOF;
+	
 	ApiParagraph.prototype["GetClassType"]           = ApiParagraph.prototype.GetClassType;
 	ApiParagraph.prototype["AddText"]                = ApiParagraph.prototype.AddText;
 	ApiParagraph.prototype["AddPageBreak"]           = ApiParagraph.prototype.AddPageBreak;

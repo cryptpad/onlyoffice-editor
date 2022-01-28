@@ -3598,13 +3598,10 @@
 	};
 	WriterToJSON.prototype.SerDrawingDocContent = function(oDocContent, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields)
 	{
-		var oDocContentObj = 
-		{
+		return {
 			content: this.SerContent(oDocContent.Content, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields),
 			type:    "drawingDocContent"
 		}
-
-		return oDocContentObj;
 	};
 	WriterToJSON.prototype.SerContent = function(aContent, aComplexFieldsToSave, oMapCommentsInfo, oMapBookmarksInfo, bAllCompFields)
 	{
@@ -5157,7 +5154,7 @@
 		var oMaxStartPos          = maxStartDocPos ? maxStartDocPos : (arrContent.length !== 0 ? arrContent[arrContent.length - 1].GetDocumentPositionFromObject() : null);
 		if (oMinStartPos[0].Position === -1 || oMaxStartPos[0].Position === -1)
 			bAll = true;
-			
+
 		var arrCompexFieldsToSave = [];
 		var arrElmContent;
 
@@ -19505,4 +19502,6 @@
 	window['AscCommon'].WriterToJSON   = WriterToJSON;
 	window['AscCommon'].ReaderFromJSON = ReaderFromJSON;
 })(window);
+
+
 

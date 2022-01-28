@@ -4122,6 +4122,7 @@
     ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;
     ApiPresentation.prototype["SlidesToJSON"]             = ApiPresentation.prototype.SlidesToJSON;
     //ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
+    
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
     ApiMaster.prototype["AddLayout"]                      = ApiMaster.prototype.AddLayout;
@@ -4394,56 +4395,5 @@
         return new CTableMeasurement(nType, nW);
     }
 })(window, null);
-function isEqual(a, b, arrSkip)
-{
-    if (!a)
-        return true;
 
-    var aKeys = Object.keys(a);
-    var sCurKey = "";
 
-    var bResult = true;
-
-    for (var nKey = 0; nKey < aKeys.length; nKey++)
-    {
-        sCurKey = aKeys[nKey];
-
-        if (arrSkip.indexOf(sCurKey) !== -1 || sCurKey.search("compiled") !== -1)
-            continue;
-
-        if (typeof(a[sCurKey]) === "object" && Array.isArray(a[sCurKey]) === false)
-        {
-            bResult = bResult && isEqual(a[sCurKey], b[sCurKey], arrSkip);
-            if (!bResult)
-                return false;
-        }
-        else if (Array.isArray(a[sCurKey]))
-        {
-            if (a[sCurKey].length !== b[sCurKey].length)
-                return false;
-
-            for (var nItem = 0; nItem < a[sCurKey].length; nItem++)
-            {
-                if (typeof(a[sCurKey][nItem]) === "object")
-                    bResult = bResult && isEqual(a[sCurKey][nItem], b[sCurKey][nItem], arrSkip);
-                else if (typeof(a[sCurKey][nItem]) === "number" && typeof(b[sCurKey][nItem]) === "number")
-                {
-                    if (a[sCurKey][nItem].toFixed(4) !== b[sCurKey][nItem].toFixed(4))
-                        return false;
-                }
-                else if (a[sCurKey][nItem] !== b[sCurKey][nItem] && (a[sCurKey][nItem] != null && b[sCurKey][nItem] != null))
-                    return false;
-            }
-        }
-        else
-            if (typeof(a[sCurKey]) === "number" && typeof(b[sCurKey]) === "number")
-            {
-                if (a[sCurKey].toFixed(4) !== b[sCurKey].toFixed(4))
-                    return false;
-            }
-            else if (a[sCurKey] !== b[sCurKey] && (a[sCurKey] != null && b[sCurKey] != null))
-                return false;
-    }
-
-    return bResult;
-}
