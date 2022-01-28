@@ -7874,6 +7874,21 @@ DrawingObjectsController.prototype =
                     }
                 }
             }
+            else if(oDrawingSelectionState.geometryObject) 
+            {
+                
+                var oGeomSelection = oDrawingSelectionState.geometryObject.copy();
+                var oDrawing = oGeomSelection.drawing;
+                if(oDrawing.Is_UseInDocument()
+                && (!bSlide || oDrawing.parent === this.drawingObjects))
+                {
+                    this.selectObject(oDrawing, bDocument ? (oDrawing.parent ? oDrawing.parent.PageNum : nPageIndex) : nPageIndex);
+                    this.selection.geometrySelection = new CGeometryEditSelection(this, oDrawing);
+                    if(!oSelectionState.DrawingSelection){
+                        bNeedRecalculateCurPos = true;
+                    }
+                }
+            }
             else
             {
                 for(var i = 0; i < oDrawingSelectionState.selection.length; ++i)

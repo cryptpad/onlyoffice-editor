@@ -65,6 +65,11 @@
             this.arrPathCommandsType = [];
             this.convertToBezier();
             this.createGeometryEditList();
+            this.originalX = originalObject.x;
+            this.originalY = originalObject.y;
+            this.originalExtX = originalObject.extX;
+            this.originalExtY = originalObject.extY;
+            this.originalRot = originalObject.rot;
 
             var oPen1 = new AscFormat.CLn();
             oPen1.w = 15000;
@@ -1225,7 +1230,15 @@
     };
 
     EditShapeGeometryTrack.prototype.isCorrect = function() {
-        return this.originalGeometry === this.getOriginalObjectGeometry();
+        if(this.originalGeometry !== this.getOriginalObjectGeometry() ||
+            this.originalX !== this.originalObject.x ||
+            this.originalY !== this.originalObject.y ||
+            this.originalExtX !== this.originalObject.extX ||
+            this.originalExtY !== this.originalObject.extY ||
+            this.originalRot !== this.originalObject.rot) {
+            return false;
+        }
+        return true;
     };
 
 
