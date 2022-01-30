@@ -33,7 +33,7 @@
 "use strict";
 
 (function(window, undefined) {
-	//document
+//document
 	CDocument.prototype.toZip = function(zip, context) {
 		var res = null;
 		var memory = new AscCommon.CMemory();
@@ -90,18 +90,18 @@
 				if ("background" === name) {
 
 				} else if ("body" === name) {
-					this.fromXmlDocContent(reader, Content);
+					this.fromXmlDocContent(reader, Content, this.DrawingDocument, this);
 				} else if ("docParts" === name) {
 
 				}
 			}
 		}
 	};
-	CDocument.prototype.fromXmlDocContent = function(reader, Content) {
+	CDocument.prototype.fromXmlDocContent = function(reader, Content, DrawingDocument, Parent) {
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
-			CDocument.prototype.fromXmlDocContentElem(reader, name, Content, this.DrawingDocument, this);
+			CDocument.prototype.fromXmlDocContentElem(reader, name, Content, DrawingDocument, Parent);
 		}
 	};
 	CDocument.prototype.fromXmlDocContentElem = function(reader, name, Content, DrawingDocument, Parent) {
@@ -166,6 +166,9 @@
 			case "sdt":
 				break;
 			case "sectPr":
+				if (Parent.SectPr) {
+					Parent.SectPr.fromXml(reader);
+				}
 				break;
 			case "tbl":
 				var table = new CTable(DrawingDocument, Parent, true, 0, 0, []);
@@ -197,7 +200,7 @@
 		this.Content.forEach(function(item) {
 			CDocument.prototype.toXmlDocContentElem(writer, item);
 		});
-		// this.SectPr.toXml(writer, "w:background");
+		this.SectPr.toXml(writer, "w:sectPr");
 		writer.WriteXmlNodeEnd("w:body");
 		writer.WriteXmlNodeEnd("w:document");
 	};
@@ -791,6 +794,7 @@
 		if (undefined !== this.TableCellSpacing) {
 			TableCellSpacing = new CTableMeasurement(tblwidth_Mm, Pr.TableCellSpacing * g_dKoef_mm_to_twips / 2);
 		}
+		var Jc = CT_StringStax.prototype.fromVal(toXml_ST_JcTable(this.Jc));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -804,7 +808,7 @@
 		writer.WriteXmlNullable(this.Height, "w:trHeight");
 		writer.WriteXmlNullable(TableHeader, "w:tblHeader");
 		writer.WriteXmlNullable(TableCellSpacing, "w:tblCellSpacing");
-		writer.WriteXmlNullable(toXml_ST_JcTable(this.Jc), "w:jc");
+		writer.WriteXmlNullable(Jc, "w:jc");
 		// writer.WriteXmlNullable(this.Hidden, "w:hidden");
 		// writer.WriteXmlNullable(this.Ins, "w:ins");
 		// writer.WriteXmlNullable(this.Del, "w:del");
@@ -877,8 +881,7 @@
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
-			var newItem = CDocument.prototype.fromXmlDocContentElem(reader, name, Content, this.Content.DrawingDocument,
-				this.Content);
+			var newItem = CDocument.prototype.fromXmlDocContentElem(reader, name, Content, this.Content.DrawingDocument, this.Content);
 			if (!newItem) {
 				switch (name) {
 					case "tcPr" : {
@@ -1353,7 +1356,11 @@
 					break;
 				}
 				case "sectPr" : {
-					//todo paragraph
+					if (opt_paragraph) {
+						elem = new CSectionPr(opt_paragraph.LogicDocument);
+						elem.fromXml(reader);
+						opt_paragraph.Set_SectionPr(elem);
+					}
 					break;
 				}
 				case "pPrChange" : {
@@ -1419,7 +1426,7 @@
 		// writer.WriteXmlNullable(this.Cnfstyle, "w:cnfStyle");
 		if (opt_paragraph) {
 			writer.WriteXmlNullable(opt_paragraph.TextPr.Value, "w:rPr");
-			writer.WriteXmlNullable(this.Sectpr, "w:sectPr");
+			writer.WriteXmlNullable(opt_paragraph.SectPr, "w:sectPr");
 			writer.WriteXmlNullable(this.Pprchange, "w:pPrChange");
 		}
 		writer.WriteXmlNodeEnd(name);
@@ -1432,7 +1439,7 @@
 					break;
 				}
 				case "lines": {
-					this.Lines = reader.GetValueInt();
+					this.Lines = reader.GetValueInt(10, this.Lines);
 					break;
 				}
 				case "w": {
@@ -1541,11 +1548,13 @@
 			switch (reader.GetNameNoNS()) {
 				case "ilvl" : {
 					var ilvl = new CT_DecimalNumber();
+					ilvl.fromXml(reader);
 					this.Lvl = ilvl.getVal(undefined);
 					break;
 				}
 				case "numId" : {
 					var numId = new CT_DecimalNumber();
+					numId.fromXml(reader);
 					this.NumId = numId.getVal(undefined);
 					break;
 				}
@@ -2371,8 +2380,585 @@
 		writer.WriteXmlNullableAttributeStringEncode("w:bidi", Asc.g_oLcidIdToNameMap[this.Bidi]);
 		writer.WriteXmlAttributesEnd(true);
 	};
+	CSectionPr.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			// switch (reader.GetNameNoNS()) {
+			// 	case "rsidRPr": {
+			// 		this.RsidRPr = reader.GetValueByte();
+			// 		break;
+			// 	}
+			// 	case "rsidDel": {
+			// 		this.RsidDel = reader.GetValueByte();
+			// 		break;
+			// 	}
+			// 	case "rsidR": {
+			// 		this.RsidR = reader.GetValueByte();
+			// 		break;
+			// 	}
+			// 	case "rsidSect": {
+			// 		this.RsidSect = reader.GetValueByte();
+			// 		break;
+			// 	}
+			// }
+		}
+	};
+	CSectionPr.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			switch (name) {
+				case "headerReference" :
+				case "footerReference" : {
+					var type = name === "headerReference" ? AscCommon.hdrftr_Header : AscCommon.hdrftr_Footer;
+					var hdrFtrRef = new CT_HdrFtrRef();
+					hdrFtrRef.fromXml(reader);
+					if (hdrFtrRef.Id) {
+						var rel = reader.rels.getRelationship(hdrFtrRef.Id);
+						var hdrFtrPart = reader.rels.pkg.getPartByUri(rel.targetFullName);
+						if (hdrFtrPart) {
+							var contentHdrFtr = hdrFtrPart.getDocumentContent();
+							var hdrFtrReader = new StaxParser(contentHdrFtr, hdrFtrPart, reader.context);
+							var hdrFtr = new CHeaderFooter(this.LogicDocument.HdrFtr, this.LogicDocument, this.LogicDocument.DrawingDocument, type);
+							hdrFtr.fromXml(hdrFtrReader);
+							if(AscCommon.hdrftr_Header === type) {
+								switch(hdrFtrRef.Type) {
+									case "even":
+										this.Set_Header_Even(hdrFtr);
+										break;
+									case "default":
+										this.Set_Header_Default(hdrFtr);
+										break;
+									case "first":
+										this.Set_Header_First(hdrFtr);
+										break;
+								}
+							} else {
+								switch(hdrFtrRef.Type) {
+									case "even":
+										this.Set_Footer_Even(hdrFtr);
+										break;
+									case "default":
+										this.Set_Footer_Default(hdrFtr);
+										break;
+									case "first":
+										this.Set_Footer_First(hdrFtr);
+										break;
+								}
+							}
+						}
+					}
+					break;
+				}
+				case "footnotePr" : {
+					elem = new CFootnotePr();
+					elem.InitDefault();
+					elem.fromXml(reader, true);
+					this.SetFootnoteNumFormat(elem.NumFormat);
+					this.SetFootnoteNumRestart(elem.NumRestart);
+					this.SetFootnoteNumStart(elem.NumStart);
+					this.SetFootnotePos(elem.Pos);
+					break;
+				}
+				case "endnotePr" : {
+					elem = new CFootnotePr();
+					elem.InitDefaultEndnotePr();
+					elem.fromXml(reader, false);
+					this.SetEndnoteNumFormat(elem.NumFormat);
+					this.SetEndnoteNumRestart(elem.NumRestart);
+					this.SetEndnoteNumStart(elem.NumStart);
+					this.SetEndnotePos(elem.Pos);
+					break;
+				}
+				case "type" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.Type = fromXml_ST_SectionMark(elem.getVal(undefined));
+					break;
+				}
+				case "pgSz" : {
+					elem = new CSectionPageSize();
+					elem.fromXml(reader);
+					this.SetPageSize(elem.W, elem.H);
+					this.SetOrientation(elem.Orient);
+					break;
+				}
+				case "pgMar" : {
+					this.PageMargins.fromXml(reader);
+					break;
+				}
+				// case "paperSrc" : {
+				// 	this.PaperSrc = new CT_PaperSource();
+				// 	this.PaperSrc.fromXml(reader);
+				// 	break;
+				// }
+				case "pgBorders" : {
+					this.Borders.fromXml(reader);
+					break;
+				}
+				case "lnNumType" : {
+					elem = new CSectionLnNumType(1, undefined, undefined, undefined);
+					elem.fromXml(reader);
+					this.SetLineNumbers(elem.CountBy, elem.Distance, elem.Start, elem.Restart);
+					break;
+				}
+				case "pgNumType" : {
+					elem = new CSectionPageNumType();
+					elem.fromXml(reader);
+					this.Set_PageNum_Start(elem.Start);
+					break;
+				}
+				case "cols" : {
+					elem = new CSectionColumns(this);
+					elem.fromXml(reader);
+					this.Set_Columns_EqualWidth(elem.EqualWidth);
+					this.Set_Columns_Num(elem.Num);
+					this.Set_Columns_Sep(elem.Sep);
+					this.Set_Columns_Space(elem.Space);
+					if (elem.Cols.length > 0) {
+						elem.Cols.forEach(function(elem) {
+							this.Set_Columns_Col(this.Columns.Cols.length, elem.W, elem.Space);
+						}, this);
+					}
+					break;
+				}
+				// case "formProt" : {
+				// 	this.FormProt = new CT_OnOff();
+				// 	this.FormProt.fromXml(reader);
+				// 	break;
+				// }
+				// case "vAlign" : {
+				// 	this.VAlign = new CT_VerticalJc();
+				// 	this.VAlign.fromXml(reader);
+				// 	break;
+				// }
+				// case "noEndnote" : {
+				// 	this.NoEndnote = new CT_OnOff();
+				// 	this.NoEndnote.fromXml(reader);
+				// 	break;
+				// }
+				case "titlePg" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.Set_TitlePage(elem.getVal(undefined));
+					break;
+				}
+				// case "textDirection" : {
+				// 	this.TextDirection = new CT_TextDirection();
+				// 	this.TextDirection.fromXml(reader);
+				// 	break;
+				// }
+				// case "bidi" : {
+				// 	this.Bidi = new CT_OnOff();
+				// 	this.Bidi.fromXml(reader);
+				// 	break;
+				// }
+				case "rtlGutter" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.SetGutterRTL(elem.getVal(undefined));
+					break;
+				}
+				// case "docGrid" : {
+				// 	this.DocGrid = new CT_DocGrid();
+				// 	this.DocGrid.fromXml(reader);
+				// 	break;
+				// }
+				// case "printerSettings" : {
+				// 	this.PrinterSettings = new CT_Rel();
+				// 	this.PrinterSettings.fromXml(reader);
+				// 	break;
+				// }
+				case "sectPrChange" : {
+					// this.SectPrChange = new CT_SectPrChange();
+					// this.SectPrChange.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CSectionPr.prototype.toXml = function(writer, name) {
+		var HdrFtrTypes = ["default", "default", "first", "first", "even", "even"];
+		var HdrFtrs = [this.HeaderDefault, this.FooterDefault, this.HeaderFirst, this.FooterFirst, this.HeaderEven, this.FooterEven];
+		var HdrFtrRefs = [null, null, null, null, null, null];
+		HdrFtrs.forEach(function(elem, index) {
+			if (elem) {
+				var partType = 0 === (index % 2) ? AscCommon.openXml.Types.header : AscCommon.openXml.Types.footer;
+				var drawingPart = writer.context.part.addPart(partType);
+				drawingPart.part.setDataXml(elem, writer);
+				var HeaderReferenceDef = new CT_HdrFtrRef();
+				HeaderReferenceDef.Id = drawingPart.rId;
+				HeaderReferenceDef.Type = HdrFtrTypes[index];
+				HdrFtrRefs[index] = HeaderReferenceDef;
+			}
+		});
+		var Type = CT_StringStax.prototype.fromVal(toXml_ST_SectionMark(this.Type));
+		var TitlePage = CT_OnOff.prototype.fromVal(this.TitlePage);
+		var GutterRTL = CT_OnOff.prototype.fromVal(this.GutterRTL);
 
-	//styles
+		writer.WriteXmlNodeStart(name);
+		// writer.WriteXmlNullableAttributeByte("w:rsidRPr", this.RsidRPr);
+		// writer.WriteXmlNullableAttributeByte("w:rsidDel", this.RsidDel);
+		// writer.WriteXmlNullableAttributeByte("w:rsidR", this.RsidR);
+		// writer.WriteXmlNullableAttributeByte("w:rsidSect", this.RsidSect);
+		writer.WriteXmlAttributesEnd();
+		HdrFtrRefs.forEach(function(elem, index) {
+			var hdrFtrName = 0 === (index % 2) ? "w:headerReference" : "w:footerReference";
+			writer.WriteXmlNullable(elem, hdrFtrName);
+		});
+		writer.WriteXmlNullable(this.FootnotePr, "w:footnotePr");
+		writer.WriteXmlNullable(this.EndnotePr, "w:endnotePr");
+		writer.WriteXmlNullable(Type, "w:type");
+		writer.WriteXmlNullable(this.PageSize, "w:pgSz");
+		writer.WriteXmlNullable(this.PageMargins, "w:pgMar");
+		// writer.WriteXmlNullable(this.PaperSrc, "w:paperSrc");
+		writer.WriteXmlNullable(this.Borders, "w:pgBorders");
+		writer.WriteXmlNullable(this.LnNumType, "w:lnNumType");
+		writer.WriteXmlNullable(this.PageNumType, "w:pgNumType");
+		writer.WriteXmlNullable(this.Columns, "w:cols");
+		// writer.WriteXmlNullable(this.FormProt, "w:formProt");
+		// writer.WriteXmlNullable(this.VAlign, "w:vAlign");
+		// writer.WriteXmlNullable(this.NoEndnote, "w:noEndnote");
+		writer.WriteXmlNullable(TitlePage, "w:titlePg");
+		// writer.WriteXmlNullable(this.TextDirection, "w:textDirection");
+		// writer.WriteXmlNullable(this.Bidi, "w:bidi");
+		writer.WriteXmlNullable(GutterRTL, "w:rtlGutter");
+		// writer.WriteXmlNullable(this.DocGrid, "w:docGrid");
+		// writer.WriteXmlNullable(this.PrinterSettings, "w:printerSettings");
+		// writer.WriteXmlNullable(this.SectPrChange, "w:sectPrChange");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CSectionPageSize.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "w": {
+					this.W = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.W);
+					break;
+				}
+				case "h": {
+					this.H = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.H);
+					break;
+				}
+				case "orient": {
+					this.Orient = fromXml_ST_PageOrientation(reader.GetValue());
+					break;
+				}
+				// case "code": {
+				// 	this.Code = reader.GetValueInt();
+				// 	break;
+				// }
+			}
+		}
+	};
+	CSectionPageSize.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CSectionPageSize.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:w", this.W, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:h", this.H, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeString("w:orient", toXml_ST_PageOrientation(this.Orient));
+		// writer.WriteXmlNullableAttributeInt("w:code", this.Code);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CSectionPageMargins.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "top": {
+					this.Top = AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Top);
+					break;
+				}
+				case "right": {
+					this.Right = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Right);
+					break;
+				}
+				case "bottom": {
+					this.Bottom = AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Bottom);
+					break;
+				}
+				case "left": {
+					this.Left = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Left);
+					break;
+				}
+				case "header": {
+					this.Header = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Header);
+					break;
+				}
+				case "footer": {
+					this.Footer = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Footer);
+					break;
+				}
+				case "gutter": {
+					this.Gutter = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Gutter);
+					break;
+				}
+			}
+		}
+	};
+	CSectionPageMargins.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CSectionPageMargins.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:top", this.Top, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:right", this.Right, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeIntWithKoef("w:bottom", this.Bottom, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:left", this.Left, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:header", this.Header, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:footer", this.Footer, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:gutter", this.Gutter, g_dKoef_mm_to_twips);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CSectionBorders.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "zOrder": {
+					this.ZOrder = fromXml_ST_PageBorderZOrder(reader.GetValue());
+					break;
+				}
+				case "display": {
+					this.Display = fromXml_ST_PageBorderDisplay(reader.GetValue());
+					break;
+				}
+				case "offsetFrom": {
+					this.OffsetFrom = fromXml_ST_PageBorderOffset(reader.GetValue());
+					break;
+				}
+			}
+		}
+	};
+	CSectionBorders.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "top" : {
+					this.Top.fromXml(reader);
+					break;
+				}
+				case "left" : {
+					this.Left.fromXml(reader);
+					break;
+				}
+				case "bottom" : {
+					this.Bottom.fromXml(reader);
+					break;
+				}
+				case "right" : {
+					this.Right.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CSectionBorders.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:zOrder", toXml_ST_PageBorderZOrder(this.ZOrder));
+		writer.WriteXmlNullableAttributeString("w:display", toXml_ST_PageBorderDisplay(this.Display));
+		writer.WriteXmlNullableAttributeString("w:offsetFrom", toXml_ST_PageBorderOffset(this.OffsetFrom));
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.Top, "w:top");
+		writer.WriteXmlNullable(this.Left, "w:left");
+		writer.WriteXmlNullable(this.Bottom, "w:bottom");
+		writer.WriteXmlNullable(this.Right, "w:right");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CSectionPageNumType.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				// case "fmt": {
+				// 	this.Fmt = fromXml_ST_NumberFormat(reader.GetValue());
+				// 	break;
+				// }
+				case "start": {
+					this.Start =  reader.GetValueInt(10, this.Start);
+					break;
+				}
+				// case "chapStyle": {
+				// 	this.ChapStyle = reader.GetValueInt();
+				// 	break;
+				// }
+				// case "chapSep": {
+				// 	this.ChapSep = fromXml_ST_ChapterSep(reader.GetValue());
+				// 	break;
+				// }
+			}
+		}
+	};
+	CSectionPageNumType.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CSectionPageNumType.prototype.toXml = function(writer, name) {
+		var Start = -1 !== this.Start ? this.Start : undefined;
+		writer.WriteXmlNodeStart(name);
+		// writer.WriteXmlNullableAttributeString("w:fmt", toXml_ST_NumberFormat(this.Fmt));
+		writer.WriteXmlNullableAttributeInt("w:start", Start);
+		// writer.WriteXmlNullableAttributeInt("w:chapStyle", this.ChapStyle);
+		// writer.WriteXmlNullableAttributeString("w:chapSep", toXml_ST_ChapterSep(this.ChapSep));
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CSectionColumns.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "equalWidth": {
+					this.EqualWidth = reader.GetValueBool();
+					break;
+				}
+				case "space": {
+					this.Space = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Space);
+					break;
+				}
+				case "num": {
+					this.Num = reader.GetValueInt(10, this.Num);
+					break;
+				}
+				case "sep": {
+					this.Sep = reader.GetValueBool();
+					break;
+				}
+			}
+		}
+	};
+	CSectionColumns.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "col" : {
+					elem = new CSectionColumn();
+					elem.fromXml(reader);
+					this.Cols.push(elem);
+					break;
+				}
+			}
+		}
+	};
+	CSectionColumns.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:equalWidth", this.EqualWidth);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:space", this.Space, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeInt("w:num", this.Num);
+		writer.WriteXmlNullableAttributeBool("w:sep", this.Sep);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlArray(this.Cols, "w:col");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CSectionColumn.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "w": {
+					this.W = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.W);
+					break;
+				}
+				case "space": {
+					this.Space = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Space);
+					break;
+				}
+			}
+		}
+	};
+	CSectionColumn.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CSectionColumn.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:w", this.W, g_dKoef_mm_to_twips);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:space", this.Space, g_dKoef_mm_to_twips);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CSectionLnNumType.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "countBy": {
+					this.CountBy = reader.GetValueInt(10, this.CountBy);
+					break;
+				}
+				case "start": {
+					this.Start = reader.GetValueInt(10, this.Start);
+					break;
+				}
+				case "distance": {
+					this.Distance = AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm, this.Distance);
+					break;
+				}
+				case "restart": {
+					this.Restart = fromXml_ST_LineNumberRestart(reader.GetValue(), this.Restart);
+					break;
+				}
+			}
+		}
+	};
+	CSectionLnNumType.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CSectionLnNumType.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:countBy", this.CountBy);
+		writer.WriteXmlNullableAttributeInt("w:start", this.Start);
+		writer.WriteXmlNullableAttributeStringEncode("w:distance", this.Distance);
+		writer.WriteXmlNullableAttributeString("w:restart", toXml_ST_LineNumberRestart(this.Restart));
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CFootnotePr.prototype.fromXml = function(reader, isFootnotePr) {
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "pos" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					if (isFootnotePr) {
+						this.Pos = fromXml_ST_FtnPos(reader.GetValue(), this.Pos);
+					} else {
+						this.Pos = fromXml_ST_EdnPos(reader.GetValue(), this.Pos);
+					}
+					break;
+				}
+				case "numFmt" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.NumFormat = fromXml_ST_NumberFormat(reader.GetValue(), this.NumFormat);
+					break;
+				}
+				case "numStart" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.NumStart = elem.getVal(undefined);
+					break;
+				}
+				case "numRestart" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.NumRestart = fromXml_ST_RestartNumber(reader.GetValue(), this.NumRestart);
+					break;
+				}
+			}
+		}
+	};
+	CFootnotePr.prototype.toXml = function(writer, name, isFootnotePr) {
+		var Pos;
+		if(isFootnotePr) {
+			Pos = CT_StringStax.prototype.fromVal(toXml_ST_FtnPos(this.Pos));
+		} else {
+			Pos = CT_StringStax.prototype.fromVal(toXml_ST_EdnPos(this.Pos));
+		}
+		var NumFmt = CT_StringStax.prototype.fromVal(toXml_ST_NumberFormat(this.NumFmt));
+		var NumStart = CT_DecimalNumber.prototype.fromVal(this.NumStart);
+		var NumRestart = CT_StringStax.prototype.fromVal(toXml_ST_RestartNumber(this.NumRestart));
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(Pos, "w:pos");
+		writer.WriteXmlNullable(NumFmt, "w:numFmt");
+		writer.WriteXmlNullable(NumStart, "w:numStart");
+		writer.WriteXmlNullable(NumRestart, "w:numRestart");
+		writer.WriteXmlNodeEnd(name);
+	};
+//styles
 	CStyles.prototype.fromXml = function(reader) {
 		var name;
 		if (!reader.ReadNextNode()) {
@@ -2666,7 +3252,41 @@
 		// writer.WriteXmlArray(this.TblStylePr, "w:tblStylePr");
 		writer.WriteXmlNodeEnd(name);
 	};
-	//misc
+//Header/Footer
+	CHeaderFooter.prototype.fromXml = function(reader) {
+		var name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("hdr" !== name && "ftr" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("hdr" === name || "ftr" === name) {
+			var Content = [];
+			CDocument.prototype.fromXmlDocContent(reader, Content, this.DrawingDocument, this.Content);
+			if (Content.length > 0) {
+				this.Content.ReplaceContent(Content);
+			}
+		}
+	};
+	CHeaderFooter.prototype.toXml = function(writer) {
+		var name = this.Type === AscCommon.hdrftr_Header ? "w:hdr" : "w:ftr";
+
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeaderFooterNamespaces);
+		writer.WriteXmlAttributesEnd();
+		this.Content.Content.forEach(function(item) {
+			CDocument.prototype.toXmlDocContentElem(writer, item);
+		});
+		writer.WriteXmlNodeEnd(name);
+	};
+
+//misc
 	function CT_StringStax() {
 		this.val = null;
 		return this;
@@ -2746,7 +3366,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "val": {
-					this.val = reader.GetValueInt();
+					this.val = reader.GetValueInt(10, this.val);
 					break;
 				}
 			}
@@ -3207,6 +3827,35 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_Underline(this.Val));
 		this.Color.toXmlElems(writer);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	function CT_HdrFtrRef() {
+		this.Id = null;
+		this.Type = null;
+		return this;
+	}
+	CT_HdrFtrRef.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "id": {
+					this.Id = reader.GetValueDecodeXml();
+					break;
+				}
+				case "type": {
+					this.Type = reader.GetValue();
+					break;
+				}
+			}
+		}
+	};
+	CT_HdrFtrRef.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_HdrFtrRef.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("r:id", this.Id);
+		writer.WriteXmlNullableAttributeString("w:type", this.Type);
 		writer.WriteXmlAttributesEnd(true);
 	};
 
@@ -4487,6 +5136,483 @@
 				return "table";
 			case styletype_Numbering:
 				return "numbering";
+		}
+		return null;
+	}
+
+	function fromXml_ST_SectionMark(val) {
+		switch (val) {
+			case "nextPage":
+				return c_oAscSectionBreakType.NextPage;
+			case "nextColumn":
+				return c_oAscSectionBreakType.Column;
+			case "continuous":
+				return c_oAscSectionBreakType.Continuous;
+			case "evenPage":
+				return c_oAscSectionBreakType.EvenPage;
+			case "oddPage":
+				return c_oAscSectionBreakType.OddPage;
+		}
+		return undefined;
+	}
+	function toXml_ST_SectionMark(val) {
+		switch (val) {
+			case c_oAscSectionBreakType.NextPage:
+				return "nextPage";
+			case c_oAscSectionBreakType.Column:
+				return "nextColumn";
+			case c_oAscSectionBreakType.Continuous:
+				return "continuous";
+			case c_oAscSectionBreakType.EvenPage:
+				return "evenPage";
+			case c_oAscSectionBreakType.OddPage:
+				return "oddPage";
+		}
+		return null;
+	}
+	function fromXml_ST_PageOrientation(val) {
+		switch (val) {
+			case "portrait":
+				return Asc.c_oAscPageOrientation.PagePortrait;
+			case "landscape":
+				return Asc.c_oAscPageOrientation.PageLandscape;
+		}
+		return undefined;
+	}
+	function toXml_ST_PageOrientation(val) {
+		switch (val) {
+			case Asc.c_oAscPageOrientation.PagePortrait:
+				return "portrait";
+			case Asc.c_oAscPageOrientation.PageLandscape:
+				return "landscape";
+		}
+		return null;
+	}
+	function fromXml_ST_PageBorderZOrder(val) {
+		switch (val) {
+			case "front":
+				return section_borders_ZOrderFront;
+			case "back":
+				return section_borders_ZOrderBack;
+		}
+		return undefined;
+	}
+	function toXml_ST_PageBorderZOrder(val) {
+		switch (val) {
+			case section_borders_ZOrderFront:
+				return "front";
+			case section_borders_ZOrderBack:
+				return "back";
+		}
+		return null;
+	}
+	function fromXml_ST_PageBorderDisplay(val) {
+		switch (val) {
+			case "allPages":
+				return section_borders_DisplayAllPages;
+			case "firstPage":
+				return section_borders_DisplayFirstPage;
+			case "notFirstPage":
+				return section_borders_DisplayNotFirstPage;
+		}
+		return undefined;
+	}
+	function toXml_ST_PageBorderDisplay(val) {
+		switch (val) {
+			case section_borders_DisplayAllPages:
+				return "allPages";
+			case section_borders_DisplayFirstPage:
+				return "firstPage";
+			case section_borders_DisplayNotFirstPage:
+				return "notFirstPage";
+		}
+		return null;
+	}
+	function fromXml_ST_PageBorderOffset(val) {
+		switch (val) {
+			case "page":
+				return section_borders_OffsetFromPage;
+			case "text":
+				return section_borders_OffsetFromText;
+		}
+		return undefined;
+	}
+	function toXml_ST_PageBorderOffset(val) {
+		switch (val) {
+			case section_borders_OffsetFromPage:
+				return "page";
+			case section_borders_OffsetFromText:
+				return "text";
+		}
+		return null;
+	}
+	function fromXml_ST_LineNumberRestart(val, def) {
+		switch (val) {
+			case "newPage":
+				return Asc.c_oAscLineNumberRestartType.NewPage;
+			case "newSection":
+				return Asc.c_oAscLineNumberRestartType.NewSection;
+			case "continuous":
+				return Asc.c_oAscLineNumberRestartType.Continuous;
+		}
+		return def;
+	}
+	function toXml_ST_LineNumberRestart(val) {
+		switch (val) {
+			case Asc.c_oAscLineNumberRestartType.NewPage:
+				return "newPage";
+			case Asc.c_oAscLineNumberRestartType.NewSection:
+				return "newSection";
+			case Asc.c_oAscLineNumberRestartType.Continuous:
+				return "continuous";
+		}
+		return null;
+	}
+	function fromXml_ST_FtnPos(val, def) {
+		switch (val) {
+			case "pageBottom":
+				return Asc.c_oAscFootnotePos.PageBottom;
+			case "beneathText":
+				return Asc.c_oAscFootnotePos.BeneathText;
+			case "sectEnd":
+				return Asc.c_oAscFootnotePos.SectEnd;
+			case "docEnd":
+				return Asc.c_oAscFootnotePos.DocEnd;
+		}
+		return def;
+	}
+	function toXml_ST_FtnPos(val) {
+		switch (val) {
+			case Asc.c_oAscFootnotePos.PageBottom:
+				return "pageBottom";
+			case Asc.c_oAscFootnotePos.BeneathText:
+				return "beneathText";
+			case Asc.c_oAscFootnotePos.SectEnd:
+				return "sectEnd";
+			case Asc.c_oAscFootnotePos.DocEnd:
+				return "docEnd";
+		}
+		return null;
+	}
+	function fromXml_ST_EdnPos(val, def) {
+		switch (val) {
+			case "sectEnd":
+				return Asc.c_oAscEndnotePos.SectEnd;
+			case "docEnd":
+				return Asc.c_oAscEndnotePos.DocEnd;
+		}
+		return def;
+	}
+	function toXml_ST_EdnPos(val) {
+		switch (val) {
+			case Asc.c_oAscEndnotePos.SectEnd:
+				return "sectEnd";
+			case Asc.c_oAscEndnotePos.DocEnd:
+				return "docEnd";
+		}
+		return null;
+	}
+	var c_oAscNumberingFormat = {
+		None                  : 0x0000,
+		Bullet                : 0x1001,
+		Decimal               : 0x2002,
+		LowerRoman            : 0x2003,
+		UpperRoman            : 0x2004,
+		LowerLetter           : 0x2005,
+		UpperLetter           : 0x2006,
+		DecimalZero           : 0x2007,
+		DecimalEnclosedCircle : 0x2008,
+		RussianLower          : 0x2009,
+		RussianUpper          : 0x200a,
+
+		ChineseCounting         : 0x2101,
+		ChineseCountingThousand : 0x2102,
+		ChineseLegalSimplified  : 0x2103,
+
+		BulletFlag   : 0x1000,
+		NumberedFlag : 0x2000
+	};
+	function fromXml_ST_NumberFormat(val, def) {
+		switch (val) {
+			case "decimal":
+				return c_oAscNumberingFormat.Decimal;
+			case "upperRoman":
+				return c_oAscNumberingFormat.UpperRoman;
+			case "lowerRoman":
+				return c_oAscNumberingFormat.LowerRoman;
+			case "upperLetter":
+				return c_oAscNumberingFormat.UpperLetter;
+			case "lowerLetter":
+				return c_oAscNumberingFormat.LowerLetter;
+			// case "ordinal":
+			// 	return c_oAscNumberingFormat.Ordinal;
+			// case "cardinalText":
+			// 	return c_oAscNumberingFormat.CardinalText;
+			// case "ordinalText":
+			// 	return c_oAscNumberingFormat.OrdinalText;
+			// case "hex":
+			// 	return c_oAscNumberingFormat.Hex;
+			// case "chicago":
+			// 	return c_oAscNumberingFormat.Chicago;
+			// case "ideographDigital":
+			// 	return c_oAscNumberingFormat.IdeographDigital;
+			// case "japaneseCounting":
+			// 	return c_oAscNumberingFormat.JapaneseCounting;
+			// case "aiueo":
+			// 	return c_oAscNumberingFormat.Aiueo;
+			// case "iroha":
+			// 	return c_oAscNumberingFormat.Iroha;
+			// case "decimalFullWidth":
+			// 	return c_oAscNumberingFormat.DecimalFullWidth;
+			// case "decimalHalfWidth":
+			// 	return c_oAscNumberingFormat.DecimalHalfWidth;
+			// case "japaneseLegal":
+			// 	return c_oAscNumberingFormat.JapaneseLegal;
+			// case "japaneseDigitalTenThousand":
+			// 	return c_oAscNumberingFormat.JapaneseDigitalTenThousand;
+			case "decimalEnclosedCircle":
+				return c_oAscNumberingFormat.DecimalEnclosedCircle;
+			// case "decimalFullWidth2":
+			// 	return c_oAscNumberingFormat.DecimalFullWidth2;
+			// case "aiueoFullWidth":
+			// 	return c_oAscNumberingFormat.AiueoFullWidth;
+			// case "irohaFullWidth":
+			// 	return c_oAscNumberingFormat.IrohaFullWidth;
+			case "decimalZero":
+				return c_oAscNumberingFormat.DecimalZero;
+			case "bullet":
+				return c_oAscNumberingFormat.Bullet;
+			// case "ganada":
+			// 	return c_oAscNumberingFormat.Ganada;
+			// case "chosung":
+			// 	return c_oAscNumberingFormat.Chosung;
+			// case "decimalEnclosedFullstop":
+			// 	return c_oAscNumberingFormat.DecimalEnclosedFullstop;
+			// case "decimalEnclosedParen":
+			// 	return c_oAscNumberingFormat.DecimalEnclosedParen;
+			// case "decimalEnclosedCircleChinese":
+			// 	return c_oAscNumberingFormat.DecimalEnclosedCircleChinese;
+			// case "ideographEnclosedCircle":
+			// 	return c_oAscNumberingFormat.IdeographEnclosedCircle;
+			// case "ideographTraditional":
+			// 	return c_oAscNumberingFormat.IdeographTraditional;
+			// case "ideographZodiac":
+			// 	return c_oAscNumberingFormat.IdeographZodiac;
+			// case "ideographZodiacTraditional":
+			// 	return c_oAscNumberingFormat.IdeographZodiacTraditional;
+			// case "taiwaneseCounting":
+			// 	return c_oAscNumberingFormat.TaiwaneseCounting;
+			// case "ideographLegalTraditional":
+			// 	return c_oAscNumberingFormat.IdeographLegalTraditional;
+			// case "taiwaneseCountingThousand":
+			// 	return c_oAscNumberingFormat.TaiwaneseCountingThousand;
+			// case "taiwaneseDigital":
+			// 	return c_oAscNumberingFormat.TaiwaneseDigital;
+			case "chineseCounting":
+				return c_oAscNumberingFormat.ChineseCounting;
+			case "chineseLegalSimplified":
+				return c_oAscNumberingFormat.ChineseLegalSimplified;
+			case "chineseCountingThousand":
+				return c_oAscNumberingFormat.ChineseCountingThousand;
+			// case "koreanDigital":
+			// 	return c_oAscNumberingFormat.KoreanDigital;
+			// case "koreanCounting":
+			// 	return c_oAscNumberingFormat.KoreanCounting;
+			// case "koreanLegal":
+			// 	return c_oAscNumberingFormat.KoreanLegal;
+			// case "koreanDigital2":
+			// 	return c_oAscNumberingFormat.KoreanDigital2;
+			// case "vietnameseCounting":
+			// 	return c_oAscNumberingFormat.VietnameseCounting;
+			case "russianLower":
+				return c_oAscNumberingFormat.RussianLower;
+			case "russianUpper":
+				return c_oAscNumberingFormat.RussianUpper;
+			case "none":
+				return c_oAscNumberingFormat.None;
+			// case "numberInDash":
+			// 	return c_oAscNumberingFormat.NumberInDash;
+			// case "hebrew1":
+			// 	return c_oAscNumberingFormat.Hebrew1;
+			// case "hebrew2":
+			// 	return c_oAscNumberingFormat.Hebrew2;
+			// case "arabicAlpha":
+			// 	return c_oAscNumberingFormat.ArabicAlpha;
+			// case "arabicAbjad":
+			// 	return c_oAscNumberingFormat.ArabicAbjad;
+			// case "hindiVowels":
+			// 	return c_oAscNumberingFormat.HindiVowels;
+			// case "hindiConsonants":
+			// 	return c_oAscNumberingFormat.HindiConsonants;
+			// case "hindiNumbers":
+			// 	return c_oAscNumberingFormat.HindiNumbers;
+			// case "hindiCounting":
+			// 	return c_oAscNumberingFormat.HindiCounting;
+			// case "thaiLetters":
+			// 	return c_oAscNumberingFormat.ThaiLetters;
+			// case "thaiNumbers":
+			// 	return c_oAscNumberingFormat.ThaiNumbers;
+			// case "thaiCounting":
+			// 	return c_oAscNumberingFormat.ThaiCounting;
+			// case "bahtText":
+			// 	return c_oAscNumberingFormat.BahtText;
+			// case "dollarText":
+			// 	return c_oAscNumberingFormat.DollarText;
+			// case "custom":
+			// 	return c_oAscNumberingFormat.Custom;
+		}
+		return def;
+	}
+	function toXml_ST_NumberFormat(val) {
+		switch (val) {
+			case c_oAscNumberingFormat.Decimal:
+				return "decimal";
+			case c_oAscNumberingFormat.UpperRoman:
+				return "upperRoman";
+			case c_oAscNumberingFormat.LowerRoman:
+				return "lowerRoman";
+			case c_oAscNumberingFormat.UpperLetter:
+				return "upperLetter";
+			case c_oAscNumberingFormat.LowerLetter:
+				return "lowerLetter";
+			// case c_oAscNumberingFormat.Ordinal:
+			// 	return "ordinal";
+			// case c_oAscNumberingFormat.CardinalText:
+			// 	return "cardinalText";
+			// case c_oAscNumberingFormat.OrdinalText:
+			// 	return "ordinalText";
+			// case c_oAscNumberingFormat.Hex:
+			// 	return "hex";
+			// case c_oAscNumberingFormat.Chicago:
+			// 	return "chicago";
+			// case c_oAscNumberingFormat.IdeographDigital:
+			// 	return "ideographDigital";
+			// case c_oAscNumberingFormat.JapaneseCounting:
+			// 	return "japaneseCounting";
+			// case c_oAscNumberingFormat.Aiueo:
+			// 	return "aiueo";
+			// case c_oAscNumberingFormat.Iroha:
+			// 	return "iroha";
+			// case c_oAscNumberingFormat.DecimalFullWidth:
+			// 	return "decimalFullWidth";
+			// case c_oAscNumberingFormat.DecimalHalfWidth:
+			// 	return "decimalHalfWidth";
+			// case c_oAscNumberingFormat.JapaneseLegal:
+			// 	return "japaneseLegal";
+			// case c_oAscNumberingFormat.JapaneseDigitalTenThousand:
+			// 	return "japaneseDigitalTenThousand";
+			case c_oAscNumberingFormat.DecimalEnclosedCircle:
+				return "decimalEnclosedCircle";
+			// case c_oAscNumberingFormat.DecimalFullWidth2:
+			// 	return "decimalFullWidth2";
+			// case c_oAscNumberingFormat.AiueoFullWidth:
+			// 	return "aiueoFullWidth";
+			// case c_oAscNumberingFormat.IrohaFullWidth:
+			// 	return "irohaFullWidth";
+			case c_oAscNumberingFormat.DecimalZero:
+				return "decimalZero";
+			case c_oAscNumberingFormat.Bullet:
+				return "bullet";
+			// case c_oAscNumberingFormat.Ganada:
+			// 	return "ganada";
+			// case c_oAscNumberingFormat.Chosung:
+			// 	return "chosung";
+			// case c_oAscNumberingFormat.DecimalEnclosedFullstop:
+			// 	return "decimalEnclosedFullstop";
+			// case c_oAscNumberingFormat.DecimalEnclosedParen:
+			// 	return "decimalEnclosedParen";
+			// case c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
+			// 	return "decimalEnclosedCircleChinese";
+			// case c_oAscNumberingFormat.IdeographEnclosedCircle:
+			// 	return "ideographEnclosedCircle";
+			// case c_oAscNumberingFormat.IdeographTraditional:
+			// 	return "ideographTraditional";
+			// case c_oAscNumberingFormat.IdeographZodiac:
+			// 	return "ideographZodiac";
+			// case c_oAscNumberingFormat.IdeographZodiacTraditional:
+			// 	return "ideographZodiacTraditional";
+			// case c_oAscNumberingFormat.TaiwaneseCounting:
+			// 	return "taiwaneseCounting";
+			// case c_oAscNumberingFormat.IdeographLegalTraditional:
+			// 	return "ideographLegalTraditional";
+			// case c_oAscNumberingFormat.TaiwaneseCountingThousand:
+			// 	return "taiwaneseCountingThousand";
+			// case c_oAscNumberingFormat.TaiwaneseDigital:
+			// 	return "taiwaneseDigital";
+			case c_oAscNumberingFormat.ChineseCounting:
+				return "chineseCounting";
+			case c_oAscNumberingFormat.ChineseLegalSimplified:
+				return "chineseLegalSimplified";
+			case c_oAscNumberingFormat.ChineseCountingThousand:
+				return "chineseCountingThousand";
+			// case c_oAscNumberingFormat.KoreanDigital:
+			// 	return "koreanDigital";
+			// case c_oAscNumberingFormat.KoreanCounting:
+			// 	return "koreanCounting";
+			// case c_oAscNumberingFormat.KoreanLegal:
+			// 	return "koreanLegal";
+			// case c_oAscNumberingFormat.KoreanDigital2:
+			// 	return "koreanDigital2";
+			// case c_oAscNumberingFormat.VietnameseCounting:
+			// 	return "vietnameseCounting";
+			case c_oAscNumberingFormat.RussianLower:
+				return "russianLower";
+			case c_oAscNumberingFormat.RussianUpper:
+				return "russianUpper";
+			case c_oAscNumberingFormat.None:
+				return "none";
+			// case c_oAscNumberingFormat.NumberInDash:
+			// 	return "numberInDash";
+			// case c_oAscNumberingFormat.Hebrew1:
+			// 	return "hebrew1";
+			// case c_oAscNumberingFormat.Hebrew2:
+			// 	return "hebrew2";
+			// case c_oAscNumberingFormat.ArabicAlpha:
+			// 	return "arabicAlpha";
+			// case c_oAscNumberingFormat.ArabicAbjad:
+			// 	return "arabicAbjad";
+			// case c_oAscNumberingFormat.HindiVowels:
+			// 	return "hindiVowels";
+			// case c_oAscNumberingFormat.HindiConsonants:
+			// 	return "hindiConsonants";
+			// case c_oAscNumberingFormat.HindiNumbers:
+			// 	return "hindiNumbers";
+			// case c_oAscNumberingFormat.HindiCounting:
+			// 	return "hindiCounting";
+			// case c_oAscNumberingFormat.ThaiLetters:
+			// 	return "thaiLetters";
+			// case c_oAscNumberingFormat.ThaiNumbers:
+			// 	return "thaiNumbers";
+			// case c_oAscNumberingFormat.ThaiCounting:
+			// 	return "thaiCounting";
+			// case c_oAscNumberingFormat.BahtText:
+			// 	return "bahtText";
+			// case c_oAscNumberingFormat.DollarText:
+			// 	return "dollarText";
+			// case c_oAscNumberingFormat.Custom:
+			// 	return "custom";
+		}
+		return null;
+	}
+	function fromXml_ST_RestartNumber(val, def) {
+		switch (val) {
+			case "continuous":
+				return section_footnote_RestartContinuous;
+			case "eachSect":
+				return section_footnote_RestartEachSect;
+			case "eachPage":
+				return section_footnote_RestartEachPage;
+		}
+		return def;
+	}
+	function toXml_ST_RestartNumber(val) {
+		switch (val) {
+			case section_footnote_RestartContinuous:
+				return "continuous";
+			case section_footnote_RestartEachSect:
+				return "eachSect";
+			case section_footnote_RestartEachPage:
+				return "eachPage";
 		}
 		return null;
 	}
