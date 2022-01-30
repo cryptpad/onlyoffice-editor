@@ -360,6 +360,37 @@ DrawingObjectsController.prototype.editChart = function(binary)
     }
 };
 
+DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
+{
+    var _this = this;
+    if (binaryInfo) {
+        var blipUrl = binaryInfo.url;
+        var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
+
+        var isImageNotAttendInImageLoader = !AscFormat.ImageLoader.map_image_index[blipUrl];
+        if (isImageNotAttendInImageLoader) {
+            var tryToEditOleObjectAgain = function () {
+                _this.editTableOleObject(binaryInfo);
+            }
+            AscFormat.ImageLoader.LoadImagesWithCallback([blipUrl], tryToEditOleObjectAgain);
+            return;
+        }
+        var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
+        if (selectedObjects.oleObjects.length === 1) {
+            var selectedOleObject = selectedObjects.oleObjects[0];
+            var blipFill = AscFormat.CreateBlipFillUniFillFromUrl(blipUrl);
+            var rasterImageId = blipFill.fill.RasterImageId;
+            var sizes = AscCommon.getSourceImageSize(rasterImageId);
+
+            selectedOleObject.setBinaryData(binaryDataOfSheet);
+            selectedOleObject.setBlipFill(blipFill);
+            selectedOleObject.spPr.xfrm.setExtX(sizes.width);
+            selectedOleObject.spPr.xfrm.setExtY(sizes.height);
+            this.startRecalculate();
+        }
+    }
+};
+
 DrawingObjectsController.prototype.handleSlideComments  =  function(e, x, y, pageIndex)
 {
 

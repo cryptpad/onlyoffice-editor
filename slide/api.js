@@ -7204,6 +7204,20 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.EditChart(chartBinary);
 		}
 	};
+	/**
+	 * edit OleObject after change it in frameEditor
+	 * @param {Object} oleBinary info about workbook of oleObject
+	 * @param {string} oleBinary.binary base64 info about edit workbook for oleObject
+	 * @param {string} oleBinary.url url for snapshot of sheet
+	 */
+	asc_docs_api.prototype.asc_editTableOleObject = function(oleBinary)
+	{
+
+		if (AscCommon.isRealObject(oleBinary))
+		{
+			this.WordControl.m_oLogicDocument.EditTableOleObjectFromBinary(oleBinary);
+		}
+	};
 
 	asc_docs_api.prototype.asc_onCloseChartFrame               = function()
 	{
