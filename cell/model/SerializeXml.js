@@ -170,6 +170,7 @@
 		return res;
 	}
 
+	//****workbook****
 	function CT_Workbook(wb) {
 		//Members
 		this.wb = wb;
@@ -233,7 +234,7 @@
 				} else if ("calcPr" === name) {
 					val = new CT_CalcPr();
 					val.fromXml(reader)
-					this.val = val.val;
+					this.wb.calcPr = val.val;
 				} else if ("externalReferences" === name) {
 					reader.readXmlArray("externalReference", function () {
 						while (reader.MoveToNextAttribute()) {
@@ -260,52 +261,35 @@
 					workbookProtection.fromXml(reader);
 					this.wb.workbookProtection = workbookProtection;
 				} else if ("extLst" === name) {
+					//пока использую только slicerCaches
 					var extLst = new COfficeArtExtensionList(this);
 					extLst.fromXml(reader);
 					this.extLst = extLst.arrExt;
+				} else if ("fileVersion" === name) {
 				}
 				//c_oSerWorkbookTypes.VbaProject - binary, not read
 				//c_oSerWorkbookTypes.JsaProject -> read in api
 			}
 		}
 	};
+
+	/*
+	if(m_oPivotCachesXml.IsInit())
+		writer.WriteString(m_oPivotCachesXml.get());
+	if(m_oExtLst.IsInit())
+		writer.WriteString(m_oExtLst->toXMLWithNS(L""));*/
+
+
 	CT_Workbook.prototype.toXml = function (writer) {
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("workbook");
 		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
 		writer.WriteXmlAttributesEnd();
 
-		var oWorkbookPr = this.wb.WorkbookPr;
-		if (oWorkbookPr != null) {
-			writer.WriteXmlNodeStart('workbookPr');
-
-			/*WritingStringNullableAttrBool(L"allowRefreshQuery", m_oAllowRefreshQuery);
-			WritingStringNullableAttrBool(L"autoCompressPictures", m_oAutoCompressPictures);
-			WritingStringNullableAttrBool(L"backupFile", m_oBackupFile);
-			WritingStringNullableAttrBool(L"checkCompatibility", m_oCheckCompatibility);
-			WritingStringNullableAttrBool(L"codeName", m_oCodeName);
-			WritingStringNullableAttrBool(L"date1904", m_oDate1904);
-			WritingStringNullableAttrBool(L"dateCompatibility", m_oDateCompatibility);
-			WritingStringNullableAttrInt(L"defaultThemeVersion", m_oDefaultThemeVersion, m_oDefaultThemeVersion->GetValue());
-			WritingStringNullableAttrBool(L"filterPrivacy", m_oFilterPrivacy);
-			WritingStringNullableAttrBool(L"hidePivotFieldList", m_oHidePivotFieldList);
-			WritingStringNullableAttrBool(L"promptedSolutions", m_oPromptedSolutions);
-			WritingStringNullableAttrBool(L"publishItems", m_oPublishItems);
-			WritingStringNullableAttrBool(L"refreshAllConnections", m_oRefreshAllConnections);
-			WritingStringNullableAttrBool(L"showBorderUnselectedTables", m_oShowBorderUnselectedTables);
-			WritingStringNullableAttrBool(L"showInkAnnotation", m_oShowInkAnnotation);
-			WritingStringNullableAttrBool(L"showObjects", m_oShowObjects);
-			WritingStringNullableAttrBool(L"showPivotChartFilter", m_oShowPivotChartFilter);
-			WritingStringNullableAttrString(L"updateLinks", m_oUpdateLinks, m_oUpdateLinks->ToString());*/
-
-			writer.WriteXmlNullableAttributeBool("date1904", this.wb.WorkbookPr.Date1904);
-			writer.WriteXmlNullableAttributeBool("dateCompatibility", this.wb.WorkbookPr.DateCompatibility);
-			writer.WriteXmlNullableAttributeBool("hidePivotFieldList", this.wb.WorkbookPr.HidePivotFieldList);
-			writer.WriteXmlNullableAttributeBool("showPivotChartFilter", this.wb.WorkbookPr.ShowPivotChartFilter);
-			writer.WriteXmlAttributesEnd(true);
-			writer.WriteXmlNodeEnd('workbookPr');
+		if (this.wb.WorkbookPr) {
+			var workbookPr = new CT_WorkbookPr(this.wb.WorkbookPr);
+			workbookPr.toXml(writer);
 		}
-
 		if (this.wb.workbookProtection) {
 			this.wb.workbookProtection.toXml(writer);
 		}
@@ -322,7 +306,8 @@
 		var sheetsXml = new CT_Sheets(this.wb);
 		sheetsXml.toXml(writer);
 
-		//m_oExternalReferences
+		var externalReferences = new CT_ExternalReferences(this.wb);
+		externalReferences.toXml(writer);
 
 		var defNameList = writer.context.InitSaveManager.defNameList;
 		if (defNameList && defNameList.length) {
@@ -337,21 +322,10 @@
 			writer.WriteXmlNodeEnd("definedNames");
 		}
 
-		writer.WriteXmlNodeStart('calcPr');
-		writer.WriteXmlNullableAttributeNumber("calcId", this.calcId != undefined ? this.calcId : null);
-		writer.WriteXmlNullableAttributeString("calcMode", this.calcMode != undefined ? this.calcMode : null);
-		writer.WriteXmlNullableAttributeBool("fullCalcOnLoad", this.fullCalcOnLoad != undefined ? this.fullCalcOnLoad : null);
-		writer.WriteXmlNullableAttributeString("refMode", this.refMode != undefined ? this.refMode : null);
-		writer.WriteXmlNullableAttributeBool("iterate", this.iterate != undefined ? this.iterate : null);
-		writer.WriteXmlNullableAttributeNumber("iterateCount", this.iterateCount != undefined ? this.iterateCount : null);
-		writer.WriteXmlNullableAttributeNumber("iterateDelta", this.iterateDelta != undefined ? this.iterateDelta : null);
-		writer.WriteXmlNullableAttributeBool("fullPrecision", this.fullPrecision != undefined ? this.fullPrecision : null);
-		writer.WriteXmlNullableAttributeBool("calcCompleted", this.calcCompleted != undefined ? this.calcCompleted : null);
-		writer.WriteXmlNullableAttributeBool("calcOnSave", this.calcOnSave != undefined ? this.calcOnSave : null);
-		writer.WriteXmlNullableAttributeBool("concurrentCalc", this.concurrentCalc != undefined ? this.concurrentCalc : null);
-		writer.WriteXmlNullableAttributeNumber("concurrentManualCount", this.concurrentManualCount != undefined ? this.concurrentManualCount : null);
-		writer.WriteXmlNullableAttributeBool("forceFullCalc", this.forceFullCalc != undefined ? this.forceFullCalc : null);
-		writer.WriteXmlAttributesEnd(true);
+		if (null != this.wb.calcPr) {
+			var calcPr = new CT_CalcPr(this.wb.calcPr);
+			calcPr.toXml(writer);
+		}
 
 		/*if(m_oPivotCachesXml.IsInit())
 			writer.WriteString(m_oPivotCachesXml.get());
@@ -361,80 +335,8 @@
 		writer.WriteXmlNodeEnd("workbook");
 	};
 
-	function CT_WorkbookPr () {
-		this.val = {};
-	}
-	CT_WorkbookPr.prototype.fromXml = function (reader) {
-		this.readAttr(reader);
-
-		if (reader.IsEmptyNode()) {
-			reader.ReadTillEnd();
-		}
-	};
-	CT_WorkbookPr.prototype.fromXml = function (reader) {
-		var val;
-		while (reader.MoveToNextAttribute()) {
-			/*if ("allowRefreshQuery" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.allowRefreshQuery = val;
-			} else if ("autoCompressPictures" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.autoCompressPictures = val;
-			} else if ("backupFile" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.backupFile = val;
-			} else if ("checkCompatibility" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.checkCompatibility = val;
-			} else if ("codeName" === reader.GetName()) {
-				val = reader.GetValue();
-				this.codeName = val;
-			} else*/ if ("date1904" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.val.Date1904 = val;
-			} else if ("dateCompatibility" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.val.DateCompatibility = val;
-			} /*else if ("defaultThemeVersion" === reader.GetName()) {
-				val = reader.GetValueInt();
-				this.defaultThemeVersion = val;
-			} else if ("filterPrivacy" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.filterPrivacy = val;
-			}*/
-			else if ("hidePivotFieldList" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.val.HidePivotFieldList = val;
-			} /*else if ("promptedSolutions" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.promptedSolutions = val;
-			} else if ("publishItems" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.publishItems = val;
-			} else if ("refreshAllConnections" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.refreshAllConnections = val;
-			} else if ("showBorderUnselectedTables" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.showBorderUnselectedTables = val;
-			} else if ("showInkAnnotation" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.showInkAnnotation = val;
-			} else if ("showObjects" === reader.GetName()) {
-				val = reader.GetValue();
-				this.showObjects = val;
-			}*/ else if ("showPivotChartFilter" === reader.GetName()) {
-				val = reader.GetValueBool();
-				this.val.ShowPivotChartFilter = val;
-			} /*else if ("updateLinks" === reader.GetName()) {
-				val = reader.GetValue();
-				this.updateLinks = val;
-			}*/
-		}
-	};
-
-	function CT_CalcPr () {
-		this.val = {
+	function CT_CalcPr (val) {
+		this.val = val ? val : {
 			calcId: null, calcMode: null, fullCalcOnLoad: null, refMode: null, iterate: null, iterateCount: null,
 			iterateDelta: null, fullPrecision: null, calcCompleted: null, calcOnSave: null, concurrentCalc: null,
 			concurrentManualCount: null, forceFullCalc: null
@@ -493,8 +395,26 @@
 		}
 	};
 
-	function CT_WorkbookPr () {
-		this.val = {};
+	CT_CalcPr.prototype.toXml = function (writer) {
+		writer.WriteXmlNodeStart('calcPr');
+		writer.WriteXmlNullableAttributeNumber("calcId", this.val.calcId);
+		writer.WriteXmlNullableAttributeString("calcMode", this.val.calcMode);
+		writer.WriteXmlNullableAttributeBool("fullCalcOnLoad", this.val.fullCalcOnLoad);
+		writer.WriteXmlNullableAttributeString("refMode", this.val.refMode);
+		writer.WriteXmlNullableAttributeBool("iterate", this.val.iterate);
+		writer.WriteXmlNullableAttributeNumber("iterateCount", this.val.iterateCount);
+		writer.WriteXmlNullableAttributeNumber("iterateDelta", this.val.iterateDelta);
+		writer.WriteXmlNullableAttributeBool("fullPrecision", this.val.fullPrecision);
+		writer.WriteXmlNullableAttributeBool("calcCompleted", this.val.calcCompleted);
+		writer.WriteXmlNullableAttributeBool("calcOnSave", this.val.calcOnSave);
+		writer.WriteXmlNullableAttributeBool("concurrentCalc", this.val.concurrentCalc);
+		writer.WriteXmlNullableAttributeNumber("concurrentManualCount", this.val.concurrentManualCount);
+		writer.WriteXmlNullableAttributeBool("forceFullCalc", this.val.forceFullCalc);
+		writer.WriteXmlAttributesEnd(true);
+	}
+
+	function CT_WorkbookPr (val) {
+		this.val = val ? val : {};
 	}
 	CT_WorkbookPr.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
@@ -563,6 +483,36 @@
 				this.updateLinks = val;
 			}*/
 		}
+	};
+
+	CT_WorkbookPr.prototype.toXml = function (writer) {
+		writer.WriteXmlNodeStart('workbookPr');
+
+		/*WritingStringNullableAttrBool(L"allowRefreshQuery", m_oAllowRefreshQuery);
+		WritingStringNullableAttrBool(L"autoCompressPictures", m_oAutoCompressPictures);
+		WritingStringNullableAttrBool(L"backupFile", m_oBackupFile);
+		WritingStringNullableAttrBool(L"checkCompatibility", m_oCheckCompatibility);
+		WritingStringNullableAttrBool(L"codeName", m_oCodeName);
+		WritingStringNullableAttrBool(L"date1904", m_oDate1904);
+		WritingStringNullableAttrBool(L"dateCompatibility", m_oDateCompatibility);
+		WritingStringNullableAttrInt(L"defaultThemeVersion", m_oDefaultThemeVersion, m_oDefaultThemeVersion->GetValue());
+		WritingStringNullableAttrBool(L"filterPrivacy", m_oFilterPrivacy);
+		WritingStringNullableAttrBool(L"hidePivotFieldList", m_oHidePivotFieldList);
+		WritingStringNullableAttrBool(L"promptedSolutions", m_oPromptedSolutions);
+		WritingStringNullableAttrBool(L"publishItems", m_oPublishItems);
+		WritingStringNullableAttrBool(L"refreshAllConnections", m_oRefreshAllConnections);
+		WritingStringNullableAttrBool(L"showBorderUnselectedTables", m_oShowBorderUnselectedTables);
+		WritingStringNullableAttrBool(L"showInkAnnotation", m_oShowInkAnnotation);
+		WritingStringNullableAttrBool(L"showObjects", m_oShowObjects);
+		WritingStringNullableAttrBool(L"showPivotChartFilter", m_oShowPivotChartFilter);
+		WritingStringNullableAttrString(L"updateLinks", m_oUpdateLinks, m_oUpdateLinks->ToString());*/
+
+		writer.WriteXmlNullableAttributeBool("date1904", this.val.Date1904);
+		writer.WriteXmlNullableAttributeBool("dateCompatibility", this.val.DateCompatibility);
+		writer.WriteXmlNullableAttributeBool("hidePivotFieldList", this.val.HidePivotFieldList);
+		writer.WriteXmlNullableAttributeBool("showPivotChartFilter", this.val.ShowPivotChartFilter);
+		writer.WriteXmlAttributesEnd(true);
+		writer.WriteXmlNodeEnd('workbookPr');
 	};
 
 	Asc.CWorkbookProtection.prototype.toXml = function (writer) {
@@ -1666,7 +1616,8 @@
 		var s = context.stylesForWrite.add(this.xfs) || null;
 		var formulaToWrite = null;
 		if (this.isFormula() && !(context.isCopyPaste && ws.bIgnoreWriteFormulas)) {
-			formulaToWrite = ws.PrepareFormulaToWrite(this);
+			//TODO вынести функцию в общий класс
+			//formulaToWrite = ws.PrepareFormulaToWrite(this);
 		}
 		var text = null;
 		var number = null;
@@ -9320,8 +9271,38 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 	//***External Reference****
+	function CT_ExternalReferences(wb) {
+		this.wb = wb;
+		this.externalReferences = [];
+	}
+	CT_ExternalReferences.prototype.toXml = function(writer) {
+		var t = this;
+		var context = writer.context;
+		var ids = [];
+		this.wb.externalReferences.forEach(function(externalReference) {
+			//здесь пишем externalLink[]
+			var oExternalReference = new CT_ExternalReference();
+			oExternalReference.val = externalReference;
+			var wsPart = context.part.addPart(AscCommon.openXml.Types.externalWorkbook);
+			//внутри дёргается toXml
+			wsPart.part.setDataXml(oExternalReference, writer);
+			ids.push(wsPart.rId);
+		});
+
+		writer.WriteXmlNodeStart("externalReferences");
+		writer.WriteXmlAttributesEnd();
+		ids.forEach(function(id) {
+			//здесь пишем ссылку в externalReferences на externalLink[]
+			writer.WriteXmlNodeStart("externalReference");
+			writer.WriteXmlNullableAttributeString("r:id", id);
+			writer.WriteXmlAttributesEnd(true);
+		});
+		writer.WriteXmlNodeEnd("externalReferences");
+	};
+
 	function CT_ExternalReference() {
 		this.val = null;
+		this.id = null;
 	}
 	CT_ExternalReference.prototype.fromXml = function (reader) {
 
@@ -9432,6 +9413,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				}
 			}
 		}
+	};
+
+	CT_ExternalReference.prototype.toXml = function (writer) {
+
 	};
 
 	function CT_ExternalSheetNames() {
