@@ -274,8 +274,6 @@
 	};
 
 	/*
-	if(m_oPivotCachesXml.IsInit())
-		writer.WriteString(m_oPivotCachesXml.get());
 	if(m_oExtLst.IsInit())
 		writer.WriteString(m_oExtLst->toXMLWithNS(L""));*/
 
@@ -321,7 +319,7 @@
 
 			for (var i = 0; i < defNameList.length; ++i) {
 				if (defNameList[i]) {
-					defNameList[i].toXML(writer);
+					defNameList[i].toXml(writer);
 				}
 			}
 
@@ -1062,22 +1060,109 @@
 
 		this.prepareExtLst(extLst);
 	};
+
+	//TODO PrepareToWrite
+
 	AscCommonExcel.Worksheet.prototype.toXml = function (writer) {
 		var t = this;
 		var context = writer.context;
+
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("worksheet");
-		writer.WriteXmlString(
-			' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"');
+		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"');
 		writer.WriteXmlAttributesEnd();
 
+		//TODO dimension ?
 		writer.WriteXmlString('<dimension ref="A1"/>');
-		writer.WriteXmlString('<sheetViews><sheetView tabSelected="1" workbookViewId="0"/></sheetViews>');
-		writer.WriteXmlString('<sheetFormatPr defaultRowHeight="15" x14ac:dyDescent="0.25"/>');
+
+		if(this.sheetPr) {
+			this.sheetPr.toXml(writer);
+		}
+		if (this.sheetViews) {
+			writer.WriteXmlArray(this.sheetViews, this/*протаскиваю таким образом ws*/, "sheetViews");
+		}
+		if (this.oSheetFormatPr) {
+			this.oSheetFormatPr.toXml(writer, this);
+		}
+
+		//WriteWorksheetCols
+		//TODO пропускаю пока cols
+
+
+		//sheetData
 		writer.WriteXmlNodeStart('sheetData');
 		writer.WriteXmlAttributesEnd();
 		this.toXmlSheetData(writer);
 		writer.WriteXmlNodeEnd("sheetData");
+
+		if (this.sheetProtection) {
+			this.sheetProtection.toXml(writer);
+		}
+		if (this.AutoFilter) {
+			this.AutoFilter.toXml(writer);
+		}
+		if (this.sortState) {
+			this.sortState.toXml(writer);
+		}
+
+		/*if (this.DataConsolidate) {
+			this.DataConsolidate.toXml(writer);
+		}*/
+
+
+
+
+		/*
+		if(m_oCols.IsInit())
+			m_oCols->toXML(writer);
+
+
+		
+		if(m_oMergeCells.IsInit())
+			m_oMergeCells->toXML(writer);
+		for (size_t nIndex = 0, nLength = m_arrConditionalFormatting.size(); nIndex < nLength; ++nIndex)
+		m_arrConditionalFormatting[nIndex]->toXML(writer);
+		if(m_oDataValidations.IsInit())
+			m_oDataValidations->toXML(writer);
+		if(m_oHyperlinks.IsInit())
+			m_oHyperlinks->toXML(writer);
+		if(m_oPrintOptions.IsInit())
+			m_oPrintOptions->toXML(writer);
+		if(m_oPageMargins.IsInit())
+			m_oPageMargins->toXML(writer);
+		if(m_oPageSetup.IsInit())
+			m_oPageSetup->toXML(writer);
+		if(m_oHeaderFooter.IsInit())
+			m_oHeaderFooter->toXML(writer);
+		if(m_oRowBreaks.IsInit())
+			m_oRowBreaks->toXML(writer);
+		if(m_oColBreaks.IsInit())
+			m_oColBreaks->toXML(writer);
+		if(m_oDrawing.IsInit())
+			m_oDrawing->toXML(writer);
+		if(m_oLegacyDrawing.IsInit())
+			m_oLegacyDrawing->toXML(writer);
+		if(m_oLegacyDrawingHF.IsInit())
+			m_oLegacyDrawingHF->toXML(writer);
+		if(m_oPicture.IsInit())
+			m_oPicture->toXML(writer);
+		if(m_oOleObjects.IsInit())
+			m_oOleObjects->toXML(writer);
+		if(m_oControls.IsInit())
+			m_oControls->toXML(writer);
+		if(m_oTableParts.IsInit())
+			m_oTableParts->toXML(writer);
+		if(m_oExtLst.IsInit())
+		{
+			writer.WriteString(m_oExtLst->toXMLWithNS(L""));
+		}*/
+
+
+
+
+
+
+		//drawings
 		if (this.Drawings.length > 0) {
 			var drawing = new AscCommonExcel.CT_DrawingWS(t);
 			var drawingPart = context.part.addPart(AscCommon.openXml.Types.drawings);
@@ -4648,6 +4733,37 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.SheetFormatPr.prototype.toXml = function (writer) {
+
+		/*writer.WriteString((L"<sheetFormatPr"));
+						WritingStringNullableAttrInt2(L"baseColWidth", m_oBaseColWidth);
+						WritingStringNullableAttrBool2(L"customHeight", m_oCustomHeight);
+						WritingStringNullableAttrDouble2(L"defaultColWidth", m_oDefaultColWidth);
+						WritingStringNullableAttrDouble2(L"defaultRowHeight", m_oDefaultRowHeight);
+						WritingStringNullableAttrInt2(L"outlineLevelCol", m_oOutlineLevelCol);
+						WritingStringNullableAttrInt2(L"outlineLevelRow", m_oOutlineLevelRow);
+						WritingStringNullableAttrBool2(L"thickBottom", m_oThickBottom);
+						WritingStringNullableAttrBool2(L"thickTop", m_oThickTop);
+						WritingStringNullableAttrBool2(L"zeroHeight", m_oZeroHeight);
+						writer.WriteString((L"/>"));*/
+
+
+		//TODO в x2t все функции с окончанием 2
+		var oAllRow = this.oAllRow;
+		writer.WriteXmlString(("<sheetFormatPr"));
+		writer.WriteXmlNullableAttributeNumber("baseColWidth", this.nBaseColWidth);
+		writer.WriteXmlNullableAttributeBool("customHeight", oAllRow.getCustomHeight() ? true : null);
+		writer.WriteXmlNullableAttributeDouble("defaultColWidth", this.dDefaultColWidth);
+		writer.WriteXmlNullableAttributeDouble("defaultRowHeight", oAllRow.h ? oAllRow.h : null);
+		writer.WriteXmlNullableAttributeNumber("outlineLevelCol", oAllRow.nOutlineLevelCol > 0 ? oAllRow.nOutlineLevelCol : null);
+		writer.WriteXmlNullableAttributeNumber("outlineLevelRow", oAllRow.getOutlineLevel() > 0 ? true : null);
+		//writer.WriteXmlNullableAttributeBool("thickBottom", this.thickBottom);
+		//writer.WriteXmlNullableAttributeBool("thickTop", this.thickTop);
+		writer.WriteXmlNullableAttributeBool("zeroHeight", oAllRow.getHidden() ? true : null);
+		writer.WriteXmlString(("/>"));
+
+	};
+
 	AscCommonExcel.asc_CSheetViewSettings.prototype.fromXml = function (reader, ws) {
 
 		/*ReadAttributes( oReader );
@@ -4869,6 +4985,77 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.asc_CSheetViewSettings.prototype.toXml = function (writer, ws) {
+
+		/*writer.WriteString((L"<sheetView"));
+						WritingStringNullableAttrInt(L"colorId", m_oColorId, m_oColorId->GetValue());
+						WritingStringNullableAttrBool(L"defaultGridColor", m_oDefaultGridColor);
+						WritingStringNullableAttrBool(L"rightToLeft", m_oRightToLeft);
+						WritingStringNullableAttrBool(L"showFormulas", m_oShowFormulas);
+						WritingStringNullableAttrBool(L"showGridLines", m_oShowGridLines);
+						WritingStringNullableAttrBool(L"showOutlineSymbols", m_oShowOutlineSymbols);
+						WritingStringNullableAttrBool(L"showRowColHeaders", m_oShowRowColHeaders);
+						WritingStringNullableAttrBool(L"showRuler", m_oShowRuler);
+						WritingStringNullableAttrBool(L"showWhiteSpace", m_oShowWhiteSpace);
+						WritingStringNullableAttrBool(L"showZeros", m_oShowZeros)
+						WritingStringNullableAttrBool(L"tabSelected", m_oTabSelected);
+						WritingStringNullableAttrString(L"topLeftCell", m_oTopLeftCell, m_oTopLeftCell.get());
+						WritingStringNullableAttrString(L"view", m_oView, m_oView->ToString());
+						WritingStringNullableAttrBool(L"windowProtection", m_oWindowProtection);
+						WritingStringNullableAttrInt(L"workbookViewId", m_oWorkbookViewId, m_oWorkbookViewId->GetValue());
+						WritingStringNullableAttrInt(L"zoomScale", m_oZoomScale, m_oZoomScale->GetValue());
+						WritingStringNullableAttrInt(L"zoomScaleNormal", m_oZoomScaleNormal, m_oZoomScaleNormal->GetValue());
+						WritingStringNullableAttrInt(L"zoomScalePageLayoutView", m_oZoomScalePageLayoutView, m_oZoomScalePageLayoutView->GetValue());
+						WritingStringNullableAttrInt(L"zoomScaleSheetLayoutView", m_oZoomScaleSheetLayoutView, m_oZoomScaleSheetLayoutView->GetValue());
+						writer.WriteString((L">"));
+
+						if (m_oPane.IsInit())
+							m_oPane->toXML(writer);
+
+						for ( size_t i = 0; i < m_arrItems.size(); ++i)
+						{
+							if ( m_arrItems[i] )
+							{
+								m_arrItems[i]->toXML(writer);
+							}
+						}
+
+						writer.WriteString((L"</sheetView>"));*/
+
+		writer.WriteXmlString(("<sheetView"));
+		//writer.WriteXmlNullableAttributeNumber("colorId", this.colorId);
+		//writer.WriteXmlNullableAttributeBool("defaultGridColor", this.defaultGridColor);
+		//writer.WriteXmlNullableAttributeBool("rightToLeft", this.rightToLeft);
+		//writer.WriteXmlNullableAttributeBool("showFormulas", this.showFormulas);
+		writer.WriteXmlNullableAttributeBool("showGridLines", this.showGridLines);
+		//writer.WriteXmlNullableAttributeBool("showOutlineSymbols", this.showOutlineSymbols);
+		writer.WriteXmlNullableAttributeBool("showRowColHeaders", this.showRowColHeaders);
+		//writer.WriteXmlNullableAttributeBool("showRuler", this.showRuler);
+		//writer.WriteXmlNullableAttributeBool("showWhiteSpace", this.showWhiteSpace);
+		writer.WriteXmlNullableAttributeBool("showZeros", this.showZeros);
+		//writer.WriteXmlNullableAttributeBool("tabSelected", this.tabSelected);
+		writer.WriteXmlNullableAttributeString("topLeftCell", this.topLeftCell ? this.topLeftCell.getName() : null);
+		//writer.WriteXmlNullableAttributeString("view", this.view);
+		//writer.WriteXmlNullableAttributeBool("windowProtection", this.windowProtection);
+		//writer.WriteXmlNullableAttributeNumber("workbookViewId", this.workbookViewId);
+		//writer.WriteXmlNullableAttributeNumber("zoomScale", this.zoomScale);
+		//writer.WriteXmlNullableAttributeNumber("zoomScaleNormal", this.zoomScaleNormal);
+		//writer.WriteXmlNullableAttributeNumber("zoomScalePageLayoutView", this.zoomScalePageLayoutView);
+		//writer.WriteXmlNullableAttributeNumber("zoomScaleSheetLayoutView", this.zoomScaleSheetLayoutView);
+		writer.WriteXmlString((">"));
+
+		if (this.pane) {
+			this.pane.toXml(writer);
+		}
+
+		if (ws.selectionRange) {
+			ws.selectionRange.toXml(writer);
+		}
+
+		writer.WriteXmlString(("</sheetView>"));
+	};
+
+
 	AscCommonExcel.asc_CPane.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes( oReader );
@@ -4933,6 +5120,25 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.ySplit = val;
 			}
 		}
+	};
+
+	AscCommonExcel.asc_CPane.prototype.toXml = function (writer) {
+
+		/*writer.WriteString((L"<pane"));
+						WritingStringNullableAttrString(L"activePane", m_oActivePane, m_oActivePane->ToString());
+						WritingStringNullableAttrString(L"state", m_oState, m_oState->ToString());
+						WritingStringNullableAttrString(L"topLeftCell", m_oTopLeftCell, m_oTopLeftCell.get());
+						WritingStringNullableAttrDouble(L"xSplit", m_oXSplit, m_oXSplit->GetValue());
+						WritingStringNullableAttrDouble(L"ySplit", m_oYSplit, m_oYSplit->GetValue());
+						writer.WriteString((L"/>"));*/
+
+		writer.WriteXmlString(("<pane"));
+		writer.WriteXmlNullableAttributeString("activePane", this.activePane);
+		writer.WriteXmlNullableAttributeString("state", this.state);
+		writer.WriteXmlNullableAttributeString("topLeftCell", this.topLeftCell);
+		writer.WriteXmlNullableAttributeNumber("xSplit", this.xSplit);
+		writer.WriteXmlNullableAttributeNumber("ySplit", this.ySplit);
+		writer.WriteXmlString(("/>"));
 	};
 
 	AscCommonExcel.SelectionRange.prototype.fromXml = function (reader) {
@@ -5002,6 +5208,23 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				//this.pane = val;
 			}
 		}
+	};
+
+	AscCommonExcel.SelectionRange.prototype.toXml = function (writer) {
+
+		/*writer.WriteString((L"<selection"));
+						WritingStringNullableAttrString(L"activeCell", m_oActiveCell, m_oActiveCell.get());
+						WritingStringNullableAttrInt(L"activeCellId", m_oActiveCellId, m_oActiveCellId->GetValue());
+						WritingStringNullableAttrString(L"pane", m_oPane, m_oPane->ToString());
+						WritingStringNullableAttrString(L"sqref", m_oSqref, m_oSqref.get());
+						writer.WriteString((L"/>"));*/
+
+		writer.WriteXmlString(("<selection"));
+		writer.WriteXmlNullableAttributeString("activeCell", this.activeCell ? this.activeCell.getName() : null);
+		writer.WriteXmlNullableAttributeNumber("activeCellId", this.activeCellId);
+		//writer.WriteXmlNullableAttributeString("pane", this.pane);
+		writer.WriteXmlNullableAttributeString("sqref", this.ranges ? AscCommonExcel.getSqRefString(this.ranges) : null);
+		writer.WriteXmlString(("/>"));
 	};
 
 	Asc.CProtectedRange.prototype.fromXml = function (reader) {
@@ -5439,6 +5662,59 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.sort = val;
 			}
 		}
+	};
+
+	Asc.CSheetProtection.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<sheetProtection");
+							WritingStringNullableAttrString(L"password",	m_oPassword,		m_oPassword.get());
+							WritingStringNullableAttrString(L"algorithmName",m_oAlgorithmName,	m_oAlgorithmName->ToString());
+							WritingStringNullableAttrString(L"hashValue",	m_oHashValue,		m_oHashValue.get());
+							WritingStringNullableAttrString(L"saltValue",	m_oSaltValue,		m_oSaltValue.get());
+							WritingStringNullableAttrInt(L"spinCount",		m_oSpinCount,		m_oSpinCount->GetValue());
+							WritingStringNullableAttrInt(L"autoFilter",		m_oAutoFilter,		m_oAutoFilter->GetValue());
+							WritingStringNullableAttrInt(L"content",		m_oContent,			m_oContent->GetValue());
+							WritingStringNullableAttrInt(L"deleteColumns",	m_oDeleteColumns,	m_oDeleteColumns->GetValue());
+							WritingStringNullableAttrInt(L"deleteRows",		m_oDeleteRows,		m_oDeleteRows->GetValue());
+							WritingStringNullableAttrInt(L"formatCells",	m_oFormatCells,		m_oFormatCells->GetValue());
+							WritingStringNullableAttrInt(L"formatColumns",	m_oFormatColumns,	m_oFormatColumns->GetValue());
+							WritingStringNullableAttrInt(L"formatRows",		m_oFormatRows,		m_oFormatRows->GetValue());
+							WritingStringNullableAttrInt(L"insertColumns",	m_oInsertColumns,	m_oInsertColumns->GetValue());
+							WritingStringNullableAttrInt(L"insertHyperlinks", m_oInsertHyperlinks, m_oInsertHyperlinks->GetValue());
+							WritingStringNullableAttrInt(L"insertRows",		m_oInsertRows,		m_oInsertRows->GetValue());
+							WritingStringNullableAttrInt(L"objects",		m_oObjects,			m_oObjects->GetValue());
+							WritingStringNullableAttrInt(L"pivotTables",	m_oPivotTables,		m_oPivotTables->GetValue());
+							WritingStringNullableAttrInt(L"scenarios",		m_oScenarios,		m_oScenarios->GetValue());
+							WritingStringNullableAttrInt(L"selectLockedCells",	m_oSelectLockedCells,	m_oSelectLockedCells->GetValue());
+							WritingStringNullableAttrInt(L"selectUnlockedCells",	m_oSelectUnlockedCells,	m_oSelectUnlockedCells->GetValue());
+							WritingStringNullableAttrInt(L"sheet",			m_oSheet,			m_oSheet->GetValue());
+							WritingStringNullableAttrInt(L"sort",			m_oSort,			m_oSort->GetValue());
+						writer.WriteString(L"/>");*/
+
+		writer.WriteXmlString("<sheetProtection");
+		writer.WriteXmlNullableAttributeString("password", this.password);
+		writer.WriteXmlNullableAttributeString("algorithmName", this.algorithmName);
+		writer.WriteXmlNullableAttributeString("hashValue", this.hashValue);
+		writer.WriteXmlNullableAttributeString("saltValue", this.saltValue);
+		writer.WriteXmlNullableAttributeNumber("spinCount", this.spinCount);
+		writer.WriteXmlNullableAttributeNumber("autoFilter", this.autoFilter);
+		writer.WriteXmlNullableAttributeNumber("content", this.content);
+		writer.WriteXmlNullableAttributeNumber("deleteColumns", this.deleteColumns);
+		writer.WriteXmlNullableAttributeNumber("deleteRows", this.deleteRows);
+		writer.WriteXmlNullableAttributeNumber("formatCells", this.formatCells);
+		writer.WriteXmlNullableAttributeNumber("formatColumns", this.formatColumns);
+		writer.WriteXmlNullableAttributeNumber("formatRows", this.formatRows);
+		writer.WriteXmlNullableAttributeNumber("insertColumns", this.insertColumns);
+		writer.WriteXmlNullableAttributeNumber("insertHyperlinks", this.insertHyperlinks);
+		writer.WriteXmlNullableAttributeNumber("insertRows", this.insertRows);
+		writer.WriteXmlNullableAttributeNumber("objects", this.objects);
+		writer.WriteXmlNullableAttributeNumber("pivotTables", this.pivotTables);
+		writer.WriteXmlNullableAttributeNumber("scenarios", this.scenarios);
+		writer.WriteXmlNullableAttributeNumber("selectLockedCells", this.selectLockedCells);
+		writer.WriteXmlNullableAttributeNumber("selectUnlockedCells", this.selectUnlockedCells);
+		writer.WriteXmlNullableAttributeNumber("sheet", this.sheet);
+		writer.WriteXmlNullableAttributeNumber("sort", this.sort);
+		writer.WriteXmlString("/>");
 	};
 
 	//****sparklines****
@@ -7469,15 +7745,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("tabColor" === name) {
-				//TODO ReadColorSpreadsheet2
-				/*var color = ReadColorSpreadsheet2(this.bcr, length);
+				var color = AscCommon.getColorFromXml2(reader);
 				if (color) {
-					oSheetPr.TabColor = color;
-				}*/
+					this.TabColor = color;
+				}
 			} else if ("pageSetUpPr" === name) {
-				val = new CPageSetUpPr();
+				val = new CPageSetUpPr(this);
 				val.fromXml(reader);
-				this.PageSetUpPr = val
 			} else if ("outlinePr" === name) {
 				val = new COutlinePr();
 				val.fromXml(reader);
@@ -7621,24 +7895,23 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeBool("transitionEvaluation", this.TransitionEvaluation);
 		writer.WriteXmlString((">"));
 
-		if (this.TabColor)
-		{
-			//TODO
-			this.TabColor.toXML(writer,"tabColor");
+		var val;
+		if (this.TabColor) {
+			//TODO запись цвета
+			this.TabColor.toXml(writer, "tabColor");
 		}
-		if (this.OutlinePr)
-		{
-			this.OutlinePr.toXML(writer);
-		}
-		if (this.PageSetUpPr)
-		{
-			this.PageSetUpPr.toXML(writer);
-		}
+		//TODO пока не делаю отедльных классов для модели. нужно сделать + изменить serialize + history
+		val = new CPageSetUpPr(this);
+		val.toXml(writer);
+
+		val = new COutlinePr(this);
+		val.toXml(writer);
+
 		writer.WriteXmlString(("</sheetPr>"));
 	};
 
-	function CPageSetUpPr() {
-
+	function CPageSetUpPr(sheetPr) {
+		this.SheetPr = sheetPr;
 	}
 	CPageSetUpPr.prototype.fromXml = function (reader) {
 
@@ -7675,10 +7948,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.MoveToNextAttribute()) {
 			if ("autoPageBreaks" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.AutoPageBreaks = val;
+				this.SheetPr.AutoPageBreaks = val;
 			} else if ("fitToPage" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.FitToPage = val;
+				this.SheetPr.FitToPage = val;
 			}
 		}
 	};
@@ -7691,13 +7964,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						writer.WriteString((L"/>"));*/
 
 		writer.WriteXmlString(("<pageSetUpPr"));
-		writer.WriteXmlNullableAttributeBool("autoPageBreaks", this.AutoPageBreaks);
-		writer.WriteXmlNullableAttributeBool("fitToPage", this.FitToPage);
+		writer.WriteXmlNullableAttributeBool("autoPageBreaks", this.SheetPr.AutoPageBreaks);
+		writer.WriteXmlNullableAttributeBool("fitToPage", this.SheetPr.FitToPage);
 		writer.WriteXmlString(("/>"));
 	};
 
-	function COutlinePr () {
-
+	function COutlinePr(outlinePr) {
+		this.outlinePr = outlinePr;
 	}
 	COutlinePr.prototype.fromXml = function (reader) {
 
@@ -7742,16 +8015,16 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.MoveToNextAttribute()) {
 			if ("applyStyles" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.ApplyStyles = val;
+				this.outlinePr.ApplyStyles = val;
 			} else if ("showOutlineSymbols" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.ShowOutlineSymbols = val;
+				this.outlinePr.ShowOutlineSymbols = val;
 			} else if ("summaryBelow" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.SummaryBelow = val;
+				this.outlinePr.SummaryBelow = val;
 			} else if ("summaryRight" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.SummaryRight = val;
+				this.outlinePr.SummaryRight = val;
 			}
 		}
 	};
@@ -7766,10 +8039,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						writer.WriteString((L"/>"));*/
 
 		writer.WriteXmlString(("<outlinePr"));
-		writer.WriteXmlNullableAttributeBool("applyStyles", this.ApplyStyles);
-		writer.WriteXmlNullableAttributeBool("showOutlineSymbols", this.ShowOutlineSymbols);
-		writer.WriteXmlNullableAttributeBool("summaryBelow", this.SummaryBelow);
-		writer.WriteXmlNullableAttributeBool("summaryRight", this.SummaryRight);
+		writer.WriteXmlNullableAttributeBool("applyStyles", this.outlinePr.ApplyStyles);
+		writer.WriteXmlNullableAttributeBool("showOutlineSymbols", this.outlinePr.ShowOutlineSymbols);
+		writer.WriteXmlNullableAttributeBool("summaryBelow", this.outlinePr.SummaryBelow);
+		writer.WriteXmlNullableAttributeBool("summaryRight", this.outlinePr.SummaryRight);
 		writer.WriteXmlString(("/>"));
 	};
 
@@ -10995,11 +11268,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		console.log(res);
 	}
 
-	var _x2tToXml = 'sXml.WriteString((L"<?xml version=\\"1.0\\" encoding=\\"UTF-8\\" standalone=\\"yes\\"?>"));\n' +
-		'\t\t\t\tsXml.WriteString((L"<externalLink xmlns=\\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\\">"));\n' + '\t\t\t\n' +
-		'\t\t\t\tif (m_oExternalBook.IsInit())\n' + '\t\t\t\t{\n' + '\t\t\t\t\tm_oExternalBook->toXML(sXml);\n' + '\t\t\t\t}\n' + '\t\t\t\tif (m_oOleLink.IsInit())\n' +
-		'\t\t\t\t{\n' + '\t\t\t\t\tm_oOleLink->toXML(sXml);\n' + '\t\t\t\t}\n' + '\t\t\t\tif (m_oDdeLink.IsInit())\n' + '\t\t\t\t{\n' + '\t\t\t\t\tm_oDdeLink->toXML(sXml);\n' +
-		'\t\t\t\t}\n' + '\t\t\t\t\n' + '\t\t\t\tsXml.WriteString((L"</externalLink>"));'
+	var _x2tToXml = 'writer.WriteString((L"<sheetFormatPr"));\n' + '\t\t\t\tWritingStringNullableAttrInt2(L"baseColWidth", m_oBaseColWidth);\n' +
+		'\t\t\t\tWritingStringNullableAttrBool2(L"customHeight", m_oCustomHeight);\n' + '\t\t\t\tWritingStringNullableAttrDouble2(L"defaultColWidth", m_oDefaultColWidth);\n' +
+		'\t\t\t\tWritingStringNullableAttrDouble2(L"defaultRowHeight", m_oDefaultRowHeight);\n' +
+		'\t\t\t\tWritingStringNullableAttrInt2(L"outlineLevelCol", m_oOutlineLevelCol);\n' + '\t\t\t\tWritingStringNullableAttrInt2(L"outlineLevelRow", m_oOutlineLevelRow);\n' +
+		'\t\t\t\tWritingStringNullableAttrBool2(L"thickBottom", m_oThickBottom);\n' + '\t\t\t\tWritingStringNullableAttrBool2(L"thickTop", m_oThickTop);\n' +
+		'\t\t\t\tWritingStringNullableAttrBool2(L"zeroHeight", m_oZeroHeight);\n' + '\t\t\t\twriter.WriteString((L"/>"));'
 
 	analizeXmlTo(_x2tToXml, false);
 	function analizeXmlTo (x2tToXml, isUpperCaseName) {
@@ -11016,7 +11290,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			WritingStringAttrInt: "WriteXmlAttributeNumber",
 			WritingStringAttrEncodeXmlString: "WriteXmlAttributeStringEncode",
 			WritingStringNullableAttrBool: "WriteXmlNullableAttributeBool",
-			WriteEncodeXmlString: "WriteXmlStringEncode"
+			WriteEncodeXmlString: "WriteXmlStringEncode",
+			WritingStringNullableAttrDouble: "WriteXmlNullableAttributeDouble",
+			WritingStringAttrDouble: "WriteXmlAttributeDouble",
+			WritingStringNullableAttrInt2: "WriteXmlNullableAttributeNumber2",
+			WritingStringNullableAttrDouble2: "WriteXmlNullableAttributeDouble2",
+			WritingStringNullableAttrBool2: "WriteXmlNullableAttributeBool2"
+
 		};
 
 		var splitRows = x2tToXml.split("\n");
@@ -11039,7 +11319,17 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrBool")) {
 				isWriteAttr = "WritingStringNullableAttrBool"
 			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrDouble")) {
-				isWriteAttr = "WritingStringNullableAttrInt"
+				isWriteAttr = "WritingStringNullableAttrDouble"
+			} else if (-1 != splitRows[i].indexOf("WritingStringAttrDouble")) {
+				isWriteAttr = "WritingStringAttrDouble"
+			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrInt2")) {
+				isWriteAttr = "WritingStringNullableAttrInt2"
+			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrDouble2")) {
+				isWriteAttr = "WritingStringNullableAttrDouble2"
+			} else if (-1 != splitRows[i].indexOf("WritingStringNullableAttrBool2")) {
+				isWriteAttr = "WritingStringNullableAttrBool2"
+			} else if (-1 != splitRows[i].indexOf("WriteEncodeXmlString")) {
+				isWriteAttr = "WriteEncodeXmlString"
 			}
 
 			if (isWriteAttr) {

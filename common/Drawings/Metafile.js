@@ -1030,7 +1030,7 @@
 					elem.toXml(this, name);
 				}, this);
 				if(opt_parentName) {
-					writer.WriteXmlNodeEnd(opt_parentName);
+					this.WriteXmlNodeEnd(opt_parentName);
 				}
 			}
 		};
@@ -1249,10 +1249,10 @@
 				this.WriteXmlValueUInt64(name, val)
 			}
 		};
-		this.WriteXmlNullableValueDouble = function(name, val)
+		this.WriteXmlNullableValueUInt64 = function(name, val)
 		{
 			if (null !== val && undefined !== val) {
-				this.WriteXmlValueDouble(name, val)
+				this.WriteXmlValueUInt64(name, val)
 			}
 		};
 		this.WriteXmlNullableValueNumber = function(name, val)
