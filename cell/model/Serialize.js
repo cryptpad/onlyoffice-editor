@@ -4781,27 +4781,11 @@
         };
         this.WriteMergeCells = function(ws)
         {
-			var i, names, bboxes;
-            if (!this.isCopyPaste && ws.mergeManager.initData) {
-				names = ws.mergeManager.initData;
-				for (i = 0; i < names.length; ++i) {
-                    this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
-					this.memory.WriteString2(names[i]);
-                }
-            } else {
-				if (this.isCopyPaste) {
-					bboxes = ws.mergeManager.get(this.isCopyPaste).inner.map(function(elem){return elem.bbox});
-				} else {
-					bboxes = ws.mergeManager.getAll().map(function(elem){return elem.bbox});
-				}
-				bboxes = getDisjointMerged(this.wb, bboxes);
-				for (i = 0; i < bboxes.length; ++i) {
-					if (!bboxes[i].isOneCell()) {
-						this.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
-						this.memory.WriteString2(bboxes[i].getName());
-                    }
-                }
-            }
+            var t = this;
+            this.InitSaveManager.WriteMergeCells(function (ref) {
+                t.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
+                t.memory.WriteString2(ref);
+            })
         };
         this.WriteDrawings = function(aDrawings)
         {
@@ -12005,6 +11989,27 @@
     };
     InitSaveManager.prototype.getDxfs = function () {
         return this.aDxfs;
+    };
+    InitSaveManager.prototype.WriteMergeCells = function (ws, func) {
+        var i, names, bboxes;
+        if (!this.isCopyPaste && ws.mergeManager.initData) {
+            names = ws.mergeManager.initData;
+            for (i = 0; i < names.length; ++i) {
+                func(names[i]);
+            }
+        } else {
+            if (this.isCopyPaste) {
+                bboxes = ws.mergeManager.get(this.isCopyPaste).inner.map(function(elem){return elem.bbox});
+            } else {
+                bboxes = ws.mergeManager.getAll().map(function(elem){return elem.bbox});
+            }
+            bboxes = getDisjointMerged(this.wb, bboxes);
+            for (i = 0; i < bboxes.length; ++i) {
+                if (!bboxes[i].isOneCell()) {
+                    func(bboxes[i].getName());
+                }
+            }
+        }
     };
 
 

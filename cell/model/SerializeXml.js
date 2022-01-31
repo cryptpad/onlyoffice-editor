@@ -1109,19 +1109,33 @@
 			this.DataConsolidate.toXml(writer);
 		}*/
 
+		var mergedArr = [];
+		context.InitSaveManager.WriteMergeCells(this, function (ref) {
+			mergedArr.push(ref);
+		});
+		if (mergedArr && mergedArr.length) {
+			writer.WriteXmlString("<mergeCells");
+			writer.WriteXmlNullableAttributeNumber("count", mergedArr.length);
+			writer.WriteXmlString(">");
 
+			for (var i = 0; i < mergedArr.length; ++i) {
+				if (mergedArr[i]) {
+					writer.WriteXmlString("<mergeCell");
+					writer.WriteXmlNullableAttributeStringEncode("ref", mergedArr[i]);
+					writer.WriteXmlString("/>");
+				}
+			}
+			writer.WriteXmlString("</mergeCells>");
+		}
 
+		//TODO пропускаю пока ConditionalFormatting
+
+		if (this.dataValidations) {
+			this.dataValidations.toXml(writer);
+		}
 
 		/*
-		if(m_oCols.IsInit())
-			m_oCols->toXML(writer);
 
-
-		
-		if(m_oMergeCells.IsInit())
-			m_oMergeCells->toXML(writer);
-		for (size_t nIndex = 0, nLength = m_arrConditionalFormatting.size(); nIndex < nLength; ++nIndex)
-		m_arrConditionalFormatting[nIndex]->toXML(writer);
 		if(m_oDataValidations.IsInit())
 			m_oDataValidations->toXML(writer);
 		if(m_oHyperlinks.IsInit())
