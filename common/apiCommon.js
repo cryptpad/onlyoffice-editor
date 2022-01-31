@@ -3167,6 +3167,7 @@
 		this.flipV = null;
 		this.flipHInvert = null;
 		this.flipVInvert = null;
+		this.Position = undefined;
 		this.shadow = undefined;
 		this.anchor = null;
 
@@ -3390,6 +3391,12 @@
 		},
 		asc_putProtectionPrint: function(v){
 			this.protectionPrint = v;
+		},
+		asc_getPosition: function () {
+			return this.Position;
+		}, // Аргумент объект класса CPosition
+		asc_putPosition: function (v) {
+			this.Position = v;
 		}
 	};
 
@@ -6389,6 +6396,8 @@
 	prot["put_ProtectionLocked"] = prot["asc_putProtectionLocked"] = prot.asc_putProtectionLocked;
 	prot["get_ProtectionPrint"] = prot["asc_getProtectionPrint"] = prot.asc_getProtectionPrint;
 	prot["put_ProtectionPrint"] = prot["asc_putProtectionPrint"] = prot.asc_putProtectionPrint;
+	prot["asc_getPosition"] = prot["asc_getPosition"] = prot.asc_getPosition;
+	prot["asc_putPosition"] = prot["asc_putPosition"] = prot.asc_putPosition;
 
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;

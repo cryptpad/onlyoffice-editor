@@ -5739,6 +5739,22 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     {
         _result_shape_prop.w = null;
     }
+    if(shapeProp1.x === shapeProp2.x)
+    {
+        _result_shape_prop.x = shapeProp1.x;
+    }
+    else
+    {
+        _result_shape_prop.x = null;
+    }
+    if(shapeProp1.y === shapeProp2.y)
+    {
+        _result_shape_prop.y = shapeProp1.y;
+    }
+    else
+    {
+        _result_shape_prop.y = null;
+    }
     if(shapeProp1.rot === shapeProp2.rot)
     {
         _result_shape_prop.rot = shapeProp1.rot;
@@ -5896,9 +5912,11 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     {
         _result_shape_prop.shadow = null;
     }
+
     _result_shape_prop.protectionLockText = CompareProtectionFlags(shapeProp1.protectionLockText, shapeProp2.protectionLockText);
     _result_shape_prop.protectionLocked = CompareProtectionFlags(shapeProp1.protectionLocked, shapeProp2.protectionLocked);
     _result_shape_prop.protectionPrint = CompareProtectionFlags(shapeProp1.protectionPrint, shapeProp2.protectionPrint);
+
     return _result_shape_prop;
 }
 
@@ -12837,6 +12855,12 @@ function CreateAscShapePropFromProp(shapeProp)
     {
         obj.signatureId = shapeProp.signatureId;
     }
+
+    if(shapeProp.signatureId)
+    {
+        obj.signatureId = shapeProp.signatureId;
+    }
+    obj.Position = new Asc.CPosition({X: shapeProp.x, Y: shapeProp.y});
     return obj;
 }
 

@@ -691,9 +691,10 @@ CGraphicFrame.prototype.resize = function(extX, extY)
 };
 CGraphicFrame.prototype.setFrameTransform = function(oPr)
 {
-    var bResult = this.resize(oPr.FameWidth, oPr.FrameHeight);
+    var bResult = this.resize(oPr.FrameWidth, oPr.FrameHeight);
     var newX = AscFormat.isRealNumber(oPr.FrameX) ? oPr.FrameX : this.x;
     var newY = AscFormat.isRealNumber(oPr.FrameY) ? oPr.FrameY : this.y;
+    this.setNoChangeAspect(oPr.FrameLockAspect ? true : undefined);
     if(!AscFormat.fApproxEqual(newX, this.x) || !AscFormat.fApproxEqual(newY, this.y)) 
     {
         AscFormat.CheckSpPrXfrm(this, true);
