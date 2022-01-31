@@ -1395,25 +1395,25 @@ StaxParser.prototype.GetValueBool = function () {
     var val = this.GetValue();
     return "1" === val || "true" === val || "t" === val || "on" === val;
 };
-StaxParser.prototype.GetValueByte = function (radix, def) {
-    return this.GetValueUInt(radix, def);
+StaxParser.prototype.GetValueByte = function (def, radix) {
+    return this.GetValueUInt(def, radix);
 };
-StaxParser.prototype.GetValueSByte = function (radix, def) {
-    return this.GetValueInt(radix, def);
+StaxParser.prototype.GetValueSByte = function (def, radix) {
+    return this.GetValueInt(def, radix);
 };
-StaxParser.prototype.GetValueInt = function (radix, def) {
+StaxParser.prototype.GetValueInt = function (def, radix) {
     var num = parseInt(this.GetValue(), radix);
     return !isNaN(num) ? num : def;
 };
-StaxParser.prototype.GetValueUInt = function (radix, def) {
+StaxParser.prototype.GetValueUInt = function (def, radix) {
     var num = parseInt(this.GetValue(), radix);
     return !isNaN(num) && num >= 0 ? num : def;
 };
-StaxParser.prototype.GetValueInt64 = function (radix, def) {
-    return this.GetValueInt(radix, def);
+StaxParser.prototype.GetValueInt64 = function (def, radix) {
+    return this.GetValueInt(def, radix);
 };
-StaxParser.prototype.GetValueUInt64 = function (radix, def) {
-    return this.GetValueUInt(radix, def);
+StaxParser.prototype.GetValueUInt64 = function (def, radix) {
+    return this.GetValueUInt(def, radix);
 };
 StaxParser.prototype.GetValueDouble = function (def) {
     var num = parseFloat(this.GetValue());
@@ -1490,25 +1490,25 @@ StaxParser.prototype.GetTextBool = function () {
     var val = this.GetText();
     return "1" === val || "true" === val || "t" === val || "on" === val;
 };
-StaxParser.prototype.GetTextByte = function (radix, def) {
-    return this.GetTextInt(radix, def);
+StaxParser.prototype.GetTextByte = function (def, radix) {
+    return this.GetTextInt(def, radix);
 };
-StaxParser.prototype.GetTextSByte = function (radix, def) {
-    return this.GetTextUInt(radix, def);
+StaxParser.prototype.GetTextSByte = function (def, radix) {
+    return this.GetTextUInt(def, radix);
 };
-StaxParser.prototype.GetTextInt = function (radix, def) {
+StaxParser.prototype.GetTextInt = function (def, radix) {
     var num = parseInt(this.GetText(), radix);
     return !isNaN(num) ? num : def;
 };
-StaxParser.prototype.GetTextUInt = function (radix, def) {
+StaxParser.prototype.GetTextUInt = function (def, radix) {
     var num = parseInt(this.GetText(), radix);
     return !isNaN(num) && num >= 0 ? num : def;
 };
-StaxParser.prototype.GetTextInt64 = function (radix, def) {
-    return this.GetTextInt(radix, def);
+StaxParser.prototype.GetTextInt64 = function (def, radix) {
+    return this.GetTextInt(def, radix);
 };
-StaxParser.prototype.GetTextUInt64 = function (radix, def) {
-    return this.GetTextUInt(radix, def);
+StaxParser.prototype.GetTextUInt64 = function (def, radix) {
+    return this.GetTextUInt(def, radix);
 };
 StaxParser.prototype.GetTextDouble = function (def) {
     var num = parseFloat(this.GetValue());

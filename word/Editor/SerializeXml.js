@@ -1439,7 +1439,7 @@
 					break;
 				}
 				case "lines": {
-					this.Lines = reader.GetValueInt(10, this.Lines);
+					this.Lines = reader.GetValueInt(this.Lines);
 					break;
 				}
 				case "w": {
@@ -2773,7 +2773,7 @@
 				// 	break;
 				// }
 				case "start": {
-					this.Start =  reader.GetValueInt(10, this.Start);
+					this.Start =  reader.GetValueInt(this.Start);
 					break;
 				}
 				// case "chapStyle": {
@@ -2812,7 +2812,7 @@
 					break;
 				}
 				case "num": {
-					this.Num = reader.GetValueInt(10, this.Num);
+					this.Num = reader.GetValueInt(this.Num);
 					break;
 				}
 				case "sep": {
@@ -2874,11 +2874,11 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "countBy": {
-					this.CountBy = reader.GetValueInt(10, this.CountBy);
+					this.CountBy = reader.GetValueInt(this.CountBy);
 					break;
 				}
 				case "start": {
-					this.Start = reader.GetValueInt(10, this.Start);
+					this.Start = reader.GetValueInt(this.Start);
 					break;
 				}
 				case "distance": {
@@ -3366,7 +3366,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "val": {
-					this.val = reader.GetValueInt(10, this.val);
+					this.val = reader.GetValueInt(this.val);
 					break;
 				}
 			}
@@ -3745,9 +3745,9 @@
 		} else if (this.xmlThemeColor === name) {
 			this.ThemeColor = fromXml_ST_ThemeColor(reader.GetValue());
 		} else if (this.xmlThemeTint === name) {
-			this.ThemeTint = reader.GetValueByte(16);
+			this.ThemeTint = reader.GetValueByte(this.ThemeTint, 16);
 		} else if (this.xmlThemeShade === name) {
-			this.ThemeShade = reader.GetValueByte(16);
+			this.ThemeShade = reader.GetValueByte(this.ThemeTint, 16);
 		} else {
 			return false;
 		}
