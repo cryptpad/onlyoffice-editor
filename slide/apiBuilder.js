@@ -341,10 +341,10 @@
      * @typeofeditors ["CPE"]
      * @memberof Api
      * @param {ApiTheme} [oTheme    = ApiPresentation.GetMaster(0).GetTheme()] - ApiTheme object.
-     * @returns {ApiMaster | null} - returns null if presentation theme doesn't exist.
+     * @returns {?ApiMaster} - returns null if presentation theme doesn't exist.
      */
     Api.prototype.CreateMaster = function(oTheme){
-        if (!oTheme || !oTheme.GetClassType || !oTheme.GetClassType() === "theme")
+        if (!oTheme || !oTheme.GetClassType || oTheme.GetClassType() !== "theme")
             if (editor.GetPresentation().GetMaster(0))
                 oTheme = editor.GetPresentation().GetMaster(0).GetTheme();
         
@@ -647,7 +647,7 @@
         var oSlide = private_GetCurrentSlide();
         if(oPresentation && oSlide){
             var oGraphicFrame = oPresentation.Create_TableGraphicFrame(nCols, nRows, oSlide, oPresentation.DefaultTableStyleId);
-            var content = oGraphicFrame.graphicObject.Content, i, j;
+            var content = oGraphicFrame.graphicObject.Content, i;
             for(i = 0; i < content.length; ++i)
             {
                 content[i].Set_Height(0, Asc.linerule_AtLeast );
@@ -743,8 +743,8 @@
 	 * @typeofeditors ["CPE"]
 	 * @memberof Api
      * @param {ApiSlide | ApiLayout | ApiMaster} object - object in which placeholders will be checked.
-     * @param {ApiPlaceholder}  - placeholder to be added. 
-     * @return {bool} - return false if object insupported or oPlaceholder isn't placeholder.
+     * @param {ApiPlaceholder} oPlaceholder - placeholder to be added.
+     * @return {boolean} - return false if object insupported or oPlaceholder isn't placeholder.
 	 */
     Api.prototype.private_checkPlaceholders = function(object, oPlaceholder)
     {
@@ -775,7 +775,7 @@
         {
             noIdxPlaceholders[nPh].idx = String(maxIndex + 1);
             maxIndex++;
-        };
+        }
 
         return true;
     };
@@ -952,7 +952,7 @@
 	 * @typeofeditors ["CDE"]
 	 * @param {string} sLangId - The possible value for this parameter is a language identifier as defined by
 	 * RFC 4646/BCP 47. Example: "en-CA".
-     * @returns {bool}
+     * @returns {boolean}
 	 */
     ApiPresentation.prototype.SetLanguage = function(sLangId)
     {
@@ -1002,7 +1002,7 @@
      * @typeofeditors ["CPE"]
      * @param {number} [nPos    = ApiPresentation.GetMastersCount()]
      * @param {ApiMaster} oApiMaster
-     * @returns {bool} - return false if position is invalid or oApiMaster does'n exist.
+     * @returns {boolean} - return false if position is invalid or oApiMaster does'n exist.
      */
     ApiPresentation.prototype.AddMaster = function(nPos, oApiMaster)
     {
@@ -1023,10 +1023,10 @@
      * Applies the theme to the all slides in presentation.
      * @typeofeditors ["CPE"]
      * @param {ApiTheme} oApiTheme
-     * @returns {bool} - returns false if param isn't theme or presentation doesn't exist.
+     * @returns {boolean} - returns false if param isn't theme or presentation doesn't exist.
      * */
     ApiPresentation.prototype.ApplyTheme = function(oApiTheme){
-       if (!this.Presentation || !oApiTheme.GetClassType || !oApiTheme.GetClassType() !== "theme")
+       if (!this.Presentation || !oApiTheme.GetClassType || oApiTheme.GetClassType() !== "theme")
        {
            this.Presentation.changeTheme(oApiTheme.ThemeInfo);
            return true;
@@ -1041,7 +1041,7 @@
      * @param {Number} [nStart=0] - beginning of the deletion range.
      * @param {Number} [nCount=ApiPresentation.GetSlidesCount()] - count of slides for deletion.
 	 * @typeofeditors ["CPE"]
-	 * @returns {bool}
+	 * @returns {boolean}
 	 */
     ApiPresentation.prototype.RemoveSlides = function(nStart, nCount)
 	{
@@ -1086,7 +1086,7 @@
      */
     ApiMaster.prototype.GetLayout = function(nPos)
     {
-        if (nPos < 0 | nPos > this.Master.sldLayoutLst.length)
+        if (nPos < 0 || nPos > this.Master.sldLayoutLst.length)
             return null;
         
         return new ApiLayout(this.Master.sldLayoutLst[nPos])
@@ -1097,7 +1097,7 @@
      * @typeofeditors ["CPE"]
      * @param {number} [nPos = ApiMaster.GetLayoutsCount()] - position to add.
      * @param {ApiLayout} oLayout
-     * @returns {bool} - returns false if param isn't layout
+     * @returns {boolean} - returns false if param isn't layout
      */
     ApiMaster.prototype.AddLayout = function(nPos, oLayout)
     {
@@ -1117,8 +1117,7 @@
      * @typeofeditors ["CPE"]
      * @param {number} nPos - position from which to delete
      * @param {number} [nCount = 1] - count of elements for delete.
-     * @param {ApiLayout} oLayout
-     * @returns {bool} - return false if position is invalid.
+     * @returns {boolean} - return false if position is invalid.
      */
     ApiMaster.prototype.RemoveLayout = function(nPos, nCount)
     {
@@ -1152,7 +1151,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide master.
-     * @returns {bool} - returns false if slide master doesn't exist.
+     * @returns {boolean} - returns false if slide master doesn't exist.
      */
     ApiMaster.prototype.AddObject = function(oDrawing)
     {
@@ -1174,7 +1173,7 @@
      * @memberof ApiMaster
      * @param {number} nPos - position from which to delete
      * @param {number} [nCount = 1] - count of elements for delete. 
-     * @returns {bool} - returns false if master doesn't exist or pos is invalid or master haven't objects.
+     * @returns {boolean} - returns false if master doesn't exist or pos is invalid or master haven't objects.
      */
     ApiMaster.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -1199,6 +1198,7 @@
      * @memberOf ApiSlide
      * @typeofeditors ["CPE"]
      * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide master background.
+     * @returns {boolean}
      * */
     ApiMaster.prototype.SetBackground = function(oApiFill){
         if(oApiFill && oApiFill.GetClassType && oApiFill.GetClassType() === "fill" && this.Master){
@@ -1206,13 +1206,15 @@
             bg.bgPr      = new AscFormat.CBgPr();
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Master.changeBackground(bg);
+            return true;
         }
+        return false;
     };
 
     /**
      * Clears the slide master background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide master does'n exist.
+     * @returns {boolean} - return false if slide master does'n exist.
      * */
     ApiMaster.prototype.ClearBackground = function(){
         if (!this.Master)
@@ -1266,7 +1268,7 @@
     /**
      * Deletes the specified object from parent if it exist.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if master doesn't exist or not in presentation. 
+     * @returns {boolean} - return false if master doesn't exist or not in presentation. 
      * */
     ApiMaster.prototype.Delete = function(){
         if (this.Master && this.Master.presentation)
@@ -1308,7 +1310,7 @@
      * Sets a copy of the theme object.
      * @typeofeditors ["CPE"]
      * @param {ApiTheme} oTheme
-     * @returns {bool} - return false if param isn't theme or slide master doesn't exist.
+     * @returns {boolean} - return false if param isn't theme or slide master doesn't exist.
      * */
     ApiMaster.prototype.SetTheme = function(oTheme){
         if (this.Master && oTheme && oTheme.GetClassType && oTheme.GetClassType() === "theme")
@@ -1407,7 +1409,7 @@
     /**
      * Get the type of this class.
      * @typeofeditors ["CPE"]
-     * @returns {"master"}
+     * @returns {"layout"}
      */
     ApiLayout.prototype.GetClassType = function()
     {
@@ -1418,7 +1420,7 @@
      * Sets the name of this layout.
      * @typeofeditors ["CPE"]
      * @param {string} sName
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiLayout.prototype.SetName = function(sName)
     {
@@ -1435,7 +1437,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide layout.
-     * @returns {bool} - returns false if slide layout doesn't exist.
+     * @returns {boolean} - returns false if slide layout doesn't exist.
      */
     ApiLayout.prototype.AddObject = function(oDrawing)
     {
@@ -1457,7 +1459,7 @@
      * @memberof ApiLayout
      * @param {number} nPos - position from which to delete
      * @param {number} [nCount = 1] - count of elements for delete. 
-     * @returns {bool} - returns false if layout doesn't exist or pos is invalid or layout haven't objects.
+     * @returns {boolean} - returns false if layout doesn't exist or pos is invalid or layout haven't objects.
      */
     ApiLayout.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -1480,7 +1482,8 @@
      * Sets the background to the current slide layout.
      * @memberOf ApiSlide
      * @typeofeditors ["CPE"]
-     * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide layout background.
+     * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide layout background.\
+     * @returns {boolean}
      * */
     ApiLayout.prototype.SetBackground = function(oApiFill){
         if(oApiFill && oApiFill.GetClassType && oApiFill.GetClassType() === "fill" && this.Layout){
@@ -1488,13 +1491,15 @@
             bg.bgPr      = new AscFormat.CBgPr();
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Layout.changeBackground(bg);
+            return true;
         }
+        return false;
     };
 
     /**
      * Clears the slide layout background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide layout does'n exist.
+     * @returns {boolean} - return false if slide layout does'n exist.
      * */
     ApiLayout.prototype.ClearBackground = function(){
         if (!this.Layout)
@@ -1512,7 +1517,7 @@
     /**
      * Determines whether the slide follows the slide master background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if master is null or master haven't background.  
+     * @returns {boolean} - returns false if master is null or master haven't background.  
      * */
     ApiLayout.prototype.FollowMasterBackground = function(){
         if (!this.Layout)
@@ -1546,7 +1551,7 @@
     /**
      * Deletes the specified object from parent slide master if it exist.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if parent slide master does'n exist. 
+     * @returns {boolean} - return false if parent slide master does'n exist. 
      * */
     ApiLayout.prototype.Delete = function(){
         if (this.Layout && this.Layout.Master)
@@ -1589,7 +1594,7 @@
     /**
      * Moves the specified object to a specific location within the same collection.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if layout or parent slide master doesn't exist or position is invalid. 
+     * @returns {boolean} - returns false if layout or parent slide master doesn't exist or position is invalid. 
      * */
     ApiLayout.prototype.MoveTo = function(nPos){
         if (!this.Layout || !this.Layout.Master)
@@ -1715,11 +1720,11 @@
      * Set the placeholder type.
      * @typeofeditors ["CPE"]
      * @param {string} sType - name of placeholder type.
-     * @returns {bool} - returns false if placeholder type doesn't exist.
+     * @returns {boolean} - returns false if placeholder type doesn't exist.
      */
     ApiPlaceholder.prototype.SetType = function(sType)
     {
-        var nType   = null;
+        var nType;
         switch (sType)
         {
             case "body":
@@ -1810,7 +1815,7 @@
      * Sets the presentation color scheme.
      * @typeofeditors ["CPE"]
      * @param {ApiThemeColorScheme} oApiColorScheme
-     * @returns {bool} - return false if color scheme doesn't exist.
+     * @returns {boolean} - return false if color scheme doesn't exist.
      */
     ApiTheme.prototype.SetColorScheme = function(oApiColorScheme)
     {
@@ -1842,7 +1847,7 @@
      * Sets the presentation format scheme.
      * @typeofeditors ["CPE"]
      * @param {ApiThemeFormatScheme} oApiFormatScheme
-     * @returns {bool} - return false if format scheme doesn't exist.
+     * @returns {boolean} - return false if format scheme doesn't exist.
      */
     ApiTheme.prototype.SetFormatScheme = function(oApiFormatScheme)
     {
@@ -1874,7 +1879,7 @@
      * Sets the presentation font scheme.
      * @typeofeditors ["CPE"]
      * @param {ApiThemeFontScheme} oApiFontScheme
-     * @returns {bool} - return false if font scheme doesn't exist.
+     * @returns {boolean} - return false if font scheme doesn't exist.
      */
     ApiTheme.prototype.SetFontScheme = function(oApiFontScheme)
     {
@@ -1922,7 +1927,7 @@
      * Sets the color scheme name.
      * @typeofeditors ["CPE"]
      * @param {string} sName
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeColorScheme.prototype.SetSchemeName = function(sName)
     {
@@ -1935,8 +1940,9 @@
     /**
      * Change color in color scheme.
      * @typeofeditors ["CPE"]
+     * @param {number} nPos
      * @param {ApiUniColor | ApiRGBColor} oColor
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeColorScheme.prototype.ChangeColor = function(nPos, oColor)
     {
@@ -1970,7 +1976,7 @@
     /**
      * Get the type of this class.
      * @typeofeditors ["CPE"]
-     * @returns {"formatColorScheme"}
+     * @returns {"themeFormatScheme"}
      */
     ApiThemeFormatScheme.prototype.GetClassType = function()
     {
@@ -1981,7 +1987,7 @@
      * Sets the format scheme name.
      * @typeofeditors ["CPE"]
      * @param {string} sName
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeFormatScheme.prototype.SetSchemeName = function(sName)
     {
@@ -2063,7 +2069,7 @@
      * @typeofeditors ["CPE"]
      * @param {?Array} arrEffect - the array of line styles must contains 3 elements and consist of subtle, moderate and intense fills.
      * If there are empty or no ApiStroke elements in the array, it will be filled by Api.CreateStroke(0, Api.CreateNoFill()) element.
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeFormatScheme.prototype.ChangeEffectStyles = function(arrEffect)
     {
@@ -2102,7 +2108,7 @@
     /**
      * Get the type of this class.
      * @typeofeditors ["CPE"]
-     * @returns {"fontScheme"}
+     * @returns {"themeFontScheme"}
      */
     ApiThemeFontScheme.prototype.GetClassType = function()
     {
@@ -2113,7 +2119,7 @@
      * Sets the scheme's name.
      * @typeofeditors ["CPE"]
      * @param {string} sName
-     * @returns {bool} - returns false if font scheme doesn't exist.
+     * @returns {boolean} - returns false if font scheme doesn't exist.
      */
     ApiThemeFontScheme.prototype.SetSchemeName = function(sName)
     {
@@ -2205,7 +2211,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current presentation slide.
-     * @returns {bool} - returns false if slide doesn't exist.
+     * @returns {boolean} - returns false if slide doesn't exist.
      */
     ApiSlide.prototype.AddObject = function(oDrawing){
         if(this.Slide){
@@ -2225,7 +2231,7 @@
      * @memberof ApiSlide
      * @param {number} nPos - position from which to delete
      * @param {number} [nCount = 1] - count of elements for delete. 
-     * @returns {bool} - returns false if slide doesn't exist or pos is invalid or slide haven't objects.
+     * @returns {boolean} - returns false if slide doesn't exist or pos is invalid or slide haven't objects.
      */
     ApiSlide.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -2249,6 +2255,7 @@
      * @memberOf ApiSlide
      * @typeofeditors ["CPE"]
      * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide background.
+     * @returns {boolean}
      * */
     ApiSlide.prototype.SetBackground = function(oApiFill){
         if(oApiFill && oApiFill.GetClassType && oApiFill.GetClassType() === "fill" && this.Slide){
@@ -2257,7 +2264,9 @@
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Slide.changeBackground(bg);
             this.Slide.recalculateBackground();
+            return true;
         }
+        return false;
     };
 
     /**
@@ -2288,7 +2297,7 @@
      * Applies specified layout to the slide.
      * @typeofeditors ["CPE"]
      * @param {ApiLayout} oLayout
-     * @returns {bool} - returns false if slide doesn't exist.
+     * @returns {boolean} - returns false if slide doesn't exist.
      * */
     ApiSlide.prototype.ApplyLayout = function(oLayout){
         if (!this.Slide)
@@ -2328,7 +2337,7 @@
     /**
      * Deletes the specified slide from presentation.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if slide doesn't exist or not in presentation.
+     * @returns {boolean} - returns false if slide doesn't exist or not in presentation.
      * */
     ApiSlide.prototype.Delete = function(){
         if (!this.Slide)
@@ -2385,7 +2394,7 @@
     /**
      * Moves the specified slide to a specific location within the same collection.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if slide doesn't exist or position is invalid or slide not in presentation.  
+     * @returns {boolean} - returns false if slide doesn't exist or position is invalid or slide not in presentation.  
      * */
     ApiSlide.prototype.MoveTo = function(nPos){
         var oPresentation = editor.GetPresentation().Presentation;
@@ -2430,7 +2439,7 @@
     /**
      * Clears the slide background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide does'n exist.
+     * @returns {boolean} - return false if slide does'n exist.
      * */
     ApiSlide.prototype.ClearBackground = function(){
         if (!this.Slide)
@@ -2449,7 +2458,7 @@
     /**
      * Sets the slide background as the background of slide layout. 
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if layout is null or layout haven't background or slide does'n exist. 
+     * @returns {boolean} - returns false if layout is null or layout haven't background or slide does'n exist. 
      * */
     ApiSlide.prototype.FollowLayoutBackground = function(){
         if (!this.Slide)
@@ -2470,7 +2479,7 @@
     /**
      * Sets the slide background as the background of slide master. 
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if master is null or master haven't background or slide does'n exist.  
+     * @returns {boolean} - returns false if master is null or master haven't background or slide does'n exist.  
      * */
     ApiSlide.prototype.FollowMasterBackground = function(){
         if (!this.Slide)
@@ -2491,7 +2500,7 @@
      * Applies a specified theme to the slide.
      * @typeofeditors ["CPE"]
      * @param {ApiTheme} oApiTheme
-     * @returns {bool} - returns false if master is null or master haven't background.  
+     * @returns {boolean} - returns false if master is null or master haven't background.  
      * */
     ApiSlide.prototype.ApplyTheme = function(oApiTheme){
         if (!this.Slide || !oApiTheme || !oApiTheme.GetClassType ||oApiTheme.GetClassType() !== "theme")
@@ -2834,7 +2843,7 @@
     /**
      * Deletes the specified drawing object from parent.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - false if drawing doesn't exist or drawing haven't parent.
+     * @returns {boolean} - false if drawing doesn't exist or drawing haven't parent.
      */
     ApiDrawing.prototype.Delete = function()
     {
@@ -2859,11 +2868,11 @@
      * Sets the specified placeholder to the shape.
      * @typeofeditors ["CPE"]
      * @param {ApiPlaceholder} oPlaceholder - The type of the vertical alignment for the shape inner contents.
-     * @returns {bool} - returns false if param doesn't placeholder.
+     * @returns {boolean} - returns false if param doesn't placeholder.
      */
     ApiDrawing.prototype.SetPlaceholder = function(oPlaceholder)
     {
-        if (!this.Drawing || !oPlaceholder || !oPlaceholder.GetClassType || !oPlaceholder.GetClassType() === "placeholder")
+        if (!this.Drawing || !oPlaceholder || !oPlaceholder.GetClassType || oPlaceholder.GetClassType() !== "placeholder")
             return false;
 
         var drawingNvPr = null;
@@ -2932,6 +2941,7 @@
                     break;
                 case AscDFH.historyitem_type_GroupShape:
                     oPh = this.Drawing.nvGrpSpPr.ph;
+                    break;
                 case AscDFH.historyitem_type_ImageShape:
                 case AscDFH.historyitem_type_OleObject:
                     oPh = this.Drawing.nvPicPr.nvPr.ph;
@@ -3158,7 +3168,7 @@
 
     /**
      * Specify a vertical axis orientation.
-     * @param {bool} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
+     * @param {boolean} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
 	 * (from minimum to maximum). The <code>false</code> value will set the inverted data direction for the horizontal axis (from maximum to minimum).
      * */
     ApiChart.prototype.SetVerAxisOrientation = function(bIsMinMax){
@@ -3167,7 +3177,7 @@
 
     /**
      * Specify a horizontal axis orientation.
-     * @param {bool} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
+     * @param {boolean} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
 	 * (from minimum to maximum). The <code>false</code> value will set the inverted data direction for the horizontal axis (from maximum to minimum).
      * */
     ApiChart.prototype.SetHorAxisOrientation = function(bIsMinMax){
@@ -3378,9 +3388,7 @@
                 }
                 else
                 {
-                    if (oCurPos.Cell < oPos.Cell)
-                        continue;
-                    else
+                    if (oCurPos.Cell >= oPos.Cell)
                         break;
                 }
             }
@@ -3505,8 +3513,7 @@
         this.private_PrepareTableForActions();
         this.Table.RemoveSelection();
         this.Table.CurCell = oCell.Cell;
-        var isEmpty = !(this.Table.RemoveTableRow());
-        return isEmpty;
+        return !(this.Table.RemoveTableRow());
     };
     /**
      * Remove the table column with a specified cell.
@@ -3520,9 +3527,7 @@
         this.private_PrepareTableForActions();
         this.Table.RemoveSelection();
         this.Table.CurCell = oCell.Cell;
-        var isEmpty = !(this.Table.RemoveTableColumn());
-
-        return isEmpty;
+        return !(this.Table.RemoveTableColumn());
     };
 
     /**
