@@ -4520,7 +4520,7 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			this.Document.Internal_Content_Add(this.Document.Content.length, oElement.private_GetImpl(), false);
+			this.Document.Internal_Content_Add(this.Document.Content.length, oElement.private_GetImpl());
 			return true;
 		}
 
