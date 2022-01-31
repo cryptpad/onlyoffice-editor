@@ -294,6 +294,12 @@
 			this.wb.workbookProtection.toXml(writer);
 		}
 
+		//TODO в x2t пишутся все остальные аттрибуты
+		/*WritingStringNullableAttrInt(L"xWindow", m_oXWindow, m_oXWindow->GetValue());
+		WritingStringNullableAttrInt(L"yWindow", m_oYWindow, m_oYWindow->GetValue());
+		WritingStringNullableAttrInt(L"windowWidth", m_oWindowWidth, m_oWindowWidth->GetValue());
+		WritingStringNullableAttrInt(L"windowHeight", m_oWindowHeight, m_oWindowHeight->GetValue());
+		WritingStringNullableAttrInt(L"activeTab", m_oActiveTab, m_oActiveTab->GetValue());*/
 		writer.WriteXmlNodeStart('bookViews');
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNodeStart('workbookView');
@@ -9453,9 +9459,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlString("<externalBook");
 		if (this.val.Id) {
+			writer.WriteXmlString("\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"");
 			writer.WriteXmlString(" r:id=\"");
 			writer.WriteXmlString(this.val.Id);
-			writer.WriteXmlString("\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"");
 		}
 		writer.WriteXmlString(">");
 
