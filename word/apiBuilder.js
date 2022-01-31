@@ -11352,7 +11352,50 @@
 		return null;
 	};
 
+	/**
+     * Gets the lock type of drawing.
+     * @typeofeditors ["CPE"]
+	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles" 
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock type in string format
+     * @returns {bool}
+     */
+	ApiDrawing.prototype.GetLockValue = function(sType)
+	{
+		var nLockType = private_GetDrawingLockType(sType);
 
+		if (nLockType === -1)
+			return false;
+
+		if (this.Drawing && this.Drawing.GraphicObj)
+			return this.Drawing.GraphicObj.getLockValue(nLockType);
+
+		return false;
+	};
+
+	/**
+     * Sets the lock type of drawing.
+     * @typeofeditors ["CPE"]
+	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles" 
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock typeof string format
+     * @param {bool} bValue - determines the value for the specified lock
+	 * @returns {bool}
+     */
+	ApiDrawing.prototype.SetLockValue = function(sType, bValue)
+	{
+		var nLockType = private_GetDrawingLockType(sType);
+
+		if (nLockType === -1)
+			return false;
+
+		if (this.Drawing && this.Drawing.GraphicObj)
+		{
+			this.Drawing.GraphicObj.setLockValue(nLockType, bValue);
+			return true;
+		}
+
+		return false;
+	};
+	
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiImage
@@ -13865,6 +13908,8 @@
 	ApiDrawing.prototype["SetOutLine"]               = ApiDrawing.prototype.SetOutLine;
 	ApiDrawing.prototype["GetNextDrawing"]           = ApiDrawing.prototype.GetNextDrawing;
 	ApiDrawing.prototype["GetPrevDrawing"]           = ApiDrawing.prototype.GetPrevDrawing;
+	ApiDrawing.prototype["GetLockValue"]             = ApiDrawing.prototype.GetLockValue;
+	ApiDrawing.prototype["SetLockValue"]             = ApiDrawing.prototype.SetLockValue;
 
 	ApiImage.prototype["GetClassType"]               = ApiImage.prototype.GetClassType;
 	ApiImage.prototype["GetNextImage"]               = ApiImage.prototype.GetNextImage;
@@ -14226,6 +14271,61 @@
 			return Asc.c_oAscRelativeFromV.Paragraph;
 
 		return Asc.c_oAscRelativeFromV.Page;
+	}
+
+	function private_GetDrawingLockType(sType)
+	{
+		var nLockType = -1;
+		switch (sType)
+		{
+			case "noGrp":
+				nLockType = AscFormat.LOCKS_MASKS.noGrp;
+				break;
+			case "noUngrp":
+				nLockType = AscFormat.LOCKS_MASKS.noUngrp;
+				break;
+			case "noSelect":
+				nLockType = AscFormat.LOCKS_MASKS.noSelect;
+				break;
+			case "noRot":
+				nLockType = AscFormat.LOCKS_MASKS.noRot;
+				break;
+			case "noChangeAspect":
+				nLockType = AscFormat.LOCKS_MASKS.noChangeAspect;
+				break;
+			case "noMove":
+				nLockType = AscFormat.LOCKS_MASKS.noMove;
+				break;
+			case "noResize":
+				nLockType = AscFormat.LOCKS_MASKS.noResize;
+				break;
+			case "noEditPoints":
+				nLockType = AscFormat.LOCKS_MASKS.noEditPoints;
+				break;
+			case "noAdjustHandles":
+				nLockType = AscFormat.LOCKS_MASKS.noAdjustHandles;
+				break;
+			case "noChangeArrowheads":
+				nLockType = AscFormat.LOCKS_MASKS.noChangeArrowheads;
+				break;
+			case "noChangeShapeType":
+				nLockType = AscFormat.LOCKS_MASKS.noChangeShapeType;
+				break;
+			case "noDrilldown":
+				nLockType = AscFormat.LOCKS_MASKS.noDrilldown;
+				break;
+			case "noTextEdit":
+				nLockType = AscFormat.LOCKS_MASKS.noTextEdit;
+				break;
+			case "noCrop":
+				nLockType = AscFormat.LOCKS_MASKS.noCrop;
+				break;
+			case "txBox":
+				nLockType = AscFormat.LOCKS_MASKS.txBox;
+				break;
+		}
+
+		return nLockType;
 	}
 
 	function private_CreateWatermark(sText, bDiagonal){
