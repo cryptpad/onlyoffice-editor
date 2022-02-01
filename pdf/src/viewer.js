@@ -1676,8 +1676,6 @@
 					}
 				}
 
-				this.isClearPages = false;
-				
 				if (!page.Image && !isStretchPaint)
 					page.Image = this.file.getPage(i, w, h, undefined, this.Api.isDarkMode ? 0x3A3A3A : 0xFFFFFF);
 
@@ -1699,6 +1697,7 @@
 				this.pageDetector.addPage(i, x, y, w, h);
 			}
 
+			this.isClearPages = false;
 			this.updateCurrentPage(this.pageDetector.getCurrentPage());
 		};
 
