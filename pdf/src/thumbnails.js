@@ -428,37 +428,34 @@
 
     CDocument.prototype.updateScroll = function(scrollV)
     {
-        if (this.documentHeight > this.panelHeight)
+        scrollV.style.display = (this.documentHeight > this.panelHeight) ? "block" : "none";
+
+        var settings = this.CreateScrollSettings();
+        settings.isHorizontalScroll = false;
+        settings.isVerticalScroll = true;
+        settings.contentH = this.documentHeight;
+        if (this.m_oScrollVerApi)
+            this.m_oScrollVerApi.Repos(settings, undefined, true);
+        else
         {
-            scrollV.style.display = "block";
+            this.m_oScrollVerApi = new AscCommon.ScrollObject("id_vertical_scroll_th", settings);
 
-            var settings = this.CreateScrollSettings();
-			settings.isHorizontalScroll = false;
-			settings.isVerticalScroll = true;
-			settings.contentH = this.documentHeight;
-			if (this.m_oScrollVerApi)
-				this.m_oScrollVerApi.Repos(settings, undefined, true);
-			else
-			{
-				this.m_oScrollVerApi = new AscCommon.ScrollObject("id_vertical_scroll_th", settings);
-
-				this.m_oScrollVerApi.onLockMouse  = function(evt) {
-					AscCommon.check_MouseDownEvent(evt, true);
-					AscCommon.global_mouseEvent.LockMouse();
-				};
-				this.m_oScrollVerApi.offLockMouse = function(evt) {
-					AscCommon.check_MouseUpEvent(evt);
-                };
-                var _t = this;
-				this.m_oScrollVerApi.bind("scrollvertical", function(evt) {
-					_t.scrollVertical(evt.scrollD, evt.maxScrollY);
-				});
-			}
-
-			this.scrollMaxY = this.m_oScrollVerApi.getMaxScrolledY();
-			if (this.scrollY >= this.scrollMaxY)
-				this.scrollY = this.scrollMaxY;
+            this.m_oScrollVerApi.onLockMouse  = function(evt) {
+                AscCommon.check_MouseDownEvent(evt, true);
+                AscCommon.global_mouseEvent.LockMouse();
+            };
+            this.m_oScrollVerApi.offLockMouse = function(evt) {
+                AscCommon.check_MouseUpEvent(evt);
+            };
+            var _t = this;
+            this.m_oScrollVerApi.bind("scrollvertical", function(evt) {
+                _t.scrollVertical(evt.scrollD, evt.maxScrollY);
+            });
         }
+
+        this.scrollMaxY = this.m_oScrollVerApi.getMaxScrolledY();
+        if (this.scrollY >= this.scrollMaxY)
+            this.scrollY = this.scrollMaxY;
     };
 
     // очередь задач - нужно ли перерисоваться и/или перерисовать страницу

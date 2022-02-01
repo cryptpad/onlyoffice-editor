@@ -181,6 +181,14 @@
 		this.endVisiblePage = -1;
 		this.pagesInfo = new CDocumentPagesInfo();
 
+		this.statistics = {
+			paragraph : 0,
+			words : 0,
+			symbols : 0,
+			spaces : 0,
+			process : false
+		};
+
 		this.handlers = {};
 
 		this.overlay = null;
@@ -639,6 +647,35 @@
 			this.paint();
 		};
 
+		this.onUpdateStatistics = function(countParagraph, countWord, countSymbol, countSpace)
+		{
+			this.statistics.paragraph += countParagraph;
+			this.statistics.words += countWord;
+			this.statistics.symbols += countSymbol;
+			this.statistics.spaces += countSpace;
+
+			if (this.statistics.process)
+			{
+				this.Api.sync_DocInfoCallback({
+					PageCount: this.getPagesCount(),
+					WordsCount: this.statistics.words,
+					ParagraphCount: this.statistics.paragraph,
+					SymbolsCount: this.statistics.symbols,
+					SymbolsWSCount: (this.statistics.symbols + this.statistics.spaces)
+				});
+			}
+		};
+
+		this.startStatistics = function()
+		{
+			this.statistics.process = true;
+		};
+
+		this.endStatistics = function()
+		{
+			this.statistics.process = false;
+		};
+
 		this.open = function(data, password)
 		{
 			if (!this.checkModule())
@@ -703,6 +740,7 @@
 			}, 0);
 
 			this.file.onRepaintPages = this.onUpdatePages.bind(this);
+			this.file.onUpdateStatistics = this.onUpdateStatistics.bind(this);
 			this.currentPage = -1;
 			this.structure = this.file.getStructure();
 
@@ -978,8 +1016,8 @@
 
 					oThis.Api.sync_ContextMenuCallback({
 						Type  : Asc.c_oAscContextMenuTypes.Common,
-						X_abs : posX,
-						Y_abs : posY
+						X_abs : posX - oThis.x,
+						Y_abs : posY - oThis.y
 					});
 				}
 				return;
@@ -1796,6 +1834,12 @@
 				this.isFullText = true;
 				if (this.isFullTextMessage)
 					this.unshowTextMessage();
+
+				if (this.statistics.process)
+				{
+					this.endStatistics();
+					this.Api.sync_GetDocInfoEndCallback();
+				}
 			}
 
 			return isCommands;
@@ -1859,6 +1903,7 @@
 			// TODO: нужно прерываться после первого же символа
 			var text_format = { Text : "" };
 			this.Copy(text_format);
+			text_format.Text = text_format.Text.replace(new RegExp("\n", 'g'), "");
 			return (text_format.Text === "") ? false : true;
 		};
 

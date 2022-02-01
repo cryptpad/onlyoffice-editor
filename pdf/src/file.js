@@ -2074,6 +2074,9 @@ void main() {\n\
             file.nativeFile["onRepaintPages"] = function(pages) {
                 file.onRepaintPages && file.onRepaintPages(pages);
             };
+            file.nativeFile["onUpdateStatistics"] = function(par, word, symbol, space) {
+                file.onUpdateStatistics && file.onUpdateStatistics(par, word, symbol, space);
+            };
             file.pages = file.nativeFile["getPages"]();
 
             for (var i = 0, len = file.pages.length; i < len; i++)
@@ -2104,6 +2107,9 @@ void main() {\n\
         {
             file.nativeFile["onRepaintPages"] = function(pages) {
                 file.onRepaintPages && file.onRepaintPages(pages);
+            };
+            file.nativeFile["onUpdateStatistics"] = function(par, word, symbol, space) {
+                file.onUpdateStatistics && file.onUpdateStatistics(par, word, symbol, space);
             };
             file.pages = file.nativeFile["getPages"]();
 
