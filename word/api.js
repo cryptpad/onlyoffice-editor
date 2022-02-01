@@ -1362,6 +1362,11 @@ background-repeat: no-repeat;\
 		this.WordControl.HideRulers();
 	};
 
+	asc_docs_api.prototype.isDocumentRenderer = function()
+	{
+		return !!this.WordControl.m_oDrawingDocument.m_oDocumentRenderer;
+	};
+
 	asc_docs_api.prototype.OpenDocument = function(url, gObject)
 	{
 		this.isOnlyReaderMode = false;
@@ -7031,19 +7036,19 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.goToPage       = function(number)
 	{
-		if (this.isUseNativeViewer)
+		if (this.isUseNativeViewer && this.isDocumentRenderer())
 			return this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.navigateToPage(number);
 		this.WordControl.GoToPage(number);
 	};
 	asc_docs_api.prototype.getCountPages  = function()
 	{
-		if (this.isUseNativeViewer)
+		if (this.isUseNativeViewer && this.isDocumentRenderer())
 			return this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.getPagesCount();
 		return this.WordControl.m_oDrawingDocument.m_lPagesCount;
 	};
 	asc_docs_api.prototype.getCurrentPage = function()
 	{
-		if (this.isUseNativeViewer)
+		if (this.isUseNativeViewer && this.isDocumentRenderer())
 			return this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.currentPage;
 		return this.WordControl.m_oDrawingDocument.m_lCurrentPage;
 	};
