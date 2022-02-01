@@ -266,6 +266,9 @@
         if (!AscCommon.g_clipboardBase)
             return null;
 
+		if (this.isViewMode)
+			return null;
+
         var _elem = document.getElementById("pmpastehtml");
         if (_elem)
             return;

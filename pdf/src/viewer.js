@@ -1176,7 +1176,7 @@
 			}
 
 			// если было нажатие - то отжимаем
-			if (!oThis.isMouseMoveBetweenDownUp)
+			if (oThis.isMouseMoveBetweenDownUp)
 				oThis.file.onMouseUp();
 
 			oThis.isMouseMoveBetweenDownUp = false;
@@ -1896,6 +1896,16 @@
 		this.Copy = function(_text_format)
 		{
 			return this.file.copy(_text_format);
+		};
+		this.selectAll = function()
+		{
+			return this.file.selectAll();
+		};
+		this.removeSelection = function()
+		{
+			var pageObjectLogic = this.getPageByCoords2(AscCommon.global_mouseEvent.X - this.x, AscCommon.global_mouseEvent.Y - this.y);
+			this.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+			this.file.onMouseUp(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
 		};
 
 		this.isCanCopy = function()
