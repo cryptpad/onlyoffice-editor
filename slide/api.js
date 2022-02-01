@@ -5222,6 +5222,7 @@ background-repeat: no-repeat;\
 		for (var i = 0; i < _st_count; i++)
 			_loader_object.ImageMap[_count + i] = AscCommon.g_oUserTexturePresets[i];
 
+		_loader_object.ImageMap[_count + _st_count] = AscFormat.ICON_TRIGGER;
 		if (_count > 0)
 		{
 			this.EndActionLoadImages = 1;

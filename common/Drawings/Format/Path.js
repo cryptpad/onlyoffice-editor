@@ -1134,7 +1134,7 @@ Path.prototype = {
     },
 
     isEmpty : function () {
-        return this.ArrPathCommandInfo.length > 0;
+        return this.ArrPathCommandInfo.length <= 0;
     },
 
     checkBetweenPolygons: function (oBoundsController, oPolygonWrapper1, oPolygonWrapper2) {
@@ -1144,6 +1144,67 @@ Path.prototype = {
     },
 
     transform: function (oTransform, dKoeff) {
+    },
+
+    getSVGPath: function(oTransform, dStartX, dStartY) {
+        var aCmds = this.ArrPathCommand;
+        var sSVG = "";
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        var dSlideWidth = oPresentation.GetWidthMM();
+        var dSlideHeight = oPresentation.GetHeightMM();
+        var calcX = function(dX, dY) {
+            var dX_ = oTransform.TransformPointX(dX, dY);
+            return ((((dX_ - dStartX) / dSlideWidth) * 1000 + 0.5 >> 0) / 1000) + "";
+        }
+        var calcY = function(dX, dY) {
+            var dY_ = oTransform.TransformPointY(dX, dY);
+            return ((((dY_ - dStartY) / dSlideHeight) * 1000 + 0.5 >> 0) / 1000) + "";
+        }
+        for(var nCmd = 0; nCmd < aCmds.length; ++nCmd) {
+            var oCmd = aCmds[nCmd];
+            if(sSVG.length > 0) {
+                sSVG += " ";
+            }
+            switch(oCmd.id) {
+                case moveTo: {
+                    sSVG += "M ";
+                    sSVG += calcX(oCmd.X, oCmd.Y);
+                    sSVG += " ";
+                    sSVG += calcY(oCmd.X, oCmd.Y);
+                    break;
+                }
+                case lineTo: {
+                    sSVG += "L ";
+                    sSVG += calcX(oCmd.X, oCmd.Y);
+                    sSVG += " ";
+                    sSVG += calcY(oCmd.X, oCmd.Y);
+                    break;
+                }
+                case bezier4: {
+                    sSVG += "C ";
+                    sSVG += calcX(oCmd.X0, oCmd.Y0);
+                    sSVG += " ";
+                    sSVG += calcY(oCmd.X0, oCmd.Y0);
+                    sSVG += " ";
+                    sSVG += calcX(oCmd.X1, oCmd.Y1);
+                    sSVG += " ";
+                    sSVG += calcY(oCmd.X1, oCmd.Y1);
+                    sSVG += " ";
+                    sSVG += calcX(oCmd.X2, oCmd.Y2);
+                    sSVG += " ";
+                    sSVG += calcY(oCmd.X2, oCmd.Y2);
+                    break;
+                }
+                case close: {
+                    sSVG += "Z";
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+        return sSVG;
     }
 };
 

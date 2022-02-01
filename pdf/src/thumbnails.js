@@ -343,17 +343,19 @@
     // HTML/INTERFACE
     CDocument.prototype.createComponents = function()
     {
+        this.updateSkin();
+
         var parent = document.getElementById(this.id);
         var elements = "";
         elements += "<canvas id=\"id_viewer_th\" class=\"block_elem\" style=\"left:0px;top:0px;width:100;height:100;\"></canvas>";
         elements += "<canvas id=\"id_overlay_th\" class=\"block_elem\" style=\"left:0px;top:0px;width:100;height:100;\"></canvas>";
         elements += "<div id=\"id_vertical_scroll_th\" class=\"block_elem\" style=\"display:none;left:0px;top:0px;width:0px;height:0px;\"></div>";
     
-        parent.style.backgroundColor = this.backgroundColor;
+        parent.style.backgroundColor = ThumbnailsStyle.backgroundColor;
         parent.innerHTML = elements;
 
         this.canvas = document.getElementById("id_viewer_th");
-        this.canvas.backgroundColor = this.backgroundColor;
+        this.canvas.backgroundColor = ThumbnailsStyle.backgroundColor;
 
         this.canvasOverlay = document.getElementById("id_overlay_th");
         this.canvasOverlay.style.pointerEvents = "none";
@@ -440,8 +442,9 @@
     // очередь задач - нужно ли перерисоваться и/или перерисовать страницу
     CDocument.prototype.checkTasks = function(isViewerTask)
     {
+        var isNeedTasks = false;
         if (!this.isEnabled)
-            return;
+            return isNeedTasks;
 
         if (!isViewerTask && -1 != this.startBlock)
         {
@@ -467,6 +470,7 @@
 
             if (needPage)
             {
+                isNeedTasks = true;
                 needPage.page.image = this.viewer.file.getPage(needPage.num, needPage.pageRect.w, needPage.pageRect.h, true);
                 this.isRepaint = true;
             }
@@ -478,6 +482,8 @@
             this._paint();
             this.isRepaint = false;
         }
+
+        return isNeedTasks;
     };
 
     CDocument.prototype.updateCurrentPage = function(pageObject)
@@ -888,6 +894,25 @@
         this.onMouseMove(_e);
         // ------------------------------------------------------
         return false;
+    };
+
+    CDocument.prototype.updateSkin = function()
+    {
+        if (AscCommon.GlobalSkin.Type === "dark")
+        {
+            ThumbnailsStyle.backgroundColor = "#404040";
+            PageStyle.numberColor = "#FFFFFF";
+        }
+        else
+        {
+            ThumbnailsStyle.backgroundColor = "#F1F1F1";
+            PageStyle.numberColor = "#000000";
+        }
+
+        if (this.canvas)
+            this.canvas.style.backgroundColor = ThumbnailsStyle.backgroundColor;
+
+        this.resize();
     };
 
     // export

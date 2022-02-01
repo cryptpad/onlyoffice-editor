@@ -3720,7 +3720,7 @@
 
 			if (bNeedUpdate)
 			{
-				oLogicDocument.TrackRevisionsManager.Clear_VisibleChanges();
+				oLogicDocument.TrackRevisionsManager.ClearSelectedChanges();
 				oLogicDocument.Document_UpdateInterfaceState(false);
 			}
 		}

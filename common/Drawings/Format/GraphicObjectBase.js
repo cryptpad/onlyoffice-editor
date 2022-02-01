@@ -353,6 +353,21 @@
             this.checkWH();
         }
     };
+    CGraphicBounds.prototype.checkPoint = function(dX, dY) {
+        if(dX < this.l) {
+            this.l = dX;
+        }
+        if(dX > this.r){
+            this.r = dX;
+        }
+        if(dY < this.t){
+            this.t = dY;
+        }
+        if(dY > this.b){
+            this.b = dY;
+        }
+        this.checkWH();
+    };
     CGraphicBounds.prototype.checkWH = function(){
 
         this.x = this.l;
@@ -404,6 +419,15 @@
     };
     CGraphicBounds.prototype.hit = function(x, y) {
         return x >= this.l && x <= this.r && y >= this.t && y <= this.b;  
+    };
+    CGraphicBounds.prototype.isEqual = function(oBounds) {
+        if(!oBounds) {
+            return false;
+        }
+        return AscFormat.fApproxEqual(this.l, oBounds.l) && 
+            AscFormat.fApproxEqual(this.t, oBounds.t) && 
+            AscFormat.fApproxEqual(this.r, oBounds.r) && 
+            AscFormat.fApproxEqual(this.b, oBounds.b);
     };
 
     function CCopyObjectProperties()
@@ -756,7 +780,15 @@
             this.setLocks((~nMask) & this.locks);
         }
         else{
-            this.setLocks(this.locks | nMask | (bValue ? nMask << 1 : 0));
+            var nLocks = this.locks;
+            nLocks |= nMask;
+            if(bValue) {
+                nLocks |= (nMask << 1)
+            }
+            else {
+                nLocks &= ~(nMask << 1)
+            }
+            this.setLocks(nLocks);
         }
     };
     CGraphicObjectBase.prototype.getNoGrp = function(){
