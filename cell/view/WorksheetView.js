@@ -541,8 +541,6 @@
   WorksheetView.prototype.createImageFromMaxRange = function () {
     var sizes = this.getMaxSizes();
     var hiddenCanv = document.createElement('canvas');
-    hiddenCanv.style.display = 'none';
-    document.body.appendChild(hiddenCanv);
     hiddenCanv.width = sizes.extX;
     hiddenCanv.height = sizes.extY;
     var hiddenCtx = hiddenCanv.getContext('2d');
@@ -558,7 +556,6 @@
       hiddenCanv.width,
       hiddenCanv.height);
     var dataUrl = hiddenCanv.toDataURL();
-    document.body.removeChild(hiddenCanv);
     return dataUrl;
   }
 
