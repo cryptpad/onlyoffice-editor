@@ -99,6 +99,21 @@
 		return res;
 	}
 
+	//возможно стоит перенести в writer, пока не расширяю интерфейс
+	function toXML2 (writer, sName, m_sText) {
+		if (m_sText) {
+			writer.WriteXmlString("<");
+			writer.WriteXmlString(sName);
+			writer.WriteXmlString(">");
+
+			writer.WriteXmlStringEncode(m_sText);
+
+			writer.WriteXmlString("</");
+			writer.WriteXmlString(sName);
+			writer.WriteXmlString(">");
+		}
+	}
+
 	function FromXml_ST_IconSetType2(val) {
 		//TODO в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = null;
@@ -1165,37 +1180,12 @@
 			this.PagePrintOptions.pageSetup.toXml(writer);
 		}
 
-		/*
+		if (this.headerFooter) {
+			this.headerFooter.toXml(writer);
+		}
 
-		if(m_oHeaderFooter.IsInit())
-			m_oHeaderFooter->toXML(writer);
-		if(m_oRowBreaks.IsInit())
-			m_oRowBreaks->toXML(writer);
-		if(m_oColBreaks.IsInit())
-			m_oColBreaks->toXML(writer);
-		if(m_oDrawing.IsInit())
-			m_oDrawing->toXML(writer);
-		if(m_oLegacyDrawing.IsInit())
-			m_oLegacyDrawing->toXML(writer);
-		if(m_oLegacyDrawingHF.IsInit())
-			m_oLegacyDrawingHF->toXML(writer);
-		if(m_oPicture.IsInit())
-			m_oPicture->toXML(writer);
-		if(m_oOleObjects.IsInit())
-			m_oOleObjects->toXML(writer);
-		if(m_oControls.IsInit())
-			m_oControls->toXML(writer);
-		if(m_oTableParts.IsInit())
-			m_oTableParts->toXML(writer);
-		if(m_oExtLst.IsInit())
-		{
-			writer.WriteString(m_oExtLst->toXMLWithNS(L""));
-		}*/
-
-
-
-
-
+		//skip m_oRowBreaks
+		//skip m_oColBreaks
 
 		//drawings
 		if (this.Drawings.length > 0) {
@@ -1207,23 +1197,11 @@
 			drawingRef.toXml(writer, "drawing");
 		}
 
-
-		/*if(m_arrItems.empty()) return;
-
-		writer.WriteString(L"<tableParts");
-		WritingStringAttrInt(L"count", (int)m_arrItems.size());
-		writer.WriteString(L">");
-
-		for ( size_t i = 0; i < m_arrItems.size(); ++i)
-		{
-			if ( m_arrItems[i] )
-			{
-				m_arrItems[i]->toXML(writer);
-			}
-		}
-
-		writer.WriteString(L"</tableParts>");*/
-
+		//skip m_oLegacyDrawing
+		//skip m_oLegacyDrawingHF
+		//skip m_oPicture
+		//skip m_oOleObjects
+		//skip m_oControls
 
 		if (this.TableParts && this.TableParts.length > 0) {
 
@@ -1243,6 +1221,12 @@
 			writer.WriteXmlNodeEnd("tableParts");
 		}
 		writer.WriteXmlNodeEnd("worksheet");
+
+		/*
+		if(m_oExtLst.IsInit())
+		{
+			writer.WriteString(m_oExtLst->toXMLWithNS(L""));
+		}*/
 	};
 
 	Asc.asc_CDefName.prototype.toXml = function (writer) {
@@ -5650,6 +5634,67 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.setScaleWithDoc(val);
 			}
 		}
+	};
+
+	Asc.CHeaderFooter.prototype.toXml = function (writer) {
+
+		/*writer.WriteString((L"<headerFooter"));
+						WritingStringNullableAttrBool(L"alignWithMargins", m_oAlignWithMargins);
+						WritingStringNullableAttrBool(L"differentFirst", m_oDifferentFirst);
+						WritingStringNullableAttrBool(L"differentOddEven", m_oDifferentOddEven);
+						WritingStringNullableAttrBool(L"scaleWithDoc", m_oScaleWithDoc);
+						writer.WriteString((L">"));
+							if (m_oOddHeader.IsInit())
+							{
+								m_oOddHeader->toXML2(writer, (L"oddHeader"));
+							}
+							if (m_oOddFooter.IsInit())
+							{
+								m_oOddFooter->toXML2(writer, (L"oddFooter"));
+							}
+							if (m_oEvenHeader.IsInit())
+							{
+								m_oEvenHeader->toXML2(writer, (L"evenHeader"));
+							}
+							if (m_oEvenFooter.IsInit())
+							{
+								m_oEvenFooter->toXML2(writer, (L"evenFooter"));
+							}
+							if (m_oFirstHeader.IsInit())
+							{
+								m_oFirstHeader->toXML2(writer, (L"firstHeader"));
+							}
+							if (m_oFirstFooter.IsInit())
+							{
+								m_oFirstFooter->toXML2(writer, (L"firstFooter"));
+							}
+						writer.WriteString((L"</headerFooter>"));*/
+
+		writer.WriteXmlString(("<headerFooter"));
+		writer.WriteXmlNullableAttributeBool("alignWithMargins", this.alignWithMargins);
+		writer.WriteXmlNullableAttributeBool("differentFirst", this.differentFirst);
+		writer.WriteXmlNullableAttributeBool("differentOddEven", this.differentOddEven);
+		writer.WriteXmlNullableAttributeBool("scaleWithDoc", this.scaleWithDoc);
+		writer.WriteXmlString((">"));
+		if (this.evenFooter) {
+			toXML2(writer, "oddHeader", this.evenFooter);
+		}
+		if (this.evenHeader) {
+			toXML2(writer, "oddFooter", this.oddFooter);
+		}
+		if (this.firstFooter) {
+			toXML2(writer, "evenHeader", this.evenHeader);
+		}
+		if (this.firstHeader) {
+			toXML2(writer, "evenFooter", this.evenFooter);
+		}
+		if (this.oddFooter) {
+			toXML2(writer, "firstHeader", this.firstHeader);
+		}
+		if (this.oddHeader) {
+			toXML2(writer, "firstFooter", this.firstFooter);
+		}
+		writer.WriteXmlString(("</headerFooter>"));
 	};
 
 	Asc.CSheetProtection.prototype.fromXml = function (reader) {
