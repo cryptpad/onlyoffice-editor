@@ -312,6 +312,15 @@
      * @typedef {("cross" | "in" | "none" | "out")} TickMark
      * */
 
+    /**
+     * Text transform preset
+	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown" 
+	 * | "textCanUp" | "textCascadeDown" | "textCascadeUp" | "textChevron" | "textChevronInverted" | "textCircle" | "textCirclePour"
+	 * | "textCurveDown" | "textCurveUp" | "textDeflate" | "textDeflateBottom" | "textDeflateInflate" | "textDeflateInflateDeflate" | "textDeflateTop"
+	 * | "textDoubleWave1" | "textFadeDown" | "textFadeLeft" | "textFadeRight" | "textFadeUp" | "textInflate" | "textInflateBottom" | "textInflateTop"
+	 * | "textPlain" | "textRingInside" | "textRingOutside" | "textSlantDown" | "textSlantUp" | "textStop" | "textTriangle" | "textTriangleInverted"
+	 * | "textWave1" | "textWave2" | "textWave4" | "textNoShape")} TextTransofrm
+	 * */
     //------------------------------------------------------------------------------------------------------------------
     //
     // Base Api
@@ -780,6 +789,43 @@
         return true;
     };
 
+    /**
+	 * Creates a word art with the parameters specified.
+	 * @memberof Api
+	 * @typeofeditors ["CPE"]
+	 * @param {ApiTextPr} [oTextPr=Api.CreateTextPr()] - The text properties.
+	 * @param {string} [sText="Your text here"] - text for text art.
+     * @param {TextTransofrm} [sTransform="textNoShape"] - Text transform type.
+	 * @param {ApiFill} [oFill=Api.CreateNoFill()] - The color or pattern used to fill the shape.
+	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the shape shadow.
+	 * @param {number} [nRotAngle=0] - rotation angle
+	 * @param {EMU} [nWidth=1828800] - word atr width
+	 * @param {EMU} [nHeight=1828800] - word atr heigth
+     * @param {EMU} [nIndLeft=ApiPresentation.GetWidth() / 2] - word atr width
+	 * @param {EMU} [nIndTop=ApiPresentation.GetHeight() / 2] - word atr heigth
+	 * @returns {ApiDrawing}
+	 */
+    Api.prototype.CreateWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight, nIndLeft, nIndTop) {
+        var oPres = private_GetPresentation();
+		oTextPr   = oTextPr && oTextPr.TextPr ? oTextPr.TextPr : null;
+		nRotAngle = typeof(nRotAngle) === "number" && nRotAngle > 0 ? nRotAngle : 0;
+		nWidth    = typeof(nWidth) === "number" && nWidth > 0 ? nWidth : 1828800;
+		nHeight   = typeof(nHeight) === "number" && nHeight > 0 ? nHeight : 1828800;
+		oFill     = oFill && oFill.UniFill ? oFill.UniFill : this.CreateNoFill().UniFill;
+		oStroke   = oStroke && oStroke.Ln ? oStroke.Ln : this.CreateStroke(0, this.CreateNoFill()).Ln;
+        sTransform = typeof(sTransform) === "string" && sTransform !== "" ? sTransform : "textNoShape";
+
+		var oArt = this.private_createWordArt(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight);
+
+        nIndLeft  = typeof(nIndLeft) === "number" && nIndLeft > -1 ? nIndLeft : (oPres.GetWidthMM() - oArt.spPr.xfrm.extX) / 2;
+        nIndTop  = typeof(nIndTop) === "number" && nIndTop > -1 ? nIndTop : (oPres.GetHeightMM() - oArt.spPr.xfrm.extY) / 2;
+
+        oArt.spPr.xfrm.setOffX(nIndLeft);
+        oArt.spPr.xfrm.setOffY(nIndTop);
+
+		return new ApiDrawing(oArt);
+	};
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiPresentation
@@ -1061,6 +1107,30 @@
 
         return false;
 	};
+
+    /**
+     * Gets the width of the current presentation.
+     * @typeofeditors ["CPE"]
+     * @memberof ApiPresentation
+     * @returns {EMU}
+     */
+     ApiPresentation.prototype.GetWidth = function() {
+        if(this.Presentation){
+            this.Presentation.GetWidthEMU();
+        }
+    };
+
+    /**
+     * Gets the height of the current presentation.
+     * @typeofeditors ["CPE"]
+     * @memberof ApiPresentation
+     * @returns {EMU}
+     */
+    ApiPresentation.prototype.GetHeight = function() {
+        if(this.Presentation){
+            this.Presentation.GetHeightEMU();
+        }
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -3945,7 +4015,8 @@
     Api.prototype["CreateThemeColorScheme"]               = Api.prototype.CreateThemeColorScheme;
     Api.prototype["CreateThemeFormatScheme"]              = Api.prototype.CreateThemeFormatScheme;
     Api.prototype["CreateThemeFontScheme"]                = Api.prototype.CreateThemeFontScheme;
-
+    Api.prototype["CreateWordArt"]                        = Api.prototype.CreateWordArt;
+    
     ApiPresentation.prototype["GetClassType"]             = ApiPresentation.prototype.GetClassType;
     ApiPresentation.prototype["GetCurSlideIndex"]         = ApiPresentation.prototype.GetCurSlideIndex;
     ApiPresentation.prototype["GetSlideByIndex"]          = ApiPresentation.prototype.GetSlideByIndex;
@@ -3961,6 +4032,8 @@
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
     ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
     ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;
+    ApiPresentation.prototype["GetWidth"]                 = ApiPresentation.prototype.GetWidth;
+    ApiPresentation.prototype["GetHeight"]                = ApiPresentation.prototype.GetHeight;
 
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
