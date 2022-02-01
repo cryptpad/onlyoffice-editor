@@ -223,7 +223,10 @@
 			this.isClearPages = true;
 
 			if (this.thumbnails)
+			{
 				this.thumbnails.updateSkin();
+				this.thumbnails.clearCachePages();
+			}
 
 			if (this.resize)
 				this.resize();

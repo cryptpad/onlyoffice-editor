@@ -493,7 +493,7 @@
             if (needPage)
             {
                 isNeedTasks = true;
-                needPage.page.image = this.viewer.file.getPage(needPage.num, needPage.pageRect.w, needPage.pageRect.h, true);
+                needPage.page.image = this.viewer.file.getPage(needPage.num, needPage.pageRect.w, needPage.pageRect.h, undefined, this.viewer.Api.isDarkMode ? 0x3A3A3A : 0xFFFFFF);
                 this.isRepaint = true;
             }
         }
@@ -929,6 +929,23 @@
             this.canvas.style.backgroundColor = ThumbnailsStyle.backgroundColor;
 
         this.resize();
+    };
+
+    CDocument.prototype.clearCachePages = function()
+    {
+        for (var blockNum = 0, blocksCount = this.blocks.length; blockNum < blocksCount; blockNum++)
+        {
+            block = this.blocks[blockNum];
+
+            for (var pageNum = 0, pagesCount = block.pages.length; pageNum < pagesCount; pageNum++)
+            {
+                drPage = block.pages[pageNum];
+                if (drPage.page.image)
+                {
+                    drPage.page.image = null;
+                }
+            }
+        }
     };
 
     // export
