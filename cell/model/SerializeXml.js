@@ -945,6 +945,7 @@
 				} else if ("pageMargins" === name) {
 					if (this.PagePrintOptions && this.PagePrintOptions.pageMargins) {
 						this.PagePrintOptions.pageMargins.fromXml(reader);
+						this.PagePrintOptions.pageMargins.ws = this;
 					}
 				} else if ("pageSetup" === name) {
 					if (this.PagePrintOptions && this.PagePrintOptions.pageSetup) {
@@ -1130,22 +1131,42 @@
 
 		//TODO пропускаю пока ConditionalFormatting
 
+		//TODO extLst
 		if (this.dataValidations) {
 			this.dataValidations.toXml(writer);
 		}
 
+		//TODO rels нужно добавить + грамотно добавить
+		var oHyperlinks = this.hyperlinkManager.getAll();
+		if (oHyperlinks) {
+			writer.WriteXmlString("<hyperlinks>");
+			for (var i in oHyperlinks) {
+				var elem = oHyperlinks[i];
+				//write only active hyperlink, if copy/paste
+				if (!context.InitSaveManager.isCopyPaste || (context.InitSaveManager.isCopyPaste && elem && elem.bbox && context.InitSaveManager.isCopyPaste.containsRange(elem.bbox))) {
+					/*this.bs.WriteItem(c_oSerWorksheetsTypes.Hyperlink, function () {
+						oThis.WriteHyperlink(elem.data);
+					});*/
+					//elem.toXml(writer, this);
+				}
+			}
+			writer.WriteXmlString("</hyperlinks>");
+		}
+
+		if (this.PagePrintOptions) {
+			this.PagePrintOptions.toXml(writer);
+		}
+
+		if (this.PagePrintOptions && this.PagePrintOptions.pageMargins) {
+			this.PagePrintOptions.pageMargins.toXml(writer);
+		}
+
+		if (this.PagePrintOptions && this.PagePrintOptions.pageSetup) {
+			this.PagePrintOptions.pageSetup.toXml(writer);
+		}
+
 		/*
 
-		if(m_oDataValidations.IsInit())
-			m_oDataValidations->toXML(writer);
-		if(m_oHyperlinks.IsInit())
-			m_oHyperlinks->toXML(writer);
-		if(m_oPrintOptions.IsInit())
-			m_oPrintOptions->toXML(writer);
-		if(m_oPageMargins.IsInit())
-			m_oPageMargins->toXML(writer);
-		if(m_oPageSetup.IsInit())
-			m_oPageSetup->toXML(writer);
 		if(m_oHeaderFooter.IsInit())
 			m_oHeaderFooter->toXML(writer);
 		if(m_oRowBreaks.IsInit())
@@ -1204,9 +1225,6 @@
 		writer.WriteString(L"</tableParts>");*/
 
 
-		if (this.dataValidations) {
-			this.dataValidations.toXml(writer);
-		}
 		if (this.TableParts && this.TableParts.length > 0) {
 
 			writer.WriteXmlNodeStart("tableParts");
@@ -2193,6 +2211,26 @@
 
 			}*/
 		}
+	};
+
+	AscCommonExcel.Hyperlink.prototype.toXml = function (writer) {
+
+		/*writer.WriteString((L"<hyperlink"));
+						WritingStringNullableAttrEncodeXmlString(L"display", m_oDisplay, m_oDisplay.get());
+						WritingStringNullableAttrString(L"r:id", m_oRid, m_oRid->ToString());
+						WritingStringNullableAttrEncodeXmlString(L"location", m_oLocation, m_oLocation.get());
+						WritingStringNullableAttrEncodeXmlString(L"ref", m_oRef, m_oRef.get());
+						WritingStringNullableAttrEncodeXmlString(L"tooltip", m_oTooltip, m_oTooltip.get());
+						writer.WriteString((L"/>"));*/
+
+		writer.WriteXmlString(("<hyperlink"));
+		writer.WriteXmlNullableAttributeStringEncode("display", this.display);
+		//TODO rID
+		//writer.WriteXmlNullableAttributeString("r:id", this.r:id);
+		writer.WriteXmlNullableAttributeStringEncode("location", this.location);
+		writer.WriteXmlNullableAttributeStringEncode("ref", this.Ref);
+		writer.WriteXmlNullableAttributeStringEncode("tooltip", this.Tooltip);
+		writer.WriteXmlString(("/>"));
 	};
 
 	function CT_Sheets(wb) {
@@ -4512,10 +4550,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				}
 			} else if ("pageOrder" === reader.GetName()) {
 				val = reader.GetValue();
-				this.PageOrder = val;
+				this.pageOrder = val;
 			} else if ("paperHeight" === reader.GetName()) {
 				val = reader.GetValue();
-				this.PaperHeight = val;
+				this.height = val;
 			} else if ("paperSize" === reader.GetName()) {
 				//TODO в serialize такая же обработка, нужно сделать общую
 				var bytePaperSize = reader.GetValueInt();
@@ -4524,24 +4562,104 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.asc_setHeight(item.h_mm);
 			} else if ("paperWidth" === reader.GetName()) {
 				val = reader.GetValue();
-				this.PaperWidth = val;
+				this.width = val;
 			} else if ("paperUnits" === reader.GetName()) {
 				val = reader.GetValue();
-				this.PaperUnits = val;
+				//this.PaperUnits = val;
 			} else if ("scale" === reader.GetName()) {
 				val = reader.GetValueInt();
-				this.Scale = val;
+				this.scale = val;
 			} else if ("useFirstPageNumber" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.UseFirstPageNumber = val;
+				this.useFirstPageNumber = val;
 			} else if ("usePrinterDefaults" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.UsePrinterDefaults = val;
+				this.usePrinterDefaults = val;
 			} else if ("verticalDpi" === reader.GetName()) {
 				val = reader.GetValueInt();
-				this.VerticalDpi = val;
+				this.verticalDpi = val;
 			}
 		}
+	};
+
+	Asc.asc_CPageSetup.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<pageSetup");
+							WritingStringNullableAttrString(L"paperSize", m_oPaperSize, m_oPaperSize->ToString());
+							WritingStringNullableAttrDouble(L"paperHeight", m_oPaperHeight, m_oPaperHeight->GetValue());
+							WritingStringNullableAttrDouble(L"paperWidth", m_oPaperWidth, m_oPaperWidth->GetValue());
+							WritingStringNullableAttrUInt(L"scale", m_oScale, m_oScale->GetValue());
+							WritingStringNullableAttrUInt(L"firstPageNumber", m_oFirstPageNumber, m_oFirstPageNumber->GetValue());
+							WritingStringNullableAttrInt(L"fitToWidth", m_oFitToWidth, m_oFitToWidth->GetValue());
+							WritingStringNullableAttrInt(L"fitToHeight", m_oFitToHeight, m_oFitToHeight->GetValue());
+							WritingStringNullableAttrString(L"pageOrder", m_oPageOrder, m_oPageOrder->ToString());
+							WritingStringNullableAttrString(L"orientation", m_oOrientation, m_oOrientation->ToString());
+							WritingStringNullableAttrBool(L"usePrinterDefaults", m_oUsePrinterDefaults);
+							WritingStringNullableAttrBool(L"blackAndWhite", m_oBlackAndWhite);
+							WritingStringNullableAttrBool(L"draft", m_oDraft);
+							WritingStringNullableAttrString(L"cellComments", m_oCellComments, m_oCellComments->ToString());
+							WritingStringNullableAttrBool(L"useFirstPageNumber", m_oUseFirstPageNumber);
+							WritingStringNullableAttrString(L"errors", m_oErrors, m_oErrors->ToString());
+							WritingStringNullableAttrUInt(L"horizontalDpi", m_oHorizontalDpi, m_oHorizontalDpi->GetValue());
+							WritingStringNullableAttrUInt(L"verticalDpi", m_oVerticalDpi, m_oVerticalDpi->GetValue());
+							WritingStringNullableAttrUInt(L"copies", m_oCopies, m_oCopies->GetValue());
+							WritingStringNullableAttrString(L"paperUnits", m_oPaperUnits, m_oPaperUnits->ToString());
+							WritingStringNullableAttrString(L"r:id", m_oRId, m_oRId->ToString());
+							writer.WriteString(L"/>");*/
+
+		writer.WriteXmlString("<pageSetup");
+
+
+		var dWidth = this.asc_getWidth();
+		var dHeight = this.asc_getHeight();
+		if(null != dWidth && null != dHeight)
+		{
+			var item = AscCommonExcel.DocumentPageSize.getSizeByWH(dWidth, dHeight);
+			writer.WriteXmlNullableAttributeString("paperSize", item.id);
+		}
+
+		//TODO нужно ли второй раз записывать после paperSize
+		writer.WriteXmlNullableAttributeDouble("paperHeight", dHeight);
+		writer.WriteXmlNullableAttributeDouble("paperWidth", dWidth);
+
+
+		writer.WriteXmlNullableAttributeUInt("scale", this.scale);
+		writer.WriteXmlNullableAttributeUInt("firstPageNumber", this.firstPageNumber);
+		writer.WriteXmlNullableAttributeNumber("fitToWidth", this.fitToWidth);
+		writer.WriteXmlNullableAttributeNumber("fitToHeight", this.fitToHeight);
+		writer.WriteXmlNullableAttributeString("pageOrder", this.pageOrder);
+
+
+		//TODO такая же обработка в serialize, сделать общую
+		var byteOrientation = this.asc_getOrientation();
+		if(null != byteOrientation)
+		{
+			var byteFormatOrientation = null;
+			switch(byteOrientation)
+			{
+				case Asc.c_oAscPageOrientation.PagePortrait: byteFormatOrientation = Asc.EPageOrientation.pageorientPortrait;break;
+				case Asc.c_oAscPageOrientation.PageLandscape: byteFormatOrientation = Asc.EPageOrientation.pageorientLandscape;break;
+			}
+			if(null != byteFormatOrientation)
+			{
+				writer.WriteXmlNullableAttributeString("orientation", byteFormatOrientation);
+			}
+		}
+
+
+
+		writer.WriteXmlNullableAttributeBool("usePrinterDefaults", this.usePrinterDefaults);
+		writer.WriteXmlNullableAttributeBool("blackAndWhite", this.blackAndWhite);
+		writer.WriteXmlNullableAttributeBool("draft", this.draft);
+		writer.WriteXmlNullableAttributeString("cellComments", this.cellComments);
+		writer.WriteXmlNullableAttributeBool("useFirstPageNumber", this.useFirstPageNumber);
+		writer.WriteXmlNullableAttributeString("errors", this.errors);
+		writer.WriteXmlNullableAttributeUInt("horizontalDpi", this.horizontalDpi);
+		writer.WriteXmlNullableAttributeUInt("verticalDpi", this.verticalDpi);
+		writer.WriteXmlNullableAttributeUInt("copies", this.copies);
+		//writer.WriteXmlNullableAttributeString("paperUnits", this.paperUnits);
+		//writer.WriteXmlNullableAttributeString("r:id", this.r:id);
+		writer.WriteXmlString("/>");
 	};
 
 	Asc.asc_CPageMargins.prototype.fromXml = function (reader) {
@@ -4576,6 +4694,28 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
+
+	Asc.asc_CPageMargins.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<pageMargins");
+							WritingStringNullableAttrDouble(L"left", m_oLeft, m_oLeft->ToInches());
+							WritingStringNullableAttrDouble(L"right", m_oRight, m_oRight->ToInches());
+							WritingStringNullableAttrDouble(L"top", m_oTop, m_oTop->ToInches());
+							WritingStringNullableAttrDouble(L"bottom", m_oBottom, m_oBottom->ToInches());
+							WritingStringNullableAttrDouble(L"header", m_oHeader, m_oHeader->ToInches());
+							WritingStringNullableAttrDouble(L"footer", m_oFooter, m_oFooter->ToInches());
+							writer.WriteString(L"/>");*/
+
+		writer.WriteXmlString("<pageMargins");
+		writer.WriteXmlNullableAttributeDouble("left", this.left);
+		writer.WriteXmlNullableAttributeDouble("right", this.right);
+		writer.WriteXmlNullableAttributeDouble("top", this.top);
+		writer.WriteXmlNullableAttributeDouble("bottom", this.bottom);
+		writer.WriteXmlNullableAttributeDouble("header", this.header);
+		writer.WriteXmlNullableAttributeDouble("footer", this.footer);
+		writer.WriteXmlString("/>");
+	};
+
 
 	Asc.asc_CPageOptions.prototype.fromXml = function (reader) {
 
@@ -4633,6 +4773,21 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.verticalCentered = val;
 			}*/
 		}
+	};
+
+	Asc.asc_CPageOptions.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<printOptions");
+							WritingStringNullableAttrBool(L"headings",	m_oHeadings);
+							WritingStringNullableAttrBool(L"gridLines",	m_oGridLines);
+							WritingStringNullableAttrBool(L"gridLinesSet", m_oGridLinesSet);
+							writer.WriteString(L"/>");;*/
+
+		writer.WriteXmlString("<printOptions");
+		writer.WriteXmlNullableAttributeBool("headings", this.headings);
+		writer.WriteXmlNullableAttributeBool("gridLines", this.gridLines);
+		//writer.WriteXmlNullableAttributeBool("gridLinesSet", this.gridLinesSet);
+		writer.WriteXmlString("/>");
 	};
 
 	AscCommonExcel.SheetFormatPr.prototype.fromXml = function (reader, oWorksheet) {
@@ -11282,12 +11437,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		console.log(res);
 	}
 
-	var _x2tToXml = 'writer.WriteString((L"<sheetFormatPr"));\n' + '\t\t\t\tWritingStringNullableAttrInt2(L"baseColWidth", m_oBaseColWidth);\n' +
-		'\t\t\t\tWritingStringNullableAttrBool2(L"customHeight", m_oCustomHeight);\n' + '\t\t\t\tWritingStringNullableAttrDouble2(L"defaultColWidth", m_oDefaultColWidth);\n' +
-		'\t\t\t\tWritingStringNullableAttrDouble2(L"defaultRowHeight", m_oDefaultRowHeight);\n' +
-		'\t\t\t\tWritingStringNullableAttrInt2(L"outlineLevelCol", m_oOutlineLevelCol);\n' + '\t\t\t\tWritingStringNullableAttrInt2(L"outlineLevelRow", m_oOutlineLevelRow);\n' +
-		'\t\t\t\tWritingStringNullableAttrBool2(L"thickBottom", m_oThickBottom);\n' + '\t\t\t\tWritingStringNullableAttrBool2(L"thickTop", m_oThickTop);\n' +
-		'\t\t\t\tWritingStringNullableAttrBool2(L"zeroHeight", m_oZeroHeight);\n' + '\t\t\t\twriter.WriteString((L"/>"));'
+	var _x2tToXml = 'writer.WriteString(L"<pageMargins");\n' + '\t\t\t\t\tWritingStringNullableAttrDouble(L"left", m_oLeft, m_oLeft->ToInches());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrDouble(L"right", m_oRight, m_oRight->ToInches());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrDouble(L"top", m_oTop, m_oTop->ToInches());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrDouble(L"bottom", m_oBottom, m_oBottom->ToInches());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrDouble(L"header", m_oHeader, m_oHeader->ToInches());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrDouble(L"footer", m_oFooter, m_oFooter->ToInches());\n' + '\t\t\t\t\twriter.WriteString(L"/>");'
 
 	analizeXmlTo(_x2tToXml, false);
 	function analizeXmlTo (x2tToXml, isUpperCaseName) {
