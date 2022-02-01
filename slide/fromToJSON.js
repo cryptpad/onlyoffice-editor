@@ -225,7 +225,7 @@
 			cSld:       this.SerCSld(oNoteMaster.cSld),
 			hf:         this.SerHF(oNoteMaster.hf),
 			notesStyle: this.SerLstStyle(oNoteMaster.txStyles),
-			theme:      this.themesMap[oNoteMaster.Theme.Id] ? oNoteMaster.Theme.Id : this.SerTheme(oNoteMaster.Theme)  
+			theme:      oNoteMaster.Theme ? (this.themesMap[oNoteMaster.Theme.Id] ? oNoteMaster.Theme.Id : this.SerTheme(oNoteMaster.Theme)) : null
 		}
 
 		// мапим, чтобы не записывать несколько раз
@@ -1711,7 +1711,7 @@
 		oParsedMaster.hf && oMasterSlide.setHF(this.HFFromJSON(oParsedMaster.hf));
 
 		// layouts
-		for (var nLayout = 0; nLayout < Math.min(2, oParsedMaster.sldLayoutLst.length); nLayout++)
+		for (var nLayout = 0; nLayout < oParsedMaster.sldLayoutLst.length; nLayout++)
 			oMasterSlide.addToSldLayoutLstToPos(oMasterSlide.sldLayoutLst.length, this.SlideLayoutFromJSON(oParsedMaster.sldLayoutLst[nLayout]));
 
 		// transition

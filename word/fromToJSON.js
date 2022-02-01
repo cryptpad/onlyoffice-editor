@@ -4245,10 +4245,10 @@
 
 			extraClrSchemeLst: aExtraClrSchemeLst, // AscFormat.ExtraClrScheme:
 			isThemeOverride:   oTheme.isThemeOverride,
-			id:                oTheme.id
+			id:                oTheme.Id
 		}
 
-		// памим, чтобы не записывать несколько раз
+		// мамим, чтобы не записывать несколько раз
 		this.themesMap[oTheme.Id] = oThemeObj;
 
 		return oThemeObj;

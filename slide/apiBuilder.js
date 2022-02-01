@@ -790,11 +790,54 @@
 	Api.prototype.FromJSON = function(sMessage)
 	{
 		var oReader = new AscCommon.ReaderFromJSON();
-
+        var oApiPresentation = this.GetPresentation();
+        var oPresentation = private_GetPresentation();
 		var oParsedObj  = JSON.parse(sMessage);
 
 		switch (oParsedObj.type)
 		{
+            case "presentation":
+                var oSldSize = oParsedObj["sldSz"] ? oReader.SlideSizeFromJSON(oParsedObj["sldSz"]) : null;
+                var oShowPr  = oParsedObj["showPr"] ? oReader.ShowPrFromJSON(oParsedObj["showPr"]) : null;
+                oSldSize && oPresentation.setSldSz(oSldSize);
+                oShowPr && oPresentation.setShowPr(oShowPr);
+
+                for (var nNoteMaster = 0; nNoteMaster < oParsedObj["notesMasters"].length; nNoteMaster++)
+                    oReader.NotesMasterFromJSON(oParsedObj["notesMasters"][nNoteMaster], oPresentation);
+                    
+                for (var nMaster = 0; nMaster < oParsedObj["sldMasters"].length; nMaster++)
+                    oReader.MasterSlideFromJSON(oParsedObj["sldMasters"][nMaster], oPresentation);
+
+                for (var nSlide = 0; nSlide < oParsedObj["slides"].length; nSlide++)
+                {
+                    var oSlide = oReader.SlideFromJSON(oParsedObj["slides"][nSlide]);
+                    oSlide.setSlideSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
+                    oSlide.setSlideNum(oPresentation.Slides.length);
+                    oPresentation.insertSlide(oPresentation.Slides.length, oSlide);
+                }
+                
+                
+                var oCPres = new AscCommon.CPres();
+                oCPres.defaultTextStyle = oReader.LstStyleFromJSON(oParsedObj["defaultTextStyle"]);
+                oCPres.attrAutoCompressPictures = oParsedObj.autoCompressPictures;  
+                oCPres.attrBookmarkIdSeed = oParsedObj.bookmarkIdSeed; 
+                oCPres.attrCompatMode = oParsedObj.compatMode;
+                oCPres.attrConformance = oParsedObj["conformance"] === "strict" ? c_oAscConformanceType.Strict : c_oAscConformanceType.Transitional;
+                oCPres.attrEmbedTrueTypeFonts = oParsedObj.embedTrueTypeFonts; 
+                oCPres.attrFirstSlideNum = oParsedObj.firstSlideNum; 
+                oCPres.attrRemovePersonalInfoOnSave = oParsedObj.removePersonalInfoOnSave; 
+                oCPres.attrRtl = oParsedObj.rtl; 
+                oCPres.attrSaveSubsetFonts = oParsedObj.saveSubsetFonts; 
+                oCPres.attrServerZoom = oParsedObj.serverZoom; 
+                oCPres.attrShowSpecialPlsOnTitleSld = oParsedObj.showSpecialPlsOnTitleSld; 
+                oCPres.attrStrictFirstAndLastChars = oParsedObj.strictFirstAndLastChars;
+
+                oPresentation.pres = oCPres;
+                oPresentation.setDefaultTextStyle(oCPres.defaultTextStyle);
+                oPresentation.setShowSpecialPlsOnTitleSld(oCPres.attrShowSpecialPlsOnTitleSld);
+                oPresentation.setFirstSlideNum(oCPres.attrFirstSlideNum);
+                
+                return oApiPresentation;
 			case "docContent":
 				return this.private_CreateApiDocContent(oReader.DocContentFromJSON(oParsedObj));
 			case "drawingDocContent":
@@ -4104,7 +4147,9 @@
     Api.prototype["CreateThemeColorScheme"]               = Api.prototype.CreateThemeColorScheme;
     Api.prototype["CreateThemeFormatScheme"]              = Api.prototype.CreateThemeFormatScheme;
     Api.prototype["CreateThemeFontScheme"]                = Api.prototype.CreateThemeFontScheme;
+    Api.prototype["FromJSON"]                             = Api.prototype.FromJSON;
 
+    
     ApiPresentation.prototype["GetClassType"]             = ApiPresentation.prototype.GetClassType;
     ApiPresentation.prototype["GetCurSlideIndex"]         = ApiPresentation.prototype.GetCurSlideIndex;
     ApiPresentation.prototype["GetSlideByIndex"]          = ApiPresentation.prototype.GetSlideByIndex;
