@@ -3768,23 +3768,10 @@
             }
             return sRes;
         };
-        this._prepeareStyles = function()
-        {
-			this.stylesForWrite.init();
-			var styles = this.wb.CellStyles.CustomStyles;
-			var style = null;
-			for(var i = 0; i < styles.length; ++i) {
-				style = styles[i];
-				if (style.xfs) {
-					this.stylesForWrite.addCellStyle(style);
-				}
-			}
-			this.stylesForWrite.finalizeCellStyles();
-        };
         this.Write = function()
         {
             var oThis = this;
-            this._prepeareStyles();
+            this.InitSaveManager._prepeareStyles(this.stylesForWrite);
             this.bs.WriteItemWithLength(function(){oThis.WriteWorksheetsContent();});
         };
         this.WriteWorksheetsContent = function()
@@ -12011,6 +11998,19 @@
             }
         }
     };
+    InitSaveManager.prototype._prepeareStyles = function(stylesForWrite)
+    {
+        stylesForWrite.init();
+        var styles = this.wb.CellStyles.CustomStyles;
+        var style = null;
+        for(var i = 0; i < styles.length; ++i) {
+            style = styles[i];
+            if (style.xfs) {
+                stylesForWrite.addCellStyle(style);
+            }
+        }
+        stylesForWrite.finalizeCellStyles();
+    };
 
 
     var prot;
@@ -12173,5 +12173,7 @@
     window["AscCommonExcel"].OpenXf = OpenXf;
     window["AscCommonExcel"].DocumentPageSize = DocumentPageSize;
     window["AscCommonExcel"].getSqRefString = getSqRefString;
+    window["AscCommonExcel"].g_nNumsMaxId = g_nNumsMaxId;
+
 
 })(window);

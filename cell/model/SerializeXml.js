@@ -43,6 +43,9 @@
 		context.wb = this;
 		context.InitSaveManager = new AscCommonExcel.InitSaveManager(this);
 
+		//функция дёргается в serialize перед записью ws
+		context.InitSaveManager._prepeareStyles(context.stylesForWrite);
+
 		var memory = new AscCommon.CMemory();
 		memory.context = context;
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
@@ -58,11 +61,17 @@
 			sharedStringPart.part.setDataXml(sharedString, memory);
 			memory.Seek(0);
 		}
-		memory.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"><fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="204"/><scheme val="minor"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="0"/><tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/><extLst><ext uri="{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:slicerStyles defaultSlicerStyle="SlicerStyleLight1"/></ext><ext uri="{9260A510-F301-46a8-8635-F512D64BE5F5}" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><x15:timelineStyles defaultTimelineStyle="TimeSlicerStyleLight1"/></ext></extLst></styleSheet>');
+
+		//на чтение используется CT_Stylesheet, на запись StylesForWrite
+		var stylesheetPart = wbPart.part.addPart(AscCommon.openXml.Types.workbookStyles);
+		stylesheetPart.part.setDataXml(context.stylesForWrite, memory);
+		memory.Seek(0);
+
+		/*memory.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"><fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="204"/><scheme val="minor"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="0"/><tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/><extLst><ext uri="{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:slicerStyles defaultSlicerStyle="SlicerStyleLight1"/></ext><ext uri="{9260A510-F301-46a8-8635-F512D64BE5F5}" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><x15:timelineStyles defaultTimelineStyle="TimeSlicerStyleLight1"/></ext></extLst></styleSheet>');
 		sampleData = memory.GetDataUint8();
 		var stylePart = wbPart.part.addPart(AscCommon.openXml.Types.workbookStyles);
 		stylePart.part.setData(sampleData);
-		memory.Seek(0);
+		memory.Seek(0);*/
 
 		memory.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office Theme"><a:themeElements><a:clrScheme name="Office"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="44546A"/></a:dk2><a:lt2><a:srgbClr val="E7E6E6"/></a:lt2><a:accent1><a:srgbClr val="4472C4"/></a:accent1><a:accent2><a:srgbClr val="ED7D31"/></a:accent2><a:accent3><a:srgbClr val="A5A5A5"/></a:accent3><a:accent4><a:srgbClr val="FFC000"/></a:accent4><a:accent5><a:srgbClr val="5B9BD5"/></a:accent5><a:accent6><a:srgbClr val="70AD47"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="Office"><a:majorFont><a:latin typeface="Calibri Light" panose="020F0302020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游ゴシック Light"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线 Light"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Times New Roman"/><a:font script="Hebr" typeface="Times New Roman"/><a:font script="Thai" typeface="Angsana New"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="MoolBoran"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Times New Roman"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:majorFont><a:minorFont><a:latin typeface="Calibri" panose="020F0502020204030204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游明朝"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Arial"/><a:font script="Hebr" typeface="Arial"/><a:font script="Thai" typeface="Cordia New"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="DaunPenh"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Arial"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/></a:minorFont></a:fontScheme><a:fmtScheme name="Office"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:lumMod val="110000"/><a:satMod val="105000"/><a:tint val="67000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="103000"/><a:tint val="73000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="109000"/><a:tint val="81000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:satMod val="103000"/><a:lumMod val="102000"/><a:tint val="94000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:satMod val="110000"/><a:lumMod val="100000"/><a:shade val="100000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="99000"/><a:satMod val="120000"/><a:shade val="78000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:fillStyleLst><a:lnStyleLst><a:ln w="6350" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="12700" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="19050" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst><a:outerShdw blurRad="57150" dist="19050" dir="5400000" algn="ctr" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="63000"/></a:srgbClr></a:outerShdw></a:effectLst></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"><a:tint val="95000"/><a:satMod val="170000"/></a:schemeClr></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:tint val="93000"/><a:satMod val="150000"/><a:shade val="98000"/><a:lumMod val="102000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:tint val="98000"/><a:satMod val="130000"/><a:shade val="90000"/><a:lumMod val="103000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:shade val="63000"/><a:satMod val="120000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/><a:extLst><a:ext uri="{05A4C25C-085E-4340-85A3-A5531E510DB2}"><thm15:themeFamily xmlns:thm15="http://schemas.microsoft.com/office/thememl/2012/main" name="Office Theme" id="{62F939B6-93AF-4DB8-9C6B-D6C7DFDC589F}" vid="{4A3C46E8-61CC-4603-A589-7422A47A8E4A}"/></a:ext></a:extLst></a:theme>');
 		var sampleData = memory.GetDataUint8();
@@ -113,6 +122,10 @@
 			writer.WriteXmlString(">");
 		}
 	}
+
+
+
+
 
 	function FromXml_ST_IconSetType2(val) {
 		//TODO в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
@@ -1110,6 +1123,10 @@
 		writer.WriteXmlAttributesEnd();
 		this.toXmlSheetData(writer);
 		writer.WriteXmlNodeEnd("sheetData");
+
+		if (this.aProtectedRanges) {
+			writer.WriteXmlArray(this.aProtectedRanges, "protectedRange", "protectedRanges");
+		}
 
 		if (this.sheetProtection) {
 			this.sheetProtection.toXml(writer);
@@ -5486,6 +5503,66 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	Asc.CProtectedRange.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<protectedRange");
+						WritingStringNullableAttrString(L"name", m_oName, m_oName.get());
+						WritingStringNullableAttrString(L"sqref", m_oSqref, m_oSqref.get());
+						WritingStringNullableAttrString(L"algorithmName", m_oAlgorithmName, m_oAlgorithmName->ToString());
+						WritingStringNullableAttrString(L"hashValue", m_oHashValue, m_oHashValue.get());
+						WritingStringNullableAttrString(L"saltValue", m_oSaltValue, m_oSaltValue.get());
+						WritingStringNullableAttrInt(L"spinCount", m_oSpinCount, m_oSpinCount->GetValue());
+
+						if (m_arSecurityDescriptors.size() == 1)
+						{
+							WritingStringAttrString(L"securityDescriptor", XmlUtils::EncodeXmlString(m_arSecurityDescriptors[0]));
+						}
+						if (m_arSecurityDescriptors.size() > 1)
+						{
+							writer.WriteString(L">");
+							for (size_t i = 0; i < m_arSecurityDescriptors.size(); ++i)
+							{
+								writer.WriteString(L"<securityDescriptor>");
+								writer.WriteString(XmlUtils::EncodeXmlString(m_arSecurityDescriptors[i]));
+								writer.WriteString(L"</securityDescriptor>");
+							}
+							writer.WriteString(L"</protectedRange>");
+						}
+						else
+						{
+							writer.WriteString(L"/>");
+						}*/
+
+		writer.WriteXmlString("<protectedRange");
+		writer.WriteXmlNullableAttributeString("name", this.name);
+		writer.WriteXmlNullableAttributeString("sqref", AscCommonExcel.getSqRefString(this.sqref));
+		writer.WriteXmlNullableAttributeString("algorithmName", this.algorithmName);
+		writer.WriteXmlNullableAttributeString("hashValue", this.hashValue);
+		writer.WriteXmlNullableAttributeString("saltValue", this.saltValue);
+		writer.WriteXmlNullableAttributeNumber("spinCount", this.spinCount);
+		writer.WriteXmlString("/>");
+
+		/*if (m_arSecurityDescriptors.length == 1)
+		{
+			writer.WriteXmlAttributeString("securityDescriptor", this.securityDescriptor);
+		}
+		if (m_arSecurityDescriptors.length > 1)
+		{
+			writer.WriteXmlString(">");
+			for (var i = 0; i < m_arSecurityDescriptors.length; ++i)
+			{
+				writer.WriteXmlString("<securityDescriptor>");
+				writer.WriteXmlString(XmlUtils::EncodeXmlString(m_arSecurityDescriptors[i]));
+				writer.WriteXmlString("</securityDescriptor>");
+			}
+			writer.WriteXmlString("</protectedRange>");
+		}
+		else
+		{
+			writer.WriteXmlString("/>");
+		}*/
+	};
+
 	Asc.CHeaderFooter.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes( oReader );
@@ -9649,23 +9726,35 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					t.fs = reader.GetValueInt();
 				});
 			} else if ("u" === name) {
-				//TODO проверка на null. пересмотреть
-				if (reader.GetValue() !== null) {
-					this.u = reader.GetValueBool();
-				} else {
-					this.u = true;
+				switch (reader.GetValue()) {
+					case "single":
+						this.u = Asc.EUnderline.underlineSingle;
+						break;
+					case "double":
+						this.u = Asc.EUnderline.underlineDouble;
+						break;
+					case "singleAccounting":
+						this.u = Asc.EUnderline.underlineSingleAccounting;
+						break;
+					case "doubleAccounting":
+						this.u = Asc.EUnderline.underlineDoubleAccounting;
+						break;
+					case "none":
+						this.u = Asc.EUnderline.underlineNone;
+						break;
 				}
 			} else if ("vertAlign" === name) {
-				/*<xsd:enumeration value="baseline"/>
-				56 <xsd:enumeration value="superscript"/>
-					57 <xsd:enumeration value="subscript"/>*/
-
 				readOneAttr(reader, "val", function () {
-					val = reader.GetValue();
-					if (val === "superscript") {
-						t.va = AscCommon.vertalign_SuperScript;
-					} else if (val === "subscript") {
-						t.va = AscCommon.vertalign_SubScript;
+					switch (reader.GetValue()) {
+						case "baseline":
+							t.va = AscCommon.vertalign_Baseline;
+							break;
+						case "superscript":
+							t.va = AscCommon.vertalign_SuperScript;
+							break;
+						case "subscript":
+							t.va = AscCommon.vertalign_SubScript;
+							break;
 					}
 				});
 
@@ -9761,6 +9850,200 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
+
+	AscCommonExcel.Font.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+
+		if (this.fn) {
+			if (this.fn.length <= 31) {
+				writer.WritingValNodeEncodeXml("", "name", this.fn);
+			} else {
+				writer.WritingValNodeEncodeXml("", "name", this.fn.substr(0, 31));
+			}
+		}
+
+		/*if(m_oCharset.IsInit() && m_oCharset->m_oCharset.IsInit())
+		{
+			WritingValNode("charset", m_oCharset->m_oCharset->ToString());
+		}
+		if(m_oFamily.IsInit() && m_oFamily->m_oFontFamily.IsInit())
+		{
+			WritingValNode("family", m_oFamily->m_oFontFamily->ToString());
+		}*/
+
+
+		if (this.b != null) {
+			writer.WritingValNodeIf("", "b", !this.b, "0");
+		}
+		if (this.i != null) {
+			writer.WritingValNodeIf("", "i", !this.i, "0");
+		}
+		if (this.s != null) {
+			writer.WritingValNodeIf("", "strike", !this.s, "0");
+		}
+
+		/*if(m_oOutline.IsInit())
+		{
+			WritingValNodeIf("outline", !m_oOutline->ToBool(), L"0");
+		}
+		if(m_oShadow.IsInit())
+		{
+			WritingValNodeIf("shadow", !m_oShadow->ToBool(), L"0");
+		}
+		if(m_oCondense.IsInit())
+		{
+			WritingValNodeIf("condense", !m_oCondense->ToBool(), L"0");
+		}
+		if(m_oExtend.IsInit())
+		{
+			WritingValNodeIf("extend", !m_oExtend->ToBool(), L"0");
+		}*/
+
+		//TODO color
+		/*if(m_oColor.IsInit())
+			m_oColor->toXMLWithNS(writer, "color", child_ns);*/
+
+
+		if (this.fs != null) {
+			writer.WritingValNode("", "sz", this.fs);
+		}
+
+		var val;
+		if (this.u != null) {
+			switch (this.u) {
+				case Asc.EUnderline.underlineSingle:
+					val = "single";
+					break;
+				case Asc.EUnderline.underlineDouble:
+					val = "double";
+					break;
+				case Asc.EUnderline.underlineSingleAccounting:
+					val = "singleAccounting";
+					break;
+				case Asc.EUnderline.underlineDoubleAccounting:
+					val = "doubleAccounting";
+					break;
+				case Asc.EUnderline.underlineNone:
+					val = "none";
+					break;
+			}
+
+			if (val) {
+				writer.WritingValNode("", "u", val);
+			}
+		}
+
+		if (this.va != null) {
+			val = null;
+			if (this.va === AscCommon.vertalign_SuperScript) {
+				val = "superscript";
+			} else if (this.va === AscCommon.vertalign_SubScript) {
+				val = "subscript";
+			} else if (this.va === AscCommon.vertalign_Baseline) {
+				val = "baseline";
+			}
+			if (val) {
+				writer.WritingValNode("", "vertAlign", val);
+			}
+		}
+		if (this.scheme != null) {
+			writer.WritingValNode("", "scheme", this.scheme);
+		}
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
+
+	AscCommonExcel.StylesForWrite.prototype.toXml = function (writer) {
+		var wb = writer.context.wb;
+
+		/*//borders
+		this.bs.WriteItem(c_oSerStylesTypes.Borders, function(){oThis.WriteBorders();});
+		//fills
+		this.bs.WriteItem(c_oSerStylesTypes.Fills, function(){oThis.WriteFills();});
+		//fonts
+		this.bs.WriteItem(c_oSerStylesTypes.Fonts, function(){oThis.WriteFonts();});
+		//CellStyleXfs
+		this.bs.WriteItem(c_oSerStylesTypes.CellStyleXfs, function(){oThis.WriteCellStyleXfs();});
+		//cellxfs
+		this.bs.WriteItem(c_oSerStylesTypes.CellXfs, function(){oThis.WriteCellXfs();});
+
+		//CellStyles
+		this.bs.WriteItem(c_oSerStylesTypes.CellStyles, function(){oThis.WriteCellStyles(wb.CellStyles.CustomStyles);});
+
+		if(null != wb.TableStyles)
+			this.bs.WriteItem(c_oSerStylesTypes.TableStyles, function(){oThis.WriteTableStyles(wb.TableStyles);});
+
+		//Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
+		var dxfs = this.InitSaveManager.getDxfs();
+		if(null != dxfs && dxfs.length > 0) {
+			this.bs.WriteItem(c_oSerStylesTypes.Dxfs, function(){oThis.WriteDxfs(dxfs);});
+		}
+		var aExtDxfs = [];
+		var slicerStyles = this.PrepareSlicerStyles(wb.SlicerStyles, aExtDxfs);
+		if(aExtDxfs.length > 0) {
+			this.bs.WriteItem(c_oSerStylesTypes.ExtDxfs, function(){oThis.WriteDxfs(aExtDxfs);});
+		}
+		this.bs.WriteItem(c_oSerStylesTypes.SlicerStyles, function(){oThis.WriteSlicerStyles(slicerStyles);});
+		//numfmts пишется в конце потому что они могут пополниться при записи Dxfs
+		this.bs.WriteItem(c_oSerStylesTypes.NumFmts, function(){oThis.WriteNumFmts();});*/
+
+
+
+		//TODO "//numfmts пишется в конце потому что они могут пополниться при записи Dxfs"
+		/*if(null != Dxf.num)
+		{
+			var numId = this.stylesForWrite.getNumIdByFormat(Dxf.num);
+			if(null != numId)
+				this.bs.WriteItem(c_oSer_Dxf.NumFmt, function(){oThis.WriteNum(numId, Dxf.num.getFormat());});
+		}*/
+		if (this.oNumMap.elems) {
+			writer.WriteXmlArray(this.oNumMap.elems, "numFmt", "numFmts", true);
+		}
+		if (this.oFontMap.elems) {
+			writer.WriteXmlArray(this.oFontMap.elems, "fonts", "font", true);
+		}
+		if (this.oFillMap.elems) {
+			writer.WriteXmlArray(this.oFillMap.elems, "fills", "fill", true);
+		}
+
+
+
+
+		/*
+		if(m_oFills.IsInit())
+			m_oFills->toXML(writer);
+		if(m_oBorders.IsInit())
+			m_oBorders->toXML(writer);
+		if(m_oCellStyleXfs.IsInit())
+			m_oCellStyleXfs->toXML(writer);
+		if(m_oCellXfs.IsInit())
+			m_oCellXfs->toXML(writer);
+		if(m_oCellStyles.IsInit())
+			m_oCellStyles->toXML(writer);
+		if(m_oColors.IsInit())
+			m_oColors->toXML(writer);
+		if(m_oDxfs.IsInit())
+			m_oDxfs->toXML(writer);
+		if(m_oTableStyles.IsInit())
+			m_oTableStyles->toXML(writer);
+		if(m_oExtLst.IsInit())
+			writer.WriteString(m_oExtLst->toXMLWithNS(L""));*/
+
+	};
+
+	AscCommonExcel.Num.prototype.toXml = function(writer, index) {
+		var id = AscCommonExcel.g_nNumsMaxId + index;
+		var format = this.getFormat();
+
+		writer.WriteXmlString("<numFmt");
+		writer.WriteXmlNullableAttributeNumber("numFmtId", id);
+		writer.WriteXmlNullableAttributeStringEncode("formatCode", format);
+		//writer.WriteXmlNullableAttributeBool("sourceLinked", this.sourceLinked);
+		writer.WriteXmlString(">");
+	}
+
 
 
 	//***External Reference****

@@ -1019,15 +1019,18 @@
 				val.toXml(this, name);
 			}
 		};
-		this.WriteXmlArray = function(val, name, opt_parentName)
+		this.WriteXmlArray = function(val, name, opt_parentName, needWriteCount)
 		{
 			if(val && val.length > 0) {
 				if(opt_parentName) {
 					this.WriteXmlNodeStart(opt_parentName);
+					if (needWriteCount) {
+						this.WriteXmlNullableAttributeNumber("count", val.length);
+					}
 					this.WriteXmlAttributesEnd();
 				}
-				val.forEach(function(elem){
-					elem.toXml(this, name);
+				val.forEach(function(elem, index){
+					elem.toXml(this, name, index);
 				}, this);
 				if(opt_parentName) {
 					this.WriteXmlNodeEnd(opt_parentName);
@@ -1284,6 +1287,24 @@
 			}
 		};
 		this.XlsbEndRecord = function() {
+		};
+		//все аргументы сохраняю как в x2t, ns - префикс пока не использую
+		this.WritingValNode = function(ns, name, val) {
+			this.WriteXmlNodeStart(name);
+			this.WriteXmlAttributeString("val", val);
+			this.WriteXmlAttributesEnd();
+		};
+		this.WritingValNodeEncodeXml = function(ns, name, val) {
+			this.WriteXmlNodeStart(name);
+			this.WriteXmlNullableAttributeStringEncode("val", val);
+			this.WriteXmlAttributesEnd();
+		};
+		this.WritingValNodeIf = function(ns, name, cond, val) {
+			this.WriteXmlNodeStart(name);
+			if (cond) {
+				this.WriteXmlAttributeString("val", val);
+			}
+			this.WriteXmlAttributesEnd();
 		};
 	}
 
