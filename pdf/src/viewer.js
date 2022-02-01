@@ -814,7 +814,6 @@
 		this.setMouseLockMode = function(isEnabled)
 		{
 			this.MouseHandObject = isEnabled ? {} : null;
-			this.overlay.Clear();
 		};
 
 		this.getPagesCount = function()
@@ -964,6 +963,28 @@
 		this.onMouseDown = function(e)
 		{
 			AscCommon.stopEvent(e);
+
+			var mouseButton = AscCommon.getMouseButton(e);
+			if (mouseButton !== 0)
+			{
+				if (2 === mouseButton)
+				{
+					var posX = e.pageX || e.clientX;
+					var posY = e.pageY || e.clientY;
+
+					oThis.Api.sync_BeginCatchSelectedElements();
+					oThis.Api.sync_ChangeLastSelectedElement(Asc.c_oAscTypeSelectElement.Text, undefined);
+					oThis.Api.sync_EndCatchSelectedElements();
+
+					oThis.Api.sync_ContextMenuCallback({
+						Type  : Asc.c_oAscContextMenuTypes.Common,
+						X_abs : posX,
+						Y_abs : posY
+					});
+				}
+				return;
+			}
+
 			oThis.isMouseDown = true;
 
 			if (!oThis.file || !oThis.file.isValid())
@@ -1035,6 +1056,11 @@
 		this.onMouseUp = function(e)
 		{
 			AscCommon.stopEvent(e);
+
+			var mouseButton = AscCommon.getMouseButton(e);
+			if (mouseButton !== 0)
+				return;
+
 			oThis.isMouseDown = false;
 
 			if (!oThis.file || !oThis.file.isValid())
@@ -1080,18 +1106,18 @@
 					else
 						oThis.setCursorType("grab");
 				}
-				else if (oThis.MouseHandObject.Active)
+				else if (!oThis.isMouseMoveBetweenDownUp)
 				{
-					oThis.MouseHandObject.Active = false;
 					oThis.setCursorType("grab");
 
-					if (!oThis.isMouseMoveBetweenDownUp)
-					{
-						// делаем клик в логическом документе, чтобы сбросить селект, если он был
-						var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
-						oThis.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
-						oThis.file.onMouseUp(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
-					}
+					// делаем клик в логическом документе, чтобы сбросить селект, если он был
+					var pageObjectLogic = oThis.getPageByCoords2(AscCommon.global_mouseEvent.X - oThis.x, AscCommon.global_mouseEvent.Y - oThis.y);
+					oThis.file.onMouseDown(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+					oThis.file.onMouseUp(pageObjectLogic.index, pageObjectLogic.x, pageObjectLogic.y);
+				}
+				else
+				{
+					oThis.setCursorType("grab");
 				}
 
 				oThis.isMouseMoveBetweenDownUp = false;
@@ -1826,6 +1852,14 @@
 		this.Copy = function(_text_format)
 		{
 			return this.file.copy(_text_format);
+		};
+
+		this.isCanCopy = function()
+		{
+			// TODO: нужно прерываться после первого же символа
+			var text_format = { Text : "" };
+			this.Copy(text_format);
+			return (text_format.Text === "") ? false : true;
 		};
 
 		this.findText = function(text, isMachingCase, isNext, callback)
