@@ -1415,7 +1415,7 @@
     {
         return false;
     };
-    CGraphicObjectBase.prototype.Restart_CheckSpelling = function()
+    CGraphicObjectBase.prototype.RestartSpellCheck = function()
     {
     };
     CGraphicObjectBase.prototype.GetAllFields = function(isUseSelection, arrFields)
