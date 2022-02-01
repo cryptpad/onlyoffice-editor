@@ -6712,7 +6712,7 @@
 		if (!oBlipFill)
 			return oBlipFill;
 
-		var rasterImageId = oParent instanceof AscFormat.CImageShape ? oParent.getBase64Img() : oBlipFill.RasterImageId;
+		var rasterImageId = oBlipFill.getBase64RasterImageId(true);
 		
 		return {
 			blip: this.SerEffects(oBlipFill.Effects),
@@ -7325,7 +7325,7 @@
 		return {
 			extX:     private_MM2EMU(oImgObject.extX),
 			extY:     private_MM2EMU(oImgObject.extY),
-			blipFill: this.SerBlipFill(oImgObject.blipFill, oImgObject),
+			blipFill: this.SerBlipFill(oImgObject.blipFill),
 			nvPicPr:  this.SerUniNvPr(oImgObject.nvPicPr),
 			spPr:     this.SerSpPr(oImgObject.spPr),
 			type:     "image"
