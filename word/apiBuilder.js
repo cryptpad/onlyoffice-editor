@@ -913,13 +913,13 @@
 			// возможно текст в ране представляет собой блок кода, обрабатываем это
 			if (private_isMonospaceFont(oTextPr.FontFamily.Name))
 			{
-				oRunNext     = oRun.GetNext();
+				oRunNext     = oRun.private_GetNextInParent();
 				while (oRunNext && oRunNext.Run.GetText() === '')
-					oRunNext = oRunNext.GetNext();
+					oRunNext = oRunNext.private_GetNextInParent();
 
-				oRunPrev     = oRun.GetPrevious();
+				oRunPrev     = oRun.private_GetPreviousInParent();
 				while (oRunPrev && oRunPrev.Run.GetText() === '')
-					oRunPrev = oRunPrev.GetPrevious();
+					oRunPrev = oRunPrev.private_GetPreviousInParent();
 
 				var isCodeNextRun = IsHaveCodeRun(oRunNext);
 				var isCodePrevRun = IsHaveCodeRun(oRunPrev);
@@ -945,13 +945,13 @@
 			}
 			else
 			{
-				oRunNext     = oRun.GetNext();
+				oRunNext     = oRun.private_GetNextInParent();
 				while (oRunNext && oRunNext.Run.GetText() === '')
-					oRunNext = oRunNext.GetNext();
+					oRunNext = oRunNext.private_GetNextInParent();
 
-				oRunPrev     = oRun.GetPrevious();
+				oRunPrev     = oRun.private_GetPreviousInParent();
 				while (oRunPrev && oRunPrev.Run.GetText() === '')
-					oRunPrev = oRunPrev.GetPrevious();
+					oRunPrev = oRunPrev.private_GetPreviousInParent();
 
 				var isBoldNextRun   = IsBold(oRunNext);
 				var isBoldPrevRun   = IsBold(oRunPrev);
@@ -7451,42 +7451,6 @@
 		}
 		
 		oDocument.Register_Field(oField);
-	};
-	/**
-	 * Returns the next run if exists.
-	 * @memberof ApiRun
-	 * @typeofeditors ["CDE"]
-	 * @return {ApiRun | null} - returns null if next run doesn't exist.
-	 */
-	ApiRun.prototype.GetNext = function()
-	{
-		var oParent = this.Run.Parent || this.Run.Paragraph;
-		var oRunType = this.Run.Get_Type();
-		if (!oParent)
-			return null;
-
-		var oRunIndex = oParent.Content.indexOf(this.Run);
-		if (oParent.Content[oRunIndex + 1] && oParent.Content[oRunIndex + 1].Type === oRunType && oRunIndex + 1 !== oParent.Content.length - 1)
-			return new ApiRun(oParent.Content[oRunIndex + 1]);
-		return null;
-	};
-	/**
-	 * Returns the previous run if exists.
-	 * @memberof ApiRun
-	 * @typeofeditors ["CDE"]
-	 * @return {ApiRun | null} - returns null if previous run doesn't exist.
-	 */
-	ApiRun.prototype.GetPrevious = function()
-	{
-		var oParent = this.Run.Parent || this.Run.Paragraph;
-		var oRunType = this.Run.Get_Type();
-		if (!oParent)
-			return null;
-
-		var oRunIndex = oParent.Content.indexOf(this.Run);
-		if (oParent.Content[oRunIndex - 1] && oParent.Content[oRunIndex - 1].Type === oRunType && oRunIndex - 1 !== oParent.Content.length - 1)
-			return new ApiRun(oParent.Content[oRunIndex - 1]);
-		return null;
 	};
 	/**
 	 * Convert to JSON object.
@@ -15047,6 +15011,49 @@
 	ApiRun.prototype.private_GetImpl = function()
 	{
 		return this.Run;
+	};
+	/**
+	 * Returns the next run in parent if exists.
+	 * @memberof ApiRun
+	 * @typeofeditors ["CDE"]
+	 * @return {?ApiRun} - returns null if next run doesn't exist.
+	 */
+	ApiRun.prototype.private_GetNextInParent = function()
+	{
+		var oParent = this.Run.Parent || this.Run.Paragraph;
+		if (!oParent)
+			return null;
+
+		var nRunIndex = this.Run.GetPosInParent();
+		for (var nElm = nRunIndex + 1; nElm < oParent.Content.length - 1; nElm++)
+		{
+			if (oParent.Content[nElm] && oParent.Content[nElm].IsRun && oParent.Content[nElm].IsRun() === true)
+				return new ApiRun(oParent.Content[nElm]);
+		}
+		
+		return null;
+	};
+	/**
+	 * Returns the previous run in parent if exists.
+	 * @memberof ApiRun
+	 * @typeofeditors ["CDE"]
+	 * @return {?ApiRun} - returns null if previous run doesn't exist.
+	 */
+	ApiRun.prototype.private_GetPreviousInParent = function()
+	{
+		var oParent = this.Run.Parent || this.Run.Paragraph;
+		if (!oParent)
+			return null;
+
+		var nRunIndex = this.Run.GetPosInParent();
+		
+		for (var nElm = nRunIndex - 1; nElm > - 1; nElm--)
+		{
+			if (oParent.Content[nElm] && oParent.Content[nElm].IsRun && oParent.Content[nElm].IsRun() === true)
+				return new ApiRun(oParent.Content[nElm]);
+		}
+
+		return null;
 	};
 	ApiHyperlink.prototype.private_GetImpl = function()
 	{
