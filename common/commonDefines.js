@@ -1156,6 +1156,637 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		TopMargin     : 0x07
 	};
 
+	var c_oAscRectAlignType = {
+		b:   0,
+		bl:  1,
+		br:  2,
+		ctr: 3,
+		l:   4,
+		r:   5,
+		t:   6,
+		tl:  7,
+		tr:  8
+	};
+
+	var ST_HueDir = {
+		Ccw: 0,
+		Cw:  1
+	};
+
+	var ST_ClrAppMethod = {
+		cycle:  0,
+		repeat: 1,
+		span:   2
+	}
+
+	var ST_AnimLvlStr = {
+		ctr:  0,
+		lvl:  1,
+		none: 2
+	}
+
+	var ST_AnimOneStr = {
+		branch: 0,
+		none:   1,
+		one:    2
+	}
+
+	var ST_Direction = {
+		norm: 0,
+		rev:  1
+	}
+	
+	var ST_HierBranchStyle = {
+		hang: 0,
+		init: 1,
+		l:    2,
+		r:    3,
+		std:  4
+	}
+
+	var ST_ResizeHandlesStr = {
+		exact: 0,
+		rel:   1
+	}
+
+	var ST_PtType = {
+		node:     0,
+		asst:     1,
+		doc:      2,
+		pres:     3,
+		parTrans: 4,
+		sibTrans: 5
+	}
+
+	var ST_ChildOrderType = {
+		b: 0,
+		t: 1	
+	}
+
+	var ST_AlgorithmType = {
+		composite: 0,
+		conn:      1,
+		cycle:     2,
+		hierChild: 3,
+		hierRoot:  4,
+		pyra:      5,
+		lin:       6,
+		sp:        7,
+		tx:        8,
+		snake:     9
+	}
+
+	var ST_ConstraintRelationship = {
+		self: 0,
+		ch:   1,
+		des:  2
+	}
+
+	var ST_BoolOperator = {
+		none: 0,
+		equ:  1,
+		gte:  2,
+		lte:  3
+	} 
+
+	var ST_ElementType = {
+		all:      0,
+		doc:      1,
+		node:     2,
+		norm:     3,
+		nonNorm:  4,
+		asst:     5,
+		nonAsst:  6,
+		parTrans: 7,
+		pres:     8,
+		sibTrans: 9
+	}
+
+	var ST_ConstraintType = {
+		alignOff: 1,
+		b: 5,
+		begMarg: 2,
+		begPad: 4,
+		bendDist: 3,
+		bMarg: 6,
+		bOff: 7,
+		connDist: 12,
+		ctrX: 8,
+		ctrXOff: 9,
+		ctrY: 10,
+		ctrYOff: 11,
+		diam: 13,
+		endMarg: 14,
+		endPad: 15,
+		h: 16,
+		hArH: 17,
+		hOff: 63, // TODO: add to constr type in x2t
+		l: 18,
+		lMarg: 19,
+		lOff: 20,
+		none: 0,
+		primFontSz: 24,
+		pyraAcctRatio: 25,
+		r: 21,
+		rMarg: 22,
+		rOff: 23,
+		secFontSz: 26,
+		secSibSp: 28,
+		sibSp: 27,
+		sp: 29,
+		stemThick: 30,
+		t: 31,
+		tMarg: 32,
+		tOff: 33,
+		userA: 34,
+		userB: 35,
+		userC: 36,
+		userD: 37,
+		userE: 38,
+		userF: 39,
+		userG: 40,
+		userH: 41,
+		userI: 42,
+		userJ: 43,
+		userK: 44,
+		userL: 45,
+		userM: 46,
+		userN: 47,
+		userO: 48,
+		userP: 49,
+		userQ: 50,
+		userR: 51,
+		userS: 52,
+		userT: 53,
+		userU: 54,
+		userV: 55,
+		userW: 56,
+		userX: 57,
+		userY: 58,
+		userZ: 59,
+		w: 60,
+		wArH: 61,
+		wOff: 62
+	}
+
+	var ST_VariableType = {
+		animLvl:       0,
+		animOne:       1,
+		bulEnabled:    2,
+		chMax:         3,
+		chPref:        4,
+		dir:           5,
+		hierBranch:    6,
+		none:          7,
+		orgChart:      8,
+		resizeHandles: 9
+	}
+	
+	var ST_AxisType = {
+		ancst: 6,
+		ancstOrSelf: 7,
+		ch: 2,
+		des: 3,
+		desOrSelf: 4,
+		follow: 10,
+		followSib: 8,
+		none: 0,
+		par: 5,
+		preced: 11,
+		precedSib: 9,
+		root: 12,
+		self: 1
+	}
+
+	var ST_FunctionType = {
+		cnt: 0,
+		depth: 6,
+		maxDepth: 7,
+		pos: 1,
+		posEven: 3,
+		posOdd: 4,
+		revPos: 2,
+		var: 5
+	}
+
+	var ST_FunctionOperator = {
+		equ: 0,
+		gt: 2,
+		gte: 4,
+		lt: 3,
+		lte: 5,
+		neq: 1
+	}
+
+	var ST_LayoutShapeType = {
+		conn: 0,
+		none: 1,
+		accentBorderCallout1: 2,
+		accentBorderCallout2: 3,
+		accentBorderCallout3: 4,
+		accentCallout1: 5,
+		accentCallout2: 6,
+		accentCallout3: 7,
+		actionButtonBackPrevious: 8,
+		actionButtonBeginning: 9,
+		actionButtonBlank: 10,
+		actionButtonDocument: 11,
+		actionButtonEnd: 12,
+		actionButtonForwardNext: 13,
+		actionButtonHelp: 14,
+		actionButtonHome: 15,
+		actionButtonInformation: 16,
+		actionButtonMovie: 17,
+		actionButtonReturn: 18,
+		actionButtonSound: 19,
+		arc: 20,
+		bentArrow: 21,
+		bentConnector2: 22,
+		bentConnector3: 23,
+		bentConnector4: 24,
+		bentConnector5: 25,
+		bentUpArrow: 26,
+		bevel: 27,
+		blockArc: 28,
+		borderCallout1: 29,
+		borderCallout2: 30,
+		borderCallout3: 31,
+		bracePair: 32,
+		bracketPair: 33,
+		callout1: 34,
+		callout2: 35,
+		callout3: 36,
+		can: 37,
+		chartPlus: 38,
+		chartStar: 39,
+		chartX: 40,
+		chevron: 41,
+		chord: 42,
+		circularArrow: 43,
+		cloud: 44,
+		cloudCallout: 45,
+		corner: 46,
+		cornerTabs: 47,
+		cube: 48,
+		curvedConnector2: 49,
+		curvedConnector3: 50,
+		curvedConnector4: 51,
+		curvedConnector5: 52,
+		curvedDownArrow: 53,
+		curvedLeftArrow: 54,
+		curvedRightArrow: 55,
+		curvedUpArrow: 56,
+		decagon: 57,
+		diagStripe: 58,
+		diamond: 59,
+		dodecagon: 60,
+		donut: 61,
+		doubleWave: 62,
+		downArrow: 63,
+		downArrowCallout: 64,
+		ellipse: 65,
+		ellipseRibbon: 66,
+		ellipseRibbon2: 67,
+		flowChartAlternateProcess: 68,
+		flowChartCollate: 69,
+		flowChartConnector: 70,
+		flowChartDecision: 71,
+		flowChartDelay: 72,
+		flowChartDisplay: 73,
+		flowChartDocument: 74,
+		flowChartExtract: 75,
+		flowChartInputOutput: 76,
+		flowChartInternalStorage: 77,
+		flowChartMagneticDisk: 78,
+		flowChartMagneticDrum: 79,
+		flowChartMagneticTape: 80,
+		flowChartManualInput: 81,
+		flowChartManualOperation: 82,
+		flowChartMerge: 83,
+		flowChartMultidocument: 84,
+		flowChartOfflineStorage: 85,
+		flowChartOffpageConnector: 86,
+		flowChartOnlineStorage: 87,
+		flowChartOr: 88,
+		flowChartPredefinedProcess: 89,
+		flowChartPreparation: 90,
+		flowChartProcess: 91,
+		flowChartPunchedCard: 92,
+		flowChartPunchedTape: 93,
+		flowChartSort: 94,
+		flowChartSummingJunction: 95,
+		flowChartTerminator: 96,
+		foldedCorner: 97,
+		frame: 98,
+		funnel: 99,
+		gear6: 100,
+		gear9: 101,
+		halfFrame: 102,
+		heart: 103,
+		heptagon: 104,
+		hexagon: 105,
+		homePlate: 106,
+		horizontalScroll: 107,
+		irregularSeal1: 108,
+		irregularSeal2: 109,
+		leftArrow: 110,
+		leftArrowCallout: 111,
+		leftBrace: 112,
+		leftBracket: 113,
+		leftCircularArrow: 114,
+		leftRightArrow: 115,
+		leftRightArrowCallout: 116,
+		leftRightCircularArrow: 117,
+		leftRightRibbon: 118,
+		leftRightUpArrow: 119,
+		leftUpArrow: 120,
+		lightningBolt: 121,
+		line: 122,
+		lineInv: 123,
+		mathDivide: 124,
+		mathEqual: 125,
+		mathMinus: 126,
+		mathMultiply: 127,
+		mathNotEqual: 128,
+		mathPlus: 129,
+		moon: 130,
+		nonIsoscelesTrapezoid: 131,
+		noSmoking: 132,
+		notchedRightArrow: 133,
+		octagon: 134,
+		parallelogram: 135,
+		pentagon: 136,
+		pie: 137,
+		pieWedge: 138,
+		plaque: 139,
+		plaqueTabs: 140,
+		plus: 141,
+		quadArrow: 142,
+		quadArrowCallout: 143,
+		rect: 144,
+		ribbon: 145,
+		ribbon2: 146,
+		rightArrow: 147,
+		rightArrowCallout: 148,
+		rightBrace: 149,
+		rightBracket: 150,
+		round1Rect: 151,
+		round2DiagRect: 152,
+		round2SameRect: 153,
+		roundRect: 154,
+		rtTriangle: 155,
+		smileyFace: 156,
+		snip1Rect: 157,
+		snip2DiagRect: 158,
+		snip2SameRect: 159,
+		snipRoundRect: 160,
+		squareTabs: 161,
+		star10: 162,
+		star12: 163,
+		star16: 164,
+		star24: 165,
+		star32: 166,
+		star4: 167,
+		star5: 168,
+		star6: 169,
+		star7: 170,
+		star8: 171,
+		straightConnector1: 172,
+		stripedRightArrow: 173,
+		sun: 174,
+		swooshArrow: 175,
+		teardrop: 176,
+		trapezoid: 177,
+		triangle: 178,
+		upArrow: 179,
+		upArrowCallout: 180,
+		upDownArrow: 181,
+		upDownArrowCallout: 182,
+		uturnArrow: 183,
+		verticalScroll: 184,
+		wave: 185,
+		wedgeEllipseCallout: 186,
+		wedgeRectCallout: 187,
+		wedgeRoundRectCallout: 188
+	}
+
+
+	var ST_ParameterId = {
+		alignTx: 0,
+		ar: 1,
+		autoTxRot: 2,
+		begPts: 3,
+		begSty: 4,
+		bendPt: 5,
+		bkpt: 6,
+		bkPtFixedVal: 7,
+		chAlign: 8,
+		chDir: 9,
+		connRout: 10,
+		contDir: 11,
+		ctrShpMap: 12,
+		dim: 13,
+		dstNode: 14,
+		endPts: 15,
+		endSty: 16,
+		fallback: 17,
+		flowDir: 18,
+		grDir: 19,
+		hierAlign: 20,
+		horzAlign: 21,
+		linDir: 22,
+		lnSpAfChP: 23,
+		lnSpAfParP: 24,
+		lnSpCh: 25,
+		lnSpPar: 26,
+		nodeHorzAlign: 27,
+		nodeVertAlign: 28,
+		off: 29,
+		parTxLTRAlign: 30,
+		parTxRTLAlign: 31,
+		pyraAcctBkgdNode: 32,
+		pyraAcctPos: 33,
+		pyraAcctTxMar: 34,
+		pyraAcctTxNode: 35,
+		pyraLvlNode: 36,
+		rotPath: 37,
+		rtShortDist: 38,
+		secChAlign: 39,
+		secLinDir: 40,
+		shpTxLTRAlignCh: 41,
+		shpTxRTLAlignCh: 42,
+		spanAng: 43,
+		srcNode: 44,
+		stAng: 45,
+		stBulletLvl: 46,
+		stElem: 47,
+		txAnchorHorz: 48,
+		txAnchorHorzCh: 49,
+		txAnchorVert: 50,
+		txAnchorVertCh: 51,
+		txBlDir: 52,
+		txDir: 53,
+		vertAlign: 54
+	}
+
+	var ST_PresetCameraType = {
+		isometricBottomDown: 0,
+		isometricBottomUp: 1,
+		isometricLeftDown: 2,
+		isometricLeftUp: 3,
+		isometricOffAxis1Left: 4,
+		isometricOffAxis1Right: 5,
+		isometricOffAxis1Top: 6,
+		isometricOffAxis2Left: 7,
+		isometricOffAxis2Right: 8,
+		isometricOffAxis2Top: 9,
+		isometricOffAxis3Bottom: 10,
+		isometricOffAxis3Left: 11,
+		isometricOffAxis3Right: 12,
+		isometricOffAxis4Bottom: 13,
+		isometricOffAxis4Left: 14,
+		isometricOffAxis4Right: 15,
+		isometricRightDown: 16,
+		isometricRightUp: 17,
+		isometricTopDown: 18,
+		isometricTopUp: 19,
+		legacyObliqueBottom: 20,
+		legacyObliqueBottomLeft: 21,
+		legacyObliqueBottomRight: 22,
+		legacyObliqueFront: 23,
+		legacyObliqueLeft: 24,
+		legacyObliqueRight: 25,
+		legacyObliqueTop: 26,
+		legacyObliqueTopLeft: 27,
+		legacyObliqueTopRight: 28,
+		legacyPerspectiveBottom: 29,
+		legacyPerspectiveBottomLeft: 30,
+		legacyPerspectiveBottomRight: 31,
+		legacyPerspectiveFront: 32,
+		legacyPerspectiveLeft: 33,
+		legacyPerspectiveRight: 34,
+		legacyPerspectiveTop: 35,
+		legacyPerspectiveTopLeft: 36,
+		legacyPerspectiveTopRight: 37,
+		obliqueBottom: 38,
+		obliqueBottomLeft: 39,
+		obliqueBottomRight: 40,
+		obliqueLeft: 41,
+		obliqueRight: 42,
+		obliqueTop: 43,
+		obliqueTopLeft: 44,
+		obliqueTopRight: 45,
+		orthographicFront: 46,
+		perspectiveAbove: 47,
+		perspectiveAboveLeftFacing: 48,
+		perspectiveAboveRightFacing: 49,
+		perspectiveBelow: 50,
+		perspectiveContrastingLeftFacing: 51,
+		perspectiveContrastingRightFacing: 52,
+		perspectiveFront: 53,
+		perspectiveHeroicExtremeLeftFacing: 54,
+		perspectiveHeroicExtremeRightFacing: 55,
+		perspectiveHeroicLeftFacing: 56,
+		perspectiveHeroicRightFacing: 57,
+		perspectiveLeft: 58,
+		perspectiveRelaxed: 59,
+		perspectiveRelaxedModerately: 60,
+		perspectiveRight: 61
+	}
+
+	var ST_LightRigDirection = {
+		b: 0,
+		bl: 1,
+		br: 2,
+		l: 3,
+		r: 4,
+		t: 5,
+		tl: 6,
+		tr: 7
+	}
+
+	var ST_LightRigType = {
+		balanced: 0,
+		brightRoom: 1,
+		chilly: 2,
+		contrasting: 3,
+		flat: 4,
+		flood: 5,
+		freezing: 6,
+		glow: 7,
+		harsh: 8,
+		legacyFlat1: 9,
+		legacyFlat2: 10,
+		legacyFlat3: 11,
+		legacyFlat4: 12,
+		legacyHarsh1: 13,
+		legacyHarsh2: 14,
+		legacyHarsh3: 15,
+		legacyHarsh4: 16,
+		legacyNormal1: 17,
+		legacyNormal2: 18,
+		legacyNormal3: 19,
+		legacyNormal4: 20,
+		morning: 21,
+		soft: 22,
+		sunrise: 23,
+		sunset: 24,
+		threePt: 25,
+		twoPt: 26
+	}
+
+	var ST_BevelPresetType = {
+		angle: 0,
+		artDeco: 1,
+		circle: 2,
+		convex: 3,
+		coolSlant: 4,
+		cross: 5,
+		divot: 6,
+		hardEdge: 7,
+		relaxedInset: 8,
+		riblet: 9,
+		slope: 10,
+		softRound: 11
+	}
+
+	var ST_TLAnimateEffectTransition = {
+		in:   0,
+		out:  1,
+		none: 2
+	}
+
+	var ST_PresetMaterialType = {
+		clear: 0,
+		dkEdge: 1,
+		flat: 2,
+		legacyMatte: 3,
+		legacyMetal: 4,
+		legacyPlastic: 5,
+		legacyWireframe: 6,
+		matte: 7,
+		metal: 8,
+		plastic: 9,
+		powder: 10,
+		softEdge: 11,
+		softmetal: 12,
+		translucentPowder: 13,
+		warmMatte: 14
+	}
+
+	var ST_CxnType = {
+		parOf: 0,
+		presOf: 1,
+		presParOf: 2,
+		unknownRelationShip: 3
+	}
+	
+	var c_oAscOleObjectTypes = {
+		document:    1,
+		spreadsheet: 2,
+		formula:     4
+	}
+
 	// image wrap style
 	var c_oAscWrapStyle = {
 		Inline : 0,
@@ -3870,6 +4501,34 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
     window['AscFormat'].BULLET_TYPE_BULLET_NONE = window['AscFormat']['BULLET_TYPE_BULLET_NONE'] = 0;
     window['AscFormat'].BULLET_TYPE_BULLET_CHAR = window['AscFormat']['BULLET_TYPE_BULLET_CHAR'] = 1;
     window['AscFormat'].BULLET_TYPE_BULLET_AUTONUM = window['AscFormat']['BULLET_TYPE_BULLET_AUTONUM'] = 2;
-    window['AscFormat'].BULLET_TYPE_BULLET_BLIP = window['AscFormat']['BULLET_TYPE_BULLET_BLIP'] = 3;
-
-})(window);
+    window['AscFormat'].BULLET_TYPE_BULLET_BLIP = window['AscFormat']['BULLET_TYPE_BULLET_BLIP'] = 3;	window['AscCommon'].c_oAscRectAlignType = c_oAscRectAlignType;
+	window['AscCommon'].ST_HueDir = ST_HueDir;
+	window['AscCommon'].ST_ClrAppMethod = ST_ClrAppMethod;
+	window['AscCommon'].ST_AnimLvlStr = ST_AnimLvlStr;
+	window['AscCommon'].ST_AnimOneStr = ST_AnimOneStr;
+	window['AscCommon'].ST_Direction = ST_Direction;
+	window['AscCommon'].ST_HierBranchStyle = ST_HierBranchStyle;
+	window['AscCommon'].ST_ResizeHandlesStr = ST_ResizeHandlesStr;
+	window['AscCommon'].ST_PtType = ST_PtType;
+	window['AscCommon'].ST_ChildOrderType = ST_ChildOrderType;
+	window['AscCommon'].ST_AlgorithmType = ST_AlgorithmType;
+	window['AscCommon'].ST_ConstraintRelationship = ST_ConstraintRelationship;
+	window['AscCommon'].ST_BoolOperator = ST_BoolOperator;
+	window['AscCommon'].ST_ElementType = ST_ElementType;
+	window['AscCommon'].ST_ConstraintType = ST_ConstraintType;
+	window['AscCommon'].ST_VariableType = ST_VariableType;
+	window['AscCommon'].ST_AxisType = ST_AxisType;
+	window['AscCommon'].ST_FunctionType = ST_FunctionType;
+	window['AscCommon'].ST_FunctionOperator = ST_FunctionOperator;
+	window['AscCommon'].ST_LayoutShapeType = ST_LayoutShapeType;
+	window['AscCommon'].ST_ParameterId = ST_ParameterId;
+	window['AscCommon'].ST_PresetCameraType = ST_PresetCameraType;
+	window['AscCommon'].ST_LightRigDirection = ST_LightRigDirection;
+	window['AscCommon'].ST_LightRigType = ST_LightRigType;
+	window['AscCommon'].ST_BevelPresetType = ST_BevelPresetType;
+	window['AscCommon'].ST_PresetMaterialType = ST_PresetMaterialType;
+	window['AscCommon'].ST_TLAnimateEffectTransition = ST_TLAnimateEffectTransition;
+	window['AscCommon'].c_oAscOleObjectTypes = c_oAscOleObjectTypes;
+	window['AscCommon'].ST_CxnType = ST_CxnType;
+	
+	})(window);

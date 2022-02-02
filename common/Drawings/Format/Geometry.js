@@ -1684,4 +1684,22 @@ function ComparisonEdgeByTopPoint(graphEdge1, graphEdge2)
     window['AscFormat'].APPROXIMATE_EPSILON3 = 5;
     window['AscFormat'].cToRad = cToRad;
     window['AscFormat'].cToDeg = cToDeg;
+
+    window['AscFormat'].FORMULA_TYPE_MULT_DIV = FORMULA_TYPE_MULT_DIV;
+    window['AscFormat'].FORMULA_TYPE_PLUS_MINUS = FORMULA_TYPE_PLUS_MINUS;
+    window['AscFormat'].FORMULA_TYPE_PLUS_DIV = FORMULA_TYPE_PLUS_DIV;
+    window['AscFormat'].FORMULA_TYPE_IF_ELSE = FORMULA_TYPE_IF_ELSE;
+    window['AscFormat'].FORMULA_TYPE_ABS = FORMULA_TYPE_ABS;
+    window['AscFormat'].FORMULA_TYPE_AT2 = FORMULA_TYPE_AT2;
+    window['AscFormat'].FORMULA_TYPE_CAT2 = FORMULA_TYPE_CAT2;
+    window['AscFormat'].FORMULA_TYPE_COS = FORMULA_TYPE_COS;
+    window['AscFormat'].FORMULA_TYPE_MAX = FORMULA_TYPE_MAX;
+    window['AscFormat'].FORMULA_TYPE_MOD = FORMULA_TYPE_MOD;
+    window['AscFormat'].FORMULA_TYPE_PIN = FORMULA_TYPE_PIN;
+    window['AscFormat'].FORMULA_TYPE_SAT2 = FORMULA_TYPE_SAT2;
+    window['AscFormat'].FORMULA_TYPE_SIN = FORMULA_TYPE_SIN;
+    window['AscFormat'].FORMULA_TYPE_SQRT = FORMULA_TYPE_SQRT;
+    window['AscFormat'].FORMULA_TYPE_TAN = FORMULA_TYPE_TAN;
+    window['AscFormat'].FORMULA_TYPE_VALUE = FORMULA_TYPE_VALUE;
+    window['AscFormat'].FORMULA_TYPE_MIN = FORMULA_TYPE_MIN;
 })(window);

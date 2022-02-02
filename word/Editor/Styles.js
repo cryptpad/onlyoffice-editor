@@ -17640,8 +17640,13 @@ window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;
 window["AscCommonWord"].spacing_Auto = spacing_Auto;
-window["AscCommonWord"].wrap_NotBeside = wrap_NotBeside;
 window["AscCommonWord"].wrap_Around = wrap_Around;
+window["AscCommonWord"].wrap_Auto = wrap_Auto;
+window["AscCommonWord"].wrap_None = wrap_None;
+window["AscCommonWord"].wrap_NotBeside = wrap_NotBeside;
+window["AscCommonWord"].wrap_Through = wrap_Through;
+window["AscCommonWord"].wrap_Tight = wrap_Tight;
+
 
 // Создаем глобальные дефолтовые стили, чтобы быстро можно было отдать дефолтовые настройки
 var g_oDocumentDefaultTextPr = new CTextPr();

@@ -8575,6 +8575,7 @@
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
                 });
+                // Disable HeaderFooter opening to prevent file corruption
             // } else if (c_oSerWorksheetsTypes.RowBreaks === type) {
             //     oWorksheet.rowBreaks = {count: null, manualBreakCount: null, breaks: []};
             //     res = this.bcr.Read1(length, function (t, l) {
