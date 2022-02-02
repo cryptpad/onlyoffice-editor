@@ -558,6 +558,10 @@
     var dataUrl = hiddenCanv.toDataURL();
     return dataUrl;
   }
+  
+  WorksheetView.prototype.createImageForChartOleObject = function () {
+
+  }
 
   WorksheetView.prototype.findLastRow = function () {
     if (!this.rows) return;

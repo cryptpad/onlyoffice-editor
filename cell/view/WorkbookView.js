@@ -1795,6 +1795,27 @@
 	}
     ws.checkProtectRangeOnEdit([new Asc.Range(activeCellRange.c1, activeCellRange.r1, activeCellRange.c1, activeCellRange.r1)], doEdit, null, needBlurFunc);
   };
+  
+  function isChartOleObject() {
+    return true;
+  }
+
+  /**
+   *
+   * @return { string } base64 image
+   */
+  WorkbookView.prototype.getImageFromTableOleObject = function () {
+    var worksheet;
+    var imageFile;
+    if (isChartOleObject()) {
+      worksheet = this.getWorksheet(0);
+      imageFile = worksheet.createImageForChartOleObject();
+    } else {
+      worksheet = this.getWorksheet();
+      imageFile = worksheet.createImageFromMaxRange();
+    }
+    return imageFile;
+  }
 
   WorkbookView.prototype._checkStopCellEditorInFormulas = function() {
 	  if (this.isCellEditMode && this.isFormulaEditMode && this.cellEditor.canEnterCellRange()) {
