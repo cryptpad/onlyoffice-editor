@@ -8633,7 +8633,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						}
 					}
 				} else if ("tableStyles" === name) {
-					//this.readAttr(reader);
+					//CTableStyles
 					this.tableStyles.fromXml(reader);
 				} else if ("Style" === name) {
 					//TODO
@@ -8729,6 +8729,34 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.CCellStyle.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+
+		/*<xsd:attribute name="name" type="s:ST_Xstring" use="optional"/>
+		3640 <xsd:attribute name="xfId" type="ST_CellStyleXfId" use="required"/>
+			3641 <xsd:attribute name="builtinId" type="xsd:unsignedInt" use="optional"/>
+			3642 <xsd:attribute name="iLevel" type="xsd:unsignedInt" use="optional"/>
+			3643 <xsd:attribute name="hidden" type="xsd:boolean" use="optional"/>
+			3644 <xsd:attribute name="customBuiltin" type="xsd:boolean" use="optional"/>*/
+
+		//TODO в x2t пишется данных меньше, чем читается
+		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
+		writer.WriteXmlNullableAttributeNumber("xfId", this.XfId);
+		writer.WriteXmlNullableAttributeNumber("builtinId", this.BuiltinId);
+
+		//не пишеится в x2t
+		writer.WriteXmlNullableAttributeNumber("iLevel", this.ILevel);
+		//не пишеится в x2t
+		writer.WriteXmlNullableAttributeBool("hidden", this.Hidden);
+		//не пишеится в x2t
+		writer.WriteXmlNullableAttributeBool("customBuiltin", this.CustomBuiltin);
+
+
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
 	AscCommonExcel.OpenXf.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes( oReader );
@@ -8769,6 +8797,272 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					}
 				}
 			}
+		}
+	};
+
+	Asc.CTableStyles.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("tableStyle") == sName )
+								m_arrItems.push_back( new CTableStyle( oReader ));
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("tableStyle" === name) {
+				var val = new Asc.CTableStyle();
+				var aElements = [];
+				val.fromXml(reader, aElements);
+				if (null != val.name) {
+					if (null === val.displayName) {
+						val.displayName = val.name;
+					}
+					this.CustomStyles[val.name] = {style: val, elements: aElements};
+				}
+
+				/*if(null != oNewStyle.name) {
+					if (null === oNewStyle.displayName)
+						oNewStyle.displayName = oNewStyle.name;
+					oCustomStyles[oNewStyle.name] = {style : oNewStyle, elements: aElements};
+				}*/
+			}
+		}
+	};
+
+	Asc.CTableStyles.prototype.readAttr = function (reader) {
+
+//documentation
+		/*>
+		3709 <xsd:sequence>
+		3710 <xsd:element name="tableStyleElement" type="CT_TableStyleElement" minOccurs="0"
+		3711 maxOccurs="unbounded"/>
+		3712 </xsd:sequence>
+		3713 <xsd:attribute name="name" type="xsd:string" use="required"/>
+		3714 <xsd:attribute name="pivot" type="xsd:boolean" use="optional" default="true"/>
+		3715 <xsd:attribute name="table" type="xsd:boolean" use="optional" default="true"/>
+		3716 <xsd:attribute name="count" type="xsd:unsignedInt" use="optional"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("count"),      m_oCount )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("defaultPivotStyle"),      m_oDefaultPivotStyle )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("defaultTableStyle"),      m_oDefaultTableStyle )*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("defaultPivotStyle" === reader.GetName()) {
+				val = reader.GetValue();
+				this.DefaultPivotStyle = val;
+			} else if ("defaultTableStyle" === reader.GetName()) {
+				val = reader.GetValue();
+				this.DefaultTableStyle = val;
+			}
+		}
+	};
+
+	Asc.CTableStyles.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(_T("<tableStyles"));
+						WritingStringNullableAttrInt(L"count", m_oCount, m_oCount->GetValue());
+						WritingStringNullableAttrEncodeXmlString(L"defaultTableStyle", m_oDefaultTableStyle, m_oDefaultTableStyle.get());
+						WritingStringNullableAttrEncodeXmlString(L"defaultPivotStyle", m_oDefaultPivotStyle, m_oDefaultPivotStyle.get());
+
+						if(!m_arrItems.empty())
+						{
+							writer.WriteString(_T(">"));
+
+							for ( size_t i = 0; i < m_arrItems.size(); ++i)
+							{
+								if (  m_arrItems[i] )
+								{
+									m_arrItems[i]->toXML(writer);
+								}
+							}
+
+							writer.WriteString(_T("</tableStyles>"));
+						}
+						else
+							writer.WriteString(_T("/>"));*/
+
+		var length = 0, i;
+		for (i in this.CustomStyles) {
+			length++;
+		}
+
+		writer.WriteXmlString("<tableStyles");
+		writer.WriteXmlNullableAttributeNumber("count", length);
+		writer.WriteXmlNullableAttributeStringEncode("defaultTableStyle", this.DefaultTableStyle);
+		writer.WriteXmlNullableAttributeStringEncode("defaultPivotStyle", this.DefaultPivotStyle);
+
+		if (this.CustomStyles) {
+			writer.WriteXmlString(">");
+
+			for (i in this.CustomStyles) {
+				var style = this.CustomStyles[i].style;
+				var elements = this.CustomStyles[i].elements;
+				style.toXml(writer, elements);
+			}
+
+			writer.WriteXmlString("</tableStyles>");
+		} else {
+			writer.WriteXmlString("/>");
+		}
+	};
+
+	Asc.CTableStyle.prototype.fromXml = function (reader, aElements) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("tableStyleElement") == sName )
+								m_arrItems.push_back( new CTableStyleElement( oReader ));
+						}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		var val;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("tableStyleElement" === name) {
+				var tableStyleElement = {Type: null, Size: null, DxfId: null};
+
+				while (reader.MoveToNextAttribute()) {
+					if ("dxfId" === reader.GetName()) {
+						val = reader.GetValueInt();
+						tableStyleElement.DxfId = val;
+					} else if ("size" === reader.GetName()) {
+						val = reader.GetValueInt();
+						tableStyleElement.Size = val;
+					} else if ("type" === reader.GetName()) {
+						val = reader.GetValue();
+						tableStyleElement.Type = val;
+					}
+				}
+
+				/*var oNewStyleElement = {Type: null, Size: null, DxfId: null};
+				res = this.bcr.Read2Spreadsheet(length, function(t,l){
+					return oThis.ReadTableCustomStyleElement(t,l, oNewStyleElement);
+				});
+				if(null != oNewStyleElement.Type && null != oNewStyleElement.DxfId)
+					aElements.push(oNewStyleElement);*/
+
+				/*if (c_oSer_TableStyleElement.Type === type)
+					oNewStyleElement.Type = this.stream.GetUChar();
+				else if (c_oSer_TableStyleElement.Size === type)
+					oNewStyleElement.Size = this.stream.GetULongLE();
+				else if (c_oSer_TableStyleElement.DxfId === type)
+					oNewStyleElement.DxfId = this.stream.GetULongLE();
+				else
+					res = c_oSerConstants.ReadUnknown;*/
+
+				aElements.push(tableStyleElement);
+			}
+		}
+	};
+
+	Asc.CTableStyle.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if     ( oReader, _T("count"),      m_oCount )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("name"),       m_oName )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("pivot"),      m_oPivot )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("table"),      m_oTable )
+							WritingElement_ReadAttributes_Read_if     ( oReader, _T("displayName"),m_oDisplayName )*/
+
+//serialize
+		/**/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			} else if ("pivot" === reader.GetName()) {
+				val = reader.GetValue();
+				this.pivot = val;
+			} else if ("table" === reader.GetName()) {
+				val = reader.GetValue();
+				this.table = val;
+			} else if ("displayName" === reader.GetName()) {
+				val = reader.GetValue();
+				this.displayName = val;
+			}
+		}
+	};
+
+	Asc.CTableStyle.prototype.toXml = function (writer, aElements) {
+
+		/*if(m_oName.IsInit() && m_arrItems.size() > 0)
+						{
+							writer.WriteString(_T("<tableStyle"));
+							WritingStringNullableAttrEncodeXmlString(L"name", m_oName, m_oName.get());
+							WritingStringNullableAttrBool(L"table", m_oTable);
+							WritingStringNullableAttrBool(L"pivot", m_oPivot);
+							WritingStringNullableAttrInt(L"count", m_oCount, m_oCount->GetValue());
+							writer.WriteString(_T(">"));
+
+							for ( size_t i = 0; i < m_arrItems.size(); ++i)
+							{
+								if (  m_arrItems[i] )
+								{
+									m_arrItems[i]->toXML(writer);
+								}
+							}
+
+							writer.WriteString(_T("</tableStyle>"));
+						}*/
+
+		if(this.name && aElements.length > 0)
+		{
+			writer.WriteXmlString("<tableStyle");
+			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
+			writer.WriteXmlNullableAttributeBool("table", this.table);
+			writer.WriteXmlNullableAttributeBool("pivot", this.pivot);
+			writer.WriteXmlNullableAttributeNumber("count", aElements.length);
+			writer.WriteXmlString(">");
+
+			for (var i = 0; i < aElements.length; ++i) {
+				if (aElements[i]) {
+					writer.WriteXmlString("<tableStyleElement");
+					writer.WriteXmlAttributeString("type", aElements[i].Type);
+					writer.WriteXmlNullableAttributeNumber("size",aElements[i].Size);
+					writer.WriteXmlAttributeNumber("dxfId", aElements[i].DxfId);
+					writer.WriteXmlString("/>");
+				}
+			}
+
+			writer.WriteXmlString("</tableStyle>");
 		}
 	};
 
@@ -9447,9 +9741,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							oDxf.num = this.ParseNum(oNewNumFmt, null);
 					}*/
 
-		if (reader.IsEmptyNode())
+		if (reader.IsEmptyNode()) {
 			return;
+		}
 
+		//TODO applyProtection
+		var wb = reader.context.wb;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -9471,17 +9768,54 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("font" === name) {
 				val = new AscCommonExcel.Font();
 				val.fromXml(reader);
-				//TODO
-				if (this.wb) {
-					val.checkSchemeFont(this.wb.theme);
+				if (wb) {
+					val.checkSchemeFont(wb.theme);
 				}
 				this.font = val;
-			} else if ("NumFmt" === name) {
-				/*val = new AscCommonExcel.Border();
+			} else if ("numFmt" === name) {
+				val = new AscCommonExcel.Num();
 				val.fromXml(reader);
-				this.border = val;*/
+				this.num = val;
+			}  else if ("protection" === name) {
+				while (reader.MoveToNextAttribute()) {
+					if ("hidden" === reader.GetName()) {
+						this.hidden = val;
+					} else if ("locked" === reader.GetName()) {
+						this.locked = val;
+					}
+				}
 			}
 		}
+	};
+
+	AscCommonExcel.CellXfs.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+
+
+		if (this.font) {
+			this.font.toXml(writer, "font");
+		}
+		if (this.num) {
+			this.num.toXml(writer, "numFmt");
+		}
+		if (this.fill) {
+			this.fill.toXml(writer, "fill");
+		}
+		if (this.align) {
+			this.align.toXml(writer, "alignment");
+		}
+		if (this.border) {
+			this.border.toXml(writer, "border");
+		}
+		if (null != this.locked || null != this.hidden) {
+			writer.WriteXmlString("<" + "protection");
+			writer.WriteXmlNullableAttributeBool("hidden", this.hidden);
+			writer.WriteXmlNullableAttributeBool("locked", this.locked);
+			writer.WriteXmlString("/>");
+		}
+
+		writer.WriteXmlNodeEnd(name);
 	};
 
 	AscCommonExcel.Fill.prototype.fromXml = function (reader) {
@@ -9541,8 +9875,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (this.patternFill) {
 			this.patternFill.toXml(writer, "patternFill");
 		}
-		if (this.gradientFill) {
-			this.gradientFill.toXml(writer, "gradientFill");
+		if (this.num) {
+			this.num.toXml(writer, "gradientFill");
 		}
 
 		writer.WriteXmlNodeEnd(name);
@@ -10249,25 +10583,47 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 		if (this.oXfsStylesMap) {
 			//xfForWrite
+			//добавляю в context по аналогии с записью в serialize, проверить!
+			writer.context.isCellStyle = true;
 			writer.WriteXmlArray(this.oXfsStylesMap, "xf", "cellStyleXfs", true);
+			writer.context.undefined = true;
+		}
+		if (this.oXfsMap.elems) {
+			//xfForWrite
+			writer.WriteXmlArray(this.oXfsMap.elems, "xf", "cellXfs", true);
 		}
 
+		if (wb.CellStyles.CustomStyles) {
+			//AscCommonExcel.CCellStyle
+			writer.WriteXmlArray(wb.CellStyles.CustomStyles, "cellStyle", "cellStyles", true);
+
+		}
+
+		//отсутвует в serialize, в x2t не пишется
+		/*if(m_oColors.IsInit())
+			m_oColors->toXML(writer);*/
 
 
+		//TODO aDxfs
+		var dxfs = writer.context.InitSaveManager.getDxfs();
+		if(null != dxfs && dxfs.length > 0) {
+			//AscCommonExcel.CellXfs. можно оберунть в dxf
+			writer.WriteXmlArray(dxfs, "dxf", "dxfs", true);
+		}
+
+		if (null != wb.TableStyles) {
+			//Asc.CTableStyles
+			wb.TableStyles.toXml();
+		}
+
+		//TODO!!!
+		/*var aExtDxfs = [];
+		var slicerStyles = writer.context.InitSaveManager.PrepareSlicerStyles(wb.SlicerStyles, aExtDxfs);
+		if(aExtDxfs.length > 0) {
+			this.bs.WriteItem(c_oSerStylesTypes.ExtDxfs, function(){oThis.WriteDxfs(aExtDxfs);});
+		}*/
 
 		/*
-		if(m_oCellStyleXfs.IsInit())
-			m_oCellStyleXfs->toXML(writer);
-		if(m_oCellXfs.IsInit())
-			m_oCellXfs->toXML(writer);
-		if(m_oCellStyles.IsInit())
-			m_oCellStyles->toXML(writer);
-		if(m_oColors.IsInit())
-			m_oColors->toXML(writer);
-		if(m_oDxfs.IsInit())
-			m_oDxfs->toXML(writer);
-		if(m_oTableStyles.IsInit())
-			m_oTableStyles->toXML(writer);
 		if(m_oExtLst.IsInit())
 			writer.WriteString(m_oExtLst->toXMLWithNS(L""));*/
 
@@ -10284,8 +10640,73 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString(">");
 	};
 
-	AscCommonExcel.XfForWrite.prototype.toXml = function(writer) {
+	AscCommonExcel.XfForWrite.prototype.toXml = function (writer) {
 
+		/*writer.WriteString(_T("<xf"));
+						WritingStringNullableAttrInt(L"fontId", m_oFontId, m_oFontId->GetValue());
+						WritingStringNullableAttrInt(L"fillId", m_oFillId, m_oFillId->GetValue());
+						WritingStringNullableAttrInt(L"borderId", m_oBorderId, m_oBorderId->GetValue());
+						WritingStringNullableAttrInt(L"numFmtId", m_oNumFmtId, m_oNumFmtId->GetValue());
+						WritingStringNullableAttrInt(L"xfId", m_oXfId, m_oXfId->GetValue());
+						WritingStringNullableAttrBool(L"applyNumberFormat", m_oApplyNumberFormat);
+						WritingStringNullableAttrBool(L"applyFont", m_oApplyFont);
+						WritingStringNullableAttrBool(L"applyFill", m_oApplyFill);
+						WritingStringNullableAttrBool(L"applyBorder", m_oApplyBorder);
+						WritingStringNullableAttrBool(L"applyAlignment", m_oApplyAlignment);
+						WritingStringNullableAttrBool(L"applyProtection", m_oApplyProtection);
+						WritingStringNullableAttrBool(L"quotePrefix", m_oQuotePrefix);
+						WritingStringNullableAttrBool(L"pivotButton", m_oPivotButton);
+						if (m_oAligment.IsInit() || m_oProtection.IsInit())
+						{
+							writer.WriteString(_T(">"));
+
+							if (m_oAligment.IsInit())m_oAligment->toXML(writer);
+							if (m_oProtection.IsInit())m_oProtection->toXML(writer);
+
+							writer.WriteString(_T("</xf>"));
+						}
+						else
+							writer.WriteString(_T("/>"));*/
+
+
+		var isCellStyle = writer.context.isCellStyle;
+		var xf = this.xf;
+
+		writer.WriteXmlString("<xf");
+		writer.WriteXmlNullableAttributeNumber("fontId", this.fontid);
+		writer.WriteXmlNullableAttributeNumber("fillId", this.fillid);
+		writer.WriteXmlNullableAttributeNumber("borderId", this.borderid);
+		writer.WriteXmlNullableAttributeNumber("numFmtId", this.numid);
+
+		if(xf && !isCellStyle)
+		{
+			writer.WriteXmlNullableAttributeNumber("xfId", xf.XfId);
+		}
+
+		writer.WriteXmlNullableAttributeBool("applyNumberFormat", this.ApplyNumberFormat);
+		writer.WriteXmlNullableAttributeBool("applyFont", this.ApplyFont);
+		writer.WriteXmlNullableAttributeBool("applyFill", this.ApplyFill);
+		writer.WriteXmlNullableAttributeBool("applyBorder", this.ApplyBorder);
+		writer.WriteXmlNullableAttributeBool("applyAlignment", this.ApplyAlignment);
+
+		if (xf) {
+			writer.WriteXmlNullableAttributeBool("applyProtection", xf.applyProtection);
+			writer.WriteXmlNullableAttributeBool("quotePrefix", xf.QuotePrefix);
+			writer.WriteXmlNullableAttributeBool("pivotButton", xf.PivotButton);
+		}
+
+		//TODO if (/*m_oAligment.IsInit() ||*/ m_oProtection.IsInit())
+		if (xf && (null != xf.locked || null != xf.hidden))
+		{
+			writer.WriteXmlString(">");
+			writer.WriteXmlString("<" + "protection");
+			writer.WriteXmlNullableAttributeBool("hidden", xf.hidden);
+			writer.WriteXmlNullableAttributeBool("locked", xf.locked);
+			writer.WriteXmlString("/>");
+			writer.WriteXmlString("</xf>");
+		} else {
+			writer.WriteXmlString("/>");
+		}
 	};
 
 
