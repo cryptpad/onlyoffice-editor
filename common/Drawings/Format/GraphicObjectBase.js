@@ -555,7 +555,9 @@
         if(this.parent && (this.parent.Get_ParentTextTransform  && this.parent.Get_ParentTextTransform())) {
             return true;
         }
-
+        if(!AscFormat.canSelectDrawing(this)) {
+            return false;
+        }
         var _x, _y;
         if(AscFormat.isRealNumber(this.posX) && AscFormat.isRealNumber(this.posY)) {
             _x = x - this.posX - this.bounds.x;
@@ -847,6 +849,9 @@
             return false;
         }
         return this.getNoRot() === false;
+    };
+    CGraphicObjectBase.prototype.canSelect = function() {
+        return this.getNoSelect() === false;
     };
     CGraphicObjectBase.prototype.canResize = function() {
         if(!this.canEdit()) {
@@ -1815,6 +1820,9 @@
         if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
             return -1;
         }
+        if(!AscFormat.canSelectDrawing(this)) {
+            return -1;
+        }
         if(this.isProtected && this.isProtected()) {
             return -1;
         }
@@ -2488,6 +2496,9 @@
         if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
             return false;
         }
+        if(!AscFormat.canSelectDrawing(this)) {
+            return false;
+        }
         var invert_transform = this.getInvertTransform();
         if(!invert_transform)
         {
@@ -2956,6 +2967,12 @@
         return srcRect;
     }
 
+    function canSelectDrawing(oDrawing) {
+        if(typeof oDrawing.canSelect === "function") {
+            return oDrawing.canSelect();
+        }
+        return true;
+    }
 
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromX]  = function(oClass, value){oClass.fromX =  value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromY]  = function(oClass, value){oClass.fromY =  value;};
@@ -2983,5 +3000,6 @@
     window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
     window['AscFormat'].CClientData = CClientData;
     window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
-    window['AscFormat'].MACRO_PREFIX = "jsaProject_"
+    window['AscFormat'].MACRO_PREFIX = "jsaProject_";
+    window['AscFormat'].canSelectDrawing = canSelectDrawing;
 })(window);
