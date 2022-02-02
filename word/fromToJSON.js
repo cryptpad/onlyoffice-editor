@@ -729,7 +729,7 @@
 			hideGeom:  oSShape.hideGeom,
 			lkTxEntry: oSShape.lkTxEntry,
 			rot:       oSShape.rot,
-			type:      To_XML_ST_LayoutShapeType(oSShape.type),
+			type:      oSShape.type,
 			zOrderOff: oSShape.zOrderOff,
 			adjLst:    this.SerAdjLst(oSShape.adjLst),
 			objType:   "sshape"
@@ -766,10 +766,10 @@
 	WriterToJSON.prototype.SerRule = function(oRule)
 	{
 		return {
-			fact:    oRule.fact,
+			fact:    isNaN(oRule.fact) ? "NaN" : oRule.fact,
 			for:     To_XML_ST_ConstraintRelationship(oRule.for),
 			forName: oRule.forName,
-			max:     oRule.max,
+			max:     isNaN(oRule.max) ? "NaN" : oRule.max,
 			ptType:  this.SerBaseFormatObj(oRule.ptType, "element"),
 			type:    To_XML_ST_ConstraintType(oRule.type),
 			val:     oRule.val
@@ -819,7 +819,7 @@
 		var oResult = this.SerIteratorAttributes(oIf);
 
 		oResult["list"] = aNodeItems;
-		oResult["arg"]  = To_XML_ST_VariableType(oIf.arg);
+		oResult["arg"]  = oIf.arg;
 		oResult["func"] = To_XML_ST_FunctionType(oIf.func);
 		oResult["name"] = oIf.name;
 		oResult["op"]   = To_XML_ST_FunctionOperator(oIf.op);
@@ -3673,6 +3673,7 @@
 			pageBreakBefore:   oParaPr.PageBreakBefore,
 			defaultRunPr:      this.SerTextPr(oParaPr.DefaultRunPr),
 			lvl:               oParaPr.Lvl,
+			defTabSz:          oParaPr.DefaultTab != undefined ? private_MM2EMU(oParaPr.DefaultTab) : oParaPr.DefaultTab,
 
 			pBdr: oParaPr.Brd ? 
 			{
@@ -3843,9 +3844,9 @@
 			return oParaInd;
 		
 		return {
-			left:      oParaInd.Left      ? private_MM2Twips(oParaInd.Left)      : oParaInd.Left,
-			right:     oParaInd.Right     ? private_MM2Twips(oParaInd.Right)     : oParaInd.Right,
-			firstLine: oParaInd.FirstLine ? private_MM2Twips(oParaInd.FirstLine) : oParaInd.FirstLine
+			left:      oParaInd.Left != undefined ? private_MM2Twips(oParaInd.Left)      : oParaInd.Left,
+			right:     oParaInd.Right != undefined ? private_MM2Twips(oParaInd.Right)     : oParaInd.Right,
+			firstLine: oParaInd.FirstLine != undefined ? private_MM2Twips(oParaInd.FirstLine) : oParaInd.FirstLine
 		}
 	};
 	WriterToJSON.prototype.SerNumPr = function(oNumPr)
@@ -7352,6 +7353,7 @@
 			bodyPr:      this.SerBodyPr(oShape.bodyPr),
 			content:     oSerContent,
 			modelId:     oShape.modelId,
+			txXfrm:      this.SerXfrm(oShape.txXfrm),
 			type:        "shape",
 		}
 	};
@@ -8796,12 +8798,13 @@
 		}
 
 		oParaPr.Lvl             = oParsedParaPr.lvl != undefined ? oParsedParaPr.lvl : oParaPr.Lvl;
-		oParaPr.FramePr         = oParsedParaPr.framePr != undefined ? this.FramePrFromJSON(oParsedParaPr.framePr)        : oParaPr.FramePr;
-		oParaPr.Spacing         = oParsedParaPr.spacing != undefined ? this.ParaSpacingFromJSON(oParsedParaPr.spacing)    : oParaPr.Spacing;
-		oParaPr.Ind.Left        = oParsedParaPr.ind.left != undefined ? private_Twips2MM(oParsedParaPr.ind.left)      : oParaPr.Ind.Left;
-		oParaPr.Ind.Right       = oParsedParaPr.ind.right != undefined ? private_Twips2MM(oParsedParaPr.ind.right)     : oParaPr.Ind.Right;
+		oParaPr.FramePr         = oParsedParaPr.framePr != undefined ? this.FramePrFromJSON(oParsedParaPr.framePr) : oParaPr.FramePr;
+		oParaPr.Spacing         = oParsedParaPr.spacing != undefined ? this.ParaSpacingFromJSON(oParsedParaPr.spacing) : oParaPr.Spacing;
+		oParaPr.Ind.Left        = oParsedParaPr.ind.left != undefined ? private_Twips2MM(oParsedParaPr.ind.left) : oParaPr.Ind.Left;
+		oParaPr.Ind.Right       = oParsedParaPr.ind.right != undefined ? private_Twips2MM(oParsedParaPr.ind.right) : oParaPr.Ind.Right;
 		oParaPr.Ind.FirstLine   = oParsedParaPr.ind.firstLine != undefined ? private_Twips2MM(oParsedParaPr.ind.firstLine) : oParaPr.Ind.FirstLine;
 		oParaPr.Jc              = nJc;
+		oParaPr.DefaultTab        = oParsedParaPr.defTabSz != undefined ? private_EMU2MM(oParsedParaPr.defTabSz) : oParsedParaPr.defTabSz;
 		oParaPr.KeepLines       = oParsedParaPr.keepLines;
 		oParaPr.KeepNext        = oParsedParaPr.keepNext;
 		oParaPr.NumPr           = oParsedParaPr.numPr        ? this.NumPrFromJSON(oParsedParaPr.numPr, oParsedNumbernig, oPrevNumIdInfo) : oParaPr.NumPr;
@@ -12195,10 +12198,10 @@
 		oParsedSShape.hideGeom != undefined && oSShape.setHideGeom(oParsedSShape.hideGeom);
 		oParsedSShape.lkTxEntry != undefined && oSShape.setLkTxEntry(oParsedSShape.lkTxEntry);
 		oParsedSShape.rot != undefined && oSShape.setRot(oParsedSShape.rot);
-		oParsedSShape.type != undefined && oSShape.setType(From_XML_ST_LayoutShapeType(oParsedSShape.type));
+		oParsedSShape.type != undefined && oSShape.setType(oParsedSShape.type);
 		oParsedSShape.zOrderOff != undefined && oSShape.setZOrderOff(oParsedSShape.zOrderOff);
 		oParsedSShape.adjLst != undefined && oSShape.setAdjLst(this.AdjLstFromJSON(oParsedSShape.adjLst));
-
+				
 		return oSShape;
 	};
 	ReaderFromJSON.prototype.AdjLstFromJSON = function(oParsedAdjLst)
@@ -12232,10 +12235,13 @@
 	{
 		var oRule = new AscFormat.Rule();
 
-		oParsedRule.fact != undefined && oRule.setFact(oParsedRule.fact);
+		var fact = oParsedRule.fact === "Nan" ? NaN : oParsedRule.fact;
+		var max = oParsedRule.max === "Nan" ? NaN : oParsedRule.max;
+
+		fact != undefined && oRule.setFact(fact);
 		oParsedRule.for != undefined && oRule.setFor(From_XML_ST_ConstraintRelationship(oParsedRule.for));
 		oParsedRule.forName != undefined && oRule.setForName(oParsedRule.forName);
-		oParsedRule.max != undefined && oRule.setMax(oParsedRule.max);
+		max != undefined && oRule.setMax(max);
 		oParsedRule.ptType != undefined && oRule.setPtType(this.BaseFormatObjFromJSON(oParsedRule.ptType));
 		oParsedRule.type != undefined && oRule.setType(From_XML_ST_ConstraintType(oParsedRule.type));
 		oParsedRule.val != undefined && oRule.setVal(oParsedRule.val);
@@ -12335,11 +12341,11 @@
 		for (var nItem = 0; nItem < oParsedIf.list.length; nItem++)
 			oIf.addToLstList(oIf.list.length, this.NodeItemFromJSON(oParsedIf.list[nItem]));
 
-		oParsedIf.arg != undefined && oIf.setArg(From_XML_ST_VariableType(oParsedIf.arg));
+		oParsedIf.arg != undefined && oIf.setArg(oParsedIf.arg);
 		oParsedIf.func != undefined && oIf.setFunc(From_XML_ST_FunctionType(oParsedIf.func));
 		oParsedIf.name != undefined && oIf.setName(oParsedIf.name);
 		oParsedIf.op != undefined && oIf.setOp(From_XML_ST_FunctionOperator(oParsedIf.op));
-		oParsedIf.val != undefined && oIf.setName(oParsedIf.val);
+		oParsedIf.val != undefined && oIf.setVal(oParsedIf.val);
 
 		this.IteratorAttributesFromJSON(oParsedIf, oIf);
 
@@ -12921,6 +12927,7 @@
 		}
 
 		oParsedShape.modelId != undefined && oShape.setModelId(oParsedShape.modelId);
+		oParsedShape.txXfrm != undefined && oShape.setTxXfrm(this.XfrmFromJSON(oParsedShape.txXfrm));
 
 		oShape.setBDeleted(false);
 		oShape.recalculate();
@@ -15657,23 +15664,23 @@
 		var nVal = undefined;
 		switch (sVal)
 		{
-			case AscCommon.ST_PtType.node:
-				nVal = "node";
+			case "node":
+				nVal = AscCommon.ST_PtType.node;
 				break;
-			case AscCommon.ST_PtType.asst:
-				nVal = "asst";
+			case "asst":
+				nVal = AscCommon.ST_PtType.asst;
 				break;
-			case AscCommon.ST_PtType.doc:
-				nVal = "doc";
+			case "doc":
+				nVal = AscCommon.ST_PtType.doc;
 				break;
-			case AscCommon.ST_PtType.pres:
-				nVal = "pres";
+			case "pres":
+				nVal = AscCommon.ST_PtType.pres;
 				break;
-			case AscCommon.ST_PtType.parTrans:
-				nVal = "parTrans";
+			case "parTrans":
+				nVal = AscCommon.ST_PtType.parTrans;
 				break;
-			case AscCommon.ST_PtType.sibTrans:
-				nVal = "sibTrans";
+			case "sibTrans":
+				nVal = AscCommon.ST_PtType.sibTrans;
 				break;
 		}
 
@@ -15828,16 +15835,16 @@
 		var sVal = undefined;
 		switch (nVal)
 		{
-			case AscCommon.ST_ConstraintRelationship.none:
+			case AscCommon.ST_BoolOperator.none:
 				sVal = "none";
 				break;
-			case AscCommon.ST_ConstraintRelationship.equ:
+			case AscCommon.ST_BoolOperator.equ:
 				sVal = "equ";
 				break;
-			case AscCommon.ST_ConstraintRelationship.gte:
+			case AscCommon.ST_BoolOperator.gte:
 				sVal = "gte";
 				break;
-			case AscCommon.ST_ConstraintRelationship.lte:
+			case AscCommon.ST_BoolOperator.lte:
 				sVal = "lte";
 				break;
 		}
@@ -15850,16 +15857,16 @@
 		switch (sVal)
 		{
 			case "none":
-				nVal = AscCommon.ST_ConstraintRelationship.none;
+				nVal = AscCommon.ST_BoolOperator.none;
 				break;
 			case "equ":
-				nVal = AscCommon.ST_ConstraintRelationship.equ;
+				nVal = AscCommon.ST_BoolOperator.equ;
 				break;
 			case "gte":
-				nVal = AscCommon.ST_ConstraintRelationship.gte;
+				nVal = AscCommon.ST_BoolOperator.gte;
 				break;
 			case "lte":
-				nVal = AscCommon.ST_ConstraintRelationship.lte;
+				nVal = AscCommon.ST_BoolOperator.lte;
 				break;
 		}
 
