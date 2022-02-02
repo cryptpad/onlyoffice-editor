@@ -12174,6 +12174,7 @@
     window["AscCommonExcel"].DocumentPageSize = DocumentPageSize;
     window["AscCommonExcel"].getSqRefString = getSqRefString;
     window["AscCommonExcel"].g_nNumsMaxId = g_nNumsMaxId;
+    window["AscCommonExcel"].XfForWrite = XfForWrite;
 
 
 })(window);

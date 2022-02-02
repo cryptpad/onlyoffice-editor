@@ -198,6 +198,104 @@
 		return res;
 	}
 
+	function FromXml_ST_BorderStyle(val) {
+		var res = null;
+		switch (val) {
+			case "dashDot":
+				res = AscCommon.c_oAscBorderStyles.DashDot;
+				break;
+			case "dashDotDot":
+				res = AscCommon.c_oAscBorderStyles.DashDotDot;
+				break;
+			case "dashed":
+				res = AscCommon.c_oAscBorderStyles.Dashed;
+				break;
+			case "dotted":
+				res = AscCommon.c_oAscBorderStyles.Dotted;
+				break;
+			case "double":
+				res = AscCommon.c_oAscBorderStyles.Double;
+				break;
+			case "hair":
+				res = AscCommon.c_oAscBorderStyles.Hair;
+				break;
+			case "medium":
+				res = AscCommon.c_oAscBorderStyles.Medium;
+				break;
+			case "mediumDashDot":
+				res = AscCommon.c_oAscBorderStyles.MediumDashDot;
+				break;
+			case "mediumDashDotDot":
+				res = AscCommon.c_oAscBorderStyles.MediumDashDotDot;
+				break;
+			case "mediumDashed":
+				res = AscCommon.c_oAscBorderStyles.MediumDashed;
+				break;
+			case "none":
+				res = AscCommon.c_oAscBorderStyles.None;
+				break;
+			case "slantDashDot":
+				res = AscCommon.c_oAscBorderStyles.SlantDashDot;
+				break;
+			case "thick":
+				res = AscCommon.c_oAscBorderStyles.Thick;
+				break;
+			case "thin":
+				res = AscCommon.c_oAscBorderStyles.Thin;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_BorderStyle(val) {
+		var res = null;
+		switch (val) {
+			case  AscCommon.c_oAscBorderStyles.DashDot:
+				res = "dashDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.DashDotDot:
+				res = "dashDotDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Dashed:
+				res = "dashed";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Dotted:
+				res = "dotted";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Double:
+				res = "double";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Hair:
+				res = "hair";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Medium:
+				res = "medium";
+				break;
+			case  AscCommon.c_oAscBorderStyles.MediumDashDot:
+				res = "mediumDashDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.MediumDashDotDot:
+				res = "mediumDashDotDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.MediumDashed:
+				res = "mediumDashed";
+				break;
+			case  AscCommon.c_oAscBorderStyles.None:
+				res = "none";
+				break;
+			case  AscCommon.c_oAscBorderStyles.SlantDashDot:
+				res = "slantDashDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Thick:
+				res = "thick";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Thin:
+				res = "thin";
+				break;
+		}
+		return res;
+	}
+
 	//****workbook****
 	function CT_Workbook(wb) {
 		//Members
@@ -8887,64 +8985,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						res = c_oSerConstants.ReadUnknown;
 					return res;*/
 
-		var toEBorderStyle = function (sValue) {
-
-			var res = Asc.EBorderStyle.borderstyleNone;
-			if ("dashDot" === sValue) {
-				res = Asc.EBorderStyle.borderstyleDashDot;
-			} else if ("dashDotDot" === sValue) {
-				res = Asc.EBorderStyle.borderstyleDashDotDot;
-			} else if ("dashed" === sValue) {
-				res = Asc.EBorderStyle.borderstyleDashed;
-			} else if ("dotted" === sValue) {
-				res = Asc.EBorderStyle.borderstyleDotted;
-			} else if ("double" === sValue) {
-				res = Asc.EBorderStyle.borderstyleDouble;
-			} else if ("hair" === sValue) {
-				res = Asc.EBorderStyle.borderstyleHair;
-			} else if ("medium" === sValue) {
-				res = Asc.EBorderStyle.borderstyleMedium;
-			} else if ("mediumDashDot" === sValue) {
-				res = Asc.EBorderStyle.borderstyleMediumDashDot;
-			} else if ("mediumDashDotDot" === sValue) {
-				res = Asc.EBorderStyle.borderstyleMediumDashDotDot;
-			} else if ("mediumDashed" === sValue) {
-				res = Asc.EBorderStyle.borderstyleMediumDashed;
-			} else if ("none" === sValue) {
-				res = Asc.EBorderStyle.borderstyleNone;
-			} else if ("slantDashDot" === sValue) {
-				res = Asc.EBorderStyle.borderstyleSlantDashDot;
-			} else if ("thick" === sValue) {
-				res = Asc.EBorderStyle.borderstyleThick;
-			} else if ("thin" === sValue) {
-				res = Asc.EBorderStyle.borderstyleThin;
-			}
-
-			return res;
-		};
-
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("style" === reader.GetName()) {
-				val = toEBorderStyle(reader.GetValue());
-				switch(val)
-				{
-					case Asc.EBorderStyle.borderstyleDashDot:			this.setStyle(AscCommon.c_oAscBorderStyles.DashDot);break;
-					case Asc.EBorderStyle.borderstyleDashDotDot:		this.setStyle(AscCommon.c_oAscBorderStyles.DashDotDot);break;
-					case Asc.EBorderStyle.borderstyleDashed:			this.setStyle(AscCommon.c_oAscBorderStyles.Dashed);break;
-					case Asc.EBorderStyle.borderstyleDotted:			this.setStyle(AscCommon.c_oAscBorderStyles.Dotted);break;
-					case Asc.EBorderStyle.borderstyleDouble:			this.setStyle(AscCommon.c_oAscBorderStyles.Double);break;
-					case Asc.EBorderStyle.borderstyleHair:				this.setStyle(AscCommon.c_oAscBorderStyles.Hair);break;
-					case Asc.EBorderStyle.borderstyleMedium:			this.setStyle(AscCommon.c_oAscBorderStyles.Medium);break;
-					case Asc.EBorderStyle.borderstyleMediumDashDot:		this.setStyle(AscCommon.c_oAscBorderStyles.MediumDashDot);break;
-					case Asc.EBorderStyle.borderstyleMediumDashDotDot:	this.setStyle(AscCommon.c_oAscBorderStyles.MediumDashDotDot);break;
-					case Asc.EBorderStyle.borderstyleMediumDashed:		this.setStyle(AscCommon.c_oAscBorderStyles.MediumDashed);break;
-					case Asc.EBorderStyle.borderstyleNone:				this.setStyle(AscCommon.c_oAscBorderStyles.None);break;
-					case Asc.EBorderStyle.borderstyleSlantDashDot:		this.setStyle(AscCommon.c_oAscBorderStyles.SlantDashDot);break;
-					case Asc.EBorderStyle.borderstyleThick:				this.setStyle(AscCommon.c_oAscBorderStyles.Thick);break;
-					case Asc.EBorderStyle.borderstyleThin:				this.setStyle(AscCommon.c_oAscBorderStyles.Thin);break;
-					default :										this.setStyle(AscCommon.c_oAscBorderStyles.None);break;
-				}
+				val = reader.GetValue();
+				this.setStyle(FromXml_ST_BorderStyle(val));
 			} /*else if ("ss:Color" === reader.GetName()) {
 				val = reader.GetValue();
 
@@ -8953,6 +8998,24 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}*/
 		}
 	};
+
+	AscCommonExcel.BorderProp.prototype.toXml = function (writer, name) {
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("style", ToXml_ST_BorderStyle(this.s));
+		writer.WriteXmlAttributesEnd();
+
+
+		//в x2t используется toXMLWithNS
+
+		//TODO color
+		if (this.color) {
+			//this.color.toXml(writer);
+		}
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
 
 	AscCommonExcel.Border.prototype.fromXml = function (reader) {
 
@@ -9003,10 +9066,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
+		if (reader.IsEmptyNode()) {
 			return;
+		}
 		var depth = reader.GetDepth();
-		var borderProp;
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("bottom" == name) {
@@ -9125,6 +9188,64 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.outline = val;
 			}
 		}
+	};
+
+	AscCommonExcel.Border.prototype.toXml = function (writer, name) {
+
+		var border = this.getDif(AscCommonExcel.g_oDefaultFormat.BorderAbs);
+
+		if (!border) {
+			return;
+		}
+
+		writer.WriteXmlNodeStart(name);
+		if (border.dd) {
+			writer.WriteXmlAttributeString("diagonalDown", border.dd);
+		}
+		if (border.du) {
+			writer.WriteXmlAttributeString("diagonalUp", border.du);
+		}
+		writer.WriteXmlAttributesEnd();
+
+
+		if (null != border.l) {
+			border.l.toXml(writer, "left");
+		} else {
+			writer.WriteXmlString("<left/>");
+		}
+
+		if (null != border.r) {
+			border.r.toXml(writer, "right");
+		} else {
+			writer.WriteXmlString("<right/>");
+		}
+
+		if (null != border.t) {
+			border.t.toXml(writer, "top");
+		} else {
+			writer.WriteXmlString("<top/>");
+		}
+
+		if (null != border.b) {
+			border.b.toXml(writer, "bottom");
+		} else {
+			writer.WriteXmlString("<bottom/>");
+		}
+
+		if (null != border.d) {
+			border.d.toXml(writer, "diagonal");
+		} else {
+			writer.WriteXmlString("<diagonal/>");
+		}
+
+		if (null != border.iv) {
+			border.iv.toXml(writer, "vertical");
+		}
+		if (null != border.ih) {
+			border.ih.toXml(writer, "horizontal");
+		}
+
+		writer.WriteXmlNodeEnd(name);
 	};
 
 	AscCommonExcel.Align.prototype.fromXml = function (reader) {
@@ -9406,6 +9527,27 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.Fill.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+
+
+		//в x2t используется toXMLWithNS
+		/*if(m_oPatternFill.IsInit())
+			m_oPatternFill->toXMLWithNS(writer, child_ns, L"patternFill", child_ns);
+		if(m_oGradientFill.IsInit())
+			m_oGradientFill->toXMLWithNS(writer, child_ns, L"gradientFill", child_ns);*/
+
+		if (this.patternFill) {
+			this.patternFill.toXml(writer, "patternFill");
+		}
+		if (this.gradientFill) {
+			this.gradientFill.toXml(writer, "gradientFill");
+		}
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
 	AscCommonExcel.PatternFill.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes( oReader );
@@ -9472,6 +9614,51 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				}
 			}
 		}
+	};
+
+	AscCommonExcel.PatternFill.prototype.toXml = function (writer, name) {
+
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringNullableAttrString(L"patternType", m_oPatternType, m_oPatternType->ToString());
+		if(m_oBgColor.IsInit() || m_oFgColor.IsInit())
+		{
+			writer.EndAttributes();
+			if(m_oBgColor.IsInit() && m_oFgColor.IsInit())
+			{
+				m_oFgColor->toXMLWithNS(writer, child_ns, L"fgColor", child_ns);
+				m_oBgColor->toXMLWithNS(writer, child_ns, L"bgColor", child_ns);
+			}
+			else if(m_oFgColor.IsInit())
+			{
+				m_oFgColor->toXMLWithNS(writer, child_ns, L"fgColor", child_ns);
+				m_oFgColor->toXMLWithNS(writer, child_ns, L"bgColor", child_ns);
+			}
+			else if(m_oBgColor.IsInit())
+			{
+				m_oBgColor->toXMLWithNS(writer, child_ns, L"fgColor", child_ns);
+				m_oBgColor->toXMLWithNS(writer, child_ns, L"bgColor", child_ns);
+			}
+
+			writer.EndNodeWithNS(node_ns, node_name);*/
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("patternType", AscCommonExcel.ToXml_ST_PatternType(this.patternType));
+		writer.WriteXmlAttributesEnd();
+
+
+		//в x2t используется toXMLWithNS
+
+		//TODO color
+		if (this.bgColor) {
+			//this.bgColor.toXml(writer);
+		}
+		//TODO color
+		if (this.fgColor) {
+			//this.fgColor.toXml(writer);
+		}
+
+		writer.WriteXmlNodeEnd(name);
 	};
 
 	AscCommonExcel.GradientFill.prototype.fromXml = function (reader) {
@@ -9572,6 +9759,38 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.GradientFill.prototype.toXml = function (writer, name) {
+
+		/*writer.StartNodeWithNS(node_ns, node_name);
+						writer.StartAttributes();
+						WritingStringNullableAttrString(L"type", m_oType, m_oType->ToString());
+						WritingStringNullableAttrDouble(L"left", m_oLeft, m_oLeft->GetValue());
+						WritingStringNullableAttrDouble(L"right", m_oRight, m_oRight->GetValue());
+						WritingStringNullableAttrDouble(L"top", m_oTop, m_oTop->GetValue());
+						WritingStringNullableAttrDouble(L"bottom", m_oBottom, m_oBottom->GetValue());
+						WritingStringNullableAttrDouble(L"degree", m_oDegree, m_oDegree->GetValue());
+						writer.EndAttributes();
+						for(size_t i = 0; i < m_arrItems.size(); ++i)
+						{
+							m_arrItems[i]->toXMLWithNS(writer, child_ns, L"stop", child_ns);
+						}
+						writer.EndNodeWithNS(node_ns, node_name);*/
+
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("type", this.type);
+		writer.WriteXmlNullableAttributeDouble("left", this.left);
+		writer.WriteXmlNullableAttributeDouble("right", this.right);
+		writer.WriteXmlNullableAttributeDouble("top", this.top);
+		writer.WriteXmlNullableAttributeDouble("bottom", this.bottom);
+		writer.WriteXmlNullableAttributeDouble("degree", this.degree);
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlArray(this.stop, "stop");
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
 	AscCommonExcel.GradientStop.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes( oReader );
@@ -9631,6 +9850,20 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
+
+	AscCommonExcel.GradientStop.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeDouble("position", this.position);
+		writer.WriteXmlAttributesEnd();
+
+		if (this.color) {
+			this.color.toXml(writer, "color");
+		}
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
+
 
 	AscCommonExcel.Font.prototype.fromXml = function (reader) {
 
@@ -9999,23 +10232,30 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.bs.WriteItem(c_oSer_Dxf.NumFmt, function(){oThis.WriteNum(numId, Dxf.num.getFormat());});
 		}*/
 		if (this.oNumMap.elems) {
+			//AscCommonExcel.Num
 			writer.WriteXmlArray(this.oNumMap.elems, "numFmt", "numFmts", true);
 		}
 		if (this.oFontMap.elems) {
-			writer.WriteXmlArray(this.oFontMap.elems, "fonts", "font", true);
+			//AscCommonExcel.Font
+			writer.WriteXmlArray(this.oFontMap.elems, "font", "fonts", true);
 		}
 		if (this.oFillMap.elems) {
-			writer.WriteXmlArray(this.oFillMap.elems, "fills", "fill", true);
+			//AscCommonExcel.Fill
+			writer.WriteXmlArray(this.oFillMap.elems, "fill", "fills", true);
+		}
+		if (this.oBorderMap.elems) {
+			//AscCommonExcel.Border
+			writer.WriteXmlArray(this.oBorderMap.elems, "border", "borders", true);
+		}
+		if (this.oXfsStylesMap) {
+			//xfForWrite
+			writer.WriteXmlArray(this.oXfsStylesMap, "xf", "cellStyleXfs", true);
 		}
 
 
 
 
 		/*
-		if(m_oFills.IsInit())
-			m_oFills->toXML(writer);
-		if(m_oBorders.IsInit())
-			m_oBorders->toXML(writer);
 		if(m_oCellStyleXfs.IsInit())
 			m_oCellStyleXfs->toXML(writer);
 		if(m_oCellXfs.IsInit())
@@ -10042,7 +10282,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeStringEncode("formatCode", format);
 		//writer.WriteXmlNullableAttributeBool("sourceLinked", this.sourceLinked);
 		writer.WriteXmlString(">");
-	}
+	};
+
+	AscCommonExcel.XfForWrite.prototype.toXml = function(writer) {
+
+	};
+
+
 
 
 

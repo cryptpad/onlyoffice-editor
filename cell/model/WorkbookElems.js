@@ -1487,6 +1487,48 @@ var g_oFontProperties = {
 		}
 		return res;
 	}
+	function ToXml_ST_PatternType(val) {
+		switch (val) {
+			case c_oAscPatternType.None:
+				return 'none';
+			case c_oAscPatternType.Solid:
+				return 'solid';
+			case c_oAscPatternType.MediumGray:
+				return 'mediumGray';
+			case c_oAscPatternType.DarkGray:
+				return 'darkGray';
+			case c_oAscPatternType.LightGray:
+				return 'lightGray';
+			case c_oAscPatternType.DarkHorizontal:
+				return 'darkHorizontal';
+			case c_oAscPatternType.DarkVertical:
+				return 'darkVertical';
+			case c_oAscPatternType.DarkDown:
+				return 'darkDown';
+			case c_oAscPatternType.DarkUp:
+				return 'darkUp';
+			case c_oAscPatternType.DarkGrid:
+				return 'darkGrid';
+			case c_oAscPatternType.DarkTrellis:
+				return 'darkTrellis';
+			case c_oAscPatternType.LightHorizontal:
+				return 'lightHorizontal';
+			case c_oAscPatternType.LightVertical:
+				return 'lightVertical';
+			case c_oAscPatternType.LightDown:
+				return 'lightDown';
+			case c_oAscPatternType.LightUp:
+				return 'lightUp';
+			case c_oAscPatternType.LightGrid:
+				return 'lightGrid';
+			case c_oAscPatternType.LightTrellis:
+				return 'lightTrellis';
+			case c_oAscPatternType.Gray125:
+				return 'gray125';
+			case c_oAscPatternType.Gray0625:
+				return 'gray0625';
+		}
+	}
 
 	function GradientFill() {
 		//Attributes
@@ -12362,6 +12404,8 @@ QueryTableField.prototype.clone = function() {
 	window["AscCommonExcel"].FromXml_ST_HorizontalAlignment = FromXml_ST_HorizontalAlignment;
 	window["AscCommonExcel"].FromXml_ST_VerticalAlignment   = FromXml_ST_VerticalAlignment;
 	window["AscCommonExcel"].FromXml_ST_PatternType         = FromXml_ST_PatternType;
+
+	window["AscCommonExcel"].ToXml_ST_PatternType         = ToXml_ST_PatternType;
 
 	window["AscCommonExcel"].CT_Connection = CT_Connection;
 
