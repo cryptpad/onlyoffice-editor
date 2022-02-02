@@ -26764,14 +26764,47 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 		}
 		else
 		{
-			var oSelectedMath = oMath.Copy(true);
-			oMath.Remove(1, false);
-			this.RemoveSelection();
-			oMath.Root.Remove_Content(0,1);
-			oSelectedMath.ConvertView(isToLinear);
+			//получаем только выделенный контент как новый объект
+			var oTempSelectedObject = oMath.Copy(true);
+			
+			//получаем выделенный Content
+			var Selection = oMath.GetSelectContent(false);
+			var Content = Selection.Content;
+			var Start = Selection.Start;
+			var End = Selection.End;
 
-			// TODO: Реализовать вставку в oMath содержимого oSelectedMath
-			oSelectedMath.Root.CopyTo(oMath.Root)
+			var SplitContent;
+
+			//если Start === End значит элемент был выделен полностью 
+			//нужно проверить так это или нет, внутри
+			
+			if (Start === End) {
+				var tempContent = Content.getElem(Start);
+				var tempStart = tempContent.Selection.StartPos;
+				tempContent.Remove(1, false);
+
+				if (End - Start < tempContent.Content.length) {
+					if (tempContent.Type === 49) {
+						SplitContent = tempContent.Split_Run(tempStart);
+					}
+				}
+			} else {
+				oMath.Remove(1, false);
+			}
+
+			//console.log('Что осталость в oMath: ', oMath.GetText());
+			oTempSelectedObject.ConvertView(isToLinear);
+			//console.log('Что конвертнулось: ', oTempSelectedObject.GetText());
+
+			Start++;
+			for (var i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
+				Content.Add_ToContent(Start, oTempSelectedObject.Root.Content[i]);
+				Start++;
+			}
+			if (SplitContent) {
+				Content.Add_ToContent(Start, SplitContent);
+			}
+			oMath.Root.Correct_Content(true);
 		}
 		this.Recalculate();
 		this.UpdateInterface();
