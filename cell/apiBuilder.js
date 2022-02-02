@@ -211,6 +211,16 @@
 	 * */
 
 	/**
+     * Text transform preset
+	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown" 
+	 * | "textCanUp" | "textCascadeDown" | "textCascadeUp" | "textChevron" | "textChevronInverted" | "textCircle" | "textCirclePour"
+	 * | "textCurveDown" | "textCurveUp" | "textDeflate" | "textDeflateBottom" | "textDeflateInflate" | "textDeflateInflateDeflate" | "textDeflateTop"
+	 * | "textDoubleWave1" | "textFadeDown" | "textFadeLeft" | "textFadeRight" | "textFadeUp" | "textInflate" | "textInflateBottom" | "textInflateTop"
+	 * | "textPlain" | "textRingInside" | "textRingOutside" | "textSlantDown" | "textSlantUp" | "textStop" | "textTriangle" | "textTriangleInverted"
+	 * | "textWave1" | "textWave2" | "textWave4" | "textNoShape")} TextTransofrm
+	 * */
+
+	/**
 	 * Class representing a base class for color types.
 	 * @constructor
 	 */
@@ -1413,6 +1423,44 @@
 		var oImage = AscFormat.DrawingObjectsController.prototype.createImage(sImageSrc, 0, 0, nWidth/36000, nHeight/36000);
 		private_SetCoords(oImage, this.worksheet, nWidth, nHeight, nFromCol, nColOffset,  nFromRow, nRowOffset);
 		return new ApiImage(oImage);
+	};
+
+	/**
+	 * Adds an word art to the current sheet with the parameters specified.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @param {ApiTextPr} [oTextPr=Api.CreateTextPr()] - The text properties.
+	 * @param {string} [sText="Your text here"] - text for text art.
+	 * @param {TextTransofrm} [sTransform="textNoShape"] - Text transform type.
+	 * @param {ApiFill} [oFill=Api.CreateNoFill()] - The color or pattern used to fill the shape.
+	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the shape shadow.
+	 * @param {number} [nRotAngle=0] - Rotation angle
+	 * @param {EMU} [nWidth=1828800] - Word atr width
+	 * @param {EMU} [nHeight=1828800] - Word atr heigth
+	 * @param {number} [nFromCol=0] - The number of the column where the beginning of the shape will be placed.
+	 * @param {number} [nFromRow=0] - The number of the row where the beginning of the shape will be placed.
+     * @param {EMU} [nColOffset=0] - The offset from the nFromCol column to the left part of the shape measured in English measure units.
+	 * @param {EMU} [nRowOffset=0] - The offset from the nFromRow row to the upper part of the shape measured in English measure units.
+	 * @returns {ApiDrawing}
+	 */
+	ApiWorksheet.prototype.AddWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight, nFromCol, nFromRow, nColOffset, nRowOffset) {
+		oTextPr    = oTextPr && oTextPr.TextPr ? oTextPr.TextPr : null;
+		nRotAngle  = typeof(nRotAngle) === "number" && nRotAngle > 0 ? nRotAngle : 0;
+		nWidth     = typeof(nWidth) === "number" && nWidth > 0 ? nWidth : 1828800;
+		nHeight    = typeof(nHeight) === "number" && nHeight > 0 ? nHeight : 1828800;
+		oFill      = oFill && oFill.UniFill ? oFill.UniFill : Asc.editor.CreateNoFill().UniFill;
+		oStroke    = oStroke && oStroke.Ln ? oStroke.Ln : Asc.editor.CreateStroke(0, Asc.editor.CreateNoFill()).Ln;
+		nFromCol   = typeof(nFromCol) === "number" && nFromCol > 0 ? nFromCol : 0;
+		nFromRow   = typeof(nFromRow) === "number" && nFromRow > 0 ? nFromRow : 0;
+		nColOffset = typeof(nColOffset) === "number" && nColOffset > 0 ? nColOffset : 0;
+		nRowOffset = typeof(nRowOffset) === "number" && nRowOffset > 0 ? nRowOffset : 0;
+		sTransform = typeof(sTransform) === "string" && sTransform !== "" ? sTransform : "textNoShape";
+
+		var oArt = Asc.editor.private_createWordArt(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight);
+
+        private_SetCoords(oArt, this.worksheet, nWidth, nHeight, nFromCol, nColOffset,  nFromRow, nRowOffset);
+
+		return new ApiDrawing(oArt);
 	};
 
 	/**
@@ -3581,6 +3629,7 @@
 	ApiWorksheet.prototype["AddShape"] = ApiWorksheet.prototype.AddShape;
 	ApiWorksheet.prototype["AddImage"] = ApiWorksheet.prototype.AddImage;
 	ApiWorksheet.prototype["ReplaceCurrentImage"] = ApiWorksheet.prototype.ReplaceCurrentImage;
+	ApiWorksheet.prototype["AddWordArt"] = ApiWorksheet.prototype.AddWordArt;
 
 	ApiRange.prototype["GetClassType"] = ApiRange.prototype.GetClassType
 	ApiRange.prototype["GetRow"] = ApiRange.prototype.GetRow;
