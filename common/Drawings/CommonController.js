@@ -1049,7 +1049,10 @@ DrawingObjectsController.prototype =
 
     checkConnectorsPreTrack: function(){
 
-        if(this.arrPreTrackObjects.length > 0 && this.arrPreTrackObjects[0].originalObject && this.arrPreTrackObjects[0].overlayObject){
+        if(this.arrPreTrackObjects.length > 0 &&
+            this.arrPreTrackObjects[0].originalObject &&
+            this.arrPreTrackObjects[0].overlayObject &&
+        !(this.arrPreTrackObjects[0] instanceof AscFormat.EditShapeGeometryTrack)){
 
             var aAllConnectors = this.getAllConnectors(this.getDrawingArray());
             var oPreTrack;
@@ -11794,8 +11797,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
             return;
         }
         if(Math.abs(this.startX - x) > AscFormat.MOVE_DELTA ||
-            Math.abs(this.startY - y) > AscFormat.MOVE_DELTA ||
-            pageIndex !== this.startPageIndex) {
+            Math.abs(this.startY - y) > AscFormat.MOVE_DELTA) {
 
             var oTrack = this.drawingObjects.arrPreTrackObjects[0];
             var oGeomSelection = this.drawingObjects.selection.geometrySelection;
@@ -11808,7 +11810,8 @@ function CalcLiterByLength(aAlphaBet, nLength)
                 }
             }
             if(this.hitData.addingNewPoint) {
-                oTrack.addPoint(this.hitData.addingNewPoint, x, y);
+                oTrack.addPoint(this.hitData.addingNewPoint, this.startX, this.startY);
+                this.drawingObjects.updateOverlay();
             }
 
             this.drawingObjects.swapTrackObjects();
