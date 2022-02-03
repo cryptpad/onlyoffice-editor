@@ -5073,10 +5073,15 @@ CDocument.prototype.private_RecalculateFlowTable             = function(RecalcIn
     if (true === this.RecalcInfo.Can_RecalcObject())
     {
         var ElementPageIndex = 0;
-        if ((0 === Index && 0 === PageIndex) || Index != StartIndex || (Index === StartIndex && true === bResetStartElement))
+        if ((0 === Index && 0 === PageIndex) || Index !== StartIndex || (Index === StartIndex && true === bResetStartElement))
         {
-            Element.Set_DocumentIndex(Index);
-            Element.Reset(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount, this.Pages[PageIndex].Sections[this.Pages[PageIndex].Sections.length - 1].Y);
+        	// См. баги #42163 #55288
+			let oPageSection = this.Pages[PageIndex].Sections[RecalcInfo.SectionIndex];
+			if (ColumnIndex > 0 && oPageSection.IsCalculatingSectionBottomLine())
+				Y = oPageSection.Y;
+
+			Element.Set_DocumentIndex(Index);
+            Element.Reset(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount);
             ElementPageIndex = 0;
         }
         else

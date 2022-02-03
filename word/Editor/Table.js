@@ -3020,7 +3020,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 	oTargetTable.MoveCursorToStartPos();
 	editor.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
 };
-CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount, SectionY)
+CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
 {
 	this.X_origin = X;
 	this.X        = X;
@@ -3031,11 +3031,6 @@ CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, Colu
 	this.PageNum      = PageNum;
 	this.ColumnNum    = ColumnNum ? ColumnNum : 0;
 	this.ColumnsCount = ColumnsCount ? ColumnsCount : 1;
-
-	// Для плавающей таблицы, которая расположена во второй или далее колонке, текущее положение по Y - это верх
-	// текущей секции
-	if (!this.IsInline() && ColumnNum > 0 && undefined !== SectionY)
-		this.Y = SectionY;
 
 	var _X      = this.X;
 	var _XLimit = this.XLimit;
