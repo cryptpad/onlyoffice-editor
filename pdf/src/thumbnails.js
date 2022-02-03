@@ -928,8 +928,20 @@
         this.resize();
     };
 
+    CDocument.prototype.checkPageEmptyStyle = function()
+    {
+        PageStyle.emptyColor = "#FFFFFF";
+        if (this.viewer)
+        {
+            var backColor = this.viewer.Api.getPageBackgroundColor();
+            PageStyle.emptyColor = "#" + backColor[0].toString(16) + backColor[1].toString(16) + backColor[2].toString(16);
+        }
+    }
+
     CDocument.prototype.clearCachePages = function()
     {
+        this.checkPageEmptyStyle();
+
         for (var blockNum = 0, blocksCount = this.blocks.length; blockNum < blocksCount; blockNum++)
         {
             block = this.blocks[blockNum];
