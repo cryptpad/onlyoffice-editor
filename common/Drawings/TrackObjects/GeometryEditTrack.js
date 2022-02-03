@@ -140,7 +140,12 @@
         var gmEditPoint = this.getGmEditPt();
         var pathLst = geometry.pathLst;
         var matrix = this.transform;
-        oDrawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, pathLst, gmEditList, gmEditPoint);
+        var oBounds = this.getBounds();
+        oBounds.min_x -= 5;
+        oBounds.min_y -= 5;
+        oBounds.max_x += 5;
+        oBounds.max_y += 5;
+        oDrawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, pathLst, gmEditList, gmEditPoint, oBounds);
     };
 
 
