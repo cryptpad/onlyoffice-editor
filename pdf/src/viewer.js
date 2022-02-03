@@ -1010,15 +1010,46 @@
 					var posX = e.pageX || e.clientX;
 					var posY = e.pageY || e.clientY;
 
-					oThis.Api.sync_BeginCatchSelectedElements();
-					oThis.Api.sync_ChangeLastSelectedElement(Asc.c_oAscTypeSelectElement.Text, undefined);
-					oThis.Api.sync_EndCatchSelectedElements();
+					var x = posX - oThis.x;
+					var y = posY - oThis.y;
 
-					oThis.Api.sync_ContextMenuCallback({
-						Type  : Asc.c_oAscContextMenuTypes.Common,
-						X_abs : posX - oThis.x,
-						Y_abs : posY - oThis.y
-					});
+					var isInSelection = false;
+					if (oThis.overlay.m_oContext)
+					{
+						var pixX = AscCommon.AscBrowser.convertToRetinaValue(x, true);
+						var pixY = AscCommon.AscBrowser.convertToRetinaValue(y, true);
+
+						if (pixX >= 0 && pixY >= 0 && pixX < oThis.canvasOverlay.width && pixY < oThis.canvasOverlay.height)
+						{
+							var pixelOnOverlay = oThis.overlay.m_oContext.getImageData(pixX, pixY, 1, 1);
+							if (Math.abs(pixelOnOverlay.data[0] - 51) < 10 &&
+								Math.abs(pixelOnOverlay.data[1] - 102) < 10 &&
+								Math.abs(pixelOnOverlay.data[2] - 204) < 10)
+							{
+								isInSelection = true;
+							}
+						}
+					}
+
+					if (isInSelection)
+					{
+						oThis.Api.sync_BeginCatchSelectedElements();
+						oThis.Api.sync_ChangeLastSelectedElement(Asc.c_oAscTypeSelectElement.Text, undefined);
+						oThis.Api.sync_EndCatchSelectedElements();
+
+						oThis.Api.sync_ContextMenuCallback({
+							Type: Asc.c_oAscContextMenuTypes.Common,
+							X_abs: x,
+							Y_abs: y
+						});
+					}
+					else
+					{
+						oThis.Api.sync_BeginCatchSelectedElements();
+						oThis.Api.sync_EndCatchSelectedElements();
+						oThis.removeSelection();
+						oThis.Api.sendEvent("asc_onContextMenu", undefined);
+					}
 				}
 				return;
 			}
@@ -1720,6 +1751,8 @@
 			{
 				// отрисовываем страницу
 				let page = this.drawingPages[i];
+				if (!page)
+					break;
 
 				let w = (page.W * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
 				let h = (page.H * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
