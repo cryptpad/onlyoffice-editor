@@ -1137,7 +1137,7 @@
 			oThis.isFocusOnThumbnails = false;
 			AscCommon.stopEvent(e);
 
-			var mouseButton = AscCommon.getMouseButton(e);
+			var mouseButton = AscCommon.getMouseButton(e || {});
 			if (mouseButton !== 0)
 				return;
 
