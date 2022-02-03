@@ -2596,7 +2596,7 @@
     CGraphicObjectBase.prototype.convertFromSmartArt = function() {
         return this;
     };
-    CGraphicObjectBase.prototype.changeRot = function(dAngle) {
+    CGraphicObjectBase.prototype.changeRot = function(dAngle, bWord) {
         if(this.spPr && this.spPr.xfrm) {
             var oXfrm = this.spPr.xfrm;
             var originalRot = oXfrm.rot || 0;
@@ -2629,26 +2629,34 @@
                 var oBounds = this.bounds;
                 var oSmartArt = this.group.group;
                 var diffX = null, diffY = null;
-                if(oBounds.r > oSmartArt.x + oSmartArt.extX) {
-                    diffX = oSmartArt.x + oSmartArt.extX - oBounds.r;
+                var leftEdgeOfSmartArt = oSmartArt.x;
+                var topEdgeOfSmartArt = oSmartArt.y;
+                var rightEdgeOfSmartArt = oSmartArt.x + oSmartArt.extX;
+                var bottomEdgeOfSmartArt = oSmartArt.y + oSmartArt.extY;
+                if(oBounds.r > rightEdgeOfSmartArt) {
+                    diffX = rightEdgeOfSmartArt - oBounds.r;
                 }
-                if(oBounds.l < oSmartArt.x) {
-                    diffX = oSmartArt.x - oBounds.l;
+                if(oBounds.l < leftEdgeOfSmartArt) {
+                    diffX = leftEdgeOfSmartArt - oBounds.l;
                 }
-                if(oBounds.b > oSmartArt.y + oSmartArt.extY) {
-                    diffY = oSmartArt.y + oSmartArt.extY - oBounds.b;
+                if(oBounds.b > bottomEdgeOfSmartArt) {
+                    diffY = bottomEdgeOfSmartArt - oBounds.b;
                 }
-                if(oBounds.t < oSmartArt.y) {
-                    diffY = oSmartArt.y - oBounds.t;
+                if(oBounds.t < topEdgeOfSmartArt) {
+                    diffY = topEdgeOfSmartArt - oBounds.t;
                 }
                 var originalPosX = this.spPr.xfrm.offX;
                 var originalPosY = this.spPr.xfrm.offY;
 
                 if(diffX !== null) {
-                    this.spPr.xfrm.setOffX(this.spPr.xfrm.offX + diffX);
+                    var newOffX = this.spPr.xfrm.offX + diffX;
+                    this.spPr.xfrm.setOffX(newOffX);
+                    this.txXfrm.setOffX(this.txXfrm.offX + diffX);
                 }
                 if(diffY !== null) {
-                    this.spPr.xfrm.setOffY(this.spPr.xfrm.offY + diffY);
+                    var newOffY = this.spPr.xfrm.offY + diffY;
+                    this.spPr.xfrm.setOffY(newOffY);
+                    this.txXfrm.setOffY(this.txXfrm.offY + diffY);
                 }
 
                 var posX = this.spPr.xfrm.offX;
