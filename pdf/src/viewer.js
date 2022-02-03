@@ -269,6 +269,7 @@
 		{
 			this.thumbnails = thumbnails;
 			this.thumbnails.viewer = this;
+			this.thumbnails.checkPageEmptyStyle();
 			if (this.isStarted)
 			{
 				this.thumbnails.init();
@@ -874,6 +875,8 @@
 			var posY = drawingPage.Y;
 			posY -= this.betweenPages;
 			//posY += item["Y"];
+			if (posY > this.scrollMaxY)
+				posY = this.scrollMaxY;
 			this.m_oScrollVerApi.scrollToY(posY);
 		};
 
@@ -885,6 +888,8 @@
 
 			var posY = drawingPage.Y;
 			posY -= this.betweenPages;
+			if (posY > this.scrollMaxY)
+				posY = this.scrollMaxY;
 			this.m_oScrollVerApi.scrollToY(posY);
 		};
 
