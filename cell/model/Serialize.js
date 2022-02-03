@@ -5949,13 +5949,13 @@
         };
     }
     /** @constructor */
-    function Binary_TableReader(stream, oReadResult, ws, Dxfs)
+    function Binary_TableReader(stream, initOpenManager, ws, Dxfs)
     {
         this.stream = stream;
         this.ws = ws;
         this.Dxfs = Dxfs;
         this.bcr = new Binary_CommonReader(this.stream);
-        this.oReadResult = oReadResult;
+        this.initOpenManager = initOpenManager;
         this.Read = function(length, aTables)
         {
             var res = c_oSerConstants.ReadOk;
@@ -6034,7 +6034,7 @@
 			}
             else if ( c_oSer_TablePart.Id == type )
             {
-                this.oReadResult.tableIds[this.stream.GetULongLE()] = oTable;
+                this.initOpenManager.oReadResult.tableIds[this.stream.GetULongLE()] = oTable;
             }
 			else if ( c_oSer_TablePart.QueryTable == type )
 			{
@@ -6387,7 +6387,7 @@
                 oTableColumn.TotalsRowFunction = this.stream.GetUChar();
             else if ( c_oSer_TableColumns.TotalsRowFormula == type ) {
                 var formula = this.stream.GetString2LE(length);
-                this.oReadResult.tableCustomFunc.push({formula: formula, column: oTableColumn, ws: this.ws});
+                this.initOpenManager.oReadResult.tableCustomFunc.push({formula: formula, column: oTableColumn, ws: this.ws});
             }  else if ( c_oSer_TableColumns.DataDxfId == type ) {
                 var DxfId = this.stream.GetULongLE();
                 oTableColumn.dxf = this.Dxfs[DxfId];
@@ -8084,19 +8084,19 @@
             }
             else if ( c_oSerWorksheetsTypes.Autofilter == type )
             {
-                oBinary_TableReader = new Binary_TableReader(this.stream, this.InitOpenManager.oReadResult, oWorksheet, this.Dxfs);
+                oBinary_TableReader = new Binary_TableReader(this.stream, this.InitOpenManager, oWorksheet, this.Dxfs);
                 oWorksheet.AutoFilter = new AscCommonExcel.AutoFilter();
                 res = this.bcr.Read1(length, function(t,l){
                     return oBinary_TableReader.ReadAutoFilter(t,l, oWorksheet.AutoFilter);
                 });
             } else if (c_oSerWorksheetsTypes.SortState === type) {
-                oBinary_TableReader = new Binary_TableReader(this.stream, this.InitOpenManager.oReadResult, oWorksheet, this.Dxfs);
+                oBinary_TableReader = new Binary_TableReader(this.stream, this.InitOpenManager, oWorksheet, this.Dxfs);
                 oWorksheet.sortState = new AscCommonExcel.SortState();
                 res = this.bcr.Read1(length, function(t, l) {
                     return oBinary_TableReader.ReadSortState(t, l, oWorksheet.sortState);
                 });
             } else if (c_oSerWorksheetsTypes.TableParts == type) {
-                oBinary_TableReader = new Binary_TableReader(this.stream, this.InitOpenManager.oReadResult, oWorksheet, this.Dxfs);
+                oBinary_TableReader = new Binary_TableReader(this.stream, this.InitOpenManager, oWorksheet, this.Dxfs);
                 oBinary_TableReader.Read(length, oWorksheet.TableParts);
             } else if ( c_oSerWorksheetsTypes.Comments == type
                 && !(typeof editor !== "undefined" && editor.WordControl && editor.WordControl.m_oLogicDocument && Array.isArray(editor.WordControl.m_oLogicDocument.Slides))) {
@@ -10344,6 +10344,8 @@
                 if(c_oSerConstants.ReadOk == res)
                     res = (new Binary_SharedStringTableReader(this.stream, wb, aSharedStrings)).Read();
             }
+
+            //aCellXfs - внутри уже не нужна, поскольку вынес функцию InitStyleManager в InitOpenManager
 			this.InitOpenManager.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb/*, aCellXfs, this.InitOpenManager.copyPasteObj.isCopyPaste*/)
             if(null != nStyleTableOffset)
             {
@@ -10355,6 +10357,8 @@
                     wb.oNumFmtsOpen = oStyleObject.oNumFmts;
                 }
             }
+
+
             var personList = {};
             if(null != nPersonListTableOffset)
             {
@@ -11025,6 +11029,8 @@
 		this.cellStyles = [];
 		this.dxfs = [];
 		this.tableStyles = tableStyles;
+
+		this.oCustomSlicerStyles = null;
 	}
 
 	CT_Stylesheet.prototype.onStartNode = function(elem, attr, uq) {

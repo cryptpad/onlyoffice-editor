@@ -1536,9 +1536,11 @@ var editor;
 
 					//TODO oCustomSlicerStyles/aExtDxfs
 					var oStyleObject = {aBorders: styleSheet.borders, aFills: styleSheet.fills, aFonts: styleSheet.fonts, oNumFmts: styleSheet.numFmts, aCellStyleXfs: styleSheet.cellStyleXfs,
-						aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: [], aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: null};
+						aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: [], aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: styleSheet.oCustomSlicerStyles};
 
 					xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
+					//TODO aDxfs = oStyleObject.aDxfs;
+					wb.oNumFmtsOpen = oStyleObject.oNumFmts;
 				}
 			}
 			xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
@@ -1556,6 +1558,7 @@ var editor;
 			//var vbaProjectPart = wbPart.getPartByRelationshipType(openXml.Types.vbaProject.relationType);
 
 			//person list
+			//TODO ReadThreadedComment
 			var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
 			if (personListPart) {
 				var contentPersonList = personListPart.getDocumentContent();
