@@ -836,7 +836,8 @@
     CDocument.prototype.onMouseUp = function(e)
     {
         AscCommon.check_MouseUpEvent(e);
-        AscCommon.stopEvent(e);
+        if (e && e.preventDefault)
+            e.preventDefault();
         return false;
     };
 
@@ -861,7 +862,8 @@
             }
         }
 
-        AscCommon.stopEvent(e);
+        if (e && e.preventDefault)
+            e.preventDefault();
         return false;
     };
 
