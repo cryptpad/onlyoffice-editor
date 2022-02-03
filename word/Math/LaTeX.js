@@ -45,6 +45,7 @@
 var LaTeX = 0;
 var Unicode = 1;
 //P\left(A=2\middle|\frac{A^2}{B}>4\right)
+//change process of making degree and indexes
 function EquationProcessing(Parent) {
 	this.Parent = Parent;
 	this.IndexesOfIgnoredAtoms = {};
@@ -56,10 +57,18 @@ EquationProcessing.prototype.isLaTeX = function() {
 EquationProcessing.prototype.isUnicode = function() {
 	return this.type === Unicode;
 };
+EquationProcessing.prototype.CheckTypeOfParent = function() {
+	if (this.Parent instanceof CLaTeXParser) {
+		return LaTeX;
+	}
+	else if (this.Parent instanceof CUnicodeParser) {
+		return Unicode;
+	}
+};
 EquationProcessing.prototype.ParserData = [
 	"+", "^", "√", "&", "_", "-", "┴", "*", "(", ")", "=",
 	"{", "}", "&", "▒", "┬", "[", "]", "┤", "├", "〖", "〗",
-	"┴", '\\tan', '¦', '\\mod', '\\exp', '\\=', '\\sqrt', '\\theta', '|',
+	"┴", '\\tan', '¦', '\\mod', '\\exp', '\\=', '\\sqrt', '\\theta', '|', '/',
 	'\\frac',
 	'\\left',
 	'\\right',
@@ -312,12 +321,13 @@ EquationProcessing.prototype.AddScript = function(strAtom, FormArgument, isPre) 
 	var arrPreTypeOfScript = this.BracetSyntaxChecker(isPre ? -1 : this.Parent.intIndexArray);
 	var intType = isPre ? -1 : this.GetTypeOfScript(arrPreTypeOfScript);
 	var Script = this.CreateScript(FormArgument, intType, arrPreTypeOfScript.length);
+
 	if (isPre) {
 		this.FillScriptContent(Script, intType, arrPreTypeOfScript, isPre);
 		this.FillScriptBase(Script, isPre);
-	} else {
+	}
+	else {
 		this.FillScriptBase(Script, null, strAtom);
-		//Script.getBase().Add_Text(strAtom, this.Parent.ParaMath.Paragraph);
 		this.FillScriptContent(Script, intType, arrPreTypeOfScript);
 	}
 };
@@ -353,12 +363,13 @@ EquationProcessing.prototype.FillScriptBase = function(Script, isPre, strFAtom) 
 			this.AddIndexToIgnor(this.Parent.intIndexArray + 0, true);
 			this.StartLexer(Script.getBase(), this.Parent.intIndexArray + 0);
 		}
-	} else {
+	}
+	else {
 		if (this.StartBracet[strFAtom]) {
 			var exit = this.AddBracetBlockToIgnor();
-			console.log(exit)
 			this.StartLexer(Script.getBase());
-		} else {
+		}
+		else {
 			Script.getBase().Add_Text(strFAtom, this.Parent.ParaMath.Paragraph);
 		}
 	}
@@ -558,7 +569,6 @@ EquationProcessing.prototype.AddFunction = function (FormArgument, strAtom) {
 			this.AddScript(strAtom, Function.getFName());
 
 			var indexOfCLose = this.CheckCloseBracet();
-			console.log(indexOfCLose)
 			if (indexOfCLose && this.StartBracet[this.GetFutureAtom()]) {
 				this.AddBracetBlockToIgnor();
 				this.StartLexer(Function.getArgument(), indexOfCLose);
@@ -803,7 +813,7 @@ EquationProcessing.prototype.CheckIsUnicodeFrac = function() {
 
 	} else if (checkUnicodeFrac(this.Parent.arrAtoms[indexOfCLose + 1])) {
 		console.log('a \ b ...')
-		console.log(checkUnicodeFrac(this.Parent.arrAtoms[indexOfCLose + 1]), this.Parent.arrAtoms[indexOfCLose + 1])
+		checkUnicodeFrac(this.Parent.arrAtoms[indexOfCLose + 1]), this.Parent.arrAtoms[indexOfCLose + 1];
 	}
 	else {
 		console.log('nope')
@@ -821,11 +831,7 @@ EquationProcessing.prototype.CheckIsUnicodeFrac = function() {
 
 };
 EquationProcessing.prototype.CheckIsUnicodeSmallFrac = function(str) {
-	if (this.UnicodeSmallFrac[str.charCodeAt()] === true) {
-		return true;
-	} else {
-		return false
-	}
+	return this.UnicodeSmallFrac[str.charCodeAt()] === true;
 };
 EquationProcessing.prototype.UnicodeSmallFrac = {
 	47: true,
@@ -835,11 +841,7 @@ EquationProcessing.prototype.UnicodeSmallFrac = {
 	'\/': true
 };
 EquationProcessing.prototype.CheckIsLaTeXFullFrac = function(str) {
-	if (this.LaTeXFullFrac[str] === true) {
-		return true;
-	} else {
-		return false
-	}
+	return this.LaTeXFullFrac[str] === true;
 };
 EquationProcessing.prototype.LaTeXFullFrac = {
 	'\\frac': true,
@@ -852,11 +854,7 @@ EquationProcessing.prototype.CheckIsFrac = function() {
 
 	if (this.isLaTeX()) {
 		isFrac = this.CheckIsLaTeXFullFrac(this.GetNowAtom());
-
-		if (isFrac === false) {
-			return false;
-		}
-		return true;
+		return !(isFrac === false);
 	}
 
 	else if (this.isUnicode()) {
@@ -873,13 +871,6 @@ EquationProcessing.prototype.CheckIsFrac = function() {
 			isFrac = this.CheckIsUnicodeSmallFrac(this.Parent.arrAtoms[index + 1]);
 			return this.CheckCloseBracet(index+2) && isFrac;
 		}
-	}
-};
-EquationProcessing.prototype.CheckTypeOfParent = function() {
-	if (this.Parent instanceof CLaTeXParser) {
-		return LaTeX;
-	} else if (this.Parent instanceof CUnicodeParser) {
-		return Unicode;
 	}
 };
 EquationProcessing.prototype.AddFraction = function(FormArgument, strAtom) {
@@ -1468,7 +1459,7 @@ EquationProcessing.prototype.ArrMatrixTypes = [
 EquationProcessing.prototype.GetIsAddBar = {
 	"\\overline": true,
 	"\\underline": true,
-}
+};
 EquationProcessing.prototype.GetIsAddGroupChar = {
 	"\\overbrace": true,
 	"\\underbrace": true,
