@@ -1069,6 +1069,28 @@ CMathMatrix.prototype.Get_DeletedItemsThroughInterface = function()
 {
     return [];
 };
+CMathMatrix.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+	var strMatrixSymbol = String.fromCharCode(9632);//■
+	
+	strTemp += strMatrixSymbol + '(';
+
+	for (var nRow = 0; nRow < this.nRow; nRow++) {
+		for (var nCol = 0; nCol < this.nCol; nCol++) {
+			
+			strTemp += this.getContentElement(nRow, nCol).GetTextOfElement();
+			if (nCol < this.nCol - 1) {
+				strTemp += '&'
+			}
+			else if (nRow < this.nRow - 1) {
+				strTemp += '@'
+			}
+		}
+	}
+
+	strTemp += ')'
+	return strTemp;
+};
 
 /**
  *
@@ -1628,6 +1650,25 @@ CEqArray.prototype.Get_DeletedItemsThroughInterface = function()
 CEqArray.prototype.IsEqArray = function()
 {
     return true;
+};
+CEqArray.prototype.GetTextOfElement = function() {
+	//	Pattern: █(c+w@sss@d)
+	var strTemp = "";
+
+	var strSymbol = String.fromCharCode(9608);
+	var Base = this.Content;
+
+	strTemp += strSymbol;
+	strTemp += "(";
+
+	for (var i = 0; i < Base.length; i++) {
+		strTemp += Base[i].GetTextOfElement();
+		if (Base.length > 1 && i < Base.length - 1) {
+			strTemp += '@';
+		}
+	}
+	strTemp += ")";
+	return strTemp;
 };
 
 /**

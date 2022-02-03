@@ -4038,6 +4038,33 @@ CDelimiter.prototype.private_GetRightOperator = function(bHide)
 
     return NewEndCode;
 };
+CDelimiter.prototype.GetTextOfElement = function() {
+	//	Patterns:
+	//	if start bracket doesn't show:	├ ...) => ...)
+	//	if end bracket doesn't show:	(...┤ => (...
+	//	else:							(...) => (...)
+
+	var strTemp = "";
+
+	var strStartSymbol = String.fromCharCode(this.begOper.code || 40);
+	var strEndSymbol = String.fromCharCode(this.endOper.code || 41);
+	var strSeparatorSymbol = String.fromCharCode(this.sepOper.code) || '';
+	var strStartCaseSymbol = '├ ';
+	var strEndCaseSymbol = '┤ ';
+
+	strTemp += this.Pr.begChr === -1 ? strStartCaseSymbol : strStartSymbol;
+	
+	for (var intCount = 0; intCount < this.Content.length; intCount++) {
+		strTemp += this.Content[intCount].GetTextOfElement();
+
+		if (strSeparatorSymbol && this.Content.length > 1 && intCount < this.Content.length - 1) {
+			strTemp += strSeparatorSymbol;
+		}
+	}
+	strTemp += this.Pr.endChr === -1 ? strEndCaseSymbol : strEndSymbol;
+
+	return strTemp;
+}
 
 /**
  *
@@ -4488,6 +4515,22 @@ CGroupCharacter.prototype.Can_ModifyArgSize = function()
 CGroupCharacter.prototype.Can_ChangePos = function()
 {
     return this.Pr.chr == 0x23DC || this.Pr.chr == 0x23DD || this.Pr.chr == 0x23DE || this.Pr.chr == 0x23DF;
+};
+CGroupCharacter.prototype.GetTextOfElement = function() {
+	var strTemp = "";
+
+	var strStartCode = String.fromCharCode(this.Pr.chr || this.operator.Get_CodeChr())
+	var Base = this.getBase().GetTextOfElement();
+	var StartBracet = Base.length > 1 ? "(" : "";
+	var CloseBracet = Base.length > 1 ? ")" : "";
+
+	strTemp = 
+		strStartCode
+		+ StartBracet
+		+ Base
+		+ CloseBracet;
+
+	return strTemp;
 };
 
 /**

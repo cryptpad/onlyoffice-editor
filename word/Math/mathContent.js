@@ -8279,6 +8279,13 @@ CMathContent.prototype.private_ReplaceAutoCorrect = function(AutoCorrectEngine) 
         }
     }
 };
+CMathContent.prototype.GetTextOfElement = function() {
+    var str = "";
+    for (var i = 0; i < this.Content.length; i++) {
+        str += this.Content[i].GetTextOfElement();
+    }
+    return str;
+}
 CMathContent.prototype.GetTextContent = function(bSelectedText) {
 	var arr = [], str = "", bIsContainsOperator = false, paraRunArr = [];
 	var addText = function(value, bIsAddParenthesis, paraRun) {
@@ -8328,6 +8335,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 	var parseMathComposition = function(elem) {
         var tempStr;
         if(elem instanceof CDegree) {//степень
+            console.log(elem.GetTextOfElement());
 			//основание
             getAndPushTextContent(elem.getBase(), false);
             //знак
@@ -8335,7 +8343,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             //показатель
             getAndPushTextContent(elem.getIterator(), elem.getIterator().GetTextContent().str.length > 1 ? true : false);
         } else if (elem instanceof CDegreeSubSup) {//^ и _
-            console.log(elem.Pr.type)
+            console.log(elem.GetTextOfElement());
             var bAddBrackets = false;
             var base = elem.getBase();
             var lower = elem.getLowerIterator();
@@ -8390,15 +8398,18 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                 }
             }   
         } else if (elem instanceof CBar) {
+            console.log(elem.GetTextOfElement());
             //символ Bar
             addText(String.fromCharCode((elem.Pr.pos) ? 9601 : 175));
             //содержимое
             getAndPushTextContent(elem.getBase(), elem.getBase().GetTextContent().str.length > 1 ? true : false);
         } else if (elem instanceof CBox || elem instanceof CBorderBox) {
+            console.log(elem.GetTextOfElement());
             addText(String.fromCharCode((elem instanceof CBox) ? 9633 : 9645));
             //содержимое
             getAndPushTextContent(elem.getBase(), elem.getBase().GetTextContent().str.length > 1 ? true : false);
         } else if (elem instanceof CEqArray) {
+            console.log(elem.GetTextOfElement());
             addText(String.fromCharCode(9608));
             addText("(");
             for(var j = 0; j < elem.Content.length; j++) {
@@ -8410,6 +8421,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             }
 			addText(")");
         } else if (elem instanceof CDelimiter && elem.Pr.endChr == -1) {
+            console.log(elem.GetTextOfElement());
             //символ Eq array
             addText(String.fromCharCode(9400));
             addText("(");
@@ -8431,12 +8443,14 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             }
 			addText(")");
         } else if (elem instanceof CGroupCharacter) {
+            console.log(elem.GetTextOfElement());
             addText(String.fromCharCode(elem.Pr.chr || elem.operator.Get_CodeChr()));
             getAndPushTextContent(elem.getBase(), true);
         } else if (elem instanceof CAccent) {
             getAndPushTextContent(elem.getBase(), elem.getBase().GetTextContent().str);
             addText(String.fromCharCode(elem.Pr.chr || elem.operator.Get_CodeChr()));
         } else if (elem instanceof CDelimiter) {
+            console.log(elem.GetTextOfElement());
             addText(String.fromCharCode(elem.Pr.begChr || elem.begOper.code || 40));
             for (var i = 0; i < elem.Content.length; i++) {
                 getAndPushTextContent(elem.Content[i]);
@@ -8445,6 +8459,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             }
             addText(String.fromCharCode(elem.Pr.endChr || elem.endOper.code || 41));
 		} else if (elem instanceof CNary) {
+            console.log(elem.GetTextOfElement());
             addText(String.fromCharCode(elem.Pr.chr || elem.getSign().chrCode));
             //верхняя граница суммирования
             if (!elem.Pr.supHide) {
@@ -8467,6 +8482,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
                 addText("〗");
             }
         } else if (elem instanceof CFraction) {//дробь
+            console.log(elem.GetTextOfElement());
             //числитель
 			getAndPushTextContent(elem.getNumerator(), true);
             switch (elem.Pr.type) {
@@ -8487,6 +8503,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 			//знаменатель
             getAndPushTextContent(elem.getDenominator(), true);
 		} else if (elem instanceof CRadical) {//корень
+            console.log(elem.GetTextOfElement());
 			addText(String.fromCharCode(8730));
 			//степень корня
 			tempStr = elem.getDegree().GetTextContent(bSelectedText);
@@ -8512,6 +8529,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             
             addText(")")
         } else if (elem instanceof CMathMatrix) {//matrix
+            console.log(elem.GetTextOfElement());
             var symbol = [];
             for (var row = 0; row < elem.nRow; row++) {
 				for(var col = 1; col < elem.nCol; col++) {

@@ -1015,6 +1015,9 @@ CMathText.prototype.ToSearchElement = function(oProps)
 
 	return new CSearchTextItemChar(this.Value);
 };
+CMathText.prototype.GetTextOfElement = function() {
+    return String.fromCharCode(this.value);
+};
 /*CMathText.prototype.Recalculate_Reset = function(StartRange, StartLine, PRS)
 {
     var bNotUpdate = PRS !== null && PRS!== undefined && PRS.bFastRecalculate == true;
