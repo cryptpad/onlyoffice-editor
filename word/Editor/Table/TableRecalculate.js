@@ -3388,7 +3388,7 @@ CTable.prototype.private_RecalculateSkipPage = function(CurPage)
 };
 CTable.prototype.private_RecalculatePercentWidth = function()
 {
-    return this.XLimit - this.X - this.GetTableOffsetCorrection() + this.GetRightTableOffsetCorrection();
+    return this.TableWidthRange - this.GetTableOffsetCorrection() + this.GetRightTableOffsetCorrection();
 };
 CTable.prototype.private_RecalculateGridCols = function()
 {
