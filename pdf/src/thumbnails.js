@@ -618,7 +618,7 @@
         if (this.defaultPageW != 0)
         {
             // зум "по умолчанию"
-            this.zoom = this.defaultPageW / pageWidthMax;
+            this.zoom = AscCommon.AscBrowser.convertToRetinaValue(this.defaultPageW, true) / pageWidthMax;
 
             if (0 != this.panelWidth)
                 this.defaultPageW = 0;
