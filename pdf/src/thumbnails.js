@@ -821,7 +821,8 @@
     {
         AscCommon.check_MouseDownEvent(e, true);
         AscCommon.global_mouseEvent.LockMouse();
-
+        this.viewer.isFocusOnThumbnails = true;
+        
         var drPage = this.getPageByCoords(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
         if (drPage && drPage.num !== this.selectPage)
         {

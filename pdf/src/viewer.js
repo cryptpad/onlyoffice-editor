@@ -208,6 +208,8 @@
 		this.mouseDownCoords = { X : 0, Y : 0 };
 		this.mouseDownLinkObject = null;
 
+		this.isFocusOnThumbnails = false;
+
 		var oThis = this;
 
 		this.updateSkin = function()
@@ -450,6 +452,8 @@
 
 		this.resize = function()
 		{
+			this.isFocusOnThumbnails = false;
+
 			var rect = this.canvas.getBoundingClientRect();
 			this.x = rect.x;
 			this.y = rect.y;
@@ -1005,6 +1009,7 @@
 
 		this.onMouseDown = function(e)
 		{
+			oThis.isFocusOnThumbnails = false;
 			AscCommon.stopEvent(e);
 
 			var mouseButton = AscCommon.getMouseButton(e);
@@ -1129,6 +1134,7 @@
 
 		this.onMouseUp = function(e)
 		{
+			oThis.isFocusOnThumbnails = false;
 			AscCommon.stopEvent(e);
 
 			var mouseButton = AscCommon.getMouseButton(e);
@@ -2085,18 +2091,44 @@
 			}
 			else if ( e.KeyCode == 37 ) // Left Arrow
 			{
+				if (!this.isFocusOnThumbnails && this.isVisibleHorScroll)
+				{
+					this.m_oScrollHorApi.scrollByX(-40);
+				}
 				bRetValue = true;
 			}
 			else if ( e.KeyCode == 38 ) // Top Arrow
 			{
+				if (!this.isFocusOnThumbnails)
+				{
+					this.m_oScrollVerApi.scrollByY(-40);
+				}
+				else
+				{
+					if (this.currentPage > 0)
+						this.navigateToPage(this.currentPage - 1);
+				}
 				bRetValue = true;
 			}
 			else if ( e.KeyCode == 39 ) // Right Arrow
 			{
+				if (!this.isFocusOnThumbnails && this.isVisibleHorScroll)
+				{
+					this.m_oScrollHorApi.scrollByX(40);
+				}
 				bRetValue = true;
 			}
 			else if ( e.KeyCode == 40 ) // Bottom Arrow
 			{
+				if (!this.isFocusOnThumbnails)
+				{
+					this.m_oScrollVerApi.scrollByY(40);
+				}
+				else
+				{
+					if (this.currentPage < (this.getPagesCount() - 1))
+						this.navigateToPage(this.currentPage + 1);
+				}
 				bRetValue = true;
 			}
 			else if ( e.KeyCode == 65 && true === e.CtrlKey ) // Ctrl + A
@@ -2152,6 +2184,17 @@
 				this.fullTextMessageCallback = null;
 				this.fullTextMessageCallbackArgs = null;
 			}
+		};
+
+		this.getTextCommandsSize = function()
+		{
+			var result = 0;
+			for (var i = 0; i < this.file.pages.length; i++)
+			{
+				if (this.file.pages[i].text)
+					result += this.file.pages[i].text.length;
+			}
+			return result;
 		};
 	}
 
