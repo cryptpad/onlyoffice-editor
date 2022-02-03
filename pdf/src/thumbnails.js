@@ -634,7 +634,7 @@
 
         if (isZoomUpdated !== false)
         {
-            var interfaceZoom = (this.zoomMax - this.zoomMin) < 0.001 ? 0 : this.zoom / (this.zoomMax - this.zoomMin);
+            var interfaceZoom = (this.zoomMax - this.zoomMin) < 0.001 ? 0 : (this.zoom - this.zoomMin) / (this.zoomMax - this.zoomMin);
             this.sendEvent("onZoomChanged", interfaceZoom);
         }
 
