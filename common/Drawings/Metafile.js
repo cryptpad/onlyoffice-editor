@@ -1292,19 +1292,19 @@
 		this.WritingValNode = function(ns, name, val) {
 			this.WriteXmlNodeStart(name);
 			this.WriteXmlAttributeString("val", val);
-			this.WriteXmlAttributesEnd();
+			this.WriteXmlAttributesEnd(true);
 		};
 		this.WritingValNodeEncodeXml = function(ns, name, val) {
 			this.WriteXmlNodeStart(name);
 			this.WriteXmlNullableAttributeStringEncode("val", val);
-			this.WriteXmlAttributesEnd();
+			this.WriteXmlAttributesEnd(true);
 		};
 		this.WritingValNodeIf = function(ns, name, cond, val) {
 			this.WriteXmlNodeStart(name);
 			if (cond) {
 				this.WriteXmlAttributeString("val", val);
 			}
-			this.WriteXmlAttributesEnd();
+			this.WriteXmlAttributesEnd(true);
 		};
 	}
 

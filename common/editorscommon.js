@@ -4596,6 +4596,95 @@
 	}
 	function getColorFromXml2(reader) {
 		var theme, rgb, tint;
+
+		var GetDefaultRGBAByIndex = function (index) {
+			var unR, unG, unB, unA = 255;
+			switch(index) {
+				case 0 : unR = 0x00; unG = 0x00; unB = 0x00; break;
+				case 1 : unR = 0xFF; unG = 0xFF; unB = 0xFF; break;
+				case 2 : unR = 0xFF; unG = 0x00; unB = 0x00; break;
+				case 3 : unR = 0x00; unG = 0xFF; unB = 0x00; break;
+				case 4 : unR = 0x00; unG = 0x00; unB = 0xFF; break;
+
+				case 5 : unR = 0xFF; unG = 0xFF; unB = 0x00; break;
+				case 6 : unR = 0xFF; unG = 0x00; unB = 0xFF; break;
+				case 7 : unR = 0x00; unG = 0xFF; unB = 0xFF; break;
+				case 8 : unR = 0x00; unG = 0x00; unB = 0x00; break;
+				case 9 : unR = 0xFF; unG = 0xFF; unB = 0xFF; break;
+
+				case 10: unR = 0xFF; unG = 0x00; unB = 0x00; break;
+				case 11: unR = 0x00; unG = 0xFF; unB = 0x00; break;
+				case 12: unR = 0x00; unG = 0x00; unB = 0xFF; break;
+				case 13: unR = 0xFF; unG = 0xFF; unB = 0x00; break;
+				case 14: unR = 0xFF; unG = 0x00; unB = 0xFF; break;
+
+				case 15: unR = 0x00; unG = 0xFF; unB = 0xFF; break;
+				case 16: unR = 0x80; unG = 0x00; unB = 0x00; break;
+				case 17: unR = 0x00; unG = 0x80; unB = 0x00; break;
+				case 18: unR = 0x00; unG = 0x00; unB = 0x80; break;
+				case 19: unR = 0x80; unG = 0x80; unB = 0x00; break;
+
+				case 20: unR = 0x80; unG = 0x00; unB = 0x80; break;
+				case 21: unR = 0x00; unG = 0x80; unB = 0x80; break;
+				case 22: unR = 0xC0; unG = 0xC0; unB = 0xC0; break;
+				case 23: unR = 0x80; unG = 0x80; unB = 0x80; break;
+				case 24: unR = 0x99; unG = 0x99; unB = 0xFF; break;
+
+				case 25: unR = 0x99; unG = 0x33; unB = 0x66; break;
+				case 26: unR = 0xFF; unG = 0xFF; unB = 0xCC; break;
+				case 27: unR = 0xCC; unG = 0xFF; unB = 0xFF; break;
+				case 28: unR = 0x66; unG = 0x00; unB = 0x66; break;
+				case 29: unR = 0xFF; unG = 0x80; unB = 0x80; break;
+
+				case 30: unR = 0x00; unG = 0x66; unB = 0xCC; break;
+				case 31: unR = 0xCC; unG = 0xCC; unB = 0xFF; break;
+				case 32: unR = 0x00; unG = 0x00; unB = 0x80; break;
+				case 33: unR = 0xFF; unG = 0x00; unB = 0xFF; break;
+				case 34: unR = 0xFF; unG = 0xFF; unB = 0x00; break;
+
+				case 35: unR = 0x00; unG = 0xFF; unB = 0xFF; break;
+				case 36: unR = 0x80; unG = 0x00; unB = 0x80; break;
+				case 37: unR = 0x80; unG = 0x00; unB = 0x00; break;
+				case 38: unR = 0x00; unG = 0x80; unB = 0x80; break;
+				case 39: unR = 0x00; unG = 0x00; unB = 0xFF; break;
+
+				case 40: unR = 0x00; unG = 0xCC; unB = 0xFF; break;
+				case 41: unR = 0xCC; unG = 0xFF; unB = 0xFF; break;
+				case 42: unR = 0xCC; unG = 0xFF; unB = 0xCC; break;
+				case 43: unR = 0xFF; unG = 0xFF; unB = 0x99; break;
+				case 44: unR = 0x99; unG = 0xCC; unB = 0xFF; break;
+
+				case 45: unR = 0xFF; unG = 0x99; unB = 0xCC; break;
+				case 46: unR = 0xCC; unG = 0x99; unB = 0xFF; break;
+				case 47: unR = 0xFF; unG = 0xCC; unB = 0x99; break;
+				case 48: unR = 0x33; unG = 0x66; unB = 0xFF; break;
+				case 49: unR = 0x33; unG = 0xCC; unB = 0xCC; break;
+
+				case 50: unR = 0x99; unG = 0xCC; unB = 0x00; break;
+				case 51: unR = 0xFF; unG = 0xCC; unB = 0x00; break;
+				case 52: unR = 0xFF; unG = 0x99; unB = 0x00; break;
+				case 53: unR = 0xFF; unG = 0x66; unB = 0x00; break;
+				case 54: unR = 0x66; unG = 0x66; unB = 0x99; break;
+
+				case 55: unR = 0x96; unG = 0x96; unB = 0x96; break;
+				case 56: unR = 0x00; unG = 0x33; unB = 0x66; break;
+				case 57: unR = 0x33; unG = 0x99; unB = 0x66; break;
+				case 58: unR = 0x00; unG = 0x33; unB = 0x00; break;
+				case 59: unR = 0x33; unG = 0x33; unB = 0x00; break;
+
+				case 60: unR = 0x99; unG = 0x33; unB = 0x00; break;
+				case 61: unR = 0x99; unG = 0x33; unB = 0x66; break;
+				case 62: unR = 0x33; unG = 0x33; unB = 0x99; break;
+				case 63: unR = 0x33; unG = 0x33; unB = 0x33; break;
+				case 64: unR = 0x00; unG = 0x00; unB = 0x00; break;
+
+				case 65: unR = 0xFF; unG = 0xFF; unB = 0xFF; break;
+				default: return null;
+			}
+
+			return (unR << 16) + (unG << 8) + unB;
+		}
+
 		while (reader.MoveToNextAttribute()) {
 			if ("auto" === reader.GetName()) {
 			} else if ("theme" === reader.GetName()) {
@@ -4604,9 +4693,9 @@
 				tint = reader.GetValue();
 			} else if ("rgb" === reader.GetName()) {
 				rgb = reader.GetValue();
-			} /*else if ("indexed" === reader.GetName()) {
-				rgb = reader.GetValue();
-			}*/
+			} else if ("indexed" === reader.GetName()) {
+				rgb = GetDefaultRGBAByIndex(reader.GetValueInt());
+			}
 		}
 
 		if(null != theme) {
@@ -4617,6 +4706,191 @@
 
 		return null;
 	}
+	function writeColorToXml(writer, name, color) {
+
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringNullableAttrBool(L"auto", m_oAuto);
+		WritingStringNullableAttrInt(L"indexed", m_oIndexed, m_oIndexed->GetValue());
+		if(m_oRgb.IsInit() && !m_oIndexed.IsInit())
+		{
+			int nIndex = OOX::Spreadsheet::CIndexedColors::GetDefaultIndexByRGBA(m_oRgb->Get_R(), m_oRgb->Get_G(), m_oRgb->Get_B(), m_oRgb->Get_A());
+			if(-1 == nIndex)
+			{
+				WritingStringAttrString(L"rgb", m_oRgb->ToString());
+			}
+			else
+			{
+				WritingStringAttrInt(L"indexed", nIndex);
+			}
+		}
+		WritingStringNullableAttrInt(L"theme", m_oThemeColor, m_oThemeColor->GetValue());
+		WritingStringNullableAttrDouble(L"tint", m_oTint, m_oTint->GetValue());
+
+		writer.EndAttributesAndNode();*/
+
+		var GetDefaultIndexByRGBA = function (unR, unG, unB, unA) {
+			if (255 != unA) {
+				return -1;
+			}
+			var nIndex = -1;
+			if (unR == 0x00 && unG == 0x00 && unB == 0x00) {
+				nIndex = 64;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xFF) {
+				nIndex = 65;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x00) {
+				nIndex = 0;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xFF) {
+				nIndex = 1;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0x00) {
+				nIndex = 2;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0x00) {
+				nIndex = 3;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0xFF) {
+				nIndex = 4;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x00) {
+				nIndex = 5;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0xFF) {
+				nIndex = 6;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0xFF) {
+				nIndex = 7;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x00) {
+				nIndex = 8;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xFF) {
+				nIndex = 9;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0x00) {
+				nIndex = 10;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0x00) {
+				nIndex = 11;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0xFF) {
+				nIndex = 12;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x00) {
+				nIndex = 13;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0xFF) {
+				nIndex = 14;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0xFF) {
+				nIndex = 15;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x00) {
+				nIndex = 16;
+			} else if (unR == 0x00 && unG == 0x80 && unB == 0x00) {
+				nIndex = 17;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x80) {
+				nIndex = 18;
+			} else if (unR == 0x80 && unG == 0x80 && unB == 0x00) {
+				nIndex = 19;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x80) {
+				nIndex = 20;
+			} else if (unR == 0x00 && unG == 0x80 && unB == 0x80) {
+				nIndex = 21;
+			} else if (unR == 0xC0 && unG == 0xC0 && unB == 0xC0) {
+				nIndex = 22;
+			} else if (unR == 0x80 && unG == 0x80 && unB == 0x80) {
+				nIndex = 23;
+			} else if (unR == 0x99 && unG == 0x99 && unB == 0xFF) {
+				nIndex = 24;
+			} else if (unR == 0x99 && unG == 0x33 && unB == 0x66) {
+				nIndex = 25;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xCC) {
+				nIndex = 26;
+			} else if (unR == 0xCC && unG == 0xFF && unB == 0xFF) {
+				nIndex = 27;
+			} else if (unR == 0x66 && unG == 0x00 && unB == 0x66) {
+				nIndex = 28;
+			} else if (unR == 0xFF && unG == 0x80 && unB == 0x80) {
+				nIndex = 29;
+			} else if (unR == 0x00 && unG == 0x66 && unB == 0xCC) {
+				nIndex = 30;
+			} else if (unR == 0xCC && unG == 0xCC && unB == 0xFF) {
+				nIndex = 31;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x80) {
+				nIndex = 32;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0xFF) {
+				nIndex = 33;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x00) {
+				nIndex = 34;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0xFF) {
+				nIndex = 35;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x80) {
+				nIndex = 36;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x00) {
+				nIndex = 37;
+			} else if (unR == 0x00 && unG == 0x80 && unB == 0x80) {
+				nIndex = 38;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0xFF) {
+				nIndex = 39;
+			} else if (unR == 0x00 && unG == 0xCC && unB == 0xFF) {
+				nIndex = 40;
+			} else if (unR == 0xCC && unG == 0xFF && unB == 0xFF) {
+				nIndex = 41;
+			} else if (unR == 0xCC && unG == 0xFF && unB == 0xCC) {
+				nIndex = 42;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x99) {
+				nIndex = 43;
+			} else if (unR == 0x99 && unG == 0xCC && unB == 0xFF) {
+				nIndex = 44;
+			} else if (unR == 0xFF && unG == 0x99 && unB == 0xCC) {
+				nIndex = 45;
+			} else if (unR == 0xCC && unG == 0x99 && unB == 0xFF) {
+				nIndex = 46;
+			} else if (unR == 0xFF && unG == 0xCC && unB == 0x99) {
+				nIndex = 47;
+			} else if (unR == 0x33 && unG == 0x66 && unB == 0xFF) {
+				nIndex = 48;
+			} else if (unR == 0x33 && unG == 0xCC && unB == 0xCC) {
+				nIndex = 49;
+			} else if (unR == 0x99 && unG == 0xCC && unB == 0x00) {
+				nIndex = 50;
+			} else if (unR == 0xFF && unG == 0xCC && unB == 0x00) {
+				nIndex = 51;
+			} else if (unR == 0xFF && unG == 0x99 && unB == 0x00) {
+				nIndex = 52;
+			} else if (unR == 0xFF && unG == 0x66 && unB == 0x00) {
+				nIndex = 53;
+			} else if (unR == 0x66 && unG == 0x66 && unB == 0x99) {
+				nIndex = 54;
+			} else if (unR == 0x96 && unG == 0x96 && unB == 0x96) {
+				nIndex = 55;
+			} else if (unR == 0x00 && unG == 0x33 && unB == 0x66) {
+				nIndex = 56;
+			} else if (unR == 0x33 && unG == 0x99 && unB == 0x66) {
+				nIndex = 57;
+			} else if (unR == 0x00 && unG == 0x33 && unB == 0x00) {
+				nIndex = 58;
+			} else if (unR == 0x33 && unG == 0x33 && unB == 0x00) {
+				nIndex = 59;
+			} else if (unR == 0x99 && unG == 0x33 && unB == 0x00) {
+				nIndex = 60;
+			} else if (unR == 0x99 && unG == 0x33 && unB == 0x66) {
+				nIndex = 61;
+			} else if (unR == 0x33 && unG == 0x33 && unB == 0x99) {
+				nIndex = 62;
+			} else if (unR == 0x33 && unG == 0x33 && unB == 0x33) {
+				nIndex = 63;
+			}
+			return nIndex;
+		};
+
+		writer.WriteXmlNodeStart(name);
+
+		//writer.WriteXmlNullableAttributeBool("auto", this.auto);
+		//writer.WriteXmlNullableAttributeNumber("indexed", this.indexed);
+
+		if (color.rgb) {
+			var nIndex = GetDefaultIndexByRGBA(color.getR(), color.getG(), color.getB(), color.getA());
+			if (-1 === nIndex) {
+				//TODO проверить rgb
+				writer.WriteXmlAttributeString("rgb", IntToHex(color.getRgb()));
+			} else {
+				writer.WriteXmlAttributeNumber("indexed", nIndex);
+			}
+		}
+
+		writer.WriteXmlNullableAttributeNumber("theme", color.theme);
+		writer.WriteXmlNullableAttributeDouble("tint", color.tint);
+
+		writer.WriteXmlAttributesEnd(true);
+	}
+
 	function getBoolFromXml(val) {
 		return "0" !== val && "false" !== val && "off" !== val;
 	}
@@ -7459,6 +7733,7 @@
 	window["AscCommon"].getNumFromXml = getNumFromXml;
 	window["AscCommon"].getColorFromXml = getColorFromXml;
 	window["AscCommon"].getColorFromXml2 = getColorFromXml2;
+	window["AscCommon"].writeColorToXml = writeColorToXml;
 	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 	window["AscCommon"].checkStreamSignature = checkStreamSignature;

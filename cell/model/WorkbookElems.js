@@ -2189,6 +2189,57 @@ var g_oFontProperties = {
 		return res;
 	}
 
+	function ToXml_ST_BorderStyle(val) {
+		var res = null;
+		switch (val) {
+			case  AscCommon.c_oAscBorderStyles.DashDot:
+				res = "dashDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.DashDotDot:
+				res = "dashDotDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Dashed:
+				res = "dashed";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Dotted:
+				res = "dotted";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Double:
+				res = "double";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Hair:
+				res = "hair";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Medium:
+				res = "medium";
+				break;
+			case  AscCommon.c_oAscBorderStyles.MediumDashDot:
+				res = "mediumDashDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.MediumDashDotDot:
+				res = "mediumDashDotDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.MediumDashed:
+				res = "mediumDashed";
+				break;
+			case  AscCommon.c_oAscBorderStyles.None:
+				//res = "none";
+				break;
+			case  AscCommon.c_oAscBorderStyles.SlantDashDot:
+				res = "slantDashDot";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Thick:
+				res = "thick";
+				break;
+			case  AscCommon.c_oAscBorderStyles.Thin:
+				res = "thin";
+				break;
+		}
+		return res;
+	}
+
+
+
 	var g_oBorderPropProperties = {
 		s: 0, c: 1
 	};
@@ -3425,6 +3476,42 @@ var g_oBorderProperties = {
 			res = Asc.c_oAscVAlign.Just;
 		} else if ("distributed" === val) {
 			res = Asc.c_oAscVAlign.Dist;
+		}
+		return res;
+	}
+
+	function ToXml_ST_HorizontalAlignment(val) {
+		var res = null;
+		if (AscCommon.align_Left === val) {
+			res = "left";
+		} else if (AscCommon.align_Center === val) {
+			res = "center";
+		} else if (AscCommon.align_Right === val) {
+			res = "right";
+		} else if (AscCommon.align_Justify === val) {
+			res = "fill";
+		} else if (AscCommon.align_Justify === val) {
+			res = "justify";
+		} else if (AscCommon.align_Center === val) {
+			res = "centerContinuous";
+		} else if (AscCommon.align_Justify === val) {
+			res = "distributed";
+		}
+		return res;
+	}
+
+	function ToXml_ST_VerticalAlignment(val) {
+		var res = null;
+		if ( Asc.c_oAscVAlign.Top=== val) {
+			res = "top";
+		} else if (Asc.c_oAscVAlign.Center === val) {
+			res = "center";
+		} else if (Asc.c_oAscVAlign.Bottom === val) {
+			res = "bottom";
+		} else if (Asc.c_oAscVAlign.Just === val) {
+			res = "justify";
+		} else if (Asc.c_oAscVAlign.Dist === val) {
+			res = "distributed";
 		}
 		return res;
 	}
@@ -12404,8 +12491,13 @@ QueryTableField.prototype.clone = function() {
 	window["AscCommonExcel"].FromXml_ST_HorizontalAlignment = FromXml_ST_HorizontalAlignment;
 	window["AscCommonExcel"].FromXml_ST_VerticalAlignment   = FromXml_ST_VerticalAlignment;
 	window["AscCommonExcel"].FromXml_ST_PatternType         = FromXml_ST_PatternType;
+	window["AscCommonExcel"].ToXml_ST_VerticalAlignment     = ToXml_ST_VerticalAlignment;
+	window["AscCommonExcel"].ToXml_ST_HorizontalAlignment   = ToXml_ST_HorizontalAlignment;
 
-	window["AscCommonExcel"].ToXml_ST_PatternType         = ToXml_ST_PatternType;
+	window["AscCommonExcel"].ToXml_ST_PatternType           = ToXml_ST_PatternType;
+	window["AscCommonExcel"].FromXml_ST_BorderStyle         = FromXml_ST_BorderStyle;
+	window["AscCommonExcel"].ToXml_ST_BorderStyle           = ToXml_ST_BorderStyle;
+
 
 	window["AscCommonExcel"].CT_Connection = CT_Connection;
 

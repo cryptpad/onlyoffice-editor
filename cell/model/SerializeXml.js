@@ -198,99 +198,31 @@
 		return res;
 	}
 
-	function FromXml_ST_BorderStyle(val) {
+	function FromXml_ST_FontScheme(val) {
 		var res = null;
 		switch (val) {
-			case "dashDot":
-				res = AscCommon.c_oAscBorderStyles.DashDot;
+			case  "major":
+				res = Asc.EFontScheme.fontschemeMajor;
 				break;
-			case "dashDotDot":
-				res = AscCommon.c_oAscBorderStyles.DashDotDot;
+			case  "minor":
+				res = Asc.EFontScheme.fontschemeMinor;
 				break;
-			case "dashed":
-				res = AscCommon.c_oAscBorderStyles.Dashed;
-				break;
-			case "dotted":
-				res = AscCommon.c_oAscBorderStyles.Dotted;
-				break;
-			case "double":
-				res = AscCommon.c_oAscBorderStyles.Double;
-				break;
-			case "hair":
-				res = AscCommon.c_oAscBorderStyles.Hair;
-				break;
-			case "medium":
-				res = AscCommon.c_oAscBorderStyles.Medium;
-				break;
-			case "mediumDashDot":
-				res = AscCommon.c_oAscBorderStyles.MediumDashDot;
-				break;
-			case "mediumDashDotDot":
-				res = AscCommon.c_oAscBorderStyles.MediumDashDotDot;
-				break;
-			case "mediumDashed":
-				res = AscCommon.c_oAscBorderStyles.MediumDashed;
-				break;
-			case "none":
-				res = AscCommon.c_oAscBorderStyles.None;
-				break;
-			case "slantDashDot":
-				res = AscCommon.c_oAscBorderStyles.SlantDashDot;
-				break;
-			case "thick":
-				res = AscCommon.c_oAscBorderStyles.Thick;
-				break;
-			case "thin":
-				res = AscCommon.c_oAscBorderStyles.Thin;
+			case  Asc.EFontScheme.fontschemeNone:
 				break;
 		}
 		return res;
 	}
 
-	function ToXml_ST_BorderStyle(val) {
+	function ToXml_ST_FontScheme(val) {
 		var res = null;
 		switch (val) {
-			case  AscCommon.c_oAscBorderStyles.DashDot:
-				res = "dashDot";
+			case  Asc.EFontScheme.fontschemeMajor:
+				res = "major";
 				break;
-			case  AscCommon.c_oAscBorderStyles.DashDotDot:
-				res = "dashDotDot";
+			case  Asc.EFontScheme.fontschemeMinor:
+				res = "minor";
 				break;
-			case  AscCommon.c_oAscBorderStyles.Dashed:
-				res = "dashed";
-				break;
-			case  AscCommon.c_oAscBorderStyles.Dotted:
-				res = "dotted";
-				break;
-			case  AscCommon.c_oAscBorderStyles.Double:
-				res = "double";
-				break;
-			case  AscCommon.c_oAscBorderStyles.Hair:
-				res = "hair";
-				break;
-			case  AscCommon.c_oAscBorderStyles.Medium:
-				res = "medium";
-				break;
-			case  AscCommon.c_oAscBorderStyles.MediumDashDot:
-				res = "mediumDashDot";
-				break;
-			case  AscCommon.c_oAscBorderStyles.MediumDashDotDot:
-				res = "mediumDashDotDot";
-				break;
-			case  AscCommon.c_oAscBorderStyles.MediumDashed:
-				res = "mediumDashed";
-				break;
-			case  AscCommon.c_oAscBorderStyles.None:
-				res = "none";
-				break;
-			case  AscCommon.c_oAscBorderStyles.SlantDashDot:
-				res = "slantDashDot";
-				break;
-			case  AscCommon.c_oAscBorderStyles.Thick:
-				res = "thick";
-				break;
-			case  AscCommon.c_oAscBorderStyles.Thin:
-				res = "thin";
+			case  Asc.EFontScheme.fontschemeNone:
 				break;
 		}
 		return res;
@@ -9283,7 +9215,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.MoveToNextAttribute()) {
 			if ("style" === reader.GetName()) {
 				val = reader.GetValue();
-				this.setStyle(FromXml_ST_BorderStyle(val));
+				this.setStyle(AscCommonExcel.FromXml_ST_BorderStyle(val));
 			} /*else if ("ss:Color" === reader.GetName()) {
 				val = reader.GetValue();
 
@@ -9296,15 +9228,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	AscCommonExcel.BorderProp.prototype.toXml = function (writer, name) {
 
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeString("style", ToXml_ST_BorderStyle(this.s));
+		writer.WriteXmlNullableAttributeString("style", AscCommonExcel.ToXml_ST_BorderStyle(this.s));
 		writer.WriteXmlAttributesEnd();
 
 
 		//в x2t используется toXMLWithNS
 
 		//TODO color
-		if (this.color) {
-			//this.color.toXml(writer);
+		if (this.c) {
+			AscCommon.writeColorToXml(writer, "color", this.c);
 		}
 
 		writer.WriteXmlNodeEnd(name);
@@ -9486,7 +9418,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	AscCommonExcel.Border.prototype.toXml = function (writer, name) {
 
-		var border = this.getDif(AscCommonExcel.g_oDefaultFormat.BorderAbs);
+		//убрал проверку на дефолтовый бордер, поскольку в файл записываются у нас всё
+		var border = this;/*this.getDif(AscCommonExcel.g_oDefaultFormat.BorderAbs);*/
 
 		if (!border) {
 			return;
@@ -9532,10 +9465,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteXmlString("<diagonal/>");
 		}
 
-		if (null != border.iv) {
+		if (null != border.iv && AscCommon.c_oAscBorderStyles.None !== border.iv.s) {
 			border.iv.toXml(writer, "vertical");
 		}
-		if (null != border.ih) {
+		if (null != border.ih && AscCommon.c_oAscBorderStyles.None !== border.ih.s) {
 			border.ih.toXml(writer, "horizontal");
 		}
 
@@ -9655,6 +9588,35 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.wrap = val;
 			}
 		}
+	};
+
+
+	AscCommonExcel.Align.prototype.toXml = function (writer, name) {
+
+		/*writer.StartNodeWithNS(node_ns, node_name);
+						writer.StartAttributes();
+							WritingStringNullableAttrString(L"horizontal", m_oHorizontal, m_oHorizontal->ToString());
+							WritingStringNullableAttrInt(L"indent", m_oIndent, *m_oIndent);
+							WritingStringNullableAttrBool(L"justifyLastLine", m_oJustifyLastLine);
+							WritingStringNullableAttrInt(L"readingOrder", m_oReadingOrder, *m_oReadingOrder);
+							WritingStringNullableAttrInt(L"relativeIndent", m_oRelativeIndent, *m_oRelativeIndent);
+							WritingStringNullableAttrBool(L"shrinkToFit", m_oShrinkToFit);
+							WritingStringNullableAttrInt(L"textRotation", m_oTextRotation, *m_oTextRotation);
+							WritingStringNullableAttrString(L"vertical", m_oVertical, m_oVertical->ToString());
+							WritingStringNullableAttrBool(L"wrapText", m_oWrapText);
+						writer.EndAttributesAndNode();*/
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("horizontal", AscCommonExcel.ToXml_ST_HorizontalAlignment(this.hor));
+		writer.WriteXmlNullableAttributeNumber("indent", this.indent);
+		writer.WriteXmlNullableAttributeBool("justifyLastLine", this.justifyLastLine);
+		//writer.WriteXmlNullableAttributeNumber("readingOrder", this.readingOrder);
+		writer.WriteXmlNullableAttributeNumber("relativeIndent", this.RelativeIndent);
+		writer.WriteXmlNullableAttributeBool("shrinkToFit", this.shrink);
+		writer.WriteXmlNullableAttributeNumber("textRotation", this.angle);
+		writer.WriteXmlNullableAttributeString("vertical",  AscCommonExcel.ToXml_ST_VerticalAlignment(this.ver));
+		writer.WriteXmlNullableAttributeBool("wrapText", this.wrap);
+		writer.WriteXmlAttributesEnd(true);
 	};
 
 	AscCommonExcel.CellXfs.prototype.fromXml = function (reader) {
@@ -9983,13 +9945,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		//в x2t используется toXMLWithNS
 
-		//TODO color
-		if (this.bgColor) {
-			//this.bgColor.toXml(writer);
-		}
-		//TODO color
 		if (this.fgColor) {
-			//this.fgColor.toXml(writer);
+			AscCommon.writeColorToXml(writer, "fgColor", this.fgColor);
+		}
+		if (this.bgColor) {
+			AscCommon.writeColorToXml(writer, "bgColor", this.bgColor);
 		}
 
 		writer.WriteXmlNodeEnd(name);
@@ -10279,7 +10239,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				});
 			} else if ("outline" === name) {
 			} else if ("scheme" === name) {
-				this.scheme = reader.GetValue();
+				readOneAttr(reader, "val", function () {
+					t.scheme = FromXml_ST_FontScheme(reader.GetValue());
+				});
 			} else if ("shadow" === name) {
 			} else if ("strike" === name) {
 				//TODO проверка на null. пересмотреть
@@ -10293,7 +10255,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					t.fs = reader.GetValueInt();
 				});
 			} else if ("u" === name) {
-				switch (reader.GetValue()) {
+				//TODO underline
+				if (reader.GetValue() !== null) {
+					this.u = reader.GetValueBool();
+				} else {
+					this.u = true;
+				}
+				/*switch (reader.GetValue()) {
 					case "single":
 						this.u = Asc.EUnderline.underlineSingle;
 						break;
@@ -10309,7 +10277,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					case "none":
 						this.u = Asc.EUnderline.underlineNone;
 						break;
-				}
+				}*/
 			} else if ("vertAlign" === name) {
 				readOneAttr(reader, "val", function () {
 					switch (reader.GetValue()) {
@@ -10467,18 +10435,21 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			WritingValNodeIf("extend", !m_oExtend->ToBool(), L"0");
 		}*/
 
-		//TODO color
+		if (this.c) {
+			AscCommon.writeColorToXml(writer, "color", this.c);
+		}
+
 		/*if(m_oColor.IsInit())
 			m_oColor->toXMLWithNS(writer, "color", child_ns);*/
 
 
 		if (this.fs != null) {
-			writer.WritingValNode("", "sz", this.fs);
+			writer.WritingValNode("", "sz", this.fs + "");
 		}
 
 		var val;
 		if (this.u != null) {
-			switch (this.u) {
+			/*switch (this.u) {
 				case Asc.EUnderline.underlineSingle:
 					val = "single";
 					break;
@@ -10494,10 +10465,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				case Asc.EUnderline.underlineNone:
 					val = "none";
 					break;
-			}
+			}*/
 
-			if (val) {
-				writer.WritingValNode("", "u", val);
+			//TODO underline
+			if (this.u) {
+				writer.WritingValNodeIf("", "u", 0);
 			}
 		}
 
@@ -10515,7 +10487,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 		if (this.scheme != null) {
-			writer.WritingValNode("", "scheme", this.scheme);
+			writer.WritingValNode("", "scheme", ToXml_ST_FontScheme(this.scheme));
 		}
 
 		writer.WriteXmlNodeEnd(name);
@@ -10556,6 +10528,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		//numfmts пишется в конце потому что они могут пополниться при записи Dxfs
 		this.bs.WriteItem(c_oSerStylesTypes.NumFmts, function(){oThis.WriteNumFmts();});*/
 
+		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+		writer.WriteXmlNodeStart("styleSheet");
+		writer.WriteXmlString(' xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"');
+		writer.WriteXmlString(' xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"  mc:Ignorable="x14ac x16r2"');
+		writer.WriteXmlString(' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:x16r2="http://schemas.microsoft.com/office/spreadsheetml/2015/02/main"');
+		writer.WriteXmlAttributesEnd();
 
 
 		//TODO "//numfmts пишется в конце потому что они могут пополниться при записи Dxfs"
@@ -10613,20 +10591,21 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		if (null != wb.TableStyles) {
 			//Asc.CTableStyles
-			wb.TableStyles.toXml();
+			wb.TableStyles.toXml(writer);
 		}
 
 		//TODO!!!
-		/*var aExtDxfs = [];
+		var aExtDxfs = [];
 		var slicerStyles = writer.context.InitSaveManager.PrepareSlicerStyles(wb.SlicerStyles, aExtDxfs);
 		if(aExtDxfs.length > 0) {
-			this.bs.WriteItem(c_oSerStylesTypes.ExtDxfs, function(){oThis.WriteDxfs(aExtDxfs);});
-		}*/
+			//writer.WriteXmlArray(dxfs, "dxf", "dxfs", true);
+		}
 
 		/*
 		if(m_oExtLst.IsInit())
 			writer.WriteString(m_oExtLst->toXMLWithNS(L""));*/
 
+		writer.WriteXmlString("</styleSheet>");
 	};
 
 	AscCommonExcel.Num.prototype.toXml = function(writer, index) {
@@ -10695,15 +10674,21 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteXmlNullableAttributeBool("pivotButton", xf.PivotButton);
 		}
 
-		//TODO if (/*m_oAligment.IsInit() ||*/ m_oProtection.IsInit())
-		if (xf && (null != xf.locked || null != xf.hidden))
+
+		var isProtection = xf && (null != xf.locked || null != xf.hidden);
+		if (xf && (isProtection || xf.align))
 		{
-			writer.WriteXmlString(">");
-			writer.WriteXmlString("<" + "protection");
-			writer.WriteXmlNullableAttributeBool("hidden", xf.hidden);
-			writer.WriteXmlNullableAttributeBool("locked", xf.locked);
-			writer.WriteXmlString("/>");
-			writer.WriteXmlString("</xf>");
+			if (xf.align) {
+				xf.align.toXml(writer, "aligment");
+			}
+			if (isProtection) {
+				writer.WriteXmlString(">");
+				writer.WriteXmlString("<" + "protection");
+				writer.WriteXmlNullableAttributeBool("hidden", xf.hidden);
+				writer.WriteXmlNullableAttributeBool("locked", xf.locked);
+				writer.WriteXmlString("/>");
+				writer.WriteXmlString("</xf>");
+			}
 		} else {
 			writer.WriteXmlString("/>");
 		}
