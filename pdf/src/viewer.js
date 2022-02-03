@@ -1012,7 +1012,7 @@
 			oThis.isFocusOnThumbnails = false;
 			AscCommon.stopEvent(e);
 
-			var mouseButton = AscCommon.getMouseButton(e);
+			var mouseButton = AscCommon.getMouseButton(e || {});
 			if (mouseButton !== 0)
 			{
 				if (2 === mouseButton)
@@ -1889,11 +1889,13 @@
 			return isCommands;
 		};
 
-		this.getPageByCoords = function(x, y)
+		this.getPageByCoords = function(xInp, yInp)
 		{
 			if (this.startVisiblePage < 0 || this.endVisiblePage < 0)
 				return null;
 
+			var x = xInp * AscCommon.AscBrowser.retinaPixelRatio;
+			var y = yInp * AscCommon.AscBrowser.retinaPixelRatio;
 			for (var i = this.startVisiblePage; i <= this.endVisiblePage; i++)
 			{
 				var pageCoords = this.pageDetector.pages[i - this.startVisiblePage];
@@ -1921,7 +1923,7 @@
 			var pageIndex = 0;
 			for (pageIndex = this.startVisiblePage; pageIndex <= this.endVisiblePage; pageIndex++)
 			{
-				var pageCoords = this.pageDetector.pages[pageIndex - this.startVisiblePage];
+				pageCoords = this.pageDetector.pages[pageIndex - this.startVisiblePage];
 				if ((pageCoords.y + pageCoords.h) > y)
 					break;
 			}
