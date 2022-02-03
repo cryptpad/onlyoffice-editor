@@ -7204,8 +7204,10 @@ DrawingObjectsController.prototype =
     {
         this.checkConnectorsPreTrack();
         this.clearTrackObjects();
-        for(var i = 0; i < this.arrPreTrackObjects.length; ++i)
+        for(var i = 0; i < this.arrPreTrackObjects.length; ++i) {
             this.addTrackObject(this.arrPreTrackObjects[i]);
+        }
+        fSortTrackObjects(this, this.getDrawingArray())
         this.clearPreTrackObjects();
     },
 
@@ -11934,6 +11936,57 @@ function CalcLiterByLength(aAlphaBet, nLength)
         return this;
     };
 
+    //ToDo: rewrite this function as method after creating base class for controller
+    function fSortTrackObjects(oController, aAllDrawings) {
+        if(oController.arrTrackObjects.length < 2) {
+            return;
+        }
+        if(!Array.isArray(aAllDrawings)) {
+            return;
+        }
+        var oFirstTrack = oController.arrTrackObjects[0];
+        if(!oFirstTrack.originalObject) {//do not sort tracks without originals
+            return;
+        }
+        var aForCheck;
+        if(oFirstTrack.originalObject.group) {
+            if(oFirstTrack.originalObject.group.getMainGroup) {
+                var oMainGroup = oFirstTrack.originalObject.group.getMainGroup();
+                if(oMainGroup) {
+                    aForCheck = oMainGroup.arrGraphicObjects;
+                }
+            }
+        }
+        else {
+            aForCheck = aAllDrawings;
+        }
+        if(!Array.isArray(aForCheck)) {
+            return;
+        }
+        oController.arrTrackObjects.sort(function(oT1, oT2) {
+            var oOrig1 = oT1.originalObject;
+            var oOrig2 = oT2.originalObject;
+            if(!oOrig1 || !oOrig2) {
+                return 0;
+            }
+            var bFind1 = false;
+            for(var nDrawing = 0; nDrawing < aForCheck.length; ++nDrawing) {
+                if(aForCheck[nDrawing] === oOrig1) {
+                    bFind1 = true;
+                }
+                if(aForCheck[nDrawing] === oOrig2) {
+                    if(bFind1) {
+                        return -1;
+                    }
+                    else{
+                        return 1;
+                    }
+                }
+            }
+            return 0;
+        });
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -12010,6 +12063,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
 	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
 	window['AscFormat'].HitToRect = HitToRect;
 	window['AscFormat'].drawingsUpdateForeignCursor = drawingsUpdateForeignCursor;
+	window['AscFormat'].fSortTrackObjects = fSortTrackObjects;
 
     window['AscCommon'] = window['AscCommon'] || {};
     window["AscCommon"].CDrawTask = CDrawTask;
