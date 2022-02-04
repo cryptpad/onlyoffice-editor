@@ -524,10 +524,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	};
 
 	var c_oAscTextAssociation = {
-		Char: 0,
-		Line: 1,
-		NoFrames: 2,
-		Block: 3
+		BlockChar : 0,
+		BlockLine : 1,
+		PlainLine : 2,
+		PlainParagraph : 3
 	};
 
 	var c_oAscError = {
@@ -2774,10 +2774,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['ICO']                  = prot.ICO;
 
 	window['Asc']['c_oAscTextAssociation'] = window['Asc'].c_oAscTextAssociation = c_oAscTextAssociation;
-	prot['Char']                  = prot.Char;
-	prot['Line']                  = prot.Line;
-	prot['NoFrames']              = prot.NoFrames;
-	prot['Block']                 = prot.Block;
+	prot['BlockChar'] = prot.BlockChar;
+	prot['BlockLine'] = prot.BlockLine;
+	prot['PlainLine'] = prot.PlainLine;
+	prot['PlainParagraph'] = prot.PlainParagraph;
 
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;
