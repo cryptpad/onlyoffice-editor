@@ -1534,9 +1534,8 @@ var editor;
 					styleSheet.fromXml(reader);
 
 
-					//TODO oCustomSlicerStyles/aExtDxfs
 					var oStyleObject = {aBorders: styleSheet.borders, aFills: styleSheet.fills, aFonts: styleSheet.fonts, oNumFmts: styleSheet.numFmts, aCellStyleXfs: styleSheet.cellStyleXfs,
-						aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: [], aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: styleSheet.oCustomSlicerStyles};
+						aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: styleSheet.aExtDxfs, aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: styleSheet.oCustomSlicerStyles};
 
 					xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
 					//TODO aDxfs = oStyleObject.aDxfs;
@@ -1631,8 +1630,9 @@ var editor;
 								ws.fromXml(reader);
 							});
 						}
-						wb.aWorksheets.push(ws);
-						wb.aWorksheetsById[ws.getId()] = ws;
+
+						xmlParserContext.InitOpenManager.putSheetAfterRead(wb, ws);
+
 						var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
 						if (drawingPart) {
 							var drawingWS = new AscCommonExcel.CT_DrawingWS(ws);

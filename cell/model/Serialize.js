@@ -7972,19 +7972,16 @@
                     return oThis.ReadWorksheet(t,l, oNewWorksheet);
                 });
                 this.curWorksheet = null;
+
                 //merged
-                oNewWorksheet.mergeManager.initData = this.aMerged.slice();
+                this.InitOpenManager.prepareAfterReadMergedCells(oNewWorksheet, this.aMerged);
 
                 //hyperlinks
-                var i;
-                for(i = 0, length = this.aHyperlinks.length; i < length; ++i)
-                {
-                    var hyperlink = this.aHyperlinks[i];
-                    if (null !== hyperlink.Ref)
-                        hyperlink.Ref.setHyperlinkOpen(hyperlink);
-                }
-                this.wb.aWorksheets.push(oNewWorksheet);
-                this.wb.aWorksheetsById[oNewWorksheet.getId()] = oNewWorksheet;
+                this.InitOpenManager.prepareAfterReadHyperlinks(this.aHyperlinks);
+
+                //put sheet
+                this.InitOpenManager.putSheetAfterRead(this.wb, oNewWorksheet);
+
                 this.wb.DrawingDocument = DrawingDocument;
             }
             else
@@ -8009,31 +8006,7 @@
                     return oThis.ReadWorksheetCols(t,l, aTempCols, oWorksheet, oThis.aCellXfs);
                 });
 
-                //если есть стиль последней колонки, назначаем его стилем всей таблицы и убираем из колонок
-                var oAllCol = null;
-                if(aTempCols.length > 0)
-                {
-                    var oLast = aTempCols[aTempCols.length - 1];
-                    if(AscCommon.gc_nMaxCol == oLast.Max)
-                    {
-                        oAllCol = oWorksheet.getAllCol();
-                        oLast.col.cloneTo(oAllCol);
-                    }
-                }
-                for(var i = 0; i < aTempCols.length; ++i)
-                {
-                    var elem = aTempCols[i];
-                    if(elem.Max >= oWorksheet.nColsCount)
-                        oWorksheet.nColsCount = elem.Max;
-                    if(null != oAllCol && oAllCol.isEqual(elem.col))
-                        continue;
-
-                    for(var j = elem.Min; j <= elem.Max; j++){
-                        var oNewCol = new AscCommonExcel.Col(oWorksheet, j - 1);
-                        elem.col.cloneTo(oNewCol);
-                        oWorksheet.aCols[oNewCol.index] = oNewCol;
-                    }
-                }
+                context.initOpenManager.prepareAfterReadCols(this, aTempCols);
             }
             else if ( c_oSerWorksheetsTypes.SheetFormatPr == type )
             {
@@ -8108,11 +8081,7 @@
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadConditionalFormatting(t, l, oConditionalFormatting);
                 });
-				if (oConditionalFormatting.isValid()) {
-					oConditionalFormatting.initRules();
-					oWorksheet.aConditionalFormattingRules =
-						oWorksheet.aConditionalFormattingRules.concat(oConditionalFormatting.aRules);
-				}
+                this.InitOpenManager.prepareConditionalFormatting(oWorksheet, oConditionalFormatting);
             } else if (c_oSerWorksheetsTypes.SheetViews === type) {
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadSheetViews(t, l, oWorksheet.sheetViews);
@@ -11682,6 +11651,56 @@
         ReadDefSlicerStyles(wb, output);
         wb.SlicerStyles.concatStyles();
     };
+    InitOpenManager.prototype.prepareAfterReadCols = function(oWorksheet, aTempCols) {
+        //если есть стиль последней колонки, назначаем его стилем всей таблицы и убираем из колонок
+        var oAllCol = null;
+        if(aTempCols.length > 0)
+        {
+            var oLast = aTempCols[aTempCols.length - 1];
+            if(AscCommon.gc_nMaxCol == oLast.Max)
+            {
+                oAllCol = oWorksheet.getAllCol();
+                oLast.col.cloneTo(oAllCol);
+            }
+        }
+        for(var i = 0; i < aTempCols.length; ++i)
+        {
+            var elem = aTempCols[i];
+            if(elem.Max >= oWorksheet.nColsCount)
+                oWorksheet.nColsCount = elem.Max;
+            if(null != oAllCol && oAllCol.isEqual(elem.col))
+                continue;
+
+            for(var j = elem.Min; j <= elem.Max; j++){
+                var oNewCol = new AscCommonExcel.Col(oWorksheet, j - 1);
+                elem.col.cloneTo(oNewCol);
+                oWorksheet.aCols[oNewCol.index] = oNewCol;
+            }
+        }
+    };
+    InitOpenManager.prototype.prepareAfterReadHyperlinks = function (aHyperlinks) {
+        for (var i = 0, length = aHyperlinks.length; i < length; ++i) {
+            var hyperlink = aHyperlinks[i];
+            if (null !== hyperlink.Ref) {
+                hyperlink.Ref.setHyperlinkOpen(hyperlink);
+            }
+        }
+    };
+    InitOpenManager.prototype.prepareAfterReadMergedCells = function (oNewWorksheet, aMerged) {
+        oNewWorksheet.mergeManager.initData = aMerged.slice();
+    };
+    InitOpenManager.prototype.prepareConditionalFormatting = function (oWorksheet, oConditionalFormatting) {
+        if (oConditionalFormatting && oConditionalFormatting.isValid()) {
+            oConditionalFormatting.initRules();
+            oWorksheet.aConditionalFormattingRules = oWorksheet.aConditionalFormattingRules.concat(oConditionalFormatting.aRules);
+        }
+    };
+    InitOpenManager.prototype.putSheetAfterRead = function (wb, oNewWorksheet) {
+        wb.aWorksheets.push(oNewWorksheet);
+        wb.aWorksheetsById[oNewWorksheet.getId()] = oNewWorksheet;
+    };
+
+
 
 
     function InitSaveManager(wb, isCopyPaste) {
