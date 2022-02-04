@@ -3301,39 +3301,22 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj) {
-
-    var data = oleObj && oleObj.binary;
-    if (data) {
-      var worksheet = this.wb.getWorksheet();
-      if (worksheet.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
-        this.asc_onCloseChartFrame();
-        return false;
-      }
-
-      var wbModel = new AscCommonExcel.Workbook(this.handlers, this);
-      this.initGlobalObjects(wbModel);
-
-      AscFonts.IsCheckSymbols = true;
-      var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
-      oBinaryFileReader.Read(data, wbModel);
-      var readWorksheetModel = wbModel.aWorksheets[0];
-      AscFonts.IsCheckSymbols = false;
-      this.openingEnd.bin = true;
-      this._onEndOpen();
-      worksheet.setSelectionShape(true);
-      this.asc_cleanWorksheet();
-      worksheet.model = readWorksheetModel;
-      console.log(readWorksheetModel)
-      AscCommonExcel.executeInR1C1Mode(false,
-        function()
-        {
-          var oAllRange = readWorksheetModel.getRange3(0, 0, readWorksheetModel.getRowsCount(), readWorksheetModel.getColsCount()).bbox;
-          worksheet._updateRange(oAllRange);
-          worksheet.draw();
-
-          History.Clear();
-        });
-    }
+    var stream = oleObj && oleObj.binary;
+    var file = new AscCommon.OpenFileResult();
+    file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
+    file.data = stream;
+    this.asc_CloseFile();
+    this._onEndLoadSdk();
+    this.openDocument(file);
+    var oThis = this;
+    this.asyncMethodCallback = function () {
+      oThis.FontLoadWaitComplete = true;
+      oThis._openDocumentEndCallback();
+      console.log(oThis.wb)
+      oThis.wb.resize();
+    var inputContext = AscCommon.g_inputContext;
+    inputContext.appendInputToCanvas();
+    };
   };
  /**
   *
