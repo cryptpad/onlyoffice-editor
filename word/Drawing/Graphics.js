@@ -833,7 +833,6 @@ CGraphics.prototype =
             this.drawImage2(nativeImage,x,y,w,h,alpha,srcRect);
             return;
         }
-
         var _img = editor.ImageLoader.map_image_index[img];
         if (_img != undefined && _img.Status == AscFonts.ImageLoadStatus.Loading)
         {
@@ -2673,6 +2672,15 @@ CGraphics.prototype =
     RestoreGrState : function()
     {
         this.GrState.RestoreGrState();
+    },
+
+    RemoveLastClip : function()
+    {
+        this.GrState.RemoveLastClip();
+    },
+    RestoreLastClip : function()
+    {
+        this.GrState.RestoreLastClip();
     },
 
     StartClipPath : function()

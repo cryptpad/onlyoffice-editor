@@ -517,6 +517,12 @@
 
 			this.ColumnWidth = tblProp.ColumnWidth;
 			this.RowHeight   = tblProp.RowHeight;
+
+			this.FrameWidth = tblProp.FrameWidth;
+			this.FrameHeight = tblProp.FrameHeight;
+			this.FrameX = tblProp.FrameX;
+			this.FrameY = tblProp.FrameY;
+			this.FrameLockAspect = tblProp.FrameLockAspect;
 		}
 		else
 		{
@@ -553,6 +559,46 @@
 	CTableProp.prototype.put_Width = function (v)
 	{
 		this.TableWidth = v;
+	};
+	CTableProp.prototype.get_FrameWidth = function ()
+	{
+		return this.FrameWidth;
+	};
+	CTableProp.prototype.put_FrameWidth = function (v)
+	{
+		this.FrameWidth = v;
+	};
+	CTableProp.prototype.get_FrameHeight = function ()
+	{
+		return this.FrameHeight;
+	};
+	CTableProp.prototype.put_FrameHeight = function (v)
+	{
+		this.FrameHeight = v;
+	};
+	CTableProp.prototype.get_FrameX = function ()
+	{
+		return this.FrameX;
+	};
+	CTableProp.prototype.put_FrameX = function (v)
+	{
+		this.FrameX = v;
+	};
+	CTableProp.prototype.get_FrameY = function ()
+	{
+		return this.FrameY;
+	};
+	CTableProp.prototype.put_FrameY = function (v)
+	{
+		this.FrameY = v;
+	};
+	CTableProp.prototype.get_FrameLockAspect = function ()
+	{
+		return this.FrameLockAspect;
+	};
+	CTableProp.prototype.put_FrameLockAspect = function (v)
+	{
+		this.FrameLockAspect = v;
 	};
 	CTableProp.prototype.get_Spacing = function ()
 	{
@@ -880,6 +926,16 @@
 	CTableProp.prototype['put_ColumnWidth'] = CTableProp.prototype.put_ColumnWidth;
 	CTableProp.prototype['get_RowHeight'] = CTableProp.prototype.get_RowHeight;
 	CTableProp.prototype['put_RowHeight'] = CTableProp.prototype.put_RowHeight;
+	CTableProp.prototype['get_FrameWidth'] = CTableProp.prototype.get_FrameWidth;
+	CTableProp.prototype['put_FrameWidth'] = CTableProp.prototype.put_FrameWidth;
+	CTableProp.prototype['get_FrameHeight'] = CTableProp.prototype.get_FrameHeight;
+	CTableProp.prototype['put_FrameHeight'] = CTableProp.prototype.put_FrameHeight;
+	CTableProp.prototype['get_FrameX'] = CTableProp.prototype.get_FrameX;
+	CTableProp.prototype['put_FrameX'] = CTableProp.prototype.put_FrameX;
+	CTableProp.prototype['get_FrameY'] = CTableProp.prototype.get_FrameY;
+	CTableProp.prototype['put_FrameY'] = CTableProp.prototype.put_FrameY;
+	CTableProp.prototype['get_FrameLockAspect'] = CTableProp.prototype.get_FrameLockAspect;
+	CTableProp.prototype['put_FrameLockAspect'] = CTableProp.prototype.put_FrameLockAspect;
 
 // ---------------------------------------------------------------
 	function CBorders(obj)
@@ -1850,6 +1906,10 @@
 	{
 		this.PStyle = sStyleId;
 	};
+	CAscNumberingLvl.prototype.get_OLang = function()
+	{
+		return this.TextPr && this.TextPr.Lang;
+	};
 	window['Asc']['CAscNumberingLvl'] = window['Asc'].CAscNumberingLvl = CAscNumberingLvl;
 	CAscNumberingLvl.prototype['get_LvlNum']  = CAscNumberingLvl.prototype.get_LvlNum;
 	CAscNumberingLvl.prototype['get_Format']  = CAscNumberingLvl.prototype.get_Format;
@@ -1868,6 +1928,7 @@
 	CAscNumberingLvl.prototype['put_Align']   = CAscNumberingLvl.prototype.put_Align;
 	CAscNumberingLvl.prototype['get_PStyle']  = CAscNumberingLvl.prototype.get_PStyle;
 	CAscNumberingLvl.prototype['put_PStyle']  = CAscNumberingLvl.prototype.put_PStyle;
+	CAscNumberingLvl.prototype['get_OLang']   = CAscNumberingLvl.prototype.get_OLang;
 
 
 	function CAscWatermarkProperties()
@@ -2153,26 +2214,7 @@
 	};
 	CAscDateTime.prototype.get_FormatsExamples = function()
 	{
-		// TODO: Сдесь форматы для английского языка, надо добавить остальные
-		return [
-			"M/d/yyyy",
-			"dddd, MMMM d, yyyy",
-			"MMMM d, yyyy",
-			"M/d/yy",
-			"yyyy-MM-dd",
-			"d-MMM-yy",
-			"M.d.yyyy",
-			"MMM. d, yy",
-			"d MMMM yyyy",
-			"MMMM yy",
-			"MMM-yy",
-			"M/d/yyyy h:mm am/pm",
-			"M/d/yyyy h:mm:ss am/pm",
-			"h:mm am/pm",
-			"h:mm:ss am/pm",
-			"HH:mm",
-			"HH:mm:ss"
-		];
+		return Asc.c_oAscDateTimeFormat[this.Lang] ? Asc.c_oAscDateTimeFormat[this.Lang] : Asc.c_oAscDateTimeFormat[lcid_enUS];
 	};
 	CAscDateTime.prototype.get_String = function(sFormat, sDate, nLangId)
 	{

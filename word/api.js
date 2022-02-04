@@ -1242,6 +1242,14 @@ background-repeat: no-repeat;\
 			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 		}
 
+		if (this.isUseNativeViewer)
+		{
+			if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
+			{
+				this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.updateSkin();
+			}
+		}
+
 		if (this.WordControl && this.WordControl.m_oBody)
 		{
 			this.WordControl.OnResize(true);
@@ -1413,6 +1421,13 @@ background-repeat: no-repeat;\
 			}
 
 		});
+		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onHyperlinkClick", function(url){
+			_t.sendEvent("asc_onHyperlinkClick", url);
+		});
+
+		AscCommon.InitBrowserInputContext(this, "", this.HtmlElementName);
+		if (AscCommon.g_inputContext)
+			AscCommon.g_inputContext.onResize(this.HtmlElementName);
 	};
 	asc_docs_api.prototype["asc_setViewerThumbnailsZoom"] = function(value) {
 		if (this.WordControl.m_oDrawingDocument.m_oDocumentRenderer &&
@@ -1432,6 +1447,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_viewerNavigateTo"] = function(value) {
 		if (this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
 			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.navigate(value);
+	};
+	asc_docs_api.prototype["asc_setViewerTargetType"] = function(type) {
+		if (this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
+			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.setTargetType(type);
 	};
 
 	function BeforeOpenDocument()
@@ -2364,7 +2383,7 @@ background-repeat: no-repeat;\
 		if (!_logicDoc.IsSelectionLocked(AscCommon.changestype_Remove, null, true, _logicDoc.IsFormFieldEditing()))
 		{
 			_logicDoc.StartAction(AscDFH.historydescription_Cut);
-			_logicDoc.Remove(-1, true, true); // -1 - нормальное удаление  (например, для таблиц)
+			_logicDoc.Remove(-1, true, true, false, false, true); // -1 - нормальное удаление  (например, для таблиц)
 			_logicDoc.Recalculate();
 			_logicDoc.UpdateSelection();
 			_logicDoc.FinalizeAction();
@@ -3199,6 +3218,12 @@ background-repeat: no-repeat;\
 		if (null != this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
 		{
 			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.SearchResults.Show = bShow;
+			if (this.isUseNativeViewer)
+			{
+				this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.onUpdateOverlay();
+				return;
+			}
+
 			this.WordControl.OnUpdateOverlay();
 			return;
 		}
@@ -4356,20 +4381,21 @@ background-repeat: no-repeat;\
 				Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
 
 				this.WordControl.m_oLogicDocument.SetParagraphShd({
-					Value   : Asc.c_oAscShd.Clear,
-					Color   : {
+					Value     : Asc.c_oAscShd.Clear,
+					Color     : {
 						r    : color.asc_getR(),
 						g    : color.asc_getG(),
 						b    : color.asc_getB(),
 						Auto : false
 					},
-					Fill    : {
+					Fill      : {
 						r    : color.asc_getR(),
 						g    : color.asc_getG(),
 						b    : color.asc_getB(),
 						Auto : false
 					},
-					Unifill : Unifill
+					Unifill   : Unifill,
+					ThemeFill : Unifill
 				});
 			}
 
@@ -8241,6 +8267,16 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.OnMouseUp = function(x, y)
 	{
+		if (this.isUseNativeViewer)
+		{
+			if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
+			{
+				this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.onMouseUp();
+				return;
+			}
+			return;
+		}
+
 		this.WordControl.onMouseUpExternal(x, y);
 	};
 
@@ -8301,7 +8337,7 @@ background-repeat: no-repeat;\
 		}
 		return false;
 	};
-	asc_docs_api.prototype._downloadAs    = function(actionType, options, oAdditionalData, dataContainer)
+	asc_docs_api.prototype._downloadAs    = function(actionType, options, oAdditionalData, dataContainer, downloadType)
 	{
 		var t = this;
 		var fileType = options.fileType;
@@ -8361,15 +8397,24 @@ background-repeat: no-repeat;\
 			oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
 			dataContainer.data = last.data;
 		}
-		else if (c_oAscFileType.HTML === fileType && null == options.oDocumentMailMerge && null == options.oMailMergeSendData)
+		else if (c_oAscFileType.HTML_TODO === fileType && !window.isCloudCryptoDownloadAs && DownloadType.None === downloadType
+			&& !(AscCommon.AscBrowser.isAppleDevices && AscCommon.AscBrowser.isChrome))
 		{
+			//DownloadFileFromBytes has bug on Chrome on iOS https://github.com/kennethjiang/js-file-download/issues/72
 			//в asc_nativeGetHtml будет вызван select all, чтобы выделился документ должны выйти из колонтитулов и автофигур
 			var _e     = new AscCommon.CKeyboardEvent();
 			_e.CtrlKey = false;
 			_e.KeyCode = 27;
 			this.WordControl.m_oLogicDocument.OnKeyDown(_e);
-			//сделано через сервер, потому что нет простого механизма сохранения на клиенте
-			dataContainer.data = '\ufeff' + window["asc_docs_api"].prototype["asc_nativeGetHtml"].call(this);
+
+			var data =  window["asc_docs_api"].prototype["asc_nativeGetHtml"].call(this);
+			AscCommon.DownloadFileFromBytes(data, oAdditionalData["title"], "text/html", '\ufeff');
+
+			if (actionType)
+			{
+				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+			}
+			return true;
 		}
 		else
 		{
@@ -8816,9 +8861,9 @@ background-repeat: no-repeat;\
 	{
 		this.RevisionChangesStack = [];
 	};
-	asc_docs_api.prototype.sync_EndCatchRevisionsChanges       = function()
+	asc_docs_api.prototype.sync_EndCatchRevisionsChanges       = function(isShow)
 	{
-		this.sendEvent("asc_onShowRevisionsChange", this.RevisionChangesStack);
+		this.sendEvent("asc_onShowRevisionsChange", this.RevisionChangesStack, isShow);
 	};
 	asc_docs_api.prototype.asc_GetRevisionsChangesStack        = function()
 	{
@@ -11080,7 +11125,14 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.SetAutoCorrectFirstLetterOfCells(isCorrect);
 	};
+	asc_docs_api.prototype.asc_SetAutoCorrectDoubleSpaceWithPeriod = function(isCorrect)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
 
+		return oLogicDocument.SetAutoCorrectDoubleSpaceWithPeriod(isCorrect);
+	};
 
 	asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions = function(arrExceptions)
 	{
@@ -11115,13 +11167,14 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.ReplaceCurrentWord(nDirection, sReplace);
 	};
-	asc_docs_api.prototype.asc_GetSelectedText = function()
+	asc_docs_api.prototype.asc_GetSelectedText = function(bClearText, select_Pr)
 	{
+		bClearText = typeof(bClearText) === "boolean" ? bClearText : true;
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return null;
 
-		return oLogicDocument.GetSelectedText(false);
+		return oLogicDocument.GetSelectedText(bClearText, select_Pr);
 	};
 	asc_docs_api.prototype.asc_AddBlankPage = function()
 	{
@@ -12785,6 +12838,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfSentences']  = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences;
 	asc_docs_api.prototype['asc_SetAutoCorrectHyperlinks']              = asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks;
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfCells']      = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfCells;
+	asc_docs_api.prototype['asc_SetAutoCorrectDoubleSpaceWithPeriod']   = asc_docs_api.prototype.asc_SetAutoCorrectDoubleSpaceWithPeriod;
 
 	asc_docs_api.prototype['asc_SetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions;
 	asc_docs_api.prototype['asc_GetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions;

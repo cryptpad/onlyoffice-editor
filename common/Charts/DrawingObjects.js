@@ -1255,28 +1255,6 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 // Manager
 //-----------------------------------------------------------------------------------
 
-function GraphicOption(rect) {
-    this.rect = null;
-    if(rect) {
-        this.rect = rect.copy();
-    }
-}
-
-
-GraphicOption.prototype.getRect = function() {
-	return this.rect;
-};
-
-GraphicOption.prototype.union = function(oGraphicOption) {
-	if(!this.rect) {
-	    return this;
-    }
-	if(!oGraphicOption.rect) {
-	    return oGraphicOption;
-    }
-	this.rect.checkByOther(oGraphicOption.rect);
-	return this;
-};
 
 
     var rAF = (function() {
@@ -1786,7 +1764,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 oClipRect = oRect;
             }
         }
-        oDO.showDrawingObjects(new AscFormat.GraphicOption(oClipRect));
+        oDO.showDrawingObjects(new AscCommon.CDrawTask(oClipRect));
     };
     DrawingBase.prototype.onSlicerUpdate = function (sName) {
         if(!this.graphicObject) {
@@ -2305,7 +2283,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             oNewTask = graphicOption;
         }
         else {
-            oNewTask = new GraphicOption(null);
+            oNewTask = new AscCommon.CDrawTask(null);
                 }
         if(window["IS_NATIVE_EDITOR"]) {
             _this.showDrawingObjectsEx(oNewTask.getRect());
@@ -4689,7 +4667,6 @@ ClickCounter.prototype.getClickCount = function() {
     prot["asc_getFormatCode"] = prot.asc_getFormatCode;
     prot["asc_setFormatCode"] = prot.asc_setFormatCode;
 
-    window["AscFormat"].GraphicOption = GraphicOption;
     window["AscFormat"].DrawingObjects = DrawingObjects;
     window["AscFormat"].ClickCounter = ClickCounter;
     window["AscFormat"].aSparklinesStyles = aSparklinesStyles;

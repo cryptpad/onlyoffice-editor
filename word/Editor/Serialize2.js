@@ -1761,24 +1761,22 @@ function ReadDocumentShd(length, bcr, oShd) {
 	var res = bcr.Read2(length, function (t, l) {
 		return bcr.ReadShd(t, l, oShd, themeColor, themeFill);
 	});
-	//1. this.Color по умолчанию должен быть undefined
-	if(!oShd.Color) {
+
+	// TODO: Как только будем нормально воспринимать CDocumentShd.Color = undefined, убрать отсюда проверку (!oShd.Color)
+	if (!oShd.Color || themeColor.Auto)
 		oShd.Color = new AscCommonWord.CDocumentColor(255, 255, 255, true);
-	}
-	if (true == themeColor.Auto && null != oShd.Color)
-		oShd.Color.Auto = true;//todo менять полностью цвет
-	if (true === themeFill.Auto) {
-		if(!oShd.Fill) {
-			oShd.Fill = new AscCommonWord.CDocumentColor(255, 255, 255, true);
-		}
-		oShd.Fill.Auto = true;//todo менять полностью цвет
-	}
+
+	if (themeFill.Auto)
+		oShd.Fill = new AscCommonWord.CDocumentColor(255, 255, 255, true);
+
 	var unifill = CreateThemeUnifill(themeColor.Color, themeColor.Tint, themeColor.Shade);
-	if (null != unifill)
+	if (unifill)
 		oShd.Unifill = unifill;
+
 	unifill = CreateThemeUnifill(themeFill.Color, themeFill.Tint, themeFill.Shade);
-	if (null != unifill)
-		oShd.themeFill = unifill;
+	if (unifill)
+		oShd.ThemeFill = unifill;
+
 	return oShd;
 }
 
@@ -7978,6 +7976,8 @@ function BinaryFileReader(doc, openParams)
 				stDefault.Quote = oNewId.id;
 			if (stDefault.IntenseQuote == stId)
 				stDefault.IntenseQuote = oNewId.id;
+			if (stDefault.Caption == stId)
+				stDefault.Caption = oNewId.id;
 
             if(true == oNewId.def)
             {
@@ -8059,6 +8059,8 @@ function BinaryFileReader(doc, openParams)
 				numberingNameId = sNewStyleId;
 			if("normaltable" == sNewStyleName)
 				tableNameId = sNewStyleId;
+			if ("caption" == sNewStyleName)
+				stDefault.Caption = sNewStyleId;
 			oDocStyle.Add(oNewStyle);
 		}
 		var oStyleTypes = {par: 1, table: 2, lvl: 3, run: 4, styleLink: 5, numStyleLink: 6};
@@ -9485,23 +9487,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
 		var res = c_oSerConstants.ReadOk;
 		if (c_oSerNumTypes.NumFmtVal === type) {
 			var nFormat = Asc.c_oAscNumberingFormat.Decimal;
-			switch (this.stream.GetByte()) {
-				case 48: nFormat = Asc.c_oAscNumberingFormat.None; break;
-				case 5:  nFormat = Asc.c_oAscNumberingFormat.Bullet; break;
-				case 13: nFormat = Asc.c_oAscNumberingFormat.Decimal; break;
-				case 47: nFormat = Asc.c_oAscNumberingFormat.LowerRoman; break;
-				case 61: nFormat = Asc.c_oAscNumberingFormat.UpperRoman; break;
-				case 46: nFormat = Asc.c_oAscNumberingFormat.LowerLetter; break;
-				case 60: nFormat = Asc.c_oAscNumberingFormat.UpperLetter; break;
-				case 21: nFormat = Asc.c_oAscNumberingFormat.DecimalZero; break;
-				case 14: nFormat = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
-				case 15: nFormat = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
-				case 52: nFormat = Asc.c_oAscNumberingFormat.RussianLower; break;
-				case 53: nFormat = Asc.c_oAscNumberingFormat.RussianUpper; break;
-				case 8:  nFormat = Asc.c_oAscNumberingFormat.ChineseCounting; break;
-				case 9:  nFormat = Asc.c_oAscNumberingFormat.ChineseCountingThousand; break;
-				case 10: nFormat = Asc.c_oAscNumberingFormat.ChineseLegalSimplified; break;
-				default: nFormat = Asc.c_oAscNumberingFormat.Decimal; break;
+			var serializeNFormat = this.stream.GetByte();
+			if (serializeNFormat >= 0 && serializeNFormat <= 62) {
+				nFormat = serializeNFormat;
 			}
 			if (props instanceof CNumberingLvl)
 				props.SetFormat(nFormat);

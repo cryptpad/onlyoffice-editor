@@ -5003,6 +5003,10 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
             DocContent.Selection.Start = false;
         }
     }
+	if(Para.bFromDocument) 
+	{
+		SelectedContent.CheckDrawingsSize();
+	}
 	SelectedContent.CheckSignatures();
 };
 CDocumentContent.prototype.SetParagraphPr = function(oParaPr)
@@ -8291,7 +8295,20 @@ CDocumentContent.prototype.AddComment = function(Comment, bStart, bEnd)
 	{
 		if (docpostype_DrawingObjects === this.CurPos.Type)
 		{
-			return this.LogicDocument.DrawingObjects.addComment(Comment);
+			var oLogicDocument  = this.GetLogicDocument();
+			var oDrawingObjects = oLogicDocument.DrawingObjects;
+
+			if (!oDrawingObjects.isSelectedText())
+			{
+				var oParaDrawing = oDrawingObjects.getMajorParaDrawing();
+				var oParagraph;
+				if (oParaDrawing && (oParagraph = oParaDrawing.GetParagraph()))
+					oParagraph.AddCommentToDrawingObject(Comment, oParaDrawing.GetId());
+			}
+			else
+			{
+				oDrawingObjects.addComment(Comment);
+			}
 		}
 		else //if ( docpostype_Content === this.CurPos.Type )
 		{
@@ -9319,7 +9336,24 @@ CDocumentContent.prototype.CalculateTextToTable = function(oEngine)
 		this.Content[nIndex].CalculateTextToTable(oEngine);
 	}
 };
+CDocumentContent.prototype.CollectSelectedReviewChanges = function(oTrackManager)
+{
+	var isUseSelection = this.Selection.Use;
 
+	var nStartPos = isUseSelection ? this.Selection.StartPos : this.CurPos.ContentPos;
+	var nEndPos   = isUseSelection ? this.Selection.EndPos   : this.CurPos.ContentPos;
+	if (nStartPos > nEndPos)
+	{
+		var nTemp = nStartPos;
+		nStartPos = nEndPos;
+		nEndPos   = nTemp;
+	}
+
+	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		this.Content[nPos].CollectSelectedReviewChanges(oTrackManager);
+	}
+};
 
 function CDocumentContentStartState(DocContent)
 {

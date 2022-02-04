@@ -440,6 +440,21 @@
 		return this.description;
 	};
 
+	CAscChartProp.prototype.asc_getPosition  = function()
+	{
+		return this.Position;
+	};
+
+	CAscChartProp.prototype.asc_putPosition  = function(v)
+	{
+		this.Position = v;
+	};
+
+	CAscChartProp.prototype.asc_getDescription  = function()
+	{
+		return this.description;
+	};
+
 	CAscChartProp.prototype.getType = function()
 	{
 		return this.ChartProperties && this.ChartProperties.getType();
@@ -599,6 +614,7 @@
 		this.isKeepLinesTogether  = false;
 		this.isPresentationEditor = true;
 		this.bSelectedSlidesTheme = false;
+		this.bIsShowAnimTab       = false;
 
 		this.isPaintFormat              = AscCommon.c_oAscFormatPainterState.kOff;
 		this.isMarkerFormat             = false;
@@ -1381,14 +1397,30 @@ background-repeat: no-repeat;\
 
 		if (true)
 		{
-			_innerHTML += "<div id=\"id_panel_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";\">\
+			_innerHTML += "<div id=\"id_bottom_pannels_container\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";\">\
+							<div id=\"id_panel_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";\">\
                                 <canvas id=\"id_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";z-index:6\"></canvas>\
                                 <canvas id=\"id_notes_overlay\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
                                 <div id=\"id_vertical_scroll_notes\" style=\"left:0;top:0;width:16px;overflow:hidden;position:absolute;\">\
                                     <div id=\"panel_right_scroll_notes\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:1px;\"></div>\
                                 </div>\
                             </div>\
-                            </div>";
+                            <div id=\"id_panel_animation\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";\">\
+								<div id=\"id_anim_header\" class=\"block_elem\">\
+									<canvas id=\"id_anim_header_canvas\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";z-index:8\"></canvas>\
+								</div>\
+								<div id=\"id_anim_list_container\" class=\"block_elem\">\
+									<canvas id=\"id_anim_list_canvas\" class=\"block_elem\"></canvas>\
+									<div id=\"id_anim_list_scroll\" style=\"left:0;top:0;width:16px;overflow:hidden;position:absolute;\">\
+                                    	<div id=\"id_pane_anim_list_scroll\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:1px;\"></div>\
+                                	</div>\
+								</div>\
+								<div id=\"id_anim_timeline_container\" class=\"block_elem\">\
+									<canvas id=\"id_anim_timeline_canvas\" class=\"block_elem\"></canvas>\
+								</div>\
+                            </div>\
+						</div>\
+						</div>";
 		}
 
 		if (this.HtmlElement)
@@ -1420,7 +1452,8 @@ background-repeat: no-repeat;\
 			document.getElementById("id_panel_right").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			document.getElementById("id_panel_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
-			document.getElementById("id_panel_notes").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
+			document.getElementById("id_bottom_pannels_container").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
+			document.getElementById("id_panel_animation").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
 			document.getElementById("id_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
 		}
 
@@ -2741,13 +2774,49 @@ background-repeat: no-repeat;\
 	 1.1.1         - SubType = 2
 	 маркированный - SubType = 3
 	 */
-	asc_docs_api.prototype.put_ListType = function(type, subtype)
+	asc_docs_api.prototype.put_ImageBulletFromFile = function () {
+		this.asc_addImage({isImageBullet: true});
+	}
+	asc_docs_api.prototype.put_ListType = function(type, subtype, blip)
 	{
+		var blipUrl = blip instanceof Asc.asc_CFillBlip && blip.url;
+		if (blipUrl) {
+			var that = this;
+			var checkImageUrlFromServer;
+			var localUrl = AscCommon.g_oDocumentUrls.getLocal(blipUrl);
+			var fullUrl = AscCommon.g_oDocumentUrls.getUrl(blipUrl);
+			if (fullUrl) {
+				checkImageUrlFromServer = fullUrl;
+			} else if (localUrl) {
+				checkImageUrlFromServer = blipUrl;
+			}
+			if (checkImageUrlFromServer) {
+				blipUrl = checkImageUrlFromServer;
+				blip.url = blipUrl;
+				var isImageNotAttendInImageLoader = !this.ImageLoader.map_image_index[blipUrl];
+				if (isImageNotAttendInImageLoader) {
+					var tryToSetImageBulletAgain = function () {
+						that.put_ListType(undefined, undefined, blip);
+					}
+					this.ImageLoader.LoadImagesWithCallback([blipUrl], tryToSetImageBulletAgain);
+					return;
+				}
+			} else {
+				var changeBlipFillUrlToLocalAndTrySetImageBulletAgain = function (data) {
+					var uploadImageUrl = data[0].url;
+					blip.url = uploadImageUrl;
+					that.put_ListType(undefined, undefined, blip);
+				}
+				AscCommon.sendImgUrls(this, [blipUrl], changeBlipFillUrlToLocalAndTrySetImageBulletAgain, false, false, blip.token);
+				return;
+			}
+		}
 		var oPresentation = this.WordControl.m_oLogicDocument;
 		var NumberInfo =
 		{
 			Type     : type,
-			SubType  : subtype
+			SubType  : subtype,
+			Blip     : blip
 		};
 		var oBullet = AscFormat.fGetPresentationBulletByNumInfo(NumberInfo);
 		var sBullet = oBullet.asc_getSymbol();
@@ -3901,6 +3970,72 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument.AddToLayout();
 	};
+	asc_docs_api.prototype.asc_AddAnimation      = function(nPresetClass, nPresetId, nPresetSubtype, bReplace, bPreview)
+	{
+		var bStartPreview = true;
+		if(bPreview === false) {
+			bStartPreview = false;
+		}
+		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace, bStartPreview);
+	};
+	asc_docs_api.prototype.asc_getCurSlideObjectsNames = function()
+	{
+		return this.WordControl.m_oLogicDocument.GetCurSlideObjectsNames();
+	};
+	asc_docs_api.prototype.asc_StartAnimationPreview = function()
+	{
+		this.asc_StopAnimationPreview();
+		if(this.WordControl.m_oLogicDocument.StartAnimationPreview()) 
+		{
+			this.sendEvent("asc_onAnimPreviewStarted");
+		}
+		//this.sendEvent("asc_onStartDemonstration");//todo
+	};
+	
+	asc_docs_api.prototype.asc_canStartAnimationPreview = function()
+	{
+		return this.WordControl.m_oLogicDocument.CanStartAnimationPreview();
+	};
+	asc_docs_api.prototype.asc_StopAnimationPreview = function()
+	{
+		this.WordControl.m_oLogicDocument.StopAnimationPreview();
+	};
+	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
+	{
+		this.WordControl.m_oLogicDocument.SetAnimationProperties(oPr)
+	};
+	asc_docs_api.prototype.asc_canMoveAnimationEarlier = function() 
+	{
+		return this.WordControl.m_oLogicDocument.CanMoveAnimation(true);
+	};
+	asc_docs_api.prototype.asc_canMoveAnimationLater = function() 
+	{
+		return this.WordControl.m_oLogicDocument.CanMoveAnimation(false);
+	};
+	asc_docs_api.prototype.asc_onShowAnimTab = function(bShow) 
+	{
+		this.bIsShowAnimTab = bShow;
+		if(this.WordControl && this.WordControl.m_oLogicDocument) 
+		{
+			var slide = this.WordControl.m_oLogicDocument.Slides[this.WordControl.m_oLogicDocument.CurPage];
+			if(slide) 
+			{
+				this.WordControl.m_oDrawingDocument.OnRecalculatePage(this.WordControl.m_oLogicDocument.CurPage, slide);
+			}
+		}
+	};
+	asc_docs_api.prototype.isDrawAnimLabels = function() 
+	{
+		return this.bIsShowAnimTab;
+	};
+	asc_docs_api.prototype.asc_moveAnimationEarlier = function() 
+	{
+		return this.WordControl.m_oLogicDocument.MoveAnimation(true);
+	};
+	asc_docs_api.prototype.asc_moveAnimationLater = function() 
+	{
+		return this.WordControl.m_oLogicDocument.MoveAnimation(false);
+	};
 	asc_docs_api.prototype.StartAddShape = function(prst, is_apply)
 	{
 		this.WordControl.m_oLogicDocument.StartAddShape(prst, is_apply);
@@ -4133,7 +4268,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._addImageUrl = function(urls, obj)
 	{
-		if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isSlideImageChangeUrl || obj.isTextArtChangeUrl)){
+		if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isSlideImageChangeUrl || obj.isTextArtChangeUrl || obj.isImageBullet)){
             this.AddImageUrlAction(urls[0], undefined, obj);
 		}
 		else{
@@ -4177,6 +4312,13 @@ background-repeat: no-repeat;\
                 AscShapeProp.fill.fill.asc_putType(obj.textureType);
 			}
 			this.ShapeApply(AscShapeProp);
+		}
+		else if (obj && obj.isImageBullet)
+		{
+			console.log(_image)
+			var fillBlip = new Asc.asc_CFillBlip();
+			fillBlip.asc_putUrl(src, null);
+			this.put_ListType(undefined, undefined, fillBlip);
 		}
 		else if (obj && obj.isSlideImageChangeUrl)
 		{
@@ -5095,6 +5237,7 @@ background-repeat: no-repeat;\
 		for (var i = 0; i < _st_count; i++)
 			_loader_object.ImageMap[_count + i] = AscCommon.g_oUserTexturePresets[i];
 
+		_loader_object.ImageMap[_count + _st_count] = AscFormat.ICON_TRIGGER;
 		if (_count > 0)
 		{
 			this.EndActionLoadImages = 1;
@@ -5789,21 +5932,12 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_ShowNotes = function(bIsShow)
 	{
-		if (bIsShow)
-		{
-			this.WordControl.Splitter2Pos = this.WordControl.OldSplitter2Pos;
-			if (this.WordControl.Splitter2Pos <= 1)
-				this.WordControl.Splitter2Pos = 11;
-			this.WordControl.OnResizeSplitter();
-		}
-		else
-		{
-			var old = this.WordControl.OldSplitter2Pos;
-			this.WordControl.Splitter2Pos = 0;
-			this.WordControl.OnResizeSplitter();
-			this.WordControl.OldSplitter2Pos = old;
-			this.WordControl.m_oLogicDocument.CheckNotesShow();
-		}
+		this.WordControl.ShowNotes(bIsShow);
+	};
+
+	asc_docs_api.prototype.asc_ShowAnimPane = function(bIsShow)
+	{
+		this.WordControl.ShowAnimPane(bIsShow);
 	};
 
 	asc_docs_api.prototype.asc_DeleteVerticalScroll = function()
@@ -5822,11 +5956,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.getIsNotesShow = function()
 	{
-		var bIsShow = true;
-		if (1 >= this.WordControl.Splitter2Pos)
-			bIsShow = false;
-
-		return bIsShow;
+		return this.WordControl.IsNotesShown();
 	};
 	asc_docs_api.prototype.syncOnNotesShow = function()
 	{
@@ -6049,6 +6179,21 @@ background-repeat: no-repeat;\
 		}
 
 		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.Shape, obj);
+	};
+
+	asc_docs_api.prototype.sync_animPropCallback = function(pr)
+	{
+		var _len = this.SelectedObjectsStack.length;
+		if (_len > 0)
+		{
+			if (this.SelectedObjectsStack[_len - 1].Type == c_oAscTypeSelectElement.Animation)
+			{
+				this.SelectedObjectsStack[_len - 1].Value = obj;
+				return;
+			}
+		}
+
+		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.Animation, pr);
 	};
 
 	asc_docs_api.prototype.sync_slidePropCallback = function(slide)
@@ -7257,7 +7402,7 @@ background-repeat: no-repeat;\
         }
 	};
 
-	asc_docs_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer)
+	asc_docs_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer, downloadType)
 	{
 		var fileType = options.fileType;
 		if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType)
@@ -7380,12 +7525,39 @@ background-repeat: no-repeat;\
 		return oLogicDocument.SetAutoCorrectFirstLetterOfCells(isCorrect);
 	};
 
-	asc_docs_api.prototype.asc_GetSelectedText = function()
+	asc_docs_api.prototype.asc_SetAutoCorrectDoubleSpaceWithPeriod = function(isCorrect)
 	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.SetAutoCorrectDoubleSpaceWithPeriod(isCorrect);
+	};
+
+	asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions = function(arrExceptions)
+	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.SetFirstLetterAutoCorrectExceptions(arrExceptions);
+	};
+	asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions = function()
+	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return [];
+
+		return oLogicDocument.GetFirstLetterAutoCorrectExceptions();
+	};
+
+	asc_docs_api.prototype.asc_GetSelectedText = function(bClearText, select_Pr)
+	{
+		bClearText = typeof(bClearText) === "boolean" ? bClearText : true;
 		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
 		if(oPresentation)
 		{
-			return oPresentation.GetSelectedText(true);
+			return oPresentation.GetSelectedText(bClearText, select_Pr);
 		}
 		return "";
 	};
@@ -8117,6 +8289,19 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['AddImage']                            = asc_docs_api.prototype.AddImage;
 	asc_docs_api.prototype['asc_addImage']                        = asc_docs_api.prototype.asc_addImage;
 	asc_docs_api.prototype['asc_AddToLayout']                     = asc_docs_api.prototype.asc_AddToLayout;
+	asc_docs_api.prototype['asc_AddAnimation']                    = asc_docs_api.prototype.asc_AddAnimation;
+	asc_docs_api.prototype['asc_StartAnimationPreview']           = asc_docs_api.prototype.asc_StartAnimationPreview;
+	asc_docs_api.prototype['asc_canStartAnimationPreview']        = asc_docs_api.prototype.asc_canStartAnimationPreview;
+	asc_docs_api.prototype['asc_getCurSlideObjectsNames']         = asc_docs_api.prototype.asc_getCurSlideObjectsNames;
+	asc_docs_api.prototype['asc_StopAnimationPreview']            = asc_docs_api.prototype.asc_StopAnimationPreview;
+	asc_docs_api.prototype['asc_SetAnimationProperties']          = asc_docs_api.prototype.asc_SetAnimationProperties;
+	asc_docs_api.prototype['asc_canMoveAnimationEarlier']         = asc_docs_api.prototype.asc_canMoveAnimationEarlier;
+	asc_docs_api.prototype['asc_canMoveAnimationLater']           = asc_docs_api.prototype.asc_canMoveAnimationLater;
+	asc_docs_api.prototype['asc_moveAnimationEarlier']            = asc_docs_api.prototype.asc_moveAnimationEarlier;
+	asc_docs_api.prototype['asc_moveAnimationLater']              = asc_docs_api.prototype.asc_moveAnimationLater;
+	asc_docs_api.prototype['asc_onShowAnimTab']                   = asc_docs_api.prototype.asc_onShowAnimTab;
+
+
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['asc_canEditGeometry']                 = asc_docs_api.prototype.asc_canEditGeometry;
 	asc_docs_api.prototype['asc_editPointsGeometry']              = asc_docs_api.prototype.asc_editPointsGeometry;
@@ -8226,6 +8411,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_MouseMoveCallback']              = asc_docs_api.prototype.sync_MouseMoveCallback;
 	asc_docs_api.prototype['ShowThumbnails']                      = asc_docs_api.prototype.ShowThumbnails;
 	asc_docs_api.prototype['asc_ShowNotes']                       = asc_docs_api.prototype.asc_ShowNotes;
+	asc_docs_api.prototype['asc_ShowAnimPane']                    = asc_docs_api.prototype.asc_ShowAnimPane;
 	asc_docs_api.prototype['asc_DeleteVerticalScroll']            = asc_docs_api.prototype.asc_DeleteVerticalScroll;
 	asc_docs_api.prototype['syncOnThumbnailsShow']                = asc_docs_api.prototype.syncOnThumbnailsShow;
 	asc_docs_api.prototype['can_AddHyperlink']                    = asc_docs_api.prototype.can_AddHyperlink;
@@ -8332,6 +8518,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfSentences']  = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences;
 	asc_docs_api.prototype['asc_SetAutoCorrectHyperlinks']              = asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks;
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfCells']      = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfCells;
+	asc_docs_api.prototype['asc_SetAutoCorrectDoubleSpaceWithPeriod']   = asc_docs_api.prototype.asc_SetAutoCorrectDoubleSpaceWithPeriod;
+
+	asc_docs_api.prototype['asc_SetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions;
+	asc_docs_api.prototype['asc_GetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions;
+
 
 	asc_docs_api.prototype["asc_GetSelectedText"]                 = asc_docs_api.prototype.asc_GetSelectedText;
 
@@ -8505,6 +8696,8 @@ background-repeat: no-repeat;\
 	CAscChartProp.prototype['asc_putDescription']     = CAscChartProp.prototype['put_Description']     = CAscChartProp.prototype['asc_setDescription']     = CAscChartProp.prototype.asc_setDescription;
 	CAscChartProp.prototype['asc_getTitle']           = CAscChartProp.prototype.asc_getTitle;
 	CAscChartProp.prototype['asc_getDescription']     = CAscChartProp.prototype.asc_getDescription;
+	CAscChartProp.prototype['asc_getPosition']     = CAscChartProp.prototype.asc_getPosition;
+	CAscChartProp.prototype['asc_putPosition']     = CAscChartProp.prototype.asc_putPosition;
 	CAscChartProp.prototype['getType']                = CAscChartProp.prototype.getType;
 	CAscChartProp.prototype['putType']                = CAscChartProp.prototype.putType;
 	CAscChartProp.prototype['getStyle']               = CAscChartProp.prototype.getStyle;

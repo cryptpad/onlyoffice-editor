@@ -407,10 +407,6 @@ function CGroupShape()
         return false;
     };
 
-    CGroupShape.prototype.isImage = function()
-    {
-        return false;
-    };
 
     CGroupShape.prototype.isChart = function()
     {
@@ -714,6 +710,9 @@ function CGroupShape()
     CGroupShape.prototype.selectObject = function(object, pageIndex)
     {
         object.select(this, pageIndex);
+    };
+    CGroupShape.prototype.onChangeDrawingsSelection = function()
+    {
     };
 
     CGroupShape.prototype.recalculate = function()
@@ -1964,6 +1963,9 @@ function CGroupShape()
         }
     };
 
+    CGroupShape.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Group");
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;

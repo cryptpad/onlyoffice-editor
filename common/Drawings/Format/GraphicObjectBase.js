@@ -353,6 +353,21 @@
             this.checkWH();
         }
     };
+    CGraphicBounds.prototype.checkPoint = function(dX, dY) {
+        if(dX < this.l) {
+            this.l = dX;
+        }
+        if(dX > this.r){
+            this.r = dX;
+        }
+        if(dY < this.t){
+            this.t = dY;
+        }
+        if(dY > this.b){
+            this.b = dY;
+        }
+        this.checkWH();
+    };
     CGraphicBounds.prototype.checkWH = function(){
 
         this.x = this.l;
@@ -402,7 +417,18 @@
         }
         return oRes;
     };
-
+    CGraphicBounds.prototype.hit = function(x, y) {
+        return x >= this.l && x <= this.r && y >= this.t && y <= this.b;  
+    };
+    CGraphicBounds.prototype.isEqual = function(oBounds) {
+        if(!oBounds) {
+            return false;
+        }
+        return AscFormat.fApproxEqual(this.l, oBounds.l) && 
+            AscFormat.fApproxEqual(this.t, oBounds.t) && 
+            AscFormat.fApproxEqual(this.r, oBounds.r) && 
+            AscFormat.fApproxEqual(this.b, oBounds.b);
+    };
 
     function CCopyObjectProperties()
     {
@@ -456,13 +482,13 @@
         this.cropObject = null;
         this.Lock = new AscCommon.CLock();
         this.setRecalculateInfo();
-        if(this.Id === null) {
-            this.Id = AscCommon.g_oIdCounter.Get_NewId();
-            AscCommon.g_oTableId.Add(this, this.Id);
-        }
     }
     CGraphicObjectBase.prototype = Object.create(CBaseObject.prototype);
     CGraphicObjectBase.prototype.constructor = CGraphicObjectBase;
+
+    CGraphicObjectBase.prototype.notAllowedWithoutId = function() {
+        return true;
+    };
     /**
      * Create a scheme color
      * @memberof CGraphicObjectBase
@@ -529,7 +555,9 @@
         if(this.parent && (this.parent.Get_ParentTextTransform  && this.parent.Get_ParentTextTransform())) {
             return true;
         }
-
+        if(!AscFormat.canSelectDrawing(this)) {
+            return false;
+        }
         var _x, _y;
         if(AscFormat.isRealNumber(this.posX) && AscFormat.isRealNumber(this.posY)) {
             _x = x - this.posX - this.bounds.x;
@@ -754,7 +782,15 @@
             this.setLocks((~nMask) & this.locks);
         }
         else{
-            this.setLocks(this.locks | nMask | (bValue ? nMask << 1 : 0));
+            var nLocks = this.locks;
+            nLocks |= nMask;
+            if(bValue) {
+                nLocks |= (nMask << 1)
+            }
+            else {
+                nLocks &= ~(nMask << 1)
+            }
+            this.setLocks(nLocks);
         }
     };
     CGraphicObjectBase.prototype.getNoGrp = function(){
@@ -813,6 +849,9 @@
             return false;
         }
         return this.getNoRot() === false;
+    };
+    CGraphicObjectBase.prototype.canSelect = function() {
+        return this.getNoSelect() === false;
     };
     CGraphicObjectBase.prototype.canResize = function() {
         if(!this.canEdit()) {
@@ -1781,6 +1820,9 @@
         if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
             return -1;
         }
+        if(!AscFormat.canSelectDrawing(this)) {
+            return -1;
+        }
         if(this.isProtected && this.isProtected()) {
             return -1;
         }
@@ -2412,7 +2454,7 @@
             content.Set_StartPage(pageIndex);
         var selected_objects;
         if (!AscCommon.isRealObject(this.group))
-            selected_objects = drawingObjectsController.selectedObjects;
+            selected_objects = drawingObjectsController ? drawingObjectsController.selectedObjects : [];
         else
             selected_objects = this.group.getMainGroup().selectedObjects;
         for (var i = 0; i < selected_objects.length; ++i) {
@@ -2421,12 +2463,17 @@
         }
         if (i === selected_objects.length)
             selected_objects.push(this);
+
+    
+        if(drawingObjectsController) {
+            drawingObjectsController.onChangeDrawingsSelection();
+        }
     };
     CGraphicObjectBase.prototype.deselect = function (drawingObjectsController) {
         this.selected = false;
         var selected_objects;
         if (!AscCommon.isRealObject(this.group))
-            selected_objects = drawingObjectsController.selectedObjects;
+            selected_objects = drawingObjectsController ? drawingObjectsController.selectedObjects : [];
         else
             selected_objects = this.group.getMainGroup().selectedObjects;
         for (var i = 0; i < selected_objects.length; ++i) {
@@ -2439,10 +2486,17 @@
         {
             this.graphicObject.RemoveSelection();
         }
+        
+        if(drawingObjectsController) {
+            drawingObjectsController.onChangeDrawingsSelection();
+        }
         return this;
     };
     CGraphicObjectBase.prototype.hitInBoundingRect = function (x, y) {
         if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
+            return false;
+        }
+        if(!AscFormat.canSelectDrawing(this)) {
             return false;
         }
         var invert_transform = this.getInvertTransform();
@@ -2673,12 +2727,77 @@
     CGraphicObjectBase.prototype.changeFlipV = function(bFlipV) {
         if(this.spPr && this.spPr.xfrm) {
             var oXfrm = this.spPr.xfrm;
-            oXfrm.setFlipH(bFlipV);
+            oXfrm.setFlipV(bFlipV);
             if(this.isObjectInSmartArt()) {
                 //TODO
             }
         }
     };
+    CGraphicObjectBase.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Graphic Object");
+    };
+    CGraphicObjectBase.prototype.getObjectName = function() {
+        return this.getTypeName() + " " + this.getFormatId();
+    };
+    
+    CGraphicObjectBase.prototype.isPlaceholder = function() {
+        return false;
+    };
+    CGraphicObjectBase.prototype.getPlaceholderName = function() {
+        if(!this.isPlaceholder()) {
+            return "";
+        }
+        var nPhType = this.getPlaceholderType();
+        var sText = AscFormat.pHText[nPhType];
+        if(!sText) {
+            sText = AscFormat.pHText[AscFormat.phType_body];
+        }
+        var sTrText = AscCommon.translateManager.getValue(sText);
+        return sTrText;
+    };
+    CGraphicObjectBase.prototype.getTimimng = function() {
+        if(this.group) {
+            return this.group.getTimimng();
+        }
+        return (this.parent && this.parent.timing) || null;
+    };
+    CGraphicObjectBase.prototype.drawAnimLabels = function(oGraphics) {
+        if(oGraphics.IsThumbnail === true || oGraphics.IsDemonstrationMode === true || AscCommon.IsShapeToImageConverter) {
+            return;
+        }
+        if(this.group) {
+            return;
+        }
+        var oApi = Asc.editor || editor;
+        if(!oApi.isDrawAnimLabels || !oApi.isDrawAnimLabels()) {
+            return;
+        }
+        var oTiming = this.getTimimng();
+        if(!oTiming) {
+            return;
+        }
+        var aEffects = oTiming.getObjectEffects(this.Get_Id());
+        if(aEffects.length === 0) {
+            return;
+        }
+        var oBounds = this.bounds;
+        var dX = oBounds.x - this.convertPixToMM(9) - this.convertPixToMM(ANIM_LABEL_WIDTH_PIX);
+        var dY = oBounds.y;
+        var dW = this.convertPixToMM(ANIM_LABEL_WIDTH_PIX);
+        var dH = this.convertPixToMM(ANIM_LABEL_HEIGHT_PIX);
+        for(var nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            aEffects[nEffect].drawEffectLabel(oGraphics, dX, dY, dW, dH);
+            dY += (this.convertPixToMM(4) + dH);
+        }
+    };
+    
+    CGraphicObjectBase.prototype.isImage = function() {
+        return this.getObjectType() === AscDFH.historyitem_type_ImageShape;
+    };
+
+    var ANIM_LABEL_WIDTH_PIX = 22;
+    var ANIM_LABEL_HEIGHT_PIX = 17;
+
 
     function CRelSizeAnchor() {
         CBaseObject.call(this);
@@ -2848,6 +2967,12 @@
         return srcRect;
     }
 
+    function canSelectDrawing(oDrawing) {
+        if(typeof oDrawing.canSelect === "function") {
+            return oDrawing.canSelect();
+        }
+        return true;
+    }
 
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromX]  = function(oClass, value){oClass.fromX =  value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AbsSizeAnchorFromY]  = function(oClass, value){oClass.fromY =  value;};
@@ -2875,5 +3000,6 @@
     window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
     window['AscFormat'].CClientData = CClientData;
     window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
-    window['AscFormat'].MACRO_PREFIX = "jsaProject_"
+    window['AscFormat'].MACRO_PREFIX = "jsaProject_";
+    window['AscFormat'].canSelectDrawing = canSelectDrawing;
 })(window);

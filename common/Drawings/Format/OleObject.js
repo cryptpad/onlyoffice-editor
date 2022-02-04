@@ -39,7 +39,6 @@
      */
 function (window, undefined) {
 
-
         function COleSize(w, h){
             this.w = w;
             this.h = h;
@@ -346,10 +345,11 @@ function (window, undefined) {
         if(this.selected) {
             var nSelectStartPage = this.selectStartPage;
             this.deselect(oController);
-            oShape.select(oController, nSelectStartPage)
+            oShape.select(oController, nSelectStartPage);
         }
         return oShape;
     };
         window['AscFormat'] = window['AscFormat'] || {};
         window['AscFormat'].COleObject = COleObject;
+        
 })(window);

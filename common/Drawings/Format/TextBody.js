@@ -416,10 +416,11 @@
     };
     CTextBody.prototype.recalculateOneString = function(sText) {
         if(this.checkContentFit(sText)) {
-
             this.bFit = true;
+            this.fitWidth = this.content.Content[0].Lines[0].Ranges[0].W;
             return;
         }
+        this.fitWidth = null;
         this.bFit = false;
         var nLeftPos = 0, nRightPos = sText.length;
         var nMiddlePos;
@@ -478,6 +479,9 @@
         var max_content_width = maxWidth - r_ins - l_ins;
         this.content.Reset(0, 0, max_content_width, 20000);
         this.content.Recalculate_Page(0, true);
+        return this.getContentWidth() + 2 + r_ins + l_ins;
+    };
+    CTextBody.prototype.getContentWidth = function() {
         var max_width = 0;
         for(var i = 0; i < this.content.Content.length; ++i) {
             var par = this.content.Content[i];
@@ -487,7 +491,7 @@
                 }
             }
         }
-        return max_width + 2 + r_ins + l_ins;
+        return max_width;
     };
     CTextBody.prototype.getMaxContentWidth = function(maxWidth, bLeft) {
         this.content.Reset(0, 0, maxWidth - 0.01, 20000);

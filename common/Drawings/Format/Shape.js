@@ -54,24 +54,23 @@ var HitInLine = AscFormat.HitInLine;
 var MOVE_DELTA = AscFormat.MOVE_DELTA;
 
 
-    var pHText = [];
-    pHText[0] = [];//rus         ""                                                          ;
-    pHText[0][AscFormat.phType_body]  =    "Slide text";             //"Текст слайда" ;                              ;
-    pHText[0][AscFormat.phType_chart]    = "Chart";         // "Диаграмма" ;                                     ;
-    pHText[0][AscFormat.phType_clipArt]  = "Clip Art";// "Текст слайда" ; //(Clip Art)                   ;
-    pHText[0][AscFormat.phType_ctrTitle] = "Slide title";// "Заголовок слайда" ; //(Centered Title)     ;
-    pHText[0][AscFormat.phType_dgm]      = "Diagram";// "Диаграмма";// (Diagram)                        ;
-    pHText[0][AscFormat.phType_dt]       = "Date and time";// "Дата и время";// (Date and Time)         ;
-    pHText[0][AscFormat.phType_ftr]      = "Footer";// "Нижний колонтитул";// (Footer)                  ;
-    pHText[0][AscFormat.phType_hdr]      = "Header";// "Верхний колонтитул"; //(Header)                 ;
-    pHText[0][AscFormat.phType_media]    = "Media";// "Текст слайда"; //(Media)                         ;
-    pHText[0][AscFormat.phType_obj]      = "Slide text";// "Текст слайда"; //(Object)                   ;
-    pHText[0][AscFormat.phType_pic]      = "Picture";// "Вставка рисунка"; //(Picture)                  ;
-    pHText[0][AscFormat.phType_sldImg]   = "Image";// "Вставка рисунка"; //(Slide Image)                ;
-    pHText[0][AscFormat.phType_sldNum]   = "Slide number";// "Номер слайда"; //(Slide Number)           ;
-    pHText[0][AscFormat.phType_subTitle] = "Slide subtitle";// "Подзаголовок слайда"; //(Subtitle)      ;
-    pHText[0][AscFormat.phType_tbl]      = "Table";// "Таблица"; //(Table)                              ;
-    pHText[0][AscFormat.phType_title]    = "Slide title";// "Заголовок слайда" ;  //(Title)             ;
+    var pHText = [];                                                      ;
+    pHText[AscFormat.phType_body]  =    "Slide text";             //"Текст слайда" ;                              ;
+    pHText[AscFormat.phType_chart]    = "Chart";         // "Диаграмма" ;                                     ;
+    pHText[AscFormat.phType_clipArt]  = "Clip Art";// "Текст слайда" ; //(Clip Art)                   ;
+    pHText[AscFormat.phType_ctrTitle] = "Slide title";// "Заголовок слайда" ; //(Centered Title)     ;
+    pHText[AscFormat.phType_dgm]      = "Diagram";// "Диаграмма";// (Diagram)                        ;
+    pHText[AscFormat.phType_dt]       = "Date and time";// "Дата и время";// (Date and Time)         ;
+    pHText[AscFormat.phType_ftr]      = "Footer";// "Нижний колонтитул";// (Footer)                  ;
+    pHText[AscFormat.phType_hdr]      = "Header";// "Верхний колонтитул"; //(Header)                 ;
+    pHText[AscFormat.phType_media]    = "Media";// "Текст слайда"; //(Media)                         ;
+    pHText[AscFormat.phType_obj]      = "Slide text";// "Текст слайда"; //(Object)                   ;
+    pHText[AscFormat.phType_pic]      = "Picture";// "Вставка рисунка"; //(Picture)                  ;
+    pHText[AscFormat.phType_sldImg]   = "Image";// "Вставка рисунка"; //(Slide Image)                ;
+    pHText[AscFormat.phType_sldNum]   = "Slide number";// "Номер слайда"; //(Slide Number)           ;
+    pHText[AscFormat.phType_subTitle] = "Slide subtitle";// "Подзаголовок слайда"; //(Subtitle)      ;
+    pHText[AscFormat.phType_tbl]      = "Table";// "Таблица"; //(Table)                              ;
+    pHText[AscFormat.phType_title]    = "Slide title";// "Заголовок слайда" ;  //(Title)             ;
 
 var c_oAscFill = Asc.c_oAscFill;
 
@@ -992,6 +991,25 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         }
     };
 
+    function getBulletImages(oContent, aImages) {
+        if(!oContent) {
+            return;
+        }
+        var aParagraphs = oContent.Content;
+        var sImageId;
+        for(var nPar = 0; nPar < aParagraphs.length; ++nPar) 
+        {
+            var oPr = aParagraphs[nPar].Pr;
+            if(oPr.Bullet) 
+            {
+                sImageId = oPr.Bullet.getImageBulletURL();
+                if(sImageId) 
+                {
+                    aImages.push(sImageId);
+                }
+            }
+        }
+    }
 
     function CSignatureLine(){
         this.id = null;
@@ -1654,6 +1672,7 @@ CShape.prototype.getAllImages = function (images) {
     if (this.spPr && this.spPr.Fill && this.spPr.Fill.fill instanceof AscFormat.CBlipFill && typeof this.spPr.Fill.fill.RasterImageId === "string") {
         images[AscCommon.getFullImageSrc2(this.spPr.Fill.fill.RasterImageId)] = true;
     }
+    getBulletImages(this.getDocContent && this.getDocContent(), images);
 };
 
 CShape.prototype.getAllFonts = function (fonts) {
@@ -1680,10 +1699,6 @@ CShape.prototype.canFill = function () {
 
 CShape.prototype.isShape = function () {
     return true;
-};
-
-CShape.prototype.isImage = function () {
-    return false;
 };
 
 CShape.prototype.isChart = function () {
@@ -4414,15 +4429,15 @@ CShape.prototype.getSmartArtShapePoint = function () {
                 }
                 var text;
                 if(typeof AscCommonSlide !== "undefined" && AscCommonSlide.CNotes && this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
-                    text = "Click to add notes";
+                    text = AscCommon.translateManager.getValue("Click to add notes");
                 } else if (this.isObjectInSmartArt()) {
-                    text = pointContent[0].prSet.phldrT;
+                    text = AscCommon.translateManager.getValue(pointContent[0].prSet.phldrT);
                 } else {
-                    text = typeof pHText[0][this.nvSpPr.nvPr.ph.type] === "string" && pHText[0][this.nvSpPr.nvPr.ph.type].length > 0 ?  pHText[0][this.nvSpPr.nvPr.ph.type] : pHText[0][AscFormat.phType_body];
+                    text = this.getPlaceholderName();
                 }
 
                 if (!this.txBody.content2){
-                    this.txBody.content2 = AscFormat.CreateDocContentFromString(AscCommon.translateManager.getValue(text), this.getDrawingDocument(), this.txBody);
+                    this.txBody.content2 = AscFormat.CreateDocContentFromString(text, this.getDrawingDocument(), this.txBody);
                     if (this.txBody.content && this.isObjectInSmartArt()) {
                         var oContent = this.txBody.content;
                         var oContent2 = this.txBody.content2;
@@ -5009,7 +5024,9 @@ CShape.prototype.getGroupHierarchy = function () {
 
 CShape.prototype.hitInTextRectWord = function(x, y)
 {
-
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
     var content = this.getDocContent && this.getDocContent();
     if (content && this.invertTransform)
     {
@@ -5042,6 +5059,9 @@ CShape.prototype.hitInTextRect = function (x, y) {
         return true;
     }
 
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
 
     var bForceWord = ((this.isEmptyPlaceholder && this.isEmptyPlaceholder()) || (this.isPlaceholder && this.isPlaceholder() && oController && (AscFormat.getTargetTextObject(oController) === this)));
     if(bForceWord){
@@ -5918,6 +5938,10 @@ CShape.prototype.getAllRasterImages = function(images)
                 drawings[i].GraphicObj && drawings[i].GraphicObj.getAllRasterImages && drawings[i].GraphicObj.getAllRasterImages(images);
             }
         }
+        else 
+        {
+            getBulletImages(oContent, images);
+        }
         var fCallback = function(oRun)
 		{
 			var oTextPr = oRun && oRun.Pr;
@@ -6282,7 +6306,9 @@ CShape.prototype.changeLine = function (line)
 };
 
 CShape.prototype.hitToAdjustment = function (x, y) {
-
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
 
@@ -6391,7 +6417,9 @@ CShape.prototype.hitInInnerArea = function (x, y) {
 };
 
 CShape.prototype.hitInBoundingRect = function (x, y) {
-
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
 	var oInnerForm = null;
 	if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm()) {
 		var oApi = Asc.editor || editor;
@@ -7090,6 +7118,18 @@ CShape.prototype.getColumnNumber = function(){
         }
     };
 
+    CShape.prototype.getTypeName = function() {
+        if(this.isPlaceholder()) {
+            return this.getPlaceholderName();
+        }
+        var sPreset = this.getPresetGeom();
+        if(typeof sPreset === "string" && sPreset.length > 0) {
+            var oApi = Asc.editor || editor;
+            return oApi.getShapeName(sPreset);
+        }
+        return AscCommon.translateManager.getValue("Shape");
+    };
+
 function CreateBinaryReader(szSrc, offset, srcLen)
 {
     var memoryData = AscCommon.Base64.decode(szSrc, true, srcLen, offset);
@@ -7221,8 +7261,8 @@ function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr
     {
         if (AscFonts.IsCheckSymbols)
         {
-            for (var i = AscFormat.pHText[0].length - 1; i >= 0; i--)
-                AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(AscFormat.pHText[0][i]));
+            for (var i = AscFormat.pHText.length - 1; i >= 0; i--)
+                AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(AscFormat.pHText[i]));
         }
     };
     //--------------------------------------------------------export----------------------------------------------------

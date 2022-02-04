@@ -732,6 +732,10 @@ Slide.prototype =
     {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideSetTiming, this.timing, oTiming));
         this.timing = oTiming;
+        if(this.timing)
+        {
+            this.timing.setParent(this);
+        }
     },
 
     setSlideSize: function(w, h)
@@ -775,6 +779,21 @@ Slide.prototype =
         History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideRemoveFromSpTree, pos, this.cSld.spTree.slice(pos, pos + count), false));
         this.cSld.spTree.splice(pos, count);
         }
+    },
+
+    addAnimation: function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+        if(!this.timing) {
+            this.setTiming(new AscFormat.CTiming());
+        }
+        return this.timing.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
+    },
+    setAnimationProperties: function(oPr) {
+        if(!this.timing) {
+            return;
+        }
+        
+        this.timing.setAnimationProperties(oPr);
+        this.showDrawingObjects();
     },
 
     isVisible: function(){
@@ -1295,6 +1314,7 @@ Slide.prototype =
         var oCollColor;
         var fDist = 3;
         var oIdentityMtx = new AscCommon.CMatrix();
+        
         for(i = 0; i < this.cSld.spTree.length; ++i)
         {
             var oSp = this.cSld.spTree[i];
@@ -1324,6 +1344,16 @@ Slide.prototype =
                 }
             }
             oSp.draw(graphics);
+        }
+
+        if(this.timing) {
+            var aShapes = this.timing.getMoveEffectsShapes();
+            if(aShapes) {
+                for(i = 0; i < aShapes.length; ++i) {
+                    aShapes[i].draw(graphics);
+                }
+            }
+            this.timing.drawEffectsLabels(graphics);
         }
         if(this.slideComments)
         {
@@ -1358,6 +1388,39 @@ Slide.prototype =
                     g.DrawLockObjectRect(oLock.Get_Type(), 0, 0, Width, Height);
                 }
             }
+        }
+    },
+
+    drawAnimPane: function(oGraphics) {
+        if(this.timing) {
+            this.timing.drawAnimPane(oGraphics);
+        }
+    },
+
+    onAnimPaneResize: function(oGraphics) {
+        if(this.timing) {
+            this.timing.onAnimPaneResize(oGraphics);
+        }
+    },
+
+    onAnimPaneMouseDown: function(e, x, y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseDown(e, x, y);
+        }
+    },
+    onAnimPaneMouseMove: function(e, x, y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseMove(e, x, y);
+        }
+    },
+    onAnimPaneMouseUp: function(e, x, y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseUp(e, x, y);
+        }
+    },
+    onAnimPaneMouseWheel: function(e, deltaY, X, Y) {
+        if(this.timing) {
+            this.timing.onAnimPaneMouseWheel(e, deltaY, X, Y);
         }
     },
 
@@ -1671,6 +1734,12 @@ Slide.prototype =
     },
 
     getDrawingsForController: function(){
+        if(this.timing) {
+            var aShapes = this.timing.getMoveEffectsShapes();
+            if(aShapes && aShapes.length > 0) {
+                return this.cSld.spTree.concat(aShapes);
+            }
+        }
         return this.cSld.spTree;
     },
     

@@ -1990,6 +1990,8 @@ CTable.prototype.Set_Props = function(Props)
 				var Row = this.Content[CurRow];
 				for (var CurCell = 0; CurCell < Row.Get_CellsCount(); CurCell++)
 				{
+					var oUnifill = Props.CellsBackground.Unifill;
+
 					var Cell   = Row.Get_Cell(CurCell);
 					var NewShd = {
 						Value : Props.CellsBackground.Value,
@@ -2006,7 +2008,8 @@ CTable.prototype.Set_Props = function(Props)
 							Auto : false
 						},
 
-						Unifill : Props.CellsBackground.Unifill.createDuplicate()
+						Unifill   : oUnifill ? oUnifill.createDuplicate() : undefined,
+						ThemeFill : oUnifill ? oUnifill.createDuplicate() : undefined
 					};
 
 					Cell.Set_Shd(NewShd);
@@ -2025,6 +2028,7 @@ CTable.prototype.Set_Props = function(Props)
 
 				if (Props.CellsBackground.Value != Cell_shd.Value || Props.CellsBackground.Color.r != Cell_shd.Color.r || Props.CellsBackground.Color.g != Cell_shd.Color.g || Props.CellsBackground.Color.b != Cell_shd.Color.b || !AscFormat.CompareUnifillBool(Props.CellsBackground.Unifill, Cell_shd.Unifill))
 				{
+					var oUnifill = Props.CellsBackground.Unifill;
 					var NewShd = {
 						Value : Props.CellsBackground.Value,
 						Color : {
@@ -2041,7 +2045,9 @@ CTable.prototype.Set_Props = function(Props)
 							Auto : false
 						},
 
-						Unifill : Props.CellsBackground.Unifill.createDuplicate()
+						Unifill   : oUnifill ? oUnifill.createDuplicate() : undefined,
+						ThemeFill : oUnifill ? oUnifill.createDuplicate() : undefined
+
 					};
 
 					Cell.Set_Shd(NewShd);
@@ -2057,6 +2063,7 @@ CTable.prototype.Set_Props = function(Props)
 
 			if (Props.CellsBackground.Value != Cell_shd.Value || Props.CellsBackground.Color.r != Cell_shd.Color.r || Props.CellsBackground.Color.g != Cell_shd.Color.g || Props.CellsBackground.Color.b != Cell_shd.Color.b || !AscFormat.CompareUnifillBool(Props.CellsBackground.Unifill, Cell_shd.Unifill))
 			{
+				var oUnifill = Props.CellsBackground.Unifill;
 				var NewShd = {
 					Value : Props.CellsBackground.Value,
 					Color : {
@@ -2072,7 +2079,8 @@ CTable.prototype.Set_Props = function(Props)
 						b    : Props.CellsBackground.Color.b,
 						Auto : false
 					},
-					Unifill : Props.CellsBackground.Unifill.createDuplicate()
+					Unifill   : oUnifill ? oUnifill.createDuplicate() : undefined,
+					ThemeFill : oUnifill ? oUnifill.createDuplicate() : undefined
 				};
 
 				Cell.Set_Shd(NewShd);
@@ -3668,61 +3676,85 @@ CTable.prototype.Document_Get_AllFontNames = function(AllFonts)
 };
 CTable.prototype.Document_UpdateInterfaceState = function()
 {
-	// Если у нас выделено несколько ячеек, тогда данная таблица - нижний уровень
-	if (true != this.Selection.Use || table_Selection_Cell != this.Selection.Type)
+	if (!this.IsCellSelection())
 	{
 		this.CurCell.Content.Document_UpdateInterfaceState();
-
-		if (this.LogicDocument && !this.bPresentation && this.LogicDocument.GetTrackRevisionsManager)
-		{
-			var oTrackManager = this.LogicDocument.GetTrackRevisionsManager();
-
-			var arrChanges = oTrackManager.GetElementChanges(this.GetId());
-			if (arrChanges.length > 0)
-			{
-				var nCurRow = this.CurCell.GetRow().GetIndex();
-				if (this.RowsInfo[nCurRow] && undefined !== this.RowsInfo[nCurRow].Y[this.RowsInfo[nCurRow].StartPage])
-				{
-					var nCurPage = this.RowsInfo[nCurRow].StartPage;
-					var nPageAbs = this.GetAbsolutePage(nCurPage);
-					var dY       = this.RowsInfo[nCurRow].Y[nCurPage];
-					var dX       = this.LogicDocument.Get_PageLimits(nPageAbs).XLimit;
-
-					for (var nChangeIndex = 0, nChangesCount = arrChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
-					{
-						var oChange = arrChanges[nChangeIndex];
-						var nType   = oChange.get_Type();
-
-						if ((c_oAscRevisionsChangeType.RowsAdd !== nType
-							&& c_oAscRevisionsChangeType.RowsRem !== nType)
-							|| (nCurRow >= oChange.get_StartPos()
-							&& nCurRow <= oChange.get_EndPos()))
-						{
-							oChange.put_InternalPos(dX, dY, nPageAbs);
-							oTrackManager.AddVisibleChange(oChange);
-						}
-					}
-				}
-			}
-		}
 	}
 	else
 	{
-		var ParaPr         = this.GetCalculatedParaPr();
-		ParaPr.CanAddTable = false;
-		if (null != ParaPr)
-			editor.UpdateParagraphProp(ParaPr);
+		var oParaPr = this.GetCalculatedParaPr();
+		if (oParaPr)
+		{
+			oParaPr.CanAddTable = false;
+			editor.UpdateParagraphProp(oParaPr);
+		}
 
-		var TextPr = this.GetCalculatedTextPr();
-		if (null != TextPr)
+		var oTextPr = this.GetCalculatedTextPr();
+		if (oTextPr)
 		{
 			var theme = this.Get_Theme();
 			if (theme && theme.themeElements && theme.themeElements.fontScheme)
-			{
-				TextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
-			}
-			editor.UpdateTextPr(TextPr);
+				oTextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
+
+			editor.UpdateTextPr(oTextPr);
 		}
+	}
+};
+CTable.prototype.CollectSelectedReviewChanges = function(oTrackManager)
+{
+	var oLogicDocument = this.GetLogicDocument();
+	if (!oLogicDocument || this.bPresentation && !oLogicDocument.GetTrackRevisionsManager)
+		return;
+
+	var arrSelection = this.GetSelectionArray(false);
+	if (!arrSelection.length)
+		return;
+
+	var nFirstRow = arrSelection[0].Row;
+	if (!this.RowsInfo[nFirstRow] || !this.RowsInfo[nFirstRow].Y[this.RowsInfo[nFirstRow].StartPage])
+		return;
+
+	var nCurPage = this.RowsInfo[nFirstRow].StartPage;
+	var nPageAbs = this.GetAbsolutePage(nCurPage);
+	var dY       = this.RowsInfo[nFirstRow].Y[nCurPage];
+	var dX       = oLogicDocument.Get_PageLimits(nPageAbs).XLimit;
+
+	var arrChanges      = oTrackManager.GetElementChanges(this.GetId());
+	var isCellSelection = this.IsCellSelection();
+	var isSelection     = this.IsSelectionUse();
+	for (var nChangeIndex = 0, nChangesCount = arrChanges.length; nChangeIndex < nChangesCount; ++nChangeIndex)
+	{
+		var oChange     = arrChanges[nChangeIndex];
+		var isAddChange = false;
+
+		if (oChange.IsTableRowChange() && (!isSelection || isCellSelection))
+		{
+			for (var nSelectionPos = 0, nSelectionLength = arrSelection.length; nSelectionPos < nSelectionLength; ++nSelectionPos)
+			{
+				var nCurRow = arrSelection[nSelectionPos].Row;
+				if (nCurRow >= oChange.GetStartPos() && nCurRow <= oChange.GetEndPos())
+				{
+					isAddChange = true;
+					break;
+				}
+			}
+		}
+		else if (oChange.IsTablePrChange() && (!isSelection || this.IsSelectedAll()))
+		{
+			isAddChange = true;
+		}
+
+		if (isAddChange)
+		{
+			oChange.SetInternalPos(dX, dY, nPageAbs);
+			oTrackManager.AddSelectedChange(oChange);
+		}
+	}
+
+	for (var nPos = 0, nCount = arrSelection.length; nPos < nCount; ++nPos)
+	{
+		var oCell = this.GetRow(arrSelection[nPos].Row).GetCell(arrSelection[nPos].Cell);
+		oCell.GetContent().CollectSelectedReviewChanges(oTrackManager);
 	}
 };
 CTable.prototype.Document_UpdateRulersState = function(CurPage)
@@ -9179,7 +9211,7 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 	if (true === bApplyToInnerTable)
 		return false;
 
-	if (true != this.Selection.Use || table_Selection_Cell != this.Selection.Type || this.Selection.Data.length <= 1)
+	if (true !== this.Selection.Use || table_Selection_Cell !== this.Selection.Type || this.Selection.Data.length <= 1)
 		return false;
 
 	// В массиве this.Selection.Data идет список ячеек по строкам (без разрывов)
@@ -9194,25 +9226,53 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 	if (false === bCanMerge)
 		return false;
 
+	var oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument && !oLogicDocument.IsDocumentEditor())
+		oLogicDocument = undefined;
+
 	// Объединяем содержимое всех ячеек в левую верхнюю ячейку. (Все выделенные
 	// ячейки идут у нас последовательно, начиная с левой верхней), и объединяем
 	// сами ячейки.
 
 	var Pos_tl  = this.Selection.Data[0];
-	var Cell_tl = this.Content[Pos_tl.Row].Get_Cell(Pos_tl.Cell);
+	var Cell_tl = this.GetRow(Pos_tl.Row).GetCell(Pos_tl.Cell);
 
-	for (var Index = 0; Index < this.Selection.Data.length; Index++)
+	// Добавляем содержимое данной ячейки к содержимому левой верхней ячейки
+	// Комментарии сохраняем, т.к. метка начала комментария при этом перенесится только еще в более раннюю
+	// позицию, поэтому нарушения логики быть не должно
+	// TODO: Возможно стоить обновление позиций комментариев запихнуть внутрь CDocumentContent.AddContent
+
+	var isRemoveComments = null;
+	if (oLogicDocument)
 	{
-		var Pos  = this.Selection.Data[Index];
-		var Row  = this.Content[Pos.Row];
-		var Cell = Row.Get_Cell(Pos.Cell);
+		isRemoveComments = oLogicDocument.RemoveCommentsOnPreDelete;
+		oLogicDocument.RemoveCommentsOnPreDelete = false;
+	}
 
-		// Добавляем содержимое данной ячейки к содержимому левой верхней ячейки
-		if (0 != Index)
+	var oMainCellContent = Cell_tl.GetContent();
+	var arrMovedComments = [];
+	for (var nIndex = 1; nIndex < this.Selection.Data.length; ++nIndex)
+	{
+		var oPos         = this.Selection.Data[nIndex];
+		var oCellContent = this.GetRow(oPos.Row).GetCell(oPos.Cell).GetContent();
+
+		oCellContent.GetAllComments(arrMovedComments);
+		oMainCellContent.AddContent(oCellContent.Content);
+		oCellContent.ClearContent();
+	}
+
+	if (oLogicDocument)
+	{
+		var oCommentsManager = oLogicDocument.GetCommentsManager();
+		for (var nIndex = 0, nCount = arrMovedComments.length; nIndex < nCount; ++nIndex)
 		{
-			Cell_tl.Content_Merge(Cell.Content);
-			Cell.Content.Clear_Content();
+			var oCommentMark = arrMovedComments[nIndex].Comment;
+			var oComment = oCommentsManager.GetById(oCommentMark.GetCommentId());
+			if (oComment)
+				oComment.UpdatePosition();
 		}
+
+		oLogicDocument.RemoveCommentsOnPreDelete = isRemoveComments;
 	}
 
 	if (true !== isClearMerge)
@@ -9274,14 +9334,7 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 	this.private_SetSelectionData([Pos_tl]);
 
 	this.CurCell = Cell_tl;
-
 	this.CurCell.GetContent().SelectAll();
-
-	if (true !== isClearMerge)
-	{
-		// Запускаем пересчет
-		this.Internal_Recalculate_1();
-	}
 
 	return true;
 };

@@ -112,6 +112,9 @@
 		// translate manager
 		this.translateManager = AscCommon.translateManager.init(config['translate']);
 
+		//shape names map by preset. Set from interface
+		this.shapeNames = {};
+
 		// Chart
 		this.chartPreviewManager   = null;
 		this.textArtPreviewManager = null;
@@ -1658,6 +1661,9 @@
 		{
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 		}
+		if (Asc.c_oAscFileType.HTML === options.fileType && null == options.oDocumentMailMerge && null == options.oMailMergeSendData) {
+			options.fileType = Asc.c_oAscFileType.HTML_TODO;
+		}
 
 		var downloadType;
 		if (options.isDownloadEvent) {
@@ -1706,13 +1712,14 @@
 					oAdditionalData["thumbnail"]["format"] = 3;
 					break;
 			}
+			oAdditionalData["outputformat"] = Asc.c_oAscFileType.IMG;
 			oAdditionalData["title"] = AscCommon.changeFileExtention(this.documentTitle, "zip", Asc.c_nMaxDownloadTitleLen);
 		}
 		if (options.textParams) {
 			oAdditionalData["textParams"] = {"association": options.textParams.asc_getAssociation()};
 		}
 
-		if (this._downloadAs(actionType, options, oAdditionalData, dataContainer))
+		if (this._downloadAs(actionType, options, oAdditionalData, dataContainer, downloadType))
 		{
 			return;
 		}
@@ -1991,6 +1998,25 @@
 
 	baseEditorsApi.prototype.asc_cropFill = function()
 	{
+	};
+
+	
+	baseEditorsApi.prototype.asc_setShapeNames = function(oShapeNames)
+	{
+		if(oShapeNames !== null && typeof oShapeNames === "object") 
+		{
+			this.shapeNames = oShapeNames;
+		}
+	};
+
+	baseEditorsApi.prototype.getShapeName = function(sPreset)
+	{
+		var sShapeName = this.shapeNames[sPreset];
+		if(typeof sShapeName !== "string" || sShapeName.length === 0) 
+		{
+			sShapeName = "Shape";
+		}
+		return sShapeName;
 	};
 
 
@@ -3613,6 +3639,16 @@
         }
         return false;
 	};
+
+    // это для отложенных действий на клике (диалоги в мобильной версии)
+	baseEditorsApi.prototype.setHandlerOnClick = function(handler)
+	{
+		this._handlerOnClick = handler;
+	};
+	baseEditorsApi.prototype.getHandlerOnClick = function()
+	{
+		return this._handlerOnClick;
+	};
 	// ---------------------------------------------------- interface events ---------------------------------------------
 	baseEditorsApi.prototype["asc_onShowPopupWindow"] = function()
 	{
@@ -3667,6 +3703,7 @@
 	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
+	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

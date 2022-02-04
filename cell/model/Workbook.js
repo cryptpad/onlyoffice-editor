@@ -3263,9 +3263,9 @@
 		}
 		return res;
 	};
-	Workbook.prototype.getPivotCacheByDataRef = function(dataRef) {
+	Workbook.prototype.getPivotCacheByDataLocation = function(dataLocation) {
 		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
-			var cache = this.aWorksheets[i].getPivotCacheByDataRef(dataRef);
+			var cache = this.aWorksheets[i].getPivotCacheByDataLocation(dataLocation);
 			if (cache) {
 				return cache;
 			}
@@ -8391,9 +8391,9 @@
 		}
 		return res;
 	};
-	Worksheet.prototype.getPivotCacheByDataRef = function(dataRef) {
+	Worksheet.prototype.getPivotCacheByDataLocation = function(dataLocation) {
 		return this.forEachPivotCache(undefined, function(cacheDefinition){
-			if (dataRef === cacheDefinition.getDataRef()) {
+			if (dataLocation && dataLocation.isEqual(cacheDefinition.getDataLocation())) {
 				return cacheDefinition;
 			}
 		});
@@ -8441,7 +8441,7 @@
 		pivotTable.worksheet = this;
 		pivotTable.setChanged(false, true);
 		if (checkCacheDefinition) {
-			var cacheDefinition = this.workbook.getPivotCacheByDataRef(pivotTable.asc_getDataRef());
+			var cacheDefinition = this.workbook.getPivotCacheByDataLocation(pivotTable.getDataLocation());
 			if (cacheDefinition) {
 				pivotTable.setCacheDefinition(cacheDefinition);
 			}
@@ -12373,8 +12373,8 @@
 				{
 					oNewItem.setFragmentText(oCurtext.text);
 					var oCurFormat = new AscCommonExcel.Font();
-					if (isMultyText) {
-						if (null != oCurtext.format && !(cellSelfFont && cellSelfFont.isEqual(oCurtext.format))) {
+					if (isMultyText && xfs && xfs.font) {
+						if (null != oCurtext.format &&  !(cellSelfFont && cellSelfFont.isEqual(oCurtext.format))) {
 							//MultyText format equals to cell font
 							if (this.xfs && !this.xfs.isNormalFont()) {
 								//cell font is not default
@@ -16895,6 +16895,10 @@
 
 	Range.prototype.getLeftTopCellNoEmpty = function(fAction) {
 		return this.worksheet._getCellNoEmpty(this.bbox.r1, this.bbox.c1, fAction);
+	};
+
+	Range.prototype.move = function (oBBoxTo, copyRange, wsTo) {
+		this.worksheet._moveRange(this.bbox, oBBoxTo, copyRange, wsTo);
 	};
 
 	function RowIterator() {

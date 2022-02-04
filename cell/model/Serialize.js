@@ -3662,7 +3662,7 @@
 			}
 			if (null != workbookProtection.workbookPassword) {
 				this.memory.WriteByte(c_oSerWorkbookProtection.Password);
-				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
 				this.memory.WriteString2(workbookProtection.workbookPassword);
 			}
 
@@ -8099,6 +8099,7 @@
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadHeaderFooter(t, l, oWorksheet.headerFooter);
                 });
+                // Disable HeaderFooter opening to prevent file corruption
             // } else if (c_oSerWorksheetsTypes.RowBreaks === type) {
             //     oWorksheet.rowBreaks = {count: null, manualBreakCount: null, breaks: []};
             //     res = this.bcr.Read1(length, function (t, l) {
@@ -8446,7 +8447,12 @@
             if ( c_oSerSheetFormatPrTypes.DefaultColWidth == type )
                 oWorksheet.oSheetFormatPr.dDefaultColWidth = this.stream.GetDoubleLE();
             else if (c_oSerSheetFormatPrTypes.BaseColWidth === type)
-                oWorksheet.oSheetFormatPr.nBaseColWidth = this.stream.GetULongLE();
+            {
+                var _nBaseColWidth = this.stream.GetULongLE();
+                if (_nBaseColWidth > 0) {
+                    oWorksheet.oSheetFormatPr.nBaseColWidth = _nBaseColWidth;
+                }
+            }
             else if ( c_oSerSheetFormatPrTypes.DefaultRowHeight == type )
             {
                 var oAllRow = oWorksheet.getAllRow();
