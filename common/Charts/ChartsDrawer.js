@@ -7391,13 +7391,13 @@ drawAreaChart.prototype = {
 
 		//left
 		darkFaces["left"] = null;
-		if (this._isVisibleVerge3D(point2, point1, point5)) {
+		if (this._isVisibleVerge3D(point2, point1, point5, true)) {
 			darkFaces["left"] = 1;
 		}
 
 		//right
 		darkFaces["right"] = null;
-		if (this._isVisibleVerge3D(point8, point4, point3)) {
+		if (this._isVisibleVerge3D(point8, point4, point3, true)) {
 			darkFaces["right"] = 1;
 		}
 
@@ -8347,86 +8347,54 @@ drawAreaChart.prototype = {
 		}
 	},
 
+	_standardDraw: function (isReverse) {
+		var j = isReverse ? 0 : this.paths.series.length - 1;
+		var i = isReverse ? this.paths.series.length : 0;
+
+		var seria, brush, pen, numCache;
+		while (((j < i) && isReverse) || ((j >= i) && !isReverse)) {
+			seria = this.chart.series[j];
+			brush = seria.brush;
+			pen = seria.pen;
+
+			numCache = this.cChartDrawer.getNumCache(seria.val);
+			if (numCache && numCache.pts[0].pen) {
+				pen = numCache.pts[0].pen;
+			}
+			if (numCache && numCache.pts[0].brush) {
+				brush = numCache.pts[0].brush;
+			}
+
+			this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
+			this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
+			this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
+			this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
+			this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
+			this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
+
+			j = isReverse ? j + 1 : j - 1;
+		}
+
+	},
+
 	_drawBars3D: function () {
 		var t = this;
 		var isStacked = this.subType === "stackedPer" || this.subType === "stacked";
 
 		if (!isStacked) {
 			var angle = Math.abs(this.cChartDrawer.processor3D.angleOy);
-			var seria, brush, pen, numCache;
 			if (!this.cChartDrawer.processor3D.view3D.getRAngAx() && angle > Math.PI / 2 &&
 				angle < 3 * Math.PI / 2) {
-				for (var j = 0; j < this.paths.series.length; j++) {
-					seria = this.chart.series[j];
-					brush = seria.brush;
-					pen = seria.pen;
-
-					numCache = this.cChartDrawer.getNumCache(seria.val);
-					if (numCache && numCache.pts[0].pen) {
-						pen = numCache.pts[0].pen;
-					}
-					if (numCache && numCache.pts[0].brush) {
-						brush = numCache.pts[0].brush;
-					}
-
-					this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
-					this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
-					this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
-					this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
-					this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
-					this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
+				if (this.serAx && this.serAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
+					this._standardDraw(false);
+				} else {
+					this._standardDraw(true);
 				}
 			} else {
 				if (this.serAx && this.serAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
-					for (var j = 0; j < this.paths.series.length; j++) {
-						seria = this.chart.series[j];
-						brush = seria.brush;
-						pen = seria.pen;
-
-						numCache = this.cChartDrawer.getNumCache(seria.val);
-						if (numCache.pts[0] && numCache.pts[0].pen) {
-							pen = numCache.pts[0].pen;
-						}
-						if (numCache.pts[0] && numCache.pts[0].brush) {
-							brush = numCache.pts[0].brush;
-						}
-
-						if (!this.paths.series[j]) {
-							continue;
-						}
-
-						this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
-						this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
-						this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
-						this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
-						this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
-						this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
-					}
+					this._standardDraw(true);
 				} else {
-					for (var j = this.paths.series.length - 1; j >= 0; j--) {
-						seria = this.chart.series[j];
-						brush = seria.brush;
-						pen = seria.pen;
-
-						numCache = this.cChartDrawer.getNumCache(seria.val);
-						if (numCache.pts[0] && numCache.pts[0].pen) {
-							pen = numCache.pts[0].pen;
-						}
-						if (numCache.pts[0] && numCache.pts[0].brush) {
-							brush = numCache.pts[0].brush;
-						}
-
-						if (!this.paths.series[j]) {
-							continue;
-						}
-
-						this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
-						this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
-						this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
-						this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
-						this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
-						this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
-					}
+					this._standardDraw(false);
 				}
 			}
 
@@ -8481,14 +8449,22 @@ drawAreaChart.prototype = {
 		return {pen: pen, brush: brush}
 	},
 
-	_isVisibleVerge3D: function (k, n, m) {
+	_isVisibleVerge3D: function (k, n, m, isSideFace) {
 		//roberts method - calculate normal
 		var aX = n.x * m.y - m.x * n.y;
 		var bY = -(k.x * m.y - m.x * k.y);
 		var cZ = k.x * n.y - n.x * k.y;
-		var visible = aX + bY + cZ;
+		var visible = (aX + bY + cZ) < 0;
 
-		return visible < 0;
+		var valOrientation = this.valAx.scaling.orientation === ORIENTATION_MIN_MAX;
+		var catOrientation = this.catAx.scaling.orientation === ORIENTATION_MIN_MAX;
+
+		if ((!valOrientation && !isSideFace) || (!valOrientation && catOrientation)) {
+			return !visible;
+		} else if (!catOrientation && isSideFace && valOrientation) {
+			return !visible;
+		}
+		return visible;
 	},
 
 	_getIntersectionLines: function (line1Point1, line1Point2, line2Point1, line2Point2) {
