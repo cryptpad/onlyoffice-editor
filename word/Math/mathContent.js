@@ -6099,8 +6099,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                     Elements.unshift.apply(Elements, tmp);
                     Elements.unshift.apply(Elements, tempArr);
                 }
-                var count = Brackets[0] - CurPos + 1;
-                var tmp = Elements.splice(CurPos,count);
+                var countS = Brackets[0] - CurPos + 1;
+                var tmp = Elements.splice(CurPos, countS);
                 this.private_CorrectEquation({Type:MATH_DELIMITER,Props:null,Kind:null},tmp);
                 var tempArr = Elements.splice(0, CurPos);
                 Elements.unshift.apply(Elements, tmp);
@@ -6108,7 +6108,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 End = CurPos;
                 Brackets.splice(0,1);
                 for (var i = 0; i < Brackets.length; i++) {
-                    Brackets[i] -= count - 1;
+                    Brackets[i] -= countS - 1;
                 }
             }
             CurPos--;
@@ -6523,7 +6523,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                     var tmpPos = CurPos;
                     var tmpEl = Elements[CurPos-1];
                     if (g_MathRightBracketAutoCorrectCharCodes[tmpEl.value]) {
-                        var countR = 1;
+                        countR = 1;
                         tmpPos--;
                         for (var i = CurPos - 2; i >= 0; i--) {
                             tmpEl = Elements[i];
@@ -7443,7 +7443,8 @@ CMathAutoCorrectEngine.prototype.private_PackTextToContent = function(Element, T
         Element.Internal_Content_Add(0, TempElements);        
     } else {
         var len = TempElements.length - 1;
-        if ( (len >= 2) && ( (bReplaceBrackets && (TempElements[0].value == 40 && TempElements[len].value == 41) ) || (TempElements[0].value == 0x3016 && TempElements[len].value == 0x3017) ) ) {
+        var isBrackets = ( (TempElements[0].value == 40 && TempElements[len].value == 41) || (TempElements[0].value == 0x3016 && TempElements[len].value == 0x3017) );
+        if ( (len >= 2) && (bReplaceBrackets && isBrackets) ) {
             TempElements.splice(0,1);
             TempElements.length--;
         }
@@ -7749,7 +7750,8 @@ CMathAutoCorrectEngine.prototype.private_CorrectBuffForDegree = function(buff) {
 CMathAutoCorrectEngine.prototype.private_ChekSkipForDegreeAbove = function(buff) {
     var res = false;
     var val = (buff[0]) ? buff[0].value : null;
-    if ((buff.length === 1) && (g_aMathAutoCorrectRadicalCharCode[val] || g_aMathAutoCorrectEqArrayMatrix[val] || val == 0x25A1 || val == 0x25AD || val == 0x27)) {
+    var flag = (g_aMathAutoCorrectRadicalCharCode[val] || g_aMathAutoCorrectEqArrayMatrix[val] || val == 0x25A1 || val == 0x25AD || val == 0x27);
+    if ( (buff.length === 1) && flag) {
         res = true;
     }
     return res;
@@ -8929,7 +8931,8 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                             while (pos >= 0) {
                                 var tmpEl = engine.Elements[pos].Element;
                                 var isCNumber = (tmpEl.value >= 48 && tmpEl.value <= 57) ? true : false;
-                                if ((isFNumber && isCNumber) || (!isFNumber && !isCNumber && g_aMathAutoCorrectLatinAlph[tmpEl.value] && tmpEl.Parent.MathPrp.sty === STY_PLAIN)) {
+                                var isCorrectSymbol = (!isFNumber && !isCNumber && g_aMathAutoCorrectLatinAlph[tmpEl.value] && tmpEl.Parent.MathPrp.sty === STY_PLAIN);
+                                if ( (isFNumber && isCNumber) || isCorrectSymbol) {
                                     tempArr.unshift(tmpEl);
                                     pos--;
                                     continue;
