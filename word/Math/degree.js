@@ -550,7 +550,7 @@ CDegree.prototype.GetTextOfElement = function() {
 	strTemp =
 		Base
 		+ type
-		+ Iterator;
+		+ '(' + Iterator + ')';
 
 	return strTemp;
 };
@@ -1217,6 +1217,14 @@ CDegreeSubSup.prototype.GetTextOfElement = function() {
 
 	var lower = this.getLowerIterator().GetTextOfElement();
 	var upper = this.getUpperIterator().GetTextOfElement();
+
+	if (lower.length > 1) {
+		lower = '(' + lower + ')';
+	}
+
+	if (upper.length > 1) {
+		upper = '(' + upper + ')';
+	}
 
 	var BaseString =
 		StartBracet
