@@ -92,6 +92,9 @@ CShape.prototype.getDrawingObjectsController = function()
 
 CShape.prototype.hitInTextRect = function (x, y)
 {
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
     var oController = this.getDrawingObjectsController && this.getDrawingObjectsController();
     if(oController && (AscFormat.getTargetTextObject(oController) === this || (oController.curState.startTargetTextObject === this)))
     {

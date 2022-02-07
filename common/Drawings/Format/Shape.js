@@ -5024,7 +5024,9 @@ CShape.prototype.getGroupHierarchy = function () {
 
 CShape.prototype.hitInTextRectWord = function(x, y)
 {
-
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
     var content = this.getDocContent && this.getDocContent();
     if (content && this.invertTransform)
     {
@@ -5057,6 +5059,9 @@ CShape.prototype.hitInTextRect = function (x, y) {
         return true;
     }
 
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
 
     var bForceWord = ((this.isEmptyPlaceholder && this.isEmptyPlaceholder()) || (this.isPlaceholder && this.isPlaceholder() && oController && (AscFormat.getTargetTextObject(oController) === this)));
     if(bForceWord){
@@ -6301,7 +6306,9 @@ CShape.prototype.changeLine = function (line)
 };
 
 CShape.prototype.hitToAdjustment = function (x, y) {
-
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
 
@@ -6410,7 +6417,9 @@ CShape.prototype.hitInInnerArea = function (x, y) {
 };
 
 CShape.prototype.hitInBoundingRect = function (x, y) {
-
+    if(!AscFormat.canSelectDrawing(this)) {
+        return false;
+    }
 	var oInnerForm = null;
 	if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm()) {
 		var oApi = Asc.editor || editor;

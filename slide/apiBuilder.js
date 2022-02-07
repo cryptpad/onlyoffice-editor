@@ -312,6 +312,15 @@
      * @typedef {("cross" | "in" | "none" | "out")} TickMark
      * */
 
+    /**
+     * Text transform preset
+	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown" 
+	 * | "textCanUp" | "textCascadeDown" | "textCascadeUp" | "textChevron" | "textChevronInverted" | "textCircle" | "textCirclePour"
+	 * | "textCurveDown" | "textCurveUp" | "textDeflate" | "textDeflateBottom" | "textDeflateInflate" | "textDeflateInflateDeflate" | "textDeflateTop"
+	 * | "textDoubleWave1" | "textFadeDown" | "textFadeLeft" | "textFadeRight" | "textFadeUp" | "textInflate" | "textInflateBottom" | "textInflateTop"
+	 * | "textPlain" | "textRingInside" | "textRingOutside" | "textSlantDown" | "textSlantUp" | "textStop" | "textTriangle" | "textTriangleInverted"
+	 * | "textWave1" | "textWave2" | "textWave4" | "textNoShape")} TextTransofrm
+	 * */
     //------------------------------------------------------------------------------------------------------------------
     //
     // Base Api
@@ -543,6 +552,7 @@
         return new ApiThemeFontScheme(oFontScheme);
     };
     
+
     /**
      * Create a new slide.
      * @typeofeditors ["CPE"]
@@ -780,6 +790,154 @@
         return true;
     };
 
+    /**
+	 * Creates a word art with the parameters specified.
+	 * @memberof Api
+	 * @typeofeditors ["CPE"]
+	 * @param {ApiTextPr} [oTextPr=Api.CreateTextPr()] - The text properties.
+	 * @param {string} [sText="Your text here"] - text for text art.
+     * @param {TextTransofrm} [sTransform="textNoShape"] - Text transform type.
+	 * @param {ApiFill} [oFill=Api.CreateNoFill()] - The color or pattern used to fill the shape.
+	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the shape shadow.
+	 * @param {number} [nRotAngle=0] - rotation angle
+	 * @param {EMU} [nWidth=1828800] - word atr width
+	 * @param {EMU} [nHeight=1828800] - word atr heigth
+     * @param {EMU} [nIndLeft=ApiPresentation.GetWidth() / 2] - word atr width
+	 * @param {EMU} [nIndTop=ApiPresentation.GetHeight() / 2] - word atr heigth
+	 * @returns {ApiDrawing}
+	 */
+    Api.prototype.CreateWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight, nIndLeft, nIndTop) {
+        var oPres = private_GetPresentation();
+		oTextPr   = oTextPr && oTextPr.TextPr ? oTextPr.TextPr : null;
+		nRotAngle = typeof(nRotAngle) === "number" && nRotAngle > 0 ? nRotAngle : 0;
+		nWidth    = typeof(nWidth) === "number" && nWidth > 0 ? nWidth : 1828800;
+		nHeight   = typeof(nHeight) === "number" && nHeight > 0 ? nHeight : 1828800;
+		oFill     = oFill && oFill.UniFill ? oFill.UniFill : this.CreateNoFill().UniFill;
+		oStroke   = oStroke && oStroke.Ln ? oStroke.Ln : this.CreateStroke(0, this.CreateNoFill()).Ln;
+        sTransform = typeof(sTransform) === "string" && sTransform !== "" ? sTransform : "textNoShape";
+
+		var oArt = this.private_createWordArt(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight);
+
+        nIndLeft  = typeof(nIndLeft) === "number" && nIndLeft > -1 ? nIndLeft : (oPres.GetWidthMM() - oArt.spPr.xfrm.extX) / 2;
+        nIndTop  = typeof(nIndTop) === "number" && nIndTop > -1 ? nIndTop : (oPres.GetHeightMM() - oArt.spPr.xfrm.extY) / 2;
+
+        oArt.spPr.xfrm.setOffX(nIndLeft);
+        oArt.spPr.xfrm.setOffY(nIndTop);
+
+		return new ApiDrawing(oArt);
+	};
+
+    /**
+	 * Convert from JSON to object.
+	 * @memberof Api
+	 * @param {JSON} sMessage
+	 * @typeofeditors ["CDE"]
+	 */
+	Api.prototype.FromJSON = function(sMessage)
+	{
+		var oReader = new AscCommon.ReaderFromJSON();
+        var oApiPresentation = this.GetPresentation();
+        var oPresentation = private_GetPresentation();
+		var oParsedObj  = JSON.parse(sMessage);
+
+		switch (oParsedObj.type)
+		{
+            case "presentation":
+                var oSldSize = oParsedObj["sldSz"] ? oReader.SlideSizeFromJSON(oParsedObj["sldSz"]) : null;
+                var oShowPr  = oParsedObj["showPr"] ? oReader.ShowPrFromJSON(oParsedObj["showPr"]) : null;
+                oSldSize && oPresentation.setSldSz(oSldSize);
+                oShowPr && oPresentation.setShowPr(oShowPr);
+
+                for (var nNoteMaster = 0; nNoteMaster < oParsedObj["notesMasters"].length; nNoteMaster++)
+                    oReader.NotesMasterFromJSON(oParsedObj["notesMasters"][nNoteMaster], oPresentation);
+                    
+                for (var nMaster = 0; nMaster < oParsedObj["sldMasters"].length; nMaster++)
+                    oReader.MasterSlideFromJSON(oParsedObj["sldMasters"][nMaster], oPresentation);
+
+                for (var nSlide = 0; nSlide < oParsedObj["slides"].length; nSlide++)
+                {
+                    var oSlide = oReader.SlideFromJSON(oParsedObj["slides"][nSlide]);
+                    oSlide.setSlideSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
+                    oSlide.setSlideNum(oPresentation.Slides.length);
+                    oPresentation.insertSlide(oPresentation.Slides.length, oSlide);
+                }
+                
+                
+                var oCPres = new AscCommon.CPres();
+                oCPres.defaultTextStyle = oReader.LstStyleFromJSON(oParsedObj["defaultTextStyle"]);
+                oCPres.attrAutoCompressPictures = oParsedObj.autoCompressPictures;  
+                oCPres.attrBookmarkIdSeed = oParsedObj.bookmarkIdSeed; 
+                oCPres.attrCompatMode = oParsedObj.compatMode;
+                oCPres.attrConformance = oParsedObj["conformance"] === "strict" ? c_oAscConformanceType.Strict : c_oAscConformanceType.Transitional;
+                oCPres.attrEmbedTrueTypeFonts = oParsedObj.embedTrueTypeFonts; 
+                oCPres.attrFirstSlideNum = oParsedObj.firstSlideNum; 
+                oCPres.attrRemovePersonalInfoOnSave = oParsedObj.removePersonalInfoOnSave; 
+                oCPres.attrRtl = oParsedObj.rtl; 
+                oCPres.attrSaveSubsetFonts = oParsedObj.saveSubsetFonts; 
+                oCPres.attrServerZoom = oParsedObj.serverZoom; 
+                oCPres.attrShowSpecialPlsOnTitleSld = oParsedObj.showSpecialPlsOnTitleSld; 
+                oCPres.attrStrictFirstAndLastChars = oParsedObj.strictFirstAndLastChars;
+
+                oPresentation.pres = oCPres;
+                oPresentation.setDefaultTextStyle(oCPres.defaultTextStyle);
+                oPresentation.setShowSpecialPlsOnTitleSld(oCPres.attrShowSpecialPlsOnTitleSld);
+                oPresentation.setFirstSlideNum(oCPres.attrFirstSlideNum);
+                
+                return oApiPresentation;
+			case "docContent":
+				return this.private_CreateApiDocContent(oReader.DocContentFromJSON(oParsedObj));
+			case "drawingDocContent":
+				return this.private_CreateApiDocContent(oReader.DrawingDocContentFromJSON(oParsedObj));
+			case "paragraph":
+				return this.private_CreateApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
+			case "run":
+			case "mathRun":
+			case "endRun":
+				return this.private_CreateApiRun(oReader.ParaRunFromJSON(oParsedObj));
+			case "hyperlink":
+				return this.private_CreateApiHyperlink(oReader.HyperlinkFromJSON(oParsedObj));
+            case "graphicFrame":
+                return ApiTable(oReader.GraphicObjFromJSON(oParsedObj));
+			case "image":
+				return new ApiImage(oReader.GraphicObjFromJSON(oParsedObj));
+            case "shape":
+            case "connectShape":
+                return new ApiShape(oReader.GraphicObjFromJSON(oParsedObj));
+            case "chartSpace":
+                return new ApiChart(oReader.GraphicObjFromJSON(oParsedObj));
+			case "textPr":
+				return this.private_CreateApiTextPr(oReader.TextPrFromJSON(oParsedObj));
+			case "paraPr":
+				return this.private_CreateApiParaPr(oReader.ParaPrFromJSON(oParsedObj));
+			case "fill":
+				return this.private_CreateApiFill(oReader.FillFromJSON(oParsedObj));
+			case "stroke":
+				return this.private_CreateApiStroke(oReader.LnFromJSON(oParsedObj));
+			case "gradStop":
+				var oGs = oReader.GradStopFromJSON(oParsedObj);
+				return this.private_CreateApiGradStop(this.private_CreateApiUniColor(oGs.color), oGs.pos);
+			case "uniColor":
+				return this.private_CreateApiUniColor(oReader.ColorFromJSON(oParsedObj));
+			case "slide":
+				return new ApiSlide(oReader.SlideFromJSON(oParsedObj));
+			case "sldLayout":
+				return new ApiLayout(oReader.SlideLayoutFromJSON(oParsedObj));
+			case "sldMaster":
+				return new ApiMaster(oReader.MasterSlideFromJSON(oParsedObj));
+			case "fontScheme":
+				return new ApiThemeFontScheme(oReader.FontSchemeFromJSON(oParsedObj));
+			case "fmtScheme":
+				return new ApiThemeFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj));
+			case "clrScheme":
+				return new ApiThemeColorScheme(oReader.ClrSchemeFromJSON(oParsedObj));
+            case "slides":
+                var aApiSlides = []    
+                var aSlides = oReader.SlidesFromJSON(oParsedObj);
+                for (var nSlide = 0; nSlide < aSlides.length; nSlide++)
+                    aApiSlides.push(new ApiSlide(aSlides[nSlide]));
+                return aApiSlides;
+		}
+	};
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiPresentation
@@ -1061,6 +1219,79 @@
 
         return false;
 	};
+
+    /**
+     * Gets the width of the current presentation.
+     * @typeofeditors ["CPE"]
+     * @memberof ApiPresentation
+     * @returns {EMU}
+     */
+     ApiPresentation.prototype.GetWidth = function() {
+        if(this.Presentation){
+            this.Presentation.GetWidthEMU();
+        }
+    };
+
+    /**
+     * Gets the height of the current presentation.
+     * @typeofeditors ["CPE"]
+     * @memberof ApiPresentation
+     * @returns {EMU}
+     */
+    ApiPresentation.prototype.GetHeight = function() {
+        if(this.Presentation){
+            this.Presentation.GetHeightEMU();
+        }
+    };
+
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiPresentation.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerPresentation(this.Presentation));
+    };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CPE"]
+     * @param {bool} [nStart=0] - index to the start slide
+     * @param {bool} [nStart=ApiPresentation.GetSlidesCount() - 1] - index to the end slide
+     * @param {bool} [bWriteLayout=false] - determines whether SlideLayout will be saved.
+     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved. (bWriteMaster is false if bWriteLayout === false)
+     * @param {bool} [bWriteAllMasLayouts=false] - determines whether all child SlideLaytouts from the MasterSlide will be saved.
+	 * @returns {JSON[]}
+	 */
+    ApiPresentation.prototype.SlidesToJSON = function(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts){
+        var oWriter = new AscCommon.WriterToJSON();
+        
+        nStart = nStart == undefined ? 0 : nStart;
+        nEnd = nEnd == undefined ? this.Presentation.Slides.length - 1 : nEnd;
+
+        if (nStart < 0 || nStart >= this.Presentation.Slides.length)
+            return;
+        if (nEnd < 0 || nEnd >= this.Presentation.Slides.length)
+            return;
+
+        return JSON.stringify(oWriter.SerSlides(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts));
+    };
+
+    ApiPresentation.prototype.GetInfoOle = function(){
+        for (var nSlide = 0; nSlide < this.Presentation.Slides.length; nSlide++)
+        {
+            var oSlide = this.Presentation.Slides[nSlide];
+            for (var nDrawing = 0; nDrawing < oSlide.cSld.spTree.length; nDrawing++)
+            {
+                var oDrawing = oSlide.cSld.spTree[nDrawing];
+
+                if (oDrawing instanceof AscFormat.COleObject)
+                    return {slide: nSlide, drawing: nDrawing}
+            }
+        }
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1399,6 +1630,16 @@
            
         return apiCharts;
     };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiMaster
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiMaster.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerMasterSlide(this.Master, true));
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1700,6 +1941,17 @@
            
         return null;
     };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiLayout
+     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved.
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiLayout.prototype.ToJSON = function(bWriteMaster){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerSlideLayout(this.Layout, bWriteMaster));
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1967,6 +2219,17 @@
         return new ApiThemeColorScheme(this.ColorScheme.createDuplicate());
     };
 
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiThemeColorScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeColorScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerClrScheme(this.ColorScheme));
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiThemeFormatScheme
@@ -2099,6 +2362,17 @@
         return new ApiThemeFormatScheme(this.FormatScheme.createDuplicate());
     };
 
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiThemeFormatScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeFormatScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerFmtScheme(this.FormatScheme));
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiThemeFontScheme
@@ -2174,6 +2448,17 @@
     ApiThemeFontScheme.prototype.Copy = function()
     {
         return new ApiThemeFontScheme(this.FontScheme.createDuplicate());
+    };
+
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiThemeFontScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeFontScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerFontScheme(this.FontScheme));
     };
     
     //------------------------------------------------------------------------------------------------------------------
@@ -2712,6 +2997,19 @@
            
         return apiCharts;
     };
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiSlide
+     * @param {bool} [bWriteLayout=false] - determines whether SlideLayout will be saved.
+     * @param {bool} [bWriteMaster=false] - determines whether MasterSlide will be saved. (bWriteMaster is false if bWriteLayout === false)
+     * @param {bool} [bWriteAllMasLayouts=false] - determines whether all child SlideLaytouts from the MasterSlide will be saved.
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiSlide.prototype.ToJSON = function(bWriteLayout, bWriteMaster, bWriteAllMasLayouts){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerSlide(this.Slide, bWriteLayout, bWriteMaster, bWriteAllMasLayouts));
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -3001,6 +3299,18 @@
         }
 
 		return false;
+	};
+
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+	ApiDrawing.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerGrapicObject(this.Drawing));
 	};
 
     //------------------------------------------------------------------------------------------------------------------
@@ -3579,6 +3889,17 @@
         this.Table.Set_Pr(oPr);
     };
 
+    /**
+	 * Convert to JSON object. 
+	 * @memberof ApiTable
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+	ApiTable.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerGrapicObject(this.Drawing));
+	};
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -3945,7 +4266,10 @@
     Api.prototype["CreateThemeColorScheme"]               = Api.prototype.CreateThemeColorScheme;
     Api.prototype["CreateThemeFormatScheme"]              = Api.prototype.CreateThemeFormatScheme;
     Api.prototype["CreateThemeFontScheme"]                = Api.prototype.CreateThemeFontScheme;
-
+    Api.prototype["CreateWordArt"]                        = Api.prototype.CreateWordArt;
+	Api.prototype["FromJSON"]                             = Api.prototype.FromJSON;
+    
+    
     ApiPresentation.prototype["GetClassType"]             = ApiPresentation.prototype.GetClassType;
     ApiPresentation.prototype["GetCurSlideIndex"]         = ApiPresentation.prototype.GetCurSlideIndex;
     ApiPresentation.prototype["GetSlideByIndex"]          = ApiPresentation.prototype.GetSlideByIndex;
@@ -3959,9 +4283,14 @@
     ApiPresentation.prototype["GetMaster"]                = ApiPresentation.prototype.GetMaster;
     ApiPresentation.prototype["AddMaster"]                = ApiPresentation.prototype.AddMaster;
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
-    ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
+	ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
     ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;
+    ApiPresentation.prototype["GetWidth"]                 = ApiPresentation.prototype.GetWidth;
+    ApiPresentation.prototype["GetHeight"]                = ApiPresentation.prototype.GetHeight;
 
+    ApiPresentation.prototype["SlidesToJSON"]             = ApiPresentation.prototype.SlidesToJSON;
+    ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
+    
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
     ApiMaster.prototype["AddLayout"]                      = ApiMaster.prototype.AddLayout;
@@ -3980,6 +4309,7 @@
     ApiMaster.prototype["GetAllShapes"]                   = ApiMaster.prototype.GetAllShapes;
     ApiMaster.prototype["GetAllImages"]                   = ApiMaster.prototype.GetAllImages;
     ApiMaster.prototype["GetAllCharts"]                   = ApiMaster.prototype.GetAllCharts;
+    ApiMaster.prototype["ToJSON"]                         = ApiMaster.prototype.ToJSON;
     
     
     ApiLayout.prototype["GetClassType"]                   = ApiLayout.prototype.GetClassType;
@@ -3998,6 +4328,7 @@
     ApiLayout.prototype["GetAllImages"]                   = ApiLayout.prototype.GetAllImages;
     ApiLayout.prototype["GetAllCharts"]                   = ApiLayout.prototype.GetAllCharts;
     ApiLayout.prototype["GetMaster"]                      = ApiLayout.prototype.GetMaster;
+    ApiLayout.prototype["ToJSON"]                         = ApiLayout.prototype.ToJSON;
 
     ApiPlaceholder.prototype["GetClassType"]              = ApiPlaceholder.prototype.GetClassType;
     ApiPlaceholder.prototype["SetType"]                   = ApiPlaceholder.prototype.SetType;
@@ -4015,6 +4346,7 @@
     ApiThemeColorScheme.prototype["SetSchemeName"]        = ApiThemeColorScheme.prototype.SetSchemeName;
     ApiThemeColorScheme.prototype["ChangeColor"]          = ApiThemeColorScheme.prototype.ChangeColor;
     ApiThemeColorScheme.prototype["Copy"]                 = ApiThemeColorScheme.prototype.Copy;
+    ApiThemeColorScheme.prototype["ToJSON"]               = ApiThemeColorScheme.prototype.ToJSON;
 
     ApiThemeFormatScheme.prototype["GetClassType"]        = ApiThemeFormatScheme.prototype.GetClassType;
     ApiThemeFormatScheme.prototype["SetSchemeName"]       = ApiThemeFormatScheme.prototype.SetSchemeName;
@@ -4022,12 +4354,13 @@
     ApiThemeFormatScheme.prototype["ChangeBgFillStyles"]  = ApiThemeFormatScheme.prototype.ChangeBgFillStyles;
     ApiThemeFormatScheme.prototype["ChangeLineStyles"]    = ApiThemeFormatScheme.prototype.ChangeLineStyles;
     ApiThemeFormatScheme.prototype["Copy"]                = ApiThemeFormatScheme.prototype.Copy;
+    ApiThemeFormatScheme.prototype["ToJSON"]              = ApiThemeFormatScheme.prototype.ToJSON;
 
     ApiThemeFontScheme.prototype["GetClassType"]          = ApiThemeFontScheme.prototype.GetClassType;
     ApiThemeFontScheme.prototype["SetSchemeName"]         = ApiThemeFontScheme.prototype.SetSchemeName;
     ApiThemeFontScheme.prototype["SetFonts"]              = ApiThemeFontScheme.prototype.SetFonts;
     ApiThemeFontScheme.prototype["Copy"]                  = ApiThemeFontScheme.prototype.Copy;
-
+    ApiThemeFontScheme.prototype["ToJSON"]                = ApiThemeFontScheme.prototype.ToJSON;
 
     ApiSlide.prototype["GetClassType"]                    = ApiSlide.prototype.GetClassType;
     ApiSlide.prototype["RemoveAllObjects"]                = ApiSlide.prototype.RemoveAllObjects;
@@ -4051,6 +4384,8 @@
     ApiSlide.prototype["GetAllShapes"]                    = ApiSlide.prototype.GetAllShapes;
     ApiSlide.prototype["GetAllImages"]                    = ApiSlide.prototype.GetAllImages;
     ApiSlide.prototype["GetAllCharts"]                    = ApiSlide.prototype.GetAllCharts;
+    ApiSlide.prototype["ToJSON"]                          = ApiSlide.prototype.ToJSON;
+
 
     ApiDrawing.prototype["GetClassType"]                  = ApiDrawing.prototype.GetClassType;
     ApiDrawing.prototype["SetSize"]                       = ApiDrawing.prototype.SetSize;
@@ -4065,6 +4400,9 @@
     ApiDrawing.prototype["GetPlaceholder"]                = ApiDrawing.prototype.GetPlaceholder;
     ApiDrawing.prototype["GetLockValue"]                  = ApiDrawing.prototype.GetLockValue;
     ApiDrawing.prototype["SetLockValue"]                  = ApiDrawing.prototype.SetLockValue;
+
+
+    ApiDrawing.prototype["ToJSON"]                        = ApiDrawing.prototype.ToJSON;
 
     ApiImage.prototype["GetClassType"]                    = ApiImage.prototype.GetClassType;
 
@@ -4106,6 +4444,7 @@
     ApiTable.prototype["RemoveRow"]                       = ApiTable.prototype.RemoveRow;
     ApiTable.prototype["RemoveColumn"]                    = ApiTable.prototype.RemoveColumn;
     ApiTable.prototype["SetShd"]                          = ApiTable.prototype.SetShd;
+    ApiTable.prototype["ToJSON"]    				      = ApiTable.prototype.ToJSON;
 
     ApiTableRow.prototype["GetClassType"]                 = ApiTableRow.prototype.GetClassType;
     ApiTableRow.prototype["GetCellsCount"]                = ApiTableRow.prototype.GetCellsCount;
@@ -4127,6 +4466,18 @@
     ApiTableCell.prototype["SetTextDirection"]            = ApiTableCell.prototype.SetTextDirection;
 
 
+    Api.prototype.private_CreateApiSlide = function(oSlide){
+        return new ApiSlide(oSlide);
+    };
+    Api.prototype.private_CreateApiMaster = function(oMaster){
+        return new ApiMaster(oMaster);
+    };
+    Api.prototype.private_CreateApiLayout = function(oLayout){
+        return new ApiLayout(oLayout);
+    };
+    Api.prototype.private_CreateApiPresentation = function(oPresentation){
+        return new ApiPresentation(oPresentation);
+    };
 
     function private_GetCurrentSlide(){
         var oApiPresentation = editor.GetPresentation();
@@ -4272,3 +4623,5 @@
 	}
 
 })(window, null);
+
+

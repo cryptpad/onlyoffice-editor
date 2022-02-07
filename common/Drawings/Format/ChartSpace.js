@@ -4444,6 +4444,7 @@ var GLOBAL_PATH_COUNT = 0;
                         if(!oCrossGrid.bOnTickMark) {
                             fCrossValue -= 1;
                         }
+                        break;
                     }
                     default:
                     { //includes AutoZero
@@ -4514,6 +4515,7 @@ var GLOBAL_PATH_COUNT = 0;
             oCurAxis.labels = oLabelsBox;
             oCurAxis.posX = null;
             oCurAxis.posY = null;
+            oCurAxis.nullPos = null;
             oCurAxis.xPoints = null;
             oCurAxis.yPoints = null;
             oCurAxis.zPoints = null;
@@ -4603,6 +4605,14 @@ var GLOBAL_PATH_COUNT = 0;
                         val: oCurAxis.scale[j],
                         pos: oCurAxis.grid.fStart + j * oCurAxis.grid.fStride + fStartSeriesPos
                     })
+                }
+                if(aPoints.length > 1) {
+                    var fNullPos;
+                    var oP1 = aPoints[0];
+                    var oP2 = aPoints[aPoints.length - 1];
+                    var fAK = (oP1.pos - oP2.pos) / (oP1.val - oP2.val);
+                    var fBK = oP1.pos - fAK*oP1.val;
+                    oCurAxis.nullPos = fBK;
                 }
             }
             if(oLabelsBox) {

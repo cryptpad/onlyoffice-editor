@@ -44,6 +44,8 @@
     var CChangeContent = AscDFH.CChangesDrawingsContent;
     var CChangeDouble2 = AscDFH.CChangesDrawingsDouble2;
 
+    
+
     var drawingsChangesMap = AscDFH.drawingsChangesMap;
     var drawingContentChanges = AscDFH.drawingContentChanges;
     var changesFactory = AscDFH.changesFactory;
@@ -14279,7 +14281,8 @@
     window['AscCommon'].CAnimPaneHeader = CAnimPaneHeader;
     window['AscCommon'].CSeqListContainer = CSeqListContainer;
     window['AscCommon'].CTimelineContainer = CTimelineContainer;
-
+    window['AscCommon'].CColorPercentage = CColorPercentage;
+    
     var ANIMATION_PRESET_CLASSES = [];
     var PRESET_TYPES;
     var PRESET_SUBTYPES;

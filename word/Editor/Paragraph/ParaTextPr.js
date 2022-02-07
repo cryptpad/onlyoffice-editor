@@ -584,8 +584,8 @@ ParaTextPr.prototype.SetRFontsAsciiTheme = function(sValue)
 	var _sValue = (!sValue ? undefined : sValue);
 	if (_sValue !== this.Value.RFonts.AsciiTheme)
 	{
-		AscCommon.History.Add(new CChangesParaTextPrRFontsAsciiTheme(this, this.Value.RFonts.Ascii, _sValue));
-		this.Value.RFonts.Ascii = _sValue;
+		AscCommon.History.Add(new CChangesParaTextPrRFontsAsciiTheme(this, this.Value.RFonts.AsciiTheme, _sValue));
+		this.Value.RFonts.AsciiTheme = _sValue;
 	}
 };
 ParaTextPr.prototype.SetRFontsHAnsiTheme = function(sValue)

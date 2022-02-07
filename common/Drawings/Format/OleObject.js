@@ -39,7 +39,6 @@
      */
 function (window, undefined) {
 
-
         function COleSize(w, h){
             this.w = w;
             this.h = h;
@@ -352,4 +351,5 @@ function (window, undefined) {
     };
         window['AscFormat'] = window['AscFormat'] || {};
         window['AscFormat'].COleObject = COleObject;
+        
 })(window);

@@ -440,6 +440,21 @@
 		return this.description;
 	};
 
+	CAscChartProp.prototype.asc_getPosition  = function()
+	{
+		return this.Position;
+	};
+
+	CAscChartProp.prototype.asc_putPosition  = function(v)
+	{
+		this.Position = v;
+	};
+
+	CAscChartProp.prototype.asc_getDescription  = function()
+	{
+		return this.description;
+	};
+
 	CAscChartProp.prototype.getType = function()
 	{
 		return this.ChartProperties && this.ChartProperties.getType();
@@ -8695,6 +8710,8 @@ background-repeat: no-repeat;\
 	CAscChartProp.prototype['asc_putDescription']     = CAscChartProp.prototype['put_Description']     = CAscChartProp.prototype['asc_setDescription']     = CAscChartProp.prototype.asc_setDescription;
 	CAscChartProp.prototype['asc_getTitle']           = CAscChartProp.prototype.asc_getTitle;
 	CAscChartProp.prototype['asc_getDescription']     = CAscChartProp.prototype.asc_getDescription;
+	CAscChartProp.prototype['asc_getPosition']     = CAscChartProp.prototype.asc_getPosition;
+	CAscChartProp.prototype['asc_putPosition']     = CAscChartProp.prototype.asc_putPosition;
 	CAscChartProp.prototype['getType']                = CAscChartProp.prototype.getType;
 	CAscChartProp.prototype['putType']                = CAscChartProp.prototype.putType;
 	CAscChartProp.prototype['getStyle']               = CAscChartProp.prototype.getStyle;
