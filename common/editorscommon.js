@@ -9232,7 +9232,7 @@
 
 		return null;
 	}
-	function writeColorToXml(writer, name, color) {
+	function writeColorToXml(writer, name, color, ns) {
 
 		/*writer.StartNodeWithNS(node_ns, node_name);
 		writer.StartAttributes();
@@ -9396,7 +9396,11 @@
 			return nIndex;
 		};
 
-		writer.WriteXmlNodeStart(name);
+		if (!ns) {
+			ns = "";
+		}
+
+		writer.WriteXmlNodeStart(ns + name);
 
 		//writer.WriteXmlNullableAttributeBool("auto", this.auto);
 		//writer.WriteXmlNullableAttributeNumber("indexed", this.indexed);

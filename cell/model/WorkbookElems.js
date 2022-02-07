@@ -7843,19 +7843,6 @@ function RangeDataManagerElem(bbox, data)
 		}
 		return newContext;
 	};
-	AutoFilter.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		if (null !== this.Ref) {
-			writer.WriteXmlAttributeStringEncode("ref", this.Ref.getName());
-		}
-		writer.WriteXmlAttributesEnd();
-		for (var i = 0; i < this.FilterColumns.length; ++i) {
-			var elem = this.FilterColumns[i];
-			elem.toXml(writer, "filterColumn");
-		}
-		//todo sortState
-		writer.WriteXmlNodeEnd(name);
-	};
 	AutoFilter.prototype.deleteFilterColumn = function(index) {
 		if (this.FilterColumns && this.FilterColumns[index]) {
 			this.FilterColumns.splice(index, 1)
@@ -8682,32 +8669,6 @@ function RangeDataManagerElem(bbox, data)
 		}
 		return newContext;
 	};
-	FilterColumn.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		if (null !== this.colId) {
-			writer.WriteXmlAttributeNumber("colId", this.ColId);
-		}
-		if (true !== this.ShowButton) {
-			writer.WriteXmlAttributeBool("showButton", this.ShowButton);
-		}
-		writer.WriteXmlAttributesEnd();
-		if (null !== this.ColorFilter) {
-			this.ColorFilter.toXml(writer, "colorFilter");
-		}
-		if (null !== this.CustomFiltersObj) {
-			this.CustomFiltersObj.toXml(writer, "customFilters");
-		}
-		if (null !== this.DynamicFilter) {
-			this.DynamicFilter.toXml(writer, "dynamicFilter");
-		}
-		if (null !== this.Filters) {
-			this.Filters.toXml(writer, "filters");
-		}
-		if (null !== this.Top10) {
-			this.Top10.toXml(writer, "top10");
-		}
-		writer.WriteXmlNodeEnd(name);
-	};
 
 	function CT_Filter() {
 		//Attributes
@@ -8722,13 +8683,6 @@ function RangeDataManagerElem(bbox, data)
 				this.Val = AscCommon.unleakString(uq(val));
 			}
 		}
-	};
-	CT_Filter.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		if (null !== this.Val) {
-			writer.WriteXmlAttributeStringEncode("val", this.Val);
-		}
-		writer.WriteXmlAttributesEnd(true);
 	};
 
 	/** @constructor */
@@ -8947,25 +8901,7 @@ function RangeDataManagerElem(bbox, data)
 		}
 		return newContext;
 	};
-	Filters.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		if (null !== this.Blank) {
-			writer.WriteXmlAttributeBool("blank", this.Blank);
-		}
-		writer.WriteXmlAttributesEnd();
-		for (var val in this.Values) {
-			var filter = new CT_Filter();
-			filter.Val = val;
-			filter.toXml(writer, "filter");
-		}
-		for (var i = 0; i < this.Dates.length; ++i) {
-			var elem = this.Dates[i];
-			var dateGroupItem = new AscCommonExcel.DateGroupItem();
-			dateGroupItem.convertRangeToDateGroupItem(elem);
-			dateGroupItem.toXml(writer, "dateGroupItem");
-		}
-		writer.WriteXmlNodeEnd(name);
-	};
+
 
 /** @constructor */
 function Filter() {
@@ -9088,31 +9024,6 @@ DateGroupItem.prototype.readAttributes = function(attr, uq) {
 			}
 		}
 	}
-};
-DateGroupItem.prototype.toXml = function(writer, name) {
-	writer.WriteXmlNodeStart(name);
-	if (null !== this.Year) {
-		writer.WriteXmlAttributeNumber("year", this.Year);
-	}
-	if (null !== this.Month) {
-		writer.WriteXmlAttributeNumber("month", this.Month);
-	}
-	if (null !== this.Day) {
-		writer.WriteXmlAttributeNumber("day", this.Day);
-	}
-	if (null !== this.Hour) {
-		writer.WriteXmlAttributeNumber("hour", this.Hour);
-	}
-	if (null !== this.Minute) {
-		writer.WriteXmlAttributeNumber("minute", this.Minute);
-	}
-	if (null !== this.Second) {
-		writer.WriteXmlAttributeNumber("second", this.Second);
-	}
-	if (null !== this.DateTimeGrouping) {
-		writer.WriteXmlAttributeStringEncode("dateTimeGrouping", ToXml_ST_DateTimeGrouping(this.DateTimeGrouping));
-	}
-	writer.WriteXmlAttributesEnd(true);
 };
 
 var g_oCustomFilters = {
@@ -9243,20 +9154,6 @@ CustomFilters.prototype.onStartNode = function(elem, attr, uq) {
 		newContext = null;
 	}
 	return newContext;
-};
-CustomFilters.prototype.toXml = function(writer, name) {
-	writer.WriteXmlNodeStart(name);
-	if (false !== this.And) {
-		writer.WriteXmlAttributeBool("and", this.And);
-	}
-	writer.WriteXmlAttributesEnd();
-	if (this.CustomFilters) {
-		for (var i = 0; i < this.CustomFilters.length; ++i) {
-			var elem = this.CustomFilters[i];
-			elem.toXml(writer, "customFilter");
-		}
-	}
-	writer.WriteXmlNodeEnd(name);
 };
 CustomFilters.prototype.changeForInterface = function () {
 	var res = this.clone();
@@ -9542,16 +9439,6 @@ CustomFilter.prototype.readAttributes = function(attr, uq) {
 		}
 	}
 };
-CustomFilter.prototype.toXml = function(writer, name) {
-	writer.WriteXmlNodeStart(name);
-	if (null !== this.Operator) {
-		writer.WriteXmlAttributeStringEncode("operator", ToXml_ST_FilterOperator(this.Operator));
-	}
-	if (null !== this.Val) {
-		writer.WriteXmlAttributeStringEncode("val", this.Val);
-	}
-	writer.WriteXmlAttributesEnd(true);
-};
 CustomFilter.prototype.Write_ToBinary2 = function(writer) {
 	if (null != this.Operator) {
 		writer.WriteBool(true);
@@ -9730,19 +9617,6 @@ DynamicFilter.prototype.readAttributes = function(attr, uq) {
 			this.MaxVal = val - 0;
 		}
 	}
-};
-DynamicFilter.prototype.toXml = function(writer, name) {
-	writer.WriteXmlNodeStart(name);
-	if (null !== this.Type) {
-		writer.WriteXmlAttributeStringEncode("type", ToXml_ST_DynamicFilterType(this.Type));
-	}
-	if (null !== this.Val) {
-		writer.WriteXmlAttributeNumber("val", this.Val);
-	}
-	if (null !== this.MaxVal) {
-		writer.WriteXmlAttributeNumber("maxVal", this.MaxVal);
-	}
-	writer.WriteXmlAttributesEnd(true);
 };
 DynamicFilter.prototype.Write_ToBinary2 = function(writer) {
 	if (null !== this.Type) {
@@ -9952,18 +9826,6 @@ ColorFilter.prototype.readAttributes = function(attr, uq) {
 		}
 	}
 };
-ColorFilter.prototype.toXml = function(writer, name) {
-	writer.WriteXmlNodeStart(name);
-	//todo
-	// if (null !== this.dxfId) {
-	// 	writer.WriteXmlAttributeNumber("dxfId", this.dxfId);
-	// }
-	if (null !== this.CellColor) {
-		writer.WriteXmlAttributeBool("cellColor", this.CellColor);
-	}
-	writer.WriteXmlAttributesEnd(true);
-};
-
 ColorFilter.prototype.Write_ToBinary2 = function(writer) {
 	if (null !== this.CellColor) {
 		writer.WriteBool(true);
@@ -10176,22 +10038,6 @@ Top10.prototype.readAttributes = function(attr, uq) {
 			this.FilterVal = val - 0;
 		}
 	}
-};
-Top10.prototype.toXml = function(writer, name) {
-	writer.WriteXmlNodeStart(name);
-	if (true !== this.Top) {
-		writer.WriteXmlAttributeBool("top", this.Top);
-	}
-	if (false !== this.Percent) {
-		writer.WriteXmlAttributeBool("percent", this.Percent);
-	}
-	if (null !== this.Val) {
-		writer.WriteXmlAttributeNumber("val", this.Val);
-	}
-	if (null !== this.FilterVal) {
-		writer.WriteXmlAttributeNumber("filterVal", this.FilterVal);
-	}
-	writer.WriteXmlAttributesEnd(true);
 };
 Top10.prototype.Write_ToBinary2 = function(w) {
 	if (null !== this.FilterVal) {
@@ -12507,6 +12353,12 @@ QueryTableField.prototype.clone = function() {
 
 
 	window["AscCommonExcel"].CT_Connection = CT_Connection;
+	window["AscCommonExcel"].CT_Filter = CT_Filter;
+	window["AscCommonExcel"].ToXml_ST_DateTimeGrouping = ToXml_ST_DateTimeGrouping;
+	window["AscCommonExcel"].FromXml_ST_DateTimeGrouping = FromXml_ST_DateTimeGrouping;
+	window["AscCommonExcel"].ToXml_ST_DynamicFilterType = ToXml_ST_DynamicFilterType;
+	window["AscCommonExcel"].FromXml_ST_DynamicFilterType = FromXml_ST_DynamicFilterType;
+
 
 
 })(window);

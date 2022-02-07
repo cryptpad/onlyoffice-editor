@@ -1051,21 +1051,28 @@
 				val.toXml(this, name);
 			}
 		};
-		this.WriteXmlArray = function(val, name, opt_parentName, needWriteCount)
+		//пересмотреть, куча аргументов
+		this.WriteXmlArray = function(val, name, opt_parentName, needWriteCount, ns, childns)
 		{
+			if (!ns) {
+				ns = "";
+			}
+			if (!childns) {
+				childns = "";
+			}
 			if(val && val.length > 0) {
 				if(opt_parentName) {
-					this.WriteXmlNodeStart(opt_parentName);
+					this.WriteXmlNodeStart(ns + opt_parentName);
 					if (needWriteCount) {
 						this.WriteXmlNullableAttributeNumber("count", val.length);
 					}
 					this.WriteXmlAttributesEnd();
 				}
 				val.forEach(function(elem, index){
-					elem.toXml(this, name, index);
+					elem.toXml(this, name, index, childns, childns);
 				}, this);
 				if(opt_parentName) {
-					this.WriteXmlNodeEnd(opt_parentName);
+					this.WriteXmlNodeEnd(ns + opt_parentName);
 				}
 			}
 		};

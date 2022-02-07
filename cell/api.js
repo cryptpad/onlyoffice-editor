@@ -1673,6 +1673,16 @@ var editor;
 									this.ws.workbook.dependencyFormulas.addTableName(this.ws, oNewTable, true);
 								aTables.push(oNewTable);*/
 							}
+
+							var namedSheetViews = wsPart.getPartsByRelationshipType(openXml.Types.namedSheetViews.relationType);
+							for (var i = 0; i < namedSheetViews.length; ++i) {
+								var contentSheetView = namedSheetViews[i].getDocumentContent();
+								var namedSheetView = new Asc.CT_NamedSheetViews();
+								var reader = new StaxParser(contentSheetView, namedSheetView, xmlParserContext);
+								namedSheetView.fromXml(reader);
+								//TODO связь с таблицыми по id
+								ws.aNamedSheetViews.push(namedSheetView);
+							}
 						}
 					}
 				}

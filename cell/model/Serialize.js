@@ -3893,7 +3893,7 @@
 					pptx_content_writer.BinaryFileWriter.ImportFromMemory(oThis.memory);
 
 					pptx_content_writer.BinaryFileWriter.StartRecord(0);
-					namedSheetViews.toStream(pptx_content_writer.BinaryFileWriter, this.InitSaveManager.getTableIds());
+					namedSheetViews.toStream(pptx_content_writer.BinaryFileWriter, oThis.InitSaveManager.getTableIds());
 					pptx_content_writer.BinaryFileWriter.EndRecord();
 
 					pptx_content_writer.BinaryFileWriter.ExportToMemory(oThis.memory);
