@@ -349,7 +349,21 @@ function (window, undefined) {
         }
         return oShape;
     };
+
+        function asc_putBinaryDataToFrameFromTableOleObject(oleObject)
+        {
+            if (oleObject instanceof AscFormat.COleObject) {
+                var dataSize = oleObject.m_aBinaryData.length;
+                var data = AscCommon.Base64.encode(oleObject.m_aBinaryData);
+                return {
+                    binary: "XLSY;v2;" + dataSize  + ";" + data
+                };
+            }
+            return { binary: null };
+        }
+        window['Asc'] = window['Asc'] || {};
         window['AscFormat'] = window['AscFormat'] || {};
         window['AscFormat'].COleObject = COleObject;
-        
+        window['Asc'].asc_putBinaryDataToFrameFromTableOleObject = asc_putBinaryDataToFrameFromTableOleObject;
+
 })(window);

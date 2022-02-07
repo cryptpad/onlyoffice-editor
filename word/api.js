@@ -8487,17 +8487,6 @@ background-repeat: no-repeat;\
 	};
 
 
-	asc_docs_api.prototype.asc_putBinaryDataToFrameFromTableOleObject    = function(oleObject)
-	{
-		if (oleObject instanceof AscFormat.COleObject) {
-			var dataSize = oleObject.m_aBinaryData.length;
-			var data = AscCommon.Base64.encode(oleObject.m_aBinaryData);
-			return {
-				binary: "XLSY;v2;" + dataSize  + ";" + data
-			};
-		}
-		return { binary: null };
-	}
 	asc_docs_api.prototype.asc_onCloseChartFrame               = function()
 	{
 		AscCommon.baseEditorsApi.prototype.asc_onCloseChartFrame.call(this);
@@ -8516,6 +8505,17 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_EditChart);
 				this.WordControl.m_oLogicDocument.EditChart(chartBinary);
 				this.WordControl.m_oLogicDocument.FinalizeAction();
+			}
+		}
+	};
+
+	asc_docs_api.prototype.asc_editTableOleObject = function(chartBinary)
+	{
+		if (AscFormat.isObject(chartBinary))
+		{
+			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+			{
+				this.WordControl.m_oLogicDocument.EditTableOleObject(chartBinary);
 			}
 		}
 	};

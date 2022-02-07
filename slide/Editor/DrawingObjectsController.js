@@ -146,6 +146,8 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
     var oPresentation = editor && editor.WordControl && editor.WordControl.m_oLogicDocument;
     if(oPresentation && (false === oPresentation.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props) || !oPresentation.CanEdit()))
     {
+        editor.asc_doubleClickOnTableOleObject(oleObject);
+        return; // TODO: change it
         if(oleObject.m_oMathObject) {
             editor.sendEvent("asc_onConvertEquationToMath", oleObject);
         }
@@ -364,15 +366,34 @@ DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
 {
     var _this = this;
     if (binaryInfo) {
-        var blipUrl = binaryInfo.url;
+        var blipUrl = binaryInfo.imageUrl;
         var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
 
-        var isImageNotAttendInImageLoader = !AscFormat.ImageLoader.map_image_index[blipUrl];
+        var checkImageUrlFromServer;
+        var localUrl = AscCommon.g_oDocumentUrls.getLocal(blipUrl);
+        var fullUrl = AscCommon.g_oDocumentUrls.getUrl(blipUrl);
+        if (fullUrl) {
+            checkImageUrlFromServer = fullUrl;
+        } else if (localUrl) {
+            checkImageUrlFromServer = blipUrl;
+        }
+
+        if (!checkImageUrlFromServer) {
+            var uploadImageToServerAndTryEditAgain = function (data) {
+                var uploadImageUrl = data[0].url;
+                binaryInfo.imageUrl = uploadImageUrl;
+                _this.editTableOleObject(binaryInfo);
+            }
+            AscCommon.sendImgUrls(this, [blipUrl], uploadImageToServerAndTryEditAgain, false, false, undefined, true);
+            return;
+        }
+
+        var isImageNotAttendInImageLoader = !_this.api.ImageLoader.map_image_index[blipUrl];
         if (isImageNotAttendInImageLoader) {
             var tryToEditOleObjectAgain = function () {
                 _this.editTableOleObject(binaryInfo);
             }
-            AscFormat.ImageLoader.LoadImagesWithCallback([blipUrl], tryToEditOleObjectAgain);
+            _this.api.ImageLoader.LoadImagesWithCallback([blipUrl], tryToEditOleObjectAgain);
             return;
         }
         var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
