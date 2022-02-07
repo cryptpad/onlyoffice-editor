@@ -114,8 +114,6 @@ function (window, undefined) {
         this.m_sApplicationId = null;
         this.m_nPixWidth = null;
         this.m_nPixHeight = null;
-        this.m_fDefaultSizeX = null;
-        this.m_fDefaultSizeY = null;
         this.m_sObjectFile = null;//ole object name in OOX
         this.m_nOleType = null;
         this.m_aBinaryData = null;
@@ -217,12 +215,6 @@ function (window, undefined) {
 
 
     COleObject.prototype.handleUpdateExtents = function(){
-        if(!AscFormat.isRealNumber(this.m_fDefaultSizeX) || !AscFormat.isRealNumber(this.m_fDefaultSizeY)){
-            if(this.spPr && this.spPr.xfrm && AscFormat.isRealNumber(this.spPr.xfrm.extX) && AscFormat.isRealNumber(this.spPr.xfrm.extY) && this.spPr.xfrm.extX > 0 && this.spPr.xfrm.extY > 0){
-                this.m_fDefaultSizeX = this.spPr.xfrm.extX;
-                this.m_fDefaultSizeY = this.spPr.xfrm.extY;
-            }
-        }
         AscFormat.CImageShape.prototype.handleUpdateExtents.call(this, []);
     };
     COleObject.prototype.checkTypeCorrect = function(){
@@ -349,6 +341,42 @@ function (window, undefined) {
             oShape.select(oController, nSelectStartPage);
         }
         return oShape;
+    };
+
+    COleObject.prototype.editExternal = function(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight) {
+        this.setData(sData);
+        var _blipFill           = new AscFormat.CBlipFill();
+        _blipFill.RasterImageId = sImageUrl;
+        this.setBlipFill(_blipFill);
+        this.setPixSizes(nPixWidth, nPixHeight);
+
+        var fWidth_ = fWidth;
+        var fHeight_ = fHeight;
+        if(!AscFormat.isRealNumber(fWidth_) || !AscFormat.isRealNumber(fHeight_)) {
+            var oImagePr = new Asc.asc_CImgProperty();
+            oImagePr.asc_putImageUrl(sImageUrl);
+            var oApi = editor || Asc.editor;
+            var oSize = oImagePr.asc_getOriginSize(oApi);
+            if(oSize.IsCorrect) {
+                fWidth_ = oSize.Width;
+                fHeight_ = oSize.Height;
+            }
+        }
+        if(AscFormat.isRealNumber(fWidth_) && AscFormat.isRealNumber(fHeight_)) {
+            var oXfrm = this.spPr && this.spPr.xfrm;
+            if(oXfrm) {
+                oXfrm.setExtX(fWidth_);
+                oXfrm.setExtY(fHeight_);
+                if(!this.group) {
+                    if(this.drawingBase) {
+                        this.checkDrawingBaseCoords();
+                    }
+                    if(this.parent && this.parent.CheckWH) {
+                        this.parent.CheckWH();
+                    }
+                }
+            }
+        }
     };
         window['AscFormat'] = window['AscFormat'] || {};
         window['AscFormat'].COleObject = COleObject;

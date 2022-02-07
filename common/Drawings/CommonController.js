@@ -8227,8 +8227,6 @@ DrawingObjectsController.prototype =
                         lockAspect: lockAspect,
                         pluginGuid: drawing.m_sApplicationId,
                         pluginData: pluginData,
-                        oleWidth: drawing.m_fDefaultSizeX,
-                        oleHeight: drawing.m_fDefaultSizeY,
                         title: drawing.getTitle(),
                         description: drawing.getDescription(),
                         anchor: drawing.getDrawingBaseType(),
@@ -8256,8 +8254,6 @@ DrawingObjectsController.prototype =
                             image_props.lockAspect = false;
                         image_props.pluginGuid = null;
                         image_props.pluginData = undefined;
-                        image_props.oleWidth = undefined;
-                        image_props.oleHeight = undefined;
                         if(image_props.title !== new_image_props.title)
                             image_props.title = undefined;
                         if(image_props.description !== new_image_props.description)
@@ -8898,9 +8894,6 @@ DrawingObjectsController.prototype =
 
             image_props.pluginGuid = props.imageProps.pluginGuid;
             image_props.pluginData = props.imageProps.pluginData;
-
-            image_props.oleWidth = props.imageProps.oleWidth;
-            image_props.oleHeight = props.imageProps.oleHeight;
 
             image_props.description = props.imageProps.description;
             image_props.title = props.imageProps.title;

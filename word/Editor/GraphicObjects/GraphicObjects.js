@@ -735,8 +735,6 @@ CGraphicObjects.prototype =
                 image_props.pluginGuid = props_by_types.imageProps.pluginGuid;
                 image_props.pluginData = props_by_types.imageProps.pluginData;
 
-                image_props.oleWidth = props_by_types.imageProps.oleWidth;
-                image_props.oleHeight = props_by_types.imageProps.oleHeight;
                 if(this.selection.groupSelection){
                     image_props.description = props_by_types.imageProps.description;
                     image_props.title = props_by_types.imageProps.title;

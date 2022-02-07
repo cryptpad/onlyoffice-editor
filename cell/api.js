@@ -3682,14 +3682,14 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, nPixWidth, nPixHeight)
+  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, fWidth, fHeight, nPixWidth, nPixHeight)
   {
     if (oOleObject)
     {
       var ws = this.wb.getWorksheet();
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize);
+        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize);
         this.asc_endPaste();
       }
     }

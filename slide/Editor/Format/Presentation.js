@@ -5074,12 +5074,8 @@ CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHe
     }
 };
 
-CPresentation.prototype.EditOleObject = function (oOleObject, sData, sImageUrl, nPixWidth, nPixHeight) {
-    oOleObject.setData(sData);
-    var _blipFill = new AscFormat.CBlipFill();
-    _blipFill.RasterImageId = sImageUrl;
-    oOleObject.setBlipFill(_blipFill);
-    oOleObject.setPixSizes(nPixWidth, nPixHeight);
+CPresentation.prototype.EditOleObject = function (oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight) {
+    oOleObject.editExternal(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight);
 };
 
 
