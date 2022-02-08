@@ -306,6 +306,147 @@
 		return res;
 	}
 
+	function FromXml_ST_PageOrder(val) {
+		var res = null;
+		switch (val) {
+			case  "downThenOver":
+				res = 0;
+				break;
+			case  "overThenDown":
+				res = 1;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_PageOrder(val) {
+		var res = null;
+		switch (val) {
+			case  0:
+				res = "downThenOver";
+				break;
+			case  1:
+				res = "overThenDown";
+				break;
+		}
+		return res;
+	}
+
+	function FromXml_ST_PageOrientation(val) {
+		var res = null;
+		switch (val) {
+			case "portrait":
+				res = Asc.c_oAscPageOrientation.PagePortrait;
+				break;
+			case "landscape":
+				res = Asc.c_oAscPageOrientation.PageLandscape;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_PageOrientation(val) {
+		var res = null;
+		switch (val) {
+			case Asc.c_oAscPageOrientation.PagePortrait:
+				res = "portrait";
+				break;
+			case Asc.c_oAscPageOrientation.PageLandscape:
+				res = "landscape";
+				break;
+		}
+		return res;
+	}
+
+	//TODO контсанты нет
+	/*<xsd:simpleType name="ST_CellComments">
+		2876 <xsd:restriction base="xsd:string">
+		2877 <xsd:enumeration value="none"/>
+		2878 <xsd:enumeration value="asDisplayed"/>
+		2879 <xsd:enumeration value="atEnd"/>
+		2880 </xsd:restriction>
+		2881 </xsd:simpleTyp*/
+	function FromXml_ST_CellComments(val) {
+		var res = 0;
+		switch (val) {
+			case "none":
+				res = 0;
+				break;
+			case "asDisplayed":
+				res = 1;
+				break;
+			case "atEnd":
+				res = 2;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_CellComments(val) {
+		var res = null;
+		switch (val) {
+			case 0:
+				res = "none";
+				break;
+			case 1:
+				res = "asDisplayed";
+				break;
+			case 2:
+				res = "atEnd";
+				break;
+		}
+		return res;
+	}
+
+	//TODO контсанты нет
+	/*<xsd:simpleType name="ST_PrintError">
+				2897 <xsd:restriction base="xsd:string">
+				2898 <xsd:enumeration value="displayed"/>
+				2899 <xsd:enumeration value="blank"/>
+				2900 <xsd:enumeration value="dash"/>
+				2901 <xsd:enumeration value="NA"/>
+				2902 </xsd:restriction>
+				2903 </xsd:simpleType>*/
+
+	function FromXml_ST_PrintError(val) {
+		var res = 0;
+		switch (val) {
+			case "displayed":
+				res = 0;
+				break;
+			case "blank":
+				res = 1;
+				break;
+			case "dash":
+				res = 2;
+				break;
+			case "NA":
+				res = 2;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_PrintError(val) {
+		var res = null;
+		switch (val) {
+			case 0:
+				res = "displayed";
+				break;
+			case 1:
+				res = "blank";
+				break;
+			case 2:
+				res = "dash";
+				break;
+			case 3:
+				res = "NA";
+				break;
+		}
+		return res;
+	}
+
+
 	//****workbook****
 	function CT_Workbook(wb) {
 		//Members
@@ -986,11 +1127,21 @@
 
 		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.WriteXmlNodeStart("worksheet");
-		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"');
+
+		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"');
+		writer.WriteXmlString(' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
+		writer.WriteXmlString(' xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"');
+		writer.WriteXmlString(' xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"');
+		writer.WriteXmlString(' xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"');
+		writer.WriteXmlString(' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"');
+		writer.WriteXmlString(' xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision"');
+		writer.WriteXmlString(' xmlns:xr2="http://schemas.microsoft.com/office/spreadsheetml/2015/revision2"');
+		writer.WriteXmlString(' xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" mc:Ignorable="x14ac"');
+
 		writer.WriteXmlAttributesEnd();
 
 		//TODO dimension ?
-		writer.WriteXmlString('<dimension ref="A1"/>');
+		//writer.WriteXmlString('<dimension ref="A1"/>');
 
 		//AscCommonExcel.asc_CSheetPr
 		if(this.sheetPr) {
@@ -1065,7 +1216,7 @@
 
 		//TODO rels нужно добавить + грамотно добавить
 		var oHyperlinks = this.hyperlinkManager.getAll();
-		if (oHyperlinks) {
+		if (oHyperlinks && oHyperlinks.length) {
 			writer.WriteXmlString("<hyperlinks>");
 			for (var i in oHyperlinks) {
 				var elem = oHyperlinks[i];
@@ -2070,7 +2221,7 @@
 			res = c_oSerConstants.ReadUnknown;
 		return res;*/
 
-		
+
 	};
 
 	AscCommonExcel.Hyperlink.prototype.fromXml = function (reader, ws) {
@@ -4612,7 +4763,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.blackAndWhite = val;
 			} else if ("cellComments" === reader.GetName()) {
 				val = reader.GetValue();
-				this.cellComments = val;
+				this.cellComments = FromXml_ST_CellComments(val);
 			} else if ("copies" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.copies = val;
@@ -4620,8 +4771,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueBool();
 				this.draft = val;
 			} else if ("errors" === reader.GetName()) {
-				val = reader.GetValueInt();
-				this.errors = val;
+				val = reader.GetValue();
+				this.errors = FromXml_ST_PrintError(val);
 			} else if ("firstPageNumber" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.firstPageNumber = val;
@@ -4643,21 +4794,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}*/ else if ("orientation" === reader.GetName()) {
 				//TODO в serialize такая же обработка, нужно сделать общую
 				var byteFormatOrientation = reader.GetValue();
-				var byteOrientation = null;
-				switch (byteFormatOrientation) {
-					case Asc.EPageOrientation.pageorientPortrait:
-						byteOrientation = c_oAscPageOrientation.PagePortrait;
-						break;
-					case Asc.EPageOrientation.pageorientLandscape:
-						byteOrientation = c_oAscPageOrientation.PageLandscape;
-						break;
-				}
+				var byteOrientation = FromXml_ST_PageOrientation(byteFormatOrientation);
 				if (null != byteOrientation) {
 					this.asc_setOrientation(byteOrientation);
 				}
 			} else if ("pageOrder" === reader.GetName()) {
+				//ST_PageOrder
 				val = reader.GetValue();
-				this.pageOrder = val;
+				this.pageOrder = FromXml_ST_PageOrder(val);
 			} else if ("paperHeight" === reader.GetName()) {
 				val = reader.GetValue();
 				this.height = val;
@@ -4720,49 +4864,46 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlNodeStart(ns + name);
 
+		var isWritePaperSize;
 		var dWidth = this.asc_getWidth();
 		var dHeight = this.asc_getHeight();
 		if(null != dWidth && null != dHeight)
 		{
 			var item = AscCommonExcel.DocumentPageSize.getSizeByWH(dWidth, dHeight);
-			writer.WriteXmlNullableAttributeString("paperSize", item.id);
+			writer.WriteXmlNullableAttributeString("paperSize", item.id + "");
+			isWritePaperSize = true;
 		}
 
-		//TODO нужно ли второй раз записывать после paperSize
-		writer.WriteXmlNullableAttributeDouble("paperHeight", dHeight);
-		writer.WriteXmlNullableAttributeDouble("paperWidth", dWidth);
-
+		//не записываю повторно, если уже есть paperSize
+		if (!isWritePaperSize) {
+			writer.WriteXmlNullableAttributeDouble("paperHeight", dHeight);
+			writer.WriteXmlNullableAttributeDouble("paperWidth", dWidth);
+		}
 
 		writer.WriteXmlNullableAttributeUInt("scale", this.scale);
-		writer.WriteXmlNullableAttributeUInt("firstPageNumber", this.firstPageNumber);
+		if (-1 !== this.firstPageNumber) {
+			writer.WriteXmlNullableAttributeUInt("firstPageNumber", this.firstPageNumber);
+		}
 		writer.WriteXmlNullableAttributeNumber("fitToWidth", this.fitToWidth);
 		writer.WriteXmlNullableAttributeNumber("fitToHeight", this.fitToHeight);
-		writer.WriteXmlNullableAttributeString("pageOrder", this.pageOrder);
 
+		//ST_PageOrder
+		writer.WriteXmlNullableAttributeString("pageOrder", ToXml_ST_PageOrder(this.pageOrder));
 
-		//TODO такая же обработка в serialize, сделать общую
-		var byteOrientation = this.asc_getOrientation();
-		if(null != byteOrientation)
-		{
-			var byteFormatOrientation = null;
-			switch(byteOrientation)
-			{
-				case Asc.c_oAscPageOrientation.PagePortrait: byteFormatOrientation = Asc.EPageOrientation.pageorientPortrait;break;
-				case Asc.c_oAscPageOrientation.PageLandscape: byteFormatOrientation = Asc.EPageOrientation.pageorientLandscape;break;
-			}
-			if(null != byteFormatOrientation)
-			{
-				writer.WriteXmlNullableAttributeString("orientation", byteFormatOrientation);
-			}
-		}
-
+		writer.WriteXmlNullableAttributeString("orientation", ToXml_ST_PageOrientation(this.asc_getOrientation()));
 
 		writer.WriteXmlNullableAttributeBool("usePrinterDefaults", this.usePrinterDefaults);
 		writer.WriteXmlNullableAttributeBool("blackAndWhite", this.blackAndWhite);
 		writer.WriteXmlNullableAttributeBool("draft", this.draft);
-		writer.WriteXmlNullableAttributeString("cellComments", this.cellComments);
+
+		//ST_CellComments
+		writer.WriteXmlNullableAttributeString("cellComments", ToXml_ST_CellComments(this.cellComments));
+
 		writer.WriteXmlNullableAttributeBool("useFirstPageNumber", this.useFirstPageNumber);
-		writer.WriteXmlNullableAttributeString("errors", this.errors);
+
+
+		writer.WriteXmlNullableAttributeString("errors", ToXml_ST_PrintError(this.errors));
+
 		writer.WriteXmlNullableAttributeUInt("horizontalDpi", this.horizontalDpi);
 		writer.WriteXmlNullableAttributeUInt("verticalDpi", this.verticalDpi);
 		writer.WriteXmlNullableAttributeUInt("copies", this.copies);
@@ -4828,7 +4969,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeDouble("header", this.header);
 		writer.WriteXmlNullableAttributeDouble("footer", this.footer);
 
-		riter.WriteXmlAttributesEnd(true);
+		writer.WriteXmlAttributesEnd(true);
 	};
 
 
@@ -4889,7 +5030,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			ns = "";
 		}
 
-		writer.WriteXmlNodeEnd(ns + name);
+		writer.WriteXmlNodeStart(ns + name);
 		writer.WriteXmlNullableAttributeBool("headings", this.headings);
 		writer.WriteXmlNullableAttributeBool("gridLines", this.gridLines);
 		//writer.WriteXmlNullableAttributeBool("gridLinesSet", this.gridLinesSet);
@@ -5023,7 +5164,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		//TODO в x2t все функции с окончанием 2
 		var oAllRow = this.oAllRow;
-		writer.WriteXmlString(ns + name/*"sheetFormatPr"*/);
+		writer.WriteXmlNodeStart(ns + name/*"sheetFormatPr"*/);
 		writer.WriteXmlNullableAttributeNumber("baseColWidth", this.nBaseColWidth);
 		writer.WriteXmlNullableAttributeBool("customHeight", oAllRow.getCustomHeight() ? true : null);
 		writer.WriteXmlNullableAttributeDouble("defaultColWidth", this.dDefaultColWidth);
@@ -5244,7 +5385,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				//this.WorkbookViewId = val;
 			} else if ("zoomScale" === reader.GetName()) {
 				val = reader.GetValueInt();
-				this.ZoomScale = val;
+				this.zoomScale = val;
 			} else if ("zoomScaleNormal" === reader.GetName()) {
 				//val = reader.GetValueInt();
 				//this.ZoomScaleNormal = val;
@@ -5314,8 +5455,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeString("topLeftCell", this.topLeftCell ? this.topLeftCell.getName() : null);
 		//writer.WriteXmlNullableAttributeString("view", this.view);
 		//writer.WriteXmlNullableAttributeBool("windowProtection", this.windowProtection);
-		//writer.WriteXmlNullableAttributeNumber("workbookViewId", this.workbookViewId);
-		//writer.WriteXmlNullableAttributeNumber("zoomScale", this.zoomScale);
+
+		//в x2t предварительная обработка -> если не определено значение, присваиваем 0. в данном случае эта опция не поддерживается в редакторе, всегда ноль
+		writer.WriteXmlNullableAttributeNumber("workbookViewId", 0);
+
+		writer.WriteXmlNullableAttributeNumber("zoomScale", this.zoomScale);
 		//writer.WriteXmlNullableAttributeNumber("zoomScaleNormal", this.zoomScaleNormal);
 		//writer.WriteXmlNullableAttributeNumber("zoomScalePageLayoutView", this.zoomScalePageLayoutView);
 		//writer.WriteXmlNullableAttributeNumber("zoomScaleSheetLayoutView", this.zoomScaleSheetLayoutView);
@@ -10265,7 +10409,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.GradientStop.prototype.toXml = function (writer, name, index, ns, childns) {
+	AscCommonExcel.GradientStop.prototype.toXml = function (writer, name, ns, childns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -10724,7 +10868,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		if (null != wb.TableStyles) {
 			//Asc.CTableStyles
-			wb.TableStyles.toXml(writer);
+			wb.TableStyles.toXml(writer, "tableStyles");
 		}
 
 		//TODO!!!
@@ -10796,7 +10940,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.Num.prototype.toXml = function(writer, name, index, ns) {
+	AscCommonExcel.Num.prototype.toXml = function(writer, name, ns, childns, index) {
 		var id = AscCommonExcel.g_nNumsMaxId + index;
 		var format = this.getFormat();
 
@@ -10903,6 +11047,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var t = this;
 		var context = writer.context;
 		var ids = [];
+
 		this.wb.externalReferences.forEach(function(externalReference) {
 			//здесь пишем externalLink[]
 			var oExternalReference = new CT_ExternalReference();
@@ -10916,16 +11061,19 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (!ns) {
 			ns = "";
 		}
-		//externalReferences
-		writer.WriteXmlNodeStart(ns + name);
-		writer.WriteXmlAttributesEnd();
-		ids.forEach(function(id) {
-			//здесь пишем ссылку в externalReferences на externalLink[]
-			writer.WriteXmlNodeStart("externalReference");
-			writer.WriteXmlNullableAttributeString("r:id", id);
-			writer.WriteXmlAttributesEnd(true);
-		});
-		writer.WriteXmlNodeEnd(ns + name);
+
+		if (ids.length) {
+			//externalReferences
+			writer.WriteXmlNodeStart(ns + name);
+			writer.WriteXmlAttributesEnd();
+			ids.forEach(function(id) {
+				//здесь пишем ссылку в externalReferences на externalLink[]
+				writer.WriteXmlNodeStart("externalReference");
+				writer.WriteXmlNullableAttributeString("r:id", id);
+				writer.WriteXmlAttributesEnd(true);
+			});
+			writer.WriteXmlNodeEnd(ns + name);
+		}
 	};
 
 	//TODO хранить в wb классы?

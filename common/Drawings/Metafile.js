@@ -1069,7 +1069,7 @@
 					this.WriteXmlAttributesEnd();
 				}
 				val.forEach(function(elem, index){
-					elem.toXml(this, name, index, childns, childns);
+					elem.toXml(this, name, childns, childns, index);
 				}, this);
 				if(opt_parentName) {
 					this.WriteXmlNodeEnd(ns + opt_parentName);
