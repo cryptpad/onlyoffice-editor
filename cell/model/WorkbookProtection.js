@@ -100,7 +100,7 @@
 		return alg;
 	}
 
-	function getAlgorithmNameFromXml(str) {
+	function FromXml_ST_AlgorithmName(str) {
 		var alg = null;
 		switch (str) {
 			case "MD2" :
@@ -137,6 +137,42 @@
 		return alg;
 	}
 
+	function ToXml_ST_AlgorithmName(alg) {
+		var str = null;
+		switch (alg) {
+			case  c_oSerProtectedAlgorithmNameTypes.MD2:
+				str = "MD2";
+				break;
+			case  c_oSerProtectedAlgorithmNameTypes.MD4:
+				str = "MD4";
+				break;
+			case  c_oSerProtectedAlgorithmNameTypes.MD5:
+				str = "MD5";
+				break;
+			case  c_oSerProtectedAlgorithmNameTypes.RIPEMD_128:
+				str = "RIPEMD-128";
+				break;
+			case  c_oSerProtectedAlgorithmNameTypes.RIPEMD_160:
+				str = "RIPEMD-160";
+				break;
+			case  c_oSerProtectedAlgorithmNameTypes.SHA1:
+				str = "SHA-1";
+				break;
+			case c_oSerProtectedAlgorithmNameTypes.SHA_256 :
+				str = "SHA-256";
+				break;
+			case c_oSerProtectedAlgorithmNameTypes.SHA_384 :
+				str = "SHA-384";
+				break;
+			case  c_oSerProtectedAlgorithmNameTypes.SHA_512:
+				str = "SHA-512";
+				break;
+			case  c_oSerProtectedAlgorithmNameTypes.WHIRLPOOL:
+				str = "WHIRLPOOL";
+				break;
+		}
+		return str;
+	}
 
 
 	function generateHashParams() {
@@ -1402,6 +1438,7 @@
 
 	window["AscCommonExcel"].fromModelAlgoritmName = fromModelAlgoritmName;
 	window["AscCommonExcel"].getPasswordHash = getPasswordHash;
-	window["AscCommonExcel"].getAlgorithmNameFromXml = getAlgorithmNameFromXml;
+	window["AscCommonExcel"].FromXml_ST_AlgorithmName = FromXml_ST_AlgorithmName;
+	window["AscCommonExcel"].ToXml_ST_AlgorithmName   = ToXml_ST_AlgorithmName;
 
 })(window);

@@ -1434,6 +1434,7 @@ var editor;
 			wbXml.fromXml(reader);
 		});
 
+		var reader, i;
 		if (window['OPEN_IN_BROWSER']) {
 			//defined names
 			if (wbXml.newDefinedNames) {
@@ -1522,8 +1523,7 @@ var editor;
 			//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
 			var connectionsPart = wbPart.getPartByRelationshipType(openXml.Types.connections.relationType);
 			if (connectionsPart) {
-				var contentConnections = connectionsPart.getDocumentContent();
-				wb.connections = contentConnections;
+				wb.connections = connectionsPart.getDocumentContent();
 			}
 
 			//styles
@@ -1533,7 +1533,7 @@ var editor;
 				var contentStyles = stylesPart.getDocumentContent();
 				if (contentStyles) {
 					var styleSheet = new AscCommonExcel.CT_Stylesheet(new Asc.CTableStyles());
-					var reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
+					reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
 					styleSheet.fromXml(reader);
 
 
@@ -1556,8 +1556,13 @@ var editor;
 				}
 			}
 
-			//TODO vbaProject
-			//var vbaProjectPart = wbPart.getPartByRelationshipType(openXml.Types.vbaProject.relationType);
+			var vbaProjectPart = wbPart.getPartByRelationshipType(openXml.Types.vbaProject.relationType);
+			if (vbaProjectPart) {
+				var contentVbaProject = vbaProjectPart.getDocumentContent(true);
+				if (contentVbaProject) {
+					xmlParserContext.InitOpenManager.oReadResult.vbaMacros = contentVbaProject;
+				}
+			}
 
 			//person list
 			//TODO ReadThreadedComment
@@ -1566,7 +1571,7 @@ var editor;
 				var contentPersonList = personListPart.getDocumentContent();
 				if (contentPersonList) {
 					var personList = new AscCommonExcel.CT_PersonList();
-					var reader = new StaxParser(contentPersonList, personListPart, xmlParserContext);
+					reader = new StaxParser(contentPersonList, personListPart, xmlParserContext);
 					personList.fromXml(reader);
 				}
 			}
@@ -1611,7 +1616,7 @@ var editor;
 				var contentSharedStrings = sharedStringPart.getDocumentContent();
 				if (contentSharedStrings) {
 					var sharedStrings = new AscCommonExcel.CT_SharedStrings();
-					var reader = new StaxParser(contentSharedStrings, sharedStringPart, xmlParserContext);
+					reader = new StaxParser(contentSharedStrings, sharedStringPart, xmlParserContext);
 					sharedStrings.fromXml(reader);
 				}
 			}
@@ -1640,12 +1645,12 @@ var editor;
 						if (drawingPart) {
 							var drawingWS = new AscCommonExcel.CT_DrawingWS(ws);
 							var contentDrawing = drawingPart.getDocumentContent();
-							var reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
+							reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
 							drawingWS.fromXml(reader);
 						}
 						if (wsPart) {
 							var pivotParts = wsPart.getPartsByRelationshipType(openXml.Types.pivotTable.relationType);
-							for (var i = 0; i < pivotParts.length; ++i) {
+							for (i = 0; i < pivotParts.length; ++i) {
 								var contentPivotTable = pivotParts[i].getDocumentContent();
 								var pivotTable = new Asc.CT_pivotTableDefinition(true);
 								new openXml.SaxParserBase().parse(contentPivotTable, pivotTable);
@@ -1657,10 +1662,10 @@ var editor;
 							}
 
 							var tableParts = wsPart.getPartsByRelationshipType(openXml.Types.tableDefinition.relationType);
-							for (var i = 0; i < tableParts.length; ++i) {
+							for (i = 0; i < tableParts.length; ++i) {
 								var contentTable = tableParts[i].getDocumentContent();
 								var oNewTable = ws.createTablePart();
-								var reader = new StaxParser(contentTable, oNewTable, xmlParserContext);
+								reader = new StaxParser(contentTable, oNewTable, xmlParserContext);
 								oNewTable.fromXml(reader);
 								ws.TableParts.push(oNewTable);
 
@@ -1675,10 +1680,10 @@ var editor;
 							}
 
 							var namedSheetViews = wsPart.getPartsByRelationshipType(openXml.Types.namedSheetViews.relationType);
-							for (var i = 0; i < namedSheetViews.length; ++i) {
+							for (i = 0; i < namedSheetViews.length; ++i) {
 								var contentSheetView = namedSheetViews[i].getDocumentContent();
 								var namedSheetView = new Asc.CT_NamedSheetViews();
-								var reader = new StaxParser(contentSheetView, namedSheetView, xmlParserContext);
+								reader = new StaxParser(contentSheetView, namedSheetView, xmlParserContext);
 								namedSheetView.fromXml(reader);
 								//TODO связь с таблицыми по id
 								ws.aNamedSheetViews.push(namedSheetView);
@@ -1762,11 +1767,6 @@ var editor;
 		}
 
 		initOpenManager.readDefStyles(wb, wb.CellStyles.DefaultStyles);
-		
-
-		/*if (window['OPEN_IN_BROWSER']) {
-			wb.init([], [], {});
-		}*/
 
 
 		wb.initPostOpenZip(pivotCaches, xmlParserContext);
