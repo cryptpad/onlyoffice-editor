@@ -1314,6 +1314,7 @@ Slide.prototype =
         var oCollColor;
         var fDist = 3;
         var oIdentityMtx = new AscCommon.CMatrix();
+        
         for(i = 0; i < this.cSld.spTree.length; ++i)
         {
             var oSp = this.cSld.spTree[i];
@@ -1346,6 +1347,12 @@ Slide.prototype =
         }
 
         if(this.timing) {
+            var aShapes = this.timing.getMoveEffectsShapes();
+            if(aShapes) {
+                for(i = 0; i < aShapes.length; ++i) {
+                    aShapes[i].draw(graphics);
+                }
+            }
             this.timing.drawEffectsLabels(graphics);
         }
         if(this.slideComments)
@@ -1727,6 +1734,12 @@ Slide.prototype =
     },
 
     getDrawingsForController: function(){
+        if(this.timing) {
+            var aShapes = this.timing.getMoveEffectsShapes();
+            if(aShapes && aShapes.length > 0) {
+                return this.cSld.spTree.concat(aShapes);
+            }
+        }
         return this.cSld.spTree;
     },
     

@@ -82,6 +82,9 @@ var GLOBAL_PATH_COUNT = 0;
     var DISP_BLANKS_AS_SPAN = 1;
     var DISP_BLANKS_AS_ZERO = 2;
 
+
+    var DEFAULT_LBLS_DISTANCE = 10.0 * (25.4 / 72);///TODO
+
     function checkVerticalTitle(title) {
         return false;
     }
@@ -3848,6 +3851,18 @@ var GLOBAL_PATH_COUNT = 0;
         if(oAxis.getObjectType() === AscDFH.historyitem_type_ValAx) {
             return AscFormat.CROSS_BETWEEN_MID_CAT;
         }
+        if(oAxis.getObjectType() === AscDFH.historyitem_type_SerAx) {
+            var oChart = this.chart.plotArea.getChartsForAxis(oAxis)[0];
+            if(oChart) {
+                if(oChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart) {
+                    return AscFormat.CROSS_BETWEEN_MID_CAT;
+                }
+                else {
+                    return AscFormat.CROSS_BETWEEN_BETWEEN;
+                }
+            } 
+            return AscFormat.CROSS_BETWEEN_MID_CAT;
+        }
         var oCrossAxis = oAxis.crossAx;
         if(oCrossAxis && oCrossAxis.getObjectType() === AscDFH.historyitem_type_ValAx) {
             var oChart = this.chart.plotArea.getChartsForAxis(oCrossAxis)[0];
@@ -4279,8 +4294,14 @@ var GLOBAL_PATH_COUNT = 0;
                 }
                 break;
             }
-            case AscDFH.historyitem_type_SerAx:
-            {
+            case AscDFH.historyitem_type_SerAx: {
+                var aAllSeries = this.getAllSeries();
+                oAxis.scale = [];
+                for(var nSer = 0; nSer < aAllSeries.length; ++nSer) {
+                    aStrings.push(aAllSeries[nSer].getSeriesName()); 
+                    oAxis.scale.push(aAllSeries[nSer].idx);
+                }
+
                 break;
             }
         }
@@ -4303,7 +4324,20 @@ var GLOBAL_PATH_COUNT = 0;
         oAxisGrid.nCount = nIntervalsCount;
         oAxisGrid.bOnTickMark = bOnTickMark;
         oAxisGrid.aStrings = aStrings;
-        if(oAxis.axPos === AscFormat.AX_POS_B || oAxis.axPos === AscFormat.AX_POS_T) {
+        if(oAxis.getObjectType() === AscDFH.historyitem_type_SerAx) {
+            this.checkPrecalculateChartObject();
+            var dDepth = this.getDepthPerspective();
+            fInterval = dDepth / nIntervalsCount;
+            if(nOrientation === AscFormat.ORIENTATION_MIN_MAX) {
+                oAxisGrid.fStart = 0;
+                oAxisGrid.fStride = fInterval;
+            }
+            else {
+                oAxisGrid.fStart = dDepth;
+                oAxisGrid.fStride = -fInterval;
+            }
+        }
+        else if(oAxis.axPos === AscFormat.AX_POS_B || oAxis.axPos === AscFormat.AX_POS_T) {
 
             oAxisGrid.nType = 0;
             fInterval = oRect.w / nIntervalsCount;
@@ -4329,6 +4363,14 @@ var GLOBAL_PATH_COUNT = 0;
                 oAxisGrid.fStride = fInterval;
             }
         }
+    };
+    CChartSpace.prototype.getDepthPerspective = function() {
+        var oProcessor3D = this.chartObj && this.chartObj.processor3D;
+        var dDepth = 0;
+        if(oProcessor3D && AscFormat.isRealNumber(oProcessor3D.depthPerspective)) {
+            dDepth = oProcessor3D.depthPerspective;
+        }
+        return dDepth;
     };
     CChartSpace.prototype.recalculateAxesSet = function(aAxesSet, oRect, oBaseRect, nIndex, fForceContentWidth) {
         var oCorrectedRect = null;
@@ -4356,7 +4398,7 @@ var GLOBAL_PATH_COUNT = 0;
             }
             var fCrossValue;
             var fAxisPos;
-            var fDistance = 10.0 * (25.4 / 72);///TODO
+            var fDistance = DEFAULT_LBLS_DISTANCE;
             var nLabelsPos;
             var bLabelsExtremePosition = false;
             var bOnTickMark = oCurAxis.grid.bOnTickMark;
@@ -4402,6 +4444,7 @@ var GLOBAL_PATH_COUNT = 0;
                         if(!oCrossGrid.bOnTickMark) {
                             fCrossValue -= 1;
                         }
+                        break;
                     }
                     default:
                     { //includes AutoZero
@@ -4472,8 +4515,10 @@ var GLOBAL_PATH_COUNT = 0;
             oCurAxis.labels = oLabelsBox;
             oCurAxis.posX = null;
             oCurAxis.posY = null;
+            oCurAxis.nullPos = null;
             oCurAxis.xPoints = null;
             oCurAxis.yPoints = null;
+            oCurAxis.zPoints = null;
             var aPoints = null;
             if(oCurAxis.getObjectType() === AscDFH.historyitem_type_SerAx) {
                 //TODO
@@ -4560,6 +4605,14 @@ var GLOBAL_PATH_COUNT = 0;
                         val: oCurAxis.scale[j],
                         pos: oCurAxis.grid.fStart + j * oCurAxis.grid.fStride + fStartSeriesPos
                     })
+                }
+                if(aPoints.length > 1) {
+                    var fNullPos;
+                    var oP1 = aPoints[0];
+                    var oP2 = aPoints[aPoints.length - 1];
+                    var fAK = (oP1.pos - oP2.pos) / (oP1.val - oP2.val);
+                    var fBK = oP1.pos - fAK*oP1.val;
+                    oCurAxis.nullPos = fBK;
                 }
             }
             if(oLabelsBox) {
@@ -4687,6 +4740,7 @@ var GLOBAL_PATH_COUNT = 0;
                 oCurAxis.posX = null;
                 oCurAxis.xPoints = null;
                 oCurAxis.yPoints = null;
+                oCurAxis.zPoints = null;
             }
             if(this.bEmptySeries) {
                 return;
@@ -4741,6 +4795,8 @@ var GLOBAL_PATH_COUNT = 0;
                 }
             }
             var aAllAxes = [];//array of axes sets
+            var aSeriesAxes = [];
+            var dSeriesLabelsWidth = 0;
             while(aAxes.length > 0) {
                 oCurAxis = aAxes.splice(0, 1)[0];
                 if(oCurAxis.getObjectType() !== AscDFH.historyitem_type_SerAx) {
@@ -4760,9 +4816,31 @@ var GLOBAL_PATH_COUNT = 0;
                         aAllAxes.push(aCurAxesSet);
                     }
                 }
+                else {
+                    aSeriesAxes.push(oCurAxis);
+                    this.calculateAxisGrid(oCurAxis);
+                    oCurAxis.labels = null;
+                    var nLabelsPos = c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO;
+                    if(oCurAxis.bDelete) {
+                        nLabelsPos = c_oAscTickLabelsPos.TICK_LABEL_POSITION_NONE;
+                    }
+                    else {
+                        if(null !== oCurAxis.tickLblPos) {
+                            nLabelsPos = oCurAxis.tickLblPos;
+                        }
+                        else {
+                            nLabelsPos = c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO;
+                        }
+                    }
+                    if(nLabelsPos !== c_oAscTickLabelsPos.TICK_LABEL_POSITION_NONE) {
+                        var oLabelsBox = new CLabelsBox(oCurAxis.grid.aStrings, oCurAxis, this);
+                        oCurAxis.labels = oLabelsBox;
+                        dSeriesLabelsWidth = oLabelsBox.maxMinWidth;
+                    }
+                }
             }
             var oSize = this.getChartSizes();
-            var oRect = new CRect(oSize.startX, oSize.startY, oSize.w, oSize.h);
+            var oRect = new CRect(oSize.startX, oSize.startY, oSize.w - dSeriesLabelsWidth, oSize.h);
             var oBaseRect = oRect;
             var aRects = [];
             for(i = 0; i < aAllAxes.length; ++i) {
@@ -4770,8 +4848,6 @@ var GLOBAL_PATH_COUNT = 0;
                 aRects.push(this.recalculateAxesSet(aCurAxesSet, oRect, oBaseRect, 0));
             }
             if(aRects.length > 1) {
-
-
                 oRect = aRects[0].copy();
                 for(i = 1; i < aRects.length; ++i) {
                     if(!oRect.intersection(aRects[i])) {
@@ -4855,7 +4931,7 @@ var GLOBAL_PATH_COUNT = 0;
                 }
             }
             aAxes = oPlotArea.axId;
-            var oCheckAxis;
+            var oHorAxis;
             for(i = 0; i < aAxes.length; ++i) {
                 oCurAxis = aAxes[i];
                 var bHorizontal = (oCurAxis.axPos === AscFormat.AX_POS_T || oCurAxis.axPos === AscFormat.AX_POS_B);
@@ -4866,6 +4942,48 @@ var GLOBAL_PATH_COUNT = 0;
                     }
                     else {
                         oCurAxis.yPoints = oReplaceAxis.yPoints;
+                    }
+                }
+                if(bHorizontal && oCurAxis.getObjectType() !== AscDFH.historyitem_type_SerAx) {
+                    oHorAxis = oCurAxis;
+                }
+            }
+            if(oHorAxis) {
+                for(var nSerAx = 0; nSerAx < aSeriesAxes.length; ++nSerAx) {
+                    var oSerAx = aSeriesAxes[nSerAx];
+                    var oGrid = oHorAxis.grid;
+                    oSerAx.posX = oGrid.fStart + oGrid.fStride*(oGrid.nCount);
+                    oSerAx.posY = oHorAxis.posY;
+                    oSerAx.zPoints = [];
+                    var aAllSeries = this.getAllSeries();
+                    this.recalculateChart();
+                    this.calculateAxisGrid(oSerAx);
+
+
+                    var nOrientation = oSerAx.scaling && AscFormat.isRealNumber(oSerAx.scaling.orientation) ? oSerAx.scaling.orientation : AscFormat.ORIENTATION_MIN_MAX;
+                    var nCrossType = this.getAxisCrossType(oSerAx);
+                    var bOnTickMark = ((nCrossType === AscFormat.CROSS_BETWEEN_MID_CAT) && (aAllSeries.length > 1));
+                    var nIntervalsCount = bOnTickMark ? (aAllSeries.length - 1) : (aAllSeries.length);
+                    oGrid = oSerAx.grid;
+                    var dDepth = this.getDepthPerspective();
+                    var fStart, fStride;
+                    if(nOrientation === AscFormat.ORIENTATION_MIN_MAX) {
+                        fStart = 0;
+                        fStride = dDepth/nIntervalsCount;
+                    }
+                    else {
+                        fStart = dDepth;
+                        fStride = -dDepth/nIntervalsCount;
+                    }
+                    var nSer;
+                    var fAdd = bOnTickMark ? 0 : fStride/2;
+                    for(nSer = 0; nSer < aAllSeries.length; ++nSer) {
+                        oSerAx.zPoints.push({val: aAllSeries[nSer].idx, pos: fStart + fStride*nSer + fAdd});
+                    }
+                    if(oSerAx.labels) {
+                        var oLabelsBox = oSerAx.labels;
+                        var fDistance = DEFAULT_LBLS_DISTANCE;
+                        oSerAx.labels.layoutHorNormal(oSerAx.posY, fDistance, oSerAx.posX, 0, oSerAx.grid.bOnTickMark, 2000);
                     }
                 }
             }
@@ -4891,6 +5009,7 @@ var GLOBAL_PATH_COUNT = 0;
         if(this.chart && this.chart.plotArea && this.chart.plotArea.charts[0] && this.chart.plotArea.charts[0].getAxisByTypes) {
             var oAxisByTypes = this.chart.plotArea.charts[0].getAxisByTypes();
             var oCatAx = oAxisByTypes.catAx[0], oValAx = oAxisByTypes.valAx[0], deltaX, deltaY, i, oAxisLabels, oLabel, oNewPos;
+            var oSerAx = oAxisByTypes.serAx[0];
             var oProcessor3D = this.chartObj && this.chartObj.processor3D;
             var aXPoints = [], aYPoints = [];
             if(oCatAx && oValAx && oProcessor3D) {
@@ -5042,6 +5161,43 @@ var GLOBAL_PATH_COUNT = 0;
                             oAxisLabels.extY = Math.max.apply(Math, aYPoints) - oAxisLabels.y;
                         }
                     }
+                    if(oSerAx) {
+                        var dPosX, dPosX2;
+                        dPosX2 = oSerAx.posX;
+                        dPosX = dPosX2 * this.chartObj.calcProp.pxToMM;
+
+                        var dPosY, dPosY2
+                        
+                        dPosY2 = oSerAx.posY;
+                        dPosY = dPosY2 * this.chartObj.calcProp.pxToMM;
+
+                        oAxisLabels = oSerAx.labels;
+                        if(oAxisLabels) {
+                            aXPoints.length = 0;
+                            aYPoints.length = 0;
+                            for(i = 0; i < oAxisLabels.aLabels.length; ++i) {
+                                oLabel = oAxisLabels.aLabels[i];
+                                if(oLabel) {
+                                    var oPt =  oSerAx.zPoints[i];
+                                    if(oPt) {
+                                        oNewPos = oProcessor3D.convertAndTurnPoint(dPosX, dPosY, oPt.pos);
+                                        oLabel.setPosition2(oLabel.localTransformText.tx - dPosX2 + oNewPos.x / this.chartObj.calcProp.pxToMM + oLabel.tx.rich.getContentWidth() / 2 + DEFAULT_LBLS_DISTANCE, 
+                                        oNewPos.y / this.chartObj.calcProp.pxToMM - oLabel.txBody.content.GetSummaryHeight()/2);
+                                        aXPoints.push(oLabel.x);
+                                        aYPoints.push(oLabel.y);
+                                        aXPoints.push(oLabel.x + oLabel.tx.rich.getContentWidth());
+                                        aYPoints.push(oLabel.y + oLabel.txBody.content.GetSummaryHeight());
+                                    }
+                                }
+                            }
+                            if(aXPoints.length > 0 && aYPoints.length > 0) {
+                                oAxisLabels.x = Math.min.apply(Math, aXPoints);
+                                oAxisLabels.y = Math.min.apply(Math, aYPoints);
+                                oAxisLabels.extX = Math.max.apply(Math, aXPoints) - oAxisLabels.x;
+                                oAxisLabels.extY = Math.max.apply(Math, aYPoints) - oAxisLabels.y;
+                            }
+                        }
+                    }
                 }
                 else if(((oCatAx.axPos === AscFormat.AX_POS_L || oCatAx.axPos === AscFormat.AX_POS_R) && oCatAx.yPoints) &&
                     ((oValAx.axPos === AscFormat.AX_POS_T || oValAx.axPos === AscFormat.AX_POS_B) && oValAx.xPoints)) {
@@ -5060,20 +5216,16 @@ var GLOBAL_PATH_COUNT = 0;
                             dPosY2 = oAxisLabels.y + oAxisLabels.extY;
                         }
 
-                        if(!oAxisLabels.align) {
-                            dPosX2 = oAxisLabels.x;
-                        }
-                        else {
-                            dPosX2 = oAxisLabels.x + oAxisLabels.extX;
-                        }
-                        dPosX = dPosX2 * this.chartObj.calcProp.pxToMM;
                         aXPoints.length = 0;
                         aYPoints.length = 0;
                         for(i = 0; i < oAxisLabels.aLabels.length; ++i) {
                             oLabel = oAxisLabels.aLabels[i];
                             if(oLabel) {
-                                oNewPos = oProcessor3D.convertAndTurnPoint(dPosX, oLabel.localTransformText.ty * this.chartObj.calcProp.pxToMM, dZPositionCatAxis);
-                                oLabel.setPosition2(oLabel.localTransformText.tx - dPosX2 + oNewPos.x / this.chartObj.calcProp.pxToMM, oNewPos.y / this.chartObj.calcProp.pxToMM);
+                                var oCPosLabelX;
+                                fHalfWidth = oLabel.tx.rich.content.XLimit / 2;
+                                oCPosLabelX = oLabel.localTransformText.TransformPointX(fHalfWidth, 0);
+                                oNewPos = oProcessor3D.convertAndTurnPoint(oCPosLabelX * this.chartObj.calcProp.pxToMM, dPosY, dZPositionValAxis);
+                                oLabel.setPosition2(oNewPos.x / this.chartObj.calcProp.pxToMM + oLabel.localTransformText.tx - oCPosLabelX, oLabel.localTransformText.ty - dPosY2 + oNewPos.y / this.chartObj.calcProp.pxToMM);
                                 aXPoints.push(oLabel.x);
                                 aYPoints.push(oLabel.y);
                                 aXPoints.push(oLabel.x + oLabel.tx.rich.getContentWidth());
@@ -8984,6 +9136,24 @@ var GLOBAL_PATH_COUNT = 0;
         val_ax.setCrossBetween(AscFormat.CROSS_BETWEEN_BETWEEN);
         scaling = val_ax.scaling;
         scaling.setOrientation(AscFormat.ORIENTATION_MIN_MAX);
+        if(bDepth) {
+            var oSerAx = new AscFormat.CSerAx();
+            oSerAx.setAxId(++AscFormat.Ax_Counter.GLOBAL_AX_ID_COUNTER);
+            var oSerScaling = new AscFormat.CScaling();
+            oSerScaling.setOrientation(AscFormat.ORIENTATION_MIN_MAX);
+            oSerAx.setScaling(oSerScaling);
+            oSerAx.setDelete(false);
+            oSerAx.setAxPos(AscFormat.AX_POS_B);
+            oSerAx.setMajorTickMark(c_oAscTickMark.TICK_MARK_OUT);
+            oSerAx.setMinorTickMark(c_oAscTickMark.TICK_MARK_NONE);
+            oSerAx.setTickLblPos(c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO);
+            oSerAx.setCrossAx(cat_ax);
+            oSerAx.setCrosses(AscFormat.CROSSES_AUTO_ZERO);
+            
+            plot_area.addAxis(oSerAx);
+            bar_chart.addAxId(oSerAx);
+
+        }
         if(asc_series.length > 1) {
             chart.setLegend(new AscFormat.CLegend());
             var legend = chart.legend;

@@ -488,20 +488,28 @@
         var dExtY = this.yMax - this.yMin;
         var oSpPr = this.originalObject.spPr;
         var oXfrm = oSpPr.xfrm;
-        oXfrm.setExtX(dExtX);
-        oXfrm.setExtY(dExtY);
-        //set new position
-        if(bWord) {
-            oXfrm.setOffX(0);
-            oXfrm.setOffY(0);
+        var oOffset;
+        if(this.originalObject.animMotionTrack) {
+            oOffset = this.getXfrmOffset();
+            this.originalObject.updateAnimation(oOffset.OffX, oOffset.OffY, dExtX, dExtY, 0, this.geometry)
         }
         else {
-            var oOffset = this.getXfrmOffset();
-            oXfrm.setOffX(oOffset.OffX);
-            oXfrm.setOffY(oOffset.OffY);
+            oXfrm.setExtX(dExtX);
+            oXfrm.setExtY(dExtY);
+            //set new position
+            if(bWord) {
+                oXfrm.setOffX(0);
+                oXfrm.setOffY(0);
+            }
+            else {
+                oOffset = this.getXfrmOffset();
+                oXfrm.setOffX(oOffset.OffX);
+                oXfrm.setOffY(oOffset.OffY);
+            }
+            oSpPr.setGeometry(this.geometry.createDuplicate());
+            this.originalObject.checkDrawingBaseCoords();
         }
-        oSpPr.setGeometry(this.geometry.createDuplicate());
-        this.originalObject.checkDrawingBaseCoords();
+
         if(this.addedPointIdx !== null) {
             var oGmSelection = this.getGmSelection();
             if(oGmSelection) {

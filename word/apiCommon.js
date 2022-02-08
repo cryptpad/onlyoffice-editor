@@ -522,6 +522,7 @@
 			this.FrameHeight = tblProp.FrameHeight;
 			this.FrameX = tblProp.FrameX;
 			this.FrameY = tblProp.FrameY;
+			this.FrameLockAspect = tblProp.FrameLockAspect;
 		}
 		else
 		{
@@ -590,6 +591,14 @@
 	CTableProp.prototype.put_FrameY = function (v)
 	{
 		this.FrameY = v;
+	};
+	CTableProp.prototype.get_FrameLockAspect = function ()
+	{
+		return this.FrameLockAspect;
+	};
+	CTableProp.prototype.put_FrameLockAspect = function (v)
+	{
+		this.FrameLockAspect = v;
 	};
 	CTableProp.prototype.get_Spacing = function ()
 	{
@@ -925,6 +934,8 @@
 	CTableProp.prototype['put_FrameX'] = CTableProp.prototype.put_FrameX;
 	CTableProp.prototype['get_FrameY'] = CTableProp.prototype.get_FrameY;
 	CTableProp.prototype['put_FrameY'] = CTableProp.prototype.put_FrameY;
+	CTableProp.prototype['get_FrameLockAspect'] = CTableProp.prototype.get_FrameLockAspect;
+	CTableProp.prototype['put_FrameLockAspect'] = CTableProp.prototype.put_FrameLockAspect;
 
 // ---------------------------------------------------------------
 	function CBorders(obj)

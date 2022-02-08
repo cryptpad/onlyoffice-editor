@@ -1156,6 +1156,12 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 return;
             }
 
+            if(this.originalObject.animMotionTrack) 
+            {
+                this.originalObject.updateAnimation(this.resizedPosX, this.resizedPosY, 
+                    this.resizedExtX, this.resizedExtY, this.originalObject.rot);
+                return;
+            }
             if (this.originalObject.isObjectInSmartArt()) {
                 return;
                 if (this.resizedPosX < 0) {

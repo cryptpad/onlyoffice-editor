@@ -7837,6 +7837,7 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
             }
 
             if (drawing_props.shapeProps && !this.FocusOnNotes) {
+                drawing_props.shapeProps.Position = new Asc.CPosition({X: drawing_props.shapeProps.x, Y: drawing_props.shapeProps.y});
                 editor.sync_shapePropCallback(drawing_props.shapeProps);
                 editor.sync_VerticalTextAlign(drawing_props.shapeProps.verticalTextAlign);
                 editor.sync_Vert(drawing_props.shapeProps.vert);
@@ -7850,6 +7851,13 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
                     editor.chartPreviewManager.clearPreviews();
                     editor.sendEvent("asc_onUpdateChartStyles");
                     this.bNeedUpdateChartPreview = false;
+                }
+                if(drawing_props.shapeProps) {
+                    drawing_props.chartProps.x = drawing_props.shapeProps.x;
+                    drawing_props.chartProps.y = drawing_props.shapeProps.y;
+                    if(drawing_props.shapeProps.Position) {
+                        drawing_props.chartProps.Position = new Asc.CPosition(drawing_props.shapeProps.Position);
+                    }
                 }
                 editor.sync_ImgPropCallback(drawing_props.chartProps);
             }

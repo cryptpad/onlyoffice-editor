@@ -12959,6 +12959,8 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
     window['AscCommon'].c_oVariantTypes = c_oVariantTypes;
     window['AscCommon'].CVariant = CVariant;
+    window['AscCommon'].CPres = CPres;
+    
     prot = CVariant.prototype;
     prot["setText"] = prot.setText;
     prot["setNumber"] = prot.setNumber;
