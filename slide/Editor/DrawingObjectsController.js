@@ -365,6 +365,7 @@ DrawingObjectsController.prototype.editChart = function(binary)
 DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
 {
     var _this = this;
+    var oApi = this.getEditorApi();
     if (binaryInfo) {
         var blipUrl = binaryInfo.imageUrl;
         var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
@@ -384,17 +385,17 @@ DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
                 binaryInfo.imageUrl = uploadImageUrl;
                 _this.editTableOleObject(binaryInfo);
             }
-            AscCommon.sendImgUrls(_this.api, [blipUrl], uploadImageToServerAndTryEditAgain, null, true);
+            AscCommon.sendImgUrls(oApi, [blipUrl], uploadImageToServerAndTryEditAgain, null, true);
             return;
         }
 
-        var isImageNotAttendInImageLoader = !_this.api.ImageLoader.map_image_index[checkImageUrlFromServer];
+        var isImageNotAttendInImageLoader = !oApi.ImageLoader.map_image_index[checkImageUrlFromServer];
         if (isImageNotAttendInImageLoader) {
             var tryToEditOleObjectAgain = function () {
                 binaryInfo.imageUrl = checkImageUrlFromServer;
                 _this.editTableOleObject(binaryInfo);
             }
-            _this.api.ImageLoader.LoadImagesWithCallback([checkImageUrlFromServer], tryToEditOleObjectAgain);
+            oApi.ImageLoader.LoadImagesWithCallback([checkImageUrlFromServer], tryToEditOleObjectAgain);
             return;
         }
         var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
@@ -407,7 +408,6 @@ DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
             var originalWidth = selectedOleObject.spPr.xfrm.extX;
             var koef = (originalWidth / sizes.width) || 0;
             selectedOleObject.spPr.xfrm.setExtY(sizes.height * koef);
-            selectedOleObject.parent.CheckWH();
             this.startRecalculate();
             this.updateOverlay();
         }

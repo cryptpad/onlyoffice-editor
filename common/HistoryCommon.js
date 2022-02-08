@@ -695,6 +695,9 @@
 			case AscDFH.historydescription_Presentation_EditChart                      :
 				sString = "Presentation_EditChart";
 				break;
+			case AscDFH.historydescription_Presentation_EditTableOleObjectFromBinary                      :
+				sString = "Presentation_EditChart";
+				break;
 			case AscDFH.historydescription_Presentation_ParagraphAdd                   :
 				sString = "Presentation_ParagraphAdd";
 				break;
@@ -4258,7 +4261,9 @@
 	window['AscDFH'].historydescription_Document_ConvertFormFixedType               = 0x018c;
 	window['AscDFH'].historydescription_Document_ReplaceCurrentWord                 = 0x018d;
 	window['AscDFH'].historydescription_Document_ChangeGeometryEdit                 = 0x018e;
-	window['AscDFH'].historydescription_Document_Docxf_To_Docx                      = 0x018f;	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	window['AscDFH'].historydescription_Document_Docxf_To_Docx                      = 0x018f;
+	window['AscDFH'].historydescription_Presentation_EditTableOleObjectFromBinary   = 0x0190;
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Фабрика изменений (заполняется там же, где и определяются классы изменений)
