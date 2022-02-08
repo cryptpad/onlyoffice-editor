@@ -1582,7 +1582,7 @@
 		}
 		range._foreachRowNoEmpty(function(row, excludedCount) {
 			writeEndRow();
-			row.toXml(writer);
+			row.toXml(writer, "row");
 			curRow = row.getIndex();
 		}, function(cell, nRow0, nCol0, nRowStart0, nColStart0, excludedCount) {
 			if (curRow != nRow0) {
@@ -10997,8 +10997,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeNumber("borderId", this.borderid);
 		writer.WriteXmlNullableAttributeNumber("numFmtId", this.numid);
 
-		if(xf && !isCellStyle)
-		{
+		if (xf && !isCellStyle) {
 			writer.WriteXmlNullableAttributeNumber("xfId", xf.XfId);
 		}
 
@@ -11016,8 +11015,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 		var isProtection = xf && (null != xf.locked || null != xf.hidden);
-		if (xf && (isProtection || xf.align))
-		{
+		if (xf && (isProtection || xf.align)) {
+			writer.WriteXmlAttributesEnd();
 			if (xf.align) {
 				xf.align.toXml(writer, "aligment");
 			}
@@ -11027,8 +11026,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				writer.WriteXmlNullableAttributeBool("hidden", xf.hidden);
 				writer.WriteXmlNullableAttributeBool("locked", xf.locked);
 				writer.WriteXmlAttributesEnd(true);
-				writer.WriteXmlNodeEnd(ns + name);
 			}
+
+			writer.WriteXmlNodeEnd(ns + name);
 		} else {
 			writer.WriteXmlAttributesEnd(true);
 		}
