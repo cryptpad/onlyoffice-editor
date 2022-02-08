@@ -762,22 +762,41 @@ CRadical.prototype.Is_ContentUse = function(MathContent)
 
     return false;
 };
-CRadical.prototype.GetTextOfElement = function() {
+CRadical.prototype.GetTextOfElement = function(isLatex) {
 	var strTemp = "";
-	strTemp += String.fromCharCode(8730); //√
-	var strDegree = this.getDegree().GetTextOfElement();
-	var Base = this.getBase().GetTextOfElement();
 
-	if (Base.length > 1 || strDegree.length > 1) {
-		if (strDegree != "⬚") {
-			strTemp += '(' + strDegree + '&' + Base + ')';
-		}
-		else {
-			strTemp += '(' + Base + ')';
-		}
-	}
-	else {
-		strTemp += Base;
+	var strDegree = this.getDegree().GetTextOfElement(isLatex);
+	var strBase = this.getBase().GetTextOfElement(isLatex);
+
+	if (isLatex) {
+		strDegree = (strDegree === "⬚")
+			? ""
+			: '[' + strDegree + ']';
+		strBase = (strBase.length > 1)
+			? '{' + strBase + '}'
+			: strBase;
+		
+		strTemp =
+			'\\sqrt'
+			+ strDegree
+			+ strBase;
+			
+	} else {
+		var strRadicalSymbol = String.fromCharCode(8730); //√
+
+		strDegree = (strDegree !== "⬚")
+			? strDegree + '&'
+			: "";
+		strBase = (strBase !== "⬚")
+			? strBase
+			: "";
+		
+			strTemp =
+			strRadicalSymbol
+			+ '('
+			+ strDegree
+			+ strBase
+			+ ')';
 	}
 
 	return strTemp;

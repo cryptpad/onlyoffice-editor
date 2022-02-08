@@ -9246,14 +9246,18 @@ CMathContent.prototype.private_ReplaceAutoCorrect = function(AutoCorrectEngine) 
         }
     }
 };
-CMathContent.prototype.GetTextOfElement = function() {
+CMathContent.prototype.GetTextOfElement = function(isLaTeX) {
 	var str = "";
 	for (var i = 0; i < this.Content.length; i++) {
-		str += this.Content[i].GetTextOfElement();
+		str += this.Content[i].GetTextOfElement(isLaTeX);
 	}
 	return str;
 }
-CMathContent.prototype.GetTextContent = function(bSelectedText) {
+CMathContent.prototype.GetTextContent = function(bSelectedText, isLaTeX) {
+	if (undefined === isLaTeX || null === isLaTeX) {
+		isLaTeX = false;
+	}
+
 	var str = "";
 	var StartPos = 0; 
 	var EndPos = this.Content.length;
@@ -9262,10 +9266,13 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 		EndPos   = (this.Selection.Use == true ? Math.max(this.Selection.StartPos, this.Selection.EndPos) : this.CurPos.ContentPos);
 	}
 
-	for (var i = StartPos; i < EndPos; i++) {
-		str += this.Content[i].GetTextOfElement();
+	for (var i = StartPos; i <= EndPos; i++) {
+		if (this.Content[i] !== undefined) {
+			str += this.Content[i].GetTextOfElement(false);
+		}
 	}
 
+	console.log(str)
 	return {str: str};
 };
 function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {

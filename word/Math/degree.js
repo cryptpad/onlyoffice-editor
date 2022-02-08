@@ -541,16 +541,29 @@ CDegree.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos == 1 && false === this.Is_SelectInside(); // находимся в итераторе
 };
-CDegree.prototype.GetTextOfElement = function() {
+CDegree.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	var Base = this.getBase().GetTextOfElement();
+	var Base = this.getBase().GetTextOfElement(isLaTeX);
 	var type = this.Pr.type === 1 ? '^' : '_';
-	var Iterator = this.getIterator().GetTextOfElement();
+	var strIterator = this.getIterator().GetTextOfElement(isLaTeX);
 
-	strTemp =
-		Base
-		+ type
-		+ '(' + Iterator + ')';
+
+	if (isLaTeX) {
+		strIterator = strIterator.length > 1 ? '{' + strIterator + '}' : strIterator;
+		Base = Base.length > 1
+		? '{'+ Base +'}'
+		: Base;
+
+		strTemp = Base + type + strIterator;
+	} else {
+		strIterator = strIterator.length > 1 ? '(' + strIterator + ')' : strIterator;
+		Base = Base.length > 1
+			? '〖'+ Base +'〗'
+			: Base;
+
+		strTemp = Base + type + strIterator;
+	}
+	
 
 	return strTemp;
 };
@@ -1208,39 +1221,46 @@ CDegreeSubSup.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos !== 0 && false === this.Is_SelectInside(); // находимся в итераторе
 };
-CDegreeSubSup.prototype.GetTextOfElement = function() {
+CDegreeSubSup.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	var Base = this.getBase().GetTextOfElement();
+	var Base = this.getBase().GetTextOfElement(isLaTeX);
+	var strLower = this.getLowerIterator().GetTextOfElement(isLaTeX);
+	var strUpper = this.getUpperIterator().GetTextOfElement(isLaTeX);
+	var isPreScript = this.Pr.type === -1;
 
-	var StartBracet = Base.length > 1 ? "〖" : "";
-	var CloseBracet = Base.length > 1 ? "〗" : "";
+	if (isLaTeX) {
+		strLower = strLower.length > 1
+			? '{' + strLower + '}'
+			: strLower;
+		strUpper = strUpper.length > 1
+			? '{' + strUpper + '}'
+			: strUpper;
+		Base = Base.length > 1
+			? '{'+ Base +'}'
+			: Base;
 
-	var lower = this.getLowerIterator().GetTextOfElement();
-	var upper = this.getUpperIterator().GetTextOfElement();
+		if (true === isPreScript) {
+			strTemp = '{' + '_' + strLower + '^' + strUpper + '}' + Base;
+		} else {
+			strTemp = Base + '_' + strLower + '^' + strUpper;
+		}
+	} else {
+		strLower = strLower.length > 1
+			? '(' + strLower + ')'
+			: strLower;
+		strUpper = strUpper.length > 1
+			? '(' + strUpper + ')'
+			: strUpper;
+		Base = Base.length > 1
+			? '〖'+ Base +'〗'
+			: Base;
 
-	if (lower.length > 1) {
-		lower = '(' + lower + ')';
+		if (true === isPreScript) {
+			strTemp = '(' + '_' + strLower + '^' + strUpper + ')' + Base;
+		} else {
+			strTemp = Base + '_' + strLower + '^' + strUpper;
+		}
 	}
-
-	if (upper.length > 1) {
-		upper = '(' + upper + ')';
-	}
-
-	var BaseString =
-		StartBracet
-		+ Base
-		+ CloseBracet ;
-	
-	strTemp =
-		(this.Pr.type == 1 ? BaseString : '')
-		+ (this.Pr.type == -1 ? "(" : '')
-		+ "_"
-		+ lower
-		+ "^"
-		+ upper
-		+ (this.Pr.type == -1 ? ")" : '')
-		+ (this.Pr.type == -1 ? BaseString : '');
-
 	return strTemp;
 };
 

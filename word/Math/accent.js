@@ -688,19 +688,59 @@ CAccent.prototype.Get_InterfaceProps = function()
 {
     return new CMathMenuAccent(this);
 };
-CAccent.prototype.GetTextOfElement = function() {
+CAccent.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	var Base = this.getBase().GetTextOfElement();
+	var Base = this.getBase().GetTextOfElement(isLaTeX);
 	var Accent = String.fromCharCode(this.Pr.chr);
 	var StartBracet = Base.length > 1 ? "(" : "";
 	var CloseBracet = Base.length > 1 ? ")" : "";
 	
-	strTemp =
+	if (isLaTeX) {
+		var intAccentCode = Accent.charCodeAt();
+
+		switch (intAccentCode) {
+			case 768:
+				Accent = '\\grave'
+				break;
+			case 769:
+				Accent = '\\acute'
+				break;
+			case 771:
+				Accent = '\\tilde'
+				break;
+			case 831: //  ̿ doesn't exist in LaTeX
+			case 773:
+				Accent = '\\bar'
+				break;
+			case 774:
+				Accent = '\\breve'
+				break;
+			case 775:
+				Accent = '\\dot'
+				break;
+			case 776:
+				Accent = '\\ddot'
+				break;
+			case 780:
+				Accent = '\\check'
+				break;
+			case 8411:
+				Accent = '\\dddot'
+				break;	
+			default:
+				Accent = '\\hat' //???
+				break;
+		}
+
+		
+	} else {
+		strTemp =
 		StartBracet
 		+ Base
 		+ CloseBracet
 		+ Accent;
-
+	}
+	//console.log(Accent, Accent.charCodeAt())
 	return strTemp;
 };
 

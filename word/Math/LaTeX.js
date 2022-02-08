@@ -44,7 +44,8 @@
 
 var LaTeX = 0;
 var Unicode = 1;
-//P\left(A=2\middle|\frac{A^2}{B}>4\right)
+//TODO: P\left(A=2\middle|\frac{A^2}{B}>4\right)
+//TODO: Add pre-script with degree OR index for unicode and LaTeX: _x{1+2}... 
 //change process of making degree and indexes
 function EquationProcessing(Parent) {
 	this.Parent = Parent;
@@ -2353,7 +2354,6 @@ CLaTeXParser.prototype.arrLaTeXSymbols = {
 	"zwsp": 0x200b,
 };
 function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
-	debugger
 	var eProc = Parser.Processing;
 	var strAtom;
 	var isDontWrite = function(index) {
