@@ -12839,13 +12839,14 @@ ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oPa
 	if (!this.Content[nPos].IsSpace())
 		return false;
 
-	var oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
+	var oRunElementsBefore = new CParagraphRunElements(oContentPos, 2, null, false);
 	oRunElementsBefore.SetSaveContentPositions(true);
 	oParagraph.GetPrevRunElements(oRunElementsBefore);
 	var arrElements = oRunElementsBefore.GetElements();
 	var oHistory    = oDocument.GetHistory();
-	if (1 !== arrElements.length
+	if (2 !== arrElements.length
 		|| !arrElements[0].IsSpace()
+		|| !arrElements[1].IsText()
 		|| !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0], 1, 500))
 		return false;
 
