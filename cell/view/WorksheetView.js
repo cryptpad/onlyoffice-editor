@@ -545,22 +545,47 @@
     hiddenCanv.height = sizes.extY;
     var hiddenCtx = hiddenCanv.getContext('2d');
     var mainCanv = this.drawingCtx.canvas;
-    hiddenCtx.drawImage(
-      mainCanv,
-      sizes.offX,
-      sizes.offY,
-      hiddenCanv.width,
-      hiddenCanv.height,
-      0,
-      0,
-      hiddenCanv.width,
-      hiddenCanv.height);
+    var graphicCanv = document.querySelector('#ws-canvas-graphic');
+    var drawOnHidden = function (canv) {
+      hiddenCtx.drawImage(
+        canv,
+        sizes.offX,
+        sizes.offY,
+        hiddenCanv.width,
+        hiddenCanv.height,
+        0,
+        0,
+        hiddenCanv.width,
+        hiddenCanv.height);
+    }
+    drawOnHidden(mainCanv);
+    drawOnHidden(graphicCanv);
+
     var dataUrl = hiddenCanv.toDataURL();
     return dataUrl;
   }
-  
-  WorksheetView.prototype.createImageForChartOleObject = function () {
 
+  WorksheetView.prototype.createChartImage = function(idx) {
+    var oChart;
+    var charts = this.getCharts();
+    if (idx) {
+
+    } else {
+      oChart = charts[0];
+    }
+    var image = oChart.createImage();
+    return image;
+  }
+
+  WorksheetView.prototype.getCharts = function () {
+    var charts = [];
+    function appendChart(obj) {
+      if (obj.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+        charts.push(obj);
+      }
+    }
+    this.model.handleDrawings(appendChart);
+    return charts;
   }
 
   WorksheetView.prototype.findLastRow = function () {

@@ -1352,6 +1352,35 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         return false;
     };
 
+    DrawingBase.prototype.createImage = function() {
+        //var worksheetCanv = this.worksheet && this.worksheet.drawingCtx && this.worksheet.drawingCtx.canvas;
+        var worksheetCanv = document.querySelector('#ws-canvas-graphic-overlay');
+        if (worksheetCanv) {
+            var height = 500;
+            var width = 500;
+            var x = this.Pos.X;
+            var y = this.Pos.Y;
+
+            var hiddenCanv = document.createElement('canvas');
+            hiddenCanv.width = width;
+            hiddenCanv.height = height;
+            var hiddenCtx = hiddenCanv.getContext('2d');
+            var mainCanv = worksheetCanv;
+            hiddenCtx.drawImage(
+              mainCanv,
+              x,
+              y,
+              hiddenCanv.width,
+              hiddenCanv.height,
+              0,
+              0,
+              hiddenCanv.width,
+              hiddenCanv.height);
+            var dataUrl = hiddenCanv.toDataURL();
+            return dataUrl;
+        }
+    };
+
     DrawingBase.prototype.getAllFonts = function(AllFonts) {
         var _t = this;
         _t.graphicObject && _t.graphicObject.documentGetAllFontNames && _t.graphicObject.documentGetAllFontNames(AllFonts);

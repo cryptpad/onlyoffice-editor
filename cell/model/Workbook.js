@@ -2156,6 +2156,9 @@
 			ws.initPostOpenZip(pivotCaches, t.oNumFmtsOpen);
 		});
 	};
+	Workbook.prototype.isChartOleObject = function () {
+		return this.aWorksheets.length === 2;
+	}
 	Workbook.prototype.setCommonIndexObjectsFrom = function(wb) {
 		this.oStyleManager = wb.oStyleManager;
 		this.sharedStrings = wb.sharedStrings;

@@ -3327,8 +3327,7 @@ var editor;
     var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
     var binaryData = oBinaryFileWriter.Write().split(';');
     var cleanBinaryData = binaryData[binaryData.length - 1];
-    var worksheet = this.wb.getWorksheet();
-    var dataUrl = worksheet.createImageFromMaxRange();
+    var dataUrl = this.wb.getImageFromTableOleObject();
 
     var fAfterUploadOleObjectImage = function (url) {
       var binaryInfo = {};
