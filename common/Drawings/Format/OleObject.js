@@ -378,6 +378,42 @@ function (window, undefined) {
             }
         }
     };
-        window['AscFormat'] = window['AscFormat'] || {};
-        window['AscFormat'].COleObject = COleObject;
+    COleObject.prototype.GetAllOleObjects = function(sPluginId, arrObjects) {
+        if(typeof sPluginId === "string" && sPluginId.length > 0) {
+            if(sPluginId === this.m_sApplicationId) {
+                arrObjects.push(this);
+            }
+        }
+        else {
+            arrObjects.push(this);
+        }
+    };
+    COleObject.prototype.getDataObject = function() {
+        var dWidth = 0, dHeight = 0;
+        if(this.parent && this.parent.Extent) {
+            var oExtent = this.parent.Extent;
+            dWidth = oExtent.W;
+            dHeight = oExtent.H;
+        }
+        else {
+            if(this.spPr && this.spPr.xfrm) {
+                var oXfrm = this.spPr.xfrm;
+                dWidth = oXfrm.extX;
+                dHeight = oXfrm.extY;
+            }
+        }
+        var oBlipFill = this.blipFill;
+        return {
+            "Data": this.m_sData,
+            "ApplicationId": this.m_sApplicationId,
+            "ImageData": oBlipFill ? oBlipFill.getBase64RasterImageId(false) : "",
+            "Width": dWidth,
+            "Height": dHeight,
+            "WidthPix": this.m_nPixWidth,
+            "HeightPix": this.m_nPixHeight,
+            "InternalId": this.Id
+        }
+    };
+    window['AscFormat'] = window['AscFormat'] || {};
+    window['AscFormat'].COleObject = COleObject;
 })(window);

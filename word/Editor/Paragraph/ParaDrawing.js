@@ -271,6 +271,18 @@ ParaDrawing.prototype.GetAllDrawingObjects = function(arrDrawingObjects)
 
 	return arrDrawingObjects;
 };
+ParaDrawing.prototype.GetAllOleObjects = function(sPluginId, arrObjects)
+{
+	if (!Array.isArray(arrObjects))
+	{
+		arrObjects = [];
+	}
+
+	if (this.GraphicObj.GetAllOleObjects)
+		this.GraphicObj.GetAllOleObjects(sPluginId, arrObjects);
+
+	return arrObjects;
+};
 ParaDrawing.prototype.canRotate = function()
 {
 	return AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.canRotate == "function" && this.GraphicObj.canRotate();

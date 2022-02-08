@@ -6731,6 +6731,58 @@ CDocument.prototype.RemoveBeforePaste = function()
 	else
 		this.Remove(1, true, true, true);
 };
+CDocument.prototype.RemoveDrawingObjectById = function(sObjectId)
+{
+    var oState = this.SaveDocumentState();
+    var oDrawing = AscCommon.g_oTableId.Get_ById(sObjectId);
+    oDrawing.Set_CurrentElement(false, null);
+    if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Remove, null, true, this.IsFormFieldEditing()))
+    {
+        this.StartAction(AscDFH.historydescription_Document_BackSpaceButton);
+        this.Remove(-1, true, false, false, false, true);
+        this.FinalizeAction();
+    }
+    this.LoadDocumentState(oState);
+};
+CDocument.prototype.RemoveDrawingObjects = function(arrObjectsId)
+{
+    var oState = this.SaveDocumentState();
+    var oDrawing = AscCommon.g_oTableId.Get_ById(arrObjectsId[0]);
+    if(!oDrawing)
+    {
+        return;
+    }
+    oDrawing.Set_CurrentElement(false, null);
+    var aObjectsToDelete = [];
+    for(var nObject = 0; nObject < arrObjectsId.length; ++nObject)
+    {
+        oDrawing = AscCommon.g_oTableId.Get_ById(arrObjectsId[nObject]);
+        if(oDrawing)
+        {
+            aObjectsToDelete.push(oDrawing);
+            if(oDrawing.group)
+            {
+                oDrawing.getMainGroup().select(this.DrawingObjects);
+            }
+            else
+            {
+                oDrawing.select(this.DrawingObjects);
+            }
+        }
+    }
+    if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Remove, null, true, this.IsFormFieldEditing()))
+    {
+        this.StartAction(AscDFH.historydescription_Document_BackSpaceButton);
+        for(nObject = 0; nObject < aObjectsToDelete.length; ++nObject)
+        {
+            oDrawing = aObjectsToDelete[nObject];
+            oDrawing.Set_CurrentElement(false, null);
+            this.Remove(-1, true, false, false, false, true);
+        }
+        this.FinalizeAction();
+    }
+    this.LoadDocumentState(oState);
+};
 CDocument.prototype.GetCursorPosXY = function()
 {
 	return this.Controller.GetCursorPosXY();
