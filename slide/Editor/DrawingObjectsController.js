@@ -384,30 +384,32 @@ DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
                 binaryInfo.imageUrl = uploadImageUrl;
                 _this.editTableOleObject(binaryInfo);
             }
-            AscCommon.sendImgUrls(this, [blipUrl], uploadImageToServerAndTryEditAgain, false, false, undefined, true);
+            AscCommon.sendImgUrls(_this.api, [blipUrl], uploadImageToServerAndTryEditAgain, null, true);
             return;
         }
 
-        var isImageNotAttendInImageLoader = !_this.api.ImageLoader.map_image_index[blipUrl];
+        var isImageNotAttendInImageLoader = !_this.api.ImageLoader.map_image_index[checkImageUrlFromServer];
         if (isImageNotAttendInImageLoader) {
             var tryToEditOleObjectAgain = function () {
+                binaryInfo.imageUrl = checkImageUrlFromServer;
                 _this.editTableOleObject(binaryInfo);
             }
-            _this.api.ImageLoader.LoadImagesWithCallback([blipUrl], tryToEditOleObjectAgain);
+            _this.api.ImageLoader.LoadImagesWithCallback([checkImageUrlFromServer], tryToEditOleObjectAgain);
             return;
         }
         var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
         if (selectedObjects.oleObjects.length === 1) {
             var selectedOleObject = selectedObjects.oleObjects[0];
-            var blipFill = AscFormat.CreateBlipFillUniFillFromUrl(blipUrl);
-            var rasterImageId = blipFill.fill.RasterImageId;
-            var sizes = AscCommon.getSourceImageSize(rasterImageId);
-
+            var blipFill = AscFormat.CreateBlipFillRasterImageId(blipUrl);
+            var sizes = AscCommon.getSourceImageSize(blipUrl);
             selectedOleObject.setBinaryData(binaryDataOfSheet);
             selectedOleObject.setBlipFill(blipFill);
-            selectedOleObject.spPr.xfrm.setExtX(sizes.width);
-            selectedOleObject.spPr.xfrm.setExtY(sizes.height);
+            var originalWidth = selectedOleObject.spPr.xfrm.extX;
+            var koef = (originalWidth / sizes.width) || 0;
+            selectedOleObject.spPr.xfrm.setExtY(sizes.height * koef);
+            selectedOleObject.parent.CheckWH();
             this.startRecalculate();
+            this.updateOverlay();
         }
     }
 };

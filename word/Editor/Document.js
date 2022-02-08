@@ -6361,6 +6361,10 @@ CDocument.prototype.EditChart = function(Chart)
 {
 	this.Controller.EditChart(Chart);
 };
+CDocument.prototype.EditTableOleObject = function(Chart)
+{
+  this.Controller.EditTableOleObject(Chart);
+};
 CDocument.prototype.GetChartObject = function(type)
 {
     var W = null, H = null;
