@@ -4228,85 +4228,9 @@
         this.WriteWorksheetCols = function(ws)
         {
             var oThis = this;
-            var aCols = ws.aCols;
-            var oPrevCol = null;
-            var nPrevIndexStart = null;
-            var nPrevIndex = null;
-            var aIndexes = [];
-            for(var i in aCols)
-                aIndexes.push(i - 0);
-            aIndexes.sort(AscCommon.fSortAscending);
-            var fInitCol = function(col, nMin, nMax){
-                var oRes = {col: col, Max: nMax, Min: nMin, xfsid: null, width: col.width};
-                if(null == oRes.width)
-                {
-                    if(null != ws.oSheetFormatPr.dDefaultColWidth)
-                        oRes.width = ws.oSheetFormatPr.dDefaultColWidth;
-                    else
-                        oRes.width = AscCommonExcel.oDefaultMetrics.ColWidthChars;
-                }
-                if(null != col.xfs)
-					oRes.xfsid = oThis.stylesForWrite.add(col.xfs);
-                return oRes;
-            };
-            var oAllCol = null;
-            if(null != ws.oAllCol)
-            {
-                oAllCol = fInitCol(ws.oAllCol, 0, gc_nMaxCol0);
-            }
-            for(var i = 0 , length = aIndexes.length; i < length; ++i)
-            {
-                var nIndex = aIndexes[i];
-                var col = aCols[nIndex];
-                if(null != col)
-                {
-                    if(false == col.isEmpty())
-                    {
-                        if(null != oAllCol && null == nPrevIndex && nIndex > 0)
-                        {
-                            oAllCol.Min = 1;
-                            oAllCol.Max = nIndex;
-                            this.bs.WriteItem(c_oSerWorksheetsTypes.Col, function(){oThis.WriteWorksheetCol(oAllCol);});
-                        }
-                        if(null != nPrevIndex && (nPrevIndex + 1 != nIndex || false == oPrevCol.isEqual(col)))
-                        {
-                            var oColToWrite = fInitCol(oPrevCol, nPrevIndexStart + 1, nPrevIndex + 1);
-                            this.bs.WriteItem(c_oSerWorksheetsTypes.Col, function(){oThis.WriteWorksheetCol(oColToWrite);});
-                            nPrevIndexStart = null;
-                            if(null != oAllCol && nPrevIndex + 1 != nIndex)
-                            {
-                                oAllCol.Min = nPrevIndex + 2;
-                                oAllCol.Max = nIndex;
-                                this.bs.WriteItem(c_oSerWorksheetsTypes.Col, function(){oThis.WriteWorksheetCol(oAllCol);});
-                            }
-                        }
-                        oPrevCol = col;
-                        nPrevIndex = nIndex;
-                        if(null == nPrevIndexStart)
-                            nPrevIndexStart = nPrevIndex;
-                    }
-                }
-            }
-            if(null != nPrevIndexStart && null != nPrevIndex && null != oPrevCol)
-            {
-                var oColToWrite = fInitCol(oPrevCol, nPrevIndexStart + 1, nPrevIndex + 1);
-                this.bs.WriteItem(c_oSerWorksheetsTypes.Col, function(){oThis.WriteWorksheetCol(oColToWrite);});
-            }
-            if(null != oAllCol)
-            {
-                if(null == nPrevIndex)
-                {
-                    oAllCol.Min = 1;
-                    oAllCol.Max = gc_nMaxCol0 + 1;
-                    this.bs.WriteItem(c_oSerWorksheetsTypes.Col, function(){oThis.WriteWorksheetCol(oAllCol);});
-                }
-                else if(gc_nMaxCol0 != nPrevIndex)
-                {
-                    oAllCol.Min = nPrevIndex + 2;
-                    oAllCol.Max = gc_nMaxCol0 + 1;
-                    this.bs.WriteItem(c_oSerWorksheetsTypes.Col, function(){oThis.WriteWorksheetCol(oAllCol);});
-                }
-            }
+            this.InitSaveManager.writeCols(ws, this.stylesForWrite, function (oColToWrite) {
+                oThis.bs.WriteItem(c_oSerWorksheetsTypes.Col, function(){oThis.WriteWorksheetCol(oColToWrite);});
+            });
         };
         this.WriteWorksheetCol = function(oTmpCol)
         {
@@ -11878,6 +11802,88 @@
         }
         return styles;
     };
+
+    InitSaveManager.prototype.writeCols = function (ws, stylesForWrite, func) {
+        var aCols = ws.aCols;
+        var oPrevCol = null;
+        var nPrevIndexStart = null;
+        var nPrevIndex = null;
+        var aIndexes = [];
+        var oColToWrite;
+        var i, length;
+
+        for (i in aCols) {
+            aIndexes.push(i - 0);
+        }
+        aIndexes.sort(AscCommon.fSortAscending);
+
+        var fInitCol = function (col, nMin, nMax) {
+            var oRes = {col: col, Max: nMax, Min: nMin, xfsid: null, width: col.width};
+            if (null == oRes.width) {
+                if (null != ws.oSheetFormatPr.dDefaultColWidth) {
+                    oRes.width = ws.oSheetFormatPr.dDefaultColWidth;
+                } else {
+                    oRes.width = AscCommonExcel.oDefaultMetrics.ColWidthChars;
+                }
+            }
+            if (null != col.xfs) {
+                oRes.xfsid = stylesForWrite.add(col.xfs);
+            }
+            return oRes;
+        };
+
+        var oAllCol = null;
+        if (null != ws.oAllCol) {
+            oAllCol = fInitCol(ws.oAllCol, 0, gc_nMaxCol0);
+        }
+
+        for (i = 0, length = aIndexes.length; i < length; ++i) {
+            var nIndex = aIndexes[i];
+            var col = aCols[nIndex];
+            if (null != col) {
+                if (false == col.isEmpty()) {
+                    if (null != oAllCol && null == nPrevIndex && nIndex > 0) {
+                        oAllCol.Min = 1;
+                        oAllCol.Max = nIndex;
+                        func(oAllCol);
+                    }
+
+                    if (null != nPrevIndex && (nPrevIndex + 1 != nIndex || false == oPrevCol.isEqual(col))) {
+                        oColToWrite = fInitCol(oPrevCol, nPrevIndexStart + 1, nPrevIndex + 1);
+                        func(oColToWrite);
+                        nPrevIndexStart = null;
+                        if (null != oAllCol && nPrevIndex + 1 != nIndex) {
+                            oAllCol.Min = nPrevIndex + 2;
+                            oAllCol.Max = nIndex;
+                            func(oAllCol);
+                        }
+                    }
+                    oPrevCol = col;
+                    nPrevIndex = nIndex;
+                    if (null == nPrevIndexStart) {
+                        nPrevIndexStart = nPrevIndex;
+                    }
+                }
+            }
+        }
+        if (null != nPrevIndexStart && null != nPrevIndex && null != oPrevCol) {
+            oColToWrite = fInitCol(oPrevCol, nPrevIndexStart + 1, nPrevIndex + 1);
+            func(oColToWrite);
+        }
+
+        if (null != oAllCol) {
+            if (null == nPrevIndex) {
+                oAllCol.Min = 1;
+                oAllCol.Max = gc_nMaxCol0 + 1;
+                func(oAllCol);
+            } else if (gc_nMaxCol0 !== nPrevIndex) {
+                oAllCol.Min = nPrevIndex + 2;
+                oAllCol.Max = gc_nMaxCol0 + 1;
+                func(oAllCol);
+            }
+        }
+    };
+
 
     var prot;
     window['Asc'] = window['Asc'] || {};

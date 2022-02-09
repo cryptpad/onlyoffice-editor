@@ -9402,11 +9402,9 @@
 
 		writer.WriteXmlNodeStart(ns + name);
 
-		//writer.WriteXmlNullableAttributeBool("auto", this.auto);
-		//writer.WriteXmlNullableAttributeNumber("indexed", this.indexed);
 
-		if (color.rgb) {
-			var nIndex = GetDefaultIndexByRGBA(color.getR(), color.getG(), color.getB(), color.getA());
+		if (color.rgb && !color.theme) {
+			var nIndex = GetDefaultIndexByRGBA(color.getR(), color.getG(), color.getB(), 255);
 			if (-1 === nIndex) {
 				//TODO проверить rgb
 				writer.WriteXmlAttributeString("rgb", IntToHex(color.getRgb()));
@@ -9417,6 +9415,11 @@
 
 		writer.WriteXmlNullableAttributeNumber("theme", color.theme);
 		writer.WriteXmlNullableAttributeDouble("tint", color.tint);
+
+		//TODO ?
+		if (!color.rgb && !color.theme && !color.tint) {
+			writer.WriteXmlNullableAttributeBool("auto", 1);
+		}
 
 		writer.WriteXmlAttributesEnd(true);
 	}

@@ -1157,8 +1157,13 @@
 		}
 
 		//WriteWorksheetCols
-		//TODO пропускаю пока cols
-
+		var colsToWrite = new CT_Cols(this);
+		context.InitSaveManager.writeCols(this, context.stylesForWrite, function (oColToWrite) {
+			colsToWrite.val.push(oColToWrite);
+		});
+		if (colsToWrite.val.length) {
+			colsToWrite.toXml(writer, "cols");
+		}
 
 		//sheetData
 		writer.WriteXmlNodeStart('sheetData');
@@ -1551,6 +1556,39 @@
 				this.val.push(oTempCol);
 			}
 		}
+	};
+
+
+	CT_Cols.prototype.toXml = function(writer, name, ns) {
+		if (!this.val.length) {
+			return;
+		}
+		if (!ns) {
+			ns = "";
+		}
+
+		writer.WriteXmlNodeStart(ns + name);
+		writer.WriteXmlAttributesEnd();
+
+		for (var i = 0; i < this.val.length; i++) {
+			var oTmpCol = this.val[i];
+			var oCol = oTmpCol.col;
+
+			writer.WriteXmlNodeStart("col");
+			writer.WriteXmlNullableAttributeBool("bestFit", oCol.BestFit);
+			writer.WriteXmlNullableAttributeBool("collapsed", oCol.collapsed ? oCol.collapsed : null);
+			writer.WriteXmlNullableAttributeBool("customWidth", oCol.CustomWidth);
+			writer.WriteXmlNullableAttributeBool("hidden", oCol.hd ? oCol.hd : null);
+			writer.WriteXmlNullableAttributeNumber("min", oTmpCol.Min);
+			writer.WriteXmlNullableAttributeNumber("max", oTmpCol.Max);
+			writer.WriteXmlNullableAttributeNumber("outlineLevel", oCol.outlineLevel >0 ? oCol.outlineLevel : null);
+			//writer.WriteXmlNullableAttributeBool("phonetic", this.phonetic);
+			writer.WriteXmlNullableAttributeNumber("style", oTmpCol.xfsid);
+			writer.WriteXmlNullableAttributeDouble("width", oTmpCol.width);
+			writer.WriteXmlAttributesEnd(true);
+		}
+
+		writer.WriteXmlNodeEnd(ns + name);
 	};
 
 
@@ -9483,7 +9521,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 	AscCommonExcel.BorderProp.prototype.toXml = function (writer, name, ns, childns) {
-
 		if (!ns) {
 			ns = "";
 		}
@@ -9499,7 +9536,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		//в x2t используется toXMLWithNS
 
 		//TODO color
-		if (this.c) {
+		if (this.c && this.s !== Asc.c_oAscBorderStyles.None) {
 			AscCommon.writeColorToXml(writer, "color", this.c, childns);
 		}
 
@@ -9877,14 +9914,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlNodeStart(ns + name);
 		writer.WriteXmlNullableAttributeString("horizontal", AscCommonExcel.ToXml_ST_HorizontalAlignment(this.hor));
-		writer.WriteXmlNullableAttributeNumber("indent", this.indent);
+		writer.WriteXmlNullableAttributeNumber("indent", this.indent !== 0 ? this.indent : null);
 		writer.WriteXmlNullableAttributeBool("justifyLastLine", this.justifyLastLine);
 		//writer.WriteXmlNullableAttributeNumber("readingOrder", this.readingOrder);
-		writer.WriteXmlNullableAttributeNumber("relativeIndent", this.RelativeIndent);
-		writer.WriteXmlNullableAttributeBool("shrinkToFit", this.shrink);
-		writer.WriteXmlNullableAttributeNumber("textRotation", this.angle);
-		writer.WriteXmlNullableAttributeString("vertical",  AscCommonExcel.ToXml_ST_VerticalAlignment(this.ver));
-		writer.WriteXmlNullableAttributeBool("wrapText", this.wrap);
+		writer.WriteXmlNullableAttributeNumber("relativeIndent", this.RelativeIndent !== 0 ? this.RelativeIndent : null);
+		writer.WriteXmlNullableAttributeBool("shrinkToFit", this.shrink !== false ? this.angle : null);
+		writer.WriteXmlNullableAttributeNumber("textRotation", this.angle !== 0 ? this.angle : null);
+		writer.WriteXmlNullableAttributeString("vertical",  this.ver !== 0 ? AscCommonExcel.ToXml_ST_VerticalAlignment(this.ver) : null);
+		writer.WriteXmlNullableAttributeBool("wrapText", this.wrap !== false ? this.wrap : null);
 		writer.WriteXmlAttributesEnd(true);
 	};
 
@@ -10841,7 +10878,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			//добавляю в context по аналогии с записью в serialize, проверить!
 			writer.context.isCellStyle = true;
 			writer.WriteXmlArray(this.oXfsStylesMap, "xf", "cellStyleXfs", true);
-			writer.context.undefined = true;
+			writer.context.isCellStyle = undefined;
 		}
 		if (this.oXfsMap.elems) {
 			//xfForWrite
@@ -11018,7 +11055,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (xf && (isProtection || xf.align)) {
 			writer.WriteXmlAttributesEnd();
 			if (xf.align) {
-				xf.align.toXml(writer, "aligment");
+				xf.align.toXml(writer, "alignment");
 			}
 			if (isProtection) {
 				writer.WriteXmlAttributesEnd();
