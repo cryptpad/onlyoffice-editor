@@ -2151,7 +2151,7 @@ var editor;
 
 		//история версий - возможно стоит грамотно чистить wbview, но не пересоздавать
 		var previousVersionZoom;
-		if (this.VersionHistory && this.controller) {
+		if ((this.VersionHistory || this.isOleEditor) && this.controller) {
 			var elem = document.getElementById("ws-v-scrollbar");
 			if (elem) {
 				elem.parentNode.removeChild(elem);
@@ -2218,8 +2218,8 @@ var editor;
 			this.sendEvent('asc_onError', c_oAscError.ID.OpenWarning, c_oAscError.Level.NoCritical);
 		}
 
-		if (this.VersionHistory) {
-			if (this.VersionHistory.changes) {
+		if (this.VersionHistory || this.isOleEditor) {
+			if (this.VersionHistory && this.VersionHistory.changes) {
 				this.VersionHistory.applyChanges(this);
 			}
 			this.sheetsChanged();
@@ -3305,18 +3305,18 @@ var editor;
     var file = new AscCommon.OpenFileResult();
     file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
     file.data = stream;
+    this.isOleEditor = true;
     this.asc_CloseFile();
-    this._onEndLoadSdk();
     this.openDocument(file);
-    var oThis = this;
-    this.asyncMethodCallback = function () {
-      oThis.FontLoadWaitComplete = true;
-      oThis._openDocumentEndCallback();
-      console.log(oThis.wb)
-      oThis.wb.resize();
-    var inputContext = AscCommon.g_inputContext;
-    inputContext.appendInputToCanvas();
-    };
+    // var oThis = this;
+    // this.asyncMethodCallback = function () {
+    //   oThis.FontLoadWaitComplete = true;
+    //   oThis._openDocumentEndCallback();
+    //   console.log(oThis.wb)
+    //   oThis.wb.resize();
+    // //var inputContext = AscCommon.g_inputContext;
+    // //inputContext.appendInputToCanvas();
+    // };
   };
  /**
   *

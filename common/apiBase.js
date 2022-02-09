@@ -123,6 +123,8 @@
 		this.isChartEditor         = false;
 		this.isOpenedChartFrame    = false;
 
+		this.isOleEditor = false;
+
 		this.MathMenuLoad          = false;
 
 		// CoAuthoring and Chat
