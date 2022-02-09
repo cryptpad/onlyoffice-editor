@@ -1527,6 +1527,7 @@ var editor;
 			}
 
 			//styles
+			var dxfs = [];
 			var aCellXfs = [];
 			var stylesPart = wbPart.getPartByRelationshipType(openXml.Types.styles.relationType);
 			if (stylesPart) {
@@ -1541,11 +1542,12 @@ var editor;
 						aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: styleSheet.aExtDxfs, aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: styleSheet.oCustomSlicerStyles};
 
 					xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
-					//TODO aDxfs = oStyleObject.aDxfs;
+					dxfs = oStyleObject.aDxfs;
 					wb.oNumFmtsOpen = oStyleObject.oNumFmts;
 				}
 			}
 			xmlParserContext.InitOpenManager.aCellXfs = aCellXfs;
+			xmlParserContext.InitOpenManager.Dxfs = dxfs;
 
 			//jsaProject
 			var jsaProjectPart = wbPart.getPartByRelationshipType(openXml.Types.jsaProject.relationType);

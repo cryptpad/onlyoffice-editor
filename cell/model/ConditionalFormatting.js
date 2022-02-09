@@ -2107,6 +2107,12 @@
 	CFormulaCF.prototype.asc_setText = function (val) {
 		this.Text = val;
 	};
+	CFormulaCF.prototype.isExtended = function () {
+		//if ((m_arrFormula[i].IsInit()) && m_arrFormula[i]->isExtended())
+		//TODO в x2t условие, которое  в нашем случае не получится использовать, мы не храним этот флаг
+		//m_arrFormula[i]->isExtended() -> return (m_sNodeName == L"xm:f");
+		return true;
+	};
 
 	function CIconSet() {
 		this.IconSet = EIconSetType.Traffic3Lights1;
