@@ -9407,7 +9407,7 @@
 			var nIndex = GetDefaultIndexByRGBA(color.getR(), color.getG(), color.getB(), 255);
 			if (-1 === nIndex) {
 				//TODO проверить rgb
-				writer.WriteXmlAttributeString("rgb", IntToHex(color.getRgb()));
+				writer.WriteXmlAttributeString("rgb", "FF" + IntToHex(color.getRgb()).toUpperCase());
 			} else {
 				writer.WriteXmlAttributeNumber("indexed", nIndex);
 			}

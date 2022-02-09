@@ -484,6 +484,175 @@
 		return res;
 	}
 
+	function FromXML_ST_CfvoType(val) {
+		var res = null;
+		switch (val) {
+			case "percent":
+				res = Asc.c_oAscCfvoType.Percent;
+				break;
+			case "max":
+				res = Asc.c_oAscCfvoType.Maximum;
+				break;
+			case "min":
+				res = Asc.c_oAscCfvoType.Minimum;
+				break;
+			case "percentile":
+				res = Asc.c_oAscCfvoType.Percentile;
+				break;
+			case "autoMin":
+				res = Asc.c_oAscCfvoType.AutoMin;
+				break;
+			case "autoMax":
+				res = Asc.c_oAscCfvoType.AutoMax;
+				break;
+		}
+		return res;
+	}
+
+	function ToXML_ST_CfvoType(val) {
+		var res = null;
+		switch (val) {
+			case Asc.c_oAscCfvoType.Percent:
+				res = "percent";
+				break;
+			case Asc.c_oAscCfvoType.Maximum:
+				res = "max";
+				break;
+			case Asc.c_oAscCfvoType.Minimum:
+				res = "min";
+				break;
+			case Asc.c_oAscCfvoType.Percentile:
+				res = "percentile";
+				break;
+			case Asc.c_oAscCfvoType.AutoMin:
+				res = "autoMin";
+				break;
+			case Asc.c_oAscCfvoType.AutoMax:
+				res = "autoMax";
+				break;
+		}
+		return res;
+	}
+
+	function FromXML_ST_CfType(val) {
+		var res = null;
+		switch(val) {
+			case "aboveAverage":
+				res = Asc.ECfType.aboveAverage;
+				break;
+			case "beginsWith":
+				res = Asc.ECfType.beginsWith;
+				break;
+			case "cellIs":
+				res = Asc.ECfType.cellIs;
+				break;
+			case "colorScale":
+				res = Asc.ECfType.colorScale;
+				break;
+			case "containsBlanks":
+				res = Asc.ECfType.containsBlanks;
+				break;
+			case "containsErrors":
+				res = Asc.ECfType.containsErrors;
+				break;
+			case "containsText":
+				res = Asc.ECfType.containsText;
+				break;
+			case "dataBar":
+				res = Asc.ECfType.dataBar;
+				break;
+			case "duplicateValues":
+				res = Asc.ECfType.duplicateValues;
+				break;
+			case "notContainsBlanks":
+				res = Asc.ECfType.notContainsBlanks;
+				break;
+			case "notContainsErrors":
+				res = Asc.ECfType.notContainsErrors;
+				break;
+			case "notContainsText":
+				res = Asc.ECfType.notContainsText;
+				break;
+			case "timePeriod":
+				res = Asc.ECfType.timePeriod;
+				break;
+			case "top10":
+				res = Asc.ECfType.top10;
+				break;
+			case "uniqueValues":
+				res = Asc.ECfType.uniqueValues;
+				break;
+			case "endsWith":
+				res = Asc.ECfType.endsWith;
+				break;
+			case "iconSet":
+				res = Asc.ECfType.iconSet;
+				break;
+		}
+		return res;
+	}
+
+	function ToXML_ST_CfType(val) {
+		var res = null;
+		switch(val) {
+			case Asc.ECfType.aboveAverage:
+				res = "aboveAverage";
+				break;
+			case Asc.ECfType.beginsWith:
+				res = "beginsWith";
+				break;
+			case Asc.ECfType.cellIs:
+				res = "cellIs";
+				break;
+			case Asc.ECfType.colorScale:
+				res = "colorScale";
+				break;
+			case Asc.ECfType.containsBlanks:
+				res = "containsBlanks";
+				break;
+			case Asc.ECfType.containsErrors:
+				res = "containsErrors";
+				break;
+			case Asc.ECfType.containsText:
+				res = "containsText";
+				break;
+			case Asc.ECfType.dataBar:
+				res = "dataBar";
+				break;
+			case Asc.ECfType.duplicateValues:
+				res = "duplicateValues";
+				break;
+			case Asc.ECfType.notContainsBlanks:
+				res = "notContainsBlanks";
+				break;
+			case Asc.ECfType.notContainsErrors:
+				res = "notContainsErrors";
+				break;
+			case Asc.ECfType.notContainsText:
+				res = "notContainsText";
+				break;
+			case Asc.ECfType.timePeriod:
+				res = "timePeriod";
+				break;
+			case Asc.ECfType.top10:
+				res = "top10";
+				break;
+			case Asc.ECfType.uniqueValues:
+				res = "uniqueValues";
+				break;
+			case Asc.ECfType.endsWith:
+				res = "endsWith";
+				break;
+			case Asc.ECfType.iconSet:
+				res = "iconSet";
+				break;
+		}
+		return res;
+	}
+
+
+
+
 
 	//****workbook****
 	function CT_Workbook(wb) {
@@ -1255,7 +1424,6 @@
 			writer.WriteXmlString("</mergeCells>");
 		}
 
-		//TODO пропускаю пока ConditionalFormatting
 		var aConditionalFormattingExt = [];
 		if (this.aConditionalFormattingRules) {
 			for (var i = 0; i < this.aConditionalFormattingRules.length; i++) {
@@ -1349,13 +1517,14 @@
 
 			writer.WriteXmlNodeEnd("tableParts");
 		}
-		writer.WriteXmlNodeEnd("worksheet");
 
 		var officeArtExtensionList = new COfficeArtExtensionList(this);
 		var officeArtExtension = new COfficeArtExtension(this);
 		officeArtExtension.aConditionalFormattingRules = aConditionalFormattingExt;
 		officeArtExtensionList.arrExt.push(officeArtExtension);
 		officeArtExtensionList.toXml(writer);
+
+		writer.WriteXmlNodeEnd("worksheet");
 
 		context.ws = null;
 	};
@@ -6966,6 +7135,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		//todo
 		//attributes
 		if (this.uri) {
+			writer.WriteXmlAttributeString("xmlns:x14", "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
 		}
 		if (this.additionalNamespace) {
 		}
@@ -6985,25 +7155,16 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (this.DataModelExt) {
 		}
 		if (this.aConditionalFormattingRules) {
+			writer.WriteXmlNodeStart("x14:conditionalFormattings");
+			writer.WriteXmlAttributesEnd();
 
-
-
-			var oConditionalFormatting = new AscCommonExcel.CConditionalFormatting();
-			oConditionalFormatting.aRules = this.aConditionalFormattingRules;
-			oConditionalFormatting.toXml(writer, true)
-
-
-
-
-			/*sResult += L"<x14:conditionalFormattings>";
-			NSStringUtils::CStringBuilder writer;
-			for (size_t i = 0; i < m_arrConditionalFormatting.size(); i++)
-			{
-				m_arrConditionalFormatting[i]->toXML2(writer, true);
+			for (var i = 0; i < this.aConditionalFormattingRules.length; ++i) {
+				var oConditionalFormatting = new AscCommonExcel.CConditionalFormatting();
+				oConditionalFormatting.aRules = [this.aConditionalFormattingRules[i]];
+				oConditionalFormatting.toXml(writer, true)
 			}
-			sResult += writer.GetData().c_str();
-			sResult += L"</x14:conditionalFormattings>";*/
 
+			writer.WriteXmlNodeEnd("x14:conditionalFormattings");
 		}
 
 		if (this.dataValidations) {
@@ -7410,7 +7571,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString("<" + node_name);
 		if (bExtendedWrite) {
 			//TODO
-			//writer.WriteXmlAttributeString("xmlns:xm", this.xmlns:xm);
+			writer.WriteXmlAttributeString("xmlns:xm", "http://schemas.microsoft.com/office/excel/2006/main");
 		} else {
 			writer.WriteXmlAttributeString("sqref", AscCommonExcel.getSqRefString(this.aRules[0].ranges));
 		}
@@ -7626,59 +7787,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.timePeriod = val;
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
-				switch(val) {
-					case "aboveAverage":
-						this.type = Asc.ECfType.aboveAverage;
-						break;
-					case "beginsWith":
-						this.type = Asc.ECfType.beginsWith;
-						break;
-					case "cellIs":
-						this.type = Asc.ECfType.cellIs;
-						break;
-					case "colorScale":
-						this.type = Asc.ECfType.colorScale;
-						break;
-					case "containsBlanks":
-						this.type = Asc.ECfType.containsBlanks;
-						break;
-					case "containsErrors":
-						this.type = Asc.ECfType.containsErrors;
-						break;
-					case "containsText":
-						this.type = Asc.ECfType.containsText;
-						break;
-					case "dataBar":
-						this.type = Asc.ECfType.dataBar;
-						break;
-					case "duplicateValues":
-						this.type = Asc.ECfType.duplicateValues;
-						break;
-					case "notContainsBlanks":
-						this.type = Asc.ECfType.notContainsBlanks;
-						break;
-					case "notContainsErrors":
-						this.type = Asc.ECfType.notContainsErrors;
-						break;
-					case "notContainsText":
-						this.type = Asc.ECfType.notContainsText;
-						break;
-					case "timePeriod":
-						this.type = Asc.ECfType.timePeriod;
-						break;
-					case "top10":
-						this.type = Asc.ECfType.top10;
-						break;
-					case "uniqueValues":
-						this.type = Asc.ECfType.uniqueValues;
-						break;
-					case "endsWith":
-						this.type = Asc.ECfType.endsWith;
-						break;
-					case "iconSet":
-						this.type = Asc.ECfType.iconSet;
-						break;
-				}
+				this.type = FromXML_ST_CfType(val);
 			}  else if ("id" === reader.GetName()) {
 				val = reader.GetValue();
 				this._openId = val;
@@ -7746,7 +7855,31 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var node_name = bExtendedWrite ? "x14:cfRule" : "cfRule";
 
 		writer.WriteXmlString("<" + node_name);
-		writer.WriteXmlAttributeString("type", this.type);
+
+		/*<xsd:simpleType name="ST_CfType">
+			2673 <xsd:restriction base="xsd:string">
+			2674 <xsd:enumeration value="expression"/>
+			2675 <xsd:enumeration value="cellIs"/>
+			2676 <xsd:enumeration value="colorScale"/>
+			2677 <xsd:enumeration value="dataBar"/>
+			2678 <xsd:enumeration value="iconSet"/>
+			2679 <xsd:enumeration value="top10"/>
+			2680 <xsd:enumeration value="uniqueValues"/>
+			2681 <xsd:enumeration value="duplicateValues"/>
+			2682 <xsd:enumeration value="containsText"/>
+			2683 <xsd:enumeration value="notContainsText"/>
+			2684 <xsd:enumeration value="beginsWith"/>
+			2685 <xsd:enumeration value="endsWith"/>
+			2686 <xsd:enumeration value="containsBlanks"/>
+			2687 <xsd:enumeration value="notContainsBlanks"/>
+			2688 <xsd:enumeration value="containsErrors"/>
+			2689 <xsd:enumeration value="notContainsErrors"/>
+			2690 <xsd:enumeration value="timePeriod"/>
+			2691 <xsd:enumeration value="aboveAverage"/>
+			2692 </xsd:restriction>*/
+
+
+		writer.WriteXmlAttributeString("type", ToXML_ST_CfType(this.type));
 		writer.WriteXmlAttributeNumber("priority", this.priority);
 
 		if (false === this.aboveAverage) {
@@ -7793,6 +7926,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					writer.WriteXmlString("</" + node_formula_name + ">");
 				}
 			}
+		}
+
+		if (this.dxf) {
+			this.dxf.toXml(writer, "x14:dxf");
 		}
 
 		writer.WriteXmlString("</" + node_name + ">");
@@ -7915,12 +8052,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			for (i = 0; i < this.aCFVOs.length; ++i)//todooo - проверить можно ли не чередовать,а как есть записать
 			{
 				if (this.aCFVOs[i]) {
-					this.aCFVOs[i].toXML(writer, bExtendedWrite);
+					this.aCFVOs[i].toXml(writer, bExtendedWrite);
 				}
 			}
 			for (i = 0/*m_arrValues.length*/; i < this.aColors.length; ++i) {
 				if (this.aColors[i]) {
-					this.aColors[i].toXml(writer);
+					AscCommon.writeColorToXml(writer, "color", this.aColors[i]);
 				}
 			}
 			writer.WriteXmlString("</colorScale>");
@@ -7993,34 +8130,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueBool();
 				this.Gte = val;
 			} else if ("type" === reader.GetName()) {
-
-				/*<xsd:enumeration value="num"/>
-				2727 <xsd:enumeration value="percent"/>
-					2728 <xsd:enumeration value="max"/>
-					2729 <xsd:enumeration value="min"/>
-					2730 <xsd:enumeration value="formula"/>
-					2731 <xsd:enumeration value="percentile"/>*/
-
-				//TODO
 				val = reader.GetValue();
-
-				if (val === "percent") {
-					this.Type = Asc.c_oAscCfvoType.Percent;
-				} else if (val === "max") {
-					this.Type = Asc.c_oAscCfvoType.Maximum;
-				} else if (val === "min") {
-					this.Type = Asc.c_oAscCfvoType.Minimum;
-				} else if (val === "formula") {
-
-					//TODO
-
-				} else if (val === "percentile") {
-					this.Type = Asc.c_oAscCfvoType.Percentile;
-				} else if (val === "autoMin") {
-					this.Type = Asc.c_oAscCfvoType.AutoMin;
-				}  else if (val === "autoMax") {
-					this.Type = Asc.c_oAscCfvoType.AutoMax;
-				}
+				this.Type = FromXML_ST_CfvoType(val);
 			} else if ("val" === reader.GetName()) {
 				val = reader.GetValue();
 				this.Val = val;
@@ -8086,7 +8197,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var node_name = bExtendedWrite ? "x14:cfvo" : "cfvo";
 
 		writer.WriteXmlString("<" + node_name);
-		writer.WriteXmlAttributeString("type", this.Type);
+		writer.WriteXmlAttributeString("type", ToXML_ST_CfvoType(this.Type));
 		if (false === this.Gte)
 		{
 			writer.WriteXmlString(" gte=\"0\"");
