@@ -3275,6 +3275,18 @@
   WorkbookView.prototype.scrollToTopLeftCell = function() {
     this.getWorksheet().scrollToTopLeftCell();
   };
+  WorkbookView.prototype.scrollToCell = function (row, column) {
+    this.getWorksheet().scrollToCell(row, column);
+  };
+  WorkbookView.prototype.scrollAndResizeToRange = function (r1, c1, r2, c2) {
+    this.getWorksheet().scrollAndResizeToRange(r1, c1, r2, c2);
+  }
+  WorkbookView.prototype.getLastCell = function () {
+    return this.getWorksheet().getLastCell();
+  }
+  WorkbookView.prototype.getFirstCell = function () {
+    return this.getWorksheet().getFirstCell();
+  }
   WorkbookView.prototype.onShowDrawingObjects = function() {
       var oWSView = this.getWorksheet();
       var oDrawingsRender;

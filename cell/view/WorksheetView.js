@@ -524,6 +524,28 @@
 
 		this.model.initColumns();
 	};
+  /**
+   *
+   * @return {AscFormat.CCellObjectInfo}
+   */
+  WorksheetView.prototype.getLastCell = function () {
+    var lastRow = this.findLastRow();
+    var lastColumn = this.findLastCol();
+
+    var cell = this.findCellByXY(lastColumn.left, lastRow.top);
+    return cell;
+  }
+  /**
+   *
+   * @return {AscFormat.CCellObjectInfo}
+   */
+  WorksheetView.prototype.getFirstCell = function () {
+    var firstRow = this.findFirstRow();
+    var firstColumn = this.findFirstCol();
+
+    var cell = this.findCellByXY(firstColumn.left, firstRow.top);
+    return cell;
+  }
   WorksheetView.prototype.getMaxSizes = function () {
     var offX = this.cellsLeft;
     var offY = this.cellsTop;
@@ -604,6 +626,28 @@
 
     return this.cols.reduce(function (acc, b) {
       if (b.left >= acc.left) {
+        return b;
+      }
+      return acc;
+    }, this.cols[0]);
+  }
+
+  WorksheetView.prototype.findFirstRow = function () {
+    if (!this.rows) return;
+
+    return this.rows.reduce(function (acc, b) {
+      if (b.top < acc.top) {
+        return b;
+      }
+      return acc;
+    }, this.rows[0]);
+  }
+
+  WorksheetView.prototype.findFirstCol = function () {
+    if (!this.cols) return;
+
+    return this.cols.reduce(function (acc, b) {
+      if (b.left < acc.left) {
         return b;
       }
       return acc;
@@ -22858,6 +22902,103 @@
 			callback();
 		}
 	};
+
+  WorksheetView.prototype.getApi = function() {
+    return this.workbook && this.workbook.Api;
+  }
+  /**
+   *
+   * @param { AscCommon.CellBase } d scroll to top left cell of CellBase
+   * @example
+   * // editor shows cells, which start from {row} and {column} indexes
+   * var row = 5;
+   * var column = 5;
+   * var d = new AscCommon.CellBase(row, column);
+   * this.scroll(d);
+   */
+  WorksheetView.prototype.scroll = function (d) {
+    var api = this.getApi();
+    if (api) {
+     api.controller.scroll(d);
+    }
+  }
+  /**
+   *
+   * @param { number } row index of row
+   * @param { number } column index of column
+   */
+  WorksheetView.prototype.scrollToCell = function (row, column) {
+    var currentCell = this.findCellByXY(this.cellsLeft, this.cellsTop);
+    var d = new AscCommon.CellBase(row - currentCell.row, column - currentCell.col);
+    this.scroll(d);
+  }
+
+  /**
+   *
+   * @param { number } r1 start index of row
+   * @param { number } c1 start index of column
+   * @param { number } r2 end index of row
+   * @param { number } c2 end index of column
+   */
+  WorksheetView.prototype.scrollAndResizeToRange = function (r1, c1, r2, c2) {
+    var widthOfRange = this.getWidthOfRangeColumn(c1, c2);
+    var heightOfRange = this.getHeightOfRangeRow(r1, r2);
+    console.log(widthOfRange, heightOfRange)
+    var widthOfFrame = this.getWidthOfFrame();
+    var heightOfFrame = this.getHeightOfFrame();
+
+    var scaleCoefficientHeight = heightOfFrame / heightOfRange;
+    var scaleCoefficientWidth = widthOfFrame / widthOfRange;
+    //console.log(scaleCoefficientWidth, scaleCoefficientHeight)
+    var zoomCoefficient = scaleCoefficientHeight < scaleCoefficientWidth ? scaleCoefficientHeight : scaleCoefficientWidth;
+    var previousZoom = this.getZoom();
+    console.log( previousZoom)
+    this.workbook.changeZoom(previousZoom * zoomCoefficient);
+    console.log(r1, c1)
+    this.scrollToCell(r1, c1);
+  }
+  /**
+   *
+   * @param { number } c1 index from column
+   * @param { number } c2 index to column (include)
+   * @return { number }
+   */
+  WorksheetView.prototype.getWidthOfRangeColumn = function (c1, c2) {
+    var columnsWidth = 0;
+    for (var i = c1; i <= c2; i += 1) {
+      columnsWidth += this.getColumnWidth(i);
+    }
+    return columnsWidth;
+  }
+  /**
+   *
+   * @param { number } r1 index from row
+   * @param { number } r2 index to row (include)
+   * @return {number}
+   */
+  WorksheetView.prototype.getHeightOfRangeRow = function (r1, r2) {
+    var rowsHeight = 0;
+    for (var i = r1; i <= r2; i += 1) {
+      rowsHeight += this.getRowHeight(i);
+    }
+    return rowsHeight;
+  }
+
+  /**
+   *
+   * @return { number }
+   */
+  WorksheetView.prototype.getWidthOfFrame = function () {
+    return this.drawingCtx.getWidth();
+  }
+
+  /**
+   *
+   * @return { number }
+   */
+  WorksheetView.prototype.getHeightOfFrame = function () {
+    return this.drawingCtx.getHeight();
+  }
 
 	WorksheetView.prototype.scrollToTopLeftCell = function () {
 		var topLeftCell = this.model.getTopLeftCell();

@@ -1353,14 +1353,22 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     };
 
     DrawingBase.prototype.createImage = function() {
+        //only for spreadsheets
         //var worksheetCanv = this.worksheet && this.worksheet.drawingCtx && this.worksheet.drawingCtx.canvas;
-        var worksheetCanv = document.querySelector('#ws-canvas-graphic-overlay');
+        var worksheetCanv = document.querySelector('#ws-canvas-graphic');
         if (worksheetCanv) {
-            var height = 500;
-            var width = 500;
-            var x = this.Pos.X;
-            var y = this.Pos.Y;
-
+            var worksheet = this.worksheet;
+            var beginOfCellY = worksheet.cellsTop;
+            var beginOfCellX = worksheet.cellsLeft;
+            // console.log(worksheetCanv.toDataURL())
+            var PPIX = worksheet._getPPIX();
+            var koef = asc.getCvtRatio( 3, 0, PPIX);
+            var height = this.ext.cy * koef;
+            var width = this.ext.cx* koef;
+            var x = this.Pos.X * koef + beginOfCellX;
+            var y = this.Pos.Y * koef + beginOfCellY;
+            // console.log(koef)
+            // console.log(this.ext)
             var hiddenCanv = document.createElement('canvas');
             hiddenCanv.width = width;
             hiddenCanv.height = height;
