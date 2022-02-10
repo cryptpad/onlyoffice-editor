@@ -650,7 +650,20 @@
 		return res;
 	}
 
+	function boolToNumber (val) {
+		return val ? 1 : 0;
+	}
 
+	var extUri = {
+		conditionalFormattings: "{78C0D931-6437-407d-A8EE-F0AAD7539E65}",
+		dataValidations: "{CCE6A557-97BC-4B89-ADB6-D9C93CAAB3DF}",
+		sparklineGroups: "{05C60535-1F16-4FD2-B633-F4F36F0B64E0}",
+		slicerList: "{A8765BA9-456A-4DAB-B4F3-ACF838C121DE}",
+		protectedRanges: "{FC87AEE6-9EDD-4A0A-B7FB-166176984837}",
+		ignoredErrors: "{01252117-D84E-4E92-8308-4BE1C098FCBB}",
+		webExtensions: "{F7C9EE02-42E1-4005-9D12-6889AFFD525C}",
+		timelineRefs: "{7E03D99C-DC04-49d9-9315-930204A7B6E9}"
+	}
 
 
 
@@ -1062,8 +1075,8 @@
 		writer.WriteXmlNullableAttributeString("workbookHashValue", this.workbookHashValue);
 		writer.WriteXmlNullableAttributeString("workbookSaltValue", this.workbookSaltValue);
 		writer.WriteXmlNullableAttributeNumber("workbookSpinCount", this.workbookSpinCount);
-		writer.WriteXmlNullableAttributeNumber("lockStructure", this.lockStructure ? 1 : 0);
-		writer.WriteXmlNullableAttributeNumber("lockWindows", this.lockWindows ? 1 : 0);
+		writer.WriteXmlNullableAttributeNumber("lockStructure", boolToNumber(this.lockStructure));
+		writer.WriteXmlNullableAttributeNumber("lockWindows", boolToNumber(this.lockWindows));
 		writer.WriteXmlNullableAttributeString("workbookPassword", this.workbookPassword);
 		writer.WriteXmlString("/>");
 	};
@@ -1328,7 +1341,7 @@
 			}
 		}
 
-		this.prepareExtLst(extLst);
+		this.prepareExtLst(extLst, context.InitOpenManager);
 	};
 
 	//TODO PrepareToWrite
@@ -1384,13 +1397,13 @@
 		this.toXmlSheetData(writer);
 		writer.WriteXmlNodeEnd("sheetData");
 
-		//Asc.CProtectedRange
-		if (this.aProtectedRanges) {
-			writer.WriteXmlArray(this.aProtectedRanges, "protectedRange", "protectedRanges");
-		}
 		//Asc.CSheetProtection
 		if (this.sheetProtection) {
 			this.sheetProtection.toXml(writer, "sheetProtection");
+		}
+		//Asc.CProtectedRange
+		if (this.aProtectedRanges) {
+			writer.WriteXmlArray(this.aProtectedRanges, "protectedRange", "protectedRanges");
 		}
 		//AscCommonExcel.AutoFilter
 		if (this.AutoFilter) {
@@ -1520,6 +1533,7 @@
 
 		var officeArtExtensionList = new COfficeArtExtensionList(this);
 		var officeArtExtension = new COfficeArtExtension(this);
+		officeArtExtension.uri = extUri.conditionalFormattings;
 		officeArtExtension.aConditionalFormattingRules = aConditionalFormattingExt;
 		officeArtExtensionList.arrExt.push(officeArtExtension);
 		officeArtExtensionList.toXml(writer);
@@ -1864,14 +1878,14 @@
 		writeEndRow();
 	};
 
-	AscCommonExcel.Worksheet.prototype.prepareExtLst = function (extLst) {
+	AscCommonExcel.Worksheet.prototype.prepareExtLst = function (extLst, InitOpenManager) {
 		if (extLst) {
-			this._prepareConditionalFormatting(extLst);
+			this._prepareConditionalFormatting(extLst, InitOpenManager);
 			this._prepareDataValidations(extLst);
 			this._prepareSparklineGroups(extLst);
 		}
 	}
-	AscCommonExcel.Worksheet.prototype._prepareConditionalFormatting = function (extLst) {
+	AscCommonExcel.Worksheet.prototype._prepareConditionalFormatting = function (extLst, InitOpenManager) {
 		//добавляем из ext
 		if (extLst) {
 			var sheetRules = this.aConditionalFormattingRules;
@@ -1886,9 +1900,10 @@
 			for (var i = 0; i < extLst.arrExt.length; i++) {
 				if (extLst.arrExt[i] && extLst.arrExt[i].aConditionalFormattingRules) {
 					for (var j = 0; j < extLst.arrExt[i].aConditionalFormattingRules.length; j++) {
-						var extRule = extLst.arrExt[i].aConditionalFormattingRules[j];
+						var extConditionalFormatting = extLst.arrExt[i].aConditionalFormattingRules[j];
+						var extRule = extConditionalFormatting.aRules[0];
 						//далее смотрим по id, если такое правило на листе
-						var sheetRule = getSheetCf(extRule._openId);
+						var sheetRule = getSheetCf(extRule ? extRule._openId : null);
 						if (sheetRule) {
 							//мержим
 							//TODO merge
@@ -1900,7 +1915,7 @@
 								extRule.updateConditionalFormatting(extRule);
 								this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(extRule);
 							}*/
-							this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(extRule);
+							InitOpenManager.prepareConditionalFormatting(this, extConditionalFormatting);
 						}
 					}
 				}
@@ -6461,29 +6476,34 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							WritingStringNullableAttrInt(L"sort",			m_oSort,			m_oSort->GetValue());
 						writer.WriteString(L"/>");*/
 
+		if (!ns) {
+			ns = "";
+		}
+
 		writer.WriteXmlNodeStart(ns + name/*sheetProtection*/);
 		writer.WriteXmlNullableAttributeString("password", this.password);
-		writer.WriteXmlNullableAttributeString("algorithmName", this.algorithmName);
+		writer.WriteXmlNullableAttributeString("algorithmName", AscCommonExcel.ToXml_ST_AlgorithmName(this.algorithmName));
 		writer.WriteXmlNullableAttributeString("hashValue", this.hashValue);
 		writer.WriteXmlNullableAttributeString("saltValue", this.saltValue);
 		writer.WriteXmlNullableAttributeNumber("spinCount", this.spinCount);
-		writer.WriteXmlNullableAttributeNumber("autoFilter", this.autoFilter);
-		writer.WriteXmlNullableAttributeNumber("content", this.content);
-		writer.WriteXmlNullableAttributeNumber("deleteColumns", this.deleteColumns);
-		writer.WriteXmlNullableAttributeNumber("deleteRows", this.deleteRows);
-		writer.WriteXmlNullableAttributeNumber("formatCells", this.formatCells);
-		writer.WriteXmlNullableAttributeNumber("formatColumns", this.formatColumns);
-		writer.WriteXmlNullableAttributeNumber("formatRows", this.formatRows);
-		writer.WriteXmlNullableAttributeNumber("insertColumns", this.insertColumns);
-		writer.WriteXmlNullableAttributeNumber("insertHyperlinks", this.insertHyperlinks);
-		writer.WriteXmlNullableAttributeNumber("insertRows", this.insertRows);
-		writer.WriteXmlNullableAttributeNumber("objects", this.objects);
-		writer.WriteXmlNullableAttributeNumber("pivotTables", this.pivotTables);
-		writer.WriteXmlNullableAttributeNumber("scenarios", this.scenarios);
-		writer.WriteXmlNullableAttributeNumber("selectLockedCells", this.selectLockedCells);
-		writer.WriteXmlNullableAttributeNumber("selectUnlockedCells", this.selectUnlockedCells);
-		writer.WriteXmlNullableAttributeNumber("sheet", this.sheet);
-		writer.WriteXmlNullableAttributeNumber("sort", this.sort);
+
+		writer.WriteXmlNullableAttributeNumber("autoFilter", boolToNumber(this.autoFilter));
+		writer.WriteXmlNullableAttributeNumber("content", boolToNumber(this.content));
+		writer.WriteXmlNullableAttributeNumber("deleteColumns", boolToNumber(this.deleteColumns));
+		writer.WriteXmlNullableAttributeNumber("deleteRows", boolToNumber(this.deleteRows));
+		writer.WriteXmlNullableAttributeNumber("formatCells", boolToNumber(this.formatCells));
+		writer.WriteXmlNullableAttributeNumber("formatColumns", boolToNumber(this.formatColumns));
+		writer.WriteXmlNullableAttributeNumber("formatRows", boolToNumber(this.formatRows));
+		writer.WriteXmlNullableAttributeNumber("insertColumns", boolToNumber(this.insertColumns));
+		writer.WriteXmlNullableAttributeNumber("insertHyperlinks", boolToNumber(this.insertHyperlinks));
+		writer.WriteXmlNullableAttributeNumber("insertRows", boolToNumber(this.insertRows));
+		writer.WriteXmlNullableAttributeNumber("objects", boolToNumber(this.objects));
+		writer.WriteXmlNullableAttributeNumber("pivotTables", boolToNumber(this.pivotTables));
+		writer.WriteXmlNullableAttributeNumber("scenarios", boolToNumber(this.scenarios));
+		writer.WriteXmlNullableAttributeNumber("selectLockedCells", boolToNumber(this.selectLockedCells));
+		writer.WriteXmlNullableAttributeNumber("selectUnlockedCells", boolToNumber(this.selectUnlockedCells));
+		writer.WriteXmlNullableAttributeNumber("sheet", boolToNumber(this.sheet));
+		writer.WriteXmlNullableAttributeNumber("sort", boolToNumber(this.sort));
 		writer.WriteXmlAttributesEnd(true);
 	};
 
@@ -6927,8 +6947,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						if ("conditionalFormatting" === name2) {
 							var oConditionalFormatting = new AscCommonExcel.CConditionalFormatting();
 							oConditionalFormatting.fromXml(reader);
-
-							reader.context.InitOpenManager.prepareConditionalFormatting(this._ws, oConditionalFormatting);
+							this.aConditionalFormattingRules.push(oConditionalFormatting);
 						}
 					}
 				} else if ("dataValidations" === name) {
@@ -7135,6 +7154,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		//todo
 		//attributes
 		if (this.uri) {
+			writer.WriteXmlAttributeString("uri", this.uri);
 			writer.WriteXmlAttributeString("xmlns:x14", "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
 		}
 		if (this.additionalNamespace) {
@@ -7154,7 +7174,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 		if (this.DataModelExt) {
 		}
-		if (this.aConditionalFormattingRules) {
+		if (this.aConditionalFormattingRules && this.aConditionalFormattingRules.length) {
 			writer.WriteXmlNodeStart("x14:conditionalFormattings");
 			writer.WriteXmlAttributesEnd();
 
@@ -8426,7 +8446,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	AscCommonExcel.CDataBar.prototype.isExtended = function () {
 		if (this.AxisColor || this.AxisPosition !== AscCommonExcel.EDataBarAxisPosition.automatic || this.Direction !== AscCommonExcel.EDataBarDirection.context ||
-			this.BorderColor || this.NegativeColor || this.NegativeBorderColor.IsInit() || this.NegativeBarColorSameAsPositive || this.NegativeBarBorderColorSameAsPositive) {
+			this.BorderColor || this.NegativeColor || this.NegativeBorderColor || this.NegativeBarColorSameAsPositive || this.NegativeBarBorderColorSameAsPositive) {
 			return true;
 		}
 		return false;
