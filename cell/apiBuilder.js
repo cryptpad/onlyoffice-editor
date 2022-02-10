@@ -1865,13 +1865,30 @@
 	});
 
 	/**
-	 * Returns a value of the first cell in the current range.
+	 * Returns a value of the specified range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @returns {string}
+	 * @returns {string | string[][]}
 	 */
 	ApiRange.prototype.GetValue = function () {
-		return this.range.getValue();
+		var bbox = this.range.bbox;
+		var nCol = bbox.c2 - bbox.c1 + 1;
+		var nRow = bbox.r2 - bbox.r1 + 1;
+		var res;
+		if (this.range.isOneCell()) {
+			res = this.range.getValue();
+		} else {
+			res = [];
+			for (var i = 0; i < nRow; i++) {
+				var arr = [];
+				for (var k = 0; k < nCol; k++) {
+					var cell = this.range.worksheet.getRange3( (bbox.r1 + i), (bbox.c1 + k), (bbox.r1 + i), (bbox.c1 + k) );
+					arr.push(cell.getValue());
+				}
+				res.push(arr);
+			}
+		}
+		return res;
 	};
 
 	/**
@@ -1932,10 +1949,10 @@
 	});
 
 	/**
-	 * Returns a formula of the first cell in the current range.
+	 * Returns a formula of the specified range.
 	 * @typeofeditors ["CSE"]
 	 * @memberof ApiRange
-	 * @return {string} - return Value2 property (value without format) if formula doesn't exist.  
+	 * @return {string | string[][]} - return Value2 property (value without format) if formula doesn't exist.  
 	 */
 	ApiRange.prototype.GetFormula = function () {
 		if (this.range.isFormula())
@@ -1954,13 +1971,30 @@
 	});
 
 	/**
-	 * Returns the Value2 property (value without format) of the first cell in the current range.
+	 * Returns the Value2 property (value without format) of the specified range.
 	 * @typeofeditors ["CSE"]
 	 * @memberof ApiRange
-	 * @return {string} 
+	 * @return {string | string[][]} 
 	 */
 	ApiRange.prototype.GetValue2 = function () {
-		return this.range.getValueWithoutFormat();
+		var bbox = this.range.bbox;
+		var nCol = bbox.c2 - bbox.c1 + 1;
+		var nRow = bbox.r2 - bbox.r1 + 1;
+		var res;
+		if (this.range.isOneCell()) {
+			res = this.range.getValue();
+		} else {
+			res = [];
+			for (var i = 0; i < nRow; i++) {
+				var arr = [];
+				for (var k = 0; k < nCol; k++) {
+					var cell = this.range.worksheet.getRange3( (bbox.r1 + i), (bbox.c1 + k), (bbox.r1 + i), (bbox.c1 + k) );
+					arr.push(cell.getValueWithoutFormat());
+				}
+				res.push(arr);
+			}
+		}
+		return res;
 	};
 
 	Object.defineProperty(ApiRange.prototype, "Value2", {
@@ -1973,13 +2007,30 @@
 	});
 
 	/**
-	 * Returns the text of the first cell in the current range.
+	 * Returns the text of the specified range.
 	 * @typeofeditors ["CSE"]
 	 * @memberof ApiRange
-	 * @return {string} 
+	 * @return {string | string[][]} 
 	 */
 	ApiRange.prototype.GetText = function () {
-		return this.range.getValueWithFormat();
+		var bbox = this.range.bbox;
+		var nCol = bbox.c2 - bbox.c1 + 1;
+		var nRow = bbox.r2 - bbox.r1 + 1;
+		var res;
+		if (this.range.isOneCell()) {
+			res = this.range.getValue();
+		} else {
+			res = [];
+			for (var i = 0; i < nRow; i++) {
+				var arr = [];
+				for (var k = 0; k < nCol; k++) {
+					var cell = this.range.worksheet.getRange3( (bbox.r1 + i), (bbox.c1 + k), (bbox.r1 + i), (bbox.c1 + k) );
+					arr.push(cell.getValueWithFormat());
+				}
+				res.push(arr);
+			}
+		}
+		return res;
 	};
 
 	Object.defineProperty(ApiRange.prototype, "Text", {
