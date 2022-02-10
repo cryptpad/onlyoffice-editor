@@ -762,43 +762,28 @@ CRadical.prototype.Is_ContentUse = function(MathContent)
 
     return false;
 };
-CRadical.prototype.GetTextOfElement = function(isLatex) {
+CRadical.prototype.GetTextOfElement = function(isLaTex) {
 	var strTemp = "";
+	var strDegree = this.CheckIsEmpty(this.getDegree().GetTextOfElement(isLaTex));
+	var strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement(isLaTex));
+	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTex);
+	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTex);
 
-	var strDegree = this.getDegree().GetTextOfElement(isLatex);
-	var strBase = this.getBase().GetTextOfElement(isLatex);
-
-	if (isLatex) {
-		strDegree = (strDegree === "⬚")
-			? ""
-			: '[' + strDegree + ']';
-		strBase = (strBase.length > 1)
-			? '{' + strBase + '}'
-			: strBase;
-		
-		strTemp =
-			'\\sqrt'
-			+ strDegree
-			+ strBase;
-			
+	if (isLaTex) {
+		if (strDegree.length > 0) {
+			strDegree =  '[' + strDegree + ']';
+		}
+		if (strBase.length > 1) {
+			strBase = strStartBracet + strBase + strCloseBracet;
+		}
+		strTemp = '\\sqrt' + strDegree + strBase;
 	} else {
 		var strRadicalSymbol = String.fromCharCode(8730); //√
-
-		strDegree = (strDegree !== "⬚")
-			? strDegree + '&'
-			: "";
-		strBase = (strBase !== "⬚")
-			? strBase
-			: "";
-		
-			strTemp =
-			strRadicalSymbol
-			+ '('
-			+ strDegree
-			+ strBase
-			+ ')';
+		if (strDegree.length > 0) {
+			strDegree = strDegree + '&';
+		}
+		strTemp = strRadicalSymbol + strStartBracet + strDegree + strBase + strCloseBracet;
 	}
-
 	return strTemp;
 };
 

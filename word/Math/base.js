@@ -2975,6 +2975,26 @@ CMathBase.prototype.Refresh_ContentChanges = function()
 	this.m_oContentChanges.Refresh();
 };
 
+CMathBase.prototype.GetStartBracetForGetTextContent = function(isLaTeX) {
+	if (isLaTeX) 
+		return '{';
+	else
+		return '(';
+};
+CMathBase.prototype.GetEndBracetForGetTextContent = function(isLaTeX) {
+	if (isLaTeX) 
+		return '}';
+	else
+		return ')';
+};
+CMathBase.prototype.CheckIsEmpty = function(strAtom) {
+	if (strAtom === '⬚') {
+		return "";
+	} else {
+		return strAtom
+	}
+};
+
 function CMathBasePr()
 {
 }

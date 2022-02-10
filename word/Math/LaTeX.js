@@ -44,9 +44,73 @@
 
 var LaTeX = 0;
 var Unicode = 1;
+
 //TODO: P\left(A=2\middle|\frac{A^2}{B}>4\right)
-//TODO: Add pre-script with degree OR index for unicode and LaTeX: _x{1+2}... 
-//change process of making degree and indexes
+//TODO: Add pre-script with degree OR index for unicode and LaTeX: _x{1+2}...
+//TODO: impliment in LaTeX \underbrace and \overbrace -> \underbrace{1+3}_{i}  \underbrace{1+3}^{i}
+//		\overparen \underparen \overbrace \underbrace \overshell \undershell \overbracket \underbracket
+//change process of making degree and indexies?
+//TODO: impliment \boxed{} or \rect
+
+var MathOperators = [
+	'+', '=', '*', '-',
+	'!', '@', '#', '$',
+	'%', '?', '&',
+	'^', '_', '/',
+	' ', '.', ',', ' '
+];
+var Bracets = [
+	'(',	')',
+	'[',	']',
+	'{',	'}',
+	'|',
+];
+var isLaTeXAtom = [
+	'cos',		'sin',		'tan',		'sec',		'cot',		'csc',
+	'arcsin',	'arccos',	'arctan',	'arcsec',
+	'arccos',	'arccot',	'arccsc',
+	'sinh',		'cosh',		'tanh',		'coth',		'sech',		'csch',
+	'srcsinh',	'arctanh',	'arcsech',	'arccosh',	'arccoth',	'arccsch',
+	'log',		'lin',		'ln',		'max',		'min',		'exp',
+	'matrix',
+	'sqrt',
+	'left',		'right',	'middle',	'frac',
+
+	'to'
+];
+var GreekLetters = {
+	"Alpha": 0x0391,	"alpha": 0x03b1,
+	"Beta": 0x0392,		"beta": 0x03b2,
+	"Gamma": 0x0393,	"gamma": 0x03b3,
+	"Delta": 0x0394,	"delta": 0x03b4,
+	"Epsilon": 0x0395,	"epsilon": 0x03f5,	"varepsilon": 0x03b5,
+	"Zeta": 0x0396,		"zeta": 0x03b6,
+	"Eta": 0x0397,		"eta": 0x3b7,
+	"Theta": 0x0398,	"theta": 0x03b8,	"vartheta": 0x03d1,
+	"Iota": 0x0399,		"iota": 0x03b9,
+	"Kappa": 0x039a,	"kappa": 0x03ba,	"varkappa": 0x03f0,
+	"Lambda": 0x039b,	"lambda": 0x03bb,
+	"Mu": 0x039c,		"mu": 0x03bc,
+	"Nu": 0x039d,		"nu": 0x03bd,
+	"Xi": 0x039e,		"xi": 0x03be,
+	"Omicron": 0x039f,	"omicron": 0x03bf,
+	"Pi": 0x03a0,		"pi": 0x03c0,		"varpi": 0x03d6,
+	"Rho": 0x03a1,		"rho": 0x03c1,		"varrho": 0x03f1,
+	"Sigma": 0x03a3,	"sigma": 0x03c2,	"varsigma": 0x03f2,
+	"Tau ": 0x03a4,		"tau": 0x03c4,
+	"Upsilon": 0x03a5,	"upsilon": 0x03c5,
+	"Phi": 0x03a6,		"phi": 0x03c6,		"varphi": 0x03d5,	"varPhi": 0x03d5,
+	"Chi": 0x03a7,		"chi": 0x03c7,
+	"Psi": 0x03a8,		"psi": 0x03c8,
+	"Omega": 0x03a9,	"omega": 0x03c9,
+	"Digamma": 0x03dc,	"digamma": 0x03dd,
+};
+var UnicodeSymbols = [
+	'┴', '┬', '▒', '√', "┤", "├", "〖", "〗", '█', '¦',
+	'│', '“', '×', '·', '•', '', '∫', '∑', '∏', '▭',
+	'','√', '▁', '⊘', '⁄', '\\', '\/'
+];
+
 function EquationProcessing(Parent) {
 	this.Parent = Parent;
 	this.IndexesOfIgnoredAtoms = {};
@@ -66,88 +130,49 @@ EquationProcessing.prototype.CheckTypeOfParent = function() {
 		return Unicode;
 	}
 };
-EquationProcessing.prototype.ParserData = [
-	"+", "^", "√", "&", "_", "-", "┴", "*", "(", ")", "=",
-	"{", "}", "&", "▒", "┬", "[", "]", "┤", "├", "〖", "〗",
-	"┴", '\\tan', '¦', '\\mod', '\\exp', '\\=', '\\sqrt', '\\theta', '|', '/',
-	'\\frac',
-	'\\left',
-	'\\right',
-	'\\middle',
-	'\\cos'
-];
 EquationProcessing.prototype.Parse = function() {
 	var strTempWord = "";
 	var str = this.Parent.str;
 	var arrAtoms = [];
 	var isInMatrix = false;
+	var arrCheckParser = [];
+	
+	arrCheckParser = arrCheckParser.concat(MathOperators, Bracets)
+	if (this.isLaTeX()) {
+		arrCheckParser = arrCheckParser.concat(isLaTeXAtom);
+	}
+	else if (this.isUnicode()) {
+		arrCheckParser = arrCheckParser.concat(UnicodeSymbols);
+	}
+
 	for (var i = 0; i <= str.length; i++) {
-
-		// if (this.isUnicode()) {
-		// 	if (str[i+1] === '〖' || str[i+1] === '〗') {
-		// 		if (str[i].charCodeAt() === 8289) { //'⁡'⁡
-		// 			i++;
-		// 		}
-		// 	}
-		// }
-
-		if (str[i] !== undefined) {
+		if (str[i] !== undefined && str[i].charCodeAt() !== 65533) {
 			strTempWord += str[i];
-		}
 
-		if (this.ArrMatrixTypes.includes(strTempWord)) {
-			if (isInMatrix) {
-				isInMatrix = false;
-			} else {
-				isInMatrix = true;
-			}
-		}
+			var tempStrForLaTeX;
 
-		if (this.isLaTeX()) {
-			if (strTempWord === '^' && str[i+1] !== '{' && str[i+1] !== '(') {
-				strTempWord = "";
-				arrAtoms.push('^');
-				arrAtoms.push('{');
-				i++;
-				arrAtoms.push(str[i].trim());
-				arrAtoms.push('}');
+			if (strTempWord === '\u2061') {
+				strTempWord = '';
+				continue
 			}
 
-			else if (strTempWord === '_' && str[i+1] !== '{' && str[i+1] !== '(') {
-				strTempWord = ""
-				arrAtoms.push('_');
-				arrAtoms.push('{');
-				i++;
-				arrAtoms.push(str[i].trim());
-				arrAtoms.push('}');
+			if (!isNaN(strTempWord) && !isNaN(str[i+1]) ) {
+				continue
 			}
-		}
 
-		if (this.isLaTeX()) {
-			if ((strTempWord === '^' && str[i+1] === '(') ||
-				(strTempWord === '_' && str[i+1] === '(')) {
-				this.Parent.isError = true;
+			if (strTempWord[0] === '\\' && strTempWord.length > 1) {
+				tempStrForLaTeX = strTempWord;
+				tempStrForLaTeX = tempStrForLaTeX.slice(1)
 			}
-		}
 
-		if	(
-
-			this.ParserData.includes(str[i + 1]) ||
-			this.ParserData.includes(strTempWord) ||
-			str[i+1] == '//' ||
-			str[i+1] == '@' ||
-			strTempWord == '@' ||
-			strTempWord == '\\' && isInMatrix && str[i+1] != 'e' && str[i+2] != 'n' && str[i+3] != 'd' ||
-			str[i+1] == '\\' && isInMatrix) {
-			if (strTempWord.charCodeAt() !== 8289) {
+			if (arrCheckParser.includes(strTempWord) || arrCheckParser.includes(tempStrForLaTeX) || arrCheckParser.includes(str[i+1])) {
 				arrAtoms.push(strTempWord.trim());
 				strTempWord = "";
-			} else {
-				strTempWord = "";
+				tempStrForLaTeX = "";
 			}
-
 		}
 	}
+
 	strTempWord.trim();
 	arrAtoms.push(strTempWord);
 
@@ -2503,1026 +2528,6 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet) {
 		}
 	} while (strAtom != undefined);
 }
-
-//========================================================================//
-//==========================MathMl -> LaTeX===============================//
-//========================================================================//
-function ToLaTex(Root) {
-	this.Root = Root;
-	this.objTempData = {};
-	this.objString = {
-		arr: []
-	};
-	this.scr;
-	this.brk = false;
-	this.unicode;
-	this.unicodeArr = [];
-}
-ToLaTex.prototype.ConvertData = function(WriteObject, inputObj) {
-	if (inputObj) {
-		if (inputObj.Content) {
-			if (inputObj.Content.length > 0) {
-				for (var index = 0; index < inputObj.Content.length; index++) {
-
-					var name = index + '_' + inputObj.Content[index].constructor.name;
-					var CName = inputObj.Content[index].constructor.name
-					var content = inputObj.Content[index];
-					var data = {};
-
-					if (CName === 'CFraction' || CName === 'CDegree') {
-						data = {
-							type: content.Pr.type
-						}
-					}
-					else if (CName === 'CRadical') {
-						data = {
-							degHide: content.Pr.degHide
-						}
-					}
-					else if (CName === 'CMathMatrix') {
-						data = {
-							nRow: content.nRow,
-							nCol: content.nCol
-						}
-					}
-					else if(CName === 'CNary') {
-						data = {
-							chr: content.Pr.chr,
-							limLoc: content.Pr.limLoc
-						}
-					}
-					else if(CName === 'CAccent') {
-						data = {
-							chr: content.Pr.chr
-						}
-					}
-					else if(CName === 'CBar') {
-						data = {
-							pos: content.Pr.pos
-						}
-					}
-					else if(CName === 'CLimit') {
-						data = {
-							type: content.Pr.type
-						}
-					}
-					else if(CName === 'CEqArray') {
-						data = {
-							row: content.Pr.row
-						}
-					}
-					else if(CName === 'ParaRun' && content.Content.length > 0) {
-						data = {
-							scr: content.MathPrp.scr,
-							brk: content.MathPrp.brk,
-							bold: content.CompiledPr.Bold,
-							italic: content.CompiledPr.Italic,
-						}
-					}
-					else if(CName === 'CDelimiter') {
-						data = {
-							begOper: content['begOper'].code,
-							endOper: content.endOper.code,
-							sepOper: content.sepOper.code,
-							nCol: content.nCol
-						}
-					}
-
-					if (Object.keys(data).length > 0)
-					{
-						WriteObject[name] = {
-							data: data
-						}
-					}
-					else
-					{
-						WriteObject[name] = {}
-					}
-
-					var isEmpty = this.ConvertData(WriteObject[name], content);
-
-					if (isEmpty) {
-						delete WriteObject[name]
-					}
-				}
-			}
-		}
-		else {
-			WriteObject[inputObj.constructor.name] = String.fromCharCode(inputObj.getCodeChr());
-		}
-	}
-	return this.CheckIsObjectEmpty(WriteObject)
-};
-ToLaTex.prototype.CheckIsObjectEmpty = function(obj) {
-	for (var key in obj) {
-		return false;
-	}
-
-	return true;
-};
-ToLaTex.prototype.GetNamesOfObject = function(obj) {
-	var names = Object.keys(obj);
-
-	names = names.filter(function(item) {
-		return item !== 'data'
-	})
-
-	return names
-};
-ToLaTex.prototype.Convert = function(obj, start, end) {
-	if (start) {
-		this.objString.arr.push(start);
-	}
-
-	var propert = this.GetNamesOfObject(obj);
-
-	for (var index = 0; index < propert.length; index++) {
-
-		var name = propert[index];
-		var nameForCheck = name.split('_')[1];
-
-		if (nameForCheck === 'CEqArray') {
-			this.AddCEqArray(name, obj);
-		}
-		else if (nameForCheck === 'CFraction') {
-			this.AddFraction(name, obj);
-		}
-		else if (nameForCheck === 'CAccent') {
-			this.AddAccent(name, obj);
-		}
-		else if (nameForCheck === 'CMathFunc') {
-			this.AddFunction(name, obj);
-		}
-		else if (nameForCheck === 'CNary') {
-			this.AddNary(name, obj);
-		}
-		else if (nameForCheck === 'CRadical') {
-			this.AddRadical(name, obj);
-		}
-		else if (nameForCheck === 'CDegree') {
-			this.AddDegree(name, obj);
-		}
-		else if (nameForCheck === 'CDelimiter') {
-			this.AddBracets(name, obj);
-		}
-		else if (nameForCheck === 'CDegreeSubSup') {
-			this.AddDegreeSubSup(name, obj);
-		}
-		else if (nameForCheck === 'CBar') {
-			this.AddBar(name, obj);
-		}
-		else if (nameForCheck === 'CLimit') {
-			this.AddLimit(name, obj);
-		}
-		else if (nameForCheck === 'CMathMatrix') {
-			this.AddMatrix(name, obj);
-		}
-		else if (nameForCheck === 'ParaRun') {
-			this.CheckParaRun(name, obj);
-			if (this.brk == true) {
-				this.objString.arr.push(' \\\\ ');
-				this.brk = false;
-			}
-			this.Convert(obj[name])
-		}
-		else if (nameForCheck === 'CMathContent') {
-			this.Convert(obj[name]);
-		}
-		else if (nameForCheck === 'CMathText') {
-			this.AddText(name, obj);
-		}
-		else if (nameForCheck === 'CBox') {
-			this.AddBox(name, obj);
-		}
-	}
-
-	if (end) {
-		this.objString.arr.push(end);
-	}
-};
-//Processing
-ToLaTex.prototype.AddCEqArray = function(name, obj) {
-	var intRow = obj[name].data.row;
-
-	if (intRow > 1) {
-		var ArrayContent = this.GetNamesOfObject(obj[name]);
-		for (var arr in ArrayContent) {
-			this.Convert(obj[name][ArrayContent[arr]], ' ', ' \\\\')
-		}
-	} else {
-		this.Convert(obj[name]);
-	}
-};
-ToLaTex.prototype.AddFraction = function(name, obj) {
-	var intType = obj[name].data.type;
-
-	if (intType === 1) {
-		var fracContent = this.GetNamesOfObject(obj[name]);
-		this.Convert(obj[name][fracContent[0]], '^{', '}/_');
-		this.Convert(obj[name][fracContent[1]], '{', '}');
-	}
-	else {
-		this.objString.arr.push('\\frac');
-		for (var innerObj in obj[name]) {
-			if (innerObj != 'data') {
-				this.Convert(obj[name][innerObj], '{', '}');
-			}
-		}
-	}
-};
-ToLaTex.prototype.AddBracets = function(name, obj) {
-	if (
-		obj[name]['0_CMathContent']['1_CFraction'] &&
-		obj[name]['0_CMathContent']['1_CFraction'].data.type === 3
-	){
-		this.AddBinom('1_CFraction', obj[name]['0_CMathContent']);
-	}
-
-	else if (this.CheckIsMod(name, obj)) {
-		this.AddMod(name, obj);
-	}
-
-	else {
-		var strLeft = (obj[name].data.begOper === null)
-			? '\\left('
-			: '\\left' + String.fromCharCode(obj[name].data.begOper);
-
-		var strRight = (obj[name].data.endOper === null)
-			? '\\right)'
-			: '\\right' + String.fromCharCode(obj[name].data.endOper);
-
-		var strSeparator = (obj[name].data.sepOper === null)
-			? '\\middle|'
-			: '\\middle' + String.fromCharCode(obj[name].data.sepOper);
-
-		var intCount = obj[name].data.nCol;
-
-		if (intCount >= 1) {
-			this.objString.arr.push(strLeft);
-			var index = 0;
-
-			for (var frac in obj[name]) {
-				if (index === intCount || index === 0) {
-					this.Convert(obj[name][frac]);
-				}
-				else {
-					this.Convert(obj[name][frac], null, strSeparator);
-				}
-				index++;
-			}
-			this.objString.arr.push(strRight);
-		}
-	}
-};
-ToLaTex.prototype.AddDegree = function(name, obj) {
-	var objDegree = this.GetNamesOfObject(obj[name]);
-	var intType = obj[name].data.type;
-
-	this.Convert(obj[name][objDegree[0]])
-
-	if (intType === 1) {
-		this.objString.arr.push('^')
-	}
-
-	else if (intType === -1) {
-		this.objString.arr.push('_')
-	}
-
-	console.log(obj[name][objDegree[1]])
-	this.Convert(obj[name][objDegree[1]], '{', '}')
-};
-ToLaTex.prototype.AddRadical = function(name, obj) {
-	var objRadical = this.GetNamesOfObject(obj[name]);
-	var isDegHide = obj[name].data.degHide;
-
-	this.objString.arr.push('\\sqrt');
-
-	if (!isDegHide) {
-		this.Convert(obj[name][objRadical[0]], '[', ']');
-	}
-	this.Convert(obj[name][objRadical[1]], '{', '}');
-};
-ToLaTex.prototype.AddBar = function(name, obj) {
-	var intType = obj[name].data.pos;
-	var strType;
-
-	if (intType === 0) {
-		strType = '\\overline{';
-	}
-	else if (intType === 1) {
-		strType = '\\underline{';
-	}
-
-	if (typeof strType === 'string') {
-		this.Convert(obj[name]['0_CMathContent'], strType, '}');
-	}
-};
-ToLaTex.prototype.AddDegreeSubSup = function(name, obj) {
-	var objDegree = this.GetNamesOfObject(obj[name]);
-
-	this.Convert(obj[name][objDegree[0]], null, '^{');
-	this.Convert(obj[name][objDegree[1]], null, '}_{');
-	this.Convert(obj[name][objDegree[2]], null, '}');
-};
-ToLaTex.prototype.AddFunction = function(name, obj) {
-	this.objString.arr.push('\\');
-
-	for (var indexInner in obj[name]) {
-		this.Convert(obj[name][indexInner])
-	}
-};
-ToLaTex.prototype.AddBinom = function(name, obj) {
-	this.objString.arr.push('\\binom');
-
-	for (var indexInner in obj[name]) {
-		if (indexInner != 'data') {
-			this.Convert(obj[name][indexInner], '{', '}');
-		}
-	}
-};
-ToLaTex.prototype.AddNary = function(name, obj) {
-	var strChr = obj[name].data.chr;
-	var strTypeOfLargeOperator = this.GetNaryCode[strChr];
-
-	this.objString.arr.push(strTypeOfLargeOperator);
-
-	if (obj[name].data.limLoc === false) {
-		this.objString.arr.push('\\limits');
-	}
-
-	var objIntegral = this.GetNamesOfObject(obj[name]);
-
-	var objIndex = obj[name][objIntegral[0]];
-	var objDegree = obj[name][objIntegral[1]];
-	var objBase = obj[name][objIntegral[2]];
-
-	var strCodeOfIndexText = objIndex['0_ParaRun'] ? objIndex['0_ParaRun']['0_CMathText'].CMathText : '1';
-	var strCodeOfDegreeText = objDegree['0_ParaRun']? objDegree['0_ParaRun']['0_CMathText'].CMathText : '1';
-
-	if (strCodeOfIndexText.charCodeAt() != 11034) {
-		this.Convert(objIndex, '_{', '}');
-	}
-	if (strCodeOfDegreeText.charCodeAt() != 11034) {
-		this.Convert(objDegree, '^{', '}');
-	}
-	this.Convert(objBase);
-};
-ToLaTex.prototype.GetNaryCode = {
-	undefined: '\\int',
-	8748: '\\iint',
-	8749: '\\iiint',
-	8750: '\\oint',
-	8751: '\\oiint',
-	8752: '\\oiiint',
-	8721: '\\sum',
-	8899: '\\bigcup',
-	8898: '\\bigcap',
-	8719: '\\prod',
-	8720: '\\coprod',
-	8897: '\\bigvee',
-	8896: '\\bigwedge'
-};
-ToLaTex.prototype.AddLimit = function(name, obj) {
-	var objDegree = this.GetNamesOfObject(obj[name]);
-	var LimitType = obj[name].data.type;
-
-	if (LimitType === 0) {
-		this.Convert(obj[name][objDegree[0]], null, '_{');
-	}
-	else if (LimitType === 1) {
-		this.Convert(obj[name][objDegree[0]], null, '^{');
-	}
-
-	this.Convert(obj[name][objDegree[1]], '', '}');
-};
-ToLaTex.prototype.AddAccent = function(name, obj) {
-	var intType = obj[name].data.chr;
-	var strType = this.GetCodeAccent[intType] + '{';
-
-	this.Convert(obj[name]['0_CMathContent'], strType, '}');
-};
-ToLaTex.prototype.AddMod = function(name, obj) {
-	var objModContent = obj[name]['0_CMathContent']['1_CMathFunc']['1_CMathContent'];
-	this.Convert(objModContent, '\\pmod{', '}');
-};
-ToLaTex.prototype.AddBox = function(name, obj) {
-	var objBoxContent = obj[name]['0_CMathContent']['0_ParaRun'];
-
-	if (
-		objBoxContent != undefined &&
-		objBoxContent['0_CMathText'].CMathText === 'm' &&
-		objBoxContent['1_CMathText'].CMathText === 'o' &&
-		objBoxContent['2_CMathText'].CMathText === 'd'
-	)
-	{
-		this.objString.arr.push('\\bmod');
-	}
-	else
-	{
-		this.Convert(obj[name]);
-	}
-
-};
-ToLaTex.prototype.AddMatrix = function(name, obj) {
-	var objMatrixContent = this.GetNamesOfObject(obj[name]);
-	var intCol = obj[name].data.nCol;
-	var intRow = obj[name].data.nRow;
-
-	var indexCol = 0;
-	var indexRow = 0;
-
-	this.objString.arr.push('\\begin{matrix}')
-
-	for(var sub in objMatrixContent) {
-		indexCol++
-
-		if (indexCol < intCol) {
-			this.Convert(obj[name][objMatrixContent[sub]], '', '&')
-		}
-
-		else if (indexCol === intCol) {
-			this.Convert(obj[name][objMatrixContent[sub]])
-			this.objString.arr.push('\\\\')
-			indexCol = 0;
-			indexRow++;
-		}
-	}
-	this.objString.arr.push('\\end{matrix}')
-};
-ToLaTex.prototype.CheckIsMod = function(name, obj) {
-	if (obj[name]['0_CMathContent']['1_CMathFunc'] != undefined) {
-		var objModContent = obj[name]['0_CMathContent']['1_CMathFunc']['0_CMathContent']['0_ParaRun']
-
-		return (
-			objModContent['0_CMathText'].CMathText === 'm' &&
-			objModContent['1_CMathText'].CMathText === 'o' &&
-			objModContent['2_CMathText'].CMathText === 'd'
-		)
-	}
-};
-ToLaTex.prototype.GetCodeAccent = {
-	8407: '\\vec',
-	773: '\\bar',
-	774: '\\breve',
-	776: '\\ddot',
-	775: '\\dot',
-	768: '\\grave',
-	769: '\\acute',
-	771: '\\tilde',
-	780: '\\check',
-	770: '\\hat',
-};
-ToLaTex.prototype.AddText = function(name, obj) {
-	var strText = obj[name].CMathText;
-
-	var strSymbol = this.GetCode.get(strText.charCodeAt())
-	if (strSymbol !== null && strSymbol !== undefined) {
-		strText = strSymbol
-	}
-
-	this.objString.arr.push(strText);
-};
-ToLaTex.prototype.CheckParaRun = function(name, obj) {
-	if (obj[name].data.brk != undefined) {
-		this.brk = true;
-	}
-
-	if (this.scr === undefined && obj[name].data.scr !== undefined) {
-		this.scr = obj[name].data.scr;
-		var strItalic = obj[name].data.bold;
-		var strBold = obj[name].data.italic;
-
-		if (this.scr === 1) {
-			this.objString.arr.push('\\mathcal{');
-		}
-		else if (this.scr === 3) {
-			this.objString.arr.push('\\mathbb{');
-		}
-		else if (this.scr === 0 && strItalic === true) {
-			this.objString.arr.push('\\mathnormal{');
-		}
-		else if (this.scr === 0 && strItalic === false) {
-			this.objString.arr.push('\\mathrm{');
-		}
-		else if (this.scr === 0 && strBold === true && strItalic === false) {
-			this.objString.arr.push('\\mathbf{');
-		}
-		else if (this.scr === 4 && strBold === false && strItalic === false) {
-			this.objString.arr.push('\\mathsf{');
-		}
-		else if (this.scr === 5 && strBold === false && strItalic === false) {
-			this.objString.arr.push('\\mathtt{');
-		}
-		else if (this.scr === 2 && strBold === false && strItalic === false) {
-			this.objString.arr.push('\\mathfrak{');
-		}
-	}
-
-	else if (this.scr != obj[name].data.scr) {
-		this.scr = obj[name].data.scr;
-		this.objString.arr.push('}');
-	}
-};
-ToLaTex.prototype.GetCode = new Map([
-	[0x0391, '\\Alpha'],
-	[0x03B1, '\\alpha'],
-	[0x0392, '\\Beta'],
-	[0x03B2, '\\beta'],
-	[0x0393, '\\Gamma'],
-	[0x03B3, '\\gamma'],
-	[0x0394, '\\Delta'],
-	[0x03B4, '\\delta'],
-	[0x0395, '\\Epsilon'],
-	[0x03F5, '\\epsilon'],
-	[0x03B5, '\\varepsilon'],
-	[0x0396, '\\Zeta'],
-	[0x03B6, '\\zeta'],
-	[0x0397, '\\Eta'],
-	[0x03B7, '\\eta'],
-	[0x0398, '\\Theta'],
-	[0x03B8, '\\theta'],
-	[0x03D1, '\\vartheta'],
-	[0x0399, '\\Iota'],
-	[0x03B9, '\\iota'],
-	[0x039A, '\\Kappa'],
-	[0x03BA, '\\kappa'],
-	[0x03F0, '\\varkappa'],
-	[0x039B, '\\Lambda'],
-	[0x03BB, '\\lambda'],
-	[0x039C, '\\Mu'],
-	[0x03BC, '\\mu'],
-	[0x039D, '\\Nu'],
-	[0x03BD, '\\nu'],
-	[0x039E, '\\Xi'],
-	[0x03BE, '\\xi'],
-	[0x039F, '\\Omicron'],
-	[0x03BF, '\\omicron'],
-	[0x03A0, '\\Pi'],
-	[0x03C0, '\\pi'],
-	[0x03D6, '\\varpi'],
-	[0x03A1, '\\Rho'],
-	[0x03C1, '\\rho'],
-	[0x03F1, '\\varrho'],
-	[0x03A3, '\\Sigma'],
-	[0x03C2, '\\sigma'],
-	[0x03F2, '\\varsigma'],
-	[0x03A4, '\\Tau '],
-	[0x03C4, '\\tau'],
-	[0x03A5, '\\Upsilon'],
-	[0x03C5, '\\upsilon'],
-	[0x03A6, '\\Phi'],
-	[0x03C6, '\\phi'],
-	[0x03D5, '\\varphi'],
-	[0x03D5, '\\varPhi'],
-	[0x03A7, '\\Chi'],
-	[0x03C7, '\\chi'],
-	[0x03A8, '\\Psi'],
-	[0x03C8, '\\psi'],
-	[0x03A9, '\\Omega'],
-	[0x03C9, '\\omega'],
-	[0x03DC, '\\Digamma'],
-	[0x03DD, '\\digamma'],
-	[0x203C, '\!!'],
-	[0x2026, '\...'],
-	[0x2237, '\::'],
-	[0x2254, '\:='],
-	[0x226E, '\/<'],
-	[0x226F, '\/>'],
-	[0x2260, '\/='],
-	[0x2534, '\\above'],
-	[0x0301, '\\acute'],
-	[0x2135, '\\aleph'],
-	[0x2210, '\\amalg'],
-	[0x2220, '\\angle'],
-	[0x222E, '\\aoint'],
-	[0x2248, '\\approx'],
-	[0x2B06, '\\asmash'],
-	[0x2217, '\\ast'],
-	[0x224D, '\\asymp'],
-	[0x00A6, '\\atop'],
-	[0x0305, '\\bar'],
-	[0x033F, '\\Bar'],
-	[0x2235, '\\because'],
-	[0x3016, '\\begin'],
-	[0x252C, '\\below'],
-	[0x2136, '\\bet'],
-	[0x2136, '\\beth'],
-	[0x22C2, '\\bigcap'],
-	[0x22C3, '\\bigcup'],
-	[0x2A00, '\\bigodot'],
-	[0x2A01, '\\bigoplus'],
-	[0x2A02, '\\bigotimes'],
-	[0x2A06, '\\bigsqcup'],
-	[0x2A04, '\\biguplus'],
-	[0x22C1, '\\bigvee'],
-	[0x22C0, '\\bigwedge'],
-	[0x22A5, '\\bot'],
-	[0x22C8, '\\bowtie'],
-	[0x25A1, '\\box'],
-	[0x22A1, '\\boxdot'],
-	[0x229F, '\\boxminus'],
-	[0x229E, '\\boxplus'],
-	[0x27E8, '\\bra'],
-	[0x2936, '\\break'],
-	[0x0306, '\\breve'],
-	[0x2219, '\\bullet'],
-	[0x2229, '\\cap'],
-	[0x221B, '\\cbrt'],
-	[0x24B8, '\\cases'],
-	[0x22C5, '\\cdot'],
-	[0x22EF, '\\cdots'],
-	[0x030C, '\\check'],
-	[0x2218, '\\circ'],
-	[0x2524, '\\close'],
-	[0x2663, '\\clubsuit'],
-	[0x2232, '\\coint'],
-	[0x2245, '\\cong'],
-	[0x2210, '\\coprod'],
-	[0x222A, '\\cup'],
-	[0x2138, '\\dalet'],
-	[0x2138, '\\daleth'],
-	[0x22A3, '\\dashv'],
-	[0x2146, '\\dd'],
-	[0x2145, '\\Dd'],
-	[0x20DC, '\\ddddot'],
-	[0x20DB, '\\dddot'],
-	[0x0308, '\\ddot'],
-	[0x22F1, '\\ddots'],
-	[0x225D, '\\defeq'],
-	[0x2103, '\\degc'],
-	[0x2109, '\\degf'],
-	[0x00B0, '\\degree'],
-	[0x225C, '\\Deltaeq'],
-	[0x22C4, '\\diamond'],
-	[0x2662, '\\diamondsuit'],
-	[0x00F7, '\\div'],
-	[0x0307, '\\dot'],
-	[0x2250, '\\doteq'],
-	[0x2026, '\\dots'],
-	[0xD552, '\\doublea'],
-	[0xD538, '\\doubleA'],
-	[0xD553, '\\doubleb'],
-	[0xD539, '\\doubleB'],
-	[0xD554, '\\doublec'],
-	[0x2102, '\\doubleC'],
-	[0xD555, '\\doubled'],
-	[0xD53B, '\\doubleD'],
-	[0xD556, '\\doublee'],
-	[0xD53C, '\\doubleE'],
-	[0xD557, '\\doublef'],
-	[0xD53D, '\\doubleF'],
-	[0xD558, '\\doubleg'],
-	[0xD53E, '\\doubleG'],
-	[0xD559, '\\doubleh'],
-	[0x210D, '\\doubleH'],
-	[0xD55A, '\\doublei'],
-	[0xD540, '\\doubleI'],
-	[0xD55B, '\\doublej'],
-	[0xD541, '\\doubleJ'],
-	[0xD55C, '\\doublek'],
-	[0xD542, '\\doubleK'],
-	[0xD55D, '\\doublel'],
-	[0xD543, '\\doubleL'],
-	[0xD55E, '\\doublem'],
-	[0xD544, '\\doubleM'],
-	[0xD55F, '\\doublen'],
-	[0x2115, '\\doubleN'],
-	[0xD560, '\\doubleo'],
-	[0xD546, '\\doubleO'],
-	[0xD561, '\\doublep'],
-	[0x2119, '\\doubleP'],
-	[0xD562, '\\doubleq'],
-	[0x211A, '\\doubleQ'],
-	[0xD563, '\\doubler'],
-	[0x211D, '\\doubleR'],
-	[0xD564, '\\doubles'],
-	[0xD54A, '\\doubleS'],
-	[0xD565, '\\doublet'],
-	[0xD54B, '\\doubleT'],
-	[0xD566, '\\doubleu'],
-	[0xD54C, '\\doubleU'],
-	[0xD567, '\\doublev'],
-	[0xD54D, '\\doubleV'],
-	[0xD568, '\\doublew'],
-	[0xD54E, '\\doubleW'],
-	[0xD569, '\\doublex'],
-	[0xD54F, '\\doubleX'],
-	[0xD56A, '\\doubley'],
-	[0xD550, '\\doubleY'],
-	[0xD56B, '\\doublez'],
-	[0x2124, '\\doubleZ'],
-	[0x2193, '\\downarrow'],
-	[0x21D3, '\\Downarrow'],
-	[0x2B07, '\\dsmash'],
-	[0x2147, '\\ee'],
-	[0x2113, '\\ell'],
-	[0x2205, '\\emptyset'],
-	[0x2003, '\\emsp'],
-	[0x3017, '\\end'],
-	[0x2002, '\\ensp'],
-	[0x2588, '\\eqarray'],
-	[0x2261, '\\equiv'],
-	[0x2203, '\\exists'],
-	[0x2200, '\\forall'],
-	[0xD51E, '\\fraktura'],
-	[0xD504, '\\frakturA'],
-	[0xD51F, '\\frakturb'],
-	[0xD505, '\\frakturB'],
-	[0xD520, '\\frakturc'],
-	[0x212D, '\\frakturC'],
-	[0xD521, '\\frakturd'],
-	[0xD507, '\\frakturD'],
-	[0xD522, '\\frakture'],
-	[0xD508, '\\frakturE'],
-	[0xD523, '\\frakturf'],
-	[0xD509, '\\frakturF'],
-	[0xD524, '\\frakturg'],
-	[0xD50A, '\\frakturG'],
-	[0xD525, '\\frakturh'],
-	[0x210C, '\\frakturH'],
-	[0xD526, '\\frakturi'],
-	[0x2111, '\\frakturI'],
-	[0xD527, '\\frakturj'],
-	[0xD50D, '\\frakturJ'],
-	[0xD528, '\\frakturk'],
-	[0xD50E, '\\frakturK'],
-	[0xD529, '\\frakturl'],
-	[0xD50F, '\\frakturL'],
-	[0xD52A, '\\frakturm'],
-	[0xD510, '\\frakturM'],
-	[0xD52B, '\\frakturn'],
-	[0xD511, '\\frakturN'],
-	[0xD52C, '\\frakturo'],
-	[0xD512, '\\frakturO'],
-	[0xD52D, '\\frakturp'],
-	[0xD513, '\\frakturP'],
-	[0xD52E, '\\frakturq'],
-	[0xD514, '\\frakturQ'],
-	[0xD52F, '\\frakturr'],
-	[0x211C, '\\frakturR'],
-	[0xD530, '\\frakturs'],
-	[0xD516, '\\frakturS'],
-	[0xD531, '\\frakturt'],
-	[0xD517, '\\frakturT'],
-	[0xD532, '\\frakturu'],
-	[0xD518, '\\frakturU'],
-	[0xD533, '\\frakturv'],
-	[0xD519, '\\frakturV'],
-	[0xD534, '\\frakturw'],
-	[0xD51A, '\\frakturW'],
-	[0xD535, '\\frakturx'],
-	[0xD51B, '\\frakturX'],
-	[0xD536, '\\fraktury'],
-	[0xD51C, '\\frakturY'],
-	[0xD537, '\\frakturz'],
-	[0x2128, '\\frakturZ'],
-	[0x2311, '\\frown'],
-	[0x2061, '\\funcapply'],
-	[0x2265, '\\ge'],
-	[0x2265, '\\geq'],
-	[0x2190, '\\gets'],
-	[0x226B, '\\gg'],
-	[0x2137, '\\gimel'],
-	[0x0300, '\\grave'],
-	[0x200A, '\\hairsp'],
-	[0x0302, '\\hat'],
-	[0x210F, '\\hbar'],
-	[0x2661, '\\heartsuit'],
-	[0x21A9, '\\hookleftarrow'],
-	[0x21AA, '\\hookrightarrow'],
-	[0x2B04, '\\hphantom'],
-	[0x2B0C, '\\hsmash'],
-	[0x20D1, '\\hvec'],
-	[0x2148, '\\ii'],
-	[0x222D, '\\iiint'],
-	[0x222C, '\\iint'],
-	[0x2A0C, '\\iiiint'],
-	[0x2111, '\\Im'],
-	[0x0131, '\\imath'],
-	[0x2208, '\\in'],
-	[0x2206, '\\inc'],
-	[0x221E, '\\infty'],
-	[0x222B, '\\int'],
-	[0x2062, '\\itimes'],
-	[0x2149, '\\jj'],
-	[0x0237, '\\jmath'],
-	[0x27E9, '\\ket'],
-	[0x2329, '\\langle'],
-	[0x27E6, '\\lbbrack'],
-	[0x007B, '\\lbrace'],
-	[0x005B, '\\lbrack'],
-	[0x2308, '\\lceil'],
-	[0x2215, '\\ldiv'],
-	[0x2215, '\\ldivide'],
-	[0x2026, '\\ldots'],
-	[0x2264, '\\le'],
-	[0x251C, '\\left'],
-	[0x2190, '\\leftarrow'],
-	[0x21D0, '\\Leftarrow'],
-	[0x21BD, '\\leftharpoondown'],
-	[0x21BC, '\\leftharpoonup'],
-	[0x2194, '\\leftrightarrow'],
-	[0x21D4, '\\Leftrightarrow'],
-	[0x2264, '\\leq'],
-	[0x230A, '\\lfloor'],
-	[0x20D0, '\\lhvec'],
-	[0x226A, '\\ll'],
-	[0x23B0, '\\lmoust'],
-	[0x27F8, '\\Longleftarrow'],
-	[0x27FA, '\\Longleftrightarrow'],
-	[0x27F9, '\\Longrightarrow'],
-	[0x21CB, '\\lrhar'],
-	[0x20D6, '\\lvec'],
-	[0x21A6, '\\mapsto'],
-	[0x25A0, '\\matrix'],
-	[0x205F, '\\medsp'],
-	[0x2223, '\\mid'],
-	[0x24DC, '\\middle'],
-	[0x22A8, '\\models'],
-	[0x2213, '\\mp'],
-	[0x2207, '\\nabla'],
-	[0x2592, '\\naryand'],
-	[0x00A0, '\\nbsp'],
-	[0x2260, '\\ne'],
-	[0x2197, '\\nearrow'],
-	[0x2260, '\\neq'],
-	[0x220B, '\\ni'],
-	[0x2016, '\\norm'],
-	[0x220C, '\\notcontain'],
-	[0x2209, '\\notelement'],
-	[0x2209, '\\notin'],
-	[0x2196, '\\nwarrow'],
-	[0x03BF, '\\o'],
-	[0x039F, '\\O'],
-	[0x2299, '\\odot'],
-	[0x2592, '\\of'],
-	[0x2230, '\\oiiint'],
-	[0x222F, '\\oiint'],
-	[0x222E, '\\oint'],
-	[0x2296, '\\ominus'],
-	[0x251C, '\\open'],
-	[0x2295, '\\oplus'],
-	[0x2297, '\\otimes'],
-	[0x002F, '\\over'],
-	[0x00AF, '\\overbar'],
-	[0x23DE, '\\overbrace'],
-	[0x23B4, '\\overbracket'],
-	[0x00AF, '\\overline'],
-	[0x23DC, '\\overparen'],
-	[0x23E0, '\\overshell'],
-	[0x2225, '\\parallel'],
-	[0x2202, '\\partial'],
-	[0x24A8, '\\pmatrix'],
-	[0x22A5, '\\perp'],
-	[0x27E1, '\\phantom'],
-	[0x00B1, '\\pm'],
-	[0x2057, '\\pppprime'],
-	[0x2034, '\\ppprime'],
-	[0x2033, '\\pprime'],
-	[0x227A, '\\prec'],
-	[0x227C, '\\preceq'],
-	[0x2032, '\\prime'],
-	[0x220F, '\\prod'],
-	[0x221D, '\\propto'],
-	[0x221C, '\\qdrt'],
-	[0x232A, '\\rangle'],
-	[0x27EB, '\\Rangle'],
-	[0x2236, '\\ratio'],
-	[0x007D, '\\rbrace'],
-	[0x005D, '\\rbrack'],
-	[0x27E7, '\\Rbrack'],
-	[0x2309, '\\rceil'],
-	[0x22F0, '\\rddots'],
-	[0x211C, '\\Re'],
-	[0x25AD, '\\rect'],
-	[0x230B, '\\rfloor'],
-	[0x20D1, '\\rhvec'],
-	[0x2524, '\\right'],
-	[0x2192, '\\rightarrow'],
-	[0x21D2, '\\Rightarrow'],
-	[0x21C1, '\\rightharpoondown'],
-	[0x21C0, '\\rightharpoonup'],
-	[0x23B1, '\\rmoust'],
-	[0x24AD, '\\root'],
-	[0xD4B6, '\\scripta'],
-	[0xD49C, '\\scriptA'],
-	[0xD4B7, '\\scriptb'],
-	[0x212C, '\\scriptB'],
-	[0xD4B8, '\\scriptc'],
-	[0xD49E, '\\scriptC'],
-	[0xD4B9, '\\scriptd'],
-	[0xD49F, '\\scriptD'],
-	[0x212F, '\\scripte'],
-	[0x2130, '\\scriptE'],
-	[0xD4BB, '\\scriptf'],
-	[0x2131, '\\scriptF'],
-	[0x210A, '\\scriptg'],
-	[0xD4A2, '\\scriptG'],
-	[0xD4BD, '\\scripth'],
-	[0x210B, '\\scriptH'],
-	[0xD4BE, '\\scripti'],
-	[0x2110, '\\scriptI'],
-	[0xD4BF, '\\scriptj'],
-	[0xD4A5, '\\scriptJ'],
-	[0xD4C0, '\\scriptk'],
-	[0xD4A6, '\\scriptK'],
-	[0x2113, '\\scriptl'],
-	[0x2112, '\\scriptL'],
-	[0xD4C2, '\\scriptm'],
-	[0x2133, '\\scriptM'],
-	[0xD4C3, '\\scriptn'],
-	[0xD4A9, '\\scriptN'],
-	[0x2134, '\\scripto'],
-	[0xD4AA, '\\scriptO'],
-	[0xD4C5, '\\scriptp'],
-	[0xD4AB, '\\scriptP'],
-	[0xD4C6, '\\scriptq'],
-	[0xD4AC, '\\scriptQ'],
-	[0xD4C7, '\\scriptr'],
-	[0x211B, '\\scriptR'],
-	[0xD4C8, '\\scripts'],
-	[0xD4AE, '\\scriptS'],
-	[0xD4C9, '\\scriptt'],
-	[0xD4AF, '\\scriptT'],
-	[0xD4CA, '\\scriptu'],
-	[0xD4B0, '\\scriptU'],
-	[0xD4CB, '\\scriptv'],
-	[0xD4B1, '\\scriptV'],
-	[0xD4CC, '\\scriptw'],
-	[0xD4B2, '\\scriptW'],
-	[0xD4CD, '\\scriptx'],
-	[0xD4B3, '\\scriptX'],
-	[0xD4CE, '\\scripty'],
-	[0xD4B4, '\\scriptY'],
-	[0xD4CF, '\\scriptz'],
-	[0xD4B5, '\\scriptZ'],
-	[0x2044, '\\sdiv'],
-	[0x2044, '\\sdivide'],
-	[0x2198, '\\searrow'],
-	[0x2216, '\\setminus'],
-	[0x223C, '\\sim'],
-	[0x2243, '\\simeq'],
-	[0x2B0D, '\\smash'],
-	[0x2323, '\\smile'],
-	[0x2660, '\\spadesuit'],
-	[0x2293, '\\sqcap'],
-	[0x2294, '\\sqcup'],
-	[0x221A, '\\sqrt'],
-	[0x2291, '\\sqsubseteq'],
-	[0x2292, '\\sqsuperseteq'],
-	[0x22C6, '\\star'],
-	[0x2282, '\\subset'],
-	[0x2286, '\\subseteq'],
-	[0x227B, '\\succ'],
-	[0x227D, '\\succeq'],
-	[0x2211, '\\sum'],
-	[0x2283, '\\superset'],
-	[0x2287, '\\superseteq'],
-	[0x2199, '\\swarrow'],
-	[0x2234, '\\therefore'],
-	[0x2005, '\\thicksp'],
-	[0x2006, '\\thinsp'],
-	[0x0303, '\\tilde'],
-	[0x00D7, '\\times'],
-	[0x2192, '\\to'],
-	[0x22A4, '\\top'],
-	[0x20E1, '\\tvec'],
-	[0x0332, '\\ubar'],
-	[0x0333, '\\Ubar'],
-	[0x2581, '\\underbar'],
-	[0x23DF, '\\underbrace'],
-	[0x23B5, '\\underbracket'],
-	[0x25B1, '\\underline'],
-	[0x23DD, '\\underparen'],
-	[0x2191, '\\uparrow'],
-	[0x21D1, '\\Uparrow'],
-	[0x2195, '\\updownarrow'],
-	[0x21D5, '\\Updownarrow'],
-	[0x228E, '\\uplus'],
-	[0x2502, '\\vbar'],
-	[0x22A2, '\\vdash'],
-	[0x22EE, '\\vdots'],
-	[0x20D7, '\\vec'],
-	[0x2228, '\\vee'],
-	[0x007C, '\\vert'],
-	[0x2016, '\\Vert'],
-	[0x24A9, '\\Vmatrix'],
-	[0x21F3, '\\vphantom'],
-	[0x2004, '\\vthicksp'],
-	[0x2227, '\\wedge'],
-	[0x2118, '\\wp'],
-	[0x2240, '\\wr'],
-	[0x200C, '\\zwnj'],
-	[0x200B, '\\zwsp'],
-	[0x2245, '\~='],
-	[0x2213, '\-+'],
-	[0x00B1, '\+-'],
-	[0x226A, '\<<'],
-	[0x2264, '\<='],
-	[0x2192, '\->'],
-	[0x2265, '\>='],
-	[0x226B, '\>>']
-]);
 
 //--------------------------------------------------------export----------------------------------------------------
 window["AscCommonWord"] = window["AscCommonWord"] || {};

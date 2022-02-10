@@ -559,22 +559,18 @@ CBorderBox.prototype.Get_InterfaceProps = function()
 {
     return new CMathMenuBorderBox(this);
 };
-CBorderBox.prototype.GetTextOfElement = function() {
+CBorderBox.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	console.log(this)
-
 	var strSymbol = String.fromCharCode(9645);
-	var Base = this.getBase().GetTextOfElement();
-
-	var StartBracet = Base.length > 1 ? "(" : "";
-	var CloseBracet = Base.length > 1 ? ")" : "";
+	var strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement());
+	var strStartBracet = (strBase.length > 1 || isLaTeX) ? this.GetStartBracetForGetTextContent(isLaTeX) : "";
+	var strCloseBracet = (strBase.length > 1 || isLaTeX) ? this.GetEndBracetForGetTextContent(isLaTeX) : "";
 	
-	strTemp =
-		strSymbol
-		+ StartBracet
-		+ Base
-		+ CloseBracet;
-
+	if (true === isLaTeX) {
+		strTemp = '\\boxed' + strStartBracet + strBase + strCloseBracet;
+	} else {
+		strTemp = strSymbol + strStartBracet + strBase + strCloseBracet;
+	}
 	return strTemp;
 };
 

@@ -4516,20 +4516,21 @@ CGroupCharacter.prototype.Can_ChangePos = function()
 {
     return this.Pr.chr == 0x23DC || this.Pr.chr == 0x23DD || this.Pr.chr == 0x23DE || this.Pr.chr == 0x23DF;
 };
-CGroupCharacter.prototype.GetTextOfElement = function() {
+CGroupCharacter.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-
-	var strStartCode = String.fromCharCode(this.Pr.chr || this.operator.Get_CodeChr())
+	var intStartCode = this.Pr.chr || this.operator.Get_CodeChr();
+	var strStart = String.fromCharCode(intStartCode);
 	var Base = this.getBase().GetTextOfElement();
-	var StartBracet = Base.length > 1 ? "(" : "";
-	var CloseBracet = Base.length > 1 ? ")" : "";
+	var strStartBracet = (Base.length > 1 || isLaTeX) ? this.GetStartBracetForGetTextContent(isLaTeX) : "";
+	var strCloseBracet = (Base.length > 1 || isLaTeX) ? this.GetEndBracetForGetTextContent(isLaTeX) : "";
 
-	strTemp = 
-		strStartCode
-		+ StartBracet
-		+ Base
-		+ CloseBracet;
-
+	if (true === isLaTeX) {
+		if (intStartCode === 9182)
+			strStart = '\\overbrace';
+		else if (intStartCode === 9183)
+			strStart = '\\underbrace';
+	}
+	strTemp = strStart + strStartBracet + Base + strCloseBracet;
 	return strTemp;
 };
 

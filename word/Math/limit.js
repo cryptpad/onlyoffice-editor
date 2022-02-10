@@ -315,21 +315,31 @@ CLimit.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos == 1 && false === this.Is_SelectInside();
 };
-CLimit.prototype.GetTextOfElement = function() {
+CLimit.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	var strFuncName = this.getFName().GetTextOfElement();
-	var strLimitSymbol = (this.Pr.type == 1) ? "┴" : "┬";
-	var strArgument = this.getIterator().GetTextOfElement();
+	var strLimitSymbol = "";
+	var strFuncName = this.CheckIsEmpty(this.getFName().GetTextOfElement(isLaTeX));
+	var strArgument = this.CheckIsEmpty(this.getIterator().GetTextOfElement(isLaTeX));
+	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTeX);
+	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
 
-	var StartBracet = strArgument.length > 1 ? "(" : "";
-	var CloseBracet = strArgument.length > 1 ? ")" : "";
-
-	strTemp = strFuncName
-		+ strLimitSymbol
-		+ StartBracet
-		+ strArgument
-		+ CloseBracet;
-
+	if (isLaTeX) {
+		strLimitSymbol = (this.Pr.type == 1) ? "^" : "_";
+		if (strFuncName === 'lim' ||
+			strFuncName === 'log' ||
+			strFuncName === 'max' ||
+			strFuncName === 'min' ||
+			strFuncName === 'ln') {
+				strFuncName = '\\' + strFuncName;
+		}
+	} else {
+		strLimitSymbol = (this.Pr.type == 1) ? "┴" : "┬";
+	}
+	
+	if (strArgument.length > 1) {
+		strArgument = strStartBracet + strArgument + strCloseBracet;
+	}
+	strTemp = strFuncName + strLimitSymbol+ strArgument;
 	return strTemp;
 };
 
@@ -433,18 +443,25 @@ CMathFunc.prototype.fillContent = function()
     this.elements[0][0] = this.getFName();
     this.elements[0][1] = this.getArgument();
 };
-CMathFunc.prototype.GetTextOfElement = function() {
+CMathFunc.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	var strFuncName = this.getFName().GetTextOfElement();
-	var strArgument = this.getArgument().GetTextOfElement();
-	var StartBracet = strArgument.length > 1 ? "〖" : "";
-	var CloseBracet = strArgument.length > 1 ? "〗" : "";
+	var strFuncName = this.CheckIsEmpty(this.getFName().GetTextOfElement(isLaTeX));
+	var strArgument = this.CheckIsEmpty(this.getArgument().GetTextOfElement(isLaTeX));
+	var strStartBracet = "";
+	var strCloseBracet = "";
+
+	if (isLaTeX) {
+		strStartBracet = strArgument.length > 1 ? "{" : "";
+		strCloseBracet = strArgument.length > 1 ? "}" : "";
+	} else {
+		strStartBracet = strArgument.length > 1 ? "〖" : "";
+		strCloseBracet = strArgument.length > 1 ? "〗" : "";
+	}
 
 	strTemp = strFuncName
-		+ ' '
-		+ StartBracet
+		+ strStartBracet
 		+ strArgument
-		+ CloseBracet;
+		+ strCloseBracet;
 
 	return strTemp;
 };

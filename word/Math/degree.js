@@ -543,28 +543,34 @@ CDegree.prototype.Can_ModifyArgSize = function()
 };
 CDegree.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	var Base = this.getBase().GetTextOfElement(isLaTeX);
-	var type = this.Pr.type === 1 ? '^' : '_';
-	var strIterator = this.getIterator().GetTextOfElement(isLaTeX);
-
+	var strTypeOfScript = this.Pr.type === 1 ? '^' : '_';
+	var strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement(isLaTeX));
+	var strIterator = this.CheckIsEmpty(this.getIterator().GetTextOfElement(isLaTeX));
+	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTeX);
+	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
 
 	if (isLaTeX) {
-		strIterator = strIterator.length > 1 ? '{' + strIterator + '}' : strIterator;
-		Base = Base.length > 1
-		? '{'+ Base +'}'
-		: Base;
-
-		strTemp = Base + type + strIterator;
+		if (strIterator.length > 0) {
+			strIterator = strStartBracet + strIterator + strCloseBracet;
+		}
+		if (strBase === 'lim' || strBase === 'log' ||
+			strBase === 'max' || strBase === 'min' ||
+			strBase === 'ln') {
+			strBase = '\\' + strBase;
+		}
+		if (strBase.length > 1 && strBase[0] !== '\\') {
+			strBase = strStartBracet + strBase + strCloseBracet;
+		}
+		strTemp = strBase + strTypeOfScript + strIterator;
 	} else {
-		strIterator = strIterator.length > 1 ? '(' + strIterator + ')' : strIterator;
-		Base = Base.length > 1
-			? '〖'+ Base +'〗'
-			: Base;
-
-		strTemp = Base + type + strIterator;
+		if (strIterator.length > 1) {
+			strIterator = strStartBracet + strIterator + strCloseBracet;
+		}
+		if (strBase.length > 1) {
+			strBase = '〖'+ strBase +'〗';
+		}
+		strTemp = strBase + strTypeOfScript + strIterator;
 	}
-	
-
 	return strTemp;
 };
 

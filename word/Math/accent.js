@@ -690,57 +690,36 @@ CAccent.prototype.Get_InterfaceProps = function()
 };
 CAccent.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
-	var Base = this.getBase().GetTextOfElement(isLaTeX);
-	var Accent = String.fromCharCode(this.Pr.chr);
-	var StartBracet = Base.length > 1 ? "(" : "";
-	var CloseBracet = Base.length > 1 ? ")" : "";
+	var strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement(isLaTeX));
+	var strAccent = String.fromCharCode(this.Pr.chr);
+	var strStartBracet = (strBase.length > 1 || isLaTeX) ? this.GetStartBracetForGetTextContent(isLaTeX) : "";
+	var strCloseBracet = (strBase.length > 1 || isLaTeX) ? this.GetEndBracetForGetTextContent(isLaTeX) : "";
 	
 	if (isLaTeX) {
-		var intAccentCode = Accent.charCodeAt();
-
+		var intAccentCode = strAccent.charCodeAt();
 		switch (intAccentCode) {
-			case 768:
-				Accent = '\\grave'
-				break;
-			case 769:
-				Accent = '\\acute'
-				break;
-			case 771:
-				Accent = '\\tilde'
-				break;
-			case 831: //  ̿ doesn't exist in LaTeX
-			case 773:
-				Accent = '\\bar'
-				break;
-			case 774:
-				Accent = '\\breve'
-				break;
-			case 775:
-				Accent = '\\dot'
-				break;
-			case 776:
-				Accent = '\\ddot'
-				break;
-			case 780:
-				Accent = '\\check'
-				break;
-			case 8411:
-				Accent = '\\dddot'
-				break;	
-			default:
-				Accent = '\\hat' //???
-				break;
+			case 0:		strAccent = '\\hat'; 				break;
+			case 768:	strAccent = '\\grave';				break;
+			case 769:	strAccent = '\\acute';				break;
+			case 771:	strAccent = '\\tilde';				break;
+			case 831:
+			case 773:	strAccent = '\\bar';				break;
+			case 774:	strAccent = '\\breve';				break;
+			case 775:	strAccent = '\\dot';				break;
+			case 776:	strAccent = '\\ddot';				break;
+			case 780:	strAccent = '\\check';				break;
+			case 8400:	strAccent = '\\overleftharpoon';	break;
+			case 8401:	strAccent = '\\overrightharpoon';	break;
+			case 8406:	strAccent = '\\overleftarrow';		break;
+			case 8407:	strAccent = '\\overrightarrow';		break;
+			case 8411:	strAccent = '\\dddot';				break;
+			case 8417:	strAccent = '\\overleftrightarrow';	break;
+			default:	strAccent = '\\hat';				break;
 		}
-
-		
+		strTemp = strAccent + strStartBracet + strBase + strCloseBracet
 	} else {
-		strTemp =
-		StartBracet
-		+ Base
-		+ CloseBracet
-		+ Accent;
+		strTemp = strStartBracet + strBase + strCloseBracet + strAccent;
 	}
-	//console.log(Accent, Accent.charCodeAt())
 	return strTemp;
 };
 
