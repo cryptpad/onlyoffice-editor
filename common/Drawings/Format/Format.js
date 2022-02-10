@@ -97,6 +97,46 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     };
     CBaseObject.prototype.Refresh_RecalcData = function (oChange) {
     };
+    //open/save from/to xml
+    CBaseObject.prototype.readAttr = function(reader) {
+        while (reader.MoveToNextAttribute()) {
+            this.readAttrXml(reader.GetNameNoNS(), reader);
+        }
+    };
+    CBaseObject.prototype.readAttrXml = function(name, reader) {
+        //Implement in children
+    };
+    CBaseObject.prototype.readChildXml = function(name, reader) {
+        //Implement in children
+    };
+    CBaseObject.prototype.writeAttrXmlImpl = function(writer) {
+        //Implement in children
+    };
+    CBaseObject.prototype.writeChildren = function(writer) {
+        //Implement in children
+    };
+    CBaseObject.prototype.fromXml = function(reader, bSkipFirstNode) {
+        if(bSkipFirstNode) {
+            if (!reader.ReadNextNode()) {
+                return;
+            }
+        }
+        this.readAttr(reader);
+        var depth = reader.GetDepth();
+        while (reader.ReadNextSiblingNode(depth)) {
+            var name = reader.GetNameNoNS();
+            this.readChildXml(name, reader);
+        }
+    };
+    CBaseObject.prototype.toXml = function(writer, name) {
+        writer.WriteXmlNodeStart(name);
+        this.writeAttrXml(writer);
+        this.writeChildren();
+    };
+    CBaseObject.prototype.writeAttrXml = function(writer) {
+        this.writeAttrXmlImpl(writer);
+        writer.WriteXmlAttributesEnd(true);
+    };
 
     function InitClass(fClass, fBase, nType) {
         fClass.prototype = Object.create(fBase.prototype);
@@ -104,6 +144,14 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         fClass.prototype.constructor = fClass;
         fClass.prototype.classType = nType;
     }
+
+
+    function CBaseNoIdObject() {
+        AscFormat.ExecuteNoHistory(function() {
+            CBaseObject.call(this);
+        }, this, []);
+    }
+    InitClass(CBaseNoIdObject, CBaseObject, AscDFH.historyitem_type_Unknown);
 
     function CBaseFormatObject() {
         CBaseObject.call(this);
@@ -243,7 +291,6 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         }
         return true;
     };
-
     CBaseFormatObject.prototype.checkEqualChild = function(oThisChild, oOtherChild) {
         if(AscCommon.isRealObject(oThisChild) && oThisChild.isEqual) {
             if(!oThisChild.isEqual(oOtherChild)) {
@@ -257,6 +304,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         }
         return oThisChild;
     };
+
      //Method for debug
     CBaseObject.prototype.compareTypes = function(oOther) {
         if(!oOther || !oOther.compareTypes) {
@@ -14094,6 +14142,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
         window['AscFormat'].InitClass = InitClass;
         window['AscFormat'].CBaseObject           = CBaseObject;
         window['AscFormat'].CBaseFormatObject = CBaseFormatObject;
+        window['AscFormat'].CBaseNoIdObject = CBaseNoIdObject;
         window['AscFormat'].checkRasterImageId = checkRasterImageId;
 
     window['AscFormat'].DEFAULT_COLOR_MAP = GenerateDefaultColorMap();

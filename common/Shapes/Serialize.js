@@ -4034,15 +4034,7 @@ function BinaryPPTYLoader()
                 {
                     var cSld = new AscFormat.CSld();
                     this.ReadCSld(cSld);
-                    for(var i = 0; i < cSld.spTree.length; ++i)
-                    {
-                        master.shapeAdd(i, cSld.spTree[i]);
-                    }
-                    if(cSld.Bg)
-                    {
-                        master.changeBackground(cSld.Bg);
-                    }
-                    master.setCSldName(cSld.name);
+                    AscCommonSlide.fFillFromCSld(master, cSld);
                     break;
                 }
                 case 1:
@@ -4204,15 +4196,7 @@ function BinaryPPTYLoader()
                 {
                     var cSld = new AscFormat.CSld();
                     this.ReadCSld(cSld);
-                    for(var i = 0; i < cSld.spTree.length; ++i)
-                    {
-                        layout.shapeAdd(i, cSld.spTree[i]);
-                    }
-                    if(cSld.Bg)
-                    {
-                        layout.changeBackground(cSld.Bg);
-                    }
-                    layout.setCSldName(cSld.name);
+                    AscCommonSlide.fFillFromCSld(layout, cSld);
                     break;
                 }
                 case 1:
@@ -4293,15 +4277,7 @@ function BinaryPPTYLoader()
                 {
                     var cSld = new AscFormat.CSld();
                     this.ReadCSld(cSld);
-                    for(var i = 0; i < cSld.spTree.length; ++i)
-                    {
-                        slide.shapeAdd(i, cSld.spTree[i]);
-                    }
-                    if(cSld.Bg)
-                    {
-                        slide.changeBackground(cSld.Bg);
-                    }
-                    slide.setCSldName(cSld.name);
+                    AscCommonSlide.fFillFromCSld(slide, cSld);
                     break;
                 }
                 case 1:

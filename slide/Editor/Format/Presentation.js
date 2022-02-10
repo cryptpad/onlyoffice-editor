@@ -2758,7 +2758,168 @@ CSlideSize.prototype.GetSizeType = function () {
     }
     return Asc.c_oAscSlideSZType.SzCustom;
 };
+
+CSlideSize.prototype.readAttrXml = function(name, reader) {
+    switch (name) {
+        case "cx": {
+            this.setCX(reader.GetValueInt());
+            break;
+        }
+        case "cy": {
+            this.setCY(reader.GetValueInt());
+            break;
+        }
+        case "type": {
+            let sValue = reader.GetValue();
+            switch (sValue) {
+                case "35mm": {
+                    this.setType(Asc.c_oAscSlideSZType.Sz35mm);
+                    break;
+                }
+                case "A3": {
+                    this.setType(Asc.c_oAscSlideSZType.SzA3);
+                    break;
+                }
+                case "A4": {
+                    this.setType(Asc.c_oAscSlideSZType.SzA4);
+                    break;
+                }
+                case "B4ISO": {
+                    this.setType(Asc.c_oAscSlideSZType.SzB4ISO);
+                    break;
+                }
+                case "B4JIS": {
+                    this.setType(Asc.c_oAscSlideSZType.SzB4JIS);
+                    break;
+                }
+                case "B5ISO": {
+                    this.setType(Asc.c_oAscSlideSZType.SzB5ISO);
+                    break;
+                }
+                case "B5JIS": {
+                    this.setType(Asc.c_oAscSlideSZType.SzB5JIS);
+                    break;
+                }
+                case "banner": {
+                    this.setType(Asc.c_oAscSlideSZType.SzBanner);
+                    break;
+                }
+                case "custom": {
+                    this.setType(Asc.c_oAscSlideSZType.SzCustom);
+                    break;
+                }
+                case "hagakiCard": {
+                    this.setType(Asc.c_oAscSlideSZType.SzHagakiCard);
+                    break;
+                }
+                case "ledger": {
+                    this.setType(Asc.c_oAscSlideSZType.SzLedger);
+                    break;
+                }
+                case "letter": {
+                    this.setType(Asc.c_oAscSlideSZType.SzLetter);
+                    break;
+                }
+                case "overhead": {
+                    this.setType(Asc.c_oAscSlideSZType.SzOverhead);
+                    break;
+                }
+                case "screen16x10": {
+                    this.setType(Asc.c_oAscSlideSZType.SzScreen16x10);
+                    break;
+                }
+                case "screen16x9": {
+                    this.setType(Asc.c_oAscSlideSZType.SzScreen16x9);
+                    break;
+                }
+                case "screen4x3": {
+                    this.setType(Asc.c_oAscSlideSZType.SzScreen4x3);
+                    break;
+                }
+            }
+            break;
+        }
+    }
+};
+CSlideSize.prototype.writeAttrXmlImpl = function(writer) {
+    writer.WriteXmlNullableAttributeInt("cx", this.cx);
+    writer.WriteXmlNullableAttributeInt("cy", this.cy);
+    if(this.type !== null) {
+        var sType = null;
+        switch (this.type) {
+            case Asc.c_oAscSlideSZType.Sz35mm: {
+                sType = "35mm";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzA3: {
+                sType = "A3";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzA4: {
+                sType = "A4";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzB4ISO: {
+                sType = "B4ISO";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzB4JIS: {
+                sType = "B4JIS";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzB5ISO: {
+                sType = "B5ISO";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzB5JIS: {
+                sType = "B5JIS";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzBanner: {
+                sType = "banner";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzCustom: {
+                sType = "custom";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzHagakiCard: {
+                sType = "hagakiCard";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzLedger: {
+                sType = "ledger";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzLetter: {
+                sType = "letter";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzOverhead: {
+                sType = "overhead";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzScreen16x10: {
+                sType = "screen16x10";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzScreen16x9: {
+                sType = "screen16x9";
+                break;
+            }
+            case Asc.c_oAscSlideSZType.SzScreen4x3: {
+                sType = "screen4x3";
+                break;
+            }
+        }
+        if(sType) {
+            writer.WriteXmlAttributeString("type", sType);
+        }
+    }
+};
+
 function CPresentation(DrawingDocument) {
+    AscFormat.CBaseFormatObject.call(this);
     this.History = History;
     this.IdCounter = AscCommon.g_oIdCounter;
     this.TableId = g_oTableId;
@@ -2904,10 +3065,11 @@ function CPresentation(DrawingDocument) {
 
     this.AutoCorrectSettings = new AscCommon.CAutoCorrectOptions();
 }
+AscFormat.InitClass(CPresentation, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_Presentation);
 
-//CPresentation.prototype = Object.create(CDocumentContentBase.prototype);
-CPresentation.prototype.constructor = CPresentation;
-
+CPresentation.prototype.notAllowedWithoutId = function() {
+    return true;
+};
 CPresentation.prototype.GetApi = function() {
     return this.Api;
 };
@@ -11519,6 +11681,87 @@ CPresentation.prototype.StopAnimation = function()
     }
 };
 
+CPresentation.prototype.readAttrXml = function(name, reader) {
+    switch (name) {
+        case "preserve": {
+            break;
+        }
+    }
+};
+CPresentation.prototype.readChildXml = function(name, reader) {
+    let oIdLst;
+    let aList;
+    let nItem;
+    let oRel, oRelPart;
+    switch(name) {
+        case "sldMasterIdLst": {
+            oIdLst = new IdList("sldMasterIdLst");
+            oIdLst.fromXml(reader);
+            aList = oIdLst.readList(reader, AscCommonSlide.MasterSlide);
+            break;
+        }
+        case "notesMasterIdLst": {
+            oIdLst = new IdList("notesMasterIdLst");
+            oIdLst.fromXml(reader);
+            aList = oIdLst.readList(reader, AscCommonSlide.CNotesMaster);
+            break;
+        }
+        case "handoutMasterIdLst": {
+            oIdLst = new IdList("handoutMasterIdLst");
+            oIdLst.fromXml(reader);
+            break;
+        }
+        case "sldIdLst": {
+            oIdLst = new IdList("sldIdLst");
+            oIdLst.fromXml(reader);
+            aList = oIdLst.readList(reader, AscCommonSlide.Slide);
+            break;
+        }
+        case "sldSz": {
+            let oSldSz = new CSlideSize();
+            oSldSz.fromXml(reader);
+            this.setSldSz(oSldSz);
+            break;
+        }
+        case "notesSz": {
+            break;
+        }
+        case "smartTags": {
+            break;
+        }
+        case "embeddedFontLst": {
+            break;
+        }
+        case "custShowLst": {
+            break;
+        }
+        case "photoAlbum": {
+            break;
+        }
+        case "custDataLst": {
+            break;
+        }
+        case "kinsoku": {
+            break;
+        }
+        case "defaultTextStyle": {
+            break;
+        }
+        case "modifyVerifier": {
+            break;
+        }
+        case "extLst": {
+            break;
+        }
+    }
+};
+CPresentation.prototype.writeAttrXmlImpl = function(writer) {
+    writer.WriteXmlNullableAttributeInt("firstSlideNum", this.firstSlideNum);
+    writer.WriteXmlNullableAttributeBool("showSpecialPlsOnTitleSld", this.showSpecialPlsOnTitleSld);
+};
+CPresentation.prototype.writeChildren = function(writer) {
+    //Implement in children
+};
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting) {
     var oSp;
     var oPr = new AscFormat.CCopyObjectProperties();
@@ -11567,8 +11810,63 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
     }
 }
 
+function IdList(name) {
+    AscFormat.CBaseNoIdObject.call(this);
+    this.name = name;
+    this.list = [];
+}
+AscFormat.InitClass(IdList, AscFormat.CBaseNoIdObject, undefined);
+IdList.prototype.readChildXml = function(name, reader) {
+    let oEntry = new IdEntry(name);
+    oEntry.fromXml(reader);
+    this.list.push(oEntry);
+};
+IdList.prototype.writeChildren = function(writer) {
+    for(let nEntry = 0; nEntry < this.list.length; ++nEntry) {
+        this.list[nEntry].toXml(writer, this.list[nEntry].name);
+    }
+};
+IdList.prototype.readList = function(reader, fConstructor) {
+    let aList = this.list;
+    let oRel;
+    let oRelPart;
+    let aListOfObjects = [];
+    for(let nItem = 0; nItem < aList.length; ++nItem) {
+        oRel = reader.rels.getRelationship(aList[nItem].rId);
+        oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
+        let oContent = oRelPart.getDocumentContent();
+        let oReader = new StaxParser(oContent, oRelPart, reader.context);
+        let oElement = new fConstructor();
+        oElement.fromXml(oReader, true);
+    }
+    return aListOfObjects;
+};
+function IdEntry(name) {
+    AscFormat.CBaseNoIdObject.call(this);
+    this.name = name;
+    this.id = null;
+    this.rId = null;
+}
+AscFormat.InitClass(IdEntry, AscFormat.CBaseNoIdObject, undefined);
+IdEntry.prototype.readAttrXml = function(name, reader) {
+    switch (reader.GetName()) {
+        case "id": {
+            this.id = reader.GetValue();
+            break;
+        }
+        case "r:id": {
+            this.rId = reader.GetValue();
+            break;
+        }
+    }
+};
+IdEntry.prototype.writeAttrXmlImpl = function(writer) {
+    writer.WriteXmlNullableAttributeInt("id", this.id);
+    writer.WriteXmlNullableAttributeBool("r:id", this.rId);
+};
 //------------------------------------------------------------export----------------------------------------------------
 window['AscCommonSlide'] = window['AscCommonSlide'] || {};
 window['AscCommonSlide'].CPresentation = CPresentation;
 window['AscCommonSlide'].CPrSection = CPrSection;
 window['AscCommonSlide'].CSlideSize = CSlideSize;
+window['AscCommonSlide'].IdList = IdList;

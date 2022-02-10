@@ -1563,6 +1563,29 @@ background-repeat: no-repeat;\
 			setInterval(AscCommon.SafariIntervalFocus, 10);
 	};
 
+	asc_docs_api.prototype.OpenDocumentFromZip = function(data)
+	{
+		if (!data) {
+			return false;
+		}
+		var xmlParserContext = new XmlParserContext();
+		var jsZipWrapper = new AscCommon.JSZipWrapper();
+		if (!jsZipWrapper.loadSync(data)) {
+			return false;
+		}
+		var reader, openParams = {};
+
+		xmlParserContext.zip = jsZipWrapper;
+		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
+		var contentDocument = documentPart.getDocumentContent();
+		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
+		this.WordControl.m_oLogicDocument = new CPresentation(this.WordControl.m_oDrawingDocument);
+		this.WordControl.m_oLogicDocument.fromXml(reader, true);
+
+		return true;
+	};
+
 	// Callbacks
 	/* все имена callback'оф начинаются с On. Пока сделаны:
 	 OnBold,
@@ -5556,7 +5579,11 @@ background-repeat: no-repeat;\
 			this.VersionHistory.changes = file.changes;
 			this.VersionHistory.applyChanges(this);
 		}
-		this.OpenDocumentFromBin(file.url, file.data);
+		if(window['OPEN_IN_BROWSER'] && false) {
+			this.OpenDocumentFromZip(file.data);
+		} else {
+			this.OpenDocumentFromBin(file.url, file.data);
+		}
 	};
 
 	asc_docs_api.prototype.get_PresentationWidth  = function()
