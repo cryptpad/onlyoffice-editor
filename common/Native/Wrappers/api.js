@@ -6988,6 +6988,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
     }
 
+    window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
     window["native"]["onEndLoadingFile"]();
 
     this.WordControl.m_oDrawingDocument.Collaborative_TargetsUpdate(true);
