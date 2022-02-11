@@ -524,42 +524,7 @@
 
 		this.model.initColumns();
 	};
-  /**
-   *
-   * @return {AscFormat.CCellObjectInfo}
-   */
-  WorksheetView.prototype.getLastCell = function () {
-    var lastRow = this.findLastRow();
-    var lastColumn = this.findLastCol();
 
-    var cell = this.findCellByXY(lastColumn.left, lastRow.top);
-    return cell;
-  }
-  /**
-   *
-   * @return {AscFormat.CCellObjectInfo}
-   */
-  WorksheetView.prototype.getFirstCell = function () {
-    var firstRow = this.findFirstRow();
-    var firstColumn = this.findFirstCol();
-
-    var cell = this.findCellByXY(firstColumn.left, firstRow.top);
-    return cell;
-  }
-  WorksheetView.prototype.getMaxSizes = function () {
-    var offX = this.cellsLeft;
-    var offY = this.cellsTop;
-    var lastRow = this.findLastRow();
-    var lastColumn = this.findLastCol();
-    var extX = lastColumn.width + lastColumn.left;
-    var extY = lastRow.top + lastRow.height;
-    return {
-      offX: offX,
-      offY: offY,
-      extX: extX,
-      extY: extY
-    };
-  }
   WorksheetView.prototype.createImageFromMaxRange = function () {
     var sizes = this.getMaxSizes();
     var hiddenCanv = document.createElement('canvas');
@@ -610,49 +575,6 @@
     return charts;
   }
 
-  WorksheetView.prototype.findLastRow = function () {
-    if (!this.rows) return;
-
-    return this.rows.reduce(function (acc, b) {
-      if (b.top >= acc.top) {
-        return b;
-      }
-      return acc;
-    }, this.rows[0]);
-  }
-
-  WorksheetView.prototype.findLastCol = function () {
-    if (!this.cols) return;
-
-    return this.cols.reduce(function (acc, b) {
-      if (b.left >= acc.left) {
-        return b;
-      }
-      return acc;
-    }, this.cols[0]);
-  }
-
-  WorksheetView.prototype.findFirstRow = function () {
-    if (!this.rows) return;
-
-    return this.rows.reduce(function (acc, b) {
-      if (b.top < acc.top) {
-        return b;
-      }
-      return acc;
-    }, this.rows[0]);
-  }
-
-  WorksheetView.prototype.findFirstCol = function () {
-    if (!this.cols) return;
-
-    return this.cols.reduce(function (acc, b) {
-      if (b.left < acc.left) {
-        return b;
-      }
-      return acc;
-    }, this.cols[0]);
-  }
 	WorksheetView.prototype._initWorksheetDefaultWidthForPrint = function () {
 		var defaultPpi = 96;
 		var truePPIX = this.drawingCtx.ppiX;
@@ -22952,36 +22874,9 @@
     //console.log(scaleCoefficientWidth, scaleCoefficientHeight)
     var zoomCoefficient = scaleCoefficientHeight < scaleCoefficientWidth ? scaleCoefficientHeight : scaleCoefficientWidth;
     var previousZoom = this.getZoom();
-    console.log( previousZoom)
     this.workbook.changeZoom(previousZoom * zoomCoefficient);
     console.log(r1, c1)
     this.scrollToCell(r1, c1);
-  }
-  /**
-   *
-   * @param { number } c1 index from column
-   * @param { number } c2 index to column (include)
-   * @return { number }
-   */
-  WorksheetView.prototype.getWidthOfRangeColumn = function (c1, c2) {
-    var columnsWidth = 0;
-    for (var i = c1; i <= c2; i += 1) {
-      columnsWidth += this.getColumnWidth(i);
-    }
-    return columnsWidth;
-  }
-  /**
-   *
-   * @param { number } r1 index from row
-   * @param { number } r2 index to row (include)
-   * @return {number}
-   */
-  WorksheetView.prototype.getHeightOfRangeRow = function (r1, r2) {
-    var rowsHeight = 0;
-    for (var i = r1; i <= r2; i += 1) {
-      rowsHeight += this.getRowHeight(i);
-    }
-    return rowsHeight;
   }
 
   /**

@@ -3308,16 +3308,7 @@ var editor;
     this.isOleEditor = true;
     this.asc_CloseFile();
     this.openDocument(file);
-    // var oThis = this;
-    // this.asyncMethodCallback = function () {
-    //   oThis.FontLoadWaitComplete = true;
-    //   oThis._openDocumentEndCallback();
-    //   console.log(oThis.wb)
-    //   oThis.wb.resize();
-    // //var inputContext = AscCommon.g_inputContext;
-    // //inputContext.appendInputToCanvas();
-    // };
-  };
+    };
  /**
   *
   * @param { function } endCallback function, which first argument is binaryInfo about workbook
