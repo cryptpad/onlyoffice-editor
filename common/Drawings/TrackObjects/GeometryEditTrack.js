@@ -863,15 +863,56 @@
                     var oPath = geometry.pathLst[i];
                     oPath.ArrPathCommandInfo.length = 0;
                     var arrPathCommand = oPath.ArrPathCommand;
+                    var lastX = null, lastY = null;
                     for (var j = 0; j < arrPathCommand.length; ++j) {
 
                         switch (arrPathCommand[j].id) {
                             case PathType.POINT: {
+                                lastX = arrPathCommand[j].X;
+                                lastY = arrPathCommand[j].Y;
                                 this.addPathCommandInfo(1, i, (((arrPathCommand[j].X - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y - this.yMin) * kh) >> 0) + "");
                                 break;
                             }
                             case PathType.BEZIER_4: {
-                                this.addPathCommandInfo(5, i, (((arrPathCommand[j].X0 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - this.yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - this.yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - this.yMin) * kh) >> 0) + "");
+                                //check if it is possible to add line
+                                var bLine = false;
+                                if(AscFormat.isRealNumber(lastX) && AscFormat.isRealNumber(lastY)) {
+                                    var dX = arrPathCommand[j].X0 - lastX;
+                                    var dY = arrPathCommand[j].Y0 - lastY;
+                                    var dEps = 0.01;
+                                    if(AscFormat.fApproxEqual(dY, 0, dEps)) {
+                                        if(AscFormat.fApproxEqual(arrPathCommand[j].Y1 - lastY, 0, dEps) && AscFormat.fApproxEqual(arrPathCommand[j].Y2 - lastY, 0, dEps)) {
+                                            bLine = true;
+                                        }
+                                    }
+                                    else {
+                                        var dK = dX / dY;
+                                        dX = arrPathCommand[j].X1 - lastX;
+                                        dY = arrPathCommand[j].Y1 - lastY;
+                                        if(!AscFormat.fApproxEqual(dY, 0, dEps)) {
+                                            var dK1 = dX / dY;
+                                            if(AscFormat.fApproxEqual(dK1, dK, dEps)) {
+                                                dX = arrPathCommand[j].X2 - lastX;
+                                                dY = arrPathCommand[j].Y2 - lastY;
+                                                if(!AscFormat.fApproxEqual(dY, 0, dEps)) {
+                                                    dK1 = dX / dY;
+                                                    if(AscFormat.fApproxEqual(dK1, dK, dEps)) {
+                                                        bLine = true;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if(bLine) {
+                                    this.addPathCommandInfo(2, i, (((arrPathCommand[j].X2 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - this.yMin) * kh) >> 0) + "");
+                                }
+                                else {
+                                    this.addPathCommandInfo(5, i, (((arrPathCommand[j].X0 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - this.yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - this.yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - this.xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - this.yMin) * kh) >> 0) + "");
+                                }
+                                lastX = arrPathCommand[j].X2;
+                                lastY = arrPathCommand[j].Y2;
                                 break;
                             }
                             case PathType.END: {
