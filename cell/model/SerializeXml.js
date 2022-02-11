@@ -6471,23 +6471,24 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeBool("scaleWithDoc", this.scaleWithDoc);
 		writer.WriteXmlAttributesEnd();
 
-		if (this.evenFooter) {
-			toXML2(writer, "oddHeader", this.evenFooter);
-		}
-		if (this.evenHeader) {
-			toXML2(writer, "oddFooter", this.oddFooter);
-		}
-		if (this.firstFooter) {
-			toXML2(writer, "evenHeader", this.evenHeader);
-		}
-		if (this.firstHeader) {
-			toXML2(writer, "evenFooter", this.evenFooter);
+
+		if (this.oddHeader) {
+			toXML2(writer, "oddHeader", this.oddHeader.str);
 		}
 		if (this.oddFooter) {
-			toXML2(writer, "firstHeader", this.firstHeader);
+			toXML2(writer, "oddFooter", this.oddFooter.str);
 		}
-		if (this.oddHeader) {
-			toXML2(writer, "firstFooter", this.firstFooter);
+		if (this.evenHeader) {
+			toXML2(writer, "evenHeader", this.evenHeader.str);
+		}
+		if (this.evenFooter) {
+			toXML2(writer, "evenFooter", this.evenFooter.str);
+		}
+		if (this.firstHeader) {
+			toXML2(writer, "firstHeader", this.firstHeader.str);
+		}
+		if (this.firstFooter) {
+			toXML2(writer, "firstFooter", this.firstFooter.str);
 		}
 		writer.WriteXmlNodeEnd(ns + name);
 	};

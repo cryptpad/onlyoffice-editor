@@ -1436,12 +1436,6 @@ var editor;
 
 		var reader, i;
 		if (window['OPEN_IN_BROWSER']) {
-			//defined names
-			if (wbXml.newDefinedNames) {
-				xmlParserContext.InitOpenManager.oReadResult.defNames = wbXml.newDefinedNames;
-				xmlParserContext.InitOpenManager.PostLoadPrepareDefNames(wb);
-			}
-
 			//external reference
 			if (wbXml.externalReferences) {
 				wbXml.externalReferences.forEach(function (externalReference) {
@@ -1696,6 +1690,13 @@ var editor;
 			});
 		}
 
+		if (window['OPEN_IN_BROWSER']) {
+			//defined names
+			if (wbXml.newDefinedNames) {
+				xmlParserContext.InitOpenManager.oReadResult.defNames = wbXml.newDefinedNames;
+				xmlParserContext.InitOpenManager.PostLoadPrepareDefNames(wb);
+			}
+		}
 
 		var readSheetDataExternal = function (bNoBuildDep) {
 			for (var i = 0; i < xmlParserContext.InitOpenManager.oReadResult.sheetData.length; ++i) {
