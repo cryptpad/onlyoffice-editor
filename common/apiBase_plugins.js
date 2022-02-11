@@ -885,7 +885,7 @@
      * Replaces each paragraph(or text in cell) in the select with the corresponding text from an array of strings.
      * @memberof Api
      * @typeofeditors ["CDE", "CSE", "CPE"]
-     * @alias GetSelectedText
+     * @alias ReplaceTextSmart
      * @param {Array} arrString - represents an array of strings.
      * @param {string} [sParaTab=" "] - specifies which character to use to define the tab in the source text.
      * @param {string} [sParaNewLine=" "] - specifies which character to use to specify the line break character in the source text.
@@ -906,4 +906,26 @@
                 break;
         }
     };
+	/**
+    * Get the current file to download in the specified format
+     * @memberof Api
+     * @typeofeditors ["CDE", "CSE", "CPE"]
+     * @alias GetFileToDownload
+     * @param {string} [format=" "] - the format in which you need to get the file to download.
+     * @returns {string} - url to download the file in the specified format or error.
+     */
+	Api.prototype["pluginMethod_GetFileToDownload"] = function(format)
+	{
+		var dwnldF = Asc.c_oAscFileType[format] || Asc.c_oAscFileType[this.DocInfo.Format.toUpperCase()];
+		var opts = new Asc.asc_CDownloadOptions(dwnldF);
+		var _t = this;
+		opts.callback = function() {
+			_t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.DownloadAs);
+			_t.fCurCallback = function(res) {
+				var data = (res.status == "ok") ? res.data : "error";
+				window.g_asc_plugins.onPluginEvent("onFileReadyToDownload", data);
+			};
+		}
+		this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, opts);
+	};
 })(window);
