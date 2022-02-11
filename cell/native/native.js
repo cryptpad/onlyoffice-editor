@@ -6908,6 +6908,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                 var ws = t.wb.getWorksheet();
                 //console.log("JS - getWorksheet()");
 
+                window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
                 window["native"]["onEndLoadingFile"](ws.headersWidth, ws.headersHeight);
                 //console.log("JS - onEndLoadingFile()");
 
