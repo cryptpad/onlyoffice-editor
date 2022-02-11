@@ -74,7 +74,7 @@ var isLaTeXAtom = [
 	'log',		'lin',		'ln',		'max',		'min',		'exp',
 	'matrix',
 	'sqrt',
-	'left',		'right',	'middle',	'frac',
+	'left',		'right',	'middle',	'frac',		'binom',
 
 	'to'
 ];
@@ -108,7 +108,7 @@ var GreekLetters = {
 var UnicodeSymbols = [
 	'┴', '┬', '▒', '√', "┤", "├", "〖", "〗", '█', '¦',
 	'│', '“', '×', '·', '•', '', '∫', '∑', '∏', '▭',
-	'','√', '▁', '⊘', '⁄', '\\', '\/'
+	'','√', '▁', '⊘', '⁄', '\\', '\/', '∩'
 ];
 
 function EquationProcessing(Parent) {
@@ -1167,7 +1167,7 @@ EquationProcessing.prototype.AddLimit = function (FormArgument, strAtom) {
 			this.Parent.intIndexArray++;
 			typeOfBottom = '_';
 		}
-		typeOfBottom = this.GetTypeOrScript([typeOfBottom]);
+		typeOfBottom = this.GetTypeOfScript(typeOfBottom);
 	}
 	else if (this.isLaTeX()) {
 		typeOfBottom = this.BracetSyntaxChecker(this.Parent.intIndexArray);

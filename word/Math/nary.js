@@ -815,38 +815,57 @@ CNary.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos !== 2 && false === this.Is_SelectInside();
 };
-CNary.prototype.GetTextOfElement = function() {
+CNary.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
 	var strStartCode = String.fromCharCode(this.Pr.chr || this.getSign().chrCode);
+	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTeX);
+	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
+
+	var strSupContent = this.CheckIsEmpty(this.getSupMathContent().GetTextOfElement(isLaTeX));
+	var strSubContent = this.CheckIsEmpty(this.getSubMathContent().GetTextOfElement(isLaTeX));
+	var strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement(isLaTeX));
+
+	if (strSupContent.length > 0) {
+		strSupContent = strStartBracet + strSupContent + strCloseBracet;
+	}
+	if (strSubContent.length > 0) {
+		strSubContent = strStartBracet + strSubContent + strCloseBracet;
+	}
+	
+	if (true === isLaTeX) {
+		switch (strStartCode.codePointAt()) {
+			case 8747:	strStartCode = '\\int';			break;
+			case 8748:	strStartCode = '\\iint';		break;
+			case 8749:	strStartCode = '\\iiint';		break;
+			case 8750:	strStartCode = '\\oint';		break;
+			case 8751:	strStartCode = '\\oiint';		break;
+			case 8752:	strStartCode = '\\oiiint';		break;
+			case 8721:	strStartCode = '\\sum';			break;
+			case 8719:	strStartCode = '\\prod';		break;
+			case 8720:	strStartCode = '\\coprod';		break;
+			case 8899:	strStartCode = '\\bigcup';		break;
+			case 8898:	strStartCode = '\\bigcap';		break;
+			case 8897:	strStartCode = '\\bigvee';		break;
+			case 8896:	strStartCode = '\\bigwedge';	break;
+			default: break;
+		}
+		if (strBase.length > 1) {
+			strBase = strStartBracet + strBase + strCloseBracet;
+		}
+	} else {
+		if (strBase.length > 1) {
+			strBase = '▒' + '〖' + strBase + '〗';
+		}
+	}
 
 	strTemp += strStartCode;
-
-	if (!this.Pr.supHide) {
-		strTemp += '^';
-		var SupContent = this.getSupMathContent().GetTextOfElement();
-		var StartBracet = SupContent.length > 1 ? "(" : "";
-		var CloseBracet = SupContent.length > 1 ? ")" : "";
-		
-		strTemp += StartBracet + SupContent + CloseBracet;
+	if (strSupContent.length > 0) {
+		strTemp += "^" + strSupContent;
 	}
-
-	if (!this.Pr.subHide) {
-		strTemp += '_';
-		var SubContent = this.getSubMathContent().GetTextOfElement();
-		var StartBracet = SubContent.length > 1 ? "(" : "";
-		var CloseBracet = SubContent.length > 1 ? ")" : "";
-
-		strTemp += StartBracet + SubContent + CloseBracet;
+	if (strSubContent.length > 0) {
+		strTemp += "_" + strSubContent;
 	}
-
-	strTemp += String.fromCharCode(9618); //▒
-
-	var Base = this.getBase().GetTextOfElement();
-	var StartBracet = Base.length > 1 ? "〖" : "";
-	var CloseBracet = Base.length > 1 ? "〗" : "";
-
-	strTemp += StartBracet + Base + CloseBracet;
-
+	strTemp += strBase;
 	return strTemp;
 };
 

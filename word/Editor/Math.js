@@ -1722,11 +1722,11 @@ ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 	return "";
 };
 
-ParaMath.prototype.GetText = function()
+ParaMath.prototype.GetText = function(isLaTeX)
 {
     var res = "";
     if (this.Root && this.Root.GetTextContent) {
-        var textContent = this.Root.GetTextContent();
+        var textContent = this.Root.GetTextContent(isLaTeX);
         if (textContent && textContent.str) {
             res = textContent.str;
         }
@@ -3512,13 +3512,10 @@ ParaMath.prototype.ConvertFromLaTeX = function()
 };
 ParaMath.prototype.ConvertToLaTeX = function()
 {
-	var Conveter = new ToLaTex(this.Root);
-	Conveter.ConvertData(Conveter.objTempData, Conveter.Root);
-	Conveter.Convert(Conveter.objTempData);
-
-	console.log("LaTex string:", Conveter.objString.arr.join(""));
-	return Conveter.objString.arr.join("");
-
+	var strin = this.GetText(true);
+	this.Root.Remove_Content(0,this.Root.Content.length);
+	console.log('Unicode string:', strin);
+	this.Root.Add_Text(strin, this.Paragraph);
 	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
 };
 ParaMath.prototype.ConvertFromUnicodeMath = function()
@@ -3548,6 +3545,7 @@ ParaMath.prototype.ConvertView = function(isToLinear)
 	if (isToLinear)
 	{
 		if (Asc.c_oAscMathInputType.Unicode === nInputType)
+			//this.ConvertFromLaTeX();
 			this.ConvertFromUnicodeMath();
 		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
 			this.ConvertFromLaTeX();
