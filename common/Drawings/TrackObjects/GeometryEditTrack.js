@@ -1245,7 +1245,7 @@
                 return new CGeomHitData(this.getGmEditPtIdx(), false, true, false);
             }
         }
-        var oGeomData = this.hitToGmEditLst(x, y, true);
+        var oGeomData = this.hitToGmEditLst(x, y, false);
         if(oGeomData) {
             return oGeomData;
         }
