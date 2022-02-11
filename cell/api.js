@@ -1681,8 +1681,8 @@ var editor;
 								var namedSheetView = new Asc.CT_NamedSheetViews();
 								reader = new StaxParser(contentSheetView, namedSheetView, xmlParserContext);
 								namedSheetView.fromXml(reader);
-								//TODO связь с таблицыми по id
-								ws.aNamedSheetViews.push(namedSheetView);
+								//связь с таблицыми по id осуществляется через tableIdOpen, который потом в методе initPostOpen преобразуется в tableId
+								ws.aNamedSheetViews = namedSheetView.namedSheetView;
 							}
 						}
 					}

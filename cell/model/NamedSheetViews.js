@@ -1132,6 +1132,6 @@
 	window["Asc"]["CT_NsvFilter"] = window['Asc'].CT_NsvFilter = CT_NsvFilter;
 	window["Asc"]["CT_ColumnFilter"] = window['Asc'].CT_ColumnFilter = CT_ColumnFilter;
 	window["Asc"]["CT_SortRule"] = window['Asc'].CT_SortRule = CT_SortRule;
-	window["Asc"]["CT_SortRules"] = window['Asc'].CT_SortRule = CT_SortRules;
+	window["Asc"]["CT_SortRules"] = window['Asc'].CT_SortRules = CT_SortRules;
 
 })(window);
