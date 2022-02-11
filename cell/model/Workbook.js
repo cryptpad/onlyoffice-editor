@@ -2150,6 +2150,12 @@
 			this.snapshot = this._getSnapshot();
 		}
 	};
+	Workbook.prototype.getOleSize = function () {
+		return this.oleSize;
+	}
+	Workbook.prototype.setOleSize = function (oPr) {
+		this.oleSize = oPr;
+	}
 	Workbook.prototype.initPostOpenZip=function(pivotCaches){
 		var t = this;
 		this.forEach(function (ws) {

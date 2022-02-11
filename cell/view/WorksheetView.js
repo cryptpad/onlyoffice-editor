@@ -481,10 +481,25 @@
 		this.model.updatePivotTablesStyle(null);
 		this._cleanCellsTextMetricsCache();
 		this._prepareCellTextMetricsCache();
-
+    this._adaptForOleSize();
 		// initializing is completed
 		this.handlers.trigger("initialized");
 	};
+
+  WorksheetView.prototype._adaptForOleSize = function () {
+    var oleSize = this.getOleSize();
+    if (oleSize) {
+      //this.scrollAndResizeToEditableRange(oleSize);
+    }
+  };
+
+  WorksheetView.prototype.getOleSize = function () {
+    return this.workbook && this.workbook.model.getOleSize();
+  };
+
+  WorksheetView.prototype.setOleSize = function (oPr) {
+    return this.workbook && this.workbook.model.setOleSize(oPr);
+  };
 	WorksheetView.prototype._initWorksheetDefaultWidth = function () {
 		// Теперь рассчитываем число px
 		this.defaultColWidthChars = this.model.charCountToModelColWidth(this.model.getBaseColWidth());
@@ -526,30 +541,10 @@
 	};
 
   WorksheetView.prototype.createImageFromMaxRange = function () {
-    var sizes = this.getMaxSizes();
-    var hiddenCanv = document.createElement('canvas');
-    hiddenCanv.width = sizes.extX;
-    hiddenCanv.height = sizes.extY;
-    var hiddenCtx = hiddenCanv.getContext('2d');
-    var mainCanv = this.drawingCtx.canvas;
-    var graphicCanv = document.querySelector('#ws-canvas-graphic');
-    var drawOnHidden = function (canv) {
-      hiddenCtx.drawImage(
-        canv,
-        sizes.offX,
-        sizes.offY,
-        hiddenCanv.width,
-        hiddenCanv.height,
-        0,
-        0,
-        hiddenCanv.width,
-        hiddenCanv.height);
-    }
-    drawOnHidden(mainCanv);
-    drawOnHidden(graphicCanv);
-
-    var dataUrl = hiddenCanv.toDataURL();
-    return dataUrl;
+    var range = this.getVisibleRange();
+    this.setOleSize(range);
+    var drawingContext = this.printForOleObject(range);
+    return drawingContext.canvas.toDataURL();
   }
 
   WorksheetView.prototype.createChartImage = function(idx) {
@@ -2546,6 +2541,21 @@
 		}
 	};
 
+    WorksheetView.prototype.printForOleObject = function (oRange) {
+      return this.workbook.printForOleObject(this, oRange);
+    }
+
+  WorksheetView.prototype.getRangePosition = function (oRange) {
+    var result = {};
+
+    result.left = this._getColLeft(oRange.c1);
+    result.top = this._getRowTop(oRange.r1);
+    result.width = this._getColLeft(oRange.c2) + this.getColumnWidth(oRange.c2) - result.left;
+    result.height = this._getRowTop(oRange.r2) + this.getRowHeight(oRange.r2) - result.top;
+
+    return result;
+  }
+
 	WorksheetView.prototype.drawForPrint = function (drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
 
 		var t = this;
@@ -3821,8 +3831,10 @@
 		var y1 = this._getRowTop(range.r1) - offsetY;
 		var x2 = Math.min(this._getColLeft(range.c2 + 1) - offsetX, widthCtx);
 		var y2 = Math.min(this._getRowTop(range.r2 + 1) - offsetY, heightCtx);
-		ctx.setFillStyle(this.settings.cells.defaultState.background)
-			.fillRect(x1, y1, x2 - x1, y2 - y1);
+    if (!ctx.isPreviewOleObjectContext) {
+      ctx.setFillStyle(this.settings.cells.defaultState.background)
+        .fillRect(x1, y1, x2 - x1, y2 - y1);
+    }
 
 		//рисуем текст для преварительного просмотра
 		this._drawPageBreakPreviewText(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, visiblePrintPages);

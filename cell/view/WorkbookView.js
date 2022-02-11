@@ -3179,6 +3179,30 @@
 		this.changeZoom(viewZoom, true);
 	};
 
+  WorkbookView.prototype.getSimulatePageForOleObject = function (sizes, oRange) {
+    var page = new AscCommonExcel.CPagePrint();
+    page.indexWorksheet = 0;
+    page.pageClipRectHeight = sizes.height;
+    page.pageClipRectWidth = sizes.width;
+    page.pageGridLines = true;
+    page.pageHeight = sizes.height;
+
+    page.pageRange =  oRange.clone();
+    page.pageWidth = sizes.width;
+    page.scale = 1;
+    return page;
+  }
+  
+  WorkbookView.prototype.printForOleObject = function (ws, oRange) {
+    var sizes = ws.getRangePosition(oRange);
+    var page = this.getSimulatePageForOleObject(sizes, oRange);
+    var previewOleObjectContext = AscCommonExcel.getContext(sizes.width, sizes.height, this);
+    previewOleObjectContext.DocumentRenderer = AscCommonExcel.getGraphics(previewOleObjectContext);
+    previewOleObjectContext.isPreviewOleObjectContext = true;
+    ws.drawForPrint(previewOleObjectContext, page, 0, 1);
+    return previewOleObjectContext;
+  }
+
 	WorkbookView.prototype.printSheetPrintPreview = function(index) {
 		var printPreviewState = this.printPreviewState;
 		var page = printPreviewState.getPage(index);
