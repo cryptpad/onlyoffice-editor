@@ -650,13 +650,216 @@
 		return res;
 	}
 
+	function FromXml_ST_DataValidationType(val) {
+		var res = null;
+		switch (val) {
+			case "none":
+				res = Asc.EDataValidationType.None;
+				break;
+			case "whole":
+				res = Asc.EDataValidationType.Whole;
+				break;
+			case "decimal":
+				res = Asc.EDataValidationType.Decimal;
+				break;
+			case "list":
+				res = Asc.EDataValidationType.List;
+				break;
+			case "date":
+				res = Asc.EDataValidationType.Date;
+				break;
+			case "time":
+				res = Asc.EDataValidationType.Time;
+				break;
+			case "textLength":
+				res = Asc.EDataValidationType.TextLength;
+				break;
+			case "custom":
+				res = Asc.EDataValidationType.Custom;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_DataValidationType(val) {
+		var res = null;
+		switch (val) {
+			case Asc.EDataValidationType.None:
+				res = "none";
+				break;
+			case Asc.EDataValidationType.Whole:
+				res = "whole";
+				break;
+			case Asc.EDataValidationType.Decimal:
+				res = "decimal";
+				break;
+			case Asc.EDataValidationType.List:
+				res = "list";
+				break;
+			case Asc.EDataValidationType.Date:
+				res = "date";
+				break;
+			case Asc.EDataValidationType.Time:
+				res = "time";
+				break;
+			case Asc.EDataValidationType.TextLength:
+				res = "textLength";
+				break;
+			case Asc.EDataValidationType.Custom:
+				res = "custom";
+				break;
+		}
+		return res;
+	}
+
+	function FromXml_ST_DataValidationImeMode(val) {
+		var res = null;
+		switch (val) {
+			case "noControl":
+				res = Asc.EDataValidationImeMode.NoControl;
+				break;
+			case "off":
+				res = Asc.EDataValidationImeMode.Off;
+				break;
+			case "on":
+				res = Asc.EDataValidationImeMode.On;
+				break;
+			case "disabled":
+				res = Asc.EDataValidationImeMode.Disabled;
+				break;
+			case "hiragana":
+				res = Asc.EDataValidationImeMode.Hiragana;
+				break;
+			case "fullKatakana":
+				res = Asc.EDataValidationImeMode.FullKatakana;
+				break;
+			case "halfKatakana":
+				res = Asc.EDataValidationImeMode.HalfKatakana;
+				break;
+			case "fullAlpha":
+				res = Asc.EDataValidationImeMode.FullAlpha;
+				break;
+			case "halfAlpha":
+				res = Asc.EDataValidationImeMode.HalfAlpha;
+				break;
+			case "fullHangul":
+				res = Asc.EDataValidationImeMode.FullHangul;
+				break;
+			case "halfHangul":
+				res = Asc.EDataValidationImeMode.HalfHangul;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_DataValidationImeMode(val) {
+		var res = null;
+		switch (val) {
+			case Asc.EDataValidationImeMode.NoControl:
+				res = "noControl";
+				break;
+			case Asc.EDataValidationImeMode.Off:
+				res = "off";
+				break;
+			case Asc.EDataValidationImeMode.On:
+				res = "on";
+				break;
+			case Asc.EDataValidationImeMode.Disabled:
+				res = "disabled";
+				break;
+			case Asc.EDataValidationImeMode.Hiragana:
+				res = "hiragana";
+				break;
+			case Asc.EDataValidationImeMode.FullKatakana:
+				res = "fullKatakana";
+				break;
+			case Asc.EDataValidationImeMode.HalfKatakana:
+				res = "halfKatakana";
+				break;
+			case Asc.EDataValidationImeMode.FullAlpha:
+				res = "fullAlpha";
+				break;
+			case Asc.EDataValidationImeMode.HalfAlpha:
+				res = "halfAlpha";
+				break;
+			case Asc.EDataValidationImeMode.FullHangul:
+				res = "fullHangul";
+				break;
+			case Asc.EDataValidationImeMode.HalfHangul:
+				res = "halfHangul";
+				break;
+		}
+		return res;
+	}
+
+	function FromXml_ST_DataValidationOperator(val) {
+		var res = null;
+		switch (val) {
+			case "between":
+				res = Asc.EDataValidationOperator.Between;
+				break;
+			case "notBetween":
+				res = Asc.EDataValidationOperator.NotBetween;
+				break;
+			case "equal":
+				res = Asc.EDataValidationOperator.Equal;
+				break;
+			case "notEqual":
+				res = Asc.EDataValidationOperator.NotEqual;
+				break;
+			case "lessThan":
+				res = Asc.EDataValidationOperator.LessThan;
+				break;
+			case "lessThanOrEqual":
+				res = Asc.EDataValidationOperator.LessThanOrEqual;
+				break;
+			case "greaterThan":
+				res = Asc.EDataValidationOperator.GreaterThan;
+				break;
+			case "greaterThanOrEq":
+				res = Asc.EDataValidationOperator.GreaterThanOrEqual;
+		}
+		return res;
+	}
+
+	function ToXml_ST_DataValidationOperator(val) {
+		var res = null;
+		switch (val) {
+			case Asc.EDataValidationOperator.Between:
+				res = "between";
+				break;
+			case Asc.EDataValidationOperator.NotBetween:
+				res = "notBetween";
+				break;
+			case Asc.EDataValidationOperator.Equal:
+				res = "equal";
+				break;
+			case Asc.EDataValidationOperator.NotEqual:
+				res = "notEqual";
+				break;
+			case Asc.EDataValidationOperator.LessThan:
+				res = "lessThan";
+				break;
+			case Asc.EDataValidationOperator.LessThanOrEqual:
+				res = "lessThanOrEqual";
+				break;
+			case Asc.EDataValidationOperator.GreaterThan:
+				res ="greaterThan";
+				break;
+			case Asc.EDataValidationOperator.GreaterThanOrEqual:
+				res = "greaterThanOrEq";
+		}
+		return res;
+	}
+
+
 	function boolToNumber (val) {
 		return val ? 1 : 0;
 	}
 
 	var extUri = {
 		conditionalFormattings: "{78C0D931-6437-407d-A8EE-F0AAD7539E65}",
-		dataValidations: "{CCE6A557-97BC-4B89-ADB6-D9C93CAAB3DF}",
+		dataValidations: "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}",
 		sparklineGroups: "{05C60535-1F16-4FD2-B633-F4F36F0B64E0}",
 		slicerList: "{A8765BA9-456A-4DAB-B4F3-ACF838C121DE}",
 		protectedRanges: "{FC87AEE6-9EDD-4A0A-B7FB-166176984837}",
@@ -1048,6 +1251,7 @@
 
 		writer.WriteXmlNullableAttributeBool("date1904", this.val.Date1904);
 		writer.WriteXmlNullableAttributeBool("dateCompatibility", this.val.DateCompatibility);
+		writer.WriteXmlNullableAttributeBool("hidePivotFieldList", this.val.HidePivotFieldList);
 		writer.WriteXmlNullableAttributeBool("hidePivotFieldList", this.val.HidePivotFieldList);
 		writer.WriteXmlNullableAttributeBool("showPivotChartFilter", this.val.ShowPivotChartFilter);
 		writer.WriteXmlAttributesEnd(true);
@@ -1454,7 +1658,7 @@
 		//TODO extLst
 		//AscCommonExcel.CDataValidations
 		if (this.dataValidations) {
-			this.dataValidations.toXml(writer, "dataValidations");
+			this.dataValidations.toXml(writer);
 		}
 
 		//TODO rels нужно добавить + грамотно добавить
@@ -1532,10 +1736,19 @@
 		}
 
 		var officeArtExtensionList = new COfficeArtExtensionList(this);
-		var officeArtExtension = new COfficeArtExtension(this);
-		officeArtExtension.uri = extUri.conditionalFormattings;
-		officeArtExtension.aConditionalFormattingRules = aConditionalFormattingExt;
-		officeArtExtensionList.arrExt.push(officeArtExtension);
+		var officeArtExtension;
+		if (aConditionalFormattingExt && aConditionalFormattingExt.length) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.conditionalFormattings;
+			officeArtExtension.aConditionalFormattingRules = aConditionalFormattingExt;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
+		}
+		if (this.dataValidations) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.dataValidations;
+			officeArtExtension.dataValidations =  this.dataValidations;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
+		}
 		officeArtExtensionList.toXml(writer);
 
 		writer.WriteXmlNodeEnd("worksheet");
@@ -1923,44 +2136,28 @@
 		}
 	}
 	AscCommonExcel.Worksheet.prototype._prepareDataValidations = function (extLst) {
-
 		if (extLst) {
 			for (var i = 0; i < extLst.arrExt.length; i++) {
 				if (extLst.arrExt[i] && extLst.arrExt[i].dataValidations) {
-					//TODO обрабатываю только ситуацию, когад 1 элумент. несколько элементов не встречал, но нужно будет проверить и обработать.
-					for (var j = 0; j < extLst.arrExt[i].dataValidations.length; j++) {
-						if (this.dataValidations) {
-
-						} else {
-							this.dataValidations = extLst.arrExt[i].dataValidations[j];
+					if (extLst.arrExt[i].dataValidations.elems) {
+						for (var j = 0; j < extLst.arrExt[i].dataValidations.elems.length; j++) {
+							if (extLst.arrExt[i].dataValidations.elems[j]) {
+								if (this.dataValidations) {
+									if (!this.dataValidations.disablePrompts) {
+										this.dataValidations.disablePrompts = extLst.arrExt[i].dataValidations.disablePrompts;
+										this.dataValidations.xWindow = extLst.arrExt[i].dataValidations.xWindow;
+										this.dataValidations.yWindow = extLst.arrExt[i].dataValidations.yWindow;
+									}
+								} else {
+									this.dataValidations = extLst.arrExt[i].dataValidations;
+								}
+								this.dataValidations.elems = this.dataValidations.elems.concat(extLst.arrExt[i].dataValidations.elems);
+							}
 						}
 					}
 				}
 			}
 		}
-
-
-		/*if (m_oExtLst.IsInit() == false) return;
-
-		for (size_t i = 0; i < m_oExtLst->m_arrExt.size(); ++i)
-		{
-			if (false == m_oExtLst->m_arrExt[i]->m_oDataValidations.IsInit()) continue;
-
-			for (size_t j = 0; j < m_oExtLst->m_arrExt[i]->m_oDataValidations->m_arrItems.size(); ++j)
-			{
-				if (NULL == m_oExtLst->m_arrExt[i]->m_oDataValidations->m_arrItems[j]) continue;
-
-				if (false == m_oDataValidations.IsInit())
-				{
-					m_oDataValidations.Init();
-					m_oDataValidations->m_oDisablePrompts = m_oExtLst->m_arrExt[i]->m_oDataValidations->m_oDisablePrompts;
-					m_oDataValidations->m_oXWindow = m_oExtLst->m_arrExt[i]->m_oDataValidations->m_oXWindow;
-					m_oDataValidations->m_oYWindow = m_oExtLst->m_arrExt[i]->m_oDataValidations->m_oYWindow;
-				}
-				m_oDataValidations->m_arrItems.push_back(m_oExtLst->m_arrExt[i]->m_oDataValidations->m_arrItems[j]);
-				m_oExtLst->m_arrExt[i]->m_oDataValidations->m_arrItems[j] = NULL;
-			}
-		}*/
 	};
 
 	AscCommonExcel.Worksheet.prototype._prepareSparklineGroups = function (extLst) {
@@ -4444,6 +4641,24 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			return;
 		}
 
+		//на данном этапе разделяю что записывать в ext, а что нет
+		//если массив для записи пустой, пропускаем
+		var writeMap = null;
+		var i;
+		for (i = 0; i < this.elems.length; ++i) {
+			var isExtended = this.elems[i].isExtended();
+			if ((bExtendedWrite && isExtended) || (!bExtendedWrite && !isExtended)) {
+				if (!writeMap) {
+					writeMap = {};
+				}
+				writeMap[i] = 1;
+			}
+		}
+
+		if (!writeMap) {
+			return;
+		}
+
 		var node_name = bExtendedWrite ? "x14:dataValidations" : "dataValidations";
 		writer.WriteXmlString("<" + node_name);
 		if (bExtendedWrite) {
@@ -4451,13 +4666,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 
 		writer.WriteXmlNullableAttributeNumber("count", this.elems.length);
-		writer.WriteXmlNullableAttributeNumber("disablePrompts", this.disablePrompts);
+		writer.WriteXmlNullableAttributeNumber("disablePrompts", boolToNumber(this.disablePrompts));
 		writer.WriteXmlNullableAttributeNumber("xWindow", this.xWindow);
 		writer.WriteXmlNullableAttributeNumber("yWindow", this.yWindow);
 		writer.WriteXmlAttributesEnd();
 
-		for (var i = 0; i < this.elems.length; ++i) {
-			this.elems[i].toXml(writer);
+		for (i = 0; i < this.elems.length; ++i) {
+			if (writeMap[i]) {
+				this.elems[i].toXml(writer, bExtendedWrite);
+			}
 		}
 
 		writer.WriteXmlString("</" + node_name + ">");
@@ -4689,10 +4906,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.errorTitle = val;
 			} else if ("imeMode" === reader.GetName()) {
 				val = reader.GetValue();
-				this.imeMode = val;
+				this.imeMode = FromXml_ST_DataValidationImeMode(val);
 			} else if ("operator" === reader.GetName()) {
 				val = reader.GetValue();
-				this.operator = val;
+				this.operator = FromXml_ST_DataValidationOperator(val);
 			} else if ("prompt" === reader.GetName()) {
 				val = reader.GetValue();
 				this.prompt = val;
@@ -4713,7 +4930,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.setSqRef(val);
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
-				this.type = val;
+				this.type = FromXml_ST_DataValidationType(val);
+
 			}
 		}
 	};
@@ -4842,11 +5060,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 		else
 		{
-			writer.WriteXmlNullableAttributeNumber("sqref", AscCommonExcel.getSqRefString(this.ranges));
+			writer.WriteXmlNullableAttributeString("sqref", AscCommonExcel.getSqRefString(this.ranges));
 		}
 
-		writer.WriteXmlNullableAttributeString("type", this.type);
-		writer.WriteXmlNullableAttributeNumber("allowBlank", this.allowBlank);
+		writer.WriteXmlNullableAttributeString("type", ToXml_ST_DataValidationType(this.type));
+		writer.WriteXmlNullableAttributeNumber("allowBlank", boolToNumber(this.allowBlank));
 
 		//todo WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("error", this.error);
@@ -4856,16 +5074,16 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		//todo WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("errorTitle", this.errorTitle);
 
-		writer.WriteXmlNullableAttributeString("imeMode", this.imeMode);
-		writer.WriteXmlNullableAttributeString("operator", this.operator);
+		writer.WriteXmlNullableAttributeString("imeMode", ToXml_ST_DataValidationImeMode(this.imeMode));
+		writer.WriteXmlNullableAttributeString("operator", ToXml_ST_DataValidationOperator(this.operator));
 
 		//todo WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("prompt", this.prompt);
 		writer.WriteXmlNullableAttributeStringEncode("promptTitle", this.promptTitle);
 
-		writer.WriteXmlNullableAttributeNumber("showDropDown", this.showDropDown);
-		writer.WriteXmlNullableAttributeNumber("showErrorMessage", this.showErrorMessage);
-		writer.WriteXmlNullableAttributeNumber("showInputMessage", this.showInputMessage);
+		writer.WriteXmlNullableAttributeNumber("showDropDown",  boolToNumber(this.showDropDown));
+		writer.WriteXmlNullableAttributeNumber("showErrorMessage",  boolToNumber(this.showErrorMessage));
+		writer.WriteXmlNullableAttributeNumber("showInputMessage",  boolToNumber(this.showInputMessage));
 
 		writer.WriteXmlAttributesEnd();
 
@@ -4879,7 +5097,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				writer.WriteXmlStringEncode(this.formula1.text);
 				writer.WriteXmlString("</" + node_formula_name + ">");
 
-				writer.WriteXmlString("</x14:formula2>");
+				writer.WriteXmlString("</x14:formula1>");
 			}
 			if (this.formula2) {
 				writer.WriteXmlString("<x14:formula2>");
@@ -6882,7 +7100,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	function COfficeArtExtension(_ws) {
 		this.uri = null;
-		this.dataValidations = [];
+		this.dataValidations = null;
 		this.slicerCachesIds = [];
 		this.tableSlicerCaches = [];
 		this.aConditionalFormattingRules = [];
@@ -6953,7 +7171,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("dataValidations" === name) {
 					val = new AscCommonExcel.CDataValidations();
 					val.fromXml(reader);
-					this.dataValidations.push(val);
+					this.dataValidations = val;
 				} else if ("connection" === name) {
 
 				} else if ("slicerList" === name) {
@@ -7188,7 +7406,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 
 		if (this.dataValidations) {
+			this.dataValidations.toXml(writer, true);
 		}
+
 		if (this.SlicerList) {
 		}
 		if (this.m_oSlicerListExt) {
