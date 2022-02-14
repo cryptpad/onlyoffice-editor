@@ -547,14 +547,14 @@
     return drawingContext.canvas.toDataURL();
   }
 
-  WorksheetView.prototype.createChartImage = function(idx) {
-    var oChart;
+  WorksheetView.prototype.createImageForChart = function(idx) {
     var charts = this.getCharts();
     if (idx) {
-
-    } else {
-      oChart = charts[0];
+      charts = charts.filter(function (drawing) {
+        return drawing.graphicObject.Id === idx;
+      });
     }
+    var oChart = charts[0];
     var image = oChart.createImage();
     return image;
   }
@@ -11426,6 +11426,15 @@
             this._cleanSelectionMoveRange();
         }
     };
+
+    WorksheetView.prototype.isEmptyCellsSheet = function () {
+      return !(this.rows.length || this.cols.length);
+    }
+    
+    WorksheetView.prototype.isHaveOnlyOneChart = function () {
+      return this.isEmptyCellsSheet() && this.getCharts().length === 1;
+    }
+    
 
     WorksheetView.prototype.emptySelection = function ( options, bIsCut, isMineComments ) {
         // Удаляем выделенные графичекие объекты

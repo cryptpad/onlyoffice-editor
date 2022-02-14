@@ -1353,40 +1353,13 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     };
 
     DrawingBase.prototype.createImage = function() {
-        //only for spreadsheets
-        //var worksheetCanv = this.worksheet && this.worksheet.drawingCtx && this.worksheet.drawingCtx.canvas;
-        var worksheetCanv = document.querySelector('#ws-canvas-graphic');
-        if (worksheetCanv) {
-            var worksheet = this.worksheet;
-            var beginOfCellY = worksheet.cellsTop;
-            var beginOfCellX = worksheet.cellsLeft;
-            // console.log(worksheetCanv.toDataURL())
-            var PPIX = worksheet._getPPIX();
-            var koef = asc.getCvtRatio( 3, 0, PPIX);
-            var height = this.ext.cy * koef;
-            var width = this.ext.cx* koef;
-            var x = this.Pos.X * koef + beginOfCellX;
-            var y = this.Pos.Y * koef + beginOfCellY;
-            // console.log(koef)
-            // console.log(this.ext)
-            var hiddenCanv = document.createElement('canvas');
-            hiddenCanv.width = width;
-            hiddenCanv.height = height;
-            var hiddenCtx = hiddenCanv.getContext('2d');
-            var mainCanv = worksheetCanv;
-            hiddenCtx.drawImage(
-              mainCanv,
-              x,
-              y,
-              hiddenCanv.width,
-              hiddenCanv.height,
-              0,
-              0,
-              hiddenCanv.width,
-              hiddenCanv.height);
-            var dataUrl = hiddenCanv.toDataURL();
-            return dataUrl;
-        }
+        var koef = Asc.getCvtRatio(3, 0, this.worksheet._getPPIX());
+        var wb = this.worksheet && this.worksheet.workbook;
+        wb.setOleSize(null);
+        var drawingCtx = AscCommonExcel.getContext(this.ext.cx * koef, this.ext.cy * koef, wb);
+        var graphics = AscCommonExcel.getGraphics(drawingCtx);
+        this.draw(graphics);
+        return drawingCtx.toDataURL();
     };
 
     DrawingBase.prototype.getAllFonts = function(AllFonts) {

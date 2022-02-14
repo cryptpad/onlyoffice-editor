@@ -1795,36 +1795,17 @@
 	}
     ws.checkProtectRangeOnEdit([new Asc.Range(activeCellRange.c1, activeCellRange.r1, activeCellRange.c1, activeCellRange.r1)], doEdit, null, needBlurFunc);
   };
-  
-  WorkbookView.prototype.isChartOleObject = function() {
-    return this.model.aWorksheets.length > 1 && this.isHaveChart();
-  }
-
-  WorkbookView.prototype.getCharts = function () {
-    var charts = [];
-    this.model.handleDrawings(function (oDrawing) {
-      if (oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-        charts.push(oDrawing);
-      }
-    });
-    return charts;
-  };
-
-  WorkbookView.prototype.isHaveChart = function () {
-    return this.getCharts().length !== 0;
-  }
 
   /**
    *
    * @return { string } base64 image
    */
   WorkbookView.prototype.getImageFromTableOleObject = function () {
-    var worksheet;
+    var worksheet = this.getWorksheet();
     var imageBase64;
-    if (this.isChartOleObject()) {
-      imageBase64 = this.createImageForChartOleObject();
+    if (worksheet.isHaveOnlyOneChart()) {
+      imageBase64 = worksheet.createImageForChart();
     } else {
-      worksheet = this.getWorksheet();
       imageBase64 = worksheet.createImageFromMaxRange();
     }
     return imageBase64;
@@ -1996,16 +1977,6 @@
     return ws;
   };
 
-  WorkbookView.prototype.createImageForChartOleObject = function () {
-    var api = this.Api;
-    var _this = this;
-    if (api) {
-      api.asc_showWorksheet(0);
-      var image = _this.wsViews[0].createChartImage();
-      //api.asc_showWorksheet(1);
-      return image;
-    }
-  }
 
 	WorkbookView.prototype.drawWorksheet = function () {
 		if (-1 === this.wsActive) {
