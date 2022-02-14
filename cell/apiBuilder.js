@@ -243,7 +243,7 @@
 	 * Class representing the areas.
 	 * @constructor
 	 * @property {number} Count - Returns a value that represents the number of objects in the collection.
-	 * @property {ApiRange} Parent - Returns the parent object for the specified object.
+	 * @property {ApiRange} Parent - Returns the parent object for the specified collection.
 	 */
 	function ApiAreas(items, parent) {
 		this.Items = [];
@@ -374,6 +374,11 @@
 		return false;
 	};
 
+	/**
+	 * Creates a new history point.
+	 * @memberof Api
+	 * @typeofeditors ["CSE"]
+	 */
 	Api.prototype.CreateNewHistoryPoint = function(){
 		History.Create_NewPoint();
 	};
@@ -404,7 +409,7 @@
 	};
 
 	/**
-	 * Returns an ApiRange object that represents the rectangular intersection of two or more ranges. If one or more ranges from a different worksheet are specified, an error will be returned.
+	 * Returns the ApiRange object that represents the rectangular intersection of two or more ranges. If one or more ranges from a different worksheet are specified, an error will be returned.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
 	 * @param {ApiRange} Range1 - One of the intersecting ranges. At least two Range objects must be specified.
@@ -454,7 +459,7 @@
 	};
 
 	/**
-	 * Returns an ApiName object by the range name.
+	 * Returns the ApiName object by the range name.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
 	 * @param {string} defName - The range name.
@@ -477,7 +482,7 @@
 	};
 
 	/**
-	 * Returns an ApiRange object by the range reference.
+	 * Returns the ApiRange object by the range reference.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
 	 * @param {string} sRange - The range of cells from the current sheet.
@@ -768,7 +773,7 @@
 	});
 
 	/**
-	 * Returns an ApiRange that represents all the cells on the worksheet (not just the cells that are currently in use).
+	 * Returns the ApiRange that represents all the cells on the worksheet (not just the cells that are currently in use).
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @param {number} row - The row number or the cell number (if only row is defined).
@@ -801,7 +806,7 @@
 	});
 
 	/**
-	 * Returns an ApiRange object that represents all the cells on the rows range.
+	 * Returns the ApiRange object that represents all the cells on the rows range.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @param {string | number} value - Specifies the rows range in the string or number format.
@@ -838,7 +843,7 @@
 	};
 
 	/**
-	 * Returns an ApiRange object that represents all the cells on the columns range.
+	 * Returns the ApiRange object that represents all the cells on the columns range.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @param {string} sRange - Specifies the columns range in the string format.
@@ -857,7 +862,7 @@
 	});
 
 	/**
-	 * Returns an ApiRange object that represents the used range on the specified worksheet.
+	 * Returns the ApiRange object that represents the used range on the specified worksheet.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiRange}
@@ -1227,7 +1232,7 @@
 	};
 
 	/**
-	 * Return an ApiName object by the range name.
+	 * Returns the ApiName object by the worksheet name.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @param {string} defName - The worksheet name.
@@ -1830,7 +1835,7 @@
 	 * Sets a value to the current cell or cell range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {string | bool | number | Array[] | Array[][]} data - The general value for the cell or cell range in the string format.
+	 * @param {string | bool | number | Array[] | Array[][]} data - The general value for the cell or cell range.
 	 * @return {bool} - returns false if such a range does not exist.
 	 */
 	ApiRange.prototype.SetValue = function (data) {
@@ -2494,7 +2499,7 @@
 	};
 
 	/**
-	 * Returns a Worksheet object that represents the worksheet containing the specified range. It will be available in the read-only mode.
+	 * Returns the Worksheet object that represents the worksheet containing the specified range. It will be available in the read-only mode.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiWorksheet}
@@ -2509,7 +2514,7 @@
 	});
 
 	/**
-	 * Returns an ApiName object of the current range.
+	 * Returns the ApiName object of the current range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiName}
@@ -2530,7 +2535,7 @@
 	});
 
 	/**
-	 * Returns an ApiComment object of the current range.
+	 * Returns the ApiComment object of the current range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiComment | null} - returns null if range does not consist of one cell.
@@ -2617,7 +2622,6 @@
 	 * @param {SortHeader} sHeader - Specifies whether the first row contains header information.
 	 * @param {SortOrientation} sOrientation - Specifies if the sort should be by row (default) or column.
 	 */
-
 	ApiRange.prototype.SetSort = function (key1, sSortOrder1, key2, /*Type,*/ sSortOrder2, key3, sSortOrder3, sHeader, /*OrderCustom, MatchCase,*/ sOrientation/*, SortMethod, DataOption1, DataOption2, DataOption3*/) {
 		var ws = this.range.worksheet;
 		var sortSettings = new Asc.CSortProperties(ws);
@@ -2697,10 +2701,10 @@
 	});*/
 
 	/**
-	 * Delete the object.
+	 * Deletes the Range object.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {?String} shift - Specifies how to shift cells to replace deleted cells ("up", "left")
+	 * @param {?String} shift - Specifies how to shift cells to replace the deleted cells ("up", "left").
 	 */
 	ApiRange.prototype.Delete = function(shift) {
 		if (shift && typeof Shift == "string") {
@@ -2721,7 +2725,7 @@
 	 * Inserts a cell or a range of cells into the worksheet or macro sheet and shifts other cells away to make space.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {?String} shift - Specifies which way to shift the cells ("right", "down")
+	 * @param {?String} shift - Specifies which way to shift the cells ("right", "down").
 	 */
 	 ApiRange.prototype.Insert = function(shift) {
 		if (shift && typeof Shift == "string") {
@@ -2739,11 +2743,11 @@
 	};
 
 	/**
-	 * Changes the width of the columns in the range or the height of the rows in the range to achieve the best fit.
+	 * Changes the width of the columns or the height of the rows in the range to achieve the best fit.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {?bool} bRows - Defines will we make autofit rows
-	 * @param {?bool} bCols - Defines will we make autofit cols
+	 * @param {?bool} bRows - Specifies if the width of the columns will be autofit.
+	 * @param {?bool} bCols - Specifies if the height of the rows will be autofit.
 	 */
 	ApiRange.prototype.AutoFit = function(bRows, bCols) {
 		var index = this.range.worksheet.getIndex();
@@ -2770,10 +2774,10 @@
 	});
 
 	/**
-	 * Copies the range to the specified range.
+	 * Copies a range to the specified range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {ApiRange} destination - Specifies the new range to which the specified range will be copied
+	 * @param {ApiRange} destination - Specifies a new range to which the specified range will be copied.
 	 */
 	ApiRange.prototype.Copy = function(destination) {
 		if (destination && destination instanceof ApiRange) {
@@ -2788,7 +2792,7 @@
 	};
 	
 	/**
-	 * Pastes a Range object.
+	 * Pastes the Range object to the specified range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @param {ApiRange} rangeFrom - Specifies the range to be pasted to the current range
@@ -3369,7 +3373,7 @@
 	});
 
 	/**
-	 * Returns an ApiRange object by its name.
+	 * Returns the ApiRange object by its name.
 	 * @memberof ApiName
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiRange}
@@ -3410,7 +3414,7 @@
 	});
 
 	/**
-	 * Deletes an ApiComment object.
+	 * Deletes the ApiComment object.
 	 * @memberof ApiComment
 	 * @typeofeditors ["CSE"]
 	 */
@@ -3450,7 +3454,7 @@
 	});
 
 	/**
-	 * Returns a single object from a collection.
+	 * Returns a single object from a collection by its ID.
 	 * @memberof ApiAreas
 	 * @typeofeditors ["CSE"]
 	 * @param {number} ind - The index number of the object.
@@ -3461,7 +3465,7 @@
 	};
 
 	/**
-	 * Returns a value that represents the number of objects in the collection.
+	 * Returns the parent object for the specified collection.
 	 * @memberof ApiAreas
 	 * @typeofeditors ["CSE"]
 	 * @returns {number}
