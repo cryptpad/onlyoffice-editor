@@ -1748,6 +1748,10 @@
 	{
 		return this.chartPreviewManager.getChartPreviews(chartType);
 	};
+	baseEditorsApi.prototype.asc_generateChartPreviews                = function(chartType)
+	{
+		return this.chartPreviewManager.Begin(chartType);
+	};
 	baseEditorsApi.prototype.asc_getTextArtPreviews              = function()
 	{
 		return this.textArtPreviewManager.getWordArtStyles();
@@ -3660,6 +3664,7 @@
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
+	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

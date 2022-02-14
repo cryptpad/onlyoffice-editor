@@ -6443,6 +6443,37 @@ CDocument.prototype.AddInlineTable = function(nCols, nRows, nMode)
 
 	return oTable;
 };
+CDocument.prototype.GetTableForPreview = function()
+{
+    return AscFormat.ExecuteNoHistory(function() {
+        let nCols = 5, nRows = 5;
+        let _x_mar = 10;
+        let _y_mar = 10;
+        let _r_mar = 10;
+        let _b_mar = 10;
+        let _pageW = 297;
+        let _pageH = 210;
+
+        let W = (_pageW - _x_mar - _r_mar);
+        let H = (_pageH - _y_mar - _b_mar);
+
+
+        let arrGrid = [];
+        for (let nIndex = 0; nIndex < nCols; ++nIndex)
+            arrGrid[nIndex] = W / nCols;
+
+        let oTable = new CTable(this.GetDrawingDocument(), this, true, nRows, nCols, arrGrid, false);
+        oTable.Reset(_x_mar, _y_mar, 1000, 1000, 0, 0, 1);
+        oTable.Set_Props({
+            TableDefaultMargins : {Top : 0, Bottom : 0},
+            TableLayout: c_oAscTableLayout.Fixed
+        });
+
+        for (let nCurRow = 0, nRowsCount = oTable.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+            oTable.GetRow(nCurRow).SetHeight(H / nRows, Asc.linerule_AtLeast);
+        return oTable;
+    }, this, []);
+};
 CDocument.prototype.AddDropCap = function(bInText)
 {
 	// Определим параграф, к которому мы будем добавлять буквицу
@@ -11944,6 +11975,10 @@ CDocument.prototype.Get_Styles = function()
 CDocument.prototype.GetStyles = function()
 {
 	return this.Styles;
+};
+CDocument.prototype.GetAllTableStyles = function()
+{
+	return this.GetStyles().GetAllTableStyles();
 };
 CDocument.prototype.CopyStyle = function()
 {
