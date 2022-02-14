@@ -2486,7 +2486,11 @@
 		var si = new CT_Si();
 		this.sharedStrings.forEach(function(elem) {
 			si.clean();
-			si.text = elem;
+			if (typeof elem === 'string') {
+				si.text = elem;
+			} else {
+				si.multiText = elem;
+			}
 			si.toXml(writer, "si");
 		});
 		writer.WriteXmlNodeEnd("sst");
@@ -2577,9 +2581,15 @@
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("t" === reader.GetName()) {
+				//TODO поработать с текстом, проблемы с переносом строки
 				this.text = reader.GetTextDecodeXml();
 			} else if ("r" === reader.GetName()) {
-				this.text = reader.GetTextDecodeXml();
+				var oMultiText = new AscCommonExcel.CMultiTextElem();
+				oMultiText.fromXml(reader);
+				if (!this.multiText) {
+					this.multiText = [];
+				}
+				this.multiText.push(oMultiText);
 			}
 		}
 	};
@@ -2592,11 +2602,56 @@
 		if (null !== this.text) {
 			writer.WriteXmlValueString("t", this.text);
 		} else if (null !== this.multiText) {
-			//todo
-			//writer.WriteXmlValueString("r", this.multiText);
+			writer.WriteXmlArray(this.multiText, "r");
 		}
 		writer.WriteXmlNodeEnd(ns + name);
 	};
+
+	AscCommonExcel.CMultiTextElem.prototype.fromXml = function(reader) {
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var wb = reader.context.InitOpenManager.wb;
+		var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("rPr" === name) {
+				val = new AscCommonExcel.Font();
+				val.fromXml(reader);
+				if (wb) {
+					val.checkSchemeFont(wb.theme);
+				}
+				this.format = val;
+			} else if ("t" === name) {
+				if (null == this.text) {
+					this.text = "";
+				}
+				//TODO поработать с текстом, проблемы с переносом строки
+				this.text += reader.GetTextDecodeXml();
+			}
+		}
+	};
+
+	AscCommonExcel.CMultiTextElem.prototype.toXml = function(writer, name, ns, childns) {
+		if (!ns) {
+			ns = "";
+		}
+
+		writer.WriteXmlNodeStart(ns + name);
+		writer.WriteXmlAttributesEnd();
+
+		if (this.format) {
+			this.format.toXml(writer, "rPr", childns);
+		}
+		if (this.text) {
+			writer.WriteXmlValueString("t", this.text);
+		}
+		writer.WriteXmlNodeEnd(ns + name);
+	};
+
 
 	function CT_PivotCaches() {
 		this.pivotCaches = [];
@@ -13668,22 +13723,432 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeEnd(name);
 	};
 
+	function CT_CComments () {
+		this.authors = null;
+		this.commentList = null;
+	}
+
+	CT_CComments.prototype.fromXml = function (reader) {
+		var t = this;
+		reader.readXmlArray("comments", function () {
+			if (reader.IsEmptyNode()) {
+				return;
+			}
+			var depth = reader.GetDepth();
+			var val;
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+
+				if ("authors" === name) {
+					val = new CT_CAuthors();
+					val.fromXml(reader);
+					t.authors = val;
+				} else if ("commentList" === name) {
+					val = new CT_CCommentList();
+					val.fromXml(reader);
+					t.commentList = val;
+				}
+			}
+		});
+	};
+
+	CT_CComments.prototype.toXml = function (writer) {
+		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><comments xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:xr=\"http://schemas.microsoft.com/office/spreadsheetml/2014/revision\" mc:Ignorable=\"xr\">");
+		if (this.authors) {
+			this.authors.toXml(writer);
+		}
+		if (this.commentList) {
+			this.commentList.toXml(writer);
+		}
+		writer.WriteXmlString("</comments>");
+	};
+
+
+	function CT_CAuthors () {
+		this.arr = [];
+	}
+
+	CT_CAuthors.prototype.fromXml = function (reader) {
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("author" === name) {
+				this.arr.push(reader.GetText());
+			}
+		}
+	};
+
+	CT_CAuthors.prototype.toXml = function (writer) {
+		writer.WriteXmlString("<authors>");
+
+		for ( var i = 0; i < this.arr.length; ++i)
+		{
+			writer.WriteXmlString("<author>");
+			writer.WriteXmlStringEncode(this.arr[i]);
+			writer.WriteXmlString("</author>");
+		}
+		writer.WriteXmlString("</authors>");
+	};
+
+	function CT_CCommentList () {
+		this.arr = [];
+	}
+
+	CT_CCommentList.prototype.fromXml = function (reader) {
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("comment" === name) {
+				var val = new CT_CComment();
+				val.fromXml(reader);
+				this.arr.push(val);
+			}
+		}
+	};
+
+	CT_CCommentList.prototype.toXml = function (writer) {
+		writer.WriteXmlString("<commentList>");
+
+		for (var i = 0; i < this.arr.length; ++i) {
+			if (this.arr[i]) {
+
+				/*var val = new CT_Si();
+				if (typeof si === 'string') {
+					val.text = elem;
+				} else {
+					val.multiText = elem;
+				}*/
+
+				this.arr[i].toXml(writer);
+			}
+		}
+
+		writer.WriteXmlString("</commentList>");
+	};
+
+	function CT_CComment() {
+		this.ref = null;
+		this.authorId = null;
+		this.uid = null;
+
+		this.oText = null;
+	}
+
+	CT_CComment.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("text" === name) {
+				var val = new CT_Si();
+				//TODO
+				//val.clean();
+				val.fromXml(reader)
+				this.oText = val;
+			}
+		}
+	};
+
+	CT_CComment.prototype.readAttr = function (reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("ref" === reader.GetName()) {
+				val = reader.GetValue();
+				this.ref = val;
+			} else if ("authorId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.authorId = val;
+			} else if ("xr:uid" === reader.GetName()) {
+				val = reader.GetValue();
+				this.uid = val;
+			}
+		}
+	};
+	CT_CComment.prototype.toXml = function (writer) {
+		if (this.ref && this.authorId && this.uid) {
+			writer.WriteXmlString("<comment");
+			writer.WriteXmlNullableAttributeStringEncode("ref", this.ref);
+			writer.WriteXmlNullableAttributeNumber("authorId", this.authorId);
+			writer.WriteXmlNullableAttributeString("xr:uid", this.uid);
+			writer.WriteXmlString(">");
+
+			writer.WriteXmlString("<text>");
+			this.oText.toXml(writer);
+			writer.WriteXmlString("</text>");
+			writer.WriteXmlString("</comment>");
+		}
+	};
+
+	function CT_CThreadedComments() {
+		this.arr = [];
+	}
+
+	CT_CThreadedComments.prototype.fromXml = function (reader) {
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+
+		var name = reader.GetNameNoNS();
+		if ("ThreadedComments" === name) {
+			if (reader.IsEmptyNode()) {
+				return;
+			}
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name2 = reader.GetNameNoNS();
+
+				if ("threadedComment" === name2) {
+					var val = new CT_CThreadedComment();
+					val.fromXml(reader);
+					this.arr.push(val);
+				}
+			}
+		}
+
+		//PrepareTopLevelComments();
+	};
+
+	CT_CThreadedComments.prototype.toXml = function (writer) {
+		writer.WriteXmlString("<ThreadedComments");
+		writer.WriteXmlString(" xmlns=\"http://schemas.microsoft.com/office/spreadsheetml/2018/threadedcomments\"");
+		writer.WriteXmlString(" xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"");
+		writer.WriteXmlString(">");
+
+		for (var i = 0; i < this.arr.length; ++i) {
+			if (this.arr[i]) {
+				this.arr[i].toXml(writer);
+			}
+		}
+
+		writer.WriteXmlString("</ThreadedComments>");
+	};
+
+	function CT_CThreadedComment() {
+		this.ref = null;
+		this.dT = null;
+		this.personId = null;
+		this.id = null;
+		this.parentId = null;
+		this.done = null;
+
+		this.text = null;
+		this.mentions = null;
+
+		//extLst
+	}
+
+	CT_CThreadedComment.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+						if ( oReader.IsEmptyNode() )
+							return;
+
+						int nCurDepth = oReader.GetDepth();
+						while( oReader.ReadNextSiblingNode( nCurDepth ) )
+						{
+							std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+							if ( _T("text") == sName )
+								m_oText = oReader;
+							else if ( _T("mentions") == sName )
+								m_oMentions = oReader;
+						}
+						PrepareText();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var t = this;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+
+			if ("text" === name) {
+				this.text = reader.GetText();
+			} else if ("mentions" === name) {
+				//m_oMentions = oReader;
+				reader.readXmlArray("mention", function () {
+					var commentMention = new CT_CThreadedCommentMention();
+					if (commentMention) {
+						commentMention.fromXml(reader);
+						t.mentions.push(commentMention);
+					}
+				});
+			}
+		}
+
+		//PrepareText
+	};
+
+	CT_CThreadedComment.prototype.readAttr = function (reader) {
+
+//documentation
+		/**/
+
+//x2t
+		/*WritingElement_ReadAttributes_Start( oReader )
+							WritingElement_ReadAttributes_Read_if		( oReader, L"ref",      ref )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"dT",		dT )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"personId", personId )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"id",		id )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"parentId",	parentId )
+							WritingElement_ReadAttributes_Read_else_if	( oReader, L"done",		done )
+
+
+						WritingElement_ReadAttributes_End( oReader )
+
+						//todo IsZero() is added to fix comments with zero ids(5.4.0)(bug 42947). Remove after few releases
+						if(id.IsInit() && id->IsZero())
+						{
+							id = L"{" + XmlUtils::GenerateGuid() + L"}";
+						}*/
+
+//serialize
+		/* */
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("ref" === reader.GetName()) {
+				val = reader.GetValue();
+				this.ref = val;
+			} else if ("dT" === reader.GetName()) {
+				val = reader.GetValue();
+				this.dT = val;
+			} else if ("personId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.personId = val;
+			} else if ("id" === reader.GetName()) {
+				val = reader.GetValue();
+				this.id = val;
+			} else if ("parentId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.parentId = val;
+			} else if ("done" === reader.GetName()) {
+				val = reader.GetValue();
+				this.done = val;
+			}
+		}
+	};
+
+	CT_CThreadedComment.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<threadedComment");
+							WritingStringNullableAttrEncodeXmlString(L"ref", ref, ref.get());
+							WritingStringNullableAttrString(L"dT", dT, dT->ToString());
+							WritingStringNullableAttrString(L"personId", personId, personId->ToString());
+							WritingStringNullableAttrString(L"id", id, id->ToString());
+							WritingStringNullableAttrString(L"parentId", parentId, parentId->ToString());
+							WritingStringNullableAttrBool2(L"done", done);
+						writer.WriteString(L">");
+
+						if(m_oText.IsInit())
+						{
+							writer.WriteString(_T("<text xml:space=\"preserve\">"));
+							writer.WriteEncodeXmlStringHHHH(m_oText->m_sText);
+							//last '\n' not in format but excel add it
+							writer.WriteString(_T("\n"));//todo \r?
+							writer.WriteString(_T("</text>"));
+						}
+						if(m_oMentions.IsInit())
+						{
+							m_oMentions->toXML(writer);
+						}
+						writer.WriteString(L"</threadedComment>");*/
+
+		writer.WriteXmlString("<threadedComment");
+		writer.WriteXmlNullableAttributeStringEncode("ref", this.ref);
+		writer.WriteXmlNullableAttributeString("dT", this.dT);
+		writer.WriteXmlNullableAttributeString("personId", this.personId);
+		writer.WriteXmlNullableAttributeString("id", this.id);
+		writer.WriteXmlNullableAttributeString("parentId", this.parentId);
+		writer.WriteXmlNullableAttributeBool("done", this.done);
+		writer.WriteXmlString(">");
+
+		if (this.text) {
+			writer.WriteXmlString("<text xml:space=\"preserve\">");
+			writer.WriteXmlStringEncode(this.text);
+			//last '\n' not in format but excel add it
+			writer.WriteXmlString("\n");//todo \r?
+			writer.WriteXmlString("</text>");
+		}
+		if (this.mentions) {
+			writer.WriteXmlArray(this.mentions, "mention", "mentions");
+		}
+		writer.WriteXmlString("</threadedComment>");
+	};
+
+	function CThreadedCommentMention () {
+		this.mentionpersonId = null;
+		this.mentionId = null;
+		this.startIndex = null;
+		this.length = null;
+	}
+
+	CThreadedCommentMention.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	CThreadedCommentMention.prototype.readAttr = function (reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("mentionpersonId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.mentionpersonId = val;
+			} else if ("mentionId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.mentionId = val;
+			} else if ("startIndex" === reader.GetName()) {
+				val = reader.GetValue();
+				this.startIndex = val;
+			} else if ("length" === reader.GetName()) {
+				val = reader.GetValue();
+				this.length = val;
+			}
+		}
+	};
+
+	CThreadedCommentMention.prototype.toXml = function (writer) {
+		writer.WriteXmlNullableAttributeString("mentionpersonId", this.mentionpersonId);
+		writer.WriteXmlNullableAttributeString("mentionId", this.mentionId);
+		writer.WriteXmlNullableAttributeNumber("startIndex", this.startIndex);
+		writer.WriteXmlNullableAttributeNumber("length", this.length);
+	};
 
 
 
-	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\t\tif (oReader.IsEmptyNode())\n' + '\t\t\treturn;\n' + '\t\tint nCurDepth = oReader.GetDepth();\n' +
-		'\t\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t\t{\n' + '\t\t\tconst char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());\n' +
-		'\t\t\tif (strcmp("dxf", sName) == 0)\n' + '\t\t\t\tm_oDxf = oReader;\n' + '//\t\t\telse if (strcmp("richSortCondition", sName) == 0)\n' +
-		'//\t\t\t\tm_oRichSortCondition = oReader;\n' + '\t\t\telse if (strcmp("sortCondition", sName) == 0)\n' + '\t\t\t\tm_oSortCondition = oReader;\n' + '\t\t}'
-	var _x2t = 'WritingElement_ReadAttributes_Read_ifChar( oReader, "colId", m_oColId)\n' + '\t\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "id", m_oId)'
+
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();'
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, L"mentionpersonId",  mentionpersonId )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"mentionId",\t\tmentionId )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"startIndex",\t\tstartIndex )\n' +
+		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"length",\t\t\tlength )\n'
 	var _documentation = ''
 	var _serialize = ' '
 
-	var _x2tToXml = 'writer.StartNode(sName);\n' + '\t\twriter.StartAttributes();\n' + '\t\tWritingNullable(m_oColId, writer.WriteAttribute(L"colId", *m_oColId););\n' +
-		'\t\tWritingNullable(m_oId, writer.WriteAttributeEncodeXml(L"id", *m_oId););\n' + '\t\twriter.EndAttributes();\n' +
-		'\t\tWritingNullable(m_oDxf, m_oDxf->toXMLWithNS(writer, L"", L"dxf", L"x:"););\n' +
-		'//\t\tWritingNullable(m_oRichSortCondition, m_oRichSortCondition->toXML(writer, L"richSortCondition"););\n' +
-		'\t\tWritingNullable(m_oSortCondition, m_oSortCondition->toXMLWithNS(writer, L"", L"sortCondition", L"x:"););\n' + '\t\twriter.EndNode(sName);'
+	var _x2tToXml = 'WritingStringNullableAttrString(L"mentionpersonId", mentionpersonId, mentionpersonId->ToString());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrString(L"mentionId", mentionId, mentionId->ToString());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrInt(L"startIndex", startIndex, startIndex->GetValue());\n' +
+		'\t\t\t\t\tWritingStringNullableAttrInt(L"length", length, length->GetValue());'
 
 
 
@@ -14020,5 +14485,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	window['AscCommonExcel'].CT_DrawingWSRef = CT_DrawingWSRef;
 	window['AscCommonExcel'].CT_ExternalReference = CT_ExternalReference;
 	window['AscCommonExcel'].CT_Connections = CT_Connections;
+	window['AscCommonExcel'].CT_CComments = CT_CComments;
+	window['AscCommonExcel'].CT_CThreadedComments = CT_CThreadedComments;
 
 })(window);

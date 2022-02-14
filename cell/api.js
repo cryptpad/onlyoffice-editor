@@ -1617,7 +1617,7 @@ var editor;
 				}
 			}
 		}
-		if (wbXml.sheets) {
+		if (window['OPEN_IN_BROWSER'] && wbXml.sheets) {
 			wbXml.sheets.forEach(function(wbSheetXml) {
 				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
@@ -1663,16 +1663,11 @@ var editor;
 								var oNewTable = ws.createTablePart();
 								reader = new StaxParser(contentTable, oNewTable, xmlParserContext);
 								oNewTable.fromXml(reader);
+
+								if (null != oNewTable.Ref && null != oNewTable.DisplayName) {
+									ws.workbook.dependencyFormulas.addTableName(ws, oNewTable, true);
+								}
 								ws.TableParts.push(oNewTable);
-
-
-								/*var oNewTable = this.ws.createTablePart();
-								res = this.bcr.Read1(length, function(t,l){
-									return oThis.ReadTable(t,l, oNewTable);
-								});
-								if(null != oNewTable.Ref && null != oNewTable.DisplayName)
-									this.ws.workbook.dependencyFormulas.addTableName(this.ws, oNewTable, true);
-								aTables.push(oNewTable);*/
 							}
 
 							var namedSheetViews = wsPart.getPartsByRelationshipType(openXml.Types.namedSheetViews.relationType);
@@ -1683,6 +1678,23 @@ var editor;
 								namedSheetView.fromXml(reader);
 								//связь с таблицыми по id осуществляется через tableIdOpen, который потом в методе initPostOpen преобразуется в tableId
 								ws.aNamedSheetViews = namedSheetView.namedSheetView;
+							}
+
+							//буду читать по формату, далее преобразовывать
+							var commentsFile = wsPart.getPartsByRelationshipType(openXml.Types.worksheetComments.relationType);
+							for (i = 0; i < commentsFile.length; ++i) {
+								var contentComment = commentsFile[i].getDocumentContent();
+								var comments = new AscCommonExcel.CT_CComments();
+								reader = new StaxParser(contentComment, comments, xmlParserContext);
+								comments.fromXml(reader);
+							}
+
+							var threadedCommentsFile = wsPart.getPartsByRelationshipType(openXml.Types.threadedComment.relationType);
+							for (i = 0; i < threadedCommentsFile.length; ++i) {
+								var threadedComment = threadedCommentsFile[i].getDocumentContent();
+								var threadedComments = new AscCommonExcel.CT_CThreadedComments();
+								reader = new StaxParser(threadedComment, threadedComments, xmlParserContext);
+								threadedComments.fromXml(reader);
 							}
 						}
 					}

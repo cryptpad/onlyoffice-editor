@@ -7929,7 +7929,7 @@
                     return oThis.ReadWorksheetCols(t,l, aTempCols, oWorksheet, oThis.aCellXfs);
                 });
 
-                context.initOpenManager.prepareAfterReadCols(this, aTempCols);
+                this.InitOpenManager.prepareAfterReadCols(oWorksheet, aTempCols);
             }
             else if ( c_oSerWorksheetsTypes.SheetFormatPr == type )
             {
@@ -8956,27 +8956,8 @@
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
                     return oThis.ReadComment(t,l, oCommentCoords, aCommentData, oAdditionalData);
                 });
-                if (oCommentCoords.isValid()) {
-                    var i;
-                    for(i = 0, length = aCommentData.length; i < length; ++i)
-                    {
-                        aCommentData[i].coords = oCommentCoords;
 
-                        var elem = aCommentData[i];
-                        elem.asc_putRow(oCommentCoords.nRow);
-                        elem.asc_putCol(oCommentCoords.nCol);
-
-                        if (!oAdditionalData.isThreadedComment) {
-                            elem.convertToThreadedComment();
-                        }
-
-                        if (elem.asc_getDocumentFlag()) {
-                            this.wb.aComments.push(elem);
-                        } else {
-                            oWorksheet.aComments.push(elem);
-                        }
-                    }
-                }
+                this.InitOpenManager.prepareComments(oWorksheet, oCommentCoords, aCommentData, oAdditionalData);
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -11629,8 +11610,28 @@
         wb.aWorksheetsById[oNewWorksheet.getId()] = oNewWorksheet;
     };
 
+    InitOpenManager.prototype.prepareComments = function (oWorksheet, oCommentCoords, aCommentData, oAdditionalData) {
+        if (oCommentCoords.isValid()) {
+            for(var i = 0, length = aCommentData.length; i < length; ++i)
+            {
+                aCommentData[i].coords = oCommentCoords;
 
+                var elem = aCommentData[i];
+                elem.asc_putRow(oCommentCoords.nRow);
+                elem.asc_putCol(oCommentCoords.nCol);
 
+                if (!oAdditionalData.isThreadedComment) {
+                    elem.convertToThreadedComment();
+                }
+
+                if (elem.asc_getDocumentFlag()) {
+                    this.wb.aComments.push(elem);
+                } else {
+                    oWorksheet.aComments.push(elem);
+                }
+            }
+        }
+    };
 
     function InitSaveManager(wb, isCopyPaste) {
         this.tableIds = {};
