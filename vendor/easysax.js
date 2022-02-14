@@ -1385,7 +1385,7 @@ StaxParser.prototype.GetName = function () {
     // return this.ConvertToString(this.xml, this.nameStart, this.nameEnd);
 };
 StaxParser.prototype.GetNameNoNS = function () {
-    return this.RemoveNS(this.GetName());
+    return this.GetNameFromNodeName(this.GetName());
 };
 StaxParser.prototype.GetValue = function () {
     return this.text;
@@ -1523,7 +1523,14 @@ StaxParser.prototype.ConvertToString = function(xml, start, end) {
     // return name ? new TextDecoder("utf-8").decode(name) : "";
     // return String.fromCharCode.apply(null, name);
 };
-StaxParser.prototype.RemoveNS = function(name) {
+StaxParser.prototype.GetNSFromNodeName = function(name) {
+    var index = name.indexOf(':');
+    if (-1 !== index) {
+        return name.substring(0, index);
+    }
+    return "";
+};
+StaxParser.prototype.GetNameFromNodeName = function(name) {
     var index = name.indexOf(':');
     if (-1 !== index) {
         return name.substring(index + 1);
@@ -1623,4 +1630,64 @@ XmlWriterContext.prototype.initFromWS = function(ws) {
     this.cellValue = new AscCommonExcel.CT_Value();
     this.cellBase = new AscCommon.CellBase(0,0);
     this.drawingId = null;
+};
+function CT_XmlNode(opt_elemReader) {
+    this.attributes = {};
+    this.attributes = {};
+    this.members = {};
+    this.text = null;
+
+    this.elemReader = opt_elemReader || {};
+}
+CT_XmlNode.prototype.readAttr = function(reader) {
+    while (reader.MoveToNextAttribute()) {
+        this.attributes[reader.GetNameNoNS()] = reader.GetValue();
+    }
+};
+CT_XmlNode.prototype.fromXml = function(reader) {
+    this.readAttr(reader);
+    var elem, depth = reader.GetDepth();
+    while (reader.Read()) {
+        switch(reader.GetEventType()) {
+            case EasySAXEvent.START_ELEMENT:
+                var name = reader.GetNameNoNS();
+                if (this.elemReader[name]) {
+                    elem = this.elemReader[name].call(this, reader);
+                } else {
+                    elem = new CT_XmlNode();
+                    elem.fromXml(reader);
+                }
+                this.members[name] = elem;
+                break;
+            case EasySAXEvent.CHARACTERS:
+                if(!this.text) {
+                    this.text = "";
+                }
+                this.text += reader.GetValue();
+                break;
+            case EasySAXEvent.END_ELEMENT:
+                if (reader.GetDepth() === depth)
+                    return;
+                break;
+        }
+    }
+};
+CT_XmlNode.prototype.toXml = function(writer, name) {
+    var i;
+    writer.WriteXmlNodeStart(name);
+    for (i in this.attributes) {
+        if (this.attributes.hasOwnProperty(i)) {
+            writer.WriteXmlNullableAttributeString(i, this.attributes[i]);
+        }
+    }
+    writer.WriteXmlAttributesEnd();
+    for (i in this.members) {
+        if (this.members.hasOwnProperty(i)) {
+            this.members[i].toXml(writer, i);
+        }
+    }
+    if (null !== this.text && undefined !== this.text) {
+        writer.WriteXmlStringEncode(this.text.toString());
+    }
+    writer.WriteXmlNodeEnd(name);
 };

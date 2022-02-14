@@ -1543,7 +1543,9 @@ background-repeat: no-repeat;\
 		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
 		this.WordControl.m_oLogicDocument.fromXml(reader, oBinaryFileReader.oReadResult.DocumentContent);
 
-		oBinaryFileReader.PostLoadPrepare();
+		oBinaryFileReader.PostLoadPrepare(xmlParserContext);
+		jsZipWrapper.close();
+
 		AfterOpenDocument.call(this, data, data.length);
 		return true;
 	};

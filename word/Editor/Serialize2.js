@@ -7819,7 +7819,7 @@ function BinaryFileReader(doc, openParams)
 			}
 		}
 	};
-    this.PostLoadPrepare = function()
+    this.PostLoadPrepare = function(opt_xmlParserContext)
     {
 		if (null !== this.oReadResult.compatibilityMode) {
 			this.Document.Settings.CompatibilityMode = this.oReadResult.compatibilityMode;
@@ -8328,6 +8328,21 @@ function BinaryFileReader(doc, openParams)
 		}
 		if (this.oReadResult.DoNotExpandShiftReturn) {
 			this.Document.Settings.DoNotExpandShiftReturn = this.oReadResult.DoNotExpandShiftReturn;
+		}
+
+		if (opt_xmlParserContext) {
+			var context = opt_xmlParserContext;
+			for (var path in context.imageMap) {
+				if (context.imageMap.hasOwnProperty(path)) {
+					var data = context.zip.files[path].sync('uint8array');
+					var blob = new Blob([data], {type: "image/png"});
+					var url = window.URL.createObjectURL(blob);
+					AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+					context.imageMap[path].forEach(function(blipFill) {
+						AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
+					});
+				}
+			}
 		}
 
         this.Document.On_EndLoad();
@@ -12204,7 +12219,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
             oNewChartSpace.setParent(oParaDrawing);
 		}
 		else if( c_oSerImageType2.AllowOverlap === type )
-			var AllowOverlap = this.stream.GetBool();
+			oParaDrawing.Set_AllowOverlap(this.stream.GetBool());
 		else if( c_oSerImageType2.BehindDoc === type )
 			oParaDrawing.Set_BehindDoc(this.stream.GetBool());
 		else if( c_oSerImageType2.DistL === type )

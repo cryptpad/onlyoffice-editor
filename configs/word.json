@@ -242,7 +242,8 @@
 			"vendor/easysax.js",
 			"common/openxml.js",
 			"word/Editor/SerializeXml.js",
-			"word/Editor/SerializeXmlAssets.js"
+			"word/Editor/SerializeXmlAssets.js",
+			"common/Shapes/SerializeXml.js"
 		],
 		"desktop": {
 			"min": [

@@ -1807,16 +1807,17 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
-			if ("from" === reader.GetNameNoNS()) {
+            let name = reader.GetNameNoNS();
+			if ("from" === name) {
 				this.from.fromXml(reader);
-			} else if ("to" === reader.GetNameNoNS()) {
-				this.to.fromXml(reader);
-			} else if ("pic" === reader.GetNameNoNS()) {
-                var image = new AscFormat.CImageShape();
-                image.fromXml(reader);
-                this.graphicObject = image;
+			} else if ("to" === name) {
+                this.to.fromXml(reader);
+            } else {
+                var graphicObject = AscFormat.CGraphicObjectBase.prototype.fromXmlElem(reader, name);
+                if (graphicObject) {
+                    this.graphicObject = graphicObject;
+                }
 			}
-			//todo
 		}
 
 		var ws = reader.GetContext().ws;

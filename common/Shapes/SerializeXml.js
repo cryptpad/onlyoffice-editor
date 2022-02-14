@@ -37,6 +37,105 @@
  * @param {undefined} undefined
  */
 (function (window, undefined) {
+	function CT_GraphicalObject() {
+		this.Namespace = null;
+		this.GraphicData = null;
+		return this;
+	}
+	CT_GraphicalObject.prototype.fromXml = function(reader) {
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "graphicData" : {
+					this.GraphicData = new CT_GraphicalObjectData();
+					this.GraphicData.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CT_GraphicalObject.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (this.Namespace) {
+			writer.WriteXmlString(this.Namespace);
+		}
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.GraphicData, "a:graphicData");
+		writer.WriteXmlNodeEnd(name);
+	};
+	function CT_GraphicalObjectData() {
+		this.Uri = null;
+		this.graphicObject = null;
+	}
+	CT_GraphicalObjectData.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "uri": {
+					this.Uri = reader.GetValueDecodeXml();
+					break;
+				}
+			}
+		}
+	};
+	CT_GraphicalObjectData.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			let name = reader.GetNameNoNS();
+			this.graphicObject = AscFormat.CGraphicObjectBase.prototype.fromXmlElem(reader, name);
+		}
+	};
+	CT_GraphicalObjectData.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		//"http://schemas.openxmlformats.org/drawingml/2006/picture"
+		writer.WriteXmlNullableAttributeStringEncode("uri", this.Uri);
+		writer.WriteXmlAttributesEnd();
+		if(this.graphicObject) {
+			let graphicObjectName;
+			switch (this.graphicObject.getObjectType()) {
+				case AscDFH.historyitem_type_Shape:
+					break;
+				case AscDFH.historyitem_type_Cnx:
+					break;
+				case AscDFH.historyitem_type_OleObject:
+				case AscDFH.historyitem_type_ImageShape:
+					graphicObjectName = "pic:pic";
+					break;
+			}
+			if(graphicObjectName) {
+				writer.WriteXmlNullable(this.graphicObject, graphicObjectName);
+			}
+		}
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
+	window['AscFormat'].CGraphicObjectBase.prototype.fromXmlElem = function(reader, name) {
+		let res = null;
+		if ("pic" === reader.GetNameNoNS()) {
+			res = new AscFormat.CImageShape();
+			res.fromXml(reader);
+		}
+		return res;
+	};
+	window['AscFormat'].CGraphicObjectBase.prototype.toXml = function(writer, graphicObject, ns) {
+
+		let graphicObjectName;
+		switch (graphicObject.getObjectType()) {
+			case AscDFH.historyitem_type_Shape:
+				break;
+			case AscDFH.historyitem_type_Cnx:
+				break;
+			case AscDFH.historyitem_type_OleObject:
+			case AscDFH.historyitem_type_ImageShape:
+				graphicObjectName = ns + ":pic";
+				break;
+		}
+		if(graphicObjectName) {
+			writer.WriteXmlNullable(graphicObject, graphicObjectName);
+		}
+	};
+
 
 	window['AscFormat'].CImageShape.prototype.fromXml = function(reader) {
 		var depth = reader.GetDepth();
@@ -60,10 +159,13 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 
-		writer.WriteXmlString('<xdr:nvPicPr><xdr:cNvPr id="' + cNvPrIndex + '" name="Picture ' + cNvPrIndex +
-			'"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>');
-		writer.WriteXmlNullable(this.blipFill, "xdr:blipFill");
-		writer.WriteXmlNullable(this.spPr, "xdr:spPr");
+		var ns = StaxParser.prototype.GetNSFromNodeName(name);
+
+		writer.WriteXmlString('<'+ns+':nvPicPr>');
+		writer.WriteXmlString('<'+ns+':cNvPr id="' + cNvPrIndex + '" name="Picture ' + cNvPrIndex + '"/>');
+		writer.WriteXmlString('<'+ns+':cNvPicPr><a:picLocks noChangeAspect="1"/></'+ns+':cNvPicPr></'+ns+':nvPicPr>');
+		writer.WriteXmlNullable(this.blipFill, ns + ":blipFill");
+		writer.WriteXmlNullable(this.spPr, ns + ":spPr");
 
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -286,4 +388,7 @@
 
 		writer.WriteXmlNodeEnd(name);
 	};
+
+	window['AscFormat'].CT_GraphicalObject = CT_GraphicalObject;
+	window['AscFormat'].CT_GraphicalObjectData = CT_GraphicalObjectData;
 })(window);

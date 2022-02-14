@@ -11728,6 +11728,10 @@
 		}
 		return null;
 	}
+	function valueToInt(value, def, radix) {
+		var num = parseInt(value, radix);
+		return !isNaN(num) ? num : def;
+	}
 
 	function valueToMm(value) {
 		var obj = valueToMmType(value);
@@ -12350,6 +12354,7 @@
 
 	window["AscCommon"].valueToMm = valueToMm;
 	window["AscCommon"].valueToMmType = valueToMmType;
+	window["AscCommon"].valueToInt = valueToInt;
 	window["AscCommon"].universalMeasureToMm = universalMeasureToMm;
 	window["AscCommon"].universalMeasureToUnsignedMm = universalMeasureToUnsignedMm;
 	window["AscCommon"].universalMeasureToPt = universalMeasureToPt;

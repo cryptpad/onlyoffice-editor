@@ -997,7 +997,7 @@
 			this.WriteXmlString(name);
 			this.WriteUtf8Char(0x3d);
 			this.WriteUtf8Char(0x22);
-			this.WriteXmlString(val);
+			this.WriteXmlString(val.toString());
 			this.WriteUtf8Char(0x22);
 		};
 		this.WriteXmlAttributeStringEncode = function(name, val)
@@ -1006,7 +1006,7 @@
 			this.WriteXmlString(name);
 			this.WriteUtf8Char(0x3d);
 			this.WriteUtf8Char(0x22);
-			this.WriteXmlStringEncode(val);
+			this.WriteXmlStringEncode(val.toString());
 			this.WriteUtf8Char(0x22);
 		};
 		this.WriteXmlAttributeBool = function(name, val)
@@ -1164,14 +1164,14 @@
 		{
 			this.WriteXmlNodeStart(name);
 			this.WriteXmlAttributesEnd();
-			this.WriteXmlString(val);
+			this.WriteXmlString(val.toString());
 			this.WriteXmlNodeEnd(name);
 		};
 		this.WriteXmlValueStringEncode = function(name, val)
 		{
 			this.WriteXmlNodeStart(name);
 			this.WriteXmlAttributesEnd();
-			this.WriteXmlStringEncode(val);
+			this.WriteXmlStringEncode(val.toString());
 			this.WriteXmlNodeEnd(name);
 		};
 		this.WriteXmlValueBool = function(name, val)
