@@ -651,6 +651,7 @@
 		this.reporterStartObject 	= null;
 		this.isReporterMode = ("reporter" == config['using']) ? true : false;
 		this.disableReporterEvents = false;
+		this.TableStylesPreviewGenerator = null;
 
 		if (this.isReporterMode)
 		{
@@ -2325,16 +2326,13 @@ background-repeat: no-repeat;\
 		var logicDoc = this.WordControl.m_oLogicDocument;
 		if (!logicDoc)
 			return;
-
 		if (logicDoc.CurPage >= logicDoc.Slides.length)
 			return;
-
 		if (logicDoc.Slides.length == 0)
 		{
 			logicDoc.addNextSlide();
 		}
-
-		logicDoc.CheckTableStylesDefault(logicDoc.Slides[logicDoc.CurPage]);
+		this.WordControl.m_oDrawingDocument.CheckTableStylesDefault();
 	};
 
 	asc_docs_api.prototype.CollectHeaders                  = function()
@@ -2638,13 +2636,51 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onInitTableTemplates", styles);
 		}
 	};
-	asc_docs_api.prototype.asc_getTableStylesPreviews    = function(bUseDefault)
+	asc_docs_api.prototype.asc_getTableStylesPreviews    = function(bUseDefault, arrIds)
 	{
-		if(this.WordControl && this.WordControl.m_oDrawingDocument)
+		let oDrawingDocument = this.WordControl ? this.WordControl.m_oDrawingDocument : null;
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oDrawingDocument || !oLogicDocument)
+			return [];
+
+		this.private_CheckTableStylesPreviewGenerator();
+
+		let arrPreviews = [];
+
+		if (arrIds && arrIds.length)
 		{
-			return this.WordControl.m_oDrawingDocument.GetTableStylesPreviews(bUseDefault);
+			let oStylesList = oLogicDocument.GetStyles();
+			for (let nIndex = 0, nCount = arrIds.length; nIndex < nCount; ++nIndex)
+			{
+				let oStyle   = oStylesList.Get(arrIds[nIndex]);
+				let oPreview = this.TableStylesPreviewGenerator.GetPreview(oStyle);
+				if (oPreview)
+					arrPreviews.push(oPreview);
+			}
 		}
-		return [];
+		else
+		{
+			arrPreviews = this.TableStylesPreviewGenerator.GetAllPreviews(bUseDefault);
+		}
+
+		return arrPreviews;
+	};
+	asc_docs_api.prototype.asc_generateTableStylesPreviews = function(bUseDefault)
+	{
+		this.private_CheckTableStylesPreviewGenerator();
+		this.TableStylesPreviewGenerator.Begin(bUseDefault);
+	};
+	asc_docs_api.prototype.private_CheckTableStylesPreviewGenerator = function()
+	{
+		if (!this.TableStylesPreviewGenerator)
+			this.TableStylesPreviewGenerator = new AscCommon.CTableStylesPreviewGenerator(this.private_GetLogicDocument())
+	};
+	asc_docs_api.prototype.private_GetLogicDocument = function()
+	{
+		if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+			return null;
+
+		return this.WordControl.m_oLogicDocument;
 	};
 
 	/*----------------------------------------------------------------*/
@@ -8525,6 +8561,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["sync_OnConvertEquationToMath"] 		    = asc_docs_api.prototype.sync_OnConvertEquationToMath;
 	asc_docs_api.prototype["asc_ConvertEquationToMath"] 		    = asc_docs_api.prototype.asc_ConvertEquationToMath;
 	asc_docs_api.prototype["asc_getTableStylesPreviews"] 		    = asc_docs_api.prototype.asc_getTableStylesPreviews;
+	asc_docs_api.prototype["asc_generateTableStylesPreviews"] 		= asc_docs_api.prototype.asc_generateTableStylesPreviews;
 
 
 	window['Asc']['asc_CCommentData'] = window['Asc'].asc_CCommentData = asc_CCommentData;
