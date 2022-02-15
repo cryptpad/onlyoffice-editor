@@ -4902,8 +4902,8 @@
 	 * process to arrange tables on the specified page.</note>
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @param nPage - The page number.
-	 * @return {ApiTable[]}  
+	 * @param {number} nPage - The page number.
+	 * @return {ApiTable[]}
 	 */
 	ApiDocument.prototype.GetAllTablesOnPage = function(nPage)
 	{
