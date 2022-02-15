@@ -6166,6 +6166,23 @@
 		return false;
 	};
 	/**
+	 * Return all font names from all elenemts inside it.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {string[]} The font names used for the current paragraph.
+	 */
+	ApiParagraph.prototype.GetFontNames = function()
+	{
+		var fontMap = {};
+		var arrFonts = [];
+		this.Paragraph.Document_Get_AllFontNames(fontMap);
+		for (var key in fontMap)
+		{
+			arrFonts.push(key);
+		}
+		return arrFonts;
+	};
+	/**
 	 * Sets the font size to the characters of the current paragraph.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
@@ -7237,6 +7254,23 @@
 		oTextPr.SetFontFamily(sFontFamily);
 		
 		return oTextPr;
+	};
+	/**
+	 * Return all font names from all elenemts inside it.
+	 * @memberof ApiRun
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {string[]} The font names used for the current run.
+	 */
+	ApiRun.prototype.GetFontNames = function()
+	{
+		var fontMap = {};
+		var arrFonts = [];
+		this.Run.Get_AllFontNames(fontMap);
+		for (var key in fontMap)
+		{
+			arrFonts.push(key);
+		}
+		return arrFonts;
 	};
 	/**
 	 * Sets the font size to the characters of the current text run.
@@ -14159,6 +14193,7 @@
 	ApiParagraph.prototype["SetColor"]               = ApiParagraph.prototype.SetColor;
 	ApiParagraph.prototype["SetDoubleStrikeout"]     = ApiParagraph.prototype.SetDoubleStrikeout;
 	ApiParagraph.prototype["SetFontFamily"]          = ApiParagraph.prototype.SetFontFamily;
+	ApiParagraph.prototype["GetFontNames"]           = ApiParagraph.prototype.GetFontNames;
 	ApiParagraph.prototype["SetFontSize"]            = ApiParagraph.prototype.SetFontSize;
 	ApiParagraph.prototype["SetHighlight"]           = ApiParagraph.prototype.SetHighlight;
 	ApiParagraph.prototype["SetItalic"]              = ApiParagraph.prototype.SetItalic;
@@ -14214,6 +14249,7 @@
 	ApiRun.prototype["SetDoubleStrikeout"]           = ApiRun.prototype.SetDoubleStrikeout;
 	ApiRun.prototype["SetFill"]                      = ApiRun.prototype.SetFill;
 	ApiRun.prototype["SetFontFamily"]                = ApiRun.prototype.SetFontFamily;
+	ApiRun.prototype["GetFontNames"]                 = ApiRun.prototype.GetFontNames;
 	ApiRun.prototype["SetFontSize"]                  = ApiRun.prototype.SetFontSize;
 	ApiRun.prototype["SetHighlight"]                 = ApiRun.prototype.SetHighlight;
 	ApiRun.prototype["SetItalic"]                    = ApiRun.prototype.SetItalic;
