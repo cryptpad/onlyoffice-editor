@@ -2770,6 +2770,10 @@
       this.dialogAbsName = (c_oAscSelectionDialogType.None !== selectionDialogType &&
           c_oAscSelectionDialogType.Function !== selectionDialogType);
   };
+
+  WorkbookView.prototype.setOleSize = function (oPr) {
+    this.model.setOleSize(oPr);
+  }
   WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
       var newSelectionDialogMode = c_oAscSelectionDialogType.None !== selectionDialogType;
 
