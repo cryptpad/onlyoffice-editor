@@ -2649,14 +2649,28 @@ background-repeat: no-repeat;\
 
 		if (arrIds && arrIds.length)
 		{
-			let oStylesList = oLogicDocument.GetStyles();
+			var aAllStyles = oLogicDocument.GetAllTableStyles();
+			let oTableLookOld = this.TableStylesPreviewGenerator.TableLook;
+			this.TableStylesPreviewGenerator.TableLook    = this.WordControl.m_oDrawingDocument.GetTableLook(bUseDefault);
 			for (let nIndex = 0, nCount = arrIds.length; nIndex < nCount; ++nIndex)
 			{
-				let oStyle   = oStylesList.Get(arrIds[nIndex]);
-				let oPreview = this.TableStylesPreviewGenerator.GetPreview(oStyle);
-				if (oPreview)
-					arrPreviews.push(oPreview);
+				let oStyle = null;
+				for(let nStyle = 0; nStyle < aAllStyles.length; ++nStyle)
+				{
+					if(aAllStyles[nStyle].GetId() === arrIds[nIndex])
+					{
+						oStyle = aAllStyles[nStyle];
+						break;
+					}
+				}
+				if(oStyle)
+				{
+					let oPreview = this.TableStylesPreviewGenerator.GetPreview(oStyle);
+					if (oPreview)
+						arrPreviews.push(oPreview);
+				}
 			}
+			this.TableStylesPreviewGenerator.TableLook = oTableLookOld;
 		}
 		else
 		{

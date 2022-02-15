@@ -6474,6 +6474,8 @@ CDocument.prototype.GetTableForPreview = function()
         return oTable;
     }, this, []);
 };
+CDocument.prototype.CheckTableForPreview = function(oTable)
+{};
 CDocument.prototype.AddDropCap = function(bInText)
 {
 	// Определим параграф, к которому мы будем добавлять буквицу

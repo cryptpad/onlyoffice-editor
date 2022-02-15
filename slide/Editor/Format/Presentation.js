@@ -7943,6 +7943,24 @@ CPresentation.prototype.GetTableForPreview = function()
     }, this, []);
 };
 
+CPresentation.prototype.CheckTableForPreview = function(oTable)
+{
+    if(!oTable)
+    {
+        return;
+    }
+    var oGrFrame = oTable.Parent;
+    if(!oGrFrame)
+    {
+        return;
+    }
+    var oSlide = this.GetCurrentSlide();
+    if(oSlide)
+    {
+        oGrFrame.parent = oSlide;
+    }
+};
+
 CPresentation.prototype.CheckNeedUpdateTableStyles = function(oTableLook)
 {
     if(!oTableLook)
@@ -7980,77 +7998,6 @@ CPresentation.prototype.CheckNeedUpdateTableStyles = function(oTableLook)
         return true;
     }
     return false;
-};
-CPresentation.prototype.CheckTableStyles = function (Slide, TableLook) {
-    if (!this.TablesForInterface) {
-        this.TablesForInterface = [];
-        var _x_mar = 10;
-        var _y_mar = 10;
-        var _r_mar = 10;
-        var _b_mar = 10;
-        var _pageW = 297;
-        var _pageH = 210;
-
-        var W = (_pageW - _x_mar - _r_mar);
-        var H = (_pageH - _y_mar - _b_mar);
-        var index = 0;
-        AscFormat.ExecuteNoHistory(function () {
-            for (var key in this.TableStylesIdMap) {
-                if (this.TableStylesIdMap[key]) {
-                    this.TablesForInterface[index] = this.Create_TableGraphicFrame(5, 5, Slide, key, W, H - 17, _x_mar, _y_mar, true);
-                    this.TablesForInterface[index].setBDeleted(true);
-                    index++;
-                }
-            }
-        }, this, []);
-    }
-    if (this.TablesForInterface.length === 0)
-        return;
-    var b_table_look = false;
-    if (!this.LastTheme || this.LastTheme !== Slide.Layout.Master.Theme
-        || this.LastColorScheme !== Slide.Layout.Master.Theme.themeElements.clrScheme
-        || !this.LastColorMap || !this.LastColorMap.compare(Slide.Get_ColorMap())
-        || !this.LastTableLook
-        || (b_table_look = (!this.LastTableLook.IsEqual(TableLook)))) {
-
-
-        var only_redraw = !b_table_look && this.LastTheme === Slide.Layout.Master.Theme /*&& this.LastColorScheme === Slide.Layout.Master.Theme.themeElements.clrScheme && Slide.Get_ColorMap().compare(this.LastColorMap)*/;
-        this.LastTheme = Slide.Layout.Master.Theme;
-        this.LastColorScheme = Slide.Layout.Master.Theme.themeElements.clrScheme;
-        this.LastColorMap = Slide.Get_ColorMap();
-        this.LastTableLook = TableLook;
-        var need_set_recalc = true, i;
-
-        AscFormat.ExecuteNoHistory(function () {
-            if (!only_redraw) {
-                var TableLook2;
-                if (b_table_look) {
-                    TableLook2 = TableLook.Copy();
-                }
-                if (this.TablesForInterface[0].parent !== Slide) {
-                    need_set_recalc = false;
-                    for (i = 0; i < this.TablesForInterface.length; ++i) {
-                        this.TablesForInterface[i].setParent(Slide);
-                        this.TablesForInterface[i].handleUpdateTheme();
-                        if (TableLook2) {
-                            this.TablesForInterface[i].graphicObject.Set_TableLook(TableLook2);
-                            this.TablesForInterface[i].graphicObject.Recalculate_Page(0);
-                        }
-                    }
-                }
-                if (need_set_recalc) {
-                    for (i = 0; i < this.TablesForInterface.length; ++i) {
-                        if (TableLook) {
-                            this.TablesForInterface[i].graphicObject.Set_TableLook(TableLook);
-                        }
-                        this.TablesForInterface[i].handleUpdateTheme();
-                        this.TablesForInterface[i].graphicObject.Recalculate_Page(0);
-                    }
-                }
-            }
-            this.DrawingDocument.CheckTableStyles();
-        }, this, []);
-    }
 };
 
 // Обновляем линейки

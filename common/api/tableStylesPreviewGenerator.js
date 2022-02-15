@@ -55,6 +55,7 @@
 		{
 			g_oTable = oLogicDocument.GetTableForPreview();
 		}
+		oLogicDocument.CheckTableForPreview(g_oTable);
 		return g_oTable;
 	}
 
