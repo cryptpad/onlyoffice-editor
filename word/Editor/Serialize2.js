@@ -8331,6 +8331,7 @@ function BinaryFileReader(doc, openParams)
 		}
 
 		if (opt_xmlParserContext) {
+			AscCommon.pptx_content_loader.Reader.ImageMapChecker = AscCommon.pptx_content_loader.ImageMapChecker;
 			var context = opt_xmlParserContext;
 			for (var path in context.imageMap) {
 				if (context.imageMap.hasOwnProperty(path)) {

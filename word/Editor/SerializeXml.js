@@ -3365,9 +3365,12 @@
 					elem.fromXml(reader);
 					break;
 				}
-				// case "wp:inline" : {
-				// 	break;
-				// }
+				case "inline" : {
+					this.Set_DrawingType(drawing_Inline);
+					elem = new CT_Anchor(this);
+					elem.fromXml(reader);
+					break;
+				}
 			}
 		}
 	};
@@ -3394,19 +3397,19 @@
 	CWrapPolygon.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		var elem, depth = reader.GetDepth();
-		var points = new ArrayWrapPoint([]);
+		var points = [];
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "start" : {
-					elem = new CPolygonPoint();
+					elem = new CT_XmlNode();
 					elem.fromXml(reader);
-					points.unshift({x: elem.x, y: elem.y});
+					points.unshift({x: parseInt(elem.attributes["x"]), y: parseInt(elem.attributes["y"])});
 					break;
 				}
 				case "lineTo" : {
-					elem = new CPolygonPoint();
+					elem = new CT_XmlNode();
 					elem.fromXml(reader);
-					points.push({x: elem.x, y: elem.y});
+					points.push({x: parseInt(elem.attributes["x"]), y: parseInt(elem.attributes["y"])});
 					break;
 				}
 			}
@@ -3420,14 +3423,14 @@
 		writer.WriteXmlNullableAttributeBool("w:edited", true);
 		writer.WriteXmlAttributesEnd();
 		if (this.relativeArrPoints.length > 0) {
-			elem = new CPolygonPoint();
-			elem.x = this.relativeArrPoints[0].x;
-			elem.y = this.relativeArrPoints[0].y;
+			elem = new CT_XmlNode();
+			elem.attributes["x"] = this.relativeArrPoints[0].x;
+			elem.attributes["y"] = this.relativeArrPoints[0].y;
 			writer.WriteXmlNullable(elem, "wp:start");
 			for (var i = 1; i < this.relativeArrPoints.length; ++i) {
-				elem = new CPolygonPoint();
-				elem.x = this.relativeArrPoints[i].x;
-				elem.y = this.relativeArrPoints[i].y;
+				elem = new CT_XmlNode();
+				elem.attributes["x"] = this.relativeArrPoints[i].x;
+				elem.attributes["y"] = this.relativeArrPoints[i].y;
 				writer.WriteXmlNullable(elem, "wp:lineTo");
 			}
 		}
@@ -4030,6 +4033,155 @@
 		writer.WriteXmlAttributesEnd(true);
 	};
 
+	function CT_Inline(drawing) {
+		this.drawing = drawing;
+
+		this.DistT = null;
+		this.DistB = null;
+		this.DistL = null;
+		this.DistR = null;
+		this.Extent = null;
+		this.EffectExtent = null;
+		this.DocPr = null;
+		this.CNvGraphicFramePr = null;
+//todo Graphic
+		this.Graphic = null;
+		return this;
+	}
+	CT_Inline.prototype.readAttr = function(reader) {
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "distT": {
+					val = reader.GetValueUInt64();
+					if (undefined !== val) {
+						this.drawing.Set_Distance(null, Math.abs(g_dKoef_emu_to_mm * val), null, null);
+					}
+					break;
+				}
+				case "distB": {
+					val = reader.GetValueUInt64();
+					if (undefined !== val) {
+						this.drawing.Set_Distance(null, null, null, Math.abs(g_dKoef_emu_to_mm * val));
+					}
+					break;
+				}
+				case "distL": {
+					val = reader.GetValueUInt64();
+					if (undefined !== val) {
+						this.drawing.Set_Distance(Math.abs(g_dKoef_emu_to_mm * val), null, null, null);
+					}
+					break;
+				}
+				case "distR": {
+					val = reader.GetValueUInt64();
+					if (undefined !== val) {
+						this.drawing.Set_Distance(null, null, Math.abs(g_dKoef_emu_to_mm * val), null);
+					}
+					break;
+				}
+			}
+		}
+	};
+	CT_Inline.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "extent" : {
+					elem = new CT_XmlNode();
+					elem.fromXml(reader);
+					var cx = parseInt(elem.attributes["cx"]);
+					var cy = parseInt(elem.attributes["cy"]);
+					if(!isNaN(cx)) {
+						drawing.Extent.W = g_dKoef_emu_to_mm * cx;
+					}
+					if(!isNaN(cy)) {
+						drawing.Extent.H = g_dKoef_emu_to_mm * cy;
+					}
+					break;
+				}
+				case "effectExtent" : {
+					elem = new CT_XmlNode();
+					elem.fromXml(reader);
+					var L = parseInt(elem.attributes["l"]);
+					var T = parseInt(elem.attributes["t"]);
+					var R = parseInt(elem.attributes["r"]);
+					var B = parseInt(elem.attributes["b"]);
+					if(!isNaN(L)) {
+						drawing.EffectExtent.L = g_dKoef_emu_to_mm * L;
+					}
+					if(!isNaN(T)) {
+						drawing.EffectExtent.T = g_dKoef_emu_to_mm * T;
+					}
+					if(!isNaN(R)) {
+						drawing.EffectExtent.R = g_dKoef_emu_to_mm * R;
+					}
+					if(!isNaN(B)) {
+						drawing.EffectExtent.B = g_dKoef_emu_to_mm * B;
+					}
+					break;
+				}
+				case "docPr" : {
+					drawing.docPr.fromXml(reader);
+					break;
+				}
+				case "cNvGraphicFramePr" : {
+					nvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
+					nvGraphicFramePr.fromXml(reader);
+					break;
+				}
+				case "graphic" : {
+					var graphic = new AscFormat.CT_GraphicalObject();
+					graphic.fromXml(reader);
+					let graphicObject = graphic.GraphicData && graphic.GraphicData.graphicObject;
+					if (graphicObject) {
+						//todo init in graphic.fromXml
+						graphicObject.setBDeleted(false);
+						graphicObject.setParent(drawing);
+						drawing.Set_GraphicObject(graphicObject);
+					}
+					break;
+				}
+			}
+		}
+	};
+	CT_Inline.prototype.toXml = function(writer, name) {
+		var drawing = this.drawing;
+		var Extent = new CT_XmlNode();
+		Extent.attributes["cx"] = Math.round(drawing.Extent.W * g_dKoef_mm_to_emu);
+		Extent.attributes["cy"] = Math.round(drawing.Extent.H * g_dKoef_mm_to_emu);
+
+		var EffectExtent = new CT_XmlNode();
+		EffectExtent.attributes["l"] = Math.round(drawing.EffectExtent.L * g_dKoef_mm_to_emu);
+		EffectExtent.attributes["t"] = Math.round(drawing.EffectExtent.T * g_dKoef_mm_to_emu);
+		EffectExtent.attributes["r"] = Math.round(drawing.EffectExtent.R * g_dKoef_mm_to_emu);
+		EffectExtent.attributes["b"] = Math.round(drawing.EffectExtent.B * g_dKoef_mm_to_emu);
+		var Graphic, nvGraphicFramePr;
+		if (drawing.GraphicObj) {
+			Graphic = new AscFormat.CT_GraphicalObject();
+			Graphic.Namespace = ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
+			Graphic.GraphicData = new AscFormat.CT_GraphicalObjectData();
+			Graphic.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture";
+			Graphic.GraphicData.graphicObject = drawing.GraphicObj;
+
+			nvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
+			nvGraphicFramePr.setLocks(drawing.GraphicObj.locks);
+		}
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeUIntWithKoef("distT", drawing.Distance.T, g_dKoef_mm_to_emu);
+		writer.WriteXmlNullableAttributeUIntWithKoef("distB", drawing.Distance.B, g_dKoef_mm_to_emu);
+		writer.WriteXmlNullableAttributeUIntWithKoef("distL", drawing.Distance.L, g_dKoef_mm_to_emu);
+		writer.WriteXmlNullableAttributeUIntWithKoef("distR", drawing.Distance.R, g_dKoef_mm_to_emu);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(Extent, "wp:extent");
+		writer.WriteXmlNullable(EffectExtent, "wp:effectExtent");
+		writer.WriteXmlNullable(drawing.docPr, "wp:docPr");
+		writer.WriteXmlNullable(nvGraphicFramePr, "wp:cNvGraphicFramePr");
+		writer.WriteXmlNullable(Graphic, "a:graphic");
+		writer.WriteXmlNodeEnd(name);
+	};
 	function CT_Anchor(drawing) {
 		this.drawing = drawing;
 
@@ -4123,7 +4275,7 @@
 	CT_Anchor.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		var drawing = this.drawing;
-		var elem, align, posOffset, depth = reader.GetDepth();
+		var elem, align, posOffset, nvGraphicFramePr, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "simplePos" : {
@@ -4245,12 +4397,12 @@
 					break;
 				}
 				case "docPr" : {
-					// this.docPr.fromXml(reader);
+					drawing.docPr.fromXml(reader);
 					break;
 				}
 				case "cNvGraphicFramePr" : {
-					// this.CNvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
-					// this.CNvGraphicFramePr.fromXml(reader);
+					nvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
+					nvGraphicFramePr.fromXml(reader);
 					break;
 				}
 				case "graphic" : {
@@ -4259,6 +4411,7 @@
 					let graphicObject = graphic.GraphicData && graphic.GraphicData.graphicObject;
 					if (graphicObject) {
 						//todo init in graphic.fromXml
+						graphicObject.setBDeleted(false);
 						graphicObject.setParent(drawing);
 						drawing.Set_GraphicObject(graphicObject);
 					}
@@ -4283,6 +4436,9 @@
 					break;
 				}
 			}
+		}
+		if(drawing.GraphicObj && nvGraphicFramePr) {
+			drawing.GraphicObj.setLocks(nvGraphicFramePr.getLocks());
 		}
 	};
 	CT_Anchor.prototype.toXml = function(writer, name) {
@@ -4349,13 +4505,16 @@
 				WrapTopAndBottom = new CT_XmlNode();
 				break;
 		}
-		var Graphic;
+		var Graphic, nvGraphicFramePr;
 		if (drawing.GraphicObj) {
 			Graphic = new AscFormat.CT_GraphicalObject();
 			Graphic.Namespace = ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
 			Graphic.GraphicData = new AscFormat.CT_GraphicalObjectData();
 			Graphic.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture";
 			Graphic.GraphicData.graphicObject = drawing.GraphicObj;
+
+			nvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
+			nvGraphicFramePr.setLocks(drawing.GraphicObj.locks);
 		}
 		var SizeRelH;
 		if(drawing.SizeRelH) {
@@ -4395,8 +4554,8 @@
 		writer.WriteXmlNullable(WrapTight, "wp:wrapTight");
 		writer.WriteXmlNullable(WrapThrough, "wp:wrapThrough");
 		writer.WriteXmlNullable(WrapTopAndBottom, "wp:wrapTopAndBottom");
-		writer.WriteXmlNullable(this.DocPr, "wp:docPr");
-		writer.WriteXmlNullable(this.CNvGraphicFramePr, "wp:cNvGraphicFramePr");
+		writer.WriteXmlNullable(drawing.docPr, "wp:docPr");
+		writer.WriteXmlNullable(nvGraphicFramePr, "wp:cNvGraphicFramePr");
 		writer.WriteXmlNullable(Graphic, "a:graphic");
 		writer.WriteXmlNullable(SizeRelH, "wp14:sizeRelH");
 		writer.WriteXmlNullable(SizeRelV, "wp14:sizeRelV");
@@ -4437,7 +4596,125 @@
 //todo Item
 		writer.WriteXmlNodeEnd(name);
 	};
-
+	function CT_NonVisualGraphicFrameProperties() {
+		this.GraphicFrameLocks = null;
+		this.ExtLst = null;
+		return this;
+	}
+	CT_NonVisualGraphicFrameProperties.prototype.fromXml = function(reader) {
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "graphicFrameLocks" : {
+					this.GraphicFrameLocks = new CT_GraphicalObjectFrameLocking();
+					this.GraphicFrameLocks.fromXml(reader);
+					break;
+				}
+				// case "extLst" : {
+				// 	this.ExtLst = new CT_OfficeArtExtensionList();
+				// 	this.ExtLst.fromXml(reader);
+				// 	break;
+				// }
+			}
+		}
+	};
+	CT_NonVisualGraphicFrameProperties.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.GraphicFrameLocks, "a:graphicFrameLocks");
+		// writer.WriteXmlNullable(this.ExtLst, "w:extLst");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CT_NonVisualGraphicFrameProperties.prototype.getLocks = function() {
+		var locks = 0;
+		if (this.GraphicFrameLocks) {
+			var elem = this.GraphicFrameLocks;
+			locks |= (AscFormat.LOCKS_MASKS.noGrp | (elem.NoGrp ? AscFormat.LOCKS_MASKS.noChangeAspect << 1 : 0));
+			locks |= (AscFormat.LOCKS_MASKS.noDrilldown | (elem.NoDrilldown ? AscFormat.LOCKS_MASKS.noChangeAspect << 1 : 0));
+			locks |= (AscFormat.LOCKS_MASKS.noSelect | (elem.NoSelect ? AscFormat.LOCKS_MASKS.noChangeAspect << 1 : 0));
+			locks |= (AscFormat.LOCKS_MASKS.noChangeAspect | (elem.NoChangeAspect ? AscFormat.LOCKS_MASKS.noChangeAspect << 1 : 0));
+			locks |= (AscFormat.LOCKS_MASKS.noMove | (elem.NoMove ? AscFormat.LOCKS_MASKS.noChangeAspect << 1 : 0));
+			locks |= (AscFormat.LOCKS_MASKS.noResize | (elem.NoResize ? AscFormat.LOCKS_MASKS.noChangeAspect << 1 : 0));
+		}
+		return locks;
+	};
+	CT_NonVisualGraphicFrameProperties.prototype.setLocks = function(locks) {
+		if (locks > 0) {
+			var elem = new CT_GraphicalObjectFrameLocking();
+			elem.noGrp = !!(locks & AscFormat.LOCKS_MASKS.NoGrp << 1);
+			elem.noDrilldown = !!(locks & AscFormat.LOCKS_MASKS.NoDrilldown << 1);
+			elem.noSelect = !!(locks & AscFormat.LOCKS_MASKS.NoSelect << 1);
+			elem.noChangeAspect = !!(locks & AscFormat.LOCKS_MASKS.NoChangeAspect << 1);
+			elem.noMove = !!(locks & AscFormat.LOCKS_MASKS.NoMove << 1);
+			elem.noResize = !!(locks & AscFormat.LOCKS_MASKS.NoResize << 1);
+			this.GraphicFrameLocks = elem;
+		}
+	};
+	function CT_GraphicalObjectFrameLocking() {
+		this.NoGrp = null;//False
+		this.NoDrilldown = null;//False
+		this.NoSelect = null;//False
+		this.NoChangeAspect = null;//False
+		this.NoMove = null;//False
+		this.NoResize = null;//False
+		this.ExtLst = null;
+		return this;
+	}
+	CT_GraphicalObjectFrameLocking.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "noGrp": {
+					this.NoGrp = reader.GetValueBool();
+					break;
+				}
+				case "noDrilldown": {
+					this.NoDrilldown = reader.GetValueBool();
+					break;
+				}
+				case "noSelect": {
+					this.NoSelect = reader.GetValueBool();
+					break;
+				}
+				case "noChangeAspect": {
+					this.NoChangeAspect = reader.GetValueBool();
+					break;
+				}
+				case "noMove": {
+					this.NoMove = reader.GetValueBool();
+					break;
+				}
+				case "noResize": {
+					this.NoResize = reader.GetValueBool();
+					break;
+				}
+			}
+		}
+	};
+	CT_GraphicalObjectFrameLocking.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			// switch (reader.GetNameNoNS()) {
+			// 	case "extLst" : {
+			// 		this.ExtLst = new CT_OfficeArtExtensionList();
+			// 		this.ExtLst.fromXml(reader);
+			// 		break;
+			// 	}
+			// }
+		}
+	};
+	CT_GraphicalObjectFrameLocking.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("noGrp", this.NoGrp);
+		writer.WriteXmlNullableAttributeBool("noDrilldown", this.NoDrilldown);
+		writer.WriteXmlNullableAttributeBool("noSelect", this.NoSelect);
+		writer.WriteXmlNullableAttributeBool("noChangeAspect", this.NoChangeAspect);
+		writer.WriteXmlNullableAttributeBool("noMove", this.NoMove);
+		writer.WriteXmlNullableAttributeBool("noResize", this.NoResize);
+		writer.WriteXmlAttributesEnd();
+		// writer.WriteXmlNullable(this.ExtLst, "w:extLst");
+		writer.WriteXmlNodeEnd(name);
+	};
 	//enums
 	function fromXml_ST_Border(val) {
 		switch (val) {

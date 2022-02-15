@@ -6819,6 +6819,74 @@ CNvPr.prototype =
         return this.id === oPr.id && this.name === oPr.name;
     }
 };
+CNvPr.prototype.readAttr = function(reader) {
+    while (reader.MoveToNextAttribute()) {
+        switch (reader.GetNameNoNS()) {
+            case "id": {
+                this.setId(reader.GetValueUInt());
+                break;
+            }
+            case "name": {
+                this.setName(reader.GetValueDecodeXml());
+                break;
+            }
+            case "descr": {
+                this.setDescr(reader.GetValueDecodeXml());
+                break;
+            }
+            case "hidden": {
+                this.setIsHidden(reader.GetValueBool());
+                break;
+            }
+            case "title": {
+                this.setTitle(reader.GetValueDecodeXml());
+                break;
+            }
+            case "form": {
+                //todo
+                // ParaDrawing.SetForm(reader.GetValueBool());
+                break;
+            }
+        }
+    }
+};
+CNvPr.prototype.fromXml = function(reader) {
+    this.readAttr(reader);
+    var elem, depth = reader.GetDepth();
+    while (reader.ReadNextSiblingNode(depth)) {
+        // switch (reader.GetNameNoNS()) {
+        //     case "hlinkClick" : {
+        //         this.HlinkClick = new CT_Hyperlink();
+        //         this.HlinkClick.fromXml(reader);
+        //         break;
+        //     }
+        //     case "hlinkHover" : {
+        //         this.HlinkHover = new CT_Hyperlink();
+        //         this.HlinkHover.fromXml(reader);
+        //         break;
+        //     }
+        //     case "extLst" : {
+        //         this.ExtLst = new CT_OfficeArtExtensionList();
+        //         this.ExtLst.fromXml(reader);
+        //         break;
+        //     }
+        // }
+    }
+};
+CNvPr.prototype.toXml = function(writer, name) {
+    writer.WriteXmlNodeStart(name);
+    writer.WriteXmlNullableAttributeUInt("id", this.id);
+    writer.WriteXmlNullableAttributeStringEncode("name", this.name);
+    writer.WriteXmlNullableAttributeStringEncode("descr", this.descr);
+    writer.WriteXmlNullableAttributeBool("hidden", this.isHidden);
+    writer.WriteXmlNullableAttributeStringEncode("title", this.title);
+    //writer.WriteXmlNullableAttributeBool("title", this.form);
+    writer.WriteXmlAttributesEnd();
+    // writer.WriteXmlNullable(this.HlinkClick, "w:hlinkClick");
+    // writer.WriteXmlNullable(this.HlinkHover, "w:hlinkHover");
+    // writer.WriteXmlNullable(this.ExtLst, "w:extLst");
+    writer.WriteXmlNodeEnd(name);
+};
 
 
 
