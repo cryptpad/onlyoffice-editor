@@ -49,6 +49,7 @@ var c_oAscTickLabelsPos = Asc.c_oAscTickLabelsPos;
 var fChartSize = 75;
 
 function ChartPreviewManager() {
+	AscCommon.CActionOnTimerBase.call(this);
 	this.previewGroups = [];
 	this.chartsByTypes = [];
 
@@ -56,7 +57,57 @@ function ChartPreviewManager() {
 	this.CHART_PREVIEW_HEIGHT_PIX = 50;
 
 	this._canvas_charts = null;
+
+
+	this.FirstActionOnTimer = true;
+	this.Index = -1;
+	this.ChartType = -1;
+	this.Buffer = [];
 }
+ChartPreviewManager.prototype = Object.create(AscCommon.CActionOnTimerBase.prototype);
+ChartPreviewManager.prototype.constructor = ChartPreviewManager;
+
+	ChartPreviewManager.prototype.GetApi = function() {
+		return Asc.editor || editor;
+	};
+	ChartPreviewManager.prototype.OnBegin = function(nChartType) {
+		var aStyles = AscCommon.g_oChartStyles[nChartType];
+		if(!Array.isArray(aStyles)) {
+			this.GetApi().sendEvent("asc_onBeginChartStylesPreview", 0);
+			return;
+		}
+		this.ChartType = nChartType;
+		this.Index = 0;
+		this.GetApi().sendEvent("asc_onBeginChartStylesPreview", aStyles.length);
+	};
+	ChartPreviewManager.prototype.OnEnd = function() {
+		this.GetApi().sendEvent("asc_onEndChartStylesPreview");
+	};
+	ChartPreviewManager.prototype.IsContinue = function() {
+		var aStyles = AscCommon.g_oChartStyles[this.ChartType];
+		if(!Array.isArray(aStyles)) {
+			return false;
+		}
+		return (this.Index < aStyles.length);
+	};
+	ChartPreviewManager.prototype.DoAction = function() {
+		let aStyles = AscCommon.g_oChartStyles[this.ChartType];
+		if(aStyles) {
+			if(aStyles[this.Index]) {
+				let graphics = this._getGraphics();
+				this.createChartPreview(graphics, this.ChartType, aStyles[this.Index]);
+				let oPreview = new AscCommon.CStyleImage();
+				oPreview.name = this.Index + 1;
+				oPreview.image = this._canvas_charts.toDataURL("image/png");
+				this.Buffer.push(oPreview);
+			}
+		}
+		this.Index++;
+	};
+	ChartPreviewManager.prototype.OnEndTimer = function() {
+		this.GetApi().sendEvent("asc_onAddChartStylesPreview", this.Buffer);
+		this.Buffer = [];
+	};
 
 ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 	function createItem(value) {
@@ -299,7 +350,6 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 	}
 	return series;
 };
-
 ChartPreviewManager.prototype.getChartByType = function(type)
 {
 	return AscFormat.ExecuteNoHistory(function()
@@ -472,20 +522,59 @@ ChartPreviewManager.prototype._getGraphics = function() {
 	return graphics;
 };
 
-ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
+ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId) {
+
+	var aStyles;
+	var nIdx, chartStyle, graphics;
+	if(Array.isArray(arrId)) {
+		var arrPreviews = [];
+		aStyles = AscCommon.g_oChartStyles[chartType];
+		if(Array.isArray(aStyles)) {
+			graphics = this._getGraphics();
+			for (nIdx = 0; nIdx < arrId.length; ++nIdx) {
+				if(aStyles[arrId[nIdx]]) {
+					this.createChartPreview(graphics, chartType, aStyles[arrId[nIdx]]);
+
+					chartStyle = new AscCommon.CStyleImage();
+					chartStyle.name = nIdx + 1;
+					chartStyle.image = this._canvas_charts.toDataURL("image/png");
+					arrPreviews.push(chartStyle);
+				}
+			}
+		}
+		return arrPreviews;
+	}
 	if (AscFormat.isRealNumber(chartType)) {
+
+
 		if (!this._isCachedChartStyles(chartType)) {
-			var aStyles = AscCommon.g_oChartStyles[chartType];
+			aStyles = AscCommon.g_oChartStyles[chartType];
 			if (Array.isArray(aStyles)) {
 				AscFormat.ExecuteNoHistory(function () {
-					var graphics = this._getGraphics();
-					for (var i = 0; i < aStyles.length; ++i) {
-						this.createChartPreview(graphics, chartType, aStyles[i]);
-						if (!window["IS_NATIVE_EDITOR"]) {
-							var chartStyle = new AscCommon.CStyleImage();
-							chartStyle.name = i + 1;
-							chartStyle.image = this._canvas_charts.toDataURL("image/png");
-							this.previewGroups[chartType].push(chartStyle);
+					graphics = this._getGraphics();
+					if(Array.isArray(arrId)) {
+						var arrPreviews = [];
+						for (nIdx = 0; nIdx < arrId.length; ++nIdx) {
+							if(aStyles[arrId[nIdx]]) {
+								this.createChartPreview(graphics, chartType, aStyles[arrId[nIdx]]);
+
+								chartStyle = new AscCommon.CStyleImage();
+								chartStyle.name = nIdx + 1;
+								chartStyle.image = this._canvas_charts.toDataURL("image/png");
+								arrPreviews.push(chartStyle);
+							}
+						}
+						return arrPreviews;
+					}
+					else {
+						for (nIdx = 0; nIdx < aStyles.length; ++nIdx) {
+							this.createChartPreview(graphics, chartType, aStyles[nIdx]);
+							if (!window["IS_NATIVE_EDITOR"]) {
+								chartStyle = new AscCommon.CStyleImage();
+								chartStyle.name = nIdx + 1;
+								chartStyle.image = this._canvas_charts.toDataURL("image/png");
+								this.previewGroups[chartType].push(chartStyle);
+							}
 						}
 					}
 				}, this, []);

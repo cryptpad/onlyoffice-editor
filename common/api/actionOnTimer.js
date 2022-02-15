@@ -43,7 +43,6 @@
 	function CActionOnTimerBase()
 	{
 		this.TimerId            = null;
-		this.TableLook          = null;
 		this.Start              = false;
 		this.FirstActionOnTimer = false;
 	}

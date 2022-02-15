@@ -2148,97 +2148,20 @@ CDrawingDocument.prototype =
 			return;
 
         var logicDoc = this.m_oWordControl.m_oLogicDocument;
-
-        var _styles = logicDoc.Styles.GetAllTableStyles();
-        var _styles_len = _styles.length;
-
-        if (_styles_len == 0)
-            return;
-
-        var _x_mar = 10;
-        var _y_mar = 10;
-        var _r_mar = 10;
-        var _b_mar = 10;
+        var oPreviewGenerator = new AscCommon.CTableStylesPreviewGenerator(logicDoc)
+        var _w_px = TABLE_STYLE_WIDTH_PIX;
+        var _h_px = TABLE_STYLE_HEIGHT_PIX;
         var _pageW = 297;
         var _pageH = 210;
-
-        var W = (_pageW - _x_mar - _r_mar);
-        var H = (_pageH - _y_mar - _b_mar);
-
-        var _stream = global_memory_stream_menu;
-        var _graphics = new CDrawingStream();
-
-        this.Native["DD_PrepareNativeDraw"]();
-
-        var Rows = 5;
-
-        AscCommon.History.TurnOff();
-        AscCommon.g_oTableId.m_bTurnOff = true;
-        for (var i1 = 0; i1 < _styles_len; i1++)
+        if (AscCommon.AscBrowser.isRetina)
         {
-        	let _style = _styles[i1];
-        	let i = _style.GetId();
-
-            if (_table_styles == null)
-            {
-                var Cols = 5;
-
-                var Grid = [];
-                for (var ii = 0; ii < Cols; ii++)
-                    Grid[ii] = W / Cols;
-
-                _table_styles = new CTable(this, logicDoc, true, Rows, Cols, Grid);
-				_table_styles.Reset(_x_mar, _y_mar, 1000, 1000, 0, 0, 1);
-                _table_styles.Set_Props({TableStyle : i, TableLook : tableLook, TableLayout : c_oAscTableLayout.Fixed});
-
-                for (var j = 0; j < Rows; j++)
-                    _table_styles.Content[j].Set_Height(H / Rows, Asc.linerule_AtLeast);
-            }
-            else
-            {
-                _table_styles.Set_Props({TableStyle : i, TableLook : tableLook, TableLayout : c_oAscTableLayout.Fixed, CellSelect : false});
-                _table_styles.Recalc_CompiledPr2();
-
-                for (var j = 0; j < Rows; j++)
-                    _table_styles.Content[j].Set_Height(H / Rows, Asc.linerule_AtLeast);
-            }
-
-
-            _table_styles.Recalculate_Page(0);
-
-            var _w_px = TABLE_STYLE_WIDTH_PIX;
-            var _h_px = TABLE_STYLE_HEIGHT_PIX;
-
-            if (AscCommon.AscBrowser.isRetina)
-            {
-                _w_px *= 2;
-                _h_px *= 2;
-            }
-
-            this.Native["DD_StartNativeDraw"](_w_px, _h_px, _pageW, _pageH);
-
-            var _old_mode = editor.isViewMode;
-            editor.isViewMode = true;
-            editor.isShowTableEmptyLineAttack = true;
-            _table_styles.Draw(0, _graphics);
-            editor.isShowTableEmptyLineAttack = false;
-            editor.isViewMode = _old_mode;
-
-            _stream["ClearNoAttack"]();
-
-            _stream["WriteByte"](2);
-            _stream["WriteString2"]("" + i);
-
-            this.Native["DD_EndNativeDraw"](_stream);
-            _graphics.ClearParams();
+            _w_px *= 2;
+            _h_px *= 2;
         }
-        AscCommon.g_oTableId.m_bTurnOff = false;
-        AscCommon.History.TurnOn();
-
-        _stream["ClearNoAttack"]();
-        _stream["WriteByte"](3);
-
-        this.Native["DD_EndNativeDraw"](_stream);
+        var oStream = global_memory_stream_menu;
+        var oGraphics = new CDrawingStream();
+        var oNative = this.Native;
+        oPreviewGenerator.GetAllPreviewsNative(false, oGraphics, oStream, oNative, _w_px, _h_px, _pageW, _pageH);
     },
 
     CheckGuiControlColors : function ()

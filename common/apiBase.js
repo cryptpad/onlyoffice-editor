@@ -1744,9 +1744,13 @@
 		}, this.fCurCallback, options.callback, oAdditionalData, dataContainer);
 	};
 	// Images & Charts & TextArts
-	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType)
+	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType, arrId)
 	{
-		return this.chartPreviewManager.getChartPreviews(chartType);
+		return this.chartPreviewManager.getChartPreviews(chartType, arrId);
+	};
+	baseEditorsApi.prototype.asc_generateChartPreviews                = function(chartType)
+	{
+		return this.chartPreviewManager.Begin(chartType);
 	};
 	baseEditorsApi.prototype.asc_getTextArtPreviews              = function()
 	{
@@ -3660,6 +3664,7 @@
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
+	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

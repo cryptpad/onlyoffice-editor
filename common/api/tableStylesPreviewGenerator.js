@@ -53,37 +53,9 @@
 	{
 		if (g_oTable == null)
 		{
-			AscCommon.ExecuteNoHistory(function()
-			{
-				let nCols = 5, nRows = 5;
-
-				let _x_mar = 10;
-				let _y_mar = 10;
-				let _r_mar = 10;
-				let _b_mar = 10;
-				let _pageW = 297;
-				let _pageH = 210;
-
-				let W = (_pageW - _x_mar - _r_mar);
-				let H = (_pageH - _y_mar - _b_mar);
-
-
-				let arrGrid = [];
-				for (let nIndex = 0; nIndex < nCols; ++nIndex)
-					arrGrid[nIndex] = W / nCols;
-
-				g_oTable = new CTable(oLogicDocument.GetDrawingDocument(), oLogicDocument, true, nRows, nCols, arrGrid);
-				g_oTable.Reset(_x_mar, _y_mar, 1000, 1000, 0, 0, 1);
-				g_oTable.Set_Props({
-					TableDefaultMargins : {Top : 0, Bottom : 0},
-					TableLayout: c_oAscTableLayout.Fixed
-				});
-
-				for (let nCurRow = 0, nRowsCount = g_oTable.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
-					g_oTable.GetRow(nCurRow).SetHeight(H / nRows, Asc.linerule_AtLeast);
-			}, oLogicDocument);
+			g_oTable = oLogicDocument.GetTableForPreview();
 		}
-
+		oLogicDocument.CheckTableForPreview(g_oTable);
 		return g_oTable;
 	}
 
@@ -110,7 +82,7 @@
 	CTableStylesPreviewGenerator.prototype.constructor = CTableStylesPreviewGenerator;
 	CTableStylesPreviewGenerator.prototype.OnBegin = function(isDefaultTableLook)
 	{
-		this.TableStyles = this.LogicDocument.GetStyles().GetAllTableStyles();
+		this.TableStyles = this.LogicDocument.GetAllTableStyles();
 		this.Index       = -1;
 		this.TableLook   = this.DrawingDocument.GetTableLook(isDefaultTableLook);
 
@@ -142,7 +114,7 @@
 		let oTableLookOld = this.TableLook;
 		this.TableLook    = this.DrawingDocument.GetTableLook(isDefaultTableLook);
 
-		let arrStyles = this.LogicDocument.GetStyles().GetAllTableStyles();
+		let arrStyles = this.LogicDocument.GetAllTableStyles();
 
 		let arrPreviews = [];
 		for (let nIndex = 0 , nCount = arrStyles.length; nIndex < nCount; ++nIndex)
@@ -156,19 +128,60 @@
 
 		return arrPreviews;
 	};
+	CTableStylesPreviewGenerator.prototype.GetAllPreviewsNative = function(isDefaultTableLook, oGraphics, oStream, oNative, dW, dH, nW, nH)
+	{
+		let oTableLookOld = this.TableLook;
+		this.TableLook    = this.DrawingDocument.GetTableLook(isDefaultTableLook);
+		let arrStyles = this.LogicDocument.GetAllTableStyles();
+		oNative["DD_PrepareNativeDraw"]();
+		for (let nIndex = 0 , nCount = arrStyles.length; nIndex < nCount; ++nIndex)
+		{
+			let oStyle = arrStyles[nIndex];
+			let oTable = this.GetTable(oStyle);
+			oNative["DD_StartNativeDraw"](nW, nH, dW, dH);
+			this.DrawTable(oGraphics, oTable);
+			oStream["ClearNoAttack"]();
+			oStream["WriteByte"](2);
+			oStream["WriteString2"]("" + oStyle.GetId());
+			oNative["DD_EndNativeDraw"](oStream);
+			oGraphics.ClearParams();
+		}
+		oStream["ClearNoAttack"]();
+		oStream["WriteByte"](3);
+		oNative["DD_EndNativeDraw"](oStream);
+		this.TableLook = oTableLookOld;
+	};
 	CTableStylesPreviewGenerator.prototype.GetPreview = function(oStyle)
 	{
 		if (!oStyle)
 			return null;
 
+		var _pageW = 297;
+		var _pageH = 210;
+		var _canvas = GetCanvas();
+		var ctx = _canvas.getContext('2d');
+		ctx.fillStyle = "#FFFFFF";
+		ctx.fillRect(0, 0, _canvas.width, _canvas.height);
+		var graphics = new AscCommon.CGraphics();
+		graphics.init(ctx, _canvas.width, _canvas.height, _pageW, _pageH);
+		graphics.m_oFontManager = AscCommon.g_fontManager;
+		graphics.transform(1, 0, 0, 1, 0, 0);
+
 		let oTable = this.GetTable(oStyle);
-		return this.DrawTable(oTable, oStyle);
+		this.DrawTable(graphics, oTable);
+
+		var _styleD = new AscCommon.CStyleImage();
+		_styleD.type = AscCommon.c_oAscStyleImage.Default;
+		_styleD.image = _canvas.toDataURL("image/png");
+		_styleD.name = oStyle.GetId();
+		_styleD.displayName = oStyle.GetName();
+
+		return _styleD;
 	};
 	CTableStylesPreviewGenerator.prototype.GetTable = function(oStyle)
 	{
 		let oTable     = GetTable(this.LogicDocument);
 		let oTableLook = this.TableLook;
-
 		AscCommon.ExecuteNoHistory(function(){
 			oTable.Set_Props({
 				TableStyle : oStyle.GetId(),
@@ -180,38 +193,15 @@
 
 		return oTable;
 	};
-	CTableStylesPreviewGenerator.prototype.DrawTable = function(oTable, oStyle)
+	CTableStylesPreviewGenerator.prototype.DrawTable = function(oGraphics, oTable)
 	{
-		var _pageW = 297;
-		var _pageH = 210;
-
-		var _canvas = GetCanvas();
-		var ctx = _canvas.getContext('2d');
-
-		ctx.fillStyle = "#FFFFFF";
-		ctx.fillRect(0, 0, _canvas.width, _canvas.height);
-
-		var graphics = new AscCommon.CGraphics();
-		graphics.init(ctx, _canvas.width, _canvas.height, _pageW, _pageH);
-		graphics.m_oFontManager = AscCommon.g_fontManager;
-		graphics.transform(1, 0, 0, 1, 0, 0);
-
 		oTable.Recalculate_Page(0);
-
-		var _old_mode = editor.isViewMode;
+		let _old_mode = editor.isViewMode;
 		editor.isViewMode = true;
-		editor.isShowTableEmptyLineAttack = true;
-		oTable.Draw(0, graphics, false);
+		editor.isShowTableEmptyLineAttack = this.LogicDocument.IsDocumentEditor();
+		oTable.Draw(0, oGraphics, false);
 		editor.isShowTableEmptyLineAttack = false;
 		editor.isViewMode = _old_mode;
-		
-		var _styleD = new AscCommon.CStyleImage();
-		_styleD.type = AscCommon.c_oAscStyleImage.Default;
-		_styleD.image = _canvas.toDataURL("image/png");
-		_styleD.name = oStyle.GetId();
-		_styleD.displayName = oStyle.GetName();
-
-		return _styleD;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
