@@ -522,20 +522,59 @@ ChartPreviewManager.prototype._getGraphics = function() {
 	return graphics;
 };
 
-ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
+ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId) {
+
+	var aStyles;
+	var nIdx, chartStyle, graphics;
+	if(Array.isArray(arrId)) {
+		var arrPreviews = [];
+		aStyles = AscCommon.g_oChartStyles[chartType];
+		if(Array.isArray(aStyles)) {
+			graphics = this._getGraphics();
+			for (nIdx = 0; nIdx < arrId.length; ++nIdx) {
+				if(aStyles[arrId[nIdx]]) {
+					this.createChartPreview(graphics, chartType, aStyles[arrId[nIdx]]);
+
+					chartStyle = new AscCommon.CStyleImage();
+					chartStyle.name = nIdx + 1;
+					chartStyle.image = this._canvas_charts.toDataURL("image/png");
+					arrPreviews.push(chartStyle);
+				}
+			}
+		}
+		return arrPreviews;
+	}
 	if (AscFormat.isRealNumber(chartType)) {
+
+
 		if (!this._isCachedChartStyles(chartType)) {
-			var aStyles = AscCommon.g_oChartStyles[chartType];
+			aStyles = AscCommon.g_oChartStyles[chartType];
 			if (Array.isArray(aStyles)) {
 				AscFormat.ExecuteNoHistory(function () {
-					var graphics = this._getGraphics();
-					for (var i = 0; i < aStyles.length; ++i) {
-						this.createChartPreview(graphics, chartType, aStyles[i]);
-						if (!window["IS_NATIVE_EDITOR"]) {
-							var chartStyle = new AscCommon.CStyleImage();
-							chartStyle.name = i + 1;
-							chartStyle.image = this._canvas_charts.toDataURL("image/png");
-							this.previewGroups[chartType].push(chartStyle);
+					graphics = this._getGraphics();
+					if(Array.isArray(arrId)) {
+						var arrPreviews = [];
+						for (nIdx = 0; nIdx < arrId.length; ++nIdx) {
+							if(aStyles[arrId[nIdx]]) {
+								this.createChartPreview(graphics, chartType, aStyles[arrId[nIdx]]);
+
+								chartStyle = new AscCommon.CStyleImage();
+								chartStyle.name = nIdx + 1;
+								chartStyle.image = this._canvas_charts.toDataURL("image/png");
+								arrPreviews.push(chartStyle);
+							}
+						}
+						return arrPreviews;
+					}
+					else {
+						for (nIdx = 0; nIdx < aStyles.length; ++nIdx) {
+							this.createChartPreview(graphics, chartType, aStyles[nIdx]);
+							if (!window["IS_NATIVE_EDITOR"]) {
+								chartStyle = new AscCommon.CStyleImage();
+								chartStyle.name = nIdx + 1;
+								chartStyle.image = this._canvas_charts.toDataURL("image/png");
+								this.previewGroups[chartType].push(chartStyle);
+							}
 						}
 					}
 				}, this, []);
