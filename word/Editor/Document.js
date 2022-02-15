@@ -10697,6 +10697,8 @@ CDocument.prototype.OnKeyDown = function(e)
 		}
 		else if (e.KeyCode === 32) // Space
 		{
+			this.private_CheckForbiddenPlaceOnTextAdd();
+
 			var oSelectedInfo = this.GetSelectedElementsInfo();
 			var oMath         = oSelectedInfo.GetMath();
 			var oInlineSdt    = oSelectedInfo.GetInlineLevelSdt();
@@ -10709,10 +10711,11 @@ CDocument.prototype.OnKeyDown = function(e)
 			else if (oBlockSdt && oBlockSdt.IsCheckBox())
 				oCheckBox = oBlockSdt;
 
+			let isFormFieldEditing = this.IsFormFieldEditing();
 			if (oCheckBox)
 			{
 				oCheckBox.SkipSpecialContentControlLock(true);
-				if (!this.IsSelectionLocked(changestype_Paragraph_Content, null, true, this.IsFormFieldEditing()))
+				if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, isFormFieldEditing))
 				{
 					this.StartAction(AscDFH.historydescription_Document_SpaceButton);
 					oCheckBox.ToggleCheckBox();
@@ -10723,7 +10726,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			else
 			{
-				if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, this.IsFormFieldEditing()))
+				if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, isFormFieldEditing))
 				{
 					this.StartAction(AscDFH.historydescription_Document_SpaceButton);
 
@@ -11271,6 +11274,8 @@ CDocument.prototype.CompareReviewInfo = function(ReviewInfo1, ReviewInfo2)
 };
 CDocument.prototype.private_AddSymbolByShortcut = function(nCode)
 {
+	this.private_CheckForbiddenPlaceOnTextAdd();
+
 	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFormFieldEditing()))
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddEuroLetter);
@@ -11282,6 +11287,8 @@ CDocument.prototype.private_AddSymbolByShortcut = function(nCode)
 };
 CDocument.prototype.OnKeyPress = function(e)
 {
+	this.private_CheckForbiddenPlaceOnTextAdd();
+
 	var Code;
 	if (null != e.Which)
 		Code = e.Which;
@@ -11856,6 +11863,26 @@ CDocument.prototype.private_IsHitInHdrFtr = function(nY, nCurPage)
 	var oPageMetrics = this.Get_PageContentStartPos(nCurPage, this.Pages[nCurPage].Pos);
 
 	return (nY <= oPageMetrics.Y || nY > oPageMetrics.YLimit);
+};
+CDocument.prototype.private_CheckForbiddenPlaceOnTextAdd = function()
+{
+	let isFormFieldEditing = this.IsFormFieldEditing();
+	let oSelectedInfo      = this.GetSelectedElementsInfo();
+
+	var oInlineSdt = oSelectedInfo.GetInlineLevelSdt();
+	var oBlockSdt  = oSelectedInfo.GetBlockLevelSdt();
+
+	var oCheckBox;
+	if (oInlineSdt && oInlineSdt.IsCheckBox())
+		oCheckBox = oInlineSdt;
+	else if (oBlockSdt && oBlockSdt.IsCheckBox())
+		oCheckBox = oBlockSdt;
+
+	if (!isFormFieldEditing && oCheckBox)
+	{
+		this.RemoveSelection();
+		oCheckBox.MoveCursorOutsideForm(false);
+	}
 };
 /**
  * Проверяем будет ли добавление текста на ивенте KeyDown

@@ -3111,6 +3111,23 @@ CInlineLevelSdt.prototype.CheckSpelling = function(oCollector, nDepth)
 	if (isForm)
 		oCollector.FlushWord();
 };
+CInlineLevelSdt.prototype.MoveCursorOutsideForm = function(isBefore)
+{
+	let oShape;
+	if (this.IsForm()
+		&& this.Paragraph
+		&& (oShape = this.Paragraph.Parent ? this.Paragraph.Parent.Is_DrawingShape(true) : null)
+		&& oShape.isForm())
+	{
+		let oParaDrawing = oShape.GetParaDrawing();
+		if (oParaDrawing)
+			oParaDrawing.GoTo_Text(isBefore);
+	}
+	else
+	{
+		this.MoveCursorOutsideElement(isBefore);
+	}
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
