@@ -5922,7 +5922,7 @@ function CDrawingDocument()
 		editor.isViewMode = _oldTurn;
 	};
 
-	this.GetTOC_Buttons = function(idDiv1, idDiv2)
+	this.GetTOC_Buttons = function(idDiv1, idDiv2, styleWidth)
 	{
 		var div1 = document.getElementById(idDiv1);
 		var div2 = document.getElementById(idDiv2);
@@ -5957,7 +5957,7 @@ function CDrawingDocument()
 		canvas1.scaleAttributeText = scaleAttributeText;
 		canvas2.scaleAttributeText = scaleAttributeText;
 
-		var pixW = 248;
+		var pixW = (undefined === styleWidth) ? 248 : styleWidth;
 		var pixW_natural = AscCommon.AscBrowser.convertToRetinaValue(pixW, true);
 		var pixH = 0;
 		var pixH_natural = 0;

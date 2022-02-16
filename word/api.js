@@ -11889,11 +11889,11 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	window["asc_docs_api"].prototype["asc_getButtonsTOC"] = function(id1, id2)
+	window["asc_docs_api"].prototype["asc_getButtonsTOC"] = function(id1, id2, styleWidth)
 	{
 		if (this.WordControl && this.WordControl.m_oDrawingDocument)
 		{
-			this.WordControl.m_oDrawingDocument.GetTOC_Buttons(id1, id2);
+			this.WordControl.m_oDrawingDocument.GetTOC_Buttons(id1, id2, styleWidth);
 		}
 	};
 
