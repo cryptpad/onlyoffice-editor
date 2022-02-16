@@ -14484,8 +14484,9 @@ Paragraph.prototype.private_UpdateTrackRevisions = function()
 };
 Paragraph.prototype.UpdateDocumentOutline = function()
 {
-	if (!this.LogicDocument || !this.Parent)
+	if (!this.bFromDocument || !this.LogicDocument || !this.Parent)
 		return;
+
 
 	var isCheck = true;
 	var oParent = this.Parent;

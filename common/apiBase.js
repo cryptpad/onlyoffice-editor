@@ -1748,9 +1748,9 @@
 	{
 		return this.chartPreviewManager.getChartPreviews(chartType, arrId, bEmpty);
 	};
-	baseEditorsApi.prototype.asc_generateChartPreviews                = function(chartType)
+	baseEditorsApi.prototype.asc_generateChartPreviews                = function(chartType, arrId)
 	{
-		return this.chartPreviewManager.Begin(chartType);
+		return this.chartPreviewManager.Begin(chartType, arrId);
 	};
 	baseEditorsApi.prototype.asc_getTextArtPreviews              = function()
 	{

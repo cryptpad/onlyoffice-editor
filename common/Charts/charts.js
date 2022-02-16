@@ -62,6 +62,7 @@ function ChartPreviewManager() {
 	this.FirstActionOnTimer = true;
 	this.Index = -1;
 	this.ChartType = -1;
+	this.StylesIndexes = [];
 	this.Buffer = [];
 }
 ChartPreviewManager.prototype = Object.create(AscCommon.CActionOnTimerBase.prototype);
@@ -70,7 +71,7 @@ ChartPreviewManager.prototype.constructor = ChartPreviewManager;
 	ChartPreviewManager.prototype.GetApi = function() {
 		return Asc.editor || editor;
 	};
-	ChartPreviewManager.prototype.OnBegin = function(nChartType) {
+	ChartPreviewManager.prototype.OnBegin = function(nChartType, arrId) {
 		var aStyles = AscCommon.g_oChartStyles[nChartType];
 		if(!Array.isArray(aStyles)) {
 			this.GetApi().sendEvent("asc_onBeginChartStylesPreview", 0);
@@ -78,26 +79,47 @@ ChartPreviewManager.prototype.constructor = ChartPreviewManager;
 		}
 		this.ChartType = nChartType;
 		this.Index = 0;
+		var nStyle;
+
+		this.StylesIndexes.length = 0;
+		if(!Array.isArray(arrId)) {
+			for(nStyle = 0; nStyle < aStyles.length; ++nStyle) {
+				this.StylesIndexes.push(nStyle);
+			}
+		}
+		else {
+			var nId;
+			for(nId = 0; nId < arrId.length; ++nId) {
+				this.StylesIndexes.push(arrId[nId] - 1);
+			}
+			for(nStyle = 0; nStyle < aStyles.length; ++nStyle) {
+				for(nId = 0; nId < arrId.length; ++nId) {
+					if(nStyle === (arrId[nId] - 1)) {
+						break;
+					}
+				}
+				if(nId === arrId.length) {
+					this.StylesIndexes.push(nStyle);
+				}
+			}
+		}
 		this.GetApi().sendEvent("asc_onBeginChartStylesPreview", aStyles.length);
 	};
 	ChartPreviewManager.prototype.OnEnd = function() {
 		this.GetApi().sendEvent("asc_onEndChartStylesPreview");
 	};
 	ChartPreviewManager.prototype.IsContinue = function() {
-		var aStyles = AscCommon.g_oChartStyles[this.ChartType];
-		if(!Array.isArray(aStyles)) {
-			return false;
-		}
-		return (this.Index < aStyles.length);
+		return (this.Index < this.StylesIndexes.length);
 	};
 	ChartPreviewManager.prototype.DoAction = function() {
 		let aStyles = AscCommon.g_oChartStyles[this.ChartType];
 		if(aStyles) {
-			if(aStyles[this.Index]) {
+			var oStyle = aStyles[this.StylesIndexes[this.Index]]
+			if(oStyle) {
 				let graphics = this._getGraphics();
-				this.createChartPreview(graphics, this.ChartType, aStyles[this.Index]);
+				this.createChartPreview(graphics, this.ChartType, oStyle);
 				let oPreview = new AscCommon.CStyleImage();
-				oPreview.name = this.Index + 1;
+				oPreview.name = this.StylesIndexes[this.Index] + 1;
 				oPreview.image = this._canvas_charts.toDataURL("image/png");
 				this.Buffer.push(oPreview);
 			}
