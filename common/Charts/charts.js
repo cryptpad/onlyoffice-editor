@@ -554,8 +554,9 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 		if(Array.isArray(aStyles)) {
 			graphics = this._getGraphics();
 			for (nIdx = 0; nIdx < arrId.length; ++nIdx) {
-				if(aStyles[arrId[nIdx]]) {
-					this.createChartPreview(graphics, chartType, aStyles[arrId[nIdx]]);
+				var oStyle = aStyles[arrId[nIdx] - 1];
+				if(oStyle) {
+					this.createChartPreview(graphics, chartType, oStyle);
 
 					chartStyle = new AscCommon.CStyleImage();
 					chartStyle.name = arrId[nIdx];
