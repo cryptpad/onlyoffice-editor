@@ -1680,11 +1680,251 @@ var editor;
 								ws.aNamedSheetViews = namedSheetView.namedSheetView;
 							}
 
+
+
+							var PrepareComments = function () {
+								var rId = xmlParserContext.InitOpenManager.legacyDrawingId;
+
+								var vmlDrawing = wsPart.getPartById(rId);
+								if (!vmlDrawing || !comments) {
+									return;
+								}
+
+								var mapCheckCopyThreadedComments;
+								var arAuthors = comments.authors && comments.authors.arr;
+
+								if (comments.commentList) {
+									var aComments = comments.commentList.arr;
+
+									for (var i = 0; i < aComments.length; ++i) {
+										var pComment = aComments[i];
+										if (!pComment) {
+											continue;
+										}
+
+										var bThreadedCommentCopy = false;
+										var pThreadedComment = null;
+										/*if(threadedComments)
+										{
+											//TODO PrepareTopLevelComments
+											//std::unordered_map<std::wstring, CThreadedComment*>::iterator pFind = pThreadedComments->m_mapTopLevelThreadedComments.end();
+
+											var isPlaceholder = false;
+											if(pComment.authorId)
+											{
+												var nAuthorId = parseInt(pComment.authorId);
+
+												if (nAuthorId >= 0 && nAuthorId < arAuthors.length)
+												{
+													var sAuthor = arAuthors[nAuthorId];
+													if(0 === sAuthor.indexOf("tc="))
+													{
+														isPlaceholder = true;
+														var sGUID = sAuthor.substr(3);
+														//todo IsZero() is added to fix comments with zero ids(5.4.0)(bug 42947). Remove after few releases
+														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.ref)
+														{
+															for (std::unordered_map<std::wstring, CThreadedComment*>::iterator it = pThreadedComments->m_mapTopLevelThreadedComments.begin(); it != pThreadedComments->m_mapTopLevelThreadedComments.end(); ++it)
+															{
+																if (it->second->ref.IsInit() && pComment->m_oRef->GetValue() == it->second->ref.get())
+																{
+																	pFind = it;
+																	break;
+																}
+															}
+														}
+														else
+														{
+															pFind = pThreadedComments->m_mapTopLevelThreadedComments.find(sGUID);
+														}
+
+													}
+												}
+											}
+											if(pThreadedComments->m_mapTopLevelThreadedComments.end() != pFind)
+											{
+												pThreadedComment = pFind->second;
+												if(mapCheckCopyThreadedComments.end() != mapCheckCopyThreadedComments.find(pThreadedComment->id->ToString()))
+												{
+													bThreadedCommentCopy = true;
+												}
+												else
+												{
+													mapCheckCopyThreadedComments[pThreadedComment->id->ToString()] = 1;
+												}
+											}
+											else if(isPlaceholder)
+											{
+												continue;
+											}
+										}*/
+
+										if(pComment.ref && pComment.authorId)
+										{
+											var sRef = AscCommonExcel.g_oRangeCache.getAscRange(pComment.ref);
+											if(sRef)
+											{
+												var nRow = sRef.r1, nCol = sRef.c1;
+												//Asc.asc_CCommentData()
+												var pCommentItem = new CCommentItem();
+												pCommentItem.nRow = nRow - 1;
+												pCommentItem.nCol = nCol - 1;
+
+												var nAuthorId = parseInt(pComment.authorId);
+
+												if (nAuthorId >= 0 && nAuthorId < arAuthors.length)
+												{
+													pCommentItem.sAuthor = arAuthors[nAuthorId];
+												}
+
+												/*OOX::Spreadsheet::CSi* pSi = pComment->m_oText.GetPointerEmptyNullable();
+												if(NULL != pSi)
+													pCommentItem->m_oText.reset(pSi);*/
+
+												pCommentItem.threadedComment = pThreadedComment;//c_oSer_Comments.ThreadedComment
+												pCommentItem.ThreadedCommentCopy = bThreadedCommentCopy;//bool m_bThreadedCommentCopy
+
+												var sNewId = nRow + "-" + nCol;
+												m_mapComments [sNewId] = pCommentItem;
+											}
+										}
+									}
+								}
+
+
+								/*for ( var i = 0; i < pVmlDrawing.arr.length; ++i)
+								{
+									var pShape = pVmlDrawing.arr[i];
+
+									if (!pShape) {
+										continue;
+									}
+
+									if (pShape.sId)
+									{//mark shape as used
+										boost::unordered_map<std::wstring, OOX::CVmlDrawing::_vml_shape>::iterator pFind = pVmlDrawing->m_mapShapes.find(pShape->m_sId.get());
+										if (pFind != pVmlDrawing->m_mapShapes.end())
+										{
+											pFind->second.bUsed = true;
+										}
+									}
+									for ( var j = 0; j < pShape.arr.length; ++j)
+									{
+										var pElem = pShape.arr[j];
+
+										if (!pElem) {
+											continue;
+										}
+
+										if( OOX::et_v_ClientData == pElem->getType())
+										{
+											var pClientData = pElem;
+											if(null != pClientData.row && null != pClientData.column)
+											{
+												var nRow = parseInt(pClientData.row);
+												var nCol = parseInt(pClientData.column);
+												var sId = nRow + "" + "-" + nCol + "";
+
+												var pPair = m_mapComments.find(sId);
+												if(pPair != m_mapComments.end())
+												{
+													CCommentItem* pCommentItem = pPair->second;
+													if(pShape->m_sGfxData.IsInit())
+														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;
+													std::vector<int> m_aAnchor;
+													pClientData->getAnchorArray(m_aAnchor);
+													if(8 <= m_aAnchor.size())
+													{
+														pCommentItem->m_nLeft = abs(m_aAnchor[0]);
+														pCommentItem->m_nLeftOffset = abs(m_aAnchor[1]);
+														pCommentItem->m_nTop = abs(m_aAnchor[2]);
+														pCommentItem->m_nTopOffset = abs(m_aAnchor[3]);
+														pCommentItem->m_nRight = abs(m_aAnchor[4]);
+														pCommentItem->m_nRightOffset = abs(m_aAnchor[5]);
+														pCommentItem->m_nBottom = abs(m_aAnchor[6]);
+														pCommentItem->m_nBottomOffset =abs( m_aAnchor[7]);
+													}
+													pCommentItem->m_bMove = pClientData->m_oMoveWithCells;
+													pCommentItem->m_bSize = pClientData->m_oSizeWithCells;
+													pCommentItem->m_bVisible = pClientData->m_oVisible;
+
+													if (pShape->m_oFillColor.IsInit())
+													{
+														BYTE r = pShape->m_oFillColor->Get_R();
+														BYTE g = pShape->m_oFillColor->Get_G();
+														BYTE b = pShape->m_oFillColor->Get_B();
+
+														std::wstringstream sstream;
+														sstream << boost::wformat( L"%02X%02X%02X" ) % r % g % b;
+
+														pCommentItem->m_sFillColorRgb = sstream.str();
+													}
+
+													for(size_t k = 0; k < pShape->m_oStyle->m_arrProperties.size(); ++k)
+													{
+														if (pShape->m_oStyle->m_arrProperties[k] == NULL) continue;
+
+														SimpleTypes::Vml::CCssProperty *oProperty = pShape->m_oStyle->m_arrProperties[k].get();
+														if(SimpleTypes::Vml::cssptMarginLeft == oProperty->get_Type())
+														{
+															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
+															{
+																SimpleTypes::CPoint oPoint;
+																oPoint.FromPoints(oUCssValue.oValue.dValue);
+																pCommentItem->m_dLeftMM = oPoint.ToMm();
+															}
+														}
+													else if(SimpleTypes::Vml::cssptMarginTop == oProperty->get_Type())
+														{
+															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
+															{
+																SimpleTypes::CPoint oPoint;
+																oPoint.FromPoints(oUCssValue.oValue.dValue);
+																pCommentItem->m_dTopMM = oPoint.ToMm();
+															}
+														}
+													else if(SimpleTypes::Vml::cssptWidth == oProperty->get_Type())
+														{
+															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
+															{
+																SimpleTypes::CPoint oPoint;
+																oPoint.FromPoints(oUCssValue.oValue.dValue);
+																pCommentItem->m_dWidthMM = oPoint.ToMm();
+															}
+														}
+													else if(SimpleTypes::Vml::cssptHeight == oProperty->get_Type())
+														{
+															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
+															{
+																SimpleTypes::CPoint oPoint;
+																oPoint.FromPoints(oUCssValue.oValue.dValue);
+																pCommentItem->m_dHeightMM = oPoint.ToMm();
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}*/
+
+
+							};
+
+
+
+
+							//COMMENTS
 							//буду читать по формату, далее преобразовывать
+							var comments, threadedComments;
 							var commentsFile = wsPart.getPartsByRelationshipType(openXml.Types.worksheetComments.relationType);
 							for (i = 0; i < commentsFile.length; ++i) {
 								var contentComment = commentsFile[i].getDocumentContent();
-								var comments = new AscCommonExcel.CT_CComments();
+								comments = new AscCommonExcel.CT_CComments();
 								reader = new StaxParser(contentComment, comments, xmlParserContext);
 								comments.fromXml(reader);
 							}
@@ -1696,6 +1936,17 @@ var editor;
 								reader = new StaxParser(threadedComment, threadedComments, xmlParserContext);
 								threadedComments.fromXml(reader);
 							}
+
+							var vmlDrawingsFile = wsPart.getPartsByRelationshipType(openXml.Types.vmlDrawing.relationType);
+							for (i = 0; i < vmlDrawingsFile.length; ++i) {
+								var vmlDrawing = vmlDrawingsFile[i].getDocumentContent();
+								/*var threadedComments = new AscCommonExcel.CT_CThreadedComments();
+								reader = new StaxParser(threadedComment, threadedComments, xmlParserContext);
+								threadedComments.fromXml(reader);*/
+							}
+
+							//PrepareComments();
+
 						}
 					}
 				}

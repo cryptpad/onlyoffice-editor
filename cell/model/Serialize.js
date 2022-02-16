@@ -1441,6 +1441,12 @@
 		topRight: 3
 	};
 
+    var ESortMethod = {
+        sortmethodNone: 1,
+        sortmethodPinYin: 2,
+        sortmethodStroke: 3
+    };
+
     var g_nNumsMaxId = 160;
 
     var DocumentPageSize = new function() {
@@ -11049,6 +11055,9 @@
             sheetIds: {}
         };
         this.wb = wb;
+
+        //при чтении из xml
+        this.legacyDrawingId = null;
     }
 
     InitOpenManager.prototype.initSchemeAndTheme = function (wb) {
@@ -12048,6 +12057,7 @@
     window["AscCommonExcel"].getSqRefString = getSqRefString;
     window["AscCommonExcel"].g_nNumsMaxId = g_nNumsMaxId;
     window["AscCommonExcel"].XfForWrite = XfForWrite;
+    window["AscCommonExcel"].ESortMethod = ESortMethod;
 
 
 })(window);

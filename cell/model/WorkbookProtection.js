@@ -949,6 +949,9 @@
 		this.saltValue = null;
 		this.spinCount = null;
 
+		//пока прогоняю только на запись/чтение xml
+		this.securityDescriptors = null;
+
 		this._ws = ws;
 		this.isLock = null;
 
