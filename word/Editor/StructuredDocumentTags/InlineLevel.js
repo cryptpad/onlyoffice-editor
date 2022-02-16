@@ -2675,18 +2675,22 @@ CInlineLevelSdt.prototype.ConvertFormToFixed = function()
 	var oRun = new ParaRun(oParagraph, false);
 	oRun.AddToContent(0, oParaDrawing);
 
-	if (this.Content.length > 0 && this.Content[0] instanceof ParaRun)
-	{
-		var oInnerRun = this.Content[0];
-		var oTextPr   = oInnerRun.Get_CompiledPr(false);
-
-		g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
-		g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
-
-		var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
-		oRun.Set_Position(oTextPr.Position - nTextDescent);
-		oInnerRun.Recalc_CompiledPr(true);
-	}
+	// Этот код выравнивает позицию рана по вертикали, чтобы после конвертации типа формы текст внутри автофигуры
+	// визуально оставался на месте, но сама настройка позиции по вертикали вызывает много непонятных ситуаций у
+	// пользователей (баг 55524)
+	//
+	// if (this.Content.length > 0 && this.Content[0] instanceof ParaRun)
+	// {
+	// 	var oInnerRun = this.Content[0];
+	// 	var oTextPr   = oInnerRun.Get_CompiledPr(false);
+	//
+	// 	g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
+	// 	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+	//
+	// 	var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
+	// 	oRun.Set_Position(oTextPr.Position - nTextDescent);
+	// 	oInnerRun.Recalc_CompiledPr(true);
+	// }
 
 	oParent.RemoveFromContent(nPosInParent, 1, true);
 	oParent.AddToContent(nPosInParent, oRun, true);
