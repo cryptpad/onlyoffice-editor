@@ -5029,14 +5029,7 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                     srcRect.setValueForFitBlipFill(shapeWidth, shapeHeight, imageWidth, imageHeight);
                     var oBlipFillUniFill = AscFormat.CreateBlipFillUniFillFromUrl(_image.src);
                     oBlipFillUniFill.fill.setSrcRect(srcRect);
-                    oPh.spPr.setFill(oBlipFillUniFill);
-                    var point = oPh.getSmartArtSpPrPoint();
-                    if (point) {
-                      if (!point.spPr) {
-                        point.setSpPr(new AscFormat.CSpPr());
-                      }
-                      point.spPr.setFill(oBlipFillUniFill);
-                    }
+                    oPh.changeFill(oBlipFillUniFill);
                   }
                   oController.selectObject(oPh, 0);
                 } else {

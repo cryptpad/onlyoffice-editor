@@ -1732,6 +1732,36 @@
       return this.t;
     }
 
+    Point.prototype.initSpPr = function () {
+      if (!this.spPr) {
+        this.setSpPr(new AscFormat.CSpPr());
+      }
+    }
+
+    Point.prototype.resetUniFill = function () {
+      this.spPr && this.spPr.setFill(null);
+    }
+
+    Point.prototype.setUniFill = function (unifill) {
+      this.initSpPr();
+      this.spPr.setFill(unifill);
+    }
+
+    Point.prototype.changeShadow = function (shadow) {
+      this.initSpPr(shadow);
+      this.spPr.changeShadow(shadow);
+    }
+
+    Point.prototype.setLine = function (line) {
+      this.initSpPr();
+      this.spPr.setLn(line);
+    }
+
+    Point.prototype.setGeometry = function (geometry) {
+      this.initSpPr();
+      this.spPr.setGeometry(geometry);
+    }
+
     Point.prototype.isBlipFillPlaceholder = function () {
       var imagePlaceholderArrStylelbl = ['alignImgPlace1', 'bgImgPlace1', 'fgImgPlace1'];
       var imagePlaceholderArrName = ['Image', 'image', 'imageRepeatNode', 'pictRect'];
