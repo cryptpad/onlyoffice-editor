@@ -1744,9 +1744,9 @@
 		}, this.fCurCallback, options.callback, oAdditionalData, dataContainer);
 	};
 	// Images & Charts & TextArts
-	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType, arrId)
+	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType, arrId, bEmpty)
 	{
-		return this.chartPreviewManager.getChartPreviews(chartType, arrId);
+		return this.chartPreviewManager.getChartPreviews(chartType, arrId, bEmpty);
 	};
 	baseEditorsApi.prototype.asc_generateChartPreviews                = function(chartType)
 	{

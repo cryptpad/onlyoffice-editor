@@ -529,12 +529,27 @@ ChartPreviewManager.prototype._getGraphics = function() {
 	return graphics;
 };
 
-ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId) {
+ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmpty) {
 
 	var aStyles;
 	var nIdx, chartStyle, graphics;
+	var arrPreviews;
+	if(bEmpty) {
+		arrPreviews = [];
+		aStyles = AscCommon.g_oChartStyles[chartType];
+		if(Array.isArray(aStyles)) {
+			graphics = this._getGraphics();
+			for (nIdx = 0; nIdx < aStyles.length; ++nIdx) {
+				chartStyle = new AscCommon.CStyleImage();
+				chartStyle.name = nIdx + 1;
+				chartStyle.image = null;
+				arrPreviews.push(chartStyle);
+			}
+		}
+		return arrPreviews;
+	}
 	if(Array.isArray(arrId)) {
-		var arrPreviews = [];
+		arrPreviews = [];
 		aStyles = AscCommon.g_oChartStyles[chartType];
 		if(Array.isArray(aStyles)) {
 			graphics = this._getGraphics();
@@ -543,7 +558,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId) {
 					this.createChartPreview(graphics, chartType, aStyles[arrId[nIdx]]);
 
 					chartStyle = new AscCommon.CStyleImage();
-					chartStyle.name = arrId[nIdx] + 1;
+					chartStyle.name = arrId[nIdx];
 					chartStyle.image = this._canvas_charts.toDataURL("image/png");
 					arrPreviews.push(chartStyle);
 				}
