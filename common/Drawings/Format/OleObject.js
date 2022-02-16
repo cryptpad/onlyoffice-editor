@@ -344,12 +344,18 @@ function (window, undefined) {
     };
 
     COleObject.prototype.editExternal = function(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight) {
-        this.setData(sData);
-        var _blipFill           = new AscFormat.CBlipFill();
-        _blipFill.RasterImageId = sImageUrl;
-        this.setBlipFill(_blipFill);
-        this.setPixSizes(nPixWidth, nPixHeight);
-
+        if(typeof sData === "string" && this.m_sData !== sData) {
+            this.setData(sData);
+        }
+        if(typeof sImageUrl  === "string" &&
+            (!this.blipFill || this.blipFill.RasterImageId !== sImageUrl)) {
+            var _blipFill           = new AscFormat.CBlipFill();
+            _blipFill.RasterImageId = sImageUrl;
+            this.setBlipFill(_blipFill);
+        }
+        if(this.m_nPixWidth !== nPixWidth || this.m_nPixHeight !== nPixHeight) {
+            this.setPixSizes(nPixWidth, nPixHeight);
+        }
         var fWidth_ = fWidth;
         var fHeight_ = fHeight;
         if(!AscFormat.isRealNumber(fWidth_) || !AscFormat.isRealNumber(fHeight_)) {
@@ -365,14 +371,17 @@ function (window, undefined) {
         if(AscFormat.isRealNumber(fWidth_) && AscFormat.isRealNumber(fHeight_)) {
             var oXfrm = this.spPr && this.spPr.xfrm;
             if(oXfrm) {
-                oXfrm.setExtX(fWidth_);
-                oXfrm.setExtY(fHeight_);
-                if(!this.group) {
-                    if(this.drawingBase) {
-                        this.checkDrawingBaseCoords();
-                    }
-                    if(this.parent && this.parent.CheckWH) {
-                        this.parent.CheckWH();
+                if(!AscFormat.fApproxEqual(oXfrm.extX, fWidth_) ||
+                    !AscFormat.fApproxEqual(oXfrm.extY, fHeight_)) {
+                    oXfrm.setExtX(fWidth_);
+                    oXfrm.setExtY(fHeight_);
+                    if(!this.group) {
+                        if(this.drawingBase) {
+                            this.checkDrawingBaseCoords();
+                        }
+                        if(this.parent && this.parent.CheckWH) {
+                            this.parent.CheckWH();
+                        }
                     }
                 }
             }
@@ -403,6 +412,16 @@ function (window, undefined) {
             }
         }
         var oBlipFill = this.blipFill;
+        var oParaDrawing;
+        var oParaDrawingChild = this;
+        if(this.group) {
+            oParaDrawingChild = this.getMainGroup();
+        }
+        if(AscCommonWord.ParaDrawing &&
+            oParaDrawingChild.parent &&
+            oParaDrawingChild.parent instanceof AscCommonWord.ParaDrawing) {
+            oParaDrawing = oParaDrawingChild.parent;
+        }
         return {
             "Data": this.m_sData,
             "ApplicationId": this.m_sApplicationId,
@@ -411,7 +430,8 @@ function (window, undefined) {
             "Height": dHeight,
             "WidthPix": this.m_nPixWidth,
             "HeightPix": this.m_nPixHeight,
-            "InternalId": this.Id
+            "InternalId": this.Id,
+            "ParaDrawingId": oParaDrawing ? oParaDrawing.Id : ""
         }
     };
     window['AscFormat'] = window['AscFormat'] || {};

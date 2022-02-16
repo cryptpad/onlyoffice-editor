@@ -677,6 +677,7 @@
 	 * @property {string} ImageData - image encoded in base64
 	 * @property {string} ApplicationId - identifier of plugin which able edit this ole-object
 	 * @property {string} InternalId - identifier of ole-object which is used for work with ole-object added to document
+	 * @property {string} ParaDrawingId - identifier drawing containing this ole-object
 	 * @property {number} Width - width of ole object in millimeters
 	 * @property {number} Height - height of ole object in millimeters
 	 * @property {?number} WidthPix - width image of ole-object in pixels
@@ -765,9 +766,10 @@
 	 * @typeofeditors ["CDE"]
 	 * @alias AddOleObject
 	 * @param {OLEObjectData} NewObject - new object data
+	 * @param {?boolean} bSelect = true - new object data
 	 * @return {undefined}
 	 */
-	window["asc_docs_api"].prototype["pluginMethod_InsertOleObject"] = function(NewObject)
+	window["asc_docs_api"].prototype["pluginMethod_InsertOleObject"] = function(NewObject, bSelect)
 	{
 		var oPluginData = {};
 		oPluginData["imgSrc"] = NewObject["ImageData"];
@@ -777,6 +779,7 @@
 		oPluginData["height"] = NewObject["Height"];
 		oPluginData["data"] = NewObject["Data"];
 		oPluginData["guid"] = NewObject["ApplicationId"];
+		oPluginData["select"] = bSelect;
 		this.asc_addOleObject(oPluginData);
 	};
 
@@ -788,20 +791,113 @@
 	 * @alias AddOleObject
 	 * @param {OLEObjectData} ObjectData
 	 * @return {undefined} sInternalId - internal id of new ole-object
-	 * window.Asc.plugin.executeMethod("SelectOleObject", ["5_665"]);
+	 * window.Asc.plugin.executeMethod("ChangeOleObject", ["5_665"]);
 	 */
 	window["asc_docs_api"].prototype["pluginMethod_ChangeOleObject"] = function(ObjectData)
 	{
-		var oPluginData = {};
-		oPluginData["objectId"] = ObjectData["InternalId"];
-		oPluginData["imgSrc"] = ObjectData["ImageData"];
-		oPluginData["widthPix"] = ObjectData["WidthPix"];
-		oPluginData["heightPix"] = ObjectData["HeightPix"];
-		oPluginData["width"] = ObjectData["Width"];
-		oPluginData["height"] = ObjectData["Height"];
-		oPluginData["data"] = ObjectData["Data"];
-		oPluginData["guid"] = ObjectData["ApplicationId"];
-		this.asc_editOleObject(oPluginData);
+		this["pluginMethod_ChangeOleObjects"]([ObjectData]);
+	};
+	/**
+	 * Change ole-object in current document position
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias AddOleObject
+	 * @param {OLEObjectData[]} arrObjectData - array of new data of ole-objects
+	 * @return {undefined}
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_ChangeOleObjects"] = function(arrObjectData)
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+		let oParaDrawing;
+		let oParaDrawingsMap = {};
+		let nDrawing;
+		let oDrawing;
+		let oMainGroup;
+		let aDrawings = [];
+		let aParaDrawings = [];
+		let oDataMap = {};
+		let oData;
+		for(nDrawing = 0; nDrawing < arrObjectData.length; ++nDrawing)
+		{
+			oData = arrObjectData[nDrawing];
+			oDrawing = AscCommon.g_oTableId.Get_ById(oData.InternalId);
+			oDataMap[oData.InternalId] = oData;
+			if(oDrawing
+				&& oDrawing.getObjectType
+				&& oDrawing.getObjectType() === AscDFH.historyitem_type_OleObject)
+			{
+				if(oDrawing.Is_UseInDocument())
+				{
+					aDrawings.push(oDrawing);
+				}
+			}
+		}
+		for(nDrawing = 0; nDrawing < aDrawings.length; ++nDrawing)
+		{
+			oDrawing = aDrawings[nDrawing];
+			if(oDrawing.group)
+			{
+				oMainGroup = oDrawing.getMainGroup();
+				if(oMainGroup)
+				{
+					if(oMainGroup.parent)
+					{
+						oParaDrawingsMap[oMainGroup.parent.Id] = oMainGroup.parent;
+					}
+				}
+			}
+			else
+			{
+				if(oDrawing.parent)
+				{
+					oParaDrawingsMap[oDrawing.parent.Id] = oDrawing.parent;
+				}
+			}
+		}
+		for(let sId in oParaDrawingsMap)
+		{
+			if(oParaDrawingsMap.hasOwnProperty(sId))
+			{
+				oParaDrawing = oParaDrawingsMap[sId];
+				aParaDrawings.push(oParaDrawing);
+			}
+		}
+		if(aParaDrawings.length > 0)
+		{
+			let oStartState = oLogicDocument.SaveDocumentState();
+			oLogicDocument.Start_SilentMode();
+			oLogicDocument.SelectDrawings(aParaDrawings, oLogicDocument);
+			if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Drawing_Props))
+			{
+				oLogicDocument.StartAction()
+				let oImagesMap = {};
+				for(nDrawing = 0; nDrawing < aDrawings.length; ++nDrawing)
+				{
+					oDrawing = aDrawings[nDrawing];
+					oData = oDataMap[oDrawing.Id];
+					oDrawing.editExternal(oData["Data"], oData["ImageData"], oData["Width"], oData["Height"], oData["WidthPix"], oData["HeightPix"]);
+					oImagesMap[oData["ImageData"]] = oData["ImageData"];
+				}
+				let oApi = this;
+				AscCommon.Check_LoadingDataBeforePrepaste(this, {}, oImagesMap, function() {
+					oLogicDocument.Reassign_ImageUrls(oImagesMap);
+					oLogicDocument.Recalculate();
+					oLogicDocument.End_SilentMode();
+					oLogicDocument.LoadDocumentState(oStartState);
+					oLogicDocument.UpdateSelection();
+					oLogicDocument.FinalizeAction();
+				});
+			}
+			else
+			{
+				oLogicDocument.End_SilentMode();
+				oLogicDocument.LoadDocumentState(oStartState);
+				oLogicDocument.UpdateSelection();
+			}
+
+		}
 	};
 
 	function private_ReadContentControlCommonPr(commonPr)

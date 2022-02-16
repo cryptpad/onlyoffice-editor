@@ -5080,7 +5080,7 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
     }
 };
 
-CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId) {
+CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect) {
     if (this.Slides[this.CurPage]) {
         var fPosX = (this.GetWidthMM() - fWidth) / 2;
         var fPosY = (this.GetHeightMM() - fHeight) / 2;
@@ -5089,7 +5089,9 @@ CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHe
         Image.setParent(this.Slides[this.CurPage]);
         Image.addToDrawingObjects();
         oController.resetSelection();
-        oController.selectObject(Image, 0);
+        if(bSelect !== false) {
+            oController.selectObject(Image, 0);
+        }
         this.Recalculate();
         this.Document_UpdateInterfaceState();
     }

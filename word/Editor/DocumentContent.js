@@ -3030,11 +3030,11 @@ CDocumentContent.prototype.AddImages = function(aImages){
     }
 };
 
-CDocumentContent.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId)
+CDocumentContent.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
-		return this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+		return this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
 	}
 	else //if ( docpostype_Content === this.CurPos.Type )
 	{
@@ -3050,7 +3050,10 @@ CDocumentContent.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, 
 			Drawing.Set_GraphicObject(Image);
 
 			this.AddToParagraph(Drawing);
-			this.Select_DrawingObject(Drawing.Get_Id());
+			if(bSelect !== false)
+			{
+				this.Select_DrawingObject(Drawing.Get_Id());
+			}
 		}
 		else
 		{
