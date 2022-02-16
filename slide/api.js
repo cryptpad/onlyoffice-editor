@@ -4202,7 +4202,14 @@ background-repeat: no-repeat;\
 		if(!window['IS_NATIVE_EDITOR']) {
 			this.WordControl.onMouseUpMainSimple();
 		}
-		this.sendEvent("asc_doubleClickOnChart", obj); // TODO: change event type
+		if(this.asc_checkNeedCallback("asc_doubleClickOnTableOleObject"))
+		{
+			this.sendEvent("asc_doubleClickOnTableOleObject", obj);
+		}
+		else
+		{
+			this.sendEvent("asc_doubleClickOnChart", obj); // TODO: change event type
+		}
 	};
 
 
@@ -8513,6 +8520,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getChartObject']                  = asc_docs_api.prototype.asc_getChartObject;
 	asc_docs_api.prototype['asc_addChartDrawingObject']           = asc_docs_api.prototype.asc_addChartDrawingObject;
 	asc_docs_api.prototype['asc_editChartDrawingObject']          = asc_docs_api.prototype.asc_editChartDrawingObject;
+	asc_docs_api.prototype['asc_editTableOleObject']              = asc_docs_api.prototype.asc_editTableOleObject;
 	asc_docs_api.prototype['asc_getChartPreviews']                = asc_docs_api.prototype.asc_getChartPreviews;
 	asc_docs_api.prototype['asc_getTextArtPreviews']              = asc_docs_api.prototype.asc_getTextArtPreviews;
 	asc_docs_api.prototype['sync_closeChartEditor']               = asc_docs_api.prototype.sync_closeChartEditor;
