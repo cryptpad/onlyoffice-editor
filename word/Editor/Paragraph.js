@@ -17334,7 +17334,54 @@ Paragraph.prototype.CalculateTextToTable = function(oEngine)
 
 	oEngine.OnEndParagraph(this);
 };
+Paragraph.prototype.AddCheckBoxToStartPos = function(oCheckBoxPr)
+{
+	this.CheckOrAddSpaceAtStartPos(false);
 
+	this.MoveCursorToStartPos();
+
+	let oTextPr = this.GetDirectTextPr();
+	let oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	if (!oCC)
+		return null;
+
+	if (!oCheckBoxPr)
+		oCheckBoxPr = new CSdtCheckBoxPr();
+
+	oCC.ApplyCheckBoxPr(oCheckBoxPr, oTextPr);
+	oCC.MoveCursorToStartPos();
+
+	return oCC;
+};
+Paragraph.prototype.CheckOrAddSpaceAtStartPos = function(isAddToEmpty)
+{
+	this.RemoveSelection();
+	this.MoveCursorToStartPos();
+
+	var oRunElements = new CParagraphRunElements(this.Get_ParaContentPos(this.Selection.Use, false, false), 1, null);
+	this.GetNextRunElements(oRunElements);
+
+	let arrElements = oRunElements.GetElements();
+	let oFirstRunElement = null;
+	for (let nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
+	{
+		let oCurElement = arrElements[nIndex];
+		if (!oCurElement.IsDrawing() || oCurElement.IsInline())
+		{
+			oFirstRunElement = oCurElement;
+			break;
+		}
+	}
+
+	if (oFirstRunElement
+		&& !oFirstRunElement.IsSpace()
+		&& !oFirstRunElement.IsTab()
+		&& !oFirstRunElement.IsDrawing()
+		&& (!oFirstRunElement.IsParaEnd() || isAddToEmpty))
+	{
+		this.Add(new ParaSpace());
+	}
+};
 
 Paragraph.prototype.asc_getText = function()
 {

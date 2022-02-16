@@ -375,6 +375,20 @@ CRunElementBase.prototype.IsText = function()
 {
 	return false;
 };
+/**
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsTab = function()
+{
+	return false;
+};
+/**
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsParaEnd = function()
+{
+	return false;
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -1209,6 +1223,11 @@ ParaEnd.prototype.ToSearchElement = function(oProps)
 {
 	return new CSearchTextSpecialParaEnd();
 };
+ParaEnd.prototype.IsParaEnd = function()
+{
+	return true;
+};
+
 
 /**
  * Класс представляющий разрыв строки/колонки/страницы
@@ -1829,6 +1848,10 @@ ParaTab.prototype.GetAutoCorrectFlags = function()
 ParaTab.prototype.ToSearchElement = function(oProps)
 {
 	return new CSearchTextSpecialTab();
+};
+ParaTab.prototype.IsTab = function()
+{
+	return true;
 };
 
 /**
