@@ -486,14 +486,21 @@ ChartPreviewManager.prototype.clearPreviews = function()
 {
 	this.previewGroups.length = 0;
 };
+
+ChartPreviewManager.prototype.checkChartForPreview = function (type, aStyle) {
+	return AscFormat.ExecuteNoHistory(function() {
+		if (!this.chartsByTypes[type]) {
+			this.chartsByTypes[type] = this.getChartByType(type);
+		}
+		var chart_space = this.chartsByTypes[type];
+		chart_space.applyChartStyleByIds(aStyle);
+		chart_space.recalcInfo.recalculateReferences = false;
+		chart_space.recalculate();
+		return chart_space;
+	}, this, []);
+};
 ChartPreviewManager.prototype.createChartPreview = function(graphics, type, aStyle) {
-	if (!this.chartsByTypes[type]) {
-		this.chartsByTypes[type] = this.getChartByType(type);
-	}
-	var chart_space = this.chartsByTypes[type];
-	chart_space.applyChartStyleByIds(aStyle);
-	chart_space.recalcInfo.recalculateReferences = false;
-	chart_space.recalculate();
+	var chart_space = this.checkChartForPreview(type, aStyle);
 	graphics.save();
 	chart_space.draw(graphics);
 	graphics.restore();
