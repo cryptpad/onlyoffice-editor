@@ -135,7 +135,7 @@
 
 
 	function FromXml_ST_IconSetType2(val) {
-		//TODO в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
+		//в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = null;
 		switch(val) {
 			case "3Arrows":
@@ -206,7 +206,7 @@
 	}
 
 	function ToXml_ST_IconSetType2(val) {
-		//TODO в пивотах есть функция ToXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
+		//в пивотах есть функция ToXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = null;
 		switch(val) {
 			case Asc.EIconSetType.Arrows3:
@@ -358,25 +358,17 @@
 		return res;
 	}
 
-	//TODO контсанты нет
-	/*<xsd:simpleType name="ST_CellComments">
-		2876 <xsd:restriction base="xsd:string">
-		2877 <xsd:enumeration value="none"/>
-		2878 <xsd:enumeration value="asDisplayed"/>
-		2879 <xsd:enumeration value="atEnd"/>
-		2880 </xsd:restriction>
-		2881 </xsd:simpleTyp*/
 	function FromXml_ST_CellComments(val) {
 		var res = 0;
 		switch (val) {
 			case "none":
-				res = 0;
+				res = AscCommonExcel.ST_CellComments.none;
 				break;
 			case "asDisplayed":
-				res = 1;
+				res = AscCommonExcel.ST_CellComments.asDisplayed;
 				break;
 			case "atEnd":
-				res = 2;
+				res = AscCommonExcel.ST_CellComments.atEnd;
 				break;
 		}
 		return res;
@@ -385,43 +377,33 @@
 	function ToXml_ST_CellComments(val) {
 		var res = null;
 		switch (val) {
-			case 0:
+			case AscCommonExcel.ST_CellComments.none:
 				res = "none";
 				break;
-			case 1:
+			case AscCommonExcel.ST_CellComments.asDisplayed:
 				res = "asDisplayed";
 				break;
-			case 2:
+			case AscCommonExcel.ST_CellComments.atEnd:
 				res = "atEnd";
 				break;
 		}
 		return res;
 	}
 
-	//TODO контсанты нет
-	/*<xsd:simpleType name="ST_PrintError">
-				2897 <xsd:restriction base="xsd:string">
-				2898 <xsd:enumeration value="displayed"/>
-				2899 <xsd:enumeration value="blank"/>
-				2900 <xsd:enumeration value="dash"/>
-				2901 <xsd:enumeration value="NA"/>
-				2902 </xsd:restriction>
-				2903 </xsd:simpleType>*/
-
 	function FromXml_ST_PrintError(val) {
 		var res = 0;
 		switch (val) {
 			case "displayed":
-				res = 0;
+				res = AscCommonExcel.ST_PrintError.displayed;
 				break;
 			case "blank":
-				res = 1;
+				res = AscCommonExcel.ST_PrintError.blank;
 				break;
 			case "dash":
-				res = 2;
+				res = AscCommonExcel.ST_PrintError.dash;
 				break;
 			case "NA":
-				res = 2;
+				res = AscCommonExcel.ST_PrintError.NA;
 				break;
 		}
 		return res;
@@ -430,16 +412,16 @@
 	function ToXml_ST_PrintError(val) {
 		var res = null;
 		switch (val) {
-			case 0:
+			case AscCommonExcel.ST_PrintError.displayed:
 				res = "displayed";
 				break;
-			case 1:
+			case AscCommonExcel.ST_PrintError.blank:
 				res = "blank";
 				break;
-			case 2:
+			case AscCommonExcel.ST_PrintError.dash:
 				res = "dash";
 				break;
-			case 3:
+			case AscCommonExcel.ST_PrintError.NA:
 				res = "NA";
 				break;
 		}
@@ -936,6 +918,148 @@
 		return res;
 	}
 
+	function FromXML_ST_DispBlanksAs(val) {
+		var res = null;
+		switch (val) {
+			case "span":
+				res = Asc.c_oAscEDispBlanksAs.Span;
+				break;
+			case "gap":
+				res = Asc.c_oAscEDispBlanksAs.Gap;
+				break;
+			case "zero":
+				res = Asc.c_oAscEDispBlanksAs.Zero;
+				break;
+		}
+		return res;
+	}
+
+	function ToXML_ST_DispBlanksAs(val) {
+		var res = null;
+		switch (val) {
+			case Asc.c_oAscEDispBlanksAs.Span:
+				res = "span";
+				break;
+			case Asc.c_oAscEDispBlanksAs.Gap:
+				res = "gap";
+				break;
+			case Asc.c_oAscEDispBlanksAs.Zero:
+				res = "zero";
+				break;
+		}
+		return res;
+	}
+
+	function FromXml_ST_SparklineType(val) {
+		var res = null;
+		switch (val) {
+			case "line":
+				res = Asc.c_oAscSparklineType.Line;
+				break;
+			case "column":
+				res = Asc.c_oAscSparklineType.Column;
+				break;
+			case "stacked":
+				res = Asc.c_oAscSparklineType.Stacked;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_SparklineType(val) {
+		var res = null;
+		switch (val) {
+			case Asc.c_oAscSparklineType.Line:
+				res = "line";
+				break;
+			case Asc.c_oAscSparklineType.Column:
+				res = "column";
+				break;
+			case Asc.c_oAscSparklineType.Stacked:
+				res = "stacked";
+				break;
+		}
+		return res;
+	}
+
+	function FromXml_ST_UnderlineValues(val) {
+		var res = null;
+		switch (val) {
+			case "single":
+				val = Asc.EUnderline.underlineSingle;
+				break;
+			case "double":
+				val = Asc.EUnderline.underlineDouble;
+				break;
+			case "singleAccounting":
+				val = Asc.EUnderline.underlineSingleAccounting;
+				break;
+			case "doubleAccounting":
+				val = Asc.EUnderline.underlineDoubleAccounting;
+				break;
+			case "none":
+				val = Asc.EUnderline.underlineNone;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_UnderlineValues(val) {
+		var res = null;
+		switch (val) {
+			case Asc.EUnderline.underlineSingle:
+				val = "single";
+				break;
+			case Asc.EUnderline.underlineDouble:
+				val = "double";
+				break;
+			case Asc.EUnderline.underlineSingleAccounting:
+				val = "singleAccounting";
+				break;
+			case Asc.EUnderline.underlineDoubleAccounting:
+				val = "doubleAccounting";
+				break;
+			case Asc.EUnderline.underlineNone:
+				val = "none";
+				break;
+		}
+		return res;
+	}
+
+
+	function FromXml_ST_SparklineAxisMinMax(val) {
+		var res = null;
+		switch (val) {
+			case "individual":
+				val = Asc.c_oAscSparklineAxisMinMax.Individual;
+				break;
+			case "group":
+				val = Asc.c_oAscSparklineAxisMinMax.Group;
+				break;
+			case "custom":
+				val = Asc.c_oAscSparklineAxisMinMax.Custom;
+				break;
+		}
+		return res;
+	}
+
+	function ToXml_ST_SparklineAxisMinMax(val) {
+		var res = null;
+		switch (val) {
+			case Asc.c_oAscSparklineAxisMinMax.Individual:
+				val = "individual";
+				break;
+			case Asc.c_oAscSparklineAxisMinMax.Group:
+				val = "group";
+				break;
+			case Asc.c_oAscSparklineAxisMinMax.Custom:
+				val = "custom";
+				break;
+		}
+		return res;
+	}
+
+
 
 	function boolToNumber (val) {
 		return val ? 1 : 0;
@@ -944,8 +1068,8 @@
 	var extUri = {
 		conditionalFormattings: "{78C0D931-6437-407d-A8EE-F0AAD7539E65}",
 		dataValidations: "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}",
-		sparklineGroups: "{05C60535-1F16-4FD2-B633-F4F36F0B64E0}",
-		slicerList: "{A8765BA9-456A-4DAB-B4F3-ACF838C121DE}",
+		sparklineGroups: "{05C60535-1F16-4fd2-B633-F4F36F0B64E0}",
+		slicerList: "{A8765BA9-456A-4dab-B4F3-ACF838C121DE}",
 		protectedRanges: "{FC87AEE6-9EDD-4A0A-B7FB-166176984837}",
 		ignoredErrors: "{01252117-D84E-4E92-8308-4BE1C098FCBB}",
 		webExtensions: "{F7C9EE02-42E1-4005-9D12-6889AFFD525C}",
@@ -1552,7 +1676,6 @@
 				} else if ("WorksheetOptions" === name) {
 					//do not support serialize
 				} else if ("Names" === name) {
-					//TODO
 					//do not support serialize
 					//def names
 				} else if ("sheetPr" === name) {
@@ -1636,7 +1759,7 @@
 		this.prepareExtLst(extLst, context.InitOpenManager);
 	};
 
-	//TODO PrepareToWrite
+	//TOoDO PrepareToWrite делается в x2t, здесь не вижу необходиимости, но проверить нужно
 
 	AscCommonExcel.Worksheet.prototype.toXml = function (writer) {
 		var t = this;
@@ -1658,7 +1781,7 @@
 
 		writer.WriteXmlAttributesEnd();
 
-		//TODO dimension ?
+		//TOoDO dimension ?
 		//writer.WriteXmlString('<dimension ref="A1"/>');
 
 		//AscCommonExcel.asc_CSheetPr
@@ -1843,6 +1966,13 @@
 			officeArtExtension.dataValidations =  this.dataValidations;
 			officeArtExtensionList.arrExt.push(officeArtExtension);
 		}
+		if (this.aSparklineGroups && this.aSparklineGroups.length) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.sparklineGroups;
+			officeArtExtension.sparklineGroups =  this.aSparklineGroups;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
+		}
+
 		officeArtExtensionList.toXml(writer);
 
 		writer.WriteXmlNodeEnd("worksheet");
@@ -2213,15 +2343,9 @@
 						var sheetRule = getSheetCf(extRule ? extRule._openId : null);
 						if (sheetRule) {
 							//мержим
-							//TODO merge
 							sheetRule.merge(extRule);
-							//sheetRule.updateConditionalFormatting(sheetRule);
 						} else {
 							//добавляем
-							/*if (extRule.isValid()) {
-								extRule.updateConditionalFormatting(extRule);
-								this.aConditionalFormattingRules = this.aConditionalFormattingRules.concat(extRule);
-							}*/
 							InitOpenManager.prepareConditionalFormatting(this, extConditionalFormatting);
 						}
 					}
@@ -3966,7 +4090,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueBool();
 				this.CellColor = val;
 			} else if ("dxfId" === reader.GetName()) {
-				//TODO все dxf проверить
 				val = reader.GetValue();
 				this.dxf = reader.context.InitOpenManager.Dxfs[val];
 			}
@@ -4263,7 +4386,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.MoveToNextAttribute()) {
 			if ("operator" === reader.GetName()) {
 				val = reader.GetValue();
-				this.Operator = this.convertOperator(val);
+				this.Operator = AscCommonExcel.FromXml_ST_FilterOperator(val);
 			} else if ("val" === reader.GetName()) {
 				val = reader.GetValue();
 				this.Val = val;
@@ -4286,88 +4409,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 
 		writer.WriteXmlNodeStart(ns + name/*"сustomFilter"*/);
-
-		//TODO ToXml_ST_FilterOperator
-		writer.WriteXmlAttributeString("operator", this.convertOperator(this.Operator, true));
+		writer.WriteXmlAttributeString("operator", AscCommonExcel.ToXml_ST_FilterOperator(this.Operator));
 		writer.WriteXmlAttributeStringEncode("val", this.Val);
 		writer.WriteXmlAttributesEnd();
 
 		writer.WriteXmlNodeEnd(ns + name);
-	};
-
-	Asc.CustomFilter.prototype.convertOperator = function(val, revert) {
-		/*<xsd:simpleType name="ST_FilterOperator">
-					75 <xsd:restriction base="xsd:string">
-					76 <xsd:enumeration value="equal"/>
-					77 <xsd:enumeration value="lessThan"/>
-					78 <xsd:enumeration value="lessThanOrEqual"/>
-					79 <xsd:enumeration value="notEqual"/>
-					80 <xsd:enumeration value="greaterThanOrEqual"/>
-					81 <xsd:enumeration value="greaterThan"/>
-					82 </xsd:restriction>
-					83 </xsd:simpleType>*/
-
-		/*var c_oAscCustomAutoFilter = {
-			equals: 1,
-			isGreaterThan: 2,
-			isGreaterThanOrEqualTo: 3,
-			isLessThan: 4,
-			isLessThanOrEqualTo: 5,
-			doesNotEqual: 6,
-			beginsWith: 7,
-			doesNotBeginWith: 8,
-			endsWith: 9,
-			doesNotEndWith: 10,
-			contains: 11,
-			doesNotContain: 12
-		};*/
-
-		var res;
-		if (revert) {
-			switch (val) {
-				case Asc.c_oAscCustomAutoFilter.equals:
-					res = "equal";
-					break;
-				case Asc.c_oAscCustomAutoFilter.isLessThan:
-					res = "lessThan";
-					break;
-				case Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo:
-					res = "lessThanOrEqual";
-					break;
-				case Asc.c_oAscCustomAutoFilter.doesNotEqual:
-					res = "notEqual";
-					break;
-				case Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo:
-					res = "greaterThanOrEqual";
-					break;
-				case Asc.c_oAscCustomAutoFilter.isGreaterThan:
-					res = "greaterThan";
-					break;
-			}
-		} else {
-			switch (val) {
-				case "equal":
-					res = Asc.c_oAscCustomAutoFilter.equals;
-					break;
-				case "lessThan":
-					res = Asc.c_oAscCustomAutoFilter.isLessThan;
-					break;
-				case "lessThanOrEqual":
-					res = Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo;
-					break;
-				case "notEqual":
-					res = Asc.c_oAscCustomAutoFilter.doesNotEqual;
-					break;
-				case "greaterThanOrEqual":
-					res = Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo;
-					break;
-				case "greaterThan":
-					res = Asc.c_oAscCustomAutoFilter.isGreaterThan;
-					break;
-			}
-		}
-
-		return res;
 	};
 
 	AscCommonExcel.Filters.prototype.fromXml = function (reader) {
@@ -5215,18 +5261,18 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeString("type", ToXml_ST_DataValidationType(this.type));
 		writer.WriteXmlNullableAttributeNumber("allowBlank", boolToNumber(this.allowBlank));
 
-		//todo WritingStringNullableAttrEncodeXmlStringHHHH
+		//WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("error", this.error);
 
 		writer.WriteXmlNullableAttributeString("errorStyle", this.errorStyle);
 
-		//todo WritingStringNullableAttrEncodeXmlStringHHHH
+		//WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("errorTitle", this.errorTitle);
 
 		writer.WriteXmlNullableAttributeString("imeMode", ToXml_ST_DataValidationImeMode(this.imeMode));
 		writer.WriteXmlNullableAttributeString("operator", ToXml_ST_DataValidationOperator(this.operator));
 
-		//todo WritingStringNullableAttrEncodeXmlStringHHHH
+		//WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("prompt", this.prompt);
 		writer.WriteXmlNullableAttributeStringEncode("promptTitle", this.promptTitle);
 
@@ -5692,7 +5738,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		2253 <xsd:attribute name="outlineLevelCol" type="xsd:unsignedByte" use="optional" default="0"/>*/
 
 //x2t
-		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"baseColWidth"),		m_oBaseColWidth)	// ToDo Excel не воспринимает значения не uint (мы приводим к uint)
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"baseColWidth"),		m_oBaseColWidth)	// Excel не воспринимает значения не uint (мы приводим к uint)
 							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"customHeight"),		m_oCustomHeight )
 							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"defaultColWidth"),		m_oDefaultColWidth )
 							WritingElement_ReadAttributes_Read_else_if	( oReader, (L"defaultRowHeight"),	m_oDefaultRowHeight )
@@ -5795,7 +5841,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			ns = "";
 		}
 
-		//TODO в x2t все функции с окончанием 2
+		//в x2t все функции с окончанием 2
 		var oAllRow = this.oAllRow;
 		writer.WriteXmlNodeStart(ns + name/*"sheetFormatPr"*/);
 		writer.WriteXmlNullableAttributeNumber("baseColWidth", this.nBaseColWidth);
@@ -6426,12 +6472,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeString("saltValue", this.saltValue);
 		writer.WriteXmlNullableAttributeNumber("spinCount", this.spinCount);
 
-		if (this.securityDescriptors.length === 1)
+		if (this.securityDescriptors && this.securityDescriptors.length === 1)
 		{
 			writer.WriteXmlNullableAttributeString("securityDescriptor", );
 			writer.WriteXmlAttributeStringEncode("securityDescriptor", this.securityDescriptors[0]);
 		}
-		if (this.securityDescriptors.length > 1)
+		if (this.securityDescriptors && this.securityDescriptors.length > 1)
 		{
 			writer.WriteXmlString(">");
 			for (var i = 0; i < this.securityDescriptors.length; ++i)
@@ -7068,7 +7114,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						});
 					}*/
 
-		//TODO displayEmptyCellsAs
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("manualMax" === reader.GetName()) {
@@ -7081,26 +7126,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueDouble();
 				this.lineWeight = val;
 			} else if ("type" === reader.GetName()) {
-
-				/*<xsd:simpleType name="ST_SparklineType">
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="line"/>
-						<xsd:enumeration value="column"/>
-						<xsd:enumeration value="stacked"/>
-					</xsd:restriction>
-				</xsd:simpleType>*/
-
 				val = reader.GetValue();
-				if (val === "line") {
-					this.type = Asc.c_oAscSparklineType.Line;
-				} else if (val === "column") {
-					this.type = Asc.c_oAscSparklineType.Column;
-				}  else if (val === "stacked") {
-					this.type = Asc.c_oAscSparklineType.Stacked;
-				}
+				this.type = FromXml_ST_SparklineType(val);
 			} else if ("dateAxis" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.dateAxis = val;
+			} else if ("displayEmptyCellsAs" === reader.GetName()) {
+				val = reader.GetValue();
+				this.displayEmptyCellsAs = FromXML_ST_DispBlanksAs(val);
 			} else if ("markers" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.markers = val;
@@ -7127,15 +7160,98 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.displayHidden = val;
 			} else if ("minAxisType" === reader.GetName()) {
 				val = reader.GetValue();
-				this.minAxisType = val;
+				this.minAxisType = FromXml_ST_SparklineAxisMinMax(val);
 			} else if ("maxAxisType" === reader.GetName()) {
 				val = reader.GetValue();
-				this.maxAxisType = val;
+				this.maxAxisType = FromXml_ST_SparklineAxisMinMax(val);
 			} else if ("rightToLeft" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.rightToLeft = val;
-			} }
+			}
+		}
 	};
+
+	AscCommonExcel.sparklineGroup.prototype.toXml = function (writer, name, ns, childns) {
+
+		if (!ns) {
+			ns = "";
+		}
+		if (!childns) {
+			childns = "";
+		}
+
+		writer.WriteXmlNodeStart(ns + name);
+		writer.WriteXmlNullableAttributeNumber("manualMax", this.manualMax);
+		writer.WriteXmlNullableAttributeNumber("manualMax", this.manualMax);
+		writer.WriteXmlNullableAttributeNumber("lineWeight", this.lineWeight);
+		writer.WriteXmlNullableAttributeString("type", ToXml_ST_SparklineType(this.type));
+		writer.WriteXmlNullableAttributeBool("dateAxis", this.dateAxis);
+		writer.WriteXmlNullableAttributeString("displayEmptyCellsAs", ToXML_ST_DispBlanksAs(this.displayEmptyCellsAs));
+		writer.WriteXmlNullableAttributeBool("markers", this.markers);
+		writer.WriteXmlNullableAttributeBool("high", this.high);
+		writer.WriteXmlNullableAttributeBool("low", this.low);
+		writer.WriteXmlNullableAttributeBool("first", this.first);
+		writer.WriteXmlNullableAttributeBool("last", this.last);
+		writer.WriteXmlNullableAttributeBool("negative", this.negative);
+		writer.WriteXmlNullableAttributeBool("displayXAxis", this.displayXAxis);
+		writer.WriteXmlNullableAttributeBool("displayHidden", this.displayHidden);
+
+		writer.WriteXmlNullableAttributeString("minAxisType", ToXml_ST_SparklineAxisMinMax(this.minAxisType));
+		writer.WriteXmlNullableAttributeString("minAxisType", ToXml_ST_SparklineAxisMinMax(this.minAxisType));
+
+
+		writer.WriteXmlNullableAttributeBool("rightToLeft", this.rightToLeft);
+		writer.WriteXmlAttributesEnd();
+
+
+		if (this.colorSeries) {
+			AscCommon.writeColorToXml(writer, childns + "colorSeries", this.colorSeries);
+		}
+		if (this.colorNegative) {
+			AscCommon.writeColorToXml(writer, childns + "colorNegative", this.colorNegative);
+		}
+		if (this.colorAxis) {
+			AscCommon.writeColorToXml(writer, childns + "colorAxis", this.colorAxis);
+		}
+		if (this.colorMarkers) {
+			AscCommon.writeColorToXml(writer, childns + "colorMarkers", this.colorMarkers);
+		}
+		if (this.colorFirst) {
+			AscCommon.writeColorToXml(writer, childns + "colorFirst", this.colorFirst);
+		}
+		if (this.colorLast) {
+			AscCommon.writeColorToXml(writer, childns + "colorLast", this.colorLast);
+		}
+		if (this.colorHigh) {
+			AscCommon.writeColorToXml(writer, childns + "colorHigh", this.colorHigh);
+		}
+		if (this.colorLow) {
+			AscCommon.writeColorToXml(writer, childns + "colorLow", this.colorLow);
+		}
+
+
+		if (this.f) {
+			writer.WriteXmlString("<" + "\"xm:f\"" + ">");
+			writer.WriteXmlStringEncode(this.f);
+			writer.WriteXmlString("</" + "\"xm:f\"" + ">");
+		}
+
+		if (this.arrSparklines) {
+			writer.WriteXmlNodeStart(childns + "sparklines");
+			writer.WriteXmlAttributesEnd();
+
+			for (var i = 0; i < this.arrSparklines.length; ++i) {
+				if (this.arrSparklines[i]) {
+					this.arrSparklines[i].toXml(writer, "sparkline", childns);
+				}
+			}
+
+			writer.WriteXmlNodeEnd(childns + "sparklines");
+		}
+
+		writer.WriteXmlNodeEnd(ns + name);
+	};
+
 
 	AscCommonExcel.sparkline.prototype.fromXml = function (reader) {
 
@@ -7171,6 +7287,27 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
+	AscCommonExcel.sparkline.prototype.toXml = function (writer, name, ns) {
+		if (!ns) {
+			ns = "";
+		}
+
+		writer.WriteXmlNodeStart(ns + name);
+		writer.WriteXmlAttributesEnd();
+
+		if (this.f) {
+			writer.WriteXmlString("<xm:f>");
+			writer.WriteXmlStringEncode(this.f);
+			writer.WriteXmlString("</xm:f>");
+		}
+		if (this.sqRef) {
+			writer.WriteXmlString("<xm:sqref>");
+			writer.WriteXmlStringEncode(this.sqRef.getName());
+			writer.WriteXmlString("</xm:sqref>");
+		}
+
+		writer.WriteXmlNodeEnd(ns + name);
+	};
 
 	function COfficeArtExtensionList (_ws) {
 		this.arrExt = [];
@@ -7533,6 +7670,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			ns = "";
 		}
 
+		var i;
+
 		writer.WriteXmlNodeStart(ns + "ext");
 
 		//attributes
@@ -7549,10 +7688,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		if (this.CompatExt) {
 		}
-		if (this.sparklineGroups) {
-			//TODO нет записи
-			//this.sparklineGroups.toXml(writer);
+
+		if (this.sparklineGroups && this.sparklineGroups.length) {
+			writer.WriteXmlString("<x14:sparklineGroups xmlns:xm=\"http://schemas.microsoft.com/office/excel/2006/main\">");
+			for (i = 0; i < this.sparklineGroups.length; ++i) {
+				this.sparklineGroups[i].toXml(writer, "sparklineGroup", "x14:", "x14:");
+			}
+			writer.WriteXmlNodeEnd("x14:sparklineGroups");
 		}
+
 		if (this.AltTextTable) {
 		}
 		if (this.DataModelExt) {
@@ -7561,7 +7705,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteXmlNodeStart("x14:conditionalFormattings");
 			writer.WriteXmlAttributesEnd();
 
-			for (var i = 0; i < this.aConditionalFormattingRules.length; ++i) {
+			for (i = 0; i < this.aConditionalFormattingRules.length; ++i) {
 				var oConditionalFormatting = new AscCommonExcel.CConditionalFormatting();
 				oConditionalFormatting.aRules = [this.aConditionalFormattingRules[i]];
 				oConditionalFormatting.toXml(writer, true)
@@ -8300,13 +8444,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeString("timePeriod", this.timePeriod);
 
 		if (bExtendedWrite) {
-			//TODO
-			if (this.id) {
-				writer.WriteXmlAttributeString("id", this.id);
+			if (!this.id) {
+				writer.WriteXmlAttributeString("id", "{" + AscCommon.GUID() + "}");
 			} else {
+				//проверить, пойдёт ли такой id
 				writer.WriteXmlNullableAttributeString("id", this.id);
 			}
 		}
+
 		writer.WriteXmlString(">");
 
 		for (var i = 0; i < this.aRuleElements.length; ++i) {
@@ -8418,7 +8563,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				std::wstring sValue;
 				writer.WriteString(L"<colorScale>");
 
-				for ( size_t i = 0; i < m_arrValues.size(); ++i)//todooo - проверить можно ли не чередовать,а как есть записать
+				for ( size_t i = 0; i < m_arrValues.size(); ++i)// - проверить можно ли не чередовать,а как есть записать
 				{
 					if ( m_arrValues[i].IsInit() )
 					{
@@ -8487,7 +8632,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("formula" === name || "f" === name) {
-				//TODO
 				this.Val = reader.GetText();
 			}
 		}
@@ -8596,18 +8740,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		{
 			writer.WriteXmlString(" gte=\"0\"");
 		}
-		if (!bExtendedWrite)
-		{
-			if (this.Val)
-			{
+		if (!bExtendedWrite) {
+			if (this.Val) {
 				writer.WriteXmlAttributeStringEncode("val", this.Val);
-			}
-			//TODO
-			/*else if (this.formula)
-			{
+			} else if (this.formula) {
 				writer.WriteXmlAttributeStringEncode("val", this.formula);
-			}*/
-
+			}
 		}
 		writer.WriteXmlString(">");
 
@@ -8799,21 +8937,21 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 
-		this.Color.toXml(writer, bExtendedWrite ? "x14:fillColor" : "color");
+		AscCommon.writeColorToXml(writer, bExtendedWrite ? "x14:fillColor" : "color", this.Color);
 
 		if (bExtendedWrite)
 		{
 			if (this.BorderColor) {
-				this.BorderColor.toXml(writer, "x14:borderColor");
+				AscCommon.writeColorToXml(writer, "x14:borderColor", this.BorderColor);
 			}
 			if (this.NegativeColor) {
-				this.NegativeColor.toXml(writer, "x14:negativeFillColor");
+				AscCommon.writeColorToXml(writer, "x14:negativeFillColor", this.NegativeColor);
 			}
 			if (this.NegativeBorderColor) {
-				this.NegativeBorderColor.toXml(writer, "x14:negativeBorderColor");
+				AscCommon.writeColorToXml(writer, "x14:negativeBorderColor", this.NegativeBorderColor);
 			}
 			if (this.AxisColor) {
-				this.AxisColor.toXml(writer, "x14:axisColor");
+				AscCommon.writeColorToXml(writer, "x14:axisColor", this.AxisColor);
 			}
 		}
 
@@ -9221,7 +9359,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (this.TabColor) {
 			this.TabColor.toXml(writer, "tabColor");
 		}
-		//TODO пока не делаю отедльных классов для модели. нужно сделать + изменить serialize + history
+		//пока не делаю отедльных классов для модели. нужно сделать + изменить serialize + history
 		val = new COutlinePr(this);
 		val.toXml(writer, "outlinePr");
 
@@ -9480,7 +9618,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						}
 					}
 				} else if ("colors" === name) {
-					//TODO не вижу в serialize
+					//не вижу в serialize
 				} else if ("dxfs" === name) {
 					if (reader.IsEmptyNode()) {
 						continue;
@@ -9605,8 +9743,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					else if (c_oSer_CellStyle.XfId === type)
 						oCellStyle.XfId = this.stream.GetULongLE();*/
 
-		//TODO extLst
-
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("builtinId" === reader.GetName()) {
@@ -9645,7 +9781,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			3643 <xsd:attribute name="hidden" type="xsd:boolean" use="optional"/>
 			3644 <xsd:attribute name="customBuiltin" type="xsd:boolean" use="optional"/>*/
 
-		//TODO в x2t пишется данных меньше, чем читается
+		//в x2t пишется данных меньше, чем читается
 		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
 		writer.WriteXmlNullableAttributeNumber("xfId", this.XfId);
 		writer.WriteXmlNullableAttributeNumber("builtinId", this.BuiltinId);
@@ -10091,7 +10227,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				this.ApplyNumberFormat = val;
 			} else if ("applyProtection" === reader.GetName()) {
 				val = reader.GetValueBool();
-				this.ApplyProtection = val;
+				this.applyProtection = val;
 			} else if ("borderId" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.borderid = val;
@@ -11195,7 +11331,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("b" === name) {
-				//TODO проверка на null. пересмотреть
 				if (reader.GetValue() !== null) {
 					this.b = reader.GetValueBool();
 				} else {
@@ -11208,7 +11343,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("extend" === name) {
 			} else if ("family" === name) {
 			} else if ("i" === name) {
-				//TODO проверка на null. пересмотреть
 				if (reader.GetValue() !== null) {
 					this.i = reader.GetValueBool();
 				} else {
@@ -11225,7 +11359,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				});
 			} else if ("shadow" === name) {
 			} else if ("strike" === name) {
-				//TODO проверка на null. пересмотреть
 				if (reader.GetValue() !== null) {
 					this.s = reader.GetValueBool();
 				} else {
@@ -11236,29 +11369,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					t.fs = reader.GetValueInt();
 				});
 			} else if ("u" === name) {
-				//TODO underline
-				if (reader.GetValue() !== null) {
-					this.u = reader.GetValueBool();
-				} else {
-					this.u = true;
-				}
-				/*switch (reader.GetValue()) {
-					case "single":
-						this.u = Asc.EUnderline.underlineSingle;
-						break;
-					case "double":
-						this.u = Asc.EUnderline.underlineDouble;
-						break;
-					case "singleAccounting":
-						this.u = Asc.EUnderline.underlineSingleAccounting;
-						break;
-					case "doubleAccounting":
-						this.u = Asc.EUnderline.underlineDoubleAccounting;
-						break;
-					case "none":
-						this.u = Asc.EUnderline.underlineNone;
-						break;
-				}*/
+				this.u = FromXml_ST_UnderlineValues(reader.GetValue());
 			} else if ("vertAlign" === name) {
 				readOneAttr(reader, "val", function () {
 					switch (reader.GetValue()) {
@@ -11435,30 +11546,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WritingValNode(childns, "sz", this.fs + "");
 		}
 
-		var val;
 		if (this.u != null) {
-			/*switch (this.u) {
-				case Asc.EUnderline.underlineSingle:
-					val = "single";
-					break;
-				case Asc.EUnderline.underlineDouble:
-					val = "double";
-					break;
-				case Asc.EUnderline.underlineSingleAccounting:
-					val = "singleAccounting";
-					break;
-				case Asc.EUnderline.underlineDoubleAccounting:
-					val = "doubleAccounting";
-					break;
-				case Asc.EUnderline.underlineNone:
-					val = "none";
-					break;
-			}*/
-
-			//TODO underline
-			if (this.u) {
-				writer.WritingValNodeIf(childns, "u", 0);
-			}
+			writer.WritingValNodeIf(childns, "u", this.u !== Asc.EUnderline.underlineSingle, ToXml_ST_UnderlineValues(this.u));
 		}
 
 		if (this.va != null) {
@@ -11570,7 +11659,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			m_oColors->toXML(writer);*/
 
 
-		//TODO aDxfs
 		var dxfs = writer.context.InitSaveManager.getDxfs();
 		if(null != dxfs && dxfs.length > 0) {
 			//AscCommonExcel.CellXfs. можно оберунть в dxf
@@ -12946,15 +13034,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
-
-			/*this.tableId = null;
-			this.tableIdOpen = null;//?
-			this.column = null;
-			this.columnOpen = null;//?
-			this.sortOrder = ST_tabularSlicerCacheSortOrder.Ascending;
-			this.customListSort = true;
-			this.crossFilter = ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop;*/
-
 			if ("extLst" === name) {
 			}
 		}
@@ -12975,16 +13054,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 //serialize
 		/**/
 
-		//TODO не вижу записи
-
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("tableId" === reader.GetName()) {
 				val = reader.GetValue();
-				this.tableId = val;
+				this.tableIdOpen = val;
 			} else if ("column" === reader.GetName()) {
 				val = reader.GetValue();
-				this.column = val;
+				this.columnOpen = val;
 			} else if ("sortOrder" === reader.GetName()) {
 				val = reader.GetValue();
 				this.sortOrder = FromXml_ST_TabularSlicerCacheSortOrder(val);
@@ -12997,6 +13074,80 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
+
+	Asc.CT_tableSlicerCache.prototype.readAttr = function (reader) {
+
+
+		var tableIdOpen = null;
+		var columnOpen = null;
+		var elem = !historySerialize && tableIds && tableIds[this.tableId];
+		if (elem) {
+			tableIdOpen = elem.id;
+			columnOpen = (elem.table.getTableIndexColumnByName(this.column) + 1) || null;
+		} else if (historySerialize) {
+			tableIdOpen = this.tableId;
+			columnOpen = this.column;
+		}
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("tableId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.tableIdOpen = val;
+			} else if ("column" === reader.GetName()) {
+				val = reader.GetValue();
+				this.columnOpen = val;
+			} else if ("sortOrder" === reader.GetName()) {
+				val = reader.GetValue();
+				this.sortOrder = FromXml_ST_TabularSlicerCacheSortOrder(val);
+			} else if ("customListSort" === reader.GetName()) {
+				val = reader.GetValue();
+				this.customListSort = val;
+			} else if ("crossFilter" === reader.GetName()) {
+				val = reader.GetValue();
+				this.crossFilter = FromXml_ST_SlicerCacheCrossFilter(val);
+			}
+		}
+	};
+
+	Asc.CT_tableSlicerCache.prototype.toXml = function (writer, name, ns) {
+
+		/*writer.StartNode(sName);
+			writer.StartAttributes();
+			WritingNullable(m_oTableId, writer.WriteAttribute(L"tableId", *m_oTableId););
+			WritingNullable(m_oColumn, writer.WriteAttribute(L"column", *m_oColumn););
+			WritingNullable(m_oSortOrder, writer.WriteAttribute(L"sortOrder", m_oSortOrder->ToString()););
+			WritingNullable(m_oCustomListSort, writer.WriteAttribute(L"customListSort", *m_oCustomListSort););
+			WritingNullable(m_oCrossFilter, writer.WriteAttribute(L"crossFilter", m_oCrossFilter->ToString()););
+			writer.EndAttributes();
+			WritingNullable(m_oExtLst, writer.WriteString(m_oExtLst->toXMLWithNS(L"")););
+			writer.EndNode(sName);*/
+
+		if (!ns) {
+			ns = "";
+		}
+
+		var tableIds = writer.context.InitSaveManager.getTableIds();
+		var tableIdOpen = null;
+		var columnOpen = null;
+		var elem = tableIds && tableIds[this.tableId];
+		if (elem) {
+			tableIdOpen = elem.id;
+			columnOpen = (elem.table.getTableIndexColumnByName(this.column) + 1) || null;
+		}
+
+		writer.WriteXmlNodeStart(ns + name);
+		writer.WriteXmlNullableAttributeString("tableId", tableIdOpen);
+		writer.WriteXmlNullableAttributeString("column", columnOpen);
+		writer.WriteXmlNullableAttributeString("sortOrder", ToXml_ST_TabularSlicerCacheSortOrder(this.sortOrder));
+		writer.WriteXmlNullableAttributeString("customListSort", this.customListSort);
+		writer.WriteXmlNullableAttributeString("crossFilter", FromXml_ST_SlicerCacheCrossFilter(this.crossFilter));
+		writer.WriteXmlAttributesEnd();
+		//WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
+		writer.WriteXmlNodeEnd(ns + name);
+	};
+
+
 
 
 	//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
@@ -13660,7 +13811,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				}
 				this.sortCondition.dxf = val;
 			} else if ("richSortCondition" === name) {
-				//TODO в ser не читается, пока не поддерживаю и тут
+				//в ser не читается, пока не поддерживаю и тут
 			} else if ("sortCondition" === name) {
 				if (!this.sortCondition) {
 					this.sortCondition = new AscCommonExcel.SortCondition();
@@ -13852,7 +14003,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			var name = reader.GetNameNoNS();
 			if ("text" === name) {
 				var val = new CT_Si();
-				//TODO
 				//val.clean();
 				val.fromXml(reader)
 				this.oText = val;
@@ -14061,7 +14211,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							writer.WriteString(_T("<text xml:space=\"preserve\">"));
 							writer.WriteEncodeXmlStringHHHH(m_oText->m_sText);
 							//last '\n' not in format but excel add it
-							writer.WriteString(_T("\n"));//todo \r?
+							writer.WriteString(_T("\n"));//toodo \r?
 							writer.WriteString(_T("</text>"));
 						}
 						if(m_oMentions.IsInit())
@@ -14083,7 +14233,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteXmlString("<text xml:space=\"preserve\">");
 			writer.WriteXmlStringEncode(this.text);
 			//last '\n' not in format but excel add it
-			writer.WriteXmlString("\n");//todo \r?
+			writer.WriteXmlString("\n");//toodo \r?
 			writer.WriteXmlString("</text>");
 		}
 		if (this.mentions) {

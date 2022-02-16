@@ -1447,6 +1447,20 @@
         sortmethodStroke: 3
     };
 
+    var ST_CellComments = {
+        none: 0,
+        asDisplayed: 1,
+        atEnd: 2
+    };
+
+    var ST_PrintError = {
+        displayed: 0,
+        blank: 1,
+        dash: 2,
+        NA: 3
+    };
+
+
     var g_nNumsMaxId = 160;
 
     var DocumentPageSize = new function() {
@@ -12058,6 +12072,8 @@
     window["AscCommonExcel"].g_nNumsMaxId = g_nNumsMaxId;
     window["AscCommonExcel"].XfForWrite = XfForWrite;
     window["AscCommonExcel"].ESortMethod = ESortMethod;
+    window["AscCommonExcel"].ST_CellComments = ST_CellComments;
+    window["AscCommonExcel"].ST_PrintError = ST_PrintError;
 
 
 })(window);

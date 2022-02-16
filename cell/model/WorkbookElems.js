@@ -12358,6 +12358,8 @@ QueryTableField.prototype.clone = function() {
 	window["AscCommonExcel"].FromXml_ST_DateTimeGrouping = FromXml_ST_DateTimeGrouping;
 	window["AscCommonExcel"].ToXml_ST_DynamicFilterType = ToXml_ST_DynamicFilterType;
 	window["AscCommonExcel"].FromXml_ST_DynamicFilterType = FromXml_ST_DynamicFilterType;
+	window["AscCommonExcel"].FromXml_ST_FilterOperator = FromXml_ST_FilterOperator;
+	window["AscCommonExcel"].ToXml_ST_FilterOperator = ToXml_ST_FilterOperator;
 
 
 
