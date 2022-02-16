@@ -2679,12 +2679,12 @@
                 if(diffX !== null) {
                     var newOffX = this.spPr.xfrm.offX + diffX;
                     this.spPr.xfrm.setOffX(newOffX);
-                    this.txXfrm.setOffX(this.txXfrm.offX + diffX);
+                    this.txXfrm && this.txXfrm.setOffX(this.txXfrm.offX + diffX);
                 }
                 if(diffY !== null) {
                     var newOffY = this.spPr.xfrm.offY + diffY;
                     this.spPr.xfrm.setOffY(newOffY);
-                    this.txXfrm.setOffY(this.txXfrm.offY + diffY);
+                    this.txXfrm && this.txXfrm.setOffY(this.txXfrm.offY + diffY);
                 }
 
                 var posX = this.spPr.xfrm.offX;
