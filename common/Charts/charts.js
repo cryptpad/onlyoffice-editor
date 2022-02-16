@@ -543,7 +543,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId) {
 					this.createChartPreview(graphics, chartType, aStyles[arrId[nIdx]]);
 
 					chartStyle = new AscCommon.CStyleImage();
-					chartStyle.name = nIdx + 1;
+					chartStyle.name = arrId[nIdx] + 1;
 					chartStyle.image = this._canvas_charts.toDataURL("image/png");
 					arrPreviews.push(chartStyle);
 				}
