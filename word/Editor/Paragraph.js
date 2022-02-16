@@ -978,29 +978,38 @@ Paragraph.prototype.RemoveFromContent = function(nPos, nCount)
 /**
  * Добавляем несколько элементов в конец параграфа
  */
-Paragraph.prototype.Internal_Content_Concat = function(arrItems)
+Paragraph.prototype.ConcatContent = function(arrItems)
 {
-	var nStartPos = this.Content.length;
-	for (var nIndex = 0, nCount = arrItems.length; nIndex < nCount; ++nIndex)
+	this.RemoveParaEnd();
+
+	let nInsertPos  = this.Content.length;
+	let arrNewItems = [];
+
+	for (let nIndex = 0, nCount = arrItems.length; nIndex < nCount; ++nIndex)
 	{
-		this.Content.push(arrItems[nIndex]);
+		let oItem = arrItems[nIndex].Copy();
 
-		if (arrItems[nIndex].SetParent)
-			arrItems[nIndex].SetParent(this);
+		arrNewItems.push(oItem);
+		this.Content.push(oItem);
 
-		if (arrItems[nIndex].SetParagraph)
-			arrItems[nIndex].SetParagraph(this);
+		if (oItem.SetParent)
+			oItem.SetParent(this);
 
-		if (arrItems[nIndex].Recalc_RunsCompiledPr)
-			arrItems[nIndex].Recalc_RunsCompiledPr();
+		if (oItem.SetParagraph)
+			oItem.SetParagraph(this);
+
+		if (oItem.Recalc_RunsCompiledPr)
+			oItem.Recalc_RunsCompiledPr();
 	}
 
-	History.Add(new CChangesParagraphAddItem(this, nStartPos, arrItems));
+	History.Add(new CChangesParagraphAddItem(this, nInsertPos, arrNewItems));
 	this.private_UpdateTrackRevisions();
-	this.private_CheckUpdateBookmarks(arrItems);
+	this.private_CheckUpdateBookmarks(arrNewItems);
 	this.UpdateDocumentOutline();
 
 	this.RecalcInfo.NeedSpellCheck();
+
+	this.CheckParaEnd();
 
 	// Обновлять позиции в NearestPos не надо, потому что мы добавляем новые элементы в конец массива
 };
@@ -4110,7 +4119,7 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 
 	return Result;
 };
-Paragraph.prototype.Remove_ParaEnd = function()
+Paragraph.prototype.RemoveParaEnd = function()
 {
 	var ContentLen = this.Content.length;
 	for (var CurPos = ContentLen - 1; CurPos >= 0; CurPos--)
@@ -4118,7 +4127,7 @@ Paragraph.prototype.Remove_ParaEnd = function()
 		var Element = this.Content[CurPos];
 
 		// Предполагаем, что para_End лежит только в ране, который лежит только на самом верхнем уровне
-		if (para_Run === Element.Type && true === Element.Remove_ParaEnd())
+		if (para_Run === Element.Type && true === Element.RemoveParaEnd())
 			return;
 	}
 };
@@ -12672,7 +12681,7 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 		oEndRun.AddToContent(0, new ParaEnd());
 		this.AddToContent(this.Content.length, oEndRun);
 
-		oNewParagraph.Internal_Content_Concat(arrNewContent);
+		oNewParagraph.ConcatContent(arrNewContent);
 		oNewParagraph.CorrectContent();
 	}
 	else
@@ -12704,9 +12713,9 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 
 		// Очищаем новый параграф и добавляем в него Right элемент и NewContent
 		oNewParagraph.Internal_Content_Remove2(0, oNewParagraph.Content.length);
-		oNewParagraph.Internal_Content_Concat(NewContent);
+		oNewParagraph.ConcatContent(NewContent);
 		oNewParagraph.Internal_Content_Add(0, NewElement);
-		oNewParagraph.Correct_Content();
+		oNewParagraph.CorrectContent();
 	}
 
 	// Копируем все настройки в новый параграф. Делаем это после того как определили контент параграфов.
@@ -12742,9 +12751,6 @@ Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 	this.DeleteCommentOnRemove = false;
 	Para.DeleteCommentOnRemove = false;
 
-	// Убираем метку конца параграфа у данного параграфа
-	this.Remove_ParaEnd();
-
 	// Если в параграфе Para были точки NearPos, за которыми нужно следить перенесем их в этот параграф
 	var NearPosCount = Para.NearPosArray.length;
 	for (var Pos = 0; Pos < NearPosCount; Pos++)
@@ -12759,17 +12765,10 @@ Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 		this.NearPosArray.push(ParaNearPos);
 	}
 
-	// Добавляем содержимое второго параграфа к первому
-	this.Internal_Content_Concat(Para.Content);
+	this.ConcatContent(Para.Content);
 
-	// Очистим содержимое параграфа (это нужно, чтобы не лежали ссылки на одинаковые объекты в разных параграфах)
+	// Класс нужно почистить, чтобы сообщить внутренним классам, что они больше не используются
 	Para.ClearContent();
-
-	// TODO: Пока вынуждены так делать, потому что SetParent чистится неправильно на удалении элементов
-	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
-	{
-		this.Content[nIndex].SetParent(this);
-	}
 
 	// Если на данном параграфе оканчивалась секция, тогда удаляем эту секцию
 	this.Set_SectionPr(undefined);
@@ -12798,7 +12797,7 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	oPara.DeleteCommentOnRemove = false;
 
 	// Убираем метку конца параграфа у добавляемого параграфа
-	oPara.Remove_ParaEnd();
+	oPara.RemoveParaEnd();
 
 	// Подправим позиции для NearPos в текущем параграфе
 	for (var nPos = 0, nCount = this.NearPosArray.length; nPos < nCount; ++nPos)
@@ -12821,17 +12820,11 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	// Добавляем содержимое второго параграфа к первому
 	for (var nPos = 0, nCount = oPara.Content.length; nPos < nCount; ++nPos)
 	{
-		this.AddToContent(nPos, oPara.Content[nPos]);
+		this.AddToContent(nPos, oPara.Content[nPos].Copy());
 	}
 
-	// Очистим содержимое параграфа (это нужно, чтобы не лежали ссылки на одинаковые объекты в разных параграфах)
+	// Класс нужно почистить, чтобы сообщить внутренним классам, что они больше не используются
 	oPara.ClearContent();
-
-	// TODO: Пока вынуждены так делать, потому что SetParent чистится неправильно на удалении элементов
-	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
-	{
-		this.Content[nIndex].SetParent(this);
-	}
 
 	// Если на данном параграфе оканчивалась секция, тогда удаляем эту секцию
 	oPara.Set_SectionPr(undefined);

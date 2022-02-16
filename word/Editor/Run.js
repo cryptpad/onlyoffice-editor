@@ -1317,27 +1317,24 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
     return true;
 };
-
-ParaRun.prototype.Remove_ParaEnd = function()
+ParaRun.prototype.RemoveParaEnd = function()
 {
-    var Pos = -1;
+	let nEndPos = -1;
+	let nCount  = this.Content.length;
+	for (let nPos = 0; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].IsParaEnd())
+		{
+			nEndPos = nPos;
+			break;
+		}
+	}
 
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        if ( para_End === this.Content[CurPos].Type )
-        {
-            Pos = CurPos;
-            break;
-        }
-    }
+	if (-1 === nEndPos)
+		return false;
 
-    if ( -1 === Pos )
-        return false;
-
-    this.Remove_FromContent( Pos, ContentLen - Pos, true );
-
-    return true;
+	this.RemoveFromContent(nEndPos, nCount - nEndPos, true);
+	return true;
 };
 
 /**
