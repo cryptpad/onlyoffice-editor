@@ -11691,8 +11691,6 @@ CPresentation.prototype.readAttrXml = function(name, reader) {
 CPresentation.prototype.readChildXml = function(name, reader) {
     let oIdLst;
     let aList;
-    let nItem;
-    let oRel, oRelPart;
     switch(name) {
         case "sldMasterIdLst": {
             oIdLst = new IdList("sldMasterIdLst");
