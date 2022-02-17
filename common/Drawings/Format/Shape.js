@@ -6056,22 +6056,16 @@ CShape.prototype.changePresetGeom = function (sPreset) {
         }
     }
     var point = this.getSmartArtSpPrPoint() || this.getPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-    }
+    var assignedPoint = this.getSmartArtShapePoint();
     if (_final_preset != null) {
         this.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
-        if (point) {
-            point.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
-        }
+        point && point.setGeometry(AscFormat.CreateGeometry(_final_preset));
+        assignedPoint && assignedPoint.setGeometry(AscFormat.CreateGeometry(_final_preset));
     }
     else {
         this.spPr.setGeometry(null);
-        if (point) {
-            point.spPr.setGeometry(null);
-        }
+        point && point.setGeometry(null);
+        assignedPoint && assignedPoint.setGeometry(null);
     }
     if(!this.bWordShape)
     {
@@ -6091,9 +6085,8 @@ CShape.prototype.changePresetGeom = function (sPreset) {
         setLine = new_line2;
     }
     this.spPr.setLn(setLine);
-    if (point) {
-        point.spPr.setLn(setLine);
-    }
+    point && point.setLine(setLine);
+    assignedPoint && assignedPoint.setLine(setLine);
 };
 
 CShape.prototype.changeFill = function (unifill) {
@@ -6105,57 +6098,23 @@ CShape.prototype.changeFill = function (unifill) {
     var unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
     unifill2.convertToPPTXMods();
     this.spPr.setFill(unifill2);
-    var pointContent = this.getSmartArtPointContent();
-    if (pointContent) {
-        pointContent.forEach(function (point) {
-            if (!point.spPr) {
-                point.setSpPr(new AscFormat.CSpPr());
-            }
-            point.spPr.setFill(unifill2);
-        })
-    }
-    var point = this.getPoint();
+
+    var isBlipFill = unifill2.fill instanceof AscFormat.CBlipFill;
+    var point = this.getSmartArtShapePoint() || this.getPoint();
     if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setFill(unifill2);
+        isBlipFill ? point.resetUniFill() : point.setUniFill(unifill2);
     }
     var point = this.getSmartArtSpPrPoint();
     if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setFill(unifill2);
+        isBlipFill ? point.setUniFill(unifill2) : point.resetUniFill();
     }
 };
 CShape.prototype.changeShadow = function (oShadow) {
 
-
     this.spPr && this.spPr.changeShadow(oShadow);
-    var pointContent = this.getSmartArtPointContent(); // TODO: check write shadow
-    if (pointContent && pointContent.length !== 0) {
-        pointContent.forEach(function (point) {
-            if (!point.spPr) {
-                point.setSpPr(new AscFormat.CSpPr());
-            }
-            point.spPr.changeShadow(oShadow);
-        })
-    }
-    var point = this.getPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.changeShadow(oShadow);
-    }
-    point = this.getSmartArtSpPrPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.changeShadow(oShadow);
-    }
+
+    var point = this.getSmartArtShapePoint() || this.getPoint();
+    point && point.changeShadow(oShadow);
 };
 CShape.prototype.setFill = function (fill) {
 
@@ -6174,29 +6133,9 @@ CShape.prototype.changeLine = function (line)
         stroke.Fill.convertToPPTXMods();
     }
     this.spPr.setLn(stroke);
-    var pointContent = this.getSmartArtPointContent();
-    if (pointContent) {
-        pointContent.forEach(function (point) {
-            if (!point.spPr) {
-                point.setSpPr(new AscFormat.CSpPr());
-            }
-            point.spPr.setLn(stroke);
-        })
-    }
-    var point = this.getPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setLn(stroke);
-    }
-    point = this.getSmartArtSpPrPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setLn(stroke);
-    }
+
+    var point = this.getSmartArtShapePoint() ||  this.getPoint();
+    point && point.setLine(stroke);
 };
 
 CShape.prototype.hitToAdjustment = function (x, y) {

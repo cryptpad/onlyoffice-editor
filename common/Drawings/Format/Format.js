@@ -12126,6 +12126,9 @@ function CreateAscFill(unifill)
 }
 function CorrectUniFill(asc_fill, unifill, editorId)
 {
+    if (asc_fill instanceof CUniFill) {
+        return asc_fill;
+    }
     if (null == asc_fill)
         return unifill;
 
