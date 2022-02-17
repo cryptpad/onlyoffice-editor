@@ -1016,7 +1016,20 @@ CMathText.prototype.ToSearchElement = function(oProps)
 	return new CSearchTextItemChar(this.Value);
 };
 CMathText.prototype.GetTextOfElement = function() {
-    return String.fromCharCode(this.value);
+	var strPre = "";
+	if (this.Parent) {
+		var oParentMathPrp = this.Parent.MathPrp.scr;
+		if (1 === oParentMathPrp) {
+			strPre = '\\script';
+		} else if (2 === oParentMathPrp) {
+			strPre = '\\fraktur';
+		} else if (3 === oParentMathPrp) {
+			strPre = '\\double';
+		}
+	}
+	
+
+	return strPre + String.fromCharCode(this.value);
 };
 /*CMathText.prototype.Recalculate_Reset = function(StartRange, StartLine, PRS)
 {
@@ -1144,6 +1157,11 @@ CMathAmp.prototype.Write_ToBinary = function(Writer)
 CMathAmp.prototype.Read_FromBinary = function(Reader)
 {
 };
+CMathAmp.prototype.GetTextOfElement = function(isLaTeX)
+{
+	return '&'
+};
+
 
 function CMathInfoTextPr(InfoTextPr)
 {

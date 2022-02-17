@@ -1069,16 +1069,16 @@ CMathMatrix.prototype.Get_DeletedItemsThroughInterface = function()
 {
     return [];
 };
-CMathMatrix.prototype.GetTextOfElement = function() {
-	var strTemp = "";
-	var strMatrixSymbol = String.fromCharCode(9632);//■
-	
-	strTemp += strMatrixSymbol + '(';
+CMathMatrix.prototype.GetTextOfElement = function(isLaTex) {
+	var strMatrixSymbol = (true === isLaTex)
+		? strMatrixSymbol = '\\matrix'
+		: strMatrixSymbol = String.fromCharCode(9632); //■
+
+	var strTemp = strMatrixSymbol + '(';
 
 	for (var nRow = 0; nRow < this.nRow; nRow++) {
 		for (var nCol = 0; nCol < this.nCol; nCol++) {
-			
-			strTemp += this.getContentElement(nRow, nCol).GetTextOfElement();
+			strTemp += this.getContentElement(nRow, nCol).GetTextOfElement(isLaTex);
 			if (nCol < this.nCol - 1) {
 				strTemp += '&'
 			}
@@ -1087,7 +1087,6 @@ CMathMatrix.prototype.GetTextOfElement = function() {
 			}
 		}
 	}
-
 	strTemp += ')'
 	return strTemp;
 };
