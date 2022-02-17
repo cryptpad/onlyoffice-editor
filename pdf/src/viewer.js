@@ -1852,7 +1852,7 @@
 			}
 
 			this.isClearPages = false;
-			this.updateCurrentPage(this.pageDetector.getCurrentPage());
+			this.updateCurrentPage(this.pageDetector.getCurrentPage(this.currentPage));
 		};
 
 		this.checkPagesLinks = function()
@@ -2281,7 +2281,7 @@
 	{
 		this.pages.push({ num : num, x : x, y : y, w : w, h : h });
 	};
-	CCurrentPageDetector.prototype.getCurrentPage = function()
+	CCurrentPageDetector.prototype.getCurrentPage = function(currentPage)
 	{
 		var count = this.pages.length;
 		var visibleH = 0;
@@ -2306,6 +2306,16 @@
 		}
 
 		page = this.pages[pageNum];
+		if (!page)
+		{
+			return {
+				num : currentPage,
+				x : 0,
+				y : 0,
+				r : 1,
+				b : 1
+			};
+		}
 
 		var x = 0;
 		if (page.x < 0) 
