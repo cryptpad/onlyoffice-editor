@@ -145,7 +145,9 @@
 	window['AscCommon'].CTableLook = CTableLook;
 
 	//--------------------------------------------------------export for interface--------------------------------------
-	window['Asc']['CTablePropLook']      = window['Asc'].CTablePropLook = CTableLook;
+	window['Asc']                   = window['Asc'] || {};
+	window['Asc']['CTablePropLook'] = window['Asc'].CTablePropLook = CTableLook;
+
 	CTableLook.prototype['get_FirstCol'] = CTableLook.prototype.get_FirstCol = CTableLook.prototype.IsFirstCol;
 	CTableLook.prototype['put_FirstCol'] = CTableLook.prototype.put_FirstCol = CTableLook.prototype.SetFirstCol;
 	CTableLook.prototype['get_FirstRow'] = CTableLook.prototype.get_FirstRow = CTableLook.prototype.IsFirstRow;

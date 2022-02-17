@@ -26,7 +26,8 @@
 			"word/apiCommon.js",
 			"word/api.js",
 			"word/api_plugins.js",
-			"common/spell/spell.js"
+			"common/spell/spell.js",
+			"word/Editor/Table/TableLook.js"
 		],
 		"common": [
 			"common/api/actionOnTimer.js",
@@ -180,7 +181,6 @@
 			"word/Editor/Table/TableChanges.js",
 			"word/Editor/Table/TableRecalculate.js",
 			"word/Editor/Table/TableDraw.js",
-			"word/Editor/Table/TableLook.js",
 			"word/Editor/Table/TableRow.js",
 			"word/Editor/Table/TableRowChanges.js",
 			"word/Editor/Table/TableCell.js",

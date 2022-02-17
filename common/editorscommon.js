@@ -8893,12 +8893,12 @@
 		}
 		else
 		{
-			History.TurnOff && History.TurnOff();
+			AscCommon.History.TurnOff && AscCommon.History.TurnOff();
 
-			if (g_oTableId && !g_oTableId.m_bTurnOff)
+			if (AscCommon.g_oTableId && !AscCommon.g_oTableId.IsOn())
 			{
-				g_oTableId.m_bTurnOff = true;
-				isTableId             = true;
+				AscCommon.g_oTableId.TurnOff();
+				isTableId = true;
 			}
 		}
 
@@ -8910,11 +8910,9 @@
 		}
 		else
 		{
-			History.TurnOn && History.TurnOn();
+			AscCommon.History.TurnOn && AscCommon.History.TurnOn();
 			if (isTableId)
-			{
-				g_oTableId.m_bTurnOff = false;
-			}
+				AscCommon.g_oTableId.TurnOn();
 		}
 
 		return result;
