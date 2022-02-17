@@ -1871,21 +1871,25 @@
 			this.dataValidations.toXml(writer);
 		}
 
-		//TODO rels нужно добавить + грамотно добавить
 		var oHyperlinks = this.hyperlinkManager.getAll();
 		if (oHyperlinks && oHyperlinks.length) {
 			writer.WriteXmlString("<hyperlinks>");
+
 			for (var i in oHyperlinks) {
 				var elem = oHyperlinks[i];
+
 				//write only active hyperlink, if copy/paste
-				if (!context.InitSaveManager.isCopyPaste || (context.InitSaveManager.isCopyPaste && elem && elem.bbox && context.InitSaveManager.isCopyPaste.containsRange(elem.bbox))) {
-					//AscCommonExcel.Hyperlink
-					/*this.bs.WriteItem(c_oSerWorksheetsTypes.Hyperlink, function () {
-						oThis.WriteHyperlink(elem.data);
-					});*/
-					//elem.toXml(writer, this);
+				if (!context.InitSaveManager.isCopyPaste ||
+					(context.InitSaveManager.isCopyPaste && elem && elem.bbox && context.InitSaveManager.isCopyPaste.containsRange(elem.bbox))) {
+
+					if (elem.data.Hyperlink) {
+						elem.data.rId = context.part.addRelationship("http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink", "ya.ru", "External");
+					}
+
+					elem.data.toXml(writer, "hyperlink");
 				}
 			}
+
 			writer.WriteXmlString("</hyperlinks>");
 		}
 
@@ -2382,7 +2386,7 @@
 		if (extLst) {
 			for (var i = 0; i < extLst.arrExt.length; i++) {
 				if (extLst.arrExt[i] && extLst.arrExt[i].sparklineGroups) {
-					//TODO обрабатываю только ситуацию, когад 1 элумент. несколько элементов не встречал, но нужно будет проверить и обработать.
+					//обрабатываю только ситуацию, когад 1 элумент. несколько элементов не встречал, но нужно будет проверить и обработать.
 					for (var j = 0; j < extLst.arrExt[i].sparklineGroups.length; j++) {
 						var newSparklineGroup = extLst.arrExt[i].sparklineGroups[j];
 						newSparklineGroup.setWorksheet(this);
@@ -3054,11 +3058,10 @@
 		}
 
 		writer.WriteXmlNodeStart(ns + name);
-		writer.WriteXmlNullableAttributeStringEncode("display", this.display);
-		//TODO rID
-		//writer.WriteXmlNullableAttributeString("r:id", this.r:id);
-		writer.WriteXmlNullableAttributeStringEncode("location", this.location);
-		writer.WriteXmlNullableAttributeStringEncode("ref", this.Ref);
+		//writer.WriteXmlNullableAttributeStringEncode("display", this.display);
+		writer.WriteXmlNullableAttributeString("r:id", this.rId);
+		writer.WriteXmlNullableAttributeStringEncode("location", this.Location);
+		writer.WriteXmlNullableAttributeStringEncode("ref", this.Ref && this.Ref.bbox && this.Ref.bbox.getName());
 		writer.WriteXmlNullableAttributeStringEncode("tooltip", this.Tooltip);
 		writer.WriteXmlAttributesEnd(true);
 	};
@@ -9958,7 +9961,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeStringEncode("defaultTableStyle", this.DefaultTableStyle);
 		writer.WriteXmlNullableAttributeStringEncode("defaultPivotStyle", this.DefaultPivotStyle);
 
-		if (this.CustomStyles) {
+
+		var bEmptyCustom = true;
+		for (var j in this.CustomStyles) {
+			bEmptyCustom = false;
+			break;
+		}
+		if (bEmptyCustom) {
 			writer.WriteXmlAttributesEnd();
 
 			for (i in this.CustomStyles) {
@@ -10866,7 +10875,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.CellXfs.prototype.toXml = function (writer, name, ns, childns) {
+	AscCommonExcel.CellXfs.prototype.toXml = function (writer, name, ns, childns, index) {
 		if (!ns) {
 			ns = "";
 		}
@@ -10881,7 +10890,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			this.font.toXml(writer, "font", childns, childns);
 		}
 		if (this.num) {
-			this.num.toXml(writer, "numFmt", null, childns, childns);
+			this.num.toXml(writer, "numFmt", null, childns, childns, writer.context.mapIndexNumId && writer.context.mapIndexNumId[index]);
 		}
 		if (this.fill) {
 			this.fill.toXml(writer, "fill", childns, childns);
@@ -11369,7 +11378,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					t.fs = reader.GetValueInt();
 				});
 			} else if ("u" === name) {
-				this.u = FromXml_ST_UnderlineValues(reader.GetValue());
+				if (reader.GetValue() !== null) {
+					this.u = FromXml_ST_UnderlineValues(reader.GetValue());
+				} else {
+					this.u = Asc.EUnderline.underlineSingle;
+				}
 			} else if ("vertAlign" === name) {
 				readOneAttr(reader, "val", function () {
 					switch (reader.GetValue()) {
@@ -11613,13 +11626,25 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlAttributesEnd();
 
 
-		//TODO "//numfmts пишется в конце потому что они могут пополниться при записи Dxfs"
-		/*if(null != Dxf.num)
-		{
-			var numId = this.stylesForWrite.getNumIdByFormat(Dxf.num);
-			if(null != numId)
-				this.bs.WriteItem(c_oSer_Dxf.NumFmt, function(){oThis.WriteNum(numId, Dxf.num.getFormat());});
-		}*/
+
+		//Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
+
+
+		//делаю предаврительный map, потому что в serialize - numfmts пишется в конце потому что они могут пополниться при записи Dxfs"
+		var dxfs = writer.context.InitSaveManager.getDxfs();
+		var mapIndexNumId;
+		for(var i = 0, length = dxfs.length; i < length; ++i) {
+			if (null != dxfs[i].num) {
+				var numId = writer.context.stylesForWrite.getNumIdByFormat(dxfs[i].num);
+				if(null != numId) {
+					if (!mapIndexNumId) {
+						mapIndexNumId = [];
+					}
+					mapIndexNumId[i] = numId;
+				}
+			}
+		}
+
 		if (this.oNumMap.elems) {
 			//AscCommonExcel.Num
 			writer.WriteXmlArray(this.oNumMap.elems, "numFmt", "numFmts", true);
@@ -11658,13 +11683,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		/*if(m_oColors.IsInit())
 			m_oColors->toXML(writer);*/
 
-
-		var dxfs = writer.context.InitSaveManager.getDxfs();
+		//DXFS
 		if(null != dxfs && dxfs.length > 0) {
 			//AscCommonExcel.CellXfs. можно оберунть в dxf
-			writer.WriteXmlArray(dxfs, "dxf", "dxfs", true);
+			writer.context.mapIndexNumId = mapIndexNumId;
+			writer.WriteXmlArray(dxfs, "dxf", "dxfs", true, mapIndexNumId);
+			writer.context.mapIndexNumId = null;
 		}
 
+		//TODO - //Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
 		if (null != wb.TableStyles) {
 			//Asc.CTableStyles
 			wb.TableStyles.toXml(writer, "tableStyles");
@@ -11739,8 +11766,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.Num.prototype.toXml = function(writer, name, ns, childns, index) {
-		var id = AscCommonExcel.g_nNumsMaxId + index;
+	AscCommonExcel.Num.prototype.toXml = function(writer, name, ns, childns, index, _id) {
+		//запись и из dxfs и из stylesForWrite. в случае dxfs протаскиваем id через mapIndexNumId. для
+		var id = _id ? _id : AscCommonExcel.g_nNumsMaxId + index;
+
 		var format = this.getFormat();
 
 		if (!ns) {
@@ -11875,7 +11904,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	//TODO хранить в wb классы?
 	function CT_ExternalReference() {
 		this.val = {};
 	}
