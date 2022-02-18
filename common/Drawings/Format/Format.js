@@ -2599,6 +2599,133 @@
             //TODO:Implement in children
         };
 
+        function fReadEffectXML(name, reader) {
+            var oEffect = null;
+            switch(name) {
+                case "alphaBiLevel": {
+                    oEffect = new CAlphaBiLevel();
+                    break;
+                }
+                case "alphaCeiling": {
+                    oEffect = new CAlphaCeiling();
+                    break;
+                }
+                case "alphaFloor": {
+                    oEffect = new CAlphaFloor();
+                    break;
+                }
+                case "alphaInv": {
+                    oEffect = new CAlphaInv();
+                    break;
+                }
+                case "alphaMod": {
+                    oEffect = new CAlphaMod();
+                    break;
+                }
+                case "alphaModFix": {
+                    oEffect = new CAlphaModFix();
+                    break;
+                }
+                case "alphaOutset": {
+                    oEffect = new CAlphaOutset();
+                    break;
+                }
+                case "alphaRepl": {
+                    oEffect = new CAlphaRepl();
+                    break;
+                }
+                case "biLevel": {
+                    oEffect = new CBiLevel();
+                    break;
+                }
+                case "blend": {
+                    oEffect = new CBlend();
+                    break;
+                }
+                case "blur": {
+                    oEffect = new CBlur();
+                    break;
+                }
+                case "clrChange": {
+                    oEffect = new CClrChange();
+                    break;
+                }
+                case "clrRepl": {
+                    oEffect = new CClrRepl();
+                    break;
+                }
+                case "cont": {
+                    oEffect = new CEffectContainer();
+                    break;
+                }
+                case "duotone": {
+                    oEffect = new CDuotone();
+                    break;
+                }
+                case "effect": {
+                    //oEffect = new CEf();
+                    break;
+                }
+                case "fill": {
+                    oEffect = new CFillEffect();
+                    break;
+                }
+                case "fillOverlay": {
+                    oEffect = new CFillOverlay();
+                    break;
+                }
+                case "glow": {
+                    oEffect = new CGlow();
+                    break;
+                }
+                case "grayscl": {
+                    oEffect = new CGrayscl();
+                    break;
+                }
+                case "hsl": {
+                    oEffect = new CHslEffect();
+                    break;
+                }
+                case "innerShdw": {
+                    oEffect = new CInnerShdw();
+                    break;
+                }
+                case "lum": {
+                    oEffect = new CLumEffect();
+                    break;
+                }
+                case "outerShdw": {
+                    oEffect = new COuterShdw();
+                    break;
+                }
+                case "prstShdw": {
+                    oEffect = new CPrstShdw();
+                    break;
+                }
+                case "reflection": {
+                    oEffect = new CReflection();
+                    break;
+                }
+                case "relOff": {
+                    oEffect = new CRelOff();
+                    break;
+                }
+                case "softEdge": {
+                    oEffect = new CSoftEdge();
+                    break;
+                }
+                case "tint": {
+                    oEffect = new CTintEffect();
+                    break;
+                }
+                case "xfrm": {
+                    oEffect = new CXfrmEffect();
+                    break;
+                }
+            }
+            return oEffect;
+        }
+
         function CBaseFill() {
             CBaseNoIdObject.call(this);
         }
@@ -3160,8 +3287,10 @@
         }
 
         function CAlphaBiLevel() {
+            CBaseNoIdObject.call(this);
             this.tresh = 0;
         }
+        InitClass(CAlphaBiLevel, CBaseNoIdObject, 0);
 
         CAlphaBiLevel.prototype.Type = EFFECT_TYPE_ALPHABILEVEL;
         CAlphaBiLevel.prototype.Write_ToBinary = function (w) {
@@ -3171,17 +3300,31 @@
         CAlphaBiLevel.prototype.Read_FromBinary = function (r) {
             this.tresh = r.GetLong();
         };
-
         CAlphaBiLevel.prototype.createDuplicate = function () {
             var oCopy = new CAlphaBiLevel();
             oCopy.tresh = this.tresh;
             return oCopy;
         };
+        CAlphaBiLevel.prototype.readAttrXml = function(name, reader) {
+            if(name === "tresh") {
+                this.tresh = reader.GetValueInt();
+            }
+        };
+        CAlphaBiLevel.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaBiLevel.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaBiLevel.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
 
         function CAlphaCeiling() {
+            CBaseNoIdObject.call(this);
         }
-
+        InitClass(CAlphaCeiling, CBaseNoIdObject, 0);
         CAlphaCeiling.prototype.Type = EFFECT_TYPE_ALPHACEILING;
         CAlphaCeiling.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ALPHACEILING);
@@ -3192,11 +3335,24 @@
             var oCopy = new CAlphaCeiling();
             return oCopy;
         };
+        CAlphaCeiling.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaCeiling.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaCeiling.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaCeiling.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
 
         function CAlphaFloor() {
+            CBaseNoIdObject.call(this);
         }
-
+        InitClass(CBaseNoIdObject, CBaseNoIdObject, 0);
         CAlphaFloor.prototype.Type = EFFECT_TYPE_ALPHAFLOOR;
         CAlphaFloor.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ALPHAFLOOR);
@@ -3207,11 +3363,22 @@
             var oCopy = new CAlphaFloor();
             return oCopy;
         };
+        CAlphaFloor.prototype.readAttrXml = function(name, reader) {
+        };
+        CAlphaFloor.prototype.readChildXml = function(name, reader) {
+        };
+        CAlphaFloor.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaFloor.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CAlphaInv() {
+            CBaseNoIdObject.call(this);
             this.unicolor = null;
         }
-
+        InitClass(CAlphaInv, CBaseNoIdObject, 0);
         CAlphaInv.prototype.Type = EFFECT_TYPE_ALPHAINV;
         CAlphaInv.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ALPHAINV);
@@ -3235,16 +3402,32 @@
             }
             return oCopy;
         };
+        CAlphaInv.prototype.readAttrXml = function(name, reader) {
+        };
+        CAlphaInv.prototype.readChildXml = function(name, reader) {
+            var oUniColor = new CUniColor();
+            oUniColor.fromXml(name, reader);
+            if(oUniColor.color) {
+                this.unicolor = oUniColor;
+            }
+        };
+        CAlphaInv.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaInv.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         var effectcontainertypeSib = 0;
         var effectcontainertypeTree = 1;
 
         function CEffectContainer() {
+            CBaseNoIdObject.call(this);
             this.type = null;
             this.name = null;
             this.effectList = [];
         }
-
+        InitClass(CEffectContainer, CBaseNoIdObject, 0);
         CEffectContainer.prototype.Type = EFFECT_TYPE_DAG;
         CEffectContainer.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_DAG);
@@ -3268,7 +3451,6 @@
                 this.effectList.push(effect);
             }
         };
-
         CEffectContainer.prototype.createDuplicate = function () {
             var oCopy = new CEffectContainer();
             oCopy.type = this.type;
@@ -3278,11 +3460,38 @@
             }
             return oCopy;
         };
+        CEffectContainer.prototype.readAttrXml = function(name, reader) {
+            if(name === "name") {
+                this.name = reader.GetValue()
+            }
+            else if(name === "type") {
+                let sType = reader.GetValue();
+                if(sType === "sib") {
+                    this.type = effectcontainertypeSib;
+                }
+                else {
+                    this.type = effectcontainertypeTree;
+                }
+            }
+        };
+        CEffectContainer.prototype.readChildXml = function(name, reader) {
+            let oEffect = fReadEffectXML(name, reader);
+            if(oEffect) {
+                this.effectList.push(oEffect);
+            }
+        };
+        CEffectContainer.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CEffectContainer.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CAlphaMod() {
+            CBaseNoIdObject.call(this);
             this.cont = new CEffectContainer();
         }
-
+        InitClass(CAlphaMod, CBaseNoIdObject, 0);
         CAlphaMod.prototype.Type = EFFECT_TYPE_ALPHAMOD;
         CAlphaMod.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ALPHAMOD);
@@ -3296,11 +3505,25 @@
             oCopy.cont = this.cont.createDuplicate();
             return oCopy;
         };
+        CAlphaMod.prototype.readAttrXml = function(name, reader) {
+        };
+        CAlphaMod.prototype.readChildXml = function(name, reader) {
+            if(name === "cont") {
+                this.cont.fromXml(reader);
+            }
+        };
+        CAlphaMod.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaMod.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CAlphaModFix() {
+            CBaseNoIdObject.call(this);
             this.amt = null;
         }
-
+        InitClass(CAlphaModFix, CBaseNoIdObject, 0);
         CAlphaModFix.prototype.Type = EFFECT_TYPE_ALPHAMODFIX;
         CAlphaModFix.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ALPHAMODFIX);
@@ -3314,11 +3537,24 @@
             oCopy.amt = this.amt;
             return oCopy;
         };
+        CAlphaModFix.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaModFix.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaModFix.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaModFix.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CAlphaOutset() {
+            CBaseNoIdObject.call(this);
             this.rad = null;
         }
-
+        InitClass(CAlphaOutset, CBaseNoIdObject, 0);
         CAlphaOutset.prototype.Type = EFFECT_TYPE_ALPHAOUTSET;
         CAlphaOutset.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ALPHAOUTSET);
@@ -3332,11 +3568,24 @@
             oCopy.rad = this.rad;
             return oCopy;
         };
+        CAlphaOutset.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaOutset.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaOutset.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaOutset.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CAlphaRepl() {
+            CBaseNoIdObject.call(this);
             this.a = null;
         }
-
+        InitClass(CAlphaRepl, CBaseNoIdObject, 0);
         CAlphaRepl.prototype.Type = EFFECT_TYPE_ALPHAREPL;
         CAlphaRepl.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ALPHAREPL);
@@ -3350,12 +3599,24 @@
             oCopy.a = this.a;
             return oCopy;
         };
-
+        CAlphaRepl.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaRepl.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CAlphaRepl.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CAlphaRepl.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CBiLevel() {
+            CBaseNoIdObject.call(this);
             this.thresh = null;
         }
-
+        InitClass(CBiLevel, CBaseNoIdObject, 0);
         CBiLevel.prototype.Type = EFFECT_TYPE_BILEVEL;
         CBiLevel.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_BILEVEL);
@@ -3369,6 +3630,18 @@
             oCopy.thresh = this.thresh;
             return oCopy;
         };
+        CBiLevel.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CBiLevel.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CBiLevel.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CBiLevel.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         var blendmodeDarken = 0;
         var blendmodeLighten = 1;
@@ -3377,10 +3650,11 @@
         var blendmodeScreen = 4;
 
         function CBlend() {
+            CBaseNoIdObject.call(this);
             this.blend = null;
             this.cont = new CEffectContainer();
         }
-
+        InitClass(CBlend, CBaseNoIdObject, 0);
         CBlend.prototype.Type = EFFECT_TYPE_BLEND;
         CBlend.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_BLEND);
@@ -3397,12 +3671,25 @@
             oCopy.cont = this.cont.createDuplicate();
             return oCopy;
         };
+        CBlend.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CBlend.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CBlend.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CBlend.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CBlur() {
+            CBaseNoIdObject.call(this);
             this.rad = null;
             this.grow = null;
         }
-
+        InitClass(CBlur, CBaseNoIdObject, 0);
         CBlur.prototype.Type = EFFECT_TYPE_BLUR;
         CBlur.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_BLUR);
@@ -3419,14 +3706,26 @@
             oCopy.grow = this.grow;
             return oCopy;
         };
-
+        CBlur.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CBlur.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CBlur.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CBlur.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CClrChange() {
+            CBaseNoIdObject.call(this);
             this.clrFrom = new CUniColor();
             this.clrTo = new CUniColor();
             this.useA = null;
         }
-
+        InitClass(CClrChange, CBaseNoIdObject, 0);
         CClrChange.prototype.Type = EFFECT_TYPE_CLRCHANGE;
         CClrChange.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_CLRCHANGE);
@@ -3447,11 +3746,24 @@
             oCopy.useA = this.useA;
             return oCopy;
         };
+        CClrChange.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CClrChange.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CClrChange.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CClrChange.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CClrRepl() {
+            CBaseNoIdObject.call(this);
             this.color = new CUniColor();
         }
-
+        InitClass(CClrRepl, CBaseNoIdObject, 0);
         CClrRepl.prototype.Type = EFFECT_TYPE_CLRREPL;
         CClrRepl.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_CLRREPL);
@@ -3466,12 +3778,24 @@
             oCopy.color = this.color.createDuplicate();
             return oCopy;
         };
-
+        CClrRepl.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CClrRepl.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CClrRepl.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CClrRepl.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CDuotone() {
+            CBaseNoIdObject.call(this);
             this.colors = [];
         }
-
+        InitClass(CDuotone, CBaseNoIdObject, 0);
         CDuotone.prototype.Type = EFFECT_TYPE_DUOTONE;
         CDuotone.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_DUOTONE);
@@ -3495,12 +3819,25 @@
             }
             return oCopy;
         };
+        CDuotone.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CDuotone.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CDuotone.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CDuotone.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
 
         function CEffectElement() {
+            CBaseNoIdObject.call(this);
             this.ref = null;
         }
-
+        InitClass(CEffectElement, CBaseNoIdObject, 0);
         CEffectElement.prototype.Type = EFFECT_TYPE_ELEMENT;
         CEffectElement.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_ELEMENT);
@@ -3514,12 +3851,24 @@
             oCopy.ref = this.ref;
             return oCopy;
         };
-
+        CEffectElement.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CEffectElement.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CEffectElement.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CEffectElement.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CFillEffect() {
+            CBaseNoIdObject.call(this);
             this.fill = new CUniFill();
         }
-
+        InitClass(CFillEffect, CBaseNoIdObject, 0);
         CFillEffect.prototype.Type = EFFECT_TYPE_FILL;
         CFillEffect.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_FILL);
@@ -3533,12 +3882,25 @@
             oCopy.fill = this.fill.createDuplicate();
             return oCopy;
         };
+        CFillEffect.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CFillEffect.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CFillEffect.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CFillEffect.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CFillOverlay() {
+            CBaseNoIdObject.call(this);
             this.fill = new CUniFill();
             this.blend = 0;
         }
-
+        InitClass(CFillOverlay, CBaseNoIdObject, 0);
         CFillOverlay.prototype.Type = EFFECT_TYPE_FILLOVERLAY;
         CFillOverlay.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_FILLOVERLAY);
@@ -3555,12 +3917,25 @@
             oCopy.blend = this.blend;
             return oCopy;
         };
+        CFillOverlay.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CFillOverlay.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CFillOverlay.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CFillOverlay.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CGlow() {
+            CBaseNoIdObject.call(this);
             this.color = new CUniColor();
             this.rad = null;
         }
-
+        InitClass(CAlphaOutset, CBaseNoIdObject, 0);
         CGlow.prototype.Type = EFFECT_TYPE_GLOW;
         CGlow.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_GLOW);
@@ -3577,10 +3952,23 @@
             oCopy.rad = this.rad;
             return oCopy;
         };
+        CGlow.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CGlow.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CGlow.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CGlow.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CGrayscl() {
+            CBaseNoIdObject.call(this);
         }
-
+        InitClass(CGrayscl, CBaseNoIdObject, 0);
         CGrayscl.prototype.Type = EFFECT_TYPE_GRAYSCL;
         CGrayscl.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_GRAYSCL);
@@ -3591,14 +3979,27 @@
             var oCopy = new CGrayscl();
             return oCopy;
         };
+        CGrayscl.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CGrayscl.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CGrayscl.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CGrayscl.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
 
         function CHslEffect() {
+            CBaseNoIdObject.call(this);
             this.h = null;
             this.s = null;
             this.l = null;
         }
-
+        InitClass(CHslEffect, CBaseNoIdObject, 0);
         CHslEffect.prototype.Type = EFFECT_TYPE_HSL;
         CHslEffect.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_HSL);
@@ -3618,14 +4019,27 @@
             oCopy.l = this.l;
             return oCopy;
         };
+        CHslEffect.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CHslEffect.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CHslEffect.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CHslEffect.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CInnerShdw() {
+            CBaseNoIdObject.call(this);
             this.color = new CUniColor();
             this.blurRad = null;
             this.dir = null;
             this.dist = null;
         }
-
+        InitClass(CInnerShdw, CBaseNoIdObject, 0);
         CInnerShdw.prototype.Type = EFFECT_TYPE_INNERSHDW;
         CInnerShdw.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_INNERSHDW);
@@ -3650,10 +4064,11 @@
         };
 
         function CLumEffect() {
+            CBaseNoIdObject.call(this);
             this.bright = null;
             this.contrast = null;
         }
-
+        InitClass(CLumEffect, CBaseNoIdObject, 0);
         CLumEffect.prototype.Type = EFFECT_TYPE_LUM;
         CLumEffect.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_LUM);
@@ -3670,8 +4085,21 @@
             oCopy.contrast = this.contrast;
             return oCopy;
         };
+        CLumEffect.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CLumEffect.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CLumEffect.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CLumEffect.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function COuterShdw() {
+            CBaseNoIdObject.call(this);
             this.color = new CUniColor();
             this.algn = null;
             this.blurRad = null;
@@ -3683,7 +4111,7 @@
             this.sx = null;
             this.sy = null;
         }
-
+        InitClass(COuterShdw, CBaseNoIdObject, 0);
         COuterShdw.prototype.Type = EFFECT_TYPE_OUTERSHDW;
         COuterShdw.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_OUTERSHDW);
@@ -3744,7 +4172,18 @@
             }
             return true;
         };
-
+        COuterShdw.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        COuterShdw.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CBaseObject.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        COuterShdw.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function asc_CShadowProperty() {
             COuterShdw.call(this);
@@ -3762,7 +4201,6 @@
             this.dist = 38100;
             this.rotWithShape = false;
         }
-
         asc_CShadowProperty.prototype = Object.create(COuterShdw.prototype);
         asc_CShadowProperty.prototype.constructor = asc_CShadowProperty;
 
@@ -3771,12 +4209,14 @@
         window['Asc']['asc_CShadowProperty'] = window['Asc'].asc_CShadowProperty = asc_CShadowProperty;
 
         function CPrstShdw() {
+            CBaseNoIdObject.call(this);
             this.color = new CUniColor();
             this.prst = null;
             this.dir = null;
             this.dis = null;
         }
 
+        InitClass(CPrstShdw, CBaseNoIdObject, 0);
         CPrstShdw.prototype.Type = EFFECT_TYPE_PRSTSHDW;
         CPrstShdw.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_PRSTSHDW);
@@ -3799,9 +4239,21 @@
             oCopy.dis = this.dis;
             return oCopy;
         };
-
+        CPrstShdw.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CPrstShdw.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CPrstShdw.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CPrstShdw.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CReflection() {
+            CBaseNoIdObject.call(this);
             this.algn = null;
             this.blurRad = null;
             this.stA = null;
@@ -3817,7 +4269,7 @@
             this.sx = null;
             this.sy = null;
         }
-
+        InitClass(CReflection, CBaseNoIdObject, 0);
         CReflection.prototype.Type = EFFECT_TYPE_REFLECTION;
         CReflection.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_REFLECTION);
@@ -3870,12 +4322,25 @@
             oCopy.sy = this.sy;
             return oCopy;
         };
+        CReflection.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CReflection.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CReflection.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CReflection.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CRelOff() {
+            CBaseNoIdObject.call(this);
             this.tx = null;
             this.ty = null;
         }
-
+        InitClass(CRelOff, CBaseNoIdObject, 0);
         CRelOff.prototype.Type = EFFECT_TYPE_RELOFF;
         CRelOff.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_RELOFF);
@@ -3892,11 +4357,24 @@
             oCopy.ty = this.ty;
             return oCopy;
         };
+        CRelOff.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CRelOff.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CRelOff.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CRelOff.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CSoftEdge() {
+            CBaseNoIdObject.call(this);
             this.rad = null;
         }
-
+        InitClass(CSoftEdge, CBaseNoIdObject, 0);
         CSoftEdge.prototype.Type = EFFECT_TYPE_SOFTEDGE;
         CSoftEdge.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_SOFTEDGE);
@@ -3910,12 +4388,25 @@
             oCopy.rad = this.rad;
             return oCopy;
         };
+        CSoftEdge.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CSoftEdge.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CSoftEdge.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CSoftEdge.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CTintEffect() {
+            CBaseNoIdObject.call(this);
             this.amt = null;
             this.hue = null;
         }
-
+        InitClass(CTintEffect, CBaseNoIdObject, 0);
         CTintEffect.prototype.Type = EFFECT_TYPE_TINTEFFECT;
         CTintEffect.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_TINTEFFECT);
@@ -3932,8 +4423,21 @@
             oCopy.hue = this.hue;
             return oCopy;
         };
+        CTintEffect.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CTintEffect.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CTintEffect.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CTintEffect.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
         function CXfrmEffect() {
+            CBaseNoIdObject.call(this);
             this.kx = null;
             this.ky = null;
             this.sx = null;
@@ -3941,6 +4445,7 @@
             this.tx = null;
             this.ty = null;
         }
+        InitClass(CXfrmEffect, CBaseNoIdObject, 0);
         CXfrmEffect.prototype.Type = EFFECT_TYPE_XFRM;
         CXfrmEffect.prototype.Write_ToBinary = function (w) {
             w.WriteLong(EFFECT_TYPE_XFRM);
@@ -3968,6 +4473,18 @@
             oCopy.tx = this.tx;
             oCopy.ty = this.ty;
             return oCopy;
+        };
+        CXfrmEffect.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CXfrmEffect.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        CXfrmEffect.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        CXfrmEffect.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
         };
 
 //-----------------
@@ -4418,7 +4935,6 @@
             }
             return _ret;
         };
-
         CGradFill.prototype.readAttrXml = function (name, reader) {
             //TODO:Implement in children
         };
@@ -4630,7 +5146,6 @@
         function CGrpFill() {
             CBaseFill.call(this);
         }
-
         InitClass(CGrpFill, CBaseFill, 0);
         CGrpFill.prototype.type = c_oAscFill.FILL_TYPE_GRP;
         CGrpFill.prototype.check = function () {
@@ -4697,7 +5212,6 @@
             this.fill = null;
             this.transparent = null;
         }
-
         InitClass(CUniFill, CBaseNoIdObject, 0);
         CUniFill.prototype.check = function (theme, colorMap) {
             if (this.fill) {
@@ -5026,7 +5540,6 @@
         CUniFill.prototype.isVisible = function () {
             return this.fill && this.fill.type !== window['Asc'].c_oAscFill.FILL_TYPE_NOFILL;
         };
-
         CUniFill.prototype.fromXml = function (reader, name) {
             switch (name) {
                 case "blipFill": {
@@ -5059,7 +5572,6 @@
                 this.fill.fromXml(reader);
             }
         };
-
         CUniFill.prototype.toXml = function (writer, name) {
             //Implement in children
         };
@@ -5069,33 +5581,26 @@
             CBaseNoIdObject.call(this);
             this.blip = null;
         }
-
         InitClass(CBuBlip, CBaseNoIdObject, 0);
-
         CBuBlip.prototype.setBlip = function (oPr) {
             this.blip = oPr;
         };
-
         CBuBlip.prototype.fillObject = function (oCopy, oIdMap) {
             if (this.blip) {
                 oCopy.setBlip(this.blip.createDuplicate(oIdMap));
             }
         };
-
         CBuBlip.prototype.createDuplicate = function () {
             var oCopy = new CBuBlip();
             this.fillObject(oCopy, {});
             return oCopy;
         };
-
         CBuBlip.prototype.getChildren = function () {
             return [this.blip];
         };
-
         CBuBlip.prototype.isEqual = function (oBlip) {
             return this.blip.isEqual(oBlip.blip);
         };
-
         CBuBlip.prototype.toPPTY = function (pWriter) {
             var _src = this.blip.fill.RasterImageId;
             var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(_src);
@@ -5107,27 +5612,23 @@
             _src = pWriter.prepareRasterImageIdForWrite(_src);
             pWriter.WriteBlip(this.blip.fill, _src);
         };
-
         CBuBlip.prototype.fromPPTY = function (pReader, oParagraph, oBullet) {
             this.setBlip(new AscFormat.CUniFill());
             this.blip.setFill(new AscFormat.CBlipFill());
             pReader.ReadBlip(this.blip, undefined, undefined, undefined, oParagraph, oBullet);
         };
-
         CBuBlip.prototype.Read_FromBinary = function (r) {
             if (r.GetBool()) {
                 this.blip = new CUniFill();
                 this.blip.Read_FromBinary(r);
             }
         };
-
         CBuBlip.prototype.Write_ToBinary = function (w) {
             w.WriteBool(isRealObject(this.blip));
             if (isRealObject(this.blip)) {
                 this.blip.Write_ToBinary(w);
             }
         };
-
         CBuBlip.prototype.compare = function (compareObj) {
             var ret = null;
             if (compareObj instanceof CBuBlip) {
@@ -5171,7 +5672,6 @@
             _ret.fill = unifill_1.compare(unifill_2);
             return _ret;
         }
-
 
         function CompareBlipTiles(tile1, tile2) {
             if (isRealObject(tile1)) {
@@ -5259,7 +5759,6 @@
             }
             return true;
         }
-
 
         function CompareUniColor(u1, u2) {
             if (!u1 && !u2)
@@ -5539,9 +6038,7 @@
             this.w = null;
 
         }
-
         InitClass(EndArrow, CBaseNoIdObject, 0);
-
         EndArrow.prototype.compare = function (end_arrow) {
             if (end_arrow == null) {
                 return null;
@@ -5699,7 +6196,6 @@
         };
 
         function CLn() {
-
             CBaseNoIdObject.call(this);
             this.Fill = null;//new CUniFill();
             this.prstDash = null;
@@ -5979,6 +6475,18 @@
             }
             return ret;
         };
+        DefaultShapeDefinition.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        DefaultShapeDefinition.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        DefaultShapeDefinition.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        DefaultShapeDefinition.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
+        };
 
 
         function CNvPr() {
@@ -5995,7 +6503,6 @@
 
             this.setId(AscCommon.CreateDurableId());
         }
-
         InitClass(CNvPr, CBaseFormatObject, AscDFH.historyitem_type_CNvPr);
         CNvPr.prototype.createDuplicate = function () {
             var duplicate = new CNvPr();
@@ -6153,7 +6660,6 @@
             this.type = null;
             this.media = null;
         }
-
         InitClass(UniMedia, CBaseNoIdObject, 0);
         UniMedia.prototype.Write_ToBinary = function (w) {
             var bType = this.type !== null && this.type !== undefined;
@@ -6174,12 +6680,23 @@
                 this.media = r.GetString2();
             }
         };
-
         UniMedia.prototype.createDuplicate = function () {
             var _ret = new UniMedia();
             _ret.type = this.type;
             _ret.media = this.media;
             return _ret;
+        };
+        UniMedia.prototype.readAttrXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        UniMedia.prototype.readChildXml = function(name, reader) {
+            //TODO:Implement in children
+        };
+        UniMedia.prototype.writeAttrXmlImpl = function(writer) {
+            //TODO:Implement in children
+        };
+        UniMedia.prototype.writeChildren = function(writer) {
+            //TODO:Implement in children
         };
 
         drawingConstructorsMap[AscDFH.historyitem_NvPr_SetUniMedia] = UniMedia;
@@ -6191,7 +6708,6 @@
             this.ph = null;
             this.unimedia = null;
         }
-
         InitClass(NvPr, CBaseFormatObject, AscDFH.historyitem_type_NvPr);
         NvPr.prototype.setIsPhoto = function (isPhoto) {
             History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_NvPr_SetIsPhoto, this.isPhoto, isPhoto));
@@ -6304,7 +6820,6 @@
             this.endCnxIdx = null;
             this.endCnxId = null;
         }
-
         InitClass(CNvUniSpPr, CBaseNoIdObject, 0);
         CNvUniSpPr.prototype.Write_ToBinary = function (w) {
             if (AscFormat.isRealNumber(this.locks)) {
@@ -6352,7 +6867,6 @@
                 this.endCnxId = null;
             }
         };
-
         CNvUniSpPr.prototype.copy = function () {
             var _ret = new CNvUniSpPr();
             _ret.locks = this.locks;
@@ -6384,7 +6898,6 @@
             this.nvUniSpPr = new CNvUniSpPr();
 
         }
-
         InitClass(UniNvPr, CBaseFormatObject, AscDFH.historyitem_type_UniNvPr);
         UniNvPr.prototype.setCNvPr = function (cNvPr) {
             History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_UniNvPr_SetCNvPr, this.cNvPr, cNvPr));
@@ -6420,7 +6933,6 @@
             this.cNvPr = readObject(r);
             this.nvPr = readObject(r);
         };
-
         UniNvPr.prototype.readAttrXml = function (name, reader) {
             //TODO:Implement in children
         };
@@ -6439,7 +6951,6 @@
             this.idx = 0;
             this.Color = new CUniColor();
         }
-
         InitClass(StyleRef, CBaseNoIdObject, 0);
         StyleRef.prototype.isIdentical = function (styleRef) {
             if (styleRef == null) {
@@ -6493,7 +7004,6 @@
             }
             return null;
         };
-
         StyleRef.prototype.readAttrXml = function (name, reader) {
             //TODO:Implement in children
         };
@@ -6512,7 +7022,6 @@
             this.idx = AscFormat.fntStyleInd_none;
             this.Color = null;
         }
-
         InitClass(FontRef, CBaseNoIdObject, 0);
         FontRef.prototype.setIdx = function (idx) {
             this.idx = idx;
@@ -6553,7 +7062,6 @@
             }
             return "+mn-";
         };
-
         FontRef.prototype.readAttrXml = function (name, reader) {
             //TODO:Implement in children
         };
@@ -6575,7 +7083,6 @@
             this.effectRef = null;
             this.fontRef = null;
         }
-
         InitClass(CShapeStyle, CBaseFormatObject, AscDFH.historyitem_type_ShapeStyle);
         CShapeStyle.prototype.merge = function (style) {
             if (style != null) {
@@ -6628,7 +7135,6 @@
             History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ShapeStyle_SetEffectRef, this.effectRef, pr));
             this.effectRef = pr;
         };
-
         CShapeStyle.prototype.readAttrXml = function (name, reader) {
             //TODO:Implement in children
         };
@@ -6727,7 +7233,6 @@
             this.flipV = null;
             this.rot = null;
         }
-
         InitClass(CXfrm, CBaseFormatObject, AscDFH.historyitem_type_Xfrm);
         CXfrm.prototype.isNotNull = function () {
             return isRealNumber(this.offX) && isRealNumber(this.offY) && isRealNumber(this.extX) && isRealNumber(this.extY);
@@ -6959,10 +7464,7 @@
             this.EffectDag = null;
             this.EffectLst = null;
         }
-
         InitClass(CEffectProperties, CBaseNoIdObject, 0);
-
-
         CEffectProperties.prototype.createDuplicate = function () {
             var oCopy = new CEffectProperties();
             if (this.EffectDag) {
@@ -6973,7 +7475,6 @@
             }
             return oCopy;
         };
-
         CEffectProperties.prototype.Write_ToBinary = function (w) {
             var nFlags = 0;
             if (this.EffectDag) {
@@ -7001,7 +7502,6 @@
                 this.EffectLst.Read_FromBinary(r);
             }
         };
-
         CEffectProperties.prototype.readAttrXml = function (name, reader) {
             //TODO:Implement in children
         };
@@ -7014,7 +7514,6 @@
         CEffectProperties.prototype.writeChildren = function (writer) {
             //TODO:Implement in children
         };
-
 
         function CEffectLst() {
             CBaseNoIdObject.call(this);
@@ -7696,6 +8195,9 @@
             //TODO:Implement in children
         };
 
+        var FONT_REGION_LT = 0x00;
+        var FONT_REGION_EA = 0x01;
+        var FONT_REGION_CS = 0x02;
         function FontScheme() {
             this.name = "";
 
@@ -7718,12 +8220,6 @@
                 "minorHAnsi": undefined
             };
         }
-
-        var FONT_REGION_LT = 0x00;
-        var FONT_REGION_EA = 0x01;
-        var FONT_REGION_CS = 0x02;
-
-
         FontScheme.prototype.createDuplicate = function () {
             var oCopy = new FontScheme();
             oCopy.majorFont.setLatin(this.majorFont.latin);
