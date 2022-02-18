@@ -10559,6 +10559,92 @@
 		return newContext;
 	};
 
+    CTableStyle.prototype.getTableStyleElement = function () {
+        if (null != this.blankRow) {
+            return this.blankRow;
+        }
+        if (null != this.firstColumn) {
+            return this.firstColumn;
+        }
+        if (null != this.firstColumnStripe) {
+            return this.firstColumnStripe;
+        }
+        if (null != this.firstColumnSubheading) {
+            return this.firstColumnSubheading;
+        }
+        if (null != this.firstHeaderCell) {
+            return this.firstHeaderCell;
+        }
+        if (null != this.firstRowStripe) {
+            return this.firstRowStripe;
+        }
+        if (null != this.firstRowSubheading) {
+            return this.firstRowSubheading;
+        }
+        if (null != this.firstSubtotalColumn) {
+            return this.firstSubtotalColumn;
+        }
+        if (null != this.firstSubtotalRow) {
+            return this.firstSubtotalRow;
+        }
+        if (null != this.firstTotalCell) {
+            return this.firstTotalCell;
+        }
+        if (null != this.headerRow) {
+            return this.headerRow;
+        }
+        if (null != this.lastColumn) {
+            return this.lastColumn;
+        }
+        if (null != this.lastHeaderCell) {
+            return this.lastHeaderCell;
+        }
+        if (null != this.lastTotalCell) {
+            return this.lastTotalCell;
+        }
+        if (null != this.pageFieldLabels) {
+            return this.pageFieldLabels;
+        }
+        if (null != this.pageFieldValues) {
+            return this.pageFieldValues;
+        }
+        if (null != this.secondColumnStripe) {
+            return this.secondColumnStripe;
+        }
+        if (null != this.secondColumnSubheading) {
+            return this.secondColumnSubheading;
+        }
+        if (null != this.secondRowStripe) {
+            return this.secondRowStripe;
+        }
+        if (null != this.secondRowSubheading) {
+            return this.secondRowSubheading;
+        }
+        if (null != this.secondSubtotalColumn) {
+            return this.secondSubtotalColumn;
+        }
+        if (null != this.secondSubtotalRow) {
+            return this.secondSubtotalRow;
+        }
+        if (null != this.thirdColumnSubheading) {
+            return this.thirdColumnSubheading;
+        }
+        if (null != this.thirdRowSubheading) {
+            return this.thirdRowSubheading;
+        }
+        if (null != this.thirdSubtotalColumn) {
+            return this.thirdSubtotalColumn;
+        }
+        if (null != this.thirdSubtotalRow) {
+            return this.thirdSubtotalRow;
+        }
+        if (null != this.totalRow) {
+            return this.totalRow;
+        }
+        if (null != this.wholeTable) {
+            return this.wholeTable;
+        }
+    }
 
     function CTableStyleElement()
     {

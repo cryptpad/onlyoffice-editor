@@ -10307,10 +10307,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					writer.WriteXmlNullableAttributeNumber("size", aElements[i].size);
 
 					//TODO пополняем dxfs, нужно перед их записью предварительно их добавить
-					var dxfs = writer.context.InitSaveManager.getDxfs();
-					if (null != aElements[i].dxf && null != dxfs) {
-						writer.WriteXmlAttributeNumber("dxfId", dxfs.length);
-						dxfs.push(aElements[i].dxf);
+					var dxfId = writer.context.tableStylesMap[this.displayName];
+					if (null != aElements[i].dxf) {
+						writer.WriteXmlAttributeNumber("dxfId", dxfId);
 					}
 					writer.WriteXmlAttributesEnd(true);
 				}
@@ -11875,6 +11874,25 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		/*if(m_oColors.IsInit())
 			m_oColors->toXML(writer);*/
 
+		//Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
+		var tableStylesMap = null;
+		if (wb.TableStyles) {
+			for (i in wb.TableStyles.CustomStyles) {
+				var style = wb.TableStyles.CustomStyles[i];
+				if(style) {
+					var tableStyleElement = style.getTableStyleElement();
+					if (tableStyleElement && tableStyleElement.dxf && null != dxfs) {
+						if (!tableStylesMap) {
+							tableStylesMap = {};
+						}
+						tableStylesMap[style.displayName] = dxfs.length;
+						dxfs.push(tableStyleElement.dxf);
+					}
+				}
+			}
+		}
+
+
 		//DXFS
 		if(null != dxfs && dxfs.length > 0) {
 			//AscCommonExcel.CellXfs. можно оберунть в dxf
@@ -11883,10 +11901,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.context.mapIndexNumId = null;
 		}
 
-		//TODO - //Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
+		//пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
 		if (null != wb.TableStyles) {
 			//Asc.CTableStyles
+			writer.context.tableStylesMap = tableStylesMap;
 			wb.TableStyles.toXml(writer, "tableStyles");
+			writer.context.tableStylesMap = null;
 		}
 
 		//TODO!!!
