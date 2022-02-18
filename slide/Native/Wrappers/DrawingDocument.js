@@ -925,9 +925,30 @@ CDrawingDocument.prototype.CheckTableStyles = function(oTableLook)
 };
 CDrawingDocument.prototype.CheckTableStylesDefault = function ()
 {
-    var tableLook = new AscCommon.CTableLook(true, true, false, false, true, false);
+    var tableLook = this.GetTableLook(true);
     return this.CheckTableStyles(tableLook);
 };
+CDrawingDocument.prototype.GetTableStylesPreviews = function(bUseDefault)
+{
+    return [];
+};
+CDrawingDocument.prototype.GetTableLook = function(isDefault)
+{
+    let oTableLook;
+
+    if (isDefault)
+    {
+        oTableLook = new AscCommon.CTableLook();
+        oTableLook.SetDefault();
+    }
+    else
+    {
+        oTableLook = this.TableStylesLastLook;
+    }
+
+    return oTableLook;
+};
+
 CDrawingDocument.prototype.GetTableStylesPreviews = function()
 {
     return [];

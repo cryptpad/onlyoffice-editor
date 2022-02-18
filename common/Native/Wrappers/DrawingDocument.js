@@ -2164,6 +2164,28 @@ CDrawingDocument.prototype =
         oPreviewGenerator.GetAllPreviewsNative(false, oGraphics, oStream, oNative, _w_px, _h_px, _pageW, _pageH);
     },
 
+    GetTableStylesPreviews : function(bUseDefault)
+    {
+        return [];
+    },
+
+    GetTableLook : function(isDefault)
+    {
+        let oTableLook;
+
+        if (isDefault)
+        {
+            oTableLook = new AscCommon.CTableLook();
+            oTableLook.SetDefault();
+        }
+        else
+        {
+            oTableLook = this.TableStylesLastLook;
+        }
+
+        return oTableLook;
+    },
+
     CheckGuiControlColors : function ()
     {
         // потом реализовать проверку на то, что нужно ли посылать

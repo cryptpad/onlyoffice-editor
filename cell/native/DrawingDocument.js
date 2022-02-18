@@ -3573,6 +3573,22 @@ function CDrawingDocument()
     {
         return [];
     };
+    this.GetTableLook = function(isDefault)
+    {
+        let oTableLook;
+
+        if (isDefault)
+        {
+            oTableLook = new AscCommon.CTableLook();
+            oTableLook.SetDefault();
+        }
+        else
+        {
+            oTableLook = this.TableStylesLastLook;
+        }
+
+        return oTableLook;
+    };
 
     this.IsMobileVersion = function()
     {
