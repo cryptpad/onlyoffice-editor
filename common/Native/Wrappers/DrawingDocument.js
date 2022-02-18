@@ -2157,7 +2157,7 @@ CDrawingDocument.prototype =
         var oStream = global_memory_stream_menu;
         var oGraphics = new CDrawingStream();
         var oNative = this.Native;
-        oPreviewGenerator.GetAllPreviewsNative(false, oGraphics, oStream, oNative, _w_px, _h_px, _pageW, _pageH);
+        oPreviewGenerator.GetAllPreviewsNative(false, oGraphics, oStream, oNative, _pageW, _pageH, _w_px, _h_px);
     },
 
     GetTableStylesPreviews : function(bUseDefault)

@@ -921,7 +921,7 @@ CDrawingDocument.prototype.CheckTableStyles = function(oTableLook)
     var oStream = global_memory_stream_menu;
     var oGraphics = new CDrawingStream();
     var oNative = this.Native;
-    oPreviewGenerator.GetAllPreviewsNative(false, oGraphics, oStream, oNative, page_w_px, page_h_px, page_w_mm, page_h_mm);
+    oPreviewGenerator.GetAllPreviewsNative(false, oGraphics, oStream, oNative, page_w_mm, page_h_mm, page_w_px, page_h_px);
 };
 CDrawingDocument.prototype.CheckTableStylesDefault = function ()
 {
