@@ -3036,7 +3036,7 @@
 	};
 	/**
 	 * Returns the hyperlink element using the position specified.
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE"]
 	 * @param {number} nPos - The position where the element which content we want to get must be located.
 	 * @returns {?ParagraphContent}
 	 */
@@ -3052,7 +3052,7 @@
 	};
 	/**
 	 * Returns a number of elements in the current hyperlink.
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE"]
 	 * @returns {number}
 	 */
 	ApiHyperlink.prototype.GetElementsCount = function()
@@ -3557,6 +3557,7 @@
 
 	/**
 	 *
+	 * The lock type of the content control.
 	 * @typedef {"unlocked" | "contentLocked" | "sdtContentLocked" | "sdtLocked"} SdtLock
 	 */
 
@@ -4996,8 +4997,8 @@
 	 * process to arrange tables on the specified page.</note>
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @param nPage - The page number.
-	 * @return {ApiTable[]}  
+	 * @param {number} nPage - The page number.
+	 * @return {ApiTable[]}
 	 */
 	ApiDocument.prototype.GetAllTablesOnPage = function(nPage)
 	{
@@ -5150,7 +5151,7 @@
 	 * @param {bool} [bBase64img=false] - Defines if the images will be created in the base64 format.
 	 * @param {bool} [bDemoteHeadings=false] - Defines if all heading levels in your document will be demoted to conform with the following standard: single H1 as title, H2 as top-level heading in the text body.
 	 * @param {bool} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket 
-	 * in the following way: \&lt;tag&gt;text\&lt;/tag&gt;. By default, angle brackets will be replaced with the special characters.
+	 * in the following way: \<tag&gt;text\</tag&gt;. By default, the opening angle brackets will be replaced with the special characters.
 	 * @returns {string}
 	 */
 	ApiDocument.prototype.ToMarkdown = function(bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags) 
@@ -5174,7 +5175,7 @@
 	 * @param {bool} [bBase64img=false] - Defines if the images will be created in the base64 format.
 	 * @param {bool} [bDemoteHeadings=false] - Defines if all heading levels in your document will be demoted to conform with the following standard: single H1 as title, H2 as top-level heading in the text body.
 	 * @param {bool} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket 
-	 * in the following way: \&lt;tag&gt;text\&lt;/tag&gt;. By default, angle brackets will be replaced with the special characters.
+	 * in the following way: \<tag&gt;text\</tag&gt;. By default, the opening angle brackets will be replaced with the special characters.
 	 * @returns {string}
 	 */
 	ApiDocument.prototype.ToHtml = function(bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags) 
@@ -7865,7 +7866,7 @@
 	/**
 	 * Adds a paragraph or a table or a blockLvl content control using its position in the cell.
 	 * @memberof ApiTable
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {ApiTableCell} oCell - The cell where the specified element will be added.
 	 * @param {number} nPos - The position in the cell where the specified element will be added.
 	 * @param {DocumentElement} oElement - The document element which will be added at the current position.
@@ -7933,7 +7934,7 @@
 	/**
 	 * Creates a copy of the current table.
 	 * @memberof ApiTable
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @returns {ApiTable}
 	 */
 	ApiTable.prototype.Copy = function()
@@ -12444,7 +12445,7 @@
 	};
 
 	/**
-	 * Gets the paragraph that contains the current content control.
+	 * Returns a paragraph that contains the current content control.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @return {ApiBlockLvlSdt | null} - returns null if parent paragraph doesn't exist.
@@ -14314,7 +14315,7 @@
 	 * @param {bool} [bBase64img=false] - Defines if the images will be created in the base64 format.
 	 * @param {bool} [bDemoteHeadings=false] - Defines if all heading levels in your document will be demoted to conform with the following standard: single H1 as title, H2 as top-level heading in the text body.
 	 * @param {bool} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket 
-	 * in the following way: \&lt;tag&gt;text\&lt;/tag&gt;. By default, angle brackets will be replaced with the special characters.
+	 * in the following way: \<tag&gt;text\</tag&gt;. By default, the opening angle brackets will be replaced with the special characters.
 	 * @returns {string}
 	 */
 	Api.prototype.ConvertDocument = function(sConvertType, bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags) 

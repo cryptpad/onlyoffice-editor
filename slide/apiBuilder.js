@@ -81,7 +81,7 @@
     }
     
     /**
-     * Class representing a theme's color scheme.
+     * Class representing a theme color scheme.
      * @constructor
      */
     function ApiThemeColorScheme(oClrScheme){
@@ -89,7 +89,7 @@
     }
 
     /**
-     * Class representing a theme's format scheme.
+     * Class representing a theme format scheme.
      * @constructor
      */
     function ApiThemeFormatScheme(ofmtScheme){
@@ -97,7 +97,7 @@
     }
 
     /**
-     * Class representing a theme's font scheme.
+     * Class representing a theme font scheme.
      * @constructor
      */
     function ApiThemeFontScheme(ofontScheme){
@@ -324,7 +324,7 @@
      * */
 
     /**
-     * Get the main presentation.
+     * Returns the main presentation.
      * @typeofeditors ["CPE"]
      * @memberof Api
      * @returns {ApiPresentation}
@@ -337,10 +337,10 @@
     };
 
     /**
-     * Create a new slide master.
+     * Creates a new slide master.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {ApiTheme} [oTheme    = ApiPresentation.GetMaster(0).GetTheme()] - ApiTheme object.
+     * @param {ApiTheme} [oTheme    = ApiPresentation.GetMaster(0).GetTheme()] - The presentation theme object.
      * @returns {ApiMaster | null} - returns null if presentation theme doesn't exist.
      */
     Api.prototype.CreateMaster = function(oTheme){
@@ -359,10 +359,10 @@
     };
 
     /**
-     * Create a new slide layout and adds it to the slide master if it specified.
+     * Creates a new slide layout and adds it to the slide master if it is specified.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {ApiMaster} [oMaster = null] - parent slide master.
+     * @param {ApiMaster} [oMaster = null] - Parent slide master.
      * @returns {ApiLayout}
      */
     Api.prototype.CreateLayout = function(oMaster){
@@ -375,10 +375,10 @@
     };
 
     /**
-     * Create a new placeholder.
+     * Creates a new placeholder.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {string} sType - the placeholder type.
+     * @param {string} sType - The placeholder type ("body", "chart", "clipArt", "ctrTitle", "diagram", "date", "footer", "header", "media", "object", "picture", "sldImage", "sldNumber", "subTitle", "table", "title").
      * @returns {ApiPlaceholder}
      */
     Api.prototype.CreatePlaceholder = function(sType){
@@ -393,14 +393,14 @@
     };
 
     /**
-     * Create a new theme.
+     * Creates a new presentation theme.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {string} sName - specified theme's name.
-     * @param {ApiMaster} oMaster - slide master. Required parameter.
-     * @param {ApiThemeColorScheme} oClrScheme - color scheme. Required parameter.
-     * @param {ApiThemeFormatScheme} oFormatScheme - format scheme. Required parameter.
-     * @param {ApiThemeFontScheme} oFontScheme - font scheme. Required parameter.
+     * @param {string} sName - Theme name.
+     * @param {ApiMaster} oMaster - Slide master. Required parameter.
+     * @param {ApiThemeColorScheme} oClrScheme - Theme color scheme. Required parameter.
+     * @param {ApiThemeFormatScheme} oFormatScheme - Theme format scheme. Required parameter.
+     * @param {ApiThemeFontScheme} oFontScheme - Theme font scheme. Required parameter.
      * @returns {ApiTheme | null} 
      */
     Api.prototype.CreateTheme = function(sName, oMaster, oClrScheme, oFormatScheme, oFontScheme){
@@ -440,14 +440,14 @@
     };
 
     /**
-     * Create a new theme color scheme.
+     * Creates a new theme color scheme.
      * @typeofeditors ["CPE"]
-     * @memberof Api
-     * @param {string} sName - specified name of theme's color scheme.
-     * @param {(ApiUniColor[] | ApiRGBColor[])} arrColors - This array defines a set of colors which are referred to as a color scheme.
+     * @memberof Api.
+     * @param {(ApiUniColor[] | ApiRGBColor[])} arrColors - Set of colors which are referred to as a color scheme.
      * The color scheme is responsible for defining a list of twelve colors.
-     * The array should contain a sequence of colors: 2 dark, 2 light,6 primary and a color for each of a hyperlink and followed hyperlink.     
-     * @returns {?ApiThemeColorScheme} 
+     * The array should contain a sequence of colors: 2 dark, 2 light, 6 primary, a color for a hyperlink and a color for the followed hyperlink.
+     * @param {string} sName - Theme color scheme name.
+     * @returns {?ApiThemeColorScheme}
      */
     Api.prototype.CreateThemeColorScheme = function(arrColors, sName){
         if (typeof(sName) !== "string")
@@ -474,13 +474,13 @@
     };
 
     /**
-     * Create a new theme format scheme.
+     * Creates a new theme format scheme.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {ApiFill[]} arrFill - This array contains fill styles. Should be composed of subtle, moderate and intense fills.
-     * @param {ApiFill[]} arrBgFill - This array contains the background fill styles. Should be composed of subtle, moderate and intense fills.
-     * @param {ApiStroke[]} arrLine - This array contains line styles. Should be composed of subtle, moderate and intense lines.
-     * @param {string} sName
+     * @param {ApiFill[]} arrFill - This array contains the fill styles. It should be consist of subtle, moderate and intense fills.
+     * @param {ApiFill[]} arrBgFill - This array contains the background fill styles. It should be consist of subtle, moderate and intense fills.
+     * @param {ApiStroke[]} arrLine - This array contains the line styles. It should be consist of subtle, moderate and intense lines.
+     * @param {string} sName - Theme format scheme name.
      * @returns {?ApiThemeFormatScheme} 
      */
     Api.prototype.CreateThemeFormatScheme = function(arrFill, arrBgFill, arrLine, sName){
@@ -507,17 +507,17 @@
 
     
     /**
-     * Create a new theme font scheme.
+     * Creates a new theme font scheme.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {string} mjLatin - Font's name. Is used to determine the major theme font applied to latit text.
-     * @param {string} mjEa - Font's name. Is used to determine the major theme font applied to east asian text.
-     * @param {string} mjCs - Font's name. Is used to determine the major theme font applied to complex script text.
-     * @param {string} mnLatin - Font's name. Is used to determine the minor theme font applied to latit text.
-     * @param {string} mnEa - Font's name. Is used to determine the minor theme font applied to east asian text.
-     * @param {string} mnCs - Font's name. Is used to determine the minor theme font applied to complex script text.
-     * @param {string} sName - name of this font scheme.
-     * @returns {ApiThemeFontScheme} 
+     * @param {string} mjLatin - The major theme font applied to the latin text.
+     * @param {string} mjEa - The major theme font applied to the east asian text.
+     * @param {string} mjCs - The major theme font applied to the complex script text.
+     * @param {string} mnLatin - The minor theme font applied to the latin text.
+     * @param {string} mnEa - The minor theme font applied to the east asian text.
+     * @param {string} mnCs - The minor theme font applied to the complex script text.
+     * @param {string} sName - Theme font scheme name.
+     * @returns {ApiThemeFontScheme}
      */
     Api.prototype.CreateThemeFontScheme = function(mjLatin, mjEa, mjCs, mnLatin, mnEa, mnCs, sName){
         
@@ -544,7 +544,7 @@
     };
     
     /**
-     * Create a new slide.
+     * Creates a new slide.
      * @typeofeditors ["CPE"]
      * @memberof Api
      * @returns {ApiSlide}
@@ -559,10 +559,10 @@
     };
 
     /**
-     * Create an image with the parameters specified.
+     * Creates an image with the parameters specified.
      * @memberof Api
      * @typeofeditors ["CPE"]
-     * @param {string} sImageSrc - The image source where the image to be inserted should be taken from (currently
+     * @param {string} sImageSrc - The image source where the image to be inserted should be taken from (currently,
      * only internet URL or Base64 encoded images are supported).
      * @param {EMU} nWidth - The image width in English measure units.
      * @param {EMU} nHeight - The image height in English measure units.
@@ -575,7 +575,7 @@
     };
 
     /**
-     * Create a shape with the parameters specified.
+     * Creates a shape with the parameters specified.
      * @memberof Api
      * @typeofeditors ["CPE"]
      * @param {ShapeType} [sType="rect"] - The shape type which specifies the preset shape geometry.
@@ -598,7 +598,7 @@
 
     
     /**
-     * Create a chart with the parameters specified.
+     * Creates a chart with the parameters specified.
      * @memberof Api
      * @typeofeditors ["CPE"]
      * @param {ChartType} [sType="bar"] - The chart type used for the chart display.
@@ -619,7 +619,7 @@
 
 
     /**
-     * Create a group of drawings.
+     * Creates a group of drawings.
      * @memberof Api
      * @param {Array} aDrawings - The array of drawings.
      * @returns {ApiGroup}
@@ -637,9 +637,9 @@
 
 
     /**
-     * Create a table.
+     * Creates a table.
      * @param nCols - Number of columns.
-     * @param nRows - Number of raws.
+     * @param nRows - Number of rows.
      * @returns {?ApiTable}
      */
     Api.prototype.CreateTable = function(nCols, nRows){
@@ -658,7 +658,7 @@
     };
 
     /**
-     * Create a new paragraph.
+     * Creates a new paragraph.
      * @memberof Api
      * @typeofeditors ["CPE"]
      * @returns {ApiParagraph}
@@ -669,7 +669,7 @@
     };
 
     /**
-	 * Save changes to the specified document.
+	 * Saves changes to the specified document.
 	 * @typeofeditors ["CPE"]
 	 * @memberof Api
 	 */
@@ -738,13 +738,13 @@
     };
 
     /**
-	 * Checks for duplicate placeholders and sets idx.
+	 * Checks for duplicate placeholders and sets indexes.
      * Called when a placeholder is added to a shape.
 	 * @typeofeditors ["CPE"]
 	 * @memberof Api
-     * @param {ApiSlide | ApiLayout | ApiMaster} object - object in which placeholders will be checked.
-     * @param {ApiPlaceholder}  - placeholder to be added. 
-     * @return {bool} - return false if object insupported or oPlaceholder isn't placeholder.
+     * @param {ApiSlide | ApiLayout | ApiMaster} object - Object in which placeholders will be checked.
+     * @param {ApiPlaceholder}  - Placeholder to be added. 
+     * @return {bool} - return false if object is unsupported or oPlaceholder isn't a placeholder.
 	 */
     Api.prototype.private_checkPlaceholders = function(object, oPlaceholder)
     {
@@ -787,7 +787,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns a type of the ApiPresentation class.
      * @typeofeditors ["CPE"]
      * @returns {"presentation"}
      */
@@ -797,7 +797,7 @@
     };
 
     /**
-     * Get the index for the current slide.
+     * Returns the index for the current slide.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @returns {number}
@@ -811,7 +811,7 @@
 
 
     /**
-     * Get the slide by its position in the presentation.
+     * Returns a slide by its position in the presentation.
      * @memberof ApiPresentation
      * @param {number} nIndex - The slide number (position) in the presentation.
      * @returns {?ApiSlide}
@@ -824,7 +824,7 @@
     };
 
     /**
-     * Get the current slide.
+     * Returns the current slide.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @returns {?ApiSlide}
@@ -835,7 +835,7 @@
 
 
     /**
-     * Append a new slide to the end of the presentation.
+     * Appends a new slide to the end of the presentation.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @param {ApiSlide} oSlide - The slide created using the {@link Api#CreateSlide} method.
@@ -850,7 +850,7 @@
 
 
     /**
-     * Set the size for the current presentation.
+     * Sets the size to the current presentation.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @param {EMU} nWidth - The presentation width in English measure units.
@@ -863,7 +863,9 @@
     };
 
     /**
-     * Create new history point.
+     * Creates a new history point.
+     * @typeofeditors ["CPE"]
+     * @memberof ApiPresentation
      */
     ApiPresentation.prototype.CreateNewHistoryPoint = function()
     {
@@ -872,10 +874,10 @@
 
 
     /**
-     * Replace current image.
+     * Replaces the current image with an image specified.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
-     * @param {string} sImageUrl - The image source where the image to be inserted should be taken from (currently only internet URL or Base64 encoded images are supported).
+     * @param {string} sImageUrl - The image source where the image to be inserted should be taken from (currently, only internet URL or Base64 encoded images are supported).
      * @param {EMU} Width - The image width in English measure units.
      * @param {EMU} Height - The image height in English measure units.
      */
@@ -947,9 +949,9 @@
     };
 
     /**
-	 * Specify the languages which will be used to check spelling and grammar (if requested).
+	 * Specifies the languages which will be used to check spelling and grammar (if requested).
 	 * @memberof ApiPresentation
-	 * @typeofeditors ["CDE"]
+	 * @typeofeditors ["CPE"]
 	 * @param {string} sLangId - The possible value for this parameter is a language identifier as defined by
 	 * RFC 4646/BCP 47. Example: "en-CA".
      * @returns {bool}
@@ -964,7 +966,7 @@
         return true;
     };
     /**
-     * Gets slides count.
+     * Returns a number of slides.
      * @typeofeditors ["CPE"]
      * @returns {number}
      */
@@ -974,7 +976,7 @@
     };
 
     /**
-     * Gets slide masters count.
+     * Returns a number of slide masters.
      * @typeofeditors ["CPE"]
      * @returns {number}
      */
@@ -984,9 +986,9 @@
     };
 
     /**
-     * Gets a slide master.
+     * Returns a slide master by its position in the presentation.
      * @typeofeditors ["CPE"]
-     * @param {number} nPos 
+     * @param {number} nPos - Slide master position in the presentation
      * @returns {ApiMaster | null} - returns null if position is invalid.
      */
     ApiPresentation.prototype.GetMaster = function(nPos)
@@ -998,11 +1000,11 @@
     };
 
     /**
-     * Adds the slide master to presentation slide masters collection.
+     * Adds the slide master to the presentation slide masters collection.
      * @typeofeditors ["CPE"]
      * @param {number} [nPos    = ApiPresentation.GetMastersCount()]
-     * @param {ApiMaster} oApiMaster
-     * @returns {bool} - return false if position is invalid or oApiMaster does'n exist.
+     * @param {ApiMaster} oApiMaster - The slide master to be added.
+     * @returns {bool} - return false if position is invalid or oApiMaster doesn't exist.
      */
     ApiPresentation.prototype.AddMaster = function(nPos, oApiMaster)
     {
@@ -1020,9 +1022,9 @@
     };
 
     /**
-     * Applies the theme to the all slides in presentation.
+     * Applies a theme to all the slides in the presentation.
      * @typeofeditors ["CPE"]
-     * @param {ApiTheme} oApiTheme
+     * @param {ApiTheme} oApiTheme - The presentation theme.
      * @returns {bool} - returns false if param isn't theme or presentation doesn't exist.
      * */
     ApiPresentation.prototype.ApplyTheme = function(oApiTheme){
@@ -1035,11 +1037,11 @@
        return false;
     };
     /**
-	 * Remove a range of slides from presentation.
-     * Deletes all slides without parameters.
+	 * Removes a range of slides from the presentation.
+     * Deletes all the slides from the presentation if no parameters are specified.
 	 * @memberof ApiPresentation
-     * @param {Number} [nStart=0] - beginning of the deletion range.
-     * @param {Number} [nCount=ApiPresentation.GetSlidesCount()] - count of slides for deletion.
+     * @param {Number} [nStart=0] - The starting position for the deletion range.
+     * @param {Number} [nCount=ApiPresentation.GetSlidesCount()] - The number of slides to delete.
 	 * @typeofeditors ["CPE"]
 	 * @returns {bool}
 	 */
@@ -1069,7 +1071,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiMaster class.
      * @typeofeditors ["CPE"]
      * @returns {"master"}
      */
@@ -1079,9 +1081,9 @@
     };
 
     /**
-     * Gets a layout of specified slide master by position .
+     * Returns a layout of the specified slide master by its position.
      * @typeofeditors ["CPE"]
-     * @param {number} nPos
+     * @param {number} nPos - Layout position.
      * @returns {ApiLayout | null} - returns null if position is invalid.
      */
     ApiMaster.prototype.GetLayout = function(nPos)
@@ -1093,11 +1095,11 @@
     };
 
     /**
-     * Adds the layout to specified slide master.
+     * Adds a layout to the specified slide master.
      * @typeofeditors ["CPE"]
-     * @param {number} [nPos = ApiMaster.GetLayoutsCount()] - position to add.
-     * @param {ApiLayout} oLayout
-     * @returns {bool} - returns false if param isn't layout
+     * @param {number} [nPos = ApiMaster.GetLayoutsCount()] - Position where a layout will be added.
+     * @param {ApiLayout} oLayout - A layout to be added.
+     * @returns {bool} - returns false if oLayout isn't a layout.
      */
     ApiMaster.prototype.AddLayout = function(nPos, oLayout)
     {
@@ -1113,11 +1115,10 @@
     };
 
     /**
-     * Removes the layouts from this slide master.
+     * Removes the layouts from the current slide master.
      * @typeofeditors ["CPE"]
-     * @param {number} nPos - position from which to delete
-     * @param {number} [nCount = 1] - count of elements for delete.
-     * @param {ApiLayout} oLayout
+     * @param {number} nPos - Position from which a layout will be deleted.
+     * @param {number} [nCount = 1] - Number of layouts to delete.
      * @returns {bool} - return false if position is invalid.
      */
     ApiMaster.prototype.RemoveLayout = function(nPos, nCount)
@@ -1138,7 +1139,7 @@
     };
 
     /**
-     * Gets the count of layout objects.
+     * Returns a number of layout objects.
      * @typeofeditors ["CPE"]
      * @returns {number}
      */
@@ -1150,7 +1151,7 @@
     /**
      * Adds an object (image, shape or chart) to the current slide master.
      * @typeofeditors ["CPE"]
-     * @memberof ApiSlide
+     * @memberof ApiMaster
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide master.
      * @returns {bool} - returns false if slide master doesn't exist.
      */
@@ -1172,9 +1173,9 @@
      * Removes objects (image, shape or chart) from the current slide master.
      * @typeofeditors ["CPE"]
      * @memberof ApiMaster
-     * @param {number} nPos - position from which to delete
-     * @param {number} [nCount = 1] - count of elements for delete. 
-     * @returns {bool} - returns false if master doesn't exist or pos is invalid or master haven't objects.
+     * @param {number} nPos - Position from which the object will be deleted.
+     * @param {number} [nCount = 1] - Number of objects to delete. 
+     * @returns {bool} - returns false if master doesn't exist or position is invalid or master hasn't objects.
      */
     ApiMaster.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -1196,7 +1197,7 @@
 
     /**
      * Sets the background to the current slide master.
-     * @memberOf ApiSlide
+     * @memberOf ApiMaster
      * @typeofeditors ["CPE"]
      * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide master background.
      * */
@@ -1212,7 +1213,7 @@
     /**
      * Clears the slide master background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide master does'n exist.
+     * @returns {bool} - return false if slide master doesn't exist.
      * */
     ApiMaster.prototype.ClearBackground = function(){
         if (!this.Master)
@@ -1244,9 +1245,9 @@
     /**
      * Creates a duplicate of the specified slide master object, adds the new slide master to the slide masters collection.
      * @typeofeditors ["CPE"]
-     * @param {number} [nPos    = ApiPresentation.GetMastersCount()]
+     * @param {number} [nPos    = ApiPresentation.GetMastersCount()] - Position where the new slide master will be added.
      * @returns {ApiMaster | null} - returns new ApiMaster object that represents the copy of slide master. 
-     * Returns null if slide master doesn't exist or not in presentation.
+     * Returns null if slide master doesn't exist or is not in the presentation.
      * */
     ApiMaster.prototype.Duplicate = function(nPos){
         if (!this.Master)
@@ -1264,9 +1265,9 @@
     };
 
     /**
-     * Deletes the specified object from parent if it exist.
+     * Deletes the specified object from the parent if it exists.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if master doesn't exist or not in presentation. 
+     * @returns {bool} - return false if master doesn't exist or is not in the presentation.
      * */
     ApiMaster.prototype.Delete = function(){
         if (this.Master && this.Master.presentation)
@@ -1285,9 +1286,9 @@
     };
 
     /**
-     * Gets the theme of slide master.
+     * Returns a theme of the slide master.
      * @typeofeditors ["CPE"]
-     * @returns {ApiTheme | null} - returns null if theme doesn't exist. 
+     * @returns {ApiTheme | null} - returns null if theme doesn't exist.
      * */
     ApiMaster.prototype.GetTheme = function(){
         if (this.Master && this.Master.Theme)
@@ -1304,11 +1305,11 @@
     };
 
     /**
-     * Sets the theme to the slide master.
+     * Sets a theme to the slide master.
      * Sets a copy of the theme object.
      * @typeofeditors ["CPE"]
-     * @param {ApiTheme} oTheme
-     * @returns {bool} - return false if param isn't theme or slide master doesn't exist.
+     * @param {ApiTheme} oTheme - Presentation theme.
+     * @returns {bool} - return false if oTheme isn't a theme or slide master doesn't exist.
      * */
     ApiMaster.prototype.SetTheme = function(oTheme){
         if (this.Master && oTheme && oTheme.GetClassType && oTheme.GetClassType() === "theme")
@@ -1322,9 +1323,9 @@
     };
     
     /**
-     * Gets the array with all drawing objects in slide master.
+     * Returns an array with all the drawing objects from the slide master.
      * @typeofeditors ["CPE"]
-     * @returns {ApiDrawing[]} 
+     * @returns {ApiDrawing[]}
      * */
     ApiMaster.prototype.GetAllDrawings = function(){
         var apiDrawingObjects = [];
@@ -1339,9 +1340,9 @@
     };
 
     /**
-     * Gets the array with all shape objects in slide master.
+     * Returns an array with all the shape objects from the slide master.
      * @typeofeditors ["CPE"]
-     * @returns {ApiShape[]} 
+     * @returns {ApiShape[]}
      * */
     ApiMaster.prototype.GetAllShapes = function(){
         var apiShapes = [];
@@ -1359,9 +1360,9 @@
     };
 
     /**
-     * Gets the array with all image objects in slide master.
+     * Returns an array with all the image objects from the slide master.
      * @typeofeditors ["CPE"]
-     * @returns {ApiImage[]} 
+     * @returns {ApiImage[]}
      * */
     ApiMaster.prototype.GetAllImages = function(){
         var apiImages = [];
@@ -1379,9 +1380,9 @@
     };
 
     /**
-     * Gets the array with all chart objects in slide master.
+     * Returns an array with all the chart objects from the slide master.
      * @typeofeditors ["CPE"]
-     * @returns {ApiChart[]} 
+     * @returns {ApiChart[]}
      * */
     ApiMaster.prototype.GetAllCharts = function(){
         var apiCharts = [];
@@ -1405,7 +1406,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiLayout class.
      * @typeofeditors ["CPE"]
      * @returns {"master"}
      */
@@ -1415,9 +1416,9 @@
     };
 
     /**
-     * Sets the name of this layout.
+     * Sets a name to the current layout.
      * @typeofeditors ["CPE"]
-     * @param {string} sName
+     * @param {string} sName - Layout name to be set.
      * @returns {bool}
      */
     ApiLayout.prototype.SetName = function(sName)
@@ -1433,7 +1434,7 @@
     /**
      * Adds an object (image, shape or chart) to the current slide layout.
      * @typeofeditors ["CPE"]
-     * @memberof ApiSlide
+     * @memberof ApiLayout
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide layout.
      * @returns {bool} - returns false if slide layout doesn't exist.
      */
@@ -1455,9 +1456,9 @@
      * Removes objects (image, shape or chart) from the current slide layout.
      * @typeofeditors ["CPE"]
      * @memberof ApiLayout
-     * @param {number} nPos - position from which to delete
-     * @param {number} [nCount = 1] - count of elements for delete. 
-     * @returns {bool} - returns false if layout doesn't exist or pos is invalid or layout haven't objects.
+     * @param {number} nPos - Position from which the object will be deleted.
+     * @param {number} [nCount = 1] - The number of elements to delete. 
+     * @returns {bool} - returns false if layout doesn't exist or position is invalid or layout hasn't objects.
      */
     ApiLayout.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -1478,7 +1479,7 @@
 
     /**
      * Sets the background to the current slide layout.
-     * @memberOf ApiSlide
+     * @memberOf ApiLayout
      * @typeofeditors ["CPE"]
      * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide layout background.
      * */
@@ -1494,7 +1495,7 @@
     /**
      * Clears the slide layout background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide layout does'n exist.
+     * @returns {bool} - return false if slide layout doesn't exist.
      * */
     ApiLayout.prototype.ClearBackground = function(){
         if (!this.Layout)
@@ -1510,9 +1511,9 @@
     };
 
     /**
-     * Determines whether the slide follows the slide master background.
+     * Sets the master background as the background of the layout.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if master is null or master haven't background.  
+     * @returns {bool} - returns false if master is null or master hasn't background.  
      * */
     ApiLayout.prototype.FollowMasterBackground = function(){
         if (!this.Layout)
@@ -1544,9 +1545,9 @@
     };
 
     /**
-     * Deletes the specified object from parent slide master if it exist.
+     * Deletes the specified object from the parent slide master if it exists.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if parent slide master does'n exist. 
+     * @returns {bool} - return false if parent slide master doesn't exist.
      * */
     ApiLayout.prototype.Delete = function(){
         if (this.Layout && this.Layout.Master)
@@ -1566,9 +1567,9 @@
     /**
      * Creates a duplicate of the specified slide layout object, adds the new slide layout to the slide layout collection.
      * @typeofeditors ["CPE"]
-     * @param {number} [nPos = ApiMaster.GetLayoutsCount()]
+     * @param {number} [nPos = ApiMaster.GetLayoutsCount()] - Position where the new slide layout will be added.
      * @returns {ApiLayout | null} - returns new ApiLayout object that represents the copy of slide layout. 
-     * Returns null if slide layout doesn't exist or not in slide master.
+     * Returns null if slide layout doesn't exist or is not in the slide master.
      * */
     ApiLayout.prototype.Duplicate = function(nPos){
         if (this.Layout && this.Layout.Master)
@@ -1587,9 +1588,10 @@
     };
 
     /**
-     * Moves the specified object to a specific location within the same collection.
+     * Moves the specified layout to a specific location within the same collection.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if layout or parent slide master doesn't exist or position is invalid. 
+     * @param {number} nPos - Position where the specified slide layout will be moved to.
+     * @returns {bool} - returns false if layout or parent slide master doesn't exist or position is invalid.
      * */
     ApiLayout.prototype.MoveTo = function(nPos){
         if (!this.Layout || !this.Layout.Master)
@@ -1608,9 +1610,9 @@
     };
 
     /**
-     * Gets the array with all drawing objects in slide layout.
+     * Returns an array with all the drawing objects from the slide layout.
      * @typeofeditors ["CPE"]
-     * @returns {ApiDrawing[]} 
+     * @returns {ApiDrawing[]}
      * */
     ApiLayout.prototype.GetAllDrawings = function(){
         var apiDrawingObjects = [];
@@ -1625,9 +1627,9 @@
     };
 
     /**
-     * Gets the array with all shape objects in slide layout.
+     * Returns an array with all the shape objects from the slide layout.
      * @typeofeditors ["CPE"]
-     * @returns {ApiShape[]} 
+     * @returns {ApiShape[]}
      * */
     ApiLayout.prototype.GetAllShapes = function(){
         var apiShapes = [];
@@ -1645,9 +1647,9 @@
     };
 
     /**
-     * Gets the array with all image objects in slide layout.
+     * Returns an array with all the image objects from the slide layout.
      * @typeofeditors ["CPE"]
-     * @returns {ApiImage[]} 
+     * @returns {ApiImage[]}
      * */
     ApiLayout.prototype.GetAllImages = function(){
         var apiImages = [];
@@ -1665,9 +1667,9 @@
     };
 
     /**
-     * Gets the array with all chart objects in slide layout.
+     * Returns an array with all the chart objects from the slide layout.
      * @typeofeditors ["CPE"]
-     * @returns {ApiChart[]} 
+     * @returns {ApiChart[]}
      * */
     ApiLayout.prototype.GetAllCharts = function(){
         var apiCharts = [];
@@ -1685,7 +1687,7 @@
     };
 
     /**
-     * Gets parent slide master.
+     * Returns the parent slide master of the current layout.
      * @typeofeditors ["CPE"]
      * @returns {?ApiMaster} - returns null if parent slide master doesn't exist.
      * */
@@ -1703,7 +1705,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiPlaceholder class.
      * @typeofeditors ["CPE"]
      * @returns {"placeholder"}
      */
@@ -1712,9 +1714,9 @@
         return "placeholder";
     };
     /**
-     * Set the placeholder type.
+     * Sets the placeholder type.
      * @typeofeditors ["CPE"]
-     * @param {string} sType - name of placeholder type.
+     * @param {string} sType - Placeholder type ("body", "chart", "clipArt", "ctrTitle", "diagram", "date", "footer", "header", "media", "object", "picture", "sldImage", "sldNumber", "subTitle", "table", "title").
      * @returns {bool} - returns false if placeholder type doesn't exist.
      */
     ApiPlaceholder.prototype.SetType = function(sType)
@@ -1784,7 +1786,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiTheme class.
      * @typeofeditors ["CPE"]
      * @returns {"theme"}
      */
@@ -1794,7 +1796,7 @@
     };
 
     /**
-     * Get the slide master of this theme.
+     * Returns the slide master of the current theme.
      * @typeofeditors ["CPE"]
      * @returns {ApiMaster | null} - returns null if slide master doesn't exist.
      */
@@ -1807,9 +1809,9 @@
     };
 
     /**
-     * Sets the presentation color scheme.
+     * Sets the color scheme to the current presentation theme.
      * @typeofeditors ["CPE"]
-     * @param {ApiThemeColorScheme} oApiColorScheme
+     * @param {ApiThemeColorScheme} oApiColorScheme - Theme color scheme.
      * @returns {bool} - return false if color scheme doesn't exist.
      */
     ApiTheme.prototype.SetColorScheme = function(oApiColorScheme)
@@ -1824,7 +1826,7 @@
     };
 
     /**
-     * Gets the presentation color scheme.
+     * Returns the color scheme of the current theme.
      * @typeofeditors ["CPE"]
      * @returns {?ApiThemeColorScheme}
      */
@@ -1839,9 +1841,9 @@
     };
 
     /**
-     * Sets the presentation format scheme.
+     * Sets the format scheme to the current presentation theme.
      * @typeofeditors ["CPE"]
-     * @param {ApiThemeFormatScheme} oApiFormatScheme
+     * @param {ApiThemeFormatScheme} oApiFormatScheme - Theme format scheme.
      * @returns {bool} - return false if format scheme doesn't exist.
      */
     ApiTheme.prototype.SetFormatScheme = function(oApiFormatScheme)
@@ -1856,7 +1858,7 @@
     };
 
     /**
-     * Gets the presentation format scheme.
+     * Returns the format scheme of the current theme.
      * @typeofeditors ["CPE"]
      * @returns {?ApiThemeFormatScheme}
      */
@@ -1871,9 +1873,9 @@
     };
 
     /**
-     * Sets the presentation font scheme.
+     * Sets the font scheme to the current presentation theme.
      * @typeofeditors ["CPE"]
-     * @param {ApiThemeFontScheme} oApiFontScheme
+     * @param {ApiThemeFontScheme} oApiFontScheme - Theme font scheme.
      * @returns {bool} - return false if font scheme doesn't exist.
      */
     ApiTheme.prototype.SetFontScheme = function(oApiFontScheme)
@@ -1888,7 +1890,7 @@
     };
 
     /**
-     * Gets the presentation font scheme.
+     * Returns the font scheme of the current theme.
      * @typeofeditors ["CPE"]
      * @returns {?ApiThemeFontScheme}
      */
@@ -1909,7 +1911,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Gets the type of this class.
+     * Returns the type of the ApiThemeColorScheme class.
      * @typeofeditors ["CPE"]
      * @returns {"themeColorScheme"}
      */
@@ -1919,9 +1921,9 @@
     };
 
     /**
-     * Sets the color scheme name.
+     * Sets a name to the current theme color scheme.
      * @typeofeditors ["CPE"]
-     * @param {string} sName
+     * @param {string} sName - Theme color scheme name.
      * @returns {bool}
      */
     ApiThemeColorScheme.prototype.SetSchemeName = function(sName)
@@ -1933,9 +1935,10 @@
     };
 
     /**
-     * Change color in color scheme.
+     * Changes a color in the theme color scheme.
      * @typeofeditors ["CPE"]
-     * @param {ApiUniColor | ApiRGBColor} oColor
+     * @param {number} nPos - Color position in the color scheme which will be changed.
+     * @param {ApiUniColor | ApiRGBColor} oColor - New color of the theme color scheme.
      * @returns {bool}
      */
     ApiThemeColorScheme.prototype.ChangeColor = function(nPos, oColor)
@@ -1952,7 +1955,7 @@
     };
 
     /**
-     * Creates a copy of the specified theme's color scheme.
+     * Creates a copy of the current theme color scheme.
      * @typeofeditors ["CPE"]
      * @returns {ApiThemeColorScheme}
      */
@@ -1968,7 +1971,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiThemeFormatScheme class.
      * @typeofeditors ["CPE"]
      * @returns {"formatColorScheme"}
      */
@@ -1978,9 +1981,9 @@
     };
 
     /**
-     * Sets the format scheme name.
+     * Sets a name to the current theme format scheme.
      * @typeofeditors ["CPE"]
-     * @param {string} sName
+     * @param {string} sName - Theme format scheme name.
      * @returns {bool}
      */
     ApiThemeFormatScheme.prototype.SetSchemeName = function(sName)
@@ -1992,10 +1995,10 @@
     };
 
     /**
-     * Sets the fill styles.
+     * Sets the fill styles to the current theme format scheme.
      * @typeofeditors ["CPE"]
-     * @param {ApiFill[]} arrFill - the array of styles must contains 3 elements and consist of subtle, moderate and intense fills.
-     * If there are empty  or no ApiFill elements in the array, it will be filled by Api.CreateNoFill() element.
+     * @param {ApiFill[]} arrFill - The array of fill styles must contain 3 elements - subtle, moderate and intense fills.
+     * If an array is empty or NoFill elements are in the array, it will be filled with the Api.CreateNoFill() elements.
      */
     ApiThemeFormatScheme.prototype.ChangeFillStyles = function(arrFill)
     {
@@ -2014,10 +2017,10 @@
     };
 
     /**
-     * Sets the background fill styles.
+     * Sets the background fill styles to the current theme format scheme.
      * @typeofeditors ["CPE"]
-     * @param {ApiFill[]} arrBgFill - the array of background fill styles must contains 3 elements and consist of subtle, moderate and intense fills.
-     * If there are empty or no ApiFill elements in the array, it will be filled by Api.CreateNoFill() element.
+     * @param {ApiFill[]} arrBgFill - The array of background fill styles must contains 3 elements - subtle, moderate and intense fills.
+     * If an array is empty or NoFill elements are in the array, it will be filled with the Api.CreateNoFill() elements.
      */
     ApiThemeFormatScheme.prototype.ChangeBgFillStyles = function(arrBgFill)
     {
@@ -2036,10 +2039,10 @@
     };
 
     /**
-     * Sets the line styles.
+     * Sets the line styles to the current theme format scheme.
      * @typeofeditors ["CPE"]
-     * @param {ApiStroke[]} arrLine - the array of line styles must contains 3 elements and consist of subtle, moderate and intense fills.
-     * If there are empty or no ApiStroke elements in the array, it will be filled by Api.CreateStroke(0, Api.CreateNoFill()) element.
+     * @param {ApiStroke[]} arrLine - The array of line styles must contain 3 elements - subtle, moderate and intense fills.
+     * If an array is empty or ApiStroke elements are with no fill, it will be filled with the Api.CreateStroke(0, Api.CreateNoFill()) elements.
      */
     ApiThemeFormatScheme.prototype.ChangeLineStyles = function(arrLine)
     {
@@ -2059,10 +2062,10 @@
 
     /**
      * **Need to do**
-     * Sets the effect styles.
+     * Sets the effect styles to the current theme format scheme.
      * @typeofeditors ["CPE"]
-     * @param {?Array} arrEffect - the array of line styles must contains 3 elements and consist of subtle, moderate and intense fills.
-     * If there are empty or no ApiStroke elements in the array, it will be filled by Api.CreateStroke(0, Api.CreateNoFill()) element.
+     * @param {?Array} arrEffect - The array of effect styles must contain 3 elements - subtle, moderate and intense fills.
+     * If an array is empty or NoFill elements are in the array, it will be filled with the Api.CreateStroke(0, Api.CreateNoFill()) elements.
      * @returns {bool}
      */
     ApiThemeFormatScheme.prototype.ChangeEffectStyles = function(arrEffect)
@@ -2084,7 +2087,7 @@
     };
 
     /**
-     * Creates a copy of the specified theme's format scheme.
+     * Creates a copy of the current theme format scheme.
      * @typeofeditors ["CPE"]
      * @returns {ApiThemeFormatScheme}
      */
@@ -2100,7 +2103,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiThemeFontScheme class.
      * @typeofeditors ["CPE"]
      * @returns {"fontScheme"}
      */
@@ -2110,9 +2113,9 @@
     };
     
     /**
-     * Sets the scheme's name.
+     * Sets a name to the current theme font scheme.
      * @typeofeditors ["CPE"]
-     * @param {string} sName
+     * @param {string} sName - Theme font scheme name.
      * @returns {bool} - returns false if font scheme doesn't exist.
      */
     ApiThemeFontScheme.prototype.SetSchemeName = function(sName)
@@ -2130,15 +2133,15 @@
     };
 
     /**
-     * Sets the fonts for font scheme.
+     * Sets the fonts to the current theme font scheme.
      * @typeofeditors ["CPE"]
-     * @memberof Api
-     * @param {string} mjLatin - Font's name. Is used to determine the major theme font applied to latit text.
-     * @param {string} mjEa - Font's name. Is used to determine the major theme font applied to east asian text.
-     * @param {string} mjCs - Font's name. Is used to determine the major theme font applied to complex script text.
-     * @param {string} mnLatin - Font's name. Is used to determine the minor theme font applied to latit text.
-     * @param {string} mnEa - Font's name. Is used to determine the minor theme font applied to east asian text.
-     * @param {string} mnCs - Font's name. Is used to determine the minor theme font applied to complex script text.
+     * @memberof ApiThemeFontScheme
+     * @param {string} mjLatin - The major theme font applied to the latin text.
+     * @param {string} mjEa - The major theme font applied to the east asian text.
+     * @param {string} mjCs - The major theme font applied to the complex script text.
+     * @param {string} mnLatin - The minor theme font applied to the latin text.
+     * @param {string} mnEa - The minor theme font applied to the east asian text.
+     * @param {string} mnCs - The minor theme font applied to the complex script text.
      */
     ApiThemeFontScheme.prototype.SetFonts = function(mjLatin, mjEa, mjCs, mnLatin, mnEa, mnCs){
         
@@ -2161,7 +2164,7 @@
     };
 
     /**
-     * Creates a copy of the specified theme's font scheme.
+     * Creates a copy of the current theme font scheme.
      * @typeofeditors ["CPE"]
      * @returns {ApiThemeFontScheme}
      */
@@ -2177,7 +2180,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiSlide class.
      * @typeofeditors ["CPE"]
      * @returns {"slide"}
      */
@@ -2187,7 +2190,7 @@
     };
 
     /**
-     * Remove all the objects from the current slide.
+     * Removes all the objects from the current slide.
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      */
@@ -2201,7 +2204,7 @@
     };
 
     /**
-     * Add an object (image, shape or chart) to the current presentation slide.
+     * Adds an object (image, shape or chart) to the current presentation slide.
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current presentation slide.
@@ -2223,9 +2226,9 @@
      * Removes objects (image, shape or chart) from the current slide.
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
-     * @param {number} nPos - position from which to delete
-     * @param {number} [nCount = 1] - count of elements for delete. 
-     * @returns {bool} - returns false if slide doesn't exist or pos is invalid or slide haven't objects.
+     * @param {number} nPos - Position from which the object will be deleted.
+     * @param {number} [nCount = 1] - The number of elements to delete. 
+     * @returns {bool} - returns false if slide doesn't exist or position is invalid or slide hasn't objects.
      */
     ApiSlide.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -2245,7 +2248,7 @@
     };
 
     /**
-     * Set the background to the current presentation slide.
+     * Sets the background to the current presentation slide.
      * @memberOf ApiSlide
      * @typeofeditors ["CPE"]
      * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide background.
@@ -2261,7 +2264,7 @@
     };
 
     /**
-     * Get the slide width in English measure units.
+     * Returns the slide width in English measure units.
      * @typeofeditors ["CPE"]
      * @returns {EMU}
      * */
@@ -2273,7 +2276,7 @@
     };
 
     /**
-     * Get the slide height in English measure units.
+     * Returns the slide height in English measure units.
      * @typeofeditors ["CPE"]
      * @returns {EMU}
      * */
@@ -2285,9 +2288,9 @@
     };
 
     /**
-     * Applies specified layout to the slide.
+     * Applies the specified layout to the current slide.
      * @typeofeditors ["CPE"]
-     * @param {ApiLayout} oLayout
+     * @param {ApiLayout} oLayout - Layout to be applied.
      * @returns {bool} - returns false if slide doesn't exist.
      * */
     ApiSlide.prototype.ApplyLayout = function(oLayout){
@@ -2326,9 +2329,9 @@
     };
 
     /**
-     * Deletes the specified slide from presentation.
+     * Deletes the current slide from the presentation.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if slide doesn't exist or not in presentation.
+     * @returns {bool} - returns false if slide doesn't exist or is not in the presentation.
      * */
     ApiSlide.prototype.Delete = function(){
         if (!this.Slide)
@@ -2347,7 +2350,7 @@
     };
 
     /**
-     * Creates a copy of the specified slide object.
+     * Creates a copy of the current slide object.
      * @typeofeditors ["CPE"]
      * @returns {ApiSlide | null} - returns new ApiSlide object that represents the duplicate slide. 
      * Returns null if slide doesn't exist.
@@ -2363,9 +2366,9 @@
     /**
      * Creates a duplicate of the specified slide object, adds the new slide to the slides collection.
      * @typeofeditors ["CPE"]
-     * @param {number} [nPos    = ApiPresentation.GetSlidesCount()]
+     * @param {number} [nPos    = ApiPresentation.GetSlidesCount()] - Position where the new slide will be added.
      * @returns {ApiSlide | null} - returns new ApiSlide object that represents the duplicate slide. 
-     * Returns null if slide doesn't exist or not in presentation.
+     * Returns null if slide doesn't exist or is not in the presentation.
      * */
     ApiSlide.prototype.Duplicate = function(nPos){
         if (!this.Slide)
@@ -2383,9 +2386,10 @@
     };
 
     /**
-     * Moves the specified slide to a specific location within the same collection.
+     * Moves the current slide to a specific location within the same collection.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if slide doesn't exist or position is invalid or slide not in presentation.  
+     * @param {number} nPos - Position where the current slide will be moved to.
+     * @returns {bool} - returns false if slide doesn't exist or position is invalid or slide is not in the presentation.
      * */
     ApiSlide.prototype.MoveTo = function(nPos){
         var oPresentation = editor.GetPresentation().Presentation;
@@ -2406,9 +2410,9 @@
     };
 
     /**
-     * Gets the positions of the spicified slide in a presentation.
+     * Returns a position of the current slide in the presentation.
      * @typeofeditors ["CPE"]
-     * @returns {number} - returns -1 if slide doesn't exist or not in presentation.  
+     * @returns {number} - returns -1 if slide doesn't exist or is not in the presentation.  
      * */
     ApiSlide.prototype.GetSlideIndex = function (){
         if (!this.Slide)
@@ -2430,7 +2434,7 @@
     /**
      * Clears the slide background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide does'n exist.
+     * @returns {bool} - return false if slide doesn't exist.
      * */
     ApiSlide.prototype.ClearBackground = function(){
         if (!this.Slide)
@@ -2447,9 +2451,9 @@
     };
 
     /**
-     * Sets the slide background as the background of slide layout. 
+     * Sets the layout background as the background of the slide.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if layout is null or layout haven't background or slide does'n exist. 
+     * @returns {bool} - returns false if layout is null or layout hasn't background or slide doesn't exist.
      * */
     ApiSlide.prototype.FollowLayoutBackground = function(){
         if (!this.Slide)
@@ -2468,9 +2472,9 @@
     };
 
     /**
-     * Sets the slide background as the background of slide master. 
+     * Sets the master background as the background of the slide.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if master is null or master haven't background or slide does'n exist.  
+     * @returns {bool} - returns false if master is null or master hasn't background or slide doesn't exist.
      * */
     ApiSlide.prototype.FollowMasterBackground = function(){
         if (!this.Slide)
@@ -2488,10 +2492,10 @@
     };
 
     /**
-     * Applies a specified theme to the slide.
+     * Applies the specified theme to the current slide.
      * @typeofeditors ["CPE"]
-     * @param {ApiTheme} oApiTheme
-     * @returns {bool} - returns false if master is null or master haven't background.  
+     * @param {ApiTheme} oApiTheme - Presentation theme.
+     * @returns {bool} - returns false if master is null or master hasn't background.
      * */
     ApiSlide.prototype.ApplyTheme = function(oApiTheme){
         if (!this.Slide || !oApiTheme || !oApiTheme.GetClassType ||oApiTheme.GetClassType() !== "theme")
@@ -2597,7 +2601,7 @@
     };
 
     /**
-     * Gets layout of the slide.
+     * Returns a layout of the current slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiLayout | null} - returns null if slide or layout doesn't exist. 
      * */
@@ -2609,7 +2613,7 @@
     };
 
     /**
-     * Gets the theme of slide.
+     * Returns a theme of the current slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiTheme} - returns null if slide or layout or master or theme doesn't exist.
      * */
@@ -2628,7 +2632,7 @@
     };
 
     /**
-     * Gets the array with all drawing objects in slide.
+     * Returns an array with all the drawing objects from the slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiDrawing[]} 
      * */
@@ -2645,7 +2649,7 @@
     };
 
     /**
-     * Gets the array with all shape objects in slide.
+     * Returns an array with all the shape objects from the slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiShape[]} 
      * */
@@ -2665,7 +2669,7 @@
     };
 
     /**
-     * Gets the array with all image objects in slide.
+     * Returns an array with all the image objects from the slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiImage[]} 
      * */
@@ -2685,7 +2689,7 @@
     };
 
     /**
-     * Gets the array with all chart objects in slide.
+     * Returns an array with all the chart objects from the slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiChart[]} 
      * */
@@ -2711,7 +2715,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of the class based on this base class.
+     * Returns the type of the ApiDrawing class.
      * @returns {"drawing"}
      */
     ApiDrawing.prototype.GetClassType = function()
@@ -2719,7 +2723,7 @@
         return "drawing";
     };
     /**
-     * Set the size of the object (image, shape, chart) bounding box.
+     * Sets the size of the object (image, shape, chart) bounding box.
      * @param {EMU} nWidth - The object width measured in English measure units.
      * @param {EMU} nHeight - The object height measured in English measure units.
      */
@@ -2735,7 +2739,7 @@
     };
 
     /**
-     * Set the position of the drawing on the slide.
+     * Sets the position of the drawing on the slide.
      * @param {EMU} nPosX - The distance from the left side of the slide to the left side of the drawing measured in English measure units.
      * @param {EMU} nPosY - The distance from the top side of the slide to the upper side of the drawing measured in English measure units.
      */
@@ -2751,7 +2755,7 @@
     };
 
     /**
-     * Gets the parent of drawing.
+     * Returns the drawing parent object.
      * @typeofeditors ["CPE"]
      * @returns {ApiSlide | ApiLayout | ApiMaster | null}
      */
@@ -2774,9 +2778,9 @@
     };
     
     /**
-     * Gets the parent slide.
+     * Returns the drawing parent slide.
      * @typeofeditors ["CPE"]
-     * @returns {ApiSlide | null} - return null if parent ins't slide.
+     * @returns {ApiSlide | null} - return null if parent ins't a slide.
      */
     ApiDrawing.prototype.GetParentSlide = function()
     {
@@ -2789,9 +2793,9 @@
     };
 
     /**
-     * Gets the parent slide layout.
+     * Returns the drawing parent slide layout.
      * @typeofeditors ["CPE"]
-     * @returns {ApiLayout | null} - return null if parent ins't slide layout.
+     * @returns {ApiLayout | null} - return null if parent ins't a slide layout.
      */
     ApiDrawing.prototype.GetParentLayout = function()
     {
@@ -2804,9 +2808,9 @@
     };
 
     /**
-     * Gets the parent slide master.
+     * Returns the drawing parent slide master.
      * @typeofeditors ["CPE"]
-     * @returns {ApiMaster | null} - return null if parent ins't slide master.
+     * @returns {ApiMaster | null} - return null if parent ins't a slide master.
      */
     ApiDrawing.prototype.GetParentMaster = function()
     {
@@ -2819,7 +2823,7 @@
     };
 
     /**
-     * Creates a copy of specified drawing object.
+     * Creates a copy of the specified drawing object.
      * @typeofeditors ["CPE"]
      * @returns {ApiDrawing} - return null if drawing doesn't exist.
      */
@@ -2832,9 +2836,9 @@
     };
 
     /**
-     * Deletes the specified drawing object from parent.
+     * Deletes the specified drawing object from the parent.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - false if drawing doesn't exist or drawing haven't parent.
+     * @returns {bool} - false if drawing doesn't exist or drawing hasn't a parent.
      */
     ApiDrawing.prototype.Delete = function()
     {
@@ -2856,10 +2860,10 @@
     };
 
     /**
-     * Sets the specified placeholder to the shape.
+     * Sets the specified placeholder to the current drawing object.
      * @typeofeditors ["CPE"]
-     * @param {ApiPlaceholder} oPlaceholder - The type of the vertical alignment for the shape inner contents.
-     * @returns {bool} - returns false if param doesn't placeholder.
+     * @param {ApiPlaceholder} oPlaceholder - Placeholder object.
+     * @returns {bool} - returns false if parameter isn't a placeholder.
      */
     ApiDrawing.prototype.SetPlaceholder = function(oPlaceholder)
     {
@@ -2913,7 +2917,7 @@
     };
 
     /**
-     * Gets the placeholder of the specified shape.
+     * Returns a placeholder from the current drawing object.
      * @typeofeditors ["CPE"]
      * @returns {ApiPlaceholder | null} - returns null if placeholder doesn't exist.
      */
@@ -2956,7 +2960,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiImage class.
      * @returns {"image"}
      */
     ApiImage.prototype.GetClassType = function()
@@ -2971,7 +2975,7 @@
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiShape class.
      * @typeofeditors ["CPE"]
      * @returns {"shape"}
      */
@@ -2983,7 +2987,7 @@
 
     /**
      * Deprecated in 6.2.
-     * Get the shape inner contents where a paragraph or text runs can be inserted. 
+     * Returns the shape inner contents where a paragraph or text runs can be inserted. 
      * @typeofeditors ["CPE"]
      * @returns {?ApiDocumentContent}
      */
@@ -2998,7 +3002,7 @@
     };
     
     /**
-     * Get the shape inner contents where a paragraph or text runs can be inserted. 
+     * Returns the shape inner contents where a paragraph or text runs can be inserted. 
      * @typeofeditors ["CPE"]
      * @returns {?ApiDocumentContent}
      */
@@ -3013,7 +3017,7 @@
     };
 
     /**
-     * Set the vertical alignment for the shape content where a paragraph or text runs can be inserted.
+     * Sets the vertical alignment to the shape content where a paragraph or text runs can be inserted.
      * @typeofeditors ["CPE"]
      * @param {VerticalTextAlign} VerticalAlign - The type of the vertical alignment for the shape inner contents.
      */
@@ -3048,7 +3052,7 @@
     //
     //------------------------------------------------------------------------------------------------------------------
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiChart class.
      * @typeofeditors ["CPE"]
      * @returns {"chart"}
      */
@@ -3058,7 +3062,7 @@
     };
 
     /**
-     *  Specify the chart title.
+     *  Specifies the chart title.
      *  @typeofeditors ["CPE"]
      *  @param {string} sTitle - The title which will be displayed for the current chart.
      *  @param {pt} nFontSize - The text size value measured in points.
@@ -3070,7 +3074,7 @@
     };
 
     /**
-     *  Specify the chart horizontal axis title.
+     *  Specifies the chart horizontal axis title.
      *  @typeofeditors ["CPE"]
      *  @param {string} sTitle - The title which will be displayed for the horizontal axis of the current chart.
      *  @param {pt} nFontSize - The text size value measured in points.
@@ -3082,7 +3086,7 @@
     };
 
     /**
-     *  Specify the chart vertical axis title.
+     *  Specifies the chart vertical axis title.
      *  @typeofeditors ["CPE"]
      *  @param {string} sTitle - The title which will be displayed for the vertical axis of the current chart.
      *  @param {pt} nFontSize - The text size value measured in points.
@@ -3094,7 +3098,7 @@
     };
 
     /**
-     * Specify the chart legend position.
+     * Specifies the chart legend position.
      * @typeofeditors ["CPE"]
      * @param {"left" | "top" | "right" | "bottom" | "none"} sLegendPos - The position of the chart legend inside the chart window.
      * */
@@ -3104,7 +3108,7 @@
     };
 
     /**
-     * Specify a legend font size.
+     * Specifies the chart legend font size.
      * @param {pt} nFontSize - The text size value measured in points.
      * */
     ApiChart.prototype.SetLegendFontSize = function(nFontSize)
@@ -3113,16 +3117,16 @@
     };
 
     /**
-     * Specify a vertical axis orientation.
-     * @param {bool} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
-	 * (from minimum to maximum). The <code>false</code> value will set the inverted data direction for the horizontal axis (from maximum to minimum).
+     * Specifies the vertical axis orientation.
+     * @param {bool} bIsMinMax - The <code>true</code> value will set the normal data direction for the vertical axis
+	 * (from minimum to maximum). The <code>false</code> value will set the inverted data direction for the vertical axis (from maximum to minimum).
      * */
     ApiChart.prototype.SetVerAxisOrientation = function(bIsMinMax){
         AscFormat.builder_SetChartVertAxisOrientation(this.Chart, bIsMinMax);
     };
 
     /**
-     * Specify a horizontal axis orientation.
+     * Specifies the horizontal axis orientation.
      * @param {bool} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
 	 * (from minimum to maximum). The <code>false</code> value will set the inverted data direction for the horizontal axis (from maximum to minimum).
      * */
@@ -3131,7 +3135,7 @@
     };
 
     /**
-     *  Specify which chart data labels are shown for the chart.
+     * Specifies which chart data labels are shown for the chart.
      * @typeofeditors ["CPE"]
      * @param {boolean} bShowSerName - Whether to show or hide the source table column names used for the data which the chart will be build from.
      * @param {boolean} bShowCatName - Whether to show or hide the source table row names used for the data which the chart will be build from.
@@ -3144,7 +3148,7 @@
     };
 
     /**
-     * Spicify the show options for data labels.
+     * Spicifies the show options for the chart data labels.
      * @param {number} nSeriesIndex - The series index from the array of the data used to build the chart from.
      * @param {number} nPointIndex - The point index from this series.
      * @param {boolean} bShowSerName - Whether to show or hide the source table column names used for the data which the chart will be build from.
@@ -3158,16 +3162,16 @@
     };
 
     /**
-     * Spicify tick labels position for vertical axis.
-     * @param {TickLabelPosition} sTickLabelPosition - The type for the position of chart vertical tick labels.
+     * Spicifies tick label position for the vertical axis.
+     * @param {TickLabelPosition} sTickLabelPosition - The position type of the chart vertical tick labels.
      * */
     ApiChart.prototype.SetVertAxisTickLabelPosition = function(sTickLabelPosition)
     {
         AscFormat.builder_SetChartVertAxisTickLablePosition(this.Chart, sTickLabelPosition);
     };
     /**
-     * Spicify tick labels position for horizontal axis.
-     * @param {TickLabelPosition} sTickLabelPosition - The type for the position of chart horizontal tick labels.
+     * Spicifies tick label position for the horizontal axis.
+     * @param {TickLabelPosition} sTickLabelPosition - The position type of the chart horizontal tick labels.
      * */
     ApiChart.prototype.SetHorAxisTickLabelPosition = function(sTickLabelPosition)
     {
@@ -3178,7 +3182,7 @@
 
 
     /**
-     * Specify major tick mark for horizontal axis.
+     * Specifies the major tick mark for the horizontal axis.
      * @param {TickMark} sTickMark - The type of tick mark appearance.
      * */
 
@@ -3186,7 +3190,7 @@
         AscFormat.builder_SetChartHorAxisMajorTickMark(this.Chart, sTickMark);
     };
     /**
-     * Specify minor tick mark for horizontal axis.
+     * Specifies the minor tick mark for the horizontal axis.
      * @param {TickMark} sTickMark - The type of tick mark appearance.
      * */
 
@@ -3195,7 +3199,7 @@
     };
 
     /**
-     * Specify major tick mark for vertical axis.
+     * Specifies the major tick mark for the vertical axis.
      * @param {TickMark} sTickMark - The type of tick mark appearance.
      * */
 
@@ -3204,7 +3208,7 @@
     };
 
     /**
-     * Specify minor tick mark for vertical axis.
+     * Specifies the minor tick mark for the vertical axis.
      * @param {TickMark} sTickMark - The type of tick mark appearance.
      * */
     ApiChart.prototype.SetVertAxisMinorTickMark = function(sTickMark){
@@ -3215,7 +3219,7 @@
 
 
     /**
-     * Specify major vertical gridline's visual properties.
+     * Specifies the visual properties for the major vertical gridlines.
      * @param {?ApiStroke} oStroke - The stroke used to create the element shadow.
      * */
     ApiChart.prototype.SetMajorVerticalGridlines = function(oStroke)
@@ -3224,7 +3228,7 @@
     };
 
     /**
-     * Specify minor vertical gridline's visual properties.
+     * Specifies the visual properties for the minor vertical gridlines.
      * @param {?ApiStroke} oStroke - The stroke used to create the element shadow.
      * */
     ApiChart.prototype.SetMinorVerticalGridlines = function(oStroke)
@@ -3234,7 +3238,7 @@
 
 
     /**
-     * Specify major horizontal gridline's visual properties.
+     * Specifies the visual properties for the major horizontal gridlines.
      * @param {?ApiStroke} oStroke - The stroke used to create the element shadow.
      * */
     ApiChart.prototype.SetMajorHorizontalGridlines = function(oStroke)
@@ -3243,7 +3247,7 @@
     };
 
     /**
-     * Specify minor vertical gridline's visual properties.
+     * Specifies the visual properties for the minor horizontal gridlines.
      * @param {?ApiStroke} oStroke - The stroke used to create the element shadow.
      * */
     ApiChart.prototype.SetMinorHorizontalGridlines = function(oStroke)
@@ -3253,7 +3257,7 @@
 
 
     /**
-     * Specify font size for labels of horizontal axis.
+     * Specifies font size for the labels of the horizontal axis.
      * @param {pt} nFontSize - The text size value measured in points.
      */
     ApiChart.prototype.SetHorAxisLablesFontSize = function(nFontSize){
@@ -3261,7 +3265,7 @@
     };
 
     /**
-     * Specify font size for labels of vertical axis.
+     * Specifies font size for the labels of the vertical axis.
      * @param {pt} nFontSize - The text size value measured in points.
      */
     ApiChart.prototype.SetVertAxisLablesFontSize = function(nFontSize){
@@ -3275,7 +3279,7 @@
     //
     //------------------------------------------------------------------------------------------------------------------
     /**
-     * Return type of object.
+     * Returns the type of the ApiTable object.
      * @returns {"table"}
      * */
     ApiTable.prototype.GetClassType = function(){
@@ -3284,8 +3288,8 @@
 
 
     /**
-     * Return row by index.
-     * @param nIndex {number} - The row number (position) in the table.
+     * Returns a row by its index.
+     * @param nIndex {number} - The row index (position) in the table.
      * @returns {?ApiTableRow}
      * */
     ApiTable.prototype.GetRow = function(nIndex){
@@ -3300,7 +3304,7 @@
     };
 
     /**
-     * Merge array of cells. If merge was done successfully, it will return merged cell, otherwise "null".
+     * Merges an array of cells. If merge is successful, it will return merged cell, otherwise "null".
      * <b>Warning</b>: The number of cells in any row and the number of rows in the current table may be changed.
      * @param {ApiTableCell[]} aCells - The array of cells.
      * @returns {?ApiTableCell}
@@ -3366,7 +3370,7 @@
         this.Table.private_UpdateCellsGrid();
     };
     /**
-     * Specify the components of the conditional formatting of the referenced table style (if one exists)
+     * Specifies the components of the conditional formatting of the referenced table style (if one exists)
      * which shall be applied to the set of table rows with the current table-level property exceptions. A table style
      * can specify up to six different optional conditional formats [Example: Different formatting for first column],
      * which then can be applied or omitted from individual table rows in the parent table.
@@ -3395,9 +3399,9 @@
         this.Table.Set_TableLook(oTableLook);
     };
     /**
-     * Add a new row to the current table.
-     * @param {ApiTableCell} [oCell] - If not specified a new row will be added to the end of the table.
-     * @param {boolean} [isBefore=false] - Add a new row before or after the specified cell. If no cell is specified,
+     * Adds a new row to the current table.
+     * @param {ApiTableCell} [oCell] - If not specified, a new row will be added to the end of the table.
+     * @param {boolean} [isBefore=false] - Adds a new row before or after the specified cell. If no cell is specified,
      * then this parameter will be ignored.
      * @returns {ApiTableRow}
      */
@@ -3425,8 +3429,8 @@
         return new ApiTableRow(this.Table.Content[nRowIndex]);
     };
     /**
-     * Add a new column to the end of the current table.
-     * @param {ApiTableCell} [oCell] - If not specified a new column will be added to the end of the table.
+     * Adds a new column to the end of the current table.
+     * @param {ApiTableCell} [oCell] - If not specified, a new column will be added to the end of the table.
      * @param {boolean} [isBefore=false] - Add a new column before or after the specified cell. If no cell is specified,
      * then this parameter will be ignored.
      */
@@ -3450,8 +3454,8 @@
         this.Table.AddTableColumn(_isBefore);
     };
     /**
-     * Remove the table row with a specified cell.
-     * @param {ApiTableCell} oCell - The table cell specified.
+     * Removes a table row with the specified cell.
+     * @param {ApiTableCell} oCell - The table cell from the row which will be removed.
      * @returns {boolean} - defines if the table is empty after removing or not.
      */
     ApiTable.prototype.RemoveRow = function(oCell)
@@ -3465,8 +3469,8 @@
         return isEmpty;
     };
     /**
-     * Remove the table column with a specified cell.
-     * @param {ApiTableCell} oCell - The table cell specified.
+     * Removes a table column with the specified cell.
+     * @param {ApiTableCell} oCell - The table cell from the column which will be removed.
      * @returns {boolean} - defines if the table is empty after removing or not.
      */
     ApiTable.prototype.RemoveColumn = function(oCell)
@@ -3482,7 +3486,7 @@
     };
 
     /**
-     * Specify the shading which shall be applied to the extents of the current table.
+     * Specifies the shading which shall be applied to the extents of the current table.
      * @typeofeditors ["CPE"]
 	 * @param {ShdType | ApiFill} sType - The shading type applied to the contents of the current table. Can be ShdType or ApiFill.
 	 * @param {byte} r - Red color component value.
@@ -3537,7 +3541,7 @@
     //
     //------------------------------------------------------------------------------------------------------------------
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiTableRow class.
      * @returns {"tableRow"}
      */
     ApiTableRow.prototype.GetClassType = function()
@@ -3545,7 +3549,7 @@
         return "tableRow";
     };
     /**
-     * Get the number of cells in the current row.
+     * Returns a number of cells in the current row.
      * @returns {number}
      */
     ApiTableRow.prototype.GetCellsCount = function()
@@ -3553,7 +3557,7 @@
         return this.Row.Content.length;
     };
     /**
-     * Get the cell by its position.
+     * Returns a cell by its position in the current row.
      * @param {number} nPos - The cell position in the table row.
      * @returns {ApiTableCell}
      */
@@ -3567,7 +3571,7 @@
 
 
     /**
-     * Set the height of the current table row within the current table.
+     * Sets the height to the current table row.
      * @param {EMU} [nValue] - The row height in English measure units.
      */
     ApiTableRow.prototype.SetHeight = function(nValue)
@@ -3598,12 +3602,12 @@
 
     //------------------------------------------------------------------------------------------------------------------
     //
-    // ApiTableRow
+    // ApiTableCell
     //
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the type of this class.
+     * Returns the type of the ApiTableCell class.
      * @returns {"tableCell"}
      */
     ApiTableCell.prototype.GetClassType = function()
@@ -3612,7 +3616,7 @@
     };
 
     /**
-     * Returns cell content.
+     * Returns the current cell content.
      * @returns {ApiDocumentContent}
      */
     ApiTableCell.prototype.GetContent = function(){
@@ -3623,7 +3627,7 @@
 
 
     /**
-     * Specify the shading which shall be applied to the extents of the current table cell.
+     * Specifies the shading which shall be applied to the extents of the current table cell.
      * @typeofeditors ["CPE"]
 	 * @param {ShdType | ApiFill} sType - The shading type applied to the contents of the current table. Can be ShdType or ApiFill.
 	 * @param {byte} r - Red color component value.
@@ -3673,7 +3677,7 @@
 
 
     /**
-     * Specify the amount of space which shall be left between the bottom extent of the cell contents and the border
+     * Specifies an amount of space which shall be left between the bottom extent of the cell contents and the border
      * of a specific individual table cell within a table.
      * @param {?twips} nValue - If this value is <code>null</code>, then default table cell bottom margin shall be used,
      * otherwise override the table cell bottom margin with specified value for the current cell.
@@ -3699,10 +3703,10 @@
         this.Cell.Set_Pr(oPr);
     };
     /**
-     * Specify the amount of space which shall be left between the left extent of the current cell contents and the
+     * Specifies an amount of space which shall be left between the left extent of the current cell contents and the
      * left edge border of a specific individual table cell within a table.
-     * @param {?twips} nValue - If this value is <code>null</code>, then default table cell bottom margin shall be used,
-     * otherwise override the table cell bottom margin with specified value for the current cell.
+     * @param {?twips} nValue - If this value is <code>null</code>, then default table cell left margin shall be used,
+     * otherwise override the table cell left margin with specified value for the current cell.
      */
     ApiTableCell.prototype.SetCellMarginLeft = function(nValue)
     {
@@ -3725,10 +3729,10 @@
         this.Cell.Set_Pr(oPr);
     };
     /**
-     * Specifies the amount of space which shall be left between the right extent of the current cell contents and the
+     * Specifies an amount of space which shall be left between the right extent of the current cell contents and the
      * right edge border of a specific individual table cell within a table.
-     * @param {?twips} nValue - If this value is <code>null</code>, then default table cell bottom margin shall be used,
-     * otherwise override the table cell bottom margin with specified value for the current cell.
+     * @param {?twips} nValue - If this value is <code>null</code>, then default table cell right margin shall be used,
+     * otherwise override the table cell right margin with specified value for the current cell.
      */
     ApiTableCell.prototype.SetCellMarginRight = function(nValue)
     {
@@ -3751,10 +3755,10 @@
         this.Cell.Set_Pr(oPr);
     };
     /**
-     * Specifies the amount of space which shall be left between the top extent of the current cell contents and the
+     * Specifies an amount of space which shall be left between the top extent of the current cell contents and the
      * top edge border of a specific individual table cell within a table.
-     * @param {?twips} nValue - If this value is <code>null</code>, then default table cell bottom margin shall be used,
-     * otherwise override the table cell bottom margin with specified value for the current cell.
+     * @param {?twips} nValue - If this value is <code>null</code>, then default table cell top margin shall be used,
+     * otherwise override the table cell top margin with specified value for the current cell.
      */
     ApiTableCell.prototype.SetCellMarginTop = function(nValue)
     {
@@ -3777,7 +3781,7 @@
         this.Cell.Set_Pr(oPr);
     };
     /**
-     * Set the border which shall be displayed at the bottom of the current table cell.
+     * Sets the border which shall be displayed at the bottom of the current table cell.
      * @param {mm} fSize - The width of the current border.
      * @param {ApiFill} oApiFill - The color or pattern used to fill the current border.
      */
@@ -3794,7 +3798,7 @@
     };
 
     /**
-     * Set the border which shall be displayed at the left of the current table cell.
+     * Sets the border which shall be displayed at the left of the current table cell.
      * @param {mm} fSize - The width of the current border.
      * @param {ApiFill} oApiFill - The color or pattern used to fill the current border.
      */
@@ -3811,7 +3815,7 @@
     };
 
     /**
-     * Set the border which shall be displayed at the right of the current table cell.
+     * Sets the border which shall be displayed at the right of the current table cell.
      * @param {mm} fSize - The width of the current border.
      * @param {ApiFill} oApiFill - The color or pattern used to fill the current border.
      */
@@ -3828,7 +3832,7 @@
     };
 
     /**
-     * Set the border which shall be displayed at the top of the current table cell.
+     * Sets the border which shall be displayed at the top of the current table cell.
      * @param {mm} fSize - The width of the current border.
      * @param {ApiFill} oApiFill - The color or pattern used to fill the current border.
      */
@@ -3845,7 +3849,7 @@
     };
 
     /**
-     * Specify the vertical alignment for text within the current table cell.
+     * Specifies the vertical alignment for text within the current table cell.
      * @param {("top" | "center" | "bottom")} sType - The type of the vertical alignment.
      */
     ApiTableCell.prototype.SetVerticalAlign = function(sType)
@@ -3860,7 +3864,7 @@
         this.Cell.Set_Pr(oPr);
     };
     /**
-     * Specify the direction of the text flow for this table cell.
+     * Specifies the direction of the text flow for the current table cell.
      * @param {("lrtb" | "tbrl" | "btlr")} sType - The type of the text flow direction. 
      */
     ApiTableCell.prototype.SetTextDirection = function(sType)
