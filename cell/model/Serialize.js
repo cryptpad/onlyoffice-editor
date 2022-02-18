@@ -3125,62 +3125,9 @@
         this.WriteTableCustomStyleElements = function(customStyle)
         {
             var oThis = this;
-            if(null != customStyle.blankRow)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeBlankRow, customStyle.blankRow);});
-            if(null != customStyle.firstColumn)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstColumn, customStyle.firstColumn);});
-            if(null != customStyle.firstColumnStripe)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstColumnStripe, customStyle.firstColumnStripe);});
-            if(null != customStyle.firstColumnSubheading)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstColumnSubheading, customStyle.firstColumnSubheading);});
-            if(null != customStyle.firstHeaderCell)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstHeaderCell, customStyle.firstHeaderCell);});
-            if(null != customStyle.firstRowStripe)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstRowStripe, customStyle.firstRowStripe);});
-            if(null != customStyle.firstRowSubheading)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstRowSubheading, customStyle.firstRowSubheading);});
-            if(null != customStyle.firstSubtotalColumn)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstSubtotalColumn, customStyle.firstSubtotalColumn);});
-            if(null != customStyle.firstSubtotalRow)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstSubtotalRow, customStyle.firstSubtotalRow);});
-            if(null != customStyle.firstTotalCell)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeFirstTotalCell, customStyle.firstTotalCell);});
-            if(null != customStyle.headerRow)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeHeaderRow, customStyle.headerRow);});
-            if(null != customStyle.lastColumn)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeLastColumn, customStyle.lastColumn);});
-            if(null != customStyle.lastHeaderCell)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeLastHeaderCell, customStyle.lastHeaderCell);});
-            if(null != customStyle.lastTotalCell)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeLastTotalCell, customStyle.lastTotalCell);});
-            if(null != customStyle.pageFieldLabels)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypePageFieldLabels, customStyle.pageFieldLabels);});
-            if(null != customStyle.pageFieldValues)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypePageFieldValues, customStyle.pageFieldValues);});
-            if(null != customStyle.secondColumnStripe)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeSecondColumnStripe, customStyle.secondColumnStripe);});
-            if(null != customStyle.secondColumnSubheading)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeSecondColumnSubheading, customStyle.secondColumnSubheading);});
-            if(null != customStyle.secondRowStripe)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeSecondRowStripe, customStyle.secondRowStripe);});
-            if(null != customStyle.secondRowSubheading)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeSecondRowSubheading, customStyle.secondRowSubheading);});
-            if(null != customStyle.secondSubtotalColumn)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeSecondSubtotalColumn, customStyle.secondSubtotalColumn);});
-            if(null != customStyle.secondSubtotalRow)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeSecondSubtotalRow, customStyle.secondSubtotalRow);});
-            if(null != customStyle.thirdColumnSubheading)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeThirdColumnSubheading, customStyle.thirdColumnSubheading);});
-            if(null != customStyle.thirdRowSubheading)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeThirdRowSubheading, customStyle.thirdRowSubheading);});
-            if(null != customStyle.thirdSubtotalColumn)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeThirdSubtotalColumn, customStyle.thirdSubtotalColumn);});
-            if(null != customStyle.thirdSubtotalRow)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeThirdSubtotalRow, customStyle.thirdSubtotalRow);});
-            if(null != customStyle.totalRow)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeTotalRow, customStyle.totalRow);});
-            if(null != customStyle.wholeTable)
-                this.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(ETableStyleType.tablestyletypeWholeTable, customStyle.wholeTable);});
+            this.InitSaveManager.WriteTableCustomStyleElements(customStyle, function (type, elem) {
+                oThis.bs.WriteItem(c_oSer_TableStyle.Element, function(){oThis.WriteTableCustomStyleElement(type, elem);});
+            });
         };
         this.WriteTableCustomStyleElement = function(type, customElement)
         {
@@ -11908,6 +11855,64 @@
         }
     };
 
+    InitSaveManager.prototype.WriteTableCustomStyleElements = function (customStyle, func) {
+        if(null != customStyle.blankRow)
+            func(ETableStyleType.tablestyletypeBlankRow, customStyle.blankRow);
+        if(null != customStyle.firstColumn)
+            func(ETableStyleType.tablestyletypeFirstColumn, customStyle.firstColumn);
+        if(null != customStyle.firstColumnStripe)
+            func(ETableStyleType.tablestyletypeFirstColumnStripe, customStyle.firstColumnStripe);
+        if(null != customStyle.firstColumnSubheading)
+            func(ETableStyleType.tablestyletypeFirstColumnSubheading, customStyle.firstColumnSubheading);
+        if(null != customStyle.firstHeaderCell)
+            func(ETableStyleType.tablestyletypeFirstHeaderCell, customStyle.firstHeaderCell);
+        if(null != customStyle.firstRowStripe)
+            func(ETableStyleType.tablestyletypeFirstRowStripe, customStyle.firstRowStripe);
+        if(null != customStyle.firstRowSubheading)
+            func(ETableStyleType.tablestyletypeFirstRowSubheading, customStyle.firstRowSubheading);
+        if(null != customStyle.firstSubtotalColumn)
+            func(ETableStyleType.tablestyletypeFirstSubtotalColumn, customStyle.firstSubtotalColumn);
+        if(null != customStyle.firstSubtotalRow)
+            func(ETableStyleType.tablestyletypeFirstSubtotalRow, customStyle.firstSubtotalRow);
+        if(null != customStyle.firstTotalCell)
+            func(ETableStyleType.tablestyletypeFirstTotalCell, customStyle.firstTotalCell);
+        if(null != customStyle.headerRow)
+            func(ETableStyleType.tablestyletypeHeaderRow, customStyle.headerRow);
+        if(null != customStyle.lastColumn)
+            func(ETableStyleType.tablestyletypeLastColumn, customStyle.lastColumn);
+        if(null != customStyle.lastHeaderCell)
+            func(ETableStyleType.tablestyletypeLastHeaderCell, customStyle.lastHeaderCell);
+        if(null != customStyle.lastTotalCell)
+            func(ETableStyleType.tablestyletypeLastTotalCell, customStyle.lastTotalCell);
+        if(null != customStyle.pageFieldLabels)
+            func(ETableStyleType.tablestyletypePageFieldLabels, customStyle.pageFieldLabels);
+        if(null != customStyle.pageFieldValues)
+            func(ETableStyleType.tablestyletypePageFieldValues, customStyle.pageFieldValues);
+        if(null != customStyle.secondColumnStripe)
+            func(ETableStyleType.tablestyletypeSecondColumnStripe, customStyle.secondColumnStripe);
+        if(null != customStyle.secondColumnSubheading)
+            func(ETableStyleType.tablestyletypeSecondColumnSubheading, customStyle.secondColumnSubheading);
+        if(null != customStyle.secondRowStripe)
+            func(ETableStyleType.tablestyletypeSecondRowStripe, customStyle.secondRowStripe);
+        if(null != customStyle.secondRowSubheading)
+            func(ETableStyleType.tablestyletypeSecondRowSubheading, customStyle.secondRowSubheading);
+        if(null != customStyle.secondSubtotalColumn)
+            func(ETableStyleType.tablestyletypeSecondSubtotalColumn, customStyle.secondSubtotalColumn);
+        if(null != customStyle.secondSubtotalRow)
+            func(ETableStyleType.tablestyletypeSecondSubtotalRow, customStyle.secondSubtotalRow);
+        if(null != customStyle.thirdColumnSubheading)
+            func(ETableStyleType.tablestyletypeThirdColumnSubheading, customStyle.thirdColumnSubheading);
+        if(null != customStyle.thirdRowSubheading)
+            func(ETableStyleType.tablestyletypeThirdRowSubheading, customStyle.thirdRowSubheading);
+        if(null != customStyle.thirdSubtotalColumn)
+            func(ETableStyleType.tablestyletypeThirdSubtotalColumn, customStyle.thirdSubtotalColumn);
+        if(null != customStyle.thirdSubtotalRow)
+            func(ETableStyleType.tablestyletypeThirdSubtotalRow, customStyle.thirdSubtotalRow);
+        if(null != customStyle.totalRow)
+            func(ETableStyleType.tablestyletypeTotalRow, customStyle.totalRow);
+        if(null != customStyle.wholeTable)
+            func(ETableStyleType.tablestyletypeWholeTable, customStyle.wholeTable);
+    };
 
     var prot;
     window['Asc'] = window['Asc'] || {};

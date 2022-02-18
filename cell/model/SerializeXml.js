@@ -10150,13 +10150,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			bEmptyCustom = false;
 			break;
 		}
-		if (bEmptyCustom) {
+		if (!bEmptyCustom) {
 			writer.WriteXmlAttributesEnd();
 
 			for (i in this.CustomStyles) {
-				var style = this.CustomStyles[i].style;
-				var elements = this.CustomStyles[i].elements;
-				style.toXml(writer, "tableStyle", "", elements);
+				var style = this.CustomStyles[i];
+				writer.context.InitSaveManager.WriteTableCustomStyleElements(this.CustomStyles[i], function(type, tableStyleElement) {
+					style.toXml(writer, "tableStyle", "", type, [tableStyleElement]);
+				});
+
 			}
 
 			writer.WriteXmlNodeEnd(ns + name);
@@ -10249,10 +10251,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValue();
 				this.name = val;
 			} else if ("pivot" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.pivot = val;
 			} else if ("table" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.table = val;
 			} else if ("displayName" === reader.GetName()) {
 				val = reader.GetValue();
@@ -10261,7 +10263,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.CTableStyle.prototype.toXml = function (writer, name, ns, aElements) {
+	Asc.CTableStyle.prototype.toXml = function (writer, name, ns, type, aElements) {
 
 		/*if(m_oName.IsInit() && m_arrItems.size() > 0)
 						{
@@ -10283,7 +10285,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							writer.WriteString(_T("</tableStyle>"));
 						}*/
 
-		if(this.name && aElements.length > 0)
+		if(this.name && aElements && aElements.length)
 		{
 			if (!ns) {
 				ns = "";
@@ -10301,9 +10303,15 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				if (aElements[i]) {
 					//tableStyleElement
 					writer.WriteXmlNodeStart("tableStyleElement");
-					writer.WriteXmlAttributeString("type", ToXml_ST_TableStyleType(aElements[i].Type));
-					writer.WriteXmlNullableAttributeNumber("size",aElements[i].Size);
-					writer.WriteXmlAttributeNumber("dxfId", aElements[i].DxfId);
+					writer.WriteXmlAttributeString("type", ToXml_ST_TableStyleType(type));
+					writer.WriteXmlNullableAttributeNumber("size", aElements[i].size);
+
+					//TODO пополняем dxfs, нужно перед их записью предварительно их добавить
+					var dxfs = writer.context.InitSaveManager.getDxfs();
+					if (null != aElements[i].dxf && null != dxfs) {
+						writer.WriteXmlAttributeNumber("dxfId", dxfs.length);
+						dxfs.push(aElements[i].dxf);
+					}
 					writer.WriteXmlAttributesEnd(true);
 				}
 			}
