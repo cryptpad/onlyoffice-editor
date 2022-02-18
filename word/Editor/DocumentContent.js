@@ -209,6 +209,11 @@ CDocumentContent.prototype.Copy3 = function(Parent)//для заголовков
 	return DC;
 };
 
+CDocumentContent.prototype.isDocumentContentInSmartArtShape = function ()
+{
+	return this.Parent && this.Parent.isObjectInSmartArt && this.Parent.isObjectInSmartArt();
+};
+
 CDocumentContent.prototype.createDuplicateForSmartArt = function (oPr, arrayOfTxBody) {
 	if (!arrayOfTxBody) {
 		return;
