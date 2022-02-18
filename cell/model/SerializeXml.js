@@ -986,19 +986,19 @@
 		var res = null;
 		switch (val) {
 			case "single":
-				val = Asc.EUnderline.underlineSingle;
+				res = Asc.EUnderline.underlineSingle;
 				break;
 			case "double":
-				val = Asc.EUnderline.underlineDouble;
+				res = Asc.EUnderline.underlineDouble;
 				break;
 			case "singleAccounting":
-				val = Asc.EUnderline.underlineSingleAccounting;
+				res = Asc.EUnderline.underlineSingleAccounting;
 				break;
 			case "doubleAccounting":
-				val = Asc.EUnderline.underlineDoubleAccounting;
+				res = Asc.EUnderline.underlineDoubleAccounting;
 				break;
 			case "none":
-				val = Asc.EUnderline.underlineNone;
+				res = Asc.EUnderline.underlineNone;
 				break;
 		}
 		return res;
@@ -1008,19 +1008,19 @@
 		var res = null;
 		switch (val) {
 			case Asc.EUnderline.underlineSingle:
-				val = "single";
+				res = "single";
 				break;
 			case Asc.EUnderline.underlineDouble:
-				val = "double";
+				res = "double";
 				break;
 			case Asc.EUnderline.underlineSingleAccounting:
-				val = "singleAccounting";
+				res = "singleAccounting";
 				break;
 			case Asc.EUnderline.underlineDoubleAccounting:
-				val = "doubleAccounting";
+				res = "doubleAccounting";
 				break;
 			case Asc.EUnderline.underlineNone:
-				val = "none";
+				res = "none";
 				break;
 		}
 		return res;
@@ -1031,13 +1031,13 @@
 		var res = null;
 		switch (val) {
 			case "individual":
-				val = Asc.c_oAscSparklineAxisMinMax.Individual;
+				res = Asc.c_oAscSparklineAxisMinMax.Individual;
 				break;
 			case "group":
-				val = Asc.c_oAscSparklineAxisMinMax.Group;
+				res = Asc.c_oAscSparklineAxisMinMax.Group;
 				break;
 			case "custom":
-				val = Asc.c_oAscSparklineAxisMinMax.Custom;
+				res = Asc.c_oAscSparklineAxisMinMax.Custom;
 				break;
 		}
 		return res;
@@ -1047,18 +1047,201 @@
 		var res = null;
 		switch (val) {
 			case Asc.c_oAscSparklineAxisMinMax.Individual:
-				val = "individual";
+				res = "individual";
 				break;
 			case Asc.c_oAscSparklineAxisMinMax.Group:
-				val = "group";
+				res = "group";
 				break;
 			case Asc.c_oAscSparklineAxisMinMax.Custom:
-				val = "custom";
+				res = "custom";
 				break;
 		}
 		return res;
 	}
 
+	function FromXml_ST_TableStyleType(val) {
+		var res = null;
+		switch (val) {
+			case "wholeTable":
+				res = Asc.ETableStyleType.tablestyletypeWholeTable;
+				break;
+			case "headerRow":
+				res = Asc.ETableStyleType.tablestyletypeHeaderRow;
+				break;
+			case "totalRow":
+				res = Asc.ETableStyleType.tablestyletypeTotalRow;
+				break;
+			case "firstColumn":
+				res = Asc.ETableStyleType.tablestyletypeFirstColumn;
+				break;
+			case "lastColumn":
+				res = Asc.ETableStyleType.tablestyletypeLastColumn;
+				break;
+			case "firstRowStripe":
+				res = Asc.ETableStyleType.tablestyletypeFirstRowStripe;
+				break;
+			case "secondRowStripe":
+				res = Asc.ETableStyleType.tablestyletypeSecondRowStripe;
+				break;
+			case "firstColumnStripe":
+				res = Asc.ETableStyleType.tablestyletypeFirstColumnStripe;
+				break;
+			case "secondColumnStripe":
+				res = Asc.ETableStyleType.tablestyletypeSecondColumnStripe;
+				break;
+			case "firstHeaderCell":
+				res = Asc.ETableStyleType.tablestyletypeFirstHeaderCell;
+				break;
+			case "lastHeaderCell":
+				res = Asc.ETableStyleType.tablestyletypeLastHeaderCell;
+				break;
+			case "firstTotalCell":
+				res = Asc.ETableStyleType.tablestyletypeFirstTotalCell;
+				break;
+			case "lastTotalCell":
+				res = Asc.ETableStyleType.tablestyletypeLastTotalCell;
+				break;
+			case "firstSubtotalColumn":
+				res = Asc.ETableStyleType.tablestyletypeFirstSubtotalColumn;
+				break;
+			case "secondSubtotalColumn":
+				res = Asc.ETableStyleType.tablestyletypeSecondSubtotalColumn;
+				break;
+			case "thirdSubtotalColumn":
+				res = Asc.ETableStyleType.tablestyletypeThirdSubtotalColumn;
+				break;
+			case "firstSubtotalRow":
+				res = Asc.ETableStyleType.tablestyletypeFirstSubtotalRow;
+				break;
+			case "secondSubtotalRow":
+				res = Asc.ETableStyleType.tablestyletypeSecondSubtotalRow;
+				break;
+			case "thirdSubtotalRow":
+				res = Asc.ETableStyleType.tablestyletypeThirdSubtotalRow;
+				break;
+			case "blankRow":
+				res = Asc.ETableStyleType.tablestyletypeBlankRow;
+				break;
+			case "firstColumnSubheading":
+				res = Asc.ETableStyleType.tablestyletypeFirstColumnSubheading;
+				break;
+			case "secondColumnSubheading":
+				res = Asc.ETableStyleType.tablestyletypeSecondColumnSubheading;
+				break;
+			case "thirdColumnSubheading":
+				res = Asc.ETableStyleType.tablestyletypeThirdColumnSubheading;
+				break;
+			case "firstRowSubheading":
+				res = Asc.ETableStyleType.tablestyletypeFirstRowSubheading;
+				break;
+			case "secondRowSubheading":
+				res = Asc.ETableStyleType.tablestyletypeSecondRowSubheading;
+				break;
+			case "thirdRowSubheading":
+				res = Asc.ETableStyleType.tablestyletypeThirdRowSubheading;
+				break;
+			case "pageFieldLabels":
+				res = Asc.ETableStyleType.tablestyletypePageFieldLabels;
+				break;
+			case "pageFieldValues":
+				res = Asc.ETableStyleType.tablestyletypePageFieldValues;
+				break;
+
+		}
+		return res;
+	}
+
+	function ToXml_ST_TableStyleType(val) {
+		var res = null;
+		switch (val) {
+			case Asc.ETableStyleType.tablestyletypeWholeTable:
+				res = "wholeTable";
+				break;
+			case Asc.ETableStyleType.tablestyletypeHeaderRow:
+				res = "headerRow";
+				break;
+			case Asc.ETableStyleType.tablestyletypeTotalRow:
+				res = "totalRow";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstColumn:
+				res = "firstColumn";
+				break;
+			case Asc.ETableStyleType.tablestyletypeLastColumn:
+				res = "lastColumn";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstRowStripe:
+				res = "firstRowStripe";
+				break;
+			case Asc.ETableStyleType.tablestyletypeSecondRowStripe:
+				res = "secondRowStripe";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstColumnStripe:
+				res = "firstColumnStripe";
+				break;
+			case Asc.ETableStyleType.tablestyletypeSecondColumnStripe:
+				res = "secondColumnStripe";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstHeaderCell:
+				res = "firstHeaderCell";
+				break;
+			case Asc.ETableStyleType.tablestyletypeLastHeaderCell:
+				res = "lastHeaderCell";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstTotalCell:
+				res = "firstTotalCell";
+				break;
+			case Asc.ETableStyleType.tablestyletypeLastTotalCell:
+				res = "lastTotalCell";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstSubtotalColumn:
+				res = "firstSubtotalColumn";
+				break;
+			case Asc.ETableStyleType.tablestyletypeSecondSubtotalColumn:
+				res = "secondSubtotalColumn";
+				break;
+			case Asc.ETableStyleType.tablestyletypeThirdSubtotalColumn:
+				res = "thirdSubtotalColumn";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstSubtotalRow:
+				res = "firstSubtotalRow";
+				break;
+			case Asc.ETableStyleType.tablestyletypeSecondSubtotalRow:
+				res = "secondSubtotalRow";
+				break;
+			case Asc.ETableStyleType.tablestyletypeThirdSubtotalRow:
+				res = "thirdSubtotalRow";
+				break;
+			case Asc.ETableStyleType.tablestyletypeBlankRow:
+				res = "blankRow";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstColumnSubheading:
+				res = "firstColumnSubheading";
+				break;
+			case Asc.ETableStyleType.tablestyletypeSecondColumnSubheading:
+				res = "secondColumnSubheading";
+				break;
+			case Asc.ETableStyleType.tablestyletypeThirdColumnSubheading:
+				res = "thirdColumnSubheading";
+				break;
+			case Asc.ETableStyleType.tablestyletypeFirstRowSubheading:
+				res = "firstRowSubheading";
+				break;
+			case Asc.ETableStyleType.tablestyletypeSecondRowSubheading:
+				res = "secondRowSubheading";
+				break;
+			case Asc.ETableStyleType.tablestyletypeThirdRowSubheading:
+				res = "thirdRowSubheading";
+				break;
+			case Asc.ETableStyleType.tablestyletypePageFieldLabels:
+				res = "pageFieldLabels";
+				break;
+			case Asc.ETableStyleType.tablestyletypePageFieldValues:
+				res = "pageFieldValues";
+				break;
+
+		}
+		return res;
+	}
 
 
 	function boolToNumber (val) {
@@ -9998,6 +10181,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 								m_arrItems.push_back( new CTableStyleElement( oReader ));
 						}*/
 
+
 		this.readAttr(reader);
 
 		if (reader.IsEmptyNode()) {
@@ -10019,7 +10203,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						tableStyleElement.Size = val;
 					} else if ("type" === reader.GetName()) {
 						val = reader.GetValue();
-						tableStyleElement.Type = val;
+						tableStyleElement.Type = FromXml_ST_TableStyleType(val);
 					}
 				}
 
@@ -10117,7 +10301,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				if (aElements[i]) {
 					//tableStyleElement
 					writer.WriteXmlNodeStart("tableStyleElement");
-					writer.WriteXmlAttributeString("type", aElements[i].Type);
+					writer.WriteXmlAttributeString("type", ToXml_ST_TableStyleType(aElements[i].Type));
 					writer.WriteXmlNullableAttributeNumber("size",aElements[i].Size);
 					writer.WriteXmlAttributeNumber("dxfId", aElements[i].DxfId);
 					writer.WriteXmlAttributesEnd(true);
