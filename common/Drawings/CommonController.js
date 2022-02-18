@@ -2866,6 +2866,9 @@ DrawingObjectsController.prototype =
                         f.apply(content, args);
                         content.SetApplyToAll(false);
                         ret = true;
+                        if (arr[i].isObjectInSmartArt()) {
+                            arr[i].setCustT(true);
+                        }
                     }
                     else
                     {
@@ -2942,8 +2945,12 @@ DrawingObjectsController.prototype =
             {
                 if(this.selection.groupSelection.selection.textSelection.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
                 {
-                    f.apply(this.selection.groupSelection.selection.textSelection.getDocContent(), args);
-                    this.selection.groupSelection.selection.textSelection.checkExtentsByDocContent();
+                    var frame = this.selection.groupSelection.selection.textSelection;
+                    f.apply(frame.getDocContent(), args);
+                    if (frame.isObjectInSmartArt()) {
+                        frame.setCustT(true);
+                    }
+                    frame.checkExtentsByDocContent();
                 }
                 else
                 {

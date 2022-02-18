@@ -1094,6 +1094,17 @@ CShape.prototype.setSmartArtPoint = function (pr) {
     this.point.setParent(this);
 };
 
+CShape.prototype.setCustT = function (value) {
+    var pointContent = this.getSmartArtPointContent();
+    if (pointContent) {
+        pointContent.forEach(function (point) {
+            if (point.prSet && point.prSet.custT !== value) {
+                point.prSet.setCustT(value);
+            }
+        })
+    }
+}
+
 CShape.prototype.setShapeSmartArtInfo = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetShapeSmartArtPointInfo, this.shapeSmartArtInfo, pr));
     this.shapeSmartArtInfo = pr;
@@ -1427,16 +1438,9 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     }
     if(!editor || !editor.noCreatePoint || editor.exucuteHistory)
     {
-        var pointContent = this.isObjectInSmartArt() && this.getSmartArtPointContent();
-        if (pointContent && pointContent.length !== 0) {
-            var argsValue = args[0] && args[0].Value;
-            if (argsValue) {
-                if (argsValue.FontSize) {
-                    pointContent.forEach(function (point) {
-                        point.prSet.setCustT(true);
-                    })
-                }
-            }
+        var fontSize = args[0] && args[0].Value && args[0].Value.FontSize;
+        if (fontSize) {
+            this.setCustT(true);
         }
         this.checkExtentsByDocContent();
     }
@@ -4307,7 +4311,9 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
 };
 
 CShape.prototype.getSmartArtPointContent = function () {
-    return this.getSmartArtInfo() && this.getSmartArtInfo().contentPoint;
+    if (this.isObjectInSmartArt()) {
+        return this.getSmartArtInfo() && this.getSmartArtInfo().contentPoint;
+    }
 }
 
 CShape.prototype.getSmartArtShapePoint = function () {
