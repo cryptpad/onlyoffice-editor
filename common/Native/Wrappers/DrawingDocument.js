@@ -2148,16 +2148,12 @@ CDrawingDocument.prototype =
 			return;
 
         var logicDoc = this.m_oWordControl.m_oLogicDocument;
-        var oPreviewGenerator = new AscCommon.CTableStylesPreviewGenerator(logicDoc)
-        var _w_px = TABLE_STYLE_WIDTH_PIX;
-        var _h_px = TABLE_STYLE_HEIGHT_PIX;
+        var oPreviewGenerator = new AscCommon.CTableStylesPreviewGenerator(logicDoc);
+        var dScale = 2;
+        var _w_px = 85 * dScale;
+        var _h_px = 85 * dScale;
         var _pageW = 297;
         var _pageH = 210;
-        if (AscCommon.AscBrowser.isRetina)
-        {
-            _w_px *= 2;
-            _h_px *= 2;
-        }
         var oStream = global_memory_stream_menu;
         var oGraphics = new CDrawingStream();
         var oNative = this.Native;

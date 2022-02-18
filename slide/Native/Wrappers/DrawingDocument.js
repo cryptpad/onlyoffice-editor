@@ -912,12 +912,12 @@ CDrawingDocument.prototype.CheckTableStyles = function(oTableLook)
     {
         return;
     }
-    var aStyles = logicDoc.GetAllTableStyles();
-    var oPreviewGenerator =  new AscCommon.CTableStylesPreviewGenerator();
-    var page_w_mm = 90 * 2.54 / (72.0 / 96.0);
-    var page_h_mm = 70 * 2.54 / (72.0 / 96.0);
-    var page_w_px = 90 * 2;
-    var page_h_px = 70 * 2;
+    var oPreviewGenerator =  new AscCommon.CTableStylesPreviewGenerator(logicDoc);
+    var dScale = 2;//TODO
+    var page_w_mm = 297;
+    var page_h_mm = 210;
+    var page_w_px = 90 * dScale;
+    var page_h_px = 70 * dScale;
     var oStream = global_memory_stream_menu;
     var oGraphics = new CDrawingStream();
     var oNative = this.Native;
