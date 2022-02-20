@@ -34,14 +34,48 @@
 
 (function(window, undefined) {
 //document
+	CDocument.prototype.fromZip = function(zip, context, oReadResult) {
+		context.oReadResult = oReadResult;
+		context.zip = zip;
+
+		let reader;
+		var doc = new openXml.OpenXmlPackage(zip, null);
+		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
+		if (documentPart) {
+			var stylesPart = documentPart.getPartByRelationshipType(openXml.Types.styles.relationType);
+			if (stylesPart) {
+				var contentStyles = stylesPart.getDocumentContent();
+				reader = new StaxParser(contentStyles, stylesPart, context);
+				this.Styles.fromXml(reader);
+			}
+			var numberingPart = documentPart.getPartByRelationshipType(openXml.Types.numbering.relationType);
+			if (numberingPart) {
+				var numberingContent = numberingPart.getDocumentContent();
+				reader = new StaxParser(numberingContent, numberingPart, context);
+				this.Numbering.fromXml(reader);
+			}
+		}
+
+		var contentDocument = documentPart.getDocumentContent();
+		reader = new StaxParser(contentDocument, documentPart, context);
+		this.fromXml(reader, oReadResult.DocumentContent);
+	};
 	CDocument.prototype.toZip = function(zip, context) {
-		var res = null;
 		var memory = new AscCommon.CMemory();
 		memory.context = context;
+
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
 		var docPart = filePart.addPart(AscCommon.openXml.Types.mainDocument);
-		docPart.part.setDataXml(this, memory);
+
+		var stylesPart = docPart.part.addPart(AscCommon.openXml.Types.styles);
+		stylesPart.part.setDataXml(this.Styles, memory);
 		memory.Seek(0);
+
+		if (!this.Numbering.IsEmpty()) {
+			var numberingPart = docPart.part.addPart(AscCommon.openXml.Types.numbering);
+			numberingPart.part.setDataXml(this.Numbering, memory);
+			memory.Seek(0);
+		}
 
 		memory.WriteXmlString(AscCommonWord.g_sXmlWebSettings);
 		var sampleData = memory.GetDataUint8();
@@ -55,10 +89,6 @@
 		settingsPart.part.setData(sampleData);
 		memory.Seek(0);
 
-		var stylesPart = docPart.part.addPart(AscCommon.openXml.Types.styles);
-		stylesPart.part.setDataXml(this.Styles, memory);
-		memory.Seek(0);
-
 		memory.WriteXmlString(AscCommonWord.g_sXmlTheme);
 		sampleData = memory.GetDataUint8();
 		var themePart = docPart.part.addPart(AscCommon.openXml.Types.theme);
@@ -69,6 +99,9 @@
 		sampleData = memory.GetDataUint8();
 		var fontsPart = docPart.part.addPart(AscCommon.openXml.Types.fontTable);
 		fontsPart.part.setData(sampleData);
+		memory.Seek(0);
+
+		docPart.part.setDataXml(this, memory);
 		memory.Seek(0);
 	};
 	CDocument.prototype.fromXml = function(reader, Content) {
@@ -1549,13 +1582,13 @@
 				case "ilvl" : {
 					var ilvl = new CT_DecimalNumber();
 					ilvl.fromXml(reader);
-					this.Lvl = ilvl.getVal(undefined);
+					this.Lvl = ilvl.getVal(this.Lvl);
 					break;
 				}
 				case "numId" : {
 					var numId = new CT_DecimalNumber();
 					numId.fromXml(reader);
-					this.NumId = numId.getVal(undefined);
+					this.NumId = numId.getVal(this.NumId);
 					break;
 				}
 				// case "ins" : {
@@ -1570,7 +1603,7 @@
 		var ilvl = new CT_DecimalNumber();
 		ilvl.val = this.Lvl;
 		var numId = new CT_DecimalNumber();
-		numId.val = parseInt(this.NumId) || 0;
+		numId.val = writer.context.oNumIdMap[this.NumId] || 0;
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -2968,7 +3001,7 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:countBy", this.CountBy);
 		writer.WriteXmlNullableAttributeInt("w:start", this.Start);
-		writer.WriteXmlNullableAttributeStringEncode("w:distance", this.Distance);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:distance", this.Distance, g_dKoef_mm_to_twips);
 		writer.WriteXmlNullableAttributeString("w:restart", toXml_ST_LineNumberRestart(this.Restart));
 		writer.WriteXmlAttributesEnd(true);
 	};
@@ -3320,6 +3353,421 @@
 		// writer.WriteXmlArray(this.TblStylePr, "w:tblStylePr");
 		writer.WriteXmlNodeEnd(name);
 	};
+//numbering
+	CNumbering.prototype.fromXml = function(reader) {
+		var name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("numbering" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		var aNumsMap = {}, additional, oReadResult = reader.context.oReadResult;
+		if ("numbering" === name) {
+			var elem, depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				switch (reader.GetNameNoNS()) {
+					// case "numPicBullet" : {
+					// 	elem = new CT_NumPicBullet();
+					// 	elem.fromXml(reader);
+					// 	this.NumPicBullet.push(elem);
+					// 	break;
+					// }
+					case "abstractNum" : {
+						additional = {aNumId: null};
+						elem = new CAbstractNum();
+						elem.fromXml(reader, additional);
+						if (null !== additional.aNumId) {
+							aNumsMap[additional.aNumId] = elem;
+						}
+						break;
+					}
+					case "num" : {
+						additional = {numId: null, aNumId: null};
+						elem = new CNum(this);
+						elem.fromXml(reader, additional);
+						var ANum = aNumsMap[additional.aNumId];
+						if (ANum) {
+							elem.SetAbstractNumId(ANum.GetId());
+							oReadResult.numToANumClass[ANum.GetId()] = ANum;
+						}
+						if (null !== additional.numId) {
+							oReadResult.numToNumClass[additional.numId] = elem;
+						}
+						break;
+					}
+					// case "numIdMacAtCleanup" : {
+					// 	this.NumIdMacAtCleanup = new CT_DecimalNumber();
+					// 	this.NumIdMacAtCleanup.fromXml(reader);
+					// 	break;
+					// }
+				}
+			}
+		}
+	};
+	CNumbering.prototype.toXml = function(writer) {
+		var i, aNumsMap = {}, aNumsIndex = 0, numsIndex = 1, name = "w:numbering";
+		var oNumIdMap = writer.context.oNumIdMap;
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlNumberingNamespaces);
+		writer.WriteXmlAttributesEnd();
+
+		// writer.WriteXmlArray(this.NumPicBullet, "w:numPicBullet");
+		for (i in this.AbstractNum) {
+			if (this.AbstractNum.hasOwnProperty(i)) {
+				var aNum = this.AbstractNum[i];
+				aNum.toXml(writer, "w:abstractNum", aNumsIndex);
+				aNumsMap[aNum.GetId()] = aNumsIndex++;
+			}
+		}
+		for (i in this.Num) {
+			if (this.Num.hasOwnProperty(i)) {
+				var Num = this.Num[i];
+				var aNumId = aNumsMap[Num.AbstractNumId];
+				Num.toXml(writer, "w:num", numsIndex, aNumId);
+				oNumIdMap[Num.GetId()] = numsIndex++;
+			}
+		}
+		// writer.WriteXmlNullable(this.NumIdMacAtCleanup, "w:numIdMacAtCleanup");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CAbstractNum.prototype.readAttr = function(reader, additional) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "abstractNumId":
+				case "listDefId": {
+					additional.aNumId = reader.GetValueInt();
+					break;
+				}
+			}
+		}
+	};
+	CAbstractNum.prototype.fromXml = function(reader, additional) {
+		var oReadResult = reader.context.oReadResult;
+		this.readAttr(reader, additional);
+		var elem, index = 0, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				// case "nsid" : {
+				// 	this.Nsid = new CT_LongHexNumber();
+				// 	this.Nsid.fromXml(reader);
+				// 	break;
+				// }
+				// case "multiLevelType" :
+				// case "plt" : {
+				// 	this.MultiLevelType = new CT_MultiLevelType();
+				// 	this.MultiLevelType.fromXml(reader);
+				// 	break;
+				// }
+				// case "tmpl" : {
+				// 	this.Tmpl = new CT_LongHexNumber();
+				// 	this.Tmpl.fromXml(reader);
+				// 	break;
+				// }
+				// case "name" : {
+				// 	this.Name = new CT_String();
+				// 	this.Name.fromXml(reader);
+				// 	break;
+				// }
+				case "styleLink" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					if (elem.val) {
+						oReadResult.numStyleLinks.push({pPr: this, style: elem.val});
+					}
+					break;
+				}
+				case "numStyleLink" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					if (elem.val) {
+						oReadResult.styleLinks.push({pPr: this, style: elem.val});
+					}
+					break;
+				}
+				case "lvl" : {
+					if (index < this.Lvl.length) {
+						var additional = {ilvl: index};
+						elem = this.Lvl[index].Copy();
+						//сбрасываем свойства
+						elem.ParaPr = new CParaPr();
+						elem.TextPr = new CTextPr();
+						elem.fromXml(reader, additional);
+						index = additional.ilvl || index;
+						this.Lvl[index] = elem;
+						oReadResult.aPostOpenStyleNumCallbacks.push(function(){
+							this.SetLvl(index, elem);
+						});
+						index++;
+					}
+					break;
+				}
+			}
+		}
+	};
+	CAbstractNum.prototype.toXml = function(writer, name, abstractNumId) {
+		var MultiLevelType = CT_StringStax.prototype.fromVal("hybridMultilevel");
+		var StyleLink = CT_StringStax.prototype.fromVal(this.StyleLink);
+		var NumStyleLink = CT_StringStax.prototype.fromVal(this.NumStyleLink);
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:abstractNumId", abstractNumId);
+		writer.WriteXmlAttributesEnd();
+		// writer.WriteXmlNullable(this.Nsid, "w:nsid");
+		writer.WriteXmlNullable(MultiLevelType, "w:multiLevelType");
+		// writer.WriteXmlNullable(this.Tmpl, "w:tmpl");
+		// writer.WriteXmlNullable(this.Name, "w:name");
+		writer.WriteXmlNullable(StyleLink, "w:styleLink");
+		writer.WriteXmlNullable(NumStyleLink, "w:numStyleLink");
+		for (var i = 0; i < this.Lvl.length; ++i) {
+			this.Lvl[i].toXml(writer, "w:lvl", i);
+		}
+		writer.WriteXmlNodeEnd(name);
+	};
+	CNumberingLvl.prototype.readAttr = function(reader, additional) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "ilvl": {
+					additional.ilvl = reader.GetValueInt();
+					break;
+				}
+				// case "tplc": {
+				// 	this.Tplc = reader.GetValueByte();
+				// 	break;
+				// }
+				// case "tentative": {
+				// 	this.Tentative = reader.GetValueBool();
+				// 	break;
+				// }
+			}
+		}
+	};
+	CNumberingLvl.prototype.fromXml = function(reader, additional) {
+		var oReadResult = reader.context.oReadResult;
+		this.readAttr(reader, additional);
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "start" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.Start = elem.getVal(this.Start);
+					break;
+				}
+				case "numFmt" : {
+					elem = new CT_XmlNode();
+					elem.fromXml(reader);
+					this.SetFormat(fromXml_ST_NumberFormat(elem.attributes["val"], this.Format));
+					break;
+				}
+				case "lvlRestart" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.LvlRestart = elem.getVal(this.LvlRestart);
+					break;
+				}
+				case "pStyle" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					if (elem.val) {
+						oReadResult.lvlStyles.push({pPr: this, style: elem.val});
+					}
+					break;
+				}
+				case "isLgl" : {
+					elem = new CT_OnOff();
+					elem.fromXml(reader);
+					this.IsLgl = elem.getVal(this.IsLgl);
+					break;
+				}
+				case "legacy" : {
+					this.Legacy = new CNumberingLvlLegacy();
+					this.Legacy.fromXml(reader);
+					break;
+				}
+				case "suff" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.Suff = fromXml_ST_LevelSuffix(elem.getVal(), this.Suff);
+					break;
+				}
+				case "lvlText" : {
+					elem = new CT_XmlNode();
+					elem.fromXml(reader);
+					if (elem.attributes["val"]) {
+						this.SetLvlTextFormat(additional.ilvl, elem.attributes["val"]);
+					}
+					break;
+				}
+				// case "lvlPicBulletId" : {
+				// 	this.LvlPicBulletId = new CT_DecimalNumber();
+				// 	this.LvlPicBulletId.fromXml(reader);
+				// 	break;
+				// }
+				case "lvlJc" : {
+					elem = new CT_StringStax();
+					elem.fromXml(reader);
+					this.Jc = fromXml_ST_Jc1(elem.getVal(), this.Jc);
+					break;
+				}
+				case "pPr" : {
+					//todo aPostOpenStyleNumCallbacks
+					this.ParaPr.fromXml(reader);
+					break;
+				}
+				case "rPr" : {
+					this.TextPr.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CNumberingLvl.prototype.toXml = function(writer, name, ilvl) {
+		var Start = CT_DecimalNumber.prototype.fromVal(this.Start);
+		var Format = new CT_StringStax.prototype.fromVal(toXml_ST_NumberFormat(this.Format));
+		var LvlRestart = CT_DecimalNumber.prototype.fromVal(this.LvlRestart);
+		var PStyle = CT_StringStax.prototype.fromVal(this.PStyle);
+		var IsLgl = CT_OnOff.prototype.fromVal(this.IsLgl);
+		var Suff = CT_StringStax.prototype.fromVal(toXml_ST_LevelSuffix(this.Suff));
+		var LvlText = new CT_StringStax.prototype.fromVal(this.GetLvlTextFormat());
+		var Jc = CT_StringStax.prototype.fromVal(fromXml_ST_Jc1(this.Jc));
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:ilvl", ilvl);
+		// writer.WriteXmlNullableAttributeByte("w:tplc", this.Tplc);
+		// writer.WriteXmlNullableAttributeBool("w:tentative", this.Tentative);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(Start, "w:start");
+		writer.WriteXmlNullable(Format, "w:numFmt");
+		writer.WriteXmlNullable(LvlRestart, "w:lvlRestart");
+		writer.WriteXmlNullable(PStyle, "w:pStyle");
+		writer.WriteXmlNullable(IsLgl, "w:isLgl");
+		writer.WriteXmlNullable(this.Legacy, "w:legacy");
+		writer.WriteXmlNullable(Suff, "w:suff");
+		writer.WriteXmlNullable(LvlText, "w:lvlText");
+		// writer.WriteXmlNullable(this.LvlPicBulletId, "w:lvlPicBulletId");
+		writer.WriteXmlNullable(Jc, "w:lvlJc");
+		writer.WriteXmlNullable(this.ParaPr, "w:pPr");
+		writer.WriteXmlNullable(this.TextPr, "w:rPr");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CNumberingLvlLegacy.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "legacy": {
+					this.Legacy = reader.GetValueBool();
+					break;
+				}
+				case "legacyIndent": {
+					this.Indent = AscCommon.universalMeasureToTwips(reader.GetValue(), AscCommonWord.g_dKoef_emu_to_twips, this.Indent);
+					break;
+				}
+				case "legacySpace": {
+					this.Space = AscCommon.universalMeasureToUnsignedTwips(reader.GetValue(), AscCommonWord.g_dKoef_emu_to_twips, this.Space);
+					break;
+				}
+			}
+		}
+	};
+	CNumberingLvlLegacy.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CNumberingLvlLegacy.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:legacy", this.Legacy);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:legacyIndent", this.Indent, AscCommonWord.g_dKoef_twips_to_emu);
+		writer.WriteXmlNullableAttributeUIntWithKoef("w:legacySpace", this.Space, AscCommonWord.g_dKoef_twips_to_emu);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CNum.prototype.readAttr = function(reader, additional) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "numId": {
+					additional.numId = reader.GetValueInt();
+					break;
+				}
+			}
+		}
+	};
+	CNum.prototype.fromXml = function(reader, additional) {
+		this.readAttr(reader, additional);
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "abstractNumId" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					additional.aNumId = elem.getVal(additional.aNumId);
+					break;
+				}
+				case "lvlOverride" : {
+					elem = new CLvlOverride();
+					elem.fromXml(reader);
+					this.SetLvlOverride(elem.NumberingLvl, elem.Lvl, elem.StartOverride);
+					break;
+				}
+			}
+		}
+	};
+	CNum.prototype.toXml = function(writer, name, numId, aNumId) {
+		var AbstractNumId = CT_DecimalNumber.prototype.fromVal(aNumId);
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:numId", numId);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(AbstractNumId, "w:abstractNumId");
+		for (var i = 0; i < this.LvlOverride.length; ++i) {
+			if (this.LvlOverride[nLvl]) {
+				this.LvlOverride[i].toXml(writer, "w:lvlOverride", i);
+			}
+		}
+		writer.WriteXmlNodeEnd(name);
+	};
+	CLvlOverride.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "ilvl": {
+					this.Lvl = reader.GetValueInt();
+					break;
+				}
+			}
+		}
+	};
+	CLvlOverride.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		var elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "startOverride" : {
+					elem = new CT_DecimalNumber();
+					elem.fromXml(reader);
+					this.StartOverride = elem.getVal(this.StartOverride);
+					break;
+				}
+				case "lvl" : {
+					this.NumberingLvl = new CNumberingLvl();
+					this.NumberingLvl.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CLvlOverride.prototype.toXml = function(writer, name) {
+		var StartOverride = CT_DecimalNumber.prototype.fromVal(this.StartOverride);
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:ilvl", this.Lvl);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(StartOverride, "w:startOverride");
+		writer.WriteXmlNullable(this.NumberingLvl, "w:lvl");
+		writer.WriteXmlNodeEnd(name);
+	};
 //Header/Footer
 	CHeaderFooter.prototype.fromXml = function(reader) {
 		var name;
@@ -3494,7 +3942,7 @@
 		return res;
 	};
 	CT_StringStax.prototype.getVal = function(def) {
-		return this.val || def;
+		return null !== this.val ? this.val : def;
 	};
 	function CT_OnOff() {
 		this.val = null;
@@ -3529,7 +3977,7 @@
 		return res;
 	};
 	CT_OnOff.prototype.getVal = function(def) {
-		return this.val || def;
+		return null !== this.val ? this.val : def;
 	};
 	function CT_DecimalNumber() {
 		this.val = null;
@@ -3564,7 +4012,7 @@
 		return res;
 	};
 	CT_DecimalNumber.prototype.getVal = function(def) {
-		return this.val || def;
+		return null !== this.val ? this.val : def;
 	};
 	function CT_UnsignedDecimalNumber() {
 		this.val = null;
@@ -3575,7 +4023,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "val": {
-					this.val = reader.GetValueUInt();
+					this.val = reader.GetValueUInt(this.val);
 					break;
 				}
 			}
@@ -3599,7 +4047,7 @@
 		return res;
 	};
 	CT_UnsignedDecimalNumber.prototype.getVal = function(def) {
-		return this.val || def;
+		return null !== this.val ? this.val : def;
 	};
 
 	function CT_TblPPr() {
@@ -4127,8 +4575,8 @@
 					break;
 				}
 				case "cNvGraphicFramePr" : {
-					nvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
-					nvGraphicFramePr.fromXml(reader);
+					elem = new CT_NonVisualGraphicFrameProperties();
+					elem.fromXml(reader);
 					break;
 				}
 				case "graphic" : {
@@ -5664,7 +6112,7 @@
 		return null;
 	}
 
-	function fromXml_ST_Jc1(val) {
+	function fromXml_ST_Jc1(val, def) {
 		switch (val) {
 			case "start":
 			case "left":
@@ -5689,7 +6137,7 @@
 			case "thaiDistribute":
 				return AscCommon.align_Left;
 		}
-		return undefined;
+		return def;
 	}
 
 	function toXml_ST_Jc1(val) {
@@ -6593,6 +7041,28 @@
 				return "inside";
 			case Asc.c_oAscAlignV.Outside:
 				return "outside";
+		}
+		return null;
+	}
+	function fromXml_ST_LevelSuffix(val, def) {
+		switch (val) {
+			case "tab":
+				return Asc.c_oAscNumberingSuff.Tab;
+			case "space":
+				return Asc.c_oAscNumberingSuff.Space;
+			case "nothing":
+				return Asc.c_oAscNumberingSuff.None;
+		}
+		return def;
+	}
+	function toXml_ST_LevelSuffix(val) {
+		switch (val) {
+			case Asc.c_oAscNumberingSuff.Tab:
+				return "tab";
+			case Asc.c_oAscNumberingSuff.Space:
+				return "space";
+			case Asc.c_oAscNumberingSuff.None:
+				return "nothing";
 		}
 		return null;
 	}

@@ -1524,24 +1524,9 @@ background-repeat: no-repeat;\
 
 		var reader, openParams = {};
 		var oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
-		xmlParserContext.oReadResult = oBinaryFileReader.oReadResult;
 		oBinaryFileReader.PreLoadPrepare();
 
-		xmlParserContext.zip = jsZipWrapper;
-		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
-		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
-		if (documentPart) {
-			var stylesPart = documentPart.getPartByRelationshipType(openXml.Types.styles.relationType);
-			if (stylesPart) {
-				var contentStyles = stylesPart.getDocumentContent();
-				reader = new StaxParser(contentStyles, stylesPart, xmlParserContext);
-				this.WordControl.m_oLogicDocument.Styles.fromXml(reader, oBinaryFileReader.oReadResult.DocumentContent);
-			}
-		}
-
-		var contentDocument = documentPart.getDocumentContent();
-		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
-		this.WordControl.m_oLogicDocument.fromXml(reader, oBinaryFileReader.oReadResult.DocumentContent);
+		this.WordControl.m_oLogicDocument.fromZip(jsZipWrapper, xmlParserContext, oBinaryFileReader.oReadResult);
 
 		oBinaryFileReader.PostLoadPrepare(xmlParserContext);
 		jsZipWrapper.close();

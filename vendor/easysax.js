@@ -1614,6 +1614,7 @@ function XmlWriterContext(editorId){
     this.part = null;
     this.imageMap = {};
     //docx
+    this.oNumIdMap = {};
     //xlsx
     this.wb = null;
     this.sheetIds = [];

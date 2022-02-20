@@ -11746,6 +11746,27 @@
 		}
 		return nRes;
 	}
+	function universalMeasureToTwips(val, koef, def) {
+		var nVal = parseFloat(val);
+		var nRes = def;
+		if (!isNaN(nVal)) {
+			if (-1 != val.indexOf("mm"))
+				nRes = nVal * 72 / (2.54 * 10 * 20);
+			else if (-1 != val.indexOf("cm"))
+				nRes = nVal * 72 / (2.54 * 20);
+			else if (-1 != val.indexOf("in"))
+				nRes = nVal * 72 / 20;
+			else if (-1 != val.indexOf("pt"))
+				nRes = nVal / 20;
+			else if (-1 != val.indexOf("pc") || -1 != val.indexOf("pi"))
+				nRes = nVal * 12 / 20;
+			else if (-1 != val.indexOf("px"))
+				nRes = nVal / (AscCommon.g_dDpiX * 20);
+			else
+				nRes = nVal * koef;
+		}
+		return nRes;
+	}
 	function universalMeasureToMm(val, koef, def) {
 		var nVal = parseFloat(val);
 		var nRes = def;
@@ -11768,6 +11789,10 @@
 		return nRes;
 	}
 	function universalMeasureToUnsignedPt(val, koef, def) {
+		var res = universalMeasureToPt(val, koef, def);
+		return res >= 0 ? res : def;
+	}
+	function universalMeasureToUnsignedTwips(val, koef, def) {
 		var res = universalMeasureToPt(val, koef, def);
 		return res >= 0 ? res : def;
 	}
@@ -12344,6 +12369,8 @@
 	window["AscCommon"].universalMeasureToUnsignedMm = universalMeasureToUnsignedMm;
 	window["AscCommon"].universalMeasureToPt = universalMeasureToPt;
 	window["AscCommon"].universalMeasureToUnsignedPt = universalMeasureToUnsignedPt;
+	window["AscCommon"].universalMeasureToTwips = universalMeasureToTwips;
+	window["AscCommon"].universalMeasureToUnsignedTwips = universalMeasureToUnsignedTwips;
 	window["AscCommon"].arrayMove = arrayMove;
 	window["AscCommon"].getRangeArray = getRangeArray;
 	window["AscCommon"].isEqualSortedArrays = isEqualSortedArrays;

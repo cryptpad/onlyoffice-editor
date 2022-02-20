@@ -691,7 +691,7 @@
 		mainDocument: {dir: "word", filename: "document.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"},
 		notesMaster: {dir: "", filename: "notesMaster.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml"},
 		notesSlide: {dir: "", filename: "notesSlide.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"},
-		numberingDefinitions: {dir: "", filename: "numberingDefinitions.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering"},
+		numbering: {dir: "", filename: "numbering.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering"},
 		pict: {dir: "", filename: "pict.xml", contentType: "image/pict"},
 		pivotTable: {dir: "../pivotTables", filename: "pivotTable[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.pivotTable+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotTable"},
 		pivotTableCacheDefinition: {dir: "../pivotCache", filename: "pivotCacheDefinition[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.pivotCacheDefinition+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotCacheDefinition"},
