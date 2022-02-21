@@ -4514,17 +4514,10 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
     };
 
     CShape.prototype.setFontSizeInSmartArt = function (fontSize) {
-        if (this.txBody && this.txBody.content && this.txBody.content.Content) {
-            this.txBody.content.Content.forEach(function (paragraph) {
-                if (paragraph.CompiledPr.Pr && paragraph.CompiledPr.Pr.TextPr && paragraph.CompiledPr.Pr.TextPr.FontSize) {
-                    var paragraphFontSize = paragraph.CompiledPr.Pr.TextPr.FontSize;
-                    var paraRunFontSize;
-                    paragraph.Content.forEach(function (paraRun) {
-                        paraRunFontSize = paraRun.Pr.FontSize ? paraRun.Pr.FontSize : paragraphFontSize;
-                        paraRun.Set_FontSize(fontSize);
-                    })
-                }
-            })
+        if (this.txBody && this.txBody.content) {
+            this.txBody.content.CheckRunContent(function (paraRun) {
+                paraRun.Set_FontSize(fontSize);
+            });
             this.recalculateContentWitCompiledPr();
         }
     }
