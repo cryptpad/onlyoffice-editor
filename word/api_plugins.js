@@ -785,7 +785,7 @@
 
 
 	/**
-	 * Change ole-object in current document position
+	 * Change ole-object with InternalId specified in ObjectData
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @alias ChangeOleObject
@@ -797,7 +797,7 @@
 		this["pluginMethod_ChangeOleObjects"]([ObjectData]);
 	};
 	/**
-	 * Change ole-object in current document position
+	 * Change multiple ole-objects
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @alias ChangeOleObjects
