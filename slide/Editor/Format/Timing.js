@@ -1163,6 +1163,14 @@
         if(!oObject) {
             return null;
         }
+        if(!oObject.brush || !oObject.brush.isNoFill()) {
+            var oBrush = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(255, 255, 255));
+            oBrush.fill.color.RGBA.R = 255;
+            oBrush.fill.color.RGBA.G = 255;
+            oBrush.fill.color.RGBA.B = 255;
+            oBrush.fill.color.RGBA.A = 255;
+            return oBrush;
+        }
         return oObject.brush;
     };
     CTimeNodeBase.prototype.getTargetObjectPen = function() {
