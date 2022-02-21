@@ -6235,7 +6235,7 @@
             var oBrush;
             if(sFirstAttrName === "stroke.color") {
                 var oPen = this.getTargetObjectPen();
-                oBrush = oPen && oPen.Fill;
+                oBrush = oPen && oPen.Fill || AscFormat.CreateUnfilFromRGB(0, 0, 0);
             }
             else {
                 oBrush = this.getTargetObjectBrush();
@@ -10971,8 +10971,9 @@
             }
             else {
                 if(oStrokeColor) {
+                    var oPen;
                     if(oDrawing.pen) {
-                        var oPen = oDrawing.pen.createDuplicate();
+                        oPen = oDrawing.pen.createDuplicate();
                         var oMods;
                         if(oPen.Fill &&
                             oPen.Fill.fill &&
@@ -10982,9 +10983,12 @@
                             oMods = oPen.Fill.fill.color.Mods;
                             oMods.Apply(oStrokeColor.RGBA);
                         }
-                        oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
-                        oDrawing.pen = oPen;
                     }
+                    else {
+                        oPen = AscFormat.CreateNoFillLine();
+                    }
+                    oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
+                    oDrawing.pen = oPen;
                 }
             }
             oTexture = oTextureCache.createDrawingTexture(sId, fScale);
