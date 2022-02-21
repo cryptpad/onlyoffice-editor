@@ -3505,8 +3505,8 @@ ParaMath.prototype.ConvertFromLaTeX = function()
 	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
 	var strLaTeX = this.GetText();
 	this.Root.Remove_Content(0, this.Root.Content.length);
-    this.Root.Correct_Content(true);
 	var oLaTeXParser = new CLaTeXParser(this, strLaTeX);
+	this.Root.Correct_Content(true);
 	oLaTeXParser.Start();
 
 };
@@ -3522,8 +3522,8 @@ ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
 	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
-    this.Root.Correct_Content(true);
 	var Unicode = new CUnicodeParser(strUnicode, this);
+	this.Root.Correct_Content(true);
 	Unicode.Start();
 
 	// TODO: Функция конвертации UnicodeMath -> MathML

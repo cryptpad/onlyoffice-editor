@@ -39,14 +39,16 @@
 var LaTeX = 0;
 var Unicode = 1;
 
-//TODO: P\left(A=2\middle|\frac{A^2}{B}>4\right)
-//TODO: Add pre-script with degree OR index for unicode and LaTeX: _x{1+2}...
-//TODO: impliment in LaTeX \underbrace and \overbrace -> \underbrace{1+3}_{i}  \underbrace{1+3}^{i}
-//		\overparen \underparen \overbrace \underbrace \overshell \undershell \overbracket \underbracket
-//TODO: impliment \boxed{} or \rect
-//check limits, matrix
+//TODO: impliment in LaTeX \underbrace and \overbrace \overparen \underparen \overbrace \underbrace \overshell \undershell \overbracket \underbracket
+//TODO: impliment \rect{}
+//check matrix
 
-//|^(2) syntax not supported in word
+// 	\begin{matrix}
+//	a & b & c \\
+//	d & e & f \\
+//	g & h & i
+//	\end{matrix}
+
 // ^1/_3 syntax not supported in word
 
 var MathOperators = [
@@ -74,12 +76,12 @@ var isLaTeXAtom = [
 	'sqrt',
 	'left',		'right',	'middle',	'frac',		'binom',
 
-	'to'
+	'to', 'bmod'
 ];
 var UnicodeSymbols = [
 	'┴', '┬', '▒', '√', "┤", "├", "〖", "〗", '█', '¦',
 	'│', '“', '×', '·', '•', '', '∫', '∑', '∏', '▭',
-	'','√', '▁', '⊘', '⁄', '\\', '\/', '∩', '±'
+	'','√', '▁', '⊘', '⁄', '\/', '∩', '±', '∕'
 ];
 var SymbolsForCorrect = {
 	'A' : {
@@ -98,6 +100,7 @@ var SymbolsForCorrect = {
 		"\\alpha": 0x03b1,
 	},
 	'B' : {
+		"\\Beta": 0x0392,		"\\beta": 0x03b2,
 		"\\bar": 0x0305,
 		"\\Bar": 0x033f,
 		"\\because": 0x2235,
@@ -125,7 +128,6 @@ var SymbolsForCorrect = {
 		"\\breve": 0x0306,
 		"\\bullet": 0x2219,
 		//['\\binomial',[0x0028, 0x0061, 0x002B, 0x0062, 0x0029, 0x005E, 0x005E, 0x003D, 0x2211, 0x005F, 0x0028, 0x006B, 0x003D, 0x0030, 0x0029, 0x005E, 0x006E, 0x0020, 0x2592, 0x0028, 0x006E, 0x00A6, 0x006B, 0x0029, 0x0061, 0x005E, 0x006B, 0x0020, 0x0062, 0x005E, 0x0028, 0x006E, 0x002D, 0x006B, 0x0029]],};
-		"\\Beta": 0x0392,		"\\beta": 0x03b2,
 	},
 	'C' : {
 		"\\Chi": 0x03a7,		"\\chi": 0x03c7,
@@ -531,6 +533,15 @@ var SymbolsForCorrect = {
 		"\\zwnj":			0x200c,
 	}
 }
+
+var typeOfFraction = null;
+
+var FRACTION_IN_BOX = 4;
+var BAR_FRACTION = BAR_FRACTION;
+var	SKEWED_FRACTION = SKEWED_FRACTION;
+var	LINEAR_FRACTION = LINEAR_FRACTION;
+
+//if check fraction index of sybol (/) adding to ignor list
 function EquationProcessing(Parent) {
 	this.Parent = Parent;
 	this.IndexesOfIgnoredAtoms = {};
@@ -554,7 +565,6 @@ EquationProcessing.prototype.Parse = function() {
 	var strTempWord = "";
 	var str = this.Parent.str;
 	var arrAtoms = [];
-	var isInMatrix = false;
 	var arrCheckParser = [];
 	
 	arrCheckParser = arrCheckParser.concat(MathOperators, Bracets)
@@ -563,6 +573,7 @@ EquationProcessing.prototype.Parse = function() {
 	}
 	else if (this.isUnicode()) {
 		arrCheckParser = arrCheckParser.concat(UnicodeSymbols);
+		arrCheckParser = arrCheckParser.concat(isLaTeXAtom);
 	}
 
 	for (var i = 0; i <= str.length; i++) {
@@ -602,9 +613,7 @@ EquationProcessing.prototype.Parse = function() {
 		}
 	}
 
-	strTempWord.trim();
 	arrAtoms.push(strTempWord);
-
 	this.Parent.arrAtoms = arrAtoms.filter(Boolean);
 	console.log(this.Parent.arrAtoms, this.type === LaTeX ? 'Latex' : 'Unicode');
 };
@@ -617,6 +626,9 @@ EquationProcessing.prototype.GetNowAtom = function() {
 	return this.Parent.arrAtoms[this.Parent.intIndexArray];
 };
 EquationProcessing.prototype.GetAtomByIndex = function(n) {
+	if (n < 0 || n >= this.Parent.arrAtoms.length) {
+		return false;
+	}
 	return this.Parent.arrAtoms[n];
 };
 //	Not change intIndexArray;
@@ -626,7 +638,13 @@ EquationProcessing.prototype.GetFutureAtom = function(n) {
 	}
 	return this.Parent.arrAtoms[this.Parent.intIndexArray + n];
 };
-EquationProcessing.prototype.BracetSyntaxChecker = function(index) {
+EquationProcessing.prototype.GetPrevAtom = function() {
+	if (this.Parent.intIndexArray >= 0) {
+		return false;
+	}
+	return this.Parent.arrAtoms[this.Parent.intIndexArray];
+};
+EquationProcessing.prototype.ScriptBracetSyntaxChecker = function(index) {
 	var Obj = {
 		Script : [],
 		index : index + 1,
@@ -768,15 +786,18 @@ EquationProcessing.prototype.StartLexer = function(context, indexOfExit) {
 	}
 	else {
 		if (this.isLaTeX()) {
-			CLaTeXLexer(this.Parent, context);
+			CLaTeXLexer(this.Parent, context, true);
 		}
 		else if (this.isUnicode()) {
-			CUnicodeLexer(this.Parent, context);
+			CUnicodeLexer(this.Parent, context, true);
 		}
 
 	}
 };
-EquationProcessing.prototype.CheckSyntax = function(arrRules) {
+EquationProcessing.prototype.CheckSyntax = function(arrRules, n) {
+	if (undefined === n) {
+		n = 0;
+	}
 	arrRules = this[arrRules]
 	// By default block - requared and dont skips: oRule.isRequired = false - do it
 	var str = this.Parent.arrAtoms;
@@ -811,10 +832,11 @@ EquationProcessing.prototype.CheckSyntax = function(arrRules) {
 	// 	// },
 	// ];
 	var oRule;
-	var strIndex = this.Parent.intIndexArray;
+	var strIndex = this.Parent.intIndexArray + n;
 
 	var arrVariables = {};
 	var requared = true;
+	var returnData = null;
 
 	var ProceedIsRequired = function () {
 		if (!oRule.hasOwnProperty('isRequired')) {
@@ -860,7 +882,7 @@ EquationProcessing.prototype.CheckSyntax = function(arrRules) {
 
 				if (typeof varIndexOfCloseBracet === 'number') {
 					//strIndex++; // перевод на след. символ
-					strIndex += varIndexOfCloseBracet;
+					strIndex = varIndexOfCloseBracet + 1;
 					return true;
 				}
 				else {
@@ -877,7 +899,7 @@ EquationProcessing.prototype.CheckSyntax = function(arrRules) {
 
 				}
 			}
-			//значит символ может быть одним из содерж. в этом массиве.
+			//значит символ может быть одним из содерж. в этом массиве
 			else if (Array.isArray(oRule.Data)) {
 				if (oRule.Data.includes(str[strIndex])) {
 					if (oRule.hasOwnProperty('Save')) {
@@ -895,6 +917,9 @@ EquationProcessing.prototype.CheckSyntax = function(arrRules) {
 				if (oRule.Data === str[strIndex]) {
 					if (oRule.hasOwnProperty('Save')) {
 						arrVariables[oRule.Save]['whatFind'] = str[strIndex];
+					}
+					if (oRule.hasOwnProperty('returnIndex')) {
+						returnData = strIndex;
 					}
 					strIndex++;
 					return true;
@@ -931,71 +956,75 @@ EquationProcessing.prototype.CheckSyntax = function(arrRules) {
 			return false
 		}
 	}
-	return true;
+
+	if (returnData === null) {
+		return true;
+	} else {
+		return returnData;
+	}
 };
-EquationProcessing.prototype.CheckCloseBracet = function(index, startAndExitBracet) {
-	var intPatternIndex = 0;
+EquationProcessing.prototype.CheckCloseBracet = function(index, startAndExitBracet, inStartBracetAlredy) {
+	var intPatternIndex = inStartBracetAlredy ? 1 : 0;
 	var arrOfData = this.Parent.arrAtoms;
 	var intTempIndex = index !== undefined ? index : this.Parent.intIndexArray;
 
 	var startBracet = false;
 	var exitBracet = false;
+	var isFirstBracet = false;
 
 	if (startAndExitBracet !== undefined) {
 		startBracet = startAndExitBracet[0];
 		exitBracet = startAndExitBracet[1];
 	}
+	var isOneVerticalBarIsKnow = false;
 
-	var isFirstBracet = false;
-	var isSpecialBracet = false;
 	while (intTempIndex < arrOfData.length && !isFirstBracet) {
+		var isStart = (startBracet === true)
+			? arrOfData[intTempIndex] === startBracet
+			: this.StartBracet[arrOfData[intTempIndex]];
 
-		if (arrOfData[intTempIndex] === '|' && intTempIndex === index && startBracet === '|') {
-			isSpecialBracet = true;
+		if (isStart === true && ((!isOneVerticalBarIsKnow && arrOfData[intTempIndex] === '|') || isOneVerticalBarIsKnow === false)) {
+			if (!startBracet
+				&& (arrOfData[intTempIndex] === '\\left' || arrOfData[intTempIndex] === '\\open')
+			) {
+				this.AddIndexToIgnor(intTempIndex);
+				intTempIndex += 2;
+			}
+			if (arrOfData[intTempIndex] === '|') {
+				isOneVerticalBarIsKnow = true;
+			}
+			intPatternIndex++;
 			intTempIndex++;
+			continue;
+		} else if (intTempIndex === index) {
+			isFirstBracet = true;
 		}
-		else if (isSpecialBracet && arrOfData[intTempIndex] === '|') {
+
+		var Close = (exitBracet === true)
+			? arrOfData[intTempIndex] === exitBracet
+			: this.CloseBracet[arrOfData[intTempIndex]];
+
+		if (Close) {
+			if (!exitBracet
+				&& (arrOfData[intTempIndex] == '\\right' || arrOfData[intTempIndex] == '\\close')
+				&& (intTempIndex >= 1 && arrOfData[intTempIndex - 1] !== '\\left')
+			) {
+				this.AddIndexToIgnor(intTempIndex);
+				intTempIndex++;
+			}
+			intPatternIndex--;
+		}
+
+		if (Close && intPatternIndex === 0) {
+			this.AddIndexToIgnor(intTempIndex);
 			return intTempIndex;
 		}
-		else {
-			var Start = startBracet
-				? arrOfData[intTempIndex] === startBracet
-				: this.StartBracet[arrOfData[intTempIndex]];
-
-			if (Start) {
-				if (!startBracet && (arrOfData[intTempIndex] === '\\left' || arrOfData[intTempIndex] === '\\open')) intTempIndex++;
-				intPatternIndex++;
-			} else {
-				if (intTempIndex === index)
-					isFirstBracet = true;
-			}
-
-			var Close = exitBracet
-				? arrOfData[intTempIndex] === exitBracet
-				: this.CloseBracet[arrOfData[intTempIndex]];
-
-			if (Close) {
-				if (!exitBracet && (arrOfData[intTempIndex] == '\\right' || arrOfData[intTempIndex] == '\\close'))
-					intTempIndex++;
-				intPatternIndex--;
-			}
-
-			if (Close && intPatternIndex === 0)
-				return intTempIndex;
-
-			intTempIndex++;
-		}
+		intTempIndex++;
 	}
 	return false;
 }
 EquationProcessing.prototype.GetLastAtomBlockCopy = function(FormArgument) {
-	var str = FormArgument.GetTextOfElement();
-	var n = 1;
-	if (str[str.length] === '⬚') {
-		n++;
-	}
-
-	var intLenOfContent = FormArgument.Content.length - n;
+	var intLenOfContent = FormArgument.Content.length - 1;
 	if (intLenOfContent < 0) {
 		intLenOfContent = 0;
 	}
@@ -1005,15 +1034,18 @@ EquationProcessing.prototype.GetLastAtomBlockCopy = function(FormArgument) {
 	return oldContent;
 };
 EquationProcessing.prototype.DeleteLastAtomBlock = function(FormArgument) {
-	var str = FormArgument.GetTextOfElement();
-	var n = 1;
-	if (str[str.length] === '⬚') {
-		n++;
-	}
-
-	var intLenOfContent = FormArgument.Content.length - n;
+	var intLenOfContent = FormArgument.Content.length - 1;
 	FormArgument.Remove_FromContent(intLenOfContent, 1);
 	FormArgument.CurPos = FormArgument.Content.length;
+};
+EquationProcessing.prototype.RemoveEmptyBlock = function(FormArgument) {
+	var LengthOfContent = FormArgument.Content.length - 1
+	var LastBlock = FormArgument.Content[LengthOfContent];
+
+	if (LastBlock && LastBlock.GetTextOfElement() === '⬚') {
+		FormArgument.Remove_FromContent(LengthOfContent, 1);
+		FormArgument.CurPos = FormArgument.Content.length;
+	}
 };
 //Rules
 EquationProcessing.prototype.GetRuleAndScript = [
@@ -1026,13 +1058,36 @@ EquationProcessing.prototype.GetRuleOrScript = [
 	{Data: ["^", "_"]},
 	{Data: true},
 ];
+EquationProcessing.prototype.GetRuleOrSDivFraction = [
+	{Data: true},
+	{Data: ['⁄', '//'], returnIndex: true},
+	{Data: true},
+];
+EquationProcessing.prototype.GetRuleOrLDivFraction = [
+	{Data: true},
+	{Data: '∕', returnIndex: true},
+	{Data: true},
+];
+EquationProcessing.prototype.GetRuleOrNDivFraction = [
+	{Data: true},
+	{Data: '⊘', returnIndex: true},
+	{Data: true},
+];
+EquationProcessing.prototype.GetInlineLaTeXFraction = [
+	{Data: '^'},
+	{Data: true},
+	{Data: '/'},
+	{Data: '_'},
+	{Data: true},
+];
 //Script
 EquationProcessing.prototype.AddScript = function(FormArgument, strAtomBase) {
-	var arrPreTypeOfScript = this.BracetSyntaxChecker(this.Parent.intIndexArray - 1);
+	var arrPreTypeOfScript = this.ScriptBracetSyntaxChecker(this.Parent.intIndexArray - 1);
 	var intType = this.GetTypeOfScript(arrPreTypeOfScript);
 	var Script;
 
 	if (!strAtomBase) {
+		this.RemoveEmptyBlock(FormArgument)
 		var PrevAtom = this.GetLastAtomBlockCopy(FormArgument);
 		this.DeleteLastAtomBlock(FormArgument);
 		Script = this.CreateScript(FormArgument, intType, arrPreTypeOfScript.length);
@@ -1041,8 +1096,17 @@ EquationProcessing.prototype.AddScript = function(FormArgument, strAtomBase) {
 		Script = this.CreateScript(FormArgument, intType, arrPreTypeOfScript.length);
 		Script.getBase().Add_Text(strAtomBase, this.Parent.ParaMath.Paragraph);
 	}
-	
+
 	this.FillScriptContent(Script, intType, arrPreTypeOfScript);
+};
+EquationProcessing.prototype.AddPreScript = function(FormArgument) {
+	var arrPreTypeOfScript = this.ScriptBracetSyntaxChecker(this.Parent.intIndexArray - 1);
+	var intType = this.GetTypeOfScript(arrPreTypeOfScript);
+	var Script = this.CreateScript(FormArgument, -1, arrPreTypeOfScript.length);
+
+	this.RemoveEmptyBlock(FormArgument)
+	this.FillScriptContent(Script, intType, arrPreTypeOfScript);
+	this.StartLexer(Script.getBase());
 };
 EquationProcessing.prototype.GetTypeOfScript = function(arrType) {
 	if (arrType[0] === '^' && arrType.length === 2) {
@@ -1164,7 +1228,7 @@ EquationProcessing.prototype.CheckSubOrSup = function(n) {
 };
 EquationProcessing.prototype.CheckSubAndSup = function(n) {
 	if (n === undefined) {
-		n = 1;
+		n = 0;
 	}
 	var symbol;
 	var strNow = this.GetFutureAtom(n);
@@ -1288,8 +1352,9 @@ EquationProcessing.prototype.CheckIsBrackets = function (strAtom) {
 //Bracet
 EquationProcessing.prototype.AddBracet = function(FormArgument) {
 	var BracetBlockData = {};
-
-	BracetBlockData.intIndexStartBracet = this.Parent.intIndexArray;
+	var intNowPos = this.Parent.intIndexArray;
+	
+	BracetBlockData.intIndexStartBracet = intNowPos;
 	BracetBlockData.intIndexCloseBracet = this.CheckCloseBracet(BracetBlockData.intIndexStartBracet);
 
 	this.GetBracet(BracetBlockData, 0);
@@ -1345,6 +1410,7 @@ EquationProcessing.prototype.CloseBracet = {
 	'\\close': true,
 	'\\right': true,
 	'〗': true,
+	'|': true,
 };
 EquationProcessing.prototype.GetBracet = function(Obj, type) {
 	type = (type === 0)
@@ -1386,126 +1452,76 @@ EquationProcessing.prototype.CreateBracetBlock = function (FormArgument, strOpen
 EquationProcessing.prototype.FillBracetBlockContent = function (BracetBlock, indexOfExit) {
 	this.StartLexer(BracetBlock.getElementMathContent(0), indexOfExit);
 };
+EquationProcessing.prototype.CreateLitleBox = function (FormArgument) {
+	var oBox = new CBox(this.Parent.Pr);
+	FormArgument.Add_Element(oBox);
+	var BoxMathContent = oBox.getBase();
+	BoxMathContent.SetArgSize(-1);
+	return BoxMathContent;
+};
 //Fraction
-EquationProcessing.prototype.CheckIsUnicodeFrac = function() {
-	//two types of syntax:
-	//
-	//	1.	a/b		a∕b		a⊘c
-	//	2.	/sdiv(a)(b)		/ldiv(a)(b)		/ndiv(a)(b)
-	//	3. \frac{}{} \sfrac{}{} \cfrac{}{} ...
-	//
-	//sdiv standart
-	//ldiv skewed
-	//ndiv inline
-
-	var checkIsFrac = function(str) {
-		return (
-			str === '\\frac' || str === '\\sfrac'||
-			str === '\\dfrac'|| str === '\\cfrac'||
-			str === '\\sdiv' || str === '\\ldiv' ||
-			str === '\\ndiv'
-		)
-	}
-
-	var checkUnicodeFrac = function(str) {
-		return (str.charCodeAt() === 47 || //sdiv
-			str.charCodeAt() === 8260 || //sdiv
-			str.charCodeAt() === 8725 || //ldiv
-			str.charCodeAt() === 8856 || //ndiv
-			str === '\/'
-		)
-	}
-
-	var isFrac = checkIsFrac(this.GetAtomByIndex(this.Parent.intIndexArray - 1));
-	var indexOfCLose = this.CheckCloseBracet();
-
-	if (isFrac) {
-
-	} else if (checkUnicodeFrac(this.Parent.arrAtoms[indexOfCLose + 1])) {
-		console.log('a \ b ...')
-		checkUnicodeFrac(this.Parent.arrAtoms[indexOfCLose + 1]), this.Parent.arrAtoms[indexOfCLose + 1];
-	}
-	else {
-		console.log('nope')
-	}
-
-};
-EquationProcessing.prototype.CheckIsUnicodeSmallFrac = function(str) {
-	return this.UnicodeSmallFrac[str.charCodeAt()] === true;
-};
-EquationProcessing.prototype.UnicodeSmallFrac = {
-	47: true,
-	8260: true,
-	8725: true,
-	8856: true,
-	'\/': true
-};
-EquationProcessing.prototype.CheckIsLaTeXFullFrac = function(str) {
-	return this.LaTeXFullFrac[str] === true;
-};
-EquationProcessing.prototype.LaTeXFullFrac = {
-	'\\frac': true,
-	'\\sfrac': true,
-	'\\cfrac': true,
-	'\\nicefrac': true
-};
-EquationProcessing.prototype.CheckIsFrac = function() {
-	var isFrac;
-
+EquationProcessing.prototype.CheckIsFrac = function () {
 	if (this.isLaTeX()) {
-		isFrac = this.CheckIsLaTeXFullFrac(this.GetNowAtom());
-		return !(isFrac === false);
+		var LaTeXFractionsList = {
+			'\\frac': BAR_FRACTION,
+			'\\sfrac': SKEWED_FRACTION,
+			'\\cfrac': LINEAR_FRACTION,
+			'\\nicefrac': FRACTION_IN_BOX,
+		};
+		var intTypeFrac = LaTeXFractionsList[this.GetNowAtom()];
+		typeOfFraction = intTypeFrac;
+		return (typeof intTypeFrac === 'number');
 	}
-
 	else if (this.isUnicode()) {
-		var index = this.CheckCloseBracet(this.Parent.intIndexArray);
-
-		if (index === false) {
-			return false;
-		}
-
-		if (index !== false) {
-			if(index + 1 >= this.Parent.arrAtoms.length) {
-				return false
+		var isSDiv = this.CheckSyntax('GetRuleOrSDivFraction');
+		if (typeof isSDiv === 'number') {
+			if (this.IndexesOfIgnoredAtoms.hasOwnProperty(isSDiv)) {
+				return false;
 			}
-			isFrac = this.CheckIsUnicodeSmallFrac(this.Parent.arrAtoms[index + 1]);
-			return this.CheckCloseBracet(index+2) && isFrac;
+			typeOfFraction = BAR_FRACTION;
+			this.AddIndexToIgnor(isSDiv); return isSDiv
+		}
+
+		var isLDiv = this.CheckSyntax('GetRuleOrLDivFraction');
+		if (typeof isLDiv === 'number') {
+
+			if (this.IndexesOfIgnoredAtoms.hasOwnProperty(isLDiv)) {
+				return false;
+			}
+			typeOfFraction = SKEWED_FRACTION;
+			this.AddIndexToIgnor(isLDiv); return isLDiv
+		}
+
+		var isNDiv = this.CheckSyntax('GetRuleOrNDivFraction');
+		if (typeof isSDiv === 'number') {
+			if (this.IndexesOfIgnoredAtoms.hasOwnProperty(isNDiv)) {
+				return false;
+			}
+			typeOfFraction = LINEAR_FRACTION;
+			this.AddIndexToIgnor(isNDiv); return isNDiv
 		}
 	}
 };
-EquationProcessing.prototype.AddFraction = function(FormArgument, strAtom) {
-	var typeOfFraction;
+EquationProcessing.prototype.AddFraction = function(FormArgument) {
+	//	1.	a/b		a∕b		a⊘c
+	//		/sdiv	/ldiv	/ndiv
+	//	2.	\frac{}{} \sfrac{}{} \cfrac{}{}
+	//sdiv standart, ldiv skewed, ndiv inline
 
-	if (this.isLaTeX()) {
-		typeOfFraction = this.GetTypeOfFrac[strAtom];
-		//var isInlineFraction = this.CheckSyntaxSequence(["^", 1, "/", "_", 1], null, true);
-	}
-	else if (this.isUnicode()) {
-		var exitIndex = this.CheckCloseBracet();
-		this.AddIndexToIgnor(exitIndex)
-		typeOfFraction = this.GetTypeOfFrac[this.Parent.arrAtoms[exitIndex + 1]];
-		console.log(typeOfFraction)
-	}
-
-	if (typeof typeOfFraction === 'number') {
-		var Fraction = this.CreateFraction(FormArgument, typeOfFraction);
-		this.FillFracContent(Fraction);
-	}
-}
-EquationProcessing.prototype.CreateFraction = function (FormArgument, typeOfFraction) {
+	var Fraction = this.CreateFraction(FormArgument);
+	this.FillFracContent(Fraction);
+};
+EquationProcessing.prototype.CreateFraction = function (FormArgument) {
 	var Fraction;
-	this.Parent.Pr.type = typeOfFraction;
-
-	if (typeOfFraction === 2) {
+	
+	if (typeOfFraction === FRACTION_IN_BOX) {
 		this.Parent.Pr.type = 0;
 		var Box = this.CreateLitleBox(FormArgument);
 		Fraction = Box.Add_Fraction(this.Parent.Pr.type, null, null);
-	}
-
-	else if (typeOfFraction !== 2) {
+	} else {
+		this.Parent.Pr.type = typeOfFraction;
 		Fraction = FormArgument.Add_Fraction(this.Parent.Pr, null, null);
 	}
-
 	return Fraction;
 };
 EquationProcessing.prototype.FillFracContent = function (FormArgument) {
@@ -1518,25 +1534,10 @@ EquationProcessing.prototype.FillFracContent = function (FormArgument) {
 	}
 	else if (this.isUnicode()) {
 		this.Parent.intIndexArray--;
-		var intExitIndex = this.AddBracetBlockToIgnor();
-		this.StartLexer(FormArgument.getNumeratorMathContent(), intExitIndex);
+		this.StartLexer(FormArgument.getNumeratorMathContent());
 		this.Parent.intIndexArray++;
-		intExitIndex = false;
-		intExitIndex = this.AddBracetBlockToIgnor();
-		this.StartLexer(FormArgument.getDenominatorMathContent(), intExitIndex);
+		this.StartLexer(FormArgument.getDenominatorMathContent());
 	}
-};
-EquationProcessing.prototype.GetTypeOfFrac = {
-	'\\frac' :0,
-	'\\tfrac': 4,
-	'\\sfrac': 1,
-	'\\nicefrac': 2,
-	'\\dfrac': 0,
-	'\\binom': 3,
-	'\\': 0,
-	"⁄" : 1,
-	'⊘': 2,
-	'\/': 0
 };
 //Limit: Limits (switch must be in options)
 EquationProcessing.prototype.AddLimit = function (FormArgument, strAtom) {
@@ -1556,7 +1557,10 @@ EquationProcessing.prototype.AddLimit = function (FormArgument, strAtom) {
 		typeOfBottom = this.GetTypeOfScript(typeOfBottom);
 	}
 	else if (this.isLaTeX()) {
-		typeOfBottom = this.BracetSyntaxChecker(this.Parent.intIndexArray);
+		if (this.GetFutureAtom() === '\\limits') {
+			this.Parent.intIndexArray++;
+		}
+		typeOfBottom = this.ScriptBracetSyntaxChecker(this.Parent.intIndexArray);
 		if (typeOfBottom.length === 2) {
 			typeOfBottom = this.GetTypeOfScript(typeOfBottom);
 		}
@@ -1661,10 +1665,10 @@ EquationProcessing.prototype.AddLargeOperator = function (FormArgument, strAtom)
 	}
 
 	var intTypeOFLoc = 1;
-	// if (this.Parent.arrAtoms[this.Parent.intIndexArray + 1] === "\\limits") {
-	// 	this.GetNextAtom();
-	// 	intTypeOFLoc = 0;
-	// }
+	if (this.Parent.arrAtoms[this.Parent.intIndexArray + 1] === "\\limits") {
+		this.GetNextAtom();
+		//intTypeOFLoc = 0;
+	}
 	var LargeOperator = this.CreateLargeOperator(FormArgument, intTypeOFLoc, strNameOfLargeOperator);
 	this.FillLargeOperatorContent(LargeOperator);
 };
@@ -1677,11 +1681,11 @@ EquationProcessing.prototype.CreateLargeOperator = function(FormArgument, intTyp
 		chr: strName,
 	};
 
-	if (this.CheckSubAndSup()) {
+	if (this.CheckSyntax('GetRuleAndScript', 1)) {
 		Pr.supHide = false;
 		Pr.subHide = false;
 	}
-	else if (this.CheckSubOrSup(1)) {
+	else if (this.CheckSyntax('GetRuleOrScript', 1)) {
 		if (this.GetFutureAtom() === '^') {
 			Pr.subHide = true;
 			Pr.supHide = false;
@@ -1704,22 +1708,22 @@ EquationProcessing.prototype.FillLargeOperatorContent = function(LargeOperator) 
 	var strTempAtom = this.Parent.arrAtoms[this.Parent.intIndexArray + 1];
 
 	if (strTempAtom === "^") {
-		this.AddIndexToIgnor(this.Parent.intIndexArray + 2);
+		this.AddIndexToIgnor(this.Parent.intIndexArray + 1);
 		this.StartLexer(LargeOperator.getSupMathContent());
 		strTempAtom = this.Parent.arrAtoms[this.Parent.intIndexArray + 1];
 
 		if (strTempAtom == "_") {
-			this.AddIndexToIgnor(this.Parent.intIndexArray + 2);
+			this.AddIndexToIgnor(this.Parent.intIndexArray + 1);
 			this.StartLexer(LargeOperator.getSubMathContent());
 		}
 	}
 	else if (strTempAtom === "_") {
-		this.AddIndexToIgnor(this.Parent.intIndexArray + 2);
+		this.AddIndexToIgnor(this.Parent.intIndexArray + 1);
 		this.StartLexer(LargeOperator.getSubMathContent());
 		strTempAtom = this.Parent.arrAtoms[this.Parent.intIndexArray + 1];
 
 		if (strTempAtom === "^") {
-			this.AddIndexToIgnor(this.Parent.intIndexArray + 2);
+			this.AddIndexToIgnor(this.Parent.intIndexArray + 1);
 			this.StartLexer(LargeOperator.getSupMathContent());
 		}
 	}
@@ -2097,7 +2101,7 @@ EquationProcessing.prototype.AddSymbol = function (strAtom, FormArgument, type, 
 
 		var secondLetterofAtom = strAtom.length > 1 ? strAtom[1] : ''; // after "//"
 		var intNumberOfLetter = secondLetterofAtom.codePointAt(0);
-		if (intNumberOfLetter >= 65 && intNumberOfLetter <= 122) {
+		if (strAtom[0] === '\\' && intNumberOfLetter >= 65 && intNumberOfLetter <= 122) {
 			var strCode = SymbolsForCorrect[secondLetterofAtom.toUpperCase()][strAtom];
 			if (strCode) {
 				FormArgument.Add_Symbol(strCode, this.Pr);
@@ -2178,7 +2182,6 @@ EquationProcessing.prototype.CheckMathTextSty = {
 	'\\fraktur': {Italic: false, Bold: false},
 	// '\\mathrm': {Italic: false}
 };
-
 //Mod
 EquationProcessing.prototype.AddPMod = function (FormArgument) {
 	var Delimiter = this.CreateBracetBlock(FormArgument, null, null, 0);
@@ -2215,7 +2218,6 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 	var isDontWrite = function(index) {
 		if (eProc.IndexesOfIgnoredAtoms[index] === false) {
 			strAtom = eProc.GetNextAtom();
-
 			if (strAtom !== undefined) {
 				isDontWrite(index + 1);
 			}
@@ -2260,15 +2262,16 @@ function CLaTeXLexer(Parser, FormArgument, indexOfCloseAtom) {
 			eProc.AddLargeOperator(FormArgument, strAtom);
 			intCounter++;
 		}
-		// else if (eProc.CheckOrScript(true) || eProc.CheckAndScript(true)) {
-		// 	eProc.AddScript(FormArgument, true);
-		// 	intCounter++;
-		// }
 		else if (eProc.CheckSyntax('GetRuleOrScript') || eProc.CheckSyntax('GetRuleAndScript') && !Parser.isError) {
-			eProc.AddScript(FormArgument);
+			var strPrevAtom = eProc.GetAtomByIndex(eProc.Parent.intIndexArray -1);
+			if (strPrevAtom === false || strPrevAtom === ' ' || strPrevAtom === '') {
+				eProc.AddPreScript(FormArgument)
+			} else {
+				eProc.AddScript(FormArgument);
+			}
 			intCounter++;
 		}
-		else if (eProc.StartBracet[strAtom] && !Parser.isError) {
+		else if (eProc.StartBracet[strAtom] && eProc.CheckCloseBracet(eProc.Parent.intIndexArray) && !Parser.isError) {
 			eProc.AddBracet(FormArgument);
 			intCounter++;
 		}
@@ -2317,13 +2320,14 @@ CUnicodeParser.prototype.Start = function() {
 
 	this.ParaMath.Root.Correct_Content(true);
 };
-function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet) {
+function CUnicodeLexer(Parser, FormArgument, indexOfCloseAtom) {
 	var eProc = Parser.Processing;
 	var strAtom;
-
+	var intCounter = 0;
+	
 	do {
 		strAtom = eProc.GetNextAtom();
-		if (indexOfCloseBracet === Parser.intIndexArray) {
+		if (indexOfCloseAtom === Parser.intIndexArray) {
 			if(eProc.IndexesOfIgnoredAtoms[Parser.intIndexArray] === true) {
 				FormArgument.Add_Text(strAtom, Parser.Paragraph);
 			}
@@ -2335,47 +2339,58 @@ function CUnicodeLexer(Parser, FormArgument, indexOfCloseBracet) {
 		if (strAtom === undefined) {
 			return;
 		}
-		else if (eProc.CheckIsFrac() && eProc.StartBracet[strAtom]) {
+		else if (eProc.CheckIsFrac()) {
 			eProc.AddFraction(FormArgument, strAtom);
+			intCounter++;
 		}
 		else if (eProc.GetTypeOfFunction[strAtom] != null) {
 			eProc.AddFunction(FormArgument, strAtom);
+			intCounter++;
 		}
 		else if (eProc.UnicodeLargeOperator[strAtom.charCodeAt()]) {
-			eProc.AddLargeOperator(FormArgument, strAtom)
+			eProc.AddLargeOperator(FormArgument, strAtom);
+			intCounter++;
 		}
 		else if (eProc.CheckSyntax('GetRuleOrScript') || eProc.CheckSyntax('GetRuleAndScript')) {
-			eProc.AddScript(strAtom, FormArgument);
-		}
-		else if (eProc.CheckOrScript(true) || eProc.CheckAndScript(true)) {
-			Parser.intIndexArray++;
-			eProc.AddScript(strAtom, FormArgument, true);
+			eProc.AddScript(FormArgument);
+			intCounter++;
 		}
 		else if (eProc.CheckIsMatrix(strAtom)) {
 			eProc.AddMatrix(FormArgument);
+			intCounter++;
 		}
 		else if (strAtom == "\\pmod" && !Parser.isError) {
 			eProc.AddPMod(FormArgument);
+			intCounter++;
 		}
 		else if (strAtom.charCodeAt() === 8730) {
 			eProc.AddRadical(FormArgument);
+			intCounter++;
 		}
 		else if (eProc.CheckIsBinom()) {
 			eProc.AddBinom(FormArgument);
+			intCounter++;
 		}
 		else if (eProc.CheckIsAccent(strAtom)) {
 			eProc.AddAccent(FormArgument);
+			intCounter++;
 		}
 		else if (eProc.CheckIsBrackets(strAtom)) {
 			eProc.AddBracet(FormArgument);
+			intCounter++;
 		}
 		else if (typeof eProc.CheckMathText[strAtom] == 'number') {
 			eProc.AddMathText(FormArgument, strAtom);
+			intCounter++;
 		}
 		else {
-			FormArgument.Add_Text(strAtom, Parser.Paragraph);
+			eProc.AddSymbol(strAtom, FormArgument);
+			intCounter++;
 		}
-	} while (strAtom != undefined);
+		if (Parser.intIndexArray >= indexOfCloseAtom) {
+			return
+		}
+	} while (strAtom != undefined && !(indexOfCloseAtom === true && intCounter === 1));
 }
 
 //--------------------------------------------------------export----------------------------------------------------
