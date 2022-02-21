@@ -764,9 +764,9 @@
 	 * Add ole-object in current document position
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @alias AddOleObject
+	 * @alias InsertOleObject
 	 * @param {OLEObjectData} NewObject - new object data
-	 * @param {?boolean} bSelect = true - new object data
+	 * @param {?boolean} bSelect = true - select or not ole-object after inserting
 	 * @return {undefined}
 	 */
 	window["asc_docs_api"].prototype["pluginMethod_InsertOleObject"] = function(NewObject, bSelect)
@@ -788,10 +788,9 @@
 	 * Change ole-object in current document position
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @alias AddOleObject
+	 * @alias ChangeOleObject
 	 * @param {OLEObjectData} ObjectData
-	 * @return {undefined} sInternalId - internal id of new ole-object
-	 * window.Asc.plugin.executeMethod("ChangeOleObject", ["5_665"]);
+	 * @return {undefined}
 	 */
 	window["asc_docs_api"].prototype["pluginMethod_ChangeOleObject"] = function(ObjectData)
 	{
@@ -801,7 +800,7 @@
 	 * Change ole-object in current document position
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @alias AddOleObject
+	 * @alias ChangeOleObjects
 	 * @param {OLEObjectData[]} arrObjectData - array of new data of ole-objects
 	 * @return {undefined}
 	 */
