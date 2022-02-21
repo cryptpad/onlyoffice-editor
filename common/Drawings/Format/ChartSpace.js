@@ -4735,14 +4735,17 @@ var GLOBAL_PATH_COUNT = 0;
                 }
             }
             var aAllAxes = [];//array of axes sets
+            var oSetAxis;
             while(aAxes.length > 0) {
                 oCurAxis = aAxes.splice(0, 1)[0];
                 aCurAxesSet = [];
                 aCurAxesSet.push(oCurAxis);
                 for(i = aAxes.length - 1; i > -1; --i) {
                     oCurAxis2 = aAxes[i];
-                    for(j = 0; j < aCurAxesSet.length; ++j) {
-                        if(aCurAxesSet[j].crossAx === oCurAxis2 || oCurAxis2.crossAx === aCurAxesSet[j]) {
+                    for(j = aCurAxesSet.length - 1; j > -1; --j) {
+                        oSetAxis = aCurAxesSet[j];
+                        if(oSetAxis.crossAx !== oSetAxis && oSetAxis.crossAx === oCurAxis2 ||
+                            oCurAxis2.crossAx !== oCurAxis2 && oCurAxis2.crossAx === oSetAxis) {
                             aCurAxesSet.push(oCurAxis2);
                         }
                     }
@@ -12199,7 +12202,31 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.getTypeName = function() {
         return AscCommon.translateManager.getValue("Chart");
     };
-
+    CChartSpace.prototype.getAllAxes = function() {
+        var oChart = this.chart;
+        if(oChart) {
+            var oPlotArea = oChart.plotArea;
+            if(oPlotArea) {
+                return oPlotArea.axId;
+            }
+        }
+        return [];
+    };
+    CChartSpace.prototype.correctAxes = function() {
+        var aAxes = this.getAllAxes();
+        for(var nAx1 = 0; nAx1 < aAxes.length; ++nAx1) {
+            var oAx1 = aAxes[nAx1];
+            if(oAx1.crossAx === oAx1) {
+                for(var nAx2 = 0; nAx2 < aAxes.length; ++nAx2) {
+                    var oAx2 = aAxes[nAx2];
+                    if(oAx2 !== oAx1 && oAx2.crossAx === oAx1) {
+                        oAx1.setCrossAx(oAx2);
+                        break;
+                    }
+                }
+            }
+        }
+    };
     function CAdditionalStyleData() {
         this.dLbls = null;
         this.catAx = null;
