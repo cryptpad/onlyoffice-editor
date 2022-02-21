@@ -866,8 +866,8 @@
 			this.zoomCoordinate = this.getPageByCoords2(x, y);
 			if (this.zoomCoordinate)
 			{
-				this.zoomCoordinate['xShift'] = x;
-				this.zoomCoordinate['yShift'] = y;
+				this.zoomCoordinate.xShift = x;
+				this.zoomCoordinate.yShift = y;
 			}
 		};
 
