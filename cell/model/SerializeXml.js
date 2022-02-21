@@ -1256,7 +1256,9 @@
 		protectedRanges: "{FC87AEE6-9EDD-4A0A-B7FB-166176984837}",
 		ignoredErrors: "{01252117-D84E-4E92-8308-4BE1C098FCBB}",
 		webExtensions: "{F7C9EE02-42E1-4005-9D12-6889AFFD525C}",
-		timelineRefs: "{7E03D99C-DC04-49d9-9315-930204A7B6E9}"
+		timelineRefs: "{7E03D99C-DC04-49d9-9315-930204A7B6E9}",
+		slicerStyles: "{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}",
+		dxfs: "{46F421CA-312F-682F-3DD2-61675219B42D}"
 	};
 
 
@@ -7550,8 +7552,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	COfficeArtExtensionList.prototype.getSlicerStyles = function () {
 		var res = null;
 		this.arrExt.forEach(function(ext) {
-			if (ext && ext.slicerStyles && ext.slicerStyles.length) {
-				res = ext.slicerStyles[0];
+			if (ext && ext.slicerStyles) {
+				res = ext.slicerStyles;
 			}
 		});
 		return res;
@@ -7594,9 +7596,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		this.tableSlicerCaches = [];
 		this.aConditionalFormattingRules = [];
 		this.sparklineGroups = [];
-		this.dxfs = [];
+		this.dxfs = null;
 
-		this.slicerStyles = [];
+		this.slicerStyles = null;
 
 		this.ids = [];
 
@@ -7691,7 +7693,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				} else if ("slicerStyles" === name && typeof Asc.CT_slicerStyles != "undefined") {
 					val = new Asc.CT_slicerStyles();
 					val.fromXml(reader);
-					this.slicerStyles.push(val);
+					this.slicerStyles = val;
 				} else if ("slicerCachePivotTables" === name) {
 
 				} else if ("tableSlicerCache" === name) {
@@ -7912,9 +7914,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 		if (this.m_oSlicerCachesExt) {
 		}
-		if (this.m_oDxfs) {
+		if (this.dxfs && this.dxfs.length) {
+			writer.WriteXmlArray(this.dxfs, "dxf", "x14:dxfs", true);
 		}
-		if (this.m_oSlicerStyles) {
+		if (this.slicerStyles) {
+			this.slicerStyles.toXml(writer, "x14:slicerStyles");
 		}
 		if (this.m_oSlicerCachePivotTables) {
 		}
@@ -8013,8 +8017,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 		writer.WriteXmlNodeStart(name/*"x14:slicerStyles"*/);
-		//WritingNullable(m_oDefaultSlicerStyle, writer.WriteAttributeEncodeXml("defaultSlicerStyle", *m_oDefaultSlicerStyle););
-		writer.WriteXmlAttributeStringEncode("defaultSlicerStyle", this.defaultSlicerStyle);
+		writer.WriteXmlNullableAttributeStringEncode("defaultSlicerStyle", this.defaultSlicerStyle);
+
 		writer.WriteXmlAttributesEnd();
 		if(this.slicerStyle.length > 0)
 		{
@@ -10306,7 +10310,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					writer.WriteXmlAttributeString("type", ToXml_ST_TableStyleType(type));
 					writer.WriteXmlNullableAttributeNumber("size", aElements[i].size);
 
-					//TODO пополняем dxfs, нужно перед их записью предварительно их добавить
 					var dxfId = writer.context.tableStylesMap[this.displayName];
 					if (null != aElements[i].dxf) {
 						writer.WriteXmlAttributeNumber("dxfId", dxfId);
@@ -11817,10 +11820,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlAttributesEnd();
 
 
-
-		//Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
-
-
 		//делаю предаврительный map, потому что в serialize - numfmts пишется в конце потому что они могут пополниться при записи Dxfs"
 		var dxfs = writer.context.InitSaveManager.getDxfs();
 		var mapIndexNumId;
@@ -11874,7 +11873,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		/*if(m_oColors.IsInit())
 			m_oColors->toXML(writer);*/
 
-		//Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
+
+		//делаю предаврительный map, потому что в serialize - Dxfs пишется после TableStyles, потому что Dxfs может пополниться при записи TableStyles
 		var tableStylesMap = null;
 		if (wb.TableStyles) {
 			for (i in wb.TableStyles.CustomStyles) {
@@ -11909,16 +11909,23 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.context.tableStylesMap = null;
 		}
 
-		//TODO!!!
 		var aExtDxfs = [];
 		var slicerStyles = writer.context.InitSaveManager.PrepareSlicerStyles(wb.SlicerStyles, aExtDxfs);
-		if(aExtDxfs.length > 0) {
-			//writer.WriteXmlArray(dxfs, "dxf", "dxfs", true);
+		var officeArtExtensionList = new COfficeArtExtensionList(this);
+		var officeArtExtension;
+		if (aExtDxfs && aExtDxfs.length) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.dxfs;
+			officeArtExtension.dxfs =  aExtDxfs;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
 		}
-
-		/*
-		if(m_oExtLst.IsInit())
-			writer.WriteString(m_oExtLst->toXMLWithNS(L""));*/
+		if (slicerStyles) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.slicerStyles;
+			officeArtExtension.slicerStyles = slicerStyles;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
+		}
+		officeArtExtensionList.toXml(writer);
 
 		writer.WriteXmlString("</styleSheet>");
 	};
