@@ -11517,6 +11517,9 @@
     };
     InitOpenManager.prototype.InitDxfs = function (Dxfs)
     {
+        if (!Dxfs) {
+            return;
+        }
         for (var i = 0; i < Dxfs.length; ++i) {
             Dxfs[i] = g_StyleCache.addXf(Dxfs[i]);
         }

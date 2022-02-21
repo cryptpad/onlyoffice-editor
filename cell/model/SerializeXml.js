@@ -89,7 +89,7 @@
 		}
 	};
 
-	function getSimpleArrayFromXml (reader, childName, attrName, attrType) {
+	function getSimpleArrayFromXml(reader, childName, attrName, attrType) {
 		var res = [];
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -105,7 +105,7 @@
 		return res;
 	}
 
-	function readOneAttr (reader, attrName, func) {
+	function readOneAttr(reader, attrName, func) {
 		var res = null;
 
 		while (reader.MoveToNextAttribute()) {
@@ -118,7 +118,7 @@
 	}
 
 	//возможно стоит перенести в writer, пока не расширяю интерфейс
-	function toXML2 (writer, sName, m_sText) {
+	function toXML2(writer, sName, m_sText) {
 		if (m_sText) {
 			writer.WriteXmlString("<");
 			writer.WriteXmlString(sName);
@@ -133,11 +133,10 @@
 	}
 
 
-
 	function FromXml_ST_IconSetType2(val) {
 		//в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = null;
-		switch(val) {
+		switch (val) {
 			case "3Arrows":
 				res = Asc.EIconSetType.Arrows3;
 				break;
@@ -208,7 +207,7 @@
 	function ToXml_ST_IconSetType2(val) {
 		//в пивотах есть функция ToXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = null;
-		switch(val) {
+		switch (val) {
 			case Asc.EIconSetType.Arrows3:
 				res = "3Arrows";
 				break;
@@ -518,7 +517,7 @@
 
 	function FromXML_ST_CfType(val) {
 		var res = null;
-		switch(val) {
+		switch (val) {
 			case "aboveAverage":
 				res = Asc.ECfType.aboveAverage;
 				break;
@@ -545,6 +544,9 @@
 				break;
 			case "duplicateValues":
 				res = Asc.ECfType.duplicateValues;
+				break;
+			case "expression":
+				res = Asc.ECfType.expression;
 				break;
 			case "notContainsBlanks":
 				res = Asc.ECfType.notContainsBlanks;
@@ -576,7 +578,7 @@
 
 	function ToXML_ST_CfType(val) {
 		var res = null;
-		switch(val) {
+		switch (val) {
 			case Asc.ECfType.aboveAverage:
 				res = "aboveAverage";
 				break;
@@ -603,6 +605,9 @@
 				break;
 			case Asc.ECfType.duplicateValues:
 				res = "duplicateValues";
+				break;
+			case Asc.ECfType.expression:
+				res = "expression";
 				break;
 			case Asc.ECfType.notContainsBlanks:
 				res = "notContainsBlanks";
@@ -826,7 +831,7 @@
 				res = "lessThanOrEqual";
 				break;
 			case Asc.EDataValidationOperator.GreaterThan:
-				res ="greaterThan";
+				res = "greaterThan";
 				break;
 			case Asc.EDataValidationOperator.GreaterThanOrEqual:
 				res = "greaterThanOrEq";
@@ -1244,7 +1249,7 @@
 	}
 
 
-	function boolToNumber (val) {
+	function boolToNumber(val) {
 		return val ? 1 : 0;
 	}
 
@@ -1262,7 +1267,6 @@
 	};
 
 
-
 	//****workbook****
 	function CT_Workbook(wb) {
 		//Members
@@ -1274,7 +1278,8 @@
 		this.slicerCachesIds = [];
 		this.newDefinedNames = [];
 	}
-	CT_Workbook.prototype.fromXml = function(reader) {
+
+	CT_Workbook.prototype.fromXml = function (reader) {
 		if (!reader.ReadNextNode()) {
 			return;
 		}
@@ -1339,7 +1344,7 @@
 					//TODO разобраться как читаются/записываются комменты в бинарник
 
 
-				}  else if ("slicerCaches" === name) {
+				} else if ("slicerCaches" === name) {
 					reader.readXmlArray("slicerCache", function () {
 						while (reader.MoveToNextAttribute()) {
 							if ("id" === reader.GetNameNoNS()) {
@@ -1421,7 +1426,7 @@
 		writer.WriteXmlNodeEnd("workbook");
 	};
 
-	function CT_BookViews (wb, val) {
+	function CT_BookViews(wb, val) {
 		this.wb = wb;
 		this.val = val;
 	}
@@ -1464,13 +1469,24 @@
 		writer.WriteXmlNodeEnd(ns + name);
 	};
 
-	function CT_CalcPr (val) {
+	function CT_CalcPr(val) {
 		this.val = val ? val : {
-			calcId: null, calcMode: null, fullCalcOnLoad: null, refMode: null, iterate: null, iterateCount: null,
-			iterateDelta: null, fullPrecision: null, calcCompleted: null, calcOnSave: null, concurrentCalc: null,
-			concurrentManualCount: null, forceFullCalc: null
+			calcId: null,
+			calcMode: null,
+			fullCalcOnLoad: null,
+			refMode: null,
+			iterate: null,
+			iterateCount: null,
+			iterateDelta: null,
+			fullPrecision: null,
+			calcCompleted: null,
+			calcOnSave: null,
+			concurrentCalc: null,
+			concurrentManualCount: null,
+			forceFullCalc: null
 		};
 	}
+
 	CT_CalcPr.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -1545,9 +1561,10 @@
 		writer.WriteXmlAttributesEnd(true);
 	}
 
-	function CT_WorkbookPr (val) {
+	function CT_WorkbookPr(val) {
 		this.val = val ? val : {};
 	}
+
 	CT_WorkbookPr.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -1573,7 +1590,8 @@
 			} else if ("codeName" === reader.GetName()) {
 				val = reader.GetValue();
 				this.codeName = val;
-			} else*/ if ("date1904" === reader.GetName()) {
+			} else*/
+			if ("date1904" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.val.Date1904 = val;
 			} else if ("dateCompatibility" === reader.GetName()) {
@@ -1585,8 +1603,7 @@
 			} else if ("filterPrivacy" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.filterPrivacy = val;
-			}*/
-			else if ("hidePivotFieldList" === reader.GetName()) {
+			}*/ else if ("hidePivotFieldList" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.val.HidePivotFieldList = val;
 			} /*else if ("promptedSolutions" === reader.GetName()) {
@@ -1849,7 +1866,7 @@
 					if (this.PagePrintOptions && this.PagePrintOptions.pageSetup) {
 						this.PagePrintOptions.pageSetup.fromXml(reader);
 					}
-				}  else if ("printOptions" === name) {
+				} else if ("printOptions" === name) {
 					//asc_CPageOptions
 					if (this.PagePrintOptions) {
 						this.PagePrintOptions.fromXml(reader);
@@ -1873,7 +1890,7 @@
 				} else if ("legacyDrawing" === name) {
 					//do not support serialize
 					//need for comments
-					readOneAttr(reader, "id",function () {
+					readOneAttr(reader, "id", function () {
 						context.InitOpenManager.legacyDrawingId = reader.GetValue();
 					})
 				} else if ("legacyDrawingHF" === name) {
@@ -1929,7 +1946,7 @@
 					//do not support serialize - commented
 				} else if ("rowBreaks" === name) {
 					//do not support serialize - commented
-				}  else if ("colBreaks" === name) {
+				} else if ("colBreaks" === name) {
 					//do not support serialize - commented
 				} else if ("sheetProtection" === name) {
 					var sheetProtection = Asc.CSheetProtection ? new Asc.CSheetProtection(this) : null;
@@ -1970,7 +1987,7 @@
 		//writer.WriteXmlString('<dimension ref="A1"/>');
 
 		//AscCommonExcel.asc_CSheetPr
-		if(this.sheetPr) {
+		if (this.sheetPr) {
 			this.sheetPr.toXml(writer, "sheetPr");
 		}
 		//AscCommonExcel.asc_CSheetViewSettings
@@ -2079,7 +2096,6 @@
 		}
 
 
-
 		//asc_CPageOptions
 		if (this.PagePrintOptions) {
 			this.PagePrintOptions.toXml(writer, "printOptions");
@@ -2152,13 +2168,13 @@
 		if (this.dataValidations) {
 			officeArtExtension = new COfficeArtExtension(this);
 			officeArtExtension.uri = extUri.dataValidations;
-			officeArtExtension.dataValidations =  this.dataValidations;
+			officeArtExtension.dataValidations = this.dataValidations;
 			officeArtExtensionList.arrExt.push(officeArtExtension);
 		}
 		if (this.aSparklineGroups && this.aSparklineGroups.length) {
 			officeArtExtension = new COfficeArtExtension(this);
 			officeArtExtension.uri = extUri.sparklineGroups;
-			officeArtExtension.sparklineGroups =  this.aSparklineGroups;
+			officeArtExtension.sparklineGroups = this.aSparklineGroups;
 			officeArtExtensionList.arrExt.push(officeArtExtension);
 		}
 
@@ -2184,7 +2200,7 @@
 			ns = "";
 		}
 
-		writer.WriteXmlNodeStart( ns + name /*definedName*/);
+		writer.WriteXmlNodeStart(ns + name /*definedName*/);
 		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
 		writer.WriteXmlNullableAttributeNumber("localSheetId", this.LocalSheetId);
 		writer.WriteXmlNullableAttributeBool("hidden", this.Hidden);
@@ -2398,13 +2414,13 @@
 					} else if ("hidden" === reader.GetName()) {
 						val = reader.GetValueBool();
 						oTempCol.col.setHidden(val);
-					}  else if ("min" === reader.GetName()) {
+					} else if ("min" === reader.GetName()) {
 						val = reader.GetValueInt();
 						oTempCol.Min = val;
-					}  else if ("max" === reader.GetName()) {
+					} else if ("max" === reader.GetName()) {
 						val = reader.GetValueInt();
 						oTempCol.Max = val;
-					}  else if ("outlineLevel" === reader.GetName()) {
+					} else if ("outlineLevel" === reader.GetName()) {
 						val = reader.GetValueInt();
 						oTempCol.col.outlineLevel = val;
 					} /*else if ("phonetic" === reader.GetName()) {
@@ -2426,7 +2442,7 @@
 	};
 
 
-	CT_Cols.prototype.toXml = function(writer, name, ns) {
+	CT_Cols.prototype.toXml = function (writer, name, ns) {
 		if (!this.val.length) {
 			return;
 		}
@@ -2448,7 +2464,7 @@
 			writer.WriteXmlNullableAttributeBool("hidden", oCol.hd ? oCol.hd : null);
 			writer.WriteXmlNullableAttributeNumber("min", oTmpCol.Min);
 			writer.WriteXmlNullableAttributeNumber("max", oTmpCol.Max);
-			writer.WriteXmlNullableAttributeNumber("outlineLevel", oCol.outlineLevel >0 ? oCol.outlineLevel : null);
+			writer.WriteXmlNullableAttributeNumber("outlineLevel", oCol.outlineLevel > 0 ? oCol.outlineLevel : null);
 			//writer.WriteXmlNullableAttributeBool("phonetic", this.phonetic);
 			writer.WriteXmlNullableAttributeNumber("style", oTmpCol.xfsid);
 			writer.WriteXmlNullableAttributeDouble("width", oTmpCol.width);
@@ -2470,7 +2486,7 @@
 			range = ws.getRange3(0, 0, AscCommon.gc_nMaxRow0, AscCommon.gc_nMaxCol0);
 		}
 		var isFirstRow = true;
-		var writeEndRow = function(){
+		var writeEndRow = function () {
 			if (isFirstRow) {
 				isFirstRow = false;
 			} else {
@@ -2485,11 +2501,11 @@
 		if (allRow) {
 			tempRow.copyFrom(allRow);
 		}
-		range._foreachRowNoEmpty(function(row, excludedCount) {
+		range._foreachRowNoEmpty(function (row, excludedCount) {
 			writeEndRow();
 			row.toXml(writer, "row");
 			curRow = row.getIndex();
-		}, function(cell, nRow0, nCol0, nRowStart0, nColStart0, excludedCount) {
+		}, function (cell, nRow0, nCol0, nRowStart0, nColStart0, excludedCount) {
 			if (curRow != nRow0) {
 				tempRow.setIndex(nRow0);
 				writeEndRow();
@@ -2582,7 +2598,7 @@
 		}
 	};
 
-	AscCommonExcel.Row.prototype.toXml = function(writer, name, ns) {
+	AscCommonExcel.Row.prototype.toXml = function (writer, name, ns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -2604,7 +2620,7 @@
 		writer.WriteXmlAttributeBoolIfTrue("collapsed", this.getCollapsed());
 		writer.WriteXmlAttributesEnd();
 	};
-	AscCommonExcel.Cell.prototype.fromXml = function(reader) {
+	AscCommonExcel.Cell.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
 		var value = reader.GetContext().cellValue;
@@ -2632,7 +2648,7 @@
 			}
 		}
 	};
-	AscCommonExcel.Cell.prototype.readAttr = function(reader) {
+	AscCommonExcel.Cell.prototype.readAttr = function (reader) {
 		var val;
 		var cellBase = reader.GetContext().cellBase;
 		while (reader.MoveToNextAttribute()) {
@@ -2653,7 +2669,7 @@
 				}
 			} else if ("t" === reader.GetName()) {
 				val = reader.GetValue();
-				switch(val) {
+				switch (val) {
 					case "s":
 						this.type = CellValueType.String;
 						break;
@@ -2679,7 +2695,7 @@
 			}
 		}
 	};
-	AscCommonExcel.Cell.prototype.toXml = function(writer, name, ns) {
+	AscCommonExcel.Cell.prototype.toXml = function (writer, name, ns) {
 		var context = writer.context;
 		var ws = this.ws;
 		var ref = AscCommon.CellBase.prototype.toRefA1(this.nRow, this.nCol);
@@ -2733,9 +2749,9 @@
 		if (!this.isNullText()) {
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlNullableValueString("f", formulaToWrite);
-			if(null !== text) {
+			if (null !== text) {
 				writer.WriteXmlValueString("v", text);
-			} else if(null !== number) {
+			} else if (null !== number) {
 				writer.WriteXmlValueNumber("v", number);
 			}
 			writer.WriteXmlNodeEnd(ns + name);
@@ -2744,11 +2760,11 @@
 			writer.WriteXmlAttributesEnd(true);
 		}
 	};
-	AscCommonExcel.OpenFormula.prototype.fromXml = function(reader) {
+	AscCommonExcel.OpenFormula.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		this.v = reader.GetText();
 	};
-	AscCommonExcel.OpenFormula.prototype.readAttr = function(reader) {
+	AscCommonExcel.OpenFormula.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("aca" === reader.GetName()) {
@@ -2830,24 +2846,26 @@
 		writer.WriteXmlNodeStart("xdr:wsDr");
 		writer.WriteXmlString(' xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"');
 		writer.WriteXmlAttributesEnd();
-		this.ws.Drawings.forEach(function(drawing) {
+		this.ws.Drawings.forEach(function (drawing) {
 			drawing.toXml(writer);
 		});
 		writer.WriteXmlNodeEnd("xdr:wsDr");
 	};
+
 	function CT_SharedStrings() {
 		this.sharedStrings = [];
 	}
-	CT_SharedStrings.prototype.initFromMap = function(wb, oSharedStrings) {
+
+	CT_SharedStrings.prototype.initFromMap = function (wb, oSharedStrings) {
 		for (var i in oSharedStrings.strings) {
-			if (oSharedStrings.strings.hasOwnProperty(i)){
+			if (oSharedStrings.strings.hasOwnProperty(i)) {
 				var from = parseInt(i);
 				var to = oSharedStrings.strings[i];
 				this.sharedStrings[to] = wb.sharedStrings.get(from);
 			}
 		}
 	};
-	CT_SharedStrings.prototype.fromXml = function(reader) {
+	CT_SharedStrings.prototype.fromXml = function (reader) {
 		if (!reader.ReadNextNode()) {
 			return;
 		}
@@ -2876,7 +2894,7 @@
 		}
 		reader.GetContext().sharedStrings = this.sharedStrings;
 	};
-	CT_SharedStrings.prototype.toXml = function(writer) {
+	CT_SharedStrings.prototype.toXml = function (writer) {
 		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
 		writer.WriteXmlNodeStart("sst");
 		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"');
@@ -2885,7 +2903,7 @@
 		writer.WriteXmlAttributesEnd();
 
 		var si = new CT_Si();
-		this.sharedStrings.forEach(function(elem) {
+		this.sharedStrings.forEach(function (elem) {
 			si.clean();
 			if (typeof elem === 'string') {
 				si.text = elem;
@@ -2896,12 +2914,15 @@
 		});
 		writer.WriteXmlNodeEnd("sst");
 	};
+
 	function CT_PersonList() {
 		this.personList = [];
 	}
-	CT_PersonList.prototype.fromXml = function(reader) {
-		if ( !reader.ReadNextNode() )
+
+	CT_PersonList.prototype.fromXml = function (reader) {
+		if (!reader.ReadNextNode()) {
 			return;
+		}
 
 		var sName = reader.GetNameNoNS();
 		if ("personList" === sName) {
@@ -2946,7 +2967,7 @@
 			}
 		}
 	};
-	CT_PersonList.prototype.toXml = function(writer, name, ns) {
+	CT_PersonList.prototype.toXml = function (writer, name, ns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -2974,11 +2995,12 @@
 		this.text = null;
 		this.multiText = null;
 	}
-	CT_Si.prototype.clean = function() {
+
+	CT_Si.prototype.clean = function () {
 		this.text = null;
 		this.multiText = null;
 	};
-	CT_Si.prototype.fromXml = function(reader) {
+	CT_Si.prototype.fromXml = function (reader) {
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("t" === reader.GetName()) {
@@ -2994,7 +3016,7 @@
 			}
 		}
 	};
-	CT_Si.prototype.toXml = function(writer, name, ns) {
+	CT_Si.prototype.toXml = function (writer, name, ns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -3008,7 +3030,7 @@
 		writer.WriteXmlNodeEnd(ns + name);
 	};
 
-	AscCommonExcel.CMultiTextElem.prototype.fromXml = function(reader) {
+	AscCommonExcel.CMultiTextElem.prototype.fromXml = function (reader) {
 		if (reader.IsEmptyNode()) {
 			return;
 		}
@@ -3036,7 +3058,7 @@
 		}
 	};
 
-	AscCommonExcel.CMultiTextElem.prototype.toXml = function(writer, name, ns, childns) {
+	AscCommonExcel.CMultiTextElem.prototype.toXml = function (writer, name, ns, childns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -3057,29 +3079,32 @@
 	function CT_PivotCaches() {
 		this.pivotCaches = [];
 	}
-	CT_PivotCaches.prototype.fromXml = function(reader) {
+
+	CT_PivotCaches.prototype.fromXml = function (reader) {
 		var depth = reader.GetDepth();
-		while( reader.ReadNextSiblingNode(depth) ) {
-			if ( "pivotCache" === reader.GetNameNoNS() ) {
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("pivotCache" === reader.GetNameNoNS()) {
 				var pivotCache = new CT_PivotCache();
 				pivotCache.fromXml(reader);
 				this.pivotCaches.push(pivotCache);
 			}
 		}
 	};
+
 	function CT_DrawingWSRef() {
 		this.id = null;
 	}
-	CT_DrawingWSRef.prototype.fromXml = function(reader) {
+
+	CT_DrawingWSRef.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	CT_DrawingWSRef.prototype.toXml = function(writer, name) {
+	CT_DrawingWSRef.prototype.toXml = function (writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("r:id", this.id);
 		writer.WriteXmlAttributesEnd(true);
 	};
-	CT_DrawingWSRef.prototype.readAttr = function(reader) {
+	CT_DrawingWSRef.prototype.readAttr = function (reader) {
 		while (reader.MoveToNextAttribute()) {
 			if ("id" === reader.GetNameNoNS()) {
 				this.id = reader.GetValueDecodeXml();
@@ -3092,7 +3117,7 @@
 		this._openRow = new AscCommonExcel.Row(ws);
 	}
 
-	CT_SheetData.prototype.fromXml = function(reader) {
+	CT_SheetData.prototype.fromXml = function (reader) {
 		var depth = reader.GetDepth();
 		var row = reader.GetContext().row;
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -3103,7 +3128,7 @@
 			}
 		}
 	};
-	CT_SheetData.prototype.fromXml2 = function(reader) {
+	CT_SheetData.prototype.fromXml2 = function (reader) {
 
 		var depth = reader.GetDepth();
 		var tmp = reader.GetContext().InitOpenManager.tmp;
@@ -3202,17 +3227,19 @@
 			/*if ("display" === reader.GetName()) {
 				val = reader.GetValue();
 				this.display = val;
-			} else*/ if ("r:id" === reader.GetName()) {
+			} else*/
+			if ("r:id" === reader.GetName()) {
 				//TODO пока обрабатываю здесь, возможно стоит это сдлелать после чтения всей книги
 				val = reader.GetValue();
 				var rIdDoc = reader.rels.getRelationshipById(val);
 				if (rIdDoc) {
 					this.Hyperlink = rIdDoc.targetFullName;
 				}
-			/*} else if ("relationships:id" === reader.GetName()) {
-				val = reader.GetValue();
-				this.relationships:id = val;
-			*/} else if ("location" === reader.GetName()) {
+				/*} else if ("relationships:id" === reader.GetName()) {
+					val = reader.GetValue();
+					this.relationships:id = val;
+				*/
+			} else if ("location" === reader.GetName()) {
 				val = reader.GetValue();
 				this.setLocation(val);
 				//this.setLocation(this.stream.GetString2LE(length));
@@ -3255,21 +3282,22 @@
 		this.wb = wb;
 		this.sheets = [];
 	}
-	CT_Sheets.prototype.fromXml = function(reader) {
+
+	CT_Sheets.prototype.fromXml = function (reader) {
 		var depth = reader.GetDepth();
-		while( reader.ReadNextSiblingNode(depth) ) {
-			if ( "sheet" === reader.GetNameNoNS() ) {
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("sheet" === reader.GetNameNoNS()) {
 				var sheet = new CT_Sheet();
 				sheet.fromXml(reader);
 				this.sheets.push(sheet);
 			}
 		}
 	};
-	CT_Sheets.prototype.toXml = function(writer, name, ns) {
+	CT_Sheets.prototype.toXml = function (writer, name, ns) {
 		var t = this;
 		var context = writer.context;
 		var index = 1;
-		this.wb.forEach(function(ws) {
+		this.wb.forEach(function (ws) {
 			var sheetXml = new CT_Sheet();
 			var wsPart = context.part.addPart(AscCommon.openXml.Types.worksheet);
 			wsPart.part.setDataXml(ws, writer);
@@ -3286,34 +3314,36 @@
 
 		writer.WriteXmlNodeStart(ns + name/*"sheets"*/);
 		writer.WriteXmlAttributesEnd();
-		this.sheets.forEach(function(sheetXml) {
+		this.sheets.forEach(function (sheetXml) {
 			sheetXml.toXml(writer);
 		}, context.isCopyPaste);
 		writer.WriteXmlNodeEnd(ns + name);
 	};
+
 	function CT_Sheet() {
 		//Attributes
 		this.name = null;
 		this.sheetId = null;
 		this.id = null;
 	}
-	CT_Sheet.prototype.fromXml = function(reader) {
+
+	CT_Sheet.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	CT_Sheet.prototype.toXml = function(writer) {
+	CT_Sheet.prototype.toXml = function (writer) {
 		writer.WriteXmlNodeStart("sheet");
 		writer.WriteXmlNullableAttributeString("name", this.name);
 		writer.WriteXmlNullableAttributeNumber("sheetId", this.sheetId);
 		writer.WriteXmlNullableAttributeString("r:id", this.id);
 		writer.WriteXmlAttributesEnd(true);
 	};
-	CT_Sheet.prototype.readAttributes = function(attr, uq) {
+	CT_Sheet.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
 			this.parseAttributes(attr());
 		}
 	};
-	CT_Sheet.prototype.readAttr = function(reader) {
+	CT_Sheet.prototype.readAttr = function (reader) {
 		while (reader.MoveToNextAttribute()) {
 			var name = reader.GetNameNoNS();
 			if ("name" === name) {
@@ -3325,53 +3355,57 @@
 			}
 		}
 	};
-	CT_Sheet.prototype.parseAttributes = function(vals, uq) {
+	CT_Sheet.prototype.parseAttributes = function (vals, uq) {
 		var val;
 		val = vals["r:id"];
 		if (undefined !== val) {
 			this.id = AscCommon.unleakString(uq(val));
 		}
 	};
+
 	function CT_Value() {
 		//Attributes
 		this.space = null;
 		this.val = null;
 	}
-	CT_Value.prototype.fromXml = function(reader) {
+
+	CT_Value.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		this.val = reader.GetText();
 	};
-	CT_Value.prototype.readAttributes = function(attr, uq) {
+	CT_Value.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
 			this.parseAttributes(attr());
 		}
 	};
-	CT_Value.prototype.readAttr = function(reader) {
+	CT_Value.prototype.readAttr = function (reader) {
 		//todo space
 	};
-	CT_Value.prototype.parseAttributes = function(vals, uq) {
+	CT_Value.prototype.parseAttributes = function (vals, uq) {
 		var val;
 		val = vals["r:id"];
 		if (undefined !== val) {
 			this.id = AscCommon.unleakString(uq(val));
 		}
 	};
+
 	function CT_PivotCache() {
 		//Attributes
 		this.cacheId = null;
 		this.id = null;
 	}
-	CT_PivotCache.prototype.fromXml = function(reader) {
+
+	CT_PivotCache.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	CT_PivotCache.prototype.readAttributes = function(attr, uq) {
+	CT_PivotCache.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
 			var vals = attr();
 			this.parseAttributes(attr(), uq);
 		}
 	};
-	CT_PivotCache.prototype.readAttr = function(reader) {
+	CT_PivotCache.prototype.readAttr = function (reader) {
 		while (reader.MoveToNextAttribute()) {
 			var name = reader.GetNameNoNS();
 			if ("id" === name) {
@@ -3381,7 +3415,7 @@
 			}
 		}
 	};
-	CT_PivotCache.prototype.parseAttributes = function(vals, uq) {
+	CT_PivotCache.prototype.parseAttributes = function (vals, uq) {
 		var val;
 		val = vals["cacheId"];
 		if (undefined !== val) {
@@ -3392,7 +3426,7 @@
 			this.id = AscCommon.unleakString(uq(val));
 		}
 	};
-	
+
 
 	//Tables & AutoFilter
 	/*function CT_TableParts(ws) {
@@ -3434,7 +3468,7 @@
 	};*/
 
 
-	AscCommonExcel.TablePart.prototype.fromXml = function(reader) {
+	AscCommonExcel.TablePart.prototype.fromXml = function (reader) {
 		if (!reader.ReadNextNode()) {
 			return;
 		}
@@ -3473,12 +3507,12 @@
 				var tableStyleInfo = new AscCommonExcel.TableStyleInfo();
 				tableStyleInfo.fromXml(reader);
 				this.TableStyleInfo = tableStyleInfo;
-			}  else if ("extLst" === name) {
+			} else if ("extLst" === name) {
 
 			}
 		}
 	};
-	AscCommonExcel.TablePart.prototype.readAttr = function(reader) {
+	AscCommonExcel.TablePart.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("ref" === reader.GetName()) {
@@ -3498,7 +3532,7 @@
 			}
 		}
 	};
-	AscCommonExcel.TablePart.prototype.toXml = function(writer) {
+	AscCommonExcel.TablePart.prototype.toXml = function (writer) {
 
 		/*writer.WriteString(L"<table \
 xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" \
@@ -3555,12 +3589,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteString(L"</table>");*/
 
 
-
-
-
 		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
 		writer.WriteXmlNodeStart("table");
-		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" mc:Ignorable="xr xr3"');
+		writer.WriteXmlString(
+			' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" mc:Ignorable="xr xr3"');
 		var tableIds = writer.context.InitSaveManager.getTableIds();
 		writer.WriteXmlNullableAttributeNumber("id", undefined != tableIds[this.DisplayName] ? tableIds[this.DisplayName].id : null);
 		writer.WriteXmlNullableAttributeStringEncode("name", this.Name ? this.Name : null);
@@ -3579,7 +3611,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (this.SortState) {
 			this.SortState.toXml(writer, "sortState");
 		}
-		if(this.TableColumns) {
+		if (this.TableColumns) {
 			writer.WriteXmlNodeStart("tableColumns");
 			writer.WriteXmlAttributeNumber("count", this.TableColumns.length);
 			writer.WriteXmlAttributesEnd();
@@ -3601,7 +3633,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlNodeEnd("table");
 	};
-	AscCommonExcel.TablePart.prototype.setAttr = function(attr, val, oAttr) {
+	AscCommonExcel.TablePart.prototype.setAttr = function (attr, val, oAttr) {
 		//была идея делать так для удобства, но память нужно экономить
 		/*var oAttr = {"ref": "Ref", "displayName" : "DisplayName", "headerRowCount" : "HeaderRowCount"};
 		while (reader.MoveToNextAttribute()) {
@@ -3687,7 +3719,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
-	AscCommonExcel.AutoFilter.prototype.readAttr = function(reader) {
+	AscCommonExcel.AutoFilter.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("ref" === reader.GetName()) {
@@ -3696,7 +3728,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
-	AscCommonExcel.AutoFilter.prototype.toXml = function(writer, name, ns) {
+	AscCommonExcel.AutoFilter.prototype.toXml = function (writer, name, ns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -3726,7 +3758,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 
 	};
-	AscCommonExcel.TableStyleInfo.prototype.readAttr = function(reader) {
+	AscCommonExcel.TableStyleInfo.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("name" === reader.GetName()) {
@@ -3823,7 +3855,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			m_oCalculatedColumnFormula = oReader.GetText3();
 		}*/
 	};
-	AscCommonExcel.TableColumn.prototype.readAttr = function(reader) {
+	AscCommonExcel.TableColumn.prototype.readAttr = function (reader) {
 
 		/*WritingElement_ReadAttributes_Read_if     ( oReader, L"dataCellStyle",		m_oDataCellStyle )
 		WritingElement_ReadAttributes_Read_if     ( oReader, L"dataDxfId",			m_oDataDxfId )
@@ -3918,7 +3950,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeStringEncode("totalsRowLabel", this.TotalsRowLabel);
 		//есть такой баг: при сохранениии "sum" и названия таблицы "Table1" (русский excel), выдается ошибка в формулах
 		writer.WriteXmlNullableAttributeString("totalsRowFunction", this.TotalsRowFunction);
-		writer.WriteXmlNullableAttributeNumber("queryTableFieldId", this.queryTableFieldId ? this.queryTableFieldId :  null);
+		writer.WriteXmlNullableAttributeNumber("queryTableFieldId", this.queryTableFieldId ? this.queryTableFieldId : null);
 		//writer.WriteXmlNullableAttributeString("dataCellStyle", this.DataCellStyle ? this.DataCellStyle : null);
 		writer.WriteXmlNullableAttributeNumber("dataDxfId", this.dxf ? this.dxf : null);
 		//writer.WriteXmlNullableAttributeString("headerRowCellStyle", this.HeaderRowCellStyle ? this.HeaderRowCellStyle : null);
@@ -3951,7 +3983,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.SortState.prototype.readAttr = function(reader) {
+	AscCommonExcel.SortState.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("ref" === reader.GetName()) {
@@ -4064,7 +4096,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.FilterColumn.prototype.readAttr = function(reader) {
+	AscCommonExcel.FilterColumn.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("colId" === reader.GetName()) {
@@ -4080,7 +4112,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.FilterColumn.prototype.toXml = function(writer, name, ns, childns) {
+	AscCommonExcel.FilterColumn.prototype.toXml = function (writer, name, ns, childns) {
 		/*writer.StartNodeWithNS(node_ns, node_name);
 		writer.StartAttributes();
 		WritingStringNullableAttrInt(L"colId", m_oColId, m_oColId->GetValue());
@@ -4148,7 +4180,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.SortCondition.prototype.readAttr = function(reader) {
+	AscCommonExcel.SortCondition.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_SortCondition">
 			160 <xsd:attribute name="descending" type="xsd:boolean" use="optional" default="false"/>
@@ -4245,7 +4277,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.ColorFilter.prototype.readAttr = function(reader) {
+	Asc.ColorFilter.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_ColorFilter">
 		67 <xsd:attribute name="dxfId" type="ST_DxfId" use="optional"/>
@@ -4284,7 +4316,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.ColorFilter.prototype.toXml = function(writer, name, ns, childns) {
+	Asc.ColorFilter.prototype.toXml = function (writer, name, ns, childns) {
 		/*writer.StartNodeWithNS(node_ns, node_name);
 		writer.StartAttributes();
 		WritingStringAttrInt(L"dxfId", m_oDxfId->GetValue());
@@ -4317,7 +4349,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.DynamicFilter.prototype.readAttr = function(reader) {
+	Asc.DynamicFilter.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_DynamicFilter">
 		85 <xsd:attribute name="type" type="ST_DynamicFilterType" use="required"/>
@@ -4353,7 +4385,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.DynamicFilter.prototype.toXml = function(writer, name, ns, childns) {
+	Asc.DynamicFilter.prototype.toXml = function (writer, name, ns, childns) {
 		/*writer.StartNodeWithNS(node_ns, node_name);
 		writer.StartAttributes();
 		WritingStringAttrString(L"type", m_oType->ToString());
@@ -4420,7 +4452,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.Top10.prototype.toXml = function(writer, name, ns) {
+	Asc.Top10.prototype.toXml = function (writer, name, ns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -4475,7 +4507,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}*/
 	};
 
-	Asc.CustomFilters.prototype.readAttr = function(reader) {
+	Asc.CustomFilters.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_CustomFilters">
 		51 <xsd:sequence>
@@ -4507,7 +4539,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.CustomFilters.prototype.toXml = function(writer, name, ns, childns) {
+	Asc.CustomFilters.prototype.toXml = function (writer, name, ns, childns) {
 		/*if(m_arrItems.empty()) return;
 
 		writer.StartNodeWithNS(node_ns, node_name);
@@ -4550,7 +4582,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		reader.ReadTillEnd();
 	};
 
-	Asc.CustomFilter.prototype.readAttr = function(reader) {
+	Asc.CustomFilter.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_CustomFilters">
 		51 <xsd:sequence>
@@ -4582,7 +4614,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	Asc.CustomFilter.prototype.toXml = function(writer, name, ns) {
+	Asc.CustomFilter.prototype.toXml = function (writer, name, ns) {
 		/*if(m_oOperator.IsInit() && m_oVal.IsInit())
 		{
 			writer.StartNodeWithNS(node_ns, node_name);
@@ -4648,7 +4680,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	};
 
-	AscCommonExcel.Filters.prototype.readAttr = function(reader) {
+	AscCommonExcel.Filters.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_Filters">
 		39 <xsd:sequence>
@@ -4703,7 +4735,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.Filters.prototype.toXml = function(writer, name, ns, childns) {
+	AscCommonExcel.Filters.prototype.toXml = function (writer, name, ns, childns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -4730,7 +4762,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeEnd(ns + name);
 	};
 
-	AscCommonExcel.CT_Filter.prototype.toXml = function(writer, name, ns) {
+	AscCommonExcel.CT_Filter.prototype.toXml = function (writer, name, ns) {
 		if (!ns) {
 			ns = "";
 		}
@@ -4746,7 +4778,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		reader.ReadTillEnd();
 	};
 
-	AscCommonExcel.DateGroupItem.prototype.readAttr = function(reader) {
+	AscCommonExcel.DateGroupItem.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:simpleType name="ST_DateTimeGrouping">
 		193 <xsd:restriction base="xsd:string">
@@ -4813,7 +4845,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.DateGroupItem.prototype.toXml = function(writer, name, ns) {
+	AscCommonExcel.DateGroupItem.prototype.toXml = function (writer, name, ns) {
 
 
 		/*writer.StartNodeWithNS(node_ns, node_name);
@@ -4851,7 +4883,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		reader.ReadTillEnd();
 	};
 
-	AscCommonExcel.Filter.prototype.readAttr = function(reader) {
+	AscCommonExcel.Filter.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:attribute name="val" type="s:ST_Xstring"/>*/
 
@@ -4873,7 +4905,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.Filter.prototype.toXml = function(writer, name, ns, childns) {
+	AscCommonExcel.Filter.prototype.toXml = function (writer, name, ns, childns) {
 
 		/*if(m_oVal.IsInit())
 		{
@@ -4895,7 +4927,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeEnd(ns + name);
 
 	};
-	
+
 
 	//****data validation****
 	AscCommonExcel.CDataValidations.prototype.fromXml = function (reader) {
@@ -4936,7 +4968,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}*/
 	};
 
-	AscCommonExcel.CDataValidations.prototype.readAttr = function(reader) {
+	AscCommonExcel.CDataValidations.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_DataValidations">
 			2595 <xsd:sequence>
@@ -4991,7 +5023,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	AscCommonExcel.CDataValidations.prototype.toXml = function(writer, bExtendedWrite) {
+	AscCommonExcel.CDataValidations.prototype.toXml = function (writer, bExtendedWrite) {
 		/*void CDataValidations::toXML2(NSStringUtils::CStringBuilder& writer, bool bExtendedWrite) const
 			{
 				if (m_arrItems.empty()) return;
@@ -5182,7 +5214,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}*/
 	};
 
-	AscCommonExcel.CDataValidation.prototype.readAttr = function(reader) {
+	AscCommonExcel.CDataValidation.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_DataValidation">
 			2605 <xsd:sequence>
@@ -5339,7 +5371,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	}*/
 
-	AscCommonExcel.CDataValidation.prototype.isExtended = function() {
+	AscCommonExcel.CDataValidation.prototype.isExtended = function () {
 		var result1 = true, result2 = true;
 		if (this.formula1) {
 			if (this.formula1.text.indexOf("!") !== -1 && this.formula1.text !== "#REF!") {
@@ -5360,7 +5392,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		return result1 || result2;
 	};
 
-	AscCommonExcel.CDataValidation.prototype.toXml = function(writer, bExtendedWrite) {
+	AscCommonExcel.CDataValidation.prototype.toXml = function (writer, bExtendedWrite) {
 		/*void CDataValidation::toXML2(NSStringUtils::CStringBuilder& writer, bool bExtendedWrite) const
 		{
 			std::wstring node_name = bExtendedWrite ? L"x14:dataValidation" : L"dataValidation";
@@ -5433,16 +5465,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var node_name = bExtendedWrite ? "x14:dataValidation" : "dataValidation";
 
 		writer.WriteXmlString("<" + node_name);
-		if (bExtendedWrite)
-		{
+		if (bExtendedWrite) {
 			/*if (false == m_oUuid.IsInit())
 			{
 				m_oUuid = L"{" + XmlUtils::GenerateGuid() + L"}";
 			}
 			WritingStringNullableAttrString	(L"xr:uid",	m_oUuid, m_oUuid.get());*/
-		}
-		else
-		{
+		} else {
 			writer.WriteXmlNullableAttributeString("sqref", AscCommonExcel.getSqRefString(this.ranges));
 		}
 
@@ -5464,9 +5493,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeStringEncode("prompt", this.prompt);
 		writer.WriteXmlNullableAttributeStringEncode("promptTitle", this.promptTitle);
 
-		writer.WriteXmlNullableAttributeNumber("showDropDown",  boolToNumber(this.showDropDown));
-		writer.WriteXmlNullableAttributeNumber("showErrorMessage",  boolToNumber(this.showErrorMessage));
-		writer.WriteXmlNullableAttributeNumber("showInputMessage",  boolToNumber(this.showInputMessage));
+		writer.WriteXmlNullableAttributeNumber("showDropDown", boolToNumber(this.showDropDown));
+		writer.WriteXmlNullableAttributeNumber("showErrorMessage", boolToNumber(this.showErrorMessage));
+		writer.WriteXmlNullableAttributeNumber("showInputMessage", boolToNumber(this.showInputMessage));
 
 		writer.WriteXmlAttributesEnd();
 
@@ -5734,8 +5763,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var isWritePaperSize;
 		var dWidth = this.asc_getWidth();
 		var dHeight = this.asc_getHeight();
-		if(null != dWidth && null != dHeight)
-		{
+		if (null != dWidth && null != dHeight) {
 			var item = AscCommonExcel.DocumentPageSize.getSizeByWH(dWidth, dHeight);
 			writer.WriteXmlNullableAttributeString("paperSize", item.id + "");
 			isWritePaperSize = true;
@@ -6398,7 +6426,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("xSplit" === reader.GetName()) {
 				val = reader.GetValueDouble();
 				this.xSplit = val;
-			}  else if ("ySplit" === reader.GetName()) {
+			} else if ("ySplit" === reader.GetName()) {
 				val = reader.GetValueDouble();
 				this.ySplit = val;
 			}
@@ -6660,24 +6688,19 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeString("saltValue", this.saltValue);
 		writer.WriteXmlNullableAttributeNumber("spinCount", this.spinCount);
 
-		if (this.securityDescriptors && this.securityDescriptors.length === 1)
-		{
-			writer.WriteXmlNullableAttributeString("securityDescriptor", );
+		if (this.securityDescriptors && this.securityDescriptors.length === 1) {
+			writer.WriteXmlNullableAttributeString("securityDescriptor",);
 			writer.WriteXmlAttributeStringEncode("securityDescriptor", this.securityDescriptors[0]);
 		}
-		if (this.securityDescriptors && this.securityDescriptors.length > 1)
-		{
+		if (this.securityDescriptors && this.securityDescriptors.length > 1) {
 			writer.WriteXmlString(">");
-			for (var i = 0; i < this.securityDescriptors.length; ++i)
-			{
+			for (var i = 0; i < this.securityDescriptors.length; ++i) {
 				writer.WriteXmlString("<securityDescriptor>");
 				writer.WriteXmlStringEncode(this.securityDescriptors[i]);
 				writer.WriteXmlString("</securityDescriptor>");
 			}
 			writer.WriteXmlNodeEnd(ns + name);
-		}
-		else
-		{
+		} else {
 			writer.WriteXmlAttributesEnd(true);
 		}
 	};
@@ -6719,32 +6742,32 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			var name = reader.GetNameNoNS();
 			if ("evenFooter" === name) {
 				val = reader.GetText();
-				if(val) {
+				if (val) {
 					this.setEvenFooter(val);
 				}
 			} else if ("evenHeader" === name) {
 				val = reader.GetText();
-				if(val) {
+				if (val) {
 					this.setEvenHeader(val);
 				}
 			} else if ("firstFooter" === name) {
 				val = reader.GetText();
-				if(val) {
+				if (val) {
 					this.setFirstFooter(val);
 				}
 			} else if ("firstHeader" === name) {
 				val = reader.GetText();
-				if(val) {
+				if (val) {
 					this.setFirstHeader(val);
 				}
 			} else if ("oddFooter" === name) {
 				val = reader.GetText();
-				if(val) {
+				if (val) {
 					this.setOddFooter(val);
 				}
 			} else if ("oddHeader" === name) {
 				val = reader.GetText();
-				if(val) {
+				if (val) {
 					this.setOddHeader(val);
 				}
 			}
@@ -7497,7 +7520,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeEnd(ns + name);
 	};
 
-	function COfficeArtExtensionList (_ws) {
+	function COfficeArtExtensionList(_ws) {
 		this.arrExt = [];
 
 		this._ws = _ws;
@@ -7539,7 +7562,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	COfficeArtExtensionList.prototype.getConditionalFormattingId = function () {
 		var res = null;
 
-		this.arrExt.forEach(function(ext) {
+		this.arrExt.forEach(function (ext) {
 			if (ext && ext.ids) {
 				res = ext.ids[0];
 			}
@@ -7551,7 +7574,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	COfficeArtExtensionList.prototype.getSlicerStyles = function () {
 		var res = null;
-		this.arrExt.forEach(function(ext) {
+		this.arrExt.forEach(function (ext) {
 			if (ext && ext.slicerStyles) {
 				res = ext.slicerStyles;
 			}
@@ -7561,7 +7584,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	COfficeArtExtensionList.prototype.getDxfs = function () {
 		var res = [];
-		this.arrExt.forEach(function(ext) {
+		this.arrExt.forEach(function (ext) {
 			if (ext && ext.dxfs && ext.dxfs.length) {
 				res = res.concat(ext.dxfs);
 			}
@@ -7579,7 +7602,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteXmlNodeStart(ns + "extLst");
 			writer.WriteXmlAttributesEnd();
 
-			this.arrExt.forEach(function(ext) {
+			this.arrExt.forEach(function (ext) {
 				if (ext) {
 					ext.toXml(writer, ns);
 				}
@@ -7873,7 +7896,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlAttributesEnd();
 
 
-
 		if (this.CompatExt) {
 		}
 
@@ -7955,8 +7977,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
+		if (reader.IsEmptyNode()) {
 			return;
+		}
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -8020,10 +8043,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeStringEncode("defaultSlicerStyle", this.defaultSlicerStyle);
 
 		writer.WriteXmlAttributesEnd();
-		if(this.slicerStyle.length > 0)
-		{
-			for(var i = 0; i < this.slicerStyle.length; ++i)
-			{
+		if (this.slicerStyle.length > 0) {
+			for (var i = 0; i < this.slicerStyle.length; ++i) {
 				this.slicerStyle[i].toXml(writer, "x14:slicerStyle");
 			}
 		}
@@ -8178,7 +8199,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.EndNode(sName);*/
 
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlAttributeString("type",this.type);
+		writer.WriteXmlAttributeString("type", this.type);
 		writer.WriteXmlNullableAttributeNumber("dxfId", this.dxfId);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNodeEnd(name);
@@ -8224,7 +8245,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	};
 
-	AscCommonExcel.CConditionalFormatting.prototype.readAttr = function(reader) {
+	AscCommonExcel.CConditionalFormatting.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:sequence>
 			2736 <xsd:element name="cfRule" type="CT_CfRule" minOccurs="1" maxOccurs="unbounded"/>
@@ -8338,7 +8359,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = new AscCommonExcel.CColorScale();
 				val.fromXml(reader);
 				this.aRuleElements.push(val);
-			} else if ("dataBar" === name ) {
+			} else if ("dataBar" === name) {
 				val = new AscCommonExcel.CDataBar();
 				val.fromXml(reader);
 				this.aRuleElements.push(val);
@@ -8350,11 +8371,11 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = new AscCommonExcel.CIconSet();
 				val.fromXml(reader);
 				this.aRuleElements.push(val);
-			} else if ("dxf" === name ) {
+			} else if ("dxf" === name) {
 				val = new AscCommonExcel.CellXfs();
 				val.fromXml(reader);
 				this.dxf = val;
-			} else if ("extLst" === name ) {
+			} else if ("extLst" === name) {
 				var extLst = new COfficeArtExtensionList(this);
 				extLst.fromXml(reader);
 
@@ -8364,7 +8385,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	};
 
-	AscCommonExcel.CConditionalFormattingRule.prototype.readAttr = function(reader) {
+	AscCommonExcel.CConditionalFormattingRule.prototype.readAttr = function (reader) {
 		//documentation
 		/*<xsd:complexType name="CT_CfRule">
 			2743 <xsd:sequence>
@@ -8517,7 +8538,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
 				this.type = FromXML_ST_CfType(val);
-			}  else if ("id" === reader.GetName()) {
+			} else if ("id" === reader.GetName()) {
 				val = reader.GetValue();
 				this._openId = val;
 			}
@@ -8665,7 +8686,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString("</" + node_name + ">");
 	};
 
-	AscCommonExcel.CConditionalFormattingRule.prototype.isExtended = function() {
+	AscCommonExcel.CConditionalFormattingRule.prototype.isExtended = function () {
 		if (this.dxf) {
 			return true;
 		}
@@ -8737,7 +8758,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = new AscCommonExcel.CConditionalFormatValueObject();
 				val.fromXml(reader);
 				this.aCFVOs.push(val);
-			} else if ("color" === name ) {
+			} else if ("color" === name) {
 				val = AscCommon.getColorFromXml2(reader);
 				if (null != val) {
 					this.aColors.push(val);
@@ -8778,8 +8799,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		{
 			writer.WriteXmlString("<colorScale>");
 			var i;
-			for (i = 0; i < this.aCFVOs.length; ++i)
-			{
+			for (i = 0; i < this.aCFVOs.length; ++i) {
 				if (this.aCFVOs[i]) {
 					this.aCFVOs[i].toXml(writer, bExtendedWrite);
 				}
@@ -8827,7 +8847,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.CConditionalFormatValueObject.prototype.readAttr = function(reader) {
+	AscCommonExcel.CConditionalFormatValueObject.prototype.readAttr = function (reader) {
 		//documentation
 		/*
 		<xsd:attribute name="type" type="ST_CfvoType" use="required"/>
@@ -8916,8 +8936,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			writer.WriteString(L"</" + node_name + L">");*/
 
 
-		if (bExtendedWrite === false)
-		{
+		if (bExtendedWrite === false) {
 			//if (m_oType.GetValue() == SimpleTypes::Spreadsheet::autoMin) m_oType.SetValue(SimpleTypes::Spreadsheet::Minimum);
 			//if (m_oType.GetValue() == SimpleTypes::Spreadsheet::autoMax) m_oType.SetValue(SimpleTypes::Spreadsheet::Maximum);
 		}
@@ -8926,8 +8945,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlString("<" + node_name);
 		writer.WriteXmlAttributeString("type", ToXML_ST_CfvoType(this.Type));
-		if (false === this.Gte)
-		{
+		if (false === this.Gte) {
 			writer.WriteXmlString(" gte=\"0\"");
 		}
 		if (!bExtendedWrite) {
@@ -8939,8 +8957,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 		writer.WriteXmlString(">");
 
-		if (bExtendedWrite)
-		{
+		if (bExtendedWrite) {
 			//TODO
 			/*if (true == m_oFormula.IsInit())
 			{
@@ -9001,7 +9018,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	};
 
-	AscCommonExcel.CDataBar.prototype.readAttr = function(reader) {
+	AscCommonExcel.CDataBar.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("maxLength" === reader.GetName()) {
@@ -9129,8 +9146,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		AscCommon.writeColorToXml(writer, bExtendedWrite ? "x14:fillColor" : "color", this.Color);
 
-		if (bExtendedWrite)
-		{
+		if (bExtendedWrite) {
 			if (this.BorderColor) {
 				AscCommon.writeColorToXml(writer, "x14:borderColor", this.BorderColor);
 			}
@@ -9310,7 +9326,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			return;*/
 	};
 
-	AscCommonExcel.CConditionalFormatIconSet.prototype.readAttr = function(reader) {
+	AscCommonExcel.CConditionalFormatIconSet.prototype.readAttr = function (reader) {
 		//documentation
 		/*xsd:attribute name="iconSet" type="ST_IconSetType" use="required"/>
 		72 <xsd:attribute name="iconId" type="xsd:unsignedInt" use="optional"/>*/
@@ -9547,7 +9563,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		var val;
 		if (this.TabColor) {
-			this.TabColor.toXml(writer, "tabColor");
+			AscCommon.writeColorToXml(writer, "tabColor", this.TabColor);
 		}
 		//пока не делаю отедльных классов для модели. нужно сделать + изменить serialize + history
 		val = new COutlinePr(this);
@@ -9562,6 +9578,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CPageSetUpPr(sheetPr) {
 		this.SheetPr = sheetPr;
 	}
+
 	CPageSetUpPr.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -9619,6 +9636,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function COutlinePr(outlinePr) {
 		this.outlinePr = outlinePr;
 	}
+
 	COutlinePr.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes( oReader );
@@ -9698,7 +9716,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeBool("showOutlineSymbols", this.outlinePr.ShowOutlineSymbols);
 		writer.WriteXmlAttributesEnd(true);
 	};
-
 
 
 	//***STYLE****
@@ -10159,7 +10176,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 			for (i in this.CustomStyles) {
 				var style = this.CustomStyles[i];
-				writer.context.InitSaveManager.WriteTableCustomStyleElements(this.CustomStyles[i], function(type, tableStyleElement) {
+				writer.context.InitSaveManager.WriteTableCustomStyleElements(this.CustomStyles[i], function (type, tableStyleElement) {
 					style.toXml(writer, "tableStyle", "", type, [tableStyleElement]);
 				});
 
@@ -10289,8 +10306,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							writer.WriteString(_T("</tableStyle>"));
 						}*/
 
-		if(this.name && aElements && aElements.length)
-		{
+		if (this.name && aElements && aElements.length) {
 			if (!ns) {
 				ns = "";
 			}
@@ -10933,7 +10949,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeNumber("relativeIndent", this.RelativeIndent !== 0 ? this.RelativeIndent : null);
 		writer.WriteXmlNullableAttributeBool("shrinkToFit", this.shrink !== false ? this.angle : null);
 		writer.WriteXmlNullableAttributeNumber("textRotation", this.angle !== 0 ? this.angle : null);
-		writer.WriteXmlNullableAttributeString("vertical",  this.ver !== 0 ? AscCommonExcel.ToXml_ST_VerticalAlignment(this.ver) : null);
+		writer.WriteXmlNullableAttributeString("vertical", this.ver !== 0 ? AscCommonExcel.ToXml_ST_VerticalAlignment(this.ver) : null);
 		writer.WriteXmlNullableAttributeBool("wrapText", this.wrap !== false ? this.wrap : null);
 		writer.WriteXmlAttributesEnd(true);
 	};
@@ -11057,7 +11073,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = new AscCommonExcel.Num();
 				val.fromXml(reader);
 				this.num = val;
-			}  else if ("protection" === name) {
+			} else if ("protection" === name) {
 				while (reader.MoveToNextAttribute()) {
 					if ("hidden" === reader.GetName()) {
 						this.hidden = val;
@@ -11478,7 +11494,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-
 	AscCommonExcel.Font.prototype.fromXml = function (reader) {
 
 		/*ReadAttributes( oReader );
@@ -11552,7 +11567,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 					this.i = true;
 				}
 			} else if ("name" === name) {
-				readOneAttr(reader, "val",function () {
+				readOneAttr(reader, "val", function () {
 					t.fn = reader.GetValue();
 				});
 			} else if ("outline" === name) {
@@ -11816,17 +11831,18 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeStart("styleSheet");
 		writer.WriteXmlString(' xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"');
 		writer.WriteXmlString(' xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"  mc:Ignorable="x14ac x16r2"');
-		writer.WriteXmlString(' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:x16r2="http://schemas.microsoft.com/office/spreadsheetml/2015/02/main"');
+		writer.WriteXmlString(
+			' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:x16r2="http://schemas.microsoft.com/office/spreadsheetml/2015/02/main"');
 		writer.WriteXmlAttributesEnd();
 
 
 		//делаю предаврительный map, потому что в serialize - numfmts пишется в конце потому что они могут пополниться при записи Dxfs"
 		var dxfs = writer.context.InitSaveManager.getDxfs();
 		var mapIndexNumId;
-		for(var i = 0, length = dxfs.length; i < length; ++i) {
+		for (var i = 0, length = dxfs.length; i < length; ++i) {
 			if (null != dxfs[i].num) {
 				var numId = writer.context.stylesForWrite.getNumIdByFormat(dxfs[i].num);
-				if(null != numId) {
+				if (null != numId) {
 					if (!mapIndexNumId) {
 						mapIndexNumId = [];
 					}
@@ -11879,7 +11895,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (wb.TableStyles) {
 			for (i in wb.TableStyles.CustomStyles) {
 				var style = wb.TableStyles.CustomStyles[i];
-				if(style) {
+				if (style) {
 					var tableStyleElement = style.getTableStyleElement();
 					if (tableStyleElement && tableStyleElement.dxf && null != dxfs) {
 						if (!tableStylesMap) {
@@ -11894,7 +11910,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 		//DXFS
-		if(null != dxfs && dxfs.length > 0) {
+		if (null != dxfs && dxfs.length > 0) {
 			//AscCommonExcel.CellXfs. можно оберунть в dxf
 			writer.context.mapIndexNumId = mapIndexNumId;
 			writer.WriteXmlArray(dxfs, "dxf", "dxfs", true, mapIndexNumId);
@@ -11916,7 +11932,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (aExtDxfs && aExtDxfs.length) {
 			officeArtExtension = new COfficeArtExtension(this);
 			officeArtExtension.uri = extUri.dxfs;
-			officeArtExtension.dxfs =  aExtDxfs;
+			officeArtExtension.dxfs = aExtDxfs;
 			officeArtExtensionList.arrExt.push(officeArtExtension);
 		}
 		if (slicerStyles) {
@@ -11979,13 +11995,12 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 
 		this.f = null != sFormat ? sFormat : (AscCommonExcel.aStandartNumFormats[id] || "General");
-		if ((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id || (27 <= id && id <= 31) ||
-			(36 <= id && id <= 44)) {
+		if ((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id || (27 <= id && id <= 31) || (36 <= id && id <= 44)) {
 			this.id = id;
 		}
 	};
 
-	AscCommonExcel.Num.prototype.toXml = function(writer, name, ns, childns, index, _id) {
+	AscCommonExcel.Num.prototype.toXml = function (writer, name, ns, childns, index, _id) {
 		//запись и из dxfs и из stylesForWrite. в случае dxfs протаскиваем id через mapIndexNumId. для
 		var id = _id ? _id : AscCommonExcel.g_nNumsMaxId + index;
 
@@ -12082,20 +12097,18 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-
-
-
 	//***External Reference****
 	function CT_ExternalReferences(wb) {
 		this.wb = wb;
 		this.externalReferences = [];
 	}
-	CT_ExternalReferences.prototype.toXml = function(writer, name, ns) {
+
+	CT_ExternalReferences.prototype.toXml = function (writer, name, ns) {
 		var t = this;
 		var context = writer.context;
 		var ids = [];
 
-		this.wb.externalReferences.forEach(function(externalReference) {
+		this.wb.externalReferences.forEach(function (externalReference) {
 			//здесь пишем externalLink[]
 			var oExternalReference = new CT_ExternalReference();
 			oExternalReference.val = externalReference;
@@ -12113,7 +12126,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			//externalReferences
 			writer.WriteXmlNodeStart(ns + name);
 			writer.WriteXmlAttributesEnd();
-			ids.forEach(function(id) {
+			ids.forEach(function (id) {
 				//здесь пишем ссылку в externalReferences на externalLink[]
 				writer.WriteXmlNodeStart("externalReference");
 				writer.WriteXmlNullableAttributeString("r:id", id);
@@ -12126,6 +12139,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalReference() {
 		this.val = {};
 	}
+
 	CT_ExternalReference.prototype.fromXml = function (reader) {
 
 		/*m_oReadPath = oPath;
@@ -12233,6 +12247,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalBook() {
 		this.val = {Type: 0, Id: null, SheetNames: [], DefinedNames: [], SheetDataSet: []};
 	}
+
 	CT_ExternalBook.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -12264,7 +12279,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	};
-	CT_ExternalBook.prototype.readAttr = function(reader) {
+	CT_ExternalBook.prototype.readAttr = function (reader) {
 		while (reader.MoveToNextAttribute()) {
 			if ("id" === reader.GetNameNoNS()) {
 				this.val.Id = reader.GetValue();
@@ -12304,6 +12319,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalSheetNames() {
 		this.val = null;
 	}
+
 	CT_ExternalSheetNames.prototype.fromXml = function (reader) {
 		if (reader.IsEmptyNode()) {
 			return;
@@ -12339,6 +12355,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalDefinedNames() {
 		this.val = null;
 	}
+
 	CT_ExternalDefinedNames.prototype.fromXml = function (reader) {
 
 		/*if ( oReader.IsEmptyNode() )
@@ -12416,6 +12433,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalSheetDataSet() {
 		this.val = null;
 	}
+
 	CT_ExternalSheetDataSet.prototype.fromXml = function (reader) {
 		if (reader.IsEmptyNode()) {
 			return;
@@ -12458,6 +12476,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalSheetData() {
 		this.val = {SheetId: null, RefreshError: null, Row: []};
 	}
+
 	CT_ExternalSheetData.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -12473,7 +12492,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 	}
 
-	CT_ExternalSheetData.prototype.readAttr = function(reader) {
+	CT_ExternalSheetData.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 
@@ -12528,6 +12547,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalRow() {
 		this.val = {R: null, Cell: []};
 	}
+
 	CT_ExternalRow.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -12542,7 +12562,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	}
-	CT_ExternalRow.prototype.readAttr = function(reader) {
+	CT_ExternalRow.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("r" === reader.GetName()) {
@@ -12588,6 +12608,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	function CT_ExternalCell() {
 		this.val = {Ref: null, CellType: null, CellValue: null};
 	}
+
 	CT_ExternalCell.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -12599,7 +12620,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 		}
 	}
-	CT_ExternalCell.prototype.readAttr = function(reader) {
+	CT_ExternalCell.prototype.readAttr = function (reader) {
 		var val;
 		while (reader.MoveToNextAttribute()) {
 
@@ -12609,7 +12630,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			} else if ("t" === reader.GetName()) {
 				val = reader.GetValue();
 				this.val.CellType = val;
-			}  else if ("vm" === reader.GetName()) {
+			} else if ("vm" === reader.GetName()) {
 				/*val = reader.GetValue();
 				this.val.CellType = val;*/
 			}
@@ -12842,8 +12863,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
+		if (reader.IsEmptyNode()) {
 			return;
+		}
 
 		var depth2, name2;
 		var depth = reader.GetDepth();
@@ -12990,8 +13012,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
+		if (reader.IsEmptyNode()) {
 			return;
+		}
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -13395,8 +13418,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-
-
 	//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
 	//connections
 	function CT_Connections() {
@@ -13678,7 +13699,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
 		writer.WriteXmlNodeStart("namedSheetViews");
-		writer.WriteXmlString(" xmlns=\"http://schemas.microsoft.com/office/spreadsheetml/2019/namedsheetviews\" xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"");
+		writer.WriteXmlString(
+			" xmlns=\"http://schemas.microsoft.com/office/spreadsheetml/2019/namedsheetviews\" xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"");
 		writer.WriteXmlAttributesEnd();
 		for (var i = 0; i < this.namedSheetView.length; ++i) {
 			this.namedSheetView[i].toXml(writer, "namedSheetView");
@@ -13706,8 +13728,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
+		if (reader.IsEmptyNode()) {
 			var val;
+		}
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -13777,7 +13800,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				var columnFilter = new Asc.CT_ColumnFilter();
 				columnFilter.fromXml(reader);
 				this.columnsFilter.push(columnFilter);
-			} if ("sortRules" === name) {
+			}
+			if ("sortRules" === name) {
 				var sortRules = new Asc.CT_SortRules();
 				sortRules.fromXml(reader);
 				this.sortRules = sortRules.sortRule;
@@ -13942,7 +13966,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				writer.EndNode(sName);*/
 
 
-
 		//WriteAttributeEncodeXml -> WriteXmlAttributeStringEncode ?
 
 		writer.WriteXmlNodeStart(name/*"columnFilter"*/);
@@ -13981,8 +14004,9 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
+		if (reader.IsEmptyNode()) {
 			return;
+		}
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -14014,8 +14038,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeString("sortMethod", ToXml_ST_SortMethod(this.sortMethod));
 		writer.WriteXmlNullableAttributeString("caseSensitive", this.caseSensitive);
 		writer.WriteXmlAttributesEnd();
-		for(var i = 0; i < this.sortRule.length; ++i)
-		{
+		for (var i = 0; i < this.sortRule.length; ++i) {
 			this.sortRule[i].toXml(writer, "sortRule");
 		}
 		//WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
@@ -14120,7 +14143,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	function CT_CComments () {
+	function CT_CComments() {
 		this.authors = null;
 		this.commentList = null;
 	}
@@ -14150,7 +14173,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 	CT_CComments.prototype.toXml = function (writer) {
-		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><comments xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:xr=\"http://schemas.microsoft.com/office/spreadsheetml/2014/revision\" mc:Ignorable=\"xr\">");
+		writer.WriteXmlString(
+			"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><comments xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:xr=\"http://schemas.microsoft.com/office/spreadsheetml/2014/revision\" mc:Ignorable=\"xr\">");
 		if (this.authors) {
 			this.authors.toXml(writer);
 		}
@@ -14161,7 +14185,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	function CT_CAuthors () {
+	function CT_CAuthors() {
 		this.arr = [];
 	}
 
@@ -14182,8 +14206,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	CT_CAuthors.prototype.toXml = function (writer) {
 		writer.WriteXmlString("<authors>");
 
-		for ( var i = 0; i < this.arr.length; ++i)
-		{
+		for (var i = 0; i < this.arr.length; ++i) {
 			writer.WriteXmlString("<author>");
 			writer.WriteXmlStringEncode(this.arr[i]);
 			writer.WriteXmlString("</author>");
@@ -14191,7 +14214,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString("</authors>");
 	};
 
-	function CT_CCommentList () {
+	function CT_CCommentList() {
 		this.arr = [];
 	}
 
@@ -14489,7 +14512,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString("</threadedComment>");
 	};
 
-	function CThreadedCommentMention () {
+	function CThreadedCommentMention() {
 		this.mentionpersonId = null;
 		this.mentionId = null;
 		this.startIndex = null;
@@ -14531,8 +14554,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-
-
 	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();'
 	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, L"mentionpersonId",  mentionpersonId )\n' +
 		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"mentionId",\t\tmentionId )\n' +
@@ -14547,13 +14568,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		'\t\t\t\t\tWritingStringNullableAttrInt(L"length", length, length->GetValue());'
 
 
-
 	//by test automatic add function
 	analizeXmlFrom(_x2tFromXml);
-	function analizeAttr (x2t, documentation, serialize) {
+
+	function analizeAttr(x2t, documentation, serialize) {
 		var isUpperCaseName = false;
 
-		var _getAttrVal =  function (from, _name) {
+		var _getAttrVal = function (from, _name) {
 			var _split = from.split(_name + "=\"")
 			var _res = null;
 			if (_split && _split[1]) {
@@ -14598,7 +14619,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		console.log(documentationClassStr)
 
 
-
 		var getFuncName = function (_attrName) {
 			var _res = null;
 			var _type = attributeMapType[_attrName] && attributeMapType[_attrName].toLowerCase();
@@ -14625,7 +14645,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				var isFound
 				if (-1 !== (serializeSplit[n].indexOf(_attrName + " = "))) {
 					isFound = true
-				} else if (-1 !== (serializeSplit[n].indexOf(_upperAttrName  + " = "))) {
+				} else if (-1 !== (serializeSplit[n].indexOf(_upperAttrName + " = "))) {
 					isUpperCaseName = true;
 					isFound = true
 				}
@@ -14638,7 +14658,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 							_res = "GetValueBool()"
 						} else if (-1 !== _type.indexOf("int") || -1 !== _type.indexOf("long")) {
 							_res = "GetValueInt()"
-						}  else if (-1 !== _type.indexOf("double")) {
+						} else if (-1 !== _type.indexOf("double")) {
 							_res = "GetValueDouble()"
 						}
 					}
@@ -14655,7 +14675,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		res += '\n//serialize\n/*' + serialize + '*/\n\n';
 
 		var initUpperCase = false;
-		var x2tSplit = x2t.indexOf("WritingElement_ReadAttributes_Read_else_if") !== -1 ? x2t.split("WritingElement_ReadAttributes_Read_else_if") : x2t.split("WritingElement_ReadAttributes_Read_if")
+		var x2tSplit = x2t.indexOf("WritingElement_ReadAttributes_Read_else_if") !== -1 ? x2t.split("WritingElement_ReadAttributes_Read_else_if") :
+			x2t.split("WritingElement_ReadAttributes_Read_if")
 		res += "var val;\n" + "\t\twhile (reader.MoveToNextAttribute()) {\n"
 		for (var i = 0; i < x2tSplit.length; i++) {
 			var attr = x2tSplit[i].split('"');
@@ -14691,7 +14712,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		return res;
 	}
 
-	function analizeXmlFrom (x2tFromXml) {
+	function analizeXmlFrom(x2tFromXml) {
 		var isneedGenerateAttr;
 		var res = "TEST.prototype.fromXml = function (reader) {\n"
 
@@ -14733,7 +14754,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			}
 
 
-
 			res += "}\n"
 		}
 		res += "};"
@@ -14746,7 +14766,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 
 	analizeXmlTo(_x2tToXml, false);
-	function analizeXmlTo (x2tToXml, isUpperCaseName) {
+
+	function analizeXmlTo(x2tToXml, isUpperCaseName) {
 
 		var res = "TEST.prototype.toXml = function (writer) {\n"
 
@@ -14867,8 +14888,6 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		console.log(res)
 		return res;
 	}
-
-
 
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
