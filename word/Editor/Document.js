@@ -2915,17 +2915,41 @@ CDocument.prototype.Get_PageLimits = function(nPageIndex)
 		YLimit : oSectPr.GetPageHeight()
 	};
 };
-CDocument.prototype.Get_PageFields = function(nPageIndex)
+CDocument.prototype.Get_PageFields = function(nPageIndex, isHdrFtr)
 {
-	var nIndex  = this.Pages[nPageIndex] ? this.Pages[nPageIndex].Pos : 0;
+	var oPage   = this.Pages[nPageIndex];
+	var nIndex  = oPage ? oPage.Pos : 0;
 	var oSectPr = this.SectionsInfo.Get_SectPr(nIndex).SectPr;
 	var oFrame  = oSectPr.GetContentFrame(nPageIndex);
+	if (!oPage)
+	{
+		return {
+			X      : oFrame.Left,
+			Y      : oFrame.Top,
+			XLimit : oFrame.Right,
+			YLimit : oFrame.Bottom
+		};
+	}
+
+	var nTop    = oFrame.Top;
+	var nBottom = oFrame.Bottom;
+
+	if (!isHdrFtr)
+	{
+		var oHdrFtrLine = this.HdrFtr.GetHdrFtrLines(nPageIndex);
+
+		if (null !== oHdrFtrLine.Top && oHdrFtrLine.Top > nTop)
+			nTop = oHdrFtrLine.Top;
+
+		if (null !== oHdrFtrLine.Bottom && oHdrFtrLine.Bottom < nBottom)
+			nBottom = oHdrFtrLine.Bottom;
+	}
 
 	return {
 		X      : oFrame.Left,
-		Y      : oFrame.Top,
+		Y      : nTop,
 		XLimit : oFrame.Right,
-		YLimit : oFrame.Bottom
+		YLimit : nBottom
 	};
 };
 CDocument.prototype.Get_ColumnFields = function(nElementIndex, nColumnIndex, nPageIndex)
@@ -5611,6 +5635,7 @@ CDocument.prototype.private_RecalculateHdrFtrPageCountUpdate = function()
 			this.FullRecalc.Start             = true;
 			this.FullRecalc.StartPage         = nPageAbs;
 			this.FullRecalc.ResetStartElement = this.private_RecalculateIsNewSection(nPageAbs, this.Pages[nPageAbs].Pos);
+			this.FullRecalc.Endnotes          = this.Endnotes.IsContinueRecalculateFromPrevPage(nPageAbs);
 			this.FullRecalc.MainStartPos      = this.Pages[nPageAbs].Pos;
 
 			this.DrawingDocument.OnStartRecalculate(nPageAbs);

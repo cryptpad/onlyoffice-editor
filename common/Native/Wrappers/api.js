@@ -2779,6 +2779,32 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 26004: // ASC_MENU_EVENT_TYPE_DO_SET_CONTENTCONTROL_PICTURE_URL
+        {
+            var urls = JSON.parse(_params[0]);
+            AscCommon.g_oDocumentUrls.addUrls(urls);
+            var firstUrl;
+            for (var i in urls) {
+                if (urls.hasOwnProperty(i)) {
+                    firstUrl = urls[i];
+                    break;
+                }
+            }
+
+            var _src = firstUrl;
+            var _w = _params[1];
+            var _h = _params[2];
+            var _pageNum = _params[3];
+            var _additionalParams = _params[4];
+
+            var json = JSON.parse(_additionalParams);
+            if (json) {
+                var internalId = json["internalId"] || "";
+                _api.SetContentControlPictureUrlNative(_src, internalId)
+            }
+            break;
+        }
+
         default:
             break;
     }
@@ -6988,6 +7014,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
     }
 
+    window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
     window["native"]["onEndLoadingFile"]();
 
     this.WordControl.m_oDrawingDocument.Collaborative_TargetsUpdate(true);

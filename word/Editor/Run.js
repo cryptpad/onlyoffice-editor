@@ -2494,7 +2494,14 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
     // ВСЕГДА копируем элементы, для корректной работы не надо переносить имеющиеся элементы в новый ран
 	for (var nIndex = CurPos, nNewIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex, ++nNewIndex)
 	{
-		NewRun.AddToContent(nNewIndex, this.Content[nIndex].Copy());
+		var oNewItem = this.Content[nIndex].Copy();
+		NewRun.AddToContent(nNewIndex, oNewItem);
+		if (para_FieldChar === this.Content[nIndex].Type)
+		{
+			var oComplexField = this.Content[nIndex].GetComplexField();
+			if (oComplexField)
+				oComplexField.ReplaceChar(oNewItem);
+		}
 	}
     this.RemoveFromContent(CurPos, this.Content.length - CurPos, true);
 
@@ -4907,20 +4914,22 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             case para_Drawing:
             {
                 var Para = PRSA.Paragraph;
+                var isInHdrFtr = Para.Parent.IsHdrFtr();
+
                 var PageAbs = Para.private_GetAbsolutePageIndex(CurPage);
                 var PageRel = Para.private_GetRelativePageIndex(CurPage);
                 var ColumnAbs = Para.Get_AbsoluteColumn(CurPage);
 
                 var LogicDocument = this.Paragraph.LogicDocument;
                 var LD_PageLimits = LogicDocument.Get_PageLimits(PageAbs);
-                var LD_PageFields = LogicDocument.Get_PageFields(PageAbs);
+                var LD_PageFields = LogicDocument.Get_PageFields(PageAbs, isInHdrFtr);
 
                 var Page_Width  = LD_PageLimits.XLimit;
                 var Page_Height = LD_PageLimits.YLimit;
 
                 var DrawingObjects = Para.Parent.DrawingObjects;
                 var PageLimits     = Para.Parent.Get_PageLimits(PageRel);
-                var PageFields     = Para.Parent.Get_PageFields(PageRel);
+                var PageFields     = Para.Parent.Get_PageFields(PageRel, isInHdrFtr);
 
                 var X_Left_Field   = PageFields.X;
                 var Y_Top_Field    = PageFields.Y;
@@ -4938,7 +4947,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 
                 // TODO: Надо здесь почистить все, а то названия переменных путаются, и некоторые имеют неправильное значение
 
-                if (isTableCellContent && (!isUseWrap || !isLayoutInCell))
+                if (isTableCellContent && !isLayoutInCell)
                 {
                     X_Left_Field   = LD_PageFields.X;
                     Y_Top_Field    = LD_PageFields.Y;
@@ -4987,7 +4996,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                 if (isTableCellContent && !isLayoutInCell)
                 {
                     PageLimitsOrigin = LogicDocument.Get_PageLimits(PageAbs);
-                    var PageFieldsOrigin = LogicDocument.Get_PageFields(PageAbs);
+                    var PageFieldsOrigin = LogicDocument.Get_PageFields(PageAbs, isInHdrFtr);
                     ColumnStartX = PageFieldsOrigin.X;
                     ColumnEndX   = PageFieldsOrigin.XLimit;
                 }
@@ -5847,12 +5856,12 @@ ParaRun.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange, _CurPage)
 
 		if (para_Drawing === Item.Type)
 		{
-			if (!Item.IsInline() && !Item.IsUseTextWrap())
+			if (!Item.IsInline())
 			{
-				if (Asc.c_oAscRelativeFromV.Paragraph !== Item.GetPositionV().RelativeFrom && Asc.c_oAscRelativeFromV.Line !== Item.GetPositionV().RelativeFrom)
+				if (!Item.IsMoveWithTextVertically())
 					Dy = 0;
 
-				if (Asc.c_oAscRelativeFromH.Column !== Item.GetPositionH().RelativeFrom && Asc.c_oAscRelativeFromH.Character !== Item.GetPositionH().RelativeFrom)
+				if (!Item.IsMoveWithTextHorizontally())
 					Dx = 0;
 			}
 

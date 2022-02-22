@@ -2195,7 +2195,7 @@
     changesFactory[AscDFH.historyitem_IndexRgSt] = CChangeLong;
     changesFactory[AscDFH.historyitem_IndexRgEnd] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_IndexRgSt] = function(oClass, value) {oClass.st = value;};
-    drawingsChangesMap[AscDFH.historyitem_IndexRgEnd] = function(oClass, value) {oClass.st = value;};
+    drawingsChangesMap[AscDFH.historyitem_IndexRgEnd] = function(oClass, value) {oClass.end = value;};
     function CIndexRg() {//charrg, pRg
         CBaseAnimObject.call(this);
         this.st = null;
@@ -4153,13 +4153,15 @@
     changesFactory[AscDFH.historyitem_AnimClrByRGB] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrByHSL] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrCBhvr] = CChangeObject;
-    changesFactory[AscDFH.historyitem_AnimClrFrom] = CChangeObject;
-    changesFactory[AscDFH.historyitem_AnimClrTo] = CChangeObject;
+    changesFactory[AscDFH.historyitem_AnimClrFrom] = CChangeObjectNoId;
+    changesFactory[AscDFH.historyitem_AnimClrTo] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrClrSpc] = CChangeLong;
     changesFactory[AscDFH.historyitem_AnimClrDir] = CChangeLong;
 
     drawingConstructorsMap[AscDFH.historyitem_AnimClrByRGB] = CColorPercentage;
     drawingConstructorsMap[AscDFH.historyitem_AnimClrByHSL] = CColorPercentage;
+    drawingConstructorsMap[AscDFH.historyitem_AnimClrFrom] = AscFormat.CUniColor;
+    drawingConstructorsMap[AscDFH.historyitem_AnimClrTo] = AscFormat.CUniColor;
 
     drawingsChangesMap[AscDFH.historyitem_AnimClrByRGB] = function(oClass, value) {oClass.byRGB = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimClrByHSL] = function(oClass, value) {oClass.byHSL = value;};
@@ -4224,12 +4226,12 @@
         this.setParentToChild(pr);
     };
     CAnimClr.prototype.setFrom = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimClrFrom, this.from, pr));
+        oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_AnimClrFrom, this.from, pr));
         this.from = pr;
         this.setParentToChild(pr);
     };
     CAnimClr.prototype.setTo = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimClrTo, this.to, pr));
+        oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_AnimClrTo, this.to, pr));
         this.to = pr;
         this.setParentToChild(pr);
     };
@@ -4634,15 +4636,15 @@
     changesFactory[AscDFH.historyitem_AnimMotionRAng] = CChangeLong;
 
     drawingsChangesMap[AscDFH.historyitem_AnimMotionBy] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionCBhvr] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionFrom] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionRCtr] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionTo] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionOrigin] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionPath] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionPathEditMode] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionPtsTypes] = function(oClass, value) {oClass.by = value;};
-    drawingsChangesMap[AscDFH.historyitem_AnimMotionRAng] = function(oClass, value) {oClass.by = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionCBhvr] = function(oClass, value) {oClass.cBhvr = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionFrom] = function(oClass, value) {oClass.from = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionRCtr] = function(oClass, value) {oClass.rCtr = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionTo] = function(oClass, value) {oClass.to = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionOrigin] = function(oClass, value) {oClass.origin = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionPath] = function(oClass, value) {oClass.path = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionPathEditMode] = function(oClass, value) {oClass.pathEditMode = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionPtsTypes] = function(oClass, value) {oClass.ptsTypes = value;};
+    drawingsChangesMap[AscDFH.historyitem_AnimMotionRAng] = function(oClass, value) {oClass.rAng = value;};
 
 
     var ORIGIN_PARENT = 0;
