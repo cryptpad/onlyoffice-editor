@@ -1181,7 +1181,14 @@
             if(pointCount > 2) {
 
                 if (pathC1 > pathC2) {
-                    arrayCommands[decrement_index] = {id: PathType.POINT, X: arrayCommands[pathC1 - 1].X2, Y: arrayCommands[pathC1 - 1].Y2};
+                    if(arrayCommands[pathC1 - 1]) {
+                        var prevCommandX = this.getCommandLastPointX(arrayCommands[pathC1 - 1]);
+                        var prevCommandY = this.getCommandLastPointY(arrayCommands[pathC1 - 1]);
+                        arrayCommands[decrement_index] = {id: PathType.POINT, X: prevCommandX, Y: prevCommandY};
+                    }
+                    // var t = pathC1;
+                    // pathC1 = pathC2;
+                    // pathC2 = t;
                 }
                 var curArrCommandsType = this.arrPathCommandsType[pathIndex];
 
@@ -1195,9 +1202,17 @@
                     arrayCommands[nextPath].X1 = (nextX + prevX / 2) / (3 / 2);
                     arrayCommands[nextPath].Y1 = (nextY + prevY / 2) / (3 / 2);
                 }
-                arrayCommands.splice(pathC1, 1);
+                var oNextCommand = arrayCommands[pathC2];
+                var oFirstCommand = arrayCommands.splice(pathC1, 1)[0];
                 curArrCommandsType.splice(pathC1, 1);
-
+                if(oFirstCommand.id === AscFormat.bezier3 && oNextCommand.id === AscFormat.bezier3) {
+                    oNextCommand.X0 = (oNextCommand.X0 + oFirstCommand.X0)/2;
+                    oNextCommand.Y0 = (oNextCommand.Y0 + oFirstCommand.Y0)/2;
+                }
+                if(oFirstCommand.id === AscFormat.bezier4 && oNextCommand.id === AscFormat.bezier4) {
+                    oNextCommand.X0 = oFirstCommand.X0;
+                    oNextCommand.Y0 = oFirstCommand.Y0;
+                }
 
                 this.createGeometryEditList();
                 this.addCommandsInPathInfo();
