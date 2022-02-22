@@ -978,14 +978,14 @@
        var dT = t;
        var dT2 = dT*dT;
        var dT3 = dT2*dT;
-       return C0*t*t*t + 3*C1*t*(1-t)*(1-t) + 3*C2*(1-t)*t*t + C3*t*t*t;
+       return C0*dDT3 + 3*C1*t*dDT2 + 3*C2*dDT*t*t + C3*t*t*t;
     };
     EditShapeGeometryTrack.prototype.bezier3Pos = function(t, C0, C1, C2) {
        var dDT = 1 - t;
        var dDT2 = dDT*dDT;
        var dT = t;
        var dT2 = dT*dT;
-       return C0*dDT2 + 2*C1*dT*dDT + C2*dT2;
+       return C0*dDT2 + 2*C1*t*dDT + C2*dT2;
     };
 
     EditShapeGeometryTrack.prototype.addPoint = function(oAddingPoint, X, Y) {
