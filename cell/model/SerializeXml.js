@@ -9017,19 +9017,23 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString(">");
 
 		if (bExtendedWrite) {
-			//TODO
-			/*if (true == m_oFormula.IsInit())
-			{
-				m_oFormula.toXML2(writer, true);
+			if (this.formula) {
+				this.formula.toXml(writer, true);
+			} else if (null != this.Val) {
+				var formula = new AscCommonExcel.CFormulaCF()
+				formula.Text = this.Val;
+				formula.toXml(writer, true);
 			}
-			else if (m_oVal.IsInit())
-			{
-				CFormulaCF formla; formla.m_sText = m_oVal.get();
-				formla.toXML2(writer, true);
-			}*/
-
 		}
 
+		writer.WriteXmlString("</" + node_name + ">");
+	};
+
+	AscCommonExcel.CFormulaCF.prototype.toXml = function (writer, bExtendedWrite) {
+		var node_name = bExtendedWrite ? "xm:f" : "formula";
+
+		writer.WriteXmlString("<" + node_name + ">");
+		writer.WriteXmlStringEncode(this.Text);
 		writer.WriteXmlString("</" + node_name + ">");
 	};
 
@@ -9428,7 +9432,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		}
 
 		writer.WriteXmlString("<x14:cfIcon");
-		writer.WriteXmlNullableAttributeString("iconSet", this.IconSet);
+		writer.WriteXmlNullableAttributeString("iconSet", ToXml_ST_IconSetType2(this.IconSet));
 		writer.WriteXmlNullableAttributeNumber("iconId", this.IconId);
 		writer.WriteXmlString("/>");
 	};
