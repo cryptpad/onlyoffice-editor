@@ -3686,8 +3686,6 @@
 		this.stylesForWrite = bsw.stylesForWrite;
         this.isCopyPaste = isCopyPaste;
         this.saveThreadedComments = saveThreadedComments;
-        this.sharedFormulas = {};
-		this.sharedFormulasIndex = 0;
         this.InitSaveManager = initSaveManager;
         /*this.tableIds = tableIds;
         this.sheetIds = sheetIds;*/
@@ -4844,7 +4842,7 @@
                 if (null != cellXfs || false == cell.isNullText()) {
 					var formulaToWrite;
 					if (cell.isFormula() && !(oThis.isCopyPaste && cell.ws && cell.ws.bIgnoreWriteFormulas)) {
-						formulaToWrite = oThis.PrepareFormulaToWrite(cell);
+						formulaToWrite = oThis.InitSaveManager.PrepareFormulaToWrite(cell);
                     }
 					cell.toXLSB(oThis.memory, nXfsId, formulaToWrite, oThis.InitSaveManager.oSharedStrings);
 				}
@@ -4853,73 +4851,6 @@
 			this.memory.XlsbStartRecord(AscCommonExcel.XLSB.rt_END_SHEET_DATA, 0);
 			this.memory.XlsbEndRecord();
         };
-
-		this.PrepareFormulaToWrite = function(cell)
-		{
-			var parsed = cell.getFormulaParsed();
-			var formula;
-			var si;
-			var ref;
-			var type;
-			var shared = parsed.getShared();
-			var arrayFormula = parsed.getArrayFormulaRef();
-			if (shared) {
-				var sharedToWrite = this.sharedFormulas[parsed.getIndexNumber()];
-				if (!sharedToWrite) {
-					sharedToWrite = {saveShared: !shared.ref.isOneCell() && parsed.canSaveShared(), si: {}};
-					this.sharedFormulas[parsed.getIndexNumber()] = sharedToWrite;
-				}
-				if (sharedToWrite.saveShared && shared.ref.contains(cell.nCol, cell.nRow)) {
-					type = ECellFormulaType.cellformulatypeShared;
-					var rowIndex = Math.floor((cell.nRow - shared.ref.r1) / g_cSharedWriteStreak);
-					var row = sharedToWrite.si[rowIndex];
-					if (!row) {
-						row = {};
-						sharedToWrite.si[rowIndex] = row;
-					}
-					var colIndex = Math.floor((cell.nCol - shared.ref.c1) / g_cSharedWriteStreak);
-					si = row[colIndex];
-					if (undefined === si) {
-						row[colIndex] = si = this.sharedFormulasIndex++;
-						if (!(cell.nRow === shared.base.nRow && cell.nCol === shared.base.nCol)) {
-							cell.processFormula(function(parsed) {
-								formula = parsed.getFormula();
-							});
-						} else {
-							formula = parsed.getFormula();
-						}
-						var r1 = shared.ref.r1 + rowIndex * g_cSharedWriteStreak;
-						var c1 = shared.ref.c1 + colIndex * g_cSharedWriteStreak;
-						ref = new Asc.Range(c1, r1,
-											Math.min(c1 + g_cSharedWriteStreak - 1, shared.ref.c2),
-											Math.min(r1 + g_cSharedWriteStreak - 1, shared.ref.r2));
-					}
-				} else {
-					cell.processFormula(function(parsed) {
-						formula = parsed.getFormula();
-					});
-				}
-			} else if(null !== arrayFormula) {
-				//***array-formula***
-				var bIsFirstCellArray = parsed.checkFirstCellArray(cell);
-				if(bIsFirstCellArray) {
-					ref = arrayFormula;
-					type = ECellFormulaType.cellformulatypeArray;
-					formula = parsed.getFormula();
-				} else if(this.isCopyPaste) {
-					//если выделена часть формулы, и первая ячейка формулы массива не входит в выделение
-					var intersection = arrayFormula.intersection(this.isCopyPaste);
-					if(intersection && intersection.r1 === cell.nRow && intersection.c1 === cell.nCol) {
-						ref = arrayFormula;
-						type = ECellFormulaType.cellformulatypeArray;
-						formula = parsed.getFormula();
-					}
-				}
-			} else {
-				formula = parsed.getFormula();
-			}
-			return {formula: formula, si: si, ref: ref, type: type, ca: parsed.ca};
-		};
         this.WriteComments = function(aComments, ws)
         {
             var oThis = this;
@@ -11710,6 +11641,9 @@
         this.isCopyPaste = isCopyPaste;
         this.wb = wb;
 
+        this.sharedFormulas = {};
+        this.sharedFormulasIndex = 0;
+
         this.prepare();
     }
 
@@ -12001,6 +11935,72 @@
             func(ETableStyleType.tablestyletypeTotalRow, customStyle.totalRow);
         if(null != customStyle.wholeTable)
             func(ETableStyleType.tablestyletypeWholeTable, customStyle.wholeTable);
+    };
+    InitSaveManager.prototype.PrepareFormulaToWrite = function(cell)
+    {
+        var parsed = cell.getFormulaParsed();
+        var formula;
+        var si;
+        var ref;
+        var type;
+        var shared = parsed.getShared();
+        var arrayFormula = parsed.getArrayFormulaRef();
+        if (shared) {
+            var sharedToWrite = this.sharedFormulas[parsed.getIndexNumber()];
+            if (!sharedToWrite) {
+                sharedToWrite = {saveShared: !shared.ref.isOneCell() && parsed.canSaveShared(), si: {}};
+                this.sharedFormulas[parsed.getIndexNumber()] = sharedToWrite;
+            }
+            if (sharedToWrite.saveShared && shared.ref.contains(cell.nCol, cell.nRow)) {
+                type = ECellFormulaType.cellformulatypeShared;
+                var rowIndex = Math.floor((cell.nRow - shared.ref.r1) / g_cSharedWriteStreak);
+                var row = sharedToWrite.si[rowIndex];
+                if (!row) {
+                    row = {};
+                    sharedToWrite.si[rowIndex] = row;
+                }
+                var colIndex = Math.floor((cell.nCol - shared.ref.c1) / g_cSharedWriteStreak);
+                si = row[colIndex];
+                if (undefined === si) {
+                    row[colIndex] = si = this.sharedFormulasIndex++;
+                    if (!(cell.nRow === shared.base.nRow && cell.nCol === shared.base.nCol)) {
+                        cell.processFormula(function(parsed) {
+                            formula = parsed.getFormula();
+                        });
+                    } else {
+                        formula = parsed.getFormula();
+                    }
+                    var r1 = shared.ref.r1 + rowIndex * g_cSharedWriteStreak;
+                    var c1 = shared.ref.c1 + colIndex * g_cSharedWriteStreak;
+                    ref = new Asc.Range(c1, r1,
+                        Math.min(c1 + g_cSharedWriteStreak - 1, shared.ref.c2),
+                        Math.min(r1 + g_cSharedWriteStreak - 1, shared.ref.r2));
+                }
+            } else {
+                cell.processFormula(function(parsed) {
+                    formula = parsed.getFormula();
+                });
+            }
+        } else if(null !== arrayFormula) {
+            //***array-formula***
+            var bIsFirstCellArray = parsed.checkFirstCellArray(cell);
+            if(bIsFirstCellArray) {
+                ref = arrayFormula;
+                type = ECellFormulaType.cellformulatypeArray;
+                formula = parsed.getFormula();
+            } else if(this.isCopyPaste) {
+                //если выделена часть формулы, и первая ячейка формулы массива не входит в выделение
+                var intersection = arrayFormula.intersection(this.isCopyPaste);
+                if(intersection && intersection.r1 === cell.nRow && intersection.c1 === cell.nCol) {
+                    ref = arrayFormula;
+                    type = ECellFormulaType.cellformulatypeArray;
+                    formula = parsed.getFormula();
+                }
+            }
+        } else {
+            formula = parsed.getFormula();
+        }
+        return {formula: formula, si: si, ref: ref, type: type, ca: parsed.ca};
     };
 
     var prot;
