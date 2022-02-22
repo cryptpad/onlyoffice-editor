@@ -5569,11 +5569,33 @@ window["native"]["offline_apply_event"] = function(type,params) {
             
         case 12: // ASC_MENU_EVENT_TYPE_TABLESTYLES
         {
-            var props = asc_ReadFormatTableInfo(params, _current);
-            // console.log(JSON.stringify(props));
-            
+            var props, retinaPixelRatio;
+
+            while (_continue)
+            {
+                _attr = params[_current.pos++];
+                switch (_attr) {
+                    case 0:
+                    {
+                        props = asc_ReadFormatTableInfo(params, _current);
+                        break;
+                    }
+                    case 1:
+                    {
+                        retinaPixelRatio = params[_current.pos++];
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
             AscCommon.AscBrowser.isRetina = true;
-            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
+            AscCommon.AscBrowser.retinaPixelRatio = retinaPixelRatio;
   
             window["native"]["SetStylesType"](1);
             _api.wb.getTableStyles(props);
@@ -5655,10 +5677,13 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
         case 201: // ASC_MENU_EVENT_TYPE_DOCUMENT_CHARTSTYLES
         {
+            var chartPreviewsType = parseInt(params[0]);
+            var retinaPixelRatio = params[1];
+
             AscCommon.AscBrowser.isRetina = true;
-            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
-  
-            _api.chartPreviewManager.getChartPreviews(parseInt(params));
+            AscCommon.AscBrowser.retinaPixelRatio = retinaPixelRatio;
+
+            _api.chartPreviewManager.getChartPreviews(chartPreviewsType);
 
             AscCommon.AscBrowser.isRetina = false;
             AscCommon.AscBrowser.retinaPixelRatio = 1.0;
@@ -6137,9 +6162,11 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
             
         case 2405: // ASC_SPREADSHEETS_EVENT_TYPE_CELL_STYLES
-        {                    
+        {
+            var retinaPixelRatio = params[0];
+
             AscCommon.AscBrowser.isRetina = true;
-            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
+            AscCommon.AscBrowser.retinaPixelRatio = retinaPixelRatio;
            
             window["native"]["SetStylesType"](0);
             _api.wb.getCellStyles(92, 48);
