@@ -2378,7 +2378,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
 
     var _rot_angle = AscFormat.normalizeRotate((AscFormat.isRealNumber(oBodyPr.rot) ? oBodyPr.rot : 0)*AscFormat.cToRad);
 
-    if(!AscFormat.fApproxEqual(_rot_angle, 0.0));
+    if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
     {
         global_MatrixTransformer.TranslateAppend(oMatrix, -XC, -YC);
         global_MatrixTransformer.RotateRadAppend(oMatrix, -_rot_angle);
