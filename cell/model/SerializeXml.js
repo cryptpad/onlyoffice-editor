@@ -2762,7 +2762,7 @@
 	};
 	AscCommonExcel.OpenFormula.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
-		this.v = reader.GetText();
+		this.v = reader.GetTextDecodeXml().replace(/\r\n/g, "\n");
 	};
 	AscCommonExcel.OpenFormula.prototype.readAttr = function (reader) {
 		var val;
@@ -3005,7 +3005,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("t" === reader.GetName()) {
 				//TODO поработать с текстом, проблемы с переносом строки
-				this.text = reader.GetTextDecodeXml();
+				this.text = reader.GetTextDecodeXml().replace(/\r\n/g, "\n");
 			} else if ("r" === reader.GetName()) {
 				var oMultiText = new AscCommonExcel.CMultiTextElem();
 				oMultiText.fromXml(reader);
@@ -3022,8 +3022,9 @@
 		}
 		writer.WriteXmlNodeStart(ns + name);
 		writer.WriteXmlAttributesEnd();
+		//TODO поработать с текстом, при чтении заменяем \r\n на \n, но при записи не заменяем.
 		if (null !== this.text) {
-			writer.WriteXmlValueString("t", this.text);
+			writer.WriteXmlValueStringEncode("t", this.text);
 		} else if (null !== this.multiText) {
 			writer.WriteXmlArray(this.multiText, "r");
 		}
@@ -3053,7 +3054,7 @@
 					this.text = "";
 				}
 				//TODO поработать с текстом, проблемы с переносом строки
-				this.text += reader.GetTextDecodeXml();
+				this.text += reader.GetTextDecodeXml().replace(/\r\n/g, "\n");
 			}
 		}
 	};
@@ -3070,7 +3071,8 @@
 			this.format.toXml(writer, "rPr", childns);
 		}
 		if (this.text) {
-			writer.WriteXmlValueString("t", this.text);
+			//TODO поработать с текстом, при чтении заменяем \r\n на \n, но при записи не заменяем.
+			writer.WriteXmlValueStringEncode("t", this.text);
 		}
 		writer.WriteXmlNodeEnd(ns + name);
 	};
