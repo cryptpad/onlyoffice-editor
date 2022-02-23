@@ -2564,6 +2564,9 @@
                 if(nDur === AscFormat.untilNextSlide || nDur === AscFormat.untilNextClick) {
                     oCopyEffect.cTn.changeEffectDuration(1000);
                 }
+                if(AscFormat.isRealNumber(nDur) && nDur < 50) {
+                    oCopyEffect.cTn.changeEffectDuration(750);
+                }
 
                 oCopyEffect.originalNode = null;
                 aSeq.push(oCopyEffect);
