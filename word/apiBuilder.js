@@ -3459,7 +3459,7 @@
 
 	/**
 	 * The types of elements that can be added to the paragraph structure.
-	 * @typedef {(ApiUnsupported | ApiRun | ApiInlineLvlSdt)} ParagraphContent
+	 * @typedef {(ApiUnsupported | ApiRun | ApiInlineLvlSdt | ApiHyperlink)} ParagraphContent
 	 */
 
 	/**
@@ -4022,7 +4022,7 @@
 	 */
 	Api.prototype.CreateBlockLvlSdt = function()
 	{
-		return new ApiBlockLvlSdt(new CBlockLevelSdt(editor.private_GetLogicDocument()));
+		return new ApiBlockLvlSdt(new CBlockLevelSdt(editor.private_GetLogicDocument(), private_GetLogicDocument()));
 	};
 
 	/**
@@ -4362,7 +4362,10 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			this.Document.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+			this.Document.Internal_Content_Add(nPos, oElm);
 		}
 	};
 	/**
@@ -4376,7 +4379,11 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			this.Document.Internal_Content_Add(this.Document.Content.length, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+
+			this.Document.Internal_Content_Add(this.Document.Content.length, oElm);
 			return true;
 		}
 
@@ -4624,12 +4631,17 @@
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
 		{
 			var oElement = arrContent[nIndex];
-			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable)
+			var oElm;
+			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 			{
+				oElm = oElement.private_GetImpl();
+				if (oElm.Is_UseInDocument())
+					continue;
+
 				if (true === isInline && oElement instanceof ApiParagraph)
-					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), false));
+					oSelectedContent.Add(new CSelectedElement(oElm, false));
 				else
-					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), true));
+					oSelectedContent.Add(new CSelectedElement(oElm, true));
 			}
 		}
 		oSelectedContent.On_EndCollectElements(this.Document, true);
@@ -5628,6 +5640,9 @@
 			return false;
 
 		var oParaElement = oElement.private_GetImpl();
+		if (oParaElement.Is_UseInDocument())
+			return false;
+
 		if (undefined !== nPos)
 		{
 			this.Paragraph.Add_ToContent(nPos, oParaElement);
@@ -5787,7 +5802,10 @@
 	 */
 	ApiParagraph.prototype.Push = function(oElement)
 	{
-		if (oElement instanceof ApiRun || ApiInlineLvlSdt)
+		if (oElement.private_GetImpl().Is_UseInDocument())
+			return false;
+
+		if (oElement instanceof ApiRun || ApiInlineLvlSdt || ApiHyperlink)
 		{
 			this.AddElement(oElement);
 		}
@@ -7894,7 +7912,10 @@
 
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			apiCellContent.Document.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+			apiCellContent.Document.Internal_Content_Add(nPos, oElm);
 
 			return true;
 		}
@@ -8971,7 +8992,10 @@
 
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			apiCellContent.Document.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+			apiCellContent.Document.Internal_Content_Add(nPos, oElm);
 
 			return true;
 		}
@@ -12309,14 +12333,21 @@
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @param {number} nPos - The position of the element which we want to remove from the current inline text content control.
+	 * @returns {boolean}
 	 */
 	ApiInlineLvlSdt.prototype.RemoveElement = function(nPos)
 	{
 		if (nPos < 0 || nPos >= this.Sdt.Content.length)
-			return;
+			return false;
 
 		this.Sdt.RemoveFromContent(nPos, 1);
-		this.Sdt.CorrectContent();
+		if (this.Sdt.Content.length === 0)
+		{
+			this.Sdt.SetShowingPlcHdr(true);
+			this.Sdt.private_FillPlaceholderContent();
+		}
+
+		return true;
 	};
 
 	/**
@@ -12330,7 +12361,11 @@
 		if (this.Sdt.Content.length > 0)
 		{
 			this.Sdt.RemoveFromContent(0, this.Sdt.Content.length);
-			this.Sdt.CorrectContent();
+			if (this.Sdt.Content.length === 0)
+			{
+				this.Sdt.SetShowingPlcHdr(true);
+				this.Sdt.private_FillPlaceholderContent();
+			}
 
 			return true;
 		}
@@ -12352,6 +12387,15 @@
 			return false;
 
 		var oParaElement = oElement.private_GetImpl();
+		if (oParaElement.Is_UseInDocument())
+			return false;
+
+		if (this.Sdt.IsShowingPlcHdr())
+		{
+			this.Sdt.RemoveFromContent(0, this.Sdt.GetElementsCount(), false);
+			this.Sdt.SetShowingPlcHdr(false);
+		}
+
 		if (undefined !== nPos)
 		{
 			this.Sdt.AddToContent(nPos, oParaElement);
@@ -12376,13 +12420,15 @@
 		if (!private_IsSupportedParaElement(oElement))
 			return false;
 
+		var oParaElement = oElement.private_GetImpl();
+		if (oParaElement.Is_UseInDocument())
+			return false;
+
 		if (this.Sdt.IsShowingPlcHdr())
 		{
 			this.Sdt.RemoveFromContent(0, this.Sdt.GetElementsCount(), false);
 			this.Sdt.SetShowingPlcHdr(false);
 		}
-
-		var oParaElement = oElement.private_GetImpl();
 
 		this.Sdt.AddToContent(this.Sdt.GetElementsCount(), oParaElement);
 
@@ -12400,6 +12446,12 @@
 	{
 		if (typeof sText === "string")
 		{
+			if (this.Sdt.IsShowingPlcHdr())
+			{
+				this.Sdt.RemoveFromContent(0, this.Sdt.GetElementsCount(), false);
+				this.Sdt.SetShowingPlcHdr(false);
+			}
+
 			var newRun = editor.CreateRun();
 			newRun.AddText(sText);
 			this.AddElement(newRun, this.GetElementsCount())
@@ -12995,13 +13047,17 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || ApiBlockLvlSdt)
 		{
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+
 			if (this.Sdt.IsShowingPlcHdr())
 			{
 				this.Sdt.Content.RemoveFromContent(0, this.Sdt.Content.GetElementsCount(), false);
 				this.Sdt.SetShowingPlcHdr(false);
 			}
 			
-			this.Sdt.Content.Internal_Content_Add(this.Sdt.Content.Content.length, oElement.private_GetImpl());
+			this.Sdt.Content.Internal_Content_Add(this.Sdt.Content.Content.length, oElm);
 			return true;
 		}
 
@@ -13020,13 +13076,17 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || ApiBlockLvlSdt)
 		{
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+
 			if (this.Sdt.IsShowingPlcHdr())
 			{
 				this.Sdt.Content.RemoveFromContent(0, this.Sdt.Content.GetElementsCount(), false);
 				this.Sdt.SetShowingPlcHdr(false);
 			}
 			
-			this.Sdt.Content.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			this.Sdt.Content.Internal_Content_Add(nPos, oElm);
 			return true;
 		}
 
