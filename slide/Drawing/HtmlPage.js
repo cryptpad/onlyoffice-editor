@@ -79,7 +79,7 @@ function CEditorPage(api)
 	// ------------------------------------------------------------------
 	this.Name           = "";
 	this.IsSupportNotes = true;
-	this.IsSupportAnimPane = true;
+	this.IsSupportAnimPane = false;
 
 	this.EditorType = "presentations";
 
