@@ -1617,10 +1617,25 @@ var editor;
 				}
 			}
 		}
+
+		//TODO CalcChain - из бинарника не читается, и не пишется в бинарник. реализовать позже
+
+
 		if (window['OPEN_IN_BROWSER'] && wbXml.sheets) {
-			wbXml.sheets.forEach(function(wbSheetXml) {
+			var wsParts = [];
+
+			//вначале беру все листы, потом запрашиваю контент каждого из них.
+			//связано с проблемой внтури парсера, на примере файла Read_Only_part_of_lists.xlsx
+			wbXml.sheets.forEach(function(wbSheetXml){
 				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
+					wsParts.push({wsPart: wsPart, id: wbSheetXml.id, name: wbSheetXml.name});
+				}
+			});
+
+			wsParts.forEach(function(wbSheetXml) {
+				if (null !== wbSheetXml.id && wbSheetXml.name) {
+					var wsPart = wbSheetXml.wsPart;
 					var contentSheetXml = wsPart && wsPart.getDocumentContent();
 					if (contentSheetXml) {
 						var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);

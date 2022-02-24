@@ -6502,6 +6502,10 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 						WritingStringNullableAttrDouble(L"ySplit", m_oYSplit, m_oYSplit->GetValue());
 						writer.WriteString((L"/>"));*/
 
+		if (!ns) {
+			ns = "";
+		}
+
 		writer.WriteXmlNodeStart(ns + name);
 		writer.WriteXmlNullableAttributeString("activePane", this.activePane);
 		writer.WriteXmlNullableAttributeString("state", this.state);
