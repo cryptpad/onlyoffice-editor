@@ -74,7 +74,6 @@ var MOVE_DELTA = AscFormat.MOVE_DELTA;
 
 var c_oAscFill = Asc.c_oAscFill;
 
-	var g_nDefaultFormHorPadding = 2 * 25.4 / 72; // 2pt
     var dTextFitDelta = 3;// mm
 
 function CheckObjectLine(obj)
@@ -2243,11 +2242,11 @@ CShape.prototype.getFormRelRect = function (isUsePaddings) {
 	var nX = 0, nW = this.extX;
 	var nY = 0, nH = this.extY;
 
-	var oInnerForm = null;
-	if (isUsePaddings && this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
+	if (isUsePaddings)
 	{
-		nX += g_nDefaultFormHorPadding;
-		nW -= 2 * g_nDefaultFormHorPadding;
+		let nFormHorPadding = this.getFormHorPadding();
+		nX += nFormHorPadding;
+		nW -= 2 * nFormHorPadding;
 	}
 
     var aX = [nX, nW];
@@ -2347,11 +2346,12 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         }
     }
 
-    var oForm = null;
-	if (this.isForm && this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
+    let oForm = this.isForm && this.isForm() ? this.getInnerForm() : null;
+	if (oForm)
 	{
-		l_ins = g_nDefaultFormHorPadding;
-		r_ins = g_nDefaultFormHorPadding;
+		let nFormHorPadding = this.getFormHorPadding();
+		l_ins = nFormHorPadding;
+		r_ins = nFormHorPadding;
 		t_ins = 0;
 		b_ins = 0;
 	}
@@ -4125,11 +4125,12 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         }
     }
 
-	var oForm = null;
-	if (this.isForm && this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
+	let oForm = this.isForm && this.isForm() ? this.getInnerForm() : null;
+	if (oForm)
 	{
-		l_ins = g_nDefaultFormHorPadding;
-		r_ins = g_nDefaultFormHorPadding;
+		let nFormHorPadding = this.getFormHorPadding();
+		l_ins = nFormHorPadding;
+		r_ins = nFormHorPadding;
 		t_ins = 0;
 		b_ins = 0;
 	}
@@ -6932,6 +6933,13 @@ CShape.prototype.getColumnNumber = function(){
     };
     CShape.prototype.getInnerForm = function() {
 		return this.textBoxContent ? this.textBoxContent.GetInnerForm() : null;
+	};
+	CShape.prototype.getFormHorPadding = function() {
+		let oInnerForm;
+		if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
+			return 2 * 25.4 / 72; // 2pt
+
+		return 0;
 	};
 
     //for bug 52775. remove in the next version
