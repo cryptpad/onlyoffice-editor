@@ -5418,7 +5418,7 @@ CDocumentContent.prototype.SetParagraphShd = function(Shd)
 			var StartPos = this.Selection.StartPos;
 			var EndPos   = this.Selection.EndPos;
 
-			if (undefined !== this.LogicDocument && true === this.LogicDocument.UseTextShd && StartPos === EndPos && type_Paragraph === this.Content[StartPos].GetType() && false === this.Content[StartPos].Selection_CheckParaEnd() && selectionflag_Common === this.Selection.Flag)
+			if (this.LogicDocument && true === this.LogicDocument.UseTextShd && StartPos === EndPos && type_Paragraph === this.Content[StartPos].GetType() && false === this.Content[StartPos].Selection_CheckParaEnd() && selectionflag_Common === this.Selection.Flag)
 			{
 				this.AddToParagraph(new ParaTextPr({Shd : Shd}));
 			}
