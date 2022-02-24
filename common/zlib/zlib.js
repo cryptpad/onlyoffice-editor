@@ -289,13 +289,23 @@ else
 			return null;
 		Module["HEAP8"].set(tmp, pointer);
 
+		var heapOldLen = Module["HEAP8"].buffer.byteLength;
 		var pointerFile = Module["_Zlib_GetFile"](this.engine, pointer);
 		if (0 == pointerFile) 
 		{
 			Module["_Zlib_Free"](pointer);
 			return null;
 		}
-		
+
+		//clear cache after buffer reallocation
+		if (heapOldLen < Module["HEAP8"].buffer.byteLength) {
+			for (var i in this.files) {
+				if (this.files.hasOwnProperty(i)) {
+					this.files[i] = null;
+				}
+			}
+		}
+
 		var _lenFile = new Int32Array(Module["HEAP8"].buffer, pointerFile, 4);
 		var len = _lenFile[0];
 		var fileData = new Uint8Array(Module["HEAP8"].buffer, pointerFile + 4, len);
