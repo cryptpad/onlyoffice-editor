@@ -2232,7 +2232,7 @@ function CBinaryFileWriter()
             oThis.WriteRecord1(0, rPr.TextOutline, oThis.WriteLn);
 
         var color = rPr.Color;
-        if (color) {
+        if (color && !(rPr.Unifill && rPr.Unifill.fill)) {
             var unifill = AscFormat.CreateSolidFillRGBA(color.r, color.g, color.b, 255);
             oThis.WriteRecord1(1, unifill, oThis.WriteUniFill);
         } else if(rPr.Unifill) {
