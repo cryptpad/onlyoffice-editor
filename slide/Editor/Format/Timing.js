@@ -10646,8 +10646,13 @@
         this.overlay = editor.WordControl.m_oOverlayApi;
     };
     CDemoAnimPlayer.prototype.onMainSeqFinished = function () {
-        this.stop();
-        editor.WordControl.m_oLogicDocument.StopAnimationPreview();
+        var oThis = this;
+        setTimeout(function () {
+            if(!oThis.isStopped()) {
+                oThis.stop();
+                editor.WordControl.m_oLogicDocument.StopAnimationPreview();
+            }
+        }, 1000);
     };
     
     CDemoAnimPlayer.prototype.start = function () {
