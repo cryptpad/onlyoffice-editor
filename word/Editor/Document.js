@@ -2717,6 +2717,8 @@ CDocument.prototype.On_EndLoad                     = function()
 {
 	this.ClearListsCache();
 
+	this.TrackRevisionsManager.InitSelectedChanges();
+
     // Обновляем информацию о секциях
     this.UpdateAllSectionsInfo();
 
@@ -28073,6 +28075,12 @@ CTrackRevisionsManager.prototype.GetCurrentChangeElement = function()
 CTrackRevisionsManager.prototype.GetCurrentChange = function()
 {
     return this.CurChange;
+};
+CTrackRevisionsManager.prototype.InitSelectedChanges = function()
+{
+	var oEditorApi = this.LogicDocument.GetApi();
+	oEditorApi.sync_BeginCatchRevisionsChanges();
+	oEditorApi.sync_EndCatchRevisionsChanges();
 };
 CTrackRevisionsManager.prototype.ClearSelectedChanges = function()
 {
