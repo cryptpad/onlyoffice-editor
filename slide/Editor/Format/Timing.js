@@ -8096,6 +8096,8 @@
     CTimeNodeContainer.prototype.asc_putTriggerClickSequence = function(v) {
         this.triggerClickSequence = v;
     };
+    CTimeNodeContainer.prototype["asc_putTriggerClickSequence"] = CTimeNodeContainer.prototype.asc_putTriggerClickSequence;
+
     CTimeNodeContainer.prototype.asc_getTriggerObjectClick = function() {
         if(this.triggerObjectClick !== undefined) {
             return this.triggerObjectClick;
