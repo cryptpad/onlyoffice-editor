@@ -4687,6 +4687,12 @@
     prot.put_IsEnabledMacroses = prot.asc_putIsEnabledMacroses = function (v) {
         this.IsEnabledMacroses = v;
     };
+	prot.get_СoEditingMode = prot.asc_getСoEditingMode = function () {
+		return this.coEditingMode;
+	};
+	prot.put_СoEditingMode = prot.asc_putСoEditingMode = function (v) {
+		this.coEditingMode = v;
+	};
 
 	function COpenProgress() {
 		this.Type = Asc.c_oAscAsyncAction.Open;
@@ -6693,6 +6699,8 @@
     prot["put_IsEnabledPlugins"] = prot["asc_putIsEnabledPlugins"] = prot.asc_putIsEnabledPlugins;
     prot["get_IsEnabledMacroses"] = prot["asc_getIsEnabledMacroses"] = prot.asc_getIsEnabledMacroses;
     prot["put_IsEnabledMacroses"] = prot["asc_putIsEnabledMacroses"] = prot.asc_putIsEnabledMacroses;
+	prot["get_СoEditingMode"] = prot["asc_getСoEditingMode"] = prot.asc_getСoEditingMode;
+	prot["put_СoEditingMode"] = prot["asc_putСoEditingMode"] = prot.asc_putСoEditingMode;
 
 	window["AscCommon"].COpenProgress = COpenProgress;
 	prot = COpenProgress.prototype;

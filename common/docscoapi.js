@@ -671,6 +671,7 @@
     this.jwtSession = undefined;
     this.encrypted = undefined;
     this.IsAnonymousUser = undefined;
+    this.coEditingMode = undefined;
     this._isViewer = false;
     this._isReSaveAfterAuth = false;	// Флаг для сохранения после повторной авторизации (для разрыва соединения во время сохранения)
     this._lockBuffer = [];
@@ -1616,6 +1617,7 @@
 	this.jwtOpen = docInfo.get_Token();
     this.encrypted = docInfo.get_Encrypted();
     this.IsAnonymousUser = docInfo.get_IsAnonymousUser();
+    this.coEditingMode = docInfo.asc_getСoEditingMode();
 
     this.setDocId(docid);
     this._initSocksJs();
@@ -1670,6 +1672,7 @@
       'permissions': this.permissions,
       'encrypted': this.encrypted,
       'IsAnonymousUser': this.IsAnonymousUser,
+      'coEditingMode': this.coEditingMode,
       'jwtOpen': this.jwtOpen,
       'jwtSession': this.jwtSession
     });
