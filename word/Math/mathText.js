@@ -1027,9 +1027,38 @@ CMathText.prototype.GetTextOfElement = function() {
 			strPre = '\\double';
 		}
 	}
-	
 
-	return strPre + String.fromCharCode(this.value);
+	var strOutput = String.fromCharCode(this.value);
+	if (strOutput === 'θ') {
+		strOutput = '\\theta'
+	}
+	if (strOutput === '→') {
+		strOutput = '\\to'
+	}
+	if (strOutput === '∞') {
+		strOutput = '\\infty'
+	}
+	if (strOutput === '…') {
+		strOutput = '\\dots'
+	}
+
+	// if (strOutput !== '{' || strOutput !== '}') {
+	// 	for (var i = 65; i <= 90; i++) {
+	// 		var obj = SymbolsForCorrect[String.fromCharCode(i)];
+	
+	// 		if (obj) {
+	// 			var oneObj = Object.entries(obj);
+	// 			for (var j = 0; j < oneObj.length; j++) {
+	// 				if (oneObj[j][1] === this.value) {
+	// 					strOutput = oneObj[j][0];
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	
+	return strPre + strOutput;
 };
 /*CMathText.prototype.Recalculate_Reset = function(StartRange, StartLine, PRS)
 {

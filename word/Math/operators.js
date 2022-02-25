@@ -4038,7 +4038,7 @@ CDelimiter.prototype.private_GetRightOperator = function(bHide)
 
     return NewEndCode;
 };
-CDelimiter.prototype.GetTextOfElement = function() {
+CDelimiter.prototype.GetTextOfElement = function(isLaTeX) {
 	//	Patterns:
 	//	if start bracket doesn't show:	├ ...) => ...)
 	//	if end bracket doesn't show:	(...┤ => (...
@@ -4055,7 +4055,7 @@ CDelimiter.prototype.GetTextOfElement = function() {
 	strTemp += this.Pr.begChr === -1 ? strStartCaseSymbol : strStartSymbol;
 	
 	for (var intCount = 0; intCount < this.Content.length; intCount++) {
-		strTemp += this.Content[intCount].GetTextOfElement();
+		strTemp += this.Content[intCount].GetTextOfElement(isLaTeX);
 
 		if (strSeparatorSymbol && this.Content.length > 1 && intCount < this.Content.length - 1) {
 			strTemp += strSeparatorSymbol;

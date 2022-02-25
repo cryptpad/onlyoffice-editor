@@ -959,20 +959,28 @@ CBox.prototype.Apply_ForcedBreak = function(Props)
     if(Props.Action & c_oMathMenuAction.DeleteForcedBreak)
         Props.Action ^= c_oMathMenuAction.DeleteForcedBreak;
 };
-CBox.prototype.GetTextOfElement = function() {
+CBox.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
+	var strSymbol;
 
-	var strSymbol = String.fromCharCode(9633);
-	var Base = this.getBase().GetTextOfElement();
+	if (true === isLaTeX) {
+		strSymbol = '\\rect';
+	} else {
+		strSymbol = String.fromCharCode(9633);
+	}
+	
+	var Base = this.getBase().GetTextOfElement(isLaTeX);
 
-	var StartBracet = Base.length > 1 ? "(" : "";
-	var CloseBracet = Base.length > 1 ? ")" : "";
+	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTeX);
+	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
+
+	if (isLaTeX) {
+		Base = strStartBracet + Base + strCloseBracet;
+	}
 	
 	strTemp =
 		strSymbol
-		+ StartBracet
 		+ Base
-		+ CloseBracet;
 
 	return strTemp;
 };

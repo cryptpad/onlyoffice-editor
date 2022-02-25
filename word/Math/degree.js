@@ -550,16 +550,45 @@ CDegree.prototype.GetTextOfElement = function(isLaTeX) {
 	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
 
 	if (isLaTeX) {
-		if (strIterator.length > 0) {
+		if (strIterator.length > 1) {
 			strIterator = strStartBracet + strIterator + strCloseBracet;
 		}
-		if (strBase === 'lim' || strBase === 'log' ||
-			strBase === 'max' || strBase === 'min' ||
-			strBase === 'ln') {
-			strBase = '\\' + strBase;
+		switch (strBase) {
+			case 'cos':
+			case 'sin':
+			case 'tan':
+			case 'sec':
+			case 'cot':
+			case 'csc':
+			case 'arcsin':
+			case 'arccos':
+			case 'arctan':
+			case 'arcsec':
+			case 'arccot':
+			case 'arccsc':
+			case 'sinh':
+			case 'cosh':
+			case 'tanh':
+			case 'coth':
+			case 'sech':
+			case 'csch':
+			case 'srcsinh':
+			case 'arctanh':
+			case 'arcsech':
+			case 'arccosh':
+			case 'arccoth':
+			case 'arccsch':
+			case 'log':
+			case 'lim':
+			case 'ln':
+			case 'max':
+			case 'min':
+			case 'exp': strBase = '\\'+ strBase; break;
+			default: break;
 		}
-		if (strBase.length > 1 && strBase[0] !== '\\') {
-			strBase = strStartBracet + strBase + strCloseBracet;
+		
+		if(strIterator.length === 0) {
+			strIterator = '{}'
 		}
 		strTemp = strBase + strTypeOfScript + strIterator;
 	} else {
@@ -1228,6 +1257,7 @@ CDegreeSubSup.prototype.Can_ModifyArgSize = function()
     return this.CurPos !== 0 && false === this.Is_SelectInside(); // находимся в итераторе
 };
 CDegreeSubSup.prototype.GetTextOfElement = function(isLaTeX) {
+	console.log(1);
 	var strTemp = "";
 	var Base = this.getBase().GetTextOfElement(isLaTeX);
 	var strLower = this.getLowerIterator().GetTextOfElement(isLaTeX);
@@ -1245,6 +1275,18 @@ CDegreeSubSup.prototype.GetTextOfElement = function(isLaTeX) {
 			? '{'+ Base +'}'
 			: Base;
 
+		if(strLower.length === 0) {
+			strLower = '{}'
+		}
+		if(strUpper.length === 0) {
+			strUpper = '{}'
+		}
+		if(strLower === '⬚') {
+			strLower = '{}'
+		}
+		if(strUpper === '⬚') {
+			strUpper = '{}'
+		}
 		if (true === isPreScript) {
 			strTemp = '{' + '_' + strLower + '^' + strUpper + '}' + Base;
 		} else {
@@ -1257,9 +1299,6 @@ CDegreeSubSup.prototype.GetTextOfElement = function(isLaTeX) {
 		strUpper = strUpper.length > 1
 			? '(' + strUpper + ')'
 			: strUpper;
-		Base = Base.length > 1
-			? '〖'+ Base +'〗'
-			: Base;
 
 		if (true === isPreScript) {
 			strTemp = '(' + '_' + strLower + '^' + strUpper + ')' + Base;

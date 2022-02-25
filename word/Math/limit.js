@@ -458,6 +458,39 @@ CMathFunc.prototype.GetTextOfElement = function(isLaTeX) {
 		strCloseBracet = strArgument.length > 1 ? "〗" : "";
 	}
 
+	switch (strFuncName) {
+		case 'cos':
+		case 'sin':
+		case 'tan':
+		case 'sec':
+		case 'cot':
+		case 'csc':
+		case 'arcsin':
+		case 'arccos':
+		case 'arctan':
+		case 'arcsec':
+		case 'arccot':
+		case 'arccsc':
+		case 'sinh':
+		case 'cosh':
+		case 'tanh':
+		case 'coth':
+		case 'sech':
+		case 'csch':
+		case 'srcsinh':
+		case 'arctanh':
+		case 'arcsech':
+		case 'arccosh':
+		case 'arccoth':
+		case 'arccsch':
+		case 'log':
+		case 'lin':
+		case 'ln':
+		case 'max':
+		case 'min':
+		case 'exp': strFuncName = '\\'+ strFuncName; break;
+		default: break;
+	}
 	strTemp = strFuncName
 		+ strStartBracet
 		+ strArgument

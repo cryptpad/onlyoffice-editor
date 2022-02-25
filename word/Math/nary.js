@@ -825,10 +825,10 @@ CNary.prototype.GetTextOfElement = function(isLaTeX) {
 	var strSubContent = this.CheckIsEmpty(this.getSubMathContent().GetTextOfElement(isLaTeX));
 	var strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement(isLaTeX));
 
-	if (strSupContent.length > 0) {
+	if (strSupContent.length > 1) {
 		strSupContent = strStartBracet + strSupContent + strCloseBracet;
 	}
-	if (strSubContent.length > 0) {
+	if (strSubContent.length > 1) {
 		strSubContent = strStartBracet + strSubContent + strCloseBracet;
 	}
 	

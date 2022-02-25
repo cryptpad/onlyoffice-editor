@@ -632,6 +632,7 @@ CFraction.prototype.GetTextOfElement = function(isLaTeX) {
 		switch (this.Pr.type) {
 			case 0:	strTemp += '\\frac';	break;
 			case 1:	strTemp += '\\sfrac';	break;
+			case 2:	strTemp += '\\cfrac';	break;
 			default: strTemp += '\\frac'; 	break;
 		}
 		strTemp += strNumerator + strDenominator;
@@ -640,8 +641,7 @@ CFraction.prototype.GetTextOfElement = function(isLaTeX) {
 		switch (this.Pr.type) {
 			case 0:	strTemp += String.fromCharCode(47);		break;
 			case 1:	strTemp += String.fromCharCode(8260);	break;
-			case 2:	strTemp += String.fromCharCode(92);
-					strTemp += String.fromCharCode(47);		break;
+			case 2:	strTemp += '⊘';							break;
 			case 3:	strTemp += String.fromCharCode(166);	break;
 			default:strTemp += String.fromCharCode(47);		break;
 		}
