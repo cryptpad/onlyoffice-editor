@@ -2936,6 +2936,13 @@ CShape.prototype.isPlaceholderInSmartArt = function () {
         }
     }
 };
+
+CShape.prototype.getSmartArtDefaultTxFill = function () {
+    if (this.isObjectInSmartArt()) {
+        return this.group.group.getSmartArtDefaultTxFill(this);
+    }
+};
+
 CShape.prototype.Get_Styles = function (level) {
 
     var _level = AscFormat.isRealNumber(level) ? level : 0;
@@ -3069,6 +3076,10 @@ CShape.prototype.recalculateTextStyles = function (level) {
             shape_text_style.TextPr.RFonts.SetFontStyle(compiled_style.fontRef.idx);
             if (compiled_style.fontRef.Color && compiled_style.fontRef.Color.isCorrect()) {
                 shape_text_style.TextPr.Unifill = AscFormat.CreateUniFillByUniColor(compiled_style.fontRef.Color);
+            }
+            var smartArtTxFill = this.getSmartArtDefaultTxFill();
+            if (smartArtTxFill) {
+                shape_text_style.TextPr.Unifill = smartArtTxFill;
             }
         }
         var Styles = new CStyles(false);
