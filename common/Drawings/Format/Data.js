@@ -7343,7 +7343,7 @@
     };
 
     CChangesDrawingsContentStyleLbl.prototype.updateStyleLbl = function () {
-      console.log(this.Items);
+      //console.log(this.Items);
       if (this.IsAdd()) {
         for (var i = 0; i < this.Items.length; i += 1) {
           this.Class.styleLblByName[Items[i].name] = Items[i];
