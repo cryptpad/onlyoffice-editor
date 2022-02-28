@@ -7346,11 +7346,11 @@
       //console.log(this.Items);
       if (this.IsAdd()) {
         for (var i = 0; i < this.Items.length; i += 1) {
-          this.Class.styleLblByName[Items[i].name] = Items[i];
+          this.Class.styleLblByName[this.Items[i].name] = this.Items[i];
         }
       } else {
         for (var i = 0; i < this.Items.length; i += 1) {
-          delete this.Class.styleLblByName[Items[i].name];
+          delete this.Class.styleLblByName[this.Items[i].name];
         }
       }
     };
