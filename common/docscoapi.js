@@ -1617,7 +1617,7 @@
 	this.jwtOpen = docInfo.get_Token();
     this.encrypted = docInfo.get_Encrypted();
     this.IsAnonymousUser = docInfo.get_IsAnonymousUser();
-    this.coEditingMode = docInfo.asc_getСoEditingMode();
+    this.coEditingMode = docInfo.asc_getCoEditingMode();
 
     this.setDocId(docid);
     this._initSocksJs();
