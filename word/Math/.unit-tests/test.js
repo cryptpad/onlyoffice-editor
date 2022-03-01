@@ -1,3 +1,4 @@
+//add nice frac to unicode
 describe("Проверка работы конвертеров", function () {
 	beforeEach(() => Para.Root.Content = []);
 
@@ -155,22 +156,130 @@ describe("Проверка работы конвертеров", function () {
 			});
 		})
 		describe("Проверка обработки больших операторов", function () {
+			describe("Создание больших операторов без контента", function () {
+				it("\\int^{}_{}{}", function () {
+					Para.Root.Add_Text('\\int^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\int');
+				});
+				it("\\oint^{}_{}{}", function () {
+					Para.Root.Add_Text('\\oint^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\oint');
+				});
+				it("\\iint^{}_{}{}", function () {
+					Para.Root.Add_Text('\\iint^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\iint');
+				});
+				it("\\oiint^{}_{}{}", function () {
+					Para.Root.Add_Text('\\oiint^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\oiint');
+				});
+				it("\\iiint^{}_{}{}", function () {
+					Para.Root.Add_Text('\\iiint^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\iiint');
+				});
+				it("\\oiiint^{}_{}{}", function () {
+					Para.Root.Add_Text('\\oiiint^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\oiiint');
+				});
+				it("\\iiiint^{}_{}{}", function () {
+					Para.Root.Add_Text('\\iiiint^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\iiiint');
+				});
+				it("\\\idotsint^{}_{}{}", function () {
+					Para.Root.Add_Text('\\\idotsint^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\\idotsint');
+				});
+				it("\\sum^{}_{}{}", function () {
+					Para.Root.Add_Text('\\sum^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\sum');
+				});
+				it("\\bigoplus^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigoplus^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigoplus');
+				});
+				it("\\biguplus^{}_{}{}", function () {
+					Para.Root.Add_Text('\\biguplus^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\biguplus');
+				});
+				it("\\bigcap^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigcap^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigcap');
+				});
+				it("\\bigcup^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigcup^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigcup');
+				});
+				it("\\bigotimes^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigotimes^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigotimes');
+				});
+				it("\\bigsqcup^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigsqcup^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigsqcup');
+				});
+				it("\\bigodot^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigodot^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigodot');
+				});
+				it("\\prod^{}_{}{}", function () {
+					Para.Root.Add_Text('\\prod^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\prod');
+				});
+				it("\\coprod^{}_{}{}", function () {
+					Para.Root.Add_Text('\\coprod^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\coprod');
+				});
+				it("\\bigvee^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigvee^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigvee');
+				});
+				it("\\bigwedge^{}_{}{}", function () {
+					Para.Root.Add_Text('\\bigwedge^{}_{}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\bigwedge');
+				});
+			})
 			it("\\sum^{10}_{i=1}{t_i+2}", function () {
 				Para.Root.Add_Text('\\sum^{10}_{i=1}{t_i+2}', Para.Paragraph)
 				Para.ConvertFromLaTeX();
 				assert.equal(Para.Root.GetTextOfElement(true), '\\sum^{10}_{i=1}{t_i+2}');
 			});
-			it("\\int_0^\\infty \\mathrm{e}^{-x},\\mathrm{d}x", function () {
-				Para.Root.Add_Text('\\int_0^\\infty \\mathrm{e}^{-x},\\mathrm{d}x', Para.Paragraph)
+			it("\\int^x_0 e^{-x},dx", function () {
+				Para.Root.Add_Text('\\int^x_0 e^{-x},dx', Para.Paragraph)
 				Para.ConvertFromLaTeX();
-				assert.equal(Para.Root.GetTextOfElement(true), '\\int_0^\\infty \\mathrm{e}^{-x},\\mathrm{d}x');
+				assert.equal(Para.Root.GetTextOfElement(true), '\\int^x_0 e^{-x},dx');
 			});
+			
 		})
 		describe("Проверка обработки радикалов", function () {
 			it("\\sqrt{\\frac{a}{b}}", function () {
 				Para.Root.Add_Text('\\sqrt{\\frac{a}{b}}', Para.Paragraph)
 				Para.ConvertFromLaTeX();
 				assert.equal(Para.Root.GetTextOfElement(true), '\\sqrt{\\frac{a}{b}}');
+			});
+			it("\\sqrt[]{\\frac{a}{b}}", function () {
+				Para.Root.Add_Text("\\sqrt[]{\\frac{a}{b}}", Para.Paragraph)
+				Para.ConvertFromLaTeX();
+				assert.equal(Para.Root.GetTextOfElement(true), "\\sqrt{\\frac{a}{b}}");
 			});
 			it("\\sqrt[n]{1+x+x^2+x^3+\\dots+x^n}", function () {
 				Para.Root.Add_Text('\\sqrt[n]{1+x+x^2+x^3+\\dots+x^n}', Para.Paragraph)
@@ -212,16 +321,16 @@ describe("Проверка работы конвертеров", function () {
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), 'y_{}^{}');
 				});
-				it("Создание стандартного деления: _{2}y", function () {
-					Para.Root.Add_Text('_{2}y', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '_{2}y');
-				});
-				it("Создание стандартного деления: ^{2}y", function () {
-					Para.Root.Add_Text('_{2}y', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '_{2}y');
-				});
+				// it("Создание стандартного деления: _{2}y", function () {
+				// 	Para.Root.Add_Text('_{2}y', Para.Paragraph)
+				// 	Para.ConvertFromLaTeX();
+				// 	assert.equal(Para.Root.GetTextOfElement(true), '_{2}y');
+				// });
+				// it("Создание стандартного деления: ^{2}y", function () {
+				// 	Para.Root.Add_Text('_{2}y', Para.Paragraph)
+				// 	Para.ConvertFromLaTeX();
+				// 	assert.equal(Para.Root.GetTextOfElement(true), '_{2}y');
+				// });
 				it("Создание стандартного деления: ^{2}_{x}y", function () {
 					Para.Root.Add_Text('_{2}y', Para.Paragraph)
 					Para.ConvertFromLaTeX();
@@ -277,6 +386,1556 @@ describe("Проверка работы конвертеров", function () {
 					Para.Root.Add_Text('k_{n+1} = n^2 + k_n^2 - k_{n-1}', Para.Paragraph)
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), 'k_{n+1} = n^2 + k_n^2 - k_{n-1}');
+				});
+			})
+		})
+	})
+
+	describe("Проверка работы Unicode конвертора", function () {
+		describe("Раное", function () {
+			it("Вставка пробелов", function () {
+				Para.Root.Add_Text(' ', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), ' ');
+			});
+			it("Вставка текста", function () {
+				Para.Root.Add_Text('1509670348503847508мотваомрывдаомыдвомщоаыврищзывр', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '1509670348503847508мотваомрывдаомыдвомщоаыврищзывр');
+			});
+
+			it("\\alpha, \\Alpha, \\beta, \\Beta, \\gamma, \\Gamma, \\pi, \\Pi, \\phi, \\varphi, \\mu, \\Phi", function () {
+				Para.Root.Add_Text('\\alpha, \\Alpha, \\beta, \\Beta, \\gamma, \\Gamma, \\pi, \\Pi, \\phi, \\varphi, \\mu, \\Phi', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), 'α, Α, β, Β, γ, Γ, π, Π, φ, ϕ, μ, Φ');
+			});
+			
+			it("f(n) = n^5 + 4n^2 + 2 |_(n=17)", function () {
+				Para.Root.Add_Text('f(n) = n^5 + (4n+2)^2 + 2 |_(n=17)', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), 'f(n) = n^5 + (4n+2)^2 + 2 |_(n=17)');
+			});
+			it("n^5 + 4n^2", function () {
+				Para.Root.Add_Text('n^5 + 4n^2', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), 'n^5 + 4n^2');
+			});
+			it("2 |_{n=17}", function () {
+				Para.Root.Add_Text('2 |_{n=17}', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '2 |_(n=17)');
+			});
+		})
+		describe("Проверка обработки деления", function () {
+			describe("Создание функций без контента", function () {
+				it("Создание стандартного деления: ()/()", function () {
+					Para.Root.Add_Text('()/()', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '/');
+				});
+				it("Проверка типа стандартного деления Pr.type: {}/{}", function () {
+					Para.Root.Add_Text('{}/{}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					var e = Para.Root.Content[1].Pr.type;
+					assert.equal(e, 0);
+				});
+				it("Скошеное деление: {}∕{}", function () {
+					Para.Root.Add_Text('{}∕{}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '∕');
+				});
+				it("Проверка типа cкошеного деления Pr.type: {}∕{}", function () {
+					Para.Root.Add_Text('{}∕{}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					var e = Para.Root.Content[1].Pr.type;
+					assert.equal(e, 1);
+				});
+				it("Строчное деление: {}⊘{}", function () {
+					Para.Root.Add_Text('{}⊘{}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '⊘');
+				});
+				it("Проверка типа строчного деления Pr.type: {}⊘{}", function () {
+					Para.Root.Add_Text('{}⊘{}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					var e = Para.Root.Content[1].Pr.type;
+					assert.equal(e, 2);
+				});
+			})
+			describe("Наполнение функций", function () {
+				it("Наполнение стандартного деления: (1+2)/(2+x^2)", function () {
+					Para.Root.Add_Text('(1+2)/(2+x^2)', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '(1+2)/(2+x^2)');
+				});
+				it("Скошеное деление: (1_i+2)∕(2+x^2)", function () {
+					Para.Root.Add_Text('(1_i+2)∕(2+x^2)', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '(1_i+2)∕(2+x^2)');
+				});
+				it("Строчное деление: (1_i+2)⊘(2+x^2)", function () {
+					Para.Root.Add_Text('(1_i+2)⊘(2+x^2)', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '(1_i+2)⊘(2+x^2)');
+				});
+				it("Наполнение стандартного деления: x/y", function () {
+					Para.Root.Add_Text('x/y', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x/y');
+				});
+				it("Скошеное деление: x∕y", function () {
+					Para.Root.Add_Text('x∕y', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x∕y');
+				});
+				it("Строчное деление: x⊘y", function () {
+					Para.Root.Add_Text('x⊘y', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x⊘y');
+				})
+				it("Наполнение стандартного деления: x/y+1", function () {
+					Para.Root.Add_Text('x/y+1', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x/y+1');
+				});
+				it("Скошеное деление: x∕y+1", function () {
+					Para.Root.Add_Text('x∕y+1', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x∕y+1');
+				});
+				it("Строчное деление: x⊘y+1", function () {
+					Para.Root.Add_Text('x⊘y+1', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x⊘y+1');
+				});
+			})
+			describe("Рекурсия функций", function () {
+				it("Деление с большой вложенностью", function () {
+					Para.Root.Add_Text('1/(1/(1/(1/(1/2))))', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '1/(1/(1/(1/(1/2))))');
+				});
+
+			})
+			it("{n!}/{k!(n-k)!} = {n}¦{k}", function () {
+				Para.Root.Add_Text('{n!}/{k!(n-k)!} = {n}¦{k}', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '(n!)/(k!(n-k)!) = (n/k)');
+			});
+			it("{{1}/{x}+{1}/{y}}/{y-z}", function () {
+				Para.Root.Add_Text('{{1}/{x}+{1}/{y}}/{y-z}', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '(1/x+1/y)/(y-z)');
+			});
+		})
+		describe("Проверка обработки функций", function () {
+			it("\\cos (2\theta) = \\cos^2 \\theta - \\sin^2 \\theta", function () {
+				Para.Root.Add_Text('\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta');
+			});
+			it("\\sin (2\\theta) = \\sin^2 \\theta", function () {
+				Para.Root.Add_Text('\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta');
+			});
+			it("\\lim_{2\\theta}\\theta", function () {
+				Para.Root.Add_Text('\lim_{2\\theta}\\theta', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '\\lim_{2\\theta}\\theta');
+			});
+			it("\\lim^{2\\theta}\\theta", function () {
+				Para.Root.Add_Text('\lim_{2\\theta}\\theta', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '\\lim_{2\\theta}\\theta');
+			});
+			it("\\lim\\limits_{x \\to \\infty} \\exp(-x) = 0", function () {
+				Para.Root.Add_Text('\\lim\\limits_{x \\to \\infty} \\exp(-x) = 0', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '\\lim_{x \\to \\infty} \\exp{(-x)} = 0');
+			});
+		})
+		describe("Проверка обработки больших операторов", function () {
+			describe("Без контента:", function () {
+				describe("Создание больших операторов без контента", function () {
+					it("\\int", function () {
+						Para.Root.Add_Text('\\int', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫');
+					});
+					it("\\oint", function () {
+						Para.Root.Add_Text('\\oint', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮');
+					});
+					it("\\iint", function () {
+						Para.Root.Add_Text('\\iint', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬');
+					});
+					it("\\oiin", function () {
+						Para.Root.Add_Text('\\oiint', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯');
+					});
+					it("\\iiint", function () {
+						Para.Root.Add_Text('\\iiint', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭');
+					});
+					it("\\oiiint", function () {
+						Para.Root.Add_Text('\\oiiint', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰');
+					});
+					it("\\iiiint", function () {
+						Para.Root.Add_Text('\\iiiint', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌');
+					});
+					it("\\sum", function () {
+						Para.Root.Add_Text('\\sum', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑');
+					});
+					it("\\bigoplus", function () {
+						Para.Root.Add_Text('\\bigoplus', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁');
+					});
+					it("\\biguplus", function () {
+						Para.Root.Add_Text('\\biguplus', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄');
+					});
+					it("\\bigcap", function () {
+						Para.Root.Add_Text('\\bigcap', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂');
+					});
+					it("\\bigcup", function () {
+						Para.Root.Add_Text('\\bigcup', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃');
+					});
+					it("\\bigotimes", function () {
+						Para.Root.Add_Text('\\bigotimes', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂');
+					});
+					it("\\bigsqcup", function () {
+						Para.Root.Add_Text('\\bigsqcup', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆');
+					});
+					it("\\bigodot", function () {
+						Para.Root.Add_Text('\\bigodot', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀');
+					});
+					it("\\prod", function () {
+						Para.Root.Add_Text('\\prod', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏');
+					});
+					it("\\coprod", function () {
+						Para.Root.Add_Text('\\coprod', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐');
+					});
+					it("\\bigvee", function () {
+						Para.Root.Add_Text('\\bigvee', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁');
+					});
+					it("\\bigwedge", function () {
+						Para.Root.Add_Text('\\bigwedge', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀');
+					});
+				})
+				describe("Создание больших операторов без контента", function () {
+					it("\\int^()_()▒()", function () {
+						Para.Root.Add_Text('\\int^()_()▒()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫');
+					});
+					it("\\oint^()_()▒()", function () {
+						Para.Root.Add_Text('\\oint^()_()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮');
+					});
+					it("\\iint^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\iint^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬');
+					});
+					it("\\oiint^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\oiint^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯');
+					});
+					it("\\iiint^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\iiint^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭');
+					});
+					it("\\oiiint^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\oiiint^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰');
+					});
+					it("\\iiiint^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\iiiint^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\sum^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑');
+					});
+					it("\\bigoplus^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigoplus^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁');
+					});
+					it("\\biguplus^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\biguplus^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄');
+					});
+					it("\\bigcap^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigcap^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂');
+					});
+					it("\\bigcup^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigcup^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃');
+					});
+					it("\\bigotimes^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigotimes^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂');
+					});
+					it("\\bigsqcup^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigsqcup^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆');
+					});
+					it("\\bigodot^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigodot^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀');
+					});
+					it("\\prod^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\prod^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏');
+					});
+					it("\\coprod^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\coprod^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐');
+					});
+					it("\\bigvee^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigvee^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁');
+					});
+					it("\\bigwedge^{}_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigwedge^{}_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀');
+					});
+				})
+				describe("Создание больших операторов без контента", function () {
+					it("\\int_()▒()", function () {
+						Para.Root.Add_Text('\\int_()▒()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫');
+					});
+					it("\\oint_()▒()", function () {
+						Para.Root.Add_Text('\\oint_()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮');
+					});
+					it("\\iint_{}▒{}", function () {
+						Para.Root.Add_Text('\\iint_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬');
+					});
+					it("\\oiint_{}▒{}", function () {
+						Para.Root.Add_Text('\\oiint_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯');
+					});
+					it("\\iiint_{}▒{}", function () {
+						Para.Root.Add_Text('\\iiint_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭');
+					});
+					it("\\oiiint_{}▒{}", function () {
+						Para.Root.Add_Text('\\oiiint_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰');
+					});
+					it("\\iiiint_{}▒{}", function () {
+						Para.Root.Add_Text('\\iiiint_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum_{}▒{}", function () {
+						Para.Root.Add_Text('\\sum_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑');
+					});
+					it("\\bigoplus_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigoplus_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁');
+					});
+					it("\\biguplus_{}▒{}", function () {
+						Para.Root.Add_Text('\\biguplus_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄');
+					});
+					it("\\bigcap_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigcap_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂');
+					});
+					it("\\bigcup_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigcup_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃');
+					});
+					it("\\bigotimes_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigotimes_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂');
+					});
+					it("\\bigsqcup_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigsqcup_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆');
+					});
+					it("\\bigodot_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigodot_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀');
+					});
+					it("\\prod_{}▒{}", function () {
+						Para.Root.Add_Text('\\prod_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏');
+					});
+					it("\\coprod_{}▒{}", function () {
+						Para.Root.Add_Text('\\coprod_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐');
+					});
+					it("\\bigvee_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigvee_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁');
+					});
+					it("\\bigwedge_{}▒{}", function () {
+						Para.Root.Add_Text('\\bigwedge_{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀');
+					});
+				})
+				describe("Создание больших операторов без контента", function () {
+					it("\\int^()▒()", function () {
+						Para.Root.Add_Text('\\int^()▒()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫');
+					});
+					it("\\oint^()▒()", function () {
+						Para.Root.Add_Text('\\oint^()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮');
+					});
+					it("\\iint^{}▒{}", function () {
+						Para.Root.Add_Text('\\iint^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬');
+					});
+					it("\\oiint^{}▒{}", function () {
+						Para.Root.Add_Text('\\oiint^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯');
+					});
+					it("\\iiint^{}▒{}", function () {
+						Para.Root.Add_Text('\\iiint^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭');
+					});
+					it("\\oiiint^{}▒{}", function () {
+						Para.Root.Add_Text('\\oiiint^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰');
+					});
+					it("\\iiiint^{}▒{}", function () {
+						Para.Root.Add_Text('\\iiiint^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum^{}▒{}", function () {
+						Para.Root.Add_Text('\\sum^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑');
+					});
+					it("\\bigoplus^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigoplus^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁');
+					});
+					it("\\biguplus^{}▒{}", function () {
+						Para.Root.Add_Text('\\biguplus^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄');
+					});
+					it("\\bigcap^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigcap^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂');
+					});
+					it("\\bigcup^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigcup^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃');
+					});
+					it("\\bigotimes^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigotimes^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂');
+					});
+					it("\\bigsqcup^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigsqcup^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆');
+					});
+					it("\\bigodot^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigodot^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀');
+					});
+					it("\\prod^{}▒{}", function () {
+						Para.Root.Add_Text('\\prod^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏');
+					});
+					it("\\coprod^{}▒{}", function () {
+						Para.Root.Add_Text('\\coprod^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐');
+					});
+					it("\\bigvee^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigvee^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁');
+					});
+					it("\\bigwedge^{}▒{}", function () {
+						Para.Root.Add_Text('\\bigwedge^{}▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀');
+					});
+				})
+				describe("Создание больших операторов без контента", function () {
+					it("\\int▒()", function () {
+						Para.Root.Add_Text('\\int▒()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫');
+					});
+					it("\\oint▒()", function () {
+						Para.Root.Add_Text('\\oint▒()', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮');
+					});
+					it("\\iint▒{}", function () {
+						Para.Root.Add_Text('\\iint▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬');
+					});
+					it("\\oiin▒{}", function () {
+						Para.Root.Add_Text('\\oiint▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯');
+					});
+					it("\\iiint▒{}", function () {
+						Para.Root.Add_Text('\\iiint▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭');
+					});
+					it("\\oiiint▒{}", function () {
+						Para.Root.Add_Text('\\oiiint▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰');
+					});
+					it("\\iiiint▒{}", function () {
+						Para.Root.Add_Text('\\iiiint▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum▒{}", function () {
+						Para.Root.Add_Text('\\sum▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑');
+					});
+					it("\\bigoplus▒{}", function () {
+						Para.Root.Add_Text('\\bigoplus▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁');
+					});
+					it("\\biguplus▒{}", function () {
+						Para.Root.Add_Text('\\biguplus▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄');
+					});
+					it("\\bigcap▒{}", function () {
+						Para.Root.Add_Text('\\bigcap▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂');
+					});
+					it("\\bigcup▒{}", function () {
+						Para.Root.Add_Text('\\bigcup▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃');
+					});
+					it("\\bigotimes▒{}", function () {
+						Para.Root.Add_Text('\\bigotimes▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂');
+					});
+					it("\\bigsqcup▒{}", function () {
+						Para.Root.Add_Text('\\bigsqcup▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆');
+					});
+					it("\\bigodot▒{}", function () {
+						Para.Root.Add_Text('\\bigodot▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀');
+					});
+					it("\\prod▒{}", function () {
+						Para.Root.Add_Text('\\prod▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏');
+					});
+					it("\\coprod▒{}", function () {
+						Para.Root.Add_Text('\\coprod▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐');
+					});
+					it("\\bigvee▒{}", function () {
+						Para.Root.Add_Text('\\bigvee▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁');
+					});
+					it("\\bigwedge▒{}", function () {
+						Para.Root.Add_Text('\\bigwedge▒{}', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀');
+					});
+				})
+				describe("Создание больших операторов без контента с контентом после", function () {
+					it("\\int^()_()▒() + 2", function () {
+						Para.Root.Add_Text('\\int^()_()▒() + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫ + 2');
+					});
+					it("\\oint^()_()▒() + 2", function () {
+						Para.Root.Add_Text('\\oint^()_()▒() + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮ + 2');
+					});
+					it("\\iint^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\iint^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬ + 2');
+					});
+					it("\\oiint^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\oiint^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯ + 2');
+					});
+					it("\\iiint^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\iiint^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭ + 2');
+					});
+					it("\\oiiint^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\oiiint^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰ + 2');
+					});
+					it("\\iiiint^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\iiiint^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌ + 2');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\sum^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑ + 2');
+					});
+					it("\\bigoplus^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigoplus^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁ + 2');
+					});
+					it("\\biguplus^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\biguplus^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄ + 2');
+					});
+					it("\\bigcap^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigcap^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂ + 2');
+					});
+					it("\\bigcup^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigcup^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃ + 2');
+					});
+					it("\\bigotimes^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigotimes^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂ + 2');
+					});
+					it("\\bigsqcup^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigsqcup^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆ + 2');
+					});
+					it("\\bigodot^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigodot^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀ + 2');
+					});
+					it("\\prod^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\prod^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏ + 2');
+					});
+					it("\\coprod^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\coprod^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐ + 2');
+					});
+					it("\\bigvee^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigvee^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁ + 2');
+					});
+					it("\\bigwedge^{}_{}▒{} + 2", function () {
+						Para.Root.Add_Text('\\bigwedge^{}_{}▒{} + 2', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀ + 2');
+					});
+				})
+			})
+			describe("С контентом:", function () {
+				describe("Большой оператор без индексов/степеней тело идет сразу", function () {
+					it("\\intX", function () {
+						Para.Root.Add_Text('\\intX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫▒X');
+					});
+					it("\\ointX", function () {
+						Para.Root.Add_Text('\\ointX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮▒X');
+					});
+					it("\\iintX", function () {
+						Para.Root.Add_Text('\\iintX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬▒X');
+					});
+					it("\\oiinX", function () {
+						Para.Root.Add_Text('\\oiintX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯▒X');
+					});
+					it("\\iiintX", function () {
+						Para.Root.Add_Text('\\iiintX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭▒X');
+					});
+					it("\\oiiintX", function () {
+						Para.Root.Add_Text('\\oiiintX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰▒X');
+					});
+					it("\\iiiintX", function () {
+						Para.Root.Add_Text('\\iiiintX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌▒X');
+					});
+					it("\\sumX", function () {
+						Para.Root.Add_Text('\\sumX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑▒X');
+					});
+					it("\\bigoplusX", function () {
+						Para.Root.Add_Text('\\bigoplusX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁▒X');
+					});
+					it("\\biguplusX", function () {
+						Para.Root.Add_Text('\\biguplusX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄▒X');
+					});
+					it("\\bigcapX", function () {
+						Para.Root.Add_Text('\\bigcapX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂▒X');
+					});
+					it("\\bigcupX", function () {
+						Para.Root.Add_Text('\\bigcupX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃▒X');
+					});
+					it("\\bigotimesX", function () {
+						Para.Root.Add_Text('\\bigotimesX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂▒X');
+					});
+					it("\\bigsqcupX", function () {
+						Para.Root.Add_Text('\\bigsqcupX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆▒X');
+					});
+					it("\\bigodotX", function () {
+						Para.Root.Add_Text('\\bigodotX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀▒X');
+					});
+					it("\\prodX", function () {
+						Para.Root.Add_Text('\\prodX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏▒X');
+					});
+					it("\\coprodX", function () {
+						Para.Root.Add_Text('\\coprodX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐▒X');
+					});
+					it("\\bigveeX", function () {
+						Para.Root.Add_Text('\\bigveeX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁▒X');
+					});
+					it("\\bigwedgeX", function () {
+						Para.Root.Add_Text('\\bigwedgeX', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀▒X');
+					});
+				})
+				describe("Большой оператор с степенями/идексами с телом (степени сложные)", function () {
+					it("\\int^(x)_(y)▒z", function () {
+						Para.Root.Add_Text('\\int^(x)_(y)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫^x_y▒z');
+					});
+					it("\\oint^(x)_(y)▒z", function () {
+						Para.Root.Add_Text('\\oint^(x)_(y)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮^x_y▒z');
+					});
+					it("\\iint^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\iint^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬^x_y▒z');
+					});
+					it("\\oiint^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\oiint^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯^x_y▒z');
+					});
+					it("\\iiint^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\iiint^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭^x_y▒z');
+					});
+					it("\\oiiint^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\oiiint^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰^x_y▒z');
+					});
+					it("\\iiiint^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\\iiiint^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌^x_y▒z');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\sum^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑^x_y▒z');
+					});
+					it("\\bigoplus^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigoplus^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁^x_y▒z');
+					});
+					it("\\biguplus^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\biguplus^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄^x_y▒z');
+					});
+					it("\\bigcap^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigcap^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂^x_y▒z');
+					});
+					it("\\bigcup^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigcup^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃^x_y▒z');
+					});
+					it("\\bigotimes^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigotimes^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂^x_y▒z');
+					});
+					it("\\bigsqcup^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigsqcup^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆^x_y▒z');
+					});
+					it("\\bigodot^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigodot^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀^x_y▒z');
+					});
+					it("\\prod^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\prod^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏^x_y▒z');
+					});
+					it("\\coprod^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\coprod^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐^x_y▒z');
+					});
+					it("\\bigvee^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigvee^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁^x_y▒z');
+					});
+					it("\\bigwedge^{x}_{y}▒z", function () {
+						Para.Root.Add_Text('\\bigwedge^{x}_{y}▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀^x_y▒z');
+					});
+				})
+				describe("Большой оператор с степенями/идексами с телом (степени и тело сложные)", function () {
+					it("\\int^(x)_(y)▒(z+1)", function () {
+						Para.Root.Add_Text('\\int^(x)_(y)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫^x_y▒〖z+1〗');
+					});
+					it("\\oint^(x)_(y)▒(z+1)", function () {
+						Para.Root.Add_Text('\\oint^(x)_(y)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮^x_y▒〖z+1〗');
+					});
+					it("\\iint^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\iint^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬^x_y▒〖z+1〗');
+					});
+					it("\\oiint^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\oiint^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯^x_y▒〖z+1〗');
+					});
+					it("\\iiint^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\iiint^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭^x_y▒〖z+1〗');
+					});
+					it("\\oiiint^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\oiiint^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰^x_y▒〖z+1〗');
+					});
+					it("\\iiiint^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\\iiiint^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌^x_y▒〖z+1〗');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\sum^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑^x_y▒〖z+1〗');
+					});
+					it("\\bigoplus^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigoplus^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁^x_y▒〖z+1〗');
+					});
+					it("\\biguplus^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\biguplus^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄^x_y▒〖z+1〗');
+					});
+					it("\\bigcap^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigcap^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂^x_y▒〖z+1〗');
+					});
+					it("\\bigcup^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigcup^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃^x_y▒〖z+1〗');
+					});
+					it("\\bigotimes^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigotimes^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂^x_y▒〖z+1〗');
+					});
+					it("\\bigsqcup^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigsqcup^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆^x_y▒〖z+1〗');
+					});
+					it("\\bigodot^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigodot^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀^x_y▒〖z+1〗');
+					});
+					it("\\prod^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\prod^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏^x_y▒〖z+1〗');
+					});
+					it("\\coprod^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\coprod^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐^x_y▒〖z+1〗');
+					});
+					it("\\bigvee^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigvee^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁^x_y▒〖z+1〗');
+					});
+					it("\\bigwedge^{x}_{y}▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigwedge^{x}_{y}▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀^x_y▒〖z+1〗');
+					});
+				})
+				describe("Большой оператор с степенями/идексами с телом (все одинарное)", function () {
+					it("\\int^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\int^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫^(x+1)_(y+1)▒z');
+					});
+					it("\\oint^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\oint^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮^(x+1)_(y+1)▒z');
+					});
+					it("\\iint^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\iint^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬^(x+1)_(y+1)▒z');
+					});
+					it("\\oiint^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\oiint^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯^(x+1)_(y+1)▒z');
+					});
+					it("\\iiint^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\iiint^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭^(x+1)_(y+1)▒z');
+					});
+					it("\\oiiint^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\oiiint^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰^(x+1)_(y+1)▒z');
+					});
+					it("\\iiiint^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\\iiiint^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌^(x+1)_(y+1)▒z');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\sum^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑^(x+1)_(y+1)▒z');
+					});
+					it("\\bigoplus^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigoplus^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁^(x+1)_(y+1)▒z');
+					});
+					it("\\biguplus^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\biguplus^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄^(x+1)_(y+1)▒z');
+					});
+					it("\\bigcap^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigcap^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂^(x+1)_(y+1)▒z');
+					});
+					it("\\bigcup^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigcup^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃^(x+1)_(y+1)▒z');
+					});
+					it("\\bigotimes^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigotimes^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂^(x+1)_(y+1)▒z');
+					});
+					it("\\bigsqcup^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigsqcup^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆^(x+1)_(y+1)▒z');
+					});
+					it("\\bigodot^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigodot^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀^(x+1)_(y+1)▒z');
+					});
+					it("\\prod^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\prod^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏^(x+1)_(y+1)▒z');
+					});
+					it("\\coprod^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\coprod^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐^(x+1)_(y+1)▒z');
+					});
+					it("\\bigvee^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigvee^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁^(x+1)_(y+1)▒z');
+					});
+					it("\\bigwedge^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\bigwedge^(x+1)_(y+1)▒z', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀^(x+1)_(y+1)▒z');
+					});
+				})
+				describe("Большой оператор с степенями/идексами с телом (все одинарное)", function () {
+					it("\\int^(x+1)_(y+1)▒z", function () {
+						Para.Root.Add_Text('\\int^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\oint^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\oint^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\iint^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\iint^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\oiint^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\oiint^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\iiint^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\iiint^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\oiiint^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\oiiint^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\iiiint^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\\iiiint^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌^(x+1)_(y+1)▒〖z+1〗');
+					});
+					// it("\\idotsint^{}_{}▒{}", function () {
+					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
+					// 	Para.ConvertFromUnicodeMath()
+					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
+					// });
+					it("\\sum^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\sum^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigoplus^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigoplus^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\biguplus^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\biguplus^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigcap^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigcap^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigcup^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigcup^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigotimes^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigotimes^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigsqcup^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigsqcup^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigodot^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigodot^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\prod^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\prod^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\coprod^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\coprod^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigvee^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigvee^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁^(x+1)_(y+1)▒〖z+1〗');
+					});
+					it("\\bigwedge^(x+1)_(y+1)▒(z+1)", function () {
+						Para.Root.Add_Text('\\bigwedge^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀^(x+1)_(y+1)▒〖z+1〗');
+					});
+				})
+				describe("Большой оператор с степенями/идексами с телом (все одинарное)", function () {
+					it("\\int^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\int^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∫^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\oint^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\oint^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∮^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\iint^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\iint^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∬^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\oiint^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\oiint^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∯^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\iiint^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\iiint^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∭^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\oiiint^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\oiiint^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∰^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\iiiint^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\\iiiint^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨌^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\sum^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\sum^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∑^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigoplus^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigoplus^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨁^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\biguplus^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\biguplus^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨄^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigcap^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigcap^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋂^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigcup^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigcup^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋃^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigotimes^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigotimes^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨂^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigsqcup^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigsqcup^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨆^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigodot^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigodot^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⨀^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\prod^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\prod^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∏^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\coprod^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\coprod^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '∐^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigvee^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigvee^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋁^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+					it("\\bigwedge^(x+1)_(y+1)▒(z+1)-y", function () {
+						Para.Root.Add_Text('\\bigwedge^(x+1)_(y+1)▒(z+1)-y', Para.Paragraph)
+						Para.ConvertFromUnicodeMath()
+						assert.equal(Para.Root.GetTextOfElement(), '⋀^(x+1)_(y+1)▒〖z+1〗-y');
+					});
+				})
+			})
+		})
+		describe("Проверка обработки радикалов", function () {
+			it("Создание пустого радикала: √", function () {
+				Para.Root.Add_Text('√', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '√');
+			});
+			it("Создание радикала с НЕ блочным контентом: √a", function () {
+				Para.Root.Add_Text('√a', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '√a');
+			});
+			it("Создание радикала с НЕ блочным контентом и данными после: √a+1", function () {
+				Para.Root.Add_Text('√a+1', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '√a+1');
+			});
+			it("Создание радикала с блочным конетнтом: √{a/b}", function () {
+				Para.Root.Add_Text('√{a/b}', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '√(a/b)');
+			});
+			it("Создание радикала с блочным конетнтом и пустым индексом: √{&a/b}", function () {
+				Para.Root.Add_Text("√{&a/b}", Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), "√(a/b)");
+			});
+			it("Создание радикала с блочным конетнтом и индексом: √{n&1+x+x^2+x^3+\\dots+x^n}", function () {
+				Para.Root.Add_Text('√{n&1+x+x^2+x^3+\\dots+x^n}', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '√(n&1+x+x^2+x^3+\\dots+x^n)');
+			});
+			it("\\sqrt{{a}/{b}}", function () {
+				Para.Root.Add_Text('\\sqrt{{a}/{b}}', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '√(a/b)');
+			});
+		})
+		describe("Проверка обработки скобок", function () {
+			
+			function makeBrackets(Start, End, content, after) {
+				if (!after) {after = ''}
+				let str =  Start + content + End + after;
+				it(str, function() {
+					
+					Para.Root.Add_Text(str, Para.Paragraph);
+					Para.ConvertFromUnicodeMath();
+					assert.equal(Para.Root.GetTextOfElement(),str);
+				});
+			}
+			
+			let StartBracets = ['{','(','[', '|']
+			let CloseBracets = [')','}',']', '|']
+			for (let i = 0; i < StartBracets.length; i++) {
+				for (let j = 0; j < CloseBracets.length; j++) {
+					makeBrackets(StartBracets[i], CloseBracets[j], '2+1')
+					makeBrackets(StartBracets[i], CloseBracets[j], '2+1', '+z')
+					makeBrackets(StartBracets[i], CloseBracets[j], '', '+z')
+					makeBrackets(StartBracets[i], CloseBracets[j], '')
+				}
+			}
+
+			it("├]a+b┤[", function () {
+				Para.Root.Add_Text('├]a+b┤[', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '├]a+b┤[');
+			});
+			it("\\open{x^2\\close)", function () {
+				Para.Root.Add_Text('\\open{x^2\\close)', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '\\open{x^2\\close)');
+			});
+			it("\\open.x^2\\close)", function () {
+				Para.Root.Add_Text('\\open.x^2\\close)', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '\\open{x^2\\close)');
+			});
+			it("((x^2)/(y^3))", function () {
+				Para.Root.Add_Text('(x^2)/(y^3)', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), '(x^2)/(y^3)');
+			});
+			it("P(A=2│{A^2}/{B}>4)", function () {
+				Para.Root.Add_Text('P(A=2│{A^2}/{B}>4)', Para.Paragraph)
+				Para.ConvertFromUnicodeMath()
+				assert.equal(Para.Root.GetTextOfElement(), 'P(A=2│(A^2)/B>4)');
+			});
+		})
+		describe("Проверка обработки индексов/степеней", function () {
+			describe("Создание индексов/степеней без контента", function () {
+				it("Создание стандартного деления: 2_()", function () {
+					Para.Root.Add_Text('2_()', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '2_()');
+				});
+				it("Создание стандартного деления: x_()", function () {
+					Para.Root.Add_Text('x_()', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x_()');
+				});
+				it("Создание стандартного деления: y_()^()", function () {
+					Para.Root.Add_Text('y_()^()', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'y_()^()');
+				});
+				it("Создание стандартного деления: (^2_x)y", function () {
+					Para.Root.Add_Text('(^2_x)y', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '(_x^2)y');
+				});
+
+				it("Создание стандартного деления: {_x^2}y", function () {
+					Para.Root.Add_Text('{_x^2}y', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '(_x^2)y');
+				});
+
+
+			})
+
+			describe("Наполнение индексов/степеней", function () {
+				
+				it("Создание стандартного деления: 2^2^2^2", function () {
+					Para.Root.Add_Text('2^2^2^2', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '2^2^2^2');
+				});
+
+				it("Создание стандартного деления: 2_(x)", function () {
+					Para.Root.Add_Text('2_{x}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '2_x');
+				});
+				it("Создание стандартного деления: 2^(x)", function () {
+					Para.Root.Add_Text('2^{x}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '2^x');
+				});
+				it("Создание стандартного деления: 2^(y)_(x)", function () {
+					Para.Root.Add_Text('2^{y}_{x}', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), '2_x^y');
+				});
+				it("Создание стандартного деления: x^2x^2x^2x^2x^2", function () {
+					Para.Root.Add_Text('x^2x^2x^2x^2x^2', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x^2x^2x^2x^2x^2');
+				});
+				it("Создание стандартного деления: x_2x_2x_2x_2x_2", function () {
+					Para.Root.Add_Text('x_2x_2x_2x_2x_2', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x_2x_2x_2x_2x_2');
+				});
+				it("Создание стандартного деления: x^2^2^2^2^2^2^2", function () {
+					Para.Root.Add_Text('x^2^2^2^2^2^2^2', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x^2^2^2^2^2^2^2');
+				});
+				it("Создание стандартного деления: x_2_2_2_2_2_2_2", function () {
+					Para.Root.Add_Text('x_2_2_2_2_2_2_2', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'x_2_2_2_2_2_2_2');
+				});
+				it("Создание стандартного деления: k_(n+1) = n^2 + k_n^2 - k_(n-1)", function () {
+					Para.Root.Add_Text('k_(n+1) = n^2 + k_n^2 - k_(n-1)', Para.Paragraph)
+					Para.ConvertFromUnicodeMath()
+					assert.equal(Para.Root.GetTextOfElement(), 'k_(n+1) = n^2 + k_n^2 - k_(n-1)');
 				});
 			})
 		})

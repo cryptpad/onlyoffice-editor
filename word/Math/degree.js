@@ -544,7 +544,8 @@ CDegree.prototype.Can_ModifyArgSize = function()
 CDegree.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
 	var strTypeOfScript = this.Pr.type === 1 ? '^' : '_';
-	var strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement(isLaTeX));
+	var oBase = this.getBase();
+	var strBase = this.CheckIsEmpty(oBase.GetTextOfElement(isLaTeX));
 	var strIterator = this.CheckIsEmpty(this.getIterator().GetTextOfElement(isLaTeX));
 	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTeX);
 	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
@@ -595,7 +596,10 @@ CDegree.prototype.GetTextOfElement = function(isLaTeX) {
 		if (strIterator.length > 1) {
 			strIterator = strStartBracet + strIterator + strCloseBracet;
 		}
-		if (strBase.length > 1) {
+		if(strIterator.length === 0) {
+			strIterator = '()'
+		}
+		if (strBase.length > 1 && strIterator.length > 1) {
 			strBase = '〖'+ strBase +'〗';
 		}
 		strTemp = strBase + strTypeOfScript + strIterator;
@@ -1257,13 +1261,11 @@ CDegreeSubSup.prototype.Can_ModifyArgSize = function()
     return this.CurPos !== 0 && false === this.Is_SelectInside(); // находимся в итераторе
 };
 CDegreeSubSup.prototype.GetTextOfElement = function(isLaTeX) {
-	console.log(1);
 	var strTemp = "";
 	var Base = this.getBase().GetTextOfElement(isLaTeX);
-	var strLower = this.getLowerIterator().GetTextOfElement(isLaTeX);
-	var strUpper = this.getUpperIterator().GetTextOfElement(isLaTeX);
+	var strLower = this.CheckIsEmpty(this.getLowerIterator().GetTextOfElement(isLaTeX));
+	var strUpper = this.CheckIsEmpty(this.getUpperIterator().GetTextOfElement(isLaTeX));
 	var isPreScript = this.Pr.type === -1;
-
 	if (isLaTeX) {
 		strLower = strLower.length > 1
 			? '{' + strLower + '}'
@@ -1296,9 +1298,15 @@ CDegreeSubSup.prototype.GetTextOfElement = function(isLaTeX) {
 		strLower = strLower.length > 1
 			? '(' + strLower + ')'
 			: strLower;
+		if(strLower.length === 0) {
+			strLower = '()'
+		}
 		strUpper = strUpper.length > 1
 			? '(' + strUpper + ')'
 			: strUpper;
+		if(strUpper.length === 0) {
+			strUpper = '()'
+		}
 
 		if (true === isPreScript) {
 			strTemp = '(' + '_' + strLower + '^' + strUpper + ')' + Base;

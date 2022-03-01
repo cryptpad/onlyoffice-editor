@@ -831,6 +831,7 @@ CNary.prototype.GetTextOfElement = function(isLaTeX) {
 	if (strSubContent.length > 1) {
 		strSubContent = strStartBracet + strSubContent + strCloseBracet;
 	}
+	strBase.trim()
 	
 	if (true === isLaTeX) {
 		switch (strStartCode.codePointAt()) {
@@ -853,7 +854,12 @@ CNary.prototype.GetTextOfElement = function(isLaTeX) {
 			strBase = strStartBracet + strBase + strCloseBracet;
 		}
 	} else {
-		if (strBase.length > 1) {
+		if (strBase === '()') {
+			strBase = '';
+		}
+		else if (strBase.length === 1) {
+			strBase = '▒' + strBase;
+		} else if (strBase.length > 1) {
 			strBase = '▒' + '〖' + strBase + '〗';
 		}
 	}
