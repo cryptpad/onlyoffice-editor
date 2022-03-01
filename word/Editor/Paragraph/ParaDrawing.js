@@ -1039,7 +1039,7 @@ ParaDrawing.prototype.CheckFitToColumn = function()
 			{
 				if(oColumnSize.W > 0 && oColumnSize.H > 0) 
 				{
-					if(this.GraphicObj) 
+					if(this.GraphicObj && !this.GraphicObj.isGroupObject()) 
 					{
 						var oXfrm = this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm;
 						if(oXfrm) 
