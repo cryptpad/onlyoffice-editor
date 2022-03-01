@@ -5484,16 +5484,9 @@ var editor;
 		}
 		pivot.asc_create(ws, pivotName, cacheDefinition, bbox);
 		pivot.stashEmptyReportRange();
-		this._changePivotWithLockExt(pivot, confirmation, true, function() {
+		this._changePivotWithLockExt(pivot, confirmation, true, function(ws, pivot) {
 			ws.insertPivotTable(pivot, true, false);
 			pivot.setChanged(true);
-		}, function(error, warn) {
-			t._changePivotEndCheckError(error, warn, function(can) {
-				if (can) {
-					//repeate with whole checks because of collaboration changes
-					t._asc_insertPivot(wb, dataRef, ws, bbox, true);
-				}
-			});
 		});
 		History.EndTransaction();
 		return pivot;
@@ -5560,7 +5553,10 @@ var editor;
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
 			t._changePivotEndCheckError(pivot, changeRes, function () {
-				t._changePivotWithLockExt(pivot, true, updateSelection, onAction);
+				pivot = t.wbModel.getPivotTableById(pivot.Get_Id());
+				if (pivot) {
+					t._changePivotWithLockExt(pivot, true, updateSelection, onAction);
+				}
 			});
 		});
 	};
@@ -5602,7 +5598,7 @@ var editor;
 		var wsModel = pivot.GetWS();
 		pivot.stashCurReportRange();
 
-		onAction(wsModel);
+		onAction(wsModel, pivot);
 
 		var pivotChanged = pivot.getAndCleanChanged();
 		var error = c_oAscError.ID.No;
