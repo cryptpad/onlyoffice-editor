@@ -9855,6 +9855,17 @@
       return 'SmartArt';
     };
 
+    SmartArt.prototype.recalculate = function () {
+    var oldParaMarks = editor && editor.ShowParaMarks;
+      if (oldParaMarks) {
+        editor.ShowParaMarks = false;
+      }
+      CGroupShape.prototype.recalculate.call(this);
+      if (oldParaMarks) {
+        editor.ShowParaMarks = oldParaMarks;
+      }
+    }
+
     SmartArt.prototype.startAlgorithm = function (pointTree) {
       var layoutDef = this.getLayoutDef();
       if (layoutDef) {
@@ -10720,6 +10731,12 @@
       if(this.checkNeedRecalculate()){
         return;
       }
+
+      var oldParaMarks = editor && editor.ShowParaMarks;
+      if (oldParaMarks) {
+        editor.ShowParaMarks = false;
+      }
+
       if(this.calcGeometry) {
         graphics.SaveGrState();
         graphics.SetIntegerGrid(false);
@@ -10730,6 +10747,9 @@
         graphics.RestoreGrState();
       }
       AscFormat.CGroupShape.prototype.draw.call(this, graphics);
+      if (oldParaMarks) {
+        editor.ShowParaMarks = oldParaMarks;
+      }
     };
     SmartArt.prototype.getBg = function() {
       var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
