@@ -1299,12 +1299,9 @@ ParaDrawing.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaDrawing.prototype.Can_AddNumbering = function()
+ParaDrawing.prototype.CanAddNumbering = function()
 {
-	if (drawing_Inline === this.DrawingType)
-		return true;
-
-	return false;
+	return this.IsInline();
 };
 ParaDrawing.prototype.Copy = function(oPr)
 {
@@ -1764,7 +1761,7 @@ ParaDrawing.prototype.GetInnerForm = function()
 ParaDrawing.prototype.Use_TextWrap = function()
 {
 	// Если автофигура привязана к параграфу с рамкой, обтекание не делается
-	if (!this.Parent || !this.Parent.Get_FramePr || (null !== this.Parent.Get_FramePr() && undefined !== this.Parent.Get_FramePr()))
+	if (this.IsInline() || !this.Parent || !this.Parent.Get_FramePr || (null !== this.Parent.Get_FramePr() && undefined !== this.Parent.Get_FramePr()))
 		return false;
 
 	// здесь должна быть проверка, нужно ли использовать обтекание относительно данного объекта,
