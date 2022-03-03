@@ -5553,10 +5553,9 @@ var editor;
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
 			t._changePivotEndCheckError(pivot, changeRes, function () {
-				pivot = t.wbModel.getPivotTableById(pivot.Get_Id());
-				if (pivot) {
-					t._changePivotWithLockExt(pivot, true, updateSelection, onAction);
-				}
+				//undo can replace pivot complitly. note: getPivotTableById returns nothing while insert operation
+				var pivotAfterUndo = t.wbModel.getPivotTableById(pivot.Get_Id()) || pivot;
+				t._changePivotWithLockExt(pivotAfterUndo, true, updateSelection, onAction);
 			});
 		});
 	};
