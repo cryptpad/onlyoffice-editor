@@ -4530,6 +4530,9 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             this.txBody.content.CheckRunContent(function (paraRun) {
                 paraRun.Set_FontSize(fontSize);
             });
+            this.txBody.content.Content.forEach(function (paragraph) {
+                paragraph.TextPr.Set_FontSize(fontSize);
+            });
             this.recalculateContentWitCompiledPr();
         }
     }
