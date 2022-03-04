@@ -83,9 +83,9 @@ CHdrFtrController.prototype.AddImages = function(aImages)
 {
 	this.HdrFtr.AddImages(aImages);
 };
-CHdrFtrController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId)
+CHdrFtrController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
 {
-	this.HdrFtr.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+	this.HdrFtr.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
 };
 CHdrFtrController.prototype.AddTextArt = function(nStyle)
 {

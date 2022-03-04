@@ -1165,6 +1165,14 @@
         if(!oObject) {
             return null;
         }
+        if(!oObject.brush || !oObject.brush.isNoFill()) {
+            var oBrush = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(255, 255, 255));
+            oBrush.fill.color.RGBA.R = 255;
+            oBrush.fill.color.RGBA.G = 255;
+            oBrush.fill.color.RGBA.B = 255;
+            oBrush.fill.color.RGBA.A = 255;
+            return oBrush;
+        }
         return oObject.brush;
     };
     CTimeNodeBase.prototype.getTargetObjectPen = function() {
@@ -2569,6 +2577,9 @@
                 var nDur = oCopyEffect.asc_getDuration();
                 if(nDur === AscFormat.untilNextSlide || nDur === AscFormat.untilNextClick) {
                     oCopyEffect.cTn.changeEffectDuration(1000);
+                }
+                if(AscFormat.isRealNumber(nDur) && nDur < 50) {
+                    oCopyEffect.cTn.changeEffectDuration(750);
                 }
 
                 oCopyEffect.originalNode = null;
@@ -6048,13 +6059,15 @@
     changesFactory[AscDFH.historyitem_AnimClrByRGB] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrByHSL] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrCBhvr] = CChangeObject;
-    changesFactory[AscDFH.historyitem_AnimClrFrom] = CChangeObject;
-    changesFactory[AscDFH.historyitem_AnimClrTo] = CChangeObject;
+    changesFactory[AscDFH.historyitem_AnimClrFrom] = CChangeObjectNoId;
+    changesFactory[AscDFH.historyitem_AnimClrTo] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrClrSpc] = CChangeLong;
     changesFactory[AscDFH.historyitem_AnimClrDir] = CChangeLong;
 
     drawingConstructorsMap[AscDFH.historyitem_AnimClrByRGB] = CColorPercentage;
     drawingConstructorsMap[AscDFH.historyitem_AnimClrByHSL] = CColorPercentage;
+    drawingConstructorsMap[AscDFH.historyitem_AnimClrFrom] = AscFormat.CUniColor;
+    drawingConstructorsMap[AscDFH.historyitem_AnimClrTo] = AscFormat.CUniColor;
 
     drawingsChangesMap[AscDFH.historyitem_AnimClrByRGB] = function(oClass, value) {oClass.byRGB = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimClrByHSL] = function(oClass, value) {oClass.byHSL = value;};
@@ -6119,12 +6132,12 @@
         this.setParentToChild(pr);
     };
     CAnimClr.prototype.setFrom = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimClrFrom, this.from, pr));
+        oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_AnimClrFrom, this.from, pr));
         this.from = pr;
         this.setParentToChild(pr);
     };
     CAnimClr.prototype.setTo = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimClrTo, this.to, pr));
+        oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_AnimClrTo, this.to, pr));
         this.to = pr;
         this.setParentToChild(pr);
     };
@@ -6265,7 +6278,7 @@
             var oBrush;
             if(sFirstAttrName === "stroke.color") {
                 var oPen = this.getTargetObjectPen();
-                oBrush = oPen && oPen.Fill;
+                oBrush = oPen && oPen.Fill || AscFormat.CreateUnfilFromRGB(0, 0, 0);
             }
             else {
                 oBrush = this.getTargetObjectBrush();
@@ -8237,6 +8250,8 @@
     CTimeNodeContainer.prototype.asc_putTriggerClickSequence = function(v) {
         this.triggerClickSequence = v;
     };
+    CTimeNodeContainer.prototype["asc_putTriggerClickSequence"] = CTimeNodeContainer.prototype.asc_putTriggerClickSequence;
+
     CTimeNodeContainer.prototype.asc_getTriggerObjectClick = function() {
         if(this.triggerObjectClick !== undefined) {
             return this.triggerObjectClick;
@@ -10787,8 +10802,13 @@
         this.overlay = editor.WordControl.m_oOverlayApi;
     };
     CDemoAnimPlayer.prototype.onMainSeqFinished = function () {
-        this.stop();
-        editor.WordControl.m_oLogicDocument.StopAnimationPreview();
+        var oThis = this;
+        setTimeout(function () {
+            if(!oThis.isStopped()) {
+                oThis.stop();
+                editor.WordControl.m_oLogicDocument.StopAnimationPreview();
+            }
+        }, 1000);
     };
     
     CDemoAnimPlayer.prototype.start = function () {
@@ -11125,8 +11145,9 @@
             }
             else {
                 if(oStrokeColor) {
+                    var oPen;
                     if(oDrawing.pen) {
-                        var oPen = oDrawing.pen.createDuplicate();
+                        oPen = oDrawing.pen.createDuplicate();
                         var oMods;
                         if(oPen.Fill &&
                             oPen.Fill.fill &&
@@ -11136,9 +11157,12 @@
                             oMods = oPen.Fill.fill.color.Mods;
                             oMods.Apply(oStrokeColor.RGBA);
                         }
-                        oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
-                        oDrawing.pen = oPen;
                     }
+                    else {
+                        oPen = AscFormat.CreateNoFillLine();
+                    }
+                    oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
+                    oDrawing.pen = oPen;
                 }
             }
             oTexture = oTextureCache.createDrawingTexture(sId, fScale);

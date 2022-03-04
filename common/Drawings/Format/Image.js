@@ -382,9 +382,9 @@ CImageShape.prototype.recalculatePen = function()
     CShape.prototype.recalculatePen.call(this);
     if(this.pen)
     {
-        if(AscFormat.isRealNumber(this.pen.w)){
-            this.pen.w *= 2;
-        }
+        // if(AscFormat.isRealNumber(this.pen.w)){
+        //     this.pen.w *= 2;
+        // }
        // if(!this.pen.Fill){
        //     this.pen = null;
        // }
@@ -695,7 +695,7 @@ CImageShape.prototype.draw = function(graphics, transform)
     else{
         this.brush = new AscFormat.CUniFill();
         this.brush.fill = this.blipFill;
-        this.pen = null;
+        //this.pen = null;
     }
 
     shape_drawer.fromShape2(this, graphics, this.calcGeometry);

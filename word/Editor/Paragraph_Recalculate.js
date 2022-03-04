@@ -403,7 +403,7 @@ Paragraph.prototype.RecalculateFastRunRange = function(oParaPos)
     this.CurPos.Line  = -1;
     this.CurPos.Range = -1;
 
-    this.Internal_CheckSpelling();
+    this.RequestSpellCheck();
 	this.SetIsRecalculated(true);
 
 	//console.log("Recalc Fast Range");
@@ -432,7 +432,7 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
 
     this.FontMap.NeedRecalc = true;
 
-    this.Internal_CheckSpelling();
+    this.RequestSpellCheck();
     this.RecalculateEndInfo();
 
     var RecalcResult = this.private_RecalculatePage( CurPage );
@@ -1334,6 +1334,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 				// Адобовский вариант отступа первой строки для многострочных форм
 				var oTextPr = oRun.Get_CompiledTextPr(false);
 				g_oTextMeasurer.SetTextPr(oTextPr, this.GetTheme());
+				g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
 				var oLimits = g_oTextMeasurer.GetLimitsY();
 				var nBBoxH  = oLimits.max - oLimits.min + 2 * 25.4 / 72;
 
@@ -1641,7 +1642,7 @@ Paragraph.prototype.private_RecalculateLineCheckRanges = function(CurLine, CurPa
 	}
 	else
 	{
-		PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(CurPage), this.GetAbsolutePage(CurPage)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(CurPage));
+		PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(CurPage), this.GetAbsolutePage(CurPage)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(CurPage), this.Parent.IsHdrFtr());
 	}
 
     var Ranges = PRS.Ranges;

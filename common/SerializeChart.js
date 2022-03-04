@@ -5574,6 +5574,7 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
         if(null === val.roundedCorners){
             val.setRoundedCorners(false);
         }
+		val.correctAxes();
     }
     /*if(this.curWorksheet) {
         var aStyles = null;
