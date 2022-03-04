@@ -326,7 +326,7 @@ CShapeDrawer.prototype =
             var _arr = AscCommon.DashPatternPresets[this.Ln.prstDash].slice();
             for (var indexD = 0; indexD < _arr.length; indexD++)
                 _arr[indexD] *= this.StrokeWidth;
-            this.NativeGraphics["PD_p_dash"](_arr);
+            this.NativeGraphics && this.NativeGraphics["PD_p_dash"](_arr);
         }
     },
     
