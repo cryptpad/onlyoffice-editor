@@ -8309,6 +8309,10 @@
 			}
 		}
 	};
+	Worksheet.prototype.inTopAutoFilter = function (range) {
+		var _filterRange = this.AutoFilter && this.AutoFilter.Ref && new Asc.Range(this.AutoFilter.Ref.c1, this.AutoFilter.Ref.r1, this.AutoFilter.Ref.c2, this.AutoFilter.Ref.r1);
+		return _filterRange && range.intersection(_filterRange);
+	};
 	Worksheet.prototype.inPivotTable = function (range, exceptPivot) {
 		return this.pivotTables.find(function (element) {
 			return exceptPivot !== element && element.intersection(range);
@@ -8624,6 +8628,9 @@
 		}]);
 		if (isWholeWordTrue !== null) {
 			options.isWholeWord = isWholeWordTrue;
+		}
+		if (findEmptyStr) {
+			options.findWhat = "";
 		}
 		this.lastFindOptions = options.clone();
 		// ToDo support multiselect
@@ -11688,7 +11695,8 @@
 											sDateFormat = AscCommon.getShortDateFormat(cultureInfo);
 										}
 										var sTimeFormat = 'h:mm:ss';
-										if (cultureInfo.AMDesignator.length > 0 && cultureInfo.PMDesignator.length > 0){
+
+										if (AscCommon.is12HourTimeFormat(cultureInfo)){
 											sTimeFormat += ' AM/PM';
 										}
 										if(bDate && bTime)

@@ -844,6 +844,12 @@
     CGraphicObjectBase.prototype.setNoChangeAspect = function(bValue){
         return this.setLockValue(LOCKS_MASKS.noChangeAspect, bValue);
     };
+    CGraphicObjectBase.prototype.canEditGeometry = function(){
+        return this.getObjectType() === AscDFH.historyitem_type_Shape &&
+            !this.isPlaceholder() &&
+            this.getNoEditPoints() !== true &&
+            !!(this.spPr && this.spPr.geometry);
+    };
     CGraphicObjectBase.prototype.canRotate = function() {
         if(!this.canEdit()) {
             return false;
@@ -1446,7 +1452,7 @@
     {
         return false;
     };
-    CGraphicObjectBase.prototype.Restart_CheckSpelling = function()
+    CGraphicObjectBase.prototype.RestartSpellCheck = function()
     {
     };
     CGraphicObjectBase.prototype.GetAllFields = function(isUseSelection, arrFields)
@@ -1800,6 +1806,8 @@
     };
     CGraphicObjectBase.prototype.GetAllContentControls = function(arrContentControls) {};
 	CGraphicObjectBase.prototype.GetAllDrawingObjects = function(arrDrawingObjects) {};
+	CGraphicObjectBase.prototype.GetAllOleObjects = function(sPluginId, arrObjects) {
+    };
     CGraphicObjectBase.prototype.CheckContentControlEditingLock = function () {
         if(this.group){
             this.group.CheckContentControlEditingLock();
@@ -1951,12 +1959,6 @@
     CGraphicObjectBase.prototype.getStroke = function () {
         if(this.pen && this.pen.Fill)
         {
-            if(this.getObjectType() === AscDFH.historyitem_type_ImageShape && AscFormat.isRealNumber(this.pen.w))
-            {
-                var _ret = this.pen.createDuplicate();
-                _ret.w/=2.0;
-                return _ret;
-            }
             return this.pen;
         }
         var ret = AscFormat.CreateNoFillLine();
@@ -2492,6 +2494,36 @@
         }
         return this;
     };
+    CGraphicObjectBase.prototype.Set_CurrentElement = function(bUpdate, pageIndex) {
+        //TODO: refactor this
+        if(AscFormat.CShape.prototype.Set_CurrentElement) {
+            AscFormat.CShape.prototype.Set_CurrentElement.call(this, bUpdate, pageIndex);
+        }
+    };
+
+
+    CGraphicObjectBase.prototype.SetControllerTextSelection = function(drawing_objects, nPageIndex) {
+        if(drawing_objects) {
+            var oContent = this.getDocContent && this.getDocContent();
+            drawing_objects.resetSelection(true);
+            if(this.group) {
+                var main_group = this.group.getMainGroup();
+                drawing_objects.selectObject(main_group, nPageIndex);
+                main_group.selectObject(this, nPageIndex);
+                if(oContent) {
+                    main_group.selection.textSelection = this;
+                }
+                drawing_objects.selection.groupSelection = main_group;
+            }
+            else {
+                drawing_objects.selectObject(this, nPageIndex);
+                if(oContent) {
+                    drawing_objects.selection.textSelection = this;
+                }
+            }
+        }
+    };
+
     CGraphicObjectBase.prototype.hitInBoundingRect = function (x, y) {
         if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
             return false;
@@ -2520,6 +2552,9 @@
     };
 	CGraphicObjectBase.prototype.isForm = function() {
 		return (this.parent && this.parent.IsForm && this.parent.IsForm());
+	};
+	CGraphicObjectBase.prototype.getFormHorPadding = function() {
+		return 0;
 	};
 	CGraphicObjectBase.prototype.getInnerForm = function() {
 		return null;
@@ -2602,9 +2637,6 @@
         }
         return false;
     };
-
-
-
 	CGraphicObjectBase.prototype.canEditText = function() {
         if(this.getObjectType() === AscDFH.historyitem_type_Shape) {
             if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) && !this.signatureLine) {
@@ -2629,11 +2661,10 @@
     CGraphicObjectBase.prototype.applySmartArtTextStyle = function() {
 
     };
-
     CGraphicObjectBase.prototype.convertFromSmartArt = function() {
         return this;
     };
-    CGraphicObjectBase.prototype.changeRot = function(dAngle) {
+    CGraphicObjectBase.prototype.changeRot = function(dAngle, bWord) {
         if(this.spPr && this.spPr.xfrm) {
             var oXfrm = this.spPr.xfrm;
             var originalRot = oXfrm.rot || 0;
@@ -2666,26 +2697,34 @@
                 var oBounds = this.bounds;
                 var oSmartArt = this.group.group;
                 var diffX = null, diffY = null;
-                if(oBounds.r > oSmartArt.x + oSmartArt.extX) {
-                    diffX = oSmartArt.x + oSmartArt.extX - oBounds.r;
+                var leftEdgeOfSmartArt = oSmartArt.x;
+                var topEdgeOfSmartArt = oSmartArt.y;
+                var rightEdgeOfSmartArt = oSmartArt.x + oSmartArt.extX;
+                var bottomEdgeOfSmartArt = oSmartArt.y + oSmartArt.extY;
+                if(oBounds.r > rightEdgeOfSmartArt) {
+                    diffX = rightEdgeOfSmartArt - oBounds.r;
                 }
-                if(oBounds.l < oSmartArt.x) {
-                    diffX = oSmartArt.x - oBounds.l;
+                if(oBounds.l < leftEdgeOfSmartArt) {
+                    diffX = leftEdgeOfSmartArt - oBounds.l;
                 }
-                if(oBounds.b > oSmartArt.y + oSmartArt.extY) {
-                    diffY = oSmartArt.y + oSmartArt.extY - oBounds.b;
+                if(oBounds.b > bottomEdgeOfSmartArt) {
+                    diffY = bottomEdgeOfSmartArt - oBounds.b;
                 }
-                if(oBounds.t < oSmartArt.y) {
-                    diffY = oSmartArt.y - oBounds.t;
+                if(oBounds.t < topEdgeOfSmartArt) {
+                    diffY = topEdgeOfSmartArt - oBounds.t;
                 }
                 var originalPosX = this.spPr.xfrm.offX;
                 var originalPosY = this.spPr.xfrm.offY;
 
                 if(diffX !== null) {
-                    this.spPr.xfrm.setOffX(this.spPr.xfrm.offX + diffX);
+                    var newOffX = this.spPr.xfrm.offX + diffX;
+                    this.spPr.xfrm.setOffX(newOffX);
+                    this.txXfrm && this.txXfrm.setOffX(this.txXfrm.offX + diffX);
                 }
                 if(diffY !== null) {
-                    this.spPr.xfrm.setOffY(this.spPr.xfrm.offY + diffY);
+                    var newOffY = this.spPr.xfrm.offY + diffY;
+                    this.spPr.xfrm.setOffY(newOffY);
+                    this.txXfrm && this.txXfrm.setOffY(this.txXfrm.offY + diffY);
                 }
 
                 var posX = this.spPr.xfrm.offX;

@@ -1732,6 +1732,36 @@
       return this.t;
     }
 
+    Point.prototype.initSpPr = function () {
+      if (!this.spPr) {
+        this.setSpPr(new AscFormat.CSpPr());
+      }
+    }
+
+    Point.prototype.resetUniFill = function () {
+      this.spPr && this.spPr.setFill(null);
+    }
+
+    Point.prototype.setUniFill = function (unifill) {
+      this.initSpPr();
+      this.spPr.setFill(unifill);
+    }
+
+    Point.prototype.changeShadow = function (shadow) {
+      this.initSpPr(shadow);
+      this.spPr.changeShadow(shadow);
+    }
+
+    Point.prototype.setLine = function (line) {
+      this.initSpPr();
+      this.spPr.setLn(line);
+    }
+
+    Point.prototype.setGeometry = function (geometry) {
+      this.initSpPr();
+      this.spPr.setGeometry(geometry);
+    }
+
     Point.prototype.isBlipFillPlaceholder = function () {
       var imagePlaceholderArrStylelbl = ['alignImgPlace1', 'bgImgPlace1', 'fgImgPlace1'];
       var imagePlaceholderArrName = ['Image', 'image', 'imageRepeatNode', 'pictRect'];
@@ -1802,6 +1832,10 @@
     };
     Point.prototype.getChildren = function() {
       return [this.spPr, this.t, this.prSet];
+    };
+
+    Point.prototype.getPresStyleLbl = function () {
+      return this.prSet && this.prSet.presStyleLbl;
     };
 
 
@@ -4822,7 +4856,7 @@
       this.setPtType(new ElementType());
       this.refFor = null;
       this.refForName = null;
-      this.refPtType = null;
+      this.setRefPtType(new ElementType());
       this.refType = null;
       this.type = null;
       this.val = null;
@@ -4869,7 +4903,7 @@
 
     Constr.prototype.setRefPtType = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ConstrRefPtType, this.getRefPtType(), oPr));
-      this.ptRefType = oPr;
+      this.refPtType = oPr;
       this.setParentToChild(oPr);
     }
 
@@ -4971,7 +5005,7 @@
       pWriter._WriteUChar2(4, this.ptType.getVal());
       pWriter._WriteUChar2(5, this.refFor);
       pWriter._WriteString2(6, this.refForName);
-      pWriter._WriteUChar2(7, this.refPtType);
+      pWriter._WriteUChar2(7, this.refPtType.getVal());
       pWriter._WriteUChar2(8, this.refType);
       pWriter._WriteUChar2(9, this.type);
       pWriter._WriteDoubleReal2(10, this.val);
@@ -4991,7 +5025,11 @@
       }
       else if (5 === nType) this.setRefFor(oStream.GetUChar());
       else if (6 === nType) this.setRefForName(oStream.GetString2());
-      else if (7 === nType) this.setRefPtType(oStream.GetUChar());
+      else if (7 === nType) {
+        var pt = new ElementType();
+        pt.setVal(oStream.GetUChar());
+        this.setRefPtType(pt);
+      }
       else if (8 === nType) this.setRefType(oStream.GetUChar());
       else if (9 === nType) this.setType(oStream.GetUChar());
       else if (10 === nType) this.setVal(oStream.GetDouble());
@@ -7287,14 +7325,44 @@
     }
 
 
+    function CChangesDrawingsContentStyleLbl(Class, Type, Pos, Items, isAdd) {
+      AscDFH.CChangesDrawingsContent.call(this, Class, Type, Pos, Items, isAdd);
+    }
+
+    CChangesDrawingsContentStyleLbl.prototype = Object.create(AscDFH.CChangesDrawingsContent.prototype);
+    CChangesDrawingsContentStyleLbl.prototype.constructor = CChangesDrawingsContentStyleLbl;
+
+    CChangesDrawingsContentStyleLbl.prototype.Undo = function () {
+      AscDFH.CChangesDrawingsContent.prototype.Undo.call(this);
+      this.updateStyleLbl();
+    };
+
+    CChangesDrawingsContentStyleLbl.prototype.Redo = function () {
+      AscDFH.CChangesDrawingsContent.prototype.Redo.call(this);
+      this.updateStyleLbl();
+    };
+
+    CChangesDrawingsContentStyleLbl.prototype.updateStyleLbl = function () {
+      //console.log(this.Items);
+      if (this.IsAdd()) {
+        for (var i = 0; i < this.Items.length; i += 1) {
+          this.Class.styleLblByName[this.Items[i].name] = this.Items[i];
+        }
+      } else {
+        for (var i = 0; i < this.Items.length; i += 1) {
+          delete this.Class.styleLblByName[this.Items[i].name];
+        }
+      }
+    };
+
     changesFactory[AscDFH.historyitem_ColorsDefMinVer] = CChangeString;
     changesFactory[AscDFH.historyitem_ColorsDefUniqueId] = CChangeString;
     changesFactory[AscDFH.historyitem_ColorsDefCatLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefExtLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefDesc] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefTitle] = CChangeObject;
-    changesFactory[AscDFH.historyitem_ColorsDefAddStyleLbl] = CChangeContent;
-    changesFactory[AscDFH.historyitem_ColorsDefRemoveStyleLbl] = CChangeContent;
+    changesFactory[AscDFH.historyitem_ColorsDefAddStyleLbl] = CChangesDrawingsContentStyleLbl;
+    changesFactory[AscDFH.historyitem_ColorsDefRemoveStyleLbl] = CChangesDrawingsContentStyleLbl;
     drawingsChangesMap[AscDFH.historyitem_ColorsDefMinVer] = function (oClass, value) {
       oClass.minVer = value;
     };
@@ -7329,6 +7397,7 @@
       this.desc = null;
       this.title = null;
       this.styleLbl = [];
+      this.styleLblByName = {};
     }
 
     InitClass(ColorsDef, CBaseFormatObject, AscDFH.historyitem_type_ColorsDef);
@@ -7369,16 +7438,18 @@
 
     ColorsDef.prototype.addToLstStyleLbl = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.styleLbl.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefAddStyleLbl, nInsertIdx, [oPr], true));
+      oHistory.Add(new CChangesDrawingsContentStyleLbl(this, AscDFH.historyitem_ColorsDefAddStyleLbl, nInsertIdx, [oPr], true));
       this.styleLbl.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
+      this.styleLblByName[oPr.name] = oPr;
     };
 
     ColorsDef.prototype.removeFromLstStyleLbl = function (nIdx) {
       if (nIdx > -1 && nIdx < this.styleLbl.length) {
         this.styleLbl[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefRemoveStyleLbl, nIdx, [this.styleLbl[nIdx]], false));
-        this.styleLbl.splice(nIdx, 1);
+        oHistory.Add(new CChangesDrawingsContentStyleLbl(this, AscDFH.historyitem_ColorsDefRemoveStyleLbl, nIdx, [this.styleLbl[nIdx]], false));
+        var deleteObj = this.styleLbl.splice(nIdx, 1);
+        delete this.styleLblByName[deleteObj[0].name];
       }
     };
 
@@ -9784,6 +9855,17 @@
       return 'SmartArt';
     };
 
+    SmartArt.prototype.recalculate = function () {
+    var oldParaMarks = editor && editor.ShowParaMarks;
+      if (oldParaMarks) {
+        editor.ShowParaMarks = false;
+      }
+      CGroupShape.prototype.recalculate.call(this);
+      if (oldParaMarks) {
+        editor.ShowParaMarks = oldParaMarks;
+      }
+    }
+
     SmartArt.prototype.startAlgorithm = function (pointTree) {
       var layoutDef = this.getLayoutDef();
       if (layoutDef) {
@@ -9924,6 +10006,40 @@
         }
       }
       return tree;
+    }
+
+    SmartArt.prototype.getDefColorsByName = function () {
+      var colorsDef = this.getColorsDef();
+      return colorsDef && colorsDef.styleLblByName;
+    }
+
+    SmartArt.prototype.getDefaultColorsForPoint = function (point) {
+      var styleLbl = point.getPresStyleLbl();
+      var defaultColors = this.getDefColorsByName();
+      if (defaultColors && styleLbl) {
+        return defaultColors[styleLbl];
+      }
+    }
+    
+    SmartArt.prototype.getDefaultTxColorFromPoint = function (point) {
+      var currentDefaultColors = this.getDefaultColorsForPoint(point);
+      if (currentDefaultColors) {
+        var txFillLst = currentDefaultColors.txFillClrLst;
+        if (txFillLst) {
+          return txFillLst.list[0];
+        }
+      }
+    }
+    
+    SmartArt.prototype.getSmartArtDefaultTxFill = function (shape) {
+      var shapePoint = shape && shape.getSmartArtShapePoint();
+      var defaultTxColorFromShape = shapePoint && this.getDefaultTxColorFromPoint(shapePoint);
+      var defaultTxFill;
+
+      if (defaultTxColorFromShape) {
+        defaultTxFill = AscFormat.CreateUniFillByUniColorCopy(defaultTxColorFromShape);
+      }
+      return defaultTxFill;
     }
 
     SmartArt.prototype.getTypeOfSmartArt = function () {
@@ -10615,6 +10731,12 @@
       if(this.checkNeedRecalculate()){
         return;
       }
+
+      var oldParaMarks = editor && editor.ShowParaMarks;
+      if (oldParaMarks) {
+        editor.ShowParaMarks = false;
+      }
+
       if(this.calcGeometry) {
         graphics.SaveGrState();
         graphics.SetIntegerGrid(false);
@@ -10625,6 +10747,9 @@
         graphics.RestoreGrState();
       }
       AscFormat.CGroupShape.prototype.draw.call(this, graphics);
+      if (oldParaMarks) {
+        editor.ShowParaMarks = oldParaMarks;
+      }
     };
     SmartArt.prototype.getBg = function() {
       var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();

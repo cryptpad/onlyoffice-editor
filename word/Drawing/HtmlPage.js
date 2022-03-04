@@ -397,12 +397,6 @@ function CEditorPage(api)
 
 		this.m_oDrawingDocument.TargetHtmlElement = document.getElementById('id_target_cursor');
 
-		if (this.m_oApi.isMobileVersion)
-		{
-			this.MobileTouchManager = new AscCommon.CMobileTouchManager( { eventsElement : "word_mobile_element" } );
-			this.MobileTouchManager.Init(this.m_oApi);
-		}
-
 		this.checkNeedRules();
 		this.initEvents2();
 
@@ -741,12 +735,17 @@ function CEditorPage(api)
 
 	this.initEventsMobile = function()
 	{
-        if (this.m_oApi.isMobileVersion)
+		if (this.m_oApi.isMobileVersion)
 		{
-		    this.TextBoxBackground = CreateControl(AscCommon.g_inputContext.HtmlArea.id);
-            this.TextBoxBackground.HtmlElement.parentNode.parentNode.style.zIndex = 10;
+			this.MobileTouchManager = new AscCommon.CMobileTouchManager( { eventsElement : "word_mobile_element" } );
+			this.MobileTouchManager.Init(this.m_oApi);
+			if (!this.MobileTouchManager.delegate.IsNativeViewer())
+				this.MobileTouchManager.Resize();
 
-            this.MobileTouchManager.initEvents(AscCommon.g_inputContext.HtmlArea.id);
+			this.TextBoxBackground = CreateControl(AscCommon.g_inputContext.HtmlArea.id);
+			this.TextBoxBackground.HtmlElement.parentNode.parentNode.style.zIndex = 10;
+
+			this.MobileTouchManager.initEvents(AscCommon.g_inputContext.HtmlArea.id);
 
 			if (AscBrowser.isAndroid)
 			{
@@ -1882,8 +1881,6 @@ function CEditorPage(api)
 			oWordControl.MouseDownDocumentCounter = 0;
 
 		oWordControl.m_bIsMouseUpSend = false;
-		oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
-		oWordControl.m_oLogicDocument.Document_UpdateRulersState();
 
 		oWordControl.EndUpdateOverlay();
 
@@ -2783,6 +2780,16 @@ function CEditorPage(api)
 	{
 		this.m_bIsFullRepaint = true;
 		this.OnScroll();
+
+		if (this.m_oApi.isUseNativeViewer)
+		{
+			var oViewer = this.m_oDrawingDocument.m_oDocumentRenderer;
+			if (oViewer)
+			{
+				oViewer.isClearPages = true;
+				oViewer.paint();
+			}
+		}
 	};
 
 	this.OnResize = function(isAttack)
@@ -3552,7 +3559,7 @@ function CEditorPage(api)
 			_c.m_oDrawingDocument.CheckFontCache();
 		}
 
-		oThis.m_oLogicDocument.ContinueCheckSpelling();
+		oThis.m_oLogicDocument.ContinueSpellCheck();
 		oThis.m_oLogicDocument.ContinueTrackRevisions();
 	};
 	this.OnScroll       = function(isFromLA)

@@ -48,13 +48,15 @@ function checkEmptyPlaceholderContent(content)
 {
     if(!content || content.Parent && content.Parent.txWarpStruct && content.Parent.recalcInfo.warpGeometry && content.Parent.recalcInfo.warpGeometry.preset !== "textNoShape" )
         return content;
-
-    if(content && content.Is_Empty()){
-        if(content.Parent.parent.isPlaceholder && content.Parent.parent.isPlaceholder()) {
-            return content;
-        }
-        if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape) {
-            return content;
+    var oShape = content.Parent;
+    if (oShape) {
+        if(content && content.Is_Empty()){
+            if(oShape.isPlaceholder && oShape.isPlaceholder()) {
+                return content;
+            }
+            if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape()) {
+                return content;
+            }
         }
     }
     return null;
@@ -330,15 +332,7 @@ NullState.prototype =
             }
         }
 
-        var drawing_page;
-        if(this.drawingObjects.document.GetDocPosType() !== docpostype_HdrFtr)
-        {
-            drawing_page = this.drawingObjects.graphicPages[pageIndex];
-        }
-        else
-        {
-            drawing_page = this.drawingObjects.getHdrFtrObjectsByPageIndex(pageIndex);
-        }
+        var drawing_page = this.drawingObjects.getGraphicPage && this.drawingObjects.getGraphicPage(pageIndex);
         if(drawing_page)
         {
             ret = AscFormat.handleFloatObjects(this.drawingObjects, drawing_page.beforeTextObjects, e, x, y, null, pageIndex, true);

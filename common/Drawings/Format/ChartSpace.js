@@ -623,7 +623,6 @@ var GLOBAL_PATH_COUNT = 0;
                 if(fMinW > this.maxMinWidth) {
                     this.maxMinWidth = fMinW;
                 }
-                
                 this.aLabels.push(oLbl);
                 if(!oStyle) {
                     oStyle = oLbl.lastStyleObject;
@@ -735,7 +734,6 @@ var GLOBAL_PATH_COUNT = 0;
                 }
                 oLastLabel = oLabel;
                 fLastLabelCenterX = fCurX + Math.abs(fInterval) / 2.0;
-                
             }
             fCurX += fInterval;
         }
@@ -1081,7 +1079,7 @@ var GLOBAL_PATH_COUNT = 0;
             }
             else {
                 oLabelsBox.layoutHorRotated(fY, fDistance, fXStart, fXEnd, fInterval, bOnTickMark_);
-                
+
             }
         }
     }
@@ -3752,6 +3750,12 @@ var GLOBAL_PATH_COUNT = 0;
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_SetGroup, this.group, group));
         this.group = group;
     };
+    CChartSpace.prototype.hasCharts = function() {
+        if(this.chart && this.chart.plotArea && this.chart.plotArea.charts.length > 0) {
+            return true;
+        }
+        return false;
+    };
     CChartSpace.prototype.getRangeObjectStr = function() {
         var oDataRange = this.getDataRefs();
         var sRange = oDataRange.getRange();
@@ -3860,7 +3864,7 @@ var GLOBAL_PATH_COUNT = 0;
                 else {
                     return AscFormat.CROSS_BETWEEN_BETWEEN;
                 }
-            } 
+            }
             return AscFormat.CROSS_BETWEEN_MID_CAT;
         }
         var oCrossAxis = oAxis.crossAx;
@@ -4298,7 +4302,7 @@ var GLOBAL_PATH_COUNT = 0;
                 var aAllSeries = this.getAllSeries();
                 oAxis.scale = [];
                 for(var nSer = 0; nSer < aAllSeries.length; ++nSer) {
-                    aStrings.push(aAllSeries[nSer].getSeriesName()); 
+                    aStrings.push(aAllSeries[nSer].getSeriesName());
                     oAxis.scale.push(aAllSeries[nSer].idx);
                 }
 
@@ -4797,6 +4801,7 @@ var GLOBAL_PATH_COUNT = 0;
             var aAllAxes = [];//array of axes sets
             var aSeriesAxes = [];
             var dSeriesLabelsWidth = 0;
+            var oSetAxis;
             while(aAxes.length > 0) {
                 oCurAxis = aAxes.splice(0, 1)[0];
                 if(oCurAxis.getObjectType() !== AscDFH.historyitem_type_SerAx) {
@@ -4805,8 +4810,10 @@ var GLOBAL_PATH_COUNT = 0;
                     for(i = aAxes.length - 1; i > -1; --i) {
                         oCurAxis2 = aAxes[i];
                         if(oCurAxis2.getObjectType() !== AscDFH.historyitem_type_SerAx) {
-                            for(j = 0; j < aCurAxesSet.length; ++j) {
-                                if(aCurAxesSet[j].crossAx === oCurAxis2 || oCurAxis2.crossAx === aCurAxesSet[j]) {
+                            for(j = aCurAxesSet.length - 1; j > -1; --j) {
+                                oSetAxis = aCurAxesSet[j];
+                        if(oSetAxis.crossAx !== oSetAxis && oSetAxis.crossAx === oCurAxis2 ||
+                            oCurAxis2.crossAx !== oCurAxis2 && oCurAxis2.crossAx === oSetAxis) {
                                     aCurAxesSet.push(oCurAxis2);
                                 }
                             }
@@ -5167,7 +5174,7 @@ var GLOBAL_PATH_COUNT = 0;
                         dPosX = dPosX2 * this.chartObj.calcProp.pxToMM;
 
                         var dPosY, dPosY2
-                        
+
                         dPosY2 = oSerAx.posY;
                         dPosY = dPosY2 * this.chartObj.calcProp.pxToMM;
 
@@ -5181,7 +5188,7 @@ var GLOBAL_PATH_COUNT = 0;
                                     var oPt =  oSerAx.zPoints[i];
                                     if(oPt) {
                                         oNewPos = oProcessor3D.convertAndTurnPoint(dPosX, dPosY, oPt.pos);
-                                        oLabel.setPosition2(oLabel.localTransformText.tx - dPosX2 + oNewPos.x / this.chartObj.calcProp.pxToMM + oLabel.tx.rich.getContentWidth() / 2 + DEFAULT_LBLS_DISTANCE, 
+                                        oLabel.setPosition2(oLabel.localTransformText.tx - dPosX2 + oNewPos.x / this.chartObj.calcProp.pxToMM + oLabel.tx.rich.getContentWidth() / 2 + DEFAULT_LBLS_DISTANCE,
                                         oNewPos.y / this.chartObj.calcProp.pxToMM - oLabel.txBody.content.GetSummaryHeight()/2);
                                         aXPoints.push(oLabel.x);
                                         aYPoints.push(oLabel.y);
@@ -5202,7 +5209,7 @@ var GLOBAL_PATH_COUNT = 0;
                 else if(((oCatAx.axPos === AscFormat.AX_POS_L || oCatAx.axPos === AscFormat.AX_POS_R) && oCatAx.yPoints) &&
                     ((oValAx.axPos === AscFormat.AX_POS_T || oValAx.axPos === AscFormat.AX_POS_B) && oValAx.xPoints)) {
                     oAxisLabels = oValAx.labels;
-                    
+
 
                     if(oAxisLabels) {
                         var dZPositionValAxis = oProcessor3D.calculateZPositionValAxis();
@@ -8028,7 +8035,7 @@ var GLOBAL_PATH_COUNT = 0;
         }
     };
     CChartSpace.prototype.checkDrawingCache = function(graphics) {
-        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline) {
+        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview) {
             return false;
         }
         if(graphics.IsSlideBoundsCheckerType) {
@@ -8705,7 +8712,31 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.getTypeName = function() {
         return AscCommon.translateManager.getValue("Chart");
     };
-
+    CChartSpace.prototype.getAllAxes = function() {
+        var oChart = this.chart;
+        if(oChart) {
+            var oPlotArea = oChart.plotArea;
+            if(oPlotArea) {
+                return oPlotArea.axId;
+            }
+        }
+        return [];
+    };
+    CChartSpace.prototype.correctAxes = function() {
+        var aAxes = this.getAllAxes();
+        for(var nAx1 = 0; nAx1 < aAxes.length; ++nAx1) {
+            var oAx1 = aAxes[nAx1];
+            if(oAx1.crossAx === oAx1) {
+                for(var nAx2 = 0; nAx2 < aAxes.length; ++nAx2) {
+                    var oAx2 = aAxes[nAx2];
+                    if(oAx2 !== oAx1 && oAx2.crossAx === oAx1) {
+                        oAx1.setCrossAx(oAx2);
+                        break;
+                    }
+                }
+            }
+        }
+    };
     function CAdditionalStyleData() {
         this.dLbls = null;
         this.catAx = null;
@@ -9149,7 +9180,7 @@ var GLOBAL_PATH_COUNT = 0;
             oSerAx.setTickLblPos(c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO);
             oSerAx.setCrossAx(cat_ax);
             oSerAx.setCrosses(AscFormat.CROSSES_AUTO_ZERO);
-            
+
             plot_area.addAxis(oSerAx);
             bar_chart.addAxId(oSerAx);
 

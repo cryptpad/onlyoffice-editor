@@ -266,6 +266,9 @@
         if (!AscCommon.g_clipboardBase)
             return null;
 
+		if (this.isViewMode)
+			return null;
+
         var _elem = document.getElementById("pmpastehtml");
         if (_elem)
             return;
@@ -524,6 +527,34 @@
      */
     Api.prototype["pluginMethod_SetProperties"] = function(obj)
     {
+		if (!this.isDocumentLoadComplete && obj)
+		{
+			if (!this.setPropertiesObj)
+			{
+				this.setPropertiesObj = obj;
+			}
+			else
+			{
+				for (var item in obj)
+					this.setPropertiesObj[item] = obj[item];
+			}
+			return;
+		}
+
+		if (this.setPropertiesObj)
+		{
+			if (!obj)
+			{
+				obj = this.setPropertiesObj;
+			}
+			else
+			{
+				for (var item in this.setPropertiesObj)
+					if (!obj[item]) obj[item] = this.setPropertiesObj[item];
+			}
+			delete this.setPropertiesObj;
+		}
+
         if (!obj)
             return;
 
@@ -889,6 +920,7 @@
      * @param {Array} arrString - represents an array of strings.
      * @param {string} [sParaTab=" "] - specifies which character to use to define the tab in the source text.
      * @param {string} [sParaNewLine=" "] - specifies which character to use to specify the line break character in the source text.
+     * @returns {boolean} - always returns true
      */
     Api.prototype["pluginMethod_ReplaceTextSmart"] = function(arrString, sParaTab, sParaNewLine)
     {
@@ -905,6 +937,8 @@
                 this.WordControl.m_oLogicDocument.FinalizeAction();
                 break;
         }
+
+        return true;
     };
 	/**
     * Get the current file to download in the specified format
