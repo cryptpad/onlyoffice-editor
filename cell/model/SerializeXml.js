@@ -3680,6 +3680,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		if (this.TableStyleInfo) {
 			this.TableStyleInfo.toXml(writer, "tableStyleInfo");
 		}
+
+		var context = writer.context;
+		if (this.QueryTable) {
+			var queryTable = context.part.addPart(AscCommon.openXml.Types.queryTable);
+			queryTable.part.setDataXml(this.QueryTable, writer);
+		}
+
 		/*if(m_oExtLst.IsInit())
 		{
 			writer.WriteString(m_oExtLst->toXMLWithNS(L""));
@@ -5374,17 +5381,28 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			return;
 		}
 
+		var t = this;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("queryTableFields" === name) {
-				var queryTableField = new AscCommonExcel.QueryTableField();
-				queryTableField.fromXml(reader);
-				this.queryTableField = queryTableField;
+				reader.readXmlArray("queryTableField", function () {
+					var queryTableField = new AscCommonExcel.QueryTableField();
+					queryTableField.fromXml(reader);
+					if (!t.queryTableFields) {
+						t.queryTableFields = [];
+					}
+					t.queryTableFields.push(queryTableField);
+				});
 			} else if ("queryTableDeletedFields" === name) {
-				var queryTableDeletedField = new AscCommonExcel.QueryTableDeletedField();
-				queryTableDeletedField.fromXml(reader);
-				this.queryTableDeletedField = queryTableDeletedField;
+				reader.readXmlArray("queryTableDeletedField", function () {
+					var queryTableDeletedField = new AscCommonExcel.QueryTableDeletedField();
+					queryTableDeletedField.fromXml(reader);
+					if (!t.queryTableDeletedFields) {
+						t.queryTableDeletedFields = [];
+					}
+					t.queryTableDeletedFields.push(queryTableDeletedField);
+				});
 			} else if ("sortState" === name) {
 				var sortState = new AscCommonExcel.SortState();
 				sortState.fromXml(reader);
@@ -5534,14 +5552,16 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlNullableAttributeNumber("minimumVersion", this.minimumVersion);
 		writer.WriteXmlString(">");
 
-		if (this.queryTableFields)
-			this.queryTableFields.toXml(writer);
+		if (this.queryTableFields) {
+			writer.WriteXmlArray(this.queryTableFields, "queryTableField", "queryTableFields", true);
+		}
+		if (this.queryTableDeletedFields) {
+			writer.WriteXmlArray(this.queryTableDeletedFields, "deletedField", "queryTableDeletedFields", true);
+		}
 
-		if (this.queryTableDeletedFields)
-			this.queryTableDeletedFields.toXml(writer);
-
-		if (this.sortState)
+		if (this.sortState) {
 			this.sortState.toXml(writer);
+		}
 
 		writer.WriteXmlString("</queryTableRefresh>");
 	};
@@ -5661,7 +5681,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 	};
 
-	AscCommonExcel.QueryTableField.prototype.toXml = function (writer) {
+	AscCommonExcel.QueryTableField.prototype.toXml = function (writer, name) {
 
 		/*writer.WriteString(L"<queryTableField");
 					WritingStringNullableAttrEncodeXmlString2(L"name", m_oName);
@@ -5674,7 +5694,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 					WritingStringNullableAttrBool2(L"clipped",		m_oClipped);
 				writer.WriteString(L"/>");*/
 
-		writer.WriteXmlString("<queryTableField");
+		//queryTableField
+		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 		writer.WriteXmlNullableAttributeNumber("id", this.id);
 		writer.WriteXmlNullableAttributeNumber("tableColumnId", this.tableColumnId);
@@ -5683,7 +5704,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlNullableAttributeBool("fillFormulas", this.fillFormulas);
 		writer.WriteXmlNullableAttributeBool("dataBound", this.dataBound);
 		writer.WriteXmlNullableAttributeBool("clipped", this.clipped);
-		writer.WriteXmlString("/>");
+		writer.WriteXmlAttributesEnd(true);
 	};
 
 	AscCommonExcel.QueryTableDeletedField.prototype.fromXml = function (reader) {
@@ -5725,15 +5746,16 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 	};
 
-	AscCommonExcel.QueryTableDeletedField.prototype.toXml = function (writer) {
+	AscCommonExcel.QueryTableDeletedField.prototype.toXml = function (writer, name) {
 
 		/*writer.WriteString(L"<deletedField");
 					WritingStringNullableAttrEncodeXmlString(L"name", m_oName, m_oName.get());
 				writer.WriteString(L"/>");*/
-
-		writer.WriteXmlString("<deletedField");
+		
+		//deletedField
+		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeStringEncode("name", this.name);
-		writer.WriteXmlString("/>");
+		writer.WriteXmlAttributesEnd(true);
 	};
 
 
