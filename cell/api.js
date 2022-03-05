@@ -1679,6 +1679,15 @@ var editor;
 								reader = new StaxParser(contentTable, oNewTable, xmlParserContext);
 								oNewTable.fromXml(reader);
 
+								var queryTables = tableParts[i].getPartsByRelationshipType(openXml.Types.queryTable.relationType);
+								for (i = 0; i < queryTables.length; ++i) {
+									var contentQueryTable = queryTables[i].getDocumentContent();
+									var oNewQueryTable = new AscCommonExcel.QueryTable();
+									reader = new StaxParser(contentQueryTable, oNewQueryTable, xmlParserContext);
+									oNewQueryTable.fromXml(reader);
+									oNewTable.QueryTable = oNewQueryTable;
+								}
+
 								if (null != oNewTable.Ref && null != oNewTable.DisplayName) {
 									ws.workbook.dependencyFormulas.addTableName(ws, oNewTable, true);
 								}

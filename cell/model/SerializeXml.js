@@ -4987,6 +4987,755 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 	};
 
+	//AscCommonExcel.QueryTable
+	AscCommonExcel.QueryTable.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+				if ( oReader.IsEmptyNode() )
+					return;
+
+				int nCurDepth = oReader.GetDepth();
+				while( oReader.ReadNextSiblingNode( nCurDepth ) )
+				{
+					std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+					if ( (L"queryTableRefresh") == sName )
+						m_oQueryTableRefresh = oReader;
+					else if ((L"extLst") == sName)
+						m_oExtLst = oReader;
+				}*/
+
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("queryTableRefresh" === name) {
+				this.queryTableRefresh = new AscCommonExcel.QueryTableRefresh();
+				this.queryTableRefresh.fromXml(reader);
+			} else if ("extLst" === name) {
+			}
+		}
+	};
+
+	AscCommonExcel.QueryTable.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:element name="queryTable" type="CT_QueryTable"/>
+		1717 <xsd:complexType name="CT_QueryTable">
+		1718 <xsd:sequence>
+		1719 <xsd:element name="queryTableRefresh" type="CT_QueryTableRefresh" minOccurs="0"
+		1720 maxOccurs="1"/>
+		1721 <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+		1722 </xsd:sequence>
+		1723 <xsd:attribute name="name" type="s:ST_Xstring" use="required"/>
+		1724 <xsd:attribute name="headers" type="xsd:boolean" use="optional" default="true"/>
+		1725 <xsd:attribute name="rowNumbers" type="xsd:boolean" use="optional" default="false"/>
+		1726 <xsd:attribute name="disableRefresh" type="xsd:boolean" use="optional" default="false"/>
+		1727 <xsd:attribute name="backgroundRefresh" type="xsd:boolean" use="optional" default="true"/>
+		1728 <xsd:attribute name="firstBackgroundRefresh" type="xsd:boolean" use="optional"
+		1729 default="false"/>
+		1730 <xsd:attribute name="refreshOnLoad" type="xsd:boolean" use="optional" default="false"/>
+		1731 <xsd:attribute name="growShrinkType" type="ST_GrowShrinkType" use="optional"
+		1732 default="insertDelete"/>
+		1733 <xsd:attribute name="fillFormulas" type="xsd:boolean" use="optional" default="false"/>
+		1734 <xsd:attribute name="removeDataOnSave" type="xsd:boolean" use="optional" default="false"/>
+		1735 <xsd:attribute name="disableEdit" type="xsd:boolean" use="optional" default="false"/>
+		1736 <xsd:attribute name="preserveFormatting" type="xsd:boolean" use="optional" default="true"/>
+		1737 <xsd:attribute name="adjustColumnWidth" type="xsd:boolean" use="optional" default="true"/>
+		1738 <xsd:attribute name="intermediate" type="xsd:boolean" use="optional" default="false"/>
+		1739 <xsd:attribute name="connectionId" type="xsd:unsignedInt" use="required"/>Annex A
+		4441
+		1740 <xsd:attributeGroup ref="AG_AutoFormat"/>
+		1741 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, L"adjustColumnWidth",		m_oAdjustColumnWidth )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"applyAlignmentFormats",	m_oApplyAlignmentFormats )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"applyBorderFormats",		m_oApplyBorderFormats )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"applyFontFormats",			m_oApplyFontFormats )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"applyNumberFormats",		m_oApplyNumberFormats )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"applyPatternFormats",		m_oApplyPatternFormats )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"applyWidthHeightFormats",	m_oApplyWidthHeightFormats )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"autoFormatId",			m_oAutoFormatId )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"backgroundRefresh",	m_oBackgroundRefresh )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"connectionId",			m_oConnectionId )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"disableEdit",			m_oDisableEdit )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"disableRefresh",		m_oDisableRefresh )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"fillFormulas",			m_oFillFormulas )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"firstBackgroundRefresh",m_oFirstBackgroundRefresh )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"growShrinkType",		m_oGrowShrinkType )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"headers",				m_oHeaders )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"intermediate",			m_oIntermediate )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"name",					m_oName )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"preserveFormatting",	m_oPreserveFormatting )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"refreshOnLoad",		m_oRefreshOnLoad )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"removeDataOnSave",		m_oRemoveDataOnSave )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, L"rowNumbers",			m_oRowNumbers )*/
+
+//serialize
+		/*var oThis = this;
+					var res = c_oSerConstants.ReadOk;
+					if(c_oSer_QueryTable.ConnectionId == type)
+					{
+						oQueryTable.connectionId = this.stream.GetULongLE();
+					}
+					else if(c_oSer_QueryTable.Name == type)
+					{
+						oQueryTable.name = this.stream.GetString2LE(length);
+					}
+					else if(c_oSer_QueryTable.AutoFormatId == type)
+					{
+						oQueryTable.autoFormatId = this.stream.GetULongLE();
+					}
+					else if(c_oSer_QueryTable.GrowShrinkType == type)
+					{
+						oQueryTable.growShrinkType = this.stream.GetString2LE();
+					}
+					else if(c_oSer_QueryTable.AdjustColumnWidth == type)
+					{
+						oQueryTable.adjustColumnWidth = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.ApplyAlignmentFormats == type)
+					{
+						oQueryTable.applyAlignmentFormats = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.ApplyBorderFormats == type)
+					{
+						oQueryTable.applyBorderFormats = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.ApplyFontFormats == type)
+					{
+						oQueryTable.applyFontFormats = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.ApplyNumberFormats == type)
+					{
+						oQueryTable.applyNumberFormats = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.ApplyPatternFormats == type)
+					{
+						oQueryTable.ApplyPatternFormats = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.ApplyWidthHeightFormats == type)
+					{
+						oQueryTable.applyWidthHeightFormats = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.BackgroundRefresh == type)
+					{
+						oQueryTable.backgroundRefresh = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.DisableEdit == type)
+					{
+						oQueryTable.disableEdit = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.DisableRefresh == type)
+					{
+						oQueryTable.disableRefresh = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.FillFormulas == type)
+					{
+						oQueryTable.fillFormulas = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.FirstBackgroundRefresh == type)
+					{
+						oQueryTable.firstBackgroundRefresh = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.Headers == type)
+					{
+						oQueryTable.headers = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.Intermediate == type)
+					{
+						oQueryTable.intermediate = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.PreserveFormatting == type)
+					{
+						oQueryTable.preserveFormatting = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.RefreshOnLoad == type)
+					{
+						oQueryTable.refreshOnLoad = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.RemoveDataOnSave == type)
+					{
+						oQueryTable.removeDataOnSave = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.RowNumbers == type)
+					{
+						oQueryTable.rowNumbers = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTable.QueryTableRefresh == type)
+					{
+						oQueryTable.queryTableRefresh = new AscCommonExcel.QueryTableRefresh();
+						res = this.bcr.Read1(length, function(t,l){
+							return oThis.ReadQueryTableRefresh(t,l, oQueryTable.queryTableRefresh);
+						});
+					}
+					else
+						res = c_oSerConstants.ReadUnknown;
+
+					return res;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("adjustColumnWidth" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.adjustColumnWidth = val;
+			} else if ("applyAlignmentFormats" === reader.GetName()) {
+				val = reader.GetValue();
+				this.applyAlignmentFormats = val;
+			} else if ("applyBorderFormats" === reader.GetName()) {
+				val = reader.GetValue();
+				this.applyBorderFormats = val;
+			} else if ("applyFontFormats" === reader.GetName()) {
+				val = reader.GetValue();
+				this.applyFontFormats = val;
+			} else if ("applyNumberFormats" === reader.GetName()) {
+				val = reader.GetValue();
+				this.applyNumberFormats = val;
+			} else if ("applyPatternFormats" === reader.GetName()) {
+				val = reader.GetValue();
+				this.applyPatternFormats = val;
+			} else if ("applyWidthHeightFormats" === reader.GetName()) {
+				val = reader.GetValue();
+				this.applyWidthHeightFormats = val;
+			} else if ("autoFormatId" === reader.GetName()) {
+				val = reader.GetValue();
+				this.autoFormatId = val;
+			} else if ("backgroundRefresh" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.backgroundRefresh = val;
+			} else if ("connectionId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.connectionId = val;
+			} else if ("disableEdit" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.disableEdit = val;
+			} else if ("disableRefresh" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.disableRefresh = val;
+			} else if ("fillFormulas" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.fillFormulas = val;
+			} else if ("firstBackgroundRefresh" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.firstBackgroundRefresh = val;
+			} else if ("growShrinkType" === reader.GetName()) {
+				val = reader.GetValue();
+				this.growShrinkType = val;
+			} else if ("headers" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.headers = val;
+			} else if ("intermediate" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.intermediate = val;
+			} else if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			} else if ("preserveFormatting" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.preserveFormatting = val;
+			} else if ("refreshOnLoad" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.refreshOnLoad = val;
+			} else if ("removeDataOnSave" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.removeDataOnSave = val;
+			} else if ("rowNumbers" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.rowNumbers = val;
+			}
+		}
+	};
+
+	AscCommonExcel.QueryTable.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<queryTable \
+		xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" \
+		xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
+		mc:Ignorable=\"xr16\" \
+		xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"");
+
+				WritingStringNullableAttrEncodeXmlString(L"name",		m_oName, m_oName.get());
+				WritingStringNullableAttrBool2(L"backgroundRefresh",	m_oBackgroundRefresh);
+				WritingStringNullableAttrInt(L"connectionId",			m_oConnectionId, m_oConnectionId->GetValue());
+				WritingStringNullableAttrInt(L"autoFormatId",			m_oAutoFormatId, m_oAutoFormatId->GetValue());
+				WritingStringNullableAttrBool2(L"adjustColumnWidth",	m_oAdjustColumnWidth);
+				WritingStringNullableAttrBool2(L"applyBorderFormats",	m_oApplyBorderFormats);
+				WritingStringNullableAttrBool2(L"applyFontFormats",		m_oApplyFontFormats);
+				WritingStringNullableAttrBool2(L"applyNumberFormats",	m_oApplyNumberFormats);
+				WritingStringNullableAttrBool2(L"applyPatternFormats",	m_oApplyPatternFormats);
+				WritingStringNullableAttrBool2(L"applyWidthHeightFormats",m_oApplyWidthHeightFormats);
+				WritingStringNullableAttrBool2(L"applyAlignmentFormats",m_oApplyAlignmentFormats);
+
+				WritingStringNullableAttrBool2(L"disableEdit",		m_oDisableEdit);
+				WritingStringNullableAttrBool2(L"disableRefresh",	m_oDisableRefresh);
+				WritingStringNullableAttrBool2(L"fillFormulas",		m_oFillFormulas);
+				WritingStringNullableAttrBool2(L"firstBackgroundRefresh", m_oFirstBackgroundRefresh);
+
+				WritingStringNullableAttrEncodeXmlString(L"growShrinkType",	m_oGrowShrinkType, m_oGrowShrinkType.get());
+
+				WritingStringNullableAttrBool2(L"headers",			m_oHeaders);
+				WritingStringNullableAttrBool2(L"intermediate",		m_oIntermediate);
+				WritingStringNullableAttrBool2(L"preserveFormatting",m_oPreserveFormatting);
+				WritingStringNullableAttrBool2(L"refreshOnLoad",	m_oRefreshOnLoad);
+				WritingStringNullableAttrBool2(L"removeDataOnSave",	m_oRemoveDataOnSave);
+				WritingStringNullableAttrBool2(L"rowNumbers",		m_oRowNumbers);
+
+				writer.WriteString(L">");
+
+				if(m_oQueryTableRefresh.IsInit())
+					m_oQueryTableRefresh->toXML(writer);
+				if(m_oExtLst.IsInit())
+				{
+					writer.WriteString(m_oExtLst->toXMLWithNS((L"")));
+				}
+				writer.WriteString(L"</queryTable>");*/
+
+		writer.WriteXmlString("<queryTable \
+xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" \
+xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
+mc:Ignorable=\"xr16\" \
+xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"");
+
+		writer.WriteXmlNullableAttributeStringEncode("name", this.name);
+		writer.WriteXmlNullableAttributeBool("backgroundRefresh", this.backgroundRefresh);
+		writer.WriteXmlNullableAttributeNumber("connectionId", this.connectionId);
+		writer.WriteXmlNullableAttributeNumber("autoFormatId", this.autoFormatId);
+		writer.WriteXmlNullableAttributeBool("adjustColumnWidth", this.adjustColumnWidth);
+		writer.WriteXmlNullableAttributeBool("applyBorderFormats", this.applyBorderFormats);
+		writer.WriteXmlNullableAttributeBool("applyFontFormats", this.applyFontFormats);
+		writer.WriteXmlNullableAttributeBool("applyNumberFormats", this.applyNumberFormats);
+		writer.WriteXmlNullableAttributeBool("applyPatternFormats", this.applyPatternFormats);
+		writer.WriteXmlNullableAttributeBool("applyWidthHeightFormats", this.applyWidthHeightFormats);
+		writer.WriteXmlNullableAttributeBool("applyAlignmentFormats", this.applyAlignmentFormats);
+
+		writer.WriteXmlNullableAttributeBool("disableEdit", this.disableEdit);
+		writer.WriteXmlNullableAttributeBool("disableRefresh", this.disableRefresh);
+		writer.WriteXmlNullableAttributeBool("fillFormulas", this.fillFormulas);
+		writer.WriteXmlNullableAttributeBool("firstBackgroundRefresh", this.firstBackgroundRefresh);
+
+		writer.WriteXmlNullableAttributeStringEncode("growShrinkType", this.growShrinkType);
+
+		writer.WriteXmlNullableAttributeBool("headers", this.headers);
+		writer.WriteXmlNullableAttributeBool("intermediate", this.intermediate);
+		writer.WriteXmlNullableAttributeBool("preserveFormatting", this.preserveFormatting);
+		writer.WriteXmlNullableAttributeBool("refreshOnLoad", this.refreshOnLoad);
+		writer.WriteXmlNullableAttributeBool("removeDataOnSave", this.removeDataOnSave);
+		writer.WriteXmlNullableAttributeBool("rowNumbers", this.rowNumbers);
+
+		writer.WriteXmlString(">");
+
+		if (this.queryTableRefresh) {
+			this.queryTableRefresh.toXml(writer);
+		}
+		/*if (m_oExtLst.IsInit()) {
+			writer.WriteXmlString(m_oExtLst.toXMLWithNS(("")));
+		}*/
+
+		writer.WriteXmlString("</queryTable>");
+	};
+
+	//AscCommonExcel.QueryTableRefresh
+
+	AscCommonExcel.QueryTableRefresh.prototype.fromXml = function (reader) {
+
+		/*	ReadAttributes( oReader );
+
+				if ( oReader.IsEmptyNode() )
+					return;
+
+				int nCurDepth = oReader.GetDepth();
+				while( oReader.ReadNextSiblingNode( nCurDepth ) )
+				{
+					std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+					if ((L"queryTableFields") == sName)
+						m_oQueryTableFields = oReader;
+					else if ((L"queryTableDeletedFields") == sName)
+						m_oQueryTableDeletedFields = oReader;
+					else if ((L"sortState") == sName)
+						m_oSortState = oReader;
+					else if ((L"extLst") == sName)
+						m_oExtLst = oReader;
+				}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("queryTableFields" === name) {
+				var queryTableField = new AscCommonExcel.QueryTableField();
+				queryTableField.fromXml(reader);
+				this.queryTableField = queryTableField;
+			} else if ("queryTableDeletedFields" === name) {
+				var queryTableDeletedField = new AscCommonExcel.QueryTableDeletedField();
+				queryTableDeletedField.fromXml(reader);
+				this.queryTableDeletedField = queryTableDeletedField;
+			} else if ("sortState" === name) {
+				var sortState = new AscCommonExcel.SortState();
+				sortState.fromXml(reader);
+				this.sortState = sortState;
+			} else if ("extLst" === name) {
+			}
+		}
+	};
+
+	AscCommonExcel.QueryTableRefresh.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:sequence>
+		1744 <xsd:element name="queryTableFields" type="CT_QueryTableFields" minOccurs="1"
+		1745 maxOccurs="1"/>
+		1746 <xsd:element name="queryTableDeletedFields" type="CT_QueryTableDeletedFields"
+		1747 minOccurs="0" maxOccurs="1"/>
+		1748 <xsd:element name="sortState" minOccurs="0" maxOccurs="1" type="CT_SortState"/>
+		1749 <xsd:element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>
+		1750 </xsd:sequence>
+		1751 <xsd:attribute name="preserveSortFilterLayout" type="xsd:boolean" use="optional"
+		1752 default="true"/>
+		1753 <xsd:attribute name="fieldIdWrapped" type="xsd:boolean" use="optional" default="false"/>
+		1754 <xsd:attribute name="headersInLastRefresh" type="xsd:boolean" use="optional" default="true"/>
+		1755 <xsd:attribute name="minimumVersion" type="xsd:unsignedByte" use="optional" default="0"/>
+		1756 <xsd:attribute name="nextId" type="xsd:unsignedInt" use="optional" default="1"/>
+		1757 <xsd:attribute name="unboundColumnsLeft" type="xsd:unsignedInt" use="optional" default="0"/>
+		1758 <xsd:attribute name="unboundColumnsRight" type="xsd:unsignedInt" use="optional" default="0"/>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"nextId"),				m_oNextId )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"minimumVersion"),		m_oMinimumVersion )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"fieldIdWrapped"),		m_FieldIdWrapped )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"headersInLastRefresh"),	m_HeadersInLastRefresh )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"preserveSortFilterLayout"),	m_PreserveSortFilterLayout )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"unboundColumnsLeft"),	m_UnboundColumnsLeft )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"unboundColumnsRight"),	m_UnboundColumnsRight )*/
+
+//serialize
+		/*if(c_oSer_QueryTableRefresh.NextId == type)
+					{
+						queryTableRefresh.nextId = this.stream.GetULongLE();
+					}
+					else if(c_oSer_QueryTableRefresh.MinimumVersion == type)
+					{
+						queryTableRefresh.minimumVersion = this.stream.GetULongLE();
+					}
+					else if(c_oSer_QueryTableRefresh.UnboundColumnsLeft == type)
+					{
+						queryTableRefresh.unboundColumnsLeft = this.stream.GetULongLE();
+					}
+					else if(c_oSer_QueryTableRefresh.UnboundColumnsRight == type)
+					{
+						queryTableRefresh.unboundColumnsRight = this.stream.GetULongLE();
+					}
+					else if(c_oSer_QueryTableRefresh.FieldIdWrapped == type)
+					{
+						queryTableRefresh.fieldIdWrapped = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTableRefresh.HeadersInLastRefresh == type)
+					{
+						queryTableRefresh.headersInLastRefresh = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTableRefresh.PreserveSortFilterLayout == type)
+					{
+						queryTableRefresh.preserveSortFilterLayout = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTableRefresh.SortState == type)
+					{
+						queryTableRefresh.sortState = new AscCommonExcel.SortState();
+						res = this.bcr.Read1(length, function(t, l) {
+							return oThis.ReadSortState(t, l, queryTableRefresh.sortState);
+						});
+					}
+					else if(c_oSer_QueryTableRefresh.QueryTableFields == type)
+					{
+						res = this.bcr.Read1(length, function (t, l) {
+							return oThis.ReadQueryTableFields(t, l, queryTableRefresh);
+						});
+					}
+					else if(c_oSer_QueryTableRefresh.QueryTableDeletedFields == type)
+					{
+						res = this.bcr.Read1(length, function (t, l) {
+							return oThis.ReadQueryTableDeletedFields(t, l, queryTableRefresh);
+						});
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("nextId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.nextId = val;
+			} else if ("minimumVersion" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.minimumVersion = val;
+			} else if ("fieldIdWrapped" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.fieldIdWrapped = val;
+			} else if ("headersInLastRefresh" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.headersInLastRefresh = val;
+			} else if ("preserveSortFilterLayout" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.preserveSortFilterLayout = val;
+			} else if ("unboundColumnsLeft" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.unboundColumnsLeft = val;
+			} else if ("unboundColumnsRight" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.unboundColumnsRight = val;
+			}
+		}
+	};
+
+	AscCommonExcel.QueryTableRefresh.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<queryTableRefresh");
+					WritingStringNullableAttrInt(L"nextId", m_oNextId, m_oNextId->GetValue());
+					WritingStringNullableAttrInt(L"unboundColumnsLeft", m_UnboundColumnsLeft, m_UnboundColumnsLeft->GetValue());
+					WritingStringNullableAttrInt(L"unboundColumnsRight", m_UnboundColumnsRight, m_UnboundColumnsRight->GetValue());
+
+					WritingStringNullableAttrBool2(L"fieldIdWrapped",	m_FieldIdWrapped);
+					WritingStringNullableAttrBool2(L"headersInLastRefresh",	m_HeadersInLastRefresh);
+					WritingStringNullableAttrBool2(L"preserveSortFilterLayout",	m_PreserveSortFilterLayout);
+					WritingStringNullableAttrInt(L"minimumVersion",	m_oMinimumVersion, m_oMinimumVersion->GetValue());
+				writer.WriteString(L">");
+
+				if (m_oQueryTableFields.IsInit())
+					m_oQueryTableFields->toXML(writer);
+
+				if (m_oQueryTableDeletedFields.IsInit())
+					m_oQueryTableDeletedFields->toXML(writer);
+
+				if (m_oSortState.IsInit())
+					m_oSortState->toXML(writer);
+
+				writer.WriteString(L"</queryTableRefresh>");*/
+
+		writer.WriteXmlString("<queryTableRefresh");
+		writer.WriteXmlNullableAttributeNumber("nextId", this.nextId);
+		writer.WriteXmlNullableAttributeNumber("unboundColumnsLeft", this.unboundColumnsLeft);
+		writer.WriteXmlNullableAttributeNumber("unboundColumnsRight", this.unboundColumnsRight);
+
+		writer.WriteXmlNullableAttributeBool("fieldIdWrapped", this.fieldIdWrapped);
+		writer.WriteXmlNullableAttributeBool("headersInLastRefresh", this.headersInLastRefresh);
+		writer.WriteXmlNullableAttributeBool("preserveSortFilterLayout", this.preserveSortFilterLayout);
+		writer.WriteXmlNullableAttributeNumber("minimumVersion", this.minimumVersion);
+		writer.WriteXmlString(">");
+
+		if (this.queryTableFields)
+			this.queryTableFields.toXml(writer);
+
+		if (this.queryTableDeletedFields)
+			this.queryTableDeletedFields.toXml(writer);
+
+		if (this.sortState)
+			this.sortState.toXml(writer);
+
+		writer.WriteXmlString("</queryTableRefresh>");
+	};
+
+	AscCommonExcel.QueryTableField.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+
+				if ( oReader.IsEmptyNode() )
+					return;
+
+				int nCurDepth = oReader.GetDepth();
+				while( oReader.ReadNextSiblingNode( nCurDepth ) )
+				{
+					std::wstring sName = XmlUtils::GetNameNoNS(oReader.GetName());
+
+					if ((L"extLst") == sName)
+						m_oExtLst = oReader;
+				}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if ("extLst" === name) {
+			}
+		}
+	};
+
+	AscCommonExcel.QueryTableField.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_QueryTableField">
+		1778 <xsd:sequence minOccurs="0">
+		1779 <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+		1780 </xsd:sequence>
+		1781 <xsd:attribute name="id" type="xsd:unsignedInt" use="required"/>
+		1782 <xsd:attribute name="name" type="s:ST_Xstring" use="optional"/>
+		1783 <xsd:attribute name="dataBound" type="xsd:boolean" use="optional" default="true"/>
+		1784 <xsd:attribute name="rowNumbers" type="xsd:boolean" use="optional" default="false"/>
+		1785 <xsd:attribute name="fillFormulas" type="xsd:boolean" use="optional" default="false"/>
+		1786 <xsd:attribute name="clipped" type="xsd:boolean" use="optional" default="false"/>
+		1787 <xsd:attribute name="tableColumnId" type="xsd:unsignedInt" default="0"/>
+		1788 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if		( oReader, (L"id"),			m_oId )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"tableColumnId"),	m_oTableColumnId )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"name"),			m_oName )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"rowNumbers"),	m_oRowNumbers )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"fillFormulas"),	m_oFillFormulas )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"dataBound"),		m_oDataBound )
+					WritingElement_ReadAttributes_Read_else_if	( oReader, (L"clipped"),		m_oClipped )*/
+
+//serialize
+		/*var res = c_oSerConstants.ReadOk;
+					if(c_oSer_QueryTableField.Name == type)
+					{
+						queryTableField.name = this.stream.GetString2LE(length);
+					}
+					else if(c_oSer_QueryTableField.Id == type)
+					{
+						queryTableField.id = this.stream.GetULongLE(length);
+					}
+					else if(c_oSer_QueryTableField.TableColumnId == type)
+					{
+						queryTableField.tableColumnId = this.stream.GetULongLE(length);
+					}
+					else if(c_oSer_QueryTableField.RowNumbers == type)
+					{
+						queryTableField.rowNumbers = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTableField.FillFormulas == type)
+					{
+						queryTableField.fillFormulas = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTableField.DataBound == type)
+					{
+						queryTableField.dataBound = this.stream.GetBool();
+					}
+					else if(c_oSer_QueryTableField.Clipped == type)
+					{
+						queryTableField.clipped = this.stream.GetBool();
+					}
+					else
+						res = c_oSerConstants.ReadUnknown;*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("id" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.id = val;
+			} else if ("tableColumnId" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.tableColumnId = val;
+			} else if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			} else if ("rowNumbers" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.rowNumbers = val;
+			} else if ("fillFormulas" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.fillFormulas = val;
+			} else if ("dataBound" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.dataBound = val;
+			} else if ("clipped" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.clipped = val;
+			}
+		}
+	};
+
+	AscCommonExcel.QueryTableField.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<queryTableField");
+					WritingStringNullableAttrEncodeXmlString2(L"name", m_oName);
+					WritingStringNullableAttrInt(L"id", m_oId, m_oId->GetValue());
+					WritingStringNullableAttrInt(L"tableColumnId", m_oTableColumnId, m_oTableColumnId->GetValue());
+
+					WritingStringNullableAttrBool2(L"rowNumbers",	m_oRowNumbers);
+					WritingStringNullableAttrBool2(L"fillFormulas", m_oFillFormulas);
+					WritingStringNullableAttrBool2(L"dataBound",	m_oDataBound);
+					WritingStringNullableAttrBool2(L"clipped",		m_oClipped);
+				writer.WriteString(L"/>");*/
+
+		writer.WriteXmlString("<queryTableField");
+		writer.WriteXmlNullableAttributeStringEncode("name", this.name);
+		writer.WriteXmlNullableAttributeNumber("id", this.id);
+		writer.WriteXmlNullableAttributeNumber("tableColumnId", this.tableColumnId);
+
+		writer.WriteXmlNullableAttributeBool("rowNumbers", this.rowNumbers);
+		writer.WriteXmlNullableAttributeBool("fillFormulas", this.fillFormulas);
+		writer.WriteXmlNullableAttributeBool("dataBound", this.dataBound);
+		writer.WriteXmlNullableAttributeBool("clipped", this.clipped);
+		writer.WriteXmlString("/>");
+	};
+
+	AscCommonExcel.QueryTableDeletedField.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes( oReader );
+				if ( !oReader.IsEmptyNode() )
+					oReader.ReadTillEnd();*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode()) {
+			reader.ReadTillEnd();
+		}
+	};
+
+	AscCommonExcel.QueryTableDeletedField.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_DeletedField">
+		1768 <xsd:attribute name="name" type="s:ST_Xstring" use="required"/>
+		1769 </xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_Read_if	( oReader, (L"name"), m_oName )*/
+
+//serialize
+		/*var res = c_oSerConstants.ReadOk;
+					if(c_oSer_QueryTableDeletedField.Name == type)
+					{
+						pQueryTableDeletedField.name = this.stream.GetString2LE(length);
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			}
+		}
+	};
+
+	AscCommonExcel.QueryTableDeletedField.prototype.toXml = function (writer) {
+
+		/*writer.WriteString(L"<deletedField");
+					WritingStringNullableAttrEncodeXmlString(L"name", m_oName, m_oName.get());
+				writer.WriteString(L"/>");*/
+
+		writer.WriteXmlString("<deletedField");
+		writer.WriteXmlNullableAttributeStringEncode("name", this.name);
+		writer.WriteXmlString("/>");
+	};
+
 
 	//****data validation****
 	AscCommonExcel.CDataValidations.prototype.fromXml = function (reader) {
@@ -14622,18 +15371,14 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\n' + '\t\t\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\t\t\toReader.ReadTillEnd();'
-	var _x2t = 'WritingElement_ReadAttributes_Read_if\t\t( oReader, L"mentionpersonId",  mentionpersonId )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"mentionId",\t\tmentionId )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"startIndex",\t\tstartIndex )\n' +
-		'\t\t\t\t\tWritingElement_ReadAttributes_Read_else_if\t( oReader, L"length",\t\t\tlength )\n'
-	var _documentation = ''
-	var _serialize = ' '
+	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\toReader.ReadTillEnd();'
+	var _x2t = 'WritingElement_ReadAttributes_Read_if\t( oReader, (L"name"), m_oName )'
+	var _documentation = '<xsd:complexType name="CT_DeletedField">\n' + '1768 <xsd:attribute name="name" type="s:ST_Xstring" use="required"/>\n' + '1769 </xsd:complexType>'
+	var _serialize = 'var res = c_oSerConstants.ReadOk;\n' + '\t\t\tif(c_oSer_QueryTableDeletedField.Name == type)\n' + '\t\t\t{\n' +
+		'\t\t\t\tpQueryTableDeletedField.name = this.stream.GetString2LE(length);\n' + '\t\t\t}'
 
-	var _x2tToXml = 'WritingStringNullableAttrString(L"mentionpersonId", mentionpersonId, mentionpersonId->ToString());\n' +
-		'\t\t\t\t\tWritingStringNullableAttrString(L"mentionId", mentionId, mentionId->ToString());\n' +
-		'\t\t\t\t\tWritingStringNullableAttrInt(L"startIndex", startIndex, startIndex->GetValue());\n' +
-		'\t\t\t\t\tWritingStringNullableAttrInt(L"length", length, length->GetValue());'
+	var _x2tToXml = 'writer.WriteString(L"<deletedField");\n' + '\t\t\tWritingStringNullableAttrEncodeXmlString(L"name", m_oName, m_oName.get());\n' +
+		'\t\twriter.WriteString(L"/>");'
 
 
 	//by test automatic add function
