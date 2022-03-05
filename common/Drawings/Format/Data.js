@@ -1649,6 +1649,10 @@
     Point.prototype.getDrawingDocument = function () {
     }
 
+    Point.prototype.isForm = function () {
+      return false;
+    }
+
     Point.prototype.Get_Theme = function () {
       return null;
     }
