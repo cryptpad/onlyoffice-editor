@@ -8855,6 +8855,20 @@
       }
     };
 
+    Drawing.prototype.handleUpdateExtents = function(bExt)
+    {
+      this.recalcTransform();
+      this.recalcBounds();
+      this.addToRecalculate();
+      this.recalcWrapPolygon();
+      if(this.spTree)
+      {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+          this.spTree[i].handleUpdateExtents(bExt);
+        }
+      }
+    };
 
     changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeLong;
     changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeLong;
@@ -9865,6 +9879,21 @@
         editor.ShowParaMarks = oldParaMarks;
       }
     }
+
+    SmartArt.prototype.handleUpdateExtents = function(bExt)
+    {
+      this.recalcTransform();
+      this.recalcBounds();
+      this.addToRecalculate();
+      this.recalcWrapPolygon();
+      if(this.spTree)
+      {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+          this.spTree[i].handleUpdateExtents(bExt);
+        }
+      }
+    };
 
     SmartArt.prototype.startAlgorithm = function (pointTree) {
       var layoutDef = this.getLayoutDef();
