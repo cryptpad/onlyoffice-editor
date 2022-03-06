@@ -767,6 +767,7 @@
 		this.m_nError = 0;
 		this.m_pFace = null;
 		this.m_pFaceInfo = null;
+		this.m_pHBFont = 0;
 
 		this.m_dUnitsKoef = 1.0;
 		this.m_nDefaultChar = -1;
@@ -995,6 +996,52 @@
                 unGID = AscFonts.FT_SetCMapForCharCode(this.m_pFace, glyph + 0xF000);
 
             return unGID;
+		};
+
+		this.ShapeText = function(text, features, script, direction, language)
+		{
+			let segments = [];
+			let curFont = this;
+			let currentSegment = null;
+
+			for (var iter = text.getUnicodeIterator(); iter.check(); iter.next())
+			{
+				let codePoint = iter.value();
+				let gid = this.GetGIDByUnicode(codePoint);
+				if (gid <= 0)
+				{
+					curFont = this.Picker.GetFontBySymbolWithSize(this, codePoint);
+					if (!curFont)
+						curFont = this;
+				}
+				else
+				{
+					curFont = this;
+				}
+
+				if (null == currentSegment || currentSegment.font !== curFont)
+				{
+					currentSegment = {
+						font: curFont,
+						text: AscCommon.encodeSurrogateChar(codePoint)
+					};
+					segments.push(currentSegment);
+				}
+				else
+				{
+					currentSegment.text += AscCommon.encodeSurrogateChar(codePoint);
+				}
+			}
+
+			for (let i = 0, len = segments.length; i < len; i++)
+			{
+				segments[i].glyphs = AscFonts.HB_Shape(segments[i].font, segments[i].text, features, script, direction, language);
+
+				// change to id???
+				segments[i].font = segments[i].font.m_pFaceInfo.family_name;
+			}
+
+			return segments;
 		};
 
 		this.CacheGlyph = function(glyph_index_or_unicode, isRaster, isRasterDistances, workerVector, workerVectorX, workerVectorY, isFromPicker)
@@ -1738,7 +1785,7 @@
 	{
 		this.FontFiles = {};
 
-		this.LoadSymbol = function(pFontFile, symbol, isRaster, isRasterDistances, workerVector, workerVectorX, workerVectorY, isFromPicker)
+		this.GetFontBySymbol = function(pFontFile, symbol)
 		{
 			var fontManager = pFontFile.m_oFontManager;
 
@@ -1749,38 +1796,56 @@
 			var _fontFilePick = this.FontFiles[name];
 			if (!_fontFilePick)
 			{
-                var _font_info = AscFonts.g_font_infos[AscFonts.g_map_font_index[name]];
-                var _style = AscFonts.FontStyle.FontStyleRegular;
-                if (pFontFile.IsBold())
-                	_style |= AscFonts.FontStyle.FontStyleBold;
-                if (pFontFile.IsItalic())
-                    _style |= AscFonts.FontStyle.FontStyleItalic;
+				var _font_info = AscFonts.g_font_infos[AscFonts.g_map_font_index[name]];
+				var _style = AscFonts.FontStyle.FontStyleRegular;
+				if (pFontFile.IsBold())
+					_style |= AscFonts.FontStyle.FontStyleBold;
+				if (pFontFile.IsItalic())
+					_style |= AscFonts.FontStyle.FontStyleItalic;
 
-                _fontFilePick = _font_info.LoadFont(AscCommon.g_font_loader, fontManager, pFontFile.m_fSize, _style, pFontFile.m_unHorDpi, pFontFile.m_unVerDpi, undefined, true);
+				_fontFilePick = _font_info.LoadFont(AscCommon.g_font_loader, fontManager, pFontFile.m_fSize, _style, pFontFile.m_unHorDpi, pFontFile.m_unVerDpi, undefined, true);
 
-                if (!_fontFilePick)
-                	return null;
+				if (!_fontFilePick)
+					return null;
 
-                _fontFilePick.CheckHintsSupport();
-                this.FontFiles[name] = _fontFilePick;
+				_fontFilePick.CheckHintsSupport();
+				this.FontFiles[name] = _fontFilePick;
 			}
+
+			return _fontFilePick;
+		};
+
+		this.GetFontBySymbolWithSize = function(pFontFile, symbol)
+		{
+			var _fontFilePick = this.GetFontBySymbol(pFontFile, symbol);
 
 			if (!_fontFilePick)
 				return null;
 
-            _fontFilePick.SetSizeAndDpi(pFontFile.m_fSize, pFontFile.m_unHorDpi, pFontFile.m_unVerDpi);
+			_fontFilePick.SetSizeAndDpi(pFontFile.m_fSize, pFontFile.m_unHorDpi, pFontFile.m_unVerDpi);
 
-            var s = pFontFile.m_arrdTextMatrix;
-            var d = _fontFilePick.m_arrdTextMatrix;
+			var s = pFontFile.m_arrdTextMatrix;
+			var d = _fontFilePick.m_arrdTextMatrix;
 
-            d[0] = s[0];
-            d[1] = s[1];
-            d[2] = s[2];
-            d[3] = s[3];
-            d[4] = s[4];
-            d[5] = s[5];
+			d[0] = s[0];
+			d[1] = s[1];
+			d[2] = s[2];
+			d[3] = s[3];
+			d[4] = s[4];
+			d[5] = s[5];
 
-            _fontFilePick.UpdateMatrix();
+			_fontFilePick.UpdateMatrix();
+
+			return _fontFilePick;
+		};
+
+		this.LoadSymbol = function(pFontFile, symbol, isRaster, isRasterDistances, workerVector, workerVectorX, workerVectorY, isFromPicker)
+		{
+			var _fontFilePick = this.GetFontBySymbolWithSize(pFontFile, symbol);
+
+			if (!_fontFilePick)
+				return null;
+
             return _fontFilePick.CacheGlyph(symbol, isRaster, isRasterDistances, workerVector, workerVectorX, workerVectorY, true);
 		};
 

@@ -327,7 +327,6 @@ module.exports = function(grunt) {
 		const polyfill = 'polyfill.js';
 		const fontsWasm = 'fontswasm.js';
 		const fontsJs = 'fontsjs.js';
-		const fontFile = 'fonts.js';
 		const wordJs = 'word.js';
 		const cellJs = 'cell.js';
 		const slideJs = 'slide.js';
@@ -400,8 +399,8 @@ module.exports = function(grunt) {
 						]
 					},
 					files: [
-						{src: [fontsWasm], dest: path.join(fonts, 'wasm', fontFile)},
-						{src: [fontsJs], dest: path.join(fonts, 'js', fontFile)},
+						{src: [fontsWasm], dest: path.join(fonts, 'engine', 'fonts.js')},
+						{src: [fontsJs], dest: path.join(fonts, 'engine', 'fonts_ie.js')},
 						{expand: true, flatten: true, src: [getSdkPath(true, word), getSdkPath(false, word)], dest: word + '/'},
 						{expand: true, flatten: true, src: [getSdkPath(true, cell), getSdkPath(false, cell)], dest: cell + '/'},
 						{expand: true, flatten: true, src: [getSdkPath(true, slide), getSdkPath(false, slide)], dest: slide + '/'}
@@ -424,8 +423,7 @@ module.exports = function(grunt) {
 								'Images/reporter/*',
 								'Images/icons/*',
 								'Native/*.js',
-								'libfont/js/fonts.*',
-								'libfont/wasm/fonts.*',
+								'libfont/engine/fonts*',
 								'spell/spell/*',
 								'hash/hash/*'
 							],

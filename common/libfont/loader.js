@@ -100,7 +100,7 @@
             return;
         }
 
-        var url = "../../../../sdkjs/common/libfont";
+        var url = "../../../../sdkjs/common/libfont/engine/";
         var useWasm = false;
         var webAsmObj = window["WebAssembly"];
         if (typeof webAsmObj === "object")
@@ -116,10 +116,7 @@
         if (useWasm && (AscCommon.AscBrowser.isAppleDevices || AscCommon.AscBrowser.isAndroid))
             useWasm = false;
 
-		useWasm ? (url += "/wasm") : (url += "/js");
-		if (!useWasm)
-            window['AscFonts'].onLoadModule();
-
+		var engine_name_ext = useWasm ? ".js" : "_ie.js";
 		var _onSuccess = function(){
 		};
 		var _onError = function(){
@@ -128,13 +125,13 @@
 
         if (window['AscNotLoadAllScript'])
         {
-            AscCommon.loadScript(url + "/engine.js", _onSuccess, _onError);
-            AscCommon.loadScript(url + "/file.js", _onSuccess, _onError);
-            AscCommon.loadScript(url + "/manager.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "engine" + engine_name_ext, _onSuccess, _onError);
+            AscCommon.loadScript(url + "file.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "manager.js", _onSuccess, _onError);
         }
         else
         {
-            AscCommon.loadScript(url + "/fonts.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "fonts" + engine_name_ext, _onSuccess, _onError);
         }
     };
 
