@@ -4806,19 +4806,14 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 	}
 	function getFormatByStandardId(id) {
 		var res = null;
-		if (15 <= id && id <= 17) {
-			switch (id) {
-				case 15:
-					res = AscCommon.getShortDateMonthFormat(true, true, null);
-					break;
-				case 16:
-					res = AscCommon.getShortDateMonthFormat(true, false, null);
-					break;
-				case 17:
-					res = AscCommon.getShortDateMonthFormat(false, true, null);
-					break;
+		if (59 <= id && id <= 78) {
+			if (69 <= id && id <= 71) {
+				id += 1;
 			}
-		} else {
+			id -= 58;
+		} else if (79 <= id && id <= 81) {
+			id -= 34;
+		}
 			//todo currencyLocale true/false?
 			var currencyLocale = true;
 			switch (id) {
@@ -4837,15 +4832,42 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 				case 14:
 					res = AscCommon.getShortDateFormat(null);
 					break;
+			case 15:
+				res = AscCommon.getShortDateMonthFormat(true, true, null);
+				break;
+			case 16:
+				res = AscCommon.getShortDateMonthFormat(true, false, null);
+				break;
+			case 17:
+				res = AscCommon.getShortDateMonthFormat(false, true, null);
+				break;
 				case 22:
 					res = AscCommon.getShortDateFormat(null) + " h:mm";
 					break;
+			case 23:
+			case 24:
+			case 25:
+			case 26:
+				//like 0
+				res = "General";
+				break;
 				case 27:
 				case 28:
 				case 29:
 				case 30:
 				case 31:
+				//like 14
+				res = AscCommon.getShortDateFormat(null);
+				break;
+			case 32:
+			case 33:
+			case 34:
+			case 35:
+				//like 21
+				res = AscCommonExcel.aStandartNumFormats[21];
+				break;
 				case 36:
+				//like 14
 					res = AscCommon.getShortDateFormat(null);
 					break;
 				case 37:
@@ -4872,12 +4894,26 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 				case 44:
 					res = AscCommon.getCurrencyFormat(null, 2, true, currencyLocale, null);
 					break;
+			case 50:
+			case 51:
+			case 52:
+			case 53:
+			case 54:
+			case 55:
+			case 56:
+			case 57:
+			case 58:
+				//like 14
+				res = AscCommon.getShortDateFormat(null);
+				break;
                 default:
                     res = AscCommonExcel.aStandartNumFormats[id];
                     break;
 			}
-		}
 		return res;
+	}
+	function canGetFormatByStandardId(id) {
+		return (5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id || (27 <= id && id <= 81);
 	}
 	function is12HourTimeFormat(opt_cultureInfo) {
 		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
@@ -5053,6 +5089,7 @@ setCurrentCultureInfo(1033);//en-US//1033//fr-FR//1036//basq//1069//ru-Ru//1049/
 	window['AscCommon'].getCurrencyFormatSimple2 = getCurrencyFormatSimple2;
 	window['AscCommon'].getCurrencyFormat = getCurrencyFormat;
 	window['AscCommon'].getFormatCells = getFormatCells;
+	window['AscCommon'].canGetFormatByStandardId = canGetFormatByStandardId;
 	window['AscCommon'].getFormatByStandardId = getFormatByStandardId;
 	window['AscCommon'].is12HourTimeFormat = is12HourTimeFormat;
 	window['AscCommon'].compareNumbers = compareNumbers;

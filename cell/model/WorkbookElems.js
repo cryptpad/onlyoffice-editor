@@ -2706,8 +2706,7 @@ var g_oBorderProperties = {
 		if (!res.f) {
 			res.f = "General";
 		}
-		if (((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id ||
-			(27 <= id && id <= 31) || (36 <= id && id <= 44))) {
+		if (AscCommon.canGetFormatByStandardId(id)) {
 			res.id = id;
 		}
 		var numFormat = AscCommon.oNumFormatCache.get(res.f);
@@ -2793,8 +2792,7 @@ var g_oBorderProperties = {
 				sFormat = AscCommon.unleakString(uq(val));
 			}
 			this.f = null != sFormat ? sFormat : (AscCommonExcel.aStandartNumFormats[id] || "General");
-			if ((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id || (27 <= id && id <= 31) ||
-				(36 <= id && id <= 44)) {
+			if (AscCommon.canGetFormatByStandardId(id)) {
 				this.id = id;
 			}
 		}

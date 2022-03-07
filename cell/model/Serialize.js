@@ -7270,11 +7270,9 @@
 				//format string is more priority then id. so, fill oRes.id only if format is empty
 				useNumId = true;
 			}
-			if ((useNumId || this.useNumId) &&
-				((5 <= oNum.id && oNum.id <= 8) || (14 <= oNum.id && oNum.id <= 17) || 22 == oNum.id ||
-				(27 <= oNum.id && oNum.id <= 31) || (36 <= oNum.id && oNum.id <= 44))) {
-					oRes.id = oNum.id;
-				}
+			if ((useNumId || this.useNumId) && AscCommon.canGetFormatByStandardId(oNum.id)) {
+				oRes.id = oNum.id;
+			}
 			var numFormat = AscCommon.oNumFormatCache.get(oRes.f);
 			numFormat.checkCultureInfoFontPicker();
 			if (null != oNumFmts) {
