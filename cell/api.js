@@ -1621,6 +1621,31 @@ var editor;
 		//TODO CalcChain - из бинарника не читается, и не пишется в бинарник. реализовать позже
 
 
+		//Custom xml
+		if (window['OPEN_IN_BROWSER']) {
+			//папка customXml, в неё лежат item[n].xml, itemProps[n].xml + rels
+
+			//в Content_Types пишется только ссылка на itemProps в слудующем виде:
+			//<Override PartName="/customXml/itemProps1.xml" ContentType="application/vnd.openxmlformats-officedocument.customXmlProperties+xml"/>
+
+			//rels(которые внутри customXml) лежит ссылка на itemProps  в следующем виде:
+			//<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship  Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps" Target="itemProps1.xml"/></Relationships>
+
+			//workbook.xml.rels лежит ссылка на item  в следующем виде:
+			//<Relationship  Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" Target="../customXml/item1.xml"/>
+
+			//TODO проверить когда несколько ссылок на customXml
+			var customXmlPart = wbPart.getPartByRelationshipType(openXml.Types.customXml.relationType);
+			var customXml = customXmlPart.getDocumentContent(true);
+			var customXmlPropsPart = customXmlPart.getPartByRelationshipType(openXml.Types.customXmlProps.relationType);
+			var customXmlProps = customXmlPropsPart.getDocumentContent(true);
+
+			//в бинарник не будем писать, для совместимости оставляю поля, добавляю ещё новые
+			var custom = {Uri: [], ItemId: null, Content: null, item: customXml, itemProps: customXmlProps};
+			wb.customXmls = [];
+			wb.customXmls.push(custom);
+		}
+
 		if (window['OPEN_IN_BROWSER'] && wbXml.sheets) {
 			var wsParts = [];
 

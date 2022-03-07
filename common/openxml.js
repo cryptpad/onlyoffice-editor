@@ -660,7 +660,7 @@
 		chartsheet: {dir: "chartsheets", filename: "sheet[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartsheet"},
 		chartStyle: {dir: "", filename: "chartStyle.xml", contentType: "application/vnd.ms-office.chartstyle+xml", relationType: "http://schemas.microsoft.com/office/2011/relationships/chartStyle"},
 		commentAuthors: {dir: "", filename: "commentAuthors.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors"},
-		connections: {dir: "xl", filename: "connections.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.connections+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/connections"},
+		connections: {dir: "", filename: "connections.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.connections+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/connections"},
 		coreFileProperties: {dir: "docProps", filename: "core.xml", contentType: "application/vnd.openxmlformats-package.core-properties+xml", relationType: "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"},
 		customFileProperties: {dir: "docProps", filename: "custom.xml", contentType: "application/vnd.openxmlformats-officedocument.custom-properties+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties"},
 		customization: {dir: "", filename: "customization.xml", contentType: "application/vnd.ms-word.keyMapCustomizations+xml", relationType: "http://schemas.microsoft.com/office/2006/relationships/keyMapCustomizations"},
@@ -748,6 +748,9 @@
 		jsaProject: {dir: "", filename: "jsaProject.bin", contentType: "application/octet-stream", relationType: "http://schemas.onlyoffice.com/jsaProject"},
 		vbaProject: {dir: "", filename: "vbaProject.bin", contentType: "application/octet-stream", relationType: "http://schemas.microsoft.com/office/2006/relationships/vbaProject"},
 
+
+		customXml: {dir: "customXml", filename: "item[N].xml", /*contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml",*/ relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml"},
+		customXmlProps: {dir: "", filename: "itemProps[N].xml", contentType: "application/vnd.openxmlformats-officedocument.customXmlProperties+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps"},
 
 		//todo
 		image: {dir: "../media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"},

@@ -87,6 +87,29 @@
 			vbaPart.part.setData(vbaMacros);
 			memory.Seek(0);
 		}
+
+		if (this.connections) {
+			memory.WriteXmlString(this.connections);
+			var connectionsData = memory.GetDataUint8();
+			var connectionsPart = wbPart.part.addPart(AscCommon.openXml.Types.connections);
+			connectionsPart.part.setData(connectionsData);
+			memory.Seek(0);
+		}
+
+		if (this.customXmls) {
+			for (var i = 0; i < this.customXmls.length; i++) {
+				if (this.customXmls[i].item) {
+					var customXmlPart = wbPart.part.addPart(AscCommon.openXml.Types.customXml);
+					customXmlPart.part.setData(this.customXmls[i].item);
+					memory.Seek(0);
+
+					var customXmlPartProps = customXmlPart.part.addPart(AscCommon.openXml.Types.customXmlProps);
+					customXmlPartProps.part.setData(this.customXmls[i].itemProps);
+					memory.Seek(0);
+				}
+			}
+
+		}
 	};
 
 	function getSimpleArrayFromXml(reader, childName, attrName, attrType) {
@@ -3583,6 +3606,9 @@
 				this.TotalsRowCount = val;
 			} else if ("id" === reader.GetName()) {
 				reader.context.InitOpenManager.oReadResult.tableIds[reader.GetValue()] = this;
+			} else if ("tableType" === reader.GetName()) {
+				val = reader.GetValue();
+				this.tableType = val;
 			}
 		}
 	};
@@ -3646,12 +3672,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
 		writer.WriteXmlNodeStart("table");
 		writer.WriteXmlString(
-			' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" mc:Ignorable="xr xr3"');
+			' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="xr xr3" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3"');
 		var tableIds = writer.context.InitSaveManager.getTableIds();
 		writer.WriteXmlNullableAttributeNumber("id", undefined != tableIds[this.DisplayName] ? tableIds[this.DisplayName].id : null);
 		writer.WriteXmlNullableAttributeStringEncode("name", this.Name ? this.Name : null);
 		writer.WriteXmlNullableAttributeStringEncode("displayName", this.DisplayName);
 		writer.WriteXmlNullableAttributeString("ref", this.Ref.getName());
+		writer.WriteXmlNullableAttributeStringEncode("tableType", this.tableType);
 		writer.WriteXmlNullableAttributeNumber("headerRowCount", this.HeaderRowCount);
 		writer.WriteXmlNullableAttributeNumber("totalsRowCount", this.TotalsRowCount);
 
@@ -3951,7 +3978,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueBool();
 				this.ShowRowStripes = val;
 			} else if ("queryTableFieldId" === reader.GetName()) {
-				val = reader.GetValueBool();
+				val = reader.GetValue();
 				this.queryTableFieldId = val;
 				//oTableColumn.queryTableFieldId = this.stream.GetULongLE();
 			} else if ("uniqueName" === reader.GetName()) {
@@ -5197,22 +5224,22 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				val = reader.GetValueBool();
 				this.adjustColumnWidth = val;
 			} else if ("applyAlignmentFormats" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.applyAlignmentFormats = val;
 			} else if ("applyBorderFormats" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.applyBorderFormats = val;
 			} else if ("applyFontFormats" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.applyFontFormats = val;
 			} else if ("applyNumberFormats" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.applyNumberFormats = val;
 			} else if ("applyPatternFormats" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.applyPatternFormats = val;
 			} else if ("applyWidthHeightFormats" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.applyWidthHeightFormats = val;
 			} else if ("autoFormatId" === reader.GetName()) {
 				val = reader.GetValue();
@@ -5307,6 +5334,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 				}
 				writer.WriteString(L"</queryTable>");*/
 
+		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
+
 		writer.WriteXmlString("<queryTable \
 xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" \
 xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" \
@@ -5314,30 +5343,30 @@ mc:Ignorable=\"xr16\" \
 xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"");
 
 		writer.WriteXmlNullableAttributeStringEncode("name", this.name);
-		writer.WriteXmlNullableAttributeBool("backgroundRefresh", this.backgroundRefresh);
+		writer.WriteXmlNullableAttributeBool2("backgroundRefresh", this.backgroundRefresh);
 		writer.WriteXmlNullableAttributeNumber("connectionId", this.connectionId);
 		writer.WriteXmlNullableAttributeNumber("autoFormatId", this.autoFormatId);
-		writer.WriteXmlNullableAttributeBool("adjustColumnWidth", this.adjustColumnWidth);
-		writer.WriteXmlNullableAttributeBool("applyBorderFormats", this.applyBorderFormats);
-		writer.WriteXmlNullableAttributeBool("applyFontFormats", this.applyFontFormats);
-		writer.WriteXmlNullableAttributeBool("applyNumberFormats", this.applyNumberFormats);
-		writer.WriteXmlNullableAttributeBool("applyPatternFormats", this.applyPatternFormats);
-		writer.WriteXmlNullableAttributeBool("applyWidthHeightFormats", this.applyWidthHeightFormats);
-		writer.WriteXmlNullableAttributeBool("applyAlignmentFormats", this.applyAlignmentFormats);
+		writer.WriteXmlNullableAttributeBool2("adjustColumnWidth", this.adjustColumnWidth);
+		writer.WriteXmlNullableAttributeBool2("applyBorderFormats", this.applyBorderFormats);
+		writer.WriteXmlNullableAttributeBool2("applyFontFormats", this.applyFontFormats);
+		writer.WriteXmlNullableAttributeBool2("applyNumberFormats", this.applyNumberFormats);
+		writer.WriteXmlNullableAttributeBool2("applyPatternFormats", this.applyPatternFormats);
+		writer.WriteXmlNullableAttributeBool2("applyWidthHeightFormats", this.applyWidthHeightFormats);
+		writer.WriteXmlNullableAttributeBool2("applyAlignmentFormats", this.applyAlignmentFormats);
 
-		writer.WriteXmlNullableAttributeBool("disableEdit", this.disableEdit);
-		writer.WriteXmlNullableAttributeBool("disableRefresh", this.disableRefresh);
-		writer.WriteXmlNullableAttributeBool("fillFormulas", this.fillFormulas);
-		writer.WriteXmlNullableAttributeBool("firstBackgroundRefresh", this.firstBackgroundRefresh);
+		writer.WriteXmlNullableAttributeBool2("disableEdit", this.disableEdit);
+		writer.WriteXmlNullableAttributeBool2("disableRefresh", this.disableRefresh);
+		writer.WriteXmlNullableAttributeBool2("fillFormulas", this.fillFormulas);
+		writer.WriteXmlNullableAttributeBool2("firstBackgroundRefresh", this.firstBackgroundRefresh);
 
 		writer.WriteXmlNullableAttributeStringEncode("growShrinkType", this.growShrinkType);
 
-		writer.WriteXmlNullableAttributeBool("headers", this.headers);
-		writer.WriteXmlNullableAttributeBool("intermediate", this.intermediate);
-		writer.WriteXmlNullableAttributeBool("preserveFormatting", this.preserveFormatting);
-		writer.WriteXmlNullableAttributeBool("refreshOnLoad", this.refreshOnLoad);
-		writer.WriteXmlNullableAttributeBool("removeDataOnSave", this.removeDataOnSave);
-		writer.WriteXmlNullableAttributeBool("rowNumbers", this.rowNumbers);
+		writer.WriteXmlNullableAttributeBool2("headers", this.headers);
+		writer.WriteXmlNullableAttributeBool2("intermediate", this.intermediate);
+		writer.WriteXmlNullableAttributeBool2("preserveFormatting", this.preserveFormatting);
+		writer.WriteXmlNullableAttributeBool2("refreshOnLoad", this.refreshOnLoad);
+		writer.WriteXmlNullableAttributeBool2("removeDataOnSave", this.removeDataOnSave);
+		writer.WriteXmlNullableAttributeBool2("rowNumbers", this.rowNumbers);
 
 		writer.WriteXmlString(">");
 
@@ -5546,9 +5575,9 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlNullableAttributeNumber("unboundColumnsLeft", this.unboundColumnsLeft);
 		writer.WriteXmlNullableAttributeNumber("unboundColumnsRight", this.unboundColumnsRight);
 
-		writer.WriteXmlNullableAttributeBool("fieldIdWrapped", this.fieldIdWrapped);
-		writer.WriteXmlNullableAttributeBool("headersInLastRefresh", this.headersInLastRefresh);
-		writer.WriteXmlNullableAttributeBool("preserveSortFilterLayout", this.preserveSortFilterLayout);
+		writer.WriteXmlNullableAttributeBool2("fieldIdWrapped", this.fieldIdWrapped);
+		writer.WriteXmlNullableAttributeBool2("headersInLastRefresh", this.headersInLastRefresh);
+		writer.WriteXmlNullableAttributeBool2("preserveSortFilterLayout", this.preserveSortFilterLayout);
 		writer.WriteXmlNullableAttributeNumber("minimumVersion", this.minimumVersion);
 		writer.WriteXmlString(">");
 
@@ -5700,10 +5729,10 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlNullableAttributeNumber("id", this.id);
 		writer.WriteXmlNullableAttributeNumber("tableColumnId", this.tableColumnId);
 
-		writer.WriteXmlNullableAttributeBool("rowNumbers", this.rowNumbers);
-		writer.WriteXmlNullableAttributeBool("fillFormulas", this.fillFormulas);
-		writer.WriteXmlNullableAttributeBool("dataBound", this.dataBound);
-		writer.WriteXmlNullableAttributeBool("clipped", this.clipped);
+		writer.WriteXmlNullableAttributeBool2("rowNumbers", this.rowNumbers);
+		writer.WriteXmlNullableAttributeBool2("fillFormulas", this.fillFormulas);
+		writer.WriteXmlNullableAttributeBool2("dataBound", this.dataBound);
+		writer.WriteXmlNullableAttributeBool2("clipped", this.clipped);
 		writer.WriteXmlAttributesEnd(true);
 	};
 

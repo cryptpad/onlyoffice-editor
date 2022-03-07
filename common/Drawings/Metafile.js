@@ -1094,6 +1094,13 @@
 				this.WriteXmlAttributeBool(name, val)
 			}
 		};
+		this.WriteXmlNullableAttributeBool2 = function(name, val)
+		{
+			//добавлюя по аналогии с x2t
+			if (null !== val && undefined !== val) {
+				this.WriteXmlNullableAttributeString(name, val ? "1": "0")
+			}
+		};
 		this.WriteXmlNullableAttributeByte = function(name, val)
 		{
 			if (null !== val && undefined !== val) {
