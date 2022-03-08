@@ -1636,14 +1636,16 @@ var editor;
 
 			//TODO проверить когда несколько ссылок на customXml
 			var customXmlPart = wbPart.getPartByRelationshipType(openXml.Types.customXml.relationType);
-			var customXml = customXmlPart.getDocumentContent(true);
-			var customXmlPropsPart = customXmlPart.getPartByRelationshipType(openXml.Types.customXmlProps.relationType);
-			var customXmlProps = customXmlPropsPart.getDocumentContent(true);
+			if (customXmlPart) {
+				var customXml = customXmlPart.getDocumentContent(true);
+				var customXmlPropsPart = customXmlPart.getPartByRelationshipType(openXml.Types.customXmlProps.relationType);
+				var customXmlProps = customXmlPropsPart && customXmlPropsPart.getDocumentContent(true);
 
-			//в бинарник не будем писать, для совместимости оставляю поля, добавляю ещё новые
-			var custom = {Uri: [], ItemId: null, Content: null, item: customXml, itemProps: customXmlProps};
-			wb.customXmls = [];
-			wb.customXmls.push(custom);
+				//в бинарник не будем писать, для совместимости оставляю поля, добавляю ещё новые
+				var custom = {Uri: [], ItemId: null, Content: null, item: customXml, itemProps: customXmlProps};
+				wb.customXmls = [];
+				wb.customXmls.push(custom);
+			}
 		}
 
 		if (window['OPEN_IN_BROWSER'] && wbXml.sheets) {
