@@ -3990,7 +3990,6 @@
 	/**
 	 * Конвертируем нумерацию {a b ... z aa bb ... zz aaa bbb ... zzz ...} в число
 	 * @param sLetters
-	 * @constructor
 	 */
 	function LatinNumberingToInt(sLetters)
 	{
@@ -8906,6 +8905,42 @@
 				|| 0x2610 === nUnicode));
 	}
 
+	function ExecuteNoHistory(f, oLogicDocument, oThis, args)
+	{
+		// TODO: Надо перевести все редакторы на StartNoHistoryMode/EndNoHistoryMode
+
+		let oState = null, isTableId = false;
+		if (oLogicDocument && oLogicDocument.IsDocumentEditor && oLogicDocument.IsDocumentEditor())
+		{
+			oState = oLogicDocument.StartNoHistoryMode();
+		}
+		else
+		{
+			AscCommon.History.TurnOff && AscCommon.History.TurnOff();
+
+			if (AscCommon.g_oTableId && !AscCommon.g_oTableId.IsOn())
+			{
+				AscCommon.g_oTableId.TurnOff();
+				isTableId = true;
+			}
+		}
+
+		let result = f.apply(oThis, args);
+
+		if (oLogicDocument && oLogicDocument.IsDocumentEditor && oLogicDocument.IsDocumentEditor())
+		{
+			oLogicDocument.EndNoHistoryMode(oState);
+		}
+		else
+		{
+			AscCommon.History.TurnOn && AscCommon.History.TurnOn();
+			if (isTableId)
+				AscCommon.g_oTableId.TurnOn();
+		}
+
+		return result;
+	}
+
 	function private_IsAbbreviation(sWord) {
 		if (sWord.toUpperCase() === sWord) {
 			// Корейские символы считаются символами в верхнем регистре, но при этом мы не должны считать их аббревиатурой
@@ -11213,6 +11248,11 @@
 			}
 			//todo quotes
 			if (textQualifier) {
+				if (!row.length) {
+					matrix.push(row.split(delimiterChar));
+					continue;
+				}
+
 				var _text = "";
 				var startQualifier = false;
 				for (var j = 0; j < row.length; j++) {
@@ -11812,6 +11852,7 @@
 	window["AscCommon"].IsLetter = IsLetter;
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;
 	window["AscCommon"].IsAscFontSupport = IsAscFontSupport;
+	window["AscCommon"].ExecuteNoHistory = ExecuteNoHistory;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;

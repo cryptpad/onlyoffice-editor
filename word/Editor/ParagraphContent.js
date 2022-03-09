@@ -124,18 +124,6 @@ var nbsp_charcode = 0x00A0;
 var nbsp_string = String.fromCharCode(0x00A0);
 var sp_string   = String.fromCharCode(0x0032);
 
-var g_aNumber     = [];
-g_aNumber[0x0030] = 1;
-g_aNumber[0x0031] = 1;
-g_aNumber[0x0032] = 1;
-g_aNumber[0x0033] = 1;
-g_aNumber[0x0034] = 1;
-g_aNumber[0x0035] = 1;
-g_aNumber[0x0036] = 1;
-g_aNumber[0x0037] = 1;
-g_aNumber[0x0038] = 1;
-g_aNumber[0x0039] = 1;
-
 // Suitable Run content for the paragraph simple changes
 var g_oSRCFPSC             = [];
 g_oSRCFPSC[para_Text]      = 1;
@@ -223,7 +211,7 @@ CRunElementBase.prototype.Is_RealContent   = function()
 {
 	return true;
 };
-CRunElementBase.prototype.Can_AddNumbering = function()
+CRunElementBase.prototype.CanAddNumbering  = function()
 {
 	return true;
 };
@@ -371,6 +359,36 @@ CRunElementBase.prototype.ToSearchElement = function(oProps)
 {
 	return null;
 };
+/**
+ * Является ли данный элемент автофигурой
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsDrawing = function()
+{
+	return false;
+};
+/**
+ * Является ли данный элемент текстовым элементом (но не пробелом и не табом)
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsText = function()
+{
+	return false;
+};
+/**
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsTab = function()
+{
+	return false;
+};
+/**
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsParaEnd = function()
+{
+	return false;
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -430,7 +448,7 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 
 	var ResultCharCode = (this.Flags & PARATEXT_FLAGS_CAPITALS ? (String.fromCharCode(CharCode).toUpperCase()).charCodeAt(0) : CharCode);
 
-	if (true !== this.Is_NBSP())
+	if (true !== this.IsNBSP())
 		Context.FillTextCode(X, Y, ResultCharCode);
 	else if (editor && editor.ShowParaMarks)
 		Context.FillText(X, Y, String.fromCharCode(0x00B0));
@@ -507,7 +525,7 @@ ParaText.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaText.prototype.Can_AddNumbering = function()
+ParaText.prototype.CanAddNumbering = function()
 {
 	return true;
 };
@@ -519,10 +537,6 @@ ParaText.prototype.IsEqual = function(oElement)
 {
 	return (oElement.Type === this.Type && this.Value === oElement.Value);
 };
-ParaText.prototype.Is_NBSP = function()
-{
-	return (this.Value === nbsp_charcode);
-};
 ParaText.prototype.IsNBSP = function()
 {
 	return (this.Value === nbsp_charcode);
@@ -531,12 +545,9 @@ ParaText.prototype.IsPunctuation = function()
 {
 	return !!(undefined !== AscCommon.g_aPunctuation[this.Value]);
 };
-ParaText.prototype.Is_Number = function()
+ParaText.prototype.IsNumber = function()
 {
-	if (1 === g_aNumber[this.Value])
-		return true;
-
-	return false;
+	return this.IsDigit();
 };
 ParaText.prototype.Is_SpecialSymbol = function()
 {
@@ -604,14 +615,14 @@ ParaText.prototype.private_IsSpaceAfter = function()
 };
 ParaText.prototype.CanBeAtBeginOfLine = function()
 {
-	if (this.Is_NBSP())
+	if (this.IsNBSP())
 		return false;
 
 	return (!(AscCommon.g_aPunctuation[this.Value] & AscCommon.PUNCTUATION_FLAG_CANT_BE_AT_BEGIN));
 };
 ParaText.prototype.CanBeAtEndOfLine = function()
 {
-	if (this.Is_NBSP())
+	if (this.IsNBSP())
 		return false;
 
 	return (!(AscCommon.g_aPunctuation[this.Value] & AscCommon.PUNCTUATION_FLAG_CANT_BE_AT_END));
@@ -635,7 +646,7 @@ ParaText.prototype.GetAutoCorrectFlags = function()
 		return AUTOCORRECT_FLAGS_ALL;
 
 	// /,\,@  - исключения, на них мы не должны стартовать атозамену первой буквы предложения
-	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
+	if ((this.IsPunctuation() || this.IsNumber()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
 		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 
 	return AUTOCORRECT_FLAGS_NONE;
@@ -734,7 +745,7 @@ ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, o
 };
 ParaText.prototype.IsLetter = function()
 {
-	return (!this.IsPunctuation() && !this.Is_Number() && !this.IsNBSP());
+	return (!this.IsPunctuation() && !this.IsNumber() && !this.IsNBSP());
 };
 ParaText.prototype.IsDigit = function()
 {
@@ -742,10 +753,14 @@ ParaText.prototype.IsDigit = function()
 };
 ParaText.prototype.ToSearchElement = function(oProps)
 {
-	if (oProps.MatchCase)
+	if (!oProps.MatchCase)
 		return new CSearchTextItemChar(String.fromCodePoint(this.Value).toLowerCase().codePointAt(0));
 
 	return new CSearchTextItemChar(this.Value);
+};
+ParaText.prototype.IsText = function()
+{
+	return true;
 };
 
 
@@ -863,7 +878,7 @@ ParaSpace.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaSpace.prototype.Can_AddNumbering = function()
+ParaSpace.prototype.CanAddNumbering = function()
 {
 	return true;
 };
@@ -1007,7 +1022,7 @@ ParaSym.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaSym.prototype.Can_AddNumbering = function()
+ParaSym.prototype.CanAddNumbering = function()
 {
 	return true;
 };
@@ -1182,7 +1197,7 @@ ParaEnd.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaEnd.prototype.Can_AddNumbering = function()
+ParaEnd.prototype.CanAddNumbering = function()
 {
 	return true;
 };
@@ -1208,6 +1223,11 @@ ParaEnd.prototype.ToSearchElement = function(oProps)
 {
 	return new CSearchTextSpecialParaEnd();
 };
+ParaEnd.prototype.IsParaEnd = function()
+{
+	return true;
+};
+
 
 /**
  * Класс представляющий разрыв строки/колонки/страницы
@@ -1421,7 +1441,7 @@ ParaNewLine.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaNewLine.prototype.Can_AddNumbering = function()
+ParaNewLine.prototype.CanAddNumbering = function()
 {
 	if (break_Line === this.BreakType)
 		return true;
@@ -1642,7 +1662,7 @@ ParaNumbering.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaNumbering.prototype.Can_AddNumbering = function()
+ParaNumbering.prototype.CanAddNumbering = function()
 {
 	return false;
 };
@@ -1829,6 +1849,10 @@ ParaTab.prototype.ToSearchElement = function(oProps)
 {
 	return new CSearchTextSpecialTab();
 };
+ParaTab.prototype.IsTab = function()
+{
+	return true;
+};
 
 /**
  * Класс представляющий элемент номер страницы
@@ -1950,7 +1974,7 @@ ParaPageNum.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaPageNum.prototype.Can_AddNumbering = function()
+ParaPageNum.prototype.CanAddNumbering = function()
 {
 	return true;
 };
@@ -2048,7 +2072,7 @@ ParaPresentationNumbering.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaPresentationNumbering.prototype.Can_AddNumbering = function()
+ParaPresentationNumbering.prototype.CanAddNumbering = function()
 {
 	return false;
 };
@@ -2567,7 +2591,7 @@ ParaPageCount.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaPageCount.prototype.Can_AddNumbering = function()
+ParaPageCount.prototype.CanAddNumbering = function()
 {
 	return true;
 };

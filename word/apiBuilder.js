@@ -2002,17 +2002,18 @@
 	};
 
 	/**
-	 * Specifies a highlighting color in the RGB format which is applied as a background for the contents of the current Range.
+	 * Specifies a highlighting color which is applied as a background to the contents of the current Range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CDE"]
-	 * @param {byte} r - Red color component value.
-	 * @param {byte} g - Green color component value.
-	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} [isNone=false] If this parameter is set to "true", then r,g,b parameters will be ignored.
+	 * @param {highlightColor} sColor - available highlight color
 	 * @returns {ApiRange | null} - returns null if can't apply highlight.
 	 */
-	ApiRange.prototype.SetHighlight = function(r, g, b, isNone)
+	ApiRange.prototype.SetHighlight = function(sColor)
 	{
+		var color = private_getHighlightColorByName(sColor);
+		if (!color && sColor !== "none")
+			return null;
+
 		private_RefreshRangesPosition();
 		private_RemoveEmptyRanges();
 
@@ -2038,14 +2039,14 @@
 		}
 
 		var TextPr;
-		if (true === isNone)
+		if ("none" === sColor)
 		{
 			TextPr = new ParaTextPr({HighLight : highlight_None});
 			Document.AddToParagraph(TextPr);
 		}
 		else
 		{
-			var color = new CDocumentColor(r, g, b);
+			color = new CDocumentColor(color.r, color.g, color.b);
 			TextPr = new ParaTextPr({HighLight : color});
 			Document.AddToParagraph(TextPr);
 		}
@@ -2692,7 +2693,7 @@
 		return true;
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -2705,7 +2706,7 @@
 			type: "document",
 			content: []
 		}
-		
+
 		private_RefreshRangesPosition();
 		private_RemoveEmptyRanges();
 
@@ -2734,7 +2735,7 @@
 		}
 		else
 			return "";
-		
+
 		return JSON.stringify(aResult);
 	};
 
@@ -2851,6 +2852,71 @@
 		return "hyperlink";
 	};
 	
+	/**
+	 * Class representing a document form base.
+	 * @constructor
+	 * @extends {ApiInlineLvlSdt}
+	 */
+	function ApiFormBase(oSdt)
+	{
+		ApiInlineLvlSdt.call(this, oSdt);
+	}
+
+	ApiFormBase.prototype = Object.create(ApiInlineLvlSdt.prototype);
+	ApiFormBase.prototype.constructor = ApiFormBase;
+
+	/**
+	 * Class representing a document text form.
+	 * @constructor
+	 * @extends {ApiFormBase}
+	 */
+	function ApiTextForm(oSdt)
+	{
+		ApiFormBase.call(this, oSdt);
+	}
+
+	ApiTextForm.prototype = Object.create(ApiFormBase.prototype);
+	ApiTextForm.prototype.constructor = ApiTextForm;
+
+	/**
+	 * Class representing a document combobox form.
+	 * @constructor
+	 * @extends {ApiFormBase}
+	 */
+	function ApiComboBoxForm(oSdt)
+	{
+		ApiFormBase.call(this, oSdt);
+	}
+
+	ApiComboBoxForm.prototype = Object.create(ApiFormBase.prototype);
+	ApiComboBoxForm.prototype.constructor = ApiComboBoxForm;
+
+	/**
+	 * Class representing a document checkbox form.
+	 * @constructor
+	 * @extends {ApiFormBase}
+	 */
+	function ApiCheckBoxForm(oSdt)
+	{
+		ApiFormBase.call(this, oSdt);
+	}
+
+	ApiCheckBoxForm.prototype = Object.create(ApiFormBase.prototype);
+	ApiCheckBoxForm.prototype.constructor = ApiCheckBoxForm;
+
+	/**
+	 * Class representing a document picture form.
+	 * @constructor
+	 * @extends {ApiFormBase}
+	 */
+	function ApiPictureForm(oSdt)
+	{
+		ApiFormBase.call(this, oSdt);
+	}
+
+	ApiPictureForm.prototype = Object.create(ApiFormBase.prototype);
+	ApiPictureForm.prototype.constructor = ApiPictureForm;
+
 	/**
 	 * Sets the hyperlink address.
 	 * @typeofeditors ["CDE"]
@@ -2977,7 +3043,7 @@
 	};
 	/**
 	 * Returns the hyperlink element using the position specified.
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE"]
 	 * @param {number} nPos - The position where the element which content we want to get must be located.
 	 * @returns {?ParagraphContent}
 	 */
@@ -2993,7 +3059,7 @@
 	};
 	/**
 	 * Returns a number of elements in the current hyperlink.
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE"]
 	 * @returns {number}
 	 */
 	ApiHyperlink.prototype.GetElementsCount = function()
@@ -3409,7 +3475,7 @@
 
 	/**
 	 * The types of elements that can be added to the paragraph structure.
-	 * @typedef {(ApiUnsupported | ApiRun | ApiInlineLvlSdt)} ParagraphContent
+	 * @typedef {(ApiUnsupported | ApiRun | ApiInlineLvlSdt | ApiHyperlink)} ParagraphContent
 	 */
 
 	/**
@@ -3507,18 +3573,46 @@
 
 	/**
 	 *
+	 * The lock type of the content control.
 	 * @typedef {"unlocked" | "contentLocked" | "sdtContentLocked" | "sdtLocked"} SdtLock
 	 */
 
 	/**
      * Text transform preset
-	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown" 
+	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown"
 	 * | "textCanUp" | "textCascadeDown" | "textCascadeUp" | "textChevron" | "textChevronInverted" | "textCircle" | "textCirclePour"
 	 * | "textCurveDown" | "textCurveUp" | "textDeflate" | "textDeflateBottom" | "textDeflateInflate" | "textDeflateInflateDeflate" | "textDeflateTop"
 	 * | "textDoubleWave1" | "textFadeDown" | "textFadeLeft" | "textFadeRight" | "textFadeUp" | "textInflate" | "textInflateBottom" | "textInflateTop"
 	 * | "textPlain" | "textRingInside" | "textRingOutside" | "textSlantDown" | "textSlantUp" | "textStop" | "textTriangle" | "textTriangleInverted"
 	 * | "textWave1" | "textWave2" | "textWave4" | "textNoShape")} TextTransofrm
 	 * */
+
+	/**
+	 *
+	 * @typedef {"textForm" | "comboBoxForm" | "dropDownForm" | "checkBoxForm" | "radioButtonForm" | "pictureForm"} FormType
+	 */
+
+	/**
+	 * 1 millimetre equals 1/10th of a centimetre.
+	 * @typedef {number} mm
+	 */
+
+	/**
+	 * Condition when to scale image.
+	 * @typedef {"always" | "never" | "tooBig" | "tooSmall"} ScaleCase
+	 */
+
+	/**
+	 * Value from 1 to 100.
+	 * @typedef {number} percentage
+	 */
+
+	/**
+	 * Available highlight colors.
+	 * @typedef {"black" | "blue" | "cyan" | "green" | "magenta" | "red" | "yellow" | "white" | "darkBlue" |
+	 * "darkCyan" | "darkGreen" | "darkMagenta" | "darkRed" | "darkYellow" | "darkGray" | "lightGray" | "none"} highlightColor
+	 */
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// Base Api
@@ -3960,7 +4054,7 @@
 	 */
 	Api.prototype.CreateBlockLvlSdt = function()
 	{
-		return new ApiBlockLvlSdt(new CBlockLevelSdt(editor.private_GetLogicDocument()));
+		return new ApiBlockLvlSdt(new CBlockLevelSdt(editor.private_GetLogicDocument(), private_GetLogicDocument()));
 	};
 
 	/**
@@ -4109,8 +4203,8 @@
 	 * Starts the mail merge process.
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @param {number} nStartIndex - The start index of the document for mail merge process.
-	 * @param {number} nEndIndex - The end index of the document for mail merge process.
+	 * @param {number} [nStartIndex=0] - The start index of the document for mail merge process.
+	 * @param {number} [nEndIndex=Api.GetMailMergeReceptionsCount() - 1] - The end index of the document for mail merge process.
 	 * @returns {boolean}
 	 */
 	Api.prototype.MailMerge = function(nStartIndex, nEndIndex)
@@ -4190,7 +4284,7 @@
 					oCurSectPr.Set_Borders_Left(oNewSectPr.Borders.Left ? oNewSectPr.Borders.Left.Copy() : null);
 					oCurSectPr.Set_Borders_Right(oNewSectPr.Borders.Right ? oNewSectPr.Borders.Right.Copy() : null);
 					oCurSectPr.Set_Borders_Top(oNewSectPr.Borders.Top ? oNewSectPr.Borders.Top.Copy() : null);
-					
+
 					// columns
 					oCurSectPr.Set_Columns_Cols(oNewSectPr.Columns.Cols);
 					oCurSectPr.Set_Columns_EqualWidth(oNewSectPr.Columns.EqualWidth);
@@ -4359,7 +4453,6 @@
 		// Если oElement не является массивом, определяем параграф это или документ
 		if (!Array.isArray(oElement))
 		{
-			// Проверка на параграф
 			if (oElement instanceof ApiParagraph || oElement instanceof ApiDocument)
 				return oElement.AddComment(Comment, Autor);
 		}
@@ -4381,34 +4474,55 @@
 					return false;
 			}
 			
+			var oDocument = private_GetLogicDocument();
+
 			var CommentData = new AscCommon.CCommentData();
 			CommentData.SetText(Comment);
 			CommentData.SetUserName(Autor);
 
-			var oDocument = private_GetLogicDocument();
-			
 			var oStartRun = private_GetFirstRunInArray(oElement); 
-			var StartPos = oStartRun.Run.GetDocumentPositionFromObject();
-
+			var oStartPos = oStartRun.Run.GetDocumentPositionFromObject();
 			var oEndRun	= private_GetLastRunInArray(oElement)
-			var EndPos	= oEndRun.Run.GetDocumentPositionFromObject();
+			var oEndPos	= oEndRun.Run.GetDocumentPositionFromObject();
 
-			StartPos.push({Class: oStartRun.Run, Position: 0});
-			EndPos.push({Class: oEndRun.Run, Position: oEndRun.Run.Content.length});
+			oStartPos.push({Class: oStartRun.Run, Position: 0});
+			oEndPos.push({Class: oEndRun.Run, Position: oEndRun.Run.Content.length});
 
 			oDocument.Selection.Use = true;
-			oDocument.SetContentSelection(StartPos, EndPos, 0, 0, 0);
-			
-			var COMENT = oDocument.AddComment(CommentData, false);
+			oDocument.SetContentSelection(oStartPos, oEndPos, 0, 0, 0);
+
+			var sQuotedText = oDocument.GetSelectedText(false);
+			CommentData.Set_QuoteText(sQuotedText);
+
+			var oComment = new AscCommon.CComment(oDocument.Comments, CommentData);
+			oDocument.Comments.Add(oComment);
 			oDocument.RemoveSelection();
-			
-			if (null != COMENT)
+
+			var oCommentEnd = new AscCommon.ParaComment(false, oComment.Get_Id());
+			oComment.SetRangeEnd(oCommentEnd.GetId());
+			var oEndRunParent = oEndRun.Run.GetParent();
+			if (!oEndRunParent)
+				return false;
+			var nEndRunPosInParent = oEndRun.Run.GetPosInParent();
+			oEndRunParent.Internal_Content_Add(nEndRunPosInParent + 1, oCommentEnd);
+
+			var oCommentStart = new AscCommon.ParaComment(true, oComment.Get_Id());
+			oComment.SetRangeStart(oCommentStart.GetId());
+			var oStartRunParent = oStartRun.Run.GetParent();
+			if (!oStartRunParent)
+				return false;
+			var nStartRunPosInParent = oStartRun.Run.GetPosInParent();
+			oStartRunParent.Internal_Content_Add(nStartRunPosInParent, oCommentStart);
+
+			if (null != oComment)
 			{
-				editor.sync_AddComment(COMENT.Get_Id(), CommentData);
+				editor.sync_AddComment(oComment.Get_Id(), CommentData);
 			}
 
 			return true;
 		}
+
+		return false;
 	};
 
 	
@@ -4472,7 +4586,10 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			this.Document.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+			this.Document.Internal_Content_Add(nPos, oElm);
 		}
 	};
 	/**
@@ -4486,7 +4603,11 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			this.Document.Internal_Content_Add(this.Document.Content.length, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+
+			this.Document.Internal_Content_Add(this.Document.Content.length, oElm);
 			return true;
 		}
 
@@ -4555,7 +4676,7 @@
 
 			if (bGetCopies)
 				oTempElm = oTempElm.Copy();
-				
+
 			if (oTempElm instanceof AscCommonWord.CTable)
 				aContent.push(new ApiTable(oTempElm));
 			else if (oTempElm instanceof AscCommonWord.Paragraph)
@@ -4710,6 +4831,15 @@
 			return null;
 
 		var oSectPr = new CSectionPr(this.Document);
+
+		var nContentPos = this.Document.CurPos.ContentPos;
+		var oCurSectPr  = this.Document.SectionsInfo.Get_SectPr(nContentPos).SectPr;
+
+		oSectPr.Copy(oCurSectPr);
+		oCurSectPr.Set_Type(oSectPr.Type);
+		oCurSectPr.Set_PageNum_Start(-1);
+		oCurSectPr.Clear_AllHdrFtr();
+
 		oParagraph.private_GetImpl().Set_SectionPr(oSectPr);
 		return new ApiSection(oSectPr);
 	};
@@ -4762,12 +4892,17 @@
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
 		{
 			oElement = arrContent[nIndex];
+			var oElm;
 			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 			{
+				oElm = oElement.private_GetImpl();
+				if (oElm.Is_UseInDocument())
+					continue;
+
 				if (true === isInline && oElement instanceof ApiParagraph)
-					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), false));
+					oSelectedContent.Add(new CSelectedElement(oElm, false));
 				else
-					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), true));
+					oSelectedContent.Add(new CSelectedElement(oElm, true));
 			}
 		}
 		oSelectedContent.On_EndCollectElements(this.Document, true);
@@ -5153,8 +5288,8 @@
 	 * process to arrange tables on the specified page.</note>
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @param nPage - The page number.
-	 * @return {ApiTable[]}  
+	 * @param {number} nPage - The page number.
+	 * @return {ApiTable[]}
 	 */
 	ApiDocument.prototype.GetAllTablesOnPage = function(nPage)
 	{
@@ -5306,8 +5441,8 @@
 	 * @param {boolean} [bHtmlHeadings=false] - Defines if the HTML headings and IDs will be generated when the Markdown renderer of your target platform does not handle Markdown-style IDs.
 	 * @param {boolean} [bBase64img=false] - Defines if the images will be created in the base64 format.
 	 * @param {boolean} [bDemoteHeadings=false] - Defines if all heading levels in your document will be demoted to conform with the following standard: single H1 as title, H2 as top-level heading in the text body.
-	 * @param {boolean} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket 
-	 * in the following way: \&lt;tag&gt;text\&lt;/tag&gt;. By default, angle brackets will be replaced with the special characters.
+	 * @param {boolean} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket
+	 * in the following way: \<tag&gt;text\</tag&gt;. By default, the opening angle brackets will be replaced with the special characters.
 	 * @returns {string}
 	 */
 	ApiDocument.prototype.ToMarkdown = function(bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags) 
@@ -5330,8 +5465,8 @@
 	 * @param {boolean} [bHtmlHeadings=false] - Defines if the HTML headings and IDs will be generated when the Markdown renderer of your target platform does not handle Markdown-style IDs.
 	 * @param {boolean} [bBase64img=false] - Defines if the images will be created in the base64 format.
 	 * @param {boolean} [bDemoteHeadings=false] - Defines if all heading levels in your document will be demoted to conform with the following standard: single H1 as title, H2 as top-level heading in the text body.
-	 * @param {boolean} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket 
-	 * in the following way: \&lt;tag&gt;text\&lt;/tag&gt;. By default, angle brackets will be replaced with the special characters.
+	 * @param {boolean} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket
+	 * in the following way: \<tag&gt;text\</tag&gt;. By default, the opening angle brackets will be replaced with the special characters.
 	 * @returns {string}
 	 */
 	ApiDocument.prototype.ToHtml = function(bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags) 
@@ -5401,7 +5536,7 @@
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} [bOnlyPageNumbers=false] - Determines that only page numbers need to be updated.
 	 */
-	ApiDocument.prototype.UpdateAllTOC = function(bOnlyPageNumbers) 
+	ApiDocument.prototype.UpdateAllTOC = function(bOnlyPageNumbers)
 	{
 		if (typeof(bOnlyPageNumbers) !== "boolean")
 			bOnlyPageNumbers = false;
@@ -5426,7 +5561,7 @@
 				return;
 
 			var oState = oDocument.SaveDocumentState();
-			
+
 			oTOC.SelectField();
 
 			if (bOnlyPageNumbers)
@@ -5457,7 +5592,7 @@
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} [bOnlyPageNumbers=false] - Determines that only page numbers need to be updated.
 	 */
-	ApiDocument.prototype.UpdateAllTOF = function(bOnlyPageNumbers) 
+	ApiDocument.prototype.UpdateAllTOF = function(bOnlyPageNumbers)
 	{
 		if (typeof(bOnlyPageNumbers) !== "boolean")
 			bOnlyPageNumbers = false;
@@ -5482,7 +5617,7 @@
 				return;
 
 			var oState = oDocument.SaveDocumentState();
-			
+
 			oTOC.SelectField();
 
 			if (bOnlyPageNumbers)
@@ -5531,6 +5666,74 @@
 
 		return JSON.stringify(oResult);
 	};
+	/**
+	 * Gets all existing forms in document.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @returns {(ApiTextForm | ApiPictureForm | ApiComboBoxForm | ApiCheckBoxForm)[]}
+	 */
+	ApiDocument.prototype.GetAllForms = function()
+	{
+		var aForms = [];
+		var allControls = this.Document.GetAllContentControls();
+		var oTemp;
+		for (var nElm = 0; nElm < allControls.length; nElm++)
+		{
+			if (allControls[nElm].IsForm())
+			{
+				oTemp = new ApiFormBase(allControls[nElm]);
+				switch (oTemp.GetFormType())
+				{
+					case "textForm":
+						aForms.push(new ApiTextForm(allControls[nElm]));
+						break;
+					case "comboBoxForm":
+					case "dropDownForm":
+						aForms.push(new ApiComboBoxForm(allControls[nElm]));
+						break;
+					case "radioButtonForm":
+					case "checkBoxForm":
+						aForms.push(new ApiCheckBoxForm(allControls[nElm]));
+						break;
+					case "pictureForm":
+						aForms.push(new ApiPictureForm(allControls[nElm]));
+						break;
+				}
+			}
+		}
+
+		return aForms;
+	};
+
+	/**
+	 * Clear all fields.
+	 * @memberof ApiDocument
+	 * @param {boolean} [bOnlyForms=false] - Determines whether only forms or all fields will be cleared.
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.ClearAllFields = function(bOnlyForms)
+	{
+		bOnlyForms = typeof(bOnlyForms) === "boolean" ? bOnlyForms : false;
+		this.Document.ClearAllSpecialForms(!bOnlyForms);
+	};
+
+	/**
+	 * Sets highlight to forms.
+	 * @memberof ApiDocument
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} [bNone=false] - Determines that highlight will not be set.
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.SetFormsHighlight = function(r, g, b, bNone)
+	{
+		if (bNone === true)
+			this.Document.SetSpecialFormsHighlight(null, null, null);
+		else
+			this.Document.SetSpecialFormsHighlight(r, g, b);
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -5832,6 +6035,9 @@
 			return false;
 
 		var oParaElement = oElement.private_GetImpl();
+		if (oParaElement.Is_UseInDocument())
+			return false;
+
 		if (undefined !== nPos)
 		{
 			this.Paragraph.Add_ToContent(nPos, oParaElement);
@@ -5908,35 +6114,29 @@
 	{
 		if (!Comment || typeof(Comment) !== "string")
 			return false;
-	
 		if (typeof(Autor) !== "string")
 			Autor = "";
 
+		var oDocument = private_GetLogicDocument();
+
+		var sQuotedText = this.GetText();
 		var CommentData = new AscCommon.CCommentData();
+		CommentData.Set_QuoteText(sQuotedText);
 		CommentData.SetText(Comment);
 		CommentData.SetUserName(Autor);
 
-		var oDocument = private_GetLogicDocument()
+		var oComment = new AscCommon.CComment(oDocument.Comments, CommentData);
+		oDocument.Comments.Add(oComment);
+		this.Paragraph.SetApplyToAll(true);
+		this.Paragraph.AddComment(oComment, true, true);
+		this.Paragraph.SetApplyToAll(false);
 
-		var oFirstun    = this.Paragraph.GetFirstRun();
-		var StartPos	= oFirstun.GetDocumentPositionFromObject();
-		var oEndRun     = this.Paragraph.Content[this.Paragraph.Content.length - 2];
-		var EndPos		= oEndRun.GetDocumentPositionFromObject();
-		StartPos.push({Class: oFirstun, Position: 0});
-		EndPos.push({Class: oEndRun, Position: oEndRun.Content.length});
-
-		oDocument.Selection.Use = true;
-		oDocument.SetContentSelection(StartPos, EndPos, 0, 0, 0);
-
-		var COMENT = oDocument.AddComment(CommentData, false);
-		oDocument.RemoveSelection();
-		
-		if (null != COMENT)
+		if (null != oComment)
 		{
-			editor.sync_AddComment(COMENT.Get_Id(), CommentData);
+			editor.sync_AddComment(oComment.Get_Id(), CommentData);
 		}
 
-		return true;
+		return true
 	};
 	/**
 	 * Adds a hyperlink to a paragraph. 
@@ -5995,7 +6195,10 @@
 	 */
 	ApiParagraph.prototype.Push = function(oElement)
 	{
-		if (oElement instanceof ApiRun || ApiInlineLvlSdt)
+		if (oElement.private_GetImpl().Is_UseInDocument())
+			return false;
+
+		if (oElement instanceof ApiRun || ApiInlineLvlSdt || ApiHyperlink)
 		{
 			this.AddElement(oElement);
 		}
@@ -6166,6 +6369,23 @@
 		return false;
 	};
 	/**
+	 * Return all font names from all elenemts inside it.
+	 * @memberof ApiParagraph
+	 * @typeofeditors ["CDE"]
+	 * @returns {string[]} The font names used for the current paragraph.
+	 */
+	ApiParagraph.prototype.GetFontNames = function()
+	{
+		var fontMap = {};
+		var arrFonts = [];
+		this.Paragraph.Document_Get_AllFontNames(fontMap);
+		for (var key in fontMap)
+		{
+			arrFonts.push(key);
+		}
+		return arrFonts;
+	};
+	/**
 	 * Sets the font size to the characters of the current paragraph.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
@@ -6181,26 +6401,38 @@
 		return this;
 	};
 	/**
-	 * Specifies a highlighting color in the RGB format which is applied as a background to the contents of the current paragraph.
+	 * Specifies a highlighting color which is applied as a background to the contents of the current paragraph.
 	 * @memberof ApiParagraph
-	 * @typeofeditors ["CDE"]
-	 * @param {byte} r - Red color component value.
-	 * @param {byte} g - Green color component value.
-	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} [isNone=false] If this parameter is set to "true", then r,g,b parameters will be ignored.
+	 * @typeofeditors ["CDE, CPE"]
+	 * @param {highlightColor} sColor - available highlight color
 	 * @returns {ApiParagraph} this
 	 */
-	ApiParagraph.prototype.SetHighlight = function(r, g, b, isNone)
+	ApiParagraph.prototype.SetHighlight = function(sColor)
 	{
+		if (!editor || Asc.editor)
+			return this;
+
 		this.Paragraph.SetApplyToAll(true);
-		if (true === isNone)
+		if ("none" === sColor)
 		{
-			this.Paragraph.Add(new ParaTextPr({HighLight : highlight_None}));
+			if (editor.editorId === AscCommon.c_oEditorId.Word)
+				this.Paragraph.Add(new ParaTextPr({HighLight : highlight_None}));
+			else if (editor.editorId === AscCommon.c_oEditorId.Presentation)
+				this.Paragraph.Add(new ParaTextPr({HighlightColor : null}));
 		}
 		else
 		{
-			var color = new CDocumentColor(r, g, b);
-			this.Paragraph.Add(new ParaTextPr({HighLight : color}));
+			var color = private_getHighlightColorByName(sColor);
+			if (color && editor.editorId === AscCommon.c_oEditorId.Word)
+			{
+				color = new CDocumentColor(color.r, color.g, color.b);
+				this.Paragraph.Add(new ParaTextPr({HighLight : color}));
+			}
+			else if (color && editor.editorId === AscCommon.c_oEditorId.Presentation)
+			{
+				color = AscFormat.CreateUniColorRGB(color.r, color.g, color.b);
+				this.Paragraph.Add(new ParaTextPr({HighlightColor : color}));
+			}
 		}
 		this.Paragraph.SetApplyToAll(false);
 		
@@ -7239,6 +7471,23 @@
 		return oTextPr;
 	};
 	/**
+	 * Return all font names from all elenemts inside it.
+	 * @memberof ApiRun
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {string[]} The font names used for the current run.
+	 */
+	ApiRun.prototype.GetFontNames = function()
+	{
+		var fontMap = {};
+		var arrFonts = [];
+		this.Run.Get_AllFontNames(fontMap);
+		for (var key in fontMap)
+		{
+			arrFonts.push(key);
+		}
+		return arrFonts;
+	};
+	/**
 	 * Sets the font size to the characters of the current text run.
 	 * @memberof ApiRun
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
@@ -7253,19 +7502,16 @@
 		return oTextPr;
 	};
 	/**
-	 * Specifies a highlighting color in the RGB format which is applied as a background for the contents of the current run.
+	 * Specifies a highlighting color which is applied as a background to the contents of the current run.
 	 * @memberof ApiRun
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @param {byte} r - Red color component value.
-	 * @param {byte} g - Green color component value.
-	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} [isNone=false] If this parameter is set to "true", then r,g,b parameters will be ignored.
+	 * @typeofeditors ["CDE, CPE"]
+	 * @param {highlightColor} sColor - available highlight color
 	 * @returns {ApiTextPr}
 	 */
-	ApiRun.prototype.SetHighlight = function(r, g, b, isNone)
+	ApiRun.prototype.SetHighlight = function(sColor)
 	{
 		var oTextPr = this.GetTextPr();
-		oTextPr.SetHighlight(r, g, b, isNone);
+		oTextPr.SetHighlight(sColor);
 		
 		return oTextPr;
 	};
@@ -7767,7 +8013,7 @@
 		return null;
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiSection
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -7929,7 +8175,7 @@
 	 */
 	ApiTable.prototype.SetTableLook = function(isFirstColumn, isFirstRow, isLastColumn, isLastRow, isHorBand, isVerBand)
 	{
-		var oTableLook = new CTableLook(private_GetBoolean(isFirstColumn),
+		var oTableLook = new AscCommon.CTableLook(private_GetBoolean(isFirstColumn),
 			private_GetBoolean(isFirstRow),
 			private_GetBoolean(isLastColumn),
 			private_GetBoolean(isLastRow),
@@ -8081,7 +8327,7 @@
 	/**
 	 * Adds a paragraph or a table or a blockLvl content control using its position in the cell.
 	 * @memberof ApiTable
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {ApiTableCell} oCell - The cell where the specified element will be added.
 	 * @param {number} nPos - The position in the cell where the specified element will be added.
 	 * @param {DocumentElement} oElement - The document element which will be added at the current position.
@@ -8095,7 +8341,10 @@
 
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			apiCellContent.Document.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+			apiCellContent.Document.Internal_Content_Add(nPos, oElm);
 
 			return true;
 		}
@@ -8149,7 +8398,7 @@
 	/**
 	 * Creates a copy of the current table.
 	 * @memberof ApiTable
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @returns {ApiTable}
 	 */
 	ApiTable.prototype.Copy = function()
@@ -8595,7 +8844,7 @@
 		return true;
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiTable
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -9176,7 +9425,10 @@
 
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
-			apiCellContent.Document.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+			apiCellContent.Document.Internal_Content_Add(nPos, oElm);
 
 			return true;
 		}
@@ -9355,7 +9607,7 @@
 		return new ApiTableStylePr(sType, this, this.Style.TableWholeTable.Copy());
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiStyle
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -9519,26 +9771,34 @@
 		return this;
 	};
 	/**
-	 * Specifies a highlighting color in the RGB format which is applied as a background for the contents of the current run.
+	 * Specifies a highlighting color which is applied as a background to the contents of the current run.
 	 * @memberof ApiTextPr
-	 * @typeofeditors ["CDE"]
-	 * @param {byte} r - Red color component value.
-	 * @param {byte} g - Green color component value.
-	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} [isNone=false] If this parameter is set to "true", then r,g,b parameters will be ignored.
-	 * @return {ApiTextPr} - this text properties.
+	 * @typeofeditors ["CDE, CPE"]
+	 * @param {highlightColor} sColor - available highlight color
+	 * @returns {ApiTextPr}
 	 */
-	ApiTextPr.prototype.SetHighlight = function(r, g, b, isNone)
+	ApiTextPr.prototype.SetHighlight = function(sColor)
 	{
-		if (undefined === isNone)
-			isNone = false;
+		if (!editor || Asc.editor)
+			return this;
 
-		if (true === isNone)
-			this.TextPr.HighLight = AscCommonWord.highlight_None;
+		if ("none" === sColor)
+		{
+			if (editor.editorId === AscCommon.c_oEditorId.Word)
+				this.TextPr.HighLight = AscCommonWord.highlight_None;
+			else if (editor.editorId === AscCommon.c_oEditorId.Presentation)
+				this.TextPr.HighlightColor = null;
+		}
 		else
-			this.TextPr.HighLight = new AscCommonWord.CDocumentColor(r, g, b, false);
-
+		{
+			var color = private_getHighlightColorByName(sColor);
+			if (color && editor.editorId === AscCommon.c_oEditorId.Word)
+				this.TextPr.HighLight = new CDocumentColor(color.r, color.g, color.b)
+			else if (color && editor.editorId === AscCommon.c_oEditorId.Presentation)
+				this.TextPr.HighlightColor = AscFormat.CreateUniColorRGB(color.r, color.g, color.b)
+		}
 		this.private_OnChange();
+
 		return this;
 	};
 	/**
@@ -9685,7 +9945,7 @@
 	};
 
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiTextPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -10315,7 +10575,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -10355,7 +10615,7 @@
 		return new ApiNumberingLevel(this.Num, nLevel);
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiNumbering
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -10810,7 +11070,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiTablePr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -10868,7 +11128,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiTableRowPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11146,7 +11406,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiTableCellPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11234,7 +11494,7 @@
 		return new ApiTableCellPr(this, this.TableStylePr.TableCellPr);
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiTableStylePr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11772,7 +12032,7 @@
 		return null;
 	};
 	/**
-	 * Convert to JSON object. 
+	 * Convert to JSON object.
 	 * @memberof ApiDrawing
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11786,7 +12046,7 @@
 	/**
      * Gets the lock type of drawing.
      * @typeofeditors ["CPE"]
-	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles" 
+	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
 	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock type in string format
      * @returns {bool}
      */
@@ -11806,7 +12066,7 @@
 	/**
      * Sets the lock type of drawing.
      * @typeofeditors ["CPE"]
-	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles" 
+	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
 	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock typeof string format
      * @param {bool} bValue - determines the value for the specified lock
 	 * @returns {bool}
@@ -11826,7 +12086,7 @@
 
 		return false;
 	};
-	
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiImage
@@ -12787,14 +13047,21 @@
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @param {number} nPos - The position of the element which we want to remove from the current inline text content control.
+	 * @returns {boolean}
 	 */
 	ApiInlineLvlSdt.prototype.RemoveElement = function(nPos)
 	{
 		if (nPos < 0 || nPos >= this.Sdt.Content.length)
-			return;
+			return false;
 
 		this.Sdt.RemoveFromContent(nPos, 1);
-		this.Sdt.CorrectContent();
+		if (this.Sdt.Content.length === 0)
+		{
+			this.Sdt.SetShowingPlcHdr(true);
+			this.Sdt.private_FillPlaceholderContent();
+		}
+
+		return true;
 	};
 
 	/**
@@ -12808,7 +13075,11 @@
 		if (this.Sdt.Content.length > 0)
 		{
 			this.Sdt.RemoveFromContent(0, this.Sdt.Content.length);
-			this.Sdt.CorrectContent();
+			if (this.Sdt.Content.length === 0)
+			{
+				this.Sdt.SetShowingPlcHdr(true);
+				this.Sdt.private_FillPlaceholderContent();
+			}
 
 			return true;
 		}
@@ -12830,6 +13101,15 @@
 			return false;
 
 		var oParaElement = oElement.private_GetImpl();
+		if (oParaElement.Is_UseInDocument())
+			return false;
+
+		if (this.Sdt.IsShowingPlcHdr())
+		{
+			this.Sdt.RemoveFromContent(0, this.Sdt.GetElementsCount(), false);
+			this.Sdt.SetShowingPlcHdr(false);
+		}
+
 		if (undefined !== nPos)
 		{
 			this.Sdt.AddToContent(nPos, oParaElement);
@@ -12854,13 +13134,15 @@
 		if (!private_IsSupportedParaElement(oElement))
 			return false;
 
+		var oParaElement = oElement.private_GetImpl();
+		if (oParaElement.Is_UseInDocument())
+			return false;
+
 		if (this.Sdt.IsShowingPlcHdr())
 		{
 			this.Sdt.RemoveFromContent(0, this.Sdt.GetElementsCount(), false);
 			this.Sdt.SetShowingPlcHdr(false);
 		}
-
-		var oParaElement = oElement.private_GetImpl();
 
 		this.Sdt.AddToContent(this.Sdt.GetElementsCount(), oParaElement);
 
@@ -12878,6 +13160,12 @@
 	{
 		if (typeof sText === "string")
 		{
+			if (this.Sdt.IsShowingPlcHdr())
+			{
+				this.Sdt.RemoveFromContent(0, this.Sdt.GetElementsCount(), false);
+				this.Sdt.SetShowingPlcHdr(false);
+			}
+
 			var newRun = editor.CreateRun();
 			newRun.AddText(sText);
 			this.AddElement(newRun, this.GetElementsCount())
@@ -12937,7 +13225,7 @@
 	};
 
 	/**
-	 * Gets the paragraph that contains the current content control.
+	 * Returns a paragraph that contains the current content control.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @return {ApiParagraph | null} - returns null if parent paragraph doesn't exist.
@@ -13057,6 +13345,78 @@
 		return JSON.stringify(oWriter.SerInlineLvlSdt(this.Sdt));
 	};
 
+	/**
+	 * Gets the placeholder text.
+	 * @memberof ApiInlineLvlSdt
+	 * @typeofeditors ["CDE"]
+	 * @returns {string}
+	 */
+	ApiInlineLvlSdt.prototype.GetPlaceholderText = function()
+	{
+		return this.Sdt.GetPlaceholderText();
+	};
+
+	/**
+	 * Sets the placeholder text.
+	 * *Can't be set to checkbox or radio button*
+	 * @memberof ApiInlineLvlSdt
+	 * @param {string} sText
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiInlineLvlSdt.prototype.SetPlaceholderText = function(sText)
+	{
+		if (typeof(sText) !== "string" || sText === "")
+			return false;
+		if (this.Sdt.IsCheckBox() || this.Sdt.IsRadioButton())
+			return false;
+
+		this.Sdt.SetPlaceholderText(sText);
+		return true;
+	};
+	/**
+	 * Check if the content control is a form.
+	 * @memberof ApiInlineLvlSdt
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiInlineLvlSdt.prototype.IsForm = function()
+	{
+		return this.Sdt.IsForm();
+	};
+	/**
+	 * Gets a form if it is one.
+	 * @memberof ApiInlineLvlSdt
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiForm}
+	 */
+	ApiInlineLvlSdt.prototype.GetForm = function()
+	{
+		if (!this.Sdt.IsForm())
+			return null;
+
+		var oForm = new ApiFormBase(this.Sdt);
+		switch (oForm.GetFormType())
+		{
+			case "textForm":
+				oForm = new ApiTextForm(this.Sdt);
+				break;
+			case "comboBoxForm":
+			case "dropDownForm":
+				oForm = new ApiComboBoxForm(this.Sdt);
+				break;
+			case "radioButtonForm":
+			case "checkBoxForm":
+				oForm = new ApiCheckBoxForm(this.Sdt);
+				break;
+			case "pictureForm":
+				oForm = new ApiPictureForm(this.Sdt);
+				break;
+		}
+
+
+		return null;
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiBlockLvlSdt
@@ -13410,13 +13770,17 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || ApiBlockLvlSdt)
 		{
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+
 			if (this.Sdt.IsShowingPlcHdr())
 			{
 				this.Sdt.Content.RemoveFromContent(0, this.Sdt.Content.GetElementsCount(), false);
 				this.Sdt.SetShowingPlcHdr(false);
 			}
 			
-			this.Sdt.Content.Internal_Content_Add(this.Sdt.Content.Content.length, oElement.private_GetImpl());
+			this.Sdt.Content.Internal_Content_Add(this.Sdt.Content.Content.length, oElm);
 			return true;
 		}
 
@@ -13435,13 +13799,17 @@
 	{
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || ApiBlockLvlSdt)
 		{
+			var oElm = oElement.private_GetImpl();
+			if (oElm.Is_UseInDocument())
+				return false;
+
 			if (this.Sdt.IsShowingPlcHdr())
 			{
 				this.Sdt.Content.RemoveFromContent(0, this.Sdt.Content.GetElementsCount(), false);
 				this.Sdt.SetShowingPlcHdr(false);
 			}
 			
-			this.Sdt.Content.Internal_Content_Add(nPos, oElement.private_GetImpl());
+			this.Sdt.Content.Internal_Content_Add(nPos, oElm);
 			return true;
 		}
 
@@ -13487,7 +13855,7 @@
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @param {string} sText - Search string.
-	 * @param {boolean} isMatchCase - Case sensitive or not. 
+	 * @param {boolean} isMatchCase - Case sensitive or not.
 	 * @return {ApiRange[]}  
 	 */
 	ApiBlockLvlSdt.prototype.Search = function(sText, isMatchCase)
@@ -13522,6 +13890,811 @@
 
 		this.Sdt.SelectContentControl();
 		Document.UpdateSelection();
+	};
+
+	/**
+	 * Gets the placeholder text.
+	 * @memberof ApiBlockLvlSdt
+	 * @typeofeditors ["CDE"]
+	 * @returns {string}
+	 */
+	ApiBlockLvlSdt.prototype.GetPlaceholderText = function()
+	{
+		return this.Sdt.GetPlaceholderText();
+	};
+
+	/**
+	 * Sets the placeholder text.
+	 * @memberof ApiBlockLvlSdt
+	 * @param {string} sText
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiBlockLvlSdt.prototype.SetPlaceholderText = function(sText)
+	{
+		if (typeof(sText) !== "string" || sText === "")
+			return false;
+
+		this.Sdt.SetPlaceholderText(sText);
+		return true;
+	};
+
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiFormBase
+	//
+	//------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Returns a type of the ApiFormBase class.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {"form"}
+	 */
+	ApiFormBase.prototype.GetClassType = function()
+	{
+		return "form";
+	};
+	/**
+	 * Returns a type of current form.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {FormType}
+	 */
+	ApiFormBase.prototype.GetFormType = function()
+	{
+		if (this.Sdt.IsTextForm())
+			return "textForm";
+		if (this.Sdt.IsComboBox())
+			return "comboBoxForm";
+		if (this.Sdt.IsDropDownList())
+			return "dropDownForm";
+		if (this.Sdt.IsRadioButton())
+			return "radioButtonForm";
+		if (this.Sdt.IsCheckBox())
+			return "checkBoxForm";
+		if (this.Sdt.IsPictureForm())
+			return "pictureForm";
+	};
+	/**
+	 * Returns the form key
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {string}
+	 */
+	ApiFormBase.prototype.GetFormKey = function()
+	{
+		var sKey = this.Sdt.GetFormKey();
+		if (typeof(sKey) !== "string")
+			sKey = "";
+		return sKey;
+	};
+	/**
+	 * Sets the form key
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sKey
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.SetFormKey = function(sKey)
+	{
+		if (typeof(sKey) !== "string")
+			return false;
+
+		sKey = sKey === "" ? undefined : sKey;
+
+		var oFormPr = this.Sdt.GetFormPr().Copy();
+		oFormPr && oFormPr.put_Key(sKey);
+
+		this.Sdt.SetFormPr(oFormPr);
+		return true;
+	};
+	/**
+	 * Returns the tip text.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {string}
+	 */
+	ApiFormBase.prototype.GetTipText = function()
+	{
+		var oFormPr = this.Sdt.GetFormPr();
+		var sTip = oFormPr.HelpText;
+		if (typeof(sTip) !== "string")
+			sTip = "";
+
+		return sTip;
+	};
+	/**
+	 * Sets the tip text.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sText
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.SetTipText = function(sText)
+	{
+		if (typeof(sText) !== "string")
+			return false;
+
+		var oFormPr = this.Sdt.GetFormPr().Copy();
+		oFormPr && oFormPr.put_HelpText(sText);
+
+		this.Sdt.SetFormPr(oFormPr);
+		return true;
+	};
+	/**
+	 * Checking whether the form is required.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.IsRequired = function()
+	{
+		return this.Sdt.IsFormRequired();
+	};
+	/**
+	 * Determines whether the form should be required.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @param {boolean} bRequired
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.SetRequired = function(bRequired)
+	{
+		if (typeof(bRequired) !== "boolean")
+			return false;
+		if (bRequired === this.IsRequired())
+			return true;
+
+		var oFormPr = this.Sdt.GetFormPr().Copy();
+		oFormPr && oFormPr.put_Required(bRequired);
+
+		this.Sdt.SetFormPr(oFormPr);
+		return true;
+	};
+	/**
+	 * Checking whether the form is fixed.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.IsFixedForm = function()
+	{
+		return this.Sdt.IsFixedForm();
+	};
+	/**
+	 * Determines whether the form should be fixed.
+	 * *Not for picture form*
+	 * @memberof ApiFormBase
+	 * @param {boolean} bFixed
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.SetFixedForm = function(bFixed)
+	{
+		if (typeof(bFixed) !== "boolean")
+			return false;
+		if (this.GetFormType() === "pictureForm")
+			return false;
+		if (bFixed === this.IsFixedForm())
+			return true;
+
+		if (bFixed)
+			this.Sdt.ConvertFormToFixed();
+		else
+			this.Sdt.ConvertFormToInline();
+
+		return true;
+	};
+	/**
+	 * Sets border to form.
+	 * @memberof ApiFormBase
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} bNone - is true, then sets no border.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.SetBorderColor = function(r, g, b, bNone)
+	{
+		var oFormPr = this.Sdt.GetFormPr().Copy();
+		var oBorder;
+		if (typeof(r) == "number" && typeof(g) == "number" && typeof(b) == "number" && !bNone)
+		{
+			oBorder = new CDocumentBorder();
+			oBorder.Color = new CDocumentColor(r, g, b);
+		}
+		else if (bNone)
+			oBorder = undefined;
+		else
+			return false;
+
+		oFormPr.Border = oBorder;
+
+		this.Sdt.SetFormPr(oFormPr);
+		return true;
+	};
+	/**
+	 * Sets background color to form.
+	 * @memberof ApiFormBase
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} bNone - is true, then sets no background color.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.SetBackgroundColor = function(r, g, b, bNone)
+	{
+		var oFormPr = this.Sdt.GetFormPr().Copy();
+		var oUtils = Common.Utils.ThemeColor;
+		var oAscColor;
+		if (typeof(r) == "number" && typeof(g) == "number" && typeof(b) == "number" && !bNone)
+			oAscColor = oUtils.getRgbColor(oUtils.getHexColor(r, g, b));
+		else if (bNone)
+			oAscColor = undefined;
+		else
+			return false;
+
+		if (oAscColor)
+			oFormPr.put_Shd(true, oAscColor);
+		else
+			oFormPr.put_Shd(false);
+
+		this.Sdt.SetFormPr(oFormPr);
+		return true;
+	};
+	/**
+	 * Gets text from form.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {string}
+	 */
+	ApiFormBase.prototype.GetText = function()
+	{
+		var oText = {
+			Text: ""
+		};
+
+		this.Sdt.Get_Text(oText);
+
+		return oText.Text;
+	};
+	/**
+	 * Clears the current form.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiFormBase.prototype.Clear = function()
+	{
+		this.Sdt.ClearContentControlExt();
+	};
+
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiTextForm
+	//
+	//------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Checking whether the form is autofit content.
+	 * @memberof ApiTextForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.IsAutoFit = function()
+	{
+		return this.Sdt.IsAutoFitContent();
+	};
+	/**
+	 * Determines whether the form should be autofit content.
+	 * @memberof ApiTextForm
+	 * @param {boolean} bAutoFit
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.SetAutoFit = function(bAutoFit)
+	{
+		if (typeof(bAutoFit) !== "boolean" || !this.IsFixedForm())
+			return false;
+		if (bAutoFit === this.IsAutoFit())
+			return true;
+
+		var oPr = this.Sdt.GetTextFormPr().Copy();
+		oPr.put_AutoFit(bAutoFit);
+
+		this.Sdt.SetTextFormPr(oPr);
+		return true;
+	};
+	/**
+	 * Checking whether the form is miltiline.
+	 * @memberof ApiTextForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.IsMultiline = function()
+	{
+		return this.Sdt.IsMultiLineForm();
+	};
+	/**
+	 * Determines whether the form should be miltiline.
+	 * @memberof ApiTextForm
+	 * @param {boolean} bMultiline
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean} - return false, if form is not fixed.
+	 */
+	ApiTextForm.prototype.SetMultiline = function(bMultiline)
+	{
+		if (typeof(bMultiline) !== "boolean" || !this.IsFixedForm())
+			return false;
+		if (!this.IsFixedForm())
+			return false;
+		if (bMultiline === this.IsMultiline())
+			return true;
+
+		var oPr = this.Sdt.GetTextFormPr().Copy();
+		oPr.put_MultiLine(bMultiline);
+		this.Sdt.SetTextFormPr(oPr);
+
+		return true;
+	};
+	/**
+	 * Gets characters limit.
+	 * @memberof ApiTextForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {number} - if returns -1 -> characters is no limit
+	 */
+	ApiTextForm.prototype.GetCharactersLimit = function()
+	{
+		var oPr = this.Sdt.GetTextFormPr();
+		if (!oPr)
+			return -1;
+
+		return oPr.GetMaxCharacters();
+	};
+	/**
+	 * Sets characters limit.
+	 * @memberof ApiTextForm
+	 * @param {number} nChars - if param is -1 -> sets no limit.
+	 * Can't sets no limit, if comb of characters is applied.
+	 * Max value is 1000000.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.SetCharactersLimit = function(nChars)
+	{
+		if (typeof(nChars) !== "number")
+			return false;
+
+		const nMax = 1000000;
+		nChars = nChars > nMax ? nMax : Math.floor(nChars);
+
+		if (nChars <= 0)
+			nChars = -1;
+
+		let oPr = this.Sdt.GetTextFormPr();
+		if (!oPr || (-1 === nChars && this.IsComb()))
+			return false;
+
+		oPr = oPr.Copy();
+		oPr.SetMaxCharacters(nChars);
+
+		this.Sdt.SetTextFormPr(oPr);
+		return true;
+	};
+	/**
+	 * Checking whether the form is characters comb.
+	 * @memberof ApiTextForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.IsComb = function()
+	{
+		let oPr = this.Sdt.GetTextFormPr();
+		return oPr ? oPr.IsComb() : false;
+	};
+	/**
+	 * Sets comb of characters.
+	 * @memberof ApiTextForm
+	 * @param {boolean} bComb
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.SetComb = function(bComb)
+	{
+		if (typeof(bComb) !== "boolean")
+			return false;
+
+		let oPr = this.Sdt.GetTextFormPr();
+		if (!oPr)
+			return false;
+
+		if (oPr.IsComb() === bComb)
+			return true;
+
+		oPr = oPr.Copy();
+		oPr.SetComb(bComb);
+		if (oPr.GetMaxCharacters() === -1)
+			oPr.SetMaxCharacters(10);
+		oPr.SetWidth(0);
+
+		this.Sdt.SetTextFormPr(oPr);
+		return true;
+	};
+	/**
+	 * Sets cell width with applied comb of characters.
+	 * @memberof ApiTextForm
+	 * @param {mm} [nCellWidth=0] - if nCellWidth === 0, then the width will be set automatically. Must be >= 1 and <= 558.8
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.SetCellWidth = function(nCellWidth)
+	{
+		if (typeof(nCellWidth) !== "number" || !this.IsComb())
+			return false;
+
+		var nWidthMax = 558.8;
+		nCellWidth = nCellWidth < 1 ? 1 : Math.floor(nCellWidth * 100) / 100;
+		nCellWidth = nCellWidth > nWidthMax ? nWidthMax : nCellWidth;
+
+		var oPr = this.Sdt.GetTextFormPr().Copy();
+		oPr.put_Width(Math.floor(nCellWidth * 72 * 20 / 25.4 + 0.5));
+
+		this.Sdt.SetTextFormPr(oPr);
+		return true;
+	};
+	/**
+	 * Sets text to form.
+	 * @memberof ApiTextForm
+	 * @param {string} sText
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTextForm.prototype.SetText = function(sText)
+	{
+		if (typeof (sText) !== "string" || sText === "")
+			return false;
+
+		if (this.Sdt.IsPlaceHolder())
+			this.Sdt.ReplacePlaceHolderWithContent();
+
+		let oRun = this.Sdt.MakeSingleRunElement();
+		oRun.ClearContent();
+		oRun.AddText(sText);
+
+		return true;
+	};
+
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiPictureForm
+	//
+	//------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Gets the current condition for scaling picture.
+	 * @memberof ApiPictureForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {ScaleCase}
+	 */
+	ApiPictureForm.prototype.GetPictureScaleCase = function()
+	{
+		let sScaleFlag = "always";
+		let oPr = this.Sdt.GetPictureFormPr();
+		switch (oPr.GetScaleFlag())
+		{
+			case Asc.c_oAscPictureFormScaleFlag.Always:
+				sScaleFlag = "always";
+				break;
+			case Asc.c_oAscPictureFormScaleFlag.Never:
+				sScaleFlag = "never";
+				break;
+			case Asc.c_oAscPictureFormScaleFlag.Bigger:
+				sScaleFlag = "tooBig";
+				break;
+			case Asc.c_oAscPictureFormScaleFlag.Small:
+				sScaleFlag = "tooSmall";
+				break;
+		}
+
+		return sScaleFlag;
+	};
+	/**
+	 * Sets the condition for scaling the picture.
+	 * @memberof ApiPictureForm
+	 * @param {ScaleCase} sScaleCase
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiPictureForm.prototype.SetPictureScaleCase = function(sScaleCase)
+	{
+		let nScaleFlag;
+		switch (sScaleCase)
+		{
+			case "always":
+				nScaleFlag = Asc.c_oAscPictureFormScaleFlag.Always;
+				break;
+			case "never":
+				nScaleFlag = Asc.c_oAscPictureFormScaleFlag.Never;
+				break;
+			case "tooBig":
+				nScaleFlag = Asc.c_oAscPictureFormScaleFlag.Bigger;
+				break;
+			case "tooSmall":
+				nScaleFlag = Asc.c_oAscPictureFormScaleFlag.Small;
+				break;
+			default:
+				return false;
+		}
+
+		var oPr = this.Sdt.GetPictureFormPr().Copy();
+		oPr.SetScaleFlag(nScaleFlag);
+		this.Sdt.SetPictureFormPr(oPr);
+		this.Sdt.UpdatePictureFormLayout();
+		return true;
+	};
+	/**
+	 * Sets the lock aspect ratio for picture.
+	 * @memberof ApiPictureForm
+	 * @param {percentage} xRatio
+	 * @param {percentage} yRatio
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiPictureForm.prototype.SetLockAspectRatio = function(xRatio, yRatio)
+	{
+		if (typeof(xRatio) !== "number" || typeof(yRatio) !== "number")
+			return false;
+		if (xRatio < 0 || xRatio > 100 || yRatio < 0 || yRatio > 100)
+			return false;
+
+		xRatio = Math.floor(xRatio);
+		yRatio = Math.floor(yRatio);
+
+		var oPr = this.Sdt.GetPictureFormPr().Copy();
+		oPr.SetShiftX(xRatio / 100);
+		oPr.SetShiftY(yRatio / 100);
+		this.Sdt.SetPictureFormPr(oPr);
+		this.Sdt.UpdatePictureFormLayout();
+
+		return true;
+	};
+	/**
+	 * Gets base64 image.
+	 * @memberof ApiPictureForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {base64img}
+	 */
+	ApiPictureForm.prototype.GetImage = function()
+	{
+		var oImg;
+		var allDrawings = this.Sdt.GetAllDrawingObjects();
+		for (var nDrawing = 0; nDrawing < allDrawings.length; nDrawing++)
+		{
+			if (allDrawings[nDrawing].IsPicture())
+			{
+				oImg = allDrawings[nDrawing].GraphicObj;
+				break;
+			}
+		}
+		if (oImg)
+			return oImg.getBase64Img();
+
+		return "";
+	};
+	/**
+	 * Sets image to form.
+	 * @memberof ApiPictureForm
+	 * @param {string} sImageSrc - The image source where the image to be inserted should be taken from (currently only internet URL or Base64 encoded images are supported).
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiPictureForm.prototype.SetImage = function(sImageSrc)
+	{
+		if (typeof(sImageSrc) !== "string" || sImageSrc === "")
+			return false;
+
+		var oImg;
+		var allDrawings = this.Sdt.GetAllDrawingObjects();
+		for (var nDrawing = 0; nDrawing < allDrawings.length; nDrawing++)
+		{
+			if (allDrawings[nDrawing].IsPicture())
+			{
+				oImg = allDrawings[nDrawing].GraphicObj;
+				break;
+			}
+		}
+
+		if (oImg)
+		{
+			oImg.setBlipFill(AscFormat.CreateBlipFillRasterImageId(sImageSrc));
+			return true;
+		}
+
+		return false;
+	};
+
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiComboBoxForm
+	//
+	//------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Gets list values from current form.
+	 * @memberof ApiComboBoxForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {string[]}
+	 */
+	ApiComboBoxForm.prototype.GetListValues = function()
+	{
+		var aValues = [];
+
+		var oSpecProps = this.Sdt.IsComboBox() ? this.Sdt.GetComboBoxPr() : this.Sdt.GetDropDownListPr();
+		if (!oSpecProps)
+			return [];
+
+		for (var nItem = 0, nCount = oSpecProps.GetItemsCount(); nItem < nCount; nItem++)
+			aValues.push(oSpecProps.GetItemDisplayText(nItem));
+
+		return aValues;
+	};
+	/**
+	 * Sets list values to current form.
+	 * @memberof ApiComboBoxForm
+	 * @param {string[]} aListString
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiComboBoxForm.prototype.SetListValues = function(aListString)
+	{
+		if (!Array.isArray(aListString))
+			return false;
+
+		let isComboBox = this.Sdt.IsComboBox();
+		let oSpecProps = isComboBox ? this.Sdt.GetComboBoxPr() : this.Sdt.GetDropDownListPr();
+		if (!oSpecProps)
+			return [];
+
+		oSpecProps = oSpecProps.Copy();
+		oSpecProps.Clear();
+		for (let nValue = 0; nValue < aListString.length; nValue++)
+		{
+			if (typeof(aListString[nValue]) === "string" && aListString[nValue] !== "")
+				oSpecProps.AddItem(aListString[nValue], aListString[nValue]);
+		}
+
+		if (isComboBox)
+			this.Sdt.SetComboBoxPr(oSpecProps);
+		else
+			this.Sdt.SetDropDownListPr(oSpecProps);
+
+		return true;
+	};
+	/**
+	 * Select specified value from the list value.
+	 * @memberof ApiComboBoxForm
+	 * @param {string} sValue
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiComboBoxForm.prototype.SelectListValue = function(sValue)
+	{
+		if (typeof(sValue) !== "string" || sValue === "")
+			return false;
+
+		var oSpecProps = this.Sdt.IsComboBox() ? this.Sdt.GetComboBoxPr() : this.Sdt.GetDropDownListPr();
+		if (!oSpecProps)
+			return false;
+
+		if (!oSpecProps.GetTextByValue(sValue))
+			return false;
+
+		this.Sdt.SelectListItem(sValue);
+		return true;
+	};
+	/**
+	 * Sets text to form.
+	 * @memberof ApiTextForm
+	 * @param {string} sText
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiComboBoxForm.prototype.SetText = function(sText)
+	{
+		if (typeof (sText) !== "string" || sText === "")
+			return false;
+
+		if (!this.Sdt.IsComboBox())
+			return false;
+
+		if (this.Sdt.IsPlaceHolder())
+			this.Sdt.ReplacePlaceHolderWithContent();
+
+		let oRun = this.Sdt.MakeSingleRunElement();
+		oRun.ClearContent();
+		oRun.AddText(sText);
+
+		return true;
+	};
+	/**
+	 * Check that the text can be edited.
+	 * @memberof ApiTextForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiComboBoxForm.prototype.IsEditable = function()
+	{
+		return (this.Sdt.IsComboBox());
+	};
+	//------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiCheckBoxForm
+	//
+	//------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Sets checkbox checked.
+	 * @memberof ApiCheckBoxForm
+	 * @param {boolean} isChecked
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiCheckBoxForm.prototype.SetChecked = function(isChecked)
+	{
+		if (typeof(isChecked) !== "boolean")
+			return false;
+
+		this.Sdt.ToggleCheckBox(isChecked);
+		return true;
+	};
+	/**
+	 * Get the state of this checkbox
+	 * @memberof ApiCheckBoxForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiCheckBoxForm.prototype.IsChecked = function()
+	{
+		return this.Sdt.IsCheckBoxChecked();
+	};
+	/**
+	 * Check if the form is a radio button.
+	 * @memberof ApiCheckBoxForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiCheckBoxForm.prototype.IsRadioButton = function()
+	{
+		return this.Sdt.IsRadioButton();
+	};
+	/**
+	 * Get radio group key, if it is a radio button
+	 * @memberof ApiCheckBoxForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {string}
+	 */
+	ApiCheckBoxForm.prototype.GetRadioGroup = function()
+	{
+		let sRadioGroup = this.Sdt.GetRadioButtonGroupKey();
+		return (sRadioGroup ? sRadioGroup : "");
+	};
+	/**
+	 * Set radio group key
+	 * @memberof ApiCheckBoxForm
+	 * @param {string} sKey
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiCheckBoxForm.prototype.SetRadioGroup = function(sKey)
+	{
+		let oPr = this.Sdt.GetCheckBoxPr();
+		if (!oPr)
+			return;
+
+		oPr = oPr.Copy();
+		oPr.SetGroupKey(sKey);
+		this.Sdt.SetCheckBoxPr(oPr);
 	};
 
 	/**
@@ -13948,13 +15121,16 @@
 	 * @param {boolean} [bHtmlHeadings=false] - Defines if the HTML headings and IDs will be generated when the Markdown renderer of your target platform does not handle Markdown-style IDs.
 	 * @param {boolean} [bBase64img=false] - Defines if the images will be created in the base64 format.
 	 * @param {boolean} [bDemoteHeadings=false] - Defines if all heading levels in your document will be demoted to conform with the following standard: single H1 as title, H2 as top-level heading in the text body.
-	 * @param {boolean} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket 
-	 * in the following way: \&lt;tag&gt;text\&lt;/tag&gt;. By default, angle brackets will be replaced with the special characters.
+	 * @param {boolean} [bRenderHTMLTags=false] - Defines if HTML tags will be preserved in your Markdown. If you just want to use an occasional HTML tag, you can avoid using the opening angle bracket
+	 * in the following way: \<tag&gt;text\</tag&gt;. By default, the opening angle brackets will be replaced with the special characters.
 	 * @returns {string}
 	 */
 	Api.prototype.ConvertDocument = function(sConvertType, bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags) 
 	{
 		var oDocument = this.GetDocument();
+		if (!oDocument.Document)
+			return "Please, use this plugin with the Word document editor";
+
 		if (sConvertType === "html")
 			return oDocument.ToHtml(bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags);
 		else
@@ -13965,10 +15141,10 @@
 	 * Creates the empty text properties.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
-	 * @returns {ApiTextPr} 
+	 * @returns {ApiTextPr}
 	 */
 	Api.prototype.CreateTextPr = function () {
-		return this.private_CreateTextPr(null, new AscCommonWord.CTextPr());	
+		return this.private_CreateTextPr(null, new AscCommonWord.CTextPr());
 	};
 
 	/**
@@ -14001,7 +15177,7 @@
 
 		return new ApiDrawing(oDrawing);
 	};
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Export
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14040,9 +15216,11 @@
 	Api.prototype["ConvertDocument"]		         = Api.prototype.ConvertDocument;
 	Api.prototype["CreateTextPr"]		             = Api.prototype.CreateTextPr;
 	Api.prototype["CreateWordArt"]		             = Api.prototype.CreateWordArt;
-	
-	Api.prototype["ConvertDocument"]		         = Api.prototype.ConvertDocument;	
-	Api.prototype["FromJSON"]		                 = Api.prototype.FromJSON;	
+
+	Api.prototype["ConvertDocument"]		         = Api.prototype.ConvertDocument;
+	Api.prototype["FromJSON"]		                 = Api.prototype.FromJSON;
+	Api.prototype["CreateRange"]		             = Api.prototype.CreateRange;
+
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 
 	ApiDocumentContent.prototype["GetClassType"]     = ApiDocumentContent.prototype.GetClassType;
@@ -14125,7 +15303,11 @@
 	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;
 	ApiDocument.prototype["UpdateAllTOC"]		     = ApiDocument.prototype.UpdateAllTOC;
 	ApiDocument.prototype["UpdateAllTOF"]		     = ApiDocument.prototype.UpdateAllTOF;
-	
+
+	ApiDocument.prototype["GetAllForms"]             = ApiDocument.prototype.GetAllForms;
+	ApiDocument.prototype["ClearAllFields"]          = ApiDocument.prototype.ClearAllFields;
+	ApiDocument.prototype["SetFormsHighlight"]       = ApiDocument.prototype.SetFormsHighlight;
+
 	ApiParagraph.prototype["GetClassType"]           = ApiParagraph.prototype.GetClassType;
 	ApiParagraph.prototype["AddText"]                = ApiParagraph.prototype.AddText;
 	ApiParagraph.prototype["AddPageBreak"]           = ApiParagraph.prototype.AddPageBreak;
@@ -14159,6 +15341,7 @@
 	ApiParagraph.prototype["SetColor"]               = ApiParagraph.prototype.SetColor;
 	ApiParagraph.prototype["SetDoubleStrikeout"]     = ApiParagraph.prototype.SetDoubleStrikeout;
 	ApiParagraph.prototype["SetFontFamily"]          = ApiParagraph.prototype.SetFontFamily;
+	ApiParagraph.prototype["GetFontNames"]           = ApiParagraph.prototype.GetFontNames;
 	ApiParagraph.prototype["SetFontSize"]            = ApiParagraph.prototype.SetFontSize;
 	ApiParagraph.prototype["SetHighlight"]           = ApiParagraph.prototype.SetHighlight;
 	ApiParagraph.prototype["SetItalic"]              = ApiParagraph.prototype.SetItalic;
@@ -14214,6 +15397,7 @@
 	ApiRun.prototype["SetDoubleStrikeout"]           = ApiRun.prototype.SetDoubleStrikeout;
 	ApiRun.prototype["SetFill"]                      = ApiRun.prototype.SetFill;
 	ApiRun.prototype["SetFontFamily"]                = ApiRun.prototype.SetFontFamily;
+	ApiRun.prototype["GetFontNames"]                 = ApiRun.prototype.GetFontNames;
 	ApiRun.prototype["SetFontSize"]                  = ApiRun.prototype.SetFontSize;
 	ApiRun.prototype["SetHighlight"]                 = ApiRun.prototype.SetHighlight;
 	ApiRun.prototype["SetItalic"]                    = ApiRun.prototype.SetItalic;
@@ -14227,7 +15411,7 @@
 	ApiRun.prototype["SetVertAlign"]                 = ApiRun.prototype.SetVertAlign;
 	ApiRun.prototype["WrapInMailMergeField"]         = ApiRun.prototype.WrapInMailMergeField;
 	ApiRun.prototype["ToJSON"]                       = ApiRun.prototype.ToJSON;
-	
+
 
 	ApiHyperlink.prototype["GetClassType"]           = ApiHyperlink.prototype.GetClassType;
 	ApiHyperlink.prototype["SetLink"]                = ApiHyperlink.prototype.SetLink;
@@ -14586,6 +15770,11 @@
 	ApiInlineLvlSdt.prototype["Copy"]                   = ApiInlineLvlSdt.prototype.Copy;
 	ApiInlineLvlSdt.prototype["ToJSON"]                 = ApiInlineLvlSdt.prototype.ToJSON;
 
+	ApiInlineLvlSdt.prototype["GetPlaceholderText"]     = ApiInlineLvlSdt.prototype.GetPlaceholderText;
+	ApiInlineLvlSdt.prototype["SetPlaceholderText"]     = ApiInlineLvlSdt.prototype.SetPlaceholderText;
+	ApiInlineLvlSdt.prototype["IsForm"]                 = ApiInlineLvlSdt.prototype.IsForm;
+	ApiInlineLvlSdt.prototype["GetForm"]                = ApiInlineLvlSdt.prototype.GetForm;
+
 	ApiBlockLvlSdt.prototype["GetClassType"]            = ApiBlockLvlSdt.prototype.GetClassType;
 	ApiBlockLvlSdt.prototype["SetLock"]                 = ApiBlockLvlSdt.prototype.SetLock;
 	ApiBlockLvlSdt.prototype["GetLock"]                 = ApiBlockLvlSdt.prototype.GetLock;
@@ -14613,6 +15802,52 @@
 	ApiBlockLvlSdt.prototype["Search"]                  = ApiBlockLvlSdt.prototype.Search;
 	ApiBlockLvlSdt.prototype["Select"]                  = ApiBlockLvlSdt.prototype.Select;
 	ApiBlockLvlSdt.prototype["ToJSON"]                  = ApiBlockLvlSdt.prototype.ToJSON;
+	ApiBlockLvlSdt.prototype["GetPlaceholderText"]      = ApiBlockLvlSdt.prototype.GetPlaceholderText;
+	ApiBlockLvlSdt.prototype["SetPlaceholderText"]      = ApiBlockLvlSdt.prototype.SetPlaceholderText;
+
+	ApiFormBase.prototype["GetClassType"]        = ApiFormBase.prototype.GetClassType;
+	ApiFormBase.prototype["GetFormType"]         = ApiFormBase.prototype.GetFormType;
+	ApiFormBase.prototype["GetFormKey"]          = ApiFormBase.prototype.GetFormKey;
+	ApiFormBase.prototype["SetFormKey"]          = ApiFormBase.prototype.SetFormKey;
+	ApiFormBase.prototype["GetTipText"]          = ApiFormBase.prototype.GetTipText;
+	ApiFormBase.prototype["SetTipText"]          = ApiFormBase.prototype.SetTipText;
+	ApiFormBase.prototype["IsRequired"]          = ApiFormBase.prototype.IsRequired;
+	ApiFormBase.prototype["SetRequired"]         = ApiFormBase.prototype.SetRequired;
+	ApiFormBase.prototype["IsFixedForm"]         = ApiFormBase.prototype.IsFixedForm;
+	ApiFormBase.prototype["SetFixedForm"]        = ApiFormBase.prototype.SetFixedForm;
+	ApiFormBase.prototype["SetBorderColor"]      = ApiFormBase.prototype.SetBorderColor;
+	ApiFormBase.prototype["SetBackgroundColor"]  = ApiFormBase.prototype.SetBackgroundColor;
+	ApiFormBase.prototype["GetText"]             = ApiFormBase.prototype.GetText;
+	ApiFormBase.prototype["Clear"]               = ApiFormBase.prototype.Clear;
+
+	ApiTextForm.prototype["IsAutoFit"]           = ApiTextForm.prototype.IsAutoFit;
+	ApiTextForm.prototype["SetAutoFit"]          = ApiTextForm.prototype.SetAutoFit;
+	ApiTextForm.prototype["IsMultiline"]         = ApiTextForm.prototype.IsMultiline;
+	ApiTextForm.prototype["SetMultiline"]        = ApiTextForm.prototype.SetMultiline;
+	ApiTextForm.prototype["GetCharactersLimit"]  = ApiTextForm.prototype.GetCharactersLimit;
+	ApiTextForm.prototype["SetCharactersLimit"]  = ApiTextForm.prototype.SetCharactersLimit;
+	ApiTextForm.prototype["IsComb"]              = ApiTextForm.prototype.IsComb;
+	ApiTextForm.prototype["SetComb"]             = ApiTextForm.prototype.SetComb;
+	ApiTextForm.prototype["SetCellWidth"]        = ApiTextForm.prototype.SetCellWidth;
+	ApiTextForm.prototype["SetText"]             = ApiTextForm.prototype.SetText;
+
+	ApiPictureForm.prototype["GetPictureScaleCase"] = ApiPictureForm.prototype.GetPictureScaleCase;
+	ApiPictureForm.prototype["SetPictureScaleCase"] = ApiPictureForm.prototype.SetPictureScaleCase;
+	ApiPictureForm.prototype["SetLockAspectRatio"]  = ApiPictureForm.prototype.SetLockAspectRatio;
+	ApiPictureForm.prototype["GetImage"]            = ApiPictureForm.prototype.GetImage;
+	ApiPictureForm.prototype["SetImage"]            = ApiPictureForm.prototype.SetImage;
+
+	ApiComboBoxForm.prototype["GetListValues"]       = ApiComboBoxForm.prototype.GetListValues;
+	ApiComboBoxForm.prototype["SetListValues"]       = ApiComboBoxForm.prototype.SetListValues;
+	ApiComboBoxForm.prototype["SelectListValue"]     = ApiComboBoxForm.prototype.SelectListValue;
+	ApiComboBoxForm.prototype["SetText"]             = ApiComboBoxForm.prototype.SetText;
+	ApiComboBoxForm.prototype["IsEditable"]          = ApiComboBoxForm.prototype.IsEditable;
+
+	ApiCheckBoxForm.prototype["SetChecked"]    = ApiCheckBoxForm.prototype.SetChecked;
+	ApiCheckBoxForm.prototype["IsChecked"]     = ApiCheckBoxForm.prototype.IsChecked;
+	ApiCheckBoxForm.prototype["IsRadioButton"] = ApiCheckBoxForm.prototype.IsRadioButton;
+	ApiCheckBoxForm.prototype["GetRadioGroup"] = ApiCheckBoxForm.prototype.GetRadioGroup;
+	ApiCheckBoxForm.prototype["SetRadioGroup"] = ApiCheckBoxForm.prototype.SetRadioGroup;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
@@ -14982,6 +16217,69 @@
 		}
 	}
 
+	/**
+	 * Gets a document color object by color name.
+	 * @param {highlightColor} - available highlight color
+	 * @returns {object}
+	 */
+	function private_getHighlightColorByName(sColor)
+	{
+		var oColor;
+		switch (sColor)
+		{
+			case "black":
+				oColor = {r: 0, g: 0, b: 0};
+				break;
+			case "blue":
+				oColor = {r: 0, g: 0, b: 255};
+				break;
+			case "cyan":
+				oColor = {r: 0, g: 255, b: 255};
+				break;
+			case "green":
+				oColor = {r: 0, g: 255, b: 0};
+				break;
+			case "magenta":
+				oColor = {r: 255, g: 0, b: 255};
+				break;
+			case "red":
+				oColor = {r: 255, g: 0, b: 0};
+				break;
+			case "yellow":
+				oColor = {r: 255, g: 255, b: 0};
+				break;
+			case "white":
+				oColor = {r: 255, g: 255, b: 255};
+				break;
+			case "darkBlue":
+				oColor = {r: 0, g: 0, b: 139};
+				break;
+			case "darkCyan":
+				oColor = {r: 0, g: 139, b: 139};
+				break;
+			case "darkGreen":
+				oColor = {r: 0, g: 100, b: 0};
+				break;
+			case "darkMagenta":
+				oColor = {r: 128, g: 0, b: 128};
+				break;
+			case "darkRed":
+				oColor = {r: 139, g: 0, b: 0};
+				break;
+			case "darkYellow":
+				oColor = {r: 128, g: 128, b: 0};
+				break;
+			case "darkGray":
+				oColor = {r: 169, g: 169, b: 169};
+				break;
+			case "lightGray":
+				oColor = {r: 211, g: 211, b: 211};
+				break;
+		}
+
+		return oColor;
+	}
+
 	ApiDocument.prototype.OnChangeParaPr = function(oApiParaPr)
 	{
 		var oStyles = this.Document.Get_Styles();
@@ -15030,7 +16328,7 @@
 			if (oParent.Content[nElm] && oParent.Content[nElm].IsRun && oParent.Content[nElm].IsRun() === true)
 				return new ApiRun(oParent.Content[nElm]);
 		}
-		
+
 		return null;
 	};
 	/**
@@ -15046,7 +16344,7 @@
 			return null;
 
 		var nRunIndex = this.Run.GetPosInParent();
-		
+
 		for (var nElm = nRunIndex - 1; nElm > - 1; nElm--)
 		{
 			if (oParent.Content[nElm] && oParent.Content[nElm].IsRun && oParent.Content[nElm].IsRun() === true)
@@ -15275,14 +16573,14 @@
 
 	Api.prototype.private_createWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight) {
 		var oWorksheet, bWord, nFontSize;
-		if (this.editorId === AscCommon.c_oEditorId.Spreadsheet) 
+		if (this.editorId === AscCommon.c_oEditorId.Spreadsheet)
 			oWorksheet = this.GetActiveSheet().worksheet;
 		else if (this.editorId === AscCommon.c_oEditorId.Presentation)
 			bWord = false;
 		else if (this.editorId === AscCommon.c_oEditorId.Word)
 			bWord = true;
 
-		var dAngle = nRotAngle !== 0 ? (Math.PI / 180) * nRotAngle : 0; 
+		var dAngle = nRotAngle !== 0 ? (Math.PI / 180) * nRotAngle : 0;
 		var oArt = new AscFormat.CShape();
 
 		oArt.setWordShape(bWord === true);
@@ -15302,7 +16600,7 @@
         }
 
 		var sText = typeof(sText) == "string" && sText !== "" ? sText : "Your text here";
-		
+
 		if (!oTextPr)
 		{
 			oTextPr = new CTextPr();
@@ -15400,7 +16698,7 @@
 	Api.prototype.private_CreateApiUniColor = function(oUniColor){
 		return new ApiUniColor(oUniColor);
 	};
-	
+
 }(window, null));
 
 
