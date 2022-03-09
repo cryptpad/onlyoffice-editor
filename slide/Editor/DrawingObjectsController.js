@@ -146,10 +146,12 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
     var oPresentation = editor && editor.WordControl && editor.WordControl.m_oLogicDocument;
     if(oPresentation && (false === oPresentation.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props) || !oPresentation.CanEdit()))
     {
-        editor.asc_doubleClickOnTableOleObject(oleObject);
-        return; // TODO: change it
         if(oleObject.m_oMathObject) {
             editor.sendEvent("asc_onConvertEquationToMath", oleObject);
+        }
+        else if (oleObject.m_aBinaryData && oleObject.m_nOleType === AscCommon.c_oAscOleObjectTypes.spreadsheet)
+        {
+            editor.asc_doubleClickOnTableOleObject(oleObject);
         }
         else {
             var pluginData = new Asc.CPluginData();
