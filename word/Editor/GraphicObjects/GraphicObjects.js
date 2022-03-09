@@ -1229,44 +1229,28 @@ CGraphicObjects.prototype =
     {
         var _this = this;
         if (binaryInfo) {
+            if (!binaryInfo.imageUrl) {
+                var base64Image = binaryInfo.base64Image;
+                var fAfterUploadOleObjectImage = function (url) {
+                    binaryInfo.imageUrl = url;
+                    _this.editTableOleObject(binaryInfo);
+                }
+                var obj = {
+                    fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+                };
+                AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
+                    _this.api._uploadCallback(nError, files, obj);
+                });
+                return;
+            }
             var blipUrl = binaryInfo.imageUrl;
             var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
-
-            var checkImageUrlFromServer;
-            var localUrl = AscCommon.g_oDocumentUrls.getLocal(blipUrl);
-            var fullUrl = AscCommon.g_oDocumentUrls.getUrl(blipUrl);
-            if (fullUrl) {
-                checkImageUrlFromServer = fullUrl;
-            } else if (localUrl) {
-                checkImageUrlFromServer = blipUrl;
-            }
-
-            if (!checkImageUrlFromServer) {
-                var uploadImageToServerAndTryEditAgain = function (data) {
-                    var uploadImageUrl = data[0].url;
-                    binaryInfo.imageUrl = uploadImageUrl;
-                    _this.editTableOleObject(binaryInfo);
-                }
-                AscCommon.sendImgUrls(_this.api, [blipUrl], uploadImageToServerAndTryEditAgain, null, true);
-                return;
-            }
-
-            var isImageNotAttendInImageLoader = !_this.api.ImageLoader.map_image_index[checkImageUrlFromServer];
-            if (isImageNotAttendInImageLoader) {
-                var tryToEditOleObjectAgain = function () {
-                    binaryInfo.imageUrl = checkImageUrlFromServer;
-                    _this.editTableOleObject(binaryInfo);
-                }
-                _this.api.ImageLoader.LoadImagesWithCallback([checkImageUrlFromServer], tryToEditOleObjectAgain);
-                return;
-            }
 
             var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
             if (selectedObjects.oleObjects.length === 1) {
                 var selectedOleObject = selectedObjects.oleObjects[0];
                 var blipFill = AscFormat.CreateBlipFillRasterImageId(blipUrl);
                 var sizes = AscCommon.getSourceImageSize(blipUrl);
-                console.log(sizes)
                 selectedOleObject.setBinaryData(binaryDataOfSheet);
                 selectedOleObject.setBlipFill(blipFill);
                 var originalWidth = selectedOleObject.spPr.xfrm.extX;

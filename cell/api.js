@@ -3318,30 +3318,21 @@ var editor;
     this.asc_CloseFile();
     this.openDocument(file);
     };
- /**
-  *
-  * @param { function } endCallback function, which first argument is binaryInfo about workbook
-  */
-  spreadsheet_api.prototype.asc_putBinaryInfoFromSpreadsheetToOleObject = function (endCallback) {
-    var _this = this;
+  /**
+   * get binary info about changed ole object
+   * @returns {{}} binary info about oleObject
+   */
+  spreadsheet_api.prototype.asc_getBinaryInfoOleObject = function () {
     var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
     var binaryData = oBinaryFileWriter.Write().split(';');
     var cleanBinaryData = binaryData[binaryData.length - 1];
     var dataUrl = this.wb.getImageFromTableOleObject();
+    var binaryInfo = {};
 
-    var fAfterUploadOleObjectImage = function (url) {
-      var binaryInfo = {};
+    binaryInfo.binary = cleanBinaryData;
+    binaryInfo.base64Image = dataUrl;
 
-      binaryInfo.binary = cleanBinaryData;
-      binaryInfo.imageUrl = url;
-      endCallback(binaryInfo);
-    }
-    var obj = {
-      fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
-    };
-    AscCommon.uploadDataUrlAsFile(dataUrl, obj, function (nError, files, obj) {
-      _this._uploadCallback(nError, files, obj);
-    });
+    return binaryInfo;
   }
 
   spreadsheet_api.prototype.asc_editChartDrawingObject = function(chart) {

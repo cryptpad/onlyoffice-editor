@@ -369,37 +369,23 @@ DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
     var _this = this;
     var oApi = this.getEditorApi();
     if (binaryInfo) {
+        if (!binaryInfo.imageUrl) {
+            var base64Image = binaryInfo.base64Image;
+            var fAfterUploadOleObjectImage = function (url) {
+                binaryInfo.imageUrl = url;
+                _this.editTableOleObject(binaryInfo);
+            }
+            var obj = {
+                fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+            };
+            AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
+                oApi._uploadCallback(nError, files, obj);
+            });
+            return;
+        }
         var blipUrl = binaryInfo.imageUrl;
         var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
 
-        var checkImageUrlFromServer;
-        var localUrl = AscCommon.g_oDocumentUrls.getLocal(blipUrl);
-        var fullUrl = AscCommon.g_oDocumentUrls.getUrl(blipUrl);
-        if (fullUrl) {
-            checkImageUrlFromServer = fullUrl;
-        } else if (localUrl) {
-            checkImageUrlFromServer = blipUrl;
-        }
-
-        if (!checkImageUrlFromServer) {
-            var uploadImageToServerAndTryEditAgain = function (data) {
-                var uploadImageUrl = data[0].url;
-                binaryInfo.imageUrl = uploadImageUrl;
-                _this.editTableOleObject(binaryInfo);
-            }
-            AscCommon.sendImgUrls(oApi, [blipUrl], uploadImageToServerAndTryEditAgain, null, true);
-            return;
-        }
-
-        var isImageNotAttendInImageLoader = !oApi.ImageLoader.map_image_index[checkImageUrlFromServer];
-        if (isImageNotAttendInImageLoader) {
-            var tryToEditOleObjectAgain = function () {
-                binaryInfo.imageUrl = checkImageUrlFromServer;
-                _this.editTableOleObject(binaryInfo);
-            }
-            oApi.ImageLoader.LoadImagesWithCallback([checkImageUrlFromServer], tryToEditOleObjectAgain);
-            return;
-        }
         var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
         if (selectedObjects.oleObjects.length === 1) {
             var selectedOleObject = selectedObjects.oleObjects[0];

@@ -5489,7 +5489,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._addImageUrl      = function(urls, obj)
 	{
-        if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId()))){
+        if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId()) || obj.fAfterUploadOleObjectImage)){
             this.AddImageUrlAction(urls[0], undefined, obj);
         }
         else{
@@ -5560,6 +5560,10 @@ background-repeat: no-repeat;\
 				AscImageProp.ImageUrl = src;
 				this.ImgApply(AscImageProp);
 			}
+			else if (obj && obj.fAfterUploadOleObjectImage)
+			{
+				obj.fAfterUploadOleObjectImage(src);
+			}
 			else if (obj && obj["obj"] && obj["obj"].Get_Id)
 			{
 				this.asc_SetContentControlPictureUrl(src, obj["obj"].Get_Id());
@@ -5619,6 +5623,10 @@ background-repeat: no-repeat;\
 					var AscImageProp      = new asc_CImgProperty();
 					AscImageProp.ImageUrl = src;
 					this.ImgApply(AscImageProp);
+				}
+				else if (obj && obj.fAfterUploadOleObjectImage)
+				{
+					obj.fAfterUploadOleObjectImage(src);
 				}
 				else if (obj && obj["obj"] && obj["obj"].Get_Id)
 				{

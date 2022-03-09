@@ -4336,7 +4336,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._addImageUrl = function(urls, obj)
 	{
-		if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isSlideImageChangeUrl || obj.isTextArtChangeUrl || obj.isImageBullet)){
+		if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isSlideImageChangeUrl || obj.isTextArtChangeUrl || obj.isImageBullet || obj.fAfterUploadOleObjectImage)){
             this.AddImageUrlAction(urls[0], undefined, obj);
 		}
 		else{
@@ -4381,9 +4381,12 @@ background-repeat: no-repeat;\
 			}
 			this.ShapeApply(AscShapeProp);
 		}
+		else if (obj && obj.fAfterUploadOleObjectImage)
+		{
+			obj.fAfterUploadOleObjectImage(src);
+		}
 		else if (obj && obj.isImageBullet)
 		{
-			console.log(_image)
 			var fillBlip = new Asc.asc_CFillBlip();
 			fillBlip.asc_putUrl(src, null);
 			this.put_ListType(undefined, undefined, fillBlip);
