@@ -1345,6 +1345,9 @@ var editor;
       // Шрифты загрузились, возможно стоит подождать совместное редактирование
       this.FontLoadWaitComplete = true;
         this._openDocumentEndCallback();
+        if (this.fAfterLoad) {
+          this.fAfterLoad();
+        }
       }
   };
 
@@ -3309,14 +3312,58 @@ var editor;
     return ret;
   };
 
-  spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj) {
+  spreadsheet_api.prototype.asc_getSizesForOleEditor = function (oleInfo) {
+    var oleSize = this.wbModel.getOleSize();
+    if (oleSize) {
+      var ws = this.wb.getWorksheet();
+
+      var firstRow = oleSize.r1;
+      var lastRow = oleSize.r2;
+      var firstColumn = oleSize.c1;
+      var lastColumn = oleSize.c2;
+
+      var left = ws._getColLeft(firstColumn);
+      var width = ws._getColLeft(lastColumn + 1) - left;
+      var top = ws._getRowTop(firstRow);
+      var height = ws._getRowTop(lastRow + 1) - top;
+      return {
+        height: height,
+        width: width,
+        top: top,
+        left: left
+      };
+    }
+    oleInfo = oleInfo || {};
+    return {
+      height: oleInfo.height,
+      width: oleInfo.width,
+      top: oleInfo.top,
+      left: oleInfo.left
+    };
+  }
+
+  /**
+   * Loading ole editor
+   * @param {{}} oleObj info from oleObject
+   * @param {function} fResizeCallback callback where first argument is sizes of loaded editor without borders
+   */
+  spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj, fResizeCallback) {
     var stream = oleObj && oleObj.binary;
+    var _this = this;
     var file = new AscCommon.OpenFileResult();
     file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
     file.data = stream;
     this.isOleEditor = true;
     this.asc_CloseFile();
     this.openDocument(file);
+
+    this.fAfterLoad = function () {
+      var sizes = _this.asc_getSizesForOleEditor(oleObj);
+      fResizeCallback && fResizeCallback(sizes);
+      _this.wb.scrollToOleSize();
+      _this.wb.cellEditor.move();
+
+    }
     };
   /**
    * get binary info about changed ole object

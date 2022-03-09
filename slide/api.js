@@ -7295,7 +7295,7 @@ background-repeat: no-repeat;\
 	 * edit OleObject after change it in frameEditor
 	 * @param {Object} oleBinary info about workbook of oleObject
 	 * @param {string} oleBinary.binary base64 info about edit workbook for oleObject
-	 * @param {string} oleBinary.url url for snapshot of sheet
+	 * @param {string} oleBinary.base64Image base64 snapshot for oleObject
 	 */
 	asc_docs_api.prototype.asc_editTableOleObject = function(oleBinary)
 	{

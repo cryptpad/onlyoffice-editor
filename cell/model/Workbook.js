@@ -2095,6 +2095,8 @@
 		this.lastFindOptions = null;
 		this.lastFindCells = {};
 		this.oleSize = null;
+		var range  = new Asc.Range(5, 5, 10, 10);
+		this.oleSize = range;
 
 		//при копировании листа с одного wb на другой необходимо менять в стеке
 		// формул лист и книгу(на которые ссылаемся) - например у элементов cStrucTable

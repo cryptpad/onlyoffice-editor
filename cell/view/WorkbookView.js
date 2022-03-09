@@ -1004,6 +1004,11 @@
     return this;
   };
 
+	WorkbookView.prototype.scrollToOleSize = function () {
+		var ws = this.getWorksheet();
+		ws.scrollToOleSize();
+	}
+
   WorkbookView.prototype._createWorksheetView = function(wsModel) {
     return new AscCommonExcel.WorksheetView(this, wsModel, this.wsViewHandlers, this.buffers, this.stringRender, this.maxDigitWidth, this.collaborativeEditing, this.defaults.worksheetView);
   };

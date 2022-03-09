@@ -481,17 +481,10 @@
 		this.model.updatePivotTablesStyle(null);
 		this._cleanCellsTextMetricsCache();
 		this._prepareCellTextMetricsCache();
-    this._adaptForOleSize();
 		// initializing is completed
 		this.handlers.trigger("initialized");
 	};
 
-  WorksheetView.prototype._adaptForOleSize = function () {
-    var oleSize = this.getOleSize();
-    if (oleSize) {
-      //this.scrollAndResizeToEditableRange(oleSize);
-    }
-  };
 
   WorksheetView.prototype.getOleSize = function () {
     return this.workbook && this.workbook.model.getOleSize();
@@ -9274,6 +9267,13 @@
 
 		return null;
 	};
+
+  WorksheetView.prototype.scrollToOleSize = function () {
+    var oleSize = this.getOleSize();
+    if (oleSize) {
+      this.scrollToCell(oleSize.r1, oleSize.c1);
+    }
+  };
 
     /**
      * @param {Range} [range]
@@ -22990,69 +22990,17 @@
   }
   /**
    *
-   * @param { AscCommon.CellBase } d scroll to top left cell of CellBase
-   * @example
-   * // editor shows cells, which start from {row} and {column} indexes
-   * var row = 5;
-   * var column = 5;
-   * var d = new AscCommon.CellBase(row, column);
-   * this.scroll(d);
-   */
-  WorksheetView.prototype.scroll = function (d) {
-    var api = this.getApi();
-    if (api) {
-     api.controller.scroll(d);
-    }
-  }
-  /**
-   *
    * @param { number } row index of row
    * @param { number } column index of column
    */
   WorksheetView.prototype.scrollToCell = function (row, column) {
-    var currentCell = this.findCellByXY(this.cellsLeft, this.cellsTop);
-    var d = new AscCommon.CellBase(row - currentCell.row, column - currentCell.col);
-    this.scroll(d);
-  }
-
-  /**
-   *
-   * @param { number } r1 start index of row
-   * @param { number } c1 start index of column
-   * @param { number } r2 end index of row
-   * @param { number } c2 end index of column
-   */
-  WorksheetView.prototype.scrollAndResizeToRange = function (r1, c1, r2, c2) {
-    var widthOfRange = this.getWidthOfRangeColumn(c1, c2);
-    var heightOfRange = this.getHeightOfRangeRow(r1, r2);
-    console.log(widthOfRange, heightOfRange)
-    var widthOfFrame = this.getWidthOfFrame();
-    var heightOfFrame = this.getHeightOfFrame();
-
-    var scaleCoefficientHeight = heightOfFrame / heightOfRange;
-    var scaleCoefficientWidth = widthOfFrame / widthOfRange;
-    //console.log(scaleCoefficientWidth, scaleCoefficientHeight)
-    var zoomCoefficient = scaleCoefficientHeight < scaleCoefficientWidth ? scaleCoefficientHeight : scaleCoefficientWidth;
-    var previousZoom = this.getZoom();
-    this.workbook.changeZoom(previousZoom * zoomCoefficient);
-    console.log(r1, c1)
-    this.scrollToCell(r1, c1);
-  }
-
-  /**
-   *
-   * @return { number }
-   */
-  WorksheetView.prototype.getWidthOfFrame = function () {
-    return this.drawingCtx.getWidth();
-  }
-
-  /**
-   *
-   * @return { number }
-   */
-  WorksheetView.prototype.getHeightOfFrame = function () {
-    return this.drawingCtx.getHeight();
+    var visibleRange = this.getVisibleRange();
+    var topRow = visibleRange.r1;
+    var leftCol = visibleRange.c1;
+    var rowDelta = row - topRow;
+    var columnDelta = column - leftCol;
+    this.scrollVertical(rowDelta);
+    this.scrollHorizontal(columnDelta);
   }
 
 	WorksheetView.prototype.scrollToTopLeftCell = function () {

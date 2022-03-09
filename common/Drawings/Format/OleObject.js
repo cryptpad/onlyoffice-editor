@@ -440,10 +440,20 @@ function (window, undefined) {
             var dataSize = oleObject.m_aBinaryData.length;
             var data = AscCommon.Base64.encode(oleObject.m_aBinaryData);
             return {
-                binary: "XLSY;v2;" + dataSize  + ";" + data
+                binary: "XLSY;v2;" + dataSize  + ";" + data,
+                left: oleObject.x,
+                top: oleObject.y,
+                width: oleObject.extX,
+                height: oleObject.extY
             };
         }
-        return { binary: null };
+        return {
+            binary: null,
+            left: 0,
+            top: 0,
+            width: 0,
+            height: 0
+        };
     };
     window['Asc'] = window['Asc'] || {};
     window['AscFormat'] = window['AscFormat'] || {};
