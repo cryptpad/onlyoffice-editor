@@ -1434,7 +1434,7 @@ var editor;
 			wbXml.fromXml(reader);
 		});
 
-		var reader, i;
+		var reader, i, j;
 		if (window['OPEN_IN_BROWSER']) {
 			//external reference
 			if (wbXml.externalReferences) {
@@ -1707,8 +1707,8 @@ var editor;
 								oNewTable.fromXml(reader);
 
 								var queryTables = tableParts[i].getPartsByRelationshipType(openXml.Types.queryTable.relationType);
-								for (i = 0; i < queryTables.length; ++i) {
-									var contentQueryTable = queryTables[i].getDocumentContent();
+								for (j = 0; j < queryTables.length; ++j) {
+									var contentQueryTable = queryTables[j].getDocumentContent();
 									var oNewQueryTable = new AscCommonExcel.QueryTable();
 									reader = new StaxParser(contentQueryTable, oNewQueryTable, xmlParserContext);
 									oNewQueryTable.fromXml(reader);

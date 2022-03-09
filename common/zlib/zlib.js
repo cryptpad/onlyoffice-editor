@@ -408,8 +408,11 @@ else
 		if (!this.isModuleInit || !this.engine)
 			return;
 
-		for (var i in this.files)
-			Module["_Zlib_Free"](this.files[i].p);
+		for (var i in this.files) {
+			if(this.files[i]) {
+				Module["_Zlib_Free"](this.files[i].p);
+			}
+		}
 		this.files = {};
 		if (this.engine)
 			Module["_Zlib_Free"](this.engine);
