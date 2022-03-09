@@ -8436,6 +8436,77 @@
 		
 		return true;
 	};
+	/**
+	 * Sets background color to all cells in table.
+	 * @memberof ApiTable
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTable.prototype.SetBackgroundColor = function(r, g, b, bNone)
+	{
+		if ((typeof(r) == "number" && typeof(g) == "number" && typeof(b) == "number" && !bNone) || bNone)
+		{
+			var oRow;
+			for (var nRow = 0, nCount = this.GetRowsCount(); nRow < nCount; nRow++)
+			{
+				oRow = this.GetRow(nRow);
+				oRow.SetBackgroundColor(r, g, b, bNone);
+			}
+			return true;
+		}
+		else
+			return false;
+	};
+	/**
+	 * Sets background color to all cells in specified column.
+	 * @memberof ApiTable
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTable.prototype.SetColumnBackgroundColor = function(nColumn, r, g, b, bNone)
+	{
+		if (nColumn < 0)
+			return false;
+
+		if ((typeof(r) == "number" && typeof(g) == "number" && typeof(b) == "number" && !bNone) || bNone)
+		{
+			var oRow, oCell, oCellInfo;
+			var aCellsToFill = [];
+			for (var nRow = 0, nRowCount = this.GetRowsCount(); nRow < nRowCount; nRow++)
+			{
+				oRow = this.GetRow(nRow);
+				for (var nCell = 0, nCellCount = oRow.GetCellsCount(); nCell < nCellCount; nCell++)
+				{
+					oCell = oRow.GetCell(nCell);
+					oCellInfo = oRow.Row.Get_CellInfo(nCell);
+					if (oCellInfo.StartGridCol > nColumn)
+						break;
+					
+					if (oCellInfo.StartGridCol <= nColumn && oCellInfo.StartGridCol + oCell.Cell.GetGridSpan() - 1 >= nColumn)
+						aCellsToFill.push(oCell);
+				}
+			}
+			if (aCellsToFill.length > 0)
+			{
+				for (var nCell = 0; nCell < aCellsToFill.length; nCell++)
+				{
+					aCellsToFill[nCell].SetBackgroundColor(r, g, b, bNone);
+				}
+				return true;
+			}
+			return false;
+		}
+		else
+			return false;
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -8715,6 +8786,31 @@
 		}
 
 		return arrApiRanges;
+	};
+	/**
+	 * Sets background color to all cells in row.
+	 * @memberof ApiTableRow
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTableRow.prototype.SetBackgroundColor = function(r, g, b, bNone)
+	{
+		if ((typeof(r) == "number" && typeof(g) == "number" && typeof(b) == "number" && !bNone) || bNone)
+		{
+			var oCell;
+			for (var nCell = 0, nCount = this.GetCellsCount(); nCell < nCount; nCell++)
+			{
+				oCell = this.GetCell(nCell);
+				oCell.SetBackgroundColor(r, g, b, bNone);
+			}
+			return true;
+		}
+		else
+			return false;
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -9016,6 +9112,59 @@
 		}
 
 		return false;
+	};
+	/**
+	 * Sets background color to cell.
+	 * @memberof ApiTableCell
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiTableCell.prototype.SetBackgroundColor = function(r, g, b, bNone)
+	{
+		var oUtils = Common.Utils.ThemeColor;
+		var background = new Asc.CBackground();
+
+		var oAscColor;
+		if (typeof(r) == "number" && typeof(g) == "number" && typeof(b) == "number" && !bNone)
+		{
+			oAscColor = oUtils.getRgbColor(oUtils.getHexColor(r, g, b));
+			background.put_Value(0);
+			background.put_Color(oAscColor);
+		}
+		else if (bNone)
+		{
+			background.put_Value(1);
+			oAscColor = undefined;
+		}
+		else
+			return false;
+
+		background.Unifill = AscFormat.CreateUnifillFromAscColor(background.Color, 1);
+		var oNewShd = {
+			Value : background.Value,
+			Color : {
+				r    : background.Color.r,
+				g    : background.Color.g,
+				b    : background.Color.b,
+				Auto : false
+			},
+
+			Fill    : {
+				r    : background.Color.r,
+				g    : background.Color.g,
+				b    : background.Color.b,
+				Auto : false
+			},
+			Unifill   : background.Unifill ? background.Unifill.createDuplicate() : undefined,
+			ThemeFill : background.Unifill ? background.Unifill.createDuplicate() : undefined
+		}
+
+		this.Cell.Set_Shd(oNewShd);
+		return true;
 	};
 	
 	//------------------------------------------------------------------------------------------------------------------
@@ -13396,7 +13545,7 @@
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - is true, then sets no border.
+	 * @param {boolean} bNone - if true, then sets no border.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -13425,7 +13574,7 @@
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - is true, then sets no background color.
+	 * @param {boolean} bNone - if true, then sets no background color.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14711,6 +14860,8 @@
 	ApiTable.prototype["Clear"]    					 = ApiTable.prototype.Clear;
 	ApiTable.prototype["Search"]    				 = ApiTable.prototype.Search;
 	ApiTable.prototype["SetTextPr"]    				 = ApiTable.prototype.SetTextPr;
+	ApiTable.prototype["SetBackgroundColor"]    	 = ApiTable.prototype.SetBackgroundColor;
+	ApiTable.prototype["SetColumnBackgroundColor"]   = ApiTable.prototype.SetColumnBackgroundColor;
 
 	ApiTableRow.prototype["GetClassType"]            = ApiTableRow.prototype.GetClassType;
 	ApiTableRow.prototype["GetCellsCount"]           = ApiTableRow.prototype.GetCellsCount;
@@ -14725,6 +14876,7 @@
 	ApiTableRow.prototype["Remove"]           		 = ApiTableRow.prototype.Remove;
 	ApiTableRow.prototype["SetTextPr"]          	 = ApiTableRow.prototype.SetTextPr;
 	ApiTableRow.prototype["Search"]          		 = ApiTableRow.prototype.Search;
+	ApiTableRow.prototype["SetBackgroundColor"]      = ApiTableRow.prototype.SetBackgroundColor;
 
 	ApiTableCell.prototype["GetClassType"]           = ApiTableCell.prototype.GetClassType;
 	ApiTableCell.prototype["GetContent"]             = ApiTableCell.prototype.GetContent;
@@ -14744,6 +14896,7 @@
 	ApiTableCell.prototype["SetTextPr"]    			 = ApiTableCell.prototype.SetTextPr;
 	ApiTableCell.prototype["Clear"]    		         = ApiTableCell.prototype.Clear;
 	ApiTableCell.prototype["AddElement"]    		 = ApiTableCell.prototype.AddElement;
+	ApiTableCell.prototype["SetBackgroundColor"]     = ApiTableCell.prototype.SetBackgroundColor;
 
 	ApiStyle.prototype["GetClassType"]               = ApiStyle.prototype.GetClassType;
 	ApiStyle.prototype["GetName"]                    = ApiStyle.prototype.GetName;
