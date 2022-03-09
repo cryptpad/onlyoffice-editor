@@ -393,8 +393,11 @@ else
 		
 		Module["_Zlib_RemoveFile"](this.engine, pointer);
 
-		Module["_Zlib_Free"](this.files[path].p);
-		delete this.files[path];
+		if (this.files[path] && this.files[path].p)
+		{
+			Module["_Zlib_Free"](this.files[path].p);
+			delete this.files[path];
+		}
 		Module["_Zlib_Free"](pointer);
 		return true;
 	};
@@ -408,10 +411,10 @@ else
 		if (!this.isModuleInit || !this.engine)
 			return;
 
-		for (var i in this.files) {
-			if(this.files[i]) {
+		for (var i in this.files)
+		{
+			if (this.files[i] && this.files[i].p)
 				Module["_Zlib_Free"](this.files[i].p);
-			}
 		}
 		this.files = {};
 		if (this.engine)
