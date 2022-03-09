@@ -1308,6 +1308,17 @@
 		return val ? 1 : 0;
 	}
 
+	function prepareTextFromXml(val) {
+		//TODO поработать с текстом, проблемы с переносом строки
+		if (!val) {
+			return val;
+		}
+		val = val.replace(/&#xD;&#xA;/g, "\n");
+		val = val.replace(/_x000D_\r\n/g, "\n");
+		val = val.replace(/\r\n/g, "\n");
+		return val;
+	}
+
 	var extUri = {
 		conditionalFormattings: "{78C0D931-6437-407d-A8EE-F0AAD7539E65}",
 		dataValidations: "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}",
@@ -2826,7 +2837,7 @@
 	};
 	AscCommonExcel.OpenFormula.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
-		this.v = reader.GetTextDecodeXml().replace(/\r\n/g, "\n");
+		this.v = prepareTextFromXml(reader.GetTextDecodeXml());
 	};
 	AscCommonExcel.OpenFormula.prototype.readAttr = function (reader) {
 		var val;
@@ -3080,7 +3091,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("t" === reader.GetName()) {
 				//TODO поработать с текстом, проблемы с переносом строки
-				this.text = reader.GetTextDecodeXml().replace(/\r\n/g, "\n");
+				this.text = prepareTextFromXml(reader.GetTextDecodeXml());
 			} else if ("r" === reader.GetName()) {
 				var oMultiText = new AscCommonExcel.CMultiTextElem();
 				oMultiText.fromXml(reader);
@@ -3128,8 +3139,9 @@
 				if (null == this.text) {
 					this.text = "";
 				}
+
 				//TODO поработать с текстом, проблемы с переносом строки
-				this.text += reader.GetTextDecodeXml().replace(/\r\n/g, "\n");
+				this.text += prepareTextFromXml(reader.GetTextDecodeXml());
 			}
 		}
 	};
