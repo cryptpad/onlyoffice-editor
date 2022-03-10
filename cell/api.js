@@ -3361,8 +3361,6 @@ var editor;
       var sizes = _this.asc_getSizesForOleEditor(oleObj);
       fResizeCallback && fResizeCallback(sizes);
       _this.wb.scrollToOleSize();
-      _this.wb.cellEditor.move();
-
     }
     };
   /**

@@ -198,15 +198,20 @@
 			var ceCanvasOverlay = "ce-canvas-overlay" + ceMenuEditor;
 			var ceCursor = "ce-cursor" + ceMenuEditor;
 
+			var canvasOuterEl = document.getElementById(ceCanvasOuterId);
+			if (canvasOuterEl) {
+				var parentNode = canvasOuterEl.parentNode;
+				parentNode.removeChild(canvasOuterEl);
+			}
 			t.canvasOuter = document.createElement('div');
 			t.canvasOuter.id = ceCanvasOuterId;
 			t.canvasOuter.style.position = "absolute";
 			t.canvasOuter.style.display = "none";
 			t.canvasOuter.style.zIndex = z;
-			var innerHTML = '<canvas id='+ ceCanvasId +' style="z-index: ' + (z + 1) + '"></canvas>';
-			innerHTML += '<canvas id='+ ceCanvasOverlay +' style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
+			var innerHTML = '<canvas id=' + ceCanvasId + ' style="z-index: ' + (z + 1) + '"></canvas>';
+			innerHTML += '<canvas id=' + ceCanvasOverlay + ' style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
 				'"></canvas>';
-			innerHTML += '<div id='+ ceCursor +' style="display: none; z-index: ' + (z + 3) + '"></div>';
+			innerHTML += '<div id=' + ceCursor + ' style="display: none; z-index: ' + (z + 3) + '"></div>';
 			t.canvasOuter.innerHTML = innerHTML;
 			this.element.appendChild(t.canvasOuter);
 
