@@ -389,6 +389,14 @@ CRunElementBase.prototype.IsParaEnd = function()
 {
 	return false;
 };
+/**
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsBreak = function()
+{
+	return false;
+};
+
 
 /**
  * Класс представляющий текстовый символ
@@ -1239,7 +1247,7 @@ function ParaNewLine(BreakType)
 {
 	CRunElementBase.call(this);
 
-    this.BreakType = BreakType;
+    this.BreakType = undefined !== BreakType ? BreakType : break_Line;
 
     this.Flags = {}; // специальные флаги для разных break
     this.Flags.Use = true;
@@ -1533,6 +1541,10 @@ ParaNewLine.prototype.ToSearchElement = function(oProps)
 		return new CSearchTextSpecialColumnBreak();
 	else
 		return new CSearchTextSpecialNewLine();
+};
+ParaNewLine.prototype.IsBreak = function()
+{
+	return true;
 };
 
 

@@ -11305,6 +11305,26 @@ background-repeat: no-repeat;\
 			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
 		}
 	};
+	asc_docs_api.prototype.asc_ConvertMathDisplayMode = function(isInline)
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.ConvertMathDisplayMode(isInline);
+	};
+	asc_docs_api.prototype.asc_IsInlineMath = function()
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		let oMath = oLogicDocument.GetCurrentMath();
+		if (!oMath)
+			return false;
+
+		return oMath.IsInlineMode();
+	};
 	asc_docs_api.prototype.asc_GetAllNumberedParagraphs = function()
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
@@ -12887,6 +12907,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_setSkin']								= asc_docs_api.prototype.asc_setSkin;
 
 	asc_docs_api.prototype['asc_ConvertEquationToMath']                 = asc_docs_api.prototype.asc_ConvertEquationToMath;
+	asc_docs_api.prototype['asc_ConvertMathDisplayMode']                = asc_docs_api.prototype.asc_ConvertMathDisplayMode;
+	asc_docs_api.prototype['asc_IsInlineMath']                          = asc_docs_api.prototype.asc_IsInlineMath;
+
 
 	//cross-references
 	asc_docs_api.prototype['asc_GetAllNumberedParagraphs']              = asc_docs_api.prototype.asc_GetAllNumberedParagraphs;

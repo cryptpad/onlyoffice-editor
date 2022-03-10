@@ -25758,6 +25758,39 @@ CDocument.prototype.ConvertEquationToMath = function(oEquation, isAll)
 		}
 	}
 };
+CDocument.prototype.ConvertMathDisplayMode = function(isInline)
+{
+	let oMath = this.GetCurrentMath();
+	if (!oMath)
+		return;
+
+	let oParagraph = oMath.GetParagraph();
+	if (!oParagraph)
+		return;
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_None, {
+		Type      : changestype_2_ElementsArray_and_Type,
+		Elements  : [oParagraph],
+		CheckType : AscCommon.changestype_Paragraph_Content
+	}, true, false))
+	{
+		this.StartAction(AscDFH.historydescription_Document_ConvertMathDisplayMode);
+
+		if (isInline)
+			oMath.ConvertToInlineMode();
+		else
+			oMath.ConvertToDisplayMode();
+
+		this.Recalculate();
+		this.UpdateSelection();
+		this.UpdateInterface();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.GetCurrentMath = function()
+{
+	return this.GetSelectedElementsInfo().GetMath();
+};
 /**
  * @returns {CGlossaryDocument}
  */

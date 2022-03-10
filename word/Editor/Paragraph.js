@@ -6344,11 +6344,14 @@ Paragraph.prototype.GetPrevRunElements = function(oRunElements)
 };
 /**
  * Получаем следующий за курсором элемент рана
+ * @param {CParagraphContentPos} [oParaPos=undefined]
  * @returns {?CRunElementBase}
  */
-Paragraph.prototype.GetNextRunElement = function()
+Paragraph.prototype.GetNextRunElement = function(oParaPos)
 {
-	var oRunElements = new CParagraphRunElements(this.Get_ParaContentPos(this.Selection.Use, false, false), 1, null);
+	let _oParaPos = oParaPos ? oParaPos : this.Get_ParaContentPos(this.Selection.Use, false, false);
+
+	var oRunElements = new CParagraphRunElements(_oParaPos, 1, null);
 	this.GetNextRunElements(oRunElements);
 
 	if (oRunElements.Elements.length <= 0)
@@ -6358,17 +6361,38 @@ Paragraph.prototype.GetNextRunElement = function()
 };
 /**
  * Получаем идущий до курсора элемент рана
+ * @param {CParagraphContentPos} [oParaPos=undefined]
  * @returns {?CRunElementBase}
  */
-Paragraph.prototype.GetPrevRunElement = function()
+Paragraph.prototype.GetPrevRunElement = function(oParaPos)
 {
-	var oRunElements = new CParagraphRunElements(this.Get_ParaContentPos(this.Selection.Use, false, false), 1, null, true);
+	let _oParaPos = oParaPos ? oParaPos : this.Get_ParaContentPos(this.Selection.Use, false, false)
+
+	var oRunElements = new CParagraphRunElements(_oParaPos, 1, null, true);
 	this.GetPrevRunElements(oRunElements);
 
 	if (oRunElements.Elements.length <= 0)
 		return null;
 
 	return oRunElements.Elements[0];
+};
+/**
+ * Удаляем элемент рана в заданной позиции
+ * @param {CParagraphContentPos} oParaPos
+ */
+Paragraph.prototype.RemoveRunElement = function(oParaPos)
+{
+	if (!oParaPos)
+		return;
+
+	oParaPos = oParaPos.Copy();
+
+	var nInRunPos = oParaPos.Get(oParaPos.GetDepth());
+	oParaPos.DecreaseDepth(1);
+
+	var oRun = this.GetClassByPos(oParaPos);
+	if (oRun instanceof AscCommonWord.ParaRun)
+		oRun.RemoveFromContent(nInRunPos, 1, true);
 };
 Paragraph.prototype.MoveCursorUp = function(AddToSelect)
 {
