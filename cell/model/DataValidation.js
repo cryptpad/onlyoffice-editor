@@ -535,7 +535,18 @@
 	};
 	CDataValidation.prototype._getListValues = function (ws) {
 		var aValue, aData;
-		var list = this.formula1 && this.formula1.getValue(ws, false);
+
+		var f = this.formula1;
+		var offset;
+		if (f && f._formula) {
+			//если формула содержит ссылки на диапазоны, то в зависимости от активной области нужно их сдвинуть
+			offset = this.calculateOffset(ws);
+			if (offset) {
+				f = f.clone();
+			}
+		}
+
+		var list = f && f.getValue(ws, false, null, offset);
 		if (list && AscCommonExcel.cElementType.error !== list.type) {
 			if (AscCommonExcel.cElementType.string === list.type) {
 				aValue = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
