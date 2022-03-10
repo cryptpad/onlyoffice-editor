@@ -5723,7 +5723,10 @@ PasteProcessor.prototype =
 					if (null != align.hor) {
 						oCurPar.Pr.Jc = align.hor;
 					} else if (AscCommon.CellValueType.Number === type) {
-						oCurPar.Pr.Jc = AscCommon.align_Right;
+						//для пустого текста, даже если тип соответсвующий, не проставляю выравнивание
+						if (!range.isEmptyTextString()) {
+							oCurPar.Pr.Jc = AscCommon.align_Right;
+						}
 					}
 				}
 
