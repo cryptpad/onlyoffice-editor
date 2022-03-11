@@ -4043,26 +4043,33 @@ CDelimiter.prototype.GetTextOfElement = function(isLaTeX) {
 	//	if start bracket doesn't show:	├ ...) => ...)
 	//	if end bracket doesn't show:	(...┤ => (...
 	//	else:							(...) => (...)
+	//if start and close braketets non-standart add \open, \close
 
 	var strTemp = "";
-
-	var strStartSymbol = String.fromCharCode(this.begOper.code || 40);
-	var strEndSymbol = String.fromCharCode(this.endOper.code || 41);
+	var strStartSymbol = String.fromCharCode((this.begOper.code || this.Pr.begChr) || 40);
+	var strEndSymbol = String.fromCharCode((this.endOper.code || this.Pr.endChr) || 41);
 	var strSeparatorSymbol = String.fromCharCode(this.sepOper.code) || '';
-	var strStartCaseSymbol = '├ ';
-	var strEndCaseSymbol = '┤ ';
+	var strStartCaseSymbol = '├';
+	var strEndCaseSymbol = '┤';
 
-	strTemp += this.Pr.begChr === -1 ? strStartCaseSymbol : strStartSymbol;
-	
+	if (strStartSymbol === "\uffff") {
+		strStartSymbol = ' '
+	}
+
+	var isStartClose = false;
+	var arrStartBracets = ['(', '{', '[', '|'];
+	var arrCloseBracets = [')', '}', ']', '|'];
+
+	strTemp += this.Pr.begChr === -1 || this.Pr.begChr === 32 || !arrStartBracets.includes(strStartSymbol) ? (isStartClose = true, strStartCaseSymbol) + strStartSymbol : strStartSymbol;
+
 	for (var intCount = 0; intCount < this.Content.length; intCount++) {
-		strTemp += this.Content[intCount].GetTextOfElement(isLaTeX);
+		strTemp += this.CheckIsEmpty(this.Content[intCount].GetTextOfElement(isLaTeX));
 
 		if (strSeparatorSymbol && this.Content.length > 1 && intCount < this.Content.length - 1) {
 			strTemp += strSeparatorSymbol;
 		}
 	}
-	strTemp += this.Pr.endChr === -1 ? strEndCaseSymbol : strEndSymbol;
-
+	strTemp += this.Pr.endChr === -1 || this.Pr.endChr === 32 || this.Pr.begChr === -1 || this.Pr.begChr === 32 || isStartClose ? strEndCaseSymbol + strEndSymbol : strEndSymbol;
 	return strTemp;
 }
 

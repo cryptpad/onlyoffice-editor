@@ -1015,7 +1015,7 @@ CMathText.prototype.ToSearchElement = function(oProps)
 
 	return new CSearchTextItemChar(this.Value);
 };
-CMathText.prototype.GetTextOfElement = function() {
+CMathText.prototype.GetTextOfElement = function(isLaTeX) {
 	var strPre = "";
 	if (this.Parent) {
 		var oParentMathPrp = this.Parent.MathPrp.scr;
@@ -1027,19 +1027,20 @@ CMathText.prototype.GetTextOfElement = function() {
 			strPre = '\\double';
 		}
 	}
-
 	var strOutput = String.fromCharCode(this.value);
-	if (strOutput === 'θ') {
-		strOutput = '\\theta'
-	}
-	if (strOutput === '→') {
-		strOutput = '\\to'
-	}
-	if (strOutput === '∞') {
-		strOutput = '\\infty'
-	}
-	if (strOutput === '…') {
-		strOutput = '\\dots'
+	if (isLaTeX) {
+		if (strOutput === 'θ') {
+			strOutput = '\\theta'
+		}
+		if (strOutput === '→') {
+			strOutput = '\\to'
+		}
+		if (strOutput === '∞') {
+			strOutput = '\\infty'
+		}
+		if (strOutput === '…') {
+			strOutput = '\\dots'
+		}
 	}
 
 	// if (strOutput !== '{' || strOutput !== '}') {
@@ -1056,8 +1057,6 @@ CMathText.prototype.GetTextOfElement = function() {
 	// 		}
 	// 	}
 	// }
-
-	
 	return strPre + strOutput;
 };
 /*CMathText.prototype.Recalculate_Reset = function(StartRange, StartLine, PRS)

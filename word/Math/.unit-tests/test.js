@@ -49,6 +49,11 @@ describe("Проверка работы конвертеров", function () {
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), '\\frac{}{}');
 				});
+				it("Создание стандартного деления: \\frac{}{}+2", function () {
+					Para.Root.Add_Text('\\frac{}{}+2', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\frac{}{}+2');
+				});
 				it("Проверка типа стандартного деления Pr.type: \\frac{}{}", function () {
 					Para.Root.Add_Text('\\frac{}{}', Para.Paragraph)
 					Para.ConvertFromLaTeX();
@@ -60,6 +65,11 @@ describe("Проверка работы конвертеров", function () {
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), '\\sfrac{}{}');
 				});
+				it("Скошеное деление: \\sfrac{}{}+2", function () {
+					Para.Root.Add_Text('\\sfrac{}{}+2', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\sfrac{}{}+2');
+				});
 				it("Проверка типа cкошеного деления Pr.type: \\sfrac{}{}", function () {
 					Para.Root.Add_Text('\\sfrac{}{}', Para.Paragraph)
 					Para.ConvertFromLaTeX();
@@ -70,6 +80,11 @@ describe("Проверка работы конвертеров", function () {
 					Para.Root.Add_Text('\\cfrac{}{}', Para.Paragraph)
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), '\\cfrac{}{}');
+				});
+				it("Строчное деление: \\cfrac{}{}+2", function () {
+					Para.Root.Add_Text('\\cfrac{}{}+2', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\cfrac{}{}+2');
 				});
 				it("Проверка типа строчного деления Pr.type: \\cfrac{}{}", function () {
 					Para.Root.Add_Text('\\cfrac{}{}', Para.Paragraph)
@@ -89,23 +104,62 @@ describe("Проверка работы конвертеров", function () {
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), '\\frac{1+2}{2+x^2}');
 				});
-
 				it("Скошеное деление: \\sfrac{1_i+2}{2+x^2}", function () {
 					Para.Root.Add_Text('\\sfrac{1_i+2}{2+x^2}', Para.Paragraph)
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), '\\sfrac{1_i+2}{2+x^2}');
 				});
-
 				it("Строчное деление: \\cfrac{1_i+2}{2+x^2}", function () {
 					Para.Root.Add_Text('\\cfrac{1_i+2}{2+x^2}', Para.Paragraph)
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), '\\cfrac{1_i+2}{2+x^2}');
 				});
-
 				it("Маленькое деление: \\nicefrac{1_i+2}{2+x^2}", function () {
 					Para.Root.Add_Text('\\nicefrac{1_i+2}{2+x^2}', Para.Paragraph)
 					Para.ConvertFromLaTeX();
 					assert.equal(Para.Root.GetTextOfElement(true), '\\rect{\\frac{1_i+2}{2+x^2}}');
+				});
+
+				it("Наполнение стандартного деления: \\frac{}{2+x^2}", function () {
+					Para.Root.Add_Text('\\frac{}{2+x^2}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\frac{}{2+x^2}');
+				});
+				it("Скошеное деление: \\sfrac{}{2+x^2}", function () {
+					Para.Root.Add_Text('\\sfrac{}{2+x^2}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\sfrac{}{2+x^2}');
+				});
+				it("Строчное деление: \\cfrac{}{2+x^2}", function () {
+					Para.Root.Add_Text('\\cfrac{}{2+x^2}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\cfrac{}{2+x^2}');
+				});
+				it("Маленькое деление: \\nicefrac{}{2+x^2}", function () {
+					Para.Root.Add_Text('\\nicefrac{}{2+x^2}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\rect{\\frac{}{2+x^2}}');
+				});
+				
+				it("Наполнение стандартного деления: \\frac{1+2}{}", function () {
+					Para.Root.Add_Text('\\frac{1+2}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\frac{1+2}{}');
+				});
+				it("Скошеное деление: \\sfrac{1_i+2}{}", function () {
+					Para.Root.Add_Text('\\sfrac{1_i+2}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\sfrac{1_i+2}{}');
+				});
+				it("Строчное деление: \\cfrac{1_i+2}{}", function () {
+					Para.Root.Add_Text('\\cfrac{1_i+2}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\cfrac{1_i+2}{}');
+				});
+				it("Маленькое деление: \\nicefrac{1_i+2}{}", function () {
+					Para.Root.Add_Text('\\nicefrac{1_i+2}{}', Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), '\\rect{\\frac{1_i+2}{}}');
 				});
 			})
 			describe("Рекурсия функций", function () {
@@ -129,6 +183,50 @@ describe("Проверка работы конвертеров", function () {
 			});
 		})
 		describe("Проверка обработки функций", function () {
+			var funcs = ['cos', 'sin', 'tan', 'sec', 'cot', 'csc', 'arcsin', 'arccos', 'arctan', 'arcsec', 'arccot', 'arccsc', 'sinh', 'cosh', 'tanh', 'coth', 'sech', 'csch', 'srcsinh', 'arctanh', 'arcsech', 'arccosh', 'arccoth', 'arccsch']
+			
+			for (var i = 0; i < funcs.length; i++) {
+				var str = `\\${funcs[i]}{}`;
+				makeFunc(str, str.slice(0, -2))
+				
+			}
+			for (var i = 0; i < funcs.length; i++) {
+				var str = `\\${funcs[i]}`;
+				makeFunc(str)
+				
+			}
+			for (var i = 0; i < funcs.length; i++) {
+				var str = `\\${funcs[i]}^2`;
+				makeFunc(str)	
+			}
+			for (var i = 0; i < funcs.length; i++) {
+				var str = `\\${funcs[i]}2`;
+				makeFunc(str)	
+			}
+			for (var i = 0; i < funcs.length; i++) {
+				var str = `\\${funcs[i]}{x}`;
+				makeFunc(str, str.slice(0, -3) + 'x')	
+			}
+			for (var i = 0; i < funcs.length; i++) {
+				var str = `\\${funcs[i]}{\\frac{x}{y}}`;
+				makeFunc(str)	
+			}
+			for (var i = 0; i < funcs.length; i++) {
+				var str = `\\${funcs[i]}\\frac{x}{y}`;
+				makeFunc(str, str.slice(0, -11) + '{\\frac{x}{y}}')	
+			}
+			function makeFunc(str, check) {
+				if (check === undefined) {
+					check = str
+				}
+				it(str, function () {
+					Para.Root.Add_Text(str, Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), check);
+				});
+			}
+			
+
 			it("\\cos (2\theta) = \\cos^2 \\theta - \\sin^2 \\theta", function () {
 				Para.Root.Add_Text('\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta', Para.Paragraph)
 				Para.ConvertFromLaTeX();
@@ -156,119 +254,42 @@ describe("Проверка работы конвертеров", function () {
 			});
 		})
 		describe("Проверка обработки больших операторов", function () {
-			describe("Создание больших операторов без контента", function () {
-				it("\\int^{}_{}{}", function () {
-					Para.Root.Add_Text('\\int^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\int');
-				});
-				it("\\oint^{}_{}{}", function () {
-					Para.Root.Add_Text('\\oint^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\oint');
-				});
-				it("\\iint^{}_{}{}", function () {
-					Para.Root.Add_Text('\\iint^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\iint');
-				});
-				it("\\oiint^{}_{}{}", function () {
-					Para.Root.Add_Text('\\oiint^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\oiint');
-				});
-				it("\\iiint^{}_{}{}", function () {
-					Para.Root.Add_Text('\\iiint^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\iiint');
-				});
-				it("\\oiiint^{}_{}{}", function () {
-					Para.Root.Add_Text('\\oiiint^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\oiiint');
-				});
-				it("\\iiiint^{}_{}{}", function () {
-					Para.Root.Add_Text('\\iiiint^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\iiiint');
-				});
-				it("\\\idotsint^{}_{}{}", function () {
-					Para.Root.Add_Text('\\\idotsint^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\\idotsint');
-				});
-				it("\\sum^{}_{}{}", function () {
-					Para.Root.Add_Text('\\sum^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\sum');
-				});
-				it("\\bigoplus^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigoplus^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigoplus');
-				});
-				it("\\biguplus^{}_{}{}", function () {
-					Para.Root.Add_Text('\\biguplus^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\biguplus');
-				});
-				it("\\bigcap^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigcap^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigcap');
-				});
-				it("\\bigcup^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigcup^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigcup');
-				});
-				it("\\bigotimes^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigotimes^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigotimes');
-				});
-				it("\\bigsqcup^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigsqcup^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigsqcup');
-				});
-				it("\\bigodot^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigodot^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigodot');
-				});
-				it("\\prod^{}_{}{}", function () {
-					Para.Root.Add_Text('\\prod^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\prod');
-				});
-				it("\\coprod^{}_{}{}", function () {
-					Para.Root.Add_Text('\\coprod^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\coprod');
-				});
-				it("\\bigvee^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigvee^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigvee');
-				});
-				it("\\bigwedge^{}_{}{}", function () {
-					Para.Root.Add_Text('\\bigwedge^{}_{}{}', Para.Paragraph)
-					Para.ConvertFromLaTeX();
-					assert.equal(Para.Root.GetTextOfElement(true), '\\bigwedge');
-				});
-			})
-			it("\\sum^{10}_{i=1}{t_i+2}", function () {
-				Para.Root.Add_Text('\\sum^{10}_{i=1}{t_i+2}', Para.Paragraph)
-				Para.ConvertFromLaTeX();
-				assert.equal(Para.Root.GetTextOfElement(true), '\\sum^{10}_{i=1}{t_i+2}');
-			});
-			it("\\int^x_0 e^{-x},dx", function () {
-				Para.Root.Add_Text('\\int^x_0 e^{-x},dx', Para.Paragraph)
-				Para.ConvertFromLaTeX();
-				assert.equal(Para.Root.GetTextOfElement(true), '\\int^x_0 e^{-x},dx');
-			});
+			var largeOpers = [ 'int', 'oint', 'iint', 'oiint', 'iiint', 'oiiint', 'iiiint', 'sum', 'bigoplus', 'biguplus', //'idotsint',
+				'bigcap', 'bigcup', 'bigotimes', 'bigsqcup', 'bigodot', 'prod', 'coprod', 'bigvee', 'bigwedge'];
 			
+			function makeFunc(str, check) {
+				if (check === undefined) { check = str }
+				it(str, function () {
+					Para.Root.Add_Text(str, Para.Paragraph)
+					Para.ConvertFromLaTeX();
+					assert.equal(Para.Root.GetTextOfElement(true), check);
+				});
+			}
+
+			for (var i = 0; i < largeOpers.length; i++) {
+				var str = `\\${largeOpers[i]}`;
+				makeFunc(str)
+			}
+			for (var i = 0; i < largeOpers.length; i++) {
+				var str = `\\${largeOpers[i]}^{}_{}{}`;
+				makeFunc(str, str.slice(0,-8))
+			}
+			for (var i = 0; i < largeOpers.length; i++) {
+				var str = `\\${largeOpers[i]}^x_{}{}`;
+				makeFunc(str, str.slice(0,-5))
+			}
+			for (var i = 0; i < largeOpers.length; i++) {
+				var str = `\\${largeOpers[i]}^x_y{}`;
+				makeFunc(str, str.slice(0,-2))
+			}
+			for (var i = 0; i < largeOpers.length; i++) {
+				var str = `\\${largeOpers[i]}^{}_y{}`;
+				makeFunc(str, str.slice(0,-7) + '_y')
+			}
+			for (var i = 0; i < largeOpers.length; i++) {
+				var str = `\\${largeOpers[i]}^x_yz`;
+				makeFunc(str)
+			}
 		})
 		describe("Проверка обработки радикалов", function () {
 			it("\\sqrt{\\frac{a}{b}}", function () {
@@ -301,7 +322,7 @@ describe("Проверка работы конвертеров", function () {
 			it("P\\left(A=2\\middle|\\frac{A^2}{B}>4\\right)", function () {
 				Para.Root.Add_Text('P\\left(A=2\\middle|\\frac{A^2}{B}>4\\right)', Para.Paragraph)
 				Para.ConvertFromLaTeX();
-				assert.equal(Para.Root.GetTextOfElement(true), 'P\\left(A=2\\middle|\\frac{A^2}{B}>4\\right)');
+				assert.equal(Para.Root.GetTextOfElement(true), 'P(A=2\\frac{A^2}{B}>4)');
 			});
 		})
 		describe("Проверка обработки индексов/степеней", function () {
@@ -529,30 +550,30 @@ describe("Проверка работы конвертеров", function () {
 			});
 		})
 		describe("Проверка обработки функций", function () {
-			it("\\cos (2\theta) = \\cos^2 \\theta - \\sin^2 \\theta", function () {
-				Para.Root.Add_Text('\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta', Para.Paragraph)
+			it("cos(2\\theta) = cos^2 \\theta - sin^2 \\theta", function () {
+				Para.Root.Add_Text('cos(2\\theta) = cos^2 \\theta - sin^2 \\theta', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta');
+				assert.equal(Para.Root.GetTextOfElement(), 'cos〖(2θ)〗 = cos^2 θ - sin^2 θ');
 			});
-			it("\\sin (2\\theta) = \\sin^2 \\theta", function () {
-				Para.Root.Add_Text('\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta', Para.Paragraph)
+			it("sin(2\\theta) = sin^2 \\theta", function () {
+				Para.Root.Add_Text('sin(2\\theta) = sin^2 \\theta', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '\\cos (2\\theta) = \\cos^2 \\theta - \\sin^2 \\theta');
+				assert.equal(Para.Root.GetTextOfElement(), 'sin〖(2θ)〗 = sin^2 θ');
 			});
-			it("\\lim_{2\\theta}\\theta", function () {
-				Para.Root.Add_Text('\lim_{2\\theta}\\theta', Para.Paragraph)
+			it("lim┬{2\\theta}\\theta", function () {
+				Para.Root.Add_Text('lim_{2\\theta}\\theta', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '\\lim_{2\\theta}\\theta');
+				assert.equal(Para.Root.GetTextOfElement(), 'lim┬(2θ)θ');
 			});
-			it("\\lim^{2\\theta}\\theta", function () {
-				Para.Root.Add_Text('\lim_{2\\theta}\\theta', Para.Paragraph)
+			it("lim┴{2\\theta}\\theta", function () {
+				Para.Root.Add_Text('lim_{2\\theta}\\theta', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '\\lim_{2\\theta}\\theta');
+				assert.equal(Para.Root.GetTextOfElement(), 'lim┬(2θ)θ');
 			});
-			it("\\lim\\limits_{x \\to \\infty} \\exp(-x) = 0", function () {
-				Para.Root.Add_Text('\\lim\\limits_{x \\to \\infty} \\exp(-x) = 0', Para.Paragraph)
+			it("lim┬{x \\to \\infty}exp(-x)=0", function () {
+				Para.Root.Add_Text('lim\\limits┬{x\\to\\infty}〖exp(-x)〗=0', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '\\lim_{x \\to \\infty} \\exp{(-x)} = 0');
+				assert.equal(Para.Root.GetTextOfElement(), 'lim_{x\\to\\infty}〖exp(-x)〗=0');
 			});
 		})
 		describe("Проверка обработки больших операторов", function () {
@@ -690,11 +711,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum^{}_{}▒{}", function () {
 						Para.Root.Add_Text('\\sum^{}_{}▒{}', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -792,11 +808,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum_{}▒{}", function () {
 						Para.Root.Add_Text('\\sum_{}▒{}', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -894,11 +905,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum^{}▒{}", function () {
 						Para.Root.Add_Text('\\sum^{}▒{}', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -996,11 +1002,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum▒{}", function () {
 						Para.Root.Add_Text('\\sum▒{}', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -1098,11 +1099,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌ + 2');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum^{}_{}▒{} + 2", function () {
 						Para.Root.Add_Text('\\sum^{}_{}▒{} + 2', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -1299,11 +1295,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌^x_y▒z');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum^{x}_{y}▒z", function () {
 						Para.Root.Add_Text('\\sum^{x}_{y}▒z', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -1401,11 +1392,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌^x_y▒〖z+1〗');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum^{x}_{y}▒(z+1)", function () {
 						Para.Root.Add_Text('\\sum^{x}_{y}▒(z+1)', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -1503,11 +1489,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌^(x+1)_(y+1)▒z');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum^(x+1)_(y+1)▒z", function () {
 						Para.Root.Add_Text('\\sum^(x+1)_(y+1)▒z', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -1605,11 +1586,6 @@ describe("Проверка работы конвертеров", function () {
 						Para.ConvertFromUnicodeMath()
 						assert.equal(Para.Root.GetTextOfElement(), '⨌^(x+1)_(y+1)▒〖z+1〗');
 					});
-					// it("\\idotsint^{}_{}▒{}", function () {
-					// 	Para.Root.Add_Text('\\idotsint^{}_{}▒{}', Para.Paragraph)
-					// 	Para.ConvertFromUnicodeMath()
-					// 	assert.equal(Para.Root.GetTextOfElement(), '\\idotsint');
-					// });
 					it("\\sum^(x+1)_(y+1)▒(z+1)", function () {
 						Para.Root.Add_Text('\\sum^(x+1)_(y+1)▒(z+1)', Para.Paragraph)
 						Para.ConvertFromUnicodeMath()
@@ -1799,7 +1775,7 @@ describe("Проверка работы конвертеров", function () {
 			it("Создание радикала с блочным конетнтом и индексом: √{n&1+x+x^2+x^3+\\dots+x^n}", function () {
 				Para.Root.Add_Text('√{n&1+x+x^2+x^3+\\dots+x^n}', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '√(n&1+x+x^2+x^3+\\dots+x^n)');
+				assert.equal(Para.Root.GetTextOfElement(), '√(n&1+x+x^2+x^3+…+x^n)');
 			});
 			it("\\sqrt{{a}/{b}}", function () {
 				Para.Root.Add_Text('\\sqrt{{a}/{b}}', Para.Paragraph)
@@ -1830,6 +1806,11 @@ describe("Проверка работы конвертеров", function () {
 					makeBrackets(StartBracets[i], CloseBracets[j], '')
 				}
 			}
+			for (let i = 0; i < StartBracets.length; i++) {
+				for (let j = 0; j < CloseBracets.length; j++) {
+					makeBrackets('\\open'+StartBracets[i], '\\close'+CloseBracets[j], '2+1')
+				}
+			}
 
 			it("├]a+b┤[", function () {
 				Para.Root.Add_Text('├]a+b┤[', Para.Paragraph)
@@ -1839,12 +1820,12 @@ describe("Проверка работы конвертеров", function () {
 			it("\\open{x^2\\close)", function () {
 				Para.Root.Add_Text('\\open{x^2\\close)', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '\\open{x^2\\close)');
+				assert.equal(Para.Root.GetTextOfElement(), '{x^2)');
 			});
-			it("\\open.x^2\\close)", function () {
+			it("\\open x^2\\close)", function () {
 				Para.Root.Add_Text('\\open.x^2\\close)', Para.Paragraph)
 				Para.ConvertFromUnicodeMath()
-				assert.equal(Para.Root.GetTextOfElement(), '\\open{x^2\\close)');
+				assert.equal(Para.Root.GetTextOfElement(), '├ x^2┤)');
 			});
 			it("((x^2)/(y^3))", function () {
 				Para.Root.Add_Text('(x^2)/(y^3)', Para.Paragraph)
@@ -1940,4 +1921,17 @@ describe("Проверка работы конвертеров", function () {
 			})
 		})
 	})
+
+
+	it("Вставка новой строки", function () {
+		Para.Root.Add_Text('45343 \\\\ 656454', Para.Paragraph)
+		Para.ConvertFromLaTeX()
+		assert.equal(Para.Root.GetTextOfElement(true), ' ');
+	});
+	it("Вставка новой строки", function () {
+		Para.Root.Add_Text('45343 \\\\ 656454 \\\\445', Para.Paragraph)
+		Para.ConvertFromLaTeX()
+		assert.equal(Para.Root.GetTextOfElement(true), ' ');
+	});
+	
 });

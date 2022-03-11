@@ -769,20 +769,25 @@ CRadical.prototype.GetTextOfElement = function(isLaTex) {
 	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTex);
 	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTex);
 
+	if (strDegree.length > 0 && isLaTex) {
+		strDegree =  '[' + strDegree + ']';
+	}
+	if (strBase.length > 1 && ((strDegree.length === 0 && !isLaTex) || isLaTex)) {
+		strBase = strStartBracet + strBase + strCloseBracet;
+	}
 	if (isLaTex) {
-		if (strDegree.length > 0) {
-			strDegree =  '[' + strDegree + ']';
-		}
-		if (strBase.length > 1) {
-			strBase = strStartBracet + strBase + strCloseBracet;
-		}
 		strTemp = '\\sqrt' + strDegree + strBase;
 	} else {
 		var strRadicalSymbol = String.fromCharCode(8730); //√
 		if (strDegree.length > 0) {
 			strDegree = strDegree + '&';
 		}
-		strTemp = strRadicalSymbol + strStartBracet + strDegree + strBase + strCloseBracet;
+
+		if (strDegree.length >= 1) {
+			strTemp = strRadicalSymbol + strStartBracet + strDegree + strBase + strCloseBracet;
+		} else {
+			strTemp = strRadicalSymbol + strDegree + strBase;
+		}
 	}
 	return strTemp;
 };
