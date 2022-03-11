@@ -2542,6 +2542,12 @@ ParaMath.prototype.IsInline = function()
 {
 	return (this.ParaMathRPI.bInline === true);
 };
+ParaMath.prototype.SwitchDisplayForm = function() {
+	var boolSwitchValue = !this.ParaMathRPI.bInline;
+	this.Set_Inline(boolSwitchValue);
+	this.Paragraph.LogicDocument.Recalculate(true);
+	this.Paragraph.LogicDocument.UpdateSelection();
+}
 ParaMath.prototype.NeedDispOperators = function(Line)
 {
     return false === this.Is_Inline() &&  true == this.Root.IsStartLine(Line);
