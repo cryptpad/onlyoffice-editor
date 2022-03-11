@@ -408,6 +408,9 @@ CChangesParagraphAddItem.prototype.Load = function(Color)
 			if (Element.SetParagraph)
 				Element.SetParagraph(oParagraph);
 
+			if (Element.SetParent)
+				Element.SetParent(oParagraph);
+
 			oParagraph.Content.splice(Pos, 0, Element);
 			oParagraph.private_UpdateSelectionPosOnAdd(Pos, 1);
 			AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(oParagraph, Pos);

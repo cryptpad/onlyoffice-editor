@@ -2556,6 +2556,117 @@ ParaMath.prototype.IsInline = function()
 {
 	return (this.ParaMathRPI.bInline === true);
 };
+ParaMath.prototype.ConvertToInlineMode = function()
+{
+	let oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return false;
+
+	if (this.IsInlineMode())
+		return true;
+
+	let oParent      = this.GetParent();
+	let nPosInParent = this.GetPosInParent(oParent);
+	if (!oParent || -1 === nPosInParent)
+		return false;
+
+	let oContentPos = this.GetStartPosInParagraph();
+	let oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsBefore.SetSaveContentPositions(true);
+	oParagraph.GetPrevRunElements(oRunElementsBefore);
+	let arrElements = oRunElementsBefore.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsBreak())
+		oParagraph.RemoveRunElement(oRunElementsBefore.GetContentPositions()[0]);
+
+	oContentPos = this.GetEndPosInParagraph();
+	let oRunElementsAfter = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsAfter.SetSaveContentPositions(true);
+	oParagraph.GetNextRunElements(oRunElementsAfter);
+	arrElements = oRunElementsAfter.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsBreak())
+		oParagraph.RemoveRunElement(oRunElementsAfter.GetContentPositions()[0]);
+
+	let oAfterItem = oParagraph.GetNextRunElement(this.GetEndPosInParagraph());
+	if (!oAfterItem || !oAfterItem.IsSpace())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new ParaSpace());
+		oParent.AddToContent(nPosInParent + 1, oRun);
+	}
+
+	let oBeforeItem = oParagraph.GetPrevRunElement(this.GetStartPosInParagraph());
+	if (oBeforeItem && oBeforeItem.IsText())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new ParaSpace());
+		oParent.AddToContent(nPosInParent, oRun);
+	}
+
+	return true;
+};
+ParaMath.prototype.ConvertToDisplayMode = function()
+{
+	let oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return false;
+
+	if (!this.IsInlineMode())
+		return true;
+
+	let oParent      = this.GetParent();
+	let nPosInParent = this.GetPosInParent(oParent);
+	if (!oParent || -1 === nPosInParent)
+		return false;
+
+	let oContentPos = this.GetStartPosInParagraph();
+	let oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsBefore.SetSaveContentPositions(true);
+	oParagraph.GetPrevRunElements(oRunElementsBefore);
+	let arrElements = oRunElementsBefore.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsSpace())
+		oParagraph.RemoveRunElement(oRunElementsBefore.GetContentPositions()[0]);
+
+	oContentPos = this.GetEndPosInParagraph();
+	let oRunElementsAfter = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsAfter.SetSaveContentPositions(true);
+	oParagraph.GetNextRunElements(oRunElementsAfter);
+	arrElements = oRunElementsAfter.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsSpace())
+		oParagraph.RemoveRunElement(oRunElementsAfter.GetContentPositions()[0]);
+
+	let oAfterItem = oParagraph.GetNextRunElement(this.GetEndPosInParagraph());
+	if (oAfterItem && !oAfterItem.IsParaEnd())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new ParaNewLine(break_Line));
+		oParent.AddToContent(nPosInParent + 1, oRun);
+	}
+
+	let oBeforeItem = oParagraph.GetPrevRunElement(this.GetStartPosInParagraph());
+	if (oBeforeItem || oParagraph.HaveNumbering())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new ParaNewLine(break_Line));
+		oParent.AddToContent(nPosInParent, oRun);
+	}
+
+	return true;
+};
+ParaMath.prototype.IsInlineMode = function()
+{
+	// TODO: Сейчас у нас формула может быть только на верхнем уровне параграфа, когда это изменится тут
+	//       надо переделать проверку
+
+	let oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return false;
+
+	let oParaPos = oParagraph.GetPosByElement(this);
+	if (!oParaPos)
+		return false;
+
+	return !oParagraph.CheckMathPara(oParaPos.Get(0));
+};
 ParaMath.prototype.NeedDispOperators = function(Line)
 {
     return false === this.Is_Inline() &&  true == this.Root.IsStartLine(Line);

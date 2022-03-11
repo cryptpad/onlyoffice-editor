@@ -5723,7 +5723,10 @@ PasteProcessor.prototype =
 					if (null != align.hor) {
 						oCurPar.Pr.Jc = align.hor;
 					} else if (AscCommon.CellValueType.Number === type) {
-						oCurPar.Pr.Jc = AscCommon.align_Right;
+						//для пустого текста, даже если тип соответсвующий, не проставляю выравнивание
+						if (!range.isEmptyTextString()) {
+							oCurPar.Pr.Jc = AscCommon.align_Right;
+						}
 					}
 				}
 
@@ -9086,8 +9089,11 @@ PasteProcessor.prototype =
 				}
 
 				//для проблемы с лишними прообелами в начале новой строки при копировании из MS EXCEL ячеек с текстом, разделенным alt+enter
+				//мс в данном случае(баг 55851) оборачивает данные в тэг font. чтобы сохранить пробелы, добавляю проверку.
+				//можно было бы проверить на наличие переноса строки вначале, но 55851 - перед вторым Bold добавляет символ переноса
+				//тег font является устаревшим, но мс его активно испольует
 				var ignoreFirstSpaces = false;
-				if (AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
+				if (AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel && !(node.parentNode && node.parentNode.nodeName.toLowerCase() === "font")) {
 					ignoreFirstSpaces = true;
 				}
 

@@ -1078,6 +1078,32 @@ CParagraphContentWithContentBase.prototype.SelectThisElement = function(nDirecti
 
 	return true;
 };
+CParagraphContentWithContentBase.prototype.GetStartPosInParagraph = function()
+{
+	if (!this.Paragraph)
+		return null;
+
+	let oContentPos = this.Paragraph.GetPosByElement(this);
+	if (!oContentPos)
+		return null;
+
+	let oResultPos = oContentPos.Copy();
+	this.Get_StartPos(oResultPos, oResultPos.Get_Depth() + 1);
+	return oResultPos;
+};
+CParagraphContentWithContentBase.prototype.GetEndPosInParagraph = function()
+{
+	if (!this.Paragraph)
+		return null;
+
+	let oContentPos = this.Paragraph.GetPosByElement(this);
+	if (!oContentPos)
+		return null;
+
+	let oResultPos = oContentPos.Copy();
+	this.Get_EndPos(true, oResultPos, oResultPos.Get_Depth() + 1);
+	return oResultPos;
+};
 CParagraphContentWithContentBase.prototype.protected_GetPrevRangeEndPos = function(LineIndex, RangeIndex)
 {
     var RangeCount  = this.protected_GetRangesCount(LineIndex - 1);

@@ -1231,6 +1231,9 @@
 			case AscDFH.historydescription_Document_Docxf_To_Docx:
 				sString = "Document_Docxf_To_Docx";
 				break;
+			case AscDFH.historydescription_Document_ConvertMathDisplayMode:
+				sString = "Document_ConvertMathDisplayMode";
+				break;
 		}
 		return sString;
 	}
@@ -4262,7 +4265,8 @@
 	window['AscDFH'].historydescription_Document_ReplaceCurrentWord                 = 0x018d;
 	window['AscDFH'].historydescription_Document_ChangeGeometryEdit                 = 0x018e;
 	window['AscDFH'].historydescription_Document_Docxf_To_Docx                      = 0x018f;
-	window['AscDFH'].historydescription_Presentation_EditTableOleObjectFromBinary   = 0x0190;
+	window['AscDFH'].historydescription_Document_ConvertMathDisplayMode             = 0x0190;
+	window['AscDFH'].historydescription_Presentation_EditTableOleObjectFromBinary   = 0x0191;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
