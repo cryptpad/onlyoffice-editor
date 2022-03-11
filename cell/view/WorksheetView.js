@@ -23047,6 +23047,11 @@
 			return;
 		}
 
+		//если выделить ничего нельзя, то и редактировать возможности нет
+		if (wsModel.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
+			return;
+		}
+
 		var checkRange = function (_protectedRanges, _range) {
 			var needCheckPasswordDialog = true;
 			for (var j = 0; j < _protectedRanges.length; j++) {
