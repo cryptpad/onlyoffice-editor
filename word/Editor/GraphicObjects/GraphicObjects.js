@@ -1227,22 +1227,7 @@ CGraphicObjects.prototype =
 
     editTableOleObject: function(binaryInfo)
     {
-        var _this = this;
-        if (binaryInfo) {
-            if (!binaryInfo.imageUrl) {
-                var base64Image = binaryInfo.base64Image;
-                var fAfterUploadOleObjectImage = function (url) {
-                    binaryInfo.imageUrl = url;
-                    _this.editTableOleObject(binaryInfo);
-                }
-                var obj = {
-                    fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
-                };
-                AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
-                    _this.api._uploadCallback(nError, files, obj);
-                });
-                return;
-            }
+        if (binaryInfo && binaryInfo.imageUrl) {
             var blipUrl = binaryInfo.imageUrl;
             var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
 

@@ -8608,13 +8608,13 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.asc_editTableOleObject = function(chartBinary)
+	asc_docs_api.prototype.asc_editTableOleObject = function(oleInfo)
 	{
-		if (AscFormat.isObject(chartBinary))
+		if (AscFormat.isObject(oleInfo))
 		{
 			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 			{
-				this.WordControl.m_oLogicDocument.EditTableOleObject(chartBinary);
+				this.WordControl.m_oLogicDocument.EditTableOleObject(oleInfo);
 			}
 		}
 	};
