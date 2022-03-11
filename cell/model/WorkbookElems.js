@@ -7735,8 +7735,10 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		w.WriteLong(this.SortConditions ? this.SortConditions.length : 0);
-		for (var i = 0; i < this.SortConditions.length; ++i) {
-			this.SortConditions[i].Write_ToBinary2(w);
+		if (this.SortConditions) {
+			for (var i = 0; i < this.SortConditions.length; ++i) {
+				this.SortConditions[i].Write_ToBinary2(w);
+			}
 		}
 	};
 	/*SortState.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
