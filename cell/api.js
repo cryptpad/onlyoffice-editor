@@ -3368,10 +3368,10 @@ var editor;
    * @returns {{}} binary info about oleObject
    */
   spreadsheet_api.prototype.asc_getBinaryInfoOleObject = function () {
+    var dataUrl = this.wb.getImageFromTableOleObject();
     var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
     var binaryData = oBinaryFileWriter.Write().split(';');
     var cleanBinaryData = binaryData[binaryData.length - 1];
-    var dataUrl = this.wb.getImageFromTableOleObject();
     var binaryInfo = {};
 
     binaryInfo.binary = cleanBinaryData;
