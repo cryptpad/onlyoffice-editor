@@ -940,6 +940,9 @@ CComplexField.prototype.private_UpdateTOC = function()
 		oRun.AddText(sReplacementText);
 		oPara.AddToContent(0, oRun);
 		oSelectedContent.Add(new CSelectedElement(oPara, true));
+
+		let oApi = this.LogicDocument.GetApi();
+		oApi.sendEvent("asc_onError", c_oAscError.ID.ComplexFieldEmptyTOC, c_oAscError.Level.NoCritical);
 	}
 
 	this.SelectFieldValue();

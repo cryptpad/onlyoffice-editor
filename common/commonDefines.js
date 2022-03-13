@@ -694,6 +694,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 
 			Password : -1000,
 
+			ComplexFieldEmptyTOC : -1101,
+
 			SecondaryAxis: 1001,
 			ComboSeriesError: 1002,
 
