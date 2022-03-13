@@ -1353,6 +1353,24 @@ CSectionPr.prototype.GetLineNumbersDistance = function()
 {
 	return (this.LnNumType ? this.LnNumType.Distance : undefined);
 };
+CSectionPr.prototype.RemoveHeader = function(oHeader)
+{
+	if (!oHeader)
+		return;
+
+	if (this.HeaderDefault === oHeader)
+		this.Set_Header_Default(null);
+	else if (this.HeaderEven === oHeader)
+		this.Set_Header_Even(null);
+	else if (this.HeaderFirst === oHeader)
+		this.Set_Header_First(null);
+	else if (this.FooterDefault === oHeader)
+		this.Set_Footer_Default(null);
+	else if (this.FooterEven === oHeader)
+		this.Set_Footer_Even(null);
+	else if (this.FooterFirst === oHeader)
+		this.Set_Footer_First(null);
+};
 
 
 function CSectionPageSize()

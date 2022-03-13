@@ -8227,6 +8227,36 @@ CDocument.prototype.Set_DocumentEvenAndOddHeaders = function(Value)
 		EvenAndOddHeaders = Value;
 	}
 };
+CDocument.prototype.RemoveHdrFtr = function(nPageAbs, isHeader)
+{
+	let oHeader = this.HdrFtr.GetHdrFtr(nPageAbs, isHeader);
+	if (!oHeader)
+		return;
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_HdrFtr))
+	{
+		this.StartAction(AscDFH.historydescription_Document_RemoveHdrFtr);
+
+		let nSectPos = this.SectionsInfo.Find_ByHdrFtr(oHeader);
+		if (0 === nSectPos)
+		{
+			if (oHeader === this.HdrFtr.GetCurHdrFtr())
+				this.EndHdrFtrEditing(true);
+
+			let oSectPr = this.SectionsInfo.Get(nSectPos).SectPr;
+			oSectPr.RemoveHeader(oHeader);
+		}
+		else
+		{
+			oHeader.UpdateContentToDefaults();
+		}
+
+		this.UpdateSelection();
+		this.UpdateInterface();
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
 /**
  * Обновляем данные в интерфейсе о свойствах параграфа.
  */
