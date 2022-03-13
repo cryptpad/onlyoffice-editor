@@ -9793,11 +9793,15 @@ CStyles.prototype.GetDefaultHeading = function(nLvl)
 };
 CStyles.prototype.GetHeadingLevelByName = function(sStyleName)
 {
-	var sId = this.GetStyleIdByName(sStyleName);
+	let sId = this.GetStyleIdByName(sStyleName);
 	if (!sId)
 		return -1;
 
-	for (var nIndex = 0; nIndex <= 8; ++nIndex)
+	return this.GetHeadingLevelById(sId);
+};
+CStyles.prototype.GetHeadingLevelById = function(sId)
+{
+	for (let nIndex = 0; nIndex <= 8; ++nIndex)
 	{
 		if (sId === this.Default.Headings[nIndex])
 			return nIndex;

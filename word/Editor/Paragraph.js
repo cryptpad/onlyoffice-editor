@@ -11037,7 +11037,7 @@ Paragraph.prototype.Set_Bullet = function(Bullet)
 };
 Paragraph.prototype.SetOutlineLvl = function(nLvl)
 {
-	if (null === nLvl)
+	if (null === nLvl || -1 === nLvl)
 		nLvl = undefined;
 
 	this.private_AddPrChange();

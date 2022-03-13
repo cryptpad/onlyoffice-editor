@@ -10744,6 +10744,74 @@ background-repeat: no-repeat;\
 		}
 
 	};
+	asc_docs_api.prototype.asc_AddParagraphToTOC = function(nLvl)
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		let arrParagraphs = oLogicDocument.GetSelectedParagraphs();
+		if (arrParagraphs.length < 0)
+			return;
+
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
+			Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+			Elements  : arrParagraphs,
+			CheckType : AscCommon.changestype_Paragraph_Properties
+		}, false, false))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddParagraphToTOC);
+
+			let oStyles = oLogicDocument.GetStyles();
+			if (-1 === nLvl || undefined === nLvl || null === nLvl)
+			{
+				for (let nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+				{
+					let oParagraph = arrParagraphs[nIndex];
+					oParagraph.SetOutlineLvl(null);
+
+					let sCurStyleId = oParagraph.GetParagraphStyle();
+					if (-1 !== oStyles.GetHeadingLevelById(sCurStyleId))
+						oParagraph.SetParagraphStyleById(null);
+				}
+			}
+			else
+			{
+				let sStyleId = oStyles.GetDefaultHeading((nLvl | 0));
+				for (let nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+				{
+					arrParagraphs[nIndex].SetParagraphStyleById(sStyleId);
+				}
+			}
+
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateSelection();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.asc_GetCurrentLevelTOC = function()
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return -1;
+
+		let arrParagraphs = oLogicDocument.GetSelectedParagraphs();
+		let nResult = -1;
+
+		for (let nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+		{
+			let nCurrentLvl = arrParagraphs[nIndex].GetOutlineLvl();
+
+			if (undefined !== nCurrentLvl
+				&& null !== nCurrentLvl
+				&& nCurrentLvl >= 0
+				&& (-1 === nResult || nResult > nCurrentLvl))
+				nResult = nCurrentLvl;
+		}
+
+		return nResult;
+	};
 
 	asc_docs_api.prototype.asc_CanUpdateTablesOfFigures = function()
 	{
@@ -12880,6 +12948,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetTableOfContentsPr']                  = asc_docs_api.prototype.asc_GetTableOfContentsPr;
 	asc_docs_api.prototype['asc_SetTableOfContentsPr']                  = asc_docs_api.prototype.asc_SetTableOfContentsPr;
 	asc_docs_api.prototype['asc_UpdateTableOfContents']                 = asc_docs_api.prototype.asc_UpdateTableOfContents;
+	asc_docs_api.prototype['asc_AddParagraphToTOC']                     = asc_docs_api.prototype.asc_AddParagraphToTOC;
+	asc_docs_api.prototype['asc_GetCurrentLevelTOC']                    = asc_docs_api.prototype.asc_GetCurrentLevelTOC;
 
 	asc_docs_api.prototype['asc_getAllUsedParagraphStyles']             = asc_docs_api.prototype.asc_getAllUsedParagraphStyles;
 	asc_docs_api.prototype['asc_CanUpdateTablesOfFigures']              = asc_docs_api.prototype.asc_CanUpdateTablesOfFigures;
