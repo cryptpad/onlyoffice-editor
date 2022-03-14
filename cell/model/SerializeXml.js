@@ -2030,7 +2030,7 @@
 	//TOoDO PrepareToWrite делается в x2t, здесь не вижу необходиимости, но проверить нужно
 
 	AscCommonExcel.Worksheet.prototype.toXml = function (writer) {
-		var t = this;
+		var t = this, i;
 		var context = writer.context;
 		context.ws = this;
 
@@ -2110,7 +2110,7 @@
 			writer.WriteXmlNullableAttributeNumber("count", mergedArr.length);
 			writer.WriteXmlString(">");
 
-			for (var i = 0; i < mergedArr.length; ++i) {
+			for (i = 0; i < mergedArr.length; ++i) {
 				if (mergedArr[i]) {
 					writer.WriteXmlString("<mergeCell");
 					writer.WriteXmlNullableAttributeStringEncode("ref", mergedArr[i]);
@@ -2143,7 +2143,7 @@
 		if (oHyperlinks && oHyperlinks.length) {
 			writer.WriteXmlString("<hyperlinks>");
 
-			for (var i in oHyperlinks) {
+			for (i in oHyperlinks) {
 				var elem = oHyperlinks[i];
 
 				//write only active hyperlink, if copy/paste
@@ -2204,7 +2204,7 @@
 			writer.WriteXmlAttributeNumber("count", this.TableParts.length);
 			writer.WriteXmlAttributesEnd();
 
-			for (var i = 0; i < this.TableParts.length; i++) {
+			for (i = 0; i < this.TableParts.length; i++) {
 				var tablePart = context.part.addPart(AscCommon.openXml.Types.tableDefinition);
 				tablePart.part.setDataXml(this.TableParts[i], writer);
 				//CT_DrawingWSRef - внутри только id, поэтому здесь использую. либо переимонвать, либо базовый сделать с такими аттрибутами
@@ -2465,6 +2465,7 @@
 					oTempCol.col.collapsed = this.stream.GetBool();*/
 
 
+				var ptWidth, bAutoFit, sStyleID;
 				var oTempCol = {Max: null, Min: null, col: new AscCommonExcel.Col(this.ws, 0)};
 				var val;
 				while (reader.MoveToNextAttribute()) {
@@ -2498,10 +2499,45 @@
 							oTempCol.col.setStyle(xfs);
 						}
 					} else if ("width" === reader.GetName()) {
-						val = reader.GetValueDouble();
-						oTempCol.col.width = val;
+						//val = reader.GetValueDouble();
+						//мс себя так ведёт - всё что не число, зануляет
+						val = this.GetValue();
+						if (AscCommon.isNumber(val)) {
+							oTempCol.col.width =  parseFloat(val);
+						} else {
+							oTempCol.col.width = 0;
+						}
+					} else if ("ss:Width" === reader.GetName()) {
+						ptWidth = reader.GetValueInt();
+					}  else if ("ss:AutoFitWidth" === reader.GetName()) {
+						bAutoFit = reader.GetValueBool();
+					}  else if ("ss:StyleID" === reader.GetName()) {
+						sStyleID = reader.GetValue();
 					}
 				}
+
+				//добавляю обработку, аналогичную той, которая есть в x2t
+				if (ptWidth) {
+					var pixDpi = ptWidth / 72 * 96;
+					if (pixDpi < 5) {
+						pixDpi = 7;
+					}
+					var maxDigitSize = 4.25;
+					oTempCol.col.width = parseInt((pixDpi - 5) / maxDigitSize * 100. + 0.5) / 100 * 0.9;
+					oTempCol.col.CustomWidth = true;
+				}
+
+				/*if (bAutoFit && bAutoFit === false) {
+
+				} else if (xlsx_flat) {
+					oTempCol.col.BestFit = true;
+
+					if (false === ptWidth) {
+						oTempCol.col.CustomWidth = true;
+						oTempCol.col.width = 9;//?
+					}
+				}*/
+
 				this.val.push(oTempCol);
 			}
 		}
@@ -2572,14 +2608,14 @@
 			row.toXml(writer, "row");
 			curRow = row.getIndex();
 		}, function (cell, nRow0, nCol0, nRowStart0, nColStart0, excludedCount) {
-			if (curRow != nRow0) {
+			if (curRow !== nRow0) {
 				tempRow.setIndex(nRow0);
 				writeEndRow();
 				tempRow.toXml(writer, "row");
 				curRow = tempRow.getIndex();
 			}
 			//сохраняем как и Excel даже пустой стиль(нужно чтобы убрать стиль строки/колонки)
-			if (null != cell.xfs || false == cell.isNullText()) {
+			if (null != cell.xfs || false === cell.isNullText()) {
 				cell.toXml(writer, "c");
 			}
 		}, (ws.bExcludeHiddenRows && isCopyPaste));

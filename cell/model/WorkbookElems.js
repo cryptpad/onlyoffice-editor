@@ -5637,6 +5637,9 @@ StyleManager.prototype =
 				if(AscCommon.CurFileVersion < 2)
 					this.setCustomHeight(true);
 			} else if ("ss:Height" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.setHeight(val);
+				this.setCustomHeight(true);
 			} else if ("hidden" === reader.GetName()) {
 				val = reader.GetValueBool();
 				if(val)
