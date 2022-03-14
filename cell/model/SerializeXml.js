@@ -1319,6 +1319,15 @@
 		return val;
 	}
 
+	function prepareTextToXml(val) {
+		//x2t пишет &#xA; , но в WriteXmlValueStringEncode & заменяется
+		//val = val.replace(/\n/g, "\&#xA;");
+		//от мс приходит \r\n
+		//val = val.replace(/\n/g, "\r\n");
+
+		return val;
+	}
+
 	var extUri = {
 		conditionalFormattings: "{78C0D931-6437-407d-A8EE-F0AAD7539E65}",
 		dataValidations: "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}",
@@ -2501,7 +2510,7 @@
 					} else if ("width" === reader.GetName()) {
 						//val = reader.GetValueDouble();
 						//мс себя так ведёт - всё что не число, зануляет
-						val = this.GetValue();
+						val = reader.GetValue();
 						if (AscCommon.isNumber(val)) {
 							oTempCol.col.width =  parseFloat(val);
 						} else {
@@ -2722,6 +2731,115 @@
 		writer.WriteXmlAttributeBoolIfTrue("collapsed", this.getCollapsed());
 		writer.WriteXmlAttributesEnd();
 	};
+
+	AscCommonExcel.Row.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("c" === reader.GetName()) {
+				this._tempCell.clear();
+				this._tempCell.fromXml(reader);
+				this._tempCell.saveContent();
+			}
+		}
+	};
+
+	AscCommonExcel.Row.prototype.fromXml2 = function(reader) {
+		this.readAttr(reader);
+
+		var tmp = reader.GetContext().InitOpenManager.tmp;
+		if (tmp) {
+			if(null === this.index) {
+				this.index = tmp.prevRow + 1;
+			}
+			this.saveContent();
+
+			this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.index + 1);
+			this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.ws.cellsByColRowsCount);
+			tmp.prevRow = this.index;
+			tmp.prevCol = -1;
+		}
+
+
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("c" === reader.GetName()) {
+
+
+				tmp.cell.clear();
+				tmp.formula.clean();
+
+				//AscCommonExcel.Cell -> fromXml
+				tmp.cell.fromXml(reader);
+
+				if (tmp.cell.isNullTextString()) {
+					//set default value in case of empty cell value
+					tmp.cell.setTypeInternal(CellValueType.Number);
+				}
+				if (tmp.cell.hasRowCol()) {
+					tmp.prevCol = tmp.cell.nCol;
+				} else {
+					tmp.prevCol++;
+					tmp.cell.setRowCol(tmp.prevRow, tmp.prevCol);
+				}
+
+				reader.GetContext().InitOpenManager.initCellAfterRead(tmp);
+			}
+		}
+	};
+
+	AscCommonExcel.Row.prototype.readAttr = function(reader) {
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("r" === reader.GetName() || "ss:Index" === reader.GetName()) {
+				val = reader.GetValueInt() - 1;
+				this.setIndex(val);
+			} else if ("s" === reader.GetName()) {
+				val = reader.GetValueInt();
+				var aCellXfs = reader.context.InitOpenManager && reader.context.InitOpenManager.aCellXfs;
+				if (aCellXfs) {
+					var xfs = aCellXfs[val];
+					if (xfs) {
+						this.setStyle(xfs);
+					}
+				}
+			} else if ("customFormat" === reader.GetName()) {
+			} else if ("ht" === reader.GetName()) {
+				val = reader.GetValue();
+				//если не число - мс пропускает
+				if (AscCommon.isNumber(val)) {
+					this.setHeight(val);
+					if(AscCommon.CurFileVersion < 2)
+						this.setCustomHeight(true);
+				}
+			} else if ("ss:Height" === reader.GetName()) {
+				val = reader.GetValueDouble();
+				this.setHeight(val);
+				this.setCustomHeight(true);
+			} else if ("hidden" === reader.GetName()) {
+				val = reader.GetValueBool();
+				if(val)
+					this.setHidden(true);
+			} else if ("customHeight" === reader.GetName()) {
+				val = reader.GetValueBool();
+				if(val)
+					this.setCustomHeight(true);
+			} else if ("outlineLevel" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.setOutlineLevel(val);
+			} else if ("collapsed" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.setCollapsed(val);
+			} else if ("x14ac:dyDescent" === reader.GetName()) {
+			} else if ("thickBot" === reader.GetName()) {
+			} else if ("thickTop" === reader.GetName()) {
+			} else if ("ph" === reader.GetName()) {
+			}
+		}
+	};
+
 	AscCommonExcel.Cell.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
@@ -2763,7 +2881,7 @@
 				this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.nCol);
 			} else if ("s" === reader.GetName()) {
 				var nStyleIndex = reader.GetValueInt();
-				if (0 != nStyleIndex) {
+				if (0 !== nStyleIndex) {
 					var xfs = reader.GetContext().InitOpenManager.aCellXfs[nStyleIndex];
 					if (null != xfs) {
 						this.setStyle(xfs);
@@ -3126,7 +3244,6 @@
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("t" === reader.GetName()) {
-				//TODO поработать с текстом, проблемы с переносом строки
 				this.text = prepareTextFromXml(reader.GetTextDecodeXml());
 			} else if ("r" === reader.GetName()) {
 				var oMultiText = new AscCommonExcel.CMultiTextElem();
@@ -3144,9 +3261,9 @@
 		}
 		writer.WriteXmlNodeStart(ns + name);
 		writer.WriteXmlAttributesEnd();
-		//TODO поработать с текстом, при чтении заменяем \r\n на \n, но при записи не заменяем.
+
 		if (null !== this.text) {
-			writer.WriteXmlValueStringEncode("t", this.text);
+			writer.WriteXmlValueStringEncode("t", prepareTextToXml(this.text));
 		} else if (null !== this.multiText) {
 			writer.WriteXmlArray(this.multiText, "r");
 		}
@@ -3194,8 +3311,7 @@
 			this.format.toXml(writer, "rPr", childns);
 		}
 		if (this.text) {
-			//TODO поработать с текстом, при чтении заменяем \r\n на \n, но при записи не заменяем.
-			writer.WriteXmlValueStringEncode("t", this.text);
+			writer.WriteXmlValueStringEncode("t", prepareTextToXml(this.text));
 		}
 		writer.WriteXmlNodeEnd(ns + name);
 	};
@@ -3943,18 +4059,13 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 			ns = "";
 		}
 
-		var nShowColumnStripes = this.ShowColumnStripes === true ? 1 : 0;
-		var nShowFirstColumn = this.ShowFirstColumn === true ? 1 : 0;
-		var nShowLastColumn = this.ShowLastColumn === true ? 1 : 0;
-		var nShowRowStripes = this.ShowRowStripes === true ? 1 : 0;
-
 		writer.WriteXmlNodeStart(ns + name/*"tableStyleInfo"*/);
 
 		writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
-		writer.WriteXmlAttributeNumber("showFirstColumn", nShowFirstColumn);
-		writer.WriteXmlAttributeNumber("showLastColumn", nShowLastColumn);
-		writer.WriteXmlAttributeNumber("showRowStripes", nShowRowStripes);
-		writer.WriteXmlAttributeNumber("showColumnStripes", nShowColumnStripes);
+		writer.WriteXmlAttributeNumber("showFirstColumn", boolToNumber(this.ShowFirstColumn));
+		writer.WriteXmlAttributeNumber("showLastColumn", boolToNumber(this.ShowLastColumn));
+		writer.WriteXmlAttributeNumber("showRowStripes", boolToNumber(this.ShowRowStripes));
+		writer.WriteXmlAttributeNumber("showColumnStripes", boolToNumber(this.ShowColumnStripes));
 		writer.WriteXmlAttributesEnd();
 
 		writer.WriteXmlNodeEnd(ns + name);
@@ -5919,9 +6030,9 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			if ("disablePrompts" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.disablePrompts = val;
-			} else if ("XWindow" === reader.GetName()) {
+			} else if ("xWindow" === reader.GetName()) {
 				val = reader.GetValueInt();
-				this.XWindow = val;
+				this.xWindow = val;
 			} else if ("yWindow" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.yWindow = val;
@@ -6025,22 +6136,23 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.setSqRef(reader.GetText());
 			}
 			//--------------------------------------------------- xml spreadsheet 2002
-			else if ("Range" == name) {
+			else if ("Range" === name) {
 				/*r1c1_formula_convert::base_row = 1;
 				r1c1_formula_convert::base_col = 1;
 
 				r1c1_formula_convert convert;
 
 				m_oSqRef = convert.convert(oReader.GetText2());*/
-			} else if ("Type" == name) {
-				/*m_oType = oReader.GetText2();
+				//TODO r1c1? не могу найти в каком виде она должна быть здесь записана
+				val = reader.GetText()
+				this.setSqRef(val);
+			} else if ("Type" === name) {
 
-				m_oAllowBlank.Init();
-				m_oAllowBlank->FromBool(true);
-
-				m_oShowInputMessage.Init();
-				m_oShowInputMessage->FromBool(true);*/
-			} else if ("Value" == name) {
+				val = reader.GetText();
+				this.type = FromXml_ST_DataValidationType(val);
+				this.allowBlank = true;
+				this.showInputMessage = true;
+			} else if ("Value" === name) {
 				/*r1c1_formula_convert::base_row = 1;
 				r1c1_formula_convert::base_col = 1;
 
@@ -6048,6 +6160,10 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 				m_oFormula1 = new CDataValidationFormula(m_pMainDocument);
 				m_oFormula1->m_sText = convert.convert(oReader.GetText3());*/
+
+				//TODO r1c1? не могу найти в каком виде она должна быть здесь записана
+				val = new Asc.CDataFormula(reader.GetText());
+				this.formula1 = val;
 			}
 		}
 
@@ -6253,7 +6369,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
 				this.type = FromXml_ST_DataValidationType(val);
-
 			}
 		}
 	};
@@ -6280,16 +6395,16 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 	AscCommonExcel.CDataValidation.prototype.isExtended = function () {
 		var result1 = true, result2 = true;
-		if (this.formula1) {
-			if (this.formula1.text.indexOf("!") !== -1 && this.formula1.text !== "#REF!") {
+		if (this.formula1 && this.formula1.text) {
+			if (this.formula1.text.indexOf("!") !== -1 && this.formula1.text.toUpperCase() !== "#REF!") {
 				result1 = false;
 			}
 		} else {
 			result1 = false;
 		}
 
-		if (this.formula2) {
-			if (this.formula2.text.indexOf("!") !== -1 && this.formula2.text !== "#REF!") {
+		if (this.formula2 && this.formula2.text) {
+			if (this.formula2.text.indexOf("!") !== -1 && this.formula2.text.toUpperCase() !== "#REF!") {
 				result1 = false;
 			}
 		} else {
@@ -6373,6 +6488,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 		writer.WriteXmlString("<" + node_name);
 		if (bExtendedWrite) {
+			//TODO
 			/*if (false == m_oUuid.IsInit())
 			{
 				m_oUuid = L"{" + XmlUtils::GenerateGuid() + L"}";
@@ -6561,6 +6677,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						res = c_oSerConstants.ReadUnknown;
 					return res;*/
 
+		//TODO метрики
+
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("blackAndWhite" === reader.GetName()) {
@@ -6665,6 +6783,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			ns = "";
 		}
 
+		//TODO метрики
+
 		writer.WriteXmlNodeStart(ns + name);
 
 		var isWritePaperSize;
@@ -6723,6 +6843,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	};
 
 	Asc.asc_CPageMargins.prototype.readAttr = function (reader) {
+		//TODO метрики
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("left" === reader.GetName()) {
@@ -6748,7 +6869,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	};
 
 	Asc.asc_CPageMargins.prototype.toXml = function (writer, name, ns) {
-
+//TODO метрики
 		/*writer.WriteString(L"<pageMargins");
 							WritingStringNullableAttrDouble(L"left", m_oLeft, m_oLeft->ToInches());
 							WritingStringNullableAttrDouble(L"right", m_oRight, m_oRight->ToInches());
@@ -6904,6 +7025,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						var oAllRow = oWorksheet.getAllRow();
 						oAllRow.setOutlineLevel(this.stream.GetULongLE());
 					}*/
+
+		//TODO метрики
 
 		var val;
 		var oAllRow;
@@ -8127,6 +8250,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			} else if ("colorLow" === name) {
 				this.colorLow = AscCommon.getColorFromXml2(reader);
 			} else if ("f" === name) {
+				//TODO текст, возможно нужно использовать prepareTextToXml
 				this.f = reader.GetText();
 			} else if ("sparklines" === name) {
 				var depth2 = reader.GetDepth();
@@ -8235,6 +8359,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 							return oThis.ReadSparklines(t, l, oSparklineGroup);
 						});
 					}*/
+
+		//TODO метрики
 
 		var val;
 		while (reader.MoveToNextAttribute()) {
@@ -8560,9 +8686,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			while (reader.ReadNextSiblingNode(depth)) {
 				var name = reader.GetNameNoNS();
 				if ("compatExt" === name) {
-					/*val = new AscCommonExcel.CDataValidation();
-					val.fromXml(reader);
-					this.elems.push(val);*/
+
 				} else if ("compatExt" === name) {
 
 				} else if ("sparklineGroups" === name) {
@@ -8786,8 +8910,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	}
 
 	COfficeArtExtension.prototype.toXml = function (writer, ns) {
-
-
 		if (!ns) {
 			ns = "";
 		}
@@ -9261,6 +9383,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		if (reader.IsEmptyNode()) {
 			return;
 		}
+
 
 		var val;
 		var depth = reader.GetDepth();
@@ -9753,6 +9876,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("formula" === name || "f" === name) {
+				//TODO prepareTextToXml?
 				this.Val = reader.GetText();
 			}
 		}
@@ -9872,6 +9996,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			if (this.formula) {
 				this.formula.toXml(writer, true);
 			} else if (null != this.Val) {
+				//TODO prepareTextToXml?
 				var formula = new AscCommonExcel.CFormulaCF()
 				formula.Text = this.Val;
 				formula.toXml(writer, true);
@@ -11544,19 +11669,19 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
-			if ("bottom" == name) {
+			if ("bottom" === name) {
 				this.b.fromXml(reader);
-			} else if ("diagonal" == name) {
+			} else if ("diagonal" === name) {
 				this.d.fromXml(reader);
-			} else if ("end" == name || "right" == name) {
+			} else if ("end" === name || "right" === name) {
 				this.r.fromXml(reader);
-			} else if ("horizontal" == name) {
+			} else if ("horizontal" === name) {
 				this.ih.fromXml(reader);
-			} else if ("start" == name || "left" == name) {
+			} else if ("start" === name || "left" === name) {
 				this.l.fromXml(reader);
-			} else if ("top" == name) {
+			} else if ("top" === name) {
 				this.t.fromXml(reader);
-			} else if ("vertical" == name) {
+			} else if ("vertical" === name) {
 				this.iv.fromXml(reader);
 			}
 		}
@@ -11803,6 +11928,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						oAligment.wrap= this.stream.GetBool();
 					else
 						res = c_oSerConstants.ReadUnknown;*/
+
+		//TODO метрика
 
 		var val;
 		while (reader.MoveToNextAttribute()) {
@@ -12300,6 +12427,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						gradientFill.stop.push(gradientStop);
 					}*/
 
+		//TODO метрика
+
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("bottom" === reader.GetName()) {
@@ -12453,6 +12582,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 							else if ( L"vertAlign" == sName )
 								m_oVertAlign = oReader;
 						}*/
+		//TODO метрика
 
 		this.readAttr(reader);
 
@@ -12911,7 +13041,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		this.f = null != sFormat ? sFormat : (AscCommonExcel.aStandartNumFormats[id] || "General");
-		if ((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id || (27 <= id && id <= 31) || (36 <= id && id <= 44)) {
+		if ((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 === id || (27 <= id && id <= 31) || (36 <= id && id <= 44)) {
 			this.id = id;
 		}
 	};
@@ -13529,9 +13659,10 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		this.readAttr(reader);
 
 		var depth = reader.GetDepth();
+		var val;
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("v" === reader.GetName()) {
-				var val = reader.GetText();
+				val = reader.GetText();
 				this.val.CellValue = val;
 			}
 		}
