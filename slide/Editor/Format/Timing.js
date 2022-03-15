@@ -11395,7 +11395,7 @@
     var CONST_REGEXPSTR = "(pi\|e)";
     var CONST_REGEXP = new RegExp(CONST_REGEXPSTR, "g");
 
-    var NUMBER_REGEXPSTR = "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?";
+    var NUMBER_REGEXPSTR = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
     var NUMBER_REGEXP = new RegExp(NUMBER_REGEXPSTR, "g");
 
 
