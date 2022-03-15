@@ -9834,10 +9834,14 @@
         return oTexture;
     };
     CAnimTexture.prototype.createRandomBarsVertical = function(fTime, nTransition) {
-        var aFilledRanges = this.getRandomRanges(fTime);
-        if(aFilledRanges.length === 0) {
-            return this;
+		var fResTime;
+        if(nTransition === TRANSITION_TYPE_IN) {
+            fResTime = 1 - fTime;
         }
+        else {
+            fResTime = fTime;
+        }
+        var aFilledRanges = this.getRandomRanges(fResTime);
         var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
