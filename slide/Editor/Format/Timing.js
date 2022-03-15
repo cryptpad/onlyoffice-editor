@@ -1984,6 +1984,11 @@
                 return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
             else {
+				var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
+				if(aSelectedObjects.length > 0) {
+					this.removeSelectedEffects();
+					return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
+				}
                 var aSeqs = this.getEffectsSequences();
                 var aSeq;
                 var bNeedRebuild = false;
