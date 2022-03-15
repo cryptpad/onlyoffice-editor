@@ -1073,6 +1073,7 @@
 						}
 						else
 						{
+							var editorId = window.g_asc_plugins.api.getEditorId();
 							if (AscCommon.c_oEditorId.Spreadsheet === editorId)
 							{
 								// На asc_canPaste создается точка в истории и startTransaction. Поэтому нужно ее закрыть без пересчета.
