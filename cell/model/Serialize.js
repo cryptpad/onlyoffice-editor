@@ -4152,7 +4152,7 @@
             //SheetId
             this.memory.WriteByte(c_oSerWorksheetPropTypes.SheetId);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(this.sheetIds[ws.getId()] || 1);
+            this.memory.WriteLong(oThis.InitSaveManager.oReadResult.sheetIds[ws.getId()] || 1);
             //Hidden
             if(null != ws.bHidden)
             {

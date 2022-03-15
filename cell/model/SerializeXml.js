@@ -868,6 +868,175 @@
 		return res;
 	}
 
+	function ToXml_CFOperatorType(nType)
+	{
+		var sType = undefined;
+		switch (nType)
+		{
+			case AscCommonExcel.ECfOperator.Operator_beginsWith:
+				sType = "beginsWith";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_between:
+				sType = "between";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_containsText:
+				sType = "containsText";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_endsWith:
+				sType = "endsWith";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_equal:
+				sType = "equal";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_greaterThan:
+				sType = "greaterThan";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual:
+				sType = "greaterThanOrEqual";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_lessThan:
+				sType = "lessThan";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_lessThanOrEqual:
+				sType = "lessThanOrEqual";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_notBetween:
+				sType = "notBetween";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_notContains:
+				sType = "notContains";
+				break;
+			case AscCommonExcel.ECfOperator.Operator_notEqual:
+				sType = "notEqual";
+				break;
+		}
+
+		return sType;
+	}
+	function FromXml_CFOperatorType(sType)
+	{
+		var nType = undefined;
+		switch (sType)
+		{
+			case "beginsWith":
+				nType = AscCommonExcel.ECfOperator.Operator_beginsWith;
+				break;
+			case "between":
+				nType = AscCommonExcel.ECfOperator.Operator_between;
+				break;
+			case "containsText":
+				nType = AscCommonExcel.ECfOperator.Operator_containsText;
+				break;
+			case "endsWith":
+				nType = AscCommonExcel.ECfOperator.Operator_endsWith;
+				break;
+			case "equal":
+				nType = AscCommonExcel.ECfOperator.Operator_equal;
+				break;
+			case "greaterThan":
+				nType = AscCommonExcel.ECfOperator.Operator_greaterThan;
+				break;
+			case "greaterThanOrEqual":
+				nType = AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual;
+				break;
+			case "lessThan":
+				nType = AscCommonExcel.ECfOperator.Operator_lessThan;
+				break;
+			case "lessThanOrEqual":
+				nType = AscCommonExcel.ECfOperator.Operator_lessThanOrEqual;
+				break;
+			case "notBetween":
+				nType = AscCommonExcel.ECfOperator.Operator_notBetween;
+				break;
+			case "notContains":
+				nType = AscCommonExcel.ECfOperator.Operator_notContains;
+				break;
+			case "notEqual":
+				nType = AscCommonExcel.ECfOperator.Operator_notEqual;
+				break;
+		}
+
+		return nType;
+	}
+	function ToXml_ST_TimePeriod(nType)
+	{
+		var sType = undefined;
+		switch (nType)
+		{
+			case AscCommonExcel.ST_TimePeriod.last7Days:
+				sType = "last7Days";
+				break;
+			case AscCommonExcel.ST_TimePeriod.lastMonth:
+				sType = "lastMonth";
+				break;
+			case AscCommonExcel.ST_TimePeriod.lastWeek:
+				sType = "lastWeek";
+				break;
+			case AscCommonExcel.ST_TimePeriod.nextMonth:
+				sType = "nextMonth";
+				break;
+			case AscCommonExcel.ST_TimePeriod.nextWeek:
+				sType = "nextWeek";
+				break;
+			case AscCommonExcel.ST_TimePeriod.thisMonth:
+				sType = "thisMonth";
+				break;
+			case AscCommonExcel.ST_TimePeriod.thisWeek:
+				sType = "thisWeek";
+				break;
+			case AscCommonExcel.ST_TimePeriod.today:
+				sType = "today";
+				break;
+			case AscCommonExcel.ST_TimePeriod.tomorrow:
+				sType = "tomorrow";
+				break;
+			case AscCommonExcel.ST_TimePeriod.yesterday:
+				sType = "yesterday";
+				break;
+		}
+
+		return sType;
+	}
+	function FromXml_ST_TimePeriod(sType)
+	{
+		var nType = undefined;
+		switch (sType)
+		{
+			case "last7Days":
+				nType = AscCommonExcel.ST_TimePeriod.last7Days;
+				break;
+			case "lastMonth":
+				nType = AscCommonExcel.ST_TimePeriod.lastMonth;
+				break;
+			case "lastWeek":
+				nType = AscCommonExcel.ST_TimePeriod.lastWeek;
+				break;
+			case "nextMonth":
+				nType = AscCommonExcel.ST_TimePeriod.nextMonth;
+				break;
+			case "nextWeek":
+				nType = AscCommonExcel.ST_TimePeriod.nextWeek;
+				break;
+			case "thisMonth":
+				nType = AscCommonExcel.ST_TimePeriod.thisMonth;
+				break;
+			case "thisWeek":
+				nType = AscCommonExcel.ST_TimePeriod.thisWeek;
+				break;
+			case "today":
+				nType = AscCommonExcel.ST_TimePeriod.today;
+				break;
+			case "tomorrow":
+				nType = AscCommonExcel.ST_TimePeriod.tomorrow;
+				break;
+			case "yesterday":
+				nType = AscCommonExcel.ST_TimePeriod.yesterday;
+				break;
+		}
+
+		return nType;
+	}
+
 	function FromXml_ST_TabularSlicerCacheSortOrder(val) {
 		var res = null;
 		switch (val) {
@@ -9583,7 +9752,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.equalAverage = val;
 			} else if ("operator" === reader.GetName()) {
 				val = reader.GetValue();
-				this.operator = val;
+				this.operator = FromXml_CFOperatorType(val);
 			} else if ("percent" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.percent = val;
@@ -9604,7 +9773,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.text = val;
 			} else if ("timePeriod" === reader.GetName()) {
 				val = reader.GetValue();
-				this.timePeriod = val;
+				this.timePeriod = FromXml_ST_TimePeriod(val);
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
 				this.type = FromXML_ST_CfType(val);
@@ -9712,7 +9881,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		if (true === this.equalAverage) {
 			writer.WriteXmlString(" equalAverage=\"1\"");
 		}
-		writer.WriteXmlNullableAttributeString("operator", this.operator);
+		writer.WriteXmlNullableAttributeString("operator", ToXml_CFOperatorType(this.operator));
 		if (true === this.percent) {
 			writer.WriteXmlString(" percent=\"1\"");
 		}
@@ -9722,7 +9891,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			writer.WriteXmlString(" stopIfTrue=\"1\"");
 		}
 		writer.WriteXmlNullableAttributeStringEncode("text", this.text);
-		writer.WriteXmlNullableAttributeString("timePeriod", this.timePeriod);
+		writer.WriteXmlNullableAttributeString("timePeriod", ToXml_ST_TimePeriod(this.timePeriod));
 
 		if (bExtendedWrite) {
 			if (!this.id) {
@@ -15981,5 +16150,13 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	window['AscCommonExcel'].CT_Connections = CT_Connections;
 	window['AscCommonExcel'].CT_CComments = CT_CComments;
 	window['AscCommonExcel'].CT_CThreadedComments = CT_CThreadedComments;
+
+	window['AscCommonExcel'].ToXml_ST_DataValidationOperator = ToXml_ST_DataValidationOperator;
+	window['AscCommonExcel'].FromXml_ST_DataValidationOperator = FromXml_ST_DataValidationOperator;
+	window['AscCommonExcel'].ToXml_CFOperatorType = ToXml_CFOperatorType;
+	window['AscCommonExcel'].FromXml_CFOperatorType = FromXml_CFOperatorType;
+	window['AscCommonExcel'].ToXml_ST_TimePeriod = ToXml_ST_TimePeriod;
+	window['AscCommonExcel'].FromXml_ST_TimePeriod = FromXml_ST_TimePeriod;
+
 
 })(window);

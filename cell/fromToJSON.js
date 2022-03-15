@@ -184,7 +184,7 @@
 			errorStyle:       ToXML_ST_DataValidationErrorStyle(oDataValidation.errorStyle),
 			errorTitle:       oDataValidation.errorTitle,
 			imeMode:          ToXML_ST_DataValidationImeMode(oDataValidation.imeMode),
-			operator:         ToXML_ST_DataValidationOperator(oDataValidation.operator),
+			operator:         AscCommonExcel.ToXml_ST_DataValidationOperator(oDataValidation.operator),
 			prompt:           oDataValidation.prompt,
 			promptTitle:      oDataValidation.promptTitle,
 			showDropDown:     oDataValidation.showDropDown,
@@ -225,14 +225,14 @@
 			bottom:       oCondRule.bottom,
 			dxfId:        oCondRule.dxf,
 			equalAverage: oCondRule.equalAverage,
-			operator:     ToXML_CFOperatorType(oCondRule.operator),
+			operator:     AscCommonExcel.ToXml_CFOperatorType(oCondRule.operator),
 			percent:      oCondRule.percent,
 			priority:     oCondRule.priority,
 			rank:         oCondRule.rank,
 			stdDev:       oCondRule.stdDev,
 			stopIfTrue:   oCondRule.stopIfTrue,
 			text:         oCondRule.text,
-			timePeriod:   ToXML_ST_TimePeriod(oCondRule.timePeriod),
+			timePeriod:   AscCommonExcel.ToXml_ST_TimePeriod(oCondRule.timePeriod),
 			type:         ToXML_CfRuleType(oCondRule.type),
 		}
 	};
@@ -1122,174 +1122,6 @@
 
 		return nType;
 	}
-	function ToXML_CFOperatorType(nType)
-	{
-		var sType = undefined;
-		switch (nType)
-		{
-			case AscCommonExcel.ECfOperator.Operator_beginsWith:
-				sType = "beginsWith";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_between:
-				sType = "between";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_containsText:
-				sType = "containsText";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_endsWith:
-				sType = "endsWith";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_equal:
-				sType = "equal";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_greaterThan:
-				sType = "greaterThan";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual:
-				sType = "greaterThanOrEqual";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_lessThan:
-				sType = "lessThan";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_lessThanOrEqual:
-				sType = "lessThanOrEqual";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_notBetween:
-				sType = "notBetween";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_notContains:
-				sType = "notContains";
-				break;
-			case AscCommonExcel.ECfOperator.Operator_notEqual:
-				sType = "notEqual";
-				break;
-		}
-
-		return sType;
-	}
-	function FromXML_CFOperatorType(sType)
-	{
-		var nType = undefined;
-		switch (sType)
-		{
-			case "beginsWith":
-				nType = AscCommonExcel.ECfOperator.Operator_beginsWith;
-				break;
-			case "between":
-				nType = AscCommonExcel.ECfOperator.Operator_between;
-				break;
-			case "containsText":
-				nType = AscCommonExcel.ECfOperator.Operator_containsText;
-				break;
-			case "endsWith":
-				nType = AscCommonExcel.ECfOperator.Operator_endsWith;
-				break;
-			case "equal":
-				nType = AscCommonExcel.ECfOperator.Operator_equal;
-				break;
-			case "greaterThan":
-				nType = AscCommonExcel.ECfOperator.Operator_greaterThan;
-				break;
-			case "greaterThanOrEqual":
-				nType = AscCommonExcel.ECfOperator.Operator_greaterThanOrEqual;
-				break;
-			case "lessThan":
-				nType = AscCommonExcel.ECfOperator.Operator_lessThan;
-				break;
-			case "lessThanOrEqual":
-				nType = AscCommonExcel.ECfOperator.Operator_lessThanOrEqual;
-				break;
-			case "notBetween":
-				nType = AscCommonExcel.ECfOperator.Operator_notBetween;
-				break;
-			case "notContains":
-				nType = AscCommonExcel.ECfOperator.Operator_notContains;
-				break;
-			case "notEqual":
-				nType = AscCommonExcel.ECfOperator.Operator_notEqual;
-				break;
-		}
-
-		return nType;
-	}
-	function ToXML_ST_TimePeriod(nType)
-	{
-		var sType = undefined;
-		switch (nType)
-		{
-			case AscCommonExcel.ST_TimePeriod.last7Days:
-				sType = "last7Days";
-				break;
-			case AscCommonExcel.ST_TimePeriod.lastMonth:
-				sType = "lastMonth";
-				break;
-			case AscCommonExcel.ST_TimePeriod.lastWeek:
-				sType = "lastWeek";
-				break;
-			case AscCommonExcel.ST_TimePeriod.nextMonth:
-				sType = "nextMonth";
-				break;
-			case AscCommonExcel.ST_TimePeriod.nextWeek:
-				sType = "nextWeek";
-				break;
-			case AscCommonExcel.ST_TimePeriod.thisMonth:
-				sType = "thisMonth";
-				break;
-			case AscCommonExcel.ST_TimePeriod.thisWeek:
-				sType = "thisWeek";
-				break;
-			case AscCommonExcel.ST_TimePeriod.today:
-				sType = "today";
-				break;
-			case AscCommonExcel.ST_TimePeriod.tomorrow:
-				sType = "tomorrow";
-				break;
-			case AscCommonExcel.ST_TimePeriod.yesterday:
-				sType = "yesterday";
-				break;
-		}
-
-		return sType;
-	}
-	function FromXML_ST_TimePeriod(sType)
-	{
-		var nType = undefined;
-		switch (sType)
-		{
-			case "last7Days":
-				nType = AscCommonExcel.ST_TimePeriod.last7Days;
-				break;
-			case "lastMonth":
-				nType = AscCommonExcel.ST_TimePeriod.lastMonth;
-				break;
-			case "lastWeek":
-				nType = AscCommonExcel.ST_TimePeriod.lastWeek;
-				break;
-			case "nextMonth":
-				nType = AscCommonExcel.ST_TimePeriod.nextMonth;
-				break;
-			case "nextWeek":
-				nType = AscCommonExcel.ST_TimePeriod.nextWeek;
-				break;
-			case "thisMonth":
-				nType = AscCommonExcel.ST_TimePeriod.thisMonth;
-				break;
-			case "thisWeek":
-				nType = AscCommonExcel.ST_TimePeriod.thisWeek;
-				break;
-			case "today":
-				nType = AscCommonExcel.ST_TimePeriod.today;
-				break;
-			case "tomorrow":
-				nType = AscCommonExcel.ST_TimePeriod.tomorrow;
-				break;
-			case "yesterday":
-				nType = AscCommonExcel.ST_TimePeriod.yesterday;
-				break;
-		}
-
-		return nType;
-	}
 	function ToXML_CfRuleType(nType)
 	{
 		var sType = undefined;
@@ -1531,72 +1363,6 @@
 				break;
 			case "halfHangul":
 				nType = Asc.EDataValidationImeMode.HalfHangul;
-				break;
-		}
-
-		return nType;
-	}
-	function ToXML_ST_DataValidationOperator(nType)
-	{
-		var sType = undefined;
-		switch (nType)
-		{
-			case Asc.EDataValidationOperator.Between:
-				sType = "between";
-				break;
-			case Asc.EDataValidationOperator.NotBetween:
-				sType = "notBetween";
-				break;
-			case Asc.EDataValidationOperator.Equal:
-				sType = "equal";
-				break;
-			case Asc.EDataValidationOperator.NotEqual:
-				sType = "notEqual";
-				break;
-			case Asc.EDataValidationOperator.LessThan:
-				sType = "lessThan";
-				break;
-			case Asc.EDataValidationOperator.LessThanOrEqual:
-				sType = "lessThanOrEqual";
-				break;
-			case Asc.EDataValidationOperator.GreaterThan:
-				sType = "greaterThan";
-				break;
-			case Asc.EDataValidationOperator.GreaterThanOrEqual:
-				sType = "greaterThanOrEqual";
-				break;
-		}
-
-		return sType;
-	}
-	function FromXML_ST_DataValidationOperator(sType)
-	{
-		var nType = undefined;
-		switch (sType)
-		{
-			case "between":
-				nType = Asc.EDataValidationOperator.Between;
-				break;
-			case "notBetween":
-				nType = Asc.EDataValidationOperator.NotBetween;
-				break;
-			case "equal":
-				nType = Asc.EDataValidationOperator.Equal;
-				break;
-			case "notEqual":
-				nType = Asc.EDataValidationOperator.NotEqual;
-				break;
-			case "lessThan":
-				nType = Asc.EDataValidationOperator.LessThan;
-				break;
-			case "lessThanOrEqual":
-				nType = Asc.EDataValidationOperator.LessThanOrEqual;
-				break;
-			case "greaterThan":
-				nType = Asc.EDataValidationOperator.GreaterThan;
-				break;
-			case "greaterThanOrEqual":
-				nType = Asc.EDataValidationOperator.GreaterThanOrEqual;
 				break;
 		}
 
