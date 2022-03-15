@@ -7141,8 +7141,8 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
         var oSelectedContent = this.GetSelectedContent();
         var aCheckObjects = [];
         var aSelectedObjects, oObjectFrom, bIsLocked;
-        if (oParagraph && oSelectedContent && oSelectedContent.DocContent) {
-            if (oSelectedContent.DocContent) {
+        if (oSelectedContent && oSelectedContent.DocContent) {
+            if (oParagraph) {
                 if (oParagraph.Parent && oParagraph.Parent.Parent && oParagraph.Parent.Parent.parent) {
                     var oObjectTo = oParagraph.Parent.Parent.parent;
                     while (oObjectTo.group) {
@@ -7168,7 +7168,8 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
 
                             NearPos.Paragraph.Check_NearestPos(NearPos);
                             if (!bCopy) {
-                                oController.removeCallback(-1, undefined, undefined, undefined, undefined, true);
+                                var bNoCheck = oObjectFrom.getObjectType() !== AscDFH.historyitem_type_SmartArt;
+                                oController.removeCallback(-1, undefined, undefined, undefined, undefined, bNoCheck);
                             }
                             oController.resetSelection(false, false);
                             oSelectedContent = oSelectedContent.copy();
@@ -7184,9 +7185,7 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
                         }
                     }
                 }
-            }
-        } else {
-            if (oSelectedContent.SlideObjects.length === 0 && oSelectedContent.DocContent) {
+            } else if (oSelectedContent.SlideObjects.length === 0) {
                 oObjectFrom = AscFormat.getTargetTextObject(oController);
                 if (oObjectFrom && oObjectFrom.getObjectType() === AscDFH.historyitem_type_Shape) {
                     while (oObjectFrom.group) {
@@ -7201,7 +7200,8 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
 
                     if (!bIsLocked) {
                         if (!bCopy) {
-                            oController.removeCallback(-1, undefined, undefined, undefined, undefined, true);
+                            var bNoCheck = oObjectFrom.getObjectType() !== AscDFH.historyitem_type_SmartArt;
+                            oController.removeCallback(-1, undefined, undefined, undefined, undefined, bNoCheck);
                         }
                         this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
                         oSelectedContent = oSelectedContent.copy();
