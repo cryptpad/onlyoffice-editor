@@ -74,7 +74,6 @@ var MOVE_DELTA = AscFormat.MOVE_DELTA;
 
 var c_oAscFill = Asc.c_oAscFill;
 
-	var g_nDefaultFormHorPadding = 2 * 25.4 / 72; // 2pt
     var dTextFitDelta = 3;// mm
 
 function CheckObjectLine(obj)
@@ -1113,6 +1112,17 @@ CShape.prototype.setSmartArtPoint = function (pr) {
     this.point.setParent(this);
 };
 
+CShape.prototype.setCustT = function (value) {
+    var pointContent = this.getSmartArtPointContent();
+    if (pointContent) {
+        pointContent.forEach(function (point) {
+            if (point.prSet && point.prSet.custT !== value) {
+                point.prSet.setCustT(value);
+            }
+        })
+    }
+}
+
 CShape.prototype.setShapeSmartArtInfo = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetShapeSmartArtPointInfo, this.shapeSmartArtInfo, pr));
     this.shapeSmartArtInfo = pr;
@@ -1446,16 +1456,9 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     }
     if(!editor || !editor.noCreatePoint || editor.exucuteHistory)
     {
-        var pointContent = this.isObjectInSmartArt() && this.getSmartArtPointContent();
-        if (pointContent && pointContent.length !== 0) {
-            var argsValue = args[0] && args[0].Value;
-            if (argsValue) {
-                if (argsValue.FontSize) {
-                    pointContent.forEach(function (point) {
-                        point.prSet.setCustT(true);
-                    })
-                }
-            }
+        var fontSize = args[0] && args[0].Value && args[0].Value.FontSize;
+        if (fontSize) {
+            this.setCustT(true);
         }
         this.checkExtentsByDocContent();
     }
@@ -2259,11 +2262,11 @@ CShape.prototype.getFormRelRect = function (isUsePaddings) {
 	var nX = 0, nW = this.extX;
 	var nY = 0, nH = this.extY;
 
-	var oInnerForm = null;
-	if (isUsePaddings && this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
+	if (isUsePaddings)
 	{
-		nX += g_nDefaultFormHorPadding;
-		nW -= 2 * g_nDefaultFormHorPadding;
+		let nFormHorPadding = this.getFormHorPadding();
+		nX += nFormHorPadding;
+		nW -= 2 * nFormHorPadding;
 	}
 
     var aX = [nX, nW];
@@ -2303,7 +2306,7 @@ CShape.prototype.getFormRelRect = function (isUsePaddings) {
     };
 };
 
-CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets) {
+CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets, optRect) {
     oMatrix.Reset();
     var _shape_transform = this.localTransform;
     var _content_height = oContent.GetSummaryHeight();
@@ -2316,48 +2319,24 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
 
 
 
-    var oRect = this.getTextRect();
+    var oRect = optRect || this.getTextRect();
     if (this.txXfrm) {
-
         var oRectShape = new AscFormat.CShape();
         oRectShape.setBDeleted(false);
         oRectShape.setSpPr(new AscFormat.CSpPr());
         oRectShape.spPr.setParent(oRectShape);
         oRectShape.spPr.setXfrm(new AscFormat.CXfrm());
         oRectShape.spPr.xfrm.setParent(oRectShape.spPr);
-        oRectShape.spPr.xfrm.setOffX(this.txXfrm.offX);
-        oRectShape.spPr.xfrm.setOffY(this.txXfrm.offY);
-        oRectShape.spPr.xfrm.setExtX(this.txXfrm.extX);
-        oRectShape.spPr.xfrm.setExtY(this.txXfrm.extY);
+        oRectShape.spPr.xfrm.setOffX(this.spPr.xfrm.offX);
+        oRectShape.spPr.xfrm.setOffY(this.spPr.xfrm.offY);
+        oRectShape.spPr.xfrm.setExtX(this.spPr.xfrm.extX);
+        oRectShape.spPr.xfrm.setExtY(this.spPr.xfrm.extY);
         oRectShape.spPr.xfrm.setRot(AscFormat.normalizeRotate(this.txXfrm.rot + this.spPr.xfrm.rot));
-        //oRectShape.spPr.geometry.setParent(oRectShape.spPr);
         oRectShape.setGroup(this.group);
         oRectShape.parent = this.parent;
         oRectShape.recalculateLocalTransform(oRectShape.localTransform);
-        return oRectShape.checkTransformTextMatrix(oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets);
-
-        if (typeof this.txXfrm.rot === "number") {
-            var normRot = this.txXfrm.rot;
-            while (normRot < 0) {
-                normRot += 2 * Math.PI;
-            }
-            var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
-            while (nSquare < 0){
-                nSquare += 4;
-            }
-        }
-
-        switch (nSquare) {
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-            default:
-                break;
-
-        }
+        var rotateRect = oRect;
+        return oRectShape.checkTransformTextMatrix(oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets, rotateRect);
     }
 
     if(this.bWordShape)
@@ -2387,11 +2366,12 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         }
     }
 
-    var oForm = null;
-	if (this.isForm && this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
+    let oForm = this.isForm && this.isForm() ? this.getInnerForm() : null;
+	if (oForm)
 	{
-		l_ins = g_nDefaultFormHorPadding;
-		r_ins = g_nDefaultFormHorPadding;
+		let nFormHorPadding = this.getFormHorPadding();
+		l_ins = nFormHorPadding;
+		r_ins = nFormHorPadding;
 		t_ins = 0;
 		b_ins = 0;
 	}
@@ -2418,25 +2398,13 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
 
     var _rot_angle = AscFormat.normalizeRotate((AscFormat.isRealNumber(oBodyPr.rot) ? oBodyPr.rot : 0)*AscFormat.cToRad);
 
-    if(!AscFormat.fApproxEqual(_rot_angle, 0.0));
+    if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
     {
         global_MatrixTransformer.TranslateAppend(oMatrix, -XC, -YC);
         global_MatrixTransformer.RotateRadAppend(oMatrix, -_rot_angle);
         global_MatrixTransformer.TranslateAppend(oMatrix, XC, YC);
     }
 
-    if (this.txXfrm && this.txXfrm.rot) {
-        _rot_angle = normRot;
-        if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
-        {
-            if (nSquare % 2 === 0) {
-                global_MatrixTransformer.TranslateAppend(oMatrix, -XC, -YC);
-                global_MatrixTransformer.RotateRadAppend(oMatrix, -_rot_angle);
-                global_MatrixTransformer.TranslateAppend(oMatrix, XC, YC);
-            }
-
-        }
-    }
     _t_x_lt = _shape_transform.TransformPointX(_l, _t);
     _t_y_lt = _shape_transform.TransformPointY(_l, _t);
 
@@ -2484,7 +2452,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
 		}
 	}
     else if (!oBodyPr.upright) {
-        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
             if (bWordArtTransform) {
                 _vertical_shift = 0;
             }
@@ -2494,9 +2462,6 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         case 0: //b
                         { // (Text Anchor Enum ( Bottom ))
                             _vertical_shift = _text_rect_height - _content_height;
-                            if (nSquare % 2 === 0) {
-                                _vertical_shift = 0;
-                            }
 
                             break;
                         }
@@ -2520,9 +2485,6 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         case 4: //t
                         {//Top
                             _vertical_shift = 0;
-                            if (nSquare % 2 === 0) {
-                                _vertical_shift = _text_rect_height - _content_height;
-                            }
                             break;
                         }
                     }
@@ -2642,7 +2604,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             global_MatrixTransformer.TranslateAppend(oMatrix, 0, _vertical_shift);
             var _alpha;
             _alpha = Math.atan2(_dy_t, _dx_t);
-            if (oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare === 1) {
+            if (oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTeaVert) {
                 if (_dx_lt_rb * _dy_t - _dy_lt_rb * _dx_t <= 0) {
                     global_MatrixTransformer.RotateRadAppend(oMatrix, -_alpha - Math.PI * 0.5);
                     global_MatrixTransformer.TranslateAppend(oMatrix, _t_x_rt, _t_y_rt);
@@ -2664,7 +2626,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             }
         }
 
-        var rect = this.getTextRect && this.getTextRect();
+        var rect =optRect || this.getTextRect && this.getTextRect();
         if (rect) {
             var clipW = rect.r - rect.l + Diff;
             if(clipW <= 0)
@@ -2695,7 +2657,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
 
         var _content_width, content_height2;
         if (checkNormalRotate(_full_rotate)) {
-            if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert  || nSquare % 2 === 1)) {
+            if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
                 _content_width = _r - _l;
                 content_height2 = _b - _t;
             }
@@ -2705,7 +2667,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             }
         }
         else {
-            if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+            if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
                 _content_width = _b - _t;
                 content_height2 = _r - _l;
 
@@ -2787,7 +2749,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         }
 
         global_MatrixTransformer.TranslateAppend(oMatrix, 0, _vertical_shift);
-        if (oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare === 1) {
+        if (oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTeaVert) {
             global_MatrixTransformer.TranslateAppend(oMatrix, -_content_width * 0.5, -content_height2 * 0.5);
             global_MatrixTransformer.RotateRadAppend(oMatrix, -Math.PI * 0.5);
             global_MatrixTransformer.TranslateAppend(oMatrix, _content_width * 0.5, content_height2 * 0.5);
@@ -2994,6 +2956,13 @@ CShape.prototype.isPlaceholderInSmartArt = function () {
         }
     }
 };
+
+CShape.prototype.getSmartArtDefaultTxFill = function () {
+    if (this.isObjectInSmartArt()) {
+        return this.group.group.getSmartArtDefaultTxFill(this);
+    }
+};
+
 CShape.prototype.Get_Styles = function (level) {
 
     var _level = AscFormat.isRealNumber(level) ? level : 0;
@@ -3127,6 +3096,10 @@ CShape.prototype.recalculateTextStyles = function (level) {
             shape_text_style.TextPr.RFonts.SetFontStyle(compiled_style.fontRef.idx);
             if (compiled_style.fontRef.Color && compiled_style.fontRef.Color.isCorrect()) {
                 shape_text_style.TextPr.Unifill = AscFormat.CreateUniFillByUniColor(compiled_style.fontRef.Color);
+            }
+            var smartArtTxFill = this.getSmartArtDefaultTxFill();
+            if (smartArtTxFill) {
+                shape_text_style.TextPr.Unifill = smartArtTxFill;
             }
         }
         var Styles = new CStyles(false);
@@ -3736,18 +3709,6 @@ CShape.prototype.recalculateLocalTransform = function(transform)
 
 
         if(this.checkAutofit && this.checkAutofit() && (!this.bWordShape || !this.group || this.bCheckAutoFitFlag) && !bNotesShape) {
-            if (this.txXfrm) {
-                if (this.txXfrm.rot) {
-                    var normRot = this.txXfrm.rot;
-                    while (normRot < 0) {
-                        normRot += 2 * Math.PI;
-                    }
-                    var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
-                    while (nSquare < 0){
-                        nSquare += 4;
-                    }
-                }
-            }
             var oBodyPr = this.getBodyPr();
             if (this.bWordShape) {
                 if (this.recalcInfo.recalculateTxBoxContent) {
@@ -3789,7 +3750,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
             var bAutoFit = AscCommon.isRealObject(oBodyPr.textFit) && oBodyPr.textFit.type === AscFormat.text_fit_Auto;
             if (oBodyPr.wrap === AscFormat.nTWTNone) {
                 if (!oBodyPr.upright) {
-                    if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+                    if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
                         if (oGeometry) {
                             oWH = oGeometry.getNewWHByTextRect(oContentMetrics.w + l_ins + r_ins, oContentMetrics.contentH + t_ins + b_ins, undefined, bAutoFit ? undefined : this.extY);
                             if(!oWH.bError)
@@ -3822,7 +3783,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                 else {
                     var _full_rotate = this.getFullRotate();
                     if (checkNormalRotate(_full_rotate)) {
-                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
 
                             if (oGeometry) {
                                 oWH = oGeometry.getNewWHByTextRect(oContentMetrics.w + l_ins + r_ins, oContentMetrics.contentH + t_ins + b_ins, undefined, bAutoFit ? undefined : this.extY);
@@ -3852,7 +3813,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                         }
                     }
                     else {
-                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
                             if (oGeometry) {
                                 oWH = oGeometry.getNewWHByTextRect(oContentMetrics.w + l_ins + r_ins, oContentMetrics.contentH + t_ins + b_ins, undefined, bAutoFit ? undefined : this.extY);
                                 if(!oWH.bError) {
@@ -3883,7 +3844,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
             }
             else {
                 if (!oBodyPr.upright) {
-                    if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+                    if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
                         if (oGeometry) {
                             oWH = oGeometry.getNewWHByTextRect(undefined, oContentMetrics.contentH + t_ins + b_ins, this.extX, undefined);
                             if(!oWH.bError) {
@@ -3909,7 +3870,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                 else {
                     var _full_rotate = this.getFullRotate();
                     if (checkNormalRotate(_full_rotate)) {
-                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
                             if (oGeometry) {
                                 oWH = oGeometry.getNewWHByTextRect(undefined, oContentMetrics.contentH + t_ins + b_ins, this.extX, undefined);
                                 if(!oWH.bError) {
@@ -3933,7 +3894,7 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                         }
                     }
                     else {
-                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {
+                        if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
                             if (oGeometry) {
                                 oWH = oGeometry.getNewWHByTextRect(oContentMetrics.contentH + l_ins + r_ins, undefined, undefined, this.extY);
                                 if(!oWH.bError) {
@@ -4195,27 +4156,17 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         }
     }
 
-	var oForm = null;
-	if (this.isForm && this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsPictureForm() && !oForm.IsCheckBox())
+	let oForm = this.isForm && this.isForm() ? this.getInnerForm() : null;
+	if (oForm)
 	{
-		l_ins = g_nDefaultFormHorPadding;
-		r_ins = g_nDefaultFormHorPadding;
+		let nFormHorPadding = this.getFormHorPadding();
+		l_ins = nFormHorPadding;
+		r_ins = nFormHorPadding;
 		t_ins = 0;
 		b_ins = 0;
 	}
 
     var oRect = this.getTextRect();
-    if (this.txXfrm && this.txXfrm.rot) {
-        var normRot = this.txXfrm.rot;
-        while (normRot < 0) {
-            normRot += 2 * Math.PI;
-        }
-
-        var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
-        while (nSquare < 0){
-            nSquare += 4;
-        }
-    }
     var w, h;
     w = oRect.r - oRect.l - (l_ins + r_ins);
     h = oRect.b - oRect.t - (t_ins + b_ins);
@@ -4234,7 +4185,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
                     var oSectPr = oParentParagraph.Get_SectPr();
                     if(oSectPr)
                     {
-                        if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+                        if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert))
                         {
                             dMaxWidth = oSectPr.GetContentFrameWidth() - l_ins - r_ins;
                         }
@@ -4249,7 +4200,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
             }
         }
         var dMaxWidthRec = RecalculateDocContentByMaxLine(oDocContent, dMaxWidth, this.bWordShape);
-        if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+        if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert))
         {
             if(dMaxWidthRec < w && (!this.bWordShape && !this.bCheckAutoFitFlag))
             {
@@ -4296,7 +4247,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
     {
         if(!oBodyPr.upright)
         {
-            if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+            if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert))
             {
                 oRet.w = w + 0.001;
                 oRet.h = h + 0.001;
@@ -4316,7 +4267,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
             var _full_rotate = this.getFullRotate();
             if(checkNormalRotate(_full_rotate))
             {
-                if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+                if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert))
                 {
                     oRet.w = w + 0.001;
                     oRet.h = h + 0.001;
@@ -4333,7 +4284,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
             }
             else
             {
-                if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+                if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert))
                 {
                     oRet.w = h + 0.001;
                     oRet.h = w + 0.001;
@@ -4392,7 +4343,9 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
 };
 
 CShape.prototype.getSmartArtPointContent = function () {
-    return this.getSmartArtInfo() && this.getSmartArtInfo().contentPoint;
+    if (this.isObjectInSmartArt()) {
+        return this.getSmartArtInfo() && this.getSmartArtInfo().contentPoint;
+    }
 }
 
 CShape.prototype.getSmartArtShapePoint = function () {
@@ -4402,18 +4355,6 @@ CShape.prototype.getSmartArtShapePoint = function () {
     {
         if(this.txBody)
         {
-            if (this.txXfrm) {
-                if (this.txXfrm.rot) {
-                    var normRot = this.txXfrm.rot;
-                    while (normRot < 0) {
-                        normRot += 2 * Math.PI;
-                    }
-                    var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
-                    while (nSquare < 0){
-                        nSquare += 4;
-                    }
-                }
-            }
             var pointContent = this.getSmartArtPointContent();
             var isPlaceholderInSmartArt = false;
             if ( pointContent && pointContent.length !== 0) {
@@ -4489,7 +4430,7 @@ CShape.prototype.getSmartArtShapePoint = function () {
 
                     if(!body_pr.upright)
                     {
-                        if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+                        if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert))
                         {
                             this.txBody.contentWidth2 = w;
                             this.txBody.contentHeight2 = h;
@@ -4506,7 +4447,7 @@ CShape.prototype.getSmartArtShapePoint = function () {
                         var _full_rotate = this.getFullRotate();
                         if(AscFormat.checkNormalRotate(_full_rotate))
                         {
-                            if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+                            if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert))
                             {
 
                                 this.txBody.contentWidth2 = w;
@@ -4520,7 +4461,7 @@ CShape.prototype.getSmartArtShapePoint = function () {
                         }
                         else
                         {
-                            if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
+                            if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert))
                             {
 
                                 this.txBody.contentWidth2 = h;
@@ -4605,17 +4546,13 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
     };
 
     CShape.prototype.setFontSizeInSmartArt = function (fontSize) {
-        if (this.txBody && this.txBody.content && this.txBody.content.Content) {
+        if (this.txBody && this.txBody.content) {
+            this.txBody.content.CheckRunContent(function (paraRun) {
+                paraRun.Set_FontSize(fontSize);
+            });
             this.txBody.content.Content.forEach(function (paragraph) {
-                if (paragraph.CompiledPr.Pr && paragraph.CompiledPr.Pr.TextPr && paragraph.CompiledPr.Pr.TextPr.FontSize) {
-                    var paragraphFontSize = paragraph.CompiledPr.Pr.TextPr.FontSize;
-                    var paraRunFontSize;
-                    paragraph.Content.forEach(function (paraRun) {
-                        paraRunFontSize = paraRun.Pr.FontSize ? paraRun.Pr.FontSize : paragraphFontSize;
-                        paraRun.Set_FontSize(fontSize);
-                    })
-                }
-            })
+                paragraph.TextPr.Set_FontSize(fontSize);
+            });
             this.recalculateContentWitCompiledPr();
         }
     }
@@ -6162,22 +6099,16 @@ CShape.prototype.changePresetGeom = function (sPreset) {
         }
     }
     var point = this.getSmartArtSpPrPoint() || this.getPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-    }
+    var assignedPoint = this.getSmartArtShapePoint();
     if (_final_preset != null) {
         this.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
-        if (point) {
-            point.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
-        }
+        point && point.setGeometry(AscFormat.CreateGeometry(_final_preset));
+        assignedPoint && assignedPoint.setGeometry(AscFormat.CreateGeometry(_final_preset));
     }
     else {
         this.spPr.setGeometry(null);
-        if (point) {
-            point.spPr.setGeometry(null);
-        }
+        point && point.setGeometry(null);
+        assignedPoint && assignedPoint.setGeometry(null);
     }
     if(!this.bWordShape)
     {
@@ -6197,9 +6128,8 @@ CShape.prototype.changePresetGeom = function (sPreset) {
         setLine = new_line2;
     }
     this.spPr.setLn(setLine);
-    if (point) {
-        point.spPr.setLn(setLine);
-    }
+    point && point.setLine(setLine);
+    assignedPoint && assignedPoint.setLine(setLine);
 };
 
 CShape.prototype.changeFill = function (unifill) {
@@ -6211,57 +6141,23 @@ CShape.prototype.changeFill = function (unifill) {
     var unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
     unifill2.convertToPPTXMods();
     this.spPr.setFill(unifill2);
-    var pointContent = this.getSmartArtPointContent();
-    if (pointContent) {
-        pointContent.forEach(function (point) {
-            if (!point.spPr) {
-                point.setSpPr(new AscFormat.CSpPr());
-            }
-            point.spPr.setFill(unifill2);
-        })
-    }
-    var point = this.getPoint();
+
+    var isBlipFill = unifill2.fill instanceof AscFormat.CBlipFill;
+    var point = this.getSmartArtShapePoint() || this.getPoint();
     if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setFill(unifill2);
+        isBlipFill ? point.resetUniFill() : point.setUniFill(unifill2);
     }
     var point = this.getSmartArtSpPrPoint();
     if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setFill(unifill2);
+        isBlipFill ? point.setUniFill(unifill2) : point.resetUniFill();
     }
 };
 CShape.prototype.changeShadow = function (oShadow) {
 
-
     this.spPr && this.spPr.changeShadow(oShadow);
-    var pointContent = this.getSmartArtPointContent(); // TODO: check write shadow
-    if (pointContent && pointContent.length !== 0) {
-        pointContent.forEach(function (point) {
-            if (!point.spPr) {
-                point.setSpPr(new AscFormat.CSpPr());
-            }
-            point.spPr.changeShadow(oShadow);
-        })
-    }
-    var point = this.getPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.changeShadow(oShadow);
-    }
-    point = this.getSmartArtSpPrPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.changeShadow(oShadow);
-    }
+
+    var point = this.getSmartArtShapePoint() || this.getPoint();
+    point && point.changeShadow(oShadow);
 };
 CShape.prototype.setFill = function (fill) {
 
@@ -6280,29 +6176,9 @@ CShape.prototype.changeLine = function (line)
         stroke.Fill.convertToPPTXMods();
     }
     this.spPr.setLn(stroke);
-    var pointContent = this.getSmartArtPointContent();
-    if (pointContent) {
-        pointContent.forEach(function (point) {
-            if (!point.spPr) {
-                point.setSpPr(new AscFormat.CSpPr());
-            }
-            point.spPr.setLn(stroke);
-        })
-    }
-    var point = this.getPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setLn(stroke);
-    }
-    point = this.getSmartArtSpPrPoint();
-    if (point) {
-        if (!point.spPr) {
-            point.setSpPr(new AscFormat.CSpPr());
-        }
-        point.spPr.setLn(stroke);
-    }
+
+    var point = this.getSmartArtShapePoint() ||  this.getPoint();
+    point && point.setLine(stroke);
 };
 
 CShape.prototype.hitToAdjustment = function (x, y) {
@@ -6543,11 +6419,11 @@ CShape.prototype.getWatermarkProps = function()
     return oProps;
 };
 
-CShape.prototype.Restart_CheckSpelling = function()
+CShape.prototype.RestartSpellCheck = function()
 {
     this.recalcInfo.recalculateShapeStyleForParagraph = true;
     var content = this.getDocContent();
-    content && content.Restart_CheckSpelling();
+    content && content.RestartSpellCheck();
 };
 
 CShape.prototype.Refresh_RecalcData = function (data)
@@ -7097,6 +6973,13 @@ CShape.prototype.getColumnNumber = function(){
     };
     CShape.prototype.getInnerForm = function() {
 		return this.textBoxContent ? this.textBoxContent.GetInnerForm() : null;
+	};
+	CShape.prototype.getFormHorPadding = function() {
+		let oInnerForm;
+		if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
+			return 2 * 25.4 / 72; // 2pt
+
+		return 0;
 	};
 
     //for bug 52775. remove in the next version

@@ -320,7 +320,7 @@ CDocumentControllerBase.prototype.AddImages = function(aImages){};
  * @param oData
  * @param sApplicationId
  */
-CDocumentControllerBase.prototype.AddOleObject = function(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId){};
+CDocumentControllerBase.prototype.AddOleObject = function(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId, bSelect){};
 /**
  * Добавляем графический объект TextArt.
  * @param nStyle

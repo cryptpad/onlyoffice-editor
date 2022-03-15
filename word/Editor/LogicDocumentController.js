@@ -69,9 +69,9 @@ CLogicDocumentController.prototype.AddImages = function(aImages)
 {
 	this.LogicDocument.controller_AddImages(aImages);
 };
-CLogicDocumentController.prototype.AddOleObject = function(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId)
+CLogicDocumentController.prototype.AddOleObject = function(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId, bSelect)
 {
-	this.LogicDocument.controller_AddOleObject(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId);
+	this.LogicDocument.controller_AddOleObject(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId, bSelect);
 };
 CLogicDocumentController.prototype.AddTextArt = function(nStyle)
 {

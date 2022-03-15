@@ -3896,7 +3896,7 @@ CChartsDrawer.prototype =
 		return result;
 	},
 
-	calculateCylinder: function(points, val, isNotOnlyFrontFaces, notDraw, check) {
+	calculateCylinder: function (points, val, isNotOnlyFrontFaces, notDraw, isNotAllPointsVisible, cone) {
 		var res;
 		var segmentPoints = points[0];
 		var segmentPoints2 = points[1];
@@ -3912,6 +3912,9 @@ CChartsDrawer.prototype =
 		var frontPaths = [];
 		var darkPaths = [];
 
+		// условие для конусов
+		var isVisibleReverse = cone ? isNotAllPointsVisible : true;
+
 		var addPathToArr = function (isFront, face, index) {
 			frontPaths[index] = null;
 			darkPaths[index] = null;
@@ -3926,17 +3929,27 @@ CChartsDrawer.prototype =
 		var face, faceFront;
 
 		//front
-		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true, check);
+		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true, isNotAllPointsVisible);
 		addPathToArr(this._isVisibleVerge3D(sortCylinderPoints1[0], sortCylinderPoints1[sortCylinderPoints1.length - 1],
-			sortCylinderPoints2[0], val, true), faceFront, 0);
+			sortCylinderPoints2[0], val, !isVisibleReverse), faceFront, 0);
 
 		//down
 		if (val === 0) {
 			face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, false, true, true);
 			addPathToArr(true, face, 1);
 		} else {
-			face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, false, true, true);
-			addPathToArr(this._isVisibleVerge3D(point4, point1, point2, val), face, 1);
+			if (cone) {
+				if (this._isVisibleVerge3D(point4, point1, point2, val)) {
+					face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, false, true, true);
+					addPathToArr(true, face, 1);
+				} else {
+					face = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, true, true, true);
+					addPathToArr(true, face, 1);
+				}
+			} else {
+				face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, false, true, true);
+				addPathToArr(this._isVisibleVerge3D(point4, point1, point2, val), face, 1);
+			}
 		}
 
 		//up
@@ -3945,15 +3958,25 @@ CChartsDrawer.prototype =
 				face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, true, false, true);
 				addPathToArr(true, face, 4);
 			} else {
-				face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, true, false, true);
-				addPathToArr(this._isVisibleVerge3D(point6, point5, point8, val), face, 4);
+				if (cone) {
+					if (this._isVisibleVerge3D(point6, point5, point8, val)) {
+						face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, true, false, true);
+						addPathToArr(true, face, 4);
+					} else {
+						face = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, true, false, true, true);
+						addPathToArr(true, face, 4);
+					}
+				} else {
+					face = this._calculatePathFaceCylinder(segmentPoints, segmentPoints2, true, false, true);
+					addPathToArr(this._isVisibleVerge3D(point6, point5, point8, val), face, 4);
+				}
 			}
 		}
 		
 		//unfront
-		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true, check);
+		faceFront = this._calculatePathFaceCylinder(sortCylinderPoints1, sortCylinderPoints2, false, false, true, isNotAllPointsVisible);
 		addPathToArr(this._isVisibleVerge3D(sortCylinderPoints1[0], sortCylinderPoints1[sortCylinderPoints1.length - 1],
-			sortCylinderPoints2[0], val), faceFront, 5);
+			sortCylinderPoints2[0], val, isVisibleReverse), faceFront, 5);
 
 		if (!isNotOnlyFrontFaces) {
 			res = frontPaths;
@@ -3984,14 +4007,30 @@ CChartsDrawer.prototype =
 					path.lnTo(segmentPoints2[i].x / pxToMm * pathW, segmentPoints2[i].y / pxToMm * pathH);
 				}
 			}
-			path.lnTo(segmentPoints2[0].x / pxToMm * pathW, segmentPoints2[0].y / pxToMm * pathH);
+			if (check) {
+				for (var i = segmentPoints2.length - 1; i >= 0; i--) {
+					if (i % 2 === 0) {
+						path.lnTo(segmentPoints2[i].x / pxToMm * pathW, segmentPoints2[i].y / pxToMm * pathH);
+					}
+				}
+			} else {
+				path.lnTo(segmentPoints2[0].x / pxToMm * pathW, segmentPoints2[0].y / pxToMm * pathH)
+			}
 		} else if (down) {
 			for (var i = 0; i < segmentPoints.length; i++) {
 				if (i % 2 === 0) {
 					path.lnTo(segmentPoints[i].x / pxToMm * pathW, segmentPoints[i].y / pxToMm * pathH);
 				}
 			}
-			path.lnTo(segmentPoints[0].x / pxToMm * pathW, segmentPoints[0].y / pxToMm * pathH)
+			if (check) {
+				for (var i = segmentPoints.length - 1; i >= 0; i--) {
+					if (i % 2 === 0) {
+						path.lnTo(segmentPoints[i].x / pxToMm * pathW, segmentPoints[i].y / pxToMm * pathH);
+					}
+				}
+			} else {
+				path.lnTo(segmentPoints[0].x / pxToMm * pathW, segmentPoints[0].y / pxToMm * pathH)
+			}
 		} else {
 			var endIndex = 0;
 			var startIndex = segmentPoints.length - 1;
@@ -4581,8 +4620,7 @@ CChartsDrawer.prototype =
 
 			if(null === res) {
 				if (points[0].val < 0 && points[points.length - 1].val > 0) {
-					res = this.calcProp.type === c_oChartTypes.HBar ? this.cChartSpace.chart.plotArea.catAx.posX * this.calcProp.pxToMM :
-						this.cChartSpace.chart.plotArea.catAx.posY * this.calcProp.pxToMM;
+					res = axis.nullPos * this.calcProp.pxToMM;
 				} else if (points[0].val < 0) {
 					res = points[points.length - 1].pos * this.calcProp.pxToMM;
 				} else {
@@ -5316,22 +5354,22 @@ CChartsDrawer.prototype =
 
 		var sortCylinderPoints1 = [];
 		var sortCylinderPoints2 = [];
-		var check = false;
+		var invisible = false;
 
 		// сортируем точки по видимости для построения плоскости цилиндра
 		for (var i = 1; i < segmentPoints.length; i++) {
 			if (this._isVisibleVerge3D(segmentPoints[i], segmentPoints[i - 1], segmentPoints2[i - 1], val, true)) {
-				if (!check) {
+				if (!invisible) {
 					sortCylinderPoints1.push(segmentPoints[i - 1]);
 					sortCylinderPoints2.push(segmentPoints2[i - 1]);
 				} else {
 					break;
 				}
 			} else {
-				check = true;
+				invisible = true;
 			}
 		}		
-		if (check) {
+		if (invisible) {
 			for (var k = segmentPoints.length - 1; i <= k; k--) {
 				if (this._isVisibleVerge3D(segmentPoints[k], segmentPoints[k - 1], segmentPoints2[k - 1], val, true)) {
 					sortCylinderPoints1.unshift(segmentPoints[k - 1]);
@@ -5339,13 +5377,14 @@ CChartsDrawer.prototype =
 				}
 			}
 		}
-		
+		var isNotAllPointsVisible = invisible;
+
 		// проверяем если все точки поверхности цилиндра(конуса) либо видимы либо невидимы
 		// если уловие выполняется, то для отрисовки цилиндра(конуса) достаточно отрисовать эллипс (т.е вид сверху или снизу)
 		if (sortCylinderPoints1.length === 0 || sortCylinderPoints2.length === 0 || val === 0) {
 			sortCylinderPoints1 = segmentPoints;
 			sortCylinderPoints2 = segmentPoints2;
-			check = false;
+			isNotAllPointsVisible = false;
 		}
 
 		var x12, y12, z12, x22, y22, z22, x32, y32, z32, x42, y42, z42, x52, y52, z52, x62, y62, z62, x72, y72, z72, x82, y82, z82;
@@ -5383,9 +5422,14 @@ CChartsDrawer.prototype =
 
 		var points = [segmentPoints, segmentPoints2, point1, point2, point4, point5, point6, point8,
 			sortCylinderPoints1, sortCylinderPoints2];
-		var paths = this.calculateCylinder(points, val, checkPathMethod, false, check);
+		var paths = this.calculateCylinder(points, val, checkPathMethod, false, isNotAllPointsVisible, cone);
 
 		return paths;
+	},
+
+	checkingPenForDrawing: function (shape, verge) {
+		var isCone = shape === AscFormat.BAR_SHAPE_CONE || shape === AscFormat.BAR_SHAPE_CONETOMAX;
+		return isCone && (verge === 0 || verge === 5);
 	}
 };
 
@@ -5616,7 +5660,8 @@ drawBarChart.prototype = {
 								point: idx,
 								verge: k,
 								paths: paths.paths[k],
-								facePoints: paths.facePoints[k]
+								facePoints: paths.facePoints[k],
+								shapeType: shapeType
 							});
 						}
 					}
@@ -5783,15 +5828,25 @@ drawBarChart.prototype = {
 				startBlockPosition = test ? this.cChartDrawer.getYPosition((prevVal / test), this.valAx, null, true) * this.chartProp.pxToMM : nullPositionOX;
 			}
 
-			startY = val === 0 ? nullPositionOX : startBlockPosition;
-			height = val === 0 ? val : startBlockPosition - endBlockPosition;
+			if (this.valAx.scaling.logBase) {
+				startY = val === 0 ? nullPositionOX : startBlockPosition;
+				height = val === 0 ? 0 : startBlockPosition - endBlockPosition;
+			} else {
+				startY = startBlockPosition;
+				height = startBlockPosition - endBlockPosition;
+			}
 
 			if (this.valAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
 				height = -height;
 			}
 		} else {
-			height = val === 0 ? val : nullPositionOX - this.cChartDrawer.getYPosition(val, this.valAx, null, true) * this.chartProp.pxToMM;
-			startY = val === 0 ? nullPositionOX : nullPositionOX;
+			if (this.valAx.scaling.logBase) {
+				height = val === 0 ? 0 : nullPositionOX - this.cChartDrawer.getYPosition(val, this.valAx) * this.chartProp.pxToMM;
+				startY = val === 0 ? nullPositionOX : nullPositionOX;
+			} else {
+				height = nullPositionOX - this.cChartDrawer.getYPosition(val, this.valAx) * this.chartProp.pxToMM;
+				startY = nullPositionOX;
+			}
 		}
 		if (type === AscFormat.BAR_SHAPE_PYRAMID || type === AscFormat.BAR_SHAPE_PYRAMIDTOMAX ||
 			type === AscFormat.BAR_SHAPE_CONE || type === AscFormat.BAR_SHAPE_CONETOMAX) {
@@ -6133,24 +6188,32 @@ drawBarChart.prototype = {
 					brush = options.brush;
 				}
 
+				if (pen && pen.Join) {
+					pen = pen.createDuplicate();
+					pen.Join = new AscFormat.LineJoin();
+					pen.Join.type = Asc['c_oAscLineJoinType'].Round;
+				}
+
 				t._drawBar3D(paths, pen, brush, k, options.val);
 			}
 		};
 
-		var index, faces, face;
+		var index, faces, face, isNotPen;
 		if (this.subType !== "standard") {
 			for (var i = 0; i < this.sortParallelepipeds.length; i++) {
 				index = this.sortParallelepipeds[i].nextIndex;
 				faces = this.temp[index].faces;
 				for (var j = 0; j < faces.length; j++) {
 					face = faces[j];
-					drawVerges(face.seria, face.point, face.frontPaths, null, face.verge);
+					isNotPen = this.cChartDrawer.checkingPenForDrawing(face.shapeType, face.verge);
+					drawVerges(face.seria, face.point, face.frontPaths, null, face.verge, isNotPen);
 				}
 			}
 		} else {
 			for (var i = 0; i < this.sortZIndexPaths.length; i++) {
+				isNotPen = this.cChartDrawer.checkingPenForDrawing(this.sortZIndexPaths[i].shapeType, this.sortZIndexPaths[i].verge);
 				drawVerges(this.sortZIndexPaths[i].seria, this.sortZIndexPaths[i].point,
-					this.sortZIndexPaths[i].paths, null, this.sortZIndexPaths[i].verge);
+					this.sortZIndexPaths[i].paths, null, this.sortZIndexPaths[i].verge, isNotPen);
 			}
 		}
 
@@ -6386,7 +6449,8 @@ drawBarChart.prototype = {
 					points: arrPoints2[k],
 					points2: arrPoints[k],
 					plainEquation: plainEquation,
-					plainArea: plainArea
+					plainArea: plainArea,
+					shapeType: type,
 				});
 			}
 		}
@@ -7391,13 +7455,13 @@ drawAreaChart.prototype = {
 
 		//left
 		darkFaces["left"] = null;
-		if (this._isVisibleVerge3D(point2, point1, point5)) {
+		if (this._isVisibleVerge3D(point2, point1, point5, true)) {
 			darkFaces["left"] = 1;
 		}
 
 		//right
 		darkFaces["right"] = null;
-		if (this._isVisibleVerge3D(point8, point4, point3)) {
+		if (this._isVisibleVerge3D(point8, point4, point3, true)) {
 			darkFaces["right"] = 1;
 		}
 
@@ -8347,86 +8411,54 @@ drawAreaChart.prototype = {
 		}
 	},
 
+	_standardDraw: function (isReverse) {
+		var j = isReverse ? 0 : this.paths.series.length - 1;
+		var i = isReverse ? this.paths.series.length : 0;
+
+		var seria, brush, pen, numCache;
+		while (((j < i) && isReverse) || ((j >= i) && !isReverse)) {
+			seria = this.chart.series[j];
+			brush = seria.brush;
+			pen = seria.pen;
+
+			numCache = this.cChartDrawer.getNumCache(seria.val);
+			if (numCache && numCache.pts[0].pen) {
+				pen = numCache.pts[0].pen;
+			}
+			if (numCache && numCache.pts[0].brush) {
+				brush = numCache.pts[0].brush;
+			}
+
+			this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
+			this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
+			this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
+			this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
+			this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
+			this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
+
+			j = isReverse ? j + 1 : j - 1;
+		}
+
+	},
+
 	_drawBars3D: function () {
 		var t = this;
 		var isStacked = this.subType === "stackedPer" || this.subType === "stacked";
 
 		if (!isStacked) {
 			var angle = Math.abs(this.cChartDrawer.processor3D.angleOy);
-			var seria, brush, pen, numCache;
 			if (!this.cChartDrawer.processor3D.view3D.getRAngAx() && angle > Math.PI / 2 &&
 				angle < 3 * Math.PI / 2) {
-				for (var j = 0; j < this.paths.series.length; j++) {
-					seria = this.chart.series[j];
-					brush = seria.brush;
-					pen = seria.pen;
-
-					numCache = this.cChartDrawer.getNumCache(seria.val);
-					if (numCache && numCache.pts[0].pen) {
-						pen = numCache.pts[0].pen;
-					}
-					if (numCache && numCache.pts[0].brush) {
-						brush = numCache.pts[0].brush;
-					}
-
-					this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
-					this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
-					this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
-					this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
-					this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
-					this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
+				if (this.serAx && this.serAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
+					this._standardDraw(false);
+				} else {
+					this._standardDraw(true);
 				}
 			} else {
 				if (this.serAx && this.serAx.scaling.orientation !== ORIENTATION_MIN_MAX) {
-					for (var j = 0; j < this.paths.series.length; j++) {
-						seria = this.chart.series[j];
-						brush = seria.brush;
-						pen = seria.pen;
-
-						numCache = this.cChartDrawer.getNumCache(seria.val);
-						if (numCache.pts[0] && numCache.pts[0].pen) {
-							pen = numCache.pts[0].pen;
-						}
-						if (numCache.pts[0] && numCache.pts[0].brush) {
-							brush = numCache.pts[0].brush;
-						}
-
-						if (!this.paths.series[j]) {
-							continue;
-						}
-
-						this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
-						this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
-						this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
-						this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
-						this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
-						this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
-					}
+					this._standardDraw(true);
 				} else {
-					for (var j = this.paths.series.length - 1; j >= 0; j--) {
-						seria = this.chart.series[j];
-						brush = seria.brush;
-						pen = seria.pen;
-
-						numCache = this.cChartDrawer.getNumCache(seria.val);
-						if (numCache.pts[0] && numCache.pts[0].pen) {
-							pen = numCache.pts[0].pen;
-						}
-						if (numCache.pts[0] && numCache.pts[0].brush) {
-							brush = numCache.pts[0].brush;
-						}
-
-						if (!this.paths.series[j]) {
-							continue;
-						}
-
-						this._drawBar3D(this.paths.series[j][1], pen, brush, 1);
-						this._drawBar3D(this.paths.series[j][4], pen, brush, 4);
-						this._drawBar3D(this.paths.series[j][2], pen, brush, 2);
-						this._drawBar3D(this.paths.series[j][3], pen, brush, 3);
-						this._drawBar3D(this.paths.series[j][5], pen, brush, 5);
-						this._drawBar3D(this.paths.series[j][0], pen, brush, 0);
-					}
+					this._standardDraw(false);
 				}
 			}
 
@@ -8481,14 +8513,22 @@ drawAreaChart.prototype = {
 		return {pen: pen, brush: brush}
 	},
 
-	_isVisibleVerge3D: function (k, n, m) {
+	_isVisibleVerge3D: function (k, n, m, isSideFace) {
 		//roberts method - calculate normal
 		var aX = n.x * m.y - m.x * n.y;
 		var bY = -(k.x * m.y - m.x * k.y);
 		var cZ = k.x * n.y - n.x * k.y;
-		var visible = aX + bY + cZ;
+		var visible = (aX + bY + cZ) < 0;
 
-		return visible < 0;
+		var valOrientation = this.valAx.scaling.orientation === ORIENTATION_MIN_MAX;
+		var catOrientation = this.catAx.scaling.orientation === ORIENTATION_MIN_MAX;
+
+		if ((!valOrientation && !isSideFace) || (!valOrientation && catOrientation)) {
+			return !visible;
+		} else if (!catOrientation && isSideFace && valOrientation) {
+			return !visible;
+		}
+		return visible;
 	},
 
 	_getIntersectionLines: function (line1Point1, line1Point2, line2Point1, line2Point2) {
@@ -9109,7 +9149,8 @@ drawHBarChart.prototype = {
 					darkPaths: paths.darkPaths[k],
 					x: controlPoint.x,
 					y: controlPoint.y,
-					zIndex: controlPoint.z
+					zIndex: controlPoint.z,
+					shapeType: type,
 				});
 			}
 		} else {
@@ -9181,7 +9222,8 @@ drawHBarChart.prototype = {
 					points: arrPoints2[k],
 					points2: arrPoints[k],
 					plainEquation: plainEquation,
-					plainArea: plainArea
+					plainArea: plainArea,
+					shapeType: type,
 				});
 			}
 		}
@@ -9348,16 +9390,18 @@ drawHBarChart.prototype = {
 			}
 		};
 
-		var index, faces, face;
+		var index, faces, face, isNotPen;
 		if (this.cChartDrawer.processor3D.view3D.getRAngAx()) {
 			for (var i = 0; i < this.sortZIndexPaths.length; i++) {
+				isNotPen = this.cChartDrawer.checkingPenForDrawing(this.sortZIndexPaths[i].shapeType, this.sortZIndexPaths[i].verge);
 				drawVerges(this.sortZIndexPaths[i].seria, this.sortZIndexPaths[i].point,
-					this.sortZIndexPaths[i].darkPaths, null, this.sortZIndexPaths[i].verge, null, true);
+					this.sortZIndexPaths[i].darkPaths, null, this.sortZIndexPaths[i].verge, isNotPen, true);
 			}
 
 			for (var i = 0; i < this.sortZIndexPaths.length; i++) {
+				isNotPen = this.cChartDrawer.checkingPenForDrawing(this.sortZIndexPaths[i].shapeType, this.sortZIndexPaths[i].verge);
 				drawVerges(this.sortZIndexPaths[i].seria, this.sortZIndexPaths[i].point,
-					this.sortZIndexPaths[i].frontPaths, null, this.sortZIndexPaths[i].verge);
+					this.sortZIndexPaths[i].frontPaths, null, this.sortZIndexPaths[i].verge, isNotPen);
 			}
 		} else {
 			for (var i = 0; i < this.sortParallelepipeds.length; i++) {
@@ -9365,7 +9409,8 @@ drawHBarChart.prototype = {
 				faces = this.temp[index].faces;
 				for (var j = 0; j < faces.length; j++) {
 					face = faces[j];
-					drawVerges(face.seria, face.point, face.darkPaths, null, face.verge, null, true);
+					isNotPen = this.cChartDrawer.checkingPenForDrawing(face.shapeType, face.verge);
+					drawVerges(face.seria, face.point, face.darkPaths, null, face.verge, isNotPen, true);
 				}
 			}
 
@@ -9374,7 +9419,8 @@ drawHBarChart.prototype = {
 				faces = this.temp[index].faces;
 				for (var j = 0; j < faces.length; j++) {
 					face = faces[j];
-					drawVerges(face.seria, face.point, face.frontPaths, null, face.verge);
+					isNotPen = this.cChartDrawer.checkingPenForDrawing(face.shapeType, face.verge);
+					drawVerges(face.seria, face.point, face.frontPaths, null, face.verge, isNotPen);
 				}
 			}
 		}
@@ -14150,7 +14196,7 @@ axisChart.prototype = {
 		var positionX = this.cChartDrawer.processor3D.calculateXPositionSerAxis();
 
 		var x, y, x1, y1;
-		
+
 		if (positionX) {
 			x = this.chartProp.chartGutter._left;
 			x1 = this.chartProp.chartGutter._left;
@@ -14520,7 +14566,7 @@ axisChart.prototype = {
 		if (this.axisType === AscDFH.historyitem_type_SerAx) {
 			path.moveTo(x * pathW, y * pathH);
 			path.lnTo(x1 * pathW, y1 * pathH);
-	
+
 			return pathId;
 		}
 
@@ -14592,7 +14638,7 @@ axisChart.prototype = {
 			if (!this.paths.tickMarks) {
 				return;
 			}
-	
+
 			for (var i = 0; i < this.paths.tickMarks.length; i++) {
 				pen = this.axis ? this.axis.compiledTickMarkLn : null;
 				path = this.paths.tickMarks[i];

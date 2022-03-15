@@ -165,6 +165,104 @@ function asc_menu_WriteColor(_type, _color, _stream) {
     _stream["WriteByte"](255);
 }
 
+// UNICOLOR
+function asc_menu_ReadUniColor(_params, _cursor) {
+    var _color = new AscFormat.CUniColor();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _color.color = new AscFormat.CPrstColor();
+                _color.color.type = _params[_cursor.pos++];
+                _color.color.id = _params[_cursor.pos++];
+                _color.color.RGBA = {
+                    R: _params[_cursor.pos++],
+                    G: _params[_cursor.pos++],
+                    B: _params[_cursor.pos++],
+                    A: _params[_cursor.pos++],
+                    needRecalc: _params[_cursor.pos++]
+                };
+                break;
+            }
+            case 1:
+            {
+                var _count = _params[_cursor.pos++];
+                for (var i = 0; i < _count; i++)
+                {
+                    var _mod = new AscFormat.CColorMod();
+                    _mod.name = _params[_cursor.pos++];
+                    _mod.val = _params[_cursor.pos++];
+                    _color.Mods.push(_mod);
+                }
+                break;
+            }
+            case 2:
+            {
+                _color.RGBA = {
+                    R: _params[_cursor.pos++],
+                    G: _params[_cursor.pos++],
+                    B: _params[_cursor.pos++],
+                    A: _params[_cursor.pos++]
+                }
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _color;
+}
+
+function asc_menu_WriteUniColor(_type, _color, _stream) {
+    if (!_color)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_color.color !== undefined && _color.color !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_color.color.type);
+        _stream["WriteStringA"](_color.color.id);
+        _stream["WriteByte"](_color.color.RGBA.R);
+        _stream["WriteByte"](_color.color.RGBA.G);
+        _stream["WriteByte"](_color.color.RGBA.B);
+        _stream["WriteByte"](_color.color.RGBA.A);
+        _stream["WriteBool"](_color.color.RGBA.needRecalc);
+    }
+    if (_color.Mods !== undefined && _color.Mods !== null)
+    {
+        _stream["WriteByte"](1);
+
+        var _len = _color.Mods.length;
+        _stream["WriteLong"](_len);
+
+        for (var i = 0; i < _len; i++)
+        {
+            _stream["WriteStringA"](_color.Mods[i].name);
+            _stream["WriteLong"](_color.Mods[i].val);
+        }
+    }
+    if (_color.RGBA !== undefined && _color.RGBA !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteByte"](_color.RGBA.R);
+        _stream["WriteByte"](_color.RGBA.G);
+        _stream["WriteByte"](_color.RGBA.B);
+        _stream["WriteByte"](_color.RGBA.A);
+    }
+
+    _stream["WriteByte"](255);
+}
+
 function asc_menu_WriteMath(oMath, s){
     s["WriteLong"](oMath.Type);
     s["WriteLong"](oMath.Action);
@@ -743,8 +841,106 @@ function asc_menu_WriteAscStroke(_type, _stroke, _stream){
     }
     
     _stream["WriteByte"](255);
-    
 }
+
+function asc_menu_ReadAscShadow(_params, _cursor) {
+    var _shadow = new Asc.asc_CShadowProperty();
+
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+
+        switch (_attr)
+        {
+            case 0:
+            {
+                _shadow.color = asc_menu_ReadUniColor(_params, _cursor);
+                break;
+            }
+            case 1:
+            {
+                _shadow.algn = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _shadow.blurRad = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _shadow.dir = _params[_cursor.pos++];
+                break;
+            }
+            case 4:
+            {
+                _shadow.dist = _params[_cursor.pos++];
+                break;
+            }
+            case 5:
+            {
+                _shadow.rotWithShape = _params[_cursor.pos++];
+                break;
+            }
+            case 6:
+            {
+                if (!_params[_cursor.pos++]) {
+                    return null;
+                }
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _shadow;
+}
+
+function asc_menu_WriteAscShadow(_type, _shadow, _stream) {
+    if (!_shadow)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    asc_menu_WriteUniColor(0, _shadow.color, _stream);
+
+    if (_shadow.algn !== undefined && _shadow.algn !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_shadow.algn);
+    }
+    if (_shadow.blurRad !== undefined && _shadow.blurRad !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteLong"](_shadow.blurRad);
+    }
+    if (_shadow.dir !== undefined && _shadow.dir !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteLong"](_shadow.dir);
+    }
+    if (_shadow.dist !== undefined && _shadow.dist !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteLong"](_shadow.dist);
+    }
+    if (_shadow.rotWithShape !== undefined && _shadow.rotWithShape !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteBool"](_shadow.dist);
+    }
+    _stream["WriteByte"](6);
+    _stream["WriteBool"](true);
+
+    _stream["WriteByte"](255);
+}
+
 function asc_menu_ReadPaddings(_params, _cursor){
     var _paddings = new Asc.asc_CPaddings();
     var _continue = true;
@@ -985,6 +1181,11 @@ function asc_menu_ReadShapePr(_params, _cursor){
                 _settings.bFromGroup = _params[_cursor.pos++];
                 break;
             }
+            case 8:
+            {
+                _settings.shadow = asc_menu_ReadAscShadow(_params, _cursor);
+                break;
+            }
             case 255:
             default:
             {
@@ -1028,9 +1229,14 @@ function asc_menu_WriteShapePr(_type, _shapePr, _stream){
         _stream["WriteByte"](7);
         _stream["WriteBool"](_shapePr.bFromGroup);
     }
-    
+    if (_shapePr.shadow !== undefined && _shapePr.shadow !== null)
+    {
+        asc_menu_WriteAscShadow(8, _shapePr.shadow, _stream);
+    }
+
     _stream["WriteByte"](255);
 }
+
 function asc_menu_WriteImagePr(_imagePr, _stream){
     if (_imagePr.CanBeFlow !== undefined && _imagePr.CanBeFlow !== null)
     {
@@ -3523,8 +3729,12 @@ function OfflineEditor () {
                                   
         _api.asc_registerCallback("asc_onSendThemeColors", onApiSendThemeColors);
 
-        // Comments
+        // Common
+        _api.asc_registerCallback('asc_onStartAction', onApiLongActionBegin);
+        _api.asc_registerCallback('asc_onEndAction', onApiLongActionEnd);
+        _api.asc_registerCallback('asc_onError', onApiError);
 
+        // Comments
         _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
         _api.asc_registerCallback("asc_onAddComments", onApiAddComments);
         _api.asc_registerCallback("asc_onRemoveComment", onApiRemoveComment);
@@ -4168,15 +4378,8 @@ function OfflineEditor () {
         AscCommon.ChartPreviewManager.prototype.clearPreviews = function() {window["native"]["ClearCacheChartStyles"]();};
         AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex) {
             return AscFormat.ExecuteNoHistory(function(){
-                                              
-                                              if(!this.chartsByTypes[type])
-                                              this.chartsByTypes[type] = this.getChartByType(type);
-                                              
-                                              var chart_space = this.chartsByTypes[type];
-                                                chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[type][styleIndex]);
-                                              chart_space.recalcInfo.recalculateReferences = false;
-                                              chart_space.recalculate();
 
+                                              var chart_space = this.checkChartForPreview(type, AscCommon.g_oChartStyles[type][styleIndex]);
                                               window["native"]["BeginDrawStyle"](AscCommon.c_oAscStyleImage.Default, type + '');
 
                                               chart_space.draw(_graphics);
@@ -5371,11 +5574,33 @@ window["native"]["offline_apply_event"] = function(type,params) {
             
         case 12: // ASC_MENU_EVENT_TYPE_TABLESTYLES
         {
-            var props = asc_ReadFormatTableInfo(params, _current);
-            // console.log(JSON.stringify(props));
-            
+            var props, retinaPixelRatio;
+
+            while (_continue)
+            {
+                _attr = params[_current.pos++];
+                switch (_attr) {
+                    case 0:
+                    {
+                        props = asc_ReadFormatTableInfo(params, _current);
+                        break;
+                    }
+                    case 1:
+                    {
+                        retinaPixelRatio = params[_current.pos++];
+                        break;
+                    }
+                    case 255:
+                    default:
+                    {
+                        _continue = false;
+                        break;
+                    }
+                }
+            }
+
             AscCommon.AscBrowser.isRetina = true;
-            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
+            AscCommon.AscBrowser.retinaPixelRatio = retinaPixelRatio;
   
             window["native"]["SetStylesType"](1);
             _api.wb.getTableStyles(props);
@@ -5457,10 +5682,13 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
         case 201: // ASC_MENU_EVENT_TYPE_DOCUMENT_CHARTSTYLES
         {
+            var chartPreviewsType = parseInt(params[0]);
+            var retinaPixelRatio = params[1];
+
             AscCommon.AscBrowser.isRetina = true;
-            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
-  
-            _api.chartPreviewManager.getChartPreviews(parseInt(params));
+            AscCommon.AscBrowser.retinaPixelRatio = retinaPixelRatio;
+
+            _api.chartPreviewManager.getChartPreviews(chartPreviewsType);
 
             AscCommon.AscBrowser.isRetina = false;
             AscCommon.AscBrowser.retinaPixelRatio = 1.0;
@@ -5939,9 +6167,11 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
             
         case 2405: // ASC_SPREADSHEETS_EVENT_TYPE_CELL_STYLES
-        {                    
+        {
+            var retinaPixelRatio = params[0];
+
             AscCommon.AscBrowser.isRetina = true;
-            AscCommon.AscBrowser.retinaPixelRatio = 2.0;
+            AscCommon.AscBrowser.retinaPixelRatio = retinaPixelRatio;
            
             window["native"]["SetStylesType"](0);
             _api.wb.getCellStyles(92, 48);
@@ -6572,6 +6802,31 @@ function readSDKReplies (data) {
         }
     }
     return replies;
+}
+
+function onApiLongActionBegin(type, id) {
+    var info = {
+        "type" : type,
+        "id" : id
+    };
+    postDataAsJSONString(info, 26102); // ASC_MENU_EVENT_TYPE_LONGACTION_BEGIN
+}
+
+function onApiLongActionEnd(type, id) {
+    var info = {
+        "type" : type,
+        "id" : id
+    };
+    postDataAsJSONString(info, 26103); // ASC_MENU_EVENT_TYPE_LONGACTION_END
+}
+
+function onApiError(id, level, errData) {
+    var info = {
+        "level" : level,
+        "id" : id,
+        "errData" : JSON.prune(errData, 4),
+    };
+    postDataAsJSONString(info, 26104); // ASC_MENU_EVENT_TYPE_API_ERROR
 }
 
 function onApiAddComment(id, data) {

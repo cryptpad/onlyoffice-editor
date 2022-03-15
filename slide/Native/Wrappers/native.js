@@ -170,14 +170,7 @@ AscCommon.ChartPreviewManager.prototype.clearPreviews = function()
 AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex)
 {
     return AscFormat.ExecuteNoHistory(function(){
-      if(!this.chartsByTypes[type])
-          this.chartsByTypes[type] = this.getChartByType(type);
-
-      var chart_space = this.chartsByTypes[type];
-
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[type][styleIndex]);
-      chart_space.recalcInfo.recalculateReferences = false;
-      chart_space.recalculate();
+      var chart_space = this.checkChartForPreview(type, AscCommon.g_oChartStyles[type][styleIndex]);
 
       // sizes for imageView
       window["native"]["DD_StartNativeDraw"](85 * 2, 85 * 2, 75, 75);

@@ -98,19 +98,25 @@
 					border: this.getCColor(AscCommon.GlobalSkin.Border),
 					color: this.getCColor(AscCommon.GlobalSkin.Color),
 					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDark),
-					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDark)
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDark),
+					colorFiltering: this.getCColor(AscCommon.GlobalSkin.ColorFiltering),
+					colorDarkFiltering: this.getCColor(AscCommon.GlobalSkin.ColorDarkFiltering)
 				}, { // kHeaderActive
 					background: this.getCColor(AscCommon.GlobalSkin.BackgroundActive),
 					border: this.getCColor(AscCommon.GlobalSkin.BorderActive),
 					color: this.getCColor(AscCommon.GlobalSkin.ColorActive),
 					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkActive),
-					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkActive)
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkActive),
+					colorFiltering: this.getCColor(AscCommon.GlobalSkin.ColorFiltering),
+					colorDarkFiltering: this.getCColor(AscCommon.GlobalSkin.ColorDarkFiltering)
 				}, { // kHeaderHighlighted
 					background: this.getCColor(AscCommon.GlobalSkin.BackgroundHighlighted),
 					border: this.getCColor(AscCommon.GlobalSkin.BorderHighlighted),
 					color: this.getCColor(AscCommon.GlobalSkin.ColorHighlighted),
 					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkHighlighted),
-					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkHighlighted)
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkHighlighted),
+					colorFiltering: this.getCColor(AscCommon.GlobalSkin.ColorFiltering),
+					colorDarkFiltering: this.getCColor(AscCommon.GlobalSkin.ColorDarkFiltering)
 				}];
 		};
 		this.header = {
@@ -2250,7 +2256,7 @@
     return this.drawingCtx.getZoom();
   };
 
-  WorkbookView.prototype.changeZoom = function(factor, changeZoomOnPrint) {
+  WorkbookView.prototype.changeZoom = function(factor, changeZoomOnPrint, doNotDraw) {
   	if (factor === this.getZoom()) {
       return;
     }
@@ -2294,7 +2300,7 @@
       item.changeZoom(/*isDraw*/i == activeIndex, changeZoomOnPrint);
       this._reInitGraphics();
       item.objectRender.changeZoom(this.drawingCtx.scaleFactor);
-      if (i == activeIndex && factor) {
+      if (i == activeIndex && factor && !doNotDraw) {
         item.draw();
         //ToDo item.drawDepCells();
       }
@@ -2481,7 +2487,7 @@
                 }
                 tmp = this.cellEditor.skipTLUpdate;
                 this.cellEditor.skipTLUpdate = false;
-                this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, name);
+                this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, type === c_oAscPopUpSelectorType.TableThisRow ? "@" : name);
                 this.cellEditor.skipTLUpdate = tmp;
             } else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
                 // Не смогли вставить формулу, закроем редактор, с сохранением текста
@@ -3123,15 +3129,15 @@
 		//приходится несколько раз выполнять действия, чтобы ppi выставился правильно
 		//если не делать init, то не сбросится ppi от системного зума - смотри функцию DrawingContext.prototype.changeZoom
 		if (viewZoom !== 1) {
-			this.changeZoom(1, true);
+			this.changeZoom(1, true, true);
 		}
-		this.changeZoom(null, true);
+		this.changeZoom(null, true, true);
 
 		runFunction();
 
 		AscCommon.AscBrowser.retinaPixelRatio = trueRetinaPixelRatio;
-		this.changeZoom(null, true);
-		this.changeZoom(viewZoom, true);
+		this.changeZoom(null, true, true);
+		this.changeZoom(viewZoom, true, true);
 	};
 
 	WorkbookView.prototype.printSheetPrintPreview = function(index) {
@@ -3147,14 +3153,17 @@
 		//TODO 1 -
 		if (page) {
 			page.leftFieldInPx = Math.floor(page.leftFieldInPx * kF)  - 1;
-			page.pageClipRectHeight = Math.ceil(page.pageClipRectHeight * kF) + 2;
+			page.pageClipRectHeight = Math.ceil(page.pageClipRectHeight * kF);
 			page.pageClipRectLeft = Math.floor(page.pageClipRectLeft * kF);
 			page.pageClipRectTop = Math.floor(page.pageClipRectTop * kF);
-			page.pageClipRectWidth = Math.ceil(page.pageClipRectWidth * kF) + 2;
+			page.pageClipRectWidth = Math.ceil(page.pageClipRectWidth * kF);
 			page.topFieldInPx = Math.floor(page.topFieldInPx * kF) - 1;
 		}
 
 		printPreviewContext.clear();
+		printPreviewContext.setFillStyle( this.defaults.worksheetView.cells.defaultState.background )
+			.fillRect( 0, 0, printPreviewContext.getWidth(), printPreviewContext.getHeight() );
+
 		var ws;
 		if (!page) {
 			// Печать пустой страницы
@@ -3181,12 +3190,14 @@
 	}
 
     var viewZoom = this.getZoom();
-    this.changeZoom(1);
+    this.changeZoom(1, true, true);
+
+	var nActive = this.printPreviewState.isStart() && null !== this.printPreviewState.realActiveSheet ? this.printPreviewState.realActiveSheet : this.model.getActive();
 
     var printPagesData = new asc_CPrintPagesData();
     var printType = adjustPrint.asc_getPrintType();
     if (printType === Asc.c_oAscPrintType.ActiveSheets) {
-      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, false, adjustPrint);
+      this._calcPagesPrintSheet(nActive, printPagesData, false, adjustPrint);
     } else if (printType === Asc.c_oAscPrintType.EntireWorkbook) {
       // Колличество листов
       var countWorksheets = this.model.getWorksheetCount();
@@ -3197,14 +3208,14 @@
       	this._calcPagesPrintSheet(i, printPagesData, false, adjustPrint);
       }
     } else if (printType === Asc.c_oAscPrintType.Selection) {
-      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, true, adjustPrint);
+      this._calcPagesPrintSheet(nActive, printPagesData, true, adjustPrint);
     }
 
     if (AscCommonExcel.c_kMaxPrintPages === printPagesData.arrPages.length) {
       this.handlers.trigger("asc_onError", c_oAscError.ID.PrintMaxPagesCount, c_oAscError.Level.NoCritical);
     }
 
-    this.changeZoom(viewZoom);
+    this.changeZoom(viewZoom, true, true);
 
     return printPagesData;
   };

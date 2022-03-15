@@ -27,9 +27,13 @@
 			"common/apiBase_plugins.js",
 			"word/apiCommon.js",
 			"cell/api.js",
-			"common/spell/spell.js"
+			"common/spell/spell.js",
+			"word/Editor/Table/TableLook.js"
 		],
-		"common": [			
+		"common": [
+			"common/api/actionOnTimer.js",
+			"common/api/tableStylesPreviewGenerator.js",
+
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
@@ -223,7 +227,10 @@
 			"word/Editor/StructuredDocumentTags/SdtPr.js",
 			"word/Editor/StructuredDocumentTags/SdtPrChanges.js",
 			"word/Editor/Serialize2.js",
-			"word/Editor/Spelling.js",
+			"word/Editor/SpellChecker/DocumentSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphCollector.js",
+			"word/Editor/SpellChecker/ParagraphSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphSpellCheckerElement.js",
 			"word/Editor/FootEndNote.js",
 			"word/Editor/Footnotes.js",
 			"word/Editor/FootnotesChanges.js",
@@ -259,7 +266,7 @@
 			"common/Drawings/Format/OleObject.js",
 			"common/Drawings/Format/DrawingContent.js",
 			"common/plugins.js",
-			
+
 			"common/Native/native_graphics.js",
 			
 			"common/zlib/zlib.js",

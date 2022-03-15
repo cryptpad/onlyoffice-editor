@@ -2799,8 +2799,7 @@ var g_oBorderProperties = {
 		if (!res.f) {
 			res.f = "General";
 		}
-		if (((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id ||
-			(27 <= id && id <= 31) || (36 <= id && id <= 44))) {
+		if (AscCommon.canGetFormatByStandardId(id)) {
 			res.id = id;
 		}
 		var numFormat = AscCommon.oNumFormatCache.get(res.f);
@@ -2886,8 +2885,7 @@ var g_oBorderProperties = {
 				sFormat = AscCommon.unleakString(uq(val));
 			}
 			this.f = null != sFormat ? sFormat : (AscCommonExcel.aStandartNumFormats[id] || "General");
-			if ((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id || (27 <= id && id <= 31) ||
-				(36 <= id && id <= 44)) {
+			if (AscCommon.canGetFormatByStandardId(id)) {
 				this.id = id;
 			}
 		}
@@ -4687,6 +4685,9 @@ StyleManager.prototype =
 		return null == this.BestFit && null == this.hd && null == this.width && null == this.xfs &&
 			null == this.CustomWidth && 0 === this.outlineLevel && false == this.collapsed;
 	};
+	Col.prototype.isUpdateScroll = function () {
+		return null !== this.hd || null !== this.xfs || 0 !== this.outlineLevel || false !== this.collapsed;
+	};
 	Col.prototype.clone = function (oNewWs) {
 		if (!oNewWs) {
 			oNewWs = this.ws;
@@ -5822,6 +5823,18 @@ function RangeDataManagerElem(bbox, data)
 			}
 		}
 		return oRes;
+	};
+	RangeDataManager.prototype.getFirst = function (bbox) {
+		this._delayedInit();
+		var intervals = this.tree.searchNodes(bbox);
+		for (var i = 0; i < intervals.length; i++) {
+			var interval = intervals[i];
+			var elem = interval.data;
+			if (elem.bbox.isIntersect(bbox)) {
+				return elem
+			}
+		}
+		return null;
 	};
 	RangeDataManager.prototype.getAny = function (bbox) {
 		this._delayedInit();
@@ -7351,6 +7364,16 @@ function RangeDataManagerElem(bbox, data)
 		return null;
 	};
 
+	TablePart.prototype.getIndexTableColumnById = function(id) {
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (id === this.TableColumns[i].id) {
+				return i + 1;
+			}
+		}
+		return null;
+	};
+
+
 	/** @constructor */
 	function AutoFilter() {
 		this.Ref = null;
@@ -7850,8 +7873,10 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		w.WriteLong(this.SortConditions ? this.SortConditions.length : 0);
-		for (var i = 0; i < this.SortConditions.length; ++i) {
-			this.SortConditions[i].Write_ToBinary2(w);
+		if (this.SortConditions) {
+			for (var i = 0; i < this.SortConditions.length; ++i) {
+				this.SortConditions[i].Write_ToBinary2(w);
+			}
 		}
 	};
 	/*SortState.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
@@ -8018,6 +8043,8 @@ function RangeDataManagerElem(bbox, data)
 		this.fillFormulas = null;
 		this.queryName = null;
 		this.rowNumbers = null;
+
+		this.id = null;
 		//формируется на сохранения
 		//this.tableColumnId = null;
 	}
@@ -8070,6 +8097,8 @@ function RangeDataManagerElem(bbox, data)
 
 		res.queryTableFieldId = this.queryTableFieldId;
 		res.uniqueName = this.uniqueName;
+
+		res.id = this.id;
 
 		return res;
 	};
@@ -11757,8 +11786,12 @@ QueryTableField.prototype.clone = function() {
 		this.start = null;
 
 		if (revertZoom) {
-			this.wb.model.setActive(this.realActiveSheet);
-			this.wb.changeZoom(this.realZoom);
+			if (null != this.realActiveSheet) {
+				this.wb.model.setActive(this.realActiveSheet);
+			}
+			if (null != this.realZoom) {
+				this.wb.changeZoom(this.realZoom, true);
+			}
 		}
 		this.realActiveSheet = null;
 		this.realZoom = null;
@@ -11836,7 +11869,7 @@ QueryTableField.prototype.clone = function() {
 			if (needUpdateActiveSheet) {
 				this.wb.model.setActive(this.activeSheet);
 			}
-			this.wb.changeZoom(this.pageZoom * this.printZoom);
+			this.wb.changeZoom(this.pageZoom * this.printZoom, true);
 			this.ctx.changeZoom(this.pageZoom* this.printZoom);
 		}
 		var oGraphics = new AscCommon.CGraphics();
