@@ -11495,7 +11495,7 @@
                     }
                     oLastFunction = aFunctionsStack[aFunctionsStack.length-1];
                     oLastFunction.addOperand(this.queue.last());
-                    if(oLastFunction.addOperand(this.queue.last()) >= oLastFunction.getArgumentsCount()){
+                    if(oLastFunction.getOperandsCount() >= oLastFunction.getArgumentsCount()){
                         return null;
                     }
                 }
