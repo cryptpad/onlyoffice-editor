@@ -6483,17 +6483,19 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			writer.WriteString(L"</" + node_name + L">");
 		}*/
 
+		//TODO HHHH
 
 		var node_name = bExtendedWrite ? "x14:dataValidation" : "dataValidation";
 
 		writer.WriteXmlString("<" + node_name);
 		if (bExtendedWrite) {
-			//TODO
 			/*if (false == m_oUuid.IsInit())
 			{
 				m_oUuid = L"{" + XmlUtils::GenerateGuid() + L"}";
 			}
 			WritingStringNullableAttrString	(L"xr:uid",	m_oUuid, m_oUuid.get());*/
+
+			writer.WriteXmlNullableAttributeString("xr:uid", AscCommon.CreateGUID());
 		} else {
 			writer.WriteXmlNullableAttributeString("sqref", AscCommonExcel.getSqRefString(this.ranges));
 		}
@@ -6677,8 +6679,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						res = c_oSerConstants.ReadUnknown;
 					return res;*/
 
-		//TODO метрики
 
+		var paperUnits, paperHeight, paperWidth;
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("blackAndWhite" === reader.GetName()) {
@@ -6725,19 +6727,19 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				val = reader.GetValue();
 				this.pageOrder = FromXml_ST_PageOrder(val);
 			} else if ("paperHeight" === reader.GetName()) {
-				val = reader.GetValue();
-				this.height = val;
+				paperHeight = reader.GetValue();
+				this.height = paperHeight;
 			} else if ("paperSize" === reader.GetName()) {
 				var bytePaperSize = reader.GetValueInt();
 				var item = AscCommonExcel.DocumentPageSize.getSizeById(bytePaperSize);
 				this.asc_setWidth(item.w_mm);
 				this.asc_setHeight(item.h_mm);
 			} else if ("paperWidth" === reader.GetName()) {
-				val = reader.GetValue();
-				this.width = val;
+				paperWidth = reader.GetValue();
+				this.width = paperWidth;
 			} else if ("paperUnits" === reader.GetName()) {
 				val = reader.GetValue();
-				//this.PaperUnits = val;
+				paperUnits = val;
 			} else if ("scale" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.scale = val;
@@ -6751,6 +6753,15 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				val = reader.GetValueInt();
 				this.verticalDpi = val;
 			}
+		}
+
+		//paperUnits - ST_PositiveUniversalMeasure. пробовал в мс задавать разные метрики, в тч и пример из документации
+		//при открытии скидывает на дефолтовый первый тип - letter, поскольку мс никак не реагирует - не обрабатываю
+
+		//When paperHeight, paperWidth, and paperUnits are specified, paperSize should be ignored.
+		if (paperUnits && paperHeight && paperWidth) {
+			//this.width = AscCommon.universalMeasureToMm(paperWidth + paperUnits, 1, 0);
+			//this.height = AscCommon.universalMeasureToMm(paperHeight + paperUnits, 1, 0);
 		}
 	};
 
@@ -6783,9 +6794,13 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			ns = "";
 		}
 
-		//TODO метрики
-
 		writer.WriteXmlNodeStart(ns + name);
+
+		/*<xsd:simpleType name="ST_PositiveUniversalMeasure">
+			94 <xsd:restriction base="ST_UniversalMeasure">
+			95 <xsd:pattern value="[0-9]+(\.[0-9]+)?(mm|cm|in|pt|pc|pi)"/>
+			96 </xsd:restriction>
+			97 </xsd:simpleType>*/
 
 		var isWritePaperSize;
 		var dWidth = this.asc_getWidth();
@@ -6798,8 +6813,8 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 		//не записываю повторно, если уже есть paperSize
 		if (!isWritePaperSize) {
-			writer.WriteXmlNullableAttributeDouble("paperHeight", dHeight);
-			writer.WriteXmlNullableAttributeDouble("paperWidth", dWidth);
+			writer.WriteXmlNullableAttributeDouble("paperHeight", dHeight);//ST_PositiveUniversalMeasure
+			writer.WriteXmlNullableAttributeDouble("paperWidth", dWidth);//ST_PositiveUniversalMeasure
 		}
 
 		writer.WriteXmlNullableAttributeUInt("scale", this.scale);
@@ -6843,33 +6858,33 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	};
 
 	Asc.asc_CPageMargins.prototype.readAttr = function (reader) {
-		//TODO метрики
+		//TODO баг 21685 - при получении значений -  необходимо грамотно округлять
+
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("left" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.asc_setLeft(val);
+				this.asc_setLeft(val * AscCommonWord.g_dKoef_in_to_mm);
 			} else if ("top" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.asc_setTop(val);
+				this.asc_setTop(val * AscCommonWord.g_dKoef_in_to_mm);
 			} else if ("right" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.asc_setRight(val);
+				this.asc_setRight(val * AscCommonWord.g_dKoef_in_to_mm);
 			} else if ("bottom" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.asc_setBottom(val);
+				this.asc_setBottom(val * AscCommonWord.g_dKoef_in_to_mm);
 			} else if ("header" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.asc_setHeader(val);
+				this.asc_setHeader(val * AscCommonWord.g_dKoef_in_to_mm);
 			} else if ("footer" === reader.GetName()) {
 				val = reader.GetValueDouble();
-				this.asc_setFooter(val);
+				this.asc_setFooter(val * AscCommonWord.g_dKoef_in_to_mm);
 			}
 		}
 	};
 
 	Asc.asc_CPageMargins.prototype.toXml = function (writer, name, ns) {
-//TODO метрики
 		/*writer.WriteString(L"<pageMargins");
 							WritingStringNullableAttrDouble(L"left", m_oLeft, m_oLeft->ToInches());
 							WritingStringNullableAttrDouble(L"right", m_oRight, m_oRight->ToInches());
@@ -6879,18 +6894,20 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 							WritingStringNullableAttrDouble(L"footer", m_oFooter, m_oFooter->ToInches());
 							writer.WriteString(L"/>");*/
 
+		//TODO баг 21685 - при получении значений -  необходимо грамотно округлять
+
 		if (!ns) {
 			ns = "";
 		}
 
 		writer.WriteXmlNodeStart(ns + name);
 
-		writer.WriteXmlNullableAttributeDouble("left", this.left);
-		writer.WriteXmlNullableAttributeDouble("right", this.right);
-		writer.WriteXmlNullableAttributeDouble("top", this.top);
-		writer.WriteXmlNullableAttributeDouble("bottom", this.bottom);
-		writer.WriteXmlNullableAttributeDouble("header", this.header);
-		writer.WriteXmlNullableAttributeDouble("footer", this.footer);
+		writer.WriteXmlNullableAttributeDouble("left", this.left / AscCommonWord.g_dKoef_in_to_mm);
+		writer.WriteXmlNullableAttributeDouble("right", this.right / AscCommonWord.g_dKoef_in_to_mm);
+		writer.WriteXmlNullableAttributeDouble("top", this.top / AscCommonWord.g_dKoef_in_to_mm);
+		writer.WriteXmlNullableAttributeDouble("bottom", this.bottom / AscCommonWord.g_dKoef_in_to_mm);
+		writer.WriteXmlNullableAttributeDouble("header", this.header / AscCommonWord.g_dKoef_in_to_mm);
+		writer.WriteXmlNullableAttributeDouble("footer", this.footer / AscCommonWord.g_dKoef_in_to_mm);
 
 		writer.WriteXmlAttributesEnd(true);
 	};
@@ -7026,7 +7043,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						oAllRow.setOutlineLevel(this.stream.GetULongLE());
 					}*/
 
-		//TODO метрики
+		//TODO в x2t ветки с использованием xlsx_flat
 
 		var val;
 		var oAllRow;
@@ -8359,8 +8376,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 							return oThis.ReadSparklines(t, l, oSparklineGroup);
 						});
 					}*/
-
-		//TODO метрики
 
 		var val;
 		while (reader.MoveToNextAttribute()) {
