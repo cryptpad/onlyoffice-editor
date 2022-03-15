@@ -156,7 +156,7 @@
 	}
 
 
-	function FromXml_ST_IconSetType2(val) {
+	function FromXml_ST_IconSetType(val) {
 		//в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = null;
 		switch (val) {
@@ -227,7 +227,7 @@
 		return res;
 	}
 
-	function ToXml_ST_IconSetType2(val) {
+	function ToXml_ST_IconSetType(val) {
 		//в пивотах есть функция ToXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = null;
 		switch (val) {
@@ -483,62 +483,6 @@
 				break;
 			case Asc.ESortBy.sortbyIcon:
 				res = "icon";
-				break;
-		}
-		return res;
-	}
-
-	function FromXML_ST_CfvoType(val) {
-		var res = null;
-		switch (val) {
-			case "percent":
-				res = Asc.c_oAscCfvoType.Percent;
-				break;
-			case "max":
-				res = Asc.c_oAscCfvoType.Maximum;
-				break;
-			case "min":
-				res = Asc.c_oAscCfvoType.Minimum;
-				break;
-			case "num":
-				res = Asc.c_oAscCfvoType.Number;
-				break;
-			case "percentile":
-				res = Asc.c_oAscCfvoType.Percentile;
-				break;
-			case "autoMin":
-				res = Asc.c_oAscCfvoType.AutoMin;
-				break;
-			case "autoMax":
-				res = Asc.c_oAscCfvoType.AutoMax;
-				break;
-		}
-		return res;
-	}
-
-	function ToXML_ST_CfvoType(val) {
-		var res = null;
-		switch (val) {
-			case Asc.c_oAscCfvoType.Percent:
-				res = "percent";
-				break;
-			case Asc.c_oAscCfvoType.Maximum:
-				res = "max";
-				break;
-			case Asc.c_oAscCfvoType.Minimum:
-				res = "min";
-				break;
-			case Asc.c_oAscCfvoType.Number:
-				res = "num";
-				break;
-			case Asc.c_oAscCfvoType.Percentile:
-				res = "percentile";
-				break;
-			case Asc.c_oAscCfvoType.AutoMin:
-				res = "autoMin";
-				break;
-			case Asc.c_oAscCfvoType.AutoMax:
-				res = "autoMax";
 				break;
 		}
 		return res;
@@ -1478,6 +1422,378 @@
 		return res;
 	}
 
+	function FromXml_ST_FilterOperator(val) {
+		var res = -1;
+		if ("equal" === val) {
+			res = Asc.c_oAscCustomAutoFilter.equals;
+		} else if ("lessThan" === val) {
+			res = Asc.c_oAscCustomAutoFilter.isLessThan;
+		} else if ("lessThanOrEqual" === val) {
+			res = Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo;
+		} else if ("notEqual" === val) {
+			res = Asc.c_oAscCustomAutoFilter.doesNotEqual;
+		} else if ("greaterThanOrEqual" === val) {
+			res = Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo;
+		} else if ("greaterThan" === val) {
+			res = Asc.c_oAscCustomAutoFilter.isGreaterThan;
+		}
+		return res;
+	}
+	function ToXml_ST_FilterOperator(val) {
+		var res = "";
+		if (Asc.c_oAscCustomAutoFilter.equals === val) {
+			res = "equal";
+		} else if (Asc.c_oAscCustomAutoFilter.isLessThan === val) {
+			res = "lessThan";
+		} else if (Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo === val) {
+			res = "lessThanOrEqual";
+		} else if (Asc.c_oAscCustomAutoFilter.doesNotEqual === val) {
+			res = "notEqual";
+		} else if (Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo === val) {
+			res = "greaterThanOrEqual";
+		} else if (Asc.c_oAscCustomAutoFilter.isGreaterThan === val) {
+			res = "greaterThan";
+		}
+		return res;
+	}
+
+	function FromXml_ST_DynamicFilterType(val) {
+		var res = -1;
+		if ("null" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.nullType;
+		} else if ("aboveAverage" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.aboveAverage;
+		} else if ("belowAverage" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.belowAverage;
+		} else if ("tomorrow" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.tomorrow;
+		} else if ("today" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.today;
+		} else if ("yesterday" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.yesterday;
+		} else if ("nextWeek" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.nextWeek;
+		} else if ("thisWeek" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.thisWeek;
+		} else if ("lastWeek" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.lastWeek;
+		} else if ("nextMonth" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.nextMonth;
+		} else if ("thisMonth" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.thisMonth;
+		} else if ("lastMonth" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.lastMonth;
+		} else if ("nextQuarter" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.nextQuarter;
+		} else if ("thisQuarter" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.thisQuarter;
+		} else if ("lastQuarter" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.lastQuarter;
+		} else if ("nextYear" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.nextYear;
+		} else if ("thisYear" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.thisYear;
+		} else if ("lastYear" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.lastYear;
+		} else if ("yearToDate" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.yearToDate;
+		} else if ("Q1" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.q1;
+		} else if ("Q2" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.q2;
+		} else if ("Q3" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.q3;
+		} else if ("Q4" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.q4;
+		} else if ("M1" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m1;
+		} else if ("M2" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m2;
+		} else if ("M3" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m3;
+		} else if ("M4" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m4;
+		} else if ("M5" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m5;
+		} else if ("M6" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m6;
+		} else if ("M7" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m7;
+		} else if ("M8" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m8;
+		} else if ("M9" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m9;
+		} else if ("M10" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m10;
+		} else if ("M11" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m11;
+		} else if ("M12" === val) {
+			res = Asc.c_oAscDynamicAutoFilter.m12;
+		}
+		return res;
+	}
+
+	function ToXml_ST_DynamicFilterType(val) {
+		var res = "";
+		if (Asc.c_oAscDynamicAutoFilter.nullType === val){
+			res = "null";
+		} else if (Asc.c_oAscDynamicAutoFilter.aboveAverage === val) {
+			res = "aboveAverage";
+		} else if (Asc.c_oAscDynamicAutoFilter.belowAverage === val) {
+			res = "belowAverage";
+		} else if (Asc.c_oAscDynamicAutoFilter.tomorrow === val) {
+			res = "tomorrow";
+		} else if (Asc.c_oAscDynamicAutoFilter.today === val) {
+			res = "today";
+		} else if (Asc.c_oAscDynamicAutoFilter.yesterday === val) {
+			res = "yesterday";
+		} else if (Asc.c_oAscDynamicAutoFilter.nextWeek === val) {
+			res = "nextWeek";
+		} else if (Asc.c_oAscDynamicAutoFilter.thisWeek === val) {
+			res = "thisWeek";
+		} else if (Asc.c_oAscDynamicAutoFilter.lastWeek === val) {
+			res = "lastWeek";
+		} else if (Asc.c_oAscDynamicAutoFilter.nextMonth === val) {
+			res = "nextMonth";
+		} else if (Asc.c_oAscDynamicAutoFilter.thisMonth === val) {
+			res = "thisMonth";
+		} else if (Asc.c_oAscDynamicAutoFilter.lastMonth === val) {
+			res = "lastMonth";
+		} else if (Asc.c_oAscDynamicAutoFilter.nextQuarter === val) {
+			res = "nextQuarter";
+		} else if (Asc.c_oAscDynamicAutoFilter.thisQuarter === val) {
+			res = "thisQuarter";
+		} else if (Asc.c_oAscDynamicAutoFilter.lastQuarter === val) {
+			res = "lastQuarter";
+		} else if (Asc.c_oAscDynamicAutoFilter.nextYear === val) {
+			res = "nextYear";
+		} else if (Asc.c_oAscDynamicAutoFilter.thisYear === val) {
+			res = "thisYear";
+		} else if (Asc.c_oAscDynamicAutoFilter.lastYear === val) {
+			res = "lastYear";
+		} else if (Asc.c_oAscDynamicAutoFilter.yearToDate === val) {
+			res = "yearToDate";
+		} else if (Asc.c_oAscDynamicAutoFilter.q1 === val) {
+			res = "Q1";
+		} else if (Asc.c_oAscDynamicAutoFilter.q2 === val) {
+			res = "Q2";
+		} else if (Asc.c_oAscDynamicAutoFilter.q3 === val) {
+			res = "Q3";
+		} else if (Asc.c_oAscDynamicAutoFilter.q4 === val) {
+			res = "Q4";
+		} else if (Asc.c_oAscDynamicAutoFilter.m1 === val) {
+			res = "M1";
+		} else if (Asc.c_oAscDynamicAutoFilter.m2 === val) {
+			res = "M2";
+		} else if (Asc.c_oAscDynamicAutoFilter.m3 === val) {
+			res = "M3";
+		} else if (Asc.c_oAscDynamicAutoFilter.m4 === val) {
+			res = "M4";
+		} else if (Asc.c_oAscDynamicAutoFilter.m5 === val) {
+			res = "M5";
+		} else if (Asc.c_oAscDynamicAutoFilter.m6 === val) {
+			res = "M6";
+		} else if (Asc.c_oAscDynamicAutoFilter.m7 === val) {
+			res = "M7";
+		} else if (Asc.c_oAscDynamicAutoFilter.m8 === val) {
+			res = "M8";
+		} else if (Asc.c_oAscDynamicAutoFilter.m9 === val) {
+			res = "M9";
+		} else if (Asc.c_oAscDynamicAutoFilter.m10 === val) {
+			res = "M10";
+		} else if (Asc.c_oAscDynamicAutoFilter.m11 === val) {
+			res = "M11";
+		} else if (Asc.c_oAscDynamicAutoFilter.m12 === val) {
+			res = "M12";
+		}
+		return res;
+	}
+
+	function FromXml_ST_DateTimeGrouping(val) {
+		var res = -1;
+		if ("year" === val) {
+			res = Asc.EDateTimeGroup.datetimegroupYear;
+		} else if ("month" === val) {
+			res = Asc.EDateTimeGroup.datetimegroupMonth;
+		} else if ("day" === val) {
+			res = Asc.EDateTimeGroup.datetimegroupDay;
+		} else if ("hour" === val) {
+			res = Asc.EDateTimeGroup.datetimegroupHour;
+		} else if ("minute" === val) {
+			res = Asc.EDateTimeGroup.datetimegroupMinute;
+		} else if ("second" === val) {
+			res = Asc.EDateTimeGroup.datetimegroupSecond;
+		}
+		return res;
+	}
+	function ToXml_ST_DateTimeGrouping(val) {
+		var res = "";
+		if (Asc.EDateTimeGroup.datetimegroupYear === val) {
+			res = "year";
+		} else if (Asc.EDateTimeGroup.datetimegroupMonth === val) {
+			res = "month";
+		} else if (Asc.EDateTimeGroup.datetimegroupDay === val) {
+			res = "day";
+		} else if (Asc.EDateTimeGroup.datetimegroupHour === val) {
+			res = "hour";
+		} else if (Asc.EDateTimeGroup.datetimegroupMinute === val) {
+			res = "minute";
+		} else if (Asc.EDateTimeGroup.datetimegroupSecond === val) {
+			res = "second";
+		}
+		return res;
+	}
+
+	function ToXml_ST_HorizontalAlignment(val) {
+		var res = "";
+		switch (val)
+		{
+			case -1:
+				res = "general";
+				break;
+			case AscCommon.align_Left:
+				res = "left";
+				break;
+			case AscCommon.align_Center:
+				res = "center";
+				break;
+			case AscCommon.align_Right:
+				res = "right";
+				break;
+			case AscCommon.align_Justify:
+				res = "justify";
+				break;
+		}
+		return res;
+	}
+
+	function FromXml_ST_HorizontalAlignment(val) {
+		var res = -1;
+		if ("general" === val) {
+			res = -1;
+		} else if ("left" === val) {
+			res = AscCommon.align_Left;
+		} else if ("center" === val) {
+			res = AscCommon.align_Center;
+		} else if ("right" === val) {
+			res = AscCommon.align_Right;
+		} else if ("fill" === val) {
+			res = AscCommon.align_Justify;
+		} else if ("justify" === val) {
+			res = AscCommon.align_Justify;
+		} else if ("centerContinuous" === val) {
+			res = AscCommon.align_Center;
+		} else if ("distributed" === val) {
+			res = AscCommon.align_Justify;
+		}
+		return res;
+	}
+
+	function ToXml_ST_VerticalAlignment(val) {
+		var res = "";
+		switch (val)
+		{
+			case Asc.c_oAscVAlign.Top:
+				res = "top";
+				break;
+			case Asc.c_oAscVAlign.Center:
+				res = "center";
+				break;
+			case Asc.c_oAscVAlign.Bottom:
+				res = "bottom";
+				break;
+			case Asc.c_oAscVAlign.Just:
+				res = "justify";
+				break;
+			case Asc.c_oAscVAlign.Dist:
+				res = "distributed";
+				break;
+		}
+		return res;
+	}
+	function FromXml_ST_VerticalAlignment(val) {
+		var res = -1;
+		if ("top" === val) {
+			res = Asc.c_oAscVAlign.Top;
+		} else if ("center" === val) {
+			res = Asc.c_oAscVAlign.Center;
+		} else if ("bottom" === val) {
+			res = Asc.c_oAscVAlign.Bottom;
+		} else if ("justify" === val) {
+			res = Asc.c_oAscVAlign.Just;
+		} else if ("distributed" === val) {
+			res = Asc.c_oAscVAlign.Dist;
+		}
+		return res;
+	}
+
+	function ToXml_ST_CfvoType(nType)
+	{
+		var sType = "";
+		switch (nType)
+		{
+			case AscCommonExcel.ECfvoType.Formula:
+				sType = "formula";
+				break;
+			case AscCommonExcel.ECfvoType.Maximum:
+				sType = "max";
+				break;
+			case AscCommonExcel.ECfvoType.Minimum:
+				sType = "min";
+				break;
+			case AscCommonExcel.ECfvoType.Number:
+				sType = "num";
+				break;
+			case AscCommonExcel.ECfvoType.Percent:
+				sType = "percent";
+				break;
+			case AscCommonExcel.ECfvoType.Percentile:
+				sType = "percentile";
+				break;
+			case AscCommonExcel.ECfvoType.AutoMin:
+				sType = "autoMin";
+				break;
+			case AscCommonExcel.ECfvoType.AutoMax:
+				sType = "autoMax";
+				break;
+		}
+
+		return sType;
+	}
+
+	function FromXml_ST_CfvoType(sType)
+	{
+		var nType = -1;
+		switch (sType)
+		{
+			case "formula":
+				nType = AscCommonExcel.ECfvoType.Formula;
+				break;
+			case "max":
+				nType = AscCommonExcel.ECfvoType.Maximum;
+				break;
+			case "min":
+				nType = AscCommonExcel.ECfvoType.Minimum;
+				break;
+			case "num":
+				nType = AscCommonExcel.ECfvoType.Number;
+				break;
+			case "percent":
+				nType = AscCommonExcel.ECfvoType.Percent;
+				break;
+			case "percentile":
+				nType = AscCommonExcel.ECfvoType.Percentile;
+				break;
+			case "autoMin":
+				nType = AscCommonExcel.ECfvoType.AutoMin;
+				break;
+			case "autoMax":
+				nType = AscCommonExcel.ECfvoType.AutoMax;
+				break;
+		}
+
+		return nType;
+	}
 
 	function boolToNumber(val) {
 		return val ? 1 : 0;
@@ -4816,7 +5132,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.MoveToNextAttribute()) {
 			if ("type" === reader.GetName()) {
 				val = reader.GetValue();
-				this.Type = AscCommonExcel.FromXml_ST_DynamicFilterType(val);
+				this.Type = FromXml_ST_DynamicFilterType(val);
 			} else if ("val" === reader.GetName()) {
 				val = reader.GetValueDouble();
 				this.val = val;
@@ -4841,7 +5157,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 
 		writer.WriteXmlNodeStart(ns + name/*"dynamicFilter"*/);
 
-		writer.WriteXmlAttributeString("type", AscCommonExcel.ToXml_ST_DynamicFilterType(this.Type));
+		writer.WriteXmlAttributeString("type", ToXml_ST_DynamicFilterType(this.Type));
 		writer.WriteXmlNullableAttributeNumber("val", this.val);
 		writer.WriteXmlNullableAttributeNumber("maxVal", this.MaxVal);
 
@@ -5264,7 +5580,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		while (reader.MoveToNextAttribute()) {
 			if ("dateTimeGrouping" === reader.GetName()) {
 				val = reader.GetValue();
-				this.DateTimeGrouping = AscCommonExcel.FromXml_ST_DateTimeGrouping(val);
+				this.DateTimeGrouping = FromXml_ST_DateTimeGrouping(val);
 			} else if ("day" === reader.GetName()) {
 				val = reader.GetValueDouble();
 				this.Day = val;
@@ -5313,7 +5629,7 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		writer.WriteXmlNullableAttributeNumber("hour", this.Hour);
 		writer.WriteXmlNullableAttributeNumber("minute", this.Minute);
 		writer.WriteXmlNullableAttributeNumber("second", this.Second);
-		writer.WriteXmlAttributeStringEncode("dateTimeGrouping", AscCommonExcel.ToXml_ST_DateTimeGrouping(this.DateTimeGrouping));
+		writer.WriteXmlAttributeStringEncode("dateTimeGrouping", ToXml_ST_DateTimeGrouping(this.DateTimeGrouping));
 		writer.WriteXmlAttributesEnd();
 
 		writer.WriteXmlNodeEnd(ns + name);
@@ -10119,7 +10435,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.Gte = val;
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
-				this.Type = FromXML_ST_CfvoType(val);
+				this.Type = FromXml_ST_CfvoType(val);
 			} else if ("val" === reader.GetName()) {
 				val = reader.GetValue();
 				this.Val = val;
@@ -10184,7 +10500,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var node_name = bExtendedWrite ? "x14:cfvo" : "cfvo";
 
 		writer.WriteXmlString("<" + node_name);
-		writer.WriteXmlAttributeString("type", ToXML_ST_CfvoType(this.Type));
+		writer.WriteXmlAttributeString("type", ToXml_ST_CfvoType(this.Type));
 		if (false === this.Gte) {
 			writer.WriteXmlString(" gte=\"0\"");
 		}
@@ -10460,7 +10776,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		while (reader.MoveToNextAttribute()) {
 			if ("iconSet" === reader.GetName()) {
 				val = reader.GetValue();
-				this.IconSet = FromXml_ST_IconSetType2(val);
+				this.IconSet = FromXml_ST_IconSetType(val);
 			} else if ("percent" === reader.GetName()) {
 				val = reader.GetValue();
 				this.Percent = val;
@@ -10527,7 +10843,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var node_name = bExtendedWrite ? "x14:iconSet" : "iconSet";
 
 		writer.WriteXmlString("<" + node_name);
-		writer.WriteXmlNullableAttributeString("iconSet", ToXml_ST_IconSetType2(this.IconSet));
+		writer.WriteXmlNullableAttributeString("iconSet", ToXml_ST_IconSetType(this.IconSet));
 		if (false === this.Percent) {
 			writer.WriteXmlString(" percent=\"0\"");
 		}
@@ -10592,7 +10908,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		while (reader.MoveToNextAttribute()) {
 			if ("iconSet" === reader.GetName()) {
 				val = reader.GetValue();
-				this.IconSet = FromXml_ST_IconSetType2(val);
+				this.IconSet = FromXml_ST_IconSetType(val);
 			} else if ("iconId" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.IconId = val;
@@ -10614,7 +10930,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		writer.WriteXmlString("<x14:cfIcon");
-		writer.WriteXmlNullableAttributeString("iconSet", ToXml_ST_IconSetType2(this.IconSet));
+		writer.WriteXmlNullableAttributeString("iconSet", ToXml_ST_IconSetType(this.IconSet));
 		writer.WriteXmlNullableAttributeNumber("iconId", this.IconId);
 		writer.WriteXmlString("/>");
 	};
@@ -12140,7 +12456,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		while (reader.MoveToNextAttribute()) {
 			if ("horizontal" === reader.GetName() || "ss:Horizontal" === reader.GetName()) {
 				val = reader.GetValue();
-				this.hor = AscCommonExcel.FromXml_ST_HorizontalAlignment(val);
+				this.hor = FromXml_ST_HorizontalAlignment(val);
 			} else if ("indent" === reader.GetName() || "ss:Indent" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.indent = val;
@@ -12161,7 +12477,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.angle = val;
 			} else if ("vertical" === reader.GetName() || "ss:Vertical" === reader.GetName()) {
 				val = reader.GetValue();
-				this.ver = AscCommonExcel.FromXml_ST_VerticalAlignment(val);
+				this.ver = FromXml_ST_VerticalAlignment(val);
 			} else if ("wrapText" === reader.GetName() || "ss:WrapText" === reader.GetName()) {
 				val = reader.GetValueBool();
 				this.wrap = val;
@@ -12190,14 +12506,14 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		writer.WriteXmlNodeStart(ns + name);
-		writer.WriteXmlNullableAttributeString("horizontal", AscCommonExcel.ToXml_ST_HorizontalAlignment(this.hor));
+		writer.WriteXmlNullableAttributeString("horizontal", ToXml_ST_HorizontalAlignment(this.hor));
 		writer.WriteXmlNullableAttributeNumber("indent", this.indent !== 0 ? this.indent : null);
 		writer.WriteXmlNullableAttributeBool("justifyLastLine", this.justifyLastLine);
 		//writer.WriteXmlNullableAttributeNumber("readingOrder", this.readingOrder);
 		writer.WriteXmlNullableAttributeNumber("relativeIndent", this.RelativeIndent !== 0 ? this.RelativeIndent : null);
 		writer.WriteXmlNullableAttributeBool("shrinkToFit", this.shrink !== false ? this.angle : null);
 		writer.WriteXmlNullableAttributeNumber("textRotation", this.angle !== 0 ? this.angle : null);
-		writer.WriteXmlNullableAttributeString("vertical", this.ver !== 0 ? AscCommonExcel.ToXml_ST_VerticalAlignment(this.ver) : null);
+		writer.WriteXmlNullableAttributeString("vertical", this.ver !== 0 ? ToXml_ST_VerticalAlignment(this.ver) : null);
 		writer.WriteXmlNullableAttributeBool("wrapText", this.wrap !== false ? this.wrap : null);
 		writer.WriteXmlAttributesEnd(true);
 	};
@@ -16157,6 +16473,21 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	window['AscCommonExcel'].FromXml_CFOperatorType = FromXml_CFOperatorType;
 	window['AscCommonExcel'].ToXml_ST_TimePeriod = ToXml_ST_TimePeriod;
 	window['AscCommonExcel'].FromXml_ST_TimePeriod = FromXml_ST_TimePeriod;
+	window["AscCommonExcel"].FromXml_ST_FilterOperator = FromXml_ST_FilterOperator;
+	window["AscCommonExcel"].ToXml_ST_FilterOperator = ToXml_ST_FilterOperator;
+	window["AscCommonExcel"].ToXml_ST_DynamicFilterType = ToXml_ST_DynamicFilterType;
+	window["AscCommonExcel"].FromXml_ST_DynamicFilterType = FromXml_ST_DynamicFilterType;
+	window["AscCommonExcel"].ToXml_ST_DateTimeGrouping = ToXml_ST_DateTimeGrouping;
+	window["AscCommonExcel"].FromXml_ST_DateTimeGrouping = FromXml_ST_DateTimeGrouping;
+	window["AscCommonExcel"].ToXml_ST_HorizontalAlignment = ToXml_ST_HorizontalAlignment;
+	window["AscCommonExcel"].FromXml_ST_HorizontalAlignment = FromXml_ST_HorizontalAlignment;
+	window["AscCommonExcel"].ToXml_ST_VerticalAlignment = ToXml_ST_VerticalAlignment;
+	window["AscCommonExcel"].FromXml_ST_VerticalAlignment = FromXml_ST_VerticalAlignment;
+	window["AscCommonExcel"].ToXml_ST_CfvoType = ToXml_ST_CfvoType;
+	window["AscCommonExcel"].FromXml_ST_CfvoType = FromXml_ST_CfvoType;
+
+
+
 
 
 })(window);
