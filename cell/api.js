@@ -1662,7 +1662,7 @@ var editor;
 			wbXml.sheets.forEach(function(wbSheetXml){
 				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
-					wsParts.push({wsPart: wsPart, id: wbSheetXml.id, name: wbSheetXml.name});
+					wsParts.push({wsPart: wsPart, id: wbSheetXml.id, name: wbSheetXml.name, bHidden: wbSheetXml.bHidden});
 				}
 			});
 
@@ -1673,6 +1673,7 @@ var editor;
 					if (contentSheetXml) {
 						var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
 						ws.sName = wbSheetXml.name;
+						ws.bHidden = wbSheetXml.bHidden;
 						//var wsView = new AscCommonExcel.asc_CSheetViewSettings();
 						//wsView.pane = new AscCommonExcel.asc_CPane();
 						//ws.sheetViews.push(wsView);

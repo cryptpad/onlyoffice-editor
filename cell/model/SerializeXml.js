@@ -500,6 +500,9 @@
 			case "min":
 				res = Asc.c_oAscCfvoType.Minimum;
 				break;
+			case "num":
+				res = Asc.c_oAscCfvoType.Number;
+				break;
 			case "percentile":
 				res = Asc.c_oAscCfvoType.Percentile;
 				break;
@@ -524,6 +527,9 @@
 				break;
 			case Asc.c_oAscCfvoType.Minimum:
 				res = "min";
+				break;
+			case Asc.c_oAscCfvoType.Number:
+				res = "num";
 				break;
 			case Asc.c_oAscCfvoType.Percentile:
 				res = "percentile";
@@ -3545,6 +3551,7 @@
 			sheetXml.id = wsPart.rId;
 			sheetXml.sheetId = index++;
 			sheetXml.name = ws.getName();
+			sheetXml.bHidden = ws.bHidden;
 			t.sheets.push(sheetXml);
 			context.sheetIds[ws.getId()] = sheetXml.sheetId;
 		}, context.isCopyPaste);
@@ -3566,6 +3573,7 @@
 		this.name = null;
 		this.sheetId = null;
 		this.id = null;
+		this.bHidden = null;
 	}
 
 	CT_Sheet.prototype.fromXml = function (reader) {
@@ -3577,6 +3585,9 @@
 		writer.WriteXmlNullableAttributeString("name", this.name);
 		writer.WriteXmlNullableAttributeNumber("sheetId", this.sheetId);
 		writer.WriteXmlNullableAttributeString("r:id", this.id);
+		if (this.bHidden != null) {
+			writer.WriteXmlAttributeString("state", this.bHidden ? "hidden" : "visible");
+		}
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CT_Sheet.prototype.readAttributes = function (attr, uq) {
@@ -3585,6 +3596,7 @@
 		}
 	};
 	CT_Sheet.prototype.readAttr = function (reader) {
+		var val;
 		while (reader.MoveToNextAttribute()) {
 			var name = reader.GetNameNoNS();
 			if ("name" === name) {
@@ -3593,6 +3605,15 @@
 				this.sheetId = reader.GetValueInt();
 			} else if ("id" === name) {
 				this.id = reader.GetValueDecodeXml();
+			} else if ("state" === name) {
+				val = reader.GetValue();
+				if ("hidden" === val) {
+					this.bHidden = true;
+				} else if ("veryHidden" === val) {
+					this.bHidden = true;
+				} else if ("visible" === val) {
+					this.bHidden = false;
+				}
 			}
 		}
 	};
