@@ -8524,6 +8524,10 @@ CDocument.prototype.IsSelectionEmpty = function(bCheckHidden)
 {
 	return this.Controller.IsSelectionEmpty(bCheckHidden);
 };
+
+CDocument.prototype.IsTextSelectionInSmartArt = function () {
+  return this.DrawingObjects.isTextSelectionInSmartArt();
+}
 CDocument.prototype.DrawSelectionOnPage = function(PageAbs)
 {
 	this.DrawingDocument.UpdateTargetTransform(null);
@@ -26489,7 +26493,8 @@ CDocument.prototype.IsShowEquationTrack = function()
  */
 CDocument.prototype.CanDragAndDrop = function()
 {
-	return (!!this.CanEdit());
+	return (!!this.CanEdit()) &&
+    !this.IsTextSelectionInSmartArt();
 };
 /**
  * Конвертируем выделенный текст в таблицу
