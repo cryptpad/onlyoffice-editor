@@ -1998,6 +1998,11 @@
                 return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
             else {
+				var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
+				if(aSelectedObjects.length > 0) {
+					this.removeSelectedEffects();
+					return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
+				}
                 var aSeqs = this.getEffectsSequences();
                 var aSeq;
                 var bNeedRebuild = false;
@@ -7821,6 +7826,10 @@
             dW = oRect.w;
             dH = oRect.h;
             
+			if (oGraphics.IsSlideBoundsCheckerType) {
+                oGraphics.rect(dX, dY, dW, dH);
+                return;
+			}
             var oContext = oGraphics.m_oContext;
             if(!oContext) {
                 return;
@@ -9990,10 +9999,14 @@
         return oTexture;
     };
     CAnimTexture.prototype.createRandomBarsVertical = function(fTime, nTransition) {
-        var aFilledRanges = this.getRandomRanges(fTime);
-        if(aFilledRanges.length === 0) {
-            return this;
+		var fResTime;
+        if(nTransition === TRANSITION_TYPE_IN) {
+            fResTime = 1 - fTime;
         }
+        else {
+            fResTime = fTime;
+        }
+        var aFilledRanges = this.getRandomRanges(fResTime);
         var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
@@ -11551,7 +11564,7 @@
     var CONST_REGEXPSTR = "(pi\|e)";
     var CONST_REGEXP = new RegExp(CONST_REGEXPSTR, "g");
 
-    var NUMBER_REGEXPSTR = "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?";
+    var NUMBER_REGEXPSTR = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
     var NUMBER_REGEXP = new RegExp(NUMBER_REGEXPSTR, "g");
 
 
@@ -11651,7 +11664,7 @@
                     }
                     oLastFunction = aFunctionsStack[aFunctionsStack.length-1];
                     oLastFunction.addOperand(this.queue.last());
-                    if(oLastFunction.addOperand(this.queue.last()) >= oLastFunction.getArgumentsCount()){
+                    if(oLastFunction.getOperandsCount() >= oLastFunction.getArgumentsCount()){
                         return null;
                     }
                 }
