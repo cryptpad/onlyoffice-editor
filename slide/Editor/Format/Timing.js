@@ -1824,6 +1824,20 @@
         }
         return oMainSeq.isAtEnd();
     };
+    CTiming.prototype.isSpClickTrigger = function(oSp) {
+        var oRoot = this.getTimingRootNode();
+        if(!oRoot) {
+            return true;
+        }
+        var aRootChildren = oRoot.getChildrenTimeNodes();
+        var sSpId = oSp.Get_Id();
+        for(var nChild = 0; nChild < aRootChildren.length; ++nChild) {
+            if(aRootChildren[nChild].isInteractiveSeq(sSpId)) {
+                return true;
+            }
+        }
+        return false;
+    };
     CTiming.prototype.staticCreateNoneEffect = function() {
         return AscFormat.ExecuteNoHistory(function() {
             return CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite")
@@ -10613,6 +10627,14 @@
             return true;
         }
         return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+    };
+    CAnimationPlayer.prototype.isSpClickTrigger = function(oSp) {
+        for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
+            if(this.timings[nTiming].isSpClickTrigger(oSp)) {
+                return true;
+            }
+        }
+        return false;
     };
     CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
         if(!oSp) {
