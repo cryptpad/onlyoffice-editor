@@ -12211,7 +12211,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags, nHistoryActions)
 		return (nRes |= AUTOCORRECT_FLAGS_DOUBLESPACE_WITH_PERIOD);
 
 	if (nFlags & AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION && this.private_ProcessFrenchPunctuation(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
-		nRes |= AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION;
+		return (nRes |= AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION);
 
 	if (nFlags & AUTOCORRECT_FLAGS_SMART_QUOTES && this.private_ProcessSmartQuotesAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
 		nRes |= AUTOCORRECT_FLAGS_SMART_QUOTES;
