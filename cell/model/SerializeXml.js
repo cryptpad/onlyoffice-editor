@@ -158,7 +158,7 @@
 
 	function FromXml_ST_IconSetType(val) {
 		//в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
-		var res = null;
+		var res = undefined;
 		switch (val) {
 			case "3Arrows":
 				res = Asc.EIconSetType.Arrows3;
@@ -229,7 +229,7 @@
 
 	function ToXml_ST_IconSetType(val) {
 		//в пивотах есть функция ToXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
-		var res = null;
+		var res = undefined;
 		switch (val) {
 			case Asc.EIconSetType.Arrows3:
 				res = "3Arrows";
@@ -488,7 +488,7 @@
 		return res;
 	}
 
-	function FromXML_ST_CfType(val) {
+	function FromXml_ST_CfType(val) {
 		var res = null;
 		switch (val) {
 			case "aboveAverage":
@@ -549,7 +549,7 @@
 		return res;
 	}
 
-	function ToXML_ST_CfType(val) {
+	function ToXml_ST_CfType(val) {
 		var res = null;
 		switch (val) {
 			case Asc.ECfType.aboveAverage:
@@ -611,7 +611,7 @@
 	}
 
 	function FromXml_ST_DataValidationType(val) {
-		var res = null;
+		var res = undefined;
 		switch (val) {
 			case "none":
 				res = Asc.EDataValidationType.None;
@@ -642,7 +642,7 @@
 	}
 
 	function ToXml_ST_DataValidationType(val) {
-		var res = null;
+		var res = undefined;
 		switch (val) {
 			case Asc.EDataValidationType.None:
 				res = "none";
@@ -673,7 +673,7 @@
 	}
 
 	function FromXml_ST_DataValidationImeMode(val) {
-		var res = null;
+		var res = undefined;
 		switch (val) {
 			case "noControl":
 				res = Asc.EDataValidationImeMode.NoControl;
@@ -713,7 +713,7 @@
 	}
 
 	function ToXml_ST_DataValidationImeMode(val) {
-		var res = null;
+		var res = undefined;
 		switch (val) {
 			case Asc.EDataValidationImeMode.NoControl:
 				res = "noControl";
@@ -1789,6 +1789,43 @@
 				break;
 			case "autoMax":
 				nType = AscCommonExcel.ECfvoType.AutoMax;
+				break;
+		}
+
+		return nType;
+	}
+
+	function ToXml_ST_DataValidationErrorStyle(nType)
+	{
+		var sType = undefined;
+		switch (nType)
+		{
+			case Asc.EDataValidationErrorStyle.Stop:
+				sType = "stop";
+				break;
+			case Asc.EDataValidationErrorStyle.Warning:
+				sType = "warning";
+				break;
+			case Asc.EDataValidationErrorStyle.Information:
+				sType = "information";
+				break;
+		}
+
+		return sType;
+	}
+	function FromXml_ST_DataValidationErrorStyle(sType)
+	{
+		var nType = undefined;
+		switch (sType)
+		{
+			case "stop":
+				nType = Asc.EDataValidationErrorStyle.Stop;
+				break;
+			case "warning":
+				nType = Asc.EDataValidationErrorStyle.Warning;
+				break;
+			case "information":
+				nType = Asc.EDataValidationErrorStyle.Information;
 				break;
 		}
 
@@ -6844,7 +6881,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.error = val;
 			} else if ("errorStyle" === reader.GetName()) {
 				val = reader.GetValue();
-				this.errorStyle = val;
+				this.errorStyle = FromXml_ST_DataValidationErrorStyle(val);
 			} else if ("errorTitle" === reader.GetName()) {
 				val = reader.GetValue();
 				this.errorTitle = val;
@@ -7012,7 +7049,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		//WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("error", this.error);
 
-		writer.WriteXmlNullableAttributeString("errorStyle", this.errorStyle);
+		writer.WriteXmlNullableAttributeString("errorStyle", ToXml_ST_DataValidationErrorStyle(this.errorStyle));
 
 		//WritingStringNullableAttrEncodeXmlStringHHHH
 		writer.WriteXmlNullableAttributeStringEncode("errorTitle", this.errorTitle);
@@ -10092,7 +10129,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.timePeriod = FromXml_ST_TimePeriod(val);
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
-				this.type = FromXML_ST_CfType(val);
+				this.type = FromXml_ST_CfType(val);
 			} else if ("id" === reader.GetName()) {
 				val = reader.GetValue();
 				this._openId = val;
@@ -10184,7 +10221,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			2692 </xsd:restriction>*/
 
 
-		writer.WriteXmlAttributeString("type", ToXML_ST_CfType(this.type));
+		writer.WriteXmlAttributeString("type", ToXml_ST_CfType(this.type));
 		writer.WriteXmlAttributeNumber("priority", this.priority);
 
 		if (false === this.aboveAverage) {
@@ -16485,6 +16522,16 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	window["AscCommonExcel"].FromXml_ST_VerticalAlignment = FromXml_ST_VerticalAlignment;
 	window["AscCommonExcel"].ToXml_ST_CfvoType = ToXml_ST_CfvoType;
 	window["AscCommonExcel"].FromXml_ST_CfvoType = FromXml_ST_CfvoType;
+	window["AscCommonExcel"].ToXml_ST_IconSetType = ToXml_ST_IconSetType;
+	window["AscCommonExcel"].FromXml_ST_IconSetType = FromXml_ST_IconSetType;
+	window["AscCommonExcel"].ToXml_ST_CfType = ToXml_ST_CfType;
+	window["AscCommonExcel"].FromXml_ST_CfType = FromXml_ST_CfType;
+	window["AscCommonExcel"].ToXml_ST_DataValidationErrorStyle = ToXml_ST_DataValidationErrorStyle;
+	window["AscCommonExcel"].FromXml_ST_DataValidationErrorStyle = FromXml_ST_DataValidationErrorStyle;
+	window["AscCommonExcel"].ToXml_ST_DataValidationType = ToXml_ST_DataValidationType;
+	window["AscCommonExcel"].FromXml_ST_DataValidationType = FromXml_ST_DataValidationType;
+	window["AscCommonExcel"].ToXml_ST_DataValidationImeMode = ToXml_ST_DataValidationImeMode;
+	window["AscCommonExcel"].FromXml_ST_DataValidationImeMode = FromXml_ST_DataValidationImeMode;
 
 
 
