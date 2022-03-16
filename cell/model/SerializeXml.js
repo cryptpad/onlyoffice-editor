@@ -1832,6 +1832,26 @@
 		return nType;
 	}
 
+	function FromXml_ST_GradientType(val, default_null) {
+		var res = default_null ? null : -1;
+		if ("linear" === val) {
+			res = Asc.c_oAscFillGradType.GRAD_LINEAR;
+		} else if ("path" === val) {
+			res = Asc.c_oAscFillGradType.GRAD_PATH;
+		}
+		return res;
+	}
+
+	function ToXml_ST_GradientType(val, default_null) {
+		var res = default_null ? null : -1;
+		if (Asc.c_oAscFillGradType.GRAD_LINEAR === val) {
+			res = "linear";
+		} else if (Asc.c_oAscFillGradType.GRAD_PATH === val) {
+			res = "path";
+		}
+		return res;
+	}
+
 	function boolToNumber(val) {
 		return val ? 1 : 0;
 	}
@@ -12985,8 +13005,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						gradientFill.stop.push(gradientStop);
 					}*/
 
-		//TODO метрика
-
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("bottom" === reader.GetName()) {
@@ -13006,7 +13024,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.top = val;
 			} else if ("type" === reader.GetName()) {
 				val = reader.GetValue();
-				this.type = val;
+				this.type = FromXml_ST_GradientType(val, true);
 			}
 		}
 	};
@@ -13020,7 +13038,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		writer.WriteXmlNodeStart(ns + name);
-		writer.WriteXmlNullableAttributeString("type", this.type);
+		writer.WriteXmlNullableAttributeString("type", ToXml_ST_GradientType(this.type, true));
 		writer.WriteXmlNullableAttributeDouble("left", this.left);
 		writer.WriteXmlNullableAttributeDouble("right", this.right);
 		writer.WriteXmlNullableAttributeDouble("top", this.top);
@@ -13140,7 +13158,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 							else if ( L"vertAlign" == sName )
 								m_oVertAlign = oReader;
 						}*/
-		//TODO метрика
 
 		this.readAttr(reader);
 
@@ -16532,6 +16549,9 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	window["AscCommonExcel"].FromXml_ST_DataValidationType = FromXml_ST_DataValidationType;
 	window["AscCommonExcel"].ToXml_ST_DataValidationImeMode = ToXml_ST_DataValidationImeMode;
 	window["AscCommonExcel"].FromXml_ST_DataValidationImeMode = FromXml_ST_DataValidationImeMode;
+	window["AscCommonExcel"].ToXml_ST_GradientType = ToXml_ST_GradientType;
+	window["AscCommonExcel"].FromXml_ST_GradientType = FromXml_ST_GradientType;
+
 
 
 

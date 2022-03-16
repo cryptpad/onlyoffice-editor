@@ -1214,16 +1214,6 @@ var g_oFontProperties = {
 		}
 	}
 
-	function FromXml_ST_GradientType(val) {
-		var res = -1;
-		if ("linear" === val) {
-			res = Asc.c_oAscFillGradType.GRAD_LINEAR;
-		} else if ("path" === val) {
-			res = Asc.c_oAscFillGradType.GRAD_PATH;
-		}
-		return res;
-	}
-
 	function FromXml_ST_PatternType(val) {
 		var res = -1;
 		if ("none" === val) {
@@ -1431,7 +1421,7 @@ var g_oFontProperties = {
 			var val;
 			val = vals["type"];
 			if (undefined !== val) {
-				val = FromXml_ST_GradientType(val);
+				val = AscCommonExcel.FromXml_ST_GradientType(val);
 				if (-1 !== val) {
 					this.type = val;
 				}
