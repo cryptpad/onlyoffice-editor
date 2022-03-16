@@ -7672,6 +7672,10 @@
             dW = oRect.w;
             dH = oRect.h;
             
+			if (oGraphics.IsSlideBoundsCheckerType) {
+                oGraphics.rect(dX, dY, dW, dH);
+                return;
+			}
             var oContext = oGraphics.m_oContext;
             if(!oContext) {
                 return;
