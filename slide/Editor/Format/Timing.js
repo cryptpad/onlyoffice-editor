@@ -2540,13 +2540,21 @@
         }
     };
     CTiming.prototype.getEffectsForDemo = function() {
-        var aEffectsForDemo;
+        var aEffectsForDemo, aCurEffects;
         var aSelectedEffects = this.getSelectedEffects();
         if(aSelectedEffects.length > 0) {
-            aEffectsForDemo = aSelectedEffects;
+            aCurEffects = aSelectedEffects;
         }
         else {
-            aEffectsForDemo = this.getAllAnimEffects();
+            aCurEffects = this.getAllAnimEffects();
+        }
+
+        aEffectsForDemo = [];
+        for(var nEffect = 0; nEffect < aCurEffects.length; ++nEffect) {
+            var oEffect = aCurEffects[nEffect];
+            if(oEffect.isPartOfMainSequence()) {
+                aEffectsForDemo.push(oEffect);
+            }
         }
         if(aEffectsForDemo.length === 0) {
             return null;
