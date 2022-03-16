@@ -176,6 +176,7 @@
 			"word/Editor/Field.js",
 			"word/Editor/FieldChanges.js",
 			"word/Editor/Run.js",
+			"word/Editor/Paragraph/Run/RunAutoCorrect.js",
 			"word/Editor/PresentationField.js",
 			"word/Editor/RunChanges.js",
 			"word/Math/mathTypes.js",

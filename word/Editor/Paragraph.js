@@ -6379,11 +6379,12 @@ Paragraph.prototype.GetPrevRunElement = function(oParaPos)
 /**
  * Удаляем элемент рана в заданной позиции
  * @param {CParagraphContentPos} oParaPos
+ * @returns {boolean}
  */
 Paragraph.prototype.RemoveRunElement = function(oParaPos)
 {
 	if (!oParaPos)
-		return;
+		return false;
 
 	oParaPos = oParaPos.Copy();
 
@@ -6392,7 +6393,12 @@ Paragraph.prototype.RemoveRunElement = function(oParaPos)
 
 	var oRun = this.GetClassByPos(oParaPos);
 	if (oRun instanceof AscCommonWord.ParaRun)
+	{
 		oRun.RemoveFromContent(nInRunPos, 1, true);
+		return true;
+	}
+
+	return false;
 };
 Paragraph.prototype.MoveCursorUp = function(AddToSelect)
 {

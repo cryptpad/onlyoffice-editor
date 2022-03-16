@@ -159,16 +159,6 @@ var PARATEXT_FLAGS_NON_CAPITALS           = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS
 
 var TEXTWIDTH_DIVIDER = 16384;
 
-var AUTOCORRECT_FLAGS_NONE                    = 0x00000000;
-var AUTOCORRECT_FLAGS_ALL                     = 0xFFFFFFFF;
-var AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION      = 0x00000001;
-var AUTOCORRECT_FLAGS_SMART_QUOTES            = 0x00000002;
-var AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH        = 0x00000004;
-var AUTOCORRECT_FLAGS_HYPERLINK               = 0x00000008;
-var AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE   = 0x00000010;
-var AUTOCORRECT_FLAGS_NUMBERING               = 0x00000020;
-var AUTOCORRECT_FLAGS_DOUBLESPACE_WITH_PERIOD = 0x00000040;
-
 /**
  * Базовый класс для элементов, лежащих внутри рана.
  * @constructor
@@ -261,7 +251,7 @@ CRunElementBase.prototype.CanBeAtEndOfLine = function()
  */
 CRunElementBase.prototype.GetAutoCorrectFlags = function()
 {
-	return AUTOCORRECT_FLAGS_NONE;
+	return AscCommonWord.AUTOCORRECT_FLAGS_NONE;
 };
 /**
  * Является ли данный элемент символом пунктуации
@@ -651,13 +641,13 @@ ParaText.prototype.GetAutoCorrectFlags = function()
 		|| 58 === this.Value
 		|| 59 === this.Value
 		|| 63 === this.Value)
-		return AUTOCORRECT_FLAGS_ALL;
+		return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
 
 	// /,\,@  - исключения, на них мы не должны стартовать атозамену первой буквы предложения
 	if ((this.IsPunctuation() || this.IsNumber()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
-		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
+		return AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AscCommonWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 
-	return AUTOCORRECT_FLAGS_NONE;
+	return AscCommonWord.AUTOCORRECT_FLAGS_NONE;
 };
 ParaText.prototype.IsDiacriticalSymbol = function()
 {
@@ -908,7 +898,7 @@ ParaSpace.prototype.Read_FromBinary = function(Reader)
 };
 ParaSpace.prototype.GetAutoCorrectFlags = function()
 {
-	return AUTOCORRECT_FLAGS_ALL;
+	return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
 };
 ParaSpace.prototype.SetCondensedWidth = function(nKoef)
 {
@@ -1223,9 +1213,9 @@ ParaEnd.prototype.Read_FromBinary = function(Reader)
 };
 ParaEnd.prototype.GetAutoCorrectFlags = function()
 {
-	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-		| AUTOCORRECT_FLAGS_HYPERLINK
-		| AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
+	return (AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+		| AscCommonWord.AUTOCORRECT_FLAGS_HYPERLINK
+		| AscCommonWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
 };
 ParaEnd.prototype.ToSearchElement = function(oProps)
 {
@@ -1530,8 +1520,8 @@ ParaNewLine.prototype.IsLineBreak = function()
 };
 ParaNewLine.prototype.GetAutoCorrectFlags = function()
 {
-	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-		| AUTOCORRECT_FLAGS_HYPERLINK);
+	return (AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+		| AscCommonWord.AUTOCORRECT_FLAGS_HYPERLINK);
 };
 ParaNewLine.prototype.ToSearchElement = function(oProps)
 {
@@ -1855,7 +1845,7 @@ ParaTab.prototype.PrepareRecalculateObject = function()
 };
 ParaTab.prototype.GetAutoCorrectFlags = function()
 {
-	return AUTOCORRECT_FLAGS_ALL;
+	return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
 };
 ParaTab.prototype.ToSearchElement = function(oProps)
 {
