@@ -2034,7 +2034,11 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 					}
 				}
 
-				if (Para.IsSelectionUse())
+				let oLogicDocument = Para.GetLogicDocument();
+				if (oLogicDocument
+					&& oLogicDocument.IsDocumentEditor()
+					&& !oLogicDocument.IsStartSelection()
+					&& Para.IsSelectionUse())
 				{
 					let oLine = Para.Lines[_CurLine];
 					let oPage = Para.Pages[CurPage];
