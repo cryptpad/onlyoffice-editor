@@ -745,11 +745,27 @@
         if(oAttribute.fill === NODE_FILL_HOLD || oAttribute.fill === NODE_FILL_FREEZE) {
             return function () {
                 oThis.freezeCallback(oPlayer);
+                oThis.checkTriggerStartOnEnd(oPlayer);
             }
         }
         return function () {
             oThis.finishCallback(oPlayer);
+            oThis.checkTriggerStartOnEnd(oPlayer);
         };
+    };
+    CTimeNodeBase.prototype.checkTriggerStartOnEnd = function(oPlayer) {
+        var oThis = this;
+        if(oThis.getSpClickInteractiveSeq()) {
+            var nElapsed = oPlayer.getElapsedTicks();
+            oPlayer.scheduleEvent(new CAnimEvent(function() {
+                    oThis.scheduleStart(oPlayer);
+                },
+                new CAnimComplexTrigger(function () {
+                    return oPlayer.getElapsedTicks() > nElapsed;
+                }),
+                oThis
+            ));
+        }
     };
     CTimeNodeBase.prototype.activateChildrenCallback = function(oPlayer) {
     };
@@ -1822,6 +1838,20 @@
         }
         return oMainSeq.isAtEnd();
     };
+    CTiming.prototype.isSpClickTrigger = function(oSp) {
+        var oRoot = this.getTimingRootNode();
+        if(!oRoot) {
+            return true;
+        }
+        var aRootChildren = oRoot.getChildrenTimeNodes();
+        var sSpId = oSp.Get_Id();
+        for(var nChild = 0; nChild < aRootChildren.length; ++nChild) {
+            if(aRootChildren[nChild].isInteractiveSeq(sSpId)) {
+                return true;
+            }
+        }
+        return false;
+    };
     CTiming.prototype.staticCreateNoneEffect = function() {
         return AscFormat.ExecuteNoHistory(function() {
             return CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite")
@@ -2538,13 +2568,21 @@
         }
     };
     CTiming.prototype.getEffectsForDemo = function() {
-        var aEffectsForDemo;
+        var aEffectsForDemo, aCurEffects;
         var aSelectedEffects = this.getSelectedEffects();
         if(aSelectedEffects.length > 0) {
-            aEffectsForDemo = aSelectedEffects;
+            aCurEffects = aSelectedEffects;
         }
         else {
-            aEffectsForDemo = this.getAllAnimEffects();
+            aCurEffects = this.getAllAnimEffects();
+        }
+
+        aEffectsForDemo = [];
+        for(var nEffect = 0; nEffect < aCurEffects.length; ++nEffect) {
+            var oEffect = aCurEffects[nEffect];
+            if(oEffect.isPartOfMainSequence()) {
+                aEffectsForDemo.push(oEffect);
+            }
         }
         if(aEffectsForDemo.length === 0) {
             return null;
@@ -10745,6 +10783,14 @@
             return true;
         }
         return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+    };
+    CAnimationPlayer.prototype.isSpClickTrigger = function(oSp) {
+        for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
+            if(this.timings[nTiming].isSpClickTrigger(oSp)) {
+                return true;
+            }
+        }
+        return false;
     };
     CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
         if(!oSp) {

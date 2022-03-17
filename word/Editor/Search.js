@@ -2041,3 +2041,24 @@ CSearchPatternEngine.prototype.Check = function(nPos, oRunItem, oProps)
 
 	return this.Elements[nPos].IsMatch(oSearchElement);
 };
+CSearchPatternEngine.prototype.GetErrorForReplaceString = function(sString)
+{
+	for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+	{
+		var nCharCode = oIterator.value();
+
+		if (0x005E === nCharCode)
+		{
+			oIterator.next();
+			if (!oIterator.check())
+				break;
+
+			var nNextCharCode   = oIterator.value();
+			var oSpecialElement = this.private_GetSpecialElement(nNextCharCode);
+			if (oSpecialElement && !oSpecialElement.ToRunElement(false))
+				return String.fromCodePoint(0x005E, nNextCharCode);
+		}
+	}
+
+	return null;
+};
