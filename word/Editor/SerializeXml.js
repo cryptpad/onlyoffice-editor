@@ -2026,13 +2026,7 @@
 		oText.SetBreakOnNonText(false);
 		oText.SetParaEndToSpace(false);
 		this.Get_Text(oText);
-		if (oText.Text) {
-			writer.WriteXmlNodeStart("w:t");
-			writer.WriteXmlString(" xml:space=\"preserve\"");
-			writer.WriteXmlAttributesEnd();
-			writer.WriteXmlStringEncode(oText.Text);
-			writer.WriteXmlNodeEnd("w:t");
-		}
+		writer.WriteXmlNullableValueStringEncode("w:t", oText.Text);
 		writer.WriteXmlNodeEnd(name);
 	};
 	CTextPr.prototype.fromXml = function(reader) {
@@ -3941,6 +3935,11 @@
 		}
 		return res;
 	};
+	CT_StringStax.prototype.toVal = function(reader, def) {
+		let elem = new CT_StringStax();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
 	CT_StringStax.prototype.getVal = function(def) {
 		return null !== this.val ? this.val : def;
 	};
@@ -3975,6 +3974,11 @@
 			res.val = val;
 		}
 		return res;
+	};
+	CT_OnOff.prototype.toVal = function(reader, def) {
+		let elem = new CT_OnOff();
+		elem.fromXml(reader);
+		return elem.getVal(def);
 	};
 	CT_OnOff.prototype.getVal = function(def) {
 		return null !== this.val ? this.val : def;
@@ -4011,6 +4015,11 @@
 		}
 		return res;
 	};
+	CT_DecimalNumber.prototype.toVal = function(reader, def) {
+		let elem = new CT_DecimalNumber();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
 	CT_DecimalNumber.prototype.getVal = function(def) {
 		return null !== this.val ? this.val : def;
 	};
@@ -4046,7 +4055,52 @@
 		}
 		return res;
 	};
+	CT_UnsignedDecimalNumber.prototype.toVal = function(reader, def) {
+		let elem = new CT_UnsignedDecimalNumber();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
 	CT_UnsignedDecimalNumber.prototype.getVal = function(def) {
+		return null !== this.val ? this.val : def;
+	};
+	function CT_Double() {
+		this.val = null;
+		return this;
+	}
+
+	CT_Double.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueDouble(this.val);
+					break;
+				}
+			}
+		}
+	};
+	CT_Double.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Double.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeDouble("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_Double.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_Double();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_Double.prototype.toVal = function(reader, def) {
+		let elem = new CT_Double();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
+	CT_Double.prototype.getVal = function(def) {
 		return null !== this.val ? this.val : def;
 	};
 

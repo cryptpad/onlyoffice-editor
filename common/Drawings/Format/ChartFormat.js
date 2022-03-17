@@ -3517,6 +3517,31 @@
     CDLbl.prototype.setSettings = function(nPos, oProps) {
         fCheckDLblSettings(this, nPos, oProps)
     };
+    CDLbl.prototype.correctValues = function() {
+        if(this.bDelete !== true){
+            if(null === this.showLegendKey){
+                this.setShowLegendKey(false);
+            }
+            if(null === this.showVal){
+                this.setShowVal(false);
+            }
+            if(null === this.showCatName){
+                this.setShowCatName(false);
+            }
+            if(null === this.showSerName){
+                this.setShowSerName(false);
+            }
+            if(null === this.showPercent){
+                this.setShowPercent(false);
+            }
+            if(null === this.showBubbleSize){
+                this.setShowBubbleSize(false);
+            }
+            if(this.setShowLeaderLines && null === this.showLeaderLines){
+                this.setShowLeaderLines(false);
+            }
+        }
+    }
 
 
     function CSeriesBase() {
@@ -9036,6 +9061,7 @@
         }
         oChartSpace.checkElementChartStyle(this);
     }
+    CDLbls.prototype.correctValues = CDLbl.prototype.correctValues;
 
     function fCheckDLblSettings(oLbls, nPos, oProps) {
         if(oLbls.dLblPos !== nPos) {
@@ -9880,7 +9906,7 @@
         this.grouping = null;
         this.hiLowLines = null;
         this.marker = null;
-        this.smooth = null;
+        this.smooth = false;
         this.upDownBars = null;
     }
 
@@ -13797,7 +13823,7 @@
         this.pivotFmts = [];
         this.plotArea = null;
         this.plotVisOnly = null;
-        this.showDLblsOverMax = null;
+        this.showDLblsOverMax = false;
         this.sideWall = null;
         this.title = null;
         this.view3D = null;

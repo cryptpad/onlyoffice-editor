@@ -1590,6 +1590,7 @@ function XmlParserContext(){
     //common
     this.zip = null;
     this.imageMap = {};
+    this.curChart = null;
     //docx
     this.oReadResult = new AscCommonWord.DocReadResult();
     //xlsx
@@ -1638,7 +1639,7 @@ function CT_XmlNode(opt_elemReader) {
     this.members = {};
     this.text = null;
 
-    this.elemReader = opt_elemReader || {};
+    this.elemReader = opt_elemReader || function(){};
 }
 CT_XmlNode.prototype.readAttr = function(reader) {
     while (reader.MoveToNextAttribute()) {
@@ -1652,9 +1653,8 @@ CT_XmlNode.prototype.fromXml = function(reader) {
         switch(reader.GetEventType()) {
             case EasySAXEvent.START_ELEMENT:
                 var name = reader.GetNameNoNS();
-                if (this.elemReader[name]) {
-                    elem = this.elemReader[name].call(this, reader);
-                } else {
+                elem = this.elemReader.call(this, reader, name);
+                if (!elem) {
                     elem = new CT_XmlNode();
                     elem.fromXml(reader);
                 }

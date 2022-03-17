@@ -1177,6 +1177,7 @@
 		this.WriteXmlValueStringEncode = function(name, val)
 		{
 			this.WriteXmlNodeStart(name);
+			this.WriteXmlAttributeString("xml:space", "preserve");
 			this.WriteXmlAttributesEnd();
 			this.WriteXmlStringEncode(val.toString());
 			this.WriteXmlNodeEnd(name);

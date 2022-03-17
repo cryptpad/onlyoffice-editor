@@ -1082,7 +1082,7 @@ BinaryChartWriter.prototype.WriteCT_extLst = function (oVal) {
 };
 BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
     var oThis = this;
-    if (null != oVal.date1904) {
+    if (false != oVal.date1904) {
         this.bs.WriteItem(c_oserct_chartspaceDATE1904, function () {
             oThis.WriteCT_Boolean(oVal.date1904);
         });
@@ -1092,7 +1092,7 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
             oThis.WriteCT_TextLanguageID(oVal.lang);
         });
     }
-    if (null != oVal.roundedCorners) {
+    if (false != oVal.roundedCorners) {
         this.bs.WriteItem(c_oserct_chartspaceROUNDEDCORNERS, function () {
             oThis.WriteCT_Boolean(oVal.roundedCorners);
         });
@@ -5395,7 +5395,7 @@ BinaryChartWriter.prototype.WriteCT_Chart = function (oVal) {
             oThis.WriteCT_DispBlanksAs(oVal.dispBlanksAs);
         });
     }
-    if (null != oVal.showDLblsOverMax) {
+    if (false != oVal.showDLblsOverMax) {
         this.bs.WriteItem(c_oserct_chartSHOWDLBLSOVERMAX, function () {
             oThis.WriteCT_Boolean(oVal.showDLblsOverMax);
         });
@@ -5568,14 +5568,8 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
         return oThis.ReadCT_ChartSpace(t, l, val);
     });
     if(val){
-        if(null === val.date1904){
-            val.setDate1904(false);
-        }
-        if(null === val.roundedCorners){
-            val.setRoundedCorners(false);
-        }
 		val.correctAxes();
-    }
+        }
     /*if(this.curWorksheet) {
         var aStyles = null;
         var sName = this.curWorksheet.sName;
@@ -5854,10 +5848,7 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         // if(null === oNewVal.autoTitleDeleted){
         //     oNewVal.setAutoTitleDeleted(false);
         // }
-        if(null === oNewVal.showDLblsOverMax){
-            oNewVal.setShowDLblsOverMax(false);
         }
-    }
     else if (c_oserct_chartspaceSPPR === type) {
         val.setSpPr(this.ReadSpPr(length));
         val.spPr.setParent(val);
@@ -8867,6 +8858,7 @@ BinaryChartReader.prototype.ReadCT_Trendline = function (type, length, val) {
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_TrendlineLbl(t, l, oNewVal);
         });
+		oNewVal.correctValues();
         val.setTrendlineLbl(oNewVal);
     }
     else if (c_oserct_trendlineEXTLST === type) {
@@ -11317,9 +11309,6 @@ BinaryChartReader.prototype.ReadCT_PlotArea = function (type, length, val, oIdTo
             return oThis.ReadCT_LineChart(t, l, oNewVal, aChartWithAxis);
         });
         val.addChart(oNewVal);
-        if(oNewVal.smooth === null){
-            oNewVal.setSmooth(false);
-        }
     }
     else if (c_oserct_plotareaOFPIECHART === type) {
         var oNewVal = new AscFormat.COfPieChart();
@@ -11739,10 +11728,6 @@ BinaryChartReader.prototype.ReadCT_Chart = function (type, length, val) {
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_Title(t, l, oNewVal);
         });
-        if(!AscFormat.isRealBool(oNewVal.overlay))
-        {
-            oNewVal.setOverlay(false);
-        }
         val.setTitle(oNewVal);
     }
     else if (c_oserct_chartAUTOTITLEDELETED === type) {
@@ -11840,7 +11825,7 @@ BinaryChartReader.prototype.ReadCT_Chart = function (type, length, val) {
             var oChart = oNewVal.charts[_i];
             if(oChart)
             {
-                if(oChart.getObjectType() !== AscDFH.historyitem_type_ScatterChart && 
+                if(oChart.getObjectType() !== AscDFH.historyitem_type_ScatterChart &&
                 oChart.getObjectType() !== AscDFH.historyitem_type_PieChart &&
                 oChart.getObjectType() !== AscDFH.historyitem_type_DoughnutChart)
                 {
@@ -12198,5 +12183,16 @@ BinaryChartReader.prototype.ReadAlternateContentFallback = function (type, lengt
 
     window['AscFormat'].SIZE_REPRESENTS_AREA = SIZE_REPRESENTS_AREA;
     window['AscFormat'].SIZE_REPRESENTS_W    = SIZE_REPRESENTS_W;
-    
+
+	window['AscFormat'].PICTURE_FORMAT_STACK = PICTURE_FORMAT_STACK;
+	window['AscFormat'].PICTURE_FORMAT_STACK_SCALE    = PICTURE_FORMAT_STACK_SCALE;
+	window['AscFormat'].PICTURE_FORMAT_STACK_STRETCH    = PICTURE_FORMAT_STACK_STRETCH;
+
+	window['AscFormat'].TRENDLINE_TYPE_EXP = TRENDLINE_TYPE_EXP;
+	window['AscFormat'].TRENDLINE_TYPE_LINEAR    = TRENDLINE_TYPE_LINEAR;
+	window['AscFormat'].TRENDLINE_TYPE_LOG    = TRENDLINE_TYPE_LOG;
+	window['AscFormat'].TRENDLINE_TYPE_MOVING_AVG    = TRENDLINE_TYPE_MOVING_AVG;
+	window['AscFormat'].TRENDLINE_TYPE_POLY    = TRENDLINE_TYPE_POLY;
+	window['AscFormat'].TRENDLINE_TYPE_POWER    = TRENDLINE_TYPE_POWER;
+
 })(window);
