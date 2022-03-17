@@ -1236,7 +1236,10 @@ CShape.prototype.convertToPPTX = function (drawingDocument, worksheet, bIsAddMat
     return c;
 };
 
-CShape.prototype.convertFromSmartArt = function() {
+CShape.prototype.convertFromSmartArt = function(bForce) {
+    if (AscFormat.SmartArt && !bForce) {
+        return this;
+    }
     var txXfrm = this.txXfrm;
     if(txXfrm){
         if(AscFormat.isRealNumber(txXfrm.rot) && this.txBody) {

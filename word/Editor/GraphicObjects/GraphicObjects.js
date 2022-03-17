@@ -2996,7 +2996,7 @@ CGraphicObjects.prototype =
                     }));
                     drawing.Set_XYForAdd(fPosX, fPosY, nearest_pos, page_num);
 
-                    sp.convertFromSmartArt();
+                    sp.convertFromSmartArt(true);
                     aDrawings.push(drawing);
                 }
                 for(j = 0; j < aDrawings.length; ++j)
