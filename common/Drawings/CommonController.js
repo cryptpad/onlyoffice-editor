@@ -7454,7 +7454,7 @@ DrawingObjectsController.prototype =
                         sp.addToDrawingObjects();
                     }
                     sp.checkDrawingBaseCoords();
-                    sp.convertFromSmartArt();
+                    sp.convertFromSmartArt(true);
                     this.selectObject(sp, 0);
                 }
                 cur_group.setBDeleted(true);
