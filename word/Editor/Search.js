@@ -676,7 +676,7 @@ CSearchTextSpecialEnDash.prototype.IsMatch = function(oItem)
 		|| c_oSearchItemType.EnDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
-CSearchTextSpecialEmDash.prototype.ToRunElement = function(isMathRun)
+CSearchTextSpecialEnDash.prototype.ToRunElement = function(isMathRun)
 {
 	if (isMathRun)
 	{
