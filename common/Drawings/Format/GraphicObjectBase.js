@@ -2750,6 +2750,10 @@
         return AscCommon.translateManager.getValue("Graphic Object");
     };
     CGraphicObjectBase.prototype.getObjectName = function() {
+		var oCNvPr = this.getCNvProps();
+		if(oCNvPr && typeof oCNvPr.name === "string" && oCNvPr.name.length > 0) {
+			return oCNvPr.name;
+		}
         return this.getTypeName() + " " + this.getFormatId();
     };
     
