@@ -1957,8 +1957,6 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 				var Descender = Math.abs(g_oTextMeasurer.GetDescender());
 				var Ascender  = Height - Descender;
 
-				Para.DrawingDocument.SetTargetSize(Height, Ascender);
-
                 var RGBA;
                 Para.DrawingDocument.UpdateTargetTransform(Para.Get_ParentTextTransform());
                 if(CurTextPr.TextFill)
@@ -2035,6 +2033,21 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 						}
 					}
 				}
+
+				if (Para.IsSelectionUse())
+				{
+					let oLine = Para.Lines[_CurLine];
+					let oPage = Para.Pages[CurPage];
+
+					if (oLine && oPage)
+					{
+						TargetY  = oPage.Y + oLine.Top;
+						Height   = oLine.Bottom - oLine.Top;
+						Ascender = oLine.Metrics.Ascent;
+					}
+				}
+
+				Para.DrawingDocument.SetTargetSize(Height, Ascender);
 
                 var PageAbs = Para.Get_AbsolutePage(CurPage);
                 // TODO: Тут делаем, чтобы курсор не выходил за границы буквицы. На самом деле, надо делать, чтобы
