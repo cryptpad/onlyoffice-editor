@@ -6690,9 +6690,7 @@ function BinaryPPTYLoader()
             }
         }
         if(txXfrm ){
-            if(!AscFormat.SmartArt)  {
-                shape.convertFromSmartArt();
-            }
+            shape.convertFromSmartArt();
         }
 
         s.Seek2(_end_rec);
