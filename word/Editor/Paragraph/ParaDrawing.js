@@ -3237,7 +3237,10 @@ ParaDrawing.prototype.IsComparable = function(oDrawing)
 };
 ParaDrawing.prototype.ToSearchElement = function(oProps)
 {
-	return new CSearchTextSpecialGraphicObject();
+	if (this.IsInline())
+		return new CSearchTextSpecialGraphicObject();
+
+	return null;
 };
 ParaDrawing.prototype.IsDrawing = function()
 {
