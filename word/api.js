@@ -3188,8 +3188,11 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_replaceText = function(text, replaceWith, isReplaceAll, isMatchCase)
 	{
+		if (this.asc_GetErrorForReplaceString(replaceWith))
+			return false;
+
 		if (null == this.WordControl.m_oLogicDocument)
-			return;
+			return false;
 
 		this.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
 
@@ -3212,6 +3215,11 @@ background-repeat: no-repeat;\
 
 			return false;
 		}
+	};
+
+	asc_docs_api.prototype.asc_GetErrorForReplaceString = function(sString)
+	{
+		return (new CSearchPatternEngine()).GetErrorForReplaceString(sString);
 	};
 
 	asc_docs_api.prototype._selectSearchingResults = function(bShow)
@@ -12396,6 +12404,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_searchEnabled']                         = asc_docs_api.prototype.asc_searchEnabled;
 	asc_docs_api.prototype['asc_findText']                              = asc_docs_api.prototype.asc_findText;
 	asc_docs_api.prototype['asc_replaceText']                           = asc_docs_api.prototype.asc_replaceText;
+	asc_docs_api.prototype['asc_GetErrorForReplaceString']              = asc_docs_api.prototype.asc_GetErrorForReplaceString;
 	asc_docs_api.prototype['asc_isSelectSearchingResults']              = asc_docs_api.prototype.asc_isSelectSearchingResults;
 	asc_docs_api.prototype['sync_ReplaceAllCallback']                   = asc_docs_api.prototype.sync_ReplaceAllCallback;
 	asc_docs_api.prototype['sync_SearchEndCallback']                    = asc_docs_api.prototype.sync_SearchEndCallback;
