@@ -248,9 +248,10 @@
 			"common/zlib/zlib.js",
 			"vendor/easysax.js",
 			"common/openxml.js",
+			"common/Shapes/SerializeXml.js",
+			"common/SerializeChartXml.js",
 			"word/Editor/SerializeXml.js",
-			"word/Editor/SerializeXmlAssets.js",
-			"common/Shapes/SerializeXml.js"
+			"word/Editor/SerializeXmlAssets.js"
 		],
 		"desktop": {
 			"min": [

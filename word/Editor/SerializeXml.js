@@ -33,6 +33,12 @@
 "use strict";
 
 (function(window, undefined) {
+	let CT_Bool = window['AscCommon'].CT_Bool;
+	let CT_String = window['AscCommon'].CT_String;
+	let CT_Int = window['AscCommon'].CT_Int;
+	let CT_UInt = window['AscCommon'].CT_UInt;
+	let CT_Double = window['AscCommon'].CT_Double;
+
 //document
 	CDocument.prototype.fromZip = function(zip, context, oReadResult) {
 		context.oReadResult = oReadResult;
@@ -367,7 +373,7 @@
 			switch (reader.GetNameNoNS()) {
 				case "tblStyle" : {
 					if (opt_table) {
-						elem = new CT_StringStax();
+						elem = new CT_String();
 						elem.fromXml(reader);
 						if (elem.getVal(undefined)) {
 							reader.context.oReadResult.tableStyles.push(
@@ -390,18 +396,18 @@
 				// 	break;
 				// }
 				// case "bidiVisual" : {
-				// 	this.BidiVisual = new CT_OnOff();
+				// 	this.BidiVisual = new CT_Bool();
 				// 	this.BidiVisual.fromXml(reader);
 				// 	break;
 				// }
 				case "tblStyleRowBandSize" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.TableStyleRowBandSize = elem.getVal(undefined);
 					break;
 				}
 				case "tblStyleColBandSize" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.TableStyleColBandSize = elem.getVal(undefined);
 					break;
@@ -412,7 +418,7 @@
 					break;
 				}
 				case "jc" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Jc = fromXml_ST_JcTable(elem.getVal(undefined));
 					break;
@@ -446,7 +452,7 @@
 					break;
 				}
 				case "tblLayout" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.TableLayout = fromXml_ST_TblLayoutType(elem.getVal(undefined));
 					break;
@@ -460,7 +466,7 @@
 				}
 				case "tblLook" : {
 					if (opt_table) {
-						elem = new CTableLook();
+						elem = new AscCommon.CTableLook();
 						elem.SetDefault();
 						elem.fromXml(reader);
 						opt_table.Set_TableLook(elem);
@@ -468,13 +474,13 @@
 					break;
 				}
 				case "tblCaption" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.TableCaption = elem.getVal(undefined);
 					break;
 				}
 				case "tblDescription" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.TableDescription = elem.getVal(undefined);
 					break;
@@ -491,16 +497,16 @@
 	CTablePr.prototype.toXml = function(writer, name, opt_table) {
 		var TableStyle;
 		if (opt_table) {
-			TableStyle = CT_StringStax.prototype.fromVal(opt_table.Get_TableStyle());
+			TableStyle = CT_String.prototype.fromVal(opt_table.Get_TableStyle());
 		}
 		var TblpPr;
 		if (opt_table && !opt_table.Inline) {
 			TblpPr = new CT_TblPPr();
 			TblpPr.fromTable(opt_table);
 		}
-		var TableStyleRowBandSize = CT_DecimalNumber.prototype.fromVal(this.TableStyleRowBandSize);
-		var TableStyleColBandSize = CT_DecimalNumber.prototype.fromVal(this.TableStyleColBandSize);
-		var Jc = CT_StringStax.prototype.fromVal(toXml_ST_JcTable(this.Jc));
+		var TableStyleRowBandSize = CT_Int.prototype.fromVal(this.TableStyleRowBandSize);
+		var TableStyleColBandSize = CT_Int.prototype.fromVal(this.TableStyleColBandSize);
+		var Jc = CT_String.prototype.fromVal(toXml_ST_JcTable(this.Jc));
 		var TableCellSpacing;
 		if (undefined !== this.TableCellSpacing) {
 			TableCellSpacing = new CTableMeasurement(tblwidth_Mm, this.TableCellSpacing * g_dKoef_mm_to_twips / 2);
@@ -514,7 +520,7 @@
 		if (TableBorders.isEmpty()) {
 			TableBorders = null;
 		}
-		var TableLayout = CT_StringStax.prototype.fromVal(toXml_ST_TblLayoutType(this.TableLayout));
+		var TableLayout = CT_String.prototype.fromVal(toXml_ST_TblLayoutType(this.TableLayout));
 		var TableCellMar;
 		if (this.TableCellMar) {
 			TableCellMar = new CT_TblCellMar();
@@ -523,8 +529,8 @@
 				TableCellMar = null;
 			}
 		}
-		var TableCaption = CT_StringStax.prototype.fromVal(this.TableCaption);
-		var TableDescription = CT_StringStax.prototype.fromVal(this.TableDescription);
+		var TableCaption = CT_String.prototype.fromVal(this.TableCaption);
+		var TableDescription = CT_String.prototype.fromVal(this.TableDescription);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -620,7 +626,7 @@
 		writer.WriteXmlNullableAttributeIntWithKoef("w:w", this.w, g_dKoef_mm_to_twips);
 		writer.WriteXmlAttributesEnd(true);
 	};
-	CTableLook.prototype.readAttr = function(reader) {
+	AscCommon.CTableLook.prototype.readAttr = function(reader) {
 		var FirstRow, LastRow, FirstColumn, LastColumn, NoHBand, NoVBand;
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
@@ -652,11 +658,11 @@
 		}
 		this.Set(!!FirstColumn, !!FirstRow, !!LastColumn, !!LastRow, !NoHBand, !NoVBand);
 	};
-	CTableLook.prototype.fromXml = function(reader) {
+	AscCommon.CTableLook.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	CTableLook.prototype.toXml = function(writer, name) {
+	AscCommon.CTableLook.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeBool("w:firstRow", this.Is_FirstRow());
 		writer.WriteXmlNullableAttributeBool("w:lastRow", this.Is_LastRow());
@@ -736,18 +742,18 @@
 				// 	break;
 				// }
 				// case "divId" : {
-				// 	this.DivId = new CT_DecimalNumber();
+				// 	this.DivId = new CT_Int();
 				// 	this.DivId.fromXml(reader);
 				// 	break;
 				// }
 				case "gridBefore" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.GridBefore = elem.getVal(undefined);
 					break;
 				}
 				case "gridAfter" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.GridAfter = elem.getVal(undefined);
 					break;
@@ -763,7 +769,7 @@
 					break;
 				}
 				case "cantSplit" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.CantSplit = elem.getVal(undefined);
 					break;
@@ -774,7 +780,7 @@
 					break;
 				}
 				case "tblHeader" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.TableHeader = elem.getVal(undefined);
 					break;
@@ -789,13 +795,13 @@
 					break;
 				}
 				case "jc" : {
-					var Jc = new CT_StringStax();
+					var Jc = new CT_String();
 					Jc.fromXml(reader);
 					this.Jc = fromXml_ST_JcTable(Jc.getVal(undefined));
 					break;
 				}
 				// case "hidden" : {
-				// 	this.Hidden = new CT_OnOff();
+				// 	this.Hidden = new CT_Bool();
 				// 	this.Hidden.fromXml(reader);
 				// 	break;
 				// }
@@ -819,15 +825,15 @@
 		}
 	};
 	CTableRowPr.prototype.toXml = function(writer, name) {
-		var GridBefore = CT_DecimalNumber.prototype.fromVal(this.GridBefore);
-		var GridAfter = CT_DecimalNumber.prototype.fromVal(this.GridAfter);
-		var CantSplit = CT_OnOff.prototype.fromVal(this.CantSplit);
-		var TableHeader = CT_OnOff.prototype.fromVal(this.TableHeader);
+		var GridBefore = CT_Int.prototype.fromVal(this.GridBefore);
+		var GridAfter = CT_Int.prototype.fromVal(this.GridAfter);
+		var CantSplit = CT_Bool.prototype.fromVal(this.CantSplit);
+		var TableHeader = CT_Bool.prototype.fromVal(this.TableHeader);
 		var TableCellSpacing;
 		if (undefined !== this.TableCellSpacing) {
 			TableCellSpacing = new CTableMeasurement(tblwidth_Mm, Pr.TableCellSpacing * g_dKoef_mm_to_twips / 2);
 		}
-		var Jc = CT_StringStax.prototype.fromVal(toXml_ST_JcTable(this.Jc));
+		var Jc = CT_String.prototype.fromVal(toXml_ST_JcTable(this.Jc));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -955,21 +961,21 @@
 					break;
 				}
 				case "gridSpan" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.GridSpan = elem.getVal(undefined);
 					break;
 				}
 				case "hverge" :
 				case "hMerge" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.HMerge = fromXml_ST_Merge(elem.getVal(undefined));
 					break;
 				}
 				case "vmerge" :
 				case "vMerge" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.VMerge = fromXml_ST_Merge(elem.getVal(undefined));
 					break;
@@ -986,7 +992,7 @@
 					break;
 				}
 				case "noWrap" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.NoWrap = elem.getVal(undefined);
 					break;
@@ -999,24 +1005,24 @@
 					break;
 				}
 				case "textDirection" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.TextDirection = fromXml_ST_TextDirection(elem.getVal(undefined));
 					break;
 				}
 				// case "tcFitText" : {
-				// 	this.TcFitText = new CT_OnOff();
+				// 	this.TcFitText = new CT_Bool();
 				// 	this.TcFitText.fromXml(reader);
 				// 	break;
 				// }
 				case "vAlign" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.VAlign = fromXml_ST_VerticalJc(elem.getVal(undefined));
 					break;
 				}
 				// case "hideMark" : {
-				// 	this.HideMark = new CT_OnOff();
+				// 	this.HideMark = new CT_Bool();
 				// 	this.HideMark.fromXml(reader);
 				// 	break;
 				// }
@@ -1049,15 +1055,15 @@
 		}
 	};
 	CTableCellPr.prototype.toXml = function(writer, name) {
-		var GridSpan = CT_DecimalNumber.prototype.fromVal(this.GridSpan);
-		var HMerge = CT_StringStax.prototype.fromVal(toXml_ST_Merge(this.HMerge));
-		var VMerge = CT_StringStax.prototype.fromVal(toXml_ST_Merge(this.VMerge));
+		var GridSpan = CT_Int.prototype.fromVal(this.GridSpan);
+		var HMerge = CT_String.prototype.fromVal(toXml_ST_Merge(this.HMerge));
+		var VMerge = CT_String.prototype.fromVal(toXml_ST_Merge(this.VMerge));
 		var TableCellBorders = new CT_Bdr();
 		TableCellBorders.fromObj(this.TableCellBorders);
 		if (TableCellBorders.isEmpty()) {
 			TableCellBorders = null;
 		}
-		var NoWrap = CT_OnOff.prototype.fromVal(this.NoWrap);
+		var NoWrap = CT_Bool.prototype.fromVal(this.NoWrap);
 		var TableCellMar;
 		if (this.TableCellMar) {
 			TableCellMar = new CT_TblCellMar();
@@ -1066,8 +1072,8 @@
 				TableCellMar = null;
 			}
 		}
-		var TextDirection = CT_StringStax.prototype.fromVal(toXml_ST_TextDirection(this.TextDirection));
-		var VAlign = CT_StringStax.prototype.fromVal(toXml_ST_VerticalJc(this.VAlign));
+		var TextDirection = CT_String.prototype.fromVal(toXml_ST_TextDirection(this.TextDirection));
+		var VAlign = CT_String.prototype.fromVal(toXml_ST_VerticalJc(this.VAlign));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -1198,25 +1204,25 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "pStyle" : {
-					var pStyle = new CT_StringStax();
+					var pStyle = new CT_String();
 					pStyle.fromXml(reader);
 					this.PStyle = pStyle.getVal(undefined);
 					break;
 				}
 				case "keepNext" : {
-					var keepNext = new CT_OnOff();
+					var keepNext = new CT_Bool();
 					keepNext.fromXml(reader);
 					this.KeepNext = keepNext.getVal(undefined);
 					break;
 				}
 				case "keepLines" : {
-					var keepLines = new CT_OnOff();
+					var keepLines = new CT_Bool();
 					keepLines.fromXml(reader);
 					this.KeepLines = keepLines.getVal(undefined);
 					break;
 				}
 				case "pageBreakBefore" : {
-					var pageBreakBefore = new CT_OnOff();
+					var pageBreakBefore = new CT_Bool();
 					pageBreakBefore.fromXml(reader);
 					this.PageBreakBefore = pageBreakBefore.getVal(undefined);
 					break;
@@ -1227,7 +1233,7 @@
 					break;
 				}
 				case "widowControl" : {
-					var widowControl = new CT_OnOff();
+					var widowControl = new CT_Bool();
 					widowControl.fromXml(reader);
 					this.WidowControl = widowControl.getVal(undefined);
 					break;
@@ -1239,7 +1245,7 @@
 					break;
 				}
 				case "suppressLineNumbers" : {
-					var suppressLineNumbers = new CT_OnOff();
+					var suppressLineNumbers = new CT_Bool();
 					suppressLineNumbers.fromXml(reader);
 					this.SuppressLineNumbers = suppressLineNumbers.getVal(undefined);
 					break;
@@ -1270,52 +1276,52 @@
 					break;
 				}
 				// case "suppressAutoHyphens" : {
-				// 	this.Suppressautohyphens = new CT_OnOff();
+				// 	this.Suppressautohyphens = new CT_Bool();
 				// 	this.Suppressautohyphens.fromXml(reader);
 				// 	break;
 				// }
 				// case "kinsoku" : {
-				// 	this.Kinsoku = new CT_OnOff();
+				// 	this.Kinsoku = new CT_Bool();
 				// 	this.Kinsoku.fromXml(reader);
 				// 	break;
 				// }
 				// case "wordWrap" : {
-				// 	this.Wordwrap = new CT_OnOff();
+				// 	this.Wordwrap = new CT_Bool();
 				// 	this.Wordwrap.fromXml(reader);
 				// 	break;
 				// }
 				// case "overflowPunct" : {
-				// 	this.Overflowpunct = new CT_OnOff();
+				// 	this.Overflowpunct = new CT_Bool();
 				// 	this.Overflowpunct.fromXml(reader);
 				// 	break;
 				// }
 				// case "topLinePunct" : {
-				// 	this.Toplinepunct = new CT_OnOff();
+				// 	this.Toplinepunct = new CT_Bool();
 				// 	this.Toplinepunct.fromXml(reader);
 				// 	break;
 				// }
 				// case "autoSpaceDE" : {
-				// 	this.Autospacede = new CT_OnOff();
+				// 	this.Autospacede = new CT_Bool();
 				// 	this.Autospacede.fromXml(reader);
 				// 	break;
 				// }
 				// case "autoSpaceDN" : {
-				// 	this.Autospacedn = new CT_OnOff();
+				// 	this.Autospacedn = new CT_Bool();
 				// 	this.Autospacedn.fromXml(reader);
 				// 	break;
 				// }
 				// case "bidi" : {
-				// 	this.Bidi = new CT_OnOff();
+				// 	this.Bidi = new CT_Bool();
 				// 	this.Bidi.fromXml(reader);
 				// 	break;
 				// }
 				// case "adjustRightInd" : {
-				// 	this.Adjustrightind = new CT_OnOff();
+				// 	this.Adjustrightind = new CT_Bool();
 				// 	this.Adjustrightind.fromXml(reader);
 				// 	break;
 				// }
 				// case "snapToGrid" : {
-				// 	this.Snaptogrid = new CT_OnOff();
+				// 	this.Snaptogrid = new CT_Bool();
 				// 	this.Snaptogrid.fromXml(reader);
 				// 	break;
 				// }
@@ -1330,23 +1336,23 @@
 					break;
 				}
 				case "contextualSpacing" : {
-					var contextualSpacing = new CT_OnOff();
+					var contextualSpacing = new CT_Bool();
 					contextualSpacing.fromXml(reader);
 					this.ContextualSpacing = contextualSpacing.getVal(undefined);
 					break;
 				}
 				// case "mirrorIndents" : {
-				// 	this.Mirrorindents = new CT_OnOff();
+				// 	this.Mirrorindents = new CT_Bool();
 				// 	this.Mirrorindents.fromXml(reader);
 				// 	break;
 				// }
 				// case "suppressOverlap" : {
-				// 	this.Suppressoverlap = new CT_OnOff();
+				// 	this.Suppressoverlap = new CT_Bool();
 				// 	this.Suppressoverlap.fromXml(reader);
 				// 	break;
 				// }
 				case "jc" : {
-					var jc = new CT_StringStax();
+					var jc = new CT_String();
 					jc.fromXml(reader);
 					this.Jc = fromXml_ST_Jc1(jc.getVal(undefined));
 					break;
@@ -1367,13 +1373,13 @@
 				// 	break;
 				// }
 				case "outlineLvl" : {
-					var outlineLvl = new CT_DecimalNumber();
+					var outlineLvl = new CT_Int();
 					outlineLvl.fromXml(reader);
 					this.OutlineLvl = outlineLvl.getVal(undefined);
 					break;
 				}
 				// case "divId" : {
-				// 	this.Divid = new CT_DecimalNumber();
+				// 	this.Divid = new CT_Int();
 				// 	this.Divid.fromXml(reader);
 				// 	break;
 				// }
@@ -1404,12 +1410,12 @@
 		}
 	};
 	CParaPr.prototype.toXml = function(writer, name, opt_paragraph) {
-		var PStyle = CT_StringStax.prototype.fromVal(this.PStyle);
-		var KeepNext = CT_OnOff.prototype.fromVal(this.KeepNext);
-		var KeepLines = CT_OnOff.prototype.fromVal(this.KeepLines);
-		var PageBreakBefore = CT_OnOff.prototype.fromVal(this.PageBreakBefore);
-		var WidowControl = CT_OnOff.prototype.fromVal(this.WidowControl);
-		var SuppressLineNumbers = CT_OnOff.prototype.fromVal(this.SuppressLineNumbers);
+		var PStyle = CT_String.prototype.fromVal(this.PStyle);
+		var KeepNext = CT_Bool.prototype.fromVal(this.KeepNext);
+		var KeepLines = CT_Bool.prototype.fromVal(this.KeepLines);
+		var PageBreakBefore = CT_Bool.prototype.fromVal(this.PageBreakBefore);
+		var WidowControl = CT_Bool.prototype.fromVal(this.WidowControl);
+		var SuppressLineNumbers = CT_Bool.prototype.fromVal(this.SuppressLineNumbers);
 		var pBdr = new CT_Bdr();
 		pBdr.fromObj(this.Brd);
 		if (pBdr.isEmpty()) {
@@ -1417,10 +1423,10 @@
 		}
 		var Spacing = this.Spacing.Is_Empty() ? null : this.Spacing;
 		var Ind = this.Ind.Is_Empty() ? null : this.Ind;
-		var ContextualSpacing = CT_OnOff.prototype.fromVal(this.ContextualSpacing);
-		var OutlineLvl = CT_DecimalNumber.prototype.fromVal(this.OutlineLvl);
+		var ContextualSpacing = CT_Bool.prototype.fromVal(this.ContextualSpacing);
+		var OutlineLvl = CT_Int.prototype.fromVal(this.OutlineLvl);
 		var JcStr = toXml_ST_Jc1(this.Jc);
-		var Jc = JcStr ? CT_StringStax.prototype.fromVal(JcStr) : null;
+		var Jc = JcStr ? CT_String.prototype.fromVal(JcStr) : null;
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -1580,13 +1586,13 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "ilvl" : {
-					var ilvl = new CT_DecimalNumber();
+					var ilvl = new CT_Int();
 					ilvl.fromXml(reader);
 					this.Lvl = ilvl.getVal(this.Lvl);
 					break;
 				}
 				case "numId" : {
-					var numId = new CT_DecimalNumber();
+					var numId = new CT_Int();
 					numId.fromXml(reader);
 					this.NumId = numId.getVal(this.NumId);
 					break;
@@ -1600,9 +1606,9 @@
 		}
 	};
 	CNumPr.prototype.toXml = function(writer, name) {
-		var ilvl = new CT_DecimalNumber();
+		var ilvl = new CT_Int();
 		ilvl.val = this.Lvl;
-		var numId = new CT_DecimalNumber();
+		var numId = new CT_Int();
 		numId.val = writer.context.oNumIdMap[this.NumId] || 0;
 
 		writer.WriteXmlNodeStart(name);
@@ -2034,7 +2040,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "rStyle" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.RStyle = elem.getVal(undefined);
 					break;
@@ -2046,97 +2052,97 @@
 					break;
 				}
 				case "b" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Bold = elem.getVal(undefined);
 					break;
 				}
 				case "bCs" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.BoldCS = elem.getVal(undefined);
 					break;
 				}
 				case "i" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Italic = elem.getVal(undefined);
 					break;
 				}
 				case "iCs" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.ItalicCS = elem.getVal(undefined);
 					break;
 				}
 				case "caps" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Caps = elem.getVal(undefined);
 					break;
 				}
 				case "smallCaps" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.SmallCaps = elem.getVal(undefined);
 					break;
 				}
 				case "strike" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Strikeout = elem.getVal(undefined);
 					break;
 				}
 				case "dstrike" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.DStrikeout = elem.getVal(undefined);
 					break;
 				}
 				// case "outline" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Outline.push(elem);
 				// 	break;
 				// }
 				// case "shadow" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Shadow.push(elem);
 				// 	break;
 				// }
 				// case "emboss" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Emboss.push(elem);
 				// 	break;
 				// }
 				// case "imprint" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Imprint.push(elem);
 				// 	break;
 				// }
 				// case "noProof" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Noproof.push(elem);
 				// 	break;
 				// }
 				// case "snapToGrid" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Snaptogrid.push(elem);
 				// 	break;
 				// }
 				case "vanish" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Vanish = elem.getVal(undefined);
 					break;
 				}
 				// case "webHidden" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Webhidden.push(elem);
 				// 	break;
@@ -2149,7 +2155,7 @@
 					break;
 				}
 				case "spacing" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Spacing =
 						AscCommon.universalMeasureToMm(elem.getVal(undefined), AscCommonWord.g_dKoef_twips_to_mm,
@@ -2169,7 +2175,7 @@
 				// 	break;
 				// }
 				case "position" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Position =
 						AscCommon.universalMeasureToMm(elem.getVal(undefined), AscCommonWord.g_dKoef_pt_to_mm / 2,
@@ -2177,7 +2183,7 @@
 					break;
 				}
 				case "sz" : {
-					elem = new CT_UnsignedDecimalNumber();
+					elem = new CT_UInt();
 					elem.fromXml(reader);
 					var fontSize = elem.getVal(undefined);
 					if (undefined !== fontSize) {
@@ -2186,7 +2192,7 @@
 					break;
 				}
 				case "szCs" : {
-					elem = new CT_UnsignedDecimalNumber();
+					elem = new CT_UInt();
 					elem.fromXml(reader);
 					var fontSizeCS = elem.getVal(undefined);
 					if (undefined !== fontSizeCS) {
@@ -2195,7 +2201,7 @@
 					break;
 				}
 				case "highlight" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					if (AscFormat.mapPrstColor[elem.getVal(undefined)]) {
 						var highlight = new CDocumentColor(255, 255, 255);
@@ -2238,19 +2244,19 @@
 				// 	break;
 				// }
 				case "vertAlign" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.VertAlign = fromXml_ST_VerticalAlignRun(elem.getVal(undefined));
 					break;
 				}
 				case "rtl" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.RTL = elem.getVal(undefined);
 					break;
 				}
 				case "cs" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.CS = elem.getVal(undefined);
 					break;
@@ -2274,13 +2280,13 @@
 				// 	break;
 				// }
 				// case "specVanish" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Vanish = elem.getVal(undefined);
 				// 	break;
 				// }
 				// case "oMath" : {
-				// 	elem = new CT_OnOff();
+				// 	elem = new CT_Bool();
 				// 	elem.fromXml(reader);
 				// 	this.Omath.push(elem);
 				// 	break;
@@ -2295,39 +2301,39 @@
 		}
 	};
 	CTextPr.prototype.toXml = function(writer, name) {
-		var RStyle = CT_StringStax.prototype.fromVal(this.RStyle);
+		var RStyle = CT_String.prototype.fromVal(this.RStyle);
 		var RFonts = this.RFonts && this.RFonts.Is_Empty() ? null : this.RFonts;
-		var Bold = CT_OnOff.prototype.fromVal(this.Bold);
-		var BoldCS = CT_OnOff.prototype.fromVal(this.BoldCS);
-		var Italic = CT_OnOff.prototype.fromVal(this.Italic);
-		var ItalicCS = CT_OnOff.prototype.fromVal(this.ItalicCS);
-		var Caps = CT_OnOff.prototype.fromVal(this.Caps);
-		var SmallCaps = CT_OnOff.prototype.fromVal(this.SmallCaps);
-		var Strikeout = CT_OnOff.prototype.fromVal(this.Strikeout);
-		var DStrikeout = CT_OnOff.prototype.fromVal(this.DStrikeout);
-		var Vanish = CT_OnOff.prototype.fromVal(this.Vanish);
+		var Bold = CT_Bool.prototype.fromVal(this.Bold);
+		var BoldCS = CT_Bool.prototype.fromVal(this.BoldCS);
+		var Italic = CT_Bool.prototype.fromVal(this.Italic);
+		var ItalicCS = CT_Bool.prototype.fromVal(this.ItalicCS);
+		var Caps = CT_Bool.prototype.fromVal(this.Caps);
+		var SmallCaps = CT_Bool.prototype.fromVal(this.SmallCaps);
+		var Strikeout = CT_Bool.prototype.fromVal(this.Strikeout);
+		var DStrikeout = CT_Bool.prototype.fromVal(this.DStrikeout);
+		var Vanish = CT_Bool.prototype.fromVal(this.Vanish);
 		var Color = new CT_Color("val", "themeColor", "themeTint", "themeShade");
 		Color.setColor(this.Color);
 		Color.setUniFill(this.Unifill);
 		var Spacing;
 		if (undefined !== this.Spacing) {
-			Spacing = CT_DecimalNumber.prototype.fromVal(this.Spacing * g_dKoef_mm_to_twips);
+			Spacing = CT_Int.prototype.fromVal(this.Spacing * g_dKoef_mm_to_twips);
 		}
 		var Position;
 		if (undefined !== this.Position) {
-			Position = CT_DecimalNumber.prototype.fromVal(this.Position * g_dKoef_mm_to_pt * 2);
+			Position = CT_Int.prototype.fromVal(this.Position * g_dKoef_mm_to_pt * 2);
 		}
 		var FontSize;
 		if (undefined !== this.FontSize) {
-			FontSize = CT_UnsignedDecimalNumber.prototype.fromVal(this.FontSize * 2);
+			FontSize = CT_UInt.prototype.fromVal(this.FontSize * 2);
 		}
 		var FontSizeCS;
 		if (undefined !== this.FontSizeCS) {
-			FontSizeCS = CT_UnsignedDecimalNumber.prototype.fromVal(this.FontSizeCS * 2);
+			FontSizeCS = CT_UInt.prototype.fromVal(this.FontSizeCS * 2);
 		}
 		var Highlight;
 		if (undefined !== this.Highlight) {
-			Highlight = CT_StringStax.prototype.fromVal(
+			Highlight = CT_String.prototype.fromVal(
 				highlight_None !== this.Highlight ? this.Highlight.ToHexColor() : "none");
 		}
 		var Underline;
@@ -2335,9 +2341,9 @@
 			Underline = new CT_Underline();
 			Underline.Val = this.Underline;
 		}
-		var VertAlign = CT_StringStax.prototype.fromVal(toXml_ST_VerticalAlignRun(this.VertAlign));
-		var RTL = CT_OnOff.prototype.fromVal(this.RTL);
-		var CS = CT_OnOff.prototype.fromVal(this.CS);
+		var VertAlign = CT_String.prototype.fromVal(toXml_ST_VerticalAlignRun(this.VertAlign));
+		var RTL = CT_Bool.prototype.fromVal(this.RTL);
+		var CS = CT_Bool.prototype.fromVal(this.CS);
 		var Lang = this.Lang && this.Lang.Is_Empty() ? null : this.Lang;
 
 		writer.WriteXmlNodeStart(name);
@@ -2566,7 +2572,7 @@
 					break;
 				}
 				case "type" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Type = fromXml_ST_SectionMark(elem.getVal(undefined));
 					break;
@@ -2618,7 +2624,7 @@
 					break;
 				}
 				// case "formProt" : {
-				// 	this.FormProt = new CT_OnOff();
+				// 	this.FormProt = new CT_Bool();
 				// 	this.FormProt.fromXml(reader);
 				// 	break;
 				// }
@@ -2628,12 +2634,12 @@
 				// 	break;
 				// }
 				// case "noEndnote" : {
-				// 	this.NoEndnote = new CT_OnOff();
+				// 	this.NoEndnote = new CT_Bool();
 				// 	this.NoEndnote.fromXml(reader);
 				// 	break;
 				// }
 				case "titlePg" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Set_TitlePage(elem.getVal(undefined));
 					break;
@@ -2644,12 +2650,12 @@
 				// 	break;
 				// }
 				// case "bidi" : {
-				// 	this.Bidi = new CT_OnOff();
+				// 	this.Bidi = new CT_Bool();
 				// 	this.Bidi.fromXml(reader);
 				// 	break;
 				// }
 				case "rtlGutter" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.SetGutterRTL(elem.getVal(undefined));
 					break;
@@ -2687,9 +2693,9 @@
 				HdrFtrRefs[index] = HeaderReferenceDef;
 			}
 		});
-		var Type = CT_StringStax.prototype.fromVal(toXml_ST_SectionMark(this.Type));
-		var TitlePage = CT_OnOff.prototype.fromVal(this.TitlePage);
-		var GutterRTL = CT_OnOff.prototype.fromVal(this.GutterRTL);
+		var Type = CT_String.prototype.fromVal(toXml_ST_SectionMark(this.Type));
+		var TitlePage = CT_Bool.prototype.fromVal(this.TitlePage);
+		var GutterRTL = CT_Bool.prototype.fromVal(this.GutterRTL);
 
 		writer.WriteXmlNodeStart(name);
 		// writer.WriteXmlNullableAttributeByte("w:rsidRPr", this.RsidRPr);
@@ -3004,7 +3010,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "pos" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					if (isFootnotePr) {
 						this.Pos = fromXml_ST_FtnPos(reader.GetValue(), this.Pos);
@@ -3014,19 +3020,19 @@
 					break;
 				}
 				case "numFmt" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.NumFormat = fromXml_ST_NumberFormat(reader.GetValue(), this.NumFormat);
 					break;
 				}
 				case "numStart" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.NumStart = elem.getVal(undefined);
 					break;
 				}
 				case "numRestart" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.NumRestart = fromXml_ST_RestartNumber(reader.GetValue(), this.NumRestart);
 					break;
@@ -3037,13 +3043,13 @@
 	CFootnotePr.prototype.toXml = function(writer, name, isFootnotePr) {
 		var Pos;
 		if(isFootnotePr) {
-			Pos = CT_StringStax.prototype.fromVal(toXml_ST_FtnPos(this.Pos));
+			Pos = CT_String.prototype.fromVal(toXml_ST_FtnPos(this.Pos));
 		} else {
-			Pos = CT_StringStax.prototype.fromVal(toXml_ST_EdnPos(this.Pos));
+			Pos = CT_String.prototype.fromVal(toXml_ST_EdnPos(this.Pos));
 		}
-		var NumFmt = CT_StringStax.prototype.fromVal(toXml_ST_NumberFormat(this.NumFmt));
-		var NumStart = CT_DecimalNumber.prototype.fromVal(this.NumStart);
-		var NumRestart = CT_StringStax.prototype.fromVal(toXml_ST_RestartNumber(this.NumRestart));
+		var NumFmt = CT_String.prototype.fromVal(toXml_ST_NumberFormat(this.NumFmt));
+		var NumStart = CT_Int.prototype.fromVal(this.NumStart);
+		var NumRestart = CT_String.prototype.fromVal(toXml_ST_RestartNumber(this.NumRestart));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -3178,7 +3184,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "name" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Set_Name(elem.getVal(undefined));
 					break;
@@ -3189,75 +3195,75 @@
 				// 	break;
 				// }
 				case "basedOn" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Set_BasedOn(elem.getVal(undefined));
 					break;
 				}
 				case "next" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Set_Next(elem.getVal(undefined));
 					break;
 				}
 				case "link" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Set_Link(elem.getVal(undefined));
 					break;
 				}
 				// case "autoRedefine" : {
-				// 	this.AutoRedefine = new CT_OnOff();
+				// 	this.AutoRedefine = new CT_Bool();
 				// 	this.AutoRedefine.fromXml(reader);
 				// 	break;
 				// }
 				case "hidden" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Set_QFormat(elem.getVal(undefined));
 					break;
 				}
 				case "uiPriority" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.Set_UiPriority(elem.getVal(undefined));
 					break;
 				}
 				case "semiHidden" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Set_SemiHidden(elem.getVal(undefined));
 					break;
 				}
 				case "unhideWhenUsed" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Set_UnhideWhenUsed(elem.getVal(undefined));
 					break;
 				}
 				case "qFormat" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.Set_QFormat(elem.getVal(undefined));
 					break;
 				}
 				// case "locked" : {
-				// 	this.Locked = new CT_OnOff();
+				// 	this.Locked = new CT_Bool();
 				// 	this.Locked.fromXml(reader);
 				// 	break;
 				// }
 				// case "personal" : {
-				// 	this.Personal = new CT_OnOff();
+				// 	this.Personal = new CT_Bool();
 				// 	this.Personal.fromXml(reader);
 				// 	break;
 				// }
 				// case "personalCompose" : {
-				// 	this.PersonalCompose = new CT_OnOff();
+				// 	this.PersonalCompose = new CT_Bool();
 				// 	this.PersonalCompose.fromXml(reader);
 				// 	break;
 				// }
 				// case "personalReply" : {
-				// 	this.PersonalReply = new CT_OnOff();
+				// 	this.PersonalReply = new CT_Bool();
 				// 	this.PersonalReply.fromXml(reader);
 				// 	break;
 				// }
@@ -3307,15 +3313,15 @@
 		}
 	};
 	CStyle.prototype.toXml = function(writer, name, opt_addition) {
-		var Name = CT_StringStax.prototype.fromVal(this.Name);
-		var BasedOn = CT_StringStax.prototype.fromVal(this.BasedOn);
-		var Next = CT_StringStax.prototype.fromVal(this.Next);
-		var Link = CT_StringStax.prototype.fromVal(this.Link);
-		var hidden = CT_OnOff.prototype.fromVal(this.hidden);
-		var uiPriority = CT_DecimalNumber.prototype.fromVal(this.uiPriority);
-		var semiHidden = CT_OnOff.prototype.fromVal(this.semiHidden);
-		var unhideWhenUsed = CT_OnOff.prototype.fromVal(this.unhideWhenUsed);
-		var qFormat = CT_OnOff.prototype.fromVal(this.qFormat);
+		var Name = CT_String.prototype.fromVal(this.Name);
+		var BasedOn = CT_String.prototype.fromVal(this.BasedOn);
+		var Next = CT_String.prototype.fromVal(this.Next);
+		var Link = CT_String.prototype.fromVal(this.Link);
+		var hidden = CT_Bool.prototype.fromVal(this.hidden);
+		var uiPriority = CT_Int.prototype.fromVal(this.uiPriority);
+		var semiHidden = CT_Bool.prototype.fromVal(this.semiHidden);
+		var unhideWhenUsed = CT_Bool.prototype.fromVal(this.unhideWhenUsed);
+		var qFormat = CT_Bool.prototype.fromVal(this.qFormat);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_StyleType(this.Type));
@@ -3395,7 +3401,7 @@
 						break;
 					}
 					// case "numIdMacAtCleanup" : {
-					// 	this.NumIdMacAtCleanup = new CT_DecimalNumber();
+					// 	this.NumIdMacAtCleanup = new CT_Int();
 					// 	this.NumIdMacAtCleanup.fromXml(reader);
 					// 	break;
 					// }
@@ -3469,7 +3475,7 @@
 				// 	break;
 				// }
 				case "styleLink" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					if (elem.val) {
 						oReadResult.numStyleLinks.push({pPr: this, style: elem.val});
@@ -3477,7 +3483,7 @@
 					break;
 				}
 				case "numStyleLink" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					if (elem.val) {
 						oReadResult.styleLinks.push({pPr: this, style: elem.val});
@@ -3505,9 +3511,9 @@
 		}
 	};
 	CAbstractNum.prototype.toXml = function(writer, name, abstractNumId) {
-		var MultiLevelType = CT_StringStax.prototype.fromVal("hybridMultilevel");
-		var StyleLink = CT_StringStax.prototype.fromVal(this.StyleLink);
-		var NumStyleLink = CT_StringStax.prototype.fromVal(this.NumStyleLink);
+		var MultiLevelType = CT_String.prototype.fromVal("hybridMultilevel");
+		var StyleLink = CT_String.prototype.fromVal(this.StyleLink);
+		var NumStyleLink = CT_String.prototype.fromVal(this.NumStyleLink);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:abstractNumId", abstractNumId);
@@ -3548,7 +3554,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "start" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.Start = elem.getVal(this.Start);
 					break;
@@ -3560,13 +3566,13 @@
 					break;
 				}
 				case "lvlRestart" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.LvlRestart = elem.getVal(this.LvlRestart);
 					break;
 				}
 				case "pStyle" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					if (elem.val) {
 						oReadResult.lvlStyles.push({pPr: this, style: elem.val});
@@ -3574,7 +3580,7 @@
 					break;
 				}
 				case "isLgl" : {
-					elem = new CT_OnOff();
+					elem = new CT_Bool();
 					elem.fromXml(reader);
 					this.IsLgl = elem.getVal(this.IsLgl);
 					break;
@@ -3585,7 +3591,7 @@
 					break;
 				}
 				case "suff" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Suff = fromXml_ST_LevelSuffix(elem.getVal(), this.Suff);
 					break;
@@ -3599,12 +3605,12 @@
 					break;
 				}
 				// case "lvlPicBulletId" : {
-				// 	this.LvlPicBulletId = new CT_DecimalNumber();
+				// 	this.LvlPicBulletId = new CT_Int();
 				// 	this.LvlPicBulletId.fromXml(reader);
 				// 	break;
 				// }
 				case "lvlJc" : {
-					elem = new CT_StringStax();
+					elem = new CT_String();
 					elem.fromXml(reader);
 					this.Jc = fromXml_ST_Jc1(elem.getVal(), this.Jc);
 					break;
@@ -3622,14 +3628,14 @@
 		}
 	};
 	CNumberingLvl.prototype.toXml = function(writer, name, ilvl) {
-		var Start = CT_DecimalNumber.prototype.fromVal(this.Start);
-		var Format = new CT_StringStax.prototype.fromVal(toXml_ST_NumberFormat(this.Format));
-		var LvlRestart = CT_DecimalNumber.prototype.fromVal(this.LvlRestart);
-		var PStyle = CT_StringStax.prototype.fromVal(this.PStyle);
-		var IsLgl = CT_OnOff.prototype.fromVal(this.IsLgl);
-		var Suff = CT_StringStax.prototype.fromVal(toXml_ST_LevelSuffix(this.Suff));
-		var LvlText = new CT_StringStax.prototype.fromVal(this.GetLvlTextFormat());
-		var Jc = CT_StringStax.prototype.fromVal(fromXml_ST_Jc1(this.Jc));
+		var Start = CT_Int.prototype.fromVal(this.Start);
+		var Format = new CT_String.prototype.fromVal(toXml_ST_NumberFormat(this.Format));
+		var LvlRestart = CT_Int.prototype.fromVal(this.LvlRestart);
+		var PStyle = CT_String.prototype.fromVal(this.PStyle);
+		var IsLgl = CT_Bool.prototype.fromVal(this.IsLgl);
+		var Suff = CT_String.prototype.fromVal(toXml_ST_LevelSuffix(this.Suff));
+		var LvlText = new CT_String.prototype.fromVal(this.GetLvlTextFormat());
+		var Jc = CT_String.prototype.fromVal(fromXml_ST_Jc1(this.Jc));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:ilvl", ilvl);
@@ -3695,7 +3701,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "abstractNumId" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					additional.aNumId = elem.getVal(additional.aNumId);
 					break;
@@ -3710,7 +3716,7 @@
 		}
 	};
 	CNum.prototype.toXml = function(writer, name, numId, aNumId) {
-		var AbstractNumId = CT_DecimalNumber.prototype.fromVal(aNumId);
+		var AbstractNumId = CT_Int.prototype.fromVal(aNumId);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:numId", numId);
@@ -3739,7 +3745,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "startOverride" : {
-					elem = new CT_DecimalNumber();
+					elem = new CT_Int();
 					elem.fromXml(reader);
 					this.StartOverride = elem.getVal(this.StartOverride);
 					break;
@@ -3753,7 +3759,7 @@
 		}
 	};
 	CLvlOverride.prototype.toXml = function(writer, name) {
-		var StartOverride = CT_DecimalNumber.prototype.fromVal(this.StartOverride);
+		var StartOverride = CT_Int.prototype.fromVal(this.StartOverride);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:ilvl", this.Lvl);
@@ -3903,206 +3909,7 @@
 		writer.WriteXmlAttributesEnd(true);
 	};
 //misc
-	function CT_StringStax() {
-		this.val = null;
-		return this;
-	}
 
-	CT_StringStax.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "val": {
-					this.val = reader.GetValueDecodeXml();
-					break;
-				}
-			}
-		}
-	};
-	CT_StringStax.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_StringStax.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeStringEncode("w:val", this.val);
-		writer.WriteXmlAttributesEnd(true);
-	};
-	CT_StringStax.prototype.fromVal = function(val) {
-		var res = null;
-		if (null !== val && undefined !== val) {
-			res = new CT_StringStax();
-			res.val = val;
-		}
-		return res;
-	};
-	CT_StringStax.prototype.toVal = function(reader, def) {
-		let elem = new CT_StringStax();
-		elem.fromXml(reader);
-		return elem.getVal(def);
-	};
-	CT_StringStax.prototype.getVal = function(def) {
-		return null !== this.val ? this.val : def;
-	};
-	function CT_OnOff() {
-		this.val = null;
-		return this;
-	}
-
-	CT_OnOff.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "val": {
-					this.val = reader.GetValueBool();
-					break;
-				}
-			}
-		}
-	};
-	CT_OnOff.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_OnOff.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeBool("w:val", this.val);
-		writer.WriteXmlAttributesEnd(true);
-	};
-	CT_OnOff.prototype.fromVal = function(val) {
-		var res = null;
-		if (null !== val && undefined !== val) {
-			res = new CT_OnOff();
-			res.val = val;
-		}
-		return res;
-	};
-	CT_OnOff.prototype.toVal = function(reader, def) {
-		let elem = new CT_OnOff();
-		elem.fromXml(reader);
-		return elem.getVal(def);
-	};
-	CT_OnOff.prototype.getVal = function(def) {
-		return null !== this.val ? this.val : def;
-	};
-	function CT_DecimalNumber() {
-		this.val = null;
-		return this;
-	}
-
-	CT_DecimalNumber.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "val": {
-					this.val = reader.GetValueInt(this.val);
-					break;
-				}
-			}
-		}
-	};
-	CT_DecimalNumber.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_DecimalNumber.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeInt("w:val", this.val);
-		writer.WriteXmlAttributesEnd(true);
-	};
-	CT_DecimalNumber.prototype.fromVal = function(val) {
-		var res = null;
-		if (null !== val && undefined !== val) {
-			res = new CT_DecimalNumber();
-			res.val = val;
-		}
-		return res;
-	};
-	CT_DecimalNumber.prototype.toVal = function(reader, def) {
-		let elem = new CT_DecimalNumber();
-		elem.fromXml(reader);
-		return elem.getVal(def);
-	};
-	CT_DecimalNumber.prototype.getVal = function(def) {
-		return null !== this.val ? this.val : def;
-	};
-	function CT_UnsignedDecimalNumber() {
-		this.val = null;
-		return this;
-	}
-
-	CT_UnsignedDecimalNumber.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "val": {
-					this.val = reader.GetValueUInt(this.val);
-					break;
-				}
-			}
-		}
-	};
-	CT_UnsignedDecimalNumber.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_UnsignedDecimalNumber.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeUInt("w:val", this.val);
-		writer.WriteXmlAttributesEnd(true);
-	};
-	CT_UnsignedDecimalNumber.prototype.fromVal = function(val) {
-		var res = null;
-		if (null !== val && undefined !== val) {
-			res = new CT_UnsignedDecimalNumber();
-			res.val = val;
-		}
-		return res;
-	};
-	CT_UnsignedDecimalNumber.prototype.toVal = function(reader, def) {
-		let elem = new CT_UnsignedDecimalNumber();
-		elem.fromXml(reader);
-		return elem.getVal(def);
-	};
-	CT_UnsignedDecimalNumber.prototype.getVal = function(def) {
-		return null !== this.val ? this.val : def;
-	};
-	function CT_Double() {
-		this.val = null;
-		return this;
-	}
-
-	CT_Double.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "val": {
-					this.val = reader.GetValueDouble(this.val);
-					break;
-				}
-			}
-		}
-	};
-	CT_Double.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_Double.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeDouble("w:val", this.val);
-		writer.WriteXmlAttributesEnd(true);
-	};
-	CT_Double.prototype.fromVal = function(val) {
-		var res = null;
-		if (null !== val && undefined !== val) {
-			res = new CT_Double();
-			res.val = val;
-		}
-		return res;
-	};
-	CT_Double.prototype.toVal = function(reader, def) {
-		let elem = new CT_Double();
-		elem.fromXml(reader);
-		return elem.getVal(def);
-	};
-	CT_Double.prototype.getVal = function(def) {
-		return null !== this.val ? this.val : def;
-	};
 
 	function CT_TblPPr() {
 		this.LeftFromText = null;
@@ -4876,21 +4683,23 @@
 				}
 				case "wrapTight" : {
 					drawing.Set_WrappingType(WRAPPING_TYPE_TIGHT);
-					elem = new CT_XmlNode({
-						"wrapPolygon": function(reader) {
+					elem = new CT_XmlNode(function(reader, name) {
+						if ("wrapPolygon" === name) {
 							drawing.wrappingPolygon.fromXml(reader);
 							return drawing.wrappingPolygon;
-						}});
+						}
+					});
 					elem.fromXml(reader);
 					break;
 				}
 				case "wrapThrough" : {
 					drawing.Set_WrappingType(WRAPPING_TYPE_THROUGH);
-					elem = new CT_XmlNode({
-						"wrapPolygon": function(reader) {
+					elem = new CT_XmlNode(function(reader, name) {
+						if ("wrapPolygon" === name) {
 							drawing.wrappingPolygon.fromXml(reader);
 							return drawing.wrappingPolygon;
-						}});
+						}
+					});
 					elem.fromXml(reader);
 					break;
 				}

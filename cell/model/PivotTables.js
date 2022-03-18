@@ -7743,7 +7743,7 @@ CT_Number.prototype.clean = function() {
 	this.tpls = [];
 	this.x = [];
 };
-function CT_String() {
+function CT_StringPivot() {
 //Attributes
 	this.v = null;
 	this.u = null;
@@ -7761,7 +7761,7 @@ function CT_String() {
 	this.tpls = [];
 	this.x = [];
 }
-CT_String.prototype.readAttributes = function(attr, uq) {
+CT_StringPivot.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
 		var vals = attr();
 		var val;
@@ -7815,7 +7815,7 @@ CT_String.prototype.readAttributes = function(attr, uq) {
 		}
 	}
 };
-CT_String.prototype.onStartNode = function(elem, attr, uq) {
+CT_StringPivot.prototype.onStartNode = function(elem, attr, uq) {
 	var newContext = this;
 	if ("tpls" === elem) {
 		newContext = new CT_Tuples();
@@ -7834,10 +7834,10 @@ CT_String.prototype.onStartNode = function(elem, attr, uq) {
 	}
 	return newContext;
 };
-CT_String.prototype.toXml = function(writer, name) {
+CT_StringPivot.prototype.toXml = function(writer, name) {
 	this.toXml2(writer, name, this.v, this);
 };
-CT_String.prototype.toXml2 = function(writer, name, val, obj) {
+CT_StringPivot.prototype.toXml2 = function(writer, name, val, obj) {
 	writer.WriteXmlNodeStart(name);
 	if (null !== val) {
 		writer.WriteXmlAttributeStringEncode("v", val);
@@ -7890,12 +7890,12 @@ CT_String.prototype.toXml2 = function(writer, name, val, obj) {
 	}
 	writer.WriteXmlNodeEnd(name);
 };
-CT_String.prototype.isSimpleValue = function() {
+CT_StringPivot.prototype.isSimpleValue = function() {
 	return null === this.u && null === this.f && null === this.c && null === this.cp && null === this.in &&
 		null === this.bc && null === this.fc && false === this.i && false === this.un && false === this.st &&
 		false === this.b && 0 === this.tpls.length && 0 === this.x.length;
 };
-CT_String.prototype.clean = function() {
+CT_StringPivot.prototype.clean = function() {
 	this.v = null;
 	this.u = null;
 	this.f = null;
@@ -9858,7 +9858,7 @@ CT_PCDSDTCEntries.prototype.onStartNode = function(elem, attr, uq) {
 		}
 		this.Items.push(newContext);
 	} else if ("s" === elem) {
-		newContext = new CT_String();
+		newContext = new CT_StringPivot();
 		if (newContext.readAttributes) {
 			newContext.readAttributes(attr, uq);
 		}
@@ -9882,7 +9882,7 @@ CT_PCDSDTCEntries.prototype.toXml = function(writer, name) {
 			elem.toXml(writer, "m");
 		} else if (elem instanceof CT_Number) {
 			elem.toXml(writer, "n");
-		} else if (elem instanceof CT_String) {
+		} else if (elem instanceof CT_StringPivot) {
 			elem.toXml(writer, "s");
 		}
 	}
@@ -15017,7 +15017,7 @@ function PivotRecords() {
 	this._curError = new CT_Error();
 	this._curMissing = new CT_Missing();
 	this._curNumber = new CT_Number();
-	this._curString = new CT_String();
+	this._curString = new CT_StringPivot();
 	this._curIndex = new CT_Index();
 	this.output = new PivotRecordValue();
 }
@@ -15111,7 +15111,7 @@ PivotRecords.prototype.onEndNode = function(prevContext, elem) {
 			this.addString(this._curString.v);
 		} else {
 			this.addString(this._curString.v, this._curString);
-			this._curString = new CT_String();
+			this._curString = new CT_StringPivot();
 		}
 	} else if ("x" === elem) {
 		this.addIndex(this._curIndex.v);
@@ -15410,7 +15410,7 @@ PivotRecords.prototype._toXml = function(writer, elem) {
 			CT_Number.prototype.toXml2(writer, "n", elem.val, elem.addition);
 			break;
 		case c_oAscPivotRecType.String:
-			CT_String.prototype.toXml2(writer, "s", elem.val, elem.addition);
+			CT_StringPivot.prototype.toXml2(writer, "s", elem.val, elem.addition);
 			break;
 		case c_oAscPivotRecType.Index:
 			CT_Index.prototype.toXml2(writer, "x", elem.val);

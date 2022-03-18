@@ -1299,10 +1299,10 @@
 				this.WriteXmlValueUInt64(name, val)
 			}
 		};
-		this.WriteXmlNullableValueUInt64 = function(name, val)
+		this.WriteXmlNullableValueDouble = function(name, val)
 		{
 			if (null !== val && undefined !== val) {
-				this.WriteXmlValueUInt64(name, val)
+				this.WriteXmlValueDouble(name, val)
 			}
 		};
 		this.WriteXmlNullableValueNumber = function(name, val)

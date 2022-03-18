@@ -249,7 +249,8 @@
 			"common/zlib/zlib.js",
 			"vendor/easysax.js",
 			"common/openxml.js",
-			"common/Shapes/SerializeXml.js"
+			"common/Shapes/SerializeXml.js",
+			"common/SerializeChartXml.js"
 		],
 		"desktop": {
 			"min": [

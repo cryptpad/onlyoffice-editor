@@ -115,6 +115,27 @@
 		if ("pic" === reader.GetNameNoNS()) {
 			res = new AscFormat.CImageShape();
 			res.fromXml(reader);
+		} else if ("chart" === reader.GetNameNoNS()) {
+			if (typeof AscFormat.CChartSpace !== "undefined") {
+				let elem = new CT_XmlNode();
+				elem.fromXml(reader);
+				let rId = elem.attributes["id"];
+				var rel = reader.rels.getRelationship(rId);
+				if ("Internal" === rel.targetMode) {
+					var chartPart = reader.rels.pkg.getPartByUri(rel.targetFullName);
+					if (chartPart) {
+						var chartContent = chartPart.getDocumentContent();
+						var chartReader = new StaxParser(chartContent, chartPart, reader.context);
+						res = new AscFormat.CChartSpace();
+						res.fromXml(chartReader);
+
+						res.setBDeleted(false);
+						if (!res.hasCharts()) {
+							res = null;
+						}
+					}
+				}
+			}
 		}
 		return res;
 	};
@@ -391,4 +412,211 @@
 
 	window['AscFormat'].CT_GraphicalObject = CT_GraphicalObject;
 	window['AscFormat'].CT_GraphicalObjectData = CT_GraphicalObjectData;
+
+
+	function CT_String() {
+		this.val = null;
+		return this;
+	}
+	CT_String.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueDecodeXml();
+					break;
+				}
+			}
+		}
+	};
+	CT_String.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_String.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_String.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_String();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_String.prototype.toVal = function(reader, def) {
+		let elem = new CT_String();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
+	CT_String.prototype.getVal = function(def) {
+		return null !== this.val ? this.val : def;
+	};
+
+	function CT_Bool() {
+		this.val = null;
+		return this;
+	}
+	CT_Bool.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueBool();
+					break;
+				}
+			}
+		}
+	};
+	CT_Bool.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Bool.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_Bool.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_Bool();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_Bool.prototype.toVal = function(reader, def) {
+		let elem = new CT_Bool();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
+	CT_Bool.prototype.getVal = function(def) {
+		return null !== this.val ? this.val : def;
+	};
+
+	function CT_Int() {
+		this.val = null;
+		return this;
+	}
+	CT_Int.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueInt(this.val);
+					break;
+				}
+			}
+		}
+	};
+	CT_Int.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Int.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_Int.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_Int();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_Int.prototype.toVal = function(reader, def) {
+		let elem = new CT_Int();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
+	CT_Int.prototype.getVal = function(def) {
+		return null !== this.val ? this.val : def;
+	};
+
+	function CT_UInt() {
+		this.val = null;
+		return this;
+	}
+	CT_UInt.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueUInt(this.val);
+					break;
+				}
+			}
+		}
+	};
+	CT_UInt.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_UInt.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeUInt("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_UInt.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_UInt();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_UInt.prototype.toVal = function(reader, def) {
+		let elem = new CT_UInt();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
+	CT_UInt.prototype.getVal = function(def) {
+		return null !== this.val ? this.val : def;
+	};
+	function CT_Double() {
+		this.val = null;
+		return this;
+	}
+
+	CT_Double.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "val": {
+					this.val = reader.GetValueDouble(this.val);
+					break;
+				}
+			}
+		}
+	};
+	CT_Double.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Double.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeDouble("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_Double.prototype.fromVal = function(val) {
+		var res = null;
+		if (null !== val && undefined !== val) {
+			res = new CT_Double();
+			res.val = val;
+		}
+		return res;
+	};
+	CT_Double.prototype.toVal = function(reader, def) {
+		let elem = new CT_Double();
+		elem.fromXml(reader);
+		return elem.getVal(def);
+	};
+	CT_Double.prototype.getVal = function(def) {
+		return null !== this.val ? this.val : def;
+	};
+
+	window['AscCommon'].CT_Bool = CT_Bool;
+	window['AscCommon'].CT_String = CT_String;
+	window['AscCommon'].CT_Int = CT_Int;
+	window['AscCommon'].CT_UInt = CT_UInt;
+	window['AscCommon'].CT_Double = CT_Double;
 })(window);
