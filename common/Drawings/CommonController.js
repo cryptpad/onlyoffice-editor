@@ -1762,17 +1762,17 @@ DrawingObjectsController.prototype =
                 this.checkSelectedObjectsForMove(group, pageIndex);
                 if(!isRealObject(group))
                 {
-
+                    var bGroupSelection = AscCommon.isRealObject(this.selection.groupSelection);
                     if(!object.isCrop && !object.cropObject)
                     {
                         this.resetInternalSelection();
                     }
                     this.updateOverlay();
                     if(!b_is_inline)
-                        this.changeCurrentState(new AscFormat.PreMoveState(this, x, y, e.ShiftKey, e.CtrlKey,  object, is_selected, /*true*/!bInSelect));
+                        this.changeCurrentState(new AscFormat.PreMoveState(this, x, y, e.ShiftKey, e.CtrlKey,  object, is_selected, /*true*/!bInSelect, bGroupSelection));
                     else
                     {
-                        this.changeCurrentState(new AscFormat.PreMoveInlineObject(this, object, is_selected, !bInSelect, pageIndex, x, y));
+                        this.changeCurrentState(new AscFormat.PreMoveInlineObject(this, object, is_selected, !bInSelect, pageIndex, x, y, bGroupSelection));
                     }
                 }
                 else
@@ -9623,7 +9623,7 @@ DrawingObjectsController.prototype =
     {
         var aSelectedObjects;
         if(this.selection.groupSelection) {
-            aSelectedObjects = this.selection.groupSelection;
+            aSelectedObjects = this.selection.groupSelection.selectedObjects;
         }
         else {
             aSelectedObjects = this.selectedObjects;
@@ -9638,7 +9638,7 @@ DrawingObjectsController.prototype =
 
         var aSelectedObjects;
         if(this.selection.groupSelection) {
-            aSelectedObjects = this.selection.groupSelection;
+            aSelectedObjects = this.selection.groupSelection.selectedObjects;
         }
         else {
             aSelectedObjects = this.selectedObjects;
