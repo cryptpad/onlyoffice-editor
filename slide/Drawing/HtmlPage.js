@@ -982,6 +982,7 @@ function CEditorPage(api)
 			this.m_oNotes.HtmlElement.style.backgroundColor = GlobalSkin.BackgroundColor;
 			this.m_oNotesContainer.HtmlElement.style.backgroundColor = GlobalSkin.BackgroundColor;
 			this.m_oBottomPanesContainer.HtmlElement.style.borderTop = ("1px solid " + GlobalSkin.BorderSplitterColor);
+			this.m_oBottomPanesContainer.HtmlElement.style.backgroundColor = GlobalSkin.BackgroundColor;
 			this.m_oAnimationPaneContainer.HtmlElement.style.borderTop = ("1px solid " + GlobalSkin.BorderSplitterColor);
 		}
 

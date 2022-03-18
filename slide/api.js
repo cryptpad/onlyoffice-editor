@@ -1442,6 +1442,7 @@ background-repeat: no-repeat;\
 			document.getElementById("id_panel_right").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			document.getElementById("id_panel_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
+			document.getElementById("id_bottom_pannels_container").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
 			document.getElementById("id_bottom_pannels_container").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
 			document.getElementById("id_panel_animation").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
 			document.getElementById("id_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
