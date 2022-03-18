@@ -12861,6 +12861,7 @@ ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oPa
 	if (2 !== arrElements.length
 		|| !arrElements[0].IsSpace()
 		|| !arrElements[1].IsText()
+		|| arrElements[1].IsPunctuation()
 		|| !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0], 1, 500))
 		return false;
 
