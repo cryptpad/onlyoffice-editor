@@ -4222,13 +4222,13 @@ background-repeat: no-repeat;\
 	};
 
 
-	asc_docs_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect)
+	asc_docs_api.prototype.asc_addOleObjectAction = function(sLocalUrl, Data, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect)
 	{
 		var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
 		if (null != _image)//картинка уже должна быть загружена
 		{
             this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_PasteHotKey);
-			this.WordControl.m_oLogicDocument.AddOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect);
+			this.WordControl.m_oLogicDocument.AddOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, Data, sApplicationId, bSelect);
             this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -7299,11 +7299,17 @@ background-repeat: no-repeat;\
 	 */
 	asc_docs_api.prototype.asc_editTableOleObject = function(oleBinary)
 	{
+		// this.asc_addTableOleObject(oleBinary); todo: delete
+		// return;
 
 		if (AscCommon.isRealObject(oleBinary))
 		{
 			this.WordControl.m_oLogicDocument.EditTableOleObjectFromBinary(oleBinary);
 		}
+	};
+
+	asc_docs_api.prototype.asc_addTableOleObject = function(oleBinary) {
+		this.addTableOleObject(oleBinary);
 	};
 
 	asc_docs_api.prototype.asc_onCloseChartFrame               = function()

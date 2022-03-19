@@ -39,6 +39,8 @@
      */
 function (window, undefined) {
 
+    var spreadsheetApplicationId = 'Excel.Sheet.12';
+
         function COleSize(w, h){
             this.w = w;
             this.h = h;
@@ -135,6 +137,9 @@ function (window, undefined) {
     {
         AscCommon.History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ImageShapeSetApplicationId, this.m_sApplicationId, sApplicationId));
         this.m_sApplicationId = sApplicationId;
+        if (this.m_sApplicationId === spreadsheetApplicationId) {
+            this.setOleType(AscCommon.c_oAscOleObjectTypes.spreadsheet);
+        }
     };
     COleObject.prototype.setPixSizes = function(nPixWidth, nPixHeight)
     {

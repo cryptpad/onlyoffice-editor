@@ -3313,7 +3313,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_getSizesForOleEditor = function (oleInfo) {
-    var oleSize = this.wbModel.getOleSize();
+    var oleSize = this.wbModel.getOleSize() || this.wb.getWorksheet().getVisibleRange();
     if (oleSize) {
       var ws = this.wb.getWorksheet();
 
@@ -3344,10 +3344,11 @@ var editor;
 
   /**
    * Loading ole editor
-   * @param {{}} oleObj info from oleObject
-   * @param {function} fResizeCallback callback where first argument is sizes of loaded editor without borders
+   * @param {{}} [oleObj] info from oleObject
+   * @param {function} [fResizeCallback] callback where first argument is sizes of loaded editor without borders
    */
   spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj, fResizeCallback) {
+    oleObj = oleObj || {binary: AscCommon.getEmpty()};
     var stream = oleObj && oleObj.binary;
     var _this = this;
     var file = new AscCommon.OpenFileResult();

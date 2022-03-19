@@ -8610,11 +8610,24 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_editTableOleObject = function(oleInfo)
 	{
+/*		this.asc_addTableOleObject(oleInfo); todo: delete
+		return*/
 		if (AscFormat.isObject(oleInfo))
 		{
 			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 			{
 				this.WordControl.m_oLogicDocument.EditTableOleObject(oleInfo);
+			}
+		}
+	};
+
+	asc_docs_api.prototype.asc_addTableOleObject = function(oleInfo)
+	{
+		if (AscFormat.isObject(oleInfo))
+		{
+			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+			{
+				this.addTableOleObject(oleInfo);
 			}
 		}
 	};
