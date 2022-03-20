@@ -3219,7 +3219,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_GetErrorForReplaceString = function(sString)
 	{
-		return (new CSearchPatternEngine()).GetErrorForReplaceString(sString);
+		return (new AscCommonWord.CSearchPatternEngine()).GetErrorForReplaceString(sString);
 	};
 
 	asc_docs_api.prototype._selectSearchingResults = function(bShow)

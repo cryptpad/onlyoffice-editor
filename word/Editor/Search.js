@@ -2068,3 +2068,7 @@ CSearchPatternEngine.prototype.GetErrorForReplaceString = function(sString)
 
 	return null;
 };
+
+//--------------------------------------------------------export----------------------------------------------------
+window['AscCommonWord'] = window['AscCommonWord'] || {};
+window['AscCommonWord'].CSearchPatternEngine = CSearchPatternEngine;
