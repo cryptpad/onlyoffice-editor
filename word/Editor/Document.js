@@ -2328,8 +2328,9 @@ function CDocumentSettings()
 	this.TrackRevisions = false; // Флаг рецензирования, который записан в самом файле
 
 	// Compatibility
-	this.SplitPageBreakAndParaMark = false;
-	this.DoNotExpandShiftReturn    = false;
+	this.SplitPageBreakAndParaMark        = false;
+	this.DoNotExpandShiftReturn           = false;
+	this.BalanceSingleByteDoubleByteWidth = false;
 }
 
 /**
@@ -17014,6 +17015,10 @@ CDocument.prototype.IsSplitPageBreakAndParaMark = function()
 CDocument.prototype.IsDoNotExpandShiftReturn = function()
 {
 	return this.Settings.DoNotExpandShiftReturn;
+};
+CDocument.prototype.IsBalanceSingleByteDoubleByteWidth = function()
+{
+	return this.Settings.BalanceSingleByteDoubleByteWidth;
 };
 /**
  * Проверяем все ли параметры SdtSettings выставлены по умолчанию

@@ -834,6 +834,16 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 	this.Width       = ResultWidth;
 	this.WidthOrigin = ResultWidth;
 
+	if (Math.abs(Temp) > 0.001)
+	{
+		let nEnKoef  = Context.MeasureCode(0x2002).Width / Temp;
+		this.WidthEn = (ResultWidth * nEnKoef) | 0;
+	}
+	else
+	{
+		this.WidthEn = ResultWidth;
+	}
+
 	if (0x2003 === this.Value || 0x2002 === this.Value)
 		this.SpaceGap = Math.max((Temp - Context.MeasureCode(0x00B0).Width) / 2, 0);
 	else if (0x2005 === this.Value)
@@ -909,6 +919,10 @@ ParaSpace.prototype.SetCondensedWidth = function(nKoef)
 ParaSpace.prototype.ResetCondensedWidth = function()
 {
 	this.Width = this.WidthOrigin;
+};
+ParaSpace.prototype.BalanceSingleByteDoubleByteWidth = function()
+{
+	this.Width = this.WidthEn;
 };
 ParaSpace.prototype.SetGaps = function(nLeftGap, nRightGap)
 {

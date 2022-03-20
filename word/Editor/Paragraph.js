@@ -16433,6 +16433,11 @@ Paragraph.prototype.IsCondensedSpaces = function()
 
 	return false;
 };
+Paragraph.prototype.IsBalanceSingleByteDoubleByteWidth = function()
+{
+	let oLogicDocument = this.GetLogicDocument();
+	return (oLogicDocument && oLogicDocument.IsDocumentEditor() ? oLogicDocument.IsBalanceSingleByteDoubleByteWidth() : false);
+};
 /**
  * Выделяем слово, около которого стоит курсор
  * @returns {boolean}

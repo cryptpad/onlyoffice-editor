@@ -3698,7 +3698,10 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                 }
                 case para_Space:
                 {
-					if (PRS.IsCondensedSpaces())
+                	// TODO: Проверку Balanced перенести в Measure (и избавиться от WidthEn)
+                	if (PRS.IsBalanceSingleByteDoubleByteWidth(this, Pos))
+                		Item.BalanceSingleByteDoubleByteWidth();
+					else if (PRS.IsCondensedSpaces())
 						PRS.AddCondensedSpaceToRange(Item);
 					else
 						Item.ResetCondensedWidth();
