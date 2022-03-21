@@ -2040,7 +2040,7 @@
 	 * Specifies a highlighting color which is applied as a background to the contents of the current Range.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CDE"]
-	 * @param {highlightColor} sColor - available highlight color
+	 * @param {highlightColor} sColor - Available highlight color.
 	 * @returns {ApiRange | null} - returns null if can't apply highlight.
 	 */
 	ApiRange.prototype.SetHighlight = function(sColor)
@@ -2868,7 +2868,7 @@
 	ApiTextForm.prototype.constructor = ApiTextForm;
 	
 	/**
-	 * Class representing a document combobox form.
+	 * Class representing a document combo box form.
 	 * @constructor
 	 * @extends {ApiFormBase}
 	 */
@@ -3596,32 +3596,63 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Available refs to "numbered" type of reference.
+	 * Available values of the "numbered" reference type.
+	 * * **"pageNum"** - the page number of the numbered item.
+     * * **"paraNum"** - the paragraph number of the numbered item.
+	 * * **"noCtxParaNum"** - an abbreviated paragraph number (the specific item of the numbered list only, e.g., instead of "4.1.1" you refer to "1" only).
+     * * **"fullCtxParaNum"** - a full paragraph number, e.g., "4.1.1".
+	 * * **"text"** - the text value of the paragraph, e.g., if you have "4.1.1. Terms and Conditions", you refer to "Terms and Conditions" only.
+     * * **"aboveBelow"** - the words "above" or "below" depending on the position of the item.
 	 * @typedef {"pageNum" | "paraNum" | "noCtxParaNum" | "fullCtxParaNum" | "text" | "aboveBelow"} numberedRefTo
 	 */
 
 	/**
-	 * Available refs to "heading" type of reference.
+	 * Available values of the "heading" reference type.
+	 * * **"text"** - the entire text of the heading.
+	 * * **"pageNum"** - the page number of the heading.
+     * * **"headingNum"** - the sequence number of the heading.
+	 * * **"noCtxHeadingNum"** - an abbreviated heading number. Make sure the cursor point is in the section you are referencing to, e.g., you are in section 4 and you wish to refer to heading 4.B, so instead of "4.B" you receive "B" only.
+     * * **"fullCtxHeadingNum"** - a full heading number even if the cursor point is in the same section.
+     * * **"aboveBelow"** - the words "above" or "below" depending on the position of the item.
 	 * @typedef {"text" | "pageNum" | "headingNum" | "noCtxHeadingNum" | "fullCtxHeadingNum" | "aboveBelow"} headingRefTo
 	 */
 
 	/**
-	 * Available refs to "bookmark" type of reference.
+	 * Available values of the "bookmark" reference type.
+	 * * **"text"** - the entire text of the bookmark.
+	 * * **"pageNum"** - the page number of the bookmark.
+     * * **"paraNum"** - the paragraph number of the bookmark.
+	 * * **"noCtxParaNum"** - an abbreviated paragraph number (the specific item only, e.g., instead of "4.1.1" you refer to "1" only).
+     * * **"fullCtxParaNum"** - a full paragraph number, e.g., "4.1.1".
+     * * **"aboveBelow"** - the words "above" or "below" depending on the position of the item.
 	 * @typedef {"text" | "pageNum" | "paraNum" | "noCtxParaNum" | "fullCtxParaNum" | "aboveBelow"} bookmarkRefTo
 	 */
 
 	/**
-	 * Available refs to "footnote" type of reference.
+	 * Available values of the "footnote" reference type.
+	 * * **"footnoteNum"** - the footnote number.
+	 * * **"pageNum"** - the page number of the footnote.
+     * * **"aboveBelow"** - the words "above" or "below" depending on the position of the item.
+	 * * **"formFootnoteNum"** - the number of the footnote formatted as a footnote. The numbering of the actual footnotes is not affected.
 	 * @typedef {"footnoteNum" | "pageNum" | "aboveBelow" | "formFootnoteNum"} footnoteRefTo
 	 */
 
 	/**
-	 * Available refs to "endnote" type of reference.
+	 * Available values of the "endnote" reference type.
+	 * * **"endnoteNum"** - the endnote number.
+	 * * **"pageNum"** - the page number of the endnote.
+     * * **"aboveBelow"** - the words "above" or "below" depending on the position of the item.
+	 * * **"formEndnoteNum"** - the number of the endnote formatted as an endnote. The numbering of the actual endnotes is not affected.
 	 * @typedef {"endnoteNum" | "pageNum" | "aboveBelow" | "formEndnoteNum"} endnoteRefTo
 	 */
 
 	/**
-	 * Available refs to "equation" type of reference.
+	 * Available values of the "equation"/"figure"/"table" reference type.
+	 * * **"entireCaption"** - the full text of the caption.
+	 * * **"labelNumber"** - the label and object number only, e.g., "Table 1.1".
+     * * **"captionText"** - the text of the caption only.
+	 * * **"pageNum"** - the page number containing the referenced object.
+	 * * **"aboveBelow"** - the words "above" or "below" depending on the position of the item.
 	 * @typedef {"entireCaption" | "labelNumber" | "captionText" | "pageNum" | "aboveBelow"} captionRefTo
 	 */
 
@@ -5320,7 +5351,7 @@
 	};
 
 	/**
-	 * Gets all existing forms in document.
+	 * Returns all existing forms in the document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @returns {(ApiTextForm | ApiPictureForm | ApiComboBoxForm | ApiCheckBoxForm)[]}
@@ -5359,9 +5390,9 @@
 	};
 
 	/**
-	 * Clear all fields.
+	 * Clears all fields in the document.
 	 * @memberof ApiDocument
-	 * @param {boolean} [bOnlyForms=false] - Determines whether only forms or all fields will be cleared.
+	 * @param {boolean} [bOnlyForms=false] - Defines if only forms or all fields will be cleared.
 	 * @typeofeditors ["CDE"]
 	 */
 	ApiDocument.prototype.ClearAllFields = function(bOnlyForms) 
@@ -5371,12 +5402,12 @@
 	};
 
 	/**
-	 * Sets highlight to forms.
+	 * Sets the highlight to the forms in the document.
 	 * @memberof ApiDocument
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} [bNone=false] - Determines that highlight will not be set.
+	 * @param {boolean} [bNone=false] - Defines that highlight will not be set.
 	 * @typeofeditors ["CDE"]
 	 */
 	ApiDocument.prototype.SetFormsHighlight = function(r, g, b, bNone) 
@@ -5388,7 +5419,7 @@
 	};
 
 	/**
-	 * Gets all numbered paragraphs.
+	 * Returns all numbered paragraphs from the current document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @returns {ApiParagraph[]}
@@ -5404,7 +5435,7 @@
 	};
 
 	/**
-	 * Gets all heading paragraphs.
+	 * Returns all heading paragraphs from the current document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @returns {ApiParagraph[]}
@@ -5420,7 +5451,7 @@
 	};
 
 	/**
-	 * Gets first paragraphs from all footnotes.
+	 * Returns the first paragraphs from all footnotes in the current document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @returns {ApiParagraph[]}
@@ -5436,7 +5467,7 @@
 	};
 
 	/**
-	 * Gets first paragraphs from all endnotes.
+	 * Returns the first paragraphs from all endnotes in the current document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @returns {ApiParagraph[]}
@@ -5452,10 +5483,10 @@
 	};
 
 	/**
-	 * Gets all caption paragraphs.
+	 * Returns all caption paragraphs of the specified type from the current document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @param {captionType} - caption type
+	 * @param {captionType} - Caption type (equation, figure or table).
 	 * @returns {ApiParagraph[]}
 	 */
 	ApiDocument.prototype.GetAllCaptionParagraphs = function(sCaption) 
@@ -6126,7 +6157,7 @@
 	 * Specifies a highlighting color which is applied as a background to the contents of the current paragraph.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE, CPE"]
-	 * @param {highlightColor} sColor - available highlight color
+	 * @param {highlightColor} sColor - Available highlight color.
 	 * @returns {ApiParagraph} this
 	 */
 	ApiParagraph.prototype.SetHighlight = function(sColor)
@@ -6755,15 +6786,15 @@
 	};
 
 	/**
-	 * Adds numbered cross-reference.
-	 * Paragraph must be in document.
+	 * Adds a numbered cross-reference to the current paragraph.
+	 * The paragraph must be in the document.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @param {numberedRefTo} sRefType - specify what the reference should display.
-	 * @param {ApiParagraph} oParaTo - the numbered paragraph to be referred to (must be in document).
-	 * @param {boolean} [bLink=true] - specify what the reference should be inserted as hyperlink.
-	 * @param {boolean} [bAboveBelow=false] - specify what above/below should be included (don't used with "text" and "aboveBelow" refType).
-	 * @param {string} [sSepWith=""] - separate numbers with (used only with "fullCtxParaNum" refType).
+	 * @param {numberedRefTo} sRefType - The text or numeric value of a numbered reference you want to insert.
+	 * @param {ApiParagraph} oParaTo - The numbered paragraph to be referred to (must be in the document).
+	 * @param {boolean} [bLink=true] - Specifies if the reference will be inserted as a hyperlink.
+	 * @param {boolean} [bAboveBelow=false] - Specifies if the above/below words indicating the position of the reference should be included (don't used with the "text" and "aboveBelow" sRefType).
+	 * @param {string} [sSepWith=""] - A number separator (used only with the "fullCtxParaNum" sRefType).
 	 * @returns {boolean}
 	 */
 	ApiParagraph.prototype.AddNumberedCrossRef = function(sRefTo, oParaTo, bLink, bAboveBelow, sSepWith) 
@@ -6820,14 +6851,14 @@
 	};
 
 	/**
-	 * Adds heading cross-reference.
-	 * Paragraph must be in document.
+	 * Adds a heading cross-reference to the current paragraph.
+	 * The paragraph must be in the document.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @param {headingRefTo} sRefType - specify what the reference should display.
-	 * @param {ApiParagraph} oParaTo - the paragraph with heading style to be referred to (must be in document).
-	 * @param {boolean} [bLink=true] - specify what the reference should be inserted as hyperlink.
-	 * @param {boolean} [bAboveBelow=false] - specify what above/below should be included (don't used with "text" and "aboveBelow" refType).
+	 * @param {headingRefTo} sRefType - The text or numeric value of a heading reference you want to insert.
+	 * @param {ApiParagraph} oParaTo - The heading paragraph to be referred to (must be in the document).
+	 * @param {boolean} [bLink=true] - Specifies if the reference will be inserted as a hyperlink.
+	 * @param {boolean} [bAboveBelow=false] - Specifies if the above/below words indicating the position of the reference should be included (don't used with the "text" and "aboveBelow" sRefType).
 	 * @returns {boolean}
 	 */
 	ApiParagraph.prototype.AddHeadingCrossRef = function(sRefTo, oParaTo, bLink, bAboveBelow) 
@@ -6876,15 +6907,15 @@
 	};
 
 	/**
-	 * Adds bookmark cross-reference.
-	 * Paragraph must be in document.
+	 * Adds a bookmark cross-reference to the current paragraph.
+	 * The paragraph must be in the document.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @param {bookmarkRefTo} sRefType - specify what the reference should display.
-	 * @param {string} sBookmarkName - the name of bookmark to be referred to (must be in document).
-	 * @param {boolean} [bLink=true] - specify what the reference should be inserted as hyperlink.
-	 * @param {boolean} [bAboveBelow=false] - specify what above/below should be included (don't used with "text" and "aboveBelow" refType).
-	 * @param {string} [sSepWith=""] - separate numbers with (used only with "fullCtxParaNum" refType).
+	 * @param {bookmarkRefTo} sRefType - The text or numeric value of a bookmark reference you want to insert.
+	 * @param {string} sBookmarkName - The name of the bookmark to be referred to (must be in the document).
+	 * @param {boolean} [bLink=true] - Specifies if the reference will be inserted as a hyperlink.
+	 * @param {boolean} [bAboveBelow=false] - Specifies if the above/below words indicating the position of the reference should be included (don't used with the "text" and "aboveBelow" sRefType).
+	 * @param {string} [sSepWith=""] - A number separator (used only with the "fullCtxParaNum" sRefType).
 	 * @returns {boolean}
 	 */
 	ApiParagraph.prototype.AddBookmarkCrossRef = function(sRefTo, sBookmarkName, bLink, bAboveBelow, sSepWith) 
@@ -6942,14 +6973,14 @@
 	};
 
 	/**
-	 * Adds footnote cross-reference.
-	 * Paragraph must be in document.
+	 * Adds a footnote cross-reference to the current paragraph.
+	 * The paragraph must be in the document.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @param {footnoteRefTo} sRefType - specify what the reference should display.
-	 * @param {ApiParagraph} oParaTo - the first paragraph from footnote (must be in document).
-	 * @param {boolean} [bLink=true] - specify what the reference should be inserted as hyperlink.
-	 * @param {boolean} [bAboveBelow=false] - specify what above/below should be included (don't used with "aboveBelow" refType).
+	 * @param {footnoteRefTo} sRefType - The text or numeric value of a footnote reference you want to insert.
+	 * @param {ApiParagraph} oParaTo - The first paragraph from a footnote to be referred to (must be in the document).
+	 * @param {boolean} [bLink=true] - Specifies if the reference will be inserted as a hyperlink.
+	 * @param {boolean} [bAboveBelow=false] - Specifies if the above/below words indicating the position of the reference should be included (don't used with the "aboveBelow" sRefType).
 	 * @returns {boolean}
 	 */
 	ApiParagraph.prototype.AddFootnoteCrossRef = function(sRefTo, oParaTo, bLink, bAboveBelow) 
@@ -6998,14 +7029,14 @@
 	};
 
 	/**
-	 * Adds endnote cross-reference.
-	 * Paragraph must be in document.
+	 * Adds an endnote cross-reference to the current paragraph.
+	 * The paragraph must be in the document.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @param {endnoteRefTo} sRefType - specify what the reference should display.
-	 * @param {ApiParagraph} oParaTo - the first paragraph from endnote (must be in document).
-	 * @param {boolean} [bLink=true] - specify what the reference should be inserted as hyperlink.
-	 * @param {boolean} [bAboveBelow=false] - specify what above/below should be included (don't used with "aboveBelow" refType).
+	 * @param {endnoteRefTo} sRefType - The text or numeric value of an endnote reference you want to insert.
+	 * @param {ApiParagraph} oParaTo - The first paragraph from an endnote to be referred to (must be in the document).
+	 * @param {boolean} [bLink=true] - Specifies if the reference will be inserted as a hyperlink.
+	 * @param {boolean} [bAboveBelow=false] - Specifies if the above/below words indicating the position of the reference should be included (don't used with the "aboveBelow" sRefType).
 	 * @returns {boolean}
 	 */
 	ApiParagraph.prototype.AddEndnoteCrossRef = function(sRefTo, oParaTo, bLink, bAboveBelow) 
@@ -7054,15 +7085,15 @@
 	};
 
 	/**
-	 * Adds caption cross-reference.
-	 * Paragraph must be in document.
+	 * Adds a caption cross-reference to the current paragraph.
+	 * The paragraph must be in the document.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @param {captionType} sCaption - type of caption.
-	 * @param {captionRefTo} sRefType - specify what the reference should display.
-	 * @param {ApiParagraph} oParaTo - the paragraph with caption (must be in document).
-	 * @param {boolean} [bLink=true] - specify what the reference should be inserted as hyperlink.
-	 * @param {boolean} [bAboveBelow=false] - specify what above/below should be included (used only with "pageNum" refType).
+	 * @param {captionType} sCaption - Caption type (equation, figure, table).
+	 * @param {captionRefTo} sRefType - The text or numeric value of a caption reference you want to insert.
+	 * @param {ApiParagraph} oParaTo - The caption paragraph to be referred to (must be in the document).
+	 * @param {boolean} [bLink=true] - Specifies if the reference will be inserted as a hyperlink.
+	 * @param {boolean} [bAboveBelow=false] - Specifies if the above/below words indicating the position of the reference should be included (used only with the "pageNum" sRefType).
 	 * @returns {boolean}
 	 */
 	ApiParagraph.prototype.AddCaptionCrossRef = function(sCaption, sRefTo, oParaTo, bLink, bAboveBelow) 
@@ -7565,7 +7596,7 @@
 	 * Specifies a highlighting color which is applied as a background to the contents of the current run.
 	 * @memberof ApiRun
 	 * @typeofeditors ["CDE, CPE"]
-	 * @param {highlightColor} sColor - available highlight color
+	 * @param {highlightColor} sColor - Available highlight color.
 	 * @returns {ApiTextPr}
 	 */
 	ApiRun.prototype.SetHighlight = function(sColor)
@@ -8928,12 +8959,12 @@
 		return true;
 	};
 	/**
-	 * Sets background color to all cells in table.
+	 * Sets the background color to all cells in the current table.
 	 * @memberof ApiTable
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @param {boolean} bNone - Defines that background color will not be set.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -9233,12 +9264,12 @@
 		return arrApiRanges;
 	};
 	/**
-	 * Sets background color to all cells in row.
+	 * Sets the background color to all cells in the current table row.
 	 * @memberof ApiTableRow
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @param {boolean} bNone - Defines that background color will not be set.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -9559,12 +9590,12 @@
 		return false;
 	};
 	/**
-	 * Sets background color to cell.
+	 * Sets the background color to the current table cell.
 	 * @memberof ApiTableCell
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @param {boolean} bNone - Defines that background color will not be set.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -9612,12 +9643,12 @@
 		return true;
 	};
 	/**
-	 * Sets background color to all cells in column which is formed by the current cell.
+	 * Sets the background color to all cells in the column containing the current cell.
 	 * @memberof ApiTable
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @param {boolean} bNone - Defines that background color will not be set.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -9952,10 +9983,10 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Specifies a highlighting color which is applied as a background to the contents of the current run.
+	 * Specifies a highlighting color which is added to the text properties and applied as a background to the contents of the current run/range/paragraph.
 	 * @memberof ApiTextPr
 	 * @typeofeditors ["CDE, CPE"]
-	 * @param {highlightColor} sColor - available highlight color
+	 * @param {highlightColor} sColor - Available highlight color.
 	 * @returns {ApiTextPr}
 	 */
 	ApiTextPr.prototype.SetHighlight = function(sColor)
@@ -13276,7 +13307,7 @@
 	};
 
 	/**
-	 * Gets the placeholder text.
+	 * Returns the placeholder text from the current inline content control.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @returns {string}
@@ -13287,10 +13318,10 @@
 	};
 
 	/**
-	 * Sets the placeholder text.
+	 * Sets the placeholder text to the current inline content control.
 	 * *Can't be set to checkbox or radio button*
 	 * @memberof ApiInlineLvlSdt
-	 * @param {string} sText
+	 * @param {string} sText - The text that will be set to the current inline content control.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -13305,7 +13336,7 @@
 		return true;
 	};
 	/**
-	 * Check if the content control is a form.
+	 * Checks if the content control is a form.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -13315,7 +13346,7 @@
 		return this.Sdt.IsForm();
 	};
 	/**
-	 * Gets a form if it is one.
+	 * Returns a form object if the current content control is a form.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @returns {?ApiForm}
@@ -13825,7 +13856,7 @@
 	};
 
 	/**
-	 * Gets the placeholder text.
+	 * Returns the placeholder text from the current content control.
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @returns {string}
@@ -13836,9 +13867,9 @@
 	};
 
 	/**
-	 * Sets the placeholder text.
+	 * Sets the placeholder text to the current content control.
 	 * @memberof ApiBlockLvlSdt
-	 * @param {string} sText
+	 * @param {string} sText - The text that will be set to the current content control.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -13868,7 +13899,7 @@
 		return "form";
 	};
 	/**
-	 * Returns a type of current form.
+	 * Returns a type of the current form.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {FormType}
@@ -13889,7 +13920,7 @@
 			return "pictureForm";
 	};	
 	/**
-	 * Returns the form key
+	 * Returns the current form key.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {string}
@@ -13902,10 +13933,10 @@
 		return sKey;
 	};
 	/**
-	 * Sets the form key
+	 * Sets a key to the current form.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
-	 * @param {string} sKey
+	 * @param {string} sKey - Form key.
 	 * @returns {boolean}
 	 */
 	ApiFormBase.prototype.SetFormKey = function(sKey)
@@ -13922,7 +13953,7 @@
 		return true;
 	};
 	/**
-	 * Returns the tip text.
+	 * Returns the tip text of the current form.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {string}
@@ -13937,10 +13968,10 @@
 		return sTip;
 	};
 	/**
-	 * Sets the tip text.
+	 * Sets the tip text to the current form.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
-	 * @param {string} sText
+	 * @param {string} sText - Tip text.
 	 * @returns {boolean}
 	 */
 	ApiFormBase.prototype.SetTipText = function(sText)
@@ -13955,7 +13986,7 @@
 		return true;
 	};
 	/**
-	 * Checking whether the form is required.
+	 * Checks if the current form is required.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -13965,10 +13996,10 @@
 		return this.Sdt.IsFormRequired();
 	};
 	/**
-	 * Determines whether the form should be required.
+	 * Specifies if the current form should be required.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
-	 * @param {boolean} bRequired
+	 * @param {boolean} bRequired - Defines if the current form is required (true) or not (false).
 	 * @returns {boolean}
 	 */
 	ApiFormBase.prototype.SetRequired = function(bRequired)
@@ -13985,7 +14016,7 @@
 		return true;
 	};
 	/**
-	 * Checking whether the form is fixed.
+	 * Checks if the current form is fixed.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -13995,10 +14026,10 @@
 		return this.Sdt.IsFixedForm();
 	};
 	/**
-	 * Determines whether the form should be fixed.
-	 * *Not for picture form*
+	 * Specifies if the current form should be fixed.
+	 * *Not for picture forms*
 	 * @memberof ApiFormBase
-	 * @param {boolean} bFixed
+	 * @param {boolean} bFixed - Defines if the current form is fixed (true) or not (false).
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14019,12 +14050,12 @@
 		return true;
 	};
 	/**
-	 * Sets border to form.
+	 * Sets the border color to the current form.
 	 * @memberof ApiFormBase
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - if true, then sets no border.
+	 * @param {boolean} bNone - Defines that border color will not be set.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14048,12 +14079,12 @@
 		return true;
 	};
 	/**
-	 * Sets background color to form.
+	 * Sets the background color to the current form.
 	 * @memberof ApiFormBase
 	 * @param {byte} r - Red color component value.
 	 * @param {byte} g - Green color component value.
 	 * @param {byte} b - Blue color component value.
-	 * @param {boolean} bNone - if true, then sets no background color.
+	 * @param {boolean} bNone - Defines that background color will not be set.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14078,7 +14109,7 @@
 		return true;
 	};
 	/**
-	 * Gets text from form.
+	 * Returns the text from the current form.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {string}
@@ -14110,7 +14141,7 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Checking whether the form is autofit content.
+	 * Checks if the text form content is autofit.
 	 * @memberof ApiTextForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -14120,9 +14151,9 @@
 		return this.Sdt.IsAutoFitContent();
 	};
 	/**
-	 * Determines whether the form should be autofit content.
+	 * Specifies if the text form content should be autofit.
 	 * @memberof ApiTextForm
-	 * @param {boolean} bAutoFit
+	 * @param {boolean} bAutoFit - Defines if the text form content is autofit (true) or not (false).
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14140,7 +14171,7 @@
 		return true;
 	};
 	/**
-	 * Checking whether the form is miltiline.
+	 * Checks if the current text form is multiline.
 	 * @memberof ApiTextForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -14150,11 +14181,11 @@
 		return this.Sdt.IsMultiLineForm();
 	};
 	/**
-	 * Determines whether the form should be miltiline.
+	 * Specifies if the current text form should be miltiline.
 	 * @memberof ApiTextForm
-	 * @param {boolean} bMultiline
+	 * @param {boolean} bMultiline - Defines if the current text form is multiline (true) or not (false).
 	 * @typeofeditors ["CDE"]
-	 * @returns {boolean} - return false, if form is not fixed.
+	 * @returns {boolean} - return false, if the text form is not fixed.
 	 */
 	ApiTextForm.prototype.SetMultiline = function(bMultiline)
 	{
@@ -14172,10 +14203,10 @@
 		return true;
 	};
 	/**
-	 * Gets characters limit.
+	 * Returns a limit of the text form characters.
 	 * @memberof ApiTextForm
 	 * @typeofeditors ["CDE"]
-	 * @returns {number} - if returns -1 -> characters is no limit
+	 * @returns {number} - if this method returns -1 -> the form has no limit for characters
 	 */
 	ApiTextForm.prototype.GetCharactersLimit = function()
 	{
@@ -14186,11 +14217,11 @@
 		return oPr.GetMaxCharacters();
 	};
 	/**
-	 * Sets characters limit.
+	 * Sets a limit to the text form characters.
 	 * @memberof ApiTextForm
-	 * @param {number} nChars - if param is -1 -> sets no limit.
-	 * Can't sets no limit, if comb of characters is applied.
-	 * Max value is 1000000.
+	 * @param {number} nChars - The maximum number of characters in the text form. If this parameter is equal to -1, no limit will be set.
+	 * A limit is required to be set, if a comb of characters is applied.
+	 * Maximum value for this parameter is 1000000.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14216,7 +14247,7 @@
 		return true;
 	};
 	/**
-	 * Checking whether the form is characters comb.
+	 * Checks if the text form is a comb of characters.
 	 * @memberof ApiTextForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -14227,9 +14258,9 @@
 		return oPr ? oPr.IsComb() : false;
 	};
 	/**
-	 * Sets comb of characters.
+	 * Specifies if the text form should be a comb of characters.
 	 * @memberof ApiTextForm
-	 * @param {boolean} bComb
+	 * @param {boolean} bComb - Defines if the text form is a comb of characters (true) or not (false).
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14255,9 +14286,9 @@
 		return true;
 	};
 	/**
-	 * Sets cell width with applied comb of characters.
+	 * Sets the width of a cell to the applied comb of characters.
 	 * @memberof ApiTextForm
-	 * @param {mm} [nCellWidth=0] - if nCellWidth === 0, then the width will be set automatically. Must be >= 1 and <= 558.8
+	 * @param {mm} [nCellWidth=0] - The cell width measured in millimeters. If this parameter is equal to 0, then the width will be set automatically. Must be >= 1 and <= 558.8.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14277,9 +14308,9 @@
 		return true;
 	};
 	/**
-	 * Sets text to form.
+	 * Sets the text to the current text form.
 	 * @memberof ApiTextForm
-	 * @param {string} sText
+	 * @param {string} sText - The text that will be set to the current text form.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14305,7 +14336,7 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Gets the current condition for scaling picture.
+	 * Returns the current scaling condition of the picture form.
 	 * @memberof ApiPictureForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {ScaleCase}
@@ -14333,9 +14364,9 @@
 		return sScaleFlag;
 	};
 	/**
-	 * Sets the condition for scaling the picture.
+	 * Sets the condition for scaling to the current picture form.
 	 * @memberof ApiPictureForm
-	 * @param {ScaleCase} sScaleCase
+	 * @param {ScaleCase} sScaleCase - Picture scaling condition: "always", "never", "tooBig" or "tooSmall".
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14367,10 +14398,10 @@
 		return true;
 	};
 	/**
-	 * Sets the lock aspect ratio for picture.
+	 * Sets the lock aspect ratio to the current picture form.
 	 * @memberof ApiPictureForm
-	 * @param {percentage} xRatio
-	 * @param {percentage} yRatio
+	 * @param {percentage} xRatio - Horizontal lock aspect ratio measured in percent.
+	 * @param {percentage} yRatio - Vertical lock aspect ratio measured in percent.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14393,7 +14424,7 @@
 		return true;
 	};
 	/**
-	 * Gets base64 image.
+	 * Returns an image in the base64 format from the current picture form.
 	 * @memberof ApiPictureForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {base64img}
@@ -14416,9 +14447,9 @@
 		return "";
 	};
 	/**
-	 * Sets image to form.
+	 * Sets an image to the current picture form.
 	 * @memberof ApiPictureForm
-	 * @param {string} sImageSrc - The image source where the image to be inserted should be taken from (currently only internet URL or Base64 encoded images are supported).
+	 * @param {string} sImageSrc - The image source where the image to be inserted should be taken from (currently, only internet URL or base64 encoded images are supported).
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14454,7 +14485,7 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Gets list values from current form.
+	 * Returns the list values from the current combo box.
 	 * @memberof ApiComboBoxForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {string[]}
@@ -14473,9 +14504,9 @@
 		return aValues;
 	};
 	/**
-	 * Sets list values to current form.
+	 * Sets the list values to the current combo box.
 	 * @memberof ApiComboBoxForm
-	 * @param {string[]} aListString
+	 * @param {string[]} aListString - The combo box list values.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14505,9 +14536,9 @@
 		return true;
 	};
 	/**
-	 * Select specified value from the list value. 
+	 * Selects the specified value from the combo box list values. 
 	 * @memberof ApiComboBoxForm
-	 * @param {string} sValue
+	 * @param {string} sValue - The combo box list value that will be selected.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14527,9 +14558,9 @@
 		return true;		
 	};
 	/**
-	 * Sets text to form.
-	 * @memberof ApiTextForm
-	 * @param {string} sText
+	 * Sets the text to the current combo box.
+	 * @memberof ApiComboBoxForm
+	 * @param {string} sText - The combo box text.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14551,8 +14582,8 @@
 		return true;
 	};
 	/**
-	 * Check that the text can be edited.
-	 * @memberof ApiTextForm
+	 * Checks if the combo box text can be edited.
+	 * @memberof ApiComboBoxForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14567,9 +14598,9 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Sets checkbox checked. 
+	 * Checks the current checkbox.
 	 * @memberof ApiCheckBoxForm
-	 * @param {boolean} isChecked
+	 * @param {boolean} isChecked - Defines if the current checkbox is checked (true) or not (false).
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -14582,7 +14613,7 @@
 		return true;
 	};
 	/**
-	 * Get the state of this checkbox
+	 * Returns the state of the current checkbox (checked or not).
 	 * @memberof ApiCheckBoxForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -14592,7 +14623,7 @@
 		return this.Sdt.IsCheckBoxChecked();
 	};
 	/**
-	 * Check if the form is a radio button. 
+	 * Checks if the current checkbox is a radio button. 
 	 * @memberof ApiCheckBoxForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
@@ -14602,7 +14633,7 @@
 		return this.Sdt.IsRadioButton();
 	};
 	/**
-	 * Get radio group key, if it is a radio button
+	 * Returns the radio group key, if the current checkbox is a radio button.
 	 * @memberof ApiCheckBoxForm
 	 * @typeofeditors ["CDE"]
 	 * @returns {string}
@@ -14613,9 +14644,9 @@
 		return (sRadioGroup ? sRadioGroup : "");
 	};
 	/**
-	 * Set radio group key
+	 * Sets the radio group key to the current checkbox.
 	 * @memberof ApiCheckBoxForm
-	 * @param {string} sKey
+	 * @param {string} sKey - Radio group key.
 	 * @typeofeditors ["CDE"]
 	 */
 	ApiCheckBoxForm.prototype.SetRadioGroup = function(sKey)
