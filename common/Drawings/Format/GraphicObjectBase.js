@@ -2638,6 +2638,27 @@
     CGraphicObjectBase.prototype.convertFromSmartArt = function() {
         return this;
     };
+
+    CGraphicObjectBase.prototype.getDefaultRotSA = function () {
+        if (this.isObjectInSmartArt()) {
+            var point = this.getSmartArtShapePoint();
+            if (point) {
+                var custAng = point.getCustAng();
+                if (custAng) {
+                    var defaultRot = this.spPr && this.spPr.xfrm && this.spPr.xfrm.rot || 0;
+                    if (custAng) {
+                        if (custAng > defaultRot) {
+                            defaultRot += Math.PI * 2 * Math.ceil(custAng / (Math.PI * 2));
+                        }
+                        defaultRot -= custAng;
+                        return AscFormat.normalizeRotate(defaultRot);
+                    }
+                }
+            }
+            return AscFormat.normalizeRotate(this.rot);
+        }
+    };
+
     CGraphicObjectBase.prototype.changeRot = function(dAngle, bWord) {
         if(this.spPr && this.spPr.xfrm) {
             var oXfrm = this.spPr.xfrm;
@@ -2733,7 +2754,8 @@
             var oXfrm = this.spPr.xfrm;
             oXfrm.setFlipH(bFlipH);
             if(this.isObjectInSmartArt()) {
-                //TODO
+                var point = this.getSmartArtShapePoint();
+                point && point.changeFlipH(bFlipH);
             }
         }
     };
@@ -2742,7 +2764,8 @@
             var oXfrm = this.spPr.xfrm;
             oXfrm.setFlipV(bFlipV);
             if(this.isObjectInSmartArt()) {
-                //TODO
+                var point = this.getSmartArtShapePoint();
+                point && point.changeFlipV(bFlipV);
             }
         }
     };
