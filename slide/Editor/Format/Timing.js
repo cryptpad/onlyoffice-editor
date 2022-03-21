@@ -10522,6 +10522,8 @@
         if(!bIsPaused) {
             this.updateTimingList();
             this.scheduleNodesStart();
+            this.animationDrawer.clearTextureCache();
+            this.animationDrawer.collectHiddenObjects();
         }
         if(this.isMainSequenceFinished()) {
             this.onMainSeqFinished();
