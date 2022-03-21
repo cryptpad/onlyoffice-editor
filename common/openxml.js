@@ -654,7 +654,8 @@
 	openXml.Types = {
 		calculationChain: {dir: "", filename: "calcChain.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.calcChain+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/calcChain"},
 		cellMetadata: {dir: "", filename: "cellMetadata.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata"},
-		chart: {dir: "charts", filename: "chart[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"},
+		chart: {dir: "../charts", filename: "chart[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"},
+		chartWord: {dir: "charts", filename: "chart[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"},
 		chartColorStyle: {dir: "", filename: "chartColorStyle.xml", contentType: "application/vnd.ms-office.chartcolorstyle+xml", relationType: "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle"},
 		chartDrawing: {dir: "", filename: "chartDrawing.xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chartshapes+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartUserShapes"},
 		chartsheet: {dir: "chartsheets", filename: "sheet[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartsheet"},

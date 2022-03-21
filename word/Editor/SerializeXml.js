@@ -4732,7 +4732,7 @@
 					elem = new CT_XmlNode();
 					elem.fromXml(reader);
 					var sizeRelH = {RelativeFrom: c_oAscRelativeFromV.Page, Percent: 0};//Percent 0-1
-					sizeRelH.RelativeFrom = fromXml_ST_RelFromH(elem.attributes["relativeFrom"], sizeRelH.RelativeFrom);
+					sizeRelH.RelativeFrom = fromXml_ST_SizeRelFromH(elem.attributes["relativeFrom"], sizeRelH.RelativeFrom);
 					sizeRelH.Percent = parseFloat(elem.members["pctWidth"] && elem.members["pctWidth"].text);
 					drawing.SetSizeRelH(sizeRelH);
 					break;
@@ -4741,7 +4741,7 @@
 					elem = new CT_XmlNode();
 					elem.fromXml(reader);
 					var sizeRelV = {RelativeFrom: c_oAscRelativeFromV.Page, Percent: 0};//Percent 0-1
-					sizeRelV.RelativeFrom = fromXml_ST_RelFromV(elem.attributes["relativeFrom"], sizeRelV.RelativeFrom);
+					sizeRelV.RelativeFrom = fromXml_ST_SizeRelFromV(elem.attributes["relativeFrom"], sizeRelV.RelativeFrom);
 					sizeRelV.Percent = parseFloat(elem.members["pctHeight"] && elem.members["pctHeight"].text);
 					drawing.SetSizeRelV(sizeRelV);
 					break;
@@ -4830,14 +4830,14 @@
 		var SizeRelH;
 		if(drawing.SizeRelH) {
 			SizeRelH = new CT_XmlNode();
-			SizeRelH.attributes["relativeFrom"] = toXml_ST_RelFromH(drawing.SizeRelH.RelativeFrom);
+			SizeRelH.attributes["relativeFrom"] = toXml_ST_SizeRelFromH(drawing.SizeRelH.RelativeFrom);
 			SizeRelH.members["wp14:pctWidth"] = new CT_XmlNode();
 			SizeRelH.members["wp14:pctWidth"].text = drawing.SizeRelH.Percent;
 		}
 		var SizeRelV;
 		if(drawing.SizeRelV) {
 			SizeRelV = new CT_XmlNode();
-			SizeRelV.attributes["relativeFrom"] = toXml_ST_RelFromV(drawing.SizeRelV.RelativeFrom);
+			SizeRelV.attributes["relativeFrom"] = toXml_ST_SizeRelFromV(drawing.SizeRelV.RelativeFrom);
 			SizeRelV.members["wp14:pctHeight"] = new CT_XmlNode();
 			SizeRelV.members["wp14:pctHeight"].text = drawing.SizeRelV.Percent;
 		}
@@ -6805,6 +6805,40 @@
 		}
 		return null;
 	}
+	function fromXml_ST_SizeRelFromH(val, def) {
+		switch (val) {
+			case "margin":
+				return AscCommon.c_oAscSizeRelFromH.sizerelfromhMargin;
+			case "page":
+				return AscCommon.c_oAscSizeRelFromH.sizerelfromhPage;
+			case "leftMargin":
+				return AscCommon.c_oAscSizeRelFromH.sizerelfromhLeftMargin;
+			case "rightMargin":
+				return AscCommon.c_oAscSizeRelFromH.sizerelfromhRightMargin;
+			case "insideMargin":
+				return AscCommon.c_oAscSizeRelFromH.sizerelfromhInsideMargin;
+			case "outsideMargin":
+				return AscCommon.c_oAscSizeRelFromH.sizerelfromhOutsideMargin;
+		}
+		return def;
+	}
+	function toXml_ST_SizeRelFromH(val) {
+		switch (val) {
+			case AscCommon.c_oAscSizeRelFromH.sizerelfromhMargin:
+				return "margin";
+			case AscCommon.c_oAscSizeRelFromH.sizerelfromhPage:
+				return "page";
+			case AscCommon.c_oAscSizeRelFromH.sizerelfromhLeftMargin:
+				return "leftMargin";
+			case AscCommon.c_oAscSizeRelFromH.sizerelfromhRightMargin:
+				return "rightMargin";
+			case AscCommon.c_oAscSizeRelFromH.sizerelfromhInsideMargin:
+				return "insideMargin";
+			case AscCommon.c_oAscSizeRelFromH.sizerelfromhOutsideMargin:
+				return "outsideMargin";
+		}
+		return null;
+	}
 	function fromXml_ST_AlignH(val, def) {
 		switch (val) {
 			case "left":
@@ -6873,6 +6907,40 @@
 			case c_oAscRelativeFromV.InsideMargin:
 				return "insideMargin";
 			case c_oAscRelativeFromV.OutsideMargin:
+				return "outsideMargin";
+		}
+		return null;
+	}
+	function fromXml_ST_SizeRelFromV(val, def) {
+		switch (val) {
+			case "margin":
+				return AscCommon.c_oAscSizeRelFromV.sizerelfromvMargin;
+			case "page":
+				return AscCommon.c_oAscSizeRelFromV.sizerelfromvPage;
+			case "topMargin":
+				return AscCommon.c_oAscSizeRelFromV.sizerelfromvTopMargin;
+			case "bottomMargin":
+				return AscCommon.c_oAscSizeRelFromV.sizerelfromvBottomMargin;
+			case "insideMargin":
+				return AscCommon.c_oAscSizeRelFromV.sizerelfromvInsideMargin;
+			case "outsideMargin":
+				return AscCommon.c_oAscSizeRelFromV.sizerelfromvOutsideMargin;
+		}
+		return def;
+	}
+	function toXml_ST_SizeRelFromV(val) {
+		switch (val) {
+			case AscCommon.c_oAscSizeRelFromV.sizerelfromvMargin:
+				return "margin";
+			case AscCommon.c_oAscSizeRelFromV.sizerelfromvPage:
+				return "page";
+			case AscCommon.c_oAscSizeRelFromV.sizerelfromvTopMargin:
+				return "topMargin";
+			case AscCommon.c_oAscSizeRelFromV.sizerelfromvBottomMargin:
+				return "bottomMargin";
+			case AscCommon.c_oAscSizeRelFromV.sizerelfromvInsideMargin:
+				return "insideMargin";
+			case AscCommon.c_oAscSizeRelFromV.sizerelfromvOutsideMargin:
 				return "outsideMargin";
 		}
 		return null;

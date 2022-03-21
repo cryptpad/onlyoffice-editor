@@ -99,31 +99,52 @@
 		if ("pic" === name) {
 			res = new AscFormat.CImageShape();
 			res.fromXml(reader);
-		// } else if ("graphicFrame" === name) {
-		// 	res = new AscFormat.CGraphicFrame();
-		// 	res.fromXml(reader);
-		// 	res = res.graphicObject;
-		// } else if ("chart" === name) {
-		// 	if (typeof AscFormat.CChartSpace !== "undefined") {
-		// 		let elem = new CT_XmlNode();
-		// 		elem.fromXml(reader);
-		// 		let rId = elem.attributes["id"];
-		// 		var rel = reader.rels.getRelationship(rId);
-		// 		if ("Internal" === rel.targetMode) {
-		// 			var chartPart = reader.rels.pkg.getPartByUri(rel.targetFullName);
-		// 			if (chartPart) {
-		// 				var chartContent = chartPart.getDocumentContent();
-		// 				var chartReader = new StaxParser(chartContent, chartPart, reader.context);
-		// 				res = new AscFormat.CChartSpace();
-		// 				res.fromXml(chartReader);
-		//
-		// 				res.setBDeleted(false);
-		// 				if (!res.hasCharts()) {
-		// 					res = null;
-		// 				}
-		// 			}
-		// 		}
-		// 	}
+		} else if ("graphicFrame" === name) {
+			res = new AscFormat.CGraphicFrame();
+			res.fromXml(reader);
+			res = res.graphicObject;
+		} else if ("chart" === name) {
+			if (typeof AscFormat.CChartSpace !== "undefined") {
+				let elem = new CT_XmlNode();
+				elem.fromXml(reader);
+				let rId = elem.attributes["id"];
+				var rel = reader.rels.getRelationship(rId);
+				if ("Internal" === rel.targetMode) {
+					var chartPart = reader.rels.pkg.getPartByUri(rel.targetFullName);
+					if (chartPart) {
+						var chartContent = chartPart.getDocumentContent();
+						var chartReader = new StaxParser(chartContent, chartPart, reader.context);
+						res = new AscFormat.CChartSpace();
+						res.fromXml(chartReader);
+
+						res.setBDeleted(false);
+						if (res.hasCharts()) {
+							let chartStylePart = chartPart.getPartByRelationshipType(openXml.Types.chartStyle);
+							if (chartStylePart) {
+								let chartStyleContent = chartStylePart.getDocumentContent();
+								if (chartStyleContent) {
+									let chartStyle = new AscFormat.CChartStyle();
+									// let readerStyle = new StaxParser(chartStyleContent, chartStylePart, reader.context);
+									// chartStyle.fromXml(readerStyle);
+									// res.setChartStyle(chartStyle);
+								}
+							}
+							let chartColorStylePart = chartPart.getPartByRelationshipType(openXml.Types.chartColorStyle);
+							if (chartColorStylePart) {
+								let chartColorStyleContent = chartColorStylePart.getDocumentContent();
+								if (chartColorStyleContent) {
+									let chartStyle = new AscFormat.CChartColors();
+									// let readerStyle = new StaxParser(chartColorStyleContent, chartColorStylePart, reader.context);
+									// chartStyle.fromXml(readerStyle);
+									// res.setChartColors(chartStyle);
+								}
+							}
+						} else {
+							res = null;
+						}
+					}
+				}
+			}
 		}
 		return res;
 	};
@@ -141,12 +162,15 @@
 				break;
 			case AscDFH.historyitem_type_GroupShape:
 			case AscDFH.historyitem_type_SmartArt:
+				break;
 			case AscDFH.historyitem_type_GraphicFrame:
+				graphicObjectName = ns + ":graphicFrame";
 				break;
 			case AscDFH.historyitem_type_ChartSpace:
 			{
+				let partType = AscCommon.c_oEditorId.Word === writer.context.editorId ? AscCommon.openXml.Types.chartWord: AscCommon.openXml.Types.chart;
 				graphicObjectName = "c:chart";
-				let chartPart = writer.context.part.addPart(AscCommon.openXml.Types.chart);
+				let chartPart = writer.context.part.addPart(partType);
 				chartPart.part.setDataXml(graphicObject, writer);
 				let elem = new CT_XmlNode();
 				elem.attributes["xmlns:c"] = "http://schemas.openxmlformats.org/drawingml/2006/chart";
@@ -186,6 +210,21 @@
 			}
 			//todo
 		}
+	};
+	window['AscFormat'].CGraphicFrame.prototype.toXml = function(writer, name) {
+		var context = writer.context;
+		var cNvPrIndex = context.cNvPrIndex++;
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+
+		var ns = StaxParser.prototype.GetNSFromNodeName(name);
+
+		writer.WriteXmlString('<'+ns+':nvGraphicFramePr>');
+		writer.WriteXmlString('<'+ns+':cNvPr id="' + cNvPrIndex + '" name="GraphicFrame ' + cNvPrIndex + '"/>');
+		writer.WriteXmlString('<'+ns+':cNvGraphicFramePr/></'+ns+':nvGraphicFramePr>');
+		writer.WriteXmlNullable(this.spPr && this.spPr.xfrm, ns + ":xfrm");
+		writer.WriteXmlNullable(this.graphicObject, "a:graphic");
+		writer.WriteXmlNodeEnd(name);
 	};
 	window['AscFormat'].CImageShape.prototype.toXml = function(writer, name) {
 		var context = writer.context;

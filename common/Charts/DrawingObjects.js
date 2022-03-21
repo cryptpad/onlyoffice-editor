@@ -1847,21 +1847,29 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                 name = "xdr:absoluteAnchor";
                 break;
         }
+        let graphicObject = this.graphicObject;
+        switch (this.graphicObject.getObjectType()) {
+            case AscDFH.historyitem_type_ChartSpace:
+            case AscDFH.historyitem_type_SlicerView:
+                let Graphic = new AscFormat.CT_GraphicalObject();
+                Graphic.Namespace = ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
+                Graphic.GraphicData = new AscFormat.CT_GraphicalObjectData();
+                Graphic.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/chart";
+                Graphic.GraphicData.graphicObject = graphicObject;
+
+                let newGraphicObject = new AscFormat.CGraphicFrame();
+                newGraphicObject.spPr = graphicObject.spPr;
+                newGraphicObject.graphicObject = Graphic;
+
+                graphicObject = newGraphicObject;
+                break;
+        }
         writer.WriteXmlNodeStart(name);
         writer.WriteXmlNullableAttributeString("editAs", editAs);
         writer.WriteXmlAttributesEnd();
         writer.WriteXmlNullable(this.from, "xdr:from");
         writer.WriteXmlNullable(this.to, "xdr:to");
-        switch (this.graphicObject.getObjectType()) {
-            case AscDFH.historyitem_type_Shape:
-                break;
-            case AscDFH.historyitem_type_Cnx:
-                break;
-            case AscDFH.historyitem_type_OleObject:
-            case AscDFH.historyitem_type_ImageShape:
-                writer.WriteXmlNullable(this.graphicObject, "xdr:pic");
-                break;
-        }
+        AscFormat.CGraphicObjectBase.prototype.toXmlElem(writer, graphicObject, "xdr");
         writer.WriteXmlNodeStart("xdr:clientData");
         writer.WriteXmlAttributesEnd(true);
         writer.WriteXmlNodeEnd(name);

@@ -206,6 +206,7 @@
 				}
 			}
 		}
+		this.correctAxes();
 	};
 	CChartSpace.prototype.toXml = function(writer) {
 		var name = "c:chartSpace";
@@ -238,8 +239,8 @@
 		writer.WriteXmlNullable(this.pivotSource, "c:pivotSource");
 		writer.WriteXmlNullable(this.protection, "c:protection");
 		writer.WriteXmlNullable(this.chart, "c:chart");
-		// writer.WriteXmlNullable(this.spPr, "c:spPr");
-		// writer.WriteXmlNullable(this.txPr, "c:txPr");
+		writer.WriteXmlNullable(this.spPr, "c:spPr");
+		writer.WriteXmlNullable(this.txPr, "c:txPr");
 		// writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.externalData), "c:externalData");
 		writer.WriteXmlNullable(this.printSettings, "c:printSettings");
 		// writer.WriteXmlNullable(this.userShapes, "c:userShapes");
@@ -413,6 +414,10 @@
 	CPageMarginsChart.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
+				case "b": {
+					this.setB(reader.GetValueDouble(this.b));
+					break;
+				}
 				case "l": {
 					this.setL(reader.GetValueDouble(this.l));
 					break;
@@ -423,10 +428,6 @@
 				}
 				case "t": {
 					this.setT(reader.GetValueDouble(this.t));
-					break;
-				}
-				case "b": {
-					this.setB(reader.GetValueDouble(this.b));
 					break;
 				}
 				case "header": {
@@ -446,10 +447,10 @@
 	};
 	CPageMarginsChart.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeDouble("b", this.b);
 		writer.WriteXmlNullableAttributeDouble("l", this.l);
 		writer.WriteXmlNullableAttributeDouble("r", this.r);
 		writer.WriteXmlNullableAttributeDouble("t", this.t);
-		writer.WriteXmlNullableAttributeDouble("b", this.b);
 		writer.WriteXmlNullableAttributeDouble("header", this.header);
 		writer.WriteXmlNullableAttributeDouble("footer", this.footer);
 		writer.WriteXmlAttributesEnd(true);
@@ -3920,6 +3921,9 @@
 	function readSpPrPlain(reader) {
 		//todo CSpPr
 		let elem = new AscFormat.CSpPr();
+		elem.setFill(AscFormat.CreteSolidFillRGB(Math.round(Math.random() * 255), Math.round(Math.random() * 255), Math.round(Math.random() * 255)));
+		var oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
+		elem.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, undefined));
 		elem.fromXml(reader);
 		return elem;
 	}
@@ -4052,7 +4056,7 @@
 				break;
 			}
 			case "crossAx" : {
-				ax.setCrossAx(CT_UInt.prototype.toVal(reader, ax.crossAx));
+				ax.crossAxId = CT_UInt.prototype.toVal(reader, ax.crossAxId);
 				break;
 			}
 			case "crosses" : {
@@ -4088,7 +4092,7 @@
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_TickLblPos(ax.tickLblPos)), "c:tickLblPos");
 		writer.WriteXmlNullable(ax.spPr, "c:spPr");
 		writer.WriteXmlNullable(ax.txPr, "c:txPr");
-		writer.WriteXmlNullable(CT_Double.prototype.fromVal(ax.crossAx), "c:crossAx");
+		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(ax.crossAx && ax.crossAx.axId), "c:crossAx");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_Crosses(ax.crosses)), "c:crosses");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(ax.crossesAt), "c:crossesAt");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_CrossBetween(ax.crossBetween)),
@@ -4124,18 +4128,18 @@
 	function fromXml_ST_LayoutMode(val, def) {
 		switch (val) {
 			case "edge":
-				return AscFormat.st_layoutmodeEDGE;
+				return AscFormat.LAYOUT_MODE_EDGE;
 			case "factor":
-				return AscFormat.st_layoutmodeFACTOR;
+				return AscFormat.LAYOUT_MODE_FACTOR;
 		}
 		return def;
 	}
 
 	function toXml_ST_LayoutMode(val) {
 		switch (val) {
-			case AscFormat.st_layoutmodeEDGE:
+			case AscFormat.LAYOUT_MODE_EDGE:
 				return "edge";
-			case AscFormat.st_layoutmodeFACTOR:
+			case AscFormat.LAYOUT_MODE_FACTOR:
 				return "factor";
 		}
 		return null;
@@ -4306,11 +4310,11 @@
 
 	function toXml_ST_Grouping(val) {
 		switch (val) {
-			case ST_Grouping.GROUPING_PERCENT_STACKED:
+			case AscFormat.GROUPING_PERCENT_STACKED:
 				return "percentStacked";
-			case ST_Grouping.GROUPING_STANDARD:
+			case AscFormat.GROUPING_STANDARD:
 				return "standard";
-			case ST_Grouping.GROUPING_STACKED:
+			case AscFormat.GROUPING_STACKED:
 				return "stacked";
 		}
 		return null;
@@ -4511,26 +4515,26 @@
 	function fromXml_ST_BarGrouping(val, def) {
 		switch (val) {
 			case "percentStacked":
-				return AscFormat.st_bargroupingPERCENTSTACKED;
+				return AscFormat.BAR_GROUPING_PERCENT_STACKED;
 			case "clustered":
-				return AscFormat.st_bargroupingCLUSTERED;
+				return AscFormat.BAR_GROUPING_CLUSTERED;
 			case "standard":
-				return AscFormat.st_bargroupingSTANDARD;
+				return AscFormat.BAR_GROUPING_STANDARD;
 			case "stacked":
-				return AscFormat.st_bargroupingSTACKED;
+				return AscFormat.BAR_GROUPING_STACKED;
 		}
 		return def;
 	}
 
 	function toXml_ST_BarGrouping(val) {
 		switch (val) {
-			case AscFormat.st_bargroupingPERCENTSTACKED:
+			case AscFormat.BAR_GROUPING_PERCENT_STACKED:
 				return "percentStacked";
-			case AscFormat.st_bargroupingCLUSTERED:
+			case AscFormat.BAR_GROUPING_CLUSTERED:
 				return "clustered";
-			case AscFormat.st_bargroupingSTANDARD:
+			case AscFormat.BAR_GROUPING_STANDARD:
 				return "standard";
-			case AscFormat.st_bargroupingSTACKED:
+			case AscFormat.BAR_GROUPING_STACKED:
 				return "stacked";
 		}
 		return null;
@@ -4539,34 +4543,34 @@
 	function fromXml_ST_Shape(val, def) {
 		switch (val) {
 			case "cone":
-				return AscFormat.st_shapeCONE;
+				return AscFormat.BAR_SHAPE_CONE;
 			case "coneToMax":
-				return AscFormat.st_shapeCONETOMAX;
+				return AscFormat.BAR_SHAPE_CONETOMAX;
 			case "box":
-				return AscFormat.st_shapeBOX;
+				return AscFormat.BAR_SHAPE_BOX;
 			case "cylinder":
-				return AscFormat.st_shapeCYLINDER;
+				return AscFormat.BAR_SHAPE_CYLINDER;
 			case "pyramid":
-				return AscFormat.st_shapePYRAMID;
+				return AscFormat.BAR_SHAPE_PYRAMID;
 			case "pyramidToMax":
-				return AscFormat.st_shapePYRAMIDTOMAX;
+				return AscFormat.BAR_SHAPE_PYRAMIDTOMAX;
 		}
 		return def;
 	}
 
 	function toXml_ST_Shape(val) {
 		switch (val) {
-			case AscFormat.st_shapeCONE:
+			case AscFormat.BAR_SHAPE_CONE:
 				return "cone";
-			case AscFormat.st_shapeCONETOMAX:
+			case AscFormat.BAR_SHAPE_CONETOMAX:
 				return "coneToMax";
-			case AscFormat.st_shapeBOX:
+			case AscFormat.BAR_SHAPE_BOX:
 				return "box";
-			case AscFormat.st_shapeCYLINDER:
+			case AscFormat.BAR_SHAPE_CYLINDER:
 				return "cylinder";
-			case AscFormat.st_shapePYRAMID:
+			case AscFormat.BAR_SHAPE_PYRAMID:
 				return "pyramid";
-			case AscFormat.st_shapePYRAMIDTOMAX:
+			case AscFormat.BAR_SHAPE_PYRAMIDTOMAX:
 				return "pyramidToMax";
 		}
 		return null;
@@ -4595,18 +4599,18 @@
 	function fromXml_ST_OfPieType(val, def) {
 		switch (val) {
 			case "pie":
-				return AscFormat.st_ofpietypePIE;
+				return AscFormat.OF_PIE_TYPE_PIE;
 			case "bar":
-				return AscFormat.st_ofpietypeBAR;
+				return AscFormat.OF_PIE_TYPE_BAR;
 		}
 		return def;
 	}
 
 	function toXml_ST_OfPieType(val) {
 		switch (val) {
-			case AscFormat.st_ofpietypePIE:
+			case AscFormat.OF_PIE_TYPE_PIE:
 				return "pie";
-			case AscFormat.st_ofpietypeBAR:
+			case AscFormat.OF_PIE_TYPE_BAR:
 				return "bar";
 		}
 		return null;
@@ -4615,30 +4619,30 @@
 	function fromXml_ST_SplitType(val, def) {
 		switch (val) {
 			case "auto":
-				return AscFormat.st_splittypeAUTO;
+				return AscFormat.SPLIT_TYPE_AUTO;
 			case "cust":
-				return AscFormat.st_splittypeCUST;
+				return AscFormat.SPLIT_TYPE_CUST;
 			case "percent":
-				return AscFormat.st_splittypePERCENT;
+				return AscFormat.SPLIT_TYPE_PERCENT;
 			case "pos":
-				return AscFormat.st_splittypePOS;
+				return AscFormat.SPLIT_TYPE_POS;
 			case "val":
-				return AscFormat.st_splittypeVAL;
+				return AscFormat.SPLIT_TYPE_VAL;
 		}
 		return def;
 	}
 
 	function toXml_ST_SplitType(val) {
 		switch (val) {
-			case AscFormat.st_splittypeAUTO:
+			case AscFormat.SPLIT_TYPE_AUTO:
 				return "auto";
-			case AscFormat.st_splittypeCUST:
+			case AscFormat.SPLIT_TYPE_CUST:
 				return "cust";
-			case AscFormat.st_splittypePERCENT:
+			case AscFormat.SPLIT_TYPE_PERCENT:
 				return "percent";
-			case AscFormat.st_splittypePOS:
+			case AscFormat.SPLIT_TYPE_POS:
 				return "pos";
-			case AscFormat.st_splittypeVAL:
+			case AscFormat.SPLIT_TYPE_VAL:
 				return "val";
 		}
 		return null;
@@ -4671,34 +4675,34 @@
 	function fromXml_ST_ScatterStyle(val, def) {
 		switch (val) {
 			case "none":
-				return AscFormat.st_scatterstyleNONE;
+				return AscFormat.SCATTER_STYLE_NONE;
 			case "line":
-				return AscFormat.st_scatterstyleLINE;
+				return AscFormat.SCATTER_STYLE_LINE;
 			case "lineMarker":
-				return AscFormat.st_scatterstyleLINEMARKER;
+				return AscFormat.SCATTER_STYLE_LINE_MARKER;
 			case "marker":
-				return AscFormat.st_scatterstyleMARKER;
+				return AscFormat.SCATTER_STYLE_MARKER;
 			case "smooth":
-				return AscFormat.st_scatterstyleSMOOTH;
+				return AscFormat.SCATTER_STYLE_SMOOTH;
 			case "smoothMarker":
-				return AscFormat.st_scatterstyleSMOOTHMARKER;
+				return AscFormat.SCATTER_STYLE_SMOOTH_MARKER;
 		}
 		return def;
 	}
 
 	function toXml_ST_ScatterStyle(val) {
 		switch (val) {
-			case AscFormat.st_scatterstyleNONE:
+			case AscFormat.SCATTER_STYLE_NONE:
 				return "none";
-			case AscFormat.st_scatterstyleLINE:
+			case AscFormat.SCATTER_STYLE_LINE:
 				return "line";
-			case AscFormat.st_scatterstyleLINEMARKER:
+			case AscFormat.SCATTER_STYLE_LINE_MARKER:
 				return "lineMarker";
-			case AscFormat.st_scatterstyleMARKER:
+			case AscFormat.SCATTER_STYLE_MARKER:
 				return "marker";
-			case AscFormat.st_scatterstyleSMOOTH:
+			case AscFormat.SCATTER_STYLE_SMOOTH:
 				return "smooth";
-			case AscFormat.st_scatterstyleSMOOTHMARKER:
+			case AscFormat.SCATTER_STYLE_SMOOTH_MARKER:
 				return "smoothMarker";
 		}
 		return null;
@@ -4707,18 +4711,18 @@
 	function fromXml_ST_Orientation(val, def) {
 		switch (val) {
 			case "maxMin":
-				return AscFormat.st_orientationMAXMIN;
+				return AscFormat.ORIENTATION_MAX_MIN;
 			case "minMax":
-				return AscFormat.st_orientationMINMAX;
+				return AscFormat.ORIENTATION_MIN_MAX;
 		}
 		return def;
 	}
 
 	function toXml_ST_Orientation(val) {
 		switch (val) {
-			case AscFormat.st_orientationMAXMIN:
+			case AscFormat.ORIENTATION_MAX_MIN:
 				return "maxMin";
-			case AscFormat.st_orientationMINMAX:
+			case AscFormat.ORIENTATION_MIN_MAX:
 				return "minMax";
 		}
 		return null;
@@ -4727,46 +4731,46 @@
 	function fromXml_ST_BuiltInUnit(val, def) {
 		switch (val) {
 			case "hundreds":
-				return AscFormat.st_builtinunitHUNDREDS;
+				return Asc.c_oAscValAxUnits.HUNDREDS;
 			case "thousands":
-				return AscFormat.st_builtinunitTHOUSANDS;
+				return Asc.c_oAscValAxUnits.THOUSANDS;
 			case "tenThousands":
-				return AscFormat.st_builtinunitTENTHOUSANDS;
+				return Asc.c_oAscValAxUnits.TEN_THOUSANDS;
 			case "hundredThousands":
-				return AscFormat.st_builtinunitHUNDREDTHOUSANDS;
+				return Asc.c_oAscValAxUnits.HUNDRED_THOUSANDS;
 			case "millions":
-				return AscFormat.st_builtinunitMILLIONS;
+				return Asc.c_oAscValAxUnits.MILLIONS;
 			case "tenMillions":
-				return AscFormat.st_builtinunitTENMILLIONS;
+				return Asc.c_oAscValAxUnits.TEN_MILLIONS;
 			case "hundredMillions":
-				return AscFormat.st_builtinunitHUNDREDMILLIONS;
+				return Asc.c_oAscValAxUnits.HUNDRED_MILLIONS;
 			case "billions":
-				return AscFormat.st_builtinunitBILLIONS;
+				return Asc.c_oAscValAxUnits.BILLIONS;
 			case "trillions":
-				return AscFormat.st_builtinunitTRILLIONS;
+				return Asc.c_oAscValAxUnits.TRILLIONS;
 		}
 		return def;
 	}
 
 	function toXml_ST_BuiltInUnit(val) {
 		switch (val) {
-			case AscFormat.st_builtinunitHUNDREDS:
+			case Asc.c_oAscValAxUnits.HUNDREDS:
 				return "hundreds";
-			case AscFormat.st_builtinunitTHOUSANDS:
+			case Asc.c_oAscValAxUnits.THOUSANDS:
 				return "thousands";
-			case AscFormat.st_builtinunitTENTHOUSANDS:
+			case Asc.c_oAscValAxUnits.TEN_THOUSANDS:
 				return "tenThousands";
-			case AscFormat.st_builtinunitHUNDREDTHOUSANDS:
+			case Asc.c_oAscValAxUnits.HUNDRED_THOUSANDS:
 				return "hundredThousands";
-			case AscFormat.st_builtinunitMILLIONS:
+			case Asc.c_oAscValAxUnits.MILLIONS:
 				return "millions";
-			case AscFormat.st_builtinunitTENMILLIONS:
+			case Asc.c_oAscValAxUnits.TEN_MILLIONS:
 				return "tenMillions";
-			case AscFormat.st_builtinunitHUNDREDMILLIONS:
+			case Asc.c_oAscValAxUnits.HUNDRED_MILLIONS:
 				return "hundredMillions";
-			case AscFormat.st_builtinunitBILLIONS:
+			case Asc.c_oAscValAxUnits.BILLIONS:
 				return "billions";
-			case AscFormat.st_builtinunitTRILLIONS:
+			case Asc.c_oAscValAxUnits.TRILLIONS:
 				return "trillions";
 		}
 		return null;
@@ -4775,22 +4779,22 @@
 	function fromXml_ST_LblAlgn(val, def) {
 		switch (val) {
 			case "ctr":
-				return AscFormat.st_lblalgnCTR;
+				return AscFormat.LBL_ALG_CTR;
 			case "l":
-				return AscFormat.st_lblalgnL;
+				return AscFormat.LBL_ALG_L;
 			case "r":
-				return AscFormat.st_lblalgnR;
+				return AscFormat.LBL_ALG_R;
 		}
 		return def;
 	}
 
 	function toXml_ST_LblAlgn(val) {
 		switch (val) {
-			case AscFormat.st_lblalgnCTR:
+			case AscFormat.LBL_ALG_CTR:
 				return "ctr";
-			case AscFormat.st_lblalgnL:
+			case AscFormat.LBL_ALG_L:
 				return "l";
-			case AscFormat.st_lblalgnR:
+			case AscFormat.LBL_ALG_R:
 				return "r";
 		}
 		return null;
@@ -4799,22 +4803,22 @@
 	function fromXml_ST_TimeUnit(val, def) {
 		switch (val) {
 			case "days":
-				return AscFormat.st_timeunitDAYS;
+				return AscFormat.TIME_UNIT_DAYS;
 			case "months":
-				return AscFormat.st_timeunitMONTHS;
+				return AscFormat.TIME_UNIT_MONTHS;
 			case "years":
-				return AscFormat.st_timeunitYEARS;
+				return AscFormat.TIME_UNIT_YEARS;
 		}
 		return def;
 	}
 
 	function toXml_ST_TimeUnit(val) {
 		switch (val) {
-			case AscFormat.st_timeunitDAYS:
+			case AscFormat.TIME_UNIT_DAYS:
 				return "days";
-			case AscFormat.st_timeunitMONTHS:
+			case AscFormat.TIME_UNIT_MONTHS:
 				return "months";
-			case AscFormat.st_timeunitYEARS:
+			case AscFormat.TIME_UNIT_YEARS:
 				return "years";
 		}
 		return null;
@@ -4823,26 +4827,26 @@
 	function fromXml_ST_AxPos(val, def) {
 		switch (val) {
 			case "b":
-				return AscFormat.st_axposB;
+				return AscFormat.AX_POS_B;
 			case "l":
-				return AscFormat.st_axposL;
+				return AscFormat.AX_POS_L;
 			case "r":
-				return AscFormat.st_axposR;
+				return AscFormat.AX_POS_R;
 			case "t":
-				return AscFormat.st_axposT;
+				return AscFormat.AX_POS_T;
 		}
 		return def;
 	}
 
 	function toXml_ST_AxPos(val) {
 		switch (val) {
-			case AscFormat.st_axposB:
+			case AscFormat.AX_POS_B:
 				return "b";
-			case AscFormat.st_axposL:
+			case AscFormat.AX_POS_L:
 				return "l";
-			case AscFormat.st_axposR:
+			case AscFormat.AX_POS_R:
 				return "r";
-			case AscFormat.st_axposT:
+			case AscFormat.AX_POS_T:
 				return "t";
 		}
 		return null;
@@ -4851,26 +4855,26 @@
 	function fromXml_ST_TickMark(val, def) {
 		switch (val) {
 			case "cross":
-				return AscFormat.st_tickmarkCROSS;
+				return Asc.c_oAscTickMark.TICK_MARK_CROSS;
 			case "in":
-				return AscFormat.st_tickmarkIN;
+				return Asc.c_oAscTickMark.TICK_MARK_IN;
 			case "none":
-				return AscFormat.st_tickmarkNONE;
+				return Asc.c_oAscTickMark.TICK_MARK_NONE;
 			case "out":
-				return AscFormat.st_tickmarkOUT;
+				return Asc.c_oAscTickMark.TICK_MARK_OUT;
 		}
 		return def;
 	}
 
 	function toXml_ST_TickMark(val) {
 		switch (val) {
-			case AscFormat.st_tickmarkCROSS:
+			case Asc.c_oAscTickMark.TICK_MARK_CROSS:
 				return "cross";
-			case AscFormat.st_tickmarkIN:
+			case Asc.c_oAscTickMark.TICK_MARK_IN:
 				return "in";
-			case AscFormat.st_tickmarkNONE:
+			case Asc.c_oAscTickMark.TICK_MARK_NONE:
 				return "none";
-			case AscFormat.st_tickmarkOUT:
+			case Asc.c_oAscTickMark.TICK_MARK_OUT:
 				return "out";
 		}
 		return null;
@@ -4879,26 +4883,26 @@
 	function fromXml_ST_TickLblPos(val, def) {
 		switch (val) {
 			case "high":
-				return AscFormat.st_ticklblposHIGH;
+				return AscFormat.TICK_LABEL_POSITION_HIGH;
 			case "low":
-				return AscFormat.st_ticklblposLOW;
+				return AscFormat.TICK_LABEL_POSITION_LOW;
 			case "nextTo":
-				return AscFormat.st_ticklblposNEXTTO;
+				return AscFormat.TICK_LABEL_POSITION_NEXT_TO;
 			case "none":
-				return AscFormat.st_ticklblposNONE;
+				return AscFormat.TICK_LABEL_POSITION_NONE;
 		}
 		return def;
 	}
 
 	function toXml_ST_TickLblPos(val) {
 		switch (val) {
-			case AscFormat.st_ticklblposHIGH:
+			case AscFormat.TICK_LABEL_POSITION_HIGH:
 				return "high";
-			case AscFormat.st_ticklblposLOW:
+			case AscFormat.TICK_LABEL_POSITION_LOW:
 				return "low";
-			case AscFormat.st_ticklblposNEXTTO:
+			case AscFormat.TICK_LABEL_POSITION_NEXT_TO:
 				return "nextTo";
-			case AscFormat.st_ticklblposNONE:
+			case AscFormat.TICK_LABEL_POSITION_NONE:
 				return "none";
 		}
 		return null;
@@ -4907,22 +4911,22 @@
 	function fromXml_ST_Crosses(val, def) {
 		switch (val) {
 			case "autoZero":
-				return AscFormat.st_crossesAUTOZERO;
+				return AscFormat.CROSSES_AUTO_ZERO;
 			case "max":
-				return AscFormat.st_crossesMAX;
+				return AscFormat.CROSSES_MAX;
 			case "min":
-				return AscFormat.st_crossesMIN;
+				return AscFormat.CROSSES_MIN;
 		}
 		return def;
 	}
 
 	function toXml_ST_Crosses(val) {
 		switch (val) {
-			case AscFormat.st_crossesAUTOZERO:
+			case AscFormat.CROSSES_AUTO_ZERO:
 				return "autoZero";
-			case AscFormat.st_crossesMAX:
+			case AscFormat.CROSSES_MAX:
 				return "max";
-			case AscFormat.st_crossesMIN:
+			case AscFormat.CROSSES_MIN:
 				return "min";
 		}
 		return null;
@@ -4931,18 +4935,18 @@
 	function fromXml_ST_CrossBetween(val, def) {
 		switch (val) {
 			case "between":
-				return AscFormat.st_crossbetweenBETWEEN;
+				return AscFormat.CROSS_BETWEEN_BETWEEN;
 			case "midCat":
-				return AscFormat.st_crossbetweenMIDCAT;
+				return AscFormat.CROSS_BETWEEN_MID_CAT;
 		}
 		return def;
 	}
 
 	function toXml_ST_CrossBetween(val) {
 		switch (val) {
-			case AscFormat.st_crossbetweenBETWEEN:
+			case AscFormat.CROSS_BETWEEN_BETWEEN:
 				return "between";
-			case AscFormat.st_crossbetweenMIDCAT:
+			case AscFormat.CROSS_BETWEEN_MID_CAT:
 				return "midCat";
 		}
 		return null;
