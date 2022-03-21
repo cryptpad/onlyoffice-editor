@@ -2331,6 +2331,7 @@ function CDocumentSettings()
 	this.SplitPageBreakAndParaMark        = false;
 	this.DoNotExpandShiftReturn           = false;
 	this.BalanceSingleByteDoubleByteWidth = false;
+	this.UlTrailSpaces                    = false;
 }
 
 /**
@@ -17019,6 +17020,10 @@ CDocument.prototype.IsDoNotExpandShiftReturn = function()
 CDocument.prototype.IsBalanceSingleByteDoubleByteWidth = function()
 {
 	return this.Settings.BalanceSingleByteDoubleByteWidth;
+};
+CDocument.prototype.IsUnderlineTrailSpaces = function()
+{
+	return this.Settings.UlTrailSpaces;
 };
 /**
  * Проверяем все ли параметры SdtSettings выставлены по умолчанию

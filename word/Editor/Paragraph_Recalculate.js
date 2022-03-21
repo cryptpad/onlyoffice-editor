@@ -2826,6 +2826,18 @@ CParaLineRange.prototype =
         return NewRange;
     }
 };
+CParaLineRange.prototype.CorrectX = function(nX)
+{
+	let x = nX;
+
+	if (x > this.XEnd)
+		x = this.XEnd;
+
+	if (x < this.X)
+		x = this.X;
+
+	return x;
+};
 
 function CParaPage(X, Y, XLimit, YLimit, FirstLine)
 {
