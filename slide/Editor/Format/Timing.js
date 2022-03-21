@@ -4024,7 +4024,11 @@
             "ppt_x": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_x"]) ? oAttributes["ppt_x"] : this.getOrigAttrVal("ppt_x"),
             "ppt_y": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_y"]) ? oAttributes["ppt_y"] : this.getOrigAttrVal("ppt_y"),
             "ppt_w": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_w"]) ? oAttributes["ppt_w"] : this.getOrigAttrVal("ppt_w"),
-            "ppt_h": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]) ? oAttributes["ppt_h"] : this.getOrigAttrVal("ppt_h")
+            "ppt_h": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]) ? oAttributes["ppt_h"] : this.getOrigAttrVal("ppt_h"),
+            "ppt_x_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_x"])),
+            "ppt_y_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_y"])),
+            "ppt_w_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_w"])),
+            "ppt_h_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]))
         }
     };
     CAnim.prototype.getFormulaResult = function(sFormula, oVarMap) {
@@ -11211,8 +11215,24 @@
         if(!oLastToken) {
             return null;
         }
+        if(this.checkReplaceVar(oVarMap)) {
+            this.replaceVar(oVarMap);
+        }
         oLastToken.calculate(oVarMap);
         return oLastToken.result;
+    };
+    CParseQueue.prototype.checkReplaceVar = function(oVarMap) {
+        for(var nToken = 0; nToken < this.queue.length; ++nToken) {
+            if(this.queue[nToken].checkReplaceVar(oVarMap)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CParseQueue.prototype.replaceVar = function(oVarMap) {
+        for(var nToken = 0; nToken < this.queue.length; ++nToken) {
+            this.queue[nToken].replaceVar(oVarMap);
+        }
     };
 
 
@@ -11269,6 +11289,11 @@
     CTokenBase.prototype.isOperator = function() {
         return false;
     };
+    CTokenBase.prototype.checkReplaceVar = function(oVarMap) {
+        return false;
+    };
+    CTokenBase.prototype.replaceVar = function(oVarMap) {
+    };
 
     function CConstantToken(oQueue, sValue) {
         CTokenBase.call(this, oQueue);
@@ -11293,6 +11318,17 @@
     };
     CVariableToken.prototype.setName = function(sName) {
         this.name = sName;
+    };
+    CVariableToken.prototype.checkReplaceVar = function(oVarMap) {
+        if(oVarMap[this.name + "_no_attr"] && AscFormat.isRealNumber(oVarMap["#" + this.name])) {
+            return true;
+        }
+        return false;
+    };
+    CVariableToken.prototype.replaceVar = function(oVarMap) {
+        if(AscFormat.isRealNumber(oVarMap["#" + this.name])) {
+            this.name = "#" + this.name;
+        }
     };
     function CFunctionToken(oQueue, sName) {
         CTokenBase.call(this, oQueue);
