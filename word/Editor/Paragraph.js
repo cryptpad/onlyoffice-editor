@@ -18423,7 +18423,7 @@ function CParagraphDrawStateLines()
     this.VisitedHyperlink = false;
     this.Hyperlink = false;
 
-    this.UlTrailSpaces = false;
+    this.UlTrailSpace = false;
 
     this.Strikeout  = new CParaDrawingRangeLines();
     this.DStrikeout = new CParaDrawingRangeLines();
@@ -18464,7 +18464,7 @@ CParagraphDrawStateLines.prototype =
 		let oLogicDocument = this.GetLogicDocument();
 		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
 		{
-			this.UlTrailSpaces = oLogicDocument.IsUnderlineTrailSpaces();
+			this.UlTrailSpace = oLogicDocument.IsUnderlineTrailSpace();
 		}
     },
 
@@ -18521,9 +18521,9 @@ CParagraphDrawStateLines.prototype.GetLogicDocument = function()
 {
 	return this.Paragraph.GetLogicDocument();
 };
-CParagraphDrawStateLines.prototype.IsUnderlineTrailSpaces = function()
+CParagraphDrawStateLines.prototype.IsUnderlineTrailSpace = function()
 {
-	return this.UlTrailSpaces;
+	return this.UlTrailSpace;
 };
 
 var g_oPDSH = new CParagraphDrawStateHighlights();

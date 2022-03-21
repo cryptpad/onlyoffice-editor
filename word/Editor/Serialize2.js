@@ -6945,6 +6945,8 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("doNotFlipMirrorIndents", "http://schemas.microsoft.com/office/word", "1");});
 		var flags1 = 0;
+		flags1 |= (oThis.Document.IsBalanceSingleByteDoubleByteWidth() ? 1 : 0) << 6;
+		flags1 |= (oThis.Document.IsUnderlineTrailSpace() ? 1 : 0) << 9;
 		if (this.saveParams.isCompatible) {
 			flags1 |= (oThis.Document.IsDoNotExpandShiftReturn() ? 1 : 0) << 10;
 		}
@@ -8310,6 +8312,12 @@ function BinaryFileReader(doc, openParams)
 		}
 		if (this.oReadResult.DoNotExpandShiftReturn) {
 			this.Document.Settings.DoNotExpandShiftReturn = this.oReadResult.DoNotExpandShiftReturn;
+		}
+		if (this.oReadResult.UlTrailSpace) {
+			this.Document.Settings.UlTrailSpace = this.oReadResult.UlTrailSpace;
+		}
+		if (this.oReadResult.BalanceSingleByteDoubleByteWidth) {
+			this.Document.Settings.BalanceSingleByteDoubleByteWidth = this.oReadResult.BalanceSingleByteDoubleByteWidth;
 		}
 
         this.Document.On_EndLoad();
@@ -16969,6 +16977,8 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			}
 		} else if (c_oSerCompat.Flags1 === type) {
 			var flags1 = this.stream.GetULong(length);
+			this.oReadResult.BalanceSingleByteDoubleByteWidth = 0 !== ((flags1 >> 6) & 1);
+			this.oReadResult.UlTrailSpace = 0 !== ((flags1 >> 9) & 1);
 			this.oReadResult.DoNotExpandShiftReturn = 0 != ((flags1 >> 10) & 1);
 		} else if (c_oSerCompat.Flags2 === type) {
 			var flags2 = this.stream.GetULong(length);
@@ -17510,6 +17520,8 @@ function DocReadResult(doc) {
 	this.AppVersion;
 	this.compatibilityMode = null;
 	this.SplitPageBreakAndParaMark = false;
+	this.BalanceSingleByteDoubleByteWidth = false;
+	this.UlTrailSpace = false;
 	this.DoNotExpandShiftReturn = false;
 	this.bdtr = null;
 	this.runsToSplit = [];

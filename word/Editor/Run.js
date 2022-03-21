@@ -6837,7 +6837,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 					isDraw = true;
 					PDSL.Spaces--;
 				}
-				else if (PDSL.IsUnderlineTrailSpaces())
+				else if (PDSL.IsUnderlineTrailSpace())
 				{
 					isDraw = true;
 				}
