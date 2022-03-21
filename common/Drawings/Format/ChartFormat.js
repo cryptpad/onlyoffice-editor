@@ -8788,6 +8788,50 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_BubbleChart_SetSizeRepresents, this.sizeRepresents, pr));
         this.sizeRepresents = pr;
     };
+    CBubbleChart.prototype.convertToScutterChart = function() {
+        var oScatter = new AscFormat.CScatterChart();
+        oScatter.setScatterStyle(AscFormat.SCATTER_STYLE_LINE_MARKER);
+        if (null != this.varyColors)
+            oScatter.setVaryColors(this.varyColors);
+        if (null != this.dLbls)
+            oScatter.setDLbls(this.dLbls);
+        for (var i = 0, length = this.series.length; i < length; ++i) {
+            var bubbleSer = this.series[i];
+            var scatterSer = new AscFormat.CScatterSeries();
+            if (null != bubbleSer.idx)
+                scatterSer.setIdx(bubbleSer.idx);
+            if (null != bubbleSer.order)
+                scatterSer.setOrder(bubbleSer.order);
+            if (null != bubbleSer.tx)
+                scatterSer.setTx(bubbleSer.tx);
+            //if (null != bubbleSer.spPr)
+            //    scatterSer.setSpPr(bubbleSer.spPr);
+            for (var j = 0, length2 = bubbleSer.dPt.length; j < length2; ++j) {
+                scatterSer.addDPt(bubbleSer.dPt[j]);
+            }
+            if (null != bubbleSer.dLbls)
+                scatterSer.setDLbls(bubbleSer.dLbls);
+            if (null != bubbleSer.trendline)
+                scatterSer.setTrendline(bubbleSer.trendline);
+            if (null != bubbleSer.errBars)
+                scatterSer.setErrBars(bubbleSer.errBars);
+            if (null != bubbleSer.xVal)
+                scatterSer.setXVal(bubbleSer.xVal);
+            if (null != bubbleSer.yVal)
+                scatterSer.setYVal(bubbleSer.yVal);
+            var spPr = new AscFormat.CSpPr();
+            var ln = new AscFormat.CLn();
+            ln.setW(28575);
+            var uni_fill = new AscFormat.CUniFill();
+            uni_fill.setFill(new AscFormat.CNoFill());
+            ln.setFill(uni_fill);
+            spPr.setLn(ln);
+            scatterSer.setSpPr(spPr);
+            scatterSer.setSmooth(false);
+            oScatter.addSer(scatterSer);
+        }
+        return oScatter;
+    };
 
     function CBubbleSeries() {
         CSeriesBase.call(this);
@@ -11538,6 +11582,18 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_OfPieChart_SetSplitType, this.splitType, pr));
         this.splitType = pr;
     };
+    COfPieChart.prototype.convertToPieChart = function() {
+        var oPie = new AscFormat.CPieChart();
+        if (null != this.varyColors)
+            oPie.setVaryColors(this.varyColors);
+        if (null != this.dLbls)
+            oPie.setDLbls(this.dLbls);
+        for (var i = 0, length = this.series.length; i < length; ++i) {
+            oPie.addSer(this.series[i]);
+        }
+        oPie.setFirstSliceAng(0);
+        return oPie;
+    };
 
     function CPictureOptions() {
         CBaseChartObject.call(this);
@@ -11848,6 +11904,49 @@
     };
     CRadarChart.prototype.isMarkerChart = function() {
         return false;
+    };
+    CRadarChart.prototype.convertToLineChart = function() {
+        var bMarkerNull = AscFormat.RADAR_STYLE_FILLED == this.radarStyle;
+        var oLine = new AscFormat.CLineChart();
+        oLine.setGrouping(AscFormat.GROUPING_STANDARD);
+        if (null != this.varyColors)
+            oLine.setVaryColors(this.varyColors);
+        if (null != this.dLbls)
+            oLine.setDLbls(this.dLbls);
+        for (var i = 0, length = this.series.length; i < length; ++i) {
+            var radarSer = this.series[i];
+            var lineSer = new AscFormat.CLineSeries();
+            if (null != radarSer.idx)
+                lineSer.setIdx(radarSer.idx);
+            if (null != radarSer.order)
+                lineSer.setOrder(radarSer.order);
+            if (null != radarSer.tx)
+                lineSer.setTx(radarSer.tx);
+            if (null != radarSer.spPr)
+                lineSer.setSpPr(radarSer.spPr);
+            if (null != radarSer.marker)
+                lineSer.setMarker(radarSer.marker);
+            else if(bMarkerNull){
+                var marker = new AscFormat.CMarker();
+                marker.setSymbol(AscFormat.SYMBOL_NONE);
+                lineSer.setMarker(marker);
+            }
+
+            for (var j = 0, length2 = radarSer.dPt.length; j < length2; ++j) {
+                lineSer.addDPt(radarSer.dPt[j]);
+            }
+            if (null != radarSer.dLbls)
+                lineSer.setDLbls(radarSer.dLbls);
+            if (null != radarSer.cat)
+                lineSer.setCat(radarSer.cat);
+            if (null != radarSer.val)
+                lineSer.setVal(radarSer.val);
+            lineSer.setSmooth(false);
+            oLine.addSer(lineSer);
+        }
+        oLine.setMarker(true);
+        oLine.setSmooth(false);
+        return oLine;
     };
 
     function CRadarSeries() {

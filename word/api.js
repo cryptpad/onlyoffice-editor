@@ -1536,6 +1536,7 @@ background-repeat: no-repeat;\
 			return false;
 		}
 		var xmlParserContext = new XmlParserContext();
+		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
 		if (!jsZipWrapper.loadSync(data)) {
 			return false;

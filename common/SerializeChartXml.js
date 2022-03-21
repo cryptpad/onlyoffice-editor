@@ -41,6 +41,7 @@
 	let CPageMarginsChart = window['AscFormat'].CPageMarginsChart;
 	let CPageSetup = window['AscFormat'].CPageSetup;
 	let CChart = window['AscFormat'].CChart;
+	let CLayout = window['AscFormat'].CLayout;
 	let CTitle = window['AscFormat'].CTitle;
 	let CChartText = window['AscFormat'].CChartText;
 	let CStrRef = window['AscFormat'].CStrRef;
@@ -134,7 +135,17 @@
 						break;
 					}
 					case "AlternateContent" : {
-						//todo AlternateContent
+						let elem = new CT_XmlNode();
+						elem.fromXml(reader);
+						let style;
+						if (elem.members["Choice"] && elem.members["Choice"].members["style"]) {
+							style = parseInt(elem.members["Choice"].members["style"].attributes["val"]) - 100;
+						} else if (elem.members["Fallback"] && elem.members["style"]) {
+							style = parseInt(elem.members["Fallback"].members["style"]).attributes["val"];
+						}
+						if (!isNaN(style)) {
+							this.setStyle(style);
+						}
 						break;
 					}
 					case "style" : {
@@ -187,17 +198,6 @@
 						this.setPrintSettings(elem);
 						break;
 					}
-					// case "extLst" : {
-					// 	var subDepth = reader.GetDepth();
-					// 	while (reader.ReadNextSiblingNode(subDepth)) {
-					// 		if ("ext" === reader.GetNameNoNS()) {
-					// 			elem = new CT_Extension();
-					// 			elem.fromXml(reader);
-					// 			this.extLst.push(elem);
-					// 		}
-					// 	}
-					// 	break;
-					// }
 					case "themeOverride" : {
 						//todo themeOverride
 						break;
@@ -209,6 +209,22 @@
 	};
 	CChartSpace.prototype.toXml = function(writer) {
 		var name = "c:chartSpace";
+
+		let style;
+		if(null !== this.style) {
+			style = new CT_XmlNode();
+			style.attributes["xmlns:mc"] = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+			style.members["mc:Choice"] =new CT_XmlNode();
+			style.members["mc:Choice"].attributes["Requires"] = "c14";
+			style.members["mc:Choice"].attributes["xmlns:c14"] = "http://schemas.microsoft.com/office/drawing/2007/8/2/chart";
+			style.members["mc:Choice"].members["c14:style"] =new CT_XmlNode();
+			style.members["mc:Choice"].members["c14:style"].attributes["val"] = (100 + this.style).toString();
+
+			style.members["mc:Fallback"] =new CT_XmlNode();
+			style.members["mc:Fallback"].members["c:style"] =new CT_XmlNode();
+			style.members["mc:Fallback"].members["c:style"].attributes["val"] = this.style.toString();
+		}
+
 		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlChartNamespaces);
@@ -217,7 +233,7 @@
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.date1904), "c:date1904");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(this.lang), "c:lang");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.roundedCorners), "c:roundedCorners");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.style), "c:style");
+		writer.WriteXmlNullable(style, "mc:AlternateContent");
 		writer.WriteXmlNullable(this.clrMapOvr, "c:clrMapOvr");
 		writer.WriteXmlNullable(this.pivotSource, "c:pivotSource");
 		writer.WriteXmlNullable(this.protection, "c:protection");
@@ -227,13 +243,12 @@
 		// writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.externalData), "c:externalData");
 		writer.WriteXmlNullable(this.printSettings, "c:printSettings");
 		// writer.WriteXmlNullable(this.userShapes, "c:userShapes");
-		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		// writer.WriteXmlNullable(this.themeOverride, "c:themeOverride");
 		writer.WriteXmlNodeEnd(name);
 	};
 
 	CPivotSource.prototype.fromXml = function(reader) {
-		var elem, depth = reader.GetDepth();
+		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "name" : {
@@ -259,7 +274,7 @@
 	};
 
 	CProtection.prototype.fromXml = function(reader) {
-		var elem, depth = reader.GetDepth();
+		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "chartObject" : {
@@ -350,7 +365,7 @@
 	};
 	CHeaderFooterChart.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
-		var elem, depth = reader.GetDepth();
+		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "oddHeader" : {
@@ -382,9 +397,9 @@
 	};
 	CHeaderFooterChart.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeBool("c:alignWithMargins", this.alignWithMargins);
-		writer.WriteXmlNullableAttributeBool("c:differentOddEven", this.differentOddEven);
-		writer.WriteXmlNullableAttributeBool("c:differentFirst", this.differentFirst);
+		writer.WriteXmlNullableAttributeBool("alignWithMargins", this.alignWithMargins);
+		writer.WriteXmlNullableAttributeBool("differentOddEven", this.differentOddEven);
+		writer.WriteXmlNullableAttributeBool("differentFirst", this.differentFirst);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullableValueStringEncode("c:oddHeader", this.oddHeader);
 		writer.WriteXmlNullableValueStringEncode("c:oddFooter", this.oddFooter);
@@ -431,12 +446,12 @@
 	};
 	CPageMarginsChart.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeDouble("c:l", this.l);
-		writer.WriteXmlNullableAttributeDouble("c:r", this.r);
-		writer.WriteXmlNullableAttributeDouble("c:t", this.t);
-		writer.WriteXmlNullableAttributeDouble("c:b", this.b);
-		writer.WriteXmlNullableAttributeDouble("c:header", this.header);
-		writer.WriteXmlNullableAttributeDouble("c:footer", this.footer);
+		writer.WriteXmlNullableAttributeDouble("l", this.l);
+		writer.WriteXmlNullableAttributeDouble("r", this.r);
+		writer.WriteXmlNullableAttributeDouble("t", this.t);
+		writer.WriteXmlNullableAttributeDouble("b", this.b);
+		writer.WriteXmlNullableAttributeDouble("header", this.header);
+		writer.WriteXmlNullableAttributeDouble("footer", this.footer);
 		writer.WriteXmlAttributesEnd(true);
 	};
 
@@ -504,17 +519,17 @@
 			paperWidth = this.paperWidth + "mm";
 		}
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeUInt("c:paperSize", this.paperSize);
-		writer.WriteXmlNullableAttributeStringEncode("c:paperHeight", paperHeight);
-		writer.WriteXmlNullableAttributeStringEncode("c:paperWidth", paperWidth);
-		writer.WriteXmlNullableAttributeUInt("c:firstPageNumber", this.firstPageNumber);
-		writer.WriteXmlNullableAttributeString("c:orientation", toXml_ST_PageSetupOrientation(this.orientation));
-		writer.WriteXmlNullableAttributeBool("c:blackAndWhite", this.blackAndWhite);
-		writer.WriteXmlNullableAttributeBool("c:draft", this.draft);
-		writer.WriteXmlNullableAttributeBool("c:useFirstPageNumber", this.useFirstPageNumber);
-		writer.WriteXmlNullableAttributeInt("c:horizontalDpi", this.horizontalDpi);
-		writer.WriteXmlNullableAttributeInt("c:verticalDpi", this.verticalDpi);
-		writer.WriteXmlNullableAttributeUInt("c:copies", this.copies);
+		writer.WriteXmlNullableAttributeUInt("paperSize", this.paperSize);
+		writer.WriteXmlNullableAttributeStringEncode("paperHeight", paperHeight);
+		writer.WriteXmlNullableAttributeStringEncode("paperWidth", paperWidth);
+		writer.WriteXmlNullableAttributeUInt("firstPageNumber", this.firstPageNumber);
+		writer.WriteXmlNullableAttributeString("orientation", toXml_ST_PageSetupOrientation(this.orientation));
+		writer.WriteXmlNullableAttributeBool("blackAndWhite", this.blackAndWhite);
+		writer.WriteXmlNullableAttributeBool("draft", this.draft);
+		writer.WriteXmlNullableAttributeBool("useFirstPageNumber", this.useFirstPageNumber);
+		writer.WriteXmlNullableAttributeInt("horizontalDpi", this.horizontalDpi);
+		writer.WriteXmlNullableAttributeInt("verticalDpi", this.verticalDpi);
+		writer.WriteXmlNullableAttributeUInt("copies", this.copies);
 		writer.WriteXmlAttributesEnd(true);
 	};
 
@@ -567,9 +582,9 @@
 					break;
 				}
 				case "plotArea" : {
-					elem = new AscFormat.CPlotArea();
-					elem.fromXml(reader);
 					var aChartWithAxis = [];
+					elem = new AscFormat.CPlotArea();
+					elem.fromXml(reader, aChartWithAxis);
 					elem.initPostOpen(aChartWithAxis);
 					this.setPlotArea(elem);
 					break;
@@ -586,9 +601,7 @@
 					break;
 				}
 				case "dispBlanksAs" : {
-					this.setDispBlanksAs(
-						fromXml_ST_DispBlanksAs(CT_String.prototype.toVal(reader, this.dispBlanksAs),
-							this.dispBlanksAs));
+					this.setDispBlanksAs(fromXml_ST_DispBlanksAs(CT_String.prototype.toVal(reader, this.dispBlanksAs), this.dispBlanksAs));
 					break;
 				}
 				case "showDLblsOverMax" : {
@@ -626,6 +639,64 @@
 			"c:dispBlanksAs");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showDLblsOverMax), "c:showDLblsOverMax");
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
+		writer.WriteXmlNodeEnd(name);
+	};
+
+	CLayout.prototype.fromXml = function (reader) {
+		let depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "layoutTarget" : {
+					this.setLayoutTarget(fromXml_ST_LayoutTarget(CT_String.prototype.toVal(reader, this.layoutTarget), this.layoutTarget));
+					break;
+				}
+				case "xMode" : {
+					this.setXMode(fromXml_ST_LayoutMode(CT_String.prototype.toVal(reader, this.xMode), this.xMode));
+					break;
+				}
+				case "yMode" : {
+					this.setYMode(fromXml_ST_LayoutMode(CT_String.prototype.toVal(reader, this.yMode), this.yMode));
+					break;
+				}
+				case "wMode" : {
+					this.setWMode(fromXml_ST_LayoutMode(CT_String.prototype.toVal(reader, this.wMode), this.wMode));
+					break;
+				}
+				case "hMode" : {
+					this.setHMode(fromXml_ST_LayoutMode(CT_String.prototype.toVal(reader, this.hMode), this.hMode));
+					break;
+				}
+				case "x" : {
+					this.setX(CT_Double.prototype.toVal(reader, this.x));
+					break;
+				}
+				case "y" : {
+					this.setY(CT_Double.prototype.toVal(reader, this.y));
+					break;
+				}
+				case "w" : {
+					this.setW(CT_Double.prototype.toVal(reader, this.w));
+					break;
+				}
+				case "h" : {
+					this.setH(CT_Double.prototype.toVal(reader, this.h));
+					break;
+				}
+			}
+		}
+	};
+	CLayout.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_LayoutTarget(this.layoutTarget)), "c:layoutTarget");
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_LayoutMode(this.xMode)), "c:xMode");
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_LayoutMode(this.yMode)), "c:yMode");
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_LayoutMode(this.wMode)), "c:wMode");
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_LayoutMode(this.hMode)), "c:hMode");
+		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.x), "c:x");
+		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.y), "c:y");
+		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.w), "c:w");
+		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.h), "c:h");
 		writer.WriteXmlNodeEnd(name);
 	};
 
@@ -778,7 +849,7 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.ptCount), "c:ptCount");
-		writer.WriteXmlArray(this.pt, "c:pt");
+		writer.WriteXmlArray(this.pts, "c:pt");
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -795,7 +866,7 @@
 	};
 	CStringPoint.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "v" : {
@@ -807,7 +878,7 @@
 	};
 	CStringPoint.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeUInt("c:idx", this.idx);
+		writer.WriteXmlNullableAttributeUInt("idx", this.idx);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullableValueStringEncode("c:v", this.val);
 		writer.WriteXmlNodeEnd(name);
@@ -869,7 +940,7 @@
 	};
 
 	CMarker.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "symbol" : {
@@ -915,6 +986,14 @@
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
+				case "idx" : {
+					this.setIdx(CT_UInt.prototype.toVal(reader, this.idx));
+					break;
+				}
+				case "delete" : {
+					this.setDelete(CT_Bool.prototype.toVal(reader, this.delete));
+					break;
+				}
 				case "layout" : {
 					readLayout(reader, this);
 					break;
@@ -926,6 +1005,12 @@
 					this.setTx(elem);
 					break;
 				}
+				case "numFmt" : {
+					elem = new AscFormat.CNumFmt();
+					elem.fromXml(reader);
+					this.setNumFmt(elem);
+					break;
+				}
 				case "spPr" : {
 					readSpPr(reader, this);
 					break;
@@ -934,21 +1019,65 @@
 					readTxPr(reader, this);
 					break;
 				}
+				case "dLblPos" : {
+					this.setDLblPos(
+						fromXml_ST_DLblPos(CT_String.prototype.toVal(reader, this.dLblPos), this.dLblPos));
+					break;
+				}
+				case "showLegendKey" : {
+					this.setShowLegendKey(CT_Bool.prototype.toVal(reader, this.showLegendKey));
+					break;
+				}
+				case "showVal" : {
+					this.setShowVal(CT_Bool.prototype.toVal(reader, this.showVal));
+					break;
+				}
+				case "showCatName" : {
+					this.setShowCatName(CT_Bool.prototype.toVal(reader, this.showCatName));
+					break;
+				}
+				case "showSerName" : {
+					this.setShowSerName(CT_Bool.prototype.toVal(reader, this.showSerName));
+					break;
+				}
+				case "showPercent" : {
+					this.setShowPercent(CT_Bool.prototype.toVal(reader, this.showPercent));
+					break;
+				}
+				case "showBubbleSize" : {
+					this.setShowBubbleSize(CT_Bool.prototype.toVal(reader, this.showBubbleSize));
+					break;
+				}
+				case "separator" : {
+					this.setSeparator(reader.GetTextDecodeXml());
+					break;
+				}
 			}
 		}
 	};
 	CDLbl.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.idx), "c:idx");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.bDelete), "c:delete");
 		writer.WriteXmlNullable(writeLayout(this.layout), "c:layout");
 		writer.WriteXmlNullable(this.tx, "c:tx");
+		writer.WriteXmlNullable(this.numFmt, "c:numFmt");
 		writer.WriteXmlNullable(this.spPr, "c:spPr");
 		writer.WriteXmlNullable(this.txPr, "c:txPr");
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_DLblPos(this.dLblPos)), "c:dLblPos");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showLegendKey), "c:showLegendKey");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showVal), "c:showVal");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showCatName), "c:showCatName");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showSerName), "c:showSerName");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showPercent), "c:showPercent");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showBubbleSize), "c:showBubbleSize");
+		writer.WriteXmlNullableValueStringEncode("c:separator", this.separator);
 		writer.WriteXmlNodeEnd(name);
 	};
 
 	CView3d.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "rotX" : {
@@ -1047,7 +1176,7 @@
 	};
 
 	CPictureOptions.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "applyToFront" : {
@@ -1146,7 +1275,7 @@
 	};
 
 	CLegendEntry.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "idx" : {
@@ -1179,13 +1308,13 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.idx), "c:idx");
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.delete), "c:delete");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.bDelete), "c:delete");
 		writer.WriteXmlNullable(this.txPr, "c:txPr");
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
 //CT_PlotArea
-	CPlotArea.prototype.fromXml = function(reader) {
+	CPlotArea.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -1195,106 +1324,107 @@
 				}
 				case "area3DChart" : {
 					elem = new AscFormat.CAreaChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "areaChart" : {
 					elem = new AscFormat.CAreaChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "bar3DChart" : {
 					elem = new AscFormat.CBarChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					elem.set3D(true);
 					this.addChart(elem);
 					break;
 				}
 				case "barChart" : {
 					elem = new AscFormat.CBarChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "bubbleChart" : {
 					elem = new AscFormat.CBubbleChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					//bubble -> scatter
-					//todo ConvertBubbleToScatter
-					// let scatter = this.ConvertBubbleToScatter(oNewVal, aChartWithAxis);
+					let scatter = elem.convertToScutterChart();
+					CorrectChartWithAxis(elem, scatter, aChartWithAxis);
 					this.addChart(scatter);
 					break;
 				}
 				case "doughnutChart" : {
 					elem = new AscFormat.CDoughnutChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "line3DChart" : {
 					elem = new AscFormat.CLineChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					elem.convert3Dto2D();
 					this.addChart(elem);
 					break;
 				}
 				case "lineChart" : {
 					elem = new AscFormat.CLineChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "ofPieChart" : {
 					elem = new AscFormat.COfPieChart();
-					elem.fromXml(reader);
-					//todo ConvertOfPieToPie
-					// var pie = this.ConvertOfPieToPie(oNewVal, aChartWithAxis);
+					elem.fromXml(reader, aChartWithAxis);
+					let pie = elem.convertToPieChart();
+					CorrectChartWithAxis(elem, pie, aChartWithAxis);
 					this.addChart(pie);
 					break;
 				}
 				case "pie3DChart" : {
 					elem = new AscFormat.CPieChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					elem.set3D(true);
 					this.addChart(elem);
 					break;
 				}
 				case "pieChart" : {
 					elem = new AscFormat.CPieChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "radarChart" : {
 					elem = new AscFormat.CRadarChart();
-					elem.fromXml(reader);
-					// var line = this.ConvertRadarToLine(oNewVal, aChartWithAxis);
+					elem.fromXml(reader, aChartWithAxis);
+					var line = elem.convertToLineChart();
+					CorrectChartWithAxis(elem, line, aChartWithAxis);
 					this.addChart(line);
 					break;
 				}
 				case "scatterChart" : {
 					elem = new AscFormat.CScatterChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "stockChart" : {
 					elem = new AscFormat.CStockChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "surface3DChart" : {
 					elem = new AscFormat.CSurfaceChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
 				case "surfaceChart" : {
 					elem = new AscFormat.CSurfaceChart();
-					elem.fromXml(reader);
+					elem.fromXml(reader, aChartWithAxis);
 					this.addChart(elem);
 					break;
 				}
@@ -1329,7 +1459,7 @@
 					break;
 				}
 				case "spPr" : {
-					readSpPr(reader, this)
+					readSpPr(reader, this);
 					break;
 				}
 				// case "extLst" : {
@@ -1401,7 +1531,7 @@
 	};
 
 	CDTable.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "showHorzBorder" : {
@@ -1455,7 +1585,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CAreaChart.prototype.fromXml = function(reader) {
+	CAreaChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -1487,12 +1617,12 @@
 					break;
 				}
 				case "gapDepth" : {
-					this.setGapDepth(CT_Double.prototype.toVal(reader, this.gapDepth));
+					//todo percent
+					// this.setGapDepth(CT_Double.prototype.toVal(reader, this.gapDepth));
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.axId);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 				// case "extLst" : {
@@ -1514,11 +1644,13 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_Grouping(this.grouping)), "c:grouping");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(writeChartLines(this.dropLines), "c:dropLines");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.gapDepth), "c:gapDepth");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -1719,48 +1851,14 @@
 					this.addDLbl(elem);
 					break;
 				}
-				case "dLblPos" : {
-					this.setDLblPos(
-						fromXml_ST_DLblPos(CT_String.prototype.toVal(reader, this.dLblPos), this.dLblPos));
-					break;
-				}
 				case "delete" : {
 					this.setDelete(CT_Bool.prototype.toVal(reader, this.delete));
-					break;
-				}
-				case "leaderLines" : {
-					elem = readChartLines(reader);
-					this.setLeaderLines(elem || new AscFormat.CSpPr());
 					break;
 				}
 				case "numFmt" : {
 					elem = new AscFormat.CNumFmt();
 					elem.fromXml(reader);
 					this.setNumFmt(elem);
-					break;
-				}
-				case "separator" : {
-					this.setSeparator(reader.GetTextDecodeXml());
-					break;
-				}
-				case "showBubbleSize" : {
-					this.setShowBubbleSize(CT_Bool.prototype.toVal(reader, this.showBubbleSize));
-					break;
-				}
-				case "showCatName" : {
-					this.setShowCatName(CT_Bool.prototype.toVal(reader, this.showCatName));
-					break;
-				}
-				case "showLegendKey" : {
-					this.setShowLegendKey(CT_Bool.prototype.toVal(reader, this.showLegendKey));
-					break;
-				}
-				case "showPercent" : {
-					this.setShowPercent(CT_Bool.prototype.toVal(reader, this.showPercent));
-					break;
-				}
-				case "showVal" : {
-					this.setShowVal(CT_Bool.prototype.toVal(reader, this.showVal));
 					break;
 				}
 				case "spPr" : {
@@ -1771,32 +1869,69 @@
 					readTxPr(reader, this);
 					break;
 				}
+				case "dLblPos" : {
+					this.setDLblPos(
+						fromXml_ST_DLblPos(CT_String.prototype.toVal(reader, this.dLblPos), this.dLblPos));
+					break;
+				}
+				case "showLegendKey" : {
+					this.setShowLegendKey(CT_Bool.prototype.toVal(reader, this.showLegendKey));
+					break;
+				}
+				case "showVal" : {
+					this.setShowVal(CT_Bool.prototype.toVal(reader, this.showVal));
+					break;
+				}
+				case "showCatName" : {
+					this.setShowCatName(CT_Bool.prototype.toVal(reader, this.showCatName));
+					break;
+				}
+				case "showSerName" : {
+					this.setShowSerName(CT_Bool.prototype.toVal(reader, this.showSerName));
+					break;
+				}
+				case "showPercent" : {
+					this.setShowPercent(CT_Bool.prototype.toVal(reader, this.showPercent));
+					break;
+				}
+				case "showBubbleSize" : {
+					this.setShowBubbleSize(CT_Bool.prototype.toVal(reader, this.showBubbleSize));
+					break;
+				}
+				case "separator" : {
+					this.setSeparator(reader.GetTextDecodeXml());
+					break;
+				}
+				case "showLeaderLines" : {
+					this.setShowLeaderLines(CT_Bool.prototype.toVal(reader, this.showLeaderLines));
+					break;
+				}
+				case "leaderLines" : {
+					elem = readChartLines(reader);
+					this.setLeaderLines(elem || new AscFormat.CSpPr());
+					break;
+				}
 			}
 		}
 	};
 	CDLbls.prototype.toXml = function(writer, name) {
-		//todo sequence
-		let leaderLines = null;
-		if (this.leaderLines) {
-			leaderLines = new CT_XmlNode();
-			leaderLines.members["c:spPr"] = this.leaderLines;
-		}
-
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlArray(this.dLbl, "c:dLbl");
-		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_DLblPos(this.dLblPos)), "c:dLblPos");
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.delete), "c:delete");
-		writer.WriteXmlNullable(writeChartLines(this.leaderLines), "c:leaderLines");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.bDelete), "c:delete");
 		writer.WriteXmlNullable(this.numFmt, "c:numFmt");
-		writer.WriteXmlNullableValueStringEncode("c:separator", this.separator);
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showBubbleSize), "c:showBubbleSize");
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showCatName), "c:showCatName");
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showLegendKey), "c:showLegendKey");
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showPercent), "c:showPercent");
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showVal), "c:showVal");
 		writer.WriteXmlNullable(this.spPr, "c:spPr");
 		writer.WriteXmlNullable(this.txPr, "c:txPr");
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_DLblPos(this.dLblPos)), "c:dLblPos");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showLegendKey), "c:showLegendKey");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showVal), "c:showVal");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showCatName), "c:showCatName");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showSerName), "c:showSerName");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showPercent), "c:showPercent");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showBubbleSize), "c:showBubbleSize");
+		writer.WriteXmlNullableValueStringEncode("c:separator", this.separator);
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showLeaderLines), "c:showLeaderLines");
+		writer.WriteXmlNullable(writeChartLines(this.leaderLines), "c:leaderLines");
 // 		writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -1821,8 +1956,8 @@
 	};
 	CNumFmt.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeStringEncode("c:formatCode", this.formatCode);
-		writer.WriteXmlNullableAttributeBool("c:sourceLinked", this.sourceLinked);
+		writer.WriteXmlNullableAttributeStringEncode("formatCode", this.formatCode);
+		writer.WriteXmlNullableAttributeBool("sourceLinked", this.sourceLinked);
 		writer.WriteXmlAttributesEnd(true);
 	};
 
@@ -2105,7 +2240,7 @@
 	};
 	CNumericPoint.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "v" : {
@@ -2117,10 +2252,10 @@
 	};
 	CNumericPoint.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeUInt("c:idx", this.idx);
-		writer.WriteXmlNullableAttributeStringEncode("c:formatCode", this.formatCode);
+		writer.WriteXmlNullableAttributeUInt("idx", this.idx);
+		writer.WriteXmlNullableAttributeStringEncode("formatCode", this.formatCode);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlNullableValueDouble(this.val, "c:v");
+		writer.WriteXmlNullableValueDouble("c:v", this.val);
 		writer.WriteXmlNodeEnd(name);
 	};
 
@@ -2249,7 +2384,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CBarChart.prototype.fromXml = function(reader) {
+	CBarChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -2294,8 +2429,7 @@
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.null);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 				// case "extLst" : {
@@ -2318,12 +2452,14 @@
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_BarDir(this.barDir)), "c:barDir");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_BarGrouping(this.grouping)), "c:grouping");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.gapWidth), "c:gapWidth");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.gapDepth), "c:gapDepth");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_Shape(this.shape)), "c:shape");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -2435,7 +2571,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CBubbleChart.prototype.fromXml = function(reader) {
+	CBubbleChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -2475,8 +2611,7 @@
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.null);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 				// case "extLst" : {
@@ -2497,14 +2632,16 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.bubble3D), "c:bubble3D");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.bubbleScale), "c:bubbleScale");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.showNegBubbles), "c:showNegBubbles");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_SizeRepresents(this.sizeRepresents)),
 			"c:sizeRepresents");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -2616,7 +2753,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CDoughnutChart.prototype.fromXml = function(reader) {
+	CDoughnutChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -2664,7 +2801,7 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.firstSliceAng), "c:firstSliceAng");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.holeSize), "c:holeSize");
@@ -2752,7 +2889,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CLineChart.prototype.fromXml = function(reader) {
+	CLineChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -2803,8 +2940,7 @@
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.null);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 				// case "extLst" : {
@@ -2826,14 +2962,16 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_Grouping(this.grouping)), "c:grouping");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(writeChartLines(this.dropLines), "c:dropLines");
 		writer.WriteXmlNullable(writeChartLines(this.hiLowLines), "c:hiLowLines");
 		writer.WriteXmlNullable(this.upDownBars, "c:upDownBars");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.marker), "c:marker");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.smooth), "c:smooth");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -2982,7 +3120,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	COfPieChart.prototype.fromXml = function(reader) {
+	COfPieChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -3010,12 +3148,11 @@
 				}
 				case "gapWidth" : {
 					//todo percent
-					this.setGapDepth(CT_Double.prototype.toVal(reader, this.gapDepth));
+					// this.setGapDepth(CT_Double.prototype.toVal(reader, this.gapDepth));
 					break;
 				}
 				case "splitType" : {
-					this.setSplitType(
-						fromXml_ST_SplitType(CT_String.prototype.toVal(reader, this.splitType), this.splitType));
+					this.setSplitType(fromXml_ST_SplitType(CT_String.prototype.toVal(reader, this.splitType), this.splitType));
 					break;
 				}
 				case "splitPos" : {
@@ -3028,7 +3165,7 @@
 						if ("secondPiePt" === reader.GetNameNoNS()) {
 							elem = new CT_UInt.prototype.toVal(null);
 							if (null !== elem) {
-								this.addCustSplit.push(elem);
+								this.addCustSplit(elem);
 							}
 						}
 					}
@@ -3063,15 +3200,15 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_OfPieType(this.ofPieType)), "c:ofPieType");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.gapWidth), "c:gapWidth");
-		writer.WriteXmlNullable(CT_String.prototype.fromVal(toml_ST_SplitType(this.splitType)), "c:splitType");
+		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_SplitType(this.splitType)), "c:splitType");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.splitPos), "c:splitPos");
 		if (this.custSplit.length > 0) {
 			this.WriteXmlNodeStart("c:custSplit");
 			this.WriteXmlAttributesEnd();
-			this.custSplit.forEach(function(elem, index) {
+			this.custSplit.forEach(function(elem) {
 				writer.WriteXmlNullable(CT_UInt.prototype.fromVal(elem), "c:splitPos");
 			}, this);
 			this.WriteXmlNodeEnd("c:custSplit");
@@ -3082,7 +3219,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CPieChart.prototype.fromXml = function(reader) {
+	CPieChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -3103,6 +3240,10 @@
 					this.setDLbls(elem);
 					break;
 				}
+				case "firstSliceAng" : {
+					this.setFirstSliceAng(CT_UInt.prototype.toVal(reader, this.firstSliceAng));
+					break;
+				}
 				// case "extLst" : {
 				// 	let subDepth = reader.GetDepth();
 				// 	while (reader.ReadNextSiblingNode(subDepth)) {
@@ -3121,13 +3262,14 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
+		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.firstSliceAng), "c:firstSliceAng");
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CRadarChart.prototype.fromXml = function(reader) {
+	CRadarChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -3154,8 +3296,7 @@
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.null);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 				// case "extLst" : {
@@ -3177,9 +3318,11 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_RadarStyle(this.radarStyle)), "c:radarStyle");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -3266,7 +3409,7 @@
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
-	CScatterChart.prototype.fromXml = function(reader) {
+	CScatterChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -3294,8 +3437,7 @@
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.null);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 				// case "extLst" : {
@@ -3318,9 +3460,11 @@
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_ScatterStyle(this.scatterStyle)),
 			"c:scatterStyle");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.varyColors), "c:varyColors");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		// writer.WriteXmlArray(this.extLst, "c:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -3415,7 +3559,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CStockChart.prototype.fromXml = function(reader) {
+	CStockChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -3449,8 +3593,7 @@
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.null);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 			}
@@ -3459,16 +3602,18 @@
 	CStockChart.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(writeChartLines(this.dropLines), "c:dropLines");
 		writer.WriteXmlNullable(writeChartLines(this.hiLowLines), "c:hiLowLines");
 		writer.WriteXmlNullable(this.upDownBars, "c:upDownBars");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	CSurfaceChart.prototype.fromXml = function(reader) {
+	CSurfaceChart.prototype.fromXml = function(reader, aChartWithAxis) {
 		let t = this;
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -3487,13 +3632,12 @@
 					reader.readXmlArray("bandFmt", function() {
 						elem = new AscFormat.CBandFmt();
 						elem.fromXml(reader);
-						t.addBandFmt.push(elem);
+						t.addBandFmt(elem);
 					});
 					break;
 				}
 				case "axId" : {
-					//todo aChartWithAxis
-					let axId = CT_UInt.prototype.toVal(reader, this.null);
+					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 			}
@@ -3503,13 +3647,15 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.wireframe), "c:wireframe");
-		writer.WriteXmlArray(this.ser, "c:ser");
+		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlArray(this.bandFmts, "c:bandFmts");
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(this.axId), "c:axId");
+		this.axId.forEach(function(axis) {
+			writer.WriteXmlNullable(CT_UInt.prototype.fromVal(axis.axId), "c:axId");
+		});
 		writer.WriteXmlNodeEnd(name);
 	};
 	CBandFmt.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "idx" : {
@@ -3568,7 +3714,7 @@
 	};
 
 	CScaling.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "logBase" : {
@@ -3634,7 +3780,7 @@
 	};
 
 	CCatAx.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			let name = reader.GetNameNoNS();
 			if (readAxBase(reader, name, this)) {
@@ -3684,7 +3830,7 @@
 	};
 
 	CDateAx.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			let name = reader.GetNameNoNS();
 			if (readAxBase(reader, name, this)) {
@@ -3744,7 +3890,7 @@
 	};
 
 	CSerAx.prototype.fromXml = function(reader) {
-		let elem, depth = reader.GetDepth();
+		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			let name = reader.GetNameNoNS();
 			if (readAxBase(reader, name, this)) {
@@ -3787,7 +3933,7 @@
 	function readTxPrPlain(reader) {
 		//todo CTextBody
 		let elem = new AscFormat.CTextBody();
-		elem.setContent(new AscFormat.CDrawingDocContent(elem, editor.WordControl.m_oLogicDocument.DrawingDocument, 0, 0, 0, 0, 0, 0, true));
+		elem.setContent(new AscFormat.CDrawingDocContent(elem, reader.context.DrawingDocument, 0, 0, 0, 0, 0, 0, true));
 		elem.fromXml(reader);
 		return elem;
 	}
@@ -3813,9 +3959,8 @@
 	}
 
 	function writeLayout(layout) {
-		let res = null;
+		let res = new CT_XmlNode();
 		if (layout) {
-			res = new CT_XmlNode();
 			res.members["c:manualLayout"] = layout;
 		}
 		return res;
@@ -3915,7 +4060,7 @@
 				break;
 			}
 			case "crossesAt" : {
-				ax.setCrossAx(CT_Double.prototype.toVal(reader, ax.crossesAt));
+				ax.setCrossesAt(CT_Double.prototype.toVal(reader, ax.crossesAt));
 				break;
 			}
 			case "crossBetween" : {
@@ -3930,7 +4075,7 @@
 	function writeAxBase(writer, ax) {
 		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(ax.axId), "c:axId");
 		writer.WriteXmlNullable(ax.scaling, "c:scaling");
-		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(ax.delete), "c:delete");
+		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(ax.bDelete), "c:delete");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_AxPos(ax.axPos)), "c:axPos");
 		writer.WriteXmlNullable(writeChartLines(ax.majorGridlines), "c:majorGridlines");
 		writer.WriteXmlNullable(writeChartLines(ax.minorGridlines), "c:minorGridlines");
@@ -3949,7 +4094,52 @@
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_CrossBetween(ax.crossBetween)),
 			"c:crossBetween");
 	}
+	function CorrectChartWithAxis(chartOld, chartNew, aChartWithAxis) {
+		for (var i = 0, length = aChartWithAxis.length; i < length; ++i) {
+			var item = aChartWithAxis[i];
+			if (item.chart == chartOld)
+				item.chart = chartNew;
+		}
+	}
 
+	function fromXml_ST_LayoutTarget(val, def) {
+		switch (val) {
+			case "inner":
+				return AscFormat.LAYOUT_TARGET_INNER;
+			case "outer":
+				return AscFormat.LAYOUT_TARGET_OUTER;
+		}
+		return def;
+	}
+
+	function toXml_ST_LayoutTarget(val) {
+		switch (val) {
+			case AscFormat.LAYOUT_TARGET_INNER:
+				return "inner";
+			case AscFormat.LAYOUT_TARGET_OUTER:
+				return "outer";
+		}
+		return null;
+	}
+	function fromXml_ST_LayoutMode(val, def) {
+		switch (val) {
+			case "edge":
+				return AscFormat.st_layoutmodeEDGE;
+			case "factor":
+				return AscFormat.st_layoutmodeFACTOR;
+		}
+		return def;
+	}
+
+	function toXml_ST_LayoutMode(val) {
+		switch (val) {
+			case AscFormat.st_layoutmodeEDGE:
+				return "edge";
+			case AscFormat.st_layoutmodeFACTOR:
+				return "factor";
+		}
+		return null;
+	}
 	function fromXml_ST_PageSetupOrientation(val, def) {
 		switch (val) {
 			case "default":
@@ -4661,26 +4851,26 @@
 	function fromXml_ST_TickMark(val, def) {
 		switch (val) {
 			case "cross":
-				return Asc.Cross;
+				return AscFormat.st_tickmarkCROSS;
 			case "in":
-				return Asc.In;
+				return AscFormat.st_tickmarkIN;
 			case "none":
-				return Asc.None;
+				return AscFormat.st_tickmarkNONE;
 			case "out":
-				return Asc.Out;
+				return AscFormat.st_tickmarkOUT;
 		}
 		return def;
 	}
 
 	function toXml_ST_TickMark(val) {
 		switch (val) {
-			case Asc.Cross:
+			case AscFormat.st_tickmarkCROSS:
 				return "cross";
-			case Asc.In:
+			case AscFormat.st_tickmarkIN:
 				return "in";
-			case Asc.None:
+			case AscFormat.st_tickmarkNONE:
 				return "none";
-			case Asc.Out:
+			case AscFormat.st_tickmarkOUT:
 				return "out";
 		}
 		return null;

@@ -33,11 +33,11 @@
 "use strict";
 
 (function(window, undefined) {
-	let CT_Bool = window['AscCommon'].CT_Bool;
-	let CT_String = window['AscCommon'].CT_String;
-	let CT_Int = window['AscCommon'].CT_Int;
-	let CT_UInt = window['AscCommon'].CT_UInt;
-	let CT_Double = window['AscCommon'].CT_Double;
+	let CT_BoolW = window['AscCommon'].CT_BoolW;
+	let CT_StringW = window['AscCommon'].CT_StringW;
+	let CT_IntW = window['AscCommon'].CT_IntW;
+	let CT_UIntW = window['AscCommon'].CT_UIntW;
+	let CT_DoubleW = window['AscCommon'].CT_DoubleW;
 
 //document
 	CDocument.prototype.fromZip = function(zip, context, oReadResult) {
@@ -373,7 +373,7 @@
 			switch (reader.GetNameNoNS()) {
 				case "tblStyle" : {
 					if (opt_table) {
-						elem = new CT_String();
+						elem = new CT_StringW();
 						elem.fromXml(reader);
 						if (elem.getVal(undefined)) {
 							reader.context.oReadResult.tableStyles.push(
@@ -396,18 +396,18 @@
 				// 	break;
 				// }
 				// case "bidiVisual" : {
-				// 	this.BidiVisual = new CT_Bool();
+				// 	this.BidiVisual = new CT_BoolW();
 				// 	this.BidiVisual.fromXml(reader);
 				// 	break;
 				// }
 				case "tblStyleRowBandSize" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.TableStyleRowBandSize = elem.getVal(undefined);
 					break;
 				}
 				case "tblStyleColBandSize" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.TableStyleColBandSize = elem.getVal(undefined);
 					break;
@@ -418,7 +418,7 @@
 					break;
 				}
 				case "jc" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Jc = fromXml_ST_JcTable(elem.getVal(undefined));
 					break;
@@ -452,7 +452,7 @@
 					break;
 				}
 				case "tblLayout" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.TableLayout = fromXml_ST_TblLayoutType(elem.getVal(undefined));
 					break;
@@ -474,13 +474,13 @@
 					break;
 				}
 				case "tblCaption" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.TableCaption = elem.getVal(undefined);
 					break;
 				}
 				case "tblDescription" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.TableDescription = elem.getVal(undefined);
 					break;
@@ -497,16 +497,16 @@
 	CTablePr.prototype.toXml = function(writer, name, opt_table) {
 		var TableStyle;
 		if (opt_table) {
-			TableStyle = CT_String.prototype.fromVal(opt_table.Get_TableStyle());
+			TableStyle = CT_StringW.prototype.fromVal(opt_table.Get_TableStyle());
 		}
 		var TblpPr;
 		if (opt_table && !opt_table.Inline) {
 			TblpPr = new CT_TblPPr();
 			TblpPr.fromTable(opt_table);
 		}
-		var TableStyleRowBandSize = CT_Int.prototype.fromVal(this.TableStyleRowBandSize);
-		var TableStyleColBandSize = CT_Int.prototype.fromVal(this.TableStyleColBandSize);
-		var Jc = CT_String.prototype.fromVal(toXml_ST_JcTable(this.Jc));
+		var TableStyleRowBandSize = CT_IntW.prototype.fromVal(this.TableStyleRowBandSize);
+		var TableStyleColBandSize = CT_IntW.prototype.fromVal(this.TableStyleColBandSize);
+		var Jc = CT_StringW.prototype.fromVal(toXml_ST_JcTable(this.Jc));
 		var TableCellSpacing;
 		if (undefined !== this.TableCellSpacing) {
 			TableCellSpacing = new CTableMeasurement(tblwidth_Mm, this.TableCellSpacing * g_dKoef_mm_to_twips / 2);
@@ -520,7 +520,7 @@
 		if (TableBorders.isEmpty()) {
 			TableBorders = null;
 		}
-		var TableLayout = CT_String.prototype.fromVal(toXml_ST_TblLayoutType(this.TableLayout));
+		var TableLayout = CT_StringW.prototype.fromVal(toXml_ST_TblLayoutType(this.TableLayout));
 		var TableCellMar;
 		if (this.TableCellMar) {
 			TableCellMar = new CT_TblCellMar();
@@ -529,8 +529,8 @@
 				TableCellMar = null;
 			}
 		}
-		var TableCaption = CT_String.prototype.fromVal(this.TableCaption);
-		var TableDescription = CT_String.prototype.fromVal(this.TableDescription);
+		var TableCaption = CT_StringW.prototype.fromVal(this.TableCaption);
+		var TableDescription = CT_StringW.prototype.fromVal(this.TableDescription);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -664,12 +664,12 @@
 	};
 	AscCommon.CTableLook.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeBool("w:firstRow", this.Is_FirstRow());
-		writer.WriteXmlNullableAttributeBool("w:lastRow", this.Is_LastRow());
-		writer.WriteXmlNullableAttributeBool("w:firstColumn", this.Is_FirstCol());
-		writer.WriteXmlNullableAttributeBool("w:lastColumn", this.Is_LastCol());
-		writer.WriteXmlNullableAttributeBool("w:noHBand", !this.Is_BandHor());
-		writer.WriteXmlNullableAttributeBool("w:noVBand", !this.Is_BandVer());
+		writer.WriteXmlNullableAttributeBool("w:firstRow", this.IsFirstRow());
+		writer.WriteXmlNullableAttributeBool("w:lastRow", this.IsLastRow());
+		writer.WriteXmlNullableAttributeBool("w:firstColumn", this.IsFirstCol());
+		writer.WriteXmlNullableAttributeBool("w:lastColumn", this.IsLastCol());
+		writer.WriteXmlNullableAttributeBool("w:noHBand", !this.IsBandHor());
+		writer.WriteXmlNullableAttributeBool("w:noVBand", !this.IsBandVer());
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CTableRow.prototype.readAttr = function(reader) {
@@ -742,18 +742,18 @@
 				// 	break;
 				// }
 				// case "divId" : {
-				// 	this.DivId = new CT_Int();
+				// 	this.DivId = new CT_IntW();
 				// 	this.DivId.fromXml(reader);
 				// 	break;
 				// }
 				case "gridBefore" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.GridBefore = elem.getVal(undefined);
 					break;
 				}
 				case "gridAfter" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.GridAfter = elem.getVal(undefined);
 					break;
@@ -769,7 +769,7 @@
 					break;
 				}
 				case "cantSplit" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.CantSplit = elem.getVal(undefined);
 					break;
@@ -780,7 +780,7 @@
 					break;
 				}
 				case "tblHeader" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.TableHeader = elem.getVal(undefined);
 					break;
@@ -795,13 +795,13 @@
 					break;
 				}
 				case "jc" : {
-					var Jc = new CT_String();
+					var Jc = new CT_StringW();
 					Jc.fromXml(reader);
 					this.Jc = fromXml_ST_JcTable(Jc.getVal(undefined));
 					break;
 				}
 				// case "hidden" : {
-				// 	this.Hidden = new CT_Bool();
+				// 	this.Hidden = new CT_BoolW();
 				// 	this.Hidden.fromXml(reader);
 				// 	break;
 				// }
@@ -825,15 +825,15 @@
 		}
 	};
 	CTableRowPr.prototype.toXml = function(writer, name) {
-		var GridBefore = CT_Int.prototype.fromVal(this.GridBefore);
-		var GridAfter = CT_Int.prototype.fromVal(this.GridAfter);
-		var CantSplit = CT_Bool.prototype.fromVal(this.CantSplit);
-		var TableHeader = CT_Bool.prototype.fromVal(this.TableHeader);
+		var GridBefore = CT_IntW.prototype.fromVal(this.GridBefore);
+		var GridAfter = CT_IntW.prototype.fromVal(this.GridAfter);
+		var CantSplit = CT_BoolW.prototype.fromVal(this.CantSplit);
+		var TableHeader = CT_BoolW.prototype.fromVal(this.TableHeader);
 		var TableCellSpacing;
 		if (undefined !== this.TableCellSpacing) {
 			TableCellSpacing = new CTableMeasurement(tblwidth_Mm, Pr.TableCellSpacing * g_dKoef_mm_to_twips / 2);
 		}
-		var Jc = CT_String.prototype.fromVal(toXml_ST_JcTable(this.Jc));
+		var Jc = CT_StringW.prototype.fromVal(toXml_ST_JcTable(this.Jc));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -961,21 +961,21 @@
 					break;
 				}
 				case "gridSpan" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.GridSpan = elem.getVal(undefined);
 					break;
 				}
 				case "hverge" :
 				case "hMerge" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.HMerge = fromXml_ST_Merge(elem.getVal(undefined));
 					break;
 				}
 				case "vmerge" :
 				case "vMerge" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.VMerge = fromXml_ST_Merge(elem.getVal(undefined));
 					break;
@@ -992,7 +992,7 @@
 					break;
 				}
 				case "noWrap" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.NoWrap = elem.getVal(undefined);
 					break;
@@ -1005,24 +1005,24 @@
 					break;
 				}
 				case "textDirection" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.TextDirection = fromXml_ST_TextDirection(elem.getVal(undefined));
 					break;
 				}
 				// case "tcFitText" : {
-				// 	this.TcFitText = new CT_Bool();
+				// 	this.TcFitText = new CT_BoolW();
 				// 	this.TcFitText.fromXml(reader);
 				// 	break;
 				// }
 				case "vAlign" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.VAlign = fromXml_ST_VerticalJc(elem.getVal(undefined));
 					break;
 				}
 				// case "hideMark" : {
-				// 	this.HideMark = new CT_Bool();
+				// 	this.HideMark = new CT_BoolW();
 				// 	this.HideMark.fromXml(reader);
 				// 	break;
 				// }
@@ -1055,15 +1055,15 @@
 		}
 	};
 	CTableCellPr.prototype.toXml = function(writer, name) {
-		var GridSpan = CT_Int.prototype.fromVal(this.GridSpan);
-		var HMerge = CT_String.prototype.fromVal(toXml_ST_Merge(this.HMerge));
-		var VMerge = CT_String.prototype.fromVal(toXml_ST_Merge(this.VMerge));
+		var GridSpan = CT_IntW.prototype.fromVal(this.GridSpan);
+		var HMerge = CT_StringW.prototype.fromVal(toXml_ST_Merge(this.HMerge));
+		var VMerge = CT_StringW.prototype.fromVal(toXml_ST_Merge(this.VMerge));
 		var TableCellBorders = new CT_Bdr();
 		TableCellBorders.fromObj(this.TableCellBorders);
 		if (TableCellBorders.isEmpty()) {
 			TableCellBorders = null;
 		}
-		var NoWrap = CT_Bool.prototype.fromVal(this.NoWrap);
+		var NoWrap = CT_BoolW.prototype.fromVal(this.NoWrap);
 		var TableCellMar;
 		if (this.TableCellMar) {
 			TableCellMar = new CT_TblCellMar();
@@ -1072,8 +1072,8 @@
 				TableCellMar = null;
 			}
 		}
-		var TextDirection = CT_String.prototype.fromVal(toXml_ST_TextDirection(this.TextDirection));
-		var VAlign = CT_String.prototype.fromVal(toXml_ST_VerticalJc(this.VAlign));
+		var TextDirection = CT_StringW.prototype.fromVal(toXml_ST_TextDirection(this.TextDirection));
+		var VAlign = CT_StringW.prototype.fromVal(toXml_ST_VerticalJc(this.VAlign));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -1204,25 +1204,25 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "pStyle" : {
-					var pStyle = new CT_String();
+					var pStyle = new CT_StringW();
 					pStyle.fromXml(reader);
 					this.PStyle = pStyle.getVal(undefined);
 					break;
 				}
 				case "keepNext" : {
-					var keepNext = new CT_Bool();
+					var keepNext = new CT_BoolW();
 					keepNext.fromXml(reader);
 					this.KeepNext = keepNext.getVal(undefined);
 					break;
 				}
 				case "keepLines" : {
-					var keepLines = new CT_Bool();
+					var keepLines = new CT_BoolW();
 					keepLines.fromXml(reader);
 					this.KeepLines = keepLines.getVal(undefined);
 					break;
 				}
 				case "pageBreakBefore" : {
-					var pageBreakBefore = new CT_Bool();
+					var pageBreakBefore = new CT_BoolW();
 					pageBreakBefore.fromXml(reader);
 					this.PageBreakBefore = pageBreakBefore.getVal(undefined);
 					break;
@@ -1233,7 +1233,7 @@
 					break;
 				}
 				case "widowControl" : {
-					var widowControl = new CT_Bool();
+					var widowControl = new CT_BoolW();
 					widowControl.fromXml(reader);
 					this.WidowControl = widowControl.getVal(undefined);
 					break;
@@ -1245,7 +1245,7 @@
 					break;
 				}
 				case "suppressLineNumbers" : {
-					var suppressLineNumbers = new CT_Bool();
+					var suppressLineNumbers = new CT_BoolW();
 					suppressLineNumbers.fromXml(reader);
 					this.SuppressLineNumbers = suppressLineNumbers.getVal(undefined);
 					break;
@@ -1276,52 +1276,52 @@
 					break;
 				}
 				// case "suppressAutoHyphens" : {
-				// 	this.Suppressautohyphens = new CT_Bool();
+				// 	this.Suppressautohyphens = new CT_BoolW();
 				// 	this.Suppressautohyphens.fromXml(reader);
 				// 	break;
 				// }
 				// case "kinsoku" : {
-				// 	this.Kinsoku = new CT_Bool();
+				// 	this.Kinsoku = new CT_BoolW();
 				// 	this.Kinsoku.fromXml(reader);
 				// 	break;
 				// }
 				// case "wordWrap" : {
-				// 	this.Wordwrap = new CT_Bool();
+				// 	this.Wordwrap = new CT_BoolW();
 				// 	this.Wordwrap.fromXml(reader);
 				// 	break;
 				// }
 				// case "overflowPunct" : {
-				// 	this.Overflowpunct = new CT_Bool();
+				// 	this.Overflowpunct = new CT_BoolW();
 				// 	this.Overflowpunct.fromXml(reader);
 				// 	break;
 				// }
 				// case "topLinePunct" : {
-				// 	this.Toplinepunct = new CT_Bool();
+				// 	this.Toplinepunct = new CT_BoolW();
 				// 	this.Toplinepunct.fromXml(reader);
 				// 	break;
 				// }
 				// case "autoSpaceDE" : {
-				// 	this.Autospacede = new CT_Bool();
+				// 	this.Autospacede = new CT_BoolW();
 				// 	this.Autospacede.fromXml(reader);
 				// 	break;
 				// }
 				// case "autoSpaceDN" : {
-				// 	this.Autospacedn = new CT_Bool();
+				// 	this.Autospacedn = new CT_BoolW();
 				// 	this.Autospacedn.fromXml(reader);
 				// 	break;
 				// }
 				// case "bidi" : {
-				// 	this.Bidi = new CT_Bool();
+				// 	this.Bidi = new CT_BoolW();
 				// 	this.Bidi.fromXml(reader);
 				// 	break;
 				// }
 				// case "adjustRightInd" : {
-				// 	this.Adjustrightind = new CT_Bool();
+				// 	this.Adjustrightind = new CT_BoolW();
 				// 	this.Adjustrightind.fromXml(reader);
 				// 	break;
 				// }
 				// case "snapToGrid" : {
-				// 	this.Snaptogrid = new CT_Bool();
+				// 	this.Snaptogrid = new CT_BoolW();
 				// 	this.Snaptogrid.fromXml(reader);
 				// 	break;
 				// }
@@ -1336,23 +1336,23 @@
 					break;
 				}
 				case "contextualSpacing" : {
-					var contextualSpacing = new CT_Bool();
+					var contextualSpacing = new CT_BoolW();
 					contextualSpacing.fromXml(reader);
 					this.ContextualSpacing = contextualSpacing.getVal(undefined);
 					break;
 				}
 				// case "mirrorIndents" : {
-				// 	this.Mirrorindents = new CT_Bool();
+				// 	this.Mirrorindents = new CT_BoolW();
 				// 	this.Mirrorindents.fromXml(reader);
 				// 	break;
 				// }
 				// case "suppressOverlap" : {
-				// 	this.Suppressoverlap = new CT_Bool();
+				// 	this.Suppressoverlap = new CT_BoolW();
 				// 	this.Suppressoverlap.fromXml(reader);
 				// 	break;
 				// }
 				case "jc" : {
-					var jc = new CT_String();
+					var jc = new CT_StringW();
 					jc.fromXml(reader);
 					this.Jc = fromXml_ST_Jc1(jc.getVal(undefined));
 					break;
@@ -1373,13 +1373,13 @@
 				// 	break;
 				// }
 				case "outlineLvl" : {
-					var outlineLvl = new CT_Int();
+					var outlineLvl = new CT_IntW();
 					outlineLvl.fromXml(reader);
 					this.OutlineLvl = outlineLvl.getVal(undefined);
 					break;
 				}
 				// case "divId" : {
-				// 	this.Divid = new CT_Int();
+				// 	this.Divid = new CT_IntW();
 				// 	this.Divid.fromXml(reader);
 				// 	break;
 				// }
@@ -1410,12 +1410,12 @@
 		}
 	};
 	CParaPr.prototype.toXml = function(writer, name, opt_paragraph) {
-		var PStyle = CT_String.prototype.fromVal(this.PStyle);
-		var KeepNext = CT_Bool.prototype.fromVal(this.KeepNext);
-		var KeepLines = CT_Bool.prototype.fromVal(this.KeepLines);
-		var PageBreakBefore = CT_Bool.prototype.fromVal(this.PageBreakBefore);
-		var WidowControl = CT_Bool.prototype.fromVal(this.WidowControl);
-		var SuppressLineNumbers = CT_Bool.prototype.fromVal(this.SuppressLineNumbers);
+		var PStyle = CT_StringW.prototype.fromVal(this.PStyle);
+		var KeepNext = CT_BoolW.prototype.fromVal(this.KeepNext);
+		var KeepLines = CT_BoolW.prototype.fromVal(this.KeepLines);
+		var PageBreakBefore = CT_BoolW.prototype.fromVal(this.PageBreakBefore);
+		var WidowControl = CT_BoolW.prototype.fromVal(this.WidowControl);
+		var SuppressLineNumbers = CT_BoolW.prototype.fromVal(this.SuppressLineNumbers);
 		var pBdr = new CT_Bdr();
 		pBdr.fromObj(this.Brd);
 		if (pBdr.isEmpty()) {
@@ -1423,10 +1423,10 @@
 		}
 		var Spacing = this.Spacing.Is_Empty() ? null : this.Spacing;
 		var Ind = this.Ind.Is_Empty() ? null : this.Ind;
-		var ContextualSpacing = CT_Bool.prototype.fromVal(this.ContextualSpacing);
-		var OutlineLvl = CT_Int.prototype.fromVal(this.OutlineLvl);
+		var ContextualSpacing = CT_BoolW.prototype.fromVal(this.ContextualSpacing);
+		var OutlineLvl = CT_IntW.prototype.fromVal(this.OutlineLvl);
 		var JcStr = toXml_ST_Jc1(this.Jc);
-		var Jc = JcStr ? CT_String.prototype.fromVal(JcStr) : null;
+		var Jc = JcStr ? CT_StringW.prototype.fromVal(JcStr) : null;
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -1586,13 +1586,13 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "ilvl" : {
-					var ilvl = new CT_Int();
+					var ilvl = new CT_IntW();
 					ilvl.fromXml(reader);
 					this.Lvl = ilvl.getVal(this.Lvl);
 					break;
 				}
 				case "numId" : {
-					var numId = new CT_Int();
+					var numId = new CT_IntW();
 					numId.fromXml(reader);
 					this.NumId = numId.getVal(this.NumId);
 					break;
@@ -1606,9 +1606,9 @@
 		}
 	};
 	CNumPr.prototype.toXml = function(writer, name) {
-		var ilvl = new CT_Int();
+		var ilvl = new CT_IntW();
 		ilvl.val = this.Lvl;
-		var numId = new CT_Int();
+		var numId = new CT_IntW();
 		numId.val = writer.context.oNumIdMap[this.NumId] || 0;
 
 		writer.WriteXmlNodeStart(name);
@@ -2040,7 +2040,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "rStyle" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.RStyle = elem.getVal(undefined);
 					break;
@@ -2052,97 +2052,97 @@
 					break;
 				}
 				case "b" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Bold = elem.getVal(undefined);
 					break;
 				}
 				case "bCs" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.BoldCS = elem.getVal(undefined);
 					break;
 				}
 				case "i" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Italic = elem.getVal(undefined);
 					break;
 				}
 				case "iCs" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.ItalicCS = elem.getVal(undefined);
 					break;
 				}
 				case "caps" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Caps = elem.getVal(undefined);
 					break;
 				}
 				case "smallCaps" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.SmallCaps = elem.getVal(undefined);
 					break;
 				}
 				case "strike" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Strikeout = elem.getVal(undefined);
 					break;
 				}
 				case "dstrike" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.DStrikeout = elem.getVal(undefined);
 					break;
 				}
 				// case "outline" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Outline.push(elem);
 				// 	break;
 				// }
 				// case "shadow" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Shadow.push(elem);
 				// 	break;
 				// }
 				// case "emboss" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Emboss.push(elem);
 				// 	break;
 				// }
 				// case "imprint" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Imprint.push(elem);
 				// 	break;
 				// }
 				// case "noProof" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Noproof.push(elem);
 				// 	break;
 				// }
 				// case "snapToGrid" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Snaptogrid.push(elem);
 				// 	break;
 				// }
 				case "vanish" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Vanish = elem.getVal(undefined);
 					break;
 				}
 				// case "webHidden" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Webhidden.push(elem);
 				// 	break;
@@ -2155,7 +2155,7 @@
 					break;
 				}
 				case "spacing" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Spacing =
 						AscCommon.universalMeasureToMm(elem.getVal(undefined), AscCommonWord.g_dKoef_twips_to_mm,
@@ -2175,7 +2175,7 @@
 				// 	break;
 				// }
 				case "position" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Position =
 						AscCommon.universalMeasureToMm(elem.getVal(undefined), AscCommonWord.g_dKoef_pt_to_mm / 2,
@@ -2183,7 +2183,7 @@
 					break;
 				}
 				case "sz" : {
-					elem = new CT_UInt();
+					elem = new CT_UIntW();
 					elem.fromXml(reader);
 					var fontSize = elem.getVal(undefined);
 					if (undefined !== fontSize) {
@@ -2192,7 +2192,7 @@
 					break;
 				}
 				case "szCs" : {
-					elem = new CT_UInt();
+					elem = new CT_UIntW();
 					elem.fromXml(reader);
 					var fontSizeCS = elem.getVal(undefined);
 					if (undefined !== fontSizeCS) {
@@ -2201,7 +2201,7 @@
 					break;
 				}
 				case "highlight" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					if (AscFormat.mapPrstColor[elem.getVal(undefined)]) {
 						var highlight = new CDocumentColor(255, 255, 255);
@@ -2244,19 +2244,19 @@
 				// 	break;
 				// }
 				case "vertAlign" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.VertAlign = fromXml_ST_VerticalAlignRun(elem.getVal(undefined));
 					break;
 				}
 				case "rtl" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.RTL = elem.getVal(undefined);
 					break;
 				}
 				case "cs" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.CS = elem.getVal(undefined);
 					break;
@@ -2280,13 +2280,13 @@
 				// 	break;
 				// }
 				// case "specVanish" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Vanish = elem.getVal(undefined);
 				// 	break;
 				// }
 				// case "oMath" : {
-				// 	elem = new CT_Bool();
+				// 	elem = new CT_BoolW();
 				// 	elem.fromXml(reader);
 				// 	this.Omath.push(elem);
 				// 	break;
@@ -2301,39 +2301,39 @@
 		}
 	};
 	CTextPr.prototype.toXml = function(writer, name) {
-		var RStyle = CT_String.prototype.fromVal(this.RStyle);
+		var RStyle = CT_StringW.prototype.fromVal(this.RStyle);
 		var RFonts = this.RFonts && this.RFonts.Is_Empty() ? null : this.RFonts;
-		var Bold = CT_Bool.prototype.fromVal(this.Bold);
-		var BoldCS = CT_Bool.prototype.fromVal(this.BoldCS);
-		var Italic = CT_Bool.prototype.fromVal(this.Italic);
-		var ItalicCS = CT_Bool.prototype.fromVal(this.ItalicCS);
-		var Caps = CT_Bool.prototype.fromVal(this.Caps);
-		var SmallCaps = CT_Bool.prototype.fromVal(this.SmallCaps);
-		var Strikeout = CT_Bool.prototype.fromVal(this.Strikeout);
-		var DStrikeout = CT_Bool.prototype.fromVal(this.DStrikeout);
-		var Vanish = CT_Bool.prototype.fromVal(this.Vanish);
+		var Bold = CT_BoolW.prototype.fromVal(this.Bold);
+		var BoldCS = CT_BoolW.prototype.fromVal(this.BoldCS);
+		var Italic = CT_BoolW.prototype.fromVal(this.Italic);
+		var ItalicCS = CT_BoolW.prototype.fromVal(this.ItalicCS);
+		var Caps = CT_BoolW.prototype.fromVal(this.Caps);
+		var SmallCaps = CT_BoolW.prototype.fromVal(this.SmallCaps);
+		var Strikeout = CT_BoolW.prototype.fromVal(this.Strikeout);
+		var DStrikeout = CT_BoolW.prototype.fromVal(this.DStrikeout);
+		var Vanish = CT_BoolW.prototype.fromVal(this.Vanish);
 		var Color = new CT_Color("val", "themeColor", "themeTint", "themeShade");
 		Color.setColor(this.Color);
 		Color.setUniFill(this.Unifill);
 		var Spacing;
 		if (undefined !== this.Spacing) {
-			Spacing = CT_Int.prototype.fromVal(this.Spacing * g_dKoef_mm_to_twips);
+			Spacing = CT_IntW.prototype.fromVal(this.Spacing * g_dKoef_mm_to_twips);
 		}
 		var Position;
 		if (undefined !== this.Position) {
-			Position = CT_Int.prototype.fromVal(this.Position * g_dKoef_mm_to_pt * 2);
+			Position = CT_IntW.prototype.fromVal(this.Position * g_dKoef_mm_to_pt * 2);
 		}
 		var FontSize;
 		if (undefined !== this.FontSize) {
-			FontSize = CT_UInt.prototype.fromVal(this.FontSize * 2);
+			FontSize = CT_UIntW.prototype.fromVal(this.FontSize * 2);
 		}
 		var FontSizeCS;
 		if (undefined !== this.FontSizeCS) {
-			FontSizeCS = CT_UInt.prototype.fromVal(this.FontSizeCS * 2);
+			FontSizeCS = CT_UIntW.prototype.fromVal(this.FontSizeCS * 2);
 		}
 		var Highlight;
 		if (undefined !== this.Highlight) {
-			Highlight = CT_String.prototype.fromVal(
+			Highlight = CT_StringW.prototype.fromVal(
 				highlight_None !== this.Highlight ? this.Highlight.ToHexColor() : "none");
 		}
 		var Underline;
@@ -2341,9 +2341,9 @@
 			Underline = new CT_Underline();
 			Underline.Val = this.Underline;
 		}
-		var VertAlign = CT_String.prototype.fromVal(toXml_ST_VerticalAlignRun(this.VertAlign));
-		var RTL = CT_Bool.prototype.fromVal(this.RTL);
-		var CS = CT_Bool.prototype.fromVal(this.CS);
+		var VertAlign = CT_StringW.prototype.fromVal(toXml_ST_VerticalAlignRun(this.VertAlign));
+		var RTL = CT_BoolW.prototype.fromVal(this.RTL);
+		var CS = CT_BoolW.prototype.fromVal(this.CS);
 		var Lang = this.Lang && this.Lang.Is_Empty() ? null : this.Lang;
 
 		writer.WriteXmlNodeStart(name);
@@ -2572,7 +2572,7 @@
 					break;
 				}
 				case "type" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Type = fromXml_ST_SectionMark(elem.getVal(undefined));
 					break;
@@ -2624,7 +2624,7 @@
 					break;
 				}
 				// case "formProt" : {
-				// 	this.FormProt = new CT_Bool();
+				// 	this.FormProt = new CT_BoolW();
 				// 	this.FormProt.fromXml(reader);
 				// 	break;
 				// }
@@ -2634,12 +2634,12 @@
 				// 	break;
 				// }
 				// case "noEndnote" : {
-				// 	this.NoEndnote = new CT_Bool();
+				// 	this.NoEndnote = new CT_BoolW();
 				// 	this.NoEndnote.fromXml(reader);
 				// 	break;
 				// }
 				case "titlePg" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Set_TitlePage(elem.getVal(undefined));
 					break;
@@ -2650,12 +2650,12 @@
 				// 	break;
 				// }
 				// case "bidi" : {
-				// 	this.Bidi = new CT_Bool();
+				// 	this.Bidi = new CT_BoolW();
 				// 	this.Bidi.fromXml(reader);
 				// 	break;
 				// }
 				case "rtlGutter" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.SetGutterRTL(elem.getVal(undefined));
 					break;
@@ -2693,9 +2693,9 @@
 				HdrFtrRefs[index] = HeaderReferenceDef;
 			}
 		});
-		var Type = CT_String.prototype.fromVal(toXml_ST_SectionMark(this.Type));
-		var TitlePage = CT_Bool.prototype.fromVal(this.TitlePage);
-		var GutterRTL = CT_Bool.prototype.fromVal(this.GutterRTL);
+		var Type = CT_StringW.prototype.fromVal(toXml_ST_SectionMark(this.Type));
+		var TitlePage = CT_BoolW.prototype.fromVal(this.TitlePage);
+		var GutterRTL = CT_BoolW.prototype.fromVal(this.GutterRTL);
 
 		writer.WriteXmlNodeStart(name);
 		// writer.WriteXmlNullableAttributeByte("w:rsidRPr", this.RsidRPr);
@@ -3010,7 +3010,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "pos" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					if (isFootnotePr) {
 						this.Pos = fromXml_ST_FtnPos(reader.GetValue(), this.Pos);
@@ -3020,19 +3020,19 @@
 					break;
 				}
 				case "numFmt" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.NumFormat = fromXml_ST_NumberFormat(reader.GetValue(), this.NumFormat);
 					break;
 				}
 				case "numStart" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.NumStart = elem.getVal(undefined);
 					break;
 				}
 				case "numRestart" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.NumRestart = fromXml_ST_RestartNumber(reader.GetValue(), this.NumRestart);
 					break;
@@ -3043,13 +3043,13 @@
 	CFootnotePr.prototype.toXml = function(writer, name, isFootnotePr) {
 		var Pos;
 		if(isFootnotePr) {
-			Pos = CT_String.prototype.fromVal(toXml_ST_FtnPos(this.Pos));
+			Pos = CT_StringW.prototype.fromVal(toXml_ST_FtnPos(this.Pos));
 		} else {
-			Pos = CT_String.prototype.fromVal(toXml_ST_EdnPos(this.Pos));
+			Pos = CT_StringW.prototype.fromVal(toXml_ST_EdnPos(this.Pos));
 		}
-		var NumFmt = CT_String.prototype.fromVal(toXml_ST_NumberFormat(this.NumFmt));
-		var NumStart = CT_Int.prototype.fromVal(this.NumStart);
-		var NumRestart = CT_String.prototype.fromVal(toXml_ST_RestartNumber(this.NumRestart));
+		var NumFmt = CT_StringW.prototype.fromVal(toXml_ST_NumberFormat(this.NumFmt));
+		var NumStart = CT_IntW.prototype.fromVal(this.NumStart);
+		var NumRestart = CT_StringW.prototype.fromVal(toXml_ST_RestartNumber(this.NumRestart));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
@@ -3184,86 +3184,86 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "name" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Set_Name(elem.getVal(undefined));
 					break;
 				}
 				// case "aliases" : {
-				// 	this.Aliases = new CT_String();
+				// 	this.Aliases = new CT_StringW();
 				// 	this.Aliases.fromXml(reader);
 				// 	break;
 				// }
 				case "basedOn" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Set_BasedOn(elem.getVal(undefined));
 					break;
 				}
 				case "next" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Set_Next(elem.getVal(undefined));
 					break;
 				}
 				case "link" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Set_Link(elem.getVal(undefined));
 					break;
 				}
 				// case "autoRedefine" : {
-				// 	this.AutoRedefine = new CT_Bool();
+				// 	this.AutoRedefine = new CT_BoolW();
 				// 	this.AutoRedefine.fromXml(reader);
 				// 	break;
 				// }
 				case "hidden" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Set_QFormat(elem.getVal(undefined));
 					break;
 				}
 				case "uiPriority" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.Set_UiPriority(elem.getVal(undefined));
 					break;
 				}
 				case "semiHidden" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Set_SemiHidden(elem.getVal(undefined));
 					break;
 				}
 				case "unhideWhenUsed" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Set_UnhideWhenUsed(elem.getVal(undefined));
 					break;
 				}
 				case "qFormat" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.Set_QFormat(elem.getVal(undefined));
 					break;
 				}
 				// case "locked" : {
-				// 	this.Locked = new CT_Bool();
+				// 	this.Locked = new CT_BoolW();
 				// 	this.Locked.fromXml(reader);
 				// 	break;
 				// }
 				// case "personal" : {
-				// 	this.Personal = new CT_Bool();
+				// 	this.Personal = new CT_BoolW();
 				// 	this.Personal.fromXml(reader);
 				// 	break;
 				// }
 				// case "personalCompose" : {
-				// 	this.PersonalCompose = new CT_Bool();
+				// 	this.PersonalCompose = new CT_BoolW();
 				// 	this.PersonalCompose.fromXml(reader);
 				// 	break;
 				// }
 				// case "personalReply" : {
-				// 	this.PersonalReply = new CT_Bool();
+				// 	this.PersonalReply = new CT_BoolW();
 				// 	this.PersonalReply.fromXml(reader);
 				// 	break;
 				// }
@@ -3313,15 +3313,15 @@
 		}
 	};
 	CStyle.prototype.toXml = function(writer, name, opt_addition) {
-		var Name = CT_String.prototype.fromVal(this.Name);
-		var BasedOn = CT_String.prototype.fromVal(this.BasedOn);
-		var Next = CT_String.prototype.fromVal(this.Next);
-		var Link = CT_String.prototype.fromVal(this.Link);
-		var hidden = CT_Bool.prototype.fromVal(this.hidden);
-		var uiPriority = CT_Int.prototype.fromVal(this.uiPriority);
-		var semiHidden = CT_Bool.prototype.fromVal(this.semiHidden);
-		var unhideWhenUsed = CT_Bool.prototype.fromVal(this.unhideWhenUsed);
-		var qFormat = CT_Bool.prototype.fromVal(this.qFormat);
+		var Name = CT_StringW.prototype.fromVal(this.Name);
+		var BasedOn = CT_StringW.prototype.fromVal(this.BasedOn);
+		var Next = CT_StringW.prototype.fromVal(this.Next);
+		var Link = CT_StringW.prototype.fromVal(this.Link);
+		var hidden = CT_BoolW.prototype.fromVal(this.hidden);
+		var uiPriority = CT_IntW.prototype.fromVal(this.uiPriority);
+		var semiHidden = CT_BoolW.prototype.fromVal(this.semiHidden);
+		var unhideWhenUsed = CT_BoolW.prototype.fromVal(this.unhideWhenUsed);
+		var qFormat = CT_BoolW.prototype.fromVal(this.qFormat);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_StyleType(this.Type));
@@ -3401,7 +3401,7 @@
 						break;
 					}
 					// case "numIdMacAtCleanup" : {
-					// 	this.NumIdMacAtCleanup = new CT_Int();
+					// 	this.NumIdMacAtCleanup = new CT_IntW();
 					// 	this.NumIdMacAtCleanup.fromXml(reader);
 					// 	break;
 					// }
@@ -3470,12 +3470,12 @@
 				// 	break;
 				// }
 				// case "name" : {
-				// 	this.Name = new CT_String();
+				// 	this.Name = new CT_StringW();
 				// 	this.Name.fromXml(reader);
 				// 	break;
 				// }
 				case "styleLink" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					if (elem.val) {
 						oReadResult.numStyleLinks.push({pPr: this, style: elem.val});
@@ -3483,7 +3483,7 @@
 					break;
 				}
 				case "numStyleLink" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					if (elem.val) {
 						oReadResult.styleLinks.push({pPr: this, style: elem.val});
@@ -3492,13 +3492,13 @@
 				}
 				case "lvl" : {
 					if (index < this.Lvl.length) {
-						var additional = {ilvl: index};
+						let additionalLvl = {ilvl: index};
 						elem = this.Lvl[index].Copy();
 						//сбрасываем свойства
 						elem.ParaPr = new CParaPr();
 						elem.TextPr = new CTextPr();
-						elem.fromXml(reader, additional);
-						index = additional.ilvl || index;
+						elem.fromXml(reader, additionalLvl);
+						index = additionalLvl.ilvl || index;
 						this.Lvl[index] = elem;
 						oReadResult.aPostOpenStyleNumCallbacks.push(function(){
 							this.SetLvl(index, elem);
@@ -3511,9 +3511,9 @@
 		}
 	};
 	CAbstractNum.prototype.toXml = function(writer, name, abstractNumId) {
-		var MultiLevelType = CT_String.prototype.fromVal("hybridMultilevel");
-		var StyleLink = CT_String.prototype.fromVal(this.StyleLink);
-		var NumStyleLink = CT_String.prototype.fromVal(this.NumStyleLink);
+		var MultiLevelType = CT_StringW.prototype.fromVal("hybridMultilevel");
+		var StyleLink = CT_StringW.prototype.fromVal(this.StyleLink);
+		var NumStyleLink = CT_StringW.prototype.fromVal(this.NumStyleLink);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:abstractNumId", abstractNumId);
@@ -3554,7 +3554,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "start" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.Start = elem.getVal(this.Start);
 					break;
@@ -3566,13 +3566,13 @@
 					break;
 				}
 				case "lvlRestart" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.LvlRestart = elem.getVal(this.LvlRestart);
 					break;
 				}
 				case "pStyle" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					if (elem.val) {
 						oReadResult.lvlStyles.push({pPr: this, style: elem.val});
@@ -3580,7 +3580,7 @@
 					break;
 				}
 				case "isLgl" : {
-					elem = new CT_Bool();
+					elem = new CT_BoolW();
 					elem.fromXml(reader);
 					this.IsLgl = elem.getVal(this.IsLgl);
 					break;
@@ -3591,7 +3591,7 @@
 					break;
 				}
 				case "suff" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Suff = fromXml_ST_LevelSuffix(elem.getVal(), this.Suff);
 					break;
@@ -3605,12 +3605,12 @@
 					break;
 				}
 				// case "lvlPicBulletId" : {
-				// 	this.LvlPicBulletId = new CT_Int();
+				// 	this.LvlPicBulletId = new CT_IntW();
 				// 	this.LvlPicBulletId.fromXml(reader);
 				// 	break;
 				// }
 				case "lvlJc" : {
-					elem = new CT_String();
+					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.Jc = fromXml_ST_Jc1(elem.getVal(), this.Jc);
 					break;
@@ -3628,14 +3628,14 @@
 		}
 	};
 	CNumberingLvl.prototype.toXml = function(writer, name, ilvl) {
-		var Start = CT_Int.prototype.fromVal(this.Start);
-		var Format = new CT_String.prototype.fromVal(toXml_ST_NumberFormat(this.Format));
-		var LvlRestart = CT_Int.prototype.fromVal(this.LvlRestart);
-		var PStyle = CT_String.prototype.fromVal(this.PStyle);
-		var IsLgl = CT_Bool.prototype.fromVal(this.IsLgl);
-		var Suff = CT_String.prototype.fromVal(toXml_ST_LevelSuffix(this.Suff));
-		var LvlText = new CT_String.prototype.fromVal(this.GetLvlTextFormat());
-		var Jc = CT_String.prototype.fromVal(fromXml_ST_Jc1(this.Jc));
+		var Start = CT_IntW.prototype.fromVal(this.Start);
+		var Format = CT_StringW.prototype.fromVal(toXml_ST_NumberFormat(this.Format));
+		var LvlRestart = CT_IntW.prototype.fromVal(this.LvlRestart);
+		var PStyle = CT_StringW.prototype.fromVal(this.PStyle);
+		var IsLgl = CT_BoolW.prototype.fromVal(this.IsLgl);
+		var Suff = CT_StringW.prototype.fromVal(toXml_ST_LevelSuffix(this.Suff));
+		var LvlText = CT_StringW.prototype.fromVal(this.GetLvlTextFormat());
+		var Jc = CT_StringW.prototype.fromVal(fromXml_ST_Jc1(this.Jc));
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:ilvl", ilvl);
@@ -3701,7 +3701,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "abstractNumId" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					additional.aNumId = elem.getVal(additional.aNumId);
 					break;
@@ -3716,7 +3716,7 @@
 		}
 	};
 	CNum.prototype.toXml = function(writer, name, numId, aNumId) {
-		var AbstractNumId = CT_Int.prototype.fromVal(aNumId);
+		var AbstractNumId = CT_IntW.prototype.fromVal(aNumId);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:numId", numId);
@@ -3745,7 +3745,7 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "startOverride" : {
-					elem = new CT_Int();
+					elem = new CT_IntW();
 					elem.fromXml(reader);
 					this.StartOverride = elem.getVal(this.StartOverride);
 					break;
@@ -3759,7 +3759,7 @@
 		}
 	};
 	CLvlOverride.prototype.toXml = function(writer, name) {
-		var StartOverride = CT_Int.prototype.fromVal(this.StartOverride);
+		var StartOverride = CT_IntW.prototype.fromVal(this.StartOverride);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeInt("w:ilvl", this.Lvl);

@@ -1511,7 +1511,7 @@ StaxParser.prototype.GetTextUInt64 = function (def, radix) {
     return this.GetTextUInt(def, radix);
 };
 StaxParser.prototype.GetTextDouble = function (def) {
-    var num = parseFloat(this.GetValue());
+    var num = parseFloat(this.GetText());
     return !isNaN(num) ? num : def;
 };
 StaxParser.prototype.ConvertToString = function(xml, start, end) {
@@ -1589,6 +1589,7 @@ StaxParser.prototype.readXmlArray = function(childName, func) {
 function XmlParserContext(){
     //common
     this.zip = null;
+    this.DrawingDocument = null;
     this.imageMap = {};
     this.curChart = null;
     //docx
