@@ -1546,10 +1546,12 @@
 				this.SpellCheckApi = {};
 				this.SpellCheckApi.log = false;
 				this.SpellCheckApi.worker = new CSpellchecker({
-					api: this,
 					enginePath: "../../../../sdkjs/common/spell/spell",
 					dictionariesPath: "./../../../../dictionaries"
 				});
+				this.SpellCheckApi.worker.restartCallback = function() {
+					t.asc_restartCheckSpelling();
+				};
 				this.SpellCheckApi.checkDictionary = function (lang) {
 					if (this.log) console.log("checkDictionary: " + lang + ": " + this.worker.checkDictionary(lang));
 					return this.worker.checkDictionary(lang);
