@@ -3026,7 +3026,7 @@ CGraphicObjects.prototype =
                     }));
                     drawing.Set_XYForAdd(fPosX, fPosY, nearest_pos, page_num);
 
-                    sp.convertFromSmartArt();
+                    sp.convertFromSmartArt(true);
                     aDrawings.push(drawing);
                 }
                 for(j = 0; j < aDrawings.length; ++j)
@@ -4214,6 +4214,18 @@ CGraphicObjects.prototype =
     {
         var oSelectedor = this.selection.groupSelection ? this.selection.groupSelection : this;
         return AscCommon.isRealObject(oSelectedor.chartSelection);
+    },
+
+    getSmartArtSelection: function () {
+        var groupSelection = this.selection.groupSelection;
+        if (groupSelection && groupSelection.getObjectType() === AscDFH.historyitem_type_SmartArt) {
+            return groupSelection;
+        }
+    },
+
+    isTextSelectionInSmartArt: function ()
+    {
+        return !!this.getSmartArtSelection() && this.isTextSelectionUse();
     },
 
 

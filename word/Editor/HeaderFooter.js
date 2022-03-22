@@ -53,7 +53,7 @@ function CHeaderFooter(Parent, oLogicDocument, DrawingDocument, Type)
 	{
 		let sStyleId = Type === hdrftr_Header ? oLogicDocument.GetStyles().Get_Default_Header() : oLogicDocument.GetStyles().Get_Default_Footer();
 		this.Content = new CDocumentContent(this, DrawingDocument, 0, 0, 0, 0, false, true);
-		this.Content.Content[0].Style_Add(sStyleId);
+		this.Content.Content[0].SetParagraphStyleById(sStyleId);
 	}
 
     this.Type = Type;
@@ -1323,6 +1323,17 @@ CHeaderFooter.prototype =
 	{
 		return this.Content.CanAddComment();
 	}
+};
+CHeaderFooter.prototype.UpdateContentToDefaults = function()
+{
+	this.Content.ClearContent(true);
+	let oParagraph     = this.Content.GetElement(0);
+	let oLogicDocument = this.LogicDocument;
+	if (!oLogicDocument || !oParagraph || !oParagraph.IsParagraph())
+		return;
+
+	let sStyleId = this.Type === hdrftr_Header ? oLogicDocument.GetStyles().Get_Default_Header() : oLogicDocument.GetStyles().Get_Default_Footer();
+	oParagraph.SetParagraphStyleById(sStyleId);
 };
 CHeaderFooter.prototype.GetSectionIndex = function()
 {
@@ -2759,6 +2770,11 @@ CHeaderFooterController.prototype.Set_CurHdrFtr = function(HdrFtr)
         this.CurHdrFtr.RemoveSelection();
 
     this.CurHdrFtr = HdrFtr;
+};
+CHeaderFooterController.prototype.GetHdrFtr = function(nPageAbs, isHeader)
+{
+	let oPage = this.Pages[nPageAbs];
+	return oPage ? (isHeader ? oPage.Header : oPage.Footer) : null;
 };
 CHeaderFooterController.prototype.RecalculatePageCountUpdate = function(nPageAbs, nPageCount)
 {

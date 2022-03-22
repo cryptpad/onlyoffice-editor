@@ -7735,8 +7735,10 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		w.WriteLong(this.SortConditions ? this.SortConditions.length : 0);
-		for (var i = 0; i < this.SortConditions.length; ++i) {
-			this.SortConditions[i].Write_ToBinary2(w);
+		if (this.SortConditions) {
+			for (var i = 0; i < this.SortConditions.length; ++i) {
+				this.SortConditions[i].Write_ToBinary2(w);
+			}
 		}
 	};
 	/*SortState.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
@@ -11843,7 +11845,7 @@ QueryTableField.prototype.clone = function() {
 		kF *= (height * kF) / (height * kF + canvasTopPadding)
 
 		var isChangeForZoom;
-		var trueZoom = kF * AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var trueZoom = kF * AscCommon.AscBrowser.retinaPixelRatio;
 		var _height = Math.floor(height * kF);
 		var _width = Math.floor(width * kF);
 		if (trueZoom !== this.pageZoom) {

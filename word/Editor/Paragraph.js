@@ -6379,11 +6379,12 @@ Paragraph.prototype.GetPrevRunElement = function(oParaPos)
 /**
  * Удаляем элемент рана в заданной позиции
  * @param {CParagraphContentPos} oParaPos
+ * @returns {boolean}
  */
 Paragraph.prototype.RemoveRunElement = function(oParaPos)
 {
 	if (!oParaPos)
-		return;
+		return false;
 
 	oParaPos = oParaPos.Copy();
 
@@ -6392,7 +6393,12 @@ Paragraph.prototype.RemoveRunElement = function(oParaPos)
 
 	var oRun = this.GetClassByPos(oParaPos);
 	if (oRun instanceof AscCommonWord.ParaRun)
+	{
 		oRun.RemoveFromContent(nInRunPos, 1, true);
+		return true;
+	}
+
+	return false;
 };
 Paragraph.prototype.MoveCursorUp = function(AddToSelect)
 {
@@ -10188,7 +10194,7 @@ Paragraph.prototype.Internal_CompiledParaPrPresentation = function(Lvl, bNoMerge
 {
 	var _Lvl        = AscFormat.isRealNumber(Lvl) ? Lvl : (AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0);
 	var styleObject = this.Parent.Get_Styles(_Lvl);
-	if(!styleObject)
+	if(!styleObject || !styleObject.styles)
 	{
 		return {ParaPr : g_oDocumentDefaultParaPr,
 				TextPr : g_oDocumentDefaultTextPr
@@ -11037,7 +11043,7 @@ Paragraph.prototype.Set_Bullet = function(Bullet)
 };
 Paragraph.prototype.SetOutlineLvl = function(nLvl)
 {
-	if (null === nLvl)
+	if (null === nLvl || -1 === nLvl)
 		nLvl = undefined;
 
 	this.private_AddPrChange();

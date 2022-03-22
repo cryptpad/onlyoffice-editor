@@ -694,6 +694,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 
 			Password : -1000,
 
+			ComplexFieldEmptyTOC : -1101,
+			ComplexFieldNoTOC    : -1102,
+
 			SecondaryAxis: 1001,
 			ComboSeriesError: 1002,
 
@@ -3525,6 +3528,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
 	prot['LockedEditView']                   = prot.LockedEditView;
 	prot['Password']                         = prot.Password;
+	prot['ComplexFieldEmptyTOC']             = prot.ComplexFieldEmptyTOC;
+	prot['ComplexFieldNoTOC']                = prot.ComplexFieldNoTOC;
 	prot['SecondaryAxis']                    = prot.SecondaryAxis;
 	prot['ComboSeriesError']                 = prot.ComboSeriesError;
 

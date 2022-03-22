@@ -9793,11 +9793,15 @@ CStyles.prototype.GetDefaultHeading = function(nLvl)
 };
 CStyles.prototype.GetHeadingLevelByName = function(sStyleName)
 {
-	var sId = this.GetStyleIdByName(sStyleName);
+	let sId = this.GetStyleIdByName(sStyleName);
 	if (!sId)
 		return -1;
 
-	for (var nIndex = 0; nIndex <= 8; ++nIndex)
+	return this.GetHeadingLevelById(sId);
+};
+CStyles.prototype.GetHeadingLevelById = function(sId)
+{
+	for (let nIndex = 0; nIndex <= 8; ++nIndex)
 	{
 		if (sId === this.Default.Headings[nIndex])
 			return nIndex;
@@ -17660,6 +17664,7 @@ window["AscCommonWord"].g_dKoef_in_to_mm = g_dKoef_in_to_mm;
 window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
 window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
 window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
+window["AscCommonWord"].g_dKoef_emu_to_mm = g_dKoef_emu_to_mm;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;
