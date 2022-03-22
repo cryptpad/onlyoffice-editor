@@ -1372,6 +1372,19 @@
         }
         return null;
     };
+    CTimeNodeBase.prototype.isRemoveAfterFill = function() {
+        var oAttr = this.getAttributesObject();
+        if(oAttr) {
+            return oAttr.fill === NODE_FILL_REMOVE;
+        }
+        return false;
+    };
+    CTimeNodeBase.prototype.checkRemoveAtEnd = function() {
+        if(this.isAtEnd() && this.isRemoveAfterFill()) {
+            return true;
+        }
+        return false;
+    };
 
     function CAnimationTime(val) {
         this.val = 0;
@@ -3891,6 +3904,9 @@
         if(!oTargetObject) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var aAttributes = this.getAttributes();
         if(aAttributes.length < 1) {
             return;
@@ -6305,6 +6321,10 @@
         if(!oTargetObject) {
             return;
         }
+        
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var aAttributes = this.getAttributes();
         if(aAttributes.length < 1) {
             return;
@@ -6523,6 +6543,10 @@
     };
     CAnimEffect.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         if(!this.filter) {
+            return;
+        }
+        
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
@@ -6815,6 +6839,10 @@
     CAnimMotion.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
+            return;
+        }
+        
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var nOrigin = this.getOrigin();
@@ -7308,6 +7336,10 @@
         if(!oTargetObject) {
             return;
         }
+        
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var fRelTime = this.getRelativeTime(nElapsedTime);
         var dR = null;
         if(this.to && this.from) {
@@ -7473,6 +7505,10 @@
     CAnimScale.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
+            return;
+        }
+        
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
@@ -8664,6 +8700,10 @@
     };
     CSet.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         if(!this.to) {
+            return;
+        }
+        
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         this.setAttributesValue(oAttributes, this.to.getVal());
