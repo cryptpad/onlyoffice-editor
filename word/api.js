@@ -12010,6 +12010,8 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_getAppProps = function()
 	{
+		if (this.isUseNativeViewer && this.isDocumentRenderer())
+			return this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.getDocumentInfo();
 		return this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.App || null;
 	};
 

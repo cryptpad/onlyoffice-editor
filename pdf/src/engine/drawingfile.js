@@ -364,6 +364,11 @@ else
         return this.pages;
     };
 
+    CFile.prototype["getDocumentInfo"] = function()
+    {
+        return this.info;
+    };
+
     CFile.prototype["getPagePixmap"] = function(pageIndex, width, height, backgroundColor)
     {
         if (this.pages[pageIndex].fonts.length > 0)
