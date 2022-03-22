@@ -2270,7 +2270,7 @@ CShape.prototype.getTextRect = function () {
             var extX = (oRect.r - oRect.l) / 2;
             var extY = (oRect.b - oRect.t) / 2;
             var deltaTranslateX = 0, deltaTranslateY = 0;
-            if (deltaShape.parent && deltaShape.parent.getObjectType() === AscDFH.historyitem_type_Slide) {
+            if (deltaShape.parent && deltaShape.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet) {
                 deltaTranslateX = deltaShape.group.group.x;
                 deltaTranslateY = deltaShape.group.group.y;
             }
