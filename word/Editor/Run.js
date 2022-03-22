@@ -12884,8 +12884,7 @@ ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oPa
 	var oHistory    = oDocument.GetHistory();
 	if (2 !== arrElements.length
 		|| !arrElements[0].IsSpace()
-		|| !arrElements[1].IsText()
-		|| arrElements[1].IsPunctuation()
+		|| !this.private_CheckPrevSymbolForDoubleSpaceWithDot(arrElements[1])
 		|| !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0], 1, 500))
 		return false;
 
@@ -12919,6 +12918,15 @@ ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oPa
 	oDocument.Recalculate();
 	oDocument.FinalizeAction();
 	return true;
+};
+ParaRun.prototype.private_CheckPrevSymbolForDoubleSpaceWithDot = function(oItem)
+{
+	return (oItem.IsText()
+		&& (!oItem.IsPunctuation()
+			|| 0x23 === oItem.Value
+			|| 0x24 === oItem.Value
+			|| 0x25 === oItem.Value
+			|| 0x40 === oItem.Value));
 };
 /**
  * Производим автозамену для французской пунктуации
