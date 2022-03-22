@@ -2065,6 +2065,19 @@
 		}
 	}
 
+	function getImageFileFromDataURL(dataUrl) {
+		var arr = dataUrl.split(',');
+		var mime = arr[0].match(/:(.*?);/)[1];
+		var u8arr = AscCommon.Base64.decode(arr[1]);
+		return new File([u8arr], '1.' + mime.split('/')[1], {type:mime});
+	}
+
+	function uploadDataUrlAsFile(dataUrl, obj, callback) {
+		var file = getImageFileFromDataURL(dataUrl);
+		var nError = ValidateUploadImage([file]);
+		callback(nError, [file], obj);
+	}
+
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
 		if (files.length > 0)
@@ -11808,6 +11821,7 @@
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
 	window["AscCommon"].DownloadOriginalFile = DownloadOriginalFile;
+	window["AscCommon"].uploadDataUrlAsFile = uploadDataUrlAsFile;
 	window["AscCommon"].DownloadFileFromBytes = DownloadFileFromBytes;
 	window["AscCommon"].CanDropFiles = CanDropFiles;
 	window["AscCommon"].getUrlType = getUrlType;

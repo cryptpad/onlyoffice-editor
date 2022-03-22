@@ -481,10 +481,18 @@
 		this.model.updatePivotTablesStyle(null);
 		this._cleanCellsTextMetricsCache();
 		this._prepareCellTextMetricsCache();
-
 		// initializing is completed
 		this.handlers.trigger("initialized");
 	};
+
+
+  WorksheetView.prototype.getOleSize = function () {
+    return this.workbook && this.workbook.model.getOleSize();
+  };
+
+  WorksheetView.prototype.setOleSize = function (oPr) {
+    return this.workbook && this.workbook.model.setOleSize(oPr);
+  };
 	WorksheetView.prototype._initWorksheetDefaultWidth = function () {
 		// Теперь рассчитываем число px
 		this.defaultColWidthChars = this.model.charCountToModelColWidth(this.model.getBaseColWidth());
@@ -524,6 +532,36 @@
 
 		this.model.initColumns();
 	};
+
+  WorksheetView.prototype.createImageFromMaxRange = function () {
+    var range = this.getVisibleRange();
+    this.setOleSize(range);
+    var drawingContext = this.printForOleObject(range);
+    return drawingContext.canvas.toDataURL();
+  }
+
+  WorksheetView.prototype.createImageForChart = function(idx) {
+    var charts = this.getCharts();
+    if (idx) {
+      charts = charts.filter(function (drawing) {
+        return drawing.graphicObject.Id === idx;
+      });
+    }
+    var oChart = charts[0];
+    var image = oChart.createImage();
+    return image;
+  }
+
+  WorksheetView.prototype.getCharts = function () {
+    var charts = [];
+    function appendChart(obj) {
+      if (obj.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+        charts.push(obj);
+      }
+    }
+    this.model.handleDrawings(appendChart);
+    return charts;
+  }
 
 	WorksheetView.prototype._initWorksheetDefaultWidthForPrint = function () {
 		var defaultPpi = 96;
@@ -2527,6 +2565,21 @@
 		}
 	};
 
+    WorksheetView.prototype.printForOleObject = function (oRange) {
+      return this.workbook.printForOleObject(this, oRange);
+    }
+
+  WorksheetView.prototype.getRangePosition = function (oRange) {
+    var result = {};
+
+    result.left = this._getColLeft(oRange.c1);
+    result.top = this._getRowTop(oRange.r1);
+    result.width = this._getColLeft(oRange.c2) + this.getColumnWidth(oRange.c2) - result.left;
+    result.height = this._getRowTop(oRange.r2) + this.getRowHeight(oRange.r2) - result.top;
+
+    return result;
+  }
+
 	WorksheetView.prototype.drawForPrint = function (drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
 
 		var t = this;
@@ -3817,8 +3870,10 @@
 		var y1 = this._getRowTop(range.r1) - offsetY;
 		var x2 = Math.min(this._getColLeft(range.c2 + 1) - offsetX, widthCtx);
 		var y2 = Math.min(this._getRowTop(range.r2 + 1) - offsetY, heightCtx);
-		ctx.setFillStyle(this.settings.cells.defaultState.background)
-			.fillRect(x1, y1, x2 - x1, y2 - y1);
+    if (!ctx.isPreviewOleObjectContext) {
+      ctx.setFillStyle(this.settings.cells.defaultState.background)
+        .fillRect(x1, y1, x2 - x1, y2 - y1);
+    }
 
 		//рисуем текст для преварительного просмотра
 		this._drawPageBreakPreviewText(drawingCtx, range, leftFieldInPx, topFieldInPx, width, height, visiblePrintPages);
@@ -3827,6 +3882,9 @@
 			.setLineWidth(1).beginPath();
 
 		var i, d, l;
+    if (ctx.isPreviewOleObjectContext) {
+      ctx.lineVerPrevPx(1, y1, y2);
+    }
 		for (i = range.c1, d = x1; i <= range.c2 && d <= x2; ++i) {
 			l = this._getColumnWidth(i);
 			d += l;
@@ -3834,6 +3892,9 @@
 				ctx.lineVerPrevPx(d, y1, y2);
 			}
 		}
+    if (ctx.isPreviewOleObjectContext) {
+      ctx.lineHorPrevPx(x1, 1, x2);
+    }
 		for (i = range.r1, d = y1; i <= range.r2 && d <= y2; ++i) {
 			l = this._getRowHeight(i);
 			d += l;
@@ -9266,6 +9327,13 @@
 		return null;
 	};
 
+  WorksheetView.prototype.scrollToOleSize = function () {
+    var oleSize = this.getOleSize();
+    if (oleSize) {
+      this.scrollToCell(oleSize.r1, oleSize.c1);
+    }
+  };
+
     /**
      * @param {Range} [range]
      * @returns {AscCommon.CellBase}
@@ -11441,6 +11509,15 @@
             this._cleanSelectionMoveRange();
         }
     };
+
+    WorksheetView.prototype.isEmptyCellsSheet = function () {
+      return !(this.rows.length || this.cols.length);
+    }
+    
+    WorksheetView.prototype.isHaveOnlyOneChart = function () {
+      return this.isEmptyCellsSheet() && this.getCharts().length === 1;
+    }
+    
 
     WorksheetView.prototype.emptySelection = function ( options, bIsCut, isMineComments ) {
         // Удаляем выделенные графичекие объекты
@@ -22968,6 +23045,24 @@
 			callback();
 		}
 	};
+
+  WorksheetView.prototype.getApi = function() {
+    return this.workbook && this.workbook.Api;
+  }
+  /**
+   *
+   * @param { number } row index of row
+   * @param { number } column index of column
+   */
+  WorksheetView.prototype.scrollToCell = function (row, column) {
+    var visibleRange = this.getVisibleRange();
+    var topRow = visibleRange.r1;
+    var leftCol = visibleRange.c1;
+    var rowDelta = row - topRow;
+    var columnDelta = column - leftCol;
+    this.scrollVertical(rowDelta);
+    this.scrollHorizontal(columnDelta);
+  }
 
 	WorksheetView.prototype.scrollToTopLeftCell = function () {
 		var topLeftCell = this.model.getTopLeftCell();

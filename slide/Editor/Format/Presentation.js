@@ -5073,12 +5073,12 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
     }
 };
 
-CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect) {
+CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, Data, sApplicationId, bSelect) {
     if (this.Slides[this.CurPage]) {
         var fPosX = (this.GetWidthMM() - fWidth) / 2;
         var fPosY = (this.GetHeightMM() - fHeight) / 2;
         var oController = this.Slides[this.CurPage].graphicObjects;
-        var Image = oController.createOleObject(sData, sApplicationId, sLocalUrl, fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix);
+        var Image = oController.createOleObject(Data, sApplicationId, sLocalUrl, fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix);
         Image.setParent(this.Slides[this.CurPage]);
         Image.addToDrawingObjects();
         oController.resetSelection();
@@ -5177,6 +5177,14 @@ CPresentation.prototype.CheckNotesShow = function () {
             }
         }
     }
+};
+
+CPresentation.prototype.EditTableOleObjectFromBinary = function (binary) {
+  var _this = this;
+  _this.Slides[_this.CurPage] && _this.Slides[_this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(function () {
+    _this.Slides[_this.CurPage].graphicObjects.editTableOleObject(binary);
+    _this.Document_UpdateInterfaceState();
+  }, [binary], false, AscDFH.historydescription_Presentation_EditTableOleObjectFromBinary);
 };
 
 CPresentation.prototype.EditChart = function (binary) {

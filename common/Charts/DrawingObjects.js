@@ -1352,6 +1352,16 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         return false;
     };
 
+    DrawingBase.prototype.createImage = function() {
+        var koef = Asc.getCvtRatio(3, 0, this.worksheet._getPPIX());
+        var wb = this.worksheet && this.worksheet.workbook;
+        wb.setOleSize(null);
+        var drawingCtx = AscCommonExcel.getContext(this.ext.cx * koef, this.ext.cy * koef, wb);
+        var graphics = AscCommonExcel.getGraphics(drawingCtx);
+        this.draw(graphics);
+        return drawingCtx.toDataURL();
+    };
+
     DrawingBase.prototype.getAllFonts = function(AllFonts) {
         var _t = this;
         _t.graphicObject && _t.graphicObject.documentGetAllFontNames && _t.graphicObject.documentGetAllFontNames(AllFonts);
@@ -3974,6 +3984,19 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     //-----------------------------------------------------------------------------------
 
     _this.cleanWorksheet = function() {
+        if (worksheet) {
+            var model = worksheet.model;
+            History.Clear();
+            for (var i = 0; i < aObjects.length; i++) {
+                aObjects[i].graphicObject.deleteDrawingBase();
+            }
+            aObjects.length = 0;
+
+            var oAllRange = model.getRange3(0, 0, model.getRowsCount(), model.getColsCount());
+            oAllRange.cleanAll();
+
+            worksheet.endEditChart();
+        }
     };
 
     _this.getWordChartObject = function() {

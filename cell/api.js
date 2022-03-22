@@ -1345,6 +1345,9 @@ var editor;
       // Шрифты загрузились, возможно стоит подождать совместное редактирование
       this.FontLoadWaitComplete = true;
         this._openDocumentEndCallback();
+        if (this.fAfterLoad) {
+          this.fAfterLoad();
+        }
       }
   };
 
@@ -2157,7 +2160,7 @@ var editor;
 
 		//история версий - возможно стоит грамотно чистить wbview, но не пересоздавать
 		var previousVersionZoom;
-		if (this.VersionHistory && this.controller) {
+		if ((this.VersionHistory || this.isOleEditor) && this.controller) {
 			var elem = document.getElementById("ws-v-scrollbar");
 			if (elem) {
 				elem.parentNode.removeChild(elem);
@@ -2224,8 +2227,8 @@ var editor;
 			this.sendEvent('asc_onError', c_oAscError.ID.OpenWarning, c_oAscError.Level.NoCritical);
 		}
 
-		if (this.VersionHistory) {
-			if (this.VersionHistory.changes) {
+		if (this.VersionHistory || this.isOleEditor) {
+			if (this.VersionHistory && this.VersionHistory.changes) {
 				this.VersionHistory.applyChanges(this);
 			}
 			this.sheetsChanged();
@@ -3309,6 +3312,75 @@ var editor;
     return ret;
   };
 
+  spreadsheet_api.prototype.asc_getSizesForOleEditor = function (oleInfo) {
+    var oleSize = this.wbModel.getOleSize() || this.wb.getWorksheet().getVisibleRange();
+    if (oleSize) {
+      var ws = this.wb.getWorksheet();
+
+      var firstRow = oleSize.r1;
+      var lastRow = oleSize.r2;
+      var firstColumn = oleSize.c1;
+      var lastColumn = oleSize.c2;
+
+      var left = ws._getColLeft(firstColumn);
+      var width = ws._getColLeft(lastColumn + 1) - left;
+      var top = ws._getRowTop(firstRow);
+      var height = ws._getRowTop(lastRow + 1) - top;
+      return {
+        height: height,
+        width: width,
+        top: top,
+        left: left
+      };
+    }
+    oleInfo = oleInfo || {};
+    return {
+      height: oleInfo.height,
+      width: oleInfo.width,
+      top: oleInfo.top,
+      left: oleInfo.left
+    };
+  }
+
+  /**
+   * Loading ole editor
+   * @param {{}} [oleObj] info from oleObject
+   * @param {function} [fResizeCallback] callback where first argument is sizes of loaded editor without borders
+   */
+  spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj, fResizeCallback) {
+    oleObj = oleObj || {binary: AscCommon.getEmpty()};
+    var stream = oleObj && oleObj.binary;
+    var _this = this;
+    var file = new AscCommon.OpenFileResult();
+    file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
+    file.data = stream;
+    this.isOleEditor = true;
+    this.asc_CloseFile();
+    this.openDocument(file);
+
+    this.fAfterLoad = function () {
+      var sizes = _this.asc_getSizesForOleEditor(oleObj);
+      fResizeCallback && fResizeCallback(sizes);
+      _this.wb.scrollToOleSize();
+    }
+    };
+  /**
+   * get binary info about changed ole object
+   * @returns {{}} binary info about oleObject
+   */
+  spreadsheet_api.prototype.asc_getBinaryInfoOleObject = function () {
+    var dataUrl = this.wb.getImageFromTableOleObject();
+    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
+    var binaryData = oBinaryFileWriter.Write().split(';');
+    var cleanBinaryData = binaryData[binaryData.length - 1];
+    var binaryInfo = {};
+
+    binaryInfo.binary = cleanBinaryData;
+    binaryInfo.base64Image = dataUrl;
+
+    return binaryInfo;
+  }
+
   spreadsheet_api.prototype.asc_editChartDrawingObject = function(chart) {
     var ws = this.wb.getWorksheet();
     var ret = ws.objectRender.editChartDrawingObject(chart);
@@ -3355,6 +3427,8 @@ var editor;
     if (ws) {
       if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl)) {
         ws.objectRender.editImageDrawingObject(urls[0], obj);
+      } else if (obj && obj.fAfterUploadOleObjectImage) {
+        obj.fAfterUploadOleObjectImage(urls[0]);
       } else {
         ws.objectRender.addImageDrawingObject(urls, null);
       }

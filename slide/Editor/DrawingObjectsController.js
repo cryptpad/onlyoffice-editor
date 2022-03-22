@@ -149,6 +149,10 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
         if(oleObject.m_oMathObject) {
             editor.sendEvent("asc_onConvertEquationToMath", oleObject);
         }
+        else if (oleObject.m_aBinaryData && oleObject.m_nOleType === AscCommon.c_oAscOleObjectTypes.spreadsheet)
+        {
+            editor.asc_doubleClickOnTableOleObject(oleObject);
+        }
         else {
             var pluginData = new Asc.CPluginData();
             pluginData.setAttribute("data", oleObject.m_sData);
@@ -354,6 +358,44 @@ DrawingObjectsController.prototype.editChart = function(binary)
             chart_space.setDescription(binary["cDescription"]);
             this.resetSelection();
             this.selectObject(chart_space, this.drawingObjects.num);
+            this.startRecalculate();
+            this.updateOverlay();
+        }
+    }
+};
+
+DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
+{
+    var _this = this;
+    var oApi = this.getEditorApi();
+    if (binaryInfo) {
+        if (!binaryInfo.imageUrl) {
+            var base64Image = binaryInfo.base64Image;
+            var fAfterUploadOleObjectImage = function (url) {
+                binaryInfo.imageUrl = url;
+                _this.editTableOleObject(binaryInfo);
+            }
+            var obj = {
+                fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+            };
+            AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
+                oApi._uploadCallback(nError, files, obj);
+            });
+            return;
+        }
+        var blipUrl = binaryInfo.imageUrl;
+        var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
+
+        var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
+        if (selectedObjects.oleObjects.length === 1) {
+            var selectedOleObject = selectedObjects.oleObjects[0];
+            var blipFill = AscFormat.CreateBlipFillRasterImageId(blipUrl);
+            var sizes = AscCommon.getSourceImageSize(blipUrl);
+            selectedOleObject.setBinaryData(binaryDataOfSheet);
+            selectedOleObject.setBlipFill(blipFill);
+            var originalWidth = selectedOleObject.spPr.xfrm.extX;
+            var koef = (originalWidth / sizes.width) || 0;
+            selectedOleObject.spPr.xfrm.setExtY(sizes.height * koef);
             this.startRecalculate();
             this.updateOverlay();
         }

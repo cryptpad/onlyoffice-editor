@@ -639,6 +639,23 @@ function getObjectsByTypesFromArr(arr, bGrouped)
     return ret;
 }
 
+function getSelectedObjectsByTypesFromArr(arr, bGrouped) {
+    var byTypes = getObjectsByTypesFromArr(arr, bGrouped);
+    var fFilterByType = function(obj) {
+        return obj.selected;
+    }
+    byTypes.shapes = byTypes.shapes.filter(fFilterByType);
+    byTypes.images = byTypes.images.filter(fFilterByType);
+    byTypes.groups = byTypes.groups.filter(fFilterByType);
+    byTypes.charts = byTypes.charts.filter(fFilterByType);
+    byTypes.tables = byTypes.tables.filter(fFilterByType);
+    byTypes.oleObjects = byTypes.oleObjects.filter(fFilterByType);
+    byTypes.slicers = byTypes.slicers.filter(fFilterByType);
+    byTypes.smartArts = byTypes.smartArts.filter(fFilterByType);
+
+    return byTypes;
+}
+
 function CreateBlipFillUniFillFromUrl(url)
 {
     var ret = new AscFormat.CUniFill();
@@ -5359,6 +5376,13 @@ DrawingObjectsController.prototype =
         }
 
 	},
+    getOleObject: function () {
+        var by_types = getObjectsByTypesFromArr(this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, true);
+        if(by_types.oleObjects.length === 1)
+        {
+            return by_types.charts[0];
+        }
+    },
 
     changeCurrentState: function(newState)
     {
@@ -9140,7 +9164,11 @@ DrawingObjectsController.prototype =
     {
         var oleObject = new AscFormat.COleObject();
         AscFormat.fillImage(oleObject, rasterImageId, x, y, extX, extY);
-        oleObject.setData(data);
+        if (data instanceof Uint8Array) {
+            oleObject.setBinaryData(data);
+        } else {
+            oleObject.setData(data);
+        }
         oleObject.setApplicationId(sApplicationId);
         oleObject.setPixSizes(nWidthPix, nHeightPix);
         return oleObject;
@@ -12091,6 +12119,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
     window['AscFormat'].CheckSpPrXfrm2 = CheckSpPrXfrm2;
     window['AscFormat'].CheckSpPrXfrm3 = CheckSpPrXfrm3;
     window['AscFormat'].getObjectsByTypesFromArr = getObjectsByTypesFromArr;
+    window['AscFormat'].getSelectedObjectsByTypesFromArr = getSelectedObjectsByTypesFromArr;
     window['AscFormat'].getTargetTextObject = getTargetTextObject;
     window['AscFormat'].DrawingObjectsController = DrawingObjectsController;
     window['AscFormat'].CBoundsController = CBoundsController;

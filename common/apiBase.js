@@ -123,6 +123,8 @@
 		this.isChartEditor         = false;
 		this.isOpenedChartFrame    = false;
 
+		this.isOleEditor = false;
+
 		this.MathMenuLoad          = false;
 
 		// CoAuthoring and Chat
@@ -568,6 +570,36 @@
 	{
 		this.restrictions &= ~val;
 		this.onUpdateRestrictions();
+	};
+	baseEditorsApi.prototype.addTableOleObject = function(oleBinary)
+	{
+
+		if (AscCommon.isRealObject(oleBinary))
+		{
+			var _this = this;
+			if (oleBinary) {
+				if (!oleBinary.imageUrl) {
+					var base64Image = oleBinary.base64Image;
+					var fAfterUploadOleObjectImage = function (url) {
+						oleBinary.imageUrl = url;
+						_this.asc_addTableOleObject(oleBinary);
+					}
+					var obj = {
+						fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+					};
+					AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
+						_this._uploadCallback(nError, files, obj);
+					});
+					return;
+				}
+				var blipUrl = oleBinary.imageUrl;
+				var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary.binary);
+				var sizes = AscCommon.getSourceImageSize(blipUrl);
+				var mmExtX = sizes.width * AscCommon.g_dKoef_pix_to_mm;
+				var mmExtY = sizes.height * AscCommon.g_dKoef_pix_to_mm;
+				this.asc_addOleObjectAction(blipUrl, binaryDataOfSheet, 'Excel.Sheet.12', mmExtX, mmExtY, sizes.width, sizes.height, true);
+			}
+		}
 	};
 	baseEditorsApi.prototype.canEdit                         = function()
 	{
