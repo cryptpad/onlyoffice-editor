@@ -12875,6 +12875,8 @@ ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oPa
 	if (!this.Content[nPos].IsSpace())
 		return false;
 
+	let oSpaceItem = this.Content[nPos];
+
 	var oRunElementsBefore = new CParagraphRunElements(oContentPos, 2, null, false);
 	oRunElementsBefore.SetSaveContentPositions(true);
 	oParagraph.GetPrevRunElements(oRunElementsBefore);
@@ -12893,10 +12895,9 @@ ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oPa
 	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
 
 	var oDot = new ParaText(46);
-	this.AddToContent(nPos + 1, oDot);
+	this.AddToContent(nPos, oDot);
 	var oStartPos = oRunElementsBefore.GetContentPositions()[0];
 	var oEndPos   = oContentPos;
-	oContentPos.Update(nPos + 1, oContentPos.GetDepth());
 
 	oParagraph.RemoveSelection();
 	oParagraph.SetSelectionUse(true);
@@ -12907,7 +12908,7 @@ ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oPa
 	// Надо корректировать ContentPos, потому что мы производили удаление
 	for (var nTempPos = 0, nCount = this.Content.length; nTempPos < nCount; ++nTempPos)
 	{
-		if (this.Content[nTempPos] === oDot)
+		if (this.Content[nTempPos] === oSpaceItem)
 		{
 			this.State.ContentPos = nTempPos + 1;
 			oContentPos.Update(nTempPos + 1, oContentPos.GetDepth());
