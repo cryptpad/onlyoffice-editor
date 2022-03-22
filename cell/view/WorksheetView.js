@@ -2665,6 +2665,7 @@
 				if(bGraphics) {
 					oDocRenderer.SaveGrState();
 					oDocRenderer.RestoreGrState();
+					oDocRenderer.PrintPreview = true;
 					var oInvertBaseTransform = AscCommon.global_MatrixTransformer.Invert(oDocRenderer.m_oCoordTransform);
 					var clipL = oInvertBaseTransform.TransformPointX(clipLeftShape, clipTopShape);
 					var clipT = oInvertBaseTransform.TransformPointY(clipLeftShape, clipTopShape);
@@ -2675,6 +2676,7 @@
 				}
 				t.objectRender.print(drawingPrintOptions);
 				if(bGraphics) {
+					delete oDocRenderer.PrintPreview;
 					oDocRenderer.RestoreGrState();
 				}
 				if (oDocRenderer.SetBaseTransform) {
