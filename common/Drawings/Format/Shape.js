@@ -2269,8 +2269,13 @@ CShape.prototype.getTextRect = function () {
 
             var extX = (oRect.r - oRect.l) / 2;
             var extY = (oRect.b - oRect.t) / 2;
-            var xc = deltaShape.localTransform.TransformPointX(oRect.l + extX, oRect.t + extY) - deltaShape.group.group.x;
-            var yc = deltaShape.localTransform.TransformPointY(oRect.l + extX, oRect.t + extY) - deltaShape.group.group.y;
+            var deltaTranslateX = 0, deltaTranslateY = 0;
+            if (deltaShape.parent && deltaShape.parent.getObjectType() === AscDFH.historyitem_type_Slide) {
+                deltaTranslateX = deltaShape.group.group.x;
+                deltaTranslateY = deltaShape.group.group.y;
+            }
+            var xc = deltaShape.localTransform.TransformPointX(oRect.l + extX, oRect.t + extY) - deltaTranslateX;
+            var yc = deltaShape.localTransform.TransformPointY(oRect.l + extX, oRect.t + extY) - deltaTranslateY;
 
             oRectShape.spPr.xfrm.setOffX(xc - extX);
             oRectShape.spPr.xfrm.setOffY(yc - extY);
