@@ -4980,28 +4980,34 @@ CShape.prototype.getGroupHierarchy = function () {
 
 CShape.prototype.hitInTextRectWord = function(x, y)
 {
-
     var content = this.getDocContent && this.getDocContent();
-    if (content && this.invertTransform)
-    {
+    if (content) {
         var w, h, x_, y_;
-        var rect = this.getTextRect && this.getTextRect();
-        if(rect && AscFormat.isRealNumber(rect.l) && AscFormat.isRealNumber(rect.t)
-            && AscFormat.isRealNumber(rect.r) && AscFormat.isRealNumber(rect.r))
-        {
-            x_ = rect.l;
-            y_ = rect.t;
-            w = rect.r - rect.l;
-            h = rect.b - rect.t;
-        }
-        else
-        {
+        if (this.isObjectInSmartArt() && this.invertTransformText) {
             x_ = 0;
             y_ = 0;
-            w = this.extX;
-            h = this.extY;
+            w = this.contentWidth;
+            h = this.contentHeight;
+            return AscFormat.HitToRect(x, y, this.invertTransformText, x_, y_, w, h);
+        } else if (this.invertTransform) {
+            var rect = this.getTextRect && this.getTextRect();
+            if(rect && AscFormat.isRealNumber(rect.l) && AscFormat.isRealNumber(rect.t)
+              && AscFormat.isRealNumber(rect.r) && AscFormat.isRealNumber(rect.r))
+            {
+                x_ = rect.l;
+                y_ = rect.t;
+                w = rect.r - rect.l;
+                h = rect.b - rect.t;
+            }
+            else
+            {
+                x_ = 0;
+                y_ = 0;
+                w = this.extX;
+                h = this.extY;
+            }
+            return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
         }
-        return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
     }
     return false;
 };
