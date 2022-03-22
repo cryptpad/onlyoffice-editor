@@ -119,24 +119,24 @@
 
 						res.setBDeleted(false);
 						if (res.hasCharts()) {
-							let chartStylePart = chartPart.getPartByRelationshipType(openXml.Types.chartStyle);
+							let chartStylePart = chartPart.getPartByRelationshipType(openXml.Types.chartStyle.relationType);
 							if (chartStylePart) {
 								let chartStyleContent = chartStylePart.getDocumentContent();
 								if (chartStyleContent) {
 									let chartStyle = new AscFormat.CChartStyle();
-									// let readerStyle = new StaxParser(chartStyleContent, chartStylePart, reader.context);
-									// chartStyle.fromXml(readerStyle);
-									// res.setChartStyle(chartStyle);
+									let readerStyle = new StaxParser(chartStyleContent, chartStylePart, reader.context);
+									chartStyle.fromXml(readerStyle);
+									res.setChartStyle(chartStyle);
 								}
 							}
-							let chartColorStylePart = chartPart.getPartByRelationshipType(openXml.Types.chartColorStyle);
+							let chartColorStylePart = chartPart.getPartByRelationshipType(openXml.Types.chartColorStyle.relationType);
 							if (chartColorStylePart) {
 								let chartColorStyleContent = chartColorStylePart.getDocumentContent();
 								if (chartColorStyleContent) {
 									let chartStyle = new AscFormat.CChartColors();
-									// let readerStyle = new StaxParser(chartColorStyleContent, chartColorStylePart, reader.context);
-									// chartStyle.fromXml(readerStyle);
-									// res.setChartColors(chartStyle);
+									let readerStyle = new StaxParser(chartColorStyleContent, chartColorStylePart, reader.context);
+									chartStyle.fromXml(readerStyle);
+									res.setChartColors(chartStyle);
 								}
 							}
 						} else {
@@ -177,6 +177,14 @@
 				elem.attributes["xmlns:r"] = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 				elem.attributes["r:id"] = chartPart.rId;
 				elemForWriting = elem;
+				if (graphicObject.chartStyle) {
+					let chartStylePart = chartPart.part.addPart(AscCommon.openXml.Types.chartStyle);
+					chartStylePart.part.setDataXml(graphicObject.chartStyle, writer);
+				}
+				if (graphicObject.chartColors) {
+					let chartColorPart = chartPart.part.addPart(AscCommon.openXml.Types.chartColorStyle);
+					chartColorPart.part.setDataXml(graphicObject.chartColors, writer);
+				}
 				break;
 			}
 			case AscDFH.historyitem_type_SlicerView:

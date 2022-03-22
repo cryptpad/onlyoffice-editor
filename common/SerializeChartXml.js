@@ -98,12 +98,72 @@
 	let CSerAx = window['AscFormat'].CSerAx;
 	let CScaling = window['AscFormat'].CScaling;
 	let CDispUnits = window['AscFormat'].CDispUnits;
+	let CChartStyle = window['AscFormat'].CChartStyle;
+	let CStyleEntry = window['AscFormat'].CStyleEntry;
+	let CMarkerLayout = window['AscFormat'].CMarkerLayout;
+	let CChartColors = window['AscFormat'].CChartColors;
 
 	let CT_Bool = window['AscCommon'].CT_Bool;
 	let CT_String = window['AscCommon'].CT_String;
 	let CT_Int = window['AscCommon'].CT_Int;
 	let CT_UInt = window['AscCommon'].CT_UInt;
 	let CT_Double = window['AscCommon'].CT_Double;
+
+	function readSpPrPlain(reader) {
+		//todo CSpPr
+		let elem = new AscFormat.CSpPr();
+		elem.setFill(AscFormat.CreteSolidFillRGB(Math.round(Math.random() * 255), Math.round(Math.random() * 255), Math.round(Math.random() * 255)));
+		var oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
+		elem.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, undefined));
+		elem.fromXml(reader);
+		return elem;
+	}
+
+	function readSpPr(reader, parent) {
+		let elem = readSpPrPlain(reader);
+		elem.setParent(parent);
+		parent.setSpPr(elem);
+	}
+
+	function readTxPrPlain(reader) {
+		//todo CTextBody
+		let elem = new AscFormat.CTextBody();
+		elem.setContent(new AscFormat.CDrawingDocContent(elem, reader.context.DrawingDocument, 0, 0, 0, 0, 0, 0, true));
+		elem.fromXml(reader);
+		return elem;
+	}
+
+	function readTxPr(reader, parent) {
+		let elem = readTxPrPlain(reader);
+		elem.setParent(parent);
+		parent.setTxPr(elem);
+	}
+
+	function readStyleRef(reader) {
+		//todo
+		return new AscFormat.StyleRef();
+	}
+	function readFontRef(reader) {
+		//todo
+		return new AscFormat.FontRef();
+	}
+	function readRPr(reader) {
+		//todo
+		return new CTextPr();
+	}
+	function readBodyPr(reader) {
+		//todo
+		return new AscFormat.CBodyPr();
+	}
+	function readUniColor(reader) {
+		//todo
+		return AscFormat.CreateUniColorRGB();
+	}
+	function readColorModifier(reader) {
+		//todo
+		return new AscFormat.CColorModifiers();
+	}
+
 //CT_ChartSpace
 	CChartSpace.prototype.fromXml = function(reader) {
 		reader.context.curChart = this;
@@ -3918,35 +3978,495 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 
-	function readSpPrPlain(reader) {
-		//todo CSpPr
-		let elem = new AscFormat.CSpPr();
-		elem.setFill(AscFormat.CreteSolidFillRGB(Math.round(Math.random() * 255), Math.round(Math.random() * 255), Math.round(Math.random() * 255)));
-		var oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
-		elem.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, undefined));
-		elem.fromXml(reader);
-		return elem;
-	}
-
-	function readSpPr(reader, parent) {
-		let elem = readSpPrPlain(reader);
-		elem.setParent(parent);
-		parent.setSpPr(elem);
-	}
-
-	function readTxPrPlain(reader) {
-		//todo CTextBody
-		let elem = new AscFormat.CTextBody();
-		elem.setContent(new AscFormat.CDrawingDocContent(elem, reader.context.DrawingDocument, 0, 0, 0, 0, 0, 0, true));
-		elem.fromXml(reader);
-		return elem;
-	}
-
-	function readTxPr(reader, parent) {
-		let elem = readTxPrPlain(reader);
-		elem.setParent(parent);
-		parent.setTxPr(elem);
-	}
+//CChartStyle
+	CChartStyle.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "id": {
+					this.setId(reader.GetValueUInt(this.id));
+					break;
+				}
+			}
+		}
+	};
+	CChartStyle.prototype.fromXml = function(reader) {
+		var name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("chartStyle" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("chartStyle" === name) {
+			this.readAttr(reader);
+			let elem, depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				switch (reader.GetNameNoNS()) {
+					case "axisTitle" : {
+						elem = new CStyleEntry();
+						elem.setType(1);
+						elem.fromXml(reader);
+						this.setAxisTitle(elem);
+						break;
+					}
+					case "categoryAxis" : {
+						elem = new CStyleEntry();
+						elem.setType(2);
+						elem.fromXml(reader);
+						this.setCategoryAxis(elem);
+						break;
+					}
+					case "chartArea" : {
+						elem = new CStyleEntry();
+						elem.setType(3);
+						elem.fromXml(reader);
+						this.setChartArea(elem);
+						break;
+					}
+					case "dataLabel" : {
+						elem = new CStyleEntry();
+						elem.setType(4);
+						elem.fromXml(reader);
+						this.setDataLabel(elem);
+						break;
+					}
+					case "dataLabelCallout" : {
+						elem = new CStyleEntry();
+						elem.setType(5);
+						elem.fromXml(reader);
+						this.setDataLabelCallout(elem);
+						break;
+					}
+					case "dataPoint" : {
+						elem = new CStyleEntry();
+						elem.setType(6);
+						elem.fromXml(reader);
+						this.setDataPoint(elem);
+						break;
+					}
+					case "dataPoint3D" : {
+						elem = new CStyleEntry();
+						elem.setType(7);
+						elem.fromXml(reader);
+						this.setDataPoint3D(elem);
+						break;
+					}
+					case "dataPointLine" : {
+						elem = new CStyleEntry();
+						elem.setType(8);
+						elem.fromXml(reader);
+						this.setDataPointLine(elem);
+						break;
+					}
+					case "dataPointMarker" : {
+						elem = new CStyleEntry();
+						elem.setType(9);
+						elem.fromXml(reader);
+						this.setDataPointMarker(elem);
+						break;
+					}
+					case "dataPointMarkerLayout" : {
+						elem = new CMarkerLayout();
+						elem.fromXml(reader);
+						this.setMarkerLayout(elem);
+						break;
+					}
+					case "dataPointWireframe" : {
+						elem = new CStyleEntry();
+						elem.setType(10);
+						elem.fromXml(reader);
+						this.setDataPointWireframe(elem);
+						break;
+					}
+					case "dataTable" : {
+						elem = new CStyleEntry();
+						elem.setType(11);
+						elem.fromXml(reader);
+						this.setDataTable(elem);
+						break;
+					}
+					case "downBar" : {
+						elem = new CStyleEntry();
+						elem.setType(12);
+						elem.fromXml(reader);
+						this.setDownBar(elem);
+						break;
+					}
+					case "dropLine" : {
+						elem = new CStyleEntry();
+						elem.setType(13);
+						elem.fromXml(reader);
+						this.setDropLine(elem);
+						break;
+					}
+					case "errorBar" : {
+						elem = new CStyleEntry();
+						elem.setType(14);
+						elem.fromXml(reader);
+						this.setErrorBar(elem);
+						break;
+					}
+					case "floor" : {
+						elem = new CStyleEntry();
+						elem.setType(15);
+						elem.fromXml(reader);
+						this.setFloor(elem);
+						break;
+					}
+					case "gridlineMajor" : {
+						elem = new CStyleEntry();
+						elem.setType(16);
+						elem.fromXml(reader);
+						this.setGridlineMajor(elem);
+						break;
+					}
+					case "gridlineMinor" : {
+						elem = new CStyleEntry();
+						elem.setType(17);
+						elem.fromXml(reader);
+						this.setGridlineMinor(elem);
+						break;
+					}
+					case "hiLoLine" : {
+						elem = new CStyleEntry();
+						elem.setType(18);
+						elem.fromXml(reader);
+						this.setHiLoLine(elem);
+						break;
+					}
+					case "leaderLine" : {
+						elem = new CStyleEntry();
+						elem.setType(19);
+						elem.fromXml(reader);
+						this.setLeaderLine(elem);
+						break;
+					}
+					case "legend" : {
+						elem = new CStyleEntry();
+						elem.setType(20);
+						elem.fromXml(reader);
+						this.setLegend(elem);
+						break;
+					}
+					case "plotArea" : {
+						elem = new CStyleEntry();
+						elem.setType(21);
+						elem.fromXml(reader);
+						this.setPlotArea(elem);
+						break;
+					}
+					case "plotArea3D" : {
+						elem = new CStyleEntry();
+						elem.setType(22);
+						elem.fromXml(reader);
+						this.setPlotArea3D(elem);
+						break;
+					}
+					case "seriesAxis" : {
+						elem = new CStyleEntry();
+						elem.setType(23);
+						elem.fromXml(reader);
+						this.setSeriesAxis(elem);
+						break;
+					}
+					case "seriesLine" : {
+						elem = new CStyleEntry();
+						elem.setType(24);
+						elem.fromXml(reader);
+						this.setSeriesLine(elem);
+						break;
+					}
+					case "title" : {
+						elem = new CStyleEntry();
+						elem.setType(25);
+						elem.fromXml(reader);
+						this.setTitle(elem);
+						break;
+					}
+					case "trendline" : {
+						elem = new CStyleEntry();
+						elem.setType(26);
+						elem.fromXml(reader);
+						this.setTrendline(elem);
+						break;
+					}
+					case "trendlineLabel" : {
+						elem = new CStyleEntry();
+						elem.setType(27);
+						elem.fromXml(reader);
+						this.setTrendlineLabel(elem);
+						break;
+					}
+					case "upBar" : {
+						elem = new CStyleEntry();
+						elem.setType(28);
+						elem.fromXml(reader);
+						this.setUpBar(elem);
+						break;
+					}
+					case "valueAxis" : {
+						elem = new CStyleEntry();
+						elem.setType(29);
+						elem.fromXml(reader);
+						this.setValueAxis(elem);
+						break;
+					}
+					case "wall" : {
+						elem = new CStyleEntry();
+						elem.setType(30);
+						elem.fromXml(reader);
+						this.setWall(elem);
+						break;
+					}
+				}
+			}
+		}
+	};
+	CChartStyle.prototype.toXml = function(writer) {
+		let name = "cs:chartStyle";
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlChartStyleNamespaces);
+		writer.WriteXmlNullableAttributeUInt("id", this.id);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.axisTitle, "cs:axisTitle");
+		writer.WriteXmlNullable(this.categoryAxis, "cs:categoryAxis");
+		writer.WriteXmlNullable(this.chartArea, "cs:chartArea");
+		writer.WriteXmlNullable(this.dataLabel, "cs:dataLabel");
+		writer.WriteXmlNullable(this.dataLabelCallout, "cs:dataLabelCallout");
+		writer.WriteXmlNullable(this.dataPoint, "cs:dataPoint");
+		writer.WriteXmlNullable(this.dataPoint3D, "cs:dataPoint3D");
+		writer.WriteXmlNullable(this.dataPointLine, "cs:dataPointLine");
+		writer.WriteXmlNullable(this.dataPointMarker, "cs:dataPointMarker");
+		writer.WriteXmlNullable(this.markerLayout, "cs:dataPointMarkerLayout");
+		writer.WriteXmlNullable(this.dataPointWireframe, "cs:dataPointWireframe");
+		writer.WriteXmlNullable(this.dataTable, "cs:dataTable");
+		writer.WriteXmlNullable(this.downBar, "cs:downBar");
+		writer.WriteXmlNullable(this.dropLine, "cs:dropLine");
+		writer.WriteXmlNullable(this.errorBar, "cs:errorBar");
+		writer.WriteXmlNullable(this.floor, "cs:floor");
+		writer.WriteXmlNullable(this.gridlineMajor, "cs:gridlineMajor");
+		writer.WriteXmlNullable(this.gridlineMinor, "cs:gridlineMinor");
+		writer.WriteXmlNullable(this.hiLoLine, "cs:hiLoLine");
+		writer.WriteXmlNullable(this.leaderLine, "cs:leaderLine");
+		writer.WriteXmlNullable(this.legend, "cs:legend");
+		writer.WriteXmlNullable(this.plotArea, "cs:plotArea");
+		writer.WriteXmlNullable(this.plotArea3D, "cs:plotArea3D");
+		writer.WriteXmlNullable(this.seriesAxis, "cs:seriesAxis");
+		writer.WriteXmlNullable(this.seriesLine, "cs:seriesLine");
+		writer.WriteXmlNullable(this.title, "cs:title");
+		writer.WriteXmlNullable(this.trendline, "cs:trendline");
+		writer.WriteXmlNullable(this.trendlineLabel, "cs:trendlineLabel");
+		writer.WriteXmlNullable(this.upBar, "cs:upBar");
+		writer.WriteXmlNullable(this.valueAxis, "cs:valueAxis");
+		writer.WriteXmlNullable(this.wall, "cs:wall");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CStyleEntry.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "mods": {
+					// this.setMods(reader.GetValueDecodeXml());
+					break;
+				}
+			}
+		}
+	};
+	CStyleEntry.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "lnRef" : {
+					this.setLnRef(readStyleRef(reader));
+					break;
+				}
+				case "lineWidthScale" : {
+					this.setLineWidthScale(CT_Double.prototype.toVal(reader, this.lineWidthScale));
+					break;
+				}
+				case "fillRef" : {
+					this.setFillRef(readStyleRef(reader));
+					break;
+				}
+				case "effectRef" : {
+					this.setEffectRef(readStyleRef(reader));
+					break;
+				}
+				case "fontRef" : {
+					this.setFontRef(readFontRef(reader));
+					break;
+				}
+				case "spPr" : {
+					readSpPr(reader, this);
+					break;
+				}
+				case "defRPr" : {
+					this.setDefRPr(readRPr(reader));
+					break;
+				}
+				case "bodyPr" : {
+					this.setBodyPr(readBodyPr(reader));
+					break;
+				}
+			}
+		}
+	};
+	CStyleEntry.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		// writer.WriteXmlNullableAttributeStringEncode("mods", this.mods);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.lnRef, "cs:lnRef");
+		writer.WriteXmlNullable(this.lineWidthScale, "cs:lineWidthScale");
+		writer.WriteXmlNullable(this.fillRef, "cs:fillRef");
+		writer.WriteXmlNullable(this.effectRef, "cs:effectRef");
+		writer.WriteXmlNullable(this.fontRef, "cs:fontRef");
+		writer.WriteXmlNullable(this.spPr, "cs:spPr");
+		//todo
+		// writer.WriteXmlNullable(this.defRPr, "cs:defRPr");
+		// writer.WriteXmlNullable(this.bodyPr, "cs:bodyPr");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CMarkerLayout.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "symbol": {
+					this.setSymbol(fromXml_ST_MarkerStyle(reader.GetValue(), this.symbol));
+					break;
+				}
+				case "size": {
+					this.setSize(reader.GetValueByte(this.size));
+					break;
+				}
+			}
+		}
+	};
+	CMarkerLayout.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CMarkerLayout.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("symbol", toXml_ST_MarkerStyle(this.symbol));
+		writer.WriteXmlNullableAttributeByte("size", this.size);
+		writer.WriteXmlAttributesEnd(true);
+	};
+//CChartColors
+	CChartColors.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "meth": {
+					this.setMeth(reader.GetValueDecodeXml());
+					break;
+				}
+				case "id": {
+					this.setId(reader.GetValueUInt(this.id));
+					break;
+				}
+			}
+		}
+	};
+	CChartColors.prototype.fromXml = function(reader) {
+		var name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("colorStyle" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("colorStyle" === name) {
+			this.readAttr(reader);
+			let elem, depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				switch (reader.GetNameNoNS()) {
+					case "scrgbClr" : {
+						elem = readUniColor(reader);
+						this.addItem(elem);
+						break;
+					}
+					case "srgbClr" : {
+						elem = readUniColor(reader);
+						this.addItem(elem);
+						break;
+					}
+					case "hslClr" : {
+						elem = readUniColor(reader);
+						this.addItem(elem);
+						break;
+					}
+					case "sysClr" : {
+						elem = readUniColor(reader);
+						this.addItem(elem);
+						break;
+					}
+					case "schemeClr" : {
+						elem = readUniColor(reader);
+						this.addItem(elem);
+						break;
+					}
+					case "prstClr" : {
+						elem = readUniColor(reader);
+						this.addItem(elem);
+						break;
+					}
+					case "variation" : {
+						elem = readColorModifier(reader);
+						this.addItem(elem);
+						break;
+					}
+				}
+			}
+		}
+	};
+	CChartColors.prototype.toXml = function(writer) {
+		let name = "cs:colorStyle";
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlChartColorNamespaces);
+		writer.WriteXmlNullableAttributeStringEncode("meth", this.meth);
+		writer.WriteXmlNullableAttributeUInt("id", this.id);
+		writer.WriteXmlAttributesEnd();
+		this.items.forEach(function(item){
+			if (item instanceof AscFormat.CUniColor) {
+				let color = item.color;
+				switch (color.type) {
+					case Asc.c_oAscColor.COLOR_TYPE_PRST: {
+						writer.WriteXmlNullable(color, "a:prstClr");
+						break;
+					}
+					case Asc.c_oAscColor.COLOR_TYPE_SCHEME: {
+						writer.WriteXmlNullable(color, "a:schemeClr");
+						break;
+					}
+					case Asc.c_oAscColor.COLOR_TYPE_SRGB: {
+						writer.WriteXmlNullable(color, "a:srgbClr");
+						break;
+					}
+					case Asc.c_oAscColor.COLOR_TYPE_SYS: {
+						writer.WriteXmlNullable(color, "a:sysClr");
+						break;
+					}
+					case Asc.c_oAscColor.COLOR_TYPE_STYLE: {
+						writer.WriteXmlNullable(color, "a:hslClr");
+						break;
+					}
+				}
+			}
+			else {
+				//todo
+				// writer.WriteXmlNullable(item, "cs:variation");
+			}
+		});
+		writer.WriteXmlNodeEnd(name);
+	};
 
 	function readLayout(reader, parent) {
 		let elem = new CT_XmlNode(function(reader, name) {
