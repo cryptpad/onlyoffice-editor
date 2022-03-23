@@ -61,11 +61,15 @@
 	{
 		this.RecalcId = nRecalcId;
 	};
-	CParagraphSpellChecker.prototype.Check = function(isCheckCurrentWord)
+	CParagraphSpellChecker.prototype.Check = function(nRecalcId, isCheckCurrentWord)
 	{
 		let arrWords = [];
 		let arrLangs = [];
 		this.private_GetWordsListForRequest(arrWords, arrLangs, isCheckCurrentWord);
+
+		let isFirst = (this.RecalcId === -1);
+		if (undefined !== nRecalcId)
+			this.SetRecalcId(nRecalcId);
 
 		if (0 < arrWords.length
 			&& true === this.GetDocumentSpellChecker().AddWaitingParagraph(this.Paragraph, this.RecalcId, arrWords, arrLangs))
@@ -80,7 +84,7 @@
 			});
 		}
 
-		return arrWords.length;
+		return (arrWords.length || isFirst);
 	};
 	CParagraphSpellChecker.prototype.private_GetWordsListForRequest = function(arrWords, arrLangs, isCheckCurrentWord)
 	{

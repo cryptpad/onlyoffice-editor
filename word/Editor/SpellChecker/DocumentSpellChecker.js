@@ -153,6 +153,7 @@
 			this.private_CheckErrorsExceed();
 		}
 
+
 		for (let sId in this.CurPara)
 		{
 			let oParagraph = this.CurPara[sId];
@@ -194,7 +195,7 @@
 			let oParagraph = this.CurPara[sId];
 			delete this.CurPara[sId];
 			oParagraph.SpellChecker.ResetElementsWithCurrentState();
-			oParagraph.SpellChecker.Check(true);
+			oParagraph.SpellChecker.Check(undefined, true);
 		}
 	};
 	CDocumentSpellChecker.prototype.AddWaitingParagraph = function(oParagraph, RecalcId, Words, Langs)
