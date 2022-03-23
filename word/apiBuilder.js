@@ -5897,6 +5897,50 @@
 		return aResult;
 	};
 
+	/**
+	 * Replaces the drawing by a new drawing.
+	 * @memberof ApiDocument
+	 * @param {ApiDrawing} oOldDrawing - a drawing which will be replaced.
+	 * @param {ApiDrawing} oNewDrawing - a drawing to replace the old drawing.
+	 * @param {boolean} [bSaveOldDrawingPr=false] - specified that the old drawing settings should be saved.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiDocument.prototype.ReplaceDrawing = function(oOldDrawing, oNewDrawing, bSaveOldDrawingPr)
+	{
+		if (!(oOldDrawing instanceof ApiDrawing) || !oOldDrawing.Drawing.Parent || !(oNewDrawing instanceof ApiDrawing))
+			return false;
+
+		var oDrawing = oNewDrawing.Copy();
+
+		if (bSaveOldDrawingPr === true)
+			oDrawing.SetDrawingPrFromDrawing(oOldDrawing);
+
+		var oDocument = private_GetLogicDocument();
+		var oRun = oOldDrawing.Drawing.Parent.Get_DrawingObjectRun(oOldDrawing.Drawing.Id);
+		if (oRun)
+		{
+			var oldSelectionInfo = oDocument.SaveDocumentState();
+
+			for ( var CurPos = 0; CurPos < oRun.Content.length; CurPos++ )
+			{
+				var Element = oRun.Content[CurPos];
+
+				if ( para_Drawing === Element.Type && oOldDrawing.Drawing.Id === Element.Get_Id() )
+				{
+					oRun.Remove_FromContent(CurPos, 1);
+					oRun.Add_ToContent(CurPos, oDrawing.Drawing);
+					break;
+				}
+			}
+
+			oDocument.LoadDocumentState(oldSelectionInfo);
+			return true;
+		}
+
+		return false;
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -12754,72 +12798,20 @@
 	};
 
 	/**
-     * Copies drawing properties from another drawing.
+     * Sets drawing properties from another drawing.
 	 * Will be copied: PosH, PosV, Distance, WrappingStyle, drawing name, title and description.
      * @memberof ApiDrawing
-     * @param {ApiDrawing} oDrawing - drawing wich properties will be set to current drawing.
+     * @param {ApiDrawing} oAnotherDrawing - drawing wich properties will be set to current drawing.
      * @typeofeditors ["CDE"]
      * @returns {boolean}
      */
-	ApiDrawing.prototype.CopyPrFromDrawing = function(oDrawing)
+	ApiDrawing.prototype.SetDrawingPrFromDrawing = function(oAnotherDrawing)
 	{
-		if (!(oDrawing instanceof ApiDrawing))
+		if (!(oAnotherDrawing instanceof ApiDrawing))
 			return false;
 
-		this.Drawing.Set_DrawingType(oDrawing.Drawing.DrawingType);
-		var d = oDrawing.Drawing.Distance;
-		this.Drawing.Set_PositionH(oDrawing.Drawing.PositionH.RelativeFrom, oDrawing.Drawing.PositionH.Align, oDrawing.Drawing.PositionH.Value, oDrawing.Drawing.PositionH.Percent);
-		this.Drawing.Set_PositionV(oDrawing.Drawing.PositionV.RelativeFrom, oDrawing.Drawing.PositionV.Align, oDrawing.Drawing.PositionV.Value, oDrawing.Drawing.PositionV.Percent);
-		this.Drawing.Set_Distance(d.L, d.T, d.R, d.B);
-		this.Drawing.Set_AllowOverlap(oDrawing.Drawing.AllowOverlap);
-		this.Drawing.Set_WrappingType(oDrawing.Drawing.wrappingType);
-		this.Drawing.Set_BehindDoc(oDrawing.Drawing.behindDoc);
-		this.Drawing.docPr.setFromOther(oDrawing.Drawing.docPr);
-
+		this.Drawing.SetDrawingPrFromDrawing(oAnotherDrawing.Drawing);
 		return true;
-	};
-
-	/**
-	 * Replace current drawing by new drawing.
-	 * @memberof ApiDrawing
-	 * @param {ApiDrawing} oNewDrawing - a drawing to replace the current drawing.
-	 * @param {boolean} [bSaveOldDrawingPr=false] - specified that the current drawing settings should be saved.
-	 * @typeofeditors ["CDE"]
-	 * @returns {boolean}
-	 */
-	ApiDrawing.prototype.Replace = function(oNewDrawing, bSaveOldDrawingPr)
-	{
-		if (!(oNewDrawing instanceof ApiDrawing) || !this.Drawing.Parent)
-			return false;
-
-		var oDrawing = oNewDrawing.Copy();
-
-		if (bSaveOldDrawingPr === true)
-			oDrawing.CopyPrFromDrawing(this);
-
-		var oDocument = private_GetLogicDocument();
-		var oRun = this.Drawing.Parent.Get_DrawingObjectRun(this.Drawing.Id);
-		if (oRun)
-		{
-			var oldSelectionInfo = oDocument.SaveDocumentState();
-
-			for ( var CurPos = 0; CurPos < oRun.Content.length; CurPos++ )
-			{
-				var Element = oRun.Content[CurPos];
-
-				if ( para_Drawing === Element.Type && this.Drawing.Id === Element.Get_Id() )
-				{
-					oRun.Remove_FromContent(CurPos, 1);
-					oRun.Add_ToContent(CurPos, oDrawing.Drawing);
-					break;
-				}
-			}
-
-			oDocument.LoadDocumentState(oldSelectionInfo);
-			return true;
-		}
-
-		return false;
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -16332,6 +16324,7 @@
 	ApiDocument.prototype["GetEndNotesFirstParagraphs"]  = ApiDocument.prototype.GetEndNotesFirstParagraphs;
 	ApiDocument.prototype["GetAllCaptionParagraphs"]     = ApiDocument.prototype.GetAllCaptionParagraphs;
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
+	ApiDocument.prototype["ReplaceDrawing"]              = ApiDocument.prototype.ReplaceDrawing;
 
 	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;
 	ApiDocument.prototype["UpdateAllTOC"]		     = ApiDocument.prototype.UpdateAllTOC;
@@ -16723,8 +16716,7 @@
 	ApiDrawing.prototype["GetPrevDrawing"]           = ApiDrawing.prototype.GetPrevDrawing;
 	ApiDrawing.prototype["GetLockValue"]             = ApiDrawing.prototype.GetLockValue;
 	ApiDrawing.prototype["SetLockValue"]             = ApiDrawing.prototype.SetLockValue;
-	ApiDrawing.prototype["CopyPrFromDrawing"]        = ApiDrawing.prototype.CopyPrFromDrawing;
-	ApiDrawing.prototype["Replace"]                  = ApiDrawing.prototype.Replace;
+	ApiDrawing.prototype["SetDrawingPrFromDrawing"]  = ApiDrawing.prototype.SetDrawingPrFromDrawing;
 
 	ApiDrawing.prototype["ToJSON"]                   = ApiDrawing.prototype.ToJSON;
 
