@@ -26,9 +26,13 @@
 			"word/apiCommon.js",
 			"word/api.js",
 			"word/api_plugins.js",
-			"common/spell/spell.js"
+			"common/spell/spell.js",
+			"word/Editor/Table/TableLook.js"
 		],
-		"common": [			
+		"common": [
+			"common/api/actionOnTimer.js",
+			"common/api/tableStylesPreviewGenerator.js",
+
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
@@ -69,6 +73,7 @@
 			"common/Drawings/Format/Path.js",
 			"common/Drawings/Format/Image.js",
 			"common/Drawings/Format/GroupShape.js",
+			"common/Drawings/Format/Data.js",
 			"common/Drawings/Format/ChartSpace.js",
 			"common/Drawings/Format/ChartFormat.js",
 			"common/Drawings/Format/TextBody.js",
@@ -82,6 +87,7 @@
 			"common/Drawings/TrackObjects/PolyLine.js",
 			"common/Drawings/TrackObjects/ResizeTracks.js",
 			"common/Drawings/TrackObjects/RotateTracks.js",
+			"common/Drawings/TrackObjects/GeometryEditTrack.js",
 			"common/Drawings/TrackObjects/Spline.js",
 			"common/Drawings/TrackObjects/ConnectorTrack.js",
 			"common/Drawings/DrawingObjectsHandlers.js",
@@ -186,7 +192,10 @@
 			"word/Editor/StructuredDocumentTags/SdtPrChanges.js",
 			"word/Editor/Serialize2.js",
 			"word/Editor/Search.js",
-			"word/Editor/Spelling.js",
+			"word/Editor/SpellChecker/DocumentSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphCollector.js",
+			"word/Editor/SpellChecker/ParagraphSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphSpellCheckerElement.js",
 			"word/Editor/FootEndNote.js",
 			"word/Editor/Footnotes.js",
 			"word/Editor/FootnotesChanges.js",
@@ -206,6 +215,9 @@
 			"word/Drawing/Rulers.js",
 			"word/Drawing/HtmlPage.js",
 			"word/Drawing/documentrenderer.js",
+			"pdf/src/thumbnails.js",
+			"pdf/src/viewer.js",
+			"pdf/src/file.js",
 			"word/document/empty.js",
 			"word/Math/mathTypes.js",
 			"word/Math/mathText.js",

@@ -3730,15 +3730,18 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.isShape = function() {
         return false;
     };
-    CChartSpace.prototype.isImage = function() {
-        return false;
-    };
     CChartSpace.prototype.isGroup = function() {
         return false;
     };
     CChartSpace.prototype.setGroup = function(group) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_SetGroup, this.group, group));
         this.group = group;
+    };
+    CChartSpace.prototype.hasCharts = function() {
+        if(this.chart && this.chart.plotArea && this.chart.plotArea.charts.length > 0) {
+            return true;
+        }
+        return false;
     };
     CChartSpace.prototype.getRangeObjectStr = function() {
         var oDataRange = this.getDataRefs();
@@ -4732,14 +4735,17 @@ var GLOBAL_PATH_COUNT = 0;
                 }
             }
             var aAllAxes = [];//array of axes sets
+            var oSetAxis;
             while(aAxes.length > 0) {
                 oCurAxis = aAxes.splice(0, 1)[0];
                 aCurAxesSet = [];
                 aCurAxesSet.push(oCurAxis);
                 for(i = aAxes.length - 1; i > -1; --i) {
                     oCurAxis2 = aAxes[i];
-                    for(j = 0; j < aCurAxesSet.length; ++j) {
-                        if(aCurAxesSet[j].crossAx === oCurAxis2 || oCurAxis2.crossAx === aCurAxesSet[j]) {
+                    for(j = aCurAxesSet.length - 1; j > -1; --j) {
+                        oSetAxis = aCurAxesSet[j];
+                        if(oSetAxis.crossAx !== oSetAxis && oSetAxis.crossAx === oCurAxis2 ||
+                            oCurAxis2.crossAx !== oCurAxis2 && oCurAxis2.crossAx === oSetAxis) {
                             aCurAxesSet.push(oCurAxis2);
                         }
                     }
@@ -4864,6 +4870,14 @@ var GLOBAL_PATH_COUNT = 0;
             this.chart.plotArea.extY = oChartSize.h;
             this.chart.plotArea.localTransform.Reset();
             AscCommon.global_MatrixTransformer.TranslateAppend(this.chart.plotArea.localTransform, oChartSize.startX, oChartSize.startY);
+        }
+    };
+    CChartSpace.prototype.distributeValues = function(aVals) {
+        if(Array.isArray(aVals) && aVals.length > 2) {
+            var fStride = (aVals[aVals.length - 1] - aVals[0])/(aVals.length - 1);
+            for(var nVal = 1; nVal < aVals.length - 1; ++nVal) {
+                aVals[nVal] = aVals[0] + fStride*nVal;
+            }
         }
     };
     CChartSpace.prototype.recalculateAxis = function() {
@@ -7451,6 +7465,7 @@ var GLOBAL_PATH_COUNT = 0;
                         }
                     }
 
+                    this.distributeValues(arr_val_labels_points);
                     cat_ax.interval = unit_height;
                     //запишем в оси необходимую информацию для отрисовщика plotArea  и выставим окончательные позиции для подписей
                     var arr_labels, transform_text, local_text_transform;
@@ -8329,6 +8344,7 @@ var GLOBAL_PATH_COUNT = 0;
                                 arr_val_labels_points[i] = cat_ax.posX - (arr_val[i] - crosses_val_ax) * unit_width;
                         }
                     }
+                    this.distributeValues(arr_val_labels_points);
                     val_ax.interval = unit_width;
                     //запишем в оси необходимую информацию для отрисовщика plotArea  и выставим окончательные позиции для подписей
                     var local_transform_text;
@@ -11509,7 +11525,7 @@ var GLOBAL_PATH_COUNT = 0;
         }
     };
     CChartSpace.prototype.checkDrawingCache = function(graphics) {
-        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline) {
+        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview || graphics.PrintPreview) {
             return false;
         }
         if(graphics.IsSlideBoundsCheckerType) {
@@ -12183,7 +12199,34 @@ var GLOBAL_PATH_COUNT = 0;
             this.resetToChartStyle();
         }
     };
-
+    CChartSpace.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Chart");
+    };
+    CChartSpace.prototype.getAllAxes = function() {
+        var oChart = this.chart;
+        if(oChart) {
+            var oPlotArea = oChart.plotArea;
+            if(oPlotArea) {
+                return oPlotArea.axId;
+            }
+        }
+        return [];
+    };
+    CChartSpace.prototype.correctAxes = function() {
+        var aAxes = this.getAllAxes();
+        for(var nAx1 = 0; nAx1 < aAxes.length; ++nAx1) {
+            var oAx1 = aAxes[nAx1];
+            if(oAx1.crossAx === oAx1) {
+                for(var nAx2 = 0; nAx2 < aAxes.length; ++nAx2) {
+                    var oAx2 = aAxes[nAx2];
+                    if(oAx2 !== oAx1 && oAx2.crossAx === oAx1) {
+                        oAx1.setCrossAx(oAx2);
+                        break;
+                    }
+                }
+            }
+        }
+    };
     function CAdditionalStyleData() {
         this.dLbls = null;
         this.catAx = null;
@@ -13338,6 +13381,8 @@ var GLOBAL_PATH_COUNT = 0;
                 break;
             }
             case AscDFH.historyitem_type_GroupShape:
+            case AscDFH.historyitem_type_SmartArt:
+            case AscDFH.historyitem_type_Drawing:
             {
                 for(var i = 0; i < sp.spTree.length; ++i) {
                     checkBlipFillRasterImages(sp.spTree[i]);

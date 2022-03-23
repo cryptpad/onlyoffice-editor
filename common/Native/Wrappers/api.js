@@ -309,6 +309,104 @@ function asc_menu_WriteFontFamily(_type, _family, _stream)
     _stream["WriteByte"](255);
 }
 
+// UNICOLOR
+function asc_menu_ReadUniColor(_params, _cursor) {
+    var _color = new AscFormat.CUniColor();
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _color.color = new AscFormat.CPrstColor();
+                _color.color.type = _params[_cursor.pos++];
+                _color.color.id = _params[_cursor.pos++];
+                _color.color.RGBA = {
+                    R: _params[_cursor.pos++],
+                    G: _params[_cursor.pos++],
+                    B: _params[_cursor.pos++],
+                    A: _params[_cursor.pos++],
+                    needRecalc: _params[_cursor.pos++]
+                };
+                break;
+            }
+            case 1:
+            {
+                var _count = _params[_cursor.pos++];
+                for (var i = 0; i < _count; i++)
+                {
+                    var _mod = new AscFormat.CColorMod();
+                    _mod.name = _params[_cursor.pos++];
+                    _mod.val = _params[_cursor.pos++];
+                    _color.Mods.push(_mod);
+                }
+                break;
+            }
+            case 2:
+            {
+                _color.RGBA = {
+                    R: _params[_cursor.pos++],
+                    G: _params[_cursor.pos++],
+                    B: _params[_cursor.pos++],
+                    A: _params[_cursor.pos++]
+                }
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+    return _color;
+}
+
+function asc_menu_WriteUniColor(_type, _color, _stream) {
+    if (!_color)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_color.color !== undefined && _color.color !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteLong"](_color.color.type);
+        _stream["WriteStringA"](_color.color.id);
+        _stream["WriteByte"](_color.color.RGBA.R);
+        _stream["WriteByte"](_color.color.RGBA.G);
+        _stream["WriteByte"](_color.color.RGBA.B);
+        _stream["WriteByte"](_color.color.RGBA.A);
+        _stream["WriteBool"](_color.color.RGBA.needRecalc);
+    }
+    if (_color.Mods !== undefined && _color.Mods !== null)
+    {
+        _stream["WriteByte"](1);
+
+        var _len = _color.Mods.length;
+        _stream["WriteLong"](_len);
+
+        for (var i = 0; i < _len; i++)
+        {
+            _stream["WriteStringA"](_color.Mods[i].name);
+            _stream["WriteLong"](_color.Mods[i].val);
+        }
+    }
+    if (_color.RGBA !== undefined && _color.RGBA !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteByte"](_color.RGBA.R);
+        _stream["WriteByte"](_color.RGBA.G);
+        _stream["WriteByte"](_color.RGBA.B);
+        _stream["WriteByte"](_color.RGBA.A);
+    }
+
+    _stream["WriteByte"](255);
+}
+
 // ASCCOLOR
 function asc_menu_ReadColor(_params, _cursor)
 {
@@ -2800,7 +2898,31 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var json = JSON.parse(_additionalParams);
             if (json) {
                 var internalId = json["internalId"] || "";
-                _api.SetContentControlPictureUrlNative(_src, internalId)
+                _api.SetContentControlPictureUrlNative(_src, internalId);
+            }
+            break;
+        }
+
+        case 27001: //ASC_MENU_EVENT_TYPE_SET_FOOTNOTE_PROP
+        {
+            var json = JSON.parse(_params),
+                pos = json["Pos"],
+                numFormat = json["NumFormat"],
+                numStart = json["NumStart"],
+                numRestart = json["NumRestart"],
+                isAll = json["IsAll"] || true,
+                isEndnote = json["IsEndnote"] || false;
+
+            var props = new Asc.CAscFootnotePr();
+            props.put_Pos(pos);
+            props.put_NumFormat(numFormat);
+            props.put_NumStart(numStart);
+            props.put_NumRestart(numRestart);
+
+            if (isEndnote) {
+                _api.asc_SetEndnoteProps(props, isAll);
+            } else {
+                _api.asc_SetFootnoteProps(props, isAll);
             }
             break;
         }
@@ -3418,7 +3540,7 @@ function asc_menu_WriteTableAnchorPosition(_type, _position, _stream)
 
 function asc_menu_ReadTableLook(_params, _cursor)
 {
-    var _position = new CTableLook();
+    var _position = new AscCommon.CTableLook();
     var _continue = true;
     while (_continue)
     {
@@ -4085,6 +4207,12 @@ function asc_menu_ReadAscStroke(_params, _cursor)
                 _stroke.canChangeArrows = _params[_cursor.pos++];
                 break;
             }
+            case 10:
+            {
+                _stroke.prstDash = _params[_cursor.pos++];
+                break;
+            }
+
             case 255:
             default:
             {
@@ -4152,19 +4280,123 @@ function asc_menu_WriteAscStroke(_type, _stroke, _stream)
         _stream["WriteByte"](9);
         _stream["WriteBool"](_stroke.canChangeArrows);
     }
+    if (_stroke.prstDash !== undefined && _stroke.prstDash !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteLong"](_stroke.prstDash);
+    }
 
     _stream["WriteByte"](255);
 
 };
 
-function asc_menu_ReadShapePr(_params, _cursor)
-{
-    var _settings = new Asc.asc_CShapeProperty();
+function asc_menu_ReadAscShadow(_params, _cursor) {
+    var _shadow = new Asc.asc_CShadowProperty();
 
     var _continue = true;
     while (_continue)
     {
         var _attr = _params[_cursor.pos++];
+
+        switch (_attr)
+        {
+            case 0:
+            {
+                _shadow.color = asc_menu_ReadUniColor(_params, _cursor);
+                break;
+            }
+            case 1:
+            {
+                _shadow.algn = _params[_cursor.pos++];
+                break;
+            }
+            case 2:
+            {
+                _shadow.blurRad = _params[_cursor.pos++];
+                break;
+            }
+            case 3:
+            {
+                _shadow.dir = _params[_cursor.pos++];
+                break;
+            }
+            case 4:
+            {
+                _shadow.dist = _params[_cursor.pos++];
+                break;
+            }
+            case 5:
+            {
+                _shadow.rotWithShape = _params[_cursor.pos++];
+                break;
+            }
+            case 6:
+            {
+                if (!_params[_cursor.pos++]) {
+                    return null;
+                }
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _shadow;
+}
+
+function asc_menu_WriteAscShadow(_type, _shadow, _stream) {
+    if (!_shadow)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    asc_menu_WriteUniColor(0, _shadow.color, _stream);
+
+    if (_shadow.algn !== undefined && _shadow.algn !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_shadow.algn);
+    }
+    if (_shadow.blurRad !== undefined && _shadow.blurRad !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteLong"](_shadow.blurRad);
+    }
+    if (_shadow.dir !== undefined && _shadow.dir !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteLong"](_shadow.dir);
+    }
+    if (_shadow.dist !== undefined && _shadow.dist !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteLong"](_shadow.dist);
+    }
+    if (_shadow.rotWithShape !== undefined && _shadow.rotWithShape !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteBool"](_shadow.dist);
+    }
+    _stream["WriteByte"](6);
+    _stream["WriteBool"](true);
+
+    _stream["WriteByte"](255);
+}
+
+function asc_menu_ReadShapePr(_params, _cursor)
+{
+    var _settings = new Asc.asc_CShapeProperty();
+    var _continue = true;
+
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+
         switch (_attr)
         {
             case 0:
@@ -4205,6 +4437,11 @@ function asc_menu_ReadShapePr(_params, _cursor)
             case 7:
             {
                 _settings.bFromGroup = _params[_cursor.pos++];
+                break;
+            }
+            case 8:
+            {
+                _settings.shadow = asc_menu_ReadAscShadow(_params, _cursor);
                 break;
             }
             case 255:
@@ -4250,6 +4487,10 @@ function asc_menu_WriteShapePr(_type, _shapePr, _stream)
     {
         _stream["WriteByte"](7);
         _stream["WriteBool"](_shapePr.bFromGroup);
+    }
+    if (_shapePr.shadow !== undefined && _shapePr.shadow !== null)
+    {
+        asc_menu_WriteAscShadow(8, _shapePr.shadow, _stream);
     }
 
     _stream["WriteByte"](255);
@@ -5184,7 +5425,7 @@ Asc['asc_docs_api'].prototype.SetDocumentModified = function(bValue)
 };
 
 // find -------------------------------------------------------------------------------------------------
-Asc['asc_docs_api'].prototype.asc_findText = function(text, isNext, isMatchCase)
+Asc['asc_docs_api'].prototype.asc_findText = function(text, isNext, isMatchCase, callback)
 {
     var SearchEngine = editor.WordControl.m_oLogicDocument.Search( text, { MatchCase : isMatchCase } );
 
@@ -5193,6 +5434,8 @@ Asc['asc_docs_api'].prototype.asc_findText = function(text, isNext, isMatchCase)
     if ( null != Id )
         this.WordControl.m_oLogicDocument.SelectSearchElement( Id );
 
+    if (callback)
+        callback(SearchEngine.Count);
     return SearchEngine.Count;
 };
 
@@ -5828,14 +6071,7 @@ AscCommon.ChartPreviewManager.prototype.clearPreviews = function()
 AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex)
 {
     return AscFormat.ExecuteNoHistory(function(){
-      if(!this.chartsByTypes[type])
-          this.chartsByTypes[type] = this.getChartByType(type);
-
-      var chart_space = this.chartsByTypes[type];
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[type][styleIndex]);
-      chart_space.recalcInfo.recalculateReferences = false;
-      chart_space.recalculate();
-
+      var chart_space = this.checkChartForPreview(type, AscCommon.g_oChartStyles[type][styleIndex]);
       // sizes for imageView
       window["native"]["DD_StartNativeDraw"](85 * 2, 85 * 2, 75, 75);
 
@@ -7047,7 +7283,7 @@ Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
         var oLogicDoc = this.WordControl.m_oLogicDocument;
         if(isOn)
         {
-            this.spellCheckTimerId = setInterval(function(){oLogicDoc.ContinueCheckSpelling();}, 500);
+            this.spellCheckTimerId = setInterval(function(){oLogicDoc.ContinueSpellCheck();}, 500);
         }
         else
         {

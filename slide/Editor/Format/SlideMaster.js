@@ -48,6 +48,8 @@ var History = AscCommon.History;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterAddLayout]         = AscDFH.CChangesDrawingsContent         ;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetTransition]     = AscDFH.CChangesDrawingsObjectNoId         ;
  AscDFH.changesFactory[AscDFH.historyitem_SlideMasterSetTiming]         = AscDFH.CChangesDrawingsObject         ;
+ AscDFH.changesFactory[AscDFH.historyitem_SlideMasterRemoveLayout]      = AscDFH.CChangesDrawingsContent         ;
+ AscDFH.changesFactory[AscDFH.historyitem_SlideMasterRemoveFromSpTree]  = AscDFH.CChangesDrawingsContent         ;
 
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetThemeIndex]     = function(oClass, value){oClass.ThemeIndex = value;};
  AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideMasterSetSize]           = function(oClass, value){oClass.Width = value.a; oClass.Height = value.b;};
@@ -85,6 +87,8 @@ AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideMasterSetTransition]  = A
 
 AscDFH.drawingContentChanges[AscDFH.historyitem_SlideMasterAddToSpTree]       = function(oClass){return oClass.cSld.spTree;};
 AscDFH.drawingContentChanges[AscDFH.historyitem_SlideMasterAddLayout]         = function(oClass){return oClass.sldLayoutLst;};
+AscDFH.drawingContentChanges[AscDFH.historyitem_SlideMasterRemoveLayout]      = function(oClass){return oClass.sldLayoutLst;};
+AscDFH.drawingContentChanges[AscDFH.historyitem_SlideMasterRemoveFromSpTree]  = function(oClass){return oClass.cSld.spTree;};
 
 
 function MasterSlide(presentation, theme)
@@ -480,6 +484,10 @@ MasterSlide.prototype =
         {
             History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideMasterSetTiming, this.timing, oTiming));
             this.timing = oTiming;
+            if(this.timing)
+            {
+                this.timing.setParent(this);
+            }
         },
 
         changeSize: Slide.prototype.changeSize,
@@ -494,6 +502,11 @@ MasterSlide.prototype =
             History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterAddToSpTree, pos, [item], true));
             this.cSld.spTree.splice(pos, 0, item);
             item.setParent2(this);
+        },
+
+        shapeRemove: function (pos, count) {
+            History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterRemoveFromSpTree, pos, this.cSld.spTree.slice(pos, pos + count), false));
+            this.cSld.spTree.splice(pos, count);
         },
 
         changeBackground: function (bg) {
@@ -524,6 +537,25 @@ MasterSlide.prototype =
             History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterAddLayout, pos, [obj], true));
             this.sldLayoutLst.splice(pos, 0, obj);
             obj.setMaster(this);
+        },
+
+        removeFromSldLayoutLstByPos : function (pos, count) {
+            History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterRemoveLayout, pos, this.sldLayoutLst.slice(pos, pos + count), false));
+            this.sldLayoutLst.splice(pos, count);
+        }, 
+
+        moveLayouts : function (layoutsIndexes, pos) {
+            var insert_pos = pos;
+            var removed_layouts = [];
+            for (var i = layoutsIndexes.length - 1; i > -1; --i) {
+                removed_layouts.push(this.sldLayoutLst[layoutsIndexes[i]]);
+                this.removeFromSldLayoutLstByPos(layoutsIndexes[i], 1);
+            }
+            removed_layouts.reverse();
+            for (i = 0; i < removed_layouts.length; ++i) {
+                this.addToSldLayoutLstToPos(insert_pos + i, removed_layouts[i]);
+            }
+            this.recalculate();
         },
 
         getAllImages: function (images) {
@@ -652,6 +684,121 @@ function CMasterThumbnailDrawer()
     this.HeightPx       = 0;
 
     this.DrawingDocument = null;
+
+    this.GetPlaceholderByTypesFromObject = function(oContainer, aPhTypes)
+    {
+        var nPhType;
+        var oPlaceholder;
+        if(oContainer)
+        {
+            for(nPhType = 0; nPhType < aPhTypes.length; ++nPhType)
+            {
+                oPlaceholder = oContainer.getMatchingShape(aPhTypes[nPhType], null, undefined, undefined);
+                if(oPlaceholder && oPlaceholder.getObjectType() === AscDFH.historyitem_type_Shape)
+                {
+                    return oPlaceholder;
+                }
+            }
+        }
+        return null;
+    };
+
+    this.GetPlaceholderByTypes = function(_master, _layout, aPhTypes)
+    {
+        var oPlaceholder;
+        oPlaceholder = this.GetPlaceholderByTypesFromObject(_layout, aPhTypes);
+        if(oPlaceholder)
+        {
+            return oPlaceholder;
+        }
+        return this.GetPlaceholderByTypesFromObject(_master, aPhTypes);
+    };
+    this.GetPlaceholderTextProperties = function(_master, _layout, aPhTypes)
+    {
+        var oPlaceholder = this.GetPlaceholderByTypes(_master, _layout, aPhTypes);
+        if(!oPlaceholder)
+        {
+            return null;
+        }
+        var oStylesObj = oPlaceholder.Get_Styles(0);
+        if(oStylesObj && oStylesObj.styles)
+        {
+            var oPr = oStylesObj.styles.Get_Pr(oStylesObj.lastId, styletype_Paragraph, null);
+            if(oPr)
+            {
+                return oPr.TextPr;
+            }
+        }
+        return null;
+    };
+    this.GetTitleTextColor = function (_master, _layout)
+    {
+        var aPhTypes = [AscFormat.phType_ctrTitle, AscFormat.phType_title];
+        var oTextPr = this.GetPlaceholderTextProperties(_master, _layout, aPhTypes);
+        if(!oTextPr)
+        {
+            oTextPr = this.GetDefaultRunPr(_master, true)
+        }
+        return this.GetTextColor(oTextPr, _master);
+    };
+    this.GetBodyTextColor = function (_master, _layout)
+    {
+        var aPhTypes = [AscFormat.phType_body, AscFormat.phType_subTitle, AscFormat.phType_obj];
+        var oTextPr = this.GetPlaceholderTextProperties(_master, _layout, aPhTypes);
+        if(!oTextPr)
+        {
+            oTextPr = this.GetDefaultRunPr(_master, false)
+        }
+        return this.GetTextColor(oTextPr, _master);
+    };
+    this.GetTextColor = function(oTextPr, _master)
+    {
+        var oColor;
+        var oFormatColor;
+        var _theme = _master.Theme;
+        var RGBA = {R:0, G:0, B:0, A:255};
+        if(oTextPr && oTextPr.Unifill && oTextPr.Unifill.fill)
+        {
+            oTextPr.Unifill.calculate(_theme, null, null, _master, RGBA, null);
+            oFormatColor = oTextPr.Unifill.getRGBAColor();
+            oColor = new CDocumentColor(oFormatColor.R, oFormatColor.G, oFormatColor.B);
+        }
+        else
+        {
+            var _color = new AscFormat.CSchemeColor();
+            _color.id = 15;
+            _color.Calculate(_theme, null, null, _master, RGBA);
+            oColor = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
+        }
+        return oColor;
+    };
+    this.GetDefaultRunPr = function (_master, bTitle)
+    {
+        var oTxStyles = _master.txStyles;
+        var oTitleRunPr, oBodyRunPr;
+        if(oTxStyles)
+        {
+            if(bTitle)
+            {
+                var oTitleStyle = oTxStyles.titleStyle;
+                if(oTitleStyle && oTitleStyle.levels[0])
+                {
+                    oTitleRunPr = oTitleStyle.levels[0].DefaultRunPr;
+                    return oTitleRunPr;
+                }
+            }
+            else
+            {
+                var oBodyStyle = oTxStyles.bodyStyle;
+                if(oBodyStyle && oBodyStyle.levels[0])
+                {
+                    oBodyRunPr = oBodyStyle.levels[0].DefaultRunPr;
+                    return oBodyRunPr;
+                }
+            }
+        }
+        return null;
+    };
 
     this.Draw2 = function(g, _master, use_background, use_master_shapes, params) {
         var w_px = this.WidthPx;
@@ -787,19 +934,19 @@ function CMasterThumbnailDrawer()
         AscFormat.ExecuteNoHistory(function(){
             var _oldTurn = _api.isViewMode;
             _api.isViewMode = true;
-            _color.id = 15;
-            _color.Calculate(_theme, null, null, _master, RGBA);
+
             var nFontSize = _params[7];
             var _textPr1 = new CTextPr;
             _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
             _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
             _textPr1.FontSize = nFontSize;
-            _textPr1.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
+            _textPr1.Color = this.GetTitleTextColor(_master, _layout);
+
             var _textPr2 = new CTextPr;
             _textPr2.FontFamily = {Name:_theme.themeElements.fontScheme.minorFont.latin, Index:-1};
             _textPr2.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.minorFont.latin, Index: -1};
             _textPr2.FontSize = nFontSize;
-            _textPr2.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
+            _textPr2.Color = this.GetBodyTextColor(_master, _layout);
             var docContent = new CDocumentContent(editor.WordControl.m_oLogicDocument, editor.WordControl.m_oDrawingDocument, 0, 0, 1000, 1000, false, false, true);
             var par = docContent.Content[0];
             par.MoveCursorToStartPos();
@@ -1006,12 +1153,12 @@ function CMasterThumbnailDrawer()
             _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
             _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
             _textPr1.FontSize = nFontSize;
-            _textPr1.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
+            _textPr1.Color = this.GetTitleTextColor(_master, _layout);
             var _textPr2 = new CTextPr;
             _textPr2.FontFamily = {Name:_theme.themeElements.fontScheme.minorFont.latin, Index:-1};
             _textPr2.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.minorFont.latin, Index: -1};
             _textPr2.FontSize = nFontSize;
-            _textPr2.Color = new CDocumentColor(_color.RGBA.R, _color.RGBA.G, _color.RGBA.B);
+            _textPr2.Color = this.GetBodyTextColor(_master, _layout);
             var docContent = new CDocumentContent(editor.WordControl.m_oLogicDocument, editor.WordControl.m_oDrawingDocument, 0, 0, 1000, 1000, false, false, true);
             var par = docContent.Content[0];
             par.MoveCursorToStartPos();

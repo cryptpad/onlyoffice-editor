@@ -309,6 +309,65 @@ function MoveShapeImageTrack(originalObject)
                 this.y = 0;
             }
         }
+        if (this.originalObject.isObjectInSmartArt()) {
+            var _rot = this.originalObject.rot;
+            var isSwapBounds = ((_rot >= Math.PI / 4) && (_rot <= 3 * Math.PI / 4)) || ((_rot >= 5 * Math.PI / 4) && (_rot <= 7 * Math.PI / 4));
+            if (isSwapBounds) {
+                var l = this.x + (this.originalObject.extX - this.originalObject.extY) / 2;
+                var t = this.y + (this.originalObject.extY - this.originalObject.extX) / 2;
+                var b = t + this.originalObject.extX;
+                var r = l + this.originalObject.extY;
+            } else {
+                l = this.x;
+                t = this.y;
+                b = t + this.originalObject.extY;
+                r = l + this.originalObject.extX;
+            }
+
+            if (l < 0) {
+                this.x = this.x - l;
+            }
+            if (t < 0) {
+                this.y = this.y - t + 0.00001; // TODO: fix this
+            }
+            var oSmartArt = this.originalObject.group && this.originalObject.group.group;
+            if(oSmartArt) {
+                if (oSmartArt.extX < r) {
+                    this.x = this.x - (r - oSmartArt.extX);
+                }
+                if (oSmartArt.extY < b) {
+                    this.y = this.y - (b - oSmartArt.extY);
+                }
+            }
+            var point = this.originalObject.getSmartArtShapePoint();
+            if (point) {
+                var prSet = point.getPrSet();
+                var originalPosX = this.originalObject.x;
+                var originalPosY = this.originalObject.y;
+                var defaultExtX = this.originalObject.extX;
+                var defaultExtY = this.originalObject.extY;
+                if (prSet) {
+                    if (prSet.custScaleX) {
+                        defaultExtX /= prSet.custScaleX;
+                    }
+                    if (prSet.custScaleY) {
+                        defaultExtY /= prSet.custScaleY;
+                    }
+                    if (prSet.custLinFactNeighborX) {
+                        originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
+                    }
+                    if (prSet.custLinFactNeighborY) {
+                        originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
+                    }
+                    if (this.x !== this.originalObject.x) {
+                        prSet.setCustLinFactNeighborX(((this.x - originalPosX) / defaultExtX));
+                    }
+                    if (this.y !== this.originalObject.y) {
+                        prSet.setCustLinFactNeighborY(((this.y - originalPosY) / defaultExtY));
+                    }
+                }
+            }
+        }
         var _xfrm = this.originalObject.spPr.xfrm;
         var _x = _xfrm.offX;
         var _y = _xfrm.offY;
@@ -316,16 +375,24 @@ function MoveShapeImageTrack(originalObject)
         {
             AscFormat.ExecuteNoHistory(
                 function () {
-                    this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
-                    this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+                    _xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
+                    _xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
                 },
                 this, []
             );
         }
         else
         {
-            this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
-            this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+            _xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
+            _xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+            if (this.originalObject.txXfrm) {
+                var previousTxXfrmX = this.originalObject.txXfrm.offX;
+                var previousTxXfrmY = this.originalObject.txXfrm.offY;
+                var currentXfrmX = _xfrm.offX;
+                var currentXfrmY = _xfrm.offY;
+                this.originalObject.txXfrm.setOffX( currentXfrmX + (previousTxXfrmX - _x));
+                this.originalObject.txXfrm.setOffY( currentXfrmY + (previousTxXfrmY - _y));
+            }
         }
 
         if(this.originalObject.getObjectType() === AscDFH.historyitem_type_Cnx){
@@ -568,7 +635,7 @@ function MoveComment(comment)
         }
         return Flags;
     };
-    
+
     this.draw = function(overlay)
     {
         var Flags = this.getFlags();
@@ -583,7 +650,7 @@ function MoveComment(comment)
         }
         this.comment.setPosition(this.x, this.y);
     };
-    
+
     this.getBounds = function()
     {
         var dd = editor.WordControl.m_oDrawingDocument;
@@ -685,7 +752,7 @@ function MoveChartObjectTrack(oObject, oChartSpace)
         oObjectToSet.layout.setX(fLayoutX);
         oObjectToSet.layout.setY(fLayoutY);
     };
-    
+
     this.getBounds = function ()
     {
         var boundsChecker = new  AscFormat.CSlideBoundsChecker();

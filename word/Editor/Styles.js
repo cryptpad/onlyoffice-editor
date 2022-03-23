@@ -7556,6 +7556,13 @@ CStyle.prototype.Document_Is_SelectionLocked = function(CheckType)
 		}
 	}
 };
+/**
+ * @returns {boolean}
+ */
+CStyle.prototype.IsTableStyle = function()
+{
+	return (this.Type === styletype_Table);
+};
 
 function CStyles(bCreateDefault)
 {
@@ -9072,19 +9079,6 @@ CStyles.prototype =
         this.Default.TextPr.Document_Get_AllFontNames(AllFonts);
     },
 
-    Get_AllTableStyles : function()
-    {
-        var TableStyles = [];
-        for ( var Id in this.Style )
-        {
-            var Style = this.Style[Id];
-            if ( styletype_Table === Style.Type )
-                TableStyles.push( Id );
-        }
-
-        return TableStyles;
-    },
-
     Update_Interface : function(StyleId)
     {
         if (null != this.LogicDocument && undefined !== this.LogicDocument)
@@ -9284,6 +9278,18 @@ CStyles.prototype =
 CStyles.prototype.Get = function(sStyleId)
 {
 	return (this.Style[sStyleId] ? this.Style[sStyleId] : null);
+};
+CStyles.prototype.GetAllTableStyles = function()
+{
+	let arrTableStyles = [];
+	for (let Id in this.Style)
+	{
+		let oStyle = this.Style[Id];
+		if (oStyle.IsTableStyle())
+			arrTableStyles.push(oStyle);
+	}
+
+	return arrTableStyles;
 };
 /**
  * Получаем идентификатор стиля по его имени
@@ -13178,6 +13184,67 @@ CTextPr.prototype.Copy = function(bCopyPrChange, oPr)
 
 	return TextPr;
 };
+
+CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
+	var TextPr       = new CTextPr();
+
+	TextPr.Bold      = this.Bold;
+	TextPr.Italic    = this.Italic;
+	TextPr.Strikeout = this.Strikeout;
+	TextPr.DStrikeout = this.DStrikeout;
+	TextPr.Caps       = this.Caps;
+	TextPr.SmallCaps  = this.SmallCaps;
+
+	TextPr.Underline = this.Underline;
+	TextPr.Lang       = this.Lang.Copy();
+	TextPr.Spacing    = this.Spacing;
+	TextPr.RFonts     = this.RFonts.Copy()
+
+	TextPr.Vanish = this.Vanish;
+
+	if (oPr.custT) {
+		TextPr.FontSize = this.FontSize;
+	}
+
+	if (undefined != this.FontFamily)
+	{
+		TextPr.FontFamily       = {};
+		TextPr.FontFamily.Name  = this.FontFamily.Name;
+		TextPr.FontFamily.Index = this.FontFamily.Index;
+	}
+
+	if (undefined != this.Color)
+		TextPr.Color = new CDocumentColor(this.Color.r, this.Color.g, this.Color.b, this.Color.Auto);
+
+	TextPr.VertAlign = this.VertAlign;
+	TextPr.HighLight = this.Copy_HighLight();
+
+	if (undefined != this.Unifill)
+		TextPr.Unifill = this.Unifill.createDuplicate();
+
+	if (undefined != this.FontRef)
+		TextPr.FontRef = this.FontRef.createDuplicate();
+
+	if (undefined !== this.Shd)
+		TextPr.Shd = this.Shd.Copy();
+
+	if (undefined !== this.FontScale)
+		TextPr.FontScale = this.FontScale;
+
+	if (undefined != this.TextOutline)
+	{
+		TextPr.TextOutline = this.TextOutline.createDuplicate();
+	}
+	if (undefined != this.TextFill)
+	{
+		TextPr.TextFill = this.TextFill.createDuplicate();
+	}
+	if (undefined !== this.HighlightColor)
+	{
+		TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+	}
+	return TextPr;
+};
 CTextPr.prototype.Copy_HighLight = function()
 {
 	if (undefined === this.HighLight)
@@ -16189,6 +16256,23 @@ CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
 
 	return ParaPr;
 };
+CParaPr.prototype.createDuplicateForSmartArt = function (bCopyPrChange, oPr) {
+	var ParaPr = new CParaPr();
+	ParaPr.Jc              = this.Jc;
+
+	if (undefined != this.Spacing)
+		ParaPr.Spacing = this.Spacing.Copy();
+
+	if (undefined != this.Ind) // TODO: apply only changed ind
+		ParaPr.Ind = this.Ind.Copy();
+
+	if (undefined != this.Tabs)
+		ParaPr.Tabs = this.Tabs.Copy();
+
+	if (undefined != this.DefaultTab)
+		ParaPr.DefaultTab = this.DefaultTab;
+	return ParaPr;
+};
 CParaPr.prototype.Merge = function(ParaPr)
 {
 	if (undefined != ParaPr.ContextualSpacing)
@@ -17576,6 +17660,7 @@ window["AscCommonWord"].g_dKoef_in_to_mm = g_dKoef_in_to_mm;
 window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
 window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
 window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
+window["AscCommonWord"].g_dKoef_emu_to_mm = g_dKoef_emu_to_mm;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;

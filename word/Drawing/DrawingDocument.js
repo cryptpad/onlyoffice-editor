@@ -46,9 +46,6 @@ var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
 var g_dKoef_pix_to_mm = AscCommon.g_dKoef_pix_to_mm;
 var g_dKoef_mm_to_pix = AscCommon.g_dKoef_mm_to_pix;
 
-var _canvas_tables = null;
-var _table_styles = null;
-
 function CColumnsMarkupColumn()
 {
 	this.W = 0;
@@ -6588,7 +6585,7 @@ function CDrawingDocument()
                     var correctNum = 1;
                     if (levelNum === level.Text[i].Value)
                         correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format);
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.get_OLang());
                     break;
                 default:
                     break;
@@ -6709,7 +6706,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
                             break;
                         default:
                             break;
@@ -6941,7 +6938,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
                             break;
                         default:
                             break;
@@ -7186,7 +7183,7 @@ function CDrawingDocument()
 									text += curLvl.Text[j].Value;
 									break;
 								case Asc.c_oAscNumberingLvlTextType.Num:
-									text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+									text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
 									break;
 								default:
 									break;
@@ -7216,7 +7213,7 @@ function CDrawingDocument()
 								text += curLvl.Text[j].Value;
 								break;
 							case Asc.c_oAscNumberingLvlTextType.Num:
-								text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+								text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
 								break;
 							default:
 								break;
@@ -7355,7 +7352,7 @@ function CDrawingDocument()
 							var correctNum = 1;
 							if (levelNum === props[i].Text[k].Value)
 								correctNum = counterCurrent;
-							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format);
+							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].get_OLang());
 							break;
 						default:
 							break;
@@ -7465,184 +7462,47 @@ function CDrawingDocument()
         if (logicDoc && logicDoc.theme && logicDoc.theme.themeElements)
         	newClrScheme = logicDoc.theme.themeElements.clrScheme;
 
-		var bIsChanged = false;
-		if (null == this.TableStylesLastLook)
+		let isChanged = false;
+
+		if (!this.TableStylesLastLook || !this.TableStylesLastLook.IsEqual(tableLook))
 		{
-			this.TableStylesLastLook = new Asc.CTablePropLook();
+			this.TableStylesLastLook = tableLook.Copy();
+			isChanged = true;
+		}
 
-			this.TableStylesLastLook.FirstCol = tableLook.FirstCol;
-			this.TableStylesLastLook.FirstRow = tableLook.FirstRow;
-			this.TableStylesLastLook.LastCol = tableLook.LastCol;
-			this.TableStylesLastLook.LastRow = tableLook.LastRow;
-			this.TableStylesLastLook.BandHor = tableLook.BandHor;
-			this.TableStylesLastLook.BandVer = tableLook.BandVer;
-			bIsChanged = true;
+		if (this.TableStylesLastClrScheme !== newClrScheme)
+		{
+			this.TableStylesLastClrScheme = newClrScheme;
+			isChanged = true;
+		}
 
-            this.TableStylesLastClrScheme = newClrScheme;
+		if (!isChanged)
+			return;
+
+		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
+	};
+
+	this.GetTableStylesPreviews = function(bUseDefault)
+	{
+		return (new AscCommon.CTableStylesPreviewGenerator(this.m_oWordControl.m_oLogicDocument)).GetAllPreviews(bUseDefault);
+	};
+
+	this.GetTableLook = function(isDefault)
+	{
+		let oTableLook;
+
+		if (isDefault)
+		{
+			oTableLook = new AscCommon.CTableLook();
+			oTableLook.SetDefault();
 		}
 		else
 		{
-			if (this.TableStylesLastLook.FirstCol != tableLook.FirstCol)
-			{
-				this.TableStylesLastLook.FirstCol = tableLook.FirstCol;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.FirstRow != tableLook.FirstRow)
-			{
-				this.TableStylesLastLook.FirstRow = tableLook.FirstRow;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.LastCol != tableLook.LastCol)
-			{
-				this.TableStylesLastLook.LastCol = tableLook.LastCol;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.LastRow != tableLook.LastRow)
-			{
-				this.TableStylesLastLook.LastRow = tableLook.LastRow;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.BandHor != tableLook.BandHor)
-			{
-				this.TableStylesLastLook.BandHor = tableLook.BandHor;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.BandVer != tableLook.BandVer)
-			{
-				this.TableStylesLastLook.BandVer = tableLook.BandVer;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastClrScheme !== newClrScheme)
-			{
-				this.TableStylesLastClrScheme = newClrScheme;
-				bIsChanged = true;
-			}
+			oTableLook = this.TableStylesLastLook;
 		}
 
-		if (!bIsChanged)
-			return;
-
-		var _dst_styles = [];
-
-		var _styles = logicDoc.Styles.Get_AllTableStyles();
-		var _styles_len = _styles.length;
-
-		if (_styles_len == 0)
-			return _dst_styles;
-
-		var _x_mar = 10;
-		var _y_mar = 10;
-		var _r_mar = 10;
-		var _b_mar = 10;
-		var _pageW = 297;
-		var _pageH = 210;
-
-		var W = (_pageW - _x_mar - _r_mar);
-		var H = (_pageH - _y_mar - _b_mar);
-
-		if (_canvas_tables == null)
-		{
-			_canvas_tables = document.createElement('canvas');
-
-			_canvas_tables.width = (TABLE_STYLE_WIDTH_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-			_canvas_tables.height = (TABLE_STYLE_HEIGHT_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-		}
-
-		var _canvas = _canvas_tables;
-		var ctx = _canvas.getContext('2d');
-
-		var Rows = 5;
-
-		History.TurnOff();
-		g_oTableId.m_bTurnOff = true;
-
-		var isTrackRevision = false;
-		if (logicDoc && logicDoc.IsTrackRevisions())
-		{
-			isTrackRevision = logicDoc.GetLocalTrackRevisions();
-			logicDoc.SetLocalTrackRevisions(false);
-		}
-
-		for (var i1 = 0; i1 < _styles_len; i1++)
-		{
-			var i = _styles[i1];
-			var _style = logicDoc.Styles.Style[i];
-
-			if (!_style || _style.Type != styletype_Table)
-				continue;
-
-			if (_table_styles == null)
-			{
-				var Cols = 5;
-
-				var Grid = [];
-				for (var ii = 0; ii < Cols; ii++)
-					Grid[ii] = W / Cols;
-
-				_table_styles = new CTable(this, logicDoc, true, Rows, Cols, Grid);
-				_table_styles.Reset(_x_mar, _y_mar, 1000, 1000, 0, 0, 1);
-				_table_styles.Set_Props({
-					TableStyle: i,
-					TableLook: tableLook,
-					TableLayout: c_oAscTableLayout.Fixed
-				});
-				_table_styles.Set_Props({
-					TableDefaultMargins : {Top : 0, Bottom : 0}
-				});
-
-				for (var j = 0; j < Rows; j++)
-					_table_styles.Content[j].Set_Height(H / Rows, Asc.linerule_AtLeast);
-			}
-			else
-			{
-				_table_styles.Set_Props({
-					TableStyle: i,
-					TableLook: tableLook,
-					TableLayout: c_oAscTableLayout.Fixed,
-					CellSelect: false
-				});
-				_table_styles.Set_Props({
-					TableDefaultMargins : {Top : 0, Bottom : 0}
-				});
-				_table_styles.Recalc_CompiledPr2();
-
-				for (var j = 0; j < Rows; j++)
-					_table_styles.Content[j].Set_Height(H / Rows, Asc.linerule_AtLeast);
-			}
-
-
-			ctx.fillStyle = "#FFFFFF";
-			ctx.fillRect(0, 0, _canvas.width, _canvas.height);
-
-			var graphics = new AscCommon.CGraphics();
-			graphics.init(ctx, _canvas.width, _canvas.height, _pageW, _pageH);
-			graphics.m_oFontManager = AscCommon.g_fontManager;
-			graphics.transform(1, 0, 0, 1, 0, 0);
-
-			_table_styles.Recalculate_Page(0);
-
-			var _old_mode = editor.isViewMode;
-			editor.isViewMode = true;
-			editor.isShowTableEmptyLineAttack = true;
-			_table_styles.Draw(0, graphics, false);
-			editor.isShowTableEmptyLineAttack = false;
-			editor.isViewMode = _old_mode;
-
-			var _styleD = new AscCommon.CStyleImage();
-			_styleD.type = AscCommon.c_oAscStyleImage.Default;
-			_styleD.image = _canvas.toDataURL("image/png");
-			_styleD.name = i;
-			_styleD.displayName = _style.Name;
-			_dst_styles.push(_styleD);
-		}
-		g_oTableId.m_bTurnOff = false;
-		History.TurnOn();
-
-		if (false !== isTrackRevision)
-			logicDoc.SetLocalTrackRevisions(isTrackRevision);
-
-		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles, AscCommon.AscBrowser.isCustomScalingAbove2());
-	}
+		return oTableLook;
+	};
 
 	this.IsMobileVersion = function ()
 	{

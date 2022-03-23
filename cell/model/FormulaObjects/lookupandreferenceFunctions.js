@@ -1553,6 +1553,10 @@ function (window, undefined) {
 		if (cElementType.error === arg0Val.type) {
 			return arg0;
 		}
+		//TODO не тестировал на hlookup/x - поэтому поставил условия
+		if (!opt_xlookup && false === this.bHor && cElementType.empty === arg0Val.type) {
+			return new cError(cErrorType.not_available);
+		}
 
 		//TODO hlookup не правильно работает если первый агумент массив - раскомментировать тесты для hlookup
 		var found = false;
@@ -2229,6 +2233,8 @@ function (window, undefined) {
 				var _startRange = 0;
 				if (dimensions2.bbox) {
 					_startRange = bVertical ? dimensions2.bbox.r1 : dimensions2.bbox.c1;
+				} else if (dimensions1.bbox) {
+					_startRange = bVertical ? dimensions1.bbox.r1 : dimensions1.bbox.c1;
 				}
 
 				if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {

@@ -2661,7 +2661,7 @@ CMathContent.prototype.private_LoadFromMenuSymbol = function(Type, Pr)
         {
             TextPr = this.Content[this.CurPos].Get_TextPr();
             TextPr.RFonts.SetAll("Cambria Math", -1);          //  на данный момент добавляются символы исключительно из Cambria Math
-            MathPr = this.Content[this.CurPos].Get_MathPr();
+            MathPr = this.Content[this.CurPos].GetMathPr();
         }
 
         this.Add_Symbol(Code, TextPr, MathPr);
@@ -4186,21 +4186,20 @@ CMathContent.prototype.Selection_DrawRange = function(_CurLine, _CurRange, Selec
         }
     }
 };
-CMathContent.prototype.Select_ElementByPos = function(nPos, bWhole)
+CMathContent.prototype.SelectElementByPos = function(nPos)
 {
-    this.Selection.Use   = true;
-    this.Selection.StartPos = nPos;
-    this.Selection.EndPos   = nPos;
+	this.Selection.Use      = true;
+	this.Selection.StartPos = nPos;
+	this.Selection.EndPos   = nPos;
 
-    this.Content[nPos].SelectAll();
+	this.Content[nPos].SelectAll();
 
-    if (bWhole)
-        this.Correct_Selection();
+	this.Correct_Selection();
 
-    if (!this.bRoot)
-        this.ParentElement.Select_MathContent(this);
-    else
-        this.ParaMath.bSelectionUse = true;
+	if (!this.bRoot)
+		this.ParentElement.Select_MathContent(this);
+	else
+		this.ParaMath.bSelectionUse = true;
 };
 CMathContent.prototype.Select_Element = function(Element, bWhole)
 {
@@ -8558,7 +8557,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 						EndContentPos   = (this.Content[i].Selection.Use == true ? Math.max(this.Content[i].Selection.StartPos, this.Content[i].Selection.EndPos) : this.Content[i].CurPos.ContentPos);
 					}
 					var string = "";
-					for (var j = StartContentPos; j <= EndContentPos; j++) {
+					for (var j = StartContentPos; j < EndContentPos; j++) {
 						if (!this.Content[i].Content[j]) {
 							continue;
 						}

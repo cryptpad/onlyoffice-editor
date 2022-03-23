@@ -90,42 +90,13 @@ function CTransitionAnimation(htmlpage)
     {
         // эта функция определяет, где находится рект для перехода
 
-        var _page = this.HtmlPage;
 
-        var w = _page.m_oEditor.HtmlElement.width;
-        var h = _page.m_oEditor.HtmlElement.height;
+        var _rect   = editor.WordControl.m_oDrawingDocument.SlideCurrectRect;
 
-        var koefMMToPx = g_dKoef_mm_to_pix * AscCommon.AscBrowser.retinaPixelRatio;
-
-        var _pageWidth = _page.m_oLogicDocument.GetWidthMM() * koefMMToPx;
-        var _pageHeight = _page.m_oLogicDocument.GetHeightMM() * koefMMToPx;
-
-        var koefX = (w - 2 * _page.SlideDrawer.CONST_BORDER) / _pageWidth;
-        var koefY = (h - 2 * _page.SlideDrawer.CONST_BORDER) / _pageHeight;
-
-        var koefMin = Math.min(koefX, koefY);
-        if (koefMin < 0.05)
-            koefMin = 0.05;
-
-        var dKoef = koefMin * koefMMToPx;
-
-        var _slideW = (dKoef * _page.m_oLogicDocument.GetWidthMM()) >> 0;
-        var _slideH = (dKoef * _page.m_oLogicDocument.GetHeightMM()) >> 0;
-
-        var _centerX = (w / 2) >> 0;
-        var _centerSlideX = (dKoef * _page.m_oLogicDocument.GetWidthMM() / 2) >> 0;
-        var _hor_width_left = Math.min(0, _centerX - (_centerSlideX) - _page.SlideDrawer.CONST_BORDER);
-        var _hor_width_right = Math.max(w - 1, _centerX + (_slideW - _centerSlideX) + _page.SlideDrawer.CONST_BORDER);
-
-        var _centerY = (h / 2) >> 0;
-        var _centerSlideY = (dKoef * _page.m_oLogicDocument.GetHeightMM() / 2) >> 0;
-        var _ver_height_top = Math.min(0, _centerY - _centerSlideY - _page.SlideDrawer.CONST_BORDER);
-        var _ver_height_bottom = Math.max(h - 1, _centerX + (_slideH - _centerSlideY) + _page.SlideDrawer.CONST_BORDER);
-
-        this.Rect.x = _centerX - _centerSlideX - _hor_width_left;
-        this.Rect.y = _centerY - _centerSlideY - _ver_height_top;
-        this.Rect.w = _slideW;
-        this.Rect.h = _slideH;
+        this.Rect.x = AscCommon.AscBrowser.convertToRetinaValue(_rect.left, true);
+        this.Rect.y = AscCommon.AscBrowser.convertToRetinaValue(_rect.top, true);
+        this.Rect.w = AscCommon.AscBrowser.convertToRetinaValue(_rect.right - _rect.left, true);
+        this.Rect.h = AscCommon.AscBrowser.convertToRetinaValue(_rect.bottom - _rect.top, true);
     };
 
     this.CalculateRectDemonstration = function()
@@ -2661,6 +2632,7 @@ function CDemonstrationManager(htmlpage)
     this.isMouseDown = false;
     this.StartSlideNum = -1;
     this.TmpSlideVisible = -1;
+    this.LastMoveTime = null;
 
     var oThis = this;
 
@@ -3645,6 +3617,22 @@ function CDemonstrationManager(htmlpage)
         return false;
     };
 
+    this.CheckHideCursor = function()
+    {
+        if(!oThis.Canvas)
+        {
+            return;
+        }
+        var nShowTime = 3000;
+        if(oThis.LastMoveTime !== null && (new Date()).getTime() - oThis.LastMoveTime > nShowTime)
+        {
+            if(oThis.Canvas.style.cursor !== "none")
+            {
+                oThis.Canvas.style.cursor = "none";
+            }
+        }
+    };
+
     this.onMouseDown = function(e)
     {
         var documentMI = oThis.documentMouseInfo(e);
@@ -3703,6 +3691,7 @@ function CDemonstrationManager(htmlpage)
 
     this.onMouseMove = function(e)
     {
+        oThis.LastMoveTime = (new Date()).getTime();
         if (true)
         {
             var documentMI = oThis.documentMouseInfo(e);

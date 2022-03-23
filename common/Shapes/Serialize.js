@@ -6586,8 +6586,6 @@ function BinaryPPTYLoader()
         var s = this.stream;
 
         var shape = new AscFormat.CShape(this.TempMainObject);
-        if (null != this.TempGroupObject)
-            shape.Container = this.TempGroupObject;
 
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;
@@ -6605,15 +6603,6 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     shape.attrUseBgFill = s.GetBool();
-                    break;
-                }
-                case 2:
-                {
-                    var sModelId = s.GetString2();
-                    if(typeof AscFormat.SmartArt !== undefined)
-                    {
-                        shape.setModelId(sModelId);
-                    }
                     break;
                 }
                 default:
@@ -6659,11 +6648,26 @@ function BinaryPPTYLoader()
 				case 6:
 				{
                     txXfrm = this.ReadXfrm();
+                    shape.setTxXfrm(txXfrm);
 					break;
 				}
                 case 7:
                 {
                     shape.setSignature(this.ReadSignatureLine());
+                    break;
+                }
+                case 8:
+                {
+                    if(typeof AscFormat.SmartArt !== undefined)
+                    {
+                        s.GetULong();//length
+                        s.GetUChar();//attr type - 0
+                        shape.setModelId(s.GetString2());
+                    }
+                    else
+                    {
+                        s.SkipRecord();
+                    }
                     break;
                 }
                 case 9:
@@ -6685,46 +6689,8 @@ function BinaryPPTYLoader()
                 }
             }
         }
-        if(txXfrm && AscFormat.isRealNumber(txXfrm.rot) && shape.txBody){
-            var oCopyBodyPr;
-            var rot2 = txXfrm.rot;
-            while(rot2 < 0){
-                rot2 += 2*Math.PI;
-            }
-            var nSquare = ((2.0*rot2/Math.PI + 0.5) >> 0);
-            while (nSquare < 0){
-                nSquare += 4;
-            }
-            switch (nSquare){
-                case 0:
-                {
-                    oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                    oCopyBodyPr.rot = (rot2/AscFormat.cToRad + 0.5) >> 0;
-                    shape.txBody.setBodyPr(oCopyBodyPr);
-                    break;
-                }
-                case 1:
-                {
-                    oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                    oCopyBodyPr.vert = AscFormat.nVertTTvert;
-                    shape.txBody.setBodyPr(oCopyBodyPr);
-                    break;
-                }
-                case 2:
-                {
-                    oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                    oCopyBodyPr.rot = (rot2/AscFormat.cToRad + 0.5) >> 0;
-                    shape.txBody.setBodyPr(oCopyBodyPr);
-                    break;
-                }
-                case 3:
-                {
-                    oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                    oCopyBodyPr.vert = AscFormat.nVertTTvert270;
-                    shape.txBody.setBodyPr(oCopyBodyPr);
-                    break;
-                }
-            }
+        if(txXfrm ){
+            shape.convertFromSmartArt();
         }
 
         s.Seek2(_end_rec);
@@ -7279,7 +7245,7 @@ function BinaryPPTYLoader()
         s.Seek2(_end_rec);
 
         this.TempGroupObject = null;
-        if (_chart == null)
+        if (_chart == null || !_chart.hasCharts())
             return null;
 
         return _chart;
@@ -7361,7 +7327,10 @@ function BinaryPPTYLoader()
                         AscCommon.pptx_content_loader.Reader.ImageMapChecker = this.ImageMapChecker;
                         var oBinaryChartReader = new AscCommon.BinaryChartReader(_stream);
                         oBinaryChartReader.ExternalReadCT_ChartSpace(_length, _chart, this.presentation);
-
+                        if(!_chart.hasCharts())
+                        {
+                            _chart = null;
+                        }
                     }
 
                     s.Seek2(_pos + _length);
@@ -7447,11 +7416,15 @@ function BinaryPPTYLoader()
             if(AscCommon.isRealObject(_nvGraphicFramePr) )
             {
                 _chart.setNvSpPr(_nvGraphicFramePr);
-                if(AscFormat.isRealNumber(_nvGraphicFramePr.locks)){
+                if(AscFormat.isRealNumber(_nvGraphicFramePr.locks))
+                {
                     _chart.setLocks(_nvGraphicFramePr.locks);
                 }
+                if(_nvGraphicFramePr.cNvPr) 
+                {
+                    this.map_shapes_by_id[_nvGraphicFramePr.cNvPr.id] = _chart;
+                }
             }
-            this.map_shapes_by_id[_nvGraphicFramePr.cNvPr.id] = _chart;
             _chart.spPr.setXfrm(_xfrm);
             _xfrm.setParent(_chart.spPr);
             return _chart;
@@ -7497,6 +7470,10 @@ function BinaryPPTYLoader()
                 _xfrm.setExtX(0);
                 _xfrm.setExtY(0);
             }
+            _xfrm.setChOffX(0);
+            _xfrm.setChOffY(0);
+            _xfrm.setChExtX(0);
+            _xfrm.setChExtY(0);
             _smartArt.spPr.setXfrm(_xfrm);
             _xfrm.setParent(_smartArt.spPr);
             if(AscCommon.isRealObject(_nvGraphicFramePr) )
@@ -7506,6 +7483,20 @@ function BinaryPPTYLoader()
                 {
                     _smartArt.setLocks(_nvGraphicFramePr.locks);
                 }
+                if(_nvGraphicFramePr.cNvPr) 
+                {
+                    this.map_shapes_by_id[_nvGraphicFramePr.cNvPr.id] = _smartArt;
+                }
+            }
+            if(_smartArt.drawing)
+            {
+                var oDrawing = _smartArt.drawing;
+                oDrawing.setSpPr(new AscFormat.CSpPr());
+                oDrawing.spPr.setParent(_smartArt);
+                oDrawing.spPr.setXfrm(_xfrm.createDuplicate());
+                oDrawing.spPr.xfrm.setParent(oDrawing.spPr);
+                oDrawing.spPr.xfrm.setOffX(0);
+                oDrawing.spPr.xfrm.setOffY(0);
             }
             return _smartArt;
         }
@@ -7513,18 +7504,19 @@ function BinaryPPTYLoader()
         return _graphic_frame;
     };
 
-    this.ReadSmartArt = function()
+    this.ReadSmartArt = function(CDrawing)
     {
+        var s = this.stream;
         var _smartArt;
-        if(typeof AscFormat.SmartArt !== "undefined")
+        if(typeof AscFormat.SmartArt !== "undefined" && !CDrawing)
         {
             _smartArt = new AscFormat.SmartArt();
             _smartArt.fromPPTY(this);
+            _smartArt.setBDeleted(false);
         }
         else
         {
             //read drawing part of smartArt as a group
-            var s = this.stream;
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
             //no attributes
@@ -7536,37 +7528,7 @@ function BinaryPPTYLoader()
                     case 0:
                     {
                         //DiagramDrawing
-                        var _rec_start2 = s.cur;
-                        var _end_rec2 = _rec_start2 + s.GetULong() + 4;
-                        while (s.cur < _end_rec2)
-                        {
-                            var _at2 = s.GetUChar();
-                            switch (_at2)
-                            {
-                                case 0:
-                                {
-                                    //_smartArt = this.ReadGroupShape();
-                                   var shapes = this.ReadGroupShapeMain();
-                                    _smartArt = new AscFormat.CGroupShape();
-                                    _smartArt.setBDeleted(false);
-                                    for(var nSp = 0; nSp < shapes.length; ++nSp)
-                                    {
-                                        var oSp = shapes[nSp];
-                                        _smartArt.addToSpTree(undefined, oSp);
-                                        oSp.setGroup(_smartArt);
-                                    }
-
-                                    _smartArt.setParent(this.TempMainObject == null ? this.ParaDrawing : null);
-                                    break;
-                                }
-                                default:
-                                {
-                                    s.SkipRecord();
-                                    break;
-                                }
-                            }
-                        }
-                        s.Seek2(_end_rec2);
+                        _smartArt = this.ReadSmartArtGroup(CDrawing);
                         break;
                     }
                     default:
@@ -7578,6 +7540,49 @@ function BinaryPPTYLoader()
             }
         }
         s.Seek2(_end_rec);
+        _smartArt.setType(_smartArt.getTypeOfSmartArt());
+        return _smartArt;
+    };
+
+    this.ReadSmartArtGroup = function(CDrawing)
+    {
+        var _smartArt;
+        var s = this.stream;
+        var _rec_start2 = s.cur;
+        var _end_rec2 = _rec_start2 + s.GetULong() + 4;
+        while (s.cur < _end_rec2)
+        {
+            var _at2 = s.GetUChar();
+            switch (_at2)
+            {
+                case 0:
+                {
+                    //_smartArt = this.ReadGroupShape();
+                    var shapes = this.ReadGroupShapeMain();
+                    if (CDrawing) {
+                        _smartArt = CDrawing;
+                    } else {
+                        _smartArt = new AscFormat.CGroupShape();
+                    }
+                    _smartArt.setBDeleted(false);
+                    for(var nSp = 0; nSp < shapes.length; ++nSp)
+                    {
+                        var oSp = shapes[nSp];
+                        _smartArt.addToSpTree(undefined, oSp);
+                        oSp.setGroup(_smartArt);
+                    }
+
+                    _smartArt.setParent(this.TempMainObject == null ? this.ParaDrawing : null);
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_rec2);
         return _smartArt;
     };
 
@@ -7828,6 +7833,7 @@ function BinaryPPTYLoader()
                             }
                             case AscDFH.historyitem_type_GraphicFrame:
                             case AscDFH.historyitem_type_ChartSpace:
+                            case AscDFH.historyitem_type_SmartArt:
                             {
                                 s.Skip2(1); // attribute start
                                 while (true)
@@ -8562,7 +8568,7 @@ function BinaryPPTYLoader()
 
         var obj = {};
         obj.props = new CTablePr();
-        obj.look = new CTableLook(false, false, false, false, false, false);
+        obj.look = new AscCommon.CTableLook(false, false, false, false, false, false);
         obj.style = -1;
 
         while (true)
@@ -8587,32 +8593,32 @@ function BinaryPPTYLoader()
                 }
                 case 2:
                 {
-                    obj.look.m_bFirst_Row = s.GetBool();
+                    obj.look.SetFirstRow(s.GetBool());
                     break;
                 }
                 case 3:
                 {
-                    obj.look.m_bFirst_Col = s.GetBool();
+                    obj.look.SetFirstCol(s.GetBool());
                     break;
                 }
                 case 4:
                 {
-                    obj.look.m_bLast_Row = s.GetBool();
+                    obj.look.SetLastRow(s.GetBool());
                     break;
                 }
                 case 5:
                 {
-                    obj.look.m_bLast_Col = s.GetBool();
+                    obj.look.SetLastCol(s.GetBool());
                     break;
                 }
                 case 6:
                 {
-                    obj.look.m_bBand_Hor = s.GetBool();
+                    obj.look.SetBandHor(s.GetBool());
                     break;
                 }
                 case 7:
                 {
-                    obj.look.m_bBand_Ver = s.GetBool();
+                    obj.look.SetBandVer(s.GetBool());
                     break;
                 }
                 default:
@@ -9686,6 +9692,170 @@ function BinaryPPTYLoader()
                                     case 0:
                                     {
                                         bullet.bulletType.AutoNumType = s.GetUChar();
+                                        if(AscFonts.IsCheckSymbols) {
+                                            var adaptedVal = window['AscCommonWord'].getAdaptedNumberingFormat(bullet.bulletType.AutoNumType);
+                                            switch (adaptedVal) {
+                                                case Asc.c_oAscNumberingFormat.LowerLetter:
+                                                case Asc.c_oAscNumberingFormat.UpperLetter:
+                                                case Asc.c_oAscNumberingFormat.LowerRoman:
+                                                case Asc.c_oAscNumberingFormat.UpperRoman:
+                                                    for (var nValue = 0; nValue < 26; ++nValue)
+                                                    {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(97 + nValue);
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(65 + nValue);
+                                                    }
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.ArabicAlpha:
+                                                case Asc.c_oAscNumberingFormat.ArabicAbjad:
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0623);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0628);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x062A);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x062B);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x062C);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x062D);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x062E);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x062F);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0630);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0631);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0632);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0633);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0634);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0635);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0636);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0637);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0638);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0639);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x063A);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0641);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0642);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0643);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0644);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0645);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0646);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0647);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0648);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x064A);
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.DecimalFullWidth:
+                                                    for (var i = 0; i < 10; i += 1) {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF10 + i);
+                                                    }
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.Decimal:
+                                                    for (var i = 0; i < 10; i += 1) {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(0x30 + i);
+                                                    }
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
+                                                    for (var nValue = 0; nValue < 20; ++nValue)
+                                                    {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(0x2460 + nValue);
+                                                    }
+                                                    for (var i = 0; i < 10; i += 1) {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(0x30 + i);
+                                                    }
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.ChineseCounting:
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x25CB);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x5341);
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.Hebrew2:
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D0);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D1);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D2);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D3);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D4);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D5);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D6);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D7);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D8);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D9);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DB);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DC);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DE);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E0);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E1);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E2);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E4);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E6);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E7);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E8);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E9);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x05EA);
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.HindiConsonants:
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(2306);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(2307);
+                                                    for (var i = 0x0905; i <= 0x0914; i += 1) {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(i);
+                                                    }
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.HindiVowels:
+                                                    for (var i = 0x0915; i <= 0x0939; i += 1) {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(i);
+                                                    }
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.HindiNumbers:
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0967);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0968);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0969);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x096A);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x096B);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x096C);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x096D);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x096E);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x096F);
+                                                    break;
+                                                case Asc.c_oAscNumberingFormat.ThaiLetters:
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E01);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E02);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E04);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E25);
+                                                    for (var i = 0x0E07; i <= 0x0E23; i += 1) {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(i);
+                                                    }
+                                                    for (var i = 0x0E27; i <= 0x0E2E; i += 1) {
+                                                        AscFonts.FontPickerByCharacter.getFontBySymbol(i);
+                                                    }
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.ThaiNumbers:
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E50);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E51);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E52);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E53);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E54);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E55);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E56);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E57);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E58);
+                                                    AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E59);
+                                                    break;
+
+                                                case Asc.c_oAscNumberingFormat.None:
+                                                default:
+                                                    break;
+                                            }
+                                        }
+
                                         break;
                                     }
                                     case 1:
@@ -11788,11 +11958,18 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         {
 
                             var oGrFrDrawing = oThis.Reader.ReadGrFrame();
-                            if(oGrFrDrawing && oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape) {
-                                GrObject = oGrFrDrawing.convertToWord(oThis.LogicDocument);
-                                GrObject.applySmartArtTextStyle();
-                                if(paraDrawing){
-                                    GrObject.setParent(paraDrawing);
+                            if(oGrFrDrawing) {
+                                if(oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape) {
+                                    GrObject = oGrFrDrawing.convertToWord(oThis.LogicDocument);
+                                    if(paraDrawing){
+                                        GrObject.setParent(paraDrawing);
+                                    }
+                                }
+                                else if(oGrFrDrawing.getObjectType() === AscDFH.historyitem_type_SmartArt) {
+                                    GrObject = oGrFrDrawing;
+                                    if(paraDrawing){
+                                        GrObject.setParent(paraDrawing);
+                                    }
                                 }
                             }
                             break;
@@ -11928,15 +12105,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         shape.attrUseBgFill = s.GetBool();
                         break;
                     }
-                    case 2:
-                    {
-                        var sModelId = s.GetString2();
-                        if(typeof AscFormat.SmartArt !== undefined)
-                        {
-                            shape.setModelId(sModelId);
-                        }
-                        break;
-                    }
                     default:
                         break;
                 }
@@ -12029,6 +12197,20 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     case 7:
                     {
                         shape.setSignature(this.Reader.ReadSignatureLine());
+                        break;
+                    }
+                    case 8:
+                    {
+                        if(typeof AscFormat.SmartArt !== undefined)
+                        {
+                            s.GetULong();//length
+                            s.GetUChar();//attr type - 0
+                            shape.setModelId(s.GetString2());
+                        }
+                        else
+                        {
+                            s.SkipRecord();
+                        }
                         break;
                     }
                     case 0xA1:

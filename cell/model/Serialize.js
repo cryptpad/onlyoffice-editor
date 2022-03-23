@@ -1088,7 +1088,7 @@
 		PivotTables: 16,
 		Scenarios: 17,
 		SelectLockedCells: 18,
-		SelectUnlockedCell: 19,
+		SelectUnlockedCells: 19,
 		Sheet: 20,
 		Sort: 21
 	};
@@ -1775,7 +1775,7 @@
 				this.bs.WriteItem(c_oSer_TablePart.QueryTable, function(){oThis.WriteQueryTable(table.QueryTable, table);});
 
 			if(null != table.tableType)
-				this.bs.WriteItem(c_oSer_TablePart.TableType, function(){oThis.memory.WriteULong(elem.tableType);});
+				this.bs.WriteItem(c_oSer_TablePart.TableType, function(){oThis.memory.WriteULong(table.tableType);});
         };
 		this.WriteAltTextTable = function(table)
 		{
@@ -2662,6 +2662,7 @@
         this.WriteFill = function(fill, fixDxf)
         {
             var oThis = this;
+            fill.checkEmptyContent();
             if (fill.patternFill) {
                 this.bs.WriteItem(c_oSerFillTypes.Pattern, function(){oThis.WritePatternFill(fill.patternFill, fixDxf);});
             }
@@ -4177,10 +4178,10 @@
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(sheetProtection.selectLockedCells);
 			}
-			if (null != sheetProtection.selectUnlockedCell) {
-				this.memory.WriteByte(c_oSerWorksheetProtection.SelectUnlockedCell);
+			if (null != sheetProtection.selectUnlockedCells) {
+				this.memory.WriteByte(c_oSerWorksheetProtection.SelectUnlockedCells);
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
-				this.memory.WriteBool(sheetProtection.selectUnlockedCell);
+				this.memory.WriteBool(sheetProtection.selectUnlockedCells);
 			}
 			if (null != sheetProtection.sheet) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.Sheet);
@@ -6544,7 +6545,7 @@
 			}
 			else if(c_oSer_QueryTable.GrowShrinkType == type)
 			{
-				oQueryTable.growShrinkType = this.stream.GetString2LE();
+				oQueryTable.growShrinkType = this.stream.GetString2LE(length);
 			}
 			else if(c_oSer_QueryTable.AdjustColumnWidth == type)
 			{
@@ -8474,10 +8475,10 @@
                 for(var i = 0; i < aTempCols.length; ++i)
                 {
                     var elem = aTempCols[i];
-                    if(elem.Max >= oWorksheet.nColsCount)
-                        oWorksheet.nColsCount = elem.Max;
                     if(null != oAllCol && oAllCol.isEqual(elem.col))
                         continue;
+                    if(elem.col.isUpdateScroll() && elem.Max >= oWorksheet.nColsCount)
+                        oWorksheet.nColsCount = elem.Max;
 
                     for(var j = elem.Min; j <= elem.Max; j++){
                         var oNewCol = new AscCommonExcel.Col(oWorksheet, j - 1);
@@ -8796,8 +8797,8 @@
 				sheetProtection.scenarios = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.SelectLockedCells == type) {
 				sheetProtection.selectLockedCells = this.stream.GetBool();
-			} else if (c_oSerWorksheetProtection.SelectUnlockedCell == type) {
-				sheetProtection.selectUnlockedCell = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.SelectUnlockedCells == type) {
+				sheetProtection.selectUnlockedCells = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.Sheet == type) {
 				sheetProtection.sheet = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.Sort == type) {
@@ -8928,7 +8929,12 @@
             if ( c_oSerSheetFormatPrTypes.DefaultColWidth == type )
                 oWorksheet.oSheetFormatPr.dDefaultColWidth = this.stream.GetDoubleLE();
             else if (c_oSerSheetFormatPrTypes.BaseColWidth === type)
-                oWorksheet.oSheetFormatPr.nBaseColWidth = this.stream.GetULongLE();
+            {
+                var _nBaseColWidth = this.stream.GetULongLE();
+                if (_nBaseColWidth > 0) {
+                    oWorksheet.oSheetFormatPr.nBaseColWidth = _nBaseColWidth;
+                }
+            }
             else if ( c_oSerSheetFormatPrTypes.DefaultRowHeight == type )
             {
                 var oAllRow = oWorksheet.getAllRow();
@@ -9554,11 +9560,13 @@
                 var oNewChartSpace = new AscFormat.CChartSpace();
                 var oBinaryChartReader = new AscCommon.BinaryChartReader(this.stream);
                 res = oBinaryChartReader.ExternalReadCT_ChartSpace(length, oNewChartSpace, this.curWorksheet);
-                oDrawing.graphicObject = oNewChartSpace;
-                oNewChartSpace.setBDeleted(false);
-                if(oNewChartSpace.setDrawingBase)
-                {
-                    oNewChartSpace.setDrawingBase(oDrawing);
+                if(oNewChartSpace.hasCharts()) {
+                    oDrawing.graphicObject = oNewChartSpace;
+                    oNewChartSpace.setBDeleted(false);
+                    if(oNewChartSpace.setDrawingBase)
+                    {
+                        oNewChartSpace.setDrawingBase(oDrawing);
+                    }
                 }
             }
             else

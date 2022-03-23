@@ -3355,6 +3355,27 @@
 			m1.ty  = m.ty;
 		}
 
+		this.Reflect = function (matrix, isHorizontal, isVertical) {
+			var m = new CMatrixL();
+			m.shx = 0;
+			m.sy  = 1;
+			m.tx  = 0;
+			m.ty  = 0;
+			m.sx  = 1;
+			m.shy = 0;
+			if (isHorizontal && isVertical) {
+				m.sx  = -1;
+				m.sy = -1;
+			}	else if (isHorizontal) {
+				m.sx  = -1;
+			} else if (isVertical) {
+				m.sy = -1;
+			} else {
+				return;
+			}
+			this.MultiplyAppend(matrix, m);
+		}
+
 		this.CreateDublicateM = function(matrix)
 		{
 			var m = new CMatrixL();

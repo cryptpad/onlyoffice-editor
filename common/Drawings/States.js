@@ -234,19 +234,25 @@ function checkEmptyPlaceholderContent(content)
     if(!content){
         return content;
     }
-    if(content.Parent && content.Parent.parent){
-        if(content.Is_Empty() && content.Parent.parent.isPlaceholder && content.Parent.parent.isPlaceholder()){
+    var oShape = content.Parent && content.Parent.parent;
+    if (oShape) {
+        if(content.Is_Empty()){
+            if(oShape.isPlaceholder && oShape.isPlaceholder()) {
+                return content;
+            }
+            if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape()) {
+                return content;
+            }
+        }
+        if(oShape.txWarpStruct){
             return content;
         }
-        if(content.Parent.parent.txWarpStruct){
-            return content;
-        }
-        if(content.Parent.parent.recalcInfo && content.Parent.parent.recalcInfo.warpGeometry){
+        if(oShape.recalcInfo && oShape.recalcInfo.warpGeometry){
             return content;
         }
         var oBodyPr;
-        if(content.Parent.parent.getBodyPr){
-            oBodyPr = content.Parent.parent.getBodyPr();
+        if(oShape.getBodyPr){
+            oBodyPr = oShape.getBodyPr();
             if(oBodyPr.vertOverflow !== AscFormat.nOTOwerflow){
                 return content;
             }
@@ -277,7 +283,8 @@ NullState.prototype =
     {
         var start_target_doc_content, end_target_doc_content, selected_comment_index = -1;
         var oStartPara = null;
-        if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+        var bHandleMode = this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE;
+        if(bHandleMode)
         {
             start_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
             if(start_target_doc_content)
@@ -300,93 +307,117 @@ NullState.prototype =
             }
             selected_comment_index = ret.selectedIndex;
         }
+        
+        var handleAnimLables = null;
+        var oTiming = this.drawingObjects && this.drawingObjects.drawingObjects.timing;
+        if(oTiming) 
+        {
+            handleAnimLables = oTiming.onMouseDown(e, x, y, bHandleMode);
+        }
+    
         var selection = this.drawingObjects.selection;
-        if(selection.groupSelection)
+        if(!handleAnimLables) 
         {
-
-            ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, selection.groupSelection, pageIndex, false);
+            if(selection.groupSelection)
+            {
+    
+                ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, selection.groupSelection, pageIndex, false);
+                if(ret)
+                {
+                    if(bHandleMode)
+                    {
+                        this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
+                        AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
+                    }
+                    return ret;
+                }
+                ret = AscFormat.handleFloatObjects(this.drawingObjects, selection.groupSelection.arrGraphicObjects, e, x, y, selection.groupSelection, pageIndex, false);
+                if(ret)
+                {
+                    if(bHandleMode)
+                    {
+                        this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
+                        AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
+                    }
+                    return ret;
+                }
+            }
+            else if(selection.chartSelection)
+            {}
+            ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, false);
             if(ret)
             {
-                if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+                if(bHandleMode)
                 {
                     this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                     AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
                 }
                 return ret;
             }
-            ret = AscFormat.handleFloatObjects(this.drawingObjects, selection.groupSelection.arrGraphicObjects, e, x, y, selection.groupSelection, pageIndex, false);
+    
+            ret = AscFormat.handleFloatObjects(this.drawingObjects, this.drawingObjects.getDrawingArray(), e, x, y, null, pageIndex, false);
             if(ret)
             {
-                if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+                if(bHandleMode)
                 {
                     this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                     AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
                 }
                 return ret;
-            }
-        }
-        else if(selection.chartSelection)
-        {}
-        ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, false);
-        if(ret)
-        {
-            if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
-            {
-                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
-                AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
-            }
-            return ret;
+            }    
         }
 
-        ret = AscFormat.handleFloatObjects(this.drawingObjects, this.drawingObjects.getDrawingArray(), e, x, y, null, pageIndex, false);
-        if(ret)
-        {
-            if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
-            {
-                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
-                AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
-            }
-            return ret;
-        }
-        if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+        if(bHandleMode)
         {
             var bRet =  this.drawingObjects.checkChartTextSelection(true);
             if(e.ClickCount < 2)
             {
-                this.drawingObjects.resetSelection();
+                this.drawingObjects.resetSelection(undefined, undefined, undefined, !!handleAnimLables);
             }
-            if(start_target_doc_content || selected_comment_index > -1 || bRet)
+            if(start_target_doc_content || selected_comment_index > -1 || bRet || handleAnimLables)
             {
                 this.drawingObjects.drawingObjects.showDrawingObjects();
             }
             if(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld)
             {
-                if(!this.drawingObjects.isSlideShow())
+                if(!this.drawingObjects.isSlideShow() && !handleAnimLables)
                 {
                     this.drawingObjects.stX = x;
                     this.drawingObjects.stY = y;
                     this.drawingObjects.selectionRect = {x : x, y : y, w: 0, h: 0};
                     this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
                 }
-
             }
             var oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
-            if(oAnimPlayer) {
-                if(oAnimPlayer.onClick()) {
+            if(oAnimPlayer) 
+            {
+                if(oAnimPlayer.onClick()) 
+                {
                     return true;
                 }
+            }
+            if(handleAnimLables) 
+            {
+                return handleAnimLables;
             }
         }
         else
         {
-            if(this.lastMoveHandler && !this.drawingObjects.isSlideShow())
+            if(this.lastMoveHandler)
             {
-                var oRet = {};
-                oRet.objectId = this.lastMoveHandler.Get_Id();
-                oRet.bMarker = false;
-                oRet.cursorType = "default";
-                oRet.tooltip = null;
-                return oRet;
+                if(!this.drawingObjects.isSlideShow()) 
+                {
+                    var oRet = {};
+                    oRet.objectId = this.lastMoveHandler.Get_Id();
+                    oRet.bMarker = false;
+                    oRet.cursorType = "default";
+                    oRet.tooltip = null;
+                    return oRet;
+                }
+                if(handleAnimLables) 
+                {
+                    return handleAnimLables;
+                }
             }
         }
         return null;
@@ -407,7 +438,16 @@ NullState.prototype =
     },
 
     onMouseUp: function(e, x, y, pageIndex)
-    {}
+    {
+        var oTiming = this.drawingObjects && this.drawingObjects.drawingObjects.timing;
+        if(oTiming) 
+        {
+            if(oTiming.onMouseDown(e, x, y, false)) 
+            {
+                editor.WordControl.m_oLogicDocument.noShowContextMenu = true;
+            }
+        }
+    }
 };
 
 
@@ -697,7 +737,7 @@ RotateState.prototype =
                     {
                         copy.setParent2(this.drawingObjects.drawingObjects);
                         if(!copy.spPr || !copy.spPr.xfrm
-                            || (copy.getObjectType() === AscDFH.historyitem_type_GroupShape && !copy.spPr.xfrm.isNotNullForGroup() || copy.getObjectType() !== AscDFH.historyitem_type_GroupShape && !copy.spPr.xfrm.isNotNull()))
+                            || ((copy.getObjectType() === AscDFH.historyitem_type_GroupShape || copy.getObjectType() === AscDFH.historyitem_type_SmartArt) && !copy.spPr.xfrm.isNotNullForGroup() || copy.getObjectType() !== AscDFH.historyitem_type_GroupShape && !copy.spPr.xfrm.isNotNull()))
                         {
                             copy.recalculateTransform();
                         }
@@ -1052,7 +1092,7 @@ ResizeState.prototype =
 };
 
 
-function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject, majorObjectIsSelected, bInside)
+function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject, majorObjectIsSelected, bInside, bGroupSelection)
 {
     this.drawingObjects = drawingObjects;
     this.majorObject = majorObject;
@@ -1062,6 +1102,7 @@ function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject,
     this.ctrl = ctrl;
     this.majorObjectIsSelected = majorObjectIsSelected;
     this.bInside = bInside;
+    this.bGroupSelection = bGroupSelection;
 }
 
 PreMoveState.prototype =
@@ -2586,6 +2627,7 @@ function TrackTextState(drawingObjects, majorObject, x, y) {
     window['AscFormat'].SlicerState = SlicerState;
     window['AscFormat'].PreChangeAdjState = PreChangeAdjState;
     window['AscFormat'].PreRotateState = PreRotateState;
+    window['AscFormat'].RotateState = RotateState;
     window['AscFormat'].PreResizeState = PreResizeState;
     window['AscFormat'].PreMoveState = PreMoveState;
     window['AscFormat'].MoveState = MoveState;

@@ -1926,20 +1926,55 @@
 			var pos = s.indexOf(AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator);
 			if (-1 !== pos) {
 				f = [f[0].clone()];
-				f[0].text = s.slice(0, pos);
+				f[0].setFragmentText(s.slice(0, pos));
 			}
 			return f;
 		}
 
 		function getFragmentsText(f) {
 			return f.reduce(function (pv, cv) {
-				return pv + cv.text;
+				if (null === cv.getFragmentText()) {
+					cv.initText();
+				}
+				return pv + cv.getFragmentText();
 			}, "");
 		}
 		function getFragmentsLength(f) {
 			return f.length > 0 ? f.reduce(function (pv, cv) {
-				return pv + cv.text.length;
+				if (null === cv.getFragmentText()) {
+					cv.initText();
+				}
+				return pv + cv.getFragmentText().length;
 			}, 0) : 0;
+		}
+		function getFragmentsCharCodes(f) {
+			return f.reduce(function (pv, cv) {
+				return pv.concat(cv.getCharCodes());
+			}, "");
+		}
+		function getFragmentsCharCodesLength(f) {
+			return f.length > 0 ? f.reduce(function (pv, cv) {
+				return pv + cv.getCharCodes().length;
+			}, 0) : 0;
+		}
+		function getFragmentsTextFromCode(f) {
+			return f.reduce(function (pv, cv) {
+				if (null === cv.getFragmentText()) {
+					cv.initText();
+				}
+				return pv + cv.getFragmentText();
+			}, "");
+		}
+		function convertUnicodeToSimpleString(sUnicode)
+		{
+			var sUTF16 = "";
+			var nLength = sUnicode.length;
+			for (var nPos = 0; nPos < nLength; nPos++)
+			{
+				sUTF16 += String.fromCharCode(sUnicode[nPos]);
+			}
+
+			return sUTF16;
 		}
 
 		function executeInR1C1Mode(mode, runFunction) {
@@ -2136,7 +2171,7 @@
 
 				var fragments = [];
 				var tempFragment = new AscCommonExcel.Fragment();
-				tempFragment.text = sStyleName;
+				tempFragment.setFragmentText(sStyleName);
 				tempFragment.format = format;
 				fragments.push(tempFragment);
 				tm = sr.measureString(fragments, cellFlags, width);
@@ -2656,6 +2691,37 @@
 
 			return this;
 		}
+		CPagePrint.prototype.clone = function () {
+			var res = new CPagePrint();
+			res.pageWidth = this.pageWidth;
+			res.pageHeight = this.pageHeight;
+			res.pageClipRectLeft = this.pageClipRectLeft;
+			res.pageClipRectTop = this.pageClipRectTop;
+			res.pageClipRectWidth = this.pageClipRectWidth;
+			res.pageClipRectHeight = this.pageClipRectHeight;
+
+			res.pageRange = this.pageRange ? this.pageRange.clone() : null;
+
+			res.leftFieldInPx = this.leftFieldInPx;
+			res.topFieldInPx = this.topFieldInPx;
+
+			res.pageGridLines = this.pageGridLines;
+			res.pageHeadings = this.pageHeadings;
+
+			res.indexWorksheet = this.indexWorksheet;
+
+			res.startOffset = this.startOffset;
+			res.startOffsetPx = this.startOffsetPx;
+
+			res.scale = this.scale;
+
+			res.titleRowRange = this.titleRowRange;
+			res.titleColRange = this.titleColRange;
+			res.titleWidth = this.titleWidth;
+			res.titleHeight = this.titleHeight;
+
+			return res;
+		};
 		function CPrintPagesData () {
 			this.arrPages = [];
 			this.currentIndex = 0;
@@ -3119,15 +3185,18 @@
 			this.decimalPlaces = 2;
 			this.separator = false;
 			this.symbol = null;
+			this.currency = null;
 		}
 		asc_CFormatCellsInfo.prototype.asc_setType = function (val) {this.type = val;};
 		asc_CFormatCellsInfo.prototype.asc_setDecimalPlaces = function (val) {this.decimalPlaces = val;};
 		asc_CFormatCellsInfo.prototype.asc_setSeparator = function (val) {this.separator = val;};
 		asc_CFormatCellsInfo.prototype.asc_setSymbol = function (val) {this.symbol = val;};
+		asc_CFormatCellsInfo.prototype.asc_setCurrencySymbol = function (val) {this.currency = val;};
 		asc_CFormatCellsInfo.prototype.asc_getType = function () {return this.type;};
 		asc_CFormatCellsInfo.prototype.asc_getDecimalPlaces = function () {return this.decimalPlaces;};
 		asc_CFormatCellsInfo.prototype.asc_getSeparator = function () {return this.separator;};
 		asc_CFormatCellsInfo.prototype.asc_getSymbol = function () {return this.symbol;};
+		asc_CFormatCellsInfo.prototype.asc_getCurrencySymbol = function () {return this.currency;};
 
 		/**
 		 * передаём в меню для того, чтобы показать иконку опций авторавертывания таблиц
@@ -3200,22 +3269,22 @@
 			return this;
 		};
 
-		cDate.prototype.getExcelDate = function () {
-			return Math.floor( this.getExcelDateWithTime() );
+		cDate.prototype.getExcelDate = function (bLocal) {
+			return Math.floor( this.getExcelDateWithTime(bLocal) );
 		};
 
-		cDate.prototype.getExcelDateWithTime = function () {
-//    return Math.floor( ( this.getTime() / 1000 - this.getTimezoneOffset() * 60 ) / c_sPerDay + ( AscCommonExcel.c_DateCorrectConst + (bDate1904 ? 0 : 1) ) );
+		cDate.prototype.getExcelDateWithTime = function (bLocal) {
 			var year = this.getUTCFullYear(), month = this.getUTCMonth(), date = this.getUTCDate(), res;
+			var timeZoneOffset = bLocal ? this.getTimezoneOffset() * 60 * 1000 : 0;
 
-			if(1900 === year && 0 === month && 0 === date) {
+			if (1900 === year && 0 === month && 0 === date) {
 				res = 0;
-			} else if (1900 < year || (1900 == year && 1 < month)) {
-				res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() ) / c_msPerDay;
-			} else if (1900 == year && 1 == month && 29 == date) {
+			} else if (1900 < year || (1900 === year && 1 < month)) {
+				res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() - timeZoneOffset) / c_msPerDay;
+			} else if (1900 === year && 1 === month && 29 === date) {
 				res = 60;
 			} else {
-				res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() ) / c_msPerDay - 1;
+				res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() - timeZoneOffset) / c_msPerDay - 1;
 			}
 
 			return res;
@@ -3318,7 +3387,7 @@
 			return api.asc_getLocaleExample(AscCommon.getShortDateFormat(), this.getExcelDate());
 		};
 		cDate.prototype.getTimeString = function (api) {
-			return api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), this.getExcelDateWithTime(true) - this.getTimezoneOffset()/(60*24));
+			return api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), this.getExcelDateWithTime() - this.getTimezoneOffset()/(60*24));
 		};
 		cDate.prototype.fromISO8601 = function (dateStr) {
 			if (dateStr.endsWith("Z")) {
@@ -3382,6 +3451,9 @@
 		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
 		window['AscCommonExcel'].getFragmentsLength = getFragmentsLength;
+		window["AscCommonExcel"].getFragmentsCharCodes = getFragmentsCharCodes;
+		window["AscCommonExcel"].getFragmentsCharCodesLength = getFragmentsCharCodesLength;
+		window["AscCommonExcel"].convertUnicodeToSimpleString = convertUnicodeToSimpleString;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 		window["Asc"].getEndValueRange = getEndValueRange;
@@ -3514,10 +3586,12 @@
 		prot["asc_setDecimalPlaces"] = prot.asc_setDecimalPlaces;
 		prot["asc_setSeparator"] = prot.asc_setSeparator;
 		prot["asc_setSymbol"] = prot.asc_setSymbol;
+		prot["asc_setCurrencySymbol"] = prot.asc_setCurrencySymbol;
 		prot["asc_getType"] = prot.asc_getType;
 		prot["asc_getDecimalPlaces"] = prot.asc_getDecimalPlaces;
 		prot["asc_getSeparator"] = prot.asc_getSeparator;
 		prot["asc_getSymbol"] = prot.asc_getSymbol;
+		prot["asc_getCurrencySymbol"] = prot.asc_getCurrencySymbol;
 
 		window["Asc"]["asc_CAutoCorrectOptions"] = window["Asc"].asc_CAutoCorrectOptions = asc_CAutoCorrectOptions;
 		prot = asc_CAutoCorrectOptions.prototype;

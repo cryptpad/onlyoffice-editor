@@ -3491,60 +3491,21 @@ function CDrawingDocument()
 //        if (!this.m_oWordControl.m_oApi.asc_checkNeedCallback("asc_onInitTableTemplates"))
 //            return;
 
-        var bIsChanged = false;
-        if (null == this.TableStylesLastLook)
-        {
-            this.TableStylesLastLook = new Asc.CTablePropLook();
+        let isChanged = false;
 
-            this.TableStylesLastLook.FirstCol = tableLook.FirstCol;
-            this.TableStylesLastLook.FirstRow = tableLook.FirstRow;
-            this.TableStylesLastLook.LastCol  = tableLook.LastCol;
-            this.TableStylesLastLook.LastRow  = tableLook.LastRow;
-            this.TableStylesLastLook.BandHor  = tableLook.BandHor;
-            this.TableStylesLastLook.BandVer  = tableLook.BandVer;
-            bIsChanged = true;
-        }
-        else
-        {
-            if (this.TableStylesLastLook.FirstCol != tableLook.FirstCol)
-            {
-                this.TableStylesLastLook.FirstCol = tableLook.FirstCol;
-                bIsChanged = true;
-            }
-            if (this.TableStylesLastLook.FirstRow != tableLook.FirstRow)
-            {
-                this.TableStylesLastLook.FirstRow = tableLook.FirstRow;
-                bIsChanged = true;
-            }
-            if (this.TableStylesLastLook.LastCol != tableLook.LastCol)
-            {
-                this.TableStylesLastLook.LastCol = tableLook.LastCol;
-                bIsChanged = true;
-            }
-            if (this.TableStylesLastLook.LastRow != tableLook.LastRow)
-            {
-                this.TableStylesLastLook.LastRow = tableLook.LastRow;
-                bIsChanged = true;
-            }
-            if (this.TableStylesLastLook.BandHor != tableLook.BandHor)
-            {
-                this.TableStylesLastLook.BandHor = tableLook.BandHor;
-                bIsChanged = true;
-            }
-            if (this.TableStylesLastLook.BandVer != tableLook.BandVer)
-            {
-                this.TableStylesLastLook.BandVer = tableLook.BandVer;
-                bIsChanged = true;
-            }
-        }
+		if (!this.TableStylesLastLook || !this.TableStylesLastLook.IsEqual(tableLook))
+		{
+			this.TableStylesLastLook = tableLook.Copy();
+			isChanged = true;
+		}
 
-        if (!bIsChanged)
+        if (!isChanged)
             return;
 
         var logicDoc = this.m_oWordControl.m_oLogicDocument;
         var _dst_styles = [];
 
-        var _styles = logicDoc.Styles.Get_AllTableStyles();
+        var _styles = logicDoc.Styles.GetAllTableStyles();
         var _styles_len = _styles.length;
 
         if (_styles_len == 0)
@@ -3575,13 +3536,10 @@ function CDrawingDocument()
         AscCommon.History.TurnOff();
         for (var i1 = 0; i1 < _styles_len; i1++)
         {
-            var i = _styles[i1];
-            var _style = logicDoc.Styles.Style[i];
+            let _style =  _styles[i1];
+			let i = _style.GetId();
 
-            if (!_style || _style.Type != styletype_Table)
-                continue;
-
-            var table = new CTable(this, logicDoc, true, Rows, Cols, Grid);
+			var table = new CTable(this, logicDoc, true, Rows, Cols, Grid);
             table.Set_Props({TableStyle : i, TableLook : tableLook});
 
             for (var j = 0; j < Rows; j++)
@@ -3609,6 +3567,27 @@ function CDrawingDocument()
         AscCommon.History.TurnOn();
 
         this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles);
+    };
+
+    this.GetTableStylesPreviews = function()
+    {
+        return [];
+    };
+    this.GetTableLook = function(isDefault)
+    {
+        let oTableLook;
+
+        if (isDefault)
+        {
+            oTableLook = new AscCommon.CTableLook();
+            oTableLook.SetDefault();
+        }
+        else
+        {
+            oTableLook = this.TableStylesLastLook;
+        }
+
+        return oTableLook;
     };
 
     this.IsMobileVersion = function()

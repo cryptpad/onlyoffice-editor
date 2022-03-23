@@ -2216,11 +2216,17 @@
 	Workbook.prototype.getWorksheetById=function(id){
 		return this.aWorksheetsById[id];
 	};
-	Workbook.prototype.getWorksheetByName=function(name){
-		for(var i = 0; i < this.aWorksheets.length; i++)
-			if(this.aWorksheets[i].getName() == name){
+	Workbook.prototype.getWorksheetByName=function(name, ignoreCaseSensitive){
+		for(var i = 0; i < this.aWorksheets.length; i++) {
+			if (ignoreCaseSensitive) {
+				if(name && this.aWorksheets[i].getName().toLowerCase() == name.toLowerCase()){
+					return this.aWorksheets[i];
+				}
+			} else if(this.aWorksheets[i].getName() == name){
 				return this.aWorksheets[i];
 			}
+		}
+
 		return null;
 	};
 	Workbook.prototype.getWorksheetIndexByName=function(name){
@@ -3310,9 +3316,9 @@
 		}
 		return res;
 	};
-	Workbook.prototype.getPivotCacheByDataRef = function(dataRef) {
+	Workbook.prototype.getPivotCacheByDataLocation = function(dataLocation) {
 		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
-			var cache = this.aWorksheets[i].getPivotCacheByDataRef(dataRef);
+			var cache = this.aWorksheets[i].getPivotCacheByDataLocation(dataLocation);
 			if (cache) {
 				return cache;
 			}
@@ -7378,6 +7384,10 @@
 						}
 					}
 					if (isChange) {
+						if (wsTo !== wsFrom && !copyRange) {
+							wsFrom.removeSparklines(oBBoxFrom);
+						}
+
 						//если, допустим, перенесли все спарклайны на другой лист, то необходимо удалить группы здесь и добавить новую группы
 						if (aSparklines.length !== 0) {
 							val.setSparklines(aSparklines, true, true);
@@ -7486,26 +7496,12 @@
 		}
 	};
 	Worksheet.prototype.deleteTablePart = function (index, bConvertTableFormulaToRef) {
-		if(bConvertTableFormulaToRef)
-		{
-			//TODO скорее всего стоит убрать else
-			var tablePart = this.TableParts[index];
-			this.workbook.dependencyFormulas.delTableName(tablePart.DisplayName, bConvertTableFormulaToRef);
-			tablePart.removeDependencies();
+		var tablePart = this.TableParts[index];
+		this.workbook.dependencyFormulas.delTableName(tablePart.DisplayName, bConvertTableFormulaToRef);
+		tablePart.removeDependencies();
 
-			//delete table
-			this.TableParts.splice(index, 1);
-		}
-		else
-		{
-			var deleted = this.TableParts.splice(index, 1);
-			for (var delIndex = 0; delIndex < deleted.length; ++delIndex) {
-				var tablePart = deleted[delIndex];
-				this.workbook.dependencyFormulas.delTableName(tablePart.DisplayName);
-				tablePart.removeDependencies();
-			}
-		}
-
+		//delete table
+		this.TableParts.splice(index, 1);
 	};
 	Worksheet.prototype.checkPivotReportLocationForError = function(ranges, exceptPivot) {
 		for (var i = 0; i < ranges.length; ++i) {
@@ -8299,6 +8295,10 @@
 			}
 		}
 	};
+	Worksheet.prototype.inTopAutoFilter = function (range) {
+		var _filterRange = this.AutoFilter && this.AutoFilter.Ref && new Asc.Range(this.AutoFilter.Ref.c1, this.AutoFilter.Ref.r1, this.AutoFilter.Ref.c2, this.AutoFilter.Ref.r1);
+		return _filterRange && range.intersection(_filterRange);
+	};
 	Worksheet.prototype.inPivotTable = function (range, exceptPivot) {
 		return this.pivotTables.find(function (element) {
 			return exceptPivot !== element && element.intersection(range);
@@ -8434,9 +8434,9 @@
 		}
 		return res;
 	};
-	Worksheet.prototype.getPivotCacheByDataRef = function(dataRef) {
+	Worksheet.prototype.getPivotCacheByDataLocation = function(dataLocation) {
 		return this.forEachPivotCache(undefined, function(cacheDefinition){
-			if (dataRef === cacheDefinition.getDataRef()) {
+			if (dataLocation && dataLocation.isEqual(cacheDefinition.getDataLocation())) {
 				return cacheDefinition;
 			}
 		});
@@ -8484,7 +8484,7 @@
 		pivotTable.worksheet = this;
 		pivotTable.setChanged(false, true);
 		if (checkCacheDefinition) {
-			var cacheDefinition = this.workbook.getPivotCacheByDataRef(pivotTable.asc_getDataRef());
+			var cacheDefinition = this.workbook.getPivotCacheByDataLocation(pivotTable.getDataLocation());
 			if (cacheDefinition) {
 				pivotTable.setCacheDefinition(cacheDefinition);
 			}
@@ -8523,6 +8523,11 @@
 	Worksheet.prototype.getDataValidation = function (c, r) {
 		if (!this.dataValidations) {
 			return null;
+		}
+		var merged = this.getMergedByCell(r, c);
+		if (merged) {
+			r = merged.r1;
+			c = merged.c1;
 		}
 		for (var i = 0; i < this.dataValidations.elems.length; ++i) {
 			if (this.dataValidations.elems[i].contains(c, r)) {
@@ -12291,7 +12296,7 @@
 	{
 		var sSimpleText = "";
 		for(var i = 0, length = aVal.length; i < length; ++i)
-			sSimpleText += aVal[i].text;
+			sSimpleText += aVal[i].getFragmentText ? aVal[i].getFragmentText() : aVal[i].text;
 		this._setValue(sSimpleText);
 		if (!ignoreHyperlink && window['AscCommonExcel'].g_AutoCorrectHyperlinks) {
 			this._autoformatHyperlink(sSimpleText);
@@ -12309,7 +12314,7 @@
 				for(var i = 0, length = aVal.length; i < length; i++){
 					var item = aVal[i];
 					var oNewElem = new AscCommonExcel.CMultiTextElem();
-					oNewElem.text = item.text;
+					oNewElem.text = item.getFragmentText ? item.getFragmentText() : item.text;
 					if (null != item.format) {
 						oNewElem.format = new AscCommonExcel.Font();
 						oNewElem.format.assign(item.format);
@@ -12397,6 +12402,7 @@
 		if(null == sText && null == aText)
 			sText = "";
 		var oNewItem, cellfont;
+		var cellSelfFont = this.xfs && this.xfs.font;
 		var xfs = this.getCompiledStyle();
 		if(null != xfs && null != xfs.font)
 			cellfont = xfs.font;
@@ -12404,7 +12410,7 @@
 			cellfont = g_oDefaultFormat.Font;
 		if(null != sText){
 			oNewItem = new AscCommonExcel.Fragment();
-			oNewItem.text = sText;
+			oNewItem.setFragmentText(sText);
 			oNewItem.format = cellfont.clone();
 			oNewItem.checkVisitedHyperlink(this.nRow, this.nCol, this.ws.hyperlinkManager);
 			oNewItem.format.setSkip(false);
@@ -12416,11 +12422,22 @@
 				var oCurtext = aText[i];
 				if(null != oCurtext.text)
 				{
-					oNewItem.text = oCurtext.text;
+					oNewItem.setFragmentText(oCurtext.text);
 					var oCurFormat = new AscCommonExcel.Font();
-					if (isMultyText) {
-						if (null != oCurtext.format) {
-							oCurFormat.assign(oCurtext.format);
+					if (isMultyText && xfs && xfs.font) {
+						if (null != oCurtext.format &&  !(cellSelfFont && cellSelfFont.isEqual(oCurtext.format))) {
+							//MultyText format equals to cell font
+							if (this.xfs && !this.xfs.isNormalFont()) {
+								//cell font is not default
+								oCurFormat.assign(oCurtext.format);
+								if (cellSelfFont && cellSelfFont.c && oCurtext.format.c && oCurtext.format.c.isEqual(cellSelfFont.c)) {
+									oCurFormat.c = xfs.font.c;
+								}
+							} else {
+								//like in CellXfs.prototype.merge
+								var isTableColor = oCurtext.format.isNormalXfColor();
+								oCurFormat = xfs._mergeProperty(g_StyleCache.addFont, oCurtext.format, xfs.font, true, isTableColor);
+							}
 						} else {
 							oCurFormat.assign(cellfont);
 							oCurFormat.setSkip(false);
@@ -13533,7 +13550,7 @@
 				_formula.outStack = [];
 				_formula.parse(true);
 				var offset = new AscCommon.CellBase(cell.nRow - activeCell.row, cell.nCol - activeCell.col);
-				_val = "=" + _formula.changeOffset(offset, null, true).assemble(true);
+				_val = "=" + _formula.changeOffset(offset, null, true).assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true, true);
 			}
 			cell.setValue(_val, callback, isCopyPaste, byRef, ignoreHyperlink);
 		});
@@ -15025,6 +15042,13 @@
 			this.setAlignHorizontal(AscCommon.align_Center);
 		if(false == this.worksheet.workbook.bUndoChanges && false == this.worksheet.workbook.bRedoChanges)
 			this.worksheet.mergeManager.add(this.bbox, 1);
+
+		//сбрасываем dataValidation кроме 1 ячейки
+		var dataValidationRanges = Asc.Range(this.bbox.c1, this.bbox.r1, this.bbox.c1, this.bbox.r1).difference(this.bbox);
+		if (dataValidationRanges) {
+			this.worksheet.clearDataValidation(dataValidationRanges, true);
+		}
+
 		History.EndTransaction();
 	};
 	Range.prototype.unmerge=function(bOnlyInRange){
@@ -16885,6 +16909,10 @@
 
 	Range.prototype.getLeftTopCellNoEmpty = function(fAction) {
 		return this.worksheet._getCellNoEmpty(this.bbox.r1, this.bbox.c1, fAction);
+	};
+
+	Range.prototype.move = function (oBBoxTo, copyRange, wsTo) {
+		this.worksheet._moveRange(this.bbox, oBBoxTo, copyRange, wsTo);
 	};
 
 	function RowIterator() {
