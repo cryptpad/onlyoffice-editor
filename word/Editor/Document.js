@@ -2736,9 +2736,7 @@ CDocument.prototype.On_EndLoad                     = function()
     // Проверяем последний параграф на наличие секции
     this.Check_SectionLastParagraph();
 
-    // Специальная проверка плохо заданных нумераций через стиль. Когда ссылка на нумерацию в стиле есть,
-    // а обратной ссылки в нумерации на стиль - нет.
-    this.Styles.Check_StyleNumberingOnLoad(this.Numbering);
+    this.Styles.OnEndDocumentLoad(this);
 
     // Обновляем массив позиций для комментариев
     this.Comments.UpdateAll();
@@ -17019,7 +17017,7 @@ CDocument.prototype.IsDoNotExpandShiftReturn = function()
 };
 CDocument.prototype.IsBalanceSingleByteDoubleByteWidth = function()
 {
-	return this.Settings.BalanceSingleByteDoubleByteWidth;
+	return (this.Settings.BalanceSingleByteDoubleByteWidth && this.Styles.IsValidDefaultEastAsiaFont());
 };
 CDocument.prototype.IsUnderlineTrailSpace = function()
 {
