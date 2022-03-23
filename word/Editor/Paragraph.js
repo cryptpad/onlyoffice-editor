@@ -1884,7 +1884,7 @@ Paragraph.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 Paragraph.prototype.Draw = function(CurPage, pGraphics)
 {
 	// Параграф начинается с новой страницы
-	if (this.Pages[CurPage].EndLine < 0)
+	if (!this.Pages[CurPage] || this.Pages[CurPage].EndLine < 0)
 		return;
 
 	if (pGraphics.Start_Command)
@@ -12674,15 +12674,11 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 		this.Content[nCurPos].SplitNoDuplicate(oContentPos, 1, oNewParagraph);
 
 		var arrNewContent = this.Content.slice(nCurPos + 1);
-		this.RemoveFromContent(nCurPos + 1, this.Content.length - nCurPos - 1, false);
-
-		// В старый параграф добавим ран с концом параграфа
-		var oEndRun = new ParaRun(this);
-		oEndRun.AddToContent(0, new ParaEnd());
-		this.AddToContent(this.Content.length, oEndRun);
-
 		oNewParagraph.ConcatContent(arrNewContent);
 		oNewParagraph.CorrectContent();
+
+		this.RemoveFromContent(nCurPos + 1, this.Content.length - nCurPos - 1, false);
+		this.CheckParaEnd();
 	}
 	else
 	{
@@ -12703,19 +12699,15 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 		//    добавляем в начало нового параграфа.
 
 		var NewContent = this.Content.slice(nCurPos + 1);
-		this.Internal_Content_Remove2(nCurPos + 1, this.Content.length - nCurPos - 1);
-
-		// В старый параграф добавим ран с концом параграфа
-		var EndRun = new ParaRun(this);
-		EndRun.Add_ToContent(0, new ParaEnd());
-
-		this.Internal_Content_Add(this.Content.length, EndRun);
 
 		// Очищаем новый параграф и добавляем в него Right элемент и NewContent
 		oNewParagraph.Internal_Content_Remove2(0, oNewParagraph.Content.length);
 		oNewParagraph.ConcatContent(NewContent);
 		oNewParagraph.Internal_Content_Add(0, NewElement);
 		oNewParagraph.CorrectContent();
+
+		this.Internal_Content_Remove2(nCurPos + 1, this.Content.length - nCurPos - 1);
+		this.CheckParaEnd();
 	}
 
 	// Копируем все настройки в новый параграф. Делаем это после того как определили контент параграфов.

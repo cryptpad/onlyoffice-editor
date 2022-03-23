@@ -184,6 +184,16 @@ ParaRun.prototype.Save_StartState = function()
 {
     this.StartState = new CParaRunStartState(this);
 };
+ParaRun.prototype.SetParagraph = function(oParagraph)
+{
+	this.Paragraph = oParagraph;
+	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (oItem.IsDrawing())
+			oItem.SetParent(oParagraph);
+	}
+};
 //-----------------------------------------------------------------------------------
 // Функции для работы с содержимым данного рана
 //-----------------------------------------------------------------------------------
