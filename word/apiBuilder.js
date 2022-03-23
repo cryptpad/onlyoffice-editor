@@ -5859,6 +5859,87 @@
 		return aResult;
 	};
 	
+	/**
+     * Returns the selected drawings.
+     * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+     * @returns {(ApiShape | ApiImage | ApiChart | ApiDrawing)[]}
+     */
+	ApiDocument.prototype.GetSelectedDrawings = function() 
+	{
+		var aSelected = this.Document.DrawingObjects.selectedObjects;
+		var aResult = [];
+		for (var nDrawing = 0; nDrawing < aSelected.length; nDrawing++)
+		{
+			if (aSelected[nDrawing].isImage())
+				aResult.push(new ApiImage(aSelected[nDrawing]));
+			else if (aSelected[nDrawing].isChart())
+				aResult.push(new ApiChart(aSelected[nDrawing]));
+			else if (aSelected[nDrawing].isShape())
+				aResult.push(new ApiShape(aSelected[nDrawing]));
+			else
+				aResult.push(new ApiDrawing(aSelected[nDrawing].parent));
+		}
+
+		var aSelectedInText = this.Document.GetSelectedDrawingObjectsInText();
+		for (nDrawing = 0; nDrawing < aSelectedInText.length; nDrawing++)
+		{
+			if (aSelectedInText[nDrawing].GraphicObj.isImage())
+				aResult.push(new ApiImage(aSelectedInText[nDrawing].GraphicObj));
+			else if (aSelectedInText[nDrawing].GraphicObj.isChart())
+				aResult.push(new ApiChart(aSelectedInText[nDrawing].GraphicObj));
+			else if (aSelectedInText[nDrawing].GraphicObj.isShape())
+				aResult.push(new ApiShape(aSelectedInText[nDrawing].GraphicObj));
+			else
+				aResult.push(new ApiDrawing(aSelected[nDrawing]));
+		}
+
+		return aResult;
+	};
+
+	/**
+	 * Replaces the drawing by a new drawing.
+	 * @memberof ApiDocument
+	 * @param {ApiDrawing} oOldDrawing - a drawing which will be replaced.
+	 * @param {ApiDrawing} oNewDrawing - a drawing to replace the old drawing.
+	 * @param {boolean} [bSaveOldDrawingPr=false] - specified that the old drawing settings should be saved.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiDocument.prototype.ReplaceDrawing = function(oOldDrawing, oNewDrawing, bSaveOldDrawingPr)
+	{
+		if (!(oOldDrawing instanceof ApiDrawing) || !oOldDrawing.Drawing.Parent || !(oNewDrawing instanceof ApiDrawing))
+			return false;
+
+		var oDrawing = oNewDrawing.Copy();
+
+		if (bSaveOldDrawingPr === true)
+			oDrawing.SetDrawingPrFromDrawing(oOldDrawing);
+
+		var oDocument = private_GetLogicDocument();
+		var oRun = oOldDrawing.Drawing.Parent.Get_DrawingObjectRun(oOldDrawing.Drawing.Id);
+		if (oRun)
+		{
+			var oldSelectionInfo = oDocument.SaveDocumentState();
+
+			for ( var CurPos = 0; CurPos < oRun.Content.length; CurPos++ )
+			{
+				var Element = oRun.Content[CurPos];
+
+				if ( para_Drawing === Element.Type && oOldDrawing.Drawing.Id === Element.Get_Id() )
+				{
+					oRun.Remove_FromContent(CurPos, 1);
+					oRun.Add_ToContent(CurPos, oDrawing.Drawing);
+					break;
+				}
+			}
+
+			oDocument.LoadDocumentState(oldSelectionInfo);
+			return true;
+		}
+
+		return false;
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -12716,6 +12797,23 @@
 		return false;
 	};
 
+	/**
+     * Sets drawing properties from another drawing.
+	 * Will be copied: PosH, PosV, Distance, WrappingStyle, drawing name, title and description.
+     * @memberof ApiDrawing
+     * @param {ApiDrawing} oAnotherDrawing - drawing wich properties will be set to current drawing.
+     * @typeofeditors ["CDE"]
+     * @returns {boolean}
+     */
+	ApiDrawing.prototype.SetDrawingPrFromDrawing = function(oAnotherDrawing)
+	{
+		if (!(oAnotherDrawing instanceof ApiDrawing))
+			return false;
+
+		this.Drawing.SetDrawingPrFromDrawing(oAnotherDrawing.Drawing);
+		return true;
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiImage
@@ -16225,7 +16323,9 @@
 	ApiDocument.prototype["GetFootnotesFirstParagraphs"] = ApiDocument.prototype.GetFootnotesFirstParagraphs;
 	ApiDocument.prototype["GetEndNotesFirstParagraphs"]  = ApiDocument.prototype.GetEndNotesFirstParagraphs;
 	ApiDocument.prototype["GetAllCaptionParagraphs"]     = ApiDocument.prototype.GetAllCaptionParagraphs;
-	
+	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
+	ApiDocument.prototype["ReplaceDrawing"]              = ApiDocument.prototype.ReplaceDrawing;
+
 	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;
 	ApiDocument.prototype["UpdateAllTOC"]		     = ApiDocument.prototype.UpdateAllTOC;
 	ApiDocument.prototype["UpdateAllTOF"]		     = ApiDocument.prototype.UpdateAllTOF;
@@ -16616,6 +16716,7 @@
 	ApiDrawing.prototype["GetPrevDrawing"]           = ApiDrawing.prototype.GetPrevDrawing;
 	ApiDrawing.prototype["GetLockValue"]             = ApiDrawing.prototype.GetLockValue;
 	ApiDrawing.prototype["SetLockValue"]             = ApiDrawing.prototype.SetLockValue;
+	ApiDrawing.prototype["SetDrawingPrFromDrawing"]  = ApiDrawing.prototype.SetDrawingPrFromDrawing;
 
 	ApiDrawing.prototype["ToJSON"]                   = ApiDrawing.prototype.ToJSON;
 
