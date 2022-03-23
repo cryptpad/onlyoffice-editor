@@ -12912,7 +12912,29 @@ ParaRun.prototype.ClearSpellingMarks = function()
 	this.SpellingMarks = [];
 };
 //----------------------------------------------------------------------------------------------------------------------
+ParaRun.prototype.GetSelectedDrawingObjectsInText = function(arrDrawings)
+{
+	if (!this.IsSelectionUse())
+		return;
 
+	let nStartPos = this.Selection.StartPos;
+	let nEndPos   = this.Selection.EndPos;
+	if (nStartPos > nEndPos)
+	{
+		let nTemp = nStartPos;
+		nStartPos = nEndPos;
+		nEndPos   = nTemp;
+	}
+
+	for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (oItem.IsDrawing())
+			arrDrawings.push(oItem);
+	}
+
+	return arrDrawings;
+};
 
 function CParaRunStartState(Run)
 {

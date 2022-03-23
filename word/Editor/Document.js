@@ -12797,6 +12797,24 @@ CDocument.prototype.GetCurrentTablesStack = function()
 	return arrTables;
 };
 /**
+ * Получаем массив автофигур, попавших в текстовый селект
+ * @returns {ParaDrawing[]}
+ */
+CDocument.prototype.GetSelectedDrawingObjectsInText = function()
+{
+	let arrDrawings = [];
+	let arrParagraphs = this.GetSelectedParagraphs();
+	for (let nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+	{
+		arrParagraphs[nIndex].CheckRunContent(function(oRun)
+		{
+			oRun.GetSelectedDrawingObjectsInText(arrDrawings);
+		});
+	}
+
+	return arrDrawings;
+};
+/**
  * Получаем информацию о текущем выделении
  * @returns {CSelectedElementsInfo}
  */
