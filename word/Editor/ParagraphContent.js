@@ -834,7 +834,7 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 	this.Width       = ResultWidth;
 	this.WidthOrigin = ResultWidth;
 
-	if (Math.abs(Temp) > 0.001)
+	if (Math.abs(Temp) > 0.001 && g_oTextMeasurer.m_oManager.m_pFont && 0 !== g_oTextMeasurer.m_oManager.m_pFont.GetGIDByUnicode(0x2002))
 	{
 		let nEnKoef  = Context.MeasureCode(0x2002).Width / Temp;
 		this.WidthEn = (ResultWidth * nEnKoef) | 0;
