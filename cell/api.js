@@ -4047,7 +4047,7 @@ var editor;
           }
 
           if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1
-            || (isIgnoreUppercase && AscCommon.private_IsAbbreviation(usrWords[i]))) {
+            || (isIgnoreUppercase && AscCommon.IsAbbreviation(usrWords[i]))) {
             usrCorrect[i] = true;
           }
         }

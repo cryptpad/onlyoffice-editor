@@ -443,7 +443,7 @@ CSelectedContent.prototype =
         this.MoveDrawing = Value;
     },
 
-    On_EndCollectElements : function(LogicDocument)
+    On_EndCollectElements : function(LogicDocument, isFromCopy)
     {
     	// TODO: Данную функцию нужно разделить на 2. Первая будет обрабатывать элементы после сборки
 		//       и собирать различные списки. Вторая нужна перед непосредственной вставкой, она должна
@@ -505,7 +505,7 @@ CSelectedContent.prototype =
             }
         }
 
-        this.CheckComments(LogicDocument);
+        this.CheckComments(LogicDocument, isFromCopy);
 		this.CheckDocPartNames(LogicDocument);
 
         // Ставим метки переноса в начало и конец
@@ -866,7 +866,7 @@ CSelectedContent.prototype.CheckDocPartNames = function(oLogicDocument)
 		}
 	}
 };
-CSelectedContent.prototype.CheckComments = function(oLogicDocument)
+CSelectedContent.prototype.CheckComments = function(oLogicDocument, isFromCopy)
 {
 	if (!(oLogicDocument instanceof CDocument))
 		return;
@@ -915,7 +915,7 @@ CSelectedContent.prototype.CheckComments = function(oLogicDocument)
 
 	// Если история включена, то мы не можем быть уверены, что один и тот же комментарий не вставляется несколько раз,
 	// поэтому необходимо делать копию
-	if (oLogicDocument.GetHistory().IsOn())
+	if (!isFromCopy && oLogicDocument.GetHistory().IsOn())
 	{
 		var oCommentsManager = oLogicDocument.GetCommentsManager();
 		for (var sId in mCommentsMarks)
