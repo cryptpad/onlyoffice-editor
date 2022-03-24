@@ -2328,8 +2328,10 @@ function CDocumentSettings()
 	this.TrackRevisions = false; // Флаг рецензирования, который записан в самом файле
 
 	// Compatibility
-	this.SplitPageBreakAndParaMark = false;
-	this.DoNotExpandShiftReturn    = false;
+	this.SplitPageBreakAndParaMark        = false;
+	this.DoNotExpandShiftReturn           = false;
+	this.BalanceSingleByteDoubleByteWidth = false;
+	this.UlTrailSpace                     = false;
 }
 
 /**
@@ -2734,9 +2736,7 @@ CDocument.prototype.On_EndLoad                     = function()
     // Проверяем последний параграф на наличие секции
     this.Check_SectionLastParagraph();
 
-    // Специальная проверка плохо заданных нумераций через стиль. Когда ссылка на нумерацию в стиле есть,
-    // а обратной ссылки в нумерации на стиль - нет.
-    this.Styles.Check_StyleNumberingOnLoad(this.Numbering);
+    this.Styles.OnEndDocumentLoad(this);
 
     // Обновляем массив позиций для комментариев
     this.Comments.UpdateAll();
@@ -17089,6 +17089,14 @@ CDocument.prototype.IsDoNotExpandShiftReturn = function()
 {
 	return this.Settings.DoNotExpandShiftReturn;
 };
+CDocument.prototype.IsBalanceSingleByteDoubleByteWidth = function()
+{
+	return (this.Settings.BalanceSingleByteDoubleByteWidth && this.Styles.IsValidDefaultEastAsiaFont());
+};
+CDocument.prototype.IsUnderlineTrailSpace = function()
+{
+	return this.Settings.UlTrailSpace;
+};
 /**
  * Проверяем все ли параметры SdtSettings выставлены по умолчанию
  * @returns {boolean}
@@ -20125,7 +20133,10 @@ CDocument.prototype.controller_MoveCursorLeft = function(AddToSelect, Word)
 					this.CurPos.ContentPos = this.Selection.EndPos;
 
 					var Item = this.Content[this.Selection.EndPos];
-					Item.MoveCursorLeftWithSelectionFromEnd(Word);
+					if (this.Selection.StartPos <= this.Selection.EndPos)
+						Item.MoveCursorLeft(true, Word);
+					else
+						Item.MoveCursorLeftWithSelectionFromEnd(Word);
 				}
 			}
 
@@ -20217,17 +20228,18 @@ CDocument.prototype.controller_MoveCursorRight = function(AddToSelect, Word)
 	{
 		if (true === AddToSelect)
 		{
-			// Добавляем к селекту
 			if (false === this.Content[this.Selection.EndPos].MoveCursorRight(true, Word))
 			{
-				// Нужно перейти в начало следующего элемента
-				if (this.Content.length - 1 != this.Selection.EndPos)
+				if (this.Content.length - 1 !== this.Selection.EndPos)
 				{
 					this.Selection.EndPos++;
 					this.CurPos.ContentPos = this.Selection.EndPos;
 
 					var Item = this.Content[this.Selection.EndPos];
-					Item.MoveCursorRightWithSelectionFromStart(Word);
+					if (this.Selection.StartPos >= this.Selection.EndPos)
+						Item.MoveCursorRight(true, Word);
+					else
+						Item.MoveCursorRightWithSelectionFromStart(Word);
 				}
 			}
 

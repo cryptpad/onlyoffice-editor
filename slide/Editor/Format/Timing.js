@@ -333,7 +333,7 @@
         }
     };
     CTimeNodeBase.prototype.resetState = function() {
-        this.state = TIME_NODE_STATE_IDLE;
+        this.setState(TIME_NODE_STATE_IDLE);
         this.simpleDurationIdx = -1;
         this.resetChildrenState();
     };
@@ -677,7 +677,7 @@
                                 return false;
                             }
                         }
-                        if(oThis.checkRepeatCondition()) {
+                        if(oThis.checkRepeatCondition(oPlayer)) {
                             return false;
                         }
                         return true;
@@ -847,7 +847,10 @@
     CTimeNodeBase.prototype.onFrozen = function(oChild, oPlayer) {
         return this.onFinished(oChild, oPlayer);
     };
-    CTimeNodeBase.prototype.checkRepeatCondition = function() {
+    CTimeNodeBase.prototype.checkRepeatCondition = function(oPlayer) {
+        if(oPlayer && oPlayer.bDoNotRestart) {
+            return false;
+        }
         return this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000;
     };
     CTimeNodeBase.prototype.onFinished = function(oChild, oPlayer) {
@@ -866,7 +869,7 @@
                 }
             }
             if(nChild === aChildren.length) {
-                if(this.checkRepeatCondition()) {
+                if(this.checkRepeatCondition(oPlayer)) {
                     this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
                 }
             }
@@ -889,7 +892,7 @@
                 // }
             }
             else {
-                if(this.checkRepeatCondition()) {
+                if(this.checkRepeatCondition(oPlayer)) {
                     this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
                 }
                 else {
@@ -1371,6 +1374,19 @@
             }
         }
         return null;
+    };
+    CTimeNodeBase.prototype.isRemoveAfterFill = function() {
+        var oAttr = this.getAttributesObject();
+        if(oAttr) {
+            return oAttr.fill === NODE_FILL_REMOVE;
+        }
+        return false;
+    };
+    CTimeNodeBase.prototype.checkRemoveAtEnd = function() {
+        if(this.isAtEnd() && this.isRemoveAfterFill()) {
+            return true;
+        }
+        return false;
     };
 
     function CAnimationTime(val) {
@@ -3891,6 +3907,9 @@
         if(!oTargetObject) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var aAttributes = this.getAttributes();
         if(aAttributes.length < 1) {
             return;
@@ -4056,7 +4075,11 @@
             "ppt_x": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_x"]) ? oAttributes["ppt_x"] : this.getOrigAttrVal("ppt_x"),
             "ppt_y": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_y"]) ? oAttributes["ppt_y"] : this.getOrigAttrVal("ppt_y"),
             "ppt_w": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_w"]) ? oAttributes["ppt_w"] : this.getOrigAttrVal("ppt_w"),
-            "ppt_h": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]) ? oAttributes["ppt_h"] : this.getOrigAttrVal("ppt_h")
+            "ppt_h": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]) ? oAttributes["ppt_h"] : this.getOrigAttrVal("ppt_h"),
+            "ppt_x_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_x"])),
+            "ppt_y_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_y"])),
+            "ppt_w_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_w"])),
+            "ppt_h_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]))
         }
     };
     CAnim.prototype.getFormulaResult = function(sFormula, oVarMap) {
@@ -4986,11 +5009,6 @@
             oAttrObject.setRepeatCount("indefinite");
         }
         if(v === AscFormat.untilNextClick) {
-            if(oAttrObject && oAttrObject.endCondLst) {
-                oAttrObject.setEndCondLst(null);
-            }
-        }
-        else {
             if(!oAttrObject.endCondLst) {
                 oAttrObject.setEndCondLst(new CCondLst()) ;
             }
@@ -5002,6 +5020,11 @@
             var oTgt = new CTgtEl();
             oCond.setTgtEl(oTgt);
             oAttrObject.endCondLst.push(oCond);
+        }
+        else {
+            if(oAttrObject && oAttrObject.endCondLst) {
+                oAttrObject.setEndCondLst(null);
+            }
         }
     };
     CCTn.prototype.changeRewind = function(v) {
@@ -6305,6 +6328,9 @@
         if(!oTargetObject) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var aAttributes = this.getAttributes();
         if(aAttributes.length < 1) {
             return;
@@ -6523,6 +6549,9 @@
     };
     CAnimEffect.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         if(!this.filter) {
+            return;
+        }
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
@@ -6815,6 +6844,9 @@
     CAnimMotion.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
+            return;
+        }
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var nOrigin = this.getOrigin();
@@ -7308,6 +7340,9 @@
         if(!oTargetObject) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var fRelTime = this.getRelativeTime(nElapsedTime);
         var dR = null;
         if(this.to && this.from) {
@@ -7473,6 +7508,9 @@
     CAnimScale.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
+            return;
+        }
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
@@ -8158,6 +8196,15 @@
         }, this, []);
     };
     CTimeNodeContainer.prototype["asc_putDelay"] = CTimeNodeContainer.prototype.asc_putDelay;
+    CTimeNodeContainer.prototype.getUndefiniteDuration = function() {
+        if(this.cTn.endCondLst && this.cTn.endCondLst) {
+            var aCond = this.cTn.endCondLst.list;
+            if(aCond[0] &&  aCond[0].evt === COND_EVNT_ON_NEXT ) {
+                return AscFormat.untilNextClick;
+            }
+        }
+        return AscFormat.untilNextSlide;
+    };
     CTimeNodeContainer.prototype.asc_getDuration = function() {
         var nDur = 0;
         if(Array.isArray(this.merged) && this.merged.length > 0) {
@@ -8175,13 +8222,7 @@
         }
         var oTime = new CAnimationTime(nDur);
         if(oTime.isIndefinite()) {
-            if(this.cTn.endCondLst && this.cTn.endCondLst) {
-                var aCond = this.cTn.endCondLst.list;
-                if(aCond[0] &&  aCond[0].evt === COND_EVNT_ON_NEXT ) {
-                    return AscFormat.untilNextSlide;
-                }
-            }
-            return AscFormat.untilNextClick;
+            return this.getUndefiniteDuration();
         }
         else {
             return nDur;
@@ -8211,13 +8252,7 @@
             return oRepeatCount.val;
         }
         if(oRepeatCount.isIndefinite()) {
-            if(this.cTn.endCondLst && this.cTn.endCondLst) {
-                var aCond = this.cTn.endCondLst.list;
-                if(aCond[0] &&  aCond[0].evt === COND_EVNT_ON_NEXT ) {
-                    return AscFormat.untilNextSlide;
-                }
-            }
-            return AscFormat.untilNextClick;
+            return this.getUndefiniteDuration();
         }
         return 1000;
     };
@@ -8555,7 +8590,22 @@
                         }
                         else {
                             if(oThis.nextAc === NEXT_AC_SEEK) {
-                                oChild.freezeCallback(oPlayer);
+                                var bFreeze = true;
+                                oChild.traverseTimeNodes(function(oNode) {
+                                    if(!bFreeze) {
+                                        return
+                                    }
+                                    if(oNode.isAnimEffect()) {
+                                        if(oNode.asc_getRepeatCount() === AscFormat.untilNextSlide) {
+                                            bFreeze = false;
+                                        }
+                                    }
+                                })
+                                if(bFreeze) {
+                                    oPlayer.bDoNotRestart = true;
+                                    oChild.freezeCallback(oPlayer);
+                                    delete oPlayer.bDoNotRestart;
+                                }
                             }
                         }
                     }
@@ -8664,6 +8714,9 @@
     };
     CSet.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         if(!this.to) {
+            return;
+        }
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         this.setAttributesValue(oAttributes, this.to.getVal());
@@ -10674,6 +10727,8 @@
         if(!bIsPaused) {
             this.updateTimingList();
             this.scheduleNodesStart();
+            this.animationDrawer.clearTextureCache();
+            this.animationDrawer.collectHiddenObjects();
         }
         if(this.isMainSequenceFinished()) {
             this.onMainSeqFinished();
@@ -11367,8 +11422,24 @@
         if(!oLastToken) {
             return null;
         }
+        if(this.checkReplaceVar(oVarMap)) {
+            this.replaceVar(oVarMap);
+        }
         oLastToken.calculate(oVarMap);
         return oLastToken.result;
+    };
+    CParseQueue.prototype.checkReplaceVar = function(oVarMap) {
+        for(var nToken = 0; nToken < this.queue.length; ++nToken) {
+            if(this.queue[nToken].checkReplaceVar(oVarMap)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CParseQueue.prototype.replaceVar = function(oVarMap) {
+        for(var nToken = 0; nToken < this.queue.length; ++nToken) {
+            this.queue[nToken].replaceVar(oVarMap);
+        }
     };
 
 
@@ -11425,6 +11496,11 @@
     CTokenBase.prototype.isOperator = function() {
         return false;
     };
+    CTokenBase.prototype.checkReplaceVar = function(oVarMap) {
+        return false;
+    };
+    CTokenBase.prototype.replaceVar = function(oVarMap) {
+    };
 
     function CConstantToken(oQueue, sValue) {
         CTokenBase.call(this, oQueue);
@@ -11449,6 +11525,17 @@
     };
     CVariableToken.prototype.setName = function(sName) {
         this.name = sName;
+    };
+    CVariableToken.prototype.checkReplaceVar = function(oVarMap) {
+        if(oVarMap[this.name + "_no_attr"] && AscFormat.isRealNumber(oVarMap["#" + this.name])) {
+            return true;
+        }
+        return false;
+    };
+    CVariableToken.prototype.replaceVar = function(oVarMap) {
+        if(AscFormat.isRealNumber(oVarMap["#" + this.name])) {
+            this.name = "#" + this.name;
+        }
     };
     function CFunctionToken(oQueue, sName) {
         CTokenBase.call(this, oQueue);

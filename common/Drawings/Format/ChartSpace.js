@@ -8038,7 +8038,7 @@ var GLOBAL_PATH_COUNT = 0;
         return this.drawingBase.createImage();
     }
     CChartSpace.prototype.checkDrawingCache = function(graphics) {
-        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview) {
+        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview || graphics.PrintPreview) {
             return false;
         }
         if(graphics.IsSlideBoundsCheckerType) {
