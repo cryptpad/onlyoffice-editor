@@ -10987,9 +10987,13 @@ CPresentation.prototype.StartAnimationPreview = function() {
     if(!oPlayer) {
         return false;
     }
+    var bOldLblFlag = this.Api.bIsShowAnimTab;
+    this.Api.bIsShowAnimTab = false;
+    this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
+    this.Api.bIsShowAnimTab = bOldLblFlag;
     this.previewPlayer = oPlayer;
     oPlayer.start();
-    this.DrawingDocument.TargetEnd()
+    this.DrawingDocument.TargetEnd();
     return true;
 };
 CPresentation.prototype.StopAnimationPreview = function() {
@@ -11001,6 +11005,14 @@ CPresentation.prototype.StopAnimationPreview = function() {
         this.previewPlayer = null;
         this.UpdateSelection();
         return true;
+    }
+    return false;
+};
+CPresentation.prototype.IsStartedPreview = function() {
+    if(this.previewPlayer) {
+        if(this.previewPlayer.isStarted()) {
+            return true;
+        }
     }
     return false;
 };
