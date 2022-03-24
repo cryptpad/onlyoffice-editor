@@ -173,7 +173,10 @@
 	{
 		let oRun = this.Run;
 		if (oRun.GetElement(this.Pos) === this.RunItem)
+		{
+			oRun.State.ContentPos = this.Pos + 1;
 			return;
+		}
 
 		for (let nPos = 0, nCount = oRun.GetElementsCount(); nPos < nCount; ++nPos)
 		{
@@ -264,7 +267,7 @@
 		var oHistory    = oDocument.GetHistory();
 		if (2 !== arrElements.length
 			|| !arrElements[0].IsSpace()
-			|| !arrElements[1].IsText()
+			|| !this.private_CheckPrevSymbolForDoubleSpaceWithDot(arrElements[1])
 			|| !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0], 1, 500))
 			return false;
 
@@ -274,23 +277,22 @@
 		oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
 
 		var oDot = new ParaText(46);
-		oRun.AddToContent(this.Pos + 1, oDot);
-		var oStartPos = oRunElementsBefore.GetContentPositions()[0];
-		var oEndPos   = oContentPos;
-		oContentPos.Update(this.Pos + 1, oContentPos.GetDepth());
-
-		oParagraph.RemoveSelection();
-		oParagraph.SetSelectionUse(true);
-		oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-		oParagraph.Remove(1);
-		oParagraph.RemoveSelection();
+		oRun.AddToContent(this.Pos, oDot);
+		oParagraph.RemoveRunElement(oRunElementsBefore.GetContentPositions()[0]);
 
 		oDocument.Recalculate();
 		oDocument.FinalizeAction();
 
-		this.RunItem = oDot;
-
 		return true;
+	};
+	CRunAutoCorrect.prototype.private_CheckPrevSymbolForDoubleSpaceWithDot = function(oItem)
+	{
+		return (oItem.IsText()
+			&& (!oItem.IsPunctuation()
+				|| 0x23 === oItem.Value
+				|| 0x24 === oItem.Value
+				|| 0x25 === oItem.Value
+				|| 0x40 === oItem.Value));
 	};
 	/**
 	 * Производим автозамену для французской пунктуации
