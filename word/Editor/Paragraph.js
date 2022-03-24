@@ -13846,6 +13846,11 @@ Paragraph.prototype.IgnoreMisspelledWord = function(oElement)
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
+Paragraph.prototype.CanAddSectionPr = function()
+{
+	let oParent = this.Parent;
+	return (oParent && (oParent.GetTopDocument() instanceof Document) && !oParent.IsTableCellContent());
+};
 Paragraph.prototype.Get_SectionPr = function()
 {
 	return this.SectPr;
