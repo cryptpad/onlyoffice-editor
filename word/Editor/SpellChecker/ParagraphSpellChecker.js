@@ -350,7 +350,7 @@
 	 */
 	CParagraphSpellChecker.prototype.IsNeedCheckWord = function(sWord)
 	{
-		if (1 >= sWord.length || AscCommon.private_IsAbbreviation(sWord))
+		if (1 >= sWord.length || AscCommon.IsAbbreviation(sWord))
 			return false;
 
 		for (let nPos = 0, nLen = sWord.length; nPos < nLen; ++nPos)
