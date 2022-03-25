@@ -365,44 +365,6 @@ DrawingObjectsController.prototype.editChart = function(binary)
     }
 };
 
-DrawingObjectsController.prototype.editTableOleObject = function(binaryInfo)
-{
-    var _this = this;
-    var oApi = this.getEditorApi();
-    if (binaryInfo) {
-        if (!binaryInfo.imageUrl) {
-            var base64Image = binaryInfo.base64Image;
-            var fAfterUploadOleObjectImage = function (url) {
-                binaryInfo.imageUrl = url;
-                _this.editTableOleObject(binaryInfo);
-            }
-            var obj = {
-                fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
-            };
-            AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
-                oApi._uploadCallback(nError, files, obj);
-            });
-            return;
-        }
-        var blipUrl = binaryInfo.imageUrl;
-        var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
-
-        var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
-        if (selectedObjects.oleObjects.length === 1) {
-            var selectedOleObject = selectedObjects.oleObjects[0];
-            var blipFill = AscFormat.CreateBlipFillRasterImageId(blipUrl);
-            var sizes = AscCommon.getSourceImageSize(blipUrl);
-            selectedOleObject.setBinaryData(binaryDataOfSheet);
-            selectedOleObject.setBlipFill(blipFill);
-            var originalWidth = selectedOleObject.spPr.xfrm.extX;
-            var koef = (originalWidth / sizes.width) || 0;
-            selectedOleObject.spPr.xfrm.setExtY(sizes.height * koef);
-            this.startRecalculate();
-            this.updateOverlay();
-        }
-    }
-};
-
 DrawingObjectsController.prototype.handleSlideComments  =  function(e, x, y, pageIndex)
 {
 

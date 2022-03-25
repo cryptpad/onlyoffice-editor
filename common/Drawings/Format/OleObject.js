@@ -347,9 +347,12 @@ function (window, undefined) {
         return oShape;
     };
 
-    COleObject.prototype.editExternal = function(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight) {
-        if(typeof sData === "string" && this.m_sData !== sData) {
-            this.setData(sData);
+    COleObject.prototype.editExternal = function(Data, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight) {
+        if(typeof Data === "string" && this.m_sData !== Data) {
+            this.setData(Data);
+        }
+        if (Data instanceof Uint8Array) {
+            this.setBinaryData(Data)
         }
         if(typeof sImageUrl  === "string" &&
             (!this.blipFill || this.blipFill.RasterImageId !== sImageUrl)) {
@@ -440,8 +443,7 @@ function (window, undefined) {
     };
 
     COleObject.prototype.canEditTableOleObject = function() {
-        //TODO: we can't edit oleObject in worksheets now, delete condition about worksheet in the future
-        return !!(!this.worksheet && this.m_aBinaryData &&
+        return !!(this.m_aBinaryData &&
           (this.m_nOleType === AscCommon.c_oAscOleObjectTypes.spreadsheet || this.m_sApplicationId === spreadsheetApplicationId));
     };
 

@@ -3347,7 +3347,7 @@ var editor;
    * @param {{}} [oleObj] info from oleObject
    * @param {function} [fResizeCallback] callback where first argument is sizes of loaded editor without borders
    */
-  spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj, fResizeCallback) {
+  spreadsheet_api.prototype.asc_addTableOleObjectInOleEditor = function(oleObj, fResizeCallback) {
     oleObj = oleObj || {binary: AscCommon.getEmpty()};
     var stream = oleObj && oleObj.binary;
     var _this = this;
@@ -3713,8 +3713,21 @@ var editor;
     this.handlers.trigger("asc_onEndAddShape");
   };
 
-  spreadsheet_api.prototype.asc_doubleClickOnTableOleObject = function () {
-      //TODO: add support edit table oleobject in spreadsheet
+  spreadsheet_api.prototype.asc_doubleClickOnTableOleObject = function (obj) {
+    this.isChartEditor = true;	// Для совместного редактирования
+    this.asc_onOpenChartFrame();
+    // console.log(editor.WordControl)
+    // if(!window['IS_NATIVE_EDITOR']) {
+    //   this.WordControl.onMouseUpMainSimple();
+    // }
+    if(this.handlers.hasTrigger("asc_doubleClickOnTableOleObject"))
+    {
+      this.sendEvent("asc_doubleClickOnTableOleObject", obj);
+    }
+    else
+    {
+      this.sendEvent("asc_doubleClickOnChart", obj); // TODO: change event type
+    }
   };
 
     spreadsheet_api.prototype.asc_canEditGeometry = function () {

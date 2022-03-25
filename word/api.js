@@ -8639,30 +8639,6 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.asc_editTableOleObject = function(oleInfo)
-	{
-/*		this.asc_addTableOleObject(oleInfo); todo: delete
-		return*/
-		if (AscFormat.isObject(oleInfo))
-		{
-			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
-			{
-				this.WordControl.m_oLogicDocument.EditTableOleObject(oleInfo);
-			}
-		}
-	};
-
-	asc_docs_api.prototype.asc_addTableOleObject = function(oleInfo)
-	{
-		if (AscFormat.isObject(oleInfo))
-		{
-			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
-			{
-				this.addTableOleObject(oleInfo);
-			}
-		}
-	};
-
 	asc_docs_api.prototype.sync_closeChartEditor = function()
 	{
 		this.sendEvent("asc_onCloseChartEditor");
@@ -12881,7 +12857,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_doubleClickOnChart']                    = asc_docs_api.prototype.asc_doubleClickOnChart;
 	asc_docs_api.prototype['asc_onCloseChartFrame']                     = asc_docs_api.prototype.asc_onCloseChartFrame;
 	asc_docs_api.prototype['asc_editChartDrawingObject']                = asc_docs_api.prototype.asc_editChartDrawingObject;
-	asc_docs_api.prototype['asc_editTableOleObject']                    = asc_docs_api.prototype.asc_editTableOleObject;
 	asc_docs_api.prototype['asc_getChartPreviews']                      = asc_docs_api.prototype.asc_getChartPreviews;
 	asc_docs_api.prototype['asc_getTextArtPreviews']                    = asc_docs_api.prototype.asc_getTextArtPreviews;
 	asc_docs_api.prototype['sync_closeOleEditor']                       = asc_docs_api.prototype.sync_closeOleEditor;

@@ -5179,14 +5179,6 @@ CPresentation.prototype.CheckNotesShow = function () {
     }
 };
 
-CPresentation.prototype.EditTableOleObjectFromBinary = function (binary) {
-  var _this = this;
-  _this.Slides[_this.CurPage] && _this.Slides[_this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(function () {
-    _this.Slides[_this.CurPage].graphicObjects.editTableOleObject(binary);
-    _this.Document_UpdateInterfaceState();
-  }, [binary], false, AscDFH.historydescription_Presentation_EditTableOleObjectFromBinary);
-};
-
 CPresentation.prototype.EditChart = function (binary) {
     var _this = this;
     _this.Slides[_this.CurPage] && _this.Slides[_this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(function () {

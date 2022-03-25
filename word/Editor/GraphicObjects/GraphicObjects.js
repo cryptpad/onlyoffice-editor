@@ -1226,29 +1226,6 @@ CGraphicObjects.prototype =
         }
     },
 
-    editTableOleObject: function(binaryInfo)
-    {
-        if (binaryInfo && binaryInfo.imageUrl) {
-            var blipUrl = binaryInfo.imageUrl;
-            var binaryDataOfSheet = AscCommon.Base64.decode(binaryInfo.binary);
-
-            var selectedObjects = AscFormat.getObjectsByTypesFromArr(this.selectedObjects);
-            if (selectedObjects.oleObjects.length === 1) {
-                var selectedOleObject = selectedObjects.oleObjects[0];
-                var blipFill = AscFormat.CreateBlipFillRasterImageId(blipUrl);
-                var sizes = AscCommon.getSourceImageSize(blipUrl);
-                selectedOleObject.setBinaryData(binaryDataOfSheet);
-                selectedOleObject.setBlipFill(blipFill);
-                var originalWidth = selectedOleObject.spPr.xfrm.extX;
-                var koef = (originalWidth / sizes.width) || 0;
-                selectedOleObject.spPr.xfrm.setExtY(sizes.height * koef);
-                selectedOleObject.parent.CheckWH();
-                this.document.Recalculate();
-                this.document.Document_UpdateInterfaceState();
-            }
-        }
-    },
-
     getCompatibilityMode: function(){
         var ret = 0xFF;
         if(this.document && this.document.GetCompatibilityMode){
@@ -1605,7 +1582,7 @@ CGraphicObjects.prototype =
             if(drawing && drawing.ParaMath){
                 editor.sync_OnConvertEquationToMath(drawing);
             }
-            else if (oleObject.m_aBinaryData && oleObject.m_nOleType === AscCommon.c_oAscOleObjectTypes.spreadsheet)
+            else if (oleObject.canEditTableOleObject())
             {
                 editor.asc_doubleClickOnTableOleObject(oleObject);
             }

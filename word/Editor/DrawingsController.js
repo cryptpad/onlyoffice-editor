@@ -127,10 +127,6 @@ CDrawingsController.prototype.EditChart = function(Chart)
 {
 	this.DrawingObjects.editChart(Chart);
 };
-CDrawingsController.prototype.EditTableOleObject = function(binary)
-{
-	this.DrawingObjects.editTableOleObject(binary);
-};
 CDrawingsController.prototype.AddInlineTable = function(nCols, nRows, nMode)
 {
 	return this.DrawingObjects.addInlineTable(nCols, nRows, nMode);
