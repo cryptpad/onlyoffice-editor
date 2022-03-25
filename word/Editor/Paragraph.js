@@ -13849,7 +13849,7 @@ Paragraph.prototype.IgnoreMisspelledWord = function(oElement)
 Paragraph.prototype.CanAddSectionPr = function()
 {
 	let oParent = this.Parent;
-	return (oParent && (oParent.GetTopDocument() instanceof Document) && !oParent.IsTableCellContent());
+	return (oParent && (oParent.GetTopDocumentContent() instanceof Document) && !oParent.IsTableCellContent() && this.IsUseInDocument());
 };
 Paragraph.prototype.Get_SectionPr = function()
 {
