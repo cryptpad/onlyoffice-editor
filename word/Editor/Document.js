@@ -2332,6 +2332,7 @@ function CDocumentSettings()
 	this.DoNotExpandShiftReturn           = false;
 	this.BalanceSingleByteDoubleByteWidth = false;
 	this.UlTrailSpace                     = false;
+	this.UseFELayout                      = false;
 }
 
 /**
@@ -13011,25 +13012,30 @@ CDocument.prototype.Document_UpdateInterfaceState = function(bSaveCurRevisionCha
 };
 CDocument.prototype.private_UpdateInterface = function(isSaveCurrentReviewChange, isExternalTrigger)
 {
-	if (!this.Api.isDocumentLoadComplete || true === AscCommon.g_oIdCounter.m_bLoad || true === AscCommon.g_oIdCounter.m_bRead)
+	let oApi = this.GetApi();
+	if (!oApi.isDocumentLoadComplete || true === AscCommon.g_oIdCounter.m_bLoad || true === AscCommon.g_oIdCounter.m_bRead)
 		return;
 
 	if (true === this.TurnOffInterfaceEvents)
 		return;
 
 	if (true === AscCommon.CollaborativeEditing.Get_GlobalLockSelection())
+	{
+		let oThis = this;
+		oApi.checkLongActionCallback(function(){oThis.UpdateInterface();});
 		return;
+	}
 
 	// Удаляем весь список
-	this.Api.sync_BeginCatchSelectedElements();
+	oApi.sync_BeginCatchSelectedElements();
 
 	// Уберем из интерфейса записи о том где мы находимся (параграф, таблица, картинка или колонтитул)
-	this.Api.ClearPropObjCallback();
+	oApi.ClearPropObjCallback();
 
 	this.Controller.UpdateInterfaceState();
 
 	// Сообщаем, что список составлен
-	this.Api.sync_EndCatchSelectedElements(isExternalTrigger);
+	oApi.sync_EndCatchSelectedElements(isExternalTrigger);
 
 	this.UpdateSelectedReviewChanges(isSaveCurrentReviewChange);
 
@@ -17038,6 +17044,10 @@ CDocument.prototype.AddPageCount = function()
 //----------------------------------------------------------------------------------------------------------------------
 // Settings
 //----------------------------------------------------------------------------------------------------------------------
+CDocument.prototype.GetDocumentSettings = function()
+{
+	return this.Settings;
+};
 CDocument.prototype.GetCompatibilityMode = function()
 {
 	return this.Settings.CompatibilityMode;
@@ -17091,7 +17101,7 @@ CDocument.prototype.IsDoNotExpandShiftReturn = function()
 };
 CDocument.prototype.IsBalanceSingleByteDoubleByteWidth = function()
 {
-	return (this.Settings.BalanceSingleByteDoubleByteWidth && this.Styles.IsValidDefaultEastAsiaFont());
+	return (this.Settings.BalanceSingleByteDoubleByteWidth && (this.Styles.IsValidDefaultEastAsiaFont() || this.Settings.UseFELayout));
 };
 CDocument.prototype.IsUnderlineTrailSpace = function()
 {

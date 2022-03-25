@@ -11636,10 +11636,17 @@
 			return;
 		}
 
-		var data = element.getContext("2d").getImageData(0, 0, element.width, element.height);
+		var data = null;
+		if(element.width > 0 && element.height > 0)
+		{
+			data = element.getContext("2d").getImageData(0, 0, element.width, element.height);
+		}
 		element.width = width;
 		element.height = height;
-		element.getContext("2d").putImageData(data, 0, 0);
+		if(data)
+		{
+			element.getContext("2d").putImageData(data, 0, 0);
+		}
 	};
 
 	function calculateCanvasSize(element, is_correction, is_wait_correction)

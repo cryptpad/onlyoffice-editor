@@ -1270,6 +1270,9 @@
     CTimeNodeBase.prototype.doesHideObject = function() {
         return false;
     };
+    CTimeNodeBase.prototype.doesShowObject = function() {
+        return false;
+    };
     CTimeNodeBase.prototype.isAncestor = function(oNode) {
         var oCurNode = oNode;
         while(oCurNode = oCurNode.getParentTimeNode()) {
@@ -8737,6 +8740,22 @@
         }
         return false;
     };
+    CSet.prototype.doesShowObject = function() {
+        var oAttributes = {};
+        this.setAttributesValue(oAttributes, this.to.getVal());
+        if(oAttributes["style.visibility"] === "hidden") {
+            var oCurNode = this;
+            var oParentNode;
+            while(oParentNode = oCurNode.getParentTimeNode()) {
+                var oAttrObject = oParentNode.getAttributesObject();
+                if(AscFormat.PRESET_CLASS_EXIT === oAttrObject.presetClass) {
+                    return true;
+                }
+                oCurNode = oParentNode;
+            }
+        }
+        return false;
+    };
     CSet.prototype.createSetVisibility = function(sObjectId, bVisible) {
         var oBhvr = new CCBhvr();
         this.setCBhvr(oBhvr);
@@ -10515,6 +10534,7 @@
         this.lastFrameSandwiches = {};
         this.texturesCache = new CTexturesCache(this);
         this.hiddenObjects = {};
+        this.showObjects = {};
         this.collectHiddenObjects();
     }
     CAnimationDrawer.prototype.clearSandwiches = function() {
@@ -10659,10 +10679,18 @@
         }
         return false;
     };
+    CAnimationDrawer.prototype.checkShowObject = function(oTimeNode) {
+        if(oTimeNode.doesShowObject()) {
+            var sId = oTimeNode.getTargetObjectId();
+            if(sId !== null) {
+                this.showObjects[sId] = oTimeNode;
+            }
+        }
+    };
     CAnimationDrawer.prototype.checkHiddenObject = function(oTimeNode) {
         if(oTimeNode.doesHideObject()) {
             var sId = oTimeNode.getTargetObjectId();
-            if(sId !== null) {
+            if(sId !== null && !this.showObjects[sId]) {
                 this.hiddenObjects[oTimeNode.getTargetObjectId()] = oTimeNode;
             }
         }
@@ -10670,14 +10698,18 @@
     CAnimationDrawer.prototype.collectHiddenObjects = function() {
         var aTimings = this.player.timings;
         var oThis = this;
+        this.showObjects = {};
+        this.hiddenObjects = {};
         for(var nTiming = 0; nTiming < aTimings.length; ++nTiming) {
             var oRoot = aTimings[nTiming].getTimingRootNode();
             if(oRoot) {
                 oRoot.traverseTimeNodes(function(oTimeNode) {
+                    oThis.checkShowObject(oTimeNode);
                     oThis.checkHiddenObject(oTimeNode);
                 });
             }
         }
+        this.showObjects = {};
     };
     CAnimationDrawer.prototype.clearObjectTexture = function(sId) {
         this.texturesCache.removeTexture(sId);
