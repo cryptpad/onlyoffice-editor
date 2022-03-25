@@ -4790,6 +4790,11 @@ background-repeat: no-repeat;\
 		return this.WordControl.MasterLayouts.Theme;
 	};
 
+	asc_docs_api.prototype.getGraphicController = function() {
+		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
+		return oPresentation && oPresentation.GetCurrentController();
+	};
+
 
 	asc_docs_api.prototype.ChangeColorScheme = function(sSchemeName)
 	{

@@ -2044,6 +2044,16 @@
 		return sShapeName;
 	};
 
+	baseEditorsApi.prototype.getGraphicController = function() {};
+
+	baseEditorsApi.prototype.asc_canEditTableOleObject = function() {
+		var oController = this.getGraphicController();
+		if(oController) {
+			return oController.canEditTableOleObject();
+		}
+		return false;
+	};
+
 
 	//Remove All comments
 	baseEditorsApi.prototype.asc_RemoveAllComments = function(isMine, isCurrent)

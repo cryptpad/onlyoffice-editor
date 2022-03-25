@@ -7363,6 +7363,11 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.theme;
 	};
 
+	asc_docs_api.prototype.getGraphicController = function () {
+		var document = this.private_GetLogicDocument();
+		return document && document.DrawingObjects;
+	};
+
 	asc_docs_api.prototype.ChangeColorScheme            = function(sSchemeName)
 	{
 		if (null == this.WordControl.m_oLogicDocument)

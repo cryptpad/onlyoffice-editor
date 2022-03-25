@@ -150,7 +150,7 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
         if(oleObject.m_oMathObject) {
             editor.sendEvent("asc_onConvertEquationToMath", oleObject);
         }
-        else if (oleObject.m_aBinaryData && oleObject.m_nOleType === AscCommon.c_oAscOleObjectTypes.spreadsheet)
+        else if (oleObject.canEditTableOleObject())
         {
             editor.asc_doubleClickOnTableOleObject(oleObject);
         }

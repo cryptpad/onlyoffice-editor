@@ -343,8 +343,9 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
     var fCallback = function(){
         if(oleObject.m_oMathObject) {
             window["Asc"]["editor"].sendEvent("asc_onConvertEquationToMath", oleObject);
-        }
-        else {
+        } else if (oleObject.canEditTableOleObject()) {
+            editor.asc_doubleClickOnTableOleObject(oleObject);
+        } else {
             var pluginData = new Asc.CPluginData();
             pluginData.setAttribute("data", oleObject.m_sData);
             pluginData.setAttribute("guid", oleObject.m_sApplicationId);

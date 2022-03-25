@@ -3713,6 +3713,10 @@ var editor;
     this.handlers.trigger("asc_onEndAddShape");
   };
 
+  spreadsheet_api.prototype.asc_doubleClickOnTableOleObject = function () {
+      //TODO: add support edit table oleobject in spreadsheet
+  };
+
     spreadsheet_api.prototype.asc_canEditGeometry = function () {
         var ws = this.wb.getWorksheet();
         if(ws && ws.objectRender && ws.objectRender.controller) {
@@ -4923,7 +4927,12 @@ var editor;
      return this.wbModel && this.wbModel.theme;
   };
 
-	spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
+  spreadsheet_api.prototype.getGraphicController = function () {
+      var ws = this.wb.getWorksheet();
+      return ws && ws.objectRender && ws.objectRender.controller;
+  };
+
+    spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
 		if (this.wbModel) {
 			for (var i = 0; i < this.wbModel.aWorksheets.length; ++i) {
 				var sheet = this.wbModel.aWorksheets[i];
