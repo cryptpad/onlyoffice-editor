@@ -4047,7 +4047,7 @@ var editor;
           }
 
           if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1
-            || (isIgnoreUppercase && AscCommon.private_IsAbbreviation(usrWords[i]))) {
+            || (isIgnoreUppercase && AscCommon.IsAbbreviation(usrWords[i]))) {
             usrCorrect[i] = true;
           }
         }
@@ -4471,14 +4471,14 @@ var editor;
   };
 
   // Получить координаты активной ячейки
-  spreadsheet_api.prototype.asc_getActiveCellCoord = function() {
+  spreadsheet_api.prototype.asc_getActiveCellCoord = function(useUpRightMerge) {
     var oWorksheet = this.wb.getWorksheet();
     if(oWorksheet){
       if(oWorksheet.isSelectOnShape){
         return oWorksheet.objectRender.getContextMenuPosition();
       }
       else{
-          return oWorksheet.getActiveCellCoord();
+          return oWorksheet.getActiveCellCoord(useUpRightMerge);
       }
     }
 

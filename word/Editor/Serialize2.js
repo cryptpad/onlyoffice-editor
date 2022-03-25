@@ -6945,6 +6945,8 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("doNotFlipMirrorIndents", "http://schemas.microsoft.com/office/word", "1");});
 		var flags1 = 0;
+		flags1 |= (oThis.Document.IsBalanceSingleByteDoubleByteWidth() ? 1 : 0) << 6;
+		flags1 |= (oThis.Document.IsUnderlineTrailSpace() ? 1 : 0) << 9;
 		if (this.saveParams.isCompatible) {
 			flags1 |= (oThis.Document.IsDoNotExpandShiftReturn() ? 1 : 0) << 10;
 		}
@@ -7210,13 +7212,13 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 				oThis.memory.WriteByte(oDocProtect.edit);
 			});
 		}
-		if (oDocProtect.enforcment)
+		if (null !== oDocProtect.enforcment)
 		{
 			this.bs.WriteItem(c_oDocProtect.Enforcment, function () {
 				oThis.memory.WriteBool(oDocProtect.enforcment);
 			});
 		}
-		if (oDocProtect.formatting)
+		if (null !== oDocProtect.formatting)
 		{
 			this.bs.WriteItem(c_oDocProtect.Formatting, function () {
 				oThis.memory.WriteBool(oDocProtect.formatting);
@@ -8311,11 +8313,18 @@ function BinaryFileReader(doc, openParams)
 		if (this.oReadResult.DoNotExpandShiftReturn) {
 			this.Document.Settings.DoNotExpandShiftReturn = this.oReadResult.DoNotExpandShiftReturn;
 		}
+		if (this.oReadResult.UlTrailSpace) {
+			this.Document.Settings.UlTrailSpace = this.oReadResult.UlTrailSpace;
+		}
+		if (this.oReadResult.BalanceSingleByteDoubleByteWidth) {
+			this.Document.Settings.BalanceSingleByteDoubleByteWidth = this.oReadResult.BalanceSingleByteDoubleByteWidth;
+		}
 
         this.Document.On_EndLoad();
 
-		if (this.Document.Settings && this.Document.Settings.DocumentProtection) {
-			if (this.Document.Settings.DocumentProtection.isOnlyView()) {
+		var docProtection = this.Document.Settings && this.Document.Settings.DocumentProtection;
+		if (docProtection) {
+			if (docProtection.isOnlyView() && false !== docProtection.getEnforcment()) {
 				var _api = this.Document.DrawingDocument && this.Document.DrawingDocument.m_oWordControl && this.Document.DrawingDocument.m_oWordControl.m_oApi;
 				_api && _api.asc_addRestriction(Asc.c_oAscRestrictionType.View);
 			}
@@ -16514,7 +16523,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadDocProtect(t,l,oDocProtect);
 			});
-			editor.WordControl.m_oLogicDocument.Settings.DocumentProtection = oDocProtect;
+			//editor.WordControl.m_oLogicDocument.Settings.DocumentProtection = oDocProtect;
 		}
 		else if ( c_oSer_SettingsType.WriteProtection === type )
 		{
@@ -16968,6 +16977,8 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			}
 		} else if (c_oSerCompat.Flags1 === type) {
 			var flags1 = this.stream.GetULong(length);
+			this.oReadResult.BalanceSingleByteDoubleByteWidth = 0 !== ((flags1 >> 6) & 1);
+			this.oReadResult.UlTrailSpace = 0 !== ((flags1 >> 9) & 1);
 			this.oReadResult.DoNotExpandShiftReturn = 0 != ((flags1 >> 10) & 1);
 		} else if (c_oSerCompat.Flags2 === type) {
 			var flags2 = this.stream.GetULong(length);
@@ -17509,6 +17520,8 @@ function DocReadResult(doc) {
 	this.AppVersion;
 	this.compatibilityMode = null;
 	this.SplitPageBreakAndParaMark = false;
+	this.BalanceSingleByteDoubleByteWidth = false;
+	this.UlTrailSpace = false;
 	this.DoNotExpandShiftReturn = false;
 	this.bdtr = null;
 	this.runsToSplit = [];

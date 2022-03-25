@@ -904,9 +904,16 @@
 
 		this.getPagesCount = function()
 		{
-			if (!this.file || !this.file.isValid)
+			if (!this.file || !this.file.isValid())
 				return 0;
 			return this.file.pages.length;
+		};
+
+		this.getDocumentInfo = function()
+		{
+			if (!this.file || !this.file.isValid())
+				return 0;
+			return this.file.getDocumentInfo();
 		};
 
 		this.navigate = function(id)
@@ -993,7 +1000,7 @@
 
 		this.recalculatePlaces = function()
 		{
-			if (!this.file || !this.file.isValid)
+			if (!this.file || !this.file.isValid())
 				return;
 
 			// здесь картинки не обнуляем

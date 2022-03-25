@@ -1742,6 +1742,16 @@
       }
     }
 
+    Point.prototype.changeFlipH = function (bFlipH) {
+      var prSet = this.getPrSet();
+      prSet && prSet.setCustFlipHor(bFlipH);
+    }
+
+    Point.prototype.changeFlipV = function (bFlipV) {
+      var prSet = this.getPrSet();
+      prSet && prSet.setCustFlipVert(bFlipV);
+    }
+
     Point.prototype.resetUniFill = function () {
       this.spPr && this.spPr.setFill(null);
     }
@@ -1842,12 +1852,19 @@
       return this.prSet && this.prSet.presStyleLbl;
     };
 
+    Point.prototype.getCustAng = function () {
+      var prSet = this.getPrSet();
+      if (prSet) {
+        return prSet.getCustAng();
+      }
+    };
+
 
 
     changesFactory[AscDFH.historyitem_PrSetCoherent3DOff] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCsCatId] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetCsTypeId] = CChangeString;
-    changesFactory[AscDFH.historyitem_PrSetCustAng] = CChangeLong;
+    changesFactory[AscDFH.historyitem_PrSetCustAng] = CChangeDouble2;
     changesFactory[AscDFH.historyitem_PrSetCustFlipHor] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCustFlipVert] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCustLinFactNeighborX] = CChangeDouble2;
@@ -2019,7 +2036,7 @@
     }
 
     PrSet.prototype.setCustAng = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustAng, this.getCustAng(), pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustAng, this.getCustAng(), pr));
       this.custAng = pr;
     }
 
@@ -2315,7 +2332,7 @@
       pWriter._WriteBool2(1, this.coherent3DOff);
       pWriter._WriteString2(2, this.csCatId);
       pWriter._WriteString2(3, this.csTypeId);
-      pWriter._WriteInt2(4, this.custAng ? this.custAng / AscFormat.cToRad : null);
+      pWriter._WriteInt2(4, this.custAng ? (this.custAng / AscFormat.cToRad + 0.5) >> 0 : null);
       pWriter._WriteBool2(5, this.custFlipHor);
       pWriter._WriteBool2(6, this.custFlipVert);
       pWriter._WriteInt2(7, this.custLinFactNeighborX ? this.custLinFactNeighborX * 100000 : null);

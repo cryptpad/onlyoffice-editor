@@ -7153,6 +7153,7 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
             if (oParagraph) {
                 if (oParagraph.Parent && oParagraph.Parent.Parent && oParagraph.Parent.Parent.parent) {
                     var oObjectTo = oParagraph.Parent.Parent.parent;
+                    var initialObjectTo = oObjectTo;
                     while (oObjectTo.group) {
                         oObjectTo = oObjectTo.group;
                     }
@@ -7176,14 +7177,16 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
 
                             NearPos.Paragraph.Check_NearestPos(NearPos);
                             if (!bCopy) {
-                                var bNoCheck = oObjectFrom.getObjectType() !== AscDFH.historyitem_type_SmartArt;
-                                oController.removeCallback(-1, undefined, undefined, undefined, undefined, bNoCheck);
+                                oController.removeCallback(-1, undefined, undefined, undefined, undefined, true);
                             }
                             oController.resetSelection(false, false);
                             oSelectedContent = oSelectedContent.copy();
                             oParagraph.Parent.InsertContent(oSelectedContent.DocContent, NearPos);
                             oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
                             NearPos.Paragraph.Document_SetThisElementCurrent(false);
+                            if (initialObjectTo.isObjectInSmartArt()) {
+                                initialObjectTo.checkExtentsByDocContent();
+                            }
                             this.Recalculate();
                             this.Document_UpdateSelectionState();
                             this.Document_UpdateUndoRedoState();

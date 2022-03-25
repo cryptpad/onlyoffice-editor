@@ -397,7 +397,13 @@ CSearchTextItemChar.prototype.ToRunElement = function(isMathRun)
 	}
 	else
 	{
-		if (AscCommon.IsSpace(this.Value))
+		if (9 === this.Value) // \t
+			return new ParaTab();
+		else if (10 === this.Value) // \n
+			return new ParaNewLine(break_Line);
+		else if (13 === this.Value) // \r
+			return null;
+		else if (AscCommon.IsSpace(this.Value)) // space
 			return new ParaSpace(this.Value);
 		else
 			return new ParaText(this.Value);
@@ -2062,3 +2068,7 @@ CSearchPatternEngine.prototype.GetErrorForReplaceString = function(sString)
 
 	return null;
 };
+
+//--------------------------------------------------------export----------------------------------------------------
+window['AscCommonWord'] = window['AscCommonWord'] || {};
+window['AscCommonWord'].CSearchPatternEngine = CSearchPatternEngine;

@@ -2971,6 +2971,18 @@ ParaDrawing.prototype.copy = function()
 	c.setEffectExtent(EE.L, EE.T, EE.R, EE.B);
 	return c;
 };
+ParaDrawing.prototype.SetDrawingPrFromDrawing = function(oAnotherDrawing)
+{
+	this.Set_DrawingType(oAnotherDrawing.DrawingType);
+	var d = oAnotherDrawing.Distance;
+	this.Set_PositionH(oAnotherDrawing.PositionH.RelativeFrom, oAnotherDrawing.PositionH.Align, oAnotherDrawing.PositionH.Value, oAnotherDrawing.PositionH.Percent);
+	this.Set_PositionV(oAnotherDrawing.PositionV.RelativeFrom, oAnotherDrawing.PositionV.Align, oAnotherDrawing.PositionV.Value, oAnotherDrawing.PositionV.Percent);
+	this.Set_Distance(d.L, d.T, d.R, d.B);
+	this.Set_AllowOverlap(oAnotherDrawing.AllowOverlap);
+	this.Set_WrappingType(oAnotherDrawing.wrappingType);
+	this.Set_BehindDoc(oAnotherDrawing.behindDoc);
+	this.docPr.setFromOther(oAnotherDrawing.docPr);
+};
 ParaDrawing.prototype.OnContentReDraw = function()
 {
 	if (this.Parent && this.Parent.Parent)

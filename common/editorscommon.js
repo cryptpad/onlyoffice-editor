@@ -8943,29 +8943,29 @@
 		return result;
 	}
 
-	function private_IsAbbreviation(sWord) {
-		if (sWord.toUpperCase() === sWord) {
-			// Корейские символы считаются символами в верхнем регистре, но при этом мы не должны считать их аббревиатурой
-			for (var nPos = 0, nLen = sWord.length; nPos < nLen; ++nPos) {
-				var nCharCode = sWord.charCodeAt(nPos);
-				if ((0xAC00 <= nCharCode && nCharCode <= 0xD7A3)
-					|| (0x1100 <= nCharCode && nCharCode <= 0x11FF)
-					|| (0x3130 <= nCharCode && nCharCode <= 0x318F)
-					|| (0xA960 <= nCharCode && nCharCode <= 0xA97F)
-					|| (0xD7B0 <= nCharCode && nCharCode <= 0xD7FF)
-					|| (0x4E00 <= nCharCode && nCharCode <= 0x9FFF)
-					|| (0x3400 <= nCharCode && nCharCode <= 0x4DBF)
-					|| (0x20000 <= nCharCode && nCharCode <= 0x2A6DF)
-			        || (0x2A700 <= nCharCode && nCharCode <= 0x2B73F)
-			        || (0x2B740 <= nCharCode && nCharCode <= 0x2B81F)
-			        || (0x2B820 <= nCharCode && nCharCode <= 0x2CEAF)
-					|| (0xF900 <= nCharCode && nCharCode <= 0xFAFF)
-			        || (0x2F800 <= nCharCode && nCharCode <= 0x2FA1F))
+	function IsAbbreviation(sWord)
+	{
+		for (var oIterator = sWord.getUnicodeIterator(); oIterator.check(); oIterator.next())
+		{
+			var nCharCode = oIterator.value();
+			if (IsHangul(nCharCode) || IsCJKIdeographs(nCharCode))
+				return false;
+
+			if (0x73 === nCharCode)
+			{
+				oIterator.next();
+				if (oIterator.check())
 					return false;
+
+				break;
 			}
-			return true;
+
+			let sChar = String.fromCodePoint(nCharCode);
+			if (sChar.toUpperCase() !== sChar)
+				return false;
 		}
-		return false;
+
+		return true;
 	}
 
 	var g_oUserColorById = {}, g_oUserNextColorIndex = 0;
@@ -9336,6 +9336,95 @@
 			|| (0x18800 <= value && value <= 0x18AFF)
 			|| (0xA000 <= value && value <= 0xA48F)
 			|| (0xA490 <= value && value <= 0xA4CF));
+	}
+
+	function IsHangul(nCharCode)
+	{
+		if (nCharCode < 0x1100)
+			return false;
+
+		return (IsHangulSyllables(nCharCode)
+			|| IsHangulCompatibilityJamo(nCharCode)
+			|| IsHangulJamo(nCharCode)
+			|| IsHangulJamoExtendedA(nCharCode)
+			|| IsHangulJamoExtendedB(nCharCode));
+	}
+	function IsCJKIdeographs(nCharCode)
+	{
+		if (nCharCode < 0x3400)
+			return false;
+
+		return (IsCJKUnifiedIdeographs(nCharCode)
+			|| IsCJKUnifiedIdeographsExtensionA(nCharCode)
+			|| IsCJKUnifiedIdeographsExtensionB(nCharCode)
+			|| IsCJKUnifiedIdeographsExtensionC(nCharCode)
+			|| IsCJKUnifiedIdeographsExtensionD(nCharCode)
+			|| IsCJKUnifiedIdeographsExtensionE(nCharCode)
+			|| IsCJKUnifiedIdeographsExtensionF(nCharCode)
+			|| IsCJKUnifiedIdeographsExtensionG(nCharCode)
+			|| IsCJKCompatibilityIdeographs(nCharCode)
+			|| IsCJKCompatibilityIdeographsSupplement(nCharCode));
+	}
+
+	function IsHangulSyllables(nCharCode)
+	{
+		return (0xAC00 <= nCharCode && nCharCode <= 0xD7AF);
+	}
+	function IsHangulJamo(nCharCode)
+	{
+		return (0x1100 <= nCharCode && nCharCode <= 0x11FF);
+	}
+	function IsHangulJamoExtendedA(nCharCode)
+	{
+		return (0xA960 <= nCharCode && nCharCode <= 0xA97F);
+	}
+	function IsHangulJamoExtendedB(nCharCode)
+	{
+		return (0xD7B0 <= nCharCode && nCharCode <= 0xD7FF);
+	}
+	function IsHangulCompatibilityJamo(nCharCode)
+	{
+		return (0x3130 <= nCharCode && nCharCode <= 0x318F);
+	}
+	function IsCJKUnifiedIdeographs(nCharCode)
+	{
+		return (0x4E00 <= nCharCode && nCharCode <= 0x9FFF);
+	}
+	function IsCJKUnifiedIdeographsExtensionA(nCharCode)
+	{
+		return (0x3400 <= nCharCode && nCharCode <= 0x4DBF);
+	}
+	function IsCJKUnifiedIdeographsExtensionB(nCharCode)
+	{
+		return (0x20000 <= nCharCode && nCharCode <= 0x2A6DF);
+	}
+	function IsCJKUnifiedIdeographsExtensionC(nCharCode)
+	{
+		return (0x2A700 <= nCharCode && nCharCode <= 0x2B73F);
+	}
+	function IsCJKUnifiedIdeographsExtensionD(nCharCode)
+	{
+		return (0x2B740 <= nCharCode && nCharCode <= 0x2B81F);
+	}
+	function IsCJKUnifiedIdeographsExtensionE(nCharCode)
+	{
+		return (0x2B820 <= nCharCode && nCharCode <= 0x2CEAF);
+	}
+	function IsCJKUnifiedIdeographsExtensionF(nCharCode)
+	{
+		return (0x2CEB0 <= nCharCode && nCharCode <= 0x2EBEF);
+	}
+	function IsCJKUnifiedIdeographsExtensionG(nCharCode)
+	{
+		return (0x30000 <= nCharCode && nCharCode <= 0x3134F);
+	}
+	function IsCJKCompatibilityIdeographs(nCharCode)
+	{
+		return (0xF900 <= nCharCode && nCharCode <= 0xFAFF);
+	}
+	function IsCJKCompatibilityIdeographsSupplement(nCharCode)
+	{
+		return (0x2F800 <= nCharCode && nCharCode <= 0x2FA1F);
 	}
 
 	var g_oIdCounter = new CIdCounter();
@@ -11918,7 +12007,7 @@
 
 	window["AscCommon"].calculateCanvasSize = calculateCanvasSize;
 
-	window["AscCommon"].private_IsAbbreviation = private_IsAbbreviation;
+	window["AscCommon"].IsAbbreviation = IsAbbreviation;
 
 	window["AscCommon"].getTextDelta = getTextDelta;
 

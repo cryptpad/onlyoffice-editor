@@ -2246,9 +2246,6 @@ CShape.prototype.getTextRect = function () {
         oRect.t = newT;
         oRect.r = newR;
         oRect.b = newB;
-        //if(this.spPr && this.spPr.geometry && this.spPr.geometry.rect) {
-        //   this.spPr.geometry.rect = oRect;
-        //}
         return oRect;
     }
     return this.spPr && this.spPr.geometry && this.spPr.geometry.rect ? this.spPr.geometry.rect : {
@@ -2258,6 +2255,62 @@ CShape.prototype.getTextRect = function () {
         b: this.extY
     };
 };
+
+    CShape.prototype.checkTransformTextMatrixSmartArt = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets) {
+        if (this.txXfrm) {
+            var oRect = this.getTextRect();
+            var oRectShape = new AscFormat.CShape();
+            oRectShape.setBDeleted(false);
+            oRectShape.setSpPr(new AscFormat.CSpPr());
+            oRectShape.spPr.setParent(oRectShape);
+            oRectShape.spPr.setXfrm(new AscFormat.CXfrm());
+            oRectShape.spPr.xfrm.setParent(oRectShape.spPr);
+
+            var defaultRot = this.getDefaultRotSA();
+            var deltaRot = AscFormat.normalizeRotate(this.rot - defaultRot);
+            var deltaShape = new AscFormat.CShape();
+            deltaShape.setBDeleted(false);
+            deltaShape.setSpPr(new AscFormat.CSpPr());
+            deltaShape.spPr.setParent(deltaShape);
+            deltaShape.spPr.setXfrm(new AscFormat.CXfrm());
+            deltaShape.spPr.xfrm.setParent(deltaShape.spPr);
+            deltaShape.spPr.xfrm.setOffX(this.spPr.xfrm.offX);
+            deltaShape.spPr.xfrm.setOffY(this.spPr.xfrm.offY);
+            deltaShape.spPr.xfrm.setExtX(this.spPr.xfrm.extX);
+            deltaShape.spPr.xfrm.setExtY(this.spPr.xfrm.extY);
+            if (deltaRot) {
+                deltaShape.spPr.xfrm.setRot(deltaRot);
+            }
+            deltaShape.setGroup(this.group);
+            deltaShape.parent = this.parent;
+            // deltaShape.changeFlipH(this.spPr.xfrm.flipH); TODO: repair this
+            // deltaShape.changeFlipV(this.spPr.xfrm.flipV);
+            deltaShape.recalculateLocalTransform(deltaShape.localTransform);
+
+            var extX = (oRect.r - oRect.l) / 2;
+            var extY = (oRect.b - oRect.t) / 2;
+            var deltaTranslateX = 0, deltaTranslateY = 0;
+            if (deltaShape.parent && deltaShape.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet) {
+                deltaTranslateX = deltaShape.group.group.x;
+                deltaTranslateY = deltaShape.group.group.y;
+            }
+            var xc = deltaShape.localTransform.TransformPointX(oRect.l + extX, oRect.t + extY) - deltaTranslateX;
+            var yc = deltaShape.localTransform.TransformPointY(oRect.l + extX, oRect.t + extY) - deltaTranslateY;
+
+            oRectShape.spPr.xfrm.setOffX(xc - extX);
+            oRectShape.spPr.xfrm.setOffY(yc - extY);
+            oRectShape.spPr.xfrm.setExtX(this.txXfrm.extX);
+            oRectShape.spPr.xfrm.setExtY(this.txXfrm.extY);
+            // oRectShape.changeFlipH(this.spPr.xfrm.flipH); TODO: repair this
+            // oRectShape.changeFlipV(this.spPr.xfrm.flipV);
+            oRectShape.spPr.xfrm.setRot(AscFormat.normalizeRotate(this.txXfrm.rot + this.spPr.xfrm.rot));
+            oRectShape.setGroup(this.group);
+            oRectShape.parent = this.parent;
+            oRectShape.recalculateLocalTransform(oRectShape.localTransform);
+            return oRectShape.checkTransformTextMatrix(oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets);
+        }
+    }
+
 CShape.prototype.getFormRelRect = function (isUsePaddings) {
     var oSpTransform = this.transform;
     var oInvTextTransform = this.invertTransformText;
@@ -2309,7 +2362,7 @@ CShape.prototype.getFormRelRect = function (isUsePaddings) {
     };
 };
 
-CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets, optRect) {
+CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets) {
     oMatrix.Reset();
     var _shape_transform = this.localTransform;
     var _content_height = oContent.GetSummaryHeight();
@@ -2320,26 +2373,9 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var r_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54);
     var b_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27);
 
-
-
-    var oRect = optRect || this.getTextRect();
+    var oRect = this.getTextRect();
     if (this.txXfrm) {
-        var oRectShape = new AscFormat.CShape();
-        oRectShape.setBDeleted(false);
-        oRectShape.setSpPr(new AscFormat.CSpPr());
-        oRectShape.spPr.setParent(oRectShape);
-        oRectShape.spPr.setXfrm(new AscFormat.CXfrm());
-        oRectShape.spPr.xfrm.setParent(oRectShape.spPr);
-        oRectShape.spPr.xfrm.setOffX(this.spPr.xfrm.offX);
-        oRectShape.spPr.xfrm.setOffY(this.spPr.xfrm.offY);
-        oRectShape.spPr.xfrm.setExtX(this.spPr.xfrm.extX);
-        oRectShape.spPr.xfrm.setExtY(this.spPr.xfrm.extY);
-        oRectShape.spPr.xfrm.setRot(AscFormat.normalizeRotate(this.txXfrm.rot + this.spPr.xfrm.rot));
-        oRectShape.setGroup(this.group);
-        oRectShape.parent = this.parent;
-        oRectShape.recalculateLocalTransform(oRectShape.localTransform);
-        var rotateRect = oRect;
-        return oRectShape.checkTransformTextMatrix(oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets, rotateRect);
+        return this.checkTransformTextMatrixSmartArt(oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets);
     }
 
     if(this.bWordShape)
@@ -2629,7 +2665,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             }
         }
 
-        var rect =optRect || this.getTextRect && this.getTextRect();
+        var rect =this.getTextRect && this.getTextRect();
         if (rect) {
             var clipW = rect.r - rect.l + Diff;
             if(clipW <= 0)
@@ -4968,26 +5004,33 @@ CShape.prototype.hitInTextRectWord = function(x, y)
         return false;
     }
     var content = this.getDocContent && this.getDocContent();
-    if (content && this.invertTransform)
-    {
+    if (content) {
         var w, h, x_, y_;
-        var rect = this.getTextRect && this.getTextRect();
-        if(rect && AscFormat.isRealNumber(rect.l) && AscFormat.isRealNumber(rect.t)
-            && AscFormat.isRealNumber(rect.r) && AscFormat.isRealNumber(rect.r))
-        {
-            x_ = rect.l;
-            y_ = rect.t;
-            w = rect.r - rect.l;
-            h = rect.b - rect.t;
-        }
-        else
-        {
+        if (this.isObjectInSmartArt() && this.invertTransformText) {
             x_ = 0;
             y_ = 0;
-            w = this.extX;
-            h = this.extY;
+            w = this.contentWidth;
+            h = this.contentHeight;
+            return AscFormat.HitToRect(x, y, this.invertTransformText, x_, y_, w, h);
+        } else if (this.invertTransform) {
+            var rect = this.getTextRect && this.getTextRect();
+            if(rect && AscFormat.isRealNumber(rect.l) && AscFormat.isRealNumber(rect.t)
+              && AscFormat.isRealNumber(rect.r) && AscFormat.isRealNumber(rect.r))
+            {
+                x_ = rect.l;
+                y_ = rect.t;
+                w = rect.r - rect.l;
+                h = rect.b - rect.t;
+            }
+            else
+            {
+                x_ = 0;
+                y_ = 0;
+                w = this.extX;
+                h = this.extY;
+            }
+            return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
         }
-        return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
     }
     return false;
 };
