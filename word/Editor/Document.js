@@ -2332,6 +2332,7 @@ function CDocumentSettings()
 	this.DoNotExpandShiftReturn           = false;
 	this.BalanceSingleByteDoubleByteWidth = false;
 	this.UlTrailSpace                     = false;
+	this.UseFELayout                      = false;
 }
 
 /**
@@ -16969,6 +16970,10 @@ CDocument.prototype.AddPageCount = function()
 //----------------------------------------------------------------------------------------------------------------------
 // Settings
 //----------------------------------------------------------------------------------------------------------------------
+CDocument.prototype.GetDocumentSettings = function()
+{
+	return this.Settings;
+};
 CDocument.prototype.GetCompatibilityMode = function()
 {
 	return this.Settings.CompatibilityMode;
@@ -17022,7 +17027,7 @@ CDocument.prototype.IsDoNotExpandShiftReturn = function()
 };
 CDocument.prototype.IsBalanceSingleByteDoubleByteWidth = function()
 {
-	return (this.Settings.BalanceSingleByteDoubleByteWidth && this.Styles.IsValidDefaultEastAsiaFont());
+	return (this.Settings.BalanceSingleByteDoubleByteWidth && (this.Styles.IsValidDefaultEastAsiaFont() || this.Settings.UseFELayout));
 };
 CDocument.prototype.IsUnderlineTrailSpace = function()
 {
