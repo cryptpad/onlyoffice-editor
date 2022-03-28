@@ -7353,6 +7353,13 @@ function BinaryPPTYLoader()
                 case 8://smartArt
                 {
                     _smartArt = this.ReadSmartArt();
+                    var tree = _smartArt.createHierarchy();
+                    tree.traverseBF(function (node) {
+                        var nodePoint = node.data.nodePoint;
+                        if (nodePoint) {
+                            nodePoint.setPhldrT('[' + AscCommon.translateManager.getValue('Text') + ']');
+                        }
+                    });
                     break;
                 }
                 case 0xA1:
