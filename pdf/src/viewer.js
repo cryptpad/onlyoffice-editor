@@ -2194,6 +2194,11 @@
 				{
 					this.m_oScrollHorApi.scrollByX(-40);
 				}
+				else if (this.isFocusOnThumbnails)
+				{
+					if (this.currentPage > 0)
+						this.navigateToPage(this.currentPage - 1);
+				}
 				bRetValue = true;
 			}
 			else if ( e.KeyCode == 38 ) // Top Arrow
@@ -2214,6 +2219,11 @@
 				if (!this.isFocusOnThumbnails && this.isVisibleHorScroll)
 				{
 					this.m_oScrollHorApi.scrollByX(40);
+				}
+				else if (this.isFocusOnThumbnails)
+				{
+					if (this.currentPage < (this.getPagesCount() - 1))
+						this.navigateToPage(this.currentPage + 1);
 				}
 				bRetValue = true;
 			}
