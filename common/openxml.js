@@ -750,7 +750,7 @@
 		vbaProject: {dir: "", filename: "vbaProject.bin", contentType: "application/octet-stream", relationType: "http://schemas.microsoft.com/office/2006/relationships/vbaProject"},
 
 
-		customXml: {dir: "customXml", filename: "item[N].xml", /*contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml",*/ relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml"},
+		customXml: {dir: "../customXml", filename: "item[N].xml", /*contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml",*/ relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml"},
 		customXmlProps: {dir: "", filename: "itemProps[N].xml", contentType: "application/vnd.openxmlformats-officedocument.customXmlProperties+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps"},
 
 		//todo

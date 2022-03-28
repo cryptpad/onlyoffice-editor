@@ -99,7 +99,7 @@
 		if (this.customXmls) {
 			for (var i = 0; i < this.customXmls.length; i++) {
 				if (this.customXmls[i].item) {
-					var customXmlPart = filePart.addPart(AscCommon.openXml.Types.customXml);
+					var customXmlPart = wbPart.part.addPart(AscCommon.openXml.Types.customXml);
 					customXmlPart.part.setData(this.customXmls[i].item);
 					memory.Seek(0);
 
