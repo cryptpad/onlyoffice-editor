@@ -99,7 +99,7 @@
 		if (this.customXmls) {
 			for (var i = 0; i < this.customXmls.length; i++) {
 				if (this.customXmls[i].item) {
-					var customXmlPart = wbPart.part.addPart(AscCommon.openXml.Types.customXml);
+					var customXmlPart = filePart.addPart(AscCommon.openXml.Types.customXml);
 					customXmlPart.part.setData(this.customXmls[i].item);
 					memory.Seek(0);
 
@@ -108,7 +108,6 @@
 					memory.Seek(0);
 				}
 			}
-
 		}
 	};
 
@@ -3478,7 +3477,7 @@
 	AscCommonExcel.Cell.prototype.toXml = function (writer, name, ns) {
 		var context = writer.context;
 		var ws = this.ws;
-		var ref = AscCommon.CellBase.prototype.toRefA1(this.nRow, this.nCol);
+		var ref = this.getName();
 		var s = context.stylesForWrite.add(this.xfs) || null;
 		var formulaToWrite = null;
 		if (this.isFormula() && !(context.isCopyPaste && ws.bIgnoreWriteFormulas)) {

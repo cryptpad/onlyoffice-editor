@@ -972,6 +972,7 @@ var g_oCellAddressUtils = new CellAddressUtils();
 		this.col = Math.max(this.col, 0);
 	};
 	CellBase.prototype.toRefA1 = function (row, col) {
+		//TODO функция неверно работает, если кол-во столбцов превышает 26
 		var res = '';
 		do {
 			res += String.fromCharCode(col % 26 + 65);
