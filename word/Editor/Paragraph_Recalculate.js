@@ -2448,7 +2448,15 @@ Paragraph.prototype.private_RecalculateMoveLineToNextPage = function(CurLine, Cu
 Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, PageAbs, ParaPr)
 {
 	if (CurPage <= 0)
-		return true;
+	{
+		let oPrevElement = this.GetPrevDocumentElement();
+		while (oPrevElement && !oPrevElement.IsInline())
+		{
+			oPrevElement = oPrevElement.GetPrevDocumentElement();
+		}
+
+		return (!oPrevElement || oPrevElement.GetAbsolutePage(oPrevElement.GetPagesCount() - 1) >= PageAbs);
+	}
 
 	if (!this.Check_FirstPage(CurPage))
 	{
