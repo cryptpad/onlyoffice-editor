@@ -1867,6 +1867,18 @@
 		return val;
 	}
 
+	function prepareTextFormatFromXml(val) {
+		//TODO обрубаю &quot, чтобы при записи & внутри него не заменился на &apos; (в функции WriteXmlNullableAttributeStringEncode)
+		if (!val) {
+			return val;
+		}
+		val = prepareTextFromXml(val);
+		val = val.replace(/&apos;/g,"'");
+		val = val.replace(/&quot;/g,'"');
+		return val;
+	}
+
+
 	function prepareTextToXml(val) {
 		//x2t пишет &#xA; , но в WriteXmlValueStringEncode & заменяется
 		//val = val.replace(/\n/g, "\&#xA;");
@@ -11499,6 +11511,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 							while (reader.MoveToNextAttribute()) {
 								if ("formatCode" === reader.GetName()) {
 									val.f = reader.GetValueDecodeXml();
+									val.f = prepareTextFormatFromXml(val.f);
 								} else if ("numFmtId" === reader.GetName()) {
 									val.id = reader.GetValueInt();
 								}
@@ -13599,7 +13612,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			if ("formatCode" === reader.GetName()) {
 				val = reader.GetValue();
 				if (undefined !== val) {
-					sFormat = val;
+					sFormat = prepareTextFormatFromXml(val);
 				}
 			} else if ("numFmtId" === reader.GetName()) {
 				val = reader.GetValue();
