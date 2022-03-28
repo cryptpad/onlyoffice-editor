@@ -2974,6 +2974,7 @@ CShape.prototype.isPlaceholderInSmartArt = function () {
             })
         }
     }
+    return false;
 };
 
 CShape.prototype.getSmartArtDefaultTxFill = function () {
@@ -3277,21 +3278,17 @@ CShape.prototype.Get_ParentTextTransform = function()
 };
 
 CShape.prototype.isEmptyPlaceholder = function () {
-    var pointContent = this.getSmartArtPointContent();
-    if ( pointContent && pointContent.length !== 0) {
-        var isPlaceholderInSmartArt = pointContent.every(function (point) {
-            return point.prSet && point.prSet.phldr;
-        })
-        if (isPlaceholderInSmartArt) {
+    if (this.isObjectInSmartArt()) {
+        if (this.isPlaceholderInSmartArt()) {
             if (this.txBody) {
                 if (this.txBody.content) {
                     return this.txBody.content.Is_Empty();
                 }
                 return true;
             }
+        } else if (this.isActiveBlipFillPlaceholder()) {
+            return true;
         }
-    } else if (this.isActiveBlipFillPlaceholder()) {
-        return true;
     }
     if (this.isPlaceholder()) {
         var phldrType = this.getPhType();
@@ -4375,13 +4372,7 @@ CShape.prototype.getSmartArtShapePoint = function () {
         if(this.txBody)
         {
             var pointContent = this.getSmartArtPointContent();
-            var isPlaceholderInSmartArt = false;
-            if ( pointContent && pointContent.length !== 0) {
-                isPlaceholderInSmartArt = pointContent.every(function (point) {
-                    return point && point.prSet && point.prSet.phldr;
-                })
-            }
-            if(this.isPlaceholder() || isPlaceholderInSmartArt)
+            if(this.isPlaceholder() || this.isPlaceholderInSmartArt())
             {
                 if(!this.isEmptyPlaceholder())
                 {
@@ -4546,18 +4537,8 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         {
             oContent.Recalc_AllParagraphs_CompiledPr();
             this.recalcInfo.recalculateContent = true;
-            if (this.isObjectInSmartArt()) {
-                var pointContent = this.getSmartArtPointContent();
-                var isPlaceholderInSmartArt = false;
-                if ( pointContent && pointContent.length !== 0) {
-                    isPlaceholderInSmartArt = pointContent.every(function (point) {
-                        return point && point.prSet && point.prSet.phldr;
-                    })
-                }
-
-                if (isPlaceholderInSmartArt) {
-                    this.recalcInfo.recalculateContent2 = true;
-                }
+            if (this.isPlaceholderInSmartArt()) {
+                this.recalcInfo.recalculateContent2 = true;
             }
             this.recalcInfo.recalculateTransformText = true;
             this.recalculate();
@@ -4872,13 +4853,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     this.recalculateContentWitCompiledPr();
                 }
             }
-            var isPlaceholderInSmartArt = false;
-            if ( pointContent && pointContent.length !== 0) {
-                 isPlaceholderInSmartArt = pointContent.some(function (point) {
-                     return point && point.prSet && point.prSet.phldr;
-                 })
-            }
-            if (isPlaceholderInSmartArt) {
+            if (this.isPlaceholderInSmartArt()) {
                 var isNotEmptyShape = oContent.Content.some(function (paragraph) {
                     return paragraph.Content.some(function (paraRun) {
                         if (paraRun.Content.length > 1 || paraRun.Content.length === 1 && paraRun.Content[0].Value !== undefined) {
