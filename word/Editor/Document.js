@@ -27151,6 +27151,10 @@ CDocument.prototype.TurnOnSpellCheck = function()
 {
 	this.Spelling.TurnOn();
 };
+CDocument.prototype.GetSpellCheckManager = function()
+{
+	return this.Spelling;
+};
 //----------------------------------------------------------------------------------------------------------------------
 CDocument.prototype.SetupBeforeNativePrint = function(layoutOptions, oGraphics)
 {

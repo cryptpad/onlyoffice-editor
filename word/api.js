@@ -6544,6 +6544,25 @@ background-repeat: no-repeat;\
 			oLogicDocument.RestartSpellCheck();
 	};
 
+	asc_docs_api.prototype.asc_setSpellCheckSettings = function(oSettings)
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		let oSpellCheck = oLogicDocument.GetSpellCheckManager();
+		if (oSpellCheck.SetSettings(oSettings))
+			oLogicDocument.RestartSpellCheck();
+	};
+	asc_docs_api.prototype.asc_getSpellCheckSettings = function()
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return new AscCommon.CSpellCheckSettings();
+
+		return oLogicDocument.GetSpellCheckManager().GetSettings();
+	};
+
 	//-----------------------------------------------------------------
 	// Функции для работы с комментариями
 	//-----------------------------------------------------------------
@@ -12764,6 +12783,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_setDefaultLanguage']                    = asc_docs_api.prototype.asc_setDefaultLanguage;
 	asc_docs_api.prototype['asc_getDefaultLanguage']                    = asc_docs_api.prototype.asc_getDefaultLanguage;
 	asc_docs_api.prototype['asc_getKeyboardLanguage']                   = asc_docs_api.prototype.asc_getKeyboardLanguage;
+	asc_docs_api.prototype['asc_setSpellCheckSettings']                 = asc_docs_api.prototype.asc_setSpellCheckSettings;
+	asc_docs_api.prototype['asc_getSpellCheckSettings']                 = asc_docs_api.prototype.asc_getSpellCheckSettings;
 	asc_docs_api.prototype['asc_setSpellCheck']                         = asc_docs_api.prototype.asc_setSpellCheck;
 	asc_docs_api.prototype['asc_showComments']                          = asc_docs_api.prototype.asc_showComments;
 	asc_docs_api.prototype['asc_hideComments']                          = asc_docs_api.prototype.asc_hideComments;

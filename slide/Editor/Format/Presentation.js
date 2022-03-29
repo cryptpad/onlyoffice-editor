@@ -3795,7 +3795,9 @@ CPresentation.prototype.TurnOffSpellCheck = function () {
 CPresentation.prototype.TurnOnSpellCheck = function () {
     this.Spelling.TurnOn();
 };
-
+CPresentation.prototype.GetSpellCheckManager = function() {
+	return this.Spelling;
+};
 
 CPresentation.prototype.Get_DrawingDocument = function () {
     return this.DrawingDocument;

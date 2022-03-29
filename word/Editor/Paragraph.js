@@ -13710,6 +13710,8 @@ Paragraph.prototype.ContinueSpellCheck = function(isForceFullCheck)
 		return true;
 	}
 
+	this.SpellChecker.UpdateSettings(oLogicDocument.GetSpellCheckManager().GetSettings());
+
 	if (!this.private_CollectSpellCheckerElements(isForceFullCheck))
 		return false;
 

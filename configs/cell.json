@@ -34,8 +34,9 @@
 		"common": [
 			"common/api/actionOnTimer.js",
 			"common/api/tableStylesPreviewGenerator.js",
+			"common/api/spellCheckSettings.js",
 
-			"common/downloaderfiles.js",
+		  "common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
 
