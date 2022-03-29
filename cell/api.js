@@ -3355,6 +3355,7 @@ var editor;
     file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
     file.data = stream;
     this.isOleEditor = true;
+    this.isFromSheetEditor = oleObj.isFromSheetEditor;
     this.asc_CloseFile();
     this.openDocument(file);
 
@@ -3377,6 +3378,7 @@ var editor;
 
     binaryInfo.binary = cleanBinaryData;
     binaryInfo.base64Image = dataUrl;
+    binaryInfo.isFromSheetEditor =this.isFromSheetEditor;
 
     return binaryInfo;
   }
@@ -3425,10 +3427,8 @@ var editor;
   spreadsheet_api.prototype._addImageUrl = function(urls, obj) {
     var ws = this.wb.getWorksheet();
     if (ws) {
-      if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl)) {
+      if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl || obj.fAfterUploadOleObjectImage)) {
         ws.objectRender.editImageDrawingObject(urls[0], obj);
-      } else if (obj && obj.fAfterUploadOleObjectImage) {
-        obj.fAfterUploadOleObjectImage(urls[0]);
       } else {
         ws.objectRender.addImageDrawingObject(urls, null);
       }

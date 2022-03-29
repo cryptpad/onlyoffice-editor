@@ -2579,6 +2579,9 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 
                         _this.setGraphicObjectProps(imgProps);
                     }
+                    else if (obj && obj.fAfterUploadOleObjectImage) {
+                        obj.fAfterUploadOleObjectImage(_image.src);
+                    }
 
                     _this.showDrawingObjects();
                 }

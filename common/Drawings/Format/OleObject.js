@@ -442,9 +442,13 @@ function (window, undefined) {
         }
     };
 
-    COleObject.prototype.canEditTableOleObject = function() {
-        return !!(this.m_aBinaryData &&
-          (this.m_nOleType === AscCommon.c_oAscOleObjectTypes.spreadsheet || this.m_sApplicationId === spreadsheetApplicationId));
+    COleObject.prototype.canEditTableOleObject = function(bReturnOle) {
+        var canEdit = this.m_aBinaryData &&
+          (this.m_nOleType === AscCommon.c_oAscOleObjectTypes.spreadsheet || this.m_sApplicationId === spreadsheetApplicationId);
+        if (bReturnOle) {
+            return canEdit ? this : null;
+        }
+        return !!canEdit;
     };
 
     function asc_putBinaryDataToFrameFromTableOleObject(oleObject)
@@ -457,7 +461,8 @@ function (window, undefined) {
                 left: oleObject.x,
                 top: oleObject.y,
                 width: oleObject.extX,
-                height: oleObject.extY
+                height: oleObject.extY,
+                isFromSheetEditor: !!oleObject.worksheet,
             };
         }
         return {

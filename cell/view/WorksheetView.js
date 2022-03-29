@@ -3893,7 +3893,7 @@
 		var y1 = this._getRowTop(range.r1) - offsetY;
 		var x2 = Math.min(this._getColLeft(range.c2 + 1) - offsetX, widthCtx);
 		var y2 = Math.min(this._getRowTop(range.r2 + 1) - offsetY, heightCtx);
-    if (!ctx.isPreviewOleObjectContext) {
+    if (!ctx.isNotDrawBackground) {
       ctx.setFillStyle(this.settings.cells.defaultState.background)
         .fillRect(x1, y1, x2 - x1, y2 - y1);
     }
