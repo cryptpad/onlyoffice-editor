@@ -2722,7 +2722,9 @@
 			return null;
 		}
 		var ws = this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex());
-		return new ApiComment(ws.cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false), ws);
+		var comment = ws.cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false);
+		var res = comment ? new ApiComment(comment, ws) : null;
+		return res;
 	};
 	Object.defineProperty(ApiRange.prototype, "Comments", {
 		get: function () {
