@@ -204,6 +204,10 @@ CDocumentContentElementBase.prototype.IsEmptyPage = function(nCurPage)
 {
 	return false;
 };
+CDocumentContentElementBase.prototype.IsHaveWordWrapAtEndLine = function()
+{
+	return false;
+};
 CDocumentContentElementBase.prototype.Reset_RecalculateCache = function()
 {
 };

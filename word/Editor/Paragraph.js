@@ -11398,6 +11398,12 @@ Paragraph.prototype.IsContentOnFirstPage = function()
 
 	return true;
 };
+Paragraph.prototype.IsHaveWordWrapAtEndLine = function ()
+{
+	return this.CheckRunContent(function (paraRun) {
+		return paraRun.IsHaveWordWrapAtEndLine();
+	});
+};
 Paragraph.prototype.Get_CurrentPage_Absolute = function()
 {
 	// Обновляем позицию

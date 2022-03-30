@@ -1519,6 +1519,18 @@ CShape.prototype.getDocContent = function () {
     return null;
 };
 
+CShape.prototype.getCurrentDocContentInSmartArt = function () {
+    var content;
+    if (this.txBody) {
+        if (this.isPlaceholderInSmartArt()) {
+            content = this.txBody.content2;
+        } else {
+            content = this.txBody.content;
+        }
+    }
+    return content;
+}
+
 CShape.prototype.getBodyPr = function () {
     return AscFormat.ExecuteNoHistory(function () {
 
@@ -4555,45 +4567,50 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             });
             this.recalculateContentWitCompiledPr();
         }
+    };
+
+    CShape.prototype.getFCompareOfBoundsTextInSmartArt = function () {
+        var _this = this;
+        var vert = this.txBody && this.txBody.bodyPr.vert;
+        var fCheckHeight;
+        if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert) {
+            fCheckHeight = function () {
+                return _this.contentHeight > _this.clipRect.w;
+            }
+        } else {
+            fCheckHeight = function () {
+                return _this.contentHeight > _this.clipRect.h;
+            }
+        }
+        return fCheckHeight;
     }
 
     CShape.prototype.findFitFontSizeForSmartArt = function () {
-        var hInPt = this.extY * AscFormat.ptToMm;
-        var maxFontSize = hInPt > 65 ? 65 : Math.floor(hInPt);
         if (this.txBody) {
-            var pointContent = this.isObjectInSmartArt() && this.getSmartArtPointContent();
-            var isPlaceholderInSmartArt = false;
-            if ( pointContent && pointContent.length !== 0) {
-                isPlaceholderInSmartArt = pointContent.every(function (point) {
-                    return point && point.prSet && point.prSet.phldr;
-                })
-            }
-            var content;
-            if (isPlaceholderInSmartArt) {
-                content = this.txBody.content2;
-            } else {
-                content = this.txBody.content;
-            }
-            if (content) {
-                var findParagraphsWithLines = function (cont) {
-                    return cont.Content.reduce(function (prev, next) {
-                        return prev.Lines.length < next.Lines.length ? next : prev;
-                    }, cont.Content[0]);
-                };
+            var content = this.getCurrentDocContentInSmartArt();
+            var fCheckHeight = this.getFCompareOfBoundsTextInSmartArt();
+
+            var maxFontSize = 65;
+            if (content && fCheckHeight) {
+                var hInPt = this.txXfrm.extY *  AscCommonWord.g_dKoef_mm_to_pt / content.Content.length;
+                maxFontSize = hInPt > maxFontSize ? maxFontSize : Math.floor(hInPt);
                 var scalesForSmartArt = Array((maxFontSize - 4) > 0 ? maxFontSize - 4 : 1).fill(0).map(function (e, ind) {
                     return ind + 5;
                 });
                 var a = 0;
                 var b = scalesForSmartArt.length - 1;
                 var averageAmount = Math.floor((a + b) / 2);
+
+                //var initialFontSize = paragraphWithWrapWords.Get_FirstTextPr2().Get_FontSize();
                 this.setFontSizeInSmartArt(scalesForSmartArt[b]);
-                var paragraphWithMaxLines = findParagraphsWithLines(content);
-                if (paragraphWithMaxLines.Lines.length > 1) {
+                var paragraphWithWrapWords = content.GetFirstParagraphWithBreakWords();
+                if (!paragraphWithWrapWords) {
+                    paragraphWithWrapWords = content.GetParagraphWithMaxLines();
+                }
+                if (paragraphWithWrapWords.IsHaveWordWrapAtEndLine() || fCheckHeight()) {
                     while (true) {
                         this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                        paragraphWithMaxLines = findParagraphsWithLines(content);
-
-                        if (paragraphWithMaxLines.Lines.length > 1) {
+                        if (paragraphWithWrapWords.IsHaveWordWrapAtEndLine() || fCheckHeight()) {
                             b = averageAmount;
                             averageAmount = Math.floor((a + b) / 2);
                         } else {
@@ -4601,6 +4618,14 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                             averageAmount = Math.floor((a + b) / 2);
                         }
                         if (a === averageAmount || b === averageAmount) {
+                            if (averageAmount !== 0) {
+                                paragraphWithWrapWords = content.GetFirstParagraphWithBreakWords();
+                                if (paragraphWithWrapWords) {
+                                    a = 0;
+                                    averageAmount = Math.floor((a + b) / 2);
+                                    continue;
+                                }
+                            }
                             break;
                         }
                     }
@@ -4612,32 +4637,26 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             }
         }
         return maxFontSize;
-    }
+    };
 
     CShape.prototype.getShapesForFitText = function () {
         return this.isObjectInSmartArt() ? this.group.group.getShapesForFitText(this) : [];
-    }
+    };
 
     CShape.prototype.setTruthFontSizeInSmartArt = function () {
         var shapes = this.getShapesForFitText();
         var maxFontSize = 65;
-        var arrOfFonts = [];
-        shapes.forEach(function (shape) {
-                var point = shape.getPoint();
-                var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-                var isNotPlaceholder = isFitText && !point.prSet.phldr;
-                if (isNotPlaceholder) {
-                    arrOfFonts.push(shape.findFitFontSizeForSmartArt());
-                }
+        var arrOfFonts = shapes.reduce(function (arr, shape) {
+            var point = shape.getPoint();
+            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+            var isNotPlaceholder = isFitText && !point.prSet.phldr;
+            if (isNotPlaceholder) {
+                arr.push(shape.findFitFontSizeForSmartArt());
             }
-        )
-        var minFont = arrOfFonts.reduce(function (prev, next) {
-            if (prev > next) {
-                return next;
-            }
-            return prev;
-        }, arrOfFonts[0]);
-        minFont = minFont || maxFontSize;
+            return arr;
+        }, [maxFontSize]);
+
+        var minFont = Math.min.apply(Math, arrOfFonts);
         shapes.forEach(function (shape) {
             var point = shape.getPoint();
             var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
@@ -4651,7 +4670,7 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                 shape.setFontSizeInSmartArt(minFont);
             }
         });
-    }
+    };
 
 CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
 {
