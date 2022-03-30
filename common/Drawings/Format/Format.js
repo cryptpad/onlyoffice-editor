@@ -97,11 +97,15 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     };
     CBaseObject.prototype.Refresh_RecalcData = function (oChange) {
     };
-
-    function InitClass(fClass, fBase, nType) {
+    
+    function InitClassWithoutType(fClass, fBase) {
         fClass.prototype = Object.create(fBase.prototype);
         fClass.prototype.superclass = fBase;
         fClass.prototype.constructor = fClass;
+    }
+
+    function InitClass(fClass, fBase, nType) {
+        InitClassWithoutType(fClass, fBase);
         fClass.prototype.classType = nType;
     }
 
@@ -13849,6 +13853,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
         window['AscFormat'].CreateNoneBullet = CreateNoneBullet;
         window['AscFormat'].ChartBuilderTypeToInternal = ChartBuilderTypeToInternal;
         window['AscFormat'].InitClass = InitClass;
+        window['AscFormat'].InitClassWithoutType = InitClassWithoutType;
         window['AscFormat'].CBaseObject           = CBaseObject;
         window['AscFormat'].CBaseFormatObject = CBaseFormatObject;
 
