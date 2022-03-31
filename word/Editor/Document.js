@@ -6417,32 +6417,6 @@ CDocument.prototype.EditChart = function(Chart)
 {
 	this.Controller.EditChart(Chart);
 };
-CDocument.prototype.EditTableOleObject = function(oleInfo)
-{
-  var _this = this;
-  var api = this.Api;
-  if (oleInfo) {
-    if (!oleInfo.imageUrl) {
-      var base64Image = oleInfo.base64Image;
-      var fAfterUploadOleObjectImage = function (url) {
-        oleInfo.imageUrl = url;
-        _this.EditTableOleObject(oleInfo);
-      }
-      var obj = {
-        fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
-      };
-      AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
-        api._uploadCallback(nError, files, obj);
-      });
-      return;
-    }
-  }
-
-  this.StartAction(AscDFH.historydescription_Document_EditOleObject)
-  this.Controller.EditTableOleObject(oleInfo);
-  this.FinalizeAction();
-
-};
 CDocument.prototype.GetChartObject = function(type)
 {
     var W = null, H = null;

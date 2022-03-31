@@ -3347,7 +3347,7 @@ var editor;
    * @param {{}} [oleObj] info from oleObject
    * @param {function} [fResizeCallback] callback where first argument is sizes of loaded editor without borders
    */
-  spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj, fResizeCallback) {
+  spreadsheet_api.prototype.asc_addTableOleObjectInOleEditor = function(oleObj, fResizeCallback) {
     oleObj = oleObj || {binary: AscCommon.getEmpty()};
     var stream = oleObj && oleObj.binary;
     var _this = this;
@@ -3355,6 +3355,7 @@ var editor;
     file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
     file.data = stream;
     this.isOleEditor = true;
+    this.isFromSheetEditor = oleObj.isFromSheetEditor;
     this.asc_CloseFile();
     this.openDocument(file);
 
@@ -3377,6 +3378,7 @@ var editor;
 
     binaryInfo.binary = cleanBinaryData;
     binaryInfo.base64Image = dataUrl;
+    binaryInfo.isFromSheetEditor =this.isFromSheetEditor;
 
     return binaryInfo;
   }
@@ -3425,10 +3427,8 @@ var editor;
   spreadsheet_api.prototype._addImageUrl = function(urls, obj) {
     var ws = this.wb.getWorksheet();
     if (ws) {
-      if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl)) {
+      if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl || obj.fAfterUploadOleObjectImage)) {
         ws.objectRender.editImageDrawingObject(urls[0], obj);
-      } else if (obj && obj.fAfterUploadOleObjectImage) {
-        obj.fAfterUploadOleObjectImage(urls[0]);
       } else {
         ws.objectRender.addImageDrawingObject(urls, null);
       }
@@ -3711,6 +3711,23 @@ var editor;
   spreadsheet_api.prototype.asc_endAddShape = function() {
     this.isStartAddShape = false;
     this.handlers.trigger("asc_onEndAddShape");
+  };
+
+  spreadsheet_api.prototype.asc_doubleClickOnTableOleObject = function (obj) {
+    this.isChartEditor = true;	// Для совместного редактирования
+    this.asc_onOpenChartFrame();
+    // console.log(editor.WordControl)
+    // if(!window['IS_NATIVE_EDITOR']) {
+    //   this.WordControl.onMouseUpMainSimple();
+    // }
+    if(this.handlers.hasTrigger("asc_doubleClickOnTableOleObject"))
+    {
+      this.sendEvent("asc_doubleClickOnTableOleObject", obj);
+    }
+    else
+    {
+      this.sendEvent("asc_doubleClickOnChart", obj); // TODO: change event type
+    }
   };
 
     spreadsheet_api.prototype.asc_canEditGeometry = function () {
@@ -4923,7 +4940,12 @@ var editor;
      return this.wbModel && this.wbModel.theme;
   };
 
-	spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
+  spreadsheet_api.prototype.getGraphicController = function () {
+      var ws = this.wb.getWorksheet();
+      return ws && ws.objectRender && ws.objectRender.controller;
+  };
+
+    spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
 		if (this.wbModel) {
 			for (var i = 0; i < this.wbModel.aWorksheets.length; ++i) {
 				var sheet = this.wbModel.aWorksheets[i];

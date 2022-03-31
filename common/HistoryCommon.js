@@ -695,9 +695,6 @@
 			case AscDFH.historydescription_Presentation_EditChart                      :
 				sString = "Presentation_EditChart";
 				break;
-			case AscDFH.historydescription_Presentation_EditTableOleObjectFromBinary                      :
-				sString = "Presentation_EditChart";
-				break;
 			case AscDFH.historydescription_Presentation_ParagraphAdd                   :
 				sString = "Presentation_ParagraphAdd";
 				break;
@@ -4274,7 +4271,6 @@
 	window['AscDFH'].historydescription_Document_ConvertMathDisplayMode             = 0x0190;
 	window['AscDFH'].historydescription_Document_RemoveHdrFtr                       = 0x0191;
 	window['AscDFH'].historydescription_Document_AddParagraphToTOC                  = 0x0192;
-	window['AscDFH'].historydescription_Presentation_EditTableOleObjectFromBinary   = 0x0193;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

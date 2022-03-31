@@ -7382,6 +7382,11 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.theme;
 	};
 
+	asc_docs_api.prototype.getGraphicController = function () {
+		var document = this.private_GetLogicDocument();
+		return document && document.DrawingObjects;
+	};
+
 	asc_docs_api.prototype.ChangeColorScheme            = function(sSchemeName)
 	{
 		if (null == this.WordControl.m_oLogicDocument)
@@ -8649,30 +8654,6 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_EditChart);
 				this.WordControl.m_oLogicDocument.EditChart(chartBinary);
 				this.WordControl.m_oLogicDocument.FinalizeAction();
-			}
-		}
-	};
-
-	asc_docs_api.prototype.asc_editTableOleObject = function(oleInfo)
-	{
-/*		this.asc_addTableOleObject(oleInfo); todo: delete
-		return*/
-		if (AscFormat.isObject(oleInfo))
-		{
-			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
-			{
-				this.WordControl.m_oLogicDocument.EditTableOleObject(oleInfo);
-			}
-		}
-	};
-
-	asc_docs_api.prototype.asc_addTableOleObject = function(oleInfo)
-	{
-		if (AscFormat.isObject(oleInfo))
-		{
-			if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
-			{
-				this.addTableOleObject(oleInfo);
 			}
 		}
 	};
@@ -12897,7 +12878,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_doubleClickOnChart']                    = asc_docs_api.prototype.asc_doubleClickOnChart;
 	asc_docs_api.prototype['asc_onCloseChartFrame']                     = asc_docs_api.prototype.asc_onCloseChartFrame;
 	asc_docs_api.prototype['asc_editChartDrawingObject']                = asc_docs_api.prototype.asc_editChartDrawingObject;
-	asc_docs_api.prototype['asc_editTableOleObject']                    = asc_docs_api.prototype.asc_editTableOleObject;
 	asc_docs_api.prototype['asc_getChartPreviews']                      = asc_docs_api.prototype.asc_getChartPreviews;
 	asc_docs_api.prototype['asc_getTextArtPreviews']                    = asc_docs_api.prototype.asc_getTextArtPreviews;
 	asc_docs_api.prototype['sync_closeOleEditor']                       = asc_docs_api.prototype.sync_closeOleEditor;

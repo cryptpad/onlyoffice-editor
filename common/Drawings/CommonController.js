@@ -6283,6 +6283,17 @@ DrawingObjectsController.prototype =
         return false;
     },
 
+    canEditTableOleObject: function(bReturnOle)
+    {
+        var aSelectedObjects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+        if(aSelectedObjects.length === 1) {
+            if(aSelectedObjects[0].canEditTableOleObject) {
+                return aSelectedObjects[0].canEditTableOleObject(bReturnOle);
+            }
+        }
+        return bReturnOle ? null : false;
+    },
+
     startEditGeometry: function()
     {
         var selectedObject = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects[0] :

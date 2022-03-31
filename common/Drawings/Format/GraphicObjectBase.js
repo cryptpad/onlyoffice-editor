@@ -895,6 +895,9 @@
             this.getNoEditPoints() !== true &&
             !!(this.spPr && this.spPr.geometry);
     };
+    CGraphicObjectBase.prototype.canEditTableOleObject = function(bReturnOle){
+        return bReturnOle ? null : false;
+    };
     CGraphicObjectBase.prototype.canRotate = function() {
         if(!this.canEdit()) {
             return false;

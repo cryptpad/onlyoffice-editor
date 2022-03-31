@@ -3188,6 +3188,7 @@
     previewOleObjectContext.changeZoom(ws.getZoom());
     previewOleObjectContext.DocumentRenderer = AscCommonExcel.getGraphics(previewOleObjectContext);
     previewOleObjectContext.isPreviewOleObjectContext = true;
+		previewOleObjectContext.isNotDrawBackground = !this.Api.isFromSheetEditor;
     ws.drawForPrint(previewOleObjectContext, page, 0, 1);
     return previewOleObjectContext;
   }
