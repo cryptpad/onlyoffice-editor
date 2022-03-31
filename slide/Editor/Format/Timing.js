@@ -1269,6 +1269,17 @@
         return false;
     };
     CTimeNodeBase.prototype.doesShowObject = function() {
+        var oParentNode = this.getParentTimeNode();
+        if(oParentNode) {
+            var oAttrObject = oParentNode.getAttributesObject();
+            if(oAttrObject) {
+                if(AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass ||
+                    AscFormat.PRESET_CLASS_PATH === oAttrObject.presetClass||
+                    AscFormat.PRESET_CLASS_EMPH === oAttrObject.presetClass) {
+                    return true;
+                }
+            }
+        }
         return false;
     };
     CTimeNodeBase.prototype.isAncestor = function(oNode) {
