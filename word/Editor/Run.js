@@ -5483,24 +5483,6 @@ ParaRun.prototype.IsEmptyRange = function(_CurLine, _CurRange)
     return false;
 };
 
-ParaRun.prototype.IsHaveWordWrapAtEndLine = function () {
-	var amountOfLines = this.Lines[0];
-	for (var i = 1; i < amountOfLines; i += 1) {
-		var indexOfStartLine = this.Lines[1 + i];
-
-		var endPosOfLine = this.Lines[1 + amountOfLines + indexOfStartLine] - 1;
-		if (endPosOfLine === -1) {
-			continue;
-		}
-		var item = this.Content[endPosOfLine];
-		var Type = item.Get_Type();
-		if (!(para_Space === Type || para_Tab === Type || ( para_Text === Type && true === item.IsNBSP()))) {
-			return true;
-		}
-	}
-	return false;
-};
-
 ParaRun.prototype.Check_Range_OnlyMath = function(Checker, _CurRange, _CurLine)
 {
     var CurLine  = _CurLine - this.StartLine;
