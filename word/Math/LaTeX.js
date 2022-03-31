@@ -2961,7 +2961,7 @@ EquationProcessing.prototype.AddUnderOverBrace = function (FormArgument, strAtom
 //========================================================================//
 //==========================LaTeX_Lexer===================================//
 //========================================================================//
-function CLaTeXParser(props, str) {
+function CLaTeXParser(str, props) {
 	this.str = str;
 	this.intIndexArray = -1;
 	this.arrAtoms = [];

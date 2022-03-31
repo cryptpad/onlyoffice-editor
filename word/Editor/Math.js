@@ -1740,7 +1740,7 @@ ParaMath.prototype.GetText = function(isLaTeX)
 {
     var res = "";
     if (this.Root && this.Root.GetTextContent) {
-        var textContent = this.Root.GetTextContent(isLaTeX);
+        var textContent = this.Root.GetTextContent(false, isLaTeX);
         if (textContent && textContent.str) {
             res = textContent.str;
         }
@@ -3630,38 +3630,37 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 ParaMath.prototype.ConvertFromLaTeX = function()
 {
 	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
-	var strLaTeX = this.GetText();
+	var strLaTeX = this.GetText(true);
 	this.Root.Remove_Content(0, this.Root.Content.length);
-	var oLaTeXParser = new CLaTeXParser(this, strLaTeX);
+	var oLaTeXParser = new CLaTeXParser(strLaTeX, this);
 	this.Root.Correct_Content(true);
 	oLaTeXParser.Start();
-
 };
 ParaMath.prototype.ConvertToLaTeX = function()
 {
+	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
 	var strin = this.GetText(true);
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	console.log('Unicode string:', strin);
+	console.log('LaTeX string:', strin);
 	this.Root.Add_Text(strin, this.Paragraph);
-	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
+	
 };
 ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
+	// TODO: Функция конвертации UnicodeMath -> MathML
 	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
 	var Unicode = new CUnicodeParser(strUnicode, this);
 	this.Root.Correct_Content(true);
 	Unicode.Start();
-
-	// TODO: Функция конвертации UnicodeMath -> MathML
 };
 ParaMath.prototype.ConvertToUnicodeMath = function()
 {
+	// TODO: Функция конвертации MathML -> UnicodeMath
 	var strin = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
 	console.log('Unicode string:', strin);
 	this.Root.Add_Text(strin, this.Paragraph);
-	// TODO: Функция конвертации MathML -> UnicodeMath
 };
 ParaMath.prototype.ConvertView = function(isToLinear)
 {
@@ -3672,15 +3671,14 @@ ParaMath.prototype.ConvertView = function(isToLinear)
 	if (isToLinear)
 	{
 		if (Asc.c_oAscMathInputType.Unicode === nInputType)
-			//this.ConvertFromLaTeX();
-			this.ConvertFromUnicodeMath();
+			this.ConvertToUnicodeMath();
 		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
-			this.ConvertFromLaTeX();
+			this.ConvertToLaTeX();
 	}
 	else
 	{
 		if (Asc.c_oAscMathInputType.Unicode === nInputType) {
-			this.ConvertToUnicodeMath();
+			this.ConvertFromUnicodeMath();
 		}
 		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
 			this.ConvertFromLaTeX();

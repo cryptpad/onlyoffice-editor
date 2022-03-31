@@ -9267,11 +9267,10 @@ CMathContent.prototype.GetTextContent = function(bSelectedText, isLaTeX) {
 
 	for (var i = StartPos; i <= EndPos; i++) {
 		if (this.Content[i] !== undefined) {
-			str += this.Content[i].GetTextOfElement(false);
+			str += this.Content[i].GetTextOfElement(isLaTeX);
 		}
 	}
 
-	console.log(str)
 	return {str: str};
 };
 function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {
