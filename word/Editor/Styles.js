@@ -10174,6 +10174,10 @@ CDocumentColor.prototype.SetFromColor = function(oColor)
 	this.Auto = undefined !== oColor.Auto ? oColor.Auto : false;
 };
 
+CDocumentColor.prototype.ConvertToUniColor = function()
+{
+	return AscFormat.CreateUniColorRGB(this.r, this.g, this.b);
+};
 
 function CDocumentShd()
 {

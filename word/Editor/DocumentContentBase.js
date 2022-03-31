@@ -298,6 +298,19 @@ CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLast
 
 	return oEngine.GetRange();
 };
+CDocumentContentBase.prototype.GetParagraphWithMaxLines = function () {
+	if (this.Content.length !== 0) {
+		return this.Content.reduce(function (prev, next) {
+			return prev.Lines.length < next.Lines.length ? next : prev;
+		}, this.Content[0]);
+	}
+};
+CDocumentContentBase.prototype.GetFirstParagraphWithBreakWords = function () {
+	for (var i = 0; i < this.Content.length; i += 1) {
+		if (this.Content[i].IsHaveWordWrapAtEndLine())
+			return this.Content[i];
+	}
+};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
