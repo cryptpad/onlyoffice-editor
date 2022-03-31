@@ -11128,7 +11128,6 @@
         this.checkOnAdd();
     };
     CAnimSandwich.prototype.checkOnAdd = function() {
-        //TODO: sort
     };
     CAnimSandwich.prototype.getDrawing = function() {
         return AscCommon.g_oTableId.Get_ById(this.drawingId);
@@ -11137,6 +11136,51 @@
         if(this.cachedAttributes) {
             return this.cachedAttributes;
         }
+
+        
+        var oEntrEffect = null, oExitEffect = null;
+        for(var nAnim = 0; nAnim < this.animations.length; ++nAnim) {
+            var oAnim = this.animations[nAnim];
+            var oEffect = oAnim.getParentTimeNode();
+            if(oEffect.isAnimEffect()) {
+                var oAttrObject = oEffect.getAttributesObject();
+                if(oAttrObject && AscFormat.PRESET_CLASS_EXIT === oAttrObject.presetClass) {
+                    oExitEffect = oEffect;
+                }
+                if(oAttrObject && AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass) {
+                    oEntrEffect = oEffect;
+                }
+            }
+        }
+        var oEffectToDelete = null;
+        if(oEntrEffect && oExitEffect) {
+            if(oEntrEffect.isAtEnd() && !oExitEffect.isAtEnd()) {
+                oEffectToDelete = oEntrEffect;
+            }
+            if(!oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
+                oEffectToDelete = oExitEffect;
+            }
+            
+            if(oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
+                if(oEntrEffect.startTick < oExitEffect.startTick) {
+                    oEffectToDelete = oEntrEffect;
+                }
+                else {
+                    oEffectToDelete = oExitEffect;
+                }
+            }
+        }
+        if(oEffectToDelete) {
+            for(var nAnim = this.animations.length - 1; nAnim > -1; --nAnim) {
+                var oAnim = this.animations[nAnim];
+                var oEffect = oAnim.getParentTimeNode();
+                if(oEffect === oEffectToDelete) {
+                    this.animations.splice(nAnim, 1);
+                }
+            }
+        }
+
+
         this.animations.sort(function(oAnim1, oAnim2){
             if(AscFormat.isRealNumber(oAnim1.startTick) && AscFormat.isRealNumber(oAnim2.startTick)) {
                 return oAnim1.startTick - oAnim2.startTick;
