@@ -11442,7 +11442,10 @@ Paragraph.prototype.CollectDocumentStatistics = function(Stats)
 };
 Paragraph.prototype.Get_ParentTextTransform = function()
 {
-	return this.Parent.Get_ParentTextTransform();
+	if (this.Parent)
+		return this.Parent.Get_ParentTextTransform();
+
+	return null;
 };
 Paragraph.prototype.Get_ParentTextInvertTransform = function()
 {
