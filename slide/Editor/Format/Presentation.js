@@ -154,10 +154,10 @@ PresentationSelectedContent.prototype.copy = function () {
     AscFormat.fResetConnectorsIds(aDrawingsCopy, oIdMap);
     if (this.DocContent) {
         //TODO: перенести копирование в CSelectedContent;
-        ret.DocContent = new CSelectedContent();
+        ret.DocContent = new AscCommonWord.CSelectedContent();
         aElements = this.DocContent.Elements;
         for (i = 0; i < aElements.length; ++i) {
-            oSelectedElement = new CSelectedElement();
+            oSelectedElement = new AscCommonWord.CSelectedElement();
             oElement = aElements[i];
             oParagraph = aElements[i].Element;
             oSelectedElement.SelectedAll = oElement.SelectedAll;
@@ -8409,7 +8409,7 @@ CPresentation.prototype.GetSelectedContent = function () {
                         if (target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame && !doc_content) {
                             if (target_text_object.graphicObject) {
                                 var GraphicFrame = target_text_object.copy(undefined);
-                                var SelectedContent = new CSelectedContent();
+                                var SelectedContent = new AscCommonWord.CSelectedContent();
                                 target_text_object.graphicObject.GetSelectedContent(SelectedContent);
                                 var Table = SelectedContent.Elements[0].Element;
                                 GraphicFrame.setGraphicObject(Table);
@@ -8419,7 +8419,7 @@ CPresentation.prototype.GetSelectedContent = function () {
                             }
                         } else {
                             if (doc_content) {
-                                var SelectedContent = new CSelectedContent();
+                                var SelectedContent = new AscCommonWord.CSelectedContent();
                                 doc_content.GetSelectedContent(SelectedContent);
                                 ret.DocContent = SelectedContent;
                             }
@@ -8431,7 +8431,7 @@ CPresentation.prototype.GetSelectedContent = function () {
                             var doc_content = selector.selection.chartSelection.selection.title.getDocContent();
                             if (doc_content) {
 
-                                var SelectedContent = new CSelectedContent();
+                                var SelectedContent = new AscCommonWord.CSelectedContent();
                                 doc_content.SetApplyToAll(true);
                                 doc_content.GetSelectedContent(SelectedContent);
                                 doc_content.SetApplyToAll(false);
@@ -8520,7 +8520,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                         if (oTargetTextObject.getObjectType() === AscDFH.historyitem_type_GraphicFrame && !oDocContent) {
                             if (oTargetTextObject.graphicObject) {
                                 oGraphicFrame = oTargetTextObject.copy(undefined);
-                                oSelectedContent = new CSelectedContent();
+                                oSelectedContent = new AscCommonWord.CSelectedContent();
                                 oTargetTextObject.graphicObject.GetSelectedContent(oSelectedContent);
                                 oTable = oSelectedContent.Elements[0].Element;
                                 oGraphicFrame.setGraphicObject(oTable);
@@ -8540,7 +8540,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 if (bNeedSelectAll) {
                                     oDocContent.SetApplyToAll(true);
                                 }
-                                oSelectedContent = new CSelectedContent();
+                                oSelectedContent = new AscCommonWord.CSelectedContent();
                                 oDocContent.GetSelectedContent(oSelectedContent);
                                 oEndFormattingContent.DocContent = oSelectedContent;
                                 for (i = 0; i < oSelectedContent.Elements.length; ++i) {
@@ -8554,7 +8554,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                         this.internalResetElementsFontSize(oElem.Content);
                                     }
                                 }
-                                oSelectedContent = new CSelectedContent();
+                                oSelectedContent = new AscCommonWord.CSelectedContent();
                                 oDocContent.GetSelectedContent(oSelectedContent);
                                 var aContent = [];
                                 for (i = 0; i < oSelectedContent.Elements.length; ++i) {
@@ -8567,7 +8567,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 oSourceFormattingContent.DocContent = oSelectedContent;
 
 
-                                var oSelectedContent2 = new CSelectedContent();
+                                var oSelectedContent2 = new AscCommonWord.CSelectedContent();
                                 oDocContent.GetSelectedContent(oSelectedContent2);
                                 aContent = [];
                                 for (i = 0; i < oSelectedContent2.Elements.length; ++i) {
@@ -9182,7 +9182,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                         return oResult;
                     }, this, []
                 );
-                var oSelectedContent = new CSelectedContent();
+                var oSelectedContent = new AscCommonWord.CSelectedContent();
                 oContent.SelectAll();
                 oContent.GetSelectedContent(oSelectedContent);
                 var PresentSelContent = new PresentationSelectedContent();
@@ -9277,7 +9277,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                 }
             }
         } else if (Content.DocContent) {
-            Content.DocContent.EndCollect(this, false);
+            Content.DocContent.EndCollect(this);
             if (Content.DocContent.Elements.length > 0) {
                 var oController = this.GetCurrentController();
                 var target_doc_content = oController.getTargetDocContent(true), paragraph, NearPos;

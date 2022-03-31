@@ -6827,6 +6827,10 @@ Paragraph.prototype.Cursor_MoveToNearPos = function(NearPos)
 	if (0 === SelectionStartPos.Compare(SelectionEndPos))
 		this.RemoveSelection();
 };
+Paragraph.prototype.MoveCursorToAnchorPos = function(oAnchorPos)
+{
+	this.Cursor_MoveToNearPos(oAnchorPos);
+};
 Paragraph.prototype.MoveCursorUpToLastRow = function(X, Y, AddToSelect)
 {
 	this.CurPos.RealX = X;
@@ -8859,7 +8863,7 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 			oPara.SaveNumberingValues(oNumInfo, oPrevNumInfo);
 		}
 
-		oSelectedContent.Add(new CSelectedElement(oPara, isAllSelected));
+		oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, isAllSelected));
 	}
 };
 Paragraph.prototype.CheckHitInParaEnd = function(X, Y, CurPage)

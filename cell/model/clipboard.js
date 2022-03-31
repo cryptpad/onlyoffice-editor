@@ -665,7 +665,7 @@
 			_getBinaryShapeContent: function (isIntoShape) {
 				var sBase64;
 
-				var selectedContent = new CSelectedContent();
+				var selectedContent = new AscCommonWord.CSelectedContent();
 				AscFormat.ExecuteNoHistory(function () {
 					isIntoShape.GetSelectedContent(selectedContent);
 				}, this, []);
@@ -814,7 +814,7 @@
 				var htmlObj, container;
 				if (isIntoShape)//если курсор находится внутри шейпа
 				{
-					var selectedContent = new CSelectedContent();
+					var selectedContent = new AscCommonWord.CSelectedContent();
 					AscFormat.ExecuteNoHistory(function () {
 						isIntoShape.GetSelectedContent(selectedContent);
 					}, this, []);
@@ -2065,7 +2065,7 @@
 					if (docContent.length === 0) {
 						return;
 					}
-					presentationSelectedContent.DocContent = new CSelectedContent();
+					presentationSelectedContent.DocContent = new AscCommonWord.CSelectedContent();
 					presentationSelectedContent.DocContent.Elements = docContent;
 
 					//перебираем шрифты
@@ -2174,7 +2174,7 @@
 				var isIntoShape = worksheet.objectRender.controller.getTargetDocContent(true);
 				isIntoShape.Remove(1, true, true);
 
-				var insertContent = new CSelectedContent();
+				var insertContent = new AscCommonWord.CSelectedContent();
 				var target_doc_content = isIntoShape;
 
 				insertContent.Elements =
@@ -2244,7 +2244,7 @@
 					bRemoveHyperlink = true;
 				}
 				for (var i = 0; i < content.length; i++) {
-					selectedElement = new CSelectedElement();
+					selectedElement = new AscCommonWord.CSelectedElement();
 					element = content[i];
 
 					if (type_Paragraph === element.GetType())//paragraph
@@ -2259,7 +2259,7 @@
 						var paragraphs = [];
 						element.GetAllParagraphs({All: true}, paragraphs);
 						for (var j = 0; j < paragraphs.length; j++) {
-							selectedElement = new CSelectedElement();
+							selectedElement = new AscCommonWord.CSelectedElement();
 							selectedElement.Element =
 								AscFormat.ConvertParagraphToPPTX(paragraphs[j], worksheet.getDrawingDocument(),
 									target_doc_content, true, bRemoveHyperlink);
@@ -2277,7 +2277,7 @@
 
 					var NearPos, ParaNearPos, LastClass, Element;
 
-					selectedContent.EndCollect(target_doc_content, false);
+					selectedContent.EndCollect(target_doc_content);
 
 					NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
 					paragraph.Check_NearestPos(NearPos);
@@ -3434,7 +3434,7 @@
 						var Count = text.length;
 
 						var newParagraph = new Paragraph(isIntoShape.DrawingDocument, isIntoShape);
-						var selectedElements = new CSelectedContent();
+						var selectedElements = new AscCommonWord.CSelectedContent();
 						var insertText = "";
 						for (var Index = 0; Index < Count; Index++) {
 							var _char = text.charAt(Index);
@@ -3448,7 +3448,7 @@
 								var newParaRun = new ParaRun();
 								window['AscCommon'].addTextIntoRun(newParaRun, insertText);
 								newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
-								var selectedElement = new CSelectedElement();
+								var selectedElement = new AscCommonWord.CSelectedElement();
 								selectedElement.Element = newParagraph;
 								selectedElements.Elements.push(selectedElement);
 

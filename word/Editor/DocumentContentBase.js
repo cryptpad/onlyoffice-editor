@@ -2062,7 +2062,7 @@ CDocumentContentBase.prototype.IsCalculatingContinuousSectionBottomLine = functi
 };
 /**
  * Проверяем содержимое, которые мы вставляем, в зависимости от места куда оно вставляется
- * @param oSelectedContent {CSelectedContent}
+ * @param oSelectedContent {AscCommonWord.CSelectedContent}
  * @param oAnchorPos {NearestPos}
  */
 CDocumentContentBase.prototype.private_CheckSelectedContentBeforePaste = function(oSelectedContent, oAnchorPos)

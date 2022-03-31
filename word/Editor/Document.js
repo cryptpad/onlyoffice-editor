@@ -8832,7 +8832,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
  * В данной функции мы получаем выделенную часть документа в формате класса CSelectedContent.
  * @param bUseHistory - нужна ли запись в историю созданных классов. (при drag-n-drop нужна, при копировании не нужна)
  * @param oPr {{SaveNumberingValues : boolean}} дополнительные настройки
- * @returns {CSelectedContent}
+ * @returns {AscCommonWord.CSelectedContent}
  */
 CDocument.prototype.GetSelectedContent = function(bUseHistory, oPr)
 {
@@ -8855,7 +8855,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory, oPr)
 		g_oTableId.m_bTurnOff = true;
 	}
 
-	var oSelectedContent = new CSelectedContent();
+	var oSelectedContent = new AscCommonWord.CSelectedContent();
 
 	if (oPr)
 	{
@@ -8865,7 +8865,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory, oPr)
 
 	oSelectedContent.SetMoveTrack(isTrack, this.TrackMoveId);
 	this.Controller.GetSelectedContent(oSelectedContent);
-	oSelectedContent.EndCollect(this, false);
+	oSelectedContent.EndCollect(this);
 
 	if (!bUseHistory)
 		History.TurnOn();
@@ -25025,9 +25025,9 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 
 			var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
 
-			var oSelectedContent = new CSelectedContent();
+			var oSelectedContent = new AscCommonWord.CSelectedContent();
 			oSelectedContent.Add(new AscCommonWord.CSelectedElement(oTempPara, false));
-			oSelectedContent.EndCollect(this, false);
+			oSelectedContent.EndCollect(this);
 
 			// TODO: Надо переделать здесь по-нормальному, и сделать как-то грамотную обработку в InsertContent
 			var isMath = false;
@@ -26172,11 +26172,11 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps, oSelectedConte
 		var oDocContent = oCC.GetContent();
 		oDocContent.Internal_Content_RemoveAll();
 		oDocContent.AddToContent(0, oTable, false);
-		oSelectedContent.Add(new CSelectedElement(oCC, true));
+		oSelectedContent.Add(new AscCommonWord.CSelectedElement(oCC, true));
 	}
 	else
 	{
-		oSelectedContent.Add(new CSelectedElement(oTable, true));
+		oSelectedContent.Add(new AscCommonWord.CSelectedElement(oTable, true));
 	}
 
 	return true;
@@ -26231,7 +26231,7 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 		this.StartAction(AscDFH.historydescription_Document_ConvertTableToText);
 		var FramePr = null;
 		var NewContent = this.private_ConvertTableToText(oTable, oProps);
-		var oNewContent = new CSelectedContent();
+		var oNewContent = new AscCommonWord.CSelectedContent();
 		var oSkipStart = NewContent.before ? 1 : 0;
 
 		if (!oTable.IsInline())
@@ -26244,11 +26244,11 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 		}
 
 		if (NewContent.before)
-			oNewContent.Add(new CSelectedElement(NewContent.before, true));
+			oNewContent.Add(new AscCommonWord.CSelectedElement(NewContent.before, true));
 
 		for (var i = 0; i < NewContent.content.length; i++)
 		{
-			oNewContent.Add(new CSelectedElement(NewContent.content[i], true));
+			oNewContent.Add(new AscCommonWord.CSelectedElement(NewContent.content[i], true));
 			if (FramePr)
 			{
 				if (NewContent.content[i].IsParagraph())
@@ -26266,7 +26266,7 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 		}
 
 		if (NewContent.after)
-			oNewContent.Add(new CSelectedElement(NewContent.after, true));
+			oNewContent.Add(new AscCommonWord.CSelectedElement(NewContent.after, true));
 		
 		var oParent = oTable.GetParent();
 		if (oNewContent && oParent)

@@ -2033,8 +2033,8 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 		Para.Add_ToContent(0, DrawingRun);
 	}
 
-	var SelectedElement = new CSelectedElement(Para, false);
-	var SelectedContent = new CSelectedContent();
+	var SelectedElement = new AscCommonWord.CSelectedElement(Para, false);
+	var SelectedContent = new AscCommonWord.CSelectedContent();
 	SelectedContent.Add(SelectedElement);
 	SelectedContent.SetMoveDrawing(true);
 	SelectedContent.DrawingObjects.push(this);

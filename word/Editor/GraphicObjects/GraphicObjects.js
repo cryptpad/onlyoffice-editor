@@ -1973,7 +1973,7 @@ CGraphicObjects.prototype =
             {
                 bSelectedAll = false;
             }
-            SelectedContent.Add( new CSelectedElement( para, bSelectedAll ) );
+            SelectedContent.Add( new AscCommonWord.CSelectedElement( para, bSelectedAll ) );
         }
     },
 

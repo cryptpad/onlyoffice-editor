@@ -6884,13 +6884,13 @@ DrawingObjectsController.prototype =
 
                     var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
 
-                    var oSelectedContent = new CSelectedContent();
-                    var oSelectedElement = new CSelectedElement();
+                    var oSelectedContent = new AscCommonWord.CSelectedContent();
+                    var oSelectedElement = new AscCommonWord.CSelectedElement();
 
                     oSelectedElement.Element     = oTempPara;
                     oSelectedElement.SelectedAll = false;
                     oSelectedContent.Add(oSelectedElement);
-                    oSelectedContent.EndCollect(oTargetDocContent, false);
+                    oSelectedContent.EndCollect(oTargetDocContent);
 
                     var isMath = false;
                     if (oAnchorPos && oAnchorPos.Paragraph)
@@ -9270,7 +9270,7 @@ DrawingObjectsController.prototype =
             var oTargetDocContent = this.getTargetDocContent();
             if(oTargetDocContent && oTargetDocContent.Selection.Use && oTargetDocContent.GetSelectedText(false, {}).length > 0)
             {
-                oSelectedContent = new CSelectedContent();
+                oSelectedContent = new AscCommonWord.CSelectedContent();
                 oTargetDocContent.GetSelectedContent(oSelectedContent);
                 oSelectedContent.MoveDrawing = true;
                 if(oSelectedContent.Elements.length > 1 && oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.GetType() === AscCommonWord.type_Paragraph

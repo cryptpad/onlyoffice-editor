@@ -58,6 +58,7 @@
 		this.NewCommentsGuid     = false;
 		this.SaveNumberingValues = false;
 		this.CopyComments        = true;
+		this.DoNotAddEmptyPara   = false;
 
 		this.MoveDrawing      = false; // Только для переноса автофигур
 
@@ -72,6 +73,11 @@
 		this.HaveMovedParts = false;
 
 		this.LastSection = null;
+
+		this.AnchorPos     = null;
+		this.Select        = true;
+		this.ParaAnchorPos = null;
+		this.Run           = null;
 	}
 
 	CSelectedContent.prototype.Reset = function()
@@ -126,7 +132,7 @@
 	{
 		return !!(this.Flags & FLAG_TABLE);
 	};
-	CSelectedContent.prototype.Insert = function(oAnchorPos)
+	CSelectedContent.prototype.Insert = function(oAnchorPos, isSelect)
 	{
 		let oParagraph     = oAnchorPos.Paragraph;
 		let oDocContent    = oParagraph.GetParent();
@@ -137,12 +143,14 @@
 
 		this.LogicDocument = oLogicDocument;
 
-		this.PrepareObjectsForInsert();
-
 		var Para        = NearPos.Paragraph;
 		var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
-		var LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
+		var oRun        = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
 
+		if (!oRun || !(oRun instanceof AscCommonWord.ParaRun))
+			return;
+
+		this.PrepareObjectsForInsert();
 		this.private_CheckContentBeforePaste(oAnchorPos);
 
 		// for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
@@ -150,361 +158,31 @@
 		// 	SelectedContent.DrawingObjects[nIndex].Set_Parent(Para);
 		// }
 
-		if (para_Math_Run === LastClass.Type)
+		this.ParaAnchorPos = oParagraph.Get_ParaNearestPos(oAnchorPos);
+		this.Select        = isSelect;
+		this.Run           = oRun;
+		this.AnchorPos     = oAnchorPos;
+
+		if (oRun.IsMathRun())
 		{
-			var MathRun        = LastClass;
-			var NewMathRun     = MathRun.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
-			var MathContent    = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
-			var MathContentPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
-			var Element        = SelectedContent.Elements[0].Element;
-
-			var InsertMathContent = null;
-			for (var nPos = 0, nParaLen = Element.Content.length; nPos < nParaLen; nPos++)
-			{
-				if (para_Math === Element.Content[nPos].Type)
-				{
-					InsertMathContent = Element.Content[nPos];
-					break;
-				}
-			}
-
-			// Try to convert content to ParaMath in simple cases
-			if (!InsertMathContent)
-				InsertMathContent = SelectedContent.ConvertToMath();
-
-			if (null !== InsertMathContent)
-			{
-				MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-				MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
-			}
+			this.private_InsertToMathRun();
 		}
-		else if (para_Run === LastClass.Type)
+		else if (oRun.GetParentPictureContentControl())
 		{
-			var oForm = null;
-			var oDstPictureCC = LastClass.GetParentPictureContentControl();
-			if (oDstPictureCC)
-			{
-				var oSrcPicture = null;
-				for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
-				{
-					if (SelectedContent.DrawingObjects[nIndex].IsPicture())
-					{
-						oSrcPicture = SelectedContent.DrawingObjects[nIndex].GraphicObj.copy();
-						break;
-					}
-				}
-
-				var arrParaDrawings = oDstPictureCC.GetAllDrawingObjects();
-				if (arrParaDrawings.length > 0 && oSrcPicture)
-				{
-					oDstPictureCC.SetShowingPlcHdr(false);
-					oSrcPicture.setParent(arrParaDrawings[0]);
-					arrParaDrawings[0].Set_GraphicObject(oSrcPicture);
-
-					if (oDstPictureCC.IsPictureForm())
-						oDstPictureCC.UpdatePictureFormLayout();
-
-					this.DrawingObjects.resetSelection();
-					this.RemoveSelection();
-					oDstPictureCC.SelectContentControl();
-
-					var sKey = oDstPictureCC.GetFormKey();
-					if (arrParaDrawings[0].IsPicture() && sKey)
-					{
-						this.OnChangeForm(sKey, oDstPictureCC, arrParaDrawings[0].GraphicObj.getImageUrl());
-					}
-				}
-
-				return;
-			}
-			else if ((oForm = LastClass.GetParentForm()))
-			{
-				if ((!oForm.IsTextForm() || oForm.IsComboBox()))
-					return;
-
-				var sInsertedText = SelectedContent.GetText({ParaEndToSpace : false});
-				if (!sInsertedText || !sInsertedText.length)
-					return;
-
-				var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1];
-
-				var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
-				if (isPlaceHolder && LastClass.GetParent() instanceof CInlineLevelSdt)
-				{
-					var oInlineLeveLSdt = LastClass.GetParent();
-					oInlineLeveLSdt.ReplacePlaceHolderWithContent();
-					LastClass       = oInlineLeveLSdt.GetElement(0);
-					nInLastClassPos = 0;
-				}
-
-				LastClass.State.ContentPos = nInLastClassPos;
-
-				var nInRunStartPos = LastClass.State.ContentPos;
-				LastClass.AddText(sInsertedText, nInLastClassPos);
-				var nInRunEndPos = LastClass.State.ContentPos;
-
-				var nLastClassLen = LastClass.GetElementsCount();
-				nInRunStartPos    = Math.min(nLastClassLen, Math.min(nInRunStartPos, nInRunEndPos));
-				nInRunEndPos      = Math.min(nLastClassLen, nInRunEndPos);
-
-				// TODO: Оставляем селект, т.к. в большинстве случаев после Insert он убирается командой
-				//       MoveCursorRight. Когда это будет контролироваться в данной функции, передлать здесь
-				LastClass.SelectThisElement();
-				LastClass.Selection.Use      = true;
-				LastClass.Selection.StartPos = nInRunStartPos;
-				LastClass.Selection.EndPos   = nInRunEndPos;
-
-				return;
-			}
-
-			var NearContentPos = NearPos.ContentPos;
-			// Сначала найдем номер элемента, начиная с которого мы будем производить вставку
-			var DstIndex       = -1;
-			var Count          = this.Content.length;
-			for (var Index = 0; Index < Count; Index++)
-			{
-				if (this.Content[Index] === Para)
-				{
-					DstIndex = Index;
-					break;
-				}
-			}
-
-			if (-1 === DstIndex)
-				return false;
-
-			var Elements      = SelectedContent.Elements;
-			var ElementsCount = Elements.length;
-			var FirstElement  = SelectedContent.Elements[0];
-			if (1 === ElementsCount && true !== FirstElement.SelectedAll && type_Paragraph === FirstElement.Element.GetType() && true !== FirstElement.Element.Is_Empty())
-			{
-				// Нам нужно в заданный параграф вставить выделенный текст
-				var NewPara          = FirstElement.Element;
-				var NewElementsCount = NewPara.Content.length - 1; // Последний ран с para_End не добавляем
-
-				// TODO: Как будет время проверить, возможно тут надо делать проверку
-				//  (oInlineLeveLSdt.IsPlaceHolder() || oInlineLeveLSdt.IsContentControlTemporary())
-				var oInlineLeveLSdt;
-				if (LastClass instanceof ParaRun
-					&& (oInlineLeveLSdt = LastClass.GetParent())
-					&& oInlineLeveLSdt instanceof CInlineLevelSdt
-					&& oInlineLeveLSdt.IsPlaceHolder())
-				{
-					if (oInlineLeveLSdt.IsContentControlTemporary())
-					{
-						var oResult = oInlineLeveLSdt.RemoveContentControlWrapper();
-
-						var oSdtParent = oResult.Parent;
-						var oSdtPos    = oResult.Pos;
-						var oSdtCount  = oResult.Count;
-
-						if (!oSdtParent
-							|| ParaNearPos.Classes.length < 3
-							|| ParaNearPos.Classes[ParaNearPos.Classes.length - 2] !== oInlineLeveLSdt
-							|| ParaNearPos.Classes[ParaNearPos.Classes.length - 3] !== oSdtParent)
-							return;
-
-						var oRun = new ParaRun(undefined, false);
-						oRun.SetPr(oInlineLeveLSdt.GetDefaultTextPr().Copy());
-
-						oSdtParent.RemoveFromContent(oSdtPos, oSdtCount);
-						oSdtParent.AddToContent(oSdtPos, oRun);
-
-						LastClass = oRun;
-						ParaNearPos.Classes.length--;
-						ParaNearPos.Classes[ParaNearPos.Classes.length - 1] = LastClass;
-						ParaNearPos.NearPos.ContentPos.Update(oSdtPos, ParaNearPos.Classes.length - 2);
-						ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 1);
-					}
-					else
-					{
-						oInlineLeveLSdt.ReplacePlaceHolderWithContent();
-						LastClass = oInlineLeveLSdt.GetElement(0);
-						ParaNearPos.Classes[ParaNearPos.Classes.length - 1] = LastClass;
-						ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 2);
-						ParaNearPos.NearPos.ContentPos.Update(0, ParaNearPos.Classes.length - 1);
-					}
-				}
-
-				var LastClass  = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-				var NewElement = LastClass.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
-				var PrevClass  = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
-				var PrevPos    = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
-
-				PrevClass.Add_ToContent(PrevPos + 1, NewElement);
-
-				// TODO: Заглушка для переноса автофигур и картинок. Когда разрулим ситуацию так, чтобы когда у нас
-				//       в текста была выделена автофигура выделение шло для автофигур, тогда здесь можно будет убрать.
-				var bNeedSelect = (true === SelectedContent.MoveDrawing ? false : true);
-
-				for (var Index = 0; Index < NewElementsCount; Index++)
-				{
-					var Item = NewPara.Content[Index];
-					PrevClass.Add_ToContent(PrevPos + 1 + Index, Item);
-
-					if (true === bNeedSelect)
-						Item.SelectAll();
-				}
-
-				if (true === bNeedSelect)
-				{
-					PrevClass.Selection.Use      = true;
-					PrevClass.Selection.StartPos = PrevPos + 1;
-					PrevClass.Selection.EndPos   = PrevPos + 1 + NewElementsCount - 1;
-
-					for (var Index = 0; Index < ParaNearPos.Classes.length - 2; Index++)
-					{
-						var Class    = ParaNearPos.Classes[Index];
-						var ClassPos = ParaNearPos.NearPos.ContentPos.Data[Index];
-
-						Class.Selection.Use      = true;
-						Class.Selection.StartPos = ClassPos;
-						Class.Selection.EndPos   = ClassPos;
-					}
-
-					this.Selection.Use      = true;
-					this.Selection.StartPos = DstIndex;
-					this.Selection.EndPos   = DstIndex;
-				}
-
-				if (PrevClass.Correct_Content)
-				{
-					PrevClass.Correct_Content();
-				}
-			}
-			else
-			{
-				var bConcatS   = ( type_Paragraph !== Elements[0].Element.GetType() ? false : true );
-				var bConcatE   = ( type_Paragraph !== Elements[ElementsCount - 1].Element.GetType() || true === Elements[ElementsCount - 1].SelectedAll ? false : true );
-				var ParaS      = Para;
-				var ParaE      = Para;
-				var ParaEIndex = DstIndex;
-
-				// Нам надо разделить наш параграф в заданной позиции, если позиция в
-				// начале или конце параграфа, тогда делить не надо
-				Para.Cursor_MoveToNearPos(NearPos);
-				Para.RemoveSelection();
-
-				var bAddEmptyPara          = false;
-				var bDoNotIncreaseDstIndex = false;
-
-				if (true === Para.IsCursorAtEnd() && !Para.IsEmpty())
-				{
-					bConcatE = false;
-
-					if (1 === ElementsCount && type_Paragraph === FirstElement.Element.GetType() && ( true === FirstElement.Element.Is_Empty() || true == FirstElement.SelectedAll ))
-					{
-						bConcatS = false;
-
-						// TODO: Возможно флаг bDoNotIncreaseDstIndex не нужен, и здесь не нужно увеличивать индекс DstIndex
-						if (type_Paragraph !== this.Content[DstIndex].Get_Type() || true !== this.Content[DstIndex].Is_Empty())
-						{
-							DstIndex++;
-							bDoNotIncreaseDstIndex = true;
-						}
-					}
-					else if (true === Elements[ElementsCount - 1].SelectedAll && true === bConcatS)
-						bAddEmptyPara = true;
-				}
-				else if (true === Para.IsCursorAtBegin())
-				{
-					bConcatS = false;
-				}
-				else
-				{
-					// Создаем новый параграф
-					var NewParagraph = new Paragraph(this.DrawingDocument, this);
-					Para.Split(NewParagraph);
-					this.Internal_Content_Add(DstIndex + 1, NewParagraph);
-
-					ParaE      = NewParagraph;
-					ParaEIndex = DstIndex + 1;
-				}
-
-				var NewEmptyPara = null;
-				if (true === bAddEmptyPara && true !== SelectedContent.DoNotAddEmptyPara)
-				{
-					// Создаем новый параграф
-					NewEmptyPara = new Paragraph(this.DrawingDocument, this);
-					NewEmptyPara.Set_Pr(ParaS.Pr);
-					NewEmptyPara.TextPr.Apply_TextPr(ParaS.TextPr.Value);
-					this.Internal_Content_Add(DstIndex + 1, NewEmptyPara);
-				}
-
-				var StartIndex = 0;
-				if (true === bConcatS)
-				{
-					// Вызываем так, чтобы выделить все внутренние элементы
-					var _ParaS = Elements[0].Element;
-					_ParaS.SelectAll();
-					var _ParaSContentLen = _ParaS.Content.length;
-
-					// Если мы присоединяем новый параграф, то и копируем все настройки параграфа (так делает Word)
-					ParaS.Concat(Elements[0].Element);
-					ParaS.Set_Pr(Elements[0].Element.Pr);
-					ParaS.TextPr.Clear_Style();
-					ParaS.TextPr.Apply_TextPr(Elements[0].Element.TextPr.Value);
-
-					StartIndex++;
-
-					ParaS.Selection.Use      = true;
-					ParaS.Selection.StartPos = ParaS.Content.length - _ParaSContentLen;
-					ParaS.Selection.EndPos   = ParaS.Content.length - 1;
-
-					for (var nParaSIndex = ParaS.Selection.StartPos; nParaSIndex <= Math.min(ParaS.Selection.EndPos, ParaS.Content.length - 1); ++nParaSIndex)
-					{
-						ParaS.Content[nParaSIndex].SelectAll(1);
-					}
-				}
-				else if (true !== Para.IsCursorAtBegin() && true !== bDoNotIncreaseDstIndex)
-				{
-					DstIndex++;
-				}
-
-				var EndIndex = ElementsCount - 1;
-				if (true === bConcatE && ElementsCount > 1)
-				{
-					var _ParaE    = Elements[ElementsCount - 1].Element;
-					var TempCount = _ParaE.Content.length - 1;
-
-					_ParaE.SelectAll();
-					_ParaE.Concat(ParaE);
-					_ParaE.Set_Pr(ParaE.Pr);
-
-					this.Internal_Content_Add(ParaEIndex, _ParaE);
-					this.Internal_Content_Remove(ParaEIndex + 1, 1);
-
-					_ParaE.Selection.Use      = true;
-					_ParaE.Selection.StartPos = 0;
-					_ParaE.Selection.EndPos   = TempCount;
-
-					EndIndex--;
-				}
-
-				for (var Index = StartIndex; Index <= EndIndex; Index++)
-				{
-					this.Internal_Content_Add(DstIndex + Index, Elements[Index].Element);
-					this.Content[DstIndex + Index].SelectAll();
-				}
-
-				var LastPos = DstIndex + ElementsCount - 1;
-				if (NewEmptyPara && NewEmptyPara === this.Content[LastPos + 1])
-				{
-					LastPos++;
-					this.Content[LastPos].SelectAll();
-				}
-
-				this.Selection.Use      = true;
-				this.Selection.StartPos = DstIndex;
-				this.Selection.EndPos   = LastPos;
-				this.CurPos.ContentPos  = LastPos;
-			}
-
-			if (docpostype_DrawingObjects !== this.CurPos.Type)
-				this.SetDocPosType(docpostype_Content);
+			this.private_InsertToPictureCC();
 		}
-
-		SelectedContent.PostInsert(this);
+		else if (oRun.GetParentForm())
+		{
+			this.private_InsertToForm();
+		}
+		else if (this.private_IsInlineInsert())
+		{
+			this.private_InsertInline();
+		}
+		else
+		{
+			this.private_InsertCommon();
+		}
 	};
 	CSelectedContent.prototype.PrepareObjectsForInsert = function()
 	{
@@ -520,13 +198,6 @@
 			if (this.CopyComments)
 				this.private_CopyComments();
 		}
-	};
-	CSelectedContent.prototype.PostInsert = function(oLogicDocument)
-	{
-		this.CheckInsertSignatures();
-
-		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
-			SelectedContent.CheckInsertInlineDrawing();
 	};
 	CSelectedContent.prototype.CheckInsertSignatures = function()
 	{
@@ -1020,6 +691,348 @@
 
 		if (this.LogicDocument.IsPresentationEditor())
 			this.ConvertToPresentation(oDocContent);
+	};
+	CSelectedContent.prototype.private_IsInlineInsert = function()
+	{
+		return (1 === this.Elements.length && !this.Elements[0].SelectedAll && this.Elements[0].Element.IsParagraph() && !this.Elements[0].Element.IsEmpty());
+	};
+	CSelectedContent.prototype.private_InsertToMathRun = function()
+	{
+		let oParaAnchorPos = this.ParaAnchorPos;
+
+		let oMathContent      = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 2];
+		let nInMathContentPos = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 2];
+
+		let oInsertMath;
+		if (this.Maths.length)
+			oInsertMath = this.Maths[0];
+		else
+			oInsertMath = this.ConvertToMath();
+
+		if (oInsertMath)
+		{
+			let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
+			let oNewRun = oRun.Split(oParaAnchorPos.NearPos.ContentPos, oParaAnchorPos.Classes.length - 1);
+			oMathContent.Add_ToContent(nInMathContentPos + 1, oNewRun);
+			oMathContent.Insert_MathContent(InsertMathContent.Root, nInMathContentPos + 1, this.Select);
+		}
+	};
+	CSelectedContent.prototype.private_InsertToPictureCC = function()
+	{
+		let oPictureCC = this.Run.GetParentPictureContentControl()
+
+		var oSrcPicture = null;
+		for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
+		{
+			if (SelectedContent.DrawingObjects[nIndex].IsPicture())
+			{
+				oSrcPicture = SelectedContent.DrawingObjects[nIndex].GraphicObj.copy();
+				break;
+			}
+		}
+
+		var arrParaDrawings = oPictureCC.GetAllDrawingObjects();
+		if (arrParaDrawings.length > 0 && oSrcPicture)
+		{
+			oPictureCC.SetShowingPlcHdr(false);
+			oSrcPicture.setParent(arrParaDrawings[0]);
+			arrParaDrawings[0].Set_GraphicObject(oSrcPicture);
+
+			if (oPictureCC.IsPictureForm())
+				oPictureCC.UpdatePictureFormLayout();
+
+			this.DrawingObjects.resetSelection();
+			this.RemoveSelection();
+			oPictureCC.SelectContentControl();
+
+			// TODO: Обработать this.Select
+
+			if (this.LogicDocument && this.LogicDocument.IsDocumentEditor())
+			{
+				var sKey = oPictureCC.GetFormKey();
+				if (arrParaDrawings[0].IsPicture() && sKey)
+					this.LogicDocument.OnChangeForm(sKey, oPictureCC, arrParaDrawings[0].GraphicObj.getImageUrl());
+			}
+		}
+	};
+	CSelectedContent.prototype.private_InsertToForm = function()
+	{
+		let oParaAnchorPos = this.ParaAnchorPos;
+
+		let oRun  = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
+		let oForm = oRun.GetParentForm();
+
+		if ((!oForm.IsTextForm() || oForm.IsComboBox()))
+			return;
+
+		var sInsertedText = this.GetText({ParaEndToSpace : false});
+		if (!sInsertedText || !sInsertedText.length)
+			return;
+
+		var nInLastClassPos = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 1];
+
+		var isPlaceHolder = oRun.GetParentForm().IsPlaceHolder();
+		if (isPlaceHolder && oRun.GetParent() instanceof CInlineLevelSdt)
+		{
+			var oInlineLeveLSdt = oRun.GetParent();
+			oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+			oRun            = oInlineLeveLSdt.GetElement(0);
+			nInLastClassPos = 0;
+		}
+
+		oRun.State.ContentPos = nInLastClassPos;
+
+		var nInRunStartPos = oRun.State.ContentPos;
+		oRun.AddText(sInsertedText, nInLastClassPos);
+		var nInRunEndPos = oRun.State.ContentPos;
+
+		var nLastClassLen = oRun.GetElementsCount();
+		nInRunStartPos    = Math.min(nLastClassLen, Math.min(nInRunStartPos, nInRunEndPos));
+		nInRunEndPos      = Math.min(nLastClassLen, nInRunEndPos);
+
+		if (this.Select)
+		{
+			oRun.SelectThisElement();
+			oRun.Selection.Use      = true;
+			oRun.Selection.StartPos = nInRunStartPos;
+			oRun.Selection.EndPos   = nInRunEndPos;
+		}
+		else
+		{
+			oRun.SetThisElementCurrent();
+		}
+	};
+	CSelectedContent.prototype.private_InsertInline = function()
+	{
+		let oParaAnchorPos = this.ParaAnchorPos;
+
+		var oInlineLeveLSdt = this.Run.GetParent();
+		if (oInlineLeveLSdt instanceof CInlineLevelSdt
+			&& (oInlineLeveLSdt.IsPlaceHolder() || oInlineLeveLSdt.IsContentControlTemporary()))
+		{
+			if (oInlineLeveLSdt.IsContentControlTemporary())
+			{
+				var oResult = oInlineLeveLSdt.RemoveContentControlWrapper();
+
+				var oSdtParent = oResult.Parent;
+				var oSdtPos    = oResult.Pos;
+				var oSdtCount  = oResult.Count;
+
+				if (!oSdtParent
+					|| oParaAnchorPos.Classes.length < 3
+					|| oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 2] !== oInlineLeveLSdt
+					|| oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 3] !== oSdtParent)
+					return;
+
+				let oRun = new ParaRun(undefined, false);
+				oRun.SetPr(oInlineLeveLSdt.GetDefaultTextPr().Copy());
+
+				oSdtParent.RemoveFromContent(oSdtPos, oSdtCount);
+				oSdtParent.AddToContent(oSdtPos, oRun);
+
+				LastClass = oRun;
+				oParaAnchorPos.Classes.length--;
+				oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1] = LastClass;
+				oParaAnchorPos.NearPos.ContentPos.Update(oSdtPos, oParaAnchorPos.Classes.length - 2);
+				oParaAnchorPos.NearPos.ContentPos.Update(0, oParaAnchorPos.Classes.length - 1);
+			}
+			else
+			{
+				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+				LastClass = oInlineLeveLSdt.GetElement(0);
+				oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1] = LastClass;
+				oParaAnchorPos.NearPos.ContentPos.Update(0, oParaAnchorPos.Classes.length - 2);
+				oParaAnchorPos.NearPos.ContentPos.Update(0, oParaAnchorPos.Classes.length - 1);
+			}
+		}
+
+		var LastClass  = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
+		var NewElement = LastClass.Split(oParaAnchorPos.NearPos.ContentPos, oParaAnchorPos.Classes.length - 1);
+		var PrevClass  = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 2];
+		var PrevPos    = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 2];
+
+		PrevClass.Add_ToContent(PrevPos + 1, NewElement);
+
+		// TODO: Заглушка для переноса автофигур и картинок. Когда разрулим ситуацию так, чтобы когда у нас
+		//       в текста была выделена автофигура выделение шло для автофигур, тогда здесь можно будет убрать.
+		var isSelect = (this.MoveDrawing ? false : this.Select);
+
+		let oParagraph     = this.Elements[0].Element;
+		let nElementsCount = oParagraph.Content.length - 1; // Последний ран с para_End не добавляем
+
+		for (let nPos = 0; nPos < nElementsCount; ++nPos)
+		{
+			let oItem = oParagraph.Content[nPos];
+			PrevClass.AddToContent(PrevPos + 1 + nPos, oItem);
+
+			if (isSelect)
+				oItem.SelectAll();
+		}
+
+		if (isSelect)
+		{
+			PrevClass.SelectThisElement();
+
+			PrevClass.Selection.Use      = true;
+			PrevClass.Selection.StartPos = PrevPos + 1;
+			PrevClass.Selection.EndPos   = PrevPos + 1 + nElementsCount - 1;
+
+			for (var Index = 0; Index < oParaAnchorPos.Classes.length - 2; Index++)
+			{
+				var Class    = oParaAnchorPos.Classes[Index];
+				var ClassPos = oParaAnchorPos.NearPos.ContentPos.Data[Index];
+
+				Class.Selection.Use      = true;
+				Class.Selection.StartPos = ClassPos;
+				Class.Selection.EndPos   = ClassPos;
+			}
+		}
+
+		if (PrevClass.CorrectContent)
+			PrevClass.CorrectContent();
+	};
+	CSelectedContent.prototype.private_InsertCommon = function()
+	{
+		let oParagraph = this.Run.GetParagraph();
+		if (!oParagraph)
+			return;
+
+		let nDstIndex   = oParagraph.GetIndex();
+		let oDocContent = oParagraph.GetParent();
+		if (!oDocContent || oParagraph !== oDocContent.GetElement(nDstIndex))
+			return;
+
+		let nElementsCount = this.Elements.length;
+
+		let isConcatS = this.Elements[0].IsParagraph();
+		let isConcatE = this.Elements[nElementsCount - 1].Element.IsParagraph() &&  this.Elements[nElementsCount - 1].SelectedAll;
+
+		oParagraph.RemoveSelection();
+		oParagraph.MoveCursorToAnchorPos(this.AnchorPos);
+
+		let bAddEmptyPara          = false;
+		let bDoNotIncreaseDstIndex = false;
+
+		let oParagraphS      = oParagraph;
+		let oParagraphE      = oParagraph;
+		let nParagraphEIndex = nDstIndex;
+
+		if (oParagraph.IsCursorAtEnd() && !oParagraph.IsEmpty())
+		{
+			isConcatE = false;
+			if (1 === nElementsCount
+				&& this.Elements[0].Element.IsParagraph()
+				&& (this.Elements[0].Element.IsEmpty() || this.Elements[0].SelectedAll))
+			{
+				isConcatS = false;
+				if (!oDocContent.GetElement(nDstIndex).IsParagraph() || !oDocContent.GetElement(nDstIndex).IsEmpty())
+				{
+					nDstIndex++;
+					bDoNotIncreaseDstIndex = true;
+				}
+			}
+			else if (this.Elements[nElementsCount - 1].SelectedAll && isConcatS)
+			{
+				bAddEmptyPara = true;
+			}
+		}
+		else if (oParagraph.IsCursorAtBegin())
+		{
+			isConcatS = false;
+		}
+		else
+		{
+			let oNewParagraph = new Paragraph(oParagraph.DrawingDocument, oDocContent);
+			oParagraph.Split(oNewParagraph);
+			oDocContent.AddToContent(nDstIndex + 1, oNewParagraph);
+
+			oParagraphE      = oNewParagraph;
+			nParagraphEIndex = nDstIndex + 1;
+		}
+
+		let oNewParagraph = null;
+		if (bAddEmptyPara && !this.DoNotAddEmptyPara)
+		{
+			oNewParagraph = new Paragraph(oParagraph.DrawingDocument, oDocContent);
+			oNewParagraph.SetDirectParaPr(oParagraphS.GetDirectParaPr());
+			oNewParagraph.TextPr.Apply_TextPr(oParagraphS.TextPr.Value);
+			oDocContent.AddToContent(nDstIndex + 1, oNewParagraph);
+		}
+
+		let nStartPos = 0;
+		if (isConcatS)
+		{
+			// TODO: Возможно поменять на ConcatBefore
+
+			this.Elements[0].Element.SelectAll();
+			let _ParaSContentLen = this.Elements[0].Element.Content.length;
+
+			oParagraphS.Concat(this.Elements[0].Element);
+			oParagraphS.Set_Pr(this.Elements[0].Element.Pr);
+			oParagraphS.TextPr.Clear_Style();
+			oParagraphS.TextPr.Apply_TextPr(this.Elements[0].Element.TextPr.Value);
+
+			nStartPos++;
+
+			oParagraphS.Selection.Use      = true;
+			oParagraphS.Selection.StartPos = oParagraphS.Content.length - _ParaSContentLen;
+			oParagraphS.Selection.EndPos   = oParagraphS.Content.length - 1;
+
+			for (let nParaSIndex = ParaS.Selection.StartPos; nParaSIndex <= Math.min(oParagraphS.Selection.EndPos, oParagraphS.Content.length - 1); ++nParaSIndex)
+			{
+				oParagraphS.Content[nParaSIndex].SelectAll(1);
+			}
+		}
+		else if (!oParagraph.IsCursorAtBegin() && !bDoNotIncreaseDstIndex)
+		{
+			nDstIndex++;
+		}
+
+		let nEndPos = nElementsCount - 1;
+		if (isConcatE && nElementsCount > 1)
+		{
+			let _oParagraphE = this.Elements[nElementsCount - 1].Element;
+			let nTempCount   = _oParagraphE.Content.length - 1;
+
+			_oParagraphE.SelectAll();
+			_oParagraphE.Concat(oParagraphE);
+			_oParagraphE.Set_Pr(oParagraphE.Pr);
+
+			oDocContent.AddToContent(nParagraphEIndex, _oParagraphE);
+			oDocContent.RemoveFromContent(nParagraphEIndex + 1, 1);
+
+			_oParagraphE.Selection.Use      = true;
+			_oParagraphE.Selection.StartPos = 0;
+			_oParagraphE.Selection.EndPos   = nTempCount;
+
+			nEndPos--;
+		}
+
+		for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+		{
+			let oElement = this.Elements[nPos].Element;
+			oElement.SelectAll(1);
+			oDocContent.AddToContent(nDstIndex + nPos, oElement);
+		}
+
+		var nLastPos = nDstIndex + nElementsCount - 1;
+		if (oNewParagraph && oNewParagraph === oDocContent.GetElement(nLastPos + 1))
+		{
+			nLastPos++;
+			oDocContent.GetElement(nLastPos).SelectAll();
+		}
+
+		oDocContent.Selection.Use      = true;
+		oDocContent.Selection.StartPos = nDstIndex;
+		oDocContent.Selection.EndPos   = nLastPos;
+		oDocContent.CurPos.ContentPos  = nLastPos;
+
+		oDocContent.SetThisElementCurrent();
+
+		this.CheckInsertSignatures();
+
+		if (this.LogicDocument.IsDocumentEditor())
+			SelectedContent.CheckInsertInlineDrawing();
 	};
 
 	/**

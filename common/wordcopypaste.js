@@ -1526,7 +1526,7 @@ CopyProcessor.prototype =
 		for(var i in elementsContent){
 			if(elementsContent[i] && typeof elementsContent[i] === "object" && elementsContent[i].length){
 				contentCount++;
-			} else if(null !== elementsContent[i] && elementsContent[i] instanceof CSelectedContent){
+			} else if(null !== elementsContent[i] && elementsContent[i] instanceof AscCommonWord.CSelectedContent){
 				contentCount++;
 			}
 		}
@@ -2455,7 +2455,7 @@ PasteProcessor.prototype =
 		//pasteTypeContent - если все содержимое одного типа
 		//TODO пересмотреть pasteTypeContent
 		this.pasteTypeContent = null;
-		var oSelectedContent = new CSelectedContent();
+		var oSelectedContent = new AscCommonWord.CSelectedContent();
 		var tableSpecialPaste = false;
 
 		if (oTable && !aNewContent[0].IsTable() && oTable.IsCellSelection())
@@ -2583,7 +2583,7 @@ PasteProcessor.prototype =
 				}
 
 
-				var oSelectedElement     = new CSelectedElement();
+				var oSelectedElement     = new AscCommonWord.CSelectedElement();
 				oSelectedElement.Element = NewElem;
 
 				var type = this._specialPasteGetElemType(NewElem);
@@ -2599,7 +2599,9 @@ PasteProcessor.prototype =
 				oSelectedElement.SelectedAll = false;
 				oSelectedContent.Add(oSelectedElement);
 
-				oSelectedContent.EndCollect(this.oLogicDocument, true);
+				oSelectedContent.EndCollect(this.oLogicDocument);
+				oSelectedContent.SetCopyComments(false);
+
 				if (!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
 				{
 					if (!this.pasteInExcel)
@@ -2649,7 +2651,7 @@ PasteProcessor.prototype =
 					}
 				}
 
-				var oSelectedElement = new CSelectedElement();
+				var oSelectedElement = new AscCommonWord.CSelectedElement();
 				oSelectedElement.Element = aNewContent[i];
 
 				var type = this._specialPasteGetElemType(aNewContent[i]);
@@ -2671,7 +2673,9 @@ PasteProcessor.prototype =
 
 			//проверка на возможность втавки в формулу
 			//TODO проверку на excel пеерсмотреть!!!!
-			oSelectedContent.EndCollect(this.oLogicDocument, true);
+			oSelectedContent.EndCollect(this.oLogicDocument);
+			oSelectedContent.SetCopyComments(false);
+
 			if(!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
 			{
 				if(!this.pasteInExcel)
@@ -3294,9 +3298,9 @@ PasteProcessor.prototype =
 		var presentation = editor.WordControl.m_oLogicDocument;
 
 		var presentationSelectedContent = new PresentationSelectedContent();
-		presentationSelectedContent.DocContent = new CSelectedContent();
+		presentationSelectedContent.DocContent = new AscCommonWord.CSelectedContent();
 		for (var i = 0, length = aNewContent.length; i < length; ++i) {
-			var oSelectedElement = new CSelectedElement();
+			var oSelectedElement = new AscCommonWord.CSelectedElement();
 
 			if (window['AscCommon'].g_specialPasteHelper.specialPasteStart && !isText) {
 				aNewContent[i]= this._specialPasteItemConvert(aNewContent[i]);
@@ -3938,14 +3942,14 @@ PasteProcessor.prototype =
 			}
 		} else {
 			var presentationSelectedContent = new PresentationSelectedContent();
-			presentationSelectedContent.DocContent = new CSelectedContent();
+			presentationSelectedContent.DocContent = new AscCommonWord.CSelectedContent();
 
 			aContent = AscFormat.ExecuteNoHistory(this._convertExcelBinary, this, [excelContent]);
 
 			var selectedElement, element, pDrawings = [], drawingCopyObject;
 			//var defaultTableStyleId = presentation.DefaultTableStyleId;
 			for (var i = 0; i < aContent.content.length; ++i) {
-				selectedElement = new CSelectedElement();
+				selectedElement = new AscCommonWord.CSelectedElement();
 				element = aContent.content[i];
 
 				if (type_Table === element.GetType())//table
@@ -4129,11 +4133,11 @@ PasteProcessor.prototype =
 		History.Document = trueDocument;
 
 		var presentationSelectedContent = new PresentationSelectedContent();
-		presentationSelectedContent.DocContent = new CSelectedContent();
+		presentationSelectedContent.DocContent = new AscCommonWord.CSelectedContent();
 
 		var parseContent = function (content) {
 			for (var i = 0; i < content.length; ++i) {
-				selectedElement = new CSelectedElement();
+				selectedElement = new AscCommonWord.CSelectedElement();
 				element = content[i];
 				//drawings
 				element.GetAllDrawingObjects(drawings);
@@ -4560,7 +4564,7 @@ PasteProcessor.prototype =
 				if (docContent.length === 0) {
 					return;
 				}
-				presentationSelectedContent.DocContent = new CSelectedContent();
+				presentationSelectedContent.DocContent = new AscCommonWord.CSelectedContent();
 				presentationSelectedContent.DocContent.Elements = docContent;
 
 				//перебираем шрифты
@@ -6180,7 +6184,7 @@ PasteProcessor.prototype =
 			//FONTS
 			paragraph.Document_Get_AllFontNames(this.oFonts);
 
-			selectedElement = new CSelectedElement();
+			selectedElement = new AscCommonWord.CSelectedElement();
 			selectedElement.Element = paragraph;
 			elements.push(selectedElement);
 		}

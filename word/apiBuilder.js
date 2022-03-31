@@ -4959,7 +4959,7 @@
 	 */
 	ApiDocument.prototype.InsertContent = function(arrContent, isInline, oPr)
 	{
-		var oSelectedContent = new CSelectedContent();
+		var oSelectedContent = new AscCommonWord.CSelectedContent();
 		var oElement;
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
 		{
@@ -4972,12 +4972,12 @@
 					continue;
 
 				if (true === isInline && oElement instanceof ApiParagraph)
-					oSelectedContent.Add(new CSelectedElement(oElm, false));
+					oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, false));
 				else
-					oSelectedContent.Add(new CSelectedElement(oElm, true));
+					oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, true));
 			}
 		}
-		oSelectedContent.EndCollect(this.Document, true);
+		oSelectedContent.EndCollect(this.Document);
 
 		if (this.Document.IsSelectionUse())
 		{

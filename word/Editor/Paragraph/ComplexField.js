@@ -543,7 +543,7 @@ CComplexField.prototype.private_CalculateSTYLEREF = function()
 };
 CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
 {
-	var oSelectedContent = new CSelectedContent();
+	var oSelectedContent = new AscCommonWord.CSelectedContent();
 	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
 	var oRun  = new ParaRun(oPara, false);
 	if(oTextPr)
@@ -552,7 +552,7 @@ CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
 	}
 	oRun.AddText(sMessage);
 	oPara.AddToContent(0, oRun);
-	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, false));
 	this.private_InsertContent(oSelectedContent);
 };
 CComplexField.prototype.private_InsertContent = function(oSelectedContent)
@@ -700,7 +700,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 	{
 		arrOutline = this.LogicDocument.GetOutlineParagraphs(null, oOutlinePr);
 	}
-	var oSelectedContent = new CSelectedContent();
+	var oSelectedContent = new AscCommonWord.CSelectedContent();
 
 	var isPreserveTabs   = this.Instruction.IsPreserveTabs();
 	var sSeparator       = this.Instruction.GetSeparator();
@@ -919,7 +919,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 				oContainer.Add_ToContent(nContainerPos + 1, oPageRefRun);
 			}
 
-			oSelectedContent.Add(new CSelectedElement(oPara, true));
+			oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, true));
 		}
 	}
 	else
@@ -939,7 +939,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 		oRun.Set_Bold(true);
 		oRun.AddText(sReplacementText);
 		oPara.AddToContent(0, oRun);
-		oSelectedContent.Add(new CSelectedElement(oPara, true));
+		oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, true));
 
 		let oApi = this.LogicDocument.GetApi();
 		oApi.sendEvent("asc_onError", c_oAscError.ID.ComplexFieldEmptyTOC, c_oAscError.Level.NoCritical);
@@ -1124,7 +1124,7 @@ CComplexField.prototype.private_CalculateREF = function()
 };
 CComplexField.prototype.private_GetMessageContent = function(sMessage, oTextPr)
 {
-	var oSelectedContent = new CSelectedContent();
+	var oSelectedContent = new AscCommonWord.CSelectedContent();
 	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
 	var oRun  = new ParaRun(oPara, false);
 	if(oTextPr)
@@ -1133,7 +1133,7 @@ CComplexField.prototype.private_GetMessageContent = function(sMessage, oTextPr)
 	}
 	oRun.AddText(sMessage);
 	oPara.AddToContent(0, oRun);
-	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, false));
 	oSelectedContent.DoNotAddEmptyPara = true;
 	return oSelectedContent;
 };
@@ -1302,7 +1302,7 @@ CComplexField.prototype.private_GetNOTEREFContent = function()
 	{
 		return this.private_GetErrorContent(sValue);
 	}
-	var oSelectedContent = new CSelectedContent();
+	var oSelectedContent = new AscCommonWord.CSelectedContent();
 	var oTextPr;
 	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
 	var oParent = oParagraph.GetParent();
@@ -1333,7 +1333,7 @@ CComplexField.prototype.private_GetNOTEREFContent = function()
 		oRun.AddText(oFootEndNote.private_GetString());
 		oPara.AddToContent(0, oRun);
 	}
-	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, false));
 	oSelectedContent.DoNotAddEmptyPara = true;
 	return oSelectedContent;
 };
