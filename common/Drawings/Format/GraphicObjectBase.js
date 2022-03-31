@@ -2881,6 +2881,15 @@
         return this.getObjectType() === AscDFH.historyitem_type_ImageShape;
     };
 
+    CGraphicObjectBase.prototype.Is_UseInDocument = function() {
+        if(CShape.prototype.Is_UseInDocument) {
+            return CShape.prototype.Is_UseInDocument.call(this);
+        }
+        return true;
+    };
+
+    
+
     var ANIM_LABEL_WIDTH_PIX = 22;
     var ANIM_LABEL_HEIGHT_PIX = 17;
 

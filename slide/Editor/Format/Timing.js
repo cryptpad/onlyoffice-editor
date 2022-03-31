@@ -233,6 +233,16 @@
         return editor.WordControl.m_oLogicDocument;
     };
     CBaseAnimObject.prototype.isAnimObject = true;
+    CBaseAnimObject.prototype.getTiming = function() {
+        var oCurElement = this;
+        while(oCurElement && !(oCurElement instanceof CTiming)) {
+            oCurElement = oCurElement.parent;
+        }
+        if(oCurElement instanceof CTiming) {
+            return oCurElement;
+        }
+        return null;
+    };
     var TIME_NODE_STATE_IDLE = 0;
     var TIME_NODE_STATE_ACTIVE = 1;
     var TIME_NODE_STATE_FROZEN = 2;
@@ -352,16 +362,6 @@
             oCurElem = oCurParent;
         }
         return oCurElem;
-    };
-    CTimeNodeBase.prototype.getTiming = function() {
-        var oCurElem = this;
-        while(oCurElem.parent && oCurElem.getObjectType() !== AscDFH.historyitem_type_Timing) {
-            oCurElem = oCurElem.parent;
-        }
-        if(oCurElem.getObjectType() === AscDFH.historyitem_type_Timing) {
-            return oCurElem;
-        }
-        return null;
     };
     CTimeNodeBase.prototype.getDepth = function() {
         var nDepth = 0;
@@ -802,7 +802,7 @@
 
         var oAttr = this.getAttributesObject();
         var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
-        sString += (nDepth + " TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | FORMAT ID: " + oAttr.id );
+        sString += (nDepth + " TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | FORMAT ID: " + oAttr.id + " | ID: " + this.Id);
         console.log(sString);
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
@@ -2337,6 +2337,11 @@
         var oTmRoot = this.getTimingRootNode();
         if(oTmRoot) {
             oTmRoot.clearChildTnLst();
+            var oCTn = oTmRoot.cTn;
+            if(oCTn) {
+                oTmRoot.setCTn(oCTn.createDuplicate());
+                oCTn.setParent(null);
+            }
         }
         for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
             aCurSequence = aSequences[nSeq];
@@ -2779,6 +2784,42 @@
             }
         }
         return bHandle ? false : null;
+    };
+    CTiming.prototype.checkCorrect = function() {
+        var oRoot;
+        if(this.tnLst) {
+            var aList = this.tnLst.list;
+            if(aList.length !== 1) {
+                this.setTnLst(null);
+                this.setBldLst(null);
+                return;
+            }
+            else {
+                oRoot = aList[0];
+                var oAttr = oRoot.getAttributesObject();
+                if(!oAttr || oAttr.nodeType !== AscFormat.NODE_TYPE_TMROOT) {
+                    this.setTnLst(null);
+                    this.setBldLst(null);
+                    return;
+                } 
+            }
+            if(oRoot) {
+                var aToRemove = [];
+                oRoot.traverseTimeNodes(function(oTimeNode) {
+                    if(oTimeNode.getDepth() === 4) {
+                        if(!oTimeNode.isCorrect()) {
+                            if(oTimeNode.parent) {
+                                aToRemove.push(oTimeNode);
+                            }
+                        }
+                    }
+                });
+                for(var nEffect = aToRemove.length - 1; nEffect > -1; --nEffect) {
+                    var oEffect = aToRemove[nEffect];
+                    oEffect.parent.onRemoveChild(oEffect);
+                }
+            }
+        }
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -7736,6 +7777,20 @@
             return;
         }
         return oRect.hit(x, y);
+    };
+    CTimeNodeContainer.prototype.isCorrect = function() {
+        if(!this.cTn) {
+            return false;
+        }
+        var sObjectId = this.getObjectId();
+        var oObj = AscCommon.g_oTableId.Get_ById(sObjectId);
+        if(!oObj) {
+            return false;
+        }
+        if(!oObj.checkCorrect() || !(oObj.Is_UseInDocument && oObj.Is_UseInDocument())) {
+            return false;
+        }
+        return true;
     };
     var ICON_TRIGGER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAxMSAxNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEgMEg1TDAgN0g0TDAgMTRMMTEgNUg2TDExIDBaIiBmaWxsPSIjNDQ0NDQ0Ii8+PC9zdmc+";
     
