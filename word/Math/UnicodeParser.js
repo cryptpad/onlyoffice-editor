@@ -32,23 +32,22 @@
 
 "use strict";
 
-
 //=====================Parser====================//
 function Parser() {
-  this._string = "";
-  this._tokenizer = new Tokenizer();
+	this._string = "";
+	this._tokenizer = new Tokenizer();
 }
 Parser.prototype.parse = function (string) {
-  this._string = string;
-  this._tokenizer.init(string);
-  this._lookahead = this._tokenizer.getNextToken();
-  return this.Program();
+	this._string = string;
+	this._tokenizer.init(string);
+	this._lookahead = this._tokenizer.getNextToken();
+	return this.Program();
 };
 Parser.prototype.Program = function () {
-  return {
-    type: "Root",
-    body: this.expLiteral(),
-  };
+	return {
+		type: "Root",
+		body: this.expLiteral(),
+	};
 };
 /**
  * CharLiteral
@@ -58,11 +57,11 @@ Parser.prototype.Program = function () {
  * type : Char
  */
 Parser.prototype.CharLiteral = function () {
-  const token = this._eat("Char");
-  return {
-    type: "CharLiteral",
-    value: token.value,
-  };
+	const token = this._eat("Char");
+	return {
+		type: "CharLiteral",
+		value: token.value,
+	};
 };
 /**
  * SpaceLiteral
@@ -72,11 +71,11 @@ Parser.prototype.CharLiteral = function () {
  * type: Space
  */
 Parser.prototype.SpaceLiteral = function () {
-  const token = this._eat("Space");
-  return {
-    type: "SpaceLiteral",
-    value: token.value,
-  };
+	const token = this._eat("Space");
+	return {
+		type: "SpaceLiteral",
+		value: token.value,
+	};
 };
 /**
  * aASCIILiteral
@@ -86,11 +85,11 @@ Parser.prototype.SpaceLiteral = function () {
  * type: aASCII
  */
 Parser.prototype.aASCIILiteral = function () {
-  const token = this._eat("aASCII");
-  return {
-    type: "aASCIILiteral",
-    value: token.value,
-  };
+	const token = this._eat("aASCII");
+	return {
+		type: "aASCIILiteral",
+		value: token.value,
+	};
 };
 /**
  * nASCIILiteral
@@ -101,14 +100,14 @@ Parser.prototype.aASCIILiteral = function () {
  *
  */
 Parser.prototype.nASCIILiteral = function () {
-  if (this._lookahead?.type === "nASCII") {
-    const token = this._eat("nASCII");
-    return {
-      type: "NumericLiteral",
-      value: token.value,
-    };
-  }
-  return null;
+	if (this._lookahead?.type === "nASCII") {
+		const token = this._eat("nASCII");
+		return {
+			type: "NumericLiteral",
+			value: token.value,
+		};
+	}
+	return null;
 };
 /**
  * anMathLiteral
@@ -119,14 +118,14 @@ Parser.prototype.nASCIILiteral = function () {
  *
  */
 Parser.prototype.anMathLiteral = function () {
-  const token = this._eat("anMath");
-  return {
-    type: "anMathLiteral",
-    value: token.value,
-  };
+	const token = this._eat("anMath");
+	return {
+		type: "anMathLiteral",
+		value: token.value,
+	};
 };
 Parser.prototype.isAnMathLiteral = function (tokenName) {
-  return tokenName === "anMath";
+	return tokenName === "anMath";
 };
 /**
  * anOtherLiteral
@@ -138,35 +137,40 @@ Parser.prototype.isAnMathLiteral = function (tokenName) {
  * Unicode alphanumeric not including αnMath nor nASCII
  */
 Parser.prototype.anOtherLiteral = function () {
-  switch (this._lookahead.type) {
-    case "anOther":
-      var token = this._eat("anOther");
-      return {
-        type: "anOtherLiteral",
-        value: token,
-      };
-    case "Char":
-      var token = this.CharLiteral();
-      return {
-        type: "anOtherLiteral",
-        value: token,
-      };
-    case "Space":
-      var token = this.SpaceLiteral();
-      return {
-        type: "anOtherLiteral",
-        value: token,
-      };
-    case "aASCII":
-      var token = this.aASCIILiteral();
-      return {
-        type: "anOtherLiteral",
-        value: token,
-      };
-  }
+	switch (this._lookahead.type) {
+		case "anOther":
+			var token = this._eat("anOther");
+			return {
+				type: "anOtherLiteral",
+				value: token,
+			};
+		case "Char":
+			var token = this.CharLiteral();
+			return {
+				type: "anOtherLiteral",
+				value: token,
+			};
+		case "Space":
+			var token = this.SpaceLiteral();
+			return {
+				type: "anOtherLiteral",
+				value: token,
+			};
+		case "aASCII":
+			var token = this.aASCIILiteral();
+			return {
+				type: "anOtherLiteral",
+				value: token,
+			};
+	}
 };
 Parser.prototype.isAnOtherLiteral = function (tokenName) {
-  return tokenName === "anOther" || tokenName === "Space" || tokenName === 'aASCII' || tokenName === "Char";
+	return (
+		tokenName === "anOther" ||
+		tokenName === "Space" ||
+		tokenName === "aASCII" ||
+		tokenName === "Char"
+	);
 };
 /**
  * anLiteral
@@ -179,14 +183,14 @@ Parser.prototype.isAnOtherLiteral = function (tokenName) {
  *
  */
 Parser.prototype.anLiteral = function () {
-  if (this.isAnOtherLiteral(this._lookahead?.type)) {
-    return this.anOtherLiteral();
-  } else {
-    return this.anMathLiteral();
-  }
+	if (this.isAnOtherLiteral(this._lookahead?.type)) {
+		return this.anOtherLiteral();
+	} else {
+		return this.anMathLiteral();
+	}
 };
 Parser.prototype.isAnLiteral = function (tokenName) {
-  return this.isAnOtherLiteral(tokenName) || this.isAnMathLiteral(tokenName);
+	return this.isAnOtherLiteral(tokenName) || this.isAnMathLiteral(tokenName);
 };
 /**
  * DiacriticLiteral
@@ -196,11 +200,11 @@ Parser.prototype.isAnLiteral = function (tokenName) {
  * type: Diacritic
  */
 Parser.prototype.diacriticLiteral = function () {
-  const token = this._eat("Diacritic");
-  return {
-    type: "DiacriticLiteral",
-    value: token.value,
-  };
+	const token = this._eat("Diacritic");
+	return {
+		type: "DiacriticLiteral",
+		value: token.value,
+	};
 };
 /**
  * opArrayLiteral
@@ -211,11 +215,11 @@ Parser.prototype.diacriticLiteral = function () {
  *
  */
 Parser.prototype.opArrayLiteral = function () {
-  const token = this._eat("opArray");
-  return {
-    type: "opArrayLiteral",
-    value: token.value,
-  };
+	const token = this._eat("opArray");
+	return {
+		type: "opArrayLiteral",
+		value: token.value,
+	};
 };
 /**
  * opCloseLiteral
@@ -226,8 +230,8 @@ Parser.prototype.opArrayLiteral = function () {
  *
  */
 Parser.prototype.opCloseLiteral = function () {
-  const token = this._eat("opClose");
-  return  token.value;
+	const token = this._eat("opClose");
+	return token.value;
 };
 /**
  * opCloserLiteral
@@ -238,19 +242,19 @@ Parser.prototype.opCloseLiteral = function () {
  *
  */
 Parser.prototype.opCloserLiteral = function () {
-  switch (this._lookahead?.type) {
-    case "\\close":
-      return {
-        type: "opClose",
-        value: "\\close",
-      };
+	switch (this._lookahead?.type) {
+		case "\\close":
+			return {
+				type: "opClose",
+				value: "\\close",
+			};
 
-    case "opClose":
-      return opCloseLiteral();
-  }
+		case "opClose":
+			return opCloseLiteral();
+	}
 };
 Parser.prototype.isOpCloserLiteral = function (tokenName) {
-  return tokenName === "opClose" || tokenName === "\\close";
+	return tokenName === "opClose" || tokenName === "\\close";
 };
 /**
  * opDecimalLiteral
@@ -261,11 +265,11 @@ Parser.prototype.isOpCloserLiteral = function (tokenName) {
  *
  */
 Parser.prototype.opDecimalLiteral = function () {
-  const token = this._eat("opDecimal");
-  return {
-    type: "opDecimal",
-    value: token.value,
-  };
+	const token = this._eat("opDecimal");
+	return {
+		type: "opDecimal",
+		value: token.value,
+	};
 };
 /**
  * opHbracketLiteral
@@ -275,11 +279,11 @@ Parser.prototype.opDecimalLiteral = function () {
  * type: opHbracket
  */
 Parser.prototype.opHbracketLiteral = function () {
-  const token = this._eat("opHbracket");
-  return {
-    type: "opHbracket",
-    value: token.value,
-  };
+	const token = this._eat("opHbracket");
+	return {
+		type: "opHbracket",
+		value: token.value,
+	};
 };
 /**
  * opNaryLiteral
@@ -290,11 +294,11 @@ Parser.prototype.opHbracketLiteral = function () {
  *
  */
 Parser.prototype.opNaryLiteral = function () {
-  const token = this._eat("opNary");
-  return {
-    type: "opNary",
-    value: token.value,
-  };
+	const token = this._eat("opNary");
+	return {
+		type: "opNary",
+		value: token.value,
+	};
 };
 /**
  * opOpenLiteral
@@ -305,8 +309,8 @@ Parser.prototype.opNaryLiteral = function () {
  *
  */
 Parser.prototype.opOpenLiteral = function () {
-  const token = this._eat("opOpen");
-  return token.value;
+	const token = this._eat("opOpen");
+	return token.value;
 };
 /**
  * opOpenerLiteral
@@ -317,18 +321,18 @@ Parser.prototype.opOpenLiteral = function () {
  *
  */
 Parser.prototype.opOpenerLiteral = function () {
-  switch (this._lookahead?.type) {
-    case "\\open":
-      return {
-        type: "opOpen",
-        value: "\\open",
-      };
-    case "opOpen":
-      return opOpenLiteral();
-  }
+	switch (this._lookahead?.type) {
+		case "\\open":
+			return {
+				type: "opOpen",
+				value: "\\open",
+			};
+		case "opOpen":
+			return opOpenLiteral();
+	}
 };
 Parser.prototype.isOpOpenerLiteral = function (tokenName) {
-  return tokenName === "opOpen";
+	return tokenName === "opOpen";
 };
 /**
  * opOverLiteral
@@ -339,11 +343,11 @@ Parser.prototype.isOpOpenerLiteral = function (tokenName) {
  *
  */
 Parser.prototype.opOverLiteral = function () {
-  const token = this._eat("opOver");
-  return {
-    type: "opOver",
-    value: token.value,
-  };
+	const token = this._eat("opOver");
+	return {
+		type: "opOver",
+		value: token.value,
+	};
 };
 /**
  * opBuildupLiteral
@@ -359,43 +363,43 @@ Parser.prototype.opOverLiteral = function () {
  *
  */
 Parser.prototype.opBuildupLiteral = function () {
-  // или
-  if (this._lookahead?.type === "opBuildup") {
-    const token = this._eat("opBuildup");
-    return {
-      type: "opBuildup",
-      value: token.value,
-    };
-  } else {
-    switch (this._lookahead?.type) {
-      case "opArray":
-        token.value = this.opArrayLiteral();
-      case "opOpen":
-        token.value = this.opOpenLiteral();
-      case "opClose":
-        token.value = this.opCloseLiteral();
-      case "opNary":
-        token.value = this.opNaryLiteral();
-      case "opOver":
-        token.value = this.opOverLiteral();
-      case "opHbracket":
-        token.value = this.opHbracketLiteral();
-      case "opDeciamal":
-        token.value = this.opDecimalLiteral();
-    }
-  }
+	// или
+	if (this._lookahead?.type === "opBuildup") {
+		const token = this._eat("opBuildup");
+		return {
+			type: "opBuildup",
+			value: token.value,
+		};
+	} else {
+		switch (this._lookahead?.type) {
+			case "opArray":
+				token.value = this.opArrayLiteral();
+			case "opOpen":
+				token.value = this.opOpenLiteral();
+			case "opClose":
+				token.value = this.opCloseLiteral();
+			case "opNary":
+				token.value = this.opNaryLiteral();
+			case "opOver":
+				token.value = this.opOverLiteral();
+			case "opHbracket":
+				token.value = this.opHbracketLiteral();
+			case "opDeciamal":
+				token.value = this.opDecimalLiteral();
+		}
+	}
 };
 Parser.prototype.isOpBuildupLiteral = function (tokenName) {
-  return (
-    tokenName === "opBuildup" ||
-    tokenName === "opArray" ||
-    tokenName === "opOpen" ||
-    tokenName === "opClose" ||
-    tokenName === "opNary" ||
-    tokenName === "opOver" ||
-    tokenName === "opHbracket" ||
-    tokenName === "opDeciamal"
-  );
+	return (
+		tokenName === "opBuildup" ||
+		tokenName === "opArray" ||
+		tokenName === "opOpen" ||
+		tokenName === "opClose" ||
+		tokenName === "opNary" ||
+		tokenName === "opOver" ||
+		tokenName === "opHbracket" ||
+		tokenName === "opDeciamal"
+	);
 };
 //check
 /**
@@ -408,10 +412,10 @@ Parser.prototype.isOpBuildupLiteral = function (tokenName) {
  * char – {αn + nASCII + diacritic + opBuildup + CR} rule doesn't followed BHF notation, what is it
  */
 Parser.prototype.otherLiteral = function () {
-  return this.CharLiteral();
+	return this.CharLiteral();
 };
 Parser.prototype.isOtherLiteral = function (tokenName) {
-  return tokenName === "Char";
+	return tokenName === "Char";
 };
 //exp in diacritic literal migth be a cause of left-recursion! check
 /**
@@ -423,35 +427,35 @@ Parser.prototype.isOtherLiteral = function (tokenName) {
  *
  */
 Parser.prototype.diacriticBaseLiteral = function () {
-  if (this.isAnLiteral(this._lookahead?.type)) {
-    const token = this.anLiteral();
-    return {
-      type: "diacriticbaseLiteral",
-      value: token,
-    };
-  } else if (this._lookahead?.type === "nASCII") {
-    const token = this.nASCIILiteral();
-    return {
-      type: "diacriticbaseLiteral",
-      value: token,
-    };
-  } else if (this._lookahead?.type === "(") {
-    this._eat("(");
-    const token = this.expLiteral();
-    this._eat(")");
-    return {
-      type: "diacriticbaseLiteral",
-      value: token,
-    };
-  }
+	if (this.isAnLiteral(this._lookahead?.type)) {
+		const token = this.anLiteral();
+		return {
+			type: "diacriticbaseLiteral",
+			value: token,
+		};
+	} else if (this._lookahead?.type === "nASCII") {
+		const token = this.nASCIILiteral();
+		return {
+			type: "diacriticbaseLiteral",
+			value: token,
+		};
+	} else if (this._lookahead?.type === "(") {
+		this._eat("(");
+		const token = this.expLiteral();
+		this._eat(")");
+		return {
+			type: "diacriticbaseLiteral",
+			value: token,
+		};
+	}
 };
 Parser.prototype.isDiacriticBaseLiteral = function (tokenName) {
-  return (
-    tokenName === this.isAnLiteral(tokenName) ||
-    (tokenName === "nASCII" && this._lookahead?.type === ".") ||
-    this._lookahead?.type === "," ||
-    tokenName === "("
-  );
+	return (
+		tokenName === this.isAnLiteral(tokenName) ||
+		(tokenName === "nASCII" && this._lookahead?.type === ".") ||
+		this._lookahead?.type === "," ||
+		tokenName === "("
+	);
 };
 /**
  * diacritcsLiteral
@@ -461,19 +465,19 @@ Parser.prototype.isDiacriticBaseLiteral = function (tokenName) {
  *
  */
 Parser.prototype.diacritcsLiteral = function () {
-  const diacriticsList = [this.diacriticLiteral()];
+	const diacriticsList = [this.diacriticLiteral()];
 
-  while (this._lookahead?.type === "Diacritic") {
-    diacriticsList.push(this.diacriticLiteral());
-  }
+	while (this._lookahead?.type === "Diacritic") {
+		diacriticsList.push(this.diacriticLiteral());
+	}
 
-  return {
-    type: "diacritcsLiteral",
-    value: diacriticsList,
-  };
+	return {
+		type: "diacritcsLiteral",
+		value: diacriticsList,
+	};
 };
 Parser.prototype.isDiacritcsLiteral = function (tokenName) {
-  return this.isDiacriticBaseLiteral(tokenName);
+	return this.isDiacriticBaseLiteral(tokenName);
 };
 /**
  * atomLiteral
@@ -483,955 +487,957 @@ Parser.prototype.isDiacritcsLiteral = function (tokenName) {
  *
  */
 Parser.prototype.atomLiteral = function () {
-  if (
-    this._lookahead?.type === "anMath" ||
-    this.isAnOtherLiteral(this._lookahead?.type)
-  ) {
-    const token = this.anLiteral();
-    return token;
-  } else if (this.isDiacriticBaseLiteral(this._lookahead?.type)) {
-    const base = this.diacriticBaseLiteral();
-    if (this.isDiacritcsLiteral(this._lookahead?.type)) {
-      const diacritic = this.diacritcsLiteral();
+	if (
+		this._lookahead?.type === "anMath" ||
+		this.isAnOtherLiteral(this._lookahead?.type)
+	) {
+		const token = this.anLiteral();
+		return token;
+	} else if (this.isDiacriticBaseLiteral(this._lookahead?.type)) {
+		const base = this.diacriticBaseLiteral();
+		if (this.isDiacritcsLiteral(this._lookahead?.type)) {
+			const diacritic = this.diacritcsLiteral();
 
-      return {
-        type: "atomLiteral",
-        base,
-        diacritic,
-      };
-    }
-  }
+			return {
+				type: "atomLiteral",
+				base,
+				diacritic,
+			};
+		}
+	}
 
-  return null;
+	return null;
 };
 Parser.prototype.isAtomLiteral = function (tokenName) {
-  return this.isAnLiteral(tokenName) || this.isDiacriticBaseLiteral(tokenName);
+	return (
+		this.isAnLiteral(tokenName) || this.isDiacriticBaseLiteral(tokenName)
+	);
 };
 Parser.prototype.atomsLiteral = function () {
-  const atomsList = [this.atomLiteral()];
+	const atomsList = [this.atomLiteral()];
 
-  while (this.isAtomLiteral(this._lookahead?.type)) {
-    atomsList.push(this.atomLiteral());
-  }
+	while (this.isAtomLiteral(this._lookahead?.type)) {
+		atomsList.push(this.atomLiteral());
+	}
 
-  return {
-    type: "atomsLiteral",
-    value: atomsList,
-  };
+	return {
+		type: "atomsLiteral",
+		value: atomsList,
+	};
 };
 Parser.prototype.isAtomsLiteral = function (tokenName) {
-  return this.isAtomLiteral(tokenName);
+	return this.isAtomLiteral(tokenName);
 };
 Parser.prototype.digitsLiteral = function () {
-  const nASCIIList = [this.nASCIILiteral()];
+	const nASCIIList = [this.nASCIILiteral()];
 
-  while (this._lookahead?.type === "nASCII") {
-    nASCIIList.push(this.nASCIILiteral());
-  }
+	while (this._lookahead?.type === "nASCII") {
+		nASCIIList.push(this.nASCIILiteral());
+	}
 
-  return {
-    type: "digitsLiteral",
-    value: nASCIIList,
-  };
+	return {
+		type: "digitsLiteral",
+		value: nASCIIList,
+	};
 };
 Parser.prototype.isDigitsLiteral = function (tokenName) {
-  return tokenName === "nASCII";
+	return tokenName === "nASCII";
 };
 Parser.prototype.numberLiteral = function () {
-  const left = this.digitsLiteral();
+	const left = this.digitsLiteral();
 
-  if (this._lookahead?.type === "opDecimal") {
-    const decimal = this._eat("opDecimal").value;
+	if (this._lookahead?.type === "opDecimal") {
+		const decimal = this._eat("opDecimal").value;
 
-    if (this.isDigitsLiteral(this._lookahead?.type)) {
-      const right = this.digitsLiteral();
+		if (this.isDigitsLiteral(this._lookahead?.type)) {
+			const right = this.digitsLiteral();
+			return {
+				type: "numberLiteral",
+				number: left,
+				decimal,
+				afterDeciamal: right,
+			};
+		}
+	}
 
-      return {
-        type: "numberLiteral",
-        number: left,
-        decimal,
-        afterDeciamal: right,
-      };
-    }
-  }
-
-  return left;
+	return left;
 };
 Parser.prototype.isNumberLiteral = function (tokenName) {
-  return this.isDigitsLiteral(tokenName);
+	return this.isDigitsLiteral(tokenName);
 };
 Parser.prototype.expBracketLiteral = function () {
-  if (this._lookahead?.type === "opOpen") {
-    const openLiteral = this.opOpenLiteral();
-    const exp = this.expLiteral();
+	if (this._lookahead?.type === "opOpen") {
+		const openLiteral = this.opOpenLiteral();
+		const exp = this.expLiteral();
+		const closeLiteral = this.opCloseLiteral();
 
-    const closeLiteral = this.opCloseLiteral();
+		return {
+			type: "expBracketLiteral",
+			exp,
+			open: openLiteral,
+			close: closeLiteral,
+		};
+	}
+	if (this._lookahead?.type === "||") {
+		var open = this._eat("||");
+		var exp = this.expLiteral();
+		var	close = this._eat("||");
+	}
+	if (this._lookahead?.type === "|") {
+		var open = this._eat("|").value;
+		var exp = this.expLiteral();
+		var	close = this._eat("|").value;
+	}
+	if (this._lookahead?.type === "├") {
+		return this.eatCloseOrOpenBracket();
+	}
 
-    return {
-      type: "expBracketLiteral",
-      exp,
-      open: openLiteral,
-      close: closeLiteral,
-    };
-  }
-  if (this._lookahead?.type === "||") {
-    var open,
-      close = this._eat("||");
-    var exp = this.expLiteral();
-    this._eat("||");
-  }
-  if (this._lookahead?.type === "|") {
-    var open,
-    close = this._eat("|").value;
-    var exp = this.expLiteral();
-    open = this._eat("|").value;
-  }
-  if (this._lookahead?.type === "├") {
-    return this.eatCloseOrOpenBracket();
-  }
-
-  return {
-    type: "expBracketLiteral",
-    open,
-    close,
-    exp,
-  };
+	return {
+		type: "expBracketLiteral",
+		open,
+		close,
+		exp,
+	};
 };
 Parser.prototype.eatCloseOrOpenBracket = function () {
-  if (this._lookahead.type === "├") {
-    this._eat("├");
-    const openLiteral = this.eatBracket();
-    const exp = this.expLiteral();
-    this._eat("┤");
-    const closeLiteral = this.eatBracket();
+	if (this._lookahead.type === "├") {
+		this._eat("├");
+		const openLiteral = this.eatBracket();
+		const exp = this.expLiteral();
+		this._eat("┤");
+		const closeLiteral = this.eatBracket();
 
-    return {
-      type: "expBracketLiteral",
-      open: openLiteral,
-      close: closeLiteral,
-      exp,
-    };
-  }
+		return {
+			type: "expBracketLiteral",
+			open: openLiteral,
+			close: closeLiteral,
+			exp,
+		};
+	}
 };
 Parser.prototype.eatBracket = function (type) {
-  var token = undefined;
-  switch (this._lookahead.type) {
-    case "opClose":
-      token = this.opCloseLiteral();
-      break;
-    case "opOpen":
-      token = this.opOpenLiteral();
-      break;
-    case "Char":
-      token = this.CharLiteral();
-      break;
-    case "nASCII":
-      token = this.nASCIILiteral();
-      break;
-    case "Space":
-      token = this.SpaceLiteral();
-      break;
-  }
-  token.type = type;
-  return token;
+	var token = undefined;
+	switch (this._lookahead.type) {
+		case "opClose":
+			token = this.opCloseLiteral();
+			break;
+		case "opOpen":
+			token = this.opOpenLiteral();
+			break;
+		case "Char":
+			token = this.CharLiteral();
+			break;
+		case "nASCII":
+			token = this.nASCIILiteral();
+			break;
+		case "Space":
+			token = this.SpaceLiteral();
+			break;
+	}
+	token.type = type;
+	return token;
 };
 Parser.prototype.isExpBracketLiteral = function (tokenName) {
-  return (
-    this.isOpOpenerLiteral(tokenName) ||
-    tokenName === "|" ||
-    tokenName === "||" ||
-    tokenName === "├"
-  );
+	return (
+		this.isOpOpenerLiteral(tokenName) ||
+		tokenName === "|" ||
+		tokenName === "||" ||
+		tokenName === "├"
+	);
 };
 Parser.prototype.wordLiteral = function () {
-  const wordList = [this.aASCIILiteral()];
+	const wordList = [this.aASCIILiteral()];
 
-  while (this._lookahead?.type === "aASCII") {
-    wordList.push(this.aASCIILiteral());
-  }
+	while (this._lookahead?.type === "aASCII") {
+		wordList.push(this.aASCIILiteral());
+	}
 
-  return {
-    type: "wordLiteral",
-    value: wordList,
-  };
+	return {
+		type: "wordLiteral",
+		value: wordList,
+	};
 };
 Parser.prototype.isWordLiteral = function (tokenName) {
-  return tokenName === "aASCII";
+	return tokenName === "aASCII";
 };
 Parser.prototype.scriptBaseLiteral = function () {
-  if (this.isWordLiteral(this._lookahead?.type)) {
-    let token = this.wordLiteral();
-    if (this._lookahead?.type === "nASCII") {
-      token.nASCII = this.nASCIILiteral();
-    }
-    return token;
-  } else if (this._lookahead?.type === "anMath") {
-    return this.anMathLiteral();
-  } else if (this.isNumberLiteral(this._lookahead?.type)) {
-    return this.numberLiteral();
-  } else if (this.isOtherLiteral(this._lookahead?.type)) {
-    return this.otherLiteral();
-  } else if (this.isExpBracketLiteral(this._lookahead?.type)) {
-    return this.expBracketLiteral();
-  } else if (this._lookahead?.type === "opNary") {
-    return this.opNaryLiteral();
-  } else if (this._lookahead?.type === "anOther") {
-    return this.anOtherLiteral();
-  }
+	if (this.isWordLiteral(this._lookahead?.type)) {
+		let token = this.wordLiteral();
+		if (this._lookahead?.type === "nASCII") {
+			token.nASCII = this.nASCIILiteral();
+		}
+		return token;
+	} else if (this._lookahead?.type === "anMath") {
+		return this.anMathLiteral();
+	} else if (this.isNumberLiteral(this._lookahead?.type)) {
+		return this.numberLiteral();
+	} else if (this.isOtherLiteral(this._lookahead?.type)) {
+		return this.otherLiteral();
+	} else if (this.isExpBracketLiteral(this._lookahead?.type)) {
+		return this.expBracketLiteral();
+	} else if (this._lookahead?.type === "opNary") {
+		return this.opNaryLiteral();
+	} else if (this._lookahead?.type === "anOther") {
+		return this.anOtherLiteral();
+	}
 };
 Parser.prototype.isScriptBaseLiteral = function (tokenName) {
-  return (
-    this.isWordLiteral(this._lookahead?.type) ||
-    tokenName === "anMath" ||
-    this.isNumberLiteral(this._lookahead?.type) ||
-    this.isOtherLiteral(this._lookahead?.type) ||
-    this.isExpBracketLiteral(this._lookahead?.type) ||
-    tokenName === "anOther" ||
-    tokenName === "opNary" ||
-    tokenName === "┬" ||
-    tokenName === "┴"
-  );
+	return (
+		this.isWordLiteral(this._lookahead?.type) ||
+		tokenName === "anMath" ||
+		this.isNumberLiteral(this._lookahead?.type) ||
+		this.isOtherLiteral(this._lookahead?.type) ||
+		this.isExpBracketLiteral(this._lookahead?.type) ||
+		tokenName === "anOther" ||
+		tokenName === "opNary" ||
+		tokenName === "┬" ||
+		tokenName === "┴"
+	);
 };
 Parser.prototype.soperandLiteral = function (isSubSup) {
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    const operand = this.operandLiteral(isSubSup);
-    return {
-      type: "soperandLiteral",
-      operand,
-    };
-  }
-  switch (this._lookahead?.type) {
-    case "-":
-      const minus = this._eat("-");
-      if (this.isOperandLiteral(this._lookahead?.type)) {
-        const operand = this.operandLiteral();
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const operand = this.operandLiteral(isSubSup);
+		return {
+			type: "soperandLiteral",
+			operand,
+		};
+	}
+	switch (this._lookahead?.type) {
+		case "-":
+			const minus = this._eat("-");
+			if (this.isOperandLiteral(this._lookahead?.type)) {
+				const operand = this.operandLiteral();
 
-        return {
-          type: "soperandLiteral",
-          operand,
-          minus: minus.value === "-",
-        };
-      }
-      break;
-    case "-∞":
-      const token = this._eat("-∞");
-      return {
-        type: "soperandLiteral",
-        operand: token.value,
-      };
-    case "∞":
-      const tokens = this._eat("∞");
-      return {
-        type: "soperandLiteral",
-        operand: tokens.value,
-      };
-  }
-  return null;
+				return {
+					type: "soperandLiteral",
+					operand,
+					minus: minus.value === "-",
+				};
+			}
+			break;
+		case "-∞":
+			const token = this._eat("-∞");
+			return {
+				type: "soperandLiteral",
+				operand: token.value,
+			};
+		case "∞":
+			const tokens = this._eat("∞");
+			return {
+				type: "soperandLiteral",
+				operand: tokens.value,
+			};
+	}
+	return null;
 };
 Parser.prototype.isSoperandLiteral = function (tokenName) {
-  return (
-    this.isOperandLiteral(tokenName) ||
-    tokenName === "-" ||
-    tokenName === "-∞" ||
-    tokenName === "∞"
-  );
+	return (
+		this.isOperandLiteral(tokenName) ||
+		tokenName === "-" ||
+		tokenName === "-∞" ||
+		tokenName === "∞"
+	);
 };
-Parser.prototype.preScriptLiteral = function() {
-  if (this._lookahead?.type === "opOpen") {
-    this._eat("opOpen");
-  
-    if (this._lookahead?.type === "_") {
-      this._eat("_");
-      if (this.isSoperandLiteral(this._lookahead?.type)) {
-        var firstSoperand = this.soperandLiteral("_");
-        if (this._lookahead?.type === "^") {
-          this._eat("^");
-          if (this.isSoperandLiteral(this._lookahead?.type)) {
-            var secondSoperand = this.soperandLiteral("^");
-  
-            this._eat("opClose");
-            let base = this.scriptBaseLiteral();
-            return {
-              type: "prescriptSubsup",
-              base,
-              firstSoperand,
-              secondSoperand,
-            };
-          }
-        } 
-        this._eat("opClose");
-        let base = this.scriptBaseLiteral();
-        return {
-          type: "prescriptSubscript",
-          base,
-          firstSoperand,
-        };
-      }
-    } else if (this._lookahead?.type === "^") {
-      this._eat("^");
-      if (this.isSoperandLiteral(this._lookahead?.type)) {
-        var secondSoperand = this.soperandLiteral("^");
-        if (this._lookahead?.type === "_") {
-          this._eat("_");
-          if (this.isSoperandLiteral(this._lookahead?.type)) {
-            var firstSoperand = this.soperandLiteral("_");
-            this._eat("opClose");
-            let base = this.scriptBaseLiteral();
+Parser.prototype.preScriptLiteral = function () {
+	if (this._lookahead?.type === "opOpen") {
+		this._eat("opOpen");
 
-            return {
-              type: "prescriptSubsup",
-              base,
-              firstSoperand,
-              secondSoperand,
-            };
-          }
-        }
-        this._eat("opClose");
-        let base = this.scriptBaseLiteral();
-        return {
-          type: "prescriptSuperscript",
-          base,
-          secondSoperand,
-        };
-      }
-    }
-  }
+		if (this._lookahead?.type === "_") {
+			this._eat("_");
+			if (this.isSoperandLiteral(this._lookahead?.type)) {
+				var firstSoperand = this.soperandLiteral("_");
+				if (this._lookahead?.type === "^") {
+					this._eat("^");
+					if (this.isSoperandLiteral(this._lookahead?.type)) {
+						var secondSoperand = this.soperandLiteral("^");
+
+						this._eat("opClose");
+						let base = this.scriptBaseLiteral();
+						return {
+							type: "prescriptSubsup",
+							base,
+							firstSoperand,
+							secondSoperand,
+						};
+					}
+				}
+				this._eat("opClose");
+				let base = this.scriptBaseLiteral();
+				return {
+					type: "prescriptSubscript",
+					base,
+					firstSoperand,
+				};
+			}
+		} else if (this._lookahead?.type === "^") {
+			this._eat("^");
+			if (this.isSoperandLiteral(this._lookahead?.type)) {
+				var secondSoperand = this.soperandLiteral("^");
+				if (this._lookahead?.type === "_") {
+					this._eat("_");
+					if (this.isSoperandLiteral(this._lookahead?.type)) {
+						var firstSoperand = this.soperandLiteral("_");
+						this._eat("opClose");
+						let base = this.scriptBaseLiteral();
+
+						return {
+							type: "prescriptSubsup",
+							base,
+							firstSoperand,
+							secondSoperand,
+						};
+					}
+				}
+				this._eat("opClose");
+				let base = this.scriptBaseLiteral();
+				return {
+					type: "prescriptSuperscript",
+					base,
+					secondSoperand,
+				};
+			}
+		}
+	}
 };
-Parser.prototype.isPreScriptLiteral = function(tokenName) {
-  return tokenName === "opOpen"
+Parser.prototype.isPreScriptLiteral = function (tokenName) {
+	return tokenName === "opOpen";
 };
 Parser.prototype.expSubsupLiteral = function (token) {
-  if (this.isPreScriptLiteral(this._lookahead?.type)) {
-    return this.preScriptLiteral();
-  }
+	if (this.isPreScriptLiteral(this._lookahead?.type)) {
+		return this.preScriptLiteral();
+	}
 
-  if (token === undefined) {
-    token = this.scriptBaseLiteral();
-  }
+	if (token === undefined) {
+		token = this.scriptBaseLiteral();
+	}
 
-  if (this._lookahead?.type === "_") {
-    this._eat("_");
-    if (this.isSoperandLiteral(this._lookahead?.type)) {
-      var firstSoperand = this.soperandLiteral("_");
-      if (this._lookahead?.type === "^") {
-        this._eat("^");
-        if (this.isSoperandLiteral(this._lookahead?.type)) {
-          var secondSoperand = this.soperandLiteral("^");
-         
-          if (token.type !== "opNary") {
-            return {
-              type: "expSubsup",
-              base: token,
-              firstSoperand,
-              secondSoperand,
-            };
-          }
-          
-        }
-      } else {
-        if (token.type !== "opNary") {
-          return {
-            type: "expSubscript",
-            base: token,
-            firstSoperand,
-          };
-        }
-      }
-    }
-  } 
-  else if (this._lookahead?.type === "^") {
-    this._eat("^");
-    if (this.isSoperandLiteral(this._lookahead?.type)) {
-      var secondSoperand = this.soperandLiteral("^");
-      if (this._lookahead?.type === "_") {
-        this._eat("_");
-        if (this.isSoperandLiteral(this._lookahead?.type)) {
-          var firstSoperand = this.soperandLiteral("_");
-          if (token.type !== "opNary") {
-            return {
-              type: "expSubsup",
-              base: token,
-              firstSoperand,
-              secondSoperand,
-            };
-          }
-        }
-      }
-      if (token.type !== "opNary") {
-        return {
-          type: "expSuperscript",
-          base: token,
-          secondSoperand,
-        };
-      }
-    }
-  } 
-  else if (this._lookahead?.type === "┬") {
-    this._eat("┬");
-    var below = this.soperandLiteral();
-    return {
-      type: "expBelow",
-      base: token,
-      below,
-    };
-  } 
-  else if (this._lookahead?.type === "┴") {
-    this._eat("┴");
-    var above = this.soperandLiteral();
-    return {
-      type: "expAbove",
-      base: token,
-      above,
-    };
-  }
-  else if (this._lookahead?.type === "specialScript") {
-    var secondSoperand = this.specialScriptLiteral();
-    if (this._lookahead?.type === "specialSubscripts") {
-      var firstSoperand = this.specialSubscriptLiteral();
-      return {
-        type: "expSubsup",
-        base: token,
-        firstSoperand,
-        secondSoperand,
-      }
-    }
-    return {
-          type: "expSuperscript",
-          base: token,
-          secondSoperand,
-    }
-  }
-  else if (this._lookahead?.type === "specialSubscripts") {
-    var secondSoperand = this._eat("specialSubscripts");
-    if (this._lookahead?.type === "specialScript") {
-      var firstSoperand = this._eat("specialScript");
-      return {
-        type: "expSubsup",
-        base: token,
-        firstSoperand,
-        secondSoperand,
-      }
-    }
-    return {
-          type: "expSubscript",
-          base: token,
-          secondSoperand,
-    }
-  }
+	if (this._lookahead?.type === "_") {
+		this._eat("_");
+		if (this.isSoperandLiteral(this._lookahead?.type)) {
+			var firstSoperand = this.soperandLiteral("_");
+			if (this._lookahead?.type === "^") {
+				this._eat("^");
+				if (this.isSoperandLiteral(this._lookahead?.type)) {
+					var secondSoperand = this.soperandLiteral("^");
 
-  if (token.type === "opNary" && this._lookahead.type === "▒") {
-    this._eat("▒");
-    let thirdSoperand = this.soperandLiteral();
-    return {
-      type: "expSubsup",
-      base: token,
-      firstSoperand,
-      secondSoperand,
-      thirdSoperand,
-    };
-  }
+					if (token.type !== "opNary") {
+						return {
+							type: "expSubsup",
+							base: token,
+							firstSoperand,
+							secondSoperand,
+						};
+					}
+				}
+			} else {
+				if (token.type !== "opNary") {
+					return {
+						type: "expSubscript",
+						base: token,
+						firstSoperand,
+					};
+				}
+			}
+		}
+	} else if (this._lookahead?.type === "^") {
+		this._eat("^");
+		if (this.isSoperandLiteral(this._lookahead?.type)) {
+			var secondSoperand = this.soperandLiteral("^");
+			if (this._lookahead?.type === "_") {
+				this._eat("_");
+				if (this.isSoperandLiteral(this._lookahead?.type)) {
+					var firstSoperand = this.soperandLiteral("_");
+					if (token.type !== "opNary") {
+						return {
+							type: "expSubsup",
+							base: token,
+							firstSoperand,
+							secondSoperand,
+						};
+					}
+				}
+			}
+			if (token.type !== "opNary") {
+				return {
+					type: "expSuperscript",
+					base: token,
+					secondSoperand,
+				};
+			}
+		}
+	} else if (this._lookahead?.type === "┬") {
+		this._eat("┬");
+		var below = this.soperandLiteral();
+		return {
+			type: "expBelow",
+			base: token,
+			below,
+		};
+	} else if (this._lookahead?.type === "┴") {
+		this._eat("┴");
+		var above = this.soperandLiteral();
+		return {
+			type: "expAbove",
+			base: token,
+			above,
+		};
+	} else if (this._lookahead?.type === "specialScript") {
+		var secondSoperand = this.specialScriptLiteral();
+		if (this._lookahead?.type === "specialSubscripts") {
+			var firstSoperand = this.specialSubscriptLiteral();
+			return {
+				type: "expSubsup",
+				base: token,
+				firstSoperand,
+				secondSoperand,
+			};
+		}
+		return {
+			type: "expSuperscript",
+			base: token,
+			secondSoperand,
+		};
+	} else if (this._lookahead?.type === "specialSubscripts") {
+		var secondSoperand = this._eat("specialSubscripts");
+		if (this._lookahead?.type === "specialScript") {
+			var firstSoperand = this._eat("specialScript");
+			return {
+				type: "expSubsup",
+				base: token,
+				firstSoperand,
+				secondSoperand,
+			};
+		}
+		return {
+			type: "expSubscript",
+			base: token,
+			secondSoperand,
+		};
+	}
 
-  return token;
+	if (token.type === "opNary" && this._lookahead.type === "▒") {
+		this._eat("▒");
+		let thirdSoperand = this.soperandLiteral();
+		return {
+			type: "expSubsup",
+			base: token,
+			firstSoperand,
+			secondSoperand,
+			thirdSoperand,
+		};
+	}
+
+	return token;
 };
-Parser.prototype.specialScriptLiteral = function() {
-  let cursor = this._tokenizer._cursor;
-  let literal = this._eat("specialScript").value;
-  let one = this._tokenizer.getSymbols(literal);
-  one = this._tokenizer.specialSuperscriptsConvert(one)
-  
-  for (let i = 0; i < one.length; i++) {
-    this._tokenizer._string.splice(cursor, 0, one[i]);
-    cursor++;
-  }
+Parser.prototype.specialScriptLiteral = function () {
+	let cursor = this._tokenizer._cursor;
+	let literal = this._eat("specialScript").value;
+	let one = this._tokenizer.getSymbols(literal);
+	one = this._tokenizer.specialSuperscriptsConvert(one);
 
-  this._tokenizer._cursor -= 1;
-  this._lookahead = this._tokenizer.getNextToken();
+	for (let i = 0; i < one.length; i++) {
+		this._tokenizer._string.splice(cursor, 0, one[i]);
+		cursor++;
+	}
 
-  return this.soperandLiteral(cursor);
+	this._tokenizer._cursor -= 1;
+	this._lookahead = this._tokenizer.getNextToken();
+
+	return this.soperandLiteral(cursor);
 };
-Parser.prototype.specialSubscriptLiteral = function() {
-  let cursor = this._tokenizer._cursor;
-  let literal = this._eat("specialSubscripts").value;
-  let one = this._tokenizer.getSymbols(literal);
-  one = this._tokenizer.specialSubscriptsConvert(one)
-  
-  for (let i = 0; i < one.length; i++) {
-    this._tokenizer._string.splice(cursor, 0, one[i]);
-    cursor++;
-  }
+Parser.prototype.specialSubscriptLiteral = function () {
+	let cursor = this._tokenizer._cursor;
+	let literal = this._eat("specialSubscripts").value;
+	let one = this._tokenizer.getSymbols(literal);
+	one = this._tokenizer.specialSubscriptsConvert(one);
 
-  this._tokenizer._cursor -= 1;
-  this._lookahead = this._tokenizer.getNextToken();
+	for (let i = 0; i < one.length; i++) {
+		this._tokenizer._string.splice(cursor, 0, one[i]);
+		cursor++;
+	}
 
-  return this.soperandLiteral(cursor);
+	this._tokenizer._cursor -= 1;
+	this._lookahead = this._tokenizer.getNextToken();
+
+	return this.soperandLiteral(cursor);
 };
 Parser.prototype.isExpSubsupLiteral = function (tokenName) {
-  return this.isScriptBaseLiteral(tokenName);
+	return this.isScriptBaseLiteral(tokenName);
 };
 Parser.prototype.expScriptLiteral = function () {
-  return this.expSubsupLiteral();
+	return this.expSubsupLiteral();
 };
 Parser.prototype.isExpScriptLiteral = function (tokenName) {
-  return this.isExpSubsupLiteral(tokenName);
+	return this.isExpSubsupLiteral(tokenName);
 };
 Parser.prototype.entityLiteral = function () {
-  let output = undefined;
-  if (this.isAtomsLiteral(this._lookahead?.type)) {
-    output = this.atomsLiteral();
-  } else if (this.isExpBracketLiteral(this._lookahead?.type)) {
-    output = this.expBracketLiteral();
-  } 
-  
-  if (this.isNumberLiteral(this._lookahead?.type) && !output) {
-    output = this.numberLiteral();
-  }
+	let output = undefined;
+	if (this.isAtomsLiteral(this._lookahead?.type)) {
+		output = this.atomsLiteral();
+	} else if (this.isExpBracketLiteral(this._lookahead?.type)) {
+		output = this.expBracketLiteral();
+	}
 
-  return output
+	if (this.isNumberLiteral(this._lookahead?.type) && !output) {
+		output = this.numberLiteral();
+	}
+
+	return output;
 };
 Parser.prototype.isEntityLiteral = function (tokenName) {
-  return (
-    this.isAtomsLiteral(tokenName) ||
-    this.isExpBracketLiteral(tokenName) ||
-    this.isNumberLiteral(tokenName)
-  );
+	return (
+		this.isAtomsLiteral(tokenName) ||
+		this.isExpBracketLiteral(tokenName) ||
+		this.isNumberLiteral(tokenName)
+	);
 };
 Parser.prototype.factorLiteral = function (isSubSup) {
-  let next = this._tokenizer.getNextNextToken()?.type;
-  if (this.isEntityLiteral(this._lookahead?.type) && 
-      ((isSubSup !== undefined && next !== isSubSup) || (isSubSup === undefined && next !== "^" && next !== "_"))
-      && (next !== "┴" && next !== "┬")
-      && next !== "specialScript"
-      )  {
-    const entity = this.entityLiteral();
-    if (entity && this._lookahead?.type === "!") {
-      const postfix = this._eat("!");
-      return {
-        type: "factorLiteral",
-        value: entity,
-        postfix,
-      };
-    } else if (entity && this._lookahead?.type === "!!") {
-      const postfix = this._eat("!!");
-      return {
-        type: "factorLiteral",
-        value: entity,
-        postfix,
-      };
-    }
-    return entity;
-  }
-  else if (this.isFunctionLiteral(this._lookahead?.type)) {
-    return this.functionLiteral();
-  }
-  else if (this.isExpScriptLiteral(this._lookahead?.type)) {
-    return this.expScriptLiteral();
-  }
+	let next = this._tokenizer.getNextNextToken()?.type;
+	if (
+		this.isEntityLiteral(this._lookahead?.type) &&
+		((isSubSup !== undefined && next !== isSubSup) ||
+			(isSubSup === undefined && next !== "^" && next !== "_")) &&
+		next !== "┴" &&
+		next !== "┬" &&
+		next !== "specialScript"
+	) {
+		const entity = this.entityLiteral();
+		if (entity && this._lookahead?.type === "!") {
+			const postfix = this._eat("!");
+			return {
+				type: "factorLiteral",
+				value: entity,
+				postfix,
+			};
+		} else if (entity && this._lookahead?.type === "!!") {
+			const postfix = this._eat("!!");
+			return {
+				type: "factorLiteral",
+				value: entity,
+				postfix,
+			};
+		}
+		return entity;
+	} else if (this.isFunctionLiteral(this._lookahead?.type)) {
+		return this.functionLiteral();
+	} else if (this.isExpScriptLiteral(this._lookahead?.type)) {
+		return this.expScriptLiteral();
+	}
 };
 Parser.prototype.isFactorLiteral = function (tokenName) {
-  return (
-    this.isEntityLiteral(tokenName) ||
-    this.isFunctionLiteral(tokenName) ||
-    (this.isExpScriptLiteral(tokenName) &&
-      (this._tokenizer.getNextNextToken()?.type === "^" ||
-        this._tokenizer.getNextNextToken()?.type === "_"))
-  );
+	return (
+		this.isEntityLiteral(tokenName) ||
+		this.isFunctionLiteral(tokenName) ||
+		(this.isExpScriptLiteral(tokenName) &&
+			(this._tokenizer.getNextNextToken()?.type === "^" ||
+				this._tokenizer.getNextNextToken()?.type === "_"))
+	);
 };
 Parser.prototype.operandLiteral = function (isSubSup) {
-  const factorList = [this.factorLiteral(isSubSup)];
-  let next = this._tokenizer.getNextNextToken()?.type;
+	const factorList = [this.factorLiteral(isSubSup)];
+	let next = this._tokenizer.getNextNextToken()?.type;
 
-  while (
-    this.isFactorLiteral(this._lookahead?.type) && 
-    this._lookahead?.type !== "|" && 
-    this._lookahead?.type !== "specialScript" && 
-    this._lookahead?.type !== "specialSubscripts"
-    ) {
-      if (isSubSup < this._tokenizer._cursor) {
-        return factorList;
-      }    
-    factorList.push(this.factorLiteral(isSubSup));
-    next = this._tokenizer.getNextNextToken()?.type;
-  }
+	while (
+		this.isFactorLiteral(this._lookahead?.type) &&
+		this._lookahead?.type !== "|" &&
+		this._lookahead?.type !== "specialScript" &&
+		this._lookahead?.type !== "specialSubscripts"
+	) {
+		if (isSubSup < this._tokenizer._cursor) {
+			return factorList;
+		}
+		factorList.push(this.factorLiteral(isSubSup));
+		next = this._tokenizer.getNextNextToken()?.type;
+	}
 
-  return factorList;
+	return factorList;
 };
 Parser.prototype.isOperandLiteral = function (tokenName) {
-  return this.isFactorLiteral(tokenName);
+	return this.isFactorLiteral(tokenName);
 };
 Parser.prototype.boxLiteral = function () {
-  if (this._lookahead?.type === "□") {
-    this._eat("□");
-    if (this.isOperandLiteral(this._lookahead?.type)) {
-      const token = this.operandLiteral();
-      return {
-        type: "boxLiteral",
-        value: token,
-      };
-    }
-  }
-  return null;
+	if (this._lookahead?.type === "□") {
+		this._eat("□");
+		if (this.isOperandLiteral(this._lookahead?.type)) {
+			const token = this.operandLiteral();
+			return {
+				type: "boxLiteral",
+				value: token,
+			};
+		}
+	}
+	return null;
 };
 Parser.prototype.rectLiteral = function () {
-  if (this._lookahead?.type === "▭") {
-    this._eat("▭");
-    if (this.isOperandLiteral(this._lookahead?.type)) {
-      const token = this.operandLiteral();
-      return {
-        type: "rectLiteral",
-        value: token,
-      };
-    }
-  }
-  return null;
+	if (this._lookahead?.type === "▭") {
+		this._eat("▭");
+		if (this.isOperandLiteral(this._lookahead?.type)) {
+			const token = this.operandLiteral();
+			return {
+				type: "rectLiteral",
+				value: token,
+			};
+		}
+	}
+	return null;
 };
 Parser.prototype.isRectLiteral = function (tokenName) {
-  return tokenName === "▭";
+	return tokenName === "▭";
 };
 Parser.prototype.overbarLiteral = function () {
-  this._eat("Diacritic")
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-      const token = this.operandLiteral();
-      return {
-        type: "overbarLiteral",
-        value: token,
-      };
-  }
-  return null;
+	this._eat("Diacritic");
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const token = this.operandLiteral();
+		return {
+			type: "overbarLiteral",
+			value: token,
+		};
+	}
+	return null;
 };
 Parser.prototype.isOverbarLiteral = function (tokenName) {
-  return this._lookahead?.value === '̄';
+	return this._lookahead?.value === "̄";
 };
 
 Parser.prototype.underbarLiteral = function () {
-  if (this._lookahead?.type === "▁") {
-    this._eat("▁");
-    if (this.isOperandLiteral(this._lookahead?.type)) {
-      const token = this.operandLiteral();
-      return {
-        type: "underbarLiteral",
-        value: token,
-      };
-    }
-  }
-  return null;
+	if (this._lookahead?.type === "▁") {
+		this._eat("▁");
+		if (this.isOperandLiteral(this._lookahead?.type)) {
+			const token = this.operandLiteral();
+			return {
+				type: "underbarLiteral",
+				value: token,
+			};
+		}
+	}
+	return null;
 };
 Parser.prototype.isUnderbarLiteral = function (tokenName) {
-  return tokenName === "▁";
+	return tokenName === "▁";
 };
 Parser.prototype.isBoxLiteral = function (tokenName) {
-  return tokenName === "□";
+	return tokenName === "□";
 };
 Parser.prototype.hbrackLiteral = function () {
-  const token = this.opHbracketLiteral();
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    const operand = this.operandLiteral();
-    return {
-      type: "hbrackLiteral",
-      hbracket: token,
-      operand,
-    };
-  }
-  return null;
+	const token = this.opHbracketLiteral();
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const operand = this.operandLiteral();
+		return {
+			type: "hbrackLiteral",
+			hbracket: token,
+			operand,
+		};
+	}
+	return null;
 };
 Parser.prototype.isHbrackLiteral = function (tokenName) {
-  return tokenName === "opHbracket";
+	return tokenName === "opHbracket";
 };
 Parser.prototype.sqrtLiteral = function () {
-  this._eat("√");
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    const token = this.operandLiteral();
-    return {
-      type: "sqrtLiteral",
-      value: token,
-    };
-  }
-  return null;
+	this._eat("√");
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const token = this.operandLiteral();
+		return {
+			type: "sqrtLiteral",
+			value: token,
+		};
+	}
+	return null;
 };
 Parser.prototype.isSqrtLiteral = function (tokenName) {
-  return tokenName === "√";
+	return tokenName === "√";
 };
 Parser.prototype.cubertLiteral = function () {
-  this._eat("∛");
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    const token = this.operandLiteral();
-    return {
-      type: "cubertLiteral",
-      value: token,
-    };
-  }
-  return null;
+	this._eat("∛");
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const token = this.operandLiteral();
+		return {
+			type: "cubertLiteral",
+			value: token,
+		};
+	}
+	return null;
 };
 Parser.prototype.isCubertLiteral = function (tokenName) {
-  return tokenName === "∛";
+	return tokenName === "∛";
 };
 Parser.prototype.fourthrtLiteral = function () {
-  this._eat("∜");
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    const token = this.operandLiteral();
-    return {
-      type: "fourthrtLiteral",
-      value: token,
-    };
-  }
-  return null;
+	this._eat("∜");
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const token = this.operandLiteral();
+		return {
+			type: "fourthrtLiteral",
+			value: token,
+		};
+	}
+	return null;
 };
 Parser.prototype.isFourthrtLiteral = function (tokenName) {
-  return tokenName === "∜";
+	return tokenName === "∜";
 };
 Parser.prototype.nthrtLiteral = function () {
-  this._eat("√(");
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    const index = this.operandLiteral();
-    this._eat("&");
-    if (this.isOperandLiteral(this._lookahead?.type)) {
-      const content = this.expLiteral();
-      this._eat("opClose");
-      return {
-        type: "nthrtLiteral",
-        index,
-        content,
-      };
-    }
-  }
+	this._eat("√(");
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const index = this.operandLiteral();
+		this._eat("&");
+		if (this.isOperandLiteral(this._lookahead?.type)) {
+			const content = this.expLiteral();
+			this._eat("opClose");
+			return {
+				type: "nthrtLiteral",
+				index,
+				content,
+			};
+		}
+	}
 };
 Parser.prototype.isNthrtLiteral = function (tokenName) {
-  return tokenName === "√(";
+	return tokenName === "√(";
 };
 Parser.prototype.functionLiteral = function () {
-  if (this.isSqrtLiteral(this._lookahead?.type)) {
-    const token = this.sqrtLiteral();
-    return token;
-  }
-  if (this.isCubertLiteral(this._lookahead?.type)) {
-    const token = this.cubertLiteral();
-    return token;
-  }
-  if (this.isFourthrtLiteral(this._lookahead?.type)) {
-    const token = this.fourthrtLiteral();
-    return token;
-  }
-  if (this.isNthrtLiteral(this._lookahead?.type)) {
-    const token = this.nthrtLiteral();
-    return token;
-  }
-  if (this.isBoxLiteral(this._lookahead?.type)) {
-    const token = this.boxLiteral();
-    return token;
-  }
-  if (this.isRectLiteral(this._lookahead?.type)) {
-    const token = this.rectLiteral();
-    return token;
-  }
-  if (this.isOverbarLiteral(this._lookahead?.type)) {
-    const token = this.overbarLiteral();
-    return token;
-  }
-  if (this.isUnderbarLiteral(this._lookahead?.type)) {
-    const token = this.underbarLiteral();
-    return token;
-  }
-  if (this.isHbrackLiteral(this._lookahead?.type)) {
-    const token = this.hbrackLiteral();
-    return token;
-  }
+	if (this.isSqrtLiteral(this._lookahead?.type)) {
+		const token = this.sqrtLiteral();
+		return token;
+	}
+	if (this.isCubertLiteral(this._lookahead?.type)) {
+		const token = this.cubertLiteral();
+		return token;
+	}
+	if (this.isFourthrtLiteral(this._lookahead?.type)) {
+		const token = this.fourthrtLiteral();
+		return token;
+	}
+	if (this.isNthrtLiteral(this._lookahead?.type)) {
+		const token = this.nthrtLiteral();
+		return token;
+	}
+	if (this.isBoxLiteral(this._lookahead?.type)) {
+		const token = this.boxLiteral();
+		return token;
+	}
+	if (this.isRectLiteral(this._lookahead?.type)) {
+		const token = this.rectLiteral();
+		return token;
+	}
+	if (this.isOverbarLiteral(this._lookahead?.type)) {
+		const token = this.overbarLiteral();
+		return token;
+	}
+	if (this.isUnderbarLiteral(this._lookahead?.type)) {
+		const token = this.underbarLiteral();
+		return token;
+	}
+	if (this.isHbrackLiteral(this._lookahead?.type)) {
+		const token = this.hbrackLiteral();
+		return token;
+	}
 
-  return null;
+	return null;
 };
 Parser.prototype.isFunctionLiteral = function (tokenName) {
-  return (
-    this.isSqrtLiteral(tokenName) ||
-    this.isCubertLiteral(tokenName) ||
-    this.isFourthrtLiteral(tokenName) ||
-    this.isNthrtLiteral(tokenName) ||
-    this.isBoxLiteral(tokenName) ||
-    this.isRectLiteral(tokenName) ||
-    this.isOverbarLiteral(tokenName) ||
-    this.isUnderbarLiteral(tokenName) ||
-    this.isHbrackLiteral(tokenName)
-  );
+	return (
+		this.isSqrtLiteral(tokenName) ||
+		this.isCubertLiteral(tokenName) ||
+		this.isFourthrtLiteral(tokenName) ||
+		this.isNthrtLiteral(tokenName) ||
+		this.isBoxLiteral(tokenName) ||
+		this.isRectLiteral(tokenName) ||
+		this.isOverbarLiteral(tokenName) ||
+		this.isUnderbarLiteral(tokenName) ||
+		this.isHbrackLiteral(tokenName)
+	);
 };
 Parser.prototype.numeratorLiteral = function () {
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    const token = this.operandLiteral();
-    return {
-      type: "numeratorLiteral",
-      value: token,
-    };
-  } 
-  
-  if (this.isFractionLiteral(this._lookahead?.type)) {
-    const fracList = this.fractionLiteral();
-    return {
-      type: "numeratorLiteral",
-      value: fracList,
-    };
-  }
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		const token = this.operandLiteral();
+		return {
+			type: "numeratorLiteral",
+			value: token,
+		};
+	}
 
-  return null;
+	if (this.isFractionLiteral(this._lookahead?.type)) {
+		const fracList = this.fractionLiteral();
+		return {
+			type: "numeratorLiteral",
+			value: fracList,
+		};
+	}
+
+	return null;
 };
 Parser.prototype.isNumeratorLiteral = function (tokenName) {
-  return this.isOperandLiteral(tokenName);
+	return this.isOperandLiteral(tokenName);
 };
 Parser.prototype.fractionLiteral = function (numerator) {
-  if (numerator === undefined) {
-    numerator = this.numeratorLiteral();
-  }
-  
-  if (this._lookahead?.type === "opOver") {
-    const opOver = this.opOverLiteral();
+	if (numerator === undefined) {
+		numerator = this.numeratorLiteral();
+	}
 
-    if (this.isOperandLiteral(this._lookahead?.type)) {
-      const operand = this.operandLiteral();
+	if (this._lookahead?.type === "opOver") {
+		const opOver = this.opOverLiteral();
 
-      let fracs = this._fractionLiteral(operand);
-      return {
-        type: "fractionLiteral",
-        numerator,
-        opOver,
-        operand: fracs?.length === 0 || fracs === null ? operand : fracs,
-      };
-    }
-  }
-  if (this._lookahead?.type === "¦") {
-    this._eat("¦");
-    if (this.isNumeratorLiteral(this._lookahead?.type)) {
-      const operand = this.numeratorLiteral();
-      return {
-        type: "binomLiteral",
-        numerator,
-        operand,
-      };
-    }
-  }
-  return null;
+		if (this.isOperandLiteral(this._lookahead?.type)) {
+			const operand = this.operandLiteral();
+
+			let fracs = this._fractionLiteral(operand);
+			return {
+				type: "fractionLiteral",
+				numerator,
+				opOver,
+				operand:
+					fracs?.length === 0 || fracs === null ? operand : fracs,
+			};
+		}
+	}
+	if (this._lookahead?.type === "¦") {
+		this._eat("¦");
+		if (this.isNumeratorLiteral(this._lookahead?.type)) {
+			const operand = this.numeratorLiteral();
+			return {
+				type: "binomLiteral",
+				numerator,
+				operand,
+			};
+		}
+	}
+	return null;
 };
 Parser.prototype.isFractionLiteral = function (tokenName) {
-  const nextNextToken = this._tokenizer.getNextNextToken();
-  return (
-    this.isNumeratorLiteral(tokenName) &&
-    (nextNextToken?.type === "opOver" || nextNextToken?.type === "¦")
-  );
+	const nextNextToken = this._tokenizer.getNextNextToken();
+	return (
+		this.isNumeratorLiteral(tokenName) &&
+		(nextNextToken?.type === "opOver" || nextNextToken?.type === "¦")
+	);
 };
-Parser.prototype._fractionLiteral = function(numerator) {
-  if (this._lookahead?.type === "opOver") {
-    const opOver = this.opOverLiteral();
-    if (this.isOperandLiteral(this._lookahead?.type)) {
-      const operand = this.operandLiteral();
-      let fracs = [];
-      while (this._isFractionLiteral(this._lookahead?.type)) {
-        fracs.push(this._fractionLiteral(operand));
-      }
-      return {
-        type: "fractionLiteral",
-        numerator,
-        opOver,
-        operand: fracs.length === 0 ? operand : fracs,
-      }
-    }
-  } 
-  else {
-    return null;
-  }
+Parser.prototype._fractionLiteral = function (numerator) {
+	if (this._lookahead?.type === "opOver") {
+		const opOver = this.opOverLiteral();
+		if (this.isOperandLiteral(this._lookahead?.type)) {
+			const operand = this.operandLiteral();
+			let fracs = [];
+			while (this._isFractionLiteral(this._lookahead?.type)) {
+				fracs.push(this._fractionLiteral(operand));
+			}
+			return {
+				type: "fractionLiteral",
+				numerator,
+				opOver,
+				operand: fracs.length === 0 ? operand : fracs,
+			};
+		}
+	} else {
+		return null;
+	}
 };
 Parser.prototype._isFractionLiteral = function (tokenName) {
-  return tokenName === "opOver";
+	return tokenName === "opOver";
 };
 //TODO: add array
 Parser.prototype.elementLiteral = function () {
-  if (this.isFractionLiteral(this._lookahead?.type)) {
-    return this.fractionLiteral();
-  }
-  if (this.isOperandLiteral(this._lookahead?.type)) {
-    return this.operandLiteral();
-  }
+	if (this.isFractionLiteral(this._lookahead?.type)) {
+		return this.fractionLiteral();
+	}
+	if (this.isOperandLiteral(this._lookahead?.type)) {
+		return this.operandLiteral();
+	}
 };
 Parser.prototype.isElementLiteral = function (tokenName) {
-  return this.isFractionLiteral(tokenName) || this.isOperandLiteral(tokenName);
+	return (
+		this.isFractionLiteral(tokenName) || this.isOperandLiteral(tokenName)
+	);
 };
 Parser.prototype.expLiteral = function () {
-  const expList = [this.elementLiteral()];
+	const expList = [this.elementLiteral()];
 
-  let ap = this.someCalc(expList);
-  if (ap) {
-    expList.push(ap);
-  }
+	let ap = this.someCalc(expList);
+	if (ap) {
+		expList.push(ap);
+	}
 
-  while ( this._lookahead?.type !== "|" &&
-    this.isElementLiteral(this._lookahead?.type) ||
-    this.isOtherLiteral(this._lookahead?.type) 
-  ) {
-    if (this.isOtherLiteral(this._lookahead?.type)) {
-      expList.push(this.otherLiteral());
-    } else if (this.isElementLiteral(this._lookahead?.type)) {
-      expList.push(this.elementLiteral());
-    }
+	while (
+		(this._lookahead?.type !== "|" &&
+			this.isElementLiteral(this._lookahead?.type)) ||
+		this.isOtherLiteral(this._lookahead?.type)
+	) {
+		if (this.isOtherLiteral(this._lookahead?.type)) {
+			expList.push(this.otherLiteral());
+		} else if (this.isElementLiteral(this._lookahead?.type)) {
+			expList.push(this.elementLiteral());
+		}
 
-    ap = this.someCalc(expList);
-    if (ap) {
-      expList.push(ap);
-    }
-  }
+		ap = this.someCalc(expList);
+		if (ap) {
+			expList.push(ap);
+		}
+	}
 
-  return {
-    type: "expLiteral",
-    value: expList,
-  };
+	return {
+		type: "expLiteral",
+		value: expList,
+	};
 };
 Parser.prototype.someCalc = function (expList) {
-  let prevElement = expList[expList.length - 1];
-  if (prevElement) {
-    let lenOfCh = prevElement?.length;
-    prevElement = prevElement[lenOfCh - 1];
-    if (prevElement?.close) {
-      if (this._lookahead?.type === "opOver" || this._lookahead?.type === "¦") {
-        const numerator = expList.pop();
-        return this.fractionLiteral(numerator);
-      } 
-      
-      else if (this._lookahead?.type === "^" || this._lookahead?.type === "_") {
-        const base = expList.pop();
-        return this.expSubsupLiteral(base);
-      }
+	let prevElement = expList[expList.length - 1];
+	if (prevElement) {
+		let lenOfCh = prevElement?.length;
+		prevElement = prevElement[lenOfCh - 1];
+		if (prevElement?.close) {
+			if (
+				this._lookahead?.type === "opOver" ||
+				this._lookahead?.type === "¦"
+			) {
+				const numerator = expList.pop();
+				return this.fractionLiteral(numerator);
+			} else if (
+				this._lookahead?.type === "^" ||
+				this._lookahead?.type === "_"
+			) {
+				const base = expList.pop();
+				return this.expSubsupLiteral(base);
+			} else if (
+				this._lookahead?.type === "┬" ||
+				this._lookahead?.type === "┴"
+			) {
+				const base = expList.pop();
+				return this.expSubsupLiteral(base);
+			}
+		}
 
-      else if (this._lookahead?.type === "┬" || this._lookahead?.type === "┴") {
-        const base = expList.pop();
-        return this.expSubsupLiteral(base);
-      }
-    }
-
-    if (
-      this._lookahead?.type == "▒" &&
-      (prevElement?.type === "naryLiteral" ||
-        prevElement?.type === "expSuperscript" ||
-        prevElement?.type === "expSubscript" ||
-        prevElement?.type === "expSubsup")
-    ) {
-      this._eat("▒");
-      expList[expList.length - 1].exp = this.elementLiteral();
-    }
-  }
+		if (
+			this._lookahead?.type == "▒" &&
+			(prevElement?.type === "naryLiteral" ||
+				prevElement?.type === "expSuperscript" ||
+				prevElement?.type === "expSubscript" ||
+				prevElement?.type === "expSubsup")
+		) {
+			this._eat("▒");
+			expList[expList.length - 1].exp = this.elementLiteral();
+		}
+	}
 };
 Parser.prototype._eat = function (tokenType) {
-  const token = this._lookahead;
+	const token = this._lookahead;
 
-  if (token === null) {
-    throw new SyntaxError(`Unexpected end of input, expected: "${tokenType}"`);
-  }
+	if (token === null) {
+		throw new SyntaxError(
+			`Unexpected end of input, expected: "${tokenType}"`
+		);
+	}
 
-  if (token.type !== tokenType) {
-    throw new SyntaxError(
-      `Unexpected token: "${token.type}", expected: "${tokenType}"`
-    );
-  }
+	if (token.type !== tokenType) {
+		throw new SyntaxError(
+			`Unexpected token: "${token.type}", expected: "${tokenType}"`
+		);
+	}
 
-  //Advance to the next token.
-  this._lookahead = this._tokenizer.getNextToken();
-  return token;
+	//Advance to the next token.
+	this._lookahead = this._tokenizer.getNextToken();
+	return token;
 };
 
 //=====================Tokenizer====================//
-
- const arrOpNary = [
+const arrOpNary = [
 	"∑",
 	"⅀",
 	"⨊",
@@ -1476,300 +1482,306 @@ Parser.prototype._eat = function (tokenType) {
 	"⨂",
 	"⨉",
 	"⫿",
-  ];
-  const anOther = [
-  "Α",
-  "Β",
-  "Γ",
-  "Δ",
-  "Ε",
-  "Ζ",
-  "Η",
-  "Θ",
-  "Ι",
-  "Κ",
-  "Λ",
-  "Μ",
-  "Ν",
-  "Ξ",
-  "Ο",
-  "Π",
-  "Ρ",
-  "Σ",
-  "Τ",
-  "Υ",
-  "Φ",
-  "Χ",
-  "Ψ",
-  "Ω",
-  "α",
-  "β",
-  "γ",
-  "δ",
-  "ε",
-  "ζ",
-  "η",
-  "θ",
-  "ι",
-  "κ",
-  "λ",
-  "μ",
-  "ν",
-  "ξ",
-  "ο",
-  "π",
-  "ρ",
-  "σ",
-  "τ",
-  "υ",
-  "φ",
-  "χ",
-  "ψ",
-  "ω",
-  "𝚨",
-  "𝚩",
-  "𝚪",
-  "𝚫",
-  "𝚬",
-  "𝚭",
-  "𝚮",
-  "𝚯",
-  "𝚰",
-  "𝚱",
-  "𝚲",
-  "𝚳",
-  "𝚴",
-  "𝚵",
-  "𝚶",
-  "𝚷",
-  "𝚸",
-  "𝚺",
-  "𝚻",
-  "𝚼",
-  "𝚽",
-  "𝚾",
-  "𝚿",
-  "𝛀",
-  "𝛂",
-  "𝛃",
-  "𝛄",
-  "𝛅",
-  "𝛆",
-  "𝛇",
-  "𝛈",
-  "𝛉",
-  "𝛊",
-  "𝛋",
-  "𝛌",
-  "𝛍",
-  "𝛎",
-  "𝛏",
-  "𝛐",
-  "𝛑",
-  "𝛒",
-  "𝛔",
-  "𝛕",
-  "𝛖",
-  "𝛗",
-  "𝛘",
-  "𝛙",
-  "𝛚",
-  "𝛢",
-  "𝛣",
-  "𝛤",
-  "𝛥",
-  "𝛦",
-  "𝛧",
-  "𝛨",
-  "𝛩",
-  "𝛪",
-  "𝛫",
-  "𝛬",
-  "𝛭",
-  "𝛮",
-  "𝛯",
-  "𝛰",
-  "𝛱",
-  "𝛲",
-  "𝛴",
-  "𝛵",
-  "𝛶",
-  "𝛷",
-  "𝛸",
-  "𝛹",
-  "𝛺",
-  "𝛼",
-  "𝛽",
-  "𝛾",
-  "𝛿",
-  "𝜀",
-  "𝜁",
-  "𝜂",
-  "𝜃",
-  "𝜄",
-  "𝜅",
-  "𝜆",
-  "𝜇",
-  "𝜈",
-  "𝜉",
-  "𝜊",
-  "𝜋",
-  "𝜌",
-  "𝜎",
-  "𝜏",
-  "𝜐",
-  "𝜑",
-  "𝜒",
-  "𝜓",
-  "𝜔",
-  "𝜜",
-  "𝜝",
-  "𝜞",
-  "𝜟",
-  "𝜠",
-  "𝜡",
-  "𝜢",
-  "𝜣",
-  "𝜤",
-  "𝜥",
-  "𝜦",
-  "𝜧",
-  "𝜨",
-  "𝜩",
-  "𝜪",
-  "𝜫",
-  "𝜬",
-  "𝜮",
-  "𝜯",
-  "𝜰",
-  "𝜱",
-  "𝜲",
-  "𝜳",
-  "𝜴",
-  "𝜶",
-  "𝜷",
-  "𝜸",
-  "𝜹",
-  "𝜺",
-  "𝜻",
-  "𝜼",
-  "𝜽",
-  "𝜾",
-  "𝜿",
-  "𝝀",
-  "𝝁",
-  "𝝂",
-  "𝝃",
-  "𝝄",
-  "𝝅",
-  "𝝆",
-  "𝝈",
-  "𝝉",
-  "𝝊",
-  "𝝋",
-  "𝝌",
-  "𝝍",
-  "𝝎",
-  "𝝖",
-  "𝝗",
-  "𝝘",
-  "𝝙",
-  "𝝚",
-  "𝝛",
-  "𝝜",
-  "𝝝",
-  "𝝞",
-  "𝝟",
-  "𝝠",
-  "𝝡",
-  "𝝢",
-  "𝝣",
-  "𝝤",
-  "𝝥",
-  "𝝦",
-  "𝝨",
-  "𝝩",
-  "𝝪",
-  "𝝫",
-  "𝝬",
-  "𝝭",
-  "𝝮",
-  "𝝰",
-  "𝝱",
-  "𝝲",
-  "𝝳",
-  "𝝴",
-  "𝝵",
-  "𝝶",
-  "𝝷",
-  "𝝸",
-  "𝝹",
-  "𝝺",
-  "𝝻",
-  "𝝼",
-  "𝝽",
-  "𝝾",
-  "𝝿",
-  "𝞀",
-  "𝞂",
-  "𝞃",
-  "𝞄",
-  "𝞅",
-  "𝞆",
-  "𝞇",
-  "𝞈",
-  "𝞐",
-  "𝞑",
-  "𝞒",
-  "𝞓",
-  "𝞔",
-  "𝞕",
-  "𝞖",
-  "𝞗",
-  "𝞘",
-  "𝞙",
-  "𝞚",
-  "𝞛",
-  "𝞜",
-  "𝞝",
-  "𝞞",
-  "𝞟",
-  "𝞠",
-  "𝞢",
-  "𝞣",
-  "𝞤",
-  "𝞥",
-  "𝞦",
-  "𝞧",
-  "𝞨",
-  "𝞪",
-  "𝞫",
-  "𝞬",
-  "𝞭",
-  "𝞮",
-  "𝞯",
-  "𝞰",
-  "𝞱",
-  "𝞲",
-  "𝞳",
-  "𝞴",
-  "𝞵",
-  "𝞶",
-  "𝞷",
-  "𝞸",
-  "𝞹",
-  "𝞺",
-  "𝞼",
-  "𝞽",
-  "𝞾",
-  "𝞿",
-  "𝟀",
-  "𝟁",
-  "𝟂",
-  ];
-  const special = [
-	")", "]", "}", "〉",
-	"(", "[", "{", "〈",
+];
+const anOther = [
+	"Α",
+	"Β",
+	"Γ",
+	"Δ",
+	"Ε",
+	"Ζ",
+	"Η",
+	"Θ",
+	"Ι",
+	"Κ",
+	"Λ",
+	"Μ",
+	"Ν",
+	"Ξ",
+	"Ο",
+	"Π",
+	"Ρ",
+	"Σ",
+	"Τ",
+	"Υ",
+	"Φ",
+	"Χ",
+	"Ψ",
+	"Ω",
+	"α",
+	"β",
+	"γ",
+	"δ",
+	"ε",
+	"ζ",
+	"η",
+	"θ",
+	"ι",
+	"κ",
+	"λ",
+	"μ",
+	"ν",
+	"ξ",
+	"ο",
+	"π",
+	"ρ",
+	"σ",
+	"τ",
+	"υ",
+	"φ",
+	"χ",
+	"ψ",
+	"ω",
+	"𝚨",
+	"𝚩",
+	"𝚪",
+	"𝚫",
+	"𝚬",
+	"𝚭",
+	"𝚮",
+	"𝚯",
+	"𝚰",
+	"𝚱",
+	"𝚲",
+	"𝚳",
+	"𝚴",
+	"𝚵",
+	"𝚶",
+	"𝚷",
+	"𝚸",
+	"𝚺",
+	"𝚻",
+	"𝚼",
+	"𝚽",
+	"𝚾",
+	"𝚿",
+	"𝛀",
+	"𝛂",
+	"𝛃",
+	"𝛄",
+	"𝛅",
+	"𝛆",
+	"𝛇",
+	"𝛈",
+	"𝛉",
+	"𝛊",
+	"𝛋",
+	"𝛌",
+	"𝛍",
+	"𝛎",
+	"𝛏",
+	"𝛐",
+	"𝛑",
+	"𝛒",
+	"𝛔",
+	"𝛕",
+	"𝛖",
+	"𝛗",
+	"𝛘",
+	"𝛙",
+	"𝛚",
+	"𝛢",
+	"𝛣",
+	"𝛤",
+	"𝛥",
+	"𝛦",
+	"𝛧",
+	"𝛨",
+	"𝛩",
+	"𝛪",
+	"𝛫",
+	"𝛬",
+	"𝛭",
+	"𝛮",
+	"𝛯",
+	"𝛰",
+	"𝛱",
+	"𝛲",
+	"𝛴",
+	"𝛵",
+	"𝛶",
+	"𝛷",
+	"𝛸",
+	"𝛹",
+	"𝛺",
+	"𝛼",
+	"𝛽",
+	"𝛾",
+	"𝛿",
+	"𝜀",
+	"𝜁",
+	"𝜂",
+	"𝜃",
+	"𝜄",
+	"𝜅",
+	"𝜆",
+	"𝜇",
+	"𝜈",
+	"𝜉",
+	"𝜊",
+	"𝜋",
+	"𝜌",
+	"𝜎",
+	"𝜏",
+	"𝜐",
+	"𝜑",
+	"𝜒",
+	"𝜓",
+	"𝜔",
+	"𝜜",
+	"𝜝",
+	"𝜞",
+	"𝜟",
+	"𝜠",
+	"𝜡",
+	"𝜢",
+	"𝜣",
+	"𝜤",
+	"𝜥",
+	"𝜦",
+	"𝜧",
+	"𝜨",
+	"𝜩",
+	"𝜪",
+	"𝜫",
+	"𝜬",
+	"𝜮",
+	"𝜯",
+	"𝜰",
+	"𝜱",
+	"𝜲",
+	"𝜳",
+	"𝜴",
+	"𝜶",
+	"𝜷",
+	"𝜸",
+	"𝜹",
+	"𝜺",
+	"𝜻",
+	"𝜼",
+	"𝜽",
+	"𝜾",
+	"𝜿",
+	"𝝀",
+	"𝝁",
+	"𝝂",
+	"𝝃",
+	"𝝄",
+	"𝝅",
+	"𝝆",
+	"𝝈",
+	"𝝉",
+	"𝝊",
+	"𝝋",
+	"𝝌",
+	"𝝍",
+	"𝝎",
+	"𝝖",
+	"𝝗",
+	"𝝘",
+	"𝝙",
+	"𝝚",
+	"𝝛",
+	"𝝜",
+	"𝝝",
+	"𝝞",
+	"𝝟",
+	"𝝠",
+	"𝝡",
+	"𝝢",
+	"𝝣",
+	"𝝤",
+	"𝝥",
+	"𝝦",
+	"𝝨",
+	"𝝩",
+	"𝝪",
+	"𝝫",
+	"𝝬",
+	"𝝭",
+	"𝝮",
+	"𝝰",
+	"𝝱",
+	"𝝲",
+	"𝝳",
+	"𝝴",
+	"𝝵",
+	"𝝶",
+	"𝝷",
+	"𝝸",
+	"𝝹",
+	"𝝺",
+	"𝝻",
+	"𝝼",
+	"𝝽",
+	"𝝾",
+	"𝝿",
+	"𝞀",
+	"𝞂",
+	"𝞃",
+	"𝞄",
+	"𝞅",
+	"𝞆",
+	"𝞇",
+	"𝞈",
+	"𝞐",
+	"𝞑",
+	"𝞒",
+	"𝞓",
+	"𝞔",
+	"𝞕",
+	"𝞖",
+	"𝞗",
+	"𝞘",
+	"𝞙",
+	"𝞚",
+	"𝞛",
+	"𝞜",
+	"𝞝",
+	"𝞞",
+	"𝞟",
+	"𝞠",
+	"𝞢",
+	"𝞣",
+	"𝞤",
+	"𝞥",
+	"𝞦",
+	"𝞧",
+	"𝞨",
+	"𝞪",
+	"𝞫",
+	"𝞬",
+	"𝞭",
+	"𝞮",
+	"𝞯",
+	"𝞰",
+	"𝞱",
+	"𝞲",
+	"𝞳",
+	"𝞴",
+	"𝞵",
+	"𝞶",
+	"𝞷",
+	"𝞸",
+	"𝞹",
+	"𝞺",
+	"𝞼",
+	"𝞽",
+	"𝞾",
+	"𝞿",
+	"𝟀",
+	"𝟁",
+	"𝟂",
+];
+const special = [
+	")",
+	"]",
+	"}",
+	"〉",
+	"(",
+	"[",
+	"{",
+	"〈",
 	"├",
 	"┤",
 	"┬",
@@ -1789,19 +1801,36 @@ Parser.prototype._eat = function (tokenType) {
 	"√",
 	"∛",
 	"∜",
-  
+
 	"+",
 	"-",
 	"*",
-  
-  "/", "∕", "⊘",
-  "^", "_", "√", "∛", "∜", "□", "/", "|",
-  "⏜", "⏝", "⎴", "⎵", "⏞", "⏟", "⏠", "⏡",
-  ",", ".",
-  "&", "■",
-  
-  ];
-  const AutoCorrect = [
+
+	"/",
+	"∕",
+	"⊘",
+	"^",
+	"_",
+	"√",
+	"∛",
+	"∜",
+	"□",
+	"/",
+	"|",
+	"⏜",
+	"⏝",
+	"⎴",
+	"⎵",
+	"⏞",
+	"⏟",
+	"⏠",
+	"⏡",
+	",",
+	".",
+	"&",
+	"■",
+];
+const AutoCorrect = [
 	[/^\\above/, 0x2534],
 	[/^\\acute/, 0x0301],
 	[/^\\aleph/, 0x2135],
@@ -2095,392 +2124,648 @@ Parser.prototype._eat = function (tokenType) {
 	[/^\\underbracket/, 0x23b5],
 	[/^\\overshell/, 0x23e0],
 	[/^\\undershell/, 0x23e1],
-  ];
-  const specialSuperscripts = [ "⁰","¹","²","³","⁴","⁵","⁶","⁷","⁸","⁹","ⁱ","ⁿ","⁺","⁻","⁼","⁽","⁾"];
-  const specialSubscripts = [ "₀","₁","₂","₃","₄","₅","₆","₇","₈","₉","₊","₋","₌","₍","₎"];
-  const Spec = [
-	[ function (str) { return checkRule(str, arrOpNary)}, "opNary" ],
-	[ function (str) { return checkRule(str, [")", "]", "}", "〉"])}, "opClose"],
-	[ function (str) { return checkRule(str, ["(", "[", "{", "〈"])}, "opOpen"],
-  
-	[ function (str) { return checkRule(str, "├")}, "├" ],
-	[ function (str) { return checkRule(str, "┤")}, "┤" ],
-	[ function (str) { return checkRule(str, "┬")}, "┬" ],
-	[ function (str) { return checkRule(str, "┴")}, "┴" ],
-  
-	[ function (str) {
-	  let index = 0;
-	  let out = "";
-	  let literal = str[index];
-	  if (specialSuperscripts.includes(literal)) {
-		while (specialSuperscripts.includes(literal)) {
-		  out += literal;
-		  index++;
-		  literal = str[index];
-		}
-		return out;
-	  }
-	  return null;
-	}, "specialScript" ],
-  
-	[ function (str) {
-	  let index = 0;
-	  let out = "";
-	  let literal = str[index];
-	  if (specialSubscripts.includes(literal)) {
-		while (specialSubscripts.includes(literal)) {
-		  out += literal;
-		  index++;
-		  literal = str[index];
-		}
-		return out;
-	  }
-	  return null;
-	}, "specialSubscripts" ],
-  
+];
+const specialSuperscripts = [
+	"⁰",
+	"¹",
+	"²",
+	"³",
+	"⁴",
+	"⁵",
+	"⁶",
+	"⁷",
+	"⁸",
+	"⁹",
+	"ⁱ",
+	"ⁿ",
+	"⁺",
+	"⁻",
+	"⁼",
+	"⁽",
+	"⁾",
+];
+const specialSubscripts = [
+	"₀",
+	"₁",
+	"₂",
+	"₃",
+	"₄",
+	"₅",
+	"₆",
+	"₇",
+	"₈",
+	"₉",
+	"₊",
+	"₋",
+	"₌",
+	"₍",
+	"₎",
+];
+const Spec = [
+	[
+		function (str) {
+			return checkRule(str, arrOpNary);
+		},
+		"opNary",
+	],
+	[
+		function (str) {
+			return checkRule(str, [")", "]", "}", "〉"]);
+		},
+		"opClose",
+	],
+	[
+		function (str) {
+			return checkRule(str, ["(", "[", "{", "〈"]);
+		},
+		"opOpen",
+	],
+
+	[
+		function (str) {
+			return checkRule(str, "├");
+		},
+		"├",
+	],
+	[
+		function (str) {
+			return checkRule(str, "┤");
+		},
+		"┤",
+	],
+	[
+		function (str) {
+			return checkRule(str, "┬");
+		},
+		"┬",
+	],
+	[
+		function (str) {
+			return checkRule(str, "┴");
+		},
+		"┴",
+	],
+
+	[
+		function (str) {
+			let index = 0;
+			let out = "";
+			let literal = str[index];
+			if (specialSuperscripts.includes(literal)) {
+				while (specialSuperscripts.includes(literal)) {
+					out += literal;
+					index++;
+					literal = str[index];
+				}
+				return out;
+			}
+			return null;
+		},
+		"specialScript",
+	],
+
+	[
+		function (str) {
+			let index = 0;
+			let out = "";
+			let literal = str[index];
+			if (specialSubscripts.includes(literal)) {
+				while (specialSubscripts.includes(literal)) {
+					out += literal;
+					index++;
+					literal = str[index];
+				}
+				return out;
+			}
+			return null;
+		},
+		"specialSubscripts",
+	],
+
 	// MathOperators:
-	[ function (str) {return checkRule(str, "▁")}, "▁" ],
-	[ function (str) {return checkRule(str, "▭")}, "▭" ],
-	[ function (str) {return checkRule(str, "□")}, "□" ],
-	[ function (str) {return checkRule(str, "&")}, "&" ],
-	[ function (str) {return checkRule(str, "!")}, "!" ],
-	[ function (str) {return checkRule(str, "▒")}, "▒" ],
-	[ function (str) {return checkRule(str, "|")}, "|" ],
-	[ function (str) {return checkRule(str, "∞")}, "∞" ],
-	[ function (str) {return checkRule(str, "^")}, "^" ],
-	[ function (str) {return checkRule(str, "_")}, "_" ],
-	[ function (str) {return checkRule(str, "¦")}, "¦" ],
-  
-	[function (str) {return checkRule(str, "+")}, "Char"],
-	[function (str) {return checkRule(str, "-")}, "Char"],
-	[function (str) {return checkRule(str, "*")}, "Char"],
-  
-	[function (str) {return checkRule(str, {seq : ["!", "!"]})}, "!!"],
-	[function (str) {return checkRule(str, {seq : ["|", "|"]})}, "||"],
-	[function (str) {return checkRule(str, {seq : ["-", "∞"]})}, "-∞"],
-	[function (str) {return checkRule(str, {seq : ["√", "("]})}, "√("],
-  
-	[function (str) {return checkRule(str, "√")}, "√"],
-	[function (str) {return checkRule(str, "∛")}, "∛"],
-	[function (str) {return checkRule(str, "∜")}, "∜"],
-	[function (str) {return checkRule(str, ["/", "∕", "⊘"])}, "opOver"],
-	[function (str) {return checkRule(str, ["^", "_", "√", "∛", "∜", "□", "/", "|"])}, "opBuildup"],
-	[function (str) {return checkRule(str, ["⏜", "⏝", "⎴", "⎵", "⏞", "⏟", "⏠", "⏡"])}, "opHbracket"],
-	[function (str) {return checkRule(str, [",", "."])}, "opDecimal"],
-	[function (str) {return checkRule(str, ["&", "■"])}, "opArray"], //add \x{000B}
-  
+	[
+		function (str) {
+			return checkRule(str, "▁");
+		},
+		"▁",
+	],
+	[
+		function (str) {
+			return checkRule(str, "▭");
+		},
+		"▭",
+	],
+	[
+		function (str) {
+			return checkRule(str, "□");
+		},
+		"□",
+	],
+	[
+		function (str) {
+			return checkRule(str, "&");
+		},
+		"&",
+	],
+	[
+		function (str) {
+			return checkRule(str, "!");
+		},
+		"!",
+	],
+	[
+		function (str) {
+			return checkRule(str, "▒");
+		},
+		"▒",
+	],
+	[
+		function (str) {
+			return checkRule(str, "|");
+		},
+		"|",
+	],
+	[
+		function (str) {
+			return checkRule(str, "∞");
+		},
+		"∞",
+	],
+	[
+		function (str) {
+			return checkRule(str, "^");
+		},
+		"^",
+	],
+	[
+		function (str) {
+			return checkRule(str, "_");
+		},
+		"_",
+	],
+	[
+		function (str) {
+			return checkRule(str, "¦");
+		},
+		"¦",
+	],
+
+	[
+		function (str) {
+			return checkRule(str, "+");
+		},
+		"Char",
+	],
+	[
+		function (str) {
+			return checkRule(str, "-");
+		},
+		"Char",
+	],
+	[
+		function (str) {
+			return checkRule(str, "*");
+		},
+		"Char",
+	],
+
+	[
+		function (str) {
+			return checkRule(str, { seq: ["!", "!"] });
+		},
+		"!!",
+	],
+	[
+		function (str) {
+			return checkRule(str, { seq: ["|", "|"] });
+		},
+		"||",
+	],
+	[
+		function (str) {
+			return checkRule(str, { seq: ["-", "∞"] });
+		},
+		"-∞",
+	],
+	[
+		function (str) {
+			return checkRule(str, { seq: ["√", "("] });
+		},
+		"√(",
+	],
+
+	[
+		function (str) {
+			return checkRule(str, "√");
+		},
+		"√",
+	],
+	[
+		function (str) {
+			return checkRule(str, "∛");
+		},
+		"∛",
+	],
+	[
+		function (str) {
+			return checkRule(str, "∜");
+		},
+		"∜",
+	],
+	[
+		function (str) {
+			return checkRule(str, ["/", "∕", "⊘"]);
+		},
+		"opOver",
+	],
+	[
+		function (str) {
+			return checkRule(str, ["^", "_", "√", "∛", "∜", "□", "/", "|"]);
+		},
+		"opBuildup",
+	],
+	[
+		function (str) {
+			return checkRule(str, ["⏜", "⏝", "⎴", "⎵", "⏞", "⏟", "⏠", "⏡"]);
+		},
+		"opHbracket",
+	],
+	[
+		function (str) {
+			return checkRule(str, [",", "."]);
+		},
+		"opDecimal",
+	],
+	[
+		function (str) {
+			return checkRule(str, ["&", "■"]);
+		},
+		"opArray",
+	], //add \x{000B}
+
 	// ------------------------------------------
 	// Diacritic:
 	[
-	  function (str) {
-		const code = fixedCharCodeAt(str[0]);
-		if (code >= 768 && code <= 879) {
-		  return str[0];
-		}
-		return null;
-	  },
-	  "Diacritic",
+		function (str) {
+			const code = fixedCharCodeAt(str[0]);
+			if (code >= 768 && code <= 879) {
+				return str[0];
+			}
+			return null;
+		},
+		"Diacritic",
 	],
-  
+
 	// ------------------------------------------
 	// anMATH:
-	[/^[\uE000-\uE3FF\u2102-\u2131\u2133\u2134]/, "anMath" ],
-  
+	[/^[\uE000-\uE3FF\u2102-\u2131\u2133\u2134]/, "anMath"],
+
 	// ------------------------------------------
 	// AnOther:𝛽
-	[ function (str) {return checkRule(str, anOther)}, "anOther" ],
-  
+	[
+		function (str) {
+			return checkRule(str, anOther);
+		},
+		"anOther",
+	],
+
 	// ------------------------------------------
 	// Numbers:
-	[function (str) {
-	  let arrNumber = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-	  let index = 0;
-	  let out = "";
-	  let literal = str[index];
-	  if (arrNumber.includes(literal)) {
-		while (arrNumber.includes(literal)) {
-		  out += literal;
-		  index++;
-		  literal = str[index];
-		}
-		return out;
-	  }
-	  return null;
-	}, "nASCII"],
-  
+	[
+		function (str) {
+			let arrNumber = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+			let index = 0;
+			let out = "";
+			let literal = str[index];
+			if (arrNumber.includes(literal)) {
+				while (arrNumber.includes(literal)) {
+					out += literal;
+					index++;
+					literal = str[index];
+				}
+				return out;
+			}
+			return null;
+		},
+		"nASCII",
+	],
+
 	// ------------------------------------------
 	// aASCII:
-	[function (str) {
-	  let index = 0;
-	  let literal = str[index];
-	  let out = "";
-	  let code = literal.charCodeAt();
-  
-	  while ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-		out += literal;
-		index++;
-		if (str[index]) {
-		  literal = str[index];
-		  code = literal.charCodeAt();
-		} else {
-		  return out
-		}
-	  }
-  
-	  if (out != "") {
-		return out;
-	  }
-	  return null;
-	}, "aASCII"],
-  
+	[
+		function (str) {
+			let index = 0;
+			let literal = str[index];
+			let out = "";
+			let code = literal.charCodeAt();
+
+			while ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+				out += literal;
+				index++;
+				if (str[index]) {
+					literal = str[index];
+					code = literal.charCodeAt();
+				} else {
+					return out;
+				}
+			}
+
+			if (out != "") {
+				return out;
+			}
+			return null;
+		},
+		"aASCII",
+	],
+
 	// ------------------------------------------
 	// Space:
-	[ function (str) {return checkRule(str, " ")}, "Space" ],
-  
+	[
+		function (str) {
+			return checkRule(str, " ");
+		},
+		"Space",
+	],
+
 	// ------------------------------------------
 	// Char:
-	[ function (str) {
-	  let index = 0;
-	  let out = "";
-	  let literal = str[index];
-	  let arrNumber = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-		while (
-			literal !== "\n" && 
-			literal !== "\r" && 
-			literal !== "\u2028" && 
-			literal !== "\u2029" && 
-			literal !== undefined && 
-			!arrNumber.includes(literal) && 
-			!special.includes(literal) && 
-			!specialSuperscripts.includes(literal) &&
-			!specialSubscripts.includes(literal) &&
-			literal !== " ") {
-		  out += literal;
-		  index++;
-		  literal = str[index];
-		}
-		if (out === "") {
-		  return null;
-		}
-		return out;
-	}, "Char" ],
-  ];
+	[
+		function (str) {
+			let index = 0;
+			let out = "";
+			let literal = str[index];
+			let arrNumber = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+			while (
+				literal !== "\n" &&
+				literal !== "\r" &&
+				literal !== "\u2028" &&
+				literal !== "\u2029" &&
+				literal !== undefined &&
+				!arrNumber.includes(literal) &&
+				!special.includes(literal) &&
+				!specialSuperscripts.includes(literal) &&
+				!specialSubscripts.includes(literal) &&
+				literal !== " "
+			) {
+				out += literal;
+				index++;
+				literal = str[index];
+			}
+			if (out === "") {
+				return null;
+			}
+			return out;
+		},
+		"Char",
+	],
+];
 
-  function singleChar(str, char) {
+function singleChar(str, char) {
 	let literal = str[0];
 	if (literal === char) {
-	  return literal;
+		return literal;
 	}
 	return null;
-  }
-  function arrChar(str, arr) {
+}
+function arrChar(str, arr) {
 	let literal = str[0];
 	if (arr.includes(literal)) {
-	  return literal;
+		return literal;
 	}
 	return null;
-  }
-  function seqChar(str, arr) {
+}
+function seqChar(str, arr) {
 	let literal = "";
 	for (let i = 0; i < arr.length; i++) {
-	  if (str[i] === arr[i]) {
-		literal += str[i];
-	  }
-	  else {
-		return null;
-	  }
+		if (str[i] === arr[i]) {
+			literal += str[i];
+		} else {
+			return null;
+		}
 	}
 	return literal;
-  }
-  function checkRule(str, data) {
+}
+function checkRule(str, data) {
 	if (Array.isArray(data)) {
-	  return arrChar(str, data);
+		return arrChar(str, data);
 	} else if (typeof data === "string" && data.length === 1) {
-	  return singleChar(str, data);
-	} else if (typeof data === 'object') {
-	  return seqChar(str, data.seq);
+		return singleChar(str, data);
+	} else if (typeof data === "object") {
+		return seqChar(str, data.seq);
 	}
-  }
+}
 
-  Tokenizer.prototype.specialSuperscripts = specialSuperscripts;
-  Tokenizer.prototype.specialSubscripts = specialSubscripts;
-  Tokenizer.prototype.specialSuperscriptsConvert = function(arr) {
-	const arrReal = ["0","1","2","3","4","5","6","7","8","9","i","n","+","-","=","(",")"];
+Tokenizer.prototype.specialSuperscripts = specialSuperscripts;
+Tokenizer.prototype.specialSubscripts = specialSubscripts;
+Tokenizer.prototype.specialSuperscriptsConvert = function (arr) {
+	const arrReal = [
+		"0",
+		"1",
+		"2",
+		"3",
+		"4",
+		"5",
+		"6",
+		"7",
+		"8",
+		"9",
+		"i",
+		"n",
+		"+",
+		"-",
+		"=",
+		"(",
+		")",
+	];
 	let outArr = [];
 	for (let i = 0; i < arr.length; i++) {
-	  let index = specialSuperscripts.indexOf(arr[i]);
-	  if (typeof index !== "number") {
-		return null;
-	  }
-	  outArr.push(arrReal[index]);
-	 
+		let index = specialSuperscripts.indexOf(arr[i]);
+		if (typeof index !== "number") {
+			return null;
+		}
+		outArr.push(arrReal[index]);
 	}
 	return outArr;
-  }
-  Tokenizer.prototype.specialSubscriptsConvert = function(arr) {
-	const arrReal = ["0","1","2","3","4","5","6","7","8","9","+","-","=","(",")"];
+};
+Tokenizer.prototype.specialSubscriptsConvert = function (arr) {
+	const arrReal = [
+		"0",
+		"1",
+		"2",
+		"3",
+		"4",
+		"5",
+		"6",
+		"7",
+		"8",
+		"9",
+		"+",
+		"-",
+		"=",
+		"(",
+		")",
+	];
 	let outArr = [];
 	for (let i = 0; i < arr.length; i++) {
-	  let index = specialSubscripts.indexOf(arr[i]);
-	  if (typeof index !== "number") {
-		return null;
-	  }
-	  outArr.push(arrReal[index]);
-	 
+		let index = specialSubscripts.indexOf(arr[i]);
+		if (typeof index !== "number") {
+			return null;
+		}
+		outArr.push(arrReal[index]);
 	}
 	return outArr;
-  }
+};
 
-  function Tokenizer() {
+function Tokenizer() {
 	this._string = undefined;
 	this._cursor = undefined;
-  }
-  Tokenizer.prototype.init = function (string) {
+}
+Tokenizer.prototype.init = function (string) {
 	this._string = this.getSymbols(string);
 	this._cursor = 0;
-  };
-  Tokenizer.prototype.cursor = function () {
+};
+Tokenizer.prototype.cursor = function () {
 	return this._cursor;
-  };
-  Tokenizer.prototype.isEOF = function () {
+};
+Tokenizer.prototype.isEOF = function () {
 	return this._cursor === this._string.length;
-  };
-  Tokenizer.prototype.hasMoreTokens = function () {
+};
+Tokenizer.prototype.hasMoreTokens = function () {
 	return this._cursor < this._string.length;
-  };
-  Tokenizer.prototype.getNextToken = function () {
+};
+Tokenizer.prototype.getNextToken = function () {
 	if (!this.hasMoreTokens()) {
-	  return null;
+		return null;
 	}
 	let string = this._string.slice(this._cursor);
-  
+
 	for (let i = 0; i < AutoCorrect.length; i++) {
-	  let autoCorrectRule = AutoCorrect[i];
-	  let regexp = autoCorrectRule[0];
-	  let token = autoCorrectRule[1];
-	  const tokenValue = this._match(regexp, string);
-  
-	  if (tokenValue === null) {
-		continue;
-	  }
-  
-	  this._string = this._string.slice(tokenValue.length);
-	  this._string = String.fromCharCode(token) + this._string;
-	  string = this._string;
-	  break;
+		let autoCorrectRule = AutoCorrect[i];
+		let regexp = autoCorrectRule[0];
+		let token = autoCorrectRule[1];
+		const tokenValue = this._match(regexp, string);
+
+		if (tokenValue === null) {
+			continue;
+		}
+
+		this._string = this._string.slice(tokenValue.length);
+		this._string = String.fromCharCode(token) + this._string;
+		string = this._string;
+		break;
 	}
-  
+
 	for (let i = 0; i < Spec.length; i++) {
-	  let autoCorrectRule = Spec[i];
-	  let regexp = autoCorrectRule[0];
-	  let tokenType = autoCorrectRule[1];
-	  
-	  let tokenValue = this._match(regexp, string);
-  
-	  if (tokenValue === null) {
-		continue;
-	  }
-  
-	  if (tokenType === null) {
-		return this.getNextToken();
-	  }
-  
-	  return {
-		type: tokenType,
-		value: tokenValue,
-	  };
+		let autoCorrectRule = Spec[i];
+		let regexp = autoCorrectRule[0];
+		let tokenType = autoCorrectRule[1];
+
+		let tokenValue = this._match(regexp, string);
+
+		if (tokenValue === null) {
+			continue;
+		}
+
+		if (tokenType === null) {
+			return this.getNextToken();
+		}
+
+		return {
+			type: tokenType,
+			value: tokenValue,
+		};
 	}
-  
+
 	throw new SyntaxError(`Unexpected token: "${string[0]}"`);
-  };
-  Tokenizer.prototype._match = function (regexp, string) {
+};
+Tokenizer.prototype._match = function (regexp, string) {
 	var matched = null;
 	if (typeof regexp === "function") {
-	  matched = regexp(string);
+		matched = regexp(string);
 	}
-  
+
 	if (matched === null || matched === undefined) {
-	  return null;
+		return null;
 	}
-  
+
 	this._cursor += this.getSymbols(matched).length;
 	return matched;
-  };
-  // LL(2)
-  Tokenizer.prototype.getNextNextToken = function () {
+};
+// LL(2)
+Tokenizer.prototype.getNextNextToken = function () {
 	if (!this.hasMoreTokens()) {
-	  return null;
+		return null;
 	}
-  
+
 	const newString = this._string;
 	const string = newString.slice(this._cursor);
-  
+
 	for (const [regexp, tokenType] of Spec) {
-	  const tokenValue = this._matchSpecial(regexp, string);
-  
-	  if (tokenValue === null) {
-		continue;
-	  }
-  
-	  if (tokenType === null) {
-		return this.getNextNextToken();
-	  }
-  
-	  return {
-		type: tokenType,
-		value: tokenValue,
-	  };
+		const tokenValue = this._matchSpecial(regexp, string);
+
+		if (tokenValue === null) {
+			continue;
+		}
+
+		if (tokenType === null) {
+			return this.getNextNextToken();
+		}
+
+		return {
+			type: tokenType,
+			value: tokenValue,
+		};
 	}
 	throw new SyntaxError(`Unexpected token: "${string[0]}"`);
-  };
-  Tokenizer.prototype._matchSpecial = function (regexp, string) {
+};
+Tokenizer.prototype._matchSpecial = function (regexp, string) {
 	var matched = null;
 	if (typeof regexp === "function") {
-	  matched = regexp(string);
+		matched = regexp(string);
 	}
-  
+
 	if (matched === null) {
-	  return null;
+		return null;
 	}
 	return matched;
-  };
-  // https://mathiasbynens.be/notes/javascript-unicode
-  // Iterate through all characters in a string to account for surrogate pairs
-  Tokenizer.prototype.getSymbols = function (string) {
+};
+// https://mathiasbynens.be/notes/javascript-unicode
+// Iterate through all characters in a string to account for surrogate pairs
+Tokenizer.prototype.getSymbols = function (string) {
 	var index = 0;
 	var length = string.length;
 	var output = [];
 	for (; index < length; ++index) {
-	  var charCode = string.charCodeAt(index);
-	  if (charCode >= 0xd800 && charCode <= 0xdbff) {
-		charCode = string.charCodeAt(index + 1);
-		if (charCode >= 0xdc00 && charCode <= 0xdfff) {
-		  output.push(string.slice(index, index + 2));
-		  ++index;
-		  continue;
+		var charCode = string.charCodeAt(index);
+		if (charCode >= 0xd800 && charCode <= 0xdbff) {
+			charCode = string.charCodeAt(index + 1);
+			if (charCode >= 0xdc00 && charCode <= 0xdfff) {
+				output.push(string.slice(index, index + 2));
+				++index;
+				continue;
+			}
 		}
-	  }
-	  output.push(string.charAt(index));
+		output.push(string.charAt(index));
 	}
 	return output;
-  }
+};
 
-  //get right code of Unicode symbol, esspesialy it surrogate pair (UTF-16)
-  //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt#fixing_charcodeat_to_handle_non-basic-multilingual-plane_characters_if_their_presence_earlier_in_the_string_is_known
-  function fixedCharCodeAt(str) {
+//get right code of Unicode symbol, esspesialy it surrogate pair (UTF-16)
+//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt#fixing_charcodeat_to_handle_non-basic-multilingual-plane_characters_if_their_presence_earlier_in_the_string_is_known
+function fixedCharCodeAt(str) {
 	var code = str.charCodeAt(0);
 	var hi, low;
-  
+
 	if (0xd800 <= code && code <= 0xdbff) {
-	  hi = code;
-	  low = str.charCodeAt(1);
-	  if (isNaN(low)) {
-		return null;
-	  }
-	  return (hi - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000;
+		hi = code;
+		low = str.charCodeAt(1);
+		if (isNaN(low)) {
+			return null;
+		}
+		return (hi - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000;
 	}
 	if (0xdc00 <= code && code <= 0xdfff) {
-	  return false;
+		return false;
 	}
 	return code;
-  }
+}

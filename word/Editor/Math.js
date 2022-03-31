@@ -2601,6 +2601,7 @@ ParaMath.prototype.ConvertToInlineMode = function()
 		oRun.Add(new ParaSpace());
 		oParent.AddToContent(nPosInParent, oRun);
 	}
+	this.Set_Inline(true);
 
 	return true;
 };
@@ -2649,6 +2650,7 @@ ParaMath.prototype.ConvertToDisplayMode = function()
 		oRun.Add(new ParaNewLine(break_Line));
 		oParent.AddToContent(nPosInParent, oRun);
 	}
+	this.Set_Inline(false);
 
 	return true;
 };
