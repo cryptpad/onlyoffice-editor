@@ -21,16 +21,22 @@
 			"cell/utils/utils.js",
 			"cell/view/HandlerList.js",
 			"common/CollaborativeEditingBase.js",
+			"cell/model/DrawingObjects/GlobalCounters.js",
 			"cell/model/CollaborativeEditing.js",
 			"common/macros.js",
 			"common/apiBase.js",
 			"common/apiBase_plugins.js",
 			"word/apiCommon.js",
 			"cell/api.js",
-			"common/spell/spell.js"
+			"common/spell/spell.js",
+			"word/Editor/Table/TableLook.js"
 		],
-		"common": [			
-			"common/downloaderfiles.js",
+		"common": [
+			"common/api/actionOnTimer.js",
+			"common/api/tableStylesPreviewGenerator.js",
+			"common/api/spellCheckSettings.js",
+
+		  "common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
 
@@ -152,7 +158,6 @@
 			"cell/model/DrawingObjects/Graphics.js",
 			"word/Drawing/ShapeDrawer.js",
 			"cell/model/DrawingObjects/DrawingDocument.js",
-			"cell/model/DrawingObjects/GlobalCounters.js",
 			"cell/model/DrawingObjects/Format/ShapePrototype.js",
 			"cell/model/DrawingObjects/Format/ImagePrototype.js",
 			"cell/model/DrawingObjects/Format/GroupPrototype.js",
@@ -184,6 +189,7 @@
 			"word/Editor/Field.js",
 			"word/Editor/FieldChanges.js",
 			"word/Editor/Run.js",
+			"word/Editor/Paragraph/Run/RunAutoCorrect.js",
 			"word/Editor/PresentationField.js",
 			"word/Editor/RunChanges.js",
 			"word/Editor/Math.js",
@@ -226,7 +232,10 @@
 			"word/Editor/StructuredDocumentTags/SdtPr.js",
 			"word/Editor/StructuredDocumentTags/SdtPrChanges.js",
 			"word/Editor/Serialize2.js",
-			"word/Editor/Spelling.js",
+			"word/Editor/SpellChecker/DocumentSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphCollector.js",
+			"word/Editor/SpellChecker/ParagraphSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphSpellCheckerElement.js",
 			"word/Editor/FootEndNote.js",
 			"word/Editor/Footnotes.js",
 			"word/Editor/FootnotesChanges.js",
@@ -263,7 +272,7 @@
 			"common/Drawings/Format/OleObject.js",
 			"common/Drawings/Format/DrawingContent.js",
 			"common/plugins.js",
-			
+
 			"common/Native/native_graphics.js"
 		],
 		"desktop": {

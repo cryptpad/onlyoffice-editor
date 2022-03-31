@@ -25,9 +25,14 @@
 			"common/apiBase_plugins.js",
 			"word/apiCommon.js",
 			"slide/api.js",
-			"common/spell/spell.js"
+			"common/spell/spell.js",
+			"word/Editor/Table/TableLook.js"
 		],
 		"common": [
+			"common/api/actionOnTimer.js",
+			"common/api/tableStylesPreviewGenerator.js",
+			"common/api/spellCheckSettings.js",
+
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
@@ -172,6 +177,7 @@
 			"word/Editor/Field.js",
 			"word/Editor/FieldChanges.js",
 			"word/Editor/Run.js",
+			"word/Editor/Paragraph/Run/RunAutoCorrect.js",
 			"word/Editor/PresentationField.js",
 			"word/Editor/RunChanges.js",
 			"word/Math/LaTeX.js",
@@ -205,7 +211,10 @@
 			"word/Editor/HeaderFooter.js",
 			"word/Editor/Math.js",
 			"word/Editor/MathChanges.js",
-			"word/Editor/Spelling.js",
+			"word/Editor/SpellChecker/DocumentSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphCollector.js",
+			"word/Editor/SpellChecker/ParagraphSpellChecker.js",
+			"word/Editor/SpellChecker/ParagraphSpellCheckerElement.js",
 			"word/Editor/FootEndNote.js",
 			"word/Editor/Footnotes.js",
 			"word/Editor/FootnotesChanges.js",

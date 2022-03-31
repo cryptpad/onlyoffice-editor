@@ -261,7 +261,7 @@ CDocumentSearch.prototype.Set = function(sText, oProps)
 	this.Word      = oProps ? oProps.Word : false;
 
 	var _sText = sText;
-	if (this.MatchCase)
+	if (!this.MatchCase)
 		_sText = sText.toLowerCase();
 
 	this.Pattern.Set(_sText);
@@ -397,7 +397,13 @@ CSearchTextItemChar.prototype.ToRunElement = function(isMathRun)
 	}
 	else
 	{
-		if (AscCommon.IsSpace(this.Value))
+		if (9 === this.Value) // \t
+			return new ParaTab();
+		else if (10 === this.Value) // \n
+			return new ParaNewLine(break_Line);
+		else if (13 === this.Value) // \r
+			return null;
+		else if (AscCommon.IsSpace(this.Value)) // space
 			return new ParaSpace(this.Value);
 		else
 			return new ParaText(this.Value);
@@ -676,7 +682,7 @@ CSearchTextSpecialEnDash.prototype.IsMatch = function(oItem)
 		|| c_oSearchItemType.EnDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
-CSearchTextSpecialEmDash.prototype.ToRunElement = function(isMathRun)
+CSearchTextSpecialEnDash.prototype.ToRunElement = function(isMathRun)
 {
 	if (isMathRun)
 	{
@@ -2041,3 +2047,28 @@ CSearchPatternEngine.prototype.Check = function(nPos, oRunItem, oProps)
 
 	return this.Elements[nPos].IsMatch(oSearchElement);
 };
+CSearchPatternEngine.prototype.GetErrorForReplaceString = function(sString)
+{
+	for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+	{
+		var nCharCode = oIterator.value();
+
+		if (0x005E === nCharCode)
+		{
+			oIterator.next();
+			if (!oIterator.check())
+				break;
+
+			var nNextCharCode   = oIterator.value();
+			var oSpecialElement = this.private_GetSpecialElement(nNextCharCode);
+			if (oSpecialElement && !oSpecialElement.ToRunElement(false))
+				return String.fromCodePoint(0x005E, nNextCharCode);
+		}
+	}
+
+	return null;
+};
+
+//--------------------------------------------------------export----------------------------------------------------
+window['AscCommonWord'] = window['AscCommonWord'] || {};
+window['AscCommonWord'].CSearchPatternEngine = CSearchPatternEngine;

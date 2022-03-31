@@ -2992,7 +2992,6 @@ CBlipFill.prototype =
             }
             return sResult;
         }
-
         return sRasterImageId;
     }
 };
@@ -5513,7 +5512,7 @@ function FormatRGBAColor()
             oCopy.setBlip(this.blip.createDuplicate(oIdMap));
         }
     };
-    
+
     CBuBlip.prototype.createDuplicate = function () {
         var oCopy = new CBuBlip();
         this.fillObject(oCopy, {});
@@ -7531,6 +7530,25 @@ CXfrm.prototype =
             && isRealNumber(this.chOffX) && isRealNumber(this.chOffY)
             && isRealNumber(this.extX) && isRealNumber(this.extY)
             && isRealNumber(this.chExtX) && isRealNumber(this.chExtY);
+    },
+
+    isZero: function () {
+        return (
+          this.offX === 0 &&
+          this.offY === 0 &&
+          this.extX === 0 &&
+          this.extY === 0
+        );
+    },
+
+    isZeroInGroup: function () {
+        return (
+          this.isZero() &&
+          this.chOffX === 0 &&
+          this.chOffY === 0 &&
+          this.chExtX === 0 &&
+          this.chExtY === 0
+        );
     },
 
     isEqual: function(xfrm)
@@ -12386,6 +12404,9 @@ function CreateAscFill(unifill)
 }
 function CorrectUniFill(asc_fill, unifill, editorId)
 {
+    if (asc_fill instanceof CUniFill) {
+        return asc_fill;
+    }
     if (null == asc_fill)
         return unifill;
 

@@ -110,9 +110,9 @@ CDrawingsController.prototype.AddSignatureLine = function(oSignatureDrawing)
 {
 	return this.DrawingObjects.addSignatureLine(oSignatureDrawing);
 };
-CDrawingsController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId)
+CDrawingsController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
 {
-	this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+	this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
 };
 CDrawingsController.prototype.AddTextArt = function(nStyle)
 {
@@ -126,6 +126,10 @@ CDrawingsController.prototype.AddTextArt = function(nStyle)
 CDrawingsController.prototype.EditChart = function(Chart)
 {
 	this.DrawingObjects.editChart(Chart);
+};
+CDrawingsController.prototype.EditTableOleObject = function(binary)
+{
+	this.DrawingObjects.editTableOleObject(binary);
 };
 CDrawingsController.prototype.AddInlineTable = function(nCols, nRows, nMode)
 {

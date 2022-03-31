@@ -1177,7 +1177,7 @@ var editor;
     }
   };
 
-	spreadsheet_api.prototype.asc_initPrintPreview = function (containerId) {
+	spreadsheet_api.prototype.asc_initPrintPreview = function (containerId, options) {
 		var curElem = document.getElementById(containerId);
 		if (curElem) {
 			var canvasId = containerId + "-canvas"
@@ -1199,10 +1199,12 @@ var editor;
 		}
 
 		this.wb.printPreviewState.init();
-		var pages = this.wb.calcPagesPrint();
+		var pages = this.wb.calcPagesPrint(options ? options.advancedOptions : null);
 		this.wb.printPreviewState.setPages(pages);
 
-		this.asc_drawPrintPreview(0);
+		if (pages.arrPages.length) {
+			this.asc_drawPrintPreview(0);
+		}
 		return pages.arrPages.length;
 	};
 
@@ -1218,7 +1220,11 @@ var editor;
 		this.wb.printSheetPrintPreview(index);
 		var curPage = this.wb.printPreviewState.getPage(index);
 		//возвращаю инфомарцию об активном листе, который печатаем
-		this.handlers.trigger("asc_onPrintPreviewSheetChanged", curPage && curPage.indexWorksheet);
+		var indexActiveWs = curPage && curPage.indexWorksheet;
+		if (indexActiveWs === undefined) {
+			indexActiveWs = this.wbModel.getActive();
+		}
+		this.handlers.trigger("asc_onPrintPreviewSheetChanged", indexActiveWs);
 	};
 
 	spreadsheet_api.prototype.asc_closePrintPreview = function () {
@@ -1339,6 +1345,9 @@ var editor;
       // Шрифты загрузились, возможно стоит подождать совместное редактирование
       this.FontLoadWaitComplete = true;
         this._openDocumentEndCallback();
+        if (this.fAfterLoad) {
+          this.fAfterLoad();
+        }
       }
   };
 
@@ -2151,7 +2160,7 @@ var editor;
 
 		//история версий - возможно стоит грамотно чистить wbview, но не пересоздавать
 		var previousVersionZoom;
-		if (this.VersionHistory && this.controller) {
+		if ((this.VersionHistory || this.isOleEditor) && this.controller) {
 			var elem = document.getElementById("ws-v-scrollbar");
 			if (elem) {
 				elem.parentNode.removeChild(elem);
@@ -2218,8 +2227,8 @@ var editor;
 			this.sendEvent('asc_onError', c_oAscError.ID.OpenWarning, c_oAscError.Level.NoCritical);
 		}
 
-		if (this.VersionHistory) {
-			if (this.VersionHistory.changes) {
+		if (this.VersionHistory || this.isOleEditor) {
+			if (this.VersionHistory && this.VersionHistory.changes) {
 				this.VersionHistory.applyChanges(this);
 			}
 			this.sheetsChanged();
@@ -3003,20 +3012,23 @@ var editor;
   spreadsheet_api.prototype.asc_searchEnabled = function(bIsEnabled) {
   };
 
-  spreadsheet_api.prototype.asc_findText = function(options) {
+  spreadsheet_api.prototype.asc_findText = function(options, callback) {
+    var result = null;
     if (window["NATIVE_EDITOR_ENJINE"]) {
       if (this.wb.findCellText(options)) {
         var ws = this.wb.getWorksheet();
         var activeCell = this.wbModel.getActiveWs().selectionRange.activeCell;
-        return [ws.getCellLeftRelative(activeCell.col, 0), ws.getCellTopRelative(activeCell.row, 0)];
+        result = [ws.getCellLeftRelative(activeCell.col, 0), ws.getCellTopRelative(activeCell.row, 0)];
       }
-
-      return null;
+    } else {
+      var d = this.wb.findCellText(options);
+      this.controller.scroll(d);
+      result = !!d;
     }
 
-    var d = this.wb.findCellText(options);
-    this.controller.scroll(d);
-    return !!d;
+    if (callback)
+      callback(result);
+    return result;
   };
 
   spreadsheet_api.prototype.asc_replaceText = function(options) {
@@ -3300,6 +3312,75 @@ var editor;
     return ret;
   };
 
+  spreadsheet_api.prototype.asc_getSizesForOleEditor = function (oleInfo) {
+    var oleSize = this.wbModel.getOleSize() || this.wb.getWorksheet().getVisibleRange();
+    if (oleSize) {
+      var ws = this.wb.getWorksheet();
+
+      var firstRow = oleSize.r1;
+      var lastRow = oleSize.r2;
+      var firstColumn = oleSize.c1;
+      var lastColumn = oleSize.c2;
+
+      var left = ws._getColLeft(firstColumn);
+      var width = ws._getColLeft(lastColumn + 1) - left;
+      var top = ws._getRowTop(firstRow);
+      var height = ws._getRowTop(lastRow + 1) - top;
+      return {
+        height: height,
+        width: width,
+        top: top,
+        left: left
+      };
+    }
+    oleInfo = oleInfo || {};
+    return {
+      height: oleInfo.height,
+      width: oleInfo.width,
+      top: oleInfo.top,
+      left: oleInfo.left
+    };
+  }
+
+  /**
+   * Loading ole editor
+   * @param {{}} [oleObj] info from oleObject
+   * @param {function} [fResizeCallback] callback where first argument is sizes of loaded editor without borders
+   */
+  spreadsheet_api.prototype.asc_addTableOleObject = function(oleObj, fResizeCallback) {
+    oleObj = oleObj || {binary: AscCommon.getEmpty()};
+    var stream = oleObj && oleObj.binary;
+    var _this = this;
+    var file = new AscCommon.OpenFileResult();
+    file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
+    file.data = stream;
+    this.isOleEditor = true;
+    this.asc_CloseFile();
+    this.openDocument(file);
+
+    this.fAfterLoad = function () {
+      var sizes = _this.asc_getSizesForOleEditor(oleObj);
+      fResizeCallback && fResizeCallback(sizes);
+      _this.wb.scrollToOleSize();
+    }
+    };
+  /**
+   * get binary info about changed ole object
+   * @returns {{}} binary info about oleObject
+   */
+  spreadsheet_api.prototype.asc_getBinaryInfoOleObject = function () {
+    var dataUrl = this.wb.getImageFromTableOleObject();
+    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
+    var binaryData = oBinaryFileWriter.Write().split(';');
+    var cleanBinaryData = binaryData[binaryData.length - 1];
+    var binaryInfo = {};
+
+    binaryInfo.binary = cleanBinaryData;
+    binaryInfo.base64Image = dataUrl;
+
+    return binaryInfo;
+  }
+
   spreadsheet_api.prototype.asc_editChartDrawingObject = function(chart) {
     var ws = this.wb.getWorksheet();
     var ret = ws.objectRender.editChartDrawingObject(chart);
@@ -3346,6 +3427,8 @@ var editor;
     if (ws) {
       if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl)) {
         ws.objectRender.editImageDrawingObject(urls[0], obj);
+      } else if (obj && obj.fAfterUploadOleObjectImage) {
+        obj.fAfterUploadOleObjectImage(urls[0]);
       } else {
         ws.objectRender.addImageDrawingObject(urls, null);
       }
@@ -3658,7 +3741,7 @@ var editor;
         }
     };
 
-  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix)
+  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect)
   {
     var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
     if (null != _image){
@@ -3669,20 +3752,20 @@ var editor;
 
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect);
         this.asc_endPaste();
       }
     }
   };
 
-  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, nPixWidth, nPixHeight)
+  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, fWidth, fHeight, nPixWidth, nPixHeight)
   {
     if (oOleObject)
     {
       var ws = this.wb.getWorksheet();
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize);
+        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize);
         this.asc_endPaste();
       }
     }
@@ -3964,7 +4047,7 @@ var editor;
           }
 
           if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1
-            || (isIgnoreUppercase && AscCommon.private_IsAbbreviation(usrWords[i]))) {
+            || (isIgnoreUppercase && AscCommon.IsAbbreviation(usrWords[i]))) {
             usrCorrect[i] = true;
           }
         }
@@ -4388,14 +4471,14 @@ var editor;
   };
 
   // Получить координаты активной ячейки
-  spreadsheet_api.prototype.asc_getActiveCellCoord = function() {
+  spreadsheet_api.prototype.asc_getActiveCellCoord = function(useUpRightMerge) {
     var oWorksheet = this.wb.getWorksheet();
     if(oWorksheet){
       if(oWorksheet.isSelectOnShape){
         return oWorksheet.objectRender.getContextMenuPosition();
       }
       else{
-          return oWorksheet.getActiveCellCoord();
+          return oWorksheet.getActiveCellCoord(useUpRightMerge);
       }
     }
 
@@ -5484,16 +5567,9 @@ var editor;
 		}
 		pivot.asc_create(ws, pivotName, cacheDefinition, bbox);
 		pivot.stashEmptyReportRange();
-		this._changePivotWithLockExt(pivot, confirmation, true, function() {
+		this._changePivotWithLockExt(pivot, confirmation, true, function(ws, pivot) {
 			ws.insertPivotTable(pivot, true, false);
 			pivot.setChanged(true);
-		}, function(error, warn) {
-			t._changePivotEndCheckError(error, warn, function(can) {
-				if (can) {
-					//repeate with whole checks because of collaboration changes
-					t._asc_insertPivot(wb, dataRef, ws, bbox, true);
-				}
-			});
 		});
 		History.EndTransaction();
 		return pivot;
@@ -5560,7 +5636,9 @@ var editor;
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
 			t._changePivotEndCheckError(pivot, changeRes, function () {
-				t._changePivotWithLockExt(pivot, true, updateSelection, onAction);
+				//undo can replace pivot complitly. note: getPivotTableById returns nothing while insert operation
+				var pivotAfterUndo = t.wbModel.getPivotTableById(pivot.Get_Id()) || pivot;
+				t._changePivotWithLockExt(pivotAfterUndo, true, updateSelection, onAction);
 			});
 		});
 	};
@@ -5602,7 +5680,7 @@ var editor;
 		var wsModel = pivot.GetWS();
 		pivot.stashCurReportRange();
 
-		onAction(wsModel);
+		onAction(wsModel, pivot);
 
 		var pivotChanged = pivot.getAndCleanChanged();
 		var error = c_oAscError.ID.No;

@@ -495,6 +495,7 @@ CShape.prototype.recalculate = function ()
 CShape.prototype.recalculateBounds = function()
 {
     var boundsChecker = new  AscFormat.CSlideBoundsChecker();
+    boundsChecker.DO_NOT_DRAW_ANIM_LABEL = true;
     this.draw(boundsChecker);
     boundsChecker.CorrectBounds();
 
@@ -613,18 +614,7 @@ CShape.prototype.getIsSingleBody = function(x, y)
 CShape.prototype.Set_CurrentElement = function(bUpdate, pageIndex){
     if(this.parent && this.parent.graphicObjects){
         var drawing_objects = this.parent.graphicObjects;
-        drawing_objects.resetSelection(true);
-        if(this.group){
-            var main_group = this.group.getMainGroup();
-            drawing_objects.selectObject(main_group, 0);
-            main_group.selectObject(this, 0);
-            main_group.selection.textSelection = this;
-            drawing_objects.selection.groupSelection = main_group;
-        }
-        else{
-            drawing_objects.selectObject(this, 0);
-            drawing_objects.selection.textSelection = this;
-        }
+        this.SetControllerTextSelection(drawing_objects, 0);
         var nSlideNum;
         if(this.parent instanceof AscCommonSlide.CNotes){
             editor.WordControl.m_oLogicDocument.FocusOnNotes = true;

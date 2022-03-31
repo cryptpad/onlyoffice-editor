@@ -1352,6 +1352,16 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         return false;
     };
 
+    DrawingBase.prototype.createImage = function() {
+        var koef = Asc.getCvtRatio(3, 0, this.worksheet._getPPIX());
+        var wb = this.worksheet && this.worksheet.workbook;
+        wb.setOleSize(null);
+        var drawingCtx = AscCommonExcel.getContext(this.ext.cx * koef, this.ext.cy * koef, wb);
+        var graphics = AscCommonExcel.getGraphics(drawingCtx);
+        this.draw(graphics);
+        return drawingCtx.toDataURL();
+    };
+
     DrawingBase.prototype.getAllFonts = function(AllFonts) {
         var _t = this;
         _t.graphicObject && _t.graphicObject.documentGetAllFontNames && _t.graphicObject.documentGetAllFontNames(AllFonts);
@@ -3558,7 +3568,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     };
 
 
-    _this.addOleObject = function(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId){
+    _this.addOleObject = function(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect){
         var drawingObject = _this.createDrawingObject();
         drawingObject.worksheet = worksheet;
 
@@ -3570,12 +3580,12 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 
         var coordsFrom = _this.calculateCoords(drawingObject.from);
         _this.controller.resetSelection();
-        _this.controller.addOleObjectFromParams(pxToMm(coordsFrom.x), pxToMm(coordsFrom.y), fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+        _this.controller.addOleObjectFromParams(pxToMm(coordsFrom.x), pxToMm(coordsFrom.y), fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect);
         worksheet.setSelectionShape(true);
     };
 
-    _this.editOleObject = function(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize){
-        this.controller.editOleObjectFromParams(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize);
+    _this.editOleObject = function(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize){
+        this.controller.editOleObjectFromParams(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize);
     };
 
     _this.startEditCurrentOleObject = function(){
@@ -3745,15 +3755,16 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         var selectedObjects = _this.controller.selectedObjects;
         if ( (selectedObjects.length == 1) ) {
 
-            if(AscFormat.isRealNumber(selectedObjects[0].m_fDefaultSizeX) && AscFormat.isRealNumber(selectedObjects[0].m_fDefaultSizeY)){
-                return new AscCommon.asc_CImageSize( selectedObjects[0].m_fDefaultSizeX, selectedObjects[0].m_fDefaultSizeY, true);
-            }
+
             if(selectedObjects[0].isImage()){
                 var imageUrl = selectedObjects[0].getImageUrl();
 
                 var oImagePr = new Asc.asc_CImgProperty();
                 oImagePr.asc_putImageUrl(imageUrl);
-                return oImagePr.asc_getOriginSize(api);
+                var oSize = oImagePr.asc_getOriginSize(api);
+                if(oSize.IsCorrect) {
+                    return oSize;
+                }
             }
         }
         return new AscCommon.asc_CImageSize( 50, 50, false );
@@ -3973,6 +3984,19 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     //-----------------------------------------------------------------------------------
 
     _this.cleanWorksheet = function() {
+        if (worksheet) {
+            var model = worksheet.model;
+            History.Clear();
+            for (var i = 0; i < aObjects.length; i++) {
+                aObjects[i].graphicObject.deleteDrawingBase();
+            }
+            aObjects.length = 0;
+
+            var oAllRange = model.getRange3(0, 0, model.getRowsCount(), model.getColsCount());
+            oAllRange.cleanAll();
+
+            worksheet.endEditChart();
+        }
     };
 
     _this.getWordChartObject = function() {

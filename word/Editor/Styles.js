@@ -97,6 +97,20 @@ var textdirection_LRTBV = 0x03;
 var textdirection_TBRLV = 0x04;
 var textdirection_TBLRV = 0x05;
 
+// Данный список шрифтов используется совместно с настройкой BalanceSingleByteDoubleByteWidth
+// если список будет изменяться, то проверить работу этой настройки с новыми шрифтами, если работать не будет, тогда
+// надо будет иметь два разных списка
+const EAST_ASIA_FONTS = [
+	"MingLiU", "PMingLiU",
+	"SimSun", "NSimSun", "SimSun-ExtA", "SimSun-ExtB",
+	"MS Mincho",
+	"Batang",
+	"Arial Unicode MS",
+	"Microsoft JhengHei", "Microsoft YaHei", "SimHei", "DengXian",
+	"Meiryo", "MS Gothic", "MS PGothic", "MS UI Gothic", "Yu Gothic",
+	"Dotum", "Gulim", "Malgun Gothic"
+];
+
 function IsEqualStyleObjects(Object1, Object2)
 {
     if (undefined === Object1 && undefined === Object2)
@@ -7556,9 +7570,18 @@ CStyle.prototype.Document_Is_SelectionLocked = function(CheckType)
 		}
 	}
 };
+/**
+ * @returns {boolean}
+ */
+CStyle.prototype.IsTableStyle = function()
+{
+	return (this.Type === styletype_Table);
+};
 
 function CStyles(bCreateDefault)
 {
+	this.ValidDefaultEastAsiaFont = false;
+
     if (bCreateDefault !== false)
     {
         this.Id = AscCommon.g_oIdCounter.Get_NewId();
@@ -8297,6 +8320,7 @@ function CStyles(bCreateDefault)
 	}
 
     this.LogicDocument = null;
+	this.OnChangeDefaultTextPr();
 }
 
 CStyles.prototype =
@@ -8644,6 +8668,7 @@ CStyles.prototype =
             Styles.Style[StyleId] = this.Style[StyleId].Copy();
         }
 
+        Styles.OnChangeDefaultTextPr();
         return Styles;
     },
 
@@ -8682,7 +8707,7 @@ CStyles.prototype =
 		History.Add(new CChangesStylesChangeDefaultTextPr(this, this.Default.TextPr, TextPr));
         this.Default.TextPr.InitDefault();
 		this.Default.TextPr.Merge(TextPr);
-
+		this.OnChangeDefaultTextPr();
 		// TODO: Пока данная функция используется только в билдере, как только будет использоваться в самом редакторе,
 		//       надо будет сделать, чтобы происходил пересчет всех стилей.
 	},
@@ -9072,19 +9097,6 @@ CStyles.prototype =
         this.Default.TextPr.Document_Get_AllFontNames(AllFonts);
     },
 
-    Get_AllTableStyles : function()
-    {
-        var TableStyles = [];
-        for ( var Id in this.Style )
-        {
-            var Style = this.Style[Id];
-            if ( styletype_Table === Style.Type )
-                TableStyles.push( Id );
-        }
-
-        return TableStyles;
-    },
-
     Update_Interface : function(StyleId)
     {
         if (null != this.LogicDocument && undefined !== this.LogicDocument)
@@ -9284,6 +9296,18 @@ CStyles.prototype =
 CStyles.prototype.Get = function(sStyleId)
 {
 	return (this.Style[sStyleId] ? this.Style[sStyleId] : null);
+};
+CStyles.prototype.GetAllTableStyles = function()
+{
+	let arrTableStyles = [];
+	for (let Id in this.Style)
+	{
+		let oStyle = this.Style[Id];
+		if (oStyle.IsTableStyle())
+			arrTableStyles.push(oStyle);
+	}
+
+	return arrTableStyles;
 };
 /**
  * Получаем идентификатор стиля по его имени
@@ -9787,11 +9811,15 @@ CStyles.prototype.GetDefaultHeading = function(nLvl)
 };
 CStyles.prototype.GetHeadingLevelByName = function(sStyleName)
 {
-	var sId = this.GetStyleIdByName(sStyleName);
+	let sId = this.GetStyleIdByName(sStyleName);
 	if (!sId)
 		return -1;
 
-	for (var nIndex = 0; nIndex <= 8; ++nIndex)
+	return this.GetHeadingLevelById(sId);
+};
+CStyles.prototype.GetHeadingLevelById = function(sId)
+{
+	for (let nIndex = 0; nIndex <= 8; ++nIndex)
 	{
 		if (sId === this.Default.Headings[nIndex])
 			return nIndex;
@@ -9989,6 +10017,8 @@ CStyles.prototype.UpdateDefaultsDependingOnCompatibility = function(nCompatibili
 	g_oDocumentDefaultTableCellPr.InitDefault(nCompatibilityMode);
 	g_oDocumentDefaultTableRowPr.InitDefault(nCompatibilityMode);
 	g_oDocumentDefaultTableStylePr.InitDefault(nCompatibilityMode);
+
+	this.OnChangeDefaultTextPr();
 };
 CStyles.prototype.GetDefaultParaPrForWrite = function()
 {
@@ -10001,6 +10031,45 @@ CStyles.prototype.GetDefaultTextPrForWrite = function()
 	var oTextPr = new CTextPr();
 	oTextPr.InitDefault();
 	return this.Default.TextPr.GetDiff(oTextPr);
+};
+/**
+ * @param {string} sName
+ * @returns {boolean}
+ */
+CStyles.prototype.IsEastAsiaFont = function(sName)
+{
+	for (let oIterator = sName.getUnicodeIterator(); oIterator.check(); oIterator.next())
+	{
+		let	nUnicode = oIterator.value();
+		if (AscCommon.isEastAsianScript(nUnicode))
+			return true;
+	}
+
+	for (let nIndex = 0, nCount = EAST_ASIA_FONTS.length; nIndex < nCount; ++nIndex)
+	{
+		if (sName === EAST_ASIA_FONTS[nIndex])
+			return true;
+	}
+
+	return false;
+};
+CStyles.prototype.OnChangeDefaultTextPr = function()
+{
+	this.ValidDefaultEastAsiaFont = false;
+	if (this.Default.TextPr.RFonts && this.Default.TextPr.RFonts.EastAsia)
+		this.ValidDefaultEastAsiaFont = this.IsEastAsiaFont(this.Default.TextPr.RFonts.EastAsia.Name);
+};
+CStyles.prototype.IsValidDefaultEastAsiaFont = function()
+{
+	return this.ValidDefaultEastAsiaFont;
+};
+CStyles.prototype.OnEndDocumentLoad = function(oDocument)
+{
+	// Специальная проверка плохо заданных нумераций через стиль. Когда ссылка на нумерацию в стиле есть,
+	// а обратной ссылки в нумерации на стиль - нет.
+	this.Check_StyleNumberingOnLoad(oDocument.GetNumbering());
+
+	this.OnChangeDefaultTextPr();
 };
 
 function CDocumentColor(r,g,b, Auto)
@@ -13185,10 +13254,16 @@ CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
 	TextPr.Bold      = this.Bold;
 	TextPr.Italic    = this.Italic;
 	TextPr.Strikeout = this.Strikeout;
+	TextPr.DStrikeout = this.DStrikeout;
+	TextPr.Caps       = this.Caps;
+	TextPr.SmallCaps  = this.SmallCaps;
+
 	TextPr.Underline = this.Underline;
 	TextPr.Lang       = this.Lang.Copy();
 	TextPr.Spacing    = this.Spacing;
-	TextPr.RFonts     = this.RFonts.Copy();
+	TextPr.RFonts     = this.RFonts.Copy()
+
+	TextPr.Vanish = this.Vanish;
 
 	if (oPr.custT) {
 		TextPr.FontSize = this.FontSize;
@@ -13209,15 +13284,15 @@ CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
 
 	if (undefined != this.Unifill)
 		TextPr.Unifill = this.Unifill.createDuplicate();
+
 	if (undefined != this.FontRef)
 		TextPr.FontRef = this.FontRef.createDuplicate();
 
 	if (undefined !== this.Shd)
 		TextPr.Shd = this.Shd.Copy();
+
 	if (undefined !== this.FontScale)
 		TextPr.FontScale = this.FontScale;
-
-	TextPr.Vanish = this.Vanish;
 
 	if (undefined != this.TextOutline)
 	{
@@ -16247,6 +16322,18 @@ CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
 CParaPr.prototype.createDuplicateForSmartArt = function (bCopyPrChange, oPr) {
 	var ParaPr = new CParaPr();
 	ParaPr.Jc              = this.Jc;
+
+	if (undefined != this.Spacing)
+		ParaPr.Spacing = this.Spacing.Copy();
+
+	if (undefined != this.Ind) // TODO: apply only changed ind
+		ParaPr.Ind = this.Ind.Copy();
+
+	if (undefined != this.Tabs)
+		ParaPr.Tabs = this.Tabs.Copy();
+
+	if (undefined != this.DefaultTab)
+		ParaPr.DefaultTab = this.DefaultTab;
 	return ParaPr;
 };
 CParaPr.prototype.Merge = function(ParaPr)
@@ -17636,6 +17723,7 @@ window["AscCommonWord"].g_dKoef_in_to_mm = g_dKoef_in_to_mm;
 window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
 window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
 window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
+window["AscCommonWord"].g_dKoef_emu_to_mm = g_dKoef_emu_to_mm;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;

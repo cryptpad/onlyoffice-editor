@@ -90,7 +90,7 @@ function private_ParagraphChangesOnLoadPr(oColor)
 function private_ParagraphChangesOnSetValue(oParagraph)
 {
 	oParagraph.RecalcInfo.Set_Type_0(pararecalc_0_All);
-	oParagraph.RecalcInfo.Set_Type_0_Spell(pararecalc_0_Spell_All);
+	oParagraph.RecalcInfo.NeedSpellCheck();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -407,6 +407,9 @@ CChangesParagraphAddItem.prototype.Load = function(Color)
 
 			if (Element.SetParagraph)
 				Element.SetParagraph(oParagraph);
+
+			if (Element.SetParent)
+				Element.SetParent(oParagraph);
 
 			oParagraph.Content.splice(Pos, 0, Element);
 			oParagraph.private_UpdateSelectionPosOnAdd(Pos, 1);

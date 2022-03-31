@@ -234,24 +234,25 @@ function checkEmptyPlaceholderContent(content)
     if(!content){
         return content;
     }
-    if(content.Parent && content.Parent.parent){
+    var oShape = content.Parent && content.Parent.parent;
+    if (oShape) {
         if(content.Is_Empty()){
-            if(content.Parent.parent.isPlaceholder && content.Parent.parent.isPlaceholder()) {
+            if(oShape.isPlaceholder && oShape.isPlaceholder()) {
                 return content;
             }
-            if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape) {
+            if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape()) {
                 return content;
             }
         }
-        if(content.Parent.parent.txWarpStruct){
+        if(oShape.txWarpStruct){
             return content;
         }
-        if(content.Parent.parent.recalcInfo && content.Parent.parent.recalcInfo.warpGeometry){
+        if(oShape.recalcInfo && oShape.recalcInfo.warpGeometry){
             return content;
         }
         var oBodyPr;
-        if(content.Parent.parent.getBodyPr){
-            oBodyPr = content.Parent.parent.getBodyPr();
+        if(oShape.getBodyPr){
+            oBodyPr = oShape.getBodyPr();
             if(oBodyPr.vertOverflow !== AscFormat.nOTOwerflow){
                 return content;
             }
@@ -1091,7 +1092,7 @@ ResizeState.prototype =
 };
 
 
-function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject, majorObjectIsSelected, bInside)
+function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject, majorObjectIsSelected, bInside, bGroupSelection)
 {
     this.drawingObjects = drawingObjects;
     this.majorObject = majorObject;
@@ -1101,6 +1102,7 @@ function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject,
     this.ctrl = ctrl;
     this.majorObjectIsSelected = majorObjectIsSelected;
     this.bInside = bInside;
+    this.bGroupSelection = bGroupSelection;
 }
 
 PreMoveState.prototype =

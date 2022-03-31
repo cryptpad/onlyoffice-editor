@@ -156,6 +156,8 @@ function ResetNewUrls(data, aUrls, aBuilderImagesByUrl, oImageMap)
     }
 }
 
+//TODO на счёт коэффициэнта не нахожу подходящего преобразования. пересмотреть.
+var koef_mm_to_indent = 3.88;
 
 var PasteElementsId = {
   copyPasteUseBinary : true,
@@ -2292,6 +2294,7 @@ function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel, 
 
 	this.aMsoHeadStylesStr;
 	this.oMsoHeadStylesListMap = [];
+	this.oMsoStylesParser = null;
 
 	this.pasteTextIntoList;
 
@@ -3390,7 +3393,7 @@ PasteProcessor.prototype =
                     Item.Internal_Content_Add(nContentPos, TextPr);
                 }
                 Item.RecalcInfo.Set_Type_0(pararecalc_0_All);
-                Item.RecalcInfo.Set_Type_0_Spell(pararecalc_0_Spell_All);
+                Item.RecalcInfo.NeedSpellCheck();
             }
             else
             {
@@ -3469,7 +3472,7 @@ PasteProcessor.prototype =
                     LastPosCurDoc--;
                 }
                 Item.RecalcInfo.Set_Type_0(pararecalc_0_All);
-                Item.RecalcInfo.Set_Type_0_Spell(pararecalc_0_Spell_All);
+                Item.RecalcInfo.NeedSpellCheck();
                 oDoc.CurPos.ContentPos = LastPosCurDoc;
             }
         }
@@ -4297,7 +4300,7 @@ PasteProcessor.prototype =
 
 		var oSelectedContent2 = this._readPresentationSelectedContent2(base64);
 		var selectedContent2 = oSelectedContent2.content;
-		var defaultSelectedContent = selectedContent2[1] ? selectedContent2[1] : selectedContent2[0];
+		var defaultSelectedContent = selectedContent2[0] ? selectedContent2[0] : selectedContent2[1];
 		var bSlideObjects = defaultSelectedContent && defaultSelectedContent.content && defaultSelectedContent.content.SlideObjects && defaultSelectedContent.content.SlideObjects.length > 0;
 		var pasteObj = bSlideObjects && PasteElementsId.g_bIsDocumentCopyPaste ? selectedContent2[2] : defaultSelectedContent;
 
@@ -5720,7 +5723,10 @@ PasteProcessor.prototype =
 					if (null != align.hor) {
 						oCurPar.Pr.Jc = align.hor;
 					} else if (AscCommon.CellValueType.Number === type) {
-						oCurPar.Pr.Jc = AscCommon.align_Right;
+						//для пустого текста, даже если тип соответсвующий, не проставляю выравнивание
+						if (!range.isEmptyTextString()) {
+							oCurPar.Pr.Jc = AscCommon.align_Right;
+						}
 					}
 				}
 
@@ -7412,12 +7418,17 @@ PasteProcessor.prototype =
 			}
 		}
 	},
-	_PrepareContent: function () {
+	_PrepareContent: function (indent) {
 		//Не допускам чтобы контент заканчивался на таблицу, иначе тяжело вставить параграф после
 		if (this.aContent.length > 0) {
 			var last = this.aContent[this.aContent.length - 1];
 			if (type_Table === last.GetType()) {
 				this._Add_NewParagraph();
+			} else if (indent && type_Paragraph === last.GetType()) {
+				//при копировании внутри мс indent ячейки записывается в FirstLine (excel->word->xlsx->w:ind->w:firstLine)
+				if (last.Pr && last.Pr.Ind) {
+					last.Pr.Ind.FirstLine = indent * koef_mm_to_indent;
+				}
 			}
 		}
 	},
@@ -8802,6 +8813,15 @@ PasteProcessor.prototype =
 			bAddIfNull = true;
 		}
 
+		var indent; 
+		var className = node.className;
+		if (className && this.oMsoStylesParser) {
+			var msoClass = this.oMsoStylesParser.getMsoClassByName("." + className);
+			if (msoClass) {
+				indent = msoClass.getAttributeByName("mso-char-indent-count");
+			}
+		}
+
 		var computedStyle = this._getComputedStyle(node);
 		var background_color = this._getStyle(node, computedStyle, "background-color");
 		if (null != background_color && (background_color = this._ParseColor(background_color))) {
@@ -8905,12 +8925,13 @@ PasteProcessor.prototype =
 			oPasteProcessor.oMsoHeadStylesListMap = this.oMsoHeadStylesListMap;
 			oPasteProcessor.msoListMap = this.msoListMap;
 			oPasteProcessor.dMaxWidth = this._CalcMaxWidthByCell(cell);
+			oPasteProcessor.oMsoStylesParser = this.oMsoStylesParser;
 			if (true === bUseScaleKoef) {
 				oPasteProcessor.bUseScaleKoef = bUseScaleKoef;
 				oPasteProcessor.dScaleKoef = dScaleKoef;
 			}
 			oPasteProcessor._Execute(node, {}, true, true, false);
-			oPasteProcessor._PrepareContent();
+			oPasteProcessor._PrepareContent(indent);
 			oPasteProcessor._AddNextPrevToContent(cell.Content);
 			if (0 === oPasteProcessor.aContent.length) {
 				var oDocContent = cell.Content;
@@ -8992,6 +9013,13 @@ PasteProcessor.prototype =
 		//Для Root node не смотрим стили и не добавляем текст
 		//var presentation = editor.WordControl.m_oLogicDocument;
 
+		//для правки бага на релизе обработку добавляю только для вставки из ms excel, потом сделать данный класс как основной для получения данных из стилей ms
+		if (AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
+			if (!this.oMsoStylesParser) {
+				this.oMsoStylesParser = new MsoStylesParser(node);
+			}
+		}
+
 		var parseTextNode = function () {
 			var value = node.nodeValue;
 			if (!value) {
@@ -9015,7 +9043,12 @@ PasteProcessor.prototype =
 				}
 			}
 
-			//Вначале и конце вырезаем \r|\t|\n, в середине текста заменяем их на пробелы
+			//в конструкциях вида text/n<b>text<b/> || <b>text<b/>/ntext заменяю символ переноса на пробел
+			if ((node.nextSibling && node.nextSibling.nodeType !== Node.TEXT_NODE) ||
+				(node.previousSibling && node.previousSibling.nodeType !== Node.TEXT_NODE)) {
+				value = value.replace(/(\r|\t|\n)/g, ' ');
+			}
+
 			//потому что(например иногда chrome при вставке разбивает строки с помощью \n)
 			if (!whiteSpacing) {
 				value = value.replace(/^(\r|\t|\n)+|(\r|\t|\n)+$/g, '');
@@ -9061,8 +9094,11 @@ PasteProcessor.prototype =
 				}
 
 				//для проблемы с лишними прообелами в начале новой строки при копировании из MS EXCEL ячеек с текстом, разделенным alt+enter
+				//мс в данном случае(баг 55851) оборачивает данные в тэг font. чтобы сохранить пробелы, добавляю проверку.
+				//можно было бы проверить на наличие переноса строки вначале, но 55851 - перед вторым Bold добавляет символ переноса
+				//тег font является устаревшим, но мс его активно испольует
 				var ignoreFirstSpaces = false;
-				if (AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
+				if (AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel && !(node.parentNode && node.parentNode.nodeName.toLowerCase() === "font")) {
 					ignoreFirstSpaces = true;
 				}
 
@@ -9344,20 +9380,23 @@ PasteProcessor.prototype =
 									oThis.oCurRun.Pr.Underline = false;
 								}
 
-								if(oThis.oLogicDocument && oThis.oLogicDocument.GetColumnSize) {
-									var oColumnSize = oThis.oLogicDocument.GetColumnSize();
-									if(oColumnSize) {
-										if(nWidth > oColumnSize.W || nHeight > oColumnSize.H) {
-											if(oColumnSize.W > 0 && oColumnSize.H > 0)  {
-												var dScaleW = oColumnSize.W/nWidth;
-												var dScaleH = oColumnSize.H/nHeight;
-												var dScale = Math.min(dScaleW, dScaleH);
-												nWidth *= dScale;
-												nHeight *= dScale;
-											}
-										}
-									}
-								}
+                                if(oThis.apiEditor && oThis.apiEditor.isDocumentEditor) {
+                                    if(oThis.oLogicDocument && oThis.oLogicDocument.GetColumnSize ) {
+
+                                        var oColumnSize = oThis.oLogicDocument.GetColumnSize();
+                                        if(oColumnSize) {
+                                            if(nWidth > oColumnSize.W || nHeight > oColumnSize.H) {
+                                                if(oColumnSize.W > 0 && oColumnSize.H > 0)  {
+                                                    var dScaleW = oColumnSize.W/nWidth;
+                                                    var dScaleH = oColumnSize.H/nHeight;
+                                                    var dScale = Math.min(dScaleW, dScaleH);
+                                                    nWidth *= dScale;
+                                                    nHeight *= dScale;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
 								var Drawing = CreateImageFromBinary(sSrc, nWidth, nHeight);
 								// oTargetDocument.DrawingObjects.Add( Drawing );
 
@@ -10366,6 +10405,238 @@ SpecialPasteShowOptions.prototype = {
 	}
 };
 
+function MsoStylesParser(node) {
+	this.node = node;
+	this.styleParsers = null;
+
+	this._isInit = null;
+}
+MsoStylesParser.prototype.init = function () {
+	//TODO копия функции _findMsoHeadStyle, пока не трогаю новый функционал, потом порефакторить и избавиться от старых функций
+	var msoStyleParser;
+	var styleTags = this.node && this.node.parentElement && this.node.parentElement.getElementsByTagName("style");
+	if (styleTags && styleTags.length) {
+		for (var i = 0; i < styleTags.length; ++i) {
+			var headText = styleTags[i].innerText;
+			if (!msoStyleParser) {
+				msoStyleParser = new MsoStyleParser(headText);
+			} else {
+				msoStyleParser.clean();
+				msoStyleParser.setStr(headText);
+			}
+
+			msoStyleParser.parse();
+			if (!this.styleParsers) {
+				this.styleParsers = [];
+			}
+			this.styleParsers.push(msoStyleParser);
+		}
+	}
+
+	this._isInit = true;
+};
+MsoStylesParser.prototype.getMsoClassByName = function (name) {
+	if (!this._isInit) {
+		this.init();
+	}
+	if (this.styleParsers) {
+		for (var i = 0; i < this.styleParsers.length; i++) {
+			if (this.styleParsers[i]) {
+				var msoStyleClass = this.styleParsers[i].getMsoClassByName(name);
+				if (msoStyleClass) {
+					return msoStyleClass;
+				}
+			}
+		}
+	}
+
+	return null;
+};
+
+function MsoStyleParser(str) {
+	this.str = str;
+
+	this.startAttrs = null;
+	this.startComment = null;
+	this.attrName = null;
+	this.attrVal = null;
+
+	this.msoClass= null;
+
+	this.classes = null;
+}
+MsoStyleParser.prototype.clean = function () {
+	this.startAttrs = null;
+	this.startComment = null;
+	this.attrName = null;
+	this.attrVal = null;
+
+	this.msoClass= null;
+
+	this.classes = null;
+};
+MsoStyleParser.prototype.setStr = function (str) {
+	this.str = str;
+};
+MsoStyleParser.prototype.parse = function () {
+	var _style = this.str;
+
+	if (!_style) {
+		return null;
+	}
+
+	for (var j = 0; j < _style.length; j++) {
+
+		if (_style[j] === "\n" || _style[j] === "\t") {
+			continue;
+		}
+
+		if (_style[j] === "<" && _style[j + 1] === "!" && _style[j + 2] === "-" && _style[j + 3] === "-") {
+			j += 3;
+			continue;
+		}
+
+		//skip comment
+		if (_style[j] === "/" && _style[j + 1] === "*") {
+			this.startComment = true;
+			j++;
+			continue;
+		} else if (this.startComment) {
+			if (_style[j] === "*" && _style[j + 1] === "/") {
+				j++;
+				this.startComment = false;
+			}
+			continue;
+		}
+
+		if (_style[j] === "{") {
+			this.startReadAttrs();
+		} else if (_style[j] === "}") {
+			this.endReadClass();
+		} else if (this.isStartReadAttrs()) {
+			if (_style[j] === ":") {
+				this.startReadAttrVal();
+			} else if (_style[j] === ";") {
+				this.endReadAttrVal();
+			} else if (this.isStartReadAttrVal()) {
+				this.addByAttrVal(_style[j])
+			} else {
+				this.addByAttrName(_style[j]);
+			}
+		} else {
+			this.addByClassName(_style[j]);
+		}
+	}
+};
+
+MsoStyleParser.prototype.startReadAttrs = function () {
+	this.startAttrs = true;
+	this.startName = null;
+};
+
+MsoStyleParser.prototype.endReadClass = function () {
+	if (!this.msoClass) {
+		this.msoClass = new MsoStyleClass();
+	}
+	if (!this.msoClass.attributes) {
+		this.msoClass.attributes = [];
+	}
+	if (this.attrName !== null) {
+		this.msoClass.attributes[this.attrName] = this.attrVal;
+	}
+	if (!this.classes) {
+		this.classes = [];
+	}
+	this.classes.push(this.msoClass);
+
+	this.msoClass = null;
+	this.startAttrs = false;
+	this.attrName = null;
+	this.attrVal = null;
+};
+MsoStyleParser.prototype.startReadAttrVal = function () {
+	this.attrVal = "";
+};
+MsoStyleParser.prototype.isStartReadAttrs = function () {
+	return this.startAttrs;
+};
+MsoStyleParser.prototype.endReadAttrVal = function () {
+	if (!this.msoClass) {
+		this.msoClass = new MsoStyleClass();
+	}
+
+	if (!this.msoClass.attributes) {
+		this.msoClass.attributes = [];
+	}
+	this.msoClass.attributes[this.attrName] = this.attrVal;
+
+	this.attrName = null;
+	this.attrVal = null;
+};
+MsoStyleParser.prototype.isStartReadAttrVal = function () {
+	return this.attrVal !== null;
+};
+MsoStyleParser.prototype.addByAttrVal = function (sym) {
+	this.attrVal += sym;
+};
+MsoStyleParser.prototype.addByAttrName = function (sym) {
+	if (!this.attrName) {
+		this.attrName = "";
+	}
+	this.attrName += sym;
+};
+MsoStyleParser.prototype.addByClassName = function (sym) {
+	//TODO - классов может быть несколько с одинаковыми аттрибутами
+	//TODO имя класса разделить по пробелам - @page WordSection1(префикс + имя)
+	/*p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{mso-style-priority:34;
+		mso-style-unhide:no;
+		mso-style-qformat:yes;
+		margin-top:0in;
+		margin-right:0in;
+		margin-bottom:8.0pt;
+		margin-left:.5in;
+		mso-add-space:auto;*/
+
+	if (!this.msoClass) {
+		this.msoClass = new MsoStyleClass();
+	}
+	if (!this.msoClass.name) {
+		this.msoClass.name = "";
+	}
+	if (this.msoClass.name === "" && sym === " ") {
+		return;
+	}
+	this.msoClass.name += sym;
+};
+
+MsoStyleParser.prototype.getMsoClassByName = function (name) {
+	if (this.classes) {
+		for (var i = 0; i < this.classes.length; i++) {
+			if (this.classes[i].name === name) {
+				return this.classes[i];
+			}
+		}
+	}
+
+	return null;
+};
+
+
+
+function MsoStyleClass() {
+	this.name = null;
+	this.attributes = null;
+}
+
+MsoStyleClass.prototype.getAttributeByName = function (name) {
+	if (this.attributes) {
+		return this.attributes[name];
+	}
+
+	return null;
+};
+
 function checkOnlyOneImage(node)
 {
 	var res = false;
@@ -10420,6 +10691,8 @@ function checkOnlyOneImage(node)
   prot["asc_getContainTables"]			    = prot.asc_getContainTables;
 
   window["AscCommon"].checkOnlyOneImage = checkOnlyOneImage;
+
+  window["AscCommon"].koef_mm_to_indent = koef_mm_to_indent;
 
 
 })(window);

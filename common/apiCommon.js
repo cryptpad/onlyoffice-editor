@@ -1754,6 +1754,26 @@
 		AscCommon.History.Create_NewPoint();
 		AscCommon.History.StartTransaction();
 	};
+	asc_ChartSettings.prototype.updateInterface = function () {
+		var oApi = Asc.editor || editor;
+		if(oApi) {
+			if(oApi.UpdateInterfaceState) {
+				oApi.UpdateInterfaceState();
+			}
+			else {
+				var oWbView = oApi.wb;
+				if(oWbView) {
+					var oWSView = oWbView.getWorksheet();
+					if(oWSView) {
+						var oRender = oWSView.objectRender;
+						if(oRender) {
+							oRender.sendGraphicObjectProps();
+						}
+					}
+				}
+			}
+		}
+	};
 	asc_ChartSettings.prototype.endEdit = function() {
 		if(AscCommon.History.Is_LastPointEmpty()) {
 			this.cancelEdit();
@@ -1762,6 +1782,7 @@
 		this.bStartEdit = false;
 		AscCommon.History.EndTransaction();
 		this.updateChart();
+		this.updateInterface();
 	};
 	asc_ChartSettings.prototype.cancelEdit = function() {
 		this.bStartEdit = false;
@@ -1770,6 +1791,7 @@
 		AscCommon.History.Clear_Redo();
 		AscCommon.History._sendCanUndoRedo();
 		this.updateChart();
+		this.updateInterface();
 	};
 	asc_ChartSettings.prototype.startEditData = function() {
 		AscCommon.History.SavePointIndex();
@@ -3600,8 +3622,6 @@
 			//oleObjects
 			this.pluginGuid = obj.pluginGuid !== undefined ? obj.pluginGuid : undefined;
 			this.pluginData = obj.pluginData !== undefined ? obj.pluginData : undefined;
-			this.oleWidth = obj.oleWidth != undefined ? obj.oleWidth : undefined;
-			this.oleHeight = obj.oleHeight != undefined ? obj.oleHeight : undefined;
 
 			this.title = obj.title != undefined ? obj.title : undefined;
 			this.description = obj.description != undefined ? obj.description : undefined;
@@ -3657,8 +3677,6 @@
 			this.pluginGuid = undefined;
 			this.pluginData = undefined;
 
-			this.oleWidth = undefined;
-			this.oleHeight = undefined;
             this.title = undefined;
             this.description = undefined;
 
@@ -3828,10 +3846,6 @@
 
 		asc_getOriginSize: function (api)
 		{
-			if (window['AscFormat'].isRealNumber(this.oleWidth) && window['AscFormat'].isRealNumber(this.oleHeight))
-			{
-				return new asc_CImageSize(this.oleWidth, this.oleHeight, true);
-			}
 			if (this.ImageUrl === null)
 			{
 				return new asc_CImageSize(50, 50, false);
@@ -4687,6 +4701,12 @@
     prot.put_IsEnabledMacroses = prot.asc_putIsEnabledMacroses = function (v) {
         this.IsEnabledMacroses = v;
     };
+	prot.get_CoEditingMode = prot.asc_getCoEditingMode = function () {
+		return this.coEditingMode;
+	};
+	prot.put_CoEditingMode = prot.asc_putCoEditingMode = function (v) {
+		this.coEditingMode = v;
+	};
 
 	function COpenProgress() {
 		this.Type = Asc.c_oAscAsyncAction.Open;
@@ -6693,6 +6713,8 @@
     prot["put_IsEnabledPlugins"] = prot["asc_putIsEnabledPlugins"] = prot.asc_putIsEnabledPlugins;
     prot["get_IsEnabledMacroses"] = prot["asc_getIsEnabledMacroses"] = prot.asc_getIsEnabledMacroses;
     prot["put_IsEnabledMacroses"] = prot["asc_putIsEnabledMacroses"] = prot.asc_putIsEnabledMacroses;
+	prot["get_CoEditingMode"] = prot["asc_getCoEditingMode"] = prot.asc_getCoEditingMode;
+	prot["put_CoEditingMode"] = prot["asc_putCoEditingMode"] = prot.asc_putCoEditingMode;
 
 	window["AscCommon"].COpenProgress = COpenProgress;
 	prot = COpenProgress.prototype;

@@ -166,6 +166,10 @@ ParaRun.prototype.GetId = function()
 {
 	return this.Id;
 };
+ParaRun.prototype.IsRun = function()
+{
+	return true;
+};
 ParaRun.prototype.Set_ParaMath = function(ParaMath, Parent)
 {
     this.ParaMath = ParaMath;
@@ -179,6 +183,16 @@ ParaRun.prototype.Set_ParaMath = function(ParaMath, Parent)
 ParaRun.prototype.Save_StartState = function()
 {
     this.StartState = new CParaRunStartState(this);
+};
+ParaRun.prototype.SetParagraph = function(oParagraph)
+{
+	this.Paragraph = oParagraph;
+	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (oItem.IsDrawing())
+			oItem.SetParent(oParagraph);
+	}
 };
 //-----------------------------------------------------------------------------------
 // Функции для работы с содержимым данного рана
@@ -348,7 +362,7 @@ ParaRun.prototype.Copy2 = function(oPr)
 ParaRun.prototype.createDuplicateForSmartArt = function(oPr)
 {
 	var NewRun = new ParaRun(this.Paragraph);
-	NewRun.Set_Pr(this.Pr.createDuplicateForSmartArt(oPr) );
+	NewRun.Set_Pr(this.Pr.createDuplicateForSmartArt(oPr));
 	var StartPos = 0;
 	var EndPos   = this.Content.length;
 	var CurPos;
@@ -1325,27 +1339,24 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
     return true;
 };
-
-ParaRun.prototype.Remove_ParaEnd = function()
+ParaRun.prototype.RemoveParaEnd = function()
 {
-    var Pos = -1;
+	let nEndPos = -1;
+	let nCount  = this.Content.length;
+	for (let nPos = 0; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].IsParaEnd())
+		{
+			nEndPos = nPos;
+			break;
+		}
+	}
 
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        if ( para_End === this.Content[CurPos].Type )
-        {
-            Pos = CurPos;
-            break;
-        }
-    }
+	if (-1 === nEndPos)
+		return false;
 
-    if ( -1 === Pos )
-        return false;
-
-    this.Remove_FromContent( Pos, ContentLen - Pos, true );
-
-    return true;
+	this.RemoveFromContent(nEndPos, nCount - nEndPos, true);
+	return true;
 };
 
 /**
@@ -1968,8 +1979,6 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 				var Descender = Math.abs(g_oTextMeasurer.GetDescender());
 				var Ascender  = Height - Descender;
 
-				Para.DrawingDocument.SetTargetSize(Height, Ascender);
-
                 var RGBA;
                 Para.DrawingDocument.UpdateTargetTransform(Para.Get_ParentTextTransform());
                 if(CurTextPr.TextFill)
@@ -2046,6 +2055,25 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 						}
 					}
 				}
+
+				let oLogicDocument = Para.GetLogicDocument();
+				if (oLogicDocument
+					&& oLogicDocument.IsDocumentEditor()
+					&& !oLogicDocument.IsStartSelection()
+					&& Para.IsSelectionUse())
+				{
+					let oLine = Para.Lines[_CurLine];
+					let oPage = Para.Pages[CurPage];
+
+					if (oLine && oPage)
+					{
+						TargetY  = oPage.Y + oLine.Top;
+						Height   = oLine.Bottom - oLine.Top;
+						Ascender = oLine.Metrics.Ascent;
+					}
+				}
+
+				Para.DrawingDocument.SetTargetSize(Height, Ascender);
 
                 var PageAbs = Para.Get_AbsolutePage(CurPage);
                 // TODO: Тут делаем, чтобы курсор не выходил за границы буквицы. На самом деле, надо делать, чтобы
@@ -2828,7 +2856,7 @@ ParaRun.prototype.CollectDocumentStatistics = function(ParaStats)
 		var bSpace   = false;
 		var bNewWord = false;
 
-		if ((para_Text === ItemType && false === Item.Is_NBSP()) || (para_PageNum === ItemType || para_PageCount === ItemType))
+		if ((para_Text === ItemType && false === Item.IsNBSP()) || (para_PageNum === ItemType || para_PageCount === ItemType))
 		{
 			if (false === ParaStats.Word)
 				bNewWord = true;
@@ -2839,7 +2867,7 @@ ParaRun.prototype.CollectDocumentStatistics = function(ParaStats)
 			ParaStats.Word           = true;
 			ParaStats.EmptyParagraph = false;
 		}
-		else if ((para_Text === ItemType && true === Item.Is_NBSP()) || para_Space === ItemType || para_Tab === ItemType)
+		else if ((para_Text === ItemType && true === Item.IsNBSP()) || para_Space === ItemType || para_Tab === ItemType)
 		{
 			bSymbol = true;
 			bSpace  = true;
@@ -3435,7 +3463,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 				continue;
 
 			// Проверяем, не нужно ли добавить нумерацию к данному элементу
-            if (true === this.RecalcInfo.NumberingAdd && true === Item.Can_AddNumbering())
+            if (true === this.RecalcInfo.NumberingAdd && true === Item.CanAddNumbering())
                 X = this.private_RecalculateNumbering(PRS, Item, ParaPr, X);
 
             switch (ItemType)
@@ -3692,7 +3720,10 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                 }
                 case para_Space:
                 {
-					if (PRS.IsCondensedSpaces())
+                	// TODO: Проверку Balanced перенести в Measure (и избавиться от WidthEn)
+                	if (PRS.IsBalanceSingleByteDoubleByteWidth(this, Pos))
+                		Item.BalanceSingleByteDoubleByteWidth();
+					else if (PRS.IsCondensedSpaces())
 						PRS.AddCondensedSpaceToRange(Item);
 					else
 						Item.ResetCondensedWidth();
@@ -4304,7 +4335,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						break;
 
 					Item.SetXY(X + SpaceLen + WordLen, PRS.Y);
-					Item.SetPage(Para.Get_AbsolutePage(CurPage));
+					Item.SetPage(Para.Get_AbsolutePage(PRS.Page));
 
 					Item.SetRun(this);
 					PRS.ComplexFields.ProcessFieldChar(Item);
@@ -4802,9 +4833,6 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
             }
 			case para_FieldChar:
 			{
-				if (reviewtype_Remove === this.GetReviewType())
-					break;
-
 				if (this.Paragraph && this.Paragraph.m_oPRSW.IsFastRecalculate())
 					PRSC.ComplexFields.ProcessFieldChar(Item);
 				else
@@ -4946,20 +4974,22 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             case para_Drawing:
             {
                 var Para = PRSA.Paragraph;
+                var isInHdrFtr = Para.Parent.IsHdrFtr();
+
                 var PageAbs = Para.private_GetAbsolutePageIndex(CurPage);
                 var PageRel = Para.private_GetRelativePageIndex(CurPage);
                 var ColumnAbs = Para.Get_AbsoluteColumn(CurPage);
 
                 var LogicDocument = this.Paragraph.LogicDocument;
                 var LD_PageLimits = LogicDocument.Get_PageLimits(PageAbs);
-                var LD_PageFields = LogicDocument.Get_PageFields(PageAbs);
+                var LD_PageFields = LogicDocument.Get_PageFields(PageAbs, isInHdrFtr);
 
                 var Page_Width  = LD_PageLimits.XLimit;
                 var Page_Height = LD_PageLimits.YLimit;
 
                 var DrawingObjects = Para.Parent.DrawingObjects;
                 var PageLimits     = Para.Parent.Get_PageLimits(PageRel);
-                var PageFields     = Para.Parent.Get_PageFields(PageRel);
+                var PageFields     = Para.Parent.Get_PageFields(PageRel, isInHdrFtr);
 
                 var X_Left_Field   = PageFields.X;
                 var Y_Top_Field    = PageFields.Y;
@@ -4977,7 +5007,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 
                 // TODO: Надо здесь почистить все, а то названия переменных путаются, и некоторые имеют неправильное значение
 
-                if (isTableCellContent && (!isUseWrap || !isLayoutInCell))
+                if (isTableCellContent && !isLayoutInCell)
                 {
                     X_Left_Field   = LD_PageFields.X;
                     Y_Top_Field    = LD_PageFields.Y;
@@ -5026,7 +5056,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                 if (isTableCellContent && !isLayoutInCell)
                 {
                     PageLimitsOrigin = LogicDocument.Get_PageLimits(PageAbs);
-                    var PageFieldsOrigin = LogicDocument.Get_PageFields(PageAbs);
+                    var PageFieldsOrigin = LogicDocument.Get_PageFields(PageAbs, isInHdrFtr);
                     ColumnStartX = PageFieldsOrigin.X;
                     ColumnEndX   = PageFieldsOrigin.XLimit;
                 }
@@ -5272,9 +5302,9 @@ ParaRun.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 };
 ParaRun.prototype.RecalculateEndInfo = function(oPRSI)
 {
-	if (reviewtype_Remove === this.GetReviewType()
-		|| (this.Paragraph
-			&& (this.Paragraph.m_oPRSW.IsFastRecalculate() || this.Paragraph.bFromDocument === false)))
+	var isRemovedInReview = (reviewtype_Remove === this.GetReviewType());
+
+	if (this.Paragraph && (this.Paragraph.m_oPRSW.IsFastRecalculate() || this.Paragraph.bFromDocument === false))
 		return;
 
 	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
@@ -5284,7 +5314,7 @@ ParaRun.prototype.RecalculateEndInfo = function(oPRSI)
 		{
 			oPRSI.ProcessFieldCharAndCollectComplexField(oItem);
 		}
-		else if (para_InstrText === oItem.Type)
+		else if (para_InstrText === oItem.Type && !isRemovedInReview)
 		{
 			oPRSI.ProcessInstruction(oItem);
 		}
@@ -5886,12 +5916,12 @@ ParaRun.prototype.Shift_Range = function(Dx, Dy, _CurLine, _CurRange, _CurPage)
 
 		if (para_Drawing === Item.Type)
 		{
-			if (!Item.IsInline() && !Item.IsUseTextWrap())
+			if (!Item.IsInline())
 			{
-				if (Asc.c_oAscRelativeFromV.Paragraph !== Item.GetPositionV().RelativeFrom && Asc.c_oAscRelativeFromV.Line !== Item.GetPositionV().RelativeFrom)
+				if (!Item.IsMoveWithTextVertically())
 					Dy = 0;
 
-				if (Asc.c_oAscRelativeFromH.Column !== Item.GetPositionH().RelativeFrom && Asc.c_oAscRelativeFromH.Character !== Item.GetPositionH().RelativeFrom)
+				if (!Item.IsMoveWithTextHorizontally())
 					Dx = 0;
 			}
 
@@ -6285,8 +6315,6 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
 			case para_EndnoteRef:
             case para_Separator:
             case para_ContinuationSeparator:
-			case para_EndnoteReference:
-			case para_EndnoteRef:
             {
                 if (para_Drawing != ItemType || Item.Is_Inline())
                 {
@@ -6527,6 +6555,12 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			nCombMax = oForm.GetTextFormPr().GetMaxCharacters();
 
 		isFormPlaceHolder = (oForm.IsPlaceHolder() && PDSL.Graphics.isPrintMode);
+
+		let isForceDrawPlaceHolders = PDSL.GetLogicDocument().ForceDrawPlaceHolders;
+		if (true === isForceDrawPlaceHolders)
+			isFormPlaceHolder = false;
+		else if (false === isForceDrawPlaceHolders && oForm.IsPlaceHolder())
+			isFormPlaceHolder = true;
 	}
 
     var CurTextPr = this.Get_CompiledPr( false );
@@ -6647,6 +6681,9 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
         }
     }
 
+	let oLine  = Para.Lines[PDSL.Line];
+	let oRange = oLine ? oLine.Ranges[PDSL.Range] : undefined;
+
 	var isHiddenCFPart = PDSL.ComplexFields.IsComplexFieldCode();
 
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
@@ -6756,8 +6793,6 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			case para_EndnoteRef:
 			case para_Separator:
 			case para_ContinuationSeparator:
-			case para_EndnoteReference:
-			case para_EndnoteRef:
 			{
 				if (para_Text === ItemType && null !== this.CompositeInput && Pos >= this.CompositeInput.Pos && Pos < this.CompositeInput.Pos + this.CompositeInput.Length)
 				{
@@ -6810,41 +6845,57 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			}
 			case para_Space:
 			{
-				// Пробелы, идущие в конце строки, не подчеркиваем и не зачеркиваем
+				let _X0 = X;
+				let _X1 = X + ItemWidthVisible;
+				if (oRange)
+				{
+					_X0 = oRange.CorrectX(X);
+					_X1 = oRange.CorrectX(X + ItemWidthVisible);
+				}
+
+				let isDraw = false;
 				if (PDSL.Spaces > 0)
+				{
+					isDraw = true;
+					PDSL.Spaces--;
+				}
+				else if (PDSL.IsUnderlineTrailSpace())
+				{
+					isDraw = true;
+				}
+
+				if (isDraw && _X1 - _X0 > 0.001)
 				{
 					if (true === bRemReview)
 					{
 						if (oReviewInfo.IsMovedFrom())
-							aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+							aDStrikeout.Add(StrikeoutY, StrikeoutY, _X0, _X1, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 						else
-							aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+							aStrikeout.Add(StrikeoutY, StrikeoutY, _X0, _X1, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 
 						if (isRemAdd)
-							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
+							aUnderline.Add(UnderlineY, UnderlineY, _X0, _X1, LineW, oRemAddColor.r, oRemAddColor.g, oRemAddColor.b);
 					}
 					else if (true === CurTextPr.DStrikeout)
 					{
-						aDStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+						aDStrikeout.Add(StrikeoutY, StrikeoutY, _X0, _X1, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
 					}
 					else if (true === CurTextPr.Strikeout)
 					{
-						aStrikeout.Add(StrikeoutY, StrikeoutY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+						aStrikeout.Add(StrikeoutY, StrikeoutY, _X0, _X1, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
 					}
 
 					if (true === bAddReview)
 					{
 						if (oReviewInfo.IsMovedTo())
-							aDUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+							aDUnderline.Add(UnderlineY, UnderlineY, _X0, _X1, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 						else
-							aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
+							aUnderline.Add(UnderlineY, UnderlineY, _X0, _X1, LineW, ReviewColor.r, ReviewColor.g, ReviewColor.b);
 					}
 					else if (true === CurTextPr.Underline)
 					{
-						aUnderline.Add(UnderlineY, UnderlineY, X, X + ItemWidthVisible, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
+						aUnderline.Add(UnderlineY, UnderlineY, _X0, _X1, LineW, CurColor.r, CurColor.g, CurColor.b, undefined, CurTextPr);
 					}
-
-					PDSL.Spaces--;
 				}
 
 				X += ItemWidthVisible;
@@ -7512,7 +7563,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 				isHiddenCF   = SearchPos.IsHiddenComplexField();
 			}
 
-            if ( para_Space === Type || para_Tab === Type || ( para_Text === Type && true === Item.Is_NBSP() ) || ( para_Drawing === Type && true !== Item.Is_Inline() ) )
+            if ( para_Space === Type || para_Tab === Type || ( para_Text === Type && true === Item.IsNBSP() ) || ( para_Drawing === Type && true !== Item.Is_Inline() ) )
                 bSpace = true;
 
             if (true === bSpace || isFieldCode || isHiddenCF)
@@ -7571,7 +7622,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 		if (isFieldCode || isHiddenCF)
 			continue;
 
-        if ( (para_Text !== TempType && para_Math_Text !== TempType) || true === Item.Is_NBSP() || ( true === SearchPos.Punctuation && true !== Item.IsPunctuation() ) || ( false === SearchPos.Punctuation && false !== Item.IsPunctuation() ) )
+        if ( (para_Text !== TempType && para_Math_Text !== TempType) || true === Item.IsNBSP() || ( true === SearchPos.Punctuation && true !== Item.IsPunctuation() ) || ( false === SearchPos.Punctuation && false !== Item.IsPunctuation() ) )
         {
             SearchPos.Found = true;
             break;
@@ -7615,7 +7666,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 				isHiddenCF   = SearchPos.IsHiddenComplexField();
 			}
 
-            if ( (para_Text === Type || para_Math_Text === Type) && true != Item.Is_NBSP() && ( true === SearchPos.First || ( SearchPos.Punctuation === Item.IsPunctuation() ) ) )
+            if ( (para_Text === Type || para_Math_Text === Type) && true != Item.IsNBSP() && ( true === SearchPos.First || ( SearchPos.Punctuation === Item.IsPunctuation() ) ) )
                 bText = true;
 
             if (true === bText || isFieldCode || isHiddenCF)
@@ -7691,7 +7742,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
     // На втором этапе мы смотрим на каком элементе мы встали: если это не пробел, тогда
     // останавливаемся здесь. В противном случае сдвигаемся вперед, пока не попали на первый
     // не пробельный элемент.
-    if ( !(para_Space === this.Content[CurPos].Type || ( para_Text === this.Content[CurPos].Type && true === this.Content[CurPos].Is_NBSP() ) ) )
+    if ( !(para_Space === this.Content[CurPos].Type || ( para_Text === this.Content[CurPos].Type && true === this.Content[CurPos].IsNBSP() ) ) )
     {
         SearchPos.Pos.Update( CurPos, Depth );
         SearchPos.Found     = true;
@@ -7716,7 +7767,7 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 			if (isFieldCode || isHiddenCF)
 				continue;
 
-            if ( (true !== StepEnd && para_End === TempType) || !( para_Space === TempType || ( para_Text === TempType && true === Item.Is_NBSP() ) ) )
+            if ( (true !== StepEnd && para_End === TempType) || !( para_Space === TempType || ( para_Text === TempType && true === Item.IsNBSP() ) ) )
             {
                 SearchPos.Found = true;
                 break;
@@ -8941,7 +8992,7 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 		if (undefined !== TextPr.Color)
 		{
 			this.Set_Color(null === TextPr.Color ? undefined : TextPr.Color);
-			if(null !== TextPr.Colornull)
+			if(null !== TextPr.Color)
 			{
 				this.Set_Unifill(undefined);
 				this.Set_TextFill(undefined);
@@ -10594,15 +10645,17 @@ ParaRun.prototype.getPropsForWrite = function()
 
     return {wRPrp: wRPrp, mathRPrp: mathRPrp, prRPrp: prRPr};
 };
-ParaRun.prototype.Get_MathPr = function(bCopy)
+ParaRun.prototype.GetMathPr = function(isCopy)
 {
-    if(this.Type = para_Math_Run)
-    {
-        if(bCopy)
-            return this.MathPrp.Copy();
-        else
-            return this.MathPrp;
-    }
+	if (para_Math_Run === this.Type)
+	{
+		if (isCopy)
+			return this.MathPrp.Copy();
+		else
+			return this.MathPrp;
+	}
+
+	return null;
 };
 ParaRun.prototype.Math_PreRecalc = function(Parent, ParaMath, ArgSize, RPI, GapsInfo)
 {
@@ -11431,6 +11484,7 @@ ParaRun.prototype.AcceptRevisionChanges = function(nType, bAll)
 			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
 		{
 			Parent.RemoveFromContent(CenterRunPos, 1);
+			CenterRun.ClearContent();
 
 			if (Parent.GetContentLength() <= 0)
 			{
@@ -11515,6 +11569,7 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 			&& oPrevInfo))
 		{
 			Parent.RemoveFromContent(CenterRunPos, 1);
+			CenterRun.ClearContent();
 
 			if (Parent.GetContentLength() <= 0)
 			{
@@ -11688,6 +11743,10 @@ ParaRun.prototype.GetFootnotesList = function(oEngine)
 ParaRun.prototype.Is_UseInDocument = function()
 {
 	return (this.Paragraph && true === this.Paragraph.Is_UseInDocument() && true === this.Is_UseInParagraph() ? true : false);
+};
+ParaRun.prototype.IsUseInDocument = function()
+{
+	return this.Is_UseInDocument();
 };
 ParaRun.prototype.GetParaEnd = function()
 {
@@ -12167,286 +12226,7 @@ ParaRun.prototype.IsFootEndnoteReferenceRun = function()
  */
 ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags, nHistoryActions)
 {
-	if (undefined === nHistoryActions || null === nHistoryActions)
-		nHistoryActions = 1;
-
-	var nRes = AUTOCORRECT_FLAGS_NONE;
-
-	function private_IsCheckLock()
-	{
-		return (0 === nHistoryActions && nRes === AUTOCORRECT_FLAGS_NONE);
-	}
-
-	if (!nFlags)
-		return nRes;
-
-	// Сколько максимально просматриваем элементов влево
-	var nMaxElements = 1000;
-
-	var oParagraph = this.GetParagraph();
-
-	if (!oParagraph)
-		return nRes;
-
-	var oDocument = oParagraph.LogicDocument;
-	if (!oDocument || !(oDocument instanceof CDocument) && !(oDocument instanceof CPresentation))
-		return nRes;
-
-	var oContentPos = oParagraph.Get_PosByElement(this);
-	if (!oContentPos)
-		return nRes;
-
-	oContentPos.Update(nPos, oContentPos.GetDepth() + 1);
-
-	// Чтобы позиция oContentPos была актуальна, отключаем корректировку содержимого параграфа на время выполеняни
-	// автозамены. Все изменения должны происходить ТОЛЬКО внтури ранов
-	oParagraph.TurnOffCorrectContent();
-	function private_Return()
-	{
-		oParagraph.TurnOnCorrectContent();
-		return nRes;
-	}
-
-	var nLang = this.Get_CompiledPr(false).Lang ? this.Get_CompiledPr(false).Lang.Val : 1033;
-
-	if (nFlags & AUTOCORRECT_FLAGS_DOUBLESPACE_WITH_PERIOD && this.private_ProcessDoubleSpaceWithPeriod(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
-		return (nRes |= AUTOCORRECT_FLAGS_DOUBLESPACE_WITH_PERIOD);
-
-	if (nFlags & AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION && this.private_ProcessFrenchPunctuation(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
-		nRes |= AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION;
-
-	if (nFlags & AUTOCORRECT_FLAGS_SMART_QUOTES && this.private_ProcessSmartQuotesAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
-		nRes |= AUTOCORRECT_FLAGS_SMART_QUOTES;
-
-	if (nFlags & AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH && this.private_ProcessHyphenWithDashAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, nLang))
-		nRes |= AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
-
-	var oRunElementsBefore = new CParagraphRunElements(oContentPos, nMaxElements, [para_Text], false);
-	oRunElementsBefore.SetBreakOnBadType(true);
-	oRunElementsBefore.SetBreakOnDifferentClass(true);
-	oRunElementsBefore.SetSaveContentPositions(true);
-	oParagraph.GetPrevRunElements(oRunElementsBefore);
-	var arrElements = oRunElementsBefore.GetElements();
-	if (arrElements.length <= 0)
-		return private_Return();
-
-	var sText = "";
-	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
-	{
-		if (para_Text !== arrElements[nCount - 1 - nIndex].Type)
-			return private_Return();
-
-		sText += String.fromCharCode(arrElements[nCount - 1 - nIndex].Value);
-	}
-
-	var isAsYouType = false;
-	var oHistory = oDocument.GetHistory();
-	if (arrElements.length > 0 && oHistory.CheckAsYouTypeAutoCorrect)
-		isAsYouType = oHistory.CheckAsYouTypeAutoCorrect(arrElements[0], nHistoryActions);
-
-	if (nFlags & AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH && isAsYouType && this.private_ProcessSpaceHyphenWithDashAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, oRunElementsBefore))
-		nRes |= AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
-
-	if (nFlags & AUTOCORRECT_FLAGS_HYPERLINK && this.private_ProcessHyperlinkAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, oRunElementsBefore, sText))
-		nRes |= AUTOCORRECT_FLAGS_HYPERLINK;
-
-	if (nFlags & AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE && isAsYouType && this.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect(oDocument, oParagraph, private_IsCheckLock(), oContentPos, nPos, oRunElementsBefore, sText))
-		nRes |= AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE;
-
-	if (!(nFlags & AUTOCORRECT_FLAGS_NUMBERING))
-		return private_Return();
-
-	// Автосоздание списка
-	if (oParagraph.bFromDocument && oParagraph.GetNumPr()
-	|| !oParagraph.bFromDocument && !oParagraph.PresentationPr.Bullet.IsNone())
-		return private_Return();
-
-	var oPrevNumPr = null;
-	var oPrevParagraph = oParagraph.Get_DocumentPrev();
-	if (oPrevParagraph && type_Paragraph === oPrevParagraph.GetType())
-		oPrevNumPr = oPrevParagraph.GetNumPr();
-
-	if (oRunElementsBefore.IsEnd())
-	{
-		if(oParagraph.bFromDocument)
-		{
-			var oNumPr = null;
-
-			if (oDocument.IsAutomaticBulletedLists())
-			{
-				var oNumLvl = this.private_GetSuitableBulletedLvlForAutoCorrect(sText);
-				if (oNumLvl)
-				{
-					if (oPrevNumPr)
-					{
-						var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
-						if (oPrevNumLvl.IsSimilar(oNumLvl))
-						{
-							oNumPr = new CNumPr(oPrevNumPr.NumId, oPrevNumPr.Lvl);
-						}
-					}
-
-					if (!oNumPr)
-					{
-						var oNum = oDocument.GetNumbering().CreateNum();
-						oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
-						oNum.SetLvl(oNumLvl, 0);
-						oNumPr = new CNumPr(oNum.GetId(), 0);
-					}
-				}
-			}
-
-			if (oDocument.IsAutomaticNumberedLists())
-			{
-				var arrResult = this.private_GetSuitableNumberedLvlForAutoCorrect(sText);
-
-				if (arrResult && arrResult.length > 0 && arrResult.length <= 9)
-				{
-					if (oPrevNumPr)
-					{
-						var isAdd      = false;
-						var nResultLvL = oPrevNumPr.Lvl;
-
-						var oResult = arrResult[arrResult.length - 1];
-						if (oResult && -1 !== oResult.Value && oResult.Lvl)
-						{
-							var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
-							var oPrevNum = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId);
-							var nPrevLvl = oPrevNumPr.Lvl;
-
-							for (var nLvl = nPrevLvl; nLvl >= 0; --nLvl)
-							{
-								var oPrevNumLvl = oPrevNum.GetLvl(nLvl);
-								if (oPrevNumLvl.IsSimilar(oResult.Lvl))
-								{
-									if (oResult.Value > oNumInfo[nLvl] && oResult.Value <= oNumInfo[nLvl] + 2 && arrResult.length - 1 >= nLvl)
-									{
-										var isCheckPrevLvls = true;
-										for (var nLvl2 = 0; nLvl2 < nLvl; ++nLvl2)
-										{
-											if (arrResult[nLvl2].Value !== oNumInfo[nLvl2])
-											{
-												isCheckPrevLvls = false;
-												break;
-											}
-										}
-
-										if (isCheckPrevLvls)
-										{
-											isAdd      = true;
-											nResultLvL = nLvl;
-											break;
-										}
-									}
-								}
-							}
-
-							if (!isAdd)
-							{
-								oResult.Lvl.ResetNumberedText(oPrevNumPr.Lvl);
-
-								var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
-								if (oPrevNumLvl.IsSimilar(oResult.Lvl))
-								{
-									var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
-									if (oResult.Value > oNumInfo[oPrevNumPr.Lvl] && oResult.Value <= oNumInfo[oPrevNumPr.Lvl] + 2)
-										isAdd = true;
-								}
-							}
-
-						}
-
-						if (isAdd)
-							oNumPr = new CNumPr(oPrevNumPr.NumId, nResultLvL);
-					}
-					else
-					{
-						var isCreateNew = true;
-						for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
-						{
-							var oResult = arrResult[nIndex];
-							if (!oResult || 1 !== oResult.Value || !oResult.Lvl)
-							{
-								isCreateNew = false;
-								break;
-							}
-						}
-
-						if (isCreateNew)
-						{
-							var oNum = oDocument.GetNumbering().CreateNum();
-							oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
-							for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
-							{
-								oNum.SetLvl(arrResult[nIndex].Lvl, nIndex);
-							}
-
-							oNumPr = new CNumPr(oNum.GetId(), arrResult.length - 1);
-						}
-					}
-				}
-			}
-
-
-			if (oNumPr)
-			{
-				if (!private_IsCheckLock() || !this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-				{
-					oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
-
-					var oStartPos = oParagraph.GetStartPos();
-					var oEndPos   = oContentPos;
-					oContentPos.Update(nPos + 1, oContentPos.GetDepth());
-
-					oParagraph.RemoveSelection();
-					oParagraph.SetSelectionUse(true);
-					oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-					oParagraph.Remove(1);
-					oParagraph.RemoveSelection();
-					oParagraph.MoveCursorToStartPos(false);
-
-					oParagraph.ApplyNumPr(oNumPr.NumId, oNumPr.Lvl);
-
-					oDocument.Recalculate();
-					oDocument.FinalizeAction();
-
-					nRes |= AUTOCORRECT_FLAGS_NUMBERING;
-				}
-			}
-		}
-		else
-		{
-			var oBullet = null;
-			if (oDocument.IsAutomaticBulletedLists())
-			{
-				oBullet = this.private_GetSuitablePrBulletForAutoCorrect(sText);
-			}
-			if (!oBullet && oDocument.IsAutomaticNumberedLists())
-			{
-				oBullet = this.private_GetSuitablePrNumberingForAutoCorrect(sText);
-			}
-			if (oBullet)
-			{
-				oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
-				var oStartPos = oParagraph.GetStartPos();
-				var oEndPos   = oContentPos;
-				oContentPos.Update(nPos + 1, oContentPos.GetDepth());
-
-				oParagraph.RemoveSelection();
-				oParagraph.SetSelectionUse(true);
-				oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-				oParagraph.Remove(1);
-				oParagraph.RemoveSelection();
-				oParagraph.MoveCursorToStartPos(false);
-				oParagraph.Add_PresentationNumbering(oBullet);
-				oDocument.FinalizeAction();
-
-				nRes |= AUTOCORRECT_FLAGS_NUMBERING;
-			}
-		}
-	}
-
-	return private_Return();
+	return (new AscCommonWord.CRunAutoCorrect(this, nPos).DoAutoCorrect(nFlags, nHistoryActions));
 };
 /**
  * Выполняем автозамену в конце параграфа
@@ -12459,212 +12239,6 @@ ParaRun.prototype.ProcessAutoCorrectOnParaEnd = function(nHistoryActions)
 		return;
 
 	this.ProcessAutoCorrect(0, oParaEnd.GetAutoCorrectFlags(), nHistoryActions);
-};
-ParaRun.prototype.private_CheckDocumentLockedBeforeAutoCorrect = function(oDocument, oParagraph)
-{
-	return oDocument.IsSelectionLocked(AscCommon.changestype_None, {
-		Type      : AscCommon.changestype_2_ElementsArray_and_Type,
-		Elements  : [oParagraph],
-		CheckType : AscCommon.changestype_Paragraph_Properties
-	}, true, false);
-};
-/**
- * Подбираем подходящий маркированный список
- * @param sText {string}
- * @returns {?CNumberingLvl}
- */
-ParaRun.prototype.private_GetSuitableBulletedLvlForAutoCorrect = function(sText)
-{
-	var oNumberingLvl = new CNumberingLvl();
-	oNumberingLvl.InitDefault(0, c_oAscMultiLevelNumbering.Bullet);
-
-	if ('*' === sText)
-	{
-		var oTextPr = new CTextPr();
-		oTextPr.RFonts.SetAll("Symbol");
-		oNumberingLvl.SetByType(c_oAscNumberingLevel.Bullet, 0, String.fromCharCode(0x00B7), oTextPr);
-		return oNumberingLvl;
-	}
-	else if ('-' === sText)
-	{
-		var oTextPr = new CTextPr();
-		oTextPr.RFonts.SetAll("Arial");
-		oNumberingLvl.SetByType(c_oAscNumberingLevel.Bullet, 0, String.fromCharCode(0x2013), oTextPr);
-		return oNumberingLvl;
-	}
-	else if ('>' === sText)
-	{
-		var oTextPr = new CTextPr();
-		oTextPr.RFonts.SetAll("Wingdings");
-		oNumberingLvl.SetByType(c_oAscNumberingLevel.Bullet, 0, String.fromCharCode(0x00D8), oTextPr);
-		return oNumberingLvl;
-	}
-
-	return null;
-};
-/**
- * Подбираем подходящий нумерованный список
- * @param sText {string}
- * @returns {null | {Lvl : CNumberingLvl, Value : number}}
- */
-ParaRun.prototype.private_GetSuitableNumberedLvlForAutoCorrect = function(sText)
-{
-	if (sText.length < 2)
-		return null;
-
-	var sLastChar = sText.charAt(sText.length - 1);
-	if ('.' !== sLastChar && ')' !== sLastChar)
-		return null;
-
-	var nFirstCharCode = sText.charCodeAt(0);
-
-	var sValue = sText.slice(0, sText.length - 1);
-
-	function private_ParseNextInt(sText, nPos)
-	{
-		if (nPos >= sText.length)
-			return null;
-
-		var nNextParaPos = sText.indexOf(")", nPos);
-		var nNextDotPos  = sText.indexOf(".", nPos);
-
-		var nEndPos;
-		if (-1 === nNextDotPos && -1 === nNextParaPos)
-			return null;
-		else if (-1 === nNextDotPos)
-			nEndPos = nNextParaPos;
-		else if (-1 === nNextParaPos)
-			nEndPos = nNextDotPos;
-		else
-			nEndPos = Math.min(nNextDotPos, nNextParaPos);
-
-		var sValue = sText.slice(nPos, nEndPos);
-		var nValue = parseInt(sValue);
-
-		if (isNaN(nValue))
-			return null;
-
-		return {Value : nValue, Char : sText.charAt(nEndPos), Pos : nEndPos + 1};
-	}
-
-	// Проверяем, либо у нас все числовое, либо у нас все буквенное (все заглавные, либо все не заглавные)
-	if (48 <= nFirstCharCode && nFirstCharCode <= 57)
-	{
-
-		var arrResult = [], nPos = 0;
-
-		var oNum = private_ParseNextInt(sText, nPos);
-		var oPrevLvl = null;
-		var nCurLvl  = 0;
-		while (oNum)
-		{
-			nPos = oNum.Pos;
-
-			var oNumberingLvl = new CNumberingLvl();
-			if ('.' === oNum.Char)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.DecimalDot_Left, nCurLvl);
-			else if (')' === oNum.Char)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.DecimalBracket_Left, nCurLvl);
-
-			if (oPrevLvl)
-			{
-				var arrPrevLvlText = oPrevLvl.GetLvlText();
-				var arrLvlText     = [];
-				for (var nIndex = 0, nCount = arrPrevLvlText.length; nIndex < nCount; ++nIndex)
-				{
-					arrLvlText.push(arrPrevLvlText[nIndex].Copy());
-				}
-				oNumberingLvl.SetLvlText(arrLvlText.concat(oNumberingLvl.GetLvlText()));
-			}
-
-			arrResult.push({Lvl : oNumberingLvl, Value : oNum.Value});
-
-			oNum = private_ParseNextInt(sText, nPos);
-			oPrevLvl = oNumberingLvl;
-			nCurLvl++;
-		}
-
-		if (arrResult.length > 9)
-			return null;
-
-		return arrResult;
-	}
-	else if (65 <= nFirstCharCode && nFirstCharCode <= 90)
-	{
-		var nRoman  = AscCommon.RomanToInt(sValue);
-		var nLetter = AscCommon.LatinNumberingToInt(sValue);
-
-		var arrResult = [];
-		if (!isNaN(nRoman))
-		{
-			var oNumberingLvl = new CNumberingLvl();
-			oNumberingLvl.InitDefault(0, c_oAscMultiLevelNumbering.Numbered);
-
-			if ('.' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.UpperRomanDot_Right, 0);
-			else if (')' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.UpperRomanBracket_Left, 0);
-
-			arrResult.push({Lvl : oNumberingLvl, Value : nRoman});
-		}
-
-		if (!isNaN(nLetter))
-		{
-			var oNumberingLvl = new CNumberingLvl();
-			oNumberingLvl.InitDefault(0, c_oAscMultiLevelNumbering.Numbered);
-
-			if ('.' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.UpperLetterDot_Left, 0);
-			else if (')' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.UpperLetterBracket_Left, 0);
-
-			arrResult.push({Lvl : oNumberingLvl, Value : nLetter});
-		}
-
-		if (arrResult.length > 0)
-			return arrResult;
-
-		return null;
-	}
-	else if (97 <= nFirstCharCode && nFirstCharCode <= 122)
-	{
-		var nRoman  = AscCommon.RomanToInt(sValue);
-		var nLetter = AscCommon.LatinNumberingToInt(sValue);
-
-		var arrResult = [];
-
-		if (!isNaN(nRoman))
-		{
-			var oNumberingLvl = new CNumberingLvl();
-			oNumberingLvl.InitDefault(0, c_oAscMultiLevelNumbering.Numbered);
-
-			if ('.' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.LowerRomanDot_Right, 0);
-			else if (')' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.LowerRomanBracket_Left, 0);
-
-			arrResult.push({Lvl : oNumberingLvl, Value : nRoman});
-		}
-		if (!isNaN(nLetter))
-		{
-			var oNumberingLvl = new CNumberingLvl();
-			oNumberingLvl.InitDefault(0, c_oAscMultiLevelNumbering.Numbered);
-
-			if ('.' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.LowerLetterDot_Left, 0);
-			else if (')' === sLastChar)
-				oNumberingLvl.SetByType(c_oAscNumberingLevel.LowerLetterBracket_Left, 0);
-
-			arrResult.push({Lvl : oNumberingLvl, Value : nLetter});
-		}
-
-		if (arrResult.length > 0)
-			return arrResult;
-
-		return null;
-	}
-
-	return null;
 };
 ParaRun.prototype.ChangeUnicodeText = function(ListForUnicode, oSettings)
 {
@@ -12731,731 +12305,6 @@ ParaRun.prototype.ChangeUnicodeText = function(ListForUnicode, oSettings)
             }
 	}
 };
-ParaRun.prototype.private_GetSuitablePrBulletForAutoCorrect = function (sText)
-{
-	if ('*' === sText)
-	{
-		return AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 0});
-	}
-	else if ('-' === sText)
-	{
-		return AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 8});
-	}
-	return null;
-};
-ParaRun.prototype.private_GetSuitablePrNumberingForAutoCorrect = function (sText)
-{
-	var sLastChar = sText.charAt(sText.length - 1);
-	if ('.' !== sLastChar && ')' !== sLastChar)
-		return null;
-
-	var nNumType = null;
-	if(sText === "(a)")
-	{
-		nNumType = numbering_presentationnumfrmt_AlphaLcParenBoth;
-	}
-	else if(sText === "a)")
-	{
-		nNumType = numbering_presentationnumfrmt_AlphaLcParenR;
-	}
-	else if(sText === "a.")
-	{
-		nNumType = numbering_presentationnumfrmt_AlphaLcPeriod;
-	}
-	else if(sText === "(A)")
-	{
-		nNumType = numbering_presentationnumfrmt_AlphaUcParenBoth;
-	}
-	else if(sText === "A)")
-	{
-		nNumType = numbering_presentationnumfrmt_AlphaUcParenR;
-	}
-	else if(sText === "A.")
-	{
-		nNumType = numbering_presentationnumfrmt_AlphaUcPeriod;
-	}
-	else if(sText === "(1)")
-	{
-		nNumType = numbering_presentationnumfrmt_ArabicParenBoth;
-	}
-	else if(sText === "1)")
-	{
-		nNumType = numbering_presentationnumfrmt_ArabicParenR;
-	}
-	else if(sText === "1.")
-	{
-		nNumType = numbering_presentationnumfrmt_ArabicPeriod;
-	}
-	else if(sText === "(i)")
-	{
-		nNumType = numbering_presentationnumfrmt_RomanLcParenBoth;
-	}
-	else if(sText === "i)")
-	{
-		nNumType = numbering_presentationnumfrmt_RomanLcParenR;
-	}
-	else if(sText === "i.")
-	{
-		nNumType = numbering_presentationnumfrmt_RomanLcPeriod;
-	}
-	else if(sText === "(I)")
-	{
-		nNumType = numbering_presentationnumfrmt_RomanUcParenBoth;
-	}
-	else if(sText === "I)")
-	{
-		nNumType = numbering_presentationnumfrmt_RomanUcParenR;
-	}
-	else if(sText === "I.")
-	{
-		nNumType = numbering_presentationnumfrmt_RomanUcPeriod;
-	}
-	if(nNumType !== null)
-	{
-		var oBullet = new AscFormat.CBullet();
-		oBullet.bulletType = new AscFormat.CBulletType();
-		oBullet.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
-		oBullet.bulletType.AutoNumType = nNumType;
-		return oBullet;
-	}
-	return null;
-};
-/**
- * Производим автозамену для замены двух пробелов знаком точки
- * @param oDocument {CDocument}
- * @param oParagraph {Paragraph}
- * @param isCheckLock {boolean}
- * @param oContentPos {CParagraphContentPos}
- * @param nPos {number}
- * @param nLang {number}
- * @returns {boolean}
- */
-ParaRun.prototype.private_ProcessDoubleSpaceWithPeriod = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, nLang)
-{
-	if (!oDocument.IsAutoCorrectDoubleSpaceWithPeriod())
-		return false;
-
-	if (!this.Content[nPos].IsSpace())
-		return false;
-
-	var oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
-	oRunElementsBefore.SetSaveContentPositions(true);
-	oParagraph.GetPrevRunElements(oRunElementsBefore);
-	var arrElements = oRunElementsBefore.GetElements();
-	var oHistory    = oDocument.GetHistory();
-	if (1 !== arrElements.length
-		|| !arrElements[0].IsSpace()
-		|| !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0], 1, 500))
-		return false;
-
-	if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-		return false;
-
-	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
-
-	var oDot = new ParaText(46);
-	this.AddToContent(nPos + 1, oDot);
-	var oStartPos = oRunElementsBefore.GetContentPositions()[0];
-	var oEndPos   = oContentPos;
-	oContentPos.Update(nPos + 1, oContentPos.GetDepth());
-
-	oParagraph.RemoveSelection();
-	oParagraph.SetSelectionUse(true);
-	oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-	oParagraph.Remove(1);
-	oParagraph.RemoveSelection();
-
-	// Надо корректировать ContentPos, потому что мы производили удаление
-	for (var nTempPos = 0, nCount = this.Content.length; nTempPos < nCount; ++nTempPos)
-	{
-		if (this.Content[nTempPos] === oDot)
-		{
-			this.State.ContentPos = nTempPos + 1;
-			oContentPos.Update(nTempPos + 1, oContentPos.GetDepth());
-			break;
-		}
-	}
-
-	oDocument.Recalculate();
-	oDocument.FinalizeAction();
-	return true;
-};
-/**
- * Производим автозамену для французской пунктуации
- * @param oDocument {CDocument}
- * @param oParagraph {Paragraph}
- * @param isCheckLock {boolean}
- * @param oContentPos {CParagraphContentPos}
- * @param nPos {number}
- * @param nLang {number}
- * @returns {boolean}
- */
-ParaRun.prototype.private_ProcessFrenchPunctuation = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, nLang)
-{
-	if (!oDocument.IsAutoCorrectFrenchPunctuation())
-		return false;
-
-	if (!(para_Text === this.Content[nPos].Type && (1036 === nLang && (0x003A === this.Content[nPos].Value || 0x003B === this.Content[nPos].Value || 0x003F === this.Content[nPos].Value || 0x0021 === this.Content[nPos].Value))))
-		return false;
-
-	var oRunElementsBefore = new CParagraphRunElements(oContentPos, 3, null, false);
-	oRunElementsBefore.SetSaveContentPositions(true);
-	oParagraph.GetPrevRunElements(oRunElementsBefore);
-	var arrElements = oRunElementsBefore.GetElements();
-
-	if ((arrElements.length > 0 &&
-		para_Text === arrElements[0].Type
-		&& (33 === arrElements[0].Value
-			|| 58 === arrElements[0].Value
-			|| 59 === arrElements[0].Value
-			|| 63 === arrElements[0].Value))
-		|| (arrElements.length >= 3
-			&& para_Space === arrElements[0].Type
-			&& para_Space === arrElements[1].Type
-			&& para_Space === arrElements[2].Type))
-		return false;
-
-	if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-		return false;
-
-	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectCommon);
-
-	this.AddToContent(nPos, new ParaText(0x00A0));
-	this.State.ContentPos = nPos + 2;
-
-	if (arrElements.length >= 1 && (para_Space === arrElements[0].Type || (para_Text === arrElements[0].Type && arrElements[0].IsNBSP())))
-	{
-		var oTempPos  = oRunElementsBefore.GetContentPositions()[0];
-		var nInRunPos = oTempPos.Get(oTempPos.GetDepth());
-		oTempPos.DecreaseDepth(1);
-
-		var oRun = oParagraph.GetClassByPos(oTempPos);
-		if (oRun instanceof ParaRun)
-		{
-			oRun.RemoveFromContent(nInRunPos, 1, true);
-
-			if (arrElements.length >= 2 && (para_Space === arrElements[1].Type || (para_Text === arrElements[1].Type && arrElements[1].IsNBSP())))
-			{
-				oTempPos  = oRunElementsBefore.GetContentPositions()[1];
-				nInRunPos = oTempPos.Get(oTempPos.GetDepth());
-				oTempPos.DecreaseDepth(1);
-
-				oRun = oParagraph.GetClassByPos(oTempPos);
-				if (oRun instanceof ParaRun)
-					oRun.RemoveFromContent(nInRunPos, 1, true);
-			}
-		}
-	}
-
-	oDocument.FinalizeAction();
-
-	return true;
-};
-/**
- * Производим автозамену для умных кавычек
- * @param oDocument {CDocument}
- * @param oParagraph {Paragraph}
- * @param isCheckLock {boolean}
- * @param oContentPos {CParagraphContentPos}
- * @param nPos {number}
- * @param nLang {number}
- * @returns {boolean}
- */
-ParaRun.prototype.private_ProcessSmartQuotesAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, nLang)
-{
-	if (!oDocument.IsAutoCorrectSmartQuotes())
-		return false;
-
-	if (!(para_Text === this.Content[nPos].Type && (34 === this.Content[nPos].Value || 39 === this.Content[nPos].Value)))
-		return false;
-
-	var isOpenQuote   = true;
-	var isDoubleQoute = 34 === this.Content[nPos].Value;
-
-	var oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
-	oParagraph.GetPrevRunElements(oRunElementsBefore);
-	var arrElements = oRunElementsBefore.GetElements();
-	if (arrElements.length > 0)
-	{
-		var oPrevElement = arrElements[0];
-		if (para_Text === oPrevElement.Type
-			&& 45 !== oPrevElement.Value
-			&& 40 !== oPrevElement.Value
-			&& 91 !== oPrevElement.Value
-			&& 123 !== oPrevElement.Value)
-			isOpenQuote = false;
-	}
-
-	if (!isDoubleQoute && (1050 === nLang || 1060 === nLang))
-		return false;
-
-	if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-		return false;
-
-	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectSmartQuotes);
-
-	this.RemoveFromContent(nPos, 1);
-
-	if (isDoubleQoute)
-	{
-		switch (nLang)
-		{
-			case 1029:
-			case 1031:
-			case 1039:
-			case 1050:
-			case 1051:
-			case 1061:
-			{
-				// „text“
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x201E : 0x201C));
-				break;
-			}
-			case 1038:
-			case 1045:
-			case 1048:
-			case 1062:
-			{
-				// „text”
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x201E : 0x201D));
-				break;
-			}
-			case 1030:
-			case 1035:
-			case 1053:
-			{
-				// ”text”
-				this.AddToContent(nPos, new ParaText(0x201D));
-				break;
-			}
-			case 1049:
-			{
-				// «text»
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x00AB : 0x00BB));
-				break;
-			}
-			case 1060:
-			{
-				// »text«
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x00BB : 0x00AB));
-				break;
-			}
-			case 1036:
-			{
-				// « text »
-				if (isOpenQuote)
-				{
-					this.AddToContent(nPos, new ParaText(0x00AB));
-					this.AddToContent(nPos + 1, new ParaText(0x00A0));
-				}
-				else
-				{
-					this.AddToContent(nPos, new ParaText(0x00A0));
-					this.AddToContent(nPos + 1, new ParaText(0x00BB));
-				}
-
-				nPos++;
-
-				break;
-			}
-
-			default:
-			{
-				// “text”
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x201C : 0x201D));
-				break;
-			}
-		}
-	}
-	else
-	{
-		switch (nLang)
-		{
-			case 1029:
-			case 1031:
-			case 1039:
-			case 1051:
-			{
-				// ‚text‘
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x201A : 0x2018));
-				break;
-			}
-			case 1048:
-			{
-				// ‚text’
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x201A : 0x2019));
-				break;
-			}
-			case 1030:
-			case 1035:
-			case 1038:
-			case 1053:
-			case 1061:
-			{
-				// ’text’
-				this.AddToContent(nPos, new ParaText(0x2019));
-				break;
-			}
-			default:
-			{
-				// ‘text’
-				this.AddToContent(nPos, new ParaText(isOpenQuote ? 0x2018 : 0x2019));
-				break;
-			}
-		}
-	}
-
-	this.State.ContentPos = nPos + 1;
-
-	oDocument.FinalizeAction();
-
-	return true;
-};
-/**
- * Производим автозамену замены двух дефисов длинным тире
- * @param oDocument {CDocument}
- * @param oParagraph {Paragraph}
- * @param isCheckLock {boolean}
- * @param oContentPos {CParagraphContentPos}
- * @param nPos {number}
- * @param nLang {number}
- * @returns {boolean}
- */
-ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, nLang)
-{
-	if (!oDocument.IsAutoCorrectHyphensWithDash())
-		return false;
-
-	if (!(para_Text === this.Content[nPos].Type && 45 === this.Content[nPos].Value))
-		return false;
-
-	var oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
-	oRunElementsBefore.SetSaveContentPositions(true);
-	oParagraph.GetPrevRunElements(oRunElementsBefore);
-	var arrElements = oRunElementsBefore.GetElements();
-	if (arrElements.length > 0 && para_Text === arrElements[0].Type && 45 === arrElements[0].Value)
-	{
-		if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-			return false;
-
-		oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
-
-		var oDash = new ParaText(8212);
-		this.AddToContent(nPos + 1, oDash);
-		var oStartPos = oRunElementsBefore.GetContentPositions()[0];
-		var oEndPos   = oContentPos;
-		oContentPos.Update(nPos + 1, oContentPos.GetDepth());
-
-		oParagraph.RemoveSelection();
-		oParagraph.SetSelectionUse(true);
-		oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-		oParagraph.Remove(1);
-		oParagraph.RemoveSelection();
-
-		// Надо корректировать ContentPos, потому что мы производили удаление
-		for (var nTempPos = 0, nCount = this.Content.length; nTempPos < nCount; ++nTempPos)
-		{
-			if (this.Content[nTempPos] === oDash)
-			{
-				this.State.ContentPos = nTempPos + 1;
-				oContentPos.Update(nTempPos + 1, oContentPos.GetDepth());
-				break;
-			}
-		}
-
-		oDocument.Recalculate();
-		oDocument.FinalizeAction();
-		return true;
-	}
-
-	return false;
-};
-/**
- * Производим автозамену hyphen на dash в случаях <space-hyphen> или <space-hyphen-space>
- * @param oDocument {CDocument}
- * @param oParagraph {Paragraph}
- * @param isCheckLock {boolean}
- * @param oContentPos {CParagraphContentPos}
- * @param nPos {number}
- * @param oRunElementsBefore {CParagraphRunElements}
- * @returns {boolean}
- */
-ParaRun.prototype.private_ProcessSpaceHyphenWithDashAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, oRunElementsBefore)
-{
-	if (!oDocument.IsAutoCorrectHyphensWithDash())
-		return false;
-
-	var arrElements    = oRunElementsBefore.GetElements();
-	var nElementsCount = arrElements.length;
-	if (nElementsCount <= 0)
-		return false;
-
-	for (var nIndex = 0; nIndex < nElementsCount; ++nIndex)
-	{
-		var oItem = arrElements[nIndex];
-		if (!oItem.IsLetter() && (nIndex !== nElementsCount - 1 || !oItem.IsHyphen()))
-			return false;
-	}
-
-	var oChangePos = null;
-	if (para_Text === arrElements[nElementsCount - 1].Type && 45 === arrElements[nElementsCount - 1].Value)
-	{
-		if (arrElements.length > 1 && para_Text === arrElements[nElementsCount - 2].Type && 45 !== arrElements[nElementsCount - 2].Value)
-		{
-			var oTempRunElementsBefore = new CParagraphRunElements(oRunElementsBefore.GetContentPositions()[nElementsCount - 1], 1, null, false);
-			oTempRunElementsBefore.SetSaveContentPositions(true);
-			oParagraph.GetPrevRunElements(oTempRunElementsBefore);
-			arrElements = oTempRunElementsBefore.GetElements();
-			if (arrElements.length > 0 && para_Space === arrElements[0].Type)
-				oChangePos = oRunElementsBefore.GetContentPositions()[nElementsCount - 1];
-		}
-	}
-	else
-	{
-		var oTempRunElementsBefore = new CParagraphRunElements(oRunElementsBefore.GetContentPositions()[nElementsCount - 1], 3, null, false);
-		oTempRunElementsBefore.SetSaveContentPositions(true);
-		oParagraph.GetPrevRunElements(oTempRunElementsBefore);
-		arrElements = oTempRunElementsBefore.GetElements();
-		if (3 === arrElements.length
-			&& para_Space === arrElements[0].Type
-			&& para_Text === arrElements[1].Type && 45 === arrElements[1].Value
-			&& para_Space === arrElements[2].Type)
-			oChangePos = oTempRunElementsBefore.GetContentPositions()[1];
-	}
-
-	if (oChangePos)
-	{
-		var nInRunPos = oChangePos.Get(oChangePos.GetDepth());
-		oChangePos.DecreaseDepth(1);
-		var oRun = oParagraph.GetClassByPos(oChangePos);
-
-		if (oRun instanceof ParaRun && oRun.Content.length > nInRunPos)
-		{
-			if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-				return false;
-
-			oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
-			oRun.RemoveFromContent(nInRunPos, 1);
-			oRun.AddToContent(nInRunPos, new ParaText(8211));
-			oDocument.Recalculate();
-			oDocument.FinalizeAction();
-			return true;
-		}
-	}
-
-	return false;
-};
-/**
- * Производим автозаменку для гиперссылок
- * @param oDocument {CDocument | CPresentation}
- * @param oParagraph {Paragraph}
- * @param isCheckLock {boolean}
- * @param oContentPos {CParagraphContentPos}
- * @param nPos {number}
- * @param oRunElementsBefore {CParagraphRunElements}
- * @param sText {string}
- * @returns {boolean}
- */
-ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, oRunElementsBefore, sText)
-{
-	if (!oDocument.IsAutoCorrectHyperlinks())
-		return false;
-
-	var isPresentation = oDocument.IsPresentationEditor();
-
-	if (this.IsInHyperlink())
-		return false;
-
-	if (/(^(((http|https|ftp):\/\/)|(mailto:)|(www.)))|@/i.test(sText))
-	{
-		// Удаляем концевые пробелы и переводы строки перед проверкой гиперссылок
-		sText = sText.replace(/\s+$/, '');
-
-		var nTypeHyper = AscCommon.getUrlType(sText);
-		if (AscCommon.c_oAscUrlType.Invalid !== nTypeHyper)
-		{
-			if (isCheckLock && !isPresentation && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-				return false;
-
-			oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
-			var oTopElement;
-
-			if (isPresentation)
-			{
-				var oParentContent = oParagraph.Parent;
-				var oTable         = oParentContent.IsInTable(true);
-				if (oTable)
-				{
-					oTopElement = oTable;
-				}
-				else
-				{
-					oTopElement = oParentContent;
-				}
-			}
-			else
-			{
-				oTopElement = oDocument;
-			}
-
-			var arrContentPosition = oRunElementsBefore.GetContentPositions();
-			var oStartPos          = arrContentPosition.length > 0 ? arrContentPosition[arrContentPosition.length - 1] : oRunElementsBefore.CurContentPos;
-			var oEndPos            = oContentPos;
-			oContentPos.Update(nPos, oContentPos.GetDepth());
-
-
-			var oDocPos = [{Class : this, Position : nPos + 1}];
-			this.GetDocumentPositionFromObject(oDocPos);
-			oDocument.TrackDocumentPositions([oDocPos]);
-
-
-			oParagraph.RemoveSelection();
-			oParagraph.SetSelectionUse(true);
-			oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-			oParagraph.AddHyperlink(new Asc.CHyperlinkProperty({Value : AscCommon.prepareUrl(sText, nTypeHyper)}));
-			oParagraph.RemoveSelection();
-
-			oDocument.RefreshDocumentPositions([oDocPos]);
-			oTopElement.SetContentPosition(oDocPos, 0, 0);
-			oDocument.Recalculate();
-			oDocument.FinalizeAction();
-
-			return true;
-		}
-	}
-
-	return false;
-};
-/**
- * Производим автозамену для первого символа в предложении
- * @param oDocument {CDocument}
- * @param oParagraph {Paragraph}
- * @param isCheckLock {boolean}
- * @param oContentPos {CParagraphContentPos}
- * @param nPos {number}
- * @param oRunElementsBefore {CParagraphRunElements}
- * @param sText {string}
- * @return {boolean}
- */
-ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = function(oDocument, oParagraph, isCheckLock, oContentPos, nPos, oRunElementsBefore, sText)
-{
-	if (!oDocument.IsAutoCorrectFirstLetterOfSentences())
-		return false;
-
-	if (oRunElementsBefore.IsEnd()
-		&& oParagraph.IsTableCellContent()
-		&& !oDocument.IsAutoCorrectFirstLetterOfCells())
-	{
-		return false;
-	}
-
-	if ("www" === sText || "http" === sText || "https" === sText)
-		return;
-
-	var nMaxElements = 1000;
-
-	var arrElements = oRunElementsBefore.GetElements();
-	if (arrElements.length <= 0)
-		return false;
-
-	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
-	{
-		if (para_Text !== arrElements[nIndex].Type)
-			return false;
-
-		var sTemp = String.fromCharCode(arrElements[nIndex].Value);
-		if (sTemp.toUpperCase() === sTemp)
-			return false;
-	}
-
-	var arrContentPos = oRunElementsBefore.GetContentPositions();
-	if (arrContentPos.length <= 0)
-		return false;
-
-	// Запоминаем позицию для автозамены
-	var oAutoCorrectContentPos = arrContentPos[arrContentPos.length - 1];
-
-	var oNextRunElementsBefore = new CParagraphRunElements(oAutoCorrectContentPos, nMaxElements, [para_Space, para_Tab], false);
-	oNextRunElementsBefore.SetBreakOnBadType(true);
-	oNextRunElementsBefore.SetBreakOnDifferentClass(true);
-	oNextRunElementsBefore.SetSaveContentPositions(true);
-	oParagraph.GetPrevRunElements(oNextRunElementsBefore);
-
-	if (!oNextRunElementsBefore.IsEnd())
-	{
-		var oNextContentPos;
-
-		arrContentPos = oNextRunElementsBefore.GetContentPositions();
-		if (arrContentPos.length <= 0)
-			oNextContentPos = oAutoCorrectContentPos;
-		else
-			oNextContentPos = arrContentPos[arrContentPos.length - 1];
-
-		var oRunElements = new CParagraphRunElements(oNextContentPos, 1, null, true);
-		oRunElements.SetSaveContentPositions(true);
-		oParagraph.GetPrevRunElements(oRunElements);
-
-		// TODO: Надо проверить окончание предложения со скобками, возможно надо проверять два последних символа
-		if (oRunElements.Elements.length > 0
-			&& !oRunElements.Elements[0].IsDot()
-			&& !oRunElements.Elements[0].IsExclamationMark()
-			&& !oRunElements.Elements[0].IsQuestionMark())
-			return false;
-
-		// Проверяем исключения
-		if (1 === oRunElements.Elements.length && oDocument.IsDocumentEditor())
-		{
-			var nExceptionMaxLen = oDocument.GetFirstLetterAutoCorrectExceptionsMaxLen() + 1;
-			var oDotContentPos   = oRunElements.GetContentPositions()[0];
-			oRunElements         = new CParagraphRunElements(oDotContentPos, nExceptionMaxLen, null, false);
-			oParagraph.GetPrevRunElements(oRunElements);
-
-			arrElements         = oRunElements.GetElements();
-			var sCheckException = "";
-			for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
-			{
-				var oElement = arrElements[nIndex];
-
-				if (!oElement.IsLetter())
-					break;
-
-				sCheckException = String.fromCharCode(oElement.Value) + sCheckException;
-			}
-
-			if (oDocument.CheckFirstLetterAutoCorrectException(sCheckException))
-				return false;
-		}
-	}
-
-	// Если мы дошли до этого момента, значит можно производить автозамену
-	var nDepth = oAutoCorrectContentPos.GetDepth();
-	if (nDepth <= 0)
-		return false;
-
-	var nInRunPos = oAutoCorrectContentPos.Get(nDepth);
-	oAutoCorrectContentPos.DecreaseDepth(1);
-	var oRun = oParagraph.GetElementByPos(oAutoCorrectContentPos);
-	if (!oRun || !(oRun instanceof ParaRun))
-		return false;
-
-	var oItem = oRun.GetElement(nInRunPos);
-	if (!oItem || oItem.Type !== para_Text)
-		return false;
-
-	if (isCheckLock && this.private_CheckDocumentLockedBeforeAutoCorrect(oDocument, oParagraph))
-		return false;
-
-	oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence);
-
-	var oNewItem = new ParaText(String.fromCharCode(oItem.Value).toUpperCase().charCodeAt(0));
-	oRun.RemoveFromContent(nInRunPos, 1, true);
-	oRun.AddToContent(nInRunPos, oNewItem, true);
-
-	oDocument.Recalculate();
-	oDocument.FinalizeAction();
-
-	return true;
-};
 ParaRun.prototype.UpdateBookmarks = function(oManager)
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
@@ -13470,8 +12319,7 @@ ParaRun.prototype.CheckRunContent = function(fCheck)
 };
 ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
 {
-	if (reviewtype_Remove === this.GetReviewType())
-		return;
+	var isRemovedInReview = (reviewtype_Remove === this.GetReviewType());
 
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
@@ -13483,7 +12331,7 @@ ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
 
 		if (para_FieldChar === nItemType)
 			oComplexFields.ProcessFieldCharAndCollectComplexField(oItem);
-		else if (para_InstrText === nItemType)
+		else if (para_InstrText === nItemType && !isRemovedInReview)
 			oComplexFields.ProcessInstruction(oItem);
 	}
 };
@@ -13738,7 +12586,7 @@ ParaRun.prototype.CheckTextForTextCase = function(oEngine)
 
                         if (AscCommon.IsSpace(nCharCode))
                             oEngine.word += " ";
-                        if (nLowerCode !== nCharCode || nUpperCode !== nCharCode || oItem.Is_Number())
+                        if (nLowerCode !== nCharCode || nUpperCode !== nCharCode || oItem.IsNumber())
                             oEngine.word += String.fromCharCode(nCharCode);
                     }
 				}
@@ -14033,7 +12881,104 @@ ParaRun.prototype.GetNextRunElement = function(nPos)
 
 	return oRunElements.Elements[0];
 };
+//----------------------------------------------------------------------------------------------------------------------
+// SpellCheck
+//----------------------------------------------------------------------------------------------------------------------
+ParaRun.prototype.RestartSpellCheck = function()
+{
+	this.Recalc_CompiledPr(false);
 
+	for (let nIndex = 0, nCount = this.Content.length; nIndex < nCount; nIndex++)
+	{
+		let oItem = this.Content[nIndex];
+		if (oItem.IsDrawing())
+			oItem.RestartSpellCheck();
+	}
+};
+ParaRun.prototype.CheckSpelling = function(oCollector, nDepth)
+{
+	if (oCollector.IsExceedLimit())
+		return;
+
+	if (reviewtype_Remove === this.GetReviewType())
+	{
+		oCollector.FlushWord();
+		return;
+	}
+
+	let nStartPos = 0;
+	let oCurTextPr = this.Get_CompiledPr(false);
+	if (oCollector.IsFindStart())
+	{
+		nStartPos = oCollector.GetPos(nDepth);
+		oCollector.SetFindStart(false);
+	}
+	else
+	{
+		this.SpellingMarks = [];
+
+		if (true === this.IsEmpty())
+			return;
+
+		oCollector.HandleLang(oCurTextPr.Lang.Val);
+	}
+
+	for (let nPos = nStartPos, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		oCollector.UpdatePos(nPos, nDepth);
+		oCollector.HandleRunElement(this.Content[nPos], oCurTextPr);
+
+		if (oCollector.IsExceedLimit())
+			break;
+	}
+};
+ParaRun.prototype.AddSpellCheckerElement = function(oElement, isStart)
+{
+	if (isStart)
+		oElement.StartRun = this;
+	else
+		oElement.EndRun = this;
+
+	// TODO: Зачем тут Depth?
+	this.SpellingMarks.push(new AscCommonWord.CParagraphSpellingMark(oElement, isStart, isStart ? oElement.GetStartPos().GetDepth() : oElement.GetEndPos().GetDepth()));
+};
+ParaRun.prototype.RemoveSpellCheckerElement = function(oElement)
+{
+	for (let nCount = this.SpellingMarks.length, nIndex = nCount - 1; nIndex >= 0; --nIndex)
+	{
+		let oMark = this.SpellingMarks[nIndex];
+		if (oElement === oMark.Element)
+			this.SpellingMarks.splice(nIndex, 1);
+	}
+};
+ParaRun.prototype.ClearSpellingMarks = function()
+{
+	this.SpellingMarks = [];
+};
+//----------------------------------------------------------------------------------------------------------------------
+ParaRun.prototype.GetSelectedDrawingObjectsInText = function(arrDrawings)
+{
+	if (!this.IsSelectionUse())
+		return;
+
+	let nStartPos = this.Selection.StartPos;
+	let nEndPos   = this.Selection.EndPos;
+	if (nStartPos > nEndPos)
+	{
+		let nTemp = nStartPos;
+		nStartPos = nEndPos;
+		nEndPos   = nTemp;
+	}
+
+	for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (oItem.IsDrawing())
+			arrDrawings.push(oItem);
+	}
+
+	return arrDrawings;
+};
 
 function CParaRunStartState(Run)
 {

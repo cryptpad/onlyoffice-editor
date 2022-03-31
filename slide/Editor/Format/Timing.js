@@ -333,7 +333,7 @@
         }
     };
     CTimeNodeBase.prototype.resetState = function() {
-        this.state = TIME_NODE_STATE_IDLE;
+        this.setState(TIME_NODE_STATE_IDLE);
         this.simpleDurationIdx = -1;
         this.resetChildrenState();
     };
@@ -677,7 +677,7 @@
                                 return false;
                             }
                         }
-                        if(oThis.checkRepeatCondition()) {
+                        if(oThis.checkRepeatCondition(oPlayer)) {
                             return false;
                         }
                         return true;
@@ -745,11 +745,27 @@
         if(oAttribute.fill === NODE_FILL_HOLD || oAttribute.fill === NODE_FILL_FREEZE) {
             return function () {
                 oThis.freezeCallback(oPlayer);
+                oThis.checkTriggerStartOnEnd(oPlayer);
             }
         }
         return function () {
             oThis.finishCallback(oPlayer);
+            oThis.checkTriggerStartOnEnd(oPlayer);
         };
+    };
+    CTimeNodeBase.prototype.checkTriggerStartOnEnd = function(oPlayer) {
+        var oThis = this;
+        if(oThis.getSpClickInteractiveSeq()) {
+            var nElapsed = oPlayer.getElapsedTicks();
+            oPlayer.scheduleEvent(new CAnimEvent(function() {
+                    oThis.scheduleStart(oPlayer);
+                },
+                new CAnimComplexTrigger(function () {
+                    return oPlayer.getElapsedTicks() > nElapsed;
+                }),
+                oThis
+            ));
+        }
     };
     CTimeNodeBase.prototype.activateChildrenCallback = function(oPlayer) {
     };
@@ -831,7 +847,10 @@
     CTimeNodeBase.prototype.onFrozen = function(oChild, oPlayer) {
         return this.onFinished(oChild, oPlayer);
     };
-    CTimeNodeBase.prototype.checkRepeatCondition = function() {
+    CTimeNodeBase.prototype.checkRepeatCondition = function(oPlayer) {
+        if(oPlayer && oPlayer.bDoNotRestart) {
+            return false;
+        }
         return this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000;
     };
     CTimeNodeBase.prototype.onFinished = function(oChild, oPlayer) {
@@ -850,7 +869,7 @@
                 }
             }
             if(nChild === aChildren.length) {
-                if(this.checkRepeatCondition()) {
+                if(this.checkRepeatCondition(oPlayer)) {
                     this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
                 }
             }
@@ -873,7 +892,7 @@
                 // }
             }
             else {
-                if(this.checkRepeatCondition()) {
+                if(this.checkRepeatCondition(oPlayer)) {
                     this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
                 }
                 else {
@@ -1165,6 +1184,14 @@
         if(!oObject) {
             return null;
         }
+        if(!oObject.brush || !oObject.brush.isNoFill()) {
+            var oBrush = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(255, 255, 255));
+            oBrush.fill.color.RGBA.R = 255;
+            oBrush.fill.color.RGBA.G = 255;
+            oBrush.fill.color.RGBA.B = 255;
+            oBrush.fill.color.RGBA.A = 255;
+            return oBrush;
+        }
         return oObject.brush;
     };
     CTimeNodeBase.prototype.getTargetObjectPen = function() {
@@ -1241,6 +1268,9 @@
         return null;
     };
     CTimeNodeBase.prototype.doesHideObject = function() {
+        return false;
+    };
+    CTimeNodeBase.prototype.doesShowObject = function() {
         return false;
     };
     CTimeNodeBase.prototype.isAncestor = function(oNode) {
@@ -1347,6 +1377,19 @@
             }
         }
         return null;
+    };
+    CTimeNodeBase.prototype.isRemoveAfterFill = function() {
+        var oAttr = this.getAttributesObject();
+        if(oAttr) {
+            return oAttr.fill === NODE_FILL_REMOVE;
+        }
+        return false;
+    };
+    CTimeNodeBase.prototype.checkRemoveAtEnd = function() {
+        if(this.isAtEnd() && this.isRemoveAfterFill()) {
+            return true;
+        }
+        return false;
     };
 
     function CAnimationTime(val) {
@@ -1814,6 +1857,20 @@
         }
         return oMainSeq.isAtEnd();
     };
+    CTiming.prototype.isSpClickTrigger = function(oSp) {
+        var oRoot = this.getTimingRootNode();
+        if(!oRoot) {
+            return true;
+        }
+        var aRootChildren = oRoot.getChildrenTimeNodes();
+        var sSpId = oSp.Get_Id();
+        for(var nChild = 0; nChild < aRootChildren.length; ++nChild) {
+            if(aRootChildren[nChild].isInteractiveSeq(sSpId)) {
+                return true;
+            }
+        }
+        return false;
+    };
     CTiming.prototype.staticCreateNoneEffect = function() {
         return AscFormat.ExecuteNoHistory(function() {
             return CTiming.prototype.createPar(NODE_FILL_HOLD, "indefinite")
@@ -1990,6 +2047,11 @@
                 return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
             else {
+				var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
+				if(aSelectedObjects.length > 0) {
+					this.removeSelectedEffects();
+					return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
+				}
                 var aSeqs = this.getEffectsSequences();
                 var aSeq;
                 var bNeedRebuild = false;
@@ -2525,13 +2587,21 @@
         }
     };
     CTiming.prototype.getEffectsForDemo = function() {
-        var aEffectsForDemo;
+        var aEffectsForDemo, aCurEffects;
         var aSelectedEffects = this.getSelectedEffects();
         if(aSelectedEffects.length > 0) {
-            aEffectsForDemo = aSelectedEffects;
+            aCurEffects = aSelectedEffects;
         }
         else {
-            aEffectsForDemo = this.getAllAnimEffects();
+            aCurEffects = this.getAllAnimEffects();
+        }
+
+        aEffectsForDemo = [];
+        for(var nEffect = 0; nEffect < aCurEffects.length; ++nEffect) {
+            var oEffect = aCurEffects[nEffect];
+            if(oEffect.isPartOfMainSequence()) {
+                aEffectsForDemo.push(oEffect);
+            }
         }
         if(aEffectsForDemo.length === 0) {
             return null;
@@ -2569,6 +2639,9 @@
                 var nDur = oCopyEffect.asc_getDuration();
                 if(nDur === AscFormat.untilNextSlide || nDur === AscFormat.untilNextClick) {
                     oCopyEffect.cTn.changeEffectDuration(1000);
+                }
+                if(AscFormat.isRealNumber(nDur) && nDur < 50) {
+                    oCopyEffect.cTn.changeEffectDuration(750);
                 }
 
                 oCopyEffect.originalNode = null;
@@ -3837,6 +3910,9 @@
         if(!oTargetObject) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var aAttributes = this.getAttributes();
         if(aAttributes.length < 1) {
             return;
@@ -4002,7 +4078,11 @@
             "ppt_x": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_x"]) ? oAttributes["ppt_x"] : this.getOrigAttrVal("ppt_x"),
             "ppt_y": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_y"]) ? oAttributes["ppt_y"] : this.getOrigAttrVal("ppt_y"),
             "ppt_w": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_w"]) ? oAttributes["ppt_w"] : this.getOrigAttrVal("ppt_w"),
-            "ppt_h": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]) ? oAttributes["ppt_h"] : this.getOrigAttrVal("ppt_h")
+            "ppt_h": oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]) ? oAttributes["ppt_h"] : this.getOrigAttrVal("ppt_h"),
+            "ppt_x_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_x"])),
+            "ppt_y_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_y"])),
+            "ppt_w_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_w"])),
+            "ppt_h_no_attr": !(oAttributes && AscFormat.isRealNumber(oAttributes["ppt_h"]))
         }
     };
     CAnim.prototype.getFormulaResult = function(sFormula, oVarMap) {
@@ -4932,11 +5012,6 @@
             oAttrObject.setRepeatCount("indefinite");
         }
         if(v === AscFormat.untilNextClick) {
-            if(oAttrObject && oAttrObject.endCondLst) {
-                oAttrObject.setEndCondLst(null);
-            }
-        }
-        else {
             if(!oAttrObject.endCondLst) {
                 oAttrObject.setEndCondLst(new CCondLst()) ;
             }
@@ -4948,6 +5023,11 @@
             var oTgt = new CTgtEl();
             oCond.setTgtEl(oTgt);
             oAttrObject.endCondLst.push(oCond);
+        }
+        else {
+            if(oAttrObject && oAttrObject.endCondLst) {
+                oAttrObject.setEndCondLst(null);
+            }
         }
     };
     CCTn.prototype.changeRewind = function(v) {
@@ -6048,13 +6128,15 @@
     changesFactory[AscDFH.historyitem_AnimClrByRGB] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrByHSL] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrCBhvr] = CChangeObject;
-    changesFactory[AscDFH.historyitem_AnimClrFrom] = CChangeObject;
-    changesFactory[AscDFH.historyitem_AnimClrTo] = CChangeObject;
+    changesFactory[AscDFH.historyitem_AnimClrFrom] = CChangeObjectNoId;
+    changesFactory[AscDFH.historyitem_AnimClrTo] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrClrSpc] = CChangeLong;
     changesFactory[AscDFH.historyitem_AnimClrDir] = CChangeLong;
 
     drawingConstructorsMap[AscDFH.historyitem_AnimClrByRGB] = CColorPercentage;
     drawingConstructorsMap[AscDFH.historyitem_AnimClrByHSL] = CColorPercentage;
+    drawingConstructorsMap[AscDFH.historyitem_AnimClrFrom] = AscFormat.CUniColor;
+    drawingConstructorsMap[AscDFH.historyitem_AnimClrTo] = AscFormat.CUniColor;
 
     drawingsChangesMap[AscDFH.historyitem_AnimClrByRGB] = function(oClass, value) {oClass.byRGB = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimClrByHSL] = function(oClass, value) {oClass.byHSL = value;};
@@ -6119,12 +6201,12 @@
         this.setParentToChild(pr);
     };
     CAnimClr.prototype.setFrom = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimClrFrom, this.from, pr));
+        oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_AnimClrFrom, this.from, pr));
         this.from = pr;
         this.setParentToChild(pr);
     };
     CAnimClr.prototype.setTo = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimClrTo, this.to, pr));
+        oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_AnimClrTo, this.to, pr));
         this.to = pr;
         this.setParentToChild(pr);
     };
@@ -6249,6 +6331,9 @@
         if(!oTargetObject) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var aAttributes = this.getAttributes();
         if(aAttributes.length < 1) {
             return;
@@ -6265,7 +6350,7 @@
             var oBrush;
             if(sFirstAttrName === "stroke.color") {
                 var oPen = this.getTargetObjectPen();
-                oBrush = oPen && oPen.Fill;
+                oBrush = oPen && oPen.Fill || AscFormat.CreateUnfilFromRGB(0, 0, 0);
             }
             else {
                 oBrush = this.getTargetObjectBrush();
@@ -6467,6 +6552,9 @@
     };
     CAnimEffect.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         if(!this.filter) {
+            return;
+        }
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
@@ -6759,6 +6847,9 @@
     CAnimMotion.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
+            return;
+        }
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var nOrigin = this.getOrigin();
@@ -7252,6 +7343,9 @@
         if(!oTargetObject) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         var fRelTime = this.getRelativeTime(nElapsedTime);
         var dR = null;
         if(this.to && this.from) {
@@ -7417,6 +7511,9 @@
     CAnimScale.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
+            return;
+        }
+        if(this.checkRemoveAtEnd()) {
             return;
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
@@ -7808,6 +7905,10 @@
             dW = oRect.w;
             dH = oRect.h;
             
+			if (oGraphics.IsSlideBoundsCheckerType) {
+                oGraphics.rect(dX, dY, dW, dH);
+                return;
+			}
             var oContext = oGraphics.m_oContext;
             if(!oContext) {
                 return;
@@ -8098,6 +8199,15 @@
         }, this, []);
     };
     CTimeNodeContainer.prototype["asc_putDelay"] = CTimeNodeContainer.prototype.asc_putDelay;
+    CTimeNodeContainer.prototype.getUndefiniteDuration = function() {
+        if(this.cTn.endCondLst && this.cTn.endCondLst) {
+            var aCond = this.cTn.endCondLst.list;
+            if(aCond[0] &&  aCond[0].evt === COND_EVNT_ON_NEXT ) {
+                return AscFormat.untilNextClick;
+            }
+        }
+        return AscFormat.untilNextSlide;
+    };
     CTimeNodeContainer.prototype.asc_getDuration = function() {
         var nDur = 0;
         if(Array.isArray(this.merged) && this.merged.length > 0) {
@@ -8115,13 +8225,7 @@
         }
         var oTime = new CAnimationTime(nDur);
         if(oTime.isIndefinite()) {
-            if(this.cTn.endCondLst && this.cTn.endCondLst) {
-                var aCond = this.cTn.endCondLst.list;
-                if(aCond[0] &&  aCond[0].evt === COND_EVNT_ON_NEXT ) {
-                    return AscFormat.untilNextSlide;
-                }
-            }
-            return AscFormat.untilNextClick;
+            return this.getUndefiniteDuration();
         }
         else {
             return nDur;
@@ -8151,13 +8255,7 @@
             return oRepeatCount.val;
         }
         if(oRepeatCount.isIndefinite()) {
-            if(this.cTn.endCondLst && this.cTn.endCondLst) {
-                var aCond = this.cTn.endCondLst.list;
-                if(aCond[0] &&  aCond[0].evt === COND_EVNT_ON_NEXT ) {
-                    return AscFormat.untilNextSlide;
-                }
-            }
-            return AscFormat.untilNextClick;
+            return this.getUndefiniteDuration();
         }
         return 1000;
     };
@@ -8237,6 +8335,8 @@
     CTimeNodeContainer.prototype.asc_putTriggerClickSequence = function(v) {
         this.triggerClickSequence = v;
     };
+    CTimeNodeContainer.prototype["asc_putTriggerClickSequence"] = CTimeNodeContainer.prototype.asc_putTriggerClickSequence;
+
     CTimeNodeContainer.prototype.asc_getTriggerObjectClick = function() {
         if(this.triggerObjectClick !== undefined) {
             return this.triggerObjectClick;
@@ -8493,7 +8593,22 @@
                         }
                         else {
                             if(oThis.nextAc === NEXT_AC_SEEK) {
-                                oChild.freezeCallback(oPlayer);
+                                var bFreeze = true;
+                                oChild.traverseTimeNodes(function(oNode) {
+                                    if(!bFreeze) {
+                                        return
+                                    }
+                                    if(oNode.isAnimEffect()) {
+                                        if(oNode.asc_getRepeatCount() === AscFormat.untilNextSlide) {
+                                            bFreeze = false;
+                                        }
+                                    }
+                                })
+                                if(bFreeze) {
+                                    oPlayer.bDoNotRestart = true;
+                                    oChild.freezeCallback(oPlayer);
+                                    delete oPlayer.bDoNotRestart;
+                                }
                             }
                         }
                     }
@@ -8604,6 +8719,9 @@
         if(!this.to) {
             return;
         }
+        if(this.checkRemoveAtEnd()) {
+            return;
+        }
         this.setAttributesValue(oAttributes, this.to.getVal());
     };
     CSet.prototype.doesHideObject = function() {
@@ -8615,6 +8733,22 @@
             while(oParentNode = oCurNode.getParentTimeNode()) {
                 var oAttrObject = oParentNode.getAttributesObject();
                 if(AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass) {
+                    return true;
+                }
+                oCurNode = oParentNode;
+            }
+        }
+        return false;
+    };
+    CSet.prototype.doesShowObject = function() {
+        var oAttributes = {};
+        this.setAttributesValue(oAttributes, this.to.getVal());
+        if(oAttributes["style.visibility"] === "hidden") {
+            var oCurNode = this;
+            var oParentNode;
+            while(oParentNode = oCurNode.getParentTimeNode()) {
+                var oAttrObject = oParentNode.getAttributesObject();
+                if(AscFormat.PRESET_CLASS_EXIT === oAttrObject.presetClass) {
                     return true;
                 }
                 oCurNode = oParentNode;
@@ -9975,10 +10109,14 @@
         return oTexture;
     };
     CAnimTexture.prototype.createRandomBarsVertical = function(fTime, nTransition) {
-        var aFilledRanges = this.getRandomRanges(fTime);
-        if(aFilledRanges.length === 0) {
-            return this;
+		var fResTime;
+        if(nTransition === TRANSITION_TYPE_IN) {
+            fResTime = 1 - fTime;
         }
+        else {
+            fResTime = fTime;
+        }
+        var aFilledRanges = this.getRandomRanges(fResTime);
         var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
@@ -10396,6 +10534,7 @@
         this.lastFrameSandwiches = {};
         this.texturesCache = new CTexturesCache(this);
         this.hiddenObjects = {};
+        this.showObjects = {};
         this.collectHiddenObjects();
     }
     CAnimationDrawer.prototype.clearSandwiches = function() {
@@ -10540,10 +10679,18 @@
         }
         return false;
     };
+    CAnimationDrawer.prototype.checkShowObject = function(oTimeNode) {
+        if(oTimeNode.doesShowObject()) {
+            var sId = oTimeNode.getTargetObjectId();
+            if(sId !== null) {
+                this.showObjects[sId] = oTimeNode;
+            }
+        }
+    };
     CAnimationDrawer.prototype.checkHiddenObject = function(oTimeNode) {
         if(oTimeNode.doesHideObject()) {
             var sId = oTimeNode.getTargetObjectId();
-            if(sId !== null) {
+            if(sId !== null && !this.showObjects[sId]) {
                 this.hiddenObjects[oTimeNode.getTargetObjectId()] = oTimeNode;
             }
         }
@@ -10551,14 +10698,18 @@
     CAnimationDrawer.prototype.collectHiddenObjects = function() {
         var aTimings = this.player.timings;
         var oThis = this;
+        this.showObjects = {};
+        this.hiddenObjects = {};
         for(var nTiming = 0; nTiming < aTimings.length; ++nTiming) {
             var oRoot = aTimings[nTiming].getTimingRootNode();
             if(oRoot) {
                 oRoot.traverseTimeNodes(function(oTimeNode) {
+                    oThis.checkShowObject(oTimeNode);
                     oThis.checkHiddenObject(oTimeNode);
                 });
             }
         }
+        this.showObjects = {};
     };
     CAnimationDrawer.prototype.clearObjectTexture = function(sId) {
         this.texturesCache.removeTexture(sId);
@@ -10608,6 +10759,8 @@
         if(!bIsPaused) {
             this.updateTimingList();
             this.scheduleNodesStart();
+            this.animationDrawer.clearTextureCache();
+            this.animationDrawer.collectHiddenObjects();
         }
         if(this.isMainSequenceFinished()) {
             this.onMainSeqFinished();
@@ -10718,6 +10871,14 @@
         }
         return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
     };
+    CAnimationPlayer.prototype.isSpClickTrigger = function(oSp) {
+        for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
+            if(this.timings[nTiming].isSpClickTrigger(oSp)) {
+                return true;
+            }
+        }
+        return false;
+    };
     CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
         if(!oSp) {
             return false;
@@ -10787,8 +10948,13 @@
         this.overlay = editor.WordControl.m_oOverlayApi;
     };
     CDemoAnimPlayer.prototype.onMainSeqFinished = function () {
-        this.stop();
-        editor.WordControl.m_oLogicDocument.StopAnimationPreview();
+        var oThis = this;
+        setTimeout(function () {
+            if(!oThis.isStopped()) {
+                oThis.stop();
+                editor.WordControl.m_oLogicDocument.StopAnimationPreview();
+            }
+        }, 1000);
     };
     
     CDemoAnimPlayer.prototype.start = function () {
@@ -11125,8 +11291,9 @@
             }
             else {
                 if(oStrokeColor) {
+                    var oPen;
                     if(oDrawing.pen) {
-                        var oPen = oDrawing.pen.createDuplicate();
+                        oPen = oDrawing.pen.createDuplicate();
                         var oMods;
                         if(oPen.Fill &&
                             oPen.Fill.fill &&
@@ -11136,9 +11303,12 @@
                             oMods = oPen.Fill.fill.color.Mods;
                             oMods.Apply(oStrokeColor.RGBA);
                         }
-                        oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
-                        oDrawing.pen = oPen;
                     }
+                    else {
+                        oPen = AscFormat.CreateNoFillLine();
+                    }
+                    oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
+                    oDrawing.pen = oPen;
                 }
             }
             oTexture = oTextureCache.createDrawingTexture(sId, fScale);
@@ -11284,8 +11454,24 @@
         if(!oLastToken) {
             return null;
         }
+        if(this.checkReplaceVar(oVarMap)) {
+            this.replaceVar(oVarMap);
+        }
         oLastToken.calculate(oVarMap);
         return oLastToken.result;
+    };
+    CParseQueue.prototype.checkReplaceVar = function(oVarMap) {
+        for(var nToken = 0; nToken < this.queue.length; ++nToken) {
+            if(this.queue[nToken].checkReplaceVar(oVarMap)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CParseQueue.prototype.replaceVar = function(oVarMap) {
+        for(var nToken = 0; nToken < this.queue.length; ++nToken) {
+            this.queue[nToken].replaceVar(oVarMap);
+        }
     };
 
 
@@ -11342,6 +11528,11 @@
     CTokenBase.prototype.isOperator = function() {
         return false;
     };
+    CTokenBase.prototype.checkReplaceVar = function(oVarMap) {
+        return false;
+    };
+    CTokenBase.prototype.replaceVar = function(oVarMap) {
+    };
 
     function CConstantToken(oQueue, sValue) {
         CTokenBase.call(this, oQueue);
@@ -11366,6 +11557,17 @@
     };
     CVariableToken.prototype.setName = function(sName) {
         this.name = sName;
+    };
+    CVariableToken.prototype.checkReplaceVar = function(oVarMap) {
+        if(oVarMap[this.name + "_no_attr"] && AscFormat.isRealNumber(oVarMap["#" + this.name])) {
+            return true;
+        }
+        return false;
+    };
+    CVariableToken.prototype.replaceVar = function(oVarMap) {
+        if(AscFormat.isRealNumber(oVarMap["#" + this.name])) {
+            this.name = "#" + this.name;
+        }
     };
     function CFunctionToken(oQueue, sName) {
         CTokenBase.call(this, oQueue);
@@ -11527,7 +11729,7 @@
     var CONST_REGEXPSTR = "(pi\|e)";
     var CONST_REGEXP = new RegExp(CONST_REGEXPSTR, "g");
 
-    var NUMBER_REGEXPSTR = "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?";
+    var NUMBER_REGEXPSTR = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
     var NUMBER_REGEXP = new RegExp(NUMBER_REGEXPSTR, "g");
 
 
@@ -11627,7 +11829,7 @@
                     }
                     oLastFunction = aFunctionsStack[aFunctionsStack.length-1];
                     oLastFunction.addOperand(this.queue.last());
-                    if(oLastFunction.addOperand(this.queue.last()) >= oLastFunction.getArgumentsCount()){
+                    if(oLastFunction.getOperandsCount() >= oLastFunction.getArgumentsCount()){
                         return null;
                     }
                 }
