@@ -4913,6 +4913,14 @@
 			}
 		}
 
+		var zoomPrintPreviewCorrect = function (val) {
+			//учитываю здесь только зум масштабирования
+			var printScale = t.model.PagePrintOptions.pageSetup && t.model.PagePrintOptions.pageSetup.scale;
+			var zoom = t.getZoom() / printScale;
+			console.log(zoom)
+			return t.workbook.printPreviewState && t.workbook.printPreviewState.isStart() ? Math.max(Asc.round(val * zoom), 1) : val;
+		};
+
 		var bc = null, bs = c_oAscBorderStyles.None, isNotFirst = false; // cached border color
 
 		function drawBorder(type, border, x1, y1, x2, y2) {
@@ -4929,7 +4937,7 @@
 			}
 			if (isNewStyle) {
 				bs = border.s;
-				ctx.setLineWidth(border.w);
+				ctx.setLineWidth(zoomPrintPreviewCorrect(border.w));
 				ctx.setLineDash(border.getDashSegments());
 			}
 
@@ -4960,13 +4968,17 @@
 				return;
 			}
 
+			var bw = zoomPrintPreviewCorrect(border.w);
+
 			// ToDo переделать рассчет
-			var tbw = t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getTopBorder(),
-				borderRightObject && borderRightObject.getTopBorder()); // top border width
-			var bbw = t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getBottomBorder(),
-				borderRightObject && borderRightObject.getBottomBorder()); // bottom border width
-			var dy1 = tbw > border.w ? tbw - 1 : (tbw > 1 ? -1 : 0);
-			var dy2 = bbw > border.w ? -2 : (bbw > 2 ? 1 : 0);
+			var tbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getTopBorder(),
+				borderRightObject && borderRightObject.getTopBorder())); // top border width
+			var bbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getBottomBorder(),
+				borderRightObject && borderRightObject.getBottomBorder())); // bottom border width
+
+
+			var dy1 = tbw > bw ? tbw - 1 : (tbw > 1 ? -1 : 0);
+			var dy2 = bbw > bw ? -2 : (bbw > 2 ? 1 : 0);
 
 			drawBorder(c_oAscBorderType.Ver, border, x, y1 + (-1 + dy1), x, y2 + (1 + dy2));
 		}
@@ -4977,13 +4989,17 @@
 
 			var border = AscCommonExcel.getMatchingBorder(borderTop && borderTop.b, borderBottom && borderBottom.t);
 			if (border && border.w > 0) {
+				var bw = zoomPrintPreviewCorrect(border.w);
+
 				// ToDo переделать рассчет
-				var lbw = t._calcMaxBorderWidth(borderTopObject && borderTopObject.getLeftBorder(),
-					borderBottomObject && borderBottomObject.getLeftBorder());
-				var rbw = t._calcMaxBorderWidth(borderTopObject && borderTopObject.getRightBorder(),
-					borderTopObject && borderTopObject.getRightBorder());
-				var dx1 = border.w > lbw ? (lbw > 1 ? -1 : 0) : (lbw > 2 ? 2 : 1);
-				var dx2 = border.w > rbw ? (rbw > 2 ? 1 : 0) : (rbw > 1 ? -2 : -1);
+				var lbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderTopObject && borderTopObject.getLeftBorder(),
+					borderBottomObject && borderBottomObject.getLeftBorder()));
+				var rbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderTopObject && borderTopObject.getRightBorder(),
+					borderTopObject && borderTopObject.getRightBorder()));
+
+				var dx1 = bw > lbw ? (lbw > 1 ? -1 : 0) : (lbw > 2 ? 2 : 1);
+				var dx2 = bw > rbw ? (rbw > 2 ? 1 : 0) : (rbw > 1 ? -2 : -1);
+
 				drawBorder(c_oAscBorderType.Hor, border, x1 + (-1 + dx1), y, x2 + (1 + dx2), y);
 			}
 		}
