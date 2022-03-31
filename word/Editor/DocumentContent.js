@@ -4617,6 +4617,8 @@ CDocumentContent.prototype.GetSelectedContent = function(SelectedContent)
 };
 CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
 {
+	SelectedContent.PreInsert(this.GetLogicDocument());
+
     var Para        = NearPos.Paragraph;
     var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
     var LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
@@ -5007,11 +5009,8 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
             DocContent.Selection.Start = false;
         }
     }
-	if(Para.bFromDocument) 
-	{
-		SelectedContent.CheckDrawingsSize();
-	}
-	SelectedContent.CheckSignatures();
+
+	SelectedContent.PostInsert(this.GetLogicDocument());
 };
 CDocumentContent.prototype.SetParagraphPr = function(oParaPr)
 {

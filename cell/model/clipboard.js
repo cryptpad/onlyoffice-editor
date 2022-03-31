@@ -2277,7 +2277,7 @@
 
 					var NearPos, ParaNearPos, LastClass, Element;
 
-					selectedContent.On_EndCollectElements(target_doc_content, false);
+					selectedContent.EndCollect(target_doc_content, false);
 
 					NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
 					paragraph.Check_NearestPos(NearPos);
@@ -2296,7 +2296,7 @@
 							return;
 						}
 
-						if (!selectedContent.CanConvertToMath) {
+						if (!selectedContent.CanConvertToMath()) {
 							var Math = null;
 							var Count = Element.Content.length;
 							for (var Index = 0; Index < Count; Index++) {

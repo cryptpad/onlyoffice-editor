@@ -4977,7 +4977,7 @@
 					oSelectedContent.Add(new CSelectedElement(oElm, true));
 			}
 		}
-		oSelectedContent.On_EndCollectElements(this.Document, true);
+		oSelectedContent.EndCollect(this.Document, true);
 
 		if (this.Document.IsSelectionUse())
 		{

@@ -6890,8 +6890,7 @@ DrawingObjectsController.prototype =
                     oSelectedElement.Element     = oTempPara;
                     oSelectedElement.SelectedAll = false;
                     oSelectedContent.Add(oSelectedElement);
-
-                    oSelectedContent.On_EndCollectElements(oTargetDocContent, false);
+                    oSelectedContent.EndCollect(oTargetDocContent, false);
 
                     var isMath = false;
                     if (oAnchorPos && oAnchorPos.Paragraph)

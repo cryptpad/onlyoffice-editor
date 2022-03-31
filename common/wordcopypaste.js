@@ -2599,7 +2599,7 @@ PasteProcessor.prototype =
 				oSelectedElement.SelectedAll = false;
 				oSelectedContent.Add(oSelectedElement);
 
-				oSelectedContent.On_EndCollectElements(this.oLogicDocument, true);
+				oSelectedContent.EndCollect(this.oLogicDocument, true);
 				if (!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
 				{
 					if (!this.pasteInExcel)
@@ -2671,7 +2671,7 @@ PasteProcessor.prototype =
 
 			//проверка на возможность втавки в формулу
 			//TODO проверку на excel пеерсмотреть!!!!
-			oSelectedContent.On_EndCollectElements(this.oLogicDocument, true);
+			oSelectedContent.EndCollect(this.oLogicDocument, true);
 			if(!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
 			{
 				if(!this.pasteInExcel)

@@ -9277,7 +9277,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                 }
             }
         } else if (Content.DocContent) {
-            Content.DocContent.On_EndCollectElements(this, false);
+            Content.DocContent.EndCollect(this, false);
             if (Content.DocContent.Elements.length > 0) {
                 var oController = this.GetCurrentController();
                 var target_doc_content = oController.getTargetDocContent(true), paragraph, NearPos;
@@ -9301,7 +9301,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                             var Element = Content.DocContent.Elements[0].Element;
                             if (1 !== Content.DocContent.Elements.length || type_Paragraph !== Element.Get_Type() || null === LastClass.Parent)
                                 return false;
-                            if (!Content.DocContent.CanConvertToMath) {
+                            if (!Content.DocContent.CanConvertToMath()) {
                                 var Math = null;
                                 var Count = Element.Content.length;
                                 for (var Index = 0; Index < Count; Index++) {
