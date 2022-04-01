@@ -525,7 +525,7 @@
     };
 
     CGraphicObjectBase.prototype.checkHiddenInAnimation = function() {
-        if(this.parent instanceof AscCommonSlide.Slide) {
+        if(AscCommonSlide.Slide && (this.parent instanceof AscCommonSlide.Slide)) {
             var oGrObjects = this.parent.graphicObjects;
             if(oGrObjects) {
                 if(oGrObjects.isSlideShow()) {
