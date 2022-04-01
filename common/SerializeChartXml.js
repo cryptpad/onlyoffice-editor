@@ -112,9 +112,6 @@
 	function readSpPrPlain(reader) {
 		//todo CSpPr
 		let elem = new AscFormat.CSpPr();
-		elem.setFill(AscFormat.CreteSolidFillRGB(Math.round(Math.random() * 255), Math.round(Math.random() * 255), Math.round(Math.random() * 255)));
-		var oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
-		elem.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, undefined));
 		elem.fromXml(reader);
 		return elem;
 	}
@@ -140,28 +137,37 @@
 	}
 
 	function readStyleRef(reader) {
-		//todo
-		return new AscFormat.StyleRef();
+		let oElem = new AscFormat.StyleRef();
+		oElem.fromXml(reader);
+		return oElem;
 	}
 	function readFontRef(reader) {
-		//todo
-		return new AscFormat.FontRef();
+		let oElem = new AscFormat.FontRef();
+		oElem.fromXml(reader);
+		return oElem;
 	}
 	function readRPr(reader) {
 		//todo
 		return new CTextPr();
 	}
 	function readBodyPr(reader) {
-		//todo
-		return new AscFormat.CBodyPr();
+		let oElem = new AscFormat.CBodyPr();
+		oElem.fromXml(reader);
+		return oElem;
 	}
-	function readUniColor(reader) {
-		//todo
-		return AscFormat.CreateUniColorRGB();
+	function readUniColor(reader, sName) {
+		let oElem = new AscFormat.CUniColor();
+		oElem.fromXml(reader, sName);
+		return oElem;
 	}
 	function readColorModifier(reader) {
-		//todo
-		return new AscFormat.CColorModifiers();
+		let oColor = new AscFormat.CRGBColor();
+		oColor.fromXml(reader);
+		let oElem = new AscFormat.CColorModifiers();
+		if(oColor.Mods) {
+			oElem.Mods = oColor.Mods;
+		}
+		return oElem;
 	}
 
 //CT_ChartSpace
@@ -4386,42 +4392,14 @@
 			this.readAttr(reader);
 			let elem, depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
-				switch (reader.GetNameNoNS()) {
-					case "scrgbClr" : {
-						elem = readUniColor(reader);
-						this.addItem(elem);
-						break;
-					}
-					case "srgbClr" : {
-						elem = readUniColor(reader);
-						this.addItem(elem);
-						break;
-					}
-					case "hslClr" : {
-						elem = readUniColor(reader);
-						this.addItem(elem);
-						break;
-					}
-					case "sysClr" : {
-						elem = readUniColor(reader);
-						this.addItem(elem);
-						break;
-					}
-					case "schemeClr" : {
-						elem = readUniColor(reader);
-						this.addItem(elem);
-						break;
-					}
-					case "prstClr" : {
-						elem = readUniColor(reader);
-						this.addItem(elem);
-						break;
-					}
-					case "variation" : {
-						elem = readColorModifier(reader);
-						this.addItem(elem);
-						break;
-					}
+				let sName  = reader.GetNameNoNS();
+				if(sName === "variation") {
+					elem = readColorModifier(reader);
+					this.addItem(elem);
+				}
+				else {
+					elem = readUniColor(reader, sName);
+					this.addItem(elem);
 				}
 			}
 		}

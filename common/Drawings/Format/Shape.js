@@ -7012,6 +7012,65 @@ CShape.prototype.getColumnNumber = function(){
         }
         return AscCommon.translateManager.getValue("Shape");
     };
+    
+    CShape.prototype.readAttrXml = function(name, reader) {
+        switch (name) {
+            case "useBgFill": {
+                //this.setUseBgFill(reader.GetValueBool());
+                break;
+            }
+        }
+    };
+    CShape.prototype.readChildXml = function(name, reader) {
+        let oPr;
+        switch(name) {
+            case "nvSpPr": {
+                oPr = new AscFormat.UniNvPr();
+                oPr.fromXml(reader);
+                this.setNvSpPr(oPr);
+                break;
+            }
+            case "spPr": {
+                oPr = new AscFormat.CSpPr();
+                oPr.fromXml(reader);
+                this.setSpPr(oPr);
+                break;
+            }
+            case "style": {
+                oPr = new AscFormat.CTextStyles();
+                oPr.fromXml(reader);
+                this.setStyle(oPr);
+                break;
+            }
+            case "txBody": {
+                oPr = new AscFormat.CTextBody();
+                oPr.fromXml(reader);
+                this.setTxBody(oPr);
+                break;
+            }
+            case "txbxContent": {
+                //TODO
+                var Content = [];
+                var depth = reader.GetDepth() + 1;
+                let oDrawingDoc = editor.WordControl.m_oLogicDocument.DrawingDocument;
+                let oTxBxContent = new AscCommonWord.CDocumentContent(this, oDrawingDoc, 0, 0, 0, 0, false, false);
+                this.setTextBoxContent(oTxBxContent);
+                while (reader.ReadNextSiblingNode(depth)) {
+                    AscCommonWord.CDocument.prototype.fromXmlDocContentElem(reader, reader.GetNameNoNS(), Content, oDrawingDoc, oTxBxContent);
+
+                }
+                if (Content.length > 0) {
+                    oTxBxContent.ReplaceContent(Content);
+                }
+                break;
+            }
+        }
+    };
+    CShape.prototype.writeAttrXmlImpl = function(writer) {
+    };
+    CShape.prototype.writeChildren = function(writer) {
+        //Implement in children
+    };
 
 function CreateBinaryReader(szSrc, offset, srcLen)
 {

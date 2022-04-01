@@ -523,15 +523,27 @@ MasterSlide.prototype.readChildXml = function(name, reader) {
             break;
         }
         case "transition": {
+            let oTransition = new Asc.CAscSlideTransition();
+            oTransition.fromXml(reader);
+            this.applyTransition(oTransition);
             break;
         }
         case "timing": {
+            let oTiming = new AscFormat.CTiming();
+            oTiming.fromXml(reader);
+            this.setTiming(oTiming);
             break;
         }
         case "hf": {
+            let oHF = new AscFormat.HF();
+            oHF.fromXml(reader);
+            this.setHF(oHF);
             break;
         }
         case "txStyles": {
+            let oTxStyles = new AscFormat.CTextStyles();
+            oTxStyles.fromXml(reader);
+            this.setTxStyles(oTxStyles);
             break;
         }
         case "extLst": {

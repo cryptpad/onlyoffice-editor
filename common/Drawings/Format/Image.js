@@ -844,6 +844,42 @@ CImageShape.prototype.Load_LinkData = function(linkData)
     CImageShape.prototype.getTypeName = function() {
         return AscCommon.translateManager.getValue("Picture");
     };
+
+    
+
+	CImageShape.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("blipFill" === reader.GetNameNoNS()) {
+				var uni_fill = new AscFormat.CUniFill();
+				uni_fill.fromXml(reader);
+				this.setBlipFill(uni_fill.fill);
+			} else if ("spPr" === reader.GetNameNoNS()) {
+				var spPr = new AscFormat.CSpPr();
+				spPr.setParent(this);
+				spPr.fromXml(reader);
+				this.setSpPr(spPr);
+			}
+			//todo
+		}
+	};
+	CImageShape.prototype.toXml = function(writer, name) {
+		var context = writer.context;
+		var cNvPrIndex = context.cNvPrIndex++;
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+
+		var ns = StaxParser.prototype.GetNSFromNodeName(name);
+
+		writer.WriteXmlString('<'+ns+':nvPicPr>');
+		writer.WriteXmlString('<'+ns+':cNvPr id="' + cNvPrIndex + '" name="Picture ' + cNvPrIndex + '"/>');
+		writer.WriteXmlString('<'+ns+':cNvPicPr><a:picLocks noChangeAspect="1"/></'+ns+':cNvPicPr></'+ns+':nvPicPr>');
+		writer.WriteXmlNullable(this.blipFill, ns + ":blipFill");
+		writer.WriteXmlNullable(this.spPr, ns + ":spPr");
+
+		writer.WriteXmlNodeEnd(name);
+	};
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CImageShape = CImageShape;

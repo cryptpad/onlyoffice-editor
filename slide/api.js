@@ -5630,7 +5630,7 @@ background-repeat: no-repeat;\
 			this.VersionHistory.changes = file.changes;
 			this.VersionHistory.applyChanges(this);
 		}
-		if(window['OPEN_IN_BROWSER'] && false) {
+		if(window['OPEN_IN_BROWSER']) {
 			this.OpenDocumentFromZip(file.data);
 		} else {
 			this.OpenDocumentFromBin(file.url, file.data);

@@ -73,7 +73,8 @@
     AscDFH.drawingContentChanges[AscDFH.historyitem_NotesMasterRemoveFromTree] = function(oClass){return oClass.cSld.spTree;};
     AscDFH.drawingContentChanges[AscDFH.historyitem_NotesMasterAddToNotesLst]  = function(oClass){return oClass.notesLst;};
 
-    function CNotesMaster(){
+    function CNotesMaster() {
+        AscFormat.CBaseFormatObject.call(this);
         this.clrMap = new AscFormat.ClrMap();
         this.cSld =  new AscFormat.CSld();
         this.hf = null;
@@ -85,29 +86,12 @@
 
 
         this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
-        AscCommon.g_oTableId.Add(this, this.Id);
     }
-
+    AscFormat.InitClass(CNotesMaster, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_NotesMaster);
 
 
     CNotesMaster.prototype.getObjectType = function(){
         return AscDFH.historyitem_type_NotesMaster;
-    };
-
-
-    CNotesMaster.prototype.Get_Id = function(){
-        return this.Id;
-    };
-
-
-    CNotesMaster.prototype.Write_ToBinary2 = function(w){
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Id);
-    };
-
-    CNotesMaster.prototype.Read_FromBinary2 = function(r){
-        this.Id = r.GetString();
     };
 
     CNotesMaster.prototype.setTheme = function(pr){
@@ -243,7 +227,44 @@
     CNotesMaster.prototype.Refresh_RecalcData = function()
     {
     };
-
+    CNotesMaster.prototype.readAttrXml = function(name, reader) {
+        switch (name) {
+            case "showMasterPhAnim": {
+                this.setShowPhAnim(reader.GetValueBool());
+                break;
+            }
+            case "showMasterSp": {
+                this.setShowMasterSp(reader.GetValueBool());
+                break;
+            }
+        }
+    };
+    CNotesMaster.prototype.readChildXml = function(name, reader) {
+        switch(name) {
+            case "cSld": {
+                let oCSld = this.cSld;
+                oCSld.fromXml(reader);
+                break;
+            }
+            case "clrMap": {
+                let oClrMap = new AscFormat.ClrMap();
+                oClrMap.fromXml(reader);
+                this.clrMap = oClrMap;
+                break;
+            }
+            case "hf": {
+                let oHF = new AscFormat.HF();
+                oHF.fromXml(reader);
+                this.setHF(oHF);
+                break;
+            }
+        }
+    };
+    CNotesMaster.prototype.writeAttrXmlImpl = function(writer) {
+    };
+    CNotesMaster.prototype.writeChildren = function(writer) {
+        //Implement in children
+    };
 
     function CreateNotesMaster(){
         var oNM = new CNotesMaster();

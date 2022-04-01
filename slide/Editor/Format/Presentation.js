@@ -4278,6 +4278,10 @@ CPresentation.prototype.addSlideMaster = function (pos, master) {
     History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSlideMaster, pos, [master], true));
     this.slideMasters.splice(pos, 0, master);
 };
+CPresentation.prototype.addNotesMaster = function (pos, master) {
+    //History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_AddSlideMaster, pos, [master], true));
+    this.notesMasters.splice(pos, 0, master);
+};
 
 CPresentation.prototype.removeSlideMaster = function (pos, count) {
     History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_Presentation_RemoveSlideMaster, pos, this.slideMasters.slice(pos, pos + count), false));
@@ -11686,17 +11690,24 @@ CPresentation.prototype.readAttrXml = function(name, reader) {
 CPresentation.prototype.readChildXml = function(name, reader) {
     let oIdLst;
     let aList;
+    let oPresentation = this;
     switch(name) {
         case "sldMasterIdLst": {
             oIdLst = new IdList("sldMasterIdLst");
             oIdLst.fromXml(reader);
             aList = oIdLst.readList(reader, AscCommonSlide.MasterSlide);
+            for(let nIdx = 0; nIdx < aList.length; ++nIdx) {
+                this.addSlideMaster(this.slideMasters.length, aList[nIdx]);
+            }
             break;
         }
         case "notesMasterIdLst": {
             oIdLst = new IdList("notesMasterIdLst");
             oIdLst.fromXml(reader);
             aList = oIdLst.readList(reader, AscCommonSlide.CNotesMaster);
+            for(let nIdx = 0; nIdx < aList.length; ++nIdx) {
+                this.addNotesMaster(this.notesMasters.length, aList[nIdx]);
+            }
             break;
         }
         case "handoutMasterIdLst": {
@@ -11707,7 +11718,12 @@ CPresentation.prototype.readChildXml = function(name, reader) {
         case "sldIdLst": {
             oIdLst = new IdList("sldIdLst");
             oIdLst.fromXml(reader);
-            aList = oIdLst.readList(reader, AscCommonSlide.Slide);
+            aList = oIdLst.readList(reader, function(){
+                return new AscCommonSlide.Slide(oPresentation);
+            });;
+            for(let nIdx = 0; nIdx < aList.length; ++nIdx) {
+                this.insertSlide(this.Slides.length, aList[nIdx]);
+            }
             break;
         }
         case "sldSz": {
@@ -11831,6 +11847,7 @@ IdList.prototype.readList = function(reader, fConstructor) {
         let oReader = new StaxParser(oContent, oRelPart, reader.context);
         let oElement = new fConstructor();
         oElement.fromXml(oReader, true);
+        aListOfObjects.push(oElement);
     }
     return aListOfObjects;
 };

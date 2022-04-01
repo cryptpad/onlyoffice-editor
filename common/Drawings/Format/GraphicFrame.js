@@ -1386,6 +1386,46 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
         }
     };
 
+    CGraphicFrame.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("xfrm" === reader.GetNameNoNS()) {
+				var xfrm = new AscFormat.CXfrm();
+				xfrm.fromXml(reader);
+				this.setSpPr(new AscFormat.CSpPr());
+				this.spPr.setParent(this);
+				this.spPr.setXfrm(xfrm);
+				this.spPr.xfrm.setParent(this.spPr);
+			} else if ("graphic" === reader.GetNameNoNS()) {
+				let graphic = new AscFormat.CT_GraphicalObject();
+				graphic.fromXml(reader);
+				let graphicObject = graphic.GraphicData && graphic.GraphicData.graphicObject;
+				if (graphicObject) {
+					//todo init in graphic.fromXml
+					graphicObject.setBDeleted(false);
+					graphicObject.setParent(this);
+					this.setGraphicObject(graphicObject);
+				}
+			}
+			//todo
+		}
+	};
+	CGraphicFrame.prototype.toXml = function(writer, name) {
+		var context = writer.context;
+		var cNvPrIndex = context.cNvPrIndex++;
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+
+		var ns = StaxParser.prototype.GetNSFromNodeName(name);
+
+		writer.WriteXmlString('<'+ns+':nvGraphicFramePr>');
+		writer.WriteXmlString('<'+ns+':cNvPr id="' + cNvPrIndex + '" name="GraphicFrame ' + cNvPrIndex + '"/>');
+		writer.WriteXmlString('<'+ns+':cNvGraphicFramePr/></'+ns+':nvGraphicFramePr>');
+		writer.WriteXmlNullable(this.spPr && this.spPr.xfrm, ns + ":xfrm");
+		writer.WriteXmlNullable(this.graphicObject, "a:graphic");
+		writer.WriteXmlNodeEnd(name);
+	};
+
     function ConvertToWordTableBorder(oBorder) {
         if(!oBorder) {
             return undefined;

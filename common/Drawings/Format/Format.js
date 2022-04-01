@@ -448,33 +448,40 @@
 		CT_Hyperlink.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "action": {
+					this.action = reader.GetValue();
 					break;
 				}
 				case "endSnd": {
+					this.endSnd = reader.GetValueBool();
 					break;
 				}
 				case "highlightClick": {
+					this.highlightClick = reader.GetValueBool();
 					break;
 				}
 				case "history": {
+					this.history = reader.GetValueBool();
 					break;
 				}
 				case "id": {
+					this.id = reader.GetValue();
 					break;
 				}
 				case "invalidUrl": {
+					this.invalidUrl = reader.GetValue();
 					break;
 				}
 				case "tgtFrame": {
+					this.tgtFrame = reader.GetValue();
 					break;
 				}
 				case "tooltip": {
+					this.tooltip = reader.GetValue();
 					break;
 				}
 			}
 		};
 		CT_Hyperlink.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CT_Hyperlink.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -1649,6 +1656,22 @@
 		};
 
 
+		function getPercentageValue(sVal) {
+			let nVal = 0;
+			if (sVal.indexOf("%") > -1) {
+				let nPct = parseInt(sVal.slice(0, sVal.length - 1));
+				if (AscFormat.isRealNumber(nPct)) {
+					return ((100000 * nPct / 100 + 0.5 >> 0) - 1);
+				}
+				return 0;
+			}
+			let nValPct = parseInt(sVal);
+			if (AscFormat.isRealNumber(nValPct)) {
+				return nValPct;
+			}
+			return 0;
+		}
+
 		function CBaseColor() {
 			CBaseNoIdObject.call(this);
 			this.RGBA = {
@@ -1690,19 +1713,8 @@
 			return false;
 		};
 		CBaseColor.prototype.getChannelValue = function (sVal) {
-			let nVal = 0;
-			if (sVal.indexOf("%") > -1) {
-				let nPct = parseInt(sVal.slice(0, sVal.length - 1));
-				if (AscFormat.isRealNumber(nPct)) {
-					return ((256 * nPct / 100 + 0.5 >> 0) - 1);
-				}
-				return 0;
-			}
-			let nValPct = parseInt(sVal);
-			if (AscFormat.isRealNumber(nValPct)) {
-				return ((256 * nValPct / 100000 + 0.5 >> 0) - 1);
-			}
-			return 0;
+			let nValPct = getPercentageValue(sVal);
+			return ((256 * nValPct / 100000 + 0.5 >> 0) - 1);
 		};
 
 
@@ -2110,6 +2122,7 @@
 			}
 		};
 		CStyleColor.prototype.readAttrXml = function (name, reader) {
+			//TODO:Implement in children
 		};
 		CStyleColor.prototype.readChildXml = function (name, reader) {
 			this.readModifier(name, reader);
@@ -2571,10 +2584,28 @@
 			return _ret;
 		};
 		CSrcRect.prototype.readAttrXml = function (name, reader) {
+			var sVal = reader.GetValue();
+			switch (name) {
+				case "l": {
+					this.l = getPercentageValue(sVal)
+					break;
+				}
+				case "t": {
+					this.t = getPercentageValue(sVal)
+					break;
+				}
+				case "r": {
+					this.r = getPercentageValue(sVal)
+					break;
+				}
+				case "b": {
+					this.b = getPercentageValue(sVal)
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CSrcRect.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CSrcRect.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -2630,9 +2661,40 @@
 				o.algn == this.algn)
 		};
 		CBlipFillTile.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "algn" : {
+					this.algn = reader.GetValue();
+					break;
+				}
+				case "flip" : {
+					this.flip = reader.GetValue();
+					break;
+				}
+				case "sx" : {
+					this.sx = reader.GetValue();
+					break;
+				}
+				case "sy" : {
+					this.sy = reader.GetValue();
+					break;
+				}
+				case "tx" : {
+					this.tx = reader.GetValue();
+					break;
+				}
+				case "ty" : {
+					this.ty = reader.GetValue();
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBlipFillTile.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBlipFillTile.prototype.writeAttrXmlImpl = function (writer) {
@@ -3358,6 +3420,11 @@
 			}
 		};
 		CAlphaBiLevel.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CAlphaBiLevel.prototype.writeAttrXmlImpl = function (writer) {
@@ -3384,9 +3451,13 @@
 			return oCopy;
 		};
 		CAlphaCeiling.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CAlphaCeiling.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CAlphaCeiling.prototype.writeAttrXmlImpl = function (writer) {
@@ -3589,10 +3660,14 @@
 			return oCopy;
 		};
 		CAlphaModFix.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "amt": {
+					this.amt = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CAlphaModFix.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CAlphaModFix.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -3621,9 +3696,19 @@
 			return oCopy;
 		};
 		CAlphaOutset.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "rad": {
+					this.rad = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CAlphaOutset.prototype.readChildXml = function (name, reader) {
+		switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CAlphaOutset.prototype.writeAttrXmlImpl = function (writer) {
@@ -3653,9 +3738,19 @@
 			return oCopy;
 		};
 		CAlphaRepl.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "a": {
+					this.a = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CAlphaRepl.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CAlphaRepl.prototype.writeAttrXmlImpl = function (writer) {
@@ -3685,9 +3780,19 @@
 			return oCopy;
 		};
 		CBiLevel.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "thresh": {
+					this.thresh = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CBiLevel.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBiLevel.prototype.writeAttrXmlImpl = function (writer) {
@@ -3727,9 +3832,19 @@
 			return oCopy;
 		};
 		CBlend.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "blend": {
+					this.blend = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CBlend.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBlend.prototype.writeAttrXmlImpl = function (writer) {
@@ -3763,9 +3878,23 @@
 			return oCopy;
 		};
 		CBlur.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "rad": {
+					this.rad = reader.GetValueInt();
+					break;
+				}
+				case "grow": {
+					this.grow = reader.GetValueBool();
+					break;
+				}
+			}
 		};
 		CBlur.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBlur.prototype.writeAttrXmlImpl = function (writer) {
@@ -3804,9 +3933,19 @@
 			return oCopy;
 		};
 		CClrChange.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "useA": {
+					this.useA = reader.GetValueBool();
+					break;
+				}
+			}
 		};
 		CClrChange.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CClrChange.prototype.writeAttrXmlImpl = function (writer) {
@@ -3837,9 +3976,13 @@
 			return oCopy;
 		};
 		CClrRepl.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CClrRepl.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CClrRepl.prototype.writeAttrXmlImpl = function (writer) {
@@ -3879,9 +4022,13 @@
 			return oCopy;
 		};
 		CDuotone.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CDuotone.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CDuotone.prototype.writeAttrXmlImpl = function (writer) {
@@ -3912,10 +4059,14 @@
 			return oCopy;
 		};
 		CEffectElement.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "ref": {
+					this.ref = reader.GetValue();
+					break;
+				}
+			}
 		};
 		CEffectElement.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CEffectElement.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -3944,9 +4095,13 @@
 			return oCopy;
 		};
 		CFillEffect.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CFillEffect.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CFillEffect.prototype.writeAttrXmlImpl = function (writer) {
@@ -3980,9 +4135,19 @@
 			return oCopy;
 		};
 		CFillOverlay.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "blend": {
+					this.blend = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CFillOverlay.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CFillOverlay.prototype.writeAttrXmlImpl = function (writer) {
@@ -3998,7 +4163,7 @@
 			this.rad = null;
 		}
 
-		InitClass(CAlphaOutset, CBaseNoIdObject, 0);
+		InitClass(CGlow, CBaseNoIdObject, 0);
 		CGlow.prototype.Type = EFFECT_TYPE_GLOW;
 		CGlow.prototype.Write_ToBinary = function (w) {
 			w.WriteLong(EFFECT_TYPE_GLOW);
@@ -4016,9 +4181,19 @@
 			return oCopy;
 		};
 		CGlow.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "rad": {
+					this.rad = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CGlow.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CGlow.prototype.writeAttrXmlImpl = function (writer) {
@@ -4044,16 +4219,12 @@
 			return oCopy;
 		};
 		CGrayscl.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CGrayscl.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CGrayscl.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
 		};
 		CGrayscl.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
 		};
 
 
@@ -4085,10 +4256,22 @@
 			return oCopy;
 		};
 		CHslEffect.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "h": {
+					this.h = reader.GetValueInt();
+					break;
+				}
+				case "s": {
+					this.s = reader.GetValueInt();
+					break;
+				}
+				case "l": {
+					this.l = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CHslEffect.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
 		};
 		CHslEffect.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -4153,9 +4336,23 @@
 			return oCopy;
 		};
 		CLumEffect.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "bright": {
+					this.bright = reader.GetValueInt();
+					break;
+				}
+				case "contrast": {
+					this.contrast = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		CLumEffect.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CLumEffect.prototype.writeAttrXmlImpl = function (writer) {
@@ -4241,9 +4438,51 @@
 			return true;
 		};
 		COuterShdw.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			switch (name) {
+				case "algn": {
+					this.algn = reader.GetValueInt();
+					break;
+				}
+				case "blurRad": {
+					this.blurRad = reader.GetValueInt();
+					break;
+				}
+				case "dir": {
+					this.dir = reader.GetValueInt();
+					break;
+				}
+				case "dist": {
+					this.dist = reader.GetValueInt();
+					break;
+				}
+				case "kx": {
+					this.kx = reader.GetValueInt();
+					break;
+				}
+				case "ky": {
+					this.ky = reader.GetValueInt();
+					break;
+				}
+				case "rotWithShape": {
+					this.rotWithShape = reader.GetValueBool();
+					break;
+				}
+				case "sx": {
+					this.sx = reader.GetValueInt();
+					break;
+				}
+				case "sy": {
+					this.sy = reader.GetValueInt();
+					break;
+				}
+			}
 		};
 		COuterShdw.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBaseObject.prototype.writeAttrXmlImpl = function (writer) {
@@ -4309,9 +4548,19 @@
 			return oCopy;
 		};
 		CPrstShdw.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "prst": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CPrstShdw.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CPrstShdw.prototype.writeAttrXmlImpl = function (writer) {
@@ -4393,9 +4642,19 @@
 			return oCopy;
 		};
 		CReflection.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CReflection.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CReflection.prototype.writeAttrXmlImpl = function (writer) {
@@ -4429,9 +4688,19 @@
 			return oCopy;
 		};
 		CRelOff.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CRelOff.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CRelOff.prototype.writeAttrXmlImpl = function (writer) {
@@ -4461,9 +4730,19 @@
 			return oCopy;
 		};
 		CSoftEdge.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CSoftEdge.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CSoftEdge.prototype.writeAttrXmlImpl = function (writer) {
@@ -4497,9 +4776,19 @@
 			return oCopy;
 		};
 		CTintEffect.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTintEffect.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTintEffect.prototype.writeAttrXmlImpl = function (writer) {
@@ -4549,9 +4838,19 @@
 			return oCopy;
 		};
 		CXfrmEffect.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CXfrmEffect.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CXfrmEffect.prototype.writeAttrXmlImpl = function (writer) {
@@ -4724,9 +5023,19 @@
 			return ret;
 		};
 		CGs.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CGs.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CGs.prototype.writeAttrXmlImpl = function (writer) {
@@ -4775,9 +5084,19 @@
 			return null;
 		};
 		GradLin.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		GradLin.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		GradLin.prototype.writeAttrXmlImpl = function (writer) {
@@ -4828,9 +5147,19 @@
 			return null;
 		};
 		GradPath.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		GradPath.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		GradPath.prototype.writeAttrXmlImpl = function (writer) {
@@ -5014,9 +5343,19 @@
 			return _ret;
 		};
 		CGradFill.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CGradFill.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CGradFill.prototype.writeAttrXmlImpl = function (writer) {
@@ -5153,9 +5492,19 @@
 			return _ret;
 		};
 		CPattFill.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CPattFill.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CPattFill.prototype.writeAttrXmlImpl = function (writer) {
@@ -5211,9 +5560,19 @@
 			return null;
 		};
 		CNoFill.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CNoFill.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CNoFill.prototype.writeAttrXmlImpl = function (writer) {
@@ -5268,9 +5627,19 @@
 			return null;
 		};
 		CGrpFill.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CGrpFill.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CGrpFill.prototype.writeAttrXmlImpl = function (writer) {
@@ -5659,6 +6028,42 @@
 		};
 
 
+
+		CUniFill.prototype.fromXml = function(reader)
+		{
+			var name = reader.GetNameNoNS();
+			var depth = reader.GetDepth();
+			switch (name) {
+				case "blipFill":
+					var blipFill = new AscFormat.CBlipFill();
+					blipFill.fromXml(reader);
+					this.setFill(blipFill);
+					break;
+				default:
+					reader.ReadTillEnd(depth);
+					break;
+			}
+		};
+		CUniFill.prototype.toXml = function(writer)
+		{
+			var fill = this.fill;
+			if (!fill)
+				return;
+			switch (fill.type)
+			{
+				case c_oAscFill.FILL_TYPE_NOFILL:break;
+				case c_oAscFill.FILL_TYPE_GRP:break;
+				case c_oAscFill.FILL_TYPE_GRAD:break;
+				case c_oAscFill.FILL_TYPE_PATT:break;
+				case c_oAscFill.FILL_TYPE_BLIP:
+					fill.toXml(writer, "xdr:blipFill");
+					break;
+				case c_oAscFill.FILL_TYPE_SOLID:break;
+				default:break;
+			}
+		};
+	
+
 		function CBuBlip() {
 			CBaseNoIdObject.call(this);
 			this.blip = null;
@@ -5723,9 +6128,19 @@
 			return ret;
 		};
 		CBuBlip.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBuBlip.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBuBlip.prototype.writeAttrXmlImpl = function (writer) {
@@ -6203,9 +6618,19 @@
 			this.w = readLong(r);
 		};
 		EndArrow.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		EndArrow.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		EndArrow.prototype.writeAttrXmlImpl = function (writer) {
@@ -6267,9 +6692,19 @@
 			this.limit = readBool(r);
 		};
 		LineJoin.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		LineJoin.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		LineJoin.prototype.writeAttrXmlImpl = function (writer) {
@@ -6500,9 +6935,19 @@
 			return false;
 		};
 		CLn.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CLn.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CLn.prototype.writeAttrXmlImpl = function (writer) {
@@ -6560,9 +7005,19 @@
 			return ret;
 		};
 		DefaultShapeDefinition.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		DefaultShapeDefinition.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		DefaultShapeDefinition.prototype.writeAttrXmlImpl = function (writer) {
@@ -6720,9 +7175,19 @@
 			writer.WriteXmlNodeEnd(name);
 		};
 		CNvPr.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CNvPr.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CNvPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -6773,9 +7238,19 @@
 			return _ret;
 		};
 		UniMedia.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		UniMedia.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		UniMedia.prototype.writeAttrXmlImpl = function (writer) {
@@ -6825,9 +7300,19 @@
 			return duplicate;
 		};
 		NvPr.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		NvPr.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		NvPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -6884,9 +7369,19 @@
 			this.type = type;
 		};
 		Ph.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		Ph.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		Ph.prototype.writeAttrXmlImpl = function (writer) {
@@ -6965,9 +7460,19 @@
 			return _ret;
 		};
 		CNvUniSpPr.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CNvUniSpPr.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CNvUniSpPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -7023,9 +7528,19 @@
 			this.nvPr = readObject(r);
 		};
 		UniNvPr.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		UniNvPr.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		UniNvPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -7095,9 +7610,19 @@
 			return null;
 		};
 		StyleRef.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		StyleRef.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		StyleRef.prototype.writeAttrXmlImpl = function (writer) {
@@ -7154,9 +7679,19 @@
 			return "+mn-";
 		};
 		FontRef.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FontRef.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FontRef.prototype.writeAttrXmlImpl = function (writer) {
@@ -7228,9 +7763,19 @@
 			this.effectRef = pr;
 		};
 		CShapeStyle.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CShapeStyle.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CShapeStyle.prototype.writeAttrXmlImpl = function (writer) {
@@ -7539,9 +8084,16 @@
 			}
 		};
 		CXfrm.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
 			//TODO:Implement in children
 		};
 		CXfrm.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CXfrm.prototype.writeAttrXmlImpl = function (writer) {
@@ -7549,6 +8101,103 @@
 		};
 		CXfrm.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
+		};
+		CXfrm.prototype.fromXml = function(reader) {
+			this.readAttr(reader);
+	
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				if ("off" === reader.GetNameNoNS()) {
+					this.readAttrOff(reader, this.setOffX, this.setOffY);
+				} else if ("ext" === reader.GetNameNoNS()) {
+					this.readAttrExt(reader, this.setExtX, this.setExtY);
+				} else if ("chOff" === reader.GetNameNoNS()) {
+					this.readAttrOff(reader, this.setChOffX, this.setChOffY);
+				} else if ("chExt" === reader.GetNameNoNS()) {
+					this.readAttrExt(reader, this.setChExtX, this.setChExtY);
+				}
+			}
+		};
+		CXfrm.prototype.toXml = function(writer, name)
+		{
+			writer.WriteXmlNodeStart(name);
+			writer.WriteXmlNullableAttributeBool("flipH", this.flipH);
+			writer.WriteXmlNullableAttributeBool("flipV", this.flipV);
+			if(null !== this.rot) {
+				writer.WriteXmlAttributeNumber("rot", Math.round(this.rot * 180 * 60000 / Math.PI));
+			}
+			writer.WriteXmlAttributesEnd();
+	
+			if (null !== this.offX || null !== this.offY) {
+				writer.WriteXmlNodeStart("a:off");
+				if (null !== this.offX) {
+					writer.WriteXmlAttributeNumber("x", Math.round(this.offX * AscCommon.c_dScalePPTXSizes));
+				}
+				if (null !== this.offY) {
+					writer.WriteXmlAttributeNumber("y", Math.round(this.offY * AscCommon.c_dScalePPTXSizes));
+				}
+				writer.WriteXmlAttributesEnd(true);
+			}
+			if (null !== this.extX || null !== this.extY) {
+				writer.WriteXmlNodeStart("a:ext");
+				if (null !== this.extX) {
+					writer.WriteXmlAttributeNumber("cx", Math.round(this.extX * AscCommon.c_dScalePPTXSizes));
+				}
+				if (null !== this.extY) {
+					writer.WriteXmlAttributeNumber("cy", Math.round(this.extY * AscCommon.c_dScalePPTXSizes));
+				}
+				writer.WriteXmlAttributesEnd(true);
+			}
+			if (null !== this.chOffX || null !== this.chOffY) {
+				writer.WriteXmlNodeStart("a:chOff");
+				if (null !== this.chOffX) {
+					writer.WriteXmlAttributeNumber("x", Math.round(this.chOffX * AscCommon.c_dScalePPTXSizes));
+				}
+				if (null !== this.chOffY) {
+					writer.WriteXmlAttributeNumber("y", Math.round(this.chOffY * AscCommon.c_dScalePPTXSizes));
+				}
+				writer.WriteXmlAttributesEnd(true);
+			}
+			if (null !== this.chExtX || null !== this.chExtY) {
+				writer.WriteXmlNodeStart("a:chExt");
+				if (null !== this.chExtX) {
+					writer.WriteXmlAttributeNumber("cx", Math.round(this.chExtX * AscCommon.c_dScalePPTXSizes));
+				}
+				if (null !== this.chExtY) {
+					writer.WriteXmlAttributeNumber("cy", Math.round(this.chExtY * AscCommon.c_dScalePPTXSizes));
+				}
+				writer.WriteXmlAttributesEnd(true);
+			}
+			writer.WriteXmlNodeEnd(name);
+		};
+		CXfrm.prototype.readAttr = function(reader) {
+			while (reader.MoveToNextAttribute()) {
+				if ("flipH" === reader.GetName()) {
+					this.setFlipH(reader.GetValueBool());
+				} else if ("flipV" === reader.GetName()) {
+					this.setFlipV(reader.GetValueBool());
+				} else if ("rot" === reader.GetName()) {
+					this.setRot((reader.GetValueInt()/60000)*Math.PI/180);
+				}
+			}
+		};
+		CXfrm.prototype.readAttrOff = function(reader, fSetX, fSetY) {
+			while (reader.MoveToNextAttribute()) {
+				if ("x" === reader.GetName()) {
+					fSetX.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
+				} else if ("y" === reader.GetName()) {
+					fSetY.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
+				}
+			}
+		};
+		CXfrm.prototype.readAttrExt = function(reader, fSetCX, fSetCY) {
+			while (reader.MoveToNextAttribute()) {
+				if ("cx" === reader.GetName()) {
+					fSetCX.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
+				} else if ("cy" === reader.GetName()) {
+					fSetCY.call(this, reader.GetValueInt()/ AscCommon.c_dScalePPTXSizes);
+				}
+			}
 		};
 
 
@@ -7597,9 +8246,19 @@
 			}
 		};
 		CEffectProperties.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CEffectProperties.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CEffectProperties.prototype.writeAttrXmlImpl = function (writer) {
@@ -7746,9 +8405,19 @@
 			}
 		};
 		CEffectLst.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CEffectLst.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CEffectLst.prototype.writeAttrXmlImpl = function (writer) {
@@ -7901,7 +8570,7 @@
          this.ln.merge(spPr.ln);
          }  */
 		};
-		CSpPr.prototype.etParent = function (pr) {
+		CSpPr.prototype.setParent = function (pr) {
 			History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SpPr_SetParent, this.parent, pr));
 			this.parent = pr;
 		};
@@ -7990,9 +8659,35 @@
 			}
 		};
 		CSpPr.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CSpPr.prototype.readChildXml = function (name, reader) {
+			let oPr;
+			switch (name) {
+				case "xfrm": {
+					oPr = new AscFormat.CXfrm();
+					oPr.fromXml(reader);
+					this.setXfrm(oPr);
+					break;
+				}
+				case "prstGeom": {
+					var prst = "";
+					while (reader.MoveToNextAttribute()) {
+						if ("prst" === reader.GetName()) {
+							prst = reader.GetValueDecodeXml();
+						}
+					}
+					var oGeometry = AscFormat.CreateGeometry(prst);
+					if (oGeometry && oGeometry.pathLst.length > 0)
+						this.setGeometry(oGeometry);
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CSpPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -8000,6 +8695,15 @@
 		};
 		CSpPr.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
+		};
+		CSpPr.prototype.toXml = function(writer, name) {
+			writer.WriteXmlNodeStart(name);
+			writer.WriteXmlAttributesEnd();
+	
+			writer.WriteXmlNullable(this.xfrm, "a:xfrm");
+			writer.WriteXmlString('<a:prstGeom prst="rect"> <a:avLst/> </a:prstGeom>');
+	
+			writer.WriteXmlNodeEnd(name);
 		};
 // ----------------------------------
 
@@ -8099,9 +8803,19 @@
 			this.colors[index] = color;
 		};
 		ClrScheme.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ClrScheme.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ClrScheme.prototype.writeAttrXmlImpl = function (writer) {
@@ -8112,22 +8826,13 @@
 		};
 
 		function ClrMap() {
+			CBaseFormatObject.call(this);
 			this.color_map = [];
 
 			for (var i = g_clr_MIN; i <= g_clr_MAX; i++)
 				this.color_map[i] = null;
-
-
-			if (g_oTableId.checkInit()) {
-				this.Id = g_oIdCounter.Get_NewId();
-				g_oTableId.Add(this, this.Id);
-			}
-
 		}
-
-		ClrMap.prototype.Get_Id = function () {
-			return this.Id;
-		};
+		InitClass(ClrMap, CBaseFormatObject, AscDFH.historyitem_type_ClrMap);
 		ClrMap.prototype.Refresh_RecalcData = function () {
 		};
 		ClrMap.prototype.createDuplicate = function () {
@@ -8147,24 +8852,24 @@
 			}
 			return true;
 		};
-		ClrMap.prototype.getObjectType = function () {
-			return AscDFH.historyitem_type_ClrMap;
-		};
-		ClrMap.prototype.Write_ToBinary2 = function (w) {
-			w.WriteLong(this.getObjectType());
-			w.WriteString2(this.Id);
-		};
-		ClrMap.prototype.Read_FromBinary2 = function (r) {
-			this.Id = r.GetString2();
-		};
 		ClrMap.prototype.setClr = function (index, clr) {
 			History.Add(new CChangesDrawingsContentLongMap(this, AscDFH.historyitem_ClrMap_SetClr, index, [clr], true));
 			this.color_map[index] = clr;
 		};
 		ClrMap.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ClrMap.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ClrMap.prototype.writeAttrXmlImpl = function (writer) {
@@ -8216,9 +8921,19 @@
 			this.Id = r.GetString2();
 		};
 		ExtraClrScheme.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ExtraClrScheme.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ExtraClrScheme.prototype.writeAttrXmlImpl = function (writer) {
@@ -8283,9 +8998,19 @@
 			}
 		};
 		FontCollection.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FontCollection.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FontCollection.prototype.writeAttrXmlImpl = function (writer) {
@@ -8409,9 +9134,19 @@
 			this.minorFont = pr;
 		};
 		FontScheme.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FontScheme.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FontScheme.prototype.writeAttrXmlImpl = function (writer) {
@@ -8517,9 +9252,19 @@
 			this.bgFillStyleLst.push(pr);
 		};
 		FmtScheme.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FmtScheme.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		FmtScheme.prototype.writeAttrXmlImpl = function (writer) {
@@ -8536,9 +9281,19 @@
 		}
 
 		ThemeElements.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ThemeElements.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		ThemeElements.prototype.writeAttrXmlImpl = function (writer) {
@@ -8762,9 +9517,19 @@
 			this.Id = r.GetString2();
 		};
 		CTheme.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTheme.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTheme.prototype.writeAttrXmlImpl = function (writer) {
@@ -8778,22 +9543,17 @@
 // CSLD -----------------------------
 
 		function HF() {
+			CBaseFormatObject.call(this);
 			this.dt = null;
 			this.ftr = null;
 			this.hdr = null;
 			this.sldNum = null;
-
-			this.Id = g_oIdCounter.Get_NewId();
-			g_oTableId.Add(this, this.Id);
 		}
-
+		InitClass(HF, CBaseFormatObject, AscDFH.historyitem_type_HF);
 		HF.prototype.Get_Id = function () {
 			return this.Id;
 		};
 		HF.prototype.Refresh_RecalcData = function () {
-		};
-		HF.prototype.getObjectType = function () {
-			return AscDFH.historyitem_type_HF;
 		};
 		HF.prototype.createDuplicate = function () {
 			var ret = new HF();
@@ -8835,9 +9595,19 @@
 			this.Id = r.GetString2();
 		};
 		HF.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		HF.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		HF.prototype.writeAttrXmlImpl = function (writer) {
@@ -9163,9 +9933,19 @@
 		CTextStyle.prototype.Refresh_RecalcData = function () {
 		};
 		CTextStyle.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTextStyle.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTextStyle.prototype.writeAttrXmlImpl = function (writer) {
@@ -9176,15 +9956,12 @@
 		};
 
 		function CTextStyles() {
+			CBaseNoIdObject.call(this);
 			this.titleStyle = null;
 			this.bodyStyle = null;
 			this.otherStyle = null;
-
 		}
-
-		CTextStyles.prototype.Get_Id = function () {
-			return this.Id;
-		};
+		InitClass(CTextStyles, CBaseNoIdObject, 0);
 		CTextStyles.prototype.getStyleByPhType = function (phType) {
 			switch (phType) {
 				case AscFormat.phType_ctrTitle:
@@ -9272,9 +10049,19 @@
 			}
 		};
 		CTextStyles.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTextStyles.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTextStyles.prototype.writeAttrXmlImpl = function (writer) {
@@ -9325,6 +10112,43 @@
 		var nSldLtTVertTitleAndTx = 33; //Vertical Title and Text)
 		var nSldLtTVertTitleAndTxOverChart = 34; //Vertical Title and Text Over Chart)
 		var nSldLtTVertTx = 35; //Vertical Text)
+
+		AscFormat.nSldLtTBlank = nSldLtTBlank; // Blank ))
+		AscFormat.nSldLtTChart = nSldLtTChart; //Chart)
+		AscFormat.nSldLtTChartAndTx = nSldLtTChartAndTx; //( Chart and Text ))
+		AscFormat.nSldLtTClipArtAndTx = nSldLtTClipArtAndTx; //Clip Art and Text)
+		AscFormat.nSldLtTClipArtAndVertTx = nSldLtTClipArtAndVertTx; //Clip Art and Vertical Text)
+		AscFormat.nSldLtTCust = nSldLtTCust; // Custom ))
+		AscFormat.nSldLtTDgm = nSldLtTDgm; //Diagram ))
+		AscFormat.nSldLtTFourObj = nSldLtTFourObj; //Four Objects)
+		AscFormat.nSldLtTMediaAndTx = nSldLtTMediaAndTx; // ( Media and Text ))
+		AscFormat.nSldLtTObj = nSldLtTObj; //Title and Object)
+		AscFormat.nSldLtTObjAndTwoObj = nSldLtTObjAndTwoObj; //Object and Two Object)
+		AscFormat.nSldLtTObjAndTx = nSldLtTObjAndTx; // ( Object and Text ))
+		AscFormat.nSldLtTObjOnly = nSldLtTObjOnly; //Object)
+		AscFormat.nSldLtTObjOverTx = nSldLtTObjOverTx; // ( Object over Text))
+		AscFormat.nSldLtTObjTx = nSldLtTObjTx; //Title, Object, and Caption)
+		AscFormat.nSldLtTPicTx = nSldLtTPicTx; //Picture and Caption)
+		AscFormat.nSldLtTSecHead = nSldLtTSecHead; //Section Header)
+		AscFormat.nSldLtTTbl = nSldLtTTbl; // ( Table ))
+		AscFormat.nSldLtTTitle = nSldLtTTitle; // ( Title ))
+		AscFormat.nSldLtTTitleOnly = nSldLtTTitleOnly; // ( Title Only ))
+		AscFormat.nSldLtTTwoColTx = nSldLtTTwoColTx; // ( Two Column Text ))
+		AscFormat.nSldLtTTwoObj = nSldLtTTwoObj; //Two Objects)
+		AscFormat.nSldLtTTwoObjAndObj = nSldLtTTwoObjAndObj; //Two Objects and Object)
+		AscFormat.nSldLtTTwoObjAndTx = nSldLtTTwoObjAndTx; //Two Objects and Text)
+		AscFormat.nSldLtTTwoObjOverTx = nSldLtTTwoObjOverTx; //Two Objects over Text)
+		AscFormat.nSldLtTTwoTxTwoObj = nSldLtTTwoTxTwoObj; //Two Text and Two Objects)
+		AscFormat.nSldLtTTx = nSldLtTTx; // ( Text ))
+		AscFormat.nSldLtTTxAndChart = nSldLtTTxAndChart; // ( Text and Chart ))
+		AscFormat.nSldLtTTxAndClipArt = nSldLtTTxAndClipArt; //Text and Clip Art)
+		AscFormat.nSldLtTTxAndMedia = nSldLtTTxAndMedia; // ( Text and Media ))
+		AscFormat.nSldLtTTxAndObj = nSldLtTTxAndObj; // ( Text and Object ))
+		AscFormat.nSldLtTTxAndTwoObj = nSldLtTTxAndTwoObj; //Text and Two Objects)
+		AscFormat.nSldLtTTxOverObj = nSldLtTTxOverObj; // ( Text over Object))
+		AscFormat.nSldLtTVertTitleAndTx = nSldLtTVertTitleAndTx; //Vertical Title and Text)
+		AscFormat.nSldLtTVertTitleAndTxOverChart = nSldLtTVertTitleAndTxOverChart; //Vertical Title and Text Over Chart)
+		AscFormat.nSldLtTVertTx = nSldLtTVertTx; //Vertical Text)
 
 		var _ph_multiplier = 4;
 
@@ -9479,9 +10303,19 @@
 		CTextFit.prototype.Refresh_RecalcData = function () {
 		};
 		CTextFit.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTextFit.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CTextFit.prototype.writeAttrXmlImpl = function (writer) {
@@ -9500,6 +10334,7 @@
 		var nTextATT = 4;// Top
 
 		function CBodyPr() {
+			CBaseNoIdObject.call(this);
 			this.flatTx = null;
 			this.anchor = null;
 			this.anchorCtr = null;
@@ -9528,7 +10363,7 @@
 			// this.Id = g_oIdCounter.Get_NewId();
 			// g_oTableId.Add(this, this.Id);
 		}
-
+		InitClass(CBodyPr, CBaseNoIdObject, 0);
 		CBodyPr.prototype.Get_Id = function () {
 			return this.Id;
 		};
@@ -10310,9 +11145,19 @@
 			}
 		};
 		CBodyPr.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBodyPr.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBodyPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -10335,9 +11180,19 @@
 		CHyperlink.prototype.Refresh_RecalcData = function () {
 		};
 		CHyperlink.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CHyperlink.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CHyperlink.prototype.writeAttrXmlImpl = function (writer) {
@@ -10682,9 +11537,19 @@
 			}
 		};
 		CBullet.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBullet.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBullet.prototype.writeAttrXmlImpl = function (writer) {
@@ -10951,9 +11816,19 @@
 			}
 		};
 		CBulletColor.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletColor.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletColor.prototype.writeAttrXmlImpl = function (writer) {
@@ -11012,9 +11887,19 @@
 			}
 		};
 		CBulletSize.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletSize.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletSize.prototype.writeAttrXmlImpl = function (writer) {
@@ -11072,9 +11957,19 @@
 			}
 		};
 		CBulletTypeface.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletTypeface.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletTypeface.prototype.writeAttrXmlImpl = function (writer) {
@@ -11213,9 +12108,19 @@
 			}
 		};
 		CBulletType.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletType.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		CBulletType.prototype.writeAttrXmlImpl = function (writer) {
@@ -11292,9 +12197,19 @@
 			}
 		};
 		TextListStyle.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		TextListStyle.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+				case "blip": {
+					break;
+				}
+			}
 			//TODO:Implement in children
 		};
 		TextListStyle.prototype.writeAttrXmlImpl = function (writer) {
@@ -11485,23 +12400,22 @@
 		}
 
 		function GenerateDefaultColorMap() {
-			var clrMap = new ClrMap();
-
-			clrMap.color_map[0] = 0;
-			clrMap.color_map[1] = 1;
-			clrMap.color_map[2] = 2;
-			clrMap.color_map[3] = 3;
-			clrMap.color_map[4] = 4;
-			clrMap.color_map[5] = 5;
-			clrMap.color_map[10] = 10;
-			clrMap.color_map[11] = 11;
-			clrMap.color_map[6] = 12;
-			clrMap.color_map[7] = 13;
-			clrMap.color_map[15] = 8;
-			clrMap.color_map[16] = 9;
-
-			return clrMap;
-
+			return AscFormat.ExecuteNoHistory(function() {
+				var clrMap = new ClrMap();
+				clrMap.color_map[0] = 0;
+				clrMap.color_map[1] = 1;
+				clrMap.color_map[2] = 2;
+				clrMap.color_map[3] = 3;
+				clrMap.color_map[4] = 4;
+				clrMap.color_map[5] = 5;
+				clrMap.color_map[10] = 10;
+				clrMap.color_map[11] = 11;
+				clrMap.color_map[6] = 12;
+				clrMap.color_map[7] = 13;
+				clrMap.color_map[15] = 8;
+				clrMap.color_map[16] = 9;
+				return clrMap;
+			}, [], null);
 		}
 
 		function CreateAscFill(unifill) {

@@ -78,7 +78,8 @@
         return editor.WordControl.m_oDrawingDocument.Notes_GetWidth();
     }
 
-    function CNotes(){
+    function CNotes() {
+        AscFormat.CBaseFormatObject.call(this);
         this.clrMap = null;
         this.cSld = new AscFormat.CSld();
         this.showMasterPhAnim = null;
@@ -90,15 +91,11 @@
 
         this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
         this.kind = AscFormat.TYPE_KIND.NOTES;
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
         this.Lock = new AscCommon.CLock();
-        AscCommon.g_oTableId.Add(this, this.Id);
-
-
         this.graphicObjects = new AscFormat.DrawingObjectsController(this);
     }
-
+    AscFormat.InitClass(CNotes, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_Notes);
 
     CNotes.prototype.Clear_ContentChanges = function()
     {
@@ -114,25 +111,6 @@
     {
         this.m_oContentChanges.Refresh();
     };
-
-
-    CNotes.prototype.getObjectType = function(){
-        return AscDFH.historyitem_type_Notes;
-    };
-
-    CNotes.prototype.Get_Id = function () {
-        return this.Id;
-    };
-
-    CNotes.prototype.Write_ToBinary2 = function(w){
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Id);
-    };
-
-    CNotes.prototype.Read_FromBinary2 = function(r){
-        this.Id = r.GetString();
-    };
-
     CNotes.prototype.setClMapOverride = function(pr){
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_NotesSetClrMap, this.clrMap, pr));
         this.clrMap = pr;
@@ -355,6 +333,38 @@
 
     CNotes.prototype.Refresh_ContentChanges = function()
     {
+    };
+    CNotes.prototype.readAttrXml = function(name, reader) {
+        switch (name) {
+            case "showMasterPhAnim": {
+                this.setShowPhAnim(reader.GetValueBool());
+                break;
+            }
+            case "showMasterSp": {
+                this.setShowMasterSp(reader.GetValueBool());
+                break;
+            }
+        }
+    };
+    CNotes.prototype.readChildXml = function(name, reader) {
+        switch(name) {
+            case "cSld": {
+                let oCSld = this.cSld;
+                oCSld.fromXml(reader);
+                break;
+            }
+            case "clrMapOvr": {
+                let oClrMapOvr = new AscFormat.ClrMap();
+                oClrMapOvr.fromXml(reader);
+                this.setClMapOverride(oClrMapOvr);
+                break;
+            }
+        }
+    };
+    CNotes.prototype.writeAttrXmlImpl = function(writer) {
+    };
+    CNotes.prototype.writeChildren = function(writer) {
+        //Implement in children
     };
 
     function CreateNotes(){
