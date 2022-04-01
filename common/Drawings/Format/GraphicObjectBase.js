@@ -523,6 +523,23 @@
         Math.abs(new_ext_x - xfrm.extX) > AscFormat.MOVE_DELTA &&  xfrm.setExtX(new_ext_x);
         Math.abs(new_ext_y - xfrm.extY) > AscFormat.MOVE_DELTA &&  xfrm.setExtY(new_ext_y);
     };
+
+    CGraphicObjectBase.prototype.checkHiddenInAnimation = function() {
+        if(this.parent instanceof AscCommonSlide.Slide) {
+            var oGrObjects = this.parent.graphicObjects;
+            if(oGrObjects) {
+                if(oGrObjects.isSlideShow()) {
+                    var oAnimPlayer = oGrObjects.getAnimationPlayer();
+                    if(oAnimPlayer) {
+                        if(oAnimPlayer.isDrawingHidden(this.Get_Id())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    };
     /**
      * Check point hit to bounds object
      * @memberof CGraphicObjectBase
@@ -530,6 +547,9 @@
     CGraphicObjectBase.prototype.checkHitToBounds = function(x, y) {
         if(this.parent && (this.parent.Get_ParentTextTransform  && this.parent.Get_ParentTextTransform())) {
             return true;
+        }
+        if(this.checkHiddenInAnimation && this.checkHiddenInAnimation()) {
+            return false;
         }
 
         var _x, _y;

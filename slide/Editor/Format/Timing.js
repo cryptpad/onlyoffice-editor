@@ -10841,6 +10841,9 @@
     CAnimationPlayer.prototype.clearObjectTexture = function(sId) {
         this.animationDrawer.clearObjectTexture(sId);
     };
+    CAnimationPlayer.prototype.isDrawingHidden = function(sId) {
+        return this.animationDrawer.isDrawingHidden(sId);
+    };
 
 
     function CDemoAnimPlayer(oSlide) {

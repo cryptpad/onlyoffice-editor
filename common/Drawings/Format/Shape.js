@@ -5013,6 +5013,10 @@ CShape.prototype.hitInTextRect = function (x, y) {
         return true;
     }
 
+    
+    if(this.checkHiddenInAnimation && this.checkHiddenInAnimation()) {
+        return false;
+    }
 
     var bForceWord = ((this.isEmptyPlaceholder && this.isEmptyPlaceholder()) || (this.isPlaceholder && this.isPlaceholder() && oController && (AscFormat.getTargetTextObject(oController) === this)));
     if(bForceWord){
