@@ -4569,74 +4569,155 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         }
     };
 
-    CShape.prototype.getFCompareOfBoundsTextInSmartArt = function () {
-        var _this = this;
-        var vert = this.txBody && this.txBody.bodyPr.vert;
-        var fCheckHeight;
+    CShape.prototype.getInsets = function (properties) {
+        const oBodyPr = properties.bodyPr || this.getBodyPr && this.getBodyPr();
+        properties = properties || {};
+        let lIns = 0, tIns = 0, rIns = 0, bIns = 0;
+        if (!properties.bIgnoreInsets) {
+            lIns = (AscFormat.isRealNumber(oBodyPr.lIns) ? oBodyPr.lIns : 2.54);
+            tIns = (AscFormat.isRealNumber(oBodyPr.tIns) ? oBodyPr.tIns : 1.27);
+            rIns = (AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54);
+            bIns = (AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27);
+        }
+
+        if (this.bWordShape) {
+            const oPen = this.pen;
+            if(oPen)
+            {
+                let penW = (oPen.w == null) ? 12700 : parseInt(oPen.w);
+                penW /= 36000;
+                switch (oPen.algn)
+                {
+                    case 1:
+                    {
+                        break;
+                    }
+                    default:
+                    {
+                        penW /= 2;
+                        break;
+                    }
+                }
+                lIns += penW;
+                rIns += penW;
+                tIns += penW;
+                bIns += penW;
+            }
+        }
+
+        const oForm = this.isForm && this.isForm() ? this.getInnerForm() : null;
+        if (oForm) {
+            const nFormHorPadding = this.getFormHorPadding();
+            lIns = nFormHorPadding;
+            rIns = nFormHorPadding;
+            tIns = 0;
+            bIns = 0;
+        }
+        return {
+            lIns: lIns,
+            tIns: tIns,
+            rIns: rIns,
+            bIns: bIns
+        };
+    };
+
+    CShape.prototype.getTextRectBoundsWithInsets = function (properties) {
+        properties = properties || {};
+        const result = {l: 0, t: 0, r: 0, b: 0};
+        const oBodyPr = properties.bodyPr || this.getBodyPr && this.getBodyPr();
+        if (oBodyPr) {
+            const insets = this.getInsets(properties);
+            const oRect = this.getTextRect();
+
+            let _l = oRect.l + insets.lIns;
+            let _t = oRect.t + insets.tIns;
+            let _r = oRect.r - insets.rIns;
+            let _b = oRect.b - insets.bIns;
+
+            if (_l >= _r) {
+                const _c = (_l + _r) * 0.5;
+                _l = _c - 0.01;
+                _r = _c + 0.01;
+            }
+
+            if (_t >= _b) {
+                const _c = (_t + _b) * 0.5;
+                _t = _c - 0.01;
+                _b = _c + 0.01;
+            }
+
+            result.r = _r;
+            result.l = _l;
+            result.t = _t;
+            result.b = _b;
+        }
+        return result;
+    };
+
+    CShape.prototype.getTextRectContentHW = function (properties) {
+        const bounds = this.getTextRectBoundsWithInsets(properties);
+        return {
+            height: bounds.b - bounds.t,
+            width: bounds.r - bounds.l
+        };
+    };
+
+    CShape.prototype.getFCompareHeightOfBoundsTextInSmartArt = function (height, width) {
+        const _this = this;
+        const vert = this.txBody && this.txBody.bodyPr.vert;
+        let fCheckHeight;
         if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert) {
             fCheckHeight = function () {
-                return _this.contentHeight > _this.clipRect.w;
-            }
+                return _this.contentHeight > width;
+            };
         } else {
             fCheckHeight = function () {
-                return _this.contentHeight > _this.clipRect.h;
-            }
+                return _this.contentHeight > height;
+            };
         }
         return fCheckHeight;
-    }
+    };
 
     CShape.prototype.findFitFontSizeForSmartArt = function () {
-        if (this.txBody) {
-            var content = this.getCurrentDocContentInSmartArt();
-            var fCheckHeight = this.getFCompareOfBoundsTextInSmartArt();
+        const MAX_FONT_SIZE = 65;
 
-            var maxFontSize = 65;
-            if (content && fCheckHeight) {
-                var hInPt = this.txXfrm.extY *  AscCommonWord.g_dKoef_mm_to_pt / content.Content.length;
-                maxFontSize = hInPt > maxFontSize ? maxFontSize : Math.floor(hInPt);
-                var scalesForSmartArt = Array((maxFontSize - 4) > 0 ? maxFontSize - 4 : 1).fill(0).map(function (e, ind) {
-                    return ind + 5;
-                });
-                var a = 0;
-                var b = scalesForSmartArt.length - 1;
-                var averageAmount = Math.floor((a + b) / 2);
+        const content = this.getCurrentDocContentInSmartArt();
+        const sizesOfTextRectContent = this.getTextRectContentHW();
+        const fCheckHeight = this.getFCompareHeightOfBoundsTextInSmartArt(sizesOfTextRectContent.height, sizesOfTextRectContent.width);
 
-                //var initialFontSize = paragraphWithWrapWords.Get_FirstTextPr2().Get_FontSize();
-                this.setFontSizeInSmartArt(scalesForSmartArt[b]);
-                var paragraphWithWrapWords = content.GetFirstParagraphWithBreakWords();
-                if (!paragraphWithWrapWords) {
-                    paragraphWithWrapWords = content.GetParagraphWithMaxLines();
-                }
-                if (paragraphWithWrapWords.IsHaveWordWrapAtEndLine() || fCheckHeight()) {
-                    while (true) {
-                        this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                        if (paragraphWithWrapWords.IsHaveWordWrapAtEndLine() || fCheckHeight()) {
-                            b = averageAmount;
-                            averageAmount = Math.floor((a + b) / 2);
-                        } else {
-                            a = averageAmount;
-                            averageAmount = Math.floor((a + b) / 2);
-                        }
-                        if (a === averageAmount || b === averageAmount) {
-                            if (averageAmount !== 0) {
-                                paragraphWithWrapWords = content.GetFirstParagraphWithBreakWords();
-                                if (paragraphWithWrapWords) {
-                                    a = 0;
-                                    averageAmount = Math.floor((a + b) / 2);
-                                    continue;
-                                }
-                            }
-                            break;
-                        }
-                    }
+        if (content && fCheckHeight) {
+            const scalesForSmartArt = Array((MAX_FONT_SIZE - 4) > 0 ? MAX_FONT_SIZE - 4 : 1).fill(0).map(function (e, ind) {
+                return ind + 5;
+            });
+
+            let a = 0;
+            let b = scalesForSmartArt.length - 1;
+            let averageAmount = Math.floor((a + b) / 2);
+
+            this.setFontSizeInSmartArt(scalesForSmartArt[b]);
+            if (content.RecalculateMinMaxContentWidth().Min > this.contentWidth || fCheckHeight()) {
+
+                while (true) {
                     this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                    return scalesForSmartArt[averageAmount];
-                } else {
-                    return scalesForSmartArt[b];
+                    if (content.RecalculateMinMaxContentWidth().Min > this.contentWidth || fCheckHeight()) {
+                        b = averageAmount;
+                        averageAmount = Math.floor((a + b) / 2);
+                    } else {
+                        a = averageAmount;
+                        averageAmount = Math.floor((a + b) / 2);
+                    }
+                    if (a === averageAmount || b === averageAmount) {
+                        break;
+                    }
                 }
+
+                this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
+                return scalesForSmartArt[averageAmount];
+            } else {
+                return scalesForSmartArt[b];
             }
         }
-        return maxFontSize;
+        return MAX_FONT_SIZE;
     };
 
     CShape.prototype.getShapesForFitText = function () {
