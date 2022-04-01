@@ -2044,20 +2044,27 @@
                 return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
             else {
+                var oMapOfObjects = {};
 				var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
-				if(aSelectedObjects.length > 0) {
-					this.removeSelectedEffects();
-					return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
-				}
+                var bNeedRemoveExtra = (aSelectedObjects.length > 0);
                 var aSeqs = this.getEffectsSequences();
                 var aSeq;
                 var bNeedRebuild = false;
                 for(var nSeq = 0; nSeq < aSeqs.length; ++nSeq) {
                     aSeq = aSeqs[nSeq];
-                    for(nEffectIdx = 1; nEffectIdx < aSeq.length; ++nEffectIdx) {
+                    for(nEffectIdx = aSeq.length - 1; nEffectIdx > 0; --nEffectIdx) {
                         oEffect = aSeq[nEffectIdx];
                         if(oEffect.isSelected()) {
                             sObjectId = oEffect.getObjectId();
+                            if(bNeedRemoveExtra) {
+                                if(oMapOfObjects[sObjectId]) {
+                                    aSeq.splice(nEffectIdx, 1);
+                                    continue;
+                                }
+                                else {
+                                    oMapOfObjects[sObjectId] = true;
+                                }
+                            }
                             oNewEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
