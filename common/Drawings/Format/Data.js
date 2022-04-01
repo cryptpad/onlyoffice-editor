@@ -10966,6 +10966,15 @@
     {
       var copy = new SmartArt();
       this.copy2(copy, oPr);
+      var drawing = copy.getDrawing();
+      if (drawing) {
+        for (var i = 0; i < drawing.spTree.length; i += 1) {
+          var obj = drawing.spTree[i];
+          if (obj.getObjectType() === AscDFH.historyitem_type_Shape) {
+            obj.copyTextInfoFromShapeToPoint();
+          }
+        }
+      }
       return copy;
     };
     SmartArt.prototype.copy2 = function(copy, oPr)
