@@ -8936,6 +8936,8 @@ CDocument.prototype.Can_InsertContent = function(SelectedContent, NearPos)
 };
 CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 {
+	return SelectedContent.Insert(NearPos);
+
 	SelectedContent.PreInsert(this);
 
 	var Para        = NearPos.Paragraph;

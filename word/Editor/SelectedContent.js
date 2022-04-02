@@ -143,13 +143,6 @@
 
 		this.LogicDocument = oLogicDocument;
 
-		var Para        = NearPos.Paragraph;
-		var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
-		var oRun        = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-
-		if (!oRun || !(oRun instanceof AscCommonWord.ParaRun))
-			return;
-
 		this.PrepareObjectsForInsert();
 		this.private_CheckContentBeforePaste(oAnchorPos);
 
@@ -158,10 +151,20 @@
 		// 	SelectedContent.DrawingObjects[nIndex].Set_Parent(Para);
 		// }
 
-		this.ParaAnchorPos = oParagraph.Get_ParaNearestPos(oAnchorPos);
+		let oParaAnchorPos = oParagraph.Get_ParaNearestPos(oAnchorPos);
+		if (!oParaAnchorPos)
+			return;
+
+		let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
+		if (!oRun || !(oRun instanceof AscCommonWord.ParaRun))
+			return;
+
+
+		this.ParaAnchorPos = oParaAnchorPos;
 		this.Select        = isSelect;
 		this.Run           = oRun;
 		this.AnchorPos     = oAnchorPos;
+		this.Select        = isSelect;
 
 		if (oRun.IsMathRun())
 		{
@@ -705,7 +708,7 @@
 
 		let oInsertMath;
 		if (this.Maths.length)
-			oInsertMath = this.Maths[0];
+			oInsertMath = this.Maths[0].Math;
 		else
 			oInsertMath = this.ConvertToMath();
 
@@ -714,7 +717,7 @@
 			let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
 			let oNewRun = oRun.Split(oParaAnchorPos.NearPos.ContentPos, oParaAnchorPos.Classes.length - 1);
 			oMathContent.Add_ToContent(nInMathContentPos + 1, oNewRun);
-			oMathContent.Insert_MathContent(InsertMathContent.Root, nInMathContentPos + 1, this.Select);
+			oMathContent.Insert_MathContent(oInsertMath.Root, nInMathContentPos + 1, this.Select);
 		}
 	};
 	CSelectedContent.prototype.private_InsertToPictureCC = function()
@@ -904,7 +907,7 @@
 
 		let nElementsCount = this.Elements.length;
 
-		let isConcatS = this.Elements[0].IsParagraph();
+		let isConcatS = this.Elements[0].Element.IsParagraph();
 		let isConcatE = this.Elements[nElementsCount - 1].Element.IsParagraph() &&  this.Elements[nElementsCount - 1].SelectedAll;
 
 		oParagraph.RemoveSelection();
