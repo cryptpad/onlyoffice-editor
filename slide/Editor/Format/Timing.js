@@ -2069,10 +2069,10 @@
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
                                 oNewEffect.cTn.changeDelay(oEffect.cTn.getDelay(true));
-                                oNewEffect.select();
-                                aSeq[nEffectIdx] = oNewEffect;
+                                oEffect.setCTn(oNewEffect.cTn.createDuplicate());
+                                oEffect.select();
                                 bNeedRebuild = true;
-                                aAddedEffects.push(oNewEffect);
+                                aAddedEffects.push(oEffect);
                             }
                         }
                     }
