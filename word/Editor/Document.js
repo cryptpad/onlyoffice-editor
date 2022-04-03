@@ -2776,23 +2776,33 @@ CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 	if (undefined === openedAt) {
 		return;
 	}
+
+	//let nTime = performance.now();
+
 	let arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
+	let arrFields  = [];
 	for (let nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
 	{
 		let oContent = arrHdrFtrs[nIndex].GetContent();
 		oContent.ProcessComplexFields();
-		let arrFields = oContent.GetAllFields(false);
-		for (var nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+		oContent.GetAllFields(false, arrFields);
+	}
+
+	this.ProcessComplexFields();
+	this.controller_GetAllFields(false, arrFields);
+
+	for (var nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+	{
+		let oField = arrFields[nFieldIndex];
+		if (oField instanceof CComplexField
+			&& oField.GetInstruction()
+			&& fieldtype_TIME === oField.GetInstruction().Type)
 		{
-			let oField = arrFields[nFieldIndex];
-			if (oField instanceof CComplexField
-				&& oField.GetInstruction()
-				&& fieldtype_TIME === oField.GetInstruction().Type)
-			{
-				oField.UpdateTIME(openedAt);
-			}
+			oField.UpdateTIME(openedAt);
 		}
 	}
+
+	//console.log("FieldUpdateTime : " + ((performance.now() - nTime) / 1000) + "s");
 };
 CDocument.prototype.Add_TestDocument               = function()
 {
