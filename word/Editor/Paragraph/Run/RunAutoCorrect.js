@@ -376,15 +376,7 @@
 		oParagraph.GetPrevRunElements(oRunElementsBefore);
 		var arrElements = oRunElementsBefore.GetElements();
 		if (arrElements.length > 0)
-		{
-			var oPrevElement = arrElements[0];
-			if (para_Text === oPrevElement.Type
-				&& 45 !== oPrevElement.Value
-				&& 40 !== oPrevElement.Value
-				&& 91 !== oPrevElement.Value
-				&& 123 !== oPrevElement.Value)
-				isOpenQuote = false;
-		}
+			isOpenQuote = this.private_IsOpenQuoteAfter(arrElements[0]);
 
 		if (!isDoubleQuote && (1050 === nLang || 1060 === nLang))
 			return false;
@@ -402,6 +394,18 @@
 		this.RunItem = this.Run.GetElement(this.Pos);
 
 		return true;
+	};
+	CRunAutoCorrect.prototype.private_IsOpenQuoteAfter = function(oPrevElement)
+	{
+		// nbsp - – − ( [ {
+		return (!oPrevElement.IsText()
+			|| oPrevElement.IsNBSP()
+			|| 0x002D === oPrevElement.Value
+			|| 0x2013 === oPrevElement.Value
+			|| 0x2212 === oPrevElement.Value
+			|| 0x0028 === oPrevElement.Value
+			|| 0x005B === oPrevElement.Value
+			|| 0x007B === oPrevElement.Value);
 	};
 	CRunAutoCorrect.prototype.private_ReplaceSmartQuotes = function(nLang, isDoubleQuote, isOpenQuote)
 	{
