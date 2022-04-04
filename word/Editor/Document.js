@@ -18488,6 +18488,18 @@ CDocument.prototype.Begin_CompositeInput = function()
 
 	return bResult;
 };
+CDocument.prototype.CheckCurrentTextObjectExtends = function()
+{
+	var oController = this.DrawingObjects;
+	if (oController)
+	{
+		var oTargetTextObject = AscFormat.getTargetTextObject(oController);
+		if (oTargetTextObject && oTargetTextObject.checkExtentsByDocContent)
+		{
+			oTargetTextObject.checkExtentsByDocContent(true, true);
+		}
+	}
+};
 CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 {
 	if (null === this.CompositeInput)
@@ -18513,6 +18525,7 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 		AscCommon.g_inputContext.externalEndCompositeInput();
 	}
 
+	this.CheckCurrentTextObjectExtends();
 	this.Recalculate();
 	this.UpdateSelection();
 	this.UpdateUndoRedo();
@@ -18618,6 +18631,7 @@ CDocument.prototype.private_AddCompositeText = function(nCharCode)
 	if (oForm && oForm.IsAutoFitContent())
 		this.CheckFormAutoFit(oForm);
 
+	this.CheckCurrentTextObjectExtends();
 	this.Recalculate();
 	this.UpdateSelection();
 };
@@ -18634,6 +18648,7 @@ CDocument.prototype.private_RemoveCompositeText = function(nCount)
 	if (oForm && oForm.IsAutoFitContent())
 		this.CheckFormAutoFit(oForm);
 
+	this.CheckCurrentTextObjectExtends();
 	this.Recalculate();
 	this.UpdateSelection();
 };
