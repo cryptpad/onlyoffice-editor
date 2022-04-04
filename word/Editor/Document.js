@@ -8974,7 +8974,7 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
         if (null !== InsertMathContent)
 		{
 			MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-			MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
+			MathContent.InsertMathContent(InsertMathContent.Root, MathContentPos + 1, true);
 		}
 	}
 	else if (para_Run === LastClass.Type)

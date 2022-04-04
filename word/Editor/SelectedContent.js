@@ -263,7 +263,7 @@
 		this.InsertOptions.Table = nType;
 	};
 	/**
-	 * Converts current content to ParaMath if it possible. Doesn't change current SelectedContent.
+	 * Converts current content to ParaMath if it possible. Doesn't change current SelectedContent
 	 * @returns {?AscCommonWord.ParaMath}
 	 * */
 	CSelectedContent.prototype.ConvertToMath = function()
@@ -716,8 +716,8 @@
 		{
 			let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
 			let oNewRun = oRun.Split(oParaAnchorPos.NearPos.ContentPos, oParaAnchorPos.Classes.length - 1);
-			oMathContent.Add_ToContent(nInMathContentPos + 1, oNewRun);
-			oMathContent.Insert_MathContent(oInsertMath.Root, nInMathContentPos + 1, this.Select);
+			oMathContent.AddToContent(nInMathContentPos + 1, oNewRun);
+			oMathContent.InsertMathContent(oInsertMath.Root, nInMathContentPos + 1, this.Select);
 		}
 	};
 	CSelectedContent.prototype.private_InsertToPictureCC = function()
