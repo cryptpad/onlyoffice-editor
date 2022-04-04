@@ -1056,8 +1056,17 @@ CComplexField.prototype.private_CalculateTIME = function(ms)
 	{
 		var oCultureInfo = AscCommon.g_aCultureInfos[nLangId];
 
-		var oDateTime = undefined !== ms ? new Asc.cDate(ms) : new Asc.cDate();
-		sDate = oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+		if (undefined !== ms)
+		{
+			var oDateTime = new Asc.cDate(ms);
+			sDate         = oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getUTCHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+
+		}
+		else
+		{
+			let oDateTime = new Asc.cDate();
+			sDate         = oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+		}
 	}
 
 	return sDate;
