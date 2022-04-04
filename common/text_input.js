@@ -1237,16 +1237,18 @@
 
 			var ret = this.Api.onKeyPress(e);
 
-			switch (e.which)
-			{
-				case 46: // delete
+			if (e.key === "Delete" || e.code === "Delete") {
+				switch (e.which)
 				{
-					AscCommon.stopEvent(e);
-					this.clear();
-					return false;
+					case 46: // delete
+					{
+						AscCommon.stopEvent(e);
+						this.clear();
+						return false;
+					}
+					default:
+						break;
 				}
-				default:
-					break;
 			}
 
 			this.keyPressInput += String.fromCharCode(e.which);
