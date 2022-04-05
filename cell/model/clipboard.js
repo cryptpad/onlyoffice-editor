@@ -3171,7 +3171,6 @@
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
 					worksheet.objectRender.controller.startRecalculate();
-					worksheet.objectRender.controller.cursorMoveRight(false, false);
 					History.EndTransaction();
 
 					t._setShapeSpecialPasteProperties(worksheet, targetContent);
