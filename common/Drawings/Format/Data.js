@@ -10253,6 +10253,7 @@
           if (point.prSet && point.prSet.loTypeId) {
             var typeSplit = point.prSet.loTypeId.split('/');
             type = typeSplit[typeSplit.length - 1];
+            type = type.split('#')[0];
           }
         }
       });

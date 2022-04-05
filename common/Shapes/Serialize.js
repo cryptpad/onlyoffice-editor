@@ -7355,7 +7355,7 @@ function BinaryPPTYLoader()
                     _smartArt = this.ReadSmartArt();
                     var tree = _smartArt.createHierarchy();
                     tree.traverseBF(function (node) {
-                        var nodePoint = node.data.nodePoint;
+                        var nodePoint = node.data && node.data.nodePoint;
                         if (nodePoint) {
                             nodePoint.setPhldrT('[' + AscCommon.translateManager.getValue('Text') + ']');
                         }
