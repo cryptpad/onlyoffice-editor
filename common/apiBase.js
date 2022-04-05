@@ -503,6 +503,10 @@
 	{
 		return false;
 	};
+	baseEditorsApi.prototype.isLiveViewer                     = function()
+	{
+		return this.isViewMode && AscCommon.CollaborativeEditing.Is_Fast();
+	};
 	// Events
 	baseEditorsApi.prototype.sendEvent                       = function()
 	{
@@ -1049,7 +1053,7 @@
 	baseEditorsApi.prototype._onSaveCallbackInner = function () {
 	};
 	baseEditorsApi.prototype._autoSave = function () {
-		if (this.canSave && !this.isViewMode && (this.canUnlockDocument || 0 !== this.autoSaveGap)) {
+		if (this.canSave && (!this.isViewMode || this.isLiveViewer()) && (this.canUnlockDocument || 0 !== this.autoSaveGap)) {
 			if (this.canUnlockDocument) {
 				this.lastSaveTime = new Date();
 				// Check edit mode after unlock document http://bugzilla.onlyoffice.com/show_bug.cgi?id=35971

@@ -5848,7 +5848,8 @@
      * Рисует выделение вокруг ячеек
      */
     WorksheetView.prototype._drawSelection = function () {
-        var isShapeSelect = false;
+		var api = window["Asc"]["editor"];
+		var isShapeSelect = false;
         if (window['IS_NATIVE_EDITOR']) {
             return;
         }
@@ -5869,7 +5870,7 @@
           .clip();
 
 		//draw foreign cursors
-		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
+		if ((this.collaborativeEditing.getCollaborativeEditing() || api.isLiveViewer()) && this.collaborativeEditing.getFast()) {
 			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
 			for (var i in foreignCursors) {
 				if (foreignCursors[i] && foreignCursors[i].sheetId === this.model.Id) {
@@ -6078,7 +6079,8 @@
     };
 
     WorksheetView.prototype.cleanSelection = function (range, isFrozen) {
-        if (window['IS_NATIVE_EDITOR']) {
+		var api = window["Asc"]["editor"];
+		if (window['IS_NATIVE_EDITOR']) {
             return;
         }
 
@@ -6290,7 +6292,7 @@
 		
         //todo для ретины все сдвиги необходимо сделать общими
 		//clean foreign cursors
-		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
+		if ((this.collaborativeEditing.getCollaborativeEditing() || api.isLiveViewer()) && this.collaborativeEditing.getFast()) {
 			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
 			for (var n in foreignCursors) {
 				if (foreignCursors[n] && foreignCursors[n].sheetId === this.model.Id) {

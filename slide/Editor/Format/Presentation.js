@@ -4159,7 +4159,7 @@ CPresentation.prototype.Is_OnRecalculate = function () {
     return true;
 };
 CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
-    if (true === AscCommon.CollaborativeEditing.Get_GlobalLock()) {
+    if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && !this.Api.isLiveViewer()) {
         if (this.Api.forceSaveUndoRequest)
             this.Api.asc_Save(true);
 
@@ -4168,7 +4168,7 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
 
     if (this.Api.isLongAction())
         return;
-    if (true !== AscCommon.CollaborativeEditing.Is_Fast() || true === AscCommon.CollaborativeEditing.Is_SingleUser())
+    if (true !== AscCommon.CollaborativeEditing.Is_Fast() || (true === AscCommon.CollaborativeEditing.Is_SingleUser() && !this.Api.isLiveViewer()))
         return;
 
     var oController = this.GetCurrentController();
@@ -4188,7 +4188,7 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
     }
 
     var CurTime = new Date().getTime();
-    if (this.CheckNeedUpdateTargetForCollaboration() && (CurTime - this.LastUpdateTargetTime > 1000)) {
+    if (!this.Api.isLiveViewer() && this.CheckNeedUpdateTargetForCollaboration() && (CurTime - this.LastUpdateTargetTime > 1000)) {
         this.NeedUpdateTargetForCollaboration = false;
         if (true !== bHaveChanges) {
             var CursorInfo = History.Get_DocumentPositionBinary();

@@ -5047,7 +5047,7 @@ var editor;
 				// Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно заблокировать toolbar
 				this.wb._onWSSelectionChanged();
 			}
-            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+            if (AscCommon.CollaborativeEditing.Is_Fast() && !this.isLiveViewer() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
                 this.wb.sendCursor();
             }
 			return;
@@ -5071,7 +5071,7 @@ var editor;
             if (0 <= gap) {
                 this.asc_Save(true);
             }
-            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+            if (AscCommon.CollaborativeEditing.Is_Fast() && !this.isLiveViewer()/*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
                 this.wb.sendCursor();
             }
         }
