@@ -769,7 +769,7 @@
 				_t.sendEvent("onPagesCount", _t.file.pages.length);
 				_t.sendEvent("onCurrentPageChanged", 0);
 
-				_t.sendEvent("onStructure", oThis.structure);
+				_t.sendEvent("onStructure", _t.structure);
 			}, 0);
 
 			this.file.onRepaintPages = this.onUpdatePages.bind(this);
