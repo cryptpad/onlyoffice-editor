@@ -4617,6 +4617,8 @@ CDocumentContent.prototype.GetSelectedContent = function(SelectedContent)
 };
 CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
 {
+	return SelectedContent.Insert(NearPos);
+
 	SelectedContent.PreInsert(this.GetLogicDocument());
 
     var Para        = NearPos.Paragraph;

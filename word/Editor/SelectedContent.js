@@ -144,7 +144,7 @@
 		this.LogicDocument = oLogicDocument; // Может быть не задан (например при вставке в формулу в таблицах)
 
 		this.PrepareObjectsForInsert();
-		this.private_CheckContentBeforePaste(oAnchorPos);
+		this.private_CheckContentBeforePaste(oAnchorPos, oDocContent);
 
 		// for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
 		// {
@@ -158,7 +158,6 @@
 		let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
 		if (!oRun || !(oRun instanceof AscCommonWord.ParaRun))
 			return;
-
 
 		this.ParaAnchorPos = oParaAnchorPos;
 		this.Select        = isSelect;
@@ -698,11 +697,11 @@
 		let oPictureCC = this.Run.GetParentPictureContentControl()
 
 		var oSrcPicture = null;
-		for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
+		for (var nIndex = 0, nCount = this.DrawingObjects.length; nIndex < nCount; ++nIndex)
 		{
-			if (SelectedContent.DrawingObjects[nIndex].IsPicture())
+			if (this.DrawingObjects[nIndex].IsPicture())
 			{
-				oSrcPicture = SelectedContent.DrawingObjects[nIndex].GraphicObj.copy();
+				oSrcPicture = this.DrawingObjects[nIndex].GraphicObj.copy();
 				break;
 			}
 		}
@@ -717,17 +716,19 @@
 			if (oPictureCC.IsPictureForm())
 				oPictureCC.UpdatePictureFormLayout();
 
-			this.DrawingObjects.resetSelection();
-			this.RemoveSelection();
-			oPictureCC.SelectContentControl();
-
-			// TODO: Обработать this.Select
-
-			if (this.LogicDocument && this.LogicDocument.IsDocumentEditor())
+			let oLogicDocument = this.LogicDocument;
+			if (oLogicDocument)
 			{
-				var sKey = oPictureCC.GetFormKey();
-				if (arrParaDrawings[0].IsPicture() && sKey)
-					this.LogicDocument.OnChangeForm(sKey, oPictureCC, arrParaDrawings[0].GraphicObj.getImageUrl());
+				oLogicDocument.DrawingObjects.resetSelection();
+				oLogicDocument.RemoveSelection();
+				oPictureCC.SelectContentControl();
+
+				if (oLogicDocument.IsDocumentEditor())
+				{
+					var sKey = oPictureCC.GetFormKey();
+					if (arrParaDrawings[0].IsPicture() && sKey)
+						oLogicDocument.OnChangeForm(sKey, oPictureCC, arrParaDrawings[0].GraphicObj.getImageUrl());
+				}
 			}
 		}
 	};
