@@ -3262,6 +3262,27 @@
     };
 
     /**
+	 * Gets the width of drawing. 
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @returns {EMU}
+	 */
+	ApiDrawing.prototype.GetWidth = function()
+	{
+		return private_MM2EMU(this.Drawing.GetWidth());
+	};
+	/**
+	 * Gets the height of drawing. 
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @returns {EMU}
+	 */
+	ApiDrawing.prototype.GetHeight = function()
+	{
+		return private_MM2EMU(this.Drawing.GetHeight());
+	};
+
+    /**
      * Gets the lock type of drawing.
      * @typeofeditors ["CPE"]
 	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
@@ -4689,6 +4710,8 @@
     ApiDrawing.prototype["Delete"]                        = ApiDrawing.prototype.Delete;
     ApiDrawing.prototype["SetPlaceholder"]                = ApiDrawing.prototype.SetPlaceholder;
     ApiDrawing.prototype["GetPlaceholder"]                = ApiDrawing.prototype.GetPlaceholder;
+    ApiDrawing.prototype["GetWidth"]                      = ApiDrawing.prototype.GetWidth;
+	ApiDrawing.prototype["GetHeight"]                     = ApiDrawing.prototype.GetHeight;
     ApiDrawing.prototype["GetLockValue"]                  = ApiDrawing.prototype.GetLockValue;
     ApiDrawing.prototype["SetLockValue"]                  = ApiDrawing.prototype.SetLockValue;
 
@@ -4875,6 +4898,11 @@
 
         return new CTableMeasurement(nType, nW);
     }
+    function private_MM2EMU(mm)
+	{
+		return mm * 36000.0;
+	}
+    
 
     function private_GetDrawingLockType(sType)
 	{

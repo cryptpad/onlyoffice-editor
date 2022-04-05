@@ -2955,7 +2955,14 @@
         return true;
     };
 
-    
+    CGraphicObjectBase.prototype.GetWidth = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.extX;
+    };
+    CGraphicObjectBase.prototype.GetHeight = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.extY;
+    };
 
     var ANIM_LABEL_WIDTH_PIX = 22;
     var ANIM_LABEL_HEIGHT_PIX = 17;
