@@ -4895,17 +4895,20 @@
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param {ApiParagraph} oParagraph - The paragraph after which a new document section will be inserted.
+	 * Paragraph must be in a document.
 	 * @returns {ApiSection}
 	 */
 	ApiDocument.prototype.CreateSection = function(oParagraph)
 	{
 		if (!(oParagraph instanceof ApiParagraph))
-			return null;
+			return new Error('Parameter is invalid.');
+		if (!oParagraph.Paragraph.CanAddSectionPr())
+			return new Error('Paragraph must be in a document.');
 
 		var oSectPr = new CSectionPr(this.Document);
 
-		var nContentPos = this.Document.CurPos.ContentPos;
-		var oCurSectPr  = this.Document.SectionsInfo.Get_SectPr(nContentPos).SectPr;
+		var nContentPos = oParagraph.Paragraph.GetIndex();
+		var oCurSectPr = this.Document.SectionsInfo.Get_SectPr(nContentPos).SectPr;
 
 		oSectPr.Copy(oCurSectPr);
 		oCurSectPr.Set_Type(oSectPr.Type);
@@ -5891,6 +5894,48 @@
 	};
 	
 	/**
+	 * Accepts all changes made in review mode.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.AcceptAllRevisionChanges = function()
+	{
+		this.Document.AcceptAllRevisionChanges();
+	};
+
+	/**
+	 * Rejects all changes made in review mode.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.RejectAllRevisionChanges = function()
+	{
+		this.Document.RejectAllRevisionChanges();
+	};
+
+	/**
+	 * Returns an array with names of the all bookmarks in current document.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @returns {string[]}
+	 */
+	ApiDocument.prototype.GetAllBookmarksNames = function() 
+	{
+		var aNames = [];
+		var oManager = this.Document.GetBookmarksManager();
+		oManager.Update();
+
+		for (var i = 0, nCount = oManager.GetCount(); i < nCount; i++)
+		{
+			var sName = oManager.GetName(i);
+			if (!oManager.IsInternalUseBookmark(sName) && !oManager.IsHiddenBookmark(sName))
+				aNames.push(sName);
+		}
+
+		return aNames;
+	};
+
+	/**
      * Returns the selected drawings.
      * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
@@ -5970,26 +6015,6 @@
 		}
 
 		return false;
-	};
-
-	/**
-	 * Accepts all changes made in review mode.
-	 * @memberof ApiDocument
-	 * @typeofeditors ["CDE"]
-	 */
-	ApiDocument.prototype.AcceptAllRevisionChanges = function()
-	{
-		this.Document.AcceptAllRevisionChanges();
-	};
-
-	/**
-	 * Rejects all changes made in review mode.
-	 * @memberof ApiDocument
-	 * @typeofeditors ["CDE"]
-	 */
-	ApiDocument.prototype.RejectAllRevisionChanges = function()
-	{
-		this.Document.RejectAllRevisionChanges();
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -16374,6 +16399,8 @@
 	ApiDocument.prototype["GetFootnotesFirstParagraphs"] = ApiDocument.prototype.GetFootnotesFirstParagraphs;
 	ApiDocument.prototype["GetEndNotesFirstParagraphs"]  = ApiDocument.prototype.GetEndNotesFirstParagraphs;
 	ApiDocument.prototype["GetAllCaptionParagraphs"]     = ApiDocument.prototype.GetAllCaptionParagraphs;
+	ApiDocument.prototype["GetAllBookmarksNames"]        = ApiDocument.prototype.GetAllBookmarksNames;
+	
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
 	ApiDocument.prototype["ReplaceDrawing"]              = ApiDocument.prototype.ReplaceDrawing;
 	ApiDocument.prototype["AcceptAllRevisionChanges"]    = ApiDocument.prototype.AcceptAllRevisionChanges;

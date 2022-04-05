@@ -3093,6 +3093,8 @@ ParaDrawing.prototype.Get_ObjectType = function()
 
 	return AscDFH.historyitem_type_Drawing;
 };
+ParaDrawing.prototype.getObjectType = ParaDrawing.prototype.Get_ObjectType;
+
 ParaDrawing.prototype.GetAllContentControls = function(arrContentControls)
 {
 	if(this.GraphicObj)

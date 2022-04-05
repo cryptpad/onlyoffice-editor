@@ -1538,6 +1538,18 @@ CShape.prototype.getDocContent = function () {
     return null;
 };
 
+CShape.prototype.getCurrentDocContentInSmartArt = function () {
+    var content;
+    if (this.txBody) {
+        if (this.isPlaceholderInSmartArt()) {
+            content = this.txBody.content2;
+        } else {
+            content = this.txBody.content;
+        }
+    }
+    return content;
+}
+
 CShape.prototype.getBodyPr = function () {
     return AscFormat.ExecuteNoHistory(function () {
 
@@ -2994,6 +3006,7 @@ CShape.prototype.isPlaceholderInSmartArt = function () {
             })
         }
     }
+    return false;
 };
 
 CShape.prototype.getSmartArtDefaultTxFill = function () {
@@ -3297,21 +3310,17 @@ CShape.prototype.Get_ParentTextTransform = function()
 };
 
 CShape.prototype.isEmptyPlaceholder = function () {
-    var pointContent = this.getSmartArtPointContent();
-    if ( pointContent && pointContent.length !== 0) {
-        var isPlaceholderInSmartArt = pointContent.every(function (point) {
-            return point.prSet && point.prSet.phldr;
-        })
-        if (isPlaceholderInSmartArt) {
+    if (this.isObjectInSmartArt()) {
+        if (this.isPlaceholderInSmartArt()) {
             if (this.txBody) {
                 if (this.txBody.content) {
                     return this.txBody.content.Is_Empty();
                 }
                 return true;
             }
+        } else if (this.isActiveBlipFillPlaceholder()) {
+            return true;
         }
-    } else if (this.isActiveBlipFillPlaceholder()) {
-        return true;
     }
     if (this.isPlaceholder()) {
         var phldrType = this.getPhType();
@@ -4395,13 +4404,7 @@ CShape.prototype.getSmartArtShapePoint = function () {
         if(this.txBody)
         {
             var pointContent = this.getSmartArtPointContent();
-            var isPlaceholderInSmartArt = false;
-            if ( pointContent && pointContent.length !== 0) {
-                isPlaceholderInSmartArt = pointContent.every(function (point) {
-                    return point && point.prSet && point.prSet.phldr;
-                })
-            }
-            if(this.isPlaceholder() || isPlaceholderInSmartArt)
+            if(this.isPlaceholder() || this.isPlaceholderInSmartArt())
             {
                 if(!this.isEmptyPlaceholder())
                 {
@@ -4566,18 +4569,8 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         {
             oContent.Recalc_AllParagraphs_CompiledPr();
             this.recalcInfo.recalculateContent = true;
-            if (this.isObjectInSmartArt()) {
-                var pointContent = this.getSmartArtPointContent();
-                var isPlaceholderInSmartArt = false;
-                if ( pointContent && pointContent.length !== 0) {
-                    isPlaceholderInSmartArt = pointContent.every(function (point) {
-                        return point && point.prSet && point.prSet.phldr;
-                    })
-                }
-
-                if (isPlaceholderInSmartArt) {
-                    this.recalcInfo.recalculateContent2 = true;
-                }
+            if (this.isPlaceholderInSmartArt()) {
+                this.recalcInfo.recalculateContent2 = true;
             }
             this.recalcInfo.recalculateTransformText = true;
             this.recalculate();
@@ -4594,89 +4587,177 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             });
             this.recalculateContentWitCompiledPr();
         }
-    }
+    };
 
-    CShape.prototype.findFitFontSizeForSmartArt = function () {
-        var hInPt = this.extY * AscFormat.ptToMm;
-        var maxFontSize = hInPt > 65 ? 65 : Math.floor(hInPt);
-        if (this.txBody) {
-            var pointContent = this.isObjectInSmartArt() && this.getSmartArtPointContent();
-            var isPlaceholderInSmartArt = false;
-            if ( pointContent && pointContent.length !== 0) {
-                isPlaceholderInSmartArt = pointContent.every(function (point) {
-                    return point && point.prSet && point.prSet.phldr;
-                })
-            }
-            var content;
-            if (isPlaceholderInSmartArt) {
-                content = this.txBody.content2;
-            } else {
-                content = this.txBody.content;
-            }
-            if (content) {
-                var findParagraphsWithLines = function (cont) {
-                    return cont.Content.reduce(function (prev, next) {
-                        return prev.Lines.length < next.Lines.length ? next : prev;
-                    }, cont.Content[0]);
-                };
-                var scalesForSmartArt = Array((maxFontSize - 4) > 0 ? maxFontSize - 4 : 1).fill(0).map(function (e, ind) {
-                    return ind + 5;
-                });
-                var a = 0;
-                var b = scalesForSmartArt.length - 1;
-                var averageAmount = Math.floor((a + b) / 2);
-                this.setFontSizeInSmartArt(scalesForSmartArt[b]);
-                var paragraphWithMaxLines = findParagraphsWithLines(content);
-                if (paragraphWithMaxLines.Lines.length > 1) {
-                    while (true) {
-                        this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                        paragraphWithMaxLines = findParagraphsWithLines(content);
+    CShape.prototype.getInsets = function (properties) {
+        const oBodyPr = properties.bodyPr || this.getBodyPr && this.getBodyPr();
+        properties = properties || {};
+        let lIns = 0, tIns = 0, rIns = 0, bIns = 0;
+        if (!properties.bIgnoreInsets) {
+            lIns = (AscFormat.isRealNumber(oBodyPr.lIns) ? oBodyPr.lIns : 2.54);
+            tIns = (AscFormat.isRealNumber(oBodyPr.tIns) ? oBodyPr.tIns : 1.27);
+            rIns = (AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54);
+            bIns = (AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27);
+        }
 
-                        if (paragraphWithMaxLines.Lines.length > 1) {
-                            b = averageAmount;
-                            averageAmount = Math.floor((a + b) / 2);
-                        } else {
-                            a = averageAmount;
-                            averageAmount = Math.floor((a + b) / 2);
-                        }
-                        if (a === averageAmount || b === averageAmount) {
-                            break;
-                        }
+        if (this.bWordShape) {
+            const oPen = this.pen;
+            if(oPen)
+            {
+                let penW = (oPen.w == null) ? 12700 : parseInt(oPen.w);
+                penW /= 36000;
+                switch (oPen.algn)
+                {
+                    case 1:
+                    {
+                        break;
                     }
-                    this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                    return scalesForSmartArt[averageAmount];
-                } else {
-                    return scalesForSmartArt[b];
+                    default:
+                    {
+                        penW /= 2;
+                        break;
+                    }
                 }
+                lIns += penW;
+                rIns += penW;
+                tIns += penW;
+                bIns += penW;
             }
         }
-        return maxFontSize;
-    }
+
+        const oForm = this.isForm && this.isForm() ? this.getInnerForm() : null;
+        if (oForm) {
+            const nFormHorPadding = this.getFormHorPadding();
+            lIns = nFormHorPadding;
+            rIns = nFormHorPadding;
+            tIns = 0;
+            bIns = 0;
+        }
+        return {
+            lIns: lIns,
+            tIns: tIns,
+            rIns: rIns,
+            bIns: bIns
+        };
+    };
+
+    CShape.prototype.getTextRectBoundsWithInsets = function (properties) {
+        properties = properties || {};
+        const result = {l: 0, t: 0, r: 0, b: 0};
+        const oBodyPr = properties.bodyPr || this.getBodyPr && this.getBodyPr();
+        if (oBodyPr) {
+            const insets = this.getInsets(properties);
+            const oRect = this.getTextRect();
+
+            let _l = oRect.l + insets.lIns;
+            let _t = oRect.t + insets.tIns;
+            let _r = oRect.r - insets.rIns;
+            let _b = oRect.b - insets.bIns;
+
+            if (_l >= _r) {
+                const _c = (_l + _r) * 0.5;
+                _l = _c - 0.01;
+                _r = _c + 0.01;
+            }
+
+            if (_t >= _b) {
+                const _c = (_t + _b) * 0.5;
+                _t = _c - 0.01;
+                _b = _c + 0.01;
+            }
+
+            result.r = _r;
+            result.l = _l;
+            result.t = _t;
+            result.b = _b;
+        }
+        return result;
+    };
+
+    CShape.prototype.getTextRectContentHW = function (properties) {
+        const bounds = this.getTextRectBoundsWithInsets(properties);
+        return {
+            height: bounds.b - bounds.t,
+            width: bounds.r - bounds.l
+        };
+    };
+
+    CShape.prototype.getFCompareHeightOfBoundsTextInSmartArt = function (height, width) {
+        const _this = this;
+        const vert = this.txBody && this.txBody.bodyPr.vert;
+        let fCheckHeight;
+        if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert) {
+            fCheckHeight = function () {
+                return _this.contentHeight > width;
+            };
+        } else {
+            fCheckHeight = function () {
+                return _this.contentHeight > height;
+            };
+        }
+        return fCheckHeight;
+    };
+
+    CShape.prototype.findFitFontSizeForSmartArt = function () {
+        const MAX_FONT_SIZE = 65;
+
+        const content = this.getCurrentDocContentInSmartArt();
+        const sizesOfTextRectContent = this.getTextRectContentHW();
+        const fCheckHeight = this.getFCompareHeightOfBoundsTextInSmartArt(sizesOfTextRectContent.height, sizesOfTextRectContent.width);
+
+        if (content && fCheckHeight) {
+            const scalesForSmartArt = Array((MAX_FONT_SIZE - 4) > 0 ? MAX_FONT_SIZE - 4 : 1).fill(0).map(function (e, ind) {
+                return ind + 5;
+            });
+
+            let a = 0;
+            let b = scalesForSmartArt.length - 1;
+            let averageAmount = Math.floor((a + b) / 2);
+
+            this.setFontSizeInSmartArt(scalesForSmartArt[b]);
+            if (content.RecalculateMinMaxContentWidth().Min > this.contentWidth || fCheckHeight()) {
+
+                while (true) {
+                    this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
+                    if (content.RecalculateMinMaxContentWidth().Min > this.contentWidth || fCheckHeight()) {
+                        b = averageAmount;
+                        averageAmount = Math.floor((a + b) / 2);
+                    } else {
+                        a = averageAmount;
+                        averageAmount = Math.floor((a + b) / 2);
+                    }
+                    if (a === averageAmount || b === averageAmount) {
+                        break;
+                    }
+                }
+
+                this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
+                return scalesForSmartArt[averageAmount];
+            } else {
+                return scalesForSmartArt[b];
+            }
+        }
+        return MAX_FONT_SIZE;
+    };
 
     CShape.prototype.getShapesForFitText = function () {
         return this.isObjectInSmartArt() ? this.group.group.getShapesForFitText(this) : [];
-    }
+    };
 
     CShape.prototype.setTruthFontSizeInSmartArt = function () {
         var shapes = this.getShapesForFitText();
         var maxFontSize = 65;
-        var arrOfFonts = [];
-        shapes.forEach(function (shape) {
-                var point = shape.getPoint();
-                var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-                var isNotPlaceholder = isFitText && !point.prSet.phldr;
-                if (isNotPlaceholder) {
-                    arrOfFonts.push(shape.findFitFontSizeForSmartArt());
-                }
+        var arrOfFonts = shapes.reduce(function (arr, shape) {
+            var point = shape.getPoint();
+            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+            var isNotPlaceholder = isFitText && !point.prSet.phldr;
+            if (isNotPlaceholder) {
+                arr.push(shape.findFitFontSizeForSmartArt());
             }
-        )
-        var minFont = arrOfFonts.reduce(function (prev, next) {
-            if (prev > next) {
-                return next;
-            }
-            return prev;
-        }, arrOfFonts[0]);
-        minFont = minFont || maxFontSize;
+            return arr;
+        }, [maxFontSize]);
+
+        var minFont = Math.min.apply(Math, arrOfFonts);
         shapes.forEach(function (shape) {
             var point = shape.getPoint();
             var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
@@ -4690,7 +4771,7 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                 shape.setFontSizeInSmartArt(minFont);
             }
         });
-    }
+    };
 
 CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
 {
@@ -4892,13 +4973,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     this.recalculateContentWitCompiledPr();
                 }
             }
-            var isPlaceholderInSmartArt = false;
-            if ( pointContent && pointContent.length !== 0) {
-                 isPlaceholderInSmartArt = pointContent.some(function (point) {
-                     return point && point.prSet && point.prSet.phldr;
-                 })
-            }
-            if (isPlaceholderInSmartArt) {
+            if (this.isPlaceholderInSmartArt()) {
                 var isNotEmptyShape = oContent.Content.some(function (paragraph) {
                     return paragraph.Content.some(function (paraRun) {
                         if (paraRun.Content.length > 1 || paraRun.Content.length === 1 && paraRun.Content[0].Value !== undefined) {
@@ -5042,6 +5117,10 @@ CShape.prototype.hitInTextRect = function (x, y) {
         return true;
     }
 
+    
+    if(this.checkHiddenInAnimation && this.checkHiddenInAnimation()) {
+        return false;
+    }
     if(!AscFormat.canSelectDrawing(this)) {
         return false;
     }

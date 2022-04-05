@@ -210,6 +210,8 @@
 
 		this.isUseNativeViewer = true;
 
+		this.openedAt = undefined;
+
 		return this;
 	}
 
@@ -1419,6 +1421,7 @@
 						switch (input["status"]) {
 							case "updateversion":
 							case "ok":
+								t.openedAt = input["openedAt"];
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
 								var documentUrl = urls['Editor.bin'];

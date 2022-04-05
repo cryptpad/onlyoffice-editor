@@ -11466,7 +11466,10 @@ Paragraph.prototype.CollectDocumentStatistics = function(Stats)
 };
 Paragraph.prototype.Get_ParentTextTransform = function()
 {
-	return this.Parent.Get_ParentTextTransform();
+	if (this.Parent)
+		return this.Parent.Get_ParentTextTransform();
+
+	return null;
 };
 Paragraph.prototype.Get_ParentTextInvertTransform = function()
 {
@@ -13881,7 +13884,7 @@ Paragraph.prototype.IgnoreMisspelledWord = function(oElement)
 Paragraph.prototype.CanAddSectionPr = function()
 {
 	let oParent = this.Parent;
-	return (oParent && (oParent.GetTopDocumentContent() instanceof Document) && !oParent.IsTableCellContent() && this.IsUseInDocument());
+	return (oParent && (oParent.GetTopDocumentContent() instanceof CDocument) && !oParent.IsTableCellContent() && this.IsUseInDocument());
 };
 Paragraph.prototype.Get_SectionPr = function()
 {

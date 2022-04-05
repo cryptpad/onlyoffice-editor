@@ -2612,6 +2612,8 @@
 
 			this._setDefaultFont(drawingCtx);
 
+			this.usePrintScale = true;
+
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
@@ -2744,7 +2746,6 @@
 				drawingCtx.RemoveClipRect && drawingCtx.RemoveClipRect();
 			};
 
-			this.usePrintScale = true;
 			var printScale = printPagesData.scale ? printPagesData.scale : this.getPrintScale();
 
 
@@ -3255,6 +3256,8 @@
             return this;
         }
 		if (this.workbook.printPreviewState && this.workbook.printPreviewState.isStart()) {
+			//только перерисовываю, каждый раз пересчёт - может потребовать много ресурсов
+			window["Asc"]["editor"].asc_drawPrintPreview();
 			return;
 		}
         this._recalculate();
@@ -3695,7 +3698,22 @@
 		}
 
 		var scaleWithDoc = this.model.headerFooter.getScaleWithDoc();
-		var printScale = (scaleWithDoc === null || scaleWithDoc === true) ? this.getPrintScale() : 1;
+		scaleWithDoc =  scaleWithDoc === null || scaleWithDoc === true
+		var printScale = scaleWithDoc ? this.getPrintScale() : 1;
+
+		//посольку в данном случае printScale уже включен в zoom, то меняем printScale
+		var isPrintPreview = this.workbook.printPreviewState && this.workbook.printPreviewState.isStart();
+		if (isPrintPreview) {
+			printScale = scaleWithDoc ? 1 : 1 / this.getPrintScale();
+		}
+
+
+		//for print preview
+		var printScaleForPrintPreview = 1;
+		if (this.workbook.printPreviewState && this.workbook.printPreviewState.isStart()) {
+			printScaleForPrintPreview = printPagesData.scale;
+			vector_koef = vector_koef * printScaleForPrintPreview;
+		}
 
 		var margins = this.model.PagePrintOptions.asc_getPageMargins();
 		var width = printPagesData.pageWidth / vector_koef;
@@ -3708,11 +3726,11 @@
 		var left =  alignWithMargins ? margins.left / vector_koef : defaultMargin / vector_koef;
 		var right = alignWithMargins ? margins.right / vector_koef : defaultMargin / vector_koef;
 		//для превью - делю на zoom
-		var top = margins.header / (AscCommonExcel.vector_koef / this.getZoom());
-		var bottom = margins.footer / (AscCommonExcel.vector_koef / this.getZoom());
+		var top = margins.header / (AscCommonExcel.vector_koef / (this.getZoom() / printScaleForPrintPreview));
+		var bottom = margins.footer / (AscCommonExcel.vector_koef / (this.getZoom() / printScaleForPrintPreview));
 
 		//TODO пересмотреть минимальный отступ
-		var rowTop = this._getRowTop(0) - this.groupHeight;
+		var rowTop = (this._getRowTop(0) - this.groupHeight) / printScaleForPrintPreview;
 		if(top < rowTop) {
 			top = rowTop;
 		}
@@ -4961,6 +4979,15 @@
 			}
 		}
 
+		var zoomPrintPreviewCorrect = function (val) {
+			var zoom = t.getZoom();
+			if (val < 1) {
+				return val;
+			}
+			//учитываю здесь только зум масштабирования
+			return t.workbook.printPreviewState && t.workbook.printPreviewState.isStart() ? Math.max(Asc.round(val * zoom), 1) : val;
+		};
+
 		var bc = null, bs = c_oAscBorderStyles.None, isNotFirst = false; // cached border color
 
 		function drawBorder(type, border, x1, y1, x2, y2) {
@@ -4977,7 +5004,7 @@
 			}
 			if (isNewStyle) {
 				bs = border.s;
-				ctx.setLineWidth(border.w);
+				ctx.setLineWidth(zoomPrintPreviewCorrect(border.w));
 				ctx.setLineDash(border.getDashSegments());
 			}
 
@@ -5008,13 +5035,17 @@
 				return;
 			}
 
+			var bw = zoomPrintPreviewCorrect(border.w);
+
 			// ToDo переделать рассчет
-			var tbw = t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getTopBorder(),
-				borderRightObject && borderRightObject.getTopBorder()); // top border width
-			var bbw = t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getBottomBorder(),
-				borderRightObject && borderRightObject.getBottomBorder()); // bottom border width
-			var dy1 = tbw > border.w ? tbw - 1 : (tbw > 1 ? -1 : 0);
-			var dy2 = bbw > border.w ? -2 : (bbw > 2 ? 1 : 0);
+			var tbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getTopBorder(),
+				borderRightObject && borderRightObject.getTopBorder())); // top border width
+			var bbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderLeftObject && borderLeftObject.getBottomBorder(),
+				borderRightObject && borderRightObject.getBottomBorder())); // bottom border width
+
+
+			var dy1 = tbw > bw ? tbw - 1 : (tbw > 1 ? -1 : 0);
+			var dy2 = bbw > bw ? -2 : (bbw > 2 ? 1 : 0);
 
 			drawBorder(c_oAscBorderType.Ver, border, x, y1 + (-1 + dy1), x, y2 + (1 + dy2));
 		}
@@ -5025,13 +5056,17 @@
 
 			var border = AscCommonExcel.getMatchingBorder(borderTop && borderTop.b, borderBottom && borderBottom.t);
 			if (border && border.w > 0) {
+				var bw = zoomPrintPreviewCorrect(border.w);
+
 				// ToDo переделать рассчет
-				var lbw = t._calcMaxBorderWidth(borderTopObject && borderTopObject.getLeftBorder(),
-					borderBottomObject && borderBottomObject.getLeftBorder());
-				var rbw = t._calcMaxBorderWidth(borderTopObject && borderTopObject.getRightBorder(),
-					borderTopObject && borderTopObject.getRightBorder());
-				var dx1 = border.w > lbw ? (lbw > 1 ? -1 : 0) : (lbw > 2 ? 2 : 1);
-				var dx2 = border.w > rbw ? (rbw > 2 ? 1 : 0) : (rbw > 1 ? -2 : -1);
+				var lbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderTopObject && borderTopObject.getLeftBorder(),
+					borderBottomObject && borderBottomObject.getLeftBorder()));
+				var rbw = zoomPrintPreviewCorrect(t._calcMaxBorderWidth(borderTopObject && borderTopObject.getRightBorder(),
+					borderTopObject && borderTopObject.getRightBorder()));
+
+				var dx1 = bw > lbw ? (lbw > 1 ? -1 : 0) : (lbw > 2 ? 2 : 1);
+				var dx2 = bw > rbw ? (rbw > 2 ? 1 : 0) : (rbw > 1 ? -2 : -1);
+
 				drawBorder(c_oAscBorderType.Hor, border, x1 + (-1 + dx1), y, x2 + (1 + dx2), y);
 			}
 		}
@@ -5182,7 +5217,8 @@
 //						}
 				}
 				// draw right border
-				if ((!mc || col === mc.c2) && !t._isRightBorderErased(col, rowCache)) {
+				//если пустая является частью мерженной ячейки, то её бордер может потеряться,  nextCol === mc.c2 + 1 - условие для этого
+				if ((!mc || col === mc.c2 || nextCol === mc.c2 + 1) && !t._isRightBorderErased(col, rowCache)) {
 					drawVerticalBorder(bCur, bNext, x2, y1, y2);
 				}
 				// draw top border
@@ -6621,6 +6657,7 @@
         function makeFnIsGoodNumFormat(flags, width, isWidth) {
             return function (str) {
 				var widthStr;
+				var widthWithoutZoom = null;
 				if (isWidth && self.workbook.printPreviewState && self.workbook.printPreviewState.isStart()) {
 					//заглушка для печати
 					//попробовать перейти на все расчёты как при 100%(потом * zoom)
@@ -6628,7 +6665,7 @@
 					//получаем ширину колонки как при 100% и длину строки как при 100%, чтобы не было разницы
 					var _scale = self.getZoom()*AscCommon.AscBrowser.retinaPixelRatio;
 					var _innerDiff = self.settings.cells.padding * 2 + gridlineSize;
-					width = Math.ceil((width + _innerDiff - _innerDiff*_scale)/_scale);
+					widthWithoutZoom = Math.ceil((width + _innerDiff - _innerDiff*_scale)/_scale);
 					var realPpiX = self.stringRender.drawingCtx.ppiX;
 					var realPpiY = self.stringRender.drawingCtx.ppiY;
 					var realScaleFactor = self.stringRender.drawingCtx.scaleFactor;
@@ -6642,10 +6679,11 @@
 					self.stringRender.drawingCtx.ppiX = realPpiX;
 					self.stringRender.drawingCtx.ppiY = realPpiY;
 					self.stringRender.drawingCtx.scaleFactor = realScaleFactor;
+					self.stringRender.fontNeedUpdate = true;
 				} else {
 					widthStr = self.stringRender.measureString(str, flags, width).width;
 				}
-				return widthStr <= width;
+				return widthStr <= (widthWithoutZoom !== null ? widthWithoutZoom : width);
             };
         }
 
@@ -6790,17 +6828,19 @@
 		tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
 
 		if (indent) {
+			var printZoom = this.workbook.printPreviewState && this.workbook.printPreviewState.isStart() ? this.getZoom() : 1;
+			var _defaultSpaceWidth = this.defaultSpaceWidth * printZoom;
 			if (verticalText) {
 				if (Asc.c_oAscVAlign.Bottom === va) {
-					tm.height += indent * 3 * this.defaultSpaceWidth;
+					tm.height += indent * 3 * _defaultSpaceWidth;
 				} else if (Asc.c_oAscVAlign.Top === va) {
-					tm.height += indent * 3 * this.defaultSpaceWidth;
+					tm.height += indent * 3 * _defaultSpaceWidth;
 				}
 			} else {
 				if (AscCommon.align_Right === alignH) {
-					tm.width += indent * 3 * this.defaultSpaceWidth + 1;
+					tm.width += indent * 3 * _defaultSpaceWidth + 1 * printZoom;
 				} else if (AscCommon.align_Left === alignH) {
-					tm.width += indent * 3 * this.defaultSpaceWidth;
+					tm.width += indent * 3 * _defaultSpaceWidth;
 				}
 			}
 		}

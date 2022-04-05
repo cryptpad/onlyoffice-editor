@@ -2509,6 +2509,27 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
           break;
         }
 
+        case 21002: // ASC_COAUTH_EVENT_TYPE_REPLACE_URL_IMAGE
+        {
+            var urls = JSON.parse(_params[0]);
+            AscCommon.g_oDocumentUrls.addUrls(urls);
+            var firstUrl;
+            for (var i in urls) {
+                if (urls.hasOwnProperty(i)) {
+                    firstUrl = urls[i];
+                    break;
+                }
+            }
+
+            var _src = firstUrl;
+
+            var imageProp = new asc_CImgProperty();
+            imageProp.ImageUrl = _src;
+            this.ImgApply(imageProp);
+
+            break;
+        }
+
         case 22001: // ASC_MENU_EVENT_TYPE_SET_PASSWORD
         {
           _api.asc_setDocumentPassword(_params[0]);

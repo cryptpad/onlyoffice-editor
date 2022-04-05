@@ -235,6 +235,16 @@
         return editor.WordControl.m_oLogicDocument;
     };
     CBaseAnimObject.prototype.isAnimObject = true;
+    CBaseAnimObject.prototype.getTiming = function() {
+        var oCurElement = this;
+        while(oCurElement && !(oCurElement instanceof CTiming)) {
+            oCurElement = oCurElement.parent;
+        }
+        if(oCurElement instanceof CTiming) {
+            return oCurElement;
+        }
+        return null;
+    };
     var TIME_NODE_STATE_IDLE = 0;
     var TIME_NODE_STATE_ACTIVE = 1;
     var TIME_NODE_STATE_FROZEN = 2;
@@ -354,16 +364,6 @@
             oCurElem = oCurParent;
         }
         return oCurElem;
-    };
-    CTimeNodeBase.prototype.getTiming = function() {
-        var oCurElem = this;
-        while(oCurElem.parent && oCurElem.getObjectType() !== AscDFH.historyitem_type_Timing) {
-            oCurElem = oCurElem.parent;
-        }
-        if(oCurElem.getObjectType() === AscDFH.historyitem_type_Timing) {
-            return oCurElem;
-        }
-        return null;
     };
     CTimeNodeBase.prototype.getDepth = function() {
         var nDepth = 0;
@@ -804,7 +804,7 @@
 
         var oAttr = this.getAttributesObject();
         var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
-        sString += (nDepth + " TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | FORMAT ID: " + oAttr.id );
+        sString += (nDepth + " TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | FORMAT ID: " + oAttr.id + " | ID: " + this.Id);
         console.log(sString);
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
@@ -1271,6 +1271,17 @@
         return false;
     };
     CTimeNodeBase.prototype.doesShowObject = function() {
+        var oParentNode = this.getParentTimeNode();
+        if(oParentNode) {
+            var oAttrObject = oParentNode.getAttributesObject();
+            if(oAttrObject) {
+                if(AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass ||
+                    AscFormat.PRESET_CLASS_PATH === oAttrObject.presetClass||
+                    AscFormat.PRESET_CLASS_EMPH === oAttrObject.presetClass) {
+                    return true;
+                }
+            }
+        }
         return false;
     };
     CTimeNodeBase.prototype.isAncestor = function(oNode) {
@@ -2047,28 +2058,35 @@
                 return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
             else {
+                var oMapOfObjects = {};
 				var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
-				if(aSelectedObjects.length > 0) {
-					this.removeSelectedEffects();
-					return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
-				}
+                var bNeedRemoveExtra = (aSelectedObjects.length > 0);
                 var aSeqs = this.getEffectsSequences();
                 var aSeq;
                 var bNeedRebuild = false;
                 for(var nSeq = 0; nSeq < aSeqs.length; ++nSeq) {
                     aSeq = aSeqs[nSeq];
-                    for(nEffectIdx = 1; nEffectIdx < aSeq.length; ++nEffectIdx) {
+                    for(nEffectIdx = aSeq.length - 1; nEffectIdx > 0; --nEffectIdx) {
                         oEffect = aSeq[nEffectIdx];
                         if(oEffect.isSelected()) {
                             sObjectId = oEffect.getObjectId();
+                            if(bNeedRemoveExtra) {
+                                if(oMapOfObjects[sObjectId]) {
+                                    aSeq.splice(nEffectIdx, 1);
+                                    continue;
+                                }
+                                else {
+                                    oMapOfObjects[sObjectId] = true;
+                                }
+                            }
                             oNewEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
                                 oNewEffect.cTn.changeDelay(oEffect.cTn.getDelay(true));
-                                oNewEffect.select();
-                                aSeq[nEffectIdx] = oNewEffect;
+                                oEffect.setCTn(oNewEffect.cTn.createDuplicate());
+                                oEffect.select();
                                 bNeedRebuild = true;
-                                aAddedEffects.push(oNewEffect);
+                                aAddedEffects.push(oEffect);
                             }
                         }
                     }
@@ -2351,6 +2369,11 @@
         var oTmRoot = this.getTimingRootNode();
         if(oTmRoot) {
             oTmRoot.clearChildTnLst();
+            var oCTn = oTmRoot.cTn;
+            if(oCTn) {
+                oTmRoot.setCTn(oCTn.createDuplicate());
+                oCTn.setParent(null);
+            }
         }
         for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
             aCurSequence = aSequences[nSeq];
@@ -2811,6 +2834,42 @@
             }
         }
         return bHandle ? false : null;
+    };
+    CTiming.prototype.checkCorrect = function() {
+        var oRoot;
+        if(this.tnLst) {
+            var aList = this.tnLst.list;
+            if(aList.length !== 1) {
+                this.setTnLst(null);
+                this.setBldLst(null);
+                return;
+            }
+            else {
+                oRoot = aList[0];
+                var oAttr = oRoot.getAttributesObject();
+                if(!oAttr || oAttr.nodeType !== AscFormat.NODE_TYPE_TMROOT) {
+                    this.setTnLst(null);
+                    this.setBldLst(null);
+                    return;
+                } 
+            }
+            if(oRoot) {
+                var aToRemove = [];
+                oRoot.traverseTimeNodes(function(oTimeNode) {
+                    if(oTimeNode.getDepth() === 4) {
+                        if(!oTimeNode.isCorrect()) {
+                            if(oTimeNode.parent) {
+                                aToRemove.push(oTimeNode);
+                            }
+                        }
+                    }
+                });
+                for(var nEffect = aToRemove.length - 1; nEffect > -1; --nEffect) {
+                    var oEffect = aToRemove[nEffect];
+                    oEffect.parent.onRemoveChild(oEffect);
+                }
+            }
+        }
     };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
@@ -7891,6 +7950,20 @@
         }
         return oRect.hit(x, y);
     };
+    CTimeNodeContainer.prototype.isCorrect = function() {
+        if(!this.cTn) {
+            return false;
+        }
+        var sObjectId = this.getObjectId();
+        var oObj = AscCommon.g_oTableId.Get_ById(sObjectId);
+        if(!oObj) {
+            return false;
+        }
+        if(!oObj.checkCorrect() || !(oObj.Is_UseInDocument && oObj.Is_UseInDocument())) {
+            return false;
+        }
+        return true;
+    };
     var ICON_TRIGGER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAxMSAxNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEgMEg1TDAgN0g0TDAgMTRMMTEgNUg2TDExIDBaIiBmaWxsPSIjNDQ0NDQ0Ii8+PC9zdmc+";
     
     CTimeNodeContainer.prototype.internalDrawEffectLabel = function(oGraphics) {
@@ -10924,6 +10997,9 @@
     CAnimationPlayer.prototype.clearObjectTexture = function(sId) {
         this.animationDrawer.clearObjectTexture(sId);
     };
+    CAnimationPlayer.prototype.isDrawingHidden = function(sId) {
+        return this.animationDrawer.isDrawingHidden(sId);
+    };
 
 
     function CDemoAnimPlayer(oSlide) {
@@ -11229,7 +11305,6 @@
         this.checkOnAdd();
     };
     CAnimSandwich.prototype.checkOnAdd = function() {
-        //TODO: sort
     };
     CAnimSandwich.prototype.getDrawing = function() {
         return AscCommon.g_oTableId.Get_ById(this.drawingId);
@@ -11238,6 +11313,51 @@
         if(this.cachedAttributes) {
             return this.cachedAttributes;
         }
+
+        
+        var oEntrEffect = null, oExitEffect = null;
+        for(var nAnim = 0; nAnim < this.animations.length; ++nAnim) {
+            var oAnim = this.animations[nAnim];
+            var oEffect = oAnim.getParentTimeNode();
+            if(oEffect.isAnimEffect()) {
+                var oAttrObject = oEffect.getAttributesObject();
+                if(oAttrObject && AscFormat.PRESET_CLASS_EXIT === oAttrObject.presetClass) {
+                    oExitEffect = oEffect;
+                }
+                if(oAttrObject && AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass) {
+                    oEntrEffect = oEffect;
+                }
+            }
+        }
+        var oEffectToDelete = null;
+        if(oEntrEffect && oExitEffect) {
+            if(oEntrEffect.isAtEnd() && !oExitEffect.isAtEnd()) {
+                oEffectToDelete = oEntrEffect;
+            }
+            if(!oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
+                oEffectToDelete = oExitEffect;
+            }
+            
+            if(oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
+                if(oEntrEffect.startTick < oExitEffect.startTick) {
+                    oEffectToDelete = oEntrEffect;
+                }
+                else {
+                    oEffectToDelete = oExitEffect;
+                }
+            }
+        }
+        if(oEffectToDelete) {
+            for(var nAnim = this.animations.length - 1; nAnim > -1; --nAnim) {
+                var oAnim = this.animations[nAnim];
+                var oEffect = oAnim.getParentTimeNode();
+                if(oEffect === oEffectToDelete) {
+                    this.animations.splice(nAnim, 1);
+                }
+            }
+        }
+
+
         this.animations.sort(function(oAnim1, oAnim2){
             if(AscFormat.isRealNumber(oAnim1.startTick) && AscFormat.isRealNumber(oAnim2.startTick)) {
                 return oAnim1.startTick - oAnim2.startTick;
