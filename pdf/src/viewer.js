@@ -765,19 +765,17 @@
 			// в интерфейсе есть проблема - нужно посылать onDocumentContentReady после setAdvancedOptions
 			setTimeout(function(){
 				_t.sendEvent("onFileOpened");
+
+				_t.sendEvent("onPagesCount", _t.file.pages.length);
+				_t.sendEvent("onCurrentPageChanged", 0);
+
+				_t.sendEvent("onStructure", oThis.structure);
 			}, 0);
 
 			this.file.onRepaintPages = this.onUpdatePages.bind(this);
 			this.file.onUpdateStatistics = this.onUpdateStatistics.bind(this);
 			this.currentPage = -1;
 			this.structure = this.file.getStructure();
-
-			this.sendEvent("onPagesCount", this.file.pages.length);
-			this.sendEvent("onCurrentPageChanged", 0);
-
-			setTimeout(function(){
-				oThis.sendEvent("onStructure", oThis.structure);
-			}, 100);
 
 			this.resize();
 
