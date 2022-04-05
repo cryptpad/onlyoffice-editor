@@ -163,7 +163,7 @@
 		this.Select        = isSelect;
 		this.Run           = oRun;
 		this.AnchorPos     = oAnchorPos;
-		this.Select        = isSelect;
+		this.Select        = !!isSelect;
 
 		if (oRun.IsMathRun())
 		{
@@ -390,7 +390,7 @@
 		{
 			var oElement = this.Elements[nIndex].Element;
 			if (oElement.IsParagraph())
-				sText += oElement.GetText();
+				sText += oElement.GetText({ParaEndToSpace : false});
 		}
 
 		var oRun = new ParaRun(oParagraph, null);
@@ -736,17 +736,17 @@
 	{
 		let oParaAnchorPos = this.ParaAnchorPos;
 
-		let oRun  = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
+		let oRun  = this.Run;
 		let oForm = oRun.GetParentForm();
 
-		if ((!oForm.IsTextForm() || oForm.IsComboBox()))
+		let nInLastClassPos = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 1];
+
+		if ((!oForm.IsTextForm() && !oForm.IsComboBox()))
 			return;
 
-		var sInsertedText = this.GetText({ParaEndToSpace : false});
+		let sInsertedText = this.GetText({ParaEndToSpace : false});
 		if (!sInsertedText || !sInsertedText.length)
 			return;
-
-		var nInLastClassPos = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 1];
 
 		var isPlaceHolder = oRun.GetParentForm().IsPlaceHolder();
 		if (isPlaceHolder && oRun.GetParent() instanceof CInlineLevelSdt)
@@ -757,26 +757,26 @@
 			nInLastClassPos = 0;
 		}
 
-		oRun.State.ContentPos = nInLastClassPos;
-
-		var nInRunStartPos = oRun.State.ContentPos;
+		let nInRunStartPos = oRun.State.ContentPos;
 		oRun.AddText(sInsertedText, nInLastClassPos);
-		var nInRunEndPos = oRun.State.ContentPos;
+		let nInRunEndPos = oRun.State.ContentPos;
 
-		var nLastClassLen = oRun.GetElementsCount();
+		let nLastClassLen = oRun.GetElementsCount();
 		nInRunStartPos    = Math.min(nLastClassLen, Math.min(nInRunStartPos, nInRunEndPos));
 		nInRunEndPos      = Math.min(nLastClassLen, nInRunEndPos);
 
 		if (this.Select)
 		{
-			oRun.SelectThisElement();
 			oRun.Selection.Use      = true;
 			oRun.Selection.StartPos = nInRunStartPos;
 			oRun.Selection.EndPos   = nInRunEndPos;
+			oRun.State.ContentPos   = nInRunEndPos;
+			oRun.SelectThisElement(1, true);
 		}
 		else
 		{
 			oRun.SetThisElementCurrent();
+			oRun.State.ContentPos = nInRunEndPos;
 		}
 	};
 	CSelectedContent.prototype.private_InsertInline = function()
