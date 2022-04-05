@@ -212,6 +212,14 @@
 
 		this.isFocusOnThumbnails = false;
 
+		this.isXP = ((AscCommon.AscBrowser.userAgent.indexOf("windowsXP") > -1) || (AscCommon.AscBrowser.userAgent.indexOf("chrome/49") > -1)) ? true : false;
+
+		if (this.isXP)
+		{
+			AscCommon.g_oHtmlCursor.register("grab", "grab", "0 0", "pointer");
+			AscCommon.g_oHtmlCursor.register("grabbing", "grabbing", "0 0", "pointer");
+		}
+
 		var oThis = this;
 
 		this.updateSkin = function()
@@ -1048,6 +1056,12 @@
 
 		this.setCursorType = function(cursor)
 		{
+			if (this.isXP)
+			{
+				this.canvas.style.cursor = AscCommon.g_oHtmlCursor.value(cursor);
+				return;
+			}
+
 			this.canvas.style.cursor = cursor;
 		};
 
