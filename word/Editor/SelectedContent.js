@@ -118,7 +118,7 @@
 	{
 		// Проверка возможности конвертации имеющегося контента в контент для вставки в формулу
 		// Если формулы уже имеются, то ничего не конвертируем
-		return !!((!this.Flags & FLAG_MATH) && !(this.Flags & FLAG_NOT_PARAGRAPH));
+		return !(this.Flags & FLAG_NOT_PARAGRAPH);
 	};
 	CSelectedContent.prototype.HaveShape = function()
 	{
@@ -138,10 +138,10 @@
 		let oDocContent    = oParagraph.GetParent();
 		let oLogicDocument = oParagraph.GetLogicDocument();
 
-		if (!oDocContent || !oLogicDocument)
+		if (!oDocContent)
 			return;
 
-		this.LogicDocument = oLogicDocument;
+		this.LogicDocument = oLogicDocument; // Может быть не задан (например при вставке в формулу в таблицах)
 
 		this.PrepareObjectsForInsert();
 		this.private_CheckContentBeforePaste(oAnchorPos);
@@ -191,7 +191,7 @@
 	{
 		let oLogicDocument = this.LogicDocument;
 
-		if (oLogicDocument.IsDocumentEditor())
+		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
 		{
 			if (this.NewCommentsGuid)
 				this.CreateNewCommentsGuid();
@@ -274,45 +274,23 @@
 		var oParaMath = new AscCommonWord.ParaMath();
 		oParaMath.Root.Remove_FromContent(0, oParaMath.Root.GetElementsCount());
 
-		for (var nParaIndex = 0, nParasCount = this.Elements.length, nRunPos = 0; nParaIndex < nParasCount; ++nParaIndex)
+		for (let nParaIndex = 0, nParasCount = this.Elements.length; nParaIndex < nParasCount; ++nParaIndex)
 		{
-			var oParagraph = this.Elements[nParaIndex].Element;
-			if (type_Paragraph !== oParagraph.GetType())
+			let oParagraph = this.Elements[nParaIndex].Element;
+			if (!oParagraph.IsParagraph())
 				continue;
 
 			for (var nInParaPos = 0; nInParaPos < oParagraph.GetElementsCount(); ++nInParaPos)
 			{
 				var oElement = oParagraph.Content[nInParaPos];
-				if (para_Run === oElement.GetType())
+				let nType    = oElement.GetType();
+				if (para_Run === nType)
 				{
-					var oRun = new ParaRun(oParagraph, true);
-					oParaMath.Root.Add_ToContent(nRunPos++, oRun);
-
-					for (var nInRunPos = 0, nCount = oElement.GetElementsCount(); nInRunPos < nCount; ++nInRunPos)
-					{
-						var oItem = oElement.Content[nInRunPos];
-						if (para_Text === oItem.Type)
-						{
-							if (38 === oItem.Value)
-							{
-								oRun.Add(new CMathAmp(), true);
-							}
-							else
-							{
-								var oMathText = new CMathText(false);
-								oMathText.add(oItem.Value);
-								oRun.Add(oMathText, true);
-							}
-						}
-						else if (para_Space === oItem.Value)
-						{
-							var oMathText = new CMathText(false);
-							oMathText.add(0x0032);
-							oRun.Add(oMathText, true);
-						}
-					}
-
-					oRun.Apply_Pr(oElement.Get_TextPr());
+					oParaMath.Push(oElement.ToMathRun());
+				}
+				else if (para_Math === nType)
+				{
+					oParaMath.Concat(oElement);
 				}
 			}
 		}
@@ -692,7 +670,7 @@
 			}
 		}
 
-		if (this.LogicDocument.IsPresentationEditor())
+		if (this.LogicDocument && this.LogicDocument.IsPresentationEditor())
 			this.ConvertToPresentation(oDocContent);
 	};
 	CSelectedContent.prototype.private_IsInlineInsert = function()
@@ -706,12 +684,7 @@
 		let oMathContent      = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 2];
 		let nInMathContentPos = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 2];
 
-		let oInsertMath;
-		if (this.Maths.length)
-			oInsertMath = this.Maths[0].Math;
-		else
-			oInsertMath = this.ConvertToMath();
-
+		let oInsertMath = this.ConvertToMath();
 		if (oInsertMath)
 		{
 			let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];

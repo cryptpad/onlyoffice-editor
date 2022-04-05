@@ -10992,6 +10992,22 @@ ParaRun.prototype.GetMathTextPrForMenu = function()
 
     return TextPr;
 };
+ParaRun.prototype.ToMathRun = function()
+{
+	if (this.IsMathRun())
+		return this.Copy();
+
+	let oRun = new ParaRun(undefined, true);
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		let oMathItem = this.Content[nPos].ToMathElement();
+		if (oMathItem)
+			oRun.Add(oMathItem);
+	}
+
+	oRun.ApplyPr(this.GetDirectTextPr());
+	return oRun;
+};
 ParaRun.prototype.ApplyPoints = function(PointsInfo)
 {
     if(this.Parent.IsEqArray())

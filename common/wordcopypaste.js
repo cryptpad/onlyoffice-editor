@@ -2412,16 +2412,6 @@ PasteProcessor.prototype =
         }
 
         var bNeedRecalculate = (false === this.bNested && nInsertLength > 0);
-        var bNeedMoveCursor = false;
-        if(bNeedRecalculate)
-        {
-             if (History.Is_LastPointNeedRecalc() &&
-                (this.oLogicDocument.DrawingObjects.selectedObjects.length === 0 ||
-                true === this.oLogicDocument.DrawingObjects.isSelectedText()))
-            {
-                bNeedMoveCursor = true;
-            }
-        }
 
 		//for special paste
 		if(dNotShowOptions && !window['AscCommon'].g_specialPasteHelper.specialPasteStart) {
@@ -2434,10 +2424,6 @@ PasteProcessor.prototype =
         if(bNeedRecalculate)
         {
             this.oRecalcDocument.Recalculate();
-            if (bNeedMoveCursor)
-            {
-                this.oLogicDocument.MoveCursorRight(false, false, true);
-            }
             this.oLogicDocument.Document_UpdateInterfaceState();
             this.oLogicDocument.Document_UpdateSelectionState();
         }
@@ -2612,7 +2598,7 @@ PasteProcessor.prototype =
 					return;
 				}
 
-				oCellContent.InsertContent(oSelectedContent, NearPos);
+				oSelectedContent.Insert(NearPos, false);
 			}
 		}
 		else
@@ -2719,7 +2705,7 @@ PasteProcessor.prototype =
 					if (null !== InsertMathContent)
 					{
 						MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-						MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
+						MathContent.InsertMathContent(InsertMathContent.Root, MathContentPos + 1, true);
 						bPasteMath = true;
 					}
 				}
@@ -2727,7 +2713,7 @@ PasteProcessor.prototype =
 
 			if(!bPasteMath)
 			{
-				paragraph.Parent.InsertContent(oSelectedContent, NearPos);
+				oSelectedContent.Insert(NearPos, false);
 			}
 			paragraph.Clear_NearestPosArray(aNewContent);
 		}

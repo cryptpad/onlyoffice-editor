@@ -350,6 +350,14 @@ CRunElementBase.prototype.ToSearchElement = function(oProps)
 	return null;
 };
 /**
+ * Преобразуем в элемент матиматического рана
+ * @returns {?CMathBaseText}
+ */
+CRunElementBase.prototype.ToMathElement = function()
+{
+	return null;
+};
+/**
  * Является ли данный элемент автофигурой
  * @returns {boolean}
  */
@@ -756,6 +764,15 @@ ParaText.prototype.ToSearchElement = function(oProps)
 
 	return new CSearchTextItemChar(this.Value);
 };
+ParaText.prototype.ToMathElement = function()
+{
+	if (38 === this.Value)
+		return new CMathAmp();
+
+	let oText = new CMathText();
+	oText.add(this.Value);
+	return oText;
+};
 ParaText.prototype.IsText = function()
 {
 	return true;
@@ -941,6 +958,12 @@ ParaSpace.prototype.private_DrawGapsBackground = ParaText.prototype.private_Draw
 ParaSpace.prototype.ToSearchElement = function(oProps)
 {
 	return new CSearchTextItemChar(0x20);
+};
+ParaSpace.prototype.ToMathElement = function()
+{
+	let oSpace = new CMathText();
+	oSpace.add(0x0032);
+	return oSpace;
 };
 
 /**
