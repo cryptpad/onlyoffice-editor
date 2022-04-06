@@ -3821,8 +3821,8 @@
 	 * Sets number format to value axie.
 	 * Used for values axies.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
-	 * @param {ApiStroke} oStroke - The stroke used to create the legend outline.
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {NumFormat | String} sFormat - number format (can be custom format).
 	 * @param {AxiePos} - axie position.
 	 * @returns {boolean}
 	 */
@@ -4249,6 +4249,7 @@
 	ApiChart.prototype["SetTitleOutLine"]             =  ApiChart.prototype.SetTitleOutLine;
 	ApiChart.prototype["SetLegendFill"]               =  ApiChart.prototype.SetLegendFill;
 	ApiChart.prototype["SetLegendOutLine"]            =  ApiChart.prototype.SetLegendOutLine;
+	ApiChart.prototype["SetAxieNumFormat"]            =  ApiChart.prototype.SetAxieNumFormat;
 
 	ApiColor.prototype["GetClassType"]                 =  ApiColor.prototype.GetClassType;
 
