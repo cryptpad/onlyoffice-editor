@@ -216,8 +216,8 @@
 
 		if (this.isXP)
 		{
-			AscCommon.g_oHtmlCursor.register("grab", "grab", "0 0", "pointer");
-			AscCommon.g_oHtmlCursor.register("grabbing", "grabbing", "0 0", "pointer");
+			AscCommon.g_oHtmlCursor.register("grab", "grab", "7 8", "pointer");
+			AscCommon.g_oHtmlCursor.register("grabbing", "grabbing", "6 6", "pointer");
 		}
 
 		var oThis = this;
