@@ -221,6 +221,11 @@
 	 * */
 
 	/**
+	 * Axie position in chart.
+	 * @typedef {("top" | "bottom" | "right" | "left")} AxiePos
+	 */
+
+	/**
 	 * Class representing a base class for color types.
 	 * @constructor
 	 */
@@ -3812,6 +3817,39 @@
 		return this.Chart.SetLegendOutLine(oStroke.Ln);
 	};
 
+	/**
+	 * Sets number format to value axie.
+	 * Used for values axies.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {NumFormat | String} sFormat - number format (can be custom format).
+	 * @param {AxiePos} - axie position.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetAxieNumFormat = function(sFormat, sAxiePos)
+	{
+		var nAxiePos = -1;
+		switch (sAxiePos)
+		{
+			case "bottom":
+				nAxiePos = AscFormat.AX_POS_B;
+				break;
+			case "left":
+				nAxiePos = AscFormat.AX_POS_L;
+				break;
+			case "right":
+				nAxiePos = AscFormat.AX_POS_R;
+				break;
+			case "top":
+				nAxiePos = AscFormat.AX_POS_B;
+				break;
+			default:
+				return false;
+		}
+
+		return this.Chart.SetAxieNumFormat(sFormat, nAxiePos);
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiColor
@@ -4211,6 +4249,7 @@
 	ApiChart.prototype["SetTitleOutLine"]             =  ApiChart.prototype.SetTitleOutLine;
 	ApiChart.prototype["SetLegendFill"]               =  ApiChart.prototype.SetLegendFill;
 	ApiChart.prototype["SetLegendOutLine"]            =  ApiChart.prototype.SetLegendOutLine;
+	ApiChart.prototype["SetAxieNumFormat"]            =  ApiChart.prototype.SetAxieNumFormat;
 
 	ApiColor.prototype["GetClassType"]                 =  ApiColor.prototype.GetClassType;
 
