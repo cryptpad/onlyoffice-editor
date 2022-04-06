@@ -60,6 +60,7 @@
 		this.CopyComments        = true;
 		this.DoNotAddEmptyPara   = false;
 		this.MoveDrawing         = false; // Только для переноса автофигур
+		this.ForceInline         = false;
 
 		this.InsertOptions = {
 			Table : Asc.c_oSpecialPasteProps.overwriteCells
@@ -119,6 +120,10 @@
 		// Если формулы уже имеются, то ничего не конвертируем
 		return !(this.Flags & FLAG_NOT_PARAGRAPH);
 	};
+	CSelectedContent.prototype.ForceInlineInsert = function(isForce)
+	{
+		this.ForceInline = undefined === isForce ? true : !!isForce;
+	};
 	CSelectedContent.prototype.HaveShape = function()
 	{
 		return !!(this.Flags & FLAG_SHAPE);
@@ -144,11 +149,6 @@
 
 		this.PrepareObjectsForInsert();
 		this.private_CheckContentBeforePaste(oAnchorPos, oDocContent);
-
-		// for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
-		// {
-		// 	SelectedContent.DrawingObjects[nIndex].Set_Parent(Para);
-		// }
 
 		let oParaAnchorPos = oParagraph.Get_ParaNearestPos(oAnchorPos);
 		if (!oParaAnchorPos)
@@ -424,6 +424,20 @@
 			}
 		}
 	};
+	CSelectedContent.prototype.ConvertToInline = function()
+	{
+		var oParagraph = new Paragraph(editor.WordControl.m_oDrawingDocument);
+
+		for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
+		{
+			var oElement = this.Elements[nIndex].Element;
+			if (oElement.IsParagraph())
+				oParagraph.ConcatContent(oElement.Content);
+		}
+
+		this.Elements.length = 0;
+		this.Elements.push(new CSelectedElement(oParagraph, false));
+	};
 	//----------------- Private Area -----------------------------------------------------------------------------------
 	CSelectedContent.prototype.private_CollectObjects = function()
 	{
@@ -670,10 +684,13 @@
 
 		if (this.LogicDocument && this.LogicDocument.IsPresentationEditor())
 			this.ConvertToPresentation(oDocContent);
+
+		if (this.ForceInline)
+			this.ConvertToInline();
 	};
 	CSelectedContent.prototype.private_IsInlineInsert = function()
 	{
-		return (1 === this.Elements.length && !this.Elements[0].SelectedAll && this.Elements[0].Element.IsParagraph() && !this.Elements[0].Element.IsEmpty());
+		return (1 === this.Elements.length && !this.Elements[0].SelectedAll && this.Elements[0].Element.IsParagraph() && (!this.Elements[0].Element.IsEmpty() || this.ForceInline));
 	};
 	CSelectedContent.prototype.private_InsertToMathRun = function()
 	{

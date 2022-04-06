@@ -4971,13 +4971,13 @@
 				if (oElm.Is_UseInDocument())
 					continue;
 
-				if (true === isInline && oElement instanceof ApiParagraph)
-					oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, false));
-				else
-					oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, true));
+				oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, true));
 			}
 		}
 		oSelectedContent.EndCollect(this.Document);
+
+		if (isInline)
+			oSelectedContent.ForceInlineInsert();
 
 		if (this.Document.IsSelectionUse())
 		{
@@ -5021,10 +5021,8 @@
 		if (!this.Document.Can_InsertContent(oSelectedContent, oNearestPos))
 			return false;
 
-		oParagraph.Parent.InsertContent(oSelectedContent, oNearestPos);
+		oSelectedContent.Insert(oNearestPos);
 		oParagraph.Clear_NearestPosArray();
-		// TODO: Выяснить нужно ли снимать выделение с автофигур
-		this.Document.MoveCursorRight(false, false, true);
 		return true;
 	};
 
