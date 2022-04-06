@@ -321,6 +321,20 @@
 	 * | "textPlain" | "textRingInside" | "textRingOutside" | "textSlantDown" | "textSlantUp" | "textStop" | "textTriangle" | "textTriangleInverted"
 	 * | "textWave1" | "textWave2" | "textWave4" | "textNoShape")} TextTransofrm
 	 * */
+
+    /**
+	 * Axie position in chart.
+	 * @typedef {("top" | "bottom" | "right" | "left")} AxiePos
+	 */
+
+    /**
+	 * Standart num format.
+	 * @typedef {("General" | "0" | "0.00" | "#,##0" | "#,##0.00" | "0%" | "0.00%" |
+	 * "0.00E+00" | "# ?/?" | "# ??/??" | "m/d/yyyy" | "d-mmm-yy" | "d-mmm" | "mmm-yy" | "h:mm AM/PM" |
+	 * | "h:mm:ss AM/PM" | "h:mm" | "h:mm:ss" | "m/d/yyyy h:mm" | "#,##0_);(#,##0)" | "#,##0_);[Red](#,##0)" | 
+	 * "#,##0.00_);(#,##0.00)" | "#,##0.00_);[Red](#,##0.00)" | "mm:ss" | "[h]:mm:ss" | "mm:ss.0" | "##0.0E+0" | "@")} NumFormat
+	 */
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // Base Api
@@ -618,11 +632,13 @@
      * @param {EMU} nWidth - The chart width in English measure units.
      * @param {EMU} nHeight - The chart height in English measure units.
      * @param {number} nStyleIndex - The chart color style index (can be <b>1 - 48</b>, as described in OOXML specification).
+     * @param {NumFormat[] | String[]} aNumFormats - number formats wich will be applied to series (can be custom formats).
+     * Sets "General" number format by default.
      * @returns {ApiChart}
      * */
-    Api.prototype.CreateChart = function(sType, aSeries, aSeriesNames, aCatNames, nWidth, nHeight, nStyleIndex)
+    Api.prototype.CreateChart = function(sType, aSeries, aSeriesNames, aCatNames, nWidth, nHeight, nStyleIndex, aNumFormats)
     {
-        var oChartSpace = AscFormat.builder_CreateChart(nWidth/36000, nHeight/36000, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex);
+        var oChartSpace = AscFormat.builder_CreateChart(nWidth/36000, nHeight/36000, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex, aNumFormats);
         oChartSpace.setParent(private_GetCurrentSlide());
         return new ApiChart(oChartSpace);
     };
@@ -3945,6 +3961,67 @@
 		return this.Chart.SetLegendOutLine(oStroke.Ln);
 	};
 
+    /**
+	 * Sets number format to value axie.
+	 * Used for values axies.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE, "CPE", "CSE"]
+	 * @param {NumFormat | String} sFormat - number format (can be custom format).
+	 * @param {AxiePos} - axie position.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetAxieNumFormat = function(sFormat, sAxiePos)
+	{
+		var nAxiePos = -1;
+		switch (sAxiePos)
+		{
+			case "bottom":
+				nAxiePos = AscFormat.AX_POS_B;
+				break;
+			case "left":
+				nAxiePos = AscFormat.AX_POS_L;
+				break;
+			case "right":
+				nAxiePos = AscFormat.AX_POS_R;
+				break;
+			case "top":
+				nAxiePos = AscFormat.AX_POS_B;
+				break;
+			default:
+				return false;
+		}
+
+		return this.Chart.SetAxieNumFormat(sFormat, nAxiePos);
+	};
+
+	/**
+	 * Sets number format to seria.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE, "CPE"]
+	 * @param {NumFormat | String} sFormat - number format (can be custom format).
+	 * @param {Number} nSeria - seria index.
+	 * @returns {boolean}
+	 */
+    ApiChart.prototype.SetSeriaNumFormat = function(sFormat, nSeria)
+    {
+        return this.Chart.SetSeriaNumFormat(sFormat, nSeria);
+    };
+
+    /**
+     * Sets number format to value axie.
+     * @memberof ApiChart
+     * @typeofeditors ["CDE", "CPE"]
+     * @param {NumFormat | String} sFormat - number format (can be custom format).
+     * @param {Number} nSeria - seria index.
+     * @param {number} nDataPoint - The index of the data point in the specified series in chart.
+     * @param {boolean} bAllSeries - whether to apply to specified datapoint in all series.
+     * @returns {boolean}
+     */
+    ApiChart.prototype.SetDataPointNumFormat = function(sFormat, nSeria, nDataPoint, bAllSeries)
+    {
+        return this.Chart.SetDataPointNumFormat(sFormat, nSeria, nDataPoint, bAllSeries);
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiTable
@@ -4766,6 +4843,9 @@
 	ApiChart.prototype["SetTitleOutLine"]                 = ApiChart.prototype.SetTitleOutLine;
 	ApiChart.prototype["SetLegendFill"]                   = ApiChart.prototype.SetLegendFill;
 	ApiChart.prototype["SetLegendOutLine"]                = ApiChart.prototype.SetLegendOutLine;
+    ApiChart.prototype["SetAxieNumFormat"]                = ApiChart.prototype.SetAxieNumFormat;
+    ApiChart.prototype["SetSeriaNumFormat"]               = ApiChart.prototype.SetSeriaNumFormat;
+    ApiChart.prototype["SetDataPointNumFormat"]           = ApiChart.prototype.SetDataPointNumFormat;
 
     ApiTable.prototype["GetClassType"]                    = ApiTable.prototype.GetClassType;
     ApiTable.prototype["GetRow"]                          = ApiTable.prototype.GetRow;

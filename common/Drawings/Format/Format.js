@@ -13236,7 +13236,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
         }
         return null;
     }
-    function builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex){
+    function builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex, aNumFormats){
         var settings = new Asc.asc_ChartSettings();
         settings.type = ChartBuilderTypeToInternal(sType);
         var aAscSeries = [];
@@ -13267,10 +13267,13 @@ function CorrectUniColor(asc_color, unicolor, flag)
             {
                 oAscSeries.Cat = oCat;
             }
+
+            if (Array.isArray(aNumFormats) && typeof(aNumFormats[i]) === "string")
+                oAscSeries.FormatCode = aNumFormats[i];
+
             for(var j = 0; j < aData.length; ++j)
             {
-
-                oAscSeries.Val.NumCache.push({ numFormatStr: "General", isDateTimeFormat: false, val: aData[j], isHidden: false });
+                oAscSeries.Val.NumCache.push({ numFormatStr: oAscSeries.FormatCode !== "" ? null : "General", isDateTimeFormat: false, val: aData[j], isHidden: false });
             }
             aAscSeries.push(oAscSeries);
         }
