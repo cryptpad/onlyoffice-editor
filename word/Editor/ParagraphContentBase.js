@@ -1351,6 +1351,10 @@ CParagraphContentWithParagraphLikeContent.prototype.SetParent = function(oParent
 			this.Content[nPos].SetParent(this);
 	}
 };
+CParagraphContentWithParagraphLikeContent.prototype.SetCurrentPos = function(nPos)
+{
+	this.State.ContentPos = Math.max(0, Math.min(this.Content.length - 1, nPos));
+};
 CParagraphContentWithParagraphLikeContent.prototype.Is_Empty = function(oPr)
 {
     for (var Index = 0, ContentLen = this.Content.length; Index < ContentLen; Index++)

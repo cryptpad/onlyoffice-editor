@@ -59,8 +59,7 @@
 		this.SaveNumberingValues = false;
 		this.CopyComments        = true;
 		this.DoNotAddEmptyPara   = false;
-
-		this.MoveDrawing      = false; // Только для переноса автофигур
+		this.MoveDrawing         = false; // Только для переноса автофигур
 
 		this.InsertOptions = {
 			Table : Asc.c_oSpecialPasteProps.overwriteCells
@@ -193,7 +192,7 @@
 		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
 		{
 			if (this.NewCommentsGuid)
-				this.CreateNewCommentsGuid();
+				this.private_CreateNewCommentsGuid();
 
 			this.private_CopyDocPartNames();
 
@@ -757,7 +756,8 @@
 			nInLastClassPos = 0;
 		}
 
-		let nInRunStartPos = oRun.State.ContentPos;
+		let nInRunStartPos = nInLastClassPos;
+		oRun.State.ContentPos = nInLastClassPos;
 		oRun.AddText(sInsertedText, nInLastClassPos);
 		let nInRunEndPos = oRun.State.ContentPos;
 
@@ -783,17 +783,17 @@
 	{
 		let oParaAnchorPos = this.ParaAnchorPos;
 
-		var oInlineLeveLSdt = this.Run.GetParent();
+		let oInlineLeveLSdt = this.Run.GetParent();
 		if (oInlineLeveLSdt instanceof CInlineLevelSdt
 			&& (oInlineLeveLSdt.IsPlaceHolder() || oInlineLeveLSdt.IsContentControlTemporary()))
 		{
 			if (oInlineLeveLSdt.IsContentControlTemporary())
 			{
-				var oResult = oInlineLeveLSdt.RemoveContentControlWrapper();
+				let oResult = oInlineLeveLSdt.RemoveContentControlWrapper();
 
-				var oSdtParent = oResult.Parent;
-				var oSdtPos    = oResult.Pos;
-				var oSdtCount  = oResult.Count;
+				let oSdtParent = oResult.Parent;
+				let oSdtPos    = oResult.Pos;
+				let oSdtCount  = oResult.Count;
 
 				if (!oSdtParent
 					|| oParaAnchorPos.Classes.length < 3
@@ -807,66 +807,63 @@
 				oSdtParent.RemoveFromContent(oSdtPos, oSdtCount);
 				oSdtParent.AddToContent(oSdtPos, oRun);
 
-				LastClass = oRun;
 				oParaAnchorPos.Classes.length--;
-				oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1] = LastClass;
+				oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1] = oRun;
 				oParaAnchorPos.NearPos.ContentPos.Update(oSdtPos, oParaAnchorPos.Classes.length - 2);
 				oParaAnchorPos.NearPos.ContentPos.Update(0, oParaAnchorPos.Classes.length - 1);
 			}
 			else
 			{
 				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
-				LastClass = oInlineLeveLSdt.GetElement(0);
-				oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1] = LastClass;
+				oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1] = oInlineLeveLSdt.GetElement(0);
 				oParaAnchorPos.NearPos.ContentPos.Update(0, oParaAnchorPos.Classes.length - 2);
 				oParaAnchorPos.NearPos.ContentPos.Update(0, oParaAnchorPos.Classes.length - 1);
 			}
 		}
 
-		var LastClass  = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
-		var NewElement = LastClass.Split(oParaAnchorPos.NearPos.ContentPos, oParaAnchorPos.Classes.length - 1);
-		var PrevClass  = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 2];
-		var PrevPos    = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 2];
+		let oRun    = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
+		let oNewRun = oRun.Split(oParaAnchorPos.NearPos.ContentPos, oParaAnchorPos.Classes.length - 1);
 
-		PrevClass.Add_ToContent(PrevPos + 1, NewElement);
+		let oParent      = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 2];
+		let nInParentPos = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 2];
+
+		oParent.AddToContent(nInParentPos + 1, oNewRun);
 
 		// TODO: Заглушка для переноса автофигур и картинок. Когда разрулим ситуацию так, чтобы когда у нас
 		//       в текста была выделена автофигура выделение шло для автофигур, тогда здесь можно будет убрать.
-		var isSelect = (this.MoveDrawing ? false : this.Select);
+		let isSelect = (this.MoveDrawing ? false : this.Select);
 
 		let oParagraph     = this.Elements[0].Element;
 		let nElementsCount = oParagraph.Content.length - 1; // Последний ран с para_End не добавляем
 
 		for (let nPos = 0; nPos < nElementsCount; ++nPos)
 		{
-			let oItem = oParagraph.Content[nPos];
-			PrevClass.AddToContent(PrevPos + 1 + nPos, oItem);
+			let oItem = oParagraph.GetElement(nPos);
+			oParent.AddToContent(nInParentPos + 1 + nPos, oItem);
 
 			if (isSelect)
 				oItem.SelectAll();
+			else
+				oItem.RemoveSelection();
 		}
 
 		if (isSelect)
 		{
-			PrevClass.SelectThisElement();
-
-			PrevClass.Selection.Use      = true;
-			PrevClass.Selection.StartPos = PrevPos + 1;
-			PrevClass.Selection.EndPos   = PrevPos + 1 + nElementsCount - 1;
-
-			for (var Index = 0; Index < oParaAnchorPos.Classes.length - 2; Index++)
-			{
-				var Class    = oParaAnchorPos.Classes[Index];
-				var ClassPos = oParaAnchorPos.NearPos.ContentPos.Data[Index];
-
-				Class.Selection.Use      = true;
-				Class.Selection.StartPos = ClassPos;
-				Class.Selection.EndPos   = ClassPos;
-			}
+			oParent.Selection.Use      = true;
+			oParent.Selection.StartPos = nInParentPos + 1;
+			oParent.Selection.EndPos   = nInParentPos + 1 + nElementsCount - 1;
+			oParent.SelectThisElement(1, true);
+		}
+		else
+		{
+			oParent.RemoveSelection();
+			oParent.SetThisElementCurrent();
+			oParent.SetCurrentPos(nInParentPos + 1 + nElementsCount);
+			oNewRun.MoveCursorToStartPos();
 		}
 
-		if (PrevClass.CorrectContent)
-			PrevClass.CorrectContent();
+		if (oParent.CorrectContent)
+			oParent.CorrectContent();
 	};
 	CSelectedContent.prototype.private_InsertCommon = function()
 	{

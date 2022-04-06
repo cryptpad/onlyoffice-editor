@@ -6289,6 +6289,10 @@ Paragraph.prototype.Get_EndPos2 = function(BehindEnd)
 	this.Content[Pos].Get_EndPos(BehindEnd, ContentPos, Depth + 1);
 	return ContentPos;
 };
+Paragraph.prototype.GetEndPos = function(isBehindEnd)
+{
+	return this.Get_EndPos(isBehindEnd);
+};
 /**
  * Составляем список элементов рана, идущих после заданной позиции
  * @param oRunElements {CParagraphRunElements}
@@ -9099,6 +9103,43 @@ Paragraph.prototype.Is_UseInDocument = function(Id)
 		return this.Parent.Is_UseInDocument(this.Get_Id());
 
 	return false;
+};
+Paragraph.prototype.SelectThisElement = function(nDirection, isUseInnerSelection)
+{
+	let oStartPos, oEndPos;
+	if (isUseInnerSelection)
+	{
+		oStartPos = this.Get_ParaContentPos(true, true, false);
+		oEndPos   = this.Get_ParaContentPos(true, false, false);
+	}
+	else
+	{
+		oStartPos = this.GetStartPos();
+		oEndPos   = this.GetEndPos(true);
+	}
+
+	if (nDirection < 0)
+	{
+		let oTemp = oStartPos;
+		oStartPos = oEndPos;
+		oEndPos   = oTemp;
+	}
+
+	this.Selection.Use   = true;
+	this.Selection.Start = false;
+	this.Set_ParaContentPos(oStartPos, true, -1, -1);
+	this.Set_SelectionContentPos(oStartPos, oEndPos, false);
+	this.Document_SetThisElementCurrent(false);
+	return true;
+};
+Paragraph.prototype.SetThisElementCurrent = function()
+{
+	this.Set_ParaContentPos(this.GetStartPos(), true, -1, -1, false);
+	this.Document_SetThisElementCurrent(false);
+};
+Paragraph.prototype.SetCurrentPos = function(nPos)
+{
+	this.CurPos.ContentPos = Math.max(0, Math.min(this.Content.length - 1, nPos));
 };
 /**
  * Проверяем пустой ли селект
