@@ -4985,7 +4985,10 @@
                 var oChild = aChildren[nChild];
                 var oDur = oChild.getDur();
                 if(oDur.isSpecified()) {
-                    nDur = Math.max(nDur, oDur.getVal());
+					
+					var oAttr = oChild.getAttributesObject();
+					var nDelay = oAttr.getDelay(false);
+                    nDur = Math.max(nDur, oDur.getVal() + nDelay);
                 }
             }
         }
