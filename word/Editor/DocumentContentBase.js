@@ -2280,3 +2280,7 @@ CDocumentContentBase.prototype.GetAllOleObjects = function(sPluginId, arrObjects
 	}
 	return arrObjects;
 };
+CDocumentContentBase.prototype.InsertContent = function(oSelectedContent, oAnchorPos)
+{
+	return oSelectedContent.Insert(oAnchorPos);
+};

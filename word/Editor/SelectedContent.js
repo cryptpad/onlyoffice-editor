@@ -829,13 +829,10 @@
 
 		oParent.AddToContent(nInParentPos + 1, oNewRun);
 
-		// TODO: Заглушка для переноса автофигур и картинок. Когда разрулим ситуацию так, чтобы когда у нас
-		//       в текста была выделена автофигура выделение шло для автофигур, тогда здесь можно будет убрать.
-		let isSelect = (this.MoveDrawing ? false : this.Select);
-
 		let oParagraph     = this.Elements[0].Element;
 		let nElementsCount = oParagraph.Content.length - 1; // Последний ран с para_End не добавляем
 
+		let isSelect = this.Select && !this.MoveDrawing;
 		for (let nPos = 0; nPos < nElementsCount; ++nPos)
 		{
 			let oItem = oParagraph.GetElement(nPos);
@@ -847,7 +844,12 @@
 				oItem.RemoveSelection();
 		}
 
-		if (isSelect)
+		if (this.MoveDrawing)
+		{
+			if (this.DrawingObjects.length)
+				this.DrawingObjects[0].SelectAsDrawing();
+		}
+		else if (isSelect)
 		{
 			oParent.Selection.Use      = true;
 			oParent.Selection.StartPos = nInParentPos + 1;

@@ -24149,7 +24149,7 @@ CDocument.prototype.AddCaption = function(oPr)
                     oNewDrawing.Set_XYForAdd(oDrawing.X, Y, oNearestPos, oDrawing.PageNum);
                     oShape.setBodyPr(oBodyPr);
                     oNewDrawing.Set_Parent(oNearestPos.Paragraph);
-					oNewDrawing.Add_ToDocument(oNearestPos, false);
+					oNewDrawing.AddToDocument(oNearestPos);
 					oNewDrawing.CheckWH();
 					var oContent = oShape.getDocContent();
 					NewParagraph = oContent.Content[0];
