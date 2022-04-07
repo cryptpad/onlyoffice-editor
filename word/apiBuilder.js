@@ -17146,11 +17146,6 @@
 		return mm * 36000.0;
 	}
 
-	function private_MM2EMU(MM)
-	{
-		return MM * 36000.0;
-	}
-
 	function private_GetHps(hps)
 	{
 		return Math.ceil(hps) / 2.0;
