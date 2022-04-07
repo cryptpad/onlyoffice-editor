@@ -11180,12 +11180,7 @@
     CAnimSandwich.prototype.getDrawing = function() {
         return AscCommon.g_oTableId.Get_ById(this.drawingId);
     };
-    CAnimSandwich.prototype.getAttributesMap = function() {
-        if(this.cachedAttributes) {
-            return this.cachedAttributes;
-        }
-
-        
+    CAnimSandwich.prototype.checkRemoveOldAnim = function() {
         var oEntrEffect = null, oExitEffect = null;
         for(var nAnim = 0; nAnim < this.animations.length; ++nAnim) {
             var oAnim = this.animations[nAnim];
@@ -11198,6 +11193,9 @@
                 if(oAttrObject && AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass) {
                     oEntrEffect = oEffect;
                 }
+                if(oEntrEffect && oExitEffect) {
+                    break;
+                }
             }
         }
         var oEffectToDelete = null;
@@ -11208,7 +11206,7 @@
             if(!oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
                 oEffectToDelete = oExitEffect;
             }
-            
+
             if(oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
                 if(oEntrEffect.startTick < oExitEffect.startTick) {
                     oEffectToDelete = oEntrEffect;
@@ -11226,6 +11224,19 @@
                     this.animations.splice(nAnim, 1);
                 }
             }
+            return true;
+        }
+        return false;
+    };
+    CAnimSandwich.prototype.getAttributesMap = function() {
+        if(this.cachedAttributes) {
+            return this.cachedAttributes;
+        }
+
+        var bCheckRemove = true;
+
+        while(bCheckRemove) {
+            bCheckRemove = this.checkRemoveOldAnim();
         }
 
 
