@@ -1699,6 +1699,9 @@
     CTiming.prototype.Refresh_RecalcData2 = function() {
         AscCommon.History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});
     };
+    CTiming.prototype.Refresh_RecalcData = function() {
+        this.Refresh_RecalcData2();
+    };
     CTiming.prototype.recalculate = function() {
     };
     CTiming.prototype.getSlideIndex = function() {
@@ -1883,21 +1886,20 @@
         }
         return oTmRoot.getAllAnimEffects();
     };
-    CTiming.prototype.checkTimeRoot = function() {
-        if(!this.tnLst) {
-            this.setTnLst(new CTnLst());
-        }
+    CTiming.prototype.createTimingRoot = function() {
         var oTnContainer, oCTn;
+        this.setTnLst(new CTnLst());
+        oTnContainer = new CPar();
+        oCTn = this.createCCTn("indefinite", null, null, AscFormat.NODE_TYPE_TMROOT, RESTART_TYPE_NEVER, true);
+        oTnContainer.setCTn(oCTn);
+        this.tnLst.addToLst(0, oTnContainer);
+    };
+    CTiming.prototype.checkTimeRoot = function() {
         var oTmRoot = this.getTimingRootNode();
-        if(!oTmRoot) {
-            //create timing root
-            oTnContainer = new CPar();
-            oCTn = this.createCCTn("indefinite", null, null, AscFormat.NODE_TYPE_TMROOT, RESTART_TYPE_NEVER, true);
-            oTnContainer.setCTn(oCTn);
-            this.tnLst.addToLst(0, oTnContainer);
-            oTmRoot = oTnContainer;
+        if(!this.tnLst || !oTmRoot) {
+            this.createTimingRoot();
         }
-        return oTmRoot;
+        return this.getTimingRootNode();
     };
     CTiming.prototype.checkMainSequence = function() {
         var oTnContainer, oCTn;
@@ -1991,7 +1993,7 @@
             aMainSeq = aSeqs[0];
         }
         aMainSeq.push(oEffect);
-        this.buildTree(aSeqs);
+        return this.buildTree(aSeqs);
     };
     CTiming.prototype.addToInteractiveSequence = function(oEffect, sObjectId) {
         var aSeqs = this.getEffectsSequences();
@@ -2007,7 +2009,7 @@
             aSeqs.push(aMainSeq);
         }
         aMainSeq.push(oEffect);
-        this.buildTree(aSeqs);
+        return this.buildTree(aSeqs);
     };
     CTiming.prototype.addAnimationToSelectedObjects = function(nPresetClass, nPresetId, nPresetSubtype) {
         var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
@@ -2069,17 +2071,17 @@
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
                                 oNewEffect.cTn.changeDelay(oEffect.cTn.getDelay(true));
-                                oEffect.setCTn(oNewEffect.cTn.createDuplicate());
-                                oEffect.select();
+                                oNewEffect.select();
+                                aSeq[nEffectIdx] = oNewEffect;
                                 bNeedRebuild = true;
-                                aAddedEffects.push(oEffect);
+                                aAddedEffects.push(oNewEffect);
                             }
                         }
                     }
                 }
             }
             if(bNeedRebuild) {
-                this.buildTree(aSeqs);
+                aAddedEffects = this.buildTree(aSeqs);
             }
         }
         else {
@@ -2134,8 +2136,8 @@
         if(!oEffect) {
             return null;
         }
-        this.addToMainSequence(oEffect);
-        oEffect.select();
+        oEffect = this.addToMainSequence(oEffect)[0];
+        oEffect && oEffect.select();
         return oEffect;
     };
     CTiming.prototype.createPar = function(nFill, sDelay) {
@@ -2342,6 +2344,7 @@
         var nEffect;
         var nSeq;
         var oCont1;//containers by depth
+        var aAddedEffects = [];
         if(bRestedDelayShift !== false) {
             //substract delay shift from afterEffect nodes
             for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
@@ -2352,6 +2355,7 @@
                }
            }
         }
+        this.createTimingRoot();
         var oTmRoot = this.getTimingRootNode();
         if(oTmRoot) {
             oTmRoot.clearChildTnLst();
@@ -2373,11 +2377,23 @@
                 }
                 for(nEffect = 1; nEffect < aCurSequence.length; ++nEffect) {
                     oEffect = aCurSequence[nEffect];
-                    oCont1.addEffectToTheEndOfSeq(oEffect);
+                    var oEffectToAdd;
+                    if(oEffect.parent) {
+                        oEffectToAdd = oEffect.createDuplicate();
+                    }
+                    else {
+                        oEffectToAdd = oEffect;
+                        aAddedEffects.push(oEffect);
+                    }
+                    if(oEffect.selected) {
+                        oEffectToAdd.selected = true;
+                    }
+                    oCont1.addEffectToTheEndOfSeq(oEffectToAdd);
                 }
             }
         }
         this.updateNodesIDs();
+        return aAddedEffects;
     };
     CTiming.prototype.executeWithCheckDelay = function(fCallback, aEffects) {
         var aDelays = [];
@@ -2806,21 +2822,13 @@
     CTiming.prototype.checkCorrect = function() {
         var oRoot;
         if(this.tnLst) {
-            var aList = this.tnLst.list;
-            if(aList.length !== 1) {
+            if(!this.tnLst.CheckCorrect()) {
                 this.setTnLst(null);
                 this.setBldLst(null);
                 return;
             }
-            else {
-                oRoot = aList[0];
-                var oAttr = oRoot.getAttributesObject();
-                if(!oAttr || oAttr.nodeType !== AscFormat.NODE_TYPE_TMROOT) {
-                    this.setTnLst(null);
-                    this.setBldLst(null);
-                    return;
-                } 
-            }
+            var aList = this.tnLst.list;
+            oRoot = aList[0];
             if(oRoot) {
                 var aToRemove = [];
                 oRoot.traverseTimeNodes(function(oTimeNode) {
@@ -3141,7 +3149,20 @@
         CChildTnLst.call(this);
     }
     InitClass(CTnLst, CChildTnLst, AscDFH.historyitem_type_TnLst);
-
+    CTnLst.prototype.CheckCorrect = function() {
+        var aList = this.list;
+        if(aList.length !== 1) {
+            return false;
+        }
+        else {
+            var oRoot = aList[0];
+            var oAttr = oRoot.getAttributesObject();
+            if(!oAttr || oAttr.nodeType !== AscFormat.NODE_TYPE_TMROOT) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     function CTavLst() {
         CCommonTimingList.call(this);
@@ -7706,6 +7727,9 @@
     CTimeNodeContainer.prototype.fillObject = function(oCopy, oIdMap) {
         if(this.cTn !== null) {
             oCopy.setCTn(this.cTn.createDuplicate(oIdMap));
+        }
+        if(this.selected) {
+            oCopy.selected = true;
         }
     };
     CTimeNodeContainer.prototype.privateWriteAttributes = function(pWriter) {

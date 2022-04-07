@@ -8182,13 +8182,21 @@ CPresentation.prototype.Notes_Draw = function (SlideIndex, graphics) {
 CPresentation.prototype.Create_NewHistoryPoint = function (Description) {
     this.History.Create_NewPoint(Description);
 };
-
+CPresentation.prototype.IsFastMultipleUsers = function() {
+    return !!(this.Api && this.CollaborativeEditing && true === this.CollaborativeEditing.Is_Fast() && true !== this.CollaborativeEditing.Is_SingleUser());
+};
+CPresentation.prototype.CanAddChangesToHistory = function() {
+    return this.History.CanAddChanges();
+};
+CPresentation.prototype.IsEditingInFastMultipleUsers = function() {
+    return this.IsFastMultipleUsers() && this.CanAddChangesToHistory();
+};
 CPresentation.prototype.Document_Undo = function (Options) {
 
     if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
         return;
 
-    if (true !== this.History.Can_Undo() && this.Api && this.CollaborativeEditing && true === this.CollaborativeEditing.Is_Fast() && true !== this.CollaborativeEditing.Is_SingleUser()) {
+    if (true !== this.History.Can_Undo() && this.IsFastMultipleUsers()) {
         if (this.CollaborativeEditing.CanUndo() && true === this.Api.canSave) {
             this.CollaborativeEditing.Set_GlobalLock(true);
             this.Api.forceSaveUndoRequest = true;
@@ -10925,7 +10933,7 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
             this.Document_UpdateInterfaceState();
             if(bPreview && aAddedEffects.length > 0) {
                 oSlide.graphicObjects.resetSelection();
-                oSlide.timing.resetSelection();
+                this.GetCurTiming().resetSelection();
                 for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
                     aAddedEffects[nEffect].select();
                 }
