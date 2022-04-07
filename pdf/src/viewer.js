@@ -2013,6 +2013,8 @@
 				if ((pageCoords.y + pageCoords.h) > y)
 					break;
 			}
+			if (pageIndex > this.endVisiblePage)
+				pageIndex = this.endVisiblePage;
 
 			if (!pageCoords)
 				pageCoords = {x:0, y:0, w:1, h:1};
