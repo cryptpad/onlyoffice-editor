@@ -344,8 +344,14 @@ function MoveShapeImageTrack(originalObject)
                 var prSet = point.getPrSet();
                 var originalPosX = this.originalObject.x;
                 var originalPosY = this.originalObject.y;
-                var defaultExtX = this.originalObject.extX;
-                var defaultExtY = this.originalObject.extY;
+                var defaultExtX, defaultExtY;
+                if (AscFormat.checkNormalRotate(this.originalObject.rot)) {
+                    defaultExtX = this.originalObject.spPr.xfrm.extX;
+                    defaultExtY = this.originalObject.spPr.xfrm.extY;
+                } else {
+                    defaultExtX = this.originalObject.spPr.xfrm.extY;
+                    defaultExtY = this.originalObject.spPr.xfrm.extX;
+                }
                 if (prSet) {
                     if (prSet.custScaleX) {
                         defaultExtX /= prSet.custScaleX;
@@ -356,14 +362,26 @@ function MoveShapeImageTrack(originalObject)
                     if (prSet.custLinFactNeighborX) {
                         originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
                     }
-                    if (prSet.custLinFactNeighborY) {
+                    if (prSet.custLinFactNeighborY) { // TODO: who is Neighbor?
                         originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
                     }
+                    if (prSet.custLinFactX) {
+                        originalPosX -= (prSet.custLinFactX) * defaultExtX;
+                    }
+                    if (prSet.custLinFactY) {
+                        originalPosY -= (prSet.custLinFactY) * defaultExtY;
+                    }
                     if (this.x !== this.originalObject.x) {
-                        prSet.setCustLinFactNeighborX(((this.x - originalPosX) / defaultExtX));
+                        if (prSet.custLinFactNeighborX) {
+                            prSet.setCustLinFactNeighborX(null);
+                        }
+                        prSet.setCustLinFactX(((this.x - originalPosX) / defaultExtX));
                     }
                     if (this.y !== this.originalObject.y) {
-                        prSet.setCustLinFactNeighborY(((this.y - originalPosY) / defaultExtY));
+                        if (prSet.custLinFactNeighborY) {
+                            prSet.setCustLinFactNeighborY(null);
+                        }
+                        prSet.setCustLinFactY(((this.y - originalPosY) / defaultExtY));
                     }
                 }
             }
