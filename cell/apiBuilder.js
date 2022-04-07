@@ -211,7 +211,7 @@
 	 * */
 
 	/**
-     * Text transform preset
+     * Text transform type.
 	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown"
 	 * | "textCanUp" | "textCascadeDown" | "textCascadeUp" | "textChevron" | "textChevronInverted" | "textCircle" | "textCirclePour"
 	 * | "textCurveDown" | "textCurveUp" | "textDeflate" | "textDeflateBottom" | "textDeflateInflate" | "textDeflateInflateDeflate" | "textDeflateTop"
@@ -221,12 +221,20 @@
 	 * */
 
 	/**
-	 * Axie position in chart.
-	 * @typedef {("top" | "bottom" | "right" | "left")} AxiePos
+	 * Axis position in the chart.
+	 * @typedef {("top" | "bottom" | "right" | "left")} AxisPos
 	 */
 
 	/**
-	 * Class representing a base class for color types.
+	 * Standard numeric format.
+	 * @typedef {("General" | "0" | "0.00" | "#,##0" | "#,##0.00" | "0%" | "0.00%" |
+	 * "0.00E+00" | "# ?/?" | "# ??/??" | "m/d/yyyy" | "d-mmm-yy" | "d-mmm" | "mmm-yy" | "h:mm AM/PM" |
+	 * | "h:mm:ss AM/PM" | "h:mm" | "h:mm:ss" | "m/d/yyyy h:mm" | "#,##0_);(#,##0)" | "#,##0_);[Red](#,##0)" | 
+	 * "#,##0.00_);(#,##0.00)" | "#,##0.00_);[Red](#,##0.00)" | "mm:ss" | "[h]:mm:ss" | "mm:ss.0" | "##0.0E+0" | "@")} NumFormat
+	 */
+
+	/**
+	 * Class representing a base class for the color types.
 	 * @constructor
 	 */
 	function ApiColor(color) {
@@ -554,7 +562,7 @@
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
 	 * @param {number} nSheet - The sheet index.
-	 * @param {boolean} [bWithFormat=false] - indicates that data will be received with the format.
+	 * @param {boolean} [bWithFormat=false] - Specifies if the data will be received with the format.
 	 * @returns {string[][]}
 	 */
 	Api.prototype.private_GetMailMergeMap = function (nSheet, bWithFormat) {
@@ -608,7 +616,7 @@
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
 	 * @param {number} nSheet - The sheet index.
-	 * @param {boolean} [bWithFormat=false] - indicates that data will be received with the format.
+	 * @param {boolean} [bWithFormat=false] - Specifies if the data will be received with the format.
 	 * @returns {string[][]}
 	 */
 	Api.prototype.GetMailMergeData = function(nSheet, bWithFormat) {
@@ -1442,21 +1450,21 @@
 	};
 
 	/**
-	 * Adds an word art to the current sheet with the parameters specified.
+	 * Adds a Text Art object to the current sheet with the parameters specified.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @param {ApiTextPr} [oTextPr=Api.CreateTextPr()] - The text properties.
-	 * @param {string} [sText="Your text here"] - text for text art.
+	 * @param {string} [sText="Your text here"] - The text for the Text Art object.
 	 * @param {TextTransofrm} [sTransform="textNoShape"] - Text transform type.
-	 * @param {ApiFill} [oFill=Api.CreateNoFill()] - The color or pattern used to fill the shape.
-	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the shape shadow.
-	 * @param {number} [nRotAngle=0] - Rotation angle
-	 * @param {EMU} [nWidth=1828800] - Word atr width
-	 * @param {EMU} [nHeight=1828800] - Word atr heigth
-	 * @param {number} [nFromCol=0] - The number of the column where the beginning of the shape will be placed.
-	 * @param {number} [nFromRow=0] - The number of the row where the beginning of the shape will be placed.
-     * @param {EMU} [nColOffset=0] - The offset from the nFromCol column to the left part of the shape measured in English measure units.
-	 * @param {EMU} [nRowOffset=0] - The offset from the nFromRow row to the upper part of the shape measured in English measure units.
+	 * @param {ApiFill} [oFill=Api.CreateNoFill()] - The color or pattern used to fill the Text Art object.
+	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the Text Art object shadow.
+	 * @param {number} [nRotAngle=0] - Rotation angle.
+	 * @param {EMU} [nWidth=1828800] - Text Art width measured in English measure units.
+	 * @param {EMU} [nHeight=1828800] - Text Art heigth measured in English measure units.
+	 * @param {number} [nFromCol=0] - The column number where the beginning of the Text Art object will be placed.
+	 * @param {number} [nFromRow=0] - The row number where the beginning of the Text Art object will be placed.
+     * @param {EMU} [nColOffset=0] - The offset from the nFromCol column to the left part of the Text Art object measured in English measure units.
+	 * @param {EMU} [nRowOffset=0] - The offset from the nFromRow row to the upper part of the Text Art object measured in English measure units.
 	 * @returns {ApiDrawing}
 	 */
 	ApiWorksheet.prototype.AddWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight, nFromCol, nFromRow, nColOffset, nRowOffset) {
@@ -1572,7 +1580,7 @@
 	};
 
 	/**
-	 * Gets all drawings from a sheet.
+	 * Returns all drawings from the current sheet.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiDrawing[]}.
@@ -1590,7 +1598,7 @@
 	};
 
 	/**
-	 * Gets all images from a sheet.
+	 * Returns all images from the current sheet.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiImage[]}.
@@ -1608,7 +1616,7 @@
 	};
 
 	/**
-	 * Gets all shapes from a sheet.
+	 * Returns all shapes from the current sheet.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiShape[]}.
@@ -1626,7 +1634,7 @@
 	};
 
 	/**
-	 * Gets all charts from a sheet.
+	 * Returns all charts from the current sheet.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiChart[]}.
@@ -3065,7 +3073,7 @@
 	};
 
 	/**
-	 * Gets the width of drawing. 
+	 * Returns the width of the current drawing.
 	 * @memberof ApiDrawing
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @returns {EMU}
@@ -3075,7 +3083,7 @@
 		return private_MM2EMU(this.Drawing.GetWidth());
 	};
 	/**
-	 * Gets the height of drawing. 
+	 * Returns the height of the current drawing.
 	 * @memberof ApiDrawing
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @returns {EMU}
@@ -3085,10 +3093,10 @@
 		return private_MM2EMU(this.Drawing.GetHeight());
 	};
 	/**
-     * Gets the lock type of drawing.
+     * Returns the lock value for the specified lock type of the current drawing.
      * @typeofeditors ["CPE"]
 	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
-	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock typeof string format
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - Lock type in the string format.
      * @returns {bool}
      */
 	ApiDrawing.prototype.GetLockValue = function(sType)
@@ -3105,11 +3113,11 @@
 	};
 
 	/**
-     * Sets the lock type of drawing.
+     * Sets the lock value to the specified lock type of the current drawing.
      * @typeofeditors ["CPE"]
 	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
-	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock type in string format
-     * @param {bool} bValue - determines the value for the specified lock
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - Lock type in the string format.
+     * @param {bool} bValue - Specifies if the specified lock is applied to the current drawing.
 	 * @returns {bool}
      */
 	ApiDrawing.prototype.SetLockValue = function(sType, bValue)
@@ -3497,10 +3505,10 @@
 	};
 
 	/**
-	 * Sets style to chart by style id.
+	 * Sets a style to the current chart by style ID.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
-	 * @param nStyleId - one of the styles available in the editor.
+	 * @param nStyleId - One of the styles available in the editor.
 	 * @returns {boolean}
 	*/
 	ApiChart.prototype.ApplyChartStyle = function(nStyleId)
@@ -3521,14 +3529,14 @@
 	};
 	
 	/**
-	 * Sets values to seria by range.
+	 * Sets values from the specified range to the specified series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CSE"]
-	 * @param {string} sRange - The range of cells from the sheet.
-	 * e.g. "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column.
-	 * e.g "A1:A5" - must be a single cell, row or column.
-	 * e.g "Example seria"
-	 * @param {number} nSeria - number of seria.
+	 * @param {string} sRange - A range of cells from the sheet with series values. For example:
+	 * * "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column,
+	 * * "A1:A5" - must be a single cell, row or column,
+	 * * "Example series".
+	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriaValues = function(sRange, nSeria)
@@ -3537,14 +3545,14 @@
 	};
 
 	/**
-	 * Sets values to seria by range.
+	 * Sets the x-axis values from the specified range to the specified series. It is used with the scatter charts only.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CSE"]
-	 * @param {string} sRange - The range of cells from the sheet.
-	 * e.g. "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column.
-	 * e.g "A1:A5" - must be a single cell, row or column.
-	 * e.g "Example seria"
-	 * @param {number} nSeria - number of seria.
+	 * @param {string} sRange - A range of cells from the sheet with series x-axis values. For example:
+	 * * "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column,
+	 * * "A1:A5" - must be a single cell, row or column,
+	 * * "Example series".
+	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriaXValues = function(sRange, nSeria)
@@ -3553,14 +3561,14 @@
 	};
 
 	/**
-	 * Sets name to seria.
+	 * Sets a name to the specified series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CSE"]
-	 * @param {string} sNameRange - Can be a range of cells or usual text.
-	 * e.g. "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column.
-	 * e.g "A1:A5" - must be a single cell, row or column.
-	 * e.g "Example seria"
-	 * @param {number} nSeria - number of seria.
+	 * @param {string} sNameRange - The series name. Can be a range of cells or usual text. For example:
+	 * * "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column,
+	 * * "A1:A5" - must be a single cell, row or column,
+	 * * "Example series".
+	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriaName = function(sNameRange, nSeria)
@@ -3569,12 +3577,12 @@
 	};
 
 	/**
-	 * Sets categories's formula.
+	 * Sets a range with the category values to the current chart.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CSE"]
-	 * @param {string} sName - The range of cells from the sheet.
-	 * e.g. "'sheet 1'!$A$2:$A$5".
-	 * e.g "A1:A5".
+	 * @param {string} sRange - A range of cells from the sheet with the category names. For example:
+	 * * "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column,
+	 * * "A1:A5" - must be a single cell, row or column.
 	 */
 	ApiChart.prototype.SetCatFormula = function(sRange)
 	{
@@ -3582,20 +3590,19 @@
 	};
 
 	/**
-	 * Adds new seria to chart.
+	 * Adds a new series to the current chart.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CSE"]
-	 * @param {string} sName - The range of cells from the sheet or text. Can be a range or usual text.
-	 * e.g. "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column.
-	 * e.g "A1:A5" - must be a single cell, row or column.
-	 * e.g "Example seria"
-	 * @param {string} sValuesRange - The range of cells from the sheet.
-	 * e.g. "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column.
-	 * e.g "A1:A5" - must be a single cell, row or column.
-	 * @param {string} [sXValuesRange=undefined] - The range of cells from the sheet.
-	 * Used with scatter charts. 
-	 * e.g. "'sheet 1'!$A$2:$A$5".
-	 * e.g "A1:A5".
+	 * @param {string} sNameRange - The series name. Can be a range of cells or usual text. For example:
+	 * * "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column,
+	 * * "A1:A5" - must be a single cell, row or column,
+	 * * "Example series".
+	 * @param {string} sValuesRange - A range of cells from the sheet with series values. For example:
+	 * * "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column,
+	 * * "A1:A5" - must be a single cell, row or column.
+	 * @param {string} [sXValuesRange=undefined] - A range of cells from the sheet with series x-axis values. It is used with the scatter charts only. For example:
+	 * * "'sheet 1'!$A$2:$A$5" - must be a single cell, row or column,
+	 * * "A1:A5" - must be a single cell, row or column.
 	 */
 	ApiChart.prototype.AddSeria = function(sNameRange, sValuesRange, sXValuesRange)
 	{
@@ -3608,10 +3615,10 @@
 	};
 
 	/**
-	 * Removes specified seria.
+	 * Removes the specified series from the current chart.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
-	 * @param {number} nSeria - number of seria.
+	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.RemoveSeria = function(nSeria)
@@ -3620,7 +3627,7 @@
 	};
 
 	/**
-	 * Sets fill to plot area.
+	 * Sets the fill to the chart plot area.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the plot area.
@@ -3636,7 +3643,7 @@
 	};
 
 	/**
-	 * Sets outline to plot area of the chart.
+	 * Sets the outline to the chart plot area.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the plot area outline.
@@ -3652,12 +3659,12 @@
 	};
 
 	/**
-	 * Sets fill to specified series.
+	 * Sets the fill to the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the series.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {boolean} [bAll=false] - whether to apply to all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {boolean} [bAll=false] - Specifies if the fill will be applied to all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriesFill = function(oFill, nSeries, bAll)
@@ -3669,12 +3676,12 @@
 	};
 
 	/**
-	 * Sets outline to specified series.
+	 * Sets the outline to the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the series outline.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {boolean} [bAll=false] - whether to apply to all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {boolean} [bAll=false] - Specifies if the outline will be applied to all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriesOutLine = function(oStroke, nSeries, bAll)
@@ -3686,13 +3693,13 @@
 	};
 
 	/**
-	 * Sets fill to data point in specified series.
+	 * Sets the fill to the data point in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the data point.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nDataPoint - The index of the data point in the specified series in chart.
-	 * @param {boolean} [bAllSeries=false] - whether to apply to specified datapoint in all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
+	 * @param {boolean} [bAllSeries=false] - Specifies if the fill will be applied to the specified data point in all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetDataPointFill = function(oFill, nSeries, nDataPoint, bAllSeries)
@@ -3704,13 +3711,13 @@
 	};
 
 	/**
-	 * Sets outline to data point in specified series.
+	 * Sets the outline to the data point in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the data point outline.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nDataPoint - The index of the data point in the specified series in chart.
-	 * @param {boolean} bAllSeries - whether to apply to specified datapoint in all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
+	 * @param {boolean} bAllSeries - Specifies if the outline will be applied to the specified data point in all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetDataPointOutLine = function(oStroke, nSeries, nDataPoint, bAllSeries)
@@ -3722,13 +3729,13 @@
 	};
 
 	/**
-	 * Sets fill to marker in specified series.
+	 * Sets the fill to the marker in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the marker.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nMarker - The index of the marker in the specified series in chart.
-	 * @param {boolean} [bAllMarkers=false] - whether to apply to all markers in specified series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nMarker - The index of the marker in the specified chart series.
+	 * @param {boolean} [bAllMarkers=false] - Specifies if the fill will be applied to all markers in the specified chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetMarkerFill = function(oFill, nSeries, nMarker, bAllMarkers)
@@ -3740,13 +3747,13 @@
 	};
 
 	/**
-	 * Sets outline to marker in specified series.
+	 * Sets the outline to the marker in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the marker outline.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nMarker - The index of the marker in the specified series in chart.
-	 * @param {boolean} [bAllMarkers=false] - whether to apply to all markers in specified series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nMarker - The index of the marker in the specified chart series.
+	 * @param {boolean} [bAllMarkers=false] - Specifies if the outline will be applied to all markers in the specified chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetMarkerOutLine = function(oStroke, nSeries, nMarker, bAllMarkers)
@@ -3758,7 +3765,7 @@
 	};
 
 	/**
-	 * Sets fill to title.
+	 * Sets the fill to the chart title.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the title.
@@ -3773,7 +3780,7 @@
 	};
 
 	/**
-	 * Sets outline to title.
+	 * Sets the outline to the chart title.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the title outline.
@@ -3788,7 +3795,7 @@
 	};
 
 	/**
-	 * Sets fill to legend.
+	 * Sets the fill to the chart legend.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the legend.
@@ -3803,7 +3810,7 @@
 	};
 
 	/**
-	 * Sets outline to legend.
+	 * Sets the outline to the chart legend.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the legend outline.
@@ -3818,12 +3825,11 @@
 	};
 
 	/**
-	 * Sets number format to value axie.
-	 * Used for values axies.
+	 * Sets the specified numeric format to the axis values.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE", "CPE", "CSE"]
-	 * @param {NumFormat | String} sFormat - number format (can be custom format).
-	 * @param {AxiePos} - axie position.
+	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
+	 * @param {AxisPos} - Axis position.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetAxieNumFormat = function(sFormat, sAxiePos)
