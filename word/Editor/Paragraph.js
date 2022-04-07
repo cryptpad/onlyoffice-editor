@@ -12857,8 +12857,12 @@ Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 /**
  * Присоединяем содержимое параграфа oPara до содержимого текущего параграфа
  * @param oPara {Paragraph}
+ * @param nSelection {number} -1 - выделяем левую часть
+ *                             1 - выделяем правую часть
+ *                             0 - ставим курсор в место разделения
+ *                             null | undefined - ничего не делаем
  */
-Paragraph.prototype.ConcatBefore = function(oPara)
+Paragraph.prototype.ConcatBefore = function(oPara, nSelection)
 {
 	this.DeleteCommentOnRemove = false;
 	oPara.DeleteCommentOnRemove = false;
@@ -12867,7 +12871,7 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	oPara.RemoveParaEnd();
 
 	// Подправим позиции для NearPos в текущем параграфе
-	for (var nPos = 0, nCount = this.NearPosArray.length; nPos < nCount; ++nPos)
+	for (let nPos = 0, nCount = this.NearPosArray.length; nPos < nCount; ++nPos)
 	{
 		var oParaNearPos = this.NearPosArray[nPos];
 
@@ -12875,7 +12879,7 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	}
 
 	// Если в параграфе oPara были точки NearPos, за которыми нужно следить перенесем их в этот параграф
-	for (var nPos = 0, nCount = oPara.NearPosArray.length; nPos < nCount; ++nPos)
+	for (let nPos = 0, nCount = oPara.NearPosArray.length; nPos < nCount; ++nPos)
 	{
 		var oParaNearPos = oPara.NearPosArray[nPos];
 
@@ -12884,8 +12888,8 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 		this.NearPosArray.push(oParaNearPos);
 	}
 
-	// Добавляем содержимое второго параграфа к первому
-	for (var nPos = 0, nCount = oPara.Content.length; nPos < nCount; ++nPos)
+	let nCount = oPara.Content.length;
+	for (let nPos = 0; nPos < nCount; ++nPos)
 	{
 		this.AddToContent(nPos, oPara.Content[nPos].Copy());
 	}
@@ -12899,7 +12903,39 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	this.DeleteCommentOnRemove = true;
 	oPara.DeleteCommentOnRemove = true;
 
-	oPara.CopyPr(this);
+	if (undefined !== nSelection && null !== nSelection)
+	{
+		this.RemoveSelection();
+		if (0 === nSelection)
+		{
+			this.CurPos.ContentPos = nCount;
+			this.Content[nCount].MoveCursorToStartPos();
+		}
+		else
+		{
+			let nStartPos, nEndPos;
+			if (nSelection < 0)
+			{
+				nStartPos = 0;
+				nEndPos   = nCount - 1;
+			}
+			else
+			{
+				nStartPos = nCount;
+				nEndPos   = this.Content.length - 1;
+			}
+
+			for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+			{
+				this.Content[nPos].SelectAll(1);
+			}
+
+			this.Selection.Use      = true;
+			this.Selection.StartPos = nStartPos;
+			this.Selection.EndPos   = nEndPos;
+			this.CurPos.ContentPos  = nEndPos;
+		}
+	}
 };
 /**
  * Копируем настройки параграфа и последние текстовые настройки в новый параграф

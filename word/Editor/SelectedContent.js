@@ -200,62 +200,6 @@
 				this.private_CopyComments();
 		}
 	};
-	CSelectedContent.prototype.CheckInsertSignatures = function()
-	{
-		var aDrawings        = this.DrawingObjects;
-		var nDrawing, oDrawing, oSp;
-		var sLastSignatureId = null;
-		for (nDrawing = 0; nDrawing < aDrawings.length; ++nDrawing)
-		{
-			oDrawing = aDrawings[nDrawing];
-			oSp      = oDrawing.GraphicObj;
-			if (oSp && oSp.signatureLine)
-			{
-				oSp.setSignature(oSp.signatureLine);
-				sLastSignatureId = oSp.signatureLine.id;
-			}
-		}
-		if (sLastSignatureId)
-		{
-			editor.sendEvent("asc_onAddSignature", sLastSignatureId);
-		}
-	};
-	CSelectedContent.prototype.CheckInsertInlineDrawing = function()
-	{
-		if (this.MoveDrawing)
-			return;
-
-		//correct size of inline image when SelectedContent contains the only one inline image
-		if (1 === this.DrawingObjects.length && 1 === this.Elements.length)
-		{
-			var oParaDrawing = this.DrawingObjects[0];
-			if (oParaDrawing.IsInline())
-			{
-				var oElement        = this.Elements[0];
-				var oContentElement = oElement.Element;
-				if (oContentElement.IsParagraph())
-				{
-					var bAdditionalContent = oContentElement.CheckRunContent(function(oRun)
-					{
-						var aContent = oRun.Content;
-						for (var nIdx = 0; nIdx < aContent.length; ++nIdx)
-						{
-							var oItem = aContent[nIdx];
-							if (oItem.Type !== para_End && oItem.Type !== para_Drawing)
-							{
-								return true;
-							}
-						}
-						return false;
-					});
-					if (!bAdditionalContent)
-					{
-						oParaDrawing.CheckFitToColumn();
-					}
-				}
-			}
-		}
-	};
 	CSelectedContent.prototype.SetInsertOptionForTable = function(nType)
 	{
 		this.InsertOptions.Table = nType;
@@ -640,6 +584,8 @@
 	};
 	CSelectedContent.prototype.private_CopyComments = function()
 	{
+		let oLogicDocument = this.LogicDocument;
+
 		var oCommentsManager = this.LogicDocument.GetCommentsManager();
 		for (let sId in this.CommentsMarks)
 		{
@@ -687,6 +633,56 @@
 
 		if (this.ForceInline)
 			this.ConvertToInline();
+	};
+	CSelectedContent.prototype.private_AdjustSizeForInlineDrawing = function()
+	{
+		if (this.MoveDrawing)
+			return;
+
+		if (1 === this.DrawingObjects.length && 1 === this.Elements.length)
+		{
+			let oParaDrawing = this.DrawingObjects[0];
+			if (oParaDrawing.IsInline())
+			{
+				let oElement = this.Elements[0].Element;
+				if (oElement.IsParagraph())
+				{
+					let isAdditionalContent = oElement.CheckRunContent(function(oRun)
+					{
+						for (let nPos = 0, nCount = oRun.GetElementsCount(); nPos < nCount; ++nPos)
+						{
+							let oItem = oRun.GetElement(nPos);
+							if (oItem && !oItem.IsParaEnd() && !oItem.IsDrawing())
+								return true;
+						}
+						return false;
+					});
+
+					if (!isAdditionalContent)
+						oParaDrawing.CheckFitToColumn();
+				}
+			}
+		}
+	};
+	CSelectedContent.prototype.private_CheckInsertSignatures = function()
+	{
+		var aDrawings        = this.DrawingObjects;
+		var nDrawing, oDrawing, oSp;
+		var sLastSignatureId = null;
+		for (nDrawing = 0; nDrawing < aDrawings.length; ++nDrawing)
+		{
+			oDrawing = aDrawings[nDrawing];
+			oSp      = oDrawing.GraphicObj;
+			if (oSp && oSp.signatureLine)
+			{
+				oSp.setSignature(oSp.signatureLine);
+				sLastSignatureId = oSp.signatureLine.id;
+			}
+		}
+		if (sLastSignatureId)
+		{
+			editor.sendEvent("asc_onAddSignature", sLastSignatureId);
+		}
 	};
 	CSelectedContent.prototype.private_IsInlineInsert = function()
 	{
@@ -883,6 +879,11 @@
 
 		if (oParent.CorrectContent)
 			oParent.CorrectContent();
+
+		if (this.LogicDocument && this.LogicDocument.IsDocumentEditor())
+			this.private_AdjustSizeForInlineDrawing();
+
+		this.private_CheckInsertSignatures();
 	};
 	CSelectedContent.prototype.private_InsertCommon = function()
 	{
@@ -895,137 +896,88 @@
 		if (!oDocContent || oParagraph !== oDocContent.GetElement(nDstIndex))
 			return;
 
-		let nElementsCount = this.Elements.length;
-
-		let isConcatS = this.Elements[0].Element.IsParagraph();
-		let isConcatE = this.Elements[nElementsCount - 1].Element.IsParagraph() &&  this.Elements[nElementsCount - 1].SelectedAll;
-
 		oParagraph.RemoveSelection();
 		oParagraph.MoveCursorToAnchorPos(this.AnchorPos);
 
-		let bAddEmptyPara          = false;
-		let bDoNotIncreaseDstIndex = false;
-
-		let oParagraphS      = oParagraph;
-		let oParagraphE      = oParagraph;
-		let nParagraphEIndex = nDstIndex;
-
-		if (oParagraph.IsCursorAtEnd() && !oParagraph.IsEmpty())
+		let oParagraphS, oParagraphE, nInsertPos;
+		if (oParagraph.IsCursorAtBegin())
 		{
-			isConcatE = false;
-			if (1 === nElementsCount
-				&& this.Elements[0].Element.IsParagraph()
-				&& (this.Elements[0].Element.IsEmpty() || this.Elements[0].SelectedAll))
-			{
-				isConcatS = false;
-				if (!oDocContent.GetElement(nDstIndex).IsParagraph() || !oDocContent.GetElement(nDstIndex).IsEmpty())
-				{
-					nDstIndex++;
-					bDoNotIncreaseDstIndex = true;
-				}
-			}
-			else if (this.Elements[nElementsCount - 1].SelectedAll && isConcatS)
-			{
-				bAddEmptyPara = true;
-			}
-		}
-		else if (oParagraph.IsCursorAtBegin())
-		{
-			isConcatS = false;
+			oParagraphS = null;
+			oParagraphE = oParagraph;
+			nInsertPos  = nDstIndex;
 		}
 		else
 		{
-			let oNewParagraph = new Paragraph(oParagraph.DrawingDocument, oDocContent);
-			oParagraph.Split(oNewParagraph);
-			oDocContent.AddToContent(nDstIndex + 1, oNewParagraph);
-
-			oParagraphE      = oNewParagraph;
-			nParagraphEIndex = nDstIndex + 1;
+			oParagraphS = oParagraph;
+			oParagraphE = new Paragraph(oParagraph.DrawingDocument);
+			oParagraphS.Split(oParagraphE);
+			oDocContent.AddToContent(nDstIndex + 1, oParagraphE);
+			nInsertPos  = nDstIndex + 1;
 		}
 
-		let oNewParagraph = null;
-		if (bAddEmptyPara && !this.DoNotAddEmptyPara)
-		{
-			oNewParagraph = new Paragraph(oParagraph.DrawingDocument, oDocContent);
-			oNewParagraph.SetDirectParaPr(oParagraphS.GetDirectParaPr());
-			oNewParagraph.TextPr.Apply_TextPr(oParagraphS.TextPr.Value);
-			oDocContent.AddToContent(nDstIndex + 1, oNewParagraph);
-		}
-
+		let nSelectionStart = nInsertPos;
 		let nStartPos = 0;
-		if (isConcatS)
+		if (oParagraphS
+			&& this.Elements[0].Element.IsParagraph()
+			&& -1 !== oParagraphS.GetIndex())
 		{
-			// TODO: Возможно поменять на ConcatBefore
+			let nParagraphSPos   = oParagraphS.GetIndex();
+			let oInsertParagraph = this.Elements[0].Element;
+			oInsertParagraph.ConcatBefore(oParagraphS, this.Select ? 1 : 0);
 
-			this.Elements[0].Element.SelectAll();
-			let _ParaSContentLen = this.Elements[0].Element.Content.length;
-
-			oParagraphS.Concat(this.Elements[0].Element);
-			oParagraphS.Set_Pr(this.Elements[0].Element.Pr);
-			oParagraphS.TextPr.Clear_Style();
-			oParagraphS.TextPr.Apply_TextPr(this.Elements[0].Element.TextPr.Value);
-
+			oDocContent.AddToContent(nParagraphSPos, oInsertParagraph);
+			oDocContent.RemoveFromContent(nParagraphSPos + 1, 1);
+			nSelectionStart = nParagraphSPos;
 			nStartPos++;
-
-			oParagraphS.Selection.Use      = true;
-			oParagraphS.Selection.StartPos = oParagraphS.Content.length - _ParaSContentLen;
-			oParagraphS.Selection.EndPos   = oParagraphS.Content.length - 1;
-
-			for (let nParaSIndex = ParaS.Selection.StartPos; nParaSIndex <= Math.min(oParagraphS.Selection.EndPos, oParagraphS.Content.length - 1); ++nParaSIndex)
-			{
-				oParagraphS.Content[nParaSIndex].SelectAll(1);
-			}
-		}
-		else if (!oParagraph.IsCursorAtBegin() && !bDoNotIncreaseDstIndex)
-		{
-			nDstIndex++;
 		}
 
-		let nEndPos = nElementsCount - 1;
-		if (isConcatE && nElementsCount > 1)
+		let nEndPos   = this.Elements.length - 1;
+		let isConcatE = false;
+		if (oParagraphE
+			&& this.Elements.length > 1
+			&& this.Elements[nEndPos].Element.IsParagraph()
+			&& !this.Elements[nEndPos].SelectedAll)
 		{
-			let _oParagraphE = this.Elements[nElementsCount - 1].Element;
-			let nTempCount   = _oParagraphE.Content.length - 1;
-
-			_oParagraphE.SelectAll();
-			_oParagraphE.Concat(oParagraphE);
-			_oParagraphE.Set_Pr(oParagraphE.Pr);
-
-			oDocContent.AddToContent(nParagraphEIndex, _oParagraphE);
-			oDocContent.RemoveFromContent(nParagraphEIndex + 1, 1);
-
-			_oParagraphE.Selection.Use      = true;
-			_oParagraphE.Selection.StartPos = 0;
-			_oParagraphE.Selection.EndPos   = nTempCount;
-
+			oParagraphE.ConcatBefore(this.Elements[nEndPos].Element, this.Select ? -1 : 0);
 			nEndPos--;
+			isConcatE = true;
+		}
+		else
+		{
+			oParagraphE.MoveCursorToStartPos();
 		}
 
 		for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
 		{
 			let oElement = this.Elements[nPos].Element;
-			oElement.SelectAll(1);
-			oDocContent.AddToContent(nDstIndex + nPos, oElement);
-		}
+			oDocContent.AddToContent(nInsertPos++, oElement);
 
-		var nLastPos = nDstIndex + nElementsCount - 1;
-		if (oNewParagraph && oNewParagraph === oDocContent.GetElement(nLastPos + 1))
+			if (this.Select)
+				oElement.SelectAll(1);
+			else
+				oElement.RemoveSelection();
+		}
+		let nSelectionEnd = isConcatE ? oParagraphE.GetIndex() : nInsertPos - 1;
+
+		if (this.Select)
 		{
-			nLastPos++;
-			oDocContent.GetElement(nLastPos).SelectAll();
+			oDocContent.Selection.Use      = true;
+			oDocContent.Selection.StartPos = nSelectionStart;
+			oDocContent.Selection.EndPos   = nSelectionEnd;
+			oDocContent.CurPos.ContentPos  = nSelectionEnd;
+			oDocContent.SetThisElementCurrent();
+		}
+		else
+		{
+			if (oParagraphS)
+				oParagraphE.RemoveSelection();
+
+			oParagraphE.RemoveSelection();
+			oDocContent.CurPos.ContentPos = nInsertPos;
+			oDocContent.SetThisElementCurrent();
 		}
 
-		oDocContent.Selection.Use      = true;
-		oDocContent.Selection.StartPos = nDstIndex;
-		oDocContent.Selection.EndPos   = nLastPos;
-		oDocContent.CurPos.ContentPos  = nLastPos;
-
-		oDocContent.SetThisElementCurrent();
-
-		this.CheckInsertSignatures();
-
-		if (this.LogicDocument.IsDocumentEditor())
-			SelectedContent.CheckInsertInlineDrawing();
+		this.private_CheckInsertSignatures();
 	};
 
 	/**
