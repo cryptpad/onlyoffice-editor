@@ -11319,7 +11319,7 @@ function CompareBullets(bullet1, bullet2)
         if (!this.bulletType.Blip) {
             this.bulletType.Blip = new AscFormat.CBuBlip();
         }
-        this.bulletType.Type = AscFormat.BULLET_TYPE_BULLET_BLIP;
+        this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_BLIP;
         this.bulletType.Blip.setBlip(AscFormat.CreateBlipFillUniFillFromUrl(url));
 
     }
@@ -11331,49 +11331,47 @@ function CompareBullets(bullet1, bullet2)
           && this.bulletType.Blip.blip.fill.RasterImageId);
     }
 
-    CBullet.prototype.drawSquareImage = function () {
+    CBullet.prototype.drawSquareImage = function (divId, indent) {
+        indent = indent || 0;
+
         var url = this.getImageBulletURL();
         if(!url || !editor){
             return;
         }
-        var oDiv = document.getElementById(this.DivId);
-        if(!oDiv){
+
+        var oDiv = document.getElementById(divId);
+        if(!oDiv) {
             return;
-        }
-        var aChildren = oDiv.children;
-        var oCanvas = null;
-        for(var i = 0; i < aChildren.length; ++i){
-            if(aChildren[i].nodeName && aChildren[i].nodeName.toUpperCase() === 'CANVAS'){
-                oCanvas = aChildren[i];
-                break;
-            }
         }
         var nWidth = oDiv.clientWidth;
         var nHeight = oDiv.clientHeight;
-        if (nWidth !== nHeight) {
-            return;
-        }
-        if(null === oCanvas){
-            oCanvas = document.createElement('canvas');
-            oCanvas.width = parseInt(nWidth);
-            oCanvas.height = parseInt(nHeight);
-            oDiv.appendChild(oCanvas);
-        }
+        var sideSize = nWidth < nHeight ? nWidth : nHeight;
+
+        var oCanvas = document.createElement('canvas');
+        oCanvas.width = sideSize;
+        oCanvas.height = sideSize;
+        oDiv.appendChild(oCanvas);
+
         var oContext = oCanvas.getContext('2d');
-        oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
-        var _img = this.Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
-        if (_img != undefined && _img.Image != null && _img.Status != AscFonts.ImageLoadStatus.Loading)
+        oContext.fillStyle = "white";
+        oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
+        var _img = editor.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
+        if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading)
         {
-            var indent = nWidth * 0.125;
             var _x = indent;
             var _y = indent;
-            var _w = nWidth - indent;
-            var _h = nHeight - indent;
+            var _w = sideSize - indent * 2;
+            var _h = sideSize - indent * 2;
             oContext.drawImage(_img.Image, _x, _y, _w, _h);
         }
     }
     //interface methods
     var prot = CBullet.prototype;
+    prot["fillBulletImage"] = prot["asc_fillBulletImage"] = CBullet.prototype.fillBulletImage;
+    prot.getImageId = function () {
+        return this.getImageBulletURL();
+    }
+    prot["getImageId"] = prot["asc_getImageId"] = CBullet.prototype.getImageId;
     prot.put_ImageUrl = function (sUrl, token) {
         var _this = this;
         var Api = editor;
@@ -11388,7 +11386,7 @@ function CompareBullets(bullet1, bullet2)
                 Api.ImageLoader.LoadImagesWithCallback([AscCommon.getFullImageSrc2(url)], function(){
                     _this.fillBulletImage(url);
                     //_this.drawSquareImage();
-                    _this.Api.sendEvent("asc_onBulletImageLoaded");
+                    Api.sendEvent("asc_onBulletImageLoaded", _this);
                 });
             }
         }, false, false, token);
@@ -11423,7 +11421,7 @@ function CompareBullets(bullet1, bullet2)
                               {
                                   _this.fillBulletImage(urls[0]);
                                   //_this.drawSquareImage();
-                                  t.sendEvent("asc_onBulletImageLoaded");
+                                  t.sendEvent("asc_onBulletImageLoaded", _this);
                               }
                               t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
                           });
