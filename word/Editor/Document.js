@@ -25875,20 +25875,15 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 			var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
 			if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
 			{
-				oParagraph.Check_NearestPos(oAnchorPos);
-				oParent.InsertContent(oNewContent, oAnchorPos);
+				oNewContent.EndCollect(this);
+				oNewContent.Insert(oAnchorPos, true);
+
 				if (oNewContent.Elements[oNewContent.Elements.length - 1].Element.IsTable() && !oTable.IsInline())
 					oNewContent.Elements[oNewContent.Elements.length - 1].Element.Internal_UpdateFlowPosition(oTable.PositionH.Value, oTable.PositionV.Value);
 
-				oParent.RemoveFromContent(oParagraph.GetIndex(), 1, true);
-				if (oParent.SelectRange)
-					oParent.SelectRange(nIndex + oSkipStart, nIndex + NewContent.content.length + oSkipStart - 1);
-				else if (oParent.Selection)
-				{
-					oParent.Selection.StartPos = nIndex + oSkipStart;
-					oParent.Selection.EndPos = nIndex + NewContent.content.length + oSkipStart - 1;
-				}
-				// this.MoveCursorRight(false, false, false);
+				let nParaPos = oParagraph.GetIndex();
+				if (-1 !== nParaPos)
+					oParent.RemoveFromContent(nParaPos, 1, true);
 			}
 		}
 
