@@ -1981,6 +1981,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.CheckFormPlaceHolder      = true;  // Выполняем ли специальную обработку для плейсхолдеров у форм
 	this.ForceDrawPlaceHolders     = null;  // true/false - насильно заставляем рисовать или не рисовать плейсхолдеры и подсветку,
 	this.ForceDrawFormHighlight    = null;  // null - редактор решает рисовать или нет в зависимости от других параметров
+	this.ConcatParagraphsOnRemove  = false; // Во время удаления объединять ли первый и последний параграфы
 
 	this.DrawTableMode = {
 		Start  : false,

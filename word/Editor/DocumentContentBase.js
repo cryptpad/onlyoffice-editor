@@ -448,6 +448,7 @@ CDocumentContentBase.prototype.GetNumberingInfo = function(oNumberingEngine, oPa
 };
 CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
+	let oLogicDocument = this.GetLogicDocument();
 	if (this.CurPos.ContentPos < 0)
 		return false;
 
@@ -528,7 +529,6 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				else
 				{
 					// В остальных ситуация мы не отслеживаем изменения
-					var oLogicDocument = this.GetLogicDocument();
 					var isLocalTrackRevisions = oLogicDocument.GetLocalTrackRevisions();
 					oLogicDocument.SetLocalTrackRevisions(false);
 					this.Content[StartPos].RemoveTableCells();
@@ -641,7 +641,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 
 					if (!isRemoveOnDrag)
 					{
-						if (type_Paragraph === StartType && type_Paragraph === EndType && true === bOnTextAdd)
+						if (oLogicDocument
+							&& oLogicDocument.ConcatParagraphsOnRemove
+							&& StartPos < this.Content.length - 1
+							&& this.Content[StartPos].IsParagraph()
+							&& this.Content[StartPos + 1].IsParagraph())
+						{
+							this.CurPos.ContentPos = StartPos + 1;
+							this.Content[StartPos + 1].ConcatBefore(this.Content[StartPos], 0);
+							this.RemoveFromContent(StartPos, 1);
+							this.CurPos.ContentPos = StartPos;
+						}
+						else if (type_Paragraph === StartType && type_Paragraph === EndType && true === bOnTextAdd)
 						{
 							// Встаем в конец параграфа и удаляем 1 элемент (чтобы соединить параграфы)
 							this.Content[StartPos].MoveCursorToEndPos(false, false);
@@ -687,12 +698,23 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 					{
 						this.Internal_Content_Remove(StartPos + 1, EndPos - StartPos);
 
-						if (type_Table == StartType)
+						if (type_Table === StartType)
 						{
 							// У нас обязательно есть элемент после таблицы (либо снова таблица, либо параграф)
 							// Встаем в начало следующего элемента.
 							this.CurPos.ContentPos = StartPos + 1;
 							this.Content[StartPos + 1].MoveCursorToStartPos(false);
+						}
+						else if (oLogicDocument
+							&& oLogicDocument.ConcatParagraphsOnRemove
+							&& StartPos < this.Content.length - 1
+							&& this.Content[StartPos].IsParagraph()
+							&& this.Content[StartPos + 1].IsParagraph())
+						{
+							this.CurPos.ContentPos = StartPos + 1;
+							this.Content[StartPos + 1].ConcatBefore(this.Content[StartPos], 0);
+							this.RemoveFromContent(StartPos, 1);
+							this.CurPos.ContentPos = StartPos;
 						}
 						else
 						{
@@ -1030,7 +1052,6 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 		{
 			if (false === this.Content[nCurContentPos].Remove(Count, isRemoveWholeElement, false, false, isWord))
 			{
-				var oLogicDocument = this.GetLogicDocument();
 				if (oLogicDocument && true === oLogicDocument.IsFillingFormMode())
 				{
 					if (Count < 0 && nCurContentPos > 0)
