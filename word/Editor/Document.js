@@ -25825,7 +25825,6 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 		var FramePr = null;
 		var NewContent = this.private_ConvertTableToText(oTable, oProps);
 		var oNewContent = new AscCommonWord.CSelectedContent();
-		var oSkipStart = NewContent.before ? 1 : 0;
 
 		if (!oTable.IsInline())
 		{

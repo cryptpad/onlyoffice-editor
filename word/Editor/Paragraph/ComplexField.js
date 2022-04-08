@@ -65,7 +65,16 @@ ParaFieldChar.prototype.constructor = ParaFieldChar;
 ParaFieldChar.prototype.Type = para_FieldChar;
 ParaFieldChar.prototype.Copy = function()
 {
-	return new ParaFieldChar(this.CharType, this.LogicDocument);
+	let oChar = new ParaFieldChar(this.CharType, this.LogicDocument)
+
+	let oComplexField = this.GetComplexField();
+	if (oComplexField && oComplexField.IsUpdate())
+	{
+		oChar.SetComplexField(oComplexField);
+		oComplexField.ReplaceChar(oChar);
+	}
+
+	return oChar;
 };
 ParaFieldChar.prototype.Measure = function(Context, TextPr)
 {
@@ -338,6 +347,8 @@ function CComplexField(oLogicDocument)
 
 	this.InstructionLineSrc = "";
 	this.InstructionCF      = [];
+
+	this.StartUpdate = false;
 }
 CComplexField.prototype.SetCurrent = function(isCurrent)
 {
@@ -346,6 +357,10 @@ CComplexField.prototype.SetCurrent = function(isCurrent)
 CComplexField.prototype.IsCurrent = function()
 {
 	return this.Current;
+};
+CComplexField.prototype.IsUpdate = function()
+{
+	return this.StartUpdate;
 };
 CComplexField.prototype.SetInstruction = function(oParaInstr)
 {
@@ -428,6 +443,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		this.LogicDocument.StartAction();
 	}
 
+	this.StartUpdate = true;
 	switch (this.Instruction.GetType())
 	{
 		case fieldtype_PAGE:
@@ -463,9 +479,8 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		case fieldtype_NOTEREF:
 			this.private_UpdateNOTEREF();
 			break;
-
-
 	}
+	this.StartUpdate = false;
 
 	if (false !== isNeedRecalculate)
 		this.LogicDocument.Recalculate();
@@ -952,16 +967,18 @@ CComplexField.prototype.private_UpdateTOC = function()
 	this.LogicDocument.TurnOn_Recalculate(false);
 	this.LogicDocument.TurnOn_InterfaceEvents(false);
 	oRun       = this.BeginChar.GetRun();
+	//this.Bein
 	var oParagraph = oRun.GetParagraph();
-	var oNearPos   = {
+
+	let oAnchorPos = {
 		Paragraph  : oParagraph,
 		ContentPos : oParagraph.Get_ParaContentPos(false, false)
 	};
-	oParagraph.Check_NearestPos(oNearPos);
+	oParagraph.Check_NearestPos(oAnchorPos);
 
 	oSelectedContent.DoNotAddEmptyPara = true;
 
-	oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+	oSelectedContent.Insert(oAnchorPos, true);
 };
 CComplexField.prototype.private_UpdatePAGEREF = function()
 {
