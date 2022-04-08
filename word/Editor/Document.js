@@ -24654,42 +24654,9 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 			var oSelectedContent = new AscCommonWord.CSelectedContent();
 			oSelectedContent.Add(new AscCommonWord.CSelectedElement(oTempPara, false));
 			oSelectedContent.EndCollect(this);
-
-			// TODO: Надо переделать здесь по-нормальному, и сделать как-то грамотную обработку в InsertContent
-			var isMath = false;
-			if (oAnchorPos && oAnchorPos.Paragraph)
-			{
-				var oParaNearPos = oAnchorPos.Paragraph.Get_ParaNearestPos(oAnchorPos);
-				var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
-				isMath = (para_Math_Run === oLastClass.Type)
-			}
-			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
-			if(!oParagraph.bFromDocument) 
-			{
-				var oInsParagraph = oSelectedContent.Elements[0].Element;
-				oRun = oInsParagraph.Content[0];
-			}
-
-			if (isMath)
-			{
-				this.MoveCursorRight(false, false, true);
-			}
-			else if (this.IsSelectionUse())
-			{
-				if (isMoveCursorOutside)
-				{
-					this.RemoveSelection();
-					oRun.MoveCursorOutsideElement(false);
-				}
-				else
-				{
-					this.MoveCursorRight(false, false, true);
-				}
-			}
-			else if (isMoveCursorOutside)
-			{
-				oRun.MoveCursorOutsideElement(false);
-			}
+			oSelectedContent.ForceInlineInsert();
+			oSelectedContent.PlaceCursorInLastInsertedRun(!isMoveCursorOutside);
+			oSelectedContent.Insert(oAnchorPos);
 		}
 
 		this.Recalculate();

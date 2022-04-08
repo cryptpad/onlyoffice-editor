@@ -6891,44 +6891,10 @@ DrawingObjectsController.prototype =
                     oSelectedElement.SelectedAll = false;
                     oSelectedContent.Add(oSelectedElement);
                     oSelectedContent.EndCollect(oTargetDocContent);
+					oSelectedContent.ForceInlineInsert();
+					oSelectedContent.PlaceCursorInLastInsertedRun(!isMoveCursorOutside);
+					oSelectedContent.Insert(oAnchorPos);
 
-                    var isMath = false;
-                    if (oAnchorPos && oAnchorPos.Paragraph)
-                    {
-                        var oParaNearPos = oAnchorPos.Paragraph.Get_ParaNearestPos(oAnchorPos);
-                        var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
-                        isMath = (para_Math_Run === oLastClass.Type)
-                    }
-                    oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
-                    oSelectedElement = oSelectedContent.Elements[0];
-                    if(oSelectedElement)
-                    {
-                        oTempPara = oSelectedElement.Element;
-                        if(oTempPara)
-                        {
-                            oRun = oTempPara.Content[0];
-                            if (isMath)
-                            {
-                                oTargetDocContent.MoveCursorRight(false, false, true);
-                            }
-                            else if (oTargetDocContent.IsSelectionUse())
-                            {
-                                if (isMoveCursorOutside)
-                                {
-                                    oTargetDocContent.RemoveSelection();
-                                    oRun.MoveCursorOutsideElement(false);
-                                }
-                                else
-                                {
-                                    oTargetDocContent.MoveCursorRight(false, false, true);
-                                }
-                            }
-                            else if (isMoveCursorOutside)
-                            {
-                                oRun.MoveCursorOutsideElement(false);
-                            }
-                        }
-                    }
                     var oTargetTextObject = getTargetTextObject(this);
                     if(oTargetTextObject && oTargetTextObject.checkExtentsByDocContent)
                     {

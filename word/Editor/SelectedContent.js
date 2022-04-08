@@ -61,6 +61,7 @@
 		this.DoNotAddEmptyPara   = false;
 		this.MoveDrawing         = false; // Только для переноса автофигур
 		this.ForceInline         = false;
+		this.CursorInLastRun     = false; // TODO: Данный флаг не работает для формул и неинлайновой вставки
 
 		this.InsertOptions = {
 			Table : Asc.c_oSpecialPasteProps.overwriteCells
@@ -320,6 +321,15 @@
 	CSelectedContent.prototype.IsSaveNumberingValues = function()
 	{
 		return this.SaveNumberingValues;
+	};
+	/**
+	 * По умолчанию мы выводим курсор за пределы вставленных элементов, с данным флагом мы оставляем его
+	 * внутри последнего рана
+	 * NB: Данный флаг работает только для инлайновой вставки, и не в формулу
+	 */
+	CSelectedContent.prototype.PlaceCursorInLastInsertedRun = function(isInLast)
+	{
+		this.CursorInLastRun = undefined === isInLast ? true : !!isInLast;
 	};
 	/**
 	 * Конвертируем элементы в один элемент с простым текстом
@@ -873,8 +883,16 @@
 		{
 			oParent.RemoveSelection();
 			oParent.SetThisElementCurrent();
-			oParent.SetCurrentPos(nInParentPos + 1 + nElementsCount);
-			oNewRun.MoveCursorToStartPos();
+			if (this.CursorInLastRun)
+			{
+				oParent.SetCurrentPos(nInParentPos + nElementsCount);
+				oParent.GetElement(nInParentPos + nElementsCount).MoveCursorToEndPos();
+			}
+			else
+			{
+				oParent.SetCurrentPos(nInParentPos + 1 + nElementsCount);
+				oParent.GetElement(nInParentPos + nElementsCount).MoveCursorToStartPos();
+			}
 		}
 
 		if (oParent.CorrectContent)
