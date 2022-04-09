@@ -572,36 +572,22 @@ CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
 };
 CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 {
+	this.SelectFieldValue();
+	this.LogicDocument.ConcatParagraphsOnRemove = true;
+	this.LogicDocument.Remove(1, false, false, true);
+	this.LogicDocument.ConcatParagraphsOnRemove = false;
+
 	var oRun       = this.BeginChar.GetRun();
 	var oParagraph = oRun.GetParagraph();
 	if (oParagraph)
 	{
-		this.SelectFieldValue();
-		var oNearPos = oParagraph.GetCurrentAnchorPosition();
-		this.LogicDocument.TurnOff_Recalculate();
-		this.LogicDocument.TurnOff_InterfaceEvents();
-		this.LogicDocument.Remove(1, false, false, true);
-		this.LogicDocument.TurnOn_Recalculate(false);
-		this.LogicDocument.TurnOn_InterfaceEvents(false);
-		if(oNearPos)
+		var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+		if (oAnchorPos && this.LogicDocument.Can_InsertContent(oSelectedContent, oAnchorPos))
 		{
-			if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
-			{
-				var aElements = oSelectedContent.Elements;
-				var bOneEmptyPara = false;
-				if(aElements.length === 1 &&
-					aElements[0].Element.GetType() === AscCommonWord.type_Paragraph &&
-					aElements[0].Element.Is_Empty())
-				{
-					bOneEmptyPara = true;
-				}
-				if(!bOneEmptyPara)
-				{
-					oParagraph.Check_NearestPos(oNearPos);
-					oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
-					this.LogicDocument.MoveCursorRight(false, false, false);
-				}
-			}
+			oParagraph.Check_NearestPos(oAnchorPos);
+			oSelectedContent.ForceInlineInsert();
+			oSelectedContent.Insert(oAnchorPos);
+			this.MoveCursorOutsideElement(false);
 		}
 	}
 };
@@ -961,24 +947,18 @@ CComplexField.prototype.private_UpdateTOC = function()
 	}
 
 	this.SelectFieldValue();
-	this.LogicDocument.TurnOff_Recalculate();
-	this.LogicDocument.TurnOff_InterfaceEvents();
+	this.LogicDocument.ConcatParagraphsOnRemove = true;
 	this.LogicDocument.Remove(1, false, false, true);
-	this.LogicDocument.TurnOn_Recalculate(false);
-	this.LogicDocument.TurnOn_InterfaceEvents(false);
-	oRun       = this.BeginChar.GetRun();
-	//this.Bein
-	var oParagraph = oRun.GetParagraph();
+	this.LogicDocument.ConcatParagraphsOnRemove = false;
+	oRun = this.BeginChar.GetRun();
 
+	let oParagraph = oRun.GetParagraph();
 	let oAnchorPos = {
 		Paragraph  : oParagraph,
 		ContentPos : oParagraph.Get_ParaContentPos(false, false)
 	};
 	oParagraph.Check_NearestPos(oAnchorPos);
-
-	oSelectedContent.DoNotAddEmptyPara = true;
-
-	oSelectedContent.Insert(oAnchorPos, true);
+	oSelectedContent.Insert(oAnchorPos);
 };
 CComplexField.prototype.private_UpdatePAGEREF = function()
 {
@@ -1151,7 +1131,6 @@ CComplexField.prototype.private_GetMessageContent = function(sMessage, oTextPr)
 	oRun.AddText(sMessage);
 	oPara.AddToContent(0, oRun);
 	oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, false));
-	oSelectedContent.DoNotAddEmptyPara = true;
 	return oSelectedContent;
 };
 CComplexField.prototype.private_GetErrorContent = function(sMessage)
@@ -1182,7 +1161,6 @@ CComplexField.prototype.private_GetBookmarkContent = function(sBookmarkName)
 			SkipBookmarks         : true
 		});
 	}
-	oSelectedContent.DoNotAddEmptyPara = true;
 	return oSelectedContent;
 };
 CComplexField.prototype.private_GetREFContent = function()
@@ -1351,7 +1329,6 @@ CComplexField.prototype.private_GetNOTEREFContent = function()
 		oPara.AddToContent(0, oRun);
 	}
 	oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, false));
-	oSelectedContent.DoNotAddEmptyPara = true;
 	return oSelectedContent;
 };
 CComplexField.prototype.private_UpdateNOTEREF = function()
