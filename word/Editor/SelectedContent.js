@@ -58,7 +58,6 @@
 		this.NewCommentsGuid     = false;
 		this.SaveNumberingValues = false;
 		this.CopyComments        = true;
-		this.DoNotAddEmptyPara   = false;
 		this.MoveDrawing         = false; // Только для переноса автофигур
 		this.ForceInline         = false;
 		this.CursorInLastRun     = false; // TODO: Данный флаг не работает для формул и неинлайновой вставки
@@ -165,6 +164,13 @@
 		this.AnchorPos     = oAnchorPos;
 		this.Select        = !!isSelect;
 
+		let isLocalTrack = false;
+		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
+		{
+			isLocalTrack = oLogicDocument.GetLocalTrackRevisions();
+			oLogicDocument.SetLocalTrackRevisions(false);
+		}
+
 		if (oRun.IsMathRun())
 		{
 			this.private_InsertToMathRun();
@@ -185,6 +191,9 @@
 		{
 			this.private_InsertCommon();
 		}
+
+		if (false !== isLocalTrack)
+			oLogicDocument.SetLocalTrackRevisions(isLocalTrack);
 	};
 	CSelectedContent.prototype.PrepareObjectsForInsert = function()
 	{
