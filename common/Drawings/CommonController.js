@@ -9185,85 +9185,33 @@ DrawingObjectsController.prototype =
         oShape.setSpPr(oSpPr);
         oSpPr.setParent(oShape);
         var oContent = oShape.getDocContent();
-        var sText, oSelectedContent, oNearestPos, sSelectedText;
+        var sText;
         if(this.document)
         {
-            sSelectedText = this.document.GetSelectedText(false, {});
-            oSelectedContent = this.document.GetSelectedContent(true);
-            oContent.Recalculate_Page(0, true);
-            oContent.MoveCursorToStartPos(false);
-            oNearestPos = oContent.Get_NearestPos(0, 0, 0, false, undefined);
-            oNearestPos.Paragraph.Check_NearestPos( oNearestPos );
-            if(typeof sSelectedText === "string" && sSelectedText.length > 0)
-            {
-                if(oSelectedContent && this.document.Can_InsertContent(oSelectedContent, oNearestPos))
-                {
-                    oSelectedContent.MoveDrawing = true;
-                    if(oSelectedContent.Elements.length > 1 && oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.GetType() === AscCommonWord.type_Paragraph
-                    && oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.IsEmpty()){
-                        oSelectedContent.Elements.splice(oSelectedContent.Elements.length - 1, 1);
-                    }
-                    if(oSelectedContent.Elements.length > 0){
-                        oSelectedContent.Elements[oSelectedContent.Elements.length - 1].SelectedAll = false;
-                    }
-                    oContent.InsertContent(oSelectedContent, oNearestPos);
-                    oContent.Selection.Start    = false;
-                    oContent.Selection.Use      = false;
-                    oContent.Selection.StartPos = 0;
-                    oContent.Selection.EndPos   = 0;
-                    oContent.Selection.Flag     = selectionflag_Common;
-                    oContent.SetDocPosType(docpostype_Content);
-                    oContent.CurPos.ContentPos = 0;
-                    oShape.bSelectedText = true;
-                }
-                else
-                {
-                    sText = this.getDefaultText();
-                    AscFormat.AddToContentFromString(oContent, sText);
-                    oShape.bSelectedText = false;
-                }
-            }
-            else
-            {
-                sText = this.getDefaultText();
-                AscFormat.AddToContentFromString(oContent, sText);
-                oShape.bSelectedText = false;
-            }
+			let oSelectedContent = this.document.GetSelectedContent(true);
+			let sSelectedText    = oSelectedContent ? oSelectedContent.GetText({ParaEndToSpace : false}) : "";
+			if (sSelectedText.length > 0)
+			{
+				oSelectedContent.ReplaceContent(oContent);
+				oShape.bSelectedText = true;
+			}
+			else
+			{
+				sText = this.getDefaultText();
+				AscFormat.AddToContentFromString(oContent, sText);
+				oShape.bSelectedText = false;
+			}
         }
         else if(this.drawingObjects.cSld)
         {
             oShape.setParent(this.drawingObjects);
-            var oTargetDocContent = this.getTargetDocContent();
-            if(oTargetDocContent && oTargetDocContent.Selection.Use && oTargetDocContent.GetSelectedText(false, {}).length > 0)
-            {
-                oSelectedContent = new AscCommonWord.CSelectedContent();
-                oTargetDocContent.GetSelectedContent(oSelectedContent);
-                oSelectedContent.MoveDrawing = true;
-                if(oSelectedContent.Elements.length > 1 && oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.GetType() === AscCommonWord.type_Paragraph
-                    && oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.IsEmpty()){
-                    oSelectedContent.Elements.splice(oSelectedContent.Elements.length - 1, 1);
-                }
-                if(oSelectedContent.Elements.length > 0){
-                    oSelectedContent.Elements[oSelectedContent.Elements.length - 1].SelectedAll = false;
-                }
-
-                oContent.Recalculate_Page(0, true);
-                oContent.MoveCursorToStartPos(false);
-                var paragraph = oContent.Content[oContent.CurPos.ContentPos];
-                if (null != paragraph && type_Paragraph == paragraph.GetType())
-                {
-                    oNearestPos = { Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false) };
-                    paragraph.Check_NearestPos(oNearestPos);
-                    oContent.InsertContent(oSelectedContent, oNearestPos);
-                    oShape.bSelectedText = false;
-                }
-                else
-                {
-                    sText = this.getDefaultText();
-                    AscFormat.AddToContentFromString(oContent, sText);
-                    oShape.bSelectedText = false;
-                }
-            }
+			let oTargetDocContent = this.getTargetDocContent();
+			if (oTargetDocContent && oTargetDocContent.IsTextSelectionUse() && oTargetDocContent.GetSelectedText(false, {}).length > 0)
+			{
+				let oSelectedContent = oTargetDocContent.GetSelectedContent();
+				oSelectedContent.ReplaceContent(oContent, true);
+				oShape.bSelectedText = false;
+			}
             else
             {
                 oShape.bSelectedText = false;

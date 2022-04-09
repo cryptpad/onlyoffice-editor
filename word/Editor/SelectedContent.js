@@ -195,6 +195,30 @@
 		if (false !== isLocalTrack)
 			oLogicDocument.SetLocalTrackRevisions(isLocalTrack);
 	};
+	CSelectedContent.prototype.ReplaceContent = function(oDocContent, isSelect)
+	{
+		if (this.Elements.length <= 0)
+			return;
+
+		oDocContent.ClearContent(false);
+		for (let nPos = 0, nCount = this.Elements.length; nPos < nCount; ++nPos)
+		{
+			let oElement = this.Elements[nPos].Element;
+			oDocContent.AddToContent(nPos, oElement);
+		}
+
+		if (true === isSelect)
+		{
+			oDocContent.SelectAll();
+		}
+		else
+		{
+			oDocContent.RemoveSelection();
+			oDocContent.MoveCursorToEndPos();
+		}
+
+		oDocContent.SetThisElementCurrent();
+	};
 	CSelectedContent.prototype.PrepareObjectsForInsert = function()
 	{
 		let oLogicDocument = this.LogicDocument;

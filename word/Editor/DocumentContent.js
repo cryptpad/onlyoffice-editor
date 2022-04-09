@@ -4590,30 +4590,31 @@ CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 
 	return oInfo;
 };
-CDocumentContent.prototype.GetSelectedContent = function(SelectedContent)
+CDocumentContent.prototype.GetSelectedContent = function(oSelectedContent)
 {
+	let oSContent = oSelectedContent ? oSelectedContent : new AscCommonWord.CSelectedContent();
+
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
-		return this.DrawingObjects.GetSelectedContent(SelectedContent);
+		this.DrawingObjects.GetSelectedContent(oSContent);
 	}
-	else
+	else if (this.Selection.Use && selectionflag_Common === this.Selection.Flag)
 	{
-		if (true !== this.Selection.Use || this.Selection.Flag !== selectionflag_Common)
-			return;
-
-		var StartPos = this.Selection.StartPos;
-		var EndPos   = this.Selection.EndPos;
-		if (StartPos > EndPos)
+		let nStartPos = this.Selection.StartPos;
+		let nEndPos   = this.Selection.EndPos;
+		if (nStartPos > nEndPos)
 		{
-			StartPos = this.Selection.EndPos;
-			EndPos   = this.Selection.StartPos;
+			nStartPos = this.Selection.EndPos;
+			nEndPos   = this.Selection.StartPos;
 		}
 
-		for (var Index = StartPos; Index <= EndPos; Index++)
+		for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
 		{
-			this.Content[Index].GetSelectedContent(SelectedContent);
+			this.Content[nPos].GetSelectedContent(oSContent);
 		}
 	}
+
+	return oSContent;
 };
 CDocumentContent.prototype.SetParagraphPr = function(oParaPr)
 {
