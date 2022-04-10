@@ -678,7 +678,7 @@ CSearchTextSpecialEnDash.prototype = Object.create(CSearchTextItemBase.prototype
 CSearchTextSpecialEnDash.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
+	return ((c_oSearchItemType.Text === nType && (0x2D === oItem.GetValue() || 0x2013 === oItem.GetValue()))
 		|| c_oSearchItemType.EnDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
