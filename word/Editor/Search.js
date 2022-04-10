@@ -636,7 +636,7 @@ CSearchTextSpecialAnySpace.prototype = Object.create(CSearchTextItemBase.prototy
 CSearchTextSpecialAnySpace.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && AscCommon.IsSpace(oItem.GetValue()))
+	return ((c_oSearchItemType.Text === nType && (AscCommon.IsSpace(oItem.GetValue()) || nbsp_charcode === oItem.GetValue()))
 		|| c_oSearchItemType.AnySpace === nType
 		|| c_oSearchItemType.NonBreakingSpace === nType
 		|| c_oSearchItemType.AnySymbol === nType);
