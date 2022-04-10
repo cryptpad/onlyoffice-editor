@@ -7945,12 +7945,23 @@ DrawingObjectsController.prototype =
                     }
                 }
             }
-            if(oDrawingSelectionState.timingSelection)
+
+            if(this.selectedObjects.length > 0)
             {
-                var oTiming = this.drawingObjects.timing;
-                if(oTiming) 
+                if(this.drawingObjects && this.drawingObjects.timing)
                 {
-                    oTiming.setSelectionState(oDrawingSelectionState.timingSelection);
+                    this.drawingObjects.timing.onChangeDrawingsSelection();
+                }
+            }
+            else
+            {
+                if(oDrawingSelectionState.timingSelection)
+                {
+                    var oTiming = this.drawingObjects.timing;
+                    if(oTiming)
+                    {
+                        oTiming.setSelectionState(oDrawingSelectionState.timingSelection);
+                    }
                 }
             }
         }

@@ -216,8 +216,8 @@
 
 		if (this.isXP)
 		{
-			AscCommon.g_oHtmlCursor.register("grab", "grab", "0 0", "pointer");
-			AscCommon.g_oHtmlCursor.register("grabbing", "grabbing", "0 0", "pointer");
+			AscCommon.g_oHtmlCursor.register("grab", "grab", "7 8", "pointer");
+			AscCommon.g_oHtmlCursor.register("grabbing", "grabbing", "6 6", "pointer");
 		}
 
 		var oThis = this;
@@ -981,7 +981,10 @@
 			}
 			else
 			{
-				this.sendEvent("onHyperlinkClick", link["link"]);
+				var url = link["link"];
+				var typeUrl = AscCommon.getUrlType(url);
+				url = AscCommon.prepareUrl(url, typeUrl);
+				this.sendEvent("onHyperlinkClick", url);
 			}
 
 			//console.log(link["link"]);
@@ -2010,6 +2013,8 @@
 				if ((pageCoords.y + pageCoords.h) > y)
 					break;
 			}
+			if (pageIndex > this.endVisiblePage)
+				pageIndex = this.endVisiblePage;
 
 			if (!pageCoords)
 				pageCoords = {x:0, y:0, w:1, h:1};
