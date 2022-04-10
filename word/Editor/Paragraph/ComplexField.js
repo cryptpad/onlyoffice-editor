@@ -582,7 +582,7 @@ CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 	if (oParagraph)
 	{
 		var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-		if (oAnchorPos && this.LogicDocument.Can_InsertContent(oSelectedContent, oAnchorPos))
+		if (oAnchorPos && oSelectedContent.CanInsert(oAnchorPos))
 		{
 			oParagraph.Check_NearestPos(oAnchorPos);
 			oSelectedContent.ForceInlineInsert();

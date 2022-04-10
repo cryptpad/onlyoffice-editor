@@ -2588,7 +2588,7 @@ PasteProcessor.prototype =
 				oSelectedContent.EndCollect(this.oLogicDocument);
 				oSelectedContent.SetCopyComments(false);
 
-				if (!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
+				if (!this.pasteInExcel && !oSelectedContent.CanInsert(NearPos))
 				{
 					if (!this.pasteInExcel)
 					{
@@ -2662,7 +2662,7 @@ PasteProcessor.prototype =
 			oSelectedContent.EndCollect(this.oLogicDocument);
 			oSelectedContent.SetCopyComments(false);
 
-			if(!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
+			if(!this.pasteInExcel && !oSelectedContent.CanInsert(NearPos))
 			{
 				if(!this.pasteInExcel)
 				{

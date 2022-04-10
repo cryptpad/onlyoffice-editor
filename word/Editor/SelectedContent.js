@@ -136,14 +136,45 @@
 	{
 		return !!(this.Flags & FLAG_TABLE);
 	};
+	CSelectedContent.prototype.CanInsert = function(oAnchorPos)
+	{
+		if (this.Elements.length <= 0)
+			return false;
+
+		let oParagraph = oAnchorPos.Paragraph;
+
+		var oDocContent = oParagraph.GetParent();
+		if (!oDocContent)
+			return false;
+
+		// Автофигуры не вставляем в другие автофигуры, сноски и концевые сноски
+		// Единственное исключение, если вставка происходит картинки в картиночное поле (для замены картинки)
+		let oParentShape = oDocContent.Is_DrawingShape(true);
+		if (((oParentShape && !oParentShape.isForm()) || true === oDocContent.IsFootnote()) && true === this.HaveShape())
+			return false;
+
+		// В заголовки диаграмм не вставляем формулы и любые DrawingObjects
+		if (oParagraph.bFromDocument === false && (this.DrawingObjects.length > 0 || this.HaveMath() || this.HaveTable()))
+			return false;
+
+		let oParaAnchorPos = oParagraph.Get_ParaNearestPos(oAnchorPos);
+		if (!oParaAnchorPos || oParaAnchorPos.Classes.length < 2)
+			return false;
+
+		let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
+		if (!oRun || !(oRun instanceof AscCommonWord.ParaRun))
+			return false;
+
+		return (oRun.IsMathRun() ? this.CanConvertToMath() : true);
+	};
 	CSelectedContent.prototype.Insert = function(oAnchorPos, isSelect)
 	{
+		if (!this.CanInsert(oAnchorPos))
+			return false;
+
 		let oParagraph     = oAnchorPos.Paragraph;
 		let oDocContent    = oParagraph.GetParent();
 		let oLogicDocument = oParagraph.GetLogicDocument();
-
-		if (!oDocContent)
-			return;
 
 		this.LogicDocument = oLogicDocument; // Может быть не задан (например при вставке в формулу в таблицах)
 
@@ -151,12 +182,8 @@
 		this.private_CheckContentBeforePaste(oAnchorPos, oDocContent);
 
 		let oParaAnchorPos = oParagraph.Get_ParaNearestPos(oAnchorPos);
-		if (!oParaAnchorPos)
-			return;
 
 		let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
-		if (!oRun || !(oRun instanceof AscCommonWord.ParaRun))
-			return;
 
 		this.ParaAnchorPos = oParaAnchorPos;
 		this.Select        = isSelect;
@@ -194,6 +221,8 @@
 
 		if (false !== isLocalTrack)
 			oLogicDocument.SetLocalTrackRevisions(isLocalTrack);
+
+		return true;
 	};
 	CSelectedContent.prototype.ReplaceContent = function(oDocContent, isSelect)
 	{

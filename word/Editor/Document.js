@@ -8695,13 +8695,13 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
 
 		// Получим копию выделенной части документа, которую надо перенести в новое место, одновременно с этим
-        // удаляем эту выделенную часть (если надо).
+		// удаляем эту выделенную часть (если надо).
 
-        var DocContent = this.GetSelectedContent(true);
+		var DocContent = this.GetSelectedContent(true);
 
-        if (false === this.Can_InsertContent(DocContent, NearPos))
-        {
-            this.History.Remove_LastPoint();
+		if (!DocContent.CanInsert(NearPos))
+		{
+			this.History.Remove_LastPoint();
 			NearPos.Paragraph.Clear_NearestPosArray();
 
 			this.DragAndDropAction   = false;
@@ -8709,10 +8709,10 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 			this.TrackMoveRelocation = false;
 
 			this.FinalizeAction(false);
-            return;
-        }
+			return;
+		}
 
-        var Para = NearPos.Paragraph;
+		var Para = NearPos.Paragraph;
 
 		// Нам нужно отдельно проверить локи для контент контролов, поэтому мы отключаем стандартную проверку
 		// в функции IsSelectionLocked и отдельно проверяем вставляемую часть и место куда мы вставляем на наличие
@@ -8875,60 +8875,6 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory, oPr)
 		this.SetLocalTrackRevisions(isLocalTrack);
 
 	return oSelectedContent;
-};
-CDocument.prototype.Can_InsertContent = function(SelectedContent, NearPos)
-{
-	// Проверяем, что вставка не пустая
-	if (SelectedContent.Elements.length <= 0)
-		return false;
-
-	var Para = NearPos.Paragraph;
-
-	var oParaParent = Para.GetParent();
-	if (!oParaParent)
-		return false;
-
-	// Автофигуры не вставляем в другие автофигуры, сноски и концевые сноски
-	// Единственное исключение, если вставка происходит картинки в картиночное поле (для замены картинки)
-	var oParentShape = oParaParent.Is_DrawingShape(true);
-	if (((oParentShape && !oParentShape.isForm()) || true === oParaParent.IsFootnote()) && true === SelectedContent.HaveShape())
-		return false;
-
-	// В заголовки диаграмм не вставляем формулы и любые DrawingObjects
-	if (Para.bFromDocument === false && (SelectedContent.DrawingObjects.length > 0 || SelectedContent.HaveMath() || SelectedContent.HaveTable()))
-		return false;
-
-	// Проверяем корректность места, куда вставляем
-	var ParaNearPos = NearPos.Paragraph.Get_ParaNearestPos(NearPos);
-	if (null === ParaNearPos || ParaNearPos.Classes.length < 2)
-		return false;
-
-	var LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-	if (para_Math_Run === LastClass.Type)
-	{
-		if (!SelectedContent.CanConvertToMath())
-		{
-			// Проверяем, что вставляемый контент тоже формула
-			var Element = SelectedContent.Elements[0].Element;
-			if (1 !== SelectedContent.Elements.length || type_Paragraph !== Element.GetType() || null === LastClass.Parent)
-				return false;
-
-			var Math  = null;
-			var Count = Element.Content.length;
-			for (var Index = 0; Index < Count; Index++)
-			{
-				var Item = Element.Content[Index];
-				if (para_Math === Item.Type && null === Math)
-					Math = Element.Content[Index];
-				else if (true !== Item.Is_Empty({SkipEnd : true}))
-					return false;
-			}
-		}
-	}
-	else if (para_Run !== LastClass.Type)
-		return false;
-
-	return true;
 };
 CDocument.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 {
@@ -25872,10 +25818,10 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 
 			oParagraph.Document_SetThisElementCurrent(false);
 
+			oNewContent.EndCollect(this);
 			var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-			if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
+			if (oAnchorPos && oNewContent.CanInsert(oAnchorPos))
 			{
-				oNewContent.EndCollect(this);
 				oNewContent.Insert(oAnchorPos, true);
 
 				if (oNewContent.Elements[oNewContent.Elements.length - 1].Element.IsTable() && !oTable.IsInline())

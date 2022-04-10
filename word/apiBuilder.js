@@ -5017,10 +5017,6 @@
 		}
 
 		oParagraph.Check_NearestPos(oNearestPos);
-
-		if (!this.Document.Can_InsertContent(oSelectedContent, oNearestPos))
-			return false;
-
 		oSelectedContent.Insert(oNearestPos);
 		oParagraph.Clear_NearestPosArray();
 		return true;
