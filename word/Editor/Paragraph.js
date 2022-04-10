@@ -6289,6 +6289,10 @@ Paragraph.prototype.Get_EndPos2 = function(BehindEnd)
 	this.Content[Pos].Get_EndPos(BehindEnd, ContentPos, Depth + 1);
 	return ContentPos;
 };
+Paragraph.prototype.GetEndPos = function(isBehindEnd)
+{
+	return this.Get_EndPos(isBehindEnd);
+};
 /**
  * Составляем список элементов рана, идущих после заданной позиции
  * @param oRunElements {CParagraphRunElements}
@@ -6826,6 +6830,10 @@ Paragraph.prototype.Cursor_MoveToNearPos = function(NearPos)
 
 	if (0 === SelectionStartPos.Compare(SelectionEndPos))
 		this.RemoveSelection();
+};
+Paragraph.prototype.MoveCursorToAnchorPos = function(oAnchorPos)
+{
+	this.Cursor_MoveToNearPos(oAnchorPos);
 };
 Paragraph.prototype.MoveCursorUpToLastRow = function(X, Y, AddToSelect)
 {
@@ -8859,7 +8867,7 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 			oPara.SaveNumberingValues(oNumInfo, oPrevNumInfo);
 		}
 
-		oSelectedContent.Add(new CSelectedElement(oPara, isAllSelected));
+		oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, isAllSelected));
 	}
 };
 Paragraph.prototype.CheckHitInParaEnd = function(X, Y, CurPage)
@@ -9095,6 +9103,43 @@ Paragraph.prototype.Is_UseInDocument = function(Id)
 		return this.Parent.Is_UseInDocument(this.Get_Id());
 
 	return false;
+};
+Paragraph.prototype.SelectThisElement = function(nDirection, isUseInnerSelection)
+{
+	let oStartPos, oEndPos;
+	if (isUseInnerSelection)
+	{
+		oStartPos = this.Get_ParaContentPos(true, true, false);
+		oEndPos   = this.Get_ParaContentPos(true, false, false);
+	}
+	else
+	{
+		oStartPos = this.GetStartPos();
+		oEndPos   = this.GetEndPos(true);
+	}
+
+	if (nDirection < 0)
+	{
+		let oTemp = oStartPos;
+		oStartPos = oEndPos;
+		oEndPos   = oTemp;
+	}
+
+	this.Selection.Use   = true;
+	this.Selection.Start = false;
+	this.Set_ParaContentPos(oStartPos, true, -1, -1);
+	this.Set_SelectionContentPos(oStartPos, oEndPos, false);
+	this.Document_SetThisElementCurrent(false);
+	return true;
+};
+Paragraph.prototype.SetThisElementCurrent = function()
+{
+	this.Set_ParaContentPos(this.GetStartPos(), true, -1, -1, false);
+	this.Document_SetThisElementCurrent(false);
+};
+Paragraph.prototype.SetCurrentPos = function(nPos)
+{
+	this.CurPos.ContentPos = Math.max(0, Math.min(this.Content.length - 1, nPos));
 };
 /**
  * Проверяем пустой ли селект
@@ -12815,8 +12860,12 @@ Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 /**
  * Присоединяем содержимое параграфа oPara до содержимого текущего параграфа
  * @param oPara {Paragraph}
+ * @param nSelection {number} -1 - выделяем левую часть
+ *                             1 - выделяем правую часть
+ *                             0 - ставим курсор в место разделения
+ *                             null | undefined - ничего не делаем
  */
-Paragraph.prototype.ConcatBefore = function(oPara)
+Paragraph.prototype.ConcatBefore = function(oPara, nSelection)
 {
 	this.DeleteCommentOnRemove = false;
 	oPara.DeleteCommentOnRemove = false;
@@ -12825,7 +12874,7 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	oPara.RemoveParaEnd();
 
 	// Подправим позиции для NearPos в текущем параграфе
-	for (var nPos = 0, nCount = this.NearPosArray.length; nPos < nCount; ++nPos)
+	for (let nPos = 0, nCount = this.NearPosArray.length; nPos < nCount; ++nPos)
 	{
 		var oParaNearPos = this.NearPosArray[nPos];
 
@@ -12833,7 +12882,7 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	}
 
 	// Если в параграфе oPara были точки NearPos, за которыми нужно следить перенесем их в этот параграф
-	for (var nPos = 0, nCount = oPara.NearPosArray.length; nPos < nCount; ++nPos)
+	for (let nPos = 0, nCount = oPara.NearPosArray.length; nPos < nCount; ++nPos)
 	{
 		var oParaNearPos = oPara.NearPosArray[nPos];
 
@@ -12842,8 +12891,8 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 		this.NearPosArray.push(oParaNearPos);
 	}
 
-	// Добавляем содержимое второго параграфа к первому
-	for (var nPos = 0, nCount = oPara.Content.length; nPos < nCount; ++nPos)
+	let nCount = oPara.Content.length;
+	for (let nPos = 0; nPos < nCount; ++nPos)
 	{
 		this.AddToContent(nPos, oPara.Content[nPos].Copy());
 	}
@@ -12857,7 +12906,39 @@ Paragraph.prototype.ConcatBefore = function(oPara)
 	this.DeleteCommentOnRemove = true;
 	oPara.DeleteCommentOnRemove = true;
 
-	oPara.CopyPr(this);
+	if (undefined !== nSelection && null !== nSelection)
+	{
+		this.RemoveSelection();
+		if (0 === nSelection)
+		{
+			this.CurPos.ContentPos = nCount;
+			this.Content[nCount].MoveCursorToStartPos();
+		}
+		else
+		{
+			let nStartPos, nEndPos;
+			if (nSelection < 0)
+			{
+				nStartPos = 0;
+				nEndPos   = nCount - 1;
+			}
+			else
+			{
+				nStartPos = nCount;
+				nEndPos   = this.Content.length - 1;
+			}
+
+			for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+			{
+				this.Content[nPos].SelectAll(1);
+			}
+
+			this.Selection.Use      = true;
+			this.Selection.StartPos = nStartPos;
+			this.Selection.EndPos   = nEndPos;
+			this.CurPos.ContentPos  = nEndPos;
+		}
+	}
 };
 /**
  * Копируем настройки параграфа и последние текстовые настройки в новый параграф

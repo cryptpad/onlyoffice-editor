@@ -4980,7 +4980,7 @@
 	 */
 	ApiDocument.prototype.InsertContent = function(arrContent, isInline, oPr)
 	{
-		var oSelectedContent = new CSelectedContent();
+		var oSelectedContent = new AscCommonWord.CSelectedContent();
 		var oElement;
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
 		{
@@ -4992,13 +4992,13 @@
 				if (oElm.Is_UseInDocument())
 					continue;
 
-				if (true === isInline && oElement instanceof ApiParagraph)
-					oSelectedContent.Add(new CSelectedElement(oElm, false));
-				else
-					oSelectedContent.Add(new CSelectedElement(oElm, true));
+				oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, true));
 			}
 		}
-		oSelectedContent.On_EndCollectElements(this.Document, true);
+		oSelectedContent.EndCollect(this.Document);
+
+		if (isInline)
+			oSelectedContent.ForceInlineInsert();
 
 		if (this.Document.IsSelectionUse())
 		{
@@ -5038,14 +5038,8 @@
 		}
 
 		oParagraph.Check_NearestPos(oNearestPos);
-
-		if (!this.Document.Can_InsertContent(oSelectedContent, oNearestPos))
-			return false;
-
-		oParagraph.Parent.InsertContent(oSelectedContent, oNearestPos);
+		oSelectedContent.Insert(oNearestPos);
 		oParagraph.Clear_NearestPosArray();
-		// TODO: Выяснить нужно ли снимать выделение с автофигур
-		this.Document.MoveCursorRight(false, false, true);
 		return true;
 	};
 
