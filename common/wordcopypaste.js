@@ -3256,7 +3256,6 @@ PasteProcessor.prototype =
 
 		if(presentation.InsertContent(presentationSelectedContent)) {
 			presentation.Recalculate();
-			presentation.Check_CursorMoveRight();
 			presentation.Document_UpdateInterfaceState();
 
 			this._setSpecialPasteShowOptionsPresentation();
@@ -3826,8 +3825,6 @@ PasteProcessor.prototype =
 
 					if (presentation.InsertContent(presentationSelectedContent)) {
 						presentation.Recalculate();
-
-						presentation.Check_CursorMoveRight();
 						presentation.Document_UpdateInterfaceState();
 					} else {
 						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
@@ -3929,8 +3926,6 @@ PasteProcessor.prototype =
 
 					if (presentation.InsertContent(presentationSelectedContent)) {
 						presentation.Recalculate();
-
-						presentation.Check_CursorMoveRight();
 						presentation.Document_UpdateInterfaceState();
 
 						var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
@@ -4169,7 +4164,6 @@ PasteProcessor.prototype =
 
 				if (presentation.InsertContent(presentationSelectedContent)) {
 					presentation.Recalculate();
-					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
 					if (!onlyImages) {
@@ -4440,7 +4434,6 @@ PasteProcessor.prototype =
 					var bPaste = presentation.InsertContent2(aContents, nIndex);
 
 					presentation.Recalculate();
-					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
 					//пока не показываю значок специальной вставки после copy/paste слайдов
@@ -4987,7 +4980,6 @@ PasteProcessor.prototype =
 
 					var bPaste = presentation.InsertContent(presentationSelectedContent);
 					presentation.Recalculate();
-					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
 					//check only images

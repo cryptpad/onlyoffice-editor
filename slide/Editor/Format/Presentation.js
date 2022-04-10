@@ -7183,9 +7183,8 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
                             }
                             oController.resetSelection(false, false);
                             oSelectedContent = oSelectedContent.copy();
-                            oParagraph.Parent.InsertContent(oSelectedContent.DocContent, NearPos);
+                            oSelectedContent.DocContent.Insert(NearPos, true);
                             oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
-                            NearPos.Paragraph.Document_SetThisElementCurrent(false);
                             if (initialObjectTo.isObjectInSmartArt()) {
                                 initialObjectTo.checkExtentsByDocContent();
                             }
@@ -8494,7 +8493,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
         oImagesSelectedContent.PresentationHeight = this.GetHeightMM();
         var oSelectedContent, oDocContent, oController, oTargetTextObject, oGraphicFrame, oTable, oImage, dImageWidth,
             dImageHeight, bNeedSelectAll,
-            oDocContentForDraw, oParagraph, oNearPos, bOldVal, aParagraphs, dMaxWidth, oCanvas, oContext, oGraphics,
+            oDocContentForDraw, oParagraph, aParagraphs, dMaxWidth, oCanvas, oContext, oGraphics,
             dContentHeight, nContentIndents = 30, bOldShowParaMarks, oSelector;
         var i, j;
         if (this.Slides.length > 0) {
@@ -8540,8 +8539,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 if (bNeedSelectAll) {
                                     oDocContent.SetApplyToAll(true);
                                 }
-                                oSelectedContent = new AscCommonWord.CSelectedContent();
-                                oDocContent.GetSelectedContent(oSelectedContent);
+                                oSelectedContent = oDocContent.GetSelectedContent();
                                 oEndFormattingContent.DocContent = oSelectedContent;
                                 for (i = 0; i < oSelectedContent.Elements.length; ++i) {
                                     var oElem = oSelectedContent.Elements[i].Element;
@@ -8554,8 +8552,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                         this.internalResetElementsFontSize(oElem.Content);
                                     }
                                 }
-                                oSelectedContent = new AscCommonWord.CSelectedContent();
-                                oDocContent.GetSelectedContent(oSelectedContent);
+                                oSelectedContent = oDocContent.GetSelectedContent();
                                 var aContent = [];
                                 for (i = 0; i < oSelectedContent.Elements.length; ++i) {
                                     oParagraph = oSelectedContent.Elements[i].Element;
@@ -8566,9 +8563,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 AscFormat.SaveContentSourceFormatting(aContent, aContent, oDocContent.Get_Theme(), oDocContent.Get_ColorMap());
                                 oSourceFormattingContent.DocContent = oSelectedContent;
 
-
-                                var oSelectedContent2 = new AscCommonWord.CSelectedContent();
-                                oDocContent.GetSelectedContent(oSelectedContent2);
+                                var oSelectedContent2 = oDocContent.GetSelectedContent();
                                 aContent = [];
                                 for (i = 0; i < oSelectedContent2.Elements.length; ++i) {
                                     oParagraph = oSelectedContent2.Elements[i].Element;
@@ -8583,17 +8578,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 }
                                 if (oSelectedContent2.Elements.length > 0) {
                                     oDocContentForDraw = new AscFormat.CDrawingDocContent(oDocContent.Parent, oDocContent.DrawingDocument, 0, 0, 20000, 20000);
-                                    oParagraph = oDocContentForDraw.Content[0];
-                                    oNearPos = {
-                                        Paragraph: oParagraph,
-                                        ContentPos: oParagraph.Get_ParaContentPos(false, false)
-                                    };
-                                    oParagraph.Check_NearestPos(oNearPos);
-                                    bOldVal = oDocContentForDraw.MoveDrawing;
-                                    oDocContentForDraw.MoveDrawing = true;
-                                    oDocContentForDraw.InsertContent(oSelectedContent2, oNearPos);
-                                    oDocContentForDraw.MoveDrawing = bOldVal;
-
+                                    oSelectedContent2.ReplaceContent(oDocContentForDraw);
 
                                     var oCheckParagraph, aRuns;
                                     for (i = oDocContentForDraw.Content.length - 1; i > -1; --i) {
@@ -8913,13 +8898,7 @@ CPresentation.prototype.CreateAndAddShapeFromSelectedContent = function (oDocCon
     track_object.track({}, 0, 0);
     var shape = track_object.getShape(false, this.DrawingDocument, this.Slides[this.CurPage]);
     shape.setParent(this.Slides[this.CurPage]);
-    var paragraph = shape.txBody.content.Content[0];
-    var NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
-    paragraph.Check_NearestPos(NearPos);
-    var old_val = oDocContent.MoveDrawing;
-    oDocContent.MoveDrawing = true;
-    shape.txBody.content.InsertContent(oDocContent, NearPos);
-    oDocContent.MoveDrawing = old_val;
+    oDocContent.ReplaceContent(shape.txBody.content);
     var body_pr = shape.getBodyPr();
     var w = shape.txBody.getMaxContentWidth(this.GetWidthMM() / 2, true) + body_pr.lIns + body_pr.rIns;
     var h = shape.txBody.content.GetSummaryHeight() + body_pr.tIns + body_pr.bIns;
@@ -9286,70 +9265,10 @@ CPresentation.prototype.InsertContent = function (Content) {
                         oController.removeCallback(1, undefined, undefined, undefined, undefined, undefined);
                     }
                     paragraph = target_doc_content.Content[target_doc_content.CurPos.ContentPos];
-                    if (null != paragraph && type_Paragraph == paragraph.GetType()) {
+                    if (null != paragraph && paragraph.IsParagraph()) {
                         NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
                         paragraph.Check_NearestPos(NearPos);
-
-
-                        var ParaNearPos = NearPos.Paragraph.Get_ParaNearestPos(NearPos);
-                        if (null === ParaNearPos || ParaNearPos.Classes.length < 2)
-                            return false;
-
-                        var LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-                        if (para_Math_Run === LastClass.Type) {
-                            // Проверяем, что вставляемый контент тоже формула
-                            var Element = Content.DocContent.Elements[0].Element;
-                            if (1 !== Content.DocContent.Elements.length || type_Paragraph !== Element.Get_Type() || null === LastClass.Parent)
-                                return false;
-                            if (!Content.DocContent.CanConvertToMath()) {
-                                var Math = null;
-                                var Count = Element.Content.length;
-                                for (var Index = 0; Index < Count; Index++) {
-                                    var Item = Element.Content[Index];
-                                    if (para_Math === Item.Type && null === Math)
-                                        Math = Element.Content[Index];
-                                    else if (true !== Item.Is_Empty({SkipEnd: true}))
-                                        return false;
-                                }
-                            }
-                        } else if (para_Run !== LastClass.Type)
-                            return false;
-
-                        if (null === paragraph.Parent || undefined === paragraph.Parent)
-                            return false;
-
-
-                        var Para = NearPos.Paragraph;
-                        var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
-                        var LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-                        var bInsertMath = false;
-                        if (para_Math_Run === LastClass.Type) {
-                            var MathRun = LastClass;
-                            var NewMathRun = MathRun.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
-                            var MathContent = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
-                            var MathContentPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
-                            var Element = Content.DocContent.Elements[0].Element;
-
-                            var InsertMathContent = null;
-                            for (var nPos = 0, nParaLen = Element.Content.length; nPos < nParaLen; nPos++) {
-                                if (para_Math === Element.Content[nPos].Type) {
-                                    InsertMathContent = Element.Content[nPos];
-                                    break;
-                                }
-                            }
-
-                            if (null === InsertMathContent) {
-                                //try to convert content to ParaMath in simple cases.
-                                InsertMathContent = Content.DocContent.ConvertToMath();
-                            }
-
-                            if (null !== InsertMathContent) {
-                                MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-                                MathContent.InsertMathContent(InsertMathContent.Root, MathContentPos + 1, true);
-                                bInsertMath = true;
-                            }
-                        }
-                        !bInsertMath && target_doc_content.InsertContent(Content.DocContent, NearPos);
+						Content.DocContent.Insert(NearPos);
                     }
                     var oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
                     oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
