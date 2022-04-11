@@ -3438,26 +3438,34 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                     oGraphicObject = drawingObject.graphicObject;
                     bRecalculate = true;
                     if(oGraphicObject){
+                        var oldX = oGraphicObject.x;
+                        var oldY = oGraphicObject.y;
+                        var oldExtX = oGraphicObject.extX;
+                        var oldExtY = oGraphicObject.extY;
                         if(drawingObject.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell
                         && drawingObject.editAs !== AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
                             if(drawingObject.editAs === AscCommon.c_oAscCellAnchorType.cellanchorAbsolute) {
                                 aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
                             }
                             else {
-                                    var oldExtX = oGraphicObject.extX;
-                                    var oldExtY = oGraphicObject.extY;
                                     oGraphicObject.recalculateTransform();
                                     oGraphicObject.extX = oldExtX;
                                     oGraphicObject.extY = oldExtY;
                                     aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
                             }
-                        }
-                        else {
+                        } else if (oGraphicObject.isSmartArtObject()) { // fixme: this is a crutch for resizing columns and rows, fix after normal recalculate smartart
+                            if (oGraphicObject.spPr.xfrm.isZeroCh()) {
+                                oGraphicObject.updateCoordinatesAfterInternalResize();
+                            }
+                            oGraphicObject.recalculateTransform();
+                            if (oldExtX !== oGraphicObject.extX) {
+                                oGraphicObject.extY *= oGraphicObject.extX / oldExtX;
+                            } else if (oldExtY !== oGraphicObject.extY) {
+                                oGraphicObject.extX *= oGraphicObject.extY / oldExtY;
+                            }
+                            aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
+                        } else {
                             if(oGraphicObject.recalculateTransform) {
-                                var oldX = oGraphicObject.x;
-                                var oldY = oGraphicObject.y;
-                                var oldExtX = oGraphicObject.extX;
-                                var oldExtY = oGraphicObject.extY;
                                 oGraphicObject.recalculateTransform();
                                 var fDelta = 0.01;
                                 bRecalculate = false;
