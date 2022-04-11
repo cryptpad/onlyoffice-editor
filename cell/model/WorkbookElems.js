@@ -10773,6 +10773,9 @@ QueryTableField.prototype.clone = function() {
 		this.verticalDpi = 600;
 		this.paperUnits = 0;
 
+		//для превью передаём из интерфейса
+		this.headerFooter = null;
+
 		this.ws = ws;
 
 		return this;
@@ -10915,6 +10918,17 @@ QueryTableField.prototype.clone = function() {
 			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Scale, this.ws.getId(),
 				null, new UndoRedoData_Layout(oldVal, newVal));
 		}
+	};
+
+	asc_CPageSetup.prototype.getPreviewHeaderFooter = function () {
+		var res = null;
+		if (this.headerFooter) {
+			res = new CHeaderFooter();
+			var tempEditor = new AscCommonExcel.CHeaderFooterEditor();
+			tempEditor.setPropsFromInterface(this.headerFooter, true);
+			tempEditor._saveToModel(this, res);
+		}
+		return res;
 	};
 
 	/** @constructor */
@@ -11752,11 +11766,27 @@ QueryTableField.prototype.clone = function() {
 
 		this.pixelRatio = null;
 
+		this.advancedOptions = null;
+
+		//опции измененного листа пока не мержу с теми, что в модели. перезатираю полностью. если будет необходимость - _pageOptionsMap использовать и при сохранении проверять что изменилось
+		//при закрытии окна с сохранением вычисляем только измененные настройки, для этого храним те настройки, которые были до открытия
+		//this._pageOptionsMap = null;
+
 		return this;
 	}
 
 	CPrintPreviewState.prototype.init = function () {
 		this.start = true;
+		/*var api = window["Asc"]["editor"];
+		this._pageOptionsMap = {};
+		for (var i = 0, length = this.wb.model.getWorksheetCount(); i < length; ++i) {
+			var wsModel = this.wb.model.getWorksheet(i);
+			var wsIndex = wsModel.getIndex();
+			var pageOptions = api.asc_getPageOptions(wsIndex, true);
+			if (pageOptions) {
+				this._pageOptionsMap[wsIndex] = pageOptions.clone();
+			}
+		}*/
 	};
 	CPrintPreviewState.prototype.isStart = function () {
 		return this.start;
@@ -11793,6 +11823,7 @@ QueryTableField.prototype.clone = function() {
 		}
 		this.realActiveSheet = null;
 		this.realZoom = null;
+		this._pageOptionsMap = null;
 	};
 	CPrintPreviewState.prototype.getPagesLength = function () {
 		return this.pages && this.pages.arrPages.length;
@@ -11884,6 +11915,9 @@ QueryTableField.prototype.clone = function() {
 		oGraphics.m_oFontManager = AscCommon.g_fontManager;
 		this.ctx.DocumentRenderer = oGraphics;
 		this.pixelRatio = AscCommon.AscBrowser.retinaPixelRatio;
+	};
+	CPrintPreviewState.prototype.setAdvancedOptions = function (val) {
+		this.advancedOptions = val;
 	};
 
 
@@ -12181,6 +12215,8 @@ QueryTableField.prototype.clone = function() {
 	prot["asc_setPrintTitlesHeight"] = prot.asc_setPrintTitlesHeight;
 	prot["asc_getPrintTitlesWidth"] = prot.asc_getPrintTitlesWidth;
 	prot["asc_getPrintTitlesHeight"] = prot.asc_getPrintTitlesHeight;
+	prot["asc_getHeaderFooter"] = prot.asc_getHeaderFooter;
+	prot["asc_setHeaderFooter"] = prot.asc_setHeaderFooter;
 
 	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
 	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;
