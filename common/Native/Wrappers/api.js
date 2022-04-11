@@ -7319,6 +7319,38 @@ Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
     }
 };
 
+// The helper function, called from the native application,
+// returns information about the document as a JSON string.
+window["asc_docs_api"].prototype["asc_nativeGetCoreProps"] = function() {
+    var props = (_api) ? _api.asc_getCoreProps() : null,
+        value;
+
+    if (props) {
+        var coreProps = {};
+        coreProps["asc_getModified"] = props.asc_getModified();
+
+        value = props.asc_getLastModifiedBy();
+        if (value)
+        coreProps["asc_getLastModifiedBy"] = AscCommon.UserInfoParser.getParsedName(value);
+
+        coreProps["asc_getTitle"] = props.asc_getTitle();
+        coreProps["asc_getSubject"] = props.asc_getSubject();
+        coreProps["asc_getDescription"] = props.asc_getDescription();
+
+        var authors = [];
+        value = props.asc_getCreator();//"123\"\"\"\<\>,456";
+        value && value.split(/\s*[,;]\s*/).forEach(function (item) {
+            authors.push(item);
+        });
+
+        coreProps["asc_getCreator"] = authors;
+
+        return coreProps;
+    }
+
+    return {};
+}
+
 window["AscCommon"].getFullImageSrc2 = function(src) {
     var start = src.slice(0, 6);
     if (0 === start.indexOf("theme") && editor.ThemeLoader) {
