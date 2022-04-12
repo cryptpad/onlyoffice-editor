@@ -4032,7 +4032,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    var cSld = new AscFormat.CSld();
+                    var cSld = new AscFormat.CSld(master);
                     this.ReadCSld(cSld);
                     AscCommonSlide.fFillFromCSld(master, cSld);
                     break;
@@ -4194,7 +4194,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    var cSld = new AscFormat.CSld();
+                    var cSld = new AscFormat.CSld(layout);
                     this.ReadCSld(cSld);
                     AscCommonSlide.fFillFromCSld(layout, cSld);
                     break;
@@ -4275,7 +4275,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    var cSld = new AscFormat.CSld();
+                    var cSld = new AscFormat.CSld(slide);
                     this.ReadCSld(cSld);
                     AscCommonSlide.fFillFromCSld(slide, cSld);
                     break;
@@ -4760,7 +4760,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    var cSld = new AscFormat.CSld();
+                    var cSld = new AscFormat.CSld(oNotesMaster);
                     this.ReadCSld(cSld);
                     for(var i = 0; i < cSld.spTree.length; ++i){
                         oNotesMaster.addToSpTreeToPos(i, cSld.spTree[i]);
@@ -4832,7 +4832,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    var cSld = new AscFormat.CSld();
+                    var cSld = new AscFormat.CSld(oNotes);
                     this.ReadCSld(cSld);
                     for(var i = 0; i < cSld.spTree.length; ++i){
                         oNotes.addToSpTreeToPos(i, cSld.spTree[i]);
@@ -5139,7 +5139,7 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     // themeElements
-                    var themeElements = new AscFormat.ThemeElements();
+                    var themeElements = new AscFormat.ThemeElements(theme);
                     this.ReadThemeElements(themeElements);
                     theme.setFontScheme(themeElements.fontScheme);
                     theme.setFormatScheme(themeElements.fmtScheme);
@@ -9333,9 +9333,7 @@ function BinaryPPTYLoader()
                             case 0:
                             {
                                 var sPrst = s.GetUChar();
-                                bodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function () {
-                                    return AscFormat.CreatePrstTxWarpGeometry(AscFormat.getPrstByNumber(sPrst));
-                                }, this, []);
+                                bodyPr.prstTxWarp = AscFormat.CreatePrstTxWarpGeometry(AscFormat.getPrstByNumber(sPrst));
                                 break;
                             }
                         }

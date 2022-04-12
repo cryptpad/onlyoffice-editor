@@ -548,14 +548,48 @@
         oParagraph.Set_DocumentIndex(0); //TODO: ?
         return oParagraph.Pr;
     };
+    //CTextBody.prototype.readAttrXml = function (name, reader) {
+    //};
+    CTextBody.prototype.readChildXml = function (name, reader) {
+        let oPr;
+        switch(name) {
+            case "bodyPr": {
+                oPr = new AscFormat.CBodyPr();
+                oPr.fromXml(reader);
+                this.setBodyPr(oPr);
+                break;
+            }
+            case "lstStyle": {
+                oPr = new AscFormat.TextListStyle();
+                oPr.fromXml(reader);
+                this.setLstStyle(oPr);
+                break;
+            }
+            case "p": {
+                let oDrawingDocument = reader.context.DrawingDocument;
+                if(!this.content) {
+                    this.setContent(new AscFormat.CDrawingDocContent(this, oDrawingDocument, 0, 0, 0, 20000));
+                }
+                oPr = new AscCommonWord.Paragraph(oDrawingDocument, this.content, true);
+                oPr.fromDrawingML(reader);
+                oPr.SetParent(this.content);
+                this.content.Internal_Content_Add(this.content.Content.length, oPr);
+                break;
+            }
+        }
+    };
+    CTextBody.prototype.writeAttrXmlImpl = function (writer) {
+        //TODO:Implement in children
+    };
+    CTextBody.prototype.writeChildren = function (writer) {
+        //TODO:Implement in children
+    };
 
     function GetContentOneStringSizes(oContent) {
         oContent.Reset(0, 0, 20000, 20000);
         oContent.Recalculate_Page(0, true);
         return {w: oContent.Content[0].Lines[0].Ranges[0].W + 0.1, h: oContent.GetSummaryHeight() + 0.1};
     }
-
-
     function CheckNeedRecalcAutoFit(oBP1, oBP2) {
         if(AscCommon.isFileBuild()) {
             return false;

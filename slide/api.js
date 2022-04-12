@@ -1579,8 +1579,10 @@ background-repeat: no-repeat;\
 		if (!jsZipWrapper.loadSync(data)) {
 			return false;
 		}
-		var reader, openParams = {};
 
+		this.InitEditor();
+		var reader, openParams = {};
+		this.DocumentType = 2;
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
 		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
@@ -1588,6 +1590,43 @@ background-repeat: no-repeat;\
 		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
 		this.WordControl.m_oLogicDocument = new CPresentation(this.WordControl.m_oDrawingDocument);
 		this.WordControl.m_oLogicDocument.fromXml(reader, true);
+
+		this.WordControl.m_oLogicDocument.ImageMap = {};
+		var _cur_ind = 0;
+		var context = reader.context;
+		for (var path in context.imageMap) {
+			if (context.imageMap.hasOwnProperty(path)) {
+				this.WordControl.m_oLogicDocument.ImageMap[_cur_ind++] = path;
+				var data = context.zip.files[path].sync('uint8array');
+				var blob = new Blob([data], {type: "image/png"});
+				var url = window.URL.createObjectURL(blob);
+				AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+				context.imageMap[path].forEach(function(blipFill) {
+					AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
+				});
+			}
+		}
+
+		this.WordControl.m_oLogicDocument.Set_FastCollaborativeEditing(true);
+
+		this.LoadedObject = 1;
+		g_oIdCounter.Set_Load(false);
+		AscFonts.IsCheckSymbols = false;
+
+		this.WordControl.m_oDrawingDocument.CheckFontNeeds();
+		this.FontLoader.LoadDocumentFonts(this.WordControl.m_oLogicDocument.Fonts, false);
+
+		g_oIdCounter.Set_Load(false);
+
+		if (this.isMobileVersion)
+		{
+			AscCommon.AscBrowser.isSafariMacOs   = false;
+			PasteElementsId.PASTE_ELEMENT_ID     = "wrd_pastebin";
+			PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
+		}
+
+		if (AscCommon.AscBrowser.isSafariMacOs)
+			setInterval(AscCommon.SafariIntervalFocus, 10);
 
 		return true;
 	};

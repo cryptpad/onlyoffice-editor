@@ -197,30 +197,6 @@
 
 
 
-
-
-	window['AscFormat'].CBlipFill.prototype.fromXml = function(reader)
-	{
-		var context = reader.context;
-		var depth = reader.GetDepth();
-		while (reader.ReadNextSiblingNode(depth)) {
-			if ("blip" === reader.GetNameNoNS()) {
-				while (reader.MoveToNextAttribute()) {
-					if ("embed" === reader.GetNameNoNS()) {
-						var rId = reader.GetValue();
-						var rel = reader.rels.getRelationship(rId);
-						if ("Internal" === rel.targetMode) {
-							var blipFills = context.imageMap[rel.targetFullName.substring(1)];
-							if (!blipFills) {
-								context.imageMap[rel.targetFullName.substring(1)] = blipFills = [];
-							}
-							blipFills.push(this);
-						}
-					}
-				}
-			}
-		}
-	};
 	window['AscFormat'].CBlipFill.prototype.toXml = function(writer, name)
 	{
 		var context = writer.context;
@@ -396,6 +372,519 @@
 	CT_DoubleW.prototype.writeAttrVal = function(writer, val) {
 		writer.WriteXmlNullableAttributeDouble("w:val", this.val);
 	};
+
+	AscCommonWord.Paragraph.prototype.fromDrawingML = function(reader) {
+		var depth = reader.GetDepth();
+		let EndPos = 0;
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			switch(name) {
+				case "br": {
+					let oRun = new AscCommonWord.ParaRun(this, false);
+					oRun.AddToContent( 0, new ParaNewLine(AscCommonWord.break_Line));
+					this.AddToContent(EndPos++, oRun);
+					oRun.fromDrawingML(reader);//Read run properties
+					break;
+				}
+				case "endParaRPr": {
+					let oTextPr = new AscCommonWord.CTextPr();
+					oTextPr.fromDrawingML(reader);
+					this.TextPr.Apply_TextPr(oTextPr);
+					let oEndRun = this.Content[this.Content.length - 1]; //TODO: check whether it needs to set properties for end run
+					var oParaTextPrEnd = new CTextPr();
+					oParaTextPrEnd.Set_FromObject(oTextPr);
+					oEndRun.Set_Pr(oParaTextPrEnd);
+					break;
+				}
+				case "fld": {
+					let oFld = new AscCommonWord.CPresentationField(this);
+					oFld.fromDrawingML(reader);
+					this.AddToContent(EndPos++, new ParaRun(this, false));
+					this.AddToContent(EndPos++, oFld);
+					this.AddToContent(EndPos++, new ParaRun(this, false));
+					break;
+				}
+				case "pPr": {
+					let oParaPr = new AscCommonWord.CParaPr();
+					oParaPr.fromDrawingML(reader);
+					this.Set_Pr(oParaPr);
+					break;
+				}
+				case "r": {
+					let oRun = new AscCommonWord.ParaRun(this, false);
+					oRun.fromDrawingML(reader);
+					let oRunPr = oRun.Pr;
+					let oHyperLink = oRunPr && (oRunPr.hlinkClick || oRunPr.hlinkMouseOver);
+					if(oHyperLink) {
+						let oParaHLink = new ParaHyperlink();
+						oParaHLink.SetValue(oHyperLink.id);
+						if (oHyperLink.tooltip) {
+							oParaHLink.SetToolTip(oHyperLink.tooltip);
+						}
+						oRunPr.Underline = true;
+						oParaHLink.Add_ToContent(0, oRun, false);
+						this.AddToContent(EndPos++, oParaHLink);
+					}
+					else {
+						this.AddToContent(EndPos++, oRun);
+					}
+					break;
+				}
+			}
+		}
+	};
+
+	AscCommonWord.ParaRun.prototype.fromDrawingML = function (reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			switch(name) {
+				case "rPr": {
+					let oTextPr = new AscCommonWord.CTextPr();
+					oTextPr.fromDrawingML(reader);
+					this.SetPr(oTextPr);
+					break;
+				}
+				case "t": {
+					this.AddText(reader.GetTextDecodeXml(), -1);
+					break;
+				}
+			}
+		}
+	};
+	AscCommonWord.CTextPr.prototype.fromDrawingML = function (reader) {
+		let sName;
+		while (reader.MoveToNextAttribute()) {
+			sName = reader.GetNameNoNS();
+			switch(sName) {
+				case "altLang": {
+					break;
+				}
+				case "b": {
+					this.Bold = reader.GetValueBool();
+					break;
+				}
+				case "baseline": {
+					let nBaseline = AscFormat.getPercentageValue(reader.GetValue());
+					if (nBaseline < 0)
+						this.VertAlign = AscCommon.vertalign_SubScript;
+					else if (nBaseline > 0)
+						this.VertAlign = AscCommon.vertalign_SuperScript;
+					break;
+				}
+				case "bmk": {
+					break;
+				}
+				case "cap": {
+					let sCap = reader.GetValue();
+					if(sCap === "all") {
+						this.Caps = true;
+						this.SmallCaps = false;
+					}
+					else if(sCap === "small") {
+						this.Caps = false;
+						this.SmallCaps = true;
+					}
+					else {
+						this.Caps = false;
+						this.SmallCaps = false;
+					}
+ 					break;
+				}
+				case "dirty": {
+					break;
+				}
+				case "err": {
+					break;
+				}
+				case "i": {
+					this.Italic = reader.GetValueBool();
+					break;
+				}
+				case "kern": {
+					break;
+				}
+				case "kumimoji": {
+					break;
+				}
+				case "lang": {
+					let sLang = reader.GetValue();
+					let nLcid = Asc.g_oLcidNameToIdMap[sLang];
+					if(nLcid)
+						this.Lang.Val = nLcid;
+					break;
+				}
+				case "noProof": {
+					break;
+				}
+				case "normalizeH": {
+					break;
+				}
+				case "smtClean": {
+					break;
+				}
+				case "smtId": {
+					break;
+				}
+				case "spc": {
+					this.Spacing = reader.GetValueInt() * 25.4 / 7200;
+					break;
+				}
+				case "strike": {
+					let sStrike = reader.GetValue();
+					if(sStrike === "dblStrike") {
+						this.Strikeout = false;
+						this.DStrikeout = true;
+					}
+					else if(sStrike === "sngStrike") {
+						this.Strikeout = true;
+						this.DStrikeout = false;
+					}
+					else if(sStrike === "noStrike") {
+						this.Strikeout = false;
+						this.DStrikeout = false;
+					}
+					break;
+				}
+				case "sz": {
+					var nSz = reader.GetValueInt() / 100;
+					nSz = ((nSz * 2) + 0.5) >> 0;
+					nSz /= 2;
+					this.FontSize = nSz;
+					break;
+				}
+				case "u": {
+					this.Underline = reader.GetValue() !== "none";
+					break;
+				}
+			}
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if(AscFormat.CUniFill.prototype.isFillName(name)) {
+				this.Unifill = new AscFormat.CUniFill();
+				this.Unifill.fromXml(reader, name);
+			}
+			else if(name === "ln") {
+				this.TextOutline = new AscFormat.CLn();
+				this.TextOutline.fromXml(reader);
+			}
+			else if(name === "cs") {
+				let sName = readTypeface(reader);
+				if(sName) {
+					this.RFonts.CS = { Name: sName, Index : -1 };
+				}
+			}
+			else if(name === "ea") {
+				let sName = readTypeface(reader);
+				if(sName) {
+					this.RFonts.EastAsia = { Name: sName, Index : -1 };
+				}
+			}
+			else if(name === "latin") {
+				let sName = readTypeface(reader);
+				if(sName) {
+					this.RFonts.Ascii = { Name: sName, Index : -1 };
+					this.RFonts.HAnsi = { Name: sName, Index : -1 };
+				}
+			}
+			else if(name === "hlinkClick" || name === "hlinkMouseOver") {
+				let oHLink = new AscFormat.CT_Hyperlink();
+				oHLink.fromXml(reader);
+				if(name === "hlinkClick") {
+					this.hlinkClick = oHLink;
+				}
+				else {
+					this.hlinkMouseOver = oHLink;
+				}
+			}
+			else if(name === "highlight") {
+				let oHLink = new AscFormat.CT_Hyperlink();
+				oHLink.fromXml(reader);
+				this.HighlightColor = readHighlightColor(reader);
+			}
+		}
+	};
+	AscCommonWord.CParaPr.prototype.fromDrawingML = function (reader) {
+		let sName;
+		while (reader.MoveToNextAttribute()) {
+			sName = reader.GetNameNoNS();
+			switch(sName) {
+				case "algn": {
+					let sVal = reader.GetValue();
+					switch (sVal) {
+						case "ctr": {
+							this.Jc = AscCommon.align_Center;
+							break;
+						}
+						case "dist": {
+							this.Jc = AscCommon.align_Justify;
+							break;
+						}
+						case "just": {
+							this.Jc = AscCommon.align_Justify;
+							break;
+						}
+						case "justLow": {
+							this.Jc = AscCommon.align_Justify;
+							break;
+						}
+						case "l": {
+							this.Jc = AscCommon.align_Left;
+							break;
+						}
+						case "r": {
+							this.Jc = AscCommon.align_Right;
+							break;
+						}
+						case "thaiDist": {
+							this.Jc = AscCommon.align_Justify;
+							break;
+						}
+					}
+					break;
+				}
+				case "defTabSz": {
+					this.DefaultTab = reader.GetValueInt()/36000;
+					break;
+				}
+				case "eaLnBrk": {
+					break;
+				}
+				case "fontAlgn": {
+					break;
+				}
+				case "hangingPunct": {
+					break;
+				}
+				case "indent": {
+					this.Ind.FirstLine = reader.GetValueInt()/36000;
+					break;
+				}
+				case "latinLnBrk": {
+					break;
+				}
+				case "lvl": {
+					this.Lvl = reader.GetValueInt();
+					break;
+				}
+				case "marL": {
+					this.Ind.Left = reader.GetValueInt()/36000;
+					break;
+				}
+				case "marR": {
+					this.Ind.Right = reader.GetValueInt()/36000;
+					break;
+				}
+				case "rtl": {
+					break;
+				}
+			}
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if(name.indexOf("bu") === 0) {
+				if(!this.Bullet) {
+					this.Bullet = new AscFormat.CBullet();
+				}
+				this.Bullet.readChildXml(reader, name);
+			}
+			else if(name === "defRPr") {
+				let oRPr = new AscCommonWord.CTextPr();
+				oRPr.fromDrawingML(reader);
+				this.DefaultRunPr = oRPr;
+			}
+			else if(name === "extLst") {
+
+			}
+			else if(name === "lnSpc") {
+				this.Spacing.lnSpcFromDrawingML(reader);
+			}
+			else if(name === "spcAft") {
+				this.Spacing.spcAftFromDrawingML(reader);
+			}
+			else if(name === "spcBef") {
+				this.Spacing.spcBefFromDrawingML(reader);
+			}
+			else if(name === "tabLst") {
+				this.Tabs = new CParaTabs();
+				this.Tabs.fromDrawingML(reader);
+			}
+		}
+	};
+
+	AscCommonWord.CPresentationField.prototype.fromDrawingML = function(reader) {
+		let sName;
+		while (reader.MoveToNextAttribute()) {
+			sName = reader.GetNameNoNS();
+			switch(sName) {
+				case "id": {
+					this.SetGuid(reader.GetValue());
+					break;
+				}
+				case "type": {
+					this.SetFieldType(reader.GetValue());
+					break;
+				}
+			}
+		}
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if(name === "pPr") {
+				let oParaPr = new AscCommonWord.CParaPr();
+				oParaPr.fromDrawingML(reader);
+				this.SetPPr(oParaPr);
+				break;
+			}
+			else if(name === "rPr") {
+				let oTextPr = new AscCommonWord.CTextPr();
+				oTextPr.fromDrawingML(reader);
+				this.SetPr(oTextPr);
+			}
+			else if(name === "t") {
+				this.AddText(reader.GetTextDecodeXml(), -1);
+			}
+		}
+	};
+
+
+	let SPACING_SCALE = 0.00352777778;
+
+	function readSpacing(reader) {
+		let sName;
+		let depth = reader.GetDepth();
+		let oRet = {val: null, valPct: null};
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if(name === "spcPct") {
+				while (reader.MoveToNextAttribute()) {
+					sName = reader.GetNameNoNS();
+					switch(sName) {
+						case "val": {
+							let nVal = AscFormat.getPercentageValue(reader.GetValue());
+							if(nVal !== null) {
+								oRet.valPct = nVal / 100;
+							}
+							break;
+						}
+					}
+				}
+			}
+			else if(name === "spcPts") {
+				while (reader.MoveToNextAttribute()) {
+					sName = reader.GetNameNoNS();
+					switch(sName) {
+						case "val": {
+							let nVal = reader.GetValueInt()
+							oRet.val = nVal * SPACING_SCALE;
+							break;
+						}
+					}
+				}
+			}
+		}
+		return oRet;
+	}
+	CParaSpacing.prototype.lnSpcFromDrawingML = function (reader) {
+		let oSpc = readSpacing(reader);
+		if(oSpc.valPct !== null) {
+			this.Line = oSpc.valPct;
+			this.LineRule = Asc.linerule_Auto;
+		}
+		else if(oSpc.val !== null) {
+			this.Line = oSpc.val;
+			this.LineRule = Asc.linerule_Exact;
+		}
+	};
+	CParaSpacing.prototype.spcAftFromDrawingML = function (reader) {
+		let oSpc = readSpacing(reader);
+		if(oSpc.valPct !== null) {
+			this.AfterPct = oSpc.valPct;
+			this.After = 0;
+		}
+		else if(oSpc.val !== null) {
+			this.After = oSpc.val;
+		}
+	};
+	CParaSpacing.prototype.spcBefFromDrawingML = function (reader) {
+		let oSpc = readSpacing(reader);
+		if(oSpc.valPct !== null) {
+			this.BeforePct = oSpc.valPct;
+			this.Before = 0;
+		}
+		else if(oSpc.val !== null) {
+			this.Before = oSpc.val;
+		}
+	};
+
+
+	CParaTabs.prototype.fromDrawingML = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if(name === "tab") {
+				let oTab = new CParaTab();
+				oTab.fromDrawingML(reader);
+				this.Tabs.push(oTab);
+			}
+		}
+	};
+
+	CParaTab.fromDrawingML = function(reader) {
+
+		let sName;
+		while (reader.MoveToNextAttribute()) {
+			sName = reader.GetNameNoNS();
+			switch(sName) {
+				case "algn": {
+					let sVal = reader.GetValue();
+					if(sVal === "ctr") {
+						this.Value = tab_Center;
+					}
+					else if(sVal === "r") {
+						this.Value = tab_Right;
+					}
+					else {
+						this.Value = tab_Left;
+					}
+					break;
+				}
+				case "pos": {
+					this.Pos = reader.GetValueInt() / 36000;
+					break;
+				}
+			}
+		}
+	};
+
+	function readTypeface(reader) {
+		let sName;
+		while (reader.MoveToNextAttribute()) {
+			sName = reader.GetNameNoNS();
+			switch(sName) {
+				case "typeface": {
+					return reader.GetValue();
+				}
+			}
+		}
+		return null;
+	}
+	function readHighlightColor(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+			if(AscFormat.CUniColor.prototype.isUnicolor(name)) {
+				let oColor = new AscFormat.CUniColor();
+				oColor.fromXml(reader, name);
+				return oColor;
+			}
+		}
+		return null;
+	}
+
 
 	// function CT_String() {
 	// 	this.val = null;

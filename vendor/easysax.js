@@ -1601,6 +1601,8 @@ function XmlParserContext(){
     this.cellBase = null;
     this.drawingId = null;
     //pptx
+    this.layoutsMap = {};
+    this.notesMastersMap = {};
 }
 XmlParserContext.prototype.initFromWS = function(ws) {
     this.ws = ws;
@@ -1608,6 +1610,10 @@ XmlParserContext.prototype.initFromWS = function(ws) {
     this.cellValue = new AscCommonExcel.CT_Value();
     this.cellBase = new AscCommon.CellBase(0,0);
     this.drawingId = null;
+};
+XmlParserContext.prototype.clearSlideRelations = function() {
+    this.layoutsMap = {};
+    this.notesMastersMap = {};
 };
 function XmlWriterContext(editorId){
     //common

@@ -94,7 +94,7 @@ AscDFH.drawingContentChanges[AscDFH.historyitem_SlideMasterRemoveFromSpTree]  = 
 function MasterSlide(presentation, theme)
 {
     AscFormat.CBaseFormatObject.call(this);
-    this.cSld = new AscFormat.CSld();
+    this.cSld = new AscFormat.CSld(this);
     this.clrMap = new AscFormat.ClrMap();
 
     this.hf = null;
@@ -349,6 +349,10 @@ MasterSlide.prototype.shapeAdd = function (pos, item) {
     this.cSld.spTree.splice(pos, 0, item);
     item.setParent2(this);
 };
+MasterSlide.prototype.addToSpTreeToPos = function(pos, obj)
+{
+    this.shapeAdd(pos, obj);
+};
 MasterSlide.prototype.shapeRemove = function (pos, count) {
     History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterRemoveFromSpTree, pos, this.cSld.spTree.slice(pos, pos + count), false));
     this.cSld.spTree.splice(pos, count);
@@ -493,6 +497,19 @@ MasterSlide.prototype.scale = function (kw, kh) {
         this.cSld.spTree[i].changeSize(kw, kh);
     }
 };
+
+MasterSlide.prototype.fromXml = function(reader, bSkipFirstNode) {
+    AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+    //read theme
+    var oThemePart = reader.rels.getPartByRelationshipType(openXml.Types.theme.relationType);
+    if(oThemePart) {
+        var oThemeContent = oThemePart.getDocumentContent();
+        let oThemeReader = new StaxParser(oThemeContent, oThemePart, reader.context);
+        let oTheme = new AscFormat.CTheme();
+        oTheme.fromXml(oThemeReader, true);
+        this.setTheme(oTheme, true);
+    }
+};
 MasterSlide.prototype.readAttrXml = function(name, reader) {
     switch (name) {
         case "preserve": {
@@ -503,9 +520,10 @@ MasterSlide.prototype.readAttrXml = function(name, reader) {
 MasterSlide.prototype.readChildXml = function(name, reader) {
     let oIdLst;
     let aList;
+    let oMaster = this;
     switch (name) {
         case "cSld": {
-            let oCSld = new AscFormat.CSld();
+            let oCSld = new AscFormat.CSld(this);
             oCSld.fromXml(reader);
             AscCommonSlide.fFillFromCSld(this, oCSld);
             break;
@@ -519,7 +537,12 @@ MasterSlide.prototype.readChildXml = function(name, reader) {
         case "sldLayoutIdLst": {
             oIdLst = new IdList("sldLayoutIdLst");
             oIdLst.fromXml(reader);
-            aList = oIdLst.readList(reader, AscCommonSlide.SlideLayout);
+            aList = oIdLst.readList(reader, function(oObjectReader) {
+                let oLayout = new AscCommonSlide.SlideLayout();
+                oObjectReader.context.layoutsMap[oObjectReader.rels.uri] = oLayout;
+                oMaster.addLayout(oLayout);
+                return oLayout;
+            });
             break;
         }
         case "transition": {
@@ -1134,7 +1157,7 @@ function CMasterThumbnailDrawer()
 function fFillFromCSld(oSlideLikeObject, oCSld) {
     for(var i = 0; i < oCSld.spTree.length; ++i)
     {
-        oSlideLikeObject.shapeAdd(i, oCSld.spTree[i]);
+        oSlideLikeObject.addToSpTreeToPos(i, oCSld.spTree[i]);
     }
     if(oCSld.Bg)
     {

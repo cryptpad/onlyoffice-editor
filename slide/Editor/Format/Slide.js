@@ -158,7 +158,7 @@ function Slide(presentation, slideLayout, slideNum)
 
     this.presentation = editor && editor.WordControl && editor.WordControl.m_oLogicDocument;
     this.graphicObjects = new AscFormat.DrawingObjectsController(this);
-    this.cSld = new AscFormat.CSld();
+    this.cSld = new AscFormat.CSld(this);
     this.collaborativeMarks = new CRunCollaborativeMarks();
     this.clrMap = null; // override ClrMap
 
@@ -1731,6 +1731,22 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         }
         return oTransition.SlideAdvanceDuration;
     };
+    Slide.prototype.fromXml = function(reader, bSkipFirstNode) {
+        AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+        //read notes
+        var oNotesPart = reader.rels.getPartByRelationshipType(openXml.Types.notesSlide.relationType);
+        if(oNotesPart) {
+            var oNotesContent = oNotesPart.getDocumentContent();
+            let oNotesReader = new StaxParser(oNotesContent, oNotesPart, reader.context);
+            let oNotes = new AscCommonSlide.CNotes();
+            oNotes.fromXml(oNotesReader, true);
+            let oRel = oNotesReader.rels.getPartByRelationshipType(openXml.Types.notesMaster.relationType);
+            if(oRel) {
+                oNotes.masterTarget = oRel.uri;
+                this.setNotes(oNotes);
+            }
+        }
+    };
     Slide.prototype.readAttrXml = function(name, reader) {
         switch (name) {
             case "show": {
@@ -1750,8 +1766,9 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
     Slide.prototype.readChildXml = function(name, reader) {
         switch(name) {
             case "cSld": {
-                let oCSld = this.cSld;
+                let oCSld = new AscFormat.CSld(this);
                 oCSld.fromXml(reader);
+                AscCommonSlide.fFillFromCSld(this, oCSld);
                 break;
             }
             case "clrMapOvr": {

@@ -100,7 +100,7 @@ function SlideLayout()
 {
     AscFormat.CBaseFormatObject.call(this);
     this.kind = AscFormat.TYPE_KIND.LAYOUT;
-    this.cSld = new AscFormat.CSld();
+    this.cSld = new AscFormat.CSld(this);
     this.clrMap = null; // override ClrMap
 
     this.hf = null;
@@ -236,6 +236,10 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
         History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideLayoutAddToSpTree, pos, [item], true));
         this.cSld.spTree.splice(pos, 0, item);
         item.setParent2(this);
+    };
+    SlideLayout.prototype.addToSpTreeToPos = function(pos, obj)
+    {
+        this.shapeAdd(pos, obj);
     };
     SlideLayout.prototype.shapeRemove = function (pos, count) {
         History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideLayoutRemoveFromSpTree, pos, this.cSld.spTree.slice(pos, pos + count), false));
@@ -624,8 +628,9 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
     SlideLayout.prototype.readChildXml = function(name, reader) {
         switch(name) {
             case "cSld": {
-                let oCSld = this.cSld;
+                let oCSld = new AscFormat.CSld(this);
                 oCSld.fromXml(reader);
+                AscCommonSlide.fFillFromCSld(this, oCSld);
                 break;
             }
             case "clrMapOvr": {

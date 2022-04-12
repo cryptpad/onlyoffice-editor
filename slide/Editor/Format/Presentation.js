@@ -11679,13 +11679,30 @@ CPresentation.prototype.StopAnimation = function()
         }
     }
 };
-
 CPresentation.prototype.readAttrXml = function(name, reader) {
     switch (name) {
         case "preserve": {
             break;
         }
     }
+};
+CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
+    reader.context.clearSlideRelations();
+    AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+    //set layouts
+    for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
+        let oSlide = this.Slides[nSlide];
+        let oLayout = reader.context.layoutsMap[oSlide.layoutTarget];
+        oSlide.setLayout(oLayout);
+        let oNotes = oSlide.notes;
+        if(oNotes) {
+            let oNotesMaster = reader.context.notesMastersMap[oNotes.masterTarget];
+            oNotes.setNotesMaster(oNotesMaster);
+            delete oNotes.masterTarget;
+        }
+        delete oSlide.layoutTarget;
+    }
+    reader.context.clearSlideRelations();
 };
 CPresentation.prototype.readChildXml = function(name, reader) {
     let oIdLst;
@@ -11695,7 +11712,12 @@ CPresentation.prototype.readChildXml = function(name, reader) {
         case "sldMasterIdLst": {
             oIdLst = new IdList("sldMasterIdLst");
             oIdLst.fromXml(reader);
-            aList = oIdLst.readList(reader, AscCommonSlide.MasterSlide);
+            aList = oIdLst.readList(reader,
+                function(oObjectReader){
+                    let oSlideMaster = new AscCommonSlide.MasterSlide();
+                    return oSlideMaster;
+                }
+                );
             for(let nIdx = 0; nIdx < aList.length; ++nIdx) {
                 this.addSlideMaster(this.slideMasters.length, aList[nIdx]);
             }
@@ -11704,10 +11726,13 @@ CPresentation.prototype.readChildXml = function(name, reader) {
         case "notesMasterIdLst": {
             oIdLst = new IdList("notesMasterIdLst");
             oIdLst.fromXml(reader);
-            aList = oIdLst.readList(reader, AscCommonSlide.CNotesMaster);
-            for(let nIdx = 0; nIdx < aList.length; ++nIdx) {
-                this.addNotesMaster(this.notesMasters.length, aList[nIdx]);
-            }
+            aList = oIdLst.readList(reader,
+                function(oObjectReader){
+                    let oNotesMaster = new AscCommonSlide.CNotesMaster();
+                    oObjectReader.context.notesMastersMap[oObjectReader.rels.uri] = oNotesMaster;
+                    oPresentation.addNotesMaster(oPresentation.notesMasters.length, oNotesMaster);
+                    return oNotesMaster;
+                });
             break;
         }
         case "handoutMasterIdLst": {
@@ -11718,12 +11743,16 @@ CPresentation.prototype.readChildXml = function(name, reader) {
         case "sldIdLst": {
             oIdLst = new IdList("sldIdLst");
             oIdLst.fromXml(reader);
-            aList = oIdLst.readList(reader, function(){
-                return new AscCommonSlide.Slide(oPresentation);
-            });;
-            for(let nIdx = 0; nIdx < aList.length; ++nIdx) {
-                this.insertSlide(this.Slides.length, aList[nIdx]);
-            }
+            aList = oIdLst.readList(reader, function(oObjectReader){
+                let oSlide = new AscCommonSlide.Slide(oPresentation);
+                let oRel = oObjectReader.rels.getPartByRelationshipType(openXml.Types.slideLayout.relationType);
+                if(!oRel) {
+                    return null;
+                }
+                oSlide.layoutTarget = oRel.uri;
+                oPresentation.insertSlide(oPresentation.Slides.length, oSlide);
+                return oSlide;
+            });
             break;
         }
         case "sldSz": {
@@ -11845,9 +11874,11 @@ IdList.prototype.readList = function(reader, fConstructor) {
         oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
         let oContent = oRelPart.getDocumentContent();
         let oReader = new StaxParser(oContent, oRelPart, reader.context);
-        let oElement = new fConstructor();
-        oElement.fromXml(oReader, true);
-        aListOfObjects.push(oElement);
+        let oElement = fConstructor(oReader);
+        if(oElement) {
+            oElement.fromXml(oReader, true);
+            aListOfObjects.push(oElement);
+        }
     }
     return aListOfObjects;
 };

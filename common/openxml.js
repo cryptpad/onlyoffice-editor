@@ -690,7 +690,7 @@
 		header: {dir: "", filename: "header[N].xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"},
 		jpeg: {dir: "", filename: "jpeg.xml", contentType: "image/jpeg"},
 		mainDocument: {dir: "word", filename: "document.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"},
-		notesMaster: {dir: "", filename: "notesMaster.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml"},
+		notesMaster: {dir: "", filename: "notesMaster.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster"},
 		notesSlide: {dir: "", filename: "notesSlide.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"},
 		numbering: {dir: "", filename: "numbering.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering"},
 		pict: {dir: "", filename: "pict.xml", contentType: "image/pict"},

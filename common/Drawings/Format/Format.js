@@ -39,6 +39,8 @@
 	 */
 	function (window, undefined) {
 
+
+
 		var recalcSlideInterval = 30;
 
 // Import
@@ -70,6 +72,7 @@
 		var CChangesDrawingsContentLong = AscDFH.CChangesDrawingsContentLong;
 		var CChangesDrawingsContentLongMap = AscDFH.CChangesDrawingsContentLongMap;
 		var CChangesDrawingsContent = AscDFH.CChangesDrawingsContent;
+
 
 
 		function CBaseObject() {
@@ -344,7 +347,9 @@
 			}
 		};
 
+
 		function CT_Hyperlink() {
+			CBaseNoIdObject.call(this);
 			this.snd = null;
 			this.id = null;
 			this.invalidUrl = null;
@@ -355,7 +360,7 @@
 			this.highlightClick = null;
 			this.endSnd = null;
 		}
-
+		InitClass(CT_Hyperlink, CBaseNoIdObject, 0);
 		CT_Hyperlink.prototype.Write_ToBinary = function (w) {
 			var nStartPos = w.GetCurPosition();
 			var nFlags = 0;
@@ -1657,19 +1662,41 @@
 
 
 		function getPercentageValue(sVal) {
-			let nVal = 0;
-			if (sVal.indexOf("%") > -1) {
-				let nPct = parseInt(sVal.slice(0, sVal.length - 1));
-				if (AscFormat.isRealNumber(nPct)) {
-					return ((100000 * nPct / 100 + 0.5 >> 0) - 1);
-				}
-				return 0;
+			var _len = sVal.length;
+			if (_len === 0)
+				return null;
+
+			var _ret = null;
+			if ((_len - 1) === sVal.indexOf("%"))
+			{
+				sVal.substring(0, _len - 1);
+				_ret = parseFloat(sVal);
+				if (isNaN(_ret))
+					_ret = null;
 			}
-			let nValPct = parseInt(sVal);
-			if (AscFormat.isRealNumber(nValPct)) {
-				return nValPct;
+			else
+			{
+				_ret = parseFloat(sVal);
+				if (isNaN(_ret))
+					_ret = null;
+				else
+					_ret /= 1000;
 			}
-			return 0;
+			return _ret;
+
+			// let nVal = 0;
+			// if (sVal.indexOf("%") > -1) {
+			// 	let nPct = parseInt(sVal.slice(0, sVal.length - 1));
+			// 	if (AscFormat.isRealNumber(nPct)) {
+			// 		return ((100000 * nPct / 100 + 0.5 >> 0) - 1);
+			// 	}
+			// 	return 0;
+			// }
+			// let nValPct = parseInt(sVal);
+			// if (AscFormat.isRealNumber(nValPct)) {
+			// 	return nValPct;
+			// }
+			// return 0;
 		}
 
 		function CBaseColor() {
@@ -2488,6 +2515,17 @@
 		CUniColor.prototype.toXml = function (writer, name) {
 			//Implement in children
 		};
+		CUniColor.prototype.UNICOLOR_MAP = {
+			"hslClr": true,
+			"scrgbClr": true,
+			"srgbClr": true,
+			"prstClr": true,
+			"schemeClr": true,
+			"sysClr": true
+		};
+		CUniColor.prototype.isUnicolor = function(sName) {
+			return !!CUniColor.prototype.UNICOLOR_MAP[sName];
+		};
 
 		function CreateUniColorRGB(r, g, b) {
 			var ret = new CUniColor();
@@ -2838,11 +2876,41 @@
 		InitClass(CBaseFill, CBaseNoIdObject, 0);
 		CBaseFill.prototype.type = c_oAscFill.FILL_TYPE_NONE;
 
-		function CBlip() {
+		function CBlip(oBlipFill) {
 			CBaseNoIdObject.call(this);
+			this.blipFill = oBlipFill;
+			this.link = null;
 		}
-
 		InitClass(CBlip, CBaseNoIdObject, 0);
+		CBlip.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "embed" : {
+					var rId = reader.GetValue();
+					var rel = reader.rels.getRelationship(rId);
+					var context = reader.context;
+					if ("Internal" === rel.targetMode) {
+						var blipFills = context.imageMap[rel.targetFullName.substring(1)];
+						if (!blipFills) {
+							context.imageMap[rel.targetFullName.substring(1)] = blipFills = [];
+						}
+						blipFills.push(this.blipFill);
+					}
+					break;
+				}
+			}
+		};
+		CBlip.prototype.readChildXml = function (name, reader) {
+			let oEffect = fReadEffectXML(name, reader);
+			if(oEffect) {
+				this.blipFill.Effects.push(oEffect);
+			}
+		};
+		CBlip.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CBlip.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
 
 
 		function CBlipFill() {
@@ -3201,7 +3269,7 @@
 		CBlipFill.prototype.readChildXml = function (name, reader) {
 			switch (name) {
 				case "blip": {
-					let oBlip = new CBlip();
+					let oBlip = new CBlip(this);
 					oBlip.fromXml(reader);
 					break;
 				}
@@ -6026,6 +6094,17 @@
 		CUniFill.prototype.toXml = function (writer, name) {
 			//Implement in children
 		};
+		CUniFill.prototype.FILL_NAMES = {
+			"blipFill": true,
+			"gradFill": true,
+			"grpFill": true,
+			"noFill": true,
+			"pattFill": true,
+			"solidFill": true
+		};
+		CUniFill.prototype.isFillName = function (sName) {
+			return !!CUniFill.prototype.FILL_NAMES[sName];
+		};
 
 
 
@@ -6138,10 +6217,12 @@
 		CBuBlip.prototype.readChildXml = function (name, reader) {
 			switch (name) {
 				case "blip": {
+					this.blip = new CUniFill();
+					this.blip.fill = new CBlipFill();
+					this.blip.fill.readChildXml("blip", reader);
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CBuBlip.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -7137,29 +7218,6 @@
 				}
 			}
 		};
-		CNvPr.prototype.fromXml = function (reader) {
-			this.readAttr(reader);
-			var elem, depth = reader.GetDepth();
-			while (reader.ReadNextSiblingNode(depth)) {
-				// switch (reader.GetNameNoNS()) {
-				//     case "hlinkClick" : {
-				//         this.HlinkClick = new CT_Hyperlink();
-				//         this.HlinkClick.fromXml(reader);
-				//         break;
-				//     }
-				//     case "hlinkHover" : {
-				//         this.HlinkHover = new CT_Hyperlink();
-				//         this.HlinkHover.fromXml(reader);
-				//         break;
-				//     }
-				//     case "extLst" : {
-				//         this.ExtLst = new CT_OfficeArtExtensionList();
-				//         this.ExtLst.fromXml(reader);
-				//         break;
-				//     }
-				// }
-			}
-		};
 		CNvPr.prototype.toXml = function (writer, name) {
 			writer.WriteXmlNodeStart(name);
 			writer.WriteXmlNullableAttributeUInt("id", this.id);
@@ -7176,18 +7234,34 @@
 		};
 		CNvPr.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "id": {
+					this.setId(reader.GetValueUInt());
+					break;
+				}
+				case "name": {
+					this.setName(reader.GetValueDecodeXml());
+					break;
+				}
+				case "descr": {
+					this.setDescr(reader.GetValueDecodeXml());
+					break;
+				}
+				case "hidden": {
+					this.setIsHidden(reader.GetValueBool());
+					break;
+				}
+				case "title": {
+					this.setTitle(reader.GetValueDecodeXml());
+					break;
+				}
+				case "form": {
+					//todo
+					// ParaDrawing.SetForm(reader.GetValueBool());
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CNvPr.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
 			//TODO:Implement in children
 		};
 		CNvPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -8733,7 +8807,24 @@
 		var tx1 = 15;
 		var tx2 = 16;
 
+
+
+		let CLR_IDX_MAP = {};
+		CLR_IDX_MAP["dk1"] = 8;
+		CLR_IDX_MAP["lt1"] = 12;
+		CLR_IDX_MAP["dk2"] = 9;
+		CLR_IDX_MAP["lt2"] = 13;
+		CLR_IDX_MAP["accent1"] = 0;
+		CLR_IDX_MAP["accent2"] = 1;
+		CLR_IDX_MAP["accent3"] = 2;
+		CLR_IDX_MAP["accent4"] = 3;
+		CLR_IDX_MAP["accent5"] = 4;
+		CLR_IDX_MAP["accent6"] = 5;
+		CLR_IDX_MAP["hlink"] = 11;
+		CLR_IDX_MAP["folHlink"] = 10;
+
 		function ClrScheme() {
+			CBaseNoIdObject.call(this);
 			this.name = "";
 			this.colors = [];
 
@@ -8741,7 +8832,7 @@
 				this.colors[i] = null;
 
 		}
-
+		InitClass(ClrScheme, CBaseNoIdObject, 0);
 		ClrScheme.prototype.isIdentical = function (clrScheme) {
 			if (!(clrScheme instanceof ClrScheme)) {
 				return false;
@@ -8804,19 +8895,24 @@
 		};
 		ClrScheme.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "name": {
+					this.name = reader.GetValue();
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		ClrScheme.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
+			let nClrIdx = CLR_IDX_MAP[name];
+			if(AscFormat.isRealNumber(nClrIdx)) {
+				this.colors[nClrIdx] = new CUniColor();
+				var depth = reader.GetDepth();
+				while (reader.ReadNextSiblingNode(depth)) {
+					var sClrName = reader.GetNameNoNS();
+					if(CUniColor.prototype.isUnicolor(sClrName)) {
+						this.colors[nClrIdx].fromXml(reader, sClrName);
+					}
 				}
 			}
-			//TODO:Implement in children
 		};
 		ClrScheme.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -8946,7 +9042,7 @@
 		drawingConstructorsMap[AscDFH.historyitem_ExtraClrScheme_SetClrScheme] = ClrScheme;
 
 		function FontCollection(fontScheme) {
-
+			CBaseNoIdObject.call(this);
 			this.latin = null;
 			this.ea = null;
 			this.cs = null;
@@ -8954,17 +9050,11 @@
 				this.setFontScheme(fontScheme);
 			}
 		}
-
-		FontCollection.prototype.Get_Id = function () {
-			return this.Id;
-		};
+		InitClass(FontCollection, CBaseNoIdObject, 0);
 		FontCollection.prototype.Refresh_RecalcData = function () {
 		};
 		FontCollection.prototype.setFontScheme = function (fontScheme) {
 			this.fontScheme = fontScheme;
-		};
-		FontCollection.prototype.getObjectType = function () {
-			return AscDFH.historyitem_type_FontCollection;
 		};
 		FontCollection.prototype.setLatin = function (pr) {
 			this.latin = pr;
@@ -8997,24 +9087,26 @@
 				this.fontScheme.checkFromFontCollection(this.cs, this, FONT_REGION_CS);
 			}
 		};
-		FontCollection.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
+		FontCollection.prototype.readFont = function(reader) {
+			let oNode = new CT_XmlNode();
+			oNode.fromXml(reader);
+			return oNode.attributes["typeface"];
 		};
 		FontCollection.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "cs": {
+					this.cs = this.readFont(reader);
+					break;
+				}
+				case "ea": {
+					this.ea = this.readFont(reader);
+					break;
+				}
+				case "latin": {
+					this.latin = this.readFont(reader);
 					break;
 				}
 			}
-			//TODO:Implement in children
-		};
-		FontCollection.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
 		};
 		FontCollection.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
@@ -9025,8 +9117,8 @@
 		var FONT_REGION_CS = 0x02;
 
 		function FontScheme() {
+			CBaseNoIdObject.call(this)
 			this.name = "";
-
 			this.majorFont = new FontCollection(this);
 			this.minorFont = new FontCollection(this);
 			this.fontMap = {
@@ -9046,7 +9138,7 @@
 				"minorHAnsi": undefined
 			};
 		}
-
+		InitClass(FontScheme, CBaseNoIdObject, 0);
 		FontScheme.prototype.createDuplicate = function () {
 			var oCopy = new FontScheme();
 			oCopy.majorFont.setLatin(this.majorFont.latin);
@@ -9135,19 +9227,23 @@
 		};
 		FontScheme.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "name": {
+					this.name = reader.GetValue();
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		FontScheme.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "majorFont": {
+					this.majorFont.fromXml(reader);
+					break;
+				}
+				case "minorFont": {
+					this.minorFont.fromXml(reader);
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		FontScheme.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -9157,13 +9253,14 @@
 		};
 
 		function FmtScheme() {
+			CBaseNoIdObject.call(this);
 			this.name = "";
 			this.fillStyleLst = [];
 			this.lnStyleLst = [];
 			this.effectStyleLst = null;
 			this.bgFillStyleLst = [];
 		}
-
+		InitClass(FmtScheme, CBaseNoIdObject, 0);
 		FmtScheme.prototype.GetFillStyle = function (number, unicolor) {
 			if (number >= 1 && number <= 999) {
 				var ret = this.fillStyleLst[number - 1];
@@ -9253,15 +9350,37 @@
 		};
 		FmtScheme.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "name": {
+					this.name = reader.GetValue();
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
+		FmtScheme.prototype.readList = function(reader, aArray, fConstructor) {
+
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				let name = reader.GetNameNoNS();
+				let oObj = new fConstructor();
+				oObj.fromXml(reader, name);
+				aArray.push(oObj);
+			}
+		}
 		FmtScheme.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "bgFillStyleLst": {
+					this.readList(reader, this.bgFillStyleLst, CUniFill);
+					break;
+				}
+				case "effectStyleLst": {
+					break;
+				}
+				case "fillStyleLst": {
+					this.readList(reader, this.fillStyleLst, CUniFill);
+					break;
+				}
+				case "lnStyleLst": {
+					this.readList(reader, this.lnStyleLst, CLn);
 					break;
 				}
 			}
@@ -9274,38 +9393,51 @@
 			//TODO:Implement in children
 		};
 
-		function ThemeElements() {
+		function ThemeElements(oTheme) {
+			CBaseNoIdObject.call(this);
+			this.theme = oTheme;
 			this.clrScheme = new ClrScheme();
 			this.fontScheme = new FontScheme();
 			this.fmtScheme = new FmtScheme();
 		}
-
+		InitClass(ThemeElements, CBaseNoIdObject, 0);
 		ThemeElements.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		ThemeElements.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "clrScheme": {
+					let oClrScheme = new ClrScheme();
+					oClrScheme.fromXml(reader);
+					this.theme.setColorScheme(oClrScheme);
+					break;
+				}
+				case "extLst": {
+					break;
+				}
+				case "fmtScheme": {
+					let oFmtScheme = new FmtScheme();
+					oFmtScheme.fromXml(reader);
+					this.theme.setFormatScheme(oFmtScheme);
+					break;
+				}
+				case "fontScheme": {
+					let oFontScheme = new FontScheme();
+					oFontScheme.fromXml(reader);
+					this.theme.setFontScheme(oFontScheme);
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		ThemeElements.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
 		};
 		ThemeElements.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
 		function CTheme() {
+			CBaseFormatObject.call(this);
 			this.name = "";
-			this.themeElements = new ThemeElements();
+			this.themeElements = new ThemeElements(this);
 			this.spDef = null;
 			this.lnDef = null;
 			this.txDef = null;
@@ -9318,13 +9450,9 @@
 			this.presentation = null;
 			this.clrMap = null;
 
-			this.Id = g_oIdCounter.Get_NewId();
-			g_oTableId.Add(this, this.Id);
 		}
+		InitClass(CTheme, CBaseFormatObject, 0);
 
-		CTheme.prototype.Get_Id = function () {
-			return this.Id;
-		};
 		CTheme.prototype.createDuplicate = function () {
 			var oTheme = new CTheme();
 			oTheme.setName(this.name);
@@ -9518,7 +9646,8 @@
 		};
 		CTheme.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "name": {
+					this.setName(reader.GetValue());
 					break;
 				}
 			}
@@ -9526,11 +9655,23 @@
 		};
 		CTheme.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "custClrLst": {
+					break;
+				}
+				case "extLst": {
+					break;
+				}
+				case "extraClrSchemeLst": {
+					break;
+				}
+				case "objectDefaults": {
+					break;
+				}
+				case "themeElements": {
+					this.themeElements.fromXml(reader);
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CTheme.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -9780,11 +9921,12 @@
 			//Implement in children
 		};
 
-		function CSld() {
+		function CSld(parent) {
 			CBaseNoIdObject.call(this);
 			this.name = "";
 			this.Bg = null;
 			this.spTree = [];//new GroupShape();
+			this.parent = parent;
 		}
 
 		InitClass(CSld, CBaseNoIdObject, 0);
@@ -9841,7 +9983,7 @@
 					break;
 				}
 				case "spTree": {
-					var oSpTree = new CSpTree();
+					var oSpTree = new CSpTree(this.parent);
 					oSpTree.fromXml(reader);
 					this.spTree = oSpTree.spTree;
 					break;
@@ -9856,9 +9998,10 @@
 		};
 
 
-		function CSpTree() {
+		function CSpTree(oSlideObject) {
 			CBaseNoIdObject.call(this);
 			this.spTree = [];
+			this.slideObject = oSlideObject;
 		}
 
 		InitClass(CSpTree, CBaseNoIdObject, 0);
@@ -9900,7 +10043,13 @@
 			}
 			if (oSp) {
 				oSp.fromXml(reader);
-				this.spTree.push(oSp);
+				if(name === "graphicFrame" && !(oSp.graphicObject instanceof AscCommonWord.CTable)) {
+					oSp = oSp.graphicObject;
+				}
+				if(oSp) {
+					oSp.setBDeleted(false);
+					this.spTree.push(oSp);
+				}
 			}
 		};
 		CSpTree.prototype.writeAttrXmlImpl = function (writer) {
@@ -10274,12 +10423,13 @@
 		}
 
 
-		function CTextFit() {
-			this.type = 0;
+		function CTextFit(nType) {
+			CBaseNoIdObject.call(this);
+			this.type = nType !== undefined && nType !== null ? nType : 0;
 			this.fontScale = null;
 			this.lnSpcReduction = null;
 		}
-
+		InitClass(CTextFit, CBaseNoIdObject, 0);
 		CTextFit.prototype.CreateDublicate = function () {
 			var d = new CTextFit();
 			d.type = this.type;
@@ -10304,11 +10454,15 @@
 		};
 		CTextFit.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "fontScale": {
+					this.fontScale = getPercentageValue(reader.GetValue());
+					break;
+				}
+				case "lnSpcReduction": {
+					this.lnSpcReduction = getPercentageValue(reader.GetValue());
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CTextFit.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -10357,11 +10511,7 @@
 			this.wrap = null;
 			this.textFit = null;
 			this.prstTxWarp = null;
-
-
 			this.parent = null;
-			// this.Id = g_oIdCounter.Get_NewId();
-			// g_oTableId.Add(this, this.Id);
 		}
 		InitClass(CBodyPr, CBaseNoIdObject, 0);
 		CBodyPr.prototype.Get_Id = function () {
@@ -11144,17 +11294,207 @@
 				this.textFit.Read_FromBinary(r)
 			}
 		};
+		CBodyPr.prototype.readXmlInset = function(reader) {
+			return reader.GetValueInt()/60000;
+		};
 		CBodyPr.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "anchor": {
+					let sVal = reader.GetValue();
+					switch (sVal) {
+						case "b": {
+							this.anchor = AscFormat.VERTICAL_ANCHOR_TYPE_BOTTOM ;
+							break;
+						}
+						case "ctr": {
+							this.anchor = AscFormat.VERTICAL_ANCHOR_TYPE_CENTER;
+							break;
+						}
+						case "dist": {
+							this.anchor = AscFormat.VERTICAL_ANCHOR_TYPE_DISTRIBUTED;
+							break;
+						}
+						case "just": {
+							this.anchor = AscFormat.VERTICAL_ANCHOR_TYPE_JUSTIFIED;
+							break;
+						}
+						case "t": {
+							this.anchor = AscFormat.VERTICAL_ANCHOR_TYPE_TOP;
+							break;
+						}
+					}
+					break;
+				}
+				case "anchorCtr": {
+					this.anchorCtr = reader.GetValueBool();
+					break;
+				}
+				case "bIns": {
+					this.bIns = this.readXmlInset(reader);
+					break;
+				}
+				case "compatLnSpc": {
+					this.compatLnSpc = reader.GetValueBool();
+					break;
+				}
+				case "forceAA": {
+					this.forceAA = reader.GetValueBool();
+					break;
+				}
+				case "fromWordArt": {
+					this.fromWordArt = reader.GetValueBool();
+					break;
+				}
+				case "horzOverflow": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "clip": {
+							this.horzOverflow = AscFormat.nOTClip;
+							break;
+						}
+						case "overflow": {
+							this.horzOverflow = AscFormat.nOTOwerflow;
+							break;
+						}
+					}
+					break;
+				}
+				case "lIns": {
+					this.lIns = this.readXmlInset(reader);
+					break;
+				}
+				case "numCol": {
+					this.numCol = reader.GetValueInt();
+					break;
+				}
+				case "rIns": {
+					this.rIns = this.readXmlInset(reader);
+					break;
+				}
+				case "rot": {
+					this.rot = reader.GetValueInt();
+					break;
+				}
+				case "rtlCol": {
+					this.rtlCol = reader.GetValueBool();
+					break;
+				}
+				case "spcCol": {
+					this.spcCol = this.readXmlInset(reader);
+					break;
+				}
+				case "spcFirstLastPara": {
+					this.spcFirstLastPara = reader.GetValueBool();
+					break;
+				}
+				case "tIns": {
+					this.tIns = this.readXmlInset(reader);
+					break;
+				}
+				case "upright": {
+					this.upright = reader.GetValueBool();
+					break;
+				}
+				case "vert": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "eaVert": {
+							this.vert = AscFormat.nVertTTeaVert;
+							break;
+						}
+						case "horz": {
+							this.vert = AscFormat.nVertTThorz;
+							break;
+						}
+						case "mongolianVert": {
+							this.vert = AscFormat.nVertTTmongolianVert;
+							break;
+						}
+						case "vert": {
+							this.vert = AscFormat.nVertTTvert;
+							break;
+						}
+						case "vert270": {
+							this.vert = AscFormat.nVertTTvert270;
+							break;
+						}
+						case "wordArtVert": {
+							this.vert = AscFormat.nVertTTwordArtVert;
+							break;
+						}
+						case "wordArtVertRtl": {
+							this.vert = AscFormat.nVertTTwordArtVertRtl;
+							break;
+						}
+					}
+					break;
+				}
+				case "vertOverflow": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "clip": {
+							this.vertOverflow = AscFormat.nOTClip;
+							break;
+						}
+						case "ellipsis": {
+							this.vertOverflow = AscFormat.nOTEllipsis;
+							break;
+						}
+						case "overflow": {
+							this.vertOverflow = AscFormat.nOTOwerflow;
+							break;
+						}
+					}
+					break;
+				}
+				case "wrap": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "none": {
+							this.wrap = AscFormat.nTWTNone;
+							break;
+						}
+						case "square": {
+							this.wrap = AscFormat.nTWTSquare;
+							break;
+						}
+					}
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CBodyPr.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "flatTx": {
+					this.flatTx = AscCommon.CT_Int.prototype.toVal(reader, null);
+					break;
+				}
+				case "noAutofit": {
+					this.textFit = new CTextFit(AscFormat.text_fit_No);
+					break;
+				}
+				case "normAutofit": {
+					this.textFit = new CTextFit(AscFormat.text_fit_NormAuto);
+					break;
+				}
+				case "prstTxWarp": {
+					this.prstTxWarp = AscFormat.ExecuteNoHistory(function() {
+						let oGeometry = new AscFormat.Geometry();
+						oGeometry.fromXml(reader);
+						return oGeometry;
+					}, this, []);
+					break;
+				}
+				case "scene3d": {
+					//TODO:
+					break;
+				}
+				case "sp3d": {
+					//TODO
+					break;
+				}
+				case "spAutoFit": {
+					this.textFit = new CTextFit(AscFormat.text_fit_Auto);
 					break;
 				}
 			}
@@ -11166,6 +11506,7 @@
 		CBodyPr.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
+
 
 
 		function CHyperlink() {
@@ -11277,6 +11618,7 @@
 		}
 
 		function CBullet() {
+			CBaseNoIdObject.call(this)
 			this.bulletColor = null;
 			this.bulletSize = null;
 			this.bulletTypeface = null;
@@ -11286,7 +11628,7 @@
 			//used to get properties for interface
 			this.FirstTextPr = null;
 		}
-
+		InitClass(CBullet, CBaseNoIdObject, 0);
 		CBullet.prototype.Set_FromObject = function (obj) {
 			if (obj) {
 				if (obj.bulletColor) {
@@ -11537,20 +11879,65 @@
 			}
 		};
 		CBullet.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		CBullet.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "buAutoNum": {
+					this.bulletType = new CBulletType(AscFormat.BULLET_TYPE_BULLET_AUTONUM);
+					this.bulletType.fromXml(reader);
+					break;
+				}
+				case "buBlip": {
+					this.bulletType = new CBulletType(AscFormat.BULLET_TYPE_BULLET_BLIP);
+					this.bulletType.fromXml(reader);
+					break;
+				}
+				case "buChar": {
+					this.bulletType = new CBulletType(AscFormat.BULLET_TYPE_BULLET_CHAR);
+					this.bulletType.fromXml(reader);
+					break;
+				}
+				case "buClr": {
+					this.bulletColor = new CBulletColor(AscFormat.BULLET_TYPE_COLOR_CLR);
+					this.bulletColor.fromXml(reader);
+					break;
+				}
+				case "buClrTx": {
+					this.bulletColor = new CBulletColor(AscFormat.BULLET_TYPE_COLOR_CLRTX);
+					this.bulletColor.fromXml(reader);
+					break;
+				}
+				case "buFont": {
+					this.bulletTypeface = new CBulletTypeface(AscFormat.BULLET_TYPE_TYPEFACE_BUFONT);
+					this.bulletTypeface.fromXml(reader);
+					break;
+				}
+				case "buFontTx": {
+					this.bulletTypeface = new CBulletTypeface(AscFormat.BULLET_TYPE_TYPEFACE_TX);
+					this.bulletTypeface.fromXml(reader);
+					break;
+				}
+				case "buNone": {
+					this.bulletType = new CBulletType(AscFormat.BULLET_TYPE_BULLET_NONE);
+					this.bulletType.fromXml(reader);
+					break;
+				}
+				case "buSzPct": {
+					this.bulletType = new CBulletSize(AscFormat.BULLET_TYPE_SIZE_PCT);
+					this.bulletType.fromXml(reader);
+					break;
+				}
+				case "buSzPts": {
+					this.bulletType = new CBulletSize(AscFormat.BULLET_TYPE_SIZE_PTS);
+					this.bulletType.fromXml(reader);
+					break;
+				}
+				case "buSzTx": {
+					this.bulletType = new CBulletSize(AscFormat.BULLET_TYPE_SIZE_TX);
+					this.bulletType.fromXml(reader);
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CBullet.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -11751,11 +12138,12 @@
 		prot["get_Type"] = prot["asc_getType"] = prot.asc_getType;
 		window["Asc"]["asc_CBullet"] = window["Asc"].asc_CBullet = CBullet;
 
-		function CBulletColor() {
-			this.type = AscFormat.BULLET_TYPE_COLOR_CLRTX;
+		function CBulletColor(nType) {
+			CBaseNoIdObject.call(this);
+			this.type = AscFormat.isRealNumber(nType) ? nType : AscFormat.BULLET_TYPE_COLOR_CLRTX;
 			this.UniColor = null;
 		}
-
+		InitClass(CBulletColor, CBaseNoIdObject, 0);
 		CBulletColor.prototype.Set_FromObject = function (o) {
 			this.merge(o);
 		};
@@ -11816,20 +12204,14 @@
 			}
 		};
 		CBulletColor.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		CBulletColor.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
+			if(CUniColor.prototype.isUnicolor(name)) {
+				if(this.type === AscFormat.BULLET_TYPE_COLOR_CLR) {
+					this.UniColor = new CUniColor();
+					this.UniColor.fromXml(reader, name);
 				}
 			}
-			//TODO:Implement in children
 		};
 		CBulletColor.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -11838,12 +12220,12 @@
 			//TODO:Implement in children
 		};
 
-		function CBulletSize() {
-			this.type = AscFormat.BULLET_TYPE_SIZE_NONE;
+		function CBulletSize(nType) {
+			CBaseNoIdObject.call(this);
+			this.type = AscFormat.isRealNumber(nType) ? nType : AscFormat.BULLET_TYPE_SIZE_NONE;
 			this.val = 0;
-
 		}
-
+		InitClass(CBulletSize, CBaseNoIdObject, 0);
 		CBulletSize.prototype.Set_FromObject = function (o) {
 			this.merge(o);
 		};
@@ -11888,11 +12270,16 @@
 		};
 		CBulletSize.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "val": {
+					if(this.type === AscFormat.BULLET_TYPE_SIZE_PCT) {
+						this.val = getPercentageValue(reader.GetValue());
+					}
+					else if(this.type === AscFormat.BULLET_TYPE_SIZE_PTS) {
+						this.val = reader.GetValueInt();
+					}
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CBulletSize.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -11909,11 +12296,12 @@
 			//TODO:Implement in children
 		};
 
-		function CBulletTypeface() {
-			this.type = AscFormat.BULLET_TYPE_TYPEFACE_NONE;
+		function CBulletTypeface(nType) {
+			CBaseNoIdObject.call(this);
+			this.type = AscFormat.isRealNumber(nType) ? nType : AscFormat.BULLET_TYPE_TYPEFACE_NONE;
 			this.typeface = "";
 		}
-
+		InitClass(CBulletTypeface, CBaseNoIdObject, 0);
 		CBulletTypeface.prototype.Set_FromObject = function (o) {
 			this.merge(o);
 		};
@@ -11958,7 +12346,10 @@
 		};
 		CBulletTypeface.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "typeface": {
+					if(this.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT) {
+						this.typeface = reader.GetValue();
+					}
 					break;
 				}
 			}
@@ -11980,14 +12371,150 @@
 		};
 
 
-		function CBulletType() {
-			this.type = null;//BULLET_TYPE_BULLET_NONE;
+		var numbering_presentationnumfrmt_AlphaLcParenBoth = 0;
+		var numbering_presentationnumfrmt_AlphaLcParenR = 1;
+		var numbering_presentationnumfrmt_AlphaLcPeriod = 2;
+		var numbering_presentationnumfrmt_AlphaUcParenBoth = 3;
+		var numbering_presentationnumfrmt_AlphaUcParenR = 4;
+		var numbering_presentationnumfrmt_AlphaUcPeriod = 5;
+		var numbering_presentationnumfrmt_Arabic1Minus = 6;
+		var numbering_presentationnumfrmt_Arabic2Minus = 7;
+		var numbering_presentationnumfrmt_ArabicDbPeriod = 8;
+		var numbering_presentationnumfrmt_ArabicDbPlain = 9;
+		var numbering_presentationnumfrmt_ArabicParenBoth = 10;
+		var numbering_presentationnumfrmt_ArabicParenR = 11;
+		var numbering_presentationnumfrmt_ArabicPeriod = 12;
+		var numbering_presentationnumfrmt_ArabicPlain = 13;
+		var numbering_presentationnumfrmt_CircleNumDbPlain = 14;
+		var numbering_presentationnumfrmt_CircleNumWdBlackPlain = 15;
+		var numbering_presentationnumfrmt_CircleNumWdWhitePlain = 16;
+		var numbering_presentationnumfrmt_Ea1ChsPeriod = 17;
+		var numbering_presentationnumfrmt_Ea1ChsPlain = 18;
+		var numbering_presentationnumfrmt_Ea1ChtPeriod = 19;
+		var numbering_presentationnumfrmt_Ea1ChtPlain = 20;
+		var numbering_presentationnumfrmt_Ea1JpnChsDbPeriod = 21;
+		var numbering_presentationnumfrmt_Ea1JpnKorPeriod = 22;
+		var numbering_presentationnumfrmt_Ea1JpnKorPlain = 23;
+		var numbering_presentationnumfrmt_Hebrew2Minus = 24;
+		var numbering_presentationnumfrmt_HindiAlpha1Period = 25;
+		var numbering_presentationnumfrmt_HindiAlphaPeriod = 26;
+		var numbering_presentationnumfrmt_HindiNumParenR = 27;
+		var numbering_presentationnumfrmt_HindiNumPeriod = 28;
+		var numbering_presentationnumfrmt_RomanLcParenBoth = 29;
+		var numbering_presentationnumfrmt_RomanLcParenR = 30;
+		var numbering_presentationnumfrmt_RomanLcPeriod = 31;
+		var numbering_presentationnumfrmt_RomanUcParenBoth = 32;
+		var numbering_presentationnumfrmt_RomanUcParenR = 33;
+		var numbering_presentationnumfrmt_RomanUcPeriod = 34;
+		var numbering_presentationnumfrmt_ThaiAlphaParenBoth = 35;
+		var numbering_presentationnumfrmt_ThaiAlphaParenR = 36;
+		var numbering_presentationnumfrmt_ThaiAlphaPeriod = 37;
+		var numbering_presentationnumfrmt_ThaiNumParenBoth = 38;
+		var numbering_presentationnumfrmt_ThaiNumParenR = 39;
+		var numbering_presentationnumfrmt_ThaiNumPeriod = 40;
+
+		var numbering_presentationnumfrmt_None          =     100;
+		var numbering_presentationnumfrmt_Char          =     101;
+		var numbering_presentationnumfrmt_Blip          =     102;
+
+		AscFormat.numbering_presentationnumfrmt_AlphaLcParenBoth = numbering_presentationnumfrmt_AlphaLcParenBoth;
+		AscFormat.numbering_presentationnumfrmt_AlphaLcParenR = numbering_presentationnumfrmt_AlphaLcParenR;
+		AscFormat.numbering_presentationnumfrmt_AlphaLcPeriod = numbering_presentationnumfrmt_AlphaLcPeriod;
+		AscFormat.numbering_presentationnumfrmt_AlphaUcParenBoth = numbering_presentationnumfrmt_AlphaUcParenBoth;
+		AscFormat.numbering_presentationnumfrmt_AlphaUcParenR = numbering_presentationnumfrmt_AlphaUcParenR;
+		AscFormat.numbering_presentationnumfrmt_AlphaUcPeriod = numbering_presentationnumfrmt_AlphaUcPeriod;
+		AscFormat.numbering_presentationnumfrmt_Arabic1Minus = numbering_presentationnumfrmt_Arabic1Minus;
+		AscFormat.numbering_presentationnumfrmt_Arabic2Minus = numbering_presentationnumfrmt_Arabic2Minus;
+		AscFormat.numbering_presentationnumfrmt_ArabicDbPeriod = numbering_presentationnumfrmt_ArabicDbPeriod;
+		AscFormat.numbering_presentationnumfrmt_ArabicDbPlain = numbering_presentationnumfrmt_ArabicDbPlain;
+		AscFormat.numbering_presentationnumfrmt_ArabicParenBoth = numbering_presentationnumfrmt_ArabicParenBoth;
+		AscFormat.numbering_presentationnumfrmt_ArabicParenR  = numbering_presentationnumfrmt_ArabicParenR;
+		AscFormat.numbering_presentationnumfrmt_ArabicPeriod  = numbering_presentationnumfrmt_ArabicPeriod;
+		AscFormat.numbering_presentationnumfrmt_ArabicPlain = numbering_presentationnumfrmt_ArabicPlain;
+		AscFormat.numbering_presentationnumfrmt_CircleNumDbPlain = numbering_presentationnumfrmt_CircleNumDbPlain;
+		AscFormat.numbering_presentationnumfrmt_CircleNumWdBlackPlain = numbering_presentationnumfrmt_CircleNumWdBlackPlain;
+		AscFormat.numbering_presentationnumfrmt_CircleNumWdWhitePlain = numbering_presentationnumfrmt_CircleNumWdWhitePlain;
+		AscFormat.numbering_presentationnumfrmt_Ea1ChsPeriod = numbering_presentationnumfrmt_Ea1ChsPeriod;
+		AscFormat.numbering_presentationnumfrmt_Ea1ChsPlain = numbering_presentationnumfrmt_Ea1ChsPlain;
+		AscFormat.numbering_presentationnumfrmt_Ea1ChtPeriod = numbering_presentationnumfrmt_Ea1ChtPeriod;
+		AscFormat.numbering_presentationnumfrmt_Ea1ChtPlain = numbering_presentationnumfrmt_Ea1ChtPlain;
+		AscFormat.numbering_presentationnumfrmt_Ea1JpnChsDbPeriod = numbering_presentationnumfrmt_Ea1JpnChsDbPeriod;
+		AscFormat.numbering_presentationnumfrmt_Ea1JpnKorPeriod = numbering_presentationnumfrmt_Ea1JpnKorPeriod;
+		AscFormat.numbering_presentationnumfrmt_Ea1JpnKorPlain = numbering_presentationnumfrmt_Ea1JpnKorPlain;
+		AscFormat.numbering_presentationnumfrmt_Hebrew2Minus = numbering_presentationnumfrmt_Hebrew2Minus;
+		AscFormat.numbering_presentationnumfrmt_HindiAlpha1Period = numbering_presentationnumfrmt_HindiAlpha1Period;
+		AscFormat.numbering_presentationnumfrmt_HindiAlphaPeriod = numbering_presentationnumfrmt_HindiAlphaPeriod;
+		AscFormat.numbering_presentationnumfrmt_HindiNumParenR = numbering_presentationnumfrmt_HindiNumParenR;
+		AscFormat.numbering_presentationnumfrmt_HindiNumPeriod = numbering_presentationnumfrmt_HindiNumPeriod;
+		AscFormat.numbering_presentationnumfrmt_RomanLcParenBoth = numbering_presentationnumfrmt_RomanLcParenBoth;
+		AscFormat.numbering_presentationnumfrmt_RomanLcParenR = numbering_presentationnumfrmt_RomanLcParenR;
+		AscFormat.numbering_presentationnumfrmt_RomanLcPeriod = numbering_presentationnumfrmt_RomanLcPeriod;
+		AscFormat.numbering_presentationnumfrmt_RomanUcParenBoth = numbering_presentationnumfrmt_RomanUcParenBoth;
+		AscFormat.numbering_presentationnumfrmt_RomanUcParenR = numbering_presentationnumfrmt_RomanUcParenR;
+		AscFormat.numbering_presentationnumfrmt_RomanUcPeriod = numbering_presentationnumfrmt_RomanUcPeriod;
+		AscFormat.numbering_presentationnumfrmt_ThaiAlphaParenBoth = numbering_presentationnumfrmt_ThaiAlphaParenBoth;
+		AscFormat.numbering_presentationnumfrmt_ThaiAlphaParenR = numbering_presentationnumfrmt_ThaiAlphaParenR;
+		AscFormat.numbering_presentationnumfrmt_ThaiAlphaPeriod = numbering_presentationnumfrmt_ThaiAlphaPeriod;
+		AscFormat.numbering_presentationnumfrmt_ThaiNumParenBoth = numbering_presentationnumfrmt_ThaiNumParenBoth;
+		AscFormat.numbering_presentationnumfrmt_ThaiNumParenR = numbering_presentationnumfrmt_ThaiNumParenR;
+		AscFormat.numbering_presentationnumfrmt_ThaiNumPeriod = numbering_presentationnumfrmt_ThaiNumPeriod;
+
+		AscFormat.numbering_presentationnumfrmt_None = numbering_presentationnumfrmt_None;
+		AscFormat.numbering_presentationnumfrmt_Char = numbering_presentationnumfrmt_Char;
+		AscFormat.numbering_presentationnumfrmt_Blip = numbering_presentationnumfrmt_Blip;
+
+		var MAP_AUTONUM_TYPES = {};
+		MAP_AUTONUM_TYPES["alphaLcParenBot"] = numbering_presentationnumfrmt_AlphaLcParenBoth;
+		MAP_AUTONUM_TYPES["alphaLcParen"] = numbering_presentationnumfrmt_AlphaLcParenR;
+		MAP_AUTONUM_TYPES["alphaLcPerio"] = numbering_presentationnumfrmt_AlphaLcPeriod;
+		MAP_AUTONUM_TYPES["alphaUcParenBot"] = numbering_presentationnumfrmt_AlphaUcParenBoth;
+		MAP_AUTONUM_TYPES["alphaUcParen"] = numbering_presentationnumfrmt_AlphaUcParenR;
+		MAP_AUTONUM_TYPES["alphaUcPerio"] = numbering_presentationnumfrmt_AlphaUcPeriod;
+		MAP_AUTONUM_TYPES["arabic1Minu"] = numbering_presentationnumfrmt_Arabic1Minus;
+		MAP_AUTONUM_TYPES["arabic2Minu"] = numbering_presentationnumfrmt_Arabic2Minus;
+		MAP_AUTONUM_TYPES["arabicDbPerio"] = numbering_presentationnumfrmt_ArabicDbPeriod;
+		MAP_AUTONUM_TYPES["arabicDbPlai"] = numbering_presentationnumfrmt_ArabicDbPlain;
+		MAP_AUTONUM_TYPES["arabicParenBoth"] = numbering_presentationnumfrmt_ArabicParenBoth;
+		MAP_AUTONUM_TYPES["arabicParenR"] = numbering_presentationnumfrmt_ArabicParenR;
+		MAP_AUTONUM_TYPES["arabicPeriod"] = numbering_presentationnumfrmt_ArabicPeriod;
+		MAP_AUTONUM_TYPES["arabicPlain"] = numbering_presentationnumfrmt_ArabicPlain;
+		MAP_AUTONUM_TYPES["circleNumDbPlain"] = numbering_presentationnumfrmt_CircleNumDbPlain;
+		MAP_AUTONUM_TYPES["circleNumWdBlackPlain"] = numbering_presentationnumfrmt_CircleNumWdBlackPlain;
+		MAP_AUTONUM_TYPES["circleNumWdWhitePlain"] = numbering_presentationnumfrmt_CircleNumWdWhitePlain;
+		MAP_AUTONUM_TYPES["ea1ChsPeriod"] = numbering_presentationnumfrmt_Ea1ChsPeriod;
+		MAP_AUTONUM_TYPES["ea1ChsPlain"] = numbering_presentationnumfrmt_Ea1ChsPlain;
+		MAP_AUTONUM_TYPES["ea1ChtPeriod"] = numbering_presentationnumfrmt_Ea1ChtPeriod;
+		MAP_AUTONUM_TYPES["ea1ChtPlain"] = numbering_presentationnumfrmt_Ea1ChtPlain;
+		MAP_AUTONUM_TYPES["ea1JpnChsDbPeriod"] = numbering_presentationnumfrmt_Ea1JpnChsDbPeriod;
+		MAP_AUTONUM_TYPES["ea1JpnKorPeriod"] = numbering_presentationnumfrmt_Ea1JpnKorPeriod;
+		MAP_AUTONUM_TYPES["ea1JpnKorPlain"] = numbering_presentationnumfrmt_Ea1JpnKorPlain;
+		MAP_AUTONUM_TYPES["hebrew2Minus"] = numbering_presentationnumfrmt_Hebrew2Minus;
+		MAP_AUTONUM_TYPES["hindiAlpha1Period"] = numbering_presentationnumfrmt_HindiAlpha1Period;
+		MAP_AUTONUM_TYPES["hindiAlphaPeriod"] = numbering_presentationnumfrmt_HindiAlphaPeriod;
+		MAP_AUTONUM_TYPES["hindiNumParenR"] = numbering_presentationnumfrmt_HindiNumParenR;
+		MAP_AUTONUM_TYPES["hindiNumPeriod"] = numbering_presentationnumfrmt_HindiNumPeriod;
+		MAP_AUTONUM_TYPES["romanLcParenBoth"] = numbering_presentationnumfrmt_RomanLcParenBoth;
+		MAP_AUTONUM_TYPES["romanLcParenR"] = numbering_presentationnumfrmt_RomanLcParenR;
+		MAP_AUTONUM_TYPES["romanLcPeriod"] = numbering_presentationnumfrmt_RomanLcPeriod;
+		MAP_AUTONUM_TYPES["romanUcParenBoth"] = numbering_presentationnumfrmt_RomanUcParenBoth;
+		MAP_AUTONUM_TYPES["romanUcParenR"] = numbering_presentationnumfrmt_RomanUcParenR;
+		MAP_AUTONUM_TYPES["romanUcPeriod"] = numbering_presentationnumfrmt_RomanUcPeriod;
+		MAP_AUTONUM_TYPES["thaiAlphaParenBoth"] = numbering_presentationnumfrmt_ThaiAlphaParenBoth;
+		MAP_AUTONUM_TYPES["thaiAlphaParenR"] = numbering_presentationnumfrmt_ThaiAlphaParenR;
+		MAP_AUTONUM_TYPES["thaiAlphaPeriod"] = numbering_presentationnumfrmt_ThaiAlphaPeriod;
+		MAP_AUTONUM_TYPES["thaiNumParenBoth"] = numbering_presentationnumfrmt_ThaiNumParenBoth;
+		MAP_AUTONUM_TYPES["thaiNumParenR"] = numbering_presentationnumfrmt_ThaiNumParenR;
+		MAP_AUTONUM_TYPES["thaiNumPeriod"] = numbering_presentationnumfrmt_ThaiNumPeriod;
+		
+		function CBulletType(nType) {
+			CBaseNoIdObject.call(this);
+			this.type = AscFormat.isRealNumber(nType) ? nType : null;//BULLET_TYPE_BULLET_NONE;
 			this.Char = null;
 			this.AutoNumType = null;
 			this.Blip = null;
 			this.startAt = null;
 		}
-
+		InitClass(CBulletType, CBaseNoIdObject, 0);
 		CBulletType.prototype.Set_FromObject = function (o) {
 			this.merge(o);
 		};
@@ -12109,8 +12636,26 @@
 		};
 		CBulletType.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "startAt": {
+					if(this.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM) {
+						this.startAt = reader.GetValueInt();
+					}
 					break;
+				}
+				case "type": {
+					if(this.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM) {
+						let sVal = reader.GetValue();
+						let nType = MAP_AUTONUM_TYPES[sVal];
+						if(AscFormat.isRealNumber(nType)) {
+							this.AutoNumType = nType;
+						}
+					}
+					break;
+				}
+				case "char": {
+					if(this.type === AscFormat.BULLET_TYPE_BULLET_CHAR) {
+						this.Char = reader.GetValue();
+					}
 				}
 			}
 			//TODO:Implement in children
@@ -12118,10 +12663,15 @@
 		CBulletType.prototype.readChildXml = function (name, reader) {
 			switch (name) {
 				case "blip": {
+					if(this.type === AscFormat.BULLET_TYPE_BULLET_BLIP) {
+						this.Blip = new CBuBlip();
+						this.Blip.blip = new CUniFill();
+						this.Blip.blip.fromXml(reader, "blipFill");
+						this.Blip.blip.readChildXml(reader, "blip");
+					}
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CBulletType.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -12132,12 +12682,13 @@
 
 
 		function TextListStyle() {
+			CBaseNoIdObject.call(this);
 			this.levels = new Array(10);
 
 			for (var i = 0; i < 10; i++)
 				this.levels[i] = null;
 		}
-
+		InitClass(TextListStyle, CBaseNoIdObject, 0);
 		TextListStyle.prototype.Get_Id = function () {
 			return this.Id;
 		};
@@ -12219,6 +12770,25 @@
 			//TODO:Implement in children
 		};
 
+
+		function CBaseAttrObject() {
+			CBaseNoIdObject.call(this);
+			this.attr = {};
+		}
+		InitClass(CBaseAttrObject, CBaseNoIdObject, 0);
+
+		CBaseAttrObject.prototype.readAttrXml = function (name, reader) {
+			this.attr[name] = reader.GetValue();
+		};
+		CBaseAttrObject.prototype.readChildXml = function (name, reader) {
+		};
+		CBaseAttrObject.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CBaseAttrObject.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+		AscFormat.CBaseAttrObject = CBaseAttrObject;
 
 // DEFAULT OBJECTS
 		function GenerateDefaultTheme(presentation, opt_fontName) {
@@ -14106,5 +14676,6 @@
 		window['AscFormat'].checkRasterImageId = checkRasterImageId;
 
 		window['AscFormat'].DEFAULT_COLOR_MAP = GenerateDefaultColorMap();
+		window['AscFormat'].getPercentageValue = getPercentageValue;
 	})
 (window);

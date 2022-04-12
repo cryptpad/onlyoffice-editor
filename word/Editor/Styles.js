@@ -17244,7 +17244,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 		{
 			case AscFormat.BULLET_TYPE_BULLET_CHAR:
 			{
-				Bullet.m_nType = numbering_presentationnumfrmt_Char;
+				Bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Char;
 				if (typeof this.Bullet.bulletType.Char === "string" && this.Bullet.bulletType.Char.length > 0)
 				{
 					Bullet.m_sChar = this.Bullet.bulletType.Char.substring(0, 1);
@@ -17275,7 +17275,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 			}
 			case AscFormat.BULLET_TYPE_BULLET_BLIP :
 			{
-				Bullet.m_nType = numbering_presentationnumfrmt_Blip;
+				Bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Blip;
 				Bullet.m_sSrc = AscCommon.getFullImageSrc2(this.Bullet.getImageBulletURL());
 				break;
 			}

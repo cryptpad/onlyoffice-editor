@@ -1370,6 +1370,9 @@ CShape.prototype.setStyle = function (style) {
 CShape.prototype.setTxBody = function (txBody) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetTxBody, this.txBody, txBody));
     this.txBody = txBody;
+    if(txBody && txBody.parent !== this) {
+        txBody.setParent(this);
+    }
 };
 
 CShape.prototype.setTextBoxContent = function (textBoxContent) {
@@ -5812,7 +5815,7 @@ CShape.prototype.getTextArtProperties = function()
 CShape.prototype.applyTextArtForm = function(sPreset)
 {
     var oBodyPr = this.getBodyPr().createDuplicate();
-    oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreatePrstTxWarpGeometry(sPreset)}, this, []);
+    oBodyPr.prstTxWarp = AscFormat.CreatePrstTxWarpGeometry(sPreset);
     if(this.bWordShape)
     {
         this.setBodyPr(oBodyPr);

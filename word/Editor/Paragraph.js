@@ -9560,12 +9560,12 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 		var oColorMap = this.Get_ColorMap();
 		var oUndefParaPr = this.Get_CompiledPr2(false).ParaPr;
 		var NewType      = oBullet2.getBulletType();
-		var UndefType    = oUndefParaPr.Bullet ? oUndefParaPr.Bullet.getBulletType(oTheme, oColorMap) : numbering_presentationnumfrmt_None;
+		var UndefType    = oUndefParaPr.Bullet ? oUndefParaPr.Bullet.getBulletType(oTheme, oColorMap) : AscFormat.numbering_presentationnumfrmt_None;
 		var LeftInd;
 
 		if (NewType === UndefType)
 		{
-			if (NewType === numbering_presentationnumfrmt_Char || NewType === numbering_presentationnumfrmt_Blip)//буллеты
+			if (NewType === AscFormat.numbering_presentationnumfrmt_Char || NewType === AscFormat.numbering_presentationnumfrmt_Blip)//буллеты
 			{
 				var oUndefPresentationBullet = oUndefParaPr.Bullet.getPresentationBullet(oTheme, oColorMap);
 				var oNewPresentationBullet   = oBullet2.getPresentationBullet(oTheme, oColorMap);
@@ -9633,15 +9633,15 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 					var oFirstRunPr = this.Get_FirstTextPr2();
 
 					var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
-					if (NewType === numbering_presentationnumfrmt_Char)
+					if (NewType === AscFormat.numbering_presentationnumfrmt_Char)
 					{
 						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
 					}
-					else if (NewType === numbering_presentationnumfrmt_None)
+					else if (NewType === AscFormat.numbering_presentationnumfrmt_None)
 					{
 						this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
 					}
-					else if (NewType !== numbering_presentationnumfrmt_Blip)
+					else if (NewType !== AscFormat.numbering_presentationnumfrmt_Blip)
 					{
 						if (!IsPrNumberingSameType(NewType, UndefType))
 						{

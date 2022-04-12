@@ -76,7 +76,7 @@
     function CNotesMaster() {
         AscFormat.CBaseFormatObject.call(this);
         this.clrMap = new AscFormat.ClrMap();
-        this.cSld =  new AscFormat.CSld();
+        this.cSld =  new AscFormat.CSld(this);
         this.hf = null;
         this.txStyles = null;
 
