@@ -816,7 +816,7 @@
 
 			if (this.isUseNativeViewer)
 			{
-				rData["convertToOrigin"] = '.pdf.xps.oxps.djvu';
+				rData["convertToOrigin"] += '.pdf.xps.oxps.djvu';
 			}
 
 			if (versionHistory)

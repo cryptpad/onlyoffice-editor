@@ -38,7 +38,7 @@
  */
 	function (window, undefined)
 {
-	window['OPEN_IN_BROWSER'] = true;
+	window['OPEN_IN_BROWSER'] = '.docx.xlsx.pptx';
 // Import
 	var AscBrowser = AscCommon.AscBrowser;
 	var locktype_None = AscCommon.locktype_None;
