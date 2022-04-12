@@ -1231,6 +1231,12 @@
 			case AscDFH.historydescription_Document_ConvertMathDisplayMode:
 				sString = "Document_ConvertMathDisplayMode";
 				break;
+			case AscDFH.historydescription_Document_RemoveHdrFtr:
+				sString = "Document_RemoveHdrFtr";
+				break;
+			case AscDFH.historydescription_Document_AddParagraphToTOC:
+				sString = "Document_AddParagraphToTOC";
+				break;
 		}
 		return sString;
 	}
@@ -4263,6 +4269,8 @@
 	window['AscDFH'].historydescription_Document_ChangeGeometryEdit                 = 0x018e;
 	window['AscDFH'].historydescription_Document_Docxf_To_Docx                      = 0x018f;
 	window['AscDFH'].historydescription_Document_ConvertMathDisplayMode             = 0x0190;
+	window['AscDFH'].historydescription_Document_RemoveHdrFtr                       = 0x0191;
+	window['AscDFH'].historydescription_Document_AddParagraphToTOC                  = 0x0192;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

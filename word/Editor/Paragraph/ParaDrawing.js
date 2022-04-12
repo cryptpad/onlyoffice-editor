@@ -220,6 +220,10 @@ ParaDrawing.prototype.Get_Width = function()
 {
 	return this.Width;
 };
+ParaDrawing.prototype.Get_Height = function()
+{
+	return this.Height;
+};
 ParaDrawing.prototype.Get_WidthVisible = function()
 {
 	return this.WidthVisible;
@@ -1027,22 +1031,22 @@ ParaDrawing.prototype.Set_Props = function(Props)
 		this.docPr.setTitle(Props.title);
 	}
 };
-ParaDrawing.prototype.CheckFitToColumn = function() 
+ParaDrawing.prototype.CheckFitToColumn = function()
 {
 	var oLogicDoc = this.document;
-	if(oLogicDoc) 
+	if(oLogicDoc)
 	{
 		var oColumnSize = oLogicDoc.GetColumnSize();
-		if(oColumnSize) 
+		if(oColumnSize)
 		{
-			if(this.Extent.W > oColumnSize.W || this.Extent.H > oColumnSize.H) 
+			if(this.Extent.W > oColumnSize.W || this.Extent.H > oColumnSize.H)
 			{
-				if(oColumnSize.W > 0 && oColumnSize.H > 0) 
+				if(oColumnSize.W > 0 && oColumnSize.H > 0)
 				{
-					if(this.GraphicObj && !this.GraphicObj.isGroupObject()) 
+					if(this.GraphicObj && !this.GraphicObj.isGroupObject())
 					{
 						var oXfrm = this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm;
-						if(oXfrm) 
+						if(oXfrm)
 						{
 							var dScaleW = oColumnSize.W/oXfrm.extX;
 							var dScaleH = oColumnSize.H/oXfrm.extY;
@@ -1070,7 +1074,8 @@ ParaDrawing.prototype.CheckWH = function()
 		this.Extent.W = this.GraphicObj.spPr.xfrm.extX;
 		this.Extent.H = this.GraphicObj.spPr.xfrm.extY;
 	}
-	if(this.GraphicObj.getObjectType() === AscDFH.historyitem_type_Shape)
+	if(this.GraphicObj.getObjectType() === AscDFH.historyitem_type_Shape ||
+		this.GraphicObj.getObjectType() === AscDFH.historyitem_type_SmartArt)
 	{
 		this.GraphicObj.handleUpdateExtents();
 	}
@@ -1109,6 +1114,12 @@ ParaDrawing.prototype.CheckWH = function()
 
 
 	var EEL = 0.0, EET = 0.0, EER = 0.0, EEB = 0.0;
+	var addEEL = 0.0, addEET = 0.0, addEER = 0.0, addEEB = 0.0;
+
+	if (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_SmartArt) {
+		addEER = 57150 * AscCommonWord.g_dKoef_emu_to_mm;
+		addEEL = 38100 * AscCommonWord.g_dKoef_emu_to_mm;
+	}
 	//if(this.Is_Inline())
 	{
 		var xc          = this.GraphicObj.localTransform.TransformPointX(this.GraphicObj.extX / 2.0, this.GraphicObj.extY / 2.0);
@@ -1151,10 +1162,10 @@ ParaDrawing.prototype.CheckWH = function()
 			b = startY + extY;
 		}
 
-		EEL = (xc - extX / 2) - l + LineCorrect;
-		EET = (yc - extY / 2) - t + LineCorrect;
-		EER = r + LineCorrect - (xc + extX / 2);
-		EEB = b + LineCorrect - (yc + extY / 2);
+		EEL = (xc - extX / 2) - l + LineCorrect + addEEL;
+		EET = (yc - extY / 2) - t + LineCorrect + addEET;
+		EER = r + LineCorrect - (xc + extX / 2) + addEER;
+		EEB = b + LineCorrect - (yc + extY / 2) + addEEB;
 	}
 	this.setEffectExtent(EEL, EET, EER, EEB);
 	this.Check_WrapPolygon();
@@ -1850,8 +1861,8 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 	var NewParaDrawing = this.Copy();
 	var RunPr = this.Remove_FromDocument(false);
 
-	this.DocumentContent.Select_DrawingObject(NewParaDrawing.GetId());
-	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, oPictureCC);
+	NewParaDrawing.AddToDocument(NearPos, RunPr, undefined, oPictureCC);
+	NewParaDrawing.SelectAsDrawing();
 };
 ParaDrawing.prototype.Get_ParentTextTransform = function()
 {
@@ -1993,59 +2004,65 @@ ParaDrawing.prototype.SelectAsText = function()
 	oDocument.RemoveSelection();
 	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
 };
-ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Run, oPictureCC)
+ParaDrawing.prototype.SelectAsDrawing = function()
 {
-	NearPos.Paragraph.Check_NearestPos(NearPos);
+	let oParagraph = this.GetParagraph();
+	let oRun       = this.GetRun();
+	if (!oParagraph || !oRun)
+		return;
 
-	var LogicDocument = this.DrawingDocument.m_oLogicDocument;
+	let oDocument = oParagraph.GetLogicDocument();
+	if (!oDocument)
+		return;
 
-	var Para       = new Paragraph(this.DrawingDocument, LogicDocument);
-	var DrawingRun = new ParaRun(Para);
-	DrawingRun.Add_ToContent(0, this);
+	oDocument.RemoveSelection();
+	oDocument.Select_DrawingObject(this.GetId());
+};
+ParaDrawing.prototype.AddToDocument = function(oAnchorPos, oRunPr, oRun, oPictureCC)
+{
+	let oAnchorParagraph = oAnchorPos.Paragraph;
+	oAnchorParagraph.Check_NearestPos(oAnchorPos);
 
-	if (RunPr)
-		DrawingRun.Set_Pr(RunPr.Copy());
+	let oInsertParagraph = new AscCommonWord.Paragraph(this.DrawingDocument);
+	var oDrawingRun = new AscCommonWord.ParaRun();
+	oDrawingRun.AddToContent(0, this);
 
-	if (Run)
-		DrawingRun.SetReviewTypeWithInfo(Run.GetReviewType(), Run.GetReviewInfo());
+	if (oRunPr)
+		oDrawingRun.SetPr(oRunPr.Copy());
+
+	if (oRun)
+		oDrawingRun.SetReviewTypeWithInfo(oRun.GetReviewType(), oRun.GetReviewInfo());
 
 	if (oPictureCC)
 	{
-		var oSdt = new CInlineLevelSdt();
+		let oSdt = new CInlineLevelSdt();
 		oSdt.SetPicturePr(true);
 		oSdt.ReplacePlaceHolderWithContent();
-		oSdt.AddToContent(0, DrawingRun);
-		Para.Add_ToContent(0, oSdt);
+		oSdt.AddToContent(0, oDrawingRun);
+		oInsertParagraph.AddToContent(0, oSdt);
 
-		var oFormPr = oPictureCC.GetFormPr();
+		let oFormPr = oPictureCC.GetFormPr();
 		if (oFormPr)
 			oSdt.SetFormPr(oFormPr.Copy());
 	}
 	else
 	{
-		Para.Add_ToContent(0, DrawingRun);
+		oInsertParagraph.AddToContent(0, oDrawingRun);
 	}
 
-	var SelectedElement = new CSelectedElement(Para, false);
-	var SelectedContent = new CSelectedContent();
-	SelectedContent.Add(SelectedElement);
-	SelectedContent.SetMoveDrawing(true);
-	SelectedContent.DrawingObjects.push(this);
+	let oSelectedContent = new AscCommonWord.CSelectedContent();
+	oSelectedContent.Add(new AscCommonWord.CSelectedElement(oInsertParagraph, false));
+	oSelectedContent.EndCollect();
+	oSelectedContent.SetMoveDrawing(true);
+	oSelectedContent.Insert(oAnchorPos, true);
 
-	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
-	NearPos.Paragraph.Clear_NearestPosArray();
-	NearPos.Paragraph.Correct_Content();
-	this.Set_Parent(NearPos.Paragraph);
-	if (false != bRecalculate)
-		LogicDocument.Recalculate();
+	oAnchorParagraph.Clear_NearestPosArray();
 };
-ParaDrawing.prototype.Add_ToDocument2 = function(Paragraph)
+ParaDrawing.prototype.AddToParagraph = function(oParagraph)
 {
-	var DrawingRun = new ParaRun(Paragraph);
-	DrawingRun.Add_ToContent(0, this);
-
-	Paragraph.Add_ToContent(0, DrawingRun);
-	this.Set_Parent(Paragraph);
+	let oRun = new AscCommonWord.ParaRun();
+	oRun.AddToContent(0, this);
+	oParagraph.AddToContent(0, oRun);
 };
 ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 {
@@ -2964,6 +2981,18 @@ ParaDrawing.prototype.copy = function()
 	c.setEffectExtent(EE.L, EE.T, EE.R, EE.B);
 	return c;
 };
+ParaDrawing.prototype.SetDrawingPrFromDrawing = function(oAnotherDrawing)
+{
+	this.Set_DrawingType(oAnotherDrawing.DrawingType);
+	var d = oAnotherDrawing.Distance;
+	this.Set_PositionH(oAnotherDrawing.PositionH.RelativeFrom, oAnotherDrawing.PositionH.Align, oAnotherDrawing.PositionH.Value, oAnotherDrawing.PositionH.Percent);
+	this.Set_PositionV(oAnotherDrawing.PositionV.RelativeFrom, oAnotherDrawing.PositionV.Align, oAnotherDrawing.PositionV.Value, oAnotherDrawing.PositionV.Percent);
+	this.Set_Distance(d.L, d.T, d.R, d.B);
+	this.Set_AllowOverlap(oAnotherDrawing.AllowOverlap);
+	this.Set_WrappingType(oAnotherDrawing.wrappingType);
+	this.Set_BehindDoc(oAnotherDrawing.behindDoc);
+	this.docPr.setFromOther(oAnotherDrawing.docPr);
+};
 ParaDrawing.prototype.OnContentReDraw = function()
 {
 	if (this.Parent && this.Parent.Parent)
@@ -3074,6 +3103,8 @@ ParaDrawing.prototype.Get_ObjectType = function()
 
 	return AscDFH.historyitem_type_Drawing;
 };
+ParaDrawing.prototype.getObjectType = ParaDrawing.prototype.Get_ObjectType;
+
 ParaDrawing.prototype.GetAllContentControls = function(arrContentControls)
 {
 	if(this.GraphicObj)
@@ -3230,7 +3261,10 @@ ParaDrawing.prototype.IsComparable = function(oDrawing)
 };
 ParaDrawing.prototype.ToSearchElement = function(oProps)
 {
-	return new CSearchTextSpecialGraphicObject();
+	if (this.IsInline())
+		return new CSearchTextSpecialGraphicObject();
+
+	return null;
 };
 ParaDrawing.prototype.IsDrawing = function()
 {

@@ -212,6 +212,14 @@
 
 		this.isFocusOnThumbnails = false;
 
+		this.isXP = ((AscCommon.AscBrowser.userAgent.indexOf("windowsXP") > -1) || (AscCommon.AscBrowser.userAgent.indexOf("chrome/49") > -1)) ? true : false;
+
+		if (this.isXP)
+		{
+			AscCommon.g_oHtmlCursor.register("grab", "grab", "7 8", "pointer");
+			AscCommon.g_oHtmlCursor.register("grabbing", "grabbing", "6 6", "pointer");
+		}
+
 		var oThis = this;
 
 		this.updateSkin = function()
@@ -765,19 +773,17 @@
 			// в интерфейсе есть проблема - нужно посылать onDocumentContentReady после setAdvancedOptions
 			setTimeout(function(){
 				_t.sendEvent("onFileOpened");
+
+				_t.sendEvent("onPagesCount", _t.file.pages.length);
+				_t.sendEvent("onCurrentPageChanged", 0);
+
+				_t.sendEvent("onStructure", _t.structure);
 			}, 0);
 
 			this.file.onRepaintPages = this.onUpdatePages.bind(this);
 			this.file.onUpdateStatistics = this.onUpdateStatistics.bind(this);
 			this.currentPage = -1;
 			this.structure = this.file.getStructure();
-
-			this.sendEvent("onPagesCount", this.file.pages.length);
-			this.sendEvent("onCurrentPageChanged", 0);
-
-			setTimeout(function(){
-				oThis.sendEvent("onStructure", oThis.structure);
-			}, 100);
 
 			this.resize();
 
@@ -904,9 +910,16 @@
 
 		this.getPagesCount = function()
 		{
-			if (!this.file || !this.file.isValid)
+			if (!this.file || !this.file.isValid())
 				return 0;
 			return this.file.pages.length;
+		};
+
+		this.getDocumentInfo = function()
+		{
+			if (!this.file || !this.file.isValid())
+				return 0;
+			return this.file.getDocumentInfo();
 		};
 
 		this.navigate = function(id)
@@ -915,19 +928,28 @@
 			if (!item)
 				return;
 
-			var drawingPage = this.drawingPages[item["page"]];
+			var pageIndex = item["page"];
+			var drawingPage = this.drawingPages[pageIndex];
 			if (!drawingPage)
 				return;
 
 			var posY = drawingPage.Y;
 			posY -= this.betweenPages;
-			//posY += item["Y"];
+
+			var yOffset = item["y"];
+			if (yOffset)
+			{
+				yOffset *= (drawingPage.H / this.file.pages[pageIndex].H);
+				yOffset = yOffset >> 0;
+				posY += yOffset;
+			}
+
 			if (posY > this.scrollMaxY)
 				posY = this.scrollMaxY;
 			this.m_oScrollVerApi.scrollToY(posY);
 		};
 
-		this.navigateToPage = function(pageNum)
+		this.navigateToPage = function(pageNum, yOffset)
 		{
 			var drawingPage = this.drawingPages[pageNum];
 			if (!drawingPage)
@@ -935,6 +957,14 @@
 
 			var posY = drawingPage.Y;
 			posY -= this.betweenPages;
+
+			if (yOffset)
+			{
+				yOffset *= (drawingPage.H / this.file.pages[pageNum].H);
+				yOffset = yOffset >> 0;
+				posY += yOffset;
+			}
+
 			if (posY > this.scrollMaxY)
 				posY = this.scrollMaxY;
 			this.m_oScrollVerApi.scrollToY(posY);
@@ -947,11 +977,14 @@
 
 			if ("#" === link["link"].charAt(0))
 			{
-				this.navigateToPage(parseInt(link["link"].substring(1)));
+				this.navigateToPage(parseInt(link["link"].substring(1)), link["dest"]);
 			}
 			else
 			{
-				this.sendEvent("onHyperlinkClick", link["link"]);
+				var url = link["link"];
+				var typeUrl = AscCommon.getUrlType(url);
+				url = AscCommon.prepareUrl(url, typeUrl);
+				this.sendEvent("onHyperlinkClick", url);
 			}
 
 			//console.log(link["link"]);
@@ -976,7 +1009,7 @@
 
 		this.recalculatePlaces = function()
 		{
-			if (!this.file || !this.file.isValid)
+			if (!this.file || !this.file.isValid())
 				return;
 
 			// здесь картинки не обнуляем
@@ -1026,6 +1059,12 @@
 
 		this.setCursorType = function(cursor)
 		{
+			if (this.isXP)
+			{
+				this.canvas.style.cursor = AscCommon.g_oHtmlCursor.value(cursor);
+				return;
+			}
+
 			this.canvas.style.cursor = cursor;
 		};
 
@@ -1974,6 +2013,8 @@
 				if ((pageCoords.y + pageCoords.h) > y)
 					break;
 			}
+			if (pageIndex > this.endVisiblePage)
+				pageIndex = this.endVisiblePage;
 
 			if (!pageCoords)
 				pageCoords = {x:0, y:0, w:1, h:1};
@@ -2170,6 +2211,11 @@
 				{
 					this.m_oScrollHorApi.scrollByX(-40);
 				}
+				else if (this.isFocusOnThumbnails)
+				{
+					if (this.currentPage > 0)
+						this.navigateToPage(this.currentPage - 1);
+				}
 				bRetValue = true;
 			}
 			else if ( e.KeyCode == 38 ) // Top Arrow
@@ -2190,6 +2236,11 @@
 				if (!this.isFocusOnThumbnails && this.isVisibleHorScroll)
 				{
 					this.m_oScrollHorApi.scrollByX(40);
+				}
+				else if (this.isFocusOnThumbnails)
+				{
+					if (this.currentPage < (this.getPagesCount() - 1))
+						this.navigateToPage(this.currentPage + 1);
 				}
 				bRetValue = true;
 			}

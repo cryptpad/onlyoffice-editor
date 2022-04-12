@@ -129,8 +129,8 @@
       this._CoAuthoringApi.onWarning = function(e) {
         t.callback_OnWarning(e);
       };
-      this._CoAuthoringApi.onFirstLoadChangesEnd = function() {
-        t.callback_OnFirstLoadChangesEnd();
+      this._CoAuthoringApi.onFirstLoadChangesEnd = function(openedAt) {
+        t.callback_OnFirstLoadChangesEnd(openedAt);
       };
       this._CoAuthoringApi.onConnectionStateChanged = function(e) {
         t.callback_OnConnectionStateChanged(e);
@@ -490,9 +490,9 @@
     }
   };
 
-  CDocsCoApi.prototype.callback_OnFirstLoadChangesEnd = function() {
+  CDocsCoApi.prototype.callback_OnFirstLoadChangesEnd = function(openedAt) {
     if (this.onFirstLoadChangesEnd) {
-      this.onFirstLoadChangesEnd();
+      this.onFirstLoadChangesEnd(openedAt);
     }
   };
 
@@ -1584,7 +1584,7 @@
       this._updateAuthChanges();
       // Посылать нужно всегда, т.к. на это рассчитываем при открытии
       if (this.onFirstLoadChangesEnd) {
-        this.onFirstLoadChangesEnd();
+        this.onFirstLoadChangesEnd(data['openedAt']);
       }
 
       //Apply prebuffered
@@ -1696,6 +1696,7 @@
       'permissions': this.permissions,
       'encrypted': this.encrypted,
       'IsAnonymousUser': this.IsAnonymousUser,
+      'timezoneOffset': (new Date()).getTimezoneOffset(),
       'coEditingMode': this.coEditingMode,
       'jwtOpen': this.jwtOpen,
       'jwtSession': this.jwtSession

@@ -665,7 +665,7 @@
 			_getBinaryShapeContent: function (isIntoShape) {
 				var sBase64;
 
-				var selectedContent = new CSelectedContent();
+				var selectedContent = new AscCommonWord.CSelectedContent();
 				AscFormat.ExecuteNoHistory(function () {
 					isIntoShape.GetSelectedContent(selectedContent);
 				}, this, []);
@@ -814,7 +814,7 @@
 				var htmlObj, container;
 				if (isIntoShape)//если курсор находится внутри шейпа
 				{
-					var selectedContent = new CSelectedContent();
+					var selectedContent = new AscCommonWord.CSelectedContent();
 					AscFormat.ExecuteNoHistory(function () {
 						isIntoShape.GetSelectedContent(selectedContent);
 					}, this, []);
@@ -1924,7 +1924,7 @@
 					specialOptionsArr = [specialProps.sourceformatting, specialProps.picture];
 				}
 
-				var defaultSelectedContent = selectedContent2[1] ? selectedContent2[1] : selectedContent2[0];
+				var defaultSelectedContent = selectedContent2[0] ? selectedContent2[0] : selectedContent2[1];
 				var bSlideObjects = defaultSelectedContent && defaultSelectedContent.content.SlideObjects &&
 					defaultSelectedContent.content.SlideObjects.length > 0;
 				var pasteObj = bSlideObjects ? selectedContent2[2] : defaultSelectedContent;
@@ -2065,7 +2065,7 @@
 					if (docContent.length === 0) {
 						return;
 					}
-					presentationSelectedContent.DocContent = new CSelectedContent();
+					presentationSelectedContent.DocContent = new AscCommonWord.CSelectedContent();
 					presentationSelectedContent.DocContent.Elements = docContent;
 
 					//перебираем шрифты
@@ -2174,7 +2174,7 @@
 				var isIntoShape = worksheet.objectRender.controller.getTargetDocContent(true);
 				isIntoShape.Remove(1, true, true);
 
-				var insertContent = new CSelectedContent();
+				var insertContent = new AscCommonWord.CSelectedContent();
 				var target_doc_content = isIntoShape;
 
 				insertContent.Elements =
@@ -2244,7 +2244,7 @@
 					bRemoveHyperlink = true;
 				}
 				for (var i = 0; i < content.length; i++) {
-					selectedElement = new CSelectedElement();
+					selectedElement = new AscCommonWord.CSelectedElement();
 					element = content[i];
 
 					if (type_Paragraph === element.GetType())//paragraph
@@ -2259,7 +2259,7 @@
 						var paragraphs = [];
 						element.GetAllParagraphs({All: true}, paragraphs);
 						for (var j = 0; j < paragraphs.length; j++) {
-							selectedElement = new CSelectedElement();
+							selectedElement = new AscCommonWord.CSelectedElement();
 							selectedElement.Element =
 								AscFormat.ConvertParagraphToPPTX(paragraphs[j], worksheet.getDrawingDocument(),
 									target_doc_content, true, bRemoveHyperlink);
@@ -2275,86 +2275,14 @@
 				var paragraph = target_doc_content.Content[target_doc_content.CurPos.ContentPos];
 				if (null != paragraph && type_Paragraph === paragraph.GetType() && selectedContent.Elements && selectedContent.Elements.length) {
 
-					var NearPos, ParaNearPos, LastClass, Element;
-
-					selectedContent.On_EndCollectElements(target_doc_content, false);
-
-					NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
+					selectedContent.EndCollect(target_doc_content);
+					let NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
 					paragraph.Check_NearestPos(NearPos);
-
-					ParaNearPos = NearPos.Paragraph.Get_ParaNearestPos(NearPos);
-					if (null === ParaNearPos || ParaNearPos.Classes.length < 2) {
-						return;
-					}
-
-					LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-					if (para_Math_Run === LastClass.Type) {
-						// Проверяем, что вставляемый контент тоже формула
-						Element = selectedContent.Elements[0].Element;
-						if (1 !== selectedContent.Elements.length || type_Paragraph !== Element.Get_Type() ||
-							null === LastClass.Parent) {
-							return;
-						}
-
-						if (!selectedContent.CanConvertToMath) {
-							var Math = null;
-							var Count = Element.Content.length;
-							for (var Index = 0; Index < Count; Index++) {
-								var Item = Element.Content[Index];
-								if (para_Math === Item.Type && null === Math) {
-									Math = Element.Content[Index];
-								} else if (true !== Item.Is_Empty({SkipEnd: true})) {
-									return;
-								}
-							}
-						}
-					} else if (para_Run !== LastClass.Type) {
-						return;
-					}
-
-					if (null === paragraph.Parent || undefined === paragraph.Parent) {
-						return;
-					}
-
-					var Para = NearPos.Paragraph;
-					ParaNearPos = Para.Get_ParaNearestPos(NearPos);
-					LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-					var bInsertMath = false;
-					if (para_Math_Run === LastClass.Type) {
-						var NewMathRun = LastClass.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
-						var MathContent = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
-						var MathContentPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
-						Element = selectedContent.Elements[0].Element;
-
-						var InsertMathContent = null;
-						for (var nPos = 0, nParaLen = Element.Content.length; nPos < nParaLen; nPos++) {
-							if (para_Math === Element.Content[nPos].Type) {
-								InsertMathContent = Element.Content[nPos];
-								break;
-							}
-						}
-
-						if (null === InsertMathContent) {
-							//try to convert content to ParaMath in simple cases.
-							InsertMathContent = selectedContent.ConvertToMath();
-						}
-
-						if (null !== InsertMathContent) {
-							MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-							MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
-							bInsertMath = true;
-						}
-					}
-					if (!bInsertMath) {
-						paragraph.Check_NearestPos(NearPos);
-						target_doc_content.InsertContent(selectedContent, NearPos);
-					}
+					selectedContent.Insert(NearPos, false);
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent &&
 					oTargetTextObject.checkExtentsByDocContent();
 					worksheet.objectRender.controller.startRecalculate();
-					worksheet.objectRender.controller.cursorMoveRight(false, false);
-
 				}
 			},
 
@@ -3243,7 +3171,6 @@
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
 					worksheet.objectRender.controller.startRecalculate();
-					worksheet.objectRender.controller.cursorMoveRight(false, false);
 					History.EndTransaction();
 
 					t._setShapeSpecialPasteProperties(worksheet, targetContent);
@@ -3434,7 +3361,7 @@
 						var Count = text.length;
 
 						var newParagraph = new Paragraph(isIntoShape.DrawingDocument, isIntoShape);
-						var selectedElements = new CSelectedContent();
+						var selectedElements = new AscCommonWord.CSelectedContent();
 						var insertText = "";
 						for (var Index = 0; Index < Count; Index++) {
 							var _char = text.charAt(Index);
@@ -3448,7 +3375,7 @@
 								var newParaRun = new ParaRun();
 								window['AscCommon'].addTextIntoRun(newParaRun, insertText);
 								newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
-								var selectedElement = new CSelectedElement();
+								var selectedElement = new AscCommonWord.CSelectedElement();
 								selectedElement.Element = newParagraph;
 								selectedElements.Elements.push(selectedElement);
 

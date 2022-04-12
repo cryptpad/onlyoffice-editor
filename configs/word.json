@@ -32,6 +32,7 @@
 		"common": [
 			"common/api/actionOnTimer.js",
 			"common/api/tableStylesPreviewGenerator.js",
+			"common/api/spellCheckSettings.js",
 
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
@@ -148,6 +149,7 @@
 			"word/Editor/Field.js",
 			"word/Editor/FieldChanges.js",
 			"word/Editor/Run.js",
+			"word/Editor/Paragraph/Run/RunAutoCorrect.js",
 			"word/Editor/PresentationField.js",
 			"word/Editor/RunChanges.js",
 			"word/Editor/Math.js",
@@ -168,6 +170,7 @@
 			"word/Editor/HeaderFooter.js",
 			"word/Editor/DocumentContentBase.js",
 			"word/Editor/Document.js",
+			"word/Editor/SelectedContent.js",
 			"word/Editor/DocumentOutline.js",
 			"word/Editor/DocumentChanges.js",
 			"word/Editor/DocumentContent.js",

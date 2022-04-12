@@ -7364,7 +7364,7 @@ CTable.prototype.GetSelectedContent = function(SelectedContent)
 		// Сначала проверим выделена ли таблица целиком, если да, тогда просто копируем ее.
 		if (true === this.ApplyToAll)
 		{
-			SelectedContent.Add(new CSelectedElement(this.Copy(this.Parent), true));
+			SelectedContent.Add(new AscCommonWord.CSelectedElement(this.Copy(this.Parent), true));
 			return;
 		}
 
@@ -7435,7 +7435,7 @@ CTable.prototype.GetSelectedContent = function(SelectedContent)
 
 		if (true === bAllSelected)
 		{
-			SelectedContent.Add(new CSelectedElement(this.Copy(this.Parent), true));
+			SelectedContent.Add(new AscCommonWord.CSelectedElement(this.Copy(this.Parent), true));
 			return;
 		}
 
@@ -7573,7 +7573,7 @@ CTable.prototype.GetSelectedContent = function(SelectedContent)
 		if (Table.Content.length > 0 && Table.Content[0].Get_CellsCount() > 0)
 			Table.CurCell = Table.Content[0].Get_Cell(0);
 
-		SelectedContent.Add(new CSelectedElement(Table, false));
+		SelectedContent.Add(new AscCommonWord.CSelectedElement(Table, false));
 	}
 	else
 	{

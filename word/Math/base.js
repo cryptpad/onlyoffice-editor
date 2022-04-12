@@ -1897,6 +1897,21 @@ CMathBase.prototype.Select_MathContent = function(MathContent)
         }
     }
 };
+CMathBase.prototype.SetCurrentMathContent = function(oMathContent)
+{
+	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos] === oMathContent)
+		{
+			this.CurPos = nPos;
+
+			if (null !== this.Parent)
+				this.Parent.SetCurrentElement(this);
+
+			break;
+		}
+	}
+};
 CMathBase.prototype.Draw_HighLights = function(PDSH, bAll)
 {
     var ComplCtrPrp = this.Get_CompiledCtrPrp();

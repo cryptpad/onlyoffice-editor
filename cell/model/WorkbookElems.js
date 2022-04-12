@@ -1924,6 +1924,11 @@ var g_oFontProperties = {
 		this.patternFill = null;
 		this.gradientFill = value;
 	};
+	Fill.prototype.checkEmptyContent = function () {
+		if (!this.patternFill && !this.gradientFill) {
+			this.fromPatternParams(AscCommonExcel.c_oAscPatternType.None, null);
+		}
+	};
 
 	function FromXml_ST_BorderStyle(val) {
 		var res = -1;
@@ -11449,6 +11454,8 @@ QueryTableField.prototype.clone = function() {
 		this.realZoom = null;
 		this.realActiveSheet = null;
 
+		this.pixelRatio = null;
+
 		return this;
 	}
 
@@ -11515,6 +11522,8 @@ QueryTableField.prototype.clone = function() {
 			this.realActiveSheet = this.wb.model.getActive();
 		}
 
+		var isChangeSystemZoom = this.pixelRatio !== null && this.pixelRatio !== AscCommon.AscBrowser.retinaPixelRatio;
+
 		var page = this.getPage(this.activePage);
 		var pageWidth = page && page.pageWidth ? page.pageWidth : AscCommon.c_oAscPrintDefaultSettings.PageWidth;
 		var pageHeight = page && page.pageHeight ? page.pageHeight : AscCommon.c_oAscPrintDefaultSettings.PageHeight;
@@ -11537,7 +11546,7 @@ QueryTableField.prototype.clone = function() {
 		kF *= (height * kF) / (height * kF + canvasTopPadding)
 
 		var isChangeForZoom;
-		var trueZoom = kF * AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var trueZoom = kF * AscCommon.AscBrowser.retinaPixelRatio;
 		var _height = Math.floor(height * kF);
 		var _width = Math.floor(width * kF);
 		if (trueZoom !== this.pageZoom) {
@@ -11565,6 +11574,9 @@ QueryTableField.prototype.clone = function() {
 				this.wb.model.setActive(this.activeSheet);
 			}
 			this.wb.changeZoom(this.pageZoom * this.printZoom, true);
+			if (isChangeSystemZoom) {
+				this.ctx.changeZoom(null);
+			}
 			this.ctx.changeZoom(this.pageZoom* this.printZoom);
 		}
 		var oGraphics = new AscCommon.CGraphics();
@@ -11575,6 +11587,7 @@ QueryTableField.prototype.clone = function() {
 		oGraphics.init(this.ctx.canvas.getContext('2d'), nWidth, nHeight, dWidth, dHeight);
 		oGraphics.m_oFontManager = AscCommon.g_fontManager;
 		this.ctx.DocumentRenderer = oGraphics;
+		this.pixelRatio = AscCommon.AscBrowser.retinaPixelRatio;
 	};
 
 	function CT_Connection() {

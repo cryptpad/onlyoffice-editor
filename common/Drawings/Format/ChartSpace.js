@@ -8034,8 +8034,11 @@ var GLOBAL_PATH_COUNT = 0;
             }
         }
     };
+    CChartSpace.prototype.createImage = function () {
+        return this.drawingBase.createImage();
+    }
     CChartSpace.prototype.checkDrawingCache = function(graphics) {
-        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview) {
+        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview || graphics.PrintPreview) {
             return false;
         }
         if(graphics.IsSlideBoundsCheckerType) {
@@ -8737,6 +8740,767 @@ var GLOBAL_PATH_COUNT = 0;
             }
         }
     };
+    CChartSpace.prototype.SetValuesToDataPoints = function(aData, nSeria)
+    {
+        if (editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+            return false;
+
+        var oSeria, isOkey;
+		var allSeries = this.getAllSeries();
+
+		for (var nCurSeria = 0; nCurSeria < allSeries.length; nCurSeria++)
+		{
+            if (allSeries[nCurSeria].idx === nSeria)
+            {
+                oSeria = allSeries[nCurSeria];
+                break;
+            }
+		}
+
+        if (!oSeria)
+            return false;
+
+        var oVal = this.isScatterChartType() ? oSeria.yVal : oSeria.val;
+        if (oVal && oVal.numRef && oVal.numRef.numCache)
+        {
+            var oPt, nValue;
+            for (var nPt = 0; nPt < aData.length; nPt++)
+            {
+                nValue = aData[nPt];
+                if (typeof(nValue) !== "number")
+                    continue;
+
+                oPt = oVal.numRef.numCache.pts[nPt];
+                if (oPt)
+                {
+                    oPt.setVal(nValue);
+                    isOkey = true;
+                }
+                else
+                    break;
+            }
+        }
+
+        if (isOkey)
+        {
+            this.onDataUpdate();
+            return true;
+        }
+
+        return false;
+    };
+    CChartSpace.prototype.SetXValuesToDataPoints = function(aData)
+    {
+        if (editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+            return false;
+
+        var oSeria, isOkey;
+		var allSeries = this.getAllSeries();
+
+		for (var nSeria = 0; nSeria < allSeries.length; nSeria++)
+		{
+            oSeria = allSeries[nSeria];
+            var oVal = oSeria.xVal;
+            if (oVal && oVal.strRef && oVal.strRef.strCache)
+            {
+                var oPt, value;
+                for (var nPt = 0; nPt < aData.length; nPt++)
+                {
+                    value = aData[nPt];
+                    if (typeof(value) === "number")
+                        value = String(value);
+
+                    if (typeof(value) !== "string")
+                        continue;
+
+                    oPt = oVal.strRef.strCache.pts[nPt];
+                    if (oPt)
+                    {
+                        oPt.setVal(value);
+                        isOkey = true;
+                    }
+                    else
+                        break;
+                }
+            }
+		}
+
+        if (isOkey)
+        {
+            this.onDataUpdate();
+            return true;
+        }
+
+        return false;
+    };
+    CChartSpace.prototype.SetSeriaValues = function(sRange, nSeria)
+    {
+        var oSeria;
+		var allSeries = this.getAllSeries();
+
+        if (typeof(sRange) !== "string" || sRange === "")
+            return false;
+
+		for (var nCurSeria = 0; nCurSeria < allSeries.length; nCurSeria++)
+		{
+            if (allSeries[nCurSeria].idx === nSeria)
+            {
+                oSeria = allSeries[nCurSeria];
+                break;
+            }
+		}
+
+        if (!oSeria)
+            return false;
+
+        if (Asc.editor && Asc.editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+        {
+            if (oSeria.asc_IsValidValues(sRange) !== 0)
+                return false;
+            oSeria.asc_setValues(sRange);
+            return true;
+        }
+        // пока только для Spreadsheet
+        return false;
+    };
+    CChartSpace.prototype.SetSeriaXValues = function(sRange, nSeria)
+    {
+        var oSeria;
+		var allSeries = this.getAllSeries();
+
+        if (typeof(sRange) !== "string" || sRange === "")
+            return false;
+
+		for (var nCurSeria = 0; nCurSeria < allSeries.length; nCurSeria++)
+		{
+            if (allSeries[nCurSeria].idx === nSeria)
+            {
+                oSeria = allSeries[nCurSeria];
+                break;
+            }
+		}
+
+        if (!oSeria)
+            return false;
+
+        if (Asc.editor && Asc.editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+        {
+            if (oSeria.asc_IsValidXValues(sRange) !== 0)
+                return false;
+            oSeria.asc_setXValues(sRange);
+            return true;
+        }
+        // пока только для Spreadsheet
+        return false;
+    };
+    CChartSpace.prototype.SetSeriaName = function(sName, nSeria)
+    {
+        var allSeries = this.getAllSeries();
+        var oSeria;
+
+		for (var nCurSeria = 0; nCurSeria < allSeries.length; nCurSeria++)
+		{
+            if (allSeries[nCurSeria].idx === nSeria)
+            {
+                oSeria = allSeries[nCurSeria];
+                break;
+            }
+		}
+
+        if (!oSeria || typeof(sName) !== "string")
+            return false;
+
+        if (Asc.editor && Asc.editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+        {
+            if (oSeria.asc_IsValidName(sName) !== 0)
+                return false;
+            oSeria.asc_setName(sName);
+            return true;
+        }
+
+        var oTx = oSeria.tx;
+        if (oTx && oTx.strRef && oTx.strRef.strCache)
+        {
+            var oPt;
+            oPt = oTx.strRef.strCache.pts[0];
+            if (!oPt)
+                return false;
+            oPt.setVal(sName);
+        }
+        return true;
+    };
+    CChartSpace.prototype.SetCatName = function(sName, nCategory)
+    {
+        if (Asc.editor && Asc.editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+            return false;
+
+        var oSeria, oCat, oPt, isOkey;
+        if (typeof(sName) !== "string")
+            return false;
+
+        var allSeries = this.getAllSeries();
+
+        for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            oSeria = allSeries[nCurSeries];
+            oCat = oSeria.cat;
+            if (oCat && oCat.strRef && oCat.strRef.strCache)
+            {
+                for (var nPt = 0; nPt < oCat.strRef.strCache.pts.length; nPt++)
+                {
+                    oPt = oCat.strRef.strCache.pts[nPt];
+                    if (oPt.idx === nCategory)
+                    {
+                        oPt.setVal(sName);
+                        isOkey = true;
+                    }
+                }
+            }
+        }
+
+        if (isOkey)
+            return true;
+
+        return false;
+    };
+    CChartSpace.prototype.SetCatFormula = function(sRange)
+    {
+        if (typeof(sRange) !== "string")
+            return false;
+
+        if (Asc.editor && Asc.editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+        {
+            var isValid = AscFormat.ExecuteNoHistory(function(){
+                var oCat = new AscFormat.CCat();
+                return oCat.setValues(sRange).getError();
+            }, this, []);
+
+            if (isValid === 0)
+            {
+                this.setCatFormula(sRange);
+                return true;
+            }
+        }
+
+        // пока только для Spreadsheet
+        return false;
+    };
+    CChartSpace.prototype.RemoveSeria = function(nSeria)
+    {
+        var oSeria;
+		var allSeries = this.getAllSeries();
+
+		for (var nCurSeria = 0; nCurSeria < allSeries.length; nCurSeria++)
+		{
+            if (allSeries[nCurSeria].idx === nSeria)
+            {
+                oSeria = allSeries[nCurSeria];
+                break;
+            }
+		}
+
+        if (!oSeria)
+            return false;
+
+        oSeria.asc_Remove();
+        return true;
+    };
+
+    CChartSpace.prototype.SetPlotAreaFill = function(oFill)
+	{
+		if (!this.chart.plotArea.spPr)
+		{
+			this.chart.plotArea.setSpPr(new AscFormat.CSpPr());
+			this.chart.plotArea.spPr.setParent(this.chart.plotArea);
+		}
+
+		this.chart.plotArea.spPr.setFill(oFill);
+	};
+    CChartSpace.prototype.SetPlotAreaOutLine = function(oLn)
+	{
+		if (!this.chart.plotArea.spPr)
+		{
+			this.chart.plotArea.setSpPr(new AscFormat.CSpPr());
+			this.chart.plotArea.spPr.setParent(this.chart.plotArea);
+		}
+
+		this.chart.plotArea.spPr.setLn(oLn);
+	};
+    CChartSpace.prototype.SetSeriesFill = function(oFill, nSeries, bAll)
+	{
+        var allSeries = this.getAllSeries();
+		var oSeries, isOk;
+        for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            oSeries = allSeries[nCurSeries];
+            if (!bAll && oSeries.idx !== nSeries)
+                continue;
+
+            if (!oSeries.spPr)
+            {
+                oSeries.setSpPr(new AscFormat.CSpPr());
+                oSeries.spPr.setParent(oSeries);
+            }
+
+            oSeries.spPr.setFill(oFill);
+            if (Array.isArray(oSeries.dPt))
+            {
+                for (var i = 0; i < oSeries.dPt.length; ++i)
+                {
+                    if (oSeries.dPt[i].spPr)
+                    {
+                        oSeries.dPt[i].spPr.setFill(oFill.createDuplicate());
+                    }
+                }
+            }
+
+            isOk = true;
+            if (isOk && !bAll)
+                return true;
+        }
+
+		if (isOk)
+			return true;
+
+		return false;
+	};
+    CChartSpace.prototype.SetSeriesOutLine = function(oLn, nSeries, bAll)
+	{
+		var allSeries = this.getAllSeries();
+		var oSeries, isOk;
+        for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            oSeries = allSeries[nCurSeries];
+            if (!bAll && oSeries.idx !== nSeries)
+                continue;
+
+            if (!oSeries.spPr)
+            {
+                oSeries.setSpPr(new AscFormat.CSpPr());
+                oSeries.spPr.setParent(oSeries);
+            }
+
+            oSeries.spPr.setLn(oLn);
+            if (Array.isArray(oSeries.dPt))
+            {
+                for (var i = 0; i < oSeries.dPt.length; ++i)
+                {
+                    if (oSeries.dPt[i].spPr)
+                    {
+                        oSeries.dPt[i].spPr.setLn(oLn.createDuplicate());
+                    }
+                }
+            }
+
+            isOk = true;
+            if (isOk && !bAll)
+                return true;
+        }
+
+
+		if (isOk)
+			return true;
+
+		return false;
+	};
+    CChartSpace.prototype.SetDataPointFill = function(oFill, nSeries, nDataPoint, bAllSeries)
+	{
+        var allSeries = this.getAllSeries();
+		var oDataPoint, oSeries, isOk;
+		for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            oSeries = allSeries[nCurSeries];
+            if (!bAllSeries && oSeries.idx !== nSeries)
+                continue;
+
+            var pts = oSeries.getNumPts();
+            if (nDataPoint >= pts.length || nDataPoint < 0)
+                continue;
+
+            oDataPoint = oSeries.dPt[nDataPoint];
+            if(!oDataPoint)
+            {
+                oDataPoint = new AscFormat.CDPt();
+                oDataPoint.setIdx(nDataPoint);
+                oSeries.addDPt(oDataPoint);
+                if(!oDataPoint.spPr)
+                {
+                    oDataPoint.setSpPr(new AscFormat.CSpPr());
+                    oDataPoint.spPr.setParent(oDataPoint);
+                }
+            }
+            oDataPoint.spPr.setFill(oFill);
+
+            isOk = true;
+            if (isOk && !bAllSeries)
+                return true;
+		}
+
+		if (isOk)
+			return true;
+
+		return false;
+	};
+    CChartSpace.prototype.SetDataPointOutLine = function(oLn, nSeries, nDataPoint, bAllSeries)
+	{
+        var allSeries = this.getAllSeries();
+		var oDataPoint, oSeries, isOk;
+		for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            oSeries = allSeries[nCurSeries];
+            if (!bAllSeries && oSeries.idx !== nSeries)
+                continue;
+
+            var pts = oSeries.getNumPts();
+            if (nDataPoint >= pts.length || nDataPoint < 0)
+                continue;
+
+            oDataPoint = oSeries.dPt[nDataPoint];
+            if(!oDataPoint)
+            {
+                oDataPoint = new AscFormat.CDPt();
+                oDataPoint.setIdx(nDataPoint);
+                oSeries.addDPt(oDataPoint);
+                if(!oDataPoint.spPr)
+                {
+                    oDataPoint.setSpPr(new AscFormat.CSpPr());
+                    oDataPoint.spPr.setParent(oDataPoint);
+                }
+            }
+            oDataPoint.spPr.setLn(oLn);
+
+            isOk = true;
+            if (isOk && !bAllSeries)
+                return true;
+		}
+
+		if (isOk)
+			return true;
+
+		return false;
+	};
+    CChartSpace.prototype.SetMarkerFill = function(oFill, nSeries, nMarker, bAllMarkers)
+	{
+        var allSeries = this.getAllSeries();
+		var oDataPoint, oSeries;
+		for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            if (allSeries[nCurSeries].idx === nSeries)
+            {
+                oSeries = allSeries[nCurSeries];
+                break;
+            }
+		}
+
+		if (!oSeries)
+			return false;
+
+		if (bAllMarkers)
+		{
+			if (oSeries.marker)
+			{
+				if(!oSeries.marker.spPr)
+				{
+					oSeries.marker.setSpPr(new AscFormat.CSpPr());
+					oSeries.marker.spPr.setParent(oSeries.marker);
+				}
+				oSeries.marker.spPr.setFill(oFill);
+				if(Array.isArray(oSeries.dPt))
+				{
+					for(var i = 0; i < oSeries.dPt.length; ++i)
+					{
+						if(oSeries.dPt[i].marker && oSeries.dPt[i].marker.spPr)
+							oSeries.dPt[i].marker.spPr.setFill(oFill.createDuplicate());
+					}
+				}
+				return true;
+			}
+		}
+		else
+		{
+			var pts = oSeries.getNumPts();
+			var oPt;
+			for (var nPt = 0; nPt < pts.length; nPt++)
+			{
+				if (pts[nPt].idx === nMarker)
+				{
+					oPt = pts[nPt]; 
+					break;
+				}
+			}
+
+			if (!oPt)
+				return false;
+
+			if(Array.isArray(oSeries.dPt))
+			{
+				for(var k = 0; k < oSeries.dPt.length; ++k)
+				{
+					if(oSeries.dPt[k].idx === nMarker)
+					{
+						oDataPoint = oSeries.dPt[k];
+						break;
+					}
+				}
+			}
+
+			if(!oDataPoint)
+			{
+				oDataPoint = new AscFormat.CDPt();
+				oDataPoint.setIdx(nMarker);
+				oSeries.addDPt(oDataPoint);
+			}
+
+			if(oPt.compiledMarker)
+			{
+				oDataPoint.setMarker(oPt.compiledMarker.createDuplicate());
+				if(!oDataPoint.marker.spPr)
+				{
+					oDataPoint.marker.setSpPr(new AscFormat.CSpPr());
+					oDataPoint.marker.spPr.setParent(oDataPoint.marker);
+				}
+				oDataPoint.marker.spPr.setFill(oFill);
+				return true;
+			}
+		}
+
+		return false;
+	};
+    CChartSpace.prototype.SetMarkerOutLine = function(oLn, nSeries, nMarker, bAllMarkers)
+	{
+        var allSeries = this.getAllSeries();
+		var oDataPoint, oSeries;
+		for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            if (allSeries[nCurSeries].idx === nSeries)
+            {
+                oSeries = allSeries[nCurSeries];
+                break;
+            }
+		}
+
+		if (!oSeries)
+			return false;
+
+		if (bAllMarkers)
+		{
+			if (oSeries.marker)
+			{
+				if(!oSeries.marker.spPr)
+				{
+					oSeries.marker.setSpPr(new AscFormat.CSpPr());
+					oSeries.marker.spPr.setParent(oSeries.marker);
+				}
+				oSeries.marker.spPr.setLn(oLn);
+				if(Array.isArray(oSeries.dPt))
+				{
+					for(var i = 0; i < oSeries.dPt.length; ++i)
+					{
+						if(oSeries.dPt[i].marker && oSeries.dPt[i].marker.spPr)
+							oSeries.dPt[i].marker.spPr.setLn(oLn.createDuplicate());
+					}
+				}
+				return true;
+			}
+		}
+		else
+		{
+			var pts = oSeries.getNumPts();
+			var oPt;
+			for (var nPt = 0; nPt < pts.length; nPt++)
+			{
+				if (pts[nPt].idx === nMarker)
+				{
+					oPt = pts[nPt]; 
+					break;
+				}
+			}
+
+			if (!oPt)
+				return false;
+
+			if(Array.isArray(oSeries.dPt))
+			{
+				for(var k = 0; k < oSeries.dPt.length; ++k)
+				{
+					if(oSeries.dPt[k].idx === nMarker)
+					{
+						oDataPoint = oSeries.dPt[k];
+						break;
+					}
+				}
+			}
+
+			if(!oDataPoint)
+			{
+				oDataPoint = new AscFormat.CDPt();
+				oDataPoint.setIdx(nMarker);
+				oSeries.addDPt(oDataPoint);
+			}
+
+			if(oPt.compiledMarker)
+			{
+				oDataPoint.setMarker(oPt.compiledMarker.createDuplicate());
+				if(!oDataPoint.marker.spPr)
+				{
+					oDataPoint.marker.setSpPr(new AscFormat.CSpPr());
+					oDataPoint.marker.spPr.setParent(oDataPoint.marker);
+				}
+				oDataPoint.marker.spPr.setLn(oLn);
+				return true;
+			}
+		}
+
+		return false;
+	};
+    CChartSpace.prototype.SetTitleFill = function(oFill)
+	{
+		if (this.chart.title)
+		{
+			if (!this.chart.title.spPr)
+			{
+                this.chart.title.setSpPr(new AscFormat.CSpPr());
+                this.chart.title.spPr.setParent(this.chart.title);
+            }
+
+			this.chart.title.spPr.setFill(oFill);
+			return true;
+		}
+
+		return false;
+	};
+    CChartSpace.prototype.SetTitleOutLine = function(oLn)
+	{
+		if (this.chart.title)
+		{
+			if (!this.chart.title.spPr)
+			{
+				this.chart.title.setSpPr(new AscFormat.CSpPr());
+				this.chart.title.spPr.setParent(this.chart.title);
+			}
+
+			this.chart.title.spPr.setLn(oLn);
+			return true;
+		}
+
+		return false;
+	};
+    CChartSpace.prototype.SetLegendFill = function(oFill)
+	{
+		if (this.chart.legend)
+		{
+			if (!this.chart.legend.spPr)
+			{
+				this.chart.legend.setSpPr(new AscFormat.CSpPr());
+				this.chart.legend.spPr.setParent(this.chart.legend);
+			}
+
+			this.chart.legend.spPr.setFill(oFill);
+			return true;
+		}
+
+		return false;
+	};
+    CChartSpace.prototype.SetLegendOutLine = function(oLn)
+	{
+		if (this.chart.legend)
+		{
+			if (!this.chart.legend.spPr)
+			{
+				this.chart.legend.setSpPr(new AscFormat.CSpPr());
+				this.chart.legend.spPr.setParent(this.chart.legend);
+			}
+
+			this.chart.legend.spPr.setLn(oLn);
+			return true;
+		}
+
+		return false;
+	};
+    
+    CChartSpace.prototype.SetAxieNumFormat = function(sNumFormat, nAxiePos)
+	{
+        if (this.chart.plotArea.axId)
+        {
+            var oAxie;
+            for (var nAxie = 0; nAxie < this.chart.plotArea.axId.length; nAxie++)
+            {
+                oAxie = this.chart.plotArea.axId[nAxie];
+                if (oAxie instanceof AscFormat.CValAx && oAxie.axPos === nAxiePos)
+                {
+                    oAxie.numFmt.setFormatCode(sNumFormat);
+                    if (sNumFormat !== "General")
+                        oAxie.numFmt.setSourceLinked(false);
+                    else
+                        oAxie.numFmt.setSourceLinked(true);
+
+                    return true;
+                }
+            }
+
+        }
+        return false;
+	};
+
+    CChartSpace.prototype.SetSeriaNumFormat = function(sNumFormat, nSeria)
+	{
+        if (Asc.editor && Asc.editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+            return false;
+
+        var allSeries = this.getAllSeries();
+        var oSeria;
+
+		for (var nCurSeria = 0; nCurSeria < allSeries.length; nCurSeria++)
+		{
+            if (allSeries[nCurSeria].idx === nSeria)
+            {
+                oSeria = allSeries[nCurSeria];
+                break;
+            }
+		}
+
+        if (!oSeria || typeof(sNumFormat) !== "string")
+            return false;
+
+        var oNumLit = oSeria.getNumLit();
+        oNumLit.setFormatCode(sNumFormat);
+
+        for (var nPt = 0; nPt < oNumLit.pts.length; nPt++)
+            oNumLit.pts[nPt].setFormatCode(null);
+
+        return true;
+    };
+
+    CChartSpace.prototype.SetDataPointNumFormat = function(sFormat, nSeria, nDataPoint, bAllSeries)
+	{
+        if (Asc.editor && Asc.editor.editorId === AscCommon.c_oEditorId.Spreadsheet)
+            return false;
+
+        var allSeries = this.getAllSeries();
+		var oSeries, isOk;
+		for (var nCurSeries = 0; nCurSeries < allSeries.length; nCurSeries++)
+        {
+            oSeries = allSeries[nCurSeries];
+            if (!bAllSeries && oSeries.idx !== nSeria)
+                continue;
+
+            var pts = oSeries.getNumPts();
+            if (nDataPoint >= pts.length || nDataPoint < 0)
+                continue;
+
+            pts[nDataPoint].setFormatCode(sFormat);
+            isOk = true;
+
+            if (isOk && !bAllSeries)
+                return true;
+		}
+
+        if (isOk)
+		    return true;
+
+        return false;
+    };
+    
     function CAdditionalStyleData() {
         this.dLbls = null;
         this.catAx = null;

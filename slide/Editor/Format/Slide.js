@@ -149,7 +149,7 @@ AscDFH.drawingContentChanges[AscDFH.historyitem_SlideCommentsRemoveComment] = fu
 
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideSetSize              ] = AscFormat.CDrawingBaseCoordsWritable;
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideSetBg                ] = AscFormat.CBg;
-AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideSetTransition        ] = AscFormat.CAscSlideTransition;
+AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideSetTransition        ] = Asc.CAscSlideTransition;
 
 function Slide(presentation, slideLayout, slideNum)
 {
@@ -731,7 +731,22 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         }
     };
 
+    Slide.prototype.isEditingInFastMultipleUsers = function() {
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        if(oPresentation && oPresentation.IsEditingInFastMultipleUsers()) {
+            return true;
+        }
+        return false;
+    };
+    Slide.prototype.checkNeedCopyTimingBeforeEdit = function() {
+        // if(this.isEditingInFastMultipleUsers()) {
+        //     if(this.timing) {
+        //         this.setTiming(this.timing.createDuplicate());
+        //     }
+        // }
+    };
     Slide.prototype.addAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+        this.checkNeedCopyTimingBeforeEdit();
         if(!this.timing) {
             this.setTiming(new AscFormat.CTiming());
         }
@@ -741,7 +756,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         if(!this.timing) {
             return;
         }
-        
+        this.checkNeedCopyTimingBeforeEdit();
         this.timing.setAnimationProperties(oPr);
         this.showDrawingObjects();
     };
@@ -851,6 +866,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_SlideRemoveFromSpTree, pos, [oSp], false));
             this.cSld.spTree.splice(pos, 1);
             if(this.timing) {
+                this.checkNeedCopyTimingBeforeEdit();
                 this.timing.onRemoveObject(oSp.Get_Id());
             }
             if(this.collaborativeMarks) {

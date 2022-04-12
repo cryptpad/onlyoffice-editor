@@ -159,16 +159,6 @@ var PARATEXT_FLAGS_NON_CAPITALS           = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS
 
 var TEXTWIDTH_DIVIDER = 16384;
 
-var AUTOCORRECT_FLAGS_NONE                    = 0x00000000;
-var AUTOCORRECT_FLAGS_ALL                     = 0xFFFFFFFF;
-var AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION      = 0x00000001;
-var AUTOCORRECT_FLAGS_SMART_QUOTES            = 0x00000002;
-var AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH        = 0x00000004;
-var AUTOCORRECT_FLAGS_HYPERLINK               = 0x00000008;
-var AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE   = 0x00000010;
-var AUTOCORRECT_FLAGS_NUMBERING               = 0x00000020;
-var AUTOCORRECT_FLAGS_DOUBLESPACE_WITH_PERIOD = 0x00000040;
-
 /**
  * Базовый класс для элементов, лежащих внутри рана.
  * @constructor
@@ -261,7 +251,7 @@ CRunElementBase.prototype.CanBeAtEndOfLine = function()
  */
 CRunElementBase.prototype.GetAutoCorrectFlags = function()
 {
-	return AUTOCORRECT_FLAGS_NONE;
+	return AscCommonWord.AUTOCORRECT_FLAGS_NONE;
 };
 /**
  * Является ли данный элемент символом пунктуации
@@ -356,6 +346,14 @@ CRunElementBase.prototype.IsSpace = function()
  * @returns {?CSearchTextItemBase}
  */
 CRunElementBase.prototype.ToSearchElement = function(oProps)
+{
+	return null;
+};
+/**
+ * Преобразуем в элемент матиматического рана
+ * @returns {?CMathBaseText}
+ */
+CRunElementBase.prototype.ToMathElement = function()
 {
 	return null;
 };
@@ -651,13 +649,13 @@ ParaText.prototype.GetAutoCorrectFlags = function()
 		|| 58 === this.Value
 		|| 59 === this.Value
 		|| 63 === this.Value)
-		return AUTOCORRECT_FLAGS_ALL;
+		return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
 
 	// /,\,@  - исключения, на них мы не должны стартовать атозамену первой буквы предложения
 	if ((this.IsPunctuation() || this.IsNumber()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
-		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
+		return AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AscCommonWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 
-	return AUTOCORRECT_FLAGS_NONE;
+	return AscCommonWord.AUTOCORRECT_FLAGS_NONE;
 };
 ParaText.prototype.IsDiacriticalSymbol = function()
 {
@@ -766,6 +764,15 @@ ParaText.prototype.ToSearchElement = function(oProps)
 
 	return new CSearchTextItemChar(this.Value);
 };
+ParaText.prototype.ToMathElement = function()
+{
+	if (38 === this.Value)
+		return new CMathAmp();
+
+	let oText = new CMathText();
+	oText.add(this.Value);
+	return oText;
+};
 ParaText.prototype.IsText = function()
 {
 	return true;
@@ -842,6 +849,21 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 	this.Width       = ResultWidth;
 	this.WidthOrigin = ResultWidth;
 
+	if (Math.abs(Temp) > 0.001)
+	{
+		let nEnKoef;
+		if (g_oTextMeasurer.m_oManager && g_oTextMeasurer.m_oManager.m_pFont && 0 !== g_oTextMeasurer.m_oManager.m_pFont.GetGIDByUnicode(0x2002))
+			nEnKoef = Context.MeasureCode(0x2002).Width / Temp;
+		else
+			nEnKoef = TextPr.FontSize / 72 * 25.4 / 2 / Temp;
+
+		this.WidthEn = (ResultWidth * nEnKoef) | 0;
+	}
+	else
+	{
+		this.WidthEn = ResultWidth;
+	}
+
 	if (0x2003 === this.Value || 0x2002 === this.Value)
 		this.SpaceGap = Math.max((Temp - Context.MeasureCode(0x00B0).Width) / 2, 0);
 	else if (0x2005 === this.Value)
@@ -908,7 +930,7 @@ ParaSpace.prototype.Read_FromBinary = function(Reader)
 };
 ParaSpace.prototype.GetAutoCorrectFlags = function()
 {
-	return AUTOCORRECT_FLAGS_ALL;
+	return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
 };
 ParaSpace.prototype.SetCondensedWidth = function(nKoef)
 {
@@ -917,6 +939,10 @@ ParaSpace.prototype.SetCondensedWidth = function(nKoef)
 ParaSpace.prototype.ResetCondensedWidth = function()
 {
 	this.Width = this.WidthOrigin;
+};
+ParaSpace.prototype.BalanceSingleByteDoubleByteWidth = function()
+{
+	this.Width = this.WidthEn;
 };
 ParaSpace.prototype.SetGaps = function(nLeftGap, nRightGap)
 {
@@ -932,6 +958,12 @@ ParaSpace.prototype.private_DrawGapsBackground = ParaText.prototype.private_Draw
 ParaSpace.prototype.ToSearchElement = function(oProps)
 {
 	return new CSearchTextItemChar(0x20);
+};
+ParaSpace.prototype.ToMathElement = function()
+{
+	let oSpace = new CMathText();
+	oSpace.add(0x0032);
+	return oSpace;
 };
 
 /**
@@ -1223,9 +1255,9 @@ ParaEnd.prototype.Read_FromBinary = function(Reader)
 };
 ParaEnd.prototype.GetAutoCorrectFlags = function()
 {
-	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-		| AUTOCORRECT_FLAGS_HYPERLINK
-		| AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
+	return (AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+		| AscCommonWord.AUTOCORRECT_FLAGS_HYPERLINK
+		| AscCommonWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
 };
 ParaEnd.prototype.ToSearchElement = function(oProps)
 {
@@ -1530,8 +1562,8 @@ ParaNewLine.prototype.IsLineBreak = function()
 };
 ParaNewLine.prototype.GetAutoCorrectFlags = function()
 {
-	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-		| AUTOCORRECT_FLAGS_HYPERLINK);
+	return (AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+		| AscCommonWord.AUTOCORRECT_FLAGS_HYPERLINK);
 };
 ParaNewLine.prototype.ToSearchElement = function(oProps)
 {
@@ -1855,7 +1887,7 @@ ParaTab.prototype.PrepareRecalculateObject = function()
 };
 ParaTab.prototype.GetAutoCorrectFlags = function()
 {
-	return AUTOCORRECT_FLAGS_ALL;
+	return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
 };
 ParaTab.prototype.ToSearchElement = function(oProps)
 {
