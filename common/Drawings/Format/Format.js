@@ -142,10 +142,14 @@
 			writer.WriteXmlAttributesEnd(true);
 		};
 
-		function InitClass(fClass, fBase, nType) {
+		function InitClassWithoutType(fClass, fBase) {
 			fClass.prototype = Object.create(fBase.prototype);
 			fClass.prototype.superclass = fBase;
 			fClass.prototype.constructor = fClass;
+		}
+
+		function InitClass(fClass, fBase, nType) {
+			InitClassWithoutType(fClass, fBase);
 			fClass.prototype.classType = nType;
 		}
 
@@ -13776,60 +13780,57 @@
 			return null;
 		}
 
-		function builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex) {
+		function builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex, aNumFormats){
 			var settings = new Asc.asc_ChartSettings();
 			settings.type = ChartBuilderTypeToInternal(sType);
 			var aAscSeries = [];
 			var aAlphaBet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 			var oCat, i;
-			if (aCatNames.length > 0) {
+			if(aCatNames.length > 0)
+			{
 				var aNumCache = [];
-				for (i = 0; i < aCatNames.length; ++i) {
+				for(i = 0; i < aCatNames.length; ++i)
+				{
 					aNumCache.push({val: aCatNames[i] + ""});
 				}
-				oCat = {
-					Formula: "Sheet1!$B$1:$" + AscFormat.CalcLiterByLength(aAlphaBet, aCatNames.length) + "$1",
-					NumCache: aNumCache
-				};
+				oCat = { Formula: "Sheet1!$B$1:$" + AscFormat.CalcLiterByLength(aAlphaBet, aCatNames.length) + "$1", NumCache: aNumCache };
 			}
-			for (i = 0; i < aSeries.length; ++i) {
+			for(i = 0; i < aSeries.length; ++i)
+			{
 				var oAscSeries = new AscFormat.asc_CChartSeria();
 				oAscSeries.Val.NumCache = [];
 				var aData = aSeries[i];
 				var sEndLiter = AscFormat.CalcLiterByLength(aAlphaBet, aData.length);
 				oAscSeries.Val.Formula = 'Sheet1!' + '$B$' + (i + 2) + ':$' + sEndLiter + '$' + (i + 2);
-				if (aSeriesNames[i]) {
-					oAscSeries.TxCache.Formula = 'Sheet1!' + '$A$' + (i + 2);
-					oAscSeries.TxCache.NumCache = [{
-						numFormatStr: "General",
-						isDateTimeFormat: false,
-						val: aSeriesNames[i],
-						isHidden: false
-					}];
+				if(aSeriesNames[i])
+				{
+					oAscSeries.TxCache.Formula =  'Sheet1!' + '$A$' + (i + 2);
+					oAscSeries.TxCache.NumCache = [{ numFormatStr: "General", isDateTimeFormat: false, val: aSeriesNames[i], isHidden: false }];
 				}
-				if (oCat) {
+				if(oCat)
+				{
 					oAscSeries.Cat = oCat;
 				}
-				for (var j = 0; j < aData.length; ++j) {
 
-					oAscSeries.Val.NumCache.push({
-						numFormatStr: "General",
-						isDateTimeFormat: false,
-						val: aData[j],
-						isHidden: false
-					});
+				if (Array.isArray(aNumFormats) && typeof(aNumFormats[i]) === "string")
+					oAscSeries.FormatCode = aNumFormats[i];
+
+				for(var j = 0; j < aData.length; ++j)
+				{
+					oAscSeries.Val.NumCache.push({ numFormatStr: oAscSeries.FormatCode !== "" ? null : "General", isDateTimeFormat: false, val: aData[j], isHidden: false });
 				}
 				aAscSeries.push(oAscSeries);
 			}
 
 			var oChartSpace = AscFormat.DrawingObjectsController.prototype._getChartSpace(aAscSeries, settings, true);
-			if (!oChartSpace) {
+			if(!oChartSpace)
+			{
 				return null;
 			}
 			oChartSpace.setBDeleted(false);
 			oChartSpace.extX = nW;
 			oChartSpace.extY = nH;
-			if (AscFormat.isRealNumber(nStyleIndex)) {
+			if(AscFormat.isRealNumber(nStyleIndex)){
 				oChartSpace.setStyle(nStyleIndex);
 			}
 			AscFormat.CheckSpPrXfrm(oChartSpace);
@@ -14670,6 +14671,7 @@
 		window['AscFormat'].CreateNoneBullet = CreateNoneBullet;
 		window['AscFormat'].ChartBuilderTypeToInternal = ChartBuilderTypeToInternal;
 		window['AscFormat'].InitClass = InitClass;
+		window['AscFormat'].InitClassWithoutType = InitClassWithoutType;
 		window['AscFormat'].CBaseObject = CBaseObject;
 		window['AscFormat'].CBaseFormatObject = CBaseFormatObject;
 		window['AscFormat'].CBaseNoIdObject = CBaseNoIdObject;
