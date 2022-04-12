@@ -7052,8 +7052,6 @@
 			this.bodyPr = new CBodyPr();
 			this.lstStyle = new TextListStyle();
 			this.style = null;
-			this.Id = g_oIdCounter.Get_NewId();
-			g_oTableId.Add(this, this.Id);
 		}
 
 		InitClass(DefaultShapeDefinition, CBaseFormatObject, AscDFH.historyitem_type_DefaultShapeDefinition);
@@ -7089,24 +7087,36 @@
 			}
 			return ret;
 		};
-		DefaultShapeDefinition.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
-		};
 		DefaultShapeDefinition.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "bodyPr": {
+					let oBodyPr = new AscFormat.CBodyPr();
+					oBodyPr.fromXml(reader);
+					this.setBodyPr(oBodyPr);
+					break;
+				}
+				case "lstStyle": {
+					let oPr = new AscFormat.TextListStyle();
+					oPr.fromXml(reader);
+					this.setLstStyle(oPr);
+					break;
+				}
+				case "spPr": {
+					let oPr = new AscFormat.CSpPr();
+					oPr.fromXml(reader);
+					this.setSpPr(oPr);
+					break;
+				}
+				case "style": {
+					let oPr = new AscFormat.CShapeStyle();
+					oPr.fromXml(reader);
+					this.setStyle(oPr);
+					break;
+				}
+				case "extLst": {
 					break;
 				}
 			}
-			//TODO:Implement in children
-		};
-		DefaultShapeDefinition.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
 		};
 		DefaultShapeDefinition.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
@@ -9669,6 +9679,14 @@
 					break;
 				}
 				case "objectDefaults": {
+					let oTheme = this;
+					let oNode = new CT_XmlNode(function(reader, name) {
+						
+						if(name === "lnDef") {
+
+						}
+					});
+					oNode.fromXml(reader);
 					break;
 				}
 				case "themeElements": {
@@ -12793,6 +12811,499 @@
 			//TODO:Implement in children
 		};
 		AscFormat.CBaseAttrObject = CBaseAttrObject;
+
+
+
+		function CChangesCorePr(Class, Old, New, Color) {
+			AscDFH.CChangesBase.call(this, Class, Old, New, Color);
+			if(Old && New) {
+				this.OldTitle = Old.title;
+				this.OldCreator = Old.creator;
+				this.OldDescription = Old.description;
+				this.OldSubject = Old.subject;
+
+				this.NewTitle = New.title === Old.title ? undefined : New.title;
+				this.NewCreator = New.creator === Old.creator ? undefined : New.creator;
+				this.NewDescription = New.description === Old.description ? undefined : New.description;
+				this.NewSubject = New.subject === Old.subject ? undefined : New.subject;
+			}
+			else {
+				this.OldTitle = undefined;
+				this.OldCreator = undefined;
+				this.OldDescription = undefined;
+				this.OldSubject = undefined;
+
+				this.NewTitle = undefined;
+				this.NewCreator = undefined;
+				this.NewDescription = undefined;
+				this.NewSubject = undefined;
+			}
+		}
+		CChangesCorePr.prototype = Object.create(AscDFH.CChangesBase.prototype);
+		CChangesCorePr.prototype.constructor = CChangesCorePr;
+		CChangesCorePr.prototype.Type = AscDFH.historyitem_CoreProperties;
+		CChangesCorePr.prototype.Undo = function(){
+			if(!this.Class) {
+				return;
+			}
+			this.Class.title = this.OldTitle;
+			this.Class.creator = this.OldCreator;
+			this.Class.description = this.OldDescription;
+			this.Class.subject = this.OldSubject;
+		};
+		CChangesCorePr.prototype.Redo = function(){
+			if(!this.Class) {
+				return;
+			}
+			if(this.NewTitle !== undefined) {
+				this.Class.title = this.NewTitle;
+			}
+			if(this.NewCreator !== undefined) {
+				this.Class.creator = this.NewCreator;
+			}
+			if(this.NewDescription !== undefined) {
+				this.Class.description = this.NewDescription;
+			}
+			if(this.NewSubject !== undefined) {
+				this.Class.subject = this.NewSubject;
+			}
+		};
+		CChangesCorePr.prototype.WriteToBinary = function(Writer) {
+			var nFlags = 0;
+			if (undefined !== this.NewTitle) {
+				nFlags |= 1;
+			}
+			if (undefined !== this.NewCreator) {
+				nFlags |= 2;
+			}
+			if (undefined !== this.NewDescription) {
+				nFlags |= 4;
+			}
+			if (undefined !== this.NewSubject) {
+				nFlags |= 8;
+			}
+
+			Writer.WriteLong(nFlags);
+			var bIsField;
+			if(nFlags & 1) {
+				bIsField = typeof this.NewTitle === "string";
+				Writer.WriteBool(bIsField);
+				if(bIsField) {
+					Writer.WriteString2(this.NewTitle);
+				}
+			}
+			if(nFlags & 2) {
+				bIsField = typeof this.NewCreator === "string";
+				Writer.WriteBool(bIsField);
+				if(bIsField) {
+					Writer.WriteString2(this.NewCreator);
+				}
+			}
+			if(nFlags & 4) {
+				bIsField = typeof this.NewDescription === "string";
+				Writer.WriteBool(bIsField);
+				if(bIsField) {
+					Writer.WriteString2(this.NewDescription);
+				}
+			}
+			if(nFlags & 8) {
+				bIsField = typeof this.NewSubject === "string";
+				Writer.WriteBool(bIsField);
+				if(bIsField) {
+					Writer.WriteString2(this.NewSubject);
+				}
+			}
+		};
+
+		CChangesCorePr.prototype.ReadFromBinary = function(Reader) {
+			var nFlags = Reader.GetLong();
+			var bIsField;
+			if(nFlags & 1) {
+				bIsField = Reader.GetBool();
+				if(bIsField) {
+					this.NewTitle = Reader.GetString2();
+				}
+				else {
+					this.NewTitle = null;
+				}
+			}
+			if(nFlags & 2) {
+				bIsField = Reader.GetBool();
+				if(bIsField) {
+					this.NewCreator = Reader.GetString2();
+				}
+				else {
+					this.NewCreator = null;
+				}
+			}
+			if(nFlags & 4) {
+				bIsField = Reader.GetBool();
+				if(bIsField) {
+					this.NewDescription = Reader.GetString2();
+				}
+				else {
+					this.NewDescription = null;
+				}
+			}
+			if(nFlags & 8) {
+				bIsField = Reader.GetBool();
+				if(bIsField) {
+					this.NewSubject = Reader.GetString2();
+				}
+				else {
+					this.NewSubject = null;
+				}
+			}
+		};
+		CChangesCorePr.prototype.CreateReverseChange = function(){
+			var ret = new CChangesCorePr(this.Class);
+			ret.OldTitle = this.NewTitle ;
+			ret.OldCreator = this.NewCreator;
+			ret.OldDescription = this.NewCreator;
+			ret.OldSubject = this.NewSubject;
+			ret.NewTitle = this.OldTitle ;
+			ret.NewCreator = this.OldCreator;
+			ret.NewDescription = this.OldCreator;
+			ret.NewSubject = this.OldSubject;
+			return ret;
+		};
+
+		AscDFH.changesFactory[AscDFH.historyitem_CoreProperties] = CChangesCorePr;
+
+		function CCore() {
+			AscFormat.CBaseFormatObject.call(this);
+			this.category = null;
+			this.contentStatus = null;//Status in menu
+			this.created = null;
+			this.creator = null;// Authors in menu
+			this.description = null;//Comments in menu
+			this.identifier = null;
+			this.keywords = null;
+			this.language = null;
+			this.lastModifiedBy = null;
+			this.lastPrinted = null;
+			this.modified = null;
+			this.revision = null;
+			this.subject = null;
+			this.title = null;
+			this.version = null;
+
+			this.Lock = new AscCommon.CLock();
+			this.lockType = AscCommon.c_oAscLockTypes.kLockTypeNone;
+		}
+		InitClass(CCore, CBaseFormatObject, AscDFH.historyitem_type_Core);
+		CCore.prototype.fromStream = function(s)
+		{
+			var _type = s.GetUChar();
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.title = s.GetString2(); break; }
+					case 1: { this.creator = s.GetString2(); break; }
+					case 2: { this.lastModifiedBy = s.GetString2(); break; }
+					case 3: { this.revision = s.GetString2(); break; }
+					case 4: { this.created = this.readDate(s.GetString2()); break; }
+					case 5: { this.modified = this.readDate(s.GetString2()); break; }
+					default:
+						return;
+				}
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						var _end_rec2 = s.cur + s.GetLong() + 4;
+						s.Skip2(1); // start attributes
+						while (true)
+						{
+							_at = s.GetUChar();
+							if (_at == g_nodeAttributeEnd)
+								break;
+
+							switch (_at)
+							{
+								case 6: { this.category = s.GetString2(); break; }
+								case 7: { this.contentStatus = s.GetString2(); break; }
+								case 8: { this.description = s.GetString2(); break; }
+								case 9: { this.identifier = s.GetString2(); break; }
+								case 10: { this.keywords = s.GetString2(); break; }
+								case 11: { this.language = s.GetString2(); break; }
+								case 12: { this.lastPrinted = this.readDate(s.GetString2()); break; }
+								case 13: { this.subject = s.GetString2(); break; }
+								case 14: { this.version = s.GetString2(); break; }
+								default:
+									return;
+							}
+						}
+						s.Seek2(_end_rec2);
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CCore.prototype.readDate = function(val)
+		{
+			val = new Date(val);
+			return val instanceof Date && !isNaN(val) ? val : null;
+		};
+		CCore.prototype.toStream = function(s, api) {
+			s.StartRecord(AscCommon.c_oMainTables.Core);
+
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+			s._WriteString2(0, this.title);
+			s._WriteString2(1, this.creator);
+			if(api && api.DocInfo){
+				s._WriteString2(2, api.DocInfo.get_UserName());
+			}
+			var revision = 0;
+			if (this.revision) {
+				var rev = parseInt(this.revision);
+				if (!isNaN(rev)) {
+					revision = rev;
+				}
+			}
+			s._WriteString2(3, (revision + 1).toString());
+
+			if (this.created) {
+				s._WriteString2(4, this.created.toISOString().slice(0, 19) + 'Z');
+			}
+			s._WriteString2(5, new Date().toISOString().slice(0, 19) + 'Z');
+
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s.StartRecord(0);
+
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+			s._WriteString2(6, this.category);
+			s._WriteString2(7, this.contentStatus);
+			s._WriteString2(8, this.description);
+			s._WriteString2(9, this.identifier);
+			s._WriteString2(10, this.keywords);
+			s._WriteString2(11, this.language);
+			// we don't track it
+			// if (this.lastPrinted) {
+			//     s._WriteString1(12, this.lastPrinted.toISOString().slice(0, 19) + 'Z');
+			// }
+			s._WriteString2(13, this.subject);
+			s._WriteString2(14, this.version);
+
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s.EndRecord();
+
+			s.EndRecord();
+		};
+		CCore.prototype.asc_getTitle = function(){return this.title;};
+		CCore.prototype.asc_getCreator = function(){return this.creator;};
+		CCore.prototype.asc_getLastModifiedBy = function(){return this.lastModifiedBy;};
+		CCore.prototype.asc_getRevision = function(){return this.revision;};
+		CCore.prototype.asc_getCreated = function(){return this.created;};
+		CCore.prototype.asc_getModified = function(){return this.modified;};
+		CCore.prototype.asc_getCategory = function(){return this.category;};
+		CCore.prototype.asc_getContentStatus = function(){return this.contentStatus;};
+		CCore.prototype.asc_getDescription = function(){return this.description;};
+		CCore.prototype.asc_getIdentifier = function(){return this.identifier;};
+		CCore.prototype.asc_getKeywords = function(){return this.keywords;};
+		CCore.prototype.asc_getLanguage = function(){return this.language;};
+		CCore.prototype.asc_getLastPrinted = function(){return this.lastPrinted;};
+		CCore.prototype.asc_getSubject = function(){return this.subject;};
+		CCore.prototype.asc_getVersion = function(){return this.version;};
+		CCore.prototype.asc_putTitle = function(v){this.title = v;};
+		CCore.prototype.asc_putCreator = function(v){this.creator = v;};
+		CCore.prototype.asc_putLastModifiedBy = function(v){this.lastModifiedBy = v;};
+		CCore.prototype.asc_putRevision = function(v){this.revision = v;};
+		CCore.prototype.asc_putCreated = function(v){this.created = v;};
+		CCore.prototype.asc_putModified = function(v){this.modified = v;};
+		CCore.prototype.asc_putCategory = function(v){this.category = v;};
+		CCore.prototype.asc_putContentStatus = function(v){this.contentStatus = v;};
+		CCore.prototype.asc_putDescription = function(v){this.description = v;};
+		CCore.prototype.asc_putIdentifier = function(v){this.identifier = v;};
+		CCore.prototype.asc_putKeywords = function(v){this.keywords = v;};
+		CCore.prototype.asc_putLanguage = function(v){this.language = v;};
+		CCore.prototype.asc_putLastPrinted = function(v){this.lastPrinted = v;};
+		CCore.prototype.asc_putSubject = function(v){this.subject = v;};
+		CCore.prototype.asc_putVersion = function(v){this.version = v;};
+		CCore.prototype.setProps = function(oProps){
+			History.Add(new CChangesCorePr(this, this, oProps, null));
+			this.title = oProps.title;
+			this.creator = oProps.creator;
+			this.description = oProps.description;
+			this.subject = oProps.subject;
+		};
+		CCore.prototype.Refresh_RecalcData = function(){
+		};
+		CCore.prototype.Refresh_RecalcData2 = function(){
+		};
+		CCore.prototype.copy = function(){
+			return AscFormat.ExecuteNoHistory(function(){
+				var oCopy = new CCore();
+				oCopy.category = this.category;
+				oCopy.contentStatus = this.contentStatus;
+				oCopy.created = this.created;
+				oCopy.creator = this.creator;
+				oCopy.description = this.description;
+				oCopy.identifier = this.identifier;
+				oCopy.keywords = this.keywords;
+				oCopy.language = this.language;
+				oCopy.lastModifiedBy = this.lastModifiedBy;
+				oCopy.lastPrinted = this.lastPrinted;
+				oCopy.modified = this.modified;
+				oCopy.revision = this.revision;
+				oCopy.subject = this.subject;
+				oCopy.title = this.title;
+				oCopy.version = this.version;
+				return oCopy;
+			}, this, []);
+		};
+		CCore.prototype.readAttrXml = function(name, reader) {
+			this.category = null;
+			this.contentStatus = null;//Status in menu
+			this.created = null;
+			this.creator = null;// Authors in menu
+			this.description = null;//Comments in menu
+			this.identifier = null;
+			this.keywords = null;
+			this.language = null;
+			this.lastModifiedBy = null;
+			this.lastPrinted = null;
+			this.modified = null;
+			this.revision = null;
+			this.subject = null;
+			this.title = null;
+			this.version = null;
+			switch (name) {
+				case "category": {
+					this.category = reader.GetValue();
+					break;
+				}
+				case "contentStatus": {
+					this.contentStatus = reader.GetValue();
+					break;
+				}
+				case "created": {
+					this.created = reader.GetValue();
+					break;
+				}
+				case "creator": {
+					this.creator = reader.GetValue();
+					break;
+				}
+				case "description": {
+					this.description = reader.GetValue();
+					break;
+				}
+				case "identifier": {
+					this.identifier = reader.GetValue();
+					break;
+				}
+				case "keywords": {
+					this.keywords = reader.GetValue();
+					break;
+				}
+				case "language": {
+					this.language = reader.GetValue();
+					break;
+				}
+				case "lastModifiedBy": {
+					this.lastModifiedBy = reader.GetValue();
+					break;
+				}
+				case "lastPrinted": {
+					this.lastPrinted = reader.GetValue();
+					break;
+				}
+				case "modified": {
+					this.modified = reader.GetValue();
+					break;
+				}
+				case "revision": {
+					this.revision = reader.GetValue();
+					break;
+				}
+				case "subject": {
+					this.subject = reader.GetValue();
+					break;
+				}
+				case "title": {
+					this.title = reader.GetValue();
+					break;
+				}
+				case "version": {
+					this.version = reader.GetValue();
+					break;
+				}
+			}
+		};
+		CCore.prototype.readChildXml = function(name, reader) {
+		};
+		CCore.prototype.writeAttrXmlImpl = function(writer) {
+			//TODO
+		};
+		CCore.prototype.writeChildren = function(writer) {
+		};
+
+
+		window['AscCommon'].CCore = CCore;
+		prot = CCore.prototype;
+		prot["asc_getTitle"] = prot.asc_getTitle;
+		prot["asc_getCreator"] = prot.asc_getCreator;
+		prot["asc_getLastModifiedBy"] = prot.asc_getLastModifiedBy;
+		prot["asc_getRevision"] = prot.asc_getRevision;
+		prot["asc_getCreated"] = prot.asc_getCreated;
+		prot["asc_getModified"] = prot.asc_getModified;
+		prot["asc_getCategory"] = prot.asc_getCategory;
+		prot["asc_getContentStatus"] = prot.asc_getContentStatus;
+		prot["asc_getDescription"] = prot.asc_getDescription;
+		prot["asc_getIdentifier"] = prot.asc_getIdentifier;
+		prot["asc_getKeywords"] = prot.asc_getKeywords;
+		prot["asc_getLanguage"] = prot.asc_getLanguage;
+		prot["asc_getLastPrinted"] = prot.asc_getLastPrinted;
+		prot["asc_getSubject"] = prot.asc_getSubject;
+		prot["asc_getVersion"] = prot.asc_getVersion;
+
+		prot["asc_putTitle"] = prot.asc_putTitle;
+		prot["asc_putCreator"] = prot.asc_putCreator;
+		prot["asc_putLastModifiedBy"] = prot.asc_putLastModifiedBy;
+		prot["asc_putRevision"] = prot.asc_putRevision;
+		prot["asc_putCreated"] = prot.asc_putCreated;
+		prot["asc_putModified"] = prot.asc_putModified;
+		prot["asc_putCategory"] = prot.asc_putCategory;
+		prot["asc_putContentStatus"] = prot.asc_putContentStatus;
+		prot["asc_putDescription"] = prot.asc_putDescription;
+		prot["asc_putIdentifier"] = prot.asc_putIdentifier;
+		prot["asc_putKeywords"] = prot.asc_putKeywords;
+		prot["asc_putLanguage"] = prot.asc_putLanguage;
+		prot["asc_putLastPrinted"] = prot.asc_putLastPrinted;
+		prot["asc_putSubject"] = prot.asc_putSubject;
+		prot["asc_putVersion"] = prot.asc_putVersion;
 
 // DEFAULT OBJECTS
 		function GenerateDefaultTheme(presentation, opt_fontName) {

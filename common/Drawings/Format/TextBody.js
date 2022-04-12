@@ -569,8 +569,9 @@
                 let oDrawingDocument = reader.context.DrawingDocument;
                 if(!this.content) {
                     this.setContent(new AscFormat.CDrawingDocContent(this, oDrawingDocument, 0, 0, 0, 20000));
+	                this.content.Internal_Content_RemoveAll();
                 }
-                oPr = new AscCommonWord.Paragraph(oDrawingDocument, this.content, true);
+	            oPr = new AscCommonWord.Paragraph(oDrawingDocument, this.content, true);
                 oPr.fromDrawingML(reader);
                 oPr.SetParent(this.content);
                 this.content.Internal_Content_Add(this.content.Content.length, oPr);

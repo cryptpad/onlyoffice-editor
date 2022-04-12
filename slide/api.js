@@ -1589,7 +1589,6 @@ background-repeat: no-repeat;\
 		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
 		var contentDocument = documentPart.getDocumentContent();
 		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
-		this.WordControl.m_oLogicDocument = new CPresentation(this.WordControl.m_oDrawingDocument);
 		this.WordControl.m_oLogicDocument.fromXml(reader, true);
 
 		this.WordControl.m_oLogicDocument.ImageMap = {};
