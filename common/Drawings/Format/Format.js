@@ -5568,7 +5568,7 @@ function FormatRGBAColor()
         if (compareObj instanceof CBuBlip) {
             ret = new CBuBlip();
             if (this.blip) {
-                ret.setBlip(this.blip.compare(compareObj.blip));
+                ret.blip = CompareUniFill(this.blip, compareObj.blip);
             }
         }
         return ret;
@@ -11012,7 +11012,7 @@ function CompareBullets(bullet1, bullet2)
             case AscFormat.BULLET_TYPE_BULLET_BLIP:
             {
                 ret.bulletType.type = AscFormat.BULLET_TYPE_BULLET_BLIP;
-                var compareBlip = bullet1.bulletType.Blip && bullet1.bulletType.Blip.compare(bullet2.bulletType.Blip);
+                var compareBlip = bullet1.bulletType.Blip && bullet2.bulletType.Blip && bullet1.bulletType.Blip.compare(bullet2.bulletType.Blip);
                 ret.bulletType.Blip = compareBlip;
                 break;
             }
@@ -11320,11 +11320,12 @@ function CompareBullets(bullet1, bullet2)
 
     }
     CBullet.prototype.getImageBulletURL = function () {
-        return (this.bulletType
+        var res = (this.bulletType
           && this.bulletType.Blip
           && this.bulletType.Blip.blip
           && this.bulletType.Blip.blip.fill
           && this.bulletType.Blip.blip.fill.RasterImageId);
+        return res ? res : null;
     }
 
     CBullet.prototype.drawSquareImage = function (divId, indent) {
