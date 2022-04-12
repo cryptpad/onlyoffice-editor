@@ -1221,6 +1221,10 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_drawPrintPreview = function (index) {
+		if (this.wb.printPreviewState.isDrawPrintPreview) {
+			return;
+		}
+		this.wb.printPreviewState.isDrawPrintPreview = true;
 		if (index == null) {
 			index = this.wb.printPreviewState.activePage;
 		}
@@ -1233,6 +1237,7 @@ var editor;
 			indexActiveWs = this.wbModel.getActive();
 		}
 		this.handlers.trigger("asc_onPrintPreviewSheetChanged", indexActiveWs);
+		this.wb.printPreviewState.isDrawPrintPreview = false;
 	};
 
 	spreadsheet_api.prototype.asc_closePrintPreview = function () {
