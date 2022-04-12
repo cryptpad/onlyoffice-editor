@@ -4326,6 +4326,7 @@
 		var xb1, yb1, wb, hb, colLeft, colRight;
 		var txtRotX, txtRotW, clipUse = false;
 
+		var _printScale = this.getPrintScale();
 		var isPrintPreview = this.workbook.printPreviewState.isStart();
 
 		if (ct.angle) {
@@ -4400,7 +4401,6 @@
 
 			//если ранее выставлена матрица трансформации, например, в случае когда задан масштаб печати
 			//необходимо перемножить на новую матрицу, а в конце вернуть начальную
-			var _printScale = this.getPrintScale();
 			var transformMatrix;
 			if (_printScale !== 1 && drawingCtx && drawingCtx.Transform) {
 				transformMatrix = drawingCtx.Transform.CreateDublicate();
@@ -4499,6 +4499,18 @@
 			}
 			this.stringRender.restoreInternalState(ct.state).render(drawingCtx, textX, textY, textW, color);
 			ctx.RemoveClipRect();
+		}
+
+
+		//внутреннии ссылки не добавляю, мс аналогично работает
+		if (drawingCtx && drawingCtx.DocumentRenderer && drawingCtx.DocumentRenderer.AddHyperlink /*&& drawingCtx.DocumentRenderer.AddLink*/) {
+			var oHyperlink = this.model.getHyperlinkByCell(row, col);
+			if (oHyperlink && oHyperlink.Hyperlink) {
+				var hyperlink = oHyperlink.Hyperlink;
+				var tooltip = oHyperlink.Tooltip;
+				var kF = AscCommon.g_dKoef_pix_to_mm * _printScale * 100;
+				drawingCtx.DocumentRenderer.AddHyperlink(textX * kF, textY * kF, Math.min(w, textW) * kF, h * kF, hyperlink, tooltip ? tooltip : hyperlink);
+			}
 		}
 
 		return null;
