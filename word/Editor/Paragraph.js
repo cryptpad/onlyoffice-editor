@@ -9575,7 +9575,8 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 			{
 				var oUndefPresentationBullet = oUndefParaPr.Bullet.getPresentationBullet(oTheme, oColorMap);
 				var oNewPresentationBullet   = oBullet2.getPresentationBullet(oTheme, oColorMap);
-				if (oUndefPresentationBullet.m_sChar === oNewPresentationBullet.m_sChar)//символы совпали. ничего выставлять не надо.
+				if (oUndefPresentationBullet.m_sChar && oUndefPresentationBullet.m_sChar === oNewPresentationBullet.m_sChar ||
+					oUndefPresentationBullet.m_sSrc && oUndefPresentationBullet.m_sSrc === oNewPresentationBullet.m_sSrc)//символы или id изображений совпали. ничего выставлять не надо.
 				{
 					this.Pr.Bullet = _OldBullet;
 					this.Set_Bullet(undefined);
@@ -9609,6 +9610,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 		else//тип не совпал. выставляем буллет, а также проверим нужно ли выставлять Indent.
 		{
 			this.Pr.Bullet = _OldBullet;
+			this.CompiledPr.NeedRecalc = true;
 			if(_OldBullet )
 			{
 				if(_OldBullet.bulletSize && !oBullet2.bulletSize)
