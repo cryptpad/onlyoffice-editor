@@ -11313,12 +11313,8 @@ function CompareBullets(bullet1, bullet2)
         return true;
     };
     CBullet.prototype.fillBulletImage = function (url) {
-        if (!this.bulletType) {
-            this.bulletType = new CBulletType();
-        }
-        if (!this.bulletType.Blip) {
-            this.bulletType.Blip = new AscFormat.CBuBlip();
-        }
+        this.bulletType = new CBulletType();
+        this.bulletType.Blip = new AscFormat.CBuBlip();
         this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_BLIP;
         this.bulletType.Blip.setBlip(AscFormat.CreateBlipFillUniFillFromUrl(url));
 
