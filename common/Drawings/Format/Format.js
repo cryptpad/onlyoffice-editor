@@ -11364,6 +11364,7 @@ function CompareBullets(bullet1, bullet2)
     //interface methods
     var prot = CBullet.prototype;
     prot["fillBulletImage"] = prot["asc_fillBulletImage"] = CBullet.prototype.fillBulletImage;
+    prot["drawSquareImage"] = prot["asc_drawSquareImage"] = CBullet.prototype.drawSquareImage;
     prot.getImageId = function () {
         return this.getImageBulletURL();
     }
