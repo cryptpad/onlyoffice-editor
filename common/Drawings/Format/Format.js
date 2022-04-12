@@ -11332,7 +11332,8 @@ function CompareBullets(bullet1, bullet2)
         indent = indent || 0;
 
         var url = this.getImageBulletURL();
-        if(!url || !editor){
+        var Api = editor || Asc.editor;
+        if(!url || !Api){
             return;
         }
 
@@ -11352,7 +11353,7 @@ function CompareBullets(bullet1, bullet2)
         var oContext = oCanvas.getContext('2d');
         oContext.fillStyle = "white";
         oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
-        var _img = editor.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
+        var _img = Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
         if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading)
         {
             var _x = indent;
@@ -11372,7 +11373,7 @@ function CompareBullets(bullet1, bullet2)
     prot["getImageId"] = prot["asc_getImageId"] = CBullet.prototype.getImageId;
     prot.put_ImageUrl = function (sUrl, token) {
         var _this = this;
-        var Api = editor;
+        var Api = editor || Asc.editor;
         if(!Api)
         {
             return;
@@ -11391,37 +11392,39 @@ function CompareBullets(bullet1, bullet2)
     }
     prot["put_ImageUrl"] = prot["asc_putImageUrl"] = CBullet.prototype.put_ImageUrl;
     prot.showFileDialog = function () {
-        if(!editor){
+
+        var Api = editor || Asc.editor;
+
+        if(!Api) {
             return;
         }
-        var t = editor;
         var _this = this;
-        AscCommon.ShowImageFileDialog(t.documentId, t.documentUserId, t.CoAuthoringApi.get_jwt(), function(error, files)
+        AscCommon.ShowImageFileDialog(Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function(error, files)
           {
               if (Asc.c_oAscError.ID.No !== error)
               {
-                  t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+                  Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
               }
               else
               {
-                  t.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
-                  AscCommon.UploadImageFiles(files, t.documentId, t.documentUserId, t.CoAuthoringApi.get_jwt(), function(error, urls)
+                  Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+                  AscCommon.UploadImageFiles(files, Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function(error, urls)
                   {
                       if (Asc.c_oAscError.ID.No !== error)
                       {
-                          t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
-                          t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+                          Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+                          Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
                       }
                       else
                       {
-                          t.ImageLoader.LoadImagesWithCallback(urls, function(){
+                          Api.ImageLoader.LoadImagesWithCallback(urls, function(){
                               if(urls.length > 0)
                               {
                                   _this.fillBulletImage(urls[0]);
                                   //_this.drawSquareImage();
-                                  t.sendEvent("asc_onBulletImageLoaded", _this);
+                                  Api.sendEvent("asc_onBulletImageLoaded", _this);
                               }
-                              t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+                              Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
                           });
                       }
                   });
@@ -11431,9 +11434,9 @@ function CompareBullets(bullet1, bullet2)
           {
               if (Asc.c_oAscError.ID.No !== error)
               {
-                  t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+                  Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
               }
-              t.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+              Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
           });
     }
     prot["showFileDialog"] = prot["asc_showFileDialog"] = CBullet.prototype.showFileDialog;
