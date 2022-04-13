@@ -1598,16 +1598,24 @@ background-repeat: no-repeat;\
 
 
 		var oCorePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
-		var oContentCore = oCorePart.getDocumentContent();
-		var oCoreReader = new StaxParser(oContentCore, oCorePart, xmlParserContext);
-		this.WordControl.m_oLogicDocument.Core = new AscCommon.CCore();
-		this.WordControl.m_oLogicDocument.Core.fromXml(oCoreReader, true);
+		if(oCorePart) {
+			var oContentCore = oCorePart.getDocumentContent();
+			if(oContentCore) {
+				var oCoreReader = new StaxParser(oContentCore, oCorePart, xmlParserContext);
+				this.WordControl.m_oLogicDocument.Core = new AscCommon.CCore();
+				this.WordControl.m_oLogicDocument.Core.fromXml(oCoreReader, true);
+			}
+		}
 
 		var oCustomPrPart = doc.getPartByRelationshipType(openXml.Types.customFileProperties.relationType);
-		var oContentCustomPr = oCustomPrPart.getDocumentContent();
-		var oCustomPrReader = new StaxParser(oContentCustomPr, oCustomPrPart, xmlParserContext);
-		this.WordControl.m_oLogicDocument.CustomPr = new AscCommon.CCustomProperties();
-		this.WordControl.m_oLogicDocument.CustomPr.fromXml(oCustomPrReader, true);
+		if(oCustomPrPart) {
+			var oContentCustomPr = oCustomPrPart.getDocumentContent();
+			if(oContentCustomPr) {
+				var oCustomPrReader = new StaxParser(oContentCustomPr, oCustomPrPart, xmlParserContext);
+				this.WordControl.m_oLogicDocument.CustomPr = new AscCommon.CCustomProperties();
+				this.WordControl.m_oLogicDocument.CustomPr.fromXml(oCustomPrReader, true);
+			}
+		}
 
 		this.WordControl.m_oLogicDocument.ImageMap = {};
 		var _cur_ind = 0;

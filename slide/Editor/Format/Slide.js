@@ -1790,7 +1790,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             case "clrMapOvr": {
                 let oClrMapOvr = new AscFormat.ClrMap();
                 oClrMapOvr.fromXml(reader);
-                this.setClMapOverride(oClrMapOvr);
+                //this.setClMapOverride(oClrMapOvr);
                 break;
             }
             case "AlternateContent": {

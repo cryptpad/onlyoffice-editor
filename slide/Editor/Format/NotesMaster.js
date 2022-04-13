@@ -227,6 +227,19 @@
     CNotesMaster.prototype.Refresh_RecalcData = function()
     {
     };
+
+    CNotesMaster.prototype.fromXml = function(reader, bSkipFirstNode) {
+        AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+        //read theme
+        var oThemePart = reader.rels.getPartByRelationshipType(openXml.Types.theme.relationType);
+        if(oThemePart) {
+            var oThemeContent = oThemePart.getDocumentContent();
+            let oThemeReader = new StaxParser(oThemeContent, oThemePart, reader.context);
+            let oTheme = new AscFormat.CTheme();
+            oTheme.fromXml(oThemeReader, true);
+            this.setTheme(oTheme, true);
+        }
+    };
     CNotesMaster.prototype.readAttrXml = function(name, reader) {
         switch (name) {
             case "showMasterPhAnim": {

@@ -356,7 +356,7 @@
             case "clrMapOvr": {
                 let oClrMapOvr = new AscFormat.ClrMap();
                 oClrMapOvr.fromXml(reader);
-                this.setClMapOverride(oClrMapOvr);
+                //this.setClMapOverride(oClrMapOvr);
                 break;
             }
         }

@@ -636,7 +636,7 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
             case "clrMapOvr": {
                 let oClrMapOvr = new AscFormat.ClrMap();
                 oClrMapOvr.fromXml(reader);
-                this.setClMapOverride(oClrMapOvr);
+               // this.setClMapOverride(oClrMapOvr);
                 break;
             }
             case "AlternateContent": {

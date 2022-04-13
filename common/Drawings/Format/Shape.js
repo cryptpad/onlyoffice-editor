@@ -7166,7 +7166,7 @@ CShape.prototype.getColumnNumber = function(){
                 break;
             }
             case "style": {
-                oPr = new AscFormat.CTextStyles();
+                oPr = new AscFormat.CShapeStyle();
                 oPr.fromXml(reader);
                 this.setStyle(oPr);
                 break;
