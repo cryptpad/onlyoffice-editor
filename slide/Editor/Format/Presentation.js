@@ -11753,12 +11753,10 @@ CPresentation.prototype.readChildXml = function(name, reader) {
             aList = oIdLst.readList(reader,
                 function(oObjectReader){
                     let oSlideMaster = new AscCommonSlide.MasterSlide();
+                    oPresentation.addSlideMaster(oPresentation.slideMasters.length, oSlideMaster);
                     return oSlideMaster;
                 }
                 );
-            for(let nIdx = 0; nIdx < aList.length; ++nIdx) {
-                this.addSlideMaster(this.slideMasters.length, aList[nIdx]);
-            }
             break;
         }
         case "notesMasterIdLst": {

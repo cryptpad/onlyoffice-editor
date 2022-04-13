@@ -2625,38 +2625,74 @@
 			_ret.b = this.b;
 			return _ret;
 		};
+		CSrcRect.prototype.fromXml = function(reader, bSkipFirstNode) {
+			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+			let bIsMain = true;//todo: check in serialize.js
+			let _ret = this;
+			if (_ret.l == null)
+				_ret.l = 0;
+			if (_ret.t == null)
+				_ret.t = 0;
+			if (_ret.r == null)
+				_ret.r = 0;
+			if (_ret.b == null)
+				_ret.b = 0;
+
+			if (!bIsMain)
+			{
+				var _absW = Math.abs(_ret.l) + Math.abs(_ret.r) + 100;
+				var _absH = Math.abs(_ret.t) + Math.abs(_ret.b) + 100;
+
+				_ret.l = -100 * _ret.l / _absW;
+				_ret.t = -100 * _ret.t / _absH;
+				_ret.r = -100 * _ret.r / _absW;
+				_ret.b = -100 * _ret.b / _absH;
+			}
+
+			_ret.r = 100 - _ret.r;
+			_ret.b = 100 - _ret.b;
+
+			if (_ret.l > _ret.r)
+			{
+				var tmp = _ret.l;
+				_ret.l = _ret.r;
+				_ret.r = tmp;
+			}
+			if (_ret.t > _ret.b)
+			{
+				var tmp = _ret.t;
+				_ret.t = _ret.b;
+				_ret.b = tmp;
+			}
+			this.setLTRB(_ret.l, _ret.t, _ret.r, _ret.b);
+		};
 		CSrcRect.prototype.readAttrXml = function (name, reader) {
 			var sVal = reader.GetValue();
 			switch (name) {
 				case "l": {
-					this.l = getPercentageValue(sVal)
+					this.l = getPercentageValue(sVal);
 					break;
 				}
 				case "t": {
-					this.t = getPercentageValue(sVal)
+					this.t = getPercentageValue(sVal);
 					break;
 				}
 				case "r": {
-					this.r = getPercentageValue(sVal)
+					this.r = getPercentageValue(sVal);
 					break;
 				}
 				case "b": {
-					this.b = getPercentageValue(sVal)
+					this.b = getPercentageValue(sVal);
 					break;
 				}
 			}
-			//TODO:Implement in children
-		};
-		CSrcRect.prototype.readChildXml = function (name, reader) {
 		};
 		CSrcRect.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
-		CSrcRect.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
 
 		function CBlipFillTile() {
+			CBaseNoIdObject.call(this)
 			this.tx = null;
 			this.ty = null;
 			this.sx = null;
@@ -2664,7 +2700,7 @@
 			this.flip = null;
 			this.algn = null;
 		}
-
+		InitClass(CBlipFillTile, CBaseNoIdObject, 0);
 		CBlipFillTile.prototype.Write_ToBinary = function (w) {
 			writeLong(w, this.tx);
 			writeLong(w, this.ty);
@@ -2729,20 +2765,66 @@
 					break;
 				}
 			}
-			//TODO:Implement in children
-		};
-		CBlipFillTile.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		CBlipFillTile.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
-		CBlipFillTile.prototype.writeChildren = function (writer) {
+
+		CBlipFillTile.prototype.readAttrXml = function (name, reader) {
+			var sVal = reader.GetValue();
+			switch (name) {
+				case "algn": {
+					this.algn = 7;
+					if ("b"=== sVal)
+						this.algn = 0;
+					if ("bl"=== sVal)
+						this.algn = 1;
+					if ("br"=== sVal)
+						this.algn = 2;
+					if ("ctr"=== sVal)
+						this.algn = 3;
+					if ("l"=== sVal)
+						this.algn = 4;
+					if ("r"=== sVal)
+						this.algn = 5;
+					if ("t"=== sVal)
+						this.algn = 6;
+					if ("tl"=== sVal)
+						this.algn = 7;
+					if ("tr"=== sVal)
+						this.algn = 8;
+					break;
+				}
+				case "flip": {
+					if ("none" === sVal)
+						this.flip = 0;
+					if ("x" === sVal)
+						this.flip = 1;
+					if ("y" === sVal)
+						this.flip = 2;
+					if ("xy" === sVal)
+						this.flip = 3;
+					break;
+				}
+				case "sx": {
+					this.r = getPercentageValue(sVal)
+					break;
+				}
+				case "sy": {
+					this.b = getPercentageValue(sVal)
+					break;
+				}
+				case "tx": {
+					this.r = getPercentageValue(sVal)
+					break;
+				}
+				case "ty": {
+					this.b = getPercentageValue(sVal)
+					break;
+				}
+			}
+		};
+		CBlipFillTile.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
 
@@ -3278,12 +3360,17 @@
 					break;
 				}
 				case "srcRect": {
+					this.srcRect = new CSrcRect();
+					this.srcRect.fromXml(reader);
 					break;
 				}
 				case "stretch": {
+					this.stretch = true;
 					break;
 				}
 				case "tile": {
+					this.tile = new CBlipFillTile();
+					this.tile.fromXml(reader);
 					break;
 				}
 			}
@@ -5096,19 +5183,18 @@
 		};
 		CGs.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "pos": {
+					this.pos = getPercentageValue(reader.GetValue())*1000;
 					break;
 				}
 			}
 			//TODO:Implement in children
 		};
 		CGs.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
+			if(CUniColor.prototype.isUnicolor(name)) {
+				this.color = new CUniColor();
+				this.color.fromXml(reader, name);
 			}
-			//TODO:Implement in children
 		};
 		CGs.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -5157,11 +5243,15 @@
 		};
 		GradLin.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "ang": {
+					this.angle = reader.GetValueInt();
+					break;
+				}
+				case "scaled": {
+					this.scale = reader.GetValueBool();
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		GradLin.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -5220,19 +5310,19 @@
 		};
 		GradPath.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "path": {
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		GradPath.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "fillToRect": {
+					this.rect = new CSrcRect();
+					this.rect.fromXml(reader);
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		GradPath.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -5416,19 +5506,45 @@
 		};
 		CGradFill.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "flip": {
+					break;
+				}
+				case "rotWithShape": {
+					this.rotateWithShape = reader.GetValueBool();
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CGradFill.prototype.readChildXml = function (name, reader) {
+			let oGradFill = this;
 			switch (name) {
-				case "blip": {
+				case "gsLst": {
+					let oPr = new CT_XmlNode(function(reader, name) {
+						if(name === "gs") {
+							let oGs = new CGs();
+							oGs.fromXml(reader);
+							oGradFill.colors.push(oGs);
+							return oGs;
+						}
+						});
+					oPr.fromXml(reader);
+					break;
+				}
+				case "lin": {
+					let oLin = new GradLin();
+					oLin.fromXml(reader);
+					this.lin = oLin;
+					break;
+				}
+				case "path": {
+					this.path = new GradPath();
+					this.path.fromXml(reader);
+					break;
+				}
+				case "tileRect": {
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CGradFill.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -5565,15 +5681,200 @@
 		};
 		CPattFill.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "prst": {
+					let sVal = reader.GetValue();
+					switch (sVal)
+					{
+						case "cross":
+							this.type = AscCommon.global_hatch_offsets.cross;
+							break;
+						case "dashDnDiag":
+							this.type = AscCommon.global_hatch_offsets.dashDnDiag;
+							break;
+						case "dashHorz":
+							this.type = AscCommon.global_hatch_offsets.dashHorz;
+							break;
+						case "dashUpDiag":
+							this.type = AscCommon.global_hatch_offsets.dashUpDiag;
+							break;
+						case "dashVert":
+							this.type = AscCommon.global_hatch_offsets.dashVert;
+							break;
+						case "diagBrick":
+							this.type = AscCommon.global_hatch_offsets.diagBrick;
+							break;
+						case "diagCross":
+							this.type = AscCommon.global_hatch_offsets.diagCross;
+							break;
+						case "divot":
+							this.type = AscCommon.global_hatch_offsets.divot;
+							break;
+						case "dkDnDiag":
+							this.type = AscCommon.global_hatch_offsets.dkDnDiag;
+							break;
+						case "dkHorz":
+							this.type = AscCommon.global_hatch_offsets.dkHorz;
+							break;
+						case "dkUpDiag":
+							this.type = AscCommon.global_hatch_offsets.dkUpDiag;
+							break;
+						case "dkVert":
+							this.type = AscCommon.global_hatch_offsets.dkVert;
+							break;
+						case "dnDiag":
+							this.type = AscCommon.global_hatch_offsets.dnDiag;
+							break;
+						case "dotDmnd":
+							this.type = AscCommon.global_hatch_offsets.dotDmnd;
+							break;
+						case "dotGrid":
+							this.type = AscCommon.global_hatch_offsets.dotGrid;
+							break;
+						case "horz":
+							this.type = AscCommon.global_hatch_offsets.horz;
+							break;
+						case "horzBrick":
+							this.type = AscCommon.global_hatch_offsets.horzBrick;
+							break;
+						case "lgCheck":
+							this.type = AscCommon.global_hatch_offsets.lgCheck;
+							break;
+						case "lgConfetti":
+							this.type = AscCommon.global_hatch_offsets.lgConfetti;
+							break;
+						case "lgGrid":
+							this.type = AscCommon.global_hatch_offsets.lgGrid;
+							break;
+						case "ltDnDiag":
+							this.type = AscCommon.global_hatch_offsets.ltDnDiag;
+							break;
+						case "ltHorz":
+							this.type = AscCommon.global_hatch_offsets.ltHorz;
+							break;
+						case "ltUpDiag":
+							this.type = AscCommon.global_hatch_offsets.ltUpDiag;
+							break;
+						case "ltVert":
+							this.type = AscCommon.global_hatch_offsets.ltVert;
+							break;
+						case "narHorz":
+							this.type = AscCommon.global_hatch_offsets.narHorz;
+							break;
+						case "narVert":
+							this.type = AscCommon.global_hatch_offsets.narVert;
+							break;
+						case "openDmnd":
+							this.type = AscCommon.global_hatch_offsets.openDmnd;
+							break;
+						case "pct10":
+							this.type = AscCommon.global_hatch_offsets.pct10;
+							break;
+						case "pct20":
+							this.type = AscCommon.global_hatch_offsets.pct20;
+							break;
+						case "pct25":
+							this.type = AscCommon.global_hatch_offsets.pct25;
+							break;
+						case "pct30":
+							this.type = AscCommon.global_hatch_offsets.pct30;
+							break;
+						case "pct40":
+							this.type = AscCommon.global_hatch_offsets.pct40;
+							break;
+						case "pct5":
+							this.type = AscCommon.global_hatch_offsets.pct5;
+							break;
+						case "pct50":
+							this.type = AscCommon.global_hatch_offsets.pct50;
+							break;
+						case "pct60":
+							this.type = AscCommon.global_hatch_offsets.pct60;
+							break;
+						case "pct70":
+							this.type = AscCommon.global_hatch_offsets.pct70;
+							break;
+						case "pct75":
+							this.type = AscCommon.global_hatch_offsets.pct75;
+							break;
+						case "pct80":
+							this.type = AscCommon.global_hatch_offsets.pct80;
+							break;
+						case "pct90":
+							this.type = AscCommon.global_hatch_offsets.pct90;
+							break;
+						case "plaid":
+							this.type = AscCommon.global_hatch_offsets.plaid;
+							break;
+						case "shingle":
+							this.type = AscCommon.global_hatch_offsets.shingle;
+							break;
+						case "smCheck":
+							this.type = AscCommon.global_hatch_offsets.smCheck;
+							break;
+						case "smConfetti":
+							this.type = AscCommon.global_hatch_offsets.smConfetti;
+							break;
+						case "smGrid":
+							this.type = AscCommon.global_hatch_offsets.smGrid;
+							break;
+						case "solidDmnd":
+							this.type = AscCommon.global_hatch_offsets.solidDmnd;
+							break;
+						case "sphere":
+							this.type = AscCommon.global_hatch_offsets.sphere;
+							break;
+						case "trellis":
+							this.type = AscCommon.global_hatch_offsets.trellis;
+							break;
+						case "upDiag":
+							this.type = AscCommon.global_hatch_offsets.upDiag;
+							break;
+						case "vert":
+							this.type = AscCommon.global_hatch_offsets.vert;
+							break;
+						case "wave":
+							this.type = AscCommon.global_hatch_offsets.wave;
+							break;
+						case "wdDnDiag":
+							this.type = AscCommon.global_hatch_offsets.wdDnDiag;
+							break;
+						case "wdUpDiag":
+							this.type = AscCommon.global_hatch_offsets.wdUpDiag;
+							break;
+						case "weave":
+							this.type = AscCommon.global_hatch_offsets.weave;
+							break;
+						case "zigZag":
+							this.type = AscCommon.global_hatch_offsets.zigZag;
+							break;
+					}
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CPattFill.prototype.readChildXml = function (name, reader) {
+			let oPatt = this;
 			switch (name) {
-				case "blip": {
+				case "bgClr": {
+					let oClr = new CT_XmlNode(function(reader, name) {
+						if(CUniColor.prototype.isUnicolor(name)) {
+							oPatt.bgClr = new CUniColor();
+							oPatt.bgClr.fromXml(reader, name);
+							return oPatt.bgClr;
+						}
+					});
+					oClr.fromXml(reader);
+					break;
+				}
+				case "fgClr": {
+					let oClr = new CT_XmlNode(function(reader, name) {
+						if(CUniColor.prototype.isUnicolor(name)) {
+							oPatt.fgClr = new CUniColor();
+							oPatt.fgClr.fromXml(reader, name);
+							return oPatt.fgClr;
+						}
+					});
+					oClr.fromXml(reader);
 					break;
 				}
 			}
@@ -5632,20 +5933,8 @@
 			return null;
 		};
 		CNoFill.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		CNoFill.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		CNoFill.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -7183,7 +7472,9 @@
 				this.tailEnd.fromXml(reader);
 			}
 			else if(name === "prstDash") {
-				let oNode = new CT_XmlNode();
+				let oNode = new CT_XmlNode(function(reader, name) {
+					return true;
+				});
 				oNode.fromXml(reader);
 				let sVal = oNode.attributes["val"];
 				switch(sVal) {
@@ -9310,7 +9601,9 @@
 			}
 		};
 		FontCollection.prototype.readFont = function(reader) {
-			let oNode = new CT_XmlNode();
+			let oNode = new CT_XmlNode(function(reader, name) {
+				return true;
+			});
 			oNode.fromXml(reader);
 			return oNode.attributes["typeface"];
 		};
@@ -9892,15 +10185,18 @@
 						
 						if(name === "lnDef") {
 							oTheme.lnDef = new DefaultShapeDefinition();
-							oTheme.lnDef.fromXml(reader)
+							oTheme.lnDef.fromXml(reader);
+							return oTheme.lnDef;
 						}
 						if(name === "spDef") {
 							oTheme.spDef = new DefaultShapeDefinition();
-							oTheme.spDef.fromXml(reader)
+							oTheme.spDef.fromXml(reader);
+							return oTheme.spDef;
 						}
 						if(name === "txDef") {
 							oTheme.txDef = new DefaultShapeDefinition();
-							oTheme.txDef.fromXml(reader)
+							oTheme.txDef.fromXml(reader);
+							return oTheme.txDef;
 						}
 					});
 					oNode.fromXml(reader);
