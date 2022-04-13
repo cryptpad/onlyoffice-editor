@@ -17236,7 +17236,12 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 			case AscFormat.BULLET_TYPE_BULLET_BLIP :
 			{
 				Bullet.m_nType = numbering_presentationnumfrmt_Blip;
-				Bullet.m_sSrc = AscCommon.getFullImageSrc2(this.Bullet.getImageBulletURL());
+
+				var imageBulletURL = this.Bullet.getImageBulletURL();
+				if (imageBulletURL)
+				{
+					Bullet.m_sSrc = AscCommon.getFullImageSrc2(imageBulletURL);
+				}
 				break;
 			}
 		}

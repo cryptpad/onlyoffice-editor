@@ -11317,8 +11317,8 @@ function CompareBullets(bullet1, bullet2)
         this.bulletType.Blip = new AscFormat.CBuBlip();
         this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_BLIP;
         this.bulletType.Blip.setBlip(AscFormat.CreateBlipFillUniFillFromUrl(url));
+    };
 
-    }
     CBullet.prototype.getImageBulletURL = function () {
         var res = (this.bulletType
           && this.bulletType.Blip
@@ -11326,7 +11326,17 @@ function CompareBullets(bullet1, bullet2)
           && this.bulletType.Blip.blip.fill
           && this.bulletType.Blip.blip.fill.RasterImageId);
         return res ? res : null;
-    }
+    };
+
+    CBullet.prototype.setImageBulletURL = function (url) {
+        var blipFill = (this.bulletType
+          && this.bulletType.Blip
+          && this.bulletType.Blip.blip
+          && this.bulletType.Blip.blip.fill);
+        if (blipFill) {
+            blipFill.setRasterImageId(url);
+        }
+    };
 
     CBullet.prototype.drawSquareImage = function (divId, indent) {
         indent = indent || 0;
@@ -11362,7 +11372,7 @@ function CompareBullets(bullet1, bullet2)
             var _h = sideSize - indent * 2;
             oContext.drawImage(_img.Image, _x, _y, _w, _h);
         }
-    }
+    };
     //interface methods
     var prot = CBullet.prototype;
     prot["fillBulletImage"] = prot["asc_fillBulletImage"] = CBullet.prototype.fillBulletImage;
@@ -11389,7 +11399,7 @@ function CompareBullets(bullet1, bullet2)
                 });
             }
         }, false, false, token);
-    }
+    };
     prot["put_ImageUrl"] = prot["asc_putImageUrl"] = CBullet.prototype.put_ImageUrl;
     prot.showFileDialog = function () {
 
@@ -11438,7 +11448,7 @@ function CompareBullets(bullet1, bullet2)
               }
               Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
           });
-    }
+    };
     prot["showFileDialog"] = prot["asc_showFileDialog"] = CBullet.prototype.showFileDialog;
     prot.asc_getSize = function () {
         var nRet = 100;

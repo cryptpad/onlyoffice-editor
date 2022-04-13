@@ -9629,6 +9629,17 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 			}
 			if(!oBullet2.isEqual(this.Pr.Bullet))
 			{
+				if (NewType === numbering_presentationnumfrmt_Blip && !oBullet2.getImageBulletURL())
+				{
+					var oldUrl = this.Pr.Bullet && this.Pr.Bullet.getImageBulletURL()
+					if (oldUrl)
+					{
+						oBullet2.setImageBulletURL(oldUrl);
+					} else
+					{
+						return;
+					}
+				}
 				var bEqualBulletType = false;
 				if(oBullet2.bulletType && this.Pr.Bullet && this.Pr.Bullet.bulletType)
 				{
