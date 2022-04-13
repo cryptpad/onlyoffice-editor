@@ -6117,11 +6117,43 @@
 			var name = reader.GetNameNoNS();
 			var depth = reader.GetDepth();
 			switch (name) {
-				case "blipFill":
-					var blipFill = new AscFormat.CBlipFill();
-					blipFill.fromXml(reader);
-					this.setFill(blipFill);
+				case "blipFill": {
+					let oFill = new AscFormat.CBlipFill();
+					oFill.fromXml(reader);
+					this.setFill(oFill);
 					break;
+				}
+				case "gradFill": {
+					let oFill = new AscFormat.CGradFill();
+					oFill.fromXml(reader);
+					this.setFill(oFill);
+					break;
+				}
+				case "grpFill": {
+					let oFill = new AscFormat.CGrpFill();
+					oFill.fromXml(reader);
+					this.setFill(oFill);
+					break;
+				}
+				case "noFill": {
+					let oFill = new AscFormat.CNoFill();
+					oFill.fromXml(reader);
+					this.setFill(oFill);
+					break;
+				}
+				case "pattFill": {
+					let oFill = new AscFormat.CPattFill();
+					oFill.fromXml(reader);
+					this.setFill(oFill);
+					break;
+				}
+				case "solidFill": {
+					let oFill = new AscFormat.CSolidFill();
+					oFill.fromXml(reader);
+					this.setFill(oFill);
+					break;
+				}
+
 				default:
 					reader.ReadTillEnd(depth);
 					break;

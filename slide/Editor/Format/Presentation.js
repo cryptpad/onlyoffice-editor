@@ -11651,6 +11651,8 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
     reader.context.clearSlideRelations();
     AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
     //set layouts
+	let dWidth = this.GetWidthMM();
+	let dHeight = this.GetHeightMM()
     for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
         let oSlide = this.Slides[nSlide];
         let oLayout = reader.context.layoutsMap[oSlide.layoutTarget];
@@ -11661,8 +11663,17 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
             oNotes.setNotesMaster(oNotesMaster);
             delete oNotes.masterTarget;
         }
+	    oSlide.setSlideSize(dWidth, dHeight);
         delete oSlide.layoutTarget;
     }
+	for(let nMaster = 0; nMaster < this.slideMasters.length; ++nMaster) {
+		let oMaster = this.slideMasters[nMaster];
+		oMaster.setSlideSize(dWidth, dHeight);
+		for(let nLayout = 0; nLayout < oMaster.sldLayoutLst.length; ++nLayout) {
+			let oLayout = oMaster.sldLayoutLst[nLayout];
+			oLayout.setSlideSize(dWidth, dHeight);
+		}
+	}
     reader.context.clearSlideRelations();
 };
 CPresentation.prototype.readChildXml = function(name, reader) {

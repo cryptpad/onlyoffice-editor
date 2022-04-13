@@ -1164,6 +1164,7 @@ function fFillFromCSld(oSlideLikeObject, oCSld) {
         oSlideLikeObject.changeBackground(oCSld.Bg);
     }
     oSlideLikeObject.setCSldName(oCSld.name);
+	oSlideLikeObject.changeBackground(oCSld.Bg);
 }
 
 //--------------------------------------------------------export----------------------------------------------------
