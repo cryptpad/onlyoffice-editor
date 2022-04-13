@@ -457,12 +457,6 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			if ((this.IsTextForm() || this.IsDropDownList() || this.IsComboBox())
 				&& (!this.IsFixedForm() || !this.IsMultiLineForm()))
 			{
-				if (oTransform)
-				{
-					var oParagraph = this.GetParagraph();
-					nBaseLine += (oTransform.TransformPointY(oParagraph.X, oParagraph.Y) - Y);
-				}
-
 				var oLimits = g_oTextMeasurer.GetLimitsY();
 
 				var nMidPoint = ((nBaseLine - oLimits.min) + (nBaseLine - oLimits.max)) / 2;
