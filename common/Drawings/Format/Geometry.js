@@ -1567,10 +1567,10 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
             case "prst": {
                 this.setPreset(reader.GetValue());
                 if(this.bWrap) {
-                    AscFormat.CreateGeometry(this.preset, this);
+                    AscFormat.CreatePrstTxWarpGeometry(this.preset, this);
                 }
                 else {
-                    AscFormat.CreatePrstTxWarpGeometry(this.preset, this);
+                    AscFormat.CreateGeometry(this.preset, this);
                 }
                 break;
             }

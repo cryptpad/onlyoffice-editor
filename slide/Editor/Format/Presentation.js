@@ -11642,14 +11642,80 @@ CPresentation.prototype.StopAnimation = function()
 };
 CPresentation.prototype.readAttrXml = function(name, reader) {
     switch (name) {
-        case "preserve": {
+        case "autoCompressPict": {
+            this.pres.attrAutoCompressPictures = reader.GetValueBool();
+            break;
+        }
+        case "bookmarkIdSeed": {
+            this.pres.attrBookmarkIdSeed = reader.GetValueInt();
+            break;
+        }
+        case "compatMode": {
+            this.pres.attrCompatMode = reader.GetValueBool();
+            break;
+        }
+        case "conformance": {
+            let sVal = reader.GetValue();
+            switch(sVal) {
+                case "strict": {
+                    this.pres.attrConformance = 0;
+                    break;
+                }
+                case "transitional": {
+                    this.pres.attrConformance = 1;
+                    break;
+                }
+            }
+            break;
+        }
+        case "embedTrueTypeFonts": {
+            this.pres.attrEmbedTrueTypeFonts = reader.GetValueBool();
+            break;
+        }
+        case "firstSlideNum": {
+            this.pres.attrFirstSlideNum = reader.GetValueInt();
+            break;
+        }
+        case "removePersonalInfoOnSave": {
+            this.pres.attrRemovePersonalInfoOnSave = reader.GetValueBool();
+            break;
+        }
+        case "rtl": {
+            this.pres.attrRtl = reader.GetValueBool();
+            break;
+        }
+        case "saveSubsetFonts": {
+            this.pres.attrSaveSubsetFonts = reader.GetValueBool();
+            break;
+        }
+        case "serverZoom": {
+            this.pres.attrServerZoom = AscFormat.getPercentageValue(reader.GetValue());
+            break;
+        }
+        case "showSpecialPlsOnTitleSld": {
+            this.pres.attrShowSpecialPlsOnTitleSld = reader.GetValueBool();
+            break;
+        }
+        case "strictFirstAndLastChars": {
+            this.pres.attrStrictFirstAndLastChars = reader.GetValueBool();
             break;
         }
     }
 };
 CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
+    this.pres = new AscCommon.CPres();
     reader.context.clearSlideRelations();
     AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+    let pres = this.pres;
+    if(pres.attrShowSpecialPlsOnTitleSld !== null)
+    {
+        this.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
+    }
+    if(pres.attrFirstSlideNum !== null)
+    {
+        this.setFirstSlideNum(pres.attrFirstSlideNum);
+    }
+    this.defaultTextStyle = pres.defaultTextStyle;
     //set layouts
 	let dWidth = this.GetWidthMM();
 	let dHeight = this.GetHeightMM()
@@ -11755,6 +11821,8 @@ CPresentation.prototype.readChildXml = function(name, reader) {
             break;
         }
         case "defaultTextStyle": {
+            this.pres.defaultTextStyle = new AscFormat.TextListStyle();
+            this.pres.defaultTextStyle.fromXml(reader);
             break;
         }
         case "modifyVerifier": {

@@ -861,24 +861,42 @@ CImageShape.prototype.Load_LinkData = function(linkData)
 		return oBrush;
 	}
 
+
+
+    CImageShape.prototype.readChildXml = function (name, reader) {
+        switch (name) {
+            case "blipFill": {
+                var uni_fill = new AscFormat.CUniFill();
+                uni_fill.fromXml(reader, "blipFill");
+                this.setBlipFill(uni_fill.fill);
+                break;
+            }
+            case "spPr": {
+                var spPr = new AscFormat.CSpPr();
+                spPr.setParent(this);
+                spPr.fromXml(reader);
+                this.setSpPr(spPr);
+                break;
+            }
+            case "nvPicPr": {
+                let prop = new AscFormat.UniNvPr();
+                prop.fromXml(reader);
+                this.setNvPicPr(prop);
+                break;
+            }
+            case "style": {
+                let prop = new AscFormat.CShapeStyle();
+                prop.fromXml(reader);
+                this.setStyle(prop);
+                break;
+            }
+        }
+    };
+    CImageShape.prototype.writeChildren = function (writer) {
+        //TODO:Implement in children
+    };
     
 
-	CImageShape.prototype.fromXml = function(reader) {
-		var depth = reader.GetDepth();
-		while (reader.ReadNextSiblingNode(depth)) {
-			if ("blipFill" === reader.GetNameNoNS()) {
-				var uni_fill = new AscFormat.CUniFill();
-				uni_fill.fromXml(reader);
-				this.setBlipFill(uni_fill.fill);
-			} else if ("spPr" === reader.GetNameNoNS()) {
-				var spPr = new AscFormat.CSpPr();
-				spPr.setParent(this);
-				spPr.fromXml(reader);
-				this.setSpPr(spPr);
-			}
-			//todo
-		}
-	};
 	CImageShape.prototype.toXml = function(writer, name) {
 		var context = writer.context;
 		var cNvPrIndex = context.cNvPrIndex++;

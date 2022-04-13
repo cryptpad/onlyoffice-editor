@@ -1590,6 +1590,24 @@ background-repeat: no-repeat;\
 		var contentDocument = documentPart.getDocumentContent();
 		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
 		this.WordControl.m_oLogicDocument.fromXml(reader, true);
+		var oAppPart = doc.getPartByRelationshipType(openXml.Types.extendedFileProperties.relationType);
+		var oContentApp = oAppPart.getDocumentContent();
+		var oAppReader = new StaxParser(oContentApp, oAppPart, xmlParserContext);
+		this.WordControl.m_oLogicDocument.App = new AscCommon.CApp();
+		this.WordControl.m_oLogicDocument.App.fromXml(oAppReader, true);
+
+
+		var oCorePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
+		var oContentCore = oCorePart.getDocumentContent();
+		var oCoreReader = new StaxParser(oContentCore, oCorePart, xmlParserContext);
+		this.WordControl.m_oLogicDocument.Core = new AscCommon.CCore();
+		this.WordControl.m_oLogicDocument.Core.fromXml(oCoreReader, true);
+
+		var oCustomPrPart = doc.getPartByRelationshipType(openXml.Types.customFileProperties.relationType);
+		var oContentCustomPr = oCustomPrPart.getDocumentContent();
+		var oCustomPrReader = new StaxParser(oContentCustomPr, oCustomPrPart, xmlParserContext);
+		this.WordControl.m_oLogicDocument.CustomPr = new AscCommon.CCustomProperties();
+		this.WordControl.m_oLogicDocument.CustomPr.fromXml(oCustomPrReader, true);
 
 		this.WordControl.m_oLogicDocument.ImageMap = {};
 		var _cur_ind = 0;

@@ -6112,53 +6112,53 @@
 
 
 
-		CUniFill.prototype.fromXml = function(reader)
-		{
-			var name = reader.GetNameNoNS();
-			var depth = reader.GetDepth();
-			switch (name) {
-				case "blipFill": {
-					let oFill = new AscFormat.CBlipFill();
-					oFill.fromXml(reader);
-					this.setFill(oFill);
-					break;
-				}
-				case "gradFill": {
-					let oFill = new AscFormat.CGradFill();
-					oFill.fromXml(reader);
-					this.setFill(oFill);
-					break;
-				}
-				case "grpFill": {
-					let oFill = new AscFormat.CGrpFill();
-					oFill.fromXml(reader);
-					this.setFill(oFill);
-					break;
-				}
-				case "noFill": {
-					let oFill = new AscFormat.CNoFill();
-					oFill.fromXml(reader);
-					this.setFill(oFill);
-					break;
-				}
-				case "pattFill": {
-					let oFill = new AscFormat.CPattFill();
-					oFill.fromXml(reader);
-					this.setFill(oFill);
-					break;
-				}
-				case "solidFill": {
-					let oFill = new AscFormat.CSolidFill();
-					oFill.fromXml(reader);
-					this.setFill(oFill);
-					break;
-				}
-
-				default:
-					reader.ReadTillEnd(depth);
-					break;
-			}
-		};
+		// CUniFill.prototype.fromXml = function(reader)
+		// {
+		// 	var name = reader.GetNameNoNS();
+		// 	var depth = reader.GetDepth();
+		// 	switch (name) {
+		// 		case "blipFill": {
+		// 			let oFill = new AscFormat.CBlipFill();
+		// 			oFill.fromXml(reader);
+		// 			this.setFill(oFill);
+		// 			break;
+		// 		}
+		// 		case "gradFill": {
+		// 			let oFill = new AscFormat.CGradFill();
+		// 			oFill.fromXml(reader);
+		// 			this.setFill(oFill);
+		// 			break;
+		// 		}
+		// 		case "grpFill": {
+		// 			let oFill = new AscFormat.CGrpFill();
+		// 			oFill.fromXml(reader);
+		// 			this.setFill(oFill);
+		// 			break;
+		// 		}
+		// 		case "noFill": {
+		// 			let oFill = new AscFormat.CNoFill();
+		// 			oFill.fromXml(reader);
+		// 			this.setFill(oFill);
+		// 			break;
+		// 		}
+		// 		case "pattFill": {
+		// 			let oFill = new AscFormat.CPattFill();
+		// 			oFill.fromXml(reader);
+		// 			this.setFill(oFill);
+		// 			break;
+		// 		}
+		// 		case "solidFill": {
+		// 			let oFill = new AscFormat.CSolidFill();
+		// 			oFill.fromXml(reader);
+		// 			this.setFill(oFill);
+		// 			break;
+		// 		}
+		//
+		// 		default:
+		// 			reader.ReadTillEnd(depth);
+		// 			break;
+		// 	}
+		// };
 		CUniFill.prototype.toXml = function(writer)
 		{
 			var fill = this.fill;
@@ -6736,24 +6736,75 @@
 		};
 		EndArrow.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "len": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "lg": {
+							this.len = LineEndSize.Large;
+							break;
+						}
+						case "med": {
+							this.len = LineEndSize.Mid;
+							break;
+						}
+						case "sm": {
+							this.len = LineEndSize.Small;
+							break;
+						}
+					}
+					break;
+				}
+				case "type": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "arrow": {
+							this.type = LineEndType.Arrow;
+							break;
+						}
+						case "diamond": {
+							this.type = LineEndType.Diamond;
+							break;
+						}
+						case "none": {
+							this.type = LineEndType.None;
+							break;
+						}
+						case "oval": {
+							this.type = LineEndType.Oval;
+							break;
+						}
+						case "stealth": {
+							this.type = LineEndType.Stealth;
+							break;
+						}
+						case "triangle": {
+							this.type = LineEndType.Triangle;
+							break;
+						}
+					}
+					break;
+				}
+				case "len": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "lg": {
+							this.len = LineEndSize.Large;
+							break;
+						}
+						case "med": {
+							this.len = LineEndSize.Mid;
+							break;
+						}
+						case "sm": {
+							this.len = LineEndSize.Small;
+							break;
+						}
+					}
 					break;
 				}
 			}
-			//TODO:Implement in children
-		};
-		EndArrow.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		EndArrow.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		EndArrow.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
@@ -6771,9 +6822,9 @@
 			return 2;
 		}
 
-		function LineJoin() {
+		function LineJoin(type) {
 			CBaseNoIdObject.call(this);
-			this.type = null;
+			this.type = AscFormat.isRealNumber(type) ? type : null;
 			this.limit = null;
 		}
 
@@ -6810,11 +6861,11 @@
 		};
 		LineJoin.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "lim": {
+					this.limit = getPercentageValue(reader.GetValue());
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		LineJoin.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -7053,19 +7104,147 @@
 		};
 		CLn.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "algn": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "ctr":{
+							this.algn = 0;
+							break;
+						}
+						case "in":{
+							this.algn = 1;
+							break;
+						}
+					}
+					break;
+				}
+				case "cap": {
+
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "flat":{
+							this.cap = 0;
+							break;
+						}
+						case "rnd":{
+							this.cap = 1;
+							break;
+						}
+						case "sq":{
+							this.cap = 2;
+							break;
+						}
+					}
+					break;
+				}
+				case "cmpd": {
+					let sVal = reader.GetValue();
+					switch(sVal) {
+						case "dbl":{
+							this.cmpd = 0;
+							break;
+						}
+						case "sng":{
+							this.cmpd = 1;
+							break;
+						}
+						case "thickThin":{
+							this.cmpd = 2;
+							break;
+						}
+						case "thinThick":{
+							this.cmpd = 3;
+							break;
+						}
+						case "tri":{
+							this.cmpd = 4;
+							break;
+						}
+					}
+					break;
+				}
+				case "w": {
+					this.w = reader.GetValueInt();
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CLn.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
+			if(CUniFill.prototype.isFillName(name)) {
+				this.Fill = new CUniFill();
+				this.Fill.fromXml(reader, name);
+			}
+			else if(name === "headEnd") {
+				this.headEnd = new EndArrow();
+				this.headEnd.fromXml(reader);
+			}
+			else if(name === "tailEnd") {
+				this.tailEnd = new EndArrow();
+				this.tailEnd.fromXml(reader);
+			}
+			else if(name === "prstDash") {
+				let oNode = new CT_XmlNode();
+				oNode.fromXml(reader);
+				let sVal = oNode.attributes["val"];
+				switch(sVal) {
+					case "dash": {
+						this.prstDash = 0;
+						break;
+					}
+					case "dashDot": {
+						this.prstDash = 1;
+						break;
+					}
+					case "dot": {
+						this.prstDash = 2;
+						break;
+					}
+					case "lgDash": {
+						this.prstDash = 3;
+						break;
+					}
+					case "lgDashDot": {
+						this.prstDash = 4;
+						break;
+					}
+					case "lgDashDotDot": {
+						this.prstDash = 5;
+						break;
+					}
+					case "solid": {
+						this.prstDash = 6;
+						break;
+					}
+					case "sysDash": {
+						this.prstDash = 7;
+						break;
+					}
+					case "sysDashDot": {
+						this.prstDash = 8;
+						break;
+					}
+					case "sysDashDotDot": {
+						this.prstDash = 9;
+						break;
+					}
+					case "sysDot": {
+						this.prstDash = 10;
+						break;
+					}
 				}
 			}
-			//TODO:Implement in children
+			else if(name === "bevel") {
+				this.Join = new LineJoin(LineJoinType.Bevel);
+				this.Join.fromXml(reader);
+			}
+			else if(name === "miter") {
+				this.Join = new LineJoin(LineJoinType.Miter);
+				this.Join.fromXml(reader);
+			}
+			else if(name === "round") {
+				this.Join = new LineJoin(LineJoinType.Round);
+				this.Join.fromXml(reader);
+			}
 		};
 		CLn.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -8788,27 +8967,24 @@
 		};
 		CSpPr.prototype.readChildXml = function (name, reader) {
 			let oPr;
-			switch (name) {
-				case "xfrm": {
-					oPr = new AscFormat.CXfrm();
-					oPr.fromXml(reader);
-					this.setXfrm(oPr);
-					break;
-				}
-				case "prstGeom": {
-					var prst = "";
-					while (reader.MoveToNextAttribute()) {
-						if ("prst" === reader.GetName()) {
-							prst = reader.GetValueDecodeXml();
-						}
-					}
-					var oGeometry = AscFormat.CreateGeometry(prst);
-					if (oGeometry && oGeometry.pathLst.length > 0)
-						this.setGeometry(oGeometry);
-					break;
-				}
+			if(name === "xfrm") {
+				oPr = new AscFormat.CXfrm();
+				oPr.fromXml(reader);
+				this.setXfrm(oPr);
 			}
-			//TODO:Implement in children
+			else if(name === "prstGeom" || name === "custGeom") {
+				let oPr = new AscFormat.Geometry();
+				oPr.fromXml(reader);
+				this.setGeometry(oPr);
+			}
+			else if(CUniFill.prototype.isFillName(name)) {
+				this.Fill = new CUniFill();
+				this.Fill.fromXml(reader, name);
+			}
+			else if(name === "ln") {
+				this.ln = new CLn();
+				this.ln.fromXml(reader);
+			}
 		};
 		CSpPr.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -9715,7 +9891,16 @@
 					let oNode = new CT_XmlNode(function(reader, name) {
 						
 						if(name === "lnDef") {
-
+							oTheme.lnDef = new DefaultShapeDefinition();
+							oTheme.lnDef.fromXml(reader)
+						}
+						if(name === "spDef") {
+							oTheme.spDef = new DefaultShapeDefinition();
+							oTheme.spDef.fromXml(reader)
+						}
+						if(name === "txDef") {
+							oTheme.txDef = new DefaultShapeDefinition();
+							oTheme.txDef.fromXml(reader)
 						}
 					});
 					oNode.fromXml(reader);
@@ -12802,12 +12987,18 @@
 			}
 		};
 		TextListStyle.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
+			let nIdx = null;
+			if(name.indexOf("lvl") === 0) {
+				nIdx = parseInt(name.charAt(3)) - 1;
 			}
-			//TODO:Implement in children
+			else if(name === "defPPr") {
+				nIdx = 9;
+			}
+			if(AscFormat.isRealNumber(nIdx)) {
+				let oParaPr = new AscCommonWord.CParaPr();
+				oParaPr.fromXml(reader);
+				this.levels[nIdx] = oParaPr;
+			}
 		};
 		TextListStyle.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -13215,91 +13406,72 @@
 				return oCopy;
 			}, this, []);
 		};
-		CCore.prototype.readAttrXml = function(name, reader) {
-			this.category = null;
-			this.contentStatus = null;//Status in menu
-			this.created = null;
-			this.creator = null;// Authors in menu
-			this.description = null;//Comments in menu
-			this.identifier = null;
-			this.keywords = null;
-			this.language = null;
-			this.lastModifiedBy = null;
-			this.lastPrinted = null;
-			this.modified = null;
-			this.revision = null;
-			this.subject = null;
-			this.title = null;
-			this.version = null;
+		CCore.prototype.readChildXml = function(name, reader) {
 			switch (name) {
 				case "category": {
-					this.category = reader.GetValue();
+					this.category = reader.GetTextDecodeXml();
 					break;
 				}
 				case "contentStatus": {
-					this.contentStatus = reader.GetValue();
+					this.contentStatus = reader.GetTextDecodeXml();
 					break;
 				}
 				case "created": {
-					this.created = reader.GetValue();
+					this.created = reader.GetTextDecodeXml();
 					break;
 				}
 				case "creator": {
-					this.creator = reader.GetValue();
+					this.creator = reader.GetTextDecodeXml();
 					break;
 				}
 				case "description": {
-					this.description = reader.GetValue();
+					this.description = reader.GetTextDecodeXml();
 					break;
 				}
 				case "identifier": {
-					this.identifier = reader.GetValue();
+					this.identifier = reader.GetTextDecodeXml();
 					break;
 				}
 				case "keywords": {
-					this.keywords = reader.GetValue();
+					this.keywords = reader.GetTextDecodeXml();
 					break;
 				}
 				case "language": {
-					this.language = reader.GetValue();
+					this.language = reader.GetTextDecodeXml();
 					break;
 				}
 				case "lastModifiedBy": {
-					this.lastModifiedBy = reader.GetValue();
+					this.lastModifiedBy = reader.GetTextDecodeXml();
 					break;
 				}
 				case "lastPrinted": {
-					this.lastPrinted = reader.GetValue();
+					this.lastPrinted = reader.GetTextDecodeXml();
 					break;
 				}
 				case "modified": {
-					this.modified = reader.GetValue();
+					this.modified = reader.GetTextDecodeXml();
 					break;
 				}
 				case "revision": {
-					this.revision = reader.GetValue();
+					this.revision = reader.GetTextDecodeXml();
 					break;
 				}
 				case "subject": {
-					this.subject = reader.GetValue();
+					this.subject = reader.GetTextDecodeXml();
 					break;
 				}
 				case "title": {
-					this.title = reader.GetValue();
+					this.title = reader.GetTextDecodeXml();
 					break;
 				}
 				case "version": {
-					this.version = reader.GetValue();
+					this.version = reader.GetTextDecodeXml();
 					break;
 				}
 			}
 		};
-		CCore.prototype.readChildXml = function(name, reader) {
-		};
 		CCore.prototype.writeAttrXmlImpl = function(writer) {
 			//TODO
-		};
-		CCore.prototype.writeChildren = function(writer) {
 		};
 
 
@@ -13336,6 +13508,1485 @@
 		prot["asc_putLastPrinted"] = prot.asc_putLastPrinted;
 		prot["asc_putSubject"] = prot.asc_putSubject;
 		prot["asc_putVersion"] = prot.asc_putVersion;
+
+
+
+		function CApp()
+		{
+			CBaseNoIdObject.call(this);
+			this.Template = null;
+			this.TotalTime = null;
+			this.Words = null;
+			this.Application = null;
+			this.PresentationFormat = null;
+			this.Paragraphs = null;
+			this.Slides = null;
+			this.Notes = null;
+			this.HiddenSlides = null;
+			this.MMClips = null;
+			this.ScaleCrop = null;
+			this.HeadingPairs = [];
+			this.TitlesOfParts = [];
+			this.Company = null;
+			this.LinksUpToDate = null;
+			this.SharedDoc = null;
+			this.HyperlinksChanged = null;
+			this.AppVersion = null;
+
+			this.Characters = null;
+			this.CharactersWithSpaces = null;
+			this.DocSecurity = null;
+			this.HyperlinkBase = null;
+			this.Lines = null;
+			this.Manager = null;
+			this.Pages = null;
+		}
+		InitClass(CApp, CBaseNoIdObject, 0);
+		CApp.prototype.fromStream = function(s)
+		{
+			var _type = s.GetUChar();
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.Template = s.GetString2(); break; }
+					case 1: { this.Application = s.GetString2(); break; }
+					case 2: { this.PresentationFormat = s.GetString2(); break; }
+					case 3: { this.Company = s.GetString2(); break; }
+					case 4: { this.AppVersion = s.GetString2(); break; }
+
+					case 5: { this.TotalTime = s.GetLong(); break; }
+					case 6: { this.Words = s.GetLong(); break; }
+					case 7: { this.Paragraphs = s.GetLong(); break; }
+					case 8: { this.Slides = s.GetLong(); break; }
+					case 9: { this.Notes = s.GetLong(); break; }
+					case 10: { this.HiddenSlides = s.GetLong(); break; }
+					case 11: { this.MMClips = s.GetLong(); break; }
+
+					case 12: { this.ScaleCrop = s.GetBool(); break; }
+					case 13: { this.LinksUpToDate = s.GetBool(); break; }
+					case 14: { this.SharedDoc = s.GetBool(); break; }
+					case 15: { this.HyperlinksChanged = s.GetBool(); break; }
+					default:
+						return;
+				}
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						var _end_rec2 = s.cur + s.GetLong() + 4;
+						s.Skip2(1); // start attributes
+						while (true)
+						{
+							_at = s.GetUChar();
+							if (_at == g_nodeAttributeEnd)
+								break;
+
+							switch (_at)
+							{
+								case 16: { this.Characters = s.GetLong(); break; }
+								case 17: { this.CharactersWithSpaces = s.GetLong(); break; }
+								case 18: { this.DocSecurity = s.GetLong(); break; }
+								case 19: { this.HyperlinkBase = s.GetString2(); break; }
+								case 20: { this.Lines = s.GetLong(); break; }
+								case 21: { this.Manager = s.GetString2(); break; }
+								case 22: { this.Pages = s.GetLong(); break; }
+								default:
+									return;
+							}
+						}
+						s.Seek2(_end_rec2);
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CApp.prototype.toStream = function(s) {
+			s.StartRecord(AscCommon.c_oMainTables.App);
+
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+			s._WriteString2(0, this.Template);
+			// just in case
+			// s._WriteString2(1, this.Application);
+			s._WriteString2(2, this.PresentationFormat);
+			s._WriteString2(3, this.Company);
+			// just in case
+			// s._WriteString2(4, this.AppVersion);
+
+			//we don't count these stats
+			// s._WriteInt2(5, this.TotalTime);
+			// s._WriteInt2(6, this.Words);
+			// s._WriteInt2(7, this.Paragraphs);
+			// s._WriteInt2(8, this.Slides);
+			// s._WriteInt2(9, this.Notes);
+			// s._WriteInt2(10, this.HiddenSlides);
+			// s._WriteInt2(11, this.MMClips);
+
+			s._WriteBool2(12, this.ScaleCrop);
+			s._WriteBool2(13, this.LinksUpToDate);
+			s._WriteBool2(14, this.SharedDoc);
+			s._WriteBool2(15, this.HyperlinksChanged);
+
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s.StartRecord(0);
+
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+
+			// s._WriteInt2(16, this.Characters);
+			// s._WriteInt2(17, this.CharactersWithSpaces);
+			s._WriteInt2(18, this.DocSecurity);
+			s._WriteString2(19, this.HyperlinkBase);
+			// s._WriteInt2(20, this.Lines);
+			s._WriteString2(21, this.Manager);
+			// s._WriteInt2(22, this.Pages);
+
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s.EndRecord();
+
+			s.EndRecord();
+		};
+		CApp.prototype.asc_getTemplate = function(){return this.Template;};
+		CApp.prototype.asc_getTotalTime = function(){return this.TotalTime;};
+		CApp.prototype.asc_getWords = function(){return this.Words;};
+		CApp.prototype.asc_getApplication = function(){return this.Application;};
+		CApp.prototype.asc_getPresentationFormat = function(){return this.PresentationFormat;};
+		CApp.prototype.asc_getParagraphs = function(){return this.Paragraphs;};
+		CApp.prototype.asc_getSlides = function(){return this.Slides;};
+		CApp.prototype.asc_getNotes = function(){return this.Notes;};
+		CApp.prototype.asc_getHiddenSlides = function(){return this.HiddenSlides;};
+		CApp.prototype.asc_getMMClips = function(){return this.MMClips;};
+		CApp.prototype.asc_getScaleCrop = function(){return this.ScaleCrop;};
+		CApp.prototype.asc_getCompany = function(){return this.Company;};
+		CApp.prototype.asc_getLinksUpToDate = function(){return this.LinksUpToDate;};
+		CApp.prototype.asc_getSharedDoc = function(){return this.SharedDoc;};
+		CApp.prototype.asc_getHyperlinksChanged = function(){return this.HyperlinksChanged;};
+		CApp.prototype.asc_getAppVersion = function(){return this.AppVersion;};
+		CApp.prototype.asc_getCharacters = function(){return this.Characters;};
+		CApp.prototype.asc_getCharactersWithSpaces = function(){return this.CharactersWithSpaces;};
+		CApp.prototype.asc_getDocSecurity = function(){return this.DocSecurity;};
+		CApp.prototype.asc_getHyperlinkBase = function(){return this.HyperlinkBase;};
+		CApp.prototype.asc_getLines = function(){return this.Lines;};
+		CApp.prototype.asc_getManager = function(){return this.Manager;};
+		CApp.prototype.asc_getPages = function(){return this.Pages;};
+		CApp.prototype.readChildXml = function(name, reader) {
+
+			switch (name) {
+				case "Application": {
+					this.Application = reader.GetTextDecodeXml();
+					break;
+				}
+				case "PresentationFormat": {
+					this.PresentationFormat = reader.GetTextDecodeXml();
+					break;
+				}
+				case "Company": {
+					this.Company = reader.GetTextDecodeXml();
+					break;
+				}
+				case "AppVersion": {
+					this.AppVersion = reader.GetTextDecodeXml();
+					break;
+				}
+				case "TotalTime": {
+					this.TotalTime = reader.GetTextInt(null, 10);
+					break;
+				}
+				case "Words": {
+					this.Words = reader.GetTextInt(null, 10);
+					break;
+				}
+				case "Paragraphs": {
+					this.Paragraphs = reader.GetTextInt(null, 10);
+					break;
+				}
+				case "Slides": {
+					this.Slides = reader.GetTextInt(null, 10);
+					break;
+				}
+				case "Notes": {
+					this.Notes = reader.GetTextInt(null, 10);
+					break;
+				}
+				case "HiddenSlides": {
+					this.HiddenSlides = reader.GetTextInt(null, 10);
+					break;
+				}
+				case "MMClips": {
+					this.MMClips = reader.GetTextInt(null, 10);
+					break;
+				}
+				case "ScaleCrop": {
+					this.ScaleCrop = reader.GetTextBool();
+					break;
+				}
+				case "LinksUpToDate": {
+					this.LinksUpToDate = reader.GetTextBool();
+					break;
+				}
+				case "SharedDoc": {
+					this.SharedDoc = reader.GetTextBool();
+					break;
+				}
+				case "HyperlinksChanged": {
+					this.HyperlinksChanged = reader.GetTextBool();
+					break;
+				}
+			}
+		};
+		CApp.prototype.writeChildren = function(writer) {
+		};
+		window['AscCommon'].CApp = CApp;
+		prot = CApp.prototype;
+		prot["asc_getTemplate"] = prot.asc_getTemplate;
+		prot["asc_getTotalTime"] = prot.asc_getTotalTime;
+		prot["asc_getWords"] = prot.asc_getWords;
+		prot["asc_getApplication"] = prot.asc_getApplication;
+		prot["asc_getPresentationFormat"] = prot.asc_getPresentationFormat;
+		prot["asc_getParagraphs"] = prot.asc_getParagraphs;
+		prot["asc_getSlides"] = prot.asc_getSlides;
+		prot["asc_getNotes"] = prot.asc_getNotes;
+		prot["asc_getHiddenSlides"] = prot.asc_getHiddenSlides;
+		prot["asc_getMMClips"] = prot.asc_getMMClips;
+		prot["asc_getScaleCrop"] = prot.asc_getScaleCrop;
+		prot["asc_getCompany"] = prot.asc_getCompany;
+		prot["asc_getLinksUpToDate"] = prot.asc_getLinksUpToDate;
+		prot["asc_getSharedDoc"] = prot.asc_getSharedDoc;
+		prot["asc_getHyperlinksChanged"] = prot.asc_getHyperlinksChanged;
+		prot["asc_getAppVersion"] = prot.asc_getAppVersion;
+		prot["asc_getCharacters"] = prot.asc_getCharacters;
+		prot["asc_getCharactersWithSpaces"] = prot.asc_getCharactersWithSpaces;
+		prot["asc_getDocSecurity"] = prot.asc_getDocSecurity;
+		prot["asc_getHyperlinkBase"] = prot.asc_getHyperlinkBase;
+		prot["asc_getLines"] = prot.asc_getLines;
+		prot["asc_getManager"] = prot.asc_getManager;
+		prot["asc_getPages"] = prot.asc_getPages;
+
+		function CCustomProperties()
+		{
+			CBaseNoIdObject.call(this);
+			this.properties = [];
+		}
+		InitClass(CCustomProperties, CBaseNoIdObject, 0);
+		CCustomProperties.prototype.fromStream = function(s)
+		{
+			var _type = s.GetUChar();
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						s.Skip2(4);
+						var _c = s.GetULong();
+						for (var i = 0; i < _c; ++i) {
+							s.Skip2(1); // type
+							var tmp = new CCustomProperty();
+							tmp.fromStream(s);
+							this.properties.push(tmp);
+						}
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CCustomProperties.prototype.toStream = function(s) {
+			s.StartRecord(AscCommon.c_oMainTables.CustomProperties);
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			this.fillNewPid();
+			s.WriteRecordArray4(0, 0, this.properties);
+			s.EndRecord();
+		};
+		CCustomProperties.prototype.fillNewPid = function(s) {
+			var index = 2;
+			this.properties.forEach(function(property) {
+				property.pid = index++;
+			});
+		};
+		CCustomProperties.prototype.add = function(name, variant, opt_linkTarget) {
+			var newProperty = new CCustomProperty();
+			newProperty.fmtid = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}";
+			newProperty.pid = null;
+			newProperty.name = name;
+			newProperty.linkTarget = opt_linkTarget || null;
+			newProperty.content = variant;
+			this.properties.push(newProperty);
+		};
+		CCustomProperties.prototype.readChildXml = function(name, reader) {
+
+			switch (name) {
+				case "property": {
+					let oPr = new CCustomProperty();
+					oPr.fromXml(reader);
+					this.properties.push(oPr);
+					break;
+				}
+			}
+		};
+		CCustomProperties.prototype.writeChildren = function(writer) {
+			//TODO:
+		};
+
+		window['AscCommon'].CCustomProperties = CCustomProperties;
+		prot = CCustomProperties.prototype;
+		prot["add"] = prot.add;
+
+		function CCustomProperty()
+		{
+			CBaseNoIdObject.call(this);
+			this.fmtid = null;
+			this.pid = null;
+			this.name = null;
+			this.linkTarget = null;
+
+			this.content = null;
+		}
+		InitClass(CCustomProperty, CBaseNoIdObject, 0);
+		CCustomProperty.prototype.fromStream = function(s)
+		{
+			var _type;
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.fmtid = s.GetString2(); break; }
+					case 1: { this.pid = s.GetLong(); break; }
+					case 2: { this.name = s.GetString2(); break; }
+					case 3: { this.linkTarget = s.GetString2(); break; }
+					default:
+						return;
+				}
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						this.content = new CVariant(this);
+						this.content.fromStream(s);
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CCustomProperty.prototype.toStream = function(s) {
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+			s._WriteString2(0, this.fmtid);
+			s._WriteInt2(1, this.pid);
+			s._WriteString2(2, this.name);
+			s._WriteString2(3, this.linkTarget);
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s.WriteRecord4(0, this.content);
+		};
+
+		CCustomProperty.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "fmtid": {
+					this.fmtid = reader.GetValue();
+					break;
+				}
+				case "linkTarget": {
+					this.linkTarget = reader.GetValue();
+					break;
+				}
+				case "name": {
+					this.name = reader.GetValue();
+					break;
+				}
+				case "pid": {
+					this.name = reader.GetValueInt();
+					break;
+				}
+			}
+		};
+		CCustomProperty.prototype.readChildXml = function (name, reader) {
+			if(!this.content) {
+				this.content = new CVariant(this);
+			}
+			this.content.readChildXml(name, reader);
+		};
+		CCustomProperty.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CCustomProperty.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+
+
+		function CVariantVector()
+		{
+			CBaseNoIdObject.call(this);
+			this.baseType = null;
+			this.size = null;
+
+			this.variants = [];
+		}
+		InitClass(CVariantVector, CBaseNoIdObject, 0);
+		CVariantVector.prototype.fromStream = function(s)
+		{
+			var _type;
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.baseType = s.GetUChar(); break; }
+					case 1: { this.size = s.GetLong(); break; }
+					default:
+						return;
+				}
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						s.Skip2(4);
+						var _c = s.GetULong();
+						for (var i = 0; i < _c; ++i) {
+							s.Skip2(1); // type
+							var tmp = new CVariant(this);
+							tmp.fromStream(s);
+							this.variants.push(tmp);
+						}
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CVariantVector.prototype.toStream = function(s) {
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+			s._WriteUChar2(0, this.baseType);
+			s._WriteInt2(1, this.size);
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s.WriteRecordArray4(0, 0, this.variants);
+		};
+
+		CVariantVector.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "baseType": {
+					let sType = reader.GetValue();
+					this.baseTyep = CVariant.prototype.typeStrToEnum.call(this, sType);
+					break;
+				}
+				case "size": {
+					this.size = reader.GetValueInt();
+					break;
+				}
+			}
+		};
+		CVariantVector.prototype.readChildXml = function (name, reader) {
+			let oVar = new CVariant(this);
+			oVar.readChildXml(name, reader);
+			this.variants.push(oVar);
+		};
+		CVariantVector.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CVariantVector.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CVariantArray()
+		{
+			CBaseNoIdObject.call(this);
+			this.baseType = null;
+			this.lBounds = null;
+			this.uBounds = null;
+
+			this.variants = [];
+		}
+		InitClass(CVariantArray, CBaseNoIdObject, 0);
+		CVariantArray.prototype.fromStream = function(s)
+		{
+			var _type;
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.baseType = s.GetUChar(); break; }
+					case 1: { this.lBounds = s.GetString2(); break; }
+					case 2: { this.uBounds = s.GetString2(); break; }
+					default:
+						return;
+				}
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						s.Skip2(4);
+						var _c = s.GetULong();
+						for (var i = 0; i < _c; ++i) {
+							s.Skip2(1); // type
+							var tmp = new CVariant();
+							tmp.fromStream(s);
+							this.variants.push(tmp);
+						}
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CVariantArray.prototype.toStream = function(s) {
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+			s._WriteUChar2(0, this.baseType);
+			s._WriteString2(1, this.lBounds);
+			s._WriteString2(2, this.uBounds);
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s.WriteRecordArray4(0, 0, this.variants);
+		};
+		CVariantArray.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "baseType": {
+					let sType = reader.GetValue();
+					this.baseTyep = CVariant.prototype.typeStrToEnum.call(this, sType);
+					break;
+				}
+				case "lBounds": {
+					this.lBounds = reader.GetValueInt();
+					break;
+				}
+				case "uBounds": {
+					this.uBounds = reader.GetValueInt();
+					break;
+				}
+			}
+		};
+		CVariantArray.prototype.readChildXml = function (name, reader) {
+			let oVar = new CVariant(this);
+			oVar.readChildXml(name, reader);
+			this.variants.push(oVar);
+		};
+		CVariantArray.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CVariantArray.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CVariantVStream()
+		{
+			CBaseNoIdObject.call(this);
+			this.version = null;
+
+			this.strContent = null;
+		}
+		InitClass(CVariantVStream, CBaseNoIdObject, 0);
+		CVariantVStream.prototype.fromStream = function(s)
+		{
+			var _type;
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.version = s.GetString2(); break; }
+					default:
+						return;
+				}
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						this.strContent = s.GetString2();
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CVariantVStream.prototype.toStream = function(s) {
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+			s._WriteString2(0, this.version);
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s._WriteString2(0, this.strContent);
+		};
+		CVariantVStream.prototype.fromXml = function(reader, bSkipFirstNode) {
+			this.strContent = reader.GetValueDecodeXml();
+			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+		};
+		CVariantVStream.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "version": {
+					this.version = reader.GetValue();
+					break;
+				}
+			}
+		};
+		CVariantVStream.prototype.readChildXml = function (name, reader) {
+			let oVar = new CVariant(this);
+			oVar.readChildXml(name, reader);
+			this.variants.push(oVar);
+		};
+		CVariantVStream.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CVariantVStream.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CVariant(parent)
+		{
+			CBaseNoIdObject.call(this);
+			this.type = null;
+			this.strContent = null;
+			this.iContent = null;
+			this.uContent = null;
+			this.dContent = null;
+			this.bContent = null;
+			this.variant = null;
+			this.vector = null;
+			this.array = null;
+			this.vStream = null;
+
+			this.parent = parent;
+		}
+		InitClass(CVariant, CBaseNoIdObject, 0);
+		CVariant.prototype.fromStream = function(s)
+		{
+			var _type;
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+			var _at;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			while (true)
+			{
+				_at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.type = s.GetUChar(); break; }
+					default:
+						return;
+				}
+			}
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						this.strContent = s.GetString2();
+						break;
+					}
+					case 1:
+					{
+						this.iContent = s.GetLong();
+						break;
+					}
+					case 2:
+					{
+						this.iContent = s.GetULong();
+						break;
+					}
+					case 3:
+					{
+						this.dContent = s.GetDouble();
+						break;
+					}
+					case 4:
+					{
+						this.bContent = s.GetBool();
+						break;
+					}
+					case 5:
+					{
+						this.variant = new CVariant(this);
+						this.variant.fromStream(s);
+						break;
+					}
+					case 6:
+					{
+						this.vector = new CVariantVector();
+						this.vector.fromStream(s);
+						break;
+					}
+					case 7:
+					{
+						this.array = new CVariantArray();
+						this.array.fromStream(s);
+						break;
+					}
+					case 8:
+					{
+						this.vStream = new CVariantVStream();
+						this.vStream.fromStream(s);
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			s.Seek2(_end_pos);
+		};
+		CVariant.prototype.toStream = function(s) {
+			s.WriteUChar(AscCommon.g_nodeAttributeStart);
+			s._WriteUChar2(0, this.type);
+			s.WriteUChar(g_nodeAttributeEnd);
+
+			s._WriteString2(0, this.strContent);
+			s._WriteInt2(1, this.iContent);
+			s._WriteUInt2(2, this.uContent);
+			s._WriteDoubleReal2(3, this.dContent);
+			s._WriteBool2(4, this.bContent);
+			s.WriteRecord4(5, this.variant);
+			s.WriteRecord4(6, this.vector);
+			s.WriteRecord4(7, this.array);
+			s.WriteRecord4(8, this.vStream);
+		};
+		CVariant.prototype.setText = function(val) {
+			this.type = c_oVariantTypes.vtLpwstr;
+			this.strContent = val;
+		};
+		CVariant.prototype.setNumber = function(val) {
+			this.type = c_oVariantTypes.vtI4;
+			this.iContent = val;
+		};
+		CVariant.prototype.setDate = function(val) {
+			this.type = c_oVariantTypes.vtFiletime;
+			this.strContent = val.toISOString().slice(0, 19) + 'Z';
+		};
+		CVariant.prototype.setBool = function(val) {
+			this.type = c_oVariantTypes.vtBool;
+			this.bContent = val;
+		};
+
+
+		CVariant.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "fmtid": {
+					this.fmtid = reader.GetValue();
+					break;
+				}
+				case "linkTarget": {
+					this.linkTarget = reader.GetValue();
+					break;
+				}
+				case "name": {
+					this.name = reader.GetValue();
+					break;
+				}
+				case "pid": {
+					this.name = reader.GetValueInt();
+					break;
+				}
+			}
+		};
+		CVariant.prototype.typeStrToEnum = function(name) {
+			switch (name) {
+				case "vector": {
+					return c_oVariantTypes.vtVector;
+					break;
+				}
+				case "array": {
+					return c_oVariantTypes.vtArray;
+					break;
+				}
+				case "blob": {
+					return c_oVariantTypes.vtBlob;
+					break;
+				}
+				case "oblob": {
+					return c_oVariantTypes.vtOBlob;
+					break;
+				}
+				case "empty": {
+					return c_oVariantTypes.vtEmpty;
+					break;
+				}
+				case "null": {
+					return c_oVariantTypes.vtNull;
+					break;
+				}
+				case "i1": {
+					return c_oVariantTypes.vtI1;
+					break;
+				}
+				case "i2": {
+					return c_oVariantTypes.vtI2;
+					break;
+				}
+				case "i4": {
+					return c_oVariantTypes.vtI4;
+					break;
+				}
+				case "i8": {
+					return c_oVariantTypes.vtI8;
+					break;
+				}
+				case "int": {
+					return c_oVariantTypes.vtInt;
+					break;
+				}
+				case "ui1": {
+					return c_oVariantTypes.vtUi1;
+					break;
+				}
+				case "ui2": {
+					return c_oVariantTypes.vtUi2;
+					break;
+				}
+				case "ui4": {
+					return c_oVariantTypes.vtUi4;
+					break;
+				}
+				case "ui8": {
+					return c_oVariantTypes.vtUi8;
+					break;
+				}
+				case "uint": {
+					return c_oVariantTypes.vtUint;
+					break;
+				}
+				case "r4": {
+					return c_oVariantTypes.vtR4;
+					break;
+				}
+				case "r8": {
+					return c_oVariantTypes.vtR8;
+					break;
+				}
+				case "decimal": {
+					return c_oVariantTypes.vtDecimal;
+					break;
+				}
+				case "lpstr": {
+					return c_oVariantTypes.vtLpstr;
+					break;
+				}
+				case "lpwstr": {
+					return c_oVariantTypes.vtLpwstr;
+					break;
+				}
+				case "bstr": {
+					return c_oVariantTypes.vtBstr;
+					break;
+				}
+				case "date": {
+					return c_oVariantTypes.vtDate;
+					break;
+				}
+				case "filetime": {
+					return c_oVariantTypes.vtFiletime;
+					break;
+				}
+				case "bool": {
+					return c_oVariantTypes.vtBool;
+					break;
+				}
+				case "cy": {
+					return c_oVariantTypes.vtCy;
+					break;
+				}
+				case "error": {
+					return c_oVariantTypes.vtError;
+					break;
+				}
+				case "stream": {
+					return c_oVariantTypes.vtStream;
+					break;
+				}
+				case "ostream": {
+					return c_oVariantTypes.vtOStream;
+					break;
+				}
+				case "storage": {
+					return c_oVariantTypes.vtStorage;
+					break;
+				}
+				case "ostorage": {
+					return c_oVariantTypes.vtOStorage;
+					break;
+				}
+				case "vstream": {
+					return c_oVariantTypes.vtVStream;
+					break;
+				}
+				case "clsid": {
+					return c_oVariantTypes.vtClsid;
+					break;
+				}
+			}
+			return null;
+		};
+		CVariant.prototype.readChildXml = function (name, reader) {
+			this.type = this.typeStrToEnum(name);
+			switch (name) {
+				case "vector": {
+					this.vector = new CVariantVector();
+					this.vector.fromXml(reader);
+					break;
+				}
+				case "array": {
+					this.array = new CVariantArray();
+					this.array.fromXml(reader);
+					break;
+				}
+				case "blob": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "oblob": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "empty": {
+					break;
+				}
+				case "null": {
+					break;
+				}
+				case "i1": {
+					this.iContent = reader.GetValueInt();
+					break;
+				}
+				case "i2": {
+					this.iContent = reader.GetValueInt();
+					break;
+				}
+				case "i4": {
+					this.iContent = reader.GetValueInt();
+					break;
+				}
+				case "i8": {
+					this.iContent = reader.GetValueInt();
+					break;
+				}
+				case "int": {
+					this.iContent = reader.GetValueInt();
+					break;
+				}
+				case "ui1": {
+					this.uContent = reader.GetValueUInt();
+					break;
+				}
+				case "ui2": {
+					this.uContent = reader.GetValueUInt();
+					break;
+				}
+				case "ui4": {
+					this.uContent = reader.GetValueUInt();
+					break;
+				}
+				case "ui8": {
+					this.uContent = reader.GetValueUInt();
+					break;
+				}
+				case "uint": {
+					this.uContent = reader.GetValueUInt();
+					break;
+				}
+				case "r4": {
+					this.dContent = reader.GetValueDouble();
+					break;
+				}
+				case "r8": {
+					this.dContent = reader.GetValueDouble();
+					break;
+				}
+				case "decimal": {
+					this.dContent = reader.GetValueDouble();
+					break;
+				}
+				case "lpstr": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "lpwstr": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "bstr": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "date": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "filetime": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "bool": {
+					this.bContent = reader.GetValueBool();
+					break;
+				}
+				case "cy": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "error": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "stream": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "ostream": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "storage": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "ostorage": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+				case "vstream": {
+					this.vStream = new CVariantVStream();
+					break;
+				}
+				case "clsid": {
+					this.strContent = reader.GetValue();
+					break;
+				}
+			}
+
+		};
+		CVariant.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CVariant.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+		window['AscCommon'].CVariant = CVariant;
+
+		prot = CVariant.prototype;
+		prot["setText"] = prot.setText;
+		prot["setNumber"] = prot.setNumber;
+		prot["setDate"] = prot.setDate;
+		prot["setBool"] = prot.setBool;
+
+
+
+		var c_oVariantTypes = {
+			vtEmpty: 0,
+			vtNull: 1,
+			vtVariant: 2,
+			vtVector: 3,
+			vtArray: 4,
+			vtVStream: 5,
+			vtBlob: 6,
+			vtOBlob: 7,
+			vtI1: 8,
+			vtI2: 9,
+			vtI4: 10,
+			vtI8: 11,
+			vtInt: 12,
+			vtUi1: 13,
+			vtUi2: 14,
+			vtUi4: 15,
+			vtUi8: 16,
+			vtUint: 17,
+			vtR4: 18,
+			vtR8: 19,
+			vtDecimal: 20,
+			vtLpstr: 21,
+			vtLpwstr: 22,
+			vtBstr: 23,
+			vtDate: 24,
+			vtFiletime: 25,
+			vtBool: 26,
+			vtCy: 27,
+			vtError: 28,
+			vtStream: 29,
+			vtOStream: 30,
+			vtStorage: 31,
+			vtOStorage: 32,
+			vtClsid: 33
+		};
+
+		window['AscCommon'].c_oVariantTypes = c_oVariantTypes;
+
+
+
+
+		function CPres()
+		{
+			CBaseNoIdObject.call(this);
+			this.defaultTextStyle = null;
+			this.NotesSz = null;
+
+			this.attrAutoCompressPictures = null;
+			this.attrBookmarkIdSeed = null;
+			this.attrCompatMode = null;
+			this.attrConformance = null;
+			this.attrEmbedTrueTypeFonts = null;
+			this.attrFirstSlideNum = null;
+			this.attrRemovePersonalInfoOnSave = null;
+			this.attrRtl = null;
+			this.attrSaveSubsetFonts = null;
+			this.attrServerZoom = null;
+			this.attrShowSpecialPlsOnTitleSld = null;
+			this.attrStrictFirstAndLastChars = null;
+
+		}
+		InitClass(CPres, CBaseNoIdObject, 0);
+
+		CPres.prototype.fromStream = function(s, reader)
+		{
+			var _type = s.GetUChar();
+			var _len = s.GetULong();
+			var _start_pos = s.cur;
+			var _end_pos = _len + _start_pos;
+
+			// attributes
+			var _sa = s.GetUChar();
+
+			var oPresentattion = reader.presentation;
+			while (true)
+			{
+				var _at = s.GetUChar();
+
+				if (_at == g_nodeAttributeEnd)
+					break;
+
+				switch (_at)
+				{
+					case 0: { this.attrAutoCompressPictures = s.GetBool(); break; }
+					case 1: { this.attrBookmarkIdSeed = s.GetLong(); break; }
+					case 2: { this.attrCompatMode = s.GetBool(); break; }
+					case 3: { this.attrConformance = s.GetUChar(); break; }
+					case 4: { this.attrEmbedTrueTypeFonts = s.GetBool(); break; }
+					case 5: { this.attrFirstSlideNum = s.GetLong(); break; }
+					case 6: { this.attrRemovePersonalInfoOnSave = s.GetBool(); break; }
+					case 7: { this.attrRtl = s.GetBool(); break; }
+					case 8: { this.attrSaveSubsetFonts = s.GetBool(); break; }
+					case 9: { this.attrServerZoom = s.GetString2(); break; }
+					case 10: { this.attrShowSpecialPlsOnTitleSld = s.GetBool(); break; }
+					case 11: { this.attrStrictFirstAndLastChars = s.GetBool(); break; }
+					default:
+						return;
+				}
+			}
+
+			while (true)
+			{
+				if (s.cur >= _end_pos)
+					break;
+
+				_type = s.GetUChar();
+				switch (_type)
+				{
+					case 0:
+					{
+						this.defaultTextStyle = reader.ReadTextListStyle();
+						break;
+					}
+					case 1: { s.SkipRecord(); break; }
+					case 2: { s.SkipRecord(); break; }
+					case 3: { s.SkipRecord(); break; }
+					case 4: { s.SkipRecord(); break; }
+					case 5:
+					{
+						var oSldSize = new AscCommonSlide.CSlideSize();
+						s.Skip2(5); // len + start attributes
+
+						while (true)
+						{
+							var _at = s.GetUChar();
+
+							if (_at == g_nodeAttributeEnd)
+								break;
+
+							switch (_at)
+							{
+								case 0: { oSldSize.setCX(s.GetLong()); break; }
+								case 1: { oSldSize.setCY(s.GetLong()); break; }
+								case 2: { oSldSize.setType(s.GetUChar()); break; }
+								default:
+									return;
+							}
+						}
+						if(oPresentattion.setSldSz)
+						{
+							oPresentattion.setSldSz(oSldSize);
+						}
+						break;
+					}
+					case 6:
+					{
+						var _end_rec2 = s.cur + s.GetULong() + 4;
+						while (s.cur < _end_rec2)
+						{
+							var _rec = s.GetUChar();
+
+							switch (_rec)
+							{
+								case 0:
+								{
+									s.Skip2(4); // len
+									var lCount = s.GetULong();
+
+									for (var i = 0; i < lCount; i++)
+									{
+										s.Skip2(1);
+
+										var _author = new AscCommon.CCommentAuthor();
+
+										var _end_rec3 = s.cur + s.GetLong() + 4;
+										s.Skip2(1); // start attributes
+
+										while (true)
+										{
+											var _at2 = s.GetUChar();
+											if (_at2 == g_nodeAttributeEnd)
+												break;
+
+											switch (_at2)
+											{
+												case 0:
+													_author.Id = s.GetLong();
+													break;
+												case 1:
+													_author.LastId = s.GetLong();
+													break;
+												case 2:
+													var _clr_idx = s.GetLong();
+													break;
+												case 3:
+													_author.Name = s.GetString2();
+													break;
+												case 4:
+													_author.Initials = s.GetString2();
+													break;
+												default:
+													break;
+											}
+										}
+
+										s.Seek2(_end_rec3);
+
+										oPresentattion.CommentAuthors[_author.Name] = _author;
+									}
+
+									break;
+								}
+								default:
+								{
+									s.SkipRecord();
+									break;
+								}
+							}
+						}
+
+						s.Seek2(_end_rec2);
+						break;
+					}
+					case 8:
+					{
+						var _length = s.GetULong();
+						var _end_rec2 = s.cur + _length;
+
+						oPresentattion.Api.vbaMacros = s.GetBuffer(_length);
+						s.Seek2(_end_rec2);
+						break;
+					}
+					case 9:
+					{
+						var _length = s.GetULong();
+						var _end_rec2 = s.cur + _length;
+
+						oPresentattion.Api.macros.SetData(AscCommon.GetStringUtf8(s, _length));
+						s.Seek2(_end_rec2);
+						break;
+					}
+					case 10:
+					{
+						reader.ReadComments(oPresentattion.writecomments);
+						break;
+					}
+					default:
+					{
+						s.SkipRecord();
+						break;
+					}
+				}
+			}
+			if(oPresentattion.Load_Comments)
+			{
+				oPresentattion.Load_Comments(oPresentattion.CommentAuthors);
+			}
+			s.Seek2(_end_pos);
+		};
+
+
+		window['AscCommon'].CPres = CPres;
 
 // DEFAULT OBJECTS
 		function GenerateDefaultTheme(presentation, opt_fontName) {
