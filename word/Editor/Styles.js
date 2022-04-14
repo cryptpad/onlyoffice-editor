@@ -97,19 +97,6 @@ var textdirection_LRTBV = 0x03;
 var textdirection_TBRLV = 0x04;
 var textdirection_TBLRV = 0x05;
 
-// Данный список шрифтов используется совместно с настройкой BalanceSingleByteDoubleByteWidth
-// если список будет изменяться, то проверить работу этой настройки с новыми шрифтами, если работать не будет, тогда
-// надо будет иметь два разных списка
-const EAST_ASIA_FONTS = [
-	"MingLiU", "PMingLiU",
-	"SimSun", "NSimSun", "SimSun-ExtA", "SimSun-ExtB",
-	"MS Mincho",
-	"Batang",
-	"Arial Unicode MS",
-	"Microsoft JhengHei", "Microsoft YaHei", "SimHei", "DengXian",
-	"Meiryo", "MS Gothic", "MS PGothic", "MS UI Gothic", "Yu Gothic",
-	"Dotum", "Gulim", "Malgun Gothic"
-];
 
 function IsEqualStyleObjects(Object1, Object2)
 {
@@ -10028,32 +10015,11 @@ CStyles.prototype.GetDefaultTextPrForWrite = function()
 	oTextPr.InitDefault();
 	return this.Default.TextPr.GetDiff(oTextPr);
 };
-/**
- * @param {string} sName
- * @returns {boolean}
- */
-CStyles.prototype.IsEastAsiaFont = function(sName)
-{
-	for (let oIterator = sName.getUnicodeIterator(); oIterator.check(); oIterator.next())
-	{
-		let	nUnicode = oIterator.value();
-		if (AscCommon.isEastAsianScript(nUnicode))
-			return true;
-	}
-
-	for (let nIndex = 0, nCount = EAST_ASIA_FONTS.length; nIndex < nCount; ++nIndex)
-	{
-		if (sName === EAST_ASIA_FONTS[nIndex])
-			return true;
-	}
-
-	return false;
-};
 CStyles.prototype.OnChangeDefaultTextPr = function()
 {
 	this.ValidDefaultEastAsiaFont = false;
 	if (this.Default.TextPr.RFonts && this.Default.TextPr.RFonts.EastAsia)
-		this.ValidDefaultEastAsiaFont = this.IsEastAsiaFont(this.Default.TextPr.RFonts.EastAsia.Name);
+		this.ValidDefaultEastAsiaFont = AscCommon.IsEastAsianFont(this.Default.TextPr.RFonts.EastAsia.Name);
 };
 CStyles.prototype.IsValidDefaultEastAsiaFont = function()
 {
@@ -12592,6 +12558,11 @@ CTableCellPr.prototype.RemovePrChange = function()
 	delete this.ReviewInfo;
 };
 
+var rfont_ASCII    = 0x01;
+var rfont_EastAsia = 0x02;
+var rfont_CS       = 0x04;
+var rfont_HAnsi    = 0x08;
+
 function CRFonts()
 {
     this.Ascii    = undefined;
@@ -15097,6 +15068,71 @@ CTextPr.prototype.GetDescription = function()
 	//            TextPr.Vanish = this.Vanish;
 
 	return Description;
+};
+CTextPr.prototype.GetTextMetrics = function(oTheme, nFontFlags)
+{
+	let oMetrics = new CTextMetrics();
+
+	g_oTextMeasurer.SetTextPr(this, oTheme);
+
+	if ((nFontFlags & rfont_ASCII) && this.RFonts.Ascii)
+		oMetrics.Update(this.RFonts.Ascii.Name, fontslot_ASCII);
+
+	if ((nFontFlags & rfont_CS) && this.RFonts.CS)
+		oMetrics.Update(this.RFonts.CS.Name, fontslot_CS);
+
+	if ((nFontFlags & rfont_HAnsi) && this.RFonts.HAnsi)
+		oMetrics.Update(this.RFonts.HAnsi.Name, fontslot_HAnsi);
+
+	if ((nFontFlags & rfont_EastAsia) && this.RFonts.EastAsia)
+		oMetrics.Update(this.RFonts.EastAsia.Name, fontslot_EastAsia);
+
+	return oMetrics;
+};
+
+function CTextMetrics()
+{
+	this.Ascent  = 0;
+	this.Descent = 0;
+	this.LineGap = 0;
+	this.Height  = 0;
+}
+CTextMetrics.prototype.Update = function(fontName, fontSlot)
+{
+	g_oTextMeasurer.SetFontSlot(fontSlot);
+
+	let nHeight  = g_oTextMeasurer.GetHeight();
+	let nAscent  = g_oTextMeasurer.GetAscender();
+	let nDescent = Math.abs(g_oTextMeasurer.GetDescender());
+
+	let _nHeight  = nHeight;
+	let _nDescent = nDescent;
+	let _nAscent  = Math.min(nAscent, nHeight - nDescent);
+	let _nLineGap = Math.max(0, nHeight - nAscent - nDescent);
+
+	if (AscCommon.IsEastAsianFont(fontName))
+	{
+		let nHeightEA = (nAscent + nDescent) * 1.3;
+		if (nHeightEA > nHeight)
+		{
+			_nHeight  = nHeightEA;
+			_nDescent = (nAscent + nDescent) * 0.15 + nDescent;
+			_nAscent  = nHeightEA - _nDescent;
+			_nLineGap = 0;
+		}
+	}
+
+	if (this.Height < _nHeight)
+		this.Height = _nHeight;
+
+	if (this.Descent < _nDescent)
+		this.Descent = _nDescent;
+
+	if (this.Ascent < _nAscent)
+		this.Ascent = _nAscent;
+
+	if (this.LineGap < _nLineGap)
+		this.LineGap = _nLineGap;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CTextPr Export
@@ -17695,7 +17731,6 @@ asc_CStyle.prototype.get_TextPr = function()
 {
     return this.TextPr;
 };
-
 //---------------------------------------------------------export---------------------------------------------------
 window['Asc'] = window['Asc'] || {};
 window['AscCommonWord'] = window['AscCommonWord'] || {};
