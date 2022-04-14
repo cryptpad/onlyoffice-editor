@@ -550,6 +550,12 @@
     };
     //CTextBody.prototype.readAttrXml = function (name, reader) {
     //};
+    CTextBody.prototype.fromXml = function(reader, bSkipFirstNode, oCellContent) {
+        this.cellContent = oCellContent;
+        this.bEmptyCell = true;
+        CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+        this.cellContent = undefined;
+    };
     CTextBody.prototype.readChildXml = function (name, reader) {
         let oPr;
         switch(name) {
@@ -567,14 +573,26 @@
             }
             case "p": {
                 let oDrawingDocument = reader.context.DrawingDocument;
-                if(!this.content) {
-                    this.setContent(new AscFormat.CDrawingDocContent(this, oDrawingDocument, 0, 0, 0, 20000));
-	                this.content.Internal_Content_RemoveAll();
+                let oContent;
+                if(this.cellContent) {
+                    oContent = this.cellContent;
+                    if(this.bEmptyCell) {
+                        oContent.Internal_Content_RemoveAll();
+                        this.bEmptyCell = false;
+                    }
                 }
-	            oPr = new AscCommonWord.Paragraph(oDrawingDocument, this.content, true);
+                else {
+                    if(!this.content) {
+                        this.setContent(new AscFormat.CDrawingDocContent(this, oDrawingDocument, 0, 0, 0, 20000));
+                        this.content.Internal_Content_RemoveAll();
+                    }
+                    oContent = this.content;
+                }
+
+	            oPr = new AscCommonWord.Paragraph(oDrawingDocument, oContent, true);
                 oPr.fromDrawingML(reader);
-                oPr.SetParent(this.content);
-                this.content.Internal_Content_Add(this.content.Content.length, oPr);
+                oPr.SetParent(oContent);
+                oContent.Internal_Content_Add(oContent.Content.length, oPr);
                 break;
             }
         }

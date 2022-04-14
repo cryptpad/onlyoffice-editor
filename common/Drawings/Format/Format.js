@@ -9743,24 +9743,21 @@
 			}
 			return ret;
 		};
-		ExtraClrScheme.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
-		};
 		ExtraClrScheme.prototype.readChildXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "clrMap": {
+					let oPr = new ClrMap();
+					oPr.fromXml(reader);
+					this.setClrMap(oPr);
+					break;
+				}
+				case "clrScheme": {
+					let oPr = new ClrScheme();
+					oPr.fromXml(reader);
+					this.setClrScheme(oPr);
 					break;
 				}
 			}
-			//TODO:Implement in children
-		};
-		ExtraClrScheme.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
 		};
 		ExtraClrScheme.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
@@ -10380,7 +10377,6 @@
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		CTheme.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -10391,6 +10387,17 @@
 					break;
 				}
 				case "extraClrSchemeLst": {
+					let oTheme = this;
+					let oNode = new CT_XmlNode(function(reader, name) {
+
+						if(name === "extraClrScheme") {
+							let oExtraClrScheme = new ExtraClrScheme();
+							oExtraClrScheme.fromXml(reader);
+							return oTheme.addExtraClrSceme(oExtraClrScheme, oTheme.extraClrSchemeLst.length);
+						}
+						return true;
+					});
+					oNode.fromXml(reader);
 					break;
 				}
 				case "objectDefaults": {
@@ -10398,17 +10405,17 @@
 					let oNode = new CT_XmlNode(function(reader, name) {
 						
 						if(name === "lnDef") {
-							oTheme.lnDef = new DefaultShapeDefinition();
+							oTheme.setLnDef(new DefaultShapeDefinition());
 							oTheme.lnDef.fromXml(reader);
 							return oTheme.lnDef;
 						}
 						if(name === "spDef") {
-							oTheme.spDef = new DefaultShapeDefinition();
+							oTheme.setSpDef(new DefaultShapeDefinition());
 							oTheme.spDef.fromXml(reader);
 							return oTheme.spDef;
 						}
 						if(name === "txDef") {
-							oTheme.txDef = new DefaultShapeDefinition();
+							oTheme.setTxDef(new DefaultShapeDefinition());
 							oTheme.txDef.fromXml(reader);
 							return oTheme.txDef;
 						}
@@ -10440,9 +10447,6 @@
 			this.sldNum = null;
 		}
 		InitClass(HF, CBaseFormatObject, AscDFH.historyitem_type_HF);
-		HF.prototype.Get_Id = function () {
-			return this.Id;
-		};
 		HF.prototype.Refresh_RecalcData = function () {
 		};
 		HF.prototype.createDuplicate = function () {
@@ -10477,28 +10481,25 @@
 			History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_HF_SetSldNum, this.sldNum, pr));
 			this.sldNum = pr;
 		};
-		HF.prototype.Write_ToBinary2 = function (w) {
-			w.WriteLong(this.getObjectType());
-			w.WriteString2(this.Id);
-		};
-		HF.prototype.Read_FromBinary2 = function (r) {
-			this.Id = r.GetString2();
-		};
 		HF.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "dt": {
+					this.setDt(reader.GetValueBool());
+					break;
+				}
+				case "ftr": {
+					this.setFtr(reader.GetValueBool());
+					break;
+				}
+				case "hdr": {
+					this.setHdr(reader.GetValueBool());
+					break;
+				}
+				case "sldNum": {
+					this.setSlideNum(reader.GetValueBool());
 					break;
 				}
 			}
-			//TODO:Implement in children
-		};
-		HF.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		HF.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -10557,26 +10558,18 @@
 			}
 		};
 		CBgPr.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blipFill":
-				case "gradFill":
-				case "grpFill":
-				case "noFill":
-				case "pattFill":
-				case "solidFill": {
-					this.Fill = new CUniFill();
-					this.Fill.fromXml(reader, name);
-					break;
-				}
-				case "effectDag": {
-					break;
-				}
-				case "effectLst": {
-					break;
-				}
-				case "extLst": {
-					break;
-				}
+			if(CUniFill.prototype.isFillName(name)) {
+				this.Fill = new CUniFill();
+				this.Fill.fromXml(reader, name);
+			}
+			else if(name === "effectDag" ) {
+
+			}
+			else if(name === "effectLst" ) {
+
+			}
+			else if(name === "extLst" ) {
+
 			}
 		};
 		CBgPr.prototype.writeAttrXmlImpl = function (writer) {
@@ -10842,46 +10835,6 @@
 
 // MASTERSLIDE ----------------------
 
-		function CTextStyle() {
-			this.defPPr = null;
-			this.lvl1pPr = null;
-			this.lvl2pPr = null;
-			this.lvl3pPr = null;
-			this.lvl4pPr = null;
-			this.lvl5pPr = null;
-			this.lvl6pPr = null;
-			this.lvl7pPr = null;
-			this.lvl8pPr = null;
-			this.lvl9pPr = null;
-		}
-
-		CTextStyle.prototype.Get_Id = function () {
-			return this.Id;
-		};
-		CTextStyle.prototype.Refresh_RecalcData = function () {
-		};
-		CTextStyle.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
-		};
-		CTextStyle.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
-		};
-		CTextStyle.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CTextStyle.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
 
 		function CTextStyles() {
 			CBaseNoIdObject.call(this);
@@ -10978,7 +10931,19 @@
 		};
 		CTextStyles.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "blip": {
+				case "bodyStyle": {
+					this.bodyStyle = new TextListStyle();
+					this.bodyStyle.fromXml(reader);
+					break;
+				}
+				case "otherStyle": {
+					this.otherStyle = new TextListStyle();
+					this.otherStyle.fromXml(reader);
+					break;
+				}
+				case "bodyStyle": {
+					this.titleStyle = new TextListStyle();
+					this.titleStyle.fromXml(reader);
 					break;
 				}
 			}
@@ -13527,6 +13492,8 @@
 			}
 		};
 		TextListStyle.prototype.readAttrXml = function (name, reader) {
+		};
+		TextListStyle.prototype.readChildXml = function (name, reader) {
 			let nIdx = null;
 			if(name.indexOf("lvl") === 0) {
 				nIdx = parseInt(name.charAt(3)) - 1;
@@ -13536,17 +13503,9 @@
 			}
 			if(AscFormat.isRealNumber(nIdx)) {
 				let oParaPr = new AscCommonWord.CParaPr();
-				oParaPr.fromXml(reader);
+				oParaPr.fromDrawingML(reader);
 				this.levels[nIdx] = oParaPr;
 			}
-		};
-		TextListStyle.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		TextListStyle.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children

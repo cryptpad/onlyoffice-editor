@@ -1603,6 +1603,10 @@ function XmlParserContext(){
     //pptx
     this.layoutsMap = {};
     this.notesMastersMap = {};
+    this.TablesMap = {};
+    this.TableStylesMap = {};
+    this.ConnectorsMap = {};
+    this.DrawingIdsMap = {};
 }
 XmlParserContext.prototype.initFromWS = function(ws) {
     this.ws = ws;

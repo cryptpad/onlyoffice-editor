@@ -1397,14 +1397,16 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
 				this.spPr.setXfrm(xfrm);
 				this.spPr.xfrm.setParent(this.spPr);
 			} else if ("graphic" === reader.GetNameNoNS()) {
-				let graphic = new AscFormat.CT_GraphicalObject();
+				let graphic = new AscFormat.CT_GraphicalObject(this);
 				graphic.fromXml(reader);
 				let graphicObject = graphic.GraphicData && graphic.GraphicData.graphicObject;
 				if (graphicObject) {
-					//todo init in graphic.fromXml
-					graphicObject.setBDeleted(false);
-					graphicObject.setParent(this);
-					this.setGraphicObject(graphicObject);
+                    if(!(graphicObject instanceof AscCommonWord.CTable)) {
+                        //todo init in graphic.fromXml
+                        graphicObject.setBDeleted(false);
+                        graphicObject.setParent(this);
+                        this.setGraphicObject(graphicObject);
+                    }
 				}
 			}
 			//todo
