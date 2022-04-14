@@ -3824,6 +3824,8 @@ function CDrawingDocument()
 
 		overlay.Show();
 
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+
 		for (var nIndex = 0, nCount = this.FieldTrack.Rects.length; nIndex < nCount; nIndex++)
 		{
 			var FieldRect = this.FieldTrack.Rects[nIndex];
@@ -3836,10 +3838,10 @@ function CDrawingDocument()
 
 			if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity(this.TextMatrix))
 			{
-				var _x = (drPage.left + dKoefX * FieldRect.X0);
-				var _y = (drPage.top + dKoefY * FieldRect.Y0);
-				var _r = (drPage.left + dKoefX * FieldRect.X1);
-				var _b = (drPage.top + dKoefY * FieldRect.Y1);
+				var _x = (drPage.left + dKoefX * FieldRect.X0) * rPR;
+				var _y = (drPage.top + dKoefY * FieldRect.Y0) * rPR;
+				var _r = (drPage.left + dKoefX * FieldRect.X1) * rPR;
+				var _b = (drPage.top + dKoefY * FieldRect.Y1) * rPR;
 
 				if (_x < overlay.min_x)
 					overlay.min_x = _x;
@@ -3865,6 +3867,9 @@ function CDrawingDocument()
 			else
 			{
 				var _arrSelect = TransformRectByMatrix(this.TextMatrix, [FieldRect.X0, FieldRect.Y0, FieldRect.X1, FieldRect.Y1], drPage.left, drPage.top, dKoefX, dKoefY);
+
+				for (var i = 0; i < 8; i++)
+					_arrSelect[i] *= rPR;
 
 				overlay.CheckPoint(_arrSelect[0], _arrSelect[1]);
 				overlay.CheckPoint(_arrSelect[2], _arrSelect[3]);
