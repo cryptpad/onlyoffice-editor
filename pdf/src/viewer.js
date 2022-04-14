@@ -262,7 +262,7 @@
 			elements += "<div id=\"id_vertical_scroll\" class=\"block_elem\" style=\"display:none;left:0px;top:0px;width:0px;height:0px;\"></div>";
 			elements += "<div id=\"id_horizontal_scroll\" class=\"block_elem\" style=\"display:none;left:0px;top:0px;width:0px;height:0px;\"></div>";
 		
-			this.parent.style.backgroundColor = this.backgroundColor;
+			//this.parent.style.backgroundColor = this.backgroundColor; <= this color from theme
 			this.parent.innerHTML = elements;
 
 			this.canvas = document.getElementById("id_viewer");
