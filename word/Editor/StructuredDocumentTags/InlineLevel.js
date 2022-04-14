@@ -1085,6 +1085,7 @@ CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSel
 	var isUseSelection = this.IsSelectionUse();
 
 	this.private_FillPlaceholderContent();
+	this.TrimCombForm();
 
 	if (false !== isSelect)
 		this.SelectContentControl();
@@ -3116,6 +3117,18 @@ CInlineLevelSdt.prototype.MoveCursorOutsideForm = function(isBefore)
 	{
 		this.MoveCursorOutsideElement(isBefore);
 	}
+};
+CInlineLevelSdt.prototype.TrimCombForm = function()
+{
+	let oTextFormPr = this.GetTextFormPr();
+	if (!oTextFormPr || !oTextFormPr.IsComb())
+		return;
+
+	let nMax = oTextFormPr.GetMaxCharacters();
+
+	let oRun = this.MakeSingleRunElement(false);
+	if (oRun.GetElementsCount() > nMax)
+		oRun.RemoveFromContent(nMax, oRun.GetElementsCount() - nMax);
 };
 
 //--------------------------------------------------------export--------------------------------------------------------
