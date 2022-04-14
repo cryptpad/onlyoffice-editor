@@ -9579,21 +9579,135 @@
 			History.Add(new CChangesDrawingsContentLongMap(this, AscDFH.historyitem_ClrMap_SetClr, index, [clr], true));
 			this.color_map[index] = clr;
 		};
-		ClrMap.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
+
+
+		ClrMap.prototype.SchemeClr_GetBYTECode = function(sValue)
+		{
+			if ("accent1" === sValue)
+			return 0;
+			if ("accent2" === sValue)
+			return 1;
+			if ("accent3" === sValue)
+			return 2;
+			if ("accent4" === sValue)
+			return 3;
+			if ("accent5" === sValue)
+			return 4;
+			if ("accent6" === sValue)
+			return 5;
+			if ("bg1" === sValue)
+			return 6;
+			if ("bg2" === sValue)
+			return 7;
+			if ("dk1" === sValue)
+			return 8;
+			if ("dk2" === sValue)
+			return 9;
+			if ("folHlink" === sValue)
+			return 10;
+			if ("hlink" === sValue)
+			return 11;
+			if ("lt1" === sValue)
+			return 12;
+			if ("lt2" === sValue)
+			return 13;
+			if ("phClr" === sValue)
+			return 14;
+			if ("tx1" === sValue)
+			return 15;
+			if ("tx2" === sValue)
+			return 16;
+			return 0;
+		};
+		ClrMap.prototype.SchemeClr_GetStringCode = function(val)
+		{
+			switch (val)
+			{
+				case 0:
+					return ("accent1");
+				case 1:
+					return ("accent2");
+				case 2:
+					return ("accent3");
+				case 3:
+					return ("accent4");
+				case 4:
+					return ("accent5");
+				case 5:
+					return ("accent6");
+				case 6:
+					return ("bg1");
+				case 7:
+					return ("bg2");
+				case 8:
+					return ("dk1");
+				case 9:
+					return ("dk2");
+				case 10:
+					return ("folHlink");
+				case 11:
+					return ("hlink");
+				case 12:
+					return ("lt1");
+				case 13:
+					return ("lt2");
+				case 14:
+					return ("phClr");
+				case 15:
+					return ("tx1");
+				case 16:
+					return ("tx2");
 			}
-			//TODO:Implement in children
+			return ("accent1");
+		}
+		
+		ClrMap.prototype.getColorIdx = function(name) {
+			if ("accent1" === name)
+				return 0;
+			if ("accent2" === name)
+				return 1;
+			if ("accent3" === name)
+				return 2;
+			if ("accent4" === name)
+				return 3;
+			if ("accent5" === name)
+				return 4;
+			if ("accent6" === name)
+				return 5;
+			if ("bg1" === name)
+				return 6;
+			if ("bg2" === name)
+				return 7;
+			if ("dk1" === name)
+				return 8;
+			if ("dk2" === name)
+				return 9;
+			if ("folHlink" === name)
+				return 10;
+			if ("hlink" === name)
+				return 11;
+			if ("lt1" === name)
+				return 12;
+			if ("lt2" === name)
+				return 13;
+			if ("phClr" === name)
+				return 14;
+			if ("tx1" === name)
+				return 15;
+			if ("tx2" === name)
+				return 16;
+
+			return null;
+		};
+		ClrMap.prototype.readAttrXml = function (name, reader) {
+			let nIdx = this.SchemeClr_GetBYTECode(name);
+			let sVal = reader.GetValue();
+			let nVal = this.getColorIdx(sVal);
+			if(nVal !== null) {
+				this.color_map[nIdx] = nVal
+			}
 		};
 		ClrMap.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-				case "blip": {
-					break;
-				}
-			}
-			//TODO:Implement in children
 		};
 		ClrMap.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children

@@ -95,7 +95,7 @@ function MasterSlide(presentation, theme)
 {
     AscFormat.CBaseFormatObject.call(this);
     this.cSld = new AscFormat.CSld(this);
-    this.clrMap = window['AscFormat'].DEFAULT_COLOR_MAP;// new AscFormat.ClrMap();
+    this.clrMap = new AscFormat.ClrMap();
 
     this.hf = null;
 
@@ -531,7 +531,7 @@ MasterSlide.prototype.readChildXml = function(name, reader) {
         case "clrMap": {
             let oClrMap = new AscFormat.ClrMap();
             oClrMap.fromXml(reader);
-            //this.setClMapOverride(oClrMap);
+            this.setClMapOverride(oClrMap);
             break;
         }
         case "sldLayoutIdLst": {
