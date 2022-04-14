@@ -2514,7 +2514,11 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 						_b = Math.max(y1, y2, y3, y4);
 					}
 
-					if (sValue)
+					if (oCF.IsTopOfDocument())
+					{
+						pGraphics.AddLink(_l, _t, _r - _l, _b - _t, 0, 0, 0);
+					}
+					else if (sValue)
 					{
 						var _sValue = sAnchor ? sValue + "#" + sAnchor : sValue;
 						pGraphics.AddHyperlink(_l, _t, _r - _l, _b - _t, _sValue, _sValue);

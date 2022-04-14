@@ -457,12 +457,6 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			if ((this.IsTextForm() || this.IsDropDownList() || this.IsComboBox())
 				&& (!this.IsFixedForm() || !this.IsMultiLineForm()))
 			{
-				if (oTransform)
-				{
-					var oParagraph = this.GetParagraph();
-					nBaseLine += (oTransform.TransformPointY(oParagraph.X, oParagraph.Y) - Y);
-				}
-
 				var oLimits = g_oTextMeasurer.GetLimitsY();
 
 				var nMidPoint = ((nBaseLine - oLimits.min) + (nBaseLine - oLimits.max)) / 2;
@@ -1091,6 +1085,7 @@ CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSel
 	var isUseSelection = this.IsSelectionUse();
 
 	this.private_FillPlaceholderContent();
+	this.TrimCombForm();
 
 	if (false !== isSelect)
 		this.SelectContentControl();
@@ -3122,6 +3117,18 @@ CInlineLevelSdt.prototype.MoveCursorOutsideForm = function(isBefore)
 	{
 		this.MoveCursorOutsideElement(isBefore);
 	}
+};
+CInlineLevelSdt.prototype.TrimCombForm = function()
+{
+	let oTextFormPr = this.GetTextFormPr();
+	if (!oTextFormPr || !oTextFormPr.IsComb())
+		return;
+
+	let nMax = oTextFormPr.GetMaxCharacters();
+
+	let oRun = this.MakeSingleRunElement(false);
+	if (oRun.GetElementsCount() > nMax)
+		oRun.RemoveFromContent(nMax, oRun.GetElementsCount() - nMax);
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

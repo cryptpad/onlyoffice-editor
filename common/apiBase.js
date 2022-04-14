@@ -3116,6 +3116,10 @@
 		if (!this.canSave || !this._saveCheck())
 			return 0;
 
+		//pdf viewer
+		if (this.isUseNativeViewer && this.isDocumentRenderer && this.isDocumentRenderer())
+			return 0;
+
 		return new Date().getTime() - this.lastWorkTime;
 	};
 

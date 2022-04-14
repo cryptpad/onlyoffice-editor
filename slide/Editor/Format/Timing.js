@@ -9535,7 +9535,7 @@
             oGraphics.SetIntegerGrid(true);
             var nDx = oGraphics.m_oCoordTransform.tx;
             var nDy = oGraphics.m_oCoordTransform.ty;
-            oGraphics.m_oContext.drawImage(this.canvas, nDx + this.x, nDy + this.y, this.canvas.width, this.canvas.height);
+            oGraphics.m_oContext.drawImage(this.canvas, (nDx + this.x + 0.5) >> 0, (nDy + this.y + 0.5) >> 0, this.canvas.width, this.canvas.height);
             oGraphics.RestoreGrState();
             oGraphics.FreeFont && oGraphics.FreeFont();
         }
