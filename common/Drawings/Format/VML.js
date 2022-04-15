@@ -129,7 +129,7 @@
 				0x00888888,	0x00FFFFFF,	0x00CCCCCC,	0x00000000
 			];
 
-	let EColorType = {
+		let EColorType = {
 		colortypeNone: 0,
 		colortypeRGB: 1,
 		colortypeAqua: 2,
@@ -407,15 +407,180 @@
 			return 0;
 		};
 
+		function CVml_Vector3D_65536(sVal) {
+			this.m_nX;
+			this.m_nY;
+			this.m_nZ;
+			if(sVal) {
+				this.fromString(sVal);
+			}
+		}
+		CVml_Vector3D_65536.prototype.fromString = function(sValue) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+			this.m_nZ = 0;
+
+			let nLen = sValue.length;
+			if ( nLen <= 0 )
+				return 0;
+
+			let nPos = sValue.indexOf(",");
+			if ( -1 === nPos )
+			{//only x position
+				let strX = sValue;
+				strX.replace("@", "");
+
+				this.m_nX = strX.length === 0 ? 0 : parseInte(strX);
+				return 0;
+			}
+			let strX = sValue.substr( 0, nPos );
+			strX.replace("@", "");
+
+			this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
+
+			let nPos2 = sValue.indexOf( ",", nPos + 1 );
+			if ( -1 === nPos2 )
+			{// only x, y position
+				let strY = sValue.substr( nPos + 1);
+				strY.replace("@", "");
+				this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
+				return 0;
+			}
+
+			let strY = sValue.substr( nPos + 1, nPos2 - nPos - 1);
+			let strZ = sValue.substr( nPos2 + 1, nLen - nPos2 - 1 ) ;
+
+			strY.replace("@", "");
+			strZ.replace("@", "");
+
+			this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
+			this.m_nZ = strZ.length === 0 ? 0 : parseInt(strZ);
+		};
+
+		function CVml_Vector3D(sVal) {
+			this.m_nX;
+			this.m_nY;
+			this.m_nZ;
+			if(sVal) {
+				this.fromString(sVal);
+			}
+		}
+		CVml_Vector3D.prototype.fromString = function(sValue) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+			this.m_nZ = 0;
+
+			let nLen = sValue.length;
+			if ( nLen <= 0 )
+				return 0;
+
+			let nPos = sValue.indexOf(",");
+			if ( -1 == nPos )
+			{//only x position
+				let strX = sValue;
+				strX.replace("@", "");
+
+				this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
+				return 0;
+			}
+			let strX = sValue.substr( 0, nPos );
+			strX.replace("@", "");
+
+			this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
+
+			let nPos2 = sValue.indexOf(",", nPos + 1 );
+			if ( -1 == nPos2 )
+			{// only x, y position
+				let strY = sValue.substr( nPos + 1);
+				strY.replace("@", "");
+				this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
+				return 0;
+			}
+
+			let strY = sValue.substr( nPos + 1, nPos2 - nPos - 1);
+			let strZ = sValue.substr( nPos2 + 1, nLen - nPos2 - 1 ) ;
+
+			strY.replace("@", "");
+			strZ.replace("@", "");
+
+			this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
+			this.m_nZ = strZ.length === 0 ? 0 : parseInt(strZ);
+		};
 
 
+		function CVml_Vector2D(sVal) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+			if(sVal) {
+				this.fromString(sVal);
+			}
+		}
+		CVml_Vector2D.prototype.fromString = function(sValue) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+
+			let nLen = sValue.length();
+			if ( nLen <= 0 )
+				return 0;
+
+			let nPos = sValue.indexOf(",");
+
+			let strX, strY;
+			if ( -1 == nPos )
+			{//only x coord
+				strX = sValue;
+			}
+			else
+			{
+				strX = sValue.substr( 0, nPos );
+				strY = sValue.substr( nPos + 1, nLen - nPos - 1 ) ;
+			}
+			strY.replace("@", "");
+			strX.replace("@", "");
+
+			this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
+			this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
+		};
+
+		function CVml_Vector2D_F(sVal) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+			if(sVal) {
+				this.fromString(sVal);
+			}
+		}
+		CVml_Vector2D_F.prototype.fromString = function(sValue) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+
+			let nLen = sValue.length();
+			if ( nLen <= 0 )
+				return 0;
+
+			let nPos = sValue.indexOf(",");
+
+			let strX, strY;
+			if ( -1 == nPos )
+			{//only x coord
+				strX = sValue;
+			}
+			else
+			{
+				strX = sValue.substr( 0, nPos );
+				strY = sValue.substr( nPos + 1, nLen - nPos - 1 ) ;
+			}
+			strY.replace("@", "");
+			strX.replace("@", "");
+
+			this.m_nX = strX.length === 0 ? 0 : parseFloat(strX);
+			this.m_nY = strY.length === 0 ? 0 : parseFloat(strY);
+		};
+		
 		let EInsetMode =
 		{
 			insetmodeAuto   : 0,
 			insetmodeCustom : 1
 		};
-
-
 
 		//--------------------------------------------------------------------------------
 		let  EBWMode =
@@ -434,6 +599,23 @@
 				bwmodeWhite             : 11
 		};
 
+
+		function readColorMode(reader) {
+
+			let sVal = reader.GetValue()
+			switch (sVal) {
+				case "auto": {
+					return EInsetMode.insetmodeAuto;
+					break;
+				}
+				case "custom": {
+					return EInsetMode.insetmodeCustom;
+					break;
+				}
+			}
+			return null;
+		}
+
 		function CVmlCommonElements() {
 			CBaseNoId.call(this);
 			// 1 AG_AllCoreAttributes
@@ -448,7 +630,7 @@
 			this.m_oCoordSize = null;
 			this.m_oCoordOrigin = null;
 			this.m_oWrapCoords = null;
-			this.m_oPrint = null;
+			this.m_oPrlet = null;
 			// 1.2 AG_OfficeCoreAttributes
 			this.m_sSpId = null;
 			this.m_oOned = null;
@@ -496,9 +678,11 @@
 			this.m_oClipToWrap = null;
 			this.m_oClip = null;
 
+
+			this.items = [];
+
 		}
 		IC(CVmlCommonElements, CBaseNoId, 0);
-
 		CVmlCommonElements.prototype.readColor = function (reader) {
 			return new CColor(reader.GetValue());
 		};
@@ -576,25 +760,7 @@
 			else if ("allowincell" === name ) this.m_oAllowInCell = reader.GetValueBool();
 			else if ("allowoverlap" === name ) this.m_oAllowOverlap = reader.GetValueBool();
 			else if ("opacity" === name ) {
-				let sValue =  reader.GetValue();
-				let nLen = sValue.length;
-				if ( nLen <= 0 )
-					return 0;
-
-				let bFraction = ( 'f' === sValue.charAt(nLen - 1) );
-
-				if ( bFraction )
-				{
-					let strValue = sValue.substr( 0, nLen - 1 );
-					let nValue = strValue.empty() ? 0 : _wtoi(strValue.c_str() );
-
-					this.m_oOpacity = Math.max( 0.0, Math.min( 65536.0, dValue) )/ 65536.0;
-				}
-				else
-				{
-					let dValue = sValue.length === 0 ? 0 : parseFloat( sValue );
-					this.m_oOpacity = Math.max( 0.0, Math.min( 1.0, dValue) );
-				}
+				this.m_oOpacity = readCVml_1_65536(reader);
 			}
 			else if ("borderbottomcolor" === name ) this.m_oBorderBottomColor = this.readColor(reader);
 			else if ("borderleftcolor" === name ) this.m_oBorderLeftColor = this.readColor(reader);
@@ -635,17 +801,7 @@
 			else if ("hrpct" === name) this.m_oHrPct = reader.GetValueDouble();
 			else if ("hrstd" === name) this.m_oHrStd = reader.GetValueBool();
 			else if ("insetmode" === name) {
-				let sVal = reader.GetValue()
-				switch (sVal) {
-					case "auto": {
-						this.m_oInsetMode = EInsetMode.insetmodeAuto;
-						break;
-					}
-					case "custom": {
-						this.m_oInsetMode = EInsetMode.insetmodeCustom;
-						break;
-					}
-				}
+				this.m_oInsetMode = readColorMode(reader);
 			}
 			else if ("ole" === name) this.m_oOle = reader.GetValueBool();
 			else if ("oleicon" === name) this.m_oOleIcon = reader.GetValueBool();
@@ -656,7 +812,7 @@
 			else if ("spt" === name) this.m_oSpt = reader.GetValueInt();
 			else if ("userdrawn" === name) this.m_oUserDrawn = reader.GetValueBool();
 			else if ("userhidden" === name) this.m_oUserHidden = reader.GetValueBool();
-			else if ("print" === name) this.m_oPrint = reader.GetValueBool();
+			else if ("print" === name) this.m_oPrlet = reader.GetValueBool();
 			else if ("strokecolor" === name) this.m_oStrokeColor = this.readColor(reader);
 			else if ("stroked" === name) this.m_oStroked = reader.GetValueBool();
 			else if ("strokeweight" === name) this.m_oStrokeWeight = reader.GetValueInt();
@@ -665,22 +821,94 @@
 			else if ("title" === name) this.m_sTitle = reader.GetValue();
 			else if ("wrapcoords" === name) this.m_oWrapCoords = this.readPolygon2D(reader);
 		};
-		CArc.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+		CVmlCommonElements.prototype.readChildXml = function (name, reader) {
+			let oItem = null;
+			if ("callout" === name)
+				oItem = new CCallout();
+			else if ("clippath" === name)
+				oItem = new CClipPath();
+			else if ("extrusion" === name)
+				oItem = new CExtrusion();
+			else if ("lock" === name)
+				oItem = new CLock();
+			else if ("signatureline" === name)
+				oItem = new CSignatureLine();
+			else if ("skew" === name)
+				oItem = new CSkew();
+			else if ("fill" === name)
+				oItem = new CFill();
+			else if ("formulas" === name)
+				oItem = new CFormulas();
+			else if ("handles" === name)
+				oItem = new CHandles();
+			else if ("imagedata" === name)
+				oItem = new CImageData();
+			else if ("path" === name)
+				oItem = new CPath();
+			else if ("shadow" === name)
+				oItem = new CShadow();
+			else if ("stroke" === name)
+				oItem = new CStroke();
+			else if ("textbox" === name)
+				oItem = new CTextbox();
+			else if ("textpath" === name)
+				oItem = new CTextPath();
+			else if ("anchorLock" === name)
+				oItem = new CAnchorLock();
+			else if ("borderbottom" === name)
+				oItem = new CBorder();
+			else if ("borderleft" === name)
+				oItem = new CBorder();
+			else if ("borderright" === name)
+				oItem = new CBorder();
+			else if ("bordertop" === name)
+				oItem = new CBorder();
+			else if ("wrap" === name)
+				oItem = new CWrap();
+			else if ("wrap" === name)
+				oItem = new CWrap();
+			else if ("ClientData" === name)
+				oItem = new CClientData();
+			if(oItem) {
+				oItem.fromXml(reader);
 			}
+			this.items.push(oItem);
+
 		};
-		CArc.prototype.writeAttrXmlImpl = function (writer) {
+		CVmlCommonElements.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
-		CArc.prototype.writeChildren = function (writer) {
+		CVmlCommonElements.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
+
+
+		function readCVml_1_65536(reader) {
+			let sValue =  reader.GetValue();
+			let nLen = sValue.length;
+			if ( nLen <= 0 )
+				return 0;
+
+			let bFraction = ( 'f' === sValue.charAt(nLen - 1) );
+
+			if ( bFraction )
+			{
+				let strValue = sValue.substr( 0, nLen - 1 );
+				let nValue = strValue.length === 0 ? 0 : parseInt(strValue);
+
+				return Math.max( 0.0, Math.min( 65536.0, nValue) )/ 65536.0;
+			}
+			else
+			{
+				let dValue = sValue.length === 0 ? 0 : parseFloat( sValue );
+				return Math.max( 0.0, Math.min( 1.0, dValue) );
+			}
+		}
 
 		function CArc() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CArc, CVmlCommonElements, 0);
-
 		CArc.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -697,10 +925,9 @@
 		};
 
 		function CCurve() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CCurve, CVmlCommonElements, 0);
-
 		CCurve.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -717,7 +944,7 @@
 		};
 
 		function CGroup() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CGroup, CVmlCommonElements, 0);
 
@@ -737,10 +964,9 @@
 		};
 
 		function CImage() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CImage, CVmlCommonElements, 0);
-
 		CImage.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -757,10 +983,9 @@
 		};
 
 		function CLine() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CLine, CVmlCommonElements, 0);
-
 		CLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -777,10 +1002,9 @@
 		};
 
 		function COval() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(COval, CVmlCommonElements, 0);
-
 		COval.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -797,10 +1021,9 @@
 		};
 
 		function CPolyLine() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CPolyLine, CVmlCommonElements, 0);
-
 		CPolyLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -817,10 +1040,9 @@
 		};
 
 		function CRect() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CRect, CVmlCommonElements, 0);
-
 		CRect.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -837,10 +1059,9 @@
 		};
 
 		function CRoundRect() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CRoundRect, CVmlCommonElements, 0);
-
 		CRoundRect.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -857,10 +1078,9 @@
 		};
 
 		function CShape() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CShape, CVmlCommonElements, 0);
-
 		CShape.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -877,10 +1097,9 @@
 		};
 
 		function CShapeType() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 		IC(CShapeType, CVmlCommonElements, 0);
-
 		CShapeType.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -896,6 +1115,722 @@
 			//TODO:Implement in children
 		};
 
+
+		let EVmlAngle =
+		{
+			vmlangle30   :   0,
+			vmlangle45   :   1,
+			vmlangle60   :   2,
+			vmlangle90   :   3,
+			vmlangleAny  :   4,
+			vmlangleAuto :   5
+		};
+
+
+		let EExt =
+		{
+			extBackwardCompatible : 0,
+			extEdit				: 1,
+			extView				: 2,
+		};
+
+		let EVmlCalloutType =
+		{
+			vmlcallouttypeRectangle     : 0,
+			vmlcallouttypeRoundRectangle: 1,
+			vmlcallouttypeOval          : 2,
+			vmlcallouttypeCloud         : 3
+		};
+
+
+		function CCallout() {
+			CBaseNoId.call(this);
+			this.m_oAccentbar = null;
+			this.m_oAngle = null;
+			this.m_oDistance = null;
+			this.m_oDrop = null;
+			this.m_oDropAuto = null;
+			this.m_oExt = null;
+			this.m_oGap = null;
+			this.m_oLength = null;
+			this.m_oLengthSpecified = null;
+			this.m_oMinusX = null;
+			this.m_oMinusY = null;
+			this.m_oOn = null;
+			this.m_oTextBorder = null;
+			this.m_oType = null;
+		}
+		IC(CCallout, CBaseNoId, 0);
+		CCallout.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "accentbar": {
+					this.m_oAccentbar = reader.GetValueBool();
+					break;
+				}
+				case "angle": {
+					let sVal = reader.GetValue();
+					switch (sVal) {
+						case "30": {
+							this.m_oAngle = EVmlAngle.vmlangle30;
+							break
+						}
+						case "45": {
+							this.m_oAngle = EVmlAngle.vmlangle45;
+							break
+						}
+						case "60": {
+							this.m_oAngle = EVmlAngle.vmlangle60;
+							break
+						}
+						case "90": {
+							this.m_oAngle = EVmlAngle.vmlangle90;
+							break
+						}
+						case "any": {
+							this.m_oAngle = EVmlAngle.vmlangleAny;
+							break
+						}
+						case "auto": {
+							this.m_oAngle = EVmlAngle.vmlangleAuto;
+							break
+						}
+						default: {
+							this.m_oAngle = EVmlAngle.vmlangleAuto;
+							break
+						}
+					}
+					break;
+				}
+				case "distance": {
+					this.m_oDistance = reader.GetValueInt();
+					break;
+				}
+				case "drop": {
+					this.m_oDrop = reader.GetValue();
+					break;
+				}
+				case "dropauto": {
+					this.m_oDropAuto = reader.GetValueBool();
+					break;
+				}
+				case "ext": {
+					this.m_oExt = readExt(reader);
+					break;
+				}
+				case "gap": {
+					this.m_oGap = reader.GetValueInt();
+					break;
+				}
+				case "length": {
+					this.m_oLength = reader.GetValueInt();
+					break;
+				}
+				case "lengthspecified": {
+					this.m_oLengthSpecified = reader.GetValueBool();
+					break;
+				}
+				case "minusx": {
+					this.m_oMinusX = reader.GetValueBool();
+					break;
+				}
+				case "minusy": {
+					this.m_oMinusY = reader.GetValueBool();
+					break;
+				}
+				case "on": {
+					this.m_oOn = reader.GetValueBool();
+					break;
+				}
+				case "textborder": {
+					this.m_oTextBorder = reader.GetValueBool();
+					break;
+				}
+				case "type": {
+					let sVal = reader.GetValue();
+					switch (sVal) {
+						case "rectangle": {
+							this.m_oType = EVmlCalloutType.vmlcallouttypeRectangle;
+							break;
+						}
+						case "roundedrectangle": {
+							this.m_oType = EVmlCalloutType.vmlcallouttypeRoundRectangle;
+							break;
+						}
+						case "oval": {
+							this.m_oType = EVmlCalloutType.vmlcallouttypeOval;
+							break;
+						}
+						case "cloud": {
+							this.m_oType = EVmlCalloutType.vmlcallouttypeCloud;
+							break;
+						}
+					}
+					break;
+				}
+			}
+		};
+		CCallout.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CCallout.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CCallout.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CClipPath() {
+			CBaseNoId.call(this);
+			this.m_oV = null;
+		}
+		IC(CClipPath, CBaseNoId, 0);
+		CClipPath.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "v": {
+					this.m_oV = reader.GetValue();
+					break;
+				}
+			}
+		};
+		CClipPath.prototype.readChildXml = function (name, reader) {
+		};
+		CClipPath.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CClipPath.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+
+		let EExtrusionType =
+		{
+			extrusiontypeParallel: 0,
+			extrusiontypePerspective: 1
+		};
+
+		function readExt(reader) {
+			let sVal = reader.GetValue();
+			switch (sVal) {
+				case "backwardCompatible": {
+					return EExt.extBackwardCompatible;
+					break;
+				}
+				case "edit": {
+					return EExt.extEdit;
+					break;
+				}
+				case "view": {
+					return EExt.extView;
+					break;
+				}
+			}
+			return null;
+		}
+
+		function readExtrusionType(reader) {
+			let sVal = reader.GetValue();
+			switch (sVal) {
+				case "parallel":
+					return
+				case "extrusiontypeParallel":
+					return EExtrusionType.extrusiontypePerspective;
+			}
+			return EExtrusionType.extrusiontypeParallel;;
+		}
+		function CExtrusion() {
+			CBaseNoId.call(this);
+			this.m_oAutoRotationCenter = null;
+			this.m_oBackDepth = null;
+			this.m_oBrightness = null;
+			this.m_oColor = null;
+			this.m_oColorMode = null;
+			this.m_oDiffusity = null;
+			this.m_oEdge = null;
+			this.m_oExt = null;
+			this.m_oFacet = null;
+			this.m_oForeDepth = null;
+			this.m_oLightFace = null;
+			this.m_oLightHarsh = null;
+			this.m_oLightHarsh2 = null;
+			this.m_oLightLevel = null;
+			this.m_oLightLevel2 = null;
+			this.m_oLightPosition = null;
+			this.m_oLightPosition2 = null;
+			this.m_oLockRotationCenter = null;
+			this.m_oMetal = null;
+			this.m_oOn = null;
+			this.m_oOrientation = null;
+			this.m_oOrientationAngle = null;
+			this.m_oPlane = null;
+			this.m_oRender = null;
+			this.m_oRotationAngle = null;
+			this.m_oRotationCenter = null;
+			this.m_oShininess = null;
+			this.m_oSkewAmt = null;
+			this.m_oSkewAngle = null;
+			this.m_oSpecularity = null;
+			this.m_oType = null;
+			this.m_oViewPolet = null;
+			this.m_oViewPointOrigin = null;
+		}
+		IC(CExtrusion, CBaseNoId, 0);
+		CExtrusion.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "autorotationcenter": {
+					this.m_oAutoRotationCenter = reader.GetValueBool();
+					break;
+				}
+				case "backdepth": {
+					this.m_oBackDepth = reader.GetValue();
+					break;
+				}
+				case "brightness": {
+					this.m_oBrightness = readCVml_1_65536(reader);
+					break;
+				}
+				case "color": {
+					this.m_oColor = CVmlCommonElements.prototype.readColor.call(this, reader);
+					break;
+				}
+				case "colormode": {
+					this.m_oColorMode = readColorMode(reader);
+					break;
+				}
+				case "diffusity": {
+					this.m_oDiffusity = readCVml_1_65536(reader);
+					break;
+				}
+				case "edge": {
+					this.m_oEdge = reader.GetValue();
+					break;
+				}
+				case "ext": {
+					this.m_oExt = readExt(reader);
+					break;
+				}
+				case "facet": {
+					this.m_oFacet = reader.GetValueInt();
+					break;
+				}
+				case "foredepth": {
+					this.m_oForeDepth = reader.GetValue();
+					break;
+				}
+				case "lightface": {
+					this.m_oLightFace = reader.GetValueBool();
+					break;
+				}
+				case "lightharsh": {
+					this.m_oLightHarsh = reader.GetValueBool();
+					break;
+				}
+				case "lightharsh2": {
+					this.m_oLightHarsh2 = reader.GetValueBool();
+					break;
+				}
+				case "lightlevel": {
+					this.m_oLightLevel = readCVml_1_65536(reader);
+					break;
+				}
+				case "lightlevel2": {
+					this.m_oLightLevel2 = readCVml_1_65536(reader);
+					break;
+				}
+				case "lightposition": {
+					this.m_oLightPosition = new CVml_Vector3D_65536(reader.GetValue());
+					break;
+				}
+				case "lightposition2": {
+					this.m_oLightPosition2 = new CVml_Vector3D_65536(reader.GetValue());
+					break;
+				}
+				case "lockrotationcenter": {
+					this.m_oLockRotationCenter = reader.GetValueBool();
+					break;
+				}
+				case "metal": {
+					this.m_oMetal = reader.GetValueBool();
+					break;
+				}
+				case "on": {
+					this.m_oOn = reader.GetValueBool();
+					break;
+				}
+				case "orientation": {
+					this.m_oOrientation = new CVml_Vector3D(reader.GetValue());
+					break;
+				}
+				case "orientationangle": {
+					this.m_oOrientationAngle = reader.GetValueInt();
+					break;
+				}
+				case "plane": {
+					this.m_oPlane = reader.GetValue();
+					break;
+				}
+				case "render": {
+					this.m_oRender = reader.GetValue();
+					break;
+				}
+				case "rotationangle": {
+					this.m_oRotationAngle = CVml_Vector2D(reader.GetValue());
+					break;
+				}
+				case "rotationcenter": {
+					this.m_oRotationCenter = CVml_Vector3D(reader.GetValue());
+					break;
+				}
+				case "shininess": {
+					this.m_oShininess = reader.GetValueInt();
+					break;
+				}
+				case "skewamt": {
+					this.m_oSkewAmt = AscFormat.getPercentageValue(reader.GetValue());
+					break;
+				}
+				case "skewangle": {
+					this.m_oSkewAngle = reader.GetValueInt();
+					break;
+				}
+				case "specularity": {
+					this.m_oSpecularity = readCVml_1_65536(reader);
+					break;
+				}
+				case "type": {
+					this.m_oType = readExtrusionType(reader);
+					break;
+				}
+				case "viewpoint": {
+					this.m_oViewPolet = new CVml_Vector3D(reader.GetValue());
+					break;
+				}
+				case "viewpointorigin": {
+					this.m_oViewPointOrigin = new CVml_Vector2D_F(reader.GetValue());
+					break;
+				}
+			}
+		};
+		CExtrusion.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CExtrusion.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CExtrusion.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CLock() {
+			CBaseNoId.call(this);
+		}
+		IC(CLock, CBaseNoId, 0);
+		CLock.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "adjusthandles": this.m_oAdjustHandles = reader.GetValueBool(); break;
+				case "aspectratio":   this.m_oAspectRatio = reader.GetValueBool(); break;
+				case "cropping":      this.m_oCropping = reader.GetValueBool(); break;
+				case "ext":           this.m_oExt = readExt(reader); break;
+				case "grouping":      this.m_oGrouping = reader.GetValueBool(); break;
+				case "position":      this.m_oPosition = reader.GetValueBool(); break;
+				case "rotation":      this.m_oRotation = reader.GetValueBool(); break;
+				case "selection":     this.m_oSelection = reader.GetValueBool(); break;
+				case "shapetype":     this.m_oShapeType = reader.GetValueBool(); break;
+				case "text":          this.m_oText = reader.GetValueBool(); break;
+				case "ungrouping":    this.m_oUnGrouping = reader.GetValueBool(); break;
+				case "verticies":     this.m_oVerticies = reader.GetValueBool(); break;
+			}
+		};
+		CLock.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CLock.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CLock.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CSignatureLine() {
+			CBaseNoId.call(this);
+		}
+		IC(CSignatureLine, CBaseNoId, 0);
+		CSignatureLine.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "o:addlxml":              this.m_sAddXml = reader.GetValue(); break;
+				case "allowcomments":          this.m_oAllowComments = reader.GetValueBool(); break;
+				case "v:ext":                  this.m_oExt = readExt(reader); break;
+				case "id":                     this.m_oId = reader.GetValue(); break;
+				case "issignatureline":        this.m_oIsSignatureLine = reader.GetValueBool(); break;
+				case "provid":                 this.m_oProvId = reader.GetValue(); break;
+				case "showsigndate":           this.m_oShowSignDate = reader.GetValueBool(); break;
+				case "o:signinginstructions":  this.m_sSigningInstructions = reader.GetValue(); break;
+				case "signinginstructionsset": this.m_oSigningInstructionsSet = reader.GetValueBool(); break;
+				case "o:sigprovurl":           this.m_sSigProvUrl = reader.GetValue(); break;
+				case "o:suggestedsigner":      this.m_sSuggestedSigner = reader.GetValue(); break;
+				case "o:suggestedsigner2":     this.m_sSuggestedSigner2 = reader.GetValue(); break;
+				case "o:suggestedsigneremail": this.m_sSuggestedSignerEmail = reader.GetValue(); break;
+			}
+		};
+		CSignatureLine.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CSignatureLine.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CSignatureLine.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CSkew() {
+			CBaseNoId.call(this);
+		}
+		IC(CSkew, CBaseNoId, 0);
+		CSkew.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CSkew.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CSkew.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CSkew.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CFill() {
+			CBaseNoId.call(this);
+		}
+		IC(CFill, CBaseNoId, 0);
+		CFill.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CFill.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CFill.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CFill.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CFormulas() {
+			CBaseNoId.call(this);
+		}
+		IC(CFormulas, CBaseNoId, 0);
+		CFormulas.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CFormulas.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CFormulas.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CFormulas.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CHandles() {
+			CBaseNoId.call(this);
+		}
+		IC(CHandles, CBaseNoId, 0);
+		CHandles.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CHandles.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CHandles.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CHandles.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CImageData() {
+			CBaseNoId.call(this);
+		}
+		IC(CImageData, CBaseNoId, 0);
+		CImageData.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CImageData.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CImageData.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CImageData.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CPath() {
+			CBaseNoId.call(this);
+		}
+		IC(CPath, CBaseNoId, 0);
+		CPath.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CPath.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CPath.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CPath.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CShadow() {
+			CBaseNoId.call(this);
+		}
+		IC(CShadow, CBaseNoId, 0);
+		CShadow.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CShadow.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CShadow.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CShadow.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CStroke() {
+			CBaseNoId.call(this);
+		}
+		IC(CStroke, CBaseNoId, 0);
+		CStroke.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CStroke.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CStroke.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CStroke.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CTextbox() {
+			CBaseNoId.call(this);
+		}
+		IC(CTextbox, CBaseNoId, 0);
+		CTextbox.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CTextbox.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CTextbox.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CTextbox.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CTextPath() {
+			CBaseNoId.call(this);
+		}
+		IC(CTextPath, CBaseNoId, 0);
+		CTextPath.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CTextPath.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CTextPath.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CTextPath.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CAnchorLock() {
+			CBaseNoId.call(this);
+		}
+		IC(CAnchorLock, CBaseNoId, 0);
+		CAnchorLock.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CAnchorLock.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CAnchorLock.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CAnchorLock.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CBorder() {
+			CBaseNoId.call(this);
+		}
+		IC(CBorder, CBaseNoId, 0);
+		CBorder.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CBorder.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CBorder.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CBorder.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CWrap() {
+			CBaseNoId.call(this);
+		}
+		IC(CWrap, CBaseNoId, 0);
+		CWrap.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CWrap.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CWrap.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CWrap.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
 
 
 	})(window);
