@@ -15487,6 +15487,11 @@
 
 		window['AscCommon'].CPres = CPres;
 
+
+		function CVmlDrawing() {
+			CBaseFormatObject.call(this);
+		}
+
 // DEFAULT OBJECTS
 		function GenerateDefaultTheme(presentation, opt_fontName) {
 			return ExecuteNoHistory(function () {
