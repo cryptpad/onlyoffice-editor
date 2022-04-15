@@ -15779,6 +15779,41 @@
 	ApiCheckBoxForm.prototype["SetRadioGroup"] = ApiCheckBoxForm.prototype.SetRadioGroup;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Export for internal usage
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	window['AscBuilder'] = window['AscBuilder'] || {};
+	window['AscBuilder'].Api                = Api;
+	window['AscBuilder'].ApiDocumentContent = ApiDocumentContent;
+	window['AscBuilder'].ApiRange           = ApiRange;
+	window['AscBuilder'].ApiDocument        = ApiDocument;
+	window['AscBuilder'].ApiParagraph       = ApiParagraph;
+	window['AscBuilder'].ApiRun             = ApiRun;
+	window['AscBuilder'].ApiHyperlink       = ApiHyperlink;
+	window['AscBuilder'].ApiSection         = ApiSection;
+	window['AscBuilder'].ApiTable           = ApiTable;
+	window['AscBuilder'].ApiTableRow        = ApiTableRow;
+	window['AscBuilder'].ApiTableCell       = ApiTableCell;
+	window['AscBuilder'].ApiStyle           = ApiStyle;
+	window['AscBuilder'].ApiNumbering       = ApiNumbering;
+	window['AscBuilder'].ApiNumberingLevel  = ApiNumberingLevel;
+	window['AscBuilder'].ApiTextPr          = ApiTextPr;
+	window['AscBuilder'].ApiParaPr          = ApiParaPr;
+	window['AscBuilder'].ApiTablePr         = ApiTablePr;
+	window['AscBuilder'].ApiTableRowPr      = ApiTableRowPr;
+	window['AscBuilder'].ApiTableCellPr     = ApiTableCellPr;
+	window['AscBuilder'].ApiTableStylePr    = ApiTableStylePr;
+	window['AscBuilder'].ApiDrawing         = ApiDrawing;
+	window['AscBuilder'].ApiImage           = ApiImage;
+	window['AscBuilder'].ApiShape           = ApiShape;
+	window['AscBuilder'].ApiChart           = ApiChart;
+	window['AscBuilder'].ApiInlineLvlSdt    = ApiInlineLvlSdt;
+	window['AscBuilder'].ApiBlockLvlSdt     = ApiBlockLvlSdt;
+	window['AscBuilder'].ApiFormBase        = ApiFormBase;
+	window['AscBuilder'].ApiTextForm        = ApiTextForm;
+	window['AscBuilder'].ApiPictureForm     = ApiPictureForm;
+	window['AscBuilder'].ApiComboBoxForm    = ApiComboBoxForm;
+	window['AscBuilder'].ApiCheckBoxForm    = ApiCheckBoxForm;
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	function private_GetDrawingDocument()
