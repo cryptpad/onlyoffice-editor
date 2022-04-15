@@ -212,7 +212,7 @@
 
 		this.isFocusOnThumbnails = false;
 
-		this.isXP = ((AscCommon.AscBrowser.userAgent.indexOf("windowsXP") > -1) || (AscCommon.AscBrowser.userAgent.indexOf("chrome/49") > -1)) ? true : false;
+		this.isXP = ((AscCommon.AscBrowser.userAgent.indexOf("windowsxp") > -1) || (AscCommon.AscBrowser.userAgent.indexOf("chrome/49") > -1)) ? true : false;
 
 		if (this.isXP)
 		{
