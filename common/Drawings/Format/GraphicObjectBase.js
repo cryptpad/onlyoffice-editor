@@ -517,11 +517,24 @@
             new_off_y = scale_scale_coefficients.cy * (xfrm.offY - this.group.spPr.xfrm.chOffY);
             new_ext_x = scale_scale_coefficients.cx * xfrm.extX;
             new_ext_y = scale_scale_coefficients.cy * xfrm.extY;
+            var txXfrm = this.txXfrm;
+            if (txXfrm) {
+
+                var new_tx_off_x = scale_scale_coefficients.cx * txXfrm.offX;
+                var new_tx_off_y = scale_scale_coefficients.cy * txXfrm.offY;
+                var new_tx_ext_x = scale_scale_coefficients.cx * txXfrm.extX;
+                var new_tx_ext_y = scale_scale_coefficients.cy * txXfrm.extY;
+
+                Math.abs(new_tx_off_x - txXfrm.offX) > AscFormat.MOVE_DELTA && txXfrm.setOffX(new_tx_off_x);
+                Math.abs(new_tx_off_y - txXfrm.offY) > AscFormat.MOVE_DELTA && txXfrm.setOffY(new_tx_off_y);
+                Math.abs(new_tx_ext_x - txXfrm.extX) > AscFormat.MOVE_DELTA && txXfrm.setExtX(new_tx_ext_x);
+                Math.abs(new_tx_ext_y - txXfrm.extY) > AscFormat.MOVE_DELTA && txXfrm.setExtY(new_tx_ext_y);
+            }
         }
-        Math.abs(new_off_x - xfrm.offX) > AscFormat.MOVE_DELTA &&  xfrm.setOffX(new_off_x);
-        Math.abs(new_off_y - xfrm.offY) > AscFormat.MOVE_DELTA &&  xfrm.setOffY(new_off_y);
-        Math.abs(new_ext_x - xfrm.extX) > AscFormat.MOVE_DELTA &&  xfrm.setExtX(new_ext_x);
-        Math.abs(new_ext_y - xfrm.extY) > AscFormat.MOVE_DELTA &&  xfrm.setExtY(new_ext_y);
+        Math.abs(new_off_x - xfrm.offX) > AscFormat.MOVE_DELTA && xfrm.setOffX(new_off_x);
+        Math.abs(new_off_y - xfrm.offY) > AscFormat.MOVE_DELTA && xfrm.setOffY(new_off_y);
+        Math.abs(new_ext_x - xfrm.extX) > AscFormat.MOVE_DELTA && xfrm.setExtX(new_ext_x);
+        Math.abs(new_ext_y - xfrm.extY) > AscFormat.MOVE_DELTA && xfrm.setExtY(new_ext_y);
     };
     /**
      * Check point hit to bounds object
