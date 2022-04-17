@@ -3363,6 +3363,15 @@ CShape.prototype.changeSize = function (kw, kh) {
             xfrm.setExtY(xfrm.extY * kh);
         }
     }
+    var txXfrm = this.txXfrm;
+    if (txXfrm && txXfrm.isNotNull()) {
+
+            txXfrm.setOffX(txXfrm.offX * kw);
+            txXfrm.setOffY(txXfrm.offY * kh);
+            txXfrm.setExtX(txXfrm.extX * kw);
+            txXfrm.setExtY(txXfrm.extY * kh);
+
+    }
     this.recalcTransform && this.recalcTransform();
 };
 
