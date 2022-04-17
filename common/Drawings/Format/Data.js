@@ -10582,6 +10582,104 @@
       }
     };
 
+    SmartArt.prototype.getRelationOfContent = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      if (dataModel) {
+        var connections = {};
+        var ptMap = this.getPtMap();
+        var shapeMap = this.getShapeMap();
+        var cxnLst = dataModel.cxnLst.list;
+        var presCxnLst = cxnLst.filter(function (cxn) {
+          return cxn.type === 'presOf';
+        });
+
+        presCxnLst.forEach(function (cxn) {
+          var shape = shapeMap[cxn.destId];
+          if (shape) {
+            if (!connections[cxn.destId]) {
+              connections[cxn.destId] = [];
+            }
+            connections[cxn.destId].push({
+              point: ptMap[cxn.srcId],
+              srcOrd: cxn.srcOrd
+            });
+          }
+        });
+
+        for (var key in connections) {
+          connections[key].sort(function (firstConnection, secondConnection) {
+            return parseInt(secondConnection.destOrd, 10) - parseInt(firstConnection.destOrd);
+          });
+        }
+
+        return connections;
+      }
+    };
+
+    SmartArt.prototype.getRelationOfShapes = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      if (dataModel) {
+        var connections = {};
+        var ptMap = this.getPtMap();
+        var shapeMap = this.getShapeMap();
+        var cxnLst = dataModel.cxnLst.list;
+        var parCxnLst = cxnLst.filter(function (cxn) {
+          return cxn.type === 'presOf';
+        });
+
+        parCxnLst.forEach(function (cxn) {
+          var shape = shapeMap[cxn.destId];
+          if (shape) {
+            if (!connections[cxn.destId]) {
+              connections[cxn.destId] = ptMap[cxn.destId];
+            }
+          }
+        });
+        return connections;
+      }
+    };
+
+    SmartArt.prototype.setConnections2 = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      if (dataModel) {
+
+        var shapeMap = this.getShapeMap();
+        var contentConnections = this.getRelationOfContent();
+        var shapeConnections = this.getRelationOfShapes();
+
+        for (var modelId in shapeMap) {
+          var shape = shapeMap[modelId];
+          var smartArtInfo = new ShapeSmartArtInfo();
+          shape.setShapeSmartArtInfo(smartArtInfo);
+          if (contentConnections[modelId]) {
+            var arrayOfPoints = contentConnections[modelId].map(function (el) {
+              return el.point;
+            });
+            smartArtInfo.contentPoint = arrayOfPoints;
+          }
+          if (shapeConnections[modelId]) {
+            smartArtInfo.setShapePoint(shapeConnections[modelId]);
+          }
+          if (smartArtInfo.shapePoint && smartArtInfo.shapePoint.isBlipFillPlaceholder()) {
+            if (smartArtInfo.contentPoint.length) {
+              smartArtInfo.setSpPrPoint(smartArtInfo.contentPoint[0]);
+            } else if (smartArtInfo.shapePoint) {
+              smartArtInfo.setSpPrPoint(smartArtInfo.shapePoint);
+            }
+          }
+        }
+      }
+    };
+
+    SmartArt.prototype.getShapeMap = function () {
+      var result = {};
+      var shapeTree = this.getDrawing().spTree;
+      shapeTree.forEach(function (shape) {
+        result[shape.modelId] = shape;
+      });
+      return result;
+    };
+
     SmartArt.prototype.setConnections = function () {
       var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
       if (dataModel) {
@@ -10689,7 +10787,7 @@
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
           this.setPointsForShapes();
-          this.setConnections();
+          this.setConnections2();
           break;
         }
         case 2: {
@@ -11019,7 +11117,7 @@
       copy.cachedPixW = this.cachedPixW;
       copy.setLocks(this.locks);
       copy.setPointsForShapes();
-      copy.setConnections();
+      copy.setConnections2();
       return copy;
     };
     SmartArt.prototype.handleUpdateFill = function() {
