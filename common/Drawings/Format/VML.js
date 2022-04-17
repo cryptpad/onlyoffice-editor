@@ -43,10 +43,490 @@
 		let CBaseNoId = AscFormat.CBaseNoIdObject;
 		let IC = AscFormat.InitClass;
 
+
+		function Cm_To_Mm(dValue) {
+			return dValue * 10;
+		}
+
+		function Cm_To_Pt(dValue) {
+			return dValue * 72 / 2.54;
+		}
+
+		function Cm_To_Px(dValue) {
+			return dValue * 72 * 4 / 3 / 2.54;
+		}
+
+		function Cm_To_Inch(dValue) {
+			return dValue / 2.54;
+		}
+
+		function Cm_To_Dx(dValue) {
+			return dValue * 72 * 20 / 2.54;
+		}
+
+		function Cm_To_Sx(dValue) {
+			return dValue * 72 * 100 * 1000 / 20;
+		}
+
+		function Cm_To_Multi(dValue) {
+			return dValue * 72 * 20 / 2.54;
+		}
+
+		function Cm_To_Emu(dValue) {
+			return dValue * 360000;
+		}
+
+		function Mm_To_Cm(dValue) {
+			return dValue / 10;
+		}
+
+		function Mm_To_Pt(dValue) {
+			return dValue * 72 / 10 / 2.54;
+		}
+
+		function Mm_To_Px(dValue) {
+			return dValue * 72 * 4 / 3 / 10 / 2.54;
+		}
+
+		function Mm_To_Inch(dValue) {
+			return dValue / 2.54 / 10;
+		}
+
+		function Mm_To_Dx(dValue) {
+			return dValue * 72 * 20 / 10 / 2.54;
+		}
+
+		function Mm_To_Sx(dValue) {
+			return dValue * 72 * 100 * 1000 / 10 / 20;
+		}
+
+		function Mm_To_Multi(dValue) {
+			return dValue * 72 * 20 / 10 / 2.54;
+		}
+
+		function Mm_To_Emu(dValue) {
+			return dValue * 36000;
+		}
+
+		function Pt_To_Cm(dValue) {
+			return dValue * 2.54 / 72;
+		}
+
+		function Pt_To_Mm(dValue) {
+			return dValue * 2.54 * 10 / 72;
+		}
+
+		function Pt_To_Px(dValue) {
+			return dValue * 4 / 3;
+		}
+
+		function Pt_To_Inch(dValue) {
+			return dValue / 72;
+		}
+
+		function Pt_To_Dx(dValue) {
+			return dValue * 20;
+		}
+
+		function Pt_To_Sx(dValue) {
+			return dValue * 2.54 * 100 * 1000 / 20;
+		}
+
+		function Pt_To_Multi(dValue) {
+			return dValue * 20;
+		}
+
+		function Pt_To_Emu(dValue) {
+			return dValue * 12700;
+		}
+
+		function Px_To_Cm(dValue) {
+			return dValue * 2.54 * 3 / 72 / 4;
+		}
+
+		function Px_To_Mm(dValue) {
+			return dValue * 2.54 * 10 * 3 / 72 / 4;
+		}
+
+		function Px_To_Pt(dValue) {
+			return dValue * 3 / 4;
+		}
+
+		function Px_To_Inch(dValue) {
+			return dValue * 3 / 72 / 4;
+		}
+
+		function Px_To_Dx(dValue) {
+			return dValue * 20 * 3 / 4;
+		}
+
+		function Px_To_Sx(dValue) {
+			return dValue * 2.54 * 100 * 1000 * 3 / 20 / 4;
+		}
+
+		function Px_To_Multi(dValue) {
+			return dValue * 20 * 3 / 4;
+		}
+
+		function Px_To_Emu(dValue) {
+			return dValue * 9525;
+		}
+
+		function Inch_To_Cm(dValue) {
+			return dValue * 2.54;
+		}
+
+		function Inch_To_Mm(dValue) {
+			return dValue * 2.54 * 10;
+		}
+
+		function Inch_To_Pt(dValue) {
+			return dValue * 72;
+		}
+
+		function Inch_To_Px(dValue) {
+			return dValue * 72 * 4 / 3;
+		}
+
+		function Inch_To_Dx(dValue) {
+			return dValue * 72 * 20;
+		}
+
+		function Inch_To_Sx(dValue) {
+			return dValue * 1000 * 100 * 2.54 * 72 / 20;
+		}
+
+		function Inch_To_Multi(dValue) {
+			return dValue * 72 * 20;
+		}
+
+		function Inch_To_Emu(dValue) {
+			return dValue * 914400;
+		}
+
+		function Dx_To_Cm(dValue) {
+			return dValue * 2.54 / 72 / 20;
+		}
+
+		function Dx_To_Mm(dValue) {
+			return dValue * 2.54 * 10 / 72 / 20;
+		}
+
+		function Dx_To_Pt(dValue) {
+			return dValue / 20;
+		}
+
+
+		function Dx_To_Px(dValue) {
+			return dValue * 4 / 3 / 20;
+		}
+
+		function Dx_To_Inch(dValue) {
+			return dValue / 20 / 72;
+		}
+
+		function Dx_To_Sx(dValue) {
+			return dValue * 635;
+		}
+
+		function Dx_To_Multi(dValue) {
+			return dValue;
+		}
+
+		function Dx_To_Emu(dValue) {
+			return dValue * 635;
+		}
+
+		function Sx_To_Cm(dValue) {
+			return dValue * 20 / 72 / 100 / 1000;
+		}
+
+		function Sx_To_Mm(dValue) {
+			return dValue * 20 / 72 / 100 / 1000 * 10;
+		}
+
+		function Sx_To_Pt(dValue) {
+			return dValue * 20 / 100 / 1000 / 2.54;
+		}
+
+		function Sx_To_Px(dValue) {
+			return dValue * 20 * 4 / 3 / 100 / 1000 / 2.54;
+		}
+
+		function Sx_To_Inch(dValue) {
+			return dValue * 20 / 2.54 / 72 / 100 / 1000;
+		}
+
+		function Sx_To_Dx(dValue) {
+			return dValue * 20 * 20 / 2.54 / 100 / 1000;
+		}
+
+		function Sx_To_Multi(dValue) {
+			return dValue * 20 * 20 / 2.54 / 100 / 1000;
+		}
+
+		function Sx_To_Emu(dValue) {
+			return dValue;
+		}
+
+		function Multi_To_Cm(dValue) {
+			return dValue * 2.54 / 72 / 20;
+		}
+
+		function Multi_To_Mm(dValue) {
+			return dValue * 2.54 * 10 / 72 / 20;
+		}
+
+		function Multi_To_Pt(dValue) {
+			return dValue / 20;
+		}
+
+		function Multi_To_Px(dValue) {
+			return dValue * 4 / 3 / 20;
+		}
+
+		function Multi_To_Inch(dValue) {
+			return dValue / 20 / 72;
+		}
+
+		function Multi_To_Sx(dValue) {
+			return dValue * 635;
+		}
+
+		function Multi_To_Dx(dValue) {
+			return dValue;
+		}
+
+		function Multi_To_Emu(dValue) {
+			return dValue * 635;
+		}
+
+		function Emu_To_Cm(dValue) {
+			return dValue / 360000;
+		}
+
+		function Emu_To_Mm(dValue) {
+			return dValue / 36000;
+		}
+
+		function Emu_To_Pt(dValue) {
+			return dValue / 12700;
+		}
+
+		function Emu_To_Twips(dValue) {
+			return dValue / 635;
+		}
+
+		function Emu_To_Px(dValue) {
+			return dValue / 9525;
+		}
+
+		function Emu_To_Inch(dValue) {
+			return dValue / 914400;
+		}
+
+		function Emu_To_Sx(dValue) {
+			return dValue;
+		}
+
+		function Emu_To_Dx(dValue) {
+			return dValue / 635;
+		}
+
+		function Emu_To_Multi(dValue) {
+			return dValue / 635;
+		}
+
+		function CUniversalMeasure() {
+			this.m_bUnit = null;
+			this.m_dValue = null;
+		}
+
+		CUniversalMeasure.prototype.GetValue = function () {
+			return this.m_dValue;
+		};
+		CUniversalMeasure.prototype.ToPoints = function () {
+			return this.m_dValue;
+		};
+		CUniversalMeasure.prototype.ToInches = function () {
+			return this.m_dValue / 72.0;
+		};
+		CUniversalMeasure.prototype.ToMm = function () {
+			return this.m_dValue * 25.4 / 72;
+		}
+		CUniversalMeasure.prototype.ToTwips = function () {
+			return Pt_To_Dx(this.m_dValue);
+		}
+		CUniversalMeasure.prototype.ToHps = function () {
+			return (this.m_dValue * 2);
+		}
+		CUniversalMeasure.prototype.ToUnsignedTwips = function () {
+			return Math.abs(Pt_To_Dx(this.m_dValue));
+		}
+		CUniversalMeasure.prototype.FromPoints = function (dValue) {
+			this.m_dValue = dValue;
+			return this.m_dValue;
+		}
+		CUniversalMeasure.prototype.FromTwips = function (dValue) {
+			this.m_dValue = Dx_To_Pt(dValue);
+			return this.m_dValue;
+		}
+		CUniversalMeasure.prototype.FromMm = function (dValue) {
+			this.m_dValue = Mm_To_Pt(dValue);
+			return this.m_dValue;
+		}
+		CUniversalMeasure.prototype.FromInches = function (dValue) {
+			this.m_dValue = Inch_To_Pt(dValue);
+			return this.m_dValue;
+		}
+		CUniversalMeasure.prototype.FromEmu = function (dValue) {
+			this.m_dValue = Emu_To_Pt(dValue);
+			return this.m_dValue;
+		}
+
+		CUniversalMeasure.prototype.IsUnits = function () {
+			return this.m_bUnit;
+		}
+		CUniversalMeasure.prototype.Parse = function (sValue, dKoef) {
+			this.m_bUnit = false;
+			this.m_dValue = 0;
+
+			if (sValue.length === 0) return;
+
+			if (sValue.length <= 2) {
+				this.m_dValue = parseFloat(sValue) / dKoef;
+				return;
+			}
+
+			let sUnit = sValue.substr(sValue.length - 2, 2);
+			this.m_bUnit = true;
+
+			if ("cm" === sUnit) {
+				let dValue = parseFloat(sValue.substr(0, sValue.length - 2));
+				this.m_dValue = Cm_To_Pt(dValue);
+			} else if ("mm" === sUnit) {
+				let dValue = parseFloat(sValue.substr(0, sValue.length - 2));
+				this.m_dValue = Mm_To_Pt(dValue);
+			} else if ("in" === sUnit) {
+				let dValue = parseFloat(sValue.substr(0, sValue.length - 2));
+				this.m_dValue = Inch_To_Pt(dValue);
+			} else if ("pt" === sUnit) {
+				this.m_dValue = parseFloat(sValue.substr(0, sValue.length - 2));
+			} else if ("pc" === sUnit) {
+				let dValue = parseFloat(sValue.substr(0, sValue.length - 2));
+				this.m_dValue = dValue * 12.0;
+			} else if ("pi" === sUnit) {
+				let dValue = parseFloat(sValue.substr(0, sValue.length - 2));
+				this.m_dValue = dValue * 12.0;
+			} else {
+				this.m_bUnit = false;
+				this.m_dValue = parseFloat(sValue) / dKoef;
+				return;
+			}
+		}
+
+		function CUniversalMeasureOrPercent() {
+			CUniversalMeasure.call(this);
+			this.m_bTrailingPercentSign = null;
+		}
+
+		IC(CUniversalMeasureOrPercent, CUniversalMeasure, 0);
+		CUniversalMeasureOrPercent.prototype.SetValue = function (dValue) {
+			this.m_bUnit = false;
+			this.m_dValue = dValue;
+		};
+		CUniversalMeasureOrPercent.prototype.FromString = function (sValue) {
+			this.m_bUnit = false;
+			this.m_bTrailingPercentSign = false;
+			if (sValue.length === 0) {
+				this.m_dValue = 0;
+				return this.m_dValue;
+			}
+			if ('%' === sValue[sValue.length - 1]) {
+				this.m_bTrailingPercentSign = true;
+				this.m_dValue = parseFloat(sValue.substr(0, sValue.length - 1));
+			} else {
+				this.Parse(sValue, 1);
+			}
+			return this.m_dValue;
+		};
+		CUniversalMeasureOrPercent.prototype.ToString = function () {
+			let sResult;
+			if (this.m_bUnit)
+				sResult = this.m_dValue + "pt";
+			else if (this.m_bTrailingPercentSign)
+				sResult = this.m_dValue + "%";
+			else
+				sResult = this.m_dValue + "";
+			return sResult;
+		};
+		CUniversalMeasureOrPercent.prototype.IsPercent = function () {
+			return this.m_bTrailingPercentSign;
+		};
+
+		function readPoint(reader) {
+			return new CPoint(reader.GetValue());
+		}
+
+		function CPoint(sValue) {
+			CUniversalMeasure.call(this);
+			if (sValue) {
+				this.FromString(sValue);
+			}
+		}
+
+		IC(CPoint, CUniversalMeasure, 0);
+
+		CPoint.prototype.FromString = function (sValue) {
+			this.Parse(sValue, 1);
+			return this.m_dValue;
+		};
+		CPoint.prototype.SetValue = function (dValue) {
+			this.m_bUnit = false;
+			this.m_dValue = dValue;
+		};
+		CPoint.prototype.ToString = function () {
+			return this.m_dValue + "pt";
+		};
+		CPoint.prototype.FromPoints = function (dValue) {
+			this.m_dValue = dValue;
+			return this.m_dValue;
+		};
+		CPoint.prototype.FromInches = function (dValue) {
+			this.m_dValue = dValue * 72;
+			return this.m_dValue;
+		};
+		CPoint.prototype.GetValue = function () {
+			return this.m_dValue;
+		};
+
+		function CInch() {
+			CUniversalMeasure.call(this);
+		}
+
+		IC(CInch, CUniversalMeasure, 0)
+		CInch.prototype.FromString = function (sValue) {
+			this.Parse(sValue, 1.0 / 72);
+			return this.m_dValue;
+		};
+		CInch.prototype.SetValue(dValue)
+		{
+			this.m_bUnit = false;
+			this.m_dValue = FromInches(dValue);
+		}
+		;
+		CInch.prototype.ToString()
+		{
+			return ToInches() + "in";
+		}
+		;
+
+
 		function CVMLDrawing() {
 			CBaseNoId.call(this);
-			this.items =[]
+			this.items = []
 		}
+
 		IC(CVMLDrawing, CBaseNoId, 0);
 
 		CVMLDrawing.prototype.readAttrXml = function (name, reader) {
@@ -55,40 +535,40 @@
 		};
 		CVMLDrawing.prototype.readChildXml = function (name, reader) {
 			let oItem;
-			if ("arc" === name ) {
+			if ("arc" === name) {
 				oItem = new CArc();
 			}
-			if ("curve" === name ) {
+			if ("curve" === name) {
 				oItem = new CCurve();
 			}
-			if ("group" === name ) {
+			if ("group" === name) {
 				oItem = new CGroup();
 			}
-			if ("image" === name ) {
+			if ("image" === name) {
 				oItem = new CImage();
 			}
-			if ("line" === name ) {
+			if ("line" === name) {
 				oItem = new CLine();
 			}
-			if ("oval" === name ) {
+			if ("oval" === name) {
 				oItem = new COval();
 			}
-			if ("polyline" === name ) {
+			if ("polyline" === name) {
 				oItem = new CPolyLine();
 			}
-			if ("rect" === name ) {
+			if ("rect" === name) {
 				oItem = new CRect();
 			}
-			if ("roundrect" === name ) {
-				oItem =  new CRoundRect();
+			if ("roundrect" === name) {
+				oItem = new CRoundRect();
 			}
-			if ("shape" === name ) {
+			if ("shape" === name) {
 				oItem = new CShape();
 			}
-			if ("shapetype" === name ) {
+			if ("shapetype" === name) {
 				oItem = new CShapeType();
 			}
-			if(oItem) {
+			if (oItem) {
 				oItem.fromXml(reader);
 				this.items.push(oItem);
 			}
@@ -99,56 +579,56 @@
 
 		let shemeDefaultColor =
 			[
-				0x00000000,	0x00FFFFFF,	0x00FF0000,	0x0000FF00,	0x000000FF,	0x00FFFF00,	0x00FF00FF,	0x0000FFFF,
-				0x00000000,	0x00FFFFFF,	0x00FF0000,	0x0000FF00,	0x000000FF,	0x00FFFF00,	0x00FF00FF,	0x0000FFFF,
-				0x00800000,	0x00008000,	0x00000080,	0x00808000,	0x00800080,	0x00008080,	0x00C0C0C0,	0x00808080,
-				0x009999FF,	0x00993366,	0x00FFFFCC,	0x00CCFFFF,	0x00660066,	0x00FF8080,	0x000066CC,	0x00CCCCFF,
-				0x00000080,	0x00FF00FF,	0x00FFFF00,	0x0000FFFF,	0x00800080,	0x00800000,	0x00008080,	0x000000FF,
-				0x0000CCFF,	0x00CCFFFF,	0x00CCFFCC,	0x00FFFF99,	0x0099CCFF,	0x00FF99CC,	0x00CC99FF,	0x00FFCC99,
-				0x003366FF,	0x0033CCCC,	0x0099CC00,	0x00FFCC00,	0x00FF9900,	0x00FF6600,	0x00666699,	0x00969696,
-				0x00003366,	0x00339966,	0x00003300,	0x00333300,	0x00993300,	0x00993366,	0x00333399,	0x00333333
+				0x00000000, 0x00FFFFFF, 0x00FF0000, 0x0000FF00, 0x000000FF, 0x00FFFF00, 0x00FF00FF, 0x0000FFFF,
+				0x00000000, 0x00FFFFFF, 0x00FF0000, 0x0000FF00, 0x000000FF, 0x00FFFF00, 0x00FF00FF, 0x0000FFFF,
+				0x00800000, 0x00008000, 0x00000080, 0x00808000, 0x00800080, 0x00008080, 0x00C0C0C0, 0x00808080,
+				0x009999FF, 0x00993366, 0x00FFFFCC, 0x00CCFFFF, 0x00660066, 0x00FF8080, 0x000066CC, 0x00CCCCFF,
+				0x00000080, 0x00FF00FF, 0x00FFFF00, 0x0000FFFF, 0x00800080, 0x00800000, 0x00008080, 0x000000FF,
+				0x0000CCFF, 0x00CCFFFF, 0x00CCFFCC, 0x00FFFF99, 0x0099CCFF, 0x00FF99CC, 0x00CC99FF, 0x00FFCC99,
+				0x003366FF, 0x0033CCCC, 0x0099CC00, 0x00FFCC00, 0x00FF9900, 0x00FF6600, 0x00666699, 0x00969696,
+				0x00003366, 0x00339966, 0x00003300, 0x00333300, 0x00993300, 0x00993366, 0x00333399, 0x00333333
 			];
 		let controlPanelColors2 =
 			[
-				0x00000000,	0x00FFFFFF,	0x00000000,	0x00FFFFFF,
-				0x00000000,	0x00000000,	0x00000000,	0x00FFFFFF,
-				0x00FFFFFF,	0x00000000,	0x00FFFFFF,	0x00FFFFFF,
-				0x00000000,	0x00000000,	0x00000000,	0x00000000,
-				0x00FFFFFF,	0x00FFFFFF,	0x00FFFFFF,	0x00000000,
-				0x00FFFFFF,	0x00000000,	0x00000000,	0x00000000,
-				0x00000000,	0x00000000,	0x00FFFFFF,	0x00FFFFFF
+				0x00000000, 0x00FFFFFF, 0x00000000, 0x00FFFFFF,
+				0x00000000, 0x00000000, 0x00000000, 0x00FFFFFF,
+				0x00FFFFFF, 0x00000000, 0x00FFFFFF, 0x00FFFFFF,
+				0x00000000, 0x00000000, 0x00000000, 0x00000000,
+				0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00000000,
+				0x00FFFFFF, 0x00000000, 0x00000000, 0x00000000,
+				0x00000000, 0x00000000, 0x00FFFFFF, 0x00FFFFFF
 			];
 		let controlPanelColors1 =
 			[
-				0x00FFFFFF,	0x00CCCCCC,	0x00FFFFFF,	0x006363CE,
-				0x00DDDDDD,	0x00DDDDDD,	0x00888888,	0x00000000,
-				0x00000000,	0x00808080,	0x00B5D5FF,	0x00000000,
-				0x00FFFFFF,	0x00FFFFFF,	0x007F7F7F,	0x00FBFCC5,
-				0x00000000,	0x00F7F7F7,	0x00000000,	0x00FFFFFF,
-				0x00666666,	0x00C0C0C0,	0x00DDDDDD,	0x00C0C0C0,
-				0x00888888,	0x00FFFFFF,	0x00CCCCCC,	0x00000000
+				0x00FFFFFF, 0x00CCCCCC, 0x00FFFFFF, 0x006363CE,
+				0x00DDDDDD, 0x00DDDDDD, 0x00888888, 0x00000000,
+				0x00000000, 0x00808080, 0x00B5D5FF, 0x00000000,
+				0x00FFFFFF, 0x00FFFFFF, 0x007F7F7F, 0x00FBFCC5,
+				0x00000000, 0x00F7F7F7, 0x00000000, 0x00FFFFFF,
+				0x00666666, 0x00C0C0C0, 0x00DDDDDD, 0x00C0C0C0,
+				0x00888888, 0x00FFFFFF, 0x00CCCCCC, 0x00000000
 			];
 
 		let EColorType = {
-		colortypeNone: 0,
-		colortypeRGB: 1,
-		colortypeAqua: 2,
-		colortypeBlack: 3,
-		colortypeBlue: 4,
-		colortypeFuchsia: 5,
-		colortypeGray: 6,
-		colortypeGreen: 7,
-		colortypeLime: 8,
-		colortypeMaroon: 9,
-		colortypeNavy: 10,
-		colortypeOlive: 11,
-		colortypePurple: 12,
-		colortypeRed: 13,
-		colortypeSilver: 14,
-		colortypeTeal: 15,
-		colortypeWhite: 16,
-		colortypeYellow: 17
-	};
+			colortypeNone: 0,
+			colortypeRGB: 1,
+			colortypeAqua: 2,
+			colortypeBlack: 3,
+			colortypeBlue: 4,
+			colortypeFuchsia: 5,
+			colortypeGray: 6,
+			colortypeGreen: 7,
+			colortypeLime: 8,
+			colortypeMaroon: 9,
+			colortypeNavy: 10,
+			colortypeOlive: 11,
+			colortypePurple: 12,
+			colortypeRed: 13,
+			colortypeSilver: 14,
+			colortypeTeal: 15,
+			colortypeWhite: 16,
+			colortypeYellow: 17
+		};
 
 
 		function CColor(sVal) {
@@ -158,173 +638,167 @@
 			this.b = 0;
 			this.fromString(sVal);
 		}
-		CColor.prototype.fromString = function(sVal) {
-			if(sVal.charAt(0) === '#') {
+
+		CColor.prototype.fromString = function (sVal) {
+			if (sVal.charAt(0) === '#') {
 				this.byHexColor(sVal)
-			}
-			else {
+			} else {
 				this.byColorName(sVal);
 			}
 		};
-		CColor.prototype.setRGB = function() {
+		CColor.prototype.setRGB = function () {
 
 			if (this.type === EColorType.colortypeRGB) return;
 
-			switch(this.type)
-			{
-			case EColorType.colortypeAqua:
-			{
-				this.r = 0x00;
-				this.g = 0xff;
-				this.b = 0xff;
-			}break;
-			case EColorType.colortypeBlack:
-			{
-				this.r = 0x00;
-				this.g = 0x00;
-				this.b = 0x00;
-			}break;
-			case EColorType.colortypeBlue:
-			{
-				this.r = 0x00;
-				this.g = 0x00;
-				this.b = 0xff;
-			}break;
-			case EColorType.colortypeFuchsia:
-			{
-				this.r = 0xff;
-				this.g = 0x00;
-				this.b = 0xff;
-			}break;
-			case EColorType.colortypeGray:
-			{
-				this.r = 0x80;
-				this.g = 0x80;
-				this.b = 0x80;
-			}break;
-			case EColorType.colortypeGreen:
-			{
-				this.r = 0x00;
-				this.g = 0x80;
-				this.b = 0x00;
-			}break;
-			case EColorType.colortypeLime:
-			{
-				this.r = 0x00;
-				this.g = 0xff;
-				this.b = 0x00;
-			}break;
-			case EColorType.colortypeMaroon:
-			{
-				this.r = 0x80;
-				this.g = 0x00;
-				this.b = 0x00;
-			}break;
-			case EColorType.colortypeNavy:
-			{
-				this.r = 0x00;
-				this.g = 0x00;
-				this.b = 0x80;
-			}break;
-			case EColorType.colortypeOlive:
-			{
-				this.r = 0x80;
-				this.g = 0x80;
-				this.b = 0x00;
-			}break;
-			case EColorType.colortypePurple:
-			{
-				this.r = 0x80;
-				this.g = 0x00;
-				this.b = 0x80;
-			}break;
-			case EColorType.colortypeRed:
-			{
-				this.r = 0xff;
-				this.g = 0x00;
-				this.b = 0x00;
-			}break;
-			case EColorType.colortypeSilver:
-			{
-				this.r = 0xc0;
-				this.g = 0xc0;
-				this.b = 0xc0;
-			}break;
-			case EColorType.colortypeTeal:
-			{
-				this.r = 0x00;
-				this.g = 0x80;
-				this.b = 0x80;
-			}break;
-			case EColorType.colortypeWhite:
-			{
-				this.r = 0xff;
-				this.g = 0xff;
-				this.b = 0xff;
-			}break;
-			case EColorType.colortypeYellow:
-			{
-				this.r = 0xff;
-				this.g = 0xff;
-				this.b = 0;
-			}break;
-			case EColorType.colortypeNone:
-				default:
-				{
+			switch (this.type) {
+				case EColorType.colortypeAqua: {
+					this.r = 0x00;
+					this.g = 0xff;
+					this.b = 0xff;
+				}
+					break;
+				case EColorType.colortypeBlack: {
+					this.r = 0x00;
+					this.g = 0x00;
+					this.b = 0x00;
+				}
+					break;
+				case EColorType.colortypeBlue: {
+					this.r = 0x00;
+					this.g = 0x00;
+					this.b = 0xff;
+				}
+					break;
+				case EColorType.colortypeFuchsia: {
+					this.r = 0xff;
+					this.g = 0x00;
+					this.b = 0xff;
+				}
+					break;
+				case EColorType.colortypeGray: {
+					this.r = 0x80;
+					this.g = 0x80;
+					this.b = 0x80;
+				}
+					break;
+				case EColorType.colortypeGreen: {
+					this.r = 0x00;
+					this.g = 0x80;
+					this.b = 0x00;
+				}
+					break;
+				case EColorType.colortypeLime: {
+					this.r = 0x00;
+					this.g = 0xff;
+					this.b = 0x00;
+				}
+					break;
+				case EColorType.colortypeMaroon: {
+					this.r = 0x80;
+					this.g = 0x00;
+					this.b = 0x00;
+				}
+					break;
+				case EColorType.colortypeNavy: {
+					this.r = 0x00;
+					this.g = 0x00;
+					this.b = 0x80;
+				}
+					break;
+				case EColorType.colortypeOlive: {
+					this.r = 0x80;
+					this.g = 0x80;
+					this.b = 0x00;
+				}
+					break;
+				case EColorType.colortypePurple: {
+					this.r = 0x80;
+					this.g = 0x00;
+					this.b = 0x80;
+				}
+					break;
+				case EColorType.colortypeRed: {
+					this.r = 0xff;
+					this.g = 0x00;
+					this.b = 0x00;
+				}
+					break;
+				case EColorType.colortypeSilver: {
+					this.r = 0xc0;
+					this.g = 0xc0;
+					this.b = 0xc0;
+				}
+					break;
+				case EColorType.colortypeTeal: {
+					this.r = 0x00;
+					this.g = 0x80;
+					this.b = 0x80;
+				}
+					break;
+				case EColorType.colortypeWhite: {
+					this.r = 0xff;
+					this.g = 0xff;
+					this.b = 0xff;
+				}
+					break;
+				case EColorType.colortypeYellow: {
+					this.r = 0xff;
+					this.g = 0xff;
+					this.b = 0;
+				}
+					break;
+				case EColorType.colortypeNone:
+				default: {
 					this.r = 0;
 					this.g = 0;
 					this.b = 0;
-				}break;
+				}
+					break;
 			}
 		};
-		CColor.prototype.byHexColor = function(sVal) {
+		CColor.prototype.byHexColor = function (sVal) {
 			this.type = EColorType.colortypeRGB;
 			let nColor = parseInt(sVal.slice(1));
 			this.r = (nColor >> 16) & 0xFF;
 			this.g = (nColor >> 8) & 0xFF;
 			this.b = nColor & 0xFF;
 		};
-		CColor.prototype.byColorName = function(sVal) {
+		CColor.prototype.byColorName = function (sVal) {
 			this.type = EColorType.colortypeNone;
 
-			if(sVal.indexOf("aqua") > -1) this.type = EColorType.colortypeAqua;
-		else if(sVal.indexOf("black") > -1) this.type = EColorType.colortypeBlack;
-		else if(sVal.indexOf("blue") > -1) this.type = EColorType.colortypeBlue;
-		else if(sVal.indexOf("fuchsia") > -1) this.type = EColorType.colortypeFuchsia;
-		else if(sVal.indexOf("gray") > -1) this.type = EColorType.colortypeGray;
-		else if(sVal.indexOf("green") > -1) this.type = EColorType.colortypeGreen;
-		else if(sVal.indexOf("lime") > -1) this.type = EColorType.colortypeLime;
-		else if(sVal.indexOf("maroon") > -1) this.type = EColorType.colortypeMaroon;
-		else if(sVal.indexOf("navy") > -1) this.type = EColorType.colortypeNavy;
-		else if(sVal.indexOf("olive") > -1) this.type = EColorType.colortypeOlive;
-		else if(sVal.indexOf("purple") > -1) this.type = EColorType.colortypePurple;
-		else if(sVal.indexOf("red") > -1) this.type = EColorType.colortypeRed;
-		else if(sVal.indexOf("silver") > -1) this.type = EColorType.colortypeSilver;
-		else if(sVal.indexOf("teal") > -1) this.type = EColorType.colortypeTeal;
-		else if(sVal.indexOf("white") > -1) this.type = EColorType.colortypeWhite;
-		else if(sVal.indexOf("yellow") > -1) this.type = EColorType.colortypeYellow;
-		else if(sVal.indexOf("[") > -1 && sVal.indexOf("]") > -1)
-			{
+			if (sVal.indexOf("aqua") > -1) this.type = EColorType.colortypeAqua;
+			else if (sVal.indexOf("black") > -1) this.type = EColorType.colortypeBlack;
+			else if (sVal.indexOf("blue") > -1) this.type = EColorType.colortypeBlue;
+			else if (sVal.indexOf("fuchsia") > -1) this.type = EColorType.colortypeFuchsia;
+			else if (sVal.indexOf("gray") > -1) this.type = EColorType.colortypeGray;
+			else if (sVal.indexOf("green") > -1) this.type = EColorType.colortypeGreen;
+			else if (sVal.indexOf("lime") > -1) this.type = EColorType.colortypeLime;
+			else if (sVal.indexOf("maroon") > -1) this.type = EColorType.colortypeMaroon;
+			else if (sVal.indexOf("navy") > -1) this.type = EColorType.colortypeNavy;
+			else if (sVal.indexOf("olive") > -1) this.type = EColorType.colortypeOlive;
+			else if (sVal.indexOf("purple") > -1) this.type = EColorType.colortypePurple;
+			else if (sVal.indexOf("red") > -1) this.type = EColorType.colortypeRed;
+			else if (sVal.indexOf("silver") > -1) this.type = EColorType.colortypeSilver;
+			else if (sVal.indexOf("teal") > -1) this.type = EColorType.colortypeTeal;
+			else if (sVal.indexOf("white") > -1) this.type = EColorType.colortypeWhite;
+			else if (sVal.indexOf("yellow") > -1) this.type = EColorType.colortypeYellow;
+			else if (sVal.indexOf("[") > -1 && sVal.indexOf("]") > -1) {
 				let p1 = sVal.indexOf("[");
 				let p2 = sVal.indexOf("]");
 				let sIndex = p2 > p1 ? sVal.substr(p1 + 1, p2 - p1 - 1) : "";
 
-				if (sIndex.length > 0)
-				{
+				if (sIndex.length > 0) {
 					let index = parseInt(sIndex);
 					let nRGB = 0;
-					if (index < 64)
-					{
+					if (index < 64) {
 						nRGB = shemeDefaultColor[index];
-					}
-					else if (index > 64 && index < 92)
-					{
+					} else if (index > 64 && index < 92) {
 						nRGB = controlPanelColors1[index - 65];
 					}
 					this.r = ((nRGB >> 16) & 0xff);
 					this.g = ((nRGB >> 8) & 0xff);
 					this.b = (nRGB & 0xff);
-					this.type  = EColorType.colortypeRGB;
+					this.type = EColorType.colortypeRGB;
 				}
 			}
 
@@ -337,23 +811,23 @@
 			this.x = 0;
 			this.y = 0;
 
-			if(sVal){
+			if (sVal) {
 				this.fromString(sVal);
 			}
 		}
+
 		CVmlVector2D.prototype.fromString = function (sValue) {
 			let nLen = sValue.length;
-			if ( nLen <= 0 )
+			if (nLen <= 0)
 				return 0;
 
 			let nPos = sValue.indexOf(",");
 			let strX, strY;
-			if ( -1 === nPos ) {//only x coord
+			if (-1 === nPos) {//only x coord
 				strX = sValue;
-			}
-			else {
-				strX = sValue.substr( 0, nPos );
-				strY = sValue.substr( nPos + 1, nLen - nPos - 1 ) ;
+			} else {
+				strX = sValue.substr(0, nPos);
+				strY = sValue.substr(nPos + 1, nLen - nPos - 1);
 			}
 			strY.replace("@", "");
 			strX.replace("@", "");
@@ -364,31 +838,31 @@
 
 		function CVmlPolygon2D(sVal) {
 			this.pts = [];
-			if(sVal) {
+			if (sVal) {
 				this.fromString(sVal)
 			}
 		}
+
 		CVmlPolygon2D.prototype.fromString = function (sValue) {
 			this.pts.length = 0;
 
 			let nLen = sValue.length;
-			if ( nLen <= 0 )
+			if (nLen <= 0)
 				return 0;
 
 			let nStartPos = 0;
-			while ( true )
-			{
-				let nMidPos = sValue.indexOf(",", nStartPos );
-				let nEndPos = sValue.indexOf(",", nMidPos + 1 );
+			while (true) {
+				let nMidPos = sValue.indexOf(",", nStartPos);
+				let nEndPos = sValue.indexOf(",", nMidPos + 1);
 
-				if ( -1 === nMidPos )
+				if (-1 === nMidPos)
 					break;
 
-				if ( -1 === nEndPos )
+				if (-1 === nEndPos)
 					nEndPos = nLen;
 
-				let strX = sValue.substr( nStartPos, nMidPos - nStartPos );
-				let strY = sValue.substr( nStartPos, nMidPos - nStartPos );
+				let strX = sValue.substr(nStartPos, nMidPos - nStartPos);
+				let strY = sValue.substr(nStartPos, nMidPos - nStartPos);
 
 				strX.replace("@", "");
 				strY.replace("@", "");
@@ -407,48 +881,315 @@
 			return 0;
 		};
 
+
+		function CVml_Matrix(sValue) {
+			this.m_dSxx = null;
+			this.m_dSxy = null;
+			this.m_dSyx = null;
+			this.m_dSyy = null;
+			this.m_dPx = null;
+			this.m_dPy = null;
+			this.ResetMatrix();
+			if (sValue) {
+				this.FromString(sValue);
+			}
+		}
+
+
+		CVml_Matrix.prototype.ResetMatrix = function () {
+			this.m_dSxx = 1;
+			this.m_dSxy = 0;
+			this.m_dSyx = 0;
+			this.m_dSyy = 1;
+			this.m_dPx = 0;
+			this.m_dPy = 0;
+		}
+		CVml_Matrix.prototype.SetMatrix = function (dSxx, dSxy, dSyx, dSyy, dPx, dPy) {
+			this.m_dSxx = dSxx;
+			this.m_dSxy = dSxy;
+			this.m_dSyx = dSyx;
+			this.m_dSyy = dSyy;
+			this.m_dPx = dPx;
+			this.m_dPy = dPy;
+		}
+
+		CVml_Matrix.prototype.Get_Sxx = function () {
+			return this.m_dSxx;
+		}
+		CVml_Matrix.prototype.Get_Sxy = function () {
+			return this.m_dSxy;
+		}
+		CVml_Matrix.prototype.Get_Syx = function () {
+			return this.m_dSyx;
+		}
+		CVml_Matrix.prototype.Get_Syy = function () {
+			return this.m_dSyy;
+		}
+
+		CVml_Matrix.prototype.Get_Px = function () {
+			return this.m_dPx;
+		}
+		CVml_Matrix.prototype.Get_Py = function () {
+			return this.m_dPy;
+		}
+
+		CVml_Matrix.prototype.FromString = function (sValue) {
+			this.ResetMatrix();
+
+			let nLen = sValue.length;
+			if (nLen <= 0)
+				return 0;
+
+			// Sxx
+			let nStartPos = 0;
+			let nEndPos = sValue.indexOf(",", nStartPos);
+			if (-1 === nEndPos)
+				nEndPos = nLen;
+
+			if (nEndPos - nStartPos > 0) {
+				let strValue = sValue.substr(nStartPos, nEndPos - nStartPos);
+				this.m_dSxx = strValue.length === 0 ? 0 : parseFloat(strValue);
+			}
+
+			// Sxy
+			nStartPos = nEndPos + 1;
+			nEndPos = sValue.indexOf(",", nStartPos);
+			if (-1 === nEndPos)
+				nEndPos = nLen;
+
+			if (nEndPos - nStartPos > 0) {
+				let strValue = sValue.substr(nStartPos, nEndPos - nStartPos);
+				this.m_dSxy = strValue.length === 0 ? 0 : parseFloat(strValue);
+			}
+
+			// Syx
+			nStartPos = nEndPos + 1;
+			nEndPos = sValue.indexOf(",", nStartPos);
+			if (-1 === nEndPos)
+				nEndPos = nLen;
+
+			if (nEndPos - nStartPos > 0) {
+				let strValue = sValue.substr(nStartPos, nEndPos - nStartPos);
+				this.m_dSyx = strValue.length === 0 ? 0 : parseFloat(strValue);
+			}
+
+			// Syy
+			nStartPos = nEndPos + 1;
+			nEndPos = sValue.indexOf(",", nStartPos);
+			if (-1 === nEndPos)
+				nEndPos = nLen;
+
+			if (nEndPos - nStartPos > 0) {
+				let strValue = sValue.substr(nStartPos, nEndPos - nStartPos);
+				this.m_dSyy = strValue.length === 0 ? 0 : parseFloat(strValue);
+			}
+
+			// Px
+			nStartPos = nEndPos + 1;
+			nEndPos = sValue.indexOf(",", nStartPos);
+			if (-1 === nEndPos)
+				nEndPos = nLen;
+
+			if (nEndPos - nStartPos > 0) {
+				let strValue = sValue.substr(nStartPos, nEndPos - nStartPos);
+				this.m_dPx = strValue.length === 0 ? 0 : parseFloat(strValue);
+			}
+
+			// Py
+			nStartPos = nEndPos + 1;
+			nEndPos = sValue.indexOf(",", nStartPos);
+			if (-1 === nEndPos)
+				nEndPos = nLen;
+
+			if (nEndPos - nStartPos > 0) {
+				let strValue = sValue.substr(nStartPos, nEndPos - nStartPos);
+				this.m_dPy = strValue.length === 0 ? 0 : parseFloat(strValue);
+			}
+
+			nStartPos = nEndPos + 1;
+			return 0;
+		}
+
+		CVml_Matrix.prototype.ToString = function () {
+			return this.m_dSxx + "," + this.m_dSxy + "," + this.m_dSyx + "," + this.m_dSyy + "," + this.m_dPx + "," + this.m_dPy;
+		}
+
+
+		function CPercentage(sValue) {
+			{
+				this.m_dValue = 0;
+				if (sValue) {
+					this.FromString(sValue);
+				}
+			}
+
+		}
+
+
+		CPercentage.prototype.GetValue = function () {
+			return this.m_dValue;
+		};
+
+		CPercentage.prototype.SetValue = function (dValue) {
+			this.m_dValue = dValue;
+		};
+
+		CPercentage.prototype.FromString = function (sValue) {
+			let nPos = sValue.indexOf('%');
+			let nLen = sValue.length;
+			if (-1 === nPos || nPos !== sValue.length - 1 || nLen <= 0) {
+				if (-1 === nPos) {
+					let dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
+					if (Math.abs(dValue) >= 0 && Math.abs(dValue) <= 1) {
+						this.m_dValue = dValue;
+					} else {
+						this.m_dValue = dValue / 1000.0;
+					}
+				} else
+					this.m_dValue = 0;
+			} else {
+				let strValue = sValue.substr(0, nLen - 1);
+				this.m_dValue = strValue.length === 0 ? 0 : parseFloat(strValue);
+			}
+
+			return this.m_dValue;
+		};
+
+		CPercentage.prototype.ToString = function () {
+			return this.m_dValue + "%";
+		};
+		CPercentage.prototype.ToStringDecimalNumber = function () {
+			let sResult = m_dValue * 1000.0 >> 0;
+
+			return sResult;
+		};
+
+		function CVml_Vector2D_Units_Or_Percentage(sValue) {
+			this.m_dX = 0;
+			this.m_dY = 0;
+			this.m_bUnitsX = true;
+			this.m_bUnitsY = true;
+			if (sValue) {
+				this.FromString(sValue);
+			}
+		}
+
+
+		CVml_Vector2D_Units_Or_Percentage.prototype.GetX = function () {
+			return this.m_dX;
+		};
+		CVml_Vector2D_Units_Or_Percentage.prototype.GetY = function () {
+			return this.m_dY;
+		};
+		CVml_Vector2D_Units_Or_Percentage.prototype.IsXinPoints = function () {
+			return this.m_bUnitsX;
+		};
+		CVml_Vector2D_Units_Or_Percentage.prototype.IsYinPoints = function () {
+			return this.m_bUnitsY;
+		};
+		CVml_Vector2D_Units_Or_Percentage.prototype.SetValue_Points = function (dX, dY) {
+			this.m_dX = dX;
+			this.m_dY = dY;
+
+			this.m_bUnitsX = true;
+			this.m_bUnitsY = true;
+		};
+
+		CVml_Vector2D_Units_Or_Percentage.prototype.FromString = function (sValue) {
+			this.m_dX = 0;
+			this.m_dY = 0;
+			this.m_bUnitsX = true;
+			this.m_bUnitsY = true;
+
+			let nLen = sValue.length;
+			if (nLen < 1)
+				return 0;
+
+			let nPos = sValue.indexOf(",");
+			if (-1 === nPos)
+				return 0;
+
+			let sTemp = sValue.substr(0, nPos);
+			if (-1 !== sTemp.indexOf('%')) {
+				let oPerc = new CPercentage(sTemp);
+				this.m_dX = oPerc.GetValue();
+				this.m_bUnitsX = false;
+			} else {
+				let oPt = new CPoint(sTemp);
+				this.m_dX = oPt.GetValue();
+				this.m_bUnitsX = true;
+			}
+
+			sTemp = sValue.substr(nPos + 1, nLen - nPos - 1);
+			if (-1 !== sTemp.indexOf('%')) {
+				let oPerc = new CPercentage(sTemp);
+				this.m_dY = oPerc.GetValue();
+				this.m_bUnitsY = false;
+			} else {
+				let oPt = new CPoint(sTemp);
+				this.m_dY = oPt.GetValue();
+				this.m_bUnitsY = true;
+			}
+
+			return 0;
+		};
+
+		CVml_Vector2D_Units_Or_Percentage.prototype.ToString = function () {
+			let sResult = this.m_dX + "";
+
+			if (this.m_bUnitsX) sResult += "pt,";
+			else sResult += "%,";
+
+			sResult += this.m_dY;
+
+			if (this.m_bUnitsY) sResult += "pt";
+			else sResult += "%";
+
+			return sResult;
+		};
+
+
 		function CVml_Vector3D_65536(sVal) {
-			this.m_nX;
-			this.m_nY;
-			this.m_nZ;
-			if(sVal) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+			this.m_nZ = 0;
+			if (sVal) {
 				this.fromString(sVal);
 			}
 		}
-		CVml_Vector3D_65536.prototype.fromString = function(sValue) {
+
+		CVml_Vector3D_65536.prototype.fromString = function (sValue) {
 			this.m_nX = 0;
 			this.m_nY = 0;
 			this.m_nZ = 0;
 
 			let nLen = sValue.length;
-			if ( nLen <= 0 )
+			if (nLen <= 0)
 				return 0;
 
 			let nPos = sValue.indexOf(",");
-			if ( -1 === nPos )
-			{//only x position
+			if (-1 === nPos) {//only x position
 				let strX = sValue;
 				strX.replace("@", "");
 
-				this.m_nX = strX.length === 0 ? 0 : parseInte(strX);
+				this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
 				return 0;
 			}
-			let strX = sValue.substr( 0, nPos );
+			let strX = sValue.substr(0, nPos);
 			strX.replace("@", "");
 
 			this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
 
-			let nPos2 = sValue.indexOf( ",", nPos + 1 );
-			if ( -1 === nPos2 )
-			{// only x, y position
-				let strY = sValue.substr( nPos + 1);
+			let nPos2 = sValue.indexOf(",", nPos + 1);
+			if (-1 === nPos2) {// only x, y position
+				let strY = sValue.substr(nPos + 1);
 				strY.replace("@", "");
 				this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
 				return 0;
 			}
 
-			let strY = sValue.substr( nPos + 1, nPos2 - nPos - 1);
-			let strZ = sValue.substr( nPos2 + 1, nLen - nPos2 - 1 ) ;
+			let strY = sValue.substr(nPos + 1, nPos2 - nPos - 1);
+			let strZ = sValue.substr(nPos2 + 1, nLen - nPos2 - 1);
 
 			strY.replace("@", "");
 			strZ.replace("@", "");
@@ -458,47 +1199,46 @@
 		};
 
 		function CVml_Vector3D(sVal) {
-			this.m_nX;
-			this.m_nY;
-			this.m_nZ;
-			if(sVal) {
+			this.m_nX = 0;
+			this.m_nY = 0;
+			this.m_nZ = 0;
+			if (sVal) {
 				this.fromString(sVal);
 			}
 		}
-		CVml_Vector3D.prototype.fromString = function(sValue) {
+
+		CVml_Vector3D.prototype.fromString = function (sValue) {
 			this.m_nX = 0;
 			this.m_nY = 0;
 			this.m_nZ = 0;
 
 			let nLen = sValue.length;
-			if ( nLen <= 0 )
+			if (nLen <= 0)
 				return 0;
 
 			let nPos = sValue.indexOf(",");
-			if ( -1 == nPos )
-			{//only x position
+			if (-1 === nPos) {//only x position
 				let strX = sValue;
 				strX.replace("@", "");
 
 				this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
 				return 0;
 			}
-			let strX = sValue.substr( 0, nPos );
+			let strX = sValue.substr(0, nPos);
 			strX.replace("@", "");
 
 			this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
 
-			let nPos2 = sValue.indexOf(",", nPos + 1 );
-			if ( -1 == nPos2 )
-			{// only x, y position
-				let strY = sValue.substr( nPos + 1);
+			let nPos2 = sValue.indexOf(",", nPos + 1);
+			if (-1 === nPos2) {// only x, y position
+				let strY = sValue.substr(nPos + 1);
 				strY.replace("@", "");
 				this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
 				return 0;
 			}
 
-			let strY = sValue.substr( nPos + 1, nPos2 - nPos - 1);
-			let strZ = sValue.substr( nPos2 + 1, nLen - nPos2 - 1 ) ;
+			let strY = sValue.substr(nPos + 1, nPos2 - nPos - 1);
+			let strZ = sValue.substr(nPos2 + 1, nLen - nPos2 - 1);
 
 			strY.replace("@", "");
 			strZ.replace("@", "");
@@ -511,29 +1251,27 @@
 		function CVml_Vector2D(sVal) {
 			this.m_nX = 0;
 			this.m_nY = 0;
-			if(sVal) {
+			if (sVal) {
 				this.fromString(sVal);
 			}
 		}
-		CVml_Vector2D.prototype.fromString = function(sValue) {
+
+		CVml_Vector2D.prototype.fromString = function (sValue) {
 			this.m_nX = 0;
 			this.m_nY = 0;
 
-			let nLen = sValue.length();
-			if ( nLen <= 0 )
+			let nLen = sValue.length;
+			if (nLen <= 0)
 				return 0;
 
 			let nPos = sValue.indexOf(",");
 
 			let strX, strY;
-			if ( -1 == nPos )
-			{//only x coord
+			if (-1 === nPos) {//only x coord
 				strX = sValue;
-			}
-			else
-			{
-				strX = sValue.substr( 0, nPos );
-				strY = sValue.substr( nPos + 1, nLen - nPos - 1 ) ;
+			} else {
+				strX = sValue.substr(0, nPos);
+				strY = sValue.substr(nPos + 1, nLen - nPos - 1);
 			}
 			strY.replace("@", "");
 			strX.replace("@", "");
@@ -545,29 +1283,27 @@
 		function CVml_Vector2D_F(sVal) {
 			this.m_nX = 0;
 			this.m_nY = 0;
-			if(sVal) {
+			if (sVal) {
 				this.fromString(sVal);
 			}
 		}
-		CVml_Vector2D_F.prototype.fromString = function(sValue) {
+
+		CVml_Vector2D_F.prototype.fromString = function (sValue) {
 			this.m_nX = 0;
 			this.m_nY = 0;
 
-			let nLen = sValue.length();
-			if ( nLen <= 0 )
+			let nLen = sValue.length;
+			if (nLen <= 0)
 				return 0;
 
 			let nPos = sValue.indexOf(",");
 
 			let strX, strY;
-			if ( -1 == nPos )
-			{//only x coord
+			if (-1 === nPos) {//only x coord
 				strX = sValue;
-			}
-			else
-			{
-				strX = sValue.substr( 0, nPos );
-				strY = sValue.substr( nPos + 1, nLen - nPos - 1 ) ;
+			} else {
+				strX = sValue.substr(0, nPos);
+				strY = sValue.substr(nPos + 1, nLen - nPos - 1);
 			}
 			strY.replace("@", "");
 			strX.replace("@", "");
@@ -575,45 +1311,65 @@
 			this.m_nX = strX.length === 0 ? 0 : parseFloat(strX);
 			this.m_nY = strY.length === 0 ? 0 : parseFloat(strY);
 		};
-		
+
 		let EInsetMode =
-		{
-			insetmodeAuto   : 0,
-			insetmodeCustom : 1
-		};
+			{
+				insetmodeAuto: 0,
+				insetmodeCustom: 1
+			};
 
 		//--------------------------------------------------------------------------------
-		let  EBWMode =
+		let EBWMode =
+			{
+				bwmodeAuto: 0,
+				bwmodeBlack: 1,
+				bwmodeBlackTextAndLines: 2,
+				bwmodeColor: 3,
+				bwmodeGrayOutline: 4,
+				bwmodeGrayScale: 5,
+				bwmodeHide: 6,
+				bwmodeHighContrast: 7,
+				bwmodeInverseGray: 8,
+				bwmodeLightGrayscale: 9,
+				bwmodeUndrawn: 10,
+				bwmodeWhite: 11
+			};
+
+
+		let EColorMode =
 		{
-			bwmodeAuto					: 0,
-				bwmodeBlack             : 1,
-				bwmodeBlackTextAndLines : 2,
-				bwmodeColor             : 3,
-				bwmodeGrayOutline       : 4,
-				bwmodeGrayScale         : 5,
-				bwmodeHide				: 6,
-				bwmodeHighContrast      : 7,
-				bwmodeInverseGray       : 8,
-				bwmodeLightGrayscale    : 9,
-				bwmodeUndrawn           : 10,
-				bwmodeWhite             : 11
+			colormodeAuto   : 0,
+			colormodeCustom : 1
 		};
 
-
 		function readColorMode(reader) {
+			let sVal = reader.GetValue()
+			switch (sVal) {
+				case "auto": {
+					return EColorMode.colormodeAuto;
+				}
+				case "custom": {
+					return EColorMode.colormodeCustom;
+				}
+			}
+			return null;
+		}
+		function readInsetMode(reader) {
 
 			let sVal = reader.GetValue()
 			switch (sVal) {
 				case "auto": {
 					return EInsetMode.insetmodeAuto;
-					break;
 				}
 				case "custom": {
 					return EInsetMode.insetmodeCustom;
-					break;
 				}
 			}
 			return null;
+		}
+
+		function readColorType(reader) {
+			return new CColor(reader.GetValue());
 		}
 
 		function CVmlCommonElements() {
@@ -682,9 +1438,10 @@
 			this.items = [];
 
 		}
+
 		IC(CVmlCommonElements, CBaseNoId, 0);
 		CVmlCommonElements.prototype.readColor = function (reader) {
-			return new CColor(reader.GetValue());
+			return readColorType(reader);
 		};
 		CVmlCommonElements.prototype.readVector2D = function (reader) {
 			return new CVmlVector2D(reader.GetValue());
@@ -697,73 +1454,60 @@
 			switch (sVal) {
 				case "auto": {
 					return EBWMode.bwmodeAuto;
-					break;
 				}
 				case "black": {
 					return EBWMode.bwmodeBlack;
-					break;
 				}
 				case "blackTextAndLines": {
 					return EBWMode.bwmodeBlackTextAndLines;
-					break;
 				}
 				case "color": {
 					return EBWMode.bwmodeColor;
-					break;
 				}
 				case "grayOutline": {
 					return EBWMode.bwmodeGrayOutline;
-					break;
 				}
 				case "grayScale": {
 					return EBWMode.bwmodeGrayScale;
-					break;
 				}
 				case "hide": {
 					return EBWMode.bwmodeHide;
-					break;
 				}
 				case "highContrast": {
 					return EBWMode.bwmodeHighContrast;
-					break;
 				}
 				case "inverseGray": {
 					return EBWMode.bwmodeInverseGray;
-					break;
 				}
 				case "lightGrayscale": {
 					return EBWMode.bwmodeLightGrayscale;
-					break;
 				}
 				case "undrawn": {
 					return EBWMode.bwmodeUndrawn;
-					break;
 				}
 				case "white": {
 					return EBWMode.bwmodeWhite;
-					break;
 				}
 			}
 			return null;
 		};
 		CVmlCommonElements.prototype.readAttrXml = function (name, reader) {
-			if ("alt" === name ) this.m_sAlt = reader.GetValue();
-			else if ("chromakey" === name ) this.m_oChromaKey = this.readColor(reader);
+			if ("alt" === name) this.m_sAlt = reader.GetValue();
+			else if ("chromakey" === name) this.m_oChromaKey = this.readColor(reader);
 			else if ("class" === name) this.m_sClass = reader.GetValue();
-			else if ("coordorigin" === name ) this.m_oCoordOrigin = this.readVector2D(reader);
-			else if ("coordsize" === name ) this.m_oCoordSize = this.readVector2D(reader);
-			else if ("fillcolor" === name ) this.m_oFillColor = this.readColor(reader);
-			else if ("filled" === name ) this.m_oFilled = reader.GetValueBool();
-			else if ("href" === name ) this.m_sHref = reader.GetValue();
-			else if ("id" === name ) this.m_sId = reader.GetValue();
-			else if ("insetpen" === name ) this.m_oInsetPen = reader.GetValueBool();
-			else if ("allowincell" === name ) this.m_oAllowInCell = reader.GetValueBool();
-			else if ("allowoverlap" === name ) this.m_oAllowOverlap = reader.GetValueBool();
-			else if ("opacity" === name ) {
+			else if ("coordorigin" === name) this.m_oCoordOrigin = this.readVector2D(reader);
+			else if ("coordsize" === name) this.m_oCoordSize = this.readVector2D(reader);
+			else if ("fillcolor" === name) this.m_oFillColor = this.readColor(reader);
+			else if ("filled" === name) this.m_oFilled = reader.GetValueBool();
+			else if ("href" === name) this.m_sHref = reader.GetValue();
+			else if ("id" === name) this.m_sId = reader.GetValue();
+			else if ("insetpen" === name) this.m_oInsetPen = reader.GetValueBool();
+			else if ("allowincell" === name) this.m_oAllowInCell = reader.GetValueBool();
+			else if ("allowoverlap" === name) this.m_oAllowOverlap = reader.GetValueBool();
+			else if ("opacity" === name) {
 				this.m_oOpacity = readCVml_1_65536(reader);
-			}
-			else if ("borderbottomcolor" === name ) this.m_oBorderBottomColor = this.readColor(reader);
-			else if ("borderleftcolor" === name ) this.m_oBorderLeftColor = this.readColor(reader);
+			} else if ("borderbottomcolor" === name) this.m_oBorderBottomColor = this.readColor(reader);
+			else if ("borderleftcolor" === name) this.m_oBorderLeftColor = this.readColor(reader);
 			else if ("borderrightcolor" === name) this.m_oBorderRightColor = this.readColor(reader);
 			else if ("bordertopcolor" === name) this.m_oBorderTopColor = this.readColor(reader);
 			else if ("bullet" === name) this.m_oBullet = reader.GetValueBool();
@@ -796,14 +1540,12 @@
 						break;
 					}
 				}
-			}
-			else if ("hrnoshade" === name) this.m_oHrNoShade = reader.GetValueBool();
+			} else if ("hrnoshade" === name) this.m_oHrNoShade = reader.GetValueBool();
 			else if ("hrpct" === name) this.m_oHrPct = reader.GetValueDouble();
 			else if ("hrstd" === name) this.m_oHrStd = reader.GetValueBool();
 			else if ("insetmode" === name) {
-				this.m_oInsetMode = readColorMode(reader);
-			}
-			else if ("ole" === name) this.m_oOle = reader.GetValueBool();
+				this.m_oInsetMode = readInsetMode(reader);
+			} else if ("ole" === name) this.m_oOle = reader.GetValueBool();
 			else if ("oleicon" === name) this.m_oOleIcon = reader.GetValueBool();
 			else if ("oned" === name) this.m_oOned = reader.GetValueBool();
 			else if ("preferrelative" === name) this.m_oPreferRelative = reader.GetValueBool();
@@ -869,7 +1611,7 @@
 				oItem = new CWrap();
 			else if ("ClientData" === name)
 				oItem = new CClientData();
-			if(oItem) {
+			if (oItem) {
 				oItem.fromXml(reader);
 			}
 			this.items.push(oItem);
@@ -884,30 +1626,28 @@
 
 
 		function readCVml_1_65536(reader) {
-			let sValue =  reader.GetValue();
+			let sValue = reader.GetValue();
 			let nLen = sValue.length;
-			if ( nLen <= 0 )
+			if (nLen <= 0)
 				return 0;
 
-			let bFraction = ( 'f' === sValue.charAt(nLen - 1) );
+			let bFraction = ('f' === sValue.charAt(nLen - 1));
 
-			if ( bFraction )
-			{
-				let strValue = sValue.substr( 0, nLen - 1 );
+			if (bFraction) {
+				let strValue = sValue.substr(0, nLen - 1);
 				let nValue = strValue.length === 0 ? 0 : parseInt(strValue);
 
-				return Math.max( 0.0, Math.min( 65536.0, nValue) )/ 65536.0;
-			}
-			else
-			{
-				let dValue = sValue.length === 0 ? 0 : parseFloat( sValue );
-				return Math.max( 0.0, Math.min( 1.0, dValue) );
+				return Math.max(0.0, Math.min(65536.0, nValue)) / 65536.0;
+			} else {
+				let dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
+				return Math.max(0.0, Math.min(1.0, dValue));
 			}
 		}
 
 		function CArc() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CArc, CVmlCommonElements, 0);
 		CArc.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -927,6 +1667,7 @@
 		function CCurve() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CCurve, CVmlCommonElements, 0);
 		CCurve.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -946,6 +1687,7 @@
 		function CGroup() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CGroup, CVmlCommonElements, 0);
 
 		CGroup.prototype.readAttrXml = function (name, reader) {
@@ -966,6 +1708,7 @@
 		function CImage() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CImage, CVmlCommonElements, 0);
 		CImage.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -985,6 +1728,7 @@
 		function CLine() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CLine, CVmlCommonElements, 0);
 		CLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1004,6 +1748,7 @@
 		function COval() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(COval, CVmlCommonElements, 0);
 		COval.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1023,6 +1768,7 @@
 		function CPolyLine() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CPolyLine, CVmlCommonElements, 0);
 		CPolyLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1042,6 +1788,7 @@
 		function CRect() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CRect, CVmlCommonElements, 0);
 		CRect.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1061,6 +1808,7 @@
 		function CRoundRect() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CRoundRect, CVmlCommonElements, 0);
 		CRoundRect.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1080,6 +1828,7 @@
 		function CShape() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CShape, CVmlCommonElements, 0);
 		CShape.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1099,6 +1848,7 @@
 		function CShapeType() {
 			CVmlCommonElements.call(this);
 		}
+
 		IC(CShapeType, CVmlCommonElements, 0);
 		CShapeType.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1117,30 +1867,30 @@
 
 
 		let EVmlAngle =
-		{
-			vmlangle30   :   0,
-			vmlangle45   :   1,
-			vmlangle60   :   2,
-			vmlangle90   :   3,
-			vmlangleAny  :   4,
-			vmlangleAuto :   5
-		};
+			{
+				vmlangle30: 0,
+				vmlangle45: 1,
+				vmlangle60: 2,
+				vmlangle90: 3,
+				vmlangleAny: 4,
+				vmlangleAuto: 5
+			};
 
 
 		let EExt =
-		{
-			extBackwardCompatible : 0,
-			extEdit				: 1,
-			extView				: 2,
-		};
+			{
+				extBackwardCompatible: 0,
+				extEdit: 1,
+				extView: 2,
+			};
 
 		let EVmlCalloutType =
-		{
-			vmlcallouttypeRectangle     : 0,
-			vmlcallouttypeRoundRectangle: 1,
-			vmlcallouttypeOval          : 2,
-			vmlcallouttypeCloud         : 3
-		};
+			{
+				vmlcallouttypeRectangle: 0,
+				vmlcallouttypeRoundRectangle: 1,
+				vmlcallouttypeOval: 2,
+				vmlcallouttypeCloud: 3
+			};
 
 
 		function CCallout() {
@@ -1160,6 +1910,7 @@
 			this.m_oTextBorder = null;
 			this.m_oType = null;
 		}
+
 		IC(CCallout, CBaseNoId, 0);
 		CCallout.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1284,6 +2035,7 @@
 			CBaseNoId.call(this);
 			this.m_oV = null;
 		}
+
 		IC(CClipPath, CBaseNoId, 0);
 		CClipPath.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1304,25 +2056,22 @@
 
 
 		let EExtrusionType =
-		{
-			extrusiontypeParallel: 0,
-			extrusiontypePerspective: 1
-		};
+			{
+				extrusiontypeParallel: 0,
+				extrusiontypePerspective: 1
+			};
 
 		function readExt(reader) {
 			let sVal = reader.GetValue();
 			switch (sVal) {
 				case "backwardCompatible": {
 					return EExt.extBackwardCompatible;
-					break;
 				}
 				case "edit": {
 					return EExt.extEdit;
-					break;
 				}
 				case "view": {
 					return EExt.extView;
-					break;
 				}
 			}
 			return null;
@@ -1332,12 +2081,13 @@
 			let sVal = reader.GetValue();
 			switch (sVal) {
 				case "parallel":
-					return
+					return EExtrusionType.extrusiontypeParallel;
 				case "extrusiontypeParallel":
 					return EExtrusionType.extrusiontypePerspective;
 			}
-			return EExtrusionType.extrusiontypeParallel;;
+			return EExtrusionType.extrusiontypeParallel;
 		}
+
 		function CExtrusion() {
 			CBaseNoId.call(this);
 			this.m_oAutoRotationCenter = null;
@@ -1374,6 +2124,7 @@
 			this.m_oViewPolet = null;
 			this.m_oViewPointOrigin = null;
 		}
+
 		IC(CExtrusion, CBaseNoId, 0);
 		CExtrusion.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1474,11 +2225,11 @@
 					break;
 				}
 				case "rotationangle": {
-					this.m_oRotationAngle = CVml_Vector2D(reader.GetValue());
+					this.m_oRotationAngle = new CVml_Vector2D(reader.GetValue());
 					break;
 				}
 				case "rotationcenter": {
-					this.m_oRotationCenter = CVml_Vector3D(reader.GetValue());
+					this.m_oRotationCenter = new CVml_Vector3D(reader.GetValue());
 					break;
 				}
 				case "shininess": {
@@ -1511,35 +2262,53 @@
 				}
 			}
 		};
-		CExtrusion.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
-		};
 		CExtrusion.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CExtrusion.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
 		function CLock() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CLock, CBaseNoId, 0);
 		CLock.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "adjusthandles": this.m_oAdjustHandles = reader.GetValueBool(); break;
-				case "aspectratio":   this.m_oAspectRatio = reader.GetValueBool(); break;
-				case "cropping":      this.m_oCropping = reader.GetValueBool(); break;
-				case "ext":           this.m_oExt = readExt(reader); break;
-				case "grouping":      this.m_oGrouping = reader.GetValueBool(); break;
-				case "position":      this.m_oPosition = reader.GetValueBool(); break;
-				case "rotation":      this.m_oRotation = reader.GetValueBool(); break;
-				case "selection":     this.m_oSelection = reader.GetValueBool(); break;
-				case "shapetype":     this.m_oShapeType = reader.GetValueBool(); break;
-				case "text":          this.m_oText = reader.GetValueBool(); break;
-				case "ungrouping":    this.m_oUnGrouping = reader.GetValueBool(); break;
-				case "verticies":     this.m_oVerticies = reader.GetValueBool(); break;
+				case "adjusthandles":
+					this.m_oAdjustHandles = reader.GetValueBool();
+					break;
+				case "aspectratio":
+					this.m_oAspectRatio = reader.GetValueBool();
+					break;
+				case "cropping":
+					this.m_oCropping = reader.GetValueBool();
+					break;
+				case "ext":
+					this.m_oExt = readExt(reader);
+					break;
+				case "grouping":
+					this.m_oGrouping = reader.GetValueBool();
+					break;
+				case "position":
+					this.m_oPosition = reader.GetValueBool();
+					break;
+				case "rotation":
+					this.m_oRotation = reader.GetValueBool();
+					break;
+				case "selection":
+					this.m_oSelection = reader.GetValueBool();
+					break;
+				case "shapetype":
+					this.m_oShapeType = reader.GetValueBool();
+					break;
+				case "text":
+					this.m_oText = reader.GetValueBool();
+					break;
+				case "ungrouping":
+					this.m_oUnGrouping = reader.GetValueBool();
+					break;
+				case "verticies":
+					this.m_oVerticies = reader.GetValueBool();
+					break;
 			}
 		};
 		CLock.prototype.readChildXml = function (name, reader) {
@@ -1556,41 +2325,80 @@
 		function CSignatureLine() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CSignatureLine, CBaseNoId, 0);
 		CSignatureLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-				case "o:addlxml":              this.m_sAddXml = reader.GetValue(); break;
-				case "allowcomments":          this.m_oAllowComments = reader.GetValueBool(); break;
-				case "v:ext":                  this.m_oExt = readExt(reader); break;
-				case "id":                     this.m_oId = reader.GetValue(); break;
-				case "issignatureline":        this.m_oIsSignatureLine = reader.GetValueBool(); break;
-				case "provid":                 this.m_oProvId = reader.GetValue(); break;
-				case "showsigndate":           this.m_oShowSignDate = reader.GetValueBool(); break;
-				case "o:signinginstructions":  this.m_sSigningInstructions = reader.GetValue(); break;
-				case "signinginstructionsset": this.m_oSigningInstructionsSet = reader.GetValueBool(); break;
-				case "o:sigprovurl":           this.m_sSigProvUrl = reader.GetValue(); break;
-				case "o:suggestedsigner":      this.m_sSuggestedSigner = reader.GetValue(); break;
-				case "o:suggestedsigner2":     this.m_sSuggestedSigner2 = reader.GetValue(); break;
-				case "o:suggestedsigneremail": this.m_sSuggestedSignerEmail = reader.GetValue(); break;
-			}
-		};
-		CSignatureLine.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+				case "addlxml":
+					this.m_sAddXml = reader.GetValue();
+					break;
+				case "allowcomments":
+					this.m_oAllowComments = reader.GetValueBool();
+					break;
+				case "ext":
+					this.m_oExt = readExt(reader);
+					break;
+				case "id":
+					this.m_oId = reader.GetValue();
+					break;
+				case "issignatureline":
+					this.m_oIsSignatureLine = reader.GetValueBool();
+					break;
+				case "provid":
+					this.m_oProvId = reader.GetValue();
+					break;
+				case "showsigndate":
+					this.m_oShowSignDate = reader.GetValueBool();
+					break;
+				case "signinginstructions":
+					this.m_sSigningInstructions = reader.GetValue();
+					break;
+				case "signinginstructionsset":
+					this.m_oSigningInstructionsSet = reader.GetValueBool();
+					break;
+				case "sigprovurl":
+					this.m_sSigProvUrl = reader.GetValue();
+					break;
+				case "suggestedsigner":
+					this.m_sSuggestedSigner = reader.GetValue();
+					break;
+				case "suggestedsigner2":
+					this.m_sSuggestedSigner2 = reader.GetValue();
+					break;
+				case "suggestedsigneremail":
+					this.m_sSuggestedSignerEmail = reader.GetValue();
+					break;
 			}
 		};
 		CSignatureLine.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CSignatureLine.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
 		function CSkew() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CSkew, CBaseNoId, 0);
 		CSkew.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
+				case "ext":
+					this.m_oExt = readExt(reader.GetValue());
+					break;
+				case "id":
+					this.m_sId = reader.GetValue();
+					break;
+				case "matrix":
+					this.m_sMatrix = reader.GetValue();
+					break;
+				case "offset":
+					this.m_sOffset = reader.GetValue();
+					break;
+				case "on":
+					this.m_oOn = reader.GetValueBool();
+					break;
+				case "origin":
+					this.m_sOrigin = reader.GetValue();
+					break;
 			}
 		};
 		CSkew.prototype.readChildXml = function (name, reader) {
@@ -1604,9 +2412,49 @@
 			//TODO:Implement in children
 		};
 
+
+		let EFillType =
+			{
+				filltypeBackground: 0,
+				filltypeFrame: 1,
+				filltypeGradient: 2,
+				filltypeGradientCenter: 3,
+				filltypeGradientRadial: 4,
+				filltypeGradientUnscaled: 5,
+				filltypePattern: 6,
+				filltypeSolid: 7,
+				filltypeTile: 8
+			};
+
+		function readFillType(reader) {
+			let sVal = reader.GetValue();
+			switch (sVal) {
+				case "background":
+					return EFillType.filltypeBackground;
+				case "frame":
+					return EFillType.filltypeFrame;
+				case "gradient":
+					return EFillType.filltypeGradient;
+				case "gradientCenter":
+					return EFillType.filltypeGradientCenter;
+				case "gradientRadial":
+					return EFillType.filltypeGradientRadial;
+				case "gradientUnscaled":
+					return EFillType.filltypeGradientUnscaled;
+				case "pattern":
+					return EFillType.filltypePattern;
+				case "solid":
+					return EFillType.filltypeSolid;
+				case "tile":
+					return EFillType.filltypeTile;
+			}
+			return EFillType.filltypeSolid;
+		}
+
 		function CFill() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CFill, CBaseNoId, 0);
 		CFill.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1614,6 +2462,12 @@
 		};
 		CFill.prototype.readChildXml = function (name, reader) {
 			switch (name) {
+				case "vext":
+					this.m_oExt = readExt(reader);
+					break;
+				case "type":
+					this.m_oType = readFillType(reader);
+					break;
 			}
 		};
 		CFill.prototype.writeAttrXmlImpl = function (writer) {
@@ -1625,7 +2479,9 @@
 
 		function CFormulas() {
 			CBaseNoId.call(this);
+			this.items = [];
 		}
+
 		IC(CFormulas, CBaseNoId, 0);
 		CFormulas.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1633,6 +2489,12 @@
 		};
 		CFormulas.prototype.readChildXml = function (name, reader) {
 			switch (name) {
+				case "f": {
+					let oF = new CF();
+					oF.fromXml(reader);
+					this.items.push(oF);
+					break;
+				}
 			}
 		};
 		CFormulas.prototype.writeAttrXmlImpl = function (writer) {
@@ -1642,33 +2504,236 @@
 			//TODO:Implement in children
 		};
 
+		function CF() {
+			CBaseNoId.call(this);
+			this.m_sEqn = null;
+		}
+
+		IC(CF, CBaseNoId, 0);
+		CF.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+				case "eqn": {
+					this.m_sEqn = reader.GetValue();
+					break;
+				}
+			}
+		};
+		CF.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+
+
 		function CHandles() {
 			CBaseNoId.call(this);
+			this.items = [];
 		}
+
 		IC(CHandles, CBaseNoId, 0);
-		CHandles.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
-		};
 		CHandles.prototype.readChildXml = function (name, reader) {
 			switch (name) {
+				case "h": {
+					let oPr = new CH();
+					oPr.fromXml(reader);
+					this.items.push(oPr);
+					break;
+				}
 			}
-		};
-		CHandles.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
 		};
 		CHandles.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
-		function CImageData() {
-			CBaseNoId.call(this);
+
+		let EVml_Vector2D_Position =
+			{
+				vmlvector2dposConstant: 0,
+				vmlvector2dposFormula: 1,
+				vmlvector2dposAdjValue: 2,
+				vmlvector2dposCenter: 3,
+				vmlvector2dposTopLeft: 4,
+				vmlvector2dposBottomRight: 5
+			};
+
+		function CVml_Vector2D_Position(sVal) {
+			this.m_eTypeX = null;
+			this.m_eTypeY = null;
+
+			this.m_sIdX = null;
+			this.m_sIdY = null;
+
+			this.m_dX = null;
+			this.m_dY = null;
+			if (sVal) {
+				this.fromString(sVal);
+			}
 		}
-		IC(CImageData, CBaseNoId, 0);
-		CImageData.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
+
+		CVml_Vector2D_Position.prototype.fromString = function (sValue) {
+			let nLen = sValue.length;
+			if (nLen <= 0)
+				return 0;
+
+			let nPos = sValue.indexOf(",");
+			if (-1 === nPos)
+				return 0;
+
+			let sFirst = sValue.substr(0, nPos);
+			let sSecond = sValue.substr(nPos + 1, nLen - nPos - 1);
+
+			this.parse(sFirst, true);
+			this.parse(sSecond, false);
+
+			return 0;
+		};
+		CVml_Vector2D_Position.prototype.parse = function (sValue, bFirst) {
+			let eValue = EVml_Vector2D_Position.vmlvector2dposConstant;
+			let dValue = 0.0;
+			let sId;
+			sValue.replace(" ", "");
+			let nLen = sValue.length;
+			if (nLen > 0) {
+
+				let wChar = sValue[0];
+				switch (wChar) {
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+					case '8':
+					case '9':
+					case '.':
+						eValue = EVml_Vector2D_Position.vmlvector2dposConstant;
+						dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
+						break;
+					case 'c':
+
+						if ("center" === sValue)
+							eValue = EVml_Vector2D_Position.vmlvector2dposCenter;
+						break;
+					case 't':
+						if ("topleft" === sValue)
+							eValue = EVml_Vector2D_Position.vmlvector2dposTopLeft;
+						break;
+					case 'b':
+						if ("bottomright" === sValue)
+							eValue = EVml_Vector2D_Position.vmlvector2dposBottomRight;
+						break;
+					case '@':
+						eValue = EVml_Vector2D_Position.vmlvector2dposFormula;
+						sId = sValue.substr(1, nLen - 1);
+						break;
+					case '#':
+						eValue = EVml_Vector2D_Position.vmlvector2dposAdjValue;
+						sId = sValue.substr(1, nLen - 1);
+						break;
+				}
+			}
+			if (bFirst) {
+				this.m_eTypeX = eValue;
+				this.m_sIdX = sId;
+				this.m_dX = dValue;
+			} else {
+				this.m_eTypeY = eValue;
+				this.m_sIdY = sId;
+				this.m_dY = dValue;
 			}
 		};
+
+		function CH() {
+			CBaseNoId.call(this);
+			this.m_oInvX = null;
+			this.m_oInvY = null;
+			this.m_oMap = null;
+			this.m_oPolar = null;
+			this.m_oPosition = null;
+			this.m_oRadiusRange = null;
+			this.m_oSwitch = null;
+			this.m_oXRange = null;
+			this.m_oYRange = null;
+		}
+
+		IC(CH, CBaseNoId, 0);
+		CH.prototype.readAttrXml = function (name, reader) {
+			if ("invx" === name) this.m_oInvX = reader.GetValueBool();
+			else if ("invy" === name) this.m_oInvY = reader.GetValueBool();
+			else if ("map" === name) this.m_oMap = new CVml_Vector2D(reader.GetValue());
+			else if ("position" === name) this.m_oPosition = new CVml_Vector2D_Position(reader.GetValue());
+			else if ("polar" === name) this.m_oPolar = new CVml_Vector2D(reader.GetValue());
+			else if ("radiusrange" === name) this.m_oRadiusRange = new CVml_Vector2D(reader.GetValue());
+			else if ("switch" === name) this.m_oSwitch = reader.GetValueBool();
+			else if ("xrange" === name) this.m_oXRange = new CVml_Vector2D(reader.GetValue());
+			else if ("yrange" === name) this.m_oYRange = new CVml_Vector2D(reader.GetValue());
+
+		};
+		CH.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CImageData() {
+			CBaseNoId.call(this);
+			this.m_sAltHref = null;
+			this.m_oBiLevel = null;
+			this.m_oBlackLevel = null;
+			this.m_oChromaKey = null;
+			this.m_oCropLeft = null;
+			this.m_oCropTop = null;
+			this.m_oCropRight = null;
+			this.m_oCropBottom = null;
+			this.m_oDetectMouseClick = null;
+			this.m_oEmbossColor = null;
+			this.m_oGain = null;
+			this.m_oGamma = null;
+			this.m_oGrayscale = null;
+			this.m_rHref = null;
+			this.m_oHref = null;
+			this.m_rId = null;
+			this.m_oId = null;
+			this.m_oMovie = null;
+			this.m_oOleId = null;
+			this.m_rPict = null;
+			this.m_oRecolorTarget = null;
+			this.m_oRelId = null;
+			this.m_sSrc = null;
+			this.m_sTitle = null;
+		}
+
+		IC(CImageData, CBaseNoId, 0);
+		CImageData.prototype.readAttrXml = function (name, reader) {
+			if ("bilevel" === name) this.m_oBiLevel = reader.GetValueBool();
+			else if ("blacklevel" === name) this.m_oBlackLevel = reader.GetValueDouble();
+			else if ("cropleft" === name) this.m_oCropLeft = readCVml_1_65536(reader);
+			else if ("croptop" === name) this.m_oCropTop = readCVml_1_65536(reader);
+			else if ("cropright" === name) this.m_oCropRight = readCVml_1_65536(reader);
+			else if ("cropbottom" === name) this.m_oCropBottom = readCVml_1_65536(reader);
+			else if ("embosscolor" === name) this.m_oEmbossColor = readColorType(reader);
+			else if ("gain" === name) this.m_oGain = reader.GetValueDouble();
+			else if ("gamma" === name) this.m_oGamma = reader.GetValueDouble();
+			else if ("grayscale" === name) this.m_oGrayscale = reader.GetValueBool();
+			else if ("id" === name) {
+				let sName = reader.GetName();
+				if (sName === "id") {
+					this.m_oId = reader.GetValue();
+				} else if (sName === "r:id" || sName === "relationships:id") {
+					this.m_rId = reader.GetValue();
+				}
+			} else if ("detectmouseclick" === name) this.m_oDetectMouseClick = reader.GetValue();
+			else if ("href" === name) {
+				let sName = reader.GetName();
+				if (sName === "o:href") {
+					this.m_oHref = reader.GetValue();
+				} else if (sName === "r:href") {
+					this.m_rHref = reader.GetValue();
+				}
+			} else if ("oleid" === name) this.m_oOleId = reader.GetValue();
+			else if ("title" === name) this.m_sTitle = reader.GetValue();
+			else if ("pict" === name) this.m_rPict = reader.GetValue();
+			else if ("recolortarget" === name) this.m_oRecolorTarget = readColorType(reader);
+			else if ("src" === name) this.m_sSrc = reader.GetValue();
+		}
 		CImageData.prototype.readChildXml = function (name, reader) {
 			switch (name) {
 			}
@@ -1680,13 +2745,187 @@
 			//TODO:Implement in children
 		};
 
+
+		function CVml_Polygon2D(sValue) {
+			this.m_arrPoints = [];
+			if (sValue) {
+				this.FromString(sValue);
+			}
+		}
+
+
+		CVml_Polygon2D.prototype.GetSize = function () {
+			return this.m_arrPoints.size();
+		}
+
+		CVml_Polygon2D.prototype.GetX = function (nIndex) {
+			if (nIndex < 0 || nIndex >= this.m_arrPoints.size())
+				return 0;
+
+			return this.m_arrPoints[nIndex].nX;
+		}
+		CVml_Polygon2D.prototype.GetY = function (nIndex) {
+			if (nIndex < 0 || nIndex >= this.m_arrPoints.size())
+				return 0;
+
+			return this.m_arrPoints[nIndex].nY;
+		}
+
+		CVml_Polygon2D.prototype.AddPo = function (nX, nY) {
+			let oPt = new TPoint(nX, nY);
+			this.m_arrPoints.push(oPt);
+		}
+
+		CVml_Polygon2D.prototype.FromString = function (sValue) {
+			this.m_arrPoints.length = 0;
+
+			let nLen = sValue.length;
+			if (nLen <= 0)
+				return 0;
+
+			let nStartPos = 0;
+			while (true) {
+				let nMidPos = sValue.indexOf(",", nStartPos);
+				let nEndPos = sValue.indexOf(",", nMidPos + 1);
+
+				if (-1 === nMidPos)
+					break;
+
+				if (-1 === nEndPos)
+					nEndPos = nLen;
+
+				let strX = sValue.substr(nStartPos, nMidPos - nStartPos);
+				let strY = sValue.substr(nStartPos, nMidPos - nStartPos);
+
+				strX.replace("@", "");
+				strY.replace("@", "");
+
+				let nX = strX.length === 0 ? 0 : parseInt(strX);
+				let nY = strY.length === 0 ? 0 : parseInt(strY);
+
+				this.m_arrPoints.push(new TPoint(nX, nY));
+
+				nStartPos = nEndPos + 1;
+			}
+
+
+			return 0;
+		}
+
+		CVml_Polygon2D.prototype.ToString = function () {
+			let sResult;
+
+			for (let nIndex = 0; nIndex < this.m_arrPoints.length; nIndex++) {
+				let sTemp = this.m_arrPoints[nIndex].nX + "," + this.m_arrPoints[nIndex].nY;
+				if (nIndex < this.m_arrPoints.length - 1) sTemp += ",";
+				sResult += sTemp;
+			}
+
+			return sResult;
+		};
+
+		function TPoint(n_X, n_Y) {
+			this.nX = n_X;
+			this.nY = n_Y;
+		}
+
+
+		function CVml_Vector2D_Units(sValue) {
+			this.m_dX = 0;
+			this.m_dY = 0;
+			if (sValue) {
+				this.fromString(sValue);
+			}
+		}
+
+		CVml_Vector2D_Units.prototype.fromString = function (sValue) {
+			this.m_dX = 0;
+			this.m_dY = 0;
+
+			let nLen = sValue.length;
+			if (nLen <= 0)
+				return 0;
+
+			let nPos = sValue.indexOf(",");
+			if (-1 === nPos) {//only x position
+				let oPt1 = new CPoint(sValue);
+				this.m_dX = oPt1.GetValue();
+				return 0;
+			}
+
+
+			let oPt1 = new CPoint(sValue.substr(0, nPos));
+			this.m_dX = oPt1.GetValue();
+
+
+			let oPt2 = new CPoint(sValue.substr(nPos + 1, nLen - nPos - 1));
+			this.m_dY = oPt2.GetValue();
+			return 0;
+		};
+
+
+		let EConnectType =
+			{
+				connecttypeCustom: 0,
+				connecttypeNone: 1,
+				connecttypeRect: 2,
+				connecttypeSegments: 3
+			};
+
+		function readConnectType(reader) {
+			let sVal = reader.GetValue();
+			switch (sVal) {
+				case "custom": {
+					return EConnectType.connecttypeCustom;
+				}
+				case "none": {
+					return EConnectType.connecttypeNone;
+				}
+				case "rect": {
+					return EConnectType.connecttypeRect;
+				}
+				case "segments": {
+					return EConnectType.connecttypeSegments;
+				}
+			}
+		}
+
 		function CPath() {
 			CBaseNoId.call(this);
+			this.m_oArrowOk = null;
+			this.m_oConnectAngles = null;
+			this.m_oConnectLocs = null;
+			this.m_oConnectType = null;
+			this.m_oExtrusionOk = null;
+			this.m_oFillOk = null;
+			this.m_oGradientShapeOk = null;
+			this.m_oId = null;
+			this.m_oInsetPenOk = null;
+			this.m_oLimo = null;
+			this.m_oShadowOk = null;
+			this.m_oStrokeOk = null;
+			this.m_oTextBoxRect = null;
+			this.m_oTextPathOk = null;
+			this.m_oV = null;
 		}
+
 		IC(CPath, CBaseNoId, 0);
 		CPath.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
+			if ("arrowok" === name) this.m_oArrowOk = reader.GetValueBool();
+			else if ("fillok" === name) this.m_oFillOk = reader.GetValueBool();
+			else if ("gradientshapeok" === name) this.m_oGradientShapeOk = reader.GetValueBool();
+			else if ("id" === name) this.m_oId = reader.GetValue();
+			else if ("insetpenok" === name) this.m_oInsetPenOk = reader.GetValueBool();
+			else if ("limo" === name) this.m_oLimo = new CVml_Vector2D_Units(reader.GetValue());
+			else if ("connectangles" === name) this.m_oConnectAngles = reader.GetValue();
+			else if ("connectlocs" === name) this.m_oConnectLocs = reader.GetValue();
+			else if ("connecttype" === name) this.m_oConnectType = readConnectType(reader);
+			else if ("extrusionok" === name) this.m_oExtrusionOk = reader.GetValueBool();
+			else if ("shadowok" === name) this.m_oShadowOk = reader.GetValueBool();
+			else if ("strokeok" === name) this.m_oStrokeOk = reader.GetValueBool();
+			else if ("textboxrect" === name) this.m_oTextBoxRect = new CVml_Polygon2D(reader.GetValue());
+			else if ("textpathok" === name) this.m_oTextPathOk = reader.GetValue();
+			else if ("v" === name) this.m_oV = reader.GetValue();
 		};
 		CPath.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -1699,36 +2938,319 @@
 			//TODO:Implement in children
 		};
 
+		let EShadowType =
+			{
+				shadowtypeDouble: 1,
+				shadowtypeEmboss: 2,
+				shadowtypePerspective: 3,
+				shadowtypeSingle: 4
+			};
+
+
+		function readShadowType(reader) {
+			let SVal = reader.GetValue();
+			switch (sVal) {
+				case "double" : {
+					return EShadowType.shadowtypeDouble;
+				}
+				case "emboss" : {
+					return EShadowType.shadowtypeEmboss;
+				}
+				case "perspective" : {
+					return EShadowType.shadowtypePerspective;
+				}
+				case "single" : {
+					return EShadowType.shadowtypeSingle;
+				}
+					return EShadowType.shadowtypeSingle;
+			}
+		}
+
 		function CShadow() {
 			CBaseNoId.call(this);
+			this.m_oColor = null;
+			this.m_oColor2 = null;
+			this.m_oId = null;
+			this.m_oMatrix = null;
+			this.m_oObscured = null;
+			this.m_oOffset = null;
+			this.m_oOffset2 = null;
+			this.m_oOn = null;
+			this.m_oOpacity = null;
+			this.m_oOrigin = null;
+			this.m_oType = null;
 		}
+
 		IC(CShadow, CBaseNoId, 0);
 		CShadow.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		CShadow.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			if ("color" === name) this.m_oColor = readColorType(reader);
+			else if ("color2" === name) this.m_oColor2 = readColorType(reader);
+			else if ("id" === name) this.m_oId = reader.GetValue();
+			else if ("matrix" === name) this.m_oMatrix = new CVml_Matrix(reader.GetValue());
+			else if ("obscured" === name) this.m_oObscured = reader.GetValueBool();
+			else if ("offset" === name) this.m_oOffset = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("offset2" === name) this.m_oOffset2 = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("on" === name) this.m_oOn = reader.GetValueBool();
+			else if ("opacity" === name) this.m_oOpacity = readCVml_1_65536(reader);
+			else if ("origin" === name) this.m_oOrigin = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("type" === name) this.m_oType = readShadowType(reader);
 		};
 		CShadow.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
-		CShadow.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
+
+
+		let EVmlDashStyle =
+			{
+				vmldashstyleSolid: 0,
+				vmldashstyleShortDash: 1,
+				vmldashstyleShortDot: 2,
+				vmldashstyleShortDashDot: 3,
+				vmldashstyleShortDashDotDot: 4,
+				vmldashstyleDot: 5,
+				vmldashstyleDash: 6,
+				vmldashstyleLongDash: 7,
+				vmldashstyleDashDot: 8,
+				vmldashstyleLongDashDot: 9,
+				vmldashstyleLongDashDotDot: 10,
+				vmldashstyleCustom: 11
+			};
+
+		function readDashStyle(reader) {
+			let sValue = reader.GetValue();
+			if ("solid" === sValue) return EVmlDashStyle.vmldashstyleSolid;
+			else if ("shortdash" === sValue) return EVmlDashStyle.vmldashstyleShortDash;
+			else if ("shortdot" === sValue) return EVmlDashStyle.vmldashstyleShortDot;
+			else if ("shortdashdot" === sValue) return EVmlDashStyle.vmldashstyleShortDashDot;
+			else if ("shortdashdotdot" === sValue) return EVmlDashStyle.vmldashstyleShortDashDotDot;
+			else if ("dot" === sValue) return EVmlDashStyle.vmldashstyleDot;
+			else if ("dash" === sValue) return EVmlDashStyle.vmldashstyleDash;
+			else if ("dashdot" === sValue) return EVmlDashStyle.vmldashstyleDashDot;
+			else if ("longdash" === sValue) return EVmlDashStyle.vmldashstyleLongDash;
+			else if ("longdashdot" === sValue) return EVmlDashStyle.vmldashstyleLongDashDot;
+			else if ("longdashdotdot" === sValue) return EVmlDashStyle.vmldashstyleLongDashDotDot;
+			return EVmlDashStyle.vmldashstyleSolid;
+		}
+
+
+		let EStrokeArrowLength =
+			{
+				strokearrowlengthLong: 0,
+				strokearrowlengthMedium: 1,
+				strokearrowlengthShort: 2
+			};
+
+		function readArrowLength(reader) {
+			let sValue = reader.GetValue();
+			if ("long" === sValue) return EStrokeArrowLength.strokearrowlengthLong;
+			else if ("medium" === sValue) return EStrokeArrowLength.strokearrowlengthMedium;
+			else if ("short" === sValue) return EStrokeArrowLength.strokearrowlengthShort;
+			return EStrokeArrowLength.strokearrowlengthMedium
+		}
+
+
+		let EStrokeArrowType =
+			{
+				strokearrowtypeBlock: 0,
+				strokearrowtypeClassic: 1,
+				strokearrowtypeDiamond: 2,
+				strokearrowtypeNone: 3,
+				strokearrowtypeOpen: 4,
+				strokearrowtypeOval: 5
+			};
+
+		function readArrowType(reader) {
+			let sValue = reader.GetValue();
+			if ("block" === sValue) return EStrokeArrowType.strokearrowtypeBlock;
+			else if ("classic" === sValue) return EStrokeArrowType.strokearrowtypeClassic;
+			else if ("diamond" === sValue) return EStrokeArrowType.strokearrowtypeDiamond;
+			else if ("none" === sValue) return EStrokeArrowType.strokearrowtypeNone;
+			else if ("open" === sValue) return EStrokeArrowType.strokearrowtypeOpen;
+			else if ("oval" === sValue) return EStrokeArrowType.strokearrowtypeOval;
+			return EStrokeArrowType.strokearrowtypeNone;
+		}
+
+
+		let EStrokeArrowWidth =
+			{
+				strokearrowwidthMedium: 0,
+				strokearrowwidthNarrow: 1,
+				strokearrowwidthWide: 2
+			};
+
+		function readArrowWidth(reader) {
+			let sValue = reader.GetValue();
+			if ("medium" === sValue) return EStrokeArrowWidth.strokearrowwidthMedium;
+			else if ("narrow" === sValue) return EStrokeArrowWidth.strokearrowwidthNarrow;
+			else if ("wide" === sValue) return EStrokeArrowWidth.strokearrowwidthWide;
+			return EStrokeArrowWidth.strokearrowwidthMedium;
+		}
+
+
+		//--------------------------------------------------------------------------------
+		let EStrokeEndCap =
+			{
+				strokeendcapFlat: 0,
+				strokeendcapRound: 1,
+				strokeendcapSqaure: 2
+			};
+
+
+		function readEndCap(reader) {
+			let sValue = reader.GetValue();
+			if ("flat" === sValue) return EStrokeEndCap.strokeendcapFlat;
+			else if ("round" === sValue) return EStrokeEndCap.strokeendcapRound;
+			else if ("square" === sValue) return EStrokeEndCap.strokeendcapSqaure;
+			return EStrokeEndCap.strokeendcapRound;
+		}
+
+
+		let EStrokeJoinStyle =
+			{
+				strokejoinstyleBevel: 0,
+				strokejoinstyleMiter: 1,
+				strokejoinstyleRound: 2
+			};
+
+		function readJoinStyle(reader) {
+			let sValue = reader.GetValue();
+			if ("round" === sValue) return EStrokeJoinStyle.strokejoinstyleRound;
+			else if ("miter" === sValue) return EStrokeJoinStyle.strokejoinstyleMiter;
+			else if ("bevel" === sValue) return EStrokeJoinStyle.strokejoinstyleBevel;
+			return EStrokeJoinStyle.strokejoinstyleRound;
+		}
+
+
+		let EStrokeLineStyle =
+			{
+				strokelinestyleSingle: 0,
+				strokelinestyleThickBetweenThin: 1,
+				strokelinestyleThickThin: 2,
+				strokelinestyleThinThick: 3,
+				strokelinestyleThinThin: 4
+			};
+
+		function readLineStyle(reader) {
+			let sValue = reader.GetValue();
+			if ("single" === sValue) return EStrokeLineStyle.strokelinestyleSingle;
+			else if ("thickBetweenThin" === sValue) return EStrokeLineStyle.strokelinestyleThickBetweenThin;
+			else if ("thickThin" === sValue) return EStrokeLineStyle.strokelinestyleThickThin;
+			else if ("thinThick" === sValue) return EStrokeLineStyle.strokelinestyleThinThick;
+			else if ("thinThin" === sValue) return EStrokeLineStyle.strokelinestyleThinThin;
+			return EStrokeLineStyle.strokelinestyleSingle;
+		}
+
+
+		let EImageAspect =
+			{
+				imageaspectAtLeast: 0,
+				imageaspectAtMost: 1,
+				imageaspectIgnore: 2
+			};
+
+		function readImageAspect(reader) {
+			let sValue = reader.GetValue();
+			if ("atLeast" === sValue) return EImageAspect.imageaspectAtLeast;
+			else if ("atMost" === sValue) return EImageAspect.imageaspectAtMost;
+			else if ("ignore" === sValue) return EImageAspect.imageaspectIgnore;
+			return EImageAspect.imageaspectIgnore;
+		}
 
 		function CStroke() {
 			CBaseNoId.call(this);
+
+			this.m_oId = null;
+			this.m_sAltHref = null;
+			this.m_oColor = null;
+			this.m_oColor2 = null;
+			this.m_oDahsStyle = null;
+			this.m_oEndArrow = null;
+			this.m_oEndArrowLength = null;
+			this.m_oEndArrowWidth = null;
+			this.m_oEndCap = null;
+			this.m_oFillType = null;
+			this.m_oForceDash = null;
+			this.m_sHref = null;
+			this.m_rId = null;
+			this.m_oImageAlignShape = null;
+			this.m_oImageAspect = null;
+			this.m_oImageSize = null;
+			this.m_oInsetPen = null;
+			this.m_oJoinStyle = null;
+			this.m_oLineStyle = null;
+			this.m_oMiterLimit = null;
+			this.m_oOn = null;
+			this.m_oOpacity = null;
+			this.m_oRelId = null;
+			this.m_sSrc = null;
+			this.m_oStartArrow = null;
+			this.m_oStartArrowLength = null;
+			this.m_oStartArrowWidth = null;
+			this.m_sTitle = null;
+			this.m_oWeight = null;
+
+			// Childs
+			this.m_oLeft = null;
+			this.m_oTop = null;
+			this.m_oRight = null;
+			this.m_oBottom = null;
+			this.m_oColumn = null;
 		}
+
 		IC(CStroke, CBaseNoId, 0);
 		CStroke.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
+			if ("color" === name) this.m_oColor = readColorType(reader);
+			else if ("color2" === name) this.m_oColor2 = readColorType(reader);
+			else if ("dashstyle" === name) this.m_oDahsStyle = readDashStyle(reader);
+			else if ("endarrow" === name) this.m_oEndArrow = readArrowType(reader);
+			else if ("endarrowlength" === name) this.m_oEndArrowLength = readArrowLength(reader);
+			else if ("endarrowwidth" === name) this.m_oEndArrowWidth = readArrowWidth(reader);
+			else if ("endcap" === name) this.m_oEndCap = readEndCap(reader);
+			else if ("filltype" === name) this.m_oFillType = readFillType(reader);
+			else if ("id" === name) {
+				let sName = reader.GetName();
+				if (sName === "id") {
+					this.m_oId = reader.GetValue();
+				} else if (sName === "r:id" || sName === "relationships:id") {
+					this.m_rId = reader.GetValue();
+				}
+			} else if ("imagealignshape" === name) this.m_oImageAlignShape = reader.GetValueBool();
+			else if ("imageaspect" === name) this.m_oImageAspect = readImageAspect(reader);
+			else if ("imagesize" === name) this.m_oImageSize = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("insetpen" === name) this.m_oInsetPen = reader.GetValueBool();
+			else if ("joinstyle" === name) this.m_oJoinStyle = readJoinStyle(reader);
+			else if ("linestyle" === name) this.m_oLineStyle = readLineStyle(reader);
+			else if ("miterlimit" === name) this.m_oMiterLimit = reader.GetValueInt();
+			else if ("althref" === name) this.m_sAltHref = reader.GetValue();
+			else if ("forcedash" === name) this.m_oForceDash = reader.GetValueBool();
+			else if ("href" === name) this.m_sHref = reader.GetValue();
+			else if ("on" === name) this.m_oOn = reader.GetValueBool();
+			else if ("opacity" === name) this.m_oOpacity = reader.GetValueDouble();
+			else if ("relid" === name) this.m_oRelId = reader.GetValue();
+			else if ("title" === name) this.m_sTitle = reader.GetValue();
+			else if ("src" === name) this.m_sSrc = reader.GetValue();
+			else if ("startarrow" === name) this.m_oStartArrow = readArrowType(reader);
+			else if ("startarrowlength" === name) this.m_oStartArrowLength = readArrowLength(reader);
+			else if ("startarrowwidth" === name) this.m_oStartArrowWidth = readArrowWidth(reader);
+			else if ("weight" === name) this.m_oWeight = reader.GetValueDouble();
 		};
 		CStroke.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			if ("left" === name)
+				this.m_oLeft = this.readChildSide(reader);
+			else if ("top" === name)
+				this.m_oTop = this.readChildSide(reader);
+			else if ("right" === name)
+				this.m_oRight = this.readChildSide(reader);
+			else if ("bottom" === name)
+				this.m_oBottom = this.readChildSide(reader);
+			else if ("column" === name)
+				this.m_oColumn = this.readChildSide(reader);
+		};
+		CStroke.prototype.readChildSide = function (reader) {
+
+			let oSide = new CStrokeChild();
+			oSide.fromXml(reader);
+			return oSide;
 		};
 		CStroke.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -1737,16 +3259,173 @@
 			//TODO:Implement in children
 		};
 
+		function CStrokeChild(sType) {
+			CBaseNoId.call(this);
+
+			this.m_sType = sType;
+			this.m_sAlthref = null;
+			this.m_oColor = null;
+			this.m_oColor2 = null;
+			this.m_oDashStyle = null;
+			this.m_oEndArrow = null;
+			this.m_oEndArrowLength = null;
+			this.m_oEndArrowWidth = null;
+			this.m_oEndCap = null;
+			this.m_oExt = null;
+			this.m_oFillType = null;
+			this.m_oForceDash = null;
+			this.m_sHref = null;
+			this.m_oImageAlignShape = null;
+			this.m_oImageAspect = null;
+			this.m_sImageSize = null;
+			this.m_oInsetPen = null;
+			this.m_oJoinStyle = null;
+			this.m_oLineStyle = null;
+			this.m_oMiterLimit = null;
+			this.m_oOn = null;
+			this.m_sOpacity = null;
+			this.m_sSrc = null;
+			this.m_oStartArrow = null;
+			this.m_oStartArrowLength = null;
+			this.m_oStartArrowWidth = null;
+			this.m_sTitle = null;
+			this.m_sWeight = null;
+		}
+
+		IC(CStrokeChild, CBaseNoId, 0);
+		CStrokeChild.prototype.readAttrXml = function (name, reader) {
+			if ("althref") this.m_sAlthref = reader.GetValue();
+			else if ("color") this.m_oColor = readColorType(reader);
+			else if ("color2") this.m_oColor2 = readColorType(reader);
+			else if ("dashstyle") this.m_oDashStyle = readDashStyle(reader);
+			else if ("endarrow") this.m_oEndArrow = readArrowType(reader);
+			else if ("endarrowlength") this.m_oEndArrowLength = readArrowLength(reader);
+			else if ("endarrowwidth") this.m_oEndArrowWidth = readArrowWidth(reader);
+			else if ("endcap") this.m_oEndCap = readEndCap(reader);
+			else if ("ext") this.m_oExt = readExt(reader);
+			else if ("filltype") this.m_oFillType = readFillType(reader);
+			else if ("forcedash") this.m_oForceDash = reader.GetValueBool();
+			else if ("href") this.m_sHref = reader.GetValue();
+			else if ("imagealignshape") this.m_oImageAlignShape = reader.GetValueBool();
+			else if ("imageaspect") this.m_oImageAspect = readImageAspect(reader)
+			else if ("imagesize") this.m_sImageSize = reader.GetValue();
+			else if ("insetpen") this.m_oInsetPen = reader.GetValueBool();
+			else if ("joinstyle") this.m_oJoinStyle = readJoinStyle(reader);
+			else if ("linestyle") this.m_oLineStyle = readLineStyle(reader);
+			else if ("miterlimit") this.m_oMiterLimit = reader.GetValueInt()
+			else if ("on") this.m_oOn = reader.GetValueBool();
+			else if ("opacity") this.m_sOpacity = reader.GetValue();
+			else if ("src") this.m_sSrc = reader.GetValue();
+			else if ("startarrow") this.m_oStartArrow = readArrowType(reader);
+			else if ("startarrowlength") this.m_oStartArrowLength = readArrowLength(reader);
+			else if ("startarrowwidth") this.m_oStartArrowWidth = readArrowWidth(reader);
+			else if ("title") this.m_sTitle = reader.GetValue();
+			else if ("weight") this.m_sWeight = reader.GetValue();
+		};
+		CStrokeChild.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CStrokeChild.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+
+		function CVml_TextBoxInset(sValue) {
+
+			this.m_dLeft = 0;
+			this.m_dTop = 0;
+			this.m_dRight = 0;
+			this.m_dBottom = 0;
+			if(sValue) {
+				this.FromString(sValue);
+			}
+		}
+
+
+		CVml_TextBoxInset.prototype.GetLeft = function (nIndex) {
+			return this.m_dLeft;
+		};
+		CVml_TextBoxInset.prototype.GetTop = function (nIndex) {
+			return this.m_dTop;
+		};
+		CVml_TextBoxInset.prototype.GetRight = function (nIndex) {
+			return this.m_dRight;
+		};
+		CVml_TextBoxInset.prototype.GetBottom = function (nIndex) {
+			return this.m_dBottom;
+		};
+		CVml_TextBoxInset.prototype.Set = function (dL, dT, dR, dB) {
+			this.m_dLeft = dL;
+			this.m_dTop = dT;
+			this.m_dRight = dR;
+			this.m_dBottom = dB;
+		};
+		CVml_TextBoxInset.prototype.FromString = function (sValue) {
+			this.Set(0, 0, 0, 0);
+
+			if (sValue.length === 0)
+				return 0;
+
+			let arSplit = [];
+
+			// Разделителями могут быть запятые и пробелы
+			sValue.replace("@", "");
+			arSplit = sValue.split(", ");
+
+			if (arSplit.length > 0) {
+				let oPt = new CPoint(arSplit[0]);
+				this.m_dLeft = oPt.GetValue();
+			}
+
+			if (arSplit.length > 1) {
+				let oPt = new CPoint(arSplit[1]);
+				this.m_dTop = oPt.GetValue();
+			}
+
+			if (arSplit.size() > 2) {
+				let oPt = new CPoint(arSplit[2]);
+				this.m_dRight = oPt.GetValue();
+			}
+
+			if (arSplit.size() > 3) {
+				let oPt = new CPoint(arSplit[3]);
+				this.m_dBottom = oPt.GetValue();
+			}
+
+			return 0;
+		};
+		CVml_TextBoxInset.prototype.ToString = function () {
+			return "" + this.m_dLeft + "pt," + this.m_dTop + "pt," + this.m_dRight + "pt," + this.m_dBottom + "pt";
+		};
+
+
 		function CTextbox() {
 			CBaseNoId.call(this);
+			this.m_oId = null;
+			this.m_oStyle = null;
+			this.m_oInset = null;
+			this.m_oSingleClick = null;
+			this.m_oInsetMode = null;
+
+			this.m_oTxtbxContent = null;
+			this.m_oText = null;
 		}
+
 		IC(CTextbox, CBaseNoId, 0);
 		CTextbox.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
+			if ("id" === name) this.m_oId = reader.GetValue();
+			else if ("inset" === name) this.m_oInset = new CVml_TextBoxInset(reader.GetValue());
+			else if ("insetmode" === name) this.m_oInsetMode = readInsetMode(reader);
+			else if ("singleclick" === name) this.m_oSingleClick = reader.GetValueBool();
+			else if ("style" === name) this.m_oStyle = new CCssStyle(reader.GetValue());
 		};
 		CTextbox.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+
+			if ("txbxContent" === name) {
+				this.m_oTxtbxContent = new CTxbxContent();
+				this.m_oTxtbxContent.fromXml(reader);
+			} else if ("div" === name) {
+				this.m_oText = reader.GetTextDecodeXml();
 			}
 		};
 		CTextbox.prototype.writeAttrXmlImpl = function (writer) {
@@ -1756,9 +3435,50 @@
 			//TODO:Implement in children
 		};
 
+		function CCssStyle(sValue) {
+			CBaseNoId.call(this);
+		}
+
+		IC(CCssStyle, CBaseNoId, 0);
+		CCssStyle.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CCssStyle.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CCssStyle.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CCssStyle.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CTxbxContent() {
+			CBaseNoId.call(this);
+		}
+
+		IC(CTxbxContent, CBaseNoId, 0);
+		CTxbxContent.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CTxbxContent.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CTxbxContent.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CTxbxContent.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
 		function CTextPath() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CTextPath, CBaseNoId, 0);
 		CTextPath.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1778,6 +3498,7 @@
 		function CAnchorLock() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CAnchorLock, CBaseNoId, 0);
 		CAnchorLock.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1797,6 +3518,7 @@
 		function CBorder() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CBorder, CBaseNoId, 0);
 		CBorder.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1816,6 +3538,7 @@
 		function CWrap() {
 			CBaseNoId.call(this);
 		}
+
 		IC(CWrap, CBaseNoId, 0);
 		CWrap.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -1832,5 +3555,23 @@
 			//TODO:Implement in children
 		};
 
+		function CClientData() {
+			CBaseNoId.call(this);
+		}
 
+		IC(CClientData, CBaseNoId, 0);
+		CClientData.prototype.readAttrXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CClientData.prototype.readChildXml = function (name, reader) {
+			switch (name) {
+			}
+		};
+		CClientData.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CClientData.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
 	})(window);
