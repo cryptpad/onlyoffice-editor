@@ -1087,12 +1087,6 @@ CShape.prototype.getObjectType = function () {
     return AscDFH.historyitem_type_Shape;
 };
 
-CShape.prototype.setSmartArtPoint = function (pr) {
-    History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSmartArtPoint, this.point, pr));
-    this.point = pr;
-    this.point.setParent(this);
-};
-
 CShape.prototype.setCustT = function (value) {
     var pointContent = this.getSmartArtPointContent();
     if (pointContent) {
@@ -1971,22 +1965,6 @@ CShape.prototype.getCompiledTransparent = function () {
     }
     return this.compiledTransparent;
 };
-
-    CShape.prototype.getPoint = function () {
-        if (this.point) {
-            return this.point.point;
-        }
-    }
-
-    CShape.prototype.getPointAssociation = function () {
-        if (this.point) {
-            return this.point.association;
-        }
-    }
-
-    CShape.prototype.getPointInfo = function () {
-        return this.point;
-    }
 
 CShape.prototype.isPlaceholder = function () {
     return isRealObject(this.nvSpPr) && isRealObject(this.nvSpPr.nvPr) && isRealObject(this.nvSpPr.nvPr.ph);
@@ -4737,9 +4715,10 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         var shapes = this.getShapesForFitText();
         var maxFontSize = 65;
         var arrOfFonts = shapes.reduce(function (arr, shape) {
-            var point = shape.getPoint();
-            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-            var isNotPlaceholder = isFitText && !point.prSet.phldr;
+            var contentPoints = shape.getSmartArtPointContent();
+            var isNotPlaceholder = contentPoints.every(function (point) {
+                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && !point.prSet.phldr;
+            });
             if (isNotPlaceholder) {
                 arr.push(shape.findFitFontSizeForSmartArt());
             }
@@ -4748,9 +4727,14 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
 
         var minFont = Math.min.apply(Math, arrOfFonts);
         shapes.forEach(function (shape) {
-            var point = shape.getPoint();
-            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-            var isPlaceholder = isFitText && point.prSet.phldr;
+            var contentPoints = shape.getSmartArtPointContent();
+            var isPlaceholder = contentPoints.every(function (point) {
+                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && point.prSet.phldr;
+            });
+            var isFitText = contentPoints.every(function (point) {
+                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+            });
+
             if (isPlaceholder) {
                 var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
                 if (minFontSizeForPlaceholder > minFont) {
@@ -6199,7 +6183,7 @@ CShape.prototype.changePresetGeom = function (sPreset) {
             break;
         }
     }
-    var point = this.getSmartArtSpPrPoint() || this.getPoint();
+    var point = this.getSmartArtSpPrPoint();
     var assignedPoint = this.getSmartArtShapePoint();
     if (_final_preset != null) {
         this.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
@@ -6244,7 +6228,7 @@ CShape.prototype.changeFill = function (unifill) {
     this.spPr.setFill(unifill2);
 
     var isBlipFill = unifill2.fill instanceof AscFormat.CBlipFill;
-    var point = this.getSmartArtShapePoint() || this.getPoint();
+    var point = this.getSmartArtShapePoint() || this.getSmartArtSpPrPoint();
     if (point) {
         isBlipFill ? point.resetUniFill() : point.setUniFill(unifill2);
     }
@@ -6257,7 +6241,7 @@ CShape.prototype.changeShadow = function (oShadow) {
 
     this.spPr && this.spPr.changeShadow(oShadow);
 
-    var point = this.getSmartArtShapePoint() || this.getPoint();
+    var point = this.getSmartArtShapePoint() || this.getSmartArtSpPrPoint();
     point && point.changeShadow(oShadow);
 };
 CShape.prototype.setFill = function (fill) {
@@ -6278,7 +6262,7 @@ CShape.prototype.changeLine = function (line)
     }
     this.spPr.setLn(stroke);
 
-    var point = this.getSmartArtShapePoint() ||  this.getPoint();
+    var point = this.getSmartArtShapePoint() ||  this.getSmartArtSpPrPoint();
     point && point.setLine(stroke);
 };
 

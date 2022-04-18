@@ -1581,43 +1581,6 @@ Because of this, the display is sometimes not correct.
     drawingsChangesMap[AscDFH.historyitem_PointInfoAssociation] = function (oClass, value) {
       oClass.association = value;
     };
-    function PointInfo() {
-      CBaseFormatObject.call(this);
-      this.point = null;
-      this.association = null;
-    }
-    InitClass(PointInfo, CBaseFormatObject, AscDFH.historyitem_type_PointInfo);
-
-    PointInfo.prototype.getPoint = function () {
-      return this.point;
-    }
-
-    PointInfo.prototype.getAssociation = function () {
-      return this.association;
-    }
-
-    PointInfo.prototype.setPoint = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointInfoPoint, this.getPoint(), oPr));
-      this.point = oPr;
-      this.setParentToChild(oPr);
-    }
-    PointInfo.prototype.setAssociation = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointInfoAssociation, this.getAssociation(), oPr));
-      this.association = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PointInfo.prototype.fillObject = function (oCopy, oIdMap) {
-      if (this.point) {
-        oCopy.setPoint(this.getPoint().createDuplicate());
-      }
-      if (this.association) {
-        oCopy.setAssociation(this.getAssociation().createDuplicate());
-      }
-    }
-
-
-
 
     changesFactory[AscDFH.historyitem_PointCxnId] = CChangeString;
     changesFactory[AscDFH.historyitem_PointModelId] = CChangeString;
@@ -10282,14 +10245,15 @@ Because of this, the display is sometimes not correct.
       var smartArtType = this.getTypeOfSmartArt();
       var shapeGeometry = callShape.getPresetGeom();
       var shapes = this.arrGraphicObjects.slice();
-      var association = callShape.getPointAssociation();
-      var prSet = association && association.prSet;
+      var callShapePoint = callShape.getSmartArtShapePoint();
+      var prSet = callShapePoint && callShapePoint.prSet;
       var getShapesFromPresStyleLbl = function(arrOfStyleLbl, returnThis) {
         if (prSet) {
           for (var i = 0; i < arrOfStyleLbl.length; i += 1) {
             if (prSet.presStyleLbl === arrOfStyleLbl[i]) {
               return shapes.filter(function (shape) {
-                var shapePrSet = shape.getPointAssociation() && shape.getPointAssociation().prSet;
+                var smartArtShapePoint = shape.getSmartArtShapePoint();
+                var shapePrSet = smartArtShapePoint && smartArtShapePoint.prSet;
                 return shapePrSet.presStyleLbl === arrOfStyleLbl[i];
               });
             }
@@ -10302,7 +10266,8 @@ Because of this, the display is sometimes not correct.
           for (var i = 0; i < arrOfPresName.length; i += 1) {
             if (typeof prSet.presName === 'string' && prSet.presName.includes(arrOfPresName[i])) {
               return shapes.filter(function (shape) {
-                var shapePrSet = shape.getPointAssociation() && shape.getPointAssociation().prSet;
+                var smartArtShapePoint = shape.getSmartArtShapePoint();
+                var shapePrSet = smartArtShapePoint && smartArtShapePoint.prSet;
                 return typeof shapePrSet.presName === 'string' && shapePrSet.presName.includes(arrOfPresName[i]);
               });
             }
@@ -10485,47 +10450,6 @@ Because of this, the display is sometimes not correct.
       }
     }
 
-    SmartArt.prototype.setPointsForShapes = function () {
-      var oDrawing = this.getDrawing();
-      if(!oDrawing) {
-        return;
-      }
-      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
-      var ptLst = dataModel.ptLst.list;
-      var cxnLst = dataModel.cxnLst.list;
-      oDrawing.spTree.forEach(function (shape) {
-        if (shape.isObjectInSmartArt()) {
-          var cxn;
-          var isPresParOf = true;
-          for (var i = 0; i < cxnLst.length; i += 1) {
-            if (cxnLst[i].type === 'presOf' && cxnLst[i].destId === shape.modelId) {
-              isPresParOf = false;
-              cxn = cxnLst[i];
-            }
-          }
-          if (isPresParOf) {
-            for (i = 0; i < cxnLst.length; i += 1) {
-              if (cxnLst[i].type === 'presParOf' && cxnLst[i].destId === shape.modelId) {
-                isPresParOf = false;
-                cxn = cxnLst[i];
-              }
-            }
-          }
-          var pointInfo = new PointInfo();
-          for (i = 0; i < ptLst.length; i += 1) {
-            if (cxn) {
-              if (cxn.destId === ptLst[i].modelId) {
-                pointInfo.setAssociation(ptLst[i]);
-              }
-              if (cxn.srcId === ptLst[i].modelId) {
-                pointInfo.setPoint(ptLst[i]);
-              }
-            }
-          }
-          shape.setSmartArtPoint(pointInfo);
-        }
-      })
-    };
 
     SmartArt.prototype.setParent = function (parent) {
       History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SmartArtParent, this.parent, parent));
@@ -10640,11 +10564,11 @@ Because of this, the display is sometimes not correct.
         var ptMap = this.getPtMap();
         var shapeMap = this.getShapeMap();
         var cxnLst = dataModel.cxnLst.list;
-        var parCxnLst = cxnLst.filter(function (cxn) {
-          return cxn.type === 'presOf';
+        var presCxnLst = cxnLst.filter(function (cxn) {
+          return cxn.type === 'presOf' || cxn.type === 'presParOf';
         });
 
-        parCxnLst.forEach(function (cxn) {
+        presCxnLst.forEach(function (cxn) {
           var shape = shapeMap[cxn.destId];
           if (shape) {
             if (!connections[cxn.destId]) {
@@ -10669,10 +10593,9 @@ Because of this, the display is sometimes not correct.
           var smartArtInfo = new ShapeSmartArtInfo();
           shape.setShapeSmartArtInfo(smartArtInfo);
           if (contentConnections[modelId]) {
-            var arrayOfPoints = contentConnections[modelId].map(function (el) {
-              return el.point;
+            contentConnections[modelId].forEach(function (el) {
+              smartArtInfo.addToLstContentPoint(smartArtInfo.contentPoint.length, el.point);
             });
-            smartArtInfo.contentPoint = arrayOfPoints;
           }
           if (shapeConnections[modelId]) {
             smartArtInfo.setShapePoint(shapeConnections[modelId]);
@@ -10696,86 +10619,6 @@ Because of this, the display is sometimes not correct.
       });
       return result;
     };
-
-    SmartArt.prototype.setConnections = function () {
-      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
-      if (dataModel) {
-        var connections = [];
-        var cxnLst = dataModel.cxnLst.list;
-        var ptLst = dataModel.ptLst.list;
-        cxnLst.forEach(function (cxn) {
-          ptLst.forEach(function (point) {
-            if (point.modelId === cxn.destId) {
-              var isCheck = connections.some(function (con) {
-                return con.id === cxn.destId;
-              });
-              if (!isCheck) {
-                connections.push({
-                  point: point,
-                  id: cxn.destId,
-                  conn: [],
-                  srcOrd: cxn.srcOrd,
-                  destOrd: cxn.destOrd
-                })
-              }
-            }
-          })
-        });
-        cxnLst.forEach(function (cxn) {
-          ptLst.forEach(function (point) {
-            if (point.modelId === cxn.srcId) {
-              connections.forEach(function (c) {
-                if (c.id === cxn.destId && point.type !== Point_type_pres/*&&  && point.type !== 3*/ /*&& (cxn.srcOrd !== c.srcOrd || cxn.destOrd !== c.destOrd)*/) {
-                  c.conn.push({
-                    point: point,
-                    srcOrd: cxn.srcOrd,
-                    destOrd: cxn.destOrd,
-                  });
-                }
-              })
-            }
-          });
-        })
-        var shapeMap = {};
-        var shapeTree = this.getDrawing().spTree;
-        var shapeLst = shapeTree.map(function (shape) {
-          shapeMap[shape.modelId] = shape;
-          return shape.modelId;
-        });
-        connections = connections.filter(function (conn) {
-          return shapeLst.indexOf(conn.id) !== -1;
-        })
-        connections.forEach(function (connect) {
-          var smartArtInfo = new ShapeSmartArtInfo();
-          var shape = shapeMap[connect.id];
-          smartArtInfo.setShapePoint(connect.point);
-          var content = shape.txBody && shape.txBody.content && shape.txBody.content.Content;
-          if (content && content.length) {
-            if (connect.conn.length === content.length) {
-              content.forEach(function (paragraph, idx) {
-                connect.conn.forEach(function (contentPoint) {
-                  if (contentPoint.srcOrd === connect.srcOrd && parseInt(contentPoint.destOrd) === idx) {
-                    smartArtInfo.addToLstContentPoint(smartArtInfo.contentPoint.length ,contentPoint.point);
-                  }
-                })
-              })
-            } else {
-
-            }
-          } else if (connect.point.isBlipFillPlaceholder()) {
-
-            if (connect.conn.length !== 0) {
-              smartArtInfo.setSpPrPoint(connect.conn[0].point);
-            } else {
-              smartArtInfo.setSpPrPoint(connect.point);
-            }
-          }
-          shape.setShapeSmartArtInfo(smartArtInfo);
-        })
-        return connections;
-      }
-    }
-
 
     SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
@@ -10803,7 +10646,6 @@ Because of this, the display is sometimes not correct.
         case 1: {
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
-          this.setPointsForShapes();
           this.setConnections2();
           break;
         }
@@ -11133,7 +10975,6 @@ Because of this, the display is sometimes not correct.
       copy.cachedPixH = this.cachedPixH;
       copy.cachedPixW = this.cachedPixW;
       copy.setLocks(this.locks);
-      copy.setPointsForShapes();
       copy.setConnections2();
       return copy;
     };
