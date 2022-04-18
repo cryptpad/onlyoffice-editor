@@ -7178,19 +7178,8 @@ CShape.prototype.getColumnNumber = function(){
                 break;
             }
             case "txbxContent": {
-                //TODO
-                var Content = [];
-                var depth = reader.GetDepth() + 1;
-                let oDrawingDoc = editor.WordControl.m_oLogicDocument.DrawingDocument;
-                let oTxBxContent = new AscCommonWord.CDocumentContent(this, oDrawingDoc, 0, 0, 0, 0, false, false);
+                let oTxBxContent = fReadTxBoxContentXML(reader);
                 this.setTextBoxContent(oTxBxContent);
-                while (reader.ReadNextSiblingNode(depth)) {
-                    AscCommonWord.CDocument.prototype.fromXmlDocContentElem(reader, reader.GetNameNoNS(), Content, oDrawingDoc, oTxBxContent);
-
-                }
-                if (Content.length > 0) {
-                    oTxBxContent.ReplaceContent(Content);
-                }
                 break;
             }
         }
@@ -7200,6 +7189,21 @@ CShape.prototype.getColumnNumber = function(){
     CShape.prototype.writeChildren = function(writer) {
         //Implement in children
     };
+
+    function fReadTxBoxContentXML(reader, parent) {
+        var Content = [];
+        var depth = reader.GetDepth() + 1;
+        let oDrawingDoc = editor.WordControl.m_oLogicDocument.DrawingDocument;
+        let oTxBxContent = new AscCommonWord.CDocumentContent(parent, oDrawingDoc, 0, 0, 0, 0, false, false);
+        while (reader.ReadNextSiblingNode(depth)) {
+            AscCommonWord.CDocument.prototype.fromXmlDocContentElem(reader, reader.GetNameNoNS(), Content, oDrawingDoc, oTxBxContent);
+
+        }
+        if (Content.length > 0) {
+            oTxBxContent.ReplaceContent(Content);
+        }
+        return oTxBxContent;
+    }
 
 function CreateBinaryReader(szSrc, offset, srcLen)
 {
@@ -7355,5 +7359,6 @@ function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr
     window['AscFormat'].SaveContentSourceFormatting = SaveContentSourceFormatting;
     window['AscFormat'].hitToHandles = hitToHandles;
     window['AscFormat'].pHText = pHText;
+    window['AscFormat'].fReadTxBoxContentXML = fReadTxBoxContentXML;
 
 })(window);

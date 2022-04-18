@@ -3420,10 +3420,8 @@
 			else if ("style" === name) this.m_oStyle = new CCssStyle(reader.GetValue());
 		};
 		CTextbox.prototype.readChildXml = function (name, reader) {
-
 			if ("txbxContent" === name) {
-				this.m_oTxtbxContent = new CTxbxContent();
-				this.m_oTxtbxContent.fromXml(reader);
+				this.m_oTxtbxContent = AscFormat.fReadTxBoxContentXML(reader, this)
 			} else if ("div" === name) {
 				this.m_oText = reader.GetTextDecodeXml();
 			}
@@ -3438,7 +3436,7 @@
 		function CCssStyle(sValue) {
 			this.m_arrProperties = null;
 			this.m_sCss = null;
-			if(sValue) {
+			if (sValue) {
 				this.FromString(sValue);
 			}
 		}
@@ -4342,43 +4340,47 @@
 				this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
 		}
 
-		function CTxbxContent() {
-			CBaseNoId.call(this);
-		}
-
-		IC(CTxbxContent, CBaseNoId, 0);
-		CTxbxContent.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		CTxbxContent.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		CTxbxContent.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CTxbxContent.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
 
 		function CTextPath() {
 			CBaseNoId.call(this);
+			this.m_oFitPath = null;
+			this.m_oFitShape = null;
+			this.m_oId = null;
+			this.m_oOn = null;
+			this.m_sString = null;
+			this.m_oStyle = null;
+			this.m_oTrim = null;
+			this.m_oXScale = null;
+			this.m_sStringOriginal = null;
 		}
 
 		IC(CTextPath, CBaseNoId, 0);
 		CTextPath.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		CTextPath.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+			let wsChar = name.charCodeAt(0);
+			switch (wsChar) {
+				case 'f':
+					if (("fitpath") === name) this.m_oFitPath = reader.GetValueBool();
+					else if (("fitshape") === name) this.m_oFitShape = reader.GetValueBool();
+					break;
+				case 'i':
+					if (("id") === name) this.m_oId = reader.GetValue();
+					break;
+				case 'o':
+					if (("on") === name) this.m_oOn = reader.GetValueBool();
+					break;
+				case 's':
+					if (("string") === name) this.m_sString = reader.GetValue();
+					else if (("style") === name) this.m_oStyle = new CCssStyle(reader.GetValue());
+					break;
+				case 't':
+					if (("trim") === name) this.m_oTrim = reader.GetValueBool();
+					break;
+				case 'x':
+					if (("xscale") === name) this.m_oXScale = reader.GetValueBool();
+					break;
 			}
 		};
 		CTextPath.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CTextPath.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
@@ -4402,33 +4404,226 @@
 			//TODO:Implement in children
 		};
 
-		function CBorder() {
+
+		let EBorderType =
+			{
+				bordertypeDash: 0, // (pecifies a line border consisting of a dashed line around the parent object.)
+				bordertypeDashDotDot: 1, // (Dash Dot Dot Border)
+				bordertypeDashDotStroked: 2, // (Stroked Dash Dot Border)
+				bordertypeDashedSmall: 3, // (Small Dash Border)
+				bordertypeDot: 4, // (Dotted Border)
+				bordertypeDotDash: 5, // (Dot Dash Border)
+				bordertypeDouble: 6, // (Double Line Border)
+				bordertypeDoubleWave: 7, // (Double Wavy Lines Border)
+				bordertypeHairline: 8, // (Hairline Border)
+				bordertypeHTMLInset: 9, // (Inset Border)
+				bordertypeHTMLOutset: 10, // (Outset Border)
+				bordertypeNone: 11, // (No Border)
+				bordertypeSingle: 12, // (Single Line Border)
+				bordertypeThick: 13, // (Thick Line Border)
+				bordertypeThickBetweenThin: 14, // (Thin-thick-thin Border)
+				bordertypeThickBetweenThinLarge: 15, // (Large thin-thick-thin Border)
+				bordertypeThickBetweenThinSmall: 16, // (Small thin-thick-thin Lines Border)
+				bordertypeThickThin: 17, // (Thick Thin Line Border)
+				bordertypeThickThinLarge: 18, // (Thick Thin Large Gap Border)
+				bordertypeThickThinSmall: 19, // (Small thick-thin lines border)
+				bordertypeThinThick: 20, // (Thin Thick Line Border)
+				bordertypeThinThickLarge: 21, // (Thin Thick Large Gap Border)
+				bordertypeThinThickSmall: 22, // (Thin Thick Small Gap Border)
+				bordertypeThreeDEmboss: 23, // (3D Embossed Border)
+				bordertypeThreeDEngrave: 24, // (3D Engraved Border)
+				bordertypeTriple: 25, // (Triple Line Border)
+				bordertypeWave: 26 // (Wavy Border)
+			};
+
+
+		function readBorderType(reader) {
+			let sValue = reader.GetValue();
+			let wChar = sValue.charAt(0);
+			switch (wChar) {
+				case 'd':
+					if (("dash") === sValue) return EBorderType.bordertypeDash;
+					else if (("dashDotDot") === sValue) return EBorderType.bordertypeDashDotDot;
+					else if (("dashDotStroked") === sValue) return EBorderType.bordertypeDashDotStroked;
+					else if (("dashedSmall") === sValue) return EBorderType.bordertypeDashedSmall;
+					else if (("dot") === sValue) return EBorderType.bordertypeDot;
+					else if (("dotDash") === sValue) return EBorderType.bordertypeDotDash;
+					else if (("double") === sValue) return EBorderType.bordertypeDouble;
+					else if (("doubleWave") === sValue) return EBorderType.bordertypeDoubleWave;
+					break;
+				case 'h':
+					if (("hairline") === sValue) return EBorderType.bordertypeHairline;
+					break;
+
+				case 'H':
+					if (("HTMLInset") === sValue) return EBorderType.bordertypeHTMLInset;
+					else if (("HTMLOutset") === sValue) return EBorderType.bordertypeHTMLOutset;
+					break;
+
+				case 'n':
+					if (("none") === sValue) return EBorderType.bordertypeNone;
+					break;
+
+				case 's':
+					if (("single") === sValue) return EBorderType.bordertypeSingle;
+					break;
+
+				case 't':
+					if (("thick") === sValue) return EBorderType.bordertypeThick;
+					else if (("thickBetweenThin") === sValue) return EBorderType.bordertypeThickBetweenThin;
+					else if (("thickBetweenThinLarge") === sValue) return EBorderType.bordertypeThickBetweenThinLarge;
+					else if (("thickBetweenThinSmall") === sValue) return EBorderType.bordertypeThickBetweenThinSmall;
+					else if (("thickThin") === sValue) return EBorderType.bordertypeThickThin;
+					else if (("thickThinLarge") === sValue) return EBorderType.bordertypeThickThinLarge;
+					else if (("thickThinSmall") === sValue) return EBorderType.bordertypeThickThinSmall;
+					else if (("thinThick") === sValue) return EBorderType.bordertypeThinThick;
+					else if (("thinThickLarge") === sValue) return EBorderType.bordertypeThinThickLarge;
+					else if (("thinThickSmall") === sValue) return EBorderType.bordertypeThinThickSmall;
+					else if (("threeDEmboss") === sValue) return EBorderType.bordertypeThreeDEmboss;
+					else if (("threeDEngrave") === sValue) return EBorderType.bordertypeThreeDEngrave;
+					else if (("triple") == sValue) return EBorderType.bordertypeTriple;
+					break;
+
+				case 'w':
+					if (("wave") === sValue) return EBorderType.bordertypeWave;
+					break;
+			}
+			return EBorderType.bordertypeNone;
+		}
+
+		let EBorderShadow =
+			{
+				bordershadowFalse: 0,
+				bordershadowTrue: 1
+			};
+
+		function readBorderShadow(reader) {
+			let bVal = reader.GetValueBool();
+			return bVal ? EBorderShadow.bordershadowTrue : EBorderShadow.bordershadowFalse;
+		}
+
+		function CBorder(sType) {
 			CBaseNoId.call(this);
+			this.m_sType = sType;
+			this.m_oShadow = null;
+			this.m_oType = null;
+			this.m_oWidth = null;
 		}
 
 		IC(CBorder, CBaseNoId, 0);
 		CBorder.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
-			}
-		};
-		CBorder.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+				case "shadow":
+					this.m_oShadow = readBorderShadow(reader);
+					break;
+				case "type":
+					this.m_oType = readBorderType(reader);
+					break;
+				case "width":
+					this.m_oWidth = reader.GetValueInt();
+					break;
 			}
 		};
 		CBorder.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
-		CBorder.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
+
+		let EWrapSide =
+			{
+				wrapsideBoth: 0,
+				wrapsideLargest: 1,
+				wrapsideLeft: 2,
+				wrapsideRight: 3
+			};
+
+		function readWrapSide(reader) {
+			let sValue = reader.GetValue();
+
+			if ("both" === sValue) return EWrapSide.wrapsideBoth;
+			if ("largest" === sValue) return EWrapSide.wrapsideLargest;
+			if ("left" === sValue) return EWrapSide.wrapsideLeft;
+			if ("right" === sValue) return EWrapSide.wrapsideRight;
+		}
+
+		let EVerticalAnchor =
+			{
+				verticalanchorLine: 0,
+				verticalanchorMargin: 1,
+				verticalanchorPage: 2,
+				verticalanchorText: 3
+			};
+
+		function readVerticalAnchor(reader) {
+			let sVal = reader.GetValue();
+			if (sVal === "line") return EVerticalAnchor.verticalanchorLine;
+			if (sVal === "margin") return EVerticalAnchor.verticalanchorMargin;
+			if (sVal === "page") return EVerticalAnchor.verticalanchorPage;
+			if (sVal === "text") return EVerticalAnchor.verticalanchorText;
+			return EVerticalAnchor.verticalanchorLine;
+		}
+
+		function readHorizontalAnchor(reader) {
+			let sVal = reader.GetValue();
+			if (sVal === "line") return EHorizontalAnchor.horizontalanchorChar;
+			if (sVal === "margin") return EHorizontalAnchor.horizontalanchorMargin;
+			if (sVal === "page") return EHorizontalAnchor.horizontalanchorPage;
+			if (sVal === "text") return EHorizontalAnchor.horizontalanchorText;
+			return EHorizontalAnchor.horizontalanchorChar;
+		}
+
+
+		let EHorizontalAnchor =
+			{
+				horizontalanchorChar: 0,
+				horizontalanchorMargin: 1,
+				horizontalanchorPage: 2,
+				horizontalanchorText: 3
+			};
+
+
+		let EWrapType =
+			{
+				wraptypeNone: 0,
+				wraptypeSquare: 1,
+				wraptypeThrough: 2,
+				wraptypeTight: 3,
+				wraptypeTopAndBottom: 4
+			};
+
+		function readWrapType(reader) {
+			let sVal = reader.GetValue();
+			if (sVal === "none") return EWrapType.wraptypeNone;
+			if (sVal === "square") return EWrapType.wraptypeSquare;
+			if (sVal === "through") return EWrapType.wraptypeThrough;
+			if (sVal === "tight") return EWrapType.wraptypeTight;
+			if (sVal === "topAndBottom") return EWrapType.wraptypeTopAndBottom;
+			return EWrapType.wraptypeNone;
+		}
 
 		function CWrap() {
 			CBaseNoId.call(this);
+
+			this.m_oAnchorX = null;
+			this.m_oAnchorY = null;
+			this.m_oSide = null;
+			this.m_oType = null;
 		}
 
 		IC(CWrap, CBaseNoId, 0);
 		CWrap.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
+				case "anchorx":
+					this.m_oAnchorX = readHorizontalAnchor(reader);
+					break;
+				case "anchory":
+					this.m_oAnchorY = readVerticalAnchor(reader);
+					break;
+				case "side":
+					this.m_oSide = readWrapSide(reader);
+					break;
+				case "type":
+					this.m_oType = readWrapType(reader);
+					break;
 			}
 		};
 		CWrap.prototype.readChildXml = function (name, reader) {
@@ -4442,18 +4637,152 @@
 			//TODO:Implement in children
 		};
 
+
+		let EVmlClientDataObjectType =
+			{
+				vmlclientdataobjecttypeButton: 0,
+				vmlclientdataobjecttypeCheckbox: 1,
+				vmlclientdataobjecttypeDialog: 2,
+				vmlclientdataobjecttypeDrop: 3,
+				vmlclientdataobjecttypeEdit: 4,
+				vmlclientdataobjecttypeGBox: 5,
+				vmlclientdataobjecttypeGroup: 6,
+				vmlclientdataobjecttypeLabel: 7,
+				vmlclientdataobjecttypeLineA: 8,
+				vmlclientdataobjecttypeList: 9,
+				vmlclientdataobjecttypeMovie: 10,
+				vmlclientdataobjecttypeNote: 11,
+				vmlclientdataobjecttypePict: 12,
+				vmlclientdataobjecttypeRadio: 13,
+				vmlclientdataobjecttypeRect: 14,
+				vmlclientdataobjecttypeRectA: 15,
+				vmlclientdataobjecttypeScroll: 16,
+				vmlclientdataobjecttypeShape: 17,
+				vmlclientdataobjecttypeSpin: 18
+			};
+
+		function readClientDataObjectType(reader) {
+			let sValue = reader.GetValue();
+			if (("Button") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeButton;
+			else if (("Checkbox") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeCheckbox;
+			else if (("Dialog") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeDialog;
+			else if (("Drop") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeDrop;
+			else if (("Edit") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeEdit;
+			else if (("GBox") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeGBox;
+			else if (("Group") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeGroup;
+			else if (("Label") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeLabel;
+			else if (("LineA") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeLineA;
+			else if (("List") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeList;
+			else if (("Movie") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeMovie;
+			else if (("Note") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeNote;
+			else if (("Pict") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypePict;
+			else if (("Radio") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRadio;
+			else if (("Rect") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRect;
+			else if (("RectA") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRectA;
+			else if (("Scroll") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeScroll;
+			else if (("Shape") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeShape;
+			else if (("Spin") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeSpin;
+			return EVmlClientDataObjectType.vmlclientdataobjecttypeButton;
+		}
+
 		function CClientData() {
 			CBaseNoId.call(this);
+			this.m_oObjectType = null;
+
+			this.m_oMoveWithCells = null;
+			this.m_oSizeWithCells = null;
+			this.m_oAnchor = null;
+			this.m_oRow = null;
+			this.m_oColumn = null;
+			this.m_oMin = null;
+			this.m_oMax = null;
+			this.m_oInc = null;
+			this.m_oDx = null;
+			this.m_oPage = null;
+			this.m_oDropLines = null;
+			this.m_oSel = null;
+			this.m_oWidthMin = null;
+			this.m_oDropStyle = null;
+			this.m_oFirstButton = null;
+			this.m_oDefaultSize = null;
+			this.m_oAutoFill = null;
+			this.m_oAutoScale = null;
+			this.m_oAutoLine = null;
+			this.m_oHoriz = null;
+			this.m_oVScroll = null;
+			this.m_oAutoPict = null;
+			this.m_oColored = null;
+			this.m_oMultiLine = null;
+			this.m_oNoThreeD = null;
+			this.m_oNoThreeD2 = null;
+			this.m_oLockText = null;
+			this.m_oJustLastX = null;
+			this.m_oSecretEdit = null;
+			this.m_oFmlaLink = null;
+			this.m_oFmlaRange = null;
+			this.m_oFmlaMacro = null;
+			this.m_oFmlaTxbx = null;
+			this.m_oFmlaGroup = null;
+			this.m_oCf = null;
+			this.m_oChecked = null;
+			this.m_oMultiSel = null;
+			this.m_oSelType = null;
+			this.m_oVal = null;
+			this.m_oTextHAlign = null;
+			this.m_oTextVAlign = null;
+			this.m_oVisible = null;
 		}
 
 		IC(CClientData, CBaseNoId, 0);
 		CClientData.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
+				case "ObjectType" :
+					this.m_oObjectType = readClientDataObjectType(reader);
+					break;
 			}
 		};
 		CClientData.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			let sContent = reader.GetTextDecodeXml();
+			if ("MoveWithCells" === name) this.m_oMoveWithCells = sContent.length === 0 ? "t" : sContent;
+			else if ("SizeWithCells" === name) this.m_oSizeWithCells = sContent.length === 0 ? "t" : sContent;
+			else if ("Anchor" === name) this.m_oAnchor = sContent;
+			else if ("Row" === name) this.m_oRow = sContent;
+			else if ("Column" === name) this.m_oColumn = sContent;
+			else if ("DefaultSize" === name) this.m_oDefaultSize = sContent.length === 0 ? "t" : sContent;
+			else if ("AutoLine" === name) this.m_oAutoLine = sContent.length === 0 ? "t" : sContent;
+			else if ("AutoFill" === name) this.m_oAutoFill = sContent.length === 0 ? "t" : sContent;
+			else if ("AutoPict" === name) this.m_oAutoPict = sContent.length === 0 ? "t" : sContent;
+			else if ("AutoScale" === name) this.m_oAutoScale = sContent.length === 0 ? "t" : sContent;
+			else if ("FmlaLink" === name) this.m_oFmlaLink = sContent;
+			else if ("FmlaRange" === name) this.m_oFmlaRange = sContent;
+			else if ("FmlaMacro" === name) this.m_oFmlaMacro = sContent;
+			else if ("FmlaTxbx" === name) this.m_oFmlaTxbx = sContent;
+			else if ("FmlaGroup" === name) this.m_oFmlaGroup = sContent;
+			else if ("CF" === name) this.m_oCf = sContent;
+			else if ("Min" === name) this.m_oMin = sContent;
+			else if ("Max" === name) this.m_oMax = sContent;
+			else if ("Val" === name) this.m_oVal = sContent;
+			else if ("Inc" === name) this.m_oInc = sContent;
+			else if ("Sel" === name) this.m_oSel = sContent.length === 0 ? "t" : sContent;
+			else if ("WidthMin" === name) this.m_oWidthMin = sContent;
+			else if ("Dx" === name) this.m_oDx = sContent;
+			else if ("Page" === name) this.m_oPage = sContent;
+			else if ("DropLines" === name) this.m_oDropLines = sContent;
+			else if ("NoThreeD2" === name) this.m_oNoThreeD2 = sContent.length === 0 ? "t" : sContent;
+			else if ("NoThreeD" === name) this.m_oNoThreeD = sContent.length === 0 ? "t" : sContent;
+			else if ("DropStyle" === name) this.m_oDropStyle = sContent;
+			else if ("FirstButton" === name) this.m_oFirstButton = sContent.length === 0 ? "t" : sContent;
+			else if ("VScroll" === name) this.m_oVScroll = sContent.length === 0 ? "t" : sContent;
+			else if ("Horiz" === name) this.m_oHoriz = sContent.length === 0 ? "t" : sContent;
+			else if ("TextHAlign" === name) this.m_oTextHAlign = sContent;
+			else if ("TextVAlign" === name) this.m_oTextVAlign = sContent;
+			else if ("Colored" === name) this.m_oColored = sContent.length === 0 ? "t" : sContent;
+			else if ("MultiLine" === name) this.m_oMultiLine = sContent.length === 0 ? "t" : sContent;
+			else if ("LockText" === name) this.m_oLockText = sContent.length === 0 ? "t" : sContent;
+			else if ("JustLastX" === name) this.m_oJustLastX = sContent.length === 0 ? "t" : sContent;
+			else if ("SecretEdit" === name) this.m_oSecretEdit = sContent.length === 0 ? "t" : sContent;
+			else if ("SelType" === name) this.m_oSelType = sContent;
+			else if ("Visible" === name) this.m_oVisible = sContent.length === 0 ? "t" : sContent;
 		};
 		CClientData.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
