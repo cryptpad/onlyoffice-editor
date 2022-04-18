@@ -13405,23 +13405,18 @@
 		switch (oForm.GetFormType())
 		{
 			case "textForm":
-				oForm = new ApiTextForm(this.Sdt);
-				break;
+				return ApiTextForm(this.Sdt);
 			case "comboBoxForm":
 			case "dropDownForm":
-				oForm = new ApiComboBoxForm(this.Sdt);
-				break;
+				return new ApiComboBoxForm(this.Sdt);
 			case "radioButtonForm":
 			case "checkBoxForm":
-				oForm = new ApiCheckBoxForm(this.Sdt);
-				break;
+				return new ApiCheckBoxForm(this.Sdt);
 			case "pictureForm":
-				oForm = new ApiPictureForm(this.Sdt);
-				break;
+				return new ApiPictureForm(this.Sdt);
+			default:
+				return null;				
 		}
-		
-
-		return null;
 	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
