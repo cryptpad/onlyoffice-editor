@@ -37,6 +37,23 @@
    * @param {undefined} undefined
    */
   function (window, undefined) {
+/*
+The current module is designed to implement SmartArt support.
+At the moment, there is partial support for the format, its saving and editing.
+At the moment, there is support for the drawing.xml file - this should be abandoned, smart arts are built with information from the data.xml file, drawn by bypassing the layout.xml file.
+Need to support:
+1. The connection must be built data -> drawing, at the moment the opposite is happening.
+
+2. Rendering should take place according to the layout.xml file.
+
+3. Synchronous filling of a paragraph in data and drawing, at the moment this is not done correctly - available paragraphs are divided evenly and filled in contentpoints.
+CShape.prototype.copyTextInfoFromShapeToPoint = function (paddings) {
+Because of this, the display is sometimes not correct.
+
+4. Support placeholders for individual paragraphs. At the moment, there are two contents that replace each other when in focus and out of focus.
+
+5. Support changing the smartart tree to add new nodes.
+*/
     // imports
 
     var InitClass = AscFormat.InitClass;
