@@ -125,6 +125,7 @@
 
         if (window['AscNotLoadAllScript'])
         {
+            AscCommon.loadScript(url + "common.js", _onSuccess, _onError);
             AscCommon.loadScript(url + "engine" + engine_name_ext, _onSuccess, _onError);
             AscCommon.loadScript(url + "file.js", _onSuccess, _onError);
             AscCommon.loadScript(url + "manager.js", _onSuccess, _onError);
