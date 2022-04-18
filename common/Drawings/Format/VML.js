@@ -1337,10 +1337,10 @@
 
 
 		let EColorMode =
-		{
-			colormodeAuto   : 0,
-			colormodeCustom : 1
-		};
+			{
+				colormodeAuto: 0,
+				colormodeCustom: 1
+			};
 
 		function readColorMode(reader) {
 			let sVal = reader.GetValue()
@@ -1354,6 +1354,7 @@
 			}
 			return null;
 		}
+
 		function readInsetMode(reader) {
 
 			let sVal = reader.GetValue()
@@ -3336,7 +3337,7 @@
 			this.m_dTop = 0;
 			this.m_dRight = 0;
 			this.m_dBottom = 0;
-			if(sValue) {
+			if (sValue) {
 				this.FromString(sValue);
 			}
 		}
@@ -3368,7 +3369,6 @@
 
 			let arSplit = [];
 
-			// Разделителями могут быть запятые и пробелы
 			sValue.replace("@", "");
 			arSplit = sValue.split(", ");
 
@@ -3436,24 +3436,911 @@
 		};
 
 		function CCssStyle(sValue) {
-			CBaseNoId.call(this);
+			this.m_arrProperties = null;
+			this.m_sCss = null;
+			if(sValue) {
+				this.FromString(sValue);
+			}
 		}
 
-		IC(CCssStyle, CBaseNoId, 0);
-		CCssStyle.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
+		CCssStyle.prototype.Clear = function () {
+			this.m_arrProperties.length = 0;
+		}
+
+		CCssStyle.prototype.FromString = function (sValue) {
+			this.Clear();
+
+			this.m_sCss = sValue;
+			this.ParseProperties();
+
+			return this.m_sCss;
+		};
+
+		CCssStyle.prototype.ToString = function () {
+			return this.m_sCss;
+		};
+
+		CCssStyle.prototype.ParseProperties = function () {
+			let sTemp = this.m_sCss;
+			while (sTemp.length > 0) {
+				let nPos = sTemp.indexOf(';');
+				if (-1 === nPos) {
+					let oProperty = new CCssProperty(sTemp);
+					if ((ECssPropertyType.cssptUnknown !== oProperty.get_Type())) {
+						this.m_arrProperties.push(oProperty);
+					}
+					sTemp = "";
+					continue;
+				} else {
+					let oProperty = new CCssProperty(sTemp.substr(0, nPos));
+					if ((ECssPropertyType.cssptUnknown !== oProperty.get_Type())) {
+						this.m_arrProperties.push(oProperty);
+					}
+					sTemp = sTemp.substr(nPos + 1, sTemp.length - nPos - 1);
+				}
 			}
+			return true;
 		};
-		CCssStyle.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+
+
+		let ECssPropertyType =
+			{
+				cssptUnknown: 0,
+				cssptFlip: 1000,
+				cssptHeight: 1001,
+				cssptLeft: 1002,
+				cssptMarginBottom: 1003,
+				cssptMarginLeft: 1004,
+				cssptMarginRight: 1005,
+				cssptMarginTop: 1006,
+				cssptMsoPositionHorizontal: 1007,
+				cssptMsoPositionHorizontalRelative: 1008,
+				cssptMsoPositionVertical: 1009,
+				cssptMsoPositionVerticalRelative: 1010,
+				cssptMsoWrapDistanceBottom: 1011,
+				cssptMsoWrapDistanceLeft: 1012,
+				cssptMsoWrapDistanceRight: 1013,
+				cssptMsoWrapDistanceTop: 1014,
+				cssptMsoWrapEdited: 1015,
+				cssptMsoWrapStyle: 1016,
+				cssptPosition: 1017,
+				cssptRotation: 1018,
+				cssptTop: 1019,
+				cssptVisibility: 1020,
+				cssptWidth: 1021,
+				cssptZIndex: 1022,
+				csspctMsoWidthPercent: 1023,
+				csspctMsoHeightPercent: 1024,
+
+				cssptDirection: 1100,
+				cssptLayoutFlow: 1101,
+				cssptMsoDirectionAlt: 1102,
+				cssptMsoFitShapeToText: 1103,
+				cssptMsoFitTextToShape: 1104,
+				cssptMsoLayoutFlowAlt: 1105,
+				cssptMsoNextTextbox: 1106,
+				cssptMsoRotate: 1107,
+				cssptMsoTextScale: 1108,
+				cssptVTextAnchor: 1109,
+
+				cssptFont: 1200,
+				cssptFontFamily: 1201,
+				cssptFontSize: 1202,
+				cssptFontStyle: 1203,
+				cssptFontVariant: 1204,
+				cssptFontWeight: 1205,
+				cssptMsoTextShadow: 1206,
+				cssptTextDecoration: 1207,
+				cssptVRotateLetters: 1208,
+				cssptVSameLetterHeights: 1209,
+				cssptVTextAlign: 1210,
+				cssptVTextKern: 1211,
+				cssptVTextReverse: 1212,
+				cssptVTextSpacingMode: 1213,
+				cssptVTextSpacing: 1214,
+				cssptHTextAlign: 1215
+			};
+
+
+		let ECssFlip =
+			{
+				cssflipX: 0,
+				cssflipY: 1,
+				cssflipXY: 2,
+				cssflipYX: 3
+			};
+		let ECssUnitsType =
+			{
+				cssunitstypeAuto: 0,
+				cssunitstypeUnits: 1,
+				cssunitstypePerc: 2,
+				cssunitstypeAbsolute: 3
+			};
+
+		function TCssUnitsValue(type, value) {
+			this.eType = type;
+			this.dValue = value; // pt
+		}
+
+		let ECssMsoPosHorRel =
+			{
+				cssmsoposhorrelMargin: 0,
+				cssmsoposhorrelPage: 1,
+				cssmsoposhorrelText: 2,
+				cssmsoposhorrelChar: 3,
+				cssmsoposhorrelLeftMargin: 4,
+				cssmsoposhorrelRightMargin: 5
+			};
+		let ECssMsoPosHor =
+			{
+				cssmsoposhorAbsolute: 0,
+				cssmsoposhorLeft: 1,
+				cssmsoposhorCenter: 2,
+				cssmsoposhorRight: 3,
+				cssmsoposhorInside: 4,
+				cssmsoposhorOutside: 5
+			};
+		let ECssMsoPosVer =
+			{
+				cssmsoposverAbsolute: 0,
+				cssmsoposverTop: 1,
+				cssmsoposverCenter: 2,
+				cssmsoposverBottom: 3,
+				cssmsoposverInside: 4,
+				cssmsoposverOutside: 5
+			};
+		let ECssMsoPosVerRel =
+			{
+				cssmsoposverrelMargin: 0,
+				cssmsoposverrelPage: 1,
+				cssmsoposverrelText: 2,
+				cssmsoposverrelLine: 3,
+				cssmsoposverrelTopMargin: 4,
+				cssmsoposverrelBottomMargin: 5
+			};
+		let ECssMsoWrapStyle =
+			{
+				cssmsowrapstyleSqaure: 0,
+				cssmsowrapstyleNone: 1,
+			};
+		let ECssPosition =
+			{
+				csspositionStatic: 0,
+				csspositionAbsolute: 1,
+				csspositionRelative: 2,
+			};
+		let ECssVisibility =
+			{
+				cssvisibilityHidden: 0,
+				cssvisibilityInherit: 1,
+			};
+		let ECssZIndexType =
+			{
+				csszindextypeAuto: 0,
+				csszindextypeOrder: 1
+			};
+
+		function TCssZIndexValue(type, order) {
+			this.eType = type;
+			this.nOrder = order;
+		}
+
+		let ECssDirection =
+			{
+				cssdirectionLTR: 0,
+				cssdirectionRTL: 1
+			};
+		let ECssLayoutFlow =
+			{
+				csslayoutflowHorizontal: 0,
+				csslayoutflowVertical: 1,
+				csslayoutflowVerticalIdeographic: 2,
+				csslayoutflowHorizontalIdeographic: 3
+			};
+		let ECssDirectionAlt =
+			{
+				cssdirectionaltContext: 0,
+			};
+		let ECssLayoutFlowAlt =
+			{
+				csslayoutflowaltBottomToTop: 0,
+			};
+
+		let ECssMsoRotate =
+			{
+				cssmsorotate0: 0,
+				cssmsorotate90: 90,
+				cssmsorotate180: 180,
+				cssmsorotate270: -90
+			};
+		let ECssVTextAnchor =
+			{
+				cssvtextanchorTop: 0,
+				cssvtextanchorMiddle: 1,
+				cssvtextanchorBottom: 2,
+				cssvtextanchorTopCenter: 3,
+				cssvtextanchorMiddleCenter: 4,
+				cssvtextanchorBottomCenter: 5,
+				cssvtextanchorTopBaseline: 6,
+				cssvtextanchorBottomBaseline: 7,
+				cssvtextanchorTopCenterBaseline: 8,
+				cssvtextanchorBottomCenterBaseline: 9
+			};
+		let ECssFontStyle =
+			{
+				cssfontstyleNormal: 0,
+				cssfontstyleItalic: 1,
+				cssfontstyleOblique: 2
+			};
+		let ECssFontVarian =
+			{
+				cssfontvariantNormal: 0,
+				cssfontvariantSmallCaps: 1,
+			};
+		let ECssFontWeight =
+			{
+				cssfontweightNormal: 0,
+				cssfontweightLighter: 1,
+				cssfontweight100: 100,
+				cssfontweight200: 200,
+				cssfontweight300: 300,
+				cssfontweight400: 400,
+				cssfontweightBold: 550,
+				cssfontweightBolder: 750,
+				cssfontweight500: 500,
+				cssfontweight600: 600,
+				cssfontweight700: 700,
+				cssfontweight800: 800,
+				cssfontweight900: 900
+			};
+		let ECssTextDecoration =
+			{
+				csstextdecorationNone: 0,
+				csstextdecorationUnderline: 1,
+				csstextdecorationOverline: 2,
+				csstextdecorationLineThrough: 3,
+				csstextdecorationBlink: 4,
+			};
+		let ECssVTextAlign =
+			{
+				cssvtextalignLeft: 0,
+				cssvtextalignRight: 1,
+				cssvtextalignCenter: 2,
+				cssvtextalignJustify: 3,
+				cssvtextalignLetterJustify: 4,
+				cssvtextalignStretchJustify: 5,
+			};
+		let ECssVTextSpacingMode =
+			{
+				cssvtextspacingmodeTightening: 0,
+				cssvtextspacingmodeTracking: 1
+			};
+
+
+		function UCssValue() {
+			this.eFlip = null;
+			this.oValue = null;
+			this.eMsoPosHor = null;
+			this.eMsoPosHorRel = null;
+			this.eMsoPosVer = null;
+			this.eMsoPosVerRel = null;
+			this.bValue = null;
+			this.eMsoWrapStyle = null;
+			this.ePosition = null;
+			this.eVisibility = null;
+			this.oZIndex = null;
+			this.eDirection = null;
+			this.eLayoutFlow = null;
+			this.eDirectionAlt = null;
+			this.eLayoutFlowAlt = null;
+			this.wsValue = null;
+			this.eRotate = null;
+			this.eVTextAnchor = null;
+			this.eFontStyle = null;
+			this.eFontVariant = null;
+			this.eFontWeight = null;
+			this.eTextDecoration = null;
+			this.eVTextAlign = null;
+			this.eVTextSpacingMode = null;
+			this.eHTextAlign = null;
+		}
+
+		function CCssProperty(sBuffer) {
+			this.m_eType = ECssPropertyType.cssptUnknown;
+			this.m_oValue = new UCssValue();
+			if (sBuffer) {
+				this.Parse(sBuffer);
 			}
-		};
-		CCssStyle.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CCssStyle.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
+		}
+
+		CCssProperty.prototype.get_Value = function () {
+			return this.m_oValue;
+		}
+
+		CCssProperty.prototype.get_Type = function () {
+			return this.m_eType;
+		}
+
+
+		CCssProperty.prototype.Parse = function (sBuffer) {
+			let nPos = sBuffer.indexOf(':');
+			let sValue;
+
+			if (-1 === nPos) {
+				this.m_eType = ECssPropertyType.cssptUnknown;
+			} else {
+				let sProperty = sBuffer.substr(0, nPos);
+				sValue = sBuffer.substr(nPos + 1, sBuffer.length - (nPos + 1));
+
+				sProperty = sProperty.replace(/\s/g, "");
+
+				if (sProperty.length <= 2) {
+					this.m_eType = ECssPropertyType.cssptUnknown;
+					return;
+				}
+
+				let nChar1 = sProperty.charAt(0);
+				let nChar2 = sProperty.charAt(0);
+
+				switch (nChar1) {
+					case 'd': {
+						if (("direction") === sProperty) this.m_eType = ECssPropertyType.cssptDirection;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 'f': {
+						switch (nChar2) {
+							case 'l': {
+								if (("flip") === sProperty) this.m_eType = ECssPropertyType.cssptFlip;
+								else this.m_eType = ECssPropertyType.cssptUnknown;
+
+								break;
+							}
+							case 'o': {
+								if (("font") === sProperty) this.m_eType = ECssPropertyType.cssptFont;
+								else if (("font-family") === sProperty) this.m_eType = ECssPropertyType.cssptFontFamily;
+								else if (("font-size") === sProperty) this.m_eType = ECssPropertyType.cssptFontSize;
+								else if (("font-style") === sProperty) this.m_eType = ECssPropertyType.cssptFontStyle;
+								else if (("font-variant") === sProperty) this.m_eType = ECssPropertyType.cssptFontVariant;
+								else if (("font-weight") === sProperty) this.m_eType = ECssPropertyType.cssptFontWeight;
+								else this.m_eType = ECssPropertyType.cssptUnknown;
+
+								break;
+							}
+							default: {
+								this.m_eType = ECssPropertyType.cssptUnknown;
+								break;
+							}
+						}
+						break;
+					}
+					case 'h': {
+						if (("height") === sProperty) this.m_eType = ECssPropertyType.cssptHeight;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 'l': {
+						if (("layout-flow") === sProperty) this.m_eType = ECssPropertyType.cssptLayoutFlow;
+						else if (("left") === sProperty) this.m_eType = ECssPropertyType.cssptLeft;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 'm': {
+						switch (nChar2) {
+							case 'a': {
+								if (("margin-bottom") === sProperty) this.m_eType = ECssPropertyType.cssptMarginBottom;
+								else if (("margin-left") === sProperty) this.m_eType = ECssPropertyType.cssptMarginLeft;
+								else if (("margin-right") === sProperty) this.m_eType = ECssPropertyType.cssptMarginRight;
+								else if (("margin-top") === sProperty) this.m_eType = ECssPropertyType.cssptMarginTop;
+								else this.m_eType = ECssPropertyType.cssptUnknown;
+
+								break;
+							}
+							case 's': {
+								if (("mso-direction-alt") === sProperty) this.m_eType = ECssPropertyType.cssptMsoDirectionAlt;
+								else if (("mso-fit-shape-to-text") === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitShapeToText;
+								else if (("mso-fit-text-to-shape") === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitTextToShape;
+								else if (("mso-layout-flow-alt") === sProperty) this.m_eType = ECssPropertyType.cssptMsoLayoutFlowAlt;
+								else if (("mso-next-textbox") === sProperty) this.m_eType = ECssPropertyType.cssptMsoNextTextbox;
+								else if (("mso-position-horizontal") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionHorizontal;
+								else if (("mso-position-horizontal-relative") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionHorizontalRelative;
+								else if (("mso-position-vertical") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionVertical;
+								else if (("mso-position-vertical-relative") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionVerticalRelative;
+								else if (("mso-rotate") === sProperty) this.m_eType = ECssPropertyType.cssptMsoRotate;
+								else if (("mso-text-scale") === sProperty) this.m_eType = ECssPropertyType.cssptMsoTextScale;
+								else if (("mso-text-shadow") === sProperty) this.m_eType = ECssPropertyType.cssptMsoTextShadow;
+								else if (("mso-wrap-distance-bottom") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceBottom;
+								else if (("mso-wrap-distance-left") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceLeft;
+								else if (("mso-wrap-distance-right") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceRight;
+								else if (("mso-wrap-distance-top") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceTop;
+								else if (("mso-wrap-edited") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapEdited;
+								else if (("mso-wrap-style") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapStyle;
+								else if (("mso-height-percent") === sProperty) this.m_eType = ECssPropertyType.csspctMsoHeightPercent;
+								else if (("mso-width-percent") === sProperty) this.m_eType = ECssPropertyType.csspctMsoWidthPercent;
+								else this.m_eType = ECssPropertyType.cssptUnknown;
+
+								break;
+							}
+							default: {
+								this.m_eType = ECssPropertyType.cssptUnknown;
+								break;
+							}
+						}
+						break;
+					}
+					case 'p': {
+						if (("position") === sProperty) this.m_eType = ECssPropertyType.cssptPosition;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 'r': {
+						if (("rotation") === sProperty) this.m_eType = ECssPropertyType.cssptRotation;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 't': {
+						if (("text-decoration") === sProperty) this.m_eType = ECssPropertyType.cssptTextDecoration;
+						else if (("top") === sProperty) this.m_eType = ECssPropertyType.cssptTop;
+						else if (("text-align") === sProperty) this.m_eType = ECssPropertyType.cssptHTextAlign;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 'v': {
+						if (("visibility") === sProperty) this.m_eType = ECssPropertyType.cssptVisibility;
+						else if (("v-rotate-letters") === sProperty) this.m_eType = ECssPropertyType.cssptVRotateLetters;
+						else if (("v-same-letter-heights") === sProperty) this.m_eType = ECssPropertyType.cssptVSameLetterHeights;
+						else if (("v-text-align") === sProperty) this.m_eType = ECssPropertyType.cssptVTextAlign;
+						else if (("v-text-anchor") === sProperty) this.m_eType = ECssPropertyType.cssptVTextAnchor;
+						else if (("v-text-kern") === sProperty) this.m_eType = ECssPropertyType.cssptVTextKern;
+						else if (("v-text-reverse") === sProperty) this.m_eType = ECssPropertyType.cssptVTextReverse;
+						else if (("v-text-spacing-mode") === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacingMode;
+						else if (("v-text-spacing") === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacing;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 'w': {
+						if (("width") === sProperty) this.m_eType = ECssPropertyType.cssptWidth;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					case 'z': {
+						if (("z-index") === sProperty) this.m_eType = ECssPropertyType.cssptZIndex;
+						else this.m_eType = ECssPropertyType.cssptUnknown;
+
+						break;
+					}
+					default: {
+						this.m_eType = ECssPropertyType.cssptUnknown;
+						break;
+					}
+				}
+			}
+
+			switch (this.m_eType) {
+				case ECssPropertyType.cssptUnknown :
+					this.ReadValue_Unknown(sValue);
+					break;
+
+				case ECssPropertyType.cssptFlip :
+					this.ReadValue_Flip(sValue);
+					break;
+				case ECssPropertyType.cssptHeight :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptLeft :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMarginBottom :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMarginLeft :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMarginRight :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMarginTop :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMsoPositionHorizontal :
+					this.ReadValue_MsoPosHor(sValue);
+					break;
+				case ECssPropertyType.cssptMsoPositionHorizontalRelative :
+					this.ReadValue_MsoPosHorRel(sValue);
+					break;
+				case ECssPropertyType.cssptMsoPositionVertical :
+					this.ReadValue_MsoPosVer(sValue);
+					break;
+				case ECssPropertyType.cssptMsoPositionVerticalRelative :
+					this.ReadValue_MsoPosVerRel(sValue);
+					break;
+				case ECssPropertyType.cssptMsoWrapDistanceBottom :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMsoWrapDistanceLeft :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMsoWrapDistanceRight :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMsoWrapDistanceTop :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptMsoWrapEdited :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptMsoWrapStyle :
+					this.ReadValue_MsoWrapStyle(sValue);
+					break;
+				case ECssPropertyType.cssptPosition :
+					this.ReadValue_Position(sValue);
+					break;
+				case ECssPropertyType.cssptRotation :
+					this.ReadValue_Rotation(sValue);
+					break;
+				case ECssPropertyType.cssptTop :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptVisibility :
+					this.ReadValue_Visibility(sValue);
+					break;
+				case ECssPropertyType.cssptWidth :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptZIndex :
+					this.ReadValue_ZIndex(sValue);
+					break;
+
+				case ECssPropertyType.cssptDirection :
+					this.ReadValue_Direction(sValue);
+					break;
+				case ECssPropertyType.cssptLayoutFlow :
+					this.ReadValue_LayoutFlow(sValue);
+					break;
+				case ECssPropertyType.cssptMsoDirectionAlt :
+					this.ReadValue_DirectionAlt(sValue);
+					break;
+				case ECssPropertyType.cssptMsoFitShapeToText :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptMsoFitTextToShape :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptMsoLayoutFlowAlt :
+					this.ReadValue_LayoutFlowAlt(sValue);
+					break;
+				case ECssPropertyType.cssptMsoNextTextbox :
+					this.ReadValue_String(sValue);
+					break;
+				case ECssPropertyType.cssptMsoRotate :
+					this.ReadValue_MsoRotate(sValue);
+					break;
+				case ECssPropertyType.cssptMsoTextScale :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptVTextAnchor :
+					this.ReadValue_VTextAnchor(sValue);
+					break;
+
+				case ECssPropertyType.cssptFont :
+					this.ReadValue_String(sValue);
+					break;
+				case ECssPropertyType.cssptFontFamily :
+					this.ReadValue_String(sValue);
+					break;
+				case ECssPropertyType.cssptFontSize :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptFontStyle :
+					this.ReadValue_FontStyle(sValue);
+					break;
+				case ECssPropertyType.cssptFontVariant :
+					this.ReadValue_FontVariant(sValue);
+					break;
+				case ECssPropertyType.cssptFontWeight :
+					this.ReadValue_FontWeight(sValue);
+					break;
+				case ECssPropertyType.cssptMsoTextShadow :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptTextDecoration :
+					this.ReadValue_TextDecoration(sValue);
+					break;
+				case ECssPropertyType.cssptVRotateLetters :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptVSameLetterHeights :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptVTextAlign :
+					this.ReadValue_VTextAlign(sValue);
+					break;
+				case ECssPropertyType.cssptVTextKern :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptVTextReverse :
+					this.ReadValue_Boolean(sValue);
+					break;
+				case ECssPropertyType.cssptVTextSpacingMode :
+					this.ReadValue_VTextSpacingMode(sValue);
+					break;
+				case ECssPropertyType.cssptVTextSpacing :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.csspctMsoWidthPercent :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.csspctMsoHeightPercent :
+					this.ReadValue_Units(sValue);
+					break;
+				case ECssPropertyType.cssptHTextAlign :
+					this.ReadValue_VTextAlign(sValue);
+					break;
+			}
+		}
+
+		CCssProperty.prototype.ReadValue_Unknown = function (sValue) {
+		}
+		CCssProperty.prototype.ReadValue_Flip = function (sValue) {
+			if (("x") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipX;
+			else if (("y") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipY;
+			else if (("xy") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipXY;
+			else if (("yx") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipYX;
+			else
+				this.m_eType = ECssPropertyType.cssptUnknown;
+		}
+		CCssProperty.prototype.ReadValue_Units = function (sValue) {
+			let nPos = -1;
+			if (-1 !== (nPos = sValue.indexOf(("auto")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAuto;
+			} else if (-1 !== (nPos = sValue.indexOf(("in")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
+
+				let strValue = sValue.substr(0, nPos);
+				let dValue = parseFloat(sValue);
+
+				this.m_oValue.oValue.dValue = Inch_To_Pt(dValue);
+			} else if (-1 !== (nPos = sValue.indexOf(("cm")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
+
+				let strValue = sValue.substr(0, nPos);
+				let dValue = parseFloat(sValue);
+
+				this.m_oValue.oValue.dValue = Cm_To_Pt(dValue);
+			} else if (-1 !== (nPos = sValue.indexOf(("mm")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
+
+				let strValue = sValue.substr(0, nPos);
+				let dValue = parseFloat(sValue);
+
+				this.m_oValue.oValue.dValue = Mm_To_Pt(dValue);
+			} else if (-1 !== (nPos = sValue.indexOf(("em")))) {
+			} else if (-1 !== (nPos = sValue.indexOf(("ex")))) {
+			} else if (-1 !== (nPos = sValue.indexOf(("pt")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
+
+				let strValue = sValue.substr(0, nPos);
+				let dValue = parseFloat(sValue);
+
+				this.m_oValue.oValue.dValue = dValue;
+			} else if (-1 !== (nPos = sValue.indexOf(("pc")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
+
+				let strValue = sValue.substr(0, nPos);
+				let dValue = parseFloat(sValue);
+
+				this.m_oValue.oValue.dValue = dValue * 12;
+			} else if (-1 !== (nPos = sValue.indexOf(("%")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypePerc;
+
+				let strValue = sValue.substr(0, nPos);
+				this.m_oValue.oValue.dValue = strValue.length === 0 ? 0 : parseFloat(strValue);
+			} else if (-1 !== (nPos = sValue.indexOf(("px")))) {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
+
+				let strValue = sValue.substr(0, nPos);
+				let dValue = parseFloat(sValue);
+
+				this.m_oValue.oValue.dValue = Px_To_Pt(dValue);
+			} else {
+				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAbsolute;
+				this.m_oValue.oValue.dValue = parseFloat(sValue);
+			}
+		}
+
+		CCssProperty.prototype.ReadValue_MsoPosHor = function (sValue) {
+			if (("absolute") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorAbsolute;
+			else if (("left") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorLeft;
+			else if (("center") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorCenter;
+			else if (("right") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorRight;
+			else if (("inside") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorInside;
+			else if (("outside") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorOutside;
+			else
+				this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorAbsolute;
+		}
+		CCssProperty.prototype.ReadValue_MsoPosHorRel = function (sValue) {
+			if (("left-margin-area") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelLeftMargin;
+			else if (("right-margin-area") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelRightMargin;
+			else if (("margin") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelMargin;
+			else if (("page") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelPage;
+			else if (("text") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelText;
+			else if (("char") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelChar;
+			else
+				this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelText;
+		}
+		CCssProperty.prototype.ReadValue_MsoPosVer = function (sValue) {
+			if (("absolute") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverAbsolute;
+			else if (("top") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverTop;
+			else if (("center") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverCenter;
+			else if (("bottom") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverBottom;
+			else if (("inside") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverInside;
+			else if (("outside") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverOutside;
+			else
+				this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverAbsolute;
+		}
+		CCssProperty.prototype.ReadValue_MsoPosVerRel = function (sValue) {
+			if (("bottom-margin-area") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelBottomMargin;
+			else if (("top-margin-area") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelTopMargin;
+			else if (("margin") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelMargin;
+			else if (("page") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelPage;
+			else if (("text") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelText;
+			else if (("line") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelLine;
+			else
+				this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelText;
+		}
+
+		CCssProperty.prototype.ReadValue_Rotation = function (sValue) {
+			this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAbsolute;
+			this.m_oValue.oValue.dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
+
+			if (sValue.indexOf(("fd")) !== std::wstring::npos) {
+				this.m_oValue.oValue.dValue /= 6000.;
+			} else if (sValue.indexOf(("f")) === sValue.length - 1) {
+				this.m_oValue.oValue.dValue /= 65536.;
+			}
+		}
+		CCssProperty.prototype.ReadValue_Boolean = function (sValue) {
+			if (("true") === sValue || ("t") === sValue || ("1") === sValue)
+				this.m_oValue.bValue = true;
+			else
+				this.m_oValue.bValue = false;
+		}
+		CCssProperty.prototype.ReadValue_MsoWrapStyle = function (sValue) {
+			if (("square") === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleSqaure;
+			else if (("none") === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleNone;
+			else
+				this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleSqaure;
+		}
+		CCssProperty.prototype.ReadValue_Position = function (sValue) {
+			if (("static") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionStatic;
+			else if (("absolute") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionAbsolute;
+			else if (("relative") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionRelative;
+			else
+				this.m_oValue.ePosition = ECssPosition.csspositionAbsolute;
+		}
+		CCssProperty.prototype.ReadValue_Visibility = function (sValue) {
+			if (("hidden") === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityHidden;
+			else if (("inherit") === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityInherit;
+			else
+				this.m_oValue.eVisibility = ECssVisibility.cssvisibilityInherit;
+		}
+		CCssProperty.prototype.ReadValue_ZIndex = function (sValue) {
+			if (("auto") === sValue) this.m_oValue.oZIndex.m_eType = ECssZIndexType.csszindextypeAuto;
+			else {
+				this.m_oValue.oZIndex.m_eType = ECssZIndexType.csszindextypeOrder;
+				this.m_oValue.oZIndex.nOrder = parseInt(sValue);
+
+			}
+		}
+		CCssProperty.prototype.ReadValue_Direction = function (sValue) {
+			if (("ltr") === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionLTR;
+			else if (("rtl") === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionRTL;
+			else
+				this.m_oValue.eDirection = ECssDirection.cssdirectionLTR;
+		}
+		CCssProperty.prototype.ReadValue_LayoutFlow = function (sValue) {
+			if (("horizontal") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontal;
+			else if (("vertical") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowVertical;
+			else if (("vertical-ideographic") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowVerticalIdeographic;
+			else if (("horizontal-ideographic") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontalIdeographic;
+			else
+				this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontal;
+		}
+		CCssProperty.prototype.ReadValue_DirectionAlt = function (sValue) {
+			this.m_oValue.eDirectionAlt = ECssDirectionAlt.cssdirectionaltContext;
+		}
+		CCssProperty.prototype.ReadValue_LayoutFlowAlt = function (sValue) {
+			this.m_oValue.eLayoutFlowAlt = ECssLayoutFlowAlt.csslayoutflowaltBottomToTop;
+		}
+		CCssProperty.prototype.ReadValue_String = function (sValue) {
+			this.m_oValue.wsValue = sValue;
+		}
+
+		CCssProperty.prototype.ReadValue_MsoRotate = function (sValue) {
+			if (("0") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate0;
+			else if (("90") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate90;
+			else if (("180") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate180;
+			else if (("-90") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate270;
+			else
+				this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate0;
+		}
+		CCssProperty.prototype.ReadValue_VTextAnchor = function (sValue) {
+			if (("top") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTop;
+			else if (("middle") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorMiddle;
+			else if (("bottom") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottom;
+			else if (("top-center") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopCenter;
+			else if (("middle-center") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorMiddleCenter;
+			else if (("bottom-center") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomCenter;
+			else if (("top-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopBaseline;
+			else if (("bottom-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomBaseline;
+			else if (("top-center-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopCenterBaseline;
+			else if (("bottom-center-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomCenterBaseline;
+			else
+				this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTop;
+		}
+		CCssProperty.prototype.ReadValue_FontStyle = function (sValue) {
+			if (("normal") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleNormal;
+			else if (("italic") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleItalic;
+			else if (("oblique") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleOblique;
+			else
+				this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleNormal;
+		}
+		CCssProperty.prototype.ReadValue_FontVariant = function (sValue) {
+			if (("normal") === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantNormal;
+			else if (("small-caps") === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantSmallCaps;
+			else
+				this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantNormal;
+		}
+		CCssProperty.prototype.ReadValue_FontWeight = function (sValue) {
+			if (("normal") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightNormal;
+			else if (("lighter") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightLighter;
+			else if (("100") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight100;
+			else if (("200") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight200;
+			else if (("300") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight300;
+			else if (("400") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight400;
+			else if (("bold") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightBold;
+			else if (("bolder") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightBolder;
+			else if (("500") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight500;
+			else if (("600") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight600;
+			else if (("700") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight700;
+			else if (("800") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight800;
+			else if (("900") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight900;
+			else
+				this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightNormal;
+		}
+		CCssProperty.prototype.ReadValue_TextDecoration = function (sValue) {
+			if (("none") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationNone;
+			else if (("underline") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationUnderline;
+			else if (("overline") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationOverline;
+			else if (("line-through") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationLineThrough;
+			else if (("blink") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationBlink;
+			else
+				this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationNone;
+		}
+		CCssProperty.prototype.ReadValue_VTextAlign = function (sValue) {
+			if (("left") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLeft;
+			else if (("right") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignRight;
+			else if (("center") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignCenter;
+			else if (("justify") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignJustify;
+			else if (("letter-justify") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLetterJustify;
+			else if (("stretch-justify") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignStretchJustify;
+			else
+				this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLeft;
+		}
+		CCssProperty.prototype.ReadValue_VTextSpacingMode = function (sValue) {
+			if (("tightening") === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
+			else if (("tracking") === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTracking;
+			else
+				this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
+		}
 
 		function CTxbxContent() {
 			CBaseNoId.call(this);
