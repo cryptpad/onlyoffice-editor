@@ -340,13 +340,15 @@
      * Creates a new slide master.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {ApiTheme} [oTheme    = ApiPresentation.GetMaster(0).GetTheme()] - The presentation theme object.
+     * @param {ApiTheme} [oTheme = ApiPresentation.GetMaster(0).GetTheme()] - The presentation theme object.
      * @returns {ApiMaster | null} - returns null if presentation theme doesn't exist.
      */
     Api.prototype.CreateMaster = function(oTheme){
-        if (!oTheme || !oTheme.GetClassType || !oTheme.GetClassType() === "theme")
+        if (!oTheme || !oTheme.GetClassType || oTheme.GetClassType() !== "theme")
+        {
             if (editor.GetPresentation().GetMaster(0))
                 oTheme = editor.GetPresentation().GetMaster(0).GetTheme();
+        }
         
         if (!oTheme)
             return null;
@@ -1008,7 +1010,7 @@
      */
     ApiPresentation.prototype.AddMaster = function(nPos, oApiMaster)
     {
-        if (oApiMaster && oApiMaster.GetClassType && oApiMaster.GetClassType() !== "master")
+        if (oApiMaster && oApiMaster.GetClassType && oApiMaster.GetClassType() === "master")
         {
             if (!nPos || nPos < 0 || nPos > this.Presentation.slideMasters.length)
                 nPos = this.Presentation.slideMasters.length;
@@ -1028,11 +1030,11 @@
      * @returns {bool} - returns false if param isn't theme or presentation doesn't exist.
      * */
     ApiPresentation.prototype.ApplyTheme = function(oApiTheme){
-       if (!this.Presentation || !oApiTheme.GetClassType || !oApiTheme.GetClassType() !== "theme")
-       {
+       if (this.Presentation && oApiTheme.GetClassType && oApiTheme.GetClassType() === "theme")
+        {
            this.Presentation.changeTheme(oApiTheme.ThemeInfo);
            return true;
-       }
+        }
 
        return false;
     };
