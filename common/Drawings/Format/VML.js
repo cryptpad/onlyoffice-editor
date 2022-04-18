@@ -428,7 +428,6 @@
 			CUniversalMeasure.call(this);
 			this.m_bTrailingPercentSign = null;
 		}
-
 		IC(CUniversalMeasureOrPercent, CUniversalMeasure, 0);
 		CUniversalMeasureOrPercent.prototype.SetValue = function (dValue) {
 			this.m_bUnit = false;
@@ -473,9 +472,7 @@
 				this.FromString(sValue);
 			}
 		}
-
 		IC(CPoint, CUniversalMeasure, 0);
-
 		CPoint.prototype.FromString = function (sValue) {
 			this.Parse(sValue, 1);
 			return this.m_dValue;
@@ -502,7 +499,6 @@
 		function CInch() {
 			CUniversalMeasure.call(this);
 		}
-
 		IC(CInch, CUniversalMeasure, 0)
 		CInch.prototype.FromString = function (sValue) {
 			this.Parse(sValue, 1.0 / 72);
@@ -521,7 +517,6 @@
 			CBaseNoId.call(this);
 			this.items = []
 		}
-
 		IC(CVMLDrawing, CBaseNoId, 0);
 
 		CVMLDrawing.prototype.readAttrXml = function (name, reader) {
@@ -633,7 +628,6 @@
 			this.b = 0;
 			this.fromString(sVal);
 		}
-
 		CColor.prototype.fromString = function (sVal) {
 			if (sVal.charAt(0) === '#') {
 				this.byHexColor(sVal)
@@ -2078,32 +2072,66 @@
 
 		function CShape() {
 			CVmlCommonElements.call(this);
+			this.m_sType = null;
+			this.m_sAdj = null;
+			this.m_oPath = null;
+			this.m_sGfxData = null;
+			this.m_sEquationXML = null;
 		}
 
 		IC(CShape, CVmlCommonElements, 0);
 		CShape.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
+			if (("adj") === name) {
+				this.m_sAdj = reader.GetValue();
+				return;
 			}
-		};
-		CShape.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+			if (("equationxml") === name) {
+				this.m_sEquationXML = reader.GetValue();
+				return;
 			}
+			if (("gfxdata") === name) {
+				this.m_sGfxData = reader.GetValue();
+				return;
+			}
+			if (("path") === name) {
+				this.m_oPath = reader.GetValue();
+				return;
+			}
+			if (("type") === name) {
+				this.m_sType = reader.GetValue();
+				return;
+			}
+
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CShape.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CShape.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
 		function CShapeType() {
 			CVmlCommonElements.call(this);
+			this.m_sAdj = null;
+			this.m_oPath = null;
+			this.m_oMaster = null;
 		}
 
 		IC(CShapeType, CVmlCommonElements, 0);
 		CShapeType.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
+
+			if (("adj") === name) {
+				this.m_sAdj = reader.GetValue();
+				return;
 			}
+			if (("path") === name) {
+				this.m_oPath = reader.GetValue();
+				return;
+			}
+			if (("master") === name) {
+				this.m_oMaster = reader.GetValueBool();
+				return;
+			}
+
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CShapeType.prototype.readChildXml = function (name, reader) {
 			switch (name) {
@@ -2283,13 +2311,66 @@
 		};
 
 		function CDiagram() {
-			CVmlCommonElements.call(this);
+			CBaseNoId.call(this);
+			this.m_oAutoFormat = null;
+			this.m_oAutoLayout = null;
+			this.m_sConstrainbounds = null;
+			this.m_oDmgBaseTextScale = null;
+			this.m_oDmgFontSize = null;
+			this.m_oDmgScaleX = null;
+			this.m_oDmgScaleY = null;
+			this.m_oDmgStyle = null;
+			this.m_oExt = null;
+			this.m_oReverse = null;
+
+			this.m_oRelationTable;
 		}
 
-		IC(CDiagram, CVmlCommonElements, 0);
+		IC(CDiagram, CBaseNoId, 0);
 		CDiagram.prototype.readAttrXml = function (name, reader) {
+			if (("autoformat") === name) {
+				this.m_oAutoFormat = reader.GetValueBool();
+				return;
+			}
+			if (("autolayout") === name) {
+				this.m_oAutoLayout = reader.GetValueBool();
+				return;
+			}
+			if (("constrainbounds") === name) {
+				this.m_sConstrainbounds = reader.GetValue();
+				return;
+			}
+			if (("dgmbasetextscale") === name) {
+				this.m_oDmgBaseTextScale = reader.GetValueInt();
+				return;
+			}
+			if (("dgmfontsize") === name) {
+				this.m_oDmgFontSize = reader.GetValueInt();
+				return;
+			}
+			if (("dgmscalex") === name) {
+				this.m_oDmgScaleX = reader.GetValueInt();
+				return;
+			}
+			if (("dgmscaley") === name) {
+				this.m_oDmgScaleY = reader.GetValueInt();
+				return;
+			}
+			if (("dgmstyle") === name) {
+				this.m_oDmgStyle = reader.GetValueInt();
+				return;
+			}
+			if (("ext") === name) {
+				this.m_oExt = readExt(reader);
+				return;
+			}
+			if (("reverse") === name) {
+				this.m_oReverse = reader.GetValueBool();
+			}
 		};
 		CDiagram.prototype.readChildXml = function (name, reader) {
+			if ("relationtable" === name)
+				this.m_oRelationTable = reader.GetTextDecodeXml();
 		};
 		CDiagram.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
