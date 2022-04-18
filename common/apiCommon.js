@@ -318,6 +318,7 @@
 		this.isAnalyticsEnable = false;
 		this.buildVersion = null;
 		this.buildNumber = null;
+		this.liveViewerSupport = null;
 
 		this.betaVersion = '@@Beta';
 
@@ -363,6 +364,9 @@
 	asc_CAscEditorPermissions.prototype.asc_getBuildNumber = function () {
 		return this.buildNumber;
 	};
+	asc_CAscEditorPermissions.prototype.asc_getLiveViewerSupport = function () {
+		return this.liveViewerSupport;
+	};
 	asc_CAscEditorPermissions.prototype.asc_getIsBeta = function () {
 		return this.betaVersion === 'true';
 	};
@@ -390,6 +394,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.setBuildNumber = function (v) {
 		this.buildNumber = v;
+	};
+	asc_CAscEditorPermissions.prototype.setLiveViewerSupport = function (v) {
+		this.liveViewerSupport = v;
 	};
 
 	function asc_CAxNumFmt(oAxis) {
@@ -5919,6 +5926,7 @@
 	prot["asc_getRights"] = prot.asc_getRights;
 	prot["asc_getBuildVersion"] = prot.asc_getBuildVersion;
 	prot["asc_getBuildNumber"] = prot.asc_getBuildNumber;
+	prot["asc_getLiveViewerSupport"] = prot.asc_getLiveViewerSupport;
 	prot["asc_getIsBeta"] = prot.asc_getIsBeta;
 
 	window["AscCommon"].asc_CAxNumFmt = asc_CAxNumFmt;
