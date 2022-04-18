@@ -383,7 +383,6 @@
 			this.m_dValue = Emu_To_Pt(dValue);
 			return this.m_dValue;
 		}
-
 		CUniversalMeasure.prototype.IsUnits = function () {
 			return this.m_bUnit;
 		}
@@ -421,7 +420,7 @@
 			} else {
 				this.m_bUnit = false;
 				this.m_dValue = parseFloat(sValue) / dKoef;
-				return;
+
 			}
 		}
 
@@ -509,17 +508,13 @@
 			this.Parse(sValue, 1.0 / 72);
 			return this.m_dValue;
 		};
-		CInch.prototype.SetValue(dValue)
-		{
+		CInch.prototype.SetValue = function (dValue) {
 			this.m_bUnit = false;
-			this.m_dValue = FromInches(dValue);
-		}
-		;
-		CInch.prototype.ToString()
-		{
-			return ToInches() + "in";
-		}
-		;
+			this.m_dValue = this.FromInches(dValue);
+		};
+		CInch.prototype.ToString = function () {
+			return this.ToInches() + "in";
+		};
 
 
 		function CVMLDrawing() {
@@ -895,7 +890,6 @@
 			}
 		}
 
-
 		CVml_Matrix.prototype.ResetMatrix = function () {
 			this.m_dSxx = 1;
 			this.m_dSxy = 0;
@@ -912,7 +906,6 @@
 			this.m_dPx = dPx;
 			this.m_dPy = dPy;
 		}
-
 		CVml_Matrix.prototype.Get_Sxx = function () {
 			return this.m_dSxx;
 		}
@@ -925,14 +918,12 @@
 		CVml_Matrix.prototype.Get_Syy = function () {
 			return this.m_dSyy;
 		}
-
 		CVml_Matrix.prototype.Get_Px = function () {
 			return this.m_dPx;
 		}
 		CVml_Matrix.prototype.Get_Py = function () {
 			return this.m_dPy;
 		}
-
 		CVml_Matrix.prototype.FromString = function (sValue) {
 			this.ResetMatrix();
 
@@ -1009,7 +1000,6 @@
 			nStartPos = nEndPos + 1;
 			return 0;
 		}
-
 		CVml_Matrix.prototype.ToString = function () {
 			return this.m_dSxx + "," + this.m_dSxy + "," + this.m_dSyx + "," + this.m_dSyy + "," + this.m_dPx + "," + this.m_dPy;
 		}
@@ -1025,15 +1015,12 @@
 
 		}
 
-
 		CPercentage.prototype.GetValue = function () {
 			return this.m_dValue;
 		};
-
 		CPercentage.prototype.SetValue = function (dValue) {
 			this.m_dValue = dValue;
 		};
-
 		CPercentage.prototype.FromString = function (sValue) {
 			let nPos = sValue.indexOf('%');
 			let nLen = sValue.length;
@@ -1054,12 +1041,11 @@
 
 			return this.m_dValue;
 		};
-
 		CPercentage.prototype.ToString = function () {
 			return this.m_dValue + "%";
 		};
 		CPercentage.prototype.ToStringDecimalNumber = function () {
-			let sResult = m_dValue * 1000.0 >> 0;
+			let sResult = this.m_dValue * 1000.0 >> 0;
 
 			return sResult;
 		};
@@ -1073,7 +1059,6 @@
 				this.FromString(sValue);
 			}
 		}
-
 
 		CVml_Vector2D_Units_Or_Percentage.prototype.GetX = function () {
 			return this.m_dX;
@@ -1094,7 +1079,6 @@
 			this.m_bUnitsX = true;
 			this.m_bUnitsY = true;
 		};
-
 		CVml_Vector2D_Units_Or_Percentage.prototype.FromString = function (sValue) {
 			this.m_dX = 0;
 			this.m_dY = 0;
@@ -1133,7 +1117,6 @@
 
 			return 0;
 		};
-
 		CVml_Vector2D_Units_Or_Percentage.prototype.ToString = function () {
 			let sResult = this.m_dX + "";
 
@@ -1146,6 +1129,58 @@
 			else sResult += "%";
 
 			return sResult;
+		};
+
+
+		function CVml_1_65536_Or_Percentage(sVal) {
+			this.m_dValue = 0;
+			if (sVal) {
+				this.FromString(sVal);
+			}
+		}
+
+		CVml_1_65536_Or_Percentage.prototype.GetValue = function () {
+			return this.m_dValue;
+		};
+
+		CVml_1_65536_Or_Percentage.prototype.SetValue = function (dValue) {
+			this.m_dValue = Math.max(0.0, Math.min(1.0, dValue));
+		};
+
+		CVml_1_65536_Or_Percentage.prototype.SetValue = function (nValue) {
+			this.m_dValue = Math.max(0.0, Math.min(65536.0, nValue)) / 65536.0;
+		};
+		CVml_1_65536_Or_Percentage.prototype.SetPercentage = function (dValue) {
+			this.m_dValue = Math.max(0.0, Math.min(100.0, dValue)) / 100.0;
+		};
+
+		CVml_1_65536_Or_Percentage.prototype.FromString = function (sValue) {
+			let nLen = sValue.length;
+			if (nLen <= 0)
+				return 0;
+
+			let bFraction = ('f' === sValue.charAt(nLen - 1));
+			let bPercentage = ('%' === sValue.charAt(nLen - 1));
+
+			if (bFraction) {
+				let strValue = sValue.substr(0, nLen - 1);
+				let nValue = strValue.length === 0 ? 0 : parseInt(strValue);
+
+				this.SetValue(nValue);
+			} else if (bPercentage) {
+				let strValue = sValue.substr(0, nLen - 1);
+				let dValue = strValue.length === 0 ? 0 : parseFloat(strValue);
+				this.SetPercentage(dValue);
+			} else {
+				let dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
+				this.SetValue(dValue);
+			}
+
+			return this.m_dValue;
+		};
+
+		CVml_1_65536_Or_Percentage.prototype.ToString = function () {
+			return this.m_dValue + "";
 		};
 
 
@@ -1667,36 +1702,238 @@
 
 		function CCurve() {
 			CVmlCommonElements.call(this);
+			this.m_oFrom = null;
+			this.m_oControl1 = null;
+			this.m_oControl2 = null;
+			this.m_oTo = null;
 		}
 
 		IC(CCurve, CVmlCommonElements, 0);
 		CCurve.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
+			if ("control1" === name) {
+				this.m_oControl1 = new CVml_Vector2D_Units(reader.GetValue());
+				return;
+			} else if ("control2" === name) {
+				this.m_oControl2 = new CVml_Vector2D_Units(reader.GetValue());
+				return;
+			} else if ("from" === name) {
+				this.m_oFrom = new CVml_Vector2D_Units(reader.GetValue());
+				return;
+			} else if ("to" === name) {
+				this.m_oTo = new CVml_Vector2D_Units(reader.GetValue());
+				return;
 			}
-		};
-		CCurve.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CCurve.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
-		CCurve.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+
+		let EEditAs =
+			{
+				editasBullseye: 0,
+				editasCanvas: 1,
+				editasCycle: 2,
+				editasOrgchart: 3,
+				editasRadial: 4,
+				editasStacked: 5,
+				editasVenn: 6
+			};
+
+		function readEditAs(reader) {
+			let sValue = reader.GetValue();
+			if (("bullseye") === sValue) return EEditAs.editasBullseye;
+			else if (("canvas") === sValue) return EEditAs.editasCanvas;
+			else if (("cycle") === sValue) return EEditAs.editasCycle;
+			else if (("orgchart") === sValue) return EEditAs.editasOrgchart;
+			else if (("radial") === sValue) return EEditAs.editasRadial;
+			else if (("stacked") === sValue) return EEditAs.editasStacked;
+			else if (("venn") === sValue) return EEditAs.editasVenn;
+			return EEditAs.editasCanvas;
+		}
+
+
+		function CVml_TableLimits(sValue) {
+			this.m_arrLimits = [];
+			if (sValue) {
+				this.FromString(sValue);
+			}
+		}
+
+		CVml_TableLimits.prototype.GetSize = function () {
+			return this.m_arrLimits.length;
+		};
+		CVml_TableLimits.prototype.GetAt = function (nIndex) {
+			if (nIndex < 0 || nIndex >= this.m_arrLimits.length)
+				return 0;
+
+			return this.m_arrLimits[nIndex];
+		};
+		CVml_TableLimits.prototype.AddValue = function (dValue) {
+			this.m_arrLimits.push(dValue);
+		};
+		CVml_TableLimits.prototype.FromString = function (sValue) {
+			let nPos = 0;
+			let nLen = sValue.length;
+
+			let nSpacePos = 0;
+			let wChar;
+			while (nPos < nLen) {
+				while (' ' === (wChar = sValue.charAt(nPos))) {
+					nPos++;
+					if (nPos >= nLen)
+						return 0;
+				}
+
+				nSpacePos = sValue.indexOf(" ", nPos);
+				if (-1 === nSpacePos)
+					nSpacePos = nLen;
+
+				let oPoint = new CPoint(sValue.substr(nPos, nSpacePos - nPos));
+				nPos = nSpacePos + 1;
+
+				this.m_arrLimits.push(oPoint.ToPoints());
+			}
+
+			return 0;
+		};
+		CVml_TableLimits.prototype.ToString = function () {
+			let sResult;
+
+			for (let nIndex = 0; nIndex < this.m_arrLimits.length; nIndex++) {
+				sResult += (this.m_arrLimits[nIndex] + "pt ");
+			}
+
+			return sResult;
+		}
+
+		function CVml_TableProperties(sValue) {
+
+			this.m_eValue = 0;
+			if (sValue) {
+				this.FromString(sValue);
+			}
+		}
+
+
+		CVml_TableProperties.prototype.FromString = function (sValue) {
+			this.m_eValue = parseInt(sValue);
+			return this.m_eValue;
+		};
+
+		CVml_TableProperties.prototype.ToString = function () {
+			return this.m_eValue + "";
+		};
+
+		CVml_TableProperties.prototype.IsTable = function () {
+			return (this.m_eValue & 1 ? true : false);
+		};
+
+		CVml_TableProperties.prototype.IsPlaceholder = function () {
+			return (this.m_eValue & 2 ? true : false);
+		};
+
+		CVml_TableProperties.prototype.IsBiDirectionalText = function () {
+			return (this.m_eValue & 4 ? true : false);
 		};
 
 		function CGroup() {
 			CVmlCommonElements.call(this);
+			this.m_oEditAs = null;
+			this.m_oTableLimits = null;
+			this.m_oTableProperties = null;
 		}
 
 		IC(CGroup, CVmlCommonElements, 0);
 
 		CGroup.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
+			if (("editas") === name) {
+				this.m_oEditAs = readEditAs(reader);
+				return;
+			} else if (("tableproperties") === name) {
+				this.m_oTableProperties = new CVml_TableProperties(reader.GetValue());
+				return;
+			} else if (("tablelimits") === name) {
+				this.m_oTableLimits = new CVml_TableLimits(reader.GetValue());
+				return;
 			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CGroup.prototype.readChildXml = function (name, reader) {
-			switch (name) {
+			let oItem = null;
+			if (("callout") === name)
+				oItem = new CCallout();
+			else if (("clippath") === name)
+				oItem = new CClipPath();
+			else if (("diagram") === name)
+				oItem = new CDiagram();
+			else if (("extrusion") === name)
+				oItem = new CExtrusion();
+			else if (("lock") === name)
+				oItem = new CLock();
+			else if (("signatureline") === name)
+				oItem = new CSignatureLine();
+			else if (("skew") === name)
+				oItem = new CSkew();
+			else if (("arc") === name)
+				oItem = new CArc();
+			else if (("curve") === name)
+				oItem = new CCurve();
+			else if (("fill") === name)
+				oItem = new CFill();
+			else if (("formulas") === name)
+				oItem = new CFormulas();
+			else if (("group") === name)
+				oItem = new CGroup();
+			else if (("handles") === name)
+				oItem = new CHandles();
+			else if (("imagedata") === name)
+				oItem = new CImageData();
+			else if (("image") === name)
+				oItem = new CImage();
+			else if (("line") === name)
+				oItem = new CLine();
+			else if (("oval") === name)
+				oItem = new COval();
+			else if (("path") === name)
+				oItem = new CPath();
+			else if (("polyline") === name)
+				oItem = new CPolyLine();
+			else if (("rect") === name)
+				oItem = new CRect();
+			else if (("roundrect") === name)
+				oItem = new CRoundRect();
+			else if (("shadow") === name)
+				oItem = new CShadow();
+			else if (("shape") === name)
+				oItem = new CShape();
+			else if (("shapetype") === name)
+				oItem = new CShapeType();
+			else if (("stroke") === name)
+				oItem = new CStroke();
+			else if (("textbox") === name)
+				oItem = new CTextbox();
+			else if (("textpath") === name)
+				oItem = new CTextPath();
+			else if (("anchorLock") === name)
+				oItem = new CAnchorLock();
+			else if (("borderbottom") === name)
+				oItem = new CBorder();
+			else if (("borderleft") === name)
+				oItem = new CBorder();
+			else if (("borderright") === name)
+				oItem = new CBorder();
+			else if (("bordertop") === name)
+				oItem = new CBorder();
+			else if (("wrap") === name)
+				oItem = new CWrap();
+			else if (("ClientData") === name)
+				oItem = new CClientData();
+
+			if (oItem) {
+				oItem.fromXml(reader);
+				this.items.push(oItem);
 			}
 		};
 		CGroup.prototype.writeAttrXmlImpl = function (writer) {
@@ -1708,36 +1945,74 @@
 
 		function CImage() {
 			CVmlCommonElements.call(this);
+			this.m_sSrc = null;
+			this.m_oCropLeft = null;
+			this.m_oCropTop = null;
+			this.m_oCropRight = null;
+			this.m_oCropBottom = null;
+			this.m_oGain = null;
+			this.m_oBlackLevel = null;
+			this.m_oGamma = null;
+			this.m_oGrayscale = null;
+			this.m_oBiLevel = null;
 		}
 
 		IC(CImage, CVmlCommonElements, 0);
 		CImage.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
+			if (("bilevel") === name) {
+				this.m_oBiLevel = reader.GetValueBool();
+				return;
+			} else if (("blacklevel") === name) {
+				this.m_oBlackLevel = reader.GetValueDouble();
+				return;
+			} else if (("cropleft") === name) {
+				this.m_oCropLeft = readCVml_1_65536(reader);
+				return;
+			} else if (("croptop") === name) {
+				this.m_oCropTop = readCVml_1_65536(reader);
+				return;
+			} else if (("cropright") === name) {
+				this.m_oCropRight = readCVml_1_65536(reader);
+				return;
+			} else if (("cropbottom") === name) {
+				this.m_oCropBottom = readCVml_1_65536(reader);
+				return;
+			} else if (("gain") === name) {
+				this.m_oGain = reader.GetValueDouble();
+				return;
+			} else if (("gamma") === name) {
+				this.m_oGamma = reader.GetValueDouble();
+				return;
+			} else if (("grayscale") === name) {
+				this.m_oGrayscale = reader.GetValueBool();
+				return;
+			} else if (("src") === name) {
+				this.m_sSrc = reader.GetValue();
+				return;
 			}
-		};
-		CImage.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CImage.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CImage.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
 		function CLine() {
 			CVmlCommonElements.call(this);
+			this.m_oFrom = null;
+			this.m_oTo = null;
 		}
 
 		IC(CLine, CVmlCommonElements, 0);
 		CLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
+				case "from":
+					this.m_oFrom = new CVml_Vector2D_Units(reader.GetValue());
+					return;
+				case "to":
+					this.m_oTo = new CVml_Vector2D_Units(reader.GetValue());
+					return;
 			}
-		};
-		CLine.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CLine.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -1751,33 +2026,20 @@
 		}
 
 		IC(COval, CVmlCommonElements, 0);
-		COval.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		COval.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		COval.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		COval.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
 
 		function CPolyLine() {
 			CVmlCommonElements.call(this);
+			this.m_oPoints = null;
 		}
 
 		IC(CPolyLine, CVmlCommonElements, 0);
 		CPolyLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
+				case "points":
+					this.m_oPoints = new CVml_Polygon2D_Units(reader.GetValue());
+					return;
 			}
-		};
-		CPolyLine.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CPolyLine.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -1791,33 +2053,21 @@
 		}
 
 		IC(CRect, CVmlCommonElements, 0);
-		CRect.prototype.readAttrXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		CRect.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
-		};
-		CRect.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CRect.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
 
 		function CRoundRect() {
 			CVmlCommonElements.call(this);
+
+			this.m_oArcSize = null;
 		}
 
 		IC(CRoundRect, CVmlCommonElements, 0);
 		CRoundRect.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
+				case "arcsize":
+					this.m_oArcSize = new CVml_1_65536_Or_Percentage(reader.GetValue());
+					return;
 			}
-		};
-		CRoundRect.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CRoundRect.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -2029,6 +2279,22 @@
 			//TODO:Implement in children
 		};
 		CCallout.prototype.writeChildren = function (writer) {
+			//TODO:Implement in children
+		};
+
+		function CDiagram() {
+			CVmlCommonElements.call(this);
+		}
+
+		IC(CDiagram, CVmlCommonElements, 0);
+		CDiagram.prototype.readAttrXml = function (name, reader) {
+		};
+		CDiagram.prototype.readChildXml = function (name, reader) {
+		};
+		CDiagram.prototype.writeAttrXmlImpl = function (writer) {
+			//TODO:Implement in children
+		};
+		CDiagram.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
@@ -2402,10 +2668,6 @@
 					break;
 			}
 		};
-		CSkew.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
-		};
 		CSkew.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
@@ -2644,6 +2906,91 @@
 			}
 		};
 
+
+		function CVml_Polygon2D_Units(val) {
+			this.m_arrPoints = [];
+			this.m_wcDelimiter = " ";
+			if (val) {
+				if (val instanceof CVml_Polygon2D_Units) {
+					this.m_wcDelimiter = " ";
+					this.FromString(val.ToString());
+				} else {
+					this.FromString(val);
+				}
+			}
+		}
+
+		CVml_Polygon2D_Units.prototype.SetDelimiter = function (wcNew) {
+			this.m_wcDelimiter = wcNew;
+		};
+		CVml_Polygon2D_Units.prototype.GetX = function (nIndex) {
+			if (nIndex < 0 || nIndex >= this.m_arrPoints.length)
+				return 0;
+
+			return this.m_arrPoints[nIndex].dX;
+		};
+		CVml_Polygon2D_Units.prototype.GetY = function (nIndex) {
+			if (nIndex < 0 || nIndex >= this.m_arrPoints.length)
+				return 0;
+
+			return this.m_arrPoints[nIndex].dY;
+		};
+
+		CVml_Polygon2D_Units.prototype.AddPoint = function (dX, dY) {
+			TPoint
+			oPt(dX, dY);
+			this.m_arrPoints.push(oPt);
+		};
+
+		CVml_Polygon2D_Units.prototype.FromString = function (sValue) {
+			this.m_arrPoints.length = 0;
+
+			let nLen = sValue.length;
+			if (nLen <= 0)
+				return 0;
+
+			let nStartPos = 0;
+			while (true) {
+				let nMidPos = sValue.indexOf(",", nStartPos);
+				let nEndPos = sValue.indexOf(this.m_wcDelimiter, nMidPos + 1);
+
+				if (-1 === nMidPos)
+					break;
+
+				if (-1 === nEndPos)
+					nEndPos = nLen;
+
+				let strX = sValue.substr(nStartPos, nMidPos - nStartPos);
+				let strY = sValue.substr(nMidPos + 1, nEndPos - nMidPos - 1);
+
+				strX.replace("@", "");
+				strY.replace("@", "");
+
+				let nX = strX.length === 0 ? 0 : parseInt(strX);
+				let nY = strY.length === 0 ? 0 : parseInt(strY);
+
+				this.m_arrPoints.push(new TPoint(nX, nY));
+
+				nStartPos = nEndPos + 1;
+			}
+
+
+			return 0;
+		};
+
+		CVml_Polygon2D_Units.prototype.ToString = function () {
+			let sResult;
+
+			for (let nIndex = 0; nIndex < this.m_arrPoints.length; nIndex++) {
+				sResult += this.m_arrPoints[nIndex].dX + "," + this.m_arrPoints[nIndex].dY;
+				if (nIndex < this.m_arrPoints.length - 1)
+					sResult += this.m_wcDelimiter;
+			}
+
+			return sResult;
+		};
+
+
 		function CH() {
 			CBaseNoId.call(this);
 			this.m_oInvX = null;
@@ -2756,17 +3103,17 @@
 
 
 		CVml_Polygon2D.prototype.GetSize = function () {
-			return this.m_arrPoints.size();
+			return this.m_arrPoints.length;
 		}
 
 		CVml_Polygon2D.prototype.GetX = function (nIndex) {
-			if (nIndex < 0 || nIndex >= this.m_arrPoints.size())
+			if (nIndex < 0 || nIndex >= this.m_arrPoints.length)
 				return 0;
 
 			return this.m_arrPoints[nIndex].nX;
 		}
 		CVml_Polygon2D.prototype.GetY = function (nIndex) {
-			if (nIndex < 0 || nIndex >= this.m_arrPoints.size())
+			if (nIndex < 0 || nIndex >= this.m_arrPoints.length)
 				return 0;
 
 			return this.m_arrPoints[nIndex].nY;
@@ -2949,7 +3296,7 @@
 
 
 		function readShadowType(reader) {
-			let SVal = reader.GetValue();
+			let sVal = reader.GetValue();
 			switch (sVal) {
 				case "double" : {
 					return EShadowType.shadowtypeDouble;
@@ -3382,12 +3729,12 @@
 				this.m_dTop = oPt.GetValue();
 			}
 
-			if (arSplit.size() > 2) {
+			if (arSplit.length > 2) {
 				let oPt = new CPoint(arSplit[2]);
 				this.m_dRight = oPt.GetValue();
 			}
 
-			if (arSplit.size() > 3) {
+			if (arSplit.length > 3) {
 				let oPt = new CPoint(arSplit[3]);
 				this.m_dBottom = oPt.GetValue();
 			}
@@ -3468,7 +3815,7 @@
 						this.m_arrProperties.push(oProperty);
 					}
 					sTemp = "";
-					continue;
+
 				} else {
 					let oProperty = new CCssProperty(sTemp.substr(0, nPos));
 					if ((ECssPropertyType.cssptUnknown !== oProperty.get_Type())) {
@@ -4199,7 +4546,7 @@
 			this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAbsolute;
 			this.m_oValue.oValue.dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
 
-			if (sValue.indexOf(("fd")) !== std::wstring::npos) {
+			if (sValue.indexOf(("fd")) !== -1) {
 				this.m_oValue.oValue.dValue /= 6000.;
 			} else if (sValue.indexOf(("f")) === sValue.length - 1) {
 				this.m_oValue.oValue.dValue /= 65536.;
@@ -4481,7 +4828,7 @@
 					else if (("thinThickSmall") === sValue) return EBorderType.bordertypeThinThickSmall;
 					else if (("threeDEmboss") === sValue) return EBorderType.bordertypeThreeDEmboss;
 					else if (("threeDEngrave") === sValue) return EBorderType.bordertypeThreeDEngrave;
-					else if (("triple") == sValue) return EBorderType.bordertypeTriple;
+					else if (("triple") === sValue) return EBorderType.bordertypeTriple;
 					break;
 
 				case 'w':
