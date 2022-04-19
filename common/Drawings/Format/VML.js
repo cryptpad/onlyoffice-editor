@@ -920,32 +920,32 @@
 
 		function CProxy() {
 			CBaseNoId.call(this);
-			this.m_oConnectLoc  = null;
-			this.m_oEnd  = null;
-			this.m_sIdRef  = null;
-			this.m_oStart  = null;
+			this.m_oConnectLoc = null;
+			this.m_oEnd = null;
+			this.m_sIdRef = null;
+			this.m_oStart = null;
 		}
 
 		IC(CProxy, CBaseNoId, 0);
 		CProxy.prototype.readAttrXml = function (name, reader) {
-			if(name === "connectloc") this.m_oConnectLoc  = reader.GetValueInt();
-			if(name === "end")        this.m_oEnd  = reader.GetValueBool();
-			if(name === "idref")      this.m_sIdRef  = reader.GetValue();
-			if(name === "start")      this.m_oStart  = reader.GetValueBool();
+			if (name === "connectloc") this.m_oConnectLoc = reader.GetValueInt();
+			if (name === "end") this.m_oEnd = reader.GetValueBool();
+			if (name === "idref") this.m_sIdRef = reader.GetValue();
+			if (name === "start") this.m_oStart = reader.GetValueBool();
 		};
 		CProxy.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
 
-	let EHow =
-		{
-			howBottom : 0,
-			howCenter : 1,
-			howLeft   : 2,
-			howMiddle : 3,
-			howRight  : 4,
-			howTop    : 5
-		};
+		let EHow =
+			{
+				howBottom: 0,
+				howCenter: 1,
+				howLeft: 2,
+				howMiddle: 3,
+				howRight: 4,
+				howTop: 5
+			};
 
 
 		function readHow(reader) {
@@ -959,13 +959,13 @@
 			return EHow.howTop;
 		}
 
-	let ERType =
-		{
-			rtypeAlign     : 0,
-			rtypeArc       : 1,
-			rtypeCallout   : 2,
-			rtypeConnector : 3
-		};
+		let ERType =
+			{
+				rtypeAlign: 0,
+				rtypeArc: 1,
+				rtypeCallout: 2,
+				rtypeConnector: 3
+			};
 
 		function readRType(reader) {
 			let sVal = reader.GetValue();
@@ -988,17 +988,16 @@
 
 		IC(CR, CBaseNoId, 0);
 		CR.prototype.readAttrXml = function (name, reader) {
-			if(name === "how")   this.m_oHow = readHow(reader);
-			if(name === "id")    this.m_sId  = reader.GetValue();
-			if(name === "idref") this.m_sIdRef = reader.GetValue();
-			if(name === "type")  this.m_oType = readRType(reader);
+			if (name === "how") this.m_oHow = readHow(reader);
+			if (name === "id") this.m_sId = reader.GetValue();
+			if (name === "idref") this.m_sIdRef = reader.GetValue();
+			if (name === "type") this.m_oType = readRType(reader);
 		};
 		CR.prototype.readChildXml = function (name, reader) {
-			if ( "proxy" === name )
-			{
+			if ("proxy" === name) {
 				let oProxy = new CProxy();
 				oProxy.fromXml(reader);
-				this.m_arrProxy.push( oProxy );
+				this.m_arrProxy.push(oProxy);
 			}
 		};
 		CR.prototype.writeAttrXmlImpl = function (writer) {
@@ -1016,16 +1015,15 @@
 
 		IC(CRegroupTable, CBaseNoId, 0);
 		CRegroupTable.prototype.readAttrXml = function (name, reader) {
-			if(name === "ext") {
+			if (name === "ext") {
 				this.m_oExt = readExt(reader);
 			}
 		};
 		CRegroupTable.prototype.readChildXml = function (name, reader) {
-			if ( "entry" === name )
-			{
+			if ("entry" === name) {
 				let oEntry = new CEntry();
 				oEntry.fromXml(reader);
-				this.m_arrEntry.push( oEntry );
+				this.m_arrEntry.push(oEntry);
 			}
 		};
 		CRegroupTable.prototype.writeAttrXmlImpl = function (writer) {
@@ -1043,16 +1041,15 @@
 
 		IC(CRules, CBaseNoId, 0);
 		CRules.prototype.readAttrXml = function (name, reader) {
-			if(name === "ext") {
+			if (name === "ext") {
 				this.m_oExt = readExt(reader);
 			}
 		};
 		CRules.prototype.readChildXml = function (name, reader) {
-			if ( "entry" === name )
-			{
+			if ("entry" === name) {
 				let oPr = new CR();
 				oPr.fromXml(reader);
-				this.m_arrR.push( oPr );
+				this.m_arrR.push(oPr);
 			}
 		};
 		CRules.prototype.writeAttrXmlImpl = function (writer) {
@@ -1076,22 +1073,20 @@
 
 		IC(CShapeLayout, CBaseNoId, 0);
 		CShapeLayout.prototype.readAttrXml = function (name, reader) {
-			if(name === "ext") {
+			if (name === "ext") {
 				this.m_oExt = readExt(reader);
 			}
 		};
 		CShapeLayout.prototype.readChildXml = function (name, reader) {
-			if ( "idmap" === name ) {
+			if ("idmap" === name) {
 
 				this.m_oIdMap = new CIdMap();
 				this.m_oIdMap.fromXml(reader);
-			}
-		else if ( "regrouptable" === name ){
+			} else if ("regrouptable" === name) {
 
 				this.m_oRegroupTable = new CRegroupTable();
 				this.m_oRegroupTable.fromXml(reader);
-			}
-		else if ( "rules" === name ){
+			} else if ("rules" === name) {
 
 				this.m_oRules = new CRules();
 				this.m_oRules.fromXml(reader);
@@ -1533,71 +1528,64 @@
 		};
 
 
-	let EFillMethod =
-		{
-			fillmethodAny : 0,
-			fillmethodLinear : 1,
-			fillmethodLinearSigma : 2,
-			fillmethodSigma : 3,
-			fillmethodNon : 4
-		};
-	function readFillMethod(reader) {
-		let sValue = reader.GetValue();
-		if		(("any")			=== sValue) return EFillMethod.fillmethodAny;
-		else if	(("linear")		=== sValue) return EFillMethod.fillmethodLinear;
-		else if	(("linear sigma")	=== sValue) return EFillMethod.fillmethodLinearSigma;
-		else if (("sigma")		=== sValue) return EFillMethod.fillmethodSigma;
-		else if (("none")			=== sValue) return EFillMethod.fillmethodNone;
-		else									return EFillMethod.fillmethodNone;
+		let EFillMethod =
+			{
+				fillmethodAny: 0,
+				fillmethodLinear: 1,
+				fillmethodLinearSigma: 2,
+				fillmethodSigma: 3,
+				fillmethodNon: 4
+			};
 
-	}
+		function readFillMethod(reader) {
+			let sValue = reader.GetValue();
+			if (("any") === sValue) return EFillMethod.fillmethodAny;
+			else if (("linear") === sValue) return EFillMethod.fillmethodLinear;
+			else if (("linear sigma") === sValue) return EFillMethod.fillmethodLinearSigma;
+			else if (("sigma") === sValue) return EFillMethod.fillmethodSigma;
+			else if (("none") === sValue) return EFillMethod.fillmethodNone;
+			else return EFillMethod.fillmethodNone;
 
-		function CFixedPercentage(sVal)
-		{
+		}
+
+		function CFixedPercentage(sVal) {
 			this.m_dValue = 0;
-			if(sVal) {
+			if (sVal) {
 				this.FromString(sVal);
 			}
-	}
+		}
 
-		CFixedPercentage.prototype.GetValue = function()
-			{
-				return this.m_dValue;
-			}
+		CFixedPercentage.prototype.GetValue = function () {
+			return this.m_dValue;
+		}
 
 		CFixedPercentage.prototype.SetValue(dValue)
 		{
-			this.m_dValue = Math.min( 100.0, Math.max( -100.0, dValue ) );
+			this.m_dValue = Math.min(100.0, Math.max(-100.0, dValue));
 		}
 
-		CFixedPercentage.prototype.FromString = function(sValue)
-		{
-			let nPos = sValue.indexOf( '%' );
+		CFixedPercentage.prototype.FromString = function (sValue) {
+			let nPos = sValue.indexOf('%');
 			let nLen = sValue.length;
-			if ( -1 === nPos || nPos !== sValue.length - 1 || nLen <= 0  )
-			{
-				if ( -1 === nPos && nLen > 0)
-				{
+			if (-1 === nPos || nPos !== sValue.length - 1 || nLen <= 0) {
+				if (-1 === nPos && nLen > 0) {
 					// Поправка 12.1.2.1 Part4
-					let nValue = Math.min( 100000, Math.max( -100000, parseInt( sValue ) ) );
+					let nValue = Math.min(100000, Math.max(-100000, parseInt(sValue)));
 					this.m_dValue = nValue / 1000.0;
-				}
-				else
+				} else
 					this.m_dValue = 0;
-			}
-		else
-			this.m_dValue = Math.min( 100.0, Math.max( -100.0, ( sValue.substr( 0, nLen - 1 ) ) ) );
+			} else
+				this.m_dValue = Math.min(100.0, Math.max(-100.0, (sValue.substr(0, nLen - 1))));
 
 			return this.m_dValue;
 		}
 
-		CFixedPercentage.prototype.ToString = function()
-			{
-				return this.m_dValue + "%";
+		CFixedPercentage.prototype.ToString = function () {
+			return this.m_dValue + "%";
 		};
 
 
-			function CFillVml() {
+		function CFillVml() {
 			CBaseNoId.call(this);
 			// Attributes
 			this.m_oAlignShape = null;
@@ -1635,36 +1623,36 @@
 		IC(CFillVml, CBaseNoId, 0);
 		CFillVml.prototype.readAttrXml = function (name, reader) {
 
-			if      ( "aspect" === name ) this.m_oAspect     = readImageAspect(reader);
-			else if ( "angle" === name ) this.m_oAngle      = reader.GetValueInt();
-			else if ( "alignshape" === name ) this.m_oAlignShape = reader.GetValueBool();
-			else if      ( "color" === name ) this.m_oColor   = readColorType(reader);
-			else if ( "color2" === name ) this.m_oColor2  = readColorType(reader);
-			else if ( "colors" === name ) this.sColors    = reader.GetValue();
-			else if      ( "id" === name ) this.m_sId  = reader.GetValue();
-			else if      ( "method" === name ) this.m_oMethod = readFillMethod(reader);
-			else if      ( "focus" === name ) this.m_oFocus         = new CFixedPercentage(reader.GetValue());
-			else if ( "focussize" === name ) this.m_oFocusSize     = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
-			else if ( "focusposition" === name ) this.m_oFocusPosition = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
-			else if      ( "on" === name ) this.m_oOn               = reader.GetValueBool();
-			else if ( "opacity" === name ) this.m_oOpacity          = readCVml_1_65536(reader);
-			else if ( "href" === name ) this.m_sHref             = reader.GetValue();
-			else if ( "althref" === name ) this.m_sAltHref          = reader.GetValue();
-			else if ( "origin" === name ) this.m_oOrigin           = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
-			else if ( "detectmouseclick" === name ) this.m_oDetectMouseClick = reader.GetValueBool();
-			else if ( "title" === name ) this.m_sTitle            = reader.GetValue();
-			else if ( "opacity2" === name ) this.m_oOpacity2         = readCVml_1_65536(reader);
-			else if ( "relid" === name ) this.m_oRelId            = reader.GetValue();
-			else if      ( "position" === name ) this.m_oPosition = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
-			else if      ( "recolor" === name ) this.m_oRecolor = reader.GetValueBool();
-			else if ( "rotate" === name ) this.m_oRotate  = reader.GetValueBool();
-			else if ( "id" === name ) this.m_rId      = reader.GetValue();
-			else if      ( "src" === name ) this.m_sSrc    = reader.GetValue();
-			else if ( "size" === name ) this.m_oSize   = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
-			else if      ( "type" === name ) this.m_oType = readFillType(reader);
+			if ("aspect" === name) this.m_oAspect = readImageAspect(reader);
+			else if ("angle" === name) this.m_oAngle = reader.GetValueInt();
+			else if ("alignshape" === name) this.m_oAlignShape = reader.GetValueBool();
+			else if ("color" === name) this.m_oColor = readColorType(reader);
+			else if ("color2" === name) this.m_oColor2 = readColorType(reader);
+			else if ("colors" === name) this.sColors = reader.GetValue();
+			else if ("id" === name) this.m_sId = reader.GetValue();
+			else if ("method" === name) this.m_oMethod = readFillMethod(reader);
+			else if ("focus" === name) this.m_oFocus = new CFixedPercentage(reader.GetValue());
+			else if ("focussize" === name) this.m_oFocusSize = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("focusposition" === name) this.m_oFocusPosition = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("on" === name) this.m_oOn = reader.GetValueBool();
+			else if ("opacity" === name) this.m_oOpacity = readCVml_1_65536(reader);
+			else if ("href" === name) this.m_sHref = reader.GetValue();
+			else if ("althref" === name) this.m_sAltHref = reader.GetValue();
+			else if ("origin" === name) this.m_oOrigin = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("detectmouseclick" === name) this.m_oDetectMouseClick = reader.GetValueBool();
+			else if ("title" === name) this.m_sTitle = reader.GetValue();
+			else if ("opacity2" === name) this.m_oOpacity2 = readCVml_1_65536(reader);
+			else if ("relid" === name) this.m_oRelId = reader.GetValue();
+			else if ("position" === name) this.m_oPosition = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("recolor" === name) this.m_oRecolor = reader.GetValueBool();
+			else if ("rotate" === name) this.m_oRotate = reader.GetValueBool();
+			else if ("id" === name) this.m_rId = reader.GetValue();
+			else if ("src" === name) this.m_sSrc = reader.GetValue();
+			else if ("size" === name) this.m_oSize = new CVml_Vector2D_Units_Or_Percentage(reader.GetValue());
+			else if ("type" === name) this.m_oType = readFillType(reader);
 		};
 		CFillVml.prototype.readChildXml = function (name, reader) {
-			if(name === "fill") {
+			if (name === "fill") {
 				this.m_oFill = new CFill();
 				this.m_oFill.fromXml(reader);
 			}
@@ -1676,25 +1664,26 @@
 			//TODO:Implement in children
 		};
 
-	let EScreenSize =
-		{
-			screensize1024x768 : 0,
-			screensize1152x862 : 1,
-			screensize544x376  : 2,
-			screensize640x480  : 3,
-			screensize720x512  : 4,
-			screensize800x600  : 5
-		};
-	function readScreenSize(reader) {
-		let sValue = reader.GetValue();
-		if      ( ("1024,768")  === sValue ) return EScreenSize.screensize1024x768;
-		else if ( ("1152,862")  === sValue ) return EScreenSize.screensize1152x862;
-		else if      ( ("544,376")   === sValue ) return EScreenSize.screensize544x376;
-		else if      ( ("640,480")   === sValue ) return EScreenSize.screensize640x480;
-		else if      ( ("720,512")   === sValue ) return EScreenSize.screensize720x512;
-		else if      ( ("800,600")   === sValue ) return EScreenSize.screensize800x600;
-		return EScreenSize.screensize640x480;
-	}
+		let EScreenSize =
+			{
+				screensize1024x768: 0,
+				screensize1152x862: 1,
+				screensize544x376: 2,
+				screensize640x480: 3,
+				screensize720x512: 4,
+				screensize800x600: 5
+			};
+
+		function readScreenSize(reader) {
+			let sValue = reader.GetValue();
+			if (("1024,768") === sValue) return EScreenSize.screensize1024x768;
+			else if (("1152,862") === sValue) return EScreenSize.screensize1152x862;
+			else if (("544,376") === sValue) return EScreenSize.screensize544x376;
+			else if (("640,480") === sValue) return EScreenSize.screensize640x480;
+			else if (("720,512") === sValue) return EScreenSize.screensize720x512;
+			else if (("800,600") === sValue) return EScreenSize.screensize800x600;
+			return EScreenSize.screensize640x480;
+		}
 
 		function CBackground() {
 			CBaseNoId.call(this);
@@ -1703,7 +1692,7 @@
 		IC(CBackground, CBaseNoId, 0);
 		CBackground.prototype.readAttrXml = function (name, reader) {
 
-			if(name === "targetscreensize") this.m_oTargetScreenSize = readScreenSize(reader);
+			if (name === "targetscreensize") this.m_oTargetScreenSize = readScreenSize(reader);
 		};
 		CBackground.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -2532,10 +2521,56 @@
 
 		IC(CShapeDefaults, CBaseNoId, 0);
 		CShapeDefaults.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
+			if (("fill") === name) this.m_oFill = reader.GetValueBool();
+			else if (("fillcolor") === name) this.m_oFillColor = readColorType(reader);
+			else if (("allowincell") === name) this.m_oAllowInCell = reader.GetValueBool();
+			else if (("spidmax") === name) this.m_oSpIdMax = reader.GetValueInt();
+			else if (("style") === name) this.m_oStyle = new CCssStyle(reader.GetValue());
+			else if (("stroke") === name) this.m_oStroke = reader.GetValueBool();
+			else if (("strokecolor") === name) this.m_oStrokeColor = readColorType(reader);
+			else if (("ext") === name) this.m_oExt = readExt(reader);
 		};
 		CShapeDefaults.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
+			if (("fill") === name) {
+
+				this.m_oVmlFill = new CFillVml();
+				this.m_oVmlFill.fromXml(reader);
+			} else if (("stroke") === name) {
+
+				this.m_oVmlStroke = new CStroke();
+				this.m_oVmlStroke.fromXml(reader);
+			} else if (("textbox") === name) {
+
+				this.m_oVmlTextbox = new CTextbox();
+				this.m_oVmlTextbox.fromXml(reader);
+			} else if (("shadow") === name) {
+
+				this.m_oVmlShadow = new CShadow();
+				this.m_oVmlShadow.fromXml(reader);
+			} else if (("skew") === name) {
+
+				this.m_oSkew = new CSkew();
+				this.m_oSkew.fromXml(reader);
+			} else if (("extrusion") === name) {
+
+				this.m_oExtrusion = new CExtrusion();
+				this.m_oExtrusion.fromXml(reader);
+			} else if (("callout") === name) {
+
+				this.m_oCallout = new CCallout();
+				this.m_oCallout.fromXml(reader);
+			} else if (("lock") === name) {
+				this.m_oLock = new CLock();
+				this.m_oLock.fromXml(reader);
+			} else if (("colormru") === name) {
+
+				this.m_oColorMru = new CColorMru();
+				this.m_oColorMru.fromXml(reader);
+			} else if (("colormenu") === name) {
+
+				this.m_oColorMenu = new CColorMenu();
+				this.m_oColorMenu.fromXml(reader);
+			}
 		};
 		CShapeDefaults.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -2552,18 +2587,6 @@
 		}
 
 		IC(CAnchorLock, CBaseNoId, 0);
-		CAnchorLock.prototype.readAttrXml = function (name, reader) {
-			//TODO:Implement in children
-		};
-		CAnchorLock.prototype.readChildXml = function (name, reader) {
-			//TODO:Implement in children
-		};
-		CAnchorLock.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CAnchorLock.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
 
 		function CBorder(sType) {
 			CBaseNoId.call(this);
@@ -2618,14 +2641,7 @@
 					break;
 			}
 		};
-		CWrap.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
-		};
 		CWrap.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CWrap.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
 
