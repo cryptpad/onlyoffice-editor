@@ -3147,20 +3147,50 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		return;
 
 	var oTextPr = this.Get_CompiledPr(false);
-	var oTheme  = this.Paragraph.Get_Theme();
+	var oTheme  = this.Paragraph.GetTheme();
 
-	g_oTextMeasurer.SetTextPr(oTextPr, oTheme);
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
-
+	let _oTextPr = oTextPr;
 	if (this.private_IsUseAscFont(oTextPr))
-		g_oTextMeasurer.SetFont({FontFamily : {Name : "ASCW3", Index : -1}, FontSize : oTextPr.FontSize, Italic : oTextPr.Italic, Bold : oTextPr.Bold});
+	{
+		_oTextPr = oTextPr.Copy();
+		_oTextPr.RFonts.SetAll("ASCW3");
+	}
 
-	// Запрашиваем текущие метрики шрифта, под TextAscent мы будем понимать ascent + linegap(которые записаны в шрифте)
-	this.TextHeight  = g_oTextMeasurer.GetHeight();
-	this.TextDescent = Math.abs(g_oTextMeasurer.GetDescender());
-	this.TextAscent  = this.TextHeight - this.TextDescent;
-	this.TextAscent2 = g_oTextMeasurer.GetAscender();
-	this.YOffset     = oTextPr.Position;
+	var Hint = _oTextPr.RFonts.Hint;
+	var bCS  = _oTextPr.CS;
+	var bRTL = _oTextPr.RTL;
+	var lcid = _oTextPr.Lang.EastAsia;
+
+	let nRFontsFlags = 0;
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (oItem.IsText())
+		{
+			let fontSlot = g_font_detector.Get_FontClass(oItem.Value, Hint, lcid, bCS, bRTL);
+			if (fontSlot === fontslot_ASCII)
+				nRFontsFlags |= rfont_ASCII;
+			else if (fontSlot === fontslot_HAnsi)
+				nRFontsFlags |= rfont_HAnsi;
+			else if (fontSlot === fontslot_CS)
+				nRFontsFlags |= rfont_CS;
+			else if (fontSlot === fontslot_EastAsia)
+				nRFontsFlags |= rfont_EastAsia;
+		}
+		else if (oItem.IsSpace())
+		{
+			nRFontsFlags |= rfont_ASCII;
+		}
+
+	}
+
+	let oMetrics = _oTextPr.GetTextMetrics(oTheme, nRFontsFlags);
+
+	// Под TextAscent мы будем понимать ascent + linegap (которые записаны в шрифте)
+	this.TextHeight  = oMetrics.Height;
+	this.TextDescent = oMetrics.Descent;
+	this.TextAscent  = oMetrics.Ascent + oMetrics.LineGap;
+	this.TextAscent2 = oMetrics.Ascent;
 
 	var oInfoMathText;
 	if (para_Math_Run == this.Type)

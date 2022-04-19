@@ -2280,3 +2280,10 @@ CDocumentContentBase.prototype.GetAllOleObjects = function(sPluginId, arrObjects
 	}
 	return arrObjects;
 };
+CDocumentContentBase.prototype.ProcessComplexFields = function()
+{
+	for (let nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].ProcessComplexFields();
+	}
+};

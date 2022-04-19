@@ -9242,6 +9242,38 @@
 		return nStartIndex_;
 	}
 
+	// Данный список шрифтов используется совместно с настройкой BalanceSingleByteDoubleByteWidth
+	// если список будет изменяться, то проверить работу этой настройки с новыми шрифтами, если работать не будет, тогда
+	// надо будет иметь два разных списка
+	const EAST_ASIA_FONTS = [
+		"MingLiU", "PMingLiU", "MingLiU_HKSCS-ExtB", "MingLiU-ExtB",
+		"SimSun", "NSimSun", "SimSun-ExtA", "SimSun-ExtB",
+		"MS Mincho",
+		"Batang",
+		"Arial Unicode MS",
+		"Microsoft JhengHei", "Microsoft YaHei", "SimHei", "DengXian",
+		"Meiryo", "MS Gothic", "MS PGothic", "MS UI Gothic", "Yu Gothic",
+		"Dotum", "Gulim", "Malgun Gothic"
+	];
+
+	function IsEastAsianFont(sName)
+	{
+		for (let oIterator = sName.getUnicodeIterator(); oIterator.check(); oIterator.next())
+		{
+			let	nUnicode = oIterator.value();
+			if (isEastAsianScript(nUnicode))
+				return true;
+		}
+
+		for (let nIndex = 0, nCount = EAST_ASIA_FONTS.length; nIndex < nCount; ++nIndex)
+		{
+			if (sName === EAST_ASIA_FONTS[nIndex])
+				return true;
+		}
+
+		return false;
+	}
+
 	function isEastAsianScript(value)
 	{
 		// Bopomofo (3100–312F)
@@ -11938,6 +11970,7 @@
 	window["AscCommon"].checkAddColorScheme = checkAddColorScheme;
 	window["AscCommon"].getIndexColorSchemeInArray = getIndexColorSchemeInArray;
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
+	window["AscCommon"].IsEastAsianFont = IsEastAsianFont;
 	window["AscCommon"].CMathTrack = CMathTrack;
 	window["AscCommon"].CPolygon = CPolygon;
 	window['AscCommon'].CDrawingCollaborativeTargetBase = CDrawingCollaborativeTargetBase;

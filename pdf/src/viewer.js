@@ -212,6 +212,16 @@
 
 		this.isFocusOnThumbnails = false;
 
+		this.isXP = ((AscCommon.AscBrowser.userAgent.indexOf("windowsxp") > -1) || (AscCommon.AscBrowser.userAgent.indexOf("chrome/49") > -1)) ? true : false;
+		if (!this.isXP && AscCommon.AscBrowser.isIE && !AscCommon.AscBrowser.isIeEdge)
+			this.isXP = true;
+
+		if (this.isXP)
+		{
+			AscCommon.g_oHtmlCursor.register("grab", "grab", "7 8", "pointer");
+			AscCommon.g_oHtmlCursor.register("grabbing", "grabbing", "6 6", "pointer");
+		}
+
 		var oThis = this;
 
 		this.updateSkin = function()
@@ -254,7 +264,7 @@
 			elements += "<div id=\"id_vertical_scroll\" class=\"block_elem\" style=\"display:none;left:0px;top:0px;width:0px;height:0px;\"></div>";
 			elements += "<div id=\"id_horizontal_scroll\" class=\"block_elem\" style=\"display:none;left:0px;top:0px;width:0px;height:0px;\"></div>";
 		
-			this.parent.style.backgroundColor = this.backgroundColor;
+			//this.parent.style.backgroundColor = this.backgroundColor; <= this color from theme
 			this.parent.innerHTML = elements;
 
 			this.canvas = document.getElementById("id_viewer");
@@ -765,19 +775,17 @@
 			// в интерфейсе есть проблема - нужно посылать onDocumentContentReady после setAdvancedOptions
 			setTimeout(function(){
 				_t.sendEvent("onFileOpened");
+
+				_t.sendEvent("onPagesCount", _t.file.pages.length);
+				_t.sendEvent("onCurrentPageChanged", 0);
+
+				_t.sendEvent("onStructure", _t.structure);
 			}, 0);
 
 			this.file.onRepaintPages = this.onUpdatePages.bind(this);
 			this.file.onUpdateStatistics = this.onUpdateStatistics.bind(this);
 			this.currentPage = -1;
 			this.structure = this.file.getStructure();
-
-			this.sendEvent("onPagesCount", this.file.pages.length);
-			this.sendEvent("onCurrentPageChanged", 0);
-
-			setTimeout(function(){
-				oThis.sendEvent("onStructure", oThis.structure);
-			}, 100);
 
 			this.resize();
 
@@ -975,7 +983,10 @@
 			}
 			else
 			{
-				this.sendEvent("onHyperlinkClick", link["link"]);
+				var url = link["link"];
+				var typeUrl = AscCommon.getUrlType(url);
+				url = AscCommon.prepareUrl(url, typeUrl);
+				this.sendEvent("onHyperlinkClick", url);
 			}
 
 			//console.log(link["link"]);
@@ -1050,6 +1061,12 @@
 
 		this.setCursorType = function(cursor)
 		{
+			if (this.isXP)
+			{
+				this.canvas.style.cursor = AscCommon.g_oHtmlCursor.value(cursor);
+				return;
+			}
+
 			this.canvas.style.cursor = cursor;
 		};
 
@@ -1998,6 +2015,8 @@
 				if ((pageCoords.y + pageCoords.h) > y)
 					break;
 			}
+			if (pageIndex > this.endVisiblePage)
+				pageIndex = this.endVisiblePage;
 
 			if (!pageCoords)
 				pageCoords = {x:0, y:0, w:1, h:1};
@@ -2209,8 +2228,14 @@
 				}
 				else
 				{
-					if (this.currentPage > 0)
-						this.navigateToPage(this.currentPage - 1);
+					var nextPage = -1;
+					if (this.thumbnails)
+						nextPage = this.currentPage - this.thumbnails.countPagesInBlock;
+					if (nextPage < 0)
+						nextPage = this.currentPage - 1;
+
+					if (nextPage >= 0)
+						this.navigateToPage(nextPage);
 				}
 				bRetValue = true;
 			}
@@ -2235,8 +2260,19 @@
 				}
 				else
 				{
-					if (this.currentPage < (this.getPagesCount() - 1))
-						this.navigateToPage(this.currentPage + 1);
+					var pagesCount = this.getPagesCount();
+					var nextPage = pagesCount;
+					if (this.thumbnails)
+					{
+						nextPage = this.currentPage + this.thumbnails.countPagesInBlock;
+						if (nextPage >= pagesCount)
+							nextPage = pagesCount - 1;
+					}
+					if (nextPage >= pagesCount)
+						nextPage = this.currentPage + 1;
+
+					if (nextPage < pagesCount)
+						this.navigateToPage(nextPage);
 				}
 				bRetValue = true;
 			}

@@ -1264,18 +1264,14 @@ Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPa
 		{
 			// TODO: Как только переделаем para_End переделать тут
 
-			// Выставляем настройки для символа параграфа
-			var EndTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-			EndTextPr.Merge(this.TextPr.Value);
-            EndTextPr.CheckFontScale();
-			g_oTextMeasurer.SetTextPr(EndTextPr, this.Get_Theme());
-			g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+			let oTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
+			oTextPr.Merge(this.TextPr.Value);
+			oTextPr.CheckFontScale();
 
-			// Запрашиваем текущие метрики шрифта, под TextAscent мы будем понимать ascent + linegap(которые записаны в шрифте)
-			var EndTextHeight  = g_oTextMeasurer.GetHeight();
-			var EndTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
-			var EndTextAscent  = EndTextHeight - EndTextDescent;
-			var EndTextAscent2 = g_oTextMeasurer.GetAscender();
+            let oMetrics = oTextPr.GetTextMetrics(this.GetTheme(), rfont_ASCII);
+			let EndTextDescent = oMetrics.Descent;
+			let EndTextAscent  = oMetrics.Ascent + oMetrics.LineGap;
+			let EndTextAscent2 = oMetrics.Ascent;
 
 			PRS.LineTextAscent  = EndTextAscent;
 			PRS.LineTextAscent2 = EndTextAscent2;

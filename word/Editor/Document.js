@@ -2727,6 +2727,8 @@ CDocument.prototype.IsLoadingDocument = function()
 };
 CDocument.prototype.On_EndLoad                     = function()
 {
+	this.Start_SilentMode();
+
 	this.ClearListsCache();
 
 	this.TrackRevisionsManager.InitSelectedChanges();
@@ -2761,6 +2763,8 @@ CDocument.prototype.On_EndLoad                     = function()
     {
         this.Set_FastCollaborativeEditing(true);
     }
+
+	this.End_SilentMode();
 };
 CDocument.prototype.UpdateDefaultsDependingOnCompatibility = function()
 {
@@ -2768,27 +2772,37 @@ CDocument.prototype.UpdateDefaultsDependingOnCompatibility = function()
 };
 CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 {
-	return;
+	let openedAt = this.Api.openedAt;
+	if (undefined === openedAt) {
+		return;
+	}
 
-	// TODO: Из-за совместки мы не можем обновлять текущую дату таким образом при открытии, нам нужно, чтобы
-	//       дату для обновления присылал сервер
+	//let nTime = performance.now();
 
-	var arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
-	for (var nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
+	let arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
+	let arrFields  = [];
+	for (let nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
 	{
-		var oContent = arrHdrFtrs[nIndex].GetContent();
+		let oContent = arrHdrFtrs[nIndex].GetContent();
 		oContent.ProcessComplexFields();
-		var arrFields = oContent.GetAllFields(false);
-		for (var nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+		oContent.GetAllFields(false, arrFields);
+	}
+
+	this.ProcessComplexFields();
+	this.controller_GetAllFields(false, arrFields);
+
+	for (var nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+	{
+		let oField = arrFields[nFieldIndex];
+		if (oField instanceof CComplexField
+			&& oField.GetInstruction()
+			&& fieldtype_TIME === oField.GetInstruction().Type)
 		{
-			var oField = arrFields[nFieldIndex];
-			if (oField instanceof CComplexField)
-			{
-				if (oField.GetInstruction() && fieldtype_TIME === oField.GetInstruction().Type)
-					oField.Update(false, false);
-			}
+			oField.UpdateTIME(openedAt);
 		}
 	}
+
+	//console.log("FieldUpdateTime : " + ((performance.now() - nTime) / 1000) + "s");
 };
 CDocument.prototype.Add_TestDocument               = function()
 {

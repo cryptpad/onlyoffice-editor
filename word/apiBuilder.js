@@ -13972,7 +13972,12 @@
 	 */
 	ApiFormBase.prototype.GetFormKey = function()
 	{
-		var sKey = this.Sdt.GetFormKey();
+		var sKey;
+		if (this.GetFormType() === "radioButtonForm")
+			sKey = this.Sdt.GetRadioButtonGroupKey();
+		else
+			sKey = this.Sdt.GetFormKey();
+
 		if (typeof(sKey) !== "string")
 			sKey = "";
 		return sKey;
@@ -13989,12 +13994,19 @@
 		if (typeof(sKey) !== "string")
 			return false;
 
-		sKey = sKey === "" ? undefined : sKey;
-
-		var oFormPr = this.Sdt.GetFormPr().Copy();
-		oFormPr && oFormPr.put_Key(sKey);
-
-		this.Sdt.SetFormPr(oFormPr);
+		if (this.GetFormType() === "radioButtonForm")
+		{
+			sKey = sKey === "" ? "Group 1" : sKey;
+			Sdt.GetCheckBoxPr().SetGroupKey(sKey);
+		}
+		else
+		{
+			sKey = sKey === "" ? undefined : sKey;
+			var oFormPr = this.Sdt.GetFormPr().Copy();
+			oFormPr && oFormPr.put_Key(sKey);
+			this.Sdt.SetFormPr(oFormPr);
+		}
+		
 		return true;
 	};
 	/**
@@ -14073,6 +14085,7 @@
 	/**
 	 * Specifies if the current form should be fixed.
 	 * *Not for picture forms*
+	 * Must be in the document.
 	 * @memberof ApiFormBase
 	 * @param {boolean} bFixed - Defines if the current form is fixed (true) or not (false).
 	 * @typeofeditors ["CDE"]
@@ -14080,13 +14093,15 @@
 	 */
 	ApiFormBase.prototype.SetFixedForm = function(bFixed)
 	{
-		if (typeof(bFixed) !== "boolean")
+		if (typeof(bFixed) !== "boolean" || !this.Sdt.Is_UseInDocument())
 			return false;
 		if (this.GetFormType() === "pictureForm")
 			return false;
 		if (bFixed === this.IsFixedForm())
 			return true;
 		
+		private_GetLogicDocument().private_Recalculate();
+
 		if (bFixed)
 			this.Sdt.ConvertFormToFixed();
 		else
@@ -14373,7 +14388,23 @@
 
 		return true;
 	};
+	/**
+	 * Creates a copy of a current form.
+	 * @memberof ApiTextForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {ApiTextForm}
+	 */
+	ApiTextForm.prototype.Copy = function()
+	{
+		var oInlineSdt = this.Sdt.Copy(false, {
+			SkipComments          : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true
+		});
 
+		return new ApiTextForm(oInlineSdt);
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiPictureForm
@@ -14522,7 +14553,23 @@
 
 		return false;
 	};
+	/**
+	 * Creates a copy of a current form.
+	 * @memberof ApiPictureForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {ApiPictureForm}
+	 */
+	ApiPictureForm.prototype.Copy = function()
+	{
+		var oInlineSdt = this.Sdt.Copy(false, {
+			SkipComments          : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true
+		});
 
+		return new ApiPictureForm(oInlineSdt);
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiComboBoxForm 
@@ -14636,6 +14683,23 @@
 	{
 		return (this.Sdt.IsComboBox());
 	};
+	/**
+	 * Creates a copy of a current form.
+	 * @memberof ApiComboBoxForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {ApiComboBoxForm}
+	 */
+	ApiComboBoxForm.prototype.Copy = function()
+	{
+		var oInlineSdt = this.Sdt.Copy(false, {
+			SkipComments          : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true
+		});
+
+		return new ApiComboBoxForm(oInlineSdt);
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiCheckBoxForm 
@@ -14703,6 +14767,23 @@
 		oPr = oPr.Copy();
 		oPr.SetGroupKey(sKey);
 		this.Sdt.SetCheckBoxPr(oPr);
+	};
+	/**
+	 * Creates a copy of a current form.
+	 * @memberof ApiCheckBoxForm
+	 * @typeofeditors ["CDE"]
+	 * @returns {ApiCheckBoxForm}
+	 */
+	ApiCheckBoxForm.prototype.Copy = function()
+	{
+		var oInlineSdt = this.Sdt.Copy(false, {
+			SkipComments          : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true
+		});
+
+		return new ApiCheckBoxForm(oInlineSdt);
 	};
 
 	/**
@@ -15759,25 +15840,64 @@
 	ApiTextForm.prototype["SetComb"]             = ApiTextForm.prototype.SetComb;
 	ApiTextForm.prototype["SetCellWidth"]        = ApiTextForm.prototype.SetCellWidth;
 	ApiTextForm.prototype["SetText"]             = ApiTextForm.prototype.SetText;
+	ApiTextForm.prototype["Copy"]                = ApiTextForm.prototype.Copy;
 
 	ApiPictureForm.prototype["GetPictureScaleCase"] = ApiPictureForm.prototype.GetPictureScaleCase;
 	ApiPictureForm.prototype["SetPictureScaleCase"] = ApiPictureForm.prototype.SetPictureScaleCase;
 	ApiPictureForm.prototype["SetLockAspectRatio"]  = ApiPictureForm.prototype.SetLockAspectRatio;
 	ApiPictureForm.prototype["GetImage"]            = ApiPictureForm.prototype.GetImage;
 	ApiPictureForm.prototype["SetImage"]            = ApiPictureForm.prototype.SetImage;
+	ApiPictureForm.prototype["Copy"]                = ApiPictureForm.prototype.Copy;
 	
 	ApiComboBoxForm.prototype["GetListValues"]       = ApiComboBoxForm.prototype.GetListValues;
 	ApiComboBoxForm.prototype["SetListValues"]       = ApiComboBoxForm.prototype.SetListValues;
 	ApiComboBoxForm.prototype["SelectListValue"]     = ApiComboBoxForm.prototype.SelectListValue;
 	ApiComboBoxForm.prototype["SetText"]             = ApiComboBoxForm.prototype.SetText;
 	ApiComboBoxForm.prototype["IsEditable"]          = ApiComboBoxForm.prototype.IsEditable;
+	ApiComboBoxForm.prototype["Copy"]                = ApiComboBoxForm.prototype.Copy;
 
 	ApiCheckBoxForm.prototype["SetChecked"]    = ApiCheckBoxForm.prototype.SetChecked;
 	ApiCheckBoxForm.prototype["IsChecked"]     = ApiCheckBoxForm.prototype.IsChecked;
 	ApiCheckBoxForm.prototype["IsRadioButton"] = ApiCheckBoxForm.prototype.IsRadioButton;
 	ApiCheckBoxForm.prototype["GetRadioGroup"] = ApiCheckBoxForm.prototype.GetRadioGroup;
 	ApiCheckBoxForm.prototype["SetRadioGroup"] = ApiCheckBoxForm.prototype.SetRadioGroup;
+	ApiCheckBoxForm.prototype["Copy"]          = ApiCheckBoxForm.prototype.Copy;
 
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Export for internal usage
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	window['AscBuilder'] = window['AscBuilder'] || {};
+	window['AscBuilder'].Api                = Api;
+	window['AscBuilder'].ApiDocumentContent = ApiDocumentContent;
+	window['AscBuilder'].ApiRange           = ApiRange;
+	window['AscBuilder'].ApiDocument        = ApiDocument;
+	window['AscBuilder'].ApiParagraph       = ApiParagraph;
+	window['AscBuilder'].ApiRun             = ApiRun;
+	window['AscBuilder'].ApiHyperlink       = ApiHyperlink;
+	window['AscBuilder'].ApiSection         = ApiSection;
+	window['AscBuilder'].ApiTable           = ApiTable;
+	window['AscBuilder'].ApiTableRow        = ApiTableRow;
+	window['AscBuilder'].ApiTableCell       = ApiTableCell;
+	window['AscBuilder'].ApiStyle           = ApiStyle;
+	window['AscBuilder'].ApiNumbering       = ApiNumbering;
+	window['AscBuilder'].ApiNumberingLevel  = ApiNumberingLevel;
+	window['AscBuilder'].ApiTextPr          = ApiTextPr;
+	window['AscBuilder'].ApiParaPr          = ApiParaPr;
+	window['AscBuilder'].ApiTablePr         = ApiTablePr;
+	window['AscBuilder'].ApiTableRowPr      = ApiTableRowPr;
+	window['AscBuilder'].ApiTableCellPr     = ApiTableCellPr;
+	window['AscBuilder'].ApiTableStylePr    = ApiTableStylePr;
+	window['AscBuilder'].ApiDrawing         = ApiDrawing;
+	window['AscBuilder'].ApiImage           = ApiImage;
+	window['AscBuilder'].ApiShape           = ApiShape;
+	window['AscBuilder'].ApiChart           = ApiChart;
+	window['AscBuilder'].ApiInlineLvlSdt    = ApiInlineLvlSdt;
+	window['AscBuilder'].ApiBlockLvlSdt     = ApiBlockLvlSdt;
+	window['AscBuilder'].ApiFormBase        = ApiFormBase;
+	window['AscBuilder'].ApiTextForm        = ApiTextForm;
+	window['AscBuilder'].ApiPictureForm     = ApiPictureForm;
+	window['AscBuilder'].ApiComboBoxForm    = ApiComboBoxForm;
+	window['AscBuilder'].ApiCheckBoxForm    = ApiCheckBoxForm;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16378,6 +16498,19 @@
 
 	Api.prototype.private_CreateApiDocContent = function(oDocContent){
 		return new ApiDocumentContent(oDocContent);
+	};
+
+	Api.prototype.private_CreateCheckBoxForm = function(oCC){
+		return new ApiCheckBoxForm(oCC);
+	};
+	Api.prototype.private_CreateTextForm = function(oCC){
+		return new ApiTextForm(oCC);
+	};
+	Api.prototype.private_CreateComboBoxForm = function(oCC){
+		return new ApiComboBoxForm(oCC);
+	};
+	Api.prototype.private_CreatePictureForm = function(oCC){
+		return new ApiPictureForm(oCC);
 	};
 }(window, null));
 

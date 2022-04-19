@@ -213,6 +213,39 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
     }
 };
 
+
+// The helper function, called from the native application,
+// returns information about the document as a JSON string.
+window["asc_docs_api"].prototype["asc_nativeGetCoreProps"] = function() {
+    var props = (_api) ? _api.asc_getCoreProps() : null,
+        value;
+
+    if (props) {
+        var coreProps = {};
+        coreProps["asc_getModified"] = props.asc_getModified();
+
+        value = props.asc_getLastModifiedBy();
+        if (value)
+        coreProps["asc_getLastModifiedBy"] = AscCommon.UserInfoParser.getParsedName(value);
+
+        coreProps["asc_getTitle"] = props.asc_getTitle();
+        coreProps["asc_getSubject"] = props.asc_getSubject();
+        coreProps["asc_getDescription"] = props.asc_getDescription();
+
+        var authors = [];
+        value = props.asc_getCreator();//"123\"\"\"\<\>,456";
+        value && value.split(/\s*[,;]\s*/).forEach(function (item) {
+            authors.push(item);
+        });
+
+        coreProps["asc_getCreator"] = authors;
+
+        return coreProps;
+    }
+
+    return {};
+}
+
 window["AscCommon"].getFullImageSrc2 = function (src) {
 
     var start = src.slice(0, 6);
@@ -1454,6 +1487,28 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 oThis.WordControl.CheckLayouts(true);
                 oThis.RedrawTimer = null;
             }, 1000);
+            break;
+        }
+
+        case 21002: // ASC_COAUTH_EVENT_TYPE_REPLACE_URL_IMAGE
+        {
+            var urls = JSON.parse(_params[0]);
+            AscCommon.g_oDocumentUrls.addUrls(urls);
+            var firstUrl;
+            for (var i in urls) {
+                if (urls.hasOwnProperty(i)) {
+                    firstUrl = urls[i];
+                    break;
+                }
+            }
+
+            var _src = firstUrl;
+
+            var imageProp = new Asc.asc_CImgProperty();
+            imageProp.ImageUrl = _src;
+            this.ImgApply(imageProp);
+            this.WordControl.m_oLogicDocument.Recalculate();
+
             break;
         }
 
