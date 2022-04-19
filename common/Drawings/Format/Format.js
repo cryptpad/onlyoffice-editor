@@ -7451,14 +7451,17 @@ CXfrm.prototype =
         );
     },
 
-    isZeroInGroup: function () {
+    isZeroCh: function () {
         return (
-          this.isZero() &&
           this.chOffX === 0 &&
           this.chOffY === 0 &&
           this.chExtX === 0 &&
           this.chExtY === 0
         );
+    },
+
+    isZeroInGroup: function () {
+        return this.isZero() && this.isZeroCh();
     },
 
     isEqual: function(xfrm)
