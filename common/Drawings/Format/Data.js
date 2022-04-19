@@ -10542,14 +10542,15 @@ Because of this, the display is sometimes not correct.
             }
             connections[cxn.destId].push({
               point: ptMap[cxn.srcId],
-              srcOrd: cxn.srcOrd
+              srcOrd: parseInt(cxn.srcOrd, 10),
+              destOrd: parseInt(cxn.destOrd, 10)
             });
           }
         });
 
         for (var key in connections) {
           connections[key].sort(function (firstConnection, secondConnection) {
-            return parseInt(secondConnection.destOrd, 10) - parseInt(firstConnection.destOrd);
+            return firstConnection.destOrd - secondConnection.destOrd;
           });
         }
 
