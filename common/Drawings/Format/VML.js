@@ -5123,7 +5123,7 @@
 
 		function UCssValue() {
 			this.eFlip = null;
-			this.oValue = null;
+			this.oValue = {};
 			this.eMsoPosHor = null;
 			this.eMsoPosHorRel = null;
 			this.eMsoPosVer = null;
@@ -5397,9 +5397,10 @@
 					break;
 			}
 		}
+		};
 
 		CCssProperty.prototype.ReadValue_Unknown = function (sValue) {
-		}
+		};
 		CCssProperty.prototype.ReadValue_Flip = function (sValue) {
 			if (("x") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipX;
 			else if (("y") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipY;
@@ -5407,7 +5408,7 @@
 			else if (("yx") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipYX;
 			else
 				this.m_eType = ECssPropertyType.cssptUnknown;
-		}
+		};
 		CCssProperty.prototype.ReadValue_Units = function (sValue) {
 			let nPos = -1;
 			if (-1 !== (nPos = sValue.indexOf(("auto")))) {
@@ -5465,7 +5466,7 @@
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAbsolute;
 				this.m_oValue.oValue.dValue = parseFloat(sValue);
 			}
-		}
+		};
 
 		CCssProperty.prototype.ReadValue_MsoPosHor = function (sValue) {
 			if (("absolute") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorAbsolute;
@@ -5476,7 +5477,7 @@
 			else if (("outside") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorOutside;
 			else
 				this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorAbsolute;
-		}
+		};
 		CCssProperty.prototype.ReadValue_MsoPosHorRel = function (sValue) {
 			if (("left-margin-area") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelLeftMargin;
 			else if (("right-margin-area") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelRightMargin;
@@ -5486,7 +5487,7 @@
 			else if (("char") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelChar;
 			else
 				this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelText;
-		}
+		};
 		CCssProperty.prototype.ReadValue_MsoPosVer = function (sValue) {
 			if (("absolute") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverAbsolute;
 			else if (("top") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverTop;
@@ -5496,7 +5497,7 @@
 			else if (("outside") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverOutside;
 			else
 				this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverAbsolute;
-		}
+		};
 		CCssProperty.prototype.ReadValue_MsoPosVerRel = function (sValue) {
 			if (("bottom-margin-area") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelBottomMargin;
 			else if (("top-margin-area") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelTopMargin;
@@ -5506,7 +5507,7 @@
 			else if (("line") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelLine;
 			else
 				this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelText;
-		}
+		};
 
 		CCssProperty.prototype.ReadValue_Rotation = function (sValue) {
 			this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAbsolute;
@@ -5517,32 +5518,32 @@
 			} else if (sValue.indexOf(("f")) === sValue.length - 1) {
 				this.m_oValue.oValue.dValue /= 65536.;
 			}
-		}
+		};
 		CCssProperty.prototype.ReadValue_Boolean = function (sValue) {
 			if (("true") === sValue || ("t") === sValue || ("1") === sValue)
 				this.m_oValue.bValue = true;
 			else
 				this.m_oValue.bValue = false;
-		}
+		};
 		CCssProperty.prototype.ReadValue_MsoWrapStyle = function (sValue) {
 			if (("square") === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleSqaure;
 			else if (("none") === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleNone;
 			else
 				this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleSqaure;
-		}
+		};
 		CCssProperty.prototype.ReadValue_Position = function (sValue) {
 			if (("static") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionStatic;
 			else if (("absolute") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionAbsolute;
 			else if (("relative") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionRelative;
 			else
 				this.m_oValue.ePosition = ECssPosition.csspositionAbsolute;
-		}
+		};
 		CCssProperty.prototype.ReadValue_Visibility = function (sValue) {
 			if (("hidden") === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityHidden;
 			else if (("inherit") === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityInherit;
 			else
 				this.m_oValue.eVisibility = ECssVisibility.cssvisibilityInherit;
-		}
+		};
 		CCssProperty.prototype.ReadValue_ZIndex = function (sValue) {
 			if (("auto") === sValue) this.m_oValue.oZIndex.m_eType = ECssZIndexType.csszindextypeAuto;
 			else {
@@ -5550,13 +5551,13 @@
 				this.m_oValue.oZIndex.nOrder = parseInt(sValue);
 
 			}
-		}
+		};
 		CCssProperty.prototype.ReadValue_Direction = function (sValue) {
 			if (("ltr") === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionLTR;
 			else if (("rtl") === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionRTL;
 			else
 				this.m_oValue.eDirection = ECssDirection.cssdirectionLTR;
-		}
+		};
 		CCssProperty.prototype.ReadValue_LayoutFlow = function (sValue) {
 			if (("horizontal") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontal;
 			else if (("vertical") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowVertical;
@@ -5564,16 +5565,16 @@
 			else if (("horizontal-ideographic") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontalIdeographic;
 			else
 				this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontal;
-		}
+		};
 		CCssProperty.prototype.ReadValue_DirectionAlt = function (sValue) {
 			this.m_oValue.eDirectionAlt = ECssDirectionAlt.cssdirectionaltContext;
-		}
+		};
 		CCssProperty.prototype.ReadValue_LayoutFlowAlt = function (sValue) {
 			this.m_oValue.eLayoutFlowAlt = ECssLayoutFlowAlt.csslayoutflowaltBottomToTop;
-		}
+		};
 		CCssProperty.prototype.ReadValue_String = function (sValue) {
 			this.m_oValue.wsValue = sValue;
-		}
+		};
 
 		CCssProperty.prototype.ReadValue_MsoRotate = function (sValue) {
 			if (("0") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate0;
@@ -5582,7 +5583,7 @@
 			else if (("-90") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate270;
 			else
 				this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate0;
-		}
+		};
 		CCssProperty.prototype.ReadValue_VTextAnchor = function (sValue) {
 			if (("top") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTop;
 			else if (("middle") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorMiddle;
@@ -5596,20 +5597,20 @@
 			else if (("bottom-center-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomCenterBaseline;
 			else
 				this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTop;
-		}
+		};
 		CCssProperty.prototype.ReadValue_FontStyle = function (sValue) {
 			if (("normal") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleNormal;
 			else if (("italic") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleItalic;
 			else if (("oblique") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleOblique;
 			else
 				this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleNormal;
-		}
+		};
 		CCssProperty.prototype.ReadValue_FontVariant = function (sValue) {
 			if (("normal") === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantNormal;
 			else if (("small-caps") === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantSmallCaps;
 			else
 				this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantNormal;
-		}
+		};
 		CCssProperty.prototype.ReadValue_FontWeight = function (sValue) {
 			if (("normal") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightNormal;
 			else if (("lighter") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightLighter;
@@ -5626,7 +5627,7 @@
 			else if (("900") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight900;
 			else
 				this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightNormal;
-		}
+		};
 		CCssProperty.prototype.ReadValue_TextDecoration = function (sValue) {
 			if (("none") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationNone;
 			else if (("underline") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationUnderline;
@@ -5635,7 +5636,7 @@
 			else if (("blink") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationBlink;
 			else
 				this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationNone;
-		}
+		};
 		CCssProperty.prototype.ReadValue_VTextAlign = function (sValue) {
 			if (("left") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLeft;
 			else if (("right") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignRight;
@@ -5645,13 +5646,13 @@
 			else if (("stretch-justify") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignStretchJustify;
 			else
 				this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLeft;
-		}
+		};
 		CCssProperty.prototype.ReadValue_VTextSpacingMode = function (sValue) {
 			if (("tightening") === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
 			else if (("tracking") === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTracking;
 			else
 				this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
-		}
+		};
 
 
 		let EBorderType =
