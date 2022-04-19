@@ -354,7 +354,7 @@
 		function CRelationTable() {
 			CBaseNoId.call(this);
 
-			this.m_oExt;
+			this.m_oExt = null;
 			this.m_arrRel = [];
 		}
 
@@ -451,8 +451,8 @@
 
 		function CEntry() {
 			CBaseNoId.call(this);
-			thuis.m_oNew = null;
-			thuis.m_oOld = null;
+			this.m_oNew = null;
+			this.m_oOld = null;
 		}
 
 		IC(CEntry, CBaseNoId, 0);
@@ -1534,7 +1534,7 @@
 				fillmethodLinear: 1,
 				fillmethodLinearSigma: 2,
 				fillmethodSigma: 3,
-				fillmethodNon: 4
+				fillmethodNone: 4
 			};
 
 		function readFillMethod(reader) {
@@ -1569,7 +1569,6 @@
 			let nLen = sValue.length;
 			if (-1 === nPos || nPos !== sValue.length - 1 || nLen <= 0) {
 				if (-1 === nPos && nLen > 0) {
-					// Поправка 12.1.2.1 Part4
 					let nValue = Math.min(100000, Math.max(-100000, parseInt(sValue)));
 					this.m_dValue = nValue / 1000.0;
 				} else
@@ -4391,8 +4390,7 @@
 		};
 
 		CVml_Polygon2D_Units.prototype.AddPoint = function (dX, dY) {
-			TPoint
-			oPt(dX, dY);
+			let oPt = new TPoint(dX, dY);
 			this.m_arrPoints.push(oPt);
 		};
 
@@ -4614,8 +4612,8 @@
 				case "single" : {
 					return EShadowType.shadowtypeSingle;
 				}
-					return EShadowType.shadowtypeSingle;
 			}
+			return EShadowType.shadowtypeSingle;
 		}
 
 
