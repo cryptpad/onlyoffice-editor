@@ -35,6 +35,7 @@
 (function(window)
 {
 	const MEASURER = AscCommon.g_oTextMeasurer;
+	const COEF     = 25.4 / 72 / 64;
 
 	function ClusterLength(nCodePoint)
 	{
@@ -105,26 +106,28 @@
 		if (!this.Buffer.length)
 			return;
 
-		let nKoef = 25.4 / 72 / 64;//MEASURER.m_oManager.m_pFont.m_lUnits_Per_Em;
+		MEASURER.SetTextPr(this.TextPr);
+		MEASURER.SetFontSlot(fontslot_ASCII, 1);
 
 		let nCharIndex = 0;
-		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 15, AscFonts.HB_SCRIPT["HB_SCRIPT_LATIN"], AscFonts.HB_DIRECTION.HB_DIRECTION_LTR, "en");
-
-		let nClusterLen = 0;
-		for (let nPos = 0, nCount = this.Items.length; nPos < nCount; ++nPos)
-		{
-			nClusterLen += ClusterLength(this.Items[nPos].GetCodePoint());
-		}
+		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 0, AscFonts.HB_SCRIPT["HB_SCRIPT_LATIN"], AscFonts.HB_DIRECTION.HB_DIRECTION_LTR, "en");
 
 		for (let nSegment = 0, nSegmentsCount = arrSegments.length; nSegment < nSegmentsCount; ++nSegment)
 		{
 			let oSegment = arrSegments[nSegment];
+			let nClusterMax = 0;
+
+			for (var oIterator = oSegment.text.getUnicodeIterator(); oIterator.check(); oIterator.next())
+			{
+				nClusterMax += ClusterLength(oIterator.value());
+			}
+
 			for (let nGlyphIndex = 0, nGlyphsCount = oSegment.glyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 			{
 				let oGrapheme = oSegment.glyphs[nGlyphIndex];
 				let nCluster = oGrapheme.cluster;
 
-				let nGraphemeWidth = oGrapheme.x_advance * nKoef;
+				let nGraphemeWidth = oGrapheme.x_advance * COEF;
 				let arrLigature = [this.Items[nCharIndex]];
 				this.Items[nCharIndex].SetGrapheme(oGrapheme.gid, oSegment.font, nGraphemeWidth);
 
@@ -139,7 +142,7 @@
 					nCharIndex++;
 				}
 
-				let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nSegment === nSegmentsCount - 1 ? nClusterLen : arrSegments[nSegment + 1].glyphs[0] : oSegment.glyphs[nGlyphIndex + 1].cluster;
+				let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nClusterMax : oSegment.glyphs[nGlyphIndex + 1].cluster;
 				while (nCluster < nNextCluster && nCharIndex < this.Items.length)
 				{
 					arrLigature.push(this.Items[nCharIndex]);
