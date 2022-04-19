@@ -9801,17 +9801,10 @@ Because of this, the display is sometimes not correct.
 
     function ShapeSmartArtInfo() {
       CBaseFormatObject.call(this);
-      this.spPrPoint = null;
       this.shapePoint = null;
       this.contentPoint = [];
     }
     InitClass(ShapeSmartArtInfo, CBaseFormatObject, AscDFH.historyitem_type_ShapeSmartArtInfo);
-
-    ShapeSmartArtInfo.prototype.setSpPrPoint = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ShapeSmartArtInfoSpPrPoint, this.spPrPoint, oPr));
-      this.spPrPoint = oPr;
-      this.setParentToChild(oPr);
-    }
 
     ShapeSmartArtInfo.prototype.setShapePoint = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ShapeSmartArtInfoShapePoint, this.shapePoint, oPr));
@@ -10600,13 +10593,6 @@ Because of this, the display is sometimes not correct.
           }
           if (shapeConnections[modelId]) {
             smartArtInfo.setShapePoint(shapeConnections[modelId]);
-          }
-          if (smartArtInfo.shapePoint && smartArtInfo.shapePoint.isBlipFillPlaceholder()) {
-            if (smartArtInfo.contentPoint.length) {
-              smartArtInfo.setSpPrPoint(smartArtInfo.contentPoint[0]);
-            } else if (smartArtInfo.shapePoint) {
-              smartArtInfo.setSpPrPoint(smartArtInfo.shapePoint);
-            }
           }
         }
       }
@@ -12444,7 +12430,6 @@ Because of this, the display is sometimes not correct.
     window['AscFormat'].Drawing                = Drawing;
     window['AscFormat'].DiagramData            = DiagramData;
     window['AscFormat'].FunctionValue          = FunctionValue;
-    window['AscFormat'].PointInfo              = PointInfo;
     window['AscFormat'].ShapeSmartArtInfo      = ShapeSmartArtInfo;
     window['AscFormat'].SmartArtTree           = SmartArtTree;
     window['AscFormat'].SmartArtNode           = SmartArtNode;

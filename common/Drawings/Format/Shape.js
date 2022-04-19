@@ -1104,9 +1104,9 @@ CShape.prototype.setShapeSmartArtInfo = function (pr) {
     this.shapeSmartArtInfo.setParent(this);
 }
 CShape.prototype.isActiveBlipFillPlaceholder = function () {
-    var pointAssociation = this.getSmartArtSpPrPoint();
-    if (pointAssociation) {
-        var isNotBlipFill = pointAssociation && (pointAssociation.spPr && !pointAssociation.spPr.Fill || !pointAssociation.spPr);
+    var shapePoint = this.getSmartArtShapePoint();
+    if (shapePoint) {
+        var isNotBlipFill = shapePoint.isBlipFillPlaceholder() && (shapePoint.spPr && !shapePoint.spPr.Fill || !shapePoint.spPr);
         return isNotBlipFill;
     }
 }
@@ -1979,7 +1979,7 @@ CShape.prototype.getPlaceholderIndex = function () {
 };
 
 CShape.prototype.getPhType = function () {
-    var point = this.getSmartArtSpPrPoint();
+    var point = this.getSmartArtShapePoint();
         if (point) {
             return AscFormat.phType_pic;
         }
@@ -5983,9 +5983,7 @@ CShape.prototype.getAllDocContents = function(aDocContents)
         aDocContents.push(this.textBoxContent);
     }
 };
-CShape.prototype.getSmartArtSpPrPoint = function () {
-    return this.getSmartArtInfo() && this.getSmartArtInfo().spPrPoint;
-}
+
 CShape.prototype.changePresetGeom = function (sPreset) {
 
 
@@ -6183,17 +6181,14 @@ CShape.prototype.changePresetGeom = function (sPreset) {
             break;
         }
     }
-    var point = this.getSmartArtSpPrPoint();
-    var assignedPoint = this.getSmartArtShapePoint();
+    var point = this.getSmartArtShapePoint();
     if (_final_preset != null) {
         this.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
         point && point.setGeometry(AscFormat.CreateGeometry(_final_preset));
-        assignedPoint && assignedPoint.setGeometry(AscFormat.CreateGeometry(_final_preset));
     }
     else {
         this.spPr.setGeometry(null);
         point && point.setGeometry(null);
-        assignedPoint && assignedPoint.setGeometry(null);
     }
     if(!this.bWordShape)
     {
@@ -6214,7 +6209,6 @@ CShape.prototype.changePresetGeom = function (sPreset) {
     }
     this.spPr.setLn(setLine);
     point && point.setLine(setLine);
-    assignedPoint && assignedPoint.setLine(setLine);
 };
 
 CShape.prototype.changeFill = function (unifill) {
@@ -6225,23 +6219,17 @@ CShape.prototype.changeFill = function (unifill) {
     }
     var unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
     unifill2.convertToPPTXMods();
-    this.spPr.setFill(unifill2);
-
-    var isBlipFill = unifill2.fill instanceof AscFormat.CBlipFill;
-    var point = this.getSmartArtShapePoint() || this.getSmartArtSpPrPoint();
+    this.setFill(unifill2);
+    var point = this.getSmartArtShapePoint();
     if (point) {
-        isBlipFill ? point.resetUniFill() : point.setUniFill(unifill2);
-    }
-    var point = this.getSmartArtSpPrPoint();
-    if (point) {
-        isBlipFill ? point.setUniFill(unifill2) : point.resetUniFill();
+        point.setUniFill(unifill2);
     }
 };
 CShape.prototype.changeShadow = function (oShadow) {
 
     this.spPr && this.spPr.changeShadow(oShadow);
 
-    var point = this.getSmartArtShapePoint() || this.getSmartArtSpPrPoint();
+    var point = this.getSmartArtShapePoint();
     point && point.changeShadow(oShadow);
 };
 CShape.prototype.setFill = function (fill) {
@@ -6262,7 +6250,7 @@ CShape.prototype.changeLine = function (line)
     }
     this.spPr.setLn(stroke);
 
-    var point = this.getSmartArtShapePoint() ||  this.getSmartArtSpPrPoint();
+    var point = this.getSmartArtShapePoint();
     point && point.setLine(stroke);
 };
 
