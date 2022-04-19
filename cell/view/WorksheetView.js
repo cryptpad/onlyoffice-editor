@@ -2486,25 +2486,8 @@
 				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale, adjustPrint);
 			}
 		} else {
-			range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
-			maxCell = this._checkPrintRange(range, doNotRecalc);
-			var maxCol = maxCell.col;
-			var maxRow = maxCell.row;
-
-			maxCell = this.model.getSparkLinesMaxColRow();
-			maxCol = Math.max(maxCol, maxCell.col);
-			maxRow = Math.max(maxRow, maxCell.row);
-
-			maxCell = this.model.autoFilters.getMaxColRow();
-			maxCol = Math.max(maxCol, maxCell.col);
-			maxRow = Math.max(maxRow, maxCell.row);
-
-			// Получаем максимальную колонку/строку для изображений/чатов
-			maxCell = this.objectRender.getMaxColRow();
-			maxCol = Math.max(maxCol, maxCell.col);
-			maxRow = Math.max(maxRow, maxCell.row);
-
-			range = new asc_Range(0, 0, maxCol, maxRow);
+			var _maxRowCol = this.getMaxRowColWithData(doNotRecalc);
+			range = new asc_Range(0, 0, _maxRowCol.col, _maxRowCol.row);
 
 			//подменяем scale на временный для печати выделенной области
 			if(_printArea && ignorePrintArea && (fitToWidth || fitToHeight)) {
@@ -3206,14 +3189,9 @@
 			//только перерисовываю, каждый раз пересчёт - может потребовать много ресурсов
 			//если изменилось количество строк/столбцов со значениями - пересчитываю
 			//пересчёт выполянется когда пришли данные от других пользователей
-			if (this.workbook.printPreviewState.isNeedUpdate(this.model)) {
-				//возможно стоит добавить эвент об изменении количетсва страниц
-				window["Asc"]["editor"].asc_updatePrintPreview(this.workbook.printPreviewState);
-			}
-			window["Asc"]["editor"].asc_drawPrintPreview();
 			return;
 		}
-        this._recalculate();
+		this._recalculate();
 		this.handlers.trigger("checkLastWork");
         this._clean();
         this._drawCorner();
@@ -23295,6 +23273,28 @@
 		}
 		activeCell.row = realRow;
 		activeCell.col = realCol;
+	};
+
+	WorksheetView.prototype.getMaxRowColWithData = function (doNotRecalc) {
+		var range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
+		var maxCell = this._checkPrintRange(range, doNotRecalc);
+		var maxCol = maxCell.col;
+		var maxRow = maxCell.row;
+
+		maxCell = this.model.getSparkLinesMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+		maxCell = this.model.autoFilters.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+		// Получаем максимальную колонку/строку для изображений/чатов
+		maxCell = this.objectRender.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+		return {row: maxRow, col: maxCol};
 	};
 	
 
