@@ -197,6 +197,10 @@ CRunElementBase.prototype.Set_Width        = function(Width)
 {
 	this.Width = (Width * TEXTWIDTH_DIVIDER) | 0;
 };
+CRunElementBase.prototype.SetWidth = function(nWidth)
+{
+	this.Width = (nWidth * TEXTWIDTH_DIVIDER) | 0;
+};
 CRunElementBase.prototype.Is_RealContent   = function()
 {
 	return true;
@@ -407,6 +411,7 @@ function ParaText(nCharCode)
 	CRunElementBase.call(this);
 
 	this.Value        = undefined !== nCharCode ? nCharCode : 0x00;
+	this.GID          = 0;
 	this.Width        = 0x00000000 | 0;
 	this.WidthVisible = 0x00000000 | 0;
 	this.Flags        = 0x00000000 | 0;
@@ -432,8 +437,22 @@ ParaText.prototype.GetCharCode = function()
 {
 	return this.Value;
 };
+ParaText.prototype.GetCodePoint = function()
+{
+	return this.Value;
+};
+ParaText.prototype.SetGrapheme = function(nGID, sFont, nWidth)
+{
+	this.GID          = nGID;
+	this.Width        = (nWidth * TEXTWIDTH_DIVIDER) | 0;
+	this.WidthVisible = this.Width;
+	this.Font         = sFont;
+};
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
+	if (!this.GID)
+		return;
+
 	if (undefined !== this.LGap)
 	{
 		this.private_DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
@@ -454,8 +473,15 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 
 	var ResultCharCode = (this.Flags & PARATEXT_FLAGS_CAPITALS ? (String.fromCharCode(CharCode).toUpperCase()).charCodeAt(0) : CharCode);
 
+	ResultCharCode = this.GID;
+
 	if (true !== this.IsNBSP())
-		Context.FillTextCode(X, Y, ResultCharCode);
+	{
+		Context.m_oGrFonts.Ascii.Name = this.Font;
+		Context.m_oGrFonts.Ascii.Index = -1;
+		Context.SetFontSlot(fontslot_ASCII, 1);
+		Context.tg(ResultCharCode, X, Y, ResultCharCode);//Context.FillTextCode(X, Y, ResultCharCode);
+	}
 	else if (editor && editor.ShowParaMarks)
 		Context.FillText(X, Y, String.fromCharCode(0x00B0));
 };

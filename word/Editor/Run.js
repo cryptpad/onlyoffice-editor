@@ -1511,6 +1511,9 @@ ParaRun.prototype.GetLogicDocument = function()
 // Добавляем элемент в позицию с сохранием в историю
 ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 {
+	// TODO: Временно
+	this.RecalcInfo.Measure = true;
+
 	if (this.GetTextForm() && this.GetTextForm().IsComb())
 		this.RecalcInfo.Measure = true;
 
@@ -1590,6 +1593,9 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 
 ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
+	// TODO: Временно
+	this.RecalcInfo.Measure = true;
+
 	if (this.GetTextForm() && this.GetTextForm().IsComb())
 		this.RecalcInfo.Measure = true;
 
@@ -3293,6 +3299,8 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 
 	this.RecalcInfo.Recalc = true;
 	this.RecalcInfo.ResetMeasure();
+
+	AscCommon.TextShaper.Shape(this.GetParagraph());
 };
 ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfoMathText)
 {

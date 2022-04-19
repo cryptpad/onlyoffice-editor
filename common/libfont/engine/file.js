@@ -1000,13 +1000,25 @@
 
 		this.ShapeText = function(text, features, script, direction, language)
 		{
+			let buffer = [];
+
+			for (var iter = text.getUnicodeIterator(); iter.check(); iter.next())
+			{
+				buffer.push(iter.value());
+			}
+
+			return this.ShapeCodePointsArray(buffer, features, script, direction, language);
+		};
+
+		this.ShapeCodePointsArray = function(buffer, features, script, direction, language)
+		{
 			let segments = [];
 			let curFont = this;
 			let currentSegment = null;
 
-			for (var iter = text.getUnicodeIterator(); iter.check(); iter.next())
+			for (let nPos = 0, nCount = buffer.length; nPos < nCount; ++nPos)
 			{
-				let codePoint = iter.value();
+				let codePoint = buffer[nPos];
 				let gid = this.GetGIDByUnicode(codePoint);
 				if (gid <= 0)
 				{
