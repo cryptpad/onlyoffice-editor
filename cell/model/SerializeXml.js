@@ -2526,7 +2526,16 @@
 					//need for comments
 					readOneAttr(reader, "id", function () {
 						context.InitOpenManager.legacyDrawingId = reader.GetValue();
-					})
+					});
+					let oRel = reader.rels.getRelationship(context.InitOpenManager.legacyDrawingId);
+					let oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
+					let oContent = oRelPart.getDocumentContent();
+					let oReader = new StaxParser(oContent, oRelPart, reader.context);
+					let oElement = new AscFormat.CVMLDrawing();
+					if(oElement) {
+						oElement.fromXml(oReader, true);
+						context.InitOpenManager.legacyDrawing = oElement;
+					}
 				} else if ("legacyDrawingHF" === name) {
 					//do not support serialize - commented
 				} else if ("oleObjects" === name) {

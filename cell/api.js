@@ -1749,8 +1749,20 @@ var editor;
 
 							var PrepareComments = function () {
 								var rId = xmlParserContext.InitOpenManager.legacyDrawingId;
+								var vmlDrawing;
+								var oRel = reader.rels.getRelationship(context.InitOpenManager.legacyDrawingId);
+								if(oRel) {
 
-								var vmlDrawing = wsPart.getPartById(rId);
+									var oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
+									if(oRelPart) {
+										var oContent = oRelPart.getDocumentContent();
+										if(oContent) {
+											var oReader = new StaxParser(oContent, oRelPart, reader.context);
+											vmlDrawing = new AscFormat.CVMLDrawing();
+											vmlDrawing.fromXml(oReader, true);
+										}
+									}
+								}
 								if (!vmlDrawing || !comments) {
 									return;
 								}
