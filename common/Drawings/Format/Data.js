@@ -9954,35 +9954,39 @@ Because of this, the display is sometimes not correct.
       var ptLst = this.getPtLst();
       var cxnLst = this.getCxnLst();
       var elements = [];
-      var ptLstWithNoType = [];
+      var nodePoints = [];
       var ptLstWithTypePres = [];
       var docPoint;
       if (cxnLst && ptLst) {
-        var cxnWithNoPres = cxnLst.filter(function (cxn) {return !cxn.type;});
+        var connectionsParOf = cxnLst.filter(function (cxn) {return !cxn.type;});
 
         ptLst.forEach(function (point) {
           if (point.type === Point_type_pres) {
             ptLstWithTypePres.push(point);
-          } else if (!point.type || point.type === Point_type_node) {
-            ptLstWithNoType.push(point);
+          } else if (!point.type || point.type === Point_type_node || point.type === Point_type_asst) {
+            nodePoints.push(point);
           } else if (point.type === Point_type_doc) {
             docPoint = point;
           }
         });
 
-        for (var i = 0; i < ptLstWithNoType.length + 1; i += 1) {
+        for (var i = 0; i <= nodePoints.length; i += 1) {
           var elem = new SmartArtNodeData();
 
-          if (i === ptLstWithNoType.length) {
+          if (i === nodePoints.length) {
             var mPoint = docPoint;
             elem.setDocPoint(mPoint);
 
           } else {
-            mPoint = ptLstWithNoType[i];
-            elem.setNodePoint(mPoint);
+            mPoint = nodePoints[i];
+            if (!mPoint.type || mPoint.type === Point_type_node) {
+              elem.setNodePoint(mPoint);
+            } else if (mPoint.type === Point_type_asst) {
+              elem.setAsstPoint(mPoint);
+            }
           }
 
-          cxnWithNoPres.forEach(function (cxn) {
+          connectionsParOf.forEach(function (cxn) {
             if (cxn.destId === mPoint.modelId) {
               elem.setCxn(cxn);
               if (ptMap) {
@@ -10033,7 +10037,8 @@ Because of this, the display is sometimes not correct.
             for (var j = 0; j < cxnWithNoPres.length; j += 1) {
               var _cxn = cxnWithNoPres[j];
               var childData = elements.reduce(function (acc, next) {
-                if (next.nodePoint && next.nodePoint.modelId === _cxn.destId) {
+                var nodePoint = next.nodePoint || next.asstPoint;
+                if (nodePoint && nodePoint.modelId === _cxn.destId) {
                   return next;
                 }
                 return acc;
@@ -11370,7 +11375,7 @@ Because of this, the display is sometimes not correct.
       this.docPoint = null;
       this.nodePoint = null;
       this.normPoint = [];
-      this.asstPoint = [];
+      this.asstPoint = null;
       this.presPoint = [];
       this.shapes = [];
     }
@@ -11402,6 +11407,10 @@ Because of this, the display is sometimes not correct.
     SmartArtNodeData.prototype.addToLstAsstPoint = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.asstPoint.length, Math.max(0, nIdx));
       this.asstPoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.setAsstPoint = function (oPr) {
+      this.asstPoint = oPr;
     }
 
     SmartArtNodeData.prototype.setNodePoint = function (oPr) {
