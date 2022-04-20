@@ -2356,8 +2356,8 @@ Because of this, the display is sometimes not correct.
       else if (6 === nType) this.setCustFlipVert(oStream.GetBool());
       else if (7 === nType) this.setCustLinFactNeighborX(oStream.GetLong() / 100000);
       else if (8 === nType) this.setCustLinFactNeighborY(oStream.GetLong() / 100000);
-      else if (9 === nType) this.setCustLinFactX(oStream.GetLong());
-      else if (10 === nType) this.setCustLinFactY(oStream.GetLong());
+      else if (9 === nType) this.setCustLinFactX(oStream.GetLong() / 100000);
+      else if (10 === nType) this.setCustLinFactY(oStream.GetLong() / 100000);
       else if (11 === nType) this.setCustRadScaleInc(oStream.GetLong());
       else if (12 === nType) this.setCustRadScaleRad(oStream.GetLong());
       else if (13 === nType) this.setCustScaleX(oStream.GetLong() / 100000);
