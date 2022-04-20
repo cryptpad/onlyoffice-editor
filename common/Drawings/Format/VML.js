@@ -1466,7 +1466,7 @@
 			CVmlCommonElements.call(this);
 		}
 
-		IC(CArc, CVmlCommonElements, 0);
+		IC(CArc, CVmlCommonElements, AscDFH.historyitem_type_VMLArc );
 		CArc.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 			}
@@ -1490,7 +1490,7 @@
 			this.m_oTo = null;
 		}
 
-		IC(CCurve, CVmlCommonElements, 0);
+		IC(CCurve, CVmlCommonElements, AscDFH.historyitem_type_VMLCurve);
 		CCurve.prototype.readAttrXml = function (name, reader) {
 			if ("control1" === name) {
 				this.m_oControl1 = new CVml_Vector2D_Units(reader.GetValue());
@@ -1785,7 +1785,7 @@
 			this.m_oBiLevel = null;
 		}
 
-		IC(CImage, CVmlCommonElements, 0);
+		IC(CImage, CVmlCommonElements, AscDFH.historyitem_type_VMLImage);
 		CImage.prototype.readAttrXml = function (name, reader) {
 			if (("bilevel") === name) {
 				this.m_oBiLevel = reader.GetValueBool();
@@ -1897,7 +1897,7 @@
 			this.m_oTo = null;
 		}
 
-		IC(CLine, CVmlCommonElements, 0);
+		IC(CLine, CVmlCommonElements, AscDFH.historyitem_type_VMLLine);
 		CLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "from":
@@ -1917,7 +1917,7 @@
 			CVmlCommonElements.call(this);
 		}
 
-		IC(COval, CVmlCommonElements, 0);
+		IC(COval, CVmlCommonElements, AscDFH.historyitem_type_VMLOval);
 
 		function CPath() {
 			CBaseNoId.call(this);
@@ -1965,7 +1965,7 @@
 			this.m_oPoints = null;
 		}
 
-		IC(CPolyLine, CVmlCommonElements, 0);
+		IC(CPolyLine, CVmlCommonElements, AscDFH.historyitem_type_VMLPolyLine);
 		CPolyLine.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "points":
@@ -1982,7 +1982,7 @@
 			CVmlCommonElements.call(this);
 		}
 
-		IC(CRect, CVmlCommonElements, 0);
+		IC(CRect, CVmlCommonElements, AscDFH.historyitem_type_VMLRect);
 
 		function CRoundRect() {
 			CVmlCommonElements.call(this);
@@ -1990,7 +1990,7 @@
 			this.m_oArcSize = null;
 		}
 
-		IC(CRoundRect, CVmlCommonElements, 0);
+		IC(CRoundRect, CVmlCommonElements, AscDFH.historyitem_type_VMLRoundRect);
 		CRoundRect.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "arcsize":
@@ -2043,7 +2043,7 @@
 			this.m_oMaster = null;
 		}
 
-		IC(CShapeType, CVmlCommonElements, 0);
+		IC(CShapeType, CVmlCommonElements, AscDFH.historyitem_type_VMLShapeType);
 		CShapeType.prototype.readAttrXml = function (name, reader) {
 
 			if (("adj") === name) {
@@ -2073,7 +2073,7 @@
 			this.m_sEquationXML = null;
 		}
 
-		IC(CShape, CVmlCommonElements, 0);
+		IC(CShape, CVmlCommonElements, AscDFH.historyitem_type_VMLShape);
 		CShape.prototype.readAttrXml = function (name, reader) {
 			if (("adj") === name) {
 				this.m_sAdj = reader.GetValue();
@@ -2102,6 +2102,115 @@
 			//TODO:Implement in children
 		};
 
+
+		function parseBool(val) {
+			return "1" === val || "true" === val || "t" === val || "on" === val;
+		}
+
+
+	let EDropStyle =
+		{
+			valCombo		:  0,
+			valComboedit	:  1,
+			valSimple		:  2
+		};
+
+		function getDropStyle(sValue) {
+			if      ( "combo" ===  sValue ) return EDropStyle.valCombo;
+		else if ( "comboedit" === sValue ) return EDropStyle.valComboedit;
+		else if ( "simple" ===  sValue ) return EDropStyle.valSimple;
+		return EDropStyle.valSimple;
+		}
+
+
+
+	let EChecked =
+		{
+			valUnchecked	:  0,
+			valChecked		:  1,
+			valMixed		:  2
+		};
+		function getChecked(sValue) {
+			if      ( "Mixed" ===  sValue )	return EChecked.valMixed;
+		else if ( "Checked" ===  sValue )	return EChecked.valChecked;
+		else if ( "Unchecked" === sValue )	return EChecked.valUnchecked;
+		else if ( "1" ===  sValue )	return EChecked.valChecked;
+		else if ( "0" ===  sValue )	return EChecked.valUnchecked;
+			return EChecked.valUnchecked;
+		}
+
+	let ESelType  =
+		{
+
+			valSingle	:  0,
+			valMulti	:  1,
+			valExtended	:  2
+		};
+		function getSelType(sValue) {
+			if      ( "extended" ===  sValue )	return ESelType.valSingle	;
+		else if ( "multi" ===  sValue )	return ESelType.valMulti	;
+		else if ( "single" === sValue )	return ESelType.valExtended	;
+			return ESelType.valSingle;
+		}
+
+	let EHorizontalAlignment  =
+		{
+			horizontalalignmentCenter			:  0,
+			horizontalalignmentContinuous		:  1,
+			horizontalalignmentDistributed		:  2,
+			horizontalalignmentFill				:  3,
+			horizontalalignmentGeneral			:  4,
+			horizontalalignmentJustify			:  5,
+			horizontalalignmentLeft				:  6,
+			horizontalalignmentRight			:  7,
+			horizontalalignmentCenterContinuous	:  8
+		};
+		function getHorizontalAlignment(sValue) {
+			if("center" === sValue || "Center" === sValue)
+			return EHorizontalAlignment.horizontalalignmentCenter;
+		else if ("centerContinuous" === sValue || "CenterAcrossSelection" === sValue)
+			return EHorizontalAlignment.horizontalalignmentCenterContinuous;
+		else if("continuous" === sValue)
+			return EHorizontalAlignment.horizontalalignmentContinuous;
+		else if("distributed" === sValue || "Distributed" === sValue)
+			return EHorizontalAlignment.horizontalalignmentDistributed;
+		else if("fill" === sValue || "Fill" === sValue)
+			return EHorizontalAlignment.horizontalalignmentFill;
+		else if("general" === sValue || "Automatic" === sValue)
+			return EHorizontalAlignment.horizontalalignmentGeneral;
+		else if("justify" === sValue || "Justify" === sValue)
+			return EHorizontalAlignment.horizontalalignmentJustify;
+		else if("left" === sValue || "Left" === sValue)
+			return EHorizontalAlignment.horizontalalignmentLeft;
+		else if("right" === sValue || "Right" === sValue)
+			return EHorizontalAlignment.horizontalalignmentRight;
+		else
+			return EHorizontalAlignment.horizontalalignmentGeneral;
+		}
+
+
+	let EVerticalAlignment  =
+		{
+			verticalalignmentBottom				:  0,
+			verticalalignmentCenter				:  1,
+			verticalalignmentDistributed		:  2,
+			verticalalignmentJustify			:  3,
+			verticalalignmentTop				:  4
+		};
+		function getVerticalAlignment(sValue) {
+			if("bottom" === sValue || "Bottom" === sValue)
+			return EVerticalAlignment.verticalalignmentBottom;
+		else if("center" === sValue || "Center" === sValue)
+			return EVerticalAlignment.verticalalignmentCenter;
+		else if("distributed" === sValue || "Distributed" === sValue)
+			return EVerticalAlignment.verticalalignmentDistributed;
+		else if("justify" === sValue || "Justify" === sValue)
+			return EVerticalAlignment.verticalalignmentJustify;
+		else if("top" === sValue || "Top" === sValue)
+			return EVerticalAlignment.verticalalignmentTop;
+		else
+			return EVerticalAlignment.verticalalignmentBottom;
+		}
 
 		function CClientData() {
 			CBaseNoId.call(this);
@@ -2151,7 +2260,7 @@
 			this.m_oVisible = null;
 		}
 
-		IC(CClientData, CBaseNoId, 0);
+		IC(CClientData, CBaseNoId, AscDFH.historyitem_type_VMLClientData);
 		CClientData.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "ObjectType" :
@@ -2161,46 +2270,47 @@
 		};
 		CClientData.prototype.readChildXml = function (name, reader) {
 			let sContent = reader.GetTextDecodeXml();
-			if ("MoveWithCells" === name) this.m_oMoveWithCells = sContent.length === 0 ? "t" : sContent;
-			else if ("SizeWithCells" === name) this.m_oSizeWithCells = sContent.length === 0 ? "t" : sContent;
+			if ("MoveWithCells" === name) this.m_oMoveWithCells = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("SizeWithCells" === name) this.m_oSizeWithCells = parseBool(sContent.length === 0 ? "t" : sContent);
 			else if ("Anchor" === name) this.m_oAnchor = sContent;
-			else if ("Row" === name) this.m_oRow = sContent;
-			else if ("Column" === name) this.m_oColumn = sContent;
-			else if ("DefaultSize" === name) this.m_oDefaultSize = sContent.length === 0 ? "t" : sContent;
-			else if ("AutoLine" === name) this.m_oAutoLine = sContent.length === 0 ? "t" : sContent;
-			else if ("AutoFill" === name) this.m_oAutoFill = sContent.length === 0 ? "t" : sContent;
-			else if ("AutoPict" === name) this.m_oAutoPict = sContent.length === 0 ? "t" : sContent;
-			else if ("AutoScale" === name) this.m_oAutoScale = sContent.length === 0 ? "t" : sContent;
+			else if ("Row" === name) this.m_oRow = parseInt(sContent);
+			else if ("Column" === name) this.m_oColumn = parseInt(sContent);
+			else if ("DefaultSize" === name) this.m_oDefaultSize = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("AutoLine" === name) this.m_oAutoLine = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("AutoFill" === name) this.m_oAutoFill = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("AutoPict" === name) this.m_oAutoPict = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("AutoScale" === name) this.m_oAutoScale = parseBool(sContent.length === 0 ? "t" : sContent);
 			else if ("FmlaLink" === name) this.m_oFmlaLink = sContent;
 			else if ("FmlaRange" === name) this.m_oFmlaRange = sContent;
 			else if ("FmlaMacro" === name) this.m_oFmlaMacro = sContent;
 			else if ("FmlaTxbx" === name) this.m_oFmlaTxbx = sContent;
 			else if ("FmlaGroup" === name) this.m_oFmlaGroup = sContent;
 			else if ("CF" === name) this.m_oCf = sContent;
-			else if ("Min" === name) this.m_oMin = sContent;
-			else if ("Max" === name) this.m_oMax = sContent;
+			else if ("Checked" === name) this.m_oChecked = getChecked(sContent);
+			else if ("Min" === name) this.m_oMin = parseInt(sContent);
+			else if ("Max" === name) this.m_oMax = parseInt(sContent);
 			else if ("Val" === name) this.m_oVal = sContent;
-			else if ("Inc" === name) this.m_oInc = sContent;
-			else if ("Sel" === name) this.m_oSel = sContent.length === 0 ? "t" : sContent;
-			else if ("WidthMin" === name) this.m_oWidthMin = sContent;
-			else if ("Dx" === name) this.m_oDx = sContent;
-			else if ("Page" === name) this.m_oPage = sContent;
-			else if ("DropLines" === name) this.m_oDropLines = sContent;
-			else if ("NoThreeD2" === name) this.m_oNoThreeD2 = sContent.length === 0 ? "t" : sContent;
-			else if ("NoThreeD" === name) this.m_oNoThreeD = sContent.length === 0 ? "t" : sContent;
-			else if ("DropStyle" === name) this.m_oDropStyle = sContent;
-			else if ("FirstButton" === name) this.m_oFirstButton = sContent.length === 0 ? "t" : sContent;
-			else if ("VScroll" === name) this.m_oVScroll = sContent.length === 0 ? "t" : sContent;
-			else if ("Horiz" === name) this.m_oHoriz = sContent.length === 0 ? "t" : sContent;
-			else if ("TextHAlign" === name) this.m_oTextHAlign = sContent;
-			else if ("TextVAlign" === name) this.m_oTextVAlign = sContent;
-			else if ("Colored" === name) this.m_oColored = sContent.length === 0 ? "t" : sContent;
-			else if ("MultiLine" === name) this.m_oMultiLine = sContent.length === 0 ? "t" : sContent;
-			else if ("LockText" === name) this.m_oLockText = sContent.length === 0 ? "t" : sContent;
-			else if ("JustLastX" === name) this.m_oJustLastX = sContent.length === 0 ? "t" : sContent;
-			else if ("SecretEdit" === name) this.m_oSecretEdit = sContent.length === 0 ? "t" : sContent;
-			else if ("SelType" === name) this.m_oSelType = sContent;
-			else if ("Visible" === name) this.m_oVisible = sContent.length === 0 ? "t" : sContent;
+			else if ("Inc" === name) this.m_oInc = parseInt(sContent);
+			else if ("Sel" === name) this.m_oSel = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("WidthMin" === name) this.m_oWidthMin = parseInt(sContent);
+			else if ("Dx" === name) this.m_oDx = parseInt(sContent);
+			else if ("Page" === name) this.m_oPage = parseInt(sContent);
+			else if ("DropLines" === name) this.m_oDropLines = parseInt(sContent);
+			else if ("NoThreeD2" === name) this.m_oNoThreeD2 = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("NoThreeD" === name) this.m_oNoThreeD = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("DropStyle" === name) this.m_oDropStyle = getDropStyle(sContent);
+			else if ("FirstButton" === name) this.m_oFirstButton = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("VScroll" === name) this.m_oVScroll = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("Horiz" === name) this.m_oHoriz = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("TextHAlign" === name) this.m_oTextHAlign = getHorizontalAlignment(sContent);
+			else if ("TextVAlign" === name) this.m_oTextVAlign = getVerticalAlignment(sContent);
+			else if ("Colored" === name) this.m_oColored = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("MultiLine" === name) this.m_oMultiLine = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("LockText" === name) this.m_oLockText = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("JustLastX" === name) this.m_oJustLastX = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("SecretEdit" === name) this.m_oSecretEdit = parseBool(sContent.length === 0 ? "t" : sContent);
+			else if ("SelType" === name) this.m_oSelType = getSelType(sContent);
+			else if ("Visible" === name) this.m_oVisible = parseBool(sContent.length === 0 ? "t" : sContent);
 		};
 		CClientData.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
@@ -2208,6 +2318,29 @@
 		CClientData.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
+
+		CClientData.prototype.getAnchorArray = function(aAnchor)
+			{
+				aAnchor.length = 0;
+				if(this.m_oAnchor)
+				{
+					let arSplit = this.m_oAnchor.split(",");
+					for (let i = 0 ; i < arSplit.length; i++)
+					{
+						aAnchor.push(parseInt(arSplit[i]));
+					}
+				}
+	};
+
+
+		CClientData.prototype.toCellAnchor = function()
+			{
+				//TODO: implement
+	};
+		CClientData.prototype.toFormControlPr = function()
+			{
+				//TODO: implement
+	};
 
 
 		function CStroke() {
@@ -2397,7 +2530,7 @@
 			this.m_oTableProperties = null;
 		}
 
-		IC(CGroup, CVmlCommonElements, 0);
+		IC(CGroup, CVmlCommonElements, AscDFH.historyitem_type_VMLGroup);
 
 		CGroup.prototype.readAttrXml = function (name, reader) {
 			if (("editas") === name) {
