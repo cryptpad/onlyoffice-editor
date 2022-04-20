@@ -4460,6 +4460,7 @@ DrawingObjectsController.prototype =
                         checkObjectInArray(aGroups, oSmartArt.group.getMainGroup());
                     }
                     oSmartArt.checkDrawingBaseCoords();
+                    oSmartArt.checkExtentsByDocContent(true, true);
                 }
                 for(i = 0; i < objects_by_type.oleObjects.length; ++i)
                 {
