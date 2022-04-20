@@ -5600,7 +5600,7 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 			if ((oPlaceHolderObject && oPlaceHolderObject instanceof CInlineLevelSdt) || oPresentationField)
 			{
 				var oSearchPos = new CParagraphSearchPos();
-				this.Get_LeftPos(oSearchPos, SelectPos);
+				this.GetCursorLeftPos(oSearchPos, SelectPos);
 				oResultPos = oSearchPos.Pos;
 			}
 
@@ -5614,7 +5614,7 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 			if (true === Word)
 				this.Get_WordStartPos(SearchPos, EndSelectionPos);
 			else
-				this.Get_LeftPos(SearchPos, EndSelectionPos);
+				this.GetCursorLeftPos(SearchPos, EndSelectionPos);
 
 			if (true === SearchPos.Found)
 			{
@@ -5637,7 +5637,7 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 		if (true === Word)
 			this.Get_WordStartPos(SearchPos, ContentPos);
 		else
-			this.Get_LeftPos(SearchPos, ContentPos);
+			this.GetCursorLeftPos(SearchPos, ContentPos);
 
 		if (true === AddToSelect)
 		{
@@ -5721,7 +5721,7 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 				if ((oPlaceHolderObject && oPlaceHolderObject instanceof CInlineLevelSdt) || oPresentationField)
 				{
 					var oSearchPos = new CParagraphSearchPos();
-					this.Get_RightPos(oSearchPos, SelectPos);
+					this.GetCursorRightPos(oSearchPos, SelectPos);
 					oResultPos = oSearchPos.Pos;
 				}
 
@@ -5736,7 +5736,7 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 			if (true === Word)
 				this.Get_WordEndPos(SearchPos, EndSelectionPos, true);
 			else
-				this.Get_RightPos(SearchPos, EndSelectionPos, true);
+				this.GetCursorRightPos(SearchPos, EndSelectionPos, true);
 
 			if (true === SearchPos.Found)
 			{
@@ -5759,7 +5759,7 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 		if (true === Word)
 			this.Get_WordEndPos(SearchPos, ContentPos, AddToSelect);
 		else
-			this.Get_RightPos(SearchPos, ContentPos, AddToSelect);
+			this.GetCursorRightPos(SearchPos, ContentPos, AddToSelect);
 
 		if (true === AddToSelect)
 		{
@@ -5972,6 +5972,35 @@ Paragraph.prototype.Get_LeftPos = function(SearchPos, ContentPos)
 
 	return false;
 };
+/**
+ * В отличие от обычной функции, здесь мы проверяем корректность позиции курсора
+ */
+Paragraph.prototype.GetCursorLeftPos = function(oSearchPos, oContentPos)
+{
+	let oCurrentPos = oContentPos;
+	while (true)
+	{
+		oSearchPos.Reset();
+
+		this.Get_LeftPos(oSearchPos, oCurrentPos);
+
+		if (!oSearchPos.IsFound())
+			break;
+
+		oCurrentPos = oSearchPos.GetPos();
+		let oNext = this.GetNextRunElement(oCurrentPos);
+		let oPrev = this.GetPrevRunElement(oCurrentPos);
+
+		if (!oPrev
+			|| !oNext
+			|| !oPrev.IsText()
+			|| !oNext.IsText()
+			|| !oNext.IsCombiningMark())
+			break;
+
+		oCurrentPos = oCurrentPos.Copy();
+	}
+};
 Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 {
 	SearchPos.InitComplexFields(this.GetComplexFieldsByPos(ContentPos, true));
@@ -6033,6 +6062,35 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 	}
 
 	return false;
+};
+/**
+ * В отличие от обычной функции, здесь мы проверяем корректность позиции курсора
+ */
+Paragraph.prototype.GetCursorRightPos = function(oSearchPos, oContentPos, isStepEnd)
+{
+	let oCurrentPos = oContentPos;
+	while (true)
+	{
+		oSearchPos.Reset();
+
+		this.Get_RightPos(oSearchPos, oCurrentPos, isStepEnd);
+
+		if (!oSearchPos.IsFound())
+			break;
+
+		oCurrentPos = oSearchPos.GetPos();
+		let oNext = this.GetNextRunElement(oCurrentPos);
+		let oPrev = this.GetPrevRunElement(oCurrentPos);
+
+		if (!oPrev
+			|| !oNext
+			|| !oPrev.IsText()
+			|| !oNext.IsText()
+			|| !oNext.IsCombiningMark())
+			break;
+
+		oCurrentPos = oCurrentPos.Copy();
+	}
 };
 Paragraph.prototype.Get_WordStartPos = function(SearchPos, ContentPos)
 {
@@ -17498,6 +17556,10 @@ Paragraph.prototype.CheckOrAddSpaceAtStartPos = function(isAddToEmpty)
 		this.Add(new ParaSpace());
 	}
 };
+Paragraph.prototype.CheckTextShape = function()
+{
+	// TODO: Надо проверить, что все символы собраны
+};
 
 Paragraph.prototype.asc_getText = function()
 {
@@ -18006,6 +18068,11 @@ CParagraphContentPos.prototype =
 
         return 0;
     }
+};
+CParagraphContentPos.prototype.Reset = function()
+{
+	this.Data  = [0, 0, 0];
+	this.Depth = 0;
 };
 /**
  * Получаем текущую глубину позиции
@@ -18674,6 +18741,19 @@ function CParagraphSearchPos()
 
     this.ComplexFields = [];
 }
+CParagraphSearchPos.prototype.Reset = function()
+{
+	this.Pos.Reset();
+
+	this.Line          = -1;
+	this.Range         = -1;
+	this.Stage         = 0;
+	this.Shift         = false;
+	this.Punctuation   = false;
+	this.First         = true;
+	this.UpdatePos     = false;
+	this.ComplexFields = [];
+};
 CParagraphSearchPos.prototype.SetCheckAnchors = function(bCheck)
 {
 	this.CheckAnchors = bCheck;
@@ -18686,7 +18766,6 @@ CParagraphSearchPos.prototype.ProcessComplexFieldChar = function(nDirection, oFi
 {
 	if (!oFieldChar || !oFieldChar.IsUse())
 		return;
-
 
 	if (nDirection > 0)
 	{
@@ -18794,6 +18873,14 @@ CParagraphSearchPos.prototype.SetTrimSpaces = function(isTrim)
 CParagraphSearchPos.prototype.IsTrimSpaces = function(isTrim)
 {
 	return this.TrimSpaces;
+};
+CParagraphSearchPos.prototype.IsFound = function()
+{
+	return this.Found;
+};
+CParagraphSearchPos.prototype.GetPos = function()
+{
+	return this.Pos;
 };
 
 function CParagraphSearchPosXY()

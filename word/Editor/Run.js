@@ -1319,6 +1319,23 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 				if (oStyles && 1 === this.Content.length && ((para_FootnoteReference === this.Content[0].Type && this.GetRStyle() === oStyles.GetDefaultFootnoteReference()) || (para_EndnoteReference === this.Content[0].Type && this.GetRStyle() === oStyles.GetDefaultEndnoteReference())))
 					this.SetRStyle(undefined);
 
+				let oItem = this.Content[CurPos];
+				let oParagraph = this.Paragraph;
+				if (oParagraph && oItem.IsText())
+				{
+					oParagraph.CheckTextShape();
+					let oNextInfo;
+					while (oNextInfo = this.GetNextRunElementEx(CurPos + 1))
+					{
+						let oNext = oNextInfo.Element;
+						if (!oNext || !oNext.IsText() || !oNext.IsCombiningMark())
+							break;
+
+						oParagraph.RemoveRunElement(oNextInfo.Pos);
+					}
+
+				}
+
 				this.RemoveFromContent(CurPos, 1, true);
                 this.State.ContentPos = CurPos;
             }
@@ -12849,7 +12866,7 @@ ParaRun.prototype.private_IsUseAscFont = function(oTextPr)
 /**
  * Получаем предыдущий элемент, с учетом предыдущих классов внутри параграфа
  * @param nPos {number} позиция внутри данного рана
- * @returns {?CParagraphContentBase}
+ * @returns {?CRunElementBase}
  */
 ParaRun.prototype.GetPrevRunElement = function(nPos)
 {
@@ -12872,7 +12889,7 @@ ParaRun.prototype.GetPrevRunElement = function(nPos)
 /**
  * Получаем следующий элемент, с учетом следующих классов внутри параграфа
  * @param nPos {number} позиция внутри данного рана
- * @returns {?CParagraphContentBase}
+ * @returns {?CRunElementBase}
  */
 ParaRun.prototype.GetNextRunElement = function(nPos)
 {
@@ -12891,6 +12908,45 @@ ParaRun.prototype.GetNextRunElement = function(nPos)
 		return null;
 
 	return oRunElements.Elements[0];
+};
+/**
+ * Получаем позицию следующего элемента внутри параграфа
+ * @param nPos {number} позиция внутри данного рана
+ * @returns {?{Element : CRunElementBase, Pos : CParagraphContentPos}}
+ */
+ParaRun.prototype.GetNextRunElementEx = function(nPos)
+{
+	let oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return null;
+
+	if (nPos <= this.Content.length - 1 && nPos >= 0)
+	{
+		let oContentPos = this.GetParagraphContentPosFromObject(nPos);
+		if (!oContentPos)
+			return null;
+
+		return {
+			Element : this.Content[nPos],
+			Pos     : oContentPos
+		}
+	}
+
+	let oContentPos  = this.GetParagraphContentPosFromObject(this.Content.length);
+	let oRunElements = new CParagraphRunElements(oContentPos, 1, null, true);
+	oRunElements.SetSaveContentPositions(true);
+	oParagraph.GetNextRunElements(oRunElements);
+
+	let arrPositions = oRunElements.GetContentPositions();
+	let arrElements  = oRunElements.GetElements();
+
+	if (1 !== arrPositions.length || 1 !== arrElements.length)
+		return null;
+
+	return {
+		Element : arrElements[0],
+		Pos     : arrPositions[0]
+	}
 };
 //----------------------------------------------------------------------------------------------------------------------
 // SpellCheck

@@ -185,6 +185,10 @@ CRunElementBase.prototype.Get_Width        = function()
 {
 	return (this.Width / TEXTWIDTH_DIVIDER);
 };
+CRunElementBase.prototype.GetWidth = function()
+{
+	return (this.Width / TEXTWIDTH_DIVIDER);
+};
 CRunElementBase.prototype.Get_WidthVisible = function()
 {
 	return (this.WidthVisible / TEXTWIDTH_DIVIDER);
@@ -805,6 +809,10 @@ ParaText.prototype.ToMathElement = function()
 ParaText.prototype.IsText = function()
 {
 	return true;
+};
+ParaText.prototype.IsCombiningMark = function()
+{
+	return (this.Width < 0.001);
 };
 
 
