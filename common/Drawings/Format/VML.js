@@ -5121,9 +5121,21 @@
 			};
 
 
+		function TCssUnitsValue()
+		{
+			this.eType = null;
+			this.dValue = null;
+		}
+
+		function TCssZIndexValue()
+		{
+			this.eType = null;
+			this.nOrder = null;
+		}
+
 		function UCssValue() {
 			this.eFlip = null;
-			this.oValue = {};
+			this.oValue = new TCssUnitsValue();
 			this.eMsoPosHor = null;
 			this.eMsoPosHorRel = null;
 			this.eMsoPosVer = null;
@@ -5132,7 +5144,7 @@
 			this.eMsoWrapStyle = null;
 			this.ePosition = null;
 			this.eVisibility = null;
-			this.oZIndex = null;
+			this.oZIndex = new TCssZIndexValue();
 			this.eDirection = null;
 			this.eLayoutFlow = null;
 			this.eDirectionAlt = null;

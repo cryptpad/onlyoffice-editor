@@ -2533,7 +2533,7 @@
 					let oReader = new StaxParser(oContent, oRelPart, reader.context);
 					let oElement = new AscFormat.CVMLDrawing();
 					if(oElement) {
-						//oElement.fromXml(oReader, true);
+						oElement.fromXml(oReader, true);
 						context.InitOpenManager.legacyDrawing = oElement;
 					}
 				} else if ("legacyDrawingHF" === name) {
