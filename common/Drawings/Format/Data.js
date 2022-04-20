@@ -1657,6 +1657,28 @@ Because of this, the display is sometimes not correct.
       }
     }
 
+    Point.prototype.isRecalculateInsets = function () {
+      const insets = {Top: true, Bottom: true, Left: true, Right: true};
+      if (this.t) {
+        var bodyPr = this.t.bodyPr;
+        if (bodyPr) {
+          if (AscFormat.isRealNumber(bodyPr.tIns)) {
+            insets.Top = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.bIns)) {
+            insets.Bottom = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.lIns)) {
+            insets.Left = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.rIns)) {
+            insets.Right = false;
+          }
+        }
+      }
+      return insets;
+    }
+
     Point.prototype.setType = function (pr) {
       oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PointType, this.getType(), pr));
       this.type = pr;
