@@ -254,7 +254,8 @@
 			"vendor/easysax.js",
 			"common/openxml.js",
 			"common/Shapes/SerializeXml.js",
-			"common/SerializeChartXml.js"
+			"common/SerializeChartXml.js",
+			"common/SerializeMathXml.js"
 		],
 		"desktop": {
 			"min": [

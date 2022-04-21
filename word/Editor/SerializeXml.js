@@ -189,10 +189,10 @@
 				break;
 			case "moveToRangeEnd":
 				break;
-			case "oMath":
-				break;
-			case "oMathPara":
-				break;
+			// case "oMath":
+			// 	break;
+			// case "oMathPara":
+			// 	break;
 			case "p":
 				newItem = new Paragraph(DrawingDocument, Parent);
 				break;
@@ -1098,7 +1098,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 	Paragraph.prototype.fromXml = function(reader) {
-		var depth = reader.GetDepth();
+		var elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			var newItem = null;
@@ -1144,8 +1144,17 @@
 				case "moveToRangeStart":
 					break;
 				case "oMath":
+					elem = new ParaMath();
+					elem.fromXml(reader);
+					elem.Root.Correct_Content(true);
+					this.AddToContent(this.GetElementsCount(), elem);
 					break;
 				case "oMathPara":
+					elem = new AscCommon.CT_OMathPara();
+					elem.fromXml(reader);
+					if (elem.OMath) {
+						this.AddToContent(this.GetElementsCount(), elem.OMath);
+					}
 					break;
 				case "permEnd":
 					break;
@@ -1171,12 +1180,13 @@
 		}
 	};
 	Paragraph.prototype.toXml = function(writer, name) {
+		var t = this;
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		if (this.Pr) {
 			this.Pr.toXml(writer, "w:pPr", this);
 		}
-		this.Content.forEach(function(item) {
+		this.Content.forEach(function(item, index) {
 			switch (item.Type) {
 				case para_Run:
 					item.toXml(writer, "w:r");
@@ -1188,6 +1198,13 @@
 				case para_Comment:
 					break;
 				case para_Math:
+					if (t.CheckMathPara(index)) {
+						let mathPara = new AscCommon.CT_OMathPara();
+						mathPara.setMath(item);
+						mathPara.toXml(writer, "m:oMathPara");
+					} else {
+						item.toXml(writer, "m:oMath");
+					}
 					break;
 				case para_InlineLevelSdt:
 					break;
@@ -1982,6 +1999,21 @@
 				case "ptab":
 					break;
 				case "rPr":
+					if (para_Math_Run === this.Type) {
+						let fullName = reader.GetName();
+						//todo if another ns
+						if ("m:rPr" === fullName) {
+							let mrPr = new CMPrp();
+							mrPr.fromXml(reader);
+							this.Set_MathPr(mrPr);
+							continue;
+						} else if ("a:rPr" === fullName) {
+							let textPr = new CTextPr();
+							textPr.fromDrawingML(reader);
+							this.Set_Pr(textPr);
+							continue;
+						}
+					}
 					var textPr = new CTextPr();
 					textPr.fromXml(reader);
 					this.Set_Pr(textPr);
@@ -2012,8 +2044,16 @@
 	ParaRun.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
+		if (this.MathPrp && !this.MathPrp.Is_Empty()) {
+			this.MathPrp.toXml(writer, "m:rPr");
+		}
 		if (this.Pr) {
-			this.Pr.toXml(writer, "w:rPr");
+			//todo
+			if (this.Paragraph.bFromDocument) {
+				this.Pr.toXml(writer, "w:rPr");
+			} else {
+				// this.Pr.toXml(writer, "a:rPr");
+			}
 		}
 		for (var i = 0; i < this.Content.length; ++i)
 		{
@@ -2028,11 +2068,8 @@
 					break;
 			}
 		}
-		var oText = new CParagraphGetText();
-		oText.SetBreakOnNonText(false);
-		oText.SetParaEndToSpace(false);
-		this.Get_Text(oText);
-		writer.WriteXmlNullableValueStringEncode("w:t", oText.Text);
+		let ns = para_Math_Run !== this.Type ? "w:" : "m:";
+		writer.WriteXmlNullableValueStringEncode(ns + "t", this.GetSelectedText(true));
 		writer.WriteXmlNodeEnd(name);
 	};
 	CTextPr.prototype.fromXml = function(reader) {
@@ -2443,12 +2480,12 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:hint", toXml_ST_Hint(this.Hint));
 		writer.WriteXmlNullableAttributeStringEncode("w:ascii", this.Ascii && this.Ascii.Name);
-		writer.WriteXmlNullableAttributeStringEncode("w:hAnsi", this.Hansi && this.Hansi.Name);
-		writer.WriteXmlNullableAttributeStringEncode("w:eastAsia", this.Eastasia && this.Eastasia.Name);
-		writer.WriteXmlNullableAttributeStringEncode("w:cs", this.Cs && this.Cs.Name);
 		writer.WriteXmlNullableAttributeString("w:asciiTheme", this.AsciiTheme);
-		writer.WriteXmlNullableAttributeString("w:hAnsiTheme", this.HAnsiTheme);
+		writer.WriteXmlNullableAttributeStringEncode("w:eastAsia", this.Eastasia && this.Eastasia.Name);
 		writer.WriteXmlNullableAttributeString("w:eastAsiaTheme", this.EastAsiaTheme);
+		writer.WriteXmlNullableAttributeStringEncode("w:hAnsi", this.Hansi && this.Hansi.Name);
+		writer.WriteXmlNullableAttributeString("w:hAnsiTheme", this.HAnsiTheme);
+		writer.WriteXmlNullableAttributeStringEncode("w:cs", this.Cs && this.Cs.Name);
 		writer.WriteXmlNullableAttributeString("w:cstheme", this.CSTheme);
 		writer.WriteXmlAttributesEnd(true);
 	};
