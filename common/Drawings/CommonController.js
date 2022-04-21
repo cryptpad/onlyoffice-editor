@@ -1683,7 +1683,10 @@ DrawingObjectsController.prototype =
 
         if(this.selection.geometrySelection)
         {
-            this.selection.geometrySelection = null;
+            if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+            {
+                this.selection.geometrySelection = null;
+            }
         }
         var b_is_selected_inline = this.selectedObjects.length === 1 && (this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline && this.selectedObjects[0].parent.Is_Inline());
         var oAnimPlayer = this.getAnimationPlayer();
