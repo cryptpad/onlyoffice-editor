@@ -2754,6 +2754,7 @@
             var dRot = AscFormat.normalizeRotate(dAngle);
             oXfrm.setRot(dRot);
             if(this.isObjectInSmartArt()) {
+                oSmartArt = this.group.group;
                 var point = this.getSmartArtShapePoint();
                 if (point) {
                     var prSet = point.getPrSet();
@@ -2778,12 +2779,19 @@
                 }
                 this.recalculate();
                 var oBounds = this.bounds;
-                var oSmartArt = this.group.group;
                 var diffX = null, diffY = null;
                 var leftEdgeOfSmartArt = oSmartArt.x;
                 var topEdgeOfSmartArt = oSmartArt.y;
                 var rightEdgeOfSmartArt = oSmartArt.x + oSmartArt.extX;
                 var bottomEdgeOfSmartArt = oSmartArt.y + oSmartArt.extY;
+                if (bWord) {
+                    oBounds = {
+                        l: oBounds.l + leftEdgeOfSmartArt,
+                        r: oBounds.r + leftEdgeOfSmartArt,
+                        t: oBounds.t + topEdgeOfSmartArt,
+                        b: oBounds.b + topEdgeOfSmartArt
+                    };
+                }
                 if(oBounds.r > rightEdgeOfSmartArt) {
                     diffX = rightEdgeOfSmartArt - oBounds.r;
                 }
@@ -2796,8 +2804,6 @@
                 if(oBounds.t < topEdgeOfSmartArt) {
                     diffY = topEdgeOfSmartArt - oBounds.t;
                 }
-                var originalPosX = this.spPr.xfrm.offX;
-                var originalPosY = this.spPr.xfrm.offY;
 
                 if(diffX !== null) {
                     var newOffX = this.spPr.xfrm.offX + diffX;
