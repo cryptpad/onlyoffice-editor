@@ -110,8 +110,7 @@
 		MEASURER.SetFontSlot(fontslot_ASCII, 1);
 
 		let nCharIndex = 0;
-		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 0, AscFonts.HB_SCRIPT["HB_SCRIPT_LATIN"], AscFonts.HB_DIRECTION.HB_DIRECTION_LTR, "en");
-
+		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 15, AscFonts.HB_SCRIPT["HB_SCRIPT_LATIN"], AscFonts.HB_DIRECTION.HB_DIRECTION_LTR, "en");
 		for (let nSegment = 0, nSegmentsCount = arrSegments.length; nSegment < nSegmentsCount; ++nSegment)
 		{
 			let oSegment = arrSegments[nSegment];
@@ -122,6 +121,8 @@
 				nClusterMax += ClusterLength(oIterator.value());
 			}
 
+			MEASURER.SetFontInternal(oSegment.font, this.TextPr.FontSize, 0);
+
 			for (let nGlyphIndex = 0, nGlyphsCount = oSegment.glyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 			{
 				let oGrapheme = oSegment.glyphs[nGlyphIndex];
@@ -131,13 +132,37 @@
 				let arrLigature = [this.Items[nCharIndex]];
 				this.Items[nCharIndex].SetGrapheme(oGrapheme.gid, oSegment.font, nGraphemeWidth);
 
+				// TODO: Поменять на нормальную проверку CombiningMark
+				if (oGrapheme.x_advance < 0.001)
+				{
+					let nTempGID = MEASURER.m_oManager.m_pFont.GetGIDByUnicode(0x25CC)
+					if (nTempGID)
+					{
+						let nTempW = MEASURER.m_oManager.m_pFont.GetChar(0x25CC).fAdvanceX * 25.4 / 72;
+						this.Items[nCharIndex].SetBaseGrapheme(nTempGID, nTempW);
+					}
+				}
+
+				let nStartChar = this.Items[nCharIndex];
+
 				nCluster += ClusterLength(this.Items[nCharIndex].GetCodePoint());
 				nCharIndex++;
 
+				let arrMarks = [];
 				while (nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGrapheme.cluster)
 				{
+					let nCombineW = Math.max(0, oSegment.glyphs[nGlyphIndex + 1].x_advance * COEF);
+					nStartChar.AddWidth(nCombineW);
+
+					for (let nMarkIndex = 0, nMarksCount = arrMarks.length; nMarkIndex < nMarksCount; ++nMarkIndex)
+					{
+						arrMarks[nMarkIndex].AddShift(-nCombineW, 0);
+					}
+
 					nGlyphIndex++;
 					this.Items[nCharIndex].SetGrapheme(oSegment.glyphs[nGlyphIndex].gid, oSegment.font, 0);
+					this.Items[nCharIndex].SetShift(-nCombineW, 0);
+					arrMarks.push(this.Items[nCharIndex]);
 					nCluster += ClusterLength(this.Items[nCharIndex].GetCodePoint());
 					nCharIndex++;
 				}
