@@ -2945,10 +2945,6 @@ CShape.prototype.getProtectionLockText = function () {
     return this.fLocksText !== false;
 };
 
-CShape.prototype.isProtectInputInSmartArt = function() {
-    return this.isObjectInSmartArt() && !this.isPlaceholderInSmartArt();
-    };
-
 CShape.prototype.canEditTextInSmartArt = function () {
     if (this.isObjectInSmartArt()) {
         var pointContent = this.getSmartArtPointContent();
