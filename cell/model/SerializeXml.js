@@ -15955,6 +15955,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 	function CT_CThreadedComments() {
 		this.arr = [];
+		this.m_mapTopLevelThreadedComments = [];
 	}
 
 	CT_CThreadedComments.prototype.fromXml = function (reader) {
@@ -15979,8 +15980,61 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			}
 		}
 
-		//PrepareTopLevelComments();
+		this.PrepareTopLevelComments();
 	};
+
+	CT_CThreadedComments.prototype.PrepareTopLevelComments = function () {
+		//find TopLevelComments
+		for(var i = 0; i < this.arr.length; ++i)
+		{
+			var pThreadedComment = this.arr[i];
+			if(pThreadedComment.id && !pThreadedComment.parentId)
+			{
+				this.m_mapTopLevelThreadedComments[pThreadedComment.id] = pThreadedComment;
+			}
+		}
+
+		//to remove reply duplicates
+		var mapUniqueue = [];
+		//add Replies
+		for(var i = 0; i < this.arr.length; ++i)
+		{
+			var pThreadedComment = this.arr[i];
+			if(pThreadedComment.parentId)
+			{
+				if(pThreadedComment.parentId === "{00000000-0000-0000-0000-000000000000}"  && pThreadedComment.ref)
+				{
+					if (pThreadedComment.dT && !mapUniqueue[pThreadedComment.dT + ""])
+					{
+						mapUniqueue[pThreadedComment.dT + ""] = true;
+						//find parents by ref
+						for (var it in this.m_mapTopLevelThreadedComments)
+						{
+							if (this.m_mapTopLevelThreadedComments[it].ref && pThreadedComment.ref === this.m_mapTopLevelThreadedComments[it].ref)
+							{
+								this.m_mapTopLevelThreadedComments[it].m_arrReplies.push(pThreadedComment);
+								break;
+							}
+						}
+					}
+				}
+			else
+				{
+					var oFind = this.m_mapTopLevelThreadedComments[pThreadedComment.parentId + ""];
+					if(oFind)
+					{
+						oFind.m_arrReplies.push(pThreadedComment);
+					}
+				}
+			}
+		}
+		//TODO sort Replies
+		/*for (std::unordered_map<std::wstring, CThreadedComment*>::const_iterator it = m_mapTopLevelThreadedComments.begin(); it != m_mapTopLevelThreadedComments.end(); ++it)
+		{
+			std::sort (it->second->m_arrReplies.begin(), it->second->m_arrReplies.end(), CThreadedComment::Compare);
+		}*/
+	};
+
 
 	CT_CThreadedComments.prototype.toXml = function (writer) {
 		writer.WriteXmlString("<ThreadedComments");
@@ -16008,6 +16062,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		this.text = null;
 		this.mentions = null;
 
+		this.m_arrReplies = [];
 		//extLst
 	}
 

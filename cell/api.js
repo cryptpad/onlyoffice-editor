@@ -1764,7 +1764,7 @@ var editor;
 								}
 
 
-								var mapCheckCopyThreadedComments;
+								var mapCheckCopyThreadedComments = [];
 								var arAuthors = comments.authors && comments.authors.arr;
 
 								if (comments.commentList) {
@@ -1776,62 +1776,67 @@ var editor;
 											continue;
 										}
 
+
+
+
 										var bThreadedCommentCopy = false;
 										var pThreadedComment = null;
-										/*if(threadedComments)
+										if(pThreadedComments)
 										{
-											//TODO PrepareTopLevelComments
-											//std::unordered_map<std::wstring, CThreadedComment*>::iterator pFind = pThreadedComments->m_mapTopLevelThreadedComments.end();
+											var pFind;
 
 											var isPlaceholder = false;
-											if(pComment.authorId)
+											if(pComment.m_oAuthorId)
 											{
-												var nAuthorId = parseInt(pComment.authorId);
+												var nAuthorId = pComment.m_oAuthorId;
 
 												if (nAuthorId >= 0 && nAuthorId < arAuthors.length)
 												{
 													var sAuthor = arAuthors[nAuthorId];
-													if(0 === sAuthor.indexOf("tc="))
+													if("tc=" === sAuthor.substring(0, 3))
 													{
 														isPlaceholder = true;
 														var sGUID = sAuthor.substr(3);
 														//todo IsZero() is added to fix comments with zero ids(5.4.0)(bug 42947). Remove after few releases
-														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.ref)
+														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.m_oRef)
 														{
-															for (std::unordered_map<std::wstring, CThreadedComment*>::iterator it = pThreadedComments->m_mapTopLevelThreadedComments.begin(); it != pThreadedComments->m_mapTopLevelThreadedComments.end(); ++it)
+															for (var j in pThreadedComments.m_mapTopLevelThreadedComments)
 															{
-																if (it->second->ref.IsInit() && pComment->m_oRef->GetValue() == it->second->ref.get())
+																var it = pThreadedComments.m_mapTopLevelThreadedComments[j];
+																if (it.ref && pComment.m_oRef === it.ref)
 																{
 																	pFind = it;
 																	break;
 																}
 															}
 														}
-														else
+													else
 														{
-															pFind = pThreadedComments->m_mapTopLevelThreadedComments.find(sGUID);
+															pFind = pThreadedComments.m_mapTopLevelThreadedComments[sGUID];
 														}
 
 													}
 												}
 											}
-											if(pThreadedComments->m_mapTopLevelThreadedComments.end() != pFind)
+
+											if(pFind)
 											{
-												pThreadedComment = pFind->second;
-												if(mapCheckCopyThreadedComments.end() != mapCheckCopyThreadedComments.find(pThreadedComment->id->ToString()))
+												pThreadedComment = pFind;
+												if(mapCheckCopyThreadedComments[pThreadedComment.id])
 												{
 													bThreadedCommentCopy = true;
 												}
 												else
 												{
-													mapCheckCopyThreadedComments[pThreadedComment->id->ToString()] = 1;
+													mapCheckCopyThreadedComments[pThreadedComment.id + ""] = 1;
 												}
 											}
 											else if(isPlaceholder)
 											{
 												continue;
 											}
-										}*/
+										}
+
 
 										if(pComment.ref && pComment.authorId)
 										{
@@ -1858,7 +1863,7 @@ var editor;
 												pCommentItem.ThreadedCommentCopy = bThreadedCommentCopy;//bool m_bThreadedCommentCopy
 
 												var sNewId = nRow + "-" + nCol;
-												m_mapComments [sNewId] = pCommentItem;
+												m_mapComments[sNewId] = pCommentItem;
 											}
 										}
 									}
@@ -1975,25 +1980,29 @@ var editor;
 
 													/*CCommentItem* pCommentItem = pPair->second;
 													if(pShape->m_sGfxData.IsInit())
-														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;
-													std::vector<int> m_aAnchor;
-													pClientData->getAnchorArray(m_aAnchor);
-													if(8 <= m_aAnchor.size())
-													{
-														pCommentItem->m_nLeft = abs(m_aAnchor[0]);
-														pCommentItem->m_nLeftOffset = abs(m_aAnchor[1]);
-														pCommentItem->m_nTop = abs(m_aAnchor[2]);
-														pCommentItem->m_nTopOffset = abs(m_aAnchor[3]);
-														pCommentItem->m_nRight = abs(m_aAnchor[4]);
-														pCommentItem->m_nRightOffset = abs(m_aAnchor[5]);
-														pCommentItem->m_nBottom = abs(m_aAnchor[6]);
-														pCommentItem->m_nBottomOffset =abs( m_aAnchor[7]);
-													}
-													pCommentItem->m_bMove = pClientData->m_oMoveWithCells;
-													pCommentItem->m_bSize = pClientData->m_oSizeWithCells;
-													pCommentItem->m_bVisible = pClientData->m_oVisible;
+														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;*/
 
-													if (pShape->m_oFillColor.IsInit())
+													var oCommentCoords = new AscCommonExcel.asc_CCommentCoords();
+													var m_aAnchor = [];
+													pClientData.getAnchorArray(m_aAnchor);
+													if(8 <= m_aAnchor.length) {
+														oCommentCoords.nLeft = Math.abs(m_aAnchor[0]);
+														oCommentCoords.nLeftOffset = Math.abs(m_aAnchor[1]);
+														oCommentCoords.nTop = Math.abs(m_aAnchor[2]);
+														oCommentCoords.nTopOffset = Math.abs(m_aAnchor[3]);
+														oCommentCoords.nRight = Math.abs(m_aAnchor[4]);
+														oCommentCoords.nRightOffset = Math.abs(m_aAnchor[5]);
+														oCommentCoords.nBottom = Math.abs(m_aAnchor[6]);
+														oCommentCoords.nBottomOffset = Math.abs( m_aAnchor[7]);
+													}
+													oCommentCoords.bMoveWithCells = pClientData.m_oMoveWithCells;
+													oCommentCoords.bSizeWithCells = pClientData.m_oSizeWithCells;
+
+													//todo bHidden ?
+													//oCommentCoords->m_bVisible = pClientData->m_oVisible;
+													pPair.bHidden = !pClientData.m_oVisible
+
+													/*if (pShape->m_oFillColor.IsInit())
 													{
 														BYTE r = pShape->m_oFillColor->Get_R();
 														BYTE g = pShape->m_oFillColor->Get_G();
@@ -2065,7 +2074,7 @@ var editor;
 
 							//COMMENTS
 							//буду читать по формату, далее преобразовывать
-							var comments, threadedComments;
+							var comments, pThreadedComments;
 							var commentsFile = wsPart.getPartsByRelationshipType(openXml.Types.worksheetComments.relationType);
 							for (i = 0; i < commentsFile.length; ++i) {
 								var contentComment = commentsFile[i].getDocumentContent();
@@ -2077,17 +2086,9 @@ var editor;
 							var threadedCommentsFile = wsPart.getPartsByRelationshipType(openXml.Types.threadedComment.relationType);
 							for (i = 0; i < threadedCommentsFile.length; ++i) {
 								var threadedComment = threadedCommentsFile[i].getDocumentContent();
-								var threadedComments = new AscCommonExcel.CT_CThreadedComments();
-								reader = new StaxParser(threadedComment, threadedComments, xmlParserContext);
-								threadedComments.fromXml(reader);
-							}
-
-							var vmlDrawingsFile = wsPart.getPartsByRelationshipType(openXml.Types.vmlDrawing.relationType);
-							for (i = 0; i < vmlDrawingsFile.length; ++i) {
-								var vmlDrawing = vmlDrawingsFile[i].getDocumentContent();
-								/*var threadedComments = new AscCommonExcel.CT_CThreadedComments();
-								reader = new StaxParser(threadedComment, threadedComments, xmlParserContext);
-								threadedComments.fromXml(reader);*/
+								var pThreadedComments = new AscCommonExcel.CT_CThreadedComments();
+								reader = new StaxParser(threadedComment, pThreadedComments, xmlParserContext);
+								pThreadedComments.fromXml(reader);
 							}
 
 							PrepareComments();
