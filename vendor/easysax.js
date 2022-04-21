@@ -1403,7 +1403,7 @@ StaxParser.prototype.GetUInt = function (val, def, radix) {
     return !isNaN(num) && num >= 0 ? num : def;
 };
 StaxParser.prototype.GetDouble = function (val, def) {
-    var num = parseFloat(this.GetText());
+    var num = parseFloat(val);
     return !isNaN(num) ? num : def;
 };
 StaxParser.prototype.GetValueBool = function () {

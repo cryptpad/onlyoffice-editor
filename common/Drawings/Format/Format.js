@@ -82,12 +82,12 @@
 				AscCommon.g_oTableId.Add(this, this.Id);
 			}
 		}
-
+		CBaseObject.prototype.classType = AscDFH.historyitem_type_Unknown;
 		CBaseObject.prototype.notAllowedWithoutId = function () {
 			return false;
 		};
 		CBaseObject.prototype.getObjectType = function () {
-			return AscDFH.historyitem_type_Unknown;
+			return this.classType;
 		};
 		CBaseObject.prototype.Get_Id = function () {
 			return this.Id;
