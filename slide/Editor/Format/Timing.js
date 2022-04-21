@@ -2054,13 +2054,14 @@
                 var bNeedRebuild = false;
                 for(var nSeq = 0; nSeq < aSeqs.length; ++nSeq) {
                     aSeq = aSeqs[nSeq];
-                    for(nEffectIdx = aSeq.length - 1; nEffectIdx > 0; --nEffectIdx) {
+                    for(nEffectIdx = 1; nEffectIdx < aSeq.length; ++nEffectIdx) {
                         oEffect = aSeq[nEffectIdx];
                         if(oEffect.isSelected()) {
                             sObjectId = oEffect.getObjectId();
                             if(bNeedRemoveExtra) {
                                 if(oMapOfObjects[sObjectId]) {
                                     aSeq.splice(nEffectIdx, 1);
+                                    nEffectIdx--;
                                     continue;
                                 }
                                 else {
