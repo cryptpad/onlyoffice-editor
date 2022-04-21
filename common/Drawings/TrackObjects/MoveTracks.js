@@ -311,17 +311,21 @@ function MoveShapeImageTrack(originalObject)
         }
         if (this.originalObject.isObjectInSmartArt()) {
             var _rot = this.originalObject.rot;
-            var isSwapBounds = ((_rot >= Math.PI / 4) && (_rot <= 3 * Math.PI / 4)) || ((_rot >= 5 * Math.PI / 4) && (_rot <= 7 * Math.PI / 4));
-            if (isSwapBounds) {
-                var l = this.x + (this.originalObject.extX - this.originalObject.extY) / 2;
-                var t = this.y + (this.originalObject.extY - this.originalObject.extX) / 2;
-                var b = t + this.originalObject.extX;
-                var r = l + this.originalObject.extY;
+            var isNormalRotate = AscFormat.checkNormalRotate(_rot);
+            if (isNormalRotate) {
+                var l = this.x;
+                var t = this.y;
+                var b = t + this.originalObject.extY;
+                var r = l + this.originalObject.extX;
             } else {
-                l = this.x;
-                t = this.y;
-                b = t + this.originalObject.extY;
-                r = l + this.originalObject.extX;
+                l = this.x + (this.originalObject.extX - this.originalObject.extY) / 2;
+                t = this.y + (this.originalObject.extY - this.originalObject.extX) / 2;
+                b = t + this.originalObject.extX;
+                r = l + this.originalObject.extY;
+            }
+            var oSmartArt = this.originalObject.group && this.originalObject.group.group;
+            if (oSmartArt.extX < (r - l) || oSmartArt.extY < (b - t)) {
+                return;
             }
 
             if (l < 0) {
@@ -411,10 +415,10 @@ function MoveShapeImageTrack(originalObject)
         if(this.originalObject.isCrop)
         {
             AscFormat.ExecuteNoHistory(
-                function () {
-                    this.originalObject.checkDrawingBaseCoords();
-                },
-                this, []
+              function () {
+                  this.originalObject.checkDrawingBaseCoords();
+              },
+              this, []
             );
             this.originalObject.transform = this.transform;
             this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);
