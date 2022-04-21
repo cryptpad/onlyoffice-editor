@@ -1756,26 +1756,13 @@ var editor;
 							}
 
 
-
+							var m_mapComments = {};
 							var PrepareComments = function () {
-								var rId = xmlParserContext.InitOpenManager.legacyDrawingId;
-								var vmlDrawing;
-								var oRel = reader.rels.getRelationship(context.InitOpenManager.legacyDrawingId);
-								if(oRel) {
-
-									var oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
-									if(oRelPart) {
-										var oContent = oRelPart.getDocumentContent();
-										if(oContent) {
-											var oReader = new StaxParser(oContent, oRelPart, reader.context);
-											vmlDrawing = new AscFormat.CVMLDrawing();
-											vmlDrawing.fromXml(oReader, true);
-										}
-									}
-								}
-								if (!vmlDrawing || !comments) {
+								var pVmlDrawing = xmlParserContext.InitOpenManager.legacyDrawing;
+								if (!pVmlDrawing || !comments) {
 									return;
 								}
+
 
 								var mapCheckCopyThreadedComments;
 								var arAuthors = comments.authors && comments.authors.arr;
@@ -1852,8 +1839,7 @@ var editor;
 											if(sRef)
 											{
 												var nRow = sRef.r1, nCol = sRef.c1;
-												//Asc.asc_CCommentData()
-												var pCommentItem = new CCommentItem();
+												var pCommentItem = new Asc.asc_CCommentData();
 												pCommentItem.nRow = nRow - 1;
 												pCommentItem.nCol = nCol - 1;
 
@@ -1879,43 +1865,115 @@ var editor;
 								}
 
 
-								/*for ( var i = 0; i < pVmlDrawing.arr.length; ++i)
+								for ( var i = 0; i < pVmlDrawing.items.length; ++i)
 								{
-									var pShape = pVmlDrawing.arr[i];
-
-									if (!pShape) {
+									//TODO AscDFH.historyitem_type_VMLShape === item.getObjectType() - тип не такой
+									var pShape = pVmlDrawing.items[i];
+									if (!pShape || AscDFH.historyitem_type_VMLShape !== pShape.getObjectType()) {
 										continue;
 									}
 
-									if (pShape.sId)
+									/*if (pShape.sId)
 									{//mark shape as used
 										boost::unordered_map<std::wstring, OOX::CVmlDrawing::_vml_shape>::iterator pFind = pVmlDrawing->m_mapShapes.find(pShape->m_sId.get());
 										if (pFind != pVmlDrawing->m_mapShapes.end())
 										{
 											pFind->second.bUsed = true;
 										}
-									}
-									for ( var j = 0; j < pShape.arr.length; ++j)
+									}*/
+
+									for ( var j = 0; j < pShape.items.length; ++j)
 									{
-										var pElem = pShape.arr[j];
+										var pElem = pShape.items[j];
 
 										if (!pElem) {
 											continue;
 										}
 
-										if( OOX::et_v_ClientData == pElem->getType())
+										if( AscDFH.historyitem_type_VMLClientData === pElem.getObjectType())
 										{
 											var pClientData = pElem;
-											if(null != pClientData.row && null != pClientData.column)
+											if(null != pClientData.m_oRow && null != pClientData.m_oColumn)
 											{
-												var nRow = parseInt(pClientData.row);
-												var nCol = parseInt(pClientData.column);
+												var nRow = parseInt(pClientData.m_oRow);
+												var nCol = parseInt(pClientData.m_oColumn);
 												var sId = nRow + "" + "-" + nCol + "";
 
-												var pPair = m_mapComments.find(sId);
-												if(pPair != m_mapComments.end())
+												var pPair = m_mapComments[sId];
+												if(/*pPair != m_mapComments.end()*/pPair)
 												{
-													CCommentItem* pCommentItem = pPair->second;
+
+													/*Id: "1134"
+													m_oAnchor: "\r\n    3, 15, 2, 10, 5, 31, 6, 9"
+													m_oAutoFill: false
+													m_oAutoLine: null
+													m_oAutoPict: null
+													m_oAutoScale: null
+													m_oCf: null
+													m_oChecked: null
+													m_oColored: null
+													m_oColumn: 2
+													m_oDefaultSize: null
+													m_oDropLines: null
+													m_oDropStyle: null
+													m_oDx: null
+													m_oFirstButton: null
+													m_oFmlaGroup: null
+													m_oFmlaLink: null
+													m_oFmlaMacro: null
+													m_oFmlaRange: null
+													m_oFmlaTxbx: null
+													m_oHoriz: null
+													m_oInc: null
+													m_oJustLastX: null
+													m_oLockText: null
+													m_oMax: null
+													m_oMin: null
+													m_oMoveWithCells: true
+													m_oMultiLine: null
+													m_oMultiSel: null
+													m_oNoThreeD: null
+													m_oNoThreeD2: null
+													m_oObjectType: 11
+													m_oPage: null
+													m_oRow: 3
+													m_oSecretEdit: null
+													m_oSel: null
+													m_oSelType: null
+													m_oSizeWithCells: true
+													m_oTextHAlign: null
+													m_oTextVAlign: null
+													m_oVScroll: null
+													m_oVal: null
+													m_oVisible: null
+													m_oWidthMin: null*/
+
+
+													/*ThreadedCommentCopy: false
+													aReplies: []
+													bDocument: true
+													bHidden: false
+													bSolved: false
+													coords: null
+													m_sUserData: ""
+													nCol: 1
+													nId: null
+													nLevel: 0
+													nRow: 2
+													oParent: null
+													sAuthor: "Igor Zotov"
+													sGuid: "{6467C422-5E43-FC82-604E-715DD15FACFD}"
+													sOOTime: ""
+													sProviderId: ""
+													sText: ""
+													sTime: ""
+													sUserId: ""
+													sUserName: ""
+													threadedComment: null
+													wsId: null*/
+
+
+													/*CCommentItem* pCommentItem = pPair->second;
 													if(pShape->m_sGfxData.IsInit())
 														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;
 													std::vector<int> m_aAnchor;
@@ -1992,12 +2050,12 @@ var editor;
 																pCommentItem->m_dHeightMM = oPoint.ToMm();
 															}
 														}
-													}
+													}*/
 												}
 											}
 										}
 									}
-								}*/
+								}
 
 
 							};
@@ -2032,7 +2090,7 @@ var editor;
 								threadedComments.fromXml(reader);*/
 							}
 
-							//PrepareComments();
+							PrepareComments();
 
 						}
 					}
