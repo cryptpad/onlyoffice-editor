@@ -385,7 +385,8 @@ function CSearchTextItemChar(nCharCode)
 CSearchTextItemChar.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextItemChar.prototype.IsMatch = function(oItem)
 {
-	return (oItem.IsChar() && this.GetValue() === oItem.GetValue());
+	return ((oItem.IsChar() && this.GetValue() === oItem.GetValue())
+		|| (0x2D === this.GetValue() && oItem.GetType() === c_oSearchItemType.NonBreakingHyphen));
 };
 CSearchTextItemChar.prototype.ToRunElement = function(isMathRun)
 {
@@ -587,8 +588,7 @@ CSearchTextSpecialNonBreakingHyphen.prototype = Object.create(CSearchTextItemBas
 CSearchTextSpecialNonBreakingHyphen.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
-		|| c_oSearchItemType.NonBreakingHyphen === nType
+	return (c_oSearchItemType.NonBreakingHyphen === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
 CSearchTextSpecialNonBreakingHyphen.prototype.ToRunElement = function(isMathRun)

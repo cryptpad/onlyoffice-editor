@@ -1155,6 +1155,7 @@
 				oResult.setRights(this.licenseResult['rights']);
 				oResult.setBuildVersion(this.licenseResult['buildVersion']);
 				oResult.setBuildNumber(this.licenseResult['buildNumber']);
+				oResult.setLiveViewerSupport(this.licenseResult['liveViewerSupport']);
 
 				if (undefined !== this.licenseResult['protectionSupport']) {
 					this.isProtectionSupport = this.licenseResult['protectionSupport'];
@@ -3161,6 +3162,10 @@
 			return 0;
 
 		if (!this.canSave || !this._saveCheck())
+			return 0;
+
+		//pdf viewer
+		if (this.isUseNativeViewer && this.isDocumentRenderer && this.isDocumentRenderer())
 			return 0;
 
 		return new Date().getTime() - this.lastWorkTime;

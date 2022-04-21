@@ -2226,8 +2226,14 @@
 				}
 				else
 				{
-					if (this.currentPage > 0)
-						this.navigateToPage(this.currentPage - 1);
+					var nextPage = -1;
+					if (this.thumbnails)
+						nextPage = this.currentPage - this.thumbnails.countPagesInBlock;
+					if (nextPage < 0)
+						nextPage = this.currentPage - 1;
+
+					if (nextPage >= 0)
+						this.navigateToPage(nextPage);
 				}
 				bRetValue = true;
 			}
@@ -2252,8 +2258,19 @@
 				}
 				else
 				{
-					if (this.currentPage < (this.getPagesCount() - 1))
-						this.navigateToPage(this.currentPage + 1);
+					var pagesCount = this.getPagesCount();
+					var nextPage = pagesCount;
+					if (this.thumbnails)
+					{
+						nextPage = this.currentPage + this.thumbnails.countPagesInBlock;
+						if (nextPage >= pagesCount)
+							nextPage = pagesCount - 1;
+					}
+					if (nextPage >= pagesCount)
+						nextPage = this.currentPage + 1;
+
+					if (nextPage < pagesCount)
+						this.navigateToPage(nextPage);
 				}
 				bRetValue = true;
 			}

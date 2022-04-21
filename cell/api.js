@@ -1145,8 +1145,11 @@ var editor;
   spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer, downloadType) {
     var fileType = options.fileType;
     if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType) {
-      var printPagesData = this.wb.calcPagesPrint(options.advancedOptions);
-      var pdfPrinterMemory = this.wb.printSheets(printPagesData).DocumentRenderer.Memory;
+      var printPagesData, pdfPrinterMemory, t = this;
+      this.wb._executeWithoutZoom(function () {
+        printPagesData = t.wb.calcPagesPrint(options.advancedOptions);
+        pdfPrinterMemory = t.wb.printSheets(printPagesData).DocumentRenderer.Memory;
+      });
       dataContainer.data = oAdditionalData["nobase64"] ? pdfPrinterMemory.GetData() : pdfPrinterMemory.GetBase64Memory();
     } else if (this.insertDocumentUrlsData) {
       var last = this.insertDocumentUrlsData.documents.shift();
@@ -1218,6 +1221,7 @@ var editor;
 		this.wb.printPreviewState.init();
 		var pages = this.wb.calcPagesPrint(options ? options.advancedOptions : null);
 		this.wb.printPreviewState.setPages(pages);
+		this.wb.printPreviewState.setAdvancedOptions(options && options.advancedOptions);
 
 		if (pages.arrPages.length) {
 			this.asc_drawPrintPreview(0);
@@ -1228,11 +1232,16 @@ var editor;
 	spreadsheet_api.prototype.asc_updatePrintPreview = function (options) {
 		var pages = this.wb.calcPagesPrint(options.advancedOptions);
 		this.wb.printPreviewState.setPages(pages);
+		this.wb.printPreviewState.setAdvancedOptions(options && options.advancedOptions);
 		var pagesCount = pages.arrPages.length;
 		return pagesCount ? pagesCount : 1;
 	};
 
 	spreadsheet_api.prototype.asc_drawPrintPreview = function (index) {
+		if (this.wb.printPreviewState.isDrawPrintPreview) {
+			return;
+		}
+		this.wb.printPreviewState.isDrawPrintPreview = true;
 		if (index == null) {
 			index = this.wb.printPreviewState.activePage;
 		}
@@ -1245,6 +1254,7 @@ var editor;
 			indexActiveWs = this.wbModel.getActive();
 		}
 		this.handlers.trigger("asc_onPrintPreviewSheetChanged", indexActiveWs);
+		this.wb.printPreviewState.isDrawPrintPreview = false;
 	};
 
 	spreadsheet_api.prototype.asc_closePrintPreview = function () {
