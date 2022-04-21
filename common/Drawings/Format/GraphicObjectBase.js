@@ -2737,6 +2737,8 @@
         }
     };
 
+    CGraphicObjectBase.prototype.changePositionInSmartArt = function (newX, newY) {}
+
     CGraphicObjectBase.prototype.changeRot = function(dAngle, bWord) {
         var oSmartArt;
         if (this.isObjectInSmartArt()) {
@@ -2810,28 +2812,7 @@
 
                 var posX = this.spPr.xfrm.offX;
                 var posY = this.spPr.xfrm.offY;
-                var defaultExtX = this.extX;
-                var defaultExtY = this.extY;
-                if (prSet) {
-                    if (prSet.custScaleX) {
-                        defaultExtX /= prSet.custScaleX;
-                    }
-                    if (prSet.custScaleY) {
-                        defaultExtY /= prSet.custScaleY;
-                    }
-                    if (prSet.custLinFactNeighborX) {
-                        originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
-                    }
-                    if (prSet.custLinFactNeighborY) {
-                        originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
-                    }
-                    if (posX !== this.x) {
-                        prSet.setCustLinFactNeighborX(((posX - originalPosX) / defaultExtX));
-                    }
-                    if (posY !== this.y) {
-                        prSet.setCustLinFactNeighborY(((posY - originalPosY) / defaultExtY));
-                    }
-                }
+                this.changePositionInSmartArt(posX, posY);
             }
         }
     };

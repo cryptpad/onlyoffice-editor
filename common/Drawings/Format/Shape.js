@@ -6002,6 +6002,67 @@ CShape.prototype.getAllDocContents = function(aDocContents)
     }
 };
 
+CShape.prototype.changePositionInSmartArt = function (newX, newY) {
+    if (this.isObjectInSmartArt()) {
+        var point = this.getSmartArtShapePoint();
+        if (point) {
+            var prSet = point.getPrSet();
+            if (prSet) {
+                var originalPosX;
+                var originalPosY;
+                var defaultExtX;
+                var defaultExtY;
+                var isNormalRotate = AscFormat.checkNormalRotate(this.getDefaultRotSA());
+                if (isNormalRotate) {
+                    originalPosX = this.x;
+                    originalPosY = this.y;
+                    defaultExtX = this.extX;
+                    defaultExtY = this.extY;
+                } else {
+                    originalPosX = this.x + (this.extX - this.extY) / 2;
+                    originalPosY = this.y + (this.extY - this.extX) / 2;
+                    defaultExtX = this.extY;
+                    defaultExtY = this.extX;
+                }
+
+
+                if (prSet) {
+                    if (prSet.custScaleX) {
+                        defaultExtX /= prSet.custScaleX;
+                    }
+                    if (prSet.custScaleY) {
+                        defaultExtY /= prSet.custScaleY;
+                    }
+                    if (prSet.custLinFactNeighborX) {
+                        originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
+                    }
+                    if (prSet.custLinFactNeighborY) {
+                        originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
+                    }
+                    if (prSet.custLinFactX) {
+                        originalPosX -= (prSet.custLinFactX) * defaultExtX;
+                    }
+                    if (prSet.custLinFactY) {
+                        originalPosY -= (prSet.custLinFactY) * defaultExtY;
+                    }
+                    if (this.x !== newX) {
+                        if (prSet.custLinFactNeighborX) {
+                            prSet.setCustLinFactNeighborX(null);
+                        }
+                        prSet.setCustLinFactX(((newX - originalPosX) / defaultExtX));
+                    }
+                    if (this.y !== newY) {
+                        if (prSet.custLinFactNeighborY) {
+                            prSet.setCustLinFactNeighborY(null);
+                        }
+                        prSet.setCustLinFactY(((newY - originalPosY) / defaultExtY));
+                    }
+                }
+            }
+        }
+    }
+};
+
 CShape.prototype.changePresetGeom = function (sPreset) {
 
 
