@@ -59,6 +59,7 @@
 		this.Buffer = [];
 		this.Items  = [];
 		this.TextPr = null;
+		this.Script = -1;
 	}
 	CTextShaper.prototype.Init = function()
 	{
@@ -94,6 +95,13 @@
 			}
 			else
 			{
+				let nScript = this.GetTextScript(oItem.GetCodePoint());
+				if (nScript !== this.Script)
+				{
+					this.FlushWord();
+					this.Script = nScript;
+				}
+
 				this.Buffer.push(oItem.GetCharCode());
 				this.Items.push(oItem);
 				if (oItem.IsSpaceAfter())
@@ -110,7 +118,7 @@
 		MEASURER.SetFontSlot(fontslot_ASCII, 1);
 
 		let nCharIndex = 0;
-		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 15, AscFonts.HB_SCRIPT["HB_SCRIPT_LATIN"], AscFonts.HB_DIRECTION.HB_DIRECTION_LTR, "en");
+		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 15, this.Script, AscFonts.HB_DIRECTION.HB_DIRECTION_LTR, "en");
 		for (let nSegment = 0, nSegmentsCount = arrSegments.length; nSegment < nSegmentsCount; ++nSegment)
 		{
 			let oSegment = arrSegments[nSegment];
@@ -149,7 +157,7 @@
 				nCharIndex++;
 
 				let arrMarks = [];
-				while (nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGrapheme.cluster)
+				while (nCharIndex < this.Buffer.length && nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGrapheme.cluster)
 				{
 					let nCombineW = Math.max(0, oSegment.glyphs[nGlyphIndex + 1].x_advance * COEF);
 					nStartChar.AddWidth(nCombineW);
@@ -190,6 +198,10 @@
 
 		this.Buffer = [];
 		this.Items  = [];
+	};
+	CTextShaper.prototype.GetTextScript = function(nUnicode)
+	{
+		return AscFonts.hb_get_script_by_unicode(nUnicode);
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------
