@@ -892,7 +892,7 @@
         return this.getObjectType() === AscDFH.historyitem_type_Shape &&
             !this.isPlaceholder() &&
             this.getNoEditPoints() !== true &&
-            !!(this.spPr && this.spPr.geometry);
+            !!(this.spPr && this.spPr.geometry) && !(this.isObjectInSmartArt()); // todo: functionality not available in microsoft for smartart shapes, but the OOX format supports it, currently blocked due to resizing blocking
     };
     CGraphicObjectBase.prototype.canRotate = function() {
         if(!this.canEdit()) {
