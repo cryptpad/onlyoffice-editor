@@ -507,7 +507,7 @@
         oXfrm.setExtY(dExtY);
         oXfrm.setRot(0);
         //set new position
-        if(bWord) {
+        if(bWord && !this.originalObject.group) {
             oXfrm.setOffX(0);
             oXfrm.setOffY(0);
         }

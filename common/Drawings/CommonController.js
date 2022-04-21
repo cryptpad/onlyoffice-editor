@@ -1680,6 +1680,11 @@ DrawingObjectsController.prototype =
                 b_is_inline = false;
             }
         }
+
+        if(this.selection.geometrySelection)
+        {
+            this.selection.geometrySelection = null;
+        }
         var b_is_selected_inline = this.selectedObjects.length === 1 && (this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline && this.selectedObjects[0].parent.Is_Inline());
         var oAnimPlayer = this.getAnimationPlayer();
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
@@ -11880,6 +11885,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
         this.majorObject = majorObject;
         this.startX = startX;
         this.startY = startY;
+        this.group  = majorObject && majorObject.getMainGroup();
     }
     GeometryEditState.prototype.onMouseDown = function(e, x, y, pageIndex) {
         if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR) {
@@ -11891,7 +11897,12 @@ function CalcLiterByLength(aAlphaBet, nLength)
         this.drawingObjects.updateOverlay();
     };
     GeometryEditState.prototype.onMouseUp = function(e, x, y, pageIndex) {
-        AscFormat.RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+        if( this.majorObject && this.majorObject.group) {
+            AscFormat.MoveInGroupState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+        }
+        else {
+            AscFormat.RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+        }
     };
 
     function CGeometryEditSelection(oDrawingObjects, oDrawing) {
