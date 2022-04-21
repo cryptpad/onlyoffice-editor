@@ -2948,7 +2948,8 @@ CShape.prototype.getProtectionLockText = function () {
 CShape.prototype.canEditTextInSmartArt = function () {
     if (this.isObjectInSmartArt()) {
         var pointContent = this.getSmartArtPointContent();
-        return  pointContent && pointContent.length !== 0;
+        var shapePoint = this.getSmartArtShapePoint();
+        return  !!(pointContent && pointContent.length !== 0 && !shapePoint.isBlipFillPlaceholder());
     }
 }
 
