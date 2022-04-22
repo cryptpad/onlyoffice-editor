@@ -135,7 +135,9 @@
 		CBaseObject.prototype.toXml = function (writer, name) {
 			writer.WriteXmlNodeStart(name);
 			this.writeAttrXml(writer);
+			writer.WriteXmlAttributesEnd();
 			this.writeChildren();
+			writer.WriteXmlNodeEnd(name);
 		};
 		CBaseObject.prototype.writeAttrXml = function (writer) {
 			this.writeAttrXmlImpl(writer);

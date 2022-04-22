@@ -108,7 +108,38 @@
 			else if ("weight") this.m_sWeight = reader.GetValue();
 		};
 		CStrokeChild.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			// ComplexTypes_WriteAttribute ( L"v:ext=\"",            m_oExt );
+			// ComplexTypes_WriteAttribute ( L"on=\"",               m_oOn );
+			// ComplexTypes_WriteAttribute2( L"weight=\"",           m_sWeight )
+			// ComplexTypes_WriteAttribute ( L"color=\"",            m_oColor )
+			// ComplexTypes_WriteAttribute ( L"color2=\"",           m_oColor2 )
+			// ComplexTypes_WriteAttribute2( L"opacity=\"",          m_sOpacity )
+			// ComplexTypes_WriteAttribute ( L"linestyle=\"",        m_oLineStyle )
+			// ComplexTypes_WriteAttribute ( L"miterlimit=\"",       m_oMiterLimit )
+			// ComplexTypes_WriteAttribute ( L"joinstyle=\"",        m_oJoinStyle )
+			// ComplexTypes_WriteAttribute ( L"endcap=\"",           m_oEndCap )
+			// ComplexTypes_WriteAttribute ( L"dashstyle=\"",        m_oDashStyle )
+			// ComplexTypes_WriteAttribute ( L"insetpen=\"",         m_oInsetPen )
+			// ComplexTypes_WriteAttribute ( L"filltype=\"",         m_oFillType )
+			// ComplexTypes_WriteAttribute2( L"src=\"",              m_sSrc )
+			// ComplexTypes_WriteAttribute ( L"imageaspect=\"",      m_oImageAspect )
+			// ComplexTypes_WriteAttribute2( L"imagesize=\"",        m_sImageSize )
+			// ComplexTypes_WriteAttribute ( L"imagealignshape=\"",  m_oImageAlignShape )
+			// ComplexTypes_WriteAttribute ( L"startarrow=\"",       m_oStartArrow )
+			// ComplexTypes_WriteAttribute ( L"startarrowwidth=\"",  m_oStartArrowWidth )
+			// ComplexTypes_WriteAttribute ( L"startarrowlength=\"", m_oStartArrowLength )
+			// ComplexTypes_WriteAttribute ( L"endarrow=\"",         m_oEndArrow )
+			// ComplexTypes_WriteAttribute ( L"endarrowwidth=\"",    m_oEndArrowWidth )
+			// ComplexTypes_WriteAttribute ( L"endarrowlength=\"",   m_oEndArrowLength )
+			// ComplexTypes_WriteAttribute2( L"o:href=\"",           m_sHref )
+			// ComplexTypes_WriteAttribute2( L"althref=\"",          m_sAlthref )
+			// ComplexTypes_WriteAttribute2( L"o:title=\"",          m_sTitle )
+			// ComplexTypes_WriteAttribute ( L"o:forcedash=\"",      m_oForceDash )
+
+
+			// writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
+			// writer.WriteXmlNullableAttributeNumber("localSheetId", this.LocalSheetId);
+			// writer.WriteXmlNullableAttributeBool("hidden", this.Hidden);
 		};
 
 		function CCallout() {
