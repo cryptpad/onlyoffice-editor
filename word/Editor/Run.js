@@ -3156,12 +3156,15 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		_oTextPr.RFonts.SetAll("ASCW3");
 	}
 
+	let isMathRun = this.IsMathRun();
+
 	var Hint = _oTextPr.RFonts.Hint;
 	var bCS  = _oTextPr.CS;
 	var bRTL = _oTextPr.RTL;
 	var lcid = _oTextPr.Lang.EastAsia;
 
-	let nRFontsFlags = 0;
+	// TODO: Пока для формул сделаем, чтобы работало по-старому, в дальнейшем надо будет переделать на fontslot
+	let nRFontsFlags = isMathRun ? rfont_ASCII : 0;
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		let oItem = this.Content[nPos];
@@ -3193,7 +3196,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	this.TextAscent2 = oMetrics.Ascent;
 
 	var oInfoMathText;
-	if (para_Math_Run == this.Type)
+	if (isMathRun)
 	{
 		oInfoMathText = new CMathInfoTextPr({
 			TextPr      : oTextPr,
