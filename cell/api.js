@@ -1786,9 +1786,9 @@ var editor;
 											var pFind;
 
 											var isPlaceholder = false;
-											if(pComment.m_oAuthorId)
+											if(pComment.authorId)
 											{
-												var nAuthorId = pComment.m_oAuthorId;
+												var nAuthorId = parseInt(pComment.authorId);
 
 												if (nAuthorId >= 0 && nAuthorId < arAuthors.length)
 												{
@@ -1798,12 +1798,12 @@ var editor;
 														isPlaceholder = true;
 														var sGUID = sAuthor.substr(3);
 														//todo IsZero() is added to fix comments with zero ids(5.4.0)(bug 42947). Remove after few releases
-														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.m_oRef)
+														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.ref)
 														{
 															for (var j in pThreadedComments.m_mapTopLevelThreadedComments)
 															{
 																var it = pThreadedComments.m_mapTopLevelThreadedComments[j];
-																if (it.ref && pComment.m_oRef === it.ref)
+																if (it.ref && pComment.ref === it.ref)
 																{
 																	pFind = it;
 																	break;
@@ -1905,79 +1905,8 @@ var editor;
 												var sId = nRow + "" + "-" + nCol + "";
 
 												var pPair = m_mapComments[sId];
-												if(/*pPair != m_mapComments.end()*/pPair)
+												if(pPair)
 												{
-
-													/*Id: "1134"
-													m_oAnchor: "\r\n    3, 15, 2, 10, 5, 31, 6, 9"
-													m_oAutoFill: false
-													m_oAutoLine: null
-													m_oAutoPict: null
-													m_oAutoScale: null
-													m_oCf: null
-													m_oChecked: null
-													m_oColored: null
-													m_oColumn: 2
-													m_oDefaultSize: null
-													m_oDropLines: null
-													m_oDropStyle: null
-													m_oDx: null
-													m_oFirstButton: null
-													m_oFmlaGroup: null
-													m_oFmlaLink: null
-													m_oFmlaMacro: null
-													m_oFmlaRange: null
-													m_oFmlaTxbx: null
-													m_oHoriz: null
-													m_oInc: null
-													m_oJustLastX: null
-													m_oLockText: null
-													m_oMax: null
-													m_oMin: null
-													m_oMoveWithCells: true
-													m_oMultiLine: null
-													m_oMultiSel: null
-													m_oNoThreeD: null
-													m_oNoThreeD2: null
-													m_oObjectType: 11
-													m_oPage: null
-													m_oRow: 3
-													m_oSecretEdit: null
-													m_oSel: null
-													m_oSelType: null
-													m_oSizeWithCells: true
-													m_oTextHAlign: null
-													m_oTextVAlign: null
-													m_oVScroll: null
-													m_oVal: null
-													m_oVisible: null
-													m_oWidthMin: null*/
-
-
-													/*ThreadedCommentCopy: false
-													aReplies: []
-													bDocument: true
-													bHidden: false
-													bSolved: false
-													coords: null
-													m_sUserData: ""
-													nCol: 1
-													nId: null
-													nLevel: 0
-													nRow: 2
-													oParent: null
-													sAuthor: "Igor Zotov"
-													sGuid: "{6467C422-5E43-FC82-604E-715DD15FACFD}"
-													sOOTime: ""
-													sProviderId: ""
-													sText: ""
-													sTime: ""
-													sUserId: ""
-													sUserName: ""
-													threadedComment: null
-													wsId: null*/
-
-
 													/*CCommentItem* pCommentItem = pPair->second;
 													if(pShape->m_sGfxData.IsInit())
 														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;*/
