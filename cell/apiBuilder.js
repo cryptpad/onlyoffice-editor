@@ -2917,10 +2917,10 @@
 	 * Inserts a cell or a range of cells into the worksheet or macro sheet and shifts other cells away to make space.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {?String} shift - Specifies which way to shift the cells ("right", "down").
+	 * @param {?string} shift - Specifies which way to shift the cells ("right", "down").
 	 */
-	 ApiRange.prototype.Insert = function(shift) {
-		if (shift && typeof Shift == "string") {
+	ApiRange.prototype.Insert = function(shift) {
+		if (shift && shift.toLocaleLowerCase) {
 			shift = shift.toLocaleLowerCase();
 		} else {
 			var bbox = this.range.bbox;
