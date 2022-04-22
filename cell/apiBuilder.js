@@ -2896,10 +2896,10 @@
 	 * Deletes the Range object.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * @param {?String} shift - Specifies how to shift cells to replace the deleted cells ("up", "left").
+	 * @param {?string} shift - Specifies how to shift cells to replace the deleted cells ("up", "left").
 	 */
 	ApiRange.prototype.Delete = function(shift) {
-		if (shift && typeof shift == "string") {
+		if (shift && shift.toLocaleLowerCase) {
 			shift = shift.toLocaleLowerCase();
 		} else {
 			var bbox = this.range.bbox;
