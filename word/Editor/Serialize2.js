@@ -502,7 +502,10 @@ var c_oSerRunType = {
 	arPr: 28,
 	fldChar: 29,
 	instrText: 30,
-	delInstrText: 31
+	delInstrText: 31,
+	linebreakClearAll: 32,
+	linebreakClearLeft: 33,
+	linebreakClearRight: 34
 };
 var c_oSerImageType = {
     MediaId:0,
@@ -5815,7 +5818,20 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                             oThis.memory.WriteByte(c_oSerRunType.pagebreak);
                             break;
                         default:
-                            oThis.memory.WriteByte(c_oSerRunType.linebreak);
+							switch(item.Clear) {
+								case break_Clear_All:
+									oThis.memory.WriteByte(c_oSerRunType.linebreakClearAll);
+									break;
+								case break_Clear_Left:
+									oThis.memory.WriteByte(c_oSerRunType.linebreakClearLeft);
+									break;
+								case break_Clear_Right:
+									oThis.memory.WriteByte(c_oSerRunType.linebreakClearRight);
+									break;
+								default:
+									oThis.memory.WriteByte(c_oSerRunType.linebreak);
+									break;
+							}
                             break;
                     }
                     oThis.memory.WriteLong(c_oSerPropLenType.Null);
@@ -11913,10 +11929,22 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
             oNewElem = new ParaNewLine( break_Page );
         }
-        else if (c_oSerRunType.linebreak === type)
-        {
-            oNewElem = new ParaNewLine( break_Line );
-        }
+		else if (c_oSerRunType.linebreak === type)
+		{
+			oNewElem = new ParaNewLine(break_Line);
+		}
+		else if (c_oSerRunType.linebreakClearAll === type)
+		{
+			oNewElem = new ParaNewLine(break_Line, break_Clear_All);
+		}
+		else if (c_oSerRunType.linebreakClearLeft === type)
+		{
+			oNewElem = new ParaNewLine(break_Line, break_Clear_Left);
+		}
+		else if (c_oSerRunType.linebreakClearRight === type)
+		{
+			oNewElem = new ParaNewLine(break_Line, break_Clear_Right);
+		}
         else if (c_oSerRunType.columnbreak === type)
         {
             oNewElem = new ParaNewLine( break_Column );
@@ -13479,10 +13507,22 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         {
             oNewElem = new ParaNewLine( break_Page );
         }
-        else if (c_oSerRunType.linebreak === type)
-        {
-            oNewElem = new ParaNewLine( break_Line );
-        }
+		else if (c_oSerRunType.linebreak === type)
+		{
+			oNewElem = new ParaNewLine(break_Line);
+		}
+		else if (c_oSerRunType.linebreakClearAll === type)
+		{
+			oNewElem = new ParaNewLine(break_Line, break_Clear_All);
+		}
+		else if (c_oSerRunType.linebreakClearLeft === type)
+		{
+			oNewElem = new ParaNewLine(break_Line, break_Clear_Left);
+		}
+		else if (c_oSerRunType.linebreakClearRight === type)
+		{
+			oNewElem = new ParaNewLine(break_Line, break_Clear_Right);
+		}
         else if (c_oSerRunType.columnbreak === type)
         {
             oNewElem = new ParaNewLine( break_Column );

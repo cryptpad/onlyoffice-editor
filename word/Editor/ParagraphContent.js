@@ -119,6 +119,11 @@ var break_Line   = 0x01;
 var break_Page   = 0x02;
 var break_Column = 0x03;
 
+var break_Clear_None  = 0x00;
+var break_Clear_All   = 0x01;
+var break_Clear_Left  = 0x02;
+var break_Clear_Right = 0x03;
+
 var nbsp_charcode = 0x00A0;
 
 var nbsp_string = String.fromCharCode(0x00A0);
@@ -1253,15 +1258,17 @@ ParaEnd.prototype.IsParaEnd = function()
 
 /**
  * Класс представляющий разрыв строки/колонки/страницы
- * @param BreakType
+ * @param nBreakType
+ * @param nClear {break_Clear_None | break_Clear_All | break_Clear_Left | break_Clear_Right}
  * @constructor
  * @extends {CRunElementBase}
  */
-function ParaNewLine(BreakType)
+function ParaNewLine(nBreakType, nClear)
 {
 	CRunElementBase.call(this);
 
-    this.BreakType = BreakType;
+    this.BreakType = nBreakType;
+	this.Clear     = nClear ? nClear : break_Clear_None;
 
     this.Flags = {}; // специальные флаги для разных break
     this.Flags.Use = true;
@@ -1499,9 +1506,9 @@ ParaNewLine.prototype.Write_ToBinary = function(Writer)
 	Writer.WriteLong(this.BreakType);
 
 	if (break_Page === this.BreakType || break_Column === this.BreakType)
-	{
 		Writer.WriteBool(this.Flags.NewLine);
-	}
+	else
+		Writer.WriteLong(this.Clear);
 };
 ParaNewLine.prototype.Read_FromBinary = function(Reader)
 {
@@ -1509,6 +1516,8 @@ ParaNewLine.prototype.Read_FromBinary = function(Reader)
 
 	if (break_Page === this.BreakType || break_Column === this.BreakType)
 		this.Flags = {NewLine : Reader.GetBool()};
+	else
+		this.Clear = Reader.GetLong();
 };
 /**
  * Разрыв страницы или колонки?
