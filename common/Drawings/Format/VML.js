@@ -108,38 +108,34 @@
 			else if ("weight") this.m_sWeight = reader.GetValue();
 		};
 		CStrokeChild.prototype.writeAttrXmlImpl = function (writer) {
-			// ComplexTypes_WriteAttribute ( L"v:ext=\"",            m_oExt );
-			// ComplexTypes_WriteAttribute ( L"on=\"",               m_oOn );
-			// ComplexTypes_WriteAttribute2( L"weight=\"",           m_sWeight )
-			// ComplexTypes_WriteAttribute ( L"color=\"",            m_oColor )
-			// ComplexTypes_WriteAttribute ( L"color2=\"",           m_oColor2 )
-			// ComplexTypes_WriteAttribute2( L"opacity=\"",          m_sOpacity )
-			// ComplexTypes_WriteAttribute ( L"linestyle=\"",        m_oLineStyle )
-			// ComplexTypes_WriteAttribute ( L"miterlimit=\"",       m_oMiterLimit )
-			// ComplexTypes_WriteAttribute ( L"joinstyle=\"",        m_oJoinStyle )
-			// ComplexTypes_WriteAttribute ( L"endcap=\"",           m_oEndCap )
-			// ComplexTypes_WriteAttribute ( L"dashstyle=\"",        m_oDashStyle )
-			// ComplexTypes_WriteAttribute ( L"insetpen=\"",         m_oInsetPen )
-			// ComplexTypes_WriteAttribute ( L"filltype=\"",         m_oFillType )
-			// ComplexTypes_WriteAttribute2( L"src=\"",              m_sSrc )
-			// ComplexTypes_WriteAttribute ( L"imageaspect=\"",      m_oImageAspect )
-			// ComplexTypes_WriteAttribute2( L"imagesize=\"",        m_sImageSize )
-			// ComplexTypes_WriteAttribute ( L"imagealignshape=\"",  m_oImageAlignShape )
-			// ComplexTypes_WriteAttribute ( L"startarrow=\"",       m_oStartArrow )
-			// ComplexTypes_WriteAttribute ( L"startarrowwidth=\"",  m_oStartArrowWidth )
-			// ComplexTypes_WriteAttribute ( L"startarrowlength=\"", m_oStartArrowLength )
-			// ComplexTypes_WriteAttribute ( L"endarrow=\"",         m_oEndArrow )
-			// ComplexTypes_WriteAttribute ( L"endarrowwidth=\"",    m_oEndArrowWidth )
-			// ComplexTypes_WriteAttribute ( L"endarrowlength=\"",   m_oEndArrowLength )
-			// ComplexTypes_WriteAttribute2( L"o:href=\"",           m_sHref )
-			// ComplexTypes_WriteAttribute2( L"althref=\"",          m_sAlthref )
-			// ComplexTypes_WriteAttribute2( L"o:title=\"",          m_sTitle )
-			// ComplexTypes_WriteAttribute ( L"o:forcedash=\"",      m_oForceDash )
 
-
-			// writer.WriteXmlNullableAttributeStringEncode("name", this.Name);
-			// writer.WriteXmlNullableAttributeNumber("localSheetId", this.LocalSheetId);
-			// writer.WriteXmlNullableAttributeBool("hidden", this.Hidden);
+			writer.WriteXmlNullableAttributeStringEncode("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeBool("on", this.m_oOn);
+			writer.WriteXmlNullableAttributeStringEncode("weight",           this.m_sWeight )
+			writer.WriteXmlNullableAttributeStringEncode("color",            this.m_oColor )
+			writer.WriteXmlNullableAttributeStringEncode("color2",           this.m_oColor2 )
+			writer.WriteXmlNullableAttributeStringEncode("opacity",          this.m_sOpacity )
+			writer.WriteXmlNullableAttributeStringEncode("linestyle",        this.m_oLineStyle )
+			writer.WriteXmlNullableAttributeStringEncode("miterlimit",       this.m_oMiterLimit )
+			writer.WriteXmlNullableAttributeStringEncode("joinstyle",        this.m_oJoinStyle )
+			writer.WriteXmlNullableAttributeStringEncode("endcap",           this.m_oEndCap )
+			writer.WriteXmlNullableAttributeStringEncode("dashstyle",        this.m_oDashStyle )
+			writer.WriteXmlNullableAttributeStringEncode("insetpen",         this.m_oInsetPen )
+			writer.WriteXmlNullableAttributeStringEncode("filltype",         this.m_oFillType )
+			writer.WriteXmlNullableAttributeStringEncode("src",              this.m_sSrc )
+			writer.WriteXmlNullableAttributeStringEncode("imageaspect",      this.m_oImageAspect )
+			writer.WriteXmlNullableAttributeStringEncode("imagesize",        this.m_sImageSize )
+			writer.WriteXmlNullableAttributeStringEncode("imagealignshape",  this.m_oImageAlignShape )
+			writer.WriteXmlNullableAttributeStringEncode("startarrow",       this.m_oStartArrow )
+			writer.WriteXmlNullableAttributeStringEncode("startarrowwidth",  this.m_oStartArrowWidth )
+			writer.WriteXmlNullableAttributeStringEncode("startarrowlength", this.m_oStartArrowLength )
+			writer.WriteXmlNullableAttributeStringEncode("endarrow",         this.m_oEndArrow )
+			writer.WriteXmlNullableAttributeStringEncode("endarrowwidth",    this.m_oEndArrowWidth )
+			writer.WriteXmlNullableAttributeStringEncode("endarrowlength",   this.m_oEndArrowLength )
+			writer.WriteXmlNullableAttributeStringEncode("o:href",           this.m_sHref )
+			writer.WriteXmlNullableAttributeStringEncode("althref",          this.m_sAlthref )
+			writer.WriteXmlNullableAttributeStringEncode("o:title",          this.m_sTitle )
+			writer.WriteXmlNullableAttributeStringEncode("o:forcedash",      this.m_oForceDash )
 		};
 
 		function CCallout() {
@@ -785,6 +781,16 @@
 			return EOLELinkType.olelinktypeBitmap;
 		}
 
+
+		function getOLELinkType(nType) {
+			if (EOLELinkType.olelinktypeBitmap === nType) return ("Bitmap");
+			if (EOLELinkType.olelinktypeEmf === nType) return ("EnhancedMetaFile");
+			if (EOLELinkType.olelinktypeJpeg === nType) return ("Jpeg");
+			if (EOLELinkType.olelinktypePicture === nType) return ("Picture");
+			if (EOLELinkType.olelinktypePng === nType) return ("Png");
+			return null;
+		}
+
 		function CLinkType() {
 			CBaseNoId.call(this);
 			this.m_oValue = null;
@@ -886,6 +892,12 @@
 			if (sVal === "Icon") return EOLEDrawAspect.oledrawaspectIcon;
 			return EOLEDrawAspect.oledrawaspectContent;
 		}
+		function getOLEDrawAspect(nType) {
+			if(nType === EOLEDrawAspect.oledrawaspectContent) return "Content";
+			if(nType === EOLEDrawAspect.oledrawaspectIcon) return "Icon";
+			return null;
+		}
+
 
 
 		let EOLEType =
@@ -900,6 +912,11 @@
 			if (sVal === "link") return EOLEType.oletypeLink;
 			return EOLEType.oletypeEmbed;
 		}
+		function getOLEType(nType) {
+			if(nType === EOLEType.oletypeEmbed) return "embed";
+			if(nType === EOLEType.oletypeLink) return "link";
+			return null;
+		}
 
 
 		let EOLEUpdateMode =
@@ -913,6 +930,11 @@
 			if (sVal === "Always") return EOLEUpdateMode.oleupdatemodeAlways;
 			if (sVal === "OnCall") return EOLEUpdateMode.oleupdatemodeOnCall;
 			return EOLEUpdateMode.oleupdatemodeAlways;
+		}
+		function getOLEUpdateMode(nType) {
+			if(nType === EOLEUpdateMode.oleupdatemodeAlways) return "Always";
+			if(nType === EOLEUpdateMode.oleupdatemodeOnCall) return "OnCall";
+			return null;
 		}
 
 		function COLEObject() {
@@ -992,6 +1014,16 @@
 			return EHow.howTop;
 		}
 
+		function getHow(nType) {
+			if(nType === EHow.howBottom) return "bottom";
+			if(nType === EHow.howCenter) return "center";
+			if(nType === EHow.howLeft) return "left";
+			if(nType === EHow.howMiddle) return "middle";
+			if(nType === EHow.howRight) return "right";
+			if(nType === EHow.howTop) return "top";
+			return null;
+		}
+
 		let ERType =
 			{
 				rtypeAlign: 0,
@@ -1007,6 +1039,13 @@
 			if (sVal === "callout") return ERType.rtypeCallout;
 			if (sVal === "connector") return ERType.rtypeConnector;
 			return ERType.rtypeAlign;
+		}
+		function getRType(nType) {
+			if(nType === ERType.rtypeAlign) return "align";
+			if(nType === ERType.rtypeAlign) return "arc";
+			if(nType === ERType.rtypeAlign) return "callout";
+			if(nType === ERType.rtypeAlign) return "connector";
+			return null;
 		}
 
 		function CR() {
@@ -1578,6 +1617,14 @@
 			else if (("sigma") === sValue) return EFillMethod.fillmethodSigma;
 			else if (("none") === sValue) return EFillMethod.fillmethodNone;
 			else return EFillMethod.fillmethodNone;
+		}
+		function getFillMethod(nType) {
+			if(nType === EFillMethod.fillmethodAny) return "any";
+			if(nType === EFillMethod.fillmethodLinear) return "linear";
+			if(nType === EFillMethod.fillmethodLinearSigma) return "linear sigma";
+			if(nType === EFillMethod.fillmethodSigma) return "sigma";
+			if(nType === EFillMethod.fillmethodNone) return "none";
+			return null;
 
 		}
 
@@ -1715,6 +1762,15 @@
 			else if (("720,512") === sValue) return EScreenSize.screensize720x512;
 			else if (("800,600") === sValue) return EScreenSize.screensize800x600;
 			return EScreenSize.screensize640x480;
+		}
+		function readScreenSize(nType) {
+			if(nType ===  EScreenSize.screensize1024x768) return "1024,768";
+			if(nType ===  EScreenSize.screensize1152x862) return "1152,862";
+			if(nType ===  EScreenSize.screensize544x376) return "544,376";
+			if(nType ===  EScreenSize.screensize640x480) return "640,480";
+			if(nType ===  EScreenSize.screensize720x512) return "720,512";
+			if(nType ===  EScreenSize.screensize800x600) return "800,600";
+			return "640,480";
 		}
 
 		function CBackground() {
@@ -3403,11 +3459,22 @@
 			}
 			return EAlternateMathContentType.alternatemathcontenttypeOfficeOpenXmlMath;
 		}
+		function getAlternateMathContentType(nType) {
+			if(nType === EAlternateMathContentType.alternatemathcontenttypeOfficeOpenXmlMath) 
+				return "officeopenxmlmath";
+			if(nType === EAlternateMathContentType.alternatemathcontenttypeMathMl) 
+				return "mathml";
+			return "officeopenxmlmath";
+		}
 
 		function readContentType(reader) {
 
 			let sVal = reader.GetValue();
 			return sVal;
+		}
+
+		function getContentType(type) {
+			return type;
 		}
 
 		function CColor(sVal) {
@@ -3424,6 +3491,10 @@
 			} else {
 				this.byColorName(sVal);
 			}
+		};
+
+		CColor.prototype.toString = function () {
+			return this.val;
 		};
 		CColor.prototype.setRGB = function () {
 
@@ -4174,6 +4245,17 @@
 			return null;
 		}
 
+		function getColorMode(nType) {
+			if(nType === EColorMode.colormodeAuto) {
+				return "auto";
+			}
+			if(nType === EColorMode.colormodeCustom) {
+				return "custom";
+			}
+			return null;
+		}
+
+
 		function readInsetMode(reader) {
 
 			let sVal = reader.GetValue()
@@ -4188,8 +4270,22 @@
 			return null;
 		}
 
+		function getInsetMode(nType) {
+			if(nType === EInsetMode.insetmodeAuto) {
+				return "auto";
+			}
+			if(nType === EInsetMode.insetmodeCustom) {
+				return "custom";
+			}
+			return "auto";
+		}
+
 		function readColorType(reader) {
 			return new CColor(reader.GetValue());
+		}
+
+		function getColorType(oColorType) {
+			return oColorType.toString();
 		}
 
 
@@ -4210,6 +4306,9 @@
 				let dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
 				return Math.max(0.0, Math.min(1.0, dValue));
 			}
+		}
+		function getCVml_1_65536(dVal) {
+			return dVal.toString();
 		}
 
 
@@ -4234,6 +4333,19 @@
 			else if (("stacked") === sValue) return EEditAs.editasStacked;
 			else if (("venn") === sValue) return EEditAs.editasVenn;
 			return EEditAs.editasCanvas;
+		}
+
+
+
+		function getEditAs(nType) {
+			if(nType === EEditAs.editasBullseye) return "bullseye"; 
+			if(nType === EEditAs.editasCanvas) return "canvas"; 
+			if(nType === EEditAs.editasCycle) return "cycle"; 
+			if(nType === EEditAs.editasOrgchart) return "orgchart"; 
+			if(nType === EEditAs.editasRadial) return "radial"; 
+			if(nType === EEditAs.editasStacked) return "stacked"; 
+			if(nType === EEditAs.editasVenn) return "venn"; 
+			return "canvas";
 		}
 
 
@@ -4370,6 +4482,20 @@
 			}
 			return null;
 		}
+		function getExt(nType) {
+			switch (nType) {
+				case EExt.extBackwardCompatible: {
+					return "backwardCompatible";
+				}
+				case EExt.extEdit: {
+					return "edit";
+				}
+				case EExt.extView: {
+					return "view";
+				}
+			}
+			return null;
+		}
 
 		function readExtrusionType(reader) {
 			let sVal = reader.GetValue();
@@ -4380,6 +4506,15 @@
 					return EExtrusionType.extrusiontypePerspective;
 			}
 			return EExtrusionType.extrusiontypeParallel;
+		}
+		function getExtrusionType(nType) {
+			switch (nType) {
+				case EExtrusionType.extrusiontypeParallel:
+					return "parallel";
+				case EExtrusionType.extrusiontypePerspective:
+					return "extrusiontypeParallel";
+			}
+			return null;
 		}
 
 
@@ -4419,6 +4554,30 @@
 					return EFillType.filltypeTile;
 			}
 			return EFillType.filltypeSolid;
+		}
+
+		function getFillType(nType) {
+			switch (nType) {
+				case EFillType.filltypeBackground:
+					return "background";
+				case EFillType.filltypeFrame:
+					return "frame";
+				case EFillType.filltypeGradient:
+					return "gradient";
+				case EFillType.filltypeGradientCenter:
+					return "gradientCenter";
+				case EFillType.filltypeGradientRadial:
+					return "gradientRadial";
+				case EFillType.filltypeGradientUnscaled:
+					return "gradientUnscaled";
+				case EFillType.filltypePattern:
+					return "pattern";
+				case EFillType.filltypeSolid:
+					return "solid";
+				case EFillType.filltypeTile:
+					return "tile";
+			}
+			return null;
 		}
 
 
@@ -4749,6 +4908,24 @@
 			}
 		}
 
+		function getConnectType(nType) {
+			switch (nType) {
+				case EConnectType.connecttypeCustom: {
+					return "custom";
+				}
+				case EConnectType.connecttypeNone: {
+					return "none";
+				}
+				case EConnectType.connecttypeRect: {
+					return "rect";
+				}
+				case EConnectType.connecttypeSegments: {
+					return "segments";
+				}
+			}
+			return null;
+		}
+
 
 		let EShadowType =
 			{
@@ -4776,6 +4953,24 @@
 				}
 			}
 			return EShadowType.shadowtypeSingle;
+		}
+
+		function getShadowType(nType) {
+			switch (nType) {
+				case EShadowType.shadowtypeDouble : {
+					return "double";
+				}
+				case EShadowType.shadowtypeEmboss: {
+					return "emboss";
+				}
+				case EShadowType.shadowtypePerspective: {
+					return "perspective";
+				}
+				case  EShadowType.shadowtypeSingle: {
+					return "single";
+				}
+			}
+			return null;
 		}
 
 
@@ -4811,6 +5006,20 @@
 			return EVmlDashStyle.vmldashstyleSolid;
 		}
 
+		function getDashStyle(nType) {
+			if (EVmlDashStyle.vmldashstyleSolid === nType) return "solid";
+			else if (EVmlDashStyle.vmldashstyleShortDash === nType) return "shortdash";
+			else if (EVmlDashStyle.vmldashstyleShortDot === nType) return "shortdot";
+			else if (EVmlDashStyle.vmldashstyleShortDashDot === nType) return "shortdashdot";
+			else if (EVmlDashStyle.vmldashstyleShortDashDotDot === nType) return "shortdashdotdot";
+			else if (EVmlDashStyle.vmldashstyleDot === nType) return "dot";
+			else if (EVmlDashStyle.vmldashstyleDash === nType) return "dash";
+			else if (EVmlDashStyle.vmldashstyleDashDot === nType) return "dashdot";
+			else if (EVmlDashStyle.vmldashstyleLongDash === nType) return "longdash";
+			else if (EVmlDashStyle.vmldashstyleLongDashDot === nType) return "longdashdot";
+			else if (EVmlDashStyle.vmldashstyleLongDashDotDot === nType) return "longdashdotdot";
+			return null;
+		}
 
 		let EStrokeArrowLength =
 			{
@@ -4824,7 +5033,14 @@
 			if ("long" === sValue) return EStrokeArrowLength.strokearrowlengthLong;
 			else if ("medium" === sValue) return EStrokeArrowLength.strokearrowlengthMedium;
 			else if ("short" === sValue) return EStrokeArrowLength.strokearrowlengthShort;
-			return EStrokeArrowLength.strokearrowlengthMedium
+			return EStrokeArrowLength.strokearrowlengthMedium;
+		}
+
+		function getArrowLength(nType) {
+			if (EStrokeArrowLength.strokearrowlengthLong === nType) return "long";
+			else if (EStrokeArrowLength.strokearrowlengthMedium === nType) return "medium";
+			else if (EStrokeArrowLength.strokearrowlengthShort=== nType) return "short";
+			return null;
 		}
 
 
@@ -4849,6 +5065,17 @@
 			return EStrokeArrowType.strokearrowtypeNone;
 		}
 
+		function getArrowType(nType) {
+			if (EStrokeArrowType.strokearrowtypeBlock === nType) return "block";
+			else if (EStrokeArrowType.strokearrowtypeClassic === nType) return "classic";
+			else if (EStrokeArrowType.strokearrowtypeDiamond === nType) return "diamond";
+			else if (EStrokeArrowType.strokearrowtypeNone === nType) return "none";
+			else if (EStrokeArrowType.strokearrowtypeOpen === nType) return "open";
+			else if (EStrokeArrowType.strokearrowtypeOval === nType) return "oval";
+			return null;
+		}
+
+
 
 		let EStrokeArrowWidth =
 			{
@@ -4863,6 +5090,12 @@
 			else if ("narrow" === sValue) return EStrokeArrowWidth.strokearrowwidthNarrow;
 			else if ("wide" === sValue) return EStrokeArrowWidth.strokearrowwidthWide;
 			return EStrokeArrowWidth.strokearrowwidthMedium;
+		}
+		function getArrowWidth(nType) {
+			if (EStrokeArrowWidth.strokearrowwidthMedium === nType) return "medium";
+			else if (EStrokeArrowWidth.strokearrowwidthNarrow === nType) return "narrow";
+			else if (EStrokeArrowWidth.strokearrowwidthWide === nType) return "wide";
+			return null;
 		}
 
 
@@ -4882,6 +5115,12 @@
 			else if ("square" === sValue) return EStrokeEndCap.strokeendcapSqaure;
 			return EStrokeEndCap.strokeendcapRound;
 		}
+		function getEndCap(nType) {
+			if (EStrokeEndCap.strokeendcapFlat === nType) return "flat";
+			else if (EStrokeEndCap.strokeendcapRound === nType) return "round";
+			else if (EStrokeEndCap.strokeendcapSqaure === nType) return "square";
+			return null;
+		}
 
 
 		let EStrokeJoinStyle =
@@ -4897,6 +5136,12 @@
 			else if ("miter" === sValue) return EStrokeJoinStyle.strokejoinstyleMiter;
 			else if ("bevel" === sValue) return EStrokeJoinStyle.strokejoinstyleBevel;
 			return EStrokeJoinStyle.strokejoinstyleRound;
+		}
+		function getJoinStyle(nType) {
+			if (EStrokeJoinStyle.strokejoinstyleRound === nType) return "round";
+			else if (EStrokeJoinStyle.strokejoinstyleMiter === nType) return "miter";
+			else if (EStrokeJoinStyle.strokejoinstyleBevel === nType) return "bevel";
+			return null;
 		}
 
 
@@ -4919,6 +5164,15 @@
 			return EStrokeLineStyle.strokelinestyleSingle;
 		}
 
+		function getLineStyle(nType) {
+			if (EStrokeLineStyle.strokelinestyleSingle === nType) return "single";
+			else if (EStrokeLineStyle.strokelinestyleThickBetweenThin === nType) return "thickBetweenThin";
+			else if (EStrokeLineStyle.strokelinestyleThickThin === nType) return "thickThin";
+			else if (EStrokeLineStyle.strokelinestyleThinThick === nType) return "thinThick";
+			else if (EStrokeLineStyle.strokelinestyleThinThin === nType) return "thinThin";
+			return null;
+		}
+
 
 		let EImageAspect =
 			{
@@ -4933,6 +5187,13 @@
 			else if ("atMost" === sValue) return EImageAspect.imageaspectAtMost;
 			else if ("ignore" === sValue) return EImageAspect.imageaspectIgnore;
 			return EImageAspect.imageaspectIgnore;
+		}
+
+		function getImageAspect(nType) {
+			if (EImageAspect.imageaspectAtLeast === nType) return "atLeast";
+			else if (EImageAspect.imageaspectAtMost === nType) return "atMost";
+			else if (EImageAspect.imageaspectIgnore === nType) return "ignore";
+			return null;
 		}
 
 
@@ -5917,6 +6178,37 @@
 			return EBorderType.bordertypeNone;
 		}
 
+		function getBorderType(nType) {
+			if (EBorderType.bordertypeDash === nType) return "dash";
+			else if (EBorderType.bordertypeDashDotDot === nType) return "dashDotDot";
+			else if (EBorderType.bordertypeDashDotStroked === nType) return "dashDotStroked";
+			else if (EBorderType.bordertypeDashedSmall === nType) return "dashedSmall";
+			else if (EBorderType.bordertypeDot === nType) return "dot";
+			else if (EBorderType.bordertypeDotDash === nType) return "dotDash";
+			else if (EBorderType.bordertypeDouble === nType) return "double";
+			else if (EBorderType.bordertypeDoubleWave === nType) return "doubleWave";
+			if (EBorderType.bordertypeHairline === nType) return "hairline";
+			if (EBorderType.bordertypeHTMLInset === nType) return "HTMLInset";
+			else if (EBorderType.bordertypeHTMLOutset === nType) return "HTMLOutset";
+			if (EBorderType.bordertypeNone === nType) return ("none");
+			if (EBorderType.bordertypeSingle === nType) return ("single");
+			if (EBorderType.bordertypeThick === nType) return "thick";
+			else if (EBorderType.bordertypeThickBetweenThin === nType) return ("thickBetweenThin");
+			else if (EBorderType.bordertypeThickBetweenThinLarge === nType) return ("thickBetweenThinLarge");
+			else if (EBorderType.bordertypeThickBetweenThinSmall === nType) return "thickBetweenThinSmall";
+			else if (EBorderType.bordertypeThickThin === nType) return ("thickThin");
+			else if (EBorderType.bordertypeThickThinLarge === nType) return ("thickThinLarge");
+			else if (EBorderType.bordertypeThickThinSmall === nType) return ("thickThinSmall");
+			else if (EBorderType.bordertypeThinThick === nType) return ("thinThick");
+			else if (EBorderType.bordertypeThinThickLarge === nType) return ("thinThickLarge");
+			else if (EBorderType.bordertypeThinThickSmall === nType) return ("thinThickSmall");
+			else if (EBorderType.bordertypeThreeDEmboss === nType) return ("threeDEmboss");
+			else if (EBorderType.bordertypeThreeDEngrave === nType) return ("threeDEngrave");
+			else if (EBorderType.bordertypeTriple === nType) return ("triple");
+			if (EBorderType.bordertypeWave === nType) return ("wave");
+			return null;
+		}
+
 		let EBorderShadow =
 			{
 				bordershadowFalse: 0,
@@ -5946,6 +6238,14 @@
 			if ("right" === sValue) return EWrapSide.wrapsideRight;
 		}
 
+		function getWrpapSide(nType) {
+			if (EWrapSide.wrapsideBoth === nType) return "both";
+			if ( EWrapSide.wrapsideLargest === nType) return "largest";
+			if (EWrapSide.wrapsideLeft === nType) return "left";
+			if (EWrapSide.wrapsideRight === nType) return "right";
+			return null;
+		}
+
 		let EVerticalAnchor =
 			{
 				verticalanchorLine: 0,
@@ -5962,15 +6262,30 @@
 			if (sVal === "text") return EVerticalAnchor.verticalanchorText;
 			return EVerticalAnchor.verticalanchorLine;
 		}
+		function getVerticalAnchor(nType) {
+			if (nType === EVerticalAnchor.verticalanchorLine) return "line";
+			if (nType === EVerticalAnchor.verticalanchorMargin) return "margin";
+			if (nType === EVerticalAnchor.verticalanchorPage) return "page";
+			if (nType === EVerticalAnchor.verticalanchorText) return "text";
+			return null;
+		}
 
 		function readHorizontalAnchor(reader) {
 			let sVal = reader.GetValue();
-			if (sVal === "line") return EHorizontalAnchor.horizontalanchorChar;
+			if (sVal === "char") return EHorizontalAnchor.horizontalanchorChar;
 			if (sVal === "margin") return EHorizontalAnchor.horizontalanchorMargin;
 			if (sVal === "page") return EHorizontalAnchor.horizontalanchorPage;
 			if (sVal === "text") return EHorizontalAnchor.horizontalanchorText;
-			return EHorizontalAnchor.horizontalanchorChar;
+			return null;
 		}
+		function getHorizontalAnchor(nType) {
+			if (nType === EHorizontalAnchor.horizontalanchorChar) return "char";
+			if (nType === EHorizontalAnchor.horizontalanchorMargin) return "margin";
+			if (nType === EHorizontalAnchor.horizontalanchorPage) return "page";
+			if (nType === EHorizontalAnchor.horizontalanchorText) return "text";
+			return null;
+		}
+
 
 
 		let EHorizontalAnchor =
@@ -6000,6 +6315,15 @@
 			if (sVal === "topAndBottom") return EWrapType.wraptypeTopAndBottom;
 			return EWrapType.wraptypeNone;
 		}
+		function getWrapType(nType) {
+			if (nType === EWrapType.wraptypeNone) return "none";
+			if (nType === EWrapType.wraptypeSquare) return "square";
+			if (nType === EWrapType.wraptypeThrough) return "through";
+			if (nType === EWrapType.wraptypeTight) return "tight";
+			if (nType === EWrapType.wraptypeTopAndBottom) return "topAndBottom";
+			return null;
+		}
+
 
 
 		let EVmlClientDataObjectType =
@@ -6047,6 +6371,28 @@
 			else if (("Shape") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeShape;
 			else if (("Spin") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeSpin;
 			return EVmlClientDataObjectType.vmlclientdataobjecttypeButton;
+		}
+		function getClientDataObjectType(nType) {
+			if (EVmlClientDataObjectType.vmlclientdataobjecttypeButton === nType) return ("Button");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeCheckbox === nType) return ("Checkbox");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeDialog === nType) return ("Dialog");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeDrop === nType) return ("Drop");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeEdit === nType) return ("Edit");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeGBox === nType) return ("GBox");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeGroup === nType) return ("Group");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeLabel === nType) return ("Label");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeLineA === nType) return ("LineA");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeList === nType) return ("List");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeMovie === nType) return ("Movie");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeNote === nType) return ("Note");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypePict === nType) return ("Pict");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeRadio === nType) return ("Radio");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeRect === nType) return ("Rect");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeRectA === nType) return ("RectA");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeScroll === nType) return ("Scroll");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeShape === nType) return ("Shape");
+			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeSpin === nType) return ("Spin");
+			return null;
 		}
 
 		window['AscFormat'].CVMLDrawing = CVMLDrawing;
