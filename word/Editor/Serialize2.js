@@ -2708,6 +2708,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			default: val = 13; break;
 		}
 		this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(val);});
+		// this.bs.WriteItem(c_oSerNumTypes.NumFmtFormat, function () {oThis.memory.WriteString3(val);});
 	};
     this.WritePageSize = function(sectPr, oDocument)
     {
@@ -9551,6 +9552,8 @@ function Binary_pPrReader(doc, oReadResult, stream)
 				props.SetFormat(nFormat);
 			else
 				props.Format = nFormat;
+		} else if (c_oSerNumTypes.NumFmtFormat === type) {
+			var sFormat = this.stream.GetString2LE(length);
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
