@@ -60,6 +60,18 @@
 				reader = new StaxParser(numberingContent, numberingPart, context);
 				this.Numbering.fromXml(reader);
 			}
+			let footnotesPart = documentPart.getPartByRelationshipType(openXml.Types.footnotes.relationType);
+			if (footnotesPart) {
+				let footnotesContent = footnotesPart.getDocumentContent();
+				reader = new StaxParser(footnotesContent, footnotesPart, context);
+				this.Footnotes.fromXml(reader);
+			}
+			let endnotesPart = documentPart.getPartByRelationshipType(openXml.Types.endnotes.relationType);
+			if (endnotesPart) {
+				let endnotesContent = endnotesPart.getDocumentContent();
+				reader = new StaxParser(endnotesContent, endnotesPart, context);
+				this.Endnotes.fromXml(reader);
+			}
 		}
 
 		var contentDocument = documentPart.getDocumentContent();
@@ -1890,6 +1902,9 @@
 		writer.WriteXmlAttributesEnd(true);
 	};
 	ParaRun.prototype.fromXml = function(reader) {
+		let oReadResult = reader.context.oReadResult;
+		let footnotes = oReadResult.footnotes;
+		let endnotes = oReadResult.endnotes;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -1973,12 +1988,26 @@
 				case "endnoteRef":
 					break;
 				case "endnoteReference":
+					let ftnRef = new CT_FtnEdnRef();
+					ftnRef.fromXml(reader);
+					var endnote = endnotes[ftnRef.id];
+					if (endnote) {
+						oReadResult.logicDocument.Footnotes.AddFootnote(endnote.content);
+						newItem = new ParaFootnoteReference(endnote.content, ftnRef.customMarkFollows);
+					}
 					break;
 				case "fldChar":
 					break;
 				case "footnoteRef":
 					break;
 				case "footnoteReference":
+					let ednRef = new CT_FtnEdnRef();
+					ednRef.fromXml(reader);
+					var footnote = footnotes[ednRef.id];
+					if (footnote) {
+						oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
+						newItem = new ParaFootnoteReference(footnote.content, ednRef.customMarkFollows);
+					}
 					break;
 				case "instrText":
 					break;
@@ -3838,7 +3867,117 @@
 		});
 		writer.WriteXmlNodeEnd(name);
 	};
+//footnote/endnote
+	CFootnotesController.prototype.fromXml = function(reader) {
+		var name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("footnotes" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("footnotes" === name) {
+			let elem, depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				switch (reader.GetNameNoNS()) {
+					case "footnote" : {
+						elem = new CFootEndnote(this);
+						elem.fromXml(reader, reader.context.oReadResult.footnotes);
+						break;
+					}
+				}
+			}
+		}
+	};
+	CFootnotesController.prototype.toXml = function(writer, name) {
+		var name = "w:footnotes";
 
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlFootnotesEndnotesNamespaces);
+		writer.WriteXmlAttributesEnd();
+		this.Content.Content.forEach(function(item) {
+			CDocument.prototype.toXmlDocContentElem(writer, item);
+		});
+		writer.WriteXmlNodeEnd(name);
+	};
+	CEndnotesController.prototype.fromXml = function(reader) {
+		var name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("endnotes" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("endnotes" === name) {
+			let elem, depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				switch (reader.GetNameNoNS()) {
+					case "endnote" : {
+						elem = new CFootEndnote(this);
+						elem.fromXml(reader, reader.context.oReadResult.endnotes);
+						break;
+					}
+				}
+			}
+		}
+	};
+	CEndnotesController.prototype.toXml = function(writer, name) {
+		var name = "w:endnotes";
+
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlFootnotesEndnotesNamespaces);
+		writer.WriteXmlAttributesEnd();
+		this.Content.Content.forEach(function(item) {
+			CDocument.prototype.toXmlDocContentElem(writer, item);
+		});
+		writer.WriteXmlNodeEnd(name);
+	};
+	CFootEndnote.prototype.readAttr = function(reader, note) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "type": {
+					note.type = fromXml_ST_FtnEdn(reader.GetValue(), note.type);
+					break;
+				}
+				case "id": {
+					note.id = reader.GetValueInt(note.id);
+					break;
+				}
+			}
+		}
+	};
+	CFootEndnote.prototype.fromXml = function(reader, notes) {
+		let note = {id: null, type: null, content: this};
+		this.readAttr(reader, note);
+		var Content = [];
+		CDocument.prototype.fromXmlDocContent(reader, Content, this.DrawingDocument, this);
+		if (Content.length > 0) {
+			this.ReplaceContent(Content);
+		}
+		if (null !== note.id && null !== note.content) {
+			notes[note.id] = note;
+		}
+	};
+	CFootEndnote.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_FtnEdn(this.Type));
+		writer.WriteXmlNullableAttributeInt("w:id", this.Id);
+		writer.WriteXmlAttributesEnd();
+		this.Content.forEach(function(item) {
+			CDocument.prototype.toXmlDocContentElem(writer, item);
+		});
+		writer.WriteXmlNodeEnd(name);
+	};
 //drawing
 	ParaDrawing.prototype.fromXml = function(reader) {
 		var elem, depth = reader.GetDepth();
@@ -5063,6 +5202,34 @@
 		// writer.WriteXmlNullable(this.ExtLst, "w:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
+	function CT_FtnEdnRef() {
+		this.customMarkFollows = undefined;
+		this.id = undefined;
+	}
+	CT_FtnEdnRef.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "customMarkFollows": {
+					this.customMarkFollows = reader.GetValueBool();
+					break;
+				}
+				case "id": {
+					this.id = reader.GetValueInt(this.id);
+					break;
+				}
+			}
+		}
+	};
+	CT_FtnEdnRef.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_FtnEdnRef.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:customMarkFollows", this.customMarkFollows);
+		writer.WriteXmlNullableAttributeInt("w:id", this.id);
+		writer.WriteXmlAttributesEnd(true);
+	};
 	//enums
 	function fromXml_ST_Border(val) {
 		switch (val) {
@@ -6054,6 +6221,34 @@
 				return "distribute";
 			// case AscCommon.align_CenterContinuous:
 			// 	return "distribute";
+		}
+		return null;
+	}
+
+	function fromXml_ST_FtnEdn(val, def) {
+		//todo constants
+		switch (val) {
+			case "normal":
+				return 2;
+			case "separator":
+				return 3;
+			case "continuationSeparator":
+				return 1;
+			case "continuationNotice":
+				return 0;
+		}
+		return def;
+	}
+	function toXml_ST_FtnEdn(val) {
+		switch (val) {
+			case 2:
+				return "normal";
+			case 3:
+				return "separator";
+			case 1:
+				return "continuationSeparator";
+			case 0:
+				return "continuationNotice";
 		}
 		return null;
 	}
