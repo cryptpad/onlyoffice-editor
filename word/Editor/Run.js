@@ -3194,6 +3194,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	this.TextDescent = oMetrics.Descent;
 	this.TextAscent  = oMetrics.Ascent + oMetrics.LineGap;
 	this.TextAscent2 = oMetrics.Ascent;
+	this.YOffset     = oTextPr.Position;
 
 	var oInfoMathText;
 	if (isMathRun)
