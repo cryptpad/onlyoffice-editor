@@ -1825,6 +1825,8 @@ ParaTab.prototype.Draw = function(X, Y, Context)
 };
 ParaTab.prototype.Measure = function(Context)
 {
+	Context.SetFontSlot(fontslot_ASCII, 1);
+	
 	this.DotWidth        = Context.Measure(".").Width;
 	this.UnderscoreWidth = Context.Measure("_").Width;
 	this.HyphenWidth     = Context.Measure("-").Width * 1.5;
