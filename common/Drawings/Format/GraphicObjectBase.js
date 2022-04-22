@@ -892,7 +892,7 @@
         return this.getObjectType() === AscDFH.historyitem_type_Shape &&
             !this.isPlaceholder() &&
             this.getNoEditPoints() !== true &&
-            !!(this.spPr && this.spPr.geometry);
+            !!(this.spPr && this.spPr.geometry) && !(this.isObjectInSmartArt()); // todo: functionality not available in microsoft for smartart shapes, but the OOX format supports it, currently blocked due to resizing blocking
     };
     CGraphicObjectBase.prototype.canRotate = function() {
         if(!this.canEdit()) {
@@ -2737,13 +2737,24 @@
         }
     };
 
+    CGraphicObjectBase.prototype.changePositionInSmartArt = function (newX, newY) {}
+
     CGraphicObjectBase.prototype.changeRot = function(dAngle, bWord) {
+        var oSmartArt;
+        if (this.isObjectInSmartArt()) {
+            oSmartArt = this.group.group;
+            if (this.extX > oSmartArt.extX || this.extY > oSmartArt.extY || this.extX > oSmartArt.extY || this.extY > oSmartArt.extX) {
+                return;
+            }
+        }
+
         if(this.spPr && this.spPr.xfrm) {
             var oXfrm = this.spPr.xfrm;
             var originalRot = oXfrm.rot || 0;
             var dRot = AscFormat.normalizeRotate(dAngle);
             oXfrm.setRot(dRot);
             if(this.isObjectInSmartArt()) {
+                oSmartArt = this.group.group;
                 var point = this.getSmartArtShapePoint();
                 if (point) {
                     var prSet = point.getPrSet();
@@ -2768,12 +2779,19 @@
                 }
                 this.recalculate();
                 var oBounds = this.bounds;
-                var oSmartArt = this.group.group;
                 var diffX = null, diffY = null;
                 var leftEdgeOfSmartArt = oSmartArt.x;
                 var topEdgeOfSmartArt = oSmartArt.y;
                 var rightEdgeOfSmartArt = oSmartArt.x + oSmartArt.extX;
                 var bottomEdgeOfSmartArt = oSmartArt.y + oSmartArt.extY;
+                if (bWord) {
+                    oBounds = {
+                        l: oBounds.l + leftEdgeOfSmartArt,
+                        r: oBounds.r + leftEdgeOfSmartArt,
+                        t: oBounds.t + topEdgeOfSmartArt,
+                        b: oBounds.b + topEdgeOfSmartArt
+                    };
+                }
                 if(oBounds.r > rightEdgeOfSmartArt) {
                     diffX = rightEdgeOfSmartArt - oBounds.r;
                 }
@@ -2786,8 +2804,6 @@
                 if(oBounds.t < topEdgeOfSmartArt) {
                     diffY = topEdgeOfSmartArt - oBounds.t;
                 }
-                var originalPosX = this.spPr.xfrm.offX;
-                var originalPosY = this.spPr.xfrm.offY;
 
                 if(diffX !== null) {
                     var newOffX = this.spPr.xfrm.offX + diffX;
@@ -2802,28 +2818,7 @@
 
                 var posX = this.spPr.xfrm.offX;
                 var posY = this.spPr.xfrm.offY;
-                var defaultExtX = this.extX;
-                var defaultExtY = this.extY;
-                if (prSet) {
-                    if (prSet.custScaleX) {
-                        defaultExtX /= prSet.custScaleX;
-                    }
-                    if (prSet.custScaleY) {
-                        defaultExtY /= prSet.custScaleY;
-                    }
-                    if (prSet.custLinFactNeighborX) {
-                        originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
-                    }
-                    if (prSet.custLinFactNeighborY) {
-                        originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
-                    }
-                    if (posX !== this.x) {
-                        prSet.setCustLinFactNeighborX(((posX - originalPosX) / defaultExtX));
-                    }
-                    if (posY !== this.y) {
-                        prSet.setCustLinFactNeighborY(((posY - originalPosY) / defaultExtY));
-                    }
-                }
+                this.changePositionInSmartArt(posX, posY);
             }
         }
     };

@@ -2096,7 +2096,8 @@ CShape.prototype.setVertOverflowType = function(type)
 };
 
 
-CShape.prototype.setPaddings = function (paddings) {
+CShape.prototype.setPaddings = function (paddings, props) {
+    props = props || {};
     if (paddings) {
         var new_body_pr = this.getBodyPr();
         if (new_body_pr) {
@@ -2124,7 +2125,7 @@ CShape.prototype.setPaddings = function (paddings) {
                     this.txBody.setBodyPr(new_body_pr);
                 }
             }
-            if (this.isObjectInSmartArt()) {
+            if (this.isObjectInSmartArt() && !props.bNotCopyToPoints) {
                 this.copyTextInfoFromShapeToPoint(paddings);
             }
         }
@@ -2944,14 +2945,11 @@ CShape.prototype.getProtectionLockText = function () {
     return this.fLocksText !== false;
 };
 
-CShape.prototype.isProtectInputInSmartArt = function() {
-    return this.isObjectInSmartArt() && !this.isPlaceholderInSmartArt();
-    };
-
 CShape.prototype.canEditTextInSmartArt = function () {
     if (this.isObjectInSmartArt()) {
         var pointContent = this.getSmartArtPointContent();
-        return  pointContent && pointContent.length !== 0;
+        var shapePoint = this.getSmartArtShapePoint();
+        return  !!(pointContent && pointContent.length !== 0 && !shapePoint.isBlipFillPlaceholder());
     }
 }
 
@@ -4545,13 +4543,48 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
     };
 
     CShape.prototype.setFontSizeInSmartArt = function (fontSize) {
+        let currentFontSize;
         if (this.txBody && this.txBody.content) {
             this.txBody.content.CheckRunContent(function (paraRun) {
+                if (!currentFontSize) {
+                    currentFontSize = paraRun.Get_FontSize();
+                }
                 paraRun.Set_FontSize(fontSize);
             });
             this.txBody.content.Content.forEach(function (paragraph) {
+                if (!currentFontSize) {
+                    currentFontSize = paragraph.TextPr.Value.FontSize;
+                }
                 paragraph.TextPr.Set_FontSize(fontSize);
             });
+            const oBodyPr = this.getBodyPr && this.getBodyPr();
+            if (oBodyPr) {
+                const paddings = {};
+                const pointContent = this.getSmartArtPointContent();
+                const point = pointContent && pointContent[0];
+                if (point) {
+                    const isRecalculateInsets = point.isRecalculateInsets();
+                    if (isRecalculateInsets.Top) {
+                        const tInsetPerPt = oBodyPr.tIns / currentFontSize;
+                        paddings.Top = tInsetPerPt * fontSize;
+                    }
+                    if (isRecalculateInsets.Bottom) {
+                        const bInsetPerPt = oBodyPr.bIns / currentFontSize;
+                        paddings.Bottom = bInsetPerPt * fontSize;
+                    }
+                    if (isRecalculateInsets.Left) {
+                        const lInsetPerPt = oBodyPr.lIns / currentFontSize;
+                        paddings.Left = lInsetPerPt * fontSize;
+                    }
+                    if (isRecalculateInsets.Right) {
+                        const rInsetPerPt = oBodyPr.rIns / currentFontSize;
+                        paddings.Right = rInsetPerPt * fontSize;
+                    }
+                }
+                // In files layout.xml insets depend on font size.
+                // While there is no recalculation, we consider new insets as a dependency on the previous font size.
+                this.setPaddings(paddings, {bNotCopyToPoints: true});
+            }
             this.recalculateContentWitCompiledPr();
         }
     };
@@ -4649,60 +4682,38 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         };
     };
 
-    CShape.prototype.getFCompareHeightOfBoundsTextInSmartArt = function (height, width) {
-        const _this = this;
+    CShape.prototype.compareHeightOfBoundsTextInSmartArt = function () {
+        const sizesOfTextRectContent = this.getTextRectContentHW();
         const vert = this.txBody && this.txBody.bodyPr.vert;
-        let fCheckHeight;
-        if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert) {
-            fCheckHeight = function () {
-                return _this.contentHeight > width;
-            };
-        } else {
-            fCheckHeight = function () {
-                return _this.contentHeight > height;
-            };
-        }
-        return fCheckHeight;
-    };
 
+        if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert) {
+            return this.contentHeight > sizesOfTextRectContent.width;
+        }
+        return this.contentHeight > sizesOfTextRectContent.height;
+    };
     CShape.prototype.findFitFontSizeForSmartArt = function () {
         const MAX_FONT_SIZE = 65;
 
         const content = this.getCurrentDocContentInSmartArt();
-        const sizesOfTextRectContent = this.getTextRectContentHW();
-        const fCheckHeight = this.getFCompareHeightOfBoundsTextInSmartArt(sizesOfTextRectContent.height, sizesOfTextRectContent.width);
-
-        if (content && fCheckHeight) {
+        if (content) {
             const scalesForSmartArt = Array((MAX_FONT_SIZE - 4) > 0 ? MAX_FONT_SIZE - 4 : 1).fill(0).map(function (e, ind) {
                 return ind + 5;
             });
-
             let a = 0;
             let b = scalesForSmartArt.length - 1;
             let averageAmount = Math.floor((a + b) / 2);
 
-            this.setFontSizeInSmartArt(scalesForSmartArt[b]);
-            if (content.RecalculateMinMaxContentWidth().Min > this.contentWidth || fCheckHeight()) {
-
-                while (true) {
-                    this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                    if (content.RecalculateMinMaxContentWidth().Min > this.contentWidth || fCheckHeight()) {
-                        b = averageAmount;
-                        averageAmount = Math.floor((a + b) / 2);
-                    } else {
-                        a = averageAmount;
-                        averageAmount = Math.floor((a + b) / 2);
-                    }
-                    if (a === averageAmount || b === averageAmount) {
-                        break;
-                    }
-                }
-
+            while (a !== averageAmount && b !== averageAmount) {
                 this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                return scalesForSmartArt[averageAmount];
-            } else {
-                return scalesForSmartArt[b];
+                if (content.RecalculateMinMaxContentWidth().Min > this.contentWidth || this.compareHeightOfBoundsTextInSmartArt()) {
+                    b = averageAmount;
+                } else {
+                    a = averageAmount;
+                }
+                averageAmount = Math.floor((a + b) / 2);
             }
+            this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
+            return scalesForSmartArt[averageAmount];
         }
         return MAX_FONT_SIZE;
     };
@@ -5985,6 +5996,67 @@ CShape.prototype.getAllDocContents = function(aDocContents)
 {
     if(this.textBoxContent){
         aDocContents.push(this.textBoxContent);
+    }
+};
+
+CShape.prototype.changePositionInSmartArt = function (newX, newY) {
+    if (this.isObjectInSmartArt()) {
+        var point = this.getSmartArtShapePoint();
+        if (point) {
+            var prSet = point.getPrSet();
+            if (prSet) {
+                var originalPosX;
+                var originalPosY;
+                var defaultExtX;
+                var defaultExtY;
+                var isNormalRotate = AscFormat.checkNormalRotate(this.getDefaultRotSA());
+                if (isNormalRotate) {
+                    originalPosX = this.x;
+                    originalPosY = this.y;
+                    defaultExtX = this.extX;
+                    defaultExtY = this.extY;
+                } else {
+                    originalPosX = this.x + (this.extX - this.extY) / 2;
+                    originalPosY = this.y + (this.extY - this.extX) / 2;
+                    defaultExtX = this.extY;
+                    defaultExtY = this.extX;
+                }
+
+
+                if (prSet) {
+                    if (prSet.custScaleX) {
+                        defaultExtX /= prSet.custScaleX;
+                    }
+                    if (prSet.custScaleY) {
+                        defaultExtY /= prSet.custScaleY;
+                    }
+                    if (prSet.custLinFactNeighborX) {
+                        originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
+                    }
+                    if (prSet.custLinFactNeighborY) {
+                        originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
+                    }
+                    if (prSet.custLinFactX) {
+                        originalPosX -= (prSet.custLinFactX) * defaultExtX;
+                    }
+                    if (prSet.custLinFactY) {
+                        originalPosY -= (prSet.custLinFactY) * defaultExtY;
+                    }
+                    if (this.x !== newX) {
+                        if (prSet.custLinFactNeighborX) {
+                            prSet.setCustLinFactNeighborX(null);
+                        }
+                        prSet.setCustLinFactX(((newX - originalPosX) / defaultExtX));
+                    }
+                    if (this.y !== newY) {
+                        if (prSet.custLinFactNeighborY) {
+                            prSet.setCustLinFactNeighborY(null);
+                        }
+                        prSet.setCustLinFactY(((newY - originalPosY) / defaultExtY));
+                    }
+                }
+            }
+        }
     }
 };
 

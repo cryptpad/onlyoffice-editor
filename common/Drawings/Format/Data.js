@@ -1657,6 +1657,28 @@ Because of this, the display is sometimes not correct.
       }
     }
 
+    Point.prototype.isRecalculateInsets = function () {
+      const insets = {Top: true, Bottom: true, Left: true, Right: true};
+      if (this.t) {
+        var bodyPr = this.t.bodyPr;
+        if (bodyPr) {
+          if (AscFormat.isRealNumber(bodyPr.tIns)) {
+            insets.Top = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.bIns)) {
+            insets.Bottom = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.lIns)) {
+            insets.Left = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.rIns)) {
+            insets.Right = false;
+          }
+        }
+      }
+      return insets;
+    }
+
     Point.prototype.setType = function (pr) {
       oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PointType, this.getType(), pr));
       this.type = pr;
@@ -2356,8 +2378,8 @@ Because of this, the display is sometimes not correct.
       else if (6 === nType) this.setCustFlipVert(oStream.GetBool());
       else if (7 === nType) this.setCustLinFactNeighborX(oStream.GetLong() / 100000);
       else if (8 === nType) this.setCustLinFactNeighborY(oStream.GetLong() / 100000);
-      else if (9 === nType) this.setCustLinFactX(oStream.GetLong());
-      else if (10 === nType) this.setCustLinFactY(oStream.GetLong());
+      else if (9 === nType) this.setCustLinFactX(oStream.GetLong() / 100000);
+      else if (10 === nType) this.setCustLinFactY(oStream.GetLong() / 100000);
       else if (11 === nType) this.setCustRadScaleInc(oStream.GetLong());
       else if (12 === nType) this.setCustRadScaleRad(oStream.GetLong());
       else if (13 === nType) this.setCustScaleX(oStream.GetLong() / 100000);
