@@ -3124,6 +3124,9 @@ CInlineLevelSdt.prototype.TrimCombForm = function()
 	if (!oTextFormPr || !oTextFormPr.IsComb())
 		return;
 
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
 	let nMax = oTextFormPr.GetMaxCharacters();
 
 	let oRun = this.MakeSingleRunElement(false);
