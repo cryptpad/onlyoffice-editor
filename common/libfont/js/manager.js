@@ -109,6 +109,17 @@
 
                         font.m_lLineHeight = (face.os2.usWinAscent + face.os2.usWinDescent);
                     }
+
+					// Normalize metrics for CJK fonts
+					if (_os2 && (_os2.ulUnicodeRange2 & 0x2DF00000 || _os.ulCodePageRange1 & 0x3e0000))
+					{
+						let nAscent  = font.m_lAscender;
+						let nDescent = font.m_lDescender;
+
+						font.m_lLineHeight = (nAscent + nDescent) * 1.3;
+						font.m_lDescender  = (nAscent + nDescent) * 0.15 + nDescent;
+						font.m_lAscender   = font.m_lLineHeight - font.m_lDescender;
+					}
                 }
             }
 

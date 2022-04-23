@@ -15110,18 +15110,6 @@ CTextMetrics.prototype.Update = function(fontName, fontSlot)
 	let _nAscent  = Math.min(nAscent, nHeight - nDescent);
 	let _nLineGap = Math.max(0, nHeight - nAscent - nDescent);
 
-	if (AscCommon.IsEastAsianFont(fontName))
-	{
-		let nHeightEA = (nAscent + nDescent) * 1.3;
-		if (nHeightEA > nHeight)
-		{
-			_nHeight  = nHeightEA;
-			_nDescent = (nAscent + nDescent) * 0.15 + nDescent;
-			_nAscent  = nHeightEA - _nDescent;
-			_nLineGap = 0;
-		}
-	}
-
 	if (this.Height < _nHeight)
 		this.Height = _nHeight;
 
