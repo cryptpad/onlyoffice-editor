@@ -116,8 +116,8 @@
 						let nAscent  = font.m_lAscender;
 						let nDescent = font.m_lDescender;
 
-						font.m_lLineHeight = (nAscent + nDescent) * 1.3;
-						font.m_lDescender  = (nAscent + nDescent) * 0.15 + nDescent;
+						font.m_lLineHeight = ((nAscent - nDescent) * 1.3) | 0;
+						font.m_lDescender  = (nDescent - (nAscent - nDescent) * 0.15) | 0;
 						font.m_lAscender   = font.m_lLineHeight - font.m_lDescender;
 					}
                 }
