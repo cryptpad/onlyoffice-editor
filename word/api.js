@@ -9343,8 +9343,10 @@ background-repeat: no-repeat;\
 
 		if (oContentControl && oContentControl.GetContentControlType)
 		{
+			oLogicDocument.CheckFormPlaceHolder = false;
 			oLogicDocument.RemoveSelection();
 			oContentControl.SelectContentControl();
+			oLogicDocument.CheckFormPlaceHolder = true;
 
 			if (oContentControl.IsFixedForm())
 			{
