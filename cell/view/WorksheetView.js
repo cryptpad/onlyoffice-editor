@@ -2651,7 +2651,7 @@
 				var clipT = clipTopShape >> 0;
 				var clipR = (clipLeftShape + clipWidthShape + 0.5) >> 0;
 				var clipB = (clipTopShape + clipHeightShape + 0.5) >> 0;
-				!bGraphics && drawingCtx.AddClipRect && drawingCtx.AddClipRect(clipL, clipTopShape, clipR - clipL, clipB - clipT);
+				!bGraphics && drawingCtx.AddClipRect && drawingCtx.AddClipRect(clipL, clipT, clipR - clipL, clipB - clipT);
 				if (oDocRenderer.SetBaseTransform) {
 					oDocRenderer.SetBaseTransform(oBaseTransform);
 				} else {
@@ -2667,12 +2667,12 @@
 					var oInvertBaseTransform = AscCommon.global_MatrixTransformer.Invert(oDocRenderer.m_oCoordTransform);
 					clipLeftShape = (t.getCellLeft(range.c1) - offsetX) >> 0;
 					clipTopShape = (t.getCellTop(range.r1) - offsetY) >> 0;
-					clipWidthShape = (t.getCellLeft(range.c2 + 1) - offsetX - clipLeftShape);
-					clipHeightShape = (t.getCellTop(range.r2 + 1) - offsetY - clipTopShape);
+					var clipRightShape = (t.getCellLeft(range.c2 + 1) + 0.5 - offsetX) >> 0;
+					var clipBottomShape = (t.getCellTop(range.r2 + 1) + 0.5 - offsetY) >> 0;
 					var clipL = oInvertBaseTransform.TransformPointX(clipLeftShape, clipTopShape);
 					var clipT = oInvertBaseTransform.TransformPointY(clipLeftShape, clipTopShape);
-					var clipR = oInvertBaseTransform.TransformPointX(clipLeftShape + clipWidthShape, clipTopShape + clipHeightShape);
-					var clipB = oInvertBaseTransform.TransformPointY(clipLeftShape + clipWidthShape, clipTopShape + clipHeightShape);
+					var clipR = oInvertBaseTransform.TransformPointX(clipRightShape, clipBottomShape);
+					var clipB = oInvertBaseTransform.TransformPointY(clipRightShape, clipBottomShape);
 					oDocRenderer.AddClipRect(clipL, clipT, clipR - clipL, clipB - clipT);
 					oDocRenderer.SaveGrState();
 				}
