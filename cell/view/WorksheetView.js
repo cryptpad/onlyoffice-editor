@@ -2644,22 +2644,31 @@
 
 				//oDocRenderer.transform(oDocRenderer.m_oFullTransform.sx, oDocRenderer.m_oFullTransform.shy, oDocRenderer.m_oFullTransform.shx, oDocRenderer.m_oFullTransform.sy, 100,200)
 
-				drawingCtx.AddClipRect && drawingCtx.AddClipRect(clipLeftShape, clipTopShape, clipWidthShape, clipHeightShape);
+				var bGraphics = !!(oDocRenderer instanceof AscCommon.CGraphics);
+
+
+				var clipL = clipLeftShape >> 0;
+				var clipT = clipTopShape >> 0;
+				var clipR = (clipLeftShape + clipWidthShape + 0.5) >> 0;
+				var clipB = (clipTopShape + clipHeightShape + 0.5) >> 0;
+				!bGraphics && drawingCtx.AddClipRect && drawingCtx.AddClipRect(clipL, clipTopShape, clipR - clipL, clipB - clipT);
 				if (oDocRenderer.SetBaseTransform) {
 					oDocRenderer.SetBaseTransform(oBaseTransform);
 				} else {
 					if (oDocRenderer.m_oCoordTransform) {
-
 						oDocRenderer.m_oCoordTransform.tx = (t.getCellLeft(0) - offsetX);
 						oDocRenderer.m_oCoordTransform.ty =  (t.getCellTop(0) - offsetY);
 					}
 				}
-				var bGraphics = !!(oDocRenderer instanceof AscCommon.CGraphics);
 				if(bGraphics) {
 					oDocRenderer.SaveGrState();
 					oDocRenderer.RestoreGrState();
 					oDocRenderer.PrintPreview = true;
 					var oInvertBaseTransform = AscCommon.global_MatrixTransformer.Invert(oDocRenderer.m_oCoordTransform);
+					clipLeftShape = (t.getCellLeft(range.c1) - offsetX) >> 0;
+					clipTopShape = (t.getCellTop(range.r1) - offsetY) >> 0;
+					clipWidthShape = (t.getCellLeft(range.c2 + 1) - offsetX - clipLeftShape);
+					clipHeightShape = (t.getCellTop(range.r2 + 1) - offsetY - clipTopShape);
 					var clipL = oInvertBaseTransform.TransformPointX(clipLeftShape, clipTopShape);
 					var clipT = oInvertBaseTransform.TransformPointY(clipLeftShape, clipTopShape);
 					var clipR = oInvertBaseTransform.TransformPointX(clipLeftShape + clipWidthShape, clipTopShape + clipHeightShape);
