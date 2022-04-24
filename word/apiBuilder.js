@@ -6013,7 +6013,7 @@
 		if (oElement.private_GetImpl().Is_UseInDocument())
 			return false;
 
-		if (oElement instanceof ApiRun || ApiInlineLvlSdt || ApiHyperlink)
+		if (private_IsSupportedParaElement(oElement))
 		{
 			this.AddElement(oElement);
 		}
@@ -14073,7 +14073,7 @@
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
-	ApiFormBase.prototype.IsFixedForm = function()
+	ApiFormBase.prototype.IsFixed = function()
 	{
 		return this.Sdt.IsFixedForm();
 	};
@@ -14092,7 +14092,7 @@
 			return false;
 		if (this.GetFormType() === "pictureForm")
 			return false;
-		if (bFixed === this.IsFixedForm())
+		if (bFixed === this.IsFixed())
 			return true;
 		
 		private_GetLogicDocument().private_Recalculate();
@@ -14214,7 +14214,7 @@
 	 */
 	ApiTextForm.prototype.SetAutoFit = function(bAutoFit)
 	{
-		if (typeof(bAutoFit) !== "boolean" || !this.IsFixedForm())
+		if (typeof(bAutoFit) !== "boolean" || !this.IsFixed())
 			return false;
 		if (bAutoFit === this.IsAutoFit())
 			return true;
@@ -14244,9 +14244,9 @@
 	 */
 	ApiTextForm.prototype.SetMultiline = function(bMultiline)
 	{
-		if (typeof(bMultiline) !== "boolean" || !this.IsFixedForm())
+		if (typeof(bMultiline) !== "boolean" || !this.IsFixed())
 			return false;
-		if (!this.IsFixedForm())
+		if (!this.IsFixed())
 			return false;
 		if (bMultiline === this.IsMultiline())
 			return true;		
@@ -15818,7 +15818,7 @@
 	ApiFormBase.prototype["SetTipText"]          = ApiFormBase.prototype.SetTipText;
 	ApiFormBase.prototype["IsRequired"]          = ApiFormBase.prototype.IsRequired;
 	ApiFormBase.prototype["SetRequired"]         = ApiFormBase.prototype.SetRequired;
-	ApiFormBase.prototype["IsFixedForm"]         = ApiFormBase.prototype.IsFixedForm;
+	ApiFormBase.prototype["IsFixed"]             = ApiFormBase.prototype.IsFixed;
 	ApiFormBase.prototype["SetFixedForm"]        = ApiFormBase.prototype.SetFixedForm;
 	ApiFormBase.prototype["SetBorderColor"]      = ApiFormBase.prototype.SetBorderColor;
 	ApiFormBase.prototype["SetBackgroundColor"]  = ApiFormBase.prototype.SetBackgroundColor;
