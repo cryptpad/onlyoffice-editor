@@ -5847,27 +5847,6 @@
 		if (oParaElement.Is_UseInDocument())
 			return false;
 
-		var oTempElm;
-		if (oElement instanceof ApiFormBase)
-		{
-			oTempElm = this.Paragraph.GetElement(nPos);
-			if (oTempElm)
-			{
-				oTempElm.MoveCursorToStartPos();
-				var oTextPr = oTempElm.GetDirectTextPr();
-				if (oTextPr)            
-					oParaElement.Apply_TextPr(oTextPr);    
-			}
-
-			var oShape = oElement.GetWrapperShape();
-			if (oShape)
-			{
-				var oRun = new ParaRun(this.Paragraph, false);
-				oRun.AddToContent(0, oShape.Drawing);
-				oParaElement = oRun;
-			}
-		}
-
 		if (undefined !== nPos)
 		{
 			this.Paragraph.Add_ToContent(nPos, oParaElement);
@@ -14233,6 +14212,33 @@
 		this.Sdt.SetPlaceholderText(sText);
 		return true;
 	};
+	/**
+	 * Sets the text properties to the current form.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @param {ApiTextPr} oTextPr - The text properties that will be set to the current form.
+	 * @return {boolean}  
+	 */
+	ApiFormBase.prototype.SetTextPr = function(oTextPr)
+	{
+		if (oTextPr && oTextPr.GetClassType && oTextPr.GetClassType() === "textPr")
+		{
+			this.Sdt.Apply_TextPr(oTextPr.TextPr);
+			return true;
+		}
+
+		return false;
+	};
+	/**
+	 * Gets the text properties from the current form.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiTextPr}  
+	 */
+	ApiFormBase.prototype.GetTextPr = function()
+	{
+		return new ApiTextPr(this, this.Sdt.Pr.TextPr.Copy());
+	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -15843,6 +15849,8 @@
 	ApiFormBase.prototype["Clear"]               = ApiFormBase.prototype.Clear;
 	ApiFormBase.prototype["GetWrapperShape"]     = ApiFormBase.prototype.GetWrapperShape;
 	ApiFormBase.prototype["SetPlaceholderText"]  = ApiFormBase.prototype.SetPlaceholderText;
+	ApiFormBase.prototype["SetTextPr"]           = ApiFormBase.prototype.SetTextPr;
+	ApiFormBase.prototype["GetTextPr"]           = ApiFormBase.prototype.GetTextPr;
 
 	ApiTextForm.prototype["IsAutoFit"]           = ApiTextForm.prototype.IsAutoFit;
 	ApiTextForm.prototype["SetAutoFit"]          = ApiTextForm.prototype.SetAutoFit;
@@ -16508,8 +16516,26 @@
 
 	ApiFormBase.prototype.private_GetImpl = function()
     {
+		var sFormType = this.GetFormType();
+		if (this.IsFixed() || sFormType === "pictureForm")
+		{
+			var oShape = this.GetWrapperShape();
+			if (oShape)
+			{
+				var oRun = new ParaRun(this.Paragraph, false);
+				oRun.AddToContent(0, oShape.Drawing);
+				return oRun;
+			}
+		}
+
         return this.Sdt;
     };
+	ApiFormBase.prototype.OnChangeTextPr = function(oApiTextPr)
+    {
+		this.Sdt.Apply_TextPr(oApiTextPr.TextPr);
+		oApiTextPr.TextPr = this.Sdt.Pr.TextPr;
+    };
+	
     /**
      * Copies form (copies with shape if exist).
      * @constructor
