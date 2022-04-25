@@ -718,6 +718,7 @@ Slide.prototype =
     changeLayout: function(layout)
     {
         this.setLayout(layout);
+        this.bChangeLayout = true;
         for (var j = this.cSld.spTree.length - 1; j > -1; --j) {
             var shape = this.cSld.spTree[j];
             if (shape.isEmptyPlaceholder()) {
@@ -1189,6 +1190,8 @@ Slide.prototype =
 
     checkSlideTheme: function()
     {
+
+        this.bChangeLayout = undefined;
         this.recalcInfo.recalculateSpTree = true;
         this.recalcInfo.recalculateBackground = true;
         for(var i = 0; i < this.cSld.spTree.length; ++i)

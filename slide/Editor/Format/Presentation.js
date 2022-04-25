@@ -4306,9 +4306,13 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
         } else {
             bRedrawAllSlides = true;
             for (key = 0; key < this.Slides.length; ++key) {
-                this.Slides[key].recalcText();
-                this.Slides[key].recalculate();
-                this.Slides[key].recalculateNotesShape();
+                var oCalcSlide = this.Slides[key];
+                if(oCalcSlide.bChangeLayout) {
+                    oCalcSlide.checkSlideTheme();
+                }
+                oCalcSlide.recalcText();
+                oCalcSlide.recalculate();
+                oCalcSlide.recalculateNotesShape();
             }
         }
     } else {
