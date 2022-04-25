@@ -967,6 +967,9 @@ var editor;
 		var printArea = this.wbModel.getDefinesNames("Print_Area", ws.getId());
 		printOptions.pageSetup.printArea = printArea ? printArea.clone() : false;
 
+		printOptions.printTitlesHeight = ws.PagePrintOptions.printTitlesHeight;
+		printOptions.printTitlesWidth = ws.PagePrintOptions.printTitlesWidth;
+
 		if (ws.PagePrintOptions && ws.PagePrintOptions.pageSetup) {
 			printOptions.pageSetup.fitToHeight = ws.PagePrintOptions.pageSetup.asc_getFitToHeight();
 			printOptions.pageSetup.fitToWidth = ws.PagePrintOptions.pageSetup.asc_getFitToWidth();
