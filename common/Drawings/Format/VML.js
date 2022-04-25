@@ -6396,4 +6396,6 @@
 		}
 
 		window['AscFormat'].CVMLDrawing = CVMLDrawing;
+		window['AscFormat'].ECssPropertyType = ECssPropertyType;
+
 	})(window);

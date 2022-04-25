@@ -3798,6 +3798,15 @@
 
 		writer.WriteXmlNodeEnd(ns + name);
 	};
+	CT_PersonList.prototype.getByGuid = function (name) {
+		for (var i = 0; i < this.personList.length; ++i) {
+			if (this.personList[i]) {
+				if (name === this.personList[i].id) {
+					return this.personList[i];
+				}
+			}
+		}
+	};
 
 	function CT_Si() {
 		this.text = null;

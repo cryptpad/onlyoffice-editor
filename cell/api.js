@@ -1756,6 +1756,7 @@ var editor;
 							}
 
 
+
 							var m_mapComments = {};
 							var PrepareComments = function () {
 								var pVmlDrawing = xmlParserContext.InitOpenManager.legacyDrawing;
@@ -1777,41 +1778,30 @@ var editor;
 										}
 
 
-
-
 										var bThreadedCommentCopy = false;
 										var pThreadedComment = null;
-										if(pThreadedComments)
-										{
+										if (pThreadedComments) {
 											var pFind;
 
 											var isPlaceholder = false;
-											if(pComment.authorId)
-											{
+											if (pComment.authorId) {
 												var nAuthorId = parseInt(pComment.authorId);
 
-												if (nAuthorId >= 0 && nAuthorId < arAuthors.length)
-												{
+												if (nAuthorId >= 0 && nAuthorId < arAuthors.length) {
 													var sAuthor = arAuthors[nAuthorId];
-													if("tc=" === sAuthor.substring(0, 3))
-													{
+													if ("tc=" === sAuthor.substring(0, 3)) {
 														isPlaceholder = true;
 														var sGUID = sAuthor.substr(3);
 														//todo IsZero() is added to fix comments with zero ids(5.4.0)(bug 42947). Remove after few releases
-														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.ref)
-														{
-															for (var j in pThreadedComments.m_mapTopLevelThreadedComments)
-															{
+														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.ref) {
+															for (var j in pThreadedComments.m_mapTopLevelThreadedComments) {
 																var it = pThreadedComments.m_mapTopLevelThreadedComments[j];
-																if (it.ref && pComment.ref === it.ref)
-																{
+																if (it.ref && pComment.ref === it.ref) {
 																	pFind = it;
 																	break;
 																}
 															}
-														}
-													else
-														{
+														} else {
 															pFind = pThreadedComments.m_mapTopLevelThreadedComments[sGUID];
 														}
 
@@ -1819,39 +1809,39 @@ var editor;
 												}
 											}
 
-											if(pFind)
-											{
+											if (pFind) {
 												pThreadedComment = pFind;
-												if(mapCheckCopyThreadedComments[pThreadedComment.id])
-												{
+												if (mapCheckCopyThreadedComments[pThreadedComment.id]) {
 													bThreadedCommentCopy = true;
-												}
-												else
-												{
+												} else {
 													mapCheckCopyThreadedComments[pThreadedComment.id + ""] = 1;
 												}
-											}
-											else if(isPlaceholder)
-											{
+											} else if (isPlaceholder) {
 												continue;
 											}
 										}
 
 
-										if(pComment.ref && pComment.authorId)
-										{
+										if (pComment.ref && pComment.authorId) {
 											var sRef = AscCommonExcel.g_oRangeCache.getAscRange(pComment.ref);
-											if(sRef)
-											{
+											if (sRef) {
 												var nRow = sRef.r1, nCol = sRef.c1;
 												var pCommentItem = new Asc.asc_CCommentData();
-												pCommentItem.nRow = nRow - 1;
-												pCommentItem.nCol = nCol - 1;
+												pCommentItem.asc_putDocumentFlag(false);
+												pCommentItem.nRow = nRow;
+												pCommentItem.nCol = nCol;
+
+												//TODO флаг всегда будет false
+												/*if (pCommentItem.asc_getDocumentFlag()) {
+													pCommentItem.nId = "doc_" + (this.wb.aComments.length + 1);
+												} else {
+													pCommentItem.wsId = ws.Id;
+													pCommentItem.nId = "sheet" + pCommentItem.wsId + "_" + (ws.aComments.length + 1);
+												}*/
 
 												var nAuthorId = parseInt(pComment.authorId);
 
-												if (nAuthorId >= 0 && nAuthorId < arAuthors.length)
-												{
+												if (nAuthorId >= 0 && nAuthorId < arAuthors.length) {
 													pCommentItem.sAuthor = arAuthors[nAuthorId];
 												}
 
@@ -1862,6 +1852,13 @@ var editor;
 												pCommentItem.threadedComment = pThreadedComment;//c_oSer_Comments.ThreadedComment
 												pCommentItem.ThreadedCommentCopy = bThreadedCommentCopy;//bool m_bThreadedCommentCopy
 
+												var person = personList.getByGuid(pThreadedComment.personId);
+												if (person) {
+													pCommentItem.asc_putUserName(person.displayName);
+													pCommentItem.asc_putUserId(person.userId);
+													pCommentItem.asc_putProviderId(person.providerId);
+												}
+
 												var sNewId = nRow + "-" + nCol;
 												m_mapComments[sNewId] = pCommentItem;
 											}
@@ -1870,8 +1867,7 @@ var editor;
 								}
 
 
-								for ( var i = 0; i < pVmlDrawing.items.length; ++i)
-								{
+								for (var i = 0; i < pVmlDrawing.items.length; ++i) {
 									//TODO AscDFH.historyitem_type_VMLShape === item.getObjectType() - тип не такой
 									var pShape = pVmlDrawing.items[i];
 									if (!pShape || AscDFH.historyitem_type_VMLShape !== pShape.getObjectType()) {
@@ -1887,34 +1883,30 @@ var editor;
 										}
 									}*/
 
-									for ( var j = 0; j < pShape.items.length; ++j)
-									{
+									for (var j = 0; j < pShape.items.length; ++j) {
 										var pElem = pShape.items[j];
 
 										if (!pElem) {
 											continue;
 										}
 
-										if( AscDFH.historyitem_type_VMLClientData === pElem.getObjectType())
-										{
+										if (AscDFH.historyitem_type_VMLClientData === pElem.getObjectType()) {
 											var pClientData = pElem;
-											if(null != pClientData.m_oRow && null != pClientData.m_oColumn)
-											{
+											if (null != pClientData.m_oRow && null != pClientData.m_oColumn) {
 												var nRow = parseInt(pClientData.m_oRow);
 												var nCol = parseInt(pClientData.m_oColumn);
 												var sId = nRow + "" + "-" + nCol + "";
 
 												var pPair = m_mapComments[sId];
-												if(pPair)
-												{
-													/*CCommentItem* pCommentItem = pPair->second;
-													if(pShape->m_sGfxData.IsInit())
+												if (pPair) {
+													var pCommentItem = pPair;
+													/*if(pShape->m_sGfxData.IsInit())
 														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;*/
 
 													var oCommentCoords = new AscCommonExcel.asc_CCommentCoords();
 													var m_aAnchor = [];
 													pClientData.getAnchorArray(m_aAnchor);
-													if(8 <= m_aAnchor.length) {
+													if (8 <= m_aAnchor.length) {
 														oCommentCoords.nLeft = Math.abs(m_aAnchor[0]);
 														oCommentCoords.nLeftOffset = Math.abs(m_aAnchor[1]);
 														oCommentCoords.nTop = Math.abs(m_aAnchor[2]);
@@ -1922,80 +1914,81 @@ var editor;
 														oCommentCoords.nRight = Math.abs(m_aAnchor[4]);
 														oCommentCoords.nRightOffset = Math.abs(m_aAnchor[5]);
 														oCommentCoords.nBottom = Math.abs(m_aAnchor[6]);
-														oCommentCoords.nBottomOffset = Math.abs( m_aAnchor[7]);
+														oCommentCoords.nBottomOffset = Math.abs(m_aAnchor[7]);
 													}
 													oCommentCoords.bMoveWithCells = pClientData.m_oMoveWithCells;
 													oCommentCoords.bSizeWithCells = pClientData.m_oSizeWithCells;
 
+													oCommentCoords.nCol = nCol;
+													oCommentCoords.nRow = nRow;
+
 													//todo bHidden ?
 													//oCommentCoords->m_bVisible = pClientData->m_oVisible;
-													pPair.bHidden = !pClientData.m_oVisible
+													pPair.bHidden = !pClientData.m_oVisible;
 
-													/*if (pShape->m_oFillColor.IsInit())
-													{
-														BYTE r = pShape->m_oFillColor->Get_R();
+													pPair.coords = oCommentCoords;
+
+													if (pShape.m_oFillColor) {
+														/*BYTE r = pShape->m_oFillColor->Get_R();
 														BYTE g = pShape->m_oFillColor->Get_G();
 														BYTE b = pShape->m_oFillColor->Get_B();
 
 														std::wstringstream sstream;
 														sstream << boost::wformat( L"%02X%02X%02X" ) % r % g % b;
 
-														pCommentItem->m_sFillColorRgb = sstream.str();
+														pCommentItem->m_sFillColorRgb = sstream.str();*/
 													}
 
-													for(size_t k = 0; k < pShape->m_oStyle->m_arrProperties.size(); ++k)
-													{
-														if (pShape->m_oStyle->m_arrProperties[k] == NULL) continue;
+													for (var k = 0; k < pShape.m_oStyle.m_arrProperties.length; ++k) {
+														if (!pShape.m_oStyle.m_arrProperties[i]) {
+															continue;
+														}
 
-														SimpleTypes::Vml::CCssProperty *oProperty = pShape->m_oStyle->m_arrProperties[k].get();
-														if(SimpleTypes::Vml::cssptMarginLeft == oProperty->get_Type())
-														{
-															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+														var oProperty = pShape.m_oStyle.m_arrProperties[k];
+														if (AscFormat.ECssPropertyType.cssptMarginLeft === oProperty.get_Type()) {
+															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
 															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
 															{
 																SimpleTypes::CPoint oPoint;
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
 																pCommentItem->m_dLeftMM = oPoint.ToMm();
-															}
-														}
-													else if(SimpleTypes::Vml::cssptMarginTop == oProperty->get_Type())
-														{
-															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+															}*/
+														} else if (AscFormat.ECssPropertyType.cssptMarginTop === oProperty.get_Type()) {
+															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
 															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
 															{
 																SimpleTypes::CPoint oPoint;
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
 																pCommentItem->m_dTopMM = oPoint.ToMm();
-															}
-														}
-													else if(SimpleTypes::Vml::cssptWidth == oProperty->get_Type())
-														{
-															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+															}*/
+														} else if (AscFormat.ECssPropertyType.cssptWidth === oProperty.get_Type()) {
+															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
 															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
 															{
 																SimpleTypes::CPoint oPoint;
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
 																pCommentItem->m_dWidthMM = oPoint.ToMm();
-															}
-														}
-													else if(SimpleTypes::Vml::cssptHeight == oProperty->get_Type())
-														{
-															SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
+															}*/
+														} else if (AscFormat.ECssPropertyType.cssptHeight === oProperty.get_Type()) {
+															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
 															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
 															{
 																SimpleTypes::CPoint oPoint;
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
 																pCommentItem->m_dHeightMM = oPoint.ToMm();
-															}
+															}*/
 														}
-													}*/
+													}
 												}
 											}
 										}
 									}
 								}
 
-
+								//преобразовываем к виду, который хранится в модели
+								/*for (var i = 0; i < m_mapComments.length; i++) {
+									m_mapComments[i].
+								}*/
 							};
 
 
