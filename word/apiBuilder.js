@@ -16528,7 +16528,7 @@
 			var oShape = this.GetWrapperShape();
 			if (oShape)
 			{
-				var oRun = new ParaRun(this.Paragraph, false);
+				var oRun = new ParaRun(null, false);
 				oRun.AddToContent(0, oShape.Drawing);
 				return oRun;
 			}
