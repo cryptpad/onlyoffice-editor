@@ -2844,16 +2844,12 @@
 	/**
 	 * Class representing a document form base.
 	 * @constructor
-	 * @extends {ApiInlineLvlSdt}
 	 */
 	function ApiFormBase(oSdt)
 	{
-		ApiInlineLvlSdt.call(this, oSdt);
+		this.Sdt = oSdt;
 	}
  
-	ApiFormBase.prototype = Object.create(ApiInlineLvlSdt.prototype);
-	ApiFormBase.prototype.constructor = ApiFormBase;
-
 	/**
 	 * Class representing a document text form.
 	 * @constructor
@@ -5354,6 +5350,16 @@
 	};
 
 	/**
+	 * Clears all fields in the document
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.ClearAllFields = function()
+	{
+		this.Document.ClearAllSpecialForms(true);
+	};
+
+	/**
 	 * Returns all existing forms in the document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
@@ -5393,15 +5399,13 @@
 	};
 
 	/**
-	 * Clears all fields in the document.
+	 * Clears all forms in the document
 	 * @memberof ApiDocument
-	 * @param {boolean} [bOnlyForms=false] - Defines if only forms or all fields will be cleared.
 	 * @typeofeditors ["CDE"]
 	 */
-	ApiDocument.prototype.ClearAllFields = function(bOnlyForms) 
+	ApiDocument.prototype.ClearAllForms = function()
 	{
-		bOnlyForms = typeof(bOnlyForms) === "boolean" ? bOnlyForms : false;
-		this.Document.ClearAllSpecialForms(!bOnlyForms);
+		this.Document.ClearAllSpecialForms(false);
 	};
 
 	/**
@@ -6996,14 +7000,15 @@
 		if (typeof(sSepWith) !== "string" || nRefTo !== 4)
 			sSepWith = "";
 
-		var oManager = editor.asc_GetBookmarksManager();
-		var oDocument, oParaPos, sName, oldSelectionInfo;
-		for (var nBookmark = 0, nCount = oManager.asc_GetCount(); nBookmark < nCount; nBookmark++)
+		var oDocument = private_GetLogicDocument();
+		var oManager = oDocument.GetBookmarksManager();
+		var oParaPos, sName, oldSelectionInfo;
+		for (var nBookmark = 0, nCount = oManager.GetCount(); nBookmark < nCount; nBookmark++)
 		{
-			sName = oManager.asc_GetName(nBookmark);
-			if (!oManager.asc_IsInternalUseBookmark(sName) && !oManager.asc_IsHiddenBookmark(sName) && sName === sBookmarkName)
+			sName = oManager.GetName(nBookmark);
+			if (!oManager.IsInternalUseBookmark(sName) && !oManager.IsHiddenBookmark(sName) && sName === sBookmarkName)
 			{
-				oDocument = private_GetLogicDocument();
+				
 				oParaPos = this.Paragraph.GetDocumentPositionFromObject().concat(this.Paragraph.GetContentPosition(false, false));
 				oldSelectionInfo = oDocument.SaveDocumentState();
 				oDocument.RemoveSelection();
@@ -12265,7 +12270,7 @@
 	 */
 	ApiShape.prototype.GetDocContent = function()
 	{
-		if(this.Shape && this.Shape.textBoxContent)
+		if(this.Shape && this.Shape.textBoxContent && !this.Shape.isForm())
 		{
 			return new ApiDocumentContent(this.Shape.textBoxContent);
 		}
@@ -12279,7 +12284,7 @@
 	 */
 	ApiShape.prototype.GetContent = function()
 	{
-		if(this.Shape && this.Shape.textBoxContent)
+		if(this.Shape && this.Shape.textBoxContent && !this.Shape.isForm())
 		{
 			return new ApiDocumentContent(this.Shape.textBoxContent);
 		}
@@ -13378,6 +13383,8 @@
 			return false;
 		
 		this.Sdt.SetPlaceholderText(sText);
+		if (this.Sdt.IsEmpty())
+			this.Sdt.private_ReplaceContentWithPlaceHolder();
 		return true;
 	};
 	/**
@@ -13390,34 +13397,7 @@
 	{
 		return this.Sdt.IsForm();
 	};
-	/**
-	 * Returns a form object if the current content control is a form.
-	 * @memberof ApiInlineLvlSdt
-	 * @typeofeditors ["CDE"]
-	 * @returns {?ApiForm}
-	 */
-	ApiInlineLvlSdt.prototype.GetForm = function()
-	{
-		if (!this.Sdt.IsForm())
-			return null;
 
-		var oForm = new ApiFormBase(this.Sdt);
-		switch (oForm.GetFormType())
-		{
-			case "textForm":
-				return ApiTextForm(this.Sdt);
-			case "comboBoxForm":
-			case "dropDownForm":
-				return new ApiComboBoxForm(this.Sdt);
-			case "radioButtonForm":
-			case "checkBoxForm":
-				return new ApiCheckBoxForm(this.Sdt);
-			case "pictureForm":
-				return new ApiPictureForm(this.Sdt);
-			default:
-				return null;				
-		}
-	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiBlockLvlSdt
@@ -13919,6 +13899,9 @@
 			return false;
 
 		this.Sdt.SetPlaceholderText(sText);
+		if (this.Sdt.IsEmpty())
+			this.Sdt.private_ReplaceContentWithPlaceHolder();
+
 		return true;
 	};
 
@@ -14068,40 +14051,44 @@
 		return true;
 	};
 	/**
-	 * Checks if the current form is fixed.
+	 * Checks if the current form is fixed-size
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
 	ApiFormBase.prototype.IsFixed = function()
 	{
-		return this.Sdt.IsFixedForm();
+		return (this.GetFormType() === "pictureForm" || this.Sdt.IsFixedForm());
 	};
 	/**
-	 * Specifies if the current form should be fixed.
-	 * *Not for picture forms*
-	 * Must be in the document.
+	 * Convert form to a fixed-size mode
 	 * @memberof ApiFormBase
-	 * @param {boolean} bFixed - Defines if the current form is fixed (true) or not (false).
+	 * @param {twips} nWidth - The wrapper shape width measured in twentieths of a point (1/1440 of an inch).
+	 * @param {twips} nHeight - The wrapper shape height measured in twentieths of a point (1/1440 of an inch).
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
-	ApiFormBase.prototype.SetFixedForm = function(bFixed)
+	ApiFormBase.prototype.ToFixed = function(nWidth, nHeight)
 	{
-		if (typeof(bFixed) !== "boolean" || !this.Sdt.Is_UseInDocument())
+		if (this.IsFixed())
 			return false;
-		if (this.GetFormType() === "pictureForm")
-			return false;
-		if (bFixed === this.IsFixed())
-			return true;
 		
-		private_GetLogicDocument().private_Recalculate();
+		this.Sdt.ConvertFormToFixed(private_Twips2MM(nWidth), private_Twips2MM(nHeight));
+		return true;
+	};
+	/**
+	 * Convert form to an inline mode
+	 * *Picture form can't be converted to inline mode, it's always a fixed-size object*
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.ToInline = function()
+	{
+		if (!this.IsFixed())
+			return false;
 
-		if (bFixed)
-			this.Sdt.ConvertFormToFixed();
-		else
-			this.Sdt.ConvertFormToInline();
-
+		this.Sdt.ConvertFormToInline();
 		return true;
 	};
 	/**
@@ -14187,6 +14174,104 @@
 	ApiFormBase.prototype.Clear = function()
 	{
 		this.Sdt.ClearContentControlExt();
+	};
+	/**
+	 * Gets the shape in which the form placed.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiShape} - returns the form in which the form placed.
+	 */
+	ApiFormBase.prototype.GetWrapperShape = function()
+    {
+        var oParagraph = this.Sdt.GetParagraph();
+        var oShape     = oParagraph ? oParagraph.Parent.Is_DrawingShape(true) : null;
+        if (!oShape || !oShape.parent)
+            return null;
+        
+        return new ApiShape(oShape);
+    };
+	/**
+	 * Sets the placeholder text to the current form.
+	 * *Can't be set to checkbox or radio button*
+	 * @memberof ApiFormBase
+	 * @param {string} sText - The text that will be set to the current form.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.SetPlaceholderText = function(sText)
+	{
+		if (typeof(sText) !== "string" || sText === "")
+			return false;
+		if (this.Sdt.IsCheckBox() || this.Sdt.IsRadioButton())
+			return false;
+		
+		this.Sdt.SetPlaceholderText(sText);
+		return true;
+	};
+	/**
+	 * Sets the text properties to the current form.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @param {ApiTextPr} oTextPr - The text properties that will be set to the current form.
+	 * @return {boolean}  
+	 */
+	ApiFormBase.prototype.SetTextPr = function(oTextPr)
+	{
+		if (oTextPr && oTextPr.GetClassType && oTextPr.GetClassType() === "textPr")
+		{
+			this.Sdt.Apply_TextPr(oTextPr.TextPr);
+			return true;
+		}
+
+		return false;
+	};
+	/**
+	 * Gets the text properties from the current form.
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiTextPr}  
+	 */
+	ApiFormBase.prototype.GetTextPr = function()
+	{
+		return new ApiTextPr(this, this.Sdt.Pr.TextPr.Copy());
+	};
+	/**
+	 * Copies form (copies with shape if exist).
+	 * @constructor
+	 * @returns {null | ApiTextForm| ApiCheckBoxForm | ApiComboBoxForm | ApiPictureForm}
+	 */
+	ApiFormBase.prototype.Copy = function()
+	{
+		let oSdt;
+		if (this.IsFixed())
+		{
+			var oParagraph = this.Sdt.GetParagraph();
+			var oShape     = oParagraph.Parent.Is_DrawingShape(true);
+			if (!oShape || !oShape.parent || !oShape.isForm())
+				return null;
+
+			var oDrawing = oShape.parent.Copy({
+				SkipComments          : true,
+				SkipAnchors           : true,
+				SkipFootnoteReference : true,
+				SkipComplexFields     : true
+			});
+			oSdt = oDrawing.GraphicObj.getInnerForm();
+		}
+		else
+		{
+			oSdt = this.Sdt.Copy(false, {
+				SkipComments          : true,
+				SkipAnchors           : true,
+				SkipFootnoteReference : true,
+				SkipComplexFields     : true
+			});
+		}
+
+		if (!oSdt)
+			return null;
+
+		return new this.constructor(oSdt);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -14383,23 +14468,7 @@
 
 		return true;
 	};
-	/**
-	 * Creates a copy of the current text form.
-	 * @memberof ApiTextForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiTextForm}
-	 */
-	ApiTextForm.prototype.Copy = function()
-	{
-		var oInlineSdt = this.Sdt.Copy(false, {
-			SkipComments          : true,
-			SkipAnchors           : true,
-			SkipFootnoteReference : true,
-			SkipComplexFields     : true
-		});
 
-		return new ApiTextForm(oInlineSdt);
-	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiPictureForm
@@ -14548,23 +14617,7 @@
 
 		return false;
 	};
-	/**
-	 * Creates a copy of the current picture form.
-	 * @memberof ApiPictureForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiPictureForm}
-	 */
-	ApiPictureForm.prototype.Copy = function()
-	{
-		var oInlineSdt = this.Sdt.Copy(false, {
-			SkipComments          : true,
-			SkipAnchors           : true,
-			SkipFootnoteReference : true,
-			SkipComplexFields     : true
-		});
 
-		return new ApiPictureForm(oInlineSdt);
-	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiComboBoxForm 
@@ -14678,23 +14731,7 @@
 	{
 		return (this.Sdt.IsComboBox());
 	};
-	/**
-	 * Creates a copy of the current combo box.
-	 * @memberof ApiComboBoxForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiComboBoxForm}
-	 */
-	ApiComboBoxForm.prototype.Copy = function()
-	{
-		var oInlineSdt = this.Sdt.Copy(false, {
-			SkipComments          : true,
-			SkipAnchors           : true,
-			SkipFootnoteReference : true,
-			SkipComplexFields     : true
-		});
 
-		return new ApiComboBoxForm(oInlineSdt);
-	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiCheckBoxForm 
@@ -14763,23 +14800,7 @@
 		oPr.SetGroupKey(sKey);
 		this.Sdt.SetCheckBoxPr(oPr);
 	};
-	/**
-	 * Creates a copy of the current checkbox.
-	 * @memberof ApiCheckBoxForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiCheckBoxForm}
-	 */
-	ApiCheckBoxForm.prototype.Copy = function()
-	{
-		var oInlineSdt = this.Sdt.Copy(false, {
-			SkipComments          : true,
-			SkipAnchors           : true,
-			SkipFootnoteReference : true,
-			SkipComplexFields     : true
-		});
 
-		return new ApiCheckBoxForm(oInlineSdt);
-	};
 
 	/**
 	 * Replaces each paragraph (or text in cell) in the select with the corresponding text from an array of strings.
@@ -15323,8 +15344,9 @@
 	ApiDocument.prototype["Search"]                      = ApiDocument.prototype.Search;
 	ApiDocument.prototype["ToMarkdown"]                  = ApiDocument.prototype.ToMarkdown;
 	ApiDocument.prototype["ToHtml"]                      = ApiDocument.prototype.ToHtml;
-	ApiDocument.prototype["GetAllForms"]                 = ApiDocument.prototype.GetAllForms;
 	ApiDocument.prototype["ClearAllFields"]              = ApiDocument.prototype.ClearAllFields;
+	ApiDocument.prototype["GetAllForms"]                 = ApiDocument.prototype.GetAllForms;
+	ApiDocument.prototype["ClearAllForms"]               = ApiDocument.prototype.ClearAllForms;
 	ApiDocument.prototype["SetFormsHighlight"]           = ApiDocument.prototype.SetFormsHighlight;
 	ApiDocument.prototype["GetAllNumberedParagraphs"]    = ApiDocument.prototype.GetAllNumberedParagraphs;
 	ApiDocument.prototype["GetAllHeadingParagraphs"]     = ApiDocument.prototype.GetAllHeadingParagraphs;
@@ -15819,11 +15841,16 @@
 	ApiFormBase.prototype["IsRequired"]          = ApiFormBase.prototype.IsRequired;
 	ApiFormBase.prototype["SetRequired"]         = ApiFormBase.prototype.SetRequired;
 	ApiFormBase.prototype["IsFixed"]             = ApiFormBase.prototype.IsFixed;
-	ApiFormBase.prototype["SetFixedForm"]        = ApiFormBase.prototype.SetFixedForm;
+	ApiFormBase.prototype["ToFixed"]             = ApiFormBase.prototype.ToFixed;
+	ApiFormBase.prototype["ToInline"]            = ApiFormBase.prototype.ToInline;
 	ApiFormBase.prototype["SetBorderColor"]      = ApiFormBase.prototype.SetBorderColor;
 	ApiFormBase.prototype["SetBackgroundColor"]  = ApiFormBase.prototype.SetBackgroundColor;
 	ApiFormBase.prototype["GetText"]             = ApiFormBase.prototype.GetText;
 	ApiFormBase.prototype["Clear"]               = ApiFormBase.prototype.Clear;
+	ApiFormBase.prototype["GetWrapperShape"]     = ApiFormBase.prototype.GetWrapperShape;
+	ApiFormBase.prototype["SetPlaceholderText"]  = ApiFormBase.prototype.SetPlaceholderText;
+	ApiFormBase.prototype["SetTextPr"]           = ApiFormBase.prototype.SetTextPr;
+	ApiFormBase.prototype["GetTextPr"]           = ApiFormBase.prototype.GetTextPr;
 
 	ApiTextForm.prototype["IsAutoFit"]           = ApiTextForm.prototype.IsAutoFit;
 	ApiTextForm.prototype["SetAutoFit"]          = ApiTextForm.prototype.SetAutoFit;
@@ -15910,23 +15937,52 @@
 	function private_IsSupportedParaElement(oElement)
 	{
 		if (oElement instanceof ApiRun
-			|| oElement instanceof ApiInlineLvlSdt 
-			|| oElement instanceof ApiHyperlink)
+			|| oElement instanceof ApiInlineLvlSdt
+			|| oElement instanceof ApiHyperlink
+			|| oElement instanceof ApiFormBase)
 			return true;
 
 		return false;
 	}
-	
+
 	function private_GetSupportedParaElement(oElement)
 	{
 		if (oElement instanceof ParaRun)
+		{
+			let arrDrawings = oElement.GetAllDrawingObjects();
+			for (let nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+			{
+				if (arrDrawings[nIndex].IsForm())
+					return private_CheckForm(arrDrawings[nIndex].GetInnerForm());
+			}
+
 			return new ApiRun(oElement);
+		}
 		else if (oElement instanceof CInlineLevelSdt)
-			return new ApiInlineLvlSdt(oElement);
+			return private_CheckForm(oElement);
 		else if (oElement instanceof ParaHyperlink)
 			return new ApiHyperlink(oElement);
+		else if (oElement instanceof ApiFormBase)
+			return (new ApiInlineLvlSdt(oElement)).GetForm();
 		else
 			return new ApiUnsupported();
+	}
+
+	function private_CheckForm(oSdt)
+	{
+		if (!oSdt)
+			return new ApiUnsupported();
+
+		if (oSdt.IsTextForm())
+			return new ApiTextForm(oSdt);
+		else if (oSdt.IsComboBox() || oSdt.IsDropDownList())
+			return new ApiComboBoxForm(oSdt);
+		else if (oSdt.IsCheckBox() || oSdt.IsRadioButton())
+			return new ApiCheckBoxForm(oSdt);
+		else if (oSdt.IsPictureForm())
+			return new ApiPictureForm(oSdt)
+
+		return new ApiInlineLvlSdt(oSdt);
 	}
 
 	function private_GetLogicDocument()
@@ -16482,6 +16538,24 @@
 	ApiBlockLvlSdt.prototype.private_GetImpl = function()
 	{
 		return this.Sdt;
+	};
+
+	ApiFormBase.prototype.private_GetImpl = function()
+	{
+		let oShape;
+		if (this.IsFixed() && (oShape = this.GetWrapperShape()))
+		{
+			let oRun = new ParaRun(null, false);
+			oRun.AddToContent(0, oShape.Drawing);
+			return oRun;
+		}
+
+		return this.Sdt;
+	};
+	ApiFormBase.prototype.OnChangeTextPr  = function(oApiTextPr)
+	{
+		this.Sdt.Apply_TextPr(oApiTextPr.TextPr);
+		oApiTextPr.TextPr = this.Sdt.Pr.TextPr;
 	};
 
 	Api.prototype.private_CreateApiParagraph = function(oParagraph){

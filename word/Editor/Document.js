@@ -25941,7 +25941,7 @@ CDocument.prototype.ClearAllSpecialForms = function(isClearAllContentControls)
 	for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
 	{
 		var oControl = arrContentControls[nIndex];
-		if (oControl.IsInlineLevel())
+		if (oControl.IsInlineLevel() && oControl.GetParagraph())
 			arrParagraphs.push(oControl.GetParagraph());
 		else if (oControl.IsBlockLevel())
 			oControl.GetAllParagraphs({}, arrParagraphs);
