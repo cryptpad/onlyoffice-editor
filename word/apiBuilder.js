@@ -5350,6 +5350,16 @@
 	};
 
 	/**
+	 * Clears all fields in the document
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.ClearAllFields = function()
+	{
+		this.Document.ClearAllSpecialForms(true);
+	};
+
+	/**
 	 * Returns all existing forms in the document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
@@ -5389,15 +5399,13 @@
 	};
 
 	/**
-	 * Clears all fields in the document.
+	 * Clears all forms in the document
 	 * @memberof ApiDocument
-	 * @param {boolean} [bOnlyForms=false] - Defines if only forms or all fields will be cleared.
 	 * @typeofeditors ["CDE"]
 	 */
-	ApiDocument.prototype.ClearAllFields = function(bOnlyForms) 
+	ApiDocument.prototype.ClearAllForms = function()
 	{
-		bOnlyForms = typeof(bOnlyForms) === "boolean" ? bOnlyForms : false;
-		this.Document.ClearAllSpecialForms(!bOnlyForms);
+		this.Document.ClearAllSpecialForms(false);
 	};
 
 	/**
@@ -15336,8 +15344,9 @@
 	ApiDocument.prototype["Search"]                      = ApiDocument.prototype.Search;
 	ApiDocument.prototype["ToMarkdown"]                  = ApiDocument.prototype.ToMarkdown;
 	ApiDocument.prototype["ToHtml"]                      = ApiDocument.prototype.ToHtml;
-	ApiDocument.prototype["GetAllForms"]                 = ApiDocument.prototype.GetAllForms;
 	ApiDocument.prototype["ClearAllFields"]              = ApiDocument.prototype.ClearAllFields;
+	ApiDocument.prototype["GetAllForms"]                 = ApiDocument.prototype.GetAllForms;
+	ApiDocument.prototype["ClearAllForms"]               = ApiDocument.prototype.ClearAllForms;
 	ApiDocument.prototype["SetFormsHighlight"]           = ApiDocument.prototype.SetFormsHighlight;
 	ApiDocument.prototype["GetAllNumberedParagraphs"]    = ApiDocument.prototype.GetAllNumberedParagraphs;
 	ApiDocument.prototype["GetAllHeadingParagraphs"]     = ApiDocument.prototype.GetAllHeadingParagraphs;
