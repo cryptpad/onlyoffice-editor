@@ -966,6 +966,11 @@ var editor;
 		printOptions.pageSetup.headerFooter = ws && ws.headerFooter && ws.headerFooter.getForInterface();
 		var printArea = this.wbModel.getDefinesNames("Print_Area", ws.getId());
 		printOptions.pageSetup.printArea = printArea ? printArea.clone() : false;
+
+		if (ws.PagePrintOptions && ws.PagePrintOptions.pageSetup) {
+			printOptions.pageSetup.fitToHeight = ws.PagePrintOptions.pageSetup.asc_getFitToHeight();
+			printOptions.pageSetup.fitToWidth = ws.PagePrintOptions.pageSetup.asc_getFitToWidth();
+		}
     }
 
     return printOptions;
