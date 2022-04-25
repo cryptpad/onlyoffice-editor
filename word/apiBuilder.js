@@ -13389,34 +13389,7 @@
 	{
 		return this.Sdt.IsForm();
 	};
-	/**
-	 * Returns a form object if the current content control is a form.
-	 * @memberof ApiInlineLvlSdt
-	 * @typeofeditors ["CDE"]
-	 * @returns {?ApiForm}
-	 */
-	ApiInlineLvlSdt.prototype.GetForm = function()
-	{
-		if (!this.Sdt.IsForm())
-			return null;
 
-		var oForm = new ApiFormBase(this.Sdt);
-		switch (oForm.GetFormType())
-		{
-			case "textForm":
-				return ApiTextForm(this.Sdt);
-			case "comboBoxForm":
-			case "dropDownForm":
-				return new ApiComboBoxForm(this.Sdt);
-			case "radioButtonForm":
-			case "checkBoxForm":
-				return new ApiCheckBoxForm(this.Sdt);
-			case "pictureForm":
-				return new ApiPictureForm(this.Sdt);
-			default:
-				return null;				
-		}
-	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiBlockLvlSdt
@@ -14070,35 +14043,44 @@
 		return true;
 	};
 	/**
-	 * Checks if the current form is fixed.
+	 * Checks if the current form is fixed-size
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
 	ApiFormBase.prototype.IsFixed = function()
 	{
-		return this.Sdt.IsFixedForm();
+		return (this.GetFormType() === "pictureForm" || this.Sdt.IsFixedForm());
 	};
 	/**
-	 * Specifies if the current form should be fixed.
-	 * *Not used with picture forms*
+	 * Convert form to a fixed-size mode
 	 * @memberof ApiFormBase
-	 * @param {boolean} bFixed - Defines if the current form is fixed (true) or not (false).
 	 * @param {twips} nWidth - The wrapper shape width measured in twentieths of a point (1/1440 of an inch).
 	 * @param {twips} nHeight - The wrapper shape height measured in twentieths of a point (1/1440 of an inch).
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
-	ApiFormBase.prototype.SetFixedForm = function(bFixed, nWidth, nHeight)
+	ApiFormBase.prototype.ToFixed = function(nWidth, nHeight)
 	{
-		if (typeof(bFixed) !== "boolean" || this.GetFormType() === "pictureForm" || bFixed === this.IsFixed())
+		if (this.IsFixed())
 			return false;
 		
-		if (bFixed)
-			this.Sdt.ConvertFormToFixed(private_Twips2MM(nWidth), private_Twips2MM(nHeight));
-		else
-			this.Sdt.ConvertFormToInline();
+		this.Sdt.ConvertFormToFixed(private_Twips2MM(nWidth), private_Twips2MM(nHeight));
+		return true;
+	};
+	/**
+	 * Convert form to an inline mode
+	 * *Picture form can't be converted to inline mode, it's always a fixed-size object*
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiFormBase.prototype.ToInline = function()
+	{
+		if (!this.IsFixed())
+			return false;
 
+		this.Sdt.ConvertFormToInline();
 		return true;
 	};
 	/**
@@ -14244,6 +14226,44 @@
 	ApiFormBase.prototype.GetTextPr = function()
 	{
 		return new ApiTextPr(this, this.Sdt.Pr.TextPr.Copy());
+	};
+	/**
+	 * Copies form (copies with shape if exist).
+	 * @constructor
+	 * @returns {null | ApiTextForm| ApiCheckBoxForm | ApiComboBoxForm | ApiPictureForm}
+	 */
+	ApiFormBase.prototype.Copy = function()
+	{
+		let oSdt;
+		if (this.IsFixed())
+		{
+			var oParagraph = this.Sdt.GetParagraph();
+			var oShape     = oParagraph.Parent.Is_DrawingShape(true);
+			if (!oShape || !oShape.parent || !oShape.isForm())
+				return null;
+
+			var oDrawing = oShape.parent.Copy({
+				SkipComments          : true,
+				SkipAnchors           : true,
+				SkipFootnoteReference : true,
+				SkipComplexFields     : true
+			});
+			oSdt = oDrawing.GraphicObj.getInnerForm();
+		}
+		else
+		{
+			oSdt = this.Sdt.Copy(false, {
+				SkipComments          : true,
+				SkipAnchors           : true,
+				SkipFootnoteReference : true,
+				SkipComplexFields     : true
+			});
+		}
+
+		if (!oSdt)
+			return null;
+
+		return new this.constructor(oSdt);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -14440,16 +14460,7 @@
 
 		return true;
 	};
-	/**
-	 * Creates a copy of the current text form.
-	 * @memberof ApiTextForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiTextForm}
-	 */
-	ApiTextForm.prototype.Copy = function()
-	{
-		return this.private_Copy();
-	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiPictureForm
@@ -14598,16 +14609,7 @@
 
 		return false;
 	};
-	/**
-	 * Creates a copy of the current picture form.
-	 * @memberof ApiPictureForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiPictureForm}
-	 */
-	ApiPictureForm.prototype.Copy = function()
-	{
-		return this.private_Copy();
-	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiComboBoxForm 
@@ -14721,16 +14723,7 @@
 	{
 		return (this.Sdt.IsComboBox());
 	};
-	/**
-	 * Creates a copy of the current combo box.
-	 * @memberof ApiComboBoxForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiComboBoxForm}
-	 */
-	ApiComboBoxForm.prototype.Copy = function()
-	{
-		return this.private_Copy();
-	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiCheckBoxForm 
@@ -14799,16 +14792,7 @@
 		oPr.SetGroupKey(sKey);
 		this.Sdt.SetCheckBoxPr(oPr);
 	};
-	/**
-	 * Creates a copy of the current checkbox.
-	 * @memberof ApiCheckBoxForm
-	 * @typeofeditors ["CDE"]
-	 * @returns {ApiCheckBoxForm}
-	 */
-	ApiCheckBoxForm.prototype.Copy = function()
-	{
-		return this.private_Copy();
-	};
+
 
 	/**
 	 * Replaces each paragraph (or text in cell) in the select with the corresponding text from an array of strings.
@@ -15848,7 +15832,8 @@
 	ApiFormBase.prototype["IsRequired"]          = ApiFormBase.prototype.IsRequired;
 	ApiFormBase.prototype["SetRequired"]         = ApiFormBase.prototype.SetRequired;
 	ApiFormBase.prototype["IsFixed"]             = ApiFormBase.prototype.IsFixed;
-	ApiFormBase.prototype["SetFixedForm"]        = ApiFormBase.prototype.SetFixedForm;
+	ApiFormBase.prototype["ToFixed"]             = ApiFormBase.prototype.ToFixed;
+	ApiFormBase.prototype["ToInline"]            = ApiFormBase.prototype.ToInline;
 	ApiFormBase.prototype["SetBorderColor"]      = ApiFormBase.prototype.SetBorderColor;
 	ApiFormBase.prototype["SetBackgroundColor"]  = ApiFormBase.prototype.SetBackgroundColor;
 	ApiFormBase.prototype["GetText"]             = ApiFormBase.prototype.GetText;
@@ -15943,26 +15928,52 @@
 	function private_IsSupportedParaElement(oElement)
 	{
 		if (oElement instanceof ApiRun
-			|| oElement instanceof ApiInlineLvlSdt 
+			|| oElement instanceof ApiInlineLvlSdt
 			|| oElement instanceof ApiHyperlink
-            || oElement instanceof ApiFormBase)
+			|| oElement instanceof ApiFormBase)
 			return true;
 
 		return false;
 	}
-	
+
 	function private_GetSupportedParaElement(oElement)
 	{
 		if (oElement instanceof ParaRun)
+		{
+			let arrDrawings = oElement.GetAllDrawingObjects();
+			for (let nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+			{
+				if (arrDrawings[nIndex].IsForm())
+					return private_CheckForm(arrDrawings[nIndex].GetInnerForm());
+			}
+
 			return new ApiRun(oElement);
+		}
 		else if (oElement instanceof CInlineLevelSdt)
-			return new ApiInlineLvlSdt(oElement);
+			return private_CheckForm(oElement);
 		else if (oElement instanceof ParaHyperlink)
 			return new ApiHyperlink(oElement);
 		else if (oElement instanceof ApiFormBase)
 			return (new ApiInlineLvlSdt(oElement)).GetForm();
 		else
 			return new ApiUnsupported();
+	}
+
+	function private_CheckForm(oSdt)
+	{
+		if (!oSdt)
+			return new ApiUnsupported();
+
+		if (oSdt.IsTextForm())
+			return new ApiTextForm(oSdt);
+		else if (oSdt.IsComboBox() || oSdt.IsDropDownList())
+			return new ApiComboBoxForm(oSdt);
+		else if (oSdt.IsCheckBox() || oSdt.IsRadioButton())
+			return new ApiCheckBoxForm(oSdt);
+		else if (oSdt.IsPictureForm())
+			return new ApiPictureForm(oSdt)
+
+		return new ApiInlineLvlSdt(oSdt);
 	}
 
 	function private_GetLogicDocument()
@@ -16521,76 +16532,22 @@
 	};
 
 	ApiFormBase.prototype.private_GetImpl = function()
-    {
-		var sFormType = this.GetFormType();
-		if (this.IsFixed() || sFormType === "pictureForm")
+	{
+		let oShape;
+		if (this.IsFixed() && (oShape = this.GetWrapperShape()))
 		{
-			var oShape = this.GetWrapperShape();
-			if (oShape)
-			{
-				var oRun = new ParaRun(null, false);
-				oRun.AddToContent(0, oShape.Drawing);
-				return oRun;
-			}
+			let oRun = new ParaRun(null, false);
+			oRun.AddToContent(0, oShape.Drawing);
+			return oRun;
 		}
 
-        return this.Sdt;
-    };
-	ApiFormBase.prototype.OnChangeTextPr = function(oApiTextPr)
-    {
+		return this.Sdt;
+	};
+	ApiFormBase.prototype.OnChangeTextPr  = function(oApiTextPr)
+	{
 		this.Sdt.Apply_TextPr(oApiTextPr.TextPr);
 		oApiTextPr.TextPr = this.Sdt.Pr.TextPr;
-    };
-	
-    /**
-     * Copies form (copies with shape if exist).
-     * @constructor
-     * @returns {ApiTextForm| ApiCheckBoxForm | ApiComboBoxForm | ApiPictureForm}
-     */
-    ApiFormBase.prototype.private_Copy = function()
-    {
-        var sFormType = this.GetFormType();
-        var oSdt;
-        if (this.IsFixed() || sFormType === "pictureForm")
-        {
-            var oParagraph = this.Sdt.GetParagraph();
-            var oShape     = oParagraph.Parent.Is_DrawingShape(true);
-            if (!oShape || !oShape.parent)
-                return null;
-            
-            var oDrawing = oShape.parent.Copy({
-                SkipComments          : true,
-                SkipAnchors           : true,
-                SkipFootnoteReference : true,
-                SkipComplexFields     : true
-            });
-            oSdt = oDrawing.GraphicObj.getInnerForm();
-            if (!oSdt)
-                return null;
-        }
-        else {
-            oSdt = this.Sdt.Copy(false, {
-                SkipComments          : true,
-                SkipAnchors           : true,
-                SkipFootnoteReference : true,
-                SkipComplexFields     : true
-            });
-        }
-
-        switch (sFormType)
-        {
-            case "checkBoxForm":
-            case "radioButtonForm":
-                return new ApiCheckBoxForm(oSdt);
-            case "comboBoxForm":
-            case "dropDownForm":
-                return new ApiComboBoxForm(oSdt);
-            case "textForm":
-                return new ApiTextForm(oSdt);
-			case "pictureForm":
-				return new ApiPictureForm(oSdt);
-        }
-    };
+	};
 
 	Api.prototype.private_CreateApiParagraph = function(oParagraph){
 		return new ApiParagraph(oParagraph);
