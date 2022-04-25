@@ -2296,37 +2296,10 @@
      * @returns {bool} - returns false if slide doesn't exist.
      * */
     ApiSlide.prototype.ApplyLayout = function(oLayout){
-        if (!this.Slide)
+        if (!this.Slide || !oLayout)
             return false;
 
-        this.RemoveAllObjects();
-        this.Slide.setLayout(oLayout.Layout);
-
-        var oPresentation = editor.GetPresentation().Presentation;
-        var layout, i, _ph_type, sp, hf, bIsSpecialPh;
-
-        layout = oLayout.Layout;
-        hf = oLayout.Layout.Master.hf;
-        this.Slide.setNotes(AscCommonSlide.CreateNotes());
-        this.Slide.notes.setNotesMaster(oPresentation.notesMasters[0]);
-        this.Slide.notes.setSlide(this.Slide);
-        for (i = 0; i < layout.cSld.spTree.length; ++i) {
-            if (layout.cSld.spTree[i].isPlaceholder()) {
-                _ph_type = layout.cSld.spTree[i].getPhType();
-                bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
-                if (!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
-                    (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
-                    (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
-                    (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false)))) {
-                    sp = layout.cSld.spTree[i].copy(undefined);
-                    sp.setParent(this.Slide);
-                    !bIsSpecialPh && sp.clearContent && sp.clearContent();
-                    this.Slide.addToSpTreeToPos(this.Slide.cSld.spTree.length, sp);
-                }
-            }
-        }
-        this.Slide.setSlideSize(oPresentation.Width, oPresentation.Height);
-
+        this.Slide.changeLayout(oLayout.Layout);
         return true;
     };
 
