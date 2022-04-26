@@ -2143,7 +2143,10 @@ function BinaryStyleTableWriter(memory, doc, oNumIdMap, copyParams, saveParams)
 			oStyleToWrite = this.copyParams.oUsedStyleMap;
         for(var styleId in oStyleToWrite)
         {
-            var style = oStyleToWrite[styleId];
+			var style = styles.Style[styleId];
+			if (!style) {
+				continue;
+			}
 			var bDefault = styles.Is_StyleDefault(style.Name);
             this.bs.WriteItem(c_oSer_sts.Style, function(){oThis.WriteStyle(styleId, style, bDefault);});
         }
@@ -6987,17 +6990,17 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		this.bpPrs.WriteNotePr(notePr, posType);
 		var index = -1;
 		if (notes.Separator) {
-			notesSaveParams[index] = {type: 3, content: notes.Separator};
+			notesSaveParams[index] = {type: footnote_Separator, content: notes.Separator};
 			this.bs.WriteItem(c_oSerNotes.PrRef, function() {oThis.memory.WriteLong(index);});
 			index++
 		}
 		if (notes.ContinuationSeparator) {
-			notesSaveParams[index] = {type: 1, content: notes.ContinuationSeparator};
+			notesSaveParams[index] = {type: footnote_ContinuationSeparator, content: notes.ContinuationSeparator};
 			this.bs.WriteItem(c_oSerNotes.PrRef, function() {oThis.memory.WriteLong(index);});
 			index++
 		}
 		if (notes.ContinuationNotice) {
-			notesSaveParams[index] = {type: 0, content: notes.ContinuationNotice};
+			notesSaveParams[index] = {type: footnote_ContinuationNotice, content: notes.ContinuationNotice};
 			this.bs.WriteItem(c_oSerNotes.PrRef, function() {oThis.memory.WriteLong(index);});
 			index++
 		}
@@ -8169,11 +8172,11 @@ function BinaryFileReader(doc, openParams)
 			for (var i = 0; i < this.oReadResult.footnoteRefs.length; ++i) {
 				var footnote = this.oReadResult.footnotes[this.oReadResult.footnoteRefs[i]];
 				if (footnote) {
-					if (0 == footnote.type) {
+					if (footnote_ContinuationNotice == footnote.type) {
 						this.oReadResult.logicDocument.Footnotes.SetContinuationNotice(footnote.content);
-					} else if (1 == footnote.type) {
+					} else if (footnote_ContinuationSeparator == footnote.type) {
 						this.oReadResult.logicDocument.Footnotes.SetContinuationSeparator(footnote.content);
-					} else if (3 == footnote.type) {
+					} else if (footnote_Separator == footnote.type) {
 						this.oReadResult.logicDocument.Footnotes.SetSeparator(footnote.content);
 					}
 				}
@@ -8182,11 +8185,11 @@ function BinaryFileReader(doc, openParams)
 			for (var i = 0; i < this.oReadResult.endnoteRefs.length; ++i) {
 				var endnote = this.oReadResult.endnotes[this.oReadResult.endnoteRefs[i]];
 				if (endnote) {
-					if (0 == endnote.type) {
+					if (footnote_ContinuationNotice == endnote.type) {
 						this.oReadResult.logicDocument.Endnotes.SetContinuationNotice(endnote.content);
-					} else if (1 == endnote.type) {
+					} else if (footnote_ContinuationSeparator == endnote.type) {
 						this.oReadResult.logicDocument.Endnotes.SetContinuationSeparator(endnote.content);
-					} else if (3 == endnote.type) {
+					} else if (footnote_Separator == endnote.type) {
 						this.oReadResult.logicDocument.Endnotes.SetSeparator(endnote.content);
 					}
 				}
@@ -11903,12 +11906,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		}
 		else if (c_oSerRunType.footnoteRef === type)
 		{
-			if (this.curNote) {
-				oNewElem = new ParaFootnoteRef(this.curNote);
-			}
-			else if(this.oReadResult && this.oReadResult.bCopyPaste && this.openParams.oDocument){
-				oNewElem = new ParaFootnoteRef(this.openParams.oDocument);
-			}
+			oNewElem = new ParaFootnoteRef(null);
 		}
 		else if (c_oSerRunType.footnoteReference === type)
 		{
@@ -11924,12 +11922,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		}
 		else if (c_oSerRunType.endnoteRef === type)
 		{
-			if (this.curNote) {
-				oNewElem = new ParaEndnoteRef(this.curNote);
-			}
-			else if(this.oReadResult && this.oReadResult.bCopyPaste && this.openParams.oDocument){
-				oNewElem = new ParaEndnoteRef(this.openParams.oDocument);
-			}
+			oNewElem = new ParaEndnoteRef(null);
 		}
 		else if (c_oSerRunType.endnoteReference === type)
 		{
@@ -17264,6 +17257,8 @@ function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible, docParts) {
 	this.footnotesIndex = 0;
 	this.endnotes = {};
 	this.endnotesIndex = 0;
+	this.footnoteIdToIndex = {};
+	this.endnoteIdToIndex = {};
 	this.moveRangeFromNameToId = {};
 	this.moveRangeToNameToId = {};
 	this.isCompatible = isCompatible;

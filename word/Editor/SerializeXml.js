@@ -81,6 +81,7 @@
 	CDocument.prototype.toZip = function(zip, context) {
 		var memory = new AscCommon.CMemory();
 		memory.context = context;
+		context.docSaveParams = new DocSaveParams();
 
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
 		var docPart = filePart.addPart(AscCommon.openXml.Types.mainDocument);
@@ -101,12 +102,6 @@
 		webSettingsPart.part.setData(sampleData);
 		memory.Seek(0);
 
-		memory.WriteXmlString(AscCommonWord.g_sXmlSettings);
-		sampleData = memory.GetDataUint8();
-		var settingsPart = docPart.part.addPart(AscCommon.openXml.Types.documentSettings);
-		settingsPart.part.setData(sampleData);
-		memory.Seek(0);
-
 		memory.WriteXmlString(AscCommonWord.g_sXmlTheme);
 		sampleData = memory.GetDataUint8();
 		var themePart = docPart.part.addPart(AscCommon.openXml.Types.theme);
@@ -117,6 +112,24 @@
 		sampleData = memory.GetDataUint8();
 		var fontsPart = docPart.part.addPart(AscCommon.openXml.Types.fontTable);
 		fontsPart.part.setData(sampleData);
+		memory.Seek(0);
+
+		if (Object.keys(this.Footnotes.Footnote).length > 0) {
+			let footnotesPart = docPart.part.addPart(AscCommon.openXml.Types.footnotes);
+			footnotesPart.part.setDataXml(this.Footnotes, memory);
+			memory.Seek(0);
+		}
+
+		if (Object.keys(this.Endnotes.Endnote).length > 0) {
+			let endnotesPart = docPart.part.addPart(AscCommon.openXml.Types.endnotes);
+			endnotesPart.part.setDataXml(this.Endnotes, memory);
+			memory.Seek(0);
+		}
+
+		memory.WriteXmlString(AscCommonWord.g_sXmlSettings);
+		sampleData = memory.GetDataUint8();
+		var settingsPart = docPart.part.addPart(AscCommon.openXml.Types.documentSettings);
+		settingsPart.part.setData(sampleData);
 		memory.Seek(0);
 
 		docPart.part.setDataXml(this, memory);
@@ -1986,27 +1999,29 @@
 					}
 					break;
 				case "endnoteRef":
+					newItem = new ParaEndnoteRef(null);
 					break;
 				case "endnoteReference":
-					let ftnRef = new CT_FtnEdnRef();
-					ftnRef.fromXml(reader);
-					var endnote = endnotes[ftnRef.id];
+					let ednRef = new CT_FtnEdnRef();
+					ednRef.fromXml(reader);
+					let endnote = endnotes[ednRef.id];
 					if (endnote) {
-						oReadResult.logicDocument.Footnotes.AddFootnote(endnote.content);
-						newItem = new ParaFootnoteReference(endnote.content, ftnRef.customMarkFollows);
+						oReadResult.logicDocument.Endnotes.AddEndnote(endnote.content);
+						newItem = new ParaEndnoteReference(endnote.content, ednRef.customMarkFollows);
 					}
 					break;
 				case "fldChar":
 					break;
 				case "footnoteRef":
+					newItem = new ParaFootnoteRef(null);
 					break;
 				case "footnoteReference":
-					let ednRef = new CT_FtnEdnRef();
-					ednRef.fromXml(reader);
-					var footnote = footnotes[ednRef.id];
+					let ftnRef = new CT_FtnEdnRef();
+					ftnRef.fromXml(reader);
+					let footnote = footnotes[ftnRef.id];
 					if (footnote) {
 						oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
-						newItem = new ParaFootnoteReference(footnote.content, ednRef.customMarkFollows);
+						newItem = new ParaFootnoteReference(footnote.content, ftnRef.customMarkFollows);
 					}
 					break;
 				case "instrText":
@@ -2071,6 +2086,9 @@
 		}
 	};
 	ParaRun.prototype.toXml = function(writer, name) {
+		let footnoteIdToIndex = writer.context.docSaveParams.footnoteIdToIndex;
+		let endnoteIdToIndex = writer.context.docSaveParams.endnoteIdToIndex;
+		let index;
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		if (this.MathPrp && !this.MathPrp.Is_Empty()) {
@@ -2088,6 +2106,30 @@
 		{
 			var item = this.Content[i];
 			switch ( item.Type ) {
+				case para_FootnoteRef:
+					writer.WriteXmlNodeStart("w:footnoteRef");
+					writer.WriteXmlAttributesEnd(true);
+					break;
+				case para_FootnoteReference:
+					index = footnoteIdToIndex && footnoteIdToIndex[item.Footnote.GetId()];
+					if (undefined !== index) {
+						let ftnRef = new CT_FtnEdnRef();
+						ftnRef.fromVal(index, item.CustomMark);
+						ftnRef.toXml(writer, "w:footnoteReference");
+					}
+					break;
+				case para_EndnoteRef:
+					writer.WriteXmlNodeStart("w:endnoteRef");
+					writer.WriteXmlAttributesEnd(true);
+					break;
+				case para_EndnoteReference:
+					index = endnoteIdToIndex && endnoteIdToIndex[item.Footnote.GetId()];
+					if (undefined !== index) {
+						let endRef = new CT_FtnEdnRef();
+						endRef.fromVal(index, item.CustomMark);
+						endRef.toXml(writer, "w:endnoteReference");
+					}
+					break;
 				case para_Text:
 				case para_Space:
 
@@ -3893,16 +3935,30 @@
 			}
 		}
 	};
-	CFootnotesController.prototype.toXml = function(writer, name) {
-		var name = "w:footnotes";
+	CFootnotesController.prototype.toXml = function(writer) {
+		let name = "w:footnotes";
 
 		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlFootnotesEndnotesNamespaces);
 		writer.WriteXmlAttributesEnd();
-		this.Content.Content.forEach(function(item) {
-			CDocument.prototype.toXmlDocContentElem(writer, item);
-		});
+		let index = -1;
+		if (this.Separator) {
+			this.Separator.toXml(writer, "w:footnote", index++, 3);
+		}
+		if (this.ContinuationSeparator) {
+			this.ContinuationSeparator.toXml(writer, "w:footnote", index++, 1);
+		}
+		if (this.ContinuationNotice) {
+			this.ContinuationSeparator.toXml(writer, "w:footnote", index++, 0);
+		}
+		for(let id in this.Footnote) {
+			if(this.Footnote.hasOwnProperty(id)) {
+				writer.context.docSaveParams.footnoteIdToIndex[id] = index;
+				this.Footnote[id].toXml(writer, "w:footnote", index);
+				index++;
+			}
+		}
 		writer.WriteXmlNodeEnd(name);
 	};
 	CEndnotesController.prototype.fromXml = function(reader) {
@@ -3930,16 +3986,30 @@
 			}
 		}
 	};
-	CEndnotesController.prototype.toXml = function(writer, name) {
-		var name = "w:endnotes";
+	CEndnotesController.prototype.toXml = function(writer) {
+		let name = "w:endnotes";
 
 		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlFootnotesEndnotesNamespaces);
 		writer.WriteXmlAttributesEnd();
-		this.Content.Content.forEach(function(item) {
-			CDocument.prototype.toXmlDocContentElem(writer, item);
-		});
+		let index = -1;
+		if (this.Separator) {
+			this.Separator.toXml(writer, "w:endnote", index++, 3);
+		}
+		if (this.ContinuationSeparator) {
+			this.ContinuationSeparator.toXml(writer, "w:endnote", index++, 1);
+		}
+		if (this.ContinuationNotice) {
+			this.ContinuationSeparator.toXml(writer, "w:endnote", index++, 0);
+		}
+		for(let id in this.Endnote) {
+			if(this.Endnote.hasOwnProperty(id)) {
+				writer.context.docSaveParams.endnoteIdToIndex[id] = index;
+				this.Endnote[id].toXml(writer, "w:endnote", index);
+				index++;
+			}
+		}
 		writer.WriteXmlNodeEnd(name);
 	};
 	CFootEndnote.prototype.readAttr = function(reader, note) {
@@ -3968,10 +4038,10 @@
 			notes[note.id] = note;
 		}
 	};
-	CFootEndnote.prototype.toXml = function(writer, name) {
+	CFootEndnote.prototype.toXml = function(writer, name, id, type) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_FtnEdn(this.Type));
-		writer.WriteXmlNullableAttributeInt("w:id", this.Id);
+		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_FtnEdn(type));
+		writer.WriteXmlNullableAttributeInt("w:id", id);
 		writer.WriteXmlAttributesEnd();
 		this.Content.forEach(function(item) {
 			CDocument.prototype.toXmlDocContentElem(writer, item);
@@ -4085,7 +4155,6 @@
 		writer.WriteXmlAttributesEnd(true);
 	};
 //misc
-
 
 	function CT_TblPPr() {
 		this.LeftFromText = null;
@@ -5230,6 +5299,10 @@
 		writer.WriteXmlNullableAttributeInt("w:id", this.id);
 		writer.WriteXmlAttributesEnd(true);
 	};
+	CT_FtnEdnRef.prototype.fromVal = function(index, CustomMark) {
+		this.customMarkFollows = CustomMark;
+		this.id = index;
+	};
 	//enums
 	function fromXml_ST_Border(val) {
 		switch (val) {
@@ -6226,28 +6299,27 @@
 	}
 
 	function fromXml_ST_FtnEdn(val, def) {
-		//todo constants
 		switch (val) {
 			case "normal":
-				return 2;
+				return footnote_Normal;
 			case "separator":
-				return 3;
+				return footnote_Separator;
 			case "continuationSeparator":
-				return 1;
+				return footnote_ContinuationSeparator;
 			case "continuationNotice":
-				return 0;
+				return footnote_ContinuationNotice;
 		}
 		return def;
 	}
 	function toXml_ST_FtnEdn(val) {
 		switch (val) {
-			case 2:
+			case footnote_Normal:
 				return "normal";
-			case 3:
+			case footnote_Separator:
 				return "separator";
-			case 1:
+			case footnote_ContinuationNotice:
 				return "continuationSeparator";
-			case 0:
+			case footnote_ContinuationNotice:
 				return "continuationNotice";
 		}
 		return null;
