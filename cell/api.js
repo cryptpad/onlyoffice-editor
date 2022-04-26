@@ -1594,6 +1594,16 @@ var editor;
 					personList.fromXml(reader);
 				}
 			}
+
+			//wb comments
+			//лежит в виде бинарника, читаем через serialize
+			var workbookComment = wbPart.getPartByRelationshipType(openXml.Types.workbookComment.relationType);
+			if (workbookComment) {
+				var contentWorkbookComment = workbookComment.getDocumentContent(true);
+				if (contentWorkbookComment) {
+					AscCommonExcel.ReadWbComments(wb, contentWorkbookComment, xmlParserContext.InitOpenManager);
+				}
+			}
 		}
 		
 		if (wbXml.pivotCaches) {

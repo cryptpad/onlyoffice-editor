@@ -12010,6 +12010,31 @@
         return {formula: formula, si: si, ref: ref, type: type, ca: parsed.ca};
     };
 
+    function ReadWbComments (wb, contentWorkbookComment, InitOpenManager) {
+        var stream = new AscCommon.FT_Stream2(contentWorkbookComment, contentWorkbookComment.length)
+        var bwtr = new Binary_WorksheetTableReader(stream, InitOpenManager, wb);
+        var bcr = new AscCommon.Binary_CommonReader(stream);
+        bcr.Read1(contentWorkbookComment.length, function(t,l){
+            return bwtr.ReadCommentDatas(t,l, wb.aComments);
+        });
+    }
+
+    function WriteWbComments (wb) {
+        var res = null;
+        if (wb && wb.aComments) {
+            var binaryMemory = new AscCommon.CMemory();
+            var bwtw = new BinaryWorkbookTableWriter(binaryMemory, wb);
+            var bs = new AscCommon.BinaryCommonWriter(binaryMemory)
+
+            var oBinaryStylesTableWriter = new BinaryStylesTableWriter(binaryMemory, wb);
+            bwtw.oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(binaryMemory, wb, /*this.isCopyPaste*/null, oBinaryStylesTableWriter);
+
+            bs.WriteItem(c_oSerWorkbookTypes.Comments, function() {bwtw.WriteComments(wb.aComments);});
+            res = binaryMemory.GetData();
+        }
+        return res;
+    }
+
     var prot;
     window['Asc'] = window['Asc'] || {};
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -12175,6 +12200,9 @@
     window["AscCommonExcel"].ESortMethod = ESortMethod;
     window["AscCommonExcel"].ST_CellComments = ST_CellComments;
     window["AscCommonExcel"].ST_PrintError = ST_PrintError;
+
+    window["AscCommonExcel"].ReadWbComments = ReadWbComments;
+    window["AscCommonExcel"].WriteWbComments = WriteWbComments;
 
 
 })(window);

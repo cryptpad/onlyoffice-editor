@@ -109,6 +109,15 @@
 				}
 			}
 		}
+
+		if (this.aComments) {
+			var binaryComments = AscCommonExcel.WriteWbComments(this);
+			if (binaryComments) {
+				var wbCommentsPart = wbPart.part.addPart(AscCommon.openXml.Types.workbookComment);
+				wbCommentsPart.part.setData(binaryComments);
+				memory.Seek(0);
+			}
+		}
 	};
 
 	function getSimpleArrayFromXml(reader, childName, attrName, attrType) {
