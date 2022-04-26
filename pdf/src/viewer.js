@@ -1219,7 +1219,8 @@
 		this.onMouseUp = function(e)
 		{
 			oThis.isFocusOnThumbnails = false;
-			AscCommon.stopEvent(e);
+			if (e && e.preventDefault)
+				e.preventDefault();
 
 			var mouseButton = AscCommon.getMouseButton(e || {});
 			if (mouseButton !== 0)
