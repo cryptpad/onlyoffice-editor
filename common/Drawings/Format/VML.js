@@ -6397,5 +6397,7 @@
 
 		window['AscFormat'].CVMLDrawing = CVMLDrawing;
 		window['AscFormat'].ECssPropertyType = ECssPropertyType;
+		window['AscFormat'].ECssUnitsType = ECssUnitsType;
+		window['AscFormat'].CPoint = CPoint;
 
 	})(window);

@@ -1683,7 +1683,7 @@ var editor;
 				}
 			});
 
-			wsParts.forEach(function(wbSheetXml) {
+			wsParts.forEach(function (wbSheetXml) {
 				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbSheetXml.wsPart;
 					var contentSheetXml = wsPart && wsPart.getDocumentContent();
@@ -1695,7 +1695,7 @@ var editor;
 						//wsView.pane = new AscCommonExcel.asc_CPane();
 						//ws.sheetViews.push(wsView);
 						if (contentSheetXml) {
-							AscCommonExcel.executeInR1C1Mode(false, function() {
+							AscCommonExcel.executeInR1C1Mode(false, function () {
 								var reader = new StaxParser(contentSheetXml, wsPart, xmlParserContext);
 								ws.fromXml(reader);
 							});
@@ -1754,7 +1754,6 @@ var editor;
 								//связь с таблицыми по id осуществляется через tableIdOpen, который потом в методе initPostOpen преобразуется в tableId
 								ws.aNamedSheetViews = namedSheetView.namedSheetView;
 							}
-
 
 
 							var m_mapComments = {};
@@ -1852,13 +1851,6 @@ var editor;
 												pCommentItem.threadedComment = pThreadedComment;//c_oSer_Comments.ThreadedComment
 												pCommentItem.ThreadedCommentCopy = bThreadedCommentCopy;//bool m_bThreadedCommentCopy
 
-												var person = personList.getByGuid(pThreadedComment.personId);
-												if (person) {
-													pCommentItem.asc_putUserName(person.displayName);
-													pCommentItem.asc_putUserId(person.userId);
-													pCommentItem.asc_putProviderId(person.providerId);
-												}
-
 												var sNewId = nRow + "-" + nCol;
 												m_mapComments[sNewId] = pCommentItem;
 											}
@@ -1897,9 +1889,8 @@ var editor;
 												var nCol = parseInt(pClientData.m_oColumn);
 												var sId = nRow + "" + "-" + nCol + "";
 
-												var pPair = m_mapComments[sId];
-												if (pPair) {
-													var pCommentItem = pPair;
+												var pCommentItem = m_mapComments[sId];
+												if (pCommentItem) {
 													/*if(pShape->m_sGfxData.IsInit())
 														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;*/
 
@@ -1922,11 +1913,13 @@ var editor;
 													oCommentCoords.nCol = nCol;
 													oCommentCoords.nRow = nRow;
 
+													pCommentItem.coords = oCommentCoords;
+
 													//todo bHidden ?
 													//oCommentCoords->m_bVisible = pClientData->m_oVisible;
-													pPair.bHidden = !pClientData.m_oVisible;
+													//pCommentItem.bHidden = !pClientData.m_oVisible;
 
-													pPair.coords = oCommentCoords;
+													//pCommentItem.coords = oCommentCoords;
 
 													if (pShape.m_oFillColor) {
 														/*BYTE r = pShape->m_oFillColor->Get_R();
@@ -1939,6 +1932,7 @@ var editor;
 														pCommentItem->m_sFillColorRgb = sstream.str();*/
 													}
 
+													var oPoint = new AscFormat.CPoint(), oUCssValue;
 													for (var k = 0; k < pShape.m_oStyle.m_arrProperties.length; ++k) {
 														if (!pShape.m_oStyle.m_arrProperties[i]) {
 															continue;
@@ -1946,37 +1940,29 @@ var editor;
 
 														var oProperty = pShape.m_oStyle.m_arrProperties[k];
 														if (AscFormat.ECssPropertyType.cssptMarginLeft === oProperty.get_Type()) {
-															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
-															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
-															{
-																SimpleTypes::CPoint oPoint;
+															oUCssValue = oProperty.m_oValue;
+															if (AscFormat.ECssUnitsType.cssunitstypeUnits === oUCssValue.oValue.m_eType) {
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
-																pCommentItem->m_dLeftMM = oPoint.ToMm();
-															}*/
+																pCommentItem.coords.dLeftMM = oPoint.ToMm();
+															}
 														} else if (AscFormat.ECssPropertyType.cssptMarginTop === oProperty.get_Type()) {
-															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
-															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
-															{
-																SimpleTypes::CPoint oPoint;
+															oUCssValue = oProperty.m_oValue;
+															if (AscFormat.ECssUnitsType.cssunitstypeUnits === oUCssValue.oValue.m_eType) {
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
-																pCommentItem->m_dTopMM = oPoint.ToMm();
-															}*/
+																pCommentItem.coords.dTopMM = oPoint.ToMm();
+															}
 														} else if (AscFormat.ECssPropertyType.cssptWidth === oProperty.get_Type()) {
-															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
-															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
-															{
-																SimpleTypes::CPoint oPoint;
+															oUCssValue = oProperty.m_oValue;
+															if (AscFormat.ECssUnitsType.cssunitstypeUnits === oUCssValue.oValue.m_eType) {
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
-																pCommentItem->m_dWidthMM = oPoint.ToMm();
-															}*/
+																pCommentItem.coords.dWidthMM = oPoint.ToMm();
+															}
 														} else if (AscFormat.ECssPropertyType.cssptHeight === oProperty.get_Type()) {
-															/*SimpleTypes::Vml::UCssValue oUCssValue= oProperty->get_Value();
-															if(SimpleTypes::Vml::cssunitstypeUnits == oUCssValue.oValue.eType)
-															{
-																SimpleTypes::CPoint oPoint;
+															oUCssValue = oProperty.m_oValue;
+															if (AscFormat.ECssUnitsType.cssunitstypeUnits === oUCssValue.oValue.m_eType) {
 																oPoint.FromPoints(oUCssValue.oValue.dValue);
-																pCommentItem->m_dHeightMM = oPoint.ToMm();
-															}*/
+																pCommentItem.coords.dHeightMM = oPoint.ToMm();
+															}
 														}
 													}
 												}
@@ -1985,13 +1971,67 @@ var editor;
 									}
 								}
 
-								//преобразовываем к виду, который хранится в модели
-								/*for (var i = 0; i < m_mapComments.length; i++) {
-									m_mapComments[i].
-								}*/
+
+								var applyThreadedComment = function (_commentData, _threadedComment) {
+									oAdditionalData.isThreadedComment = true;
+									_commentData.asc_putSolved(false);
+									_commentData.aReplies = [];
+
+									if (_threadedComment.dT != null) {
+										_commentData.asc_putTime("");
+										var dateMs = AscCommon.getTimeISO8601(_threadedComment.dT);
+										if (!isNaN(dateMs)) {
+											_commentData.asc_putOnlyOfficeTime(dateMs + "");
+										}
+									}
+
+									if (_threadedComment.personId != null) {
+										var person = personList.getByGuid(_threadedComment.personId);
+										if (person) {
+											_commentData.asc_putUserName(person.displayName);
+											_commentData.asc_putUserId(person.userId);
+											_commentData.asc_putProviderId(person.providerId);
+										}
+									}
+
+									if (_threadedComment.id != null) {
+										_commentData.asc_putGuid(_threadedComment.id);
+									}
+
+									if (_threadedComment.done != null) {
+										_commentData.asc_putSolved(_threadedComment.done === "1");
+									}
+
+									if (_threadedComment.text != null) {
+										_commentData.asc_putText(_threadedComment.text);
+									}
+
+									if (_threadedComment.m_arrReplies && _threadedComment.m_arrReplies.length) {
+										for (var j = 0; j < _threadedComment.m_arrReplies.length; j++) {
+											var reply = new Asc.asc_CCommentData();
+											applyThreadedComment(reply, _threadedComment.m_arrReplies[j]);
+											_commentData.asc_addReply(reply);
+										}
+									}
+								};
+
+								for (var i in m_mapComments) {
+
+									if (m_mapComments[i].asc_getDocumentFlag()) {
+										m_mapComments[i].nId = "doc_" + (wb.aComments.length + 1);
+									} else {
+										m_mapComments[i].wsId = ws.Id;
+										m_mapComments[i].nId = "sheet" + m_mapComments[i].wsId + "_" + (ws.aComments.length + 1);
+									}
+
+									var oAdditionalData = {isThreadedComment: false};
+									if (m_mapComments[i].threadedComment) {
+										applyThreadedComment(m_mapComments[i], m_mapComments[i].threadedComment);
+
+									}
+									xmlParserContext.InitOpenManager.prepareComments(ws, m_mapComments[i].coords, [m_mapComments[i]], oAdditionalData);
+								}
 							};
-
-
 
 
 							//COMMENTS
@@ -2035,9 +2075,19 @@ var editor;
 				var ws = sheetDataElem.ws;
 
 				var tmp = {
-					pos: null, len: null, bNoBuildDep: bNoBuildDep, ws: ws, row: new AscCommonExcel.Row(ws),
-					cell: new AscCommonExcel.Cell(ws), formula: new AscCommonExcel.OpenFormula(), sharedFormulas: {},
-					prevFormulas: {}, siFormulas: {}, prevRow: -1, prevCol: -1, formulaArray: []
+					pos: null,
+					len: null,
+					bNoBuildDep: bNoBuildDep,
+					ws: ws,
+					row: new AscCommonExcel.Row(ws),
+					cell: new AscCommonExcel.Cell(ws),
+					formula: new AscCommonExcel.OpenFormula(),
+					sharedFormulas: {},
+					prevFormulas: {},
+					siFormulas: {},
+					prevRow: -1,
+					prevCol: -1,
+					formulaArray: []
 				};
 
 
@@ -2052,12 +2102,12 @@ var editor;
 					//TODO возможно стоит делать это в worksheet после полного чтения
 					//***array-formula***
 					//добавление ко всем ячейкам массива головной формулы
-					for(var j = 0; j < tmp.formulaArray.length; j++) {
+					for (var j = 0; j < tmp.formulaArray.length; j++) {
 						var curFormula = tmp.formulaArray[j];
 						var ref = curFormula.ref;
-						if(ref) {
+						if (ref) {
 							var rangeFormulaArray = tmp.ws.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
-							rangeFormulaArray._foreach(function(cell){
+							rangeFormulaArray._foreach(function (cell) {
 								cell.setFormulaInternal(curFormula);
 								if (curFormula.ca || cell.isNullTextString()) {
 									tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
@@ -2085,8 +2135,7 @@ var editor;
 		//TODO общий код с serialize
 		//ReadSheetDataExternal
 		if (window['OPEN_IN_BROWSER']) {
-			if(!initOpenManager.copyPasteObj.isCopyPaste || initOpenManager.copyPasteObj.selectAllSheet)
-			{
+			if (!initOpenManager.copyPasteObj.isCopyPaste || initOpenManager.copyPasteObj.selectAllSheet) {
 				readSheetDataExternal(false);
 				if (!initOpenManager.copyPasteObj.isCopyPaste) {
 					initOpenManager.PostLoadPrepare(wb);
@@ -2094,7 +2143,7 @@ var editor;
 				wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, false, true);
 			} else {
 				readSheetDataExternal(true);
-				if(window["Asc"] && window["Asc"]["editor"] !== undefined) {
+				if (window["Asc"] && window["Asc"]["editor"] !== undefined) {
 					wb.init(initOpenManager.oReadResult.tableCustomFunc, initOpenManager.oReadResult.tableIds, initOpenManager.oReadResult.sheetIds, true);
 				}
 			}
