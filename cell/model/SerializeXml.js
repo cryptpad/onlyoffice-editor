@@ -820,11 +820,9 @@
 		return res;
 	}
 
-	function ToXml_CFOperatorType(nType)
-	{
+	function ToXml_CFOperatorType(nType) {
 		var sType = undefined;
-		switch (nType)
-		{
+		switch (nType) {
 			case AscCommonExcel.ECfOperator.Operator_beginsWith:
 				sType = "beginsWith";
 				break;
@@ -865,11 +863,10 @@
 
 		return sType;
 	}
-	function FromXml_CFOperatorType(sType)
-	{
+
+	function FromXml_CFOperatorType(sType) {
 		var nType = undefined;
-		switch (sType)
-		{
+		switch (sType) {
 			case "beginsWith":
 				nType = AscCommonExcel.ECfOperator.Operator_beginsWith;
 				break;
@@ -910,11 +907,10 @@
 
 		return nType;
 	}
-	function ToXml_ST_TimePeriod(nType)
-	{
+
+	function ToXml_ST_TimePeriod(nType) {
 		var sType = undefined;
-		switch (nType)
-		{
+		switch (nType) {
 			case AscCommonExcel.ST_TimePeriod.last7Days:
 				sType = "last7Days";
 				break;
@@ -949,11 +945,10 @@
 
 		return sType;
 	}
-	function FromXml_ST_TimePeriod(sType)
-	{
+
+	function FromXml_ST_TimePeriod(sType) {
 		var nType = undefined;
-		switch (sType)
-		{
+		switch (sType) {
 			case "last7Days":
 				nType = AscCommonExcel.ST_TimePeriod.last7Days;
 				break;
@@ -1447,6 +1442,7 @@
 		}
 		return res;
 	}
+
 	function ToXml_ST_FilterOperator(val) {
 		var res = "";
 		if (Asc.c_oAscCustomAutoFilter.equals === val) {
@@ -1543,7 +1539,7 @@
 
 	function ToXml_ST_DynamicFilterType(val) {
 		var res = "";
-		if (Asc.c_oAscDynamicAutoFilter.nullType === val){
+		if (Asc.c_oAscDynamicAutoFilter.nullType === val) {
 			res = "null";
 		} else if (Asc.c_oAscDynamicAutoFilter.aboveAverage === val) {
 			res = "aboveAverage";
@@ -1634,6 +1630,7 @@
 		}
 		return res;
 	}
+
 	function ToXml_ST_DateTimeGrouping(val) {
 		var res = "";
 		if (Asc.EDateTimeGroup.datetimegroupYear === val) {
@@ -1654,8 +1651,7 @@
 
 	function ToXml_ST_HorizontalAlignment(val) {
 		var res = "";
-		switch (val)
-		{
+		switch (val) {
 			case -1:
 				res = "general";
 				break;
@@ -1699,8 +1695,7 @@
 
 	function ToXml_ST_VerticalAlignment(val) {
 		var res = "";
-		switch (val)
-		{
+		switch (val) {
 			case Asc.c_oAscVAlign.Top:
 				res = "top";
 				break;
@@ -1719,6 +1714,7 @@
 		}
 		return res;
 	}
+
 	function FromXml_ST_VerticalAlignment(val) {
 		var res = -1;
 		if ("top" === val) {
@@ -1735,11 +1731,9 @@
 		return res;
 	}
 
-	function ToXml_ST_CfvoType(nType)
-	{
+	function ToXml_ST_CfvoType(nType) {
 		var sType = "";
-		switch (nType)
-		{
+		switch (nType) {
 			case AscCommonExcel.ECfvoType.Formula:
 				sType = "formula";
 				break;
@@ -1769,11 +1763,9 @@
 		return sType;
 	}
 
-	function FromXml_ST_CfvoType(sType)
-	{
+	function FromXml_ST_CfvoType(sType) {
 		var nType = -1;
-		switch (sType)
-		{
+		switch (sType) {
 			case "formula":
 				nType = AscCommonExcel.ECfvoType.Formula;
 				break;
@@ -1803,11 +1795,9 @@
 		return nType;
 	}
 
-	function ToXml_ST_DataValidationErrorStyle(nType)
-	{
+	function ToXml_ST_DataValidationErrorStyle(nType) {
 		var sType = undefined;
-		switch (nType)
-		{
+		switch (nType) {
 			case Asc.EDataValidationErrorStyle.Stop:
 				sType = "stop";
 				break;
@@ -1821,11 +1811,10 @@
 
 		return sType;
 	}
-	function FromXml_ST_DataValidationErrorStyle(sType)
-	{
+
+	function FromXml_ST_DataValidationErrorStyle(sType) {
 		var nType = undefined;
-		switch (sType)
-		{
+		switch (sType) {
 			case "stop":
 				nType = Asc.EDataValidationErrorStyle.Stop;
 				break;
@@ -1881,8 +1870,8 @@
 			return val;
 		}
 		val = prepareTextFromXml(val);
-		val = val.replace(/&apos;/g,"'");
-		val = val.replace(/&quot;/g,'"');
+		val = val.replace(/&apos;/g, "'");
+		val = val.replace(/&quot;/g, '"');
 		return val;
 	}
 

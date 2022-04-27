@@ -349,11 +349,6 @@ var editor;
     this.initGlobalObjects(this.wbModel);
 	  AscFonts.IsCheckSymbols = true;
 	  if(window['OPEN_IN_BROWSER']) {
-		  this.wbModel.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
-		  if(null == this.wbModel.theme)
-			  this.wbModel.theme = AscFormat.GenerateDefaultTheme(this.wbModel, 'Calibri');
-		  Asc.getBinaryOtherTableGVar(this.wbModel);
-
 		  this.openingEnd.xlsx = true;
 		  this.openingEnd.xlsxStart = true;
 		  this.openingEnd.data = data;
@@ -1459,6 +1454,20 @@ var editor;
 
 		var reader, i, j;
 		if (window['OPEN_IN_BROWSER']) {
+
+			//theme
+			var workbookThemePart = wbPart.getPartByRelationshipType(openXml.Types.theme.relationType);
+			if (workbookThemePart) {
+				var contentWorkbookTheme = workbookThemePart.getDocumentContent();
+				var oTheme = new AscFormat.CTheme();
+				reader = new StaxParser(contentWorkbookTheme, workbookThemePart, xmlParserContext);
+				oTheme.fromXml(reader, true);
+				wb.theme = oTheme;
+			}
+			xmlParserContext.InitOpenManager.initSchemeAndTheme(wb);
+
+			//TODO oMediaArray
+
 			//external reference
 			if (wbXml.externalReferences) {
 				wbXml.externalReferences.forEach(function (externalReference) {
@@ -1603,16 +1612,6 @@ var editor;
 				if (contentWorkbookComment) {
 					AscCommonExcel.ReadWbComments(wb, contentWorkbookComment, xmlParserContext.InitOpenManager);
 				}
-			}
-
-			//theme
-			var workbookThemePart = wbPart.getPartByRelationshipType(openXml.Types.theme.relationType);
-			if (workbookThemePart) {
-				var contentWorkbookTheme = workbookThemePart.getDocumentContent();
-				var oTheme = new AscFormat.CTheme();
-				reader = new StaxParser(contentWorkbookTheme, workbookThemePart, xmlParserContext);
-				oTheme.fromXml(reader, true);
-				wb.theme = oTheme;
 			}
 		}
 		
