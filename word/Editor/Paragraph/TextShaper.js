@@ -50,6 +50,47 @@
 	}
 
 	/**
+	 * @param nGID
+	 * @param nAdvanceX
+	 * @param nAdvanceY
+	 * @constructor
+	 */
+	function CGlyph(nGID, nAdvanceX, nAdvanceY)
+	{
+		this.GID      = nGID;
+		this.AdvanceX = nAdvanceX;
+		this.AdvanceY = nAdvanceY;
+	}
+
+	/**
+	 * @param nFontId
+	 * @constructor
+	 */
+	function CGrapheme(nFontId)
+	{
+		this.Font   = nFontId;
+		this.Glyphs = [];
+	}
+	CGrapheme.prototype.Add = function(nGID, nAdvanceX, nAdvanceY)
+	{
+		this.Glyphs.push(new CGlyph(nGID, nAdvanceX, nAdvanceY));
+	};
+	CGrapheme.prototype.Draw = function(oContext, nX, nY)
+	{
+		oContext.m_oGrFonts.Ascii.Name = this.Font;
+		oContext.m_oGrFonts.Ascii.Index = -1;
+		oContext.SetFontSlot(fontslot_ASCII, 1);
+
+		for (let nIndex = 0, nCount = this.Glyphs.length; nIndex < nCount; ++nIndex)
+		{
+			let oGlyph = this.Glyphs[nIndex];
+			oContext.tg(oGlyph.GID, nX, nY);
+			nX += oGlyph.AdvanceX;
+			nY += oGlyph.AdvanceY;
+		}
+	};
+
+	/**
 	 *
 	 * @constructor
 	 */
@@ -133,15 +174,18 @@
 
 			for (let nGlyphIndex = 0, nGlyphsCount = oSegment.glyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 			{
-				let oGrapheme = oSegment.glyphs[nGlyphIndex];
-				let nCluster = oGrapheme.cluster;
+				let oGlyph = oSegment.glyphs[nGlyphIndex];
+				let nCluster = oGlyph.cluster;
 
-				let nGraphemeWidth = oGrapheme.x_advance * COEF;
+				let nGraphemeWidth = oGlyph.x_advance * COEF;
 				let arrLigature = [this.Items[nCharIndex]];
-				this.Items[nCharIndex].SetGrapheme(oGrapheme.gid, oSegment.font, nGraphemeWidth);
+
+				let nStartChar = this.Items[nCharIndex];
+
+				this.Items[nCharIndex].SetGrapheme(oGlyph.gid, oSegment.font, nGraphemeWidth);
 
 				// TODO: Поменять на нормальную проверку CombiningMark
-				if (oGrapheme.x_advance < 0.001)
+				if (oGlyph.x_advance < 0.001)
 				{
 					let nTempGID = MEASURER.m_oManager.m_pFont.GetGIDByUnicode(0x25CC)
 					if (nTempGID)
@@ -151,13 +195,12 @@
 					}
 				}
 
-				let nStartChar = this.Items[nCharIndex];
 
 				nCluster += ClusterLength(this.Items[nCharIndex].GetCodePoint());
 				nCharIndex++;
 
 				let arrMarks = [];
-				while (nCharIndex < this.Buffer.length && nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGrapheme.cluster)
+				while (nCharIndex < this.Buffer.length && nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
 				{
 					let nCombineW = Math.max(0, oSegment.glyphs[nGlyphIndex + 1].x_advance * COEF);
 					nStartChar.AddWidth(nCombineW);
