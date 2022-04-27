@@ -6623,7 +6623,8 @@ function CDrawingDocument()
         par.MoveCursorToStartPos();
 
         //par.Pr = level.ParaPr.Copy();
-		par.Pr = new CParaPr();
+		var styles = this.m_oLogicDocument.Get_Styles();
+		par.Pr = (styles.Default && styles.Default.ParaPr) ? styles.Default.ParaPr.Copy() : new CParaPr();
         var textPr = level.TextPr.Copy();
         textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
 
@@ -6964,6 +6965,9 @@ function CDrawingDocument()
 					props.IsOnes = true;
 
                 AscFonts.FontPickerByCharacter.checkTextLight(text);
+				if (! curLvl.TextPr.GetFontFamily() ) {
+					curLvl.TextPr.RFonts.SetAll('Arial');
+				}
 
                 if (curLvl.TextPr && curLvl.TextPr.RFonts)
                 {
@@ -7060,13 +7064,9 @@ function CDrawingDocument()
 			props = [];
 			var olvl = new Asc.CAscNumberingLvl(0);
 			var level = new CNumberingLvl();
-			var arr = [];
-			for (var i = 0; i < text.length; i++)
-			{
-				var otext = new CNumberingLvlTextString(text[i]);
-				arr.push(otext);
-			}
-			level.SetLvlText(arr);
+			var oLvlTextPr	= new CTextPr();
+			oLvlTextPr.RFonts.SetAll("Arial");
+			level.SetByType(c_oAscNumberingLevel.Bullet, 0, text, oLvlTextPr);
 			level.FillToAscNumberingLvl(olvl);
 			props.push((type == 2) ? [olvl] : olvl);
 			if (type === 0)
@@ -7148,10 +7148,11 @@ function CDrawingDocument()
 				for (var i = 0; i < arrTypes.length; i++)
 				{
 					var lvl = new CNumberingLvl();
-					var oLvl = new Asc.CAscNumberingLvl(0)
+					var oLvl = new Asc.CAscNumberingLvl(0);
 					lvl.SetByType(arrTypes[i], 0);
 					lvl.FillToAscNumberingLvl(oLvl);
 					oLvl.Align = 1;
+					oLvl.TextPr.RFonts.SetAll("Arial");
 					props.push(oLvl);
 				}
 			}
@@ -7172,6 +7173,9 @@ function CDrawingDocument()
 						var oLvl = new Asc.CAscNumberingLvl(j);
 						lvl.InitDefault(j, arrTypes[i]);
 						lvl.FillToAscNumberingLvl(oLvl);
+						if ( !oLvl.TextPr.GetFontFamily() )
+							oLvl.TextPr.RFonts.SetAll("Arial");
+
 						tmpArr.push(oLvl)
 					}
 					props.push(tmpArr);
@@ -7392,7 +7396,8 @@ function CDrawingDocument()
 					var par = new Paragraph(this, this.m_oWordControl.m_oLogicDocument);
 					par.MoveCursorToStartPos();
 
-					par.Pr = new CParaPr();
+					var styles = this.m_oLogicDocument.Get_Styles();
+					par.Pr = (styles.Default && styles.Default.ParaPr) ? styles.Default.ParaPr.Copy() : new CParaPr();
 					var parRun = new ParaRun(par);
 					parRun.Set_Pr(textPr);
 					parRun.AddText(text);
