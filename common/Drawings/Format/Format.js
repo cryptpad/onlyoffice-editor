@@ -11338,8 +11338,8 @@ function CompareBullets(bullet1, bullet2)
         }
     };
 
-    CBullet.prototype.drawSquareImage = function (divId, indent) {
-        indent = indent || 0;
+    CBullet.prototype.drawSquareImage = function (divId, relativeIndent) {
+        relativeIndent = relativeIndent || 0;
 
         var url = this.getImageBulletURL();
         var Api = editor || Asc.editor;
@@ -11353,12 +11353,16 @@ function CompareBullets(bullet1, bullet2)
         }
         var nWidth = oDiv.clientWidth;
         var nHeight = oDiv.clientHeight;
-        var sideSize = nWidth < nHeight ? nWidth : nHeight;
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+        var sideSize = nWidth < nHeight ? nWidth * rPR : nHeight * rPR;
 
-        var oCanvas = document.createElement('canvas');
-        oCanvas.width = sideSize;
-        oCanvas.height = sideSize;
-        oDiv.appendChild(oCanvas);
+        var oCanvas = oDiv.firstChild;
+        if (!oCanvas) {
+            oCanvas = document.createElement('canvas');
+            oCanvas.width = sideSize;
+            oCanvas.height = sideSize;
+            oDiv.appendChild(oCanvas);
+        }
 
         var oContext = oCanvas.getContext('2d');
         oContext.fillStyle = "white";
@@ -11366,10 +11370,11 @@ function CompareBullets(bullet1, bullet2)
         var _img = Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
         if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading)
         {
-            var _x = indent;
-            var _y = indent;
-            var _w = sideSize - indent * 2;
-            var _h = sideSize - indent * 2;
+            var absoluteIndent = sideSize * relativeIndent;
+            var _x = absoluteIndent;
+            var _y = absoluteIndent;
+            var _w = sideSize - absoluteIndent * 2;
+            var _h = sideSize - absoluteIndent * 2;
             oContext.drawImage(_img.Image, _x, _y, _w, _h);
         }
     };
