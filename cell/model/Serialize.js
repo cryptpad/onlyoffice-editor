@@ -12021,16 +12021,18 @@
 
     function WriteWbComments (wb) {
         var res = null;
-        if (wb && wb.aComments) {
-            var binaryMemory = new AscCommon.CMemory();
-            var bwtw = new BinaryWorkbookTableWriter(binaryMemory, wb);
-            var bs = new AscCommon.BinaryCommonWriter(binaryMemory)
+        if (wb && wb.aComments && wb.aComments.length) {
+            var memory = new AscCommon.CMemory();
+            var bwtw = new BinaryWorkbookTableWriter(memory, wb);
 
-            var oBinaryStylesTableWriter = new BinaryStylesTableWriter(binaryMemory, wb);
-            bwtw.oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(binaryMemory, wb, /*this.isCopyPaste*/null, oBinaryStylesTableWriter);
+            var oBinaryStylesTableWriter = new BinaryStylesTableWriter(memory, wb);
+            bwtw.oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(memory, wb, /*this.isCopyPaste*/null, oBinaryStylesTableWriter);
 
-            bs.WriteItem(c_oSerWorkbookTypes.Comments, function() {bwtw.WriteComments(wb.aComments);});
-            res = binaryMemory.GetData();
+            //var bs = new AscCommon.BinaryCommonWriter(memory)
+            //bs.WriteItem(c_oSerWorkbookTypes.Comments, function() {bwtw.WriteComments(wb.aComments);});
+
+            bwtw.WriteComments(wb.aComments);
+            res = memory.GetData();
         }
         return res;
     }

@@ -1604,6 +1604,16 @@ var editor;
 					AscCommonExcel.ReadWbComments(wb, contentWorkbookComment, xmlParserContext.InitOpenManager);
 				}
 			}
+
+			//theme
+			var workbookThemePart = wbPart.getPartByRelationshipType(openXml.Types.theme.relationType);
+			if (workbookThemePart) {
+				var contentWorkbookTheme = workbookThemePart.getDocumentContent();
+				var oTheme = new AscFormat.CTheme();
+				reader = new StaxParser(contentWorkbookTheme, workbookThemePart, xmlParserContext);
+				oTheme.fromXml(reader);
+				wb.theme = oTheme;
+			}
 		}
 		
 		if (wbXml.pivotCaches) {
