@@ -3240,20 +3240,20 @@
 			for (var i = 0; i < extLst.arrExt.length; i++) {
 				if (extLst.arrExt[i] && extLst.arrExt[i].dataValidations) {
 					if (extLst.arrExt[i].dataValidations.elems) {
-						for (var j = 0; j < extLst.arrExt[i].dataValidations.elems.length; j++) {
-							if (extLst.arrExt[i].dataValidations.elems[j]) {
+						//for (var j = 0; j < extLst.arrExt[i].dataValidations.elems.length; j++) {
+							//if (extLst.arrExt[i].dataValidations.elems[j]) {
 								if (this.dataValidations) {
 									if (!this.dataValidations.disablePrompts) {
 										this.dataValidations.disablePrompts = extLst.arrExt[i].dataValidations.disablePrompts;
 										this.dataValidations.xWindow = extLst.arrExt[i].dataValidations.xWindow;
 										this.dataValidations.yWindow = extLst.arrExt[i].dataValidations.yWindow;
 									}
+									this.dataValidations.elems = this.dataValidations.elems.concat(extLst.arrExt[i].dataValidations.elems);
 								} else {
 									this.dataValidations = extLst.arrExt[i].dataValidations;
 								}
-								this.dataValidations.elems = this.dataValidations.elems.concat(extLst.arrExt[i].dataValidations.elems);
-							}
-						}
+							//}
+						//}
 					}
 				}
 			}

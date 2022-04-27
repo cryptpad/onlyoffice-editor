@@ -9254,6 +9254,7 @@
 				tint = reader.GetValue();
 			} else if ("rgb" === reader.GetName()) {
 				rgb = reader.GetValue();
+				rgb = 0x00ffffff & "0x"+ rgb;
 			} else if ("indexed" === reader.GetName()) {
 				rgb = GetDefaultRGBAByIndex(reader.GetValueInt());
 			}
@@ -9262,7 +9263,7 @@
 		if(null != theme) {
 			return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(theme), getNumFromXml(tint));
 		} else if(null != rgb){
-			return new AscCommonExcel.RgbColor(0x00ffffff & "0x"+ rgb);
+			return new AscCommonExcel.RgbColor(rgb);
 		}
 
 		return null;
