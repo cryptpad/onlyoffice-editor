@@ -1766,6 +1766,8 @@ function CDocumentSettings()
 	this.CompatibilityMode    = AscCommon.document_compatibility_mode_Current;
 	this.SdtSettings          = new CSdtGlobalSettings();
 	this.SpecialFormsSettings = new CSpecialFormsGlobalSettings();
+	this.WriteProtection = undefined;
+	this.DocumentProtection = undefined;
 
 	this.ListSeparator  = undefined;
 	this.DecimalSymbol  = undefined;

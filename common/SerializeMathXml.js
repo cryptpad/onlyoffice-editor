@@ -45,7 +45,9 @@
 	}
 	AscFormat.InitClass(CT_BoolM, AscCommon.CT_Bool, 0);
 	CT_BoolM.prototype.writeAttrVal = function(writer, val) {
-		writer.WriteXmlNullableAttributeBool("m:val", val);
+		if (!val) {
+			writer.WriteXmlNullableAttributeBool("m:val", val);
+		}
 	};
 
 	function CT_IntM() {
@@ -1729,6 +1731,98 @@
 		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.value), "m:argSz");
 		writer.WriteXmlNodeEnd(name);
 	};
+	CMathPropertiesSettings.prototype.fromXml = function(reader) {
+		let depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "mathFont" : {
+					this.mathFont = CT_StringM.prototype.toVal(reader, this.mathFont);
+					break;
+				}
+				case "brkBin" : {
+					this.brkBin = fromXml_ST_BreakBin(CT_StringM.prototype.toVal(reader, this.brkBin), this.brkBin);
+					break;
+				}
+				case "brkBinSub" : {
+					this.brkBinSub = fromXml_ST_BreakBinSub(CT_StringM.prototype.toVal(reader, this.brkBinSub), this.brkBinSub);
+					break;
+				}
+				case "smallFrac" : {
+					this.smallFrac = CT_BoolM.prototype.toVal(reader, this.smallFrac);
+					break;
+				}
+				case "dispDef" : {
+					this.dispDef = CT_BoolM.prototype.toVal(reader, this.dispDef);
+					break;
+				}
+				case "lMargin" : {
+					this.lMargin = AscCommon.universalMeasureToMm(CT_StringM.prototype.toVal(reader, this.lMargin), AscCommonWord.g_dKoef_twips_to_mm, this.lMargin);
+					break;
+				}
+				case "rMargin" : {
+					this.rMargin = AscCommon.universalMeasureToMm(CT_StringM.prototype.toVal(reader, this.rMargin), AscCommonWord.g_dKoef_twips_to_mm, this.rMargin);
+					break;
+				}
+				case "defJc" : {
+					this.defJc = fromXml_ST_Jc(CT_StringM.prototype.toVal(reader, this.defJc), this.defJc);
+					break;
+				}
+				case "preSp" : {
+					this.preSp = AscCommon.universalMeasureToMm(CT_StringM.prototype.toVal(reader, this.preSp), AscCommonWord.g_dKoef_twips_to_mm, this.preSp);
+					break;
+				}
+				case "postSp" : {
+					this.postSp = AscCommon.universalMeasureToMm(CT_StringM.prototype.toVal(reader, this.postSp), AscCommonWord.g_dKoef_twips_to_mm, this.postSp);
+					break;
+				}
+				case "interSp" : {
+					this.interSp = AscCommon.universalMeasureToMm(CT_StringM.prototype.toVal(reader, this.interSp), AscCommonWord.g_dKoef_twips_to_mm, this.interSp);
+					break;
+				}
+				case "intraSp" : {
+					this.intraSp = AscCommon.universalMeasureToMm(CT_StringM.prototype.toVal(reader, this.intraSp), AscCommonWord.g_dKoef_twips_to_mm, this.intraSp);
+					break;
+				}
+				case "wrapIndent" : {
+					this.wrapIndent = AscCommon.universalMeasureToMm(CT_StringM.prototype.toVal(reader, this.wrapIndent), AscCommonWord.g_dKoef_twips_to_mm, this.wrapIndent);
+					break;
+				}
+				case "wrapRight" : {
+					this.wrapRight = CT_BoolM.prototype.toVal(reader, this.wrapRight);
+					break;
+				}
+				case "intLim" : {
+					this.intLim = fromXml_ST_LimLoc(CT_StringM.prototype.toVal(reader, this.intLim), this.intLim);
+					break;
+				}
+				case "naryLim" : {
+					this.naryLim = fromXml_ST_LimLoc(CT_StringM.prototype.toVal(reader, this.naryLim), this.naryLim);
+					break;
+				}
+			}
+		}
+	};
+	CMathPropertiesSettings.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(CT_StringM.prototype.fromVal(this.mathFont), "m:mathFont");
+		writer.WriteXmlNullable(CT_StringM.prototype.fromVal(toXml_ST_BreakBin(this.brkBin)), "m:brkBin");
+		writer.WriteXmlNullable(CT_StringM.prototype.fromVal(toXml_ST_BreakBinSub(this.brkBinSub)), "m:brkBinSub");
+		writer.WriteXmlNullable(CT_BoolM.prototype.fromVal(this.smallFrac), "m:smallFrac");
+		writer.WriteXmlNullable(CT_BoolM.prototype.fromVal(this.dispDef), "m:dispDef");
+		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.lMargin, g_dKoef_mm_to_twips), "m:lMargin");
+		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.rMargin, g_dKoef_mm_to_twips), "m:rMargin");
+		writer.WriteXmlNullable(CT_StringM.prototype.fromVal(toXml_ST_Jc(this.defJc)), "m:defJc");
+		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.preSp, g_dKoef_mm_to_twips), "m:preSp");
+		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.postSp, g_dKoef_mm_to_twips), "m:postSp");
+		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.interSp, g_dKoef_mm_to_twips), "m:interSp");
+		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.intraSp, g_dKoef_mm_to_twips), "m:intraSp");
+		writer.WriteXmlNullable(CT_IntM.prototype.fromVal(this.wrapIndent, g_dKoef_mm_to_twips), "m:wrapIndent");
+		writer.WriteXmlNullable(CT_BoolM.prototype.fromVal(this.wrapRight), "m:wrapRight");
+		writer.WriteXmlNullable(CT_StringM.prototype.fromVal(toXml_ST_LimLoc(this.intLim)), "m:intLim");
+		writer.WriteXmlNullable(CT_StringM.prototype.fromVal(toXml_ST_LimLoc(this.naryLim)), "m:naryLim");
+		writer.WriteXmlNodeEnd(name);
+	};
 
 	function fromXml_ST_Script(val, def) {
 		switch (val) {
@@ -1967,6 +2061,50 @@
 				return "undOvr";
 			case NARY_SubSup:
 				return "subSup";
+		}
+		return null;
+	}
+	function fromXml_ST_BreakBin(val, def) {
+		switch (val) {
+			case "before":
+				return BREAK_BEFORE;
+			case "after":
+				return BREAK_AFTER;
+			case "repeat":
+				return BREAK_REPEAT;
+		}
+		return def;
+	}
+	function toXml_ST_BreakBin(val) {
+		switch (val) {
+			case BREAK_BEFORE:
+				return "before";
+			case BREAK_AFTER:
+				return "after";
+			case BREAK_REPEAT:
+				return "repeat";
+		}
+		return null;
+	}
+	function fromXml_ST_BreakBinSub(val, def) {
+		switch (val) {
+			case "--":
+				return BREAK_MIN_MIN;
+			case "-+":
+				return BREAK_MIN_PLUS;
+			case "+-":
+				return BREAK_PLUS_MIN;
+		}
+		return def;
+	}
+	function toXml_ST_BreakBinSub(val) {
+		switch (val) {
+			case BREAK_MIN_MIN:
+				return "--";
+			case BREAK_MIN_PLUS:
+				return "-+";
+			case BREAK_PLUS_MIN:
+				return "+-";
 		}
 		return null;
 	}

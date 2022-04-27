@@ -9717,6 +9717,148 @@
 		ClrMap.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
+		ClrMap.prototype.SchemeClr_GetBYTECodeWord = function(sValue)
+		{
+			if ("accent1" === sValue)
+				return 0;
+			if ("accent2" === sValue)
+				return 1;
+			if ("accent3" === sValue)
+				return 2;
+			if ("accent4" === sValue)
+				return 3;
+			if ("accent5" === sValue)
+				return 4;
+			if ("accent6" === sValue)
+				return 5;
+			if ("bg1" === sValue)
+				return 6;
+			if ("bg2" === sValue)
+				return 7;
+			if ("followedHyperlink" === sValue)
+				return 10;
+			if ("hyperlink" === sValue)
+				return 11;
+			if ("t1" === sValue)
+				return 15;
+			if ("t2" === sValue)
+				return 16;
+			return null;
+		};
+		ClrMap.prototype.SchemeClr_GetStringCodeWord = function(val)
+		{
+			switch (val)
+			{
+				case 0:
+					return ("accent1");
+				case 1:
+					return ("accent2");
+				case 2:
+					return ("accent3");
+				case 3:
+					return ("accent4");
+				case 4:
+					return ("accent5");
+				case 5:
+					return ("accent6");
+				case 6:
+					return ("bg1");
+				case 7:
+					return ("bg2");
+				case 10:
+					return ("followedHyperlink");
+				case 11:
+					return ("hyperlink");
+				case 15:
+					return ("t1");
+				case 16:
+					return ("t2");
+			}
+			return ("");
+		}
+		ClrMap.prototype.getColorIdxWord = function(name) {
+			if ("accent1" === name)
+				return 0;
+			if ("accent2" === name)
+				return 1;
+			if ("accent3" === name)
+				return 2;
+			if ("accent4" === name)
+				return 3;
+			if ("accent5" === name)
+				return 4;
+			if ("accent6" === name)
+				return 5;
+			if ("dark1" === name)
+				return 8;
+			if ("dark2" === name)
+				return 9;
+			if ("followedHyperlink" === name)
+				return 10;
+			if ("hyperlink" === name)
+				return 11;
+			if ("light1" === name)
+				return 12;
+			if ("light2" === name)
+				return 13;
+
+			return null;
+		};
+		ClrMap.prototype.getColorNameWord = function(val) {
+			switch (val)
+			{
+				case 0:
+					return ("accent1");
+				case 1:
+					return ("accent2");
+				case 2:
+					return ("accent3");
+				case 3:
+					return ("accent4");
+				case 4:
+					return ("accent5");
+				case 5:
+					return ("accent6");
+				case 8:
+					return ("dark1");
+				case 9:
+					return ("dark2");
+				case 10:
+					return ("followedHyperlink");
+				case 11:
+					return ("hyperlink");
+				case 12:
+					return ("light1");
+				case 13:
+					return ("light2");
+			}
+			return ("");
+		};
+		ClrMap.prototype.fromXmlWord = function(reader) {
+			while (reader.MoveToNextAttribute()) {
+				let nIdx = this.SchemeClr_GetBYTECodeWord(reader.GetNameNoNS());
+				let sVal = reader.GetValue();
+				let nVal = this.getColorIdxWord(sVal);
+				if (nIdx !== null && nVal !== null) {
+					this.color_map[nIdx] = nVal
+				}
+			}
+			reader.ReadTillEnd();
+		};
+		ClrMap.prototype.toXmlWord = function(writer, name) {
+			writer.WriteXmlNodeStart(name);
+			let ns = StaxParser.prototype.GetNSFromNodeName(name);
+			for (let i in this.color_map) {
+				if (this.color_map.hasOwnProperty(i)) {
+					let name = this.SchemeClr_GetStringCodeWord(parseInt(i));
+					let val = this.getColorNameWord(this.color_map[i]);
+					if (name && val) {
+						writer.WriteXmlNullableAttributeString(ns + name, val);
+					}
+				}
+			}
+			writer.WriteXmlAttributesEnd(true);
+		};
 
 		function ExtraClrScheme() {
 			CBaseFormatObject.call(this);

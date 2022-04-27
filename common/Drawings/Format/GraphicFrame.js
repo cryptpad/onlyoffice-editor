@@ -1420,10 +1420,10 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
 
 		var ns = StaxParser.prototype.GetNSFromNodeName(name);
 
-		writer.WriteXmlString('<'+ns+':nvGraphicFramePr>');
-		writer.WriteXmlString('<'+ns+':cNvPr id="' + cNvPrIndex + '" name="GraphicFrame ' + cNvPrIndex + '"/>');
-		writer.WriteXmlString('<'+ns+':cNvGraphicFramePr/></'+ns+':nvGraphicFramePr>');
-		writer.WriteXmlNullable(this.spPr && this.spPr.xfrm, ns + ":xfrm");
+		writer.WriteXmlString('<'+ns+'nvGraphicFramePr>');
+		writer.WriteXmlString('<'+ns+'cNvPr id="' + cNvPrIndex + '" name="GraphicFrame ' + cNvPrIndex + '"/>');
+		writer.WriteXmlString('<'+ns+'cNvGraphicFramePr/></'+ns+'nvGraphicFramePr>');
+		writer.WriteXmlNullable(this.spPr && this.spPr.xfrm, ns + "xfrm");
 		writer.WriteXmlNullable(this.graphicObject, "a:graphic");
 		writer.WriteXmlNodeEnd(name);
 	};

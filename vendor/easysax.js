@@ -1533,7 +1533,7 @@ StaxParser.prototype.ConvertToString = function(xml, start, end) {
 StaxParser.prototype.GetNSFromNodeName = function(name) {
     var index = name.indexOf(':');
     if (-1 !== index) {
-        return name.substring(0, index);
+        return name.substring(0, index + 1);
     }
     return "";
 };
@@ -1633,6 +1633,7 @@ function XmlWriterContext(editorId){
     this.part = null;
     this.imageMap = {};
     //docx
+    this.document = null;
     this.oNumIdMap = {};
     this.docSaveParams = null;
     //xlsx

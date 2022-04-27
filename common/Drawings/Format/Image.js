@@ -905,11 +905,11 @@ CImageShape.prototype.Load_LinkData = function(linkData)
 
 		var ns = StaxParser.prototype.GetNSFromNodeName(name);
 
-		writer.WriteXmlString('<'+ns+':nvPicPr>');
-		writer.WriteXmlString('<'+ns+':cNvPr id="' + cNvPrIndex + '" name="Picture ' + cNvPrIndex + '"/>');
-		writer.WriteXmlString('<'+ns+':cNvPicPr><a:picLocks noChangeAspect="1"/></'+ns+':cNvPicPr></'+ns+':nvPicPr>');
-		writer.WriteXmlNullable(this.blipFill, ns + ":blipFill");
-		writer.WriteXmlNullable(this.spPr, ns + ":spPr");
+		writer.WriteXmlString('<'+ns+'nvPicPr>');
+		writer.WriteXmlString('<'+ns+'cNvPr id="' + cNvPrIndex + '" name="Picture ' + cNvPrIndex + '"/>');
+		writer.WriteXmlString('<'+ns+'cNvPicPr><a:picLocks noChangeAspect="1"/></'+ns+'cNvPicPr></'+ns+'nvPicPr>');
+		writer.WriteXmlNullable(this.blipFill, ns + "blipFill");
+		writer.WriteXmlNullable(this.spPr, ns + "spPr");
 
 		writer.WriteXmlNodeEnd(name);
 	};

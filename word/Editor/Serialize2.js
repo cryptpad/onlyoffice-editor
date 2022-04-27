@@ -7829,9 +7829,6 @@ function BinaryFileReader(doc, openParams)
 	};
     this.PostLoadPrepare = function(opt_xmlParserContext)
     {
-		if (null !== this.oReadResult.compatibilityMode) {
-			this.Document.Settings.CompatibilityMode = this.oReadResult.compatibilityMode;
-		}
 		this.Document.UpdateDefaultsDependingOnCompatibility();
 		//списки
 		for(var i in this.oReadResult.numToANumClass) {
@@ -8325,26 +8322,11 @@ function BinaryFileReader(doc, openParams)
 		this.PostLoadPrepareCorrectContent(this.Document.Content);
 		// for(var i = 0, length = this.oReadResult.aPostOpenStyleNumCallbacks.length; i < length; ++i)
 			// this.oReadResult.aPostOpenStyleNumCallbacks[i].call();
-		if (null != this.oReadResult.trackRevisions) {
-			this.Document.SetGlobalTrackRevisions(this.oReadResult.trackRevisions);
+		if(null !== this.oReadResult.defaultTabStop && this.oReadResult.defaultTabStop > 0) {
+			AscCommonWord.Default_Tab_Stop = this.oReadResult.defaultTabStop;
 		}
 		for (var i = 0; i < this.oReadResult.drawingToMath.length; ++i) {
 			this.oReadResult.drawingToMath[i].ConvertToMath();
-		}
-		if (this.oReadResult.SplitPageBreakAndParaMark) {
-			this.Document.Settings.SplitPageBreakAndParaMark = this.oReadResult.SplitPageBreakAndParaMark;
-		}
-		if (this.oReadResult.DoNotExpandShiftReturn) {
-			this.Document.Settings.DoNotExpandShiftReturn = this.oReadResult.DoNotExpandShiftReturn;
-		}
-		if (this.oReadResult.UlTrailSpace) {
-			this.Document.Settings.UlTrailSpace = this.oReadResult.UlTrailSpace;
-		}
-		if (this.oReadResult.BalanceSingleByteDoubleByteWidth) {
-			this.Document.Settings.BalanceSingleByteDoubleByteWidth = this.oReadResult.BalanceSingleByteDoubleByteWidth;
-		}
-		if (this.oReadResult.UseFELayout) {
-			this.Document.Settings.UseFELayout = this.oReadResult.UseFELayout;
 		}
 
 		if (opt_xmlParserContext) {
@@ -9050,8 +9032,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 break;
             case c_oSerProp_pPrType.numPr:
                 var numPr = new CNumPr();
-				numPr.NumId = undefined;
-				numPr.Lvl = undefined;
+				numPr.Set(undefined, undefined);
                 res = this.bcr.Read2(length, function(t, l){
                     return oThis.ReadNumPr(t, l, numPr);
                 });
@@ -16171,7 +16152,6 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
     this.Document = doc;
 	this.oReadResult = oReadResult;
     this.stream = stream;
-	this.trackRevisions = null;
     this.bcr = new Binary_CommonReader(this.stream);
 	this.bpPrr = new Binary_pPrReader(this.Document, this.oReadResult, this.stream);
 	this.brPrr = new Binary_rPrReader(this.Document, this.oReadResult, this.stream);
@@ -16185,6 +16165,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
     this.ReadSettingsContent = function(type, length)
     {
         var res = c_oSerConstants.ReadOk;
+		let Settings = this.Document.Settings;
 		var oThis = this;
         if ( c_oSer_SettingsType.ClrSchemeMapping === type )
         {
@@ -16197,14 +16178,14 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			var dNewTab_Stop = this.bcr.ReadDouble();
 			//word поддерживает 0, но наш редактор к такому не готов.
 			if(dNewTab_Stop > 0)
-				AscCommonWord.Default_Tab_Stop = dNewTab_Stop;
+				this.oReadResult.defaultTabStop = dNewTab_Stop;
         }
 		else if ( c_oSer_SettingsType.DefaultTabStopTwips === type )
 		{
 			var dNewTab_Stop = g_dKoef_twips_to_mm * this.stream.GetULongLE();
 			//word поддерживает 0, но наш редактор к такому не готов.
 			if(dNewTab_Stop > 0)
-				AscCommonWord.Default_Tab_Stop = dNewTab_Stop;
+				this.oReadResult.defaultTabStop = dNewTab_Stop;
 		}
 		else if ( c_oSer_SettingsType.MathPr === type )
         {			
@@ -16212,11 +16193,11 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathPr(t,l,props);
             });
-			editor.WordControl.m_oLogicDocument.Settings.MathSettings.SetPr(props);
+			Settings.MathSettings.SetPr(props);
         }
 		else if ( c_oSer_SettingsType.TrackRevisions === type && !this.oReadResult.disableRevisions)
 		{
-			this.oReadResult.trackRevisions = this.stream.GetBool();
+			Settings.TrackRevisions = this.stream.GetBool();
 		}
 		else if ( c_oSer_SettingsType.FootnotePr === type )
 		{
@@ -16288,24 +16269,24 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		else if ( c_oSer_SettingsType.Compat === type )
 		{
 			res = this.bcr.Read1(length, function(t, l){
-				return oThis.ReadCompat(t,l);
+				return oThis.ReadCompat(t,l, Settings);
 			});
 		}
 		else if ( c_oSer_SettingsType.DecimalSymbol === type )
 		{
-			editor.WordControl.m_oLogicDocument.Settings.DecimalSymbol = this.stream.GetString2LE(length);
+			Settings.DecimalSymbol = this.stream.GetString2LE(length);
 		}
 		else if ( c_oSer_SettingsType.ListSeparator === type )
 		{
-			editor.WordControl.m_oLogicDocument.Settings.ListSeparator = this.stream.GetString2LE(length);
+			Settings.ListSeparator = this.stream.GetString2LE(length);
 		}
 		else if ( c_oSer_SettingsType.GutterAtTop === type )
 		{
-			editor.WordControl.m_oLogicDocument.SetGutterAtTop(this.stream.GetBool());
+			Settings.GutterAtTop = this.stream.GetBool();
 		}
 		else if ( c_oSer_SettingsType.MirrorMargins === type )
 		{
-			editor.WordControl.m_oLogicDocument.SetMirrorMargins(this.stream.GetBool());
+			Settings.MirrorMargins = this.stream.GetBool();
 		}
 		else if ( c_oSer_SettingsType.DocumentProtection === type )
 		{
@@ -16313,7 +16294,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadDocProtect(t,l,oDocProtect);
 			});
-			//editor.WordControl.m_oLogicDocument.Settings.DocumentProtection = oDocProtect;
+			//Settings.DocumentProtection = oDocProtect;
 		}
 		else if ( c_oSer_SettingsType.WriteProtection === type )
 		{
@@ -16321,10 +16302,11 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadWriteProtect(t,l,oWriteProtect);
 			});
+			//Settings.WriteProtection = oWriteProtect;
 		}
 		// else if ( c_oSer_SettingsType.PrintTwoOnOne === type )
 		// {
-		// 	editor.WordControl.m_oLogicDocument.Settings.PrintTwoOnOne = this.stream.GetBool();
+		// 	Settings.PrintTwoOnOne = this.stream.GetBool();
 		// }
 		// else if ( c_oSer_SettingsType.BookFoldPrinting === type )
 		// {
@@ -16752,7 +16734,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		
 		this.Document.clrSchemeMap.color_map[nScriptType] = nScriptVal;
 	};
-	this.ReadCompat = function(type, length)
+	this.ReadCompat = function(type, length, Settings)
 	{
 		var res = c_oSerConstants.ReadOk;
 		var oThis = this;
@@ -16763,17 +16745,17 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 				return oThis.ReadCompatSetting(t,l,compat);
 			});
 			if ("compatibilityMode" === compat.name && "http://schemas.microsoft.com/office/word" === compat.url) {
-				this.oReadResult.compatibilityMode = parseInt(compat.value);
+				Settings.CompatibilityMode = parseInt(compat.value);
 			}
 		} else if (c_oSerCompat.Flags1 === type) {
 			var flags1 = this.stream.GetULong(length);
-			this.oReadResult.BalanceSingleByteDoubleByteWidth = 0 !== ((flags1 >> 6) & 1);
-			this.oReadResult.UlTrailSpace = 0 !== ((flags1 >> 9) & 1);
-			this.oReadResult.DoNotExpandShiftReturn = 0 != ((flags1 >> 10) & 1);
+			Settings.BalanceSingleByteDoubleByteWidth = 0 !== ((flags1 >> 6) & 1);
+			Settings.UlTrailSpace = 0 !== ((flags1 >> 9) & 1);
+			Settings.DoNotExpandShiftReturn = 0 != ((flags1 >> 10) & 1);
 		} else if (c_oSerCompat.Flags2 === type) {
 			var flags2 = this.stream.GetULong(length);
-			this.oReadResult.UseFELayout = 0 != ((flags2 >> 17) & 1);
-			this.oReadResult.SplitPageBreakAndParaMark = 0 != ((flags2 >> 27) & 1);
+			Settings.UseFELayout = 0 != ((flags2 >> 17) & 1);
+			Settings.SplitPageBreakAndParaMark = 0 != ((flags2 >> 27) & 1);
 		} else
 			res = c_oSerConstants.ReadUnknown;
 		return res;
@@ -16937,7 +16919,6 @@ function Binary_NotesTableReader(doc, oReadResult, openParams, stream, notes, lo
 	this.oReadResult = oReadResult;
 	this.openParams = openParams;
 	this.stream = stream;
-	this.trackRevisions = null;
 	this.notes = notes;
 	this.logicDocumentNotes = logicDocumentNotes;
 	this.bcr = new Binary_CommonReader(this.stream);
@@ -17289,7 +17270,6 @@ function DocReadResult(doc) {
 	this.aPostOpenStyleNumCallbacks = [];
 	this.headers = [];
 	this.footers = [];
-	this.trackRevisions = null;
 	this.hasRevisions = false;
 	this.disableRevisions = false;
 	this.drawingToMath = [];
@@ -17302,12 +17282,7 @@ function DocReadResult(doc) {
 	this.moveRanges = {};
 	this.Application;
 	this.AppVersion;
-	this.compatibilityMode = null;
-	this.SplitPageBreakAndParaMark = false;
-	this.BalanceSingleByteDoubleByteWidth = false;
-	this.UlTrailSpace = false;
-	this.DoNotExpandShiftReturn = false;
-	this.UseFELayout = false;
+	this.defaultTabStop = null;
 	this.bdtr = null;
 	this.runsToSplit = [];
 	this.bCopyPaste = false;

@@ -307,7 +307,12 @@
 		return reader.GetValueBool();
 	};
 	CT_Bool.prototype.writeAttrVal = function(writer, val) {
-		writer.WriteXmlNullableAttributeBool("val", val);
+		if (!val) {
+			writer.WriteXmlNullableAttributeBool("val", val);
+		}
+	};
+	CT_Bool.prototype.getVal = function() {
+		return null !== this.val ? this.val : true;
 	};
 
 	function CT_Int() {
@@ -320,6 +325,13 @@
 	CT_Int.prototype.writeAttrVal = function(writer, val) {
 		writer.WriteXmlNullableAttributeInt("val", this.val);
 	};
+	CT_Int.prototype.fromVal = function(val, koef) {
+		if (koef && null !== val && undefined !== val ) {
+			return CT_ComplexType.prototype.fromVal.call(this, val * koef);
+		} else {
+			return CT_ComplexType.prototype.fromVal.call(this, val);
+		}
+	};
 
 	function CT_UInt() {
 		CT_ComplexType.call(this);
@@ -330,6 +342,13 @@
 	};
 	CT_UInt.prototype.writeAttrVal = function(writer, val) {
 		writer.WriteXmlNullableAttributeUInt("val", this.val);
+	};
+	CT_UInt.prototype.fromVal = function(val, koef) {
+		if (koef && null !== val && undefined !== val ) {
+			return CT_ComplexType.prototype.fromVal.call(this, val * koef);
+		} else {
+			return CT_ComplexType.prototype.fromVal.call(this, val);
+		}
 	};
 
 	function CT_Double() {
@@ -356,7 +375,9 @@
 	}
 	AscFormat.InitClass(CT_BoolW, CT_Bool, 0);
 	CT_BoolW.prototype.writeAttrVal = function(writer, val) {
-		writer.WriteXmlNullableAttributeBool("w:val", val);
+		if (!val) {
+			writer.WriteXmlNullableAttributeBool("w:val", val);
+		}
 	};
 
 	function CT_IntW() {

@@ -72,6 +72,12 @@
 				reader = new StaxParser(endnotesContent, endnotesPart, context);
 				this.Endnotes.fromXml(reader);
 			}
+			let settingsPart = documentPart.getPartByRelationshipType(openXml.Types.documentSettings.relationType);
+			if (settingsPart) {
+				let settingsContent = settingsPart.getDocumentContent();
+				reader = new StaxParser(settingsContent, settingsPart, context);
+				this.Settings.fromXml(reader, this);
+			}
 		}
 
 		var contentDocument = documentPart.getDocumentContent();
@@ -81,6 +87,7 @@
 	CDocument.prototype.toZip = function(zip, context) {
 		var memory = new AscCommon.CMemory();
 		memory.context = context;
+		context.document = this;
 		context.docSaveParams = new DocSaveParams();
 
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
@@ -114,22 +121,16 @@
 		fontsPart.part.setData(sampleData);
 		memory.Seek(0);
 
-		if (Object.keys(this.Footnotes.Footnote).length > 0) {
-			let footnotesPart = docPart.part.addPart(AscCommon.openXml.Types.footnotes);
-			footnotesPart.part.setDataXml(this.Footnotes, memory);
-			memory.Seek(0);
-		}
+		let footnotesPart = docPart.part.addPart(AscCommon.openXml.Types.footnotes);
+		footnotesPart.part.setDataXml(this.Footnotes, memory);
+		memory.Seek(0);
 
-		if (Object.keys(this.Endnotes.Endnote).length > 0) {
-			let endnotesPart = docPart.part.addPart(AscCommon.openXml.Types.endnotes);
-			endnotesPart.part.setDataXml(this.Endnotes, memory);
-			memory.Seek(0);
-		}
+		let endnotesPart = docPart.part.addPart(AscCommon.openXml.Types.endnotes);
+		endnotesPart.part.setDataXml(this.Endnotes, memory);
+		memory.Seek(0);
 
-		memory.WriteXmlString(AscCommonWord.g_sXmlSettings);
-		sampleData = memory.GetDataUint8();
 		var settingsPart = docPart.part.addPart(AscCommon.openXml.Types.documentSettings);
-		settingsPart.part.setData(sampleData);
+		settingsPart.part.setDataXml(this.Settings, memory);
 		memory.Seek(0);
 
 		docPart.part.setDataXml(this, memory);
@@ -1282,6 +1283,7 @@
 				}
 				case "numPr" : {
 					this.NumPr = new CNumPr();
+					this.NumPr.Set(undefined, undefined);
 					this.NumPr.fromXml(reader);
 					reader.context.oReadResult.paraNumPrs.push(this.NumPr);
 					break;
@@ -2660,23 +2662,11 @@
 					break;
 				}
 				case "footnotePr" : {
-					elem = new CFootnotePr();
-					elem.InitDefault();
-					elem.fromXml(reader, true);
-					this.SetFootnoteNumFormat(elem.NumFormat);
-					this.SetFootnoteNumRestart(elem.NumRestart);
-					this.SetFootnoteNumStart(elem.NumStart);
-					this.SetFootnotePos(elem.Pos);
+					this.FootnotePr.fromXml(reader, true);
 					break;
 				}
 				case "endnotePr" : {
-					elem = new CFootnotePr();
-					elem.InitDefaultEndnotePr();
-					elem.fromXml(reader, false);
-					this.SetEndnoteNumFormat(elem.NumFormat);
-					this.SetEndnoteNumRestart(elem.NumRestart);
-					this.SetEndnoteNumStart(elem.NumStart);
-					this.SetEndnotePos(elem.Pos);
+					this.EndnotePr.fromXml(reader, false);
 					break;
 				}
 				case "type" : {
@@ -3148,7 +3138,8 @@
 			}
 		}
 	};
-	CFootnotePr.prototype.toXml = function(writer, name, isFootnotePr) {
+	CFootnotePr.prototype.toXml = function(writer, name, isFootnotePr, controller) {
+		let elemName = isFootnotePr ? "w:footnote": "w:endnote";
 		var Pos;
 		if(isFootnotePr) {
 			Pos = CT_StringW.prototype.fromVal(toXml_ST_FtnPos(this.Pos));
@@ -3165,6 +3156,21 @@
 		writer.WriteXmlNullable(NumFmt, "w:numFmt");
 		writer.WriteXmlNullable(NumStart, "w:numStart");
 		writer.WriteXmlNullable(NumRestart, "w:numRestart");
+		if (controller) {
+			let index = -1;
+			if (controller.Separator) {
+				writer.WriteXmlString('<' + elemName + ' w:id="' + index + '"/>');
+				index++;
+			}
+			if (controller.ContinuationSeparator) {
+				writer.WriteXmlString('<' + elemName + ' w:id="' + index + '"/>');
+				index++;
+			}
+			if (controller.ContinuationNotice) {
+				writer.WriteXmlString('<' + elemName + ' w:id="' + index + '"/>');
+				index++;
+			}
+		}
 		writer.WriteXmlNodeEnd(name);
 	};
 //styles
@@ -3560,6 +3566,7 @@
 		this.readAttr(reader, additional);
 		var elem, index = 0, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
+			//todo alter
 			switch (reader.GetNameNoNS()) {
 				// case "nsid" : {
 				// 	this.Nsid = new CT_LongHexNumber();
@@ -4152,6 +4159,281 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeIntWithKoef("x", this.x, AscCommonWord.g_dKoef_mm_to_emu);
 		writer.WriteXmlNullableAttributeIntWithKoef("y", this.y, AscCommonWord.g_dKoef_mm_to_emu);
+		writer.WriteXmlAttributesEnd(true);
+	};
+//settings
+	CDocumentSettings.prototype.fromXml = function(reader, doc) {
+		let name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("settings" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("settings" !== name) {
+			return;
+		}
+
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "writeProtection" : {
+					this.WriteProtection = new CDocProtect();
+					this.WriteProtection.fromXml(reader);
+					break;
+				}
+				case "mirrorMargins" : {
+					this.MirrorMargins = CT_BoolW.prototype.toVal(reader, this.MirrorMargins);
+					break;
+				}
+				case "gutterAtTop" : {
+					this.GutterAtTop = CT_BoolW.prototype.toVal(reader, this.GutterAtTop);
+					break;
+				}
+				case "trackRevisions" : {
+					this.TrackRevisions = CT_BoolW.prototype.toVal(reader, this.TrackRevisions);
+					break;
+				}
+				case "documentProtection" : {
+					this.DocumentProtection = new CDocProtect();
+					this.DocumentProtection.fromXml(reader);
+					break;
+				}
+				case "defaultTabStop" : {
+					let def = reader.context.oReadResult.defaultTabStop;
+					reader.context.oReadResult.defaultTabStop = AscCommon.universalMeasureToMm(CT_StringW.prototype.toVal(reader, def), AscCommonWord.g_dKoef_twips_to_mm, def);
+					break;
+				}
+				case "footnotePr" : {
+					if (doc) {
+						doc.Footnotes.FootnotePr.fromXml(reader, true);
+					}
+					break;
+				}
+				case "endnotePr" : {
+					if (doc) {
+						doc.Endnotes.EndnotePr.fromXml(reader, true);
+					}
+					break;
+				}
+				case "compat" : {
+					this.fromXmlCompat(reader);
+					break;
+				}
+				case "mathPr" : {
+					elem = new CMathPropertiesSettings();
+					elem.fromXml(reader);
+					this.MathSettings.SetPr(elem);
+					break;
+				}
+				case "clrSchemeMapping" : {
+					if (doc) {
+						elem = new AscFormat.ClrMap();
+						elem.fromXmlWord(reader);
+					}
+					break;
+				}
+				case "decimalSymbol" : {
+					this.DecimalSymbol = CT_StringW.prototype.toVal(reader, this.DecimalSymbol);
+					break;
+				}
+				case "listSeparator" : {
+					this.ListSeparator = CT_StringW.prototype.toVal(reader, this.ListSeparator);
+					break;
+				}
+			}
+		}
+	};
+	CDocumentSettings.prototype.toXml = function(writer) {
+		let name = 'w:settings';
+		let doc = writer.context.document;
+
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlSettingsNamespaces);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.WriteProtection, "w:writeProtection");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.MirrorMargins), "w:mirrorMargins");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.GutterAtTop), "w:gutterAtTop");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.TrackRevisions), "w:trackRevisions");
+		writer.WriteXmlNullable(this.DocumentProtection, "w:documentProtection");
+		writer.WriteXmlNullable(CT_UIntW.prototype.fromVal(AscCommonWord.Default_Tab_Stop, g_dKoef_mm_to_twips), "w:defaultTabStop");
+		if (doc) {
+			doc.Footnotes.FootnotePr.toXml(writer, "w:footnotePr", true, doc.Footnotes);
+			doc.Endnotes.EndnotePr.toXml(writer, "w:endnotePr", false, doc.Endnotes);
+		}
+		this.toXmlCompat(writer, "w:compat");
+		if (this.MathSettings && this.MathSettings.GetPr) {
+			writer.WriteXmlNullable(this.MathSettings.GetPr(), "w:mathPr");
+		}
+		if (doc) {
+			doc.clrSchemeMap.toXmlWord(writer, "w:clrSchemeMapping");
+		}
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.DecimalSymbol), "w:decimalSymbol");
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.ListSeparator), "w:listSeparator");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CDocumentSettings.prototype.fromXmlCompat = function(reader) {
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "splitPageBreakAndParaMark" : {
+					this.SplitPageBreakAndParaMark = CT_BoolW.prototype.toVal(reader, this.SplitPageBreakAndParaMark);
+					break;
+				}
+				case "doNotExpandShiftReturn" : {
+					this.DoNotExpandShiftReturn = CT_BoolW.prototype.toVal(reader, this.DoNotExpandShiftReturn);
+					break;
+				}
+				case "balanceSingleByteDoubleByteWidth" : {
+					this.BalanceSingleByteDoubleByteWidth = CT_BoolW.prototype.toVal(reader, this.BalanceSingleByteDoubleByteWidth);
+					break;
+				}
+				case "ulTrailSpace" : {
+					this.UlTrailSpace = CT_BoolW.prototype.toVal(reader, this.UlTrailSpace);
+					break;
+				}
+				case "useFELayout" : {
+					this.UseFELayout = CT_BoolW.prototype.toVal(reader, this.UseFELayout);
+					break;
+				}
+				case "compatSetting" : {
+					elem = new CT_CompatSetting();
+					elem.fromXml(reader);
+					if ("compatibilityMode" === elem.name && "http://schemas.microsoft.com/office/word" === elem.uri) {
+						this.CompatibilityMode = parseInt(elem.val);
+					}
+					break;
+				}
+			}
+		}
+	};
+	CDocumentSettings.prototype.toXmlCompat = function(writer, name) {
+		let CompatibilityMode = false === writer.context.docSaveParams.isCompatible ? AscCommon.document_compatibility_mode_Word15 : this.CompatibilityMode;
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.SplitPageBreakAndParaMark), "w:splitPageBreakAndParaMark");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.DoNotExpandShiftReturn), "w:doNotExpandShiftReturn");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.BalanceSingleByteDoubleByteWidth), "w:balanceSingleByteDoubleByteWidth");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.UlTrailSpace), "w:ulTrailSpace");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.UseFELayout), "w:useFELayout");
+		CT_CompatSetting.prototype.toXmlValues(writer, "w:compatSetting", "compatibilityMode", "http://schemas.microsoft.com/office/word", CompatibilityMode.toString());
+		CT_CompatSetting.prototype.toXmlValues(writer, "w:compatSetting", "overrideTableStyleFontSizeAndJustification", "http://schemas.microsoft.com/office/word", "1");
+		CT_CompatSetting.prototype.toXmlValues(writer, "w:compatSetting", "enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");
+		CT_CompatSetting.prototype.toXmlValues(writer, "w:compatSetting", "doNotFlipMirrorIndents", "http://schemas.microsoft.com/office/word", "1");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CDocProtect.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "algorithmName": {
+					this.algorithmName = fromXml_ST_CryptAlgoritmName(reader.GetValueDecodeXml(), this.algorithmName);
+					break;
+				}
+				case "algIdExt": {
+					this.algIdExt = reader.GetValueDecodeXml();
+					break;
+				}
+				case "algIdExtSource": {
+					this.algIdExtSource = reader.GetValueDecodeXml();
+					break;
+				}
+				case "cryptProviderType": {
+					this.cryptProviderType = fromXml_ST_CryptProvType(reader.GetValueDecodeXml(), this.cryptProviderType);
+					break;
+				}
+				case "cryptProvider": {
+					this.cryptProvider = reader.GetValueDecodeXml();
+					break;
+				}
+				case "cryptProviderTypeExt": {
+					this.cryptProviderTypeExt = reader.GetValueDecodeXml();
+					break;
+				}
+				case "cryptProviderTypeExtSource": {
+					this.cryptProviderTypeExtSource = reader.GetValueDecodeXml();
+					break;
+				}
+				case "cryptAlgorithmSid": {
+					this.cryptAlgorithmSid = reader.GetValueInt(this.cryptAlgorithmSid);
+					break;
+				}
+				case "cryptAlgorithmType": {
+					this.cryptAlgorithmType = fromXml_ST_CryptAlgType(reader.GetValueDecodeXml(), this.cryptAlgorithmType);
+					break;
+				}
+				case "cryptAlgorithmClass": {
+					this.cryptAlgorithmClass = fromXml_ST_CryptAlgClass(reader.GetValueDecodeXml(), this.cryptAlgorithmClass);
+					break;
+				}
+				case "edit": {
+					this.edit = fromXml_ST_DocProtect(reader.GetValueDecodeXml(), this.edit);
+					break;
+				}
+				case "enforcement": {
+					this.enforcement = reader.GetValueBool();
+					break;
+				}
+				case "formatting": {
+					this.formatting = reader.GetValueBool();
+					break;
+				}
+				case "hashValue":
+				case "hash": {
+					this.hashValue = reader.GetValueDecodeXml();
+					break;
+				}
+				case "recommended": {
+					this.recommended = reader.GetValueBool();
+					break;
+				}
+				case "salt":
+				case "saltValue": {
+					this.saltValue = reader.GetValueDecodeXml();
+					break;
+				}
+				case "cryptSpinCount":
+				case "spinCount": {
+					this.spinCount = reader.GetValueInt(this.SpinCount);
+					break;
+				}
+			}
+		}
+	};
+	CDocProtect.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CDocProtect.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:recommended", this.formatting);
+		writer.WriteXmlNullableAttributeStringEncode("w:edit", toXml_ST_DocProtect(this.edit));
+		writer.WriteXmlNullableAttributeBool("w:enforcement", this.enforcement);
+		writer.WriteXmlNullableAttributeBool("w:formatting", this.formatting);
+		if(null !== this.cryptProviderType) {
+			writer.WriteXmlNullableAttributeStringEncode("w:cryptProviderType", toXml_ST_CryptProvType(this.cryptProviderType));
+			writer.WriteXmlNullableAttributeStringEncode("w:algIdExt", this.algIdExt);
+			writer.WriteXmlNullableAttributeStringEncode("w:algIdExtSource", this.algIdExtSource);
+			writer.WriteXmlNullableAttributeStringEncode("w:cryptAlgorithmClass", toXml_ST_CryptAlgClass(this.cryptAlgorithmClass));
+			writer.WriteXmlNullableAttributeStringEncode("w:cryptAlgorithmType", toXml_ST_CryptAlgType(this.cryptAlgorithmType));
+			writer.WriteXmlNullableAttributeInt("w:cryptAlgorithmSid", this.cryptAlgorithmSid);
+			writer.WriteXmlNullableAttributeStringEncode("w:cryptProvider", this.cryptProvider);
+			writer.WriteXmlNullableAttributeStringEncode("w:cryptProviderTypeExt", this.cryptProviderTypeExt);
+			writer.WriteXmlNullableAttributeStringEncode("w:cryptProviderTypeExtSource", this.cryptProviderTypeExtSource);
+
+			writer.WriteXmlNullableAttributeInt("w:cryptSpinCount", this.spinCount);
+			writer.WriteXmlNullableAttributeStringEncode("w:hash", this.hashValue);
+			writer.WriteXmlNullableAttributeStringEncode("w:salt", this.saltValue);
+		} else {
+			writer.WriteXmlNullableAttributeStringEncode("w:algorithmName", toXml_ST_CryptAlgoritmName(this.algorithmName));
+			writer.WriteXmlNullableAttributeStringEncode("w:hashValue", this.hashValue);
+			writer.WriteXmlNullableAttributeStringEncode("w:saltValue", this.saltValue);
+			writer.WriteXmlNullableAttributeInt("w:spinCount", this.spinCount);
+		}
 		writer.WriteXmlAttributesEnd(true);
 	};
 //misc
@@ -5303,6 +5585,50 @@
 		this.customMarkFollows = CustomMark;
 		this.id = index;
 	};
+	function CT_CompatSetting() {
+		this.name = null;
+		this.uri = null;
+		this.val = null;
+		return this;
+	}
+	CT_CompatSetting.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "name": {
+					this.name = reader.GetValueDecodeXml();
+					break;
+				}
+				case "uri": {
+					this.uri = reader.GetValueDecodeXml();
+					break;
+				}
+				case "val": {
+					this.val = reader.GetValueDecodeXml();
+					break;
+				}
+			}
+		}
+	};
+	CT_CompatSetting.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_CompatSetting.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("w:name", this.name);
+		writer.WriteXmlNullableAttributeStringEncode("w:uri", this.uri);
+		writer.WriteXmlNullableAttributeStringEncode("w:val", this.val);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	CT_CompatSetting.prototype.toXmlValues = function(writer, nodeName, name, uri, val) {
+		if (null !== val && undefined !== val) {
+			let elem = new CT_CompatSetting();
+			elem.name = name;
+			elem.uri = uri;
+			elem.val = val;
+			elem.toXml(writer, nodeName);
+		}
+	};
 	//enums
 	function fromXml_ST_Border(val) {
 		switch (val) {
@@ -6317,7 +6643,7 @@
 				return "normal";
 			case footnote_Separator:
 				return "separator";
-			case footnote_ContinuationNotice:
+			case footnote_ContinuationSeparator:
 				return "continuationSeparator";
 			case footnote_ContinuationNotice:
 				return "continuationNotice";
@@ -7298,6 +7624,153 @@
 				return "space";
 			case Asc.c_oAscNumberingSuff.None:
 				return "nothing";
+		}
+		return null;
+	}
+	function fromXml_ST_CryptAlgoritmName(val, def) {
+		switch (val) {
+			case "1" :
+			case "MD2" :
+				return ECryptAlgoritmName.MD2;
+			case "2" :
+			case "MD4" :
+				return ECryptAlgoritmName.MD4;
+			case "3" :
+			case "MD5" :
+				return ECryptAlgoritmName.MD5;
+			case "6" :
+			case "RIPEMD-128" :
+				return ECryptAlgoritmName.RIPEMD_128;
+			case "7" :
+			case "RIPEMD-160" :
+				return ECryptAlgoritmName.RIPEMD_160;
+			case "4" :
+			case "SHA-1" :
+				return ECryptAlgoritmName.SHA1;
+			case "12" :
+			case "SHA-256" :
+				return ECryptAlgoritmName.SHA_256;
+			case "13" :
+			case "SHA-384" :
+				return ECryptAlgoritmName.SHA_384;
+			case "14" :
+			case "SHA-512" :
+				return ECryptAlgoritmName.SHA_512;
+			case "WHIRLPOOL" :
+				return ECryptAlgoritmName.WHIRLPOOL;
+		}
+		return def;
+	}
+	function toXml_ST_CryptAlgoritmName(val) {
+		switch (val) {
+			case ECryptAlgoritmName.MD2 :
+				return "MD2";
+			case ECryptAlgoritmName.MD4 :
+				return "MD4";
+			case ECryptAlgoritmName.MD5 :
+				return "MD5";
+			case ECryptAlgoritmName.RIPEMD_128 :
+				return "RIPEMD-128";
+			case ECryptAlgoritmName.RIPEMD_160 :
+				return "RIPEMD-160";
+			case ECryptAlgoritmName.SHA1 :
+				return "SHA-1";
+			case ECryptAlgoritmName.SHA_256 :
+				return "SHA-256";
+			case ECryptAlgoritmName.SHA_384 :
+				return "SHA-384";
+			case ECryptAlgoritmName.SHA_512 :
+				return "SHA-512";
+			case ECryptAlgoritmName.WHIRLPOOL :
+				return "WHIRLPOOL";
+		}
+		return null;
+	}
+	function fromXml_ST_DocProtect(val, def) {
+		switch (val) {
+			case "comments":
+				return EDocProtect.Comments;
+			case "forms":
+				return EDocProtect.Forms;
+			case "none":
+				return EDocProtect.None;
+			case "readOnly":
+				return EDocProtect.ReadOnly;
+			case "trackedChanges":
+				return EDocProtect.TrackedChanges;
+		}
+		return def;
+	}
+	function toXml_ST_DocProtect(val) {
+		switch (val) {
+			case EDocProtect.Comments:
+				return "comments";
+			case EDocProtect.Forms:
+				return "forms";
+			case EDocProtect.None:
+				return "none";
+			case EDocProtect.ReadOnly:
+				return "readOnly";
+			case EDocProtect.TrackedChanges:
+				return "trackedChanges";
+		}
+		return null;
+	}
+	function fromXml_ST_CryptAlgClass(val, def) {
+		switch (val) {
+			case "custom":
+				return ECryptAlgClass.Custom;
+			case "hash":
+				return ECryptAlgClass.Hash;
+		}
+		return def;
+	}
+	function toXml_ST_CryptAlgClass(val) {
+		switch (val) {
+			case ECryptAlgClass.Custom:
+				return "custom";
+			case ECryptAlgClass.Hash:
+				return "hash";
+		}
+		return null;
+	}
+	function fromXml_ST_CryptAlgType(val, def) {
+		switch (val) {
+			case "custom":
+				return ECryptAlgType.Custom;
+			case "typeAny":
+				return ECryptAlgType.TypeAny;
+		}
+		return def;
+	}
+	function toXml_ST_CryptAlgType(val) {
+		switch (val) {
+			case ECryptAlgType.Custom:
+				return "custom";
+			case ECryptAlgType.TypeAny:
+				return "typeAny";
+		}
+		return null;
+	}
+	function fromXml_ST_CryptProvType(val, def) {
+		switch (val) {
+			case "custom":
+				return ECryptProv.Custom;
+			case "rsaAES":
+				return ECryptProv.RsaAES;
+			case "rsaFull":
+				return ECryptProv.RsaFull;
+		}
+		return def;
+	}
+	function toXml_ST_CryptProvType(val) {
+		switch (val) {
+			case ECryptProv.Custom:
+				return "custom";
+			case ECryptProv.RsaAES:
+				return "rsaAES";
+			case ECryptProv.RsaFull:
+				return "rsaFull";
 		}
 		return null;
 	}
