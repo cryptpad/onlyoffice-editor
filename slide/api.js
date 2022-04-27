@@ -8160,10 +8160,219 @@ background-repeat: no-repeat;\
 		return this.canEdit();
 	};
 
-	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
-    {
+	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu2 = function(id, type, url)
+	{
+		var newId = [
+			{
+				type: 0,
+				text: 'None',
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00B7),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: "o",
+				specialFont: "Courier New",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A7),
+				specialFont: "Wingdings",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x0076),
+				specialFont: "Wingdings",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00D8),
+				specialFont: "Wingdings",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00FC),
+				specialFont: "Wingdings",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 0,
+				imageId: url,
+			},
+
+		];
+		/*var newId = [
+			{
+				type: 0,
+				text: 'None',
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			{
+				type: 1,
+				bulletType: 1,
+				Char: String.fromCharCode(0x00A8),
+				specialFont: "Symbol",
+			},
+			/!*{
+				type: 1,
+				bulletType: 0,
+				imageId: url,
+			},*!/
+
+		];*/
+		for (var i = 0; i < id.length; i += 1) {
+			newId[i].id = id[i];
+		}
 		if (this.WordControl.m_oDrawingDocument)
-			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type);
+			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu2(newId, type);
+	}
+
+	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type, url)
+    {
+	    var _this = this;
+	    var Api = this;
+			if (!url) {
+				url = 'https://w-dog.ru/wallpapers/9/15/458745441613494/vajoming-ssha-grand-teton-nacionalnyj-park-snejk-river-grand-titon-nacionalnyj-park-zakat-oblaka-vecher-gory-pole-cvety-zelen-les-derevya-sosny.jpg';
+			}
+	    if(!Api)
+	    {
+		    return;
+	    }
+	    AscCommon.sendImgUrls(Api, [url], function(data) {
+		    if (data && data[0] && data[0].url !== "error")
+		    {
+			    var url = AscCommon.g_oDocumentUrls.imagePath2Local(data[0].path);
+			    Api.ImageLoader.LoadImagesWithCallback([AscCommon.getFullImageSrc2(url)], function(){
+				    _this.SetDrawImagePreviewBulletForMenu2(id, type, url);
+				    Api.sendEvent("asc_onBulletImageLoaded", _this);
+			    });
+		    }
+	    }, false, false);
+			return;
+
+			var newId = [
+				{
+					type: 0,
+					text: 'None',
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: String.fromCharCode(0x00B7),
+					specialFont: "Symbol",
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: "o",
+					specialFont: "Courier New",
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: String.fromCharCode(0x00A7),
+					specialFont: "Wingdings",
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: String.fromCharCode(0x0076),
+					specialFont: "Wingdings",
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: String.fromCharCode(0x00D8),
+					specialFont: "Wingdings",
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: String.fromCharCode(0x00FC),
+					specialFont: "Wingdings",
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: String.fromCharCode(0x00A8),
+					specialFont: "Symbol",
+				},
+				{
+					type: 1,
+					bulletType: 1,
+					Char: String.fromCharCode(0x00A8),
+					specialFont: "Symbol",
+				},
+				/*{
+					type: 1,
+					bulletType: 0,
+					url: url,
+					specialFont: "Arial",
+				},*/
+
+			];
+			for (var i = 0; i < id.length; i += 1) {
+				newId[i].id = id[i];
+			}
+		if (this.WordControl.m_oDrawingDocument)
+			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu2(newId, type);
+			//this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type);
     };
 
 	//-------------------------------------------------------------export---------------------------------------------------
