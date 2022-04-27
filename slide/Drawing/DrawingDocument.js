@@ -3429,27 +3429,8 @@ function CDrawingDocument()
 		this.InlineTextInNotes = false;
 	};
 
-	this.privateGetParagraphByString = function(level, levelNum, counterCurrent, x, y, lineHeight, ctx, w, h)
+	this.privateGetParagraphByString = function(text, textPr, x, y, lineHeight, ctx, w, h)
     {
-        var text = "";
-        for (var i = 0; i < level.Text.length; i++)
-        {
-            switch (level.Text[i].Type)
-            {
-                case Asc.c_oAscNumberingLvlTextType.Text:
-                    text += level.Text[i].Value;
-                    break;
-                case Asc.c_oAscNumberingLvlTextType.Num:
-                    var correctNum = 1;
-                    if (levelNum === level.Text[i].Value)
-                        correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.get_OLang());
-                    break;
-                default:
-                    break;
-            }
-        }
-
         var api = this.m_oWordControl.m_oApi;
 
         History.TurnOff();
@@ -3466,8 +3447,8 @@ function CDrawingDocument()
         par.MoveCursorToStartPos();
 
         //par.Pr = level.ParaPr.Copy();
-		par.Pr = new CParaPr();
-        var textPr = level.TextPr.Copy();
+				par.Pr = new CParaPr();
+        textPr = textPr.Copy();
         textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
 
         var parRun = new ParaRun(par);
@@ -3479,43 +3460,12 @@ function CDrawingDocument()
         par.Recalculate_Page(0);
 
         var baseLineOffset = par.Lines[0].Y;
-        var bounds = par.Get_PageBounds(0);
-
         var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
-        var parH = (bounds.Bottom - bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
 
         var yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
         var xOffset = x;
-        switch (level.Align)
-        {
-            case AscCommon.align_Right:
-                xOffset -= parW;
-                break;
-            case AscCommon.align_Center:
-                xOffset -= (parW >> 1);
-                break;
-            default:
-                break;
-        }
-
-        // debug: text rect:
-        //ctx.beginPath();
-        //ctx.fillStyle = "#FFFF00";
-        //ctx.fillRect(xOffset, y, parW, parH);
-        //ctx.beginPath();
 
 		var backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
-		switch (level.Suff)
-		{
-			case Asc.c_oAscNumberingSuff.Space:
-			case Asc.c_oAscNumberingSuff.None:
-				backTextWidth += 4;
-				break;
-			case Asc.c_oAscNumberingSuff.Tab:
-				break;
-			default:
-				break;
-		}
 
         ctx.fillStyle = "#FFFFFF";
 		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
