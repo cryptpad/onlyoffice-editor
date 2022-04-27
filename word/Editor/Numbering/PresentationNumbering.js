@@ -400,22 +400,8 @@ CPresentationBullet.prototype.getDrawingText = function (Num) {
 
 CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Theme)
 {
-	var sT = "";
-	if (this.m_nType === numbering_presentationnumfrmt_Char)
-	{
-		if ( null != this.m_sChar )
-		{
-			sT = this.m_sChar;
-		}
-	} else if (this.m_nType !== numbering_presentationnumfrmt_Blip)
-	{
-		var typeOfNum = getAdaptedNumberingFormat(this.m_nType);
-		var formatNum = IntToNumberFormat(Num, typeOfNum);
-		sT = this.getHighlightForNumbering(formatNum);
-	}
-
-	this.m_sString = sT;
 	this.m_nNum = Num;
+	this.m_sString = this.getDrawingText(Num);
 	var dFontSize = FirstTextPr.FontSize;
 	if ( false === this.m_bSizeTx )
 	{
@@ -498,6 +484,7 @@ CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Them
 	var bRTL =  this.m_oTextPr.RTL;
 	var lcid =  this.m_oTextPr.Lang.EastAsia;
 	var FontSlot;
+	var sT = this.m_sString;
 	if (sT)
 	{
 		FontSlot = g_font_detector.Get_FontClass( sT.getUnicodeIterator().value(), Hint, lcid, bCS, bRTL );
