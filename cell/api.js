@@ -1611,7 +1611,7 @@ var editor;
 				var contentWorkbookTheme = workbookThemePart.getDocumentContent();
 				var oTheme = new AscFormat.CTheme();
 				reader = new StaxParser(contentWorkbookTheme, workbookThemePart, xmlParserContext);
-				oTheme.fromXml(reader);
+				oTheme.fromXml(reader, true);
 				wb.theme = oTheme;
 			}
 		}
