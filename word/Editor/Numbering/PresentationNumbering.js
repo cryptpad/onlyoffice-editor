@@ -197,6 +197,35 @@ function CPresentationBullet()
 	this.m_sSrc = null;
 }
 
+CPresentationBullet.prototype.convertFromAscTypeToPresentation = function (nType) {
+	switch (nType) {
+			case c_oAscNumberingLevel.DecimalBracket_Right    :
+			case c_oAscNumberingLevel.DecimalBracket_Left     :
+				return numbering_presentationnumfrmt_ArabicParenR;
+			case c_oAscNumberingLevel.DecimalDot_Right        :
+			case c_oAscNumberingLevel.DecimalDot_Left         :
+				return numbering_presentationnumfrmt_ArabicPeriod;
+			case c_oAscNumberingLevel.UpperRomanDot_Right     :
+				return numbering_presentationnumfrmt_RomanUcPeriod;
+			case c_oAscNumberingLevel.UpperLetterDot_Left     :
+				return numbering_presentationnumfrmt_AlphaUcPeriod;
+			case c_oAscNumberingLevel.LowerLetterBracket_Left :
+				return numbering_presentationnumfrmt_AlphaLcParenR;
+			case c_oAscNumberingLevel.LowerLetterDot_Left     :
+				return numbering_presentationnumfrmt_AlphaLcPeriod;
+			case c_oAscNumberingLevel.LowerRomanDot_Right     :
+				return numbering_presentationnumfrmt_RomanLcPeriod;
+			case c_oAscNumberingLevel.UpperRomanBracket_Left  :
+				return numbering_presentationnumfrmt_RomanUcParenR;
+			case c_oAscNumberingLevel.LowerRomanBracket_Left  :
+				return numbering_presentationnumfrmt_RomanLcParenR;
+			case c_oAscNumberingLevel.UpperLetterBracket_Left :
+				return numbering_presentationnumfrmt_AlphaUcParenR;
+			default:
+				break;
+	}
+};
+
 CPresentationBullet.prototype.getHighlightForNumbering = function(intFormat) {
 	switch (this.m_nType) {
 		case numbering_presentationnumfrmt_AlphaLcParenBoth:
@@ -350,6 +379,25 @@ CPresentationBullet.prototype.Get_StartAt = function()
 {
 	return this.m_nStartAt;
 };
+
+CPresentationBullet.prototype.getDrawingText = function (Num) {
+	var sT = "";
+	Num = Num || 1;
+	if (this.m_nType === numbering_presentationnumfrmt_Char)
+	{
+		if ( null != this.m_sChar )
+		{
+			sT = this.m_sChar;
+		}
+	} else if (this.m_nType !== numbering_presentationnumfrmt_Blip)
+	{
+		var typeOfNum = getAdaptedNumberingFormat(this.m_nType);
+		var formatNum = IntToNumberFormat(Num, typeOfNum);
+		sT = this.getHighlightForNumbering(formatNum);
+	}
+	return sT;
+}
+
 CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Theme)
 {
 	var sT = "";
