@@ -3497,6 +3497,268 @@ function CDrawingDocument()
         api.ShowParaMarks = oldMarks;
     };
 
+	this.drawNoneTextPreview = function (divId, info) {
+		var canvas = this.getClearCanvasForPreview(divId);
+		if (!canvas) return;
+		var width_px = parseFloat(canvas.style.width);
+		var height_px = parseFloat(canvas.style.height);
+		const ctx = canvas.getContext("2d");
+		ctx.beginPath();
+
+
+		const lvl = info;
+		const text = lvl.bullet.getDrawingText();
+		const line_distance = (height_px === 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
+
+
+
+		const oNewShape = new AscFormat.CShape();
+		oNewShape.createTextBody();
+		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
+		par.MoveCursorToStartPos();
+
+		par.Pr = new CParaPr();
+
+
+		const parRun = new ParaRun(par);
+		const textPr = lvl.textPr.Copy();
+		textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
+		parRun.Set_Pr(textPr);
+		parRun.AddText(text);
+		par.AddToContent(0, parRun);
+
+		par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+		par.Recalculate_Page(0);
+
+		const bounds = par.Get_PageBounds(0);
+
+		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+		const parH = (bounds.Bottom - bounds.Top);
+		const x = (width_px - (parW >> 0)) >> 1;
+		const y = (height_px >> 1) + (parH >> 0);
+
+		this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
+	}
+
+	const textType = 0;
+	const bulletType = 1;
+	const bulletType_image = 0;
+	const bulletType_char = 1;
+	const numberType = 2;
+
+	this.getBulletArrayFromPreviewinfo = function (infoOfDrawings) {
+		const arrayOfBullets = [];
+
+		for (let i = 0; i < infoOfDrawings.length; i += 1) {
+			const drawInfo = infoOfDrawings[i];
+			const type = drawInfo.type;
+			const bullet = new CPresentationBullet();
+			const textPr = new CTextPr();
+			textPr.Color = g_oDocumentDefaultStrokeColor;
+			switch (type) {
+				case textType: {
+					const value = drawInfo.text;
+					const bulletText = AscCommon.translateManager.getValue(value);
+					bullet.m_nType = numbering_presentationnumfrmt_Char;
+					bullet.m_sChar = bulletText;
+					const fontName = AscFonts.FontPickerByCharacter.getFontBySymbol(bulletText.charCodeAt(0));
+					textPr.RFonts.SetAll(fontName);
+					arrayOfBullets.push({bullet: bullet, textPr: textPr});
+					break;
+				}
+				case bulletType: {
+					const typeOfBullet = drawInfo.bulletType;
+					if (typeOfBullet === bulletType_char) {
+						const bulletText	= drawInfo.Char;
+						const fontName = drawInfo.specialFont || AscFonts.FontPickerByCharacter.getFontBySymbol(drawInfo.Char.charCodeAt(0));
+						textPr.RFonts.SetAll(fontName);
+						bullet.m_nType = numbering_presentationnumfrmt_Char;
+						bullet.m_sChar = bulletText;
+						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+					} else if (typeOfBullet === bulletType_image) {
+						const bulletImageId	= drawInfo.imageId;
+						bullet.m_nType = numbering_presentationnumfrmt_Blip;
+						bullet.m_sSrc = bulletImageId;
+						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+					}
+					break;
+				}
+				case numberType: {
+					const typeOfNumbering = drawInfo.numberingType;
+					bullet.m_nType = bullet.convertFromAscTypeToPresentation(typeOfNumbering);
+					textPr.RFonts.SetAll('Arial');
+					arrayOfBullets.push({bullet: bullet, textPr: textPr});
+					break;
+				}
+				default: {
+					break;
+				}
+			}
+		}
+
+		return arrayOfBullets;
+	}
+
+	this.getClearCanvasForPreview = function (divId) {
+		const divElement = document.getElementById(divId);
+		const width_px = divElement.clientWidth;
+		const height_px = divElement.clientHeight;
+
+		let canvas = divElement.firstChild;
+		if (!canvas)
+		{
+			canvas = document.createElement('canvas');
+			canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+			canvas.style.width = width_px + "px";
+			canvas.style.height = height_px + "px";
+			if (width_px > 0 && height_px > 0)
+				divElement.appendChild(canvas);
+		}
+
+		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+		canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+		const ctx = canvas.getContext("2d");
+		ctx.fillStyle = "#FFFFFF";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		return canvas;
+	}
+
+	this.drawSingleBullet = function (divId, numberInfo) {
+		var canvas = this.getClearCanvasForPreview(divId);
+		if (!canvas) return;
+
+		var width_px = parseFloat(canvas.style.width);
+		var height_px = parseFloat(canvas.style.height);
+		var ctx = canvas.getContext("2d");
+		ctx.beginPath();
+
+		var line_distance = 32, x = 0, y = 0;
+		var bullet = numberInfo.bullet;
+
+
+		var textPr = numberInfo.textPr.Copy();
+		textPr.FontSize = textPr.FontSizeCS = ((2 * line_distance * 72 / 96) >> 0) / 2;
+		if (bullet.m_sSrc) {
+			var bul = new AscFormat.CBullet();
+			bul.fillBulletImage(bullet.m_sSrc);
+			bul.drawSquareImage(divId, 0.125);
+		} else {
+			var text = bullet.getDrawingText();
+			g_oTextMeasurer.SetTextPr(textPr);
+			g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+			var oInfo = g_oTextMeasurer.Measure2Code(text.getUnicodeIterator().value());
+
+			x = (width_px >> 1) - Math.round((oInfo.WidthG / 2 + oInfo.rasterOffsetX) * AscCommon.g_dKoef_mm_to_pix);
+			y = (width_px >> 1) + Math.round((oInfo.Height / 2 + (oInfo.Ascent - oInfo.Height + oInfo.rasterOffsetY)) * AscCommon.g_dKoef_mm_to_pix);
+			this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
+		}
+	}
+
+	this.drawBulletsWithLines = function (divId, numberInfo, countOfLines) {
+		var canvas = this.getClearCanvasForPreview(divId);
+		if (!canvas) return;
+		var textPr = numberInfo.textPr.Copy();
+		var bullet = numberInfo.bullet;
+		var width_px = parseFloat(canvas.style.width);
+		var height_px = parseFloat(canvas.style.height);
+		var ctx = canvas.getContext("2d");
+		ctx.beginPath();
+
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		var offsetBase = 4;
+		var line_w = 2;
+		// считаем расстояние между линиями
+		var line_distance = (((height_px - (offsetBase << 2)) - line_w * countOfLines) / countOfLines) >> 0;
+		// убираем погрешность в offset
+		var offset = (height_px - (line_w * countOfLines + line_distance * countOfLines)) >> 1;
+
+		ctx.lineWidth = 2 * Math.round(rPR);
+		ctx.strokeStyle = "#CBCBCB";
+		var y = offset + 11;
+		var text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+
+		for (var j = 0; j < countOfLines; j++)
+		{
+			ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
+			ctx.stroke();
+			ctx.beginPath();
+			var textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+				textYy = y + (line_w * 2.5);
+
+
+			this.privateGetParagraphByString(bullet.getDrawingText(j + 1), textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+
+		}
+
+	}
+
+
+	this.SetDrawImagePreviewBulletForMenu2 = function(infoOfDrawings, type, props, isNoCheckFonts)
+	{
+		if (!props) {
+			props = this.getBulletArrayFromPreviewinfo(infoOfDrawings);
+		}
+
+		if (!isNoCheckFonts)
+		{
+			// check need load fonts
+			const fontsDict = {};
+			for (let i = 0, count = props.length; i < count; i++)
+			{
+				const bullet = props[i].bullet;
+				const text = bullet.getDrawingText();
+				if (text) {
+					AscFonts.FontPickerByCharacter.checkTextLight(text);
+				}
+				var textPr = props[i].textPr;
+				if (textPr && textPr.RFonts)
+				{
+					if (textPr.RFonts.Ascii) fontsDict[textPr.RFonts.Ascii.Name] = true;
+					if (textPr.RFonts.EastAsia) fontsDict[textPr.RFonts.EastAsia.Name] = true;
+					if (textPr.RFonts.HAnsi) fontsDict[textPr.RFonts.HAnsi.Name] = true;
+					if (textPr.RFonts.CS) fontsDict[textPr.RFonts.CS.Name] = true;
+				}
+			}
+
+			const fonts = [];
+			for (const familyName in fontsDict)
+			{
+				fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
+			}
+			AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+			if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+			{
+				return this.SetDrawImagePreviewBulletForMenu2(infoOfDrawings, type, props, true);
+			}
+
+			const loader = new AscCommon.CGlobalFontLoader();
+			loader.put_Api(this.m_oWordControl.m_oApi);
+			loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information, function(){
+				this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu2(infoOfDrawings, type, props, true);
+			});
+			return;
+		}
+
+		let id = infoOfDrawings[0].id;
+		this.drawNoneTextPreview(id, props[0]);
+
+		for (let i = 1; i < infoOfDrawings.length; i++)
+		{
+			id = infoOfDrawings[i].id;
+			if (!type)
+			{
+				this.drawSingleBullet(id, props[i]);
+			}
+			else
+			{
+				this.drawBulletsWithLines(id, props[i], 3);
+			}
+		}
+	};
+
+
 	this.SetDrawImagePreviewBulletForMenu = function(id, type, props, isNoCheckFonts)
 	{
 		var text = AscCommon.translateManager.getValue("None");
