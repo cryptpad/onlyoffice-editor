@@ -547,6 +547,23 @@
         Math.abs(new_ext_x - xfrm.extX) > AscFormat.MOVE_DELTA &&  xfrm.setExtX(new_ext_x);
         Math.abs(new_ext_y - xfrm.extY) > AscFormat.MOVE_DELTA &&  xfrm.setExtY(new_ext_y);
     };
+
+    CGraphicObjectBase.prototype.checkHiddenInAnimation = function() {
+        if(AscCommonSlide.Slide && (this.parent instanceof AscCommonSlide.Slide)) {
+            var oGrObjects = this.parent.graphicObjects;
+            if(oGrObjects) {
+                if(oGrObjects.isSlideShow()) {
+                    var oAnimPlayer = oGrObjects.getAnimationPlayer();
+                    if(oAnimPlayer) {
+                        if(oAnimPlayer.isDrawingHidden(this.Get_Id())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    };
     /**
      * Check point hit to bounds object
      * @memberof CGraphicObjectBase
@@ -555,6 +572,10 @@
         if(this.parent && (this.parent.Get_ParentTextTransform  && this.parent.Get_ParentTextTransform())) {
             return true;
         }
+        if(this.checkHiddenInAnimation && this.checkHiddenInAnimation()) {
+            return false;
+        }
+
         if(!AscFormat.canSelectDrawing(this)) {
             return false;
         }
@@ -894,6 +915,9 @@
             !this.isPlaceholder() &&
             this.getNoEditPoints() !== true &&
             !!(this.spPr && this.spPr.geometry);
+    };
+    CGraphicObjectBase.prototype.canEditTableOleObject = function(bReturnOle){
+        return bReturnOle ? null : false;
     };
     CGraphicObjectBase.prototype.canRotate = function() {
         if(!this.canEdit()) {
@@ -2922,6 +2946,22 @@
     
     CGraphicObjectBase.prototype.isImage = function() {
         return this.getObjectType() === AscDFH.historyitem_type_ImageShape;
+    };
+
+    CGraphicObjectBase.prototype.Is_UseInDocument = function() {
+        if(CShape.prototype.Is_UseInDocument) {
+            return CShape.prototype.Is_UseInDocument.call(this);
+        }
+        return true;
+    };
+
+    CGraphicObjectBase.prototype.GetWidth = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.extX;
+    };
+    CGraphicObjectBase.prototype.GetHeight = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.extY;
     };
 
     var ANIM_LABEL_WIDTH_PIX = 22;

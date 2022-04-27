@@ -2579,15 +2579,84 @@
             }
         };
 
-        var addFunction = function (name) {
+		var ws = this.getActiveWS();
+        var addFunction = function (name, cellEditMode) {
         	t.setWizardMode(true);
 			if (doCleanCellContent || !t.cellEditor.isFormula()) {
                 t.cellEditor.selectionBegin = 0;
                 t.cellEditor.selectionEnd = t.cellEditor.textRender.getEndOfText();
             }
-			t.cellEditor.insertFormula(name);
+
+			var res;
+			if (!name && t.cellEditor._formula && t.cellEditor._parseResult) {
+				var parseResult = t.cellEditor._parseResult;
+				name = parseResult.activeFunction && parseResult.activeFunction.func && parseResult.activeFunction.func.name;
+
+				if (cellEditMode) {
+					//ищем общую функцию, в которой находится курсор
+					//если начало и конец селекта в одной функции - показываем настройки для неё, если в разных - добавляем новую
+					var _start = t.cellEditor.selectionBegin !== -1 ? t.cellEditor.selectionBegin : t.cellEditor.cursorPos;
+					var _end = t.cellEditor.selectionEnd !== -1 ? t.cellEditor.selectionEnd : t.cellEditor.cursorPos;
+					var activeFunction = parseResult.getActiveFunction(_start, _end);
+					if (activeFunction) {
+						parseResult.activeFunction = activeFunction;
+						parseResult.argPosArr = activeFunction.args;
+						name = activeFunction.func && activeFunction.func.name;
+					}
+				}
+
+				if (name) {
+					res = new AscCommonExcel.CFunctionInfo(name)
+
+					//получаем массив аргументов
+					res.argumentsValue = parseResult.getArgumentsValue(t.cellEditor._formula.Formula);
+					if (res.argumentsValue) {
+						var argumentsType = parseResult.activeFunction.func.argumentsType;
+						res.argumentsResult = [];
+						for (var i = 0; i < res.argumentsValue.length; i++) {
+							var argType = null;
+							if (argumentsType) {
+								if (typeof argumentsType[i] == 'object') {
+									argType = argumentsType[i][0];
+								} else if (i > argumentsType.length - 1) {
+									var lastArgType = argumentsType[argumentsType.length - 1];
+									if (typeof lastArgType == 'object') {
+										argType = lastArgType[(i - (argumentsType.length - 1)) % lastArgType.length]
+									}
+								} else {
+									argType = argumentsType[i];
+								}
+							}
+							//вычисляем результат каждого аргумента
+							var argCalc = ws.calculateWizardFormula(res.argumentsValue[i], argType);
+							res.argumentsResult[i] = argCalc.str;
+						}
+					}
+
+					//get result
+					var sArguments = res.argumentsValue.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
+					if (argCalc.obj && argCalc.obj.type !== AscCommonExcel.cElementType.error) {
+						var funcCalc = ws.calculateWizardFormula(name + '(' + sArguments + ')');
+						res.functionResult = funcCalc.str;
+						if (funcCalc.obj && funcCalc.obj.type !== AscCommonExcel.cElementType.error) {
+							res.formulaResult = ws.calculateWizardFormula(t.cellEditor._formula).str;
+						}
+					}
+
+					t.cellEditor.lastRangePos = parseResult.argPosArr[0].start;
+					t.cellEditor.lastRangeLength = parseResult.argPosArr[parseResult.argPosArr.length - 1].end - parseResult.argPosArr[0].start;
+
+					t.cellEditor.selectionBegin = t.cellEditor.selectionEnd = -1;
+					t.cellEditor._cleanSelection();
+				}
+			} else {
+				t.cellEditor.insertFormula(name);
+			}
+
 			// ToDo send info from selection
-			var res = name ? new AscCommonExcel.CFunctionInfo(name) : null;
+			if (!res) {
+				res = name ? new AscCommonExcel.CFunctionInfo(name) : null;
+			}
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", res);
         };
 
@@ -2599,7 +2668,7 @@
             return;
         }
 
-        addFunction(name);
+        addFunction(name, true);
     };
 
     WorkbookView.prototype.canEnterWizardRange = function (char) {
@@ -3188,6 +3257,7 @@
     previewOleObjectContext.changeZoom(ws.getZoom());
     previewOleObjectContext.DocumentRenderer = AscCommonExcel.getGraphics(previewOleObjectContext);
     previewOleObjectContext.isPreviewOleObjectContext = true;
+		previewOleObjectContext.isNotDrawBackground = !this.Api.isFromSheetEditor;
     ws.drawForPrint(previewOleObjectContext, page, 0, 1);
     return previewOleObjectContext;
   }
@@ -3958,11 +4028,16 @@
 			}
 		};
 
+		//разом лочу и настройки и колонтитулы. будут проблема - можно раъединить
 		var lockInfoArr = [];
 		var lockInfo;
 		for(var i in arrPagesPrint) {
 			lockInfo = this.getWorksheet(parseInt(i)).getLayoutLockInfo();
 			lockInfoArr.push(lockInfo);
+			if (arrPagesPrint[i].pageSetup && arrPagesPrint[i].pageSetup.headerFooter) {
+				lockInfo = this.getWorksheet(parseInt(i)).getHeaderFooterLockInfo();
+				lockInfoArr.push(lockInfo);
+			}
 		}
 
 		if(viewMode) {

@@ -220,6 +220,10 @@ ParaDrawing.prototype.Get_Width = function()
 {
 	return this.Width;
 };
+ParaDrawing.prototype.Get_Height = function()
+{
+	return this.Height;
+};
 ParaDrawing.prototype.Get_WidthVisible = function()
 {
 	return this.WidthVisible;
@@ -1857,8 +1861,8 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 	var NewParaDrawing = this.Copy();
 	var RunPr = this.Remove_FromDocument(false);
 
-	this.DocumentContent.Select_DrawingObject(NewParaDrawing.GetId());
-	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, oPictureCC);
+	NewParaDrawing.AddToDocument(NearPos, RunPr, undefined, oPictureCC);
+	NewParaDrawing.SelectAsDrawing();
 };
 ParaDrawing.prototype.Get_ParentTextTransform = function()
 {
@@ -2000,59 +2004,65 @@ ParaDrawing.prototype.SelectAsText = function()
 	oDocument.RemoveSelection();
 	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
 };
-ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Run, oPictureCC)
+ParaDrawing.prototype.SelectAsDrawing = function()
 {
-	NearPos.Paragraph.Check_NearestPos(NearPos);
+	let oParagraph = this.GetParagraph();
+	let oRun       = this.GetRun();
+	if (!oParagraph || !oRun)
+		return;
 
-	var LogicDocument = this.DrawingDocument.m_oLogicDocument;
+	let oDocument = oParagraph.GetLogicDocument();
+	if (!oDocument)
+		return;
 
-	var Para       = new Paragraph(this.DrawingDocument, LogicDocument);
-	var DrawingRun = new ParaRun(Para);
-	DrawingRun.Add_ToContent(0, this);
+	oDocument.RemoveSelection();
+	oDocument.Select_DrawingObject(this.GetId());
+};
+ParaDrawing.prototype.AddToDocument = function(oAnchorPos, oRunPr, oRun, oPictureCC)
+{
+	let oAnchorParagraph = oAnchorPos.Paragraph;
+	oAnchorParagraph.Check_NearestPos(oAnchorPos);
 
-	if (RunPr)
-		DrawingRun.Set_Pr(RunPr.Copy());
+	let oInsertParagraph = new AscCommonWord.Paragraph(this.DrawingDocument);
+	var oDrawingRun = new AscCommonWord.ParaRun();
+	oDrawingRun.AddToContent(0, this);
 
-	if (Run)
-		DrawingRun.SetReviewTypeWithInfo(Run.GetReviewType(), Run.GetReviewInfo());
+	if (oRunPr)
+		oDrawingRun.SetPr(oRunPr.Copy());
+
+	if (oRun)
+		oDrawingRun.SetReviewTypeWithInfo(oRun.GetReviewType(), oRun.GetReviewInfo());
 
 	if (oPictureCC)
 	{
-		var oSdt = new CInlineLevelSdt();
+		let oSdt = new CInlineLevelSdt();
 		oSdt.SetPicturePr(true);
 		oSdt.ReplacePlaceHolderWithContent();
-		oSdt.AddToContent(0, DrawingRun);
-		Para.Add_ToContent(0, oSdt);
+		oSdt.AddToContent(0, oDrawingRun);
+		oInsertParagraph.AddToContent(0, oSdt);
 
-		var oFormPr = oPictureCC.GetFormPr();
+		let oFormPr = oPictureCC.GetFormPr();
 		if (oFormPr)
 			oSdt.SetFormPr(oFormPr.Copy());
 	}
 	else
 	{
-		Para.Add_ToContent(0, DrawingRun);
+		oInsertParagraph.AddToContent(0, oDrawingRun);
 	}
 
-	var SelectedElement = new CSelectedElement(Para, false);
-	var SelectedContent = new CSelectedContent();
-	SelectedContent.Add(SelectedElement);
-	SelectedContent.SetMoveDrawing(true);
-	SelectedContent.DrawingObjects.push(this);
+	let oSelectedContent = new AscCommonWord.CSelectedContent();
+	oSelectedContent.Add(new AscCommonWord.CSelectedElement(oInsertParagraph, false));
+	oSelectedContent.EndCollect();
+	oSelectedContent.SetMoveDrawing(true);
+	oSelectedContent.Insert(oAnchorPos, true);
 
-	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
-	NearPos.Paragraph.Clear_NearestPosArray();
-	NearPos.Paragraph.Correct_Content();
-	this.Set_Parent(NearPos.Paragraph);
-	if (false != bRecalculate)
-		LogicDocument.Recalculate();
+	oAnchorParagraph.Clear_NearestPosArray();
 };
-ParaDrawing.prototype.Add_ToDocument2 = function(Paragraph)
+ParaDrawing.prototype.AddToParagraph = function(oParagraph)
 {
-	var DrawingRun = new ParaRun(Paragraph);
-	DrawingRun.Add_ToContent(0, this);
-
-	Paragraph.Add_ToContent(0, DrawingRun);
-	this.Set_Parent(Paragraph);
+	let oRun = new AscCommonWord.ParaRun();
+	oRun.AddToContent(0, this);
+	oParagraph.AddToContent(0, oRun);
 };
 ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 {
@@ -3093,6 +3103,8 @@ ParaDrawing.prototype.Get_ObjectType = function()
 
 	return AscDFH.historyitem_type_Drawing;
 };
+ParaDrawing.prototype.getObjectType = ParaDrawing.prototype.Get_ObjectType;
+
 ParaDrawing.prototype.GetAllContentControls = function(arrContentControls)
 {
 	if(this.GraphicObj)

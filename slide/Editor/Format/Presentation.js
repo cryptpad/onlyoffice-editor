@@ -154,10 +154,10 @@ PresentationSelectedContent.prototype.copy = function () {
     AscFormat.fResetConnectorsIds(aDrawingsCopy, oIdMap);
     if (this.DocContent) {
         //TODO: перенести копирование в CSelectedContent;
-        ret.DocContent = new CSelectedContent();
+        ret.DocContent = new AscCommonWord.CSelectedContent();
         aElements = this.DocContent.Elements;
         for (i = 0; i < aElements.length; ++i) {
-            oSelectedElement = new CSelectedElement();
+            oSelectedElement = new AscCommonWord.CSelectedElement();
             oElement = aElements[i];
             oParagraph = aElements[i].Element;
             oSelectedElement.SelectedAll = oElement.SelectedAll;
@@ -4159,7 +4159,7 @@ CPresentation.prototype.Is_OnRecalculate = function () {
     return true;
 };
 CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
-    if (true === AscCommon.CollaborativeEditing.Get_GlobalLock()) {
+    if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && !this.Api.isLiveViewer()) {
         if (this.Api.forceSaveUndoRequest)
             this.Api.asc_Save(true);
 
@@ -4168,7 +4168,7 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
 
     if (this.Api.isLongAction())
         return;
-    if (true !== AscCommon.CollaborativeEditing.Is_Fast() || true === AscCommon.CollaborativeEditing.Is_SingleUser())
+    if (true !== AscCommon.CollaborativeEditing.Is_Fast() || (true === AscCommon.CollaborativeEditing.Is_SingleUser() && !this.Api.isLiveViewer()))
         return;
 
     var oController = this.GetCurrentController();
@@ -4188,7 +4188,7 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
     }
 
     var CurTime = new Date().getTime();
-    if (this.CheckNeedUpdateTargetForCollaboration() && (CurTime - this.LastUpdateTargetTime > 1000)) {
+    if (!this.Api.isLiveViewer() && this.CheckNeedUpdateTargetForCollaboration() && (CurTime - this.LastUpdateTargetTime > 1000)) {
         this.NeedUpdateTargetForCollaboration = false;
         if (true !== bHaveChanges) {
             var CursorInfo = History.Get_DocumentPositionBinary();
@@ -5181,14 +5181,6 @@ CPresentation.prototype.CheckNotesShow = function () {
     }
 };
 
-CPresentation.prototype.EditTableOleObjectFromBinary = function (binary) {
-  var _this = this;
-  _this.Slides[_this.CurPage] && _this.Slides[_this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(function () {
-    _this.Slides[_this.CurPage].graphicObjects.editTableOleObject(binary);
-    _this.Document_UpdateInterfaceState();
-  }, [binary], false, AscDFH.historydescription_Presentation_EditTableOleObjectFromBinary);
-};
-
 CPresentation.prototype.EditChart = function (binary) {
     var _this = this;
     _this.Slides[_this.CurPage] && _this.Slides[_this.CurPage].graphicObjects.checkSelectedObjectsAndCallback(function () {
@@ -5595,9 +5587,11 @@ CPresentation.prototype.Remove = function (Count, bOnlyText, bRemoveOnlySelectio
             if(aAnims.length > 0) {
                 var oTiming = this.GetCurTiming();
                 if(oTiming) {
-                    AscCommon.History.Create_NewPoint(0);
-                    oTiming.removeSelectedEffects();
-                    this.Recalculate();
+                    if(this.IsSelectionLocked(AscCommon.changestype_Timing) === false) {
+                        AscCommon.History.Create_NewPoint(0);
+                        oTiming.removeSelectedEffects();
+                        this.Recalculate();
+                    }
                 }
             }
         }
@@ -7183,9 +7177,8 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
                             }
                             oController.resetSelection(false, false);
                             oSelectedContent = oSelectedContent.copy();
-                            oParagraph.Parent.InsertContent(oSelectedContent.DocContent, NearPos);
+                            oSelectedContent.DocContent.Insert(NearPos, true);
                             oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
-                            NearPos.Paragraph.Document_SetThisElementCurrent(false);
                             if (initialObjectTo.isObjectInSmartArt()) {
                                 initialObjectTo.checkExtentsByDocContent();
                             }
@@ -8198,13 +8191,21 @@ CPresentation.prototype.Notes_Draw = function (SlideIndex, graphics) {
 CPresentation.prototype.Create_NewHistoryPoint = function (Description) {
     this.History.Create_NewPoint(Description);
 };
-
+CPresentation.prototype.IsFastMultipleUsers = function() {
+    return !!(this.Api && this.CollaborativeEditing && true === this.CollaborativeEditing.Is_Fast() && true !== this.CollaborativeEditing.Is_SingleUser());
+};
+CPresentation.prototype.CanAddChangesToHistory = function() {
+    return this.History.CanAddChanges();
+};
+CPresentation.prototype.IsEditingInFastMultipleUsers = function() {
+    return this.IsFastMultipleUsers() && this.CanAddChangesToHistory();
+};
 CPresentation.prototype.Document_Undo = function (Options) {
 
     if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
         return;
 
-    if (true !== this.History.Can_Undo() && this.Api && this.CollaborativeEditing && true === this.CollaborativeEditing.Is_Fast() && true !== this.CollaborativeEditing.Is_SingleUser()) {
+    if (true !== this.History.Can_Undo() && this.IsFastMultipleUsers()) {
         if (this.CollaborativeEditing.CanUndo() && true === this.Api.canSave) {
             this.CollaborativeEditing.Set_GlobalLock(true);
             this.Api.forceSaveUndoRequest = true;
@@ -8409,7 +8410,7 @@ CPresentation.prototype.GetSelectedContent = function () {
                         if (target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame && !doc_content) {
                             if (target_text_object.graphicObject) {
                                 var GraphicFrame = target_text_object.copy(undefined);
-                                var SelectedContent = new CSelectedContent();
+                                var SelectedContent = new AscCommonWord.CSelectedContent();
                                 target_text_object.graphicObject.GetSelectedContent(SelectedContent);
                                 var Table = SelectedContent.Elements[0].Element;
                                 GraphicFrame.setGraphicObject(Table);
@@ -8419,7 +8420,7 @@ CPresentation.prototype.GetSelectedContent = function () {
                             }
                         } else {
                             if (doc_content) {
-                                var SelectedContent = new CSelectedContent();
+                                var SelectedContent = new AscCommonWord.CSelectedContent();
                                 doc_content.GetSelectedContent(SelectedContent);
                                 ret.DocContent = SelectedContent;
                             }
@@ -8431,7 +8432,7 @@ CPresentation.prototype.GetSelectedContent = function () {
                             var doc_content = selector.selection.chartSelection.selection.title.getDocContent();
                             if (doc_content) {
 
-                                var SelectedContent = new CSelectedContent();
+                                var SelectedContent = new AscCommonWord.CSelectedContent();
                                 doc_content.SetApplyToAll(true);
                                 doc_content.GetSelectedContent(SelectedContent);
                                 doc_content.SetApplyToAll(false);
@@ -8494,7 +8495,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
         oImagesSelectedContent.PresentationHeight = this.GetHeightMM();
         var oSelectedContent, oDocContent, oController, oTargetTextObject, oGraphicFrame, oTable, oImage, dImageWidth,
             dImageHeight, bNeedSelectAll,
-            oDocContentForDraw, oParagraph, oNearPos, bOldVal, aParagraphs, dMaxWidth, oCanvas, oContext, oGraphics,
+            oDocContentForDraw, oParagraph, aParagraphs, dMaxWidth, oCanvas, oContext, oGraphics,
             dContentHeight, nContentIndents = 30, bOldShowParaMarks, oSelector;
         var i, j;
         if (this.Slides.length > 0) {
@@ -8520,7 +8521,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                         if (oTargetTextObject.getObjectType() === AscDFH.historyitem_type_GraphicFrame && !oDocContent) {
                             if (oTargetTextObject.graphicObject) {
                                 oGraphicFrame = oTargetTextObject.copy(undefined);
-                                oSelectedContent = new CSelectedContent();
+                                oSelectedContent = new AscCommonWord.CSelectedContent();
                                 oTargetTextObject.graphicObject.GetSelectedContent(oSelectedContent);
                                 oTable = oSelectedContent.Elements[0].Element;
                                 oGraphicFrame.setGraphicObject(oTable);
@@ -8540,8 +8541,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 if (bNeedSelectAll) {
                                     oDocContent.SetApplyToAll(true);
                                 }
-                                oSelectedContent = new CSelectedContent();
-                                oDocContent.GetSelectedContent(oSelectedContent);
+                                oSelectedContent = oDocContent.GetSelectedContent();
                                 oEndFormattingContent.DocContent = oSelectedContent;
                                 for (i = 0; i < oSelectedContent.Elements.length; ++i) {
                                     var oElem = oSelectedContent.Elements[i].Element;
@@ -8554,8 +8554,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                         this.internalResetElementsFontSize(oElem.Content);
                                     }
                                 }
-                                oSelectedContent = new CSelectedContent();
-                                oDocContent.GetSelectedContent(oSelectedContent);
+                                oSelectedContent = oDocContent.GetSelectedContent();
                                 var aContent = [];
                                 for (i = 0; i < oSelectedContent.Elements.length; ++i) {
                                     oParagraph = oSelectedContent.Elements[i].Element;
@@ -8566,9 +8565,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 AscFormat.SaveContentSourceFormatting(aContent, aContent, oDocContent.Get_Theme(), oDocContent.Get_ColorMap());
                                 oSourceFormattingContent.DocContent = oSelectedContent;
 
-
-                                var oSelectedContent2 = new CSelectedContent();
-                                oDocContent.GetSelectedContent(oSelectedContent2);
+                                var oSelectedContent2 = oDocContent.GetSelectedContent();
                                 aContent = [];
                                 for (i = 0; i < oSelectedContent2.Elements.length; ++i) {
                                     oParagraph = oSelectedContent2.Elements[i].Element;
@@ -8583,17 +8580,7 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                 }
                                 if (oSelectedContent2.Elements.length > 0) {
                                     oDocContentForDraw = new AscFormat.CDrawingDocContent(oDocContent.Parent, oDocContent.DrawingDocument, 0, 0, 20000, 20000);
-                                    oParagraph = oDocContentForDraw.Content[0];
-                                    oNearPos = {
-                                        Paragraph: oParagraph,
-                                        ContentPos: oParagraph.Get_ParaContentPos(false, false)
-                                    };
-                                    oParagraph.Check_NearestPos(oNearPos);
-                                    bOldVal = oDocContentForDraw.MoveDrawing;
-                                    oDocContentForDraw.MoveDrawing = true;
-                                    oDocContentForDraw.InsertContent(oSelectedContent2, oNearPos);
-                                    oDocContentForDraw.MoveDrawing = bOldVal;
-
+                                    oSelectedContent2.ReplaceContent(oDocContentForDraw);
 
                                     var oCheckParagraph, aRuns;
                                     for (i = oDocContentForDraw.Content.length - 1; i > -1; --i) {
@@ -8913,13 +8900,7 @@ CPresentation.prototype.CreateAndAddShapeFromSelectedContent = function (oDocCon
     track_object.track({}, 0, 0);
     var shape = track_object.getShape(false, this.DrawingDocument, this.Slides[this.CurPage]);
     shape.setParent(this.Slides[this.CurPage]);
-    var paragraph = shape.txBody.content.Content[0];
-    var NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
-    paragraph.Check_NearestPos(NearPos);
-    var old_val = oDocContent.MoveDrawing;
-    oDocContent.MoveDrawing = true;
-    shape.txBody.content.InsertContent(oDocContent, NearPos);
-    oDocContent.MoveDrawing = old_val;
+    oDocContent.ReplaceContent(shape.txBody.content);
     var body_pr = shape.getBodyPr();
     var w = shape.txBody.getMaxContentWidth(this.GetWidthMM() / 2, true) + body_pr.lIns + body_pr.rIns;
     var h = shape.txBody.content.GetSummaryHeight() + body_pr.tIns + body_pr.bIns;
@@ -9182,7 +9163,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                         return oResult;
                     }, this, []
                 );
-                var oSelectedContent = new CSelectedContent();
+                var oSelectedContent = new AscCommonWord.CSelectedContent();
                 oContent.SelectAll();
                 oContent.GetSelectedContent(oSelectedContent);
                 var PresentSelContent = new PresentationSelectedContent();
@@ -9277,7 +9258,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                 }
             }
         } else if (Content.DocContent) {
-            Content.DocContent.On_EndCollectElements(this, false);
+            Content.DocContent.EndCollect(this);
             if (Content.DocContent.Elements.length > 0) {
                 var oController = this.GetCurrentController();
                 var target_doc_content = oController.getTargetDocContent(true), paragraph, NearPos;
@@ -9286,70 +9267,10 @@ CPresentation.prototype.InsertContent = function (Content) {
                         oController.removeCallback(1, undefined, undefined, undefined, undefined, undefined);
                     }
                     paragraph = target_doc_content.Content[target_doc_content.CurPos.ContentPos];
-                    if (null != paragraph && type_Paragraph == paragraph.GetType()) {
+                    if (null != paragraph && paragraph.IsParagraph()) {
                         NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
                         paragraph.Check_NearestPos(NearPos);
-
-
-                        var ParaNearPos = NearPos.Paragraph.Get_ParaNearestPos(NearPos);
-                        if (null === ParaNearPos || ParaNearPos.Classes.length < 2)
-                            return false;
-
-                        var LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-                        if (para_Math_Run === LastClass.Type) {
-                            // Проверяем, что вставляемый контент тоже формула
-                            var Element = Content.DocContent.Elements[0].Element;
-                            if (1 !== Content.DocContent.Elements.length || type_Paragraph !== Element.Get_Type() || null === LastClass.Parent)
-                                return false;
-                            if (!Content.DocContent.CanConvertToMath) {
-                                var Math = null;
-                                var Count = Element.Content.length;
-                                for (var Index = 0; Index < Count; Index++) {
-                                    var Item = Element.Content[Index];
-                                    if (para_Math === Item.Type && null === Math)
-                                        Math = Element.Content[Index];
-                                    else if (true !== Item.Is_Empty({SkipEnd: true}))
-                                        return false;
-                                }
-                            }
-                        } else if (para_Run !== LastClass.Type)
-                            return false;
-
-                        if (null === paragraph.Parent || undefined === paragraph.Parent)
-                            return false;
-
-
-                        var Para = NearPos.Paragraph;
-                        var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
-                        var LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-                        var bInsertMath = false;
-                        if (para_Math_Run === LastClass.Type) {
-                            var MathRun = LastClass;
-                            var NewMathRun = MathRun.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
-                            var MathContent = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
-                            var MathContentPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
-                            var Element = Content.DocContent.Elements[0].Element;
-
-                            var InsertMathContent = null;
-                            for (var nPos = 0, nParaLen = Element.Content.length; nPos < nParaLen; nPos++) {
-                                if (para_Math === Element.Content[nPos].Type) {
-                                    InsertMathContent = Element.Content[nPos];
-                                    break;
-                                }
-                            }
-
-                            if (null === InsertMathContent) {
-                                //try to convert content to ParaMath in simple cases.
-                                InsertMathContent = Content.DocContent.ConvertToMath();
-                            }
-
-                            if (null !== InsertMathContent) {
-                                MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-                                MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
-                                bInsertMath = true;
-                            }
-                        }
-                        !bInsertMath && target_doc_content.InsertContent(Content.DocContent, NearPos);
+						Content.DocContent.Insert(NearPos);
                     }
                     var oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
                     oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
@@ -10536,6 +10457,19 @@ CPresentation.prototype.Document_Is_SelectionLocked = function (CheckType, Addit
             this.Slides[selected_slides[i]].layoutLock.Lock.Check(check_obj);
         }
     }
+    if(CheckType === AscCommon.changestype_Timing) {
+        var oSlide = this.GetCurrentSlide();
+        if(oSlide) {
+            var oTimingLock = oSlide.timingLock;
+            var check_obj =
+            {
+                "type": c_oAscLockTypeElemPresentation.Slide,
+                "val": oTimingLock.Get_Id(),
+                "guid": oTimingLock.Get_Id()
+            };
+            oTimingLock.Lock.Check(check_obj);
+        }
+    }
     if (CheckType === AscCommon.changestype_ColorScheme) {
         var check_obj =
             {
@@ -10921,20 +10855,22 @@ CPresentation.prototype.AddToLayout = function () {
 CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace, bPreview) {
     var oSlide = this.GetCurrentSlide();
     if(oSlide) {
-        this.StartAction(0);
-        var aAddedEffects = oSlide.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
-        this.FinalizeAction();
-        this.Document_UpdateInterfaceState();
-        if(bPreview && aAddedEffects.length > 0) {
-            oSlide.graphicObjects.resetSelection();
-            oSlide.timing.resetSelection();
-            for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
-                aAddedEffects[nEffect].select();
+        if(this.IsSelectionLocked(AscCommon.changestype_Timing) === false) {
+            this.StartAction(0);
+            var aAddedEffects = oSlide.addAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
+            this.FinalizeAction();
+            this.Document_UpdateInterfaceState();
+            if(bPreview && aAddedEffects.length > 0) {
+                oSlide.graphicObjects.resetSelection();
+                this.GetCurTiming().resetSelection();
+                for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
+                    aAddedEffects[nEffect].select();
+                }
+                this.StartAnimationPreview();
             }
-            this.StartAnimationPreview();
-        }
-        else {
-            this.DrawingDocument.OnRecalculatePage(this.CurPage, oSlide);
+            else {
+                this.DrawingDocument.OnRecalculatePage(this.CurPage, oSlide);
+            }
         }
     }
 };
@@ -10966,12 +10902,14 @@ CPresentation.prototype.SetAnimationProperties = function(oPr) {
         if(oPr && oCurPr && (oPr.asc_getSubtype() !== oCurPr.asc_getSubtype() || oCurPr.isEqualProperties(oPr))) {
             bStartDemo = true;
         }
-        this.StartAction(0);
-        oSlide.setAnimationProperties(oPr);
-        this.FinalizeAction();
-        this.Document_UpdateInterfaceState();
-        if(bStartDemo) {
-            this.StartAnimationPreview();
+        if(this.IsSelectionLocked(AscCommon.changestype_Timing) === false) {
+            this.StartAction(0);
+            oSlide.setAnimationProperties(oPr);
+            this.FinalizeAction();
+            this.Document_UpdateInterfaceState();
+            if(bStartDemo) {
+                this.StartAnimationPreview();
+            }
         }
     }
 };

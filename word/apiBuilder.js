@@ -2693,7 +2693,7 @@
 		return true;
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiRange object into the JSON object.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -3102,7 +3102,7 @@
 		return new ApiRange(this.ParaHyperlink, Start, End);
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiHyperlink object into the JSON object.
 	 * @memberof ApiHyperlink
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -3578,7 +3578,7 @@
 	 */
 
 	/**
-     * Text transform preset
+     * Text transform type.
 	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown"
 	 * | "textCanUp" | "textCascadeDown" | "textCascadeUp" | "textChevron" | "textChevronInverted" | "textCircle" | "textCirclePour"
 	 * | "textCurveDown" | "textCurveUp" | "textDeflate" | "textDeflateBottom" | "textDeflateInflate" | "textDeflateInflateDeflate" | "textDeflateTop"
@@ -3588,7 +3588,7 @@
 	 * */
 
 	/**
-	 *
+	 * Form type.
 	 * @typedef {"textForm" | "comboBoxForm" | "dropDownForm" | "checkBoxForm" | "radioButtonForm" | "pictureForm"} FormType
 	 */
 
@@ -3684,6 +3684,20 @@
 	 * Available caption types.
 	 * @typedef {"equation" | "figure" | "table"} captionType
 	 */
+	//------------------------------------------------------End Cross-reference types--------------------------------------------------
+
+	/**
+	 * Axis position in the chart.
+	 * @typedef {("top" | "bottom" | "right" | "left")} AxisPos
+	 */
+
+	/**
+	 * Standard numeric format.
+	 * @typedef {("General" | "0" | "0.00" | "#,##0" | "#,##0.00" | "0%" | "0.00%" |
+	 * "0.00E+00" | "# ?/?" | "# ??/??" | "m/d/yyyy" | "d-mmm-yy" | "d-mmm" | "mmm-yy" | "h:mm AM/PM" |
+	 * | "h:mm:ss AM/PM" | "h:mm" | "h:mm:ss" | "m/d/yyyy h:mm" | "#,##0_);(#,##0)" | "#,##0_);[Red](#,##0)" | 
+	 * "#,##0.00_);(#,##0.00)" | "#,##0.00_);[Red](#,##0.00)" | "mm:ss" | "[h]:mm:ss" | "mm:ss.0" | "##0.0E+0" | "@")} NumFormat
+	 */
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -3697,6 +3711,7 @@
 	 * */
 
 	/**
+	 * The type of tick mark appearance.
 	 * @typedef {("cross" | "in" | "none" | "out")} TickMark
 	 * */
 
@@ -3868,15 +3883,17 @@
 	 * @param {EMU} nWidth - The chart width in English measure units.
 	 * @param {EMU} nHeight - The chart height in English measure units.
 	 * @param {number} nStyleIndex - The chart color style index (can be 1 - 48, as described in OOXML specification).
+	 * @param {NumFormat[] | String[]} aNumFormats - Numeric formats which will be applied to the series (can be custom formats).
+     * The default numeric format is "General".
 	 * @returns {ApiChart}
 	 * */
-	Api.prototype.CreateChart = function(sType, aSeries, aSeriesNames, aCatNames, nWidth, nHeight, nStyleIndex)
+	Api.prototype.CreateChart = function(sType, aSeries, aSeriesNames, aCatNames, nWidth, nHeight, nStyleIndex, aNumFormats)
 	{
 		var oDrawingDocument = private_GetDrawingDocument();
 		var nW = private_EMU2MM(nWidth);
 		var nH = private_EMU2MM(nHeight);
 		var oDrawing = new ParaDrawing( nW, nH, null, oDrawingDocument, null, null);
-		var oChartSpace = AscFormat.builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex);
+		var oChartSpace = AscFormat.builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex, aNumFormats);
 		if(!oChartSpace)
 		{
 			return null;
@@ -4297,9 +4314,9 @@
 	};
 
 	/**
-	 * Convert from JSON to object.
+	 * Converts the specified JSON object into the Document Builder object of the corresponding type.
 	 * @memberof Api
-	 * @param {JSON} sMessage
+	 * @param {JSON} sMessage - The JSON object to convert.
 	 * @typeofeditors ["CDE"]
 	 */
 	Api.prototype.FromJSON = function(sMessage)
@@ -4722,7 +4739,7 @@
 		return new ApiRange(this.Document, Start, End);
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiDocumentContent object into the JSON object.
 	 * @memberof ApiDocumentContent
 	 * @typeofeditors ["CDE"]
 	 */
@@ -4732,9 +4749,10 @@
 		return JSON.stringify(oWriter.SerDocContent(this.Document));
 	};
 	/**
-	 * Convert to JSON object.
+	 * Returns an array of document elements from the current ApiDocumentContent object.
 	 * @memberof ApiDocumentContent
 	 * @typeofeditors ["CDE"]
+	 * @param {boolean} bGetCopies - Specifies if the copies of the document elements will be returned or not.
 	 * @returns {Array}
 	 */
 	ApiDocumentContent.prototype.GetContent = function(bGetCopies)
@@ -4895,17 +4913,20 @@
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param {ApiParagraph} oParagraph - The paragraph after which a new document section will be inserted.
+	 * Paragraph must be in a document.
 	 * @returns {ApiSection}
 	 */
 	ApiDocument.prototype.CreateSection = function(oParagraph)
 	{
 		if (!(oParagraph instanceof ApiParagraph))
-			return null;
+			return new Error('Parameter is invalid.');
+		if (!oParagraph.Paragraph.CanAddSectionPr())
+			return new Error('Paragraph must be in a document.');
 
 		var oSectPr = new CSectionPr(this.Document);
 
-		var nContentPos = this.Document.CurPos.ContentPos;
-		var oCurSectPr  = this.Document.SectionsInfo.Get_SectPr(nContentPos).SectPr;
+		var nContentPos = oParagraph.Paragraph.GetIndex();
+		var oCurSectPr = this.Document.SectionsInfo.Get_SectPr(nContentPos).SectPr;
 
 		oSectPr.Copy(oCurSectPr);
 		oCurSectPr.Set_Type(oSectPr.Type);
@@ -4959,7 +4980,7 @@
 	 */
 	ApiDocument.prototype.InsertContent = function(arrContent, isInline, oPr)
 	{
-		var oSelectedContent = new CSelectedContent();
+		var oSelectedContent = new AscCommonWord.CSelectedContent();
 		var oElement;
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
 		{
@@ -4971,13 +4992,13 @@
 				if (oElm.Is_UseInDocument())
 					continue;
 
-				if (true === isInline && oElement instanceof ApiParagraph)
-					oSelectedContent.Add(new CSelectedElement(oElm, false));
-				else
-					oSelectedContent.Add(new CSelectedElement(oElm, true));
+				oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, true));
 			}
 		}
-		oSelectedContent.On_EndCollectElements(this.Document, true);
+		oSelectedContent.EndCollect(this.Document);
+
+		if (isInline)
+			oSelectedContent.ForceInlineInsert();
 
 		if (this.Document.IsSelectionUse())
 		{
@@ -5017,14 +5038,8 @@
 		}
 
 		oParagraph.Check_NearestPos(oNearestPos);
-
-		if (!this.Document.Can_InsertContent(oSelectedContent, oNearestPos))
-			return false;
-
-		oParagraph.Parent.InsertContent(oSelectedContent, oNearestPos);
+		oSelectedContent.Insert(oNearestPos);
 		oParagraph.Clear_NearestPosArray();
-		// TODO: Выяснить нужно ли снимать выделение с автофигур
-		this.Document.MoveCursorRight(false, false, true);
 		return true;
 	};
 
@@ -5603,10 +5618,10 @@
 	};
 
 	/**
-	 * Update all tables of contents.
+	 * Updates all tables of contents in the current document.
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @param {boolean} [bOnlyPageNumbers=false] - Determines that only page numbers need to be updated.
+	 * @param {boolean} [bOnlyPageNumbers=false] - Specifies that only page numbers will be updated.
 	 */
 	ApiDocument.prototype.UpdateAllTOC = function(bOnlyPageNumbers)
 	{
@@ -5659,10 +5674,10 @@
 		}
 	};
 	/**
-	 * Update all tables of contents.
+	 * Updates all tables of figures in the current document.
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @param {boolean} [bOnlyPageNumbers=false] - Determines that only page numbers need to be updated.
+	 * @param {boolean} [bOnlyPageNumbers=false] - Specifies that only page numbers will be updated.
 	 */
 	ApiDocument.prototype.UpdateAllTOF = function(bOnlyPageNumbers)
 	{
@@ -5714,13 +5729,13 @@
 			}
 		}
 	};	/**
-	 * Convert to JSON object.
+	 * Converts the ApiDocument object into the JSON object.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @param bWriteDefaultTextPr - Indicates whether or not to record default text properties
-	 * @param bWriteDefaultParaPr - Indicates whether or not to record default paragraph properties
-	 * @param bWriteTheme         - Indicates whether or not to record document theme
-	 * @param bWriteSectionPr     - Indicates whether or not to record section properties of document
+	 * @param bWriteDefaultTextPr - Specifies if the default text properties will be written to the JSON object or not.
+	 * @param bWriteDefaultParaPr - Specifies if the default paragraph properties will be written to the JSON object or not.
+	 * @param bWriteTheme         - Specifies if the document theme will be written to the JSON object or not.
+	 * @param bWriteSectionPr     - Specifies if the section properties will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
 	ApiDocument.prototype.ToJSON = function(bWriteDefaultTextPr, bWriteDefaultParaPr, bWriteTheme, bWriteSectionPr)
@@ -5891,6 +5906,48 @@
 	};
 	
 	/**
+	 * Accepts all changes made in review mode.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.AcceptAllRevisionChanges = function()
+	{
+		this.Document.AcceptAllRevisionChanges();
+	};
+
+	/**
+	 * Rejects all changes made in review mode.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.RejectAllRevisionChanges = function()
+	{
+		this.Document.RejectAllRevisionChanges();
+	};
+
+	/**
+	 * Returns an array with names of the all bookmarks in current document.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @returns {string[]}
+	 */
+	ApiDocument.prototype.GetAllBookmarksNames = function() 
+	{
+		var aNames = [];
+		var oManager = this.Document.GetBookmarksManager();
+		oManager.Update();
+
+		for (var i = 0, nCount = oManager.GetCount(); i < nCount; i++)
+		{
+			var sName = oManager.GetName(i);
+			if (!oManager.IsInternalUseBookmark(sName) && !oManager.IsHiddenBookmark(sName))
+				aNames.push(sName);
+		}
+
+		return aNames;
+	};
+
+	/**
      * Returns the selected drawings.
      * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
@@ -5929,11 +5986,11 @@
 	};
 
 	/**
-	 * Replaces the drawing by a new drawing.
+	 * Replaces a drawing with a new drawing.
 	 * @memberof ApiDocument
-	 * @param {ApiDrawing} oOldDrawing - a drawing which will be replaced.
-	 * @param {ApiDrawing} oNewDrawing - a drawing to replace the old drawing.
-	 * @param {boolean} [bSaveOldDrawingPr=false] - specified that the old drawing settings should be saved.
+	 * @param {ApiDrawing} oOldDrawing - A drawing which will be replaced.
+	 * @param {ApiDrawing} oNewDrawing - A drawing to replace the old drawing.
+	 * @param {boolean} [bSaveOldDrawingPr=false] - Specifies if the old drawing settings will be saved.
 	 * @typeofeditors ["CDE"]
 	 * @returns {boolean}
 	 */
@@ -5970,26 +6027,6 @@
 		}
 
 		return false;
-	};
-
-	/**
-	 * Accepts all changes made in review mode.
-	 * @memberof ApiDocument
-	 * @typeofeditors ["CDE"]
-	 */
-	ApiDocument.prototype.AcceptAllRevisionChanges = function()
-	{
-		this.Document.AcceptAllRevisionChanges();
-	};
-
-	/**
-	 * Rejects all changes made in review mode.
-	 * @memberof ApiDocument
-	 * @typeofeditors ["CDE"]
-	 */
-	ApiDocument.prototype.RejectAllRevisionChanges = function()
-	{
-		this.Document.RejectAllRevisionChanges();
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -7656,7 +7693,7 @@
 	};
 
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiParagraph object into the JSON object.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -8322,7 +8359,7 @@
 		oDocument.Register_Field(oField);
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiRun object into the JSON object.
 	 * @memberof ApiRun
 	 * @typeofeditors ["CDE"]
 	 */
@@ -8636,7 +8673,7 @@
 		return null;
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiSection object into the JSON object.
 	 * @memberof ApiSection
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -9493,7 +9530,7 @@
 	};
 	
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiTable object into the JSON object.
 	 * @memberof ApiTable
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -10368,7 +10405,7 @@
 		return new ApiTableStylePr(sType, this, this.Style.TableWholeTable.Copy());
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiStyle object into the JSON object.
 	 * @memberof ApiStyle
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -10706,7 +10743,7 @@
 	};
 
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiTextPr object into the JSON object.
 	 * @memberof ApiTextPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11336,7 +11373,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiParaPr object into the JSON object.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11376,7 +11413,7 @@
 		return new ApiNumberingLevel(this.Num, nLevel);
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiNumbering object into the JSON object.
 	 * @memberof ApiNumbering
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11831,7 +11868,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiTablePr object into the JSON object.
 	 * @memberof ApiTablePr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -11889,7 +11926,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiTableRowPr object into the JSON object.
 	 * @memberof ApiTableRowPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -12167,7 +12204,7 @@
 		this.private_OnChange();
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiTableCellPr object into the JSON object.
 	 * @memberof ApiTableCellPr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -12255,7 +12292,7 @@
 		return new ApiTableCellPr(this, this.TableStylePr.TableCellPr);
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiTableStylePr object into the JSON object.
 	 * @memberof ApiTableStylePr
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -12793,7 +12830,7 @@
 		return null;
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiDrawing object into the JSON object.
 	 * @memberof ApiDrawing
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
@@ -12805,10 +12842,30 @@
 	};
 
 	/**
-     * Gets the lock type of drawing.
+	 * Returns the width of the current drawing.
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @returns {EMU}
+	 */
+	ApiDrawing.prototype.GetWidth = function()
+	{
+		return private_MM2EMU(this.Drawing.Get_Width());
+	};
+	/**
+	 * Returns the height of the current drawing.
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @returns {EMU}
+	 */
+	ApiDrawing.prototype.GetHeight = function()
+	{
+		return private_MM2EMU(this.Drawing.Get_Height());
+	};
+	/**
+     * Returns the lock value for the specified lock type of the current drawing.
      * @typeofeditors ["CPE"]
 	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
-	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock type in string format
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - Lock type in the string format.
      * @returns {bool}
      */
 	ApiDrawing.prototype.GetLockValue = function(sType)
@@ -12825,11 +12882,11 @@
 	};
 
 	/**
-     * Sets the lock type of drawing.
+     * Sets the lock value to the specified lock type of the current drawing.
      * @typeofeditors ["CPE"]
 	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
-	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - lock typeof string format
-     * @param {bool} bValue - determines the value for the specified lock
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - Lock type in the string format.
+     * @param {bool} bValue - Specifies if the specified lock is applied to the current drawing.
 	 * @returns {bool}
      */
 	ApiDrawing.prototype.SetLockValue = function(sType, bValue)
@@ -12849,10 +12906,10 @@
 	};
 
 	/**
-     * Sets drawing properties from another drawing.
-	 * Will be copied: PosH, PosV, Distance, WrappingStyle, drawing name, title and description.
+     * Sets the properties from another drawing to the current drawing.
+	 * The following properties will be copied: PosH, PosV, Distance, WrappingStyle, drawing name, title and description.
      * @memberof ApiDrawing
-     * @param {ApiDrawing} oAnotherDrawing - drawing wich properties will be set to current drawing.
+     * @param {ApiDrawing} oAnotherDrawing - Drawing whose properties will be set to the current drawing.
      * @typeofeditors ["CDE"]
      * @returns {boolean}
      */
@@ -13466,10 +13523,10 @@
 	};
 
 	/**
-	 * Removes specified seria.
+	 * Removes the specified series from the current chart.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
-	 * @param {number} nSeria - number of seria.
+	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.RemoveSeria = function(nSeria)
@@ -13478,11 +13535,11 @@
 	};
 
 	/**
-	 * Sets values to seria's data points.
+	 * Sets values to the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE"]
-	 * @param {number[]} aValues - The array of the data which will be set to specified seria.
-	 * @param {number} nSeria - number of seria.
+	 * @param {number[]} aValues - The array of the data which will be set to the specified chart series.
+	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriaValues = function(aValues, nSeria)
@@ -13491,11 +13548,10 @@
 	};
 
 	/**
-	 * Sets the values for the x-axis in all series.
-	 * Used for scatter chart.
+	 * Sets the x-axis values to all chart series. It is used with the scatter charts only.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE"]
-	 * @param {string[]} aValues - The array of the data which will be set to x-axis data points.
+	 * @param {string[]} aValues - The array of the data which will be set to the x-axis data points.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetXValues = function(aValues)
@@ -13506,11 +13562,11 @@
 	};
 
 	/**
-	 * Sets name to seria.
+	 * Sets a name to the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE"]
-	 * @param {string} sName - The name which will be set to specified seria.
-	 * @param {number} nSeria - number of seria.
+	 * @param {string} sName - The name which will be set to the specified chart series.
+	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriaName = function(sName, nSeria)
@@ -13519,23 +13575,23 @@
 	};
 
 	/**
-	 * Sets name to category.
+	 * Sets a name to the specified chart category.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE"]
-	 * @param {string} sName - The name which will be set to specified seria.
-	 * @param {number} nCategory - number of category.
+	 * @param {string} sName - The name which will be set to the specified chart category.
+	 * @param {number} nCategory - The index of the chart category.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetCategoryName = function(sName, nCategory)
 	{
-		return this.Chart.SetCategoryName(sName, nCategory);
+		return this.Chart.SetCatName(sName, nCategory);
 	};
 
 	/**
-	 * Sets style to chart by style id.
+	 * Sets a style to the current chart by style ID.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
-	 * @param nStyleId - one of the styles available in the editor.
+	 * @param nStyleId - One of the styles available in the editor.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.ApplyChartStyle = function(nStyleId)
@@ -13556,7 +13612,7 @@
 	};
 
 	/**
-	 * Sets fill to plot area.
+	 * Sets the fill to the chart plot area.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the plot area.
@@ -13572,7 +13628,7 @@
 	};
 
 	/**
-	 * Sets outline to plot area of the chart.
+	 * Sets the outline to the chart plot area.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the plot area outline.
@@ -13588,12 +13644,12 @@
 	};
 
 	/**
-	 * Sets fill to specified series.
+	 * Sets the fill to the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the series.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {boolean} [bAll=false] - whether to apply to all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {boolean} [bAll=false] - Specifies if the fill will be applied to all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriesFill = function(oFill, nSeries, bAll)
@@ -13605,12 +13661,12 @@
 	};
 
 	/**
-	 * Sets outline to specified series.
+	 * Sets the outline to the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the series outline.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {boolean} [bAll=false] - whether to apply to all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {boolean} [bAll=false] - Specifies if the outline will be applied to all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetSeriesOutLine = function(oStroke, nSeries, bAll)
@@ -13622,13 +13678,13 @@
 	};
 
 	/**
-	 * Sets fill to data point in specified series.
+	 * Sets the fill to the data point in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the data point.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nDataPoint - The index of the data point in the specified series in chart.
-	 * @param {boolean} [bAllSeries=false] - whether to apply to specified datapoint in all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
+	 * @param {boolean} [bAllSeries=false] - Specifies if the fill will be applied to the specified data point in all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetDataPointFill = function(oFill, nSeries, nDataPoint, bAllSeries)
@@ -13640,13 +13696,13 @@
 	};
 
 	/**
-	 * Sets outline to data point in specified series.
+	 * Sets the outline to the data point in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the data point outline.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nDataPoint - The index of the data point in the specified series in chart.
-	 * @param {boolean} bAllSeries - whether to apply to specified datapoint in all series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
+	 * @param {boolean} bAllSeries - Specifies if the outline will be applied to the specified data point in all series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetDataPointOutLine = function(oStroke, nSeries, nDataPoint, bAllSeries)
@@ -13658,13 +13714,13 @@
 	};
 
 	/**
-	 * Sets fill to marker in specified series.
+	 * Sets the fill to the marker in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the marker.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nMarker - The index of the marker in the specified series in chart.
-	 * @param {boolean} [bAllMarkers=false] - whether to apply to all markers in specified series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nMarker - The index of the marker in the specified chart series.
+	 * @param {boolean} [bAllMarkers=false] - Specifies if the fill will be applied to all markers in the specified chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetMarkerFill = function(oFill, nSeries, nMarker, bAllMarkers)
@@ -13676,13 +13732,13 @@
 	};
 
 	/**
-	 * Sets outline to marker in specified series.
+	 * Sets the outline to the marker in the specified chart series.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the marker outline.
-	 * @param {number} nSeries - The index of the series in chart.
-	 * @param {number} nMarker - The index of the marker in the specified series in chart.
-	 * @param {boolean} [bAllMarkers=false] - whether to apply to all markers in specified series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nMarker - The index of the marker in the specified chart series.
+	 * @param {boolean} [bAllMarkers=false] - Specifies if the outline will be applied to all markers in the specified chart series.
 	 * @returns {boolean}
 	 */
 	ApiChart.prototype.SetMarkerOutLine = function(oStroke, nSeries, nMarker, bAllMarkers)
@@ -13694,7 +13750,7 @@
 	};
 
 	/**
-	 * Sets fill to title.
+	 * Sets the fill to the chart title.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the title.
@@ -13709,7 +13765,7 @@
 	};
 
 	/**
-	 * Sets outline to title.
+	 * Sets the outline to the chart title.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the title outline.
@@ -13724,7 +13780,7 @@
 	};
 
 	/**
-	 * Sets fill to legend.
+	 * Sets the fill to the chart legend.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the legend.
@@ -13739,7 +13795,7 @@
 	};
 
 	/**
-	 * Sets outline to legend.
+	 * Sets the outline to the chart legend.
 	 * @memberof ApiChart
 	 * @typeofeditors ["CDE, CPE, CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the legend outline.
@@ -13751,6 +13807,66 @@
 			return false;
 
 		return this.Chart.SetLegendOutLine(oStroke.Ln);
+	};
+
+	/**
+	 * Sets the specified numeric format to the axis values.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
+	 * @param {AxisPos} - Axis position in the chart.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetAxieNumFormat = function(sFormat, sAxiePos)
+	{
+		var nAxiePos = -1;
+		switch (sAxiePos)
+		{
+			case "bottom":
+				nAxiePos = AscFormat.AX_POS_B;
+				break;
+			case "left":
+				nAxiePos = AscFormat.AX_POS_L;
+				break;
+			case "right":
+				nAxiePos = AscFormat.AX_POS_R;
+				break;
+			case "top":
+				nAxiePos = AscFormat.AX_POS_B;
+				break;
+			default:
+				return false;
+		}
+
+		return this.Chart.SetAxieNumFormat(sFormat, nAxiePos);
+	};
+ 
+	/**
+	 * Sets the specified numeric format to the chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE, "CPE"]
+	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
+	 * @param {Number} nSeria - Series index.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetSeriaNumFormat = function(sFormat, nSeria)
+	{
+		return this.Chart.SetSeriaNumFormat(sFormat, nSeria);
+	};
+
+	/**
+	 * Sets the specified numeric format to the chart data point.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE, "CPE"]
+	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
+	 * @param {Number} nSeria - Series index.
+	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
+	 * @param {boolean} bAllSeries - Specifies if the numeric format will be applied to the specified data point in all series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetDataPointNumFormat = function(sFormat, nSeria, nDataPoint, bAllSeries)
+	{
+		return this.Chart.SetDataPointNumFormat(sFormat, nSeria, nDataPoint, bAllSeries);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -13770,7 +13886,7 @@
 		return "fill";
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiFill object into the JSON object.
 	 * @memberof ApiFill
 	 * @typeofeditors ["CDE"]
 	 */
@@ -13797,7 +13913,7 @@
 		return "stroke";
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiStroke object into the JSON object.
 	 * @memberof ApiStroke
 	 * @typeofeditors ["CDE"]
 	 */
@@ -13824,7 +13940,7 @@
 		return "gradientStop"
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiGradientStop object into the JSON object.
 	 * @memberof ApiGradientStop
 	 * @typeofeditors ["CDE"]
 	 */
@@ -13851,7 +13967,7 @@
 		return "uniColor"
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiUniColor object into the JSON object.
 	 * @memberof ApiUniColor
 	 * @typeofeditors ["CDE"]
 	 */
@@ -13878,7 +13994,7 @@
 		return "rgbColor"
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiRGBColor object into the JSON object.
 	 * @memberof ApiRGBColor
 	 * @typeofeditors ["CDE"]
 	 */
@@ -13905,7 +14021,7 @@
 		return "schemeColor"
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiSchemeColor object into the JSON object.
 	 * @memberof ApiSchemeColor
 	 * @typeofeditors ["CDE"]
 	 */
@@ -13932,7 +14048,7 @@
 		return "presetColor"
 	};
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiPresetColor object into the JSON object.
 	 * @memberof ApiPresetColor
 	 * @typeofeditors ["CDE"]
 	 */
@@ -14401,7 +14517,7 @@
 	};
 
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiInlineLvlSdt object into the JSON object.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
 	 */
@@ -15764,7 +15880,7 @@
 	};
 
 	/**
-	 * Convert to JSON object.
+	 * Converts the ApiBlockLvlSdt object into the JSON object.
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
 	 */
@@ -16214,17 +16330,17 @@
 	};
 
 	/**
-	 * Creates a word art with the parameters specified.
+	 * Creates a Text Art object with the parameters specified.
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @param {ApiTextPr} [oTextPr=Api.CreateTextPr()] - The text properties.
-	 * @param {string} [sText="Your text here"] - text for text art.
+	 * @param {string} [sText="Your text here"] - The text for the Text Art object.
 	 * @param {TextTransofrm} [sTransform="textNoShape"] - Text transform type.
-	 * @param {ApiFill}   [oFill=Api.CreateNoFill()] - The color or pattern used to fill the shape.
-	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the shape shadow.
-	 * @param {number} [nRotAngle=0] - rotation angle
-	 * @param {EMU} [nWidth=1828800] - word atr width
-	 * @param {EMU} [nHeight=1828800] - word atr heigth
+	 * @param {ApiFill}   [oFill=Api.CreateNoFill()] - The color or pattern used to fill the Text Art object.
+	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the Text Art object shadow.
+	 * @param {number} [nRotAngle=0] - Rotation angle.
+	 * @param {EMU} [nWidth=1828800] - Text Art width measured in English measure units.
+	 * @param {EMU} [nHeight=1828800] - Text Art heigth measured in English measure units.
 	 * @returns {ApiDrawing}
 	 */
 	Api.prototype.CreateWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight) {
@@ -16374,6 +16490,8 @@
 	ApiDocument.prototype["GetFootnotesFirstParagraphs"] = ApiDocument.prototype.GetFootnotesFirstParagraphs;
 	ApiDocument.prototype["GetEndNotesFirstParagraphs"]  = ApiDocument.prototype.GetEndNotesFirstParagraphs;
 	ApiDocument.prototype["GetAllCaptionParagraphs"]     = ApiDocument.prototype.GetAllCaptionParagraphs;
+	ApiDocument.prototype["GetAllBookmarksNames"]        = ApiDocument.prototype.GetAllBookmarksNames;
+	
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
 	ApiDocument.prototype["ReplaceDrawing"]              = ApiDocument.prototype.ReplaceDrawing;
 	ApiDocument.prototype["AcceptAllRevisionChanges"]    = ApiDocument.prototype.AcceptAllRevisionChanges;
@@ -16767,6 +16885,8 @@
 	ApiDrawing.prototype["SetOutLine"]               = ApiDrawing.prototype.SetOutLine;
 	ApiDrawing.prototype["GetNextDrawing"]           = ApiDrawing.prototype.GetNextDrawing;
 	ApiDrawing.prototype["GetPrevDrawing"]           = ApiDrawing.prototype.GetPrevDrawing;
+	ApiDrawing.prototype["GetWidth"]                 = ApiDrawing.prototype.GetWidth;
+	ApiDrawing.prototype["GetHeight"]                = ApiDrawing.prototype.GetHeight;
 	ApiDrawing.prototype["GetLockValue"]             = ApiDrawing.prototype.GetLockValue;
 	ApiDrawing.prototype["SetLockValue"]             = ApiDrawing.prototype.SetLockValue;
 	ApiDrawing.prototype["SetDrawingPrFromDrawing"]  = ApiDrawing.prototype.SetDrawingPrFromDrawing;
@@ -16828,6 +16948,9 @@
 	ApiChart.prototype["SetTitleOutLine"]              =  ApiChart.prototype.SetTitleOutLine;
 	ApiChart.prototype["SetLegendFill"]                =  ApiChart.prototype.SetLegendFill;
 	ApiChart.prototype["SetLegendOutLine"]             =  ApiChart.prototype.SetLegendOutLine;
+	ApiChart.prototype["SetAxieNumFormat"]             =  ApiChart.prototype.SetAxieNumFormat;
+	ApiChart.prototype["SetSeriaNumFormat"]            =  ApiChart.prototype.SetSeriaNumFormat;
+	ApiChart.prototype["SetDataPointNumFormat"]        =  ApiChart.prototype.SetDataPointNumFormat;
 
 
 	ApiFill.prototype["GetClassType"]                = ApiFill.prototype.GetClassType;
@@ -17011,10 +17134,10 @@
 	{
 		return EMU / 36000.0;
 	}
-
-	function private_MM2EMU(MM)
+	
+	function private_MM2EMU(mm)
 	{
-		return MM * 36000.0;
+		return mm * 36000.0;
 	}
 
 	function private_GetHps(hps)

@@ -210,6 +210,8 @@
 
 		this.isUseNativeViewer = true;
 
+		this.openedAt = undefined;
+
 		return this;
 	}
 
@@ -503,6 +505,10 @@
 	{
 		return false;
 	};
+	baseEditorsApi.prototype.isLiveViewer                     = function()
+	{
+		return this.isViewMode && AscCommon.CollaborativeEditing.Is_Fast();
+	};
 	// Events
 	baseEditorsApi.prototype.sendEvent                       = function()
 	{
@@ -582,7 +588,7 @@
 					var base64Image = oleBinary.base64Image;
 					var fAfterUploadOleObjectImage = function (url) {
 						oleBinary.imageUrl = url;
-						_this.asc_addTableOleObject(oleBinary);
+						_this.addTableOleObject(oleBinary);
 					}
 					var obj = {
 						fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
@@ -599,6 +605,63 @@
 				var mmExtY = sizes.height * AscCommon.g_dKoef_pix_to_mm;
 				this.asc_addOleObjectAction(blipUrl, binaryDataOfSheet, 'Excel.Sheet.12', mmExtX, mmExtY, sizes.width, sizes.height, true);
 			}
+		}
+	};
+	baseEditorsApi.prototype.asc_addTableOleObject = function(oleBinary)
+	{
+		this.addTableOleObject(oleBinary);
+	}
+
+	baseEditorsApi.prototype.asc_editTableOleObject = function(oleBinary)
+	{
+		this.editTableOleObject(oleBinary);
+	}
+	baseEditorsApi.prototype.editTableOleObject = function(oleBinary)
+	{
+		if (AscCommon.isRealObject(oleBinary))
+		{
+			var _this = this;
+			if (oleBinary) {
+				if (!oleBinary.imageUrl) {
+					var base64Image = oleBinary.base64Image;
+					var fAfterUploadOleObjectImage = function (url) {
+						oleBinary.imageUrl = url;
+						_this.editTableOleObject(oleBinary);
+					}
+					var obj = {
+						fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+					};
+					AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
+						_this._uploadCallback(nError, files, obj);
+					});
+					return;
+				}
+
+				var oController = this.getGraphicController();
+				if (oController) {
+					var selectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
+					if (selectedObjects.oleObjects.length === 1) {
+						var selectedOleObject = selectedObjects.oleObjects[0];
+						var blipUrl = oleBinary.imageUrl;
+						var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary.binary);
+						var sizes = AscCommon.getSourceImageSize(blipUrl);
+						var mmExtX, mmExtY, adaptSizeHeight, adaptSizeWidth;
+						if (window["Asc"]["spreadsheet_api"] && this instanceof window["Asc"]["spreadsheet_api"]) {
+							adaptSizeWidth = (sizes.width || 0);
+							adaptSizeHeight = (sizes.height || 0);
+							mmExtY = adaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
+							mmExtX = adaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
+						} else {
+							mmExtX = selectedOleObject.spPr.xfrm.extX;
+							var koef = (mmExtX / sizes.width) || 0;
+							mmExtY = sizes.height * koef;
+							adaptSizeHeight = mmExtY * AscCommon.g_dKoef_mm_to_pix;
+							adaptSizeWidth = mmExtX * AscCommon.g_dKoef_mm_to_pix;
+						}
+						this.asc_editOleObjectAction(false, selectedOleObject, blipUrl, binaryDataOfSheet, mmExtX, mmExtY, adaptSizeWidth, adaptSizeHeight);
+					}
+				}
+				}
 		}
 	};
 	baseEditorsApi.prototype.canEdit                         = function()
@@ -732,17 +795,7 @@
 
 			if (this.isUseNativeViewer)
 			{
-				switch (this.documentFormat)
-				{
-					case "pdf":
-					case "xps":
-					case "oxps":
-					case "djvu":
-						rData["convertToOrigin"] = true;
-						break;
-					default:
-						break;
-				}
+				rData["convertToOrigin"] = '.pdf.xps.oxps.djvu';
 			}
 
 			if (versionHistory)
@@ -832,8 +885,9 @@
 	baseEditorsApi.prototype._onNeedParams                       = function(data, opt_isPassword)
 	{
 	};
-	baseEditorsApi.prototype.asyncServerIdEndLoaded              = function()
+	baseEditorsApi.prototype.asyncServerIdEndLoaded              = function(openedAt)
 	{
+		this.setOpenedAt(openedAt);
 		// С сервером соединились, возможно стоит подождать загрузку шрифтов
 		this.ServerIdWaitComplete = true;
 		this._openDocumentEndCallback();
@@ -992,7 +1046,7 @@
 	baseEditorsApi.prototype._onSaveCallbackInner = function () {
 	};
 	baseEditorsApi.prototype._autoSave = function () {
-		if (this.canSave && !this.isViewMode && (this.canUnlockDocument || 0 !== this.autoSaveGap)) {
+		if (this.canSave && (!this.isViewMode || this.isLiveViewer()) && (this.canUnlockDocument || 0 !== this.autoSaveGap)) {
 			if (this.canUnlockDocument) {
 				this.lastSaveTime = new Date();
 				// Check edit mode after unlock document http://bugzilla.onlyoffice.com/show_bug.cgi?id=35971
@@ -1080,6 +1134,7 @@
 				oResult.setRights(this.licenseResult['rights']);
 				oResult.setBuildVersion(this.licenseResult['buildVersion']);
 				oResult.setBuildNumber(this.licenseResult['buildNumber']);
+				oResult.setLiveViewerSupport(this.licenseResult['liveViewerSupport']);
 
 				if (undefined !== this.licenseResult['protectionSupport']) {
 					this.isProtectionSupport = this.licenseResult['protectionSupport'];
@@ -1159,9 +1214,9 @@
 		{
 			AscCommon.g_oIdCounter.Set_UserId('' + e);
 		};
-		this.CoAuthoringApi.onFirstLoadChangesEnd     = function()
+		this.CoAuthoringApi.onFirstLoadChangesEnd     = function(openedAt)
 		{
-			t.asyncServerIdEndLoaded();
+			t.asyncServerIdEndLoaded(openedAt);
 		};
 		this.CoAuthoringApi.onFirstConnect            = function()
 		{
@@ -1358,11 +1413,13 @@
 						switch (input["status"]) {
 							case "updateversion":
 							case "ok":
+								//call setOpenedAt twice in case of waitAuth
+								t.setOpenedAt(input["openedAt"]);
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
 								var documentUrl = urls['Editor.bin'];
 								if (t.isUseNativeViewer && !documentUrl)
-									documentUrl = urls['origin.pdf'] || urls['origin.xps'] || urls['origin.oxps'] || urls['origin.djvu'];
+									documentUrl = urls['origin.' + t.documentFormat] || urls['origin.pdf'] || urls['origin.xps'] || urls['origin.oxps'] || urls['origin.djvu'];
 								if (null != documentUrl) {
 									if ('ok' === input["status"] || t.getViewMode()) {
 										t._onOpenCommand(documentUrl);
@@ -2042,6 +2099,16 @@
 			sShapeName = "Shape";
 		}
 		return sShapeName;
+	};
+
+	baseEditorsApi.prototype.getGraphicController = function() {};
+
+	baseEditorsApi.prototype.asc_canEditTableOleObject = function(bReturnOle) {
+		var oController = this.getGraphicController();
+		if(oController) {
+			return oController.canEditTableOleObject(bReturnOle);
+		}
+		return bReturnOle ? null : false;
 	};
 
 
@@ -3050,6 +3117,10 @@
 		if (!this.canSave || !this._saveCheck())
 			return 0;
 
+		//pdf viewer
+		if (this.isUseNativeViewer && this.isDocumentRenderer && this.isDocumentRenderer())
+			return 0;
+
 		return new Date().getTime() - this.lastWorkTime;
 	};
 
@@ -3670,6 +3741,11 @@
 		}
 	};
 
+	baseEditorsApi.prototype.setOpenedAt = function(val)
+	{
+		this.openedAt = val;
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
@@ -3705,6 +3781,7 @@
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
 	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
+	prot['setOpenedAt'] = prot.setOpenedAt;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

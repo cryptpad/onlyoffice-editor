@@ -3159,20 +3159,50 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		return;
 
 	var oTextPr = this.Get_CompiledPr(false);
-	var oTheme  = this.Paragraph.Get_Theme();
+	var oTheme  = this.Paragraph.GetTheme();
 
-	g_oTextMeasurer.SetTextPr(oTextPr, oTheme);
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
-
+	let _oTextPr = oTextPr;
 	if (this.private_IsUseAscFont(oTextPr))
-		g_oTextMeasurer.SetFont({FontFamily : {Name : "ASCW3", Index : -1}, FontSize : oTextPr.FontSize, Italic : oTextPr.Italic, Bold : oTextPr.Bold});
+	{
+		_oTextPr = oTextPr.Copy();
+		_oTextPr.RFonts.SetAll("ASCW3");
+	}
 
-	// Запрашиваем текущие метрики шрифта, под TextAscent мы будем понимать ascent + linegap(которые записаны в шрифте)
-	this.TextHeight  = g_oTextMeasurer.GetHeight();
-	this.TextDescent = Math.abs(g_oTextMeasurer.GetDescender());
-	this.TextAscent  = this.TextHeight - this.TextDescent;
-	this.TextAscent2 = g_oTextMeasurer.GetAscender();
-	this.YOffset     = oTextPr.Position;
+	var Hint = _oTextPr.RFonts.Hint;
+	var bCS  = _oTextPr.CS;
+	var bRTL = _oTextPr.RTL;
+	var lcid = _oTextPr.Lang.EastAsia;
+
+	let nRFontsFlags = 0;
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (oItem.IsText())
+		{
+			let fontSlot = g_font_detector.Get_FontClass(oItem.Value, Hint, lcid, bCS, bRTL);
+			if (fontSlot === fontslot_ASCII)
+				nRFontsFlags |= rfont_ASCII;
+			else if (fontSlot === fontslot_HAnsi)
+				nRFontsFlags |= rfont_HAnsi;
+			else if (fontSlot === fontslot_CS)
+				nRFontsFlags |= rfont_CS;
+			else if (fontSlot === fontslot_EastAsia)
+				nRFontsFlags |= rfont_EastAsia;
+		}
+		else if (oItem.IsSpace())
+		{
+			nRFontsFlags |= rfont_ASCII;
+		}
+
+	}
+
+	let oMetrics = _oTextPr.GetTextMetrics(oTheme, nRFontsFlags);
+
+	// Под TextAscent мы будем понимать ascent + linegap (которые записаны в шрифте)
+	this.TextHeight  = oMetrics.Height;
+	this.TextDescent = oMetrics.Descent;
+	this.TextAscent  = oMetrics.Ascent + oMetrics.LineGap;
+	this.TextAscent2 = oMetrics.Ascent;
 
 	var oInfoMathText;
 	if (para_Math_Run == this.Type)
@@ -11004,6 +11034,22 @@ ParaRun.prototype.GetMathTextPrForMenu = function()
 
     return TextPr;
 };
+ParaRun.prototype.ToMathRun = function()
+{
+	if (this.IsMathRun())
+		return this.Copy();
+
+	let oRun = new ParaRun(undefined, true);
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		let oMathItem = this.Content[nPos].ToMathElement();
+		if (oMathItem)
+			oRun.Add(oMathItem);
+	}
+
+	oRun.ApplyPr(this.GetDirectTextPr());
+	return oRun;
+};
 ParaRun.prototype.ApplyPoints = function(PointsInfo)
 {
     if(this.Parent.IsEqArray())
@@ -11234,37 +11280,6 @@ ParaRun.prototype.SetThisElementCurrentInParagraph = function()
 
 	oContentPos.Add(this.State.ContentPos);
 	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
-};
-ParaRun.prototype.SelectThisElement = function(nDirection)
-{
-	if (!this.Paragraph)
-		return false;
-
-	var oContentPos = this.Paragraph.Get_PosByElement(this);
-	if (!oContentPos)
-		return false;
-
-	var oStartPos = oContentPos.Copy();
-	var oEndPos   = oContentPos.Copy();
-
-	if (nDirection > 0)
-	{
-		this.Get_StartPos(oStartPos, oStartPos.GetDepth() + 1);
-		this.Get_EndPos(true, oEndPos, oEndPos.GetDepth() + 1);
-	}
-	else
-	{
-		this.Get_StartPos(oEndPos, oEndPos.Get_Depth() + 1);
-		this.Get_EndPos(true, oStartPos, oStartPos.Get_Depth() + 1);
-	}
-
-	this.Paragraph.Selection.Use   = true;
-	this.Paragraph.Selection.Start = false;
-	this.Paragraph.Set_ParaContentPos(oStartPos, true, -1, -1);
-	this.Paragraph.Set_SelectionContentPos(oStartPos, oEndPos, false);
-	this.Paragraph.Document_SetThisElementCurrent(false);
-
-	return true;
 };
 ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
 {

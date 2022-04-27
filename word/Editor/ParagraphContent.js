@@ -350,6 +350,14 @@ CRunElementBase.prototype.ToSearchElement = function(oProps)
 	return null;
 };
 /**
+ * Преобразуем в элемент матиматического рана
+ * @returns {?CMathBaseText}
+ */
+CRunElementBase.prototype.ToMathElement = function()
+{
+	return null;
+};
+/**
  * Является ли данный элемент автофигурой
  * @returns {boolean}
  */
@@ -751,10 +759,22 @@ ParaText.prototype.IsDigit = function()
 };
 ParaText.prototype.ToSearchElement = function(oProps)
 {
+	if (0x2D === this.Value && !this.IsSpaceAfter())
+		return new CSearchTextSpecialNonBreakingHyphen();
+
 	if (!oProps.MatchCase)
 		return new CSearchTextItemChar(String.fromCodePoint(this.Value).toLowerCase().codePointAt(0));
 
 	return new CSearchTextItemChar(this.Value);
+};
+ParaText.prototype.ToMathElement = function()
+{
+	if (38 === this.Value)
+		return new CMathAmp();
+
+	let oText = new CMathText();
+	oText.add(this.Value);
+	return oText;
 };
 ParaText.prototype.IsText = function()
 {
@@ -835,7 +855,7 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 	if (Math.abs(Temp) > 0.001)
 	{
 		let nEnKoef;
-		if (g_oTextMeasurer.m_oManager.m_pFont && 0 !== g_oTextMeasurer.m_oManager.m_pFont.GetGIDByUnicode(0x2002))
+		if (g_oTextMeasurer.m_oManager && g_oTextMeasurer.m_oManager.m_pFont && 0 !== g_oTextMeasurer.m_oManager.m_pFont.GetGIDByUnicode(0x2002))
 			nEnKoef = Context.MeasureCode(0x2002).Width / Temp;
 		else
 			nEnKoef = TextPr.FontSize / 72 * 25.4 / 2 / Temp;
@@ -941,6 +961,12 @@ ParaSpace.prototype.private_DrawGapsBackground = ParaText.prototype.private_Draw
 ParaSpace.prototype.ToSearchElement = function(oProps)
 {
 	return new CSearchTextItemChar(0x20);
+};
+ParaSpace.prototype.ToMathElement = function()
+{
+	let oSpace = new CMathText();
+	oSpace.add(0x0032);
+	return oSpace;
 };
 
 /**

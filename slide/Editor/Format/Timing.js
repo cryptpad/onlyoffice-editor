@@ -235,6 +235,16 @@
         return editor.WordControl.m_oLogicDocument;
     };
     CBaseAnimObject.prototype.isAnimObject = true;
+    CBaseAnimObject.prototype.getTiming = function() {
+        var oCurElement = this;
+        while(oCurElement && !(oCurElement instanceof CTiming)) {
+            oCurElement = oCurElement.parent;
+        }
+        if(oCurElement instanceof CTiming) {
+            return oCurElement;
+        }
+        return null;
+    };
     var TIME_NODE_STATE_IDLE = 0;
     var TIME_NODE_STATE_ACTIVE = 1;
     var TIME_NODE_STATE_FROZEN = 2;
@@ -354,16 +364,6 @@
             oCurElem = oCurParent;
         }
         return oCurElem;
-    };
-    CTimeNodeBase.prototype.getTiming = function() {
-        var oCurElem = this;
-        while(oCurElem.parent && oCurElem.getObjectType() !== AscDFH.historyitem_type_Timing) {
-            oCurElem = oCurElem.parent;
-        }
-        if(oCurElem.getObjectType() === AscDFH.historyitem_type_Timing) {
-            return oCurElem;
-        }
-        return null;
     };
     CTimeNodeBase.prototype.getDepth = function() {
         var nDepth = 0;
@@ -804,7 +804,7 @@
 
         var oAttr = this.getAttributesObject();
         var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
-        sString += (nDepth + " TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | FORMAT ID: " + oAttr.id );
+        sString += (nDepth + " TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | FORMAT ID: " + oAttr.id + " | ID: " + this.Id);
         console.log(sString);
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
@@ -1271,6 +1271,17 @@
         return false;
     };
     CTimeNodeBase.prototype.doesShowObject = function() {
+        var oParentNode = this.getParentTimeNode();
+        if(oParentNode) {
+            var oAttrObject = oParentNode.getAttributesObject();
+            if(oAttrObject) {
+                if(AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass ||
+                    AscFormat.PRESET_CLASS_PATH === oAttrObject.presetClass||
+                    AscFormat.PRESET_CLASS_EMPH === oAttrObject.presetClass) {
+                    return true;
+                }
+            }
+        }
         return false;
     };
     CTimeNodeBase.prototype.isAncestor = function(oNode) {
@@ -1690,6 +1701,9 @@
     CTiming.prototype.Refresh_RecalcData2 = function() {
         AscCommon.History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});
     };
+    CTiming.prototype.Refresh_RecalcData = function() {
+        this.Refresh_RecalcData2();
+    };
     CTiming.prototype.recalculate = function() {
     };
     CTiming.prototype.getSlideIndex = function() {
@@ -1886,21 +1900,20 @@
         }
         return oTmRoot.getAllAnimEffects();
     };
-    CTiming.prototype.checkTimeRoot = function() {
-        if(!this.tnLst) {
-            this.setTnLst(new CTnLst());
-        }
+    CTiming.prototype.createTimingRoot = function() {
         var oTnContainer, oCTn;
+        this.setTnLst(new CTnLst());
+        oTnContainer = new CPar();
+        oCTn = this.createCCTn("indefinite", null, null, AscFormat.NODE_TYPE_TMROOT, RESTART_TYPE_NEVER, true);
+        oTnContainer.setCTn(oCTn);
+        this.tnLst.addToLst(0, oTnContainer);
+    };
+    CTiming.prototype.checkTimeRoot = function() {
         var oTmRoot = this.getTimingRootNode();
-        if(!oTmRoot) {
-            //create timing root
-            oTnContainer = new CPar();
-            oCTn = this.createCCTn("indefinite", null, null, AscFormat.NODE_TYPE_TMROOT, RESTART_TYPE_NEVER, true);
-            oTnContainer.setCTn(oCTn);
-            this.tnLst.addToLst(0, oTnContainer);
-            oTmRoot = oTnContainer;
+        if(!this.tnLst || !oTmRoot) {
+            this.createTimingRoot();
         }
-        return oTmRoot;
+        return this.getTimingRootNode();
     };
     CTiming.prototype.checkMainSequence = function() {
         var oTnContainer, oCTn;
@@ -1994,7 +2007,7 @@
             aMainSeq = aSeqs[0];
         }
         aMainSeq.push(oEffect);
-        this.buildTree(aSeqs);
+        return this.buildTree(aSeqs);
     };
     CTiming.prototype.addToInteractiveSequence = function(oEffect, sObjectId) {
         var aSeqs = this.getEffectsSequences();
@@ -2010,7 +2023,7 @@
             aSeqs.push(aMainSeq);
         }
         aMainSeq.push(oEffect);
-        this.buildTree(aSeqs);
+        return this.buildTree(aSeqs);
     };
     CTiming.prototype.addAnimationToSelectedObjects = function(nPresetClass, nPresetId, nPresetSubtype) {
         var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
@@ -2047,20 +2060,27 @@
                 return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
             else {
+                var oMapOfObjects = {};
 				var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
-				if(aSelectedObjects.length > 0) {
-					this.removeSelectedEffects();
-					return this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
-				}
+                var bNeedRemoveExtra = (aSelectedObjects.length > 0);
                 var aSeqs = this.getEffectsSequences();
                 var aSeq;
                 var bNeedRebuild = false;
                 for(var nSeq = 0; nSeq < aSeqs.length; ++nSeq) {
                     aSeq = aSeqs[nSeq];
-                    for(nEffectIdx = 1; nEffectIdx < aSeq.length; ++nEffectIdx) {
+                    for(nEffectIdx = aSeq.length - 1; nEffectIdx > 0; --nEffectIdx) {
                         oEffect = aSeq[nEffectIdx];
                         if(oEffect.isSelected()) {
                             sObjectId = oEffect.getObjectId();
+                            if(bNeedRemoveExtra) {
+                                if(oMapOfObjects[sObjectId]) {
+                                    aSeq.splice(nEffectIdx, 1);
+                                    continue;
+                                }
+                                else {
+                                    oMapOfObjects[sObjectId] = true;
+                                }
+                            }
                             oNewEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
                             if(oNewEffect) {
                                 oNewEffect.cTn.setNodeType(oEffect.cTn.nodeType);
@@ -2075,7 +2095,7 @@
                 }
             }
             if(bNeedRebuild) {
-                this.buildTree(aSeqs);
+                aAddedEffects = this.buildTree(aSeqs);
             }
         }
         else {
@@ -2130,8 +2150,8 @@
         if(!oEffect) {
             return null;
         }
-        this.addToMainSequence(oEffect);
-        oEffect.select();
+        oEffect = this.addToMainSequence(oEffect)[0];
+        oEffect && oEffect.select();
         return oEffect;
     };
     CTiming.prototype.createPar = function(nFill, sDelay) {
@@ -2338,6 +2358,7 @@
         var nEffect;
         var nSeq;
         var oCont1;//containers by depth
+        var aAddedEffects = [];
         if(bRestedDelayShift !== false) {
             //substract delay shift from afterEffect nodes
             for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
@@ -2348,9 +2369,15 @@
                }
            }
         }
+        this.createTimingRoot();
         var oTmRoot = this.getTimingRootNode();
         if(oTmRoot) {
             oTmRoot.clearChildTnLst();
+            var oCTn = oTmRoot.cTn;
+            if(oCTn) {
+                oTmRoot.setCTn(oCTn.createDuplicate());
+                oCTn.setParent(null);
+            }
         }
         for(nSeq = 0; nSeq < aSequences.length; ++nSeq) {
             aCurSequence = aSequences[nSeq];
@@ -2364,11 +2391,23 @@
                 }
                 for(nEffect = 1; nEffect < aCurSequence.length; ++nEffect) {
                     oEffect = aCurSequence[nEffect];
-                    oCont1.addEffectToTheEndOfSeq(oEffect);
+                    var oEffectToAdd;
+                    if(oEffect.parent) {
+                        oEffectToAdd = oEffect.createDuplicate();
+                    }
+                    else {
+                        oEffectToAdd = oEffect;
+                        aAddedEffects.push(oEffect);
+                    }
+                    if(oEffect.selected) {
+                        oEffectToAdd.selected = true;
+                    }
+                    oCont1.addEffectToTheEndOfSeq(oEffectToAdd);
                 }
             }
         }
         this.updateNodesIDs();
+        return aAddedEffects;
     };
     CTiming.prototype.executeWithCheckDelay = function(fCallback, aEffects) {
         var aDelays = [];
@@ -2812,6 +2851,34 @@
         }
         return bHandle ? false : null;
     };
+    CTiming.prototype.checkCorrect = function() {
+        var oRoot;
+        if(this.tnLst) {
+            if(!this.tnLst.CheckCorrect()) {
+                this.setTnLst(null);
+                this.setBldLst(null);
+                return;
+            }
+            var aList = this.tnLst.list;
+            oRoot = aList[0];
+            if(oRoot) {
+                var aToRemove = [];
+                oRoot.traverseTimeNodes(function(oTimeNode) {
+                    if(oTimeNode.getDepth() === 4) {
+                        if(!oTimeNode.isCorrect()) {
+                            if(oTimeNode.parent) {
+                                aToRemove.push(oTimeNode);
+                            }
+                        }
+                    }
+                });
+                for(var nEffect = aToRemove.length - 1; nEffect > -1; --nEffect) {
+                    var oEffect = aToRemove[nEffect];
+                    oEffect.parent.onRemoveChild(oEffect);
+                }
+            }
+        }
+    };
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
     changesFactory[AscDFH.historyitem_CommonTimingListRemove] = CChangeContent;
@@ -3114,7 +3181,20 @@
         CChildTnLst.call(this);
     }
     InitClass(CTnLst, CChildTnLst, AscDFH.historyitem_type_TnLst);
-
+    CTnLst.prototype.CheckCorrect = function() {
+        var aList = this.list;
+        if(aList.length !== 1) {
+            return false;
+        }
+        else {
+            var oRoot = aList[0];
+            var oAttr = oRoot.getAttributesObject();
+            if(!oAttr || oAttr.nodeType !== AscFormat.NODE_TYPE_TMROOT) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     function CTavLst() {
         CCommonTimingList.call(this);
@@ -4958,7 +5038,10 @@
                 var oChild = aChildren[nChild];
                 var oDur = oChild.getDur();
                 if(oDur.isSpecified()) {
-                    nDur = Math.max(nDur, oDur.getVal());
+					
+					var oAttr = oChild.getAttributesObject();
+					var nDelay = oAttr.getDelay(false);
+                    nDur = Math.max(nDur, oDur.getVal() + nDelay);
                 }
             }
         }
@@ -7799,6 +7882,9 @@
         if(this.cTn !== null) {
             oCopy.setCTn(this.cTn.createDuplicate(oIdMap));
         }
+        if(this.selected) {
+            oCopy.selected = true;
+        }
     };
     CTimeNodeContainer.prototype.privateWriteAttributes = function(pWriter) {
     };
@@ -7890,6 +7976,20 @@
             return;
         }
         return oRect.hit(x, y);
+    };
+    CTimeNodeContainer.prototype.isCorrect = function() {
+        if(!this.cTn) {
+            return false;
+        }
+        var sObjectId = this.getObjectId();
+        var oObj = AscCommon.g_oTableId.Get_ById(sObjectId);
+        if(!oObj) {
+            return false;
+        }
+        if(!oObj.checkCorrect() || !(oObj.Is_UseInDocument && oObj.Is_UseInDocument())) {
+            return false;
+        }
+        return true;
     };
     var ICON_TRIGGER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAxMSAxNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEgMEg1TDAgN0g0TDAgMTRMMTEgNUg2TDExIDBaIiBmaWxsPSIjNDQ0NDQ0Ii8+PC9zdmc+";
     
@@ -9435,7 +9535,7 @@
             oGraphics.SetIntegerGrid(true);
             var nDx = oGraphics.m_oCoordTransform.tx;
             var nDy = oGraphics.m_oCoordTransform.ty;
-            oGraphics.m_oContext.drawImage(this.canvas, nDx + this.x, nDy + this.y, this.canvas.width, this.canvas.height);
+            oGraphics.m_oContext.drawImage(this.canvas, (nDx + this.x + 0.5) >> 0, (nDy + this.y + 0.5) >> 0, this.canvas.width, this.canvas.height);
             oGraphics.RestoreGrState();
             oGraphics.FreeFont && oGraphics.FreeFont();
         }
@@ -10924,6 +11024,9 @@
     CAnimationPlayer.prototype.clearObjectTexture = function(sId) {
         this.animationDrawer.clearObjectTexture(sId);
     };
+    CAnimationPlayer.prototype.isDrawingHidden = function(sId) {
+        return this.animationDrawer.isDrawingHidden(sId);
+    };
 
 
     function CDemoAnimPlayer(oSlide) {
@@ -11229,15 +11332,70 @@
         this.checkOnAdd();
     };
     CAnimSandwich.prototype.checkOnAdd = function() {
-        //TODO: sort
     };
     CAnimSandwich.prototype.getDrawing = function() {
         return AscCommon.g_oTableId.Get_ById(this.drawingId);
+    };
+    CAnimSandwich.prototype.checkRemoveOldAnim = function() {
+        var oEntrEffect = null, oExitEffect = null;
+        for(var nAnim = 0; nAnim < this.animations.length; ++nAnim) {
+            var oAnim = this.animations[nAnim];
+            var oEffect = oAnim.getParentTimeNode();
+            if(oEffect.isAnimEffect()) {
+                var oAttrObject = oEffect.getAttributesObject();
+                if(oAttrObject && AscFormat.PRESET_CLASS_EXIT === oAttrObject.presetClass) {
+                    oExitEffect = oEffect;
+                }
+                if(oAttrObject && AscFormat.PRESET_CLASS_ENTR === oAttrObject.presetClass) {
+                    oEntrEffect = oEffect;
+                }
+                if(oEntrEffect && oExitEffect) {
+                    break;
+                }
+            }
+        }
+        var oEffectToDelete = null;
+        if(oEntrEffect && oExitEffect) {
+            if(oEntrEffect.isAtEnd() && !oExitEffect.isAtEnd()) {
+                oEffectToDelete = oEntrEffect;
+            }
+            if(!oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
+                oEffectToDelete = oExitEffect;
+            }
+
+            if(oEntrEffect.isAtEnd() && oExitEffect.isAtEnd()) {
+                if(oEntrEffect.startTick < oExitEffect.startTick) {
+                    oEffectToDelete = oEntrEffect;
+                }
+                else {
+                    oEffectToDelete = oExitEffect;
+                }
+            }
+        }
+        if(oEffectToDelete) {
+            for(var nAnim = this.animations.length - 1; nAnim > -1; --nAnim) {
+                var oAnim = this.animations[nAnim];
+                var oEffect = oAnim.getParentTimeNode();
+                if(oEffect === oEffectToDelete) {
+                    this.animations.splice(nAnim, 1);
+                }
+            }
+            return true;
+        }
+        return false;
     };
     CAnimSandwich.prototype.getAttributesMap = function() {
         if(this.cachedAttributes) {
             return this.cachedAttributes;
         }
+
+        var bCheckRemove = true;
+
+        while(bCheckRemove) {
+            bCheckRemove = this.checkRemoveOldAnim();
+        }
+
+
         this.animations.sort(function(oAnim1, oAnim2){
             if(AscFormat.isRealNumber(oAnim1.startTick) && AscFormat.isRealNumber(oAnim2.startTick)) {
                 return oAnim1.startTick - oAnim2.startTick;

@@ -167,7 +167,7 @@ StartAddNewShape.prototype =
                 nearest_pos.Page = this.pageIndex;
 
                 drawing.Set_XYForAdd(shape.x, shape.y, nearest_pos, this.pageIndex);
-                drawing.Add_ToDocument(nearest_pos, false);
+                drawing.AddToDocument(nearest_pos);
                 drawing.CheckWH();
                 this.drawingObjects.resetSelection();
                 shape.select(this.drawingObjects, this.pageIndex);
@@ -611,6 +611,7 @@ MoveInlineObject.prototype =
 				{
 					this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_MoveInlineObject);
 					this.majorObject.parent.OnEnd_MoveInline(this.InlinePos);
+					this.drawingObjects.document.Recalculate();
 					this.drawingObjects.document.FinalizeAction();
 				}
 			}
@@ -631,7 +632,7 @@ MoveInlineObject.prototype =
 					}
 					drawing.setParent(new_para_drawing);
 					new_para_drawing.Set_GraphicObject(drawing);
-					new_para_drawing.Add_ToDocument(this.InlinePos, false, oRunPr);
+					new_para_drawing.AddToDocument(this.InlinePos, oRunPr);
 					this.drawingObjects.resetSelection();
 					this.drawingObjects.selectObject(drawing, pageIndex);
 					this.drawingObjects.document.Recalculate();
@@ -804,11 +805,11 @@ RotateState.prototype =
 								if(aDrawings[i].Locked !== true)
                                 {
                                     aNearestPos[i].Paragraph.Check_NearestPos(aNearestPos[i]);
-                                    para_drawing.Add_ToDocument(aNearestPos[i], false);
+                                    para_drawing.AddToDocument(aNearestPos[i]);
                                 }
                                 else
                                 {
-                                    para_drawing.Add_ToDocument2(aDrawings[i].Get_ParentParagraph());
+                                    para_drawing.AddToParagraph(aDrawings[i].Get_ParentParagraph());
                                 }
                                 this.drawingObjects.selectObject(para_drawing.GraphicObj, pageIndex);
 							}
@@ -875,7 +876,7 @@ RotateState.prototype =
                                     aNearestPos[i].Paragraph.Check_NearestPos(aNearestPos[i]);
 
                                     originalCopy.Set_XYForAdd(bounds.posX, bounds.posY, aNearestPos[i], pageIndex);
-                                    originalCopy.Add_ToDocument(aNearestPos[i], false, null, oOriginalRun);
+                                    originalCopy.AddToDocument(aNearestPos[i], null, oOriginalRun);
 
                                     this.drawingObjects.document.MoveDrawing = false;
 

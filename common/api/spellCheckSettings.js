@@ -82,7 +82,7 @@
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
-	window['AscCommon'].CSpellCheckSettings = CSpellCheckSettings;
+	window['AscCommon'].CSpellCheckSettings = window['AscCommon']['CSpellCheckSettings'] = CSpellCheckSettings;
 	CSpellCheckSettings.prototype['get_IgnoreWordsInUppercase'] = CSpellCheckSettings.prototype.get_IgnoreWordsInUppercase = CSpellCheckSettings.prototype.IsIgnoreWordsInUppercase;
 	CSpellCheckSettings.prototype['put_IgnoreWordsInUppercase'] = CSpellCheckSettings.prototype.put_IgnoreWordsInUppercase = CSpellCheckSettings.prototype.SetIgnoreWordsInUppercase;
 	CSpellCheckSettings.prototype['get_IgnoreWordsWithNumbers'] = CSpellCheckSettings.prototype.get_IgnoreWordsWithNumbers = CSpellCheckSettings.prototype.IsIgnoreWordsWithNumbers;
