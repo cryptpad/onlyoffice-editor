@@ -1178,9 +1178,14 @@
 
 		window.g_asc_plugins.api.asc_registerCallback('asc_onDocumentContentReady', function()
 		{
-
 			setTimeout(function()
 			{
+				if (window.g_asc_plugins.api.preSetupPlugins)
+				{
+					window.g_asc_plugins.register(window.g_asc_plugins.api.preSetupPlugins.path, window.g_asc_plugins.api.preSetupPlugins.plugins);
+					delete window.g_asc_plugins.api.preSetupPlugins;
+				}
+
 				window.g_asc_plugins.loadExtensionPlugins(window["Asc"]["extensionPlugins"]);
 			}, 10);
 

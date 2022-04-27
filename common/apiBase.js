@@ -2413,6 +2413,13 @@
 	{
 		if (null != this.pluginsManager)
 			this.pluginsManager.register(basePath, plugins);
+		else
+		{
+			this.preSetupPlugins = {
+				path : basePath,
+				plugins : plugins
+			};
+		}
 	};
 	baseEditorsApi.prototype.asc_pluginRun         = function(guid, variation, pluginData)
 	{
