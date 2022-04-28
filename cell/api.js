@@ -1858,14 +1858,14 @@ var editor;
 												}*/
 
 												var nAuthorId = parseInt(pComment.authorId);
-
 												if (nAuthorId >= 0 && nAuthorId < arAuthors.length) {
-													pCommentItem.sAuthor = arAuthors[nAuthorId];
+													pCommentItem.asc_putUserName(arAuthors[nAuthorId]);
 												}
 
-												/*OOX::Spreadsheet::CSi* pSi = pComment->m_oText.GetPointerEmptyNullable();
-												if(NULL != pSi)
-													pCommentItem->m_oText.reset(pSi);*/
+												var pSi = pComment.oText;
+												if (pSi) {
+													pCommentItem.asc_putText(pSi.getText());
+												}
 
 												pCommentItem.threadedComment = pThreadedComment;//c_oSer_Comments.ThreadedComment
 												pCommentItem.ThreadedCommentCopy = bThreadedCommentCopy;//bool m_bThreadedCommentCopy

@@ -3844,6 +3844,19 @@
 		}
 		writer.WriteXmlNodeEnd(ns + name);
 	};
+	CT_Si.prototype.getText = function () {
+		var res = "";
+
+		if (this.multiText) {
+			for (var i = 0; i < this.multiText.length; i++) {
+				res += this.multiText[i].text;
+			}
+		} else if (this.text) {
+			res += this.text;
+		}
+
+		return res;
+	};
 
 	AscCommonExcel.CMultiTextElem.prototype.fromXml = function (reader) {
 		if (reader.IsEmptyNode()) {
