@@ -1019,16 +1019,23 @@
 			for (let nPos = 0, nCount = buffer.length; nPos < nCount; ++nPos)
 			{
 				let codePoint = buffer[nPos];
-				let gid = this.GetGIDByUnicode(codePoint);
-				if (gid <= 0)
+
+				// TODO: Обработать ситуацию, когда сегмент начинается с AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED
+				//       в такой ситуации нужно ориентироваться на следующий юникод, у которого будет нормальный скрипт
+				if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== AscFonts.hb_get_script_by_unicode(codePoint))
 				{
-					curFont = this.Picker.GetFontBySymbolWithSize(this, codePoint);
-					if (!curFont)
+					let gid = this.GetGIDByUnicode(codePoint);
+					if (gid <= 0)
+					{
+						curFont = this.Picker.GetFontBySymbolWithSize(this, codePoint);
+
+						if (!curFont)
+							curFont = this;
+					}
+					else
+					{
 						curFont = this;
-				}
-				else
-				{
-					curFont = this;
+					}
 				}
 
 				if (null == currentSegment || currentSegment.font !== curFont)

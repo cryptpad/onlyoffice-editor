@@ -153,7 +153,11 @@
 				let nScript = this.GetTextScript(oItem.GetCodePoint());
 				if (nScript !== this.Script)
 				{
-					this.FlushWord();
+					if (-1 !== this.Script
+						&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
+						&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== this.Script)
+						this.FlushWord();
+
 					this.Script = nScript;
 				}
 
@@ -169,11 +173,16 @@
 		if (!this.Buffer.length)
 			return;
 
+		let nScript = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === this.Script ? AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON : this.Script;
+
 		MEASURER.SetTextPr(this.TextPr);
 		MEASURER.SetFontSlot(fontslot_ASCII, 1);
 
+		// TODO: при RTL направлении кластеры возвращаются в обратном порядке, надо отдельно обрабатывать такую ситуацию
+		//let nDirection = this.GetDirection(nScript);
+		let nDirection = AscFonts.HB_DIRECTION.HB_DIRECTION_LTR;
 		let nCharIndex = 0;
-		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 15, this.Script, AscFonts.HB_DIRECTION.HB_DIRECTION_LTR, "en");
+		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 15, nScript, nDirection, "en");
 		for (let nSegment = 0, nSegmentsCount = arrSegments.length; nSegment < nSegmentsCount; ++nSegment)
 		{
 			let oSegment = arrSegments[nSegment];
@@ -235,10 +244,15 @@
 
 		this.Buffer = [];
 		this.Items  = [];
+		this.Script = -1;
 	};
 	CTextShaper.prototype.GetTextScript = function(nUnicode)
 	{
 		return AscFonts.hb_get_script_by_unicode(nUnicode);
+	};
+	CTextShaper.prototype.GetDirection = function(nScript)
+	{
+		return AscFonts.hb_get_script_horizontal_direction(nScript);
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------
