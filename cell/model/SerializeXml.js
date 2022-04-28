@@ -4725,8 +4725,8 @@ xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\"")
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("name" === reader.GetName()) {
-				val = reader.GetValue();
-				this.Name = val;
+				val = reader.GetValueDecodeXml();
+				this.Name = prepareTextFromXml(val);
 			} else if ("totalsRowLabel" === reader.GetName()) {
 				val = reader.GetValue();
 				this.TotalsRowLabel = val;
@@ -13228,7 +13228,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				} else {
 					this.i = true;
 				}
-			} else if ("name" === name) {
+			} else if ("name" === name || "rFont" === name) {
 				readOneAttr(reader, "val", function () {
 					t.fn = reader.GetValue();
 				});
