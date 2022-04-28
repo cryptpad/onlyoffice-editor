@@ -1448,6 +1448,8 @@ background-repeat: no-repeat;\
 		// destroy unused memory
 		AscCommon.pptx_content_writer.BinaryFileWriter = null;
 		AscCommon.History.BinaryWriter = null;
+
+		this.WordControl.OnResize(true);
 	};
 	asc_docs_api.prototype["asc_setViewerThumbnailsZoom"] = function(value) {
 		if (this.WordControl.m_oDrawingDocument.m_oDocumentRenderer &&
