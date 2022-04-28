@@ -43,6 +43,16 @@
 		let CBaseNoId = AscFormat.CBaseNoIdObject;
 		let IC = AscFormat.InitClass;
 
+		function getBooleanTrueFalse(bVal) {
+			if (bVal === true) {
+				return "t";
+			}
+			if (bVal === false) {
+				return "f";
+			}
+			return null;
+		}
+
 		//VmlOfficeDrawing
 		function CStrokeChild(sType) {
 			CBaseNoId.call(this);
@@ -108,34 +118,33 @@
 			else if ("weight") this.m_sWeight = reader.GetValue();
 		};
 		CStrokeChild.prototype.writeAttrXmlImpl = function (writer) {
-
-			writer.WriteXmlNullableAttributeStringEncode("v:ext", getExt(this.m_oExt));
-			writer.WriteXmlNullableAttributeBool("on", this.m_oOn);
-			writer.WriteXmlNullableAttributeStringEncode("weight",           this.m_sWeight )
-			writer.WriteXmlNullableAttributeStringEncode("color",            this.m_oColor )
-			writer.WriteXmlNullableAttributeStringEncode("color2",           this.m_oColor2 )
-			writer.WriteXmlNullableAttributeStringEncode("opacity",          this.m_sOpacity )
-			writer.WriteXmlNullableAttributeStringEncode("linestyle",        this.m_oLineStyle )
-			writer.WriteXmlNullableAttributeStringEncode("miterlimit",       this.m_oMiterLimit )
-			writer.WriteXmlNullableAttributeStringEncode("joinstyle",        this.m_oJoinStyle )
-			writer.WriteXmlNullableAttributeStringEncode("endcap",           this.m_oEndCap )
-			writer.WriteXmlNullableAttributeStringEncode("dashstyle",        this.m_oDashStyle )
-			writer.WriteXmlNullableAttributeStringEncode("insetpen",         this.m_oInsetPen )
-			writer.WriteXmlNullableAttributeStringEncode("filltype",         this.m_oFillType )
-			writer.WriteXmlNullableAttributeStringEncode("src",              this.m_sSrc )
-			writer.WriteXmlNullableAttributeStringEncode("imageaspect",      this.m_oImageAspect )
-			writer.WriteXmlNullableAttributeStringEncode("imagesize",        this.m_sImageSize )
-			writer.WriteXmlNullableAttributeStringEncode("imagealignshape",  this.m_oImageAlignShape )
-			writer.WriteXmlNullableAttributeStringEncode("startarrow",       this.m_oStartArrow )
-			writer.WriteXmlNullableAttributeStringEncode("startarrowwidth",  this.m_oStartArrowWidth )
-			writer.WriteXmlNullableAttributeStringEncode("startarrowlength", this.m_oStartArrowLength )
-			writer.WriteXmlNullableAttributeStringEncode("endarrow",         this.m_oEndArrow )
-			writer.WriteXmlNullableAttributeStringEncode("endarrowwidth",    this.m_oEndArrowWidth )
-			writer.WriteXmlNullableAttributeStringEncode("endarrowlength",   this.m_oEndArrowLength )
-			writer.WriteXmlNullableAttributeStringEncode("o:href",           this.m_sHref )
-			writer.WriteXmlNullableAttributeStringEncode("althref",          this.m_sAlthref )
-			writer.WriteXmlNullableAttributeStringEncode("o:title",          this.m_sTitle )
-			writer.WriteXmlNullableAttributeStringEncode("o:forcedash",      this.m_oForceDash )
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeString("on", getBooleanTrueFalse(this.m_oOn));
+			writer.WriteXmlNullableAttributeString("weight", this.m_sWeight)
+			writer.WriteXmlNullableAttributeString("color", getColorType(this.m_oColor))
+			writer.WriteXmlNullableAttributeString("color2", getColorType(this.m_oColor2))
+			writer.WriteXmlNullableAttributeString("opacity", this.m_sOpacity)
+			writer.WriteXmlNullableAttributeString("linestyle", getLineStyle(this.m_oLineStyle))
+			writer.WriteXmlNullableAttributeString("miterlimit", this.m_oMiterLimit + "")
+			writer.WriteXmlNullableAttributeString("joinstyle", getJoinStyle(this.m_oJoinStyle))
+			writer.WriteXmlNullableAttributeString("endcap", getEndCap(this.m_oEndCap))
+			writer.WriteXmlNullableAttributeString("dashstyle", getDashStyle(this.m_oDashStyle))
+			writer.WriteXmlNullableAttributeString("insetpen", getBooleanTrueFalse(this.m_oInsetPen))
+			writer.WriteXmlNullableAttributeString("filltype", getFillType(this.m_oFillType))
+			writer.WriteXmlNullableAttributeString("src", this.m_sSrc)
+			writer.WriteXmlNullableAttributeString("imageaspect", getImageAspect(this.m_oImageAspect))
+			writer.WriteXmlNullableAttributeString("imagesize", this.m_sImageSize)
+			writer.WriteXmlNullableAttributeString("imagealignshape", getBooleanTrueFalse(this.m_oImageAlignShape))
+			writer.WriteXmlNullableAttributeString("startarrow", getArrowType(this.m_oStartArrow))
+			writer.WriteXmlNullableAttributeString("startarrowwidth", getArrowWidth(this.m_oStartArrowWidth))
+			writer.WriteXmlNullableAttributeString("startarrowlength", getArrowLength(this.m_oStartArrowLength))
+			writer.WriteXmlNullableAttributeString("endarrow", getArrowType(this.m_oEndArrow))
+			writer.WriteXmlNullableAttributeString("endarrowwidth", getArrowWidth(this.m_oEndArrowWidth))
+			writer.WriteXmlNullableAttributeString("endarrowlength", getArrowLength(this.m_oEndArrowLength))
+			writer.WriteXmlNullableAttributeString("o:href", this.m_sHref)
+			writer.WriteXmlNullableAttributeString("althref", this.m_sAlthref)
+			writer.WriteXmlNullableAttributeString("o:title", this.m_sTitle)
+			writer.WriteXmlNullableAttributeString("o:forcedash", getBooleanTrueFalse(this.m_oForceDash))
 		};
 
 		function CCallout() {
@@ -266,7 +275,20 @@
 			}
 		};
 		CCallout.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeString("on", getBooleanTrueFalse(this.m_oOn));
+			writer.WriteXmlNullableAttributeString("type", getCalloutType(this.m_oType));
+			writer.WriteXmlNullableAttributeNumber("gap", this.m_oGap);
+			writer.WriteXmlNullableAttributeString("angle", getAngle(this.m_oAngle));
+			writer.WriteXmlNullableAttributeString("dropauto", getBooleanTrueFalse(this.m_oDropAuto));
+			writer.WriteXmlNullableAttributeString("drop", this.m_oDrop);//TODO: use type
+			writer.WriteXmlNullableAttributeNumber("distance", this.m_oDistance);
+			writer.WriteXmlNullableAttributeString("lengthspecified", getBooleanTrueFalse(this.m_oLengthSpecified));
+			writer.WriteXmlNullableAttributeNumber("length", this.m_oLength);
+			writer.WriteXmlNullableAttributeString("accentbar", getBooleanTrueFalse(this.m_oAccentbar));
+			writer.WriteXmlNullableAttributeString("textborder", getBooleanTrueFalse(this.m_oTextBorder));
+			writer.WriteXmlNullableAttributeString("minusx", getBooleanTrueFalse(this.m_oMinusX));
+			writer.WriteXmlNullableAttributeString("minusy", getBooleanTrueFalse(this.m_oMinusY));
 		};
 
 		function CClipPath() {
@@ -284,7 +306,7 @@
 			}
 		};
 		CClipPath.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("o:v", this.m_oV)
 		};
 
 		function CColorMenu() {
@@ -305,7 +327,11 @@
 			if ("strokecolor" === name) this.m_oStrokeColor = readColorType(reader);
 		};
 		CColorMenu.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeString("extrusioncolor", getColorType(this.m_oExtrusionColor));
+			writer.WriteXmlNullableAttributeString("fillcolor", getColorType(this.m_oFillColor));
+			writer.WriteXmlNullableAttributeString("shadowcolor", getColorType(this.m_oShadowColor));
+			writer.WriteXmlNullableAttributeString("strokecolor", getColorType(this.m_oStrokeColor));
 		};
 
 		function CColorMru() {
@@ -340,7 +366,19 @@
 			}
 		};
 		CColorMru.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			let sResult = "";
+
+			for (let nIndex = 0; nIndex < this.m_arrColors.length; nIndex++) {
+				if (this.m_arrColors[nIndex]) {
+					if (sResult.length > 0) {
+						sResult += ",";
+					}
+					sResult += this.m_arrColors[nIndex].ToString();
+				}
+			}
+
+			writer.WriteXmlNullableAttributeString("colors", sResult);
 		};
 
 		function CComplex() {
@@ -355,7 +393,7 @@
 			}
 		};
 		CComplex.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
 		};
 
 		function CRelation() {
@@ -375,12 +413,14 @@
 			else if (name === "idsrc") this.m_sIdSrc = reader.GetValue();
 		};
 		CRelation.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeString("idcntr", this.m_sIdCntr);
+			writer.WriteXmlNullableAttributeString("iddest", this.m_sIdDest);
+			writer.WriteXmlNullableAttributeString("idsrc", this.m_sIdSrc);
 		};
 
 		function CRelationTable() {
 			CBaseNoId.call(this);
-
 			this.m_oExt = null;
 			this.m_arrRel = [];
 		}
@@ -399,10 +439,13 @@
 			}
 		};
 		CRelationTable.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
 		};
 		CRelationTable.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			for (let nIndex = 0; nIndex < this.m_arrRel.length; nIndex++) {
+				if (this.m_arrRel[nIndex])
+					this.m_arrRel[nIndex].toXml(writer, "o:rel");
+			}
 		};
 
 		function CDiagram() {
@@ -470,10 +513,21 @@
 			}
 		};
 		CDiagram.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt))
+			writer.WriteXmlNullableAttributeUInt("dgmstyle", this.m_oDmgStyle)
+			writer.WriteXmlNullableAttributeString("autoformat", getBooleanTrueFalse(this.m_oAutoFormat))
+			writer.WriteXmlNullableAttributeString("reverse", getBooleanTrueFalse(this.m_oReverse))
+			writer.WriteXmlNullableAttributeString("autolayout", getBooleanTrueFalse(this.m_oAutoLayout))
+			writer.WriteXmlNullableAttributeUInt("dgmscalex", this.m_oDmgScaleX)
+			writer.WriteXmlNullableAttributeUInt("dgmscaley", this.m_oDmgScaleY)
+			writer.WriteXmlNullableAttributeUInt("dgmfontsize", this.m_oDmgFontSize)
+			writer.WriteXmlNullableAttributeString("constrainbounds", this.m_sConstrainbounds)
+			writer.WriteXmlNullableAttributeUInt("dgmbasetextscale", this.m_oDmgBaseTextScale)
 		};
 		CDiagram.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			if (this.m_oRelationTable) {
+				this.m_oRelationTable.toXml(writer, "o:relationtable");
+			}
 		};
 
 		function CEntry() {
@@ -493,7 +547,8 @@
 			}
 		};
 		CEntry.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("new", this.m_oNew);
+			writer.WriteXmlNullableAttributeString("old", this.m_oOld);
 		};
 
 		function CEquationXml() {
@@ -509,7 +564,7 @@
 			//TODO
 		};
 		CEquationXml.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("contentType", getAlternateMathContentType(this.m_oContentType));
 		};
 		CEquationXml.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
@@ -548,7 +603,7 @@
 			this.m_oSkewAngle = null;
 			this.m_oSpecularity = null;
 			this.m_oType = null;
-			this.m_oViewPolet = null;
+			this.m_oViewPoint = null;
 			this.m_oViewPointOrigin = null;
 		}
 
@@ -664,7 +719,7 @@
 					break;
 				}
 				case "skewamt": {
-					this.m_oSkewAmt = AscFormat.getPercentageValue(reader.GetValue());
+					this.m_oSkewAmt = reader.GetValueInt();
 					break;
 				}
 				case "skewangle": {
@@ -680,7 +735,7 @@
 					break;
 				}
 				case "viewpoint": {
-					this.m_oViewPolet = new CVml_Vector3D(reader.GetValue());
+					this.m_oViewPoint = new CVml_Vector3D(reader.GetValue());
 					break;
 				}
 				case "viewpointorigin": {
@@ -690,7 +745,101 @@
 			}
 		};
 		CExtrusion.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			if (false !== this.m_oOn)
+				writer.WriteXmlNullableAttributeString("on", this.m_oOn);
+
+			if (EExtrusionType.extrusiontypeParallel !== this.m_oType)
+				writer.WriteXmlNullableAttributeString("type", getExtrusionType(this.m_oType));
+
+			if ("solid" !== this.m_oRender)
+				writer.WriteXmlNullableAttributeString("render", this.m_oRender);
+
+			if (this.m_oViewPointOrigin && (0.5 !== this.m_oViewPointOrigin.GetX() || -0.5 !== this.m_oViewPointOrigin.GetY()))
+				writer.WriteXmlNullableAttributeString("viewpointorigin", this.m_oRender.ToString());
+
+			if (this.m_oViewPoint && (0 !== this.m_oViewPoint.GetX() || 0 !== this.m_oViewPoint.GetY() || 0 !== this.m_oViewPoint.GetZ()))
+				writer.WriteXmlNullableAttributeString("viewpoint", this.m_oViewPoint.ToString());
+
+			writer.WriteXmlNullableAttributeString("plane", this.m_oPlane);
+
+			if (225 !== this.m_oSkewAngle)
+				writer.WriteXmlNullableAttributeInt("skewangle", this.m_oSkewAngle);
+
+			if (50 !== this.m_oSkewAmt)
+				writer.WriteXmlNullableAttributeInt("skewamt", this.m_oSkewAmt);
+
+			//if ( 0 !== this.m_oForeDepth )
+			writer.WriteXmlNullableAttributeString("foredepth", this.m_oForeDepth);
+
+			//if ( 36 !== this.m_oBackDepth )
+			writer.WriteXmlNullableAttributeString("backdepth", this.m_oBackDepth);
+
+			if (this.m_oOrientation && (100 !== this.m_oOrientation.GetX() || 0 !== this.m_oOrientation.GetY() || 0 !== this.m_oOrientation.GetZ()))
+				writer.WriteXmlNullableAttributeString("orientation", this.m_oOrientation.ToString());
+
+			if (0 !== this.m_oOrientationAngle)
+				writer.WriteXmlNullableAttributeInt("orientationangle", this.m_oOrientationAngle);
+
+			if (true !== this.m_oLockRotationCenter)
+				writer.WriteXmlNullableAttributeString("lockrotationcenter", getBooleanTrueFalse(this.m_oLockRotationCenter));
+
+			if (false !== this.m_oAutoRotationCenter)
+				writer.WriteXmlNullableAttributeString("autorotationcenter", getBooleanTrueFalse(this.m_oAutoRotationCenter));
+
+			if (this.m_oRotationCenter && (0 !== this.m_oRotationCenter.GetX() || 0 !== this.m_oRotationCenter.GetY() || 0 !== this.m_oRotationCenter.GetZ()))
+				writer.WriteXmlNullableAttributeString("rotationcenter", this.m_oRotationCenter.ToString());
+
+			if (this.m_oRotationAngle && (0 !== this.m_oRotationAngle.GetX() || 0 !== this.m_oRotationAngle.GetY()))
+				writer.WriteXmlNullableAttributeString("rotationangle", this.m_oRotationAngle.ToString());
+
+			if (EColorMode.colormodeAuto !== this.m_oColorMode)
+				writer.WriteXmlNullableAttributeString("colormode", getColorMode(this.m_oColorMode));
+
+			if (this.m_oColor !== null)
+				writer.WriteXmlNullableAttributeString("color", getColorType(this.m_oColor));
+
+			if (5 !== this.m_oShininess)
+				writer.WriteXmlNullableAttributeInt("shininess", this.m_oShininess);
+
+			if (0 !== this.m_oSpecularity)
+				writer.WriteXmlNullableAttributeString("specularity", getCVml_1_65536(this.m_oSpecularity));
+
+			if (1 !== this.m_oDiffusity)
+				writer.WriteXmlNullableAttributeString("diffusity", getCVml_1_65536(this.m_oDiffusity));
+
+			if (false !== this.m_oMetal)
+				writer.WriteXmlNullableAttributeString("metal", getBooleanTrueFalse(this.m_oMetal));
+
+			//if ( 1 !== this.m_oEdge )
+			writer.WriteXmlNullableAttributeString("edge", this.m_oEdge);
+
+			if (30000 !== this.m_oFacet)
+				writer.WriteXmlNullableAttributeInt("facet", this.m_oFacet);
+
+			if (true !== this.m_oLightFace)
+				writer.WriteXmlNullableAttributeString("lightface", getBooleanTrueFalse(this.m_oLightFace));
+
+			if (0.3 !== this.m_oBrightness)
+				writer.WriteXmlNullableAttributeString("brightness", getCVml_1_65536(this.m_oBrightness));
+
+			if (this.m_oLightPosition && (50000 !== this.m_oLightPosition.GetX() || 0 !== this.m_oLightPosition.GetY() || 10000 !== this.m_oLightPosition.GetZ()))
+				writer.WriteXmlNullableAttributeString("lightposition", this.m_oLightPosition.ToString());
+
+			if (0.6 !== this.m_oLightLevel)
+				writer.WriteXmlNullableAttributeString("lightlevel", getCVml_1_65536(this.m_oLightLevel));
+
+			if (true !== this.m_oLightHarsh)
+				writer.WriteXmlNullableAttributeString("lightharsh", getBooleanTrueFalse(this.m_oLightHarsh));
+
+			if (this.m_oLightPosition2 && (50000 !== this.m_oLightPosition2.GetX() || 0 !== this.m_oLightPosition2.GetY() || 10000 !== this.m_oLightPosition2.GetZ()))
+				writer.WriteXmlNullableAttributeString("lightposition2", this.m_oLightPosition2.ToString());
+
+			if (0.6 !== this.m_oLightLevel2)
+				writer.WriteXmlNullableAttributeString("lightlevel2", getCVml_1_65536(this.m_oLightLevel2));
+
+			if (false !== this.m_oLightHarsh2)
+				writer.WriteXmlNullableAttributeString("lightharsh2", getBooleanTrueFalse(this.m_oLightHarsh2));
 		};
 
 		function CFieldCodes() {
@@ -702,8 +851,8 @@
 		CFieldCodes.prototype.fromXml = function (reader) {
 			this.m_sText = reader.GetTextDecodeXml();
 		};
-		CFieldCodes.prototype.toXml = function (write) {
-			//TODO:Implement in children
+		CFieldCodes.prototype.toXml = function (writer) {
+			writer.WriteXmlNullableValueStringEncode("o:FieldCodes", this.m_sText);
 		};
 
 		function CFill() {
@@ -724,7 +873,8 @@
 			}
 		};
 		CFill.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeString("type", getFillType(this.m_oType));
 		};
 
 
@@ -740,7 +890,8 @@
 			if (name === "data") this.m_sData = reader.GetValue()
 		};
 		CIdMap.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeString("data", this.m_sData);
 		};
 
 		function CInk() {
@@ -759,7 +910,9 @@
 			if (name === "i") this.m_sI = reader.GetValue();
 		};
 		CInk.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("i", this.m_sI);
+			writer.WriteXmlNullableAttributeString("annotation", getBooleanTrueFalse(this.m_oAnnotation));
+			writer.WriteXmlNullableAttributeString("contentType", getContentType(this.m_oContentType));
 		};
 
 		let EOLELinkType =
@@ -801,7 +954,7 @@
 			this.m_oValue = readOLELinkType(reader.GetTextDecodeXml());
 		};
 		CLinkType.prototype.toXml = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableValueStringEncode("o:LinkType", getOLELinkType(this.m_oValue));
 		};
 
 
@@ -863,7 +1016,42 @@
 			}
 		};
 		CLock.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+
+			if (false !== this.m_oPosition)
+				writer.WriteXmlNullableAttributeString("position", getBooleanTrueFalse(this.m_oPosition));
+
+			if (false !== this.m_oSelection)
+				writer.WriteXmlNullableAttributeString("selection", getBooleanTrueFalse(this.m_oSelection));
+
+			if (false !== this.m_oGrouping)
+				writer.WriteXmlNullableAttributeString("grouping", getBooleanTrueFalse(this.m_oGrouping));
+
+			if (false !== this.m_oUnGrouping)
+				writer.WriteXmlNullableAttributeString("ungrouping", getBooleanTrueFalse(this.m_oUnGrouping));
+
+			if (false !== this.m_oRotation)
+				writer.WriteXmlNullableAttributeString("rotation", getBooleanTrueFalse(this.m_oRotation));
+
+			if (false !== this.m_oCropping)
+				writer.WriteXmlNullableAttributeString("cropping", getBooleanTrueFalse(this.m_oCropping));
+
+			if (false !== this.m_oVerticies)
+				writer.WriteXmlNullableAttributeString("verticies", getBooleanTrueFalse(this.m_oVerticies));
+
+			if (false !== this.m_oAdjustHandles)
+				writer.WriteXmlNullableAttributeString("adjusthandles", getBooleanTrueFalse(this.m_oAdjustHandles));
+
+			if (false !== this.m_oText)
+				writer.WriteXmlNullableAttributeString("text", getBooleanTrueFalse(this.m_oText));
+
+			if (false !== this.m_oAspectRatio)
+				writer.WriteXmlNullableAttributeString("aspectratio", getBooleanTrueFalse(this.m_oAspectRatio));
+
+			if (false !== this.m_oShapeType)
+				writer.WriteXmlNullableAttributeString("shapetype", getBooleanTrueFalse(this.m_oShapeType));
+
 		};
 
 		function CLockedField() {
@@ -873,10 +1061,10 @@
 
 		IC(CLockedField, CBaseNoId, 0);
 		CLockedField.prototype.fromXml = function (reader) {
-			this.m_oValue = reader.GetTextDecodeXml() === "true"//TODO: check;
+			this.m_oValue = reader.GetBool(reader.GetTextDecodeXml());
 		};
 		CLockedField.prototype.toXml = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableValueStringEncode("o:LockedField", getBooleanTrueFalse(this.m_oValue));
 		};
 
 
@@ -892,12 +1080,12 @@
 			if (sVal === "Icon") return EOLEDrawAspect.oledrawaspectIcon;
 			return EOLEDrawAspect.oledrawaspectContent;
 		}
+
 		function getOLEDrawAspect(nType) {
-			if(nType === EOLEDrawAspect.oledrawaspectContent) return "Content";
-			if(nType === EOLEDrawAspect.oledrawaspectIcon) return "Icon";
+			if (nType === EOLEDrawAspect.oledrawaspectContent) return "Content";
+			if (nType === EOLEDrawAspect.oledrawaspectIcon) return "Icon";
 			return null;
 		}
-
 
 
 		let EOLEType =
@@ -912,9 +1100,10 @@
 			if (sVal === "link") return EOLEType.oletypeLink;
 			return EOLEType.oletypeEmbed;
 		}
+
 		function getOLEType(nType) {
-			if(nType === EOLEType.oletypeEmbed) return "embed";
-			if(nType === EOLEType.oletypeLink) return "link";
+			if (nType === EOLEType.oletypeEmbed) return "embed";
+			if (nType === EOLEType.oletypeLink) return "link";
 			return null;
 		}
 
@@ -931,9 +1120,10 @@
 			if (sVal === "OnCall") return EOLEUpdateMode.oleupdatemodeOnCall;
 			return EOLEUpdateMode.oleupdatemodeAlways;
 		}
+
 		function getOLEUpdateMode(nType) {
-			if(nType === EOLEUpdateMode.oleupdatemodeAlways) return "Always";
-			if(nType === EOLEUpdateMode.oleupdatemodeOnCall) return "OnCall";
+			if (nType === EOLEUpdateMode.oleupdatemodeAlways) return "Always";
+			if (nType === EOLEUpdateMode.oleupdatemodeOnCall) return "OnCall";
 			return null;
 		}
 
@@ -967,10 +1157,24 @@
 			}
 		};
 		COLEObject.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("Type", getOLEType(this.m_oType));
+			writer.WriteXmlNullableAttributeString("ProgID", this.m_sProgId);
+			writer.WriteXmlNullableAttributeString("ShapeID", this.m_sShapeId);
+			writer.WriteXmlNullableAttributeString("DrawAspect", getOLEDrawAspect(this.m_oDrawAspect));
+			writer.WriteXmlNullableAttributeString("ObjectID", this.m_sObjectId);
+			writer.WriteXmlNullableAttributeString("r:id", this.m_oId);
+			writer.WriteXmlNullableAttributeString("UpdateMode", getOLEUpdateMode(this.m_oUpdateMode));
 		};
 		COLEObject.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+			if (this.m_oLinkType)
+				this.m_oLinkType.toXml(writer, "o:LinkType");
+
+			if (this.m_oLockedField)
+				this.m_oLockedField.toXml(writer, "o:LockedField");
+
+			if (this.m_oFieldCodes)
+				this.m_oFieldCodes.toXml(writer, "o:FieldCodes");
 		};
 
 		function CProxy() {
@@ -989,7 +1193,10 @@
 			if (name === "start") this.m_oStart = reader.GetValueBool();
 		};
 		CProxy.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("start", getBooleanTrueFalse(this.m_oStart));
+			writer.WriteXmlNullableAttributeString("end", getBooleanTrueFalse(this.m_oEnd));
+			writer.WriteXmlNullableAttributeString("idref", this.m_sIdRef);
+			writer.WriteXmlNullableAttributeInt("connectloc", this.m_oConnectLoc);
 		};
 
 		let EHow =
@@ -1015,12 +1222,12 @@
 		}
 
 		function getHow(nType) {
-			if(nType === EHow.howBottom) return "bottom";
-			if(nType === EHow.howCenter) return "center";
-			if(nType === EHow.howLeft) return "left";
-			if(nType === EHow.howMiddle) return "middle";
-			if(nType === EHow.howRight) return "right";
-			if(nType === EHow.howTop) return "top";
+			if (nType === EHow.howBottom) return "bottom";
+			if (nType === EHow.howCenter) return "center";
+			if (nType === EHow.howLeft) return "left";
+			if (nType === EHow.howMiddle) return "middle";
+			if (nType === EHow.howRight) return "right";
+			if (nType === EHow.howTop) return "top";
 			return null;
 		}
 
@@ -1040,11 +1247,12 @@
 			if (sVal === "connector") return ERType.rtypeConnector;
 			return ERType.rtypeAlign;
 		}
+
 		function getRType(nType) {
-			if(nType === ERType.rtypeAlign) return "align";
-			if(nType === ERType.rtypeAlign) return "arc";
-			if(nType === ERType.rtypeAlign) return "callout";
-			if(nType === ERType.rtypeAlign) return "connector";
+			if (nType === ERType.rtypeAlign) return "align";
+			if (nType === ERType.rtypeAlign) return "arc";
+			if (nType === ERType.rtypeAlign) return "callout";
+			if (nType === ERType.rtypeAlign) return "connector";
 			return null;
 		}
 
@@ -1073,10 +1281,16 @@
 			}
 		};
 		CR.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("type", getRType(this.m_oType))
+			writer.WriteXmlNullableAttributeString("how", getHow(this.m_oHow))
+			writer.WriteXmlNullableAttributeString("idref", this.m_sIdRef)
+
 		};
 		CR.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			for (let nIndex = 0; nIndex < this.m_arrProxy.length; nIndex++) {
+				if (this.m_arrProxy[nIndex])
+					this.m_arrProxy[nIndex].toXml(writer, "o:proxy");
+			}
 		};
 
 		function CRegroupTable() {
@@ -1099,10 +1313,13 @@
 			}
 		};
 		CRegroupTable.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
 		};
 		CRegroupTable.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			for (let nIndex = 0; nIndex < this.m_arrEntry.length; nIndex++) {
+				if (this.m_arrEntry[nIndex])
+					this.m_arrEntry[nIndex].toXml(writer, "o:entry");
+			}
 		};
 
 		function CRules() {
@@ -1125,10 +1342,15 @@
 			}
 		};
 		CRules.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
 		};
 		CRules.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+			for (let nIndex = 0; nIndex < this.m_arrR.length; nIndex++) {
+				if (this.m_arrR[nIndex])
+					this.m_arrR[nIndex].toXml(writer, "o:r");
+			}
+
 		};
 
 		function CShapeLayout() {
@@ -1165,10 +1387,17 @@
 			}
 		};
 		CShapeLayout.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
 		};
 		CShapeLayout.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			if (this.m_oIdMap !== null)
+				this.m_oIdMap.toXml(writer, "o:idmap");
+
+			if (this.m_oRegroupTable !== null)
+				this.m_oRegroupTable.toXml(writer, "o:regrouptable");
+
+			if (this.m_oRules !== null)
+				this.m_oRules.toXml(writer, "o:rules");
 		};
 
 		function CSignatureLine() {
@@ -1233,7 +1462,29 @@
 			}
 		};
 		CSignatureLine.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+
+			if (this.m_oIsSignatureLine !== null)
+				writer.WriteXmlNullableAttributeString("issignatureline", getBooleanTrueFalse(this.m_oIsSignatureLine));
+
+			writer.WriteXmlNullableAttributeString("id", this.m_oId);
+			writer.WriteXmlNullableAttributeString("provid", this.m_oProvId);
+
+			if (this.m_oSigningInstructionsSet !== null)
+				writer.WriteXmlNullableAttributeString("signinginstructionsset", getBooleanTrueFalse(this.m_oSigningInstructionsSet));
+
+			if (this.m_oAllowComments !== null)
+				writer.WriteXmlNullableAttributeString("allowcomments", getBooleanTrueFalse(this.m_oAllowComments));
+
+			if (this.m_oShowSignDate !== null)
+				writer.WriteXmlNullableAttributeString("showsigndate", getBooleanTrueFalse(this.m_oShowSignDate));
+
+			writer.WriteXmlNullableAttributeString("o:suggestedsigner", this.m_sSuggestedSigner);
+			writer.WriteXmlNullableAttributeString("o:suggestedsigner2", this.m_sSuggestedSigner2);
+			writer.WriteXmlNullableAttributeString("o:suggestedsigneremail", this.m_sSuggestedSignerEmail);
+			writer.WriteXmlNullableAttributeString("o:signinginstructions", this.m_sSigningInstructions);
+			writer.WriteXmlNullableAttributeString("o:addlxml", this.m_sAddXml);
+			writer.WriteXmlNullableAttributeString("o:sigprovurl", this.m_sSigProvUrl);
 		};
 
 		function CSkew() {
@@ -1270,12 +1521,61 @@
 			}
 		};
 		CSkew.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			writer.WriteXmlNullableAttributeString("v:ext", getExt(this.m_oExt));
+			writer.WriteXmlNullableAttributeString("id", this.m_sId);
+			writer.WriteXmlNullableAttributeString("on", getBooleanTrueFalse(this.m_oOn));
+			writer.WriteXmlNullableAttributeString("offset", this.m_sOffset);
+			writer.WriteXmlNullableAttributeString("origin", this.m_sOrigin);
+			writer.WriteXmlNullableAttributeString("matrix", this.m_sMatrix);
 		};
 
 
 		//Vml
 
+
+		function getBWMode(nType) {
+
+			switch (nType) {
+				case EBWMode.bwmodeAuto : {
+					return "auto";
+				}
+				case EBWMode.bwmodeBlack : {
+					return "black";
+				}
+				case EBWMode.bwmodeBlackTextAndLines : {
+					return "blackTextAndLines";
+				}
+				case EBWMode.bwmodeColor : {
+					return "color";
+				}
+				case EBWMode.bwmodeGrayOutline : {
+					return "grayOutline";
+				}
+				case EBWMode.bwmodeGrayScale : {
+					return "grayScale";
+				}
+				case EBWMode.bwmodeHide : {
+					return "hide";
+				}
+				case EBWMode.bwmodeHighContrast : {
+					return "highContrast";
+				}
+				case EBWMode.bwmodeInverseGray : {
+					return "inverseGray";
+				}
+				case EBWMode.bwmodeLightGrayscale : {
+					return "lightGrayscale";
+				}
+				case EBWMode.bwmodeUndrawn : {
+					return "undrawn";
+				}
+				case EBWMode.bwmodeWhite : {
+					return "white";
+				}
+			}
+			return null;
+		}
 
 		function CVmlCommonElements() {
 			CBaseNoId.call(this);
@@ -1525,31 +1825,215 @@
 
 		};
 		CVmlCommonElements.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			writer.WriteXmlNullableAttributeString(("id"), this.m_sId);
+			if (this.m_oStyle)
+				writer.WriteXmlNullableAttributeString(("style"), this.m_oStyle.ToString());
+			writer.WriteXmlNullableAttributeString(("href"), this.m_sHref);
+			writer.WriteXmlNullableAttributeString(("target"), this.m_sTarget);
+			writer.WriteXmlNullableAttributeString(("class"), this.m_sClass);
+			writer.WriteXmlNullableAttributeString(("title"), this.m_sTitle);
+			writer.WriteXmlNullableAttributeString(("alt"), this.m_sAlt);
+
+			if (this.m_oCoordSize)
+				writer.WriteXmlNullableAttributeString(("coordsize"), this.m_oCoordSize.ToString());
+			if (this.m_oCoordOrigin)
+				writer.WriteXmlNullableAttributeString(("coordorigin"), this.m_oCoordOrigin.ToString());
+			if (this.m_oWrapCoords)
+				writer.WriteXmlNullableAttributeString(("wrapcoords"), this.m_oWrapCoords.ToString());
+
+			// if (true !== this.m_oPrint)
+			// 	writer.WriteXmlNullableAttributeString("print", "false");
+
+			writer.WriteXmlNullableAttributeString(("o:spid"), this.m_sSpId);
+
+			if (false !== this.m_oOned)
+				writer.WriteXmlNullableAttributeString("o:oned", "true");
+
+			writer.WriteXmlNullableAttributeInt(("o:regroupid"), this.m_oRegroupId);
+
+			if (false !== this.m_oDoubleClickNotify)
+				writer.WriteXmlNullableAttributeString("o:doubleclicknotify", "true");
+
+			if (false !== this.m_oButton)
+				writer.WriteXmlNullableAttributeString("o:button", "true");
+
+			if (false !== this.m_oUserHidden)
+				writer.WriteXmlNullableAttributeString("o:userhidden", "true");
+
+			if (false !== this.m_oBullet)
+				writer.WriteXmlNullableAttributeString("o:bullet", "true");
+
+			if (false !== this.m_oHr)
+				writer.WriteXmlNullableAttributeString("o:hr", "true");
+
+			if (false !== this.m_oHrStd)
+				writer.WriteXmlNullableAttributeString("o:hrstd", "true");
+
+			if (false !== this.m_oHrNoShade)
+				writer.WriteXmlNullableAttributeString("o:hrnoshade", "true");
+
+			if (0 !== this.m_oHrPct)
+				writer.WriteXmlNullableAttributeDouble(("o:hrpct"), this.m_oHrPct);
+
+			if (this.m_oHrAlign !== null && AscCommon.align_Left !== this.m_oHrAlign) {
+				switch (this.m_oHrAlign) {
+					case AscCommon.align_Center: {
+						writer.WriteXmlNullableAttributeString(("o:hralign"), "center");
+						break;
+					}
+					case AscCommon.align_Left: {
+						writer.WriteXmlNullableAttributeString(("o:hralign"), "left");
+						break;
+					}
+					case AscCommon.align_Right: {
+						writer.WriteXmlNullableAttributeString(("o:hralign"), "right");
+						break;
+					}
+				}
+			}
+
+			if (false !== this.m_oAllowInCell)
+				writer.WriteXmlNullableAttributeString("o:allowincell", "true");
+
+			if (false !== this.m_oAllowOverlap)
+				writer.WriteXmlNullableAttributeString("o:allowoverlap", "true");
+
+			if (false !== this.m_oUserDrawn)
+				writer.WriteXmlNullableAttributeString("o:userdrawn", "true");
+
+			writer.WriteXmlNullableAttributeString(("o:bordertopcolor"), getBooleanTrueFalse(this.m_oBorderTopColor));
+			writer.WriteXmlNullableAttributeString(("o:borderleftcolor"), getBooleanTrueFalse(this.m_oBorderLeftColor));
+			writer.WriteXmlNullableAttributeString(("o:borderbottomcolor"), getBooleanTrueFalse(this.m_oBorderBottomColor));
+			writer.WriteXmlNullableAttributeString(("o:borderrightcolor"), getBooleanTrueFalse(this.m_oBorderRightColor));
+
+			writer.WriteXmlNullableAttributeInt(("o:dgmlayout"), this.m_oDgmLayout);
+			writer.WriteXmlNullableAttributeInt(("o:dgmlayoutmru"), this.m_oDgmLayoutMru);
+			writer.WriteXmlNullableAttributeString(("o:dgmnodekind"), this.m_oDgmNodeKind);
+
+			if (EInsetMode.insetmodeCustom !== this.m_oInsetMode)
+				writer.WriteXmlNullableAttributeString(("o:insetmode"), getInsetMode(this.m_oInsetMode));
+
+			writer.WriteXmlNullableAttributeString(("chromakey"), getColorType(this.m_oChromaKey));
+
+			writer.WriteXmlNullableAttributeString(("filled"), getBooleanTrueFalse(this.m_oFilled));
+
+			writer.WriteXmlNullableAttributeString(("fillcolor"), getColorType(this.m_oFillColor));
+			writer.WriteXmlNullableAttributeString(("opacity"), getCVml_1_65536(this.m_oOpacity));
+
+			writer.WriteXmlNullableAttributeString(("stroked"), getBooleanTrueFalse(this.m_oStroked));
+
+			writer.WriteXmlNullableAttributeString(("strokecolor"), getColorType(this.m_oStrokeColor));
+
+			if (this.m_oStrokeWeight !== null)
+				writer.WriteXmlNullableAttributeInt(("strokeweight"), this.m_oStrokeWeight);
+
+			writer.WriteXmlNullableAttributeString(("insetpen"), getBooleanTrueFalse(this.m_oInsetPen));
+
+			if (this.m_oSpt !== null)
+				writer.WriteXmlNullableAttributeInt(("o:spt"), this.m_oSpt);
+
+			if (this.m_oConnectorType !== null) {
+				writer.WriteXmlNullableAttributeString(("o:connectortype"), this.m_oConnectorType);
+			}
+
+			writer.WriteXmlNullableAttributeString(("o:bwmode"), getBWMode(this.m_oBwMode));
+			writer.WriteXmlNullableAttributeString(("o:bwpure"), getBWMode(this.m_oBwPure));
+			writer.WriteXmlNullableAttributeString(("o:bwnormal"), getBWMode(this.m_oBwNormal));
+
+			if (false !== this.m_oForceDash)
+				writer.WriteXmlNullableAttributeString("o:forcedash", "true");
+
+			if (false !== this.m_oOleIcon)
+				writer.WriteXmlNullableAttributeString("o:oleicon", "true");
+
+			if (false !== this.m_oOle)
+				writer.WriteXmlNullableAttributeString("o:ole", "true");
+
+			if (false !== this.m_oPreferRelative)
+				writer.WriteXmlNullableAttributeString("o:preferrelative", "true");
+
+			if (false !== this.m_oClipToWrap)
+				writer.WriteXmlNullableAttributeString("o:cliptowrap", "true");
+
+			writer.WriteXmlNullableAttributeString(("o:clip"), getBooleanTrueFalse(this.m_oClip));
 		};
 		CVmlCommonElements.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+			for (let i = 0; i < this.items.length; ++i) {
+				let oItem = this.items[i];
+				if (oItem) {
+					let sName = null;
+					if (oItem instanceof CCallout)
+						sName = "o:callout";
+					else if (oItem instanceof CClipPath)
+						sName = "o:clippath";
+					else if (oItem instanceof CExtrusion)
+						sName = "o:extrusion";
+					else if (oItem instanceof CLock)
+						sName = "o:lock";
+					else if (oItem instanceof CSignatureLine)
+						sName = "o:signatureline";
+					else if (oItem instanceof CSkew)
+						sName = "o:skew";
+					else if (oItem instanceof CFillVml)
+						sName = "v:fill";
+					else if (oItem instanceof CFormulas)
+						sName = "v:formulas";
+					else if (oItem instanceof CHandles)
+						sName = "v:handles";
+					else if (oItem instanceof CImageData)
+						sName = "v:imagedata";
+					else if (oItem instanceof CPath)
+						sName = "v:path";
+					else if (oItem instanceof CShadow)
+						sName = "v:shadow";
+					else if (oItem instanceof CStroke)
+						sName = "v:stroke";
+					else if (oItem instanceof CTextbox)
+						sName = "v:textbox";
+					else if (oItem instanceof CTextPath)
+						sName = "v:textpath";
+					else if (oItem instanceof CAnchorLock)
+						sName = "wd:anchorLock";
+					else if (oItem instanceof CBorder)
+						sName = oItem.m_sType;
+					else if (oItem instanceof CWrap)
+						sName = "w10:wrap";
+					else if (oItem instanceof CClientData)
+						sName = "x:ClientData";
+					oItem.toXml(writer, sName);
+				}
+			}
 		};
 
 
 		function CArc() {
 			CVmlCommonElements.call(this);
+
+			this.m_oEndAngle = null;
 		}
 
-		IC(CArc, CVmlCommonElements, AscDFH.historyitem_type_VMLArc );
+		IC(CArc, CVmlCommonElements, AscDFH.historyitem_type_VMLArc);
 		CArc.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
+				case "endangle":
+				case "endAngle": {
+					this.m_oEndAngle = reader.GetValueInt();
+					return;
+				}
+				case "startangle":
+				case "startAngle": {
+					this.m_oStartAngle = reader.GetValueInt();
+					return;
+				}
 			}
-		};
-		CArc.prototype.readChildXml = function (name, reader) {
-			switch (name) {
-			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CArc.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CArc.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+			writer.WriteXmlNullableAttributeInt(("startangle"), this.m_oStartAngle);
+			writer.WriteXmlNullableAttributeInt(("endangle"), this.m_oEndAngle);
 		};
 
 		function CCurve() {
@@ -1578,7 +2062,12 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CCurve.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+			this.m_oFrom && writer.WriteXmlNullableAttributeString(("from"), this.m_oFrom.ToString());
+			this.m_oControl1 && writer.WriteXmlNullableAttributeString(("control1"), this.m_oControl1.ToString());
+			this.m_oControl2 && writer.WriteXmlNullableAttributeString(("control2"), this.m_oControl2.ToString());
+			this.m_oTo && writer.WriteXmlNullableAttributeString(("to"), this.m_oTo.ToString());
+
 		};
 
 		function CF() {
@@ -1596,7 +2085,8 @@
 			}
 		};
 		CF.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString(("eqn"), this.m_sEqn);
+
 		};
 
 
@@ -1618,12 +2108,13 @@
 			else if (("none") === sValue) return EFillMethod.fillmethodNone;
 			else return EFillMethod.fillmethodNone;
 		}
+
 		function getFillMethod(nType) {
-			if(nType === EFillMethod.fillmethodAny) return "any";
-			if(nType === EFillMethod.fillmethodLinear) return "linear";
-			if(nType === EFillMethod.fillmethodLinearSigma) return "linear sigma";
-			if(nType === EFillMethod.fillmethodSigma) return "sigma";
-			if(nType === EFillMethod.fillmethodNone) return "none";
+			if (nType === EFillMethod.fillmethodAny) return "any";
+			if (nType === EFillMethod.fillmethodLinear) return "linear";
+			if (nType === EFillMethod.fillmethodLinearSigma) return "linear sigma";
+			if (nType === EFillMethod.fillmethodSigma) return "sigma";
+			if (nType === EFillMethod.fillmethodNone) return "none";
 			return null;
 
 		}
@@ -1639,8 +2130,7 @@
 			return this.m_dValue;
 		}
 
-		CFixedPercentage.prototype.SetValue = function(dValue)
-		{
+		CFixedPercentage.prototype.SetValue = function (dValue) {
 			this.m_dValue = Math.min(100.0, Math.max(-100.0, dValue));
 		}
 
@@ -1737,10 +2227,62 @@
 			}
 		};
 		CFillVml.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString(("id"), this.m_sId);
+			writer.WriteXmlNullableAttributeString(("type"), getFillType(this.m_oType));
+
+			if ((this.m_oOn !== null) && (true !== this.m_oOn))
+				writer.WriteXmlNullableAttributeString("on", "false");
+
+			if (this.m_oOpacity !== null)
+				writer.WriteXmlNullableAttributeString(("opacity"), getCVml_1_65536(this.m_oOpacity));
+
+			writer.WriteXmlNullableAttributeString(("color"), getColorType(this.m_oColor));
+			writer.WriteXmlNullableAttributeString(("color2"), getColorType(this.m_oColor2));
+			writer.WriteXmlNullableAttributeString(("src"), this.m_sSrc);
+			writer.WriteXmlNullableAttributeString(("o:href"), this.m_sHref);
+			writer.WriteXmlNullableAttributeString(("o:althref"), this.m_sAltHref);
+			this.m_oSize && writer.WriteXmlNullableAttributeString(("size"), this.m_oSize.ToString());
+			this.m_oOrigin && writer.WriteXmlNullableAttributeString(("origin"), this.m_oOrigin.ToString());
+			this.m_oPosition && writer.WriteXmlNullableAttributeString(("position"), this.m_oPosition.ToString());
+
+			if ((this.m_oAspect !== null) && (EImageAspect.imageaspectIgnore !== this.m_oAspect))
+				writer.WriteXmlNullableAttributeString(("aspect"), getImageAspect(this.m_oAspect));
+
+
+			writer.WriteXmlNullableAttributeInt(("angle"), this.m_oAngle);
+
+			if ((this.m_oAlignShape !== null) && (true !== this.m_oAlignShape))
+				writer.WriteXmlNullableAttributeString("alignshape", "false");
+
+			if ((this.m_oFocus !== null) && (0 !== this.m_oFocus))
+				writer.WriteXmlNullableAttributeString(("focus"), this.m_oFocus.ToString());
+
+			if ((this.m_oFocusPosition !== null) && (0 !== this.m_oFocusPosition.GetX() || 0 !== this.m_oFocusPosition.GetY()))
+				writer.WriteXmlNullableAttributeString(("focusposition"), this.m_oFocusPosition.ToString());
+
+			if ((this.m_oFocusSize !== null) && (0 !== this.m_oFocusSize.GetX() || 0 !== this.m_oFocusSize.GetY()))
+				writer.WriteXmlNullableAttributeString(("focussize"), this.m_oFocusSize.ToString());
+
+			if ((this.m_oMethod !== null) && (EFillMethod.fillmethodSigma !== this.m_oMethod))
+				writer.WriteXmlNullableAttributeString(("method"), getFillMethod(this.m_oMethod));
+
+			writer.WriteXmlNullableAttributeString(("o:detectmouseclick"), getBooleanTrueFalse(this.m_oDetectMouseClick));
+			writer.WriteXmlNullableAttributeString(("o:title"), this.m_sTitle);
+
+			if (this.m_oOpacity2 !== null)
+				writer.WriteXmlNullableAttributeString(("o:opacity2"), getCVml_1_65536(this.m_oOpacity2));
+
+			if ((this.m_oRecolor !== null) && (false !== this.m_oRecolor))
+				writer.WriteXmlNullableAttributeString("recolor", "true");
+
+			if ((this.m_oRotate !== null) && (false !== this.m_oRotate))
+				writer.WriteXmlNullableAttributeString("rotate", "true");
+
+			writer.WriteXmlNullableAttributeString(("r:id"), this.m_oRelId);
+			writer.WriteXmlNullableAttributeString(("o:relid"), this.m_oRelId);
 		};
 		CFillVml.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			this.m_oFill && this.m_oFill.toXml(writer, "o:fill");
 		};
 
 		let EScreenSize =
@@ -1763,27 +2305,32 @@
 			else if (("800,600") === sValue) return EScreenSize.screensize800x600;
 			return EScreenSize.screensize640x480;
 		}
-		function readScreenSize(nType) {
-			if(nType ===  EScreenSize.screensize1024x768) return "1024,768";
-			if(nType ===  EScreenSize.screensize1152x862) return "1152,862";
-			if(nType ===  EScreenSize.screensize544x376) return "544,376";
-			if(nType ===  EScreenSize.screensize640x480) return "640,480";
-			if(nType ===  EScreenSize.screensize720x512) return "720,512";
-			if(nType ===  EScreenSize.screensize800x600) return "800,600";
+
+		function getScreenSize(nType) {
+			if (nType === EScreenSize.screensize1024x768) return "1024,768";
+			if (nType === EScreenSize.screensize1152x862) return "1152,862";
+			if (nType === EScreenSize.screensize544x376) return "544,376";
+			if (nType === EScreenSize.screensize640x480) return "640,480";
+			if (nType === EScreenSize.screensize720x512) return "720,512";
+			if (nType === EScreenSize.screensize800x600) return "800,600";
 			return "640,480";
 		}
 
 		function CBackground() {
-			CBaseNoId.call(this);
+			CVmlCommonElements.call(this);
 		}
 
-		IC(CBackground, CBaseNoId, 0);
+		IC(CBackground, CVmlCommonElements, 0);
 		CBackground.prototype.readAttrXml = function (name, reader) {
-
-			if (name === "targetscreensize") this.m_oTargetScreenSize = readScreenSize(reader);
+			if (name === "targetscreensize") {
+				this.m_oTargetScreenSize = readScreenSize(reader);
+				return;
+			}
+			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CBackground.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+			writer.WriteXmlNullableAttributeString(("o:targetscreensize"), getScreenSize(this.m_oTargetScreenSize));
 		};
 
 		function CFormulas() {
@@ -1803,7 +2350,12 @@
 			}
 		};
 		CFormulas.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+			for (let i = 0; i < this.items.length; ++i) {
+				if (this.items[i]) {
+					this.items[i].toXml(writer, "v:f");
+				}
+			}
 		};
 
 
@@ -1834,7 +2386,41 @@
 
 		};
 		CH.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			if (this.m_oPosition) {
+				if (EVml_Vector2D_Position.vmlvector2dposConstant !== this.m_oPosition.GetTypeX() || EVml_Vector2D_Position.vmlvector2dposConstant !== this.m_oPosition.GetTypeY() || 0 !== this.m_oPosition.GetX() || 0 !== this.m_oPosition.GetY())
+					writer.WriteXmlNullableAttributeString(("position"), this.m_oPosition.ToString());
+			}
+
+			this.m_oPolar && writer.WriteXmlNullableAttributeString(("polar"), this.m_oPolar.ToString());
+
+			if (this.m_oMap) {
+				if (0 !== this.m_oMap.GetX() || 1000 !== this.m_oMap.GetY())
+					writer.WriteXmlNullableAttributeString(("map"), this.m_oMap.ToString());
+			}
+
+			if (false !== this.m_oInvX)
+				writer.WriteXmlNullableAttributeString("invx", "true");
+
+			if (false !== this.m_oInvY)
+				writer.WriteXmlNullableAttributeString("invy", "true");
+
+			if (false !== this.m_oSwitch)
+				writer.WriteXmlNullableAttributeString("switch", "true");
+
+			if (this.m_oXRange) {
+				if (0 !== this.m_oXRange.GetX() || 0 !== this.m_oXRange.GetY())
+					writer.WriteXmlNullableAttributeString(("xrange"), this.m_oXRange.ToString());
+			}
+			if (this.m_oYRange) {
+				if (0 !== this.m_oYRange.GetX() || 0 !== this.m_oYRange.GetY())
+					writer.WriteXmlNullableAttributeString(("yrange"), this.m_oYRange.ToString());
+			}
+			if (this.m_oRadiusRange) {
+				if (0 !== this.m_oRadiusRange.GetX() || 0 !== this.m_oRadiusRange.GetY())
+					writer.WriteXmlNullableAttributeString(("radiusrange"), this.m_oRadiusRange.ToString());
+			}
+
+
 		};
 
 
@@ -1855,7 +2441,11 @@
 			}
 		};
 		CHandles.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			for (let i = 0; i < this.items.length; ++i) {
+				if (this.items[i]) {
+					this.items[i].toXml(writer, "v:h");
+				}
+			}
 		};
 
 		function CImage() {
@@ -1908,7 +2498,38 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CImage.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+
+			if (("") !== this.m_sSrc)
+				writer.WriteXmlNullableAttributeString(("src"), this.m_sSrc);
+
+			if (0 !== this.m_oCropLeft)
+				writer.WriteXmlNullableAttributeString(("cropleft"), getCVml_1_65536(this.m_oCropLeft));
+
+			if (0 !== this.m_oCropTop)
+				writer.WriteXmlNullableAttributeString(("croptop"), getCVml_1_65536(this.m_oCropTop));
+
+			if (0 !== this.m_oCropRight)
+				writer.WriteXmlNullableAttributeString(("cropright"), getCVml_1_65536(this.m_oCropRight));
+
+			if (0 !== this.m_oCropBottom)
+				writer.WriteXmlNullableAttributeString(("cropbottom"), getCVml_1_65536(this.m_oCropBottom));
+
+			if (1 !== this.m_oGain)
+				writer.WriteXmlNullableAttributeDouble(("gain"), this.m_oGain);
+
+			if (0 !== this.m_oBlackLevel)
+				writer.WriteXmlNullableAttributeDouble(("blacklevel"), this.m_oBlackLevel);
+
+			if (1 !== this.m_oGamma)
+				writer.WriteXmlNullableAttributeDouble(("gamma"), this.m_oGamma);
+
+			if (false !== this.m_oGrayscale)
+				writer.WriteXmlNullableAttributeString("grayscale", "true");
+
+			if (false !== this.m_oBiLevel)
+				writer.WriteXmlNullableAttributeString("bilevel", "true");
 		};
 
 
@@ -1974,7 +2595,46 @@
 			else if ("src" === name) this.m_sSrc = reader.GetValue();
 		}
 		CImageData.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			writer.WriteXmlNullableAttributeString("id", this.m_oId);
+
+			if (("") !== this.m_sSrc)
+				writer.WriteXmlNullableAttributeString("src", this.m_sSrc);
+
+			writer.WriteXmlNullableAttributeString("cropleft", getCVml_1_65536(this.m_oCropLeft));
+			writer.WriteXmlNullableAttributeString("croptop", getCVml_1_65536(this.m_oCropTop));
+			writer.WriteXmlNullableAttributeString("cropright", getCVml_1_65536(this.m_oCropRight));
+			writer.WriteXmlNullableAttributeString("cropbottom", getCVml_1_65536(this.m_oCropBottom));
+
+			if (1 !== this.m_oGain)
+				writer.WriteXmlNullableAttributeDouble(("gain"), this.m_oGain);
+
+			if (0 !== this.m_oBlackLevel)
+				writer.WriteXmlNullableAttributeDouble(("blacklevel"), this.m_oBlackLevel);
+
+			if (1 !== this.m_oGamma)
+				writer.WriteXmlNullableAttributeDouble(("gamma"), this.m_oGamma);
+
+			if (false !== this.m_oGrayscale)
+				writer.WriteXmlNullableAttributeString("grayscale", "true");
+
+			if (false !== this.m_oBiLevel)
+				writer.WriteXmlNullableAttributeString("bilevel", "true");
+
+			//	writer.WriteXmlNullableAttributeString(("chromakey"),    this.m_oChromaKey );
+			writer.WriteXmlNullableAttributeString(("embosscolor"), getColorType(this.m_oEmbossColor));
+
+			writer.WriteXmlNullableAttributeString(("o:href"), this.m_oHref);
+			writer.WriteXmlNullableAttributeString(("o:althref"), this.m_sAltHref);
+			writer.WriteXmlNullableAttributeString(("o:title"), this.m_sTitle);
+			writer.WriteXmlNullableAttributeString(("o:oleid"), this.m_oOleId);
+			writer.WriteXmlNullableAttributeString(("o:detectmouseclick"), this.m_oDetectMouseClick);
+			//writer.WriteXmlNullableAttributeString(("o:movie"),            this.m_oMovie );
+			//writer.WriteXmlNullableAttributeString(("o:relid"),            this.m_oRelId );
+
+			writer.WriteXmlNullableAttributeString(("r:id"), this.m_rId);
+			writer.WriteXmlNullableAttributeString(("r:pict"), this.m_rPict);
+			writer.WriteXmlNullableAttributeString(("r:href"), this.m_rHref);
 		};
 
 
@@ -1997,7 +2657,11 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CLine.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+			this.m_oFrom && writer.WriteXmlNullableAttributeString(("from"), this.m_oFrom.ToString());
+			this.m_oTo && writer.WriteXmlNullableAttributeString(("to"), this.m_oTo.ToString());
+
 		};
 
 		function COval() {
@@ -2044,7 +2708,49 @@
 			else if ("v" === name) this.m_oV = reader.GetValue();
 		};
 		CPath.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+
+			writer.WriteXmlNullableAttributeString(("id"), this.m_oId);
+			writer.WriteXmlNullableAttributeString(("v"), this.m_oV);
+
+			if (this.m_oLimo) {
+				if (0 !== this.m_oLimo.GetX() || 0 !== this.m_oLimo.GetY())
+					writer.WriteXmlNullableAttributeString(("limo"), this.m_oLimo.ToString());
+			}
+
+			if (this.m_oTextBoxRect) {
+				writer.WriteXmlNullableAttributeString(("textboxrect"), this.m_oTextBoxRect.ToString());
+			}
+
+			if (true !== this.m_oFillOk)
+				writer.WriteXmlNullableAttributeString("fillok", "false");
+
+			if (true !== this.m_oStrokeOk)
+				writer.WriteXmlNullableAttributeString("strokeok", "false");
+
+			if (true !== this.m_oShadowOk)
+				writer.WriteXmlNullableAttributeString("shadowok", "false");
+
+			if (false !== this.m_oArrowOk)
+				writer.WriteXmlNullableAttributeString("arrowok", "true");
+
+			if (false !== this.m_oGradientShapeOk)
+				writer.WriteXmlNullableAttributeString("gradientshapeok", "true");
+
+			if (false !== this.m_oTextPathOk)
+				writer.WriteXmlNullableAttributeString("textpathok", "true");
+
+			if (false !== this.m_oInsetPenOk)
+				writer.WriteXmlNullableAttributeString("insetpenok", "true");
+
+			if (EConnectType.connecttypeNone !== this.m_oConnectType)
+				writer.WriteXmlNullableAttributeString(("o:connecttype"), getConnectType(this.m_oConnectType));
+
+			writer.WriteXmlNullableAttributeString(("o:connectlocs"), this.m_oConnectLocs);
+			writer.WriteXmlNullableAttributeString(("o:connectangles"), this.m_oConnectAngles);
+
+			if (true !== this.m_oExtrusionOk)
+				writer.WriteXmlNullableAttributeString("extrusionok", "false");
 		};
 
 		function CPolyLine() {
@@ -2062,7 +2768,11 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CPolyLine.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+
+			this.m_oPoints && writer.WriteXmlNullableAttributeString(("points"), this.m_oPoints.ToString());
+
 		};
 
 		function CRect() {
@@ -2087,7 +2797,9 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CRoundRect.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+
+			this.m_oArcSize && writer.WriteXmlNullableAttributeString(("arcsize"), this.m_oArcSize.ToString());
 		};
 
 		function CShadow() {
@@ -2120,7 +2832,40 @@
 			else if ("type" === name) this.m_oType = readShadowType(reader);
 		};
 		CShadow.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("id", this.m_oId);
+
+			if (true !== this.m_oOn)
+				writer.WriteXmlNullableAttributeString("on", "false");
+
+			if (EShadowType.shadowtypeSingle !== this.m_oType)
+				writer.WriteXmlNullableAttributeString(("type"), getShadowType(this.m_oType));
+
+			if (false !== this.m_oObscured)
+				writer.WriteXmlNullableAttributeString("obscured", "true");
+
+			if (this.m_oColor) {
+				if (128 !== this.m_oColor.Get_R() || 128 !== this.m_oColor.Get_G() || 128 !== this.m_oColor.Get_B())
+					writer.WriteXmlNullableAttributeString(("color"), this.m_oColor.ToString());
+			}
+
+			if (this.m_oOpacity !== null)
+				writer.WriteXmlNullableAttributeString(("opacity"), getCVml_1_65536(this.m_oOpacity));
+
+			this.m_oOffset && writer.WriteXmlNullableAttributeString(("offset"), this.m_oOffset.ToString());
+
+			if (this.m_oColor2) {
+				if (203 !== this.m_oColor2.Get_R() || 203 !== this.m_oColor2.Get_G() || 203 !== this.m_oColor2.Get_B())
+					writer.WriteXmlNullableAttributeString(("color2"), this.m_oColor2.ToString());
+			}
+
+			this.m_oOffset2 && writer.WriteXmlNullableAttributeString(("offset2"), this.m_oOffset2.ToString());
+
+			if (this.m_oOrigin) {
+				if (0 !== this.m_oOrigin.GetX() || 0 !== this.m_oOrigin.GetY())
+					writer.WriteXmlNullableAttributeString(("origin"), this.m_oOrigin.ToString());
+			}
+
+			this.m_oMatrix && writer.WriteXmlNullableAttributeString(("matrix"), this.m_oMatrix.ToString());
 		};
 
 		function CShapeType() {
@@ -2148,7 +2893,17 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CShapeType.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+			if (this.m_sAdj !== null) {
+				writer.WriteXmlNullableAttributeString("adj", this.m_sAdj);
+			}
+
+			if (this.m_oPath !== null)
+				writer.WriteXmlNullableAttributeString(("path"), this.m_oPath.ToString());
+
+			if (false !== this.m_oMaster)
+				writer.WriteXmlNullableAttributeString("o:master", "true");
 		};
 
 		function CShape() {
@@ -2186,7 +2941,25 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CShape.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+
+			if (this.m_sType !== null) {
+				writer.WriteXmlNullableAttributeString("type", this.m_sType);
+			}
+
+			if (this.m_sAdj !== null) {
+				writer.WriteXmlNullableAttributeString("adj", this.m_sAdj);
+			}
+
+			if (this.m_oPath !== null)
+				writer.WriteXmlNullableAttributeString("path", this.m_oPath.ToString());
+
+
+			if (this.m_sEquationXML !== null) {
+				writer.WriteXmlNullableAttributeString("equationxml", this.m_sEquationXML);
+			}
+
 		};
 
 
@@ -2195,108 +2968,174 @@
 		}
 
 
-	let EDropStyle =
-		{
-			valCombo		:  0,
-			valComboedit	:  1,
-			valSimple		:  2
-		};
+		let EDropStyle =
+			{
+				valCombo: 0,
+				valComboedit: 1,
+				valSimple: 2
+			};
 
 		function getDropStyle(sValue) {
-			if      ( "combo" ===  sValue ) return EDropStyle.valCombo;
-		else if ( "comboedit" === sValue ) return EDropStyle.valComboedit;
-		else if ( "simple" ===  sValue ) return EDropStyle.valSimple;
-		return EDropStyle.valSimple;
+			if ("combo" === sValue) return EDropStyle.valCombo;
+			else if ("comboedit" === sValue) return EDropStyle.valComboedit;
+			else if ("simple" === sValue) return EDropStyle.valSimple;
+			return EDropStyle.valSimple;
+		}
+
+		function getDropStyleStringValue(nType) {
+			if (EDropStyle.valCombo === nType) return "combo";
+			else if (EDropStyle.valComboedit === nType) return "comboedit";
+			else if (EDropStyle.valSimple === nType) return "simple";
+			return null;
 		}
 
 
+		let EChecked =
+			{
+				valUnchecked: 0,
+				valChecked: 1,
+				valMixed: 2
+			};
 
-	let EChecked =
-		{
-			valUnchecked	:  0,
-			valChecked		:  1,
-			valMixed		:  2
-		};
 		function getChecked(sValue) {
-			if      ( "Mixed" ===  sValue )	return EChecked.valMixed;
-		else if ( "Checked" ===  sValue )	return EChecked.valChecked;
-		else if ( "Unchecked" === sValue )	return EChecked.valUnchecked;
-		else if ( "1" ===  sValue )	return EChecked.valChecked;
-		else if ( "0" ===  sValue )	return EChecked.valUnchecked;
+			if ("Mixed" === sValue) return EChecked.valMixed;
+			else if ("Checked" === sValue) return EChecked.valChecked;
+			else if ("Unchecked" === sValue) return EChecked.valUnchecked;
+			else if ("1" === sValue) return EChecked.valChecked;
+			else if ("0" === sValue) return EChecked.valUnchecked;
 			return EChecked.valUnchecked;
 		}
 
-	let ESelType  =
-		{
+		function getCheckedStringValue(nType) {
+			if (EChecked.valMixed === nType) return "Mixed";
+			else if (EChecked.valChecked === nType) return "Checked";
+			else if (EChecked.valUnchecked === nType) return "Unchecked";
+			else if (EChecked.valChecked === nType) return "1";
+			else if (EChecked.valUnchecked === nType) return "0";
+			return null;
+		}
 
-			valSingle	:  0,
-			valMulti	:  1,
-			valExtended	:  2
-		};
+		let ESelType =
+			{
+
+				valSingle: 0,
+				valMulti: 1,
+				valExtended: 2
+			};
+
 		function getSelType(sValue) {
-			if      ( "extended" ===  sValue )	return ESelType.valSingle	;
-		else if ( "multi" ===  sValue )	return ESelType.valMulti	;
-		else if ( "single" === sValue )	return ESelType.valExtended	;
+			if ("extended" === sValue) return ESelType.valSingle;
+			else if ("multi" === sValue) return ESelType.valMulti;
+			else if ("single" === sValue) return ESelType.valExtended;
 			return ESelType.valSingle;
 		}
 
-	let EHorizontalAlignment  =
-		{
-			horizontalalignmentCenter			:  0,
-			horizontalalignmentContinuous		:  1,
-			horizontalalignmentDistributed		:  2,
-			horizontalalignmentFill				:  3,
-			horizontalalignmentGeneral			:  4,
-			horizontalalignmentJustify			:  5,
-			horizontalalignmentLeft				:  6,
-			horizontalalignmentRight			:  7,
-			horizontalalignmentCenterContinuous	:  8
-		};
+		function getSelTypeStringValue(nType) {
+			if (ESelType.valSingle === nType) return "extended";
+			else if (ESelType.valMulti === nType) return "multi";
+			else if (ESelType.valExtended === nType) return "single";
+			return null;
+		}
+
+		let EHorizontalAlignment =
+			{
+				horizontalalignmentCenter: 0,
+				horizontalalignmentContinuous: 1,
+				horizontalalignmentDistributed: 2,
+				horizontalalignmentFill: 3,
+				horizontalalignmentGeneral: 4,
+				horizontalalignmentJustify: 5,
+				horizontalalignmentLeft: 6,
+				horizontalalignmentRight: 7,
+				horizontalalignmentCenterContinuous: 8
+			};
+
 		function getHorizontalAlignment(sValue) {
-			if("center" === sValue || "Center" === sValue)
-			return EHorizontalAlignment.horizontalalignmentCenter;
-		else if ("centerContinuous" === sValue || "CenterAcrossSelection" === sValue)
-			return EHorizontalAlignment.horizontalalignmentCenterContinuous;
-		else if("continuous" === sValue)
-			return EHorizontalAlignment.horizontalalignmentContinuous;
-		else if("distributed" === sValue || "Distributed" === sValue)
-			return EHorizontalAlignment.horizontalalignmentDistributed;
-		else if("fill" === sValue || "Fill" === sValue)
-			return EHorizontalAlignment.horizontalalignmentFill;
-		else if("general" === sValue || "Automatic" === sValue)
-			return EHorizontalAlignment.horizontalalignmentGeneral;
-		else if("justify" === sValue || "Justify" === sValue)
-			return EHorizontalAlignment.horizontalalignmentJustify;
-		else if("left" === sValue || "Left" === sValue)
-			return EHorizontalAlignment.horizontalalignmentLeft;
-		else if("right" === sValue || "Right" === sValue)
-			return EHorizontalAlignment.horizontalalignmentRight;
-		else
-			return EHorizontalAlignment.horizontalalignmentGeneral;
+			if ("center" === sValue || "Center" === sValue)
+				return EHorizontalAlignment.horizontalalignmentCenter;
+			else if ("centerContinuous" === sValue || "CenterAcrossSelection" === sValue)
+				return EHorizontalAlignment.horizontalalignmentCenterContinuous;
+			else if ("continuous" === sValue)
+				return EHorizontalAlignment.horizontalalignmentContinuous;
+			else if ("distributed" === sValue || "Distributed" === sValue)
+				return EHorizontalAlignment.horizontalalignmentDistributed;
+			else if ("fill" === sValue || "Fill" === sValue)
+				return EHorizontalAlignment.horizontalalignmentFill;
+			else if ("general" === sValue || "Automatic" === sValue)
+				return EHorizontalAlignment.horizontalalignmentGeneral;
+			else if ("justify" === sValue || "Justify" === sValue)
+				return EHorizontalAlignment.horizontalalignmentJustify;
+			else if ("left" === sValue || "Left" === sValue)
+				return EHorizontalAlignment.horizontalalignmentLeft;
+			else if ("right" === sValue || "Right" === sValue)
+				return EHorizontalAlignment.horizontalalignmentRight;
+			else
+				return EHorizontalAlignment.horizontalalignmentGeneral;
 		}
 
 
-	let EVerticalAlignment  =
-		{
-			verticalalignmentBottom				:  0,
-			verticalalignmentCenter				:  1,
-			verticalalignmentDistributed		:  2,
-			verticalalignmentJustify			:  3,
-			verticalalignmentTop				:  4
-		};
+		function getHorizontalAlignmentStringValue(nType) {
+			if (EHorizontalAlignment.horizontalalignmentCenter === nType)
+				return "center";
+			else if (EHorizontalAlignment.horizontalalignmentCenterContinuous === nType)
+				return "centerContinuous";
+			else if (EHorizontalAlignment.horizontalalignmentContinuous === nType)
+				return "continuous";
+			else if (EHorizontalAlignment.horizontalalignmentDistributed === nType)
+				return "distributed";
+			else if (EHorizontalAlignment.horizontalalignmentFill === nType)
+				return "fill";
+			else if (EHorizontalAlignment.horizontalalignmentGeneral === nType)
+				return "general";
+			else if (EHorizontalAlignment.horizontalalignmentJustify === nType)
+				return "justify";
+			else if (EHorizontalAlignment.horizontalalignmentLeft === nType)
+				return "left";
+			else if (EHorizontalAlignment.horizontalalignmentRight === nType)
+				return "right";
+			else
+				return null;
+		}
+
+
+		let EVerticalAlignment =
+			{
+				verticalalignmentBottom: 0,
+				verticalalignmentCenter: 1,
+				verticalalignmentDistributed: 2,
+				verticalalignmentJustify: 3,
+				verticalalignmentTop: 4
+			};
+
 		function getVerticalAlignment(sValue) {
-			if("bottom" === sValue || "Bottom" === sValue)
-			return EVerticalAlignment.verticalalignmentBottom;
-		else if("center" === sValue || "Center" === sValue)
-			return EVerticalAlignment.verticalalignmentCenter;
-		else if("distributed" === sValue || "Distributed" === sValue)
-			return EVerticalAlignment.verticalalignmentDistributed;
-		else if("justify" === sValue || "Justify" === sValue)
-			return EVerticalAlignment.verticalalignmentJustify;
-		else if("top" === sValue || "Top" === sValue)
-			return EVerticalAlignment.verticalalignmentTop;
-		else
-			return EVerticalAlignment.verticalalignmentBottom;
+			if ("bottom" === sValue || "Bottom" === sValue)
+				return EVerticalAlignment.verticalalignmentBottom;
+			else if ("center" === sValue || "Center" === sValue)
+				return EVerticalAlignment.verticalalignmentCenter;
+			else if ("distributed" === sValue || "Distributed" === sValue)
+				return EVerticalAlignment.verticalalignmentDistributed;
+			else if ("justify" === sValue || "Justify" === sValue)
+				return EVerticalAlignment.verticalalignmentJustify;
+			else if ("top" === sValue || "Top" === sValue)
+				return EVerticalAlignment.verticalalignmentTop;
+			else
+				return EVerticalAlignment.verticalalignmentBottom;
+		}
+
+
+		function getVerticalAlignmentStringValue(nType) {
+			if (EVerticalAlignment.verticalalignmentBottom === nType)
+				return "bottom";
+			else if (EVerticalAlignment.verticalalignmentCenter === nType)
+				return "center";
+			else if (EVerticalAlignment.verticalalignmentDistributed === nType)
+				return "distributed";
+			else if (EVerticalAlignment.verticalalignmentJustify === nType)
+				return "justify";
+			else if (EVerticalAlignment.verticalalignmentTop === nType)
+				return "top";
+			else
+				return null;
 		}
 
 		function CClientData() {
@@ -2400,34 +3239,154 @@
 			else if ("Visible" === name) this.m_oVisible = parseBool(sContent.length === 0 ? "t" : sContent);
 		};
 		CClientData.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			if (this.m_oObjectType !== null) {
+				writer.WriteXmlNullableAttributeString(" ObjectType", this.m_oObjectType.ToString());
+			}
 		};
 		CClientData.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			if (this.m_oMoveWithCells !== null && this.m_oMoveWithCells)
+				writer.WriteXmlValueString("x:MoveWithCells", "");
+			if (this.m_oSizeWithCells !== null && this.m_oSizeWithCells)
+				writer.WriteXmlValueString("x:SizeWithCells", "");
+			if (this.m_oAnchor !== null) {
+				writer.WriteXmlValueString("x:Anchor", this.m_oAnchor);
+			}
+			if (this.m_oDefaultSize !== null) {
+
+				writer.WriteXmlValueString("x:DefaultSize", (this.m_oDefaultSize ? "True" : "False"));
+			}
+			if (this.m_oAutoLine !== null) {
+				writer.WriteXmlValueString("x:AutoLine", (this.m_oAutoLine ? "True" : "False"));
+			}
+			if (this.m_oAutoScale !== null) {
+				writer.WriteXmlValueString("x:AutoScale", (this.m_oAutoScale ? "True" : "False"));
+			}
+			if (this.m_oAutoPict !== null) {
+				writer.WriteXmlValueString("x:AutoPict", (this.m_oAutoPict ? "True" : "False"));
+			}
+			if (this.m_oAutoFill !== null) {
+				writer.WriteXmlValueString("x:AutoFill", (this.m_oAutoFill ? "True" : "False"));
+			}
+			if (this.m_oFirstButton !== null) {
+				writer.WriteXmlValueString("x:FirstButton", (this.m_oFirstButton ? "True" : "False"));
+			}
+			if (this.m_oVScroll !== null) {
+				writer.WriteXmlValueString("x:VScroll", (this.m_oVScroll ? "True" : "False"));
+			}
+			if (this.m_oHoriz !== null) {
+				writer.WriteXmlValueString("x:Horiz", (this.m_oHoriz ? "True" : "False"));
+			}
+			if (this.m_oColored !== null) {
+				writer.WriteXmlValueString("x:Colored", (this.m_oColored ? "True" : "False"));
+			}
+			if (this.m_oJustLastX !== null) {
+				writer.WriteXmlValueString("x:JustLastX", (this.m_oJustLastX ? "True" : "False"));
+			}
+			if (this.m_oMultiLine !== null) {
+				writer.WriteXmlValueString("x:MultiLine", (this.m_oMultiLine ? "True" : "False"));
+			}
+			if (this.m_oTextHAlign !== null) {
+				writer.WriteXmlNullableValueString("x:TextHAlign", getHorizontalAlignmentStringValue(this.m_oTextHAlign));
+			}
+			if (this.m_oTextVAlign !== null) {
+				writer.WriteXmlNullableValueString("x:TextVAlign", getVerticalAlignmentStringValue(this.m_oTextVAlign));
+			}
+			if (this.m_oLockText !== null) {
+				writer.WriteXmlValueString("x:LockText", (this.m_oLockText ? "True" : "False"));
+			}
+			if (this.m_oRow !== null) {
+				writer.WriteXmlValueNumber("x:Row", (this.m_oRow));
+			}
+			if (this.m_oColumn !== null) {
+				writer.WriteXmlValueNumber("x:Column", (this.m_oColumn));
+			}
+			if (this.m_oVal !== null) {
+				writer.WriteXmlValueString("x:Val", (this.m_oVal));
+			}
+			if (this.m_oCf !== null) {
+				writer.WriteXmlValueString("x:CF", (this.m_oCf));
+			}
+			// if(this.m_oMultiSel !== null)
+			// {
+			// 	"<x:MultiSel>" + (this.m_oMultiSel) + "</x:MultiSel>";
+			// 	writer.WriteXmlValueString("x:MultiSel", (this.m_oMultiSel));
+			// }
+			if (this.m_oChecked !== null) {
+				writer.WriteXmlNullableValueString("x:Checked", getCheckedStringValue(this.m_oChecked));
+			}
+			if (this.m_oFmlaLink !== null) {
+				writer.WriteXmlValueString("x:FmlaLink", (this.m_oFmlaLink));
+			}
+			if (this.m_oFmlaRange !== null) {
+				writer.WriteXmlValueString("x:FmlaRange", (this.m_oFmlaRange));
+			}
+			if (this.m_oFmlaMacro !== null) {
+				writer.WriteXmlValueString("x:FmlaMacro", (this.m_oFmlaMacro));
+			}
+			if (this.m_oFmlaTxbx !== null) {
+				writer.WriteXmlValueString("x:FmlaTxbx", (this.m_oFmlaTxbx));
+			}
+			if (this.m_oFmlaGroup !== null) {
+				writer.WriteXmlValueString("x:FmlaGroup", (this.m_oFmlaGroup));
+			}
+			if (this.m_oMin !== null) {
+				writer.WriteXmlValueNumber("x:Min", (this.m_oMin));
+			}
+			if (this.m_oMax !== null) {
+				writer.WriteXmlValueNumber("x:Max", (this.m_oMax));
+			}
+			if (this.m_oInc !== null) {
+				writer.WriteXmlValueNumber("x:Inc", (this.m_oInc));
+			}
+			if (this.m_oSel !== null) {
+				writer.WriteXmlValueString("x:Sel", getBooleanTrueFalse(this.m_oSel));
+			}
+			if (this.m_oSelType !== null) {
+				writer.WriteXmlNullableValueString("x:SelType", getSelTypeStringValue(this.m_oSelType));
+			}
+			if (this.m_oDx !== null) {
+				writer.WriteXmlValueNumber("x:Dx", (this.m_oDx));
+			}
+			if (this.m_oDropStyle !== null) {
+				writer.WriteXmlNullableValueString("x:DropStyle", getDropStyleStringValue(this.m_oDropStyle));
+			}
+			if (this.m_oDropLines !== null) {
+				writer.WriteXmlValueNumber("x:DropLines", (this.m_oDropLines));
+			}
+			if (this.m_oPage !== null) {
+				writer.WriteXmlValueNumber("x:Page", (this.m_oPage));
+			}
+			if (this.m_oWidthMin !== null) {
+				writer.WriteXmlValueNumber("x:WidthMin", (this.m_oWidthMin));
+			}
+			if (this.m_oNoThreeD !== null) {
+				writer.WriteXmlValueString("x:NoThreeD", (this.m_oNoThreeD ? "True" : "False"));
+			}
+			if (this.m_oNoThreeD2 !== null) {
+				writer.WriteXmlValueString("x:NoThreeD2", (this.m_oNoThreeD2 ? "True" : "False"));
+			}
+			if (this.m_oSecretEdit !== null) {
+				writer.WriteXmlValueString("x:SecretEdit", (this.m_oSecretEdit ? "True" : "False"));
+			}
 		};
 
-		CClientData.prototype.getAnchorArray = function(aAnchor)
-			{
-				aAnchor.length = 0;
-				if(this.m_oAnchor)
-				{
-					let arSplit = this.m_oAnchor.split(",");
-					for (let i = 0 ; i < arSplit.length; i++)
-					{
-						aAnchor.push(parseInt(arSplit[i]));
-					}
+		CClientData.prototype.getAnchorArray = function (aAnchor) {
+			aAnchor.length = 0;
+			if (this.m_oAnchor) {
+				let arSplit = this.m_oAnchor.split(",");
+				for (let i = 0; i < arSplit.length; i++) {
+					aAnchor.push(parseInt(arSplit[i]));
 				}
-	};
+			}
+		};
 
 
-		CClientData.prototype.toCellAnchor = function()
-			{
-				//TODO: implement
-	};
-		CClientData.prototype.toFormControlPr = function()
-			{
-				//TODO: implement
-	};
+		CClientData.prototype.toCellAnchor = function () {
+			//TODO: implement
+		};
+		CClientData.prototype.toFormControlPr = function () {
+			//TODO: implement
+		};
 
 
 		function CStroke() {
@@ -2527,10 +3486,94 @@
 			return oSide;
 		};
 		CStroke.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+
+			writer.WriteXmlNullableAttributeString(("id"), this.m_oId);
+			if (true !== this.m_oOn)
+				writer.WriteXmlNullableAttributeString("on", "false");
+
+			if (1 !== this.m_oWeight)
+				writer.WriteXmlNullableAttributeDouble(("weight"), this.m_oWeight);
+
+			writer.WriteXmlNullableAttributeString(("color"), getColorType(this.m_oColor));
+
+			if (this.m_oOpacity !== null)
+				writer.WriteXmlNullableAttributeDouble(("opacity"), this.m_oOpacity);
+
+			writer.WriteXmlNullableAttributeString(("linestyle"), getLineStyle(this.m_oLineStyle));
+
+			if (8 !== this.m_oMiterLimit)
+				writer.WriteXmlNullableAttributeInt(("miterlimit"), this.m_oMiterLimit);
+
+			if (EStrokeJoinStyle.strokejoinstyleRound !== this.m_oJoinStyle)
+				writer.WriteXmlNullableAttributeString(("joinstyle"), getJoinStyle(this.m_oJoinStyle));
+
+			if (EStrokeEndCap.strokeendcapFlat !== this.m_oEndCap)
+				writer.WriteXmlNullableAttributeString(("endcap"), getEndCap(this.m_oEndCap));
+
+			if (EVmlDashStyle.vmldashstyleSolid !== this.m_oDahsStyle)
+				writer.WriteXmlNullableAttributeString(("dashstyle"), getDashStyle(this.m_oDahsStyle));
+
+			if (EFillType.filltypeSolid !== this.m_oFillType)
+				writer.WriteXmlNullableAttributeString(("filltype"), getFillType(this.m_oFillType));
+
+			writer.WriteXmlNullableAttributeString(("src"), this.m_sSrc);
+
+			if (EImageAspect.imageaspectIgnore !== this.m_oImageAspect)
+				writer.WriteXmlNullableAttributeString(("imageaspect"), getImageAspect(this.m_oImageAspect));
+
+			this.m_oImageSize && writer.WriteXmlNullableAttributeString(("imagesize"), this.m_oImageSize.ToString());
+
+			if (true !== this.m_oOn)
+				writer.WriteXmlNullableAttributeString("imagealignshape", "false");
+
+			writer.WriteXmlNullableAttributeString(("color2"), getColorType(this.m_oColor2));
+
+			if (EStrokeArrowType.strokearrowtypeNone !== this.m_oStartArrow)
+				writer.WriteXmlNullableAttributeString(("startarrow"), getArrowType(this.m_oStartArrow));
+
+			if (EStrokeArrowWidth.strokearrowwidthMedium !== this.m_oStartArrowWidth)
+				writer.WriteXmlNullableAttributeString(("startarrowwidth"), getArrowWidth(this.m_oStartArrowWidth));
+
+			if (EStrokeArrowLength.strokearrowlengthMedium !== this.m_oStartArrowLength)
+				writer.WriteXmlNullableAttributeString(("startarrowlength"), getArrowLength(this.m_oStartArrowLength));
+
+			if (EStrokeArrowType.strokearrowtypeNone !== this.m_oEndArrow)
+				writer.WriteXmlNullableAttributeString(("endarrow"), getArrowType(this.m_oEndArrow));
+
+			if (EStrokeArrowWidth.strokearrowwidthMedium !== this.m_oEndArrowWidth)
+				writer.WriteXmlNullableAttributeString(("endarrowwidth"), getArrowWidth(this.m_oEndArrowWidth));
+
+			if (EStrokeArrowLength.strokearrowlengthMedium !== this.m_oEndArrowLength)
+				writer.WriteXmlNullableAttributeString(("endarrowlength"), getArrowLength(this.m_oEndArrowLength));
+
+			writer.WriteXmlNullableAttributeString(("o:href"), this.m_sHref);
+			writer.WriteXmlNullableAttributeString(("o:althref"), this.m_sAltHref);
+			writer.WriteXmlNullableAttributeString(("o:title"), this.m_sTitle);
+
+			if (false !== this.m_oForceDash)
+				writer.WriteXmlNullableAttributeString("o:forcedash", "true");
+
+			writer.WriteXmlNullableAttributeString(("r:id"), this.m_rId);
+			writer.WriteXmlNullableAttributeString(("insetpen"), getBooleanTrueFalse(this.m_oInsetPen));
+			writer.WriteXmlNullableAttributeString(("o:relid"), this.m_oRelId);
 		};
 		CStroke.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			if (this.m_oLeft !== null)
+				this.m_oLeft.toXml(writer, "o:left");
+
+			if (this.m_oTop !== null)
+				this.m_oTop.toXml(writer, "o:top");
+
+			if (this.m_oRight !== null)
+				this.m_oRight.toXml(writer, "o:right");
+
+			if (this.m_oBottom !== null)
+				this.m_oBottom.toXml(writer, "o:bottom");
+
+			if (this.m_oColumn !== null)
+				this.m_oColumn.toXml(writer, "o:column");
+
 		};
 
 		function CTextbox() {
@@ -2561,10 +3604,29 @@
 			}
 		};
 		CTextbox.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			writer.WriteXmlNullableAttributeString("id", this.m_oId);
+			this.m_oStyle && writer.WriteXmlNullableAttributeString("style", this.m_oStyle.ToString());
+
+			if (this.m_oInset !== null) {
+				writer.WriteXmlNullableAttributeString("inset", this.m_oInset.ToString());
+			}
+
+			if (false !== this.m_oSingleClick)
+				writer.WriteXmlNullableAttributeString("o:singleclick", "true");
+
+			if (EInsetMode.insetmodeCustom !== this.m_oInsetMode)
+				writer.WriteXmlNullableAttributeString("o:insetmode", getInsetMode(this.m_oInsetMode));
 		};
 		CTextbox.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+			if (this.m_oTxtbxContent !== null)
+				this.m_oTxtbxContent.toXml(writer, "txbxContent");
+
+			if (this.m_oText !== null) {
+				writer.WriteXmlValueString("div", this.m_oText);
+			}
+
 		};
 
 		function CTextPath() {
@@ -2607,7 +3669,25 @@
 			}
 		};
 		CTextPath.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString("id", this.m_oId);
+			this.m_oStyle && writer.WriteXmlNullableAttributeString("style", this.m_oStyle.ToString());
+
+			if ((this.m_oOn !== null) && (false !== this.m_oOn))
+				writer.WriteXmlNullableAttributeString("on", "true");
+
+			if ((this.m_oFitShape !== null) && (false !== this.m_oFitShape))
+				writer.WriteXmlNullableAttributeString("fitshape", "true");
+
+			if ((this.m_oFitPath !== null) && (false !== this.m_oFitPath))
+				writer.WriteXmlNullableAttributeString("fitpath", "true");
+
+			if ((this.m_oTrim !== null) && (false !== this.m_oTrim))
+				writer.WriteXmlNullableAttributeString("trim", "true");
+
+			if ((this.m_oXScale !== null) && (false !== this.m_oXScale))
+				writer.WriteXmlNullableAttributeString("xscale", "true");
+
+			writer.WriteXmlNullableAttributeString(("string"), this.m_sString);
 		};
 
 		function CGroup() {
@@ -2653,7 +3733,7 @@
 			else if (("curve") === name)
 				oItem = new CCurve();
 			else if (("fill") === name)
-				oItem = new CFill();
+				oItem = new CFillVml();
 			else if (("formulas") === name)
 				oItem = new CFormulas();
 			else if (("group") === name)
@@ -2691,13 +3771,13 @@
 			else if (("anchorLock") === name)
 				oItem = new CAnchorLock();
 			else if (("borderbottom") === name)
-				oItem = new CBorder();
+				oItem = new CBorder("borderbottom");
 			else if (("borderleft") === name)
-				oItem = new CBorder();
+				oItem = new CBorder("borderleft");
 			else if (("borderright") === name)
-				oItem = new CBorder();
+				oItem = new CBorder("borderright");
 			else if (("bordertop") === name)
-				oItem = new CBorder();
+				oItem = new CBorder("bordertop");
 			else if (("wrap") === name)
 				oItem = new CWrap();
 			else if (("ClientData") === name)
@@ -2709,10 +3789,85 @@
 			}
 		};
 		CGroup.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
+			writer.WriteXmlNullableAttributeString(("editas"), getEditAs(this.m_oEditAs));
+			if (this.m_oTableProperties)
+				writer.WriteXmlNullableAttributeString(("o:tableproperties"), this.m_oTableProperties.ToString());
+			this.m_oTableLimits && writer.WriteXmlNullableAttributeString(("o:tablelimits"), this.m_oTableLimits.ToString());
 		};
 		CGroup.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+			for (let i = 0; i < this.items.length; ++i) {
+				let oItem = this.items[i];
+				if (oItem) {
+					let sName = null;
+					if (oItem instanceof CCallout)
+						sName = ("o:callout");
+					else if (oItem instanceof CClipPath)
+						sName = ("o:clippath");
+					else if (oItem instanceof CDiagram)
+						sName = ("o:diagram");
+					else if (oItem instanceof CExtrusion)
+						sName = ("o:extrusion");
+					else if (oItem instanceof CLock)
+						sName = ("o:lock");
+					else if (oItem instanceof CSignatureLine)
+						sName = ("o:signatureline");
+					else if (oItem instanceof CSkew)
+						sName = ("o:skew");
+					else if (oItem instanceof CArc)
+						sName = ("v:arc");
+					else if (oItem instanceof CCurve)
+						sName = ("v:curve");
+					else if (oItem instanceof CFillVml)
+						sName = ("v:fill");
+					else if (oItem instanceof CFormulas)
+						sName = ("v:formulas");
+					else if (oItem instanceof CGroup)
+						sName = ("v:group");
+					else if (oItem instanceof CHandles)
+						sName = ("v:handles");
+					else if (oItem instanceof CImageData)
+						sName = ("v:imagedata");
+					else if (oItem instanceof CImage)
+						sName = ("v:image");
+					else if (oItem instanceof CLine)
+						sName = ("v:line");
+					else if (oItem instanceof COval)
+						sName = ("v:oval");
+					else if (oItem instanceof CPath)
+						sName = ("v:path");
+					else if (oItem instanceof CPolyLine)
+						sName = ("v:polyline");
+					else if (oItem instanceof CRect)
+						sName = ("v:rect");
+					else if (oItem instanceof CRoundRect)
+						sName = ("v:roundrect");
+					else if (oItem instanceof CShadow)
+						sName = ("v:shadow");
+					else if (oItem instanceof CShape)
+						sName = ("v:shape");
+					else if (oItem instanceof CShapeType)
+						sName = ("v:shapetype");
+					else if (oItem instanceof CStroke)
+						sName = ("v:stroke");
+					else if (oItem instanceof CTextbox)
+						sName = ("v:textbox");
+					else if (oItem instanceof CTextPath)
+						sName = ("v:textpath");
+					else if (oItem instanceof CAnchorLock)
+						sName = ("wd:anchorLock");
+					else if (oItem instanceof CBorder)
+						sName = "wd:" + oItem.m_sType;
+					else if (oItem instanceof CWrap)
+						sName = ("wd:wrap");
+					else if (oItem instanceof CClientData)
+						sName = ("x:ClientData");
+					if (sName) {
+						oItem.toXml(writer, sName);
+					}
+				}
+			}
 		};
 
 
@@ -2794,10 +3949,60 @@
 			}
 		};
 		CShapeDefaults.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeString(("v:ext"), this.m_oExt);
+
+			if (0 !== this.m_oSpIdMax)
+				writer.WriteXmlNullableAttributeInt(("spidmax"), this.m_oSpIdMax);
+
+			this.m_oStyle && writer.WriteXmlNullableAttributeString(("style"), this.m_oStyle.ToString());
+
+			if (true !== this.m_oFill)
+				writer.WriteXmlNullableAttributeString("fill", "false");
+
+			writer.WriteXmlNullableAttributeString(("fillcolor"), getColorType(this.m_oFillColor));
+
+			if (true !== this.m_oStroke)
+				writer.WriteXmlNullableAttributeString("stroke", "false");
+
+			if (this.m_oStrokeColor && EColorType.colortypeBlack !== this.m_oStrokeColor.type)
+				writer.WriteXmlNullableAttributeString(("strokecolor"), getColorType(this.m_oStrokeColor));
+
+			if (false !== this.m_oAllowInCell)
+				writer.WriteXmlNullableAttributeString("o:allowincell", "true");
+
 		};
 		CShapeDefaults.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+
+			if (this.m_oVmlFill !== null)
+				this.m_oVmlFill.toXml(writer, "v:fill");
+
+			if (this.m_oVmlStroke !== null)
+				this.m_oVmlStroke.toXml(writer, "v:stroke");
+
+			if (this.m_oVmlTextbox !== null)
+				this.m_oVmlTextbox.toXml(writer, "v:textbox");
+
+			if (this.m_oVmlShadow !== null)
+				this.m_oVmlShadow.toXml(writer, "v:shadow");
+
+			if (this.m_oSkew !== null)
+				this.m_oSkew.toXml(writer, "o:skew");
+
+			if (this.m_oExtrusion !== null)
+				this.m_oExtrusion.toXml(writer, "o:extrusion");
+
+			if (this.m_oCallout !== null)
+				this.m_oCallout.toXml(writer, "o:callout");
+
+			if (this.m_oLock !== null)
+				this.m_oLock.toXml(writer, "o:lock");
+
+			if (this.m_oColorMru !== null)
+				this.m_oColorMru.toXml(writer, "o:colormru");
+
+			if (this.m_oColorMenu !== null)
+				this.m_oColorMenu.toXml(writer, "o:colormenu");
+
 		};
 
 		//VmlWord
@@ -2832,7 +4037,15 @@
 			}
 		};
 		CBorder.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			if (this.m_oType !== null)
+				writer.WriteXmlNullableAttributeString(("wd:type"), getBorderType(this.m_oType));
+
+			if (this.m_oWidth !== null)
+				writer.WriteXmlNullableAttributeInt(("wd:width"), this.m_oWidth);
+
+			if (this.m_oShadow !== null)
+				writer.WriteXmlNullableAttributeString(("wd:shadow"), getBorderShadow(this.m_oShadow));
 		};
 
 
@@ -2863,7 +4076,19 @@
 			}
 		};
 		CWrap.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+
+			if (this.m_oType !== null)
+				writer.WriteXmlNullableAttributeString(("type"), getWrapType(this.m_oType));
+
+			if (this.m_oSide !== null)
+				writer.WriteXmlNullableAttributeString(("side"), getWrapSide(this.m_oSide));
+
+			if (this.m_oAnchorX !== null)
+				writer.WriteXmlNullableAttributeString(("anchorx"), getHorizontalAnchor(this.m_oAnchorX));
+
+			if (this.m_oAnchorY !== null)
+				writer.WriteXmlNullableAttributeString(("anchory"), getVerticalAnchor(this.m_oAnchorY));
+
 		};
 
 
@@ -3321,6 +4546,13 @@
 			return this.m_dValue;
 		};
 
+		function getPoint(oPt) {
+			if (oPt) {
+				return oPt.ToString();
+			}
+			return null;
+		}
+
 		function CInch() {
 			CUniversalMeasure.call(this);
 		}
@@ -3459,10 +4691,11 @@
 			}
 			return EAlternateMathContentType.alternatemathcontenttypeOfficeOpenXmlMath;
 		}
+
 		function getAlternateMathContentType(nType) {
-			if(nType === EAlternateMathContentType.alternatemathcontenttypeOfficeOpenXmlMath) 
+			if (nType === EAlternateMathContentType.alternatemathcontenttypeOfficeOpenXmlMath)
 				return "officeopenxmlmath";
-			if(nType === EAlternateMathContentType.alternatemathcontenttypeMathMl) 
+			if (nType === EAlternateMathContentType.alternatemathcontenttypeMathMl)
 				return "mathml";
 			return "officeopenxmlmath";
 		}
@@ -3478,7 +4711,8 @@
 		}
 
 		function CColor(sVal) {
-			this.val = EColorType.colortypeRGB;
+			this.type = EColorType.colortypeRGB;
+			this.val = sVal;
 			this.r = 0;
 			this.g = 0;
 			this.b = 0;
@@ -3486,6 +4720,7 @@
 		}
 
 		CColor.prototype.fromString = function (sVal) {
+			this.val = sVal;
 			if (sVal.charAt(0) === '#') {
 				this.byHexColor(sVal)
 			} else {
@@ -3495,6 +4730,15 @@
 
 		CColor.prototype.toString = function () {
 			return this.val;
+		};
+		CColor.prototype.Get_R = function () {
+			return this.r;
+		};
+		CColor.prototype.Get_G = function () {
+			return this.g;
+		};
+		CColor.prototype.Get_B = function () {
+			return this.b;
 		};
 		CColor.prototype.setRGB = function () {
 
@@ -3684,6 +4928,10 @@
 			this.x = strX.length === 0 ? 0 : parseInt(strX);
 			this.y = strY.length === 0 ? 0 : parseInt(strY);
 			return 0;
+		};
+
+		CVmlVector2D.prototype.ToString = function () {
+			return "" + this.x + "," + this.y;
 		};
 
 		function CVmlPolygon2D(sVal) {
@@ -4087,6 +5335,9 @@
 			this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
 			this.m_nZ = strZ.length === 0 ? 0 : parseInt(strZ);
 		};
+		CVml_Vector3D_65536.prototype.ToString = function () {
+			return ("" + (this.m_nX) + "," + (this.m_nX)) + ("" + this.m_nY) + "," + (this.m_nZ);
+		};
 
 		function CVml_Vector3D(sVal) {
 			this.m_nX = 0;
@@ -4096,6 +5347,16 @@
 				this.fromString(sVal);
 			}
 		}
+
+		CVml_Vector3D.prototype.GetX = function () {
+			return this.m_nX;
+		};
+		CVml_Vector3D.prototype.GetY = function () {
+			return this.m_nY;
+		};
+		CVml_Vector3D.prototype.GetZ = function () {
+			return this.m_nZ;
+		};
 
 		CVml_Vector3D.prototype.fromString = function (sValue) {
 			this.m_nX = 0;
@@ -4136,6 +5397,9 @@
 			this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
 			this.m_nZ = strZ.length === 0 ? 0 : parseInt(strZ);
 		};
+		CVml_Vector3D.prototype.ToString = function () {
+			return (this.m_nX) + "," + (this.m_nY) + "," + (this.m_nZ);
+		};
 
 
 		function CVml_Vector2D(sVal) {
@@ -4145,6 +5409,13 @@
 				this.fromString(sVal);
 			}
 		}
+
+		CVml_Vector2D.prototype.GetX = function () {
+			return this.m_nX;
+		};
+		CVml_Vector2D.prototype.GetY = function () {
+			return this.m_nY;
+		};
 
 		CVml_Vector2D.prototype.fromString = function (sValue) {
 			this.m_nX = 0;
@@ -4169,6 +5440,10 @@
 			this.m_nX = strX.length === 0 ? 0 : parseInt(strX);
 			this.m_nY = strY.length === 0 ? 0 : parseInt(strY);
 		};
+		CVml_Vector2D.prototype.ToString = function () {
+			return (this.m_nX) + "," + (this.m_nY);
+		};
+
 
 		function CVml_Vector2D_F(sVal) {
 			this.m_nX = 0;
@@ -4200,6 +5475,15 @@
 
 			this.m_nX = strX.length === 0 ? 0 : parseFloat(strX);
 			this.m_nY = strY.length === 0 ? 0 : parseFloat(strY);
+		};
+		CVml_Vector2D_F.prototype.GetX = function () {
+			return this.m_nX;
+		};
+		CVml_Vector2D_F.prototype.GetY = function () {
+			return this.m_nY;
+		};
+		CVml_Vector2D_F.prototype.ToString = function () {
+			return (this.m_nX) + "," + (this.m_nY);
 		};
 
 		let EInsetMode =
@@ -4246,10 +5530,10 @@
 		}
 
 		function getColorMode(nType) {
-			if(nType === EColorMode.colormodeAuto) {
+			if (nType === EColorMode.colormodeAuto) {
 				return "auto";
 			}
-			if(nType === EColorMode.colormodeCustom) {
+			if (nType === EColorMode.colormodeCustom) {
 				return "custom";
 			}
 			return null;
@@ -4271,10 +5555,10 @@
 		}
 
 		function getInsetMode(nType) {
-			if(nType === EInsetMode.insetmodeAuto) {
+			if (nType === EInsetMode.insetmodeAuto) {
 				return "auto";
 			}
-			if(nType === EInsetMode.insetmodeCustom) {
+			if (nType === EInsetMode.insetmodeCustom) {
 				return "custom";
 			}
 			return "auto";
@@ -4285,9 +5569,11 @@
 		}
 
 		function getColorType(oColorType) {
-			return oColorType.toString();
+			if (oColorType) {
+				return oColorType.toString();
+			}
+			return null;
 		}
-
 
 		function readCVml_1_65536(reader) {
 			let sValue = reader.GetValue();
@@ -4307,7 +5593,11 @@
 				return Math.max(0.0, Math.min(1.0, dValue));
 			}
 		}
+
 		function getCVml_1_65536(dVal) {
+			if (!AscFormat.isRealNumber(dVal)) {
+				return null;
+			}
 			return dVal.toString();
 		}
 
@@ -4336,15 +5626,14 @@
 		}
 
 
-
 		function getEditAs(nType) {
-			if(nType === EEditAs.editasBullseye) return "bullseye"; 
-			if(nType === EEditAs.editasCanvas) return "canvas"; 
-			if(nType === EEditAs.editasCycle) return "cycle"; 
-			if(nType === EEditAs.editasOrgchart) return "orgchart"; 
-			if(nType === EEditAs.editasRadial) return "radial"; 
-			if(nType === EEditAs.editasStacked) return "stacked"; 
-			if(nType === EEditAs.editasVenn) return "venn"; 
+			if (nType === EEditAs.editasBullseye) return "bullseye";
+			if (nType === EEditAs.editasCanvas) return "canvas";
+			if (nType === EEditAs.editasCycle) return "cycle";
+			if (nType === EEditAs.editasOrgchart) return "orgchart";
+			if (nType === EEditAs.editasRadial) return "radial";
+			if (nType === EEditAs.editasStacked) return "stacked";
+			if (nType === EEditAs.editasVenn) return "venn";
 			return "canvas";
 		}
 
@@ -4394,7 +5683,7 @@
 			return 0;
 		};
 		CVml_TableLimits.prototype.ToString = function () {
-			let sResult;
+			let sResult = "";
 
 			for (let nIndex = 0; nIndex < this.m_arrLimits.length; nIndex++) {
 				sResult += (this.m_arrLimits[nIndex] + "pt ");
@@ -4444,6 +5733,16 @@
 				vmlangleAuto: 5
 			};
 
+		function getAngle(nType) {
+			if (nType === EVmlAngle.vmlangle30) return "30";
+			if (nType === EVmlAngle.vmlangle45) return "45";
+			if (nType === EVmlAngle.vmlangle60) return "60";
+			if (nType === EVmlAngle.vmlangle90) return "90";
+			if (nType === EVmlAngle.vmlangleAny) return "any";
+			if (nType === EVmlAngle.vmlangleAuto) return "auto";
+			return null;
+		}
+
 
 		let EExt =
 			{
@@ -4459,6 +5758,15 @@
 				vmlcallouttypeOval: 2,
 				vmlcallouttypeCloud: 3
 			};
+
+
+		function getCalloutType(nType) {
+			if (nType === EVmlCalloutType.vmlcallouttypeRectangle) return "rectangle";
+			if (nType === EVmlCalloutType.vmlcallouttypeRoundRectangle) return "roundrectangle";
+			if (nType === EVmlCalloutType.vmlcallouttypeOval) return "oval";
+			if (nType === EVmlCalloutType.vmlcallouttypeCloud) return "cloud";
+			return null;
+		}
 
 
 		let EExtrusionType =
@@ -4482,6 +5790,7 @@
 			}
 			return null;
 		}
+
 		function getExt(nType) {
 			switch (nType) {
 				case EExt.extBackwardCompatible: {
@@ -4507,6 +5816,7 @@
 			}
 			return EExtrusionType.extrusiontypeParallel;
 		}
+
 		function getExtrusionType(nType) {
 			switch (nType) {
 				case EExtrusionType.extrusiontypeParallel:
@@ -4679,7 +5989,63 @@
 				this.m_dY = dValue;
 			}
 		};
+		CVml_Vector2D_Position.prototype.GetTypeX = function () {
+			return this.m_eTypeX;
+		};
+		CVml_Vector2D_Position.prototype.GetTypeY = function () {
+			return this.m_eTypeY;
+		};
+		CVml_Vector2D_Position.prototype.ToString = function () {
+			let sResult = "";
 
+			switch (this.m_eTypeX) {
+				case EVml_Vector2D_Position.vmlvector2dposConstant    :
+					sResult = this.m_dX;
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposFormula     :
+					sResult = ("@") + this.m_sIdX;
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposAdjValue    :
+					sResult = ("#") + this.m_sIdX;
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposCenter      :
+					sResult = ("center");
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposTopLeft     :
+					sResult = ("topleft");
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposBottomRight :
+					sResult = ("bottomright");
+					break;
+			}
+
+			sResult += (",");
+
+			switch (this.m_eTypeY) {
+				case EVml_Vector2D_Position.vmlvector2dposConstant    : {
+					let sTemp = "" + (this.m_dY);
+					sResult += sTemp;
+					break;
+				}
+				case EVml_Vector2D_Position.vmlvector2dposFormula     :
+					sResult += ("@") + this.m_sIdY;
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposAdjValue    :
+					sResult += ("#") + this.m_sIdY;
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposCenter      :
+					sResult += ("center");
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposTopLeft     :
+					sResult += ("topleft");
+					break;
+				case EVml_Vector2D_Position.vmlvector2dposBottomRight :
+					sResult += ("bottomright");
+					break;
+			}
+
+			return sResult;
+		}
 
 		function CVml_Polygon2D_Units(val) {
 			this.m_arrPoints = [];
@@ -4701,13 +6067,13 @@
 			if (nIndex < 0 || nIndex >= this.m_arrPoints.length)
 				return 0;
 
-			return this.m_arrPoints[nIndex].dX;
+			return this.m_arrPoints[nIndex].nX;
 		};
 		CVml_Polygon2D_Units.prototype.GetY = function (nIndex) {
 			if (nIndex < 0 || nIndex >= this.m_arrPoints.length)
 				return 0;
 
-			return this.m_arrPoints[nIndex].dY;
+			return this.m_arrPoints[nIndex].nY;
 		};
 
 		CVml_Polygon2D_Units.prototype.AddPoint = function (dX, dY) {
@@ -4752,10 +6118,10 @@
 		};
 
 		CVml_Polygon2D_Units.prototype.ToString = function () {
-			let sResult;
+			let sResult = "";
 
 			for (let nIndex = 0; nIndex < this.m_arrPoints.length; nIndex++) {
-				sResult += this.m_arrPoints[nIndex].dX + "," + this.m_arrPoints[nIndex].dY;
+				sResult += this.m_arrPoints[nIndex].nX + "," + this.m_arrPoints[nIndex].nY;
 				if (nIndex < this.m_arrPoints.length - 1)
 					sResult += this.m_wcDelimiter;
 			}
@@ -4789,7 +6155,7 @@
 			return this.m_arrPoints[nIndex].nY;
 		}
 
-		CVml_Polygon2D.prototype.AddPo = function (nX, nY) {
+		CVml_Polygon2D.prototype.AddPoint = function (nX, nY) {
 			let oPt = new TPoint(nX, nY);
 			this.m_arrPoints.push(oPt);
 		}
@@ -4831,7 +6197,7 @@
 		}
 
 		CVml_Polygon2D.prototype.ToString = function () {
-			let sResult;
+			let sResult = "";
 
 			for (let nIndex = 0; nIndex < this.m_arrPoints.length; nIndex++) {
 				let sTemp = this.m_arrPoints[nIndex].nX + "," + this.m_arrPoints[nIndex].nY;
@@ -4879,6 +6245,11 @@
 			let oPt2 = new CPoint(sValue.substr(nPos + 1, nLen - nPos - 1));
 			this.m_dY = oPt2.GetValue();
 			return 0;
+		};
+
+
+		CVml_Vector2D_Units.prototype.ToString = function () {
+			return "" + this.m_dX + "," + this.m_dY;
 		};
 
 
@@ -5039,7 +6410,7 @@
 		function getArrowLength(nType) {
 			if (EStrokeArrowLength.strokearrowlengthLong === nType) return "long";
 			else if (EStrokeArrowLength.strokearrowlengthMedium === nType) return "medium";
-			else if (EStrokeArrowLength.strokearrowlengthShort=== nType) return "short";
+			else if (EStrokeArrowLength.strokearrowlengthShort === nType) return "short";
 			return null;
 		}
 
@@ -5076,7 +6447,6 @@
 		}
 
 
-
 		let EStrokeArrowWidth =
 			{
 				strokearrowwidthMedium: 0,
@@ -5091,6 +6461,7 @@
 			else if ("wide" === sValue) return EStrokeArrowWidth.strokearrowwidthWide;
 			return EStrokeArrowWidth.strokearrowwidthMedium;
 		}
+
 		function getArrowWidth(nType) {
 			if (EStrokeArrowWidth.strokearrowwidthMedium === nType) return "medium";
 			else if (EStrokeArrowWidth.strokearrowwidthNarrow === nType) return "narrow";
@@ -5115,6 +6486,7 @@
 			else if ("square" === sValue) return EStrokeEndCap.strokeendcapSqaure;
 			return EStrokeEndCap.strokeendcapRound;
 		}
+
 		function getEndCap(nType) {
 			if (EStrokeEndCap.strokeendcapFlat === nType) return "flat";
 			else if (EStrokeEndCap.strokeendcapRound === nType) return "round";
@@ -5137,6 +6509,7 @@
 			else if ("bevel" === sValue) return EStrokeJoinStyle.strokejoinstyleBevel;
 			return EStrokeJoinStyle.strokejoinstyleRound;
 		}
+
 		function getJoinStyle(nType) {
 			if (EStrokeJoinStyle.strokejoinstyleRound === nType) return "round";
 			else if (EStrokeJoinStyle.strokejoinstyleMiter === nType) return "miter";
@@ -5232,7 +6605,7 @@
 			if (sValue.length === 0)
 				return 0;
 
-			let arSplit = [];
+			let arSplit;
 
 			sValue.replace("@", "");
 			arSplit = sValue.split(", ");
@@ -5386,10 +6759,6 @@
 				cssunitstypeAbsolute: 3
 			};
 
-		function TCssUnitsValue(type, value) {
-			this.eType = type;
-			this.dValue = value; // pt
-		}
 
 		let ECssMsoPosHorRel =
 			{
@@ -5449,10 +6818,6 @@
 				csszindextypeOrder: 1
 			};
 
-		function TCssZIndexValue(type, order) {
-			this.eType = type;
-			this.nOrder = order;
-		}
 
 		let ECssDirection =
 			{
@@ -5546,14 +6911,12 @@
 			};
 
 
-		function TCssUnitsValue()
-		{
+		function TCssUnitsValue() {
 			this.eType = null;
 			this.dValue = null;
 		}
 
-		function TCssZIndexValue()
-		{
+		function TCssZIndexValue() {
 			this.eType = null;
 			this.nOrder = null;
 		}
@@ -5672,168 +7035,168 @@
 				if (("width") === sProperty) this.m_eType = ECssPropertyType.cssptWidth;
 				if (("z-index") === sProperty) this.m_eType = ECssPropertyType.cssptZIndex;
 
-			switch (this.m_eType) {
-				case ECssPropertyType.cssptUnknown :
-					this.ReadValue_Unknown(sValue);
-					break;
+				switch (this.m_eType) {
+					case ECssPropertyType.cssptUnknown :
+						this.ReadValue_Unknown(sValue);
+						break;
 
-				case ECssPropertyType.cssptFlip :
-					this.ReadValue_Flip(sValue);
-					break;
-				case ECssPropertyType.cssptHeight :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptLeft :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMarginBottom :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMarginLeft :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMarginRight :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMarginTop :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMsoPositionHorizontal :
-					this.ReadValue_MsoPosHor(sValue);
-					break;
-				case ECssPropertyType.cssptMsoPositionHorizontalRelative :
-					this.ReadValue_MsoPosHorRel(sValue);
-					break;
-				case ECssPropertyType.cssptMsoPositionVertical :
-					this.ReadValue_MsoPosVer(sValue);
-					break;
-				case ECssPropertyType.cssptMsoPositionVerticalRelative :
-					this.ReadValue_MsoPosVerRel(sValue);
-					break;
-				case ECssPropertyType.cssptMsoWrapDistanceBottom :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMsoWrapDistanceLeft :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMsoWrapDistanceRight :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMsoWrapDistanceTop :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptMsoWrapEdited :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptMsoWrapStyle :
-					this.ReadValue_MsoWrapStyle(sValue);
-					break;
-				case ECssPropertyType.cssptPosition :
-					this.ReadValue_Position(sValue);
-					break;
-				case ECssPropertyType.cssptRotation :
-					this.ReadValue_Rotation(sValue);
-					break;
-				case ECssPropertyType.cssptTop :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptVisibility :
-					this.ReadValue_Visibility(sValue);
-					break;
-				case ECssPropertyType.cssptWidth :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptZIndex :
-					this.ReadValue_ZIndex(sValue);
-					break;
+					case ECssPropertyType.cssptFlip :
+						this.ReadValue_Flip(sValue);
+						break;
+					case ECssPropertyType.cssptHeight :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptLeft :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMarginBottom :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMarginLeft :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMarginRight :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMarginTop :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMsoPositionHorizontal :
+						this.ReadValue_MsoPosHor(sValue);
+						break;
+					case ECssPropertyType.cssptMsoPositionHorizontalRelative :
+						this.ReadValue_MsoPosHorRel(sValue);
+						break;
+					case ECssPropertyType.cssptMsoPositionVertical :
+						this.ReadValue_MsoPosVer(sValue);
+						break;
+					case ECssPropertyType.cssptMsoPositionVerticalRelative :
+						this.ReadValue_MsoPosVerRel(sValue);
+						break;
+					case ECssPropertyType.cssptMsoWrapDistanceBottom :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMsoWrapDistanceLeft :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMsoWrapDistanceRight :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMsoWrapDistanceTop :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptMsoWrapEdited :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptMsoWrapStyle :
+						this.ReadValue_MsoWrapStyle(sValue);
+						break;
+					case ECssPropertyType.cssptPosition :
+						this.ReadValue_Position(sValue);
+						break;
+					case ECssPropertyType.cssptRotation :
+						this.ReadValue_Rotation(sValue);
+						break;
+					case ECssPropertyType.cssptTop :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptVisibility :
+						this.ReadValue_Visibility(sValue);
+						break;
+					case ECssPropertyType.cssptWidth :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptZIndex :
+						this.ReadValue_ZIndex(sValue);
+						break;
 
-				case ECssPropertyType.cssptDirection :
-					this.ReadValue_Direction(sValue);
-					break;
-				case ECssPropertyType.cssptLayoutFlow :
-					this.ReadValue_LayoutFlow(sValue);
-					break;
-				case ECssPropertyType.cssptMsoDirectionAlt :
-					this.ReadValue_DirectionAlt(sValue);
-					break;
-				case ECssPropertyType.cssptMsoFitShapeToText :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptMsoFitTextToShape :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptMsoLayoutFlowAlt :
-					this.ReadValue_LayoutFlowAlt(sValue);
-					break;
-				case ECssPropertyType.cssptMsoNextTextbox :
-					this.ReadValue_String(sValue);
-					break;
-				case ECssPropertyType.cssptMsoRotate :
-					this.ReadValue_MsoRotate(sValue);
-					break;
-				case ECssPropertyType.cssptMsoTextScale :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptVTextAnchor :
-					this.ReadValue_VTextAnchor(sValue);
-					break;
+					case ECssPropertyType.cssptDirection :
+						this.ReadValue_Direction(sValue);
+						break;
+					case ECssPropertyType.cssptLayoutFlow :
+						this.ReadValue_LayoutFlow(sValue);
+						break;
+					case ECssPropertyType.cssptMsoDirectionAlt :
+						this.ReadValue_DirectionAlt(sValue);
+						break;
+					case ECssPropertyType.cssptMsoFitShapeToText :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptMsoFitTextToShape :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptMsoLayoutFlowAlt :
+						this.ReadValue_LayoutFlowAlt(sValue);
+						break;
+					case ECssPropertyType.cssptMsoNextTextbox :
+						this.ReadValue_String(sValue);
+						break;
+					case ECssPropertyType.cssptMsoRotate :
+						this.ReadValue_MsoRotate(sValue);
+						break;
+					case ECssPropertyType.cssptMsoTextScale :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptVTextAnchor :
+						this.ReadValue_VTextAnchor(sValue);
+						break;
 
-				case ECssPropertyType.cssptFont :
-					this.ReadValue_String(sValue);
-					break;
-				case ECssPropertyType.cssptFontFamily :
-					this.ReadValue_String(sValue);
-					break;
-				case ECssPropertyType.cssptFontSize :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptFontStyle :
-					this.ReadValue_FontStyle(sValue);
-					break;
-				case ECssPropertyType.cssptFontVariant :
-					this.ReadValue_FontVariant(sValue);
-					break;
-				case ECssPropertyType.cssptFontWeight :
-					this.ReadValue_FontWeight(sValue);
-					break;
-				case ECssPropertyType.cssptMsoTextShadow :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptTextDecoration :
-					this.ReadValue_TextDecoration(sValue);
-					break;
-				case ECssPropertyType.cssptVRotateLetters :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptVSameLetterHeights :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptVTextAlign :
-					this.ReadValue_VTextAlign(sValue);
-					break;
-				case ECssPropertyType.cssptVTextKern :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptVTextReverse :
-					this.ReadValue_Boolean(sValue);
-					break;
-				case ECssPropertyType.cssptVTextSpacingMode :
-					this.ReadValue_VTextSpacingMode(sValue);
-					break;
-				case ECssPropertyType.cssptVTextSpacing :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.csspctMsoWidthPercent :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.csspctMsoHeightPercent :
-					this.ReadValue_Units(sValue);
-					break;
-				case ECssPropertyType.cssptHTextAlign :
-					this.ReadValue_VTextAlign(sValue);
-					break;
+					case ECssPropertyType.cssptFont :
+						this.ReadValue_String(sValue);
+						break;
+					case ECssPropertyType.cssptFontFamily :
+						this.ReadValue_String(sValue);
+						break;
+					case ECssPropertyType.cssptFontSize :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptFontStyle :
+						this.ReadValue_FontStyle(sValue);
+						break;
+					case ECssPropertyType.cssptFontVariant :
+						this.ReadValue_FontVariant(sValue);
+						break;
+					case ECssPropertyType.cssptFontWeight :
+						this.ReadValue_FontWeight(sValue);
+						break;
+					case ECssPropertyType.cssptMsoTextShadow :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptTextDecoration :
+						this.ReadValue_TextDecoration(sValue);
+						break;
+					case ECssPropertyType.cssptVRotateLetters :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptVSameLetterHeights :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptVTextAlign :
+						this.ReadValue_VTextAlign(sValue);
+						break;
+					case ECssPropertyType.cssptVTextKern :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptVTextReverse :
+						this.ReadValue_Boolean(sValue);
+						break;
+					case ECssPropertyType.cssptVTextSpacingMode :
+						this.ReadValue_VTextSpacingMode(sValue);
+						break;
+					case ECssPropertyType.cssptVTextSpacing :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.csspctMsoWidthPercent :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.csspctMsoHeightPercent :
+						this.ReadValue_Units(sValue);
+						break;
+					case ECssPropertyType.cssptHTextAlign :
+						this.ReadValue_VTextAlign(sValue);
+						break;
+				}
 			}
-		}
 		};
 
 		CCssProperty.prototype.ReadValue_Unknown = function (sValue) {
@@ -5847,7 +7210,7 @@
 				this.m_eType = ECssPropertyType.cssptUnknown;
 		};
 		CCssProperty.prototype.ReadValue_Units = function (sValue) {
-			let nPos = -1;
+			let nPos;
 			if (-1 !== (nPos = sValue.indexOf(("auto")))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAuto;
 			} else if (-1 !== (nPos = sValue.indexOf(("in")))) {
@@ -6220,6 +7583,16 @@
 			return bVal ? EBorderShadow.bordershadowTrue : EBorderShadow.bordershadowFalse;
 		}
 
+		function getBorderShadow(nType) {
+			if (nType === EBorderShadow.bordershadowTrue) {
+				return "t";
+			}
+			if (nType === EBorderShadow.bordershadowFalse) {
+				return "f";
+			}
+			return false;
+		}
+
 
 		let EWrapSide =
 			{
@@ -6238,9 +7611,9 @@
 			if ("right" === sValue) return EWrapSide.wrapsideRight;
 		}
 
-		function getWrpapSide(nType) {
+		function getWrapSide(nType) {
 			if (EWrapSide.wrapsideBoth === nType) return "both";
-			if ( EWrapSide.wrapsideLargest === nType) return "largest";
+			if (EWrapSide.wrapsideLargest === nType) return "largest";
 			if (EWrapSide.wrapsideLeft === nType) return "left";
 			if (EWrapSide.wrapsideRight === nType) return "right";
 			return null;
@@ -6262,6 +7635,7 @@
 			if (sVal === "text") return EVerticalAnchor.verticalanchorText;
 			return EVerticalAnchor.verticalanchorLine;
 		}
+
 		function getVerticalAnchor(nType) {
 			if (nType === EVerticalAnchor.verticalanchorLine) return "line";
 			if (nType === EVerticalAnchor.verticalanchorMargin) return "margin";
@@ -6278,6 +7652,7 @@
 			if (sVal === "text") return EHorizontalAnchor.horizontalanchorText;
 			return null;
 		}
+
 		function getHorizontalAnchor(nType) {
 			if (nType === EHorizontalAnchor.horizontalanchorChar) return "char";
 			if (nType === EHorizontalAnchor.horizontalanchorMargin) return "margin";
@@ -6285,7 +7660,6 @@
 			if (nType === EHorizontalAnchor.horizontalanchorText) return "text";
 			return null;
 		}
-
 
 
 		let EHorizontalAnchor =
@@ -6315,6 +7689,7 @@
 			if (sVal === "topAndBottom") return EWrapType.wraptypeTopAndBottom;
 			return EWrapType.wraptypeNone;
 		}
+
 		function getWrapType(nType) {
 			if (nType === EWrapType.wraptypeNone) return "none";
 			if (nType === EWrapType.wraptypeSquare) return "square";
@@ -6323,7 +7698,6 @@
 			if (nType === EWrapType.wraptypeTopAndBottom) return "topAndBottom";
 			return null;
 		}
-
 
 
 		let EVmlClientDataObjectType =
@@ -6372,6 +7746,7 @@
 			else if (("Spin") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeSpin;
 			return EVmlClientDataObjectType.vmlclientdataobjecttypeButton;
 		}
+
 		function getClientDataObjectType(nType) {
 			if (EVmlClientDataObjectType.vmlclientdataobjecttypeButton === nType) return ("Button");
 			else if (EVmlClientDataObjectType.vmlclientdataobjecttypeCheckbox === nType) return ("Checkbox");
