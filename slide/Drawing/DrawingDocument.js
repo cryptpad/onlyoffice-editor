@@ -3429,177 +3429,76 @@ function CDrawingDocument()
 		this.InlineTextInNotes = false;
 	};
 
-	this.privateGetParagraphByString = function(text, textPr, x, y, lineHeight, ctx, w, h)
-    {
-        var api = this.m_oWordControl.m_oApi;
-
-        History.TurnOff();
-        var oldViewMode = api.isViewMode;
-        var oldMarks = api.ShowParaMarks;
-
-        api.isViewMode = true;
-        api.ShowParaMarks = false;
-
-		var oNewShape = new AscFormat.CShape();
-		oNewShape.createTextBody();
-
-        var par = oNewShape.txBody.content.GetAllParagraphs()[0];
-        par.MoveCursorToStartPos();
-
-        //par.Pr = level.ParaPr.Copy();
-				par.Pr = new CParaPr();
-        textPr = textPr.Copy();
-        textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
-
-        var parRun = new ParaRun(par);
-        parRun.Set_Pr(textPr);
-        parRun.AddText(text);
-        par.AddToContent(0, parRun);
-
-        par.Reset(0, 0, 1000, 1000, 0, 0, 1);
-        par.Recalculate_Page(0);
-
-        var baseLineOffset = par.Lines[0].Y;
-        var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
-
-        var yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
-        var xOffset = x;
-
-		var backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
-
-        ctx.fillStyle = "#FFFFFF";
-		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-        ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
-        ctx.beginPath();
-
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-        var graphics = new AscCommon.CGraphics();
-        graphics.init(ctx,
-			AscCommon.AscBrowser.convertToRetinaValue(w, true),
-			AscCommon.AscBrowser.convertToRetinaValue(h, true),
-			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
-        graphics.m_oFontManager = AscCommon.g_fontManager;
-
-        graphics.m_oCoordTransform.tx = AscCommon.AscBrowser.convertToRetinaValue(xOffset, true);
-        graphics.m_oCoordTransform.ty = AscCommon.AscBrowser.convertToRetinaValue(yOffset, true);
-
-        graphics.transform(1, 0, 0, 1, 0, 0);
-
-        par.Draw(0, graphics);
-
-        ctx.restore();
-        ctx.restore();
-
-        History.TurnOn();
-        api.isViewMode = oldViewMode;
-        api.ShowParaMarks = oldMarks;
-    };
-
-	this.drawNoneTextPreview = function (divId, info) {
-		var canvas = this.getClearCanvasForPreview(divId);
-		if (!canvas) return;
-		var width_px = parseFloat(canvas.style.width);
-		var height_px = parseFloat(canvas.style.height);
-		const ctx = canvas.getContext("2d");
-		ctx.beginPath();
-
-
-		const lvl = info;
-		const text = lvl.bullet.getDrawingText();
-		const line_distance = (height_px === 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
-
-
-
-		const oNewShape = new AscFormat.CShape();
-		oNewShape.createTextBody();
-		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
-		par.MoveCursorToStartPos();
-
-		par.Pr = new CParaPr();
-
-
-		const parRun = new ParaRun(par);
-		const textPr = lvl.textPr.Copy();
-		textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
-		parRun.Set_Pr(textPr);
-		parRun.AddText(text);
-		par.AddToContent(0, parRun);
-
-		par.Reset(0, 0, 1000, 1000, 0, 0, 1);
-		par.Recalculate_Page(0);
-
-		const bounds = par.Get_PageBounds(0);
-
-		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
-		const parH = (bounds.Bottom - bounds.Top);
-		const x = (width_px - (parW >> 0)) >> 1;
-		const y = (height_px >> 1) + (parH >> 0);
-
-		this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
-	}
-
 	const textType = 0;
 	const bulletType = 1;
 	const bulletType_image = 0;
 	const bulletType_char = 1;
 	const numberType = 2;
 
-	this.getBulletArrayFromPreviewinfo = function (infoOfDrawings) {
-		const arrayOfBullets = [];
+	function CBulletPreviewDrawer(infoOfDrawings, type) {
+		this.arrayOfBullets = this.getBulletArrayFromPreviewInfo(infoOfDrawings);
+		this.infoOfDrawings = infoOfDrawings;
+		this.type = type;
+		this.isNeedCheckFonts = true;
+		this.api = editor || Asc.editor;
+	}
 
-		for (let i = 0; i < infoOfDrawings.length; i += 1) {
-			const drawInfo = infoOfDrawings[i];
-			const type = drawInfo.type;
-			const bullet = new CPresentationBullet();
-			const textPr = new CTextPr();
-			textPr.Color = g_oDocumentDefaultStrokeColor;
-			switch (type) {
-				case textType: {
-					const value = drawInfo.text;
-					const bulletText = AscCommon.translateManager.getValue(value);
-					bullet.m_nType = numbering_presentationnumfrmt_Char;
-					bullet.m_sChar = bulletText;
-					const fontName = AscFonts.FontPickerByCharacter.getFontBySymbol(bulletText.charCodeAt(0));
-					textPr.RFonts.SetAll(fontName);
-					arrayOfBullets.push({bullet: bullet, textPr: textPr});
-					break;
-				}
-				case bulletType: {
-					const typeOfBullet = drawInfo.bulletType;
-					if (typeOfBullet === bulletType_char) {
-						const bulletText	= drawInfo.Char;
-						const fontName = drawInfo.specialFont || AscFonts.FontPickerByCharacter.getFontBySymbol(drawInfo.Char.charCodeAt(0));
-						textPr.RFonts.SetAll(fontName);
+	CBulletPreviewDrawer.prototype.getBulletArrayFromPreviewInfo = function (infoOfDrawings) {
+		const arrayOfBullets = [];
+		AscFormat.ExecuteNoHistory(function () {
+			for (let i = 0; i < infoOfDrawings.length; i += 1) {
+				const drawInfo = infoOfDrawings[i];
+				const type = drawInfo.type;
+				const bullet = new CPresentationBullet();
+				const textPr = new CTextPr();
+				textPr.Color = g_oDocumentDefaultStrokeColor;
+				switch (type) {
+					case textType: {
+						const value = drawInfo.text;
+						const bulletText = AscCommon.translateManager.getValue(value);
 						bullet.m_nType = numbering_presentationnumfrmt_Char;
 						bullet.m_sChar = bulletText;
+						const fontName = AscFonts.FontPickerByCharacter.getFontBySymbol(bulletText.charCodeAt(0));
+						textPr.RFonts.SetAll(fontName);
 						arrayOfBullets.push({bullet: bullet, textPr: textPr});
-					} else if (typeOfBullet === bulletType_image) {
-						const bulletImageId	= drawInfo.imageId;
-						bullet.m_nType = numbering_presentationnumfrmt_Blip;
-						bullet.m_sSrc = bulletImageId;
-						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						break;
 					}
-					break;
-				}
-				case numberType: {
-					const typeOfNumbering = drawInfo.numberingType;
-					bullet.m_nType = bullet.convertFromAscTypeToPresentation(typeOfNumbering);
-					textPr.RFonts.SetAll('Arial');
-					arrayOfBullets.push({bullet: bullet, textPr: textPr});
-					break;
-				}
-				default: {
-					break;
+					case bulletType: {
+						const typeOfBullet = drawInfo.bulletType;
+						if (typeOfBullet === bulletType_char) {
+							const bulletText	= drawInfo.Char;
+							const fontName = drawInfo.specialFont || AscFonts.FontPickerByCharacter.getFontBySymbol(drawInfo.Char.getUnicodeIterator().value());
+							textPr.RFonts.SetAll(fontName);
+							bullet.m_nType = numbering_presentationnumfrmt_Char;
+							bullet.m_sChar = bulletText;
+							arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						} else if (typeOfBullet === bulletType_image) {
+							const bulletImageId	= drawInfo.imageId;
+							bullet.m_nType = numbering_presentationnumfrmt_Blip;
+							bullet.m_sSrc = bulletImageId;
+							arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						}
+						break;
+					}
+					case numberType: {
+						const typeOfNumbering = drawInfo.numberingType;
+						bullet.m_nType = bullet.convertFromAscTypeToPresentation(typeOfNumbering);
+						textPr.RFonts.SetAll('Arial');
+						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						break;
+					}
+					default: {
+						break;
+					}
 				}
 			}
-		}
 
+
+		}, this);
 		return arrayOfBullets;
 	}
 
-	this.getClearCanvasForPreview = function (divId) {
+	CBulletPreviewDrawer.prototype.getClearCanvasForPreview = function (divId) {
 		const divElement = document.getElementById(divId);
 		const width_px = divElement.clientWidth;
 		const height_px = divElement.clientHeight;
@@ -3624,94 +3523,220 @@ function CDrawingDocument()
 		return canvas;
 	}
 
-	this.drawSingleBullet = function (divId, numberInfo) {
-		var canvas = this.getClearCanvasForPreview(divId);
+	CBulletPreviewDrawer.prototype.drawSingleBullet = function (divId, numberInfo) {
+		const canvas = this.getClearCanvasForPreview(divId);
 		if (!canvas) return;
 
-		var width_px = parseFloat(canvas.style.width);
-		var height_px = parseFloat(canvas.style.height);
-		var ctx = canvas.getContext("2d");
+		const width_px = parseFloat(canvas.style.width);
+		const height_px = parseFloat(canvas.style.height);
+		const ctx = canvas.getContext("2d");
 		ctx.beginPath();
 
-		var line_distance = 32, x = 0, y = 0;
-		var bullet = numberInfo.bullet;
+		const line_distance = 32, x = 0, y = 0;
+		const bullet = numberInfo.bullet;
 
 
-		var textPr = numberInfo.textPr.Copy();
+		const textPr = numberInfo.textPr.Copy();
 		textPr.FontSize = textPr.FontSizeCS = ((2 * line_distance * 72 / 96) >> 0) / 2;
 		if (bullet.m_sSrc) {
-			var bul = new AscFormat.CBullet();
-			bul.fillBulletImage(bullet.m_sSrc);
-			bul.drawSquareImage(divId, 0.125);
+			const formatBullet = new AscFormat.CBullet();
+			formatBullet.fillBulletImage(bullet.m_sSrc);
+			formatBullet.drawSquareImage(divId, 0.125);
 		} else {
-			var text = bullet.getDrawingText();
+			const text = bullet.getDrawingText();
 			g_oTextMeasurer.SetTextPr(textPr);
 			g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
-			var oInfo = g_oTextMeasurer.Measure2Code(text.getUnicodeIterator().value());
+			const oInfo = g_oTextMeasurer.Measure2Code(text.getUnicodeIterator().value());
 
-			x = (width_px >> 1) - Math.round((oInfo.WidthG / 2 + oInfo.rasterOffsetX) * AscCommon.g_dKoef_mm_to_pix);
-			y = (width_px >> 1) + Math.round((oInfo.Height / 2 + (oInfo.Ascent - oInfo.Height + oInfo.rasterOffsetY)) * AscCommon.g_dKoef_mm_to_pix);
+			const x = (width_px >> 1) - Math.round((oInfo.WidthG / 2 + oInfo.rasterOffsetX) * AscCommon.g_dKoef_mm_to_pix);
+			const y = (width_px >> 1) + Math.round((oInfo.Height / 2 + (oInfo.Ascent - oInfo.Height + oInfo.rasterOffsetY)) * AscCommon.g_dKoef_mm_to_pix);
 			this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
 		}
 	}
 
-	this.drawBulletsWithLines = function (divId, numberInfo, countOfLines) {
-		var canvas = this.getClearCanvasForPreview(divId);
-		if (!canvas) return;
-		var textPr = numberInfo.textPr.Copy();
-		var bullet = numberInfo.bullet;
-		var width_px = parseFloat(canvas.style.width);
-		var height_px = parseFloat(canvas.style.height);
-		var ctx = canvas.getContext("2d");
+	CBulletPreviewDrawer.prototype.drawImageBulletsWithLines = function (bulletImageId, textPr, x, y, lineHeight, ctx, w, h) {
+		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		const fullImageSrc = AscCommon.getFullImageSrc2(bulletImageId);
+		const sizes = AscCommon.getSourceImageSize(fullImageSrc);
+
+		const imageHeight = sizes.height * rPR;
+		const imageWidth = sizes.width * rPR;
+		const adaptImageHeight = lineHeight * rPR;
+		const adaptImageWidth = (imageWidth * adaptImageHeight / (imageHeight ? imageHeight : 1));
+
+		const backTextWidth = adaptImageWidth / rPR + 4;
+		ctx.fillStyle = "#FFFFFF";
+		ctx.fillRect(Math.round(rPR * x), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
 		ctx.beginPath();
 
-		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-		var offsetBase = 4;
-		var line_w = 2;
+		const graphics = new AscCommon.CGraphics();
+		graphics.init(ctx,
+			AscCommon.AscBrowser.convertToRetinaValue(w, true),
+			AscCommon.AscBrowser.convertToRetinaValue(h, true),
+			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+		graphics.m_oFontManager = AscCommon.g_fontManager;
+
+		graphics.drawImage(fullImageSrc, x * rPR, y * rPR - (adaptImageHeight * (0.85)), adaptImageWidth, adaptImageHeight);
+	}
+
+	CBulletPreviewDrawer.prototype.drawBulletsWithLines = function (divId, numberInfo, countOfLines) {
+		const canvas = this.getClearCanvasForPreview(divId);
+		if (!canvas) return;
+		const textPr = numberInfo.textPr.Copy();
+		const bullet = numberInfo.bullet;
+		const width_px = parseFloat(canvas.style.width);
+		const height_px = parseFloat(canvas.style.height);
+		const ctx = canvas.getContext("2d");
+		ctx.beginPath();
+
+		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		const offsetBase = 4;
+		const line_w = 2;
 		// считаем расстояние между линиями
-		var line_distance = (((height_px - (offsetBase << 2)) - line_w * countOfLines) / countOfLines) >> 0;
+		const line_distance = (((height_px - (offsetBase << 2)) - line_w * countOfLines) / countOfLines) >> 0;
 		// убираем погрешность в offset
-		var offset = (height_px - (line_w * countOfLines + line_distance * countOfLines)) >> 1;
+		const offset = (height_px - (line_w * countOfLines + line_distance * countOfLines)) >> 1;
 
 		ctx.lineWidth = 2 * Math.round(rPR);
 		ctx.strokeStyle = "#CBCBCB";
-		var y = offset + 11;
-		var text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+		const text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
 
-		for (var j = 0; j < countOfLines; j++)
+		let y = offset + 11;
+		for (let j = 0; j < countOfLines; j++)
 		{
 			ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
 			ctx.stroke();
 			ctx.beginPath();
-			var textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
-				textYy = y + (line_w * 2.5);
+			const textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+			const	textYy = y + (line_w * 2.5);
 
-
-			this.privateGetParagraphByString(bullet.getDrawingText(j + 1), textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
-
+			if (bullet.m_sSrc) {
+				this.drawImageBulletsWithLines(bullet.m_sSrc, textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+			} else {
+				this.privateGetParagraphByString(bullet.getDrawingText(j + 1), textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+			}
+			y += (line_w + line_distance);
 		}
-
 	}
 
+	CBulletPreviewDrawer.prototype.drawNoneTextPreview = function (divId, info) {
+			const canvas = this.getClearCanvasForPreview(divId);
+			if (!canvas) return;
+			const width_px = parseFloat(canvas.style.width);
+			const height_px = parseFloat(canvas.style.height);
+			const ctx = canvas.getContext("2d");
+			ctx.beginPath();
 
-	this.SetDrawImagePreviewBulletForMenu2 = function(infoOfDrawings, type, props, isNoCheckFonts)
-	{
-		if (!props) {
-			props = this.getBulletArrayFromPreviewinfo(infoOfDrawings);
+
+			const lvl = info;
+			const text = lvl.bullet.getDrawingText();
+			const line_distance = (height_px === 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
+
+
+
+			const oNewShape = new AscFormat.CShape();
+			oNewShape.createTextBody();
+			const par = oNewShape.txBody.content.GetAllParagraphs()[0];
+			par.MoveCursorToStartPos();
+
+			par.Pr = new CParaPr();
+
+
+			const parRun = new ParaRun(par);
+			const textPr = lvl.textPr.Copy();
+			textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
+			parRun.Set_Pr(textPr);
+			parRun.AddText(text);
+			par.AddToContent(0, parRun);
+
+			par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+			par.Recalculate_Page(0);
+
+			const bounds = par.Get_PageBounds(0);
+
+			const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+			const parH = (bounds.Bottom - bounds.Top);
+			const x = (width_px - (parW >> 0)) >> 1;
+			const y = (height_px >> 1) + (parH >> 0);
+
+			this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
 		}
 
-		if (!isNoCheckFonts)
-		{
-			// check need load fonts
+	CBulletPreviewDrawer.prototype.privateGetParagraphByString = function(text, textPr, x, y, lineHeight, ctx, w, h)
+{
+		const api = this.api;
+
+		const oldViewMode = api.isViewMode;
+		const oldMarks = api.ShowParaMarks;
+
+		api.isViewMode = true;
+		api.ShowParaMarks = false;
+
+		const oNewShape = new AscFormat.CShape();
+		oNewShape.createTextBody();
+
+		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
+		par.MoveCursorToStartPos();
+
+		//par.Pr = level.ParaPr.Copy();
+		par.Pr = new CParaPr();
+		textPr = textPr.Copy();
+		textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
+
+		const parRun = new ParaRun(par);
+		parRun.Set_Pr(textPr);
+		parRun.AddText(text);
+		par.AddToContent(0, parRun);
+
+		par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+		par.Recalculate_Page(0);
+
+		const baseLineOffset = par.Lines[0].Y;
+		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+
+		const yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+		const xOffset = x;
+
+		const backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
+
+		ctx.fillStyle = "#FFFFFF";
+		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
+		ctx.beginPath();
+
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		const graphics = new AscCommon.CGraphics();
+		graphics.init(ctx,
+			AscCommon.AscBrowser.convertToRetinaValue(w, true),
+			AscCommon.AscBrowser.convertToRetinaValue(h, true),
+			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+		graphics.m_oFontManager = AscCommon.g_fontManager;
+
+		graphics.m_oCoordTransform.tx = AscCommon.AscBrowser.convertToRetinaValue(xOffset, true);
+		graphics.m_oCoordTransform.ty = AscCommon.AscBrowser.convertToRetinaValue(yOffset, true);
+
+		graphics.transform(1, 0, 0, 1, 0, 0);
+		par.Draw(0, graphics);
+
+		ctx.restore();
+		api.isViewMode = oldViewMode;
+		api.ShowParaMarks = oldMarks;
+};
+
+	CBulletPreviewDrawer.prototype.checkFonts = function (callback) {
+		this.isNeedCheckFonts = false;
+		const api = this.api;
 			const fontsDict = {};
-			for (let i = 0, count = props.length; i < count; i++)
+			for (let i = 0, count = this.arrayOfBullets.length; i < count; i++)
 			{
-				const bullet = props[i].bullet;
+				const bullet = this.arrayOfBullets[i].bullet;
 				const text = bullet.getDrawingText();
 				if (text) {
 					AscFonts.FontPickerByCharacter.checkTextLight(text);
 				}
-				var textPr = props[i].textPr;
+				const textPr = this.arrayOfBullets[i].textPr;
 				if (textPr && textPr.RFonts)
 				{
 					if (textPr.RFonts.Ascii) fontsDict[textPr.RFonts.Ascii.Name] = true;
@@ -3730,32 +3755,47 @@ function CDrawingDocument()
 
 			if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
 			{
-				return this.SetDrawImagePreviewBulletForMenu2(infoOfDrawings, type, props, true);
+				return callback();
 			}
 
 			const loader = new AscCommon.CGlobalFontLoader();
-			loader.put_Api(this.m_oWordControl.m_oApi);
+			loader.put_Api(api);
 			loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information, function(){
-				this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu2(infoOfDrawings, type, props, true);
+				callback();
 			});
-			return;
-		}
+	}
 
-		let id = infoOfDrawings[0].id;
-		this.drawNoneTextPreview(id, props[0]);
+	CBulletPreviewDrawer.prototype.draw = function () {
+		AscFormat.ExecuteNoHistory(function () {
+			const _this = this;
+			if (this.isNeedCheckFonts) {
+				this.checkFonts(function () {
+					_this.draw();
+				});
+				return;
+			}
+			let id = this.infoOfDrawings[0].id;
 
-		for (let i = 1; i < infoOfDrawings.length; i++)
-		{
-			id = infoOfDrawings[i].id;
-			if (!type)
+			this.drawNoneTextPreview(id, this.arrayOfBullets[0]);
+			for (let i = 1; i < this.infoOfDrawings.length; i++)
 			{
-				this.drawSingleBullet(id, props[i]);
+				id = this.infoOfDrawings[i].id;
+				if (!this.type)
+				{
+					this.drawSingleBullet(id, this.arrayOfBullets[i]);
+				}
+				else
+				{
+					this.drawBulletsWithLines(id, this.arrayOfBullets[i], 3);
+				}
 			}
-			else
-			{
-				this.drawBulletsWithLines(id, props[i], 3);
-			}
-		}
+		}, this);
+	};
+
+	this.SetDrawImagePreviewBulletForMenu2 = function(infoOfDrawings, type)
+	{
+		const bulletPreviewDrawer = new CBulletPreviewDrawer(infoOfDrawings, type);
+		bulletPreviewDrawer.draw();
 	};
 
 
