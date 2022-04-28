@@ -36,8 +36,9 @@
 {
 	const MEASURER = AscCommon.g_oTextMeasurer;
 	const COEF     = 25.4 / 72 / 64;
+	const LIGATURE = 2;
 
-	function ClusterLength(nCodePoint)
+	function ClusterCodePointLength(nCodePoint)
 	{
 		if (nCodePoint <= 0x0000007F)
 			return 1;
@@ -48,18 +49,31 @@
 
 		return 4;
 	}
+	function ClusterStringLength(sValue)
+	{
+		let nLen = 0;
+		for (let oIterator = sValue.getUnicodeIterator(); oIterator.check(); oIterator.next())
+		{
+			nLen += ClusterCodePointLength(oIterator.value());
+		}
+		return nLen;
+	}
 
 	/**
 	 * @param nGID
 	 * @param nAdvanceX
 	 * @param nAdvanceY
+	 * @param nOffsetX
+	 * @param nOffsetY
 	 * @constructor
 	 */
-	function CGlyph(nGID, nAdvanceX, nAdvanceY)
+	function CGlyph(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
 	{
 		this.GID      = nGID;
 		this.AdvanceX = nAdvanceX;
 		this.AdvanceY = nAdvanceY;
+		this.OffsetX  = nOffsetX;
+		this.OffsetY  = nOffsetY;
 	}
 
 	/**
@@ -163,12 +177,7 @@
 		for (let nSegment = 0, nSegmentsCount = arrSegments.length; nSegment < nSegmentsCount; ++nSegment)
 		{
 			let oSegment = arrSegments[nSegment];
-			let nClusterMax = 0;
-
-			for (var oIterator = oSegment.text.getUnicodeIterator(); oIterator.check(); oIterator.next())
-			{
-				nClusterMax += ClusterLength(oIterator.value());
-			}
+			let nClusterMax = ClusterStringLength(oSegment.text);
 
 			MEASURER.SetFontInternal(oSegment.font, this.TextPr.FontSize, 0);
 
@@ -182,53 +191,38 @@
 
 				let nStartChar = this.Items[nCharIndex];
 
-				this.Items[nCharIndex].SetGrapheme(oGlyph.gid, oSegment.font, nGraphemeWidth);
+				let oGrapheme = new CGrapheme(oSegment.font);
+				oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset, oGlyph.y_offset);
 
-				// TODO: Поменять на нормальную проверку CombiningMark
-				if (oGlyph.x_advance < 0.001)
-				{
-					let nTempGID = MEASURER.m_oManager.m_pFont.GetGIDByUnicode(0x25CC)
-					if (nTempGID)
-					{
-						let nTempW = MEASURER.m_oManager.m_pFont.GetChar(0x25CC).fAdvanceX * 25.4 / 72;
-						this.Items[nCharIndex].SetBaseGrapheme(nTempGID, nTempW);
-					}
-				}
+				let isLigature = LIGATURE === oGlyph.type;
 
+				this.Items[nCharIndex].SetGrapheme(oGrapheme);
 
-				nCluster += ClusterLength(this.Items[nCharIndex].GetCodePoint());
+				nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
 				nCharIndex++;
 
-				let arrMarks = [];
-				while (nCharIndex < this.Buffer.length && nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
+				while (nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
 				{
-					let nCombineW = Math.max(0, oSegment.glyphs[nGlyphIndex + 1].x_advance * COEF);
-					nStartChar.AddWidth(nCombineW);
+					oGlyph = oSegment.glyphs[++nGlyphIndex];
+					oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset, oGlyph.y_offset);
 
-					for (let nMarkIndex = 0, nMarksCount = arrMarks.length; nMarkIndex < nMarksCount; ++nMarkIndex)
-					{
-						arrMarks[nMarkIndex].AddShift(-nCombineW, 0);
-					}
-
-					nGlyphIndex++;
-					this.Items[nCharIndex].SetGrapheme(oSegment.glyphs[nGlyphIndex].gid, oSegment.font, 0);
-					this.Items[nCharIndex].SetShift(-nCombineW, 0);
-					arrMarks.push(this.Items[nCharIndex]);
-					nCluster += ClusterLength(this.Items[nCharIndex].GetCodePoint());
-					nCharIndex++;
+					nGraphemeWidth += oGlyph.x_advance * COEF;
 				}
+
+				nStartChar.SetWidth(nGraphemeWidth);
 
 				let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nClusterMax : oSegment.glyphs[nGlyphIndex + 1].cluster;
 				while (nCluster < nNextCluster && nCharIndex < this.Items.length)
 				{
 					arrLigature.push(this.Items[nCharIndex]);
-					this.Items[nCharIndex].SetGrapheme(0, 0, 0);
-					nCluster += ClusterLength(this.Items[nCharIndex].GetCodePoint());
+					this.Items[nCharIndex].SetGrapheme(null);
+					this.Items[nCharIndex].SetWidth(0);
+					nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
 					nCharIndex++;
 				}
 
 				let nLigatureLen = arrLigature.length;
-				if (nLigatureLen > 1)
+				if (nLigatureLen > 1 && isLigature)
 				{
 					for (let nLigatureIndex = 0; nLigatureIndex < nLigatureLen; ++nLigatureIndex)
 					{

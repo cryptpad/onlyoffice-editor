@@ -419,10 +419,10 @@ function ParaText(nCharCode)
 	CRunElementBase.call(this);
 
 	this.Value        = undefined !== nCharCode ? nCharCode : 0x00;
-	this.GID          = 0;
 	this.Width        = 0x00000000 | 0;
 	this.WidthVisible = 0x00000000 | 0;
 	this.Flags        = 0x00000000 | 0;
+	this.Grapheme     = null;
 
 	this.Set_SpaceAfter(this.private_IsSpaceAfter());
 
@@ -449,33 +449,16 @@ ParaText.prototype.GetCodePoint = function()
 {
 	return this.Value;
 };
-ParaText.prototype.SetGrapheme = function(nGID, sFont, nWidth)
+ParaText.prototype.SetGrapheme = function(oGrapheme)
 {
-	this.GID          = nGID;
-	this.BaseGID      = 0;
-	this.Width        = (nWidth * TEXTWIDTH_DIVIDER) | 0;
-	this.WidthVisible = this.Width;
-	this.Font         = sFont;
-};
-ParaText.prototype.SetShift = function(nX, nY)
-{
-	this.ShiftX = (nX * TEXTWIDTH_DIVIDER) | 0;
-	this.ShiftY = (nY * TEXTWIDTH_DIVIDER) | 0;
-};
-ParaText.prototype.AddShift = function(nX, nY)
-{
-	this.ShiftX += (nX * TEXTWIDTH_DIVIDER) | 0;
-	this.ShiftY += (nY * TEXTWIDTH_DIVIDER) | 0;
-};
-ParaText.prototype.SetBaseGrapheme = function(nGID, nWidth)
-{
-	this.BaseGID = nGID;
-	this.Width   = (nWidth * TEXTWIDTH_DIVIDER) | 0;
+	this.Grapheme = oGrapheme;
 };
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
-	if (!this.GID)
-		return;
+	if (this.Grapheme)
+		this.Grapheme.Draw(Context, X, Y);
+
+	return;
 
 	if (undefined !== this.LGap)
 	{
@@ -497,28 +480,8 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 
 	var ResultCharCode = (this.Flags & PARATEXT_FLAGS_CAPITALS ? (String.fromCharCode(CharCode).toUpperCase()).charCodeAt(0) : CharCode);
 
-	ResultCharCode = this.GID;
-
-	if (this.ShiftX)
-		X += this.ShiftX / TEXTWIDTH_DIVIDER;
-
-	if (this.ShiftY)
-		Y += this.ShiftY / TEXTWIDTH_DIVIDER;
-
 	if (true !== this.IsNBSP())
-	{
-		Context.m_oGrFonts.Ascii.Name = this.Font;
-		Context.m_oGrFonts.Ascii.Index = -1;
-		Context.SetFontSlot(fontslot_ASCII, 1);
-
-		if (this.BaseGID)
-		{
-			Context.tg(this.BaseGID, X, Y);
-			X += this.GetWidth();
-		}
-
-		Context.tg(ResultCharCode, X, Y);//Context.FillTextCode(X, Y, ResultCharCode);
-	}
+		Context.FillTextCode(X, Y, ResultCharCode);
 	else if (editor && editor.ShowParaMarks)
 		Context.FillText(X, Y, String.fromCharCode(0x00B0));
 };
