@@ -1772,6 +1772,7 @@
 		};
 		CVmlCommonElements.prototype.readChildXml = function (name, reader) {
 			let oItem = null;
+			let client_data;
 			if ("callout" === name)
 				oItem = new CCallout();
 			else if ("clippath" === name)
@@ -1817,11 +1818,13 @@
 			else if ("wrap" === name)
 				oItem = new CWrap();
 			else if ("ClientData" === name)
-				oItem = new CClientData();
+				client_data = oItem = new CClientData();
 			if (oItem) {
 				oItem.fromXml(reader);
 			}
 			this.items.push(oItem);
+			if ((client_data) && client_data.m_oObjectType === EVmlClientDataObjectType.vmlclientdataobjecttypeNote)
+					this.m_bComment = true;
 
 		};
 		CVmlCommonElements.prototype.writeAttrXmlImpl = function (writer) {
@@ -4571,44 +4574,87 @@
 		};
 
 
+		function _vml_shape()
+		{
+			this.nId = null;		// for comments
+			this.sXml = null;		// for pptx
+			this.pElement = null;	// for docx/xlsx
+			this.bUsed = false;		// for single drawing
+		}
+
+
 		function CVMLDrawing() {
 			CBaseNoId.call(this);
-			this.items = []
+			this.items = [];
+
+			this.m_oReadPath = null;
+			this.m_mapShapes = {};
+			this.m_arrShapeTypes = [];
+//writing
+			this.m_mapComments = {};
+			this.m_arObjectXml = [];
+			this.m_arControlXml = [];
+
+			this.m_lObjectIdVML = null;
 		}
 
 		IC(CVMLDrawing, CBaseNoId, 0);
-
+		CVMLDrawing.prototype.fromXml = function (reader, bSkipFirstNode) {
+			if (bSkipFirstNode) {
+				if (!reader.ReadNextNode()) {
+					return;
+				}
+			}
+			this.readAttr(reader);
+			this.elementContent ="";
+			this.bReadyElement = false;
+			let depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				let name = reader.GetNameNoNS();
+				this.readChildXml(name, reader);
+			}
+		};
 		CVMLDrawing.prototype.readChildXml = function (name, reader) {
 			let oItem;
 			if ("arc" === name) {
 				oItem = new CArc();
+				 this.bReadyElement = true;
 			}
 			if ("curve" === name) {
 				oItem = new CCurve();
+				 this.bReadyElement = true;
 			}
 			if ("group" === name) {
 				oItem = new CGroup();
+				 this.bReadyElement = true;
 			}
 			if ("image" === name) {
 				oItem = new CImage();
+				 this.bReadyElement = true;
 			}
 			if ("line" === name) {
 				oItem = new CLine();
+				 this.bReadyElement = true;
 			}
 			if ("oval" === name) {
 				oItem = new COval();
+				 this.bReadyElement = true;
 			}
 			if ("polyline" === name) {
 				oItem = new CPolyLine();
+				 this.bReadyElement = true;
 			}
 			if ("rect" === name) {
 				oItem = new CRect();
+				 this.bReadyElement = true;
 			}
 			if ("roundrect" === name) {
 				oItem = new CRoundRect();
+				 this.bReadyElement = true;
 			}
 			if ("shape" === name) {
 				oItem = new CShape();
+				 this.bReadyElement = true;
 			}
 			if ("shapetype" === name) {
 				oItem = new CShapeType();
@@ -4616,9 +4662,182 @@
 			if (oItem) {
 				oItem.fromXml(reader);
 				this.items.push(oItem);
+
+
+
+				let common = oItem;
+				let sSpid;
+				let bComment = false;
+
+				if (common)
+				{
+					if (common.m_sSpId !== null)	sSpid = common.m_sSpId;
+				else if (common.m_sId !== null)sSpid = common.m_sId;
+
+					bComment = common.m_bComment;
+				}
+				if ( this.bReadyElement)
+				{
+					if (sSpid && sSpid !== "")
+					{
+						let element = new _vml_shape();
+
+						element.nId			= this.items.length - 1;
+						element.sXml		= this.elementContent;
+						element.pElement	= oItem;
+						element.bUsed       = bComment;
+
+						this.m_mapShapes[sSpid] = element;
+					}
+					this.elementContent = "";
+					 this.bReadyElement   = false;
+					bComment        = false;
+				}
+				else
+				{
+					let element = new _vml_shape();
+					element.nId			= -1;
+					element.sXml		= this.elementContent;
+					element.pElement	= oItem;
+					element.bUsed       = false;
+					this.m_arrShapeTypes.push(element);
+				}
 			}
 		};
 		CVMLDrawing.prototype.writeChildren = function (writer) {
+		};
+
+		function isEmptyObject(oObj) {
+			if(!oObj) {
+				return false;
+			}
+			for(let sKey in oObj) {
+				if(oObj.hasOwnProperty(sKey)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		CVMLDrawing.prototype.getXmlString = function() {
+			if((!this.m_mapComments || isEmptyObject(this.m_mapComments)) && isEmptyObject(this.m_arObjectXml) && isEmptyObject(this.m_arControlXml))
+				return "";
+
+			let sXml = "";
+			sXml += "<xml \
+xmlns:v=\"urn:schemas-microsoft-com:vml\" \
+xmlns:o=\"urn:schemas-microsoft-com:office:office\" \
+xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
+
+			for (let i = 0; i < this.m_arObjectXml.length; ++i)
+			{
+				sXml += (this.m_arObjectXml[i]);
+			}
+
+			if (false ===isEmptyObject(this.m_arControlXml) || ((null !== this.m_mapComments) && (false === isEmptyObject(this.m_mapComments))))
+			{
+				sXml += ("<o:shapelayout v:ext=\"edit\"><o:idmap v:ext=\"edit\" data=\"1\"/></o:shapelayout>");
+			}
+
+			if (this.m_arControlXml.length > 0)
+			{
+
+				sXml += ("<v:shapetype id=\"_x0000_t201\" coordsize=\"21600,21600\" o:spt=\"201\"");
+				sXml += (" path=\"m,l,21600r21600,l21600,xe\"><v:stroke joinstyle=\"miter\"/>");
+				sXml += ("<v:path shadowok=\"f\" o:extrusionok=\"f\" strokeok=\"f\" fillok=\"f\" o:connecttype=\"rect\"/>");
+				sXml += ("<o:lock v:ext=\"edit\" shapetype=\"t\"/></v:shapetype>");
+
+				for (let i = 0; i < this.m_arControlXml.length; ++i)
+				{
+					sXml += (this.m_arControlXml[i]);
+				}
+			}
+
+			let nIndex = this.m_lObjectIdVML + 1;
+			if ((null !== this.m_mapComments) && (false === isEmptyObject(this.m_mapComments)))
+			{
+				sXml += ("<v:shapetype id=\"_x0000_t202\" coordsize=\"21600,21600\" o:spt=\"202\"");
+				sXml += (" path=\"m,l,21600r21600,l21600,xe\">");
+				sXml += ("<v:stroke joinstyle=\"miter\"/><v:path gradientshapeok=\"t\" o:connecttype=\"rect\"/></v:shapetype>");
+
+				for (let sKey in this.m_mapComments)
+				{
+					let comment = this.m_mapComments[sKey];
+					let sStyle = "";
+					if(comment.m_dLeftMM !== null)
+					{
+						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dLeftMM);
+						sStyle += "margin-left:" + oPoint.ToPoints() + "pt;";
+					}
+					if(comment.m_dTopMM !== null)
+					{
+						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dTopMM);
+						sStyle += "margin-top:" + oPoint.ToPoints() + "pt;";
+					}
+					if(comment.m_dWidthMM !== null)
+					{
+						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dWidthMM);
+						sStyle += "width:" + oPoint.ToPoints() + "pt;";
+					}
+					if(comment.m_dHeightMM !== null)
+					{
+						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dHeightMM);
+						sStyle += "height:" + oPoint.ToPoints() + "pt;";
+					}
+					let sClientData = "<x:ClientData ObjectType=\"Note\">";
+
+					if(comment.m_bMove !== null && true === comment.m_bMove)
+						sClientData += "<x:MoveWithCells/>";
+
+					if(comment.m_bSize !== null && true === comment.m_bSize)
+						sClientData += "<x:SizeWithCells/>";
+
+					if( comment.m_nLeft !== null   && comment.m_nLeftOffset !== null  &&
+						comment.m_nTop !== null    && comment.m_nTopOffset !== null   &&
+						comment.m_nRight !== null  && comment.m_nRightOffset !== null &&
+						comment.m_nBottom !== null && comment.m_nBottomOffset !== null)
+					{
+						sClientData += "<x:Anchor>";
+						sClientData += (comment.m_nLeft)          + ",";
+						sClientData += (comment.m_nLeftOffset)    + ",";
+						sClientData += (comment.m_nTop)           + ",";
+						sClientData += (comment.m_nTopOffset)     + ",";
+						sClientData += (comment.m_nRight)         + ",";
+						sClientData += (comment.m_nRightOffset)   + ",";
+						sClientData += (comment.m_nBottom)        + ",";
+						sClientData += (comment.m_nBottomOffset);
+						sClientData += "</x:Anchor>";
+					}
+					sClientData += "<x:AutoFill>False</x:AutoFill>";
+
+					if(comment.m_nRow !== null)
+						sClientData += "<x:Row>" + (comment.m_nRow) + "</x:Row>";
+
+					if(comment.m_nCol !== null)
+						sClientData += "<x:Column>" + (comment.m_nCol) + "</x:Column>";
+
+					sClientData += "</x:ClientData>";
+
+					let sGfxdata = "";
+					if(comment.m_sGfxdata !== null)
+						sGfxdata = "o:gfxdata=\"" + comment.m_sGfxdata + "\"";
+
+					let sShape = "";
+					sShape += "<v:shape id=\"_x0000_s" + (nIndex++) + " \" type=\"#_x0000_t202\" style='position:absolute;";
+					sShape += sStyle;
+					sShape += "z-index:4;visibility:hidden' ";
+					sShape += sGfxdata;
+					sShape += " fillcolor=\"#ffffe1\" o:insetmode=\"auto\"><v:fill color2=\"#ffffe1\"/><v:shadow on=\"t\" color=\"black\" obscured=\"t\"/><v:path o:connecttype=\"none\"/><v:textbox style='mso-direction-alt:auto'><div style='text-align:left'></div></v:textbox>";
+					sShape += sClientData;
+					sShape += "</v:shape>";
+
+					sXml += (sShape);
+				}
+			}
+			sXml += ("</xml>");
+			return sXml;
+		};
+		CVMLDrawing.prototype.write = function (writer) {
+			writer.WriteXmlString(this.getXmlString());
 		};
 
 
