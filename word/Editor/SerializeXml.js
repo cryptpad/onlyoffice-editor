@@ -46,8 +46,41 @@
 
 		let reader;
 		var doc = new openXml.OpenXmlPackage(zip, null);
+
+		let appPart = doc.getPartByRelationshipType(openXml.Types.extendedFileProperties.relationType);
+		if (appPart) {
+			let appContent = appPart.getDocumentContent();
+			reader = new StaxParser(appContent, appPart, context);
+			this.App = new AscCommon.CApp();
+			this.App.fromXml(reader, true);
+		}
+
+		let corePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
+		if (corePart) {
+			let coreContent = corePart.getDocumentContent();
+			reader = new StaxParser(coreContent, corePart, context);
+			this.Core = new AscCommon.CCore();
+			this.Core.fromXml(reader, true);
+		}
+
+		let customPrPart = doc.getPartByRelationshipType(openXml.Types.customFileProperties.relationType);
+		if (customPrPart) {
+			let customPrPartContent = customPrPart.getDocumentContent();
+			reader = new StaxParser(customPrPartContent, customPrPart, context);
+			this.CustomProperties = new AscCommon.CCustomProperties();
+			this.CustomProperties.fromXml(reader, true);
+		}
+
 		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
 		if (documentPart) {
+			var themePart = documentPart.getPartByRelationshipType(openXml.Types.theme.relationType);
+			if (themePart) {
+				var themePartContent = themePart.getDocumentContent();
+				reader = new StaxParser(themePartContent, themePart, context);
+				this.theme = new AscFormat.CTheme();
+				this.theme.fromXml(reader, true);
+			}
+
 			var stylesPart = documentPart.getPartByRelationshipType(openXml.Types.styles.relationType);
 			if (stylesPart) {
 				var contentStyles = stylesPart.getDocumentContent();
@@ -3564,7 +3597,7 @@
 	CAbstractNum.prototype.fromXml = function(reader, additional) {
 		var oReadResult = reader.context.oReadResult;
 		this.readAttr(reader, additional);
-		var elem, index = 0, depth = reader.GetDepth();
+		let elem, index = 0, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			//todo alter
 			switch (reader.GetNameNoNS()) {
