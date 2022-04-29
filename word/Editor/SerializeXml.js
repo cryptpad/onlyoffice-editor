@@ -1949,6 +1949,61 @@
 		// writer.WriteXmlNullableAttributeNumber("w:firstLineChars", this.Firstlinechars);
 		writer.WriteXmlAttributesEnd(true);
 	};
+	ParaRun.prototype.readDrawing = function(reader) {
+		var oParagraph = this.GetParagraph();
+		var drawing = new ParaDrawing(0, 0, null, oParagraph.Parent.DrawingDocument, oParagraph.Parent, oParagraph);
+		drawing.fromXml(reader);
+		if (null != drawing.GraphicObj) {
+			let newItem = drawing;
+			let oParaDrawing = drawing;
+			if (null != oParaDrawing.SimplePos)
+				oParaDrawing.setSimplePos(oParaDrawing.SimplePos.Use, oParaDrawing.SimplePos.X, oParaDrawing.SimplePos.Y);
+			if (null != oParaDrawing.Extent)
+				oParaDrawing.setExtent(oParaDrawing.Extent.W, oParaDrawing.Extent.H);
+			if (null != oParaDrawing.wrappingPolygon)
+				oParaDrawing.addWrapPolygon(oParaDrawing.wrappingPolygon);
+			// if (oDrawing.ParaMath)
+			// 	oParaDrawing.Set_ParaMath(oDrawing.ParaMath);
+
+			if (oParaDrawing.GraphicObj) {
+				// if (oParaDrawing.GraphicObj.setLocks && graphicFramePr.locks > 0) {
+				// 	oParaDrawing.GraphicObj.setLocks(graphicFramePr.locks);
+				// }
+				if (oParaDrawing.GraphicObj.getObjectType() !== AscDFH.historyitem_type_ChartSpace)//диаграммы могут быть без spPr
+				{
+					if (!oParaDrawing.GraphicObj.spPr) {
+						oParaDrawing.GraphicObj = null;
+					}
+				}
+				if (AscCommon.isRealObject(oParaDrawing.docPr) && oParaDrawing.docPr.isHidden) {
+					oParaDrawing.GraphicObj = null;
+				}
+				if (oParaDrawing.GraphicObj) {
+					if (oParaDrawing.GraphicObj.bEmptyTransform) {
+						var oXfrm = new AscFormat.CXfrm();
+						oXfrm.setOffX(0);
+						oXfrm.setOffY(0);
+						oXfrm.setChOffX(0);
+						oXfrm.setChOffY(0);
+						oXfrm.setExtX(oParaDrawing.Extent.W);
+						oXfrm.setExtY(oParaDrawing.Extent.H);
+						oXfrm.setChExtX(oParaDrawing.Extent.W);
+						oXfrm.setChExtY(oParaDrawing.Extent.H);
+						oXfrm.setParent(oParaDrawing.GraphicObj.spPr);
+						oParaDrawing.GraphicObj.spPr.setXfrm(oXfrm);
+						delete oParaDrawing.GraphicObj.bEmptyTransform;
+					}
+					if (drawing_Anchor == oParaDrawing.DrawingType && typeof AscCommon.History.RecalcData_Add === "function")//TODO некорректная проверка typeof
+						AscCommon.History.RecalcData_Add({
+							Type: AscDFH.historyitem_recalctype_Flow,
+							Data: oParaDrawing
+						});
+				}
+			}
+			return newItem;
+		}
+		return null;
+	};
 	ParaRun.prototype.fromXml = function(reader) {
 		let oReadResult = reader.context.oReadResult;
 		let footnotes = oReadResult.footnotes;
@@ -1979,59 +2034,23 @@
 				case "delText":
 					break;
 				case "drawing":
-					var oParagraph = this.GetParagraph();
-					var drawing = new ParaDrawing(0, 0, null, oParagraph.Parent.DrawingDocument, oParagraph.Parent, oParagraph);
-					drawing.fromXml(reader);
-					if (null != drawing.GraphicObj) {
-						newItem = drawing;
-						let oParaDrawing = drawing;
-						if(null != oParaDrawing.SimplePos)
-							oParaDrawing.setSimplePos(oParaDrawing.SimplePos.Use, oParaDrawing.SimplePos.X, oParaDrawing.SimplePos.Y);
-						if(null != oParaDrawing.Extent)
-							oParaDrawing.setExtent(oParaDrawing.Extent.W, oParaDrawing.Extent.H);
-						if(null != oParaDrawing.wrappingPolygon)
-							oParaDrawing.addWrapPolygon(oParaDrawing.wrappingPolygon);
-						// if (oDrawing.ParaMath)
-						// 	oParaDrawing.Set_ParaMath(oDrawing.ParaMath);
-
-						if(oParaDrawing.GraphicObj)
-						{
-							// if (oParaDrawing.GraphicObj.setLocks && graphicFramePr.locks > 0) {
-							// 	oParaDrawing.GraphicObj.setLocks(graphicFramePr.locks);
-							// }
-							if(oParaDrawing.GraphicObj.getObjectType() !== AscDFH.historyitem_type_ChartSpace)//диаграммы могут быть без spPr
-							{
-								if(!oParaDrawing.GraphicObj.spPr)
-								{
-									oParaDrawing.GraphicObj = null;
+					newItem = this.readDrawing(reader);
+					break;
+				case "AlternateContent":
+					let oRun = this;
+					let elem = new CT_XmlNode(function(reader, name) {
+						if ("Choice" === name) {
+							let elem = new CT_XmlNode(function(reader, name) {
+								if ("drawing" === name) {
+									newItem = oRun.readDrawing(reader);
 								}
-							}
-							if(AscCommon.isRealObject(oParaDrawing.docPr) && oParaDrawing.docPr.isHidden)
-							{
-								oParaDrawing.GraphicObj = null;
-							}
-							if(oParaDrawing.GraphicObj)
-							{
-								if(oParaDrawing.GraphicObj.bEmptyTransform)
-								{
-									var oXfrm = new AscFormat.CXfrm();
-									oXfrm.setOffX(0);
-									oXfrm.setOffY(0);
-									oXfrm.setChOffX(0);
-									oXfrm.setChOffY(0);
-									oXfrm.setExtX(oParaDrawing.Extent.W);
-									oXfrm.setExtY(oParaDrawing.Extent.H);
-									oXfrm.setChExtX(oParaDrawing.Extent.W);
-									oXfrm.setChExtY(oParaDrawing.Extent.H);
-									oXfrm.setParent(oParaDrawing.GraphicObj.spPr);
-									oParaDrawing.GraphicObj.spPr.setXfrm(oXfrm);
-									delete oParaDrawing.GraphicObj.bEmptyTransform;
-								}
-								if(drawing_Anchor == oParaDrawing.DrawingType && typeof AscCommon.History.RecalcData_Add === "function")//TODO некорректная проверка typeof
-									AscCommon.History.RecalcData_Add( { Type : AscDFH.historyitem_recalctype_Flow, Data : oParaDrawing});
-							}
+								return new CT_XmlNode();
+							});
+							elem.fromXml(reader);
+							return elem;
 						}
-					}
+					});
+					elem.fromXml(reader);
 					break;
 				case "endnoteRef":
 					newItem = new ParaEndnoteRef(null);

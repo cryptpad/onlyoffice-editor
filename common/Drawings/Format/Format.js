@@ -3250,106 +3250,6 @@
 
 			return sRasterImageId;
 		};
-		CBlipFill.prototype.getBase64RasterImageId = function (bReduce) {
-			var sRasterImageId = this.RasterImageId;
-			if (typeof sRasterImageId !== "string" || sRasterImageId.length === 0) {
-				return null;
-			}
-			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.index("base64") > 0) {
-				return sRasterImageId;
-			}
-			var oApi = Asc.editor || editor;
-			var sDefaultResult = sRasterImageId;
-			if (!oApi) {
-				return sDefaultResult;
-			}
-			var oImageLoader = oApi.ImageLoader;
-			if (!oImageLoader) {
-				return sDefaultResult;
-			}
-			var oImage = oImageLoader.map_image_index[AscCommon.getFullImageSrc2(sRasterImageId)];
-			if (!oImage || !oImage.Image || oImage.Status !== AscFonts.ImageLoadStatus.Complete) {
-				return sDefaultResult;
-			}
-			var sResult = sDefaultResult;
-			if (!window["NATIVE_EDITOR_ENJINE"]) {
-				var oCanvas = document.createElement("canvas");
-				var nW = Math.max(oImage.Image.width, 1);
-				var nH = Math.max(oImage.Image.height, 1);
-				if (bReduce) {
-					var nMaxSize = 640;
-					var dWK = nW / nMaxSize;
-					var dHK = nH / nMaxSize;
-					var dK = Math.max(dWK, dHK);
-					if (dK > 1) {
-						nW = ((nW / dK) + 0.5 >> 0);
-						nH = ((nH / dK) + 0.5 >> 0);
-					}
-				}
-				oCanvas.width = nW;
-				oCanvas.height = nH;
-				var oCtx = oCanvas.getContext("2d");
-				oCtx.drawImage(oImage.Image, 0, 0, oCanvas.width, oCanvas.height);
-				try {
-					sResult = oCanvas.toDataURL("image/png");
-				} catch (err) {
-					sResult = sDefaultResult;
-				}
-				return sResult;
-			}
-
-			return sRasterImageId;
-		};
-		CBlipFill.prototype.getBase64RasterImageId = function (bReduce) {
-			var sRasterImageId = this.RasterImageId;
-			if (typeof sRasterImageId !== "string" || sRasterImageId.length === 0) {
-				return null;
-			}
-			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.index("base64") > 0) {
-				return sRasterImageId;
-			}
-			var oApi = Asc.editor || editor;
-			var sDefaultResult = sRasterImageId;
-			if (!oApi) {
-				return sDefaultResult;
-			}
-			var oImageLoader = oApi.ImageLoader;
-			if (!oImageLoader) {
-				return sDefaultResult;
-			}
-			var oImage = oImageLoader.map_image_index[AscCommon.getFullImageSrc2(sRasterImageId)];
-			if (!oImage || !oImage.Image || oImage.Status !== AscFonts.ImageLoadStatus.Complete) {
-				return sDefaultResult;
-			}
-			var sResult = sDefaultResult;
-			if (!window["NATIVE_EDITOR_ENJINE"]) {
-				var oCanvas = document.createElement("canvas");
-				var nW = Math.max(oImage.Image.width, 1);
-				var nH = Math.max(oImage.Image.height, 1);
-				if (bReduce) {
-					var nMaxSize = 640;
-					var dWK = nW / nMaxSize;
-					var dHK = nH / nMaxSize;
-					var dK = Math.max(dWK, dHK);
-					if (dK > 1) {
-						nW = ((nW / dK) + 0.5 >> 0);
-						nH = ((nH / dK) + 0.5 >> 0);
-					}
-				}
-				oCanvas.width = nW;
-				oCanvas.height = nH;
-				var oCtx = oCanvas.getContext("2d");
-				oCtx.drawImage(oImage.Image, 0, 0, oCanvas.width, oCanvas.height);
-				try {
-					sResult = oCanvas.toDataURL("image/png");
-				} catch (err) {
-					sResult = sDefaultResult;
-				}
-				return sResult;
-			}
-
-			return sRasterImageId;
-		};
 		CBlipFill.prototype.readAttrXml = function (name, reader) {
 			if (name === "rotWithShape") {
 				this.rotWithShape = reader.GetValueBool();
@@ -6389,9 +6289,6 @@
 				this.fill.fromXml(reader);
 			}
 		};
-		CUniFill.prototype.toXml = function (writer, name) {
-			//Implement in children
-		};
 		CUniFill.prototype.FILL_NAMES = {
 			"blipFill": true,
 			"gradFill": true,
@@ -6453,11 +6350,12 @@
 		// 			break;
 		// 	}
 		// };
-		CUniFill.prototype.toXml = function(writer)
+		CUniFill.prototype.toXml = function(writer, ns)
 		{
 			var fill = this.fill;
 			if (!fill)
 				return;
+			fill.toXml(writer, ns);
 			switch (fill.type)
 			{
 				case c_oAscFill.FILL_TYPE_NOFILL:break;
@@ -9452,6 +9350,22 @@
 		CLR_IDX_MAP["hlink"] = 11;
 		CLR_IDX_MAP["folHlink"] = 10;
 
+
+
+		let CLR_NAME_MAP = {};
+		CLR_NAME_MAP[8] ="dk1";
+		CLR_NAME_MAP[12] ="lt1";
+		CLR_NAME_MAP[9] ="dk2";
+		CLR_NAME_MAP[13] ="lt2";
+		CLR_NAME_MAP[0] = "accent1";
+		CLR_NAME_MAP[1] = "accent2";
+		CLR_NAME_MAP[2] = "accent3";
+		CLR_NAME_MAP[3] = "accent4";
+		CLR_NAME_MAP[4] = "accent5";
+		CLR_NAME_MAP[5] = "accent6";
+		CLR_NAME_MAP[11] = "hlink";
+		CLR_NAME_MAP[10] = "folHlink";
+
 		function ClrScheme() {
 			CBaseNoIdObject.call(this);
 			this.name = "";
@@ -9544,10 +9458,18 @@
 			}
 		};
 		ClrScheme.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 		};
 		ClrScheme.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			for(let nIdx = 0; nIdx < this.colors.length; ++nIdx) {
+				let oColor = this.colors[nIdx];
+				if(oColor) {
+					let sName = CLR_NAME_MAP[nIdx];
+					if(sName) {
+						oColor.toXml(writer, "a:" + sName);
+					}
+				}
+			}
 		};
 
 		function ClrMap() {
@@ -10116,10 +10038,11 @@
 			}
 		};
 		FontScheme.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 		};
 		FontScheme.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			this.majorFont.toXml(writer, "a:majorFont");
+			this.minorFont.toXml(writer, "a:minorFont");
 		};
 
 		function FmtScheme() {
@@ -10232,10 +10155,21 @@
 			while (reader.ReadNextSiblingNode(depth)) {
 				let name = reader.GetNameNoNS();
 				let oObj = new fConstructor();
-				oObj.fromXml(reader, name);
+				oObj.fromXml(reader, name === "ln" ? undefined : name);
 				aArray.push(oObj);
 			}
-		}
+		};
+
+		FmtScheme.prototype.writeList = function(writer, aArray, sName, sChildName) {
+
+
+			writer.WriteXmlNodeStart(sName);
+			writer.WriteXmlAttributesEnd();
+			for(let nIdx = 0; nIdx < aArray.length; ++nIdx) {
+				aArray[nIdx].toXml(writer, sChildName)
+			}
+			writer.WriteXmlNodeEnd(sName);
+		};
 		FmtScheme.prototype.readChildXml = function (name, reader) {
 			switch (name) {
 				case "bgFillStyleLst": {
@@ -10254,13 +10188,15 @@
 					break;
 				}
 			}
-			//TODO:Implement in children
 		};
 		FmtScheme.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 		};
 		FmtScheme.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			this.writeList(writer, this.fillStyleLst, "a:fillStyleLst");
+			this.writeList(writer, this.lnStyleLst, "a:lnStyleLst", "a:ln");
+			//this.writeList(writer, this.effectStyleLst, "a:effectStyleLst");
+			this.writeList(writer, this.bgFillStyleLst, "a:bgFillStyleLst");
 		};
 
 		function ThemeElements(oTheme) {
@@ -10301,7 +10237,9 @@
 		ThemeElements.prototype.writeAttrXmlImpl = function (writer) {
 		};
 		ThemeElements.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
+			writer.WriteXmlNullable(this.clrScheme, "a:clrScheme");
+			writer.WriteXmlNullable(this.fontScheme, "a:fontScheme");
+			writer.WriteXmlNullable(this.fmtScheme, "a:fmtScheme");
 		};
 
 		function CTheme() {
@@ -10573,12 +10511,25 @@
 				}
 			}
 		};
-		CTheme.prototype.writeAttrXmlImpl = function (writer) {
-			//TODO:Implement in children
-		};
-		CTheme.prototype.writeChildren = function (writer) {
-			//TODO:Implement in children
-		};
+		CTheme.prototype.toXml = function (writer) {
+			writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+			let sName = "a:theme";
+			writer.WriteXmlNodeStart(sName);
+			writer.WriteXmlString("xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"");
+			writer.WriteXmlNullableAttributeStringEncode(("name"), this.name);
+			writer.WriteXmlAttributesEnd();
+			this.themeElements.toXml(writer, "a:themeElements");
+			let oNode = new CT_XmlNode();
+			oNode.members["a:lnDef"] = this.lnDef;
+			oNode.members["a:spDef"] = this.spDef;
+			oNode.members["a:txDef"] = this.txDef;
+			writer.WriteXmlNullable(oNode, "a:objectDefaults");
+			oNode = new CT_XmlNode();
+			oNode.members["a:extraClrScheme"] = this.extraClrSchemeLst;
+			writer.WriteXmlNullable(oNode, "a:extraClrSchemeLst");
+
+			writer.WriteXmlNodeEnd(sName);
+		}
 // ----------------------------------
 
 // CSLD -----------------------------
@@ -10974,6 +10925,7 @@
 		CSpTree.prototype.writeChildren = function (writer) {
 			//Implement in children
 		};
+
 
 // ----------------------------------
 

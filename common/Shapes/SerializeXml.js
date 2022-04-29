@@ -100,8 +100,24 @@
 
 	window['AscFormat'].CGraphicObjectBase.prototype.fromXmlElem = function(reader, name, graphicFrame) {
 		let res = null;
-		if ("pic" === name) {
+		if( "cxnSp" === name) {
+			res = new AscFormat.CConnectionShape();
+			res.setBDeleted(false);
+			res.fromXml(reader);
+		}
+		else if("grpSp" === name || "wgp" === name) {
+			res = new AscFormat.CGroupShape();
+			res.setBDeleted(false);
+			res.fromXml(reader);
+		}
+		else if("sp" === name || "wsp" === name) {
+			res = new AscFormat.CShape();
+			res.setBDeleted(false);
+			res.fromXml(reader);
+		}
+		else if ("pic" === name) {
 			res = new AscFormat.CImageShape();
+			res.setBDeleted(false);
 			res.fromXml(reader);
 		} else if ("graphicFrame" === name) {
 			res = new AscFormat.CGraphicFrame();

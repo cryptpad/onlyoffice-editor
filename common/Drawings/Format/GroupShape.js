@@ -216,6 +216,9 @@ function CGroupShape()
             pos = this.spTree.length;
         History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_GroupShapeAddToSpTree, pos, [item], true));
         this.handleUpdateSpTree();
+        if(item.group !== this) {
+            item.setGroup(this);
+        }
         this.spTree.splice(pos, 0, item);
     };
 
@@ -1969,6 +1972,51 @@ function CGroupShape()
         for(let nSp = 0; nSp < this.spTree.length; ++nSp) {
             this.spTree[nSp].GetAllOleObjects(sPluginId, arrObjects);
         }
+    };
+
+
+    CGroupShape.prototype.readChildXml = function (name, reader) {
+        let res;
+        if( "cxnSp" === name) {
+            res = new AscFormat.CConnectionShape();
+            res.setBDeleted(false);
+            res.fromXml(reader);
+            this.addToSpTree(null, res);
+        }
+        else if("grpSp" === name || "wgp" === name) {
+            res = new AscFormat.CGroupShape();
+            res.setBDeleted(false);
+            res.fromXml(reader);
+            this.addToSpTree(null, res);
+        }
+        else if("sp" === name || "wsp" === name) {
+            res = new AscFormat.CShape();
+            res.setBDeleted(false);
+            res.fromXml(reader);
+            this.addToSpTree(null, res);
+        }
+        else if ("pic" === name) {
+            res = new AscFormat.CImageShape();
+            res.setBDeleted(false);
+            res.fromXml(reader);
+            this.addToSpTree(null, res);
+        } else if ("graphicFrame" === name) {
+            res = new AscFormat.CGraphicFrame();
+            res.fromXml(reader);
+            res = res.graphicObject;
+            res && this.addToSpTree(null, res);
+        } else if ("grpSpPr" === name) {
+            res = new AscFormat.CSpPr();
+            res.fromXml(reader);
+            this.setSpPr(res);
+        } else if ("nvGrpSpPr" === name) {
+            res = new AscFormat.UniNvPr();
+            res.fromXml(reader);
+            this.setNvSpPr(res);
+        }
+    };
+    CGroupShape.prototype.writeChildren = function (writer) {
+        //TODO: Implement in children
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

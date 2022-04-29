@@ -7177,9 +7177,16 @@ CShape.prototype.getColumnNumber = function(){
                 this.setTxBody(oPr);
                 break;
             }
-            case "txbxContent": {
-                let oTxBxContent = fReadTxBoxContentXML(reader);
-                this.setTextBoxContent(oTxBxContent);
+            case "txbx": {
+                let oThis = this;
+                let elem = new CT_XmlNode(function(reader, name) {
+                    if ("txbxContent" === name) {
+                        let oTxBxContent = fReadTxBoxContentXML(reader, oThis);
+                        oThis.setTextBoxContent(oTxBxContent);
+                    }
+                    return new CT_XmlNode();
+                });
+                elem.fromXml(reader);
                 break;
             }
         }
@@ -7192,9 +7199,9 @@ CShape.prototype.getColumnNumber = function(){
 
     function fReadTxBoxContentXML(reader, parent) {
         var Content = [];
-        var depth = reader.GetDepth() + 1;
+        var depth = reader.GetDepth();
         let oDrawingDoc = editor.WordControl.m_oLogicDocument.DrawingDocument;
-        let oTxBxContent = new AscCommonWord.CDocumentContent(parent, oDrawingDoc, 0, 0, 0, 0, false, false);
+        let oTxBxContent = new AscCommonWord.CDocumentContent(parent, oDrawingDoc, 0, 0, 0, 20000, false, false);
         while (reader.ReadNextSiblingNode(depth)) {
             AscCommonWord.CDocument.prototype.fromXmlDocContentElem(reader, reader.GetNameNoNS(), Content, oDrawingDoc, oTxBxContent);
 
