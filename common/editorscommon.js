@@ -735,14 +735,14 @@
 	}
 	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
-		var bError = false, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
+		var nError = c_oAscError.ID.No, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
 		var onEndOpen = function ()
 		{
 			if (bEndLoadFile && bEndLoadChanges)
 			{
 				if (callback)
 				{
-					callback(bError, oResult);
+					callback(nError, oResult);
 				}
 			}
 		};
@@ -763,12 +763,12 @@
 							oResult.bSerFormat = checkStreamSignature(stream, Signature);
 							oResult.data = stream;
 						} else {
-							bError = true;
+							nError = c_oAscError.ID.Unknown;
 						}
 					}
 					else
 					{
-						bError = true;
+						nError = c_oAscError.ID.DownloadError;
 					}
 					bEndLoadFile = true;
 					onEndOpen();
@@ -780,7 +780,7 @@
 			oZipImages = {};
 			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
 				bEndLoadChanges = true;
-				bError = true;
+				nError = c_oAscError.ID.DownloadError;
 				onEndOpen();
 			}, function(data) {
 				oResult.changes = [];
@@ -832,7 +832,7 @@
                 oResult.bSerFormat = checkStreamSignature(stream, Signature);
 				oResult.data = stream;
             } else {
-                bError = true;
+				nError = c_oAscError.ID.Unknown;
             }
  
             bEndLoadFile = true;
