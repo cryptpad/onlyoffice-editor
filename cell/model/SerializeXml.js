@@ -120,7 +120,7 @@
 		}
 	};
 
-	function prepareCommentsToWrite (m_mapComments) {
+	function prepareCommentsToWrite (m_mapComments, personList) {
 		var mapByAuthors = [];
 		var pComments = new CT_CComments();
 
@@ -130,36 +130,67 @@
 
 		var pThreadedComments = null;
 
-		for (var it = 0; it < m_mapComments.length; it++)
-		{
+		var getThreadedComment = function (oCommentData) {
+			var res = new CT_CThreadedComment();
+
+			var sOOTime = oCommentData.asc_getOnlyOfficeTime();
+			if (sOOTime) {
+				res.dT = new Date(sOOTime - 0).toISOString().slice(0, 22) + "Z";
+			}
+			var userId = oCommentData.asc_getUserId();
+			var displayName = oCommentData.asc_getUserName();
+			var providerId = oCommentData.asc_getProviderId();
+			var person = personList.find(function isPrime(element) {
+				return userId === element.userId && displayName === element.displayName && providerId === element.providerId;
+			});
+
+			if (!person) {
+				person = {id: AscCommon.CreateGUID(), userId: userId, displayName: displayName, providerId: providerId};
+				personList.push(person);
+			}
+
+			res.personId = person.id;
+			var guid = oCommentData.asc_getGuid();
+			if (guid) {
+				res.id = guid;
+			}
+			var solved = oCommentData.asc_getSolved();
+			if (null != solved) {
+				res.done = solved;
+			}
+
+			var text = oCommentData.asc_getText();
+			if (text) {
+				res.text = text;
+			}
+
+			if (oCommentData.aReplies && oCommentData.aReplies.length > 0) {
+				for (i = 0; i < oCommentData.aReplies.length; ++i) {
+					res.m_arrReplies.push(getThreadedComment(oCommentData.aReplies[i]));
+				}
+			}
+		};
+
+		for (var it = 0; it < m_mapComments.length; it++) {
 			var pCommentItem = m_mapComments[it];
-			if (/*pCommentItem.IsValid()*/pCommentItem)
-			{
+			if (/*pCommentItem.IsValid()*/pCommentItem) {
 				var pNewComment = new CT_CComment();
-				if (null != pCommentItem.nRow && null != pCommentItem.nCol)
-				{
-					//TODO проверить
-					pNewComment.ref = new Asc.Range(pNewComment.nCol, pNewComment.nRow, pNewComment.nCol, pNewComment.nRow).getName();
+				if (null != pCommentItem.nRow && null != pCommentItem.nCol) {
+					pNewComment.ref = new Asc.Range(pCommentItem.nCol, pCommentItem.nRow, pCommentItem.nCol, pCommentItem.nRow).getName();
 				}
 
 				var saveThreadedComments = true;
-				if (saveThreadedComments/*pCommentItem.pThreadedComment*/)
-				{
-					if (null === pThreadedComments)
-					{
+				if (saveThreadedComments/*pCommentItem.pThreadedComment*/) {
+					if (null === pThreadedComments) {
 						pThreadedComments = new CT_CThreadedComments();
-						/*NSCommon::smart_ptr<OOX::File> pThreadedCommentsFile(pThreadedComments);
-						m_pCurWorksheet->Add(pThreadedCommentsFile);*/
 					}
 
-					var pThreadedComment = new CT_CThreadedComment()//pCommentItem->m_pThreadedComment;
-					if (pNewComment.ref)
-					{
+					var pThreadedComment = getThreadedComment(pCommentItem)//pCommentItem->m_pThreadedComment;
+					if (pNewComment.ref) {
 						pThreadedComment.ref = pNewComment.ref;
 					}
 
-					if (!pThreadedComment.id)
-					{
+					if (!pThreadedComment.id) {
 						pThreadedComment.id = AscCommon.CreateGUID();
 					}
 
@@ -171,7 +202,6 @@
 					//pCommentItem->m_oText.Init();
 
 
-
 					var mapPersonList = [];
 					/*if (m_oWorkbook.m_pPersonList)
 					{
@@ -180,22 +210,18 @@
 					//BinaryCommentReader::addThreadedComment(pCommentItem.text, pThreadedComment, mapPersonList);
 
 
-
 					pThreadedComments.arr.push(pThreadedComment);
-					for (var i = 0; i < pThreadedComment.m_arrReplies.length; ++i)
-					{
+					for (var i = 0; i < pThreadedComment.m_arrReplies.length; ++i) {
 						pThreadedComment.m_arrReplies[i].parentId = pThreadedComment.id;
 						pThreadedComment.m_arrReplies[i].ref = pThreadedComment.ref;
-						if (null === pThreadedComment.m_arrReplies[i].id)
-						{
+						if (null === pThreadedComment.m_arrReplies[i].id) {
 							pThreadedComment.m_arrReplies[i].id = AscCommon.CreateGUID();
 						}
 						pThreadedComments.arr.push(pThreadedComment.m_arrReplies[i]);
 					}
 				}
 
-				if (null !== pCommentItem.m_sAuthor)
-				{
+				if (null !== pCommentItem.m_sAuthor) {
 					var sAuthor = pCommentItem.m_sAuthor;
 					var pFind;
 					for (var j = 0; j < mapByAuthors.length; j++) {
@@ -219,7 +245,6 @@
 
 
 				//pNewComment->m_oText.reset(pCommentItem->m_oText.GetPointerEmptyNullable());
-
 
 
 				aComments.push(pNewComment);
