@@ -581,7 +581,11 @@
 			workingTarget = workingTarget.substring(3);
 		}
 
-		this.targetFullName = workingCurrentPath + workingTarget;
+		if (workingTarget.startsWith("/")) {
+			this.targetFullName = workingTarget;
+		} else {
+			this.targetFullName = workingCurrentPath + workingTarget;
+		}
 	}
 	openXml.OpenXmlRelationship.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
@@ -727,7 +731,11 @@
 		volatileDependencies: {dir: "", filename: "volatileDependencies.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.volatileDependencies+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/volatileDependencies"},
 		webSettings: {dir: "", filename: "webSettings.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings"},
 		wordAttachedToolbars: {dir: "", filename: "wordAttachedToolbars.xml", contentType: "application/vnd.ms-word.attachedToolbars", relationType: "http://schemas.microsoft.com/office/2006/relationships/attachedToolbars"},
-		wordprocessingComments: {dir: "", filename: "wordprocessingComments.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"},
+		wordComments: {dir: "", filename: "comments.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"},
+		wordCommentsExtended: {dir: "", filename: "commentsExtended.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml", relationType: "http://schemas.microsoft.com/office/2011/relationships/commentsExtended"},
+		wordCommentsExtensible: {dir: "", filename: "commentsExtensible.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml", relationType: "http://schemas.microsoft.com/office/2018/08/relationships/commentsExtensible"},
+		wordCommentsIds: {dir: "", filename: "commentsIds.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml", relationType: "http://schemas.microsoft.com/office/2016/09/relationships/commentsIds"},
+		wordPeople: {dir: "", filename: "people.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.people+xml", relationType: "http://schemas.microsoft.com/office/2011/relationships/people"},
 		wordprocessingTemplate: {dir: "", filename: "wordprocessingTemplate.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"},
 		workbook: {dir: "xl", filename: "workbook.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"},
 		workbookRevisionHeader: {dir: "", filename: "workbookRevisionHeader.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.revisionHeaders+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/revisionHeaders"},

@@ -10169,7 +10169,7 @@ CDocumentColor.prototype.ToHexColor = function() {
 	if (this.Auto) {
 		return "auto";
 	} else {
-		return (AscCommon.ByteToHex(this.r) + AscCommon.ByteToHex(this.g) + AscCommon.ByteToHex(this.b)).toUpperCase();
+		return AscCommon.ByteToHex(this.r) + AscCommon.ByteToHex(this.g) + AscCommon.ByteToHex(this.b);
 	}
 };
 
