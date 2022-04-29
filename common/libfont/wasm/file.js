@@ -1659,7 +1659,7 @@
 
             if (fontManager.IsUseWinOS2Params && this.m_pFaceInfo.os2_version != 0xFFFF)
             {
-                if (fontManager.IsCellMode)
+                if (fontManager.Mode === AscFonts.TextMeasureMode.Cell)
                 {
                     /*
                     // что-то типо этого в экселе... пока выключаем

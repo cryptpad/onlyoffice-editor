@@ -62,7 +62,7 @@
             if (this.manager.IsUseWinOS2Params && face.os2 && face.os2.version != 0xFFFF)
             {
                 var _os2 = face.os2;
-                if (this.IsCellMode)
+                if (this.manager.Mode === AscFonts.TextMeasureMode.Cell)
                 {
                     /*
                     // что-то типо этого в экселе... пока выключаем
