@@ -4762,58 +4762,59 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 				for (let sKey in this.m_mapComments)
 				{
 					let comment = this.m_mapComments[sKey];
+					let oCoords = comment.coords;
 					let sStyle = "";
-					if(comment.m_dLeftMM !== null)
+					if(oCoords.dLeftMM !== null)
 					{
-						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dLeftMM);
+						let oPoint = new CPoint(""); oPoint.FromMm(oCoords.dLeftMM);
 						sStyle += "margin-left:" + oPoint.ToPoints() + "pt;";
 					}
-					if(comment.m_dTopMM !== null)
+					if(oCoords.dTopMM !== null)
 					{
-						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dTopMM);
+						let oPoint = new CPoint(""); oPoint.FromMm(oCoords.dTopMM);
 						sStyle += "margin-top:" + oPoint.ToPoints() + "pt;";
 					}
-					if(comment.m_dWidthMM !== null)
+					if(oCoords.dWidthMM !== null)
 					{
-						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dWidthMM);
+						let oPoint = new CPoint(""); oPoint.FromMm(oCoords.dWidthMM);
 						sStyle += "width:" + oPoint.ToPoints() + "pt;";
 					}
-					if(comment.m_dHeightMM !== null)
+					if(oCoords.dHeightMM !== null)
 					{
-						let oPoint = new CPoint(""); oPoint.FromMm(comment.m_dHeightMM);
+						let oPoint = new CPoint(""); oPoint.FromMm(oCoords.dHeightMM);
 						sStyle += "height:" + oPoint.ToPoints() + "pt;";
 					}
 					let sClientData = "<x:ClientData ObjectType=\"Note\">";
 
-					if(comment.m_bMove !== null && true === comment.m_bMove)
+					if(oCoords.bMoveWithCells !== null && true === oCoords.bMoveWithCells)
 						sClientData += "<x:MoveWithCells/>";
 
-					if(comment.m_bSize !== null && true === comment.m_bSize)
+					if(oCoords.bSizeWithCells !== null && true === oCoords.bSizeWithCells)
 						sClientData += "<x:SizeWithCells/>";
 
-					if( comment.m_nLeft !== null   && comment.m_nLeftOffset !== null  &&
-						comment.m_nTop !== null    && comment.m_nTopOffset !== null   &&
-						comment.m_nRight !== null  && comment.m_nRightOffset !== null &&
-						comment.m_nBottom !== null && comment.m_nBottomOffset !== null)
+					if( oCoords.nLeft !== null   && oCoords.nLeftOffset !== null  &&
+						oCoords.nTop !== null    && oCoords.nTopOffset !== null   &&
+						oCoords.nRight !== null  && oCoords.nRightOffset !== null &&
+						oCoords.nBottom !== null && oCoords.nBottomOffset !== null)
 					{
 						sClientData += "<x:Anchor>";
-						sClientData += (comment.m_nLeft)          + ",";
-						sClientData += (comment.m_nLeftOffset)    + ",";
-						sClientData += (comment.m_nTop)           + ",";
-						sClientData += (comment.m_nTopOffset)     + ",";
-						sClientData += (comment.m_nRight)         + ",";
-						sClientData += (comment.m_nRightOffset)   + ",";
-						sClientData += (comment.m_nBottom)        + ",";
-						sClientData += (comment.m_nBottomOffset);
+						sClientData += (oCoords.nLeft)          + ",";
+						sClientData += (oCoords.nLeftOffset)    + ",";
+						sClientData += (oCoords.nTop)           + ",";
+						sClientData += (oCoords.nTopOffset)     + ",";
+						sClientData += (oCoords.nRight)         + ",";
+						sClientData += (oCoords.nRightOffset)   + ",";
+						sClientData += (oCoords.nBottom)        + ",";
+						sClientData += (oCoords.nBottomOffset);
 						sClientData += "</x:Anchor>";
 					}
 					sClientData += "<x:AutoFill>False</x:AutoFill>";
 
-					if(comment.m_nRow !== null)
-						sClientData += "<x:Row>" + (comment.m_nRow) + "</x:Row>";
+					if(oCoords.nRow !== null)
+						sClientData += "<x:Row>" + (oCoords.nRow) + "</x:Row>";
 
-					if(comment.m_nCol !== null)
-						sClientData += "<x:Column>" + (comment.m_nCol) + "</x:Column>";
+					if(oCoords.nCol !== null)
+						sClientData += "<x:Column>" + (oCoords.nCol) + "</x:Column>";
 
 					sClientData += "</x:ClientData>";
 
