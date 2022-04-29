@@ -1595,7 +1595,7 @@ function CDrawingDocument()
         spApi.isViewMode = oldViewMode;
     };
 
-    this.SetDrawImagePreviewBulletForMenu = function(id, type, spApi, props, isNoCheckFonts)
+/*    this.SetDrawImagePreviewBulletForMenu = function(id, type, spApi, props, isNoCheckFonts) // TODO: for history, delete after 7.2 release
     {
         if (!props)
         {
@@ -1858,7 +1858,7 @@ function CDrawingDocument()
                 }
             }
         }
-    };
+    };*/
 	this.CloseFile = function ()
 	{
 		this.ClearCachePages();

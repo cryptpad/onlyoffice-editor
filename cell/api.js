@@ -3549,10 +3549,10 @@ var editor;
     return ws.objectRender.getSelectedDrawingObjectsCount();
   };
 
-  spreadsheet_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
+  spreadsheet_api.prototype.SetDrawImagePreviewBulletForMenu = function(drawingInfo, type)
   {
-    if (this.wbModel.DrawingDocument)
-      this.wbModel.DrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, this);
+    var drawer = new AscCommon.CBulletPreviewDrawer(drawingInfo, type);
+    drawer.draw();
   };
 
   spreadsheet_api.prototype.asc_canEditCrop = function()
