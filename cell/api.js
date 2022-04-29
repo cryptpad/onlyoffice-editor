@@ -1879,7 +1879,6 @@ var editor;
 
 
 								for (var i = 0; i < pVmlDrawing.items.length; ++i) {
-									//TODO AscDFH.historyitem_type_VMLShape === item.getObjectType() - тип не такой
 									var pShape = pVmlDrawing.items[i];
 									if (!pShape || AscDFH.historyitem_type_VMLShape !== pShape.getObjectType()) {
 										continue;
@@ -2067,7 +2066,7 @@ var editor;
 							var threadedCommentsFile = wsPart.getPartsByRelationshipType(openXml.Types.threadedComment.relationType);
 							for (i = 0; i < threadedCommentsFile.length; ++i) {
 								var threadedComment = threadedCommentsFile[i].getDocumentContent();
-								var pThreadedComments = new AscCommonExcel.CT_CThreadedComments();
+								pThreadedComments = new AscCommonExcel.CT_CThreadedComments();
 								reader = new StaxParser(threadedComment, pThreadedComments, xmlParserContext);
 								pThreadedComments.fromXml(reader);
 							}

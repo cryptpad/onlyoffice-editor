@@ -120,6 +120,126 @@
 		}
 	};
 
+	function prepareCommentsToWrite (m_mapComments) {
+		var mapByAuthors = [];
+		var pComments = new CT_CComments();
+
+		pComments.commentList = new CT_CCommentList();
+		var aComments = pComments.commentList.arr;
+		pComments.authors = new CT_CAuthors();
+
+		var pThreadedComments = null;
+
+		for (var it = 0; it < m_mapComments.length; it++)
+		{
+			var pCommentItem = m_mapComments[it];
+			if (/*pCommentItem.IsValid()*/pCommentItem)
+			{
+				var pNewComment = new CT_CComment();
+				if (null != pCommentItem.nRow && null != pCommentItem.nCol)
+				{
+					//TODO проверить
+					pNewComment.ref = new Asc.Range(pNewComment.nCol, pNewComment.nRow, pNewComment.nCol, pNewComment.nRow).getName();
+				}
+
+				var saveThreadedComments = true;
+				if (saveThreadedComments/*pCommentItem.pThreadedComment*/)
+				{
+					if (null === pThreadedComments)
+					{
+						pThreadedComments = new CT_CThreadedComments();
+						/*NSCommon::smart_ptr<OOX::File> pThreadedCommentsFile(pThreadedComments);
+						m_pCurWorksheet->Add(pThreadedCommentsFile);*/
+					}
+
+					var pThreadedComment = new CT_CThreadedComment()//pCommentItem->m_pThreadedComment;
+					if (pNewComment.ref)
+					{
+						pThreadedComment.ref = pNewComment.ref;
+					}
+
+					if (!pThreadedComment.id)
+					{
+						pThreadedComment.id = AscCommon.CreateGUID();
+					}
+
+					pNewComment.uid = pThreadedComment.id;
+					pCommentItem.m_sAuthor = "tc=" + pThreadedComment.id;
+
+					pThreadedComment.m_arrReplies = pCommentItem.aReplies;
+
+					//pCommentItem->m_oText.Init();
+
+
+
+					var mapPersonList = [];
+					/*if (m_oWorkbook.m_pPersonList)
+					{
+						mapPersonList = m_oWorkbook.m_pPersonList->GetPersonList();
+					}*/
+					//BinaryCommentReader::addThreadedComment(pCommentItem.text, pThreadedComment, mapPersonList);
+
+
+
+					pThreadedComments.arr.push(pThreadedComment);
+					for (var i = 0; i < pThreadedComment.m_arrReplies.length; ++i)
+					{
+						pThreadedComment.m_arrReplies[i].parentId = pThreadedComment.id;
+						pThreadedComment.m_arrReplies[i].ref = pThreadedComment.ref;
+						if (null === pThreadedComment.m_arrReplies[i].id)
+						{
+							pThreadedComment.m_arrReplies[i].id = AscCommon.CreateGUID();
+						}
+						pThreadedComments.arr.push(pThreadedComment.m_arrReplies[i]);
+					}
+				}
+
+				if (null !== pCommentItem.m_sAuthor)
+				{
+					var sAuthor = pCommentItem.m_sAuthor;
+					var pFind;
+					for (var j = 0; j < mapByAuthors.length; j++) {
+						if (mapByAuthors[j] === sAuthor) {
+							pFind = j;
+							break;
+						}
+					}
+
+					var nAuthorId;
+					if (null != pFind) {
+						nAuthorId = pFind;
+					} else {
+						nAuthorId = mapByAuthors.length;
+						mapByAuthors.push(sAuthor);
+						pComments.authors.arr.push(sAuthor);
+					}
+
+					pNewComment.authorId = nAuthorId;
+				}
+
+
+				//pNewComment->m_oText.reset(pCommentItem->m_oText.GetPointerEmptyNullable());
+
+
+
+				aComments.push(pNewComment);
+			}
+			/*else if (NULL != pCommentItem->m_pThreadedComment)
+			{
+				RELEASEOBJECT(pCommentItem->m_pThreadedComment);
+				for (size_t i = 0; i < pCommentItem->m_pThreadedComment->m_arrReplies.size(); ++i)
+				{
+					RELEASEOBJECT(pCommentItem->m_pThreadedComment->m_arrReplies[i]);
+				}
+			}*/
+		}
+
+		/*NSCommon::smart_ptr<OOX::File> pCommentsFile(pComments);
+		m_pCurWorksheet->Add(pCommentsFile);*/
+
+		return {comments: pComments, threadedComments: pThreadedComments};
+	}
+
 	function getSimpleArrayFromXml(reader, childName, attrName, attrType) {
 		var res = [];
 		var depth = reader.GetDepth();
@@ -2789,6 +2909,18 @@
 			}
 
 			writer.WriteXmlNodeEnd("tableParts");
+		}
+
+		var oComments = prepareCommentsToWrite(this.aComments, context.InitSaveManager.personList);
+		if (oComments) {
+			if (oComments.comments) {
+				var commentsPart = context.part.addPart(AscCommon.openXml.Types.worksheetComments);
+				commentsPart.part.setDataXml(oComments.comments, writer);
+			}
+			if (oComments.threadedComments) {
+				var threadedCommentsPart = context.part.addPart(AscCommon.openXml.Types.threadedComment);
+				threadedCommentsPart.part.setDataXml(oComments.threadedComments, writer);
+			}
 		}
 
 		if (this.aNamedSheetViews && this.aNamedSheetViews.length > 0) {
