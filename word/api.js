@@ -7563,26 +7563,39 @@ background-repeat: no-repeat;\
 
 					this.isApplyChangesOnOpenEnabled = false;
 					this._applyPreOpenLocks();
-					AscCommon.CollaborativeEditing.Apply_Changes();
+
+					// TODO: onDocumentContentReady вызываем в конце загрузки всех изменений (и объектов для этих изменений)
+					let oThis = this;
+					AscCommon.CollaborativeEditing.Apply_Changes(function()
+					{
+						Document.MoveCursorToStartOfDocument();
+
+						if (isSendOnReady)
+						{
+							oThis.onDocumentContentReady();
+							Document.End_SilentMode(false);
+						}
+					});
 					AscCommon.CollaborativeEditing.Release_Locks();
 
 					this.isApplyChangesOnOpen = true;
 				}
-
-                if (false === this.isSaveFonts_Images && !isSendOnReady)
-                {
-                    isSendOnReady = true;
-                    this.bInit_word_control = true;
-                    Document.Start_SilentMode();
-                }
-
-				//Recalculate для Document
-				Document.MoveCursorToStartOfDocument();
-
-				if (isSendOnReady)
+				else
 				{
-					this.onDocumentContentReady();
-					Document.End_SilentMode(false);
+					if (false === this.isSaveFonts_Images && !isSendOnReady)
+					{
+						isSendOnReady           = true;
+						this.bInit_word_control = true;
+						Document.Start_SilentMode();
+					}
+
+					Document.MoveCursorToStartOfDocument();
+
+					if (isSendOnReady)
+					{
+						this.onDocumentContentReady();
+						Document.End_SilentMode(false);
+					}
 				}
 
 				if (!this.isOnlyReaderMode)

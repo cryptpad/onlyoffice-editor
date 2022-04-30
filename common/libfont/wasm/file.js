@@ -1659,7 +1659,7 @@
 
             if (fontManager.IsUseWinOS2Params && this.m_pFaceInfo.os2_version != 0xFFFF)
             {
-                if (fontManager.IsCellMode)
+                if (fontManager.Mode === AscFonts.TextMeasureMode.Cell)
                 {
                     /*
                     // что-то типо этого в экселе... пока выключаем
@@ -1708,8 +1708,9 @@
                     }
 
 					// Normalize metrics for CJK fonts
-					if (this.m_pFaceInfo.os2_ulUnicodeRange2 & 0x2DF00000
-						|| this.m_pFaceInfo.os2_ulCodePageRange1 & 0x3e0000)
+					if (fontManager.Mode !== AscFonts.TextMeasureMode.Slide
+						&& (this.m_pFaceInfo.os2_ulUnicodeRange2 & 0x2DF00000
+						|| this.m_pFaceInfo.os2_ulCodePageRange1 & 0x3e0000))
 					{
 						let nAscent  = this.m_lAscender;
 						let nDescent = this.m_lDescender;

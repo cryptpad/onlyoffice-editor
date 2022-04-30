@@ -7330,6 +7330,11 @@ background-repeat: no-repeat;\
 		this.CreateComponents();
 		this.WordControl.Init();
 
+		if (AscCommon.g_oTextMeasurer.SetParams)
+		{
+			AscCommon.g_oTextMeasurer.SetParams({ mode : "slide" });
+		}
+
         if (this.tmpFontRenderingMode)
         {
             this.SetFontRenderingMode(this.tmpFontRenderingMode);
