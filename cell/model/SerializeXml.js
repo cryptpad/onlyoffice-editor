@@ -169,6 +169,8 @@
 					res.m_arrReplies.push(getThreadedComment(oCommentData.aReplies[i]));
 				}
 			}
+
+			return res;
 		};
 
 		for (var it = 0; it < m_mapComments.length; it++) {
@@ -197,7 +199,7 @@
 					pNewComment.uid = pThreadedComment.id;
 					pCommentItem.m_sAuthor = "tc=" + pThreadedComment.id;
 
-					pThreadedComment.m_arrReplies = pCommentItem.aReplies;
+					//pThreadedComment.m_arrReplies = pCommentItem.aReplies;
 
 					//pCommentItem->m_oText.Init();
 
@@ -2936,11 +2938,11 @@
 			writer.WriteXmlNodeEnd("tableParts");
 		}
 
+		context.comments = null;
 		var oComments = prepareCommentsToWrite(this.aComments, context.InitSaveManager.personList);
 		if (oComments) {
 			if (oComments.comments) {
-				var commentsPart = context.part.addPart(AscCommon.openXml.Types.worksheetComments);
-				commentsPart.part.setDataXml(oComments.comments, writer);
+				context.comments = oComments.comments;
 			}
 			if (oComments.threadedComments) {
 				var threadedCommentsPart = context.part.addPart(AscCommon.openXml.Types.threadedComment);
@@ -4283,6 +4285,8 @@
 		var t = this;
 		var context = writer.context;
 		var index = 1;
+		var wsComments = [];
+
 		this.wb.forEach(function (ws) {
 			var sheetXml = new CT_Sheet();
 			var wsPart = context.part.addPart(AscCommon.openXml.Types.worksheet);
@@ -4292,6 +4296,9 @@
 			sheetXml.name = ws.getName();
 			sheetXml.bHidden = ws.bHidden;
 			t.sheets.push(sheetXml);
+			if (context.comments) {
+				wsComments.push(context.comments);
+			}
 			context.sheetIds[ws.getId()] = sheetXml.sheetId;
 		}, context.isCopyPaste);
 
@@ -4305,6 +4312,12 @@
 			sheetXml.toXml(writer);
 		}, context.isCopyPaste);
 		writer.WriteXmlNodeEnd(ns + name);
+
+		//пишем в xml
+		for (var i = 0; i < wsComments.length; i++) {
+			var commentsPart = context.part.addPart(AscCommon.openXml.Types.worksheetComments);
+			commentsPart.part.setDataXml(wsComments[i], writer);
+		}
 	};
 
 	function CT_Sheet() {
@@ -16119,7 +16132,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		if (this.ref && this.authorId && this.uid) {
 			writer.WriteXmlString("<comment");
 			writer.WriteXmlNullableAttributeStringEncode("ref", this.ref);
-			writer.WriteXmlNullableAttributeNumber("authorId", this.authorId);
+			writer.WriteXmlNullableAttributeString("authorId", this.authorId);
 			writer.WriteXmlNullableAttributeString("xr:uid", this.uid);
 			writer.WriteXmlString(">");
 
@@ -16371,7 +16384,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlNullableAttributeString("personId", this.personId);
 		writer.WriteXmlNullableAttributeString("id", this.id);
 		writer.WriteXmlNullableAttributeString("parentId", this.parentId);
-		writer.WriteXmlNullableAttributeBool("done", this.done);
+		writer.WriteXmlNullableAttributeBool("done", boolToNumber(this.done));
 		writer.WriteXmlString(">");
 
 		if (this.text) {

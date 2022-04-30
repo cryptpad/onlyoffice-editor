@@ -11640,7 +11640,7 @@
         this.slicerCachesExt = null;
 
         this.oSharedStrings = {index: 0, strings: {}};
-        this.personList = {};
+        this.personList = [];
         this.commentUniqueGuids = {};
 
         this.defNameList;
