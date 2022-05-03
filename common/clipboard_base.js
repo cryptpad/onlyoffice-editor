@@ -257,6 +257,15 @@
 				}
 
 				var _html_format = this.ClosureParams.getData("text/html");
+
+                // XXX CryptPad: block remote images when pasting content
+                _html_format = _html_format.replace(/<img[^>]+>/g, '');
+                if (!_html_format) {
+                    this.PasteFlag=false;
+                    g_clipboardBase.Paste_End();
+                    return false;
+                }
+
 				if (_html_format && _html_format != "")
 				{
 					var nIndex = _html_format.indexOf("</html>");
