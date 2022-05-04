@@ -88,6 +88,15 @@
 			memory.Seek(0);
 		}
 
+		//person list
+		if (context.InitSaveManager.personList && context.InitSaveManager.personList.length) {
+			var oPerson = new CT_PersonList();
+			var personPart = wbPart.part.addPart(AscCommon.openXml.Types.person);
+			oPerson.personList = context.InitSaveManager.personList;
+			personPart.part.setDataXml(oPerson, memory);
+			memory.Seek(0);
+		}
+
 		if (this.connections) {
 			memory.WriteXmlString(this.connections);
 			var connectionsData = memory.GetDataUint8();
@@ -122,13 +131,9 @@
 
 	function prepareCommentsToWrite (m_mapComments, personList) {
 		var mapByAuthors = [];
-		var pComments = new CT_CComments();
-
-		pComments.commentList = new CT_CCommentList();
-		var aComments = pComments.commentList.arr;
-		pComments.authors = new CT_CAuthors();
-
+		var pComments = null;
 		var pThreadedComments = null;
+		var aComments;
 
 		var getThreadedComment = function (oCommentData) {
 			var res = new CT_CThreadedComment();
@@ -241,6 +246,12 @@
 					} else {
 						nAuthorId = mapByAuthors.length;
 						mapByAuthors.push(sAuthor);
+						if (pComments === null) {
+							pComments = new CT_CComments();
+							pComments.commentList = new CT_CCommentList();
+							aComments = pComments.commentList.arr;
+							pComments.authors = new CT_CAuthors();
+						}
 						pComments.authors.arr.push(sAuthor);
 					}
 
@@ -250,7 +261,12 @@
 
 				//pNewComment.generateText(pCommentItem);
 
-
+				if (pComments === null) {
+					pComments = new CT_CComments();
+					pComments.commentList = new CT_CCommentList();
+					aComments = pComments.commentList.arr;
+					pComments.authors = new CT_CAuthors();
+				}
 				aComments.push(pNewComment);
 			}
 			/*else if (NULL != pCommentItem->m_pThreadedComment)
@@ -266,7 +282,7 @@
 		/*NSCommon::smart_ptr<OOX::File> pCommentsFile(pComments);
 		m_pCurWorksheet->Add(pCommentsFile);*/
 
-		return {comments: pComments, threadedComments: pThreadedComments};
+		return pComments || pThreadedComments ? {comments: pComments, threadedComments: pThreadedComments} : null;
 	}
 
 	function getSimpleArrayFromXml(reader, childName, attrName, attrType) {
@@ -2916,7 +2932,23 @@
 			drawingRef.toXml(writer, "drawing");
 		}
 
-		//skip m_oLegacyDrawing
+		if (this.aComments.length > 0) {
+			var vmldrawing = new AscFormat.CVMLDrawing();
+			vmldrawing.m_mapComments = this.aComments;
+			//var test = oElement.getXmlString();
+
+			var vmldrawingXml = vmldrawing.getXmlString();
+			writer.WriteXmlString(vmldrawingXml);
+			var jsaData = writer.GetDataUint8();
+			var vmldrawingPart = context.part.addPart(AscCommon.openXml.Types.vmlDrawing);
+			vmldrawingPart.part.setData(jsaData);
+
+			var vmldrawingRef = new AscCommonExcel.CT_DrawingWSRef();
+			vmldrawingRef.id = vmldrawingPart.rId;
+			vmldrawingRef.toXml(writer, "legacyDrawing");
+		}
+		
+
 		//skip m_oLegacyDrawingHF
 		//skip m_oPicture
 		//skip m_oOleObjects
@@ -2945,6 +2977,13 @@
 		if (oComments) {
 			if (oComments.comments) {
 				context.comments = oComments.comments;
+
+				/*var oElement = new AscFormat.CVMLDrawing();
+				oElement.m_mapComments = this.aComments;
+				var test = oElement.getXmlString();
+
+				var VMLDrawingPart = context.part.addPart(AscCommon.openXml.Types.vmlDrawing);
+				VMLDrawingPart.part.setDataXml(oElement, writer);*/
 			}
 			if (oComments.threadedComments) {
 				var threadedCommentsPart = context.part.addPart(AscCommon.openXml.Types.threadedComment);
@@ -3949,8 +3988,12 @@
 				writer.WriteXmlString("<person");
 				writer.WriteXmlNullableAttributeStringEncode("displayName", this.personList[i].displayName);
 				writer.WriteXmlNullableAttributeString("id", this.personList[i].id);
-				writer.WriteXmlNullableAttributeString("userId", this.personList[i].userId);
-				writer.WriteXmlNullableAttributeStringEncode("providerId", this.personList[i].providerId);
+				if (this.personList[i].userId) {
+					writer.WriteXmlNullableAttributeString("userId", this.personList[i].userId);
+				}
+				if (this.personList[i].providerId) {
+					writer.WriteXmlNullableAttributeStringEncode("providerId", this.personList[i].providerId);
+				}
 				writer.WriteXmlString("/>");
 			}
 		}
