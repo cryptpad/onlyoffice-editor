@@ -184,6 +184,8 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
 
     this.CollPrChange = false;
 
+	this.ParaId = null;//for comment xml serialization
+
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
     if(bFromPresentation === true && History.Is_On())

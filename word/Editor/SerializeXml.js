@@ -38,6 +38,8 @@
 	let CT_IntW = window['AscCommon'].CT_IntW;
 	let CT_UIntW = window['AscCommon'].CT_UIntW;
 	let CT_DoubleW = window['AscCommon'].CT_DoubleW;
+	let CComments = window['AscCommon'].CComments;
+	let CCommentData = window['AscCommon'].CCommentData;
 
 //document
 	CDocument.prototype.fromZip = function(zip, context, oReadResult) {
@@ -80,46 +82,7 @@
 				this.theme = new AscFormat.CTheme();
 				this.theme.fromXml(reader, true);
 			}
-			let peoplePart = documentPart.getPartByRelationshipType(openXml.Types.wordPeople.relationType);
-			if (peoplePart) {
-				let peopleContent = peoplePart.getDocumentContent();
-				reader = new StaxParser(peopleContent, peoplePart, context);
-				let people = new CT_People();
-				people.fromXml(reader);
-				this.people = people;
-			}
-			let commentsIdsPart = documentPart.getPartByRelationshipType(openXml.Types.wordCommentsIds.relationType);
-			if (commentsIdsPart) {
-				let commentsIdsContent = commentsIdsPart.getDocumentContent();
-				reader = new StaxParser(commentsIdsContent, commentsIdsPart, context);
-				let commentsIds = new CT_CommentsIds();
-				commentsIds.fromXml(reader);
-				this.commentsIds = commentsIds;
-			}
-			let commentsExtensiblePart = documentPart.getPartByRelationshipType(openXml.Types.wordCommentsExtensible.relationType);
-			if (commentsExtensiblePart) {
-				let commentsExtensibleContent = commentsExtensiblePart.getDocumentContent();
-				reader = new StaxParser(commentsExtensibleContent, commentsExtensiblePart, context);
-				let commentsExtensible = new CT_CommentsExtensible();
-				commentsExtensible.fromXml(reader);
-				this.commentsExtensible = commentsExtensible;
-			}
-			let commentsExtendedPart = documentPart.getPartByRelationshipType(openXml.Types.wordCommentsExtended.relationType);
-			if (commentsExtendedPart) {
-				let commentsExtendedContent = commentsExtendedPart.getDocumentContent();
-				reader = new StaxParser(commentsExtendedContent, commentsExtendedPart, context);
-				let commentsEx = new CT_CommentsEx();
-				commentsEx.fromXml(reader);
-				this.commentsEx = commentsEx;
-			}
-			let commentsPart = documentPart.getPartByRelationshipType(openXml.Types.wordComments.relationType);
-			if (commentsPart) {
-				let commentsContent = commentsPart.getDocumentContent();
-				reader = new StaxParser(commentsContent, commentsPart, context);
-				let comments = new CT_Comments();
-				comments.fromXml(reader);
-				this.comments = comments;
-			}
+			this.Comments.ReadFromXml(documentPart, context);
 			let stylesPart = documentPart.getPartByRelationshipType(openXml.Types.styles.relationType);
 			if (stylesPart) {
 				let contentStyles = stylesPart.getDocumentContent();
@@ -186,6 +149,8 @@
 		var themePart = docPart.part.addPart(AscCommon.openXml.Types.theme);
 		themePart.part.setData(sampleData);
 		memory.Seek(0);
+
+		this.Comments.WriteToXml(memory, docPart);
 
 		memory.WriteXmlString(AscCommonWord.g_sXmlFonts);
 		sampleData = memory.GetDataUint8();
@@ -1195,8 +1160,44 @@
 		// writer.WriteXmlNullable(this.TcPrChange, "w:tcPrChange");
 		writer.WriteXmlNodeEnd(name);
 	};
+	Paragraph.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				// case "rsidRPr": {
+				// 	this.rsidRPr = reader.GetValueInt(this.rsidRPr, 16);
+				// 	break;
+				// }
+				// case "rsidR": {
+				// 	this.rsidR = reader.GetValueInt(this.rsidR, 16);
+				// 	break;
+				// }
+				// case "rsidDel": {
+				// 	this.rsidDel = reader.GetValueInt(this.rsidDel, 16);
+				// 	break;
+				// }
+				// case "rsidP": {
+				// 	this.rsidP = reader.GetValueInt(this.rsidP, 16);
+				// 	break;
+				// }
+				// case "rsidRDefault": {
+				// 	this.rsidRDefault = reader.GetValueInt(this.rsidRDefault, 16);
+				// 	break;
+				// }
+				case "paraId": {
+					this.ParaId = reader.GetValueInt(null, 16);
+					break;
+				}
+				// case "textId": {
+				// 	this.textId = reader.GetValueInt(this.textId, 16);
+				// 	break;
+				// }
+			}
+		}
+	};
 	Paragraph.prototype.fromXml = function(reader) {
-		var elem, depth = reader.GetDepth();
+		this.readAttr(reader);
+		var elem, commentData, depth = reader.GetDepth();
+		let context = reader.context;
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			var newItem = null;
@@ -1207,9 +1208,21 @@
 					break;
 				case "bookmarkStart":
 					break;
-				case "commentRangeEnd":
-					break;
 				case "commentRangeStart":
+					elem = new CT_MarkupRange();
+					elem.fromXml(reader);
+					commentData = context.commentDataById[elem.id];
+					if (commentData) {
+						this.AddToContent(this.GetElementsCount(), new AscCommon.ParaComment(true, commentData.Get_Id()));
+					}
+					break;
+				case "commentRangeEnd":
+					elem = new CT_MarkupRange();
+					elem.fromXml(reader);
+					commentData = context.commentDataById[elem.id];
+					if (commentData) {
+						this.AddToContent(this.GetElementsCount(), new AscCommon.ParaComment(false, commentData.Get_Id()));
+					}
 					break;
 				case "customXmlDelRangeEnd":
 					break;
@@ -1279,7 +1292,9 @@
 	};
 	Paragraph.prototype.toXml = function(writer, name) {
 		var t = this;
+		let context = writer.context;
 		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w14:paraId", AscCommon.Int32ToHexOrNull(this.ParaId));
 		writer.WriteXmlAttributesEnd();
 		if (this.Pr) {
 			this.Pr.toXml(writer, "w:pPr", this);
@@ -1294,6 +1309,10 @@
 				case para_Hyperlink:
 					break;
 				case para_Comment:
+					let commentData = context.commentDataById[item.CommentId];
+					if (commentData) {
+						commentData.toXmlRef(writer, item.Start);
+					}
 					break;
 				case para_Math:
 					if (t.CheckMathPara(index)) {
@@ -4530,36 +4549,207 @@
 		writer.WriteXmlAttributesEnd(true);
 	};
 //comments
-	function CT_String() {
-		this.val = null;
-		return this;
-	}
+	CComments.prototype.ReadFromXml = function(documentPart, context) {
+		let reader, ct_comments, ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible;
+		let commentsPart = documentPart.getPartByRelationshipType(openXml.Types.wordComments.relationType);
+		if (commentsPart) {
+			let commentsContent = commentsPart.getDocumentContent();
+			reader = new StaxParser(commentsContent, commentsPart, context);
+			ct_comments = new CT_Comments();
+			ct_comments.fromXml(reader);
+		}
+		let peoplePart = documentPart.getPartByRelationshipType(openXml.Types.wordPeople.relationType);
+		if (peoplePart) {
+			let peopleContent = peoplePart.getDocumentContent();
+			reader = new StaxParser(peopleContent, peoplePart, context);
+			ct_people = new CT_People();
+			ct_people.fromXml(reader);
+		}
+		let commentsExtendedPart = documentPart.getPartByRelationshipType(openXml.Types.wordCommentsExtended.relationType);
+		if (commentsExtendedPart) {
+			let commentsExtendedContent = commentsExtendedPart.getDocumentContent();
+			reader = new StaxParser(commentsExtendedContent, commentsExtendedPart, context);
+			ct_commentsExt = new CT_CommentsEx();
+			ct_commentsExt.fromXml(reader);
+		}
+		let commentsIdsPart = documentPart.getPartByRelationshipType(openXml.Types.wordCommentsIds.relationType);
+		if (commentsIdsPart) {
+			let commentsIdsContent = commentsIdsPart.getDocumentContent();
+			reader = new StaxParser(commentsIdsContent, commentsIdsPart, context);
+			ct_commentsIds = new CT_CommentsIds();
+			ct_commentsIds.fromXml(reader);
+		}
+		let commentsExtensiblePart = documentPart.getPartByRelationshipType(openXml.Types.wordCommentsExtensible.relationType);
+		if (commentsExtensiblePart) {
+			let commentsExtensibleContent = commentsExtensiblePart.getDocumentContent();
+			reader = new StaxParser(commentsExtensibleContent, commentsExtensiblePart, context);
+			ct_commentsExtensible = new CT_CommentsExtensible();
+			ct_commentsExtensible.fromXml(reader);
+		}
 
-	CT_String.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "val": {
-					this.val = reader.GetValueDecodeXml();
-					break;
-				}
+		if (ct_comments) {
+			if (ct_commentsExt) {
+				ct_comments.initReplies(ct_commentsExt);
+			}
+			for (let i = 0; i < ct_comments.comment.length; ++i) {
+				let ct_comment = ct_comments.comment[i];
+				let commentData = new AscCommon.CCommentData();
+				commentData.ReadFromXml(ct_comment, ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible);
+				let oNewComment = new AscCommon.CComment(this, commentData);
+				this.Add(oNewComment);
+				context.commentDataById[ct_comment.id] = oNewComment;
 			}
 		}
 	};
-	CT_String.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
+	CComments.prototype.WriteToXml = function(memory, docPart) {
+		let ct_comments = new CT_Comments();
+		let ct_people = new CT_People();
+		let ct_commentsExt = new CT_CommentsEx();
+		let ct_commentsIds = new CT_CommentsIds();
+		let ct_commentsExtensible = new CT_CommentsExtensible();
+		//todo document commments
+		for(let i in this.m_arrCommentsById) {
+			if(this.m_arrCommentsById.hasOwnProperty(i)) {
+				let oComment = this.m_arrCommentsById[i];
+				if (oComment.IsGlobalComment()) {
+				} else {
+				}
+				let ct_comment = new CT_Comment();
+				ct_comments.comment.push(ct_comment);
+				oComment.Data.WriteToXml(ct_comment, null, memory.context, ct_comments, ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible);
+				memory.context.commentDataById[oComment.Get_Id()] = ct_comment;
+			}
+		}
+
+		let commentsPart = docPart.part.addPart(AscCommon.openXml.Types.wordComments);
+		commentsPart.part.setDataXml(ct_comments, memory);
+		memory.Seek(0);
+
+		let peoplePart = docPart.part.addPart(AscCommon.openXml.Types.wordPeople);
+		peoplePart.part.setDataXml(ct_people, memory);
+		memory.Seek(0);
+
+		let commentsExtendedPart = docPart.part.addPart(AscCommon.openXml.Types.wordCommentsExtended);
+		commentsExtendedPart.part.setDataXml(ct_commentsExt, memory);
+		memory.Seek(0);
+
+		let commentsIdsPart = docPart.part.addPart(AscCommon.openXml.Types.wordCommentsIds);
+		commentsIdsPart.part.setDataXml(ct_commentsIds, memory);
+		memory.Seek(0);
+
+		let commentsExtensiblePart = docPart.part.addPart(AscCommon.openXml.Types.wordCommentsExtensible);
+		commentsExtensiblePart.part.setDataXml(ct_commentsExtensible, memory);
+		memory.Seek(0);
 	};
-	CT_String.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeStringEncode("w:val", this.val);
-		writer.WriteXmlAttributesEnd(true);
+	CCommentData.prototype.ReadFromXml = function(ct_comment, ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible) {
+		let paraId = ct_comment.paraId;
+		let durableId = ct_commentsIds && ct_commentsIds.commentId[paraId];
+		let commentsExt = ct_commentsExt && ct_commentsExt.commentEx[paraId];
+		let commentExtensible = ct_commentsExtensible && ct_commentsExtensible.commentExtensible[durableId];
+		let presenceInfo = ct_people && ct_people.person[ct_comment.author];
+
+		ct_comment.content.SelectAll();
+		let text = ct_comment.content.GetSelectedText(true);
+
+		this.m_sText = text || this.m_sText;
+		this.m_sTime = ct_comment.date || this.m_sTime;
+		this.m_sOOTime  = (commentExtensible && commentExtensible.dateUtc) || this.m_sOOTime;
+		this.m_sUserId = (presenceInfo && presenceInfo.userId) || this.m_sUserId;
+		this.m_sProviderId = (presenceInfo && presenceInfo.providerId) || this.m_sProviderId;
+		this.m_sUserName = ct_comment.author || this.m_sUserName;
+		this.m_sInitials = ct_comment.initials || this.m_sInitials;
+		this.m_sQuoteText = "QuoteText";
+		this.m_bSolved = (commentsExt && commentsExt.done) || this.m_bSolved;
+		this.m_nDurableId = durableId || this.m_nDurableId;
+		this.m_sUserData = "";//todo
+		for (let i = 0; i < ct_comment.replies.length; ++i) {
+			let commentData = new AscCommon.CCommentData();
+			commentData.ReadFromXml(ct_comment.replies[i], ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible);
+			this.m_aReplies.push(commentData);
+		}
+	};
+	CCommentData.prototype.WriteTextToParagraph = function(text, paraId, documentContent) {
+		let Spacing = new CParaSpacing();
+		Spacing.LineRule = Asc.linerule_Auto;
+		Spacing.Line = 1;
+		Spacing.After = 0;
+		Spacing.Before = 0;
+		let Ind = new CParaInd();
+		Ind.firstLine = 0;
+		Ind.Left = 0;
+		Ind.Right = 0;
+		let paragraph = new Paragraph(documentContent.DrawingDocument, documentContent);
+		paragraph.ParaId = paraId;
+		paragraph.Pr.Spacing = Spacing;
+		paragraph.Pr.Ind = Ind;
+		paragraph.Pr.Jc = AscCommon.align_Left;
+		let run = new ParaRun(paragraph, false);
+		run.Pr.RFonts.SetAll('Arial');
+		run.Pr.FontSize = 11;
+		run.AddText(text, -1);
+		paragraph.AddToContent(paragraph.GetElementsCount(), run);
+		return paragraph;
+	};
+	CCommentData.prototype.WriteTextToRunReference = function(paragraph) {
+		let run = new ParaRun(paragraph, false);
+		run.Add_ToContent(0, new ParaPageNum());
+		run.Pr.RFonts.SetAll('Arial');
+		run.Pr.FontSize = 11;
+		run.AddText(text, -1);
+		return run;
+	};
+	CCommentData.prototype.WriteToXml = function(ct_comment, paraIdParent, context, ct_comments, ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible) {
+		let id = context.commentIdIndex++;
+		let paraId = context.paraIdIndex++;
+		let durableId = this.m_nDurableId || 1;
+		let presenceInfo = ct_people.person[this.m_sUserName];
+		if(!presenceInfo) {
+			presenceInfo = new CT_PresenceInfo();
+			ct_people.person[this.m_sUserName] = presenceInfo;
+		}
+		let commentsExt = ct_commentsExt.commentEx[paraId];
+		if(!commentsExt) {
+			commentsExt = new CT_CommentEx();
+			ct_commentsExt.commentEx[paraId] = commentsExt;
+		}
+		let commentExtensible = ct_commentsExtensible.commentExtensible[durableId];
+		if(!commentExtensible) {
+			commentExtensible = new CT_CommentExtensible();
+			ct_commentsExtensible.commentExtensible[durableId] = commentExtensible;
+		}
+
+		ct_comment.author = this.m_sUserName;
+		ct_comment.id = id;
+		ct_comment.date = parseInt(this.m_sTime);
+		ct_comment.initials = this.m_sInitials;
+		//todo newline
+		ct_comment.content.Content[0] = this.WriteTextToParagraph(this.m_sText, paraId, ct_comment.content);
+
+		presenceInfo.userId = this.m_sUserId;
+		presenceInfo.providerId = this.m_sProviderId;
+		commentsExt.paraId = paraId;
+		commentsExt.paraIdParent = paraIdParent;
+		commentsExt.done = this.m_bSolved;
+		ct_commentsIds.commentId[paraId] = durableId;
+		commentExtensible.durableId = durableId;
+		commentExtensible.dateUtc = parseInt(this.m_sOOTime);
+
+		for (let i = 0; i < this.m_aReplies.length; ++i) {
+			let ct_reply = new CT_Comment();
+			ct_comment.replies.push(ct_reply);
+			ct_comments.comment.push(ct_reply);
+			this.m_aReplies[i].WriteToXml(ct_reply, paraId, context, ct_comments, ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible);
+		}
 	};
 	function CT_Comment() {
 		this.id = null;
 		this.author = null;
 		this.date = null;
 		this.initials = null;
-		this.Content = [];
+		this.content = new CDocumentContent(this, undefined, 0, 0, 0, 0, false, true);
+
+		this.paraId = null;//from first paragraph
+		this.replies = [];//from commentsExt
 		return this;
 	}
 
@@ -4590,20 +4780,39 @@
 	};
 	CT_Comment.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
-		CDocument.prototype.fromXmlDocContent(reader, this.Content, null, null);
+		var Content = [];
+		CDocument.prototype.fromXmlDocContent(reader, Content, null, this);
+		if (Content.length > 0) {
+			this.content.ReplaceContent(Content);
+		}
+		this.paraId = this.content.Content[0].ParaId;
 	};
 	CT_Comment.prototype.toXml = function(writer, name) {
 		let date = this.date ? new Date(this.date).toISOString().slice(0, 19) + 'Z' : null;
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeInt("w:id", this.id);
+		writer.WriteXmlNullableAttributeStringEncode("w:initials", this.initials);
 		writer.WriteXmlNullableAttributeStringEncode("w:author", this.author);
 		writer.WriteXmlNullableAttributeString("w:date", date);
-		writer.WriteXmlNullableAttributeStringEncode("w:initials", this.initials);
+		writer.WriteXmlNullableAttributeInt("w:id", this.id);
 		writer.WriteXmlAttributesEnd();
-		this.Content.forEach(function(item) {
+		this.content.Content.forEach(function(item) {
 			CDocument.prototype.toXmlDocContentElem(writer, item);
 		});
 		writer.WriteXmlNodeEnd(name);
+	};
+	CT_Comment.prototype.toXmlRef = function(writer, Start) {
+		let paraComment = new CT_MarkupRange();
+		paraComment.id = this.id;
+		if (Start) {
+			paraComment.toXml(writer, "w:commentRangeStart");
+		} else {
+			paraComment.toXml(writer, "w:commentRangeEnd");
+			//todo add type
+			writer.WriteXmlString('<w:r><w:commentReference w:id="' + paraComment.id + '"/></w:r>');
+		}
+		this.replies.forEach(function(elem) {
+			elem.toXmlRef(writer, Start);
+		});
 	};
 	function CT_Comments() {
 		this.comment = [];
@@ -4645,8 +4854,34 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlWordCommentsNamespaces);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlArray(this.comment, "w:comment");
+		for (let i = 0; i < this.comment.length; ++i) {
+			this.comment[i].toXml(writer, "w:comment");
+			for (let j = 0; j < this.comment[i].replies.length; ++j) {
+				this.comment[i].replies[j].toXml(writer, "w:comment");
+			}
+		}
 		writer.WriteXmlNodeEnd(name);
+	};
+	CT_Comments.prototype.initReplies = function(ct_commentsExt) {
+		let newComment = [];
+		let replies = {};
+		for (let i = 0; i < this.comment.length; ++i) {
+			let commentsExt = ct_commentsExt.commentEx[this.comment[i].paraId];
+			if (commentsExt && null !== commentsExt.paraIdParent) {
+				if (!replies[commentsExt.paraIdParent]) {
+					replies[commentsExt.paraIdParent] = [];
+				}
+				replies[commentsExt.paraIdParent].push(this.comment[i]);
+			} else {
+				newComment.push(this.comment[i]);
+			}
+		}
+		for (let i = 0; i < newComment.length; ++i) {
+			if (replies[newComment[i].paraId]) {
+				newComment[i].replies = replies[newComment[i].paraId];
+			}
+		}
+		this.comment = newComment;
 	};
 	function CT_CommentEx() {
 		this.paraId = null;
@@ -4685,7 +4920,7 @@
 	};
 
 	function CT_CommentsEx() {
-		this.commentEx = [];
+		this.commentEx = {};
 		return this;
 	}
 	CT_CommentsEx.prototype.fromXml = function(reader) {
@@ -4710,7 +4945,7 @@
 				case "commentEx" : {
 					elem = new CT_CommentEx();
 					elem.fromXml(reader);
-					this.commentEx.push(elem);
+					this.commentEx[elem.paraId] = elem;
 					break;}
 			}
 		}
@@ -4721,7 +4956,11 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlWordCommentsExtendedNamespaces);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlArray(this.commentEx, "w15:commentEx");
+		for (let paraId in this.commentEx) {
+			if (this.commentEx.hasOwnProperty(paraId)) {
+				this.commentEx[paraId].toXml(writer, "w15:commentEx");
+			}
+		}
 		writer.WriteXmlNodeEnd(name);
 	};
 
@@ -4817,7 +5056,7 @@
 				case "person" : {
 					elem = new CT_Person();
 					elem.fromXml(reader);
-					this.person[elem.author] = elem;
+					this.person[elem.author] = elem.presenceInfo;
 					break;
 				}
 			}
@@ -4829,9 +5068,92 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlWordPeopleNamespaces);
 		writer.WriteXmlAttributesEnd();
-		for (let i in this.person) {
-			if (this.person.hasOwnProperty(i)) {
-				this.person[i].toXml(writer, "w15:person");
+		for (let author in this.person) {
+			if (this.person.hasOwnProperty(author)) {
+				let elem = new CT_Person();
+				elem.author = author;
+				elem.presenceInfo = this.person[author];
+				elem.toXml(writer, "w15:person");
+			}
+		}
+		writer.WriteXmlNodeEnd(name);
+	};
+
+	function CT_CommentId() {
+		this.paraId = null;
+		this.durableId = null;
+		return this;
+	}
+
+	CT_CommentId.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "paraId": {
+					this.paraId = reader.GetValueUInt(this.paraId, 16);
+					break;
+				}
+				case "durableId": {
+					this.durableId = AscCommon.FixDurableId(reader.GetValueUInt(this.durableId, 16));
+					break;
+				}
+			}
+		}
+	};
+	CT_CommentId.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_CommentId.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w16cid:paraId", AscCommon.Int32ToHexOrNull(this.paraId));
+		writer.WriteXmlNullableAttributeString("w16cid:durableId", AscCommon.Int32ToHexOrNull(this.durableId));
+		writer.WriteXmlAttributesEnd(true);
+	};
+	function CT_CommentsIds() {
+		this.commentId = {};
+		return this;
+	}
+
+	CT_CommentsIds.prototype.fromXml = function(reader) {
+		let name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("commentsIds" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("commentsIds" !== name) {
+			return;
+		}
+
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "commentId" : {
+					elem = new CT_CommentId();
+					elem.fromXml(reader);
+					this.commentId[elem.paraId] = elem.durableId;
+					break;
+				}
+			}
+		}
+	};
+	CT_CommentsIds.prototype.toXml = function(writer) {
+		let name = 'w16cid:commentsIds';
+
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlString(AscCommonWord.g_sXmlWordCommentsIdsNamespaces);
+		writer.WriteXmlAttributesEnd();
+		for (let paraId in this.commentId) {
+			if (this.commentId.hasOwnProperty(paraId)) {
+				let elem = new CT_CommentId();
+				elem.paraId = parseInt(paraId);
+				elem.durableId = this.commentId[paraId];
+				elem.toXml(writer, "w16cid:commentId");
 			}
 		}
 		writer.WriteXmlNodeEnd(name);
@@ -4884,11 +5206,11 @@
 		writer.WriteXmlNullableAttributeString("w16cex:dateUtc", dateUtc);
 		writer.WriteXmlNullableAttributeBool("w16cex:intelligentPlaceholder", this.intelligentPlaceholder);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlArray(this.extLst, "w16cex:extLst");
+		// writer.WriteXmlArray(this.extLst, "w16cex:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
 	function CT_CommentsExtensible() {
-		this.commentExtensible = [];
+		this.commentExtensible = {};
 		this.extLst = [];
 		return this;
 	}
@@ -4914,7 +5236,7 @@
 				case "commentExtensible" : {
 					elem = new CT_CommentExtensible();
 					elem.fromXml(reader);
-					this.commentExtensible.push(elem);
+					this.commentExtensible[elem.durableId] = elem;
 					break;
 				}
 				// case "extLst" : {
@@ -4929,77 +5251,12 @@
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlWordCommentsExtensibleNamespaces);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlArray(this.commentExtensible, "w16cex:commentExtensible");
-		writer.WriteXmlArray(this.extLst, "w16cex:extLst");
-		writer.WriteXmlNodeEnd(name);
-	};
-	function CT_CommentId() {
-		this.paraId = null;
-		this.durableId = null;
-		return this;
-	}
-	CT_CommentId.prototype.readAttr = function(reader) {
-		while (reader.MoveToNextAttribute()) {
-			switch (reader.GetNameNoNS()) {
-				case "paraId": {
-					this.paraId = reader.GetValueUInt(this.paraId, 16);
-					break;
-				}
-				case "durableId": {
-					this.durableId = AscCommon.FixDurableId(reader.GetValueUInt(this.durableId, 16));
-					break;
-				}
+		for (let durableId in this.commentExtensible) {
+			if (this.commentExtensible.hasOwnProperty(durableId)) {
+				this.commentExtensible[durableId].toXml(writer, "w16cid:commentId");
 			}
 		}
-	};
-	CT_CommentId.prototype.fromXml = function(reader) {
-		this.readAttr(reader);
-		reader.ReadTillEnd();
-	};
-	CT_CommentId.prototype.toXml = function (writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeByte("w16cid:paraId", AscCommon.Int32ToHexOrNull(this.paraId));
-		writer.WriteXmlNullableAttributeByte("w16cid:durableId", AscCommon.Int32ToHexOrNull(this.durableId));
-		writer.WriteXmlAttributesEnd(true);
-	};
-	function CT_CommentsIds() {
-		this.CommentId = [];
-		return this;
-	}
-	CT_CommentsIds.prototype.fromXml = function(reader) {
-		let name;
-		if (!reader.ReadNextNode()) {
-			return;
-		}
-		name = reader.GetNameNoNS();
-		if ("commentsIds" !== name) {
-			if (!reader.ReadNextNode()) {
-				return;
-			}
-		}
-		name = reader.GetNameNoNS();
-		if ("commentsIds" !== name) {
-			return;
-		}
-
-		let elem, depth = reader.GetDepth();
-		while (reader.ReadNextSiblingNode(depth)) {
-			switch (reader.GetNameNoNS()) {
-				case "commentId" : {
-					elem = new CT_CommentId();
-					elem.fromXml(reader);
-					this.CommentId.push(elem);
-					break;}
-			}
-		}
-	};
-	CT_CommentsIds.prototype.toXml = function (writer) {
-		let name = 'w16cid:commentsIds';
-
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlString(AscCommonWord.g_sXmlWordCommentsIdsNamespaces);
-		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlArray(this.CommentId, "w16cid:commentId");
+		// writer.WriteXmlArray(this.extLst, "w16cex:extLst");
 		writer.WriteXmlNodeEnd(name);
 	};
 
@@ -6195,6 +6452,35 @@
 			elem.val = val;
 			elem.toXml(writer, nodeName);
 		}
+	};
+	function CT_MarkupRange() {
+		this.id = null;
+		this.displacedByCustomXml = null;
+		return this;
+	}
+	CT_MarkupRange.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "id": {
+					this.id = reader.GetValueInt(this.id);
+					break;
+				}
+				// case "displacedByCustomXml": {
+				// 	this.displacedByCustomXml = fromXml_ST_DisplacedByCustomXml(reader.GetValue(), this.displacedByCustomXml);
+				// 	break;
+				// }
+			}
+		}
+	};
+	CT_MarkupRange.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_MarkupRange.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:id", this.id);
+		// writer.WriteXmlNullableAttributeString("w:displacedByCustomXml", toXml_ST_DisplacedByCustomXml(this.displacedByCustomXml));
+		writer.WriteXmlAttributesEnd(true);
 	};
 	//enums
 	function fromXml_ST_Border(val) {

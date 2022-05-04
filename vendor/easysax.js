@@ -1600,6 +1600,7 @@ function XmlParserContext(){
     this.imageMap = {};
     this.curChart = null;
     //docx
+    this.commentDataById = {};
     this.oReadResult = new AscCommonWord.DocReadResult();
     //xlsx
     this.sharedStrings = [];
@@ -1635,6 +1636,9 @@ function XmlWriterContext(editorId){
     //docx
     this.document = null;
     this.oNumIdMap = {};
+    this.commentIdIndex = 1;
+    this.paraIdIndex = 1;
+    this.commentDataById = {};
     this.docSaveParams = null;
     //xlsx
     this.wb = null;
