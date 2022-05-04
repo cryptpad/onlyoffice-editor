@@ -1095,6 +1095,9 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			{
 				break;
 			}
+			case Asc.c_oAscNumberingFormat.CustomDecimalTwoZero:
+			case Asc.c_oAscNumberingFormat.CustomDecimalThreeZero:
+			case Asc.c_oAscNumberingFormat.CustomDecimalFourZero:
 			case Asc.c_oAscNumberingFormat.Custom:
 			case Asc.c_oAscNumberingFormat.BahtText:
 			case Asc.c_oAscNumberingFormat.Decimal:

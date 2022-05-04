@@ -2689,21 +2689,26 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		UpperRoman                   : 61,
 		VietnameseCounting           : 62,
 
-		BulletFlag   : 0x1000,
-		NumberedFlag : 0x2000,
+		BulletFlag                   : 0x1000,
+		NumberedFlag                 : 0x2000,
 
-		Ea1JpnKor             : 0x3000,
-		CircleNumWdBlack      : 0x3001,
-		Ea1JpnChsDb           : 0x3002,
-		Ea1Cht                : 0x3003,
-		CircleNumWdWhitePlain : 0x3004,
+		Ea1JpnKor                    : 0x3000,
+		CircleNumWdBlack             : 0x3001,
+		Ea1JpnChsDb                  : 0x3002,
+		Ea1Cht                       : 0x3003,
+		CircleNumWdWhitePlain        : 0x3004,
 
-		CustomGreece: 0x4000
-
+		CustomGreece                 : 0x4000,
+		CustomDecimalFourZero        : 0x4001,
+		CustomDecimalThreeZero       : 0x4002,
+		CustomDecimalTwoZero         : 0x4003
 	};
 
 	var c_oAscCustomNumberingFormatAssociation = {
-			'α, β, γ, ...': c_oAscNumberingFormat.CustomGreece
+		'α, β, γ, ...': c_oAscNumberingFormat.CustomGreece,
+		'00001, 00002, 00003, ...': c_oAscNumberingFormat.CustomDecimalFourZero,
+		'0001, 0002, 0003, ...': c_oAscNumberingFormat.CustomDecimalThreeZero,
+		'001, 002, 003, ...': c_oAscNumberingFormat.CustomDecimalTwoZero
 	};
 
 	/** enum {number} */
@@ -4370,8 +4375,19 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['UpperLetter']                  = prot.UpperLetter;
 	prot['UpperRoman']                   = prot.UpperRoman;
 	prot['VietnameseCounting']           = prot.VietnameseCounting;
+
+	// new presentation types
+	prot['Ea1JpnKor']                    = prot.Ea1JpnKor;
+	prot['CircleNumWdBlack']             = prot.CircleNumWdBlack;
+	prot['Ea1JpnChsDb']                  = prot.Ea1JpnChsDb;
+	prot['Ea1Cht']                       = prot.Ea1Cht;
+	prot['CircleNumWdWhitePlain']        = prot.CircleNumWdWhitePlain;
+
 	//custom types
 	prot['CustomGreece']                 = prot.CustomGreece;
+	prot['CustomDecimalFourZero']        = prot.CustomDecimalFourZero;
+	prot['CustomDecimalThreeZero']       = prot.CustomDecimalThreeZero;
+	prot['CustomDecimalTwoZero']         = prot.CustomDecimalTwoZero;
 
 	window['Asc']['c_oAscCustomNumberingFormatAssociation'] = window['Asc'].c_oAscCustomNumberingFormatAssociation = c_oAscCustomNumberingFormatAssociation;
 

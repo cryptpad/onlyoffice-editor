@@ -8596,6 +8596,33 @@
 				break;
 			}
 
+			case Asc.c_oAscNumberingFormat.CustomDecimalFourZero:
+			{
+				sResult = "" + nValue;
+				if (sResult.length === 1) sResult = '0000' + sResult;
+				else if (sResult.length === 2) sResult = '000' + sResult;
+				else if (sResult.length === 3) sResult = '00' + sResult;
+				else if (sResult.length === 4) sResult = '0' + sResult;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.CustomDecimalThreeZero:
+			{
+				sResult = "" + nValue;
+				if (sResult.length === 1) sResult = '000' + sResult;
+				else if (sResult.length === 2) sResult = '00' + sResult;
+				else if (sResult.length === 3) sResult = '0' + sResult;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.CustomDecimalTwoZero:
+			{
+				sResult = "" + nValue;
+				if (sResult.length === 1) sResult = '00' + sResult;
+				else if (sResult.length === 2) sResult = '0' + sResult;
+				break;
+			}
+
 			case Asc.c_oAscNumberingFormat.DecimalZero:
 			{
 				sResult = "" + nValue;
