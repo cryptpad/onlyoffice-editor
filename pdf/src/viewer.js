@@ -468,7 +468,7 @@
 			this.paint();
 		};
 
-		this.resize = function()
+		this.resize = function(isDisablePaint)
 		{
 			this.isFocusOnThumbnails = false;
 
@@ -593,7 +593,8 @@
 			if (this.thumbnails)
 				this.thumbnails.resize();
 
-			this.timerSync();
+			if (true !== isDisablePaint)
+				this.timerSync();
 
 			if (this.Api.WordControl.MobileTouchManager)
 				this.Api.WordControl.MobileTouchManager.Resize();
@@ -774,6 +775,20 @@
 
 			// в интерфейсе есть проблема - нужно посылать onDocumentContentReady после setAdvancedOptions
 			setTimeout(function(){
+
+				if (!_t.isStarted)
+				{
+					AscCommon.addMouseEvent(_t.canvas, "down", _t.onMouseDown);
+					AscCommon.addMouseEvent(_t.canvas, "move", _t.onMouseMove);
+					AscCommon.addMouseEvent(_t.canvas, "up", _t.onMouseUp);
+
+					_t.parent.onmousewheel = _t.onMouseWhell;
+					if (_t.parent.addEventListener)
+						_t.parent.addEventListener("DOMMouseScroll", _t.onMouseWhell, false);
+
+					_t.startTimer();
+				}
+
 				_t.sendEvent("onFileOpened");
 
 				_t.sendEvent("onPagesCount", _t.file.pages.length);
@@ -787,20 +802,7 @@
 			this.currentPage = -1;
 			this.structure = this.file.getStructure();
 
-			this.resize();
-
-			if (!this.isStarted)
-			{
-				AscCommon.addMouseEvent(this.canvas, "down", this.onMouseDown);
-				AscCommon.addMouseEvent(this.canvas, "move", this.onMouseMove);
-				AscCommon.addMouseEvent(this.canvas, "up", this.onMouseUp);
-		
-				this.parent.onmousewheel = this.onMouseWhell;
-				if (this.parent.addEventListener)
-					this.parent.addEventListener("DOMMouseScroll", this.onMouseWhell, false);
-				
-				this.startTimer();				
-			}
+			this.resize(true);
 
 			if (this.thumbnails)
 				this.thumbnails.init(this);
