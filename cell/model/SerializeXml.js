@@ -204,12 +204,14 @@
 					//pCommentItem->m_oText.Init();
 
 
-					var mapPersonList = [];
+					//var mapPersonList = this.InitSaveManager.personList;
 					/*if (m_oWorkbook.m_pPersonList)
 					{
 						mapPersonList = m_oWorkbook.m_pPersonList->GetPersonList();
 					}*/
 					//BinaryCommentReader::addThreadedComment(pCommentItem.text, pThreadedComment, mapPersonList);
+
+					pNewComment.generateText(pCommentItem, personList);
 
 
 					pThreadedComments.arr.push(pThreadedComment);
@@ -246,7 +248,7 @@
 				}
 
 
-				//pNewComment->m_oText.reset(pCommentItem->m_oText.GetPointerEmptyNullable());
+				//pNewComment.generateText(pCommentItem);
 
 
 				aComments.push(pNewComment);
@@ -13544,10 +13546,11 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlAttributesEnd();
 
 		if (this.fn) {
+			var fN = name === "rPr" ? "rFont" : "name";
 			if (this.fn.length <= 31) {
-				writer.WritingValNodeEncodeXml(childns, "name", this.fn);
+				writer.WritingValNodeEncodeXml(childns, fN, this.fn);
 			} else {
-				writer.WritingValNodeEncodeXml(childns, "name", this.fn.substr(0, 31));
+				writer.WritingValNodeEncodeXml(childns, fN, this.fn.substr(0, 31));
 			}
 		}
 
@@ -16129,17 +16132,125 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 	};
 	CT_CComment.prototype.toXml = function (writer) {
-		if (this.ref && this.authorId && this.uid) {
+		if (null != this.ref && null != this.authorId && null != this.uid) {
 			writer.WriteXmlString("<comment");
 			writer.WriteXmlNullableAttributeStringEncode("ref", this.ref);
 			writer.WriteXmlNullableAttributeString("authorId", this.authorId);
 			writer.WriteXmlNullableAttributeString("xr:uid", this.uid);
 			writer.WriteXmlString(">");
 
-			writer.WriteXmlString("<text>");
-			this.oText.toXml(writer);
-			writer.WriteXmlString("</text>");
+			if (this.oText) {
+				this.oText.toXml(writer, "text");
+			}
 			writer.WriteXmlString("</comment>");
+		}
+	};
+	CT_CComment.prototype.generateText = function (pCommentData, personList) {
+		//parseCommentData
+		var MAX_STRING_LEN = 0x7FFF;
+		var addCommentRun = function (oSi, text, isBold, nLimit) {
+			var pRun = new AscCommonExcel.CMultiTextElem();
+			var pRPr = new AscCommonExcel.Font();
+			if (isBold) {
+				pRPr.b = true;
+			}
+			pRPr.fn = "Tahoma";
+			pRPr.fs = 9;
+
+			pRun.text = text;
+			nLimit -= text.length;
+
+			pRun.format = pRPr;
+
+			if (!oSi.multiText) {
+				oSi.multiText = [];
+			}
+
+			oSi.multiText.push(pRun);
+			return nLimit;
+		};
+
+		var getThreadedCommentAuthor = function (mapPersonList, personId, sDefault) {
+			if (mapPersonList && personId != null) {
+				var person = mapPersonList.find(function isPrime(element) {
+					return personId === element.userId;
+				});
+
+				if (person) {
+					return person.displayName;
+				}
+			}
+			return sDefault;
+		};
+
+		/*void BinaryCommentReader::addThreadedComment(OOX::Spreadsheet::CSi& oSi, OOX::Spreadsheet::CThreadedComment* pThreadedComment, nullable<std::unordered_map<std::wstring, OOX::Spreadsheet::CPerson*>>& mapPersonList)
+		{
+			int nLimit = OOX::Spreadsheet::SpreadsheetCommon::MAX_STRING_LEN;
+			if(pThreadedComment->m_oText.IsInit())
+			{
+				std::wstring displayName = getThreadedCommentAuthor(mapPersonList, pThreadedComment->personId, L"Comment");
+				nLimit = addCommentRun(oSi, displayName + L":", true, nLimit);
+				if (nLimit <= 0)
+					return;
+				nLimit = addCommentRun(oSi, L"\n" + pThreadedComment->m_oText->ToString() + L"\n", false, nLimit);
+				if (nLimit <= 0)
+					return;
+			}
+			for(size_t i = 0; i < pThreadedComment->m_arrReplies.size(); ++i)
+			{
+				if(pThreadedComment->m_arrReplies[i]->m_oText.IsInit())
+				{
+					std::wstring displayName = getThreadedCommentAuthor(mapPersonList, pThreadedComment->m_arrReplies[i]->personId, L"Reply");
+					nLimit = addCommentRun(oSi, displayName + L":", true, nLimit);
+					if (nLimit <= 0)
+						return;
+					nLimit = addCommentRun(oSi, L"\n" + pThreadedComment->m_arrReplies[i]->m_oText->ToString() + L"\n", false, nLimit);
+					if (nLimit <= 0)
+						return;
+				}
+			}
+		}*/
+
+		var oSi;
+		var nLimit = MAX_STRING_LEN;
+		if (pCommentData.aReplies) {
+			oSi = new CT_Si();
+			if(pCommentData.sText)
+			{
+				var displayName = getThreadedCommentAuthor(personList, pCommentData.sUserId, "Comment");
+				nLimit = addCommentRun(oSi, displayName + ":", true, nLimit);
+				if (nLimit <= 0)
+					return;
+				nLimit = addCommentRun(oSi, "\n" + pCommentData.sText + "\n", false, nLimit);
+				if (nLimit <= 0)
+					return;
+			}
+			for (var i = 0; i < pCommentData.aReplies.length; ++i) {
+				if (pCommentData.aReplies[i].sText) {
+					var displayName = getThreadedCommentAuthor(personList, pCommentData.aReplies[i].sUserId, "Reply");
+					nLimit = addCommentRun(oSi, displayName + ":", true, nLimit);
+					if (nLimit <= 0) {
+						return;
+					}
+					nLimit = addCommentRun(oSi, "\n" + pCommentData.aReplies[i].sText + "\n", false, nLimit);
+					if (nLimit <= 0) {
+						return;
+					}
+				}
+			}
+			this.oText = oSi;
+		} else if (pCommentData && pCommentData.sText) {
+			oSi = new CT_Si();
+			if (!pCommentData.sUserName) {
+				addCommentRun(oSi, pCommentData.sText, false, nLimit);
+			} else {
+				nLimit = addCommentRun(oSi, pCommentData.sUserName + (":"), true, nLimit);
+				if (nLimit <= 0) {
+					return;
+				}
+				addCommentRun(oSi, "\n" + pCommentData.sText, false, nLimit);
+			}
+			this.oText = oSi;
 		}
 	};
 
