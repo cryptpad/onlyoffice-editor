@@ -1104,101 +1104,94 @@
 
 	function CUnicodeStringEmulator(array)
 	{
-        this.arr = array;
-        this.len = this.arr.length;
-        this.pos = 0;
-    }
+		this.arr = array;
+		this.len = this.arr.length;
+		this.pos = 0;
+	}
 
-    CUnicodeStringEmulator.prototype =
+	CUnicodeStringEmulator.prototype.getUnicodeIterator = function()
 	{
-		getUnicodeIterator : function()
-		{
-			return this;
-		},
-
-        isOutside : function()
-        {
-            return (this.pos >= this.len);
-        },
-        isInside : function()
-        {
-            return (this.pos < this.len);
-        },
-        value : function()
-        {
-            if (this.pos >= this.len)
-                return 0;
-            return this.arr[this.pos];
-        },
-        next : function()
-        {
-            this.pos++;
-        },
-        position : function()
-        {
-            return this.pos;
-        }
+		return this;
 	};
-    CUnicodeStringEmulator.prototype.check = CUnicodeStringEmulator.prototype.isInside;
-
-    function CUnicodeIterator(str)
-    {
-        this._position = 0;
-        this._index = 0;
-        this._str = str;
-    }
-    CUnicodeIterator.prototype =
+	CUnicodeStringEmulator.prototype.isOutside = function()
 	{
-		isOutside : function()
+		return (this.pos >= this.len);
+	};
+	CUnicodeStringEmulator.prototype.isInside = function()
+	{
+		return (this.pos < this.len);
+	};
+	CUnicodeStringEmulator.prototype.value = function()
+	{
+		if (this.pos >= this.len)
+			return 0;
+		return this.arr[this.pos];
+	};
+	CUnicodeStringEmulator.prototype.next = function()
+	{
+		this.pos++;
+	};
+	CUnicodeStringEmulator.prototype.position = function()
+	{
+		return this.pos;
+	};
+	CUnicodeStringEmulator.prototype.check = CUnicodeStringEmulator.prototype.isInside;
+
+	function CUnicodeIterator(str)
+	{
+		this._position = 0;
+		this._index = 0;
+		this._str = str;
+	}
+
+	CUnicodeIterator.prototype.isOutside = function()
+	{
+		return (this._index >= this._str.length);
+	};
+	CUnicodeIterator.prototype.isInside = function()
+	{
+		return (this._index < this._str.length);
+	};
+	CUnicodeIterator.prototype.value = function()
+	{
+		if (this._index >= this._str.length)
+			return 0;
+
+		var nCharCode = this._str.charCodeAt(this._index);
+		if (!AscCommon.isLeadingSurrogateChar(nCharCode))
+			return nCharCode;
+
+		if ((this._str.length - 1) === this._index)
+			return nCharCode; // error
+
+		var nTrailingChar = this._str.charCodeAt(this._index + 1);
+		return AscCommon.decodeSurrogateChar(nCharCode, nTrailingChar);
+	};
+	CUnicodeIterator.prototype.next = function()
+	{
+		if (this._index >= this._str.length)
+			return;
+
+		this._position++;
+		if (!AscCommon.isLeadingSurrogateChar(this._str.charCodeAt(this._index)))
 		{
-			return (this._index >= this._str.length);
-		},
-		isInside : function()
-		{
-			return (this._index < this._str.length);
-		},
-		value : function()
-		{
-			if (this._index >= this._str.length)
-				return 0;
-
-			var nCharCode = this._str.charCodeAt(this._index);
-			if (!AscCommon.isLeadingSurrogateChar(nCharCode))
-				return nCharCode;
-
-			if ((this._str.length - 1) == this._index)
-				return nCharCode; // error
-
-			var nTrailingChar = this._str.charCodeAt(this._index + 1);
-			return AscCommon.decodeSurrogateChar(nCharCode, nTrailingChar);
-		},
-		next : function()
-		{
-			if (this._index >= this._str.length)
-				return;
-
-			this._position++;
-			if (!AscCommon.isLeadingSurrogateChar(this._str.charCodeAt(this._index)))
-			{
-				++this._index;
-				return;
-			}
-
-			if (this._index == (this._str.length - 1))
-			{
-				++this._index;
-				return;
-			}
-
-			this._index += 2;
-		},
-		position : function()
-		{
-			return this._position;
+			++this._index;
+			return;
 		}
-	};
 
-    CUnicodeIterator.prototype.check = CUnicodeIterator.prototype.isInside;
+		if (this._index === (this._str.length - 1))
+		{
+			++this._index;
+			return;
+		}
+
+		this._index += 2;
+	};
+	CUnicodeIterator.prototype.position = function()
+	{
+		return this._position;
+	};
+	CUnicodeIterator.prototype.check = CUnicodeIterator.prototype.isInside;
 
     /**
 	 * @returns {CUnicodeIterator}
