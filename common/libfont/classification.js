@@ -33,10 +33,11 @@
 "use strict";
 
 // Import
-var fontslot_ASCII    = 0x00;
-var fontslot_EastAsia = 0x01;
-var fontslot_CS       = 0x02;
-var fontslot_HAnsi    = 0x03;
+const fontslot_None     = 0x00;
+const fontslot_ASCII    = 0x01;
+const fontslot_EastAsia = 0x02;
+const fontslot_CS       = 0x04;
+const fontslot_HAnsi    = 0x08;
 
 var fonthint_Default  = 0x00;
 var fonthint_CS       = 0x01;

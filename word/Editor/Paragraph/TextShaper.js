@@ -85,9 +85,9 @@
 		this.Font   = nFontId;
 		this.Glyphs = [];
 	}
-	CGrapheme.prototype.Add = function(nGID, nAdvanceX, nAdvanceY)
+	CGrapheme.prototype.Add = function(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
 	{
-		this.Glyphs.push(new CGlyph(nGID, nAdvanceX, nAdvanceY));
+		this.Glyphs.push(new CGlyph(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY));
 	};
 	CGrapheme.prototype.Draw = function(oContext, nX, nY)
 	{
@@ -98,7 +98,7 @@
 		for (let nIndex = 0, nCount = this.Glyphs.length; nIndex < nCount; ++nIndex)
 		{
 			let oGlyph = this.Glyphs[nIndex];
-			oContext.tg(oGlyph.GID, nX, nY);
+			oContext.tg(oGlyph.GID, nX + oGlyph.OffsetX, nY + oGlyph.OffsetY);
 			nX += oGlyph.AdvanceX;
 			nY += oGlyph.AdvanceY;
 		}
@@ -110,11 +110,14 @@
 	 */
 	function CTextShaper()
 	{
-		this.Parent = null;
-		this.Buffer = [];
-		this.Items  = [];
-		this.TextPr = null;
-		this.Script = -1;
+		this.Parent   = null;
+		this.Buffer   = [];
+		this.Items    = [];
+		this.TextPr   = null;
+		this.Script   = -1;
+		this.FontId   = -1;
+		this.FontSlot = fontslot_None;
+		this.Text     = "";
 	}
 	CTextShaper.prototype.Init = function()
 	{
@@ -141,6 +144,13 @@
 		this.Parent = oRunParent;
 		this.TextPr = oTextPr;
 
+
+		//AscCommon.FontNameMap.GetId();
+
+
+		MEASURER.SetTextPr(this.TextPr);
+		MEASURER.SetFontSlot(fontslot_ASCII, 1);
+
 		for (let nPos = 0, nCount = oRun.GetElementsCount(); nPos < nCount; ++nPos)
 		{
 			let oItem = oRun.GetElement(nPos);
@@ -150,18 +160,11 @@
 			}
 			else
 			{
-				let nScript = this.GetTextScript(oItem.GetCodePoint());
-				if (nScript !== this.Script)
-				{
-					if (-1 !== this.Script
-						&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
-						&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== this.Script)
-						this.FlushWord();
+				let nUnicode = oItem.GetCodePoint();
+				this.private_CheckNewSegment(nUnicode);
 
-					this.Script = nScript;
-				}
-
-				this.Buffer.push(oItem.GetCharCode());
+				this.Buffer.push(nUnicode);
+				this.Text += AscCommon.encodeSurrogateChar(nUnicode);
 				this.Items.push(oItem);
 				if (oItem.IsSpaceAfter())
 					this.FlushWord();
@@ -174,86 +177,156 @@
 			return;
 
 		let nScript = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === this.Script ? AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON : this.Script;
-
-		MEASURER.SetTextPr(this.TextPr);
-		MEASURER.SetFontSlot(fontslot_ASCII, 1);
-
+		
 		// TODO: при RTL направлении кластеры возвращаются в обратном порядке, надо отдельно обрабатывать такую ситуацию
 		//let nDirection = this.GetDirection(nScript);
 		let nDirection = AscFonts.HB_DIRECTION.HB_DIRECTION_LTR;
 		let nCharIndex = 0;
-		let arrSegments = MEASURER.m_oManager.m_pFont.ShapeCodePointsArray(this.Buffer, 15, nScript, nDirection, "en");
-		for (let nSegment = 0, nSegmentsCount = arrSegments.length; nSegment < nSegmentsCount; ++nSegment)
+
+		let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
+		let sFont = this.FontId.m_pFaceInfo.family_name;
+
+		MEASURER.SetFontInternal(sFont, this.TextPr.FontSize, 0);
+
+		let nClusterMax = ClusterStringLength(this.Text);
+		for (let nGlyphIndex = 0, nGlyphsCount = arrGlyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 		{
-			let oSegment = arrSegments[nSegment];
-			let nClusterMax = ClusterStringLength(oSegment.text);
+			let oGlyph = arrGlyphs[nGlyphIndex];
+			let nCluster = oGlyph.cluster;
 
-			MEASURER.SetFontInternal(oSegment.font, this.TextPr.FontSize, 0);
+			let nGraphemeWidth = oGlyph.x_advance * COEF;
+			let arrLigature = [this.Items[nCharIndex]];
 
-			for (let nGlyphIndex = 0, nGlyphsCount = oSegment.glyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
+			let nStartChar = this.Items[nCharIndex];
+
+			let oGrapheme = new CGrapheme(sFont);
+			oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset * COEF, oGlyph.y_offset * COEF);
+
+			let isLigature = LIGATURE === oGlyph.type;
+
+			this.Items[nCharIndex].SetGrapheme(oGrapheme);
+
+			nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
+			nCharIndex++;
+
+			while (nGlyphIndex < nGlyphsCount - 1 && arrGlyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
 			{
-				let oGlyph = oSegment.glyphs[nGlyphIndex];
-				let nCluster = oGlyph.cluster;
+				oGlyph = arrGlyphs[++nGlyphIndex];
+				oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset * COEF, oGlyph.y_offset * COEF);
 
-				let nGraphemeWidth = oGlyph.x_advance * COEF;
-				let arrLigature = [this.Items[nCharIndex]];
+				nGraphemeWidth += oGlyph.x_advance * COEF;
+			}
 
-				let nStartChar = this.Items[nCharIndex];
+			nStartChar.SetWidth(nGraphemeWidth);
 
-				let oGrapheme = new CGrapheme(oSegment.font);
-				oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset, oGlyph.y_offset);
-
-				let isLigature = LIGATURE === oGlyph.type;
-
-				this.Items[nCharIndex].SetGrapheme(oGrapheme);
-
+			let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nClusterMax : arrGlyphs[nGlyphIndex + 1].cluster;
+			while (nCluster < nNextCluster && nCharIndex < this.Items.length)
+			{
+				arrLigature.push(this.Items[nCharIndex]);
+				this.Items[nCharIndex].SetGrapheme(null);
+				this.Items[nCharIndex].SetWidth(0);
 				nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
 				nCharIndex++;
+			}
 
-				while (nGlyphIndex < nGlyphsCount - 1 && oSegment.glyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
+			let nLigatureLen = arrLigature.length;
+			if (nLigatureLen > 1 && isLigature)
+			{
+				for (let nLigatureIndex = 0; nLigatureIndex < nLigatureLen; ++nLigatureIndex)
 				{
-					oGlyph = oSegment.glyphs[++nGlyphIndex];
-					oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset, oGlyph.y_offset);
-
-					nGraphemeWidth += oGlyph.x_advance * COEF;
-				}
-
-				nStartChar.SetWidth(nGraphemeWidth);
-
-				let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nClusterMax : oSegment.glyphs[nGlyphIndex + 1].cluster;
-				while (nCluster < nNextCluster && nCharIndex < this.Items.length)
-				{
-					arrLigature.push(this.Items[nCharIndex]);
-					this.Items[nCharIndex].SetGrapheme(null);
-					this.Items[nCharIndex].SetWidth(0);
-					nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
-					nCharIndex++;
-				}
-
-				let nLigatureLen = arrLigature.length;
-				if (nLigatureLen > 1 && isLigature)
-				{
-					for (let nLigatureIndex = 0; nLigatureIndex < nLigatureLen; ++nLigatureIndex)
-					{
-						arrLigature[nLigatureIndex].SetWidth(nGraphemeWidth / nLigatureLen);
-					}
+					arrLigature[nLigatureIndex].SetWidth(nGraphemeWidth / nLigatureLen);
 				}
 			}
 		}
-		console.log(arrSegments);
+		console.log(arrGlyphs);
 
-		this.Buffer = [];
-		this.Items  = [];
-		this.Script = -1;
+		this.Buffer   = [];
+		this.Items    = [];
+		this.Script   = -1;
+		this.Text     = "";
+		this.FontSlot = fontslot_None;
+		this.FontId   = -1;
 	};
 	CTextShaper.prototype.GetTextScript = function(nUnicode)
 	{
 		return AscFonts.hb_get_script_by_unicode(nUnicode);
 	};
+	CTextShaper.prototype.GetFontSlot = function(nUnicode)
+	{
+		let oTextPr = this.TextPr;
+		if (!this.TextPr)
+			return fontslot_None;
+
+		return g_font_detector.Get_FontClass(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+	};
 	CTextShaper.prototype.GetDirection = function(nScript)
 	{
 		return AscFonts.hb_get_script_horizontal_direction(nScript);
 	};
+	CTextShaper.prototype.private_CheckNewSegment = function(nUnicode)
+	{
+		let nScript   = this.GetTextScript(nUnicode);
+		let nFontSlot = this.GetFontSlot(nUnicode);
+
+		if ((nScript !== this.Script
+				&& -1 !== this.Script
+				&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
+				&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== this.Script)
+			|| (nFontSlot !== this.FontSlot
+				&& -1 !== this.FontSlot
+				&& fontslot_None !== nFontSlot
+				&& fontslot_None !== this.FontSlot))
+			this.FlushWord();
+
+		this.private_CheckFont(nFontSlot);
+
+		let nFontId = this.FontId;
+
+		if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.FontId)
+			nFontId = MEASURER.GetFontId(nUnicode);
+
+		if (this.FontId !== nFontId && -1 !== this.FontId)
+			this.FlushWord();
+
+		this.Script   = nScript;
+		this.FontSlot = nFontSlot;
+		this.FontId   = nFontId;
+	};
+	CTextShaper.prototype.private_CheckFont = function(nFontSlot)
+	{
+		if (this.FontSlot !== nFontSlot)
+		{
+			let sFontName = this.TextPr.RFonts.Ascii.Name;
+			let isBold    = this.TextPr.Bold;
+			let isItalic  = this.TextPr.Italic;
+			let nFontSize = this.TextPr.FontSize;
+
+			switch (nFontSlot)
+			{
+				case fontslot_CS:
+				{
+					sFontName = this.TextPr.RFonts.CS.Name;
+					isBold    = this.TextPr.BoldCS;
+					isItalic  = this.TextPr.ItalicCS;
+					nFontSize = this.TextPr.FontSizeCS;
+					break;
+				}
+				case fontslot_EastAsia:
+				{
+					sFontName = this.TextPr.RFonts.EastAsia.Name;
+					break;
+				}
+				case fontslot_HAnsi:
+				{
+					sFontName = this.TextPr.RFonts.HAnsi.Name;
+					break;
+				}
+			}
+
+			MEASURER.SetFontInternal(sFontName, nFontSize, (isBold ? 1  : 0) | (isItalic ? 2 : 0));
+		}
+	};
+
 
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};

@@ -101,6 +101,23 @@
             }
         },
 
+		GetFontId : function(codePoint)
+		{
+			if (!this.m_oManager.m_pFont)
+				return -1;
+
+			let oFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
+			if (!oFont)
+				oFont = this.m_oManager.m_pFont;
+
+			return oFont;
+		},
+
+		ShapeText : function(oFont, sText, nFeatures, nScript, nDirection, sLanguage)
+		{
+			return AscFonts.HB_Shape(oFont, sText, nFeatures, nScript, nDirection, sLanguage);
+		},
+
         SetTextPr : function(textPr, theme)
         {
 			if (theme && textPr && textPr.ReplaceThemeFonts)

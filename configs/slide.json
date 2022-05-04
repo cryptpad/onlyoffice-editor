@@ -33,6 +33,7 @@
 			"common/api/tableStylesPreviewGenerator.js",
 			"common/api/spellCheckSettings.js",
 
+			"common/nameMap.js",
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
