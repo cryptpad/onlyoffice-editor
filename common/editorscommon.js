@@ -735,7 +735,7 @@
 	}
 	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
-		var nError = c_oAscError.ID.No, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
+		var nError = Asc.c_oAscError.ID.No, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
 		var onEndOpen = function ()
 		{
 			if (bEndLoadFile && bEndLoadChanges)
