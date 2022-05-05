@@ -113,11 +113,18 @@
 				reader = new StaxParser(settingsContent, settingsPart, context);
 				this.Settings.fromXml(reader, this);
 			}
-		}
 
-		let contentDocument = documentPart.getDocumentContent();
-		reader = new StaxParser(contentDocument, documentPart, context);
-		this.fromXml(reader, oReadResult.DocumentContent);
+			let glossaryPart = documentPart.getPartByRelationshipType(openXml.Types.glossaryDocument.relationType);
+			if (glossaryPart) {
+				let glossaryContent = glossaryPart.getDocumentContent();
+				reader = new StaxParser(glossaryContent, glossaryPart, context);
+				this.GetGlossaryDocument().fromXml(reader);
+			}
+
+			let contentDocument = documentPart.getDocumentContent();
+			reader = new StaxParser(contentDocument, documentPart, context);
+			this.fromXml(reader, oReadResult.DocumentContent);
+		}
 	};
 	CDocument.prototype.toZip = function(zip, context) {
 		var memory = new AscCommon.CMemory();
@@ -172,6 +179,13 @@
 
 		docPart.part.setDataXml(this, memory);
 		memory.Seek(0);
+
+		var glossaryDocument = this.GetGlossaryDocument();
+		if (glossaryDocument) {
+			var glossaryPart = docPart.part.addPart(AscCommon.openXml.Types.glossaryDocument);
+			glossaryPart.part.setDataXml(glossaryDocument, memory);
+			memory.Seek(0);
+		}
 	};
 	CDocument.prototype.fromXml = function(reader, Content) {
 		var name;
@@ -179,13 +193,13 @@
 			return;
 		}
 		name = reader.GetNameNoNS();
-		if ("document" !== name && "wordDocument" !== name && "glossaryDocument" !== name) {
+		if ("document" !== name && "wordDocument" !== name) {
 			if (!reader.ReadNextNode()) {
 				return;
 			}
 		}
 		name = reader.GetNameNoNS();
-		if ("document" === name || "wordDocument" === name || "glossaryDocument" === name) {
+		if ("document" === name || "wordDocument" === name) {
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				name = reader.GetNameNoNS();
@@ -193,8 +207,6 @@
 
 				} else if ("body" === name) {
 					this.fromXmlDocContent(reader, Content, this.DrawingDocument, this);
-				} else if ("docParts" === name) {
-
 				}
 			}
 		}
@@ -317,6 +329,203 @@
 			case type_BlockLevelSdt:
 				break;
 		}
+	};
+	CGlossaryDocument.prototype.fromXml = function(reader) {
+		let rels = reader.rels;
+		let context = reader.context;
+		let stylesPart = rels.getPartByRelationshipType(openXml.Types.styles.relationType);
+		if (stylesPart) {
+			let contentStyles = stylesPart.getDocumentContent();
+			let reader = new StaxParser(contentStyles, stylesPart, context);
+			this.Styles.fromXml(reader);
+		}
+		let numberingPart = rels.getPartByRelationshipType(openXml.Types.numbering.relationType);
+		if (numberingPart) {
+			let numberingContent = numberingPart.getDocumentContent();
+			let reader = new StaxParser(numberingContent, numberingPart, context);
+			this.Numbering.fromXml(reader);
+		}
+		let footnotesPart = rels.getPartByRelationshipType(openXml.Types.footnotes.relationType);
+		if (footnotesPart) {
+			let footnotesContent = footnotesPart.getDocumentContent();
+			let reader = new StaxParser(footnotesContent, footnotesPart, context);
+			this.Footnotes.fromXml(reader);
+		}
+		let endnotesPart = rels.getPartByRelationshipType(openXml.Types.endnotes.relationType);
+		if (endnotesPart) {
+			let endnotesContent = endnotesPart.getDocumentContent();
+			let reader = new StaxParser(endnotesContent, endnotesPart, context);
+			this.Endnotes.fromXml(reader);
+		}
+		var name;
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+		name = reader.GetNameNoNS();
+		if ("glossaryDocument" !== name) {
+			if (!reader.ReadNextNode()) {
+				return;
+			}
+		}
+		name = reader.GetNameNoNS();
+		if ("glossaryDocument" === name) {
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				name = reader.GetNameNoNS();
+				if ("docParts" === name) {
+					var docPart = new CDocPart(this);
+					docPart.fromXml(reader);
+					this.AddDocPart(docPart);
+				}
+			}
+		}
+	};
+	CGlossaryDocument.prototype.toXml = function(writer) {
+		let glossaryPart = writer.context.part;
+		var stylesPart = glossaryPart.addPart(AscCommon.openXml.Types.styles);
+		stylesPart.part.setDataXml(this.Styles, writer);
+		writer.Seek(0);
+
+		if (!this.Numbering.IsEmpty()) {
+			var numberingPart = glossaryPart.addPart(AscCommon.openXml.Types.numbering);
+			numberingPart.part.setDataXml(this.Numbering, writer);
+			writer.Seek(0);
+		}
+
+		let footnotesPart = glossaryPart.addPart(AscCommon.openXml.Types.footnotes);
+		footnotesPart.part.setDataXml(this.Footnotes, writer);
+		writer.Seek(0);
+
+		let endnotesPart = glossaryPart.addPart(AscCommon.openXml.Types.endnotes);
+		endnotesPart.part.setDataXml(this.Endnotes, writer);
+		writer.Seek(0);
+
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+		writer.WriteXmlNodeStart("w:glossaryDocument");
+		writer.WriteXmlString(AscCommonWord.g_sXmlDocumentNamespaces);
+		writer.WriteXmlAttributesEnd();
+		for (var sId in this.DocParts) {
+			if(this.DocParts.hasOwnProperty(sId)) {
+				this.DocParts[sId].toXml(writer, "w:docPart");
+			}
+		}
+		writer.WriteXmlNodeEnd("w:glossaryDocument");
+	};
+	CDocPart.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "docPartPr" : {
+					this.Pr.fromXml(reader);
+					break;
+				}
+				case "docPartBody" : {
+					var Content = [];
+					CDocument.prototype.fromXmlDocContent(reader, Content, this.DrawingDocument, this);
+					if (Content.length > 0) {
+						this.ReplaceContent(Content);
+					}
+					break;
+				}
+			}
+		}
+	};
+	CDocPart.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.Pr, "w:docPartPr");
+		writer.WriteXmlNodeStart("w:docPartBody");
+		writer.WriteXmlAttributesEnd();
+		this.Content.forEach(function(item) {
+			CDocument.prototype.toXmlDocContentElem(writer, item);
+		});
+		writer.WriteXmlNodeEnd("w:docPartBody");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CDocPartPr.prototype.fromXml = function(reader) {
+		let t = this;
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "name" : {
+					this.Name = CT_StringW.prototype.toVal(reader, this.Name);
+					break;
+				}
+				case "style" : {
+					this.Style = CT_StringW.prototype.toVal(reader, this.Style);
+					break;
+				}
+				case "category" : {
+					this.Category = new CDocPartCategory();
+					this.Category.fromXml(reader);
+					break;
+				}
+				case "types" : {
+					reader.readXmlArray("types", function() {
+						t.Types = fromXml_ST_DocPartType(CT_StringW.prototype.toVal(reader, t.Types), t.Types);
+					});
+					break;
+				}
+				case "behaviors" : {
+					reader.readXmlArray("behavior", function() {
+						t.Behaviors = fromXml_ST_DocPartBehavior(CT_StringW.prototype.toVal(reader, t.Behaviors), t.Behaviors);
+					});
+					break;
+				}
+				case "description" : {
+					this.Description = CT_StringW.prototype.toVal(reader, this.Description);
+					break;
+				}
+				case "guid" : {
+					this.GUID = CT_StringW.prototype.toVal(reader, this.GUID);
+					break;
+				}
+			}
+		}
+	};
+	CDocPartPr.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Name), "w:name");
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Style), "w:style");
+		writer.WriteXmlNullable(this.Category, "w:category");
+		if (null !== this.Types) {
+			writer.WriteXmlNodeStart("w:types");
+			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlNullable(CT_StringW.prototype.fromVal(toXml_ST_DocPartType(this.Types)), "w:type");
+			writer.WriteXmlNodeEnd("w:types");
+		}
+		if (null !== this.Behaviors) {
+			writer.WriteXmlNodeStart("w:behaviors");
+			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlNullable(CT_StringW.prototype.fromVal(toXml_ST_DocPartBehavior(this.Types)), "w:behavior");
+			writer.WriteXmlNodeEnd("w:behaviors");
+		}
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Description), "w:description");
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.GUID), "w:guid");
+		writer.WriteXmlNodeEnd(name);
+	};
+	CDocPartCategory.prototype.fromXml = function(reader) {
+		let depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "name" : {
+					this.Name = CT_StringW.prototype.toVal(reader, this.Name);
+					break;
+				}
+				case "gallery" : {
+					this.Gallery = fromXml_ST_DocPartGallery(CT_StringW.prototype.toVal(reader, this.Name), this.Name);
+					break;
+				}
+			}
+		}
+	};
+	CDocPartCategory.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Name), "w:name");
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(toXml_ST_DocPartGallery(this.Gallery)), "w:gallery");
+		writer.WriteXmlNodeEnd(name);
 	};
 	CTable.prototype.fromXml = function(reader) {
 		var depth = reader.GetDepth();
@@ -3405,6 +3614,7 @@
 	CStyle.prototype.fromXml = function(reader, opt_addition) {
 		this.readAttr(reader, opt_addition);
 		var elem, depth = reader.GetDepth();
+		let t = this;
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "name" : {
@@ -3500,7 +3710,10 @@
 					elem = new CParaPr();
 					elem.fromXml(reader);
 					//todo aPostOpenStyleNumCallbacks
-					this.Set_ParaPr(elem);
+					reader.context.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
+						t.Set_ParaPr(elem);
+					});
+					// this.Set_ParaPr(elem);
 					break;
 				}
 				case "rPr" : {
@@ -4620,7 +4833,9 @@
 				memory.context.commentDataById[oComment.Get_Id()] = ct_comment;
 			}
 		}
-
+		if (0 === ct_comments.comment.length) {
+			return;
+		}
 		let commentsPart = docPart.part.addPart(AscCommon.openXml.Types.wordComments);
 		commentsPart.part.setDataXml(ct_comments, memory);
 		memory.Seek(0);
@@ -8624,6 +8839,229 @@
 				return "rsaAES";
 			case ECryptProv.RsaFull:
 				return "rsaFull";
+		}
+		return null;
+	}
+	function fromXml_ST_DocPartGallery(val, def) {
+		switch (val) {
+			case "placeholder":
+				return c_oAscDocPartGallery.Placeholder;
+			case "any":
+				return c_oAscDocPartGallery.Any;
+			case "default":
+				return c_oAscDocPartGallery.Default;
+			case "docParts":
+				return c_oAscDocPartGallery.DocParts;
+			case "coverPg":
+				return c_oAscDocPartGallery.CoverPg;
+			case "eq":
+				return c_oAscDocPartGallery.Eq;
+			case "ftrs":
+				return c_oAscDocPartGallery.Ftrs;
+			case "hdrs":
+				return c_oAscDocPartGallery.Hdrs;
+			case "pgNum":
+				return c_oAscDocPartGallery.PgNum;
+			case "tbls":
+				return c_oAscDocPartGallery.Tbls;
+			case "watermarks":
+				return c_oAscDocPartGallery.Watermarks;
+			case "autoTxt":
+				return c_oAscDocPartGallery.AutoTxt;
+			case "txtBox":
+				return c_oAscDocPartGallery.TxtBox;
+			case "pgNumT":
+				return c_oAscDocPartGallery.PgNumT;
+			case "pgNumB":
+				return c_oAscDocPartGallery.PgNumB;
+			case "pgNumMargins":
+				return c_oAscDocPartGallery.PgNumMargins;
+			case "tblOfContents":
+				return c_oAscDocPartGallery.TblOfContents;
+			case "bib":
+				return c_oAscDocPartGallery.Bib;
+			case "custQuickParts":
+				return c_oAscDocPartGallery.CustQuickParts;
+			case "custCoverPg":
+				return c_oAscDocPartGallery.CustCoverPg;
+			case "custEq":
+				return c_oAscDocPartGallery.CustEq;
+			case "custFtrs":
+				return c_oAscDocPartGallery.CustFtrs;
+			case "custHdrs":
+				return c_oAscDocPartGallery.CustHdrs;
+			case "custPgNum":
+				return c_oAscDocPartGallery.CustPgNum;
+			case "custTbls":
+				return c_oAscDocPartGallery.CustTbls;
+			case "custWatermarks":
+				return c_oAscDocPartGallery.CustWatermarks;
+			case "custAutoTxt":
+				return c_oAscDocPartGallery.CustAutoTxt;
+			case "custTxtBox":
+				return c_oAscDocPartGallery.CustTxtBox;
+			case "custPgNumT":
+				return c_oAscDocPartGallery.CustPgNumT;
+			case "custPgNumB":
+				return c_oAscDocPartGallery.CustPgNumB;
+			case "custPgNumMargins":
+				return c_oAscDocPartGallery.CustPgNumMargins;
+			case "custTblOfContents":
+				return c_oAscDocPartGallery.CustTblOfContents;
+			case "custBib":
+				return c_oAscDocPartGallery.CustBib;
+			case "custom1":
+				return c_oAscDocPartGallery.Custom1;
+			case "custom2":
+				return c_oAscDocPartGallery.Custom2;
+			case "custom3":
+				return c_oAscDocPartGallery.Custom3;
+			case "custom4":
+				return c_oAscDocPartGallery.Custom4;
+			case "custom5":
+				return c_oAscDocPartGallery.Custom5;
+		}
+		return def;
+	}
+	function toXml_ST_DocPartGallery(val) {
+		switch (val) {
+			case c_oAscDocPartGallery.Placeholder:
+				return "placeholder";
+			case c_oAscDocPartGallery.Any:
+				return "any";
+			case c_oAscDocPartGallery.Default:
+				return "default";
+			case c_oAscDocPartGallery.DocParts:
+				return "docParts";
+			case c_oAscDocPartGallery.CoverPg:
+				return "coverPg";
+			case c_oAscDocPartGallery.Eq:
+				return "eq";
+			case c_oAscDocPartGallery.Ftrs:
+				return "ftrs";
+			case c_oAscDocPartGallery.Hdrs:
+				return "hdrs";
+			case c_oAscDocPartGallery.PgNum:
+				return "pgNum";
+			case c_oAscDocPartGallery.Tbls:
+				return "tbls";
+			case c_oAscDocPartGallery.Watermarks:
+				return "watermarks";
+			case c_oAscDocPartGallery.AutoTxt:
+				return "autoTxt";
+			case c_oAscDocPartGallery.TxtBox:
+				return "txtBox";
+			case c_oAscDocPartGallery.PgNumT:
+				return "pgNumT";
+			case c_oAscDocPartGallery.PgNumB:
+				return "pgNumB";
+			case c_oAscDocPartGallery.PgNumMargins:
+				return "pgNumMargins";
+			case c_oAscDocPartGallery.TblOfContents:
+				return "tblOfContents";
+			case c_oAscDocPartGallery.Bib:
+				return "bib";
+			case c_oAscDocPartGallery.CustQuickParts:
+				return "custQuickParts";
+			case c_oAscDocPartGallery.CustCoverPg:
+				return "custCoverPg";
+			case c_oAscDocPartGallery.CustEq:
+				return "custEq";
+			case c_oAscDocPartGallery.CustFtrs:
+				return "custFtrs";
+			case c_oAscDocPartGallery.CustHdrs:
+				return "custHdrs";
+			case c_oAscDocPartGallery.CustPgNum:
+				return "custPgNum";
+			case c_oAscDocPartGallery.CustTbls:
+				return "custTbls";
+			case c_oAscDocPartGallery.CustWatermarks:
+				return "custWatermarks";
+			case c_oAscDocPartGallery.CustAutoTxt:
+				return "custAutoTxt";
+			case c_oAscDocPartGallery.CustTxtBox:
+				return "custTxtBox";
+			case c_oAscDocPartGallery.CustPgNumT:
+				return "custPgNumT";
+			case c_oAscDocPartGallery.CustPgNumB:
+				return "custPgNumB";
+			case c_oAscDocPartGallery.CustPgNumMargins:
+				return "custPgNumMargins";
+			case c_oAscDocPartGallery.CustTblOfContents:
+				return "custTblOfContents";
+			case c_oAscDocPartGallery.CustBib:
+				return "custBib";
+			case c_oAscDocPartGallery.Custom1:
+				return "custom1";
+			case c_oAscDocPartGallery.Custom2:
+				return "custom2";
+			case c_oAscDocPartGallery.Custom3:
+				return "custom3";
+			case c_oAscDocPartGallery.Custom4:
+				return "custom4";
+			case c_oAscDocPartGallery.Custom5:
+				return "custom5";
+		}
+		return null;
+	}
+
+	function fromXml_ST_DocPartType(val, def) {
+		switch (val) {
+			case "none":
+				return c_oAscDocPartType.None;
+			case "normal":
+				return c_oAscDocPartType.Normal;
+			case "autoExp":
+				return c_oAscDocPartType.AutoExp;
+			case "toolbar":
+				return c_oAscDocPartType.Toolbar;
+			case "speller":
+				return c_oAscDocPartType.Speller;
+			case "formFld":
+				return c_oAscDocPartType.FormFld;
+			case "bbPlcHdr":
+				return c_oAscDocPartType.BBPlcHolder;
+		}
+		return def;
+	}
+	function toXml_ST_DocPartType(val) {
+		switch (val) {
+			case c_oAscDocPartType.None:
+				return "none";
+			case c_oAscDocPartType.Normal:
+				return "normal";
+			case c_oAscDocPartType.AutoExp:
+				return "autoExp";
+			case c_oAscDocPartType.Toolbar:
+				return "toolbar";
+			case c_oAscDocPartType.Speller:
+				return "speller";
+			case c_oAscDocPartType.FormFld:
+				return "formFld";
+			case c_oAscDocPartType.BBPlcHolder:
+				return "bbPlcHdr";
+		}
+		return null;
+	}
+	function fromXml_ST_DocPartBehavior(val, def) {
+		switch (val) {
+			case "content":
+				return c_oAscDocPartBehavior.Content;
+			case "p":
+				return c_oAscDocPartBehavior.P;
+			case "pg":
+				return c_oAscDocPartBehavior.Pg;
+		}
+		return def;
+	}
+	function toXml_ST_DocPartBehavior(val) {
+		switch (val) {
+			case c_oAscDocPartBehavior.Content:
+				return "content";
+			case c_oAscDocPartBehavior.P:
+				return "p";
+			case c_oAscDocPartBehavior.Pg:
+				return "pg";
 		}
 		return null;
 	}
