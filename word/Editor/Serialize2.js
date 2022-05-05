@@ -502,7 +502,10 @@ var c_oSerRunType = {
 	arPr: 28,
 	fldChar: 29,
 	instrText: 30,
-	delInstrText: 31
+	delInstrText: 31,
+	linebreakClearAll: 32,
+	linebreakClearLeft: 33,
+	linebreakClearRight: 34
 };
 var c_oSerImageType = {
     MediaId:0,
@@ -11928,7 +11931,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
             oNewElem = new ParaNewLine( break_Page );
         }
-        else if (c_oSerRunType.linebreak === type)
+        else if (c_oSerRunType.linebreak === type || c_oSerRunType.linebreakClearAll === type ||
+			c_oSerRunType.linebreakClearLeft === type || c_oSerRunType.linebreakClearRight === type)
         {
             oNewElem = new ParaNewLine( break_Line );
         }
