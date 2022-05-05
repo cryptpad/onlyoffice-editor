@@ -2932,14 +2932,16 @@
 			drawingRef.toXml(writer, "drawing");
 		}
 
+		//vml drawings
 		if (this.aComments.length > 0) {
+			//TODO m_sGfxdata - не протаскивается
 			var vmldrawing = new AscFormat.CVMLDrawing();
 			vmldrawing.m_mapComments = this.aComments;
-			//var test = oElement.getXmlString();
 
+			var memory = new AscCommon.CMemory();
 			var vmldrawingXml = vmldrawing.getXmlString();
-			writer.WriteXmlString(vmldrawingXml);
-			var jsaData = writer.GetDataUint8();
+			memory.WriteXmlString(vmldrawingXml);
+			var jsaData = memory.GetDataUint8();
 			var vmldrawingPart = context.part.addPart(AscCommon.openXml.Types.vmlDrawing);
 			vmldrawingPart.part.setData(jsaData);
 
@@ -2972,18 +2974,11 @@
 			writer.WriteXmlNodeEnd("tableParts");
 		}
 
-		context.comments = null;
 		var oComments = prepareCommentsToWrite(this.aComments, context.InitSaveManager.personList);
 		if (oComments) {
 			if (oComments.comments) {
-				context.comments = oComments.comments;
-
-				/*var oElement = new AscFormat.CVMLDrawing();
-				oElement.m_mapComments = this.aComments;
-				var test = oElement.getXmlString();
-
-				var VMLDrawingPart = context.part.addPart(AscCommon.openXml.Types.vmlDrawing);
-				VMLDrawingPart.part.setDataXml(oElement, writer);*/
+				var commentsPart = context.part.addPart(AscCommon.openXml.Types.worksheetComments);
+				commentsPart.part.setDataXml(oComments.comments, writer);
 			}
 			if (oComments.threadedComments) {
 				var threadedCommentsPart = context.part.addPart(AscCommon.openXml.Types.threadedComment);
@@ -3977,6 +3972,9 @@
 		if (!ns) {
 			ns = "";
 		}
+		if (!name) {
+			name = "personList";
+		}
 
 		writer.WriteXmlNodeStart(ns + name);
 		writer.WriteXmlString(" xmlns=\"http://schemas.microsoft.com/office/spreadsheetml/2018/threadedcomments\"");
@@ -4330,7 +4328,6 @@
 		var t = this;
 		var context = writer.context;
 		var index = 1;
-		var wsComments = [];
 
 		this.wb.forEach(function (ws) {
 			var sheetXml = new CT_Sheet();
@@ -4341,9 +4338,6 @@
 			sheetXml.name = ws.getName();
 			sheetXml.bHidden = ws.bHidden;
 			t.sheets.push(sheetXml);
-			if (context.comments) {
-				wsComments.push(context.comments);
-			}
 			context.sheetIds[ws.getId()] = sheetXml.sheetId;
 		}, context.isCopyPaste);
 
@@ -4357,12 +4351,6 @@
 			sheetXml.toXml(writer);
 		}, context.isCopyPaste);
 		writer.WriteXmlNodeEnd(ns + name);
-
-		//пишем в xml
-		for (var i = 0; i < wsComments.length; i++) {
-			var commentsPart = context.part.addPart(AscCommon.openXml.Types.worksheetComments);
-			commentsPart.part.setDataXml(wsComments[i], writer);
-		}
 	};
 
 	function CT_Sheet() {
@@ -15224,41 +15212,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 	};
 
-	Asc.CT_tableSlicerCache.prototype.readAttr = function (reader) {
-
-
-		var tableIdOpen = null;
-		var columnOpen = null;
-		var elem = !historySerialize && tableIds && tableIds[this.tableId];
-		if (elem) {
-			tableIdOpen = elem.id;
-			columnOpen = (elem.table.getTableIndexColumnByName(this.column) + 1) || null;
-		} else if (historySerialize) {
-			tableIdOpen = this.tableId;
-			columnOpen = this.column;
-		}
-
-		var val;
-		while (reader.MoveToNextAttribute()) {
-			if ("tableId" === reader.GetName()) {
-				val = reader.GetValue();
-				this.tableIdOpen = val;
-			} else if ("column" === reader.GetName()) {
-				val = reader.GetValue();
-				this.columnOpen = val;
-			} else if ("sortOrder" === reader.GetName()) {
-				val = reader.GetValue();
-				this.sortOrder = FromXml_ST_TabularSlicerCacheSortOrder(val);
-			} else if ("customListSort" === reader.GetName()) {
-				val = reader.GetValue();
-				this.customListSort = val;
-			} else if ("crossFilter" === reader.GetName()) {
-				val = reader.GetValue();
-				this.crossFilter = FromXml_ST_SlicerCacheCrossFilter(val);
-			}
-		}
-	};
-
 	Asc.CT_tableSlicerCache.prototype.toXml = function (writer, name, ns) {
 
 		/*writer.StartNode(sName);
@@ -15295,6 +15248,238 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		//WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
 		writer.WriteXmlNodeEnd(ns + name);
 	};
+
+	Asc.CT_slicers.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("slicer", sName) == 0)
+				{
+					m_oSlicer.emplace_back();
+					m_oSlicer.back() = oReader;
+				}
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode())
+			var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+		}
+	};
+
+	Asc.CT_slicers.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_Slicers">
+		<xsd:sequence>
+		<xsd:element name="slicer" type="CT_Slicer" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		</xsd:complexType>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_StartChar_No_NS(oReader)
+					WritingElement_ReadAttributes_EndChar_No_NS( oReader )*/
+
+//serialize
+		/*var res = c_oSerConstants.ReadOk;
+					if(c_oSer_QueryTableDeletedField.Name == type)
+					{
+						pQueryTableDeletedField.name = this.stream.GetString2LE(length);
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+		}
+	};
+
+	Asc.CT_slicers.prototype.toXml = function (writer) {
+
+		/*writer.StartNode(sName);
+			writer.StartAttributes();
+			writer.WriteString(L" xmlns=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"x xr10\" xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:xr10=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision10\"");
+			writer.EndAttributes();
+			if(m_oSlicer.size() > 0)
+			{
+				for(size_t i = 0; i < m_oSlicer.size(); ++i)
+				{
+					(&m_oSlicer[i])->toXML(writer, L"slicer");
+				}
+			}
+			writer.EndNode(sName);*/
+
+
+
+
+
+
+
+		/*writer.StartNode(sName);
+		writer.StartAttributes();
+		writer.WriteXmlString(" xmlns=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"x xr10\" xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:xr10=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision10\"");
+		writer.EndAttributes();
+		if(m_oSlicer.length > 0)
+		{
+			for(var i = 0; i < m_oSlicer.length; ++i)
+			{
+				(&m_oSlicer[i]).toXML(writer, "slicer");
+			}
+		}
+		writer.EndNode(sName);*/
+	};
+
+	Asc.CT_slicer.prototype.fromXml = function (reader) {
+
+		/*ReadAttributes(oReader);
+			if (oReader.IsEmptyNode())
+				return;
+			int nCurDepth = oReader.GetDepth();
+			while (oReader.ReadNextSiblingNode(nCurDepth))
+			{
+				const char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());
+				if (strcmp("extLst", sName) == 0)
+					m_oExtLst = oReader;
+			}*/
+
+		this.readAttr(reader);
+
+		if (reader.IsEmptyNode())
+			var val;
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name = reader.GetNameNoNS();
+		}
+	};
+
+	Asc.CT_slicer.prototype.readAttr = function (reader) {
+
+//documentation
+		/*<xsd:complexType name="CT_Slicer">
+		<xsd:sequence>
+		<xsd:element name="extLst" type="x:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="x:ST_Xstring" use="required"/>
+		<xsd:attribute ref="xr10:uid" use="optional"/>
+		<xsd:attribute name="cache" type="x:ST_Xstring" use="required"/>
+		<xsd:attribute name="caption" type="x:ST_Xstring" use="optional"/>
+		<xsd:attribute name="startItem" type="xsd:unsignedInt" use="optional" default="0"/>
+		<xsd:attribute name="columnCount" type="xsd:unsignedInt" use="optional" default="1"/>
+		<xsd:attribute name="showCaption" type="xsd:boolean" use="optional" default="true"/>
+		<xsd:attribute name="level" type="xsd:unsignedInt" use="optional" default="0"/>
+		<xsd:attribute name="style" type="x:ST_Xstring" use="optional"/>
+		<xsd:attribute name="lockedPosition" type="xsd:boolean" use="optional" default="false"/>
+		<xsd:attribute name="rowHeight" type="xsd:unsignedInt" use="required"/>
+		</xsd:complexType>
+		</xsd:schema>*/
+
+//x2t
+		/*WritingElement_ReadAttributes_StartChar_No_NS(oReader)
+					WritingElement_ReadAttributes_Read_ifChar( oReader, "name", m_oName)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "uid", m_oUid)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "cache", m_oCache)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "caption", m_oCaption)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "startItem", m_oStartItem)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "columnCount", m_oColumnCount)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "showCaption", m_oShowCaption)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "level", m_oLevel)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "style", m_oStyle)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "lockedPosition", m_oLockedPosition)
+					WritingElement_ReadAttributes_Read_else_ifChar( oReader, "rowHeight", m_oRowHeight)
+					WritingElement_ReadAttributes_EndChar_No_NS( oReader )*/
+
+//serialize
+		/*var res = c_oSerConstants.ReadOk;
+					if(c_oSer_QueryTableDeletedField.Name == type)
+					{
+						pQueryTableDeletedField.name = this.stream.GetString2LE(length);
+					}*/
+
+		var val;
+		while (reader.MoveToNextAttribute()) {
+			if ("name" === reader.GetName()) {
+				val = reader.GetValue();
+				this.name = val;
+			} else if ("uid" === reader.GetName()) {
+				val = reader.GetValue();
+				this.uid = val;
+			} else if ("cache" === reader.GetName()) {
+				val = reader.GetValue();
+				this.cache = val;
+			} else if ("caption" === reader.GetName()) {
+				val = reader.GetValue();
+				this.caption = val;
+			} else if ("startItem" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.startItem = val;
+			} else if ("columnCount" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.columnCount = val;
+			} else if ("showCaption" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.showCaption = val;
+			} else if ("level" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.level = val;
+			} else if ("style" === reader.GetName()) {
+				val = reader.GetValue();
+				this.style = val;
+			} else if ("lockedPosition" === reader.GetName()) {
+				val = reader.GetValueBool();
+				this.lockedPosition = val;
+			} else if ("rowHeight" === reader.GetName()) {
+				val = reader.GetValueInt();
+				this.rowHeight = val;
+			} }
+	};
+
+	Asc.CT_slicer.prototype.toXml = function (writer) {
+
+		/*writer.StartNode(sName);
+			writer.StartAttributes();
+			WritingNullable(m_oName, writer.WriteAttributeEncodeXml(L"name", *m_oName););
+			WritingNullable(m_oUid, writer.WriteAttributeEncodeXml(L"xr10:uid", *m_oUid););
+			WritingNullable(m_oCache, writer.WriteAttributeEncodeXml(L"cache", *m_oCache););
+			WritingNullable(m_oCaption, writer.WriteAttributeEncodeXml(L"caption", *m_oCaption););
+			WritingNullable(m_oStartItem, writer.WriteAttribute(L"startItem", *m_oStartItem););
+			WritingNullable(m_oColumnCount, writer.WriteAttribute(L"columnCount", *m_oColumnCount););
+			WritingNullable(m_oShowCaption, writer.WriteAttribute(L"showCaption", *m_oShowCaption););
+			WritingNullable(m_oLevel, writer.WriteAttribute(L"level", *m_oLevel););
+			WritingNullable(m_oStyle, writer.WriteAttributeEncodeXml(L"style", *m_oStyle););
+			WritingNullable(m_oLockedPosition, writer.WriteAttribute(L"lockedPosition", *m_oLockedPosition););
+			WritingNullable(m_oRowHeight, writer.WriteAttribute(L"rowHeight", *m_oRowHeight););
+			writer.EndAttributes();
+			WritingNullable(m_oExtLst, writer.WriteString(m_oExtLst->toXMLWithNS(L"")););
+			writer.EndNode(sName);*/
+
+
+
+
+		/*writer.StartNode(sName);
+		writer.StartAttributes();
+		WritingNullable(m_oName, writer.WriteAttributeEncodeXml("name", *m_oName););
+		WritingNullable(m_oUid, writer.WriteAttributeEncodeXml("xr10:uid", *m_oUid););
+		WritingNullable(m_oCache, writer.WriteAttributeEncodeXml("cache", *m_oCache););
+		WritingNullable(m_oCaption, writer.WriteAttributeEncodeXml("caption", *m_oCaption););
+		WritingNullable(m_oStartItem, writer.WriteAttribute("startItem", *m_oStartItem););
+		WritingNullable(m_oColumnCount, writer.WriteAttribute("columnCount", *m_oColumnCount););
+		WritingNullable(m_oShowCaption, writer.WriteAttribute("showCaption", *m_oShowCaption););
+		WritingNullable(m_oLevel, writer.WriteAttribute("level", *m_oLevel););
+		WritingNullable(m_oStyle, writer.WriteAttributeEncodeXml("style", *m_oStyle););
+		WritingNullable(m_oLockedPosition, writer.WriteAttribute("lockedPosition", *m_oLockedPosition););
+		WritingNullable(m_oRowHeight, writer.WriteAttribute("rowHeight", *m_oRowHeight););
+		writer.EndAttributes();
+		WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
+		writer.EndNode(sName);*/
+	};
+
+
 
 
 	//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
@@ -16596,14 +16781,42 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	};
 
 
-	var _x2tFromXml = 'ReadAttributes( oReader );\n' + '\t\tif ( !oReader.IsEmptyNode() )\n' + '\t\t\toReader.ReadTillEnd();'
-	var _x2t = 'WritingElement_ReadAttributes_Read_if\t( oReader, (L"name"), m_oName )'
-	var _documentation = '<xsd:complexType name="CT_DeletedField">\n' + '1768 <xsd:attribute name="name" type="s:ST_Xstring" use="required"/>\n' + '1769 </xsd:complexType>'
+	var _x2tFromXml = 'ReadAttributes(oReader);\n' + '\tif (oReader.IsEmptyNode())\n' + '\t\treturn;\n' + '\tint nCurDepth = oReader.GetDepth();\n' +
+		'\twhile (oReader.ReadNextSiblingNode(nCurDepth))\n' + '\t{\n' + '\t\tconst char* sName = XmlUtils::GetNameNoNS(oReader.GetNameChar());\n' +
+		'\t\tif (strcmp("extLst", sName) == 0)\n' + '\t\t\tm_oExtLst = oReader;\n' + '\t}'
+	var _x2t = 'WritingElement_ReadAttributes_StartChar_No_NS(oReader)\n' + '\t\t\tWritingElement_ReadAttributes_Read_ifChar( oReader, "name", m_oName)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "uid", m_oUid)\n' + '\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "cache", m_oCache)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "caption", m_oCaption)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "startItem", m_oStartItem)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "columnCount", m_oColumnCount)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "showCaption", m_oShowCaption)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "level", m_oLevel)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "style", m_oStyle)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "lockedPosition", m_oLockedPosition)\n' +
+		'\t\t\tWritingElement_ReadAttributes_Read_else_ifChar( oReader, "rowHeight", m_oRowHeight)\n' + '\t\t\tWritingElement_ReadAttributes_EndChar_No_NS( oReader )'
+	var _documentation = '<xsd:complexType name="CT_Slicer">\n' + '<xsd:sequence>\n' + '<xsd:element name="extLst" type="x:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>\n' +
+		'</xsd:sequence>\n' + '<xsd:attribute name="name" type="x:ST_Xstring" use="required"/>\n' + '<xsd:attribute ref="xr10:uid" use="optional"/>\n' +
+		'<xsd:attribute name="cache" type="x:ST_Xstring" use="required"/>\n' + '<xsd:attribute name="caption" type="x:ST_Xstring" use="optional"/>\n' +
+		'<xsd:attribute name="startItem" type="xsd:unsignedInt" use="optional" default="0"/>\n' +
+		'<xsd:attribute name="columnCount" type="xsd:unsignedInt" use="optional" default="1"/>\n' +
+		'<xsd:attribute name="showCaption" type="xsd:boolean" use="optional" default="true"/>\n' +
+		'<xsd:attribute name="level" type="xsd:unsignedInt" use="optional" default="0"/>\n' + '<xsd:attribute name="style" type="x:ST_Xstring" use="optional"/>\n' +
+		'<xsd:attribute name="lockedPosition" type="xsd:boolean" use="optional" default="false"/>\n' + '<xsd:attribute name="rowHeight" type="xsd:unsignedInt" use="required"/>\n' +
+		'</xsd:complexType>\n' + '</xsd:schema>'
 	var _serialize = 'var res = c_oSerConstants.ReadOk;\n' + '\t\t\tif(c_oSer_QueryTableDeletedField.Name == type)\n' + '\t\t\t{\n' +
 		'\t\t\t\tpQueryTableDeletedField.name = this.stream.GetString2LE(length);\n' + '\t\t\t}'
 
-	var _x2tToXml = 'writer.WriteString(L"<deletedField");\n' + '\t\t\tWritingStringNullableAttrEncodeXmlString(L"name", m_oName, m_oName.get());\n' +
-		'\t\twriter.WriteString(L"/>");'
+	var _x2tToXml = 'writer.StartNode(sName);\n' + '\twriter.StartAttributes();\n' + '\tWritingNullable(m_oName, writer.WriteAttributeEncodeXml(L"name", *m_oName););\n' +
+		'\tWritingNullable(m_oUid, writer.WriteAttributeEncodeXml(L"xr10:uid", *m_oUid););\n' +
+		'\tWritingNullable(m_oCache, writer.WriteAttributeEncodeXml(L"cache", *m_oCache););\n' +
+		'\tWritingNullable(m_oCaption, writer.WriteAttributeEncodeXml(L"caption", *m_oCaption););\n' +
+		'\tWritingNullable(m_oStartItem, writer.WriteAttribute(L"startItem", *m_oStartItem););\n' +
+		'\tWritingNullable(m_oColumnCount, writer.WriteAttribute(L"columnCount", *m_oColumnCount););\n' +
+		'\tWritingNullable(m_oShowCaption, writer.WriteAttribute(L"showCaption", *m_oShowCaption););\n' +
+		'\tWritingNullable(m_oLevel, writer.WriteAttribute(L"level", *m_oLevel););\n' + '\tWritingNullable(m_oStyle, writer.WriteAttributeEncodeXml(L"style", *m_oStyle););\n' +
+		'\tWritingNullable(m_oLockedPosition, writer.WriteAttribute(L"lockedPosition", *m_oLockedPosition););\n' +
+		'\tWritingNullable(m_oRowHeight, writer.WriteAttribute(L"rowHeight", *m_oRowHeight););\n' + '\twriter.EndAttributes();\n' +
+		'\tWritingNullable(m_oExtLst, writer.WriteString(m_oExtLst->toXMLWithNS(L"")););\n' + '\twriter.EndNode(sName);'
 
 
 	//by test automatic add function

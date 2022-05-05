@@ -744,7 +744,7 @@
 		workbookTemplate: {dir: "", filename: "workbookTemplate.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml"},
 		workbookUserData: {dir: "", filename: "workbookUserData.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.userNames+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/usernames"},
 		worksheet: {dir: "worksheets", filename: "sheet[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"},
-		worksheetComments: {dir: "", filename: "comments[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"},
+		worksheetComments: {dir: "..", filename: "comments[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"},
 		worksheetSortMap: {dir: "", filename: "worksheetSortMap.xml", contentType: "application/vnd.ms-excel.wsSortMap+xml", relationType: "http://schemas.microsoft.com/office/2006/relationships/wsSortMap"},
 		xmlSignature: {dir: "", filename: "xmlSignature.xml", contentType: "application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml", relationType: "http://schemas.openxmlformats.org/package/2006/relationships/digital-signature/signature"},
 
