@@ -2694,7 +2694,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 		if (fmt >= 0x4000)
 		{
 			let sFormat = '';
-			for (const customType in Asc.c_oAscCustomNumberingFormatAssociation)
+			for (let customType in Asc.c_oAscCustomNumberingFormatAssociation)
 			{
 				if (Asc.c_oAscCustomNumberingFormatAssociation[customType] === fmt)
 				{
