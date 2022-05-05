@@ -15093,6 +15093,41 @@ CTextPr.prototype.GetTextMetrics = function(oTheme, nFontFlags)
 
 	return oMetrics;
 };
+CTextPr.prototype.GetFontInfo = function(nFontSlot)
+{
+	let sFontName = this.RFonts.Ascii.Name;
+	let isBold    = this.Bold;
+	let isItalic  = this.Italic;
+	let nFontSize = this.FontSize;
+
+	switch (nFontSlot)
+	{
+		case fontslot_CS:
+		{
+			sFontName = this.RFonts.CS.Name;
+			isBold    = this.BoldCS;
+			isItalic  = this.ItalicCS;
+			nFontSize = this.FontSizeCS;
+			break;
+		}
+		case fontslot_EastAsia:
+		{
+			sFontName = this.RFonts.EastAsia.Name;
+			break;
+		}
+		case fontslot_HAnsi:
+		{
+			sFontName = this.RFonts.HAnsi.Name;
+			break;
+		}
+	}
+
+	return {
+		Name  : sFontName,
+		Size  : nFontSize,
+		Style : (isBold ? 1  : 0) | (isItalic ? 2 : 0)
+	};
+};
 
 function CTextMetrics()
 {

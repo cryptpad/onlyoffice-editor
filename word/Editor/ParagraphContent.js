@@ -449,14 +449,15 @@ ParaText.prototype.GetCodePoint = function()
 {
 	return this.Value;
 };
-ParaText.prototype.SetGrapheme = function(oGrapheme)
+ParaText.prototype.SetGrapheme = function(oGrapheme, nFontSlot)
 {
 	this.Grapheme = oGrapheme;
+	this.FontSlot = nFontSlot;
 };
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
 	if (this.Grapheme)
-		this.Grapheme.Draw(Context, X, Y);
+		this.Grapheme.Draw(Context, X, Y, this.FontSlot, oTextPr);
 
 	return;
 

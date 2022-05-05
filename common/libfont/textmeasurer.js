@@ -101,7 +101,7 @@
             }
         },
 
-		GetFontId : function(codePoint)
+		GetFileFontId : function(codePoint)
 		{
 			if (!this.m_oManager.m_pFont)
 				return -1;
