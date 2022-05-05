@@ -138,7 +138,7 @@
 
 		// TODO: Сравнить настройки для шрифта, и выставить настройки после Flush!!!
 
-		if (this.Parent !== oRunParent || !this.TextPr || this.TextPr.IsEqual(oTextPr))
+		if (this.Parent !== oRunParent || !this.TextPr || !this.TextPr.IsEqual(oTextPr))
 			this.FlushWord();
 
 		this.Parent = oRunParent;
@@ -177,64 +177,89 @@
 			return;
 
 		let nScript = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === this.Script ? AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON : this.Script;
-		
-		// TODO: при RTL направлении кластеры возвращаются в обратном порядке, надо отдельно обрабатывать такую ситуацию
-		//let nDirection = this.GetDirection(nScript);
-		let nDirection = AscFonts.HB_DIRECTION.HB_DIRECTION_LTR;
-		let nCharIndex = 0;
+
+		let nDirection = this.GetDirection(nScript);
 
 		let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
 		let sFont = this.FontId.m_pFaceInfo.family_name;
 
 		MEASURER.SetFontInternal(sFont, this.TextPr.FontSize, 0);
 
-		let nClusterMax = ClusterStringLength(this.Text);
-		for (let nGlyphIndex = 0, nGlyphsCount = arrGlyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
+		if (AscFonts.HB_DIRECTION.HB_DIRECTION_RTL === nDirection)
 		{
-			let oGlyph = arrGlyphs[nGlyphIndex];
-			let nCluster = oGlyph.cluster;
-
-			let nGraphemeWidth = oGlyph.x_advance * COEF;
-			let arrLigature = [this.Items[nCharIndex]];
-
-			let nStartChar = this.Items[nCharIndex];
+			// TODO: Пока у нас нет поддержки RTL мы все слова идущие в RTL считаем как большую составную графему, и не
+			//       разбиваем их на нормальные графемы
 
 			let oGrapheme = new CGrapheme(sFont);
-			oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset * COEF, oGlyph.y_offset * COEF);
+			this.Items[0].SetGrapheme(oGrapheme);
 
-			let isLigature = LIGATURE === oGlyph.type;
-
-			this.Items[nCharIndex].SetGrapheme(oGrapheme);
-
-			nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
-			nCharIndex++;
-
-			while (nGlyphIndex < nGlyphsCount - 1 && arrGlyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
+			let nGraphemeWidth = 0;
+			for (let nGlyphIndex = 0, nGlyphsCount = arrGlyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 			{
-				oGlyph = arrGlyphs[++nGlyphIndex];
+				let oGlyph = arrGlyphs[nGlyphIndex];
 				oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset * COEF, oGlyph.y_offset * COEF);
-
 				nGraphemeWidth += oGlyph.x_advance * COEF;
 			}
 
-			nStartChar.SetWidth(nGraphemeWidth);
+			this.Items[0].SetWidth(nGraphemeWidth);
 
-			let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nClusterMax : arrGlyphs[nGlyphIndex + 1].cluster;
-			while (nCluster < nNextCluster && nCharIndex < this.Items.length)
+			for (let nCharIndex = 1, nCharsCount = this.Items.length; nCharIndex < nCharsCount; ++nCharIndex)
 			{
-				arrLigature.push(this.Items[nCharIndex]);
 				this.Items[nCharIndex].SetGrapheme(null);
 				this.Items[nCharIndex].SetWidth(0);
+			}
+		}
+		else
+		{
+			let nCharIndex = 0;
+			let nClusterMax = ClusterStringLength(this.Text);
+			for (let nGlyphIndex = 0, nGlyphsCount = arrGlyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
+			{
+				let oGlyph   = arrGlyphs[nGlyphIndex];
+				let nCluster = oGlyph.cluster;
+
+				let nGraphemeWidth = oGlyph.x_advance * COEF;
+				let arrLigature    = [this.Items[nCharIndex]];
+
+				let nStartChar = this.Items[nCharIndex];
+
+				let oGrapheme = new CGrapheme(sFont);
+				oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset * COEF, oGlyph.y_offset * COEF);
+
+				let isLigature = LIGATURE === oGlyph.type;
+
+				this.Items[nCharIndex].SetGrapheme(oGrapheme);
+
 				nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
 				nCharIndex++;
-			}
 
-			let nLigatureLen = arrLigature.length;
-			if (nLigatureLen > 1 && isLigature)
-			{
-				for (let nLigatureIndex = 0; nLigatureIndex < nLigatureLen; ++nLigatureIndex)
+				while (nGlyphIndex < nGlyphsCount - 1 && arrGlyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
 				{
-					arrLigature[nLigatureIndex].SetWidth(nGraphemeWidth / nLigatureLen);
+					oGlyph = arrGlyphs[++nGlyphIndex];
+					oGrapheme.Add(oGlyph.gid, oGlyph.x_advance * COEF, oGlyph.y_advance * COEF, oGlyph.x_offset * COEF, oGlyph.y_offset * COEF);
+
+					nGraphemeWidth += oGlyph.x_advance * COEF;
+				}
+
+				nStartChar.SetWidth(nGraphemeWidth);
+
+				let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nClusterMax : arrGlyphs[nGlyphIndex + 1].cluster;
+				while (nCluster < nNextCluster && nCharIndex < this.Items.length)
+				{
+					arrLigature.push(this.Items[nCharIndex]);
+					this.Items[nCharIndex].SetGrapheme(null);
+					this.Items[nCharIndex].SetWidth(0);
+					nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
+					nCharIndex++;
+				}
+
+				let nLigatureLen = arrLigature.length;
+				if (nLigatureLen > 1 && isLigature)
+				{
+					for (let nLigatureIndex = 0; nLigatureIndex < nLigatureLen; ++nLigatureIndex)
+					{
+						arrLigature[nLigatureIndex].SetWidth(nGraphemeWidth / nLigatureLen);
+					}
 				}
 			}
 		}
