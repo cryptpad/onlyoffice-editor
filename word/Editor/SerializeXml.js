@@ -2283,22 +2283,28 @@
 				case "annotationRef":
 					break;
 				case "br":
+					newItem = new ParaNewLine();
+					newItem.fromXml(reader);
 					break;
 				case "commentReference":
 					break;
 				case "contentPart":
 					break;
 				case "continuationSeparator":
+					newItem = new ParaContinuationSeparator();
 					break;
 				case "cr":
+					newItem = new ParaNewLine(break_Line);
 					break;
 				case "dayLong":
 					break;
 				case "dayShort":
 					break;
 				case "delInstrText":
+					//todo
 					break;
 				case "delText":
+					//todo
 					break;
 				case "drawing":
 					newItem = this.readDrawing(reader);
@@ -2332,6 +2338,7 @@
 					}
 					break;
 				case "fldChar":
+					//todo
 					break;
 				case "footnoteRef":
 					newItem = new ParaFootnoteRef(null);
@@ -2346,6 +2353,7 @@
 					}
 					break;
 				case "instrText":
+					//todo
 					break;
 				case "lastRenderedPageBreak":
 					break;
@@ -2354,10 +2362,14 @@
 				case "monthShort":
 					break;
 				case "noBreakHyphen":
+					newItem = new ParaText(0x002D);
+					newItem.Set_SpaceAfter(false);
 					break;
 				case "object":
+					//todo
 					break;
 				case "pgNum":
+					newItem = new ParaPageNum();
 					break;
 				case "pict":
 					break;
@@ -2386,15 +2398,22 @@
 				case "ruby":
 					break;
 				case "separator":
+					newItem = new ParaSeparator();
 					break;
 				case "softHyphen":
 					break;
 				case "sym":
+					let sym = new CT_Sym();
+					sym.fromXml(reader);
+					if (null !== sym.char) {
+						this.AddText(String.fromCharCode(0x0FFF & sym.char), -1);
+					}
 					break;
 				case "t":
 					this.AddText(reader.GetTextDecodeXml(), -1);
 					break;
 				case "tab":
+					newItem = new ParaTab();
 					break;
 				case "yearLong":
 					break;
@@ -2423,10 +2442,38 @@
 				// this.Pr.toXml(writer, "a:rPr");
 			}
 		}
+		let ns = para_Math_Run !== this.Type ? "w:" : "m:";
+
 		for (var i = 0; i < this.Content.length; ++i)
 		{
 			var item = this.Content[i];
 			switch ( item.Type ) {
+				case para_Text:
+					if (item.IsNoBreakHyphen()) {
+						writer.WriteXmlNodeStart("w:noBreakHyphen");
+						writer.WriteXmlAttributesEnd(true);
+					} else {
+						writer.WriteXmlNullableValueStringEncode(ns + "t", AscCommon.encodeSurrogateChar(item.Value));
+					}
+					break;
+				case para_Space:
+					writer.WriteXmlNullableValueStringEncode(ns + "t", AscCommon.encodeSurrogateChar(item.Value));
+					break;
+				case para_Tab:
+					writer.WriteXmlNodeStart("w:tab");
+					writer.WriteXmlAttributesEnd(true);
+					break;
+				case para_NewLine:
+					item.toXml(writer, "w:br");
+					break;
+				case para_Separator:
+					writer.WriteXmlNodeStart("w:separator");
+					writer.WriteXmlAttributesEnd(true);
+					break;
+				case para_ContinuationSeparator:
+					writer.WriteXmlNodeStart("w:continuationSeparator");
+					writer.WriteXmlAttributesEnd(true);
+					break;
 				case para_FootnoteRef:
 					writer.WriteXmlNodeStart("w:footnoteRef");
 					writer.WriteXmlAttributesEnd(true);
@@ -2451,17 +2498,15 @@
 						endRef.toXml(writer, "w:endnoteReference");
 					}
 					break;
-				case para_Text:
-				case para_Space:
-
+				case para_FieldChar:
+					break;
+				case para_InstrText:
 					break;
 				case para_Drawing:
 					item.toXml(writer, "w:drawing");
 					break;
 			}
 		}
-		let ns = para_Math_Run !== this.Type ? "w:" : "m:";
-		writer.WriteXmlNullableValueStringEncode(ns + "t", this.GetSelectedText(true));
 		writer.WriteXmlNodeEnd(name);
 	};
 	CTextPr.prototype.fromXml = function(reader) {
@@ -2908,6 +2953,29 @@
 		writer.WriteXmlNullableAttributeStringEncode("w:val", Asc.g_oLcidIdToNameMap[this.Val]);
 		writer.WriteXmlNullableAttributeStringEncode("w:eastAsia", Asc.g_oLcidIdToNameMap[this.EastAsia]);
 		writer.WriteXmlNullableAttributeStringEncode("w:bidi", Asc.g_oLcidIdToNameMap[this.Bidi]);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	ParaNewLine.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "type": {
+					this.BreakType = fromXml_ST_BrType(reader.GetValue(), this.type);
+					break;
+				}
+				case "clear": {
+					break;
+				}
+			}
+		}
+	};
+	ParaNewLine.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	ParaNewLine.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_BrType(this.BreakType));
+		// writer.WriteXmlNullableAttributeString("w:clear", toXml_ST_BrClear(this.clear));
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CSectionPr.prototype.readAttr = function(reader) {
@@ -6697,6 +6765,35 @@
 		// writer.WriteXmlNullableAttributeString("w:displacedByCustomXml", toXml_ST_DisplacedByCustomXml(this.displacedByCustomXml));
 		writer.WriteXmlAttributesEnd(true);
 	};
+	function CT_Sym() {
+		this.font = null;
+		this.char = null;
+		return this;
+	}
+	CT_Sym.prototype.readAttr = function(reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "font": {
+					this.font = reader.GetValueDecodeXml();
+					break;
+				}
+				case "char": {
+					this.char = reader.GetValueByte(this.char);
+					break;
+				}
+			}
+		}
+	};
+	CT_Sym.prototype.fromXml = function(reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	CT_Sym.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("w:font", this.font);
+		writer.WriteXmlNullableAttributeByte("w:char", this.char);
+		writer.WriteXmlAttributesEnd(true);
+	};
 	//enums
 	function fromXml_ST_Border(val) {
 		switch (val) {
@@ -9062,6 +9159,28 @@
 				return "p";
 			case c_oAscDocPartBehavior.Pg:
 				return "pg";
+		}
+		return null;
+	}
+	function fromXml_ST_BrType(val, def) {
+		switch (val) {
+			case "page":
+				return break_Page;
+			case "column":
+				return break_Column;
+			case "textWrapping":
+				return break_Line;
+		}
+		return def;
+	}
+	function toXml_ST_BrType(val) {
+		switch (val) {
+			case break_Page:
+				return "page";
+			case break_Column:
+				return "column";
+			case break_Line:
+				return "textWrapping";
 		}
 		return null;
 	}
