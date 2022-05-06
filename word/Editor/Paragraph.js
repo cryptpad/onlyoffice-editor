@@ -18727,24 +18727,22 @@ function CParagraphSearchPos()
     this.Line  = -1;
     this.Range = -1;
 
-    this.Stage       = 0; // Номера этапов для поиска начала и конца слова
-    this.Shift       = false;
-    this.Punctuation = false;
-    this.First       = true;
-    this.UpdatePos   = false;
+	this.Stage         = 0; // Номера этапов для поиска начала и конца слова
+	this.Shift         = false;
+	this.Punctuation   = false;
+	this.First         = true;
+	this.UpdatePos     = false;
+	this.ComplexFields = [];
 
-    this.ForSelection = false;
-
-    this.CheckAnchors = false;
-
-    this.TrimSpaces = false; // При поиске позиции конца слова, если false - ищем вместе с проблема, true - ищем четкое окончание слова
-
-    this.ComplexFields = [];
+	this.ForSelection = false;
+	this.CheckAnchors = false;
+	this.TrimSpaces   = false; // При поиске позиции конца слова, если false - ищем вместе с проблема, true - ищем четкое окончание слова
 }
 CParagraphSearchPos.prototype.Reset = function()
 {
 	this.Pos.Reset();
 
+	this.Found         = false;
 	this.Line          = -1;
 	this.Range         = -1;
 	this.Stage         = 0;
