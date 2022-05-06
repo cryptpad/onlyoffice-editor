@@ -502,7 +502,10 @@ var c_oSerRunType = {
 	arPr: 28,
 	fldChar: 29,
 	instrText: 30,
-	delInstrText: 31
+	delInstrText: 31,
+	linebreakClearAll: 32,
+	linebreakClearLeft: 33,
+	linebreakClearRight: 34
 };
 var c_oSerImageType = {
     MediaId:0,
@@ -2687,27 +2690,33 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 	};
 	this.WriteNumFmt = function(fmt)
 	{
-		var oThis = this;
-		var val;
-		switch (fmt) {
-			case Asc.c_oAscNumberingFormat.None: val = 48; break;
-			case Asc.c_oAscNumberingFormat.Bullet: val = 5; break;
-			case Asc.c_oAscNumberingFormat.Decimal: val = 13; break;
-			case Asc.c_oAscNumberingFormat.LowerRoman: val = 47; break;
-			case Asc.c_oAscNumberingFormat.UpperRoman: val = 61; break;
-			case Asc.c_oAscNumberingFormat.LowerLetter: val = 46; break;
-			case Asc.c_oAscNumberingFormat.UpperLetter: val = 60; break;
-			case Asc.c_oAscNumberingFormat.DecimalZero: val = 21; break;
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle: val = 14; break;
-			case Asc.c_oAscNumberingFormat.RussianLower: val = 52; break;
-			case Asc.c_oAscNumberingFormat.RussianUpper: val = 53; break;
-			case Asc.c_oAscNumberingFormat.ChineseCounting: val = 8; break;
-			case Asc.c_oAscNumberingFormat.ChineseCountingThousand: val = 9; break;
-			case Asc.c_oAscNumberingFormat.ChineseLegalSimplified: val = 10; break;
+		const oThis = this;
+		if (fmt >= 0x4000)
+		{
+			let sFormat = '';
+			for (let customType in Asc.c_oAscCustomNumberingFormatAssociation)
+			{
+				if (Asc.c_oAscCustomNumberingFormatAssociation[customType] === fmt)
+				{
+					sFormat = customType;
+					break;
+				}
+			}
 
-			default: val = 13; break;
+			if (sFormat)
+			{
+				this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(Asc.c_oAscNumberingFormat.Custom);});
+				this.bs.WriteItem(c_oSerNumTypes.NumFmtFormat, function () {oThis.memory.WriteString3(sFormat);});
+			}
+			else
+			{
+				this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(Asc.c_oAscNumberingFormat.Decimal);});
+			}
 		}
-		this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(val);});
+		else
+		{
+			this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(fmt);});
+		}
 	};
     this.WritePageSize = function(sectPr, oDocument)
     {
@@ -9540,13 +9549,22 @@ function Binary_pPrReader(doc, oReadResult, stream)
 		return res;
 	};
 	this.ReadNumFmt = function(type, length, props) {
-		var res = c_oSerConstants.ReadOk;
+		let res = c_oSerConstants.ReadOk;
+		let nFormat = Asc.c_oAscNumberingFormat.Decimal;
+
 		if (c_oSerNumTypes.NumFmtVal === type) {
-			var nFormat = Asc.c_oAscNumberingFormat.Decimal;
-			var serializeNFormat = this.stream.GetByte();
+			const serializeNFormat = this.stream.GetByte();
 			if (serializeNFormat >= 0 && serializeNFormat <= 62) {
 				nFormat = serializeNFormat;
 			}
+			if (props instanceof CNumberingLvl)
+				props.SetFormat(nFormat);
+			else
+				props.Format = nFormat;
+		} else if (c_oSerNumTypes.NumFmtFormat === type) {
+			const sFormat = this.stream.GetString2LE(length);
+			nFormat = Asc.c_oAscCustomNumberingFormatAssociation[sFormat] || nFormat;
+
 			if (props instanceof CNumberingLvl)
 				props.SetFormat(nFormat);
 			else
@@ -11913,7 +11931,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
             oNewElem = new ParaNewLine( break_Page );
         }
-        else if (c_oSerRunType.linebreak === type)
+        else if (c_oSerRunType.linebreak === type || c_oSerRunType.linebreakClearAll === type ||
+			c_oSerRunType.linebreakClearLeft === type || c_oSerRunType.linebreakClearRight === type)
         {
             oNewElem = new ParaNewLine( break_Line );
         }

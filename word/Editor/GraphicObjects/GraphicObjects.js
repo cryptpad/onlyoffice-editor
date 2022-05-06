@@ -1951,7 +1951,7 @@ CGraphicObjects.prototype =
             {
                 bSelectedAll = false;
             }
-            SelectedContent.Add( new CSelectedElement( para, bSelectedAll ) );
+            SelectedContent.Add( new AscCommonWord.CSelectedElement( para, bSelectedAll ) );
         }
     },
 
@@ -2873,7 +2873,7 @@ CGraphicObjects.prototype =
             }));
         para_drawing.Set_XYForAdd(dOffX, dOffY, nearest_pos, nPageIndex);
 
-        para_drawing.Add_ToDocument2(first_paragraph);
+        para_drawing.AddToParagraph(first_paragraph);
         para_drawing.Parent = first_paragraph;
         this.addGraphicObject(para_drawing);
         this.resetSelection();
@@ -3010,7 +3010,7 @@ CGraphicObjects.prototype =
                 for(j = 0; j < aDrawings.length; ++j)
                 {
                     drawing = aDrawings[j];
-                    drawing.Add_ToDocument2(parent_paragraph);
+                    drawing.AddToParagraph(parent_paragraph);
                     this.selectObject(drawing.GraphicObj, page_num);
                 }
             }

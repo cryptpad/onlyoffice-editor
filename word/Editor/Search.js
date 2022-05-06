@@ -385,7 +385,8 @@ function CSearchTextItemChar(nCharCode)
 CSearchTextItemChar.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextItemChar.prototype.IsMatch = function(oItem)
 {
-	return (oItem.IsChar() && this.GetValue() === oItem.GetValue());
+	return ((oItem.IsChar() && this.GetValue() === oItem.GetValue())
+		|| (0x2D === this.GetValue() && oItem.GetType() === c_oSearchItemType.NonBreakingHyphen));
 };
 CSearchTextItemChar.prototype.ToRunElement = function(isMathRun)
 {
@@ -587,8 +588,7 @@ CSearchTextSpecialNonBreakingHyphen.prototype = Object.create(CSearchTextItemBas
 CSearchTextSpecialNonBreakingHyphen.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
-		|| c_oSearchItemType.NonBreakingHyphen === nType
+	return (c_oSearchItemType.NonBreakingHyphen === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
 CSearchTextSpecialNonBreakingHyphen.prototype.ToRunElement = function(isMathRun)
@@ -636,7 +636,7 @@ CSearchTextSpecialAnySpace.prototype = Object.create(CSearchTextItemBase.prototy
 CSearchTextSpecialAnySpace.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && AscCommon.IsSpace(oItem.GetValue()))
+	return ((c_oSearchItemType.Text === nType && (AscCommon.IsSpace(oItem.GetValue()) || nbsp_charcode === oItem.GetValue()))
 		|| c_oSearchItemType.AnySpace === nType
 		|| c_oSearchItemType.NonBreakingSpace === nType
 		|| c_oSearchItemType.AnySymbol === nType);
@@ -651,7 +651,7 @@ CSearchTextSpecialEmDash.prototype = Object.create(CSearchTextItemBase.prototype
 CSearchTextSpecialEmDash.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2010 <= oItem.GetValue() && oItem.GetValue() <= 0x2015)
+	return ((c_oSearchItemType.Text === nType && 0x2014 === oItem.GetValue())
 		|| c_oSearchItemType.EmDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
@@ -678,7 +678,7 @@ CSearchTextSpecialEnDash.prototype = Object.create(CSearchTextItemBase.prototype
 CSearchTextSpecialEnDash.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
+	return ((c_oSearchItemType.Text === nType && 0x2013 === oItem.GetValue())
 		|| c_oSearchItemType.EnDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };

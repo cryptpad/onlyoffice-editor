@@ -692,7 +692,7 @@ CBlockLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 {
 	if (this.Content.IsSelectedAll() || this.IsPlaceHolder())
 	{
-		oSelectedContent.Add(new CSelectedElement(this.Copy(this.Parent)));
+		oSelectedContent.Add(new AscCommonWord.CSelectedElement(this.Copy(this.Parent)));
 	}
 	else
 	{

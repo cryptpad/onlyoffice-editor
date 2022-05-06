@@ -2286,7 +2286,7 @@
 
 	/**
 	* Класс для настроек конвертации текста в таблицу
-	* oSelectedContent {CSelectedContent}
+	* oSelectedContent {AscCommonWord.CSelectedContent}
 	* @constructor
 	*/
 	function CAscTextToTableProperties(oSelectedContent)

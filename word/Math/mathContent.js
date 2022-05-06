@@ -2444,43 +2444,55 @@ CMathContent.prototype.Refresh_RecalcData = function()
     if(this.ParaMath !== null)
         this.ParaMath.Refresh_RecalcData(); // Refresh_RecalcData сообщает родительскому классу, что у него произошли изменения, нужно пересчитать
 };
-CMathContent.prototype.Insert_MathContent = function(oMathContent, Pos, bSelect)
+CMathContent.prototype.InsertMathContent = function(oMathContent, nPos, isSelect)
 {
-    if (null === this.ParaMath || null === this.ParaMath.Paragraph)
-        bSelect = false;
+	if (!this.ParaMath || !this.ParaMath.Paragraph)
+		isSelect = false;
 
-    if (undefined === Pos)
-        Pos = this.CurPos;
+	if (undefined === nPos)
+		nPos = this.CurPos;
 
-    var nCount = oMathContent.Content.length;
-    for (var nIndex = 0; nIndex < nCount; nIndex++)
-    {
-        this.Internal_Content_Add(Pos + nIndex, oMathContent.Content[nIndex], false);
+	let nCount = oMathContent.Content.length;
+	for (let nIndex = 0; nIndex < nCount; ++nIndex)
+	{
+		let oElement = oMathContent.Content[nIndex];
+		this.AddToContent(nPos + nIndex, oElement, true);
 
-        if (true === bSelect)
-        {
-            oMathContent.Content[nIndex].SelectAll();
-        }
-    }
+		if (isSelect)
+			oElement.SelectAll(1);
+		else
+			oElement.RemoveSelection();
+	}
 
-    this.CurPos = Pos + nCount;
+	this.CurPos = nPos + nCount;
 
-    if (true === bSelect)
-    {
-        this.Selection.Use = true;
-        this.Selection.StartPos = Pos;
-        this.Selection.EndPos   = Pos + nCount - 1;
+	if (isSelect)
+	{
+		this.Selection.Use      = true;
+		this.Selection.StartPos = nPos;
+		this.Selection.EndPos   = nPos + nCount - 1;
 
-        if (!this.bRoot)
-            this.ParentElement.Select_MathContent(this);
-        else
-            this.ParaMath.bSelectionUse = true;
+		if (!this.bRoot)
+			this.ParentElement.Select_MathContent(this);
+		else
+			this.ParaMath.bSelectionUse = true;
 
-        this.ParaMath.Paragraph.Select_Math(this.ParaMath);
-    }
+		this.ParaMath.SelectThisElement(1, true);
+	}
+	else
+	{
+		this.ParaMath.SetThisElementCurrent();
+		this.RemoveSelection();
 
-    this.Correct_Content(true);
-    this.Correct_ContentPos(-1);
+		if (!this.bRoot)
+			this.ParentElement.SetCurrentMathContent(this);
+
+		if (this.Content[this.CurPos])
+			this.Content[this.CurPos].MoveCursorToStartPos();
+	}
+
+	this.Correct_Content(true);
+	this.Correct_ContentPos(-1);
 };
 CMathContent.prototype.Set_ParaMath = function(ParaMath, Parent)
 {
@@ -4227,6 +4239,21 @@ CMathContent.prototype.Select_Element = function(Element, bWhole)
         else
             this.ParaMath.bSelectionUse = true;
     }
+};
+CMathContent.prototype.SetCurrentElement = function(oElement)
+{
+	for(var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos] === oElement)
+		{
+			this.CurPos = nPos;
+
+			if (!this.bRoot)
+				this.ParentElement.SetCurrentMathContent(this);
+
+			break;
+		}
+	}
 };
 CMathContent.prototype.Correct_Selection = function()
 {
