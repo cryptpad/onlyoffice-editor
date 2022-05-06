@@ -15267,12 +15267,29 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
-			var val;
-		var depth = reader.GetDepth();
-		while (reader.ReadNextSiblingNode(depth)) {
-			var name = reader.GetNameNoNS();
+		if (reader.IsEmptyNode()) {
+			return;
 		}
+
+		var t = this;
+		reader.readXmlArray("slicers", function () {
+			if (reader.IsEmptyNode()) {
+				return;
+			}
+			var depth = reader.GetDepth();
+			while (reader.ReadNextSiblingNode(depth)) {
+				var name = reader.GetNameNoNS();
+
+				if ("slicer" === name) {
+					var slicer = new Asc.CT_slicer(t._ws);
+					slicer.fromXml(reader);
+					if (!t.slicer) {
+						t.slicer = [];
+					}
+					t.slicer.push(slicer);
+				}
+			}
+		});
 	};
 
 	Asc.CT_slicers.prototype.readAttr = function (reader) {
@@ -15294,13 +15311,9 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 					{
 						pQueryTableDeletedField.name = this.stream.GetString2LE(length);
 					}*/
-
-		var val;
-		while (reader.MoveToNextAttribute()) {
-		}
 	};
 
-	Asc.CT_slicers.prototype.toXml = function (writer) {
+	Asc.CT_slicers.prototype.toXml = function (writer, name) {
 
 		/*writer.StartNode(sName);
 			writer.StartAttributes();
@@ -15316,23 +15329,22 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			writer.EndNode(sName);*/
 
 
+		if (!name) {
+			name = "slicers";
+		}
 
-
-
-
-
-		/*writer.StartNode(sName);
-		writer.StartAttributes();
+		writer.WriteXmlString('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
+		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(" xmlns=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" mc:Ignorable=\"x xr10\" xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:xr10=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision10\"");
-		writer.EndAttributes();
-		if(m_oSlicer.length > 0)
-		{
-			for(var i = 0; i < m_oSlicer.length; ++i)
-			{
-				(&m_oSlicer[i]).toXML(writer, "slicer");
+		writer.WriteXmlAttributesEnd();
+
+		if (this.slicer.length > 0) {
+			for (var i = 0; i < this.slicer.length; ++i) {
+				this.slicer[i].toXml(writer, "slicer");
 			}
 		}
-		writer.EndNode(sName);*/
+
+		writer.WriteXmlNodeEnd(name);
 	};
 
 	Asc.CT_slicer.prototype.fromXml = function (reader) {
@@ -15350,11 +15362,14 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 		this.readAttr(reader);
 
-		if (reader.IsEmptyNode())
-			var val;
+		if (reader.IsEmptyNode()) {
+			return;
+		}
+
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
+			//extLst
 		}
 	};
 
@@ -15401,6 +15416,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						pQueryTableDeletedField.name = this.stream.GetString2LE(length);
 					}*/
 
+		var slicerCaches = reader.context.InitOpenManager.oReadResult.slicerCaches;
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("name" === reader.GetName()) {
@@ -15411,7 +15427,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.uid = val;
 			} else if ("cache" === reader.GetName()) {
 				val = reader.GetValue();
-				this.cache = val;
+				this.cacheDefinition = slicerCaches[val] || null;
 			} else if ("caption" === reader.GetName()) {
 				val = reader.GetValue();
 				this.caption = val;
@@ -15434,12 +15450,14 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				val = reader.GetValueBool();
 				this.lockedPosition = val;
 			} else if ("rowHeight" === reader.GetName()) {
+				//TODO метрика
 				val = reader.GetValueInt();
 				this.rowHeight = val;
-			} }
+			}
+		}
 	};
 
-	Asc.CT_slicer.prototype.toXml = function (writer) {
+	Asc.CT_slicer.prototype.toXml = function (writer, name) {
 
 		/*writer.StartNode(sName);
 			writer.StartAttributes();
@@ -15459,28 +15477,26 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			writer.EndNode(sName);*/
 
 
+		if (!name) {
+			name = "slicer";
+		}
 
-
-		/*writer.StartNode(sName);
-		writer.StartAttributes();
-		WritingNullable(m_oName, writer.WriteAttributeEncodeXml("name", *m_oName););
-		WritingNullable(m_oUid, writer.WriteAttributeEncodeXml("xr10:uid", *m_oUid););
-		WritingNullable(m_oCache, writer.WriteAttributeEncodeXml("cache", *m_oCache););
-		WritingNullable(m_oCaption, writer.WriteAttributeEncodeXml("caption", *m_oCaption););
-		WritingNullable(m_oStartItem, writer.WriteAttribute("startItem", *m_oStartItem););
-		WritingNullable(m_oColumnCount, writer.WriteAttribute("columnCount", *m_oColumnCount););
-		WritingNullable(m_oShowCaption, writer.WriteAttribute("showCaption", *m_oShowCaption););
-		WritingNullable(m_oLevel, writer.WriteAttribute("level", *m_oLevel););
-		WritingNullable(m_oStyle, writer.WriteAttributeEncodeXml("style", *m_oStyle););
-		WritingNullable(m_oLockedPosition, writer.WriteAttribute("lockedPosition", *m_oLockedPosition););
-		WritingNullable(m_oRowHeight, writer.WriteAttribute("rowHeight", *m_oRowHeight););
-		writer.EndAttributes();
-		WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
-		writer.EndNode(sName);*/
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributeStringEncode("name", this.name);
+		writer.WriteXmlAttributeStringEncode("xr10:uid", this.uid);
+		writer.WriteXmlAttributeStringEncode("cache", this.cacheDefinition);
+		writer.WriteXmlAttributeStringEncode("caption", this.caption);
+		writer.WriteXmlAttributeInt("startItem", this.startItem);
+		writer.WriteXmlAttributeInt("columnCount", this.columnCount);
+		writer.WriteXmlAttributeBool("showCaption", this.showCaption);
+		writer.WriteXmlAttributeInt("level", this.level);
+		writer.WriteXmlAttributeString("style", this.style);
+		writer.WriteXmlAttributeBool("lockedPosition", this.lockedPosition);
+		writer.WriteXmlAttributeBool("rowHeight", this.rowHeight);
+		writer.WriteXmlAttributesEnd();
+		//WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
+		writer.WriteXmlNodeEnd(name);
 	};
-
-
-
 
 	//пока читаю в строку connections. в serialize сейчас аналогично не парсим структуру, а храним в виде массива байтов
 	//connections

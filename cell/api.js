@@ -1774,6 +1774,15 @@ var editor;
 								ws.aNamedSheetViews = namedSheetView.namedSheetView;
 							}
 
+							//slicers
+							var slicers = wsPart.getPartsByRelationshipType(openXml.Types.slicers.relationType);
+							for (i = 0; i < slicers.length; ++i) {
+								var contentSlicers = slicers[i].getDocumentContent();
+								var oSlicers = new Asc.CT_slicers(ws);
+								oSlicers.slicer = ws.aSlicers;
+								reader = new StaxParser(contentSlicers, oSlicers, xmlParserContext);
+								oSlicers.fromXml(reader);
+							}
 
 							var m_mapComments = {};
 							var PrepareComments = function () {

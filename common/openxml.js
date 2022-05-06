@@ -711,7 +711,7 @@
 		sharedStringTable: {dir: "", filename: "sharedStrings.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"},
 		singleCellTable: {dir: "", filename: "singleCellTable.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.tableSingleCells+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableSingleCells"},
 		slicerCache: {dir: "../slicerCaches", filename: "slicerCache[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.slicerCache+xml"},
-		slicers: {dir: "../slicers", filename: "slicer[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.slicer+xml"},
+		slicers: {dir: "../slicers", filename: "slicer[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.slicer+xml", relationType: "http://schemas.microsoft.com/office/2007/relationships/slicer"},
 		slide: {dir: "", filename: "slide.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.slide+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide"},
 		slideComments: {dir: "", filename: "slideComments.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.comments+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"},
 		slideLayout: {dir: "", filename: "slideLayout.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout"},
