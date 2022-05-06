@@ -96,9 +96,11 @@
 		if (!oContext.m_oTextPr)
 			oContext.m_oTextPr = new CTextPr();
 
-		oContext.m_oGrFonts.Ascii.Name = this.Font;
+		let sFontName = AscCommon.FontNameMap.GetName(this.Font);
+
+		oContext.m_oGrFonts.Ascii.Name = sFontName;
 		oContext.m_oGrFonts.Ascii.Index = -1;
-		oContext.m_oTextPr.RFonts.Ascii.Name = this.Font;
+		oContext.m_oTextPr.RFonts.Ascii.Name = sFontName;
 		oContext.m_oTextPr.Bold              = oFontInfo.Style & 1;
 		oContext.m_oTextPr.Italic            = oFontInfo.Style & 2;
 		oContext.m_oTextPr.FontSize          = oFontInfo.Size;
@@ -184,14 +186,14 @@
 		let nDirection = this.GetDirection(nScript);
 
 		let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
-		let sFont     = this.FontId.m_pFaceInfo.family_name;
+		let sFont     = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
 
 		let oFontInfo = this.TextPr.GetFontInfo(this.FontSlot);
 		let nFontSize = oFontInfo.Size;
 		let nKoef     = COEF * nFontSize / 72;
 
 
-		MEASURER.SetFontInternal(sFont, 72, oFontInfo.Style);
+		MEASURER.SetFontInternal(this.FontId.m_pFaceInfo.family_name, 72, oFontInfo.Style);
 
 		if (AscFonts.HB_DIRECTION.HB_DIRECTION_RTL === nDirection)
 		{

@@ -8979,11 +8979,19 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	else
 	{
 		if (undefined !== TextPr.Bold)
-			this.Set_Bold(null === TextPr.Bold ? undefined : TextPr.Bold);
+		{
+			this.SetBold(null === TextPr.Bold ? undefined : TextPr.Bold);
+			this.SetBoldCS(null === TextPr.Bold ? undefined : TextPr.Bold);
+		}
 
 		if (undefined !== TextPr.Italic)
-			this.Set_Italic(null === TextPr.Italic ? undefined : TextPr.Italic);
+		{
+			this.SetItalic(null === TextPr.Italic ? undefined : TextPr.Italic);
+			this.SetItalicCS(null === TextPr.Italic ? undefined : TextPr.Italic);
+		}
 	}
+
+	// TODO: Пока временно сделали, что при выставлении Bold, Italic, FontSize выставляются и их дублеры BoldCS, ItalicCS, FontSizeCS
 
 	if (undefined !== TextPr.Strikeout)
 		this.Set_Strikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
@@ -8992,7 +9000,10 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 		this.Set_Underline(null === TextPr.Underline ? undefined : TextPr.Underline);
 
 	if (undefined !== TextPr.FontSize)
-		this.Set_FontSize(null === TextPr.FontSize ? undefined : TextPr.FontSize);
+	{
+		this.SetFontSize(null === TextPr.FontSize ? undefined : TextPr.FontSize);
+		this.SetFontSizeCS(null === TextPr.FontSize ? undefined : TextPr.FontSize);
+	}
 
 
 	var oCompiledPr;
@@ -9228,9 +9239,6 @@ ParaRun.prototype.Set_Bold = function(Value)
 {
 	return this.SetBold(Value);
 };
-/**
- * @param isBold {boolean}
- */
 ParaRun.prototype.SetBold = function(isBold)
 {
 	if (isBold !== this.Pr.Bold)
@@ -9242,31 +9250,56 @@ ParaRun.prototype.SetBold = function(isBold)
 		this.private_UpdateTrackRevisionOnChangeTextPr(true);
 	}
 };
-
 ParaRun.prototype.Get_Bold = function()
 {
     return this.Get_CompiledPr(false).Bold;
 };
-
+ParaRun.prototype.SetBoldCS = function(isBold)
+{
+	if (isBold !== this.Pr.BoldCS)
+	{
+		History.Add(new CChangesRunBoldCS(this, this.Pr.Bold, isBold, this.private_IsCollPrChangeMine()));
+		this.Pr.BoldCS = isBold;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
+ParaRun.prototype.GetBoldCS = function()
+{
+	return this.Get_CompiledPr(false).BoldCS;
+};
 ParaRun.prototype.Set_Italic = function(Value)
 {
-    if ( Value !== this.Pr.Italic )
-    {
-        var OldValue = this.Pr.Italic;
-        this.Pr.Italic = Value;
-
-        History.Add(new CChangesRunItalic(this, OldValue, Value, this.private_IsCollPrChangeMine()));
-
-        this.Recalc_CompiledPr(true);
-        this.private_UpdateTrackRevisionOnChangeTextPr(true);
-    }
+	this.SetItalic(Value);
 };
-
+ParaRun.prototype.SetItalic = function(isItalic)
+{
+	if (isItalic !== this.Pr.Italic)
+	{
+		History.Add(new CChangesRunItalic(this, this.Pr.Italic, isItalic, this.private_IsCollPrChangeMine()));
+		this.Pr.Italic = Italic;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
 ParaRun.prototype.Get_Italic = function()
 {
     return this.Get_CompiledPr(false).Italic;
 };
-
+ParaRun.prototype.SetItalicCS = function(isItalic)
+{
+	if (isItalic !== this.Pr.ItalicCS)
+	{
+		History.Add(new CChangesRunItalicCS(this, this.Pr.ItalicCS, isItalic, this.private_IsCollPrChangeMine()));
+		this.Pr.ItalicCS = isItalic;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
+ParaRun.prototype.GetItalicCS = function()
+{
+	return this.Get_CompiledPr(false).ItalicCS;
+};
 ParaRun.prototype.Set_Strikeout = function(Value)
 {
     if ( Value !== this.Pr.Strikeout )
@@ -9307,21 +9340,35 @@ ParaRun.prototype.Get_Underline = function()
 
 ParaRun.prototype.Set_FontSize = function(Value)
 {
-    if ( Value !== this.Pr.FontSize )
-    {
-        var OldValue = this.Pr.FontSize;
-        this.Pr.FontSize = Value;
-
-        History.Add(new CChangesRunFontSize(this, OldValue, Value, this.private_IsCollPrChangeMine()));
-
-        this.Recalc_CompiledPr(true);
-        this.private_UpdateTrackRevisionOnChangeTextPr(true);
-    }
+	this.Set_FontSize(Value);
 };
-
+ParaRun.prototype.SetFontSize = function(nFontSize)
+{
+	if (nFontSize !== this.Pr.FontSize)
+	{
+		History.Add(new CChangesRunFontSize(this, this.Pr.FontSize, nFontSize, this.private_IsCollPrChangeMine()));
+		this.Pr.FontSize = nFontSize;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
 ParaRun.prototype.Get_FontSize = function()
 {
     return this.Get_CompiledPr(false).FontSize;
+};
+ParaRun.prototype.SetFontSizeCS = function(nFontSize)
+{
+	if (nFontSize !== this.Pr.FontSizeCS)
+	{
+		History.Add(new CChangesRunFontSizeCS(this, this.Pr.FontSizeCS, nFontSize, this.private_IsCollPrChangeMine()));
+		this.Pr.FontSizeCS = nFontSize;
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
+};
+ParaRun.prototype.GetFontSizeCS = function()
+{
+	return this.Get_CompiledPr(false).FontSizeCS;
 };
 
 ParaRun.prototype.Set_Color = function(Value)

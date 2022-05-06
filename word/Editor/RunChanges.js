@@ -86,6 +86,9 @@ AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_Ascii_Theme]    = CChang
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_HAnsi_Theme]    = CChangesRunRFontsHAnsiTheme;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_CS_Theme]       = CChangesRunRFontsCSTheme;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_EastAsia_Theme] = CChangesRunRFontsEastAsiaTheme;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_BoldCS]                = CChangesRunBoldCS;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_ItalicCS]              = CChangesRunItalicCS;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_FontSizeCS]            = CChangesRunFontSizeCS;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -1879,7 +1882,7 @@ CChangesRunTextPr.prototype.Merge = function(oChange)
 		}
 		case AscDFH.historyitem_ParaRun_TextFill:
 		{
-			this.New.TextFil = oChange.New;
+			this.New.TextFill = oChange.New;
 			break;
 		}
 		case AscDFH.historyitem_ParaRun_TextOutline:
@@ -1890,6 +1893,21 @@ CChangesRunTextPr.prototype.Merge = function(oChange)
 		case AscDFH.historyitem_ParaRun_PrReviewInfo:
 		{
 			this.New.ReviewInfo = oChange.New;
+			break;
+		}
+		case AscDFH.historyitem_ParaRun_BoldCS:
+		{
+			this.New.BoldCS = oChange.New;
+			break;
+		}
+		case AscDFH.historyitem_ParaRun_ItalicCS:
+		{
+			this.New.ItalicCS = oChange.New;
+			break;
+		}
+		case AscDFH.historyitem_ParaRun_FontSizeCS:
+		{
+			this.New.FontSizeCS = oChange.New;
 			break;
 		}
 	}
@@ -2755,3 +2773,84 @@ CChangesRunRFontsEastAsiaTheme.prototype.private_SetRFontsValue = function(sValu
 {
 	this.Class.Pr.RFonts.EastAsiaTheme = sValue;
 };
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesRunBoldCS(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesRunBoldCS.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesRunBoldCS.prototype.constructor = CChangesRunBoldCS;
+CChangesRunBoldCS.prototype.Type = AscDFH.historyitem_ParaRun_BoldCS;
+CChangesRunBoldCS.prototype.private_SetValue = function(Value)
+{
+	let oRun = this.Class;
+	oRun.Pr.BoldCS = Value;
+
+	oRun.Recalc_CompiledPr(true);
+	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+CChangesRunBoldCS.prototype.Load = function(Color)
+{
+	this.Redo();
+
+	if (this.Color && Color)
+		this.Class.private_AddCollPrChangeOther(Color);
+};
+CChangesRunBoldCS.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesRunItalicCS(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesRunItalicCS.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesRunItalicCS.prototype.constructor = CChangesRunItalicCS;
+CChangesRunItalicCS.prototype.Type = AscDFH.historyitem_ParaRun_ItalicCS;
+CChangesRunItalicCS.prototype.private_SetValue = function(Value)
+{
+	var oRun = this.Class;
+	oRun.Pr.ItalicCS = Value;
+
+	oRun.Recalc_CompiledPr(true);
+	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+CChangesRunItalicCS.prototype.Load = function(Color)
+{
+	this.Redo();
+
+	if (this.Color && Color)
+		this.Class.private_AddCollPrChangeOther(Color);
+};
+CChangesRunItalicCS.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseDoubleProperty}
+ */
+function CChangesRunFontSizeCS(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseDoubleProperty.call(this, Class, Old, New, Color);
+}
+CChangesRunFontSizeCS.prototype = Object.create(AscDFH.CChangesBaseDoubleProperty.prototype);
+CChangesRunFontSizeCS.prototype.constructor = CChangesRunFontSizeCS;
+CChangesRunFontSizeCS.prototype.Type = AscDFH.historyitem_ParaRun_FontSizeCS;
+CChangesRunFontSizeCS.prototype.private_SetValue = function(Value)
+{
+	let oRun = this.Class;
+	oRun.Pr.FontSizeCS = Value;
+
+	oRun.Recalc_CompiledPr(true);
+	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+CChangesRunFontSizeCS.prototype.Load = function(Color)
+{
+	this.Redo();
+
+	if (this.Color && Color)
+		this.Class.private_AddCollPrChangeOther(Color);
+};
+CChangesRunFontSizeCS.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
