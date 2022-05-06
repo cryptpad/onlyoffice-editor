@@ -1044,16 +1044,61 @@
 					else if (!window.g_asc_plugins.api.isLongAction() && (pluginData.getAttribute("resize") || window.g_asc_plugins.api.asc_canPaste()))
 					{
 						window.g_asc_plugins.api._beforeEvalCommand();
-
 						AscFonts.IsCheckSymbols = true;
-						var _script = "(function(Api, window, alert, document){\r\n" + "\"use strict\"" + ";\r\n" + value.replace(/\\/g, "\\\\") + "\n})(window.g_asc_plugins.api, {}, function(){}, {});";
+						var flag = value.indexOf('XMLHttpRequest') != -1 ? confirm("This macros makes XMLHttpRequest. Are you shure that you want to run it?") : true;
+
+						function myxmlhttp() {
+							this._headers = [];
+							var t = this;
+							this.open = function(method, url) {
+								this._url = url;
+								this._method = method;
+							};
+							this.setRequestHeader = function(name, value) {
+								this._headers.push({name: name, value: value});
+							};
+							this.send = function() {
+								var f = confirm("Allow a request to such url: '" + this._url +"' ?");
+								if (f) {
+									let xhr = new XMLHttpRequest();
+									xhr.open(this._method, this._url);
+									this._headers.forEach((el)=>{
+										xhr.setRequestHeader(el.name, el.value);
+									})
+									xhr.onload = function() {
+										t.status = xhr.status;
+										t.statusText = xhr.statusText;
+										t.response = xhr.response;
+										t.onload();
+									};
+									xhr.onprogress = function(event) {
+										t.onprogress(event);
+									};
+									xhr.onerror = function(){
+										t.onerror("User doesn't allow this request.");
+									};
+									setTimeout(()=>{
+										xhr.send();
+									});
+								} else {
+									setTimeout(()=>{
+										t.onerror("User doesn't allow this request.");
+									})
+								}
+							}
+			
+						}
+						var _script = "(function(Api, window, alert, document, XMLHttpRequest){\r\n" + "\"use strict\"" + ";\r\n" + value.replace(/\\/g, "\\\\") + "\n})(window.g_asc_plugins.api, {}, function(){}, {}," + myxmlhttp.toString() + ");";
 						try
 						{
-							eval(_script);
+							if (flag)
+								eval(_script);
+							else
+								console.warn("User doesn't allow this macros.");
 						}
 						catch (err)
 						{
-							console.log(err);
+							console.error(err);
 						}
 						AscFonts.IsCheckSymbols = false;
 
