@@ -1444,6 +1444,28 @@ var editor;
 		}
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+
+		var coreXmlPart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
+		if (coreXmlPart) {
+			var contentCore = coreXmlPart.getDocumentContent();
+			if (contentCore) {
+				wb.Core = new AscCommon.CCore();
+				reader = new StaxParser(contentCore, coreXmlPart, xmlParserContext);
+				wb.Core.fromXml(reader, true);
+			}
+		}
+
+		var appXmlPart = doc.getPartByRelationshipType(openXml.Types.extendedFileProperties.relationType);
+		if (appXmlPart) {
+			var contentApp = appXmlPart.getDocumentContent();
+			if (contentApp) {
+				wb.App = new AscCommon.CApp();
+				reader = new StaxParser(contentApp, appXmlPart, xmlParserContext);
+				wb.App.fromXml(reader, true);
+			}
+		}
+
+
 		wbPart = doc.getPartByRelationshipType(openXml.Types.workbook.relationType);
 		var contentWorkbook = wbPart.getDocumentContent();
 		AscCommonExcel.executeInR1C1Mode(false, function() {

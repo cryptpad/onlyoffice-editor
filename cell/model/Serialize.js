@@ -11676,21 +11676,21 @@
                 var slicerCache = ws.aSlicers[i].getSlicerCache();
                 if (slicerCache) {
                     if (ws.aSlicers[i].isExt()) {
-                        if (!this.slicerCachesExt) {
-                            this.slicerCachesExt = {};
+                        if (!oThis.slicerCachesExt) {
+                            oThis.slicerCachesExt = {};
                         }
-                        this.slicerCachesExt[slicerCache.name] = slicerCache;
+                        oThis.slicerCachesExt[slicerCache.name] = slicerCache;
                         slicerCacheExtIndex++;
                     } else {
-                        if (!this.slicerCaches) {
-                            this.slicerCaches = {};
+                        if (!oThis.slicerCaches) {
+                            oThis.slicerCaches = {};
                         }
-                        this.slicerCaches[slicerCache.name] = slicerCache;
+                        oThis.slicerCaches[slicerCache.name] = slicerCache;
                         slicerCacheIndex++;
                     }
                 }
             }
-        }, this.isCopyPaste);
+        }, oThis.isCopyPaste);
 
 
         //prepare defnames
