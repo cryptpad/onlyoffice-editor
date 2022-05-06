@@ -15194,10 +15194,10 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("tableId" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueInt();
 				this.tableIdOpen = val;
 			} else if ("column" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueInt();
 				this.columnOpen = val;
 			} else if ("sortOrder" === reader.GetName()) {
 				val = reader.GetValue();
