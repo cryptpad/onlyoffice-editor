@@ -98,8 +98,8 @@
 
 		let sFontName = AscCommon.FontNameMap.GetName(this.Font);
 
-		oContext.m_oGrFonts.Ascii.Name = sFontName;
-		oContext.m_oGrFonts.Ascii.Index = -1;
+		oContext.m_oGrFonts.Ascii.Name       = sFontName;
+		oContext.m_oGrFonts.Ascii.Index      = -1;
 		oContext.m_oTextPr.RFonts.Ascii.Name = sFontName;
 		oContext.m_oTextPr.Bold              = oFontInfo.Style & 1;
 		oContext.m_oTextPr.Italic            = oFontInfo.Style & 2;
@@ -273,7 +273,7 @@
 				}
 			}
 		}
-		console.log(arrGlyphs);
+		//console.log(arrGlyphs);
 
 		this.ClearBuffer();
 	};

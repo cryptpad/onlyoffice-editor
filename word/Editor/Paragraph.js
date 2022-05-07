@@ -5410,6 +5410,41 @@ Paragraph.prototype.SetSelectionContentPos = function(oStartPos, oEndPos, isCorr
 {
 	return this.Set_SelectionContentPos(oStartPos, oEndPos, isCorrectAnchor);
 };
+Paragraph.prototype.private_CorrectPosInCombiningMark = function(oContentPos, isForward)
+{
+	let oSearchPos;
+	let oCurrentPos  = oContentPos;
+
+	while (true)
+	{
+		let oNext = this.GetNextRunElement(oCurrentPos);
+		let oPrev = this.GetPrevRunElement(oCurrentPos);
+
+		if (!oPrev
+			|| !oNext
+			|| !oPrev.IsText()
+			|| !oNext.IsText()
+			|| !oNext.IsCombiningMark())
+			break;
+
+		if (!oSearchPos)
+			oSearchPos = new CParagraphSearchPos();
+		else
+			oSearchPos.Reset();
+
+		if (isForward)
+			this.Get_RightPos(oSearchPos, oCurrentPos, false);
+		else
+			this.Get_LeftPos(oSearchPos, oCurrentPos);
+
+		if (!oSearchPos.IsFound())
+			break;
+
+		oCurrentPos = oSearchPos.GetPos().Copy();
+	}
+
+	return oCurrentPos;
+};
 Paragraph.prototype.Get_ParaContentPosByXY = function(X, Y, PageIndex, bYLine, StepEnd, bCenterMode)
 {
 	var SearchPos        = new CParagraphSearchPosXY();
@@ -5566,6 +5601,8 @@ Paragraph.prototype.Get_ParaContentPosByXY = function(X, Y, PageIndex, bYLine, S
 		SearchPos.Line  = CurLine;
 		SearchPos.Range = CurRange;
 	}
+
+	SearchPos.Pos = this.private_CorrectPosInCombiningMark(SearchPos.Pos, SearchPos.DiffAbs < 0);
 
 	return SearchPos;
 };
@@ -5977,29 +6014,8 @@ Paragraph.prototype.Get_LeftPos = function(SearchPos, ContentPos)
  */
 Paragraph.prototype.GetCursorLeftPos = function(oSearchPos, oContentPos)
 {
-	let oCurrentPos = oContentPos;
-	while (true)
-	{
-		oSearchPos.Reset();
-
-		this.Get_LeftPos(oSearchPos, oCurrentPos);
-
-		if (!oSearchPos.IsFound())
-			break;
-
-		oCurrentPos = oSearchPos.GetPos();
-		let oNext = this.GetNextRunElement(oCurrentPos);
-		let oPrev = this.GetPrevRunElement(oCurrentPos);
-
-		if (!oPrev
-			|| !oNext
-			|| !oPrev.IsText()
-			|| !oNext.IsText()
-			|| !oNext.IsCombiningMark())
-			break;
-
-		oCurrentPos = oCurrentPos.Copy();
-	}
+	this.Get_LeftPos(oSearchPos, oContentPos);
+	oSearchPos.Pos = this.private_CorrectPosInCombiningMark(oSearchPos.GetPos(), false);
 };
 Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 {
@@ -6068,29 +6084,8 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
  */
 Paragraph.prototype.GetCursorRightPos = function(oSearchPos, oContentPos, isStepEnd)
 {
-	let oCurrentPos = oContentPos;
-	while (true)
-	{
-		oSearchPos.Reset();
-
-		this.Get_RightPos(oSearchPos, oCurrentPos, isStepEnd);
-
-		if (!oSearchPos.IsFound())
-			break;
-
-		oCurrentPos = oSearchPos.GetPos();
-		let oNext = this.GetNextRunElement(oCurrentPos);
-		let oPrev = this.GetPrevRunElement(oCurrentPos);
-
-		if (!oPrev
-			|| !oNext
-			|| !oPrev.IsText()
-			|| !oNext.IsText()
-			|| !oNext.IsCombiningMark())
-			break;
-
-		oCurrentPos = oCurrentPos.Copy();
-	}
+	this.Get_RightPos(oSearchPos, oContentPos, isStepEnd);
+	oSearchPos.Pos = this.private_CorrectPosInCombiningMark(oSearchPos.GetPos(), true);
 };
 Paragraph.prototype.Get_WordStartPos = function(SearchPos, ContentPos)
 {
@@ -6246,6 +6241,8 @@ Paragraph.prototype.Get_EndRangePos = function(SearchPos, ContentPos)
 		if (true === Item.Get_EndRangePos(CurLine, CurRange, SearchPos, 1))
 			SearchPos.Pos.Update(CurPos, 0);
 	}
+
+	SearchPos.Pos = this.private_CorrectPosInCombiningMark(SearchPos.Pos, true);
 };
 Paragraph.prototype.Get_StartRangePos = function(SearchPos, ContentPos)
 {
@@ -6277,6 +6274,8 @@ Paragraph.prototype.Get_StartRangePos = function(SearchPos, ContentPos)
 		if (true === Item.Get_StartRangePos(CurLine, CurRange, SearchPos, 1))
 			SearchPos.Pos.Update(CurPos, 0);
 	}
+
+	SearchPos.Pos = this.private_CorrectPosInCombiningMark(SearchPos.Pos, false);
 };
 Paragraph.prototype.Get_StartRangePos2 = function(CurLine, CurRange)
 {
@@ -18893,6 +18892,7 @@ function CParagraphSearchPosXY()
     this.Y              = 0;
     this.DiffX          = 1000000; // километра для ограничения должно хватить
     this.NumberingDiffX = 1000000; // километра для ограничения должно хватить
+	this.DiffAbs        = 1000000;
 
     this.Line      = 0;
     this.Range     = 0;
@@ -18903,6 +18903,11 @@ function CParagraphSearchPosXY()
     this.End       = false;
     this.Field     = null;
 }
+CParagraphSearchPosXY.prototype.SetDiffX = function(nDiff)
+{
+	this.DiffX   = Math.abs(nDiff);
+	this.DiffAbs = nDiff;
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Классы для работы с селектом
