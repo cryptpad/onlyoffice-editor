@@ -10957,6 +10957,113 @@ QueryTableField.prototype.clone = function() {
 		if (null == this.headings)
 			this.headings = c_oAscPrintDefaultSettings.PageHeadings;
 	};
+	asc_CPageOptions.prototype.getJson = function (ws) {
+		var res = {};
+
+		res["gridLines"] = this.gridLines;
+		res["headings"] = this.headings;
+		res["pageMargins"] = {};
+		res["pageMargins"]["bottom"] = this.pageMargins.bottom;
+		res["pageMargins"]["footer"] = this.pageMargins.footer;
+		res["pageMargins"]["header"] = this.pageMargins.header;
+		res["pageMargins"]["left"] = this.pageMargins.left;
+		res["pageMargins"]["right"] = this.pageMargins.right;
+		res["pageMargins"]["top"] = this.pageMargins.top;
+
+
+		res["pageSetup"] = {};
+		res["pageSetup"]["blackAndWhite"] = this.pageSetup.blackAndWhite;
+		res["pageSetup"]["cellComments"] = this.pageSetup.cellComments;
+		res["pageSetup"]["copies"] = this.pageSetup.copies;
+		res["pageSetup"]["draft"] = this.pageSetup.draft;
+		res["pageSetup"]["errors"] = this.pageSetup.errors;
+		res["pageSetup"]["firstPageNumber"] = this.pageSetup.firstPageNumber;
+		res["pageSetup"]["fitToHeight"] = this.pageSetup.fitToHeight;
+		res["pageSetup"]["fitToWidth"] = this.pageSetup.fitToWidth;
+		res["pageSetup"]["headerFooter"] = this.pageSetup.headerFooter;
+		res["pageSetup"]["height"] = this.pageSetup.height;
+		res["pageSetup"]["horizontalDpi"] = this.pageSetup.horizontalDpi;
+		res["pageSetup"]["orientation"] = this.pageSetup.orientation;
+		res["pageSetup"]["pageOrder"] = this.pageSetup.pageOrder;
+		res["pageSetup"]["paperUnits"] = this.pageSetup.paperUnits;
+		res["pageSetup"]["printArea"] = this.pageSetup.printArea;
+		res["pageSetup"]["scale"] = this.pageSetup.scale;
+		res["pageSetup"]["useFirstPageNumber"] = this.pageSetup.useFirstPageNumber;
+		res["pageSetup"]["usePrinterDefaults"] = this.pageSetup.usePrinterDefaults;
+		res["pageSetup"]["verticalDpi"] = this.pageSetup.verticalDpi;
+		res["pageSetup"]["width"] = this.pageSetup.width;
+
+		if (ws.headerFooter) {
+			res["pageSetup"]["headerFooter"] = {};
+			res["pageSetup"]["headerFooter"]["alignWithMargins"] = ws.headerFooter.alignWithMargins;
+			res["pageSetup"]["headerFooter"]["differentFirst"] = ws.headerFooter.differentFirst;
+			res["pageSetup"]["headerFooter"]["differentOddEven"] = ws.headerFooter.differentOddEven;
+			res["pageSetup"]["headerFooter"]["evenFooter"] = ws.headerFooter.evenFooter && ws.headerFooter.evenFooter.getStr();
+			res["pageSetup"]["headerFooter"]["evenHeader"] = ws.headerFooter.evenHeader && ws.headerFooter.evenHeader.getStr();
+			res["pageSetup"]["headerFooter"]["firstFooter"] = ws.headerFooter.firstFooter && ws.headerFooter.firstFooter.getStr();
+			res["pageSetup"]["headerFooter"]["firstHeader"] = ws.headerFooter.firstHeader && ws.headerFooter.firstHeader.getStr();
+			res["pageSetup"]["headerFooter"]["oddFooter"] = ws.headerFooter.oddFooter && ws.headerFooter.oddFooter.getStr();
+			res["pageSetup"]["headerFooter"]["oddHeader"] = ws.headerFooter.oddHeader && ws.headerFooter.oddHeader.getStr();
+			res["pageSetup"]["headerFooter"]["scaleWithDoc"] = ws.headerFooter.scaleWithDoc;
+		}
+
+		res["printTitlesHeight"] = this.printTitlesHeight;
+		res["printTitlesWidth"] = this.printTitlesWidth;
+
+		return res;
+	};
+	asc_CPageOptions.prototype.setJson = function (props) {
+		this.gridLines = props["gridLines"];
+		this.headings = props["headings"];
+
+		this.pageMargins.bottom = props["pageMargins"]["bottom"];
+		this.pageMargins.footer = props["pageMargins"]["footer"];
+		this.pageMargins.header = props["pageMargins"]["header"];
+		this.pageMargins.left = props["pageMargins"]["left"];
+		this.pageMargins.right = props["pageMargins"]["right"];
+		this.pageMargins.top = props["pageMargins"]["top"];
+		this.pageMargins.bottom = props["pageMargins"]["bottom"];
+
+		this.pageSetup.blackAndWhite = props["pageSetup"]["blackAndWhite"];
+		this.pageSetup.cellComments = props["pageSetup"]["cellComments"];
+		this.pageSetup.copies = props["pageSetup"]["copies"];
+		this.pageSetup.draft = props["pageSetup"]["draft"];
+		this.pageSetup.errors = props["pageSetup"]["errors"];
+		this.pageSetup.firstPageNumber = props["pageSetup"]["firstPageNumber"];
+		this.pageSetup.fitToHeight = props["pageSetup"]["fitToHeight"];
+		this.pageSetup.fitToWidth = props["pageSetup"]["fitToWidth"];
+		this.pageSetup.headerFooter = props["pageSetup"]["headerFooter"];
+		this.pageSetup.height = props["pageSetup"]["height"];
+		this.pageSetup.horizontalDpi = props["pageSetup"]["horizontalDpi"];
+		this.pageSetup.orientation = props["pageSetup"]["orientation"];
+		this.pageSetup.pageOrder = props["pageSetup"]["pageOrder"];
+		this.pageSetup.paperUnits = props["pageSetup"]["paperUnits"];
+		this.pageSetup.printArea = props["pageSetup"]["printArea"];
+		this.pageSetup.scale = props["pageSetup"]["scale"];
+		this.pageSetup.useFirstPageNumber = props["pageSetup"]["useFirstPageNumber"];
+		this.pageSetup.usePrinterDefaults = props["pageSetup"]["usePrinterDefaults"];
+		this.pageSetup.verticalDpi = props["pageSetup"]["verticalDpi"];
+		this.pageSetup.width = props["pageSetup"]["width"];
+
+		this.pageSetup.headerFooter = props["pageSetup"]["headerFooter"];
+		/*if (ws.headerFooter) {
+			res["pageSetup"]["headerFooter"] = {
+				"alignWithMargins": ws.headerFooter.alignWithMargins,
+				"differentFirst": ws.headerFooter.differentFirst,
+				"differentOddEven": ws.headerFooter.differentOddEven,
+				"evenFooter": ws.headerFooter.evenFooter && ws.headerFooter.evenFooter.getStr(),
+				"evenHeader": ws.headerFooter.evenHeader && ws.headerFooter.evenHeader.getStr(),
+				"firstFooter": ws.headerFooter.firstFooter && ws.headerFooter.firstFooter.getStr(),
+				"firstHeader": ws.headerFooter.firstHeader && ws.headerFooter.firstHeader.getStr(),
+				"oddFooter": ws.headerFooter.oddFooter && ws.headerFooter.oddFooter.getStr(),
+				"oddHeader": ws.headerFooter.oddHeader && ws.headerFooter.oddHeader.getStr(),
+				"scaleWithDoc": ws.headerFooter.scaleWithDoc
+			};
+		}*/
+
+		this.printTitlesHeight = props["printTitlesHeight"];
+		this.printTitlesWidth = props["printTitlesWidth"];
+	};
 	asc_CPageOptions.prototype.initPrintTitles = function () {
 		//функция добавлена только для того, чтобы в интерфейс передать текущие заголовки печати, которые хранятся как именованный диапазон
 
@@ -11354,6 +11461,40 @@ QueryTableField.prototype.clone = function() {
 		res = tempEditor.getPropsToInterface();
 
 		return res;
+	};
+	CHeaderFooter.prototype.initFromJson = function (val) {
+		this.alignWithMargins = val["alignWithMargins"];
+		this.differentFirst = val["differentFirst"];
+		this.differentOddEven = val["differentOddEven"];
+
+		this.scaleWithDoc = val["scaleWithDoc"];
+
+		if (val["evenFooter"]) {
+			this.evenFooter = new CHeaderFooterData();
+			this.evenFooter.setStr(val["evenFooter"]);
+		}
+		if (val["evenHeader"]) {
+			this.evenHeader = new CHeaderFooterData();
+			this.evenHeader.setStr(val["evenHeader"]);
+		}
+		if (val["firstFooter"]) {
+			this.firstFooter = new CHeaderFooterData();
+			this.firstFooter.setStr(val["firstFooter"]);
+		}
+		if (val["firstHeader"]) {
+			this.firstHeader = new CHeaderFooterData();
+			this.firstHeader.setStr(val["firstHeader"]);
+		}
+		if (val["oddFooter"]) {
+			this.oddFooter = new CHeaderFooterData();
+			this.oddFooter.setStr(val["oddFooter"]);
+		}
+		if (val["oddHeader"]) {
+			this.oddHeader = new CHeaderFooterData();
+			this.oddHeader.setStr(val["oddHeader"]);
+		}
+
+		this.init();
 	};
 
 
