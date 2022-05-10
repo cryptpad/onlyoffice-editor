@@ -5143,9 +5143,9 @@
 	{
 		var arrApiAllTables = [];
 
-		this.Document.private_Recalculate(undefined, true, nPage + 1);
-		var arrAllTables = this.Document.GetAllTablesOnPage(nPage);
+		this.ForceRecalculate(nPage + 1);
 
+		var arrAllTables = this.Document.GetAllTablesOnPage(nPage);
 		for (var Index = 0; Index < arrAllTables.length; Index++)
 		{
 			arrApiAllTables.push(new ApiTable(arrAllTables[Index].Table));
@@ -13616,7 +13616,7 @@
 	{
 		var oLogicDocument = this.Sdt.GetLogicDocument();
 		if (oLogicDocument)
-			oLogicDocument.private_Recalculate(undefined, true, nPage + 1);
+			(new ApiDocument(oLogicDocument)).ForceRecalculate(nPage + 1);
 
 		var arrTables		= this.Sdt.GetAllTablesOnPage(nPage);
 		var arrApiTables	= [];
@@ -16449,6 +16449,32 @@
 		var oStyles = this.Document.Get_Styles();
 		oStyles.Set_DefaultTextPr(oApiTextPr.TextPr);
 		oApiTextPr.TextPr = oStyles.Get_DefaultTextPr().Copy();
+	};
+	ApiDocument.prototype.ForceRecalculate = function(nPage)
+	{
+		let oDocument = this.Document;
+		let nOffCount = 0;
+		while (!oDocument.Is_OnRecalculate())
+		{
+			nOffCount++;
+			oDocument.TurnOn_Recalculate(false);
+		}
+
+		// oDocument.RecalculateAllAtOnce(false, nPage);
+		// oDocument.FinalizeAction();
+		// oDocument.GetHistory().TurnOn();
+		// oDocument.StartAction();
+
+		// TODO: В билдере не создаются точки истории, которые нужны для контролирования того, что нужно пересчитать.
+		//       Поэтому пока мы все время вынуждены вести расчет с начала документа. Чтобы этого избежать можно
+		//       создавать точки после расчета и финализировать их перед следующим (и включить саму историю)
+		oDocument.RecalculateAllAtOnce(true, nPage);
+
+		while (nOffCount > 0)
+		{
+			nOffCount--;
+			oDocument.TurnOff_Recalculate();
+		}
 	};
 	ApiParagraph.prototype.private_GetImpl = function()
 	{

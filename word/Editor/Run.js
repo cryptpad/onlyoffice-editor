@@ -6551,7 +6551,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     var nCombMax    = -1;
     if (oForm)
 	{
-		if (oForm.IsFormRequired() && PDSL.GetLogicDocument().IsHighlightRequiredFields())
+		if (oForm.IsFormRequired() && PDSL.GetLogicDocument().IsHighlightRequiredFields() && !PDSL.Graphics.isPrintMode)
 			oFormBorder = PDSL.GetLogicDocument().GetRequiredFieldsBorder();
 		else if (oForm.GetFormPr().GetBorder())
 			oFormBorder = oForm.GetFormPr().GetBorder();

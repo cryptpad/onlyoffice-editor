@@ -3786,7 +3786,7 @@ var editor;
     return null;
   };
   spreadsheet_api.prototype.asc_GetSelectedText = function(bClearText, select_Pr) {
-    bClearText = typeof(bClearText) === "boolean" ? bClearText : true;
+    bClearText = typeof(bClearText) === "boolean" ? bClearText : false;
     var ws = this.wb.getWorksheet();
     if (this.wb.getCellEditMode()) {
       var fragments = this.wb.cellEditor.copySelection();

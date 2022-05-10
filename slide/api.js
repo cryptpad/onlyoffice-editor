@@ -7551,7 +7551,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_GetSelectedText = function(bClearText, select_Pr)
 	{
-		bClearText = typeof(bClearText) === "boolean" ? bClearText : true;
+		bClearText = typeof(bClearText) === "boolean" ? bClearText : false;
 		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
 		if(oPresentation)
 		{
