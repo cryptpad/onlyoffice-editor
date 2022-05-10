@@ -5300,26 +5300,6 @@ CDocument.prototype.ResumeRecalculate = function()
 		this.RecalcInfo.Paused = false;
 	}
 };
-CDocument.prototype.OnContentRecalculate                     = function(bNeedRecalc, PageNum, DocumentIndex)
-{
-    if (false === bNeedRecalc)
-    {
-        var Element = this.Content[DocumentIndex];
-        // Просто перерисуем все страницы, на которых находится данный элеменет
-        for (var PageNum = Element.PageNum; PageNum < Element.PageNum + Element.Pages.length; PageNum++)
-        {
-            this.DrawingDocument.OnRecalculatePage(PageNum, this.Pages[PageNum]);
-        }
-
-        this.DrawingDocument.OnEndRecalculate(false, true);
-
-        this.Document_UpdateRulersState();
-    }
-    else
-    {
-        this.Recalculate();
-    }
-};
 CDocument.prototype.OnContentReDraw                          = function(StartPage, EndPage)
 {
     this.ReDraw(StartPage, EndPage);
@@ -5942,7 +5922,10 @@ CDocument.prototype.GetTableForPreview = function()
         for (let nIndex = 0; nIndex < nCols; ++nIndex)
             arrGrid[nIndex] = W / nCols;
 
-        let oTable = new CTable(this.GetDrawingDocument(), this, true, nRows, nCols, arrGrid, false);
+		let oDocumentContent = new CDocumentContent();
+		oDocumentContent.SetLogicDocument(this);
+
+        let oTable = new CTable(this.GetDrawingDocument(), oDocumentContent, true, nRows, nCols, arrGrid, false);
         oTable.Reset(_x_mar, _y_mar, 1000, 1000, 0, 0, 1);
         oTable.Set_Props({
             TableDefaultMargins : {Top : 0, Bottom : 0},

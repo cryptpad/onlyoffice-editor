@@ -13743,7 +13743,7 @@ CTextPr.prototype.ReplaceThemeFonts = function(oFontScheme)
 		}
 	}
 
-	if (this.FontFamily)
+	if (this.FontFamily && oFontScheme)
 	{
 		this.FontFamily.Name  = oFontScheme.checkFont(this.FontFamily.Name);
 		this.FontFamily.Index = -1;
@@ -17791,5 +17791,7 @@ g_oDocumentDefaultTableStylePr.InitDefault();
 
 var g_oDocumentDefaultFillColor   = new CDocumentColor(255, 255, 255, true);
 var g_oDocumentDefaultStrokeColor = new CDocumentColor(0, 0, 0, true);
+
+window["AscCommonWord"].DEFAULT_STYLES = new CStyles(false);
 
 // ----------------------------------------------------------------
