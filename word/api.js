@@ -1432,7 +1432,7 @@ background-repeat: no-repeat;\
 					_t.sendEvent("asc_onViewerThumbnailsZoomUpdate", value);
 				});
 			}
-
+			oViewer.isDocumentContentReady = true;
 		});
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onHyperlinkClick", function(url){
 			_t.sendEvent("asc_onHyperlinkClick", url);

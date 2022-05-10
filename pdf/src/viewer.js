@@ -211,6 +211,7 @@
 		this.mouseDownLinkObject = null;
 
 		this.isFocusOnThumbnails = false;
+		this.isDocumentContentReady = false;
 
 		this.isXP = ((AscCommon.AscBrowser.userAgent.indexOf("windowsxp") > -1) || (AscCommon.AscBrowser.userAgent.indexOf("chrome/49") > -1)) ? true : false;
 		if (!this.isXP && AscCommon.AscBrowser.isIE && !AscCommon.AscBrowser.isIeEdge)
@@ -573,7 +574,7 @@
 			if (this.scrollY >= this.scrollMaxY)
 				this.scrollY = this.scrollMaxY;
 
-			if (this.zoomCoordinate)
+			if (this.zoomCoordinate && this.isDocumentContentReady)
 			{
 				var newPoint = this.ConvertCoordsToCursor(this.zoomCoordinate.x, this.zoomCoordinate.y, this.zoomCoordinate.index);
 				// oldsize используется чтобы при смене ориентации экрана был небольшой скролл
@@ -825,8 +826,8 @@
 		};
 		this.calculateZoomToWidth = function()
 		{
-			if (0 === this.file.pages.length)
-				return;
+			if (!this.file || !this.file.isValid())
+				return 1;
 
 			var maxWidth = 0;
 			for (let i = 0, len = this.file.pages.length; i < len; i++)
@@ -837,14 +838,14 @@
 			}
 
 			if (maxWidth < 1)
-				return;
+				return 1;
 
 			return (this.width - 2 * this.betweenPages) / maxWidth;
 		};
 		this.calculateZoomToHeight = function()
 		{
-			if (0 === this.file.pages.length)
-				return;
+			if (!this.file || !this.file.isValid())
+				return 1;
 
 			var maxHeight = 0;
 			var maxWidth = 0;
@@ -859,7 +860,7 @@
 			}
 
 			if (maxWidth < 1 || maxHeight < 1)
-				return;
+				return 1;
 
 			var zoom1 = (this.width - 2 * this.betweenPages) / maxWidth;
 			var zoom2 = (this.height - 2 * this.betweenPages) / maxHeight;
