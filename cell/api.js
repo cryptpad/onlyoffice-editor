@@ -1468,7 +1468,7 @@ var editor;
 
 		wbPart = doc.getPartByRelationshipType(openXml.Types.workbook.relationType);
 		var contentWorkbook = wbPart.getDocumentContent();
-		AscCommonExcel.executeInR1C1Mode(false, function() {
+		AscCommonExcel.executeInR1C1Mode(false, function () {
 			wbXml = new AscCommonExcel.CT_Workbook(wb);
 			var reader = new StaxParser(contentWorkbook, wbPart, xmlParserContext);
 			wbXml.fromXml(reader);
@@ -1586,8 +1586,19 @@ var editor;
 					styleSheet.fromXml(reader);
 
 
-					var oStyleObject = {aBorders: styleSheet.borders, aFills: styleSheet.fills, aFonts: styleSheet.fonts, oNumFmts: styleSheet.numFmts, aCellStyleXfs: styleSheet.cellStyleXfs,
-						aCellXfs: styleSheet.cellXfs, aDxfs: styleSheet.dxfs, aExtDxfs: styleSheet.aExtDxfs, aCellStyles: styleSheet.cellStyles, oCustomTableStyles: styleSheet.tableStyles.CustomStyles, oCustomSlicerStyles: styleSheet.oCustomSlicerStyles};
+					var oStyleObject = {
+						aBorders: styleSheet.borders,
+						aFills: styleSheet.fills,
+						aFonts: styleSheet.fonts,
+						oNumFmts: styleSheet.numFmts,
+						aCellStyleXfs: styleSheet.cellStyleXfs,
+						aCellXfs: styleSheet.cellXfs,
+						aDxfs: styleSheet.dxfs,
+						aExtDxfs: styleSheet.aExtDxfs,
+						aCellStyles: styleSheet.cellStyles,
+						oCustomTableStyles: styleSheet.tableStyles.CustomStyles,
+						oCustomSlicerStyles: styleSheet.oCustomSlicerStyles
+					};
 
 					xmlParserContext.InitOpenManager.InitStyleManager(oStyleObject, aCellXfs);
 					dxfs = oStyleObject.aDxfs;
@@ -1636,30 +1647,27 @@ var editor;
 				}
 			}
 		}
-		
+
 		if (wbXml.pivotCaches) {
-			wbXml.pivotCaches.forEach(function(wbPivotCacheXml) {
+			wbXml.pivotCaches.forEach(function (wbPivotCacheXml) {
 				var pivotTableCacheDefinitionPart;
 				if (null !== wbPivotCacheXml.cacheId && null !== wbPivotCacheXml.id) {
 					pivotTableCacheDefinitionPart = wbPart.getPartById(wbPivotCacheXml.id);
 					var contentCacheDefinition = pivotTableCacheDefinitionPart.getDocumentContent();
 					if (contentCacheDefinition) {
 						var pivotTableCacheDefinition = new Asc.CT_PivotCacheDefinition();
-						AscCommonExcel.executeInR1C1Mode(false, function() {
-							new openXml.SaxParserBase().parse(contentCacheDefinition,
-								pivotTableCacheDefinition);
+						AscCommonExcel.executeInR1C1Mode(false, function () {
+							new openXml.SaxParserBase().parse(contentCacheDefinition, pivotTableCacheDefinition);
 						});
 						if (pivotTableCacheDefinition.isValidCacheSource()) {
 							pivotCaches[wbPivotCacheXml.cacheId] = pivotTableCacheDefinition;
 							if (pivotTableCacheDefinition.id) {
-								var partPivotTableCacheRecords = pivotTableCacheDefinitionPart.getPartById(
-									pivotTableCacheDefinition.id);
+								var partPivotTableCacheRecords = pivotTableCacheDefinitionPart.getPartById(pivotTableCacheDefinition.id);
 								var contentCacheRecords = partPivotTableCacheRecords.getDocumentContent();
 								if (contentCacheRecords) {
-									AscCommonExcel.executeInR1C1Mode(false, function() {
+									AscCommonExcel.executeInR1C1Mode(false, function () {
 										var pivotTableCacheRecords = new Asc.CT_PivotCacheRecords();
-										new openXml.SaxParserBase().parse(contentCacheRecords,
-											pivotTableCacheRecords);
+										new openXml.SaxParserBase().parse(contentCacheRecords, pivotTableCacheRecords);
 										pivotTableCacheDefinition.cacheRecords = pivotTableCacheRecords;
 									});
 								}
@@ -1670,8 +1678,7 @@ var editor;
 			});
 		}
 		if (window['OPEN_IN_BROWSER']) {
-			var sharedStringPart = wbPart.getPartByRelationshipType(
-				openXml.Types.sharedStringTable.relationType);
+			var sharedStringPart = wbPart.getPartByRelationshipType(openXml.Types.sharedStringTable.relationType);
 			if (sharedStringPart) {
 				var contentSharedStrings = sharedStringPart.getDocumentContent();
 				if (contentSharedStrings) {
@@ -1717,7 +1724,7 @@ var editor;
 
 			//вначале беру все листы, потом запрашиваю контент каждого из них.
 			//связано с проблемой внтури парсера, на примере файла Read_Only_part_of_lists.xlsx
-			wbXml.sheets.forEach(function(wbSheetXml){
+			wbXml.sheets.forEach(function (wbSheetXml) {
 				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
 					wsParts.push({wsPart: wsPart, id: wbSheetXml.id, name: wbSheetXml.name, bHidden: wbSheetXml.bHidden});
@@ -1817,10 +1824,11 @@ var editor;
 								var mapCheckCopyThreadedComments = [];
 								var arAuthors = comments.authors && comments.authors.arr;
 
+								var i, j, nRow, nCol, nAuthorId, pCommentItem;
 								if (comments.commentList) {
 									var aComments = comments.commentList.arr;
 
-									for (var i = 0; i < aComments.length; ++i) {
+									for (i = 0; i < aComments.length; ++i) {
 										var pComment = aComments[i];
 										if (!pComment) {
 											continue;
@@ -1834,7 +1842,7 @@ var editor;
 
 											var isPlaceholder = false;
 											if (pComment.authorId) {
-												var nAuthorId = parseInt(pComment.authorId);
+												nAuthorId = parseInt(pComment.authorId);
 
 												if (nAuthorId >= 0 && nAuthorId < arAuthors.length) {
 													var sAuthor = arAuthors[nAuthorId];
@@ -1843,7 +1851,7 @@ var editor;
 														var sGUID = sAuthor.substr(3);
 														//todo IsZero() is added to fix comments with zero ids(5.4.0)(bug 42947). Remove after few releases
 														if ("{00000000-0000-0000-0000-000000000000}" === sGUID && pComment.ref) {
-															for (var j in pThreadedComments.m_mapTopLevelThreadedComments) {
+															for (j in pThreadedComments.m_mapTopLevelThreadedComments) {
 																var it = pThreadedComments.m_mapTopLevelThreadedComments[j];
 																if (it.ref && pComment.ref === it.ref) {
 																	pFind = it;
@@ -1874,8 +1882,9 @@ var editor;
 										if (pComment.ref && pComment.authorId) {
 											var sRef = AscCommonExcel.g_oRangeCache.getAscRange(pComment.ref);
 											if (sRef) {
-												var nRow = sRef.r1, nCol = sRef.c1;
-												var pCommentItem = new Asc.asc_CCommentData();
+												nRow = sRef.r1;
+												nCol = sRef.c1;
+												pCommentItem = new Asc.asc_CCommentData();
 												pCommentItem.asc_putDocumentFlag(false);
 												pCommentItem.nRow = nRow;
 												pCommentItem.nCol = nCol;
@@ -1888,7 +1897,7 @@ var editor;
 													pCommentItem.nId = "sheet" + pCommentItem.wsId + "_" + (ws.aComments.length + 1);
 												}*/
 
-												var nAuthorId = parseInt(pComment.authorId);
+												nAuthorId = parseInt(pComment.authorId);
 												if (nAuthorId >= 0 && nAuthorId < arAuthors.length) {
 													pCommentItem.asc_putUserName(arAuthors[nAuthorId]);
 												}
@@ -1909,7 +1918,7 @@ var editor;
 								}
 
 
-								for (var i = 0; i < pVmlDrawing.items.length; ++i) {
+								for (i = 0; i < pVmlDrawing.items.length; ++i) {
 									var pShape = pVmlDrawing.items[i];
 									if (!pShape || AscDFH.historyitem_type_VMLShape !== pShape.getObjectType()) {
 										continue;
@@ -1924,7 +1933,7 @@ var editor;
 										}
 									}*/
 
-									for (var j = 0; j < pShape.items.length; ++j) {
+									for (j = 0; j < pShape.items.length; ++j) {
 										var pElem = pShape.items[j];
 
 										if (!pElem) {
@@ -1934,11 +1943,11 @@ var editor;
 										if (AscDFH.historyitem_type_VMLClientData === pElem.getObjectType()) {
 											var pClientData = pElem;
 											if (null != pClientData.m_oRow && null != pClientData.m_oColumn) {
-												var nRow = parseInt(pClientData.m_oRow);
-												var nCol = parseInt(pClientData.m_oColumn);
+												nRow = parseInt(pClientData.m_oRow);
+												nCol = parseInt(pClientData.m_oColumn);
 												var sId = nRow + "" + "-" + nCol + "";
 
-												var pCommentItem = m_mapComments[sId];
+												pCommentItem = m_mapComments[sId];
 												if (pCommentItem) {
 													/*if(pShape->m_sGfxData.IsInit())
 														pCommentItem->m_sGfxdata = *pShape->m_sGfxData;*/
