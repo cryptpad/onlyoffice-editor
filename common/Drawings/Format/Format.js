@@ -11319,6 +11319,15 @@ function CompareBullets(bullet1, bullet2)
         this.bulletType.Blip.setBlip(AscFormat.CreateBlipFillUniFillFromUrl(url));
     };
 
+    CBullet.prototype.fillBulletFromCharAndFont = function (char, font) {
+        this.bulletType = new AscFormat.CBulletType();
+        this.bulletTypeface = new AscFormat.CBulletTypeface();
+        this.bulletTypeface.type = AscFormat.BULLET_TYPE_TYPEFACE_BUFONT;
+        this.bulletTypeface.typeface = font || AscFonts.FontPickerByCharacter.getFontBySymbol(char.getUnicodeIterator().value());
+        this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_CHAR;
+        this.bulletType.Char = char;
+    };
+
     CBullet.prototype.getImageBulletURL = function () {
         var res = (this.bulletType
           && this.bulletType.Blip
@@ -11381,6 +11390,7 @@ function CompareBullets(bullet1, bullet2)
     //interface methods
     var prot = CBullet.prototype;
     prot["fillBulletImage"] = prot["asc_fillBulletImage"] = CBullet.prototype.fillBulletImage;
+    prot["fillBulletFromCharAndFont"] = prot["asc_fillBulletFromCharAndFont"] = CBullet.prototype.fillBulletFromCharAndFont;
     prot["drawSquareImage"] = prot["asc_drawSquareImage"] = CBullet.prototype.drawSquareImage;
     prot.getImageId = function () {
         return this.getImageBulletURL();
@@ -11577,11 +11587,12 @@ function CompareBullets(bullet1, bullet2)
         return -1;
     };
     prot["get_AutoNumType"] = prot["asc_getAutoNumType"] = prot.asc_getAutoNumType;
-    prot.asc_putListType = function(type, subtype) {
+    prot.asc_putListType = function(type, subtype, custom) {
         var NumberInfo =
             {
                 Type     : type,
-                SubType  : subtype
+                SubType  : subtype,
+                Custom   : custom
             };
         AscFormat.fFillBullet(NumberInfo, this);
     };

@@ -2380,14 +2380,41 @@
 	};
 
 	/** @constructor */
+	function asc_CCustomListType(obj) {
+		this.type = null;
+
+		this.imageId = null;
+		this.token = null;
+
+		this.char = null;
+		this.specialFont = null;
+
+		this.numberingType = null;
+		if (obj) {
+			this.fillFromObject(obj);
+		}
+	}
+
+	asc_CCustomListType.prototype.fillFromObject = function (obj) {
+		if (obj.type)           this.type          = obj.type;
+		if (obj.imageId)        this.imageId       = obj.imageId;
+		if (obj.token)          this.token         = obj.token;
+		if (obj.char)           this.char          = obj.char;
+		if (obj.specialFont)    this.specialFont   = obj.specialFont;
+		if (obj.numberingType)  this.numberingType = obj.numberingType;
+	}
+
+	/** @constructor */
 	function asc_CListType(obj) {
 
 		if (obj) {
 			this.Type = (undefined == obj.Type) ? null : obj.Type;
 			this.SubType = (undefined == obj.Type) ? null : obj.SubType;
+			this.Custom = (undefined == obj.Type) ? null : new asc_CCustomListType(obj.Custom);
 		} else {
 			this.Type = null;
 			this.SubType = null;
+			this.Custom = null;
 		}
 	}
 
@@ -2396,6 +2423,10 @@
 	};
 	asc_CListType.prototype.asc_getListSubType = function () {
 		return this.SubType;
+	};
+
+	asc_CListType.prototype.asc_getListCustom = function () {
+		return this.Custom;
 	};
 
 	/** @constructor */
@@ -6168,10 +6199,13 @@
 	prot["get_Between"] = prot["asc_getBetween"] = prot.asc_getBetween;
 	prot["put_Between"] = prot["asc_putBetween"] = prot.asc_putBetween;
 
+	window["AscCommon"].asc_CCustomListType = window["Asc"]["asc_CCustomListType"] = window["Asc"].asc_CCustomListType = asc_CCustomListType;
+
 	window["AscCommon"].asc_CListType = asc_CListType;
 	prot = asc_CListType.prototype;
 	prot["get_ListType"] = prot["asc_getListType"] = prot.asc_getListType;
 	prot["get_ListSubType"] = prot["asc_getListSubType"] = prot.asc_getListSubType;
+	prot["get_ListCustom"] = prot["asc_getListCustom"] = prot.asc_getListCustom;
 
 	window["AscCommon"].asc_CTextFontFamily = asc_CTextFontFamily;
 	window["AscCommon"]["asc_CTextFontFamily"] = asc_CTextFontFamily;
