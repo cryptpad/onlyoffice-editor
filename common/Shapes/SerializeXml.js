@@ -528,7 +528,7 @@
 		writer.WriteXmlAttributesEnd();
 
 		if (this.Pr) {
-			this.Pr.toDrawingML(writer, "p:pPr");
+			this.Pr.toDrawingML(writer, "a:pPr");
 		}
 
 		let nCount = this.Content.length;

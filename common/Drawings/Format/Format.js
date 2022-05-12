@@ -2856,14 +2856,14 @@
 				}
 			}
 		};
-		CSrcRect.prototype.toXml = function (writer) {
-			writer.WriteXmlNodeStart(("a:srcRect"));
-			writer.WriteXmlNullableAttributeUInt(("l"), getPercentageValueForWrite(this.l));
-			writer.WriteXmlNullableAttributeUInt(("t"), getPercentageValueForWrite(this.t));
-			writer.WriteXmlNullableAttributeUInt(("r"), getPercentageValueForWrite(this.r));
-			writer.WriteXmlNullableAttributeUInt(("b"), getPercentageValueForWrite(this.b));
-			writer.WriteXmlAttributesEnd();
-			writer.WriteXmlNodeEnd(("a:srcRect"));
+		CSrcRect.prototype.toXml = function (writer, sName) {
+			let sName_ = sName || "a:srcRect";
+			writer.WriteXmlNodeStart(sName_);
+			writer.WriteXmlNullableAttributeUInt("l", getPercentageValueForWrite(this.l));
+			writer.WriteXmlNullableAttributeUInt("t", getPercentageValueForWrite(this.t));
+			writer.WriteXmlNullableAttributeUInt("r", getPercentageValueForWrite(this.r));
+			writer.WriteXmlNullableAttributeUInt("b", getPercentageValueForWrite(this.b));
+			writer.WriteXmlAttributesEnd(true);
 		};
 
 		function CBlipFillTile() {
@@ -5686,20 +5686,20 @@
 		GradPath.prototype.toXml = function (writer) {
 			let sNodeNamespace;
 			let sAttrNamespace;
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = ("w14:");
 				sAttrNamespace = sNodeNamespace;
 			} else
-				sNodeNamespace = ("a:");
-			writer.WriteXmlNodeStart(sNodeNamespace + ("path"));
+				sNodeNamespace = "a:";
+			writer.WriteXmlNodeStart(sNodeNamespace + "path");
 
 
-			//writer.WriteXmlNullableAttributeString(sAttrNamespace + ("path"), this.path);
+			writer.WriteXmlNullableAttributeString("path", "circle");
 			writer.WriteXmlAttributesEnd();
 
 			//writer.WriteXmlNullable(rect);
 			if (this.rect) {
-				this.rect.toXml(writer);
+				this.rect.toXml(writer, "a:fillToRect");
 			}
 
 			writer.WriteXmlNodeEnd(sNodeNamespace + ("path"));
@@ -5812,10 +5812,10 @@
 			if (fill == null) {
 				return false;
 			}
-			if (fill.type != c_oAscFill.FILL_TYPE_GRAD) {
+			if (fill.type !== c_oAscFill.FILL_TYPE_GRAD) {
 				return false;
 			}
-			if (fill.colors.length != this.colors.length) {
+			if (fill.colors.length !== this.colors.length) {
 				return false;
 			}
 			for (var i = 0; i < this.colors.length; ++i) {
