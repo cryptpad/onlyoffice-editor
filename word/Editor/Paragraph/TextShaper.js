@@ -97,15 +97,7 @@
 			oContext.m_oTextPr = new CTextPr();
 
 		let sFontName = AscCommon.FontNameMap.GetName(this.Font);
-
-		oContext.m_oGrFonts.Ascii.Name       = sFontName;
-		oContext.m_oGrFonts.Ascii.Index      = -1;
-		oContext.m_oTextPr.RFonts.Ascii.Name = sFontName;
-		oContext.m_oTextPr.Bold              = oFontInfo.Style & 1;
-		oContext.m_oTextPr.Italic            = oFontInfo.Style & 2;
-		oContext.m_oTextPr.FontSize          = oFontInfo.Size;
-
-		oContext.SetFontSlot(fontslot_ASCII, 1);
+		oContext.SetFontInternal(sFontName, oFontInfo.Size, oFontInfo.Style);
 
 		let nKoef =  COEF / 72 * oFontInfo.Size;
 

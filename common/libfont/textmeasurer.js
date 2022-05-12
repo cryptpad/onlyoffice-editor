@@ -103,14 +103,18 @@
 
 		GetFileFontId : function(codePoint)
 		{
-			if (!this.m_oManager.m_pFont)
+			let pFont = this.m_oManager.m_pFont;
+			if (!pFont)
 				return -1;
 
-			let oFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
-			if (!oFont)
-				oFont = this.m_oManager.m_pFont;
+			if (!pFont.GetGIDByUnicode(codePoint))
+			{
+				let _pFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
+				if (_pFont)
+					pFont = _pFont;
+			}
 
-			return oFont;
+			return pFont;
 		},
 
 		ShapeText : function(oFont, sText, nFeatures, nScript, nDirection, sLanguage)
