@@ -160,6 +160,25 @@
 			res = new AscFormat.CGraphicFrame();
 			res.fromXml(reader);
 			res = res.graphicObject;
+		} else if ("AlternateContent" === name) {
+			let elem = new CT_XmlNode(function(reader, name) {
+				if ("Choice" === name) {
+					let elem = new CT_XmlNode(function(reader, name) {
+						if ("graphicFrame" === name) {
+							res = new AscFormat.CGraphicFrame();
+							res.fromXml(reader);
+							res = res.graphicObject;
+						}
+						return new CT_XmlNode();
+					});
+					elem.fromXml(reader);
+					return elem;
+				}
+			});
+			elem.fromXml(reader);
+		}  else if ("slicer" === name) {
+			res = new AscFormat.CSlicer();
+			res.fromXml(reader);
 		} else if ("chart" === name) {
 			if (typeof AscFormat.CChartSpace !== "undefined") {
 				let elem = new CT_XmlNode();

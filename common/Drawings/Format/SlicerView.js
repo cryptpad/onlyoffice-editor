@@ -1196,6 +1196,18 @@
     CSlicer.prototype.getAllSlicerViews = function(aSlicerView) {
         aSlicerView.push(this);
     };
+    CSlicer.prototype.readAttrXml = function (name, reader) {
+        switch (name) {
+            case "name": {
+                this.setName(reader.GetValue());
+                break;
+            }
+        }
+    };
+    CSlicer.prototype.toXml = function (writer) {
+        writer.WriteXmlString("<sle:slicer xmlns:sle=\"http://schemas.microsoft.com/office/drawing/2010/slicer\" name=\"" + this.name + "\"/>");
+
+    };
 
     function CHeader(slicer) {
         AscFormat.CShape.call(this);
