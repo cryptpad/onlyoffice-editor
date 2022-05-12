@@ -83,24 +83,24 @@ var MAP_FMLA_TO_TYPE = {};
     MAP_FMLA_TO_TYPE["val"] = FORMULA_TYPE_VALUE;
 
 
-    var MAP_FMLA_TO_TYPE = {};
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_MULT_DIV] =   "*/";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_PLUS_MINUS] =   "+-";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_PLUS_DIV] =   "+/";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_IF_ELSE] =   "?:";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_ABS] =   "abs";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_AT2] =   "at2";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_CAT2] =   "cat2";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_COS] =   "cos";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_MAX] =   "max";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_MIN] =   "min";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_MOD] =   "mod";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_PIN] =   "pin";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_SAT2] =   "sat2";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_SIN] =   "sin";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_SQRT] =   "sqrt";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_TAN] =   "tan";
-    MAP_FMLA_TO_TYPE[FORMULA_TYPE_VALUE] =   "val";
+    var MAP_TYPE_TO_FMLA = {};
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_MULT_DIV] =   "*/";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_PLUS_MINUS] =   "+-";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_PLUS_DIV] =   "+/";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_IF_ELSE] =   "?:";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_ABS] =   "abs";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_AT2] =   "at2";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_CAT2] =   "cat2";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_COS] =   "cos";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_MAX] =   "max";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_MIN] =   "min";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_MOD] =   "mod";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_PIN] =   "pin";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_SAT2] =   "sat2";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_SIN] =   "sin";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_SQRT] =   "sqrt";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_TAN] =   "tan";
+    MAP_TYPE_TO_FMLA[FORMULA_TYPE_VALUE] =   "val";
 
 var cToRad = Math.PI/(60000*180);
 var cToDeg = 1/cToRad;
@@ -2085,10 +2085,9 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
         }
     };
     CGuide.prototype.toXml = function(writer, oGd) {
-        let sFmla = MAP_FMLA_TO_TYPE[oGd.fmla];
+        let sFmla = MAP_TYPE_TO_FMLA[oGd.fmla];
         if(sFmla) {
             writer.WriteXmlNodeStart("a:gd");
-            writer.StartAttributes();
             writer.WriteXmlNullableAttributeString("name", oGd.name);
             let sFmlaVal = sFmla;
             if(oGd.x) {
@@ -2100,7 +2099,7 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
             if(oGd.z) {
                 sFmlaVal += (" " + oGd.z);
             }
-            writer.WriteAttribute("fmla", sFmlaVal);
+            writer.WriteXmlAttributeString("fmla", sFmlaVal);
             writer.WriteXmlAttributesEnd(true);
         }
     };
