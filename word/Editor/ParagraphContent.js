@@ -457,7 +457,10 @@ ParaText.prototype.SetGrapheme = function(oGrapheme, nFontSlot)
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
 	if (this.Grapheme)
-		this.Grapheme.Draw(Context, X, Y, this.FontSlot, oTextPr);
+	{
+		let oFontInfo = oTextPr.GetFontInfo(this.FontSlot);
+		AscCommon.DrawGrapheme(this.Grapheme, Context, X, Y, oFontInfo.Size);
+	}
 
 	return;
 

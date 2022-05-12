@@ -78,28 +78,22 @@
 
 	/**
 	 * @param nFontId
+	 * @param nStyle
 	 * @constructor
 	 */
-	function CGrapheme(nFontId)
+	function CGrapheme(nFontId, nStyle)
 	{
 		this.Font   = nFontId;
+		this.Style  = nStyle;
 		this.Glyphs = [];
 	}
 	CGrapheme.prototype.Add = function(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
 	{
 		this.Glyphs.push(new CGlyph(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY));
 	};
-	CGrapheme.prototype.Draw = function(oContext, nX, nY, nFontSlot, oTextPr)
+	CGrapheme.prototype.Draw = function(oContext, nX, nY, nFontSize)
 	{
-		let oFontInfo = oTextPr.GetFontInfo(nFontSlot);
-
-		if (!oContext.m_oTextPr)
-			oContext.m_oTextPr = new CTextPr();
-
-		let sFontName = AscCommon.FontNameMap.GetName(this.Font);
-		oContext.SetFontInternal(sFontName, oFontInfo.Size, oFontInfo.Style);
-
-		let nKoef =  COEF / 72 * oFontInfo.Size;
+		let nKoef =  COEF / 72 * nFontSize;
 
 		for (let nIndex = 0, nCount = this.Glyphs.length; nIndex < nCount; ++nIndex)
 		{
@@ -109,6 +103,21 @@
 			nY += oGlyph.AdvanceY * nKoef;
 		}
 	};
+
+	function CreateGrapheme(nFontId, nFontStyle)
+	{
+		return new CGrapheme(nFontId, nFontStyle);
+	}
+	function AddGlyphToGrapheme(oGrapheme, nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
+	{
+		oGrapheme.Add(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY);
+	}
+	function DrawGrapheme(oGrapheme, oContext, nX, nY, nFontSize)
+	{
+		let sFontName = AscCommon.FontNameMap.GetName(oGrapheme.Font);
+		oContext.SetFontInternal(sFontName, nFontSize, oGrapheme.Style);
+		oGrapheme.Draw(oContext, nX, nY, nFontSize);
+	}
 
 	/**
 	 *
@@ -178,7 +187,7 @@
 		let nDirection = this.GetDirection(nScript);
 
 		let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
-		let sFont     = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
+		let nFontId   = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
 
 		let oFontInfo = this.TextPr.GetFontInfo(this.FontSlot);
 		let nFontSize = oFontInfo.Size;
@@ -192,14 +201,14 @@
 			// TODO: Пока у нас нет поддержки RTL мы все слова идущие в RTL считаем как большую составную графему, и не
 			//       разбиваем их на нормальные графемы
 
-			let oGrapheme = new CGrapheme(sFont);
+			let oGrapheme = CreateGrapheme(nFontId, oFontInfo.Style);
 			this.Items[0].SetGrapheme(oGrapheme, this.FontSlot);
 
 			let nGraphemeWidth = 0;
 			for (let nGlyphIndex = 0, nGlyphsCount = arrGlyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 			{
 				let oGlyph = arrGlyphs[nGlyphIndex];
-				oGrapheme.Add(oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
+				AddGlyphToGrapheme(oGrapheme, oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
 				nGraphemeWidth += oGlyph.x_advance * nKoef;
 			}
 
@@ -225,8 +234,8 @@
 
 				let nStartChar = this.Items[nCharIndex];
 
-				let oGrapheme = new CGrapheme(sFont);
-				oGrapheme.Add(oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
+				let oGrapheme = CreateGrapheme(nFontId, oFontInfo.Style);
+				AddGlyphToGrapheme(oGrapheme, oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
 
 				let isLigature = LIGATURE === oGlyph.type;
 
@@ -238,7 +247,7 @@
 				while (nGlyphIndex < nGlyphsCount - 1 && arrGlyphs[nGlyphIndex + 1].cluster === oGlyph.cluster)
 				{
 					oGlyph = arrGlyphs[++nGlyphIndex];
-					oGrapheme.Add(oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
+					AddGlyphToGrapheme(oGrapheme, oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
 
 					nGraphemeWidth += oGlyph.x_advance * nKoef;
 				}
@@ -336,7 +345,8 @@
 
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
-	window['AscCommon'].CTextShaper = CTextShaper;
-	window['AscCommon'].TextShaper  = new CTextShaper();
+	window['AscCommon'].CTextShaper  = CTextShaper;
+	window['AscCommon'].TextShaper   = new CTextShaper();
+	window['AscCommon'].DrawGrapheme = DrawGrapheme;
 
 })(window);
