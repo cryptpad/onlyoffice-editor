@@ -9191,6 +9191,7 @@
 			}
 		};
 		UniNvPr.prototype.toXmlGrFrame = function (writer) {
+			let namespace_ = "a";
 			if ((writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) && writer.context.groupIndex >= 0) {
 				this.cNvPr.toXml2("wpg", writer);
@@ -9206,7 +9207,6 @@
 				writer.WriteXmlNodeEnd("xdr:nvGraphicFramePr");
 				return;
 			}
-			let namespace_ = "a";
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
