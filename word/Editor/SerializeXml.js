@@ -151,7 +151,9 @@
 		webSettingsPart.part.setData(sampleData);
 		memory.Seek(0);
 
-		memory.WriteXmlString(AscCommonWord.g_sXmlTheme);
+
+		//memory.WriteXmlString(AscCommonWord.g_sXmlTheme);
+		this.theme.toXml(memory);
 		sampleData = memory.GetDataUint8();
 		var themePart = docPart.part.addPart(AscCommon.openXml.Types.theme);
 		themePart.part.setData(sampleData);

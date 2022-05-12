@@ -134,13 +134,12 @@
 		CBaseObject.prototype.toXml = function (writer, name) {
 			writer.WriteXmlNodeStart(name);
 			this.writeAttrXml(writer);
-			writer.WriteXmlAttributesEnd();
-			this.writeChildren();
+			this.writeChildren(writer);
 			writer.WriteXmlNodeEnd(name);
 		};
 		CBaseObject.prototype.writeAttrXml = function (writer) {
 			this.writeAttrXmlImpl(writer);
-			writer.WriteXmlAttributesEnd(true);
+			writer.WriteXmlAttributesEnd();
 		};
 
 		function InitClassWithoutType(fClass, fBase) {
@@ -1724,7 +1723,7 @@
 		}
 
 		function getPercentageValueForWrite(dVal) {
-			if(!AscFormat.isRealNumber(dVal)) {
+			if (!AscFormat.isRealNumber(dVal)) {
 				return null;
 			}
 			return (dVal * 1000 + 0.5 >> 0);
@@ -1983,11 +1982,19 @@
 		MODS_MAP["lumMod"] = true;
 		MODS_MAP["lumOff"] = true;
 		MODS_MAP["red"] = true;
+		MODS_MAP["redMod"] = true;
+		MODS_MAP["redOff"] = true;
+		MODS_MAP["sat"] = true;
+		MODS_MAP["satMod"] = true;
+		MODS_MAP["satOff"] = true;
+		MODS_MAP["shade"] = true;
+		MODS_MAP["tint"] = true;
 
-		function toHex (c) {
+		function toHex(c) {
 			var res = Number(c).toString(16);
 			return res.length === 1 ? "0" + res : res;
 		}
+
 		function fRGBAToHexString(oRGBA) {
 			return "" + toHex(oRGBA.R) + toHex(oRGBA.G) + toHex(oRGBA.B);
 		}
@@ -3179,7 +3186,7 @@
 				case "embed" : {
 					var rId = reader.GetValue();
 					var rel = reader.rels.getRelationship(rId);
-					if(rel) {
+					if (rel) {
 						var context = reader.context;
 						if ("Internal" === rel.targetMode) {
 							var blipFills = context.imageMap[rel.targetFullName.substring(1)];
@@ -3201,22 +3208,26 @@
 		};
 		CBlip.prototype.toXml = function (writer, sNamespace, sRasterImageId) {
 			let sNamespace_ = sNamespace || "a";
-			let strName = (("") == sNamespace_) ? ("blip") : (sNamespace_ + (":blip"));
+			let strName = (("") === sNamespace_) ? ("blip") : (sNamespace_ + (":blip"));
 			var context = writer.context;
 			var imagePart = context.imageMap[sRasterImageId];
 			if (!imagePart) {
-				var ext = AscCommon.GetFileExtension(sRasterImageId);
-				var type = context.editorId === AscCommon.c_oEditorId.Word ? AscCommon.openXml.Types.imageWord : AscCommon.openXml.Types.image;
-				type = Object.assign({}, type);
-				type.filename += ext;
-				type.contentType = openXml.GetMimeType(ext);
-				imagePart = context.part.addPart(type);
-				context.imageMap[sRasterImageId] = imagePart;
+				if (context.part) {
+					var ext = AscCommon.GetFileExtension(sRasterImageId);
+					var type = context.editorId === AscCommon.c_oEditorId.Word ? AscCommon.openXml.Types.imageWord : AscCommon.openXml.Types.image;
+					type = Object.assign({}, type);
+					type.filename += ext;
+					type.contentType = openXml.GetMimeType(ext);
+					imagePart = context.part.addPart(type);
+					if (imagePart) {
+						context.imageMap[sRasterImageId] = imagePart;
+					}
+				}
 			}
 			//writer.WriteXmlNullable(blip);
 			writer.WriteXmlNodeStart(strName);
 			writer.WriteXmlString(' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
-			writer.WriteXmlAttributeString("r:embed", imagePart.rId);
+			writer.WriteXmlAttributeString("r:embed", imagePart && imagePart.rId || "");
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlString('<a:extLst><a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/></a:ext></a:extLst>');
 			writer.WriteXmlNodeEnd(strName);
@@ -5609,7 +5620,7 @@
 			writer.WriteXmlNodeStart(sNodeNamespace + ("lin"));
 
 
-			writer.WriteXmlNullableAttributeInt(sAttrNamespace + ("ang"), this.ang);
+			writer.WriteXmlNullableAttributeInt(sAttrNamespace + ("ang"), this.angle);
 			writer.WriteXmlNullableAttributeBool(sAttrNamespace + ("scaled"), this.scale);
 			writer.WriteXmlAttributesEnd();
 
@@ -8321,7 +8332,7 @@
 		};
 		CNvPr.prototype.toXml = function (writer, sName) {
 
-			if(sName) {
+			if (sName) {
 				this.toXml3(sName, writer);
 				return;
 			}
@@ -8349,8 +8360,7 @@
 				_id = writer.context.objectId;
 				++writer.context.objectId;
 			} else {
-				if (writer.context.objectId <= _id )
-				{
+				if (writer.context.objectId <= _id) {
 					writer.context.objectId = _id + 1;
 				}
 			}
@@ -8923,22 +8933,20 @@
 
 		CNvUniSpPr.prototype.toXmlGrFrame = function (writer) {
 
-			let namespace_		= "a";
+			let namespace_ = "a";
 			let namespaceLock_ = "a";
 			let namespaceLockLink_ = "xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"";
 
-			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)	namespace_ = "xdr";
+			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) namespace_ = "xdr";
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)
-			{
-				namespaceLock_	= "a";
+				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
+				namespaceLock_ = "a";
 				namespaceLockLink_ = "xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"";
-				namespace_		= "wp";
-			}
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		namespace_ = "a";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	namespace_ = "cdr";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			namespace_ = "dgm";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		namespace_ = "dsp";
+				namespace_ = "wp";
+			} else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
 
 			writer.WriteXmlNodeStart(namespace_ + ":cNvGraphicFramePr");
 
@@ -8946,7 +8954,7 @@
 
 			writer.WriteXmlNodeStart(namespaceLock_ + ":graphicFrameLocks");
 
-			
+
 			writer.WriteXmlNullableAttributeString(("xmlns:") + namespaceLock_, namespaceLockLink_);
 			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
 			writer.WriteXmlNullableAttributeBool("noDrilldown", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noDrilldown));
@@ -8965,11 +8973,11 @@
 
 			let namespace_ = "a";
 
-			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)					namespace_ = "xdr";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		namespace_ = "a";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	namespace_ = "cdr";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			namespace_ = "dgm";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		namespace_ = "dsp";
+			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) namespace_ = "xdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
 
 			if (!fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) === undefined &&
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp) === undefined &&
@@ -8977,8 +8985,7 @@
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) === undefined &&
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) === undefined &&
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) === undefined &&
-				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp) === undefined )
-			{
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp) === undefined) {
 				writer.WriteXmlString("<" + namespace_ + ":cNvGrpSpPr/>");
 				return;
 			}
@@ -8987,14 +8994,14 @@
 
 			writer.WriteXmlNodeStart(("a:grpSpLocks"));
 
-			
-			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) );
-			writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp) );
-			writer.WriteXmlNullableAttributeBool("noMove", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove) );
-			writer.WriteXmlNullableAttributeBool("noResize", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) );
-			writer.WriteXmlNullableAttributeBool("noRot", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) );
-			writer.WriteXmlNullableAttributeBool("noSelect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) );
-			writer.WriteXmlNullableAttributeBool("noUngrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp) );
+
+			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
+			writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp));
+			writer.WriteXmlNullableAttributeBool("noMove", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove));
+			writer.WriteXmlNullableAttributeBool("noResize", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize));
+			writer.WriteXmlNullableAttributeBool("noRot", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot));
+			writer.WriteXmlNullableAttributeBool("noSelect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect));
+			writer.WriteXmlNullableAttributeBool("noUngrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp));
 			writer.WriteXmlAttributesEnd();
 
 			writer.WriteXmlNodeEnd(("a:grpSpLocks"));
@@ -9008,8 +9015,7 @@
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) === undefined &&
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) === undefined &&
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) === undefined &&
-				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp) === undefined)
-			{
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp) === undefined) {
 				writer.WriteXmlString("<" + strNS + ":cNvGrpSpPr/>");
 				return;
 			}
@@ -9018,14 +9024,14 @@
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlNodeStart("a:grpSpLocks");
 
-			
-			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) );
-			writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp) );
-			writer.WriteXmlNullableAttributeBool("noMove", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove) );
-			writer.WriteXmlNullableAttributeBool("noResize", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) );
-			writer.WriteXmlNullableAttributeBool("noRot", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) );
-			writer.WriteXmlNullableAttributeBool("noSelect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) );
-			writer.WriteXmlNullableAttributeBool("noUngrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp) );
+
+			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
+			writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp));
+			writer.WriteXmlNullableAttributeBool("noMove", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove));
+			writer.WriteXmlNullableAttributeBool("noResize", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize));
+			writer.WriteXmlNullableAttributeBool("noRot", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot));
+			writer.WriteXmlNullableAttributeBool("noSelect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect));
+			writer.WriteXmlNullableAttributeBool("noUngrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp));
 			writer.WriteXmlAttributesEnd();
 
 			writer.WriteXmlNodeEnd("a:grpSpLocks");
@@ -9035,20 +9041,20 @@
 			let namespace_ = "a";
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)		namespace_ = "pic";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			namespace_ = "xdr";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		namespace_ = "a";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	namespace_ = "cdr";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			namespace_ = "dgm";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		namespace_ = "dsp";
+				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) namespace_ = "pic";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) namespace_ = "xdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
 
 			writer.WriteXmlNodeStart(namespace_ + ":cNvPicPr");
 
-			
+
 			//writer.WriteXmlNullableAttributeString(("preferRelativeResize"), preferRelativeResize);
 			writer.WriteXmlAttributesEnd();
 
-			if ( fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles) !== undefined ||
+			if (fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles) !== undefined ||
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) !== undefined ||
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeArrowheads) !== undefined ||
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeShapeType) !== undefined ||
@@ -9058,10 +9064,9 @@
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) !== undefined ||
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) !== undefined ||
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) !== undefined ||
-				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noCrop) !== undefined )
-			{
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noCrop) !== undefined) {
 				writer.WriteXmlNodeStart("a:picLocks");
-				
+
 				writer.WriteXmlNullableAttributeBool("noAdjustHandles", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles));
 				writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
 				writer.WriteXmlNullableAttributeBool("noChangeArrowheads", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeArrowheads));
@@ -9081,42 +9086,41 @@
 		CNvUniSpPr.prototype.toXmlSp = function (writer) {
 			let namespace_ = "a";
 
-			if		(writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	namespace_ = "wps";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			namespace_ = "xdr";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		namespace_ = "a";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	namespace_ = "cdr";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			namespace_ = "dgm";
-		else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		namespace_ = "dsp";
+			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) namespace_ = "wps";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) namespace_ = "xdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
 
 			writer.WriteXmlNodeStart(namespace_ + ":cNvSpPr");
 			//writer.WriteXmlAttributeBool("txBox", this.txBox);
 			writer.WriteXmlAttributesEnd();
 
-			if ( fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeArrowheads) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeShapeType) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noEditPoints) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) !== undefined ||
-				 fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noTextEdit) !== undefined )
-			{
+			if (fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeArrowheads) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeShapeType) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noEditPoints) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) !== undefined ||
+				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noTextEdit) !== undefined) {
 				writer.WriteXmlNodeStart("a:spLocks");
-				writer.WriteXmlNullableAttributeBool("noAdjustHandles", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles) );
-				writer.WriteXmlNullableAttributeBool("noChangeArrowheads", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeArrowheads) );
-				writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) );
-				writer.WriteXmlNullableAttributeBool("noChangeShapeType", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeShapeType) );
-				writer.WriteXmlNullableAttributeBool("noEditPoints", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noEditPoints) );
-				writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp) );
-				writer.WriteXmlNullableAttributeBool("noMove", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove) );
-				writer.WriteXmlNullableAttributeBool("noResize", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize) );
-				writer.WriteXmlNullableAttributeBool("noRot", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot) );
-				writer.WriteXmlNullableAttributeBool("noSelect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect) );
-				writer.WriteXmlNullableAttributeBool("noTextEdit", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noTextEdit) );
+				writer.WriteXmlNullableAttributeBool("noAdjustHandles", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles));
+				writer.WriteXmlNullableAttributeBool("noChangeArrowheads", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeArrowheads));
+				writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
+				writer.WriteXmlNullableAttributeBool("noChangeShapeType", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeShapeType));
+				writer.WriteXmlNullableAttributeBool("noEditPoints", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noEditPoints));
+				writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp));
+				writer.WriteXmlNullableAttributeBool("noMove", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noMove));
+				writer.WriteXmlNullableAttributeBool("noResize", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noResize));
+				writer.WriteXmlNullableAttributeBool("noRot", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noRot));
+				writer.WriteXmlNullableAttributeBool("noSelect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noSelect));
+				writer.WriteXmlNullableAttributeBool("noTextEdit", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noTextEdit));
 				writer.WriteXmlAttributesEnd();
 
 				writer.WriteXmlNodeEnd("a:spLocks");
@@ -9241,7 +9245,7 @@
 			writer.WriteXmlNodeEnd(namespace_ + ":nvCxnSpPr");
 		};
 		UniNvPr.prototype.toXmlSp = function (writer) {
-			
+
 			let namespace_ = "a";
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) namespace_ = "wps";
@@ -9279,16 +9283,16 @@
 
 			writer.WriteXmlAttributesEnd();
 
-			if(this.cNvPr) {
+			if (this.cNvPr) {
 				this.cNvPr.toXml(writer, namespace_ + ":cNvPr");
 			}
-			if(this.nvUniSpPr) {
+			if (this.nvUniSpPr) {
 				this.nvUniSpPr.toXmlPic(writer);
 			}
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) {
 
-				if(this.nvPr) {
+				if (this.nvPr) {
 					this.nvPr.toXml(writer);
 				}
 			}
@@ -9455,13 +9459,11 @@
 			switch (name) {
 				case "idx": {
 					let sVal = reader.GetValue();
-					if(sVal === "major") {
+					if (sVal === "major") {
 						this.idx = AscFormat.fntStyleInd_major;
-					}
-					else if(sVal === "minor") {
+					} else if (sVal === "minor") {
 						this.idx = AscFormat.fntStyleInd_minor;
-					}
-					else if(sVal === "none") {
+					} else if (sVal === "none") {
 						this.idx = AscFormat.fntStyleInd_none;
 					}
 					break;
@@ -9498,7 +9500,7 @@
 			writer.WriteXmlAttributeString("idx", sVal);
 			writer.WriteXmlAttributesEnd();
 
-			if(this.Color) {
+			if (this.Color) {
 				this.Color.toXml(writer);
 			}
 
@@ -9598,13 +9600,13 @@
 
 			let sNS = "a";
 			let oContext = writer.context;
-			if		(oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-                oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	sNS = "wps";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			sNS = "xdr";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		sNS = "a";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	sNS = "cdr";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			sNS = "dgm";
-		let sName = sNS + ":style";
+			if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+				oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) sNS = "wps";
+			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) sNS = "xdr";
+			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) sNS = "a";
+			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) sNS = "cdr";
+			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) sNS = "dgm";
+			let sName = sNS + ":style";
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributesEnd();
 
@@ -10716,12 +10718,18 @@
 			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 		};
 		ClrScheme.prototype.writeChildren = function (writer) {
-			for (let nIdx = 0; nIdx < this.colors.length; ++nIdx) {
-				let oColor = this.colors[nIdx];
+
+			let aIdx = [8, 12, 9, 13, 0, 1, 2, 3, 4, 5, 11, 10];
+			for (let nIdx = 0; nIdx < aIdx.length; ++nIdx) {
+				let oColor = this.colors[aIdx[nIdx]];
 				if (oColor) {
-					let sName = CLR_NAME_MAP[nIdx];
+					let sName = CLR_NAME_MAP[aIdx[nIdx]];
 					if (sName) {
-						oColor.toXml(writer, "a:" + sName);
+						let sNodeName =  "a:" + sName;
+						writer.WriteXmlNodeStart(sNodeName);
+						writer.WriteXmlAttributesEnd();
+						oColor.toXml(writer);
+						writer.WriteXmlNodeEnd(sNodeName);
 					}
 				}
 			}
@@ -10880,37 +10888,37 @@
 			if (0 === nIdx)
 				return "accent1";
 			if (1 === nIdx)
-				return  "accent2" ;
+				return "accent2";
 			if (2 === nIdx)
-				return  "accent3" ;
+				return "accent3";
 			if (3 === nIdx)
-				return  "accent4" ;
+				return "accent4";
 			if (4 === nIdx)
-				return   "accent5" ;
+				return "accent5";
 			if (5 === nIdx)
-				return   "accent6" ;
+				return "accent6";
 			if (6 === nIdx)
-				return   "bg1" ;
+				return "bg1";
 			if (7 === nIdx)
-				return   "bg2" ;
+				return "bg2";
 			if (8 === nIdx)
-				return   "dk1" ;
+				return "dk1";
 			if (9 === nIdx)
-				return   "dk2" ;
+				return "dk2";
 			if (10 === nIdx)
-				return   "folHlink" ;
+				return "folHlink";
 			if (11 === nIdx)
-				return   "hlink" ;
+				return "hlink";
 			if (12 === nIdx)
-				return   "lt1" ;
+				return "lt1";
 			if (13 === nIdx)
-				return   "lt2" ;
+				return "lt2";
 			if (14 === nIdx)
-				return  "phClr" ;
+				return "phClr";
 			if (15 === nIdx)
-				return  "tx1" ;
+				return "tx1";
 			if (16 === nIdx)
-				return  "tx2" ;
+				return "tx2";
 
 			return null;
 		};
@@ -10925,9 +10933,8 @@
 		ClrMap.prototype.toXml = function (writer, sName) {
 			writer.WriteXmlNodeStart(sName);
 
-			for (let i = 0; i < this.color_map.length; ++i)
-			{
-				if(AscFormat.isRealNumber(this.color_map[i])) {
+			for (let i = 0; i < this.color_map.length; ++i) {
+				if (AscFormat.isRealNumber(this.color_map[i])) {
 					writer.WriteXmlNullableAttributeString(this.SchemeClr_GetStringCode(i), this.getColorName(this.color_map[i]));
 				}
 			}
@@ -11120,10 +11127,10 @@
 		ExtraClrScheme.prototype.toXml = function (writer) {
 			writer.WriteXmlNodeStart("a:extraClrScheme");
 			writer.WriteXmlAttributesEnd();
-			if(this.clrScheme) {
+			if (this.clrScheme) {
 				this.clrScheme.toXml(writer, "a:clrScheme");
 			}
-			if(this.clrMap) {
+			if (this.clrMap) {
 				this.clrMap.toXml(writer, "a:clrMap")
 			}
 			writer.WriteXmlNodeEnd("a:extraClrScheme");
@@ -11187,7 +11194,7 @@
 		};
 		FontCollection.prototype.writeFont = function (writer, sNodeName, sFont) {
 			let oNode = new CT_XmlNode();
-			oNode.members["typeface"] = sFont || "";
+			oNode.attributes["typeface"] = sFont || "";
 			writer.WriteXmlNullable(oNode, sNodeName);
 		};
 		FontCollection.prototype.readChildXml = function (name, reader) {
@@ -11516,7 +11523,12 @@
 		FmtScheme.prototype.writeChildren = function (writer) {
 			this.writeList(writer, this.fillStyleLst, "a:fillStyleLst");
 			this.writeList(writer, this.lnStyleLst, "a:lnStyleLst", "a:ln");
-			//this.writeList(writer, this.effectStyleLst, "a:effectStyleLst");
+			writer.WriteXmlString("<a:effectStyleLst><a:effectStyle><a:effectLst>\
+<a:outerShdw blurRad=\"40000\" dist=\"20000\" dir=\"5400000\" rotWithShape=\"0\"><a:srgbClr val=\"000000\"><a:alpha val=\"38000\"/></a:srgbClr></a:outerShdw>\
+</a:effectLst></a:effectStyle><a:effectStyle><a:effectLst><a:outerShdw blurRad=\"40000\" dist=\"23000\" dir=\"5400000\" rotWithShape=\"0\">\
+<a:srgbClr val=\"000000\"><a:alpha val=\"35000\"/></a:srgbClr></a:outerShdw></a:effectLst></a:effectStyle><a:effectStyle><a:effectLst>\
+<a:outerShdw blurRad=\"40000\" dist=\"23000\" dir=\"5400000\" rotWithShape=\"0\"><a:srgbClr val=\"000000\"><a:alpha val=\"35000\"/></a:srgbClr>\
+</a:outerShdw></a:effectLst></a:effectStyle></a:effectStyleLst>");
 			this.writeList(writer, this.bgFillStyleLst, "a:bgFillStyleLst");
 		};
 
@@ -11719,11 +11731,11 @@
 			this.spDef = pr;
 		};
 		CTheme.prototype.setLnDef = function (pr) {
-			History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ThemeSetLnDef, this.spDef, pr));
+			History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ThemeSetLnDef, this.lnDef, pr));
 			this.lnDef = pr;
 		};
 		CTheme.prototype.setTxDef = function (pr) {
-			History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ThemeSetTxDef, this.spDef, pr));
+			History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ThemeSetTxDef, this.txDef, pr));
 			this.txDef = pr;
 		};
 		CTheme.prototype.addExtraClrSceme = function (pr, idx) {
@@ -11838,14 +11850,17 @@
 			writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
 			let sName = "a:theme";
 			writer.WriteXmlNodeStart(sName);
-			writer.WriteXmlString("xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"");
+			writer.WriteXmlString(" xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\"");
 			writer.WriteXmlNullableAttributeStringEncode(("name"), this.name);
 			writer.WriteXmlAttributesEnd();
 			this.themeElements.toXml(writer, "a:themeElements");
 			let oNode = new CT_XmlNode();
-			oNode.members["a:lnDef"] = this.lnDef;
-			oNode.members["a:spDef"] = this.spDef;
-			oNode.members["a:txDef"] = this.txDef;
+			if (this.lnDef)
+				oNode.members["a:lnDef"] = this.lnDef;
+			if (this.spDef)
+				oNode.members["a:spDef"] = this.spDef;
+			if (this.txDef)
+				oNode.members["a:txDef"] = this.txDef;
 			writer.WriteXmlNullable(oNode, "a:objectDefaults");
 			oNode = new CT_XmlNode();
 			oNode.members["a:extraClrScheme"] = this.extraClrSchemeLst;
@@ -11999,10 +12014,10 @@
 			writer.WriteXmlNullableAttributeBool("shadeToTitle", this.shadeToTitle);
 			writer.WriteXmlAttributesEnd();
 
-			if(this.Fill) {
+			if (this.Fill) {
 				this.Fill.toXml(writer);
 			}
-			if(this.EffectProperties) {
+			if (this.EffectProperties) {
 				this.EffectProperties.toXml(writer);
 			}
 
@@ -12181,7 +12196,7 @@
 			let oSpTree = new CSpTree(null);
 			oSpTree.spTree = this.spTree;
 			oSpTree.toXml(writer);
-		//	this.spTree.toXml(writer);
+			//	this.spTree.toXml(writer);
 
 			writer.WriteXmlNodeEnd(("p:cSld"));
 		};
@@ -12285,7 +12300,7 @@
 
 			writer.WriteXmlAttributesEnd();
 
-			if(this.nvGrpSpPr) {
+			if (this.nvGrpSpPr) {
 				if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 					writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
 					this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
@@ -12293,7 +12308,7 @@
 					this.nvGrpSpPr.toXmlGrp(writer);
 			}
 
-			if(this.spPr) {
+			if (this.spPr) {
 				this.spPr.toXml(writer);
 			}
 
@@ -13524,7 +13539,7 @@
 			return reader.GetValueInt() / 60000;
 		};
 		CBodyPr.prototype.getXmlInset = function (dVal) {
-			if(!AscFormat.isRealNumber(dVal)) {
+			if (!AscFormat.isRealNumber(dVal)) {
 				return null;
 			}
 			return dVal * 60000 + 0.5 >> 0;
@@ -13551,10 +13566,10 @@
 		CBodyPr.prototype.GetAnchorByCode = function (nCode) {
 			switch (nCode) {
 				case AscFormat.VERTICAL_ANCHOR_TYPE_BOTTOM: {
-					return "b" ;
+					return "b";
 				}
 				case AscFormat.VERTICAL_ANCHOR_TYPE_CENTER: {
-					return "ctr" ;
+					return "ctr";
 				}
 				case AscFormat.VERTICAL_ANCHOR_TYPE_DISTRIBUTED: {
 					return "dist";
@@ -13568,7 +13583,7 @@
 			}
 			return null;
 		};
-		CBodyPr.prototype.GetOverFlowCode = function(sVal) {
+		CBodyPr.prototype.GetOverFlowCode = function (sVal) {
 			switch (sVal) {
 				case "clip": {
 					return AscFormat.nOTClip;
@@ -13581,20 +13596,20 @@
 				}
 			}
 		};
-		CBodyPr.prototype.GetOverFlowByCode = function(nCode) {
+		CBodyPr.prototype.GetOverFlowByCode = function (nCode) {
 			switch (nCode) {
 				case AscFormat.nOTClip: {
 					return "clip";
 				}
 				case AscFormat.nOTEllipsis : {
-					return"ellipsis";
+					return "ellipsis";
 				}
 				case AscFormat.nOTOwerflow: {
 					return "overflow";
 				}
 			}
 		};
-		CBodyPr.prototype.GetVertCode = function(sVal) {
+		CBodyPr.prototype.GetVertCode = function (sVal) {
 
 			switch (sVal) {
 				case "eaVert": {
@@ -13620,7 +13635,7 @@
 				}
 			}
 		};
-		CBodyPr.prototype.GetVertByCode = function(nCode) {
+		CBodyPr.prototype.GetVertByCode = function (nCode) {
 
 			switch (nCode) {
 				case AscFormat.nVertTTeaVert: {
@@ -13646,18 +13661,18 @@
 				}
 			}
 		};
-		CBodyPr.prototype.GetWrapCode = function(sVal) {
+		CBodyPr.prototype.GetWrapCode = function (sVal) {
 
 			switch (sVal) {
 				case "none": {
-					return  AscFormat.nTWTNone;
+					return AscFormat.nTWTNone;
 				}
 				case "square": {
 					return AscFormat.nTWTSquare;
 				}
 			}
 		};
-		CBodyPr.prototype.GetWrapByCode = function(nCode) {
+		CBodyPr.prototype.GetWrapByCode = function (nCode) {
 
 			switch (nCode) {
 				case  AscFormat.nTWTNone: {
@@ -14513,7 +14528,7 @@
 
 				writer.WriteXmlNodeStart("a:buClr");
 				writer.WriteXmlAttributesEnd();
-				if(this.UniColor) {
+				if (this.UniColor) {
 					this.UniColor.toXml(writer);
 				}
 				writer.WriteXmlNodeEnd("a:buClr");
@@ -14961,130 +14976,130 @@
 				}
 			}
 		};
-		CBulletType.prototype.GetAutonumTypeByCode = function(nCode) {
+		CBulletType.prototype.GetAutonumTypeByCode = function (nCode) {
 			switch (nCode) {
 				case numbering_presentationnumfrmt_AlphaLcParenBoth: {
 					return "alphaLcParenBot";
 				}
-					case numbering_presentationnumfrmt_AlphaLcParenR: {
-						return "alphaLcParen";
+				case numbering_presentationnumfrmt_AlphaLcParenR: {
+					return "alphaLcParen";
 				}
-					case numbering_presentationnumfrmt_AlphaLcPeriod: {
-						return "alphaLcPerio";
+				case numbering_presentationnumfrmt_AlphaLcPeriod: {
+					return "alphaLcPerio";
 				}
-					case numbering_presentationnumfrmt_AlphaUcParenBoth: {
-						return "alphaUcParenBot";
+				case numbering_presentationnumfrmt_AlphaUcParenBoth: {
+					return "alphaUcParenBot";
 				}
-					case numbering_presentationnumfrmt_AlphaUcParenR: {
-						return "alphaUcParen";
+				case numbering_presentationnumfrmt_AlphaUcParenR: {
+					return "alphaUcParen";
 				}
-					case numbering_presentationnumfrmt_AlphaUcPeriod: {
-						return "alphaUcPerio";
+				case numbering_presentationnumfrmt_AlphaUcPeriod: {
+					return "alphaUcPerio";
 				}
-					case numbering_presentationnumfrmt_Arabic1Minus: {
-						return "arabic1Minu";
+				case numbering_presentationnumfrmt_Arabic1Minus: {
+					return "arabic1Minu";
 				}
-					case numbering_presentationnumfrmt_Arabic2Minus: {
-						return "arabic2Minu";
+				case numbering_presentationnumfrmt_Arabic2Minus: {
+					return "arabic2Minu";
 				}
-					case numbering_presentationnumfrmt_ArabicDbPeriod: {
-						return "arabicDbPerio";
+				case numbering_presentationnumfrmt_ArabicDbPeriod: {
+					return "arabicDbPerio";
 				}
-					case numbering_presentationnumfrmt_ArabicDbPlain: {
-						return "arabicDbPlai";
+				case numbering_presentationnumfrmt_ArabicDbPlain: {
+					return "arabicDbPlai";
 				}
-					case numbering_presentationnumfrmt_ArabicParenBoth: {
-						return "arabicParenBoth";
+				case numbering_presentationnumfrmt_ArabicParenBoth: {
+					return "arabicParenBoth";
 				}
-					case numbering_presentationnumfrmt_ArabicParenR: {
-						return "arabicParenR";
+				case numbering_presentationnumfrmt_ArabicParenR: {
+					return "arabicParenR";
 				}
-					case numbering_presentationnumfrmt_ArabicPeriod: {
-						return "arabicPeriod";
+				case numbering_presentationnumfrmt_ArabicPeriod: {
+					return "arabicPeriod";
 				}
-					case numbering_presentationnumfrmt_ArabicPlain: {
-						return "arabicPlain";
+				case numbering_presentationnumfrmt_ArabicPlain: {
+					return "arabicPlain";
 				}
-					case numbering_presentationnumfrmt_CircleNumDbPlain: {
-						return "circleNumDbPlain";
+				case numbering_presentationnumfrmt_CircleNumDbPlain: {
+					return "circleNumDbPlain";
 				}
-					case numbering_presentationnumfrmt_CircleNumWdBlackPlain: {
-						return "circleNumWdBlackPlain";
+				case numbering_presentationnumfrmt_CircleNumWdBlackPlain: {
+					return "circleNumWdBlackPlain";
 				}
-					case numbering_presentationnumfrmt_CircleNumWdWhitePlain: {
-						return "circleNumWdWhitePlain";
+				case numbering_presentationnumfrmt_CircleNumWdWhitePlain: {
+					return "circleNumWdWhitePlain";
 				}
-					case numbering_presentationnumfrmt_Ea1ChsPeriod: {
-						return "ea1ChsPeriod";
+				case numbering_presentationnumfrmt_Ea1ChsPeriod: {
+					return "ea1ChsPeriod";
 				}
-					case numbering_presentationnumfrmt_Ea1ChsPlain: {
-						return "ea1ChsPlain";
+				case numbering_presentationnumfrmt_Ea1ChsPlain: {
+					return "ea1ChsPlain";
 				}
-					case numbering_presentationnumfrmt_Ea1ChtPeriod: {
-						return "ea1ChtPeriod";
+				case numbering_presentationnumfrmt_Ea1ChtPeriod: {
+					return "ea1ChtPeriod";
 				}
-					case numbering_presentationnumfrmt_Ea1ChtPlain: {
-						return "ea1ChtPlain";
+				case numbering_presentationnumfrmt_Ea1ChtPlain: {
+					return "ea1ChtPlain";
 				}
-					case numbering_presentationnumfrmt_Ea1JpnChsDbPeriod: {
-						return "ea1JpnChsDbPeriod";
+				case numbering_presentationnumfrmt_Ea1JpnChsDbPeriod: {
+					return "ea1JpnChsDbPeriod";
 				}
-					case numbering_presentationnumfrmt_Ea1JpnKorPeriod: {
-						return "ea1JpnKorPeriod";
+				case numbering_presentationnumfrmt_Ea1JpnKorPeriod: {
+					return "ea1JpnKorPeriod";
 				}
-					case numbering_presentationnumfrmt_Ea1JpnKorPlain: {
-						return "ea1JpnKorPlain";
+				case numbering_presentationnumfrmt_Ea1JpnKorPlain: {
+					return "ea1JpnKorPlain";
 				}
-					case numbering_presentationnumfrmt_Hebrew2Minus: {
-						return "hebrew2Minus";
+				case numbering_presentationnumfrmt_Hebrew2Minus: {
+					return "hebrew2Minus";
 				}
-					case numbering_presentationnumfrmt_HindiAlpha1Period: {
-						return "hindiAlpha1Period";
+				case numbering_presentationnumfrmt_HindiAlpha1Period: {
+					return "hindiAlpha1Period";
 				}
-					case numbering_presentationnumfrmt_HindiAlphaPeriod: {
-						return "hindiAlphaPeriod";
+				case numbering_presentationnumfrmt_HindiAlphaPeriod: {
+					return "hindiAlphaPeriod";
 				}
-					case numbering_presentationnumfrmt_HindiNumParenR: {
-						return "hindiNumParenR";
+				case numbering_presentationnumfrmt_HindiNumParenR: {
+					return "hindiNumParenR";
 				}
-					case numbering_presentationnumfrmt_HindiNumPeriod: {
-						return "hindiNumPeriod";
+				case numbering_presentationnumfrmt_HindiNumPeriod: {
+					return "hindiNumPeriod";
 				}
-					case numbering_presentationnumfrmt_RomanLcParenBoth: {
-						return "romanLcParenBoth";
+				case numbering_presentationnumfrmt_RomanLcParenBoth: {
+					return "romanLcParenBoth";
 				}
-					case numbering_presentationnumfrmt_RomanLcParenR: {
-						return "romanLcParenR";
+				case numbering_presentationnumfrmt_RomanLcParenR: {
+					return "romanLcParenR";
 				}
-					case numbering_presentationnumfrmt_RomanLcPeriod: {
-						return "romanLcPeriod";
+				case numbering_presentationnumfrmt_RomanLcPeriod: {
+					return "romanLcPeriod";
 				}
-					case numbering_presentationnumfrmt_RomanUcParenBoth: {
-						return "romanUcParenBoth";
+				case numbering_presentationnumfrmt_RomanUcParenBoth: {
+					return "romanUcParenBoth";
 				}
-					case numbering_presentationnumfrmt_RomanUcParenR: {
-						return "romanUcParenR";
+				case numbering_presentationnumfrmt_RomanUcParenR: {
+					return "romanUcParenR";
 				}
-					case numbering_presentationnumfrmt_RomanUcPeriod: {
-						return "romanUcPeriod";
+				case numbering_presentationnumfrmt_RomanUcPeriod: {
+					return "romanUcPeriod";
 				}
-					case numbering_presentationnumfrmt_ThaiAlphaParenBoth: {
-						return "thaiAlphaParenBoth";
+				case numbering_presentationnumfrmt_ThaiAlphaParenBoth: {
+					return "thaiAlphaParenBoth";
 				}
-					case numbering_presentationnumfrmt_ThaiAlphaParenR: {
-						return "thaiAlphaParenR";
+				case numbering_presentationnumfrmt_ThaiAlphaParenR: {
+					return "thaiAlphaParenR";
 				}
-					case numbering_presentationnumfrmt_ThaiAlphaPeriod: {
-						return "thaiAlphaPeriod";
+				case numbering_presentationnumfrmt_ThaiAlphaPeriod: {
+					return "thaiAlphaPeriod";
 				}
-					case numbering_presentationnumfrmt_ThaiNumParenBoth: {
-						return "thaiNumParenBoth";
+				case numbering_presentationnumfrmt_ThaiNumParenBoth: {
+					return "thaiNumParenBoth";
 				}
-					case numbering_presentationnumfrmt_ThaiNumParenR: {
-						return "thaiNumParenR";
+				case numbering_presentationnumfrmt_ThaiNumParenR: {
+					return "thaiNumParenR";
 				}
-					case numbering_presentationnumfrmt_ThaiNumPeriod: {
-						return "thaiNumPeriod";
+				case numbering_presentationnumfrmt_ThaiNumPeriod: {
+					return "thaiNumPeriod";
 				}
 			}
 		};
@@ -15221,16 +15236,16 @@
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullable(this.levels[9], "a:defPPr"  );
-			writer.WriteXmlNullable(this.levels[0], "a:lvl1pPr" );
-			writer.WriteXmlNullable(this.levels[1], "a:lvl2pPr" );
-			writer.WriteXmlNullable(this.levels[2], "a:lvl3pPr" );
-			writer.WriteXmlNullable(this.levels[3], "a:lvl4pPr" );
-			writer.WriteXmlNullable(this.levels[4], "a:lvl5pPr" );
-			writer.WriteXmlNullable(this.levels[5], "a:lvl6pPr" );
-			writer.WriteXmlNullable(this.levels[6], "a:lvl7pPr" );
-			writer.WriteXmlNullable(this.levels[7], "a:lvl8pPr" );
-			writer.WriteXmlNullable(this.levels[8], "a:lvl9pPr" );
+			writer.WriteXmlNullable(this.levels[9], "a:defPPr");
+			writer.WriteXmlNullable(this.levels[0], "a:lvl1pPr");
+			writer.WriteXmlNullable(this.levels[1], "a:lvl2pPr");
+			writer.WriteXmlNullable(this.levels[2], "a:lvl3pPr");
+			writer.WriteXmlNullable(this.levels[3], "a:lvl4pPr");
+			writer.WriteXmlNullable(this.levels[4], "a:lvl5pPr");
+			writer.WriteXmlNullable(this.levels[5], "a:lvl6pPr");
+			writer.WriteXmlNullable(this.levels[6], "a:lvl7pPr");
+			writer.WriteXmlNullable(this.levels[7], "a:lvl8pPr");
+			writer.WriteXmlNullable(this.levels[8], "a:lvl9pPr");
 
 			writer.WriteXmlNodeEnd(sName);
 		};
@@ -16218,7 +16233,7 @@
 			writer.WriteXmlNodeStart(("Properties"));
 
 
-			writer.WriteXmlNullableAttributeString("xmlns","http://schemas.openxmlformats.org/officeDocument/2006/extended-properties");
+			writer.WriteXmlNullableAttributeString("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties");
 			writer.WriteXmlNullableAttributeString("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes");
 
 			writer.WriteXmlAttributesEnd();
@@ -16245,7 +16260,7 @@
 
 			writer.WriteXmlNodeStart("vt:vector");
 
-			writer.WriteXmlNullableAttributeUInt("size", this.HeadingPairs.length );
+			writer.WriteXmlNullableAttributeUInt("size", this.HeadingPairs.length);
 			writer.WriteXmlNullableAttributeString("baseType", "variant");
 			writer.WriteXmlAttributesEnd();
 
@@ -16394,8 +16409,7 @@
 			writer.WriteXmlNullableAttributeString("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes");
 			writer.WriteXmlAttributesEnd();
 
-			for (let i = 0; i < m_arProperties.length; ++i )
-			{
+			for (let i = 0; i < m_arProperties.length; ++i) {
 				this.properties[i].toXml(writer);
 			}
 
@@ -16617,7 +16631,7 @@
 			oVar.readChildXml(name, reader);
 			this.variants.push(oVar);
 		};
-		CVariantVector.prototype.getVariantType = function() {
+		CVariantVector.prototype.getVariantType = function () {
 			return AscFormat.isRealNumber(this.baseType) ? this.baseType : c_oVariantTypes.vtEmpty;
 		};
 		CVariantVector.prototype.toXml = function (writer) {
@@ -16627,7 +16641,7 @@
 			writer.WriteXmlNullableAttributeInt("size", this.size);
 			writer.WriteXmlAttributesEnd();
 
-			for (let i = 0; i < this.variants.length; ++i ) {
+			for (let i = 0; i < this.variants.length; ++i) {
 				this.variants[i].toXmlWriterContent(writer);
 			}
 
@@ -16711,7 +16725,7 @@
 
 			s.WriteRecordArray4(0, 0, this.variants);
 		};
-		CVariantArray.prototype.getVariantType = function() {
+		CVariantArray.prototype.getVariantType = function () {
 			return AscFormat.isRealNumber(this.baseType) ? this.baseType : c_oVariantTypes.vtEmpty;
 		};
 		CVariantArray.prototype.readAttrXml = function (name, reader) {
@@ -16744,7 +16758,7 @@
 			writer.WriteXmlNullableAttributeString("baseType", CVariant.prototype.getStringByType.call(this, this.getVariantType()));
 			writer.WriteXmlAttributesEnd();
 
-			for (let i = 0; i < this.variants.length; ++i ) {
+			for (let i = 0; i < this.variants.length; ++i) {
 				this.variants[i].toXmlWriterContent(writer);
 			}
 
@@ -17118,76 +17132,75 @@
 			}
 			return null;
 		};
-		CVariant.prototype.getStringByType = function(eType)
-		{
-			if(c_oVariantTypes.vtEmpty === eType)
+		CVariant.prototype.getStringByType = function (eType) {
+			if (c_oVariantTypes.vtEmpty === eType)
 				return "empty";
-		else if(c_oVariantTypes.vtNull === eType)
-			return "null";
-		else if(c_oVariantTypes.vtVariant === eType)
-			return "variant";
-		else if(c_oVariantTypes.vtVector === eType)
-			return "vector";
-		else if(c_oVariantTypes.vtArray === eType)
-			return "array";
-		else if(c_oVariantTypes.vtVStream === eType)
-			return "vstream";
-		else if(c_oVariantTypes.vtBlob === eType)
-			return "blob";
-		else if(c_oVariantTypes.vtOBlob === eType)
-			return "oblob";
-		else if(c_oVariantTypes.vtI1 === eType)
-			return "i1";
-		else if(c_oVariantTypes.vtI2 === eType)
-			return "i2";
-		else if(c_oVariantTypes.vtI4 === eType)
-			return "i4";
-		else if(c_oVariantTypes.vtI8 === eType)
-			return "i8";
-		else if(c_oVariantTypes.vtInt === eType)
-			return "int";
-		else if(c_oVariantTypes.vtUi1 === eType)
-			return "ui1";
-		else if(c_oVariantTypes.vtUi2 === eType)
-			return "ui2";
-		else if(c_oVariantTypes.vtUi4 === eType)
-			return "ui4";
-		else if(c_oVariantTypes.vtUi8 === eType)
-			return "ui8";
-		else if(c_oVariantTypes.vtUint === eType)
-			return "uint";
-		else if(c_oVariantTypes.vtR4 === eType)
-			return "r4";
-		else if(c_oVariantTypes.vtR8 === eType)
-			return "r8";
-		else if(c_oVariantTypes.vtDecimal === eType)
-			return "decimal";
-		else if(c_oVariantTypes.vtLpstr === eType)
-			return "lpstr";
-		else if(c_oVariantTypes.vtLpwstr === eType)
-			return "lpwstr";
-		else if(c_oVariantTypes.vtBstr === eType)
-			return "bstr";
-		else if(c_oVariantTypes.vtDate === eType)
-			return "date";
-		else if(c_oVariantTypes.vtFiletime === eType)
-			return "filetime";
-		else if(c_oVariantTypes.vtBool === eType)
-			return "bool";
-		else if(c_oVariantTypes.vtCy === eType)
-			return "cy";
-		else if(c_oVariantTypes.vtError === eType)
-			return "error";
-		else if(c_oVariantTypes.vtStream === eType)
-			return "stream";
-		else if(c_oVariantTypes.vtOStream === eType)
-			return "ostream";
-		else if(c_oVariantTypes.vtStorage === eType)
-			return "storage";
-		else if(c_oVariantTypes.vtOStorage === eType)
-			return "ostorage";
-		else if(c_oVariantTypes.vtClsid === eType)
-			return "clsid";
+			else if (c_oVariantTypes.vtNull === eType)
+				return "null";
+			else if (c_oVariantTypes.vtVariant === eType)
+				return "variant";
+			else if (c_oVariantTypes.vtVector === eType)
+				return "vector";
+			else if (c_oVariantTypes.vtArray === eType)
+				return "array";
+			else if (c_oVariantTypes.vtVStream === eType)
+				return "vstream";
+			else if (c_oVariantTypes.vtBlob === eType)
+				return "blob";
+			else if (c_oVariantTypes.vtOBlob === eType)
+				return "oblob";
+			else if (c_oVariantTypes.vtI1 === eType)
+				return "i1";
+			else if (c_oVariantTypes.vtI2 === eType)
+				return "i2";
+			else if (c_oVariantTypes.vtI4 === eType)
+				return "i4";
+			else if (c_oVariantTypes.vtI8 === eType)
+				return "i8";
+			else if (c_oVariantTypes.vtInt === eType)
+				return "int";
+			else if (c_oVariantTypes.vtUi1 === eType)
+				return "ui1";
+			else if (c_oVariantTypes.vtUi2 === eType)
+				return "ui2";
+			else if (c_oVariantTypes.vtUi4 === eType)
+				return "ui4";
+			else if (c_oVariantTypes.vtUi8 === eType)
+				return "ui8";
+			else if (c_oVariantTypes.vtUint === eType)
+				return "uint";
+			else if (c_oVariantTypes.vtR4 === eType)
+				return "r4";
+			else if (c_oVariantTypes.vtR8 === eType)
+				return "r8";
+			else if (c_oVariantTypes.vtDecimal === eType)
+				return "decimal";
+			else if (c_oVariantTypes.vtLpstr === eType)
+				return "lpstr";
+			else if (c_oVariantTypes.vtLpwstr === eType)
+				return "lpwstr";
+			else if (c_oVariantTypes.vtBstr === eType)
+				return "bstr";
+			else if (c_oVariantTypes.vtDate === eType)
+				return "date";
+			else if (c_oVariantTypes.vtFiletime === eType)
+				return "filetime";
+			else if (c_oVariantTypes.vtBool === eType)
+				return "bool";
+			else if (c_oVariantTypes.vtCy === eType)
+				return "cy";
+			else if (c_oVariantTypes.vtError === eType)
+				return "error";
+			else if (c_oVariantTypes.vtStream === eType)
+				return "stream";
+			else if (c_oVariantTypes.vtOStream === eType)
+				return "ostream";
+			else if (c_oVariantTypes.vtStorage === eType)
+				return "storage";
+			else if (c_oVariantTypes.vtOStorage === eType)
+				return "ostorage";
+			else if (c_oVariantTypes.vtClsid === eType)
+				return "clsid";
 			return "";
 		}
 		CVariant.prototype.readChildXml = function (name, reader) {
