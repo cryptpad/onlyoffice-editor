@@ -4469,14 +4469,14 @@
 		}
 	};
 	ParaDrawing.prototype.toXml = function(writer, name) {
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlAttributesEnd();
 		if(drawing_Inline == this.DrawingType) {
 		} else {
+			writer.WriteXmlNodeStart(name);
+			writer.WriteXmlAttributesEnd();
 			var anchor = new CT_Anchor(this);
 			anchor.toXml(writer, "wp:anchor");
+			writer.WriteXmlNodeEnd(name);
 		}
-		writer.WriteXmlNodeEnd(name);
 	};
 	CWrapPolygon.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
@@ -4514,7 +4514,7 @@
 		var elem;
 		writer.WriteXmlNodeStart(name);
 		//всегда пишем Edited == true потому что наш контур отличается от word.
-		writer.WriteXmlNullableAttributeBool("w:edited", true);
+		writer.WriteXmlNullableAttributeBool("edited", true);
 		writer.WriteXmlAttributesEnd();
 		if (this.relativeArrPoints.length > 0) {
 			elem = new CT_XmlNode();
@@ -6367,7 +6367,7 @@
 					elem.fromXml(reader);
 					var sizeRelH = {RelativeFrom: c_oAscRelativeFromV.Page, Percent: 0};//Percent 0-1
 					sizeRelH.RelativeFrom = fromXml_ST_SizeRelFromH(elem.attributes["relativeFrom"], sizeRelH.RelativeFrom);
-					sizeRelH.Percent = parseFloat(elem.members["pctWidth"] && elem.members["pctWidth"].text);
+					sizeRelH.Percent = parseFloat(elem.members["pctWidth"] && elem.members["pctWidth"].text) / 100000;
 					drawing.SetSizeRelH(sizeRelH);
 					break;
 				}
@@ -6376,7 +6376,7 @@
 					elem.fromXml(reader);
 					var sizeRelV = {RelativeFrom: c_oAscRelativeFromV.Page, Percent: 0};//Percent 0-1
 					sizeRelV.RelativeFrom = fromXml_ST_SizeRelFromV(elem.attributes["relativeFrom"], sizeRelV.RelativeFrom);
-					sizeRelV.Percent = parseFloat(elem.members["pctHeight"] && elem.members["pctHeight"].text);
+					sizeRelV.Percent = parseFloat(elem.members["pctHeight"] && elem.members["pctHeight"].text) / 100000;
 					drawing.SetSizeRelV(sizeRelV);
 					break;
 				}
@@ -6466,14 +6466,14 @@
 			SizeRelH = new CT_XmlNode();
 			SizeRelH.attributes["relativeFrom"] = toXml_ST_SizeRelFromH(drawing.SizeRelH.RelativeFrom);
 			SizeRelH.members["wp14:pctWidth"] = new CT_XmlNode();
-			SizeRelH.members["wp14:pctWidth"].text = drawing.SizeRelH.Percent;
+			SizeRelH.members["wp14:pctWidth"].text = (drawing.SizeRelH.Percent * 100000 + 0.5) >> 0;
 		}
 		var SizeRelV;
 		if(drawing.SizeRelV) {
 			SizeRelV = new CT_XmlNode();
 			SizeRelV.attributes["relativeFrom"] = toXml_ST_SizeRelFromV(drawing.SizeRelV.RelativeFrom);
 			SizeRelV.members["wp14:pctHeight"] = new CT_XmlNode();
-			SizeRelV.members["wp14:pctHeight"].text = drawing.SizeRelV.Percent;
+			SizeRelV.members["wp14:pctHeight"].text = (drawing.SizeRelV.Percent * 100000 + 0.5) >> 0;
 		}
 
 		writer.WriteXmlNodeStart(name);

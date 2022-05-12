@@ -1648,7 +1648,19 @@ function XmlWriterContext(editorId){
     this.stylesForWrite = new AscCommonExcel.StylesForWrite();
     this.oSharedStrings = {index: 0, strings: {}};
     //pptx
-    this.cNvPrIndex = 1;
+    this.objectId = 1;
+    this.flag = 0;
+
+    if(editorId === AscCommon.c_oEditorId.Word) {
+        this.docType = AscFormat.XMLWRITER_DOC_TYPE_DOCX;
+    }
+    else if(editorId === AscCommon.c_oEditorId.Spreadsheet) {
+        this.docType = AscFormat.XMLWRITER_DOC_TYPE_XLSX;
+    }
+    else if(editorId === AscCommon.c_oEditorId.Presentation) {
+        this.docType = AscFormat.XMLWRITER_DOC_TYPE_PPTX;
+    }
+
 }
 XmlWriterContext.prototype.initFromWS = function(ws) {
     this.ws = ws;
@@ -1708,7 +1720,15 @@ CT_XmlNode.prototype.toXml = function(writer, name) {
     writer.WriteXmlAttributesEnd();
     for (i in this.members) {
         if (this.members.hasOwnProperty(i)) {
-            this.members[i].toXml(writer, i);
+            var member = this.members[i];
+            if(Array.isArray(member)) {
+                for(var nIdx = 0; nIdx < member.length; ++nIdx) {
+                    member[nIdx].toXml(writer, i);
+                }
+            }
+            else {
+                member.toXml(writer, i);
+            }
         }
     }
     if (null !== this.text && undefined !== this.text) {

@@ -37,6 +37,42 @@
  * @param {undefined} undefined
  */
 (function (window, undefined) {
+
+
+	let XMLWRITER_DOC_TYPE_PPTX				 = 0;
+	let XMLWRITER_DOC_TYPE_DOCX				 = 1;
+	let XMLWRITER_DOC_TYPE_XLSX				 = 2;
+	let XMLWRITER_DOC_TYPE_CHART			 = 3;
+	let XMLWRITER_DOC_TYPE_WORDART			 = 4;
+	let XMLWRITER_DOC_TYPE_GRAPHICS			 = 5;
+	let XMLWRITER_DOC_TYPE_CHART_DRAWING	 = 6;
+	let XMLWRITER_DOC_TYPE_DOCX_GLOSSARY	 = 7;
+	let XMLWRITER_DOC_TYPE_DIAGRAM			 = 8;
+	let XMLWRITER_DOC_TYPE_DSP_DRAWING		 = 9;
+
+	let XMLWRITER_RECORD_TYPE_SPPR			 = 0;
+	let XMLWRITER_RECORD_TYPE_CLRMAPOVR		 = 1;
+	let XMLWRITER_RECORD_TYPE_TEXT_OUTLINE	 = 2;
+	let XMLWRITER_RECORD_TYPE_TEXT_FILL		 = 3;
+	window["AscFormat"] = window["AscFormat"] || {};
+	let AscFormat = window["AscFormat"]
+	AscFormat.XMLWRITER_DOC_TYPE_PPTX = XMLWRITER_DOC_TYPE_PPTX;
+	AscFormat.XMLWRITER_DOC_TYPE_DOCX = XMLWRITER_DOC_TYPE_DOCX;
+	AscFormat.XMLWRITER_DOC_TYPE_XLSX = XMLWRITER_DOC_TYPE_XLSX;
+	AscFormat.XMLWRITER_DOC_TYPE_CHART = XMLWRITER_DOC_TYPE_CHART;
+	AscFormat.XMLWRITER_DOC_TYPE_WORDART = XMLWRITER_DOC_TYPE_WORDART;
+	AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS = XMLWRITER_DOC_TYPE_GRAPHICS;
+	AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING = XMLWRITER_DOC_TYPE_CHART_DRAWING;
+	AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY = XMLWRITER_DOC_TYPE_DOCX_GLOSSARY;
+	AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM = XMLWRITER_DOC_TYPE_DIAGRAM;
+	AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING = XMLWRITER_DOC_TYPE_DSP_DRAWING;
+
+
+	AscFormat.XMLWRITER_RECORD_TYPE_SPPR =  XMLWRITER_RECORD_TYPE_SPPR;
+	AscFormat.XMLWRITER_RECORD_TYPE_CLRMAPOVR =  XMLWRITER_RECORD_TYPE_CLRMAPOVR;
+	AscFormat.XMLWRITER_RECORD_TYPE_TEXT_OUTLINE =  XMLWRITER_RECORD_TYPE_TEXT_OUTLINE;
+	AscFormat.XMLWRITER_RECORD_TYPE_TEXT_FILL =  XMLWRITER_RECORD_TYPE_TEXT_FILL;
+
 	function CT_GraphicalObject(graphicFrame) {
 		this.Namespace = null;
 		this.GraphicData = null;
@@ -113,6 +149,7 @@
 		else if("sp" === name || "wsp" === name) {
 			res = new AscFormat.CShape();
 			res.setBDeleted(false);
+			res.setWordShape("wsp" === name);
 			res.fromXml(reader);
 		}
 		else if ("pic" === name) {
@@ -179,15 +216,19 @@
 		let graphicObjectName;
 		switch (graphicObject.getObjectType()) {
 			case AscDFH.historyitem_type_Shape:
+				elemForWriting = graphicObject;
 				break;
 			case AscDFH.historyitem_type_Cnx:
+				elemForWriting = graphicObject;
 				break;
 			case AscDFH.historyitem_type_OleObject:
 			case AscDFH.historyitem_type_ImageShape:
 				graphicObjectName = ns + ":pic";
+				elemForWriting = graphicObject;
 				break;
 			case AscDFH.historyitem_type_GroupShape:
 			case AscDFH.historyitem_type_SmartArt:
+				elemForWriting = graphicObject;
 				break;
 			case AscDFH.historyitem_type_GraphicFrame:
 				graphicObjectName = ns + ":graphicFrame";
@@ -214,47 +255,48 @@
 				break;
 			}
 			case AscDFH.historyitem_type_SlicerView:
+				elemForWriting = graphicObject;
 				break;
 		}
-		if (graphicObjectName) {
+		if (elemForWriting) {
 			writer.WriteXmlNullable(elemForWriting, graphicObjectName);
 		}
 	};
 
 
 
-	window['AscFormat'].CBlipFill.prototype.toXml = function(writer, name)
-	{
-		var context = writer.context;
-		var imagePart = context.imageMap[this.RasterImageId];
-		if (!imagePart) {
-			var ext = AscCommon.GetFileExtension(this.RasterImageId);
-			var type = context.editorId === AscCommon.c_oEditorId.Word? AscCommon.openXml.Types.imageWord : AscCommon.openXml.Types.image;
-			type = Object.assign({}, type);
-			type.filename += ext;
-			type.contentType = openXml.GetMimeType(ext);
-			imagePart = context.part.addPart(type);
-			context.imageMap[this.RasterImageId] = imagePart;
-		}
+	// window['AscFormat'].CBlipFill.prototype.toXml = function(writer, name)
+	// {
+	// 	var context = writer.context;
+	// 	var imagePart = context.imageMap[this.RasterImageId];
+	// 	if (!imagePart) {
+	// 		var ext = AscCommon.GetFileExtension(this.RasterImageId);
+	// 		var type = context.editorId === AscCommon.c_oEditorId.Word? AscCommon.openXml.Types.imageWord : AscCommon.openXml.Types.image;
+	// 		type = Object.assign({}, type);
+	// 		type.filename += ext;
+	// 		type.contentType = openXml.GetMimeType(ext);
+	// 		imagePart = context.part.addPart(type);
+	// 		context.imageMap[this.RasterImageId] = imagePart;
+	// 	}
 
-		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlAttributesEnd();
+	// 	writer.WriteXmlNodeStart(name);
+	// 	writer.WriteXmlAttributesEnd();
 
-		writer.WriteXmlNodeStart("a:blip");
-		writer.WriteXmlString(' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
-		writer.WriteXmlAttributeString("r:embed", imagePart.rId);
-		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlString('<a:extLst><a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/></a:ext></a:extLst>');
-		writer.WriteXmlNodeEnd("a:blip");
+	// 	writer.WriteXmlNodeStart("a:blip");
+	// 	writer.WriteXmlString(' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
+	// 	writer.WriteXmlAttributeString("r:embed", imagePart.rId);
+	// 	writer.WriteXmlAttributesEnd();
+	// 	writer.WriteXmlString('<a:extLst><a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/></a:ext></a:extLst>');
+	// 	writer.WriteXmlNodeEnd("a:blip");
 
-		writer.WriteXmlNodeStart("a:stretch");
-		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlNodeStart("a:fillRect");
-		writer.WriteXmlAttributesEnd(true);
-		writer.WriteXmlNodeEnd("a:stretch");
+	// 	writer.WriteXmlNodeStart("a:stretch");
+	// 	writer.WriteXmlAttributesEnd();
+	// 	writer.WriteXmlNodeStart("a:fillRect");
+	// 	writer.WriteXmlAttributesEnd(true);
+	// 	writer.WriteXmlNodeEnd("a:stretch");
 
-		writer.WriteXmlNodeEnd(name);
-	};
+	// 	writer.WriteXmlNodeEnd(name);
+	// };
 
 	window['AscFormat'].CT_GraphicalObject = CT_GraphicalObject;
 	window['AscFormat'].CT_GraphicalObjectData = CT_GraphicalObjectData;
@@ -480,6 +522,25 @@
 			}
 		}
 	};
+
+	AscCommonWord.Paragraph.prototype.toDrawingML = function(writer) {
+		writer.WriteXmlNodeStart("a:p");
+		writer.WriteXmlAttributesEnd();
+
+		if (this.Pr) {
+			this.Pr.toDrawingML(writer, "p:pPr");
+		}
+
+		let nCount = this.Content.length;
+		for (let i = 0; i < nCount; ++i)
+			this.Content[i].toDrawingML(writer);
+
+		if(this.TextPr && this.TextPr.Value) {
+			this.TextPr.Value.toDrawingML(writer, "a:endParaRPr")
+		}
+
+		writer.WriteXmlNodeEnd("a:p");
+	};
 	AscCommonWord.ParaRun.prototype.fromDrawingML = function (reader) {
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -497,6 +558,61 @@
 				}
 			}
 		}
+	};
+	AscCommonWord.ParaRun.prototype.toDrawingML = function (writer) {
+		let nStart = -1;
+		for(let nIdx = 0; nIdx < this.Content.length; ++nIdx) {
+			let oItem = this.Content[nIdx];
+			if(oItem.Type === para_NewLine) {
+				this.toDrawingMLContent(writer, nStart, nIdx - 1);
+				nStart = -1;
+				writer.WriteXmlString("<a:br/>");
+			}
+			else {
+				if(nStart === -1) {
+					nStart = nIdx;
+				}
+			}
+		}
+	};
+	AscCommonWord.ParaRun.prototype.toDrawingMLContent = function (writer, nStart, nEnd) {
+		if(nStart < 0 || nEnd < nStart) {
+			return;
+		}
+		writer.WriteXmlNodeStart("a:r");
+		writer.WriteXmlAttributesEnd();
+
+		if (this.Pr) {
+			this.Pr.toDrawingML(writer, "a:rPr");
+		}
+		this.toDrawingMLText(writer, nStart, nEnd);
+		writer.WriteXmlNodeEnd("a:r");
+	};
+	AscCommonWord.ParaRun.prototype.toDrawingMLText = function(writer, nStart, nEnd) {
+		
+		writer.WriteXmlString("<a:t>");
+		for(let nIdx = nStart; nIdx <= nEnd; ++nIdx) {
+			let oItem = this.Content[nIdx];
+			switch(oItem.Type) {
+				case para_Text:
+				case para_Space:
+				{
+					writer.WriteXmlCharCode(oItem.Value);
+					break;
+				}
+				case para_Tab :
+				{
+					writer.WriteXmlCharCode(0x09);
+					break;
+				}
+				case para_NewLine :
+				{
+					//impossible situation. we split run by para_NewLine
+					break;
+				}
+			}
+		}
+		writer.WriteXmlString("</a:t>");
 	};
 	AscCommonWord.CTextPr.prototype.fromDrawingML = function (reader) {
 		let sName;
@@ -646,11 +762,108 @@
 				}
 			}
 			else if(name === "highlight") {
-				let oHLink = new AscFormat.CT_Hyperlink();
-				oHLink.fromXml(reader);
 				this.HighlightColor = readHighlightColor(reader);
 			}
 		}
+	};
+	AscCommonWord.CTextPr.prototype.toDrawingML = function (writer, sName) {
+		writer.WriteXmlNodeStart(sName);
+		//writer.WriteAttribute("kumimoji", kumimoji);
+		
+		writer.WriteXmlNullableAttributeString("lang", Asc.g_oLcidIdToNameMap[this.Lang.Val]);
+		//writer.WriteAttribute("altLang", altLang);
+		if(this.FontSize !== null && this.FontSize !== undefined) {
+			writer.WriteXmlAttributeUInt("sz", this.FontSize * 100 >> 0);
+		}
+		writer.WriteXmlNullableAttributeBool("b", this.Bold);
+		writer.WriteXmlNullableAttributeBool("i", this.Italic);
+		if(!this.Underline !== undefined && this.Underline !== null) {
+
+			if(!this.Underline) {
+				writer.WriteXmlAttributeString("u", "none");
+			}
+			else {
+				writer.WriteXmlAttributeString("u", "sng");
+			}
+		}
+
+		if(this.Strikeout === false && this.DStrikeout === true) {
+			writer.WriteXmlAttributeString("strike", "dblStrike");
+		}
+		else if(this.Strikeout === true && this.DStrikeout === false) {
+			writer.WriteXmlAttributeString("strike", "sngStrike");
+		}
+		else if(this.Strikeout === false && this.DStrikeout === false) {
+			writer.WriteXmlAttributeString("strike", "noStrike");
+		}
+		//writer.WriteAttribute("kern", kern);
+
+
+		if(this.Caps === true && this.SmallCaps === false) {
+			writer.WriteXmlAttributeString("cap", "all");
+		}
+		else if(this.Caps === false && this.SmallCaps === true) {
+			writer.WriteXmlAttributeString("cap", "small");
+		}
+		else if(this.Caps === false && this.SmallCaps === false) {
+			writer.WriteXmlAttributeString("cap", "none");
+		}
+
+
+		if(this.Spacing !== undefined && this.Spacing !== null) {
+			writer.WriteXmlAttributeInt("spc", this.Spacing * 7200 / 25.4 + 0.5 >> 0);
+		}
+		//writer.WriteAttribute("normalizeH", normalizeH);
+
+
+        if (AscCommon.vertalign_SubScript === this.VertAlign) {
+			writer.WriteXmlAttributeInt("baseline", -25000);
+		}
+        else if (AscCommon.vertalign_SuperScript == this.VertAlign) {
+			writer.WriteXmlAttributeInt("baseline", 30000);
+		}
+
+		//writer.WriteAttribute("noProof", noProof);
+		//writer.WriteAttribute("dirty", dirty);
+		//writer.WriteAttribute("err", err);
+		//writer.WriteAttribute("smtClean", smtClean);
+		//writer.WriteAttribute("smtId", smtId);
+		//writer.WriteAttribute("bmk", bmk);
+
+		writer.WriteXmlAttributesEnd();
+
+		if(this.TextOutline) {
+			this.TextOutline.toXml(writer, "a:ln");
+		}
+		if(this.Unifill) {
+			this.Unifill.toXml(writer);
+		}
+		//EffectList.toXmlWriter(writer);
+		if(this.HighlightColor) {
+			writer.WriteXmlNodeStart("a:highlight");
+			writer.WriteXmlAttributesEnd();
+			this.HighlightColor.toXml(writer);
+			writer.WriteXmlNodeEnd("a:highlight");
+		}
+		//writer.Write(uFill);
+		//writer.Write(uFillTx);
+		if(this.RFonts.Ascii) 
+			writeTypeface(writer, "latin", this.RFonts.Ascii.Name);
+		if(this.RFonts.EastAsia)
+			writeTypeface(writer, "ea", this.RFonts.EastAsia.Name);
+		if(this.RFonts.CS) 
+			writeTypeface(writer, "cs", this.RFonts.CS.Name);
+		//writer.Write(sym);
+		if(this.hlinkClick) {
+			this.hlinkClick.toXml(writer, "hlinkClick");
+		}
+	
+		if(this.hlinkMouseOver) {
+			this.hlinkMouseOver.toXml(writer, "hlinkMouseOver");
+		}
+		//writer.Write(rtl);
+
+		writer.WriteXmlNodeEnd(sName);
 	};
 	AscCommonWord.CParaPr.prototype.fromDrawingML = function (reader) {
 		let sName;
@@ -760,6 +973,71 @@
 			}
 		}
 	};
+	AscCommonWord.CParaPr.prototype.toDrawingML = function (writer,sName) {
+		writer.WriteXmlNodeStart(sName);
+		if(this.Ind) {
+			if(this.Ind.Left !== null && this.Ind.Left !== undefined) {
+
+				writer.WriteXmlAttributeInt("marL", this.Ind.Left * 36000 + 0.5 >> 0);
+			}
+			if(this.Ind.Right !== null && this.Ind.Right !== undefined) {
+
+				writer.WriteXmlAttributeInt("marR", this.Ind.Right * 36000 + 0.5 >> 0);
+			}
+		}
+		writer.WriteXmlNullableAttributeInt("lvl", this.Lvl);
+		
+		if(this.Ind) {
+			if(this.Ind.FirstLine !== null && this.Ind.FirstLine !== undefined) {
+				writer.WriteXmlAttributeInt("indent", this.Ind.FirstLine * 36000 + 0.5 >> 0);
+			}
+		}
+		if(this.Jc !== undefined && this.Jc !== null) {
+			switch(this.Jc) {
+				case AscCommon.align_Center: {
+					writer.WriteXmlAttributeString("algn", "ctr");
+					break;
+				}
+				case AscCommon.align_Justify: {
+					writer.WriteXmlAttributeString("algn", "just");
+					break;
+				}
+				case AscCommon.align_Left: {
+					writer.WriteXmlAttributeString("algn", "l");
+					break;
+				}
+				case AscCommon.align_Right: {
+					writer.WriteXmlAttributeString("algn", "r");
+					break;
+				}
+			}
+		}
+		
+		if(this.DefaultTab !== null && this.DefaultTab !== undefined) {
+			writer.WriteXmlAttributeInt("defTabSz", this.DefaultTab * 36000 + 0.5 >> 0);
+		}
+		//writer.WriteAttribute("rtl", rtl);
+		//writer.WriteAttribute("eaLnBrk", eaLnBrk);
+		//writer.WriteAttribute("fontAlgn", fontAlgn);
+		//writer.WriteAttribute("latinLnBrk", latinLnBrk);
+		//writer.WriteAttribute("hangingPunct", hangingPunct);
+		writer.WriteXmlAttributesEnd();
+
+		this.Spacing.lnSpcToDrawingML(writer);
+		this.Spacing.spcBefToDrawingML(writer);
+		this.Spacing.spcAftToDrawingML(writer);
+		
+		if(this.Bullet) {
+			this.Bullet.toXml(writer);
+		}
+		if(this.Tabs) {
+			this.Tabs.toDrawingML(writer);
+		}
+		if(this.DefaultRunPr) {
+			this.DefaultRunPr.toDrawingML(writer, "a:defRPr");
+		}
+		writer.WriteXmlNodeEnd(sName);
+	};
 	AscCommonWord.CPresentationField.prototype.fromDrawingML = function(reader) {
 		let sName;
 		while (reader.MoveToNextAttribute()) {
@@ -792,6 +1070,20 @@
 				this.AddText(reader.GetTextDecodeXml(), -1);
 			}
 		}
+	};
+	AscCommonWord.CPresentationField.prototype.toDrawingML = function(writer) {
+		writer.WriteXmlNodeStart("a:fld");
+		writer.WriteAttribute("id", this.Guid);
+		writer.WriteAttribute("type", this.FieldType);
+		writer.WriteXmlAttributesEnd();
+		if(this.Pr) {
+			this.Pr.toDrawingML(writer, "a:rPr");
+		}
+		if(this.PPr) {
+			this.PPr.toDrawingML(writer, "a:pPr");
+		}
+		this.toDrawingMLText(writer, 0, this.Content.length - 1);
+		writer.WriteXmlNodeEnd("a:fld");
 	};
 	AscCommonWord.CTable.prototype.fromDrawingML = function(reader) {
 		let oTable = this;
@@ -1211,6 +1503,24 @@
 		}
 		return oRet;
 	}
+
+	function writeSpacing(writer, sName, oSpacing) {
+		writer.WriteXmlNodeStart(sName);
+		writer.WriteXmlAttributesEnd();
+		if(oSpacing.valPct !== undefined && oSpacing.valPct !== null) {
+			writer.WriteXmlNodeStart("a:spcPct");
+			writer.WriteXmlAttributeString("val", (oRet.valPct * 100 + 0.5 >> 0) + "");
+			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlNodeEnd("a:spcPct");
+		}
+		else if(oSpacing.val !== undefined && oSpacing.val !== null) {
+			writer.WriteXmlNodeStart("a:spcPts");
+			writer.WriteXmlAttributeString("val", (oRet.val / SPACING_SCALE + 0.5 >> 0) + "");
+			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlNodeEnd("a:spcPts");
+		}
+ 		writer.WriteXmlNodeEnd(sName);
+	}
 	CParaSpacing.prototype.lnSpcFromDrawingML = function (reader) {
 		let oSpc = readSpacing(reader);
 		if(oSpc.valPct !== null) {
@@ -1220,6 +1530,17 @@
 		else if(oSpc.val !== null) {
 			this.Line = oSpc.val;
 			this.LineRule = Asc.linerule_Exact;
+		}
+	};
+	
+	CParaSpacing.prototype.lnSpcToDrawingML = function (writer) {
+		if(this.Line !== undefined && this.Line !== null) {
+			if(this.LineRule === Asc.linerule_Exact) {
+				writeSpacing(writer, "a:lnSpc", {val: this.Line});
+			}
+			else {
+				writeSpacing(writer, "a:lnSpc", {valPct: this.Line});
+			}
 		}
 	};
 	CParaSpacing.prototype.spcAftFromDrawingML = function (reader) {
@@ -1232,6 +1553,16 @@
 			this.After = oSpc.val;
 		}
 	};
+	CParaSpacing.prototype.spcAftToDrawingML = function (writer) {
+		if(this.Line !== undefined && this.Line !== null) {
+			if(this.AfterPct !== null && this.AfterPct !== undefined) {
+				writeSpacing(writer, "a:spcAft", {valPct: this.AfterPct});
+			}
+			else {
+				writeSpacing(writer, "a:spcAft", {val: this.After})
+			}
+		}
+	};
 	CParaSpacing.prototype.spcBefFromDrawingML = function (reader) {
 		let oSpc = readSpacing(reader);
 		if(oSpc.valPct !== null) {
@@ -1240,6 +1571,16 @@
 		}
 		else if(oSpc.val !== null) {
 			this.Before = oSpc.val;
+		}
+	};
+	CParaSpacing.prototype.spcBefToDrawingML = function (writer) {
+		if(this.Line !== undefined && this.Line !== null) {
+			if(this.AfterPct !== null && this.AfterPct !== undefined) {
+				writeSpacing(writer, "a:spcBef", {valPct: this.BeforePct});
+			}
+			else {
+				writeSpacing(writer, "a:spcBef", {val: this.Before})
+			}
 		}
 	};
 
@@ -1256,8 +1597,17 @@
 		}
 	};
 
-	CParaTab.fromDrawingML = function(reader) {
+	
+	CParaTabs.prototype.toDrawingML = function(writer) {
+		writer.WriteXmlNodeStart("a:tabLst");
+			writer.WriteXmlAttributesEnd();
+			for(let nIdx = 0; nIdx < this.Tabs.length; ++nIdx) {
+				this.Tabs[nIdx].toDrawingML(writer);
+			}
+			writer.WriteXmlNodeEnd("a:tabLst");
+	};
 
+	CParaTab.prototype.fromDrawingML = function(reader) {
 		let sName;
 		while (reader.MoveToNextAttribute()) {
 			sName = reader.GetNameNoNS();
@@ -1283,6 +1633,21 @@
 		}
 	};
 
+	CParaTab.prototype.toDrawingML = function(writer) {
+		writer.WriteXmlNodeStart("a:tab");
+		let sAlign = "l";
+		if(this.Value === tab_Center) {
+			sAlign = "ctr";
+		}
+		else if(this.Value === tab_Right) {
+			sAlign = "r";
+		}
+		writer.WriteXmlAttributeString("algn", sAlign );
+		writer.WriteXmlAttributeString("pos", this.Pos * 36000 + 0.5 >> 0 );
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNodeEnd("a:tab");
+	};
+
 	function readTypeface(reader) {
 		let sName;
 		while (reader.MoveToNextAttribute()) {
@@ -1294,6 +1659,16 @@
 			}
 		}
 		return null;
+	}
+
+	
+	function writeTypeface(writer, sName, sFont) {
+		if(typeof sFont === "string") {
+			writer.WriteXmlNodeStart(sName);
+			writer.WriteXmlAttributeString("typeface", sFont);
+			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlNodeEnd(sName);
+		}
 	}
 	function readHighlightColor(reader) {
 		var depth = reader.GetDepth();

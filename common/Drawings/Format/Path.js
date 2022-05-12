@@ -1232,13 +1232,70 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
             }
         }
     };
-    Path.prototype.writeAttrXmlImpl = function (writer) {
-        //TODO:Implement in children
-    };
-    Path.prototype.writeChildren = function (writer) {
-        //TODO:Implement in children
-    };
+    Path.prototype.toXml = function (writer) {
+        writer.WriteXmlNodeStart("a:path");
 
+        writer.WriteXmlNullableAttributeUInt("w", this.w);
+        writer.WriteXmlNullableAttributeUInt("h", this.h);
+        writer.WriteXmlNullableAttributeString("fill", this.fill);
+        writer.WriteXmlNullableAttributeString("stroke", this.stroke);
+        writer.WriteXmlNullableAttributeBool("extrusionOk", this.extrusionOk);
+        writer.WriteXmlAttributesEnd();
+
+        let nCount = this.ArrPathCommandInfo.length;
+        for (let i = 0; i < nCount; ++i) {
+            let oCmd = this.ArrPathCommandInfo[i];
+            switch (oCmd.id) {
+                case moveTo: {
+                    writer.WriteXmlNodeStart("a:moveTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X, oCmd.Y);
+                    writer.WriteXmlNodeEnd("a:moveTo");
+                    break;
+                }
+                case lineTo: {
+                    writer.WriteXmlNodeStart("a:lnTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X, oCmd.Y);
+                    writer.WriteXmlNodeEnd("a:lnTo");
+                    break;
+                }
+                case arcTo: {
+                    writer.WriteXmlNodeStart("a:arcTo");
+                    writer.WriteXmlNullableAttributeString("wR", oCmd.wR);
+                    writer.WriteXmlNullableAttributeString("hR", oCmd.hR);
+                    writer.WriteXmlNullableAttributeString("stAng", oCmd.stAng);
+                    writer.WriteXmlNullableAttributeString("swAng", oCmd.swAng);
+                    writer.WriteXmlAttributesEnd();
+                    writer.WriteXmlNodeEnd("a:arcTo");
+                    break;
+                }
+                case bezier3: {
+                    writer.WriteXmlNodeStart("a:quadBezTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X0, oCmd.Y0);
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X1, oCmd.Y1);
+                    writer.WriteXmlNodeEnd("a:quadBezTo");
+                    break;
+                }
+                case bezier4: {
+                    writer.WriteXmlNodeStart("a:cubicBezTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X0, oCmd.Y0);
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X1, oCmd.Y1);
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X2, oCmd.Y2);
+                    writer.WriteXmlNodeEnd("a:cubicBezTo");
+                    break;
+                }
+                case close: {
+                    writer.WriteXmlNodeStart("a:close");
+                    writer.WriteXmlAttributesEnd(true);
+                    break;
+                }
+            }
+        }
+        writer.WriteXmlNodeEnd("a:path");
+    };
     function CPathCmd() {
         AscFormat.CBaseNoIdObject.call(this);
         this.pts = [];
@@ -1255,12 +1312,6 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                 break;
             }
         }
-    };
-    CPathCmd.prototype.writeAttrXmlImpl = function (writer) {
-        //TODO:Implement in children
-    };
-    CPathCmd.prototype.writeChildren = function (writer) {
-        //TODO:Implement in children
     };
 
     function CheckPointByPaths(dX, dY, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2)

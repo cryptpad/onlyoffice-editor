@@ -848,15 +848,7 @@
             this.setLocks((~nMask) & this.locks);
         }
         else{
-            var nLocks = this.locks;
-            nLocks |= nMask;
-            if(bValue) {
-                nLocks |= (nMask << 1)
-            }
-            else {
-                nLocks &= ~(nMask << 1)
-            }
-            this.setLocks(nLocks);
+            this.setLocks(AscFormat.fUpdateLocksValue(this.locks, nMask, bValue));
         }
     };
     CGraphicObjectBase.prototype.getNoGrp = function(){

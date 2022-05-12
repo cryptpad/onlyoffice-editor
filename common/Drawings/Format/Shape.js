@@ -7159,6 +7159,13 @@ CShape.prototype.getColumnNumber = function(){
                 this.setNvSpPr(oPr);
                 break;
             }
+            case "cNvSpPr": {
+                if(!this.nvSpPr) {
+                    this.setNvSpPr(new AscFormat.UniNvPr());
+                }
+                this.nvSpPr.nvUniSpPr.fromXml(reader);
+                break;
+            }
             case "spPr": {
                 oPr = new AscFormat.CSpPr();
                 oPr.fromXml(reader);
@@ -7191,12 +7198,128 @@ CShape.prototype.getColumnNumber = function(){
             }
         }
     };
-    CShape.prototype.writeAttrXmlImpl = function(writer) {
-    };
-    CShape.prototype.writeChildren = function(writer) {
-        //Implement in children
-    };
+    CShape.prototype.toXml = function(writer, sName) {
+        let name_ = sName;
 
+        let oContext = writer.context;
+        if		(oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+            oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	name_ = "wps:wsp";
+    else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			name_ = "xdr:sp";
+    else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		name_ = "a:sp";
+    else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	name_ = "cdr:sp";
+    else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			name_ = "dgm:sp";
+    else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		name_ = "dsp:sp";
+
+        writer.WriteXmlNodeStart(name_);
+
+        //writer.WriteXmlNullableAttributeBool("useBgFill", this.useBgFill);
+        writer.WriteXmlNullableAttributeString("macro", this.macro);
+        writer.WriteXmlNullableAttributeString("modelId", this.modelId);
+        writer.WriteXmlNullableAttributeBool("fLocksText", this.fLocksText);
+        writer.WriteXmlAttributesEnd();
+
+        if(this.nvSpPr) {
+            if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+                oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)
+            {
+                this.nvSpPr.cNvPr.toXml2("wps", writer);
+                this.nvSpPr.nvUniSpPr.toXmlSp(writer);
+            }
+            else
+                this.nvSpPr.toXmlSp(writer);
+        }
+
+        let bIsPresentStyle = false;
+        if (this.style &&  this.style.fillRef && (this.style.fillRef.idx !== null || this.style.fillRef.color && this.style.fillRef.color.color))
+        {
+            bIsPresentStyle = true;
+        }
+        if (writer.context.groupIndex > 1 && !bIsPresentStyle)
+        {
+            writer.context.flag += 0x02;
+        }
+        this.spPr.toXml(writer);
+        if (writer.context.groupIndex > 1 && !bIsPresentStyle)
+        {
+            writer.context.flag -= 0x02;
+        }
+        if (this.style)
+        {
+            if		(oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+                oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	this.style.m_namespace = "wps";
+        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			this.style.m_namespace = "xdr";
+        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		this.style.m_namespace = "a";
+        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	this.style.m_namespace = "cdr";
+        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			this.style.m_namespace = "dgm";
+        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		this.style.m_namespace = "dsp";
+
+            writer.WriteXmlNullable(this.style);
+        }
+        if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+            oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)
+        {
+            let bIsWritedBodyPr = false;
+            if (this.strTextBoxShape)
+            {
+                if (this.oTextBoxId)
+                    writer.WriteXmlString("<wps:txbx id=\"" + this.oTextBoxId + "\">");
+                else
+                    writer.WriteXmlString("<wps:txbx>");
+
+                //writer.WriteXmlString(oTextBoxShape.toXML());
+                writer.WriteXmlString(this.strTextBoxShape);
+                writer.WriteXmlString("</wps:txbx>");
+
+                if (this.bodyPr)
+                {
+                    this.bodyPr.m_namespace = "wps";
+                    this.bodyPr.toXml(writer);
+                    bIsWritedBodyPr = true;
+                }
+            }
+            else if (this.txBody)
+            {
+                this.txBody.m_name = "wps:txBody";
+                writer.WriteXmlNullable(this.txBody);
+            }
+
+            if (!bIsWritedBodyPr)
+            {
+                writer.WriteXmlString("<wps:bodyPr rot=\"0\"><a:prstTxWarp prst=\"textNoShape\"><a:avLst/></a:prstTxWarp><a:noAutofit/></wps:bodyPr>");
+            }
+        }
+    else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)
+        {
+            this.txBody.m_name = "a:txBody";
+
+            writer.WriteXmlNodeStart("a:txSp");
+            writer.WriteXmlAttributesEnd();
+            writer.WriteXmlNullable(this.txBody);
+            writer.WriteXmlString("<a:useSpRect/>");
+            writer.WriteXmlNodeEnd("a:txSp");
+        }
+        else
+        {
+            if (this.txBody)
+            {
+                if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)
+                    this.txBody.m_name = "xdr:txBody";
+            else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)
+                    this.txBody.m_name = "cdr:txBody";
+            else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)
+                    this.txBody.m_name = "dgm:txBody";
+            else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)
+                    this.txBody.m_name = "dsp:txBody";
+            }
+            writer.WriteXmlNullable(this.txBody);
+        }
+
+        if (this.txXfrm && oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)
+        {
+            this.txXfrm.toXml(writer);
+        }
+        writer.WriteXmlNodeEnd(name_);
+    };
     function fReadTxBoxContentXML(reader, parent) {
         var Content = [];
         var depth = reader.GetDepth();

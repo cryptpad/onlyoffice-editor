@@ -6704,23 +6704,10 @@ function BinaryPPTYLoader()
     };
 
     this.CheckGroupXfrm = function(oGroup){
-        if(!oGroup || !oGroup.spPr){
+        if(!oGroup){
             return;
         }
-        if(!oGroup.spPr.xfrm && oGroup.spTree.length > 0){
-            var oXfrm = new AscFormat.CXfrm();
-            oXfrm.setOffX(0);
-            oXfrm.setOffY(0);
-            oXfrm.setChOffX(0);
-            oXfrm.setChOffY(0);
-            oXfrm.setExtX(50);
-            oXfrm.setExtY(50);
-            oXfrm.setChExtX(50);
-            oXfrm.setChExtY(50);
-            oGroup.spPr.setXfrm(oXfrm);
-            oGroup.updateCoordinatesAfterInternalResize();
-            oGroup.spPr.xfrm.setParent(oGroup.spPr);
-        }
+        oGroup.checkXfrm();
     };
 
     this.ReadGroupShape = function(type)
@@ -7646,62 +7633,62 @@ function BinaryPPTYLoader()
                                     {
                                         case 0:{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.txBox | (value ? AscFormat.LOCKS_MASKS.txBox << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.txBox, value);
                                             break;
                                         }
                                         case 1 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noAdjustHandles | (value ? AscFormat.LOCKS_MASKS.noAdjustHandles << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noAdjustHandles, value);
                                             break;
                                         }
                                         case 2 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noChangeArrowheads | (value ? AscFormat.LOCKS_MASKS.noChangeArrowheads << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noChangeArrowheads, value);
                                             break;
                                         }
                                         case 3 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noChangeAspect | (value ? AscFormat.LOCKS_MASKS.noChangeAspect << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noChangeAspect, value);
                                             break;
                                         }
                                         case 4 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noChangeShapeType | (value ? AscFormat.LOCKS_MASKS.noChangeShapeType << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noChangeShapeType, value);
                                             break;
                                         }
                                         case 5 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noEditPoints | (value ? AscFormat.LOCKS_MASKS.noEditPoints << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noEditPoints, value);
                                             break;
                                         }
                                         case 6 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noGrp | (value ? AscFormat.LOCKS_MASKS.noGrp << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noGrp, value);
                                             break;
                                         }
                                         case 7 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noMove | (value ? AscFormat.LOCKS_MASKS.noMove << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noMove, value);
                                             break;
                                         }
                                         case 8 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noResize | (value ? AscFormat.LOCKS_MASKS.noResize << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noResize, value);
                                             break;
                                         }
                                         case 9 :{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noRot | (value ? AscFormat.LOCKS_MASKS.noRot << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noRot, value);
                                             break;
                                         }
                                         case 10:{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noSelect | (value ? AscFormat.LOCKS_MASKS.noSelect << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noSelect, value);
                                             break;
                                         }
                                         case 11:{
                                             value = s.GetBool();
-                                            locks |= (AscFormat.LOCKS_MASKS.noTextEdit | (value ? AscFormat.LOCKS_MASKS.noTextEdit << 1 : 0));
+                                            locks = AscFormat.fUpdateLocksValue(locks, AscFormat.LOCKS_MASKS.noTextEdit, value);
                                             break;
                                         }
                                     }

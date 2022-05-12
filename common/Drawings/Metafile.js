@@ -885,56 +885,60 @@
 			while (pCur < pEnd)
 			{
 				var code = val.charCodeAt(pCur++);
-				if (code >= 0xD800 && code <= 0xDFFF && pCur < pEnd)
-				{
-					code = 0x10000 + (((code & 0x3FF) << 10) | (0x03FF & val.charCodeAt(pCur++)));
-				}
-				switch (code)
-				{
-					case 0x26:
-						//&
-						this.WriteUtf8Char(0x26);
-						this.WriteUtf8Char(0x61);
-						this.WriteUtf8Char(0x6d);
-						this.WriteUtf8Char(0x70);
-						this.WriteUtf8Char(0x3b);
-						break;
-					case 0x27:
-						//'
-						this.WriteUtf8Char(0x26);
-						this.WriteUtf8Char(0x61);
-						this.WriteUtf8Char(0x70);
-						this.WriteUtf8Char(0x6f);
-						this.WriteUtf8Char(0x73);
-						this.WriteUtf8Char(0x3b);
-						break;
-					case 0x3c:
-						//<
-						this.WriteUtf8Char(0x26);
-						this.WriteUtf8Char(0x6c);
-						this.WriteUtf8Char(0x74);
-						this.WriteUtf8Char(0x3b);
-						break;
-					case 0x3e:
-						//>
-						this.WriteUtf8Char(0x26);
-						this.WriteUtf8Char(0x67);
-						this.WriteUtf8Char(0x74);
-						this.WriteUtf8Char(0x3b);
-						break;
-					case 0x22:
-						//"
-						this.WriteUtf8Char(0x26);
-						this.WriteUtf8Char(0x71);
-						this.WriteUtf8Char(0x75);
-						this.WriteUtf8Char(0x6f);
-						this.WriteUtf8Char(0x74);
-						this.WriteUtf8Char(0x3b);
-						break;
-					default:
-						this.WriteUtf8Char(code);
-						break;
-				}
+				this.WriteXmlCharCode(code);
+			}
+		};
+		this.WriteXmlCharCode = function(code)
+		{
+			if (code >= 0xD800 && code <= 0xDFFF && pCur < pEnd)
+			{
+				code = 0x10000 + (((code & 0x3FF) << 10) | (0x03FF & val.charCodeAt(pCur++)));
+			}
+			switch (code)
+			{
+				case 0x26:
+					//&
+					this.WriteUtf8Char(0x26);
+					this.WriteUtf8Char(0x61);
+					this.WriteUtf8Char(0x6d);
+					this.WriteUtf8Char(0x70);
+					this.WriteUtf8Char(0x3b);
+					break;
+				case 0x27:
+					//'
+					this.WriteUtf8Char(0x26);
+					this.WriteUtf8Char(0x61);
+					this.WriteUtf8Char(0x70);
+					this.WriteUtf8Char(0x6f);
+					this.WriteUtf8Char(0x73);
+					this.WriteUtf8Char(0x3b);
+					break;
+				case 0x3c:
+					//<
+					this.WriteUtf8Char(0x26);
+					this.WriteUtf8Char(0x6c);
+					this.WriteUtf8Char(0x74);
+					this.WriteUtf8Char(0x3b);
+					break;
+				case 0x3e:
+					//>
+					this.WriteUtf8Char(0x26);
+					this.WriteUtf8Char(0x67);
+					this.WriteUtf8Char(0x74);
+					this.WriteUtf8Char(0x3b);
+					break;
+				case 0x22:
+					//"
+					this.WriteUtf8Char(0x26);
+					this.WriteUtf8Char(0x71);
+					this.WriteUtf8Char(0x75);
+					this.WriteUtf8Char(0x6f);
+					this.WriteUtf8Char(0x74);
+					this.WriteUtf8Char(0x3b);
+					break;
+				default:
+					this.WriteUtf8Char(code);
+					break;
 			}
 		};
 		this.WriteXmlBool = function(val)

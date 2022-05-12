@@ -1414,14 +1414,14 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
 	};
 	CGraphicFrame.prototype.toXml = function(writer, name) {
 		var context = writer.context;
-		var cNvPrIndex = context.cNvPrIndex++;
+		var objectId = context.objectId++;
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 
 		var ns = StaxParser.prototype.GetNSFromNodeName(name);
 
 		writer.WriteXmlString('<'+ns+'nvGraphicFramePr>');
-		writer.WriteXmlString('<'+ns+'cNvPr id="' + cNvPrIndex + '" name="GraphicFrame ' + cNvPrIndex + '"/>');
+		writer.WriteXmlString('<'+ns+'cNvPr id="' + objectId + '" name="GraphicFrame ' + objectId + '"/>');
 		writer.WriteXmlString('<'+ns+'cNvGraphicFramePr/></'+ns+'nvGraphicFramePr>');
 		writer.WriteXmlNullable(this.spPr && this.spPr.xfrm, ns + "xfrm");
 		writer.WriteXmlNullable(this.graphicObject, "a:graphic");

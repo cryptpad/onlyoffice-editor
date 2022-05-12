@@ -597,11 +597,29 @@
             }
         }
     };
-    CTextBody.prototype.writeAttrXmlImpl = function (writer) {
-        //TODO:Implement in children
-    };
-    CTextBody.prototype.writeChildren = function (writer) {
-        //TODO:Implement in children
+    CTextBody.prototype.toXml = function (writer, sName) {
+        let sName_ = this.m_name || sName || "txBody";
+        writer.WriteXmlNodeStart(sName_);
+        writer.WriteXmlAttributesEnd();
+
+        if (this.bodyPr)
+        {
+            this.bodyPr.m_namespace = "a";
+            this.bodyPr.toXml(writer);
+        }
+        // if (sp3d)
+        // {
+        //     sp3d.toXml(writer);
+        // }
+        if (this.lstStyle) {
+            this.lstStyle.toXml(writer, "a:lstStyle");
+        }
+
+        let nCount = this.content.Content.length;
+        for (let i = 0; i < nCount; ++i)
+            this.content.Content[i].toDrawingML(writer);
+
+        writer.WriteXmlNodeEnd(sName_);
     };
 
     function GetContentOneStringSizes(oContent) {

@@ -1992,6 +1992,7 @@ function CGroupShape()
         else if("sp" === name || "wsp" === name) {
             res = new AscFormat.CShape();
             res.setBDeleted(false);
+			res.setWordShape("wsp" === name);
             res.fromXml(reader);
             this.addToSpTree(null, res);
         }
@@ -2015,9 +2016,33 @@ function CGroupShape()
             this.setNvSpPr(res);
         }
     };
-    CGroupShape.prototype.writeChildren = function (writer) {
-        //TODO: Implement in children
+    CGroupShape.prototype.fromXml = function(reader) {
+        AscFormat.CGraphicObjectBase.prototype.fromXml.call(this, reader);
+        this.checkXfrm();
     };
+    CGroupShape.prototype.toXml = function (writer) {
+        AscFormat.CSpTree.prototype.toXml.call(this, writer);
+    };
+    CGroupShape.prototype.checkXfrm = function () {
+        if(!this.spPr){
+            return;
+        }
+        if(!this.spPr.xfrm && this.spTree.length > 0){
+            var oXfrm = new AscFormat.CXfrm();
+            oXfrm.setOffX(0);
+            oXfrm.setOffY(0);
+            oXfrm.setChOffX(0);
+            oXfrm.setChOffY(0);
+            oXfrm.setExtX(50);
+            oXfrm.setExtY(50);
+            oXfrm.setChExtX(50);
+            oXfrm.setChExtY(50);
+            this.spPr.setXfrm(oXfrm);
+            this.updateCoordinatesAfterInternalResize();
+            this.spPr.xfrm.setParent(this.spPr);
+        }
+    };
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;
