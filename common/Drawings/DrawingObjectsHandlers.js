@@ -57,6 +57,7 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     }
     var selected_objects = group ? group.selectedObjects : drawingObjectsController.getSelectedObjects();
     var oCropSelection = drawingObjectsController.selection.cropSelection ? drawingObjectsController.selection.cropSelection : null;
+    var oGeometryEditSelection = drawingObjectsController.selection.geometrySelection ? drawingObjectsController.selection.geometrySelection : null;
     var tx, ty, t, hit_to_handles;
     var ret = null;
     var drawing = null;
@@ -166,7 +167,7 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
                 ty = y;
             }
             
-            if(selected_objects[0].canChangeAdjustments())
+            if(selected_objects[0].canChangeAdjustments() && !oGeometryEditSelection)
             {
                 var hit_to_adj = selected_objects[0].hitToAdjustment(tx, ty);
                 if(hit_to_adj.hit)
@@ -206,7 +207,7 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
             if(!ret)
             {
                 hit_to_handles = selected_objects[i].hitToHandles(tx, ty);
-                if(hit_to_handles > -1)
+                if(hit_to_handles > -1 && !oGeometryEditSelection)
                 {
 
                     if(window["IS_NATIVE_EDITOR"] && e.ClickCount > 1)
@@ -220,6 +221,15 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
                     drawing = selected_objects[i];
                     break;
                 }
+            }
+        }
+    }
+
+    if(!ret) {
+        if(oGeometryEditSelection) {
+            ret = oGeometryEditSelection.handle(drawingObjectsController, e, x, y);
+            if(ret) {
+                return ret;
             }
         }
     }
@@ -247,7 +257,7 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
             if(!ret)
             {
 
-                if(selected_objects[i].hitInBoundingRect(tx, ty))
+                if(selected_objects[i].hitInBoundingRect(tx, ty) && !oGeometryEditSelection)
                 {
                     if(window["IS_NATIVE_EDITOR"])
                     {
@@ -321,6 +331,7 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
                 break;
             }
             case AscDFH.historyitem_type_GroupShape:
+            case AscDFH.historyitem_type_SmartArt:
             {
                 ret = handleGroup(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord);
                 break;
@@ -1986,6 +1997,7 @@ function handleInlineObjects(drawingObjectsController, drawingArr, e, x, y, page
                 break;
             }
             case AscDFH.historyitem_type_GroupShape:
+            case AscDFH.historyitem_type_SmartArt:
             {
                 ret = handleGroup(drawing, drawingObjectsController, e, x, y, null, pageIndex, bWord);
                 if(ret)
@@ -2003,11 +2015,12 @@ function handleMouseUpPreMoveState(drawingObjects, e, x, y, pageIndex, bWord)
     state.drawingObjects.clearPreTrackObjects();
     state.drawingObjects.changeCurrentState(new AscFormat.NullState(state.drawingObjects));
     var bHandle = false;
-    if(!state.shift && !state.ctrl && state.bInside && state.majorObjectIsSelected && e.Button !== AscCommon.g_mouse_button_right)
+    if(!state.shift && /*!state.ctrl &&*/ state.bInside && state.majorObjectIsSelected && e.Button !== AscCommon.g_mouse_button_right)
     {
         switch (state.majorObject.getObjectType())
         {
             case AscDFH.historyitem_type_GroupShape:
+            case AscDFH.historyitem_type_SmartArt:
             {
                 state.drawingObjects.checkChartTextSelection();
                 state.drawingObjects.resetSelection();
@@ -2049,9 +2062,7 @@ function handleMouseUpPreMoveState(drawingObjects, e, x, y, pageIndex, bWord)
     }
     if(!bHandle)
     {
-
-
-        if(e.CtrlKey && state.majorObjectIsSelected)
+        if(e.CtrlKey && state.majorObjectIsSelected && !state.bGroupSelection)
         {
             drawingObjects.deselectObject(state.majorObject);
             state.drawingObjects.drawingObjects && state.drawingObjects.drawingObjects.sendGraphicObjectProps &&  state.drawingObjects.drawingObjects.sendGraphicObjectProps();

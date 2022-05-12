@@ -472,6 +472,7 @@
 		".select2-container--default .select2-search--dropdown .select2-search__field" : { "color" : "text-normal", "background-color" : "background-normal", "border-color" : "border-regular-control"},
 		".select2-container--default.select2-container--disabled .select2-selection--single" : { "background-color" : "background-normal" },
 		".select2-container--default .select2-selection--single .select2-selection__arrow b" : { "border-color" : "text-normal !important" },
+		".select2-container--default.select2-container--open .select2-selection__arrow b" : {"border-color" : "text-normal !important"},
 		".ps .ps__rail-y:hover" : {"background-color" : "background-toolbar" },
 		".ps .ps__rail-y.ps--clicking" : {"background-color" : "background-toolbar" },
 		".ps__thumb-y" : { "background-color" : "background-normal", "border-color" : "Border !important" },
@@ -487,7 +488,8 @@
 		"*::-webkit-scrollbar-track" : { "background" : "background-normal" },
 		"*::-webkit-scrollbar-track:hover" : { "background" : "background-toolbar-additional" },
 		"*::-webkit-scrollbar-thumb" : { "background-color" : "background-toolbar", "border-color" : "border-regular-control" },
-		"*::-webkit-scrollbar-thumb:hover" : { "background-color" : "canvas-scroll-thumb-hover" }
+		"*::-webkit-scrollbar-thumb:hover" : { "background-color" : "canvas-scroll-thumb-hover" },
+		".asc-plugin-loader" : { "color" : "text-normal" }
 	};
 
     var g_isMouseSendEnabled = false;

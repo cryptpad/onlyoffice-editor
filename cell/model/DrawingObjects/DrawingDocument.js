@@ -550,11 +550,6 @@ function CDrawingDocument()
         this.CheckTargetDraw(x, y);
     };
 
-    this.UpdateTarget2 = function(x, y, pageIndex)
-    {
-
-    };
-
     this.UpdateTargetTimer = function()
     {
     };
@@ -1385,6 +1380,27 @@ function CDrawingDocument()
     {
     };
 
+    this.GetTableStylesPreviews = function()
+    {
+        return [];
+    };
+    this.GetTableLook = function(isDefault)
+    {
+        let oTableLook;
+
+        if (isDefault)
+        {
+            oTableLook = new AscCommon.CTableLook();
+            oTableLook.SetDefault();
+        }
+        else
+        {
+            oTableLook = this.TableStylesLastLook;
+        }
+
+        return oTableLook;
+    };
+
     this.IsMobileVersion = function()
     {
         return false;
@@ -1476,7 +1492,7 @@ function CDrawingDocument()
                     var correctNum = 1;
                     if (levelNum === level.Text[i].Value)
                         correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format);
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.get_OLang());
                     break;
                 default:
                     break;
@@ -1673,7 +1689,7 @@ function CDrawingDocument()
             var fontsDict = {};
             for (var i = 0, count = props.length; i < count; i++)
             {
-                var curLvl = props[i];				
+                var curLvl = props[i];
                 var text = "";
                 for (var j = 0; j < curLvl.Text.length; j++)
                 {
@@ -1683,7 +1699,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
                             break;
                         default:
                             break;
@@ -1766,7 +1782,7 @@ function CDrawingDocument()
                             if (levelNum === props[i].Text[k].Value)
                                 correctNum = counterCurrent;
 
-                            text += AscCommon.IntToNumberFormat(correctNum, props[i].Format);
+                            text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].get_OLang());
                             break;
                         default:
                             break;

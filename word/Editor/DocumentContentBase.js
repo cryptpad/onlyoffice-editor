@@ -1794,6 +1794,36 @@ CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition, isUseConca
 	return false;
 };
 /**
+ * Специальная функция удаления параграфа во время приема/отклонения изменений
+ * @param {number} nPosition
+ */
+CDocumentContentBase.prototype.RemoveParagraphForReview = function(nPosition)
+{
+	if (nPosition >= this.Content.length
+		|| nPosition < 0
+		|| !this.Content[nPosition].IsParagraph())
+		return;
+
+	if (nPosition >= this.Content.length - 1)
+	{
+		if (1 === this.Content.length)
+		{
+			if (this.IsBlockLevelSdtContent())
+				this.GetParent().ReplaceContentWithPlaceHolder();
+			else
+				this.RemoveFromContent(0, 1, true);
+		}
+		else
+		{
+			this.RemoveFromContent(nPosition, 1);
+		}
+	}
+	else
+	{
+		this.ConcatParagraphs(nPosition, true);
+	}
+};
+/**
  * Пробегаемся по все ранам с заданной функцией
  * @param fCheck - функция проверки содержимого рана
  * @returns {boolean}
@@ -1897,7 +1927,7 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 								&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
 						oElement.SetReviewType(reviewtype_Common);
-						this.ConcatParagraphs(nCurPos, true);
+						this.RemoveParagraphForReview(nCurPos);
 					}
 				}
 				else if (oElement.IsTable())
@@ -1987,7 +2017,7 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 								&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
 						oElement.SetReviewType(reviewtype_Common);
-						this.ConcatParagraphs(nCurPos, true);
+						this.RemoveParagraphForReview(nCurPos);
 					}
 					else if (reviewtype_Remove === nReviewType
 						&& (undefined === nType
@@ -2054,6 +2084,7 @@ CDocumentContentBase.prototype.private_CheckSelectedContentBeforePaste = functio
 			break;
 		}
 	}
+	
 	if(this.bPresentation)
 	{
 		oSelectedContent.ConvertToPresentation(this);
@@ -2228,4 +2259,31 @@ CDocumentContentBase.prototype.IsEmptyParagraphAfterTableInTableCell = function(
 };
 CDocumentContentBase.prototype.SetThisElementCurrent = function(isUpdateStates)
 {
+};
+
+/**
+ * Method for getting all
+ * @param {string} sPluginId - id of plugin which can edit those ole-objects, if it's not specified return all ole-objects
+ * @param {Array} arrObjects - create array if not specified
+ * @returns {Array}
+ */
+CDocumentContentBase.prototype.GetAllOleObjects = function(sPluginId, arrObjects)
+{
+	if (Array.isArray(arrObjects))
+	{
+		arrObjects = [];
+	}
+	let arrDrawings = this.GetAllDrawingObjects([]);
+	for(let nDrawing = 0; nDrawing < arrDrawings.length; ++nDrawing)
+	{
+		arrDrawings[nDrawing].GetAllOleObjects(sPluginId, arrObjects)
+	}
+	return arrObjects;
+};
+CDocumentContentBase.prototype.ProcessComplexFields = function()
+{
+	for (let nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].ProcessComplexFields();
+	}
 };

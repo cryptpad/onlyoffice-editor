@@ -488,11 +488,6 @@ CGraphicFrame.prototype.isShape = function()
         return false;
 };
 
-CGraphicFrame.prototype.isImage = function()
-    {
-        return false;
-};
-
 CGraphicFrame.prototype.isGroup = function()
     {
         return false;
@@ -506,6 +501,15 @@ CGraphicFrame.prototype.isChart = function()
 CGraphicFrame.prototype.isTable = function()
     {
         return this.graphicObject instanceof CTable;
+};
+
+CGraphicFrame.prototype.getTypeName = function() 
+{
+    if(this.isTable()) 
+    {
+        return AscCommon.translateManager.getValue("Table");
+    }
+    return AscFormat.CGraphicObjectBase.prototype.getTypeName.call(this)
 };
 
 CGraphicFrame.prototype.CanAddHyperlink = function(bCheck)
@@ -868,6 +872,7 @@ CGraphicFrame.prototype.draw = function(graphics)
             this.drawLocks(this.transform, graphics);
             graphics.RestoreGrState();
         }
+        this.drawAnimLabels && this.drawAnimLabels(graphics);
 };
 
 CGraphicFrame.prototype.Select = function()

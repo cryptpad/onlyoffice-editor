@@ -147,7 +147,8 @@ function FD_FontDictionary()
 
     this.ChangeGlyphsMap = {
         "Symbol" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0xB7, 0xA8], MapDst : [0xE12C, 0xE442] },
-        "Wingdings" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0x76, 0x77, 0xD8, 0xA7, 0xFC, 0x71], MapDst : [0xE441, 0xE442, 0xE25F, 0xE46F, 0xE330, 0x2751] }
+        "Wingdings" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0x76, 0x77, 0xD8, 0xA7, 0xFC, 0x71, 0x6C, 0x6F, 0x6E, 0xA1],
+            MapDst : [0xE441, 0xE442, 0xE25F, 0xE46F, 0xE330, 0x2751, 0xE12C, 0xE43A, 0xE439, 0xE469] }
     };
 	
 	this.MainUnicodeRanges = {
@@ -1520,7 +1521,7 @@ CFontSelectList.prototype =
 		_fs.m_wsFontName = "ASCW3";
 		this.List.push(_fs);
 
-        delete window["g_fonts_selection_bin"];
+        //delete window["g_fonts_selection_bin"];
     },
 
     isEnglishChar : function(_code)
@@ -3037,4 +3038,24 @@ var g_fontApplication = new CApplicationFonts();
     window['AscFonts'].LanguagesFontSelectTypes = LanguagesFontSelectTypes;
 
     window['AscFonts'].g_fontApplication = g_fontApplication;
+
+    window['AscFonts']['pickFont'] = function(name, style) {
+        var info = AscFonts.g_fontApplication.GetFontInfo(name, style);
+        var fontId = info.GetFontID(AscCommon.g_font_loader, style);
+        return fontId.file;
+    };
+    window['AscFonts']['getFontStreams'] = function() {
+        return AscFonts.g_fonts_streams;
+    };
+    window['AscFonts']['getFontStream'] = function(index) {
+        var s = AscFonts.g_fonts_streams[index];
+        return {
+            "data" : s.data,
+            "size" : s.size
+        };
+    };
+    window['AscFonts']['updateFontStreamNative'] = function(pointer, size) {
+        return {"asc_marker":true, data:pointer, len:size};
+    };
+
 })(window);

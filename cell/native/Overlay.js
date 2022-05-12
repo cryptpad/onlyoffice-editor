@@ -2284,6 +2284,15 @@ CAutoshapeTrack.prototype =
 //        ctx.beginPath();
     },
 
+
+    DrawGeomEditPoint: function(matrix, gmEditPoint)
+    {
+    },
+
+    DrawGeometryEdit: function (matrix, pathLst, gmEditList, gmEditPoint, oBounds)
+    {
+    },
+
     DrawEditWrapPointsPolygon : function(points, matrix)
     {
         if (!matrix)

@@ -178,6 +178,8 @@
         this.m_aOwnChangesIndexes = []; // Список номеров своих изменений в общем списке, которые мы можем откатить
 
         this.m_oOwnChanges        = [];
+
+		this.m_fEndLoadCallBack   = null;
     }
 
     CCollaborativeEditingBase.prototype.GetEditorApi = function()
@@ -274,12 +276,9 @@
     {
         return (0 < this.m_aChanges.length);
     };
-    CCollaborativeEditingBase.prototype.Apply_Changes = function()
+    CCollaborativeEditingBase.prototype.Apply_Changes = function(fEndCallBack)
     {
-        var OtherChanges = (this.m_aChanges.length > 0);
-
-        // Если нет чужих изменений, тогда и делать ничего не надо
-        if (true === OtherChanges)
+        if (this.m_aChanges.length > 0)
         {
             AscFonts.IsCheckSymbols = true;
             editor.WordControl.m_oLogicDocument.PauseRecalculate();
@@ -295,9 +294,14 @@
             // После того как мы приняли чужие изменения, мы должны залочить новые объекты, которые были залочены
             this.Lock_NeedLock();
             this.private_RestoreDocumentState(DocState);
-            this.OnStart_Load_Objects();
+            this.OnStart_Load_Objects(fEndCallBack);
             AscFonts.IsCheckSymbols = false;
         }
+		else
+		{
+			if (fEndCallBack)
+				fEndCallBack();
+		}
     };
     CCollaborativeEditingBase.prototype.Apply_OtherChanges = function()
     {
@@ -429,8 +433,11 @@
     };
 
 
-    CCollaborativeEditingBase.prototype.OnStart_Load_Objects = function()
+    CCollaborativeEditingBase.prototype.OnStart_Load_Objects = function(fEndCallBack)
     {
+		if (fEndCallBack)
+			this.m_fEndLoadCallBack = fEndCallBack;
+
         this.Set_GlobalLock(true);
         this.Set_GlobalLockSelection(true);
         // Вызываем функцию для загрузки необходимых элементов (новые картинки и шрифты)
@@ -447,7 +454,12 @@
     };
     CCollaborativeEditingBase.prototype.OnEnd_Load_Objects = function()
     {
-    };
+		if (this.m_fEndLoadCallBack)
+		{
+			this.m_fEndLoadCallBack();
+			this.m_fEndLoadCallBack = null;
+		}
+	};
     //-----------------------------------------------------------------------------------
     // Функции для работы с ссылками, у новых объектов
     //-----------------------------------------------------------------------------------
@@ -1147,6 +1159,7 @@
             var mapGrObjects        = {};
             var mapSlides           = {};
             var mapLayouts          = {};
+            var mapTimings          = {};
             var bChangedLayout      = false;
             var bAddSlides          = false;
             var mapAddedSlides      = {};
@@ -1188,14 +1201,27 @@
 					|| oClass instanceof AscFormat.CGraphicFrame)
 				{
 					mapGrObjects[oClass.Get_Id()] = oClass;
+                    let oParent = oClass.parent;
+                    if(oParent && oParent.timing) 
+                    {
+                        mapTimings[oParent.timing.Get_Id()] = oParent.timing;
+                    }
 				}
 				else if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.Slide && oClass instanceof AscCommonSlide.Slide)
 				{
 					mapSlides[oClass.Get_Id()] = oClass;
+                    if(oClass.timing) 
+                    {
+                        mapTimings[oClass.timing.Get_Id()] = oClass.timing;
+                    }
 				}
 				else if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.SlideLayout && oClass instanceof AscCommonSlide.SlideLayout)
 				{
 					mapLayouts[oClass.Get_Id()] = oClass;
+                    if(oClass.timing) 
+                    {
+                        mapTimings[oClass.timing.Get_Id()] = oClass.timing;
+                    }
 					bChangedLayout              = true;
 				}
 				else if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.CPresentation && oClass instanceof AscCommonSlide.CPresentation)
@@ -1213,6 +1239,14 @@
 				{
 					mapCommentsToDelete[oChange.New] = oClass;
 				}
+                else if(oClass.isAnimObject) 
+                {
+                    let oTiming = oClass.getTiming();
+                    if(oTiming) 
+                    {
+                        mapTimings[oTiming.Get_Id()] = oTiming;
+                    }
+                }
 			}
 
             // Создаем точку в истории. Делаем действия через обычные функции (с отключенным пересчетом), которые пишут в
@@ -1343,6 +1377,14 @@
                 oParagraph.Correct_Content(null, null, true);
             }
 
+            for(var sId in mapTimings) 
+            {
+                if(mapTimings.hasOwnProperty(sId)) 
+                {
+                    let oTiming = mapTimings[sId];
+                    oTiming.checkCorrect();
+                }
+            }
             if (oLogicDocument && oLogicDocument.IsDocumentEditor())
 			{
 				for (var sCommentId in mapCommentsToDelete)

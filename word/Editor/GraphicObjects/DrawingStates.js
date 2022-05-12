@@ -48,6 +48,17 @@ function checkEmptyPlaceholderContent(content)
 {
     if(!content || content.Parent && content.Parent.txWarpStruct && content.Parent.recalcInfo.warpGeometry && content.Parent.recalcInfo.warpGeometry.preset !== "textNoShape" )
         return content;
+    var oShape = content.Parent;
+    if (oShape) {
+        if(content && content.Is_Empty()){
+            if(oShape.isPlaceholder && oShape.isPlaceholder()) {
+                return content;
+            }
+            if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape()) {
+                return content;
+            }
+        }
+    }
     return null;
 }
 
@@ -321,15 +332,7 @@ NullState.prototype =
             }
         }
 
-        var drawing_page;
-        if(this.drawingObjects.document.GetDocPosType() !== docpostype_HdrFtr)
-        {
-            drawing_page = this.drawingObjects.graphicPages[pageIndex];
-        }
-        else
-        {
-            drawing_page = this.drawingObjects.getHdrFtrObjectsByPageIndex(pageIndex);
-        }
+        var drawing_page = this.drawingObjects.getGraphicPage && this.drawingObjects.getGraphicPage(pageIndex);
         if(drawing_page)
         {
             ret = AscFormat.handleFloatObjects(this.drawingObjects, drawing_page.beforeTextObjects, e, x, y, null, pageIndex, true);
@@ -1034,7 +1037,7 @@ ResizeState.prototype =
 };
 
 
-function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject, majorObjectIsSelected, bInside)
+function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject, majorObjectIsSelected, bInside, bGroupSelection)
 {
     this.drawingObjects = drawingObjects;
     this.majorObject = majorObject;
@@ -1044,6 +1047,7 @@ function PreMoveState(drawingObjects,  startX, startY, shift, ctrl, majorObject,
     this.ctrl = ctrl;
     this.majorObjectIsSelected = majorObjectIsSelected;
     this.bInside = bInside;
+    this.bGroupSelection = bGroupSelection;
     this.startPageIndex = null;
     if(majorObject.parent)
     {
@@ -1743,7 +1747,6 @@ TextAddState.prototype =
     }
 
 };
-
 
 
 function StartChangeWrapContourState(drawingObjects, majorObject)
@@ -2663,6 +2666,7 @@ window['AscFormat'].NullState = NullState;
 window['AscFormat'].PreChangeAdjState = PreChangeAdjState;
 window['AscFormat'].PreMoveInlineObject = PreMoveInlineObject;
 window['AscFormat'].PreRotateState = PreRotateState;
+window['AscFormat'].RotateState = RotateState;
 window['AscFormat'].PreResizeState = PreResizeState;
 window['AscFormat'].PreMoveState = PreMoveState;
 window['AscFormat'].MoveState = MoveState;
@@ -2675,4 +2679,5 @@ window['AscFormat'].TextAddState = TextAddState;
 window['AscFormat'].SplineBezierState = SplineBezierState;
 window['AscFormat'].PolyLineAddState = PolyLineAddState;
 window['AscFormat'].AddPolyLine2State = AddPolyLine2State;
+window['AscFormat'].checkEmptyPlaceholderContent = checkEmptyPlaceholderContent;
 })(window);

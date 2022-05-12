@@ -156,11 +156,11 @@ CMathBaseText.prototype.IsPunctuation = function()
 
     return bPunc || bMathSign;
 };
-CMathBaseText.prototype.Is_NBSP = function()
+CMathBaseText.prototype.IsNBSP = function()
 {
     return false;
 };
-CMathBaseText.prototype.Can_AddNumbering = function()
+CMathBaseText.prototype.CanAddNumbering = function()
 {
     return true;
 };
@@ -177,6 +177,11 @@ CMathBaseText.prototype.IsNeedUpdateGaps = function()
 {
     return this.bUpdateGaps;
 };
+CMathBaseText.prototype.ToSearchElement = function(oProps)
+{
+	return null;
+};
+
 
 /**
  *
@@ -1002,6 +1007,17 @@ CMathText.prototype.Read_FromBinary = function(Reader)
 CMathText.prototype.Is_LetterCS = function()
 {
     return this.FontSlot == fontslot_CS;
+};
+CMathText.prototype.ToSearchElement = function(oProps)
+{
+	var nCodePoint = this.value;
+	if (undefined === nCodePoint || null === nCodePoint)
+		return null;
+
+	if (oProps.MatchCase)
+		return new CSearchTextItemChar(String.fromCodePoint(nCodePoint).toLowerCase().codePointAt(0));
+
+	return new CSearchTextItemChar(nCodePoint);
 };
 /*CMathText.prototype.Recalculate_Reset = function(StartRange, StartLine, PRS)
 {

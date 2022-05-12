@@ -97,6 +97,7 @@ var textdirection_LRTBV = 0x03;
 var textdirection_TBRLV = 0x04;
 var textdirection_TBLRV = 0x05;
 
+
 function IsEqualStyleObjects(Object1, Object2)
 {
     if (undefined === Object1 && undefined === Object2)
@@ -7556,9 +7557,18 @@ CStyle.prototype.Document_Is_SelectionLocked = function(CheckType)
 		}
 	}
 };
+/**
+ * @returns {boolean}
+ */
+CStyle.prototype.IsTableStyle = function()
+{
+	return (this.Type === styletype_Table);
+};
 
 function CStyles(bCreateDefault)
 {
+	this.ValidDefaultEastAsiaFont = false;
+
     if (bCreateDefault !== false)
     {
         this.Id = AscCommon.g_oIdCounter.Get_NewId();
@@ -8297,6 +8307,7 @@ function CStyles(bCreateDefault)
 	}
 
     this.LogicDocument = null;
+	this.OnChangeDefaultTextPr();
 }
 
 CStyles.prototype =
@@ -8644,6 +8655,7 @@ CStyles.prototype =
             Styles.Style[StyleId] = this.Style[StyleId].Copy();
         }
 
+        Styles.OnChangeDefaultTextPr();
         return Styles;
     },
 
@@ -8682,7 +8694,7 @@ CStyles.prototype =
 		History.Add(new CChangesStylesChangeDefaultTextPr(this, this.Default.TextPr, TextPr));
         this.Default.TextPr.InitDefault();
 		this.Default.TextPr.Merge(TextPr);
-
+		this.OnChangeDefaultTextPr();
 		// TODO: Пока данная функция используется только в билдере, как только будет использоваться в самом редакторе,
 		//       надо будет сделать, чтобы происходил пересчет всех стилей.
 	},
@@ -9072,19 +9084,6 @@ CStyles.prototype =
         this.Default.TextPr.Document_Get_AllFontNames(AllFonts);
     },
 
-    Get_AllTableStyles : function()
-    {
-        var TableStyles = [];
-        for ( var Id in this.Style )
-        {
-            var Style = this.Style[Id];
-            if ( styletype_Table === Style.Type )
-                TableStyles.push( Id );
-        }
-
-        return TableStyles;
-    },
-
     Update_Interface : function(StyleId)
     {
         if (null != this.LogicDocument && undefined !== this.LogicDocument)
@@ -9284,6 +9283,18 @@ CStyles.prototype =
 CStyles.prototype.Get = function(sStyleId)
 {
 	return (this.Style[sStyleId] ? this.Style[sStyleId] : null);
+};
+CStyles.prototype.GetAllTableStyles = function()
+{
+	let arrTableStyles = [];
+	for (let Id in this.Style)
+	{
+		let oStyle = this.Style[Id];
+		if (oStyle.IsTableStyle())
+			arrTableStyles.push(oStyle);
+	}
+
+	return arrTableStyles;
 };
 /**
  * Получаем идентификатор стиля по его имени
@@ -9989,6 +10000,8 @@ CStyles.prototype.UpdateDefaultsDependingOnCompatibility = function(nCompatibili
 	g_oDocumentDefaultTableCellPr.InitDefault(nCompatibilityMode);
 	g_oDocumentDefaultTableRowPr.InitDefault(nCompatibilityMode);
 	g_oDocumentDefaultTableStylePr.InitDefault(nCompatibilityMode);
+
+	this.OnChangeDefaultTextPr();
 };
 CStyles.prototype.GetDefaultParaPrForWrite = function()
 {
@@ -10001,6 +10014,24 @@ CStyles.prototype.GetDefaultTextPrForWrite = function()
 	var oTextPr = new CTextPr();
 	oTextPr.InitDefault();
 	return this.Default.TextPr.GetDiff(oTextPr);
+};
+CStyles.prototype.OnChangeDefaultTextPr = function()
+{
+	this.ValidDefaultEastAsiaFont = false;
+	if (this.Default.TextPr.RFonts && this.Default.TextPr.RFonts.EastAsia)
+		this.ValidDefaultEastAsiaFont = AscCommon.IsEastAsianFont(this.Default.TextPr.RFonts.EastAsia.Name);
+};
+CStyles.prototype.IsValidDefaultEastAsiaFont = function()
+{
+	return this.ValidDefaultEastAsiaFont;
+};
+CStyles.prototype.OnEndDocumentLoad = function(oDocument)
+{
+	// Специальная проверка плохо заданных нумераций через стиль. Когда ссылка на нумерацию в стиле есть,
+	// а обратной ссылки в нумерации на стиль - нет.
+	this.Check_StyleNumberingOnLoad(oDocument.GetNumbering());
+
+	this.OnChangeDefaultTextPr();
 };
 
 function CDocumentColor(r,g,b, Auto)
@@ -10109,6 +10140,10 @@ CDocumentColor.prototype.SetFromColor = function(oColor)
 	this.Auto = undefined !== oColor.Auto ? oColor.Auto : false;
 };
 
+CDocumentColor.prototype.ConvertToUniColor = function()
+{
+	return AscFormat.CreateUniColorRGB(this.r, this.g, this.b);
+};
 
 function CDocumentShd()
 {
@@ -12523,6 +12558,12 @@ CTableCellPr.prototype.RemovePrChange = function()
 	delete this.ReviewInfo;
 };
 
+const rfont_None     = 0x00;
+const rfont_ASCII    = 0x01;
+const rfont_EastAsia = 0x02;
+const rfont_CS       = 0x04;
+const rfont_HAnsi    = 0x08;
+
 function CRFonts()
 {
     this.Ascii    = undefined;
@@ -13176,6 +13217,67 @@ CTextPr.prototype.Copy = function(bCopyPrChange, oPr)
 		TextPr.HighlightColor = this.HighlightColor.createDuplicate();
 	}
 
+	return TextPr;
+};
+
+CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
+	var TextPr       = new CTextPr();
+
+	TextPr.Bold      = this.Bold;
+	TextPr.Italic    = this.Italic;
+	TextPr.Strikeout = this.Strikeout;
+	TextPr.DStrikeout = this.DStrikeout;
+	TextPr.Caps       = this.Caps;
+	TextPr.SmallCaps  = this.SmallCaps;
+
+	TextPr.Underline = this.Underline;
+	TextPr.Lang       = this.Lang.Copy();
+	TextPr.Spacing    = this.Spacing;
+	TextPr.RFonts     = this.RFonts.Copy()
+
+	TextPr.Vanish = this.Vanish;
+
+	if (oPr.custT) {
+		TextPr.FontSize = this.FontSize;
+	}
+
+	if (undefined != this.FontFamily)
+	{
+		TextPr.FontFamily       = {};
+		TextPr.FontFamily.Name  = this.FontFamily.Name;
+		TextPr.FontFamily.Index = this.FontFamily.Index;
+	}
+
+	if (undefined != this.Color)
+		TextPr.Color = new CDocumentColor(this.Color.r, this.Color.g, this.Color.b, this.Color.Auto);
+
+	TextPr.VertAlign = this.VertAlign;
+	TextPr.HighLight = this.Copy_HighLight();
+
+	if (undefined != this.Unifill)
+		TextPr.Unifill = this.Unifill.createDuplicate();
+
+	if (undefined != this.FontRef)
+		TextPr.FontRef = this.FontRef.createDuplicate();
+
+	if (undefined !== this.Shd)
+		TextPr.Shd = this.Shd.Copy();
+
+	if (undefined !== this.FontScale)
+		TextPr.FontScale = this.FontScale;
+
+	if (undefined != this.TextOutline)
+	{
+		TextPr.TextOutline = this.TextOutline.createDuplicate();
+	}
+	if (undefined != this.TextFill)
+	{
+		TextPr.TextFill = this.TextFill.createDuplicate();
+	}
+	if (undefined !== this.HighlightColor)
+	{
+		TextPr.HighlightColor = this.HighlightColor.createDuplicate();
+	}
 	return TextPr;
 };
 CTextPr.prototype.Copy_HighLight = function()
@@ -14968,6 +15070,59 @@ CTextPr.prototype.GetDescription = function()
 
 	return Description;
 };
+CTextPr.prototype.GetTextMetrics = function(oTheme, nFontFlags)
+{
+	let oMetrics = new CTextMetrics();
+
+	g_oTextMeasurer.SetTextPr(this, oTheme);
+
+	if ((nFontFlags & rfont_ASCII) && this.RFonts.Ascii)
+		oMetrics.Update(this.RFonts.Ascii.Name, fontslot_ASCII);
+
+	if ((nFontFlags & rfont_CS) && this.RFonts.CS)
+		oMetrics.Update(this.RFonts.CS.Name, fontslot_CS);
+
+	if ((nFontFlags & rfont_HAnsi) && this.RFonts.HAnsi)
+		oMetrics.Update(this.RFonts.HAnsi.Name, fontslot_HAnsi);
+
+	if ((nFontFlags & rfont_EastAsia) && this.RFonts.EastAsia)
+		oMetrics.Update(this.RFonts.EastAsia.Name, fontslot_EastAsia);
+
+	return oMetrics;
+};
+
+function CTextMetrics()
+{
+	this.Ascent  = 0;
+	this.Descent = 0;
+	this.LineGap = 0;
+	this.Height  = 0;
+}
+CTextMetrics.prototype.Update = function(fontName, fontSlot)
+{
+	g_oTextMeasurer.SetFontSlot(fontSlot);
+
+	let nHeight  = g_oTextMeasurer.GetHeight();
+	let nAscent  = g_oTextMeasurer.GetAscender();
+	let nDescent = Math.abs(g_oTextMeasurer.GetDescender());
+
+	let _nHeight  = nHeight;
+	let _nDescent = nDescent;
+	let _nAscent  = Math.min(nAscent, nHeight - nDescent);
+	let _nLineGap = Math.max(0, nHeight - nAscent - nDescent);
+
+	if (this.Height < _nHeight)
+		this.Height = _nHeight;
+
+	if (this.Descent < _nDescent)
+		this.Descent = _nDescent;
+
+	if (this.Ascent < _nAscent)
+		this.Ascent = _nAscent;
+
+	if (this.LineGap < _nLineGap)
+		this.LineGap = _nLineGap;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // CTextPr Export
 //----------------------------------------------------------------------------------------------------------------------
@@ -16187,6 +16342,23 @@ CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
 	if (undefined !== this.SuppressLineNumbers)
 		ParaPr.SuppressLineNumbers = this.SuppressLineNumbers;
 
+	return ParaPr;
+};
+CParaPr.prototype.createDuplicateForSmartArt = function (bCopyPrChange, oPr) {
+	var ParaPr = new CParaPr();
+	ParaPr.Jc              = this.Jc;
+
+	if (undefined != this.Spacing)
+		ParaPr.Spacing = this.Spacing.Copy();
+
+	if (undefined != this.Ind) // TODO: apply only changed ind
+		ParaPr.Ind = this.Ind.Copy();
+
+	if (undefined != this.Tabs)
+		ParaPr.Tabs = this.Tabs.Copy();
+
+	if (undefined != this.DefaultTab)
+		ParaPr.DefaultTab = this.DefaultTab;
 	return ParaPr;
 };
 CParaPr.prototype.Merge = function(ParaPr)
@@ -17548,7 +17720,6 @@ asc_CStyle.prototype.get_TextPr = function()
 {
     return this.TextPr;
 };
-
 //---------------------------------------------------------export---------------------------------------------------
 window['Asc'] = window['Asc'] || {};
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -17576,6 +17747,7 @@ window["AscCommonWord"].g_dKoef_in_to_mm = g_dKoef_in_to_mm;
 window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
 window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
 window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
+window["AscCommonWord"].g_dKoef_emu_to_mm = g_dKoef_emu_to_mm;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;
