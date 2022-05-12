@@ -312,18 +312,22 @@ CDocumentContent.prototype.Get_PageContentStartPos2 = function(StartPageIndex, S
 };
 CDocumentContent.prototype.Get_Theme = function()
 {
+	if (this.Parent)
+		return this.Parent.Get_Theme();
+
 	if (this.LogicDocument)
 		return this.LogicDocument.GetTheme();
 
-	return null;
 	return AscFormat.DEFAULT_THEME;
 };
 CDocumentContent.prototype.Get_ColorMap = function()
 {
+	if (this.Parent)
+		return this.Parent.Get_ColorMap();
+
 	if (this.LogicDocument)
 		return this.LogicDocument.GetColorMap();
 
-	return null;
 	return AscFormat.DEFAULT_COLOR_MAP;
 };
 CDocumentContent.prototype.Get_PageLimits = function(nCurPage)
