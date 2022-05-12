@@ -7259,15 +7259,17 @@ CShape.prototype.getColumnNumber = function(){
             oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)
         {
             let bIsWritedBodyPr = false;
-            if (this.strTextBoxShape)
+            if (this.textBoxContent)
             {
-                if (this.oTextBoxId)
-                    writer.WriteXmlString("<wps:txbx id=\"" + this.oTextBoxId + "\">");
-                else
+                // if (this.oTextBoxId)
+                //     writer.WriteXmlString("<wps:txbx id=\"" + this.oTextBoxId + "\">");
+                // else
                     writer.WriteXmlString("<wps:txbx>");
-
-                //writer.WriteXmlString(oTextBoxShape.toXML());
-                writer.WriteXmlString(this.strTextBoxShape);
+                    writer.WriteXmlString("<w:txbxContent>");
+                this.textBoxContent.Content.forEach(function(item) {
+                    CDocument.prototype.toXmlDocContentElem(writer, item);
+                });
+                writer.WriteXmlString("</w:txbxContent>");
                 writer.WriteXmlString("</wps:txbx>");
 
                 if (this.bodyPr)
