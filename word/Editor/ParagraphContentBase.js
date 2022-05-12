@@ -1605,6 +1605,13 @@ CParagraphContentWithParagraphLikeContent.prototype.Add_ToContent = function(Pos
     if (Item.SetParagraph)
     	Item.SetParagraph(this.GetParagraph());
 };
+CParagraphContentWithParagraphLikeContent.prototype.ConcatContent = function (Items)
+{
+	let Pos = this.GetElementsCount();
+	for (let i = 0; i < Items.length; ++i) {
+		this.Add_ToContent(Pos + i, Items[i]);
+	}
+};
 CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
 	for (var nIndex = Pos; nIndex < Pos + Count; ++nIndex)
