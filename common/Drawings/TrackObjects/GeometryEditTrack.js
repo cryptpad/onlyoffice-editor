@@ -503,10 +503,20 @@
         var dExtY = this.yMax - this.yMin;
         var oSpPr = this.originalObject.spPr;
         var oXfrm = oSpPr.xfrm;
-        var oOffset;
-        if(this.originalObject.animMotionTrack) {
-            oOffset = this.getXfrmOffset();
+        oXfrm.setExtX(dExtX);
+        oXfrm.setExtY(dExtY);
+        oXfrm.setRot(0);
+        //set new position
+        if(bWord && !this.originalObject.group) {
+            oXfrm.setOffX(0);
+            oXfrm.setOffY(0);
+        }
+		else if(this.originalObject.animMotionTrack) {
+            ver oOffset = this.getXfrmOffset();
             this.originalObject.updateAnimation(oOffset.OffX, oOffset.OffY, dExtX, dExtY, 0, this.geometry)
+
+
+
         }
         else {
             oXfrm.setExtX(dExtX);

@@ -3572,6 +3572,7 @@ function CDrawingDocument()
 						oLvl		= new Asc.CAscNumberingLvl(i),
 						oLvlTextPr	= new CTextPr(),
 						sLvlText	= "";
+					oLvlTextPr.Color = new AscCommonWord.CDocumentColor(0, 0, 0, false);
 					switch (i)
 					{
 						case 1:
@@ -3640,6 +3641,7 @@ function CDrawingDocument()
 					c_oAscNumberingLevel.UpperRomanDot_Right,
 					c_oAscNumberingLevel.LowerRomanDot_Right
 				];
+
 				for (var i = 0; i < arrTypes.length; i++)
 				{
 					var lvl = new CNumberingLvl();
@@ -3647,6 +3649,10 @@ function CDrawingDocument()
 					lvl.SetByType(arrTypes[i], 0);
 					lvl.FillToAscNumberingLvl(oLvl);
 					oLvl.Align = 1;
+					if(oLvl.TextPr)
+					{
+						oLvl.TextPr.Color = new AscCommonWord.CDocumentColor(0, 0, 0, false);
+					}
 					props.push(oLvl);
 				}
 			}

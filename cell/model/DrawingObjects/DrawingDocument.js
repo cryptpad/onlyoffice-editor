@@ -550,11 +550,6 @@ function CDrawingDocument()
         this.CheckTargetDraw(x, y);
     };
 
-    this.UpdateTarget2 = function(x, y, pageIndex)
-    {
-
-    };
-
     this.UpdateTargetTimer = function()
     {
     };
