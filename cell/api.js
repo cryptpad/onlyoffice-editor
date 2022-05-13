@@ -1427,8 +1427,13 @@ var editor;
 
 	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {
 		var t = this;
-		if (t.isChartEditor || !data) {
+		if (t.isChartEditor) {
 			return false;
+		}
+		Asc.ReadDefTableStyles(wb);
+
+		if (!data) {
+			return true;
 		}
 
 		var openXml = AscCommon.openXml;
@@ -2214,7 +2219,6 @@ var editor;
 		jsZipWrapper.close();
 		//clean up
 		openXml.SaxParserDataTransfer = {};
-		Asc.ReadDefTableStyles(wb);
 		return true;
 	};
 
