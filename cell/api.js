@@ -1112,6 +1112,7 @@ var editor;
 		var t = this;
 		if (this.openingEnd.bin && this.openingEnd.xlsx && this.openDocumentFromZip(t.wbModel, this.openingEnd.data)) {
 			//opening xlsx depends on getBinaryOtherTableGVar(called after Editor.bin)
+			Asc.ReadDefTableStyles(t.wbModel);
 			g_oIdCounter.Set_Load(false);
 			AscCommon.checkCultureInfoFontPicker();
 			AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
@@ -1457,8 +1458,6 @@ var editor;
 		if (t.isChartEditor) {
 			return false;
 		}
-		Asc.ReadDefTableStyles(wb);
-
 		if (!data) {
 			return true;
 		}
@@ -5894,6 +5893,7 @@ var editor;
 
     this._openDocument(base64File);
 	if (this.openDocumentFromZip(t.wbModel, xlsxPath)) {
+		Asc.ReadDefTableStyles(t.wbModel);
 		g_oIdCounter.Set_Load(false);
 		AscCommon.checkCultureInfoFontPicker();
 		AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
