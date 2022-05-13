@@ -3374,6 +3374,11 @@
 
 		return this.macros.getNameByGuid(sGuid);
     };
+	baseEditorsApi.prototype.asc_getUserPermissionToMakeRequestFromMacros = function(url)
+    {
+		var permission = confirm("Allow a request to such url: '" + url +"' ?")
+		return permission;
+    };
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
