@@ -11504,7 +11504,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
     }
 
 
-    function fGetFontByNumInfo(Type, SubType){
+    function fGetFontByNumInfo(Type, SubType, Custom){
         if(!AscFormat.isRealNumber(Type) || !AscFormat.isRealNumber(SubType))
         {
             return null;
@@ -11531,6 +11531,11 @@ function CalcLiterByLength(aAlphaBet, nLength)
                     {
                         return "Wingdings";
                     }
+                    case 0x1000:
+                    {
+                        return Custom && Custom.specialFont || null;
+                    }
+                    default: break;
                 }
             }
         }

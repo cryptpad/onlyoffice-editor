@@ -4474,23 +4474,23 @@ var editor;
 		return wsView.addSparklineGroup(type, sDataRange, sLocationRange);
 	};
 
-    spreadsheet_api.prototype.asc_setListType = function (type, subtype) {
+    spreadsheet_api.prototype.asc_setListType = function (type, subtype, custom) {
       var t = this;
-        var sNeedFont = AscFormat.fGetFontByNumInfo(type, subtype);
+        var sNeedFont = AscFormat.fGetFontByNumInfo(type, subtype, custom);
       if(typeof sNeedFont === "string" && sNeedFont.length > 0){
           var t = this, fonts = {};
           fonts[sNeedFont] = 1;
-          t._loadFonts(fonts, function() {t.asc_setListType2(type, subtype);});
+          t._loadFonts(fonts, function() {t.asc_setListType2(type, subtype, custom);});
       }
       else{
           t.asc_setListType2(type, subtype);
       }
     };
-    spreadsheet_api.prototype.asc_setListType2 = function (type, subtype) {
+    spreadsheet_api.prototype.asc_setListType2 = function (type, subtype, custom) {
         var oWorksheet = this.wb.getWorksheet();
         if(oWorksheet){
             if(oWorksheet.isSelectOnShape){
-                return oWorksheet.objectRender.setListType(type, subtype);
+                return oWorksheet.objectRender.setListType(type, subtype, custom);
             }
         }
     };
