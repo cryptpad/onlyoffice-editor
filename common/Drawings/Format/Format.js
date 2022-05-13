@@ -11371,6 +11371,9 @@ function CompareBullets(bullet1, bullet2)
         var oCanvas = oDiv.firstChild;
         if (!oCanvas) {
             oCanvas = document.createElement('canvas');
+            oCanvas.style.cssText = "padding:0;margin:0;user-select:none;";
+            oCanvas.style.width = oDiv.clientWidth + 'px';
+            oCanvas.style.height = oDiv.clientHeight + 'px';
             oCanvas.width = sideSize;
             oCanvas.height = sideSize;
             oDiv.appendChild(oCanvas);
