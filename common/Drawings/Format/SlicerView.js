@@ -1205,7 +1205,13 @@
         }
     };
     CSlicer.prototype.toXml = function (writer) {
-        writer.WriteXmlString("<sle:slicer xmlns:sle=\"http://schemas.microsoft.com/office/drawing/2010/slicer\" name=\"" + this.name + "\"/>");
+        //writer.WriteXmlString("<sle:slicer xmlns:sle=\"http://schemas.microsoft.com/office/drawing/2010/slicer\" name=\"" + this.name + "\"/>");
+
+
+        writer.WriteXmlNodeStart("sle:slicer");
+        writer.WriteXmlString(" xmlns:sle=\"http://schemas.microsoft.com/office/drawing/2010/slicer\"");
+        writer.WriteXmlNullableAttributeStringEncode("name", this.name);
+        writer.WriteXmlAttributesEnd(true);
 
     };
 
