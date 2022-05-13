@@ -16230,7 +16230,7 @@
 			}
 		};
 		CApp.prototype.toXml = function (writer) {
-			writer.WriteXmlNodeStart(("Properties"));
+			writer.WriteXmlNodeStart("Properties");
 
 
 			writer.WriteXmlNullableAttributeString("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties");
@@ -16244,7 +16244,7 @@
 			writer.WriteXmlNullableValueInt("Words", this.Words);
 			//writer.WriteXmlNullableValueString("Characters", this.Characters);
 			//writer.WriteXmlNullableValueString("CharactersWithSpaces", this.CharactersWithSpaces);
-			writer.WriteXmlValueStringEncode("Application", this.Application);
+			writer.WriteXmlValueStringEncode("Application", "@@AppName/@@Version");
 			//writer.WriteXmlNullableValueString("DocSecurity", this.DocSecurity);
 			writer.WriteXmlValueStringEncode("PresentationFormat", this.PresentationFormat);
 			//writer.WriteXmlNullableValueString("Lines", this.Lines);
@@ -16255,33 +16255,38 @@
 			writer.WriteXmlNullableValueInt("MMClips", this.MMClips);
 			writer.WriteXmlNullableValueBool("ScaleCrop", this.ScaleCrop);
 
-			writer.WriteXmlNodeStart("HeadingPairs");
-			writer.WriteXmlAttributesEnd();
+			if(this.HeadingPairs.length > 0 && false) {
 
-			writer.WriteXmlNodeStart("vt:vector");
+				writer.WriteXmlNodeStart("HeadingPairs");
+				writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullableAttributeUInt("size", this.HeadingPairs.length);
-			writer.WriteXmlNullableAttributeString("baseType", "variant");
-			writer.WriteXmlAttributesEnd();
+				writer.WriteXmlNodeStart("vt:vector");
 
-			//writer.WriteArray2(HeadingPairs);
+				writer.WriteXmlNullableAttributeUInt("size", this.HeadingPairs.length);
+				writer.WriteXmlNullableAttributeString("baseType", "variant");
+				writer.WriteXmlAttributesEnd();
+				//writer.WriteArray2(HeadingPairs);
 
-			writer.WriteXmlNodeEnd("vt:vector");
-			writer.WriteXmlNodeEnd("HeadingPairs");
+				writer.WriteXmlNodeEnd("vt:vector");
+				writer.WriteXmlNodeEnd("HeadingPairs");
+			}
 
-			writer.WriteXmlNodeStart("TitlesOfParts");
-			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNodeStart("vt:vector");
+			if(this.TitlesOfParts.length > 0 && false) {
+				writer.WriteXmlNodeStart("TitlesOfParts");
+				writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullableAttributeUInt("size", this.TitlesOfParts.length);
-			writer.WriteXmlNullableAttributeString("baseType", "lpstr");
-			writer.WriteXmlAttributesEnd();
+				writer.WriteXmlNodeStart("vt:vector");
 
-			//writer.WriteArray2(TitlesOfParts);
+				writer.WriteXmlNullableAttributeUInt("size", this.TitlesOfParts.length);
+				writer.WriteXmlNullableAttributeString("baseType", "lpstr");
+				writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNodeEnd("vt:vector");
-			writer.WriteXmlNodeEnd("TitlesOfParts");
+				//writer.WriteArray2(TitlesOfParts);
+
+				writer.WriteXmlNodeEnd("vt:vector");
+				writer.WriteXmlNodeEnd("TitlesOfParts");
+			}
 
 			//writer.WriteXmlNullableValueString("Manager", this.Manager);
 			writer.WriteXmlValueStringEncode("Company", this.Company);
