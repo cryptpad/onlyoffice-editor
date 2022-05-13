@@ -1454,8 +1454,13 @@ var editor;
 
 	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {
 		var t = this;
-		if (t.isChartEditor || !data) {
+		if (t.isChartEditor) {
 			return false;
+		}
+		Asc.ReadDefTableStyles(wb);
+
+		if (!data) {
+			return true;
 		}
 
 		var openXml = AscCommon.openXml;
@@ -1765,7 +1770,9 @@ var editor;
 					if (contentSheetXml) {
 						var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
 						ws.sName = wbSheetXml.name;
-						ws.bHidden = wbSheetXml.bHidden;
+						if (null !== wbSheetXml.bHidden) {
+							ws.bHidden = wbSheetXml.bHidden;
+						}
 						//var wsView = new AscCommonExcel.asc_CSheetViewSettings();
 						//wsView.pane = new AscCommonExcel.asc_CPane();
 						//ws.sheetViews.push(wsView);
@@ -2241,7 +2248,6 @@ var editor;
 		jsZipWrapper.close();
 		//clean up
 		openXml.SaxParserDataTransfer = {};
-		Asc.ReadDefTableStyles(wb);
 		return true;
 	};
 

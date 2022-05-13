@@ -8883,7 +8883,7 @@ Because of this, the display is sometimes not correct.
 
     Drawing.prototype.setXfrmByParent = function () {
       var oXfrm = this.spPr.xfrm;
-      if (oXfrm.isZero()) {
+      if (oXfrm.isZero && oXfrm.isZero()) {
         var parent = this.group;
         if (parent && parent.spPr.xfrm) {
           oXfrm.setExtX(parent.spPr.xfrm.extX);
@@ -10758,7 +10758,7 @@ Because of this, the display is sometimes not correct.
 
     SmartArt.prototype.setXfrmByParent = function () {
       var oXfrm = this.spPr.xfrm;
-      if (oXfrm.isZero()) {
+      if (oXfrm.isZero && oXfrm.isZero()) {
         var parent = this.parent;
         if (parent instanceof AscCommonWord.ParaDrawing) {
           oXfrm.setExtX(parent.Extent.W);
