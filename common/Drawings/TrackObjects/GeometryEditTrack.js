@@ -506,15 +506,15 @@
         oXfrm.setExtX(dExtX);
         oXfrm.setExtY(dExtY);
         oXfrm.setRot(0);
+        var oOffset;
         //set new position
         if(bWord && !this.originalObject.group) {
             oXfrm.setOffX(0);
             oXfrm.setOffY(0);
         }
 		else if(this.originalObject.animMotionTrack) {
-            ver oOffset = this.getXfrmOffset();
+            oOffset = this.getXfrmOffset();
             this.originalObject.updateAnimation(oOffset.OffX, oOffset.OffY, dExtX, dExtY, 0, this.geometry)
-
 
 
         }
