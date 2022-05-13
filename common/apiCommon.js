@@ -204,7 +204,9 @@
 		UsersCountOS  : 10,
 		ExpiredLimited: 11,
 		ConnectionsLiveOS: 12,
-		ConnectionsLive: 13
+		ConnectionsLive: 13,
+		UsersViewCount: 14,
+		UsersViewCountOS: 15
 	};
 
 	var c_oRights = {
@@ -5934,6 +5936,8 @@
 	prot['ExpiredLimited'] = prot.ExpiredLimited;
 	prot['ConnectionsLiveOS'] = prot.ConnectionsLiveOS;
 	prot['ConnectionsLive'] = prot.ConnectionsLive;
+	prot['UsersViewCount'] = prot.UsersViewCount;
+	prot['UsersViewCountOS'] = prot.UsersViewCountOS;
 
 	window['Asc']['c_oRights'] = window['Asc'].c_oRights = c_oRights;
 	prot = c_oRights;
