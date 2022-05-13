@@ -35,6 +35,7 @@
 (function(window)
 {
 	const MEASURER = AscCommon.g_oTextMeasurer;
+	const FONTSIZE = 72;
 	const COEF     = 25.4 / 72 / 64;
 	const LIGATURE = 2;
 
@@ -118,6 +119,42 @@
 		oContext.SetFontInternal(sFontName, nFontSize, oGrapheme.Style);
 		oGrapheme.Draw(oContext, nX, nY, nFontSize);
 	}
+
+	// function CreateGrapheme(nFontId, nFontStyle)
+	// {
+	// 	return [nFontId << 8 | nFontStyle];
+	// }
+	// function AddGlyphToGrapheme(oGrapheme, nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
+	// {
+	// 	oGrapheme.push(nGID);
+	// 	oGrapheme.push(nAdvanceX);
+	// 	oGrapheme.push(nAdvanceY);
+	// 	oGrapheme.push(nOffsetX);
+	// 	oGrapheme.push(nOffsetY);
+	// }
+	// function DrawGrapheme(oGrapheme, oContext, nX, nY, nFontSize)
+	// {
+	// 	let nFontId = oGrapheme[0] >> 8;
+	// 	let nStyle  = oGrapheme[0] & 0xF;
+	//
+	// 	let sFontName = AscCommon.FontNameMap.GetName(nFontId);
+	// 	oContext.SetFontInternal(sFontName, nFontSize, nStyle);
+	//
+	// 	let nKoef = COEF / 72 * nFontSize;
+	// 	let nPos = 1, nCount = oGrapheme.length;
+	// 	while (nPos < nCount)
+	// 	{
+	// 		let nGID      = oGrapheme[nPos++];
+	// 		let nAdvanceX = oGrapheme[nPos++];
+	// 		let nAdvanceY = oGrapheme[nPos++];
+	// 		let nOffsetX  = oGrapheme[nPos++];
+	// 		let nOffsetY  = oGrapheme[nPos++];
+	//
+	// 		oContext.tg(nGID, nX + nOffsetX * nKoef, nY + nOffsetY * nKoef);
+	// 		nX += nAdvanceX * nKoef;
+	// 		nY += nAdvanceY * nKoef;
+	// 	}
+	// }
 
 	/**
 	 *
