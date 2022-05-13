@@ -1743,7 +1743,9 @@ var editor;
 					if (contentSheetXml) {
 						var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
 						ws.sName = wbSheetXml.name;
-						ws.bHidden = wbSheetXml.bHidden;
+						if (null !== wbSheetXml.bHidden) {
+							ws.bHidden = wbSheetXml.bHidden;
+						}
 						//var wsView = new AscCommonExcel.asc_CSheetViewSettings();
 						//wsView.pane = new AscCommonExcel.asc_CPane();
 						//ws.sheetViews.push(wsView);
