@@ -1045,56 +1045,114 @@
 					{
 						window.g_asc_plugins.api._beforeEvalCommand();
 						AscFonts.IsCheckSymbols = true;
-						var flag = value.indexOf('XMLHttpRequest') != -1 ? confirm("This macros makes XMLHttpRequest. Are you shure that you want to run it?") : true;
 
 						function myxmlhttp() {
 							this._headers = [];
 							var t = this;
-							this.open = function(method, url) {
+
+							this.open = function(method, url, async, user, password) {
 								this._url = url;
 								this._method = method;
+								this._async = async;
+								this._user = user;
+								this._password = password;
 							};
+
 							this.setRequestHeader = function(name, value) {
 								this._headers.push({name: name, value: value});
 							};
-							this.send = function() {
-								var f = confirm("Allow a request to such url: '" + this._url +"' ?");
-								if (f) {
-									let xhr = new XMLHttpRequest();
-									xhr.open(this._method, this._url);
-									this._headers.forEach((el)=>{
-										xhr.setRequestHeader(el.name, el.value);
-									})
-									xhr.onload = function() {
-										t.status = xhr.status;
-										t.statusText = xhr.statusText;
-										t.response = xhr.response;
-										t.onload();
-									};
-									xhr.onprogress = function(event) {
-										t.onprogress(event);
-									};
-									xhr.onerror = function(){
-										t.onerror("User doesn't allow this request.");
-									};
-									setTimeout(()=>{
-										xhr.send();
-									});
-								} else {
-									setTimeout(()=>{
-										t.onerror("User doesn't allow this request.");
-									})
-								}
-							}
+
+							this.send = function(body) {
+								var permission = null;
+								var interval = setInterval(function() {
+									permission = window.g_asc_plugins.api.asc_getUserPermissionToMakeRequestFromMacros(t._url);									
+									if (permission != null) {
+										clearInterval(interval);
+										if (permission) {
+											var xhr = new XMLHttpRequest();
+
+											if (t.timeout)
+												xhr.timeout = t.timeout;
+
+											if (t.responseType)
+												xhr.responseType = t.responseType;
+
+											if ( t.hasOwnProperty('withCredentials') )
+												xhr.withCredentials = t.withCredentials;
+
+											xhr.open(t._method, t._url, t._async, t._user, t._password);
+
+											t._headers.forEach(function(el) {
+												xhr.setRequestHeader(el.name, el.value);
+											});
+
+											xhr.onload = function() {
+												t.status = xhr.status;
+												t.statusText = xhr.statusText;
+												t.response = xhr.response;
+												t.responseText = xhr.responseText;
+												t.responseURL = xhr.responseURL;
+												t.responseXML = xhr.responseXML;
+												t.onload &&	t.onload();
+											};
+
+											xhr.onprogress = function(event) {
+												t.onprogress && t.onprogress(event);
+											};
+
+											xhr.onreadystatechange = function() {
+												t.readyState = this.readyState;
+												t.onreadystatechange && t.onreadystatechange();
+											};
+
+											xhr.onerror = function(error) {
+												t.onerror && t.onerror(error || "User doesn't allow this request.");
+											};
+
+											xhr.ontimeout = function(event) {
+												t.ontimeout && t.ontimeout(event);
+											};
+
+											xhr.onloadstart = function(event) {
+												t.onloadstart && t.onloadstart(event);
+											};
+
+											xhr.onloadend = function(event) {
+												t.onloadend && t.onloadend(event);
+											};
+
+											xhr.onabort = function(event) {
+												t.onabort && t.onabort(event);
+											};
+
+											t.upload = xhr.upload;
+
+											t.getResponseHeader = function(name) {
+												return xhr.getResponseHeader(name);
+											};
+
+											t.getAllResponseHeaders = function() {
+												return xhr.getAllResponseHeaders();
+											};
+
+											t.abort = function() {
+												xhr.abort();
+											}
+
+											xhr.send(body || null);
+
+										} else if (t.onerror)  {
+											t.onerror("User doesn't allow this request.");
+										}
+									}
+								}, 500);
+							};
 			
 						}
 						var _script = "(function(Api, window, alert, document, XMLHttpRequest){\r\n" + "\"use strict\"" + ";\r\n" + value.replace(/\\/g, "\\\\") + "\n})(window.g_asc_plugins.api, {}, function(){}, {}," + myxmlhttp.toString() + ");";
 						try
 						{
-							if (flag)
-								eval(_script);
-							else
-								console.warn("User doesn't allow this macros.");
+							eval(_script);
 						}
 						catch (err)
 						{
