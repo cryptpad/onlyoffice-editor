@@ -9788,7 +9788,7 @@
 		const baseLineOffset = par.Lines[0].Y;
 		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
 
-		const yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+		const yOffset = y - ((baseLineOffset * AscCommon.g_dKoef_mm_to_pix) >> 0);
 		const xOffset = x;
 
 		const backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
@@ -9872,19 +9872,37 @@
 				});
 				return;
 			}
-			let id = this.infoOfDrawings[0].divId;
 
-			this.drawNoneTextPreview(id, this.arrayOfBullets[0]);
-			for (let i = 1; i < this.infoOfDrawings.length; i++)
+			for (let i = 0; i < this.infoOfDrawings.length; i++)
 			{
-				id = this.infoOfDrawings[i].divId;
-				if (!this.type)
+				const drawingInfo = this.infoOfDrawings[i];
+				const id = drawingInfo.divId;
+				const currentBullet = this.arrayOfBullets[i];
+				if (this.type === 0)
 				{
-					this.drawSingleBullet(id, this.arrayOfBullets[i]);
+					if (drawingInfo.type === asc_PreviewBulletType.text)
+					{
+						this.drawNoneTextPreview(id, currentBullet);
+					}
+					else
+					{
+						this.drawSingleBullet(id, currentBullet);
+					}
 				}
-				else
+				else if (this.type === 1)
 				{
-					this.drawBulletsWithLines(id, this.arrayOfBullets[i], 3);
+					if (drawingInfo.type === asc_PreviewBulletType.text)
+					{
+						this.drawNoneTextPreview(id, currentBullet);
+					}
+					else
+					{
+						this.drawBulletsWithLines(id, currentBullet, 3);
+					}
+				}
+				else if (this.type === 2)
+				{
+					//TODO: add multi level support
 				}
 			}
 		}, this);
