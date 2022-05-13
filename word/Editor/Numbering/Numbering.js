@@ -328,3 +328,7 @@ CNumbering.prototype.IsEmpty = function()
 {
 	return 0 === Object.keys(this.Num).length;
 };
+
+//---------------------------------------------------------export---------------------------------------------------
+window['AscCommonWord'] = window['AscCommonWord'] || {};
+window["AscCommonWord"].DEFAULT_NUMBERING = new CNumbering();

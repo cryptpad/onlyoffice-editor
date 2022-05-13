@@ -6941,7 +6941,7 @@
 			if (compareObj instanceof CBuBlip) {
 				ret = new CBuBlip();
 				if (this.blip) {
-					ret.setBlip(this.blip.compare(compareObj.blip));
+					ret.blip = CompareUniFill(this.blip, compareObj.blip);
 				}
 			}
 			return ret;
@@ -9713,6 +9713,28 @@
 				&& isRealNumber(this.chOffX) && isRealNumber(this.chOffY)
 				&& isRealNumber(this.extX) && isRealNumber(this.extY)
 				&& isRealNumber(this.chExtX) && isRealNumber(this.chExtY);
+		};
+
+
+		CXfrm.prototype.isZero = function () {
+			return (
+				this.offX === 0 &&
+				this.offY === 0 &&
+				this.extX === 0 &&
+				this.extY === 0
+			);
+		};
+		CXfrm.prototype.isZeroCh = function () {
+			return (
+				this.chOffX === 0 &&
+				this.chOffY === 0 &&
+				this.chExtX === 0 &&
+				this.chExtY === 0
+			);
+		};
+
+		CXfrm.prototype.isZeroInGroup = function () {
+			return this.isZero() && this.isZeroCh();
 		};
 		CXfrm.prototype.isEqual = function (xfrm) {
 			return xfrm && this.offX === xfrm.offX && this.offY === xfrm.offY && this.extX === xfrm.extX &&
@@ -13878,7 +13900,7 @@
 					}
 					case AscFormat.BULLET_TYPE_BULLET_BLIP: {
 						ret.bulletType.type = AscFormat.BULLET_TYPE_BULLET_BLIP;
-						var compareBlip = bullet1.bulletType.Blip && bullet1.bulletType.Blip.compare(bullet2.bulletType.Blip);
+						var compareBlip = bullet1.bulletType.Blip && bullet2.bulletType.Blip && bullet1.bulletType.Blip.compare(bullet2.bulletType.Blip);
 						ret.bulletType.Blip = compareBlip;
 						break;
 					}
@@ -14125,60 +14147,77 @@
 			return true;
 		};
 		CBullet.prototype.fillBulletImage = function (url) {
-			if (!this.bulletType) {
-				this.bulletType = new CBulletType();
-			}
-			if (!this.bulletType.Blip) {
-				this.bulletType.Blip = new AscFormat.CBuBlip();
-			}
-			this.bulletType.Type = AscFormat.BULLET_TYPE_BULLET_BLIP;
+			this.bulletType = new CBulletType();
+			this.bulletType.Blip = new AscFormat.CBuBlip();
+			this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_BLIP;
 			this.bulletType.Blip.setBlip(AscFormat.CreateBlipFillUniFillFromUrl(url));
 
 		};
+		CBullet.prototype.fillBulletFromCharAndFont = function (char, font) {
+			this.bulletType = new AscFormat.CBulletType();
+			this.bulletTypeface = new AscFormat.CBulletTypeface();
+			this.bulletTypeface.type = AscFormat.BULLET_TYPE_TYPEFACE_BUFONT;
+			this.bulletTypeface.typeface = font || AscFonts.FontPickerByCharacter.getFontBySymbol(char.getUnicodeIterator().value());
+			this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_CHAR;
+			this.bulletType.Char = char;
+		};
 		CBullet.prototype.getImageBulletURL = function () {
-			return (this.bulletType
+			var res = (this.bulletType
 				&& this.bulletType.Blip
 				&& this.bulletType.Blip.blip
 				&& this.bulletType.Blip.blip.fill
 				&& this.bulletType.Blip.blip.fill.RasterImageId);
+			return res ? res : null;
 		};
-		CBullet.prototype.drawSquareImage = function () {
+		CBullet.prototype.setImageBulletURL = function (url) {
+			var blipFill = (this.bulletType
+				&& this.bulletType.Blip
+				&& this.bulletType.Blip.blip
+				&& this.bulletType.Blip.blip.fill);
+			if (blipFill) {
+				blipFill.setRasterImageId(url);
+			}
+		};
+		CBullet.prototype.drawSquareImage = function (divId, relativeIndent) {
+			relativeIndent = relativeIndent || 0;
+
 			var url = this.getImageBulletURL();
-			if (!url || !editor) {
+			var Api = editor || Asc.editor;
+			if(!url || !Api){
 				return;
 			}
-			var oDiv = document.getElementById(this.DivId);
-			if (!oDiv) {
+
+			var oDiv = document.getElementById(divId);
+			if(!oDiv) {
 				return;
-			}
-			var aChildren = oDiv.children;
-			var oCanvas = null;
-			for (var i = 0; i < aChildren.length; ++i) {
-				if (aChildren[i].nodeName && aChildren[i].nodeName.toUpperCase() === 'CANVAS') {
-					oCanvas = aChildren[i];
-					break;
-				}
 			}
 			var nWidth = oDiv.clientWidth;
 			var nHeight = oDiv.clientHeight;
-			if (nWidth !== nHeight) {
-				return;
-			}
-			if (null === oCanvas) {
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+			var sideSize = nWidth < nHeight ? nWidth * rPR : nHeight * rPR;
+
+			var oCanvas = oDiv.firstChild;
+			if (!oCanvas) {
 				oCanvas = document.createElement('canvas');
-				oCanvas.width = parseInt(nWidth);
-				oCanvas.height = parseInt(nHeight);
+				oCanvas.style.cssText = "padding:0;margin:0;user-select:none;";
+				oCanvas.style.width = oDiv.clientWidth + 'px';
+				oCanvas.style.height = oDiv.clientHeight + 'px';
+				oCanvas.width = sideSize;
+				oCanvas.height = sideSize;
 				oDiv.appendChild(oCanvas);
 			}
+
 			var oContext = oCanvas.getContext('2d');
-			oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
-			var _img = this.Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
-			if (_img != undefined && _img.Image != null && _img.Status != AscFonts.ImageLoadStatus.Loading) {
-				var indent = nWidth * 0.125;
-				var _x = indent;
-				var _y = indent;
-				var _w = nWidth - indent;
-				var _h = nHeight - indent;
+			oContext.fillStyle = "white";
+			oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
+			var _img = Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
+			if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading)
+			{
+				var absoluteIndent = sideSize * relativeIndent;
+				var _x = absoluteIndent;
+				var _y = absoluteIndent;
+				var _w = sideSize - absoluteIndent * 2;
+				var _h = sideSize - absoluteIndent * 2;
 				oContext.drawImage(_img.Image, _x, _y, _w, _h);
 			}
 		};
@@ -14257,64 +14296,87 @@
 			}
 		};
 //interface methods
+		//interface methods
 		var prot = CBullet.prototype;
+		prot["fillBulletImage"] = prot["asc_fillBulletImage"] = CBullet.prototype.fillBulletImage;
+		prot["fillBulletFromCharAndFont"] = prot["asc_fillBulletFromCharAndFont"] = CBullet.prototype.fillBulletFromCharAndFont;
+		prot["drawSquareImage"] = prot["asc_drawSquareImage"] = CBullet.prototype.drawSquareImage;
+		prot.getImageId = function () {
+			return this.getImageBulletURL();
+		}
+		prot["getImageId"] = prot["asc_getImageId"] = CBullet.prototype.getImageId;
 		prot.put_ImageUrl = function (sUrl, token) {
 			var _this = this;
-			var Api = editor;
-			if (!Api) {
+			var Api = editor || Asc.editor;
+			if(!Api)
+			{
 				return;
 			}
-			AscCommon.sendImgUrls(Api, [sUrl], function (data) {
-				if (data && data[0] && data[0].url !== "error") {
+			AscCommon.sendImgUrls(Api, [sUrl], function(data) {
+				if (data && data[0] && data[0].url !== "error")
+				{
 					var url = AscCommon.g_oDocumentUrls.imagePath2Local(data[0].path);
-					Api.ImageLoader.LoadImagesWithCallback([AscCommon.getFullImageSrc2(url)], function () {
+					Api.ImageLoader.LoadImagesWithCallback([AscCommon.getFullImageSrc2(url)], function(){
 						_this.fillBulletImage(url);
 						//_this.drawSquareImage();
-						_this.Api.sendEvent("asc_onBulletImageLoaded");
+						Api.sendEvent("asc_onBulletImageLoaded", _this);
 					});
 				}
 			}, false, false, token);
-		}
+		};
 		prot["put_ImageUrl"] = prot["asc_putImageUrl"] = CBullet.prototype.put_ImageUrl;
 		prot.showFileDialog = function () {
-			if (!editor) {
+
+			var Api = editor || Asc.editor;
+
+			if(!Api) {
 				return;
 			}
-			var t = editor;
 			var _this = this;
-			AscCommon.ShowImageFileDialog(t.documentId, t.documentUserId, t.CoAuthoringApi.get_jwt(), function (error, files) {
-					if (Asc.c_oAscError.ID.No !== error) {
-						t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
-					} else {
-						t.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
-						AscCommon.UploadImageFiles(files, t.documentId, t.documentUserId, t.CoAuthoringApi.get_jwt(), function (error, urls) {
-							if (Asc.c_oAscError.ID.No !== error) {
-								t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
-								t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
-							} else {
-								t.ImageLoader.LoadImagesWithCallback(urls, function () {
-									if (urls.length > 0) {
+			AscCommon.ShowImageFileDialog(Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function(error, files)
+				{
+					if (Asc.c_oAscError.ID.No !== error)
+					{
+						Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+					}
+					else
+					{
+						Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+						AscCommon.UploadImageFiles(files, Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function(error, urls)
+						{
+							if (Asc.c_oAscError.ID.No !== error)
+							{
+								Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+								Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+							}
+							else
+							{
+								Api.ImageLoader.LoadImagesWithCallback(urls, function(){
+									if(urls.length > 0)
+									{
 										_this.fillBulletImage(urls[0]);
 										//_this.drawSquareImage();
-										t.sendEvent("asc_onBulletImageLoaded");
+										Api.sendEvent("asc_onBulletImageLoaded", _this);
 									}
-									t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+									Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
 								});
 							}
 						});
 					}
 				},
-				function (error) {
-					if (Asc.c_oAscError.ID.No !== error) {
-						t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+				function(error)
+				{
+					if (Asc.c_oAscError.ID.No !== error)
+					{
+						Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
 					}
-					t.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+					Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
 				});
-		}
+		};
 		prot["showFileDialog"] = prot["asc_showFileDialog"] = CBullet.prototype.showFileDialog;
 		prot.asc_getSize = function () {
 			var nRet = 100;
-			if (this.bulletSize) {
+			if(this.bulletSize) {
 				switch (this.bulletSize.type) {
 					case AscFormat.BULLET_TYPE_SIZE_NONE: {
 						break;
@@ -14334,25 +14396,27 @@
 			return nRet;
 		};
 		prot["get_Size"] = prot["asc_getSize"] = CBullet.prototype.asc_getSize;
-		prot.asc_putSize = function (Size) {
-			if (AscFormat.isRealNumber(Size)) {
+		prot.asc_putSize = function(Size) {
+			if(AscFormat.isRealNumber(Size)) {
 				this.bulletSize = new AscFormat.CBulletSize();
 				this.bulletSize.type = AscFormat.BULLET_TYPE_SIZE_PCT;
 				this.bulletSize.val = (Size * 1000) >> 0;
 			}
 		};
 		prot["put_Size"] = prot["asc_putSize"] = CBullet.prototype.asc_putSize;
-		prot.asc_getColor = function () {
-			if (this.bulletColor) {
-				if (this.bulletColor.UniColor) {
+		prot.asc_getColor = function() {
+			if(this.bulletColor) {
+				if(this.bulletColor.UniColor) {
 					return AscCommon.CreateAscColor(this.bulletColor.UniColor);
 				}
-			} else {
+			}
+			else {
 				var FirstTextPr = this.FirstTextPr;
-				if (FirstTextPr && FirstTextPr.Unifill) {
-					if (FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color) {
+				if(FirstTextPr && FirstTextPr.Unifill) {
+					if(FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color) {
 						return AscCommon.CreateAscColor(FirstTextPr.Unifill.fill.color);
-					} else {
+					}
+					else {
 						var RGBA = FirstTextPr.Unifill.getRGBAColor();
 						return AscCommon.CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
 					}
@@ -14361,22 +14425,23 @@
 			return AscCommon.CreateAscColorCustom(0, 0, 0);
 		};
 		prot["get_Color"] = prot["asc_getColor"] = prot.asc_getColor;
-		prot.asc_putColor = function (color) {
+		prot.asc_putColor = function(color) {
 			this.bulletColor = new AscFormat.CBulletColor();
 			this.bulletColor.type = AscFormat.BULLET_TYPE_COLOR_CLR;
 			this.bulletColor.UniColor = AscFormat.CorrectUniColor(color, this.bulletColor.UniColor, 0);
 		};
 		prot["put_Color"] = prot["asc_putColor"] = prot.asc_putColor;
-		prot.asc_getFont = function () {
+		prot.asc_getFont = function() {
 			var sRet = "";
-			if (this.bulletTypeface
+			if(this.bulletTypeface
 				&& this.bulletTypeface.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT
 				&& typeof this.bulletTypeface.typeface === "string"
 				&& this.bulletTypeface.typeface.length > 0) {
 				sRet = this.bulletTypeface.typeface;
-			} else {
+			}
+			else {
 				var FirstTextPr = this.FirstTextPr;
-				if (FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
+				if(FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
 					&& FirstTextPr.FontFamily.Name.length > 0) {
 					sRet = FirstTextPr.FontFamily.Name;
 				}
@@ -14384,31 +14449,31 @@
 			return sRet;
 		};
 		prot["get_Font"] = prot["asc_getFont"] = prot.asc_getFont;
-		prot.asc_putFont = function (val) {
-			if (typeof val === "string" && val.length > 0) {
+		prot.asc_putFont = function(val) {
+			if(typeof val === "string" && val.length > 0) {
 				this.bulletTypeface = new AscFormat.CBulletTypeface();
 				this.bulletTypeface.type = AscFormat.BULLET_TYPE_TYPEFACE_BUFONT;
 				this.bulletTypeface.typeface = val;
 			}
 		};
 		prot["put_Font"] = prot["asc_putFont"] = prot.asc_putFont;
-		prot.asc_putNumStartAt = function (NumStartAt) {
+		prot.asc_putNumStartAt = function(NumStartAt) {
 			this.putNumStartAt(NumStartAt);
 		};
 		prot["put_NumStartAt"] = prot["asc_putNumStartAt"] = prot.asc_putNumStartAt;
-		prot.asc_getNumStartAt = function () {
+		prot.asc_getNumStartAt = function() {
 			return this.getNumStartAt();
 		};
 		prot["get_NumStartAt"] = prot["asc_getNumStartAt"] = prot.asc_getNumStartAt;
 		prot.asc_getSymbol = function () {
-			if (this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR) {
+			if(this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR) {
 				return this.bulletType.Char;
 			}
 			return undefined;
 		};
 		prot["get_Symbol"] = prot["asc_getSymbol"] = prot.asc_getSymbol;
-		prot.asc_putSymbol = function (v) {
-			if (!this.bulletType) {
+		prot.asc_putSymbol = function(v) {
+			if(!this.bulletType) {
 				this.bulletType = new CBulletType();
 			}
 			this.bulletType.AutoNumType = 0;
@@ -14416,38 +14481,40 @@
 			this.bulletType.Char = v;
 		};
 		prot["put_Symbol"] = prot["asc_putSymbol"] = prot.asc_putSymbol;
-		prot.asc_putAutoNumType = function (val) {
-			if (!this.bulletType) {
+		prot.asc_putAutoNumType = function(val) {
+			if(!this.bulletType) {
 				this.bulletType = new CBulletType();
 			}
 			this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
 			this.bulletType.AutoNumType = AscFormat.getNumberingType(val);
 		};
 		prot["put_AutoNumType"] = prot["asc_putAutoNumType"] = prot.asc_putAutoNumType;
-		prot.asc_getAutoNumType = function () {
-			if (this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM) {
+		prot.asc_getAutoNumType = function() {
+			if(this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM) {
 				return AscFormat.fGetListTypeFromBullet(this).SubType;
 			}
 			return -1;
 		};
 		prot["get_AutoNumType"] = prot["asc_getAutoNumType"] = prot.asc_getAutoNumType;
-		prot.asc_putListType = function (type, subtype) {
+		prot.asc_putListType = function(type, subtype, custom) {
 			var NumberInfo =
 				{
-					Type: type,
-					SubType: subtype
+					Type     : type,
+					SubType  : subtype,
+					Custom   : custom
 				};
 			AscFormat.fFillBullet(NumberInfo, this);
 		};
 		prot["put_ListType"] = prot["asc_putListType"] = prot.asc_putListType;
-		prot.asc_getListType = function () {
+		prot.asc_getListType = function() {
 			return new AscCommon.asc_CListType(AscFormat.fGetListTypeFromBullet(this));
 		};
-		prot.asc_getType = function () {
+		prot.asc_getType = function() {
 			return this.bulletType && this.bulletType.type;
 		};
 		prot["get_Type"] = prot["asc_getType"] = prot.asc_getType;
 		window["Asc"]["asc_CBullet"] = window["Asc"].asc_CBullet = CBullet;
+
 
 		function CBulletColor(nType) {
 			CBaseNoIdObject.call(this);
@@ -17990,6 +18057,10 @@
 		}
 
 		function CorrectUniFill(asc_fill, unifill, editorId) {
+
+			if (asc_fill instanceof CUniFill) {
+				return asc_fill;
+			}
 			if (null == asc_fill)
 				return unifill;
 
