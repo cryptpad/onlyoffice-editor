@@ -36,7 +36,7 @@
 {
 	const MEASURER = AscCommon.g_oTextMeasurer;
 	const FONTSIZE = 72;
-	const COEF     = 25.4 / 72 / 64;
+	const COEF     = 25.4 / 72 / 64 ;
 	const LIGATURE = 2;
 
 	function ClusterCodePointLength(nCodePoint)
@@ -60,101 +60,86 @@
 		return nLen;
 	}
 
-	/**
-	 * @param nGID
-	 * @param nAdvanceX
-	 * @param nAdvanceY
-	 * @param nOffsetX
-	 * @param nOffsetY
-	 * @constructor
-	 */
-	function CGlyph(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
-	{
-		this.GID      = nGID;
-		this.AdvanceX = nAdvanceX;
-		this.AdvanceY = nAdvanceY;
-		this.OffsetX  = nOffsetX;
-		this.OffsetY  = nOffsetY;
-	}
-
-	/**
-	 * @param nFontId
-	 * @param nStyle
-	 * @constructor
-	 */
-	function CGrapheme(nFontId, nStyle)
-	{
-		this.Font   = nFontId;
-		this.Style  = nStyle;
-		this.Glyphs = [];
-	}
-	CGrapheme.prototype.Add = function(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
-	{
-		this.Glyphs.push(new CGlyph(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY));
-	};
-	CGrapheme.prototype.Draw = function(oContext, nX, nY, nFontSize)
-	{
-		let nKoef =  COEF / 72 * nFontSize;
-
-		for (let nIndex = 0, nCount = this.Glyphs.length; nIndex < nCount; ++nIndex)
-		{
-			let oGlyph = this.Glyphs[nIndex];
-			oContext.tg(oGlyph.GID, nX + oGlyph.OffsetX * nKoef, nY + oGlyph.OffsetY * nKoef);
-			nX += oGlyph.AdvanceX * nKoef;
-			nY += oGlyph.AdvanceY * nKoef;
-		}
-	};
-
 	function CreateGrapheme(nFontId, nFontStyle)
 	{
-		return new CGrapheme(nFontId, nFontStyle);
+		return [nFontId << 8 | nFontStyle];
 	}
 	function AddGlyphToGrapheme(oGrapheme, nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
 	{
-		oGrapheme.Add(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY);
+		oGrapheme.push(nGID);
+		oGrapheme.push(nAdvanceX);
+		oGrapheme.push(nAdvanceY);
+		oGrapheme.push(nOffsetX);
+		oGrapheme.push(nOffsetY);
 	}
 	function DrawGrapheme(oGrapheme, oContext, nX, nY, nFontSize)
 	{
-		let sFontName = AscCommon.FontNameMap.GetName(oGrapheme.Font);
-		oContext.SetFontInternal(sFontName, nFontSize, oGrapheme.Style);
-		oGrapheme.Draw(oContext, nX, nY, nFontSize);
+		let nFontId = oGrapheme[0] >> 8;
+		let nStyle  = oGrapheme[0] & 0xF;
+
+		let sFontName = AscCommon.FontNameMap.GetName(nFontId);
+		oContext.SetFontInternal(sFontName, nFontSize, nStyle);
+
+		let nKoef = COEF * nFontSize / 72;
+		let nPos = 1, nCount = oGrapheme.length;
+		while (nPos < nCount)
+		{
+			let nGID      = oGrapheme[nPos++];
+			let nAdvanceX = oGrapheme[nPos++];
+			let nAdvanceY = oGrapheme[nPos++];
+			let nOffsetX  = oGrapheme[nPos++];
+			let nOffsetY  = oGrapheme[nPos++];
+
+			oContext.tg(nGID, nX + nOffsetX * nKoef, nY + nOffsetY * nKoef);
+			nX += nAdvanceX * nKoef;
+			nY += nAdvanceY * nKoef;
+		}
 	}
 
-	// function CreateGrapheme(nFontId, nFontStyle)
-	// {
-	// 	return [nFontId << 8 | nFontStyle];
-	// }
-	// function AddGlyphToGrapheme(oGrapheme, nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
-	// {
-	// 	oGrapheme.push(nGID);
-	// 	oGrapheme.push(nAdvanceX);
-	// 	oGrapheme.push(nAdvanceY);
-	// 	oGrapheme.push(nOffsetX);
-	// 	oGrapheme.push(nOffsetY);
-	// }
-	// function DrawGrapheme(oGrapheme, oContext, nX, nY, nFontSize)
-	// {
-	// 	let nFontId = oGrapheme[0] >> 8;
-	// 	let nStyle  = oGrapheme[0] & 0xF;
-	//
-	// 	let sFontName = AscCommon.FontNameMap.GetName(nFontId);
-	// 	oContext.SetFontInternal(sFontName, nFontSize, nStyle);
-	//
-	// 	let nKoef = COEF / 72 * nFontSize;
-	// 	let nPos = 1, nCount = oGrapheme.length;
-	// 	while (nPos < nCount)
-	// 	{
-	// 		let nGID      = oGrapheme[nPos++];
-	// 		let nAdvanceX = oGrapheme[nPos++];
-	// 		let nAdvanceY = oGrapheme[nPos++];
-	// 		let nOffsetX  = oGrapheme[nPos++];
-	// 		let nOffsetY  = oGrapheme[nPos++];
-	//
-	// 		oContext.tg(nGID, nX + nOffsetX * nKoef, nY + nOffsetY * nKoef);
-	// 		nX += nAdvanceX * nKoef;
-	// 		nY += nAdvanceY * nKoef;
-	// 	}
-	// }
+	const GRAPHEMES = {};
+	function CompareGraphemes(g1, g2)
+	{
+		if (g1.length !== g2.length)
+			return false;
+
+		for (let nPos = 0, nCount = g1.length; nPos < nCount; ++nPos)
+		{
+			if (g1[nPos] !== g2[nPos])
+				return false;
+		}
+
+		return true;
+	}
+	function CheckGraphemesCache(oGrapheme)
+	{
+		let nFontId = oGrapheme[0];
+		if (!GRAPHEMES[nFontId])
+			GRAPHEMES[nFontId] = {};
+
+		let result = GRAPHEMES[nFontId];
+
+		let nPos = 1, nCount = oGrapheme.length;
+		while (nPos < nCount)
+		{
+			let nGID = oGrapheme[nPos];
+			nPos += 5;
+
+			if (!result[nGID])
+				result[nGID] = {};
+
+			result = result[nGID];
+		}
+
+		if (!result.Buffer)
+			result.Buffer = oGrapheme;
+
+		// TODO: Проверку убераем для скорости, т.к. ни разу не было не совпадения
+		// else if (!CompareGraphemes(oGrapheme, result.Buffer))
+		// 	return oGrapheme;
+
+		return result.Buffer;
+	}
+
 
 	/**
 	 *
@@ -223,15 +208,13 @@
 
 		let nDirection = this.GetDirection(nScript);
 
-		let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
-		let nFontId   = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
-
 		let oFontInfo = this.TextPr.GetFontInfo(this.FontSlot);
 		let nFontSize = oFontInfo.Size;
 		let nKoef     = COEF * nFontSize / 72;
+		let nFontId   = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
+		MEASURER.SetFontInternal(this.FontId.m_pFaceInfo.family_name, FONTSIZE, oFontInfo.Style);
+		let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
 
-
-		MEASURER.SetFontInternal(this.FontId.m_pFaceInfo.family_name, 72, oFontInfo.Style);
 
 		if (AscFonts.HB_DIRECTION.HB_DIRECTION_RTL === nDirection)
 		{
@@ -239,8 +222,6 @@
 			//       разбиваем их на нормальные графемы
 
 			let oGrapheme = CreateGrapheme(nFontId, oFontInfo.Style);
-			this.Items[0].SetGrapheme(oGrapheme, this.FontSlot);
-
 			let nGraphemeWidth = 0;
 			for (let nGlyphIndex = 0, nGlyphsCount = arrGlyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 			{
@@ -248,7 +229,7 @@
 				AddGlyphToGrapheme(oGrapheme, oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
 				nGraphemeWidth += oGlyph.x_advance * nKoef;
 			}
-
+			this.Items[0].SetGrapheme(CheckGraphemesCache(oGrapheme), this.FontSlot);
 			this.Items[0].SetWidth(nGraphemeWidth);
 
 			for (let nCharIndex = 1, nCharsCount = this.Items.length; nCharIndex < nCharsCount; ++nCharIndex)
@@ -276,8 +257,6 @@
 
 				let isLigature = LIGATURE === oGlyph.type;
 
-				this.Items[nCharIndex].SetGrapheme(oGrapheme, this.FontSlot);
-
 				nCluster += ClusterCodePointLength(this.Items[nCharIndex].GetCodePoint());
 				nCharIndex++;
 
@@ -285,10 +264,9 @@
 				{
 					oGlyph = arrGlyphs[++nGlyphIndex];
 					AddGlyphToGrapheme(oGrapheme, oGlyph.gid, oGlyph.x_advance, oGlyph.y_advance, oGlyph.x_offset, oGlyph.y_offset);
-
 					nGraphemeWidth += oGlyph.x_advance * nKoef;
 				}
-
+				nStartChar.SetGrapheme(CheckGraphemesCache(oGrapheme), this.FontSlot);
 				nStartChar.SetWidth(nGraphemeWidth);
 
 				let nNextCluster = nGlyphIndex === nGlyphsCount - 1 ? nClusterMax : arrGlyphs[nGlyphIndex + 1].cluster;
@@ -311,7 +289,6 @@
 				}
 			}
 		}
-		//console.log(arrGlyphs);
 
 		this.ClearBuffer();
 	};
@@ -322,7 +299,7 @@
 	CTextShaper.prototype.GetFontSlot = function(nUnicode)
 	{
 		let oTextPr = this.TextPr;
-		if (!this.TextPr)
+		if (!oTextPr)
 			return fontslot_None;
 
 		return g_font_detector.Get_FontClass(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
@@ -385,5 +362,6 @@
 	window['AscCommon'].CTextShaper  = CTextShaper;
 	window['AscCommon'].TextShaper   = new CTextShaper();
 	window['AscCommon'].DrawGrapheme = DrawGrapheme;
+	window['AscCommon'].GRAPHEMES    = GRAPHEMES;
 
 })(window);

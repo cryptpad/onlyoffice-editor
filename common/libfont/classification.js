@@ -533,7 +533,7 @@ var fonthint_EastAsia = 0x02;
             if (bCS || bRTL)
                 return fontslot_CS;
 
-            return _glyph_slot;
+            return _glyph_slot ? _glyph_slot : fontslot_ASCII;
         }
     }
 
