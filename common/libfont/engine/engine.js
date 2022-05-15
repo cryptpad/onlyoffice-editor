@@ -552,21 +552,27 @@ else
         this.pos = start;
         this.limit = start + size;
     }
+	CBinaryReader.prototype.init = function(data, start, size)
+	{
+		this.data = data;
+		this.pos = start;
+		this.limit = start + size;
+	}
     CBinaryReader.prototype.readInt = function()
     {
-        var val = this.data[this.pos] | this.data[this.pos + 1] << 8 | this.data[this.pos + 2] << 16 | this.data[this.pos + 3] << 24;
+		var val = (this.data[this.pos] & 0xFF) | (this.data[this.pos + 1] & 0xFF) << 8 | (this.data[this.pos + 2] & 0xFF) << 16 | (this.data[this.pos + 3] & 0xFF) << 24;
         this.pos += 4;
         return val;
     };
     CBinaryReader.prototype.readUInt = function()
     {
-        var val = this.data[this.pos] | this.data[this.pos + 1] << 8 | this.data[this.pos + 2] << 16 | this.data[this.pos + 3] << 24;
+        var val = (this.data[this.pos] & 0xFF) | (this.data[this.pos + 1] & 0xFF) << 8 | (this.data[this.pos + 2] & 0xFF) << 16 | (this.data[this.pos + 3] & 0xFF) << 24;
         this.pos += 4;
         return (val < 0) ? val + 4294967296 : val;
     };
     CBinaryReader.prototype.readByte = function()
     {
-        return this.data[this.pos++];
+        return (this.data[this.pos++] & 0xFF);
     };
     CBinaryReader.prototype.readPointer64 = function()
     {
@@ -580,6 +586,8 @@ else
     {
         return (this.pos < this.limit) ? true : false;
     };
+
+	const READER = new CBinaryReader(null, 0, 0);
 
     AscFonts.HB_Shape = function(fontFile, text, features, script, direction, language)
     {
@@ -666,9 +674,57 @@ else
         return glyphs;
     };
 
+	AscFonts.HB_Shape2 = function(fontFile, textPointer, features, script, direction, language)
+	{
+		if (!AscFonts.hb_cache_languages[language])
+		{
+			let langBuffer = language.toUtf8();
+			var langPointer = Module["_malloc"](langBuffer.length);
+			Module["HEAP8"].set(langBuffer, langBuffer);
+
+			AscFonts.hb_cache_languages[language] = langPointer;
+		}
+
+		let shapeData = Module["_ASC_HP_ShapeText"](fontFile.m_pFace, fontFile.m_pHBFont, textPointer, features, script, direction, AscFonts.hb_cache_languages[language]);
+
+		let buffer = Module["HEAP8"];
+		let len = (buffer[shapeData + 3] & 0xFF) << 24 | (buffer[shapeData + 2] & 0xFF) << 16 | (buffer[shapeData + 1] & 0xFF) << 8 | (buffer[shapeData] & 0xFF);
+		READER.init(buffer, shapeData + 4, len - 4);
+		let reader = READER;
+
+		let glyphsCount = (len - 12) / 26;
+
+		fontFile.m_pHBFont = reader.readPointer64();
+
+		let glyphs = [];
+		for (let i = 0; i < glyphsCount; i++)
+		{
+			let glyph = {};
+
+			glyph.type = reader.readByte();
+			glyph.flags = reader.readByte();
+
+			glyph.gid = reader.readInt();
+			glyph.cluster = reader.readInt();
+
+			glyph.x_advance = reader.readInt();
+			glyph.y_advance = reader.readInt();
+			glyph.x_offset = reader.readInt();
+			glyph.y_offset = reader.readInt();
+
+			glyphs.push(glyph);
+		}
+
+		Module["_ASC_FT_Free"](shapeData);
+
+		return glyphs;
+	};
+
     AscFonts.onLoadModule();
 
     // this memory is not freed
     AscFonts.hb_cache_languages = {};
+
+	AscFonts.HB_Module = Module;
 
 })(window, undefined);

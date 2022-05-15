@@ -3317,6 +3317,9 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	this.RecalcInfo.Recalc = true;
 	this.RecalcInfo.ResetMeasure();
 
+	if (!AscCommon.TextShaper)
+		AscCommon.TextShaper = new AscCommon.CTextShaper();
+
 	AscCommon.TextShaper.Shape(this.GetParagraph());
 };
 ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfoMathText)

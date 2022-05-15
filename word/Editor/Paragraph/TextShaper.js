@@ -38,6 +38,9 @@
 	const FONTSIZE = 72;
 	const COEF     = 25.4 / 72 / 64 ;
 	const LIGATURE = 2;
+	const MAX_LEN  = 1024;
+	let   BUFFER   = null;//new Uint8Array(6 * MAX_LEN + 1);
+
 
 	function ClusterCodePointLength(nCodePoint)
 	{
@@ -47,8 +50,12 @@
 			return 2;
 		else if (nCodePoint <= 0x0000FFFF)
 			return 3;
+		else if (nCodePoint <= 0x00200000)
+			return 4;
+		else if (nCodePoint <= 0x04000000)
+			return 5;
 
-		return 4;
+		return 6;
 	}
 	function ClusterStringLength(sValue)
 	{
@@ -58,6 +65,16 @@
 			nLen += ClusterCodePointLength(oIterator.value());
 		}
 		return nLen;
+	}
+	function ToArray(buffer)
+	{
+		let nLen = buffer.length;
+		let arrResult = new Uint8Array(nLen + 1);
+		for (let nPos = 0; nPos < nLen; ++nPos)
+			arrResult[nPos] = 0xFF & buffer[nPos];
+
+		arrResult[nLen] = 0;
+		return arrResult;
 	}
 
 	function CreateGrapheme(nFontId, nFontStyle)
@@ -140,6 +157,11 @@
 		return result.Buffer;
 	}
 
+	function CheckBuffer()
+	{
+		if (null === BUFFER)
+			BUFFER = AscFonts.HB_Module["_malloc"](6 * MAX_LEN + 1);
+	}
 
 	/**
 	 *
@@ -147,13 +169,20 @@
 	 */
 	function CTextShaper()
 	{
+		CheckBuffer();
+
 		this.Parent   = null;
 		this.Items    = [];
 		this.TextPr   = null;
 		this.Script   = -1;
 		this.FontId   = -1;
 		this.FontSlot = fontslot_None;
-		this.Text     = "";
+		this.Text     = BUFFER;
+		this.TextLen  = 0;
+		this.Text2    = "";
+
+
+		this.ClusterLen = 0;
 	}
 	CTextShaper.prototype.Init = function()
 	{
@@ -168,7 +197,11 @@
 		this.Script   = -1;
 		this.FontId   = -1;
 		this.FontSlot = fontslot_None;
-		this.Text     = "";
+		//this.Text[0]  = 0;
+		this.TextLen  = 0;
+		this.Text2    = "";
+
+		this.ClusterLen = 0;
 	};
 
 	CTextShaper.prototype.Shape = function(oParagraph)
@@ -176,6 +209,54 @@
 		this.Init();
 		oParagraph.CheckRunContent((o) => this.ShapeRun(o));
 	};
+	CTextShaper.prototype.AppendCodePoint = function(code)
+	{
+		let arrBuffer = AscFonts.HB_Module["HEAP8"];
+		let nOffset   = BUFFER;
+
+		// if (code >= 0xD800 && code <= 0xDFFF)
+		// 	code = 0x10000 + (((code & 0x3FF) << 10) | (0x03FF & this.charCodeAt(index++)));
+
+		if (code < 0x80)
+		{
+			arrBuffer[nOffset + this.TextLen++] = code;
+		}
+		else if (code < 0x0800)
+		{
+			arrBuffer[nOffset + this.TextLen++] = (0xC0 | (code >> 6));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x10000)
+		{
+			arrBuffer[nOffset + this.TextLen++] = (0xE0 | (code >> 12));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x1FFFFF)
+		{
+			arrBuffer[nOffset + this.TextLen++] = (0xF0 | (code >> 18));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 12) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x3FFFFFF)
+		{
+			arrBuffer[nOffset + this.TextLen++] = (0xF8 | (code >> 24));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 18) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 12) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x7FFFFFFF)
+		{
+			arrBuffer[nOffset + this.TextLen++] = (0xFC | (code >> 30));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 24) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 18) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 12) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + this.TextLen++] = (0x80 | (code & 0x3F));
+		}
+	}
 	CTextShaper.prototype.ShapeRun = function(oRun)
 	{
 		this.private_CheckRun(oRun);
@@ -192,7 +273,9 @@
 				let nUnicode = oItem.GetCodePoint();
 				this.private_CheckNewSegment(nUnicode);
 
-				this.Text += AscCommon.encodeSurrogateChar(nUnicode);
+				//this.Text2 += AscCommon.encodeSurrogateChar(nUnicode);
+				this.AppendCodePoint(nUnicode)
+
 				this.Items.push(oItem);
 				if (oItem.IsSpaceAfter())
 					this.FlushWord();
@@ -204,6 +287,8 @@
 		if (!this.Items.length || !this.TextPr)
 			return;
 
+		AscFonts.HB_Module["HEAP8"][BUFFER + this.TextLen++] = 0;
+
 		let nScript = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === this.Script ? AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON : this.Script;
 
 		let nDirection = this.GetDirection(nScript);
@@ -213,7 +298,9 @@
 		let nKoef     = COEF * nFontSize / 72;
 		let nFontId   = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
 		MEASURER.SetFontInternal(this.FontId.m_pFaceInfo.family_name, FONTSIZE, oFontInfo.Style);
-		let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
+		let arrGlyphs = AscFonts.HB_Shape2(this.FontId, BUFFER, 15, nScript, nDirection, "en");
+		//let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text, 15, nScript, nDirection, "en");
+		//let arrGlyphs = MEASURER.ShapeText(this.FontId, this.Text2, 15, nScript, nDirection, "en");
 
 
 		if (AscFonts.HB_DIRECTION.HB_DIRECTION_RTL === nDirection)
@@ -241,7 +328,7 @@
 		else
 		{
 			let nCharIndex = 0;
-			let nClusterMax = ClusterStringLength(this.Text);
+			let nClusterMax = this.TextLen;//ClusterStringLength(this.Text);
 			for (let nGlyphIndex = 0, nGlyphsCount = arrGlyphs.length; nGlyphIndex < nGlyphsCount; ++nGlyphIndex)
 			{
 				let oGlyph   = arrGlyphs[nGlyphIndex];
@@ -360,7 +447,7 @@
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].CTextShaper  = CTextShaper;
-	window['AscCommon'].TextShaper   = new CTextShaper();
+	//window['AscCommon'].TextShaper   = new CTextShaper();
 	window['AscCommon'].DrawGrapheme = DrawGrapheme;
 	window['AscCommon'].GRAPHEMES    = GRAPHEMES;
 
