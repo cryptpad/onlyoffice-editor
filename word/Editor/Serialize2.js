@@ -5315,34 +5315,13 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                     }
                     break;
 				case para_Field:
-					var Instr = null;
-					var oFFData = null;
-					if (fieldtype_MERGEFIELD == item.FieldType) {
-						Instr = "MERGEFIELD";
-					} else if (fieldtype_FORMTEXT === item.Get_FieldType()) {
-						Instr = "FORMTEXT";
-						oFFData = {};
-					}
-					else if(fieldtype_SEQ === item.Get_FieldType()) {
-						Instr = "SEQ";
-					}
-					else if(fieldtype_STYLEREF === item.Get_FieldType()) {
-						Instr = "STYLEREF";
-					}
-					if (null !== Instr) {
+					let Instr = item.GetInstr();
+					var oFFData = null;//todo
+					if (Instr) {
 						if(this.saveParams && this.saveParams.bMailMergeDocx)
 							oThis.WriteParagraphContent(item, bUseSelection, false);
 						else
 						{
-							for(var j = 0; j < item.Arguments.length; ++j){
-								var argument = item.Arguments[j];
-								argument = argument.replace(/(\\|")/g, "\\$1");
-								if(-1 != argument.indexOf(' '))
-									argument = "\"" + argument + "\"";
-								Instr += " " + argument;
-							}
-							for(var j = 0; j < item.Switches.length; ++j)
-								Instr += " \\" + item.Switches[j];
 							this.bs.WriteItem(c_oSerParType.FldSimple, function () {
 								oThis.WriteFldSimple(Instr, oFFData, function(){oThis.WriteParagraphContent(item, bUseSelection, false);});
 							});
@@ -5810,10 +5789,17 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
         for (var i = nStart; i < nEnd && i < Content.length; ++i)
         {
             var item = Content[i];
+			if (para_Text === item.Type || para_Space === item.Type) {
+				sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
+			} else if (para_InstrText === item.Type) {
+				sCurText = this.WriteText(sCurText, textType);
+			} else {
+				sCurText = this.WriteText(sCurText, textType);
+				sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
+			}
             switch ( item.Type )
             {
                 case para_Text:
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
                     if (item.IsNoBreakHyphen()) {
 						sCurText = this.WriteText(sCurText, textType);
                         oThis.memory.WriteByte(c_oSerRunType.nonBreakHyphen);
@@ -5826,14 +5812,10 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 					sCurText += AscCommon.encodeSurrogateChar(item.Value);
                     break;
                 case para_Tab:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
                     oThis.memory.WriteByte(c_oSerRunType.tab);
                     oThis.memory.WriteLong(c_oSerPropLenType.Null);
                     break;
                 case para_NewLine:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
                     switch (item.BreakType) {
                         case break_Column:
                             oThis.memory.WriteByte(c_oSerRunType.columnbreak);
@@ -5861,55 +5843,38 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                     oThis.memory.WriteLong(c_oSerPropLenType.Null);
                     break;
 				case para_Separator:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
 					oThis.memory.WriteByte(c_oSerRunType.separator);
 					oThis.memory.WriteLong(c_oSerPropLenType.Null);
 					break;
 				case para_ContinuationSeparator:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
 					oThis.memory.WriteByte(c_oSerRunType.continuationSeparator);
 					oThis.memory.WriteLong(c_oSerPropLenType.Null);
 					break;
 				case para_FootnoteRef:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
 					oThis.memory.WriteByte(c_oSerRunType.footnoteRef);
 					oThis.memory.WriteLong(c_oSerPropLenType.Null);
 					break;
 				case para_FootnoteReference:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
 					oThis.bs.WriteItem(c_oSerRunType.footnoteReference, function() {
 						oThis.saveParams.footnotesIndex = oThis.WriteNoteRef(item, oThis.saveParams.footnotes, oThis.saveParams.footnotesIndex);
 					});
 					break;
 				case para_EndnoteRef:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
 					oThis.memory.WriteByte(c_oSerRunType.endnoteRef);
 					oThis.memory.WriteLong(c_oSerPropLenType.Null);
 					break;
 				case para_EndnoteReference:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
 					oThis.bs.WriteItem(c_oSerRunType.endnoteReference, function() {
 						oThis.saveParams.endnotesIndex = oThis.WriteNoteRef(item, oThis.saveParams.endnotes, oThis.saveParams.endnotesIndex);
 					});
 					break;
 				case para_FieldChar:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
 					oThis.bs.WriteItem(c_oSerRunType.fldChar, function() {oThis.WriteFldChar(item);});
 					break;
 				case para_InstrText:
-					sCurText = this.WriteText(sCurText, textType);
 					sCurInstrText += AscCommon.encodeSurrogateChar(item.Value);
 					break;
                 case para_Drawing:
-					sCurText = this.WriteText(sCurText, textType);
-					sCurInstrText = this.WriteText(sCurInstrText, instrTextType);
                     //if (item.Extent && item.GraphicObj && item.GraphicObj.spPr && item.GraphicObj.spPr.xfrm) {
                     //    item.Extent.W = item.GraphicObj.spPr.xfrm.extX;
                     //    item.Extent.H = item.GraphicObj.spPr.xfrm.extY;
@@ -11047,7 +11012,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
     this.bpPrr = new Binary_pPrReader(this.Document, this.oReadResult, this.stream);
 	this.btblPrr = new Binary_tblPrReader(this.Document, this.oReadResult, this.stream);
     this.oComments = oComments;
-    this.aFields = [];
 	this.nCurCommentsCount = 0;
 	this.oCurComments = {};//вспомогательный массив  для заполнения QuotedText
 	this.curNote = curNote;
@@ -11311,22 +11275,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			var oParStruct = new OpenParStruct(paragraph, paragraph);
 			//todo also execute after reading document content
 			addToNextPar(this.toNextParStruct, this.bcr, this.stream, this.oReadResult, oParStruct, this.openParams);
-            //для случая гиперссылок на несколько строк в конце параграфа завершаем начатые, а начале - продолжаем незавершенные
-            if (this.aFields.length > 0) {
-                for (var i = 0; i < this.aFields.length; ++i) {
-					var oField = this.aFields[i];
-					if (null != oField && para_Hyperlink == oField.Get_Type()) {
-						var oHyperlink = new ParaHyperlink();
-						oHyperlink.SetParagraph(paragraph);
-						oHyperlink.SetValue(oField.GetValue());
-						oHyperlink.SetToolTip(oField.GetToolTip());
-						oParStruct.addElem(oHyperlink);
-					} else {
-                        //зануляем, чтобы когда придет fldend ничего не делать
-                        this.aFields[i] = null;
-                    }
-                }
-            }
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadParagraphContent(t, l, oParStruct);
             });
@@ -11433,20 +11381,13 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			oParStruct.addToContent(oMRun);
 		}
 		else if (c_oSerParType.Hyperlink == type) {
-		    var oHyperlinkObj = {Link: null, Anchor: null, Tooltip: null, History: null, DocLocation: null, TgtFrame: null};
 		    var oNewHyperlink = new ParaHyperlink();
 		    oNewHyperlink.SetParagraph(oParStruct.paragraph);
 		    res = this.bcr.Read1(length, function (t, l) {
-		        return oThis.ReadHyperlink(t, l, oHyperlinkObj, oNewHyperlink, oParStruct);
+		        return oThis.ReadHyperlink(t, l, oNewHyperlink, oParStruct);
 		    });
-			if (null != oHyperlinkObj.Link)
-				oNewHyperlink.SetValue(oHyperlinkObj.Link);
-			if (null != oHyperlinkObj.Tooltip)
-				 oNewHyperlink.SetToolTip(oHyperlinkObj.Tooltip);
-			if (null != oHyperlinkObj.Anchor)
-				oNewHyperlink.SetAnchor(oHyperlinkObj.Anchor);
+			oNewHyperlink.Check_Content();
 			oParStruct.addToContent(oNewHyperlink);
-            oNewHyperlink.Check_Content();
 		}
 		else if (c_oSerParType.FldSimple == type) {
 			var oFldSimpleObj = {ParaField: null};
@@ -11549,7 +11490,17 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         var oThis = this;
         if (c_oSer_FldSimpleType.Instr === type) {
 			var Instr = this.stream.GetString2LE(length);
-			oFldSimpleObj.ParaField = this.parseField(Instr, oParStruct.paragraph);
+			let elem = new ParaField(fieldtype_UNKNOWN);
+			elem.SetParagraph(oParStruct.paragraph);
+			let oParser = new CFieldInstructionParser();
+			let Instruction = oParser.GetInstructionClass(Instr);
+			oParser.InitParaFieldArguments(Instruction.Type, Instr, elem);
+			if (fieldtype_UNKNOWN !== elem.FieldType) {
+				this.oReadResult.logicDocument.Register_Field(elem);
+				oFldSimpleObj.ParaField = elem;
+			} else {
+				this.ConcatContent(elem.Content);
+			}
 		// } else  if (c_oSer_FldSimpleType.FFData === type) {
 		// 	var FFData = {};
 		// 	res = this.bcr.Read1(length, function (t, l) {
@@ -11678,27 +11629,27 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		}
 		return res;
 	};
-    this.ReadHyperlink = function (type, length, oHyperlinkObj, oNewHyperlink, oParStruct) {
+    this.ReadHyperlink = function (type, length, oNewHyperlink, oParStruct) {
         var res = c_oSerConstants.ReadOk;
         var oThis = this;
         if (c_oSer_HyperlinkType.Link === type) {
-            oHyperlinkObj.Link = this.stream.GetString2LE(length);
+			oNewHyperlink.Value = this.stream.GetString2LE(length);
         }
         else if (c_oSer_HyperlinkType.Anchor === type) {
-            oHyperlinkObj.Anchor = this.stream.GetString2LE(length);
+			oNewHyperlink.Anchor = this.stream.GetString2LE(length);
         }
         else if (c_oSer_HyperlinkType.Tooltip === type) {
-            oHyperlinkObj.Tooltip = this.stream.GetString2LE(length);
+			oNewHyperlink.Tooltip = this.stream.GetString2LE(length);
         }
-        else if (c_oSer_HyperlinkType.History === type) {
-            oHyperlinkObj.History = this.stream.GetBool();
-        }
-        else if (c_oSer_HyperlinkType.DocLocation === type) {
-            oHyperlinkObj.DocLocation = this.stream.GetString2LE(length);
-        }
-        else if (c_oSer_HyperlinkType.TgtFrame === type) {
-            oHyperlinkObj.TgtFrame = this.stream.GetString2LE(length);
-        }
+        // else if (c_oSer_HyperlinkType.History === type) {
+        //     oNewHyperlink.History = this.stream.GetBool();
+        // }
+        // else if (c_oSer_HyperlinkType.DocLocation === type) {
+        //     oNewHyperlink.DocLocation = this.stream.GetString2LE(length);
+        // }
+        // else if (c_oSer_HyperlinkType.TgtFrame === type) {
+        //     oNewHyperlink.TgtFrame = this.stream.GetString2LE(length);
+        // }
         else if (c_oSer_HyperlinkType.Content === type) {
 			var oHypStruct = new OpenParStruct(oNewHyperlink, oParStruct.paragraph);
             res = this.bcr.Read1(length, function (t, l) {
@@ -11866,19 +11817,11 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
 		else if(c_oSerRunType.fldstart_deprecated === type)
         {
-			var sField = this.stream.GetString2LE(length);
-			var oField = this.parseField(sField, oParStruct.paragraph);
-			if (null != oField) {
-				oParStruct.addElem(oField);
-			}
-            this.aFields.push(oField);
+			res = c_oSerConstants.ReadUnknown;
         }
 		else if(c_oSerRunType.fldend_deprecated === type)
         {
-			var elem = this.aFields.pop();
-			if (elem) {
-                oParStruct.commitElem();
-            }
+			res = c_oSerConstants.ReadUnknown;
         }
 		else if(c_oSerRunType.fldChar === type)
 		{
@@ -12077,117 +12020,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		else
 			res = c_oSerConstants.ReadUnknown;
 		return res;
-	}
-    this.parseField = function(fld, paragraph)
-    {
-		var sFieldType = "";
-		var aArguments = [];
-		var aSwitches = [];
-		var aParts = this.splitFieldArguments(fld);
-		if(aParts.length > 0){
-			sFieldType = aParts[0].toUpperCase();
-			var bSwitch = false;
-			var sCurSwitch = "";
-			for(var i = 1; i < aParts.length; ++i){
-				var part = aParts[i];
-				if(part.length > 1 && '\\' == part[0] && '\"' != part[1] && '\\' != part[1]){
-					if(sCurSwitch.length > 0)
-						aSwitches.push(sCurSwitch)
-					bSwitch = true;
-					sCurSwitch = part.substring(1);
-				}
-				else{
-					if(bSwitch)
-						sCurSwitch += " " + part;
-					else
-						aArguments.push(this.parseFieldArgument(part));
-				}
-			}
-			if(sCurSwitch.length > 0)
-				aSwitches.push(sCurSwitch)
-		}
-		//обрабатывает известные field
-		return this.initField(sFieldType, aArguments, aSwitches, paragraph);
-    };
-	this.splitFieldArguments = function(sVal){
-		var temp = String.fromCharCode(5);
-		//заменяем '\"' , чтобы было проше регулярное выражение,можно написать более быстрый код
-		sVal = sVal.replace(/\\"/g, temp);
-		var aMatch = sVal.match(/[^\s"]+|"[^"]*"/g);
-		if(null != aMatch){
-			for(var i = 0; i < aMatch.length; ++i)
-				aMatch[i] = aMatch[i].replace(new RegExp(temp, 'g'), "\\\"");
-			}
-		else
-			aMatch = [];
-		return aMatch;
-	};
-	this.parseFieldArgument = function(sVal){
-		//trim
-		sVal = sVal.replace(/^\s+|\s+$/g,'');
-		//remove surrounded quote
-		if(sVal.length > 1 && "\"" == sVal[0] && "\"" == sVal[sVal.length - 1])
-			sVal = sVal.substring(1, sVal.length - 1);
-		//replace '\\' and '\"'
-		sVal = sVal.replace(/\\([\\\"])/g, '$1');
-		return sVal
-	};
-	this.initField = function(sFieldType, aArguments, aSwitches, paragraph)
-    {
-		var oRes = null;
-		if("HYPERLINK" == sFieldType){
-			var sLink = null;
-			var sLocation = null;
-			var sTooltip = null;
-			if(aArguments.length > 0)
-				sLink = aArguments[0];
-			for(var i = 0; i < aSwitches.length; ++i){
-				var sSwitch = aSwitches[i];
-				if(sSwitch.length > 0){
-					var cFirstChar = sSwitch[0].toLowerCase();
-					var sFieldArgument = this.parseFieldArgument(sSwitch.substring(1));
-					if("l" == cFirstChar)
-						sLocation = sFieldArgument;
-					else if("o" == cFirstChar)
-						sTooltip = sFieldArgument;
-				}
-			}
-			if(!(null != sLocation && sLocation.length > 0)){
-				oRes = new ParaHyperlink();
-				oRes.SetParagraph(paragraph);
-				if(null != sLink && sLink.length > 0)
-					oRes.SetValue(sLink);
-				if(null != sTooltip && sTooltip.length > 0)
-					oRes.SetToolTip(sTooltip);
-			}
-		}
-		else if("PAGE" == sFieldType){
-            oRes = new ParaField(fieldtype_PAGENUM, aArguments, aSwitches);
-		}
-		else if("NUMPAGES" == sFieldType){
-			oRes = new ParaField(fieldtype_PAGECOUNT, aArguments, aSwitches);
-		}
-		else if("MERGEFIELD" == sFieldType){
-			oRes = new ParaField(fieldtype_MERGEFIELD, aArguments, aSwitches);
-            if (editor)
-               editor.WordControl.m_oLogicDocument.Register_Field(oRes);
-		}
-		else if ("FORMTEXT" == sFieldType){
-			oRes = new ParaField(fieldtype_FORMTEXT, aArguments, aSwitches);
-			if (editor)
-				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
-		}
-		else if ("SEQ" == sFieldType){
-			oRes = new ParaField(fieldtype_SEQ, aArguments, aSwitches);
-			if (editor)
-				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
-		}
-		else if ("STYLEREF" == sFieldType){
-			oRes = new ParaField(fieldtype_STYLEREF, aArguments, aSwitches);
-			if (editor)
-				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
-		}
-		return oRes;
 	}
     this.ReadImage = function(type, length, img)
     {
@@ -12909,7 +12741,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
 			var oCellContent = [];
 			var oCellContentReader = new Binary_DocumentTableReader(cell.Content, this.oReadResult, this.openParams, this.stream, this.curNote, this.oComments);
-			oCellContentReader.aFields = this.aFields;
 			oCellContentReader.nCurCommentsCount = this.nCurCommentsCount;
 			oCellContentReader.oCurComments = this.oCurComments;
 			oCellContentReader.toNextParStruct = this.toNextParStruct;
@@ -12953,7 +12784,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				var oSdtContent = [];
 				var oSdtContentReader = new Binary_DocumentTableReader(oSdt.Content, this.oReadResult, this.openParams,
 					this.stream, this.curNote, this.oComments);
-				oSdtContentReader.aFields = this.aFields;
 				oSdtContentReader.nCurCommentsCount = this.nCurCommentsCount;
 				oSdtContentReader.oCurComments = this.oCurComments;
 				oSdtContentReader.toNextParStruct = this.toNextParStruct;
