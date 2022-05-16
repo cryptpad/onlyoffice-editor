@@ -3305,70 +3305,49 @@ function CDrawingDocument()
 			bIsPageChanged = true;
 		}
 
-		var targetSize = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
+		var targetSizePx = (this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
 
 		var pos = null;
-		var __x = x;
-		var __y = y;
 		if (!this.TextMatrix)
 		{
 			pos = this.ConvertCoordsToCursor2(x, y, this.m_lCurrentPage);
 		}
 		else
 		{
-			__x = this.TextMatrix.TransformPointX(x, y);
-			__y = this.TextMatrix.TransformPointY(x, y);
-
-			pos = this.ConvertCoordsToCursor2(__x, __y, this.m_lCurrentPage);
+			pos = this.ConvertCoordsToCursor2(this.TextMatrix.TransformPointX(x, y),
+				this.TextMatrix.TransformPointY(x, y), this.m_lCurrentPage);
 		}
-
-		//pos.Y -= targetSize;
 
 		if (true == pos.Error && (false == bIsPageChanged))
 			return;
 
 		// смотрим, виден ли курсор на экране
-
-		var _ww = this.m_oWordControl.m_oEditor.HtmlElement.width;
-		var _hh = this.m_oWordControl.m_oEditor.HtmlElement.height;
-		_ww /= AscCommon.AscBrowser.retinaPixelRatio;
-		_hh /= AscCommon.AscBrowser.retinaPixelRatio;
+		var wScreen = AscCommon.AscBrowser.convertToRetinaValue(this.m_oWordControl.m_oEditor.HtmlElement.width, false);
+		var hScreen = AscCommon.AscBrowser.convertToRetinaValue(this.m_oWordControl.m_oEditor.HtmlElement.height, false);
 
 		var boxX = 0;
 		var boxY = 0;
-		var boxR = _ww - 2;
-		var boxB = _hh - targetSize;
-
-		/*
-		 if (true == this.m_oWordControl.m_bIsRuler)
-		 {
-		 boxX += Number(5 * g_dKoef_mm_to_pix);
-		 boxY += Number(7 * g_dKoef_mm_to_pix);
-		 boxR += Number(5 * g_dKoef_mm_to_pix);
-		 boxB += Number(7 * g_dKoef_mm_to_pix);
-		 }
-		 */
+		var boxR = wScreen - 2;
+		var boxB = hScreen;
 
 		var nValueScrollHor = 0;
 		if (pos.X < boxX)
 		{
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(__x - 5, pageIndex);
+			nValueScrollHor = (pos.X - 5) - boxX;
 		}
 		if (pos.X > boxR)
 		{
-			var _mem = __x + 5 - g_dKoef_pix_to_mm * _ww * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(_mem, pageIndex);
+			nValueScrollHor = (pos.X + 5) - boxR;
 		}
 
 		var nValueScrollVer = 0;
 		if (pos.Y < boxY)
 		{
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(__y - 5, pageIndex);
+			nValueScrollVer = (pos.Y - 5) - boxY;
 		}
-		if (pos.Y > boxB)
+		if ((pos.Y + targetSizePx) > boxB)
 		{
-			var _mem = __y + targetSize + 5 - g_dKoef_pix_to_mm * _hh * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(_mem, pageIndex);
+			nValueScrollVer = (pos.Y + targetSizePx + 5) - boxB;
 		}
 
 		if (!bNeedScrollToTarget)
@@ -3394,19 +3373,17 @@ function CDrawingDocument()
 		this.m_dTargetY = y;
 		this.m_lTargetPage = pageIndex;
 		var isNeedScroll = false;
-		if (0 != nValueScrollHor)
+		if (0 !== nValueScrollHor)
 		{
 			isNeedScroll = true;
 			this.m_oWordControl.m_bIsUpdateTargetNoAttack = true;
-			var temp = nValueScrollHor * this.m_oWordControl.m_dScrollX_max / (this.m_oWordControl.m_dDocumentWidth - _ww);
-			this.m_oWordControl.m_oScrollHorApi.scrollToX(parseInt(temp), false);
+			this.m_oWordControl.m_oScrollHorApi.scrollByX(nValueScrollHor);
 		}
-		if (0 != nValueScrollVer)
+		if (0 !== nValueScrollVer)
 		{
 			isNeedScroll = true;
 			this.m_oWordControl.m_bIsUpdateTargetNoAttack = true;
-			var temp = nValueScrollVer * this.m_oWordControl.m_dScrollY_max / (this.m_oWordControl.m_dDocumentHeight - _hh);
-			this.m_oWordControl.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oWordControl.m_oScrollVerApi.scrollByY(nValueScrollVer);
 		}
 
 		if (true == isNeedScroll)
@@ -3417,94 +3394,6 @@ function CDrawingDocument()
 		}
 
 		this.CheckTargetDraw(x, y);
-	};
-	this.UpdateTarget2 = function (x, y, pageIndex)
-	{
-		if (pageIndex >= this.m_arrPages.length)
-			return;
-
-		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
-
-		var bIsPageChanged = false;
-		if (this.m_lCurrentPage != pageIndex)
-		{
-			this.m_lCurrentPage = pageIndex;
-			this.m_oWordControl.SetCurrentPage2();
-			this.m_oWordControl.OnScroll();
-			bIsPageChanged = true;
-		}
-
-		this.m_dTargetX = x;
-		this.m_dTargetY = y;
-		this.m_lTargetPage = pageIndex;
-
-		var pos = this.ConvertCoordsToCursor(x, y, this.m_lCurrentPage);
-
-		if (true == pos.Error && (false == bIsPageChanged))
-			return;
-
-		var _ww = this.m_oWordControl.m_oEditor.HtmlElement.width;
-		var _hh = this.m_oWordControl.m_oEditor.HtmlElement.height;
-		_ww /= AscCommon.AscBrowser.retinaPixelRatio;
-		_hh /= AscCommon.AscBrowser.retinaPixelRatio;
-
-		// смотрим, виден ли курсор на экране
-		var boxX = 0;
-		var boxY = 0;
-		var boxR = _ww;
-		var boxB = _hh;
-
-		/*
-		 if (true == this.m_oWordControl.m_bIsRuler)
-		 {
-		 boxX += Number(5 * g_dKoef_mm_to_pix);
-		 boxY += Number(7 * g_dKoef_mm_to_pix);
-		 boxR += Number(5 * g_dKoef_mm_to_pix);
-		 boxB += Number(7 * g_dKoef_mm_to_pix);
-		 }
-		 */
-
-		var nValueScrollHor = 0;
-		if (pos.X < boxX)
-		{
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(x - 5, pageIndex);
-		}
-		if (pos.X > boxR)
-		{
-			var _mem = x + 5 - g_dKoef_pix_to_mm * _ww * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(_mem, pageIndex);
-		}
-
-		var nValueScrollVer = 0;
-		if (pos.Y < boxY)
-		{
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(y - 5, pageIndex);
-		}
-		if (pos.Y > boxB)
-		{
-			var _mem = y + this.m_dTargetSize + 5 - g_dKoef_pix_to_mm * _hh * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(_mem, pageIndex);
-		}
-
-		var isNeedScroll = false;
-		if (0 != nValueScrollHor)
-		{
-			isNeedScroll = true;
-			var temp = nValueScrollHor * this.m_oWordControl.m_dScrollX_max / (this.m_oWordControl.m_dDocumentWidth - _ww);
-			this.m_oWordControl.m_oScrollHorApi.scrollToX(parseInt(temp), false);
-		}
-		if (0 != nValueScrollVer)
-		{
-			isNeedScroll = true;
-			var temp = nValueScrollVer * this.m_oWordControl.m_dScrollY_max / (this.m_oWordControl.m_dDocumentHeight - _hh);
-			this.m_oWordControl.m_oScrollVerApi.scrollToY(parseInt(temp), false);
-		}
-
-		if (true == isNeedScroll)
-		{
-			this.m_oWordControl.OnScroll();
-			return;
-		}
 	};
 
 	this.UpdateTargetTimer = function ()
@@ -3532,61 +3421,53 @@ function CDrawingDocument()
 		oThis.m_dTargetY = y;
 		oThis.m_lTargetPage = pageIndex;
 
-		var targetSize = Number(oThis.m_dTargetSize * oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
+		var targetSizePx = (oThis.m_dTargetSize * oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
 		var pos = oThis.ConvertCoordsToCursor2(x, y, oThis.m_lCurrentPage);
-		//pos.Y -= targetSize;
 
 		if (true === pos.Error && (false === bIsPageChanged))
 			return;
 
 		// смотрим, виден ли курсор на экране
+		var wScreen = AscCommon.AscBrowser.convertToRetinaValue(oWordControl.m_oEditor.HtmlElement.width, false);
+		var hScreen = AscCommon.AscBrowser.convertToRetinaValue(oWordControl.m_oEditor.HtmlElement.height, false);
+
 		var boxX = 0;
 		var boxY = 0;
-		var boxR = oWordControl.m_oEditor.HtmlElement.width - 2;
-		var boxB = oWordControl.m_oEditor.HtmlElement.height - targetSize;
-
-		/*
-		 if (true === oWordControl.m_bIsRuler)
-		 {
-		 boxX += Number(5 * g_dKoef_mm_to_pix);
-		 boxY += Number(7 * g_dKoef_mm_to_pix);
-		 boxR += Number(5 * g_dKoef_mm_to_pix);
-		 boxB += Number(7 * g_dKoef_mm_to_pix);
-		 }
-		 */
+		var boxR = wScreen - 2;
+		var boxB = hScreen;
 
 		var nValueScrollHor = 0;
 		if (pos.X < boxX)
 		{
-			nValueScrollHor = boxX - pos.X;
+			nValueScrollHor = (pos.X - 5) - boxX;
 		}
 		if (pos.X > boxR)
 		{
-			nValueScrollHor = boxR - pos.X;
+			nValueScrollHor = (pos.X + 5) - boxR;
 		}
 
 		var nValueScrollVer = 0;
 		if (pos.Y < boxY)
 		{
-			nValueScrollVer = boxY - pos.Y;
+			nValueScrollVer = (pos.Y - 5) - boxY;
 		}
-		if (pos.Y > boxB)
+		if ((pos.Y + targetSizePx) > boxB)
 		{
-			nValueScrollVer = boxB - pos.Y;
+			nValueScrollVer = (pos.Y + targetSizePx + 5) - boxB;
 		}
 
 		var isNeedScroll = false;
-		if (0 != nValueScrollHor)
+		if (0 !== nValueScrollHor)
 		{
 			isNeedScroll = true;
 			oWordControl.m_bIsUpdateTargetNoAttack = true;
-			oWordControl.m_oScrollHorApi.scrollByX(-nValueScrollHor, false);
+			oWordControl.m_oScrollHorApi.scrollByX(nValueScrollHor);
 		}
-		if (0 != nValueScrollVer)
+		if (0 !== nValueScrollVer)
 		{
 			isNeedScroll = true;
 			oWordControl.m_bIsUpdateTargetNoAttack = true;
-			oWordControl.m_oScrollVerApi.scrollByY(-nValueScrollVer, false);
+			oWordControl.m_oScrollVerApi.scrollByY(nValueScrollVer);
 		}
 
 		if (true === isNeedScroll)
@@ -3824,6 +3705,8 @@ function CDrawingDocument()
 
 		overlay.Show();
 
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+
 		for (var nIndex = 0, nCount = this.FieldTrack.Rects.length; nIndex < nCount; nIndex++)
 		{
 			var FieldRect = this.FieldTrack.Rects[nIndex];
@@ -3836,10 +3719,10 @@ function CDrawingDocument()
 
 			if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity(this.TextMatrix))
 			{
-				var _x = (drPage.left + dKoefX * FieldRect.X0);
-				var _y = (drPage.top + dKoefY * FieldRect.Y0);
-				var _r = (drPage.left + dKoefX * FieldRect.X1);
-				var _b = (drPage.top + dKoefY * FieldRect.Y1);
+				var _x = (drPage.left + dKoefX * FieldRect.X0) * rPR;
+				var _y = (drPage.top + dKoefY * FieldRect.Y0) * rPR;
+				var _r = (drPage.left + dKoefX * FieldRect.X1) * rPR;
+				var _b = (drPage.top + dKoefY * FieldRect.Y1) * rPR;
 
 				if (_x < overlay.min_x)
 					overlay.min_x = _x;
@@ -3865,6 +3748,9 @@ function CDrawingDocument()
 			else
 			{
 				var _arrSelect = TransformRectByMatrix(this.TextMatrix, [FieldRect.X0, FieldRect.Y0, FieldRect.X1, FieldRect.Y1], drPage.left, drPage.top, dKoefX, dKoefY);
+
+				for (var i = 0; i < 8; i++)
+					_arrSelect[i] *= rPR;
 
 				overlay.CheckPoint(_arrSelect[0], _arrSelect[1]);
 				overlay.CheckPoint(_arrSelect[2], _arrSelect[3]);
