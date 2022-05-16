@@ -1386,13 +1386,13 @@
 			if (mods == null) {
 				return false
 			}
-			if (mods.Mods == null || this.Mods.length != mods.Mods.length) {
+			if (mods.Mods == null || this.Mods.length !== mods.Mods.length) {
 				return false;
 			}
 
 			for (var i = 0; i < this.Mods.length; ++i) {
-				if (this.Mods[i].name != mods.Mods[i].name
-					|| this.Mods[i].val != mods.Mods[i].val) {
+				if (this.Mods[i].name !== mods.Mods[i].name
+					|| this.Mods[i].val !== mods.Mods[i].val) {
 					return false;
 				}
 			}
@@ -3372,11 +3372,11 @@
 			if (fill == null) {
 				return false;
 			}
-			if (fill.type != c_oAscFill.FILL_TYPE_BLIP) {
+			if (fill.type !== c_oAscFill.FILL_TYPE_BLIP) {
 				return false;
 			}
 
-			if (fill.RasterImageId != this.RasterImageId) {
+			if (fill.RasterImageId !== this.RasterImageId) {
 				return false;
 			}
 
@@ -6048,7 +6048,7 @@
 			if (fill == null) {
 				return false;
 			}
-			if (fill.type != c_oAscFill.FILL_TYPE_PATT && this.ftype != fill.ftype) {
+			if (fill.type !== c_oAscFill.FILL_TYPE_PATT && this.ftype !== fill.ftype) {
 				return false;
 			}
 
@@ -10560,7 +10560,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART) name_ = "c:spPr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) name_ = "a:spPr";
 			else {//theme
-				if (0 != (writer.context.flag & 0x04)) name_ = "a:spPr";
+				if (0 !== (writer.context.flag & 0x04)) name_ = "a:spPr";
 				else name_ = "p:spPr";
 			}
 
@@ -10571,7 +10571,7 @@
 			writer.WriteXmlNullable(this.xfrm, "a:xfrm");
 			writer.WriteXmlNullable(this.geometry);
 
-			if ((writer.context.flag & 0x02) != 0 && !this.Fill) {
+			if ((writer.context.flag & 0x02) !== 0 && !this.Fill) {
 				writer.WriteXmlString("<a:grpFill/>");
 			}
 
@@ -18151,7 +18151,7 @@
 							ret.fill = new CBlipFill();
 						}
 
-						if (ret.fill.type != c_oAscFill.FILL_TYPE_BLIP) {
+						if (ret.fill.type !== c_oAscFill.FILL_TYPE_BLIP) {
 							if (!(typeof (_url) === "string" && _url.length > 0) || !isRealNumber(_fill.type)) {
 								break;
 							}
@@ -18684,7 +18684,7 @@
 					ret.color.RGBA.B = asc_color.b;
 					ret.color.RGBA.A = asc_color.a;
 
-					if (ret.Mods && ret.Mods.Mods.length != 0)
+					if (ret.Mods && ret.Mods.Mods.length !== 0)
 						ret.Mods.Mods.splice(0, ret.Mods.Mods.length);
 				}
 			}
