@@ -15788,7 +15788,7 @@
 					break;
 				}
 				case "created": {
-					this.created = reader.GetTextDecodeXml();
+					this.created = this.readDate(reader.GetTextDecodeXml());
 					break;
 				}
 				case "creator": {
@@ -15816,11 +15816,11 @@
 					break;
 				}
 				case "lastPrinted": {
-					this.lastPrinted = reader.GetTextDecodeXml();
+					this.lastPrinted = this.readDate(reader.GetTextDecodeXml());
 					break;
 				}
 				case "modified": {
-					this.modified = reader.GetTextDecodeXml();
+					this.modified = this.readDate(reader.GetTextDecodeXml());
 					break;
 				}
 				case "revision": {

@@ -4153,7 +4153,7 @@
             //SheetId
             this.memory.WriteByte(c_oSerWorksheetPropTypes.SheetId);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(oThis.InitSaveManager.oReadResult.sheetIds[ws.getId()] || 1);
+            this.memory.WriteLong(oThis.InitSaveManager.sheetIds[ws.getId()] || 1);
             //Hidden
             if(null != ws.bHidden)
             {
@@ -4640,7 +4640,7 @@
         this.WriteMergeCells = function(ws)
         {
             var t = this;
-            this.InitSaveManager.WriteMergeCells(function (ref) {
+            this.InitSaveManager.WriteMergeCells(ws, function (ref) {
                 t.memory.WriteByte(c_oSerWorksheetsTypes.MergeCell);
                 t.memory.WriteString2(ref);
             })
