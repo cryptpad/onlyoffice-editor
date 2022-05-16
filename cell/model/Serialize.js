@@ -11766,12 +11766,11 @@
             }
         }
     };
-    InitSaveManager.prototype._prepeareStyles = function(stylesForWrite)
-    {
+    InitSaveManager.prototype._prepeareStyles = function (stylesForWrite) {
         stylesForWrite.init();
         var styles = this.wb.CellStyles.CustomStyles;
         var style = null;
-        for(var i = 0; i < styles.length; ++i) {
+        for (var i = 0; i < styles.length; ++i) {
             style = styles[i];
             if (style.xfs) {
                 stylesForWrite.addCellStyle(style);
@@ -11780,17 +11779,16 @@
         stylesForWrite.finalizeCellStyles();
     };
 
-    InitSaveManager.prototype.PrepareSlicerStyles = function(slicerStyles, aDxfs)
-    {
+    InitSaveManager.prototype.PrepareSlicerStyles = function (slicerStyles, aDxfs) {
         var styles = new Asc.CT_slicerStyles();
         styles.defaultSlicerStyle = slicerStyles.DefaultStyle;
-        for(var name in slicerStyles.CustomStyles){
-            if(slicerStyles.CustomStyles.hasOwnProperty(name)){
+        for (var name in slicerStyles.CustomStyles) {
+            if (slicerStyles.CustomStyles.hasOwnProperty(name)) {
                 var slicerStyle = new Asc.CT_slicerStyle();
                 slicerStyle.name = name;
                 var elems = slicerStyles.CustomStyles[name];
-                for(var type in elems){
-                    if(elems.hasOwnProperty(type)) {
+                for (var type in elems) {
+                    if (elems.hasOwnProperty(type)) {
                         var styleElement = new Asc.CT_slicerStyleElement();
                         styleElement.type = parseInt(type);
                         styleElement.dxfId = aDxfs.length;
