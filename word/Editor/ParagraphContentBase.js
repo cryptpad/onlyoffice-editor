@@ -1025,6 +1025,11 @@ CParagraphContentWithContentBase.prototype.private_UpdateSpellChecking = functio
 		this.Paragraph.RecalcInfo.NeedSpellCheck();
 	}
 };
+CParagraphContentWithContentBase.prototype.private_UpdateShapeText = function()
+{
+	if (this.Paragraph)
+		this.Paragraph.RecalcInfo.NeedShapeText();
+};
 CParagraphContentWithContentBase.prototype.Is_UseInDocument = function(Id)
 {
     if(this.Paragraph)
@@ -1163,6 +1168,13 @@ CParagraphContentWithContentBase.prototype.ProcessNotInlineObjectCheck = functio
 	oChecker.Result = false;
 	oChecker.Found  = true;
 };
+CParagraphContentWithContentBase.prototype.OnContentChange = function()
+{
+	let oParagraph = this.GetParagraph();
+	if (oParagraph)
+		oParagraph.OnContentChange();
+};
+
 /**
  * Это базовый класс для элементов параграфа, которые сами по себе могут содержать элементы параграфа.
  * @constructor
@@ -1604,6 +1616,8 @@ CParagraphContentWithParagraphLikeContent.prototype.Add_ToContent = function(Pos
 
     if (Item.SetParagraph)
     	Item.SetParagraph(this.GetParagraph());
+
+	this.OnContentChange();
 };
 CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
@@ -1707,6 +1721,8 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = functio
         else if (ContentPos.Data[Depth] > Pos)
             ContentPos.Data[Depth] = Math.max(0, Pos);
     }
+
+	this.OnContentChange();
 };
 CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction, bOnAddText)
 {

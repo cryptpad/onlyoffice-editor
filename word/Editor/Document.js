@@ -2565,6 +2565,8 @@ CDocument.prototype.IsActionStarted = function()
  */
 CDocument.prototype.Recalculate = function(isForceRecalculate)
 {
+	return this.RecalculateAllAtOnce(true);
+
 	if (this.Action.Start && true !== isForceRecalculate)
 		this.Action.Recalculate = true;
 	else
@@ -4413,7 +4415,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 		}
 		else
 		{
-			//console.log("Recalc time : " + ((performance.now() - this.FullRecalc.StartTime) / 1000));
+			console.log("Recalc time : " + ((performance.now() - this.FullRecalc.StartTime) / 1000));
 
 			this.FullRecalc.Id           = null;
 			this.FullRecalc.MainStartPos = -1;

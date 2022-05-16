@@ -117,11 +117,6 @@
 			return pFont;
 		},
 
-		ShapeText : function(oFont, sText, nFeatures, nScript, nDirection, sLanguage)
-		{
-			return AscFonts.HB_Shape(oFont, sText, nFeatures, nScript, nDirection, sLanguage);
-		},
-
         SetTextPr : function(textPr, theme)
         {
 			if (theme && textPr && textPr.ReplaceThemeFonts)

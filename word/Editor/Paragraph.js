@@ -951,13 +951,13 @@ Paragraph.prototype.Internal_Content_Add = function(Pos, Item, bCorrectPos)
 			ContentPos.Data[0]++;
 	}
 
-	this.RecalcInfo.NeedSpellCheck();
-
 	if (Item.SetParent)
 		Item.SetParent(this);
 
 	if (Item.SetParagraph)
 		Item.SetParagraph(this);
+
+	this.OnContentChange();
 };
 Paragraph.prototype.Add_ToContent = function(Pos, Item)
 {
@@ -1007,7 +1007,7 @@ Paragraph.prototype.ConcatContent = function(arrItems)
 	this.private_CheckUpdateBookmarks(arrNewItems);
 	this.UpdateDocumentOutline();
 
-	this.RecalcInfo.NeedSpellCheck();
+	this.OnContentChange();
 
 	this.CheckParaEnd();
 
@@ -1074,7 +1074,7 @@ Paragraph.prototype.Internal_Content_Remove = function(Pos)
 			ContentPos.Data[0]--;
 	}
 
-	this.RecalcInfo.NeedSpellCheck();
+	this.OnContentChange();
 };
 /**
  * Удаляем несколько элементов
@@ -1181,7 +1181,7 @@ Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
 		}
 	}
 
-	this.RecalcInfo.NeedSpellCheck();
+	this.OnContentChange();
 };
 /**
  * Очищаем полностью параграф (включая последний ран)
@@ -1241,6 +1241,12 @@ Paragraph.prototype.ClearContent = function()
 			this.LogicDocument.RemoveComment(arrCommentsToDelete[nIndex], true, false);
 		}
 	}
+};
+Paragraph.prototype.OnContentChange = function()
+{
+	this.SpellChecker.ClearCollector();
+	this.RecalcInfo.NeedSpellCheck();
+	this.RecalcInfo.NeedShapeText();
 };
 Paragraph.prototype.Clear_ContentChanges = function()
 {
@@ -17600,6 +17606,7 @@ function CParaRecalcInfo()
 {
     this.Recalc_0_Type = pararecalc_0_All;
     this.SpellCheck = false;
+	this.ShapeText  = true;
 }
 
 CParaRecalcInfo.prototype =
@@ -17612,6 +17619,10 @@ CParaRecalcInfo.prototype =
 CParaRecalcInfo.prototype.NeedSpellCheck = function()
 {
 	this.SpellCheck = true;
+};
+CParaRecalcInfo.prototype.NeedShapeText = function()
+{
+	this.ShapeText = true;
 };
 
 function CDocumentBounds(Left, Top, Right, Bottom)

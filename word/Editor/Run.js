@@ -1528,9 +1528,6 @@ ParaRun.prototype.GetLogicDocument = function()
 // Добавляем элемент в позицию с сохранием в историю
 ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 {
-	// TODO: Временно
-	this.RecalcInfo.Measure = true;
-
 	if (this.GetTextForm() && this.GetTextForm().IsComb())
 		this.RecalcInfo.Measure = true;
 
@@ -1596,7 +1593,6 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
             ContentPos.Data[Depth]++;
     }
 
-    this.private_UpdateSpellChecking();
 	this.private_UpdateDocumentOutline();
     this.private_UpdateTrackRevisionOnChangeContent(true);
 
@@ -1604,15 +1600,11 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
     this.CollaborativeMarks.Update_OnAdd( Pos );
 
     this.RecalcInfo.OnAdd(Pos);
-
-    //if (this.Parent && this.Parent.GetFormKey && this.Parent)
+	this.OnContentChange();
 };
 
 ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
-	// TODO: Временно
-	this.RecalcInfo.Measure = true;
-
 	if (this.GetTextForm() && this.GetTextForm().IsComb())
 		this.RecalcInfo.Measure = true;
 
@@ -1677,7 +1669,6 @@ ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
             ContentPos.Data[Depth] = Math.max( 0 , Pos );
     }
 
-    this.private_UpdateSpellChecking();
 	this.private_UpdateDocumentOutline();
 	this.private_UpdateTrackRevisionOnChangeContent(true);
 
@@ -1685,6 +1676,7 @@ ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
     this.CollaborativeMarks.Update_OnRemove( Pos, Count );
 
     this.RecalcInfo.OnRemove(Pos, Count);
+	this.OnContentChange();
 };
 
 /**
@@ -1710,6 +1702,7 @@ ParaRun.prototype.ConcatToContent = function(arrNewItems)
 
 	// Отмечаем, что надо перемерить элементы в данном ране
 	this.RecalcInfo.Measure = true;
+	this.OnContentChange();
 };
 /**
  * Добавляем в конец рана заданную строку
@@ -3243,7 +3236,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		if (!nCombWidth || nCombWidth < 0)
 			nCombWidth = this.TextAscent;
 
-		var oParagraph = this.GetParagraph();
+		let oParagraph = this.GetParagraph();
 		if (oParagraph && oParagraph.IsInFixedForm())
 		{
 			var oShape  = oParagraph.Parent.Is_DrawingShape(true);
@@ -3316,11 +3309,6 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 
 	this.RecalcInfo.Recalc = true;
 	this.RecalcInfo.ResetMeasure();
-
-	if (!AscCommon.TextShaper)
-		AscCommon.TextShaper = new AscCommon.CTextShaper();
-
-	AscCommon.TextShaper.Shape(this.GetParagraph());
 };
 ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfoMathText)
 {
@@ -3388,8 +3376,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
         this.Paragraph = PRS.Paragraph;
         this.RecalcInfo.TextPr  = true;
         this.RecalcInfo.Measure = true;
-
-        this.private_UpdateSpellChecking();
+		this.OnContentChange();
     }
 
     // Сначала измеряем элементы (можно вызывать каждый раз, внутри разруливается, чтобы измерялось 1 раз)
@@ -8333,7 +8320,10 @@ ParaRun.prototype.Recalc_CompiledPr = function(RecalcMeasure)
 
     // Если изменение какой-то текстовой настройки требует пересчета элементов
     if ( true === RecalcMeasure )
-        this.RecalcInfo.Measure = true;
+	{
+		this.RecalcInfo.Measure = true;
+		this.private_UpdateShapeText();
+	}
 
     // Если мы в формуле, тогда ее надо пересчитывать
     this.private_RecalcCtrPrp();

@@ -587,8 +587,6 @@ else
         return (this.pos < this.limit) ? true : false;
     };
 
-	const READER = new CBinaryReader(null, 0, 0);
-
     AscFonts.HB_Shape = function(fontFile, text, features, script, direction, language)
     {
         if (text.length === 0)
@@ -674,8 +672,76 @@ else
         return glyphs;
     };
 
-	AscFonts.HB_Shape2 = function(fontFile, textPointer, features, script, direction, language)
+	let   STRING_POINTER = null;
+	let   STRING_LEN     = 0;
+	const STRING_MAX_LEN = 1024;
+	const READER         = new CBinaryReader(null, 0, 0);
+
+	AscFonts.HB_BeginString = function()
 	{
+		if (!STRING_POINTER)
+			STRING_POINTER = Module["_malloc"](6 * STRING_MAX_LEN + 1);
+
+		STRING_LEN = 0;
+	};
+	AscFonts.HB_AppendToString = function(code)
+	{
+		let arrBuffer = Module["HEAP8"];
+		let nOffset   = STRING_POINTER;
+
+		if (code < 0x80)
+		{
+			arrBuffer[nOffset + STRING_LEN++] = code;
+		}
+		else if (code < 0x0800)
+		{
+			arrBuffer[nOffset + STRING_LEN++] = (0xC0 | (code >> 6));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x10000)
+		{
+			arrBuffer[nOffset + STRING_LEN++] = (0xE0 | (code >> 12));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x1FFFFF)
+		{
+			arrBuffer[nOffset + STRING_LEN++] = (0xF0 | (code >> 18));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 12) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x3FFFFFF)
+		{
+			arrBuffer[nOffset + STRING_LEN++] = (0xF8 | (code >> 24));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 18) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 12) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+		}
+		else if (code < 0x7FFFFFFF)
+		{
+			arrBuffer[nOffset + STRING_LEN++] = (0xFC | (code >> 30));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 24) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 18) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 12) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
+			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+		}
+	};
+	AscFonts.HB_EndString = function()
+	{
+		Module["HEAP8"][STRING_POINTER + STRING_LEN++] = 0;
+	};
+	AscFonts.HB_GetStringLength = function()
+	{
+		return STRING_LEN;
+	};
+	AscFonts.HB_ShapeString = function(fontFile, features, script, direction, language)
+	{
+		if (!STRING_POINTER)
+			return;
+
 		if (!AscFonts.hb_cache_languages[language])
 		{
 			let langBuffer = language.toUtf8();
@@ -685,7 +751,7 @@ else
 			AscFonts.hb_cache_languages[language] = langPointer;
 		}
 
-		let shapeData = Module["_ASC_HP_ShapeText"](fontFile.m_pFace, fontFile.m_pHBFont, textPointer, features, script, direction, AscFonts.hb_cache_languages[language]);
+		let shapeData = Module["_ASC_HP_ShapeText"](fontFile.m_pFace, fontFile.m_pHBFont, STRING_POINTER, features, script, direction, AscFonts.hb_cache_languages[language]);
 
 		let buffer = Module["HEAP8"];
 		let len = (buffer[shapeData + 3] & 0xFF) << 24 | (buffer[shapeData + 2] & 0xFF) << 16 | (buffer[shapeData + 1] & 0xFF) << 8 | (buffer[shapeData] & 0xFF);
@@ -724,7 +790,6 @@ else
 
     // this memory is not freed
     AscFonts.hb_cache_languages = {};
-
-	AscFonts.HB_Module = Module;
+	AscFonts.HB_STRING_MAX_LEN = STRING_MAX_LEN;
 
 })(window, undefined);

@@ -303,7 +303,7 @@ CChangesRunAddItem.prototype.Undo = function()
 	oRun.Content.splice(this.Pos, this.Items.length);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 };
 CChangesRunAddItem.prototype.Redo = function()
@@ -316,7 +316,7 @@ CChangesRunAddItem.prototype.Redo = function()
 	oRun.Content = Array_start.concat(this.Items, Array_end);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
@@ -360,7 +360,7 @@ CChangesRunAddItem.prototype.Load = function(Color)
 	}
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 	oRun.private_UpdateDocumentOutline();
 };
@@ -396,7 +396,7 @@ CChangesRunRemoveItem.prototype.Undo = function()
 	oRun.Content = Array_start.concat(this.Items, Array_end);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
@@ -411,7 +411,7 @@ CChangesRunRemoveItem.prototype.Redo = function()
 	oRun.Content.splice(this.Pos, this.Items.length);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 };
 CChangesRunRemoveItem.prototype.private_WriteItem = function(Writer, Item)
@@ -470,7 +470,7 @@ CChangesRunRemoveItem.prototype.Load = function()
 	}
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 	oRun.private_UpdateDocumentOutline();
 };
@@ -1125,6 +1125,7 @@ CChangesRunLang.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLang.prototype.Load = function(Color)
@@ -1591,6 +1592,7 @@ CChangesRunLangBidi.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLangBidi.prototype.Load = function(Color)
@@ -1619,6 +1621,7 @@ CChangesRunLangEastAsia.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLangEastAsia.prototype.Load = function(Color)
@@ -1647,6 +1650,7 @@ CChangesRunLangVal.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLangVal.prototype.Load = function(Color)

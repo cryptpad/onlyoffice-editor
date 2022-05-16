@@ -423,6 +423,7 @@ function ParaText(nCharCode)
 	this.WidthVisible = 0x00000000 | 0;
 	this.Flags        = 0x00000000 | 0;
 	this.Grapheme     = null;
+	this.FontSlot     =
 
 	this.Set_SpaceAfter(this.private_IsSpaceAfter());
 
@@ -491,6 +492,7 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 };
 ParaText.prototype.Measure = function(Context, TextPr)
 {
+	return;
 	var bCapitals      = false;
 	var CharCode       = this.Value;
 	var ResultCharCode = CharCode;

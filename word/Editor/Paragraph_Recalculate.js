@@ -421,7 +421,10 @@ Paragraph.prototype.RecalculateFastRunRange = function(oParaPos)
 Paragraph.prototype.Recalculate_Page = function(CurPage)
 {
 	if (0 === CurPage)
+	{
 		this.CalculatedFrame = null;
+		this.ShapeText();
+	}
 
     this.Clear_NearestPosArray();
 
@@ -2489,6 +2492,19 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, P
 		return true;
 
 	return false;
+};
+
+Paragraph.prototype.ShapeText = function()
+{
+	if (!this.RecalcInfo.ShapeText)
+		return;
+
+	// TODO: Сейчас мы шейпим текст целиком во всем параграфе. Для ускорения нужно отслеживать позиции, в которых
+	//       произошли изменения (далее влево и вправо найти позиции пробела/таба или другого разделителя слова)
+	//       и шейпить текст только в заданном промежутке
+
+	AscCommon.TextShaper.Shape(this);
+	this.RecalcInfo.ShapeText = false;
 };
 
 var ERecalcPageType =
