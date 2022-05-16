@@ -1534,6 +1534,7 @@
 
     /**
      * Creates a copy of the specified slide layout object.
+     * Copies without master slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiLayout | null} - returns new ApiLayout object that represents the copy of slide layout. 
      * Returns null if slide layout doesn't exist.
@@ -2291,12 +2292,13 @@
 
     /**
      * Applies the specified layout to the current slide.
+     * The layout must be in slide master.
      * @typeofeditors ["CPE"]
      * @param {ApiLayout} oLayout - Layout to be applied.
      * @returns {bool} - returns false if slide doesn't exist.
      * */
     ApiSlide.prototype.ApplyLayout = function(oLayout){
-        if (!this.Slide || !oLayout)
+        if (!this.Slide || !oLayout || !oLayout.Layout.Master)
             return false;
 
         this.Slide.changeLayout(oLayout.Layout);
