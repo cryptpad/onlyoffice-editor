@@ -10747,7 +10747,7 @@
 				if (oColor) {
 					let sName = CLR_NAME_MAP[aIdx[nIdx]];
 					if (sName) {
-						let sNodeName =  "a:" + sName;
+						let sNodeName = "a:" + sName;
 						writer.WriteXmlNodeStart(sNodeName);
 						writer.WriteXmlAttributesEnd();
 						oColor.toXml(writer);
@@ -14183,12 +14183,12 @@
 
 			var url = this.getImageBulletURL();
 			var Api = editor || Asc.editor;
-			if(!url || !Api){
+			if (!url || !Api) {
 				return;
 			}
 
 			var oDiv = document.getElementById(divId);
-			if(!oDiv) {
+			if (!oDiv) {
 				return;
 			}
 			var nWidth = oDiv.clientWidth;
@@ -14211,8 +14211,7 @@
 			oContext.fillStyle = "white";
 			oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
 			var _img = Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
-			if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading)
-			{
+			if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading) {
 				var absoluteIndent = sideSize * relativeIndent;
 				var _x = absoluteIndent;
 				var _y = absoluteIndent;
@@ -14308,15 +14307,13 @@
 		prot.put_ImageUrl = function (sUrl, token) {
 			var _this = this;
 			var Api = editor || Asc.editor;
-			if(!Api)
-			{
+			if (!Api) {
 				return;
 			}
-			AscCommon.sendImgUrls(Api, [sUrl], function(data) {
-				if (data && data[0] && data[0].url !== "error")
-				{
+			AscCommon.sendImgUrls(Api, [sUrl], function (data) {
+				if (data && data[0] && data[0].url !== "error") {
 					var url = AscCommon.g_oDocumentUrls.imagePath2Local(data[0].path);
-					Api.ImageLoader.LoadImagesWithCallback([AscCommon.getFullImageSrc2(url)], function(){
+					Api.ImageLoader.LoadImagesWithCallback([AscCommon.getFullImageSrc2(url)], function () {
 						_this.fillBulletImage(url);
 						//_this.drawSquareImage();
 						Api.sendEvent("asc_onBulletImageLoaded", _this);
@@ -14329,31 +14326,22 @@
 
 			var Api = editor || Asc.editor;
 
-			if(!Api) {
+			if (!Api) {
 				return;
 			}
 			var _this = this;
-			AscCommon.ShowImageFileDialog(Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function(error, files)
-				{
-					if (Asc.c_oAscError.ID.No !== error)
-					{
+			AscCommon.ShowImageFileDialog(Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function (error, files) {
+					if (Asc.c_oAscError.ID.No !== error) {
 						Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
-					}
-					else
-					{
+					} else {
 						Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
-						AscCommon.UploadImageFiles(files, Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function(error, urls)
-						{
-							if (Asc.c_oAscError.ID.No !== error)
-							{
+						AscCommon.UploadImageFiles(files, Api.documentId, Api.documentUserId, Api.CoAuthoringApi.get_jwt(), function (error, urls) {
+							if (Asc.c_oAscError.ID.No !== error) {
 								Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
 								Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
-							}
-							else
-							{
-								Api.ImageLoader.LoadImagesWithCallback(urls, function(){
-									if(urls.length > 0)
-									{
+							} else {
+								Api.ImageLoader.LoadImagesWithCallback(urls, function () {
+									if (urls.length > 0) {
 										_this.fillBulletImage(urls[0]);
 										//_this.drawSquareImage();
 										Api.sendEvent("asc_onBulletImageLoaded", _this);
@@ -14364,10 +14352,8 @@
 						});
 					}
 				},
-				function(error)
-				{
-					if (Asc.c_oAscError.ID.No !== error)
-					{
+				function (error) {
+					if (Asc.c_oAscError.ID.No !== error) {
 						Api.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
 					}
 					Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
@@ -14376,7 +14362,7 @@
 		prot["showFileDialog"] = prot["asc_showFileDialog"] = CBullet.prototype.showFileDialog;
 		prot.asc_getSize = function () {
 			var nRet = 100;
-			if(this.bulletSize) {
+			if (this.bulletSize) {
 				switch (this.bulletSize.type) {
 					case AscFormat.BULLET_TYPE_SIZE_NONE: {
 						break;
@@ -14396,27 +14382,25 @@
 			return nRet;
 		};
 		prot["get_Size"] = prot["asc_getSize"] = CBullet.prototype.asc_getSize;
-		prot.asc_putSize = function(Size) {
-			if(AscFormat.isRealNumber(Size)) {
+		prot.asc_putSize = function (Size) {
+			if (AscFormat.isRealNumber(Size)) {
 				this.bulletSize = new AscFormat.CBulletSize();
 				this.bulletSize.type = AscFormat.BULLET_TYPE_SIZE_PCT;
 				this.bulletSize.val = (Size * 1000) >> 0;
 			}
 		};
 		prot["put_Size"] = prot["asc_putSize"] = CBullet.prototype.asc_putSize;
-		prot.asc_getColor = function() {
-			if(this.bulletColor) {
-				if(this.bulletColor.UniColor) {
+		prot.asc_getColor = function () {
+			if (this.bulletColor) {
+				if (this.bulletColor.UniColor) {
 					return AscCommon.CreateAscColor(this.bulletColor.UniColor);
 				}
-			}
-			else {
+			} else {
 				var FirstTextPr = this.FirstTextPr;
-				if(FirstTextPr && FirstTextPr.Unifill) {
-					if(FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color) {
+				if (FirstTextPr && FirstTextPr.Unifill) {
+					if (FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color) {
 						return AscCommon.CreateAscColor(FirstTextPr.Unifill.fill.color);
-					}
-					else {
+					} else {
 						var RGBA = FirstTextPr.Unifill.getRGBAColor();
 						return AscCommon.CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
 					}
@@ -14425,23 +14409,22 @@
 			return AscCommon.CreateAscColorCustom(0, 0, 0);
 		};
 		prot["get_Color"] = prot["asc_getColor"] = prot.asc_getColor;
-		prot.asc_putColor = function(color) {
+		prot.asc_putColor = function (color) {
 			this.bulletColor = new AscFormat.CBulletColor();
 			this.bulletColor.type = AscFormat.BULLET_TYPE_COLOR_CLR;
 			this.bulletColor.UniColor = AscFormat.CorrectUniColor(color, this.bulletColor.UniColor, 0);
 		};
 		prot["put_Color"] = prot["asc_putColor"] = prot.asc_putColor;
-		prot.asc_getFont = function() {
+		prot.asc_getFont = function () {
 			var sRet = "";
-			if(this.bulletTypeface
+			if (this.bulletTypeface
 				&& this.bulletTypeface.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT
 				&& typeof this.bulletTypeface.typeface === "string"
 				&& this.bulletTypeface.typeface.length > 0) {
 				sRet = this.bulletTypeface.typeface;
-			}
-			else {
+			} else {
 				var FirstTextPr = this.FirstTextPr;
-				if(FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
+				if (FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
 					&& FirstTextPr.FontFamily.Name.length > 0) {
 					sRet = FirstTextPr.FontFamily.Name;
 				}
@@ -14449,31 +14432,31 @@
 			return sRet;
 		};
 		prot["get_Font"] = prot["asc_getFont"] = prot.asc_getFont;
-		prot.asc_putFont = function(val) {
-			if(typeof val === "string" && val.length > 0) {
+		prot.asc_putFont = function (val) {
+			if (typeof val === "string" && val.length > 0) {
 				this.bulletTypeface = new AscFormat.CBulletTypeface();
 				this.bulletTypeface.type = AscFormat.BULLET_TYPE_TYPEFACE_BUFONT;
 				this.bulletTypeface.typeface = val;
 			}
 		};
 		prot["put_Font"] = prot["asc_putFont"] = prot.asc_putFont;
-		prot.asc_putNumStartAt = function(NumStartAt) {
+		prot.asc_putNumStartAt = function (NumStartAt) {
 			this.putNumStartAt(NumStartAt);
 		};
 		prot["put_NumStartAt"] = prot["asc_putNumStartAt"] = prot.asc_putNumStartAt;
-		prot.asc_getNumStartAt = function() {
+		prot.asc_getNumStartAt = function () {
 			return this.getNumStartAt();
 		};
 		prot["get_NumStartAt"] = prot["asc_getNumStartAt"] = prot.asc_getNumStartAt;
 		prot.asc_getSymbol = function () {
-			if(this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR) {
+			if (this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR) {
 				return this.bulletType.Char;
 			}
 			return undefined;
 		};
 		prot["get_Symbol"] = prot["asc_getSymbol"] = prot.asc_getSymbol;
-		prot.asc_putSymbol = function(v) {
-			if(!this.bulletType) {
+		prot.asc_putSymbol = function (v) {
+			if (!this.bulletType) {
 				this.bulletType = new CBulletType();
 			}
 			this.bulletType.AutoNumType = 0;
@@ -14481,35 +14464,35 @@
 			this.bulletType.Char = v;
 		};
 		prot["put_Symbol"] = prot["asc_putSymbol"] = prot.asc_putSymbol;
-		prot.asc_putAutoNumType = function(val) {
-			if(!this.bulletType) {
+		prot.asc_putAutoNumType = function (val) {
+			if (!this.bulletType) {
 				this.bulletType = new CBulletType();
 			}
 			this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
 			this.bulletType.AutoNumType = AscFormat.getNumberingType(val);
 		};
 		prot["put_AutoNumType"] = prot["asc_putAutoNumType"] = prot.asc_putAutoNumType;
-		prot.asc_getAutoNumType = function() {
-			if(this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM) {
+		prot.asc_getAutoNumType = function () {
+			if (this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM) {
 				return AscFormat.fGetListTypeFromBullet(this).SubType;
 			}
 			return -1;
 		};
 		prot["get_AutoNumType"] = prot["asc_getAutoNumType"] = prot.asc_getAutoNumType;
-		prot.asc_putListType = function(type, subtype, custom) {
+		prot.asc_putListType = function (type, subtype, custom) {
 			var NumberInfo =
 				{
-					Type     : type,
-					SubType  : subtype,
-					Custom   : custom
+					Type: type,
+					SubType: subtype,
+					Custom: custom
 				};
 			AscFormat.fFillBullet(NumberInfo, this);
 		};
 		prot["put_ListType"] = prot["asc_putListType"] = prot.asc_putListType;
-		prot.asc_getListType = function() {
+		prot.asc_getListType = function () {
 			return new AscCommon.asc_CListType(AscFormat.fGetListTypeFromBullet(this));
 		};
-		prot.asc_getType = function() {
+		prot.asc_getType = function () {
 			return this.bulletType && this.bulletType.type;
 		};
 		prot["get_Type"] = prot["asc_getType"] = prot.asc_getType;
@@ -15863,6 +15846,7 @@
 		};
 		CCore.prototype.toXml = function (writer) {
 
+			writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
 			writer.WriteXmlNodeStart("cp:coreProperties");
 
 			writer.WriteXmlNullableAttributeString("xmlns:cp", "http://schemas.openxmlformats.org/package/2006/metadata/core-properties");
@@ -16234,6 +16218,10 @@
 		CApp.prototype.readChildXml = function (name, reader) {
 
 			switch (name) {
+				case "Template": {
+					this.Template = reader.GetTextDecodeXml();
+					break;
+				}
 				case "Application": {
 					this.Application = reader.GetTextDecodeXml();
 					break;
@@ -16294,75 +16282,145 @@
 					this.HyperlinksChanged = reader.GetTextBool();
 					break;
 				}
+				case "Pages": {
+					this.Pages = reader.GetTextUInt();
+					break;
+				}
 			}
 		};
 		CApp.prototype.toXml = function (writer) {
-			writer.WriteXmlNodeStart("Properties");
 
+			writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+			writer.WriteXmlNodeStart("Properties");
 
 			writer.WriteXmlNullableAttributeString("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties");
 			writer.WriteXmlNullableAttributeString("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes");
-
 			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlString("<Application>");
+			writer.WriteXmlStringEncode("@@AppName");
+			writer.WriteXmlString("/");
+			writer.WriteXmlStringEncode("@@Version");
+			writer.WriteXmlString("</Application>");
 
-			//writer.WriteXmlNullableValueString("Template", this.Template);
-			writer.WriteXmlNullableValueInt("TotalTime", this.TotalTime);
-			//writer.WriteXmlNullableValueString("Pages", this.Pages);
-			writer.WriteXmlNullableValueInt("Words", this.Words);
-			//writer.WriteXmlNullableValueString("Characters", this.Characters);
-			//writer.WriteXmlNullableValueString("CharactersWithSpaces", this.CharactersWithSpaces);
-			writer.WriteXmlValueStringEncode("Application", "@@AppName/@@Version");
-			//writer.WriteXmlNullableValueString("DocSecurity", this.DocSecurity);
-			writer.WriteXmlValueStringEncode("PresentationFormat", this.PresentationFormat);
-			//writer.WriteXmlNullableValueString("Lines", this.Lines);
-			writer.WriteXmlNullableValueInt("Paragraphs", this.Paragraphs);
-			writer.WriteXmlNullableValueInt("Slides", this.Slides);
-			writer.WriteXmlNullableValueInt("Notes", this.Notes);
-			writer.WriteXmlNullableValueInt("HiddenSlides", this.HiddenSlides);
-			writer.WriteXmlNullableValueInt("MMClips", this.MMClips);
-			writer.WriteXmlNullableValueBool("ScaleCrop", this.ScaleCrop);
-
-			if(this.HeadingPairs.length > 0 && false) {
-
-				writer.WriteXmlNodeStart("HeadingPairs");
-				writer.WriteXmlAttributesEnd();
-
-				writer.WriteXmlNodeStart("vt:vector");
-
-				writer.WriteXmlNullableAttributeUInt("size", this.HeadingPairs.length);
-				writer.WriteXmlNullableAttributeString("baseType", "variant");
-				writer.WriteXmlAttributesEnd();
-				//writer.WriteArray2(HeadingPairs);
-
-				writer.WriteXmlNodeEnd("vt:vector");
-				writer.WriteXmlNodeEnd("HeadingPairs");
+			if (this.Characters !== null) {
+				writer.WriteXmlString("<Characters>");
+				writer.WriteXmlString(this.Characters + "");
+				writer.WriteXmlString("</Characters>");
 			}
 
-
-			if(this.TitlesOfParts.length > 0 && false) {
-				writer.WriteXmlNodeStart("TitlesOfParts");
-				writer.WriteXmlAttributesEnd();
-
-				writer.WriteXmlNodeStart("vt:vector");
-
-				writer.WriteXmlNullableAttributeUInt("size", this.TitlesOfParts.length);
-				writer.WriteXmlNullableAttributeString("baseType", "lpstr");
-				writer.WriteXmlAttributesEnd();
-
-				//writer.WriteArray2(TitlesOfParts);
-
-				writer.WriteXmlNodeEnd("vt:vector");
-				writer.WriteXmlNodeEnd("TitlesOfParts");
+			if (this.CharactersWithSpaces !== null) {
+				writer.WriteXmlString("<CharactersWithSpaces>");
+				writer.WriteXmlString(this.CharactersWithSpaces + "");
+				writer.WriteXmlString("</CharactersWithSpaces>");
 			}
 
-			//writer.WriteXmlNullableValueString("Manager", this.Manager);
-			writer.WriteXmlValueStringEncode("Company", this.Company);
-			writer.WriteXmlNullableValueBool("LinksUpToDate", this.LinksUpToDate);
-			writer.WriteXmlNullableValueBool("SharedDoc", this.SharedDoc);
-			//writer.WriteXmlNullableValueString("HyperlinkBase", this.HyperlinkBase);
-			writer.WriteXmlNullableValueBool("HyperlinksChanged", this.HyperlinksChanged);
-			writer.WriteXmlValueStringEncode("AppVersion", this.AppVersion);
+			if (this.Company !== null) {
+				writer.WriteXmlString("<Company>");
+				writer.WriteXmlStringEncode(this.Company);
+				writer.WriteXmlString("</Company>");
+			}
 
+			if (this.DocSecurity !== null) {
+				writer.WriteXmlString("<DocSecurity>");
+				writer.WriteXmlString(this.DocSecurity + "");
+				writer.WriteXmlString("</DocSecurity>");
+			}
+
+			if (this.HiddenSlides !== null) {
+				writer.WriteXmlString("<HiddenSlides>");
+				writer.WriteXmlString(this.HiddenSlides + "");
+				writer.WriteXmlString("</HiddenSlides>");
+			}
+
+			if (this.HyperlinkBase !== null) {
+				writer.WriteXmlString("<HyperlinkBase>");
+				writer.WriteXmlString(this.HyperlinkBase + "");
+				writer.WriteXmlString("</HyperlinkBase>");
+			}
+
+			if (this.HyperlinksChanged !== null) {
+				writer.WriteXmlString("<HyperlinksChanged>");
+				writer.WriteXmlString(this.HyperlinksChanged ? "true" : "false");
+				writer.WriteXmlString("</HyperlinksChanged>");
+			}
+
+			if (this.Lines !== null) {
+				writer.WriteXmlString("<Lines>");
+				writer.WriteXmlString(this.Lines + "");
+				writer.WriteXmlString("</Lines>");
+			}
+
+			if (this.LinksUpToDate !== null) {
+				writer.WriteXmlString("<LinksUpToDate>");
+				writer.WriteXmlString(this.LinksUpToDate ? "true" : "false");
+				writer.WriteXmlString("</LinksUpToDate>");
+			}
+
+			if (this.Manager !== null) {
+				writer.WriteXmlString("<Manager>");
+				writer.WriteXmlStringEncode(this.Manager);
+				writer.WriteXmlString("</Manager>");
+			}
+
+			if (this.MMClips !== null) {
+				writer.WriteXmlString("<MMClips>");
+				writer.WriteXmlString(this.MMClips + "");
+				writer.WriteXmlString("</MMClips>");
+			}
+
+			if (this.Notes !== null) {
+				writer.WriteXmlString("<Notes>");
+				writer.WriteXmlString(this.Notes + "");
+				writer.WriteXmlString("</Notes>");
+			}
+
+			if (this.Pages !== null) {
+				writer.WriteXmlString("<Pages>");
+				writer.WriteXmlString(this.Pages + "");
+				writer.WriteXmlString("</Pages>");
+			}
+
+			if (this.Paragraphs !== null) {
+				writer.WriteXmlString("<Paragraphs>");
+				writer.WriteXmlString(this.Paragraphs + "");
+				writer.WriteXmlString("</Paragraphs>");
+			}
+
+			if (this.ScaleCrop !== null) {
+				writer.WriteXmlString("<ScaleCrop>");
+				writer.WriteXmlString(this.ScaleCrop ? "true" : "false");
+				writer.WriteXmlString("</ScaleCrop>");
+			}
+
+			if (this.SharedDoc !== null) {
+				writer.WriteXmlString("<SharedDoc>");
+				writer.WriteXmlString(this.SharedDoc ? "true" : "false");
+				writer.WriteXmlString("</SharedDoc>");
+			}
+
+			if (this.Slides !== null) {
+				writer.WriteXmlString("<Slides>");
+				writer.WriteXmlString(this.Slides + "");
+				writer.WriteXmlString("</Slides>");
+			}
+
+			if (this.Template !== null) {
+				writer.WriteXmlString("<Template>");
+				writer.WriteXmlStringEncode(this.Template);
+				writer.WriteXmlString("</Template>");
+			}
+
+			if (this.TotalTime !== null) {
+				writer.WriteXmlString("<TotalTime>");
+				writer.WriteXmlString(this.TotalTime + "");
+				writer.WriteXmlString("</TotalTime>");
+			}
+
+			if (this.Words !== null) {
+				writer.WriteXmlString("<Words>");
+				writer.WriteXmlString(this.Words + "");
+				writer.WriteXmlString("</Words>");
+			}
 			writer.WriteXmlNodeEnd("Properties");
 		};
 		window['AscCommon'].CApp = CApp;

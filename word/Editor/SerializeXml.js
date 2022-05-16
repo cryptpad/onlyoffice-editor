@@ -156,6 +156,23 @@
 		context.docSaveParams = new DocSaveParams();
 
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
+
+		if (this.Core) {
+			var corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
+			this.Core.toXml(memory);
+			var coreData = memory.GetDataUint8();
+			corePart.part.setData(coreData);
+			memory.Seek(0);
+		}
+
+		if (this.App) {
+			var appPart = filePart.addPart(AscCommon.openXml.Types.extendedFileProperties);
+			this.App.toXml(memory);
+			var appData = memory.GetDataUint8();
+			appPart.part.setData(appData);
+			memory.Seek(0);
+		}
+
 		var docPart = filePart.addPart(AscCommon.openXml.Types.mainDocument);
 
 		var stylesPart = docPart.part.addPart(AscCommon.openXml.Types.styles);
@@ -175,7 +192,6 @@
 		memory.Seek(0);
 
 
-		//memory.WriteXmlString(AscCommonWord.g_sXmlTheme);
 		this.theme.toXml(memory);
 		sampleData = memory.GetDataUint8();
 		var themePart = docPart.part.addPart(AscCommon.openXml.Types.theme);

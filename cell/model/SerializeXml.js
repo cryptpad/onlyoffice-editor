@@ -50,10 +50,9 @@
 		memory.context = context;
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
 
-		//TODO app и core  не готова запись - как будет готова - раскомментировать
-		/*if (this.Core) {
+		if (this.Core) {
 			var corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
-			this.Core.toXml(memory, "cp:coreProperties");
+			this.Core.toXml(memory);
 			var coreData = memory.GetDataUint8();
 			corePart.part.setData(coreData);
 			memory.Seek(0);
@@ -61,11 +60,11 @@
 
 		if (this.App) {
 			var appPart = filePart.addPart(AscCommon.openXml.Types.extendedFileProperties);
-			this.App.toXml(memory, "cp:coreProperties");
+			this.App.toXml(memory);
 			var appData = memory.GetDataUint8();
 			appPart.part.setData(appData);
 			memory.Seek(0);
-		}*/
+		}
 
 		var wbXml = new CT_Workbook(this);
 		var wbPart = filePart.addPart(AscCommon.openXml.Types.workbook);
