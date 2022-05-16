@@ -1555,27 +1555,27 @@
 				var colorMod = this.Mods[i];
 				var val = colorMod.val / 100000.0;
 
-				if (colorMod.name == "alpha") {
+				if (colorMod.name === "alpha") {
 					RGBA.A = AscFormat.ClampColor(255 * val);
-				} else if (colorMod.name == "blue") {
+				} else if (colorMod.name === "blue") {
 					RGBA.B = AscFormat.ClampColor(255 * val);
-				} else if (colorMod.name == "blueMod") {
+				} else if (colorMod.name === "blueMod") {
 					RGBA.B = AscFormat.ClampColor(RGBA.B * val);
-				} else if (colorMod.name == "blueOff") {
+				} else if (colorMod.name === "blueOff") {
 					RGBA.B = AscFormat.ClampColor(RGBA.B + val * 255);
-				} else if (colorMod.name == "green") {
+				} else if (colorMod.name === "green") {
 					RGBA.G = AscFormat.ClampColor(255 * val);
-				} else if (colorMod.name == "greenMod") {
+				} else if (colorMod.name === "greenMod") {
 					RGBA.G = AscFormat.ClampColor(RGBA.G * val);
-				} else if (colorMod.name == "greenOff") {
+				} else if (colorMod.name === "greenOff") {
 					RGBA.G = AscFormat.ClampColor(RGBA.G + val * 255);
-				} else if (colorMod.name == "red") {
+				} else if (colorMod.name === "red") {
 					RGBA.R = AscFormat.ClampColor(255 * val);
-				} else if (colorMod.name == "redMod") {
+				} else if (colorMod.name === "redMod") {
 					RGBA.R = AscFormat.ClampColor(RGBA.R * val);
-				} else if (colorMod.name == "redOff") {
+				} else if (colorMod.name === "redOff") {
 					RGBA.R = AscFormat.ClampColor(RGBA.R + val * 255);
-				} else if (colorMod.name == "hueOff") {
+				} else if (colorMod.name === "hueOff") {
 					var HSL = {H: 0, S: 0, L: 0};
 					this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
@@ -1583,17 +1583,17 @@
 					HSL.H = AscFormat.ClampColor2(res, 0, max_hls);
 
 					this.HSL2RGB(HSL, RGBA);
-				} else if (colorMod.name == "inv") {
+				} else if (colorMod.name === "inv") {
 					RGBA.R ^= 0xFF;
 					RGBA.G ^= 0xFF;
 					RGBA.B ^= 0xFF;
-				} else if (colorMod.name == "lumMod") {
+				} else if (colorMod.name === "lumMod") {
 					var HSL = {H: 0, S: 0, L: 0};
 					this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
 					HSL.L = AscFormat.ClampColor2(HSL.L * val, 0, max_hls);
 					this.HSL2RGB(HSL, RGBA);
-				} else if (colorMod.name == "lumOff") {
+				} else if (colorMod.name === "lumOff") {
 					var HSL = {H: 0, S: 0, L: 0};
 					this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
@@ -1601,13 +1601,13 @@
 					HSL.L = AscFormat.ClampColor2(res, 0, max_hls);
 
 					this.HSL2RGB(HSL, RGBA);
-				} else if (colorMod.name == "satMod") {
+				} else if (colorMod.name === "satMod") {
 					var HSL = {H: 0, S: 0, L: 0};
 					this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
 					HSL.S = AscFormat.ClampColor2(HSL.S * val, 0, max_hls);
 					this.HSL2RGB(HSL, RGBA);
-				} else if (colorMod.name == "satOff") {
+				} else if (colorMod.name === "satOff") {
 					var HSL = {H: 0, S: 0, L: 0};
 					this.RGB2HSL(RGBA.R, RGBA.G, RGBA.B, HSL);
 
@@ -1615,7 +1615,7 @@
 					HSL.S = AscFormat.ClampColor2(res, 0, max_hls);
 
 					this.HSL2RGB(HSL, RGBA);
-				} else if (colorMod.name == "wordShade") {
+				} else if (colorMod.name === "wordShade") {
 					var val_ = colorMod.val / 255;
 					//GBA.R = Math.max(0, (RGBA.R * (1 - val_)) >> 0);
 					//GBA.G = Math.max(0, (RGBA.G * (1 - val_)) >> 0);
@@ -1631,7 +1631,7 @@
 
 					HSL.L = AscFormat.ClampColor2(HSL.L * val_, 0, max_hls);
 					this.HSL2RGB(HSL, RGBA);
-				} else if (colorMod.name == "wordTint") {
+				} else if (colorMod.name === "wordTint") {
 					var _val = colorMod.val / 255;
 					//RGBA.R = Math.max(0,  ((1 - _val)*(255 - RGBA.R) + RGBA.R) >> 0);
 					//RGBA.G = Math.max(0,  ((1 - _val)*(255 - RGBA.G) + RGBA.G) >> 0);
@@ -1643,7 +1643,7 @@
 					var L_ = HSL.L * _val + (255 - colorMod.val);
 					HSL.L = AscFormat.ClampColor2(L_, 0, max_hls);
 					this.HSL2RGB(HSL, RGBA);
-				} else if (colorMod.name == "shade") {
+				} else if (colorMod.name === "shade") {
 					this.RgbtoCrgb(RGBA);
 					if (val < 0) val = 0;
 					if (val > 1) val = 1;
@@ -1651,7 +1651,7 @@
 					RGBA.G = (RGBA.G * val);
 					RGBA.B = (RGBA.B * val);
 					this.CrgbtoRgb(RGBA);
-				} else if (colorMod.name == "tint") {
+				} else if (colorMod.name === "tint") {
 					this.RgbtoCrgb(RGBA);
 					if (val < 0) val = 0;
 					if (val > 1) val = 1;
@@ -1659,13 +1659,13 @@
 					RGBA.G = (MAX_PERCENT - (MAX_PERCENT - RGBA.G) * val);
 					RGBA.B = (MAX_PERCENT - (MAX_PERCENT - RGBA.B) * val);
 					this.CrgbtoRgb(RGBA);
-				} else if (colorMod.name == "gamma") {
+				} else if (colorMod.name === "gamma") {
 					this.RgbtoCrgb(RGBA);
 					RGBA.R = this.lclGamma(RGBA.R, INC_GAMMA);
 					RGBA.G = this.lclGamma(RGBA.G, INC_GAMMA);
 					RGBA.B = this.lclGamma(RGBA.B, INC_GAMMA);
 					this.CrgbtoRgb(RGBA);
-				} else if (colorMod.name == "invGamma") {
+				} else if (colorMod.name === "invGamma") {
 					this.RgbtoCrgb(RGBA);
 					RGBA.R = this.lclGamma(RGBA.R, DEC_GAMMA);
 					RGBA.G = this.lclGamma(RGBA.G, DEC_GAMMA);
@@ -1856,7 +1856,7 @@
 		CSysColor.prototype.toXml = function (writer) {
 			let sNodeNamespace = "";
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = ("w14:");
 				sAttrNamespace = sNodeNamespace;
 			} else
@@ -1944,7 +1944,7 @@
 		CPrstColor.prototype.toXml = function (writer) {
 			let sNodeNamespace = "";
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = ("w14:");
 				sAttrNamespace = sNodeNamespace;
 			} else
@@ -2039,7 +2039,7 @@
 			this.RGBA.B = b;
 		};
 		CRGBColor.prototype.IsIdentical = function (color) {
-			return color && color.type == this.type && color.RGBA.R == this.RGBA.R && color.RGBA.G == this.RGBA.G && color.RGBA.B == this.RGBA.B && color.RGBA.A == this.RGBA.A;
+			return color && color.type === this.type && color.RGBA.R === this.RGBA.R && color.RGBA.G === this.RGBA.G && color.RGBA.B === this.RGBA.B && color.RGBA.A === this.RGBA.A;
 		};
 		CRGBColor.prototype.createDuplicate = function () {
 			var duplicate = new CRGBColor();
@@ -2087,7 +2087,7 @@
 
 			let sNodeNamespace = "";
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = ("w14:");
 				sAttrNamespace = sNodeNamespace;
 			} else
@@ -2152,7 +2152,7 @@
 			this.id = id;
 		};
 		CSchemeColor.prototype.IsIdentical = function (color) {
-			return color && color.type == this.type && color.id == this.id;
+			return color && color.type === this.type && color.id === this.id;
 		};
 		CSchemeColor.prototype.createDuplicate = function () {
 			var duplicate = new CSchemeColor();
@@ -2165,7 +2165,7 @@
 		};
 		CSchemeColor.prototype.Calculate = function (theme, slide, layout, masterSlide, RGBA, colorMap) {
 			if (theme.themeElements.clrScheme) {
-				if (this.id == phClr) {
+				if (this.id === phClr) {
 					this.RGBA = RGBA;
 				} else {
 					var clrMap;
@@ -2216,7 +2216,7 @@
 		CSchemeColor.prototype.toXml = function (writer) {
 			let sNodeNamespace = "";
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = ("w14:");
 				sAttrNamespace = sNodeNamespace;
 			} else
@@ -2943,23 +2943,23 @@
 			}
 		};
 		CBlipFillTile.prototype.GetAlignBYTECode = function (sVal) {
-			if (("b") == sVal)
+			if ("b" === sVal)
 				return 0;
-			if (("bl") == sVal)
+			if ("bl" === sVal)
 				return 1;
-			if (("br") == sVal)
+			if ("br" === sVal)
 				return 2;
-			if (("ctr") == sVal)
+			if ("ctr" === sVal)
 				return 3;
-			if (("l") == sVal)
+			if ("l" === sVal)
 				return 4;
-			if (("r") == sVal)
+			if ("r" === sVal)
 				return 5;
-			if (("t") == sVal)
+			if ("t" === sVal)
 				return 6;
-			if (("tl") == sVal)
+			if ("tl" === sVal)
 				return 7;
-			if (("tr") == sVal)
+			if ("tr" === sVal)
 				return 8;
 			return 7;
 		};
@@ -2998,13 +2998,13 @@
 			return null;
 		};
 		CBlipFillTile.prototype.GetFlipBYTECode = function (sVal) {
-			if (("none") === sVal)
+			if ("none" === sVal)
 				return 0;
-			if (("x") === sVal)
+			if ("x" === sVal)
 				return 1;
-			if (("y") === sVal)
+			if ("y" === sVal)
 				return 2;
-			if (("xy") === sVal)
+			if ("xy" === sVal)
 				return 3;
 			return 0;
 		}
@@ -3029,15 +3029,15 @@
 			return null;
 		}
 		CBlipFillTile.prototype.toXml = function (writer) {
-			writer.WriteXmlNodeStart(("a:tile"));
-			writer.WriteXmlNullableAttributeString(("algn"), this.SetAlignBYTECode(this.algn));
-			writer.WriteXmlNullableAttributeString(("flip"), this.SetFlipBYTECode(this.flip));
-			writer.WriteXmlNullableAttributeInt(("sx"), this.sx);
-			writer.WriteXmlNullableAttributeInt(("sy"), this.sy);
-			writer.WriteXmlNullableAttributeInt(("tx"), this.tx);
-			writer.WriteXmlNullableAttributeInt(("ty"), this.ty);
+			writer.WriteXmlNodeStart("a:tile");
+			writer.WriteXmlNullableAttributeString("algn", this.SetAlignBYTECode(this.algn));
+			writer.WriteXmlNullableAttributeString("flip", this.SetFlipBYTECode(this.flip));
+			writer.WriteXmlNullableAttributeInt("sx", this.sx);
+			writer.WriteXmlNullableAttributeInt("sy", this.sy);
+			writer.WriteXmlNullableAttributeInt("tx", this.tx);
+			writer.WriteXmlNullableAttributeInt("ty", this.ty);
 			writer.WriteXmlAttributesEnd();
-			writer.WriteXmlNodeEnd(("a:tile"));
+			writer.WriteXmlNodeEnd("a:tile");
 		};
 
 		function fReadEffectXML(name, reader) {
@@ -3208,7 +3208,7 @@
 		};
 		CBlip.prototype.toXml = function (writer, sNamespace, sRasterImageId) {
 			let sNamespace_ = sNamespace || "a";
-			let strName = (("") === sNamespace_) ? ("blip") : (sNamespace_ + (":blip"));
+			let strName = ("" === sNamespace_) ? ("blip") : (sNamespace_ + (":blip"));
 			var context = writer.context;
 			var imagePart = context.imageMap[sRasterImageId];
 			if (!imagePart) {
@@ -3515,10 +3515,10 @@
 		};
 		CBlipFill.prototype.toXml = function (writer, sNamespace) {
 			let sNamespace_ = sNamespace || "a";
-			let strName = (("") == sNamespace_) ? ("blipFill") : (sNamespace_ + (":blipFill"));
+			let strName = ("" === sNamespace_) ? ("blipFill") : (sNamespace_ + (":blipFill"));
 			writer.WriteXmlNodeStart(strName);
-			//writer.WriteXmlNullableAttributeString(("dpi"), dpi);
-			writer.WriteXmlNullableAttributeBool(("rotWithShape"), this.rotWithShape);
+			//writer.WriteXmlNullableAttributeString("dpi", dpi);
+			writer.WriteXmlNullableAttributeBool("rotWithShape", this.rotWithShape);
 			writer.WriteXmlAttributesEnd();
 
 			this.writeBlip(writer);
@@ -5442,10 +5442,10 @@
 		CSolidFill.prototype.toXml = function (writer, sNamespace) {
 			let strName;
 			let sNamespace_ = sNamespace || "a"
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType)
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType)
 				strName = ("w14:solidFill");
 			else
-				strName = (("") == sNamespace_) ? ("solidFill") : (sNamespace_ + (":solidFill"));
+				strName = ("" === sNamespace_) ? ("solidFill") : (sNamespace_ + (":solidFill"));
 
 			writer.WriteXmlNodeStart(strName);
 			writer.WriteXmlAttributesEnd();
@@ -5541,7 +5541,7 @@
 		CGs.prototype.toXml = function (writer) {
 			let sNodeNamespace = "";
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = ("w14:");
 				sAttrNamespace = sNodeNamespace;
 			} else
@@ -5612,7 +5612,7 @@
 		GradLin.prototype.toXml = function (writer) {
 			let sNodeNamespace = "";
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = ("w14:");
 				sAttrNamespace = sNodeNamespace;
 			} else
@@ -5924,7 +5924,7 @@
 			let sAttrNamespace = "";
 			let strName = "";
 			let sNamespace_ = sNamespace || "a";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sAttrNamespace = ("w14:");
 				strName = ("w14:gradFill");
 			} else {
@@ -5941,7 +5941,7 @@
 
 			let sListName;
 
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType)
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType)
 				sListName = "w14:gsLst";
 			else
 				sListName = "a:gsLst";
@@ -6292,25 +6292,25 @@
 		};
 		CPattFill.prototype.toXml = function (writer, sNamespace) {
 			let sNamespace_ = sNamespace || "a";
-			let strName = ("" == sNamespace_) ? "pattFill" : (sNamespace_ + "pattFill");
+			let strName = ("" === sNamespace_) ? "pattFill" : (sNamespace_ + "pattFill");
 			writer.WriteXmlNodeStart(strName);
 
 
-			writer.WriteXmlNullableAttributeString(("prst"), this.prst);
+			writer.WriteXmlNullableAttributeString("prst", this.prst);
 			writer.WriteXmlAttributesEnd();
 
 			if (this.fgClr) {
-				writer.WriteXmlNodeStart(("a:fgClr"));
+				writer.WriteXmlNodeStart("a:fgClr");
 				writer.WriteXmlAttributesEnd();
 				this.fgClr.toXml(writer);
-				writer.WriteXmlNodeEnd(("a:fgClr"));
+				writer.WriteXmlNodeEnd("a:fgClr");
 			}
 
 			if (this.bgClr) {
-				writer.WriteXmlNodeStart(("a:bgClr"));
+				writer.WriteXmlNodeStart("a:bgClr");
 				writer.WriteXmlAttributesEnd();
 				this.bgClr.toXml(writer);
-				writer.WriteXmlNodeEnd(("a:bgClr"));
+				writer.WriteXmlNodeEnd("a:bgClr");
 			}
 
 			writer.WriteXmlNodeEnd(strName);
@@ -6366,10 +6366,10 @@
 		CNoFill.prototype.readChildXml = function (name, reader) {
 		};
 		CNoFill.prototype.toXml = function (writer) {
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType)
-				writer.WriteXmlString(("<w14:noFill/>"));
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType)
+				writer.WriteXmlString("<w14:noFill/>");
 			else
-				writer.WriteXmlString(("<a:noFill/>"));
+				writer.WriteXmlString("<a:noFill/>");
 		};
 
 		function CGrpFill() {
@@ -6417,10 +6417,10 @@
 			return null;
 		};
 		CGrpFill.prototype.toXml = function (writer) {
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType)
-				writer.WriteXmlString(("<w14:grpFill/>"));
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType)
+				writer.WriteXmlString("<w14:grpFill/>");
 			else
-				writer.WriteXmlString(("<a:grpFill/>"));
+				writer.WriteXmlString("<a:grpFill/>");
 		};
 
 
@@ -6638,19 +6638,19 @@
 		};
 		CUniFill.prototype.getRGBAColor = function () {
 			if (this.fill) {
-				if (this.fill.type == c_oAscFill.FILL_TYPE_SOLID) {
+				if (this.fill.type === c_oAscFill.FILL_TYPE_SOLID) {
 					if (this.fill.color) {
 						return this.fill.color.RGBA;
 					} else {
 						return new FormatRGBAColor();
 					}
 				}
-				if (this.fill.type == c_oAscFill.FILL_TYPE_GRAD) {
+				if (this.fill.type === c_oAscFill.FILL_TYPE_GRAD) {
 					var RGBA = new FormatRGBAColor();
 					var _colors = this.fill.colors;
 					var _len = _colors.length;
 
-					if (0 == _len)
+					if (0 === _len)
 						return RGBA;
 
 					for (var i = 0; i < _len; i++) {
@@ -6665,10 +6665,10 @@
 
 					return RGBA;
 				}
-				if (this.fill.type == c_oAscFill.FILL_TYPE_PATT) {
+				if (this.fill.type === c_oAscFill.FILL_TYPE_PATT) {
 					return this.fill.fgClr.RGBA;
 				}
-				if (this.fill.type == c_oAscFill.FILL_TYPE_NOFILL) {
+				if (this.fill.type === c_oAscFill.FILL_TYPE_NOFILL) {
 					return {R: 0, G: 0, B: 0};
 				}
 			}
@@ -7601,16 +7601,16 @@
 		LineJoin.prototype.toXml = function (writer) {
 			let sNodeNamespace = "";
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				sNodeNamespace = "w14:";
 				sAttrNamespace = sNodeNamespace;
 			} else
 				sNodeNamespace = "a:";
-			if (this.type == LineJoinType.Round) {
+			if (this.type === LineJoinType.Round) {
 				writer.WriteXmlString("<" + sNodeNamespace + "round/>");
-			} else if (this.type == LineJoinType.Bevel) {
+			} else if (this.type === LineJoinType.Bevel) {
 				writer.WriteXmlString("<" + sNodeNamespace + "bevel/>");
-			} else if (this.type == LineJoinType.Miter) {
+			} else if (this.type === LineJoinType.Miter) {
 				writer.WriteXmlNodeStart(sNodeNamespace + "miter");
 
 				writer.WriteXmlNullableAttributeInt(sAttrNamespace + "lim", getPercentageValueForWrite(this.lim));
@@ -8063,7 +8063,7 @@
 				_name = ("a:ln");
 
 			let sAttrNamespace = "";
-			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART == writer.context.docType) {
+			if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
 				_name = ("w14:textOutline");
 				sAttrNamespace = ("w14:");
 			}
@@ -8171,7 +8171,7 @@
 			}
 		};
 		DefaultShapeDefinition.prototype.toXml = function (writer, sName) {
-			writer.WriteXmlNodeStart(("a:") + sName);
+			writer.WriteXmlNodeStart("a:" + sName);
 			writer.WriteXmlAttributesEnd();
 
 			if (this.spPr) {
@@ -8189,7 +8189,7 @@
 				this.style.toXml(writer);
 			}
 
-			writer.WriteXmlNodeEnd(("a:") + sName);
+			writer.WriteXmlNodeEnd("a:" + sName);
 		};
 
 
@@ -8427,16 +8427,16 @@
 		UniMedia.prototype.fromXml = function (reader, name) {
 
 			//TODO:Implement in children
-			// if (name == ("audioCd"))
+			// if (name === ("audioCd"))
 			//
 			// 	this.type = null;
-			// else if (name == ("wavAudioFile"))
+			// else if (name === ("wavAudioFile"))
 			// 	Media.reset(new Logic::WavAudioFile(oReader));
-			// else if (name == ("audioFile"))
+			// else if (name === ("audioFile"))
 			// 	Media.reset(new Logic::MediaFile(oReader));
-			// else if (name == ("videoFile"))
+			// else if (name === ("videoFile"))
 			// 	Media.reset(new Logic::MediaFile(oReader));
-			// else if (name == ("quickTimeFile"))
+			// else if (name === ("quickTimeFile"))
 			// 	Media.reset(new Logic::MediaFile(oReader));
 			// else Media.reset();
 
@@ -8697,17 +8697,14 @@
 			}
 		};
 		Ph.prototype.toXml = function (writer) {
-			writer.WriteXmlNodeStart(("p:ph"));
-
-
-			writer.WriteXmlNullableAttributeString(("type"), this.type);
-			writer.WriteXmlNullableAttributeString(("orient"), this.orient);
-			writer.WriteXmlNullableAttributeString(("sz"), this.sz);
-			writer.WriteXmlNullableAttributeString(("idx"), this.idx);
-			writer.WriteXmlNullableAttributeString(("hasCustomPrompt"), this.hasCustomPrompt);
+			writer.WriteXmlNodeStart("p:ph");
+			writer.WriteXmlNullableAttributeString("type", this.type);
+			writer.WriteXmlNullableAttributeString("orient", this.orient);
+			writer.WriteXmlNullableAttributeString("sz", this.sz);
+			writer.WriteXmlNullableAttributeString("idx", this.idx);
+			writer.WriteXmlNullableAttributeString("hasCustomPrompt", this.hasCustomPrompt);
 			writer.WriteXmlAttributesEnd();
-
-			writer.WriteXmlNodeEnd(("p:ph"));
+			writer.WriteXmlNodeEnd("p:ph");
 		};
 
 		function fUpdateLocksValue(nLocks, nMask, bValue) {
@@ -8887,7 +8884,7 @@
 
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNodeStart(("a:cxnSpLocks"));
+			writer.WriteXmlNodeStart("a:cxnSpLocks");
 
 			writer.WriteXmlNullableAttributeBool("txBox", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.txBox));
 			writer.WriteXmlNullableAttributeBool("noAdjustHandles", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles));
@@ -8955,7 +8952,7 @@
 			writer.WriteXmlNodeStart(namespaceLock_ + ":graphicFrameLocks");
 
 
-			writer.WriteXmlNullableAttributeString(("xmlns:") + namespaceLock_, namespaceLockLink_);
+			writer.WriteXmlNullableAttributeString("xmlns:" + namespaceLock_, namespaceLockLink_);
 			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
 			writer.WriteXmlNullableAttributeBool("noDrilldown", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noDrilldown));
 			writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp));
@@ -8992,7 +8989,7 @@
 
 			writer.WriteXmlString("<" + namespace_ + ":cNvGrpSpPr>");
 
-			writer.WriteXmlNodeStart(("a:grpSpLocks"));
+			writer.WriteXmlNodeStart("a:grpSpLocks");
 
 
 			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
@@ -9004,7 +9001,7 @@
 			writer.WriteXmlNullableAttributeBool("noUngrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noUngrp));
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNodeEnd(("a:grpSpLocks"));
+			writer.WriteXmlNodeEnd("a:grpSpLocks");
 
 			writer.WriteXmlString("</" + namespace_ + ":cNvGrpSpPr>");
 		};
@@ -9051,7 +9048,7 @@
 			writer.WriteXmlNodeStart(namespace_ + ":cNvPicPr");
 
 
-			//writer.WriteXmlNullableAttributeString(("preferRelativeResize"), preferRelativeResize);
+			//writer.WriteXmlNullableAttributeString("preferRelativeResize", preferRelativeResize);
 			writer.WriteXmlAttributesEnd();
 
 			if (fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noAdjustHandles) !== undefined ||
@@ -10554,7 +10551,7 @@
 			let name_ = "a:spPr";
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
-				if (0 == (writer.context.flag & 0x01)) name_ = "wps:spPr";
+				if (0 === (writer.context.flag & 0x01)) name_ = "wps:spPr";
 				else name_ = "pic:spPr";
 			} else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) name_ = "xdr:spPr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) name_ = "cdr:spPr";
@@ -11873,7 +11870,7 @@
 			let sName = "a:theme";
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlString(" xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\"");
-			writer.WriteXmlNullableAttributeStringEncode(("name"), this.name);
+			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 			writer.WriteXmlAttributesEnd();
 			this.themeElements.toXml(writer, "a:themeElements");
 			let oNode = new CT_XmlNode();
@@ -12134,7 +12131,7 @@
 			writer.WriteXmlNullable(this.bgPr);
 			writer.WriteXmlNullable(this.bgRef);
 
-			writer.WriteXmlNodeEnd(("p:bg"));
+			writer.WriteXmlNodeEnd("p:bg");
 		};
 
 		function CSld(parent) {
@@ -12220,7 +12217,7 @@
 			oSpTree.toXml(writer);
 			//	this.spTree.toXml(writer);
 
-			writer.WriteXmlNodeEnd(("p:cSld"));
+			writer.WriteXmlNodeEnd("p:cSld");
 		};
 
 		function CSpTree(oSlideObject) {
@@ -12309,13 +12306,13 @@
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
-				if (writer.context.groupIndex == 0) name_ = "wpg:wgp";
+				if (writer.context.groupIndex === 0) name_ = "wpg:wgp";
 				else name_ = "wpg:grpSp";
 			} else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) name_ = "xdr:grpSp";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) name_ = "cdr:grpSp";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) name_ = "a:grpSp";
 			else {
-				if (writer.context.groupIndex == 0) name_ = "p:spTree";
+				if (writer.context.groupIndex === 0) name_ = "p:spTree";
 				else name_ = "p:grpSp";
 			}
 			writer.WriteXmlNodeStart(name_);
@@ -12464,14 +12461,14 @@
 		};
 		CTextStyles.prototype.toXml = function (writer) {
 
-			writer.WriteXmlNodeStart(("p:txStyles"));
+			writer.WriteXmlNodeStart("p:txStyles");
 			writer.WriteXmlAttributesEnd();
 
 			writer.WriteXmlNullable(this.titleStyle);
 			writer.WriteXmlNullable(this.bodyStyle);
 			writer.WriteXmlNullable(this.otherStyle);
 
-			writer.WriteXmlNodeEnd(("p:txStyles"));
+			writer.WriteXmlNodeEnd("p:txStyles");
 		};
 
 //---------------------------
@@ -12639,7 +12636,7 @@
 				slide.recalculate();
 				presentation.DrawingDocument.OnRecalculatePage(slide.num, slide);
 			}
-			if (direction == 0) {
+			if (direction === 0) {
 				if (pos > 0) {
 					presentation.backChangeThemeTimeOutId = setTimeout(function () {
 						redrawSlide(arr_slides[arrInd[pos - 1]], presentation, arrInd, pos - 1, -1, arr_slides)
@@ -14651,11 +14648,11 @@
 		CBulletSize.prototype.toXml = function (writer) {
 
 			if (this.type === AscFormat.BULLET_TYPE_SIZE_PCT) {
-				writer.WriteXmlNodeStart(("a:buSzPct"));
+				writer.WriteXmlNodeStart("a:buSzPct");
 
-				writer.WriteXmlNullableAttributeInt(("val"), getPercentageValueForWrite(this.val));
+				writer.WriteXmlNullableAttributeInt("val", getPercentageValueForWrite(this.val));
 				writer.WriteXmlAttributesEnd();
-				writer.WriteXmlNodeEnd(("a:buSzPct"));
+				writer.WriteXmlNodeEnd("a:buSzPct");
 			} else if (this.type === AscFormat.BULLET_TYPE_SIZE_PTS) {
 				writer.WriteXmlNodeStart("a:buSzPts");
 
@@ -15175,11 +15172,11 @@
 				}
 				case AscFormat.BULLET_TYPE_BULLET_CHAR: {
 
-					writer.WriteXmlNodeStart(("a:buChar"));
+					writer.WriteXmlNodeStart("a:buChar");
 
-					writer.WriteXmlNullableAttributeString(("char"), this.Char);
+					writer.WriteXmlNullableAttributeString("char", this.Char);
 					writer.WriteXmlAttributesEnd();
-					writer.WriteXmlNodeEnd(("a:buChar"));
+					writer.WriteXmlNodeEnd("a:buChar");
 					break;
 				}
 				case AscFormat.BULLET_TYPE_BULLET_AUTONUM: {
@@ -15507,7 +15504,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 
 				switch (_at) {
@@ -15550,7 +15547,7 @@
 						s.Skip2(1); // start attributes
 						while (true) {
 							_at = s.GetUChar();
-							if (_at == g_nodeAttributeEnd)
+							if (_at === g_nodeAttributeEnd)
 								break;
 
 							switch (_at) {
@@ -15969,7 +15966,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 
 				switch (_at) {
@@ -16054,7 +16051,7 @@
 						s.Skip2(1); // start attributes
 						while (true) {
 							_at = s.GetUChar();
-							if (_at == g_nodeAttributeEnd)
+							if (_at === g_nodeAttributeEnd)
 								break;
 
 							switch (_at) {
@@ -16470,7 +16467,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 			}
 			while (true) {
@@ -16576,7 +16573,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 
 				switch (_at) {
@@ -16695,7 +16692,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 
 				switch (_at) {
@@ -16767,7 +16764,7 @@
 			return AscFormat.isRealNumber(this.baseType) ? this.baseType : c_oVariantTypes.vtEmpty;
 		};
 		CVariantVector.prototype.toXml = function (writer) {
-			writer.WriteXmlNodeStart(("vt:vector"));
+			writer.WriteXmlNodeStart("vt:vector");
 
 			writer.WriteXmlNullableAttributeString("baseType", CVariant.prototype.getStringByType.call(this, this.getVariantType()));
 			writer.WriteXmlNullableAttributeInt("size", this.size);
@@ -16803,7 +16800,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 
 				switch (_at) {
@@ -16918,7 +16915,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 
 				switch (_at) {
@@ -17010,7 +17007,7 @@
 			while (true) {
 				_at = s.GetUChar();
 
-				if (_at == g_nodeAttributeEnd)
+				if (_at === g_nodeAttributeEnd)
 					break;
 
 				switch (_at) {
@@ -18168,11 +18165,11 @@
 							ret.fill.RasterImageId = "";
 
 						var tile = _fill.type;
-						if (tile == c_oAscFillBlipType.STRETCH) {
+						if (tile === c_oAscFillBlipType.STRETCH) {
 							ret.fill.tile = null;
 							ret.fill.srcRect = null;
 							ret.fill.stretch = true;
-						} else if (tile == c_oAscFillBlipType.TILE) {
+						} else if (tile === c_oAscFillBlipType.TILE) {
 							ret.fill.tile = new CBlipFillTile();
 							ret.fill.stretch = false;
 							ret.fill.srcRect = null;
@@ -18247,7 +18244,7 @@
 								}
 							}
 						} else if (undefined != _colors) {
-							if (_colors.length == ret.fill.colors.length) {
+							if (_colors.length === ret.fill.colors.length) {
 								for (var i = 0; i < _colors.length; i++) {
 									ret.fill.colors[i].color = CorrectUniColor(_colors[i], ret.fill.colors[i].color, editorId);
 								}
@@ -18265,7 +18262,7 @@
 
 						var _grad_type = _fill.GradType;
 
-						if (c_oAscFillGradType.GRAD_LINEAR == _grad_type) {
+						if (c_oAscFillGradType.GRAD_LINEAR === _grad_type) {
 							var _angle = _fill.LinearAngle;
 							var _scale = _fill.LinearScale;
 
@@ -18280,14 +18277,14 @@
 							if (undefined != _scale)
 								ret.fill.lin.scale = _scale;
 							ret.fill.path = null;
-						} else if (c_oAscFillGradType.GRAD_PATH == _grad_type) {
+						} else if (c_oAscFillGradType.GRAD_PATH === _grad_type) {
 							ret.fill.lin = null;
 							ret.fill.path = new GradPath();
 						}
 						break;
 					}
 					default: {
-						if (ret.fill == null || ret.fill.type != c_oAscFill.FILL_TYPE_SOLID) {
+						if (ret.fill == null || ret.fill.type !== c_oAscFill.FILL_TYPE_SOLID) {
 							ret.fill = new CSolidFill();
 						}
 						ret.fill.color = CorrectUniColor(_fill.color, ret.fill.color, editorId);
@@ -18617,7 +18614,7 @@
 			var _type = asc_color.asc_getType();
 			switch (_type) {
 				case c_oAscColor.COLOR_TYPE_PRST: {
-					if (ret.color == null || ret.color.type != c_oAscColor.COLOR_TYPE_PRST) {
+					if (ret.color == null || ret.color.type !== c_oAscColor.COLOR_TYPE_PRST) {
 						ret.color = new CPrstColor();
 					}
 					ret.color.id = asc_color.value;
@@ -18627,7 +18624,7 @@
 					break;
 				}
 				case c_oAscColor.COLOR_TYPE_SCHEME: {
-					if (ret.color == null || ret.color.type != c_oAscColor.COLOR_TYPE_SCHEME) {
+					if (ret.color == null || ret.color.type !== c_oAscColor.COLOR_TYPE_SCHEME) {
 						ret.color = new CSchemeColor();
 					}
 
@@ -18679,7 +18676,7 @@
 					break;
 				}
 				default: {
-					if (ret.color == null || ret.color.type != c_oAscColor.COLOR_TYPE_SRGB) {
+					if (ret.color == null || ret.color.type !== c_oAscColor.COLOR_TYPE_SRGB) {
 						ret.color = new CRGBColor();
 					}
 					ret.color.RGBA.R = asc_color.r;
