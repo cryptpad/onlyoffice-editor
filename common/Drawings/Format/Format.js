@@ -15872,11 +15872,13 @@
 			}
 			if (this.created && this.created.length > 0) {
 				writer.WriteXmlNodeStart("dcterms:created xsi:type=\"dcterms:W3CDTF\"");
+				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlStringEncode(this.created);
 				writer.WriteXmlNodeEnd("dcterms:created");
 			}
 			if (this.modified && this.modified.length > 0) {
 				writer.WriteXmlNodeStart("dcterms:modified xsi:type=\"dcterms:W3CDTF\"");
+				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlStringEncode(this.modified);
 				writer.WriteXmlNodeEnd("dcterms:modified");
 			}
