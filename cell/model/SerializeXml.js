@@ -2212,19 +2212,68 @@
 		var externalReferences = new CT_ExternalReferences(this.wb);
 		externalReferences.toXml(writer, "externalReferences");
 
+
+		/*var officeArtExtensionList = new COfficeArtExtensionList(this);
+		var officeArtExtension;
+		if (aConditionalFormattingExt && aConditionalFormattingExt.length) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.conditionalFormattings;
+			officeArtExtension.aConditionalFormattingRules = aConditionalFormattingExt;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
+		}
+		if (this.dataValidations) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.dataValidations;
+			officeArtExtension.dataValidations = this.dataValidations;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
+		}
+		if (this.aSparklineGroups && this.aSparklineGroups.length) {
+			officeArtExtension = new COfficeArtExtension(this);
+			officeArtExtension.uri = extUri.sparklineGroups;
+			officeArtExtension.sparklineGroups = this.aSparklineGroups;
+			officeArtExtensionList.arrExt.push(officeArtExtension);
+		}
+
 		var i;
 		var slicerCaches = writer.context.InitSaveManager.getSlicersCache();
 		var slicerCachesExt = writer.context.InitSaveManager.getSlicersCache(true);
 		if (slicerCaches) {
-			for (i in slicerCaches) {
-				slicerCaches[i].toXml(writer);
+			slicerCaches.forEach(function (_slicerCache) {
+				var sheetXml = new CT_Sheet();
+				var wsPart = context.part.addPart(AscCommon.openXml.Types.slicerCache);
+				wsPart.part.setDataXml(ws, writer);
+				sheetXml.id = wsPart.rId;
+				sheetXml.sheetId = index++;
+				sheetXml.name = ws.getName();
+				sheetXml.bHidden = ws.bHidden;
+				t.sheets.push(sheetXml);
+
+			}, context.isCopyPaste);
+
+			if (!officeArtExtensionList) {
+				officeArtExtensionList = new COfficeArtExtensionList();
+				officeArtExtension = new COfficeArtExtension();
+				officeArtExtension.uri = extUri.slicerList;
+				officeArtExtension.aConditionalFormattingRules = aConditionalFormattingExt;
+				officeArtExtensionList.arrExt.push(officeArtExtension);
 			}
+
+			if (!ns) {
+				ns = "";
+			}
+
+			writer.WriteXmlNodeStart(ns + name);
+			writer.WriteXmlAttributesEnd();
+			this.sheets.forEach(function (sheetXml) {
+				sheetXml.toXml(writer);
+			}, context.isCopyPaste);
+			writer.WriteXmlNodeEnd(ns + name);
 		}
 		if (slicerCachesExt) {
 			for (i in slicerCachesExt) {
 				slicerCaches[i].toXml(writer);
 			}
-		}
+		}*/
 
 		//asc_CDefName
 		var defNameList = writer.context.InitSaveManager.defNameList;
@@ -9716,7 +9765,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.uri = val;
 			}
 		}
-	}
+	};
 
 	COfficeArtExtension.prototype.toXml = function (writer, ns) {
 		if (!ns) {
@@ -9771,19 +9820,24 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		if (this.SlicerList) {
+
 		}
 		if (this.m_oSlicerListExt) {
+
 		}
 		if (this.m_oSlicerCaches) {
+
 		}
 		if (this.m_oSlicerCachesExt) {
 		}
+
 		if (this.dxfs && this.dxfs.length) {
 			writer.WriteXmlArray(this.dxfs, "dxf", "x14:dxfs", true);
 		}
 		if (this.slicerStyles) {
 			this.slicerStyles.toXml(writer, "x14:slicerStyles");
 		}
+
 		if (this.m_oSlicerCachePivotTables) {
 		}
 		if (this.m_oTableSlicerCache) {
@@ -9792,7 +9846,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 		if (this.m_oId) {
 		}
-
 
 		writer.WriteXmlNodeEnd(ns + "ext");
 	};
