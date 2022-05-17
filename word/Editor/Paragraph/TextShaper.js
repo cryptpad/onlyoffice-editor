@@ -161,15 +161,10 @@
 		let nScript   = this.GetTextScript(nUnicode);
 		let nFontSlot = this.GetFontSlot(nUnicode);
 
-		if ((nScript !== this.Script
-				&& -1 !== this.Script
-				&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
-				&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== this.Script)
-			|| (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
-				&& nFontSlot !== this.FontSlot
-				&& -1 !== this.FontSlot
-				&& fontslot_None !== nFontSlot
-				&& fontslot_None !== this.FontSlot))
+		if (nScript !== this.Script
+			&& -1 !== this.Script
+			&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
+			&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== this.Script)
 			this.FlushWord();
 
 		this.private_CheckFont(nFontSlot);
@@ -182,7 +177,7 @@
 		if (this.FontId !== nFontId && -1 !== this.FontId)
 			this.FlushWord();
 
-		this.Script   = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript ? nScript : this.Script;
+		this.Script   = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.Script ? nScript : this.Script;
 		this.FontSlot = fontslot_None !== nFontSlot ? nFontSlot : this.FontSlot;
 		this.FontId   = nFontId;
 	};
