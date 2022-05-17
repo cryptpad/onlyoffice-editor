@@ -159,17 +159,13 @@
 
 		if (this.Core) {
 			var corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
-			this.Core.toXml(memory);
-			var coreData = memory.GetDataUint8();
-			corePart.part.setData(coreData);
+			corePart.part.setDataXml(this.Core, memory);
 			memory.Seek(0);
 		}
 
 		if (this.App) {
 			var appPart = filePart.addPart(AscCommon.openXml.Types.extendedFileProperties);
-			this.App.toXml(memory);
-			var appData = memory.GetDataUint8();
-			appPart.part.setData(appData);
+			appPart.part.setDataXml(this.App, memory);
 			memory.Seek(0);
 		}
 
@@ -190,7 +186,7 @@
 		var webSettingsPart = docPart.part.addPart(AscCommon.openXml.Types.webSettings);
 		webSettingsPart.part.setData(sampleData);
 		memory.Seek(0);
-		
+
 		var themePart = docPart.part.addPart(AscCommon.openXml.Types.theme);
 		themePart.part.setDataXml(this.theme, memory);
 		memory.Seek(0);

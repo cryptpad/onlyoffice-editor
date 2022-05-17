@@ -354,17 +354,27 @@
                 break;
             }
             case "clrMapOvr": {
-                let oClrMapOvr = new AscFormat.ClrMap();
+
+                let oClrMapOvr = new AscFormat.CClrMapOvr();
                 oClrMapOvr.fromXml(reader);
-                //this.setClMapOverride(oClrMapOvr);
+                this.setClMapOverride(oClrMapOvr.overrideClrMapping);
                 break;
             }
         }
     };
-    CNotes.prototype.writeAttrXmlImpl = function(writer) {
-    };
-    CNotes.prototype.writeChildren = function(writer) {
-        //Implement in children
+    CNotes.prototype.toXml = function(writer) {
+        writer.WriteXmlNodeStart("p:notes");
+        writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+        writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:m", "http://schemas.openxmlformats.org/officeDocument/2006/math");
+        writer.WriteXmlAttributeString("xmlns:w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+        writer.WriteXmlNullableAttributeBool("showMasterPhAnim", this.showMasterPhAnim);
+        writer.WriteXmlNullableAttributeBool("showMasterSp", this.showMasterSp);
+        writer.WriteXmlAttributesEnd();
+        this.cSld.toXml(writer);
+        AscFormat.CClrMapOvr.prototype.static_WriteCrlMapAsOvr(writer, this.clrMap);
+        writer.WriteXmlNodeStart("p:notes");
     };
 
     function CreateNotes(){

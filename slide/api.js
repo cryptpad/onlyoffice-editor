@@ -1596,6 +1596,15 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oLogicDocument.App = new AscCommon.CApp();
 		this.WordControl.m_oLogicDocument.App.fromXml(oAppReader, true);
 
+		let oPresentationPrPart = doc.getPartByRelationshipType(openXml.Types.presentationProperties.relationType);
+		if(oPresentationPrPart) {
+			var oContentPresentationPr = oPresentationPrPart.getDocumentContent();
+			if(oContentPresentationPr) {
+				let oPresentationReader = new StaxParser(oContentPresentationPr, oPresentationPrPart, xmlParserContext);
+				let oPresPr = new AscFormat.CPresentationProperties(this.WordControl.m_oLogicDocument);
+				oPresPr.fromXml(oPresentationReader, true);
+			}
+		}
 
 		var oCorePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
 		if(oCorePart) {
@@ -7612,7 +7621,18 @@ background-repeat: no-repeat;\
 			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"], isSelection);
 		}
 		else
+		{
+			var title = this.documentTitle;
+			this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation, function(data) {
+				var blob = new Blob([data], {type: openXml.GetMimeType("pptx")});
+				var link = document.createElement("a");
+				link.href = window.URL.createObjectURL(blob);
+				link.download = title;
+				link.click();
+			});
+			return;
 			dataContainer.data = this.WordControl.SaveDocument(oAdditionalData["nobase64"]);
+		}
 
         if (window.isCloudCryptoDownloadAs)
         {

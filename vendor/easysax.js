@@ -1633,6 +1633,23 @@ function XmlWriterContext(editorId){
     this.zip = null;
     this.part = null;
     this.imageMap = {};
+    this.objectId = 1;
+    this.groupIndex = 0;
+    this.flag = 0;
+    switch (editorId) {
+        case AscCommon.c_oEditorId.Word: {
+            this.docType = AscFormat.XMLWRITER_DOC_TYPE_DOCX;
+            break;
+        }
+        case AscCommon.c_oEditorId.Spreadsheet: {
+            this.docType = AscFormat.XMLWRITER_DOC_TYPE_XLSX;
+            break;
+        }
+        case AscCommon.c_oEditorId.Presentation: {
+            this.docType = AscFormat.XMLWRITER_DOC_TYPE_PPTX;
+            break;
+        }
+    }
     //docx
     this.document = null;
     this.oNumIdMap = {};
@@ -1648,18 +1665,17 @@ function XmlWriterContext(editorId){
     this.stylesForWrite = new AscCommonExcel.StylesForWrite();
     this.oSharedStrings = {index: 0, strings: {}};
     //pptx
-    this.objectId = 1;
-    this.flag = 0;
-
-    if(editorId === AscCommon.c_oEditorId.Word) {
-        this.docType = AscFormat.XMLWRITER_DOC_TYPE_DOCX;
-    }
-    else if(editorId === AscCommon.c_oEditorId.Spreadsheet) {
-        this.docType = AscFormat.XMLWRITER_DOC_TYPE_XLSX;
-    }
-    else if(editorId === AscCommon.c_oEditorId.Presentation) {
-        this.docType = AscFormat.XMLWRITER_DOC_TYPE_PPTX;
-    }
+    this.presentation = null;
+    this.sldMasterIdLst = [];
+    this.sldLayoutIdLst = [];
+    this.notesMasterIdLst = [];
+    this.handoutMasterIdLst = [];
+    this.sldIdLst = [];
+    this.sldMasters = [];
+    this.notes = [];
+    this.notesMasters = [];
+    this.handoutMasters = [];
+    this.sldLayouts = [];
 
 }
 XmlWriterContext.prototype.initFromWS = function(ws) {
@@ -1668,6 +1684,31 @@ XmlWriterContext.prototype.initFromWS = function(ws) {
     this.cellValue = new AscCommonExcel.CT_Value();
     this.cellBase = new AscCommon.CellBase(0,0);
     this.drawingId = null;
+};
+XmlWriterContext.prototype.addSlideLinkedObjects = function(oSlide) {
+    let oLayout = oSlide.Layout;
+    if(oLayout) {
+        AscFormat.checkObjectInArray(this.sldLayouts, oLayout);
+        let oMaster = oLayout.Master;
+        if(oMaster) {
+            AscFormat.checkObjectInArray(this.sldMasters, oMaster);
+        }
+    }
+    let oNotes = oSlide.notes;
+    if(oNotes) {
+        AscFormat.checkObjectInArray(this.notes, oNotes);
+        let oNotesMaster = oNotes.Master;
+        if(oNotesMaster) {
+            AscFormat.checkObjectInArray(this.notesMasters, oNotesMaster);
+        }
+    }
+};
+
+XmlWriterContext.prototype.addSlideRel = function(sRel) {
+    this.sldIdLst.push(sRel);
+};
+XmlWriterContext.prototype.addSlideLayoutRel = function(sRel) {
+    this.sldLayoutIdLst.push(sRel);
 };
 function CT_XmlNode(opt_elemReader) {
     this.attributes = {};

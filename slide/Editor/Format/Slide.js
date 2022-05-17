@@ -1890,9 +1890,9 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
                 break;
             }
             case "clrMapOvr": {
-                let oClrMapOvr = new AscFormat.ClrMap();
+                let oClrMapOvr = new AscFormat.CClrMapOvr();
                 oClrMapOvr.fromXml(reader);
-                //this.setClMapOverride(oClrMapOvr);
+                this.setClMapOverride(oClrMapOvr.overrideClrMapping);
                 break;
             }
             case "AlternateContent": {
@@ -1913,10 +1913,28 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             }
         }
     };
-    Slide.prototype.writeAttrXmlImpl = function(writer) {
-    };
-    Slide.prototype.writeChildren = function(writer) {
-        //Implement in children
+    Slide.prototype.toXml = function(writer) {
+        writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+        writer.WriteXmlNodeStart("p:sld");
+        writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+        writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:m", "http://schemas.openxmlformats.org/officeDocument/2006/math");
+        writer.WriteXmlAttributeString("xmlns:w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+
+        writer.WriteXmlNullableAttributeBool("showMasterPhAnim", this.showMasterPhAnim);
+        writer.WriteXmlNullableAttributeBool("showMasterSp", this.showMasterSp);
+        writer.WriteXmlNullableAttributeBool("show", this.show);
+        writer.WriteXmlAttributesEnd();
+        this.cSld.toXml(writer);
+
+        AscFormat.CClrMapOvr.prototype.static_WriteCrlMapAsOvr(writer, this.clrMap);
+        writer.WriteXmlNullable(this.transition, "p:transition");
+        writer.WriteXmlNullable(this.timing, "p:timing");
+        writer.WriteXmlNodeEnd("p:sld");
+
+        let oContext = writer.context;
+        oContext.addSlideLinkedObjects(this);
     };
 function fLoadComments(oObject, authors)
 {

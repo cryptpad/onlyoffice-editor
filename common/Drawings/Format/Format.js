@@ -15282,17 +15282,16 @@
 
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributesEnd();
-
-			writer.WriteXmlNullable(this.levels[9], "a:defPPr");
-			writer.WriteXmlNullable(this.levels[0], "a:lvl1pPr");
-			writer.WriteXmlNullable(this.levels[1], "a:lvl2pPr");
-			writer.WriteXmlNullable(this.levels[2], "a:lvl3pPr");
-			writer.WriteXmlNullable(this.levels[3], "a:lvl4pPr");
-			writer.WriteXmlNullable(this.levels[4], "a:lvl5pPr");
-			writer.WriteXmlNullable(this.levels[5], "a:lvl6pPr");
-			writer.WriteXmlNullable(this.levels[6], "a:lvl7pPr");
-			writer.WriteXmlNullable(this.levels[7], "a:lvl8pPr");
-			writer.WriteXmlNullable(this.levels[8], "a:lvl9pPr");
+			this.levels[9] && this.levels[9].toDrawingML(writer,"a:defPPr");
+			this.levels[0] && this.levels[0].toDrawingML(writer,"a:lvl1pPr");
+			this.levels[1] && this.levels[1].toDrawingML(writer,"a:lvl2pPr");
+			this.levels[2] && this.levels[2].toDrawingML(writer,"a:lvl3pPr");
+			this.levels[3] && this.levels[3].toDrawingML(writer,"a:lvl4pPr");
+			this.levels[4] && this.levels[4].toDrawingML(writer,"a:lvl5pPr");
+			this.levels[5] && this.levels[5].toDrawingML(writer,"a:lvl6pPr");
+			this.levels[6] && this.levels[6].toDrawingML(writer,"a:lvl7pPr");
+			this.levels[7] && this.levels[7].toDrawingML(writer,"a:lvl8pPr");
+			this.levels[8] && this.levels[8].toDrawingML(writer,"a:lvl9pPr");
 
 			writer.WriteXmlNodeEnd(sName);
 		};
@@ -17809,10 +17808,35 @@
 
 		window['AscCommon'].CPres = CPres;
 
-
-		function CVmlDrawing() {
-			CBaseFormatObject.call(this);
+		function CClrMapOvr() {
+			CBaseNoIdObject.call(this);
+			this.overrideClrMapping = null;
 		}
+		InitClass(CClrMapOvr, CBaseNoIdObject, 0);
+		CClrMapOvr.prototype.readChildXml = function (name, reader) {
+			if ( "overrideClrMapping" === name) {
+				this.overrideClrMapping = new ClrMap();
+				this.overrideClrMapping.fromXml(reader);
+			}
+		};
+		CClrMapOvr.prototype.toXml = function (writer) {
+			if (this.overrideClrMapping) {
+				writer.WriteXmlString("<p:clrMapOvr>");
+				this.overrideClrMapping.toXml(writer, "a:overrideClrMapping");
+				writer.WriteXmlString("</p:clrMapOvr>");
+			}
+			else {
+				writer.WriteXmlString("<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>");
+			}
+		};
+		CClrMapOvr.prototype.static_WriteCrlMapAsOvr = function(writer, oClrMap) {
+			let oClrMapOvr = new CClrMapOvr();
+			oClrMapOvr.overrideClrMapping = oClrMap;
+			oClrMapOvr.toXml(writer);
+		};
+
+
+
 
 // DEFAULT OBJECTS
 		function GenerateDefaultTheme(presentation, opt_fontName) {
@@ -19708,6 +19732,8 @@
 
 		window['AscFormat'].DEFAULT_COLOR_MAP = GenerateDefaultColorMap();
 		window['AscFormat'].getPercentageValue = getPercentageValue;
+		window['AscFormat'].getPercentageValueForWrite = getPercentageValueForWrite;
 		window['AscFormat'].CSpTree = CSpTree;
+		window['AscFormat'].CClrMapOvr = CClrMapOvr;
 	})
 (window);

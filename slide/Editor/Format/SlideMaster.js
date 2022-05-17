@@ -574,12 +574,26 @@ MasterSlide.prototype.readChildXml = function(name, reader) {
         }
     }
 };
-MasterSlide.prototype.writeAttrXmlImpl = function(writer) {
-writer.WriteXmlNullableAttributeInt("firstSlideNum", this.firstSlideNum);
-writer.WriteXmlNullableAttributeBool("showSpecialPlsOnTitleSld", this.showSpecialPlsOnTitleSld);
-};
-MasterSlide.prototype.writeChildren = function(writer) {
-//Implement in children
+MasterSlide.prototype.toXml = function(writer) {
+    writer.WriteXmlNodeStart("p:sldMaster");
+    writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+    writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+    writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+    writer.WriteXmlAttributeString("xmlns:m", "http://schemas.openxmlformats.org/officeDocument/2006/math");
+    writer.WriteXmlAttributeString("xmlns:w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+    writer.WriteXmlAttributeBool("preserve", this.preserve);
+    writer.WriteXmlAttributesEnd();
+    this.cSld.toXml(writer);
+    if(this.clrMap) {
+        this.cSld.toXml(writer, "p:clrMap");
+    }
+    writer.WriteXmlNullable(this.transition, "p:transition");
+    writer.WriteXmlNullable(this.timing, "p:timing");
+    let oContext = writer.context;
+    (new IdList("p:sldLayoutIdLst")).writeRIdList(writer, oContext.sldLayoutIdLst, "p:sldLayoutId");
+    writer.WriteXmlNullable(this.hf, "p:hf");
+    writer.WriteXmlNullable(this.txStyles, "p:txStyles");
+    writer.WriteXmlNodeEnd("p:sldMaster");
 };
 
 function CMasterThumbnailDrawer()

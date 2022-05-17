@@ -2499,6 +2499,7 @@ CPrSection.prototype.Read_FromBinary2 = function (r) {
 };
 
 function CShowPr() {
+    AscFormat.CBaseNoIdObject.call(this);
     this.browse = undefined;
     this.kiosk = undefined; //{restart: uInt}
     this.penClr = undefined;
@@ -2509,6 +2510,7 @@ function CShowPr() {
     this.showNarration = undefined;
     this.useTimings = undefined;
 }
+AscFormat.InitClass(CShowPr, AscFormat.CBaseNoIdObject, 0);
 
 CShowPr.prototype.Write_ToBinary = function (w) {
     var nStartPos = w.GetCurPosition();
@@ -2635,6 +2637,38 @@ CShowPr.prototype.Copy = function () {
     oCopy.useTimings = this.useTimings;
     return oCopy;
 };
+CShowPr.prototype.readAttrXml = function(name, reader) {
+    switch(name) {
+        case "loop": this.loop = reader.GetValueBool(); break;
+        case "showAnimation": this.showAnimation = reader.GetValueBool(); break;
+        case "showNarration": this.showNarration = reader.GetValueBool(); break;
+        case "useTimings": this.useTimings = reader.GetValueBool(); break;
+    }
+};
+CShowPr.prototype.toXml = function(writer) {
+    writer.WriteXmlNodeStart("p:showPr");
+    writer.WriteXmlNullableAttributeBool("loop", this.loop);
+    writer.WriteXmlNullableAttributeBool("showAnimation", this.showAnimation);
+    writer.WriteXmlNullableAttributeBool("showNarration", this.showNarration);
+    writer.WriteXmlNullableAttributeBool("useTimings", this.useTimings);
+
+    writer.WriteXmlAttributesEnd();
+
+    //writer.Write(Present);
+    //writer.Write(Browse);
+    //writer.Write(Kiosk);
+    //writer.Write(SldAll);
+    //writer.Write(SldRg);
+    //writer.Write(CustShow);
+    //if(PenClr.is_init())
+    //{
+    //    writer.WriteString("<p:penClr>"));
+    //    PenClr.toXmlWriter(pWriter);
+    //    writer.WriteString("</p:penClr>"));
+    //}
+
+    writer.WriteXmlNodeEnd("p:showPr");
+};
 
 
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetShowPr] = AscDFH.CChangesDrawingsObjectNoId;
@@ -2712,6 +2746,8 @@ AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_RemoveSlideMaster] 
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_Presentation_SetShowPr] = CShowPr;
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = AscFormat.TextListStyle;
 
+
+
 function CSlideSize() {
     AscFormat.CBaseFormatObject.call(this);
     this.cx = null;
@@ -2721,6 +2757,14 @@ function CSlideSize() {
 AscFormat.InitClass(CSlideSize, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_SldSz);
 CSlideSize.prototype.DEFAULT_CX = 9144000;
 CSlideSize.prototype.DEFAULT_CY = 6858000;
+CSlideSize.prototype.static_CreateNotesSize = function() {
+    return AscFormat.ExecuteNoHistory(function() {
+        let oSize = new CSlideSize();
+        oSize.setCX(this.DEFAULT_CX);
+        oSize.setCY(this.DEFAULT_CY);
+        return oSize;
+    }, this, []);
+};
 CSlideSize.prototype.setCX = function(pr) {
     History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_SldSzCX, this.cx, pr));
     this.cx = pr;
@@ -2917,6 +2961,10 @@ CSlideSize.prototype.writeAttrXmlImpl = function(writer) {
         }
     }
 };
+
+
+let CONFORMANCE_STRICT = 0;
+let CONFORMANCE_TRANSITIONAL = 1;
 
 function CPresentation(DrawingDocument) {
     AscFormat.CBaseFormatObject.call(this);
@@ -11225,7 +11273,6 @@ CPresentation.prototype.internalCalculateData = function (aSlideComments, aWrite
 
     var _comments = aSlideComments;
     var _commentsCount = _comments.length;
-    var _uniIdSplitter = ";__teamlab__;";
     for (var i = 0; i < _commentsCount; i++) {
         var _data = _comments[i].Data;
         var _commId = 0;
@@ -11549,6 +11596,46 @@ CPresentation.prototype.StopAnimation = function()
         }
     }
 };
+CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
+    this.pres = new AscCommon.CPres();
+    reader.context.clearSlideRelations();
+    AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+    let pres = this.pres;
+    if(pres.attrShowSpecialPlsOnTitleSld !== null)
+    {
+        this.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
+    }
+    if(pres.attrFirstSlideNum !== null)
+    {
+        this.setFirstSlideNum(pres.attrFirstSlideNum);
+    }
+    this.defaultTextStyle = pres.defaultTextStyle;
+    //set layouts
+    let dWidth = this.GetWidthMM();
+    let dHeight = this.GetHeightMM()
+    for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
+        let oSlide = this.Slides[nSlide];
+        let oLayout = reader.context.layoutsMap[oSlide.layoutTarget];
+        oSlide.setLayout(oLayout);
+        let oNotes = oSlide.notes;
+        if(oNotes) {
+            let oNotesMaster = reader.context.notesMastersMap[oNotes.masterTarget];
+            oNotes.setNotesMaster(oNotesMaster);
+            delete oNotes.masterTarget;
+        }
+        oSlide.setSlideSize(dWidth, dHeight);
+        delete oSlide.layoutTarget;
+    }
+    for(let nMaster = 0; nMaster < this.slideMasters.length; ++nMaster) {
+        let oMaster = this.slideMasters[nMaster];
+        oMaster.setSlideSize(dWidth, dHeight);
+        for(let nLayout = 0; nLayout < oMaster.sldLayoutLst.length; ++nLayout) {
+            let oLayout = oMaster.sldLayoutLst[nLayout];
+            oLayout.setSlideSize(dWidth, dHeight);
+        }
+    }
+    reader.context.clearSlideRelations();
+};
 CPresentation.prototype.readAttrXml = function(name, reader) {
     switch (name) {
         case "autoCompressPict": {
@@ -11567,11 +11654,11 @@ CPresentation.prototype.readAttrXml = function(name, reader) {
             let sVal = reader.GetValue();
             switch(sVal) {
                 case "strict": {
-                    this.pres.attrConformance = 0;
+                    this.pres.attrConformance = CONFORMANCE_STRICT;
                     break;
                 }
                 case "transitional": {
-                    this.pres.attrConformance = 1;
+                    this.pres.attrConformance = CONFORMANCE_TRANSITIONAL;
                     break;
                 }
             }
@@ -11610,46 +11697,6 @@ CPresentation.prototype.readAttrXml = function(name, reader) {
             break;
         }
     }
-};
-CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
-    this.pres = new AscCommon.CPres();
-    reader.context.clearSlideRelations();
-    AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
-    let pres = this.pres;
-    if(pres.attrShowSpecialPlsOnTitleSld !== null)
-    {
-        this.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
-    }
-    if(pres.attrFirstSlideNum !== null)
-    {
-        this.setFirstSlideNum(pres.attrFirstSlideNum);
-    }
-    this.defaultTextStyle = pres.defaultTextStyle;
-    //set layouts
-	let dWidth = this.GetWidthMM();
-	let dHeight = this.GetHeightMM()
-    for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
-        let oSlide = this.Slides[nSlide];
-        let oLayout = reader.context.layoutsMap[oSlide.layoutTarget];
-        oSlide.setLayout(oLayout);
-        let oNotes = oSlide.notes;
-        if(oNotes) {
-            let oNotesMaster = reader.context.notesMastersMap[oNotes.masterTarget];
-            oNotes.setNotesMaster(oNotesMaster);
-            delete oNotes.masterTarget;
-        }
-	    oSlide.setSlideSize(dWidth, dHeight);
-        delete oSlide.layoutTarget;
-    }
-	for(let nMaster = 0; nMaster < this.slideMasters.length; ++nMaster) {
-		let oMaster = this.slideMasters[nMaster];
-		oMaster.setSlideSize(dWidth, dHeight);
-		for(let nLayout = 0; nLayout < oMaster.sldLayoutLst.length; ++nLayout) {
-			let oLayout = oMaster.sldLayoutLst[nLayout];
-			oLayout.setSlideSize(dWidth, dHeight);
-		}
-	}
-    reader.context.clearSlideRelations();
 };
 CPresentation.prototype.readChildXml = function(name, reader) {
     let oIdLst;
@@ -11744,8 +11791,137 @@ CPresentation.prototype.writeAttrXmlImpl = function(writer) {
     writer.WriteXmlNullableAttributeInt("firstSlideNum", this.firstSlideNum);
     writer.WriteXmlNullableAttributeBool("showSpecialPlsOnTitleSld", this.showSpecialPlsOnTitleSld);
 };
-CPresentation.prototype.writeChildren = function(writer) {
-    //Implement in children
+CPresentation.prototype.toZip = function(zip, context) {
+    let memory = new AscCommon.CMemory();
+    memory.context = context;
+    context.document = this;
+
+    var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
+
+    if (this.Core) {
+        let corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
+        corePart.part.setDataXml(this.Core, memory);
+        memory.Seek(0);
+    }
+
+    if (this.App) {
+        let appPart = filePart.addPart(AscCommon.openXml.Types.extendedFileProperties);
+        appPart.part.setDataXml(this.App, memory);
+        memory.Seek(0);
+    }
+
+    let presentationPart = filePart.addPart(AscCommon.openXml.Types.presentation);
+
+    this.CalculateComments();
+    let commentAuthorsPart = presentationPart.part.addPart(AscCommon.openXml.Types.commentAuthors);
+    this.writeCommentAuthors(memory);
+    let commentAuthorsData = memory.GetDataUint8();
+    commentAuthorsPart.part.setData(commentAuthorsData);
+    memory.Seek(0);
+
+
+    let presentationPrPart = presentationPart.part.addPart(AscCommon.openXml.Types.presentationProperties);
+    let oPresPr = new AscFormat.CPresentationProperties(this);
+    presentationPrPart.part.setDataXml(oPresPr, memory);
+    memory.Seek(0);
+
+    let sViewPropsXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><p:viewPr xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\"><p:normalViewPr><p:restoredLeft sz=\"15620\"></p:restoredLeft><p:restoredTop sz=\"94660\"></p:restoredTop></p:normalViewPr><p:slideViewPr><p:cSldViewPr><p:cViewPr varScale=\"1\"><p:scale><a:sx n=\"104\" d=\"100\"></a:sx><a:sy n=\"104\" d=\"100\"></a:sy></p:scale><p:origin x=\"-1236\" y=\"-90\"></p:origin></p:cViewPr><p:guideLst><p:guide pos=\"2160\" orient=\"horz\"></p:guide><p:guide pos=\"2880\"></p:guide></p:guideLst></p:cSldViewPr></p:slideViewPr><p:notesTextViewPr><p:cViewPr><p:scale><a:sx n=\"100\" d=\"100\"></a:sx><a:sy n=\"100\" d=\"100\"></a:sy></p:scale><p:origin x=\"0\" y=\"0\"></p:origin></p:cViewPr></p:notesTextViewPr><p:gridSpacing cx=\"72008\" cy=\"72008\"></p:gridSpacing></p:viewPr>";
+    let viewPrPart = presentationPart.part.addPart(AscCommon.openXml.Types.viewProperties);
+    memory.WriteXmlString(sViewPropsXml);
+    let viewPrData = memory.GetDataUint8();
+    viewPrPart.part.setData(viewPrData);
+    memory.Seek(0);
+
+    for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
+        let slidePart = presentationPart.part.addPart(AscCommon.openXml.Types.slide);
+        slidePart.part.setDataXml(this.Slides[nSlide], memory);
+        memory.context.addSlideRel(slidePart.rId)
+        memory.Seek(0);
+    }
+    let aSlideMasters = context.sldMasters;
+    for(let nSlideMaster = 0; nSlideMaster < aSlideMasters.length; ++nSlideMaster) {
+        let oSlideMaster = aSlideMasters[nSlideMaster];
+        let masterSlidePart = presentationPart.part.addPart(AscCommon.openXml.Types.slideMaster);
+        let aSlideLayouts = oSlideMaster.sldLayoutLst;
+        for(let nSlideLayout = 0; nSlideLayout < aSlideLayouts.length; ++nSlideLayout) {
+            let slideLayoutPart = presentationPart.part.addPartWithoutRels(AscCommon.openXml.Types.slideLayout);
+        }
+
+    }
+
+    presentationPart.part.setDataXml(this, memory);
+    memory.Seek(0);
+
+};
+CPresentation.prototype.toXml = function (writer) {
+    writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+    writer.WriteXmlNodeStart("p:presentation");
+    writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+    writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+    writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+    writer.WriteXmlAttributeString("xmlns:m", "http://schemas.openxmlformats.org/officeDocument/2006/math");
+    writer.WriteXmlAttributeString("xmlns:w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+    let oAttributes = this.pres;
+    writer.WriteXmlNullableAttributeBool("autoCompressPictures", oAttributes.attrAutoCompressPictures);
+    writer.WriteXmlNullableAttributeInt("bookmarkIdSeed", oAttributes.attrBookmarkIdSeed);
+    writer.WriteXmlNullableAttributeBool("compatMode", oAttributes.attrCompatMode);
+    if(oAttributes.attrConformance !== null) {
+        if(oAttributes.attrConformance === CONFORMANCE_STRICT) {
+            writer.WriteXmlNullableAttributeString("conformance", "strict");
+        }
+        else if(oAttributes.attrConformance === CONFORMANCE_TRANSITIONAL) {
+            writer.WriteXmlNullableAttributeString("conformance", "transitional");
+        }
+    }
+    writer.WriteXmlNullableAttributeBool("embedTrueTypeFonts", oAttributes.attrEmbedTrueTypeFonts);
+    writer.WriteXmlNullableAttributeInt("firstSlideNum", oAttributes.attrFirstSlideNum);
+    writer.WriteXmlNullableAttributeBool("removePersonalInfoOnSave", oAttributes.attrRemovePersonalInfoOnSave);
+    writer.WriteXmlNullableAttributeBool("rtl", oAttributes.attrRtl);
+    writer.WriteXmlNullableAttributeBool("saveSubsetFonts", oAttributes.attrSaveSubsetFonts);
+    writer.WriteXmlNullableAttributeInt("serverZoom", AscFormat.getPercentageValueForWrite(oAttributes.attrServerZoom));
+    writer.WriteXmlNullableAttributeBool("showSpecialPlsOnTitleSld", oAttributes.attrShowSpecialPlsOnTitleSld);
+    writer.WriteXmlNullableAttributeBool("strictFirstAndLastChars", oAttributes.attrStrictFirstAndLastChars);
+    writer.WriteXmlAttributesEnd();
+
+    let oContext = writer.context;
+    (new IdList("p:sldMasterIdLst")).writeRIdList(writer, oContext.sldMasterIdLst, "p:sldMasterId");
+    (new IdList("p:notesMasterIdLst")).writeRIdList(writer, oContext.notesMasterIdLst, "p:notesMasterId");
+    (new IdList("p:handoutMasterIdLst")).writeRIdList(writer, oContext.notesMasterIdLst, "p:handoutMasterId");
+    //writer.WriteArray("p:embeddedFontLst", embeddedFontLst);
+    (new IdList("p:sldIdLst")).writeRIdList(writer, oContext.sldIdLst, "p:sldId");
+
+    writer.WriteXmlNullable(this.sldSz, "p:sldSz");
+    CSlideSize.prototype.static_CreateNotesSize().toXml(writer, "p:notesSz");
+    //writer.Write(photoAlbum);
+    //writer.Write(kinsoku);
+    writer.WriteXmlNullable(this.defaultTextStyle, "p:defaultTextStyle");
+
+    //std::vector<Logic::Ext> extLst;
+
+    // if (sectionLst.IsInit())
+    // {
+    //     Logic::Ext exp;
+    //     exp.sectionLst = sectionLst;
+    //     extLst.push_back(exp);
+    // }
+    // writer.WriteArray("p:extLst", extLst);
+
+    writer.WriteXmlNodeEnd("p:presentation");
+};
+CPresentation.prototype.writeCommentAuthors = function(writer) {
+    writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+    writer.WriteXmlNodeStart("p:cmAuthorLst");
+    writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+    writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+    writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+    writer.WriteXmlAttributesEnd();
+    for(let sKey in this.CommentAuthors) {
+        if(this.CommentAuthors.hasOwnProperty(sKey)) {
+            let oCommentAuthor = this.CommentAuthors[sKey];
+            oCommentAuthor.toXml(writer);
+        }
+    }
+    writer.WriteXmlNodeEnd("p:cmAuthorLst");
 };
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting) {
     var oSp;
@@ -11829,6 +12005,27 @@ IdList.prototype.readList = function(reader, fConstructor) {
     }
     return aListOfObjects;
 };
+IdList.prototype.toXml = function(writer) {
+    writer.WriteXmlNodeStart(this.name);
+    writer.WriteXmlAttributesEnd();
+    for(let nItem = 0; nItem < this.list.length; ++nItem) {
+        this.list[nItem].toXml(writer);
+    }
+    writer.WriteXmlNodeEnd(this.name);
+};
+IdList.prototype.fillFromRIdList = function(aRId, sEntryName) {
+    for(let nItem = 0; nItem < aRId.length; ++nItem) {
+        let oItem = new IdEntry(sEntryName);
+        oItem.rId = aRId[nItem];
+        this.list.push(oItem);
+    }
+};
+IdList.prototype.writeRIdList = function(writer, aRId, sEntryName) {
+    this.fillFromRIdList(aRId, sEntryName);
+    this.toXml(writer);
+};
+
+
 function IdEntry(name) {
     AscFormat.CBaseNoIdObject.call(this);
     this.name = name;
@@ -11848,13 +12045,52 @@ IdEntry.prototype.readAttrXml = function(name, reader) {
         }
     }
 };
-IdEntry.prototype.writeAttrXmlImpl = function(writer) {
-    writer.WriteXmlNullableAttributeInt("id", this.id);
-    writer.WriteXmlNullableAttributeBool("r:id", this.rId);
+IdEntry.prototype.toXml = function(writer) {
+    writer.WriteXmlNodeStart(this.name);
+    writer.WriteXmlNullableAttributeString("id", this.id);
+    writer.WriteXmlNullableAttributeString("r:id", this.rId);
+    writer.WriteXmlAttributesEnd(true);
 };
+
+function CPresentationProperties(oPresentation) {
+    AscFormat.CBaseNoIdObject.call(this);
+    this.presentation = oPresentation;
+}
+AscFormat.InitClass(CPresentationProperties, AscFormat.CBaseNoIdObject, 0);
+CPresentationProperties.prototype.readChildXml = function(name, reader) {
+    switch (name) {
+        case "showPr": {
+            let oShowPr = new AscFormat.CShowPr();
+            oShowPr.fromXml(reader);
+            this.presentation.setShowPr(oShowPr);
+            break;
+        }
+        case "clrMru": {
+            break;
+        }
+    }
+};
+
+CPresentationProperties.prototype.toXml = function(writer) {
+    writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+    writer.WriteXmlNodeStart("p:presentationPr");
+    writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+    writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+    writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+    writer.WriteXmlAttributesEnd();
+    //writer.WriteArray(_T("p:clrMru"), ClrMru);
+    writer.WriteXmlNullable(this.presentation.showPr, "p:showPr");
+    writer.WriteXmlNodeEnd("p:presentationPr");
+};
+
 //------------------------------------------------------------export----------------------------------------------------
 window['AscCommonSlide'] = window['AscCommonSlide'] || {};
 window['AscCommonSlide'].CPresentation = CPresentation;
 window['AscCommonSlide'].CPrSection = CPrSection;
 window['AscCommonSlide'].CSlideSize = CSlideSize;
 window['AscCommonSlide'].IdList = IdList;
+
+
+window['AscFormat'] = window['AscFormat'] || {};
+window['AscFormat'].CShowPr = CShowPr;
+window['AscFormat'].CPresentationProperties = CPresentationProperties;

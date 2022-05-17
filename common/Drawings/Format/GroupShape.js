@@ -2021,7 +2021,9 @@ function CGroupShape()
         this.checkXfrm();
     };
     CGroupShape.prototype.toXml = function (writer) {
+        writer.context.groupIndex++;
         AscFormat.CSpTree.prototype.toXml.call(this, writer);
+        writer.context.groupIndex--;
     };
     CGroupShape.prototype.checkXfrm = function () {
         if(!this.spPr){

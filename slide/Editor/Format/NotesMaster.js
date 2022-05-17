@@ -273,10 +273,17 @@
             }
         }
     };
-    CNotesMaster.prototype.writeAttrXmlImpl = function(writer) {
-    };
-    CNotesMaster.prototype.writeChildren = function(writer) {
-        //Implement in children
+    CNotesMaster.prototype.toXml = function(writer) {
+        writer.WriteXmlNodeStart("p:notesMaster");
+        writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+        writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+        writer.WriteXmlAttributesEnd();
+        this.cSld.toXml(writer);
+        writer.WriteXmlNullable(this.clrMap, "p:clrMap");
+        writer.WriteXmlNullable(this.hf, "p:hf");
+        //writer.WriteXmlNullable(this.notesStyle);
+        writer.WriteXmlNodeEnd("p:notesMaster");
     };
 
     function CreateNotesMaster(){

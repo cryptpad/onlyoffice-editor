@@ -219,10 +219,9 @@
 						break;
 					}
 					case "clrMapOvr" : {
-						//todo clrMapOvr
-						elem = new AscFormat.ClrMap();
-						elem.fromXml(reader);
-						this.setClrMapOvr(elem);
+						let oClrMapOvr = new AscFormat.CClrMapOvr();
+						oClrMapOvr.fromXml(reader);
+						this.setClrMapOvr(oClrMapOvr.overrideClrMapping);
 						break;
 					}
 					case "pivotSource" : {

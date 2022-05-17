@@ -7252,7 +7252,7 @@ CShape.prototype.getColumnNumber = function(){
         }
     };
     CShape.prototype.toXml = function(writer, sName) {
-        let name_ = sName;
+        let name_ = sName || "a:sp";
 
         let oContext = writer.context;
         if		(oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||

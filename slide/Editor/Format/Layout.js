@@ -616,7 +616,6 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
                 if(AscFormat.isRealNumber(LAYOUT_TYPE_MAP[sType])) {
                     this.setType(LAYOUT_TYPE_MAP[sType]);
                 }
-                this.setShowMasterSp(reader.GetValueBool());
                 break;
             }
             case "userDrawn": {
@@ -634,9 +633,9 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
                 break;
             }
             case "clrMapOvr": {
-                let oClrMapOvr = new AscFormat.ClrMap();
+                let oClrMapOvr = new AscFormat.CClrMapOvr();
                 oClrMapOvr.fromXml(reader);
-               // this.setClMapOverride(oClrMapOvr);
+                this.setClMapOverride(oClrMapOvr.overrideClrMapping);
                 break;
             }
             case "AlternateContent": {
@@ -663,13 +662,36 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
             }
         }
     };
-    SlideLayout.prototype.writeAttrXmlImpl = function(writer) {
-    };
-    SlideLayout.prototype.writeChildren = function(writer) {
-        //Implement in children
+    SlideLayout.prototype.toXml = function(writer) {
+
+        writer.WriteXmlNodeStart("p:sldLayout");
+
+        writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+        writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:m", "http://schemas.openxmlformats.org/officeDocument/2006/math");
+        writer.WriteXmlAttributeString("xmlns:w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+
+        writer.WriteXmlNullableAttributeString("matchingName", this.matchingName);
+        writer.WriteXmlNullableAttributeBool("preserve", this.preserve);
+        writer.WriteXmlNullableAttributeBool("showMasterPhAnim", this.showMasterPhAnim);
+        writer.WriteXmlNullableAttributeBool("showMasterSp", this.showMasterSp);
+        writer.WriteXmlNullableAttributeString("type", LAYOUT_TYPE_TO_STRING[this.type]);
+        writer.WriteXmlNullableAttributeBool("userDrawn", this.userDrawn);
+        writer.WriteXmlAttributesEnd();
+
+        this.cSld.toXml(writer);
+
+        AscFormat.CClrMapOvr.prototype.static_WriteCrlMapAsOvr(writer, this.clrMap);
+
+        writer.WriteXmlNullable(this.transition, "p:transition");
+        writer.WriteXmlNullable(this.timing, "p:timing");
+        writer.WriteXmlNullable(this.hf, "p:hf");
+
+        writer.WriteXmlNodeEnd("p:sldLayout");
     };
 
-    var LAYOUT_TYPE_MAP = {};
+    let LAYOUT_TYPE_MAP = {};
     LAYOUT_TYPE_MAP["blank"] = AscFormat.nSldLtTBlank;
     LAYOUT_TYPE_MAP["chart"] = AscFormat.nSldLtTChart;
     LAYOUT_TYPE_MAP["chartAndTx"] = AscFormat.nSldLtTChartAndTx;
@@ -706,6 +728,45 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
     LAYOUT_TYPE_MAP["vertTitleAndTx"] = AscFormat.nSldLtTVertTitleAndTx;
     LAYOUT_TYPE_MAP["vertTitleAndTxOverChart"] = AscFormat.nSldLtTVertTitleAndTxOverChart;
     LAYOUT_TYPE_MAP["vertTx"] = AscFormat.nSldLtTVertTx;
+
+
+    let LAYOUT_TYPE_TO_STRING = {};
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTBlank] = "blank" ;
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTChart] = "chart";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTChartAndTx] = "chartAndTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTClipArtAndTx] = "clipArtAndTx"
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTClipArtAndVertTx] = "clipArtAndVertTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTCust] = "cust";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTDgm] = "dgm";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTFourObj] = "fourObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTMediaAndTx] = "mediaAndTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTObj] = "obj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTObjAndTwoObj] = "objAndTwoObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTObjAndTx] = "objAndTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTObjOnly] = "objOnly";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTObjOverTx] = "objOverTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTObjTx] = "objTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTPicTx] = "picTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTSecHead] = "secHead";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTbl] = "tbl";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTitle] = "title";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTitleOnly] = "titleOnly";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTwoColTx] = "twoColTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTwoObj] = "twoObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTwoObjAndObj] = "twoObjAndObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTwoObjAndTx] = "twoObjAndTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTwoObjOverTx] = "twoObjOverTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTwoTxTwoObj] = "twoTxTwoObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTx] = "tx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTxAndChart] = "txAndChart";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTxAndClipArt] = "txAndClipArt";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTxAndMedia] = "txAndMedia";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTxAndObj] = "txAndObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTxAndTwoObj] = "txAndTwoObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTTxOverObj] = "txOverObj";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTVertTitleAndTx] = "vertTitleAndTx";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTVertTitleAndTxOverChart] = "vertTitleAndTxOverChart";
+    LAYOUT_TYPE_TO_STRING[AscFormat.nSldLtTVertTx] = "vertTx";
 
 function DrawLineDash(g, x1, y1, x2, y2, w_dot, w_dist){
     var len = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
