@@ -2362,9 +2362,9 @@
 					var zoom = AscCommon.g_dKoef_mm_to_pix * this.WordControl.m_nZoomValue / 100;
 
                     if (!transform)
-                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, zoom);
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X >> 0, pos.Y >> 0, extX, extY, zoom);
                     else
-                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X >> 0, pos.Y >> 0, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
                 }
                 else
 				{
@@ -2387,9 +2387,9 @@
                         var zoom = _w / _w_mm;
 
                         if (!transform)
-                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, _y, extX, extY, zoom);
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x >> 0, _y >> 0, extX, extY, zoom);
                         else
-                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, _y, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x >> 0, _y >> 0, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
                     }
 
 				}
