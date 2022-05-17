@@ -3107,8 +3107,8 @@
 
 				//ссылки на slicer кладём в ws в extLst
 				officeArtExtension = new COfficeArtExtension();
-				officeArtExtension.uri = bExt ? extUri.slicerCachesExt : extUri.slicerCaches;
-				officeArtExtension.additionalNamespace = bExt ? additionalNamespace.slicerCachesExt : additionalNamespace.slicerCaches;
+				officeArtExtension.uri = bExt ? extUri.slicerListExt : extUri.slicerList;
+				officeArtExtension.additionalNamespace = bExt ? additionalNamespace.slicerListExt : additionalNamespace.slicerList;
 				if (bExt) {
 					officeArtExtension.slicerListExtIds = sliceListIds;
 				} else {
@@ -9804,8 +9804,12 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			ns = "";
 		}
 
-		var i;
+		//проверкой xml была выявлена ошибка, данный ext(tableSlicerCache) пишется с префиксом x:
+		if (this.tableSlicerCache) {
+			ns = "x:";
+		}
 
+		var i;
 		writer.WriteXmlNodeStart(ns + "ext");
 
 		//attributes
@@ -10161,12 +10165,11 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			ns = "";
 		}
 		writer.WriteXmlNodeStart(ns + name);
-		/*var sChildPrefix;
-		if(ns.length > 0 && "x14:" !== ns)
-		{
+		var sChildPrefix;
+		if(ns.length > 0 && "x14:" !== ns) {
 			sChildPrefix = "x14:";
 			writer.WriteXmlAttributeString("xmlns:x14", "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
-		}*/
+		}
 		writer.WriteXmlAttributesEnd();
 		if (this.arr.length > 0) {
 			for (var i = 0; i < this.arr.length; ++i) {
@@ -13719,14 +13722,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlNodeStart(ns + name);
 		writer.WriteXmlAttributesEnd();
 
-		if (this.fn) {
-			var fN = name === "rPr" ? "rFont" : "name";
-			if (this.fn.length <= 31) {
-				writer.WritingValNodeEncodeXml(childns, fN, this.fn);
-			} else {
-				writer.WritingValNodeEncodeXml(childns, fN, this.fn.substr(0, 31));
-			}
-		}
 
 		/*if(m_oCharset.IsInit() && m_oCharset->m_oCharset.IsInit())
 		{
@@ -13765,9 +13760,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			WritingValNodeIf("extend", !m_oExtend->ToBool(), L"0");
 		}*/
 
-		if (this.c) {
-			AscCommon.writeColorToXml(writer, "color", this.c, childns);
-		}
 
 		/*if(m_oColor.IsInit())
 			m_oColor->toXMLWithNS(writer, "color", child_ns);*/
@@ -13775,6 +13767,19 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 		if (this.fs != null) {
 			writer.WritingValNode(childns, "sz", this.fs + "");
+		}
+
+		if (this.c) {
+			AscCommon.writeColorToXml(writer, "color", this.c, childns);
+		}
+
+		if (this.fn) {
+			var fN = name === "rPr" ? "rFont" : "name";
+			if (this.fn.length <= 31) {
+				writer.WritingValNodeEncodeXml(childns, fN, this.fn);
+			} else {
+				writer.WritingValNodeEncodeXml(childns, fN, this.fn.substr(0, 31));
+			}
 		}
 
 		if (this.u != null) {
@@ -15932,7 +15937,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributeStringEncode("name", this.name);
 		writer.WriteXmlAttributeStringEncode("xr10:uid", this.uid);
-		writer.WriteXmlAttributeStringEncode("cache", this.cacheDefinition);
+		writer.WriteXmlAttributeStringEncode("cache", this.cacheDefinition.name);
 		writer.WriteXmlAttributeStringEncode("caption", this.caption);
 		writer.WriteXmlAttributeInt("startItem", this.startItem);
 		writer.WriteXmlAttributeInt("columnCount", this.columnCount);
@@ -15940,7 +15945,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		writer.WriteXmlAttributeInt("level", this.level);
 		writer.WriteXmlAttributeString("style", this.style);
 		writer.WriteXmlAttributeBool("lockedPosition", this.lockedPosition);
-		writer.WriteXmlAttributeBool("rowHeight", this.rowHeight);
+		writer.WriteXmlAttributeInt("rowHeight", this.rowHeight);
 		writer.WriteXmlAttributesEnd();
 		//WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
 		writer.WriteXmlNodeEnd(name);

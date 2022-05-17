@@ -11734,7 +11734,7 @@
     };
 
     InitSaveManager.prototype.getSlicersCache = function (isExt) {
-        return isExt ? this.slicerCaches : this.slicerCachesExt;
+        return isExt ? this.slicerCachesExt : this.slicerCaches;
     };
     InitSaveManager.prototype.getTableIds = function () {
         return this.tableIds;
