@@ -14892,7 +14892,6 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		writer.WriteXmlNodeStart(sName);
-		writer.WriteXmlNodeStart();
 
 		if (this.tabIdOpen) {
 			writer.WriteXmlAttributeString("tabId", this.tabIdOpen);
@@ -14950,18 +14949,17 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		writer.WriteXmlNodeStart(sName);
-		writer.WriteXmlNodeStart();
+		writer.WriteXmlAttributesEnd();
 
 		//OlapSlicerCache
 		if (this.olap) {
-			writer.olap.toXml(writer, "olap");
+			this.olap.toXml(writer, "olap");
 		}
 		//TabularSlicerCache
 		if (this.tabular) {
-			writer.tabular.toXml(writer, "tabular");
+			this.tabular.toXml(writer, "tabular");
 		}
 
-		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNodeEnd(sName);
 	};
 
@@ -15026,7 +15024,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("pivotCacheId" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueInt();
 				this.pivotCacheId = val;
 			}
 		}
@@ -15140,10 +15138,10 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.count = val;
 			} else if ("sortOrder" === reader.GetName()) {
 				val = reader.GetValue();
-				this.sortOrder = val;
+				this.sortOrder = FromXml_ST_TabularSlicerCacheSortOrder(val);
 			} else if ("crossFilter" === reader.GetName()) {
 				val = reader.GetValue();
-				this.crossFilter = val;
+				this.crossFilter = FromXml_ST_SlicerCacheCrossFilter(val);
 			}
 		}
 	};
@@ -15164,10 +15162,10 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			writer.WriteXmlAttributeString("sourceCaption", this.count);
 		}
 		if (this.sortOrder) {
-			writer.WriteXmlAttributeString("sortOrder", this.sortOrder);
+			writer.WriteXmlAttributeString("sortOrder", ToXml_ST_TabularSlicerCacheSortOrder(this.sortOrder));
 		}
 		if (this.crossFilter) {
-			writer.WriteXmlAttributeString("crossFilter", this.crossFilter);
+			writer.WriteXmlAttributeString("crossFilter", ToXml_ST_SlicerCacheCrossFilter(this.crossFilter));
 		}
 
 		writer.WriteXmlAttributesEnd();
@@ -15484,11 +15482,11 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("pivotCacheId" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueInt();
 				this.pivotCacheId = val;
 			} else if ("sortOrder" === reader.GetName()) {
 				val = reader.GetValue();
-				this.sortOrder = val;
+				this.sortOrder = FromXml_ST_TabularSlicerCacheSortOrder(val);
 			} else if ("customListSort" === reader.GetName()) {
 				val = reader.GetValue();
 				this.customListSort = val;
@@ -15497,7 +15495,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.showMissing = val;
 			} else if ("crossFilter" === reader.GetName()) {
 				val = reader.GetValue();
-				this.crossFilter = val;
+				this.crossFilter = FromXml_ST_SlicerCacheCrossFilter(val);
 			}
 		}
 	};
@@ -15509,11 +15507,15 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		writer.WriteXmlNodeStart(sName);
-		if (this.pivotCacheId != null) {
-			writer.WriteXmlAttributeString("pivotCacheId", this.pivotCacheId);
+		var pivotCacheId = this.pivotCacheId;
+		if (!pivotCacheId && this.pivotCacheDefinition) {
+			pivotCacheId = this.pivotCacheDefinition.getPivotCacheId()
+		}
+		if (pivotCacheId != null) {
+			writer.WriteXmlAttributeString("pivotCacheId", pivotCacheId);
 		}
 		if (this.sortOrder != null) {
-			writer.WriteXmlAttributeBool("sortOrder", this.sortOrder);
+			writer.WriteXmlAttributeString("sortOrder", ToXml_ST_TabularSlicerCacheSortOrder(this.sortOrder));
 		}
 		if (this.customListSort != null) {
 			writer.WriteXmlAttributeBool("customListSort", this.customListSort);
@@ -15522,7 +15524,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			writer.WriteXmlAttributeBool("showMissing", this.showMissing);
 		}
 		if (this.crossFilter != null) {
-			writer.WriteXmlAttributeBool("crossFilter", this.crossFilter);
+			writer.WriteXmlAttributeString("crossFilter", ToXml_ST_SlicerCacheCrossFilter(this.crossFilter));
 		}
 		writer.WriteXmlAttributesEnd();
 
@@ -15563,13 +15565,13 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var val;
 		while (reader.MoveToNextAttribute()) {
 			if ("x" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueInt();
 				this.x = val;
 			} else if ("s" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.s = val;
 			} else if ("nd" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueBool();
 				this.nd = val;
 			}
 		}
@@ -15929,17 +15931,40 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		}
 
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlAttributeStringEncode("name", this.name);
-		writer.WriteXmlAttributeStringEncode("xr10:uid", this.uid);
-		writer.WriteXmlAttributeStringEncode("cache", this.cacheDefinition.name);
-		writer.WriteXmlAttributeStringEncode("caption", this.caption);
-		writer.WriteXmlAttributeInt("startItem", this.startItem);
-		writer.WriteXmlAttributeInt("columnCount", this.columnCount);
-		writer.WriteXmlAttributeBool("showCaption", this.showCaption);
-		writer.WriteXmlAttributeInt("level", this.level);
-		writer.WriteXmlAttributeString("style", this.style);
-		writer.WriteXmlAttributeBool("lockedPosition", this.lockedPosition);
-		writer.WriteXmlAttributeInt("rowHeight", this.rowHeight);
+		if (null != this.name) {
+			writer.WriteXmlAttributeStringEncode("name", this.name);
+		}
+		if (null != this.uid) {
+			writer.WriteXmlAttributeStringEncode("xr10:uid", this.uid);
+		}
+		if (this.cacheDefinition && null != this.cacheDefinition.name) {
+			writer.WriteXmlAttributeStringEncode("cache", this.cacheDefinition.name);
+		}
+		if (null != this.caption) {
+			writer.WriteXmlAttributeStringEncode("caption", this.caption);
+		}
+		if (null != this.startItem) {
+			writer.WriteXmlAttributeInt("startItem", this.startItem);
+		}
+		if (null != this.columnCount) {
+			writer.WriteXmlAttributeInt("columnCount", this.columnCount);
+		}
+		if (null != this.showCaption) {
+			writer.WriteXmlAttributeBool("showCaption", this.showCaption);
+		}
+		if (null != this.level) {
+			writer.WriteXmlAttributeInt("level", this.level);
+		}
+		if (null != this.style) {
+			writer.WriteXmlAttributeString("style", this.style);
+		}
+		if (null != this.lockedPosition) {
+			writer.WriteXmlAttributeBool("lockedPosition", this.lockedPosition);
+		}
+		if (null != this.rowHeight) {
+			writer.WriteXmlAttributeInt("rowHeight", this.rowHeight);
+		}
+
 		writer.WriteXmlAttributesEnd();
 		//WritingNullable(m_oExtLst, writer.WriteXmlString(m_oExtLst.toXMLWithNS("")););
 		writer.WriteXmlNodeEnd(name);
